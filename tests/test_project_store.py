@@ -118,6 +118,8 @@ class ProjectStoreContractTests(unittest.TestCase):
         self.assertEqual(project["overrides"]["revision"], 0)
         self.assertTrue(project["capabilities"]["edit_joints"])
         self.assertFalse(project["capabilities"]["export_spine"])
+        self.assertEqual(64, len(project["source"]["audit_sha256"]))
+        self.assertEqual("BlendMode.NORMAL", project["layers"][0]["blend_mode"])
 
     def test_revision_conflict_preserves_the_winning_write(self) -> None:
         first = {

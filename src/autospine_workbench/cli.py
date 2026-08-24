@@ -9,6 +9,11 @@ from typing import Sequence
 
 from .artifact_store import ArtifactStoreError, ImmutableJsonArtifactStore
 from .joint_candidates import AuditBBoxHeuristicProvider
+from .layer_manifest import (
+    LayerManifestBuilder,
+    LayerManifestBundleStore,
+    LayerManifestError,
+)
 from .project_store import ProjectStore, ProjectStoreError
 from .rig_validation import RigSemanticValidator
 from .server import create_server
@@ -64,6 +69,23 @@ def build_parser() -> argparse.ArgumentParser:
         default=_project_root() / "workspace",
         help="Root for content-addressed analysis artifacts",
     )
+    materialize = subparsers.add_parser(
+        "materialize-manifest",
+        help="Publish a region-first Layer Manifest bundle from reviewed state",
+    )
+    materialize.add_argument("project_id", help="Audit project identifier")
+    materialize.add_argument(
+        "--workspace",
+        type=Path,
+        default=_project_root().parent,
+        help="Workspace containing tmp/psd_audit/results",
+    )
+    materialize.add_argument(
+        "--state-root",
+        type=Path,
+        default=_project_root() / "workspace",
+        help="Root for immutable build bundles",
+    )
     return parser
 
 
@@ -73,6 +95,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _validate_rig(args.rig)
     if args.command == "analyze-joints":
         return _analyze_joints(args.project_id, args.workspace, args.state_root)
+    if args.command == "materialize-manifest":
+        return _materialize_manifest(args.project_id, args.workspace, args.state_root)
     if args.command != "serve":
         raise AssertionError(f"Unhandled command: {args.command}")
     try:
@@ -135,6 +159,37 @@ def _analyze_joints(project_id: str, workspace: Path, state_root: Path) -> int:
                 "analysis_run_sha256": document["analysis"]["run_sha256"],
                 "artifact_sha256": published.sha256,
                 "artifact_path": str(published.path),
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
+    return 0
+
+
+def _materialize_manifest(project_id: str, workspace: Path, state_root: Path) -> int:
+    try:
+        store = ProjectStore(workspace, state_root=state_root)
+        project = store.get_project(project_id)
+        assets = {
+            layer["id"]: store.resolve_asset(project_id, "layer", layer["id"])
+            for layer in project["layers"]
+        }
+        manifest = LayerManifestBuilder().build(project, assets)
+        bundle, digest = LayerManifestBundleStore(state_root).publish(
+            project_id, manifest, assets
+        )
+    except (ProjectStoreError, LayerManifestError, OSError, ValueError) as exc:
+        print(json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=False))
+        return 2
+    print(
+        json.dumps(
+            {
+                "ok": True,
+                "project_id": project_id,
+                "revision": manifest["revision"],
+                "manifest_sha256": digest,
+                "bundle_path": str(bundle),
             },
             ensure_ascii=False,
             indent=2,

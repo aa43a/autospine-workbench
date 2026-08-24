@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import re
@@ -75,6 +76,7 @@ class _ProjectRecord:
     project_id: str
     audit_dir: Path
     audit_path: Path
+    audit_sha256: str
     audit: Mapping[str, Any]
 
 
@@ -102,6 +104,14 @@ def _load_json(path: Path, max_bytes: int) -> Any:
             return json.load(handle)
     except (OSError, UnicodeError, json.JSONDecodeError) as exc:
         raise ProjectStoreError(f"Cannot read JSON file: {path.name}") from exc
+
+
+def _sha256_file(path: Path) -> str:
+    try:
+        with path.open("rb") as handle:
+            return hashlib.file_digest(handle, "sha256").hexdigest()
+    except OSError as exc:
+        raise ProjectStoreError(f"Cannot hash file: {path.name}") from exc
 
 
 def _as_int(value: Any, default: int = 0) -> int:
@@ -243,6 +253,7 @@ class ProjectStore:
                 project_id=project_id,
                 audit_dir=resolved_path.parent,
                 audit_path=resolved_path,
+                audit_sha256=_sha256_file(resolved_path),
                 audit=audit,
             )
         return records
@@ -306,6 +317,7 @@ class ProjectStore:
                     "visible": visible,
                     "empty": empty,
                     "opacity": _clamp(_as_int(raw_layer.get("opacity"), 255) / 255, 0, 1),
+                    "blend_mode": str(raw_layer.get("blend_mode", "normal")),
                     "z_index": ordinal,
                     "bbox": bbox,
                     "pivot_xy": pivot,
@@ -603,6 +615,7 @@ class ProjectStore:
             "source": {
                 "file_name": source_name,
                 "sha256": str(record.audit.get("sha256", "")),
+                "audit_sha256": record.audit_sha256,
                 "audit_id": record.audit_dir.name,
             },
             "canvas": {
