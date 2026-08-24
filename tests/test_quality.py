@@ -11,11 +11,11 @@ SOURCE_ROOTS = (ROOT / "src", ROOT / "web")
 SOURCE_SUFFIXES = {".py", ".js", ".css", ".html"}
 DEFAULT_MAX_LINES = 400
 
-# These values are the initial Git baseline. Entries may only be lowered or removed.
+# Current ratchet ceilings. Entries may only be lowered or removed.
 LEGACY_MAX_LINES = {
-    "src/autospine_workbench/project_store.py": 952,
+    "src/autospine_workbench/project_store.py": 930,
     "src/autospine_workbench/server.py": 416,
-    "web/app.js": 1365,
+    "web/app.js": 1350,
     "web/styles.css": 1713,
 }
 
