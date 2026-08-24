@@ -1,0 +1,100 @@
+{
+  "contract": {
+    "name": "autospine-workbench.override",
+    "version": 1
+  },
+  "joint_overrides": {
+    "ankle.left": {
+      "x": 534.5,
+      "y": 893.7
+    },
+    "ankle.right": {
+      "x": 472.8,
+      "y": 919.2
+    },
+    "chest": {
+      "x": 471.8,
+      "y": 319.4
+    },
+    "elbow.left": {
+      "x": 562.0,
+      "y": 352.8
+    },
+    "elbow.right": {
+      "x": 397.3,
+      "y": 354.7
+    },
+    "eye.left": {
+      "x": 507.1,
+      "y": 182.2
+    },
+    "eye.right": {
+      "x": 462.0,
+      "y": 195.0
+    },
+    "head": {
+      "x": 479.7,
+      "y": 134.2
+    },
+    "hip.left": {
+      "x": 523.8,
+      "y": 535.0
+    },
+    "hip.right": {
+      "x": 411.1,
+      "y": 532.1
+    },
+    "knee.left": {
+      "x": 459.1,
+      "y": 722.2
+    },
+    "knee.right": {
+      "x": 427.7,
+      "y": 736.9
+    },
+    "neck": {
+      "x": 499.3,
+      "y": 252.8
+    },
+    "pelvis": {
+      "x": 454.2,
+      "y": 529.1
+    },
+    "root": {
+      "x": 511.0,
+      "y": 1011.3
+    },
+    "shoulder.left": {
+      "x": 553.2,
+      "y": 264.6
+    },
+    "shoulder.right": {
+      "x": 440.5,
+      "y": 268.5
+    },
+    "spine": {
+      "x": 464.0,
+      "y": 471.3
+    },
+    "wrist.left": {
+      "x": 579.6,
+      "y": 408.6
+    },
+    "wrist.right": {
+      "x": 414.0,
+      "y": 452.7
+    }
+  },
+  "layer_overrides": {
+    "layer-005-bottomwear": {
+      "visible": true
+    },
+    "layer-007-handwear-l": {
+      "visible": true
+    }
+  },
+  "notes": "",
+  "project_id": "seethrough_output",
+  "revision": 1,
+  "schema_version": "autospine-workbench.override/v1"
+}

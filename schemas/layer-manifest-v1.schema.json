@@ -1,0 +1,465 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/layer-manifest-v1.schema.json",
+  "title": "AutoSpine layer manifest v1",
+  "description": "A versioned, coordinate-stable description of normalized See-through layers before rig authoring.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "format_version",
+    "project_id",
+    "revision",
+    "source",
+    "layers",
+    "qa"
+  ],
+  "properties": {
+    "format": {
+      "const": "autospine-layer-manifest"
+    },
+    "format_version": {
+      "const": 1
+    },
+    "project_id": {
+      "$ref": "#/$defs/id"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "psd_sha256",
+        "canvas",
+        "coordinate_system"
+      ],
+      "properties": {
+        "psd_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "audit_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "relative_path": {
+          "$ref": "#/$defs/relativePath"
+        },
+        "canvas": {
+          "$ref": "#/$defs/size"
+        },
+        "coordinate_system": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "origin",
+            "x_axis",
+            "y_axis",
+            "units",
+            "side_naming"
+          ],
+          "properties": {
+            "origin": {
+              "const": "top_left"
+            },
+            "x_axis": {
+              "const": "right"
+            },
+            "y_axis": {
+              "const": "down"
+            },
+            "units": {
+              "const": "pixel"
+            },
+            "side_naming": {
+              "const": "character_side"
+            }
+          }
+        }
+      }
+    },
+    "layers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/layer"
+      }
+    },
+    "qa": {
+      "$ref": "#/$defs/qa"
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "relativePath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$))[^\\u0000]+$"
+    },
+    "point": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "size": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "integer",
+          "minimum": 1
+        },
+        {
+          "type": "integer",
+          "minimum": 1
+        }
+      ],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "bbox": {
+      "description": "[x, y, width, height] in source-canvas pixels.",
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "integer"
+        },
+        {
+          "type": "integer",
+          "minimum": 0
+        },
+        {
+          "type": "integer",
+          "minimum": 0
+        }
+      ],
+      "items": false,
+      "minItems": 4,
+      "maxItems": 4
+    },
+    "qa": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "flags"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "passed",
+            "manual_required",
+            "rejected"
+          ]
+        },
+        "flags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "layer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "layer_id",
+        "source",
+        "raster",
+        "semantic",
+        "rig_hint",
+        "qa"
+      ],
+      "properties": {
+        "layer_id": {
+          "$ref": "#/$defs/id"
+        },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "index",
+            "visible",
+            "opacity",
+            "blend_mode"
+          ],
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "index": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "group_path": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "visible": {
+              "type": "boolean"
+            },
+            "opacity": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "blend_mode": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "raster": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "artifact_path",
+            "sha256",
+            "canvas_size",
+            "crop_bbox_xywh",
+            "canvas_offset_xy",
+            "channels",
+            "alpha_mode",
+            "color_space",
+            "alpha_nonzero"
+          ],
+          "properties": {
+            "artifact_path": {
+              "$ref": "#/$defs/relativePath"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "canvas_size": {
+              "$ref": "#/$defs/size"
+            },
+            "crop_bbox_xywh": {
+              "$ref": "#/$defs/bbox"
+            },
+            "canvas_offset_xy": {
+              "$ref": "#/$defs/point"
+            },
+            "channels": {
+              "const": "RGBA"
+            },
+            "alpha_mode": {
+              "const": "straight"
+            },
+            "color_space": {
+              "const": "srgb"
+            },
+            "alpha_nonzero": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "component_areas": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
+          }
+        },
+        "semantic": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "source_tag",
+            "canonical_role",
+            "side",
+            "mapping_method",
+            "confidence"
+          ],
+          "properties": {
+            "source_tag": {
+              "type": "string"
+            },
+            "canonical_role": {
+              "type": "string",
+              "minLength": 1
+            },
+            "side": {
+              "enum": [
+                "character_left",
+                "character_right",
+                "center",
+                "bilateral",
+                "unknown"
+              ]
+            },
+            "stratum": {
+              "enum": [
+                "back",
+                "body",
+                "front",
+                "unknown"
+              ]
+            },
+            "instance": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "mapping_method": {
+              "enum": [
+                "exact",
+                "alias",
+                "components",
+                "model",
+                "manual",
+                "unknown"
+              ]
+            },
+            "confidence": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        },
+        "derivation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "operation",
+            "parent_layer_ids"
+          ],
+          "properties": {
+            "operation": {
+              "enum": [
+                "source",
+                "split",
+                "merge",
+                "cleanup"
+              ]
+            },
+            "parent_layer_ids": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/id"
+              },
+              "uniqueItems": true
+            },
+            "operation_config_sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "rig_hint": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "attachment_kind",
+            "setup_draw_order"
+          ],
+          "properties": {
+            "attachment_kind": {
+              "enum": [
+                "region",
+                "mesh",
+                "sprite_set",
+                "excluded",
+                "unknown"
+              ]
+            },
+            "deform_class": {
+              "enum": [
+                "rigid",
+                "hinge",
+                "soft",
+                "hair",
+                "cloth",
+                "face",
+                "unknown"
+              ]
+            },
+            "candidate_bone": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/id"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "pivot": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "xy",
+                    "method",
+                    "confidence"
+                  ],
+                  "properties": {
+                    "xy": {
+                      "$ref": "#/$defs/point"
+                    },
+                    "method": {
+                      "enum": [
+                        "landmark",
+                        "overlap",
+                        "manual",
+                        "unknown"
+                      ]
+                    },
+                    "confidence": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "setup_draw_order": {
+              "type": "integer"
+            }
+          }
+        },
+        "qa": {
+          "$ref": "#/$defs/qa"
+        }
+      }
+    }
+  }
+}

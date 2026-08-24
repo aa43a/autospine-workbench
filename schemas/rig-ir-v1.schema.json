@@ -1,0 +1,642 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/rig-ir-v1.schema.json",
+  "title": "AutoSpine version-neutral rig IR v1",
+  "description": "The minimum loss-intolerant contract between rig authoring and a target-specific exporter.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "format_version",
+    "source",
+    "canvas",
+    "capabilities",
+    "unsupported_feature_policy",
+    "bones",
+    "slots",
+    "attachments",
+    "skins",
+    "animations",
+    "qa"
+  ],
+  "properties": {
+    "format": {
+      "const": "autospine-rig-ir"
+    },
+    "format_version": {
+      "const": 1
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "layer_manifest_sha256"
+      ],
+      "properties": {
+        "run_manifest_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "layer_manifest_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "override_patch_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "canvas": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "width",
+        "height",
+        "origin",
+        "x_axis",
+        "y_axis",
+        "units"
+      ],
+      "properties": {
+        "width": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "origin": {
+          "const": "top_left"
+        },
+        "x_axis": {
+          "const": "right"
+        },
+        "y_axis": {
+          "const": "down"
+        },
+        "units": {
+          "const": "pixel"
+        }
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "region_attachment",
+          "mesh_attachment",
+          "bone_translate",
+          "bone_rotate",
+          "bone_scale",
+          "setup_draw_order"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "unsupported_feature_policy": {
+      "const": "fail"
+    },
+    "bones": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/bone"
+      }
+    },
+    "slots": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/slot"
+      }
+    },
+    "attachments": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "$ref": "#/$defs/regionAttachment"
+          },
+          {
+            "$ref": "#/$defs/meshAttachment"
+          }
+        ]
+      }
+    },
+    "skins": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "$ref": "#/$defs/id"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "propertyNames": {
+          "$ref": "#/$defs/id"
+        },
+        "additionalProperties": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "default"
+      ]
+    },
+    "animations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/animation"
+      }
+    },
+    "retarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "rest_pose",
+        "bone_map"
+      ],
+      "properties": {
+        "profile": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rest_pose": {
+          "const": "source_setup"
+        },
+        "bone_map": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/id"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/id"
+          }
+        }
+      }
+    },
+    "qa": {
+      "$ref": "#/$defs/qa"
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "relativePath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$))[^\\u0000]+$"
+    },
+    "point": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "color": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{8}$"
+    },
+    "bone": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "parent",
+        "setup",
+        "inference"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "parent": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "setup": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "x",
+            "y",
+            "rotation_deg",
+            "scale_x",
+            "scale_y",
+            "length"
+          ],
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "rotation_deg": {
+              "type": "number"
+            },
+            "scale_x": {
+              "type": "number"
+            },
+            "scale_y": {
+              "type": "number"
+            },
+            "length": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        },
+        "inference": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "method",
+            "confidence"
+          ],
+          "properties": {
+            "method": {
+              "enum": [
+                "landmark",
+                "overlap",
+                "template",
+                "manual"
+              ]
+            },
+            "confidence": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        }
+      }
+    },
+    "slot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "bone",
+        "setup_attachment",
+        "setup_draw_order",
+        "blend",
+        "color_rgba"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "bone": {
+          "$ref": "#/$defs/id"
+        },
+        "setup_attachment": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "setup_draw_order": {
+          "type": "integer"
+        },
+        "blend": {
+          "enum": [
+            "normal",
+            "additive",
+            "multiply",
+            "screen"
+          ]
+        },
+        "color_rgba": {
+          "$ref": "#/$defs/color"
+        }
+      }
+    },
+    "attachmentBase": {
+      "type": "object",
+      "required": [
+        "id",
+        "slot",
+        "type",
+        "image_path",
+        "image_sha256",
+        "source_layer_ids",
+        "canvas_offset_xy",
+        "pivot_xy"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "slot": {
+          "$ref": "#/$defs/id"
+        },
+        "type": {
+          "enum": [
+            "region",
+            "mesh"
+          ]
+        },
+        "image_path": {
+          "$ref": "#/$defs/relativePath"
+        },
+        "image_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "source_layer_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "canvas_offset_xy": {
+          "$ref": "#/$defs/point"
+        },
+        "pivot_xy": {
+          "$ref": "#/$defs/point"
+        }
+      }
+    },
+    "regionAttachment": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/attachmentBase"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "slot",
+            "type",
+            "image_path",
+            "image_sha256",
+            "source_layer_ids",
+            "canvas_offset_xy",
+            "pivot_xy",
+            "size"
+          ],
+          "properties": {
+            "id": true,
+            "slot": true,
+            "type": {
+              "const": "region"
+            },
+            "image_path": true,
+            "image_sha256": true,
+            "source_layer_ids": true,
+            "canvas_offset_xy": true,
+            "pivot_xy": true,
+            "size": {
+              "$ref": "#/$defs/point"
+            }
+          }
+        }
+      ]
+    },
+    "meshAttachment": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/attachmentBase"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "slot",
+            "type",
+            "image_path",
+            "image_sha256",
+            "source_layer_ids",
+            "canvas_offset_xy",
+            "pivot_xy",
+            "vertices",
+            "uvs",
+            "triangles",
+            "weights"
+          ],
+          "properties": {
+            "id": true,
+            "slot": true,
+            "type": {
+              "const": "mesh"
+            },
+            "image_path": true,
+            "image_sha256": true,
+            "source_layer_ids": true,
+            "canvas_offset_xy": true,
+            "pivot_xy": true,
+            "vertices": {
+              "type": "array",
+              "minItems": 3,
+              "items": {
+                "$ref": "#/$defs/point"
+              }
+            },
+            "uvs": {
+              "type": "array",
+              "minItems": 3,
+              "items": {
+                "$ref": "#/$defs/point"
+              }
+            },
+            "triangles": {
+              "type": "array",
+              "minItems": 3,
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "weights": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "bone",
+                    "weight"
+                  ],
+                  "properties": {
+                    "bone": {
+                      "$ref": "#/$defs/id"
+                    },
+                    "weight": {
+                      "type": "number",
+                      "exclusiveMinimum": 0,
+                      "maximum": 1
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "animation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "duration",
+        "loop",
+        "timelines"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "duration": {
+          "type": "number",
+          "minimum": 0
+        },
+        "loop": {
+          "type": "boolean"
+        },
+        "timelines": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "bone",
+              "property",
+              "keys"
+            ],
+            "properties": {
+              "bone": {
+                "$ref": "#/$defs/id"
+              },
+              "property": {
+                "enum": [
+                  "translate",
+                  "rotate",
+                  "scale"
+                ]
+              },
+              "keys": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "time",
+                    "value"
+                  ],
+                  "properties": {
+                    "time": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "value": {
+                      "oneOf": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "$ref": "#/$defs/point"
+                        }
+                      ]
+                    },
+                    "curve": {
+                      "enum": [
+                        "linear",
+                        "stepped"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "qa": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "checks",
+        "manual_override_ids"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "passed",
+            "manual_required",
+            "rejected"
+          ]
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "status"
+            ],
+            "properties": {
+              "id": {
+                "$ref": "#/$defs/id"
+              },
+              "status": {
+                "enum": [
+                  "passed",
+                  "manual_required",
+                  "rejected"
+                ]
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "manual_override_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}

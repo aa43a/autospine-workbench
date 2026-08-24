@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "autospine-workbench"
+version = "0.1.0"
+description = "Local review workbench for See-through layer audits and version-neutral rig overrides"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+test = ["jsonschema>=4.23,<5"]
+
+[project.scripts]
+autospine-workbench = "autospine_workbench.__main__:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
