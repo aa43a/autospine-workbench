@@ -46,6 +46,7 @@ class PoseObservationSet:
     selection_method: str
     joints: Mapping[str, PoseJointObservation]
     document_sha256: str
+    document: Mapping[str, Any] | None = None
 
 
 def load_pose_observations(
@@ -131,6 +132,7 @@ def load_pose_observations(
         selection_method=str(selection_method),
         joints=joints,
         document_sha256=canonical_sha256(root),
+        document=root,
     )
 
 

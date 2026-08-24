@@ -105,8 +105,11 @@ class JointAnalysisCliTests(unittest.TestCase):
         self.assertTrue(response["ok"])
         self.assertEqual("pose-alpha-limb-fusion", response["provider"])
         artifact = Path(response["artifact_path"])
+        pose_artifact = Path(response["pose_artifact_path"])
         self.assertTrue(artifact.is_file())
+        self.assertTrue(pose_artifact.is_file())
         self.assertEqual(response["artifact_sha256"], artifact.stem)
+        self.assertEqual(response["pose_artifact_sha256"], pose_artifact.stem)
 
     def test_provider_specific_arguments_fail_without_publishing(self) -> None:
         output = io.StringIO()
