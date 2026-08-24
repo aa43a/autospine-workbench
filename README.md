@@ -190,7 +190,7 @@ python -m autospine_workbench materialize-manifest seethrough_output `
 python -m autospine_workbench validate-rig .\path\to\rig.json
 ```
 
-候选写入 `workspace/analysis/<project-id>/joint-candidates/<sha256>.json`；manifest bundle 写入 `workspace/builds/layer-manifest/<project-id>/<sha256>/`。路径中的哈希来自 canonical 内容，相同输入不会产生相互覆盖的可变结果。`audit-bbox-heuristic` 和 `pose-alpha-limb-fusion` 都只输出 `heuristic_score`，不是经过标定的概率或模型置信度；后者始终保留原始 pose，并把 alpha 作为有限幅度的软证据。
+候选写入 `workspace/analysis/<project-id>/joint-candidates/<sha256>.json`；通过验证的 pose 输入单独写入相邻的 `pose-observations/<sha256>.json`；manifest bundle 写入 `workspace/builds/layer-manifest/<project-id>/<sha256>/`。路径中的哈希来自 canonical 内容，相同输入不会产生相互覆盖的可变结果。`audit-bbox-heuristic` 和 `pose-alpha-limb-fusion` 都只输出 `heuristic_score`，不是经过标定的概率或模型置信度；后者始终保留原始 pose，并把 alpha 作为有限幅度的软证据。
 
 ## HTTP API
 
