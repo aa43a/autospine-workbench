@@ -4,6 +4,8 @@
 
 `pose-alpha` 不运行姿态模型，也不生成 Spine 骨架。它只消费规范化观测，并验证观测是否确实属于当前项目的合成图。
 
+如果上游输出标准 COCO17，优先按 [导入并评估 COCO17 四肢姿态](how-to-import-and-evaluate-pose.md) 使用 `import-pose` 生成带左右、视角和镜像 provenance 的 v2 文档。下面的 v1 示例继续用于已有 canonical 输入。
+
 ## 1. 准备合成图和姿态观测
 
 姿态检测器必须分析 audit 项目的 `composite.png`，不能分析另一个缩放、裁切或镜像版本。先取得文件哈希：

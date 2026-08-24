@@ -15,6 +15,7 @@ AutoSpine Workbench 是一个本地人工复核界面，用于查看 See-through
 - 每次成功保存都写入 append-only revision 历史，并生成应用人工决定后的 resolved snapshot。
 - 通过只读验证 API 检查画布、图层 ID、资产路径和骨架结构。
 - 离线发布带 provenance 的关节候选工件和 region-first Layer Manifest bundle。
+- 把固定的 COCO17 检测转换为显式左右/镜像 provenance 的 canonical pose，并用人工复核四肢点生成诊断误差报告。
 - 对 RigIR 执行跨引用、拓扑、权重、三角形及 timeline 语义验证；不支持特性会明确失败。
 
 ## 快速启动
@@ -140,7 +141,10 @@ python -m autospine_workbench serve `
 JSON Schema 位于：
 
 - `schemas/override-patch-v1.schema.json`：在线 API 的 canonical patch；
+- `schemas/coco17-detections-v1.schema.json`：模型 runner 与通用四肢 adapter 的固定输入；
 - `schemas/pose-observations-v1.schema.json`：外部姿态检测器的单角色、原画布观测输入；
+- `schemas/pose-observations-v2.schema.json`：带 adapter、左右、视角和镜像 provenance 的 canonical pose；
+- `schemas/pose-evaluation-v1.schema.json`：人工复核四肢点的阈值无关诊断报告；
 - `schemas/joint-candidates-v1.schema.json`：可复现的关节候选、证据分数和来源；
 - `schemas/layer-manifest-v1.schema.json`：规范化 RGBA 图层与语义、offset、QA 的 authoring 合同；
 - `schemas/rig-ir-v1.schema.json`：版本中立的骨骼、slot、attachment 与有限动画合同。
@@ -163,6 +167,18 @@ python -m autospine_workbench analyze-joints seethrough_output `
   --state-root .\workspace
 ```
 
+把已固定的 COCO17 模型输出转换为 canonical pose v2：
+
+```powershell
+python -m autospine_workbench import-pose seethrough_output `
+  .\inputs\seethrough_output.coco17.json `
+  --workspace .. `
+  --state-root .\workspace `
+  --side-mapping as_reported `
+  --view-orientation front `
+  --mirror-state not_mirrored
+```
+
 已有规范化姿态观测时，可运行 pose + alpha 连通域软约束：
 
 ```powershell
@@ -174,7 +190,16 @@ python -m autospine_workbench analyze-joints seethrough_output `
   --alpha-threshold 8
 ```
 
-观测文件的准备、运行和 QA 解释见 [使用 pose-alpha 生成四肢候选](docs/how-to-run-pose-alpha.md)；完整合同见 [Pose observations v1 参考](docs/pose-observations-reference.md)。
+用当前人工复核关节生成诊断误差报告：
+
+```powershell
+python -m autospine_workbench evaluate-pose seethrough_output `
+  .\workspace\analysis\seethrough_output\pose-observations\<sha256>.json `
+  --workspace .. `
+  --state-root .\workspace
+```
+
+COCO17 准备、导入、融合和评估步骤见 [导入并评估 COCO17 四肢姿态](docs/how-to-import-and-evaluate-pose.md)；已有 canonical 输入见 [使用 pose-alpha 生成四肢候选](docs/how-to-run-pose-alpha.md)；机器合同见 [姿态 adapter 与评估参考](docs/pose-adapter-reference.md) 和 [Pose observations v1/v2 参考](docs/pose-observations-reference.md)。
 
 从当前已复核 revision 发布不可变的 region attachment bundle：
 
@@ -190,7 +215,7 @@ python -m autospine_workbench materialize-manifest seethrough_output `
 python -m autospine_workbench validate-rig .\path\to\rig.json
 ```
 
-候选写入 `workspace/analysis/<project-id>/joint-candidates/<sha256>.json`；通过验证的 pose 输入单独写入相邻的 `pose-observations/<sha256>.json`；manifest bundle 写入 `workspace/builds/layer-manifest/<project-id>/<sha256>/`。路径中的哈希来自 canonical 内容，相同输入不会产生相互覆盖的可变结果。`audit-bbox-heuristic` 和 `pose-alpha-limb-fusion` 都只输出 `heuristic_score`，不是经过标定的概率或模型置信度；后者始终保留原始 pose，并把 alpha 作为有限幅度的软证据。
+raw COCO17、canonical pose、评估报告和候选分别写入 `pose-adapter-inputs/`、`pose-observations/`、`pose-evaluations/` 和 `joint-candidates/`；manifest bundle 写入 `workspace/builds/layer-manifest/<project-id>/<sha256>/`。路径中的哈希来自 canonical 内容，相同输入不会产生相互覆盖的可变结果。`audit-bbox-heuristic` 和 `pose-alpha-limb-fusion` 都只输出 `heuristic_score`，不是经过标定的概率或模型置信度；后者始终保留原始 pose，并把 alpha 作为有限幅度的软证据。评估报告固定为 `diagnostic`，不内置合格阈值或自动左右修复。
 
 ## HTTP API
 
@@ -235,8 +260,8 @@ python -m unittest discover -s tests -v
 
 当前已经贯通：`See-through audit → 人工复核 → append-only override → resolved snapshot → 外部 pose + alpha 四肢候选 → manifest 不可变工件`。后续按以下顺序推进：
 
-1. **姿态 adapter 与评估集**：把选定的 Anime/ONNX/MMPose 输出转换为 canonical pose observations，冻结模型 revision，并用人工标注样本评估肩肘腕、髋膝踝误差；先解决 view orientation、mirror 和 character-side 映射。
-2. **接触几何候选**：在现有连通域基础上增加 torso/arm、pelvis/leg、leg/foot 接触簇；宽袖、长裙、融合双腿和遮挡关节继续保留多解与人工复核。
+1. **姿态 runner 与真实评估集**：COCO17 固定输入、显式 view/mirror/character-side adapter 和人工误差报告已经完成；下一步为选定的 Anime/ONNX/MMPose runner 产出该合同，冻结真实模型 revision，并在两份样本与新增标注集上记录基线，不把参考点回灌 smoke 当作模型精度。
+2. **接触几何候选与比较 UI**：在现有连通域基础上增加 torso/arm、pelvis/leg、leg/foot 接触簇，并让用户接受、调整、拒绝或标记不可观测；宽袖、长裙、融合双腿和遮挡关节继续保留多解与证据回看。
 3. **region-first RigIR 编译**：把已发布 Layer Manifest 和确认关节编译为规范骨角色、slot、draw order 与 region attachment；先做 setup 合成回归，不在这一阶段引入 mesh。
 4. **绑定与动作探针**：只对 region 无法连续弯曲的上臂、前臂、大腿、小腿生成轮廓网格、两骨权重和 LBS 预览，并用抬臂、屈肘、抬腿、屈膝四个极值探针暴露遮挡补全、翻三角与接缝问题。
 5. **通用动画重定向与版本适配**：动画库只引用 `humanoid-v1`；目标 Spine 版本仅进入 adapter，不支持的 mesh、deform、constraint 或 draw order 必须失败并报告。
@@ -248,7 +273,7 @@ python -m unittest discover -s tests -v
 当前版本不负责：
 
 - 运行 See-through 推理、选择 seed、编辑 PSD 或自动清理图层；
-- 下载或运行具体姿态模型；`pose-alpha` 只消费经过哈希固定的 canonical observations，当前 UI 也尚未加载离线候选工件；
+- 下载或运行具体姿态模型；`import-pose` 只转换经过哈希固定且已还原到原画布的 COCO17 输出，当前 UI 也尚未加载离线候选工件；
 - 自动解决 `head-obj`、`objects`、合并肢体等歧义语义；
 - 证明遮挡补全符合解剖或在大幅动作下不会露馅；
 - 自动生成 mesh、权重、deform、IK、约束或动态 draw order；

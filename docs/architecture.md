@@ -37,7 +37,8 @@ web    → HTTP contracts only
 - `server.py` 负责 HTTP、输入大小、loopback 安全和错误映射，不实现领域规则。
 - 前端分为 API、authoring state、保存事务和各 stage view；view state 不得污染 revision draft。
 - 外部姿态模型只能通过 canonical pose observations 进入；alpha 几何只读取 resolved layer 与固定 PNG，融合结果必须保留原始 pose 和未标定分数语义。
-- 离线命令最终按 `materialize-manifest`、`analyze-joints`、`compile-rig`、`run-probes`、`validate-rig` 和 `export-spine` 划分。
+- COCO17 raw 输入、adapter、canonical pose、人工评估和候选工件分开内容寻址；坐标反镜像、左右标签交换、视角和镜像声明不得合并成一个隐式开关。
+- 离线命令最终按 `import-pose`、`evaluate-pose`、`materialize-manifest`、`analyze-joints`、`compile-rig`、`run-probes`、`validate-rig` 和 `export-spine` 划分。
 
 ## 文件长度预算
 
