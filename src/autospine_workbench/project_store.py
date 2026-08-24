@@ -24,6 +24,7 @@ from .override_store import (
     OverrideStateError,
     OverrideStoreError,
 )
+from .resolved_project import ResolvedProjectBuilder
 
 
 _PROJECT_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
@@ -657,7 +658,20 @@ class ProjectStore:
             },
         }
         if include_overrides:
-            project["overrides"] = self._read_overrides(project)
+            overrides = self._read_overrides(project)
+            project["overrides"] = overrides
+            resolved = ResolvedProjectBuilder().build(project, overrides)
+            project["resolved"] = resolved
+            project["workflow"]["status"] = resolved["qa"]["status"]
+            project["workflow"]["steps"][1]["status"] = (
+                "needs_review" if resolved["qa"]["review_layer_ids"] else "ready"
+            )
+            project["workflow"]["steps"][1]["review_item_count"] = len(
+                resolved["qa"]["review_layer_ids"]
+            )
+            project["workflow"]["steps"][2]["status"] = (
+                "needs_review" if resolved["qa"]["unresolved_joint_ids"] else "ready"
+            )
         return project
 
     def list_projects(self) -> list[dict[str, Any]]:
@@ -716,6 +730,17 @@ class ProjectStore:
         warnings: list[dict[str, str]] = []
         checks: list[dict[str, Any]] = []
         project = self._build_project(record, include_overrides=False)
+        revision = 0
+        try:
+            overrides = self._read_overrides(project)
+            revision = overrides["revision"]
+            resolved = ResolvedProjectBuilder().build(project, overrides)
+            project["layers"] = resolved["layers"]
+            project["skeleton"] = resolved["skeleton"]
+            checks.append({"id": "overrides", "status": "pass", "revision": revision})
+        except ProjectStateError as exc:
+            checks.append({"id": "overrides", "status": "fail"})
+            errors.append({"path": "$.overrides", "code": "invalid_state", "message": str(exc)})
 
         width, height = project["canvas"]["width"], project["canvas"]["height"]
         canvas_ok = width > 0 and height > 0
@@ -797,7 +822,11 @@ class ProjectStore:
         )
         if not skeleton_ok:
             errors.append({"path": "$.skeleton", "code": "invalid_skeleton", "message": "Skeleton ids, endpoints, or bounds are invalid."})
-        low_confidence_count = sum(1 for joint in joints if joint["confidence"] < 0.5)
+        low_confidence_count = sum(
+            1
+            for joint in joints
+            if joint["confidence"] < 0.5 and joint.get("review_state") == "unreviewed"
+        )
         if low_confidence_count:
             warnings.append(
                 {
@@ -817,15 +846,6 @@ class ProjectStore:
                 }
             )
         checks.append({"id": "composite-fidelity", "status": "warn" if mae > 5 else "pass", "mae_rgba": mae})
-
-        revision = 0
-        try:
-            overrides = self._read_overrides(project)
-            revision = overrides["revision"]
-            checks.append({"id": "overrides", "status": "pass", "revision": revision})
-        except ProjectStateError as exc:
-            checks.append({"id": "overrides", "status": "fail"})
-            errors.append({"path": "$.overrides", "code": "invalid_state", "message": str(exc)})
 
         if errors:
             status = "invalid"

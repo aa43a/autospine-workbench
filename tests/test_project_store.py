@@ -186,6 +186,43 @@ class ProjectStoreContractTests(unittest.TestCase):
         self.assertEqual(latest["revision"], 2)
         self.assertEqual(latest["notes"], "second")
 
+    def test_resolved_project_and_validation_apply_reviewed_joint_positions(self) -> None:
+        project = self.store.get_project("fixture-project")
+        low_confidence = [
+            joint for joint in project["skeleton"]["joints"] if joint["confidence"] < 0.5
+        ]
+        self.assertTrue(low_confidence)
+        patch = {
+            joint["id"]: {
+                "x": joint["x"],
+                "y": joint["y"],
+                "reason": "reviewed fixture fallback",
+            }
+            for joint in low_confidence
+        }
+        self.store.save_overrides(
+            "fixture-project",
+            {
+                "base_revision": 0,
+                "joint_overrides": patch,
+                "layer_overrides": {},
+                "notes": "reviewed all low confidence joints",
+            },
+        )
+
+        reloaded = self.fixture.store().get_project("fixture-project")
+        resolved_joints = {joint["id"]: joint for joint in reloaded["resolved"]["skeleton"]["joints"]}
+        for joint in low_confidence:
+            effective = resolved_joints[joint["id"]]
+            self.assertEqual("manual_adjusted", effective["review_state"])
+            self.assertEqual(joint["confidence"], effective["model_confidence"])
+        self.assertEqual([], reloaded["resolved"]["qa"]["unresolved_joint_ids"])
+
+        validation = self.fixture.store().validate_project("fixture-project")
+        warning_codes = {warning["code"] for warning in validation["warnings"]}
+        self.assertNotIn("low_confidence_joints", warning_codes)
+        self.assertEqual(1, validation["revision"])
+
     def test_legacy_override_is_read_and_migrated_without_modification(self) -> None:
         override_root = self.fixture.state / "overrides"
         override_root.mkdir(parents=True)
