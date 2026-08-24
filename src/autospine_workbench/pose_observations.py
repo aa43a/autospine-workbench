@@ -46,6 +46,7 @@ class PoseObservationSet:
     selection_method: str
     joints: Mapping[str, PoseJointObservation]
     document_sha256: str
+    adapter: Mapping[str, Any] | None = None
     document: Mapping[str, Any] | None = None
 
 
@@ -58,22 +59,28 @@ def load_pose_observations(
 ) -> PoseObservationSet:
     document = _read_document(Path(path))
     root = _mapping(document, "$")
+    if root.get("format") != "autospine-pose-observations":
+        raise PoseObservationError("Unsupported pose observation format")
+    format_version = root.get("format_version")
+    required_fields = {
+        "format",
+        "format_version",
+        "project_id",
+        "source",
+        "detector",
+        "subject",
+        "coordinate_system",
+        "joints",
+    }
+    if format_version == 2:
+        required_fields.add("adapter")
+    elif format_version != 1:
+        raise PoseObservationError("Unsupported pose observation format")
     _fields(
         root,
-        {
-            "format",
-            "format_version",
-            "project_id",
-            "source",
-            "detector",
-            "subject",
-            "coordinate_system",
-            "joints",
-        },
+        required_fields,
         "$",
     )
-    if root.get("format") != "autospine-pose-observations" or root.get("format_version") != 1:
-        raise PoseObservationError("Unsupported pose observation format")
     project_id = _identifier(root.get("project_id"), "$.project_id")
     if project_id != expected_project_id:
         raise PoseObservationError("Pose observations belong to another project")
@@ -116,6 +123,7 @@ def load_pose_observations(
     if detected_count > 1 and selection_method == "single":
         raise PoseObservationError("Multiple subjects require an explicit selection method")
 
+    adapter = _adapter(root.get("adapter")) if format_version == 2 else None
     _coordinate_system(root.get("coordinate_system"))
     joints = _joints(root.get("joints"), canvas_size)
     return PoseObservationSet(
@@ -132,6 +140,7 @@ def load_pose_observations(
         selection_method=str(selection_method),
         joints=joints,
         document_sha256=canonical_sha256(root),
+        adapter=adapter,
         document=root,
     )
 
@@ -141,7 +150,7 @@ def _read_document(path: Path) -> Any:
         if path.stat().st_size > MAX_POSE_DOCUMENT_BYTES:
             raise PoseObservationError("Pose observation document is too large")
         with path.open("r", encoding="utf-8") as handle:
-            return json.load(handle)
+            return json.load(handle, object_pairs_hook=_unique_object)
     except PoseObservationError:
         raise
     except (OSError, UnicodeError, json.JSONDecodeError) as exc:
@@ -216,6 +225,58 @@ def _coordinate_system(value: Any) -> None:
     _fields(coordinate, set(expected), "$.coordinate_system")
     if dict(coordinate) != expected:
         raise PoseObservationError("Pose coordinate system is not canonical")
+
+
+def _adapter(value: Any) -> dict[str, Any]:
+    adapter = _mapping(value, "$.adapter")
+    fields = {
+        "id",
+        "version",
+        "input_format",
+        "input_document_sha256",
+        "input_side_naming",
+        "coordinate_transform",
+        "side_mapping",
+        "view_orientation",
+        "mirror_state",
+        "float_precision_decimals",
+    }
+    _fields(adapter, fields, "$.adapter")
+    expected = {
+        "id": "coco17-limb-adapter",
+        "version": "1",
+        "input_format": "autospine-coco17-detections/v1",
+        "input_side_naming": "coco_character_side",
+        "float_precision_decimals": 6,
+    }
+    if any(adapter.get(key) != expected_value for key, expected_value in expected.items()):
+        raise PoseObservationError("Pose adapter identity is unsupported")
+    _digest(adapter.get("input_document_sha256"), "$.adapter.input_document_sha256")
+    if adapter.get("coordinate_transform") not in {"identity", "unmirror_x"}:
+        raise PoseObservationError("Pose adapter coordinate transform is invalid")
+    if adapter.get("side_mapping") not in {"as_reported", "swap_left_right"}:
+        raise PoseObservationError("Pose adapter side mapping is invalid")
+    if adapter.get("view_orientation") not in {
+        "front",
+        "back",
+        "left_profile",
+        "right_profile",
+        "three_quarter",
+        "unknown",
+    }:
+        raise PoseObservationError("Pose adapter view orientation is invalid")
+    if adapter.get("mirror_state") not in {"not_mirrored", "mirrored", "unknown"}:
+        raise PoseObservationError("Pose adapter mirror state is invalid")
+    return dict(adapter)
+
+
+def _unique_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise PoseObservationError(f"Duplicate JSON field: {key}")
+        result[key] = value
+    return result
 
 
 def _joints(value: Any, canvas: tuple[int, int]) -> dict[str, PoseJointObservation]:

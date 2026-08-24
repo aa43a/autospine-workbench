@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/pose-observations-v2.schema.json",
+  "title": "AutoSpine canonical pose observations v2",
+  "description": "Pinned pose observations with explicit adapter, coordinate, view, mirror, and character-side provenance.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "format_version",
+    "project_id",
+    "source",
+    "detector",
+    "subject",
+    "adapter",
+    "coordinate_system",
+    "joints"
+  ],
+  "properties": {
+    "format": { "const": "autospine-pose-observations" },
+    "format_version": { "const": 2 },
+    "project_id": { "$ref": "#/$defs/id" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["image_kind", "image_sha256", "canvas_size"],
+      "properties": {
+        "image_kind": { "const": "composite" },
+        "image_sha256": { "$ref": "#/$defs/sha256" },
+        "canvas_size": {
+          "type": "array",
+          "prefixItems": [
+            { "type": "integer", "minimum": 1 },
+            { "type": "integer", "minimum": 1 }
+          ],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2
+        }
+      }
+    },
+    "detector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version", "model_revision", "config_sha256", "runtime"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "version": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "model_revision": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "model_sha256": { "$ref": "#/$defs/sha256" },
+        "config_sha256": { "$ref": "#/$defs/sha256" },
+        "runtime": { "type": "string", "minLength": 1, "maxLength": 128 }
+      }
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["detected_count", "selected_index", "selection_method"],
+      "properties": {
+        "detected_count": { "type": "integer", "minimum": 1, "maximum": 100 },
+        "selected_index": { "type": "integer", "minimum": 0, "maximum": 99 },
+        "selection_method": {
+          "enum": ["single", "manual", "largest_area", "tracker"]
+        }
+      }
+    },
+    "adapter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "version",
+        "input_format",
+        "input_document_sha256",
+        "input_side_naming",
+        "coordinate_transform",
+        "side_mapping",
+        "view_orientation",
+        "mirror_state",
+        "float_precision_decimals"
+      ],
+      "properties": {
+        "id": { "const": "coco17-limb-adapter" },
+        "version": { "const": "1" },
+        "input_format": { "const": "autospine-coco17-detections/v1" },
+        "input_document_sha256": { "$ref": "#/$defs/sha256" },
+        "input_side_naming": { "const": "coco_character_side" },
+        "coordinate_transform": { "enum": ["identity", "unmirror_x"] },
+        "side_mapping": { "enum": ["as_reported", "swap_left_right"] },
+        "view_orientation": {
+          "enum": [
+            "front",
+            "back",
+            "left_profile",
+            "right_profile",
+            "three_quarter",
+            "unknown"
+          ]
+        },
+        "mirror_state": { "enum": ["not_mirrored", "mirrored", "unknown"] },
+        "float_precision_decimals": { "const": 6 }
+      }
+    },
+    "coordinate_system": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["origin", "x_axis", "y_axis", "units", "side_naming"],
+      "properties": {
+        "origin": { "const": "top_left" },
+        "x_axis": { "const": "right" },
+        "y_axis": { "const": "down" },
+        "units": { "const": "pixel" },
+        "side_naming": { "const": "character_side" }
+      }
+    },
+    "joints": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "$ref": "#/$defs/id" },
+      "additionalProperties": { "$ref": "#/$defs/joint" }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "joint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["xy", "detector_score", "visibility"],
+      "properties": {
+        "xy": {
+          "type": "array",
+          "prefixItems": [{ "type": "number" }, { "type": "number" }],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "detector_score": { "type": "number", "minimum": 0, "maximum": 1 },
+        "visibility": {
+          "enum": ["visible", "occluded", "out_of_frame", "unknown"]
+        }
+      }
+    }
+  }
+}
