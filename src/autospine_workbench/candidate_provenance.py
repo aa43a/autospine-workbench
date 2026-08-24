@@ -35,14 +35,22 @@ def candidate_run_identity(
     config: Mapping[str, Any],
     evidence_identity: Mapping[str, Any],
 ) -> dict[str, str]:
-    resolved = project.get("resolved") or {}
+    raw_resolved = project.get("resolved")
+    if raw_resolved is not None and not isinstance(raw_resolved, Mapping):
+        raise ValueError("resolved snapshot must be an object")
+    resolved = raw_resolved or {}
+    resolved_sha = (
+        required_sha256(resolved.get("sha256"), "resolved snapshot")
+        if resolved
+        else None
+    )
     input_sha = canonical_sha256(
         {
             "project_id": project.get("id"),
             "source": project.get("source"),
             "canvas": project.get("canvas"),
             "resolved_revision": resolved.get("revision"),
-            "resolved_snapshot_sha256": resolved.get("snapshot_sha256"),
+            "resolved_snapshot_sha256": resolved_sha,
             "skeleton": project.get("skeleton"),
             "evidence": evidence_identity,
         }

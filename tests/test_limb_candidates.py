@@ -52,7 +52,7 @@ def project_fixture() -> dict:
         "layers": layers,
         "resolved": {
             "revision": 2,
-            "snapshot_sha256": "c" * 64,
+            "sha256": "c" * 64,
             "layers": layers,
         },
         "skeleton": {
@@ -127,6 +127,25 @@ class PoseAlphaLimbProviderTests(unittest.TestCase):
             {"layer-arm-left": self.asset}, observations()
         ).analyze(project_fixture())
         self.assertNotEqual(first["analysis"]["run_sha256"], changed["analysis"]["run_sha256"])
+
+    def test_resolved_snapshot_identity_is_required_and_changes_the_run(self) -> None:
+        first_project = project_fixture()
+        first = PoseAlphaLimbProvider(
+            {"layer-arm-left": self.asset}, observations()
+        ).analyze(first_project)
+        changed_project = project_fixture()
+        changed_project["resolved"]["sha256"] = "9" * 64
+        changed = PoseAlphaLimbProvider(
+            {"layer-arm-left": self.asset}, observations()
+        ).analyze(changed_project)
+        self.assertNotEqual(first["analysis"]["run_sha256"], changed["analysis"]["run_sha256"])
+
+        invalid_project = project_fixture()
+        invalid_project["resolved"].pop("sha256")
+        with self.assertRaises(ValueError):
+            PoseAlphaLimbProvider(
+                {"layer-arm-left": self.asset}, observations()
+            ).analyze(invalid_project)
 
     def test_dimension_mismatch_fails_and_missing_pose_remains_explicit(self) -> None:
         project = project_fixture()
