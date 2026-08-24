@@ -18,7 +18,10 @@ if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
 from autospine_workbench.cli import build_parser  # noqa: E402
-from autospine_workbench.pose_commands import import_pose  # noqa: E402
+from autospine_workbench.pose_commands import (  # noqa: E402
+    evaluate_pose_command,
+    import_pose,
+)
 from tests.test_project_store import StoreFixture  # noqa: E402
 
 
@@ -134,6 +137,106 @@ class PoseImportCommandTests(unittest.TestCase):
             ]
         )
         self.assertEqual("unknown", parsed.view_orientation)
+
+
+class PoseEvaluationCommandTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.directory = tempfile.TemporaryDirectory()
+        self.fixture = StoreFixture(Path(self.directory.name))
+        self.pose_path = Path(self.directory.name) / "pose.json"
+        self.pose_path.write_text(json.dumps(self._pose_document()), encoding="utf-8")
+
+    def tearDown(self) -> None:
+        self.directory.cleanup()
+
+    def _pose_document(self) -> dict:
+        return {
+            "format": "autospine-pose-observations",
+            "format_version": 1,
+            "project_id": "fixture-project",
+            "source": {
+                "image_kind": "composite",
+                "image_sha256": hashlib.sha256(
+                    self.fixture.composite.read_bytes()
+                ).hexdigest(),
+                "canvas_size": [512, 768],
+            },
+            "detector": {
+                "id": "fixture-pose",
+                "version": "1",
+                "model_revision": "fixture-model-revision",
+                "config_sha256": "e" * 64,
+                "runtime": "unittest",
+            },
+            "subject": {
+                "detected_count": 1,
+                "selected_index": 0,
+                "selection_method": "single",
+            },
+            "coordinate_system": {
+                "origin": "top_left",
+                "x_axis": "right",
+                "y_axis": "down",
+                "units": "pixel",
+                "side_naming": "character_side",
+            },
+            "joints": {
+                "shoulder.left": {
+                    "xy": [103, 204],
+                    "detector_score": 0.8,
+                    "visibility": "unknown",
+                },
+                "shoulder.right": {
+                    "xy": [300, 200],
+                    "detector_score": 0.75,
+                    "visibility": "unknown",
+                },
+            },
+        }
+
+    def _run(self) -> tuple[int, dict]:
+        output = io.StringIO()
+        with redirect_stdout(output):
+            status = evaluate_pose_command(
+                "fixture-project",
+                self.pose_path,
+                self.fixture.workspace,
+                self.fixture.state,
+            )
+        return status, json.loads(output.getvalue())
+
+    def test_evaluation_publishes_pose_and_diagnostic_report(self) -> None:
+        self.fixture.store().save_overrides(
+            "fixture-project",
+            {
+                "base_revision": 0,
+                "joint_overrides": {
+                    "shoulder.left": {"x": 100, "y": 200, "reason": "reviewed"},
+                    "shoulder.right": {"x": 300, "y": 200, "reason": "reviewed"},
+                },
+                "layer_overrides": {},
+                "notes": "pose evaluation reference",
+            },
+        )
+        status, response = self._run()
+        self.assertEqual(0, status)
+        self.assertTrue(response["ok"])
+        report_path = Path(response["evaluation_artifact_path"])
+        pose_path = Path(response["pose_artifact_path"])
+        self.assertTrue(report_path.is_file())
+        self.assertTrue(pose_path.is_file())
+        self.assertEqual(response["evaluation_artifact_sha256"], report_path.stem)
+        self.assertEqual("pose-evaluations", report_path.parent.name)
+        self.assertEqual(2, response["metrics"]["matched_count"])
+        report = json.loads(report_path.read_text(encoding="utf-8"))
+        self.assertEqual(pose_path.stem, report["source"]["pose_observations_sha256"])
+        self.assertEqual("diagnostic", report["qa"]["status"])
+
+    def test_no_manual_limb_reference_does_not_publish(self) -> None:
+        status, response = self._run()
+        self.assertEqual(2, status)
+        self.assertFalse(response["ok"])
+        self.assertFalse((self.fixture.state / "analysis").exists())
 
 
 if __name__ == "__main__":

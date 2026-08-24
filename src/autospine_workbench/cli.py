@@ -13,6 +13,7 @@ from .layer_manifest import (
     LayerManifestError,
 )
 from .pose_commands import analyze_joints as _analyze_joints
+from .pose_commands import evaluate_pose_command as _evaluate_pose
 from .pose_commands import import_pose as _import_pose
 from .project_store import ProjectStore, ProjectStoreError
 from .rig_validation import RigSemanticValidator
@@ -128,6 +129,26 @@ def build_parser() -> argparse.ArgumentParser:
         choices=("not_mirrored", "mirrored", "unknown"),
         help="Explicit project-composite mirror declaration",
     )
+    evaluate_pose = subparsers.add_parser(
+        "evaluate-pose",
+        help="Compare canonical pose observations with manually reviewed limb joints",
+    )
+    evaluate_pose.add_argument("project_id", help="Audit project identifier")
+    evaluate_pose.add_argument(
+        "pose_observations", type=Path, help="Canonical pose-observations v1 or v2 JSON"
+    )
+    evaluate_pose.add_argument(
+        "--workspace",
+        type=Path,
+        default=_project_root().parent,
+        help="Workspace containing tmp/psd_audit/results",
+    )
+    evaluate_pose.add_argument(
+        "--state-root",
+        type=Path,
+        default=_project_root() / "workspace",
+        help="Root for content-addressed analysis artifacts",
+    )
     materialize = subparsers.add_parser(
         "materialize-manifest",
         help="Publish a region-first Layer Manifest bundle from reviewed state",
@@ -172,6 +193,13 @@ def main(argv: Sequence[str] | None = None) -> int:
             side_mapping=args.side_mapping,
             view_orientation=args.view_orientation,
             mirror_state=args.mirror_state,
+        )
+    if args.command == "evaluate-pose":
+        return _evaluate_pose(
+            args.project_id,
+            args.pose_observations,
+            args.workspace,
+            args.state_root,
         )
     if args.command == "materialize-manifest":
         return _materialize_manifest(args.project_id, args.workspace, args.state_root)

@@ -16,6 +16,7 @@ from .coco17_adapter import Coco17AdapterError, adapt_coco17_detections
 from .coco17_detections import Coco17DetectionError, load_coco17_detections
 from .joint_candidates import AuditBBoxHeuristicProvider
 from .limb_candidates import LimbCandidateError, PoseAlphaLimbProvider
+from .pose_evaluation import PoseEvaluationError, evaluate_pose
 from .pose_observations import PoseObservationError, load_pose_observations
 from .project_store import ProjectStore, ProjectStoreError
 
@@ -164,6 +165,62 @@ def import_pose(
                 "pose_artifact_path": str(pose_artifact.path),
                 "coordinate_transform": pose_document["adapter"]["coordinate_transform"],
                 "side_mapping": pose_document["adapter"]["side_mapping"],
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
+    return 0
+
+
+def evaluate_pose_command(
+    project_id: str,
+    pose_path: Path,
+    workspace: Path,
+    state_root: Path,
+) -> int:
+    """Publish a diagnostic report against manual limb-joint overrides."""
+
+    try:
+        store = ProjectStore(workspace, state_root=state_root)
+        project = store.get_project(project_id)
+        composite = store.resolve_asset(project_id, "composite")
+        observations = load_pose_observations(
+            pose_path,
+            expected_project_id=project_id,
+            expected_image_sha256=sha256_file(composite, "project composite"),
+            expected_canvas_size=(project["canvas"]["width"], project["canvas"]["height"]),
+        )
+        report = evaluate_pose(project, observations)
+        artifact_store = ImmutableJsonArtifactStore(state_root)
+        pose_artifact = artifact_store.publish(
+            "pose-observations", project_id, observations.document or {}
+        )
+        if pose_artifact.sha256 != observations.document_sha256:
+            raise ArtifactStoreError("Published pose observation identity changed")
+        report_artifact = artifact_store.publish("pose-evaluations", project_id, report)
+    except (
+        ProjectStoreError,
+        ArtifactStoreError,
+        PoseObservationError,
+        PoseEvaluationError,
+        OSError,
+        ValueError,
+    ) as exc:
+        print(json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=False))
+        return 2
+    print(
+        json.dumps(
+            {
+                "ok": True,
+                "project_id": project_id,
+                "pose_artifact_sha256": pose_artifact.sha256,
+                "pose_artifact_path": str(pose_artifact.path),
+                "evaluation_artifact_sha256": report_artifact.sha256,
+                "evaluation_artifact_path": str(report_artifact.path),
+                "metrics": report["metrics"],
+                "side_swap_diagnostic": report["side_swap_diagnostic"],
+                "qa": report["qa"],
             },
             ensure_ascii=False,
             indent=2,
