@@ -8,6 +8,8 @@ from pathlib import Path
 from typing import Sequence
 
 from .artifact_store import ArtifactStoreError, ImmutableJsonArtifactStore
+from .candidate_provenance import sha256_file
+from .candidate_validation import CandidateValidationError, require_valid_candidate_document
 from .joint_candidates import AuditBBoxHeuristicProvider
 from .layer_manifest import (
     LayerManifestBuilder,
@@ -15,6 +17,8 @@ from .layer_manifest import (
     LayerManifestError,
 )
 from .project_store import ProjectStore, ProjectStoreError
+from .limb_candidates import LimbCandidateError, PoseAlphaLimbProvider
+from .pose_observations import PoseObservationError, load_pose_observations
 from .rig_validation import RigSemanticValidator
 from .server import create_server
 
@@ -69,6 +73,23 @@ def build_parser() -> argparse.ArgumentParser:
         default=_project_root() / "workspace",
         help="Root for content-addressed analysis artifacts",
     )
+    analyze.add_argument(
+        "--provider",
+        choices=("audit-bbox", "pose-alpha"),
+        default="audit-bbox",
+        help="Candidate provider (default: audit-bbox)",
+    )
+    analyze.add_argument(
+        "--pose-observations",
+        type=Path,
+        help="Canonical pose-observations-v1 JSON; required by pose-alpha",
+    )
+    analyze.add_argument(
+        "--alpha-threshold",
+        type=int,
+        default=8,
+        help="Minimum alpha byte used as geometry evidence (default: 8)",
+    )
     materialize = subparsers.add_parser(
         "materialize-manifest",
         help="Publish a region-first Layer Manifest bundle from reviewed state",
@@ -94,7 +115,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.command == "validate-rig":
         return _validate_rig(args.rig)
     if args.command == "analyze-joints":
-        return _analyze_joints(args.project_id, args.workspace, args.state_root)
+        return _analyze_joints(
+            args.project_id,
+            args.workspace,
+            args.state_root,
+            provider_name=args.provider,
+            pose_path=args.pose_observations,
+            alpha_threshold=args.alpha_threshold,
+        )
     if args.command == "materialize-manifest":
         return _materialize_manifest(args.project_id, args.workspace, args.state_root)
     if args.command != "serve":
@@ -140,14 +168,63 @@ def _validate_rig(path: Path) -> int:
     return 0 if valid else 1
 
 
-def _analyze_joints(project_id: str, workspace: Path, state_root: Path) -> int:
+def _analyze_joints(
+    project_id: str,
+    workspace: Path,
+    state_root: Path,
+    *,
+    provider_name: str = "audit-bbox",
+    pose_path: Path | None = None,
+    alpha_threshold: int = 8,
+) -> int:
     try:
-        project = ProjectStore(workspace, state_root=state_root).get_project(project_id)
-        document = AuditBBoxHeuristicProvider().analyze(project)
+        store = ProjectStore(workspace, state_root=state_root)
+        project = store.get_project(project_id)
+        if provider_name == "audit-bbox":
+            if pose_path is not None:
+                raise ValueError("--pose-observations is only valid with --provider pose-alpha")
+            provider = AuditBBoxHeuristicProvider()
+        elif provider_name == "pose-alpha":
+            if pose_path is None:
+                raise ValueError("--provider pose-alpha requires --pose-observations")
+            composite = store.resolve_asset(project_id, "composite")
+            observations = load_pose_observations(
+                pose_path,
+                expected_project_id=project_id,
+                expected_image_sha256=sha256_file(composite, "project composite"),
+                expected_canvas_size=(project["canvas"]["width"], project["canvas"]["height"]),
+            )
+            layer_assets = {
+                layer["id"]: store.resolve_asset(project_id, "layer", layer["id"])
+                for layer in project["layers"]
+            }
+            provider = PoseAlphaLimbProvider(
+                layer_assets,
+                observations,
+                alpha_threshold=alpha_threshold,
+            )
+        else:
+            raise ValueError("Unknown joint candidate provider")
+        document = provider.analyze(project)
+        require_valid_candidate_document(
+            document,
+            joint_ids={item["id"] for item in project["skeleton"]["joints"]},
+            layer_ids={item["id"] for item in project["layers"]},
+            canvas_width=project["canvas"]["width"],
+            canvas_height=project["canvas"]["height"],
+        )
         published = ImmutableJsonArtifactStore(state_root).publish(
             "joint-candidates", project_id, document
         )
-    except (ProjectStoreError, ArtifactStoreError, OSError, ValueError) as exc:
+    except (
+        ProjectStoreError,
+        ArtifactStoreError,
+        CandidateValidationError,
+        PoseObservationError,
+        LimbCandidateError,
+        OSError,
+        ValueError,
+    ) as exc:
         print(json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=False))
         return 2
     print(
