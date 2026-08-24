@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any, Mapping
 from urllib.parse import quote
 
-from .composite_quality import CompositeQualityError, compare_composite_pngs
+from .composite_quality import CompositeQualityCache
 from .contracts import (
     LAYER_SCHEMA_VERSION,
     PROJECT_SCHEMA_VERSION,
@@ -214,6 +214,22 @@ def _layer_id(layer: Mapping[str, Any], ordinal: int) -> str:
     return f"layer-{index:03d}-{_slug(str(layer.get('name', 'layer')), 'layer')}"
 
 
+def _assigned_layers(raw_layers: Any) -> list[tuple[int, Mapping[str, Any], str]]:
+    if not isinstance(raw_layers, list):
+        return []
+    assigned: list[tuple[int, Mapping[str, Any], str]] = []
+    seen: set[str] = set()
+    for ordinal, raw_layer in enumerate(raw_layers):
+        if not isinstance(raw_layer, Mapping):
+            continue
+        layer_id = _layer_id(raw_layer, ordinal)
+        if layer_id in seen:
+            layer_id = f"{layer_id}-{ordinal}"
+        seen.add(layer_id)
+        assigned.append((ordinal, raw_layer, layer_id))
+    return assigned
+
+
 class ProjectStore:
     """Read audit projects and persist optimistic-concurrency overrides.
 
@@ -228,7 +244,7 @@ class ProjectStore:
         self.state_root = Path(state_root).expanduser().resolve() if state_root else default_state_root
         self.audit_root = self.workspace_root / "tmp" / "psd_audit" / "results"
         self._override_store = OverrideHistoryStore(self.state_root)
-        self._composite_quality_cache: dict[str, dict[str, Any]] = {}
+        self._composite_quality = CompositeQualityCache()
 
     def _discover(self) -> dict[str, _ProjectRecord]:
         records: dict[str, _ProjectRecord] = {}
@@ -274,39 +290,13 @@ class ProjectStore:
             return 0, 0
         return max(0, _as_int(canvas[0])), max(0, _as_int(canvas[1]))
 
-    def _composite_quality(self, record: _ProjectRecord) -> dict[str, Any]:
-        cached = self._composite_quality_cache.get(record.audit_sha256)
-        if cached is not None:
-            return cached
-        raw_mae = float(record.audit.get("composite_vs_embedded_mae_rgba", 0) or 0)
-        try:
-            metrics = compare_composite_pngs(
-                self.resolve_asset(record.project_id, "composite"),
-                self.resolve_asset(record.project_id, "embedded-composite"),
-            ).to_dict()
-        except (AssetNotFoundError, CompositeQualityError):
-            metrics = {
-                "status": "unavailable",
-                "raw_rgba_mae": raw_mae,
-                "alpha_representation": "unknown",
-            }
-        self._composite_quality_cache[record.audit_sha256] = metrics
-        return metrics
-
     def _layers(self, record: _ProjectRecord) -> list[dict[str, Any]]:
         width, height = self._canvas(record.audit)
         raw_layers = record.audit.get("layers")
         if not isinstance(raw_layers, list):
             return []
         result: list[dict[str, Any]] = []
-        seen: set[str] = set()
-        for ordinal, raw_layer in enumerate(raw_layers):
-            if not isinstance(raw_layer, Mapping):
-                continue
-            layer_id = _layer_id(raw_layer, ordinal)
-            if layer_id in seen:
-                layer_id = f"{layer_id}-{ordinal}"
-            seen.add(layer_id)
+        for ordinal, raw_layer, layer_id in _assigned_layers(raw_layers):
             name = str(raw_layer.get("name", f"Layer {ordinal}"))
             role, side = _semantic_layer(name)
             bbox = _bbox_dict(raw_layer.get("bbox"), width, height)
@@ -625,7 +615,17 @@ class ProjectStore:
         skeleton = self._skeleton(canvas_width, canvas_height, layers)
         source_name = Path(str(record.audit.get("source", record.project_id))).name
         raw_composite_mae = float(record.audit.get("composite_vs_embedded_mae_rgba", 0) or 0)
-        composite_quality = self._composite_quality(record)
+        try:
+            composite_path = self.resolve_asset(record.project_id, "composite")
+            embedded_path = self.resolve_asset(record.project_id, "embedded-composite")
+        except AssetNotFoundError:
+            composite_path = embedded_path = None
+        composite_quality = self._composite_quality.measure(
+            record.audit_sha256,
+            raw_composite_mae,
+            composite_path,
+            embedded_path,
+        )
         high_composite_error = composite_quality.get("status") == "manual_required"
         review_layers = sum(
             1 for layer in layers if layer["disposition"] == "review" or layer["empty"]
@@ -815,13 +815,11 @@ class ProjectStore:
         elif asset == "layer":
             if not layer_id:
                 raise AssetNotFoundError(project_id, "layer")
-            raw_layers = record.audit.get("layers")
             match: Mapping[str, Any] | None = None
-            if isinstance(raw_layers, list):
-                for ordinal, raw_layer in enumerate(raw_layers):
-                    if isinstance(raw_layer, Mapping) and _layer_id(raw_layer, ordinal) == layer_id:
-                        match = raw_layer
-                        break
+            for _, raw_layer, assigned_id in _assigned_layers(record.audit.get("layers")):
+                if assigned_id == layer_id:
+                    match = raw_layer
+                    break
             if match is None:
                 raise AssetNotFoundError(project_id, f"layer:{layer_id}")
             filename = Path(str(match.get("crop_path", ""))).name

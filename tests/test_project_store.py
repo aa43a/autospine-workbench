@@ -273,6 +273,24 @@ class ProjectStoreContractTests(unittest.TestCase):
         with self.assertRaises(AssetNotFoundError):
             self.store.resolve_asset("fixture-project", "layer", "../layer")
 
+    def test_duplicate_source_layer_ids_resolve_the_disambiguated_asset(self) -> None:
+        second_asset = self.fixture.layer_dir / "01_topwear.png"
+        second_asset.write_bytes(PNG_SIGNATURE + b"second")
+        duplicate = dict(self.fixture.audit["layers"][0])
+        duplicate["crop_path"] = str(second_asset)
+        self.fixture.audit["layers"].append(duplicate)
+        self.fixture.write_audit()
+
+        project = self.fixture.store().get_project("fixture-project")
+        self.assertEqual(
+            ["layer-000-topwear", "layer-000-topwear-1"],
+            [layer["id"] for layer in project["layers"]],
+        )
+        resolved = self.fixture.store().resolve_asset(
+            "fixture-project", "layer", "layer-000-topwear-1"
+        )
+        self.assertEqual(second_asset.resolve(), resolved)
+
     def test_audit_paths_cannot_escape_the_project_directory(self) -> None:
         outside_composite = self.fixture.workspace / "outside.png"
         outside_layer = self.fixture.workspace / "outside-layer.png"

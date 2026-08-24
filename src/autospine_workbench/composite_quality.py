@@ -22,6 +22,36 @@ class CompositeQualityError(RuntimeError):
     """Raised when images cannot be compared without guessing a conversion."""
 
 
+class CompositeQualityCache:
+    """Cache immutable audit comparisons by audit content hash."""
+
+    def __init__(self) -> None:
+        self._metrics: dict[str, dict] = {}
+
+    def measure(
+        self,
+        audit_sha256: str,
+        raw_rgba_mae: float,
+        composite_path: Path | None,
+        embedded_path: Path | None,
+    ) -> dict:
+        cached = self._metrics.get(audit_sha256)
+        if cached is not None:
+            return cached
+        try:
+            if composite_path is None or embedded_path is None:
+                raise CompositeQualityError("Composite assets are unavailable")
+            metrics = compare_composite_pngs(composite_path, embedded_path).to_dict()
+        except CompositeQualityError:
+            metrics = {
+                "status": "unavailable",
+                "raw_rgba_mae": raw_rgba_mae,
+                "alpha_representation": "unknown",
+            }
+        self._metrics[audit_sha256] = metrics
+        return metrics
+
+
 @dataclass(frozen=True, slots=True)
 class CompositeQualityMetrics:
     width: int
