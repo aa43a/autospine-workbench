@@ -36,6 +36,7 @@ web    → HTTP contracts only
 - `project_store.py` 只保留发现项目和协调 application service 的 façade 职责，不再承载分析算法、持久化实现或 Rig 编译。
 - `server.py` 负责 HTTP、输入大小、loopback 安全和错误映射，不实现领域规则。
 - 前端分为 API、authoring state、保存事务和各 stage view；view state 不得污染 revision draft。
+- 外部姿态模型只能通过 canonical pose observations 进入；alpha 几何只读取 resolved layer 与固定 PNG，融合结果必须保留原始 pose 和未标定分数语义。
 - 离线命令最终按 `materialize-manifest`、`analyze-joints`、`compile-rig`、`run-probes`、`validate-rig` 和 `export-spine` 划分。
 
 ## 文件长度预算

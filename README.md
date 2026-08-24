@@ -140,6 +140,7 @@ python -m autospine_workbench serve `
 JSON Schema 位于：
 
 - `schemas/override-patch-v1.schema.json`：在线 API 的 canonical patch；
+- `schemas/pose-observations-v1.schema.json`：外部姿态检测器的单角色、原画布观测输入；
 - `schemas/joint-candidates-v1.schema.json`：可复现的关节候选、证据分数和来源；
 - `schemas/layer-manifest-v1.schema.json`：规范化 RGBA 图层与语义、offset、QA 的 authoring 合同；
 - `schemas/rig-ir-v1.schema.json`：版本中立的骨骼、slot、attachment 与有限动画合同。
@@ -162,6 +163,19 @@ python -m autospine_workbench analyze-joints seethrough_output `
   --state-root .\workspace
 ```
 
+已有规范化姿态观测时，可运行 pose + alpha 连通域软约束：
+
+```powershell
+python -m autospine_workbench analyze-joints seethrough_output `
+  --workspace .. `
+  --state-root .\workspace `
+  --provider pose-alpha `
+  --pose-observations .\inputs\seethrough_output.pose.json `
+  --alpha-threshold 8
+```
+
+观测文件的准备、运行和 QA 解释见 [使用 pose-alpha 生成四肢候选](docs/how-to-run-pose-alpha.md)；完整合同见 [Pose observations v1 参考](docs/pose-observations-reference.md)。
+
 从当前已复核 revision 发布不可变的 region attachment bundle：
 
 ```powershell
@@ -176,7 +190,7 @@ python -m autospine_workbench materialize-manifest seethrough_output `
 python -m autospine_workbench validate-rig .\path\to\rig.json
 ```
 
-候选写入 `workspace/analysis/joint-candidates/<project-id>/<sha256>.json`；manifest bundle 写入 `workspace/builds/layer-manifest/<project-id>/<sha256>/`。路径中的哈希来自 canonical 内容，相同输入不会产生相互覆盖的可变结果。当前候选 provider 明确标记为 `audit-bbox-heuristic`，其 `heuristic_score` 不是经过标定的概率或模型置信度。
+候选写入 `workspace/analysis/<project-id>/joint-candidates/<sha256>.json`；manifest bundle 写入 `workspace/builds/layer-manifest/<project-id>/<sha256>/`。路径中的哈希来自 canonical 内容，相同输入不会产生相互覆盖的可变结果。`audit-bbox-heuristic` 和 `pose-alpha-limb-fusion` 都只输出 `heuristic_score`，不是经过标定的概率或模型置信度；后者始终保留原始 pose，并把 alpha 作为有限幅度的软证据。
 
 ## HTTP API
 
@@ -219,13 +233,13 @@ python -m unittest discover -s tests -v
 
 ## 下一阶段开发顺序
 
-当前已经贯通：`See-through audit → 人工复核 → append-only override → resolved snapshot → 候选/manifest 不可变工件`。后续按以下顺序推进：
+当前已经贯通：`See-through audit → 人工复核 → append-only override → resolved snapshot → 外部 pose + alpha 四肢候选 → manifest 不可变工件`。后续按以下顺序推进：
 
-1. **真实四肢候选 provider**：在现有 provider 接口后接人体姿态模型候选，再以图层 alpha 轮廓、连通域和 torso/hand/foot 接触关系校正 shoulder、elbow、wrist、hip、knee、ankle。保留每个候选的原始证据、算法版本和未标定分数，低分或多解回到界面复核。
-2. **region-first RigIR 编译**：把已发布 Layer Manifest 和确认关节编译为规范骨角色、slot、draw order 与 region attachment；先做 setup 合成回归，不在这一阶段引入 mesh。
-3. **绑定与动作探针**：只对 region 无法连续弯曲的上臂、前臂、大腿、小腿生成轮廓网格、两骨权重和 LBS 预览，并用抬臂、屈肘、抬腿、屈膝四个极值探针暴露遮挡补全、翻三角与接缝问题。
-4. **通用动画重定向**：动画库只引用 `humanoid-v1` 的规范骨角色；按 bind-pose 骨长、局部旋转和角色自身左右重定向，位移按骨长比例缩放，接触动作再用 IK/脚底约束修正。
-5. **版本适配导出**：保持 RigIR 的能力矩阵；只有目标 Spine 版本确定后才进入对应 adapter，遇到不支持的 mesh、deform、constraint 或 draw order 特性必须失败并报告。
+1. **姿态 adapter 与评估集**：把选定的 Anime/ONNX/MMPose 输出转换为 canonical pose observations，冻结模型 revision，并用人工标注样本评估肩肘腕、髋膝踝误差；先解决 view orientation、mirror 和 character-side 映射。
+2. **接触几何候选**：在现有连通域基础上增加 torso/arm、pelvis/leg、leg/foot 接触簇；宽袖、长裙、融合双腿和遮挡关节继续保留多解与人工复核。
+3. **region-first RigIR 编译**：把已发布 Layer Manifest 和确认关节编译为规范骨角色、slot、draw order 与 region attachment；先做 setup 合成回归，不在这一阶段引入 mesh。
+4. **绑定与动作探针**：只对 region 无法连续弯曲的上臂、前臂、大腿、小腿生成轮廓网格、两骨权重和 LBS 预览，并用抬臂、屈肘、抬腿、屈膝四个极值探针暴露遮挡补全、翻三角与接缝问题。
+5. **通用动画重定向与版本适配**：动画库只引用 `humanoid-v1`；目标 Spine 版本仅进入 adapter，不支持的 mesh、deform、constraint 或 draw order 必须失败并报告。
 
 面部锚点、头发弹簧和实时追踪映射可以作为独立模块接到同一规范骨角色上；四肢扩展的关键不是增加更多屏幕坐标映射，而是建立 bind pose、父子骨、权重和重定向空间。
 
@@ -234,6 +248,7 @@ python -m unittest discover -s tests -v
 当前版本不负责：
 
 - 运行 See-through 推理、选择 seed、编辑 PSD 或自动清理图层；
+- 下载或运行具体姿态模型；`pose-alpha` 只消费经过哈希固定的 canonical observations，当前 UI 也尚未加载离线候选工件；
 - 自动解决 `head-obj`、`objects`、合并肢体等歧义语义；
 - 证明遮挡补全符合解剖或在大幅动作下不会露馅；
 - 自动生成 mesh、权重、deform、IK、约束或动态 draw order；
