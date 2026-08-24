@@ -12,7 +12,10 @@ AutoSpine Workbench 是一个本地人工复核界面，用于查看 See-through
 - 覆盖图层语义、角色左右、setup 可见性与 pivot 提示。
 - 拖动或精确输入关节坐标，并恢复自动推断位置。
 - 使用 optimistic concurrency 保存 override；过期 revision 不会覆盖新结果。
+- 每次成功保存都写入 append-only revision 历史，并生成应用人工决定后的 resolved snapshot。
 - 通过只读验证 API 检查画布、图层 ID、资产路径和骨架结构。
+- 离线发布带 provenance 的关节候选工件和 region-first Layer Manifest bundle。
+- 对 RigIR 执行跨引用、拓扑、权重、三角形及 timeline 语义验证；不支持特性会明确失败。
 
 ## 快速启动
 
@@ -101,6 +104,8 @@ python -m autospine_workbench serve `
 
 保存时客户端发送当前 `base_revision`。如果另一会话已经保存，服务返回 HTTP `409 revision_conflict`；重新加载项目、复核新的 override，再重新应用修改。服务不会用 last-write-wins 静默覆盖。
 
+保存开始后产生的新编辑不会被已完成请求清空。遇到 `409` 时，界面保留本地 draft，可先导出，再加载服务端最新 revision 并重放本地修改。
+
 ## Override 请求合同
 
 `PUT /api/projects/{project_id}/overrides` 的 canonical 请求固定为：
@@ -135,10 +140,43 @@ python -m autospine_workbench serve `
 JSON Schema 位于：
 
 - `schemas/override-patch-v1.schema.json`：在线 API 的 canonical patch；
+- `schemas/joint-candidates-v1.schema.json`：可复现的关节候选、证据分数和来源；
 - `schemas/layer-manifest-v1.schema.json`：规范化 RGBA 图层与语义、offset、QA 的 authoring 合同；
 - `schemas/rig-ir-v1.schema.json`：版本中立的骨骼、slot、attachment 与有限动画合同。
 
 Layer manifest 与 RigIR 是下游流水线合同；当前 UI 不会自动生成完整 RigIR，也不会把它冒充为某一 Spine 版本。RigIR 对不支持特性的策略固定为 `fail`，防止 constraint、mesh 或 timeline 被静默丢弃。
+
+## 离线工件命令
+
+先让源码包可被当前 PowerShell 会话发现：
+
+```powershell
+$env:PYTHONPATH = (Resolve-Path .\src).Path
+```
+
+为项目发布审计启发式候选集：
+
+```powershell
+python -m autospine_workbench analyze-joints seethrough_output `
+  --workspace .. `
+  --state-root .\workspace
+```
+
+从当前已复核 revision 发布不可变的 region attachment bundle：
+
+```powershell
+python -m autospine_workbench materialize-manifest seethrough_output `
+  --workspace .. `
+  --state-root .\workspace
+```
+
+对版本中立 RigIR 做语义检查：
+
+```powershell
+python -m autospine_workbench validate-rig .\path\to\rig.json
+```
+
+候选写入 `workspace/analysis/joint-candidates/<project-id>/<sha256>.json`；manifest bundle 写入 `workspace/builds/layer-manifest/<project-id>/<sha256>/`。路径中的哈希来自 canonical 内容，相同输入不会产生相互覆盖的可变结果。当前候选 provider 明确标记为 `audit-bbox-heuristic`，其 `heuristic_score` 不是经过标定的概率或模型置信度。
 
 ## HTTP API
 
@@ -167,28 +205,27 @@ python -m pip install -e ".[test]"
 python -m unittest discover -s tests -v
 ```
 
-未安装 `jsonschema` 时，标准库运行与大部分测试仍可执行，完整 Draft 2020-12 实例校验会标记为 skipped。若仓库中存在两份真实 See-through audit，测试还会固定以下发现：
+如需 Pillow/NumPy 图像比较加速，可安装 `python -m pip install -e ".[analysis]"`；不安装时仍有标准库 PNG 解码路径。
 
-- 1024×1024 样本的严重 composite mismatch 不能被误判为通过；
-- 1200×1800 样本的第 5 channel、空且隐藏的 `handwear`、`hand-r/l`、`head-obj`、缺失 `legwear` 与未拆分双侧五官仍需人工复核。
+未安装 `jsonschema` 时，标准库运行与大部分测试仍可执行，完整 Draft 2020-12 实例校验会标记为 skipped。若仓库中存在两份真实 See-through audit，测试还会固定表示层差异和真实可见差异的区分：透明 RGB 与扁平背景造成的巨大 raw RGBA MAE 不会直接判为视觉失败；背景匹配后的可见颜色差异仍会失败。第 5 channel、空且隐藏图层、左右语义歧义与缺失部位仍需人工复核。
 
 ## 数据与恢复
 
 - audit JSON、PSD 和 PNG 被视为不可变输入。
-- 保存采用临时文件、flush/fsync 和原子替换。
-- state 文件位于 `<state-root>/overrides/<project-id>.json`。
-- 删除某个 override 文件会使该项目回到 revision 0；操作前应自行备份，因为工作台没有版本历史界面。
+- 每次保存先写 `<state-root>/overrides/<project-id>/history/rNNNNNN.json`，再以原子替换更新 `latest.json`；历史快照不会被后续 revision 改写。
+- `latest.json` 丢失时会从 history 恢复最新 revision；旧版 `<state-root>/overrides/<project-id>.json` 会被只读兼容，并在下一次保存时迁移，不会原地改写。
+- 若要恢复旧 revision，先停止服务，备份整个项目 override 目录，再将目标历史快照作为新的、经过校验的 revision 提交；当前界面尚未提供历史浏览/回滚按钮。
 - validation 的 `valid=true` 仅表示结构和本地资产检查没有硬错误，不等于美术、遮挡补全、pivot、mesh 或动画通过视觉验收。
 
 ## 下一阶段开发顺序
 
-当前工作台是第一条可运行纵向链路：`See-through audit → 人工复核 → revision override`。建议在这个合同上继续推进，而不是直接把启发式坐标写成某个 Spine 版本：
+当前已经贯通：`See-through audit → 人工复核 → append-only override → resolved snapshot → 候选/manifest 不可变工件`。后续按以下顺序推进：
 
-1. **规范化 Layer Manifest**：把已确认的语义、角色自身左右、offset、pivot、排除/拆分决策固化为 `autospine-layer-manifest/v1`，保持源 PSD 和审计结果不可变。
-2. **四肢锚点估计**：引入人体姿态关键点作为候选，再以图层 alpha 轮廓、连通域和 torso/hand/foot 接触关系校正 shoulder、elbow、wrist、hip、knee、ankle；所有候选都输出 confidence 和来源，低置信度回到本界面复核。
-3. **绑定与动作探针**：首轮采用 region attachment 与刚性父子骨验证层级、pivot 和 draw order；随后只对需要弯曲的上臂、前臂、大腿、小腿生成轮廓网格、两骨权重和 LBS 预览，并用抬臂、屈肘、抬腿、屈膝四个探针暴露遮挡补全问题。
+1. **真实四肢候选 provider**：在现有 provider 接口后接人体姿态模型候选，再以图层 alpha 轮廓、连通域和 torso/hand/foot 接触关系校正 shoulder、elbow、wrist、hip、knee、ankle。保留每个候选的原始证据、算法版本和未标定分数，低分或多解回到界面复核。
+2. **region-first RigIR 编译**：把已发布 Layer Manifest 和确认关节编译为规范骨角色、slot、draw order 与 region attachment；先做 setup 合成回归，不在这一阶段引入 mesh。
+3. **绑定与动作探针**：只对 region 无法连续弯曲的上臂、前臂、大腿、小腿生成轮廓网格、两骨权重和 LBS 预览，并用抬臂、屈肘、抬腿、屈膝四个极值探针暴露遮挡补全、翻三角与接缝问题。
 4. **通用动画重定向**：动画库只引用 `humanoid-v1` 的规范骨角色；按 bind-pose 骨长、局部旋转和角色自身左右重定向，位移按骨长比例缩放，接触动作再用 IK/脚底约束修正。
-5. **版本适配导出**：先生成版本中立 RigIR，并对 mesh、deform、constraint、draw order 建立显式能力矩阵；只有目标 Spine 版本确定后才进入对应 adapter，遇到不支持特性必须失败并报告，不能静默丢失。
+5. **版本适配导出**：保持 RigIR 的能力矩阵；只有目标 Spine 版本确定后才进入对应 adapter，遇到不支持的 mesh、deform、constraint 或 draw order 特性必须失败并报告。
 
 面部锚点、头发弹簧和实时追踪映射可以作为独立模块接到同一规范骨角色上；四肢扩展的关键不是增加更多屏幕坐标映射，而是建立 bind pose、父子骨、权重和重定向空间。
 
@@ -206,3 +243,5 @@ python -m unittest discover -s tests -v
 - 多用户权限、远程协作或生产部署。
 
 项目中显示的骨架来自 bbox/语义启发式，`requires_review=true`。只有在语义、左右、pivot、层级、合成回归和动作探针均通过后，才能把人工确认结果交给后续 RigIR/导出阶段。
+
+代码职责、依赖方向、文件长度预算和阶段完成门禁见 [docs/architecture.md](docs/architecture.md)。

@@ -42,13 +42,13 @@ web    → HTTP contracts only
 
 生产源码的硬上限为 400 个物理行。新文件超过 300 行时就应评估按职责拆分；函数通常不超过 60 行，超过 100 行必须先拆解或在评审中记录理由。
 
-当前四个历史单体采用 ratchet：只允许缩短，不允许超过 Git 基线的行数。
+当前四个历史单体采用 ratchet：只允许缩短，不允许超过测试中记录的当前上限。
 
-| 文件 | 基线行数 | 拆分目标 |
+| 文件 | 当前上限 | 拆分目标 |
 | --- | ---: | ---: |
 | `web/styles.css` | 1713 | 每个主题/布局文件 ≤ 400 |
-| `web/app.js` | 1365 | façade ≤ 250，模块 ≤ 400 |
-| `src/autospine_workbench/project_store.py` | 952 | façade ≤ 300 |
+| `web/app.js` | 1349 | façade ≤ 250，模块 ≤ 400 |
+| `src/autospine_workbench/project_store.py` | 838 | façade ≤ 300 |
 | `src/autospine_workbench/server.py` | 416 | HTTP adapter ≤ 300 |
 
 `tests/test_quality.py` 自动执行上述硬上限与 ratchet。JSON Schema、文档和生成工件不套用源码行数上限，但仍应按版本和领域拆分，禁止手工复制生成文件来规避检查。
