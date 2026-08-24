@@ -1,0 +1,286 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/joint-candidates-v1.schema.json",
+  "title": "AutoSpine joint candidate set v1",
+  "description": "Immutable model evidence for human-reviewed setup-pose joint decisions.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "format_version",
+    "project_id",
+    "source",
+    "analysis",
+    "coordinate_system",
+    "joints",
+    "qa"
+  ],
+  "properties": {
+    "format": {
+      "const": "autospine-joint-candidates"
+    },
+    "format_version": {
+      "const": 1
+    },
+    "project_id": {
+      "$ref": "#/$defs/id"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "base_project_sha256",
+        "source_image_sha256"
+      ],
+      "properties": {
+        "base_project_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "source_image_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "audit_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "analysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "provider_version",
+        "config_sha256",
+        "run_sha256"
+      ],
+      "properties": {
+        "provider": {
+          "$ref": "#/$defs/id"
+        },
+        "provider_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "config_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "run_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "coordinate_system": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "origin",
+        "x_axis",
+        "y_axis",
+        "units",
+        "side_naming"
+      ],
+      "properties": {
+        "origin": {
+          "const": "top_left"
+        },
+        "x_axis": {
+          "const": "right"
+        },
+        "y_axis": {
+          "const": "down"
+        },
+        "units": {
+          "const": "pixel"
+        },
+        "side_naming": {
+          "const": "character_side"
+        }
+      }
+    },
+    "joints": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "$ref": "#/$defs/id"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/jointEvidence"
+      }
+    },
+    "qa": {
+      "$ref": "#/$defs/qa"
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "point": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "jointEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "observability",
+        "candidates"
+      ],
+      "properties": {
+        "observability": {
+          "enum": [
+            "visible",
+            "occluded",
+            "merged",
+            "absent",
+            "ambiguous"
+          ]
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/candidate"
+          }
+        }
+      }
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_id",
+        "xy",
+        "method",
+        "score_kind",
+        "heuristic_score",
+        "source_layer_ids",
+        "evidence",
+        "qa_flags"
+      ],
+      "properties": {
+        "candidate_id": {
+          "$ref": "#/$defs/id"
+        },
+        "xy": {
+          "$ref": "#/$defs/point"
+        },
+        "method": {
+          "enum": [
+            "audit_bbox_heuristic",
+            "pose",
+            "medial_axis",
+            "contact",
+            "fusion"
+          ]
+        },
+        "score_kind": {
+          "const": "heuristic"
+        },
+        "heuristic_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "error_radius_px": {
+          "type": "number",
+          "minimum": 0
+        },
+        "source_layer_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidence"
+          }
+        },
+        "qa_flags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "note"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "audit_source",
+            "layer_alpha",
+            "pose_heatmap",
+            "contact_geometry",
+            "kinematic_residual"
+          ]
+        },
+        "source_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        }
+      }
+    },
+    "qa": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "flags"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "passed",
+            "manual_required",
+            "rejected"
+          ]
+        },
+        "flags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}

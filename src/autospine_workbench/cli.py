@@ -7,6 +7,9 @@ import json
 from pathlib import Path
 from typing import Sequence
 
+from .artifact_store import ArtifactStoreError, ImmutableJsonArtifactStore
+from .joint_candidates import AuditBBoxHeuristicProvider
+from .project_store import ProjectStore, ProjectStoreError
 from .rig_validation import RigSemanticValidator
 from .server import create_server
 
@@ -44,6 +47,23 @@ def build_parser() -> argparse.ArgumentParser:
         help="Validate RigIR cross-references, topology, and numeric invariants",
     )
     validate_rig.add_argument("rig", type=Path, help="Path to a RigIR JSON document")
+    analyze = subparsers.add_parser(
+        "analyze-joints",
+        help="Publish a pinned joint-candidate analysis artifact",
+    )
+    analyze.add_argument("project_id", help="Audit project identifier")
+    analyze.add_argument(
+        "--workspace",
+        type=Path,
+        default=_project_root().parent,
+        help="Workspace containing tmp/psd_audit/results",
+    )
+    analyze.add_argument(
+        "--state-root",
+        type=Path,
+        default=_project_root() / "workspace",
+        help="Root for content-addressed analysis artifacts",
+    )
     return parser
 
 
@@ -51,6 +71,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "validate-rig":
         return _validate_rig(args.rig)
+    if args.command == "analyze-joints":
+        return _analyze_joints(args.project_id, args.workspace, args.state_root)
     if args.command != "serve":
         raise AssertionError(f"Unhandled command: {args.command}")
     try:
@@ -92,3 +114,30 @@ def _validate_rig(path: Path) -> int:
         )
     )
     return 0 if valid else 1
+
+
+def _analyze_joints(project_id: str, workspace: Path, state_root: Path) -> int:
+    try:
+        project = ProjectStore(workspace, state_root=state_root).get_project(project_id)
+        document = AuditBBoxHeuristicProvider().analyze(project)
+        published = ImmutableJsonArtifactStore(state_root).publish(
+            "joint-candidates", project_id, document
+        )
+    except (ProjectStoreError, ArtifactStoreError, OSError, ValueError) as exc:
+        print(json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=False))
+        return 2
+    print(
+        json.dumps(
+            {
+                "ok": True,
+                "project_id": project_id,
+                "provider": document["analysis"]["provider"],
+                "analysis_run_sha256": document["analysis"]["run_sha256"],
+                "artifact_sha256": published.sha256,
+                "artifact_path": str(published.path),
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
+    return 0

@@ -211,6 +211,7 @@ class JsonSchemaContractTests(unittest.TestCase):
             "layer-manifest-v1.schema.json",
             "rig-ir-v1.schema.json",
             "override-patch-v1.schema.json",
+            "joint-candidates-v1.schema.json",
         ):
             schema = load_schema(name)
             self.assertEqual(schema["$schema"], "https://json-schema.org/draft/2020-12/schema")
