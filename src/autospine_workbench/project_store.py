@@ -12,11 +12,11 @@ from pathlib import Path
 from typing import Any, Mapping
 from urllib.parse import quote
 
+from .composite_quality import CompositeQualityError, compare_composite_pngs
 from .contracts import (
     LAYER_SCHEMA_VERSION,
     PROJECT_SCHEMA_VERSION,
     SKELETON_SCHEMA_VERSION,
-    VALIDATION_SCHEMA_VERSION,
     contract_descriptor,
 )
 from .override_store import (
@@ -26,6 +26,7 @@ from .override_store import (
     OverrideStoreError,
 )
 from .resolved_project import ResolvedProjectBuilder
+from .project_validation import validate_project_document
 
 
 _PROJECT_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
@@ -227,6 +228,7 @@ class ProjectStore:
         self.state_root = Path(state_root).expanduser().resolve() if state_root else default_state_root
         self.audit_root = self.workspace_root / "tmp" / "psd_audit" / "results"
         self._override_store = OverrideHistoryStore(self.state_root)
+        self._composite_quality_cache: dict[str, dict[str, Any]] = {}
 
     def _discover(self) -> dict[str, _ProjectRecord]:
         records: dict[str, _ProjectRecord] = {}
@@ -271,6 +273,25 @@ class ProjectStore:
         if not isinstance(canvas, (list, tuple)) or len(canvas) != 2:
             return 0, 0
         return max(0, _as_int(canvas[0])), max(0, _as_int(canvas[1]))
+
+    def _composite_quality(self, record: _ProjectRecord) -> dict[str, Any]:
+        cached = self._composite_quality_cache.get(record.audit_sha256)
+        if cached is not None:
+            return cached
+        raw_mae = float(record.audit.get("composite_vs_embedded_mae_rgba", 0) or 0)
+        try:
+            metrics = compare_composite_pngs(
+                self.resolve_asset(record.project_id, "composite"),
+                self.resolve_asset(record.project_id, "embedded-composite"),
+            ).to_dict()
+        except (AssetNotFoundError, CompositeQualityError):
+            metrics = {
+                "status": "unavailable",
+                "raw_rgba_mae": raw_mae,
+                "alpha_representation": "unknown",
+            }
+        self._composite_quality_cache[record.audit_sha256] = metrics
+        return metrics
 
     def _layers(self, record: _ProjectRecord) -> list[dict[str, Any]]:
         width, height = self._canvas(record.audit)
@@ -603,7 +624,9 @@ class ProjectStore:
         layers = self._layers(record)
         skeleton = self._skeleton(canvas_width, canvas_height, layers)
         source_name = Path(str(record.audit.get("source", record.project_id))).name
-        high_composite_error = float(record.audit.get("composite_vs_embedded_mae_rgba", 0) or 0) > 5
+        raw_composite_mae = float(record.audit.get("composite_vs_embedded_mae_rgba", 0) or 0)
+        composite_quality = self._composite_quality(record)
+        high_composite_error = composite_quality.get("status") == "manual_required"
         review_layers = sum(
             1 for layer in layers if layer["disposition"] == "review" or layer["empty"]
         )
@@ -666,6 +689,8 @@ class ProjectStore:
                 ],
                 "audit_warnings": {
                     "high_composite_error": high_composite_error,
+                    "raw_composite_difference": raw_composite_mae > 5,
+                    "composite_quality": composite_quality,
                     "empty_layer_count": sum(1 for layer in layers if layer["empty"]),
                 },
             },
@@ -740,7 +765,6 @@ class ProjectStore:
 
         record = self._record(project_id)
         errors: list[dict[str, str]] = []
-        warnings: list[dict[str, str]] = []
         checks: list[dict[str, Any]] = []
         project = self._build_project(record, include_overrides=False)
         revision = 0
@@ -754,129 +778,15 @@ class ProjectStore:
         except ProjectStateError as exc:
             checks.append({"id": "overrides", "status": "fail"})
             errors.append({"path": "$.overrides", "code": "invalid_state", "message": str(exc)})
-
-        width, height = project["canvas"]["width"], project["canvas"]["height"]
-        canvas_ok = width > 0 and height > 0
-        checks.append({"id": "canvas", "status": "pass" if canvas_ok else "fail"})
-        if not canvas_ok:
-            errors.append({"path": "$.canvas", "code": "invalid_canvas", "message": "Canvas dimensions must be positive."})
-
-        layer_ids = [layer["id"] for layer in project["layers"]]
-        layers_ok = bool(layer_ids) and len(layer_ids) == len(set(layer_ids))
-        checks.append(
-            {
-                "id": "layers",
-                "status": "pass" if layers_ok else "fail",
-                "count": len(layer_ids),
-            }
+        return validate_project_document(
+            project_id,
+            project,
+            revision=revision,
+            resolve_asset=self.resolve_asset,
+            asset_error_type=AssetNotFoundError,
+            initial_errors=errors,
+            initial_checks=checks,
         )
-        if not layer_ids:
-            errors.append({"path": "$.layers", "code": "missing_layers", "message": "No pixel layers were discovered."})
-        elif len(layer_ids) != len(set(layer_ids)):
-            errors.append({"path": "$.layers", "code": "duplicate_ids", "message": "Layer ids are not unique."})
-
-        missing_assets = 0
-        for layer in project["layers"]:
-            try:
-                self.resolve_asset(project_id, "layer", layer["id"])
-            except AssetNotFoundError:
-                missing_assets += 1
-                errors.append(
-                    {
-                        "path": f"$.layers.{layer['id']}",
-                        "code": "missing_asset",
-                        "message": "Layer image is missing or unsafe.",
-                    }
-                )
-            if layer["empty"]:
-                warnings.append(
-                    {
-                        "path": f"$.layers.{layer['id']}",
-                        "code": "empty_layer",
-                        "message": "Layer has no perceptible alpha and should be excluded or reviewed.",
-                    }
-                )
-            if layer["canonical_role"].startswith("unclassified"):
-                warnings.append(
-                    {
-                        "path": f"$.layers.{layer['id']}.canonical_role",
-                        "code": "unclassified_role",
-                        "message": "Layer needs a canonical role override.",
-                    }
-                )
-        try:
-            self.resolve_asset(project_id, "composite")
-        except AssetNotFoundError:
-            errors.append({"path": "$.assets.composite", "code": "missing_asset", "message": "Composite image is missing or unsafe."})
-        checks.append(
-            {
-                "id": "assets",
-                "status": "pass" if missing_assets == 0 and not any(item["path"] == "$.assets.composite" for item in errors) else "fail",
-                "missing_layer_assets": missing_assets,
-            }
-        )
-
-        joints = project["skeleton"]["joints"]
-        joint_ids = {joint["id"] for joint in joints}
-        skeleton_ok = len(joints) == len(joint_ids)
-        for joint in joints:
-            if not (0 <= joint["x"] <= width and 0 <= joint["y"] <= height):
-                skeleton_ok = False
-        for bone in project["skeleton"]["bones"]:
-            if bone["start_joint_id"] not in joint_ids or bone["end_joint_id"] not in joint_ids:
-                skeleton_ok = False
-        checks.append(
-            {
-                "id": "skeleton",
-                "status": "pass" if skeleton_ok else "fail",
-                "joint_count": len(joints),
-                "bone_count": len(project["skeleton"]["bones"]),
-            }
-        )
-        if not skeleton_ok:
-            errors.append({"path": "$.skeleton", "code": "invalid_skeleton", "message": "Skeleton ids, endpoints, or bounds are invalid."})
-        low_confidence_count = sum(
-            1
-            for joint in joints
-            if joint["confidence"] < 0.5 and joint.get("review_state") == "unreviewed"
-        )
-        if low_confidence_count:
-            warnings.append(
-                {
-                    "path": "$.skeleton.joints",
-                    "code": "low_confidence_joints",
-                    "message": f"{low_confidence_count} heuristic joints need review.",
-                }
-            )
-
-        mae = float(record.audit.get("composite_vs_embedded_mae_rgba", 0) or 0)
-        if mae > 5:
-            warnings.append(
-                {
-                    "path": "$.source.audit",
-                    "code": "composite_mismatch",
-                    "message": f"Recomposed and embedded PSD composites differ (MAE {mae:.3f}).",
-                }
-            )
-        checks.append({"id": "composite-fidelity", "status": "warn" if mae > 5 else "pass", "mae_rgba": mae})
-
-        if errors:
-            status = "invalid"
-        elif warnings:
-            status = "needs_review"
-        else:
-            status = "valid"
-        return {
-            "schema_version": VALIDATION_SCHEMA_VERSION,
-            "contract": contract_descriptor("validation"),
-            "project_id": project_id,
-            "revision": revision,
-            "valid": not errors,
-            "status": status,
-            "checks": checks,
-            "errors": errors,
-            "warnings": warnings,
-        }
 
     def resolve_asset(
         self, project_id: str, asset: str, layer_id: str | None = None

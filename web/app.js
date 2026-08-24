@@ -7,7 +7,7 @@ import {
   reconcileSaveResponse,
 } from "./modules/draft-transactions.js";
 import { createSkeletonRenderer } from "./modules/skeleton-renderer.js";
-import { normalizeWorkflow } from "./modules/workflow.js";
+import { compositeQaFlag, normalizeWorkflow } from "./modules/workflow.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
@@ -865,9 +865,8 @@ function collectQaFlags() {
     layerQaFlags(effectiveLayer(layer)).forEach((flag) => items.push({ ...flag, layerId: String(layer.id), layerName: layer.name }));
   }
   const auditWarnings = state.project?.workflow?.audit_warnings;
-  if (auditWarnings?.high_composite_error) {
-    items.unshift({ code: "COMPOSITE_ERROR", message: "合成图与 PSD 内嵌预览差异偏高，需要目视复核", severity: "warning", layerId: null });
-  }
+  const compositeFlag = compositeQaFlag(auditWarnings);
+  if (compositeFlag) items.unshift(compositeFlag);
   if (numberOr(auditWarnings?.empty_layer_count) > 0) {
     items.unshift({
       code: "EMPTY_LAYERS",

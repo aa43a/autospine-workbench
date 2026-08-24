@@ -46,3 +46,24 @@ export function normalizeWorkflow(raw) {
     };
   });
 }
+
+export function compositeQaFlag(auditWarnings) {
+  if (auditWarnings?.high_composite_error) {
+    return {
+      code: "COMPOSITE_ERROR",
+      message: "背景匹配后的可见合成仍有明显差异，需要目视复核",
+      severity: "warning",
+      layerId: null,
+    };
+  }
+  if (auditWarnings?.raw_composite_difference
+    && auditWarnings?.composite_quality?.status === "unavailable") {
+    return {
+      code: "COMPOSITE_ANALYSIS_REQUIRED",
+      message: "raw RGBA 表示存在差异，尚需运行可见像素合成 QA",
+      severity: "warning",
+      layerId: null,
+    };
+  }
+  return null;
+}

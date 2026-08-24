@@ -1,12 +1,20 @@
 from __future__ import annotations
 
 import json
+import sys
+import tempfile
 import unittest
 from pathlib import Path
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 AUDIT_ROOT = REPOSITORY_ROOT / "tmp" / "psd_audit" / "results"
+WORKBENCH_SRC = Path(__file__).resolve().parents[1] / "src"
+if str(WORKBENCH_SRC) not in sys.path:
+    sys.path.insert(0, str(WORKBENCH_SRC))
+
+from autospine_workbench.composite_quality import compare_composite_pngs  # noqa: E402
+from autospine_workbench.project_store import ProjectStore  # noqa: E402
 
 
 def load_audit(relative_path: str) -> dict:
@@ -18,7 +26,7 @@ def load_audit(relative_path: str) -> dict:
 
 
 class ActualSeeThroughAuditRegressionTests(unittest.TestCase):
-    def test_1024_sample_keeps_the_composite_blocker_visible(self) -> None:
+    def test_1024_sample_distinguishes_rgba_representation_from_visual_error(self) -> None:
         audit = load_audit("seethrough_output")
         self.assertEqual(
             audit["sha256"],
@@ -29,6 +37,24 @@ class ActualSeeThroughAuditRegressionTests(unittest.TestCase):
         self.assertEqual(audit["empty_pixel_layers"], 0)
         self.assertGreater(audit["composite_vs_embedded_mae_rgba"], 100)
         self.assertEqual(audit["composite_vs_embedded_max_abs"], 255)
+        audit_dir = AUDIT_ROOT / "seethrough_output"
+        metrics = compare_composite_pngs(
+            audit_dir / "composite.png", audit_dir / "embedded_composite.png"
+        )
+        self.assertEqual("flattened_reference", metrics.alpha_representation)
+        self.assertLess(metrics.background_matched_rgb_mae, 5)
+        self.assertEqual("passed", metrics.status)
+        with tempfile.TemporaryDirectory() as state_root:
+            store = ProjectStore(REPOSITORY_ROOT, state_root=Path(state_root))
+            project = store.get_project("seethrough_output")
+            audit_warnings = project["workflow"]["audit_warnings"]
+            self.assertTrue(audit_warnings["raw_composite_difference"])
+            self.assertFalse(audit_warnings["high_composite_error"])
+            warning_codes = {
+                warning["code"]
+                for warning in store.validate_project("seethrough_output")["warnings"]
+            }
+            self.assertNotIn("composite_mismatch", warning_codes)
 
         names = [layer["name"] for layer in audit["layers"]]
         self.assertIn("handwear-l", names)
