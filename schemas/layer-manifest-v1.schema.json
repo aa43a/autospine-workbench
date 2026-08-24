@@ -57,7 +57,9 @@
             "x_axis",
             "y_axis",
             "units",
-            "side_naming"
+            "side_naming",
+            "view_orientation",
+            "mirror_state"
           ],
           "properties": {
             "origin": {
@@ -74,6 +76,22 @@
             },
             "side_naming": {
               "const": "character_side"
+            },
+            "view_orientation": {
+              "enum": [
+                "front",
+                "three_quarter",
+                "profile",
+                "back",
+                "unknown"
+              ]
+            },
+            "mirror_state": {
+              "enum": [
+                "not_mirrored",
+                "mirrored",
+                "unknown"
+              ]
             }
           }
         }
@@ -315,8 +333,8 @@
             },
             "side": {
               "enum": [
-                "character_left",
-                "character_right",
+                "left",
+                "right",
                 "center",
                 "bilateral",
                 "unknown"

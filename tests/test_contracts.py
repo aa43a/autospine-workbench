@@ -52,6 +52,8 @@ def valid_layer_manifest() -> dict:
                 "y_axis": "down",
                 "units": "pixel",
                 "side_naming": "character_side",
+                "view_orientation": "unknown",
+                "mirror_state": "unknown",
             },
         },
         "layers": [
@@ -247,6 +249,16 @@ class JsonSchemaContractTests(unittest.TestCase):
         with self.assertRaises(ValidationError):
             patch_validator.validate(patch)
 
+    @unittest.skipIf(Draft202012Validator is None, "install the 'test' extra for JSON Schema checks")
+    def test_layer_side_uses_character_semantics_without_prefixed_values(self) -> None:
+        validator = Draft202012Validator(load_schema("layer-manifest-v1.schema.json"))
+        document = valid_layer_manifest()
+        document["layers"][0]["semantic"]["side"] = "left"
+        validator.validate(document)
+        document["layers"][0]["semantic"]["side"] = "character_left"
+        with self.assertRaises(ValidationError):
+            validator.validate(document)
+
 
 class PythonOverrideContractTests(unittest.TestCase):
     def test_canonical_patch_normalizes_without_losing_visible(self) -> None:
@@ -297,4 +309,3 @@ class PythonOverrideContractTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
