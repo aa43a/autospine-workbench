@@ -128,6 +128,13 @@ class ProjectStoreContractTests(unittest.TestCase):
         }
         saved = self.store.save_overrides("fixture-project", first)
         self.assertEqual(saved["revision"], 1)
+        override_dir = self.fixture.state / "overrides" / "fixture-project"
+        history_path = override_dir / "history" / "r000001.json"
+        self.assertTrue(history_path.is_file())
+        self.assertTrue((override_dir / "latest.json").is_file())
+
+        # History remains authoritative if the replaceable latest cache is lost.
+        (override_dir / "latest.json").unlink()
 
         stale = {
             "base_revision": 0,
@@ -136,13 +143,86 @@ class ProjectStoreContractTests(unittest.TestCase):
             "notes": "stale reviewer",
         }
         with self.assertRaises(RevisionConflictError) as caught:
-            self.store.save_overrides("fixture-project", stale)
+            self.fixture.store().save_overrides("fixture-project", stale)
         self.assertEqual(caught.exception.requested_revision, 0)
         self.assertEqual(caught.exception.current_revision, 1)
 
         reloaded = self.fixture.store().get_project("fixture-project")["overrides"]
         self.assertEqual(reloaded["revision"], 1)
         self.assertEqual(reloaded["notes"], "first reviewer")
+        self.assertEqual(
+            [path.name for path in (override_dir / "history").glob("*.json")],
+            ["r000001.json"],
+        )
+
+    def test_history_snapshots_are_append_only(self) -> None:
+        first = self.store.save_overrides(
+            "fixture-project",
+            {
+                "base_revision": 0,
+                "joint_overrides": {},
+                "layer_overrides": {},
+                "notes": "first",
+            },
+        )
+        override_dir = self.fixture.state / "overrides" / "fixture-project"
+        first_path = override_dir / "history" / "r000001.json"
+        first_bytes = first_path.read_bytes()
+
+        second = self.store.save_overrides(
+            "fixture-project",
+            {
+                "base_revision": first["revision"],
+                "joint_overrides": {},
+                "layer_overrides": {},
+                "notes": "second",
+            },
+        )
+
+        self.assertEqual(second["revision"], 2)
+        self.assertEqual(first_path.read_bytes(), first_bytes)
+        self.assertTrue((override_dir / "history" / "r000002.json").is_file())
+        latest = json.loads((override_dir / "latest.json").read_text(encoding="utf-8"))
+        self.assertEqual(latest["revision"], 2)
+        self.assertEqual(latest["notes"], "second")
+
+    def test_legacy_override_is_read_and_migrated_without_modification(self) -> None:
+        override_root = self.fixture.state / "overrides"
+        override_root.mkdir(parents=True)
+        legacy_path = override_root / "fixture-project.json"
+        legacy_document = {
+            "schema_version": "autospine-workbench.override/v1",
+            "project_id": "fixture-project",
+            "revision": 4,
+            "joint_overrides": {},
+            "layer_overrides": {},
+            "notes": "legacy review",
+        }
+        legacy_path.write_text(
+            json.dumps(legacy_document, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+        legacy_bytes = legacy_path.read_bytes()
+
+        loaded = self.fixture.store().get_project("fixture-project")["overrides"]
+        self.assertEqual(loaded["revision"], 4)
+        self.assertEqual(loaded["notes"], "legacy review")
+
+        saved = self.fixture.store().save_overrides(
+            "fixture-project",
+            {
+                "base_revision": 4,
+                "joint_overrides": {},
+                "layer_overrides": {},
+                "notes": "migrated review",
+            },
+        )
+        project_dir = override_root / "fixture-project"
+        self.assertEqual(saved["revision"], 5)
+        self.assertEqual(legacy_path.read_bytes(), legacy_bytes)
+        self.assertTrue((project_dir / "history" / "r000004.json").is_file())
+        self.assertTrue((project_dir / "history" / "r000005.json").is_file())
+        latest = json.loads((project_dir / "latest.json").read_text(encoding="utf-8"))
+        self.assertEqual(latest["revision"], 5)
 
     def test_project_id_and_asset_kind_cannot_be_paths(self) -> None:
         with self.assertRaises(ProjectNotFoundError):

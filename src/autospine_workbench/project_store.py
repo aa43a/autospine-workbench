@@ -4,10 +4,7 @@ from __future__ import annotations
 
 import json
 import math
-import os
 import re
-import tempfile
-import threading
 import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
@@ -15,22 +12,23 @@ from typing import Any, Mapping
 from urllib.parse import quote
 
 from .contracts import (
-    ContractValidationError,
     LAYER_SCHEMA_VERSION,
-    OVERRIDE_SCHEMA_VERSION,
     PROJECT_SCHEMA_VERSION,
     SKELETON_SCHEMA_VERSION,
     VALIDATION_SCHEMA_VERSION,
     contract_descriptor,
-    empty_overrides,
-    normalize_override_request,
+)
+from .override_store import (
+    OverrideHistoryStore,
+    OverrideRevisionConflict,
+    OverrideStateError,
+    OverrideStoreError,
 )
 
 
 _PROJECT_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 _IMAGE_SUFFIXES = frozenset({".png", ".jpg", ".jpeg", ".webp"})
 _MAX_AUDIT_BYTES = 64 * 1024 * 1024
-_MAX_OVERRIDE_BYTES = 2 * 1024 * 1024
 
 
 class ProjectStoreError(RuntimeError):
@@ -217,7 +215,7 @@ class ProjectStore:
         default_state_root = Path(__file__).resolve().parents[2] / "workspace"
         self.state_root = Path(state_root).expanduser().resolve() if state_root else default_state_root
         self.audit_root = self.workspace_root / "tmp" / "psd_audit" / "results"
-        self._lock = threading.RLock()
+        self._override_store = OverrideHistoryStore(self.state_root)
 
     def _discover(self) -> dict[str, _ProjectRecord]:
         records: dict[str, _ProjectRecord] = {}
@@ -574,45 +572,18 @@ class ProjectStore:
             "bones": bones,
         }
 
-    def _override_path(self, project_id: str) -> Path:
-        if not _PROJECT_ID_RE.fullmatch(project_id):
-            raise ProjectNotFoundError(project_id)
-        return self.state_root / "overrides" / f"{project_id}.json"
-
     def _read_overrides(self, project: Mapping[str, Any]) -> dict[str, Any]:
         project_id = str(project["id"])
-        path = self._override_path(project_id)
-        if not path.is_file():
-            return empty_overrides(project_id)
         try:
-            raw = _load_json(path, _MAX_OVERRIDE_BYTES)
-            if not isinstance(raw, Mapping):
-                raise ProjectStateError("Override document must be a JSON object")
-            revision = raw.get("revision")
-            if not isinstance(revision, int) or isinstance(revision, bool) or revision < 0:
-                raise ProjectStateError("Override revision is invalid")
-            request = {
-                "schema_version": raw.get("schema_version", OVERRIDE_SCHEMA_VERSION),
-                "base_revision": revision,
-                "joint_overrides": raw.get("joint_overrides", {}),
-                "layer_overrides": raw.get("layer_overrides", {}),
-                "notes": raw.get("notes", ""),
-            }
-            _, normalized = normalize_override_request(
-                request,
-                project_id=project_id,
-                current_revision=revision,
+            return self._override_store.load(
+                project_id,
                 joint_ids={item["id"] for item in project["skeleton"]["joints"]},
                 layer_ids={item["id"] for item in project["layers"]},
                 canvas_width=project["canvas"]["width"],
                 canvas_height=project["canvas"]["height"],
             )
-            normalized["revision"] = revision
-            return normalized
-        except ContractValidationError as exc:
-            raise ProjectStateError(f"Stored overrides are invalid: {exc}") from exc
-        except ProjectStoreError:
-            raise
+        except OverrideStateError as exc:
+            raise ProjectStateError(str(exc)) from exc
 
     def _build_project(self, record: _ProjectRecord, include_overrides: bool = True) -> dict[str, Any]:
         canvas_width, canvas_height = self._canvas(record.audit)
@@ -718,49 +689,24 @@ class ProjectStore:
         return self._build_project(self._record(project_id))
 
     def save_overrides(self, project_id: str, payload: Any) -> dict[str, Any]:
-        """Validate and atomically replace overrides using revision compare-and-swap."""
+        """Validate and append overrides using revision compare-and-swap."""
 
-        with self._lock:
-            project = self.get_project(project_id)
-            current = project["overrides"]
-            requested_revision, normalized = normalize_override_request(
+        project = self._build_project(self._record(project_id), include_overrides=False)
+        try:
+            return self._override_store.save(
+                project_id,
                 payload,
-                project_id=project_id,
-                current_revision=current["revision"],
                 joint_ids={item["id"] for item in project["skeleton"]["joints"]},
                 layer_ids={item["id"] for item in project["layers"]},
                 canvas_width=project["canvas"]["width"],
                 canvas_height=project["canvas"]["height"],
             )
-            if requested_revision != current["revision"]:
-                raise RevisionConflictError(requested_revision, current["revision"])
-            normalized["revision"] = current["revision"] + 1
-            destination = self._override_path(project_id)
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            encoded = (
-                json.dumps(normalized, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
-            ).encode("utf-8")
-            temp_path: Path | None = None
-            try:
-                fd, raw_temp_path = tempfile.mkstemp(
-                    prefix=f".{project_id}.", suffix=".tmp", dir=destination.parent
-                )
-                temp_path = Path(raw_temp_path)
-                with os.fdopen(fd, "wb") as handle:
-                    handle.write(encoded)
-                    handle.flush()
-                    os.fsync(handle.fileno())
-                os.replace(temp_path, destination)
-                temp_path = None
-            except OSError as exc:
-                raise ProjectStoreError("Could not atomically save overrides") from exc
-            finally:
-                if temp_path is not None:
-                    try:
-                        temp_path.unlink(missing_ok=True)
-                    except OSError:
-                        pass
-            return normalized
+        except OverrideRevisionConflict as exc:
+            raise RevisionConflictError(
+                exc.requested_revision, exc.current_revision
+            ) from exc
+        except OverrideStoreError as exc:
+            raise ProjectStoreError(str(exc)) from exc
 
     def validate_project(self, project_id: str) -> dict[str, Any]:
         """Run deterministic structural and local-asset validation."""
@@ -949,4 +895,3 @@ class ProjectStore:
         if not resolved.is_file() or resolved.suffix.lower() not in _IMAGE_SUFFIXES:
             raise AssetNotFoundError(project_id, asset)
         return resolved
-
