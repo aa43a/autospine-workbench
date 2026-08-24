@@ -4,19 +4,13 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 from pathlib import Path
-import struct
-import zlib
+
+from .png_rgba import RgbaPngError, read_rgba_png
 
 try:  # Optional acceleration; the dependency-free decoder remains authoritative.
     import numpy as _np
 except ImportError:  # pragma: no cover - exercised in minimal runtime environments
     _np = None
-
-try:
-    from PIL import Image as _PillowImage
-except ImportError:  # pragma: no cover - exercised in minimal runtime environments
-    _PillowImage = None
-
 
 class CompositeQualityError(RuntimeError):
     """Raised when images cannot be compared without guessing a conversion."""
@@ -79,8 +73,21 @@ def compare_composite_pngs(
     *,
     visual_mae_threshold: float = 5.0,
 ) -> CompositeQualityMetrics:
-    width, height, composite = _decode_rgba_png(Path(composite_path))
-    other_width, other_height, embedded = _decode_rgba_png(Path(embedded_path))
+    try:
+        composite_image = read_rgba_png(Path(composite_path))
+        embedded_image = read_rgba_png(Path(embedded_path))
+    except RgbaPngError as exc:
+        raise CompositeQualityError(str(exc)) from exc
+    width, height, composite = (
+        composite_image.width,
+        composite_image.height,
+        composite_image.pixels,
+    )
+    other_width, other_height, embedded = (
+        embedded_image.width,
+        embedded_image.height,
+        embedded_image.pixels,
+    )
     if (width, height) != (other_width, other_height):
         raise CompositeQualityError("Composite dimensions differ")
     pixel_count = width * height
@@ -152,90 +159,6 @@ def compare_composite_pngs(
         transparent_fraction_embedded=round(transparent_fraction_right, 8),
         status="manual_required" if matched_mae > visual_mae_threshold else "passed",
     )
-
-
-def _decode_rgba_png(path: Path) -> tuple[int, int, bytes]:
-    if _PillowImage is not None:
-        try:
-            with _PillowImage.open(path) as image:
-                if image.format != "PNG" or image.mode != "RGBA":
-                    raise CompositeQualityError(
-                        "Composite comparison requires 8-bit RGBA PNGs"
-                    )
-                image.load()
-                return image.width, image.height, image.tobytes()
-        except CompositeQualityError:
-            raise
-        except (OSError, ValueError) as exc:
-            raise CompositeQualityError(f"Cannot decode PNG: {path.name}") from exc
-    try:
-        data = path.read_bytes()
-    except OSError as exc:
-        raise CompositeQualityError(f"Cannot read PNG: {path.name}") from exc
-    if data[:8] != b"\x89PNG\r\n\x1a\n":
-        raise CompositeQualityError(f"Not a PNG: {path.name}")
-    position = 8
-    width = height = 0
-    compressed = bytearray()
-    while position + 12 <= len(data):
-        length = struct.unpack(">I", data[position : position + 4])[0]
-        kind = data[position + 4 : position + 8]
-        payload_start = position + 8
-        payload_end = payload_start + length
-        if payload_end + 4 > len(data):
-            raise CompositeQualityError(f"Truncated PNG chunk: {path.name}")
-        payload = data[payload_start:payload_end]
-        if kind == b"IHDR":
-            if len(payload) != 13:
-                raise CompositeQualityError("Invalid PNG IHDR")
-            width, height, depth, color_type, compression, filtering, interlace = struct.unpack(
-                ">IIBBBBB", payload
-            )
-            if (depth, color_type, compression, filtering, interlace) != (8, 6, 0, 0, 0):
-                raise CompositeQualityError(
-                    "Composite comparison requires non-interlaced 8-bit RGBA PNGs"
-                )
-        elif kind == b"IDAT":
-            compressed.extend(payload)
-        elif kind == b"IEND":
-            break
-        position = payload_end + 4
-    if width < 1 or height < 1 or not compressed:
-        raise CompositeQualityError(f"PNG has no image data: {path.name}")
-    try:
-        filtered = zlib.decompress(compressed)
-    except zlib.error as exc:
-        raise CompositeQualityError(f"Cannot decompress PNG: {path.name}") from exc
-    stride = width * 4
-    if len(filtered) != height * (stride + 1):
-        raise CompositeQualityError("PNG scanline size is inconsistent")
-
-    output = bytearray(height * stride)
-    source_offset = 0
-    for row in range(height):
-        filter_type = filtered[source_offset]
-        source_offset += 1
-        row_start = row * stride
-        for column in range(stride):
-            raw = filtered[source_offset + column]
-            left = output[row_start + column - 4] if column >= 4 else 0
-            above = output[row_start + column - stride] if row else 0
-            upper_left = output[row_start + column - stride - 4] if row and column >= 4 else 0
-            if filter_type == 0:
-                value = raw
-            elif filter_type == 1:
-                value = raw + left
-            elif filter_type == 2:
-                value = raw + above
-            elif filter_type == 3:
-                value = raw + ((left + above) // 2)
-            elif filter_type == 4:
-                value = raw + _paeth(left, above, upper_left)
-            else:
-                raise CompositeQualityError(f"Unsupported PNG filter {filter_type}")
-            output[row_start + column] = value & 0xFF
-        source_offset += stride
-    return width, height, bytes(output)
 
 
 def _infer_background(composite: bytes, embedded: bytes) -> tuple[int, int, int]:
@@ -327,13 +250,3 @@ def _alpha_representation(left: float, right: float, alpha_mae: float) -> str:
 
 def _composite_channel(color: int, alpha: int, background: int) -> int:
     return (color * alpha + background * (255 - alpha) + 127) // 255
-
-
-def _paeth(left: int, above: int, upper_left: int) -> int:
-    prediction = left + above - upper_left
-    left_distance = abs(prediction - left)
-    above_distance = abs(prediction - above)
-    upper_left_distance = abs(prediction - upper_left)
-    if left_distance <= above_distance and left_distance <= upper_left_distance:
-        return left
-    return above if above_distance <= upper_left_distance else upper_left
