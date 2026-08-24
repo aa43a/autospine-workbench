@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 from typing import Sequence
 
+from .rig_validation import RigSemanticValidator
 from .server import create_server
 
 
@@ -37,11 +39,18 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Optional built frontend directory to serve",
     )
+    validate_rig = subparsers.add_parser(
+        "validate-rig",
+        help="Validate RigIR cross-references, topology, and numeric invariants",
+    )
+    validate_rig.add_argument("rig", type=Path, help="Path to a RigIR JSON document")
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    if args.command == "validate-rig":
+        return _validate_rig(args.rig)
     if args.command != "serve":
         raise AssertionError(f"Unhandled command: {args.command}")
     try:
@@ -66,3 +75,20 @@ def main(argv: Sequence[str] | None = None) -> int:
         server.server_close()
     return 0
 
+
+def _validate_rig(path: Path) -> int:
+    try:
+        document = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        print(json.dumps({"valid": False, "issues": [{"code": "invalid_document", "path": "", "message": str(exc), "severity": "error"}]}))
+        return 2
+    issues = RigSemanticValidator().validate(document)
+    valid = not any(issue.severity == "error" for issue in issues)
+    print(
+        json.dumps(
+            {"valid": valid, "issues": [issue.to_dict() for issue in issues]},
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
+    return 0 if valid else 1
