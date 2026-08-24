@@ -7,4 +7,6 @@ dist/
 build/
 workspace/overrides/*.tmp
 workspace/overrides/*.bak
-
+workspace/overrides/*/
+workspace/analysis/
+workspace/builds/
