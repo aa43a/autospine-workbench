@@ -7,6 +7,7 @@
   <meta name="theme-color" content="#0b0e14">
   <title>AutoSpine Workbench</title>
   <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./conflict.css">
 </head>
 <body>
   <a class="skip-link" href="#main-content">跳到画布</a>
@@ -106,6 +107,10 @@
     <div class="global-alert" id="globalAlert" role="alert" hidden>
       <svg class="icon" aria-hidden="true"><use href="#icon-warning"></use></svg>
       <span id="globalAlertText"></span>
+      <div class="global-alert-actions" id="conflictActions" hidden>
+        <button class="button button-secondary" id="exportLocalPatchBtn" type="button">导出本地 patch</button>
+        <button class="button button-primary" id="replayConflictBtn" type="button">加载最新并重放</button>
+      </div>
       <button class="icon-button compact" id="dismissAlertBtn" type="button" aria-label="关闭错误提示">
         <svg class="icon"><use href="#icon-x"></use></svg>
       </button>

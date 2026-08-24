@@ -1,5 +1,15 @@
+import { API_BASE, apiRequest, normalizeProjectSummaries } from "./modules/api.js";
+import {
+  applyDraftPatch,
+  captureSaveSnapshot,
+  cloneJson,
+  createLocalPatchArtifact,
+  reconcileSaveResponse,
+} from "./modules/draft-transactions.js";
+import { createSkeletonRenderer } from "./modules/skeleton-renderer.js";
+import { normalizeWorkflow } from "./modules/workflow.js";
+
 const SVG_NS = "http://www.w3.org/2000/svg";
-const API_BASE = "/api/projects";
 
 const state = {
   projects: [],
@@ -25,6 +35,9 @@ const state = {
   dragJointId: null,
   dragPointerStart: null,
   loadSequence: 0,
+  editEpoch: 0,
+  persistedDraft: null,
+  conflictPatch: null,
 };
 
 const dom = Object.fromEntries([
@@ -41,42 +54,16 @@ const dom = Object.fromEntries([
   "semanticSideSelect", "layerDispositionSelect", "selectedLayerVisible", "jointConfidence", "jointSelectionEmpty",
   "jointFields", "selectedJointName", "selectedJointState", "jointXInput", "jointYInput",
   "resetJointBtn", "qaCounter", "qaList", "capabilityList", "overrideNotes", "canvasStatus",
-  "selectionStatus", "overrideStatus", "networkStatus", "liveRegion",
+  "selectionStatus", "overrideStatus", "networkStatus", "liveRegion", "conflictActions",
+  "exportLocalPatchBtn", "replayConflictBtn",
 ].map((id) => [id, document.getElementById(id)]));
-
-const stageLabels = {
-  ingest: "导入",
-  decomposition: "分层",
-  layers: "图层检查",
-  anchors: "锚点",
-  skeleton: "骨骼校正",
-  rig: "骨骼校正",
-  bindings: "绑定",
-  animation: "动画",
-  qa: "能力验收",
-  export: "导出",
-  "psd-audit": "PSD 审计",
-  "layer-review": "图层检查",
-  "skeleton-review": "骨骼校正",
-  "rig-review": "绑定复核",
-  "spine-export": "Spine 导出",
-};
-
-function clone(value, fallback = {}) {
-  if (value == null) return fallback;
-  try {
-    return JSON.parse(JSON.stringify(value));
-  } catch {
-    return fallback;
-  }
-}
 
 function normalizeOverrideMap(value) {
   if (!value) return {};
   if (Array.isArray(value)) {
-    return Object.fromEntries(value.filter(Boolean).map((entry) => [String(entry.id), clone(entry)]));
+    return Object.fromEntries(value.filter(Boolean).map((entry) => [String(entry.id), cloneJson(entry, {})]));
   }
-  return typeof value === "object" ? clone(value) : {};
+  return typeof value === "object" ? cloneJson(value, {}) : {};
 }
 
 function normalizeLayerOverrideMap(value) {
@@ -99,6 +86,29 @@ function normalizeLayerOverrideMap(value) {
     delete rawOverride.role;
   }
   return overrides;
+}
+
+function captureCurrentDraft() {
+  return {
+    joint_overrides: cloneJson(state.jointOverrides, {}),
+    layer_overrides: cloneJson(state.layerOverrides, {}),
+    notes: state.notes,
+  };
+}
+
+function applyDraftToState(draft) {
+  state.jointOverrides = normalizeOverrideMap(draft?.joint_overrides);
+  state.layerOverrides = normalizeLayerOverrideMap(draft?.layer_overrides);
+  state.notes = String(draft?.notes ?? "");
+  if (dom.overrideNotes.value !== state.notes) dom.overrideNotes.value = state.notes;
+}
+
+function draftFromServer(overrides, fallbackDraft = {}) {
+  return {
+    joint_overrides: normalizeOverrideMap(overrides?.joint_overrides ?? fallbackDraft.joint_overrides),
+    layer_overrides: normalizeLayerOverrideMap(overrides?.layer_overrides ?? fallbackDraft.layer_overrides),
+    notes: String(overrides?.notes ?? fallbackDraft.notes ?? ""),
+  };
 }
 
 function createIcon(name) {
@@ -144,14 +154,16 @@ function announce(message) {
   });
 }
 
-function showAlert(message) {
+function showAlert(message, { conflict = false } = {}) {
   dom.globalAlertText.textContent = message;
   dom.globalAlert.hidden = false;
+  dom.conflictActions.hidden = !conflict;
 }
 
 function hideAlert() {
   dom.globalAlert.hidden = true;
   dom.globalAlertText.textContent = "";
+  dom.conflictActions.hidden = true;
 }
 
 function setLoading(loading) {
@@ -167,6 +179,7 @@ function setSaveState(kind, text) {
 }
 
 function markDirty(message = "存在未保存校正") {
+  state.editEpoch += 1;
   state.dirty = true;
   dom.saveBtn.disabled = !state.project || state.saving;
   setSaveState("dirty", "未保存");
@@ -182,49 +195,6 @@ function clearDirty(message = "校正已保存") {
   if (message) announce(message);
 }
 
-async function apiRequest(url, options = {}) {
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      Accept: "application/json",
-      ...(options.body ? { "Content-Type": "application/json" } : {}),
-      ...(options.headers || {}),
-    },
-  });
-
-  const contentType = response.headers.get("content-type") || "";
-  let payload = null;
-  if (contentType.includes("application/json")) {
-    payload = await response.json().catch(() => null);
-  } else {
-    payload = await response.text().catch(() => "");
-  }
-
-  if (!response.ok) {
-    const detail = typeof payload === "object" && payload
-      ? payload.detail || payload.message || JSON.stringify(payload)
-      : payload;
-    const error = new Error(detail || `请求失败（HTTP ${response.status}）`);
-    error.status = response.status;
-    error.payload = payload;
-    throw error;
-  }
-  return payload;
-}
-
-function normalizeProjectSummaries(payload) {
-  const list = Array.isArray(payload) ? payload : payload?.projects || payload?.items || [];
-  return list.map((item) => {
-    if (typeof item === "string") return { id: item, name: item };
-    const id = item?.id ?? item?.project_id ?? item?.slug;
-    return {
-      ...item,
-      id: String(id ?? ""),
-      name: item?.name || item?.title || String(id ?? "未命名项目"),
-    };
-  }).filter((item) => item.id);
-}
-
 async function loadProjects({ preserveSelection = true } = {}) {
   const previousId = preserveSelection ? state.selectedProjectId : null;
   hideAlert();
@@ -238,9 +208,12 @@ async function loadProjects({ preserveSelection = true } = {}) {
     dom.networkStatus.textContent = "API 已连接";
 
     if (!state.projects.length) {
-      state.project = null;
-      state.selectedProjectId = null;
-      renderEmptyState("暂无项目", "API 已连接，但工作区中没有可编辑项目。");
+      if (state.project) {
+        showAlert("项目列表当前为空；已保留正在编辑的项目和本地校正。");
+      } else {
+        state.selectedProjectId = null;
+        renderEmptyState("暂无项目", "API 已连接，但工作区中没有可编辑项目。");
+      }
       return;
     }
 
@@ -248,12 +221,12 @@ async function loadProjects({ preserveSelection = true } = {}) {
     const nextId = [previousId, requestedId, state.projects[0].id]
       .find((candidate) => candidate && state.projects.some((project) => project.id === candidate));
     dom.projectSelect.value = nextId;
-    await loadProject(nextId, { skipDirtyCheck: true });
+    await loadProject(nextId);
   } catch (error) {
     state.projects = [];
     renderProjectOptions();
     dom.networkStatus.textContent = "API 连接失败";
-    renderEmptyState("无法加载项目", "请确认工作台服务正在运行，然后重试。");
+    if (!state.project) renderEmptyState("无法加载项目", "请确认工作台服务正在运行，然后重试。");
     showAlert(`项目列表加载失败：${error.message}`);
   } finally {
     setLoading(false);
@@ -277,10 +250,11 @@ function renderProjectOptions() {
   dom.projectSelect.disabled = state.loading;
 }
 
-async function loadProject(projectId, { skipDirtyCheck = false } = {}) {
+async function loadProject(projectId) {
   if (!projectId) return;
-  if (!skipDirtyCheck && state.dirty) {
-    const proceed = window.confirm("当前项目有未保存校正。继续切换将放弃这些修改，是否继续？");
+  if (state.dirty) {
+    const action = String(projectId) === state.selectedProjectId ? "刷新" : "切换";
+    const proceed = window.confirm(`当前项目有未保存校正。继续${action}将放弃这些修改，是否继续？`);
     if (!proceed) {
       dom.projectSelect.value = state.selectedProjectId || "";
       return;
@@ -289,6 +263,7 @@ async function loadProject(projectId, { skipDirtyCheck = false } = {}) {
 
   const sequence = ++state.loadSequence;
   setLoading(true);
+  dom.saveBtn.disabled = true;
   hideAlert();
   setSaveState("idle", "正在加载");
 
@@ -306,7 +281,10 @@ async function loadProject(projectId, { skipDirtyCheck = false } = {}) {
     showAlert(`项目加载失败：${error.message}`);
     setSaveState("error", "加载失败");
   } finally {
-    if (sequence === state.loadSequence) setLoading(false);
+    if (sequence === state.loadSequence) {
+      setLoading(false);
+      if (state.dirty && !state.saving) dom.saveBtn.disabled = false;
+    }
   }
 }
 
@@ -317,6 +295,8 @@ function initializeProject(project, fallbackId) {
   state.selectedJointId = null;
   state.search = "";
   state.dirty = false;
+  state.editEpoch = 0;
+  state.conflictPatch = null;
   state.previewOpacity = 1;
   state.showComposite = true;
   state.showSkeleton = true;
@@ -326,6 +306,7 @@ function initializeProject(project, fallbackId) {
   state.jointOverrides = normalizeOverrideMap(overrides.joint_overrides);
   state.layerOverrides = normalizeLayerOverrideMap(overrides.layer_overrides);
   state.notes = String(overrides.notes ?? "");
+  state.persistedDraft = captureCurrentDraft();
 
   dom.projectSelect.value = state.selectedProjectId;
   dom.layerSearch.value = "";
@@ -413,40 +394,8 @@ function getSelectedJoint() {
   return joint ? effectiveJoint(joint) : null;
 }
 
-function normalizeWorkflow() {
-  const raw = state.project?.workflow;
-  let stages = [];
-  if (Array.isArray(raw)) stages = raw;
-  else if (Array.isArray(raw?.steps)) stages = raw.steps;
-  else if (Array.isArray(raw?.stages)) stages = raw.stages;
-  else if (raw && typeof raw === "object") {
-    stages = Object.entries(raw).map(([id, value]) => {
-      if (value && typeof value === "object") return { id, ...value };
-      return { id, status: value };
-    });
-  }
-
-  if (!stages.length) {
-    stages = ["layers", "skeleton", "bindings", "qa"].map((id, index) => ({
-      id,
-      status: index === 0 ? "active" : "pending",
-    }));
-  }
-
-  return stages.map((stage, index) => {
-    const item = typeof stage === "string" ? { id: stage } : stage;
-    const id = String(item.id ?? item.name ?? `stage-${index + 1}`);
-    return {
-      ...item,
-      id,
-      label: item.label || item.title || stageLabels[id] || id,
-      status: String(item.status || item.state || "pending").toLowerCase(),
-    };
-  });
-}
-
 function renderWorkflow() {
-  const stages = normalizeWorkflow();
+  const stages = normalizeWorkflow(state.project?.workflow);
   if (!state.activeStage || !stages.some((stage) => stage.id === state.activeStage)) {
     const requested = state.project?.workflow?.current_stage;
     state.activeStage = stages.find((stage) => stage.id === requested)?.id
@@ -762,79 +711,26 @@ function renderLayerSelection() {
     });
 }
 
+const skeletonRenderer = createSkeletonRenderer({
+  boneGroup: dom.boneGroup,
+  jointGroup: dom.jointGroup,
+  skeletonSvg: dom.skeletonSvg,
+  clamp,
+  numberOr,
+  formatConfidence,
+  onJointPointerDown,
+  onSelectJoint: selectJoint,
+});
+
 function renderSkeleton() {
-  dom.boneGroup.replaceChildren();
-  dom.jointGroup.replaceChildren();
-  dom.skeletonSvg.classList.toggle("is-hidden", !state.showSkeleton);
-  if (!state.project || !state.showSkeleton) return;
-
-  const joints = getJoints().map(effectiveJoint);
-  const jointMap = new Map(joints.map((joint) => [String(joint.id), joint]));
-  const { width, height } = getCanvasSize();
-  const jointRadius = clamp(Math.min(width, height) * 0.006, 4, 10);
-
-  for (const bone of getBones()) {
-    const fromId = String(typeof bone.from === "object" ? bone.from.id : bone.from ?? bone.start_joint_id ?? bone.start ?? bone.parent ?? "");
-    const toId = String(typeof bone.to === "object" ? bone.to.id : bone.to ?? bone.end_joint_id ?? bone.end ?? bone.child ?? "");
-    const from = jointMap.get(fromId);
-    const to = jointMap.get(toId);
-    if (!from || !to) continue;
-    const line = document.createElementNS(SVG_NS, "line");
-    line.classList.add("bone-line");
-    if (Math.min(numberOr(from.confidence, 1), numberOr(to.confidence, 1)) < 0.55) line.classList.add("low-confidence");
-    line.dataset.boneId = String(bone.id ?? `${fromId}-${toId}`);
-    line.setAttribute("x1", String(from.x));
-    line.setAttribute("y1", String(from.y));
-    line.setAttribute("x2", String(to.x));
-    line.setAttribute("y2", String(to.y));
-    dom.boneGroup.append(line);
-  }
-
-  for (const joint of joints) {
-    const id = String(joint.id);
-    const group = document.createElementNS(SVG_NS, "g");
-    group.classList.add("joint-handle");
-    if (numberOr(joint.confidence, 1) < 0.55) group.classList.add("low-confidence");
-    if (joint.isManual) group.classList.add("manual");
-    if (id === state.selectedJointId) group.classList.add("selected");
-    group.dataset.jointId = id;
-    group.setAttribute("role", "button");
-    group.setAttribute("tabindex", "0");
-    group.setAttribute("aria-label", `关节 ${id}，位置 ${Math.round(joint.x)}, ${Math.round(joint.y)}，置信度 ${formatConfidence(joint.confidence)}`);
-    group.setAttribute("transform", `translate(${joint.x} ${joint.y})`);
-
-    const title = document.createElementNS(SVG_NS, "title");
-    title.textContent = `${id} · ${formatConfidence(joint.confidence)}`;
-    const halo = document.createElementNS(SVG_NS, "circle");
-    halo.classList.add("joint-halo");
-    halo.setAttribute("r", String(jointRadius * 1.55));
-    const core = document.createElementNS(SVG_NS, "circle");
-    core.classList.add("joint-core");
-    core.setAttribute("r", String(jointRadius));
-    group.append(title, halo, core);
-
-    if (id === state.selectedJointId) {
-      const label = document.createElementNS(SVG_NS, "text");
-      label.classList.add("joint-label");
-      label.setAttribute("x", String(jointRadius + 7));
-      label.setAttribute("y", "-8");
-      label.textContent = id;
-      group.append(label);
-    }
-
-    group.addEventListener("pointerdown", onJointPointerDown);
-    group.addEventListener("click", (event) => {
-      event.stopPropagation();
-      selectJoint(id);
-    });
-    group.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        selectJoint(id);
-      }
-    });
-    dom.jointGroup.append(group);
-  }
+  skeletonRenderer.render({
+    visible: state.showSkeleton,
+    hasProject: Boolean(state.project),
+    joints: getJoints().map(effectiveJoint),
+    bones: getBones(),
+    selectedJointId: state.selectedJointId,
+    canvasSize: getCanvasSize(),
+  });
 }
 
 function onJointPointerDown(event) {
@@ -1144,46 +1040,133 @@ function updateStatusbar() {
 
 async function saveOverrides() {
   if (!state.project || state.saving || !state.dirty) return;
+  const snapshot = captureSaveSnapshot({
+    projectId: state.selectedProjectId,
+    baseRevision: state.baseRevision,
+    editEpoch: state.editEpoch,
+    draft: captureCurrentDraft(),
+  });
   state.saving = true;
   dom.saveBtn.disabled = true;
   setSaveState("saving", "正在保存");
   hideAlert();
 
   const body = {
-    base_revision: state.baseRevision,
-    joint_overrides: clone(state.jointOverrides),
-    layer_overrides: clone(state.layerOverrides),
-    notes: state.notes,
+    base_revision: snapshot.baseRevision,
+    ...snapshot.draft,
   };
 
   try {
-    const payload = await apiRequest(`${API_BASE}/${encodeURIComponent(state.selectedProjectId)}/overrides`, {
+    const payload = await apiRequest(`${API_BASE}/${encodeURIComponent(snapshot.projectId)}/overrides`, {
       method: "PUT",
       body: JSON.stringify(body),
     });
+    if (state.selectedProjectId !== snapshot.projectId) return;
     const nextOverrides = payload?.overrides || payload || {};
+    const reconciled = reconcileSaveResponse({
+      snapshot,
+      liveDraft: captureCurrentDraft(),
+      serverDraft: draftFromServer(nextOverrides, snapshot.draft),
+      currentEditEpoch: state.editEpoch,
+    });
     state.baseRevision = nextOverrides.revision ?? payload?.revision ?? state.baseRevision;
-    if (nextOverrides.joint_overrides) state.jointOverrides = normalizeOverrideMap(nextOverrides.joint_overrides);
-    if (nextOverrides.layer_overrides) state.layerOverrides = normalizeLayerOverrideMap(nextOverrides.layer_overrides);
-    if (typeof nextOverrides.notes === "string") {
-      state.notes = nextOverrides.notes;
-      dom.overrideNotes.value = state.notes;
-    }
+    state.persistedDraft = reconciled.persistedDraft;
+    applyDraftToState(reconciled.draft);
+    state.conflictPatch = null;
     dom.revisionBadge.textContent = `r${state.baseRevision}`;
-    clearDirty();
+    if (reconciled.hasPendingEdits) {
+      state.dirty = true;
+      setSaveState("dirty", "仍有未保存编辑");
+      announce("保存快照已完成；保存期间的新编辑仍待保存");
+    } else {
+      clearDirty();
+    }
     renderLayerList();
     renderSkeleton();
+    renderInspectors();
+    renderQa();
+    updateStatusbar();
   } catch (error) {
     const conflict = error.status === 409;
+    if (conflict && state.selectedProjectId === snapshot.projectId) {
+      state.conflictPatch = buildCurrentLocalPatchArtifact();
+    }
     setSaveState("error", conflict ? "版本冲突" : "保存失败");
-    showAlert(conflict
-      ? "保存失败：项目已被其他会话更新。请刷新项目并重新应用校正。"
-      : `保存校正失败：${error.message}`);
-    announce(conflict ? "保存时发生版本冲突" : "保存失败");
+    showAlert(
+      conflict
+        ? "保存失败：服务端已有新版本。本地校正仍保留；可先导出 patch，或加载最新版本并将本地命令重放到其上。重叠字段以本地值为准。"
+        : `保存校正失败：${error.message}`,
+      { conflict },
+    );
+    announce(conflict ? "保存时发生版本冲突，本地校正已保留" : "保存失败");
     dom.saveBtn.disabled = false;
   } finally {
     state.saving = false;
     if (state.dirty) dom.saveBtn.disabled = false;
+  }
+}
+
+function buildCurrentLocalPatchArtifact() {
+  if (!state.project) return null;
+  return createLocalPatchArtifact({
+    projectId: state.selectedProjectId,
+    baseRevision: state.baseRevision,
+    baseDraft: state.persistedDraft || {},
+    currentDraft: captureCurrentDraft(),
+  });
+}
+
+function exportLocalPatch() {
+  const artifact = buildCurrentLocalPatchArtifact();
+  if (!artifact) return;
+  state.conflictPatch = artifact;
+  const blob = new Blob([`${JSON.stringify(artifact, null, 2)}\n`], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  const safeProjectId = state.selectedProjectId.replace(/[^A-Za-z0-9_.-]+/g, "-");
+  link.href = url;
+  link.download = `${safeProjectId}.local-patch.r${state.baseRevision}.json`;
+  link.hidden = true;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+  announce(`已导出包含 ${artifact.operations.length} 条命令的本地 patch`);
+}
+
+async function reloadLatestAndReplay() {
+  const artifact = buildCurrentLocalPatchArtifact();
+  if (!artifact || state.loading || state.saving) return;
+  const projectId = state.selectedProjectId;
+  const sequence = ++state.loadSequence;
+  setLoading(true);
+  dom.saveBtn.disabled = true;
+  hideAlert();
+  setSaveState("idle", "加载最新版本");
+  try {
+    const project = await apiRequest(`${API_BASE}/${encodeURIComponent(projectId)}`);
+    if (sequence !== state.loadSequence || state.selectedProjectId !== projectId) return;
+    initializeProject(project, projectId);
+    applyDraftToState(applyDraftPatch(state.persistedDraft, artifact.operations));
+    state.conflictPatch = null;
+    if (artifact.operations.length) {
+      markDirty(`已在 r${state.baseRevision} 上重放 ${artifact.operations.length} 条本地命令`);
+    }
+    renderLayerList();
+    renderCanvasLayers();
+    renderSkeleton();
+    renderInspectors();
+    renderQa();
+    updateStatusbar();
+  } catch (error) {
+    state.conflictPatch = artifact;
+    setSaveState("error", "重放失败");
+    showAlert(`加载最新版本失败：${error.message}。本地校正仍保留，可先导出 patch。`, { conflict: true });
+  } finally {
+    if (sequence === state.loadSequence) {
+      setLoading(false);
+      if (state.dirty && !state.saving) dom.saveBtn.disabled = false;
+    }
   }
 }
 
@@ -1265,6 +1248,8 @@ function bindEvents() {
   dom.refreshProjectsBtn.addEventListener("click", () => loadProjects());
   dom.projectSelect.addEventListener("change", (event) => loadProject(event.target.value));
   dom.dismissAlertBtn.addEventListener("click", hideAlert);
+  dom.exportLocalPatchBtn.addEventListener("click", exportLocalPatch);
+  dom.replayConflictBtn.addEventListener("click", reloadLatestAndReplay);
   dom.saveBtn.addEventListener("click", saveOverrides);
 
   dom.layerSearch.addEventListener("input", (event) => {

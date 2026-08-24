@@ -1,0 +1,25 @@
+.global-alert {
+  flex-wrap: wrap;
+}
+
+.global-alert-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-inline-start: auto;
+}
+
+.global-alert-actions[hidden] {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .global-alert-actions {
+    width: 100%;
+    margin-inline-start: 0;
+  }
+
+  .global-alert-actions .button {
+    flex: 1 1 160px;
+  }
+}

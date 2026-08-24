@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Draft transaction browser tests</title>
+  <style>
+    body { margin: 2rem; color: #e8edf7; background: #0b0e14; font: 16px/1.6 system-ui, sans-serif; }
+    .pass { color: #54d89a; }
+    .fail { color: #ff8ca0; }
+    code { font-family: ui-monospace, monospace; }
+  </style>
+</head>
+<body>
+  <h1>Draft transaction browser tests</h1>
+  <p>这些测试直接运行工作台使用的原生 ES module，不需要 Node 或构建工具。</p>
+  <ol id="results" aria-live="polite"></ol>
+  <script type="module" src="./draft-transactions.test.js"></script>
+</body>
+</html>
