@@ -13,6 +13,7 @@ from .layer_manifest import (
     LayerManifestError,
 )
 from .pose_commands import analyze_joints as _analyze_joints
+from .pose_commands import import_pose as _import_pose
 from .project_store import ProjectStore, ProjectStoreError
 from .rig_validation import RigSemanticValidator
 from .server import create_server
@@ -85,6 +86,48 @@ def build_parser() -> argparse.ArgumentParser:
         default=8,
         help="Minimum alpha byte used as geometry evidence (default: 8)",
     )
+    import_pose = subparsers.add_parser(
+        "import-pose",
+        help="Adapt pinned COCO17 detections to canonical pose observations v2",
+    )
+    import_pose.add_argument("project_id", help="Audit project identifier")
+    import_pose.add_argument("detections", type=Path, help="Pinned COCO17 detections v1 JSON")
+    import_pose.add_argument(
+        "--workspace",
+        type=Path,
+        default=_project_root().parent,
+        help="Workspace containing tmp/psd_audit/results",
+    )
+    import_pose.add_argument(
+        "--state-root",
+        type=Path,
+        default=_project_root() / "workspace",
+        help="Root for content-addressed analysis artifacts",
+    )
+    import_pose.add_argument("--selected-index", type=int, help="Required when multiple people exist")
+    import_pose.add_argument(
+        "--selection-method",
+        choices=("manual", "largest_area"),
+        help="Required when multiple people exist",
+    )
+    import_pose.add_argument(
+        "--side-mapping",
+        required=True,
+        choices=("as_reported", "swap_left_right"),
+        help="Map COCO anatomical sides to character sides without screen-x inference",
+    )
+    import_pose.add_argument(
+        "--view-orientation",
+        required=True,
+        choices=("front", "back", "left_profile", "right_profile", "three_quarter", "unknown"),
+        help="Explicit source-view declaration; does not infer side mapping",
+    )
+    import_pose.add_argument(
+        "--mirror-state",
+        required=True,
+        choices=("not_mirrored", "mirrored", "unknown"),
+        help="Explicit project-composite mirror declaration",
+    )
     materialize = subparsers.add_parser(
         "materialize-manifest",
         help="Publish a region-first Layer Manifest bundle from reviewed state",
@@ -117,6 +160,18 @@ def main(argv: Sequence[str] | None = None) -> int:
             provider_name=args.provider,
             pose_path=args.pose_observations,
             alpha_threshold=args.alpha_threshold,
+        )
+    if args.command == "import-pose":
+        return _import_pose(
+            args.project_id,
+            args.detections,
+            args.workspace,
+            args.state_root,
+            selected_index=args.selected_index,
+            selection_method=args.selection_method,
+            side_mapping=args.side_mapping,
+            view_orientation=args.view_orientation,
+            mirror_state=args.mirror_state,
         )
     if args.command == "materialize-manifest":
         return _materialize_manifest(args.project_id, args.workspace, args.state_root)

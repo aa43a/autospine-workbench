@@ -12,6 +12,8 @@ from pathlib import Path
 from .artifact_store import ArtifactStoreError, ImmutableJsonArtifactStore
 from .candidate_provenance import sha256_file
 from .candidate_validation import CandidateValidationError, require_valid_candidate_document
+from .coco17_adapter import Coco17AdapterError, adapt_coco17_detections
+from .coco17_detections import Coco17DetectionError, load_coco17_detections
 from .joint_candidates import AuditBBoxHeuristicProvider
 from .limb_candidates import LimbCandidateError, PoseAlphaLimbProvider
 from .pose_observations import PoseObservationError, load_pose_observations
@@ -97,4 +99,74 @@ def analyze_joints(
         response["pose_artifact_sha256"] = pose_published.sha256
         response["pose_artifact_path"] = str(pose_published.path)
     print(json.dumps(response, ensure_ascii=False, indent=2))
+    return 0
+
+
+def import_pose(
+    project_id: str,
+    detections_path: Path,
+    workspace: Path,
+    state_root: Path,
+    *,
+    selected_index: int | None,
+    selection_method: str | None,
+    side_mapping: str,
+    view_orientation: str,
+    mirror_state: str,
+) -> int:
+    """Adapt and publish a pinned COCO17 input plus canonical pose v2."""
+
+    try:
+        store = ProjectStore(workspace, state_root=state_root)
+        project = store.get_project(project_id)
+        composite = store.resolve_asset(project_id, "composite")
+        detections = load_coco17_detections(
+            detections_path,
+            expected_project_id=project_id,
+            expected_image_sha256=sha256_file(composite, "project composite"),
+            expected_canvas_size=(project["canvas"]["width"], project["canvas"]["height"]),
+        )
+        pose_document = adapt_coco17_detections(
+            detections,
+            selected_index=selected_index,
+            selection_method=selection_method,
+            side_mapping=side_mapping,
+            view_orientation=view_orientation,
+            mirror_state=mirror_state,
+        )
+        artifact_store = ImmutableJsonArtifactStore(state_root)
+        input_artifact = artifact_store.publish(
+            "pose-adapter-inputs", project_id, detections.document
+        )
+        if input_artifact.sha256 != detections.document_sha256:
+            raise ArtifactStoreError("Published adapter input identity changed")
+        pose_artifact = artifact_store.publish(
+            "pose-observations", project_id, pose_document
+        )
+    except (
+        ProjectStoreError,
+        ArtifactStoreError,
+        Coco17DetectionError,
+        Coco17AdapterError,
+        OSError,
+        ValueError,
+    ) as exc:
+        print(json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=False))
+        return 2
+    print(
+        json.dumps(
+            {
+                "ok": True,
+                "project_id": project_id,
+                "input_artifact_sha256": input_artifact.sha256,
+                "input_artifact_path": str(input_artifact.path),
+                "pose_artifact_sha256": pose_artifact.sha256,
+                "pose_artifact_path": str(pose_artifact.path),
+                "coordinate_transform": pose_document["adapter"]["coordinate_transform"],
+                "side_mapping": pose_document["adapter"]["side_mapping"],
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
     return 0
