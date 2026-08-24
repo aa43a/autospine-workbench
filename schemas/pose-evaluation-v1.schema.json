@@ -1,0 +1,204 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/pose-evaluation-v1.schema.json",
+  "title": "AutoSpine reviewed-joint pose evaluation v1",
+  "description": "Threshold-free diagnostic errors against manually adjusted setup-pose limb joints.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "format_version",
+    "project_id",
+    "source",
+    "evaluator",
+    "reference",
+    "metrics",
+    "matched_joint_ids",
+    "missing_observation_ids",
+    "joints",
+    "side_swap_diagnostic",
+    "qa"
+  ],
+  "properties": {
+    "format": { "const": "autospine-pose-evaluation" },
+    "format_version": { "const": 1 },
+    "project_id": { "$ref": "#/$defs/id" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pose_observations_sha256",
+        "composite_sha256",
+        "resolved_project_sha256",
+        "override_sha256",
+        "override_revision",
+        "canvas_size"
+      ],
+      "properties": {
+        "pose_observations_sha256": { "$ref": "#/$defs/sha256" },
+        "composite_sha256": { "$ref": "#/$defs/sha256" },
+        "resolved_project_sha256": { "$ref": "#/$defs/sha256" },
+        "override_sha256": { "$ref": "#/$defs/sha256" },
+        "override_revision": { "type": "integer", "minimum": 0 },
+        "canvas_size": {
+          "type": "array",
+          "prefixItems": [
+            { "type": "integer", "minimum": 1 },
+            { "type": "integer", "minimum": 1 }
+          ],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2
+        }
+      }
+    },
+    "evaluator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version", "input_sha256", "config_sha256", "run_sha256"],
+      "properties": {
+        "id": { "const": "manual-limb-joint-distance" },
+        "version": { "const": "1" },
+        "input_sha256": { "$ref": "#/$defs/sha256" },
+        "config_sha256": { "$ref": "#/$defs/sha256" },
+        "run_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "requested_joint_ids",
+        "reference_joint_ids",
+        "missing_reference_ids"
+      ],
+      "properties": {
+        "kind": { "const": "manual_adjusted_override" },
+        "requested_joint_ids": { "$ref": "#/$defs/idList" },
+        "reference_joint_ids": { "$ref": "#/$defs/idList" },
+        "missing_reference_ids": { "$ref": "#/$defs/idList" }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requested_count",
+        "reference_count",
+        "matched_count",
+        "reference_coverage",
+        "observation_coverage",
+        "mean_error_px",
+        "median_error_px",
+        "rmse_error_px",
+        "max_error_px",
+        "mean_error_canvas_diagonal_ratio"
+      ],
+      "properties": {
+        "requested_count": { "const": 12 },
+        "reference_count": { "type": "integer", "minimum": 1, "maximum": 12 },
+        "matched_count": { "type": "integer", "minimum": 0, "maximum": 12 },
+        "reference_coverage": { "type": "number", "minimum": 0, "maximum": 1 },
+        "observation_coverage": { "type": "number", "minimum": 0, "maximum": 1 },
+        "mean_error_px": { "$ref": "#/$defs/nullableNonnegative" },
+        "median_error_px": { "$ref": "#/$defs/nullableNonnegative" },
+        "rmse_error_px": { "$ref": "#/$defs/nullableNonnegative" },
+        "max_error_px": { "$ref": "#/$defs/nullableNonnegative" },
+        "mean_error_canvas_diagonal_ratio": {
+          "$ref": "#/$defs/nullableNonnegative"
+        }
+      }
+    },
+    "matched_joint_ids": { "$ref": "#/$defs/idList" },
+    "missing_observation_ids": { "$ref": "#/$defs/idList" },
+    "joints": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/id" },
+      "additionalProperties": { "$ref": "#/$defs/jointResult" }
+    },
+    "side_swap_diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "complete_pair_count",
+        "as_mapped_mean_error_px",
+        "swapped_mean_error_px",
+        "swapped_minus_as_mapped_px",
+        "lower_error_mapping"
+      ],
+      "properties": {
+        "complete_pair_count": { "type": "integer", "minimum": 0, "maximum": 6 },
+        "as_mapped_mean_error_px": { "$ref": "#/$defs/nullableNonnegative" },
+        "swapped_mean_error_px": { "$ref": "#/$defs/nullableNonnegative" },
+        "swapped_minus_as_mapped_px": { "type": ["number", "null"] },
+        "lower_error_mapping": {
+          "enum": ["as_mapped", "swapped", "tie", "insufficient"]
+        }
+      }
+    },
+    "qa": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "flags"],
+      "properties": {
+        "status": { "const": "diagnostic" },
+        "flags": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 128 }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "idList": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/id" }
+    },
+    "xy": {
+      "type": "array",
+      "prefixItems": [{ "type": "number" }, { "type": "number" }],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "nullableNonnegative": {
+      "type": ["number", "null"],
+      "minimum": 0
+    },
+    "jointResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "predicted_xy",
+        "reference_xy",
+        "distance_px",
+        "distance_canvas_diagonal_ratio",
+        "detector_score",
+        "visibility"
+      ],
+      "properties": {
+        "predicted_xy": { "$ref": "#/$defs/xy" },
+        "reference_xy": { "$ref": "#/$defs/xy" },
+        "distance_px": { "type": "number", "minimum": 0 },
+        "distance_canvas_diagonal_ratio": { "type": "number", "minimum": 0 },
+        "detector_score": { "type": "number", "minimum": 0, "maximum": 1 },
+        "visibility": {
+          "enum": ["visible", "occluded", "out_of_frame", "unknown"]
+        }
+      }
+    }
+  }
+}
