@@ -1,0 +1,241 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/mesh-visual-artifacts-v1.schema.json",
+  "title": "AutoSpine Mesh Visual Artifacts v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "format_version",
+    "project_id",
+    "source",
+    "renderers",
+    "status",
+    "summary",
+    "images",
+    "targets",
+    "artifacts"
+  ],
+  "properties": {
+    "format": {"const": "autospine-mesh-visual-artifacts"},
+    "format_version": {"const": 1},
+    "project_id": {"$ref": "#/$defs/safeId"},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rig_sha256", "run_manifest_sha256", "probes_sha256"],
+      "properties": {
+        "rig_sha256": {"$ref": "#/$defs/sha256"},
+        "run_manifest_sha256": {"$ref": "#/$defs/sha256"},
+        "probes_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "renderers": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["weight_heatmap", "pose", "png_encoder"],
+      "properties": {
+        "weight_heatmap": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "version", "palette", "alpha_threshold"],
+          "properties": {
+            "id": {"const": "autospine-mesh-weight-heatmap"},
+            "version": {"const": "1.0.0"},
+            "palette": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["proximal", "balanced", "distal"],
+              "properties": {
+                "proximal": {"const": "#2563eb"},
+                "balanced": {"const": "#a855f7"},
+                "distal": {"const": "#ef4444"}
+              }
+            },
+            "alpha_threshold": {"const": 8}
+          }
+        },
+        "pose": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "version", "sampling", "canvas"],
+          "properties": {
+            "id": {"const": "autospine-mesh-pose"},
+            "version": {"const": "1.0.0"},
+            "sampling": {"const": "nearest"},
+            "canvas": {"const": "full"}
+          }
+        },
+        "png_encoder": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "version", "profile"],
+          "properties": {
+            "id": {"const": "autospine-canonical-rgba-png"},
+            "version": {"const": "1.0.0"},
+            "profile": {"const": "rgba8-filter0-stored-deflate"}
+          }
+        }
+      }
+    },
+    "status": {"const": "passed"},
+    "summary": {
+      "oneOf": [
+        {"const": "reviewed-noop"},
+        {"type": "string", "pattern": "^converted=[1-9][0-9]*$"}
+      ]
+    },
+    "images": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/image"}
+    },
+    "targets": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/target"}
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/artifact"}
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"summary": {"const": "reviewed-noop"}}},
+      "then": {
+        "properties": {
+          "images": {"maxItems": 0},
+          "targets": {"maxItems": 0},
+          "artifacts": {"maxItems": 0}
+        }
+      },
+      "else": {
+        "properties": {
+          "images": {"minItems": 1},
+          "targets": {"minItems": 1},
+          "artifacts": {"minItems": 3}
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "safeId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "image": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "width", "height", "rgba_sha256"],
+      "properties": {
+        "id": {"$ref": "#/$defs/safeId"},
+        "width": {"type": "integer", "minimum": 1, "maximum": 4096},
+        "height": {"type": "integer", "minimum": 1, "maximum": 4096},
+        "rgba_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "attachment_id",
+        "source_layer_id",
+        "side",
+        "proximal_bone_id",
+        "distal_bone_id"
+      ],
+      "properties": {
+        "attachment_id": {"$ref": "#/$defs/safeId"},
+        "source_layer_id": {"$ref": "#/$defs/safeId"},
+        "side": {"enum": ["left", "right"]},
+        "proximal_bone_id": {"$ref": "#/$defs/safeId"},
+        "distal_bone_id": {"$ref": "#/$defs/safeId"}
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "id",
+        "pose",
+        "bone",
+        "angle_deg",
+        "width",
+        "height",
+        "rgba_sha256",
+        "png_sha256",
+        "path"
+      ],
+      "properties": {
+        "kind": {"enum": ["weight_heatmap", "pose"]},
+        "id": {"$ref": "#/$defs/safeId"},
+        "pose": {"enum": ["weights", "setup", "widest-safe"]},
+        "bone": {
+          "oneOf": [
+            {"type": "null"},
+            {"$ref": "#/$defs/safeId"}
+          ]
+        },
+        "angle_deg": {
+          "oneOf": [
+            {"type": "null"},
+            {"type": "integer", "minimum": -135, "maximum": 135}
+          ]
+        },
+        "width": {"type": "integer", "minimum": 1, "maximum": 4096},
+        "height": {"type": "integer", "minimum": 1, "maximum": 4096},
+        "rgba_sha256": {"$ref": "#/$defs/sha256"},
+        "png_sha256": {"$ref": "#/$defs/sha256"},
+        "path": {
+          "type": "string",
+          "pattern": "^(?:weights/[A-Za-z0-9][A-Za-z0-9._-]{0,127}\\.png|poses/[A-Za-z0-9][A-Za-z0-9._-]{0,127}(?:\\.setup|\\.widest-safe-[pm][0-9]{3})\\.png)$"
+        }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"kind": {"const": "weight_heatmap"}}},
+          "then": {
+            "properties": {
+              "pose": {"const": "weights"},
+              "bone": {"$ref": "#/$defs/safeId"},
+              "angle_deg": {"type": "null"},
+              "path": {"pattern": "^weights/"}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"pose": {"const": "setup"}}},
+          "then": {
+            "properties": {
+              "kind": {"const": "pose"},
+              "bone": {"type": "null"},
+              "angle_deg": {"const": 0},
+              "path": {"pattern": "^poses/.+\\.setup\\.png$"}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"pose": {"const": "widest-safe"}}},
+          "then": {
+            "properties": {
+              "kind": {"const": "pose"},
+              "bone": {"$ref": "#/$defs/safeId"},
+              "angle_deg": {
+                "type": "integer",
+                "oneOf": [
+                  {"minimum": -135, "maximum": -1},
+                  {"minimum": 1, "maximum": 135}
+                ]
+              },
+              "path": {"pattern": "^poses/.+\\.widest-safe-[pm][0-9]{3}\\.png$"}
+            }
+          }
+        }
+      ]
+    }
+  }
+}
