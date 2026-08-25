@@ -13,6 +13,7 @@ import tempfile
 from typing import Any, Mapping
 
 from .resolved_project import canonical_sha256
+from .rig_roles import region_bone_for_role
 
 
 class LayerManifestError(RuntimeError):
@@ -304,17 +305,4 @@ def _deform_class(role: str) -> str:
 
 
 def _candidate_bone(role: str, side: str) -> str | None:
-    suffix = f".{side}" if side in {"left", "right"} else ""
-    if role.startswith("face") or role.startswith("hair") or role.startswith("accessory.head"):
-        return "head"
-    if role == "body.torso" or role == "body.neck":
-        return "chest"
-    if role == "body.pelvis":
-        return "pelvis"
-    if role == "body.hand":
-        return f"wrist{suffix}" if suffix else None
-    if role == "body.foot":
-        return f"ankle{suffix}" if suffix else None
-    if role == "body.leg":
-        return f"knee{suffix}" if suffix else None
-    return None
+    return region_bone_for_role(role, side)
