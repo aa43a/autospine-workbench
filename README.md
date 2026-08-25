@@ -20,6 +20,7 @@ AutoSpine Workbench 是一个本地人工复核界面，用于查看 See-through
 - 把固定的 COCO17 检测转换为显式左右/镜像 provenance 的 canonical pose，并用人工复核四肢点生成诊断误差报告。
 - 对 RigIR 执行跨引用、拓扑、权重、三角形及 timeline 语义验证；不支持特性会明确失败。
 - 从精确 P3 bundle 编译四个 canonical 两骨 IK 手柄，固定弯曲方向、可达环和 setup-local 数值探针。
+- 编译可复用的 setup-local MotionIR（内建 idle/wave 或显式映射 BVH），并从精确 P3/P4/Motion 地址生成带接触、运动学与 mesh 回归证据的不可变 MotionInstance bundle。
 
 ## 快速启动
 
@@ -163,7 +164,11 @@ JSON Schema 位于：
 - `schemas/rig-compile-run-v1.schema.json`：一次确定性 region RigIR 编译的输入与编译器身份；
 - `schemas/rig-setup-probes-v1.schema.json`：FK、pivot、父子关系、draw order 与像素重建探针报告；
 - `schemas/rig-setup-render-v1.schema.json`：canonical setup PNG 的 renderer、encoder、RGBA 与 PNG 身份；
-- `schemas/setup-golden-v1.schema.json`：经人工批准、只读验证的 setup 视觉 golden 合同。
+- `schemas/setup-golden-v1.schema.json`：经人工批准、只读验证的 setup 视觉 golden 合同；
+- `schemas/mesh-*.schema.json` 与 `schemas/ik-target-*.schema.json`：P3 两骨 LBS 和 P4 离线 IK 的 run、probe 与视觉证据；
+- `schemas/motion-ir-v1.schema.json`、`schemas/motion-instance-v1.schema.json` 与 `schemas/motion-target-profile-v1.schema.json`：P5 可复用动作、目标 rig 与烘焙实例合同；
+- `schemas/motion-compile-run-v1.schema.json`、`schemas/bvh-*.schema.json` 与 `schemas/retarget-run-v1.schema.json`：内建/BVH 编译和重定向 provenance；
+- `schemas/motion-retarget-report-v1.schema.json` 与 `schemas/motion-mesh-regression-v1.schema.json`：P5 运动学、接触与逐帧 mesh 安全门禁。
 
 Layer Manifest 与 RigIR 是下游流水线合同。当前 UI 负责逐层 authoring 与复核，离线命令负责生成 region-only RigIR；它不包含 mesh、权重或动画，也不会冒充某一 Spine 版本。RigIR 对不支持特性的策略固定为 `fail`，防止 constraint、mesh 或 timeline 被静默丢弃。
 
@@ -317,6 +322,8 @@ python -m autospine_workbench verify-ik-bundle seethrough_output `
 
 P4 不接受 `latest` 或自动发现。严格 reader 会从精确 P3 来源重建 profile 与全部数值探针并逐字节比较。`kinematic_reach` 只表示两段骨长决定的运动学可达环；它不能覆盖 P3 动作探针给出的 mesh 视觉安全角。完整步骤和错误解释见 [编译并验证两骨 IK 目标](docs/how-to-compile-ik-targets.md)。
 
+P5 将动作与目标 rig 分开内容寻址。内建 `idle`/`wave.left`、显式 BVH map、目标重定向及只读复验分别使用 `compile-builtin-motion`、`compile-bvh-motion`、`compile-motion-retarget` 与对应 verify 命令。所有命令只接受精确 SHA，不解析 `latest`；完整合同、固定地址、A/B 示例和排障步骤见 [编译、重定向并复验 P5 动画](docs/how-to-compile-motion.md)。
+
 对版本中立 RigIR 做语义检查：
 
 ```powershell
@@ -388,7 +395,7 @@ P1 已交付 pose、alpha 中轴线和层接触候选，以及候选比较、四
 - 若要恢复旧 revision，先停止服务，备份整个项目 override 目录，再将目标历史快照作为新的、经过校验的 revision 提交；当前界面尚未提供历史浏览/回滚按钮。
 - validation 的 `valid=true` 仅表示结构和本地资产检查没有硬错误，不等于美术、遮挡补全、pivot、mesh 或动画通过视觉验收。
 
-## 已完成阶段：P2 region-only RigIR、P3 两骨 LBS 与 P4 离线 IK
+## 已完成阶段：P2 region-only RigIR、P3 两骨 LBS、P4 离线 IK 与 P5 MotionIR
 
 P0 合同加固、P1 四肢候选与 P2 region-only RigIR 已贯通：`stage-scoped analysis → immutable geometry/candidates → candidate-bound revision → deterministic resolved snapshot → reviewed Layer Manifest → RigIR/setup bundle`。P2 没有提前引入 mesh：
 
@@ -419,7 +426,15 @@ P4 在精确 P3 来源上建立版本中立的离线 IK 边界：
 5. profile/probes 以双 SHA 不可变发布，strict reader 从完整 9 项 P3 身份链重建并逐字节复验，不解析 `latest`。
 6. 两份真实样本各稳定生成 4 个手柄、20 个有效探针案例且无 N/A；身份、弯曲方向和可达范围固定在 `tests/goldens/p4-ik/`，显式真实复验还证明整个 state tree 前后不变。
 
-下一阶段是 P5 MotionIR：定义 setup-local 动画合同，生成 idle/wave，编译 BVH 并保留接触标记；同一 clip 必须在至少三个 rig 上通过。
+P5 在精确 P3/P4 来源上完成版本中立动画、BVH 编译和通用动作重定向：
+
+1. `idle` 与 `wave.left` 以 setup-local rotation、归一化 root/IK 空间和接触 marker 表示；相同输入固定为相同 MotionIR/run/bundle SHA。
+2. BVH 只接受人工确认的显式 map；四文件 bundle 原样保存 source BVH，并把 raw/map/compiler/MotionIR 全部交叉绑定，复验时从原始字节重编译。
+3. retarget pipeline 只读取明确的 P3、P4 与 Motion 双 SHA，生成 target profile、MotionInstance、run、运动学报告和 mesh regression 五文档 bundle；任一报告失败都不会发布。
+4. 同一内建 clip 已在三个不同 setup rig 上通过；两份真实 See-through 样本的四组 idle/wave 结果也固定在 `tests/goldens/p5-motion/`。
+5. A 的两个 mesh attachment 在 41 个采样点均通过，B 稳定为 `reviewed-noop`；四组接触均为 2/2 保留，真实 opt-in 回归还证明只读重建不会改变 state tree。
+
+下一阶段是 P6 Spine adapter：固定 Spine 4.2 JSON profile，导出最小 JSON/atlas/PNG，并以对应官方 runtime 加载和固定截图回归作为门禁。
 
 姿态 runner 与真实标注评估集仍是独立质量轨，不阻塞版本中立 P2 编译；诊断 setup prior 不能替代真实模型基线。
 
@@ -434,7 +449,7 @@ P4 在精确 P3 来源上建立版本中立的离线 IK 边界：
 - 自动解决 `head-obj`、`objects`、合并肢体等歧义语义；
 - 证明遮挡补全符合解剖或在大幅动作下不会露馅；
 - 自动生成自由形变 deform、运行时 IK constraint 或动态 draw order；P3 只覆盖通过门禁的 alpha mesh 与参数化两骨 LBS，P4 只提供离线两骨目标求解；
-- 生成眨眼/口型素材、简单动画或通用动画重定向；
+- 生成眨眼/口型素材、实时追踪映射或运行时物理；
 - 导出 Spine JSON/atlas/PNG、判断真实 Spine 版本或集成官方 Spine runtime；
 - 代替输入素材、训练数据或模型权重的许可证与商业使用审查；
 - 多用户权限、远程协作或生产部署。

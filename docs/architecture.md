@@ -38,7 +38,7 @@ web    → HTTP contracts only
 - 前端分为 API、authoring state、保存事务和各 stage view；view state 不得污染 revision draft。
 - 外部姿态模型只能通过 canonical pose observations 进入；alpha 几何只读取 resolved layer 与固定 PNG，融合结果必须保留原始 pose 和未标定分数语义。
 - COCO17 raw 输入、adapter、canonical pose、人工评估和候选工件分开内容寻址；坐标反镜像、左右标签交换、视角和镜像声明不得合并成一个隐式开关。
-- 离线命令按 stage 边界拆分：P1 输入/候选、P2 manifest/RigIR、P3 mesh、P4 IK、P5 MotionIR 与目标版本 adapter 分别拥有显式编译和只读验证入口；命令之间只传递精确内容地址，不解析 `latest`。
+- 离线命令按 stage 边界拆分：P1 输入/候选、P2 manifest/RigIR、P3 mesh、P4 IK、P5 MotionIR 与 P6 目标版本 adapter 分别拥有显式编译和只读验证入口；命令之间只传递精确内容地址，不解析 `latest`。
 
 ## 文件长度预算
 
@@ -79,7 +79,9 @@ P3 门禁已经完成：四肢 attachment 的确定性 alpha mesh 与参数化�
 
 P4 门禁已经完成：从精确 P3 双 SHA 地址生成左右臂腿四个 canonical 两骨手柄；analytic IK 覆盖 reachable、unreachable、镜像、目标重合和退化输入，弯曲方向来自 setup 几何，结果表示为 additive setup-local 旋转。profile/probes 使用双 SHA 地址，严格 reader 重建完整 P3 身份链和数值证据。`kinematic_reach` 只表示数学可达环，P3 mesh 安全角仍是视觉限制。
 
-当前 P5 门禁是：建立 setup-local MotionIR 合同，编译 deterministic idle/wave 与 BVH，显式保留接触标记；同一 clip 必须在至少三个不同 setup rig 上通过重定向、有限数、骨角色和接触语义验证。
+P5 门禁已经完成：setup-local MotionIR、deterministic idle/wave 和显式 BVH map 均进入不可变 bundle；retarget 五文档合同绑定完整 P3/P4/Motion 来源，并重算有限数、loop、IK、接触与 mesh regression。同一 clip 在三个不同 setup rig 上通过，A/B 两份真实样本的四组输出拥有固定 golden 和只读 state-tree 回归。
+
+当前 P6 门禁是：目标 profile 固定为 Spine 4.2 JSON；最小 JSON/atlas/PNG bundle 必须保持 setup、父子关系、draw order、region/mesh 与 MotionInstance 时间线语义，并由匹配 4.2 的官方 runtime 成功加载。代表性固定视角/时间点截图必须通过像素回归，版本或不支持特性不得静默降级。
 
 后续阶段继续遵守：
 
