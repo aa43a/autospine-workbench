@@ -1,0 +1,291 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/mesh-action-probes-v1.schema.json",
+  "title": "AutoSpine P3 mesh action probes v1",
+  "description": "Recomputable two-bone LBS deformation gates for one mesh RigIR.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "format_version",
+    "project_id",
+    "source",
+    "prober",
+    "status",
+    "summary",
+    "attachments"
+  ],
+  "properties": {
+    "format": {"const": "autospine-mesh-action-probes"},
+    "format_version": {"const": 1},
+    "project_id": {"$ref": "#/$defs/id"},
+    "source": {"$ref": "#/$defs/source"},
+    "prober": {"$ref": "#/$defs/prober"},
+    "status": {"$ref": "#/$defs/status"},
+    "summary": {
+      "type": "string",
+      "pattern": "^(?:reviewed-noop|converted=[1-9][0-9]*)$"
+    },
+    "attachments": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/attachmentProbe"}
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "status": {
+      "enum": ["passed", "rejected"]
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rig_sha256",
+        "run_manifest_sha256",
+        "base_rig_sha256",
+        "base_bundle_sha256",
+        "layer_manifest_sha256",
+        "resolved_project_sha256"
+      ],
+      "properties": {
+        "rig_sha256": {"$ref": "#/$defs/sha256"},
+        "run_manifest_sha256": {"$ref": "#/$defs/sha256"},
+        "base_rig_sha256": {"$ref": "#/$defs/sha256"},
+        "base_bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "layer_manifest_sha256": {"$ref": "#/$defs/sha256"},
+        "resolved_project_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "prober": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version", "config"],
+      "properties": {
+        "id": {"const": "mesh-action-prober"},
+        "version": {"const": "1.0.0"},
+        "config": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "bend_step_degrees",
+            "maximum_bend_degrees",
+            "min_area_ratio",
+            "max_area_ratio",
+            "max_edge_stretch",
+            "minimum_usable_bend_deg"
+          ],
+          "properties": {
+            "bend_step_degrees": {"const": 5},
+            "maximum_bend_degrees": {"const": 135},
+            "min_area_ratio": {"const": 0.02},
+            "max_area_ratio": {"const": 20},
+            "max_edge_stretch": {"const": 3},
+            "minimum_usable_bend_deg": {"const": 30}
+          }
+        }
+      }
+    },
+    "attachmentProbe": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "attachment_id",
+        "source_layer_id",
+        "side",
+        "proximal_bone_id",
+        "distal_bone_id",
+        "action_probe",
+        "widest_safe_bend",
+        "gate"
+      ],
+      "properties": {
+        "attachment_id": {"$ref": "#/$defs/id"},
+        "source_layer_id": {"$ref": "#/$defs/id"},
+        "side": {"enum": ["left", "right"]},
+        "proximal_bone_id": {"$ref": "#/$defs/id"},
+        "distal_bone_id": {"$ref": "#/$defs/id"},
+        "action_probe": {"$ref": "#/$defs/actionProbe"},
+        "widest_safe_bend": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["direction", "magnitude_deg"],
+          "properties": {
+            "direction": {"enum": ["negative", "positive", "either"]},
+            "magnitude_deg": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 135,
+              "multipleOf": 5
+            }
+          }
+        },
+        "gate": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status"],
+          "properties": {
+            "status": {"$ref": "#/$defs/status"}
+          }
+        }
+      }
+    },
+    "actionProbe": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "format",
+        "format_version",
+        "profile",
+        "status",
+        "step_degrees",
+        "maximum_bend_degrees",
+        "thresholds",
+        "setup_canvas_vertices_xy",
+        "setup",
+        "proximal_rigid",
+        "distal_bend"
+      ],
+      "properties": {
+        "format": {"const": "autospine-mesh-action-probe"},
+        "format_version": {"const": 1},
+        "profile": {"const": "two-bone-lbs-action-probe-v1"},
+        "status": {"const": "passed"},
+        "step_degrees": {"const": 5},
+        "maximum_bend_degrees": {"const": 135},
+        "thresholds": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["min_area_ratio", "max_area_ratio", "max_edge_stretch"],
+          "properties": {
+            "min_area_ratio": {"const": 0.02},
+            "max_area_ratio": {"const": 20},
+            "max_edge_stretch": {"const": 3}
+          }
+        },
+        "setup_canvas_vertices_xy": {
+          "type": "array",
+          "minItems": 3,
+          "items": {"$ref": "#/$defs/point"}
+        },
+        "setup": {"$ref": "#/$defs/pose"},
+        "proximal_rigid": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["negative", "positive"],
+          "properties": {
+            "negative": {"$ref": "#/$defs/pose"},
+            "positive": {"$ref": "#/$defs/pose"}
+          }
+        },
+        "distal_bend": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["negative", "positive"],
+          "properties": {
+            "negative": {"$ref": "#/$defs/sweep"},
+            "positive": {"$ref": "#/$defs/sweep"}
+          }
+        }
+      }
+    },
+    "point": {
+      "type": "array",
+      "prefixItems": [{"type": "number"}, {"type": "number"}],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "pose": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pose_id",
+        "bone_id",
+        "angle_deg",
+        "status",
+        "reasons",
+        "metrics"
+      ],
+      "properties": {
+        "pose_id": {"type": "string", "minLength": 1, "maxLength": 64},
+        "bone_id": {
+          "oneOf": [{"$ref": "#/$defs/id"}, {"type": "null"}]
+        },
+        "angle_deg": {"type": "integer", "minimum": -135, "maximum": 135},
+        "status": {"$ref": "#/$defs/status"},
+        "reasons": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        },
+        "metrics": {"$ref": "#/$defs/metrics"}
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "vertex_count",
+        "triangle_count",
+        "non_finite_count",
+        "flipped_count",
+        "degenerate_count",
+        "min_signed_area_ratio",
+        "max_signed_area_ratio",
+        "max_edge_stretch_ratio",
+        "interior_crack_gap_px"
+      ],
+      "properties": {
+        "vertex_count": {"type": "integer", "minimum": 3},
+        "triangle_count": {"type": "integer", "minimum": 1},
+        "non_finite_count": {"type": "integer", "minimum": 0},
+        "flipped_count": {"type": "integer", "minimum": 0},
+        "degenerate_count": {"type": "integer", "minimum": 0},
+        "min_signed_area_ratio": {"$ref": "#/$defs/nullableNumber"},
+        "max_signed_area_ratio": {"$ref": "#/$defs/nullableNumber"},
+        "max_edge_stretch_ratio": {"$ref": "#/$defs/nullableNumber"},
+        "interior_crack_gap_px": {"type": "number", "minimum": 0}
+      }
+    },
+    "nullableNumber": {
+      "oneOf": [{"type": "number"}, {"type": "null"}]
+    },
+    "sweep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "direction",
+        "max_contiguous_magnitude_deg",
+        "first_failure",
+        "samples"
+      ],
+      "properties": {
+        "direction": {"enum": ["negative", "positive"]},
+        "max_contiguous_magnitude_deg": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 135,
+          "multipleOf": 5
+        },
+        "first_failure": {
+          "oneOf": [{"$ref": "#/$defs/pose"}, {"type": "null"}]
+        },
+        "samples": {
+          "type": "array",
+          "minItems": 27,
+          "maxItems": 27,
+          "items": {"$ref": "#/$defs/pose"}
+        }
+      }
+    }
+  }
+}
