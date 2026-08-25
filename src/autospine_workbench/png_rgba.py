@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import binascii
 from dataclasses import dataclass
+from io import BytesIO
 from pathlib import Path
 import struct
 import zlib
@@ -37,9 +38,25 @@ class RgbaImage:
 
 def read_rgba_png(path: Path) -> RgbaImage:
     path = Path(path)
+    try:
+        data = path.read_bytes()
+    except OSError as exc:
+        raise RgbaPngError(f"Cannot read PNG: {path.name}") from exc
+    return decode_rgba_png(data, source_name=path.name)
+
+
+def decode_rgba_png(
+    data: bytes, *, source_name: str = "RGBA PNG"
+) -> RgbaImage:
+    """Decode one immutable byte snapshot without reopening its source."""
+
+    if not isinstance(data, bytes):
+        raise RgbaPngError("PNG data must be bytes")
+    if not isinstance(source_name, str) or not source_name:
+        raise RgbaPngError("PNG source name must be a non-empty string")
     if _PillowImage is not None:
         try:
-            with _PillowImage.open(path) as image:
+            with _PillowImage.open(BytesIO(data)) as image:
                 if image.format != "PNG" or image.mode != "RGBA":
                     raise RgbaPngError("Expected an 8-bit RGBA PNG")
                 _rgba_byte_count(image.width, image.height)
@@ -51,8 +68,8 @@ def read_rgba_png(path: Path) -> RgbaImage:
         except RgbaPngError:
             raise
         except (OSError, ValueError) as exc:
-            raise RgbaPngError(f"Cannot decode PNG: {path.name}") from exc
-    return _read_standard_png(path)
+            raise RgbaPngError(f"Cannot decode PNG: {source_name}") from exc
+    return _decode_standard_png(data, source_name)
 
 
 def write_rgba_png(path: Path, image: RgbaImage) -> None:
@@ -123,20 +140,16 @@ def _adler32(payload: bytes) -> int:
     return (second << 16) | first
 
 
-def _read_standard_png(path: Path) -> RgbaImage:
-    try:
-        data = path.read_bytes()
-    except OSError as exc:
-        raise RgbaPngError(f"Cannot read PNG: {path.name}") from exc
+def _decode_standard_png(data: bytes, source_name: str) -> RgbaImage:
     if data[:8] != b"\x89PNG\r\n\x1a\n":
-        raise RgbaPngError(f"Not a PNG: {path.name}")
-    width, height, compressed = _read_chunks(data, path.name)
+        raise RgbaPngError(f"Not a PNG: {source_name}")
+    width, height, compressed = _read_chunks(data, source_name)
     expected_filtered = height * (width * 4 + 1)
     try:
         decoder = zlib.decompressobj()
         filtered = decoder.decompress(compressed, expected_filtered + 1)
     except zlib.error as exc:
-        raise RgbaPngError(f"Cannot decompress PNG: {path.name}") from exc
+        raise RgbaPngError(f"Cannot decompress PNG: {source_name}") from exc
     if (
         len(filtered) > expected_filtered
         or not decoder.eof
