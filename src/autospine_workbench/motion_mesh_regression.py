@@ -20,6 +20,7 @@ from .motion_instance_sampling import (
     sample_instance_deltas,
 )
 from .motion_instance_validation import instance_sha256, require_motion_instance
+from .motion_mesh_regression_validation import require_motion_mesh_regression_shape
 from .motion_target_validation import require_motion_target_profile
 from .resolved_project import canonical_sha256
 
@@ -94,6 +95,7 @@ def build_motion_mesh_regression(
             "sample_count": len(ticks),
             "attachments": entries,
         }
+        require_motion_mesh_regression_shape(document)
         encoded = _encode(document)
         return MotionMeshRegression(encoded)
     except MotionMeshRegressionError:
@@ -122,14 +124,17 @@ def require_motion_mesh_regression(
 
     if not isinstance(document, Mapping):
         raise MotionMeshRegressionError("Motion mesh regression must be an object")
-    expected = build_motion_mesh_regression(
-        instance, target_profile, verified_mesh
-    ).document
     try:
+        require_motion_mesh_regression_shape(document)
+        expected = build_motion_mesh_regression(
+            instance, target_profile, verified_mesh
+        ).document
         if canonical_sha256(document) != canonical_sha256(expected):
             raise MotionMeshRegressionError(
                 "Motion mesh regression differs from recomputed evidence"
             )
+    except MotionMeshRegressionError:
+        raise
     except (TypeError, ValueError) as exc:
         raise MotionMeshRegressionError(
             "Motion mesh regression is not canonical JSON"
