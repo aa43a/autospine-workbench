@@ -74,7 +74,9 @@ $env:PYTHONPATH = if ($previousPythonPath) {
 }
 
 try {
-    & $pythonCommand @pythonPrefixArgs -m autospine_workbench serve `
+    # This is a source workbench: bypass stale/read-only __pycache__ files so
+    # every launch executes the checked-out implementation.
+    & $pythonCommand @pythonPrefixArgs -B -m autospine_workbench serve `
         --host $ListenHost `
         --port $Port `
         --workspace $WorkspaceRoot `

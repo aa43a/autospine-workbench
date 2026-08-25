@@ -22,6 +22,7 @@ from autospine_workbench.analysis_repository import (  # noqa: E402
 )
 from autospine_workbench.artifact_store import ImmutableJsonArtifactStore  # noqa: E402
 from autospine_workbench.joint_candidates import AuditBBoxHeuristicProvider  # noqa: E402
+from tests.geometry_evidence_helpers import geometry_evidence_document  # noqa: E402
 from tests.test_joint_candidates import project_fixture  # noqa: E402
 
 
@@ -81,6 +82,40 @@ class AnalysisArtifactRepositoryTests(unittest.TestCase):
 
         with self.assertRaises(AnalysisRepositoryError):
             self.repository.list_joint_candidates("sample-a", **self.context)
+
+    def test_geometry_evidence_is_validated_summarized_and_content_addressed(self) -> None:
+        document = geometry_evidence_document("sample-a")
+        published = ImmutableJsonArtifactStore(self.state).publish(
+            "alpha-geometry-evidence", "sample-a", document
+        )
+
+        index = self.repository.list_alpha_geometry_evidence(
+            "sample-a", **self.context
+        )
+
+        self.assertEqual(1, index["count"])
+        self.assertEqual("alpha-geometry-evidence", index["kind"])
+        self.assertEqual(published.sha256, index["items"][0]["artifact_sha256"])
+        self.assertEqual(0, index["items"][0]["path_count"])
+        self.assertEqual(0, index["items"][0]["contact_count"])
+        self.assertEqual(
+            document,
+            self.repository.read_alpha_geometry_evidence(
+                "sample-a", published.sha256, **self.context
+            ),
+        )
+
+    def test_invalid_geometry_evidence_fails_closed(self) -> None:
+        document = geometry_evidence_document("sample-a")
+        document["analysis"]["provider_version"] = "changed-without-new-run-hash"
+        published = ImmutableJsonArtifactStore(self.state).publish(
+            "alpha-geometry-evidence", "sample-a", document
+        )
+
+        with self.assertRaises(AnalysisRepositoryError):
+            self.repository.read_alpha_geometry_evidence(
+                "sample-a", published.sha256, **self.context
+            )
 
 
 if __name__ == "__main__":

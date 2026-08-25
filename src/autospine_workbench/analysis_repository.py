@@ -7,6 +7,10 @@ from pathlib import Path
 import re
 from typing import Any, Mapping
 
+from .alpha_evidence_validation import (
+    AlphaEvidenceValidationError,
+    require_valid_alpha_geometry_evidence,
+)
 from .candidate_validation import CandidateValidationError, require_valid_candidate_document
 from .resolved_project import canonical_sha256
 
@@ -39,33 +43,18 @@ class AnalysisArtifactRepository:
         canvas_width: int,
         canvas_height: int,
     ) -> dict[str, Any]:
-        directory = self._directory(project_id, "joint-candidates", require=False)
-        if directory is None:
-            items: list[dict[str, Any]] = []
-        else:
-            try:
-                paths = sorted(directory.glob("*.json"), key=lambda item: item.name)
-                listed_bytes = sum(path.lstat().st_size for path in paths)
-            except OSError as exc:
-                raise AnalysisRepositoryError("Could not enumerate analysis artifacts") from exc
-            if len(paths) > _MAX_LIST_ITEMS:
-                raise AnalysisRepositoryError("Analysis artifact list exceeds the safety limit")
-            if listed_bytes > _MAX_LIST_BYTES:
-                raise AnalysisRepositoryError("Analysis artifact index exceeds 64 MiB")
-            if any(not _SHA256.fullmatch(path.stem) or path.is_symlink() for path in paths):
-                raise AnalysisRepositoryError("Analysis artifact index contains an unsafe entry")
-            items = []
-            for path in paths:
-                digest = path.stem
-                document = self.read_joint_candidates(
-                    project_id,
-                    digest,
-                    joint_ids=joint_ids,
-                    layer_ids=layer_ids,
-                    canvas_width=canvas_width,
-                    canvas_height=canvas_height,
-                )
-                items.append(_candidate_summary(document, digest))
+        items: list[dict[str, Any]] = []
+        for path in self._artifact_paths(project_id, "joint-candidates"):
+            digest = path.stem
+            document = self.read_joint_candidates(
+                project_id,
+                digest,
+                joint_ids=joint_ids,
+                layer_ids=layer_ids,
+                canvas_width=canvas_width,
+                canvas_height=canvas_height,
+            )
+            items.append(_candidate_summary(document, digest))
         return {
             "schema_version": "autospine-workbench.analysis-index/v1",
             "project_id": project_id,
@@ -95,6 +84,59 @@ class AnalysisArtifactRepository:
             )
         except CandidateValidationError as exc:
             raise AnalysisRepositoryError(f"Candidate artifact is invalid: {exc}") from exc
+        return document
+
+    def list_alpha_geometry_evidence(
+        self,
+        project_id: str,
+        *,
+        joint_ids: set[str],
+        layer_ids: set[str],
+        canvas_width: int,
+        canvas_height: int,
+    ) -> dict[str, Any]:
+        items: list[dict[str, Any]] = []
+        for path in self._artifact_paths(project_id, "alpha-geometry-evidence"):
+            digest = path.stem
+            document = self.read_alpha_geometry_evidence(
+                project_id,
+                digest,
+                joint_ids=joint_ids,
+                layer_ids=layer_ids,
+                canvas_width=canvas_width,
+                canvas_height=canvas_height,
+            )
+            items.append(_geometry_summary(document, digest))
+        return {
+            "schema_version": "autospine-workbench.analysis-index/v1",
+            "project_id": project_id,
+            "kind": "alpha-geometry-evidence",
+            "count": len(items),
+            "items": items,
+        }
+
+    def read_alpha_geometry_evidence(
+        self,
+        project_id: str,
+        digest: str,
+        *,
+        joint_ids: set[str],
+        layer_ids: set[str],
+        canvas_width: int,
+        canvas_height: int,
+    ) -> dict[str, Any]:
+        document = self.read_json(project_id, "alpha-geometry-evidence", digest)
+        try:
+            require_valid_alpha_geometry_evidence(
+                document,
+                project_id=project_id,
+                joint_ids=joint_ids,
+                layer_ids=layer_ids,
+                canvas_width=canvas_width,
+                canvas_height=canvas_height,
+            )
+        except AlphaEvidenceValidationError as exc:
+            raise AnalysisRepositoryError(f"Alpha geometry artifact is invalid: {exc}") from exc
         return document
 
     def read_json(self, project_id: str, kind: str, digest: str) -> dict[str, Any]:
@@ -128,6 +170,23 @@ class AnalysisArtifactRepository:
         if document.get("project_id") != project_id:
             raise AnalysisRepositoryError("Analysis artifact belongs to another project")
         return document
+
+    def _artifact_paths(self, project_id: str, kind: str) -> list[Path]:
+        directory = self._directory(project_id, kind, require=False)
+        if directory is None:
+            return []
+        try:
+            paths = sorted(directory.glob("*.json"), key=lambda item: item.name)
+            listed_bytes = sum(path.lstat().st_size for path in paths)
+        except OSError as exc:
+            raise AnalysisRepositoryError("Could not enumerate analysis artifacts") from exc
+        if len(paths) > _MAX_LIST_ITEMS:
+            raise AnalysisRepositoryError("Analysis artifact list exceeds the safety limit")
+        if listed_bytes > _MAX_LIST_BYTES:
+            raise AnalysisRepositoryError("Analysis artifact index exceeds 64 MiB")
+        if any(not _SHA256.fullmatch(path.stem) or path.is_symlink() for path in paths):
+            raise AnalysisRepositoryError("Analysis artifact index contains an unsafe entry")
+        return paths
 
     def _directory(self, project_id: str, kind: str, *, require: bool) -> Path | None:
         if not _SAFE_TOKEN.fullmatch(project_id) or not _SAFE_TOKEN.fullmatch(kind):
@@ -171,6 +230,33 @@ def _candidate_summary(document: Mapping[str, Any], digest: str) -> dict[str, An
         "joint_count": len(document["joints"]),
         "candidate_count": candidate_count,
         "method_counts": dict(sorted(methods.items())),
+    }
+
+
+def _geometry_summary(document: Mapping[str, Any], digest: str) -> dict[str, Any]:
+    analysis = document["analysis"]
+    relations: dict[str, int] = {}
+    observability: dict[str, int] = {}
+    for contact in document["contacts"]:
+        relation = str(contact["relation"])
+        relations[relation] = relations.get(relation, 0) + 1
+    for item in document["observability"].values():
+        status = str(item["status"])
+        observability[status] = observability.get(status, 0) + 1
+    return {
+        "artifact_sha256": digest,
+        "provider": analysis["provider"],
+        "provider_version": analysis["provider_version"],
+        "input_sha256": analysis["input_sha256"],
+        "config_sha256": analysis["config_sha256"],
+        "run_sha256": analysis["run_sha256"],
+        "qa_status": document["qa"]["status"],
+        "qa_flags": list(document["qa"]["flags"]),
+        "layer_count": len(document["layers"]),
+        "path_count": len(document["paths"]),
+        "contact_count": len(document["contacts"]),
+        "relation_counts": dict(sorted(relations.items())),
+        "observability_counts": dict(sorted(observability.items())),
     }
 
 

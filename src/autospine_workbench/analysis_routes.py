@@ -18,18 +18,19 @@ JsonSender = Callable[[int, Any], None]
 ErrorSender = Callable[[int, str, str], None]
 
 
-def dispatch_candidate_artifact_get(
+def dispatch_analysis_artifact_get(
     parts: list[str],
     store: ProjectStore,
     send_json: JsonSender,
     send_error: ErrorSender,
 ) -> bool:
-    """Serve candidate indexes and artifacts, returning whether the route matched."""
+    """Serve validated analysis indexes/artifacts and report whether the route matched."""
 
+    supported = {"candidate-artifacts", "geometry-evidence"}
     if (
         len(parts) not in {4, 5}
         or parts[:2] != ["api", "projects"]
-        or parts[3] != "candidate-artifacts"
+        or parts[3] not in supported
     ):
         return False
 
@@ -42,16 +43,31 @@ def dispatch_candidate_artifact_get(
         "canvas_height": project["canvas"]["height"],
     }
     repository = AnalysisArtifactRepository(store.state_root)
+    route = parts[3]
     try:
-        if len(parts) == 4:
+        if route == "candidate-artifacts" and len(parts) == 4:
             result = repository.list_joint_candidates(project_id, **context)
-        else:
+        elif route == "candidate-artifacts":
             result = repository.read_joint_candidates(project_id, parts[4], **context)
+        elif len(parts) == 4:
+            result = repository.list_alpha_geometry_evidence(project_id, **context)
+        else:
+            result = repository.read_alpha_geometry_evidence(project_id, parts[4], **context)
     except AnalysisArtifactNotFound:
+        if route == "candidate-artifacts":
+            code, message = (
+                "candidate_artifact_not_found",
+                "Candidate artifact was not found.",
+            )
+        else:
+            code, message = (
+                "geometry_evidence_not_found",
+                "Geometry evidence was not found.",
+            )
         send_error(
             HTTPStatus.NOT_FOUND,
-            "candidate_artifact_not_found",
-            "Candidate artifact was not found.",
+            code,
+            message,
         )
     except AnalysisRepositoryError:
         send_error(

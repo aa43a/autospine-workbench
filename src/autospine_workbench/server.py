@@ -12,7 +12,7 @@ from typing import Any
 from urllib.parse import unquote, urlsplit
 
 from . import __version__
-from .analysis_routes import dispatch_candidate_artifact_get
+from .analysis_routes import dispatch_analysis_artifact_get
 from .contracts import (
     ContractValidationError,
     PROJECT_LIST_SCHEMA_VERSION,
@@ -178,7 +178,7 @@ def _handler_factory(store: ProjectStore, web_root: Path | None) -> type[BaseHTT
                     },
                 )
                 return True
-            if dispatch_candidate_artifact_get(parts, store, self._send_json, self._send_error_json):
+            if dispatch_analysis_artifact_get(parts, store, self._send_json, self._send_error_json):
                 return True
             if len(parts) >= 3 and parts[:2] == ["api", "projects"]:
                 project_id = parts[2]
