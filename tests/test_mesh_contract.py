@@ -210,6 +210,38 @@ class MeshCompileRunContractTests(unittest.TestCase):
         with self.assertRaisesRegex(MeshContractError, "together"):
             require_mesh_compile_run(contract, base_rig=rig)
 
+    def test_optional_bundle_binding_is_independent_and_strict(self) -> None:
+        rig, base_run = base_documents()
+        contract = build_mesh_compile_run(
+            rig, base_run, base_bundle_sha256=BASE_BUNDLE_SHA
+        )
+
+        require_mesh_compile_run(
+            contract,
+            base_bundle_sha256=BASE_BUNDLE_SHA,
+        )
+        require_mesh_compile_run(
+            contract,
+            base_rig=rig,
+            base_run=base_run,
+            base_bundle_sha256=BASE_BUNDLE_SHA,
+        )
+        require_mesh_compile_run(contract, base_bundle_sha256=None)
+
+        with self.assertRaisesRegex(MeshContractError, "base bundle binding"):
+            require_mesh_compile_run(
+                contract,
+                base_bundle_sha256="e" * 64,
+            )
+        for invalid in ("latest", 7, True):
+            with self.subTest(invalid=invalid), self.assertRaisesRegex(
+                MeshContractError, "base bundle SHA-256"
+            ):
+                require_mesh_compile_run(
+                    contract,
+                    base_bundle_sha256=invalid,  # type: ignore[arg-type]
+                )
+
 
 class BaseRegionRigProfileTests(unittest.TestCase):
     def test_reviewed_region_only_base_is_accepted(self) -> None:

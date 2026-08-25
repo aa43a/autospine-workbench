@@ -153,6 +153,7 @@ def require_mesh_compile_run(
     *,
     base_rig: Mapping[str, Any] | None = None,
     base_run: Mapping[str, Any] | None = None,
+    base_bundle_sha256: str | None = None,
 ) -> None:
     """Fail closed unless a document is the exact current P3 compile profile."""
 
@@ -180,6 +181,12 @@ def require_mesh_compile_run(
     )
     for field in inputs:
         _sha(inputs.get(field), field.replace("_", " "))
+    if base_bundle_sha256 is not None:
+        expected_bundle_sha = _sha(base_bundle_sha256, "base bundle")
+        if inputs.get("base_bundle_sha256") != expected_bundle_sha:
+            raise MeshContractError(
+                "Mesh compile run base bundle binding is invalid"
+            )
     compiler = _mapping(document.get("compiler"), "mesh compiler")
     _exact(compiler, {"id", "version", "config"}, "mesh compiler")
     if (
