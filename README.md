@@ -276,6 +276,26 @@ python -m autospine_workbench verify-setup-golden `
 
 逐层复核、严格/诊断模式、退出码与 bundle 校验步骤见 [编译并验证 region-only RigIR](docs/how-to-compile-region-rig.md)。
 
+在一个已验证的 P2 双 SHA 地址上编译、发布并完整读回 P3 两骨 mesh bundle：
+
+```powershell
+python -m autospine_workbench compile-mesh-rig seethrough_output `
+  --base-rig-sha256 <p2-rig-sha256> `
+  --base-bundle-sha256 <p2-bundle-sha256> `
+  --state-root .\workspace
+```
+
+命令输出并固定 P2 rig/bundle、Layer Manifest、resolved snapshot 以及 P3 rig、run、probes、visuals、bundle 共 9 个 SHA-256。随后可只读重验这个精确地址：
+
+```powershell
+python -m autospine_workbench verify-mesh-bundle seethrough_output `
+  --rig-sha256 <p3-rig-sha256> `
+  --bundle-sha256 <p3-bundle-sha256> `
+  --state-root .\workspace
+```
+
+两个命令都不接受 `latest`。验证器会重编译精确 P2 输入、重跑权重/拓扑/动作探针和视觉渲染，并逐字节比较 canonical JSON 与 PNG；任何 identity 漂移、目录别名、链接、额外文件或非有限数都会 fail closed。工作台底部的“P3 Mesh 证据”只负责发现不可变地址，必须由用户依次选择 rig SHA、bundle SHA 并点击读取，才会显示相同的严格验证结果。
+
 对版本中立 RigIR 做语义检查：
 
 ```powershell
@@ -306,6 +326,9 @@ raw COCO17、canonical pose、几何证据、评估报告和候选分别写入 `
 | `GET` | `/api/projects/{id}/split-previews` | 已验证 bilateral split 预览索引 |
 | `GET` | `/api/projects/{id}/split-previews/{sha256}` | 按完整内容 SHA 读取切分审查文档 |
 | `GET` | `/api/projects/{id}/split-previews/{sha256}/parts/{left\|right}/image` | 读取 manifest 绑定的左右子图 |
+| `GET` | `/api/projects/{id}/mesh-bundles` | 发现 P3 不可变双 SHA 地址，不自动选择首项 |
+| `GET` | `/api/projects/{id}/mesh-bundles/{rig_sha256}/{bundle_sha256}` | 严格重验并读取精确 P3 证据 |
+| `GET` | `/api/projects/{id}/mesh-bundles/{rig_sha256}/{bundle_sha256}/images/{png_sha256}` | 读取经 bundle 绑定和哈希复核的证据图 |
 
 API 响应带 `Cache-Control: no-store`。只接受 loopback Host；CORS 也只回显 loopback origin。分析工件端点会重新验证 strict JSON、内容地址和项目语义；损坏工件不会进入 UI。除 `PUT overrides` 外，API 不提供写操作。
 
@@ -344,7 +367,7 @@ P1 已交付 pose、alpha 中轴线和层接触候选，以及候选比较、四
 - 若要恢复旧 revision，先停止服务，备份整个项目 override 目录，再将目标历史快照作为新的、经过校验的 revision 提交；当前界面尚未提供历史浏览/回滚按钮。
 - validation 的 `valid=true` 仅表示结构和本地资产检查没有硬错误，不等于美术、遮挡补全、pivot、mesh 或动画通过视觉验收。
 
-## 已完成阶段：P2 region-only RigIR
+## 已完成阶段：P2 region-only RigIR 与 P3 两骨 LBS
 
 P0 合同加固、P1 四肢候选与 P2 region-only RigIR 已贯通：`stage-scoped analysis → immutable geometry/candidates → candidate-bound revision → deterministic resolved snapshot → reviewed Layer Manifest → RigIR/setup bundle`。P2 没有提前引入 mesh：
 
@@ -354,7 +377,17 @@ P0 合同加固、P1 四肢候选与 P2 region-only RigIR 已贯通：`stage-sco
 4. bilateral split v1.2 会优先整块分配可靠的双连通域，融合层才回退像素最近规则；算法升级使旧决定 stale，三个真实决定均已重新目视批准。
 5. 两份真实样本均以严格模式重复编译为相同内容地址；setup 精确重建，pivot/父子关系/draw order 与固定 visual golden 全部通过。
 
-P2 验收证据：A 为 27 层/25 region，B 为 22 层/20 region；两者各 17 根骨骼，setup differing pixels/channels 均为 0、MAE 为 0。固定批准合同位于 `tests/goldens/p2-setup/`。下一阶段是 P3 alpha mesh、参数化两骨权重、权重热图与极值动作探针。
+P2 验收证据：A 为 27 层/25 region，B 为 22 层/20 region；两者各 17 根骨骼，setup differing pixels/channels 均为 0、MAE 为 0。固定批准合同位于 `tests/goldens/p2-setup/`。
+
+P3 在该精确 P2 基线上增加可独立验证的 alpha mesh 与参数化两骨 LBS：
+
+1. 仅把通过 eligibility 合同的 alpha attachment 转为 mesh；不满足条件的样本发布带原因和完整输入身份的 `reviewed-noop`，不伪造空 mesh。
+2. 参数化权重绑定明确的 proximal/distal 骨，权重和、索引、三角形 winding、面积、setup 重建与有限数均有不变量测试。
+3. 动作探针按方向搜索连续安全角，拒绝翻三角和明显裂缝，并发布 setup、最宽安全姿势和权重热图三类 PNG。
+4. bundle 以 P3 rig SHA 与 bundle SHA 双重寻址；严格 reader 会重建全部上游/下游内容，并保证验证前后状态树完全不变。
+5. 两份真实 See-through 样本均有固定批准合同：A 转换 2 个 hinge，共 739 顶点/1212 三角形；B 由于没有合格 hinge，稳定发布 reviewed no-op。
+
+P3 的拓扑计数、安全角和每张 PNG 的 encoded-byte/RGBA SHA 固定在 `tests/goldens/p3-mesh/`。普通测试验证合同；设置 `AUTOSPINE_VERIFY_REAL_P3_GOLDENS=1` 后运行 `python -m unittest tests.test_p3_mesh_goldens`，会从精确 P2 地址重编译并只读复核真实 bundle。下一阶段是 P4 two-bone analytic IK、弯曲方向、可达范围和目标手柄。
 
 姿态 runner 与真实标注评估集仍是独立质量轨，不阻塞版本中立 P2 编译；诊断 setup prior 不能替代真实模型基线。
 
@@ -368,7 +401,7 @@ P2 验收证据：A 为 27 层/25 region，B 为 22 层/20 region；两者各 17
 - 下载或运行具体姿态模型；`import-pose` 只转换经过哈希固定且已还原到原画布的 COCO17 输出；
 - 自动解决 `head-obj`、`objects`、合并肢体等歧义语义；
 - 证明遮挡补全符合解剖或在大幅动作下不会露馅；
-- 自动生成 mesh、权重、deform、IK、约束或动态 draw order；
+- 自动生成自由形变 deform、IK、约束或动态 draw order；P3 只覆盖通过门禁的 alpha mesh 与参数化两骨 LBS；
 - 生成眨眼/口型素材、简单动画或通用动画重定向；
 - 导出 Spine JSON/atlas/PNG、判断真实 Spine 版本或集成官方 Spine runtime；
 - 代替输入素材、训练数据或模型权重的许可证与商业使用审查；
