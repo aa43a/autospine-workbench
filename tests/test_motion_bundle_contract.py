@@ -31,6 +31,20 @@ from autospine_workbench.motion_compile_run import (  # noqa: E402
 )
 
 
+GOLDEN_BUNDLES = {
+    "idle": (
+        "e19e0885420378c51e0a6c9cd775b880bb3708bf793ea4c87d53dce44848f85d",
+        "685594dd49cd5ff9bb91106babccf2bddb55d2acbed424c82f1ebdba9ef4342a",
+        "63c4accf690c361be8ca6146071ef95621897874d436586081c0f3fba08199ec",
+    ),
+    "wave.left": (
+        "d054364dd9d6118814ba7623e5a0716102bfa8610d3d78dbcdabbe396a82c9d1",
+        "be0a28ab45077e3f69ad565c6f13230d1d61c8205b86eeb9a2327fe295fe9e05",
+        "c9099e7302686df1936f037796194c6055e02a3bbcccc98e151c56aca63c94d1",
+    ),
+}
+
+
 def payload(clip_id="idle"):
     motion = build_builtin_motion(clip_id).document
     run = build_builtin_motion_compile_run(clip_id, motion).document
@@ -49,6 +63,19 @@ def reverse_keys(value):
 
 
 class MotionBundleContractTests(unittest.TestCase):
+    def test_original_builtin_addresses_are_bit_for_bit_golden(self) -> None:
+        for clip_id, expected in GOLDEN_BUNDLES.items():
+            contract = build_motion_bundle_contract(*payload(clip_id))
+            with self.subTest(clip_id=clip_id):
+                self.assertEqual(expected, (
+                    contract.clip_sha256,
+                    contract.run_sha256,
+                    contract.bundle_sha256,
+                ))
+                self.assertEqual("builtin", contract.source_kind)
+                self.assertIsNone(contract.raw_bvh)
+                self.assertIsNone(contract.bvh_map)
+
     def test_bundle_is_canonical_deterministic_frozen_and_isolated(self) -> None:
         values = payload()
         before = deepcopy(values)

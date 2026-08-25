@@ -1,4 +1,4 @@
-"""Secure read-only boundary for exact immutable built-in motion bundles."""
+"""Secure read-only boundary for exact immutable MotionIR bundles."""
 
 from __future__ import annotations
 
@@ -8,7 +8,12 @@ import stat
 
 from .manifest_artifacts import LayerManifestError, require_sha256
 from .motion_bundle_contract import (
-    DOCUMENT_NAMES,
+    BUILTIN_DOCUMENT_NAMES,
+    BVH_DOCUMENT_NAMES,
+    MAX_BVH_BYTES,
+    MAX_BVH_MAP_BYTES,
+    MAX_BVH_RUN_BYTES,
+    MAX_BVH_TOTAL_DOCUMENT_BYTES,
     MAX_MOTION_BYTES,
     MAX_RUN_BYTES,
     MAX_TOTAL_DOCUMENT_BYTES,
@@ -113,21 +118,33 @@ def _snapshot(root: Path) -> MotionBundleSnapshot:
     _real_directory(root, "Motion bundle directory")
     children = _children(root)
     files = {child.name: _regular_file(child, child.name) for child in children}
-    if set(files) != set(DOCUMENT_NAMES):
+    if set(files) == set(BUILTIN_DOCUMENT_NAMES):
+        inventory = BUILTIN_DOCUMENT_NAMES
+        limits = {
+            "motion.json": MAX_MOTION_BYTES,
+            "run-manifest.json": MAX_RUN_BYTES,
+        }
+        total_limit = MAX_TOTAL_DOCUMENT_BYTES
+    elif set(files) == set(BVH_DOCUMENT_NAMES):
+        inventory = BVH_DOCUMENT_NAMES
+        limits = {
+            "source.bvh": MAX_BVH_BYTES,
+            "map.json": MAX_BVH_MAP_BYTES,
+            "motion.json": MAX_MOTION_BYTES,
+            "run-manifest.json": MAX_BVH_RUN_BYTES,
+        }
+        total_limit = MAX_BVH_TOTAL_DOCUMENT_BYTES
+    else:
         raise VerifiedMotionBundleReaderError(
             "Motion bundle inventory has missing or unexpected entries"
         )
-    limits = {
-        "motion.json": MAX_MOTION_BYTES,
-        "run-manifest.json": MAX_RUN_BYTES,
-    }
     items, total = [], 0
-    for name in DOCUMENT_NAMES:
+    for name in inventory:
         data = _read_snapshot(files[name], limits[name], name)
         total += len(data)
-        if total > MAX_TOTAL_DOCUMENT_BYTES:
+        if total > total_limit:
             raise VerifiedMotionBundleReaderError(
-                "Motion bundle JSON budget is exceeded"
+                "Motion bundle byte budget is exceeded"
             )
         items.append((name, data))
     return MotionBundleSnapshot(root, tuple(items))

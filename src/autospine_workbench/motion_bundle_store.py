@@ -1,4 +1,4 @@
-"""Atomic immutable storage for exact built-in MotionIR bundles."""
+"""Atomic immutable storage for exact reproducible MotionIR bundles."""
 
 from __future__ import annotations
 
@@ -32,7 +32,7 @@ class PublishedMotionBundle:
     reused: bool
 
 class MotionBundleStore:
-    """Publish exactly motion.json and run-manifest.json under two SHAs."""
+    """Publish one admitted exact inventory under clip and bundle SHAs."""
 
     def __init__(self, state_root: Path) -> None:
         self.state_root = Path(state_root)
@@ -41,9 +41,14 @@ class MotionBundleStore:
         self,
         motion_ir: Mapping[str, Any],
         run_manifest: Mapping[str, Any],
+        *,
+        raw_bvh: bytes | None = None,
+        bvh_map: Mapping[str, Any] | None = None,
     ) -> PublishedMotionBundle:
         try:
-            contract = build_motion_bundle_contract(motion_ir, run_manifest)
+            contract = _build_contract(
+                motion_ir, run_manifest, raw_bvh=raw_bvh, bvh_map=bvh_map,
+            )
         except MotionBundleContractError as exc:
             raise MotionBundleStoreError("motion bundle publication input is invalid") from exc
         staging: Path | None = None
@@ -167,9 +172,16 @@ def _verify(
     if actual != expected:
         raise MotionBundleStoreError("motion bundle document bytes changed")
     try:
+        kwargs = {}
+        if contract.source_kind == "bvh":
+            kwargs = {
+                "raw_bvh": actual["source.bvh"],
+                "bvh_map": json.loads(actual["map.json"]),
+            }
         rebuilt = build_motion_bundle_contract(
             json.loads(actual["motion.json"]),
             json.loads(actual["run-manifest.json"]),
+            **kwargs,
         )
     except (json.JSONDecodeError, UnicodeDecodeError, MotionBundleContractError) as exc:
         raise MotionBundleStoreError("motion bundle semantic rebuild failed") from exc
@@ -275,3 +287,11 @@ def _staging_name(name: str) -> bool:
         bool(name[14:]) and all(
             character.isalnum() or character in "_-" for character in name[14:]
         )
+
+
+def _build_contract(motion_ir, run_manifest, *, raw_bvh, bvh_map):
+    if raw_bvh is None and bvh_map is None:
+        return build_motion_bundle_contract(motion_ir, run_manifest)
+    return build_motion_bundle_contract(
+        motion_ir, run_manifest, raw_bvh=raw_bvh, bvh_map=bvh_map,
+    )

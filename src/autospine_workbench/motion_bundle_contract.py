@@ -1,4 +1,4 @@
-"""Pure canonical two-document bundle contract for built-in MotionIR clips."""
+"""Pure canonical immutable bundle contracts for reproducible MotionIR clips."""
 
 from __future__ import annotations
 
@@ -8,6 +8,13 @@ import hashlib
 import json
 from typing import Any
 
+from .bvh_map_validation import MAX_DOCUMENT_BYTES as MAX_BVH_MAP_BYTES
+from .bvh_motion_compile_run import (
+    MAX_RUN_BYTES as MAX_BVH_RUN_BYTES,
+    BvhMotionCompileRunError,
+    build_bvh_motion_compile_run,
+)
+from .bvh_tokens import MAX_BVH_BYTES
 from .motion_compile_run import (
     MAX_RUN_BYTES,
     MotionCompileRunError,
@@ -22,8 +29,16 @@ from .motion_validation import (
 
 
 BUNDLE_ADDRESS_DOMAIN = b"autospine-motion-bundle-address/v1"
-DOCUMENT_NAMES = ("motion.json", "run-manifest.json")
+BUILTIN_DOCUMENT_NAMES = ("motion.json", "run-manifest.json")
+BVH_DOCUMENT_NAMES = (
+    "source.bvh", "map.json", "motion.json", "run-manifest.json",
+)
+# Backward-compatible public name for the original built-in inventory.
+DOCUMENT_NAMES = BUILTIN_DOCUMENT_NAMES
 MAX_TOTAL_DOCUMENT_BYTES = MAX_MOTION_BYTES + MAX_RUN_BYTES
+MAX_BVH_TOTAL_DOCUMENT_BYTES = (
+    MAX_BVH_BYTES + MAX_BVH_MAP_BYTES + MAX_MOTION_BYTES + MAX_BVH_RUN_BYTES
+)
 
 
 class MotionBundleContractError(ValueError):
@@ -38,6 +53,7 @@ class MotionBundleContract:
     clip_sha256: str
     run_sha256: str
     bundle_sha256: str
+    source_kind: str
     _documents: tuple[tuple[str, bytes], ...] = field(repr=False)
 
     @property
@@ -53,6 +69,15 @@ class MotionBundleContract:
         return json.loads(dict(self._documents)["run-manifest.json"])
 
     @property
+    def raw_bvh(self) -> bytes | None:
+        return dict(self._documents).get("source.bvh")
+
+    @property
+    def bvh_map(self) -> dict[str, Any] | None:
+        data = dict(self._documents).get("map.json")
+        return None if data is None else json.loads(data)
+
+    @property
     def inventory(self) -> tuple[str, ...]:
         return tuple(name for name, _data in self._documents)
 
@@ -60,18 +85,32 @@ class MotionBundleContract:
 def build_motion_bundle_contract(
     motion_ir: Mapping[str, Any],
     run_manifest: Mapping[str, Any],
+    *,
+    raw_bvh: bytes | None = None,
+    bvh_map: Mapping[str, Any] | None = None,
 ) -> MotionBundleContract:
-    """Validate, rebuild, canonicalize, and address one built-in motion bundle."""
+    """Validate, rebuild, canonicalize, and address one exact motion bundle."""
 
     try:
         require_motion_ir(motion_ir)
-        require_motion_compile_run(run_manifest, motion_ir=motion_ir)
         motion_bytes = _canonical(motion_ir)
-        run_bytes = _canonical(run_manifest)
-        items = (
-            (DOCUMENT_NAMES[0], motion_bytes),
-            (DOCUMENT_NAMES[1], run_bytes),
-        )
+        if raw_bvh is None and bvh_map is None:
+            source_kind = "builtin"
+            require_motion_compile_run(run_manifest, motion_ir=motion_ir)
+            run_bytes = _canonical(run_manifest)
+            items = (
+                (BUILTIN_DOCUMENT_NAMES[0], motion_bytes),
+                (BUILTIN_DOCUMENT_NAMES[1], run_bytes),
+            )
+        elif raw_bvh is not None and bvh_map is not None:
+            source_kind = "bvh"
+            items, run_bytes = _bvh_items(
+                raw_bvh, bvh_map, motion_ir, run_manifest, motion_bytes,
+            )
+        else:
+            raise MotionBundleContractError(
+                "BVH bundle raw source and explicit map must be supplied together"
+            )
         _require_items(items)
         clip_sha = motion_ir_sha256(motion_ir)
         run_sha = _sha(run_bytes)
@@ -80,12 +119,14 @@ def build_motion_bundle_contract(
             clip_sha256=clip_sha,
             run_sha256=run_sha,
             bundle_sha256=motion_bundle_address_sha256(items),
+            source_kind=source_kind,
             _documents=items,
         )
     except MotionBundleContractError:
         raise
     except (
         MotionCompileRunError,
+        BvhMotionCompileRunError,
         MotionValidationError,
         KeyError,
         TypeError,
@@ -112,20 +153,31 @@ def motion_bundle_address_sha256(
 def _require_items(
     value: tuple[tuple[str, bytes], ...],
 ) -> tuple[tuple[str, bytes], ...]:
-    if type(value) is not tuple or len(value) != len(DOCUMENT_NAMES):
+    if type(value) is not tuple:
+        raise MotionBundleContractError("Motion bundle document inventory is invalid")
+    names = tuple(item[0] for item in value if type(item) is tuple and len(item) == 2)
+    if names == BUILTIN_DOCUMENT_NAMES:
+        limits = (MAX_MOTION_BYTES, MAX_RUN_BYTES)
+        total_limit = MAX_TOTAL_DOCUMENT_BYTES
+    elif names == BVH_DOCUMENT_NAMES:
+        limits = (
+            MAX_BVH_BYTES, MAX_BVH_MAP_BYTES, MAX_MOTION_BYTES, MAX_BVH_RUN_BYTES,
+        )
+        total_limit = MAX_BVH_TOTAL_DOCUMENT_BYTES
+    else:
         raise MotionBundleContractError("Motion bundle document inventory is invalid")
     result = []
     for index, item in enumerate(value):
         if type(item) is not tuple or len(item) != 2:
             raise MotionBundleContractError("Motion bundle document inventory is invalid")
         name, data = item
-        if name != DOCUMENT_NAMES[index] or not isinstance(data, bytes):
+        if name != names[index] or type(data) is not bytes:
             raise MotionBundleContractError("Motion bundle document inventory is invalid")
-        limit = MAX_MOTION_BYTES if index == 0 else MAX_RUN_BYTES
+        limit = limits[index]
         if len(data) > limit:
             raise MotionBundleContractError(f"{name} exceeds its byte resource limit")
         result.append((name, data))
-    if sum(len(data) for _name, data in result) > MAX_TOTAL_DOCUMENT_BYTES:
+    if sum(len(data) for _name, data in result) > total_limit:
         raise MotionBundleContractError("Motion bundle total byte resource limit exceeded")
     return tuple(result)
 
@@ -144,3 +196,21 @@ def _canonical(value: Mapping[str, Any]) -> bytes:
 
 def _sha(value: bytes) -> str:
     return hashlib.sha256(value).hexdigest()
+
+
+def _bvh_items(raw_bvh, bvh_map, motion_ir, run_manifest, motion_bytes):
+    if type(raw_bvh) is not bytes:
+        raise MotionBundleContractError("BVH source must be immutable bytes")
+    map_bytes = _canonical(bvh_map)
+    rebuilt = build_bvh_motion_compile_run(raw_bvh, bvh_map, motion_ir)
+    supplied_run = _canonical(run_manifest)
+    if supplied_run != rebuilt.canonical_bytes:
+        raise MotionBundleContractError(
+            "BVH compile run differs from exact source recompile"
+        )
+    return (
+        ("source.bvh", raw_bvh),
+        ("map.json", map_bytes),
+        ("motion.json", motion_bytes),
+        ("run-manifest.json", supplied_run),
+    ), supplied_run

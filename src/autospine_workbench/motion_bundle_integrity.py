@@ -1,4 +1,4 @@
-"""Reproducibility verification for one snapshotted built-in motion bundle."""
+"""Reproducibility verification for one snapshotted immutable motion bundle."""
 
 from __future__ import annotations
 
@@ -9,7 +9,11 @@ from pathlib import Path
 from typing import Any
 
 from .motion_bundle_contract import (
-    DOCUMENT_NAMES,
+    BUILTIN_DOCUMENT_NAMES,
+    BVH_DOCUMENT_NAMES,
+    MAX_BVH_BYTES,
+    MAX_BVH_MAP_BYTES,
+    MAX_BVH_RUN_BYTES,
     MAX_MOTION_BYTES,
     MAX_RUN_BYTES,
     MotionBundleContractError,
@@ -47,6 +51,7 @@ class VerifiedMotionBundle:
     clip_sha256: str
     run_sha256: str
     bundle_sha256: str
+    source_kind: str
     _document_items: tuple[tuple[str, bytes], ...] = field(repr=False)
 
     def _document(self, name: str) -> dict[str, Any]:
@@ -59,6 +64,16 @@ class VerifiedMotionBundle:
     @property
     def run_manifest(self) -> dict[str, Any]:
         return self._document("run-manifest.json")
+
+    @property
+    def raw_bvh(self) -> bytes | None:
+        return dict(self._document_items).get("source.bvh")
+
+    @property
+    def bvh_map(self) -> dict[str, Any] | None:
+        if "map.json" not in dict(self._document_items):
+            return None
+        return self._document("map.json")
 
     @property
     def document_bytes(self) -> dict[str, bytes]:
@@ -80,18 +95,21 @@ def verify_motion_bundle_snapshot(
     try:
         if not isinstance(snapshot, MotionBundleSnapshot):
             raise MotionBundleIntegrityError("Motion bundle snapshot is invalid")
-        raw = _exact_items(snapshot.document_items)
-        documents = {
-            name: _strict_json(data, name) for name, data in raw.items()
-        }
-        motion, stored_run = (documents[name] for name in DOCUMENT_NAMES)
-        require_motion_ir(motion)
-        require_motion_compile_run(stored_run, motion_ir=motion)
-        clip_id = _clip_id(motion, stored_run)
-        rebuilt_run = build_builtin_motion_compile_run(clip_id, motion)
-        contract = build_motion_bundle_contract(motion, rebuilt_run.document)
+        raw, source_kind = _exact_items(snapshot.document_items)
+        json_names = tuple(name for name in raw if name != "source.bvh")
+        documents = {name: _strict_json(raw[name], name) for name in json_names}
+        motion = documents["motion.json"]
+        stored_run = documents["run-manifest.json"]
+        if source_kind == "builtin":
+            clip_id, contract, rebuilt_run_sha = _rebuild_builtin(
+                motion, stored_run,
+            )
+        else:
+            clip_id, contract, rebuilt_run_sha = _rebuild_bvh(
+                raw["source.bvh"], documents["map.json"], motion, stored_run,
+            )
         if (
-            contract.run_sha256 != rebuilt_run.sha256
+            contract.run_sha256 != rebuilt_run_sha
             or contract.document_bytes != raw
         ):
             raise MotionBundleIntegrityError(
@@ -112,7 +130,8 @@ def verify_motion_bundle_snapshot(
             clip_sha256=contract.clip_sha256,
             run_sha256=contract.run_sha256,
             bundle_sha256=contract.bundle_sha256,
-            _document_items=tuple((name, raw[name]) for name in DOCUMENT_NAMES),
+            source_kind=source_kind,
+            _document_items=tuple((name, raw[name]) for name in contract.inventory),
         )
     except MotionBundleIntegrityError:
         raise
@@ -167,14 +186,29 @@ def _strict_json(data: bytes, label: str) -> dict[str, Any]:
     return value
 
 
-def _exact_items(items: Any) -> dict[str, bytes]:
+def _exact_items(items: Any) -> tuple[dict[str, bytes], str]:
     if type(items) is not tuple:
         raise MotionBundleIntegrityError("Motion bundle inventory is invalid")
+    names = tuple(
+        item[0] for item in items if type(item) is tuple and len(item) == 2
+    )
+    if names == BUILTIN_DOCUMENT_NAMES:
+        source_kind = "builtin"
+        limits = {
+            "motion.json": MAX_MOTION_BYTES,
+            "run-manifest.json": MAX_RUN_BYTES,
+        }
+    elif names == BVH_DOCUMENT_NAMES:
+        source_kind = "bvh"
+        limits = {
+            "source.bvh": MAX_BVH_BYTES,
+            "map.json": MAX_BVH_MAP_BYTES,
+            "motion.json": MAX_MOTION_BYTES,
+            "run-manifest.json": MAX_BVH_RUN_BYTES,
+        }
+    else:
+        raise MotionBundleIntegrityError("Motion bundle inventory is invalid")
     result: dict[str, bytes] = {}
-    limits = {
-        "motion.json": MAX_MOTION_BYTES,
-        "run-manifest.json": MAX_RUN_BYTES,
-    }
     for item in items:
         if type(item) is not tuple or len(item) != 2:
             raise MotionBundleIntegrityError("Motion bundle inventory is invalid")
@@ -184,9 +218,26 @@ def _exact_items(items: Any) -> dict[str, bytes]:
         if name not in limits or len(data) > limits[name]:
             raise MotionBundleIntegrityError("Motion bundle byte budget is exceeded")
         result[name] = data
-    if set(result) != set(DOCUMENT_NAMES):
-        raise MotionBundleIntegrityError("Motion bundle snapshot is incomplete")
-    return result
+    return result, source_kind
+
+
+def _rebuild_builtin(motion, stored_run):
+    require_motion_ir(motion)
+    require_motion_compile_run(stored_run, motion_ir=motion)
+    clip_id = _clip_id(motion, stored_run)
+    rebuilt_run = build_builtin_motion_compile_run(clip_id, motion)
+    contract = build_motion_bundle_contract(motion, rebuilt_run.document)
+    return clip_id, contract, rebuilt_run.sha256
+
+
+def _rebuild_bvh(raw_bvh, bvh_map, motion, stored_run):
+    require_motion_ir(motion)
+    contract = build_motion_bundle_contract(
+        motion, stored_run, raw_bvh=raw_bvh, bvh_map=bvh_map,
+    )
+    # The contract already recompiles raw BVH + map and byte-compares the run.
+    # Returning its bound run SHA avoids repeating the potentially large FK pass.
+    return contract.clip_id, contract, contract.run_sha256
 
 
 def _clip_id(motion: Mapping[str, Any], run: Mapping[str, Any]) -> str:
