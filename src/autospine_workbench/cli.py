@@ -7,6 +7,11 @@ import json
 from pathlib import Path
 from typing import Sequence
 
+from .ik_commands import (
+    add_ik_subcommands,
+    compile_ik_targets_command as _compile_ik_targets,
+    verify_ik_bundle_command as _verify_ik_bundle,
+)
 from .manifest_commands import materialize_manifest_command as _materialize_manifest
 from .mesh_commands import (
     add_mesh_subcommands,
@@ -193,6 +198,10 @@ def build_parser() -> argparse.ArgumentParser:
         subparsers,
         default_state_root=_project_root() / "workspace",
     )
+    add_ik_subcommands(
+        subparsers,
+        default_state_root=_project_root() / "workspace",
+    )
     return parser
 
 
@@ -264,6 +273,20 @@ def main(argv: Sequence[str] | None = None) -> int:
             args.project_id,
             args.state_root,
             rig_sha256=args.rig_sha256,
+            bundle_sha256=args.bundle_sha256,
+        )
+    if args.command == "compile-ik-targets":
+        return _compile_ik_targets(
+            args.project_id,
+            args.state_root,
+            p3_rig_sha256=args.p3_rig_sha256,
+            p3_bundle_sha256=args.p3_bundle_sha256,
+        )
+    if args.command == "verify-ik-bundle":
+        return _verify_ik_bundle(
+            args.project_id,
+            args.state_root,
+            profile_sha256=args.profile_sha256,
             bundle_sha256=args.bundle_sha256,
         )
     if args.command != "serve":
