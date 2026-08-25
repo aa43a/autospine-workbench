@@ -61,6 +61,18 @@ class AlphaGeometry:
         threshold = max(int(min_area), math.ceil(self.foreground_area * min_area_ratio))
         return frozenset(item.component_id for item in self.components if item.area >= threshold)
 
+    def canvas_runs(
+        self, component_id: int | None = None
+    ) -> tuple[tuple[int, int, int], ...]:
+        """Return immutable, y-sorted inclusive runs in canvas coordinates."""
+
+        offset_x, offset_y = self.offset_xy
+        return tuple(
+            (run.y + offset_y, run.start + offset_x, run.end + offset_x)
+            for run in self._runs
+            if component_id is None or run.label == component_id
+        )
+
     def nearest_foreground(
         self,
         x: float,
