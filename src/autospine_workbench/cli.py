@@ -18,6 +18,11 @@ from .mesh_commands import (
     compile_mesh_rig_command as _compile_mesh_rig,
     verify_mesh_bundle_command as _verify_mesh_bundle,
 )
+from .motion_commands import (
+    add_motion_subcommands,
+    compile_builtin_motion_command as _compile_builtin_motion,
+    verify_motion_bundle_command as _verify_motion_bundle,
+)
 from .pose_commands import analyze_joints as _analyze_joints
 from .pose_commands import evaluate_pose_command as _evaluate_pose
 from .pose_commands import import_pose as _import_pose
@@ -202,6 +207,10 @@ def build_parser() -> argparse.ArgumentParser:
         subparsers,
         default_state_root=_project_root() / "workspace",
     )
+    add_motion_subcommands(
+        subparsers,
+        default_state_root=_project_root() / "workspace",
+    )
     return parser
 
 
@@ -287,6 +296,14 @@ def main(argv: Sequence[str] | None = None) -> int:
             args.project_id,
             args.state_root,
             profile_sha256=args.profile_sha256,
+            bundle_sha256=args.bundle_sha256,
+        )
+    if args.command == "compile-builtin-motion":
+        return _compile_builtin_motion(args.clip_id, args.state_root)
+    if args.command == "verify-motion-bundle":
+        return _verify_motion_bundle(
+            args.state_root,
+            clip_sha256=args.clip_sha256,
             bundle_sha256=args.bundle_sha256,
         )
     if args.command != "serve":
