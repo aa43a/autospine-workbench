@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+import hashlib
 import json
 import math
 import re
@@ -38,6 +39,19 @@ _CONTACT_ON = {
 
 class BvhMapValidationError(ValueError):
     """Raised when a BVH mapping requires guessing or violates its source."""
+
+
+def bvh_map_sha256(document: Mapping[str, Any]) -> str:
+    """Return the canonical identity of one fully validated explicit map."""
+
+    require_bvh_map(document)
+    encoded = json.dumps(
+        dict(document), allow_nan=False, ensure_ascii=False,
+        sort_keys=True, separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
 def require_bvh_map(
     document: Mapping[str, Any], *, bvh: BvhDocument | None = None
 ) -> None:

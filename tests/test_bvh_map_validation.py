@@ -23,6 +23,7 @@ except ImportError:  # pragma: no cover - optional test extra
 
 from autospine_workbench.bvh_map_validation import (  # noqa: E402
     BvhMapValidationError,
+    bvh_map_sha256,
     require_bvh_map,
 )
 from autospine_workbench.bvh_parser import BvhDocument, BvhJoint  # noqa: E402
@@ -128,6 +129,16 @@ class BvhMapSuccessTests(unittest.TestCase):
         before = deepcopy(value)
         require_bvh_map(value)
         require_bvh_map(value, bvh=source_bvh())
+        self.assertEqual(before, value)
+
+    def test_map_identity_is_canonical_deterministic_and_content_sensitive(self):
+        value = mapping()
+        before = deepcopy(value)
+        reordered = {key: value[key] for key in reversed(tuple(value))}
+        self.assertEqual(bvh_map_sha256(value), bvh_map_sha256(reordered))
+        changed = deepcopy(value)
+        changed["root"]["reference_length_source_units"] = 101.0
+        self.assertNotEqual(bvh_map_sha256(value), bvh_map_sha256(changed))
         self.assertEqual(before, value)
 
     def test_contact_can_be_explicitly_disabled_without_threshold_placeholders(self):
