@@ -73,6 +73,10 @@ class PoseGeometryLimbProvider:
         self.geometry_config = {"alpha_threshold": alpha_threshold, **normalized}
         self.candidate_config = {
             "fusion": dict(self._fusion.config),
+            "fusion_provider": {
+                "id": self._fusion.provider_id,
+                "version": self._fusion.provider_version,
+            },
             "geometry_candidate_policy_version": _POLICY_VERSION,
             "geometry_provider": {
                 "id": self.geometry_provider_id,

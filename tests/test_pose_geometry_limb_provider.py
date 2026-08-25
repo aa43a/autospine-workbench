@@ -6,6 +6,7 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -22,6 +23,7 @@ from autospine_workbench.candidate_validation import (  # noqa: E402
 from autospine_workbench.pose_geometry_limb_provider import (  # noqa: E402
     PoseGeometryLimbProvider,
 )
+from autospine_workbench.limb_candidates import PoseAlphaLimbProvider  # noqa: E402
 from autospine_workbench.pose_observations import (  # noqa: E402
     PoseJointObservation,
     PoseObservationSet,
@@ -196,6 +198,16 @@ class PoseGeometryLimbProviderTests(unittest.TestCase):
         self.assertNotEqual(
             original.joint_candidate_document["analysis"]["run_sha256"],
             geometry_v2.joint_candidate_document["analysis"]["run_sha256"],
+        )
+
+        with patch.object(PoseAlphaLimbProvider, "provider_version", "upstream-v2"):
+            fusion_v2 = PoseGeometryLimbProvider(self.assets, self.pose).analyze(
+                self.project
+            )
+        self.assertEqual(original.geometry_document, fusion_v2.geometry_document)
+        self.assertNotEqual(
+            original.joint_candidate_document["analysis"]["run_sha256"],
+            fusion_v2.joint_candidate_document["analysis"]["run_sha256"],
         )
 
         self.pixels["leg-left"].add((49, 45))
