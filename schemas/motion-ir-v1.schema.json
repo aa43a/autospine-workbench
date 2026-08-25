@@ -1,0 +1,221 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/motion-ir-v1.schema.json",
+  "title": "AutoSpine target-independent MotionIR v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "format_version",
+    "clip_id",
+    "ticks_per_second",
+    "duration_ticks",
+    "loop",
+    "coordinate_system",
+    "tracks",
+    "markers"
+  ],
+  "properties": {
+    "format": {"const": "autospine-motion-ir"},
+    "format_version": {"type": "integer", "const": 1},
+    "clip_id": {"$ref": "#/$defs/id"},
+    "ticks_per_second": {"type": "integer", "const": 1000000},
+    "duration_ticks": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 600000000
+    },
+    "loop": {"type": "boolean"},
+    "coordinate_system": {"$ref": "#/$defs/coordinateSystem"},
+    "tracks": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 22,
+      "items": {"$ref": "#/$defs/track"}
+    },
+    "markers": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {"$ref": "#/$defs/contactMarker"}
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "boneRole": {
+      "enum": [
+        "humanoid.root",
+        "humanoid.spine.lower",
+        "humanoid.spine.upper",
+        "humanoid.neck",
+        "humanoid.head",
+        "humanoid.clavicle.left",
+        "humanoid.arm.upper.left",
+        "humanoid.arm.lower.left",
+        "humanoid.hip.left",
+        "humanoid.leg.upper.left",
+        "humanoid.leg.lower.left",
+        "humanoid.clavicle.right",
+        "humanoid.arm.upper.right",
+        "humanoid.arm.lower.right",
+        "humanoid.hip.right",
+        "humanoid.leg.upper.right",
+        "humanoid.leg.lower.right"
+      ]
+    },
+    "ikHandle": {
+      "enum": ["arm.left", "arm.right", "leg.left", "leg.right"]
+    },
+    "coordinateSystem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "x_axis",
+        "y_axis",
+        "root_translation_space",
+        "ik_target_space",
+        "ik_unreachable_policy",
+        "rotation_unit",
+        "rotation_space",
+        "positive_rotation",
+        "contact_interval"
+      ],
+      "properties": {
+        "x_axis": {"const": "right"},
+        "y_axis": {"const": "down"},
+        "root_translation_space": {
+          "const": "setup_parent_local_normalized_reference_length"
+        },
+        "ik_target_space": {
+          "const": "handle_root_relative_outward_up_normalized_max_reach"
+        },
+        "ik_unreachable_policy": {"const": "reject"},
+        "rotation_unit": {"const": "degree"},
+        "rotation_space": {"const": "setup_local_additive"},
+        "positive_rotation": {"const": "clockwise"},
+        "contact_interval": {"const": "half_open"}
+      }
+    },
+    "track": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target_kind",
+        "target",
+        "property",
+        "interpolation",
+        "keys"
+      ],
+      "properties": {
+        "target_kind": {"enum": ["bone_role", "ik_handle"]},
+        "target": {"type": "string"},
+        "property": {"enum": ["rotation", "translation", "target"]},
+        "interpolation": {"const": "linear"},
+        "keys": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 4096,
+          "items": {"$ref": "#/$defs/key"}
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "target_kind": {"const": "bone_role"},
+            "target": {"$ref": "#/$defs/boneRole"},
+            "property": {"const": "rotation"},
+            "keys": {
+              "items": {
+                "properties": {
+                  "value": {
+                    "type": "number",
+                    "minimum": -1000000,
+                    "maximum": 1000000
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "properties": {
+            "target_kind": {"const": "bone_role"},
+            "target": {"const": "humanoid.root"},
+            "property": {"const": "translation"},
+            "keys": {
+              "items": {
+                "properties": {
+                  "value": {"$ref": "#/$defs/normalizedVector"}
+                }
+              }
+            }
+          }
+        },
+        {
+          "properties": {
+            "target_kind": {"const": "ik_handle"},
+            "target": {"$ref": "#/$defs/ikHandle"},
+            "property": {"const": "target"},
+            "keys": {
+              "items": {
+                "properties": {
+                  "value": {
+                    "oneOf": [
+                      {"const": "setup"},
+                      {"$ref": "#/$defs/normalizedVector"}
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "key": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tick", "value"],
+      "properties": {
+        "tick": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 600000000
+        },
+        "value": {}
+      }
+    },
+    "normalizedVector": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "number",
+        "minimum": -1024,
+        "maximum": 1024
+      }
+    },
+    "contactMarker": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "limb", "start_tick", "end_tick", "mode"],
+      "properties": {
+        "kind": {"const": "contact"},
+        "limb": {"$ref": "#/$defs/ikHandle"},
+        "start_tick": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 600000000
+        },
+        "end_tick": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 600000000
+        },
+        "mode": {"const": "annotation_only"}
+      }
+    }
+  }
+}
