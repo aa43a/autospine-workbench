@@ -99,6 +99,56 @@ class ResolvedProjectBuilderTests(unittest.TestCase):
         self.assertEqual("unclassified.arm", layer["canonical_role"])
         self.assertEqual([10, 20], layer["pivot_xy"])
 
+    def test_split_spec_is_authoring_intent_not_a_reviewed_raster_claim(self) -> None:
+        overrides = override_fixture()
+        layer_patch = overrides["layer_overrides"]["arm-layer"]
+        layer_patch.update(
+            side="bilateral",
+            disposition="split_left_right",
+            split_spec={"parts": {"left": {"guide": []}, "right": {"guide": []}}},
+        )
+
+        snapshot = ResolvedProjectBuilder().build(project_fixture(), overrides)
+        layer = snapshot["layers"][0]
+        self.assertEqual(layer_patch["split_spec"], layer["split_spec"])
+        self.assertNotIn("split_spec", layer["reviewed_fields"])
+        self.assertEqual(["arm-layer"], snapshot["qa"]["unreviewed_split_layer_ids"])
+        self.assertEqual("needs_review", snapshot["qa"]["status"])
+
+    def test_split_decision_status_is_projected_without_mutating_intent(self) -> None:
+        overrides = override_fixture()
+        overrides["layer_overrides"]["arm-layer"].update(
+            side="bilateral",
+            disposition="split_left_right",
+            split_spec={"parts": {"left": {}, "right": {}}},
+        )
+        decision = {
+            "action": "accept",
+            "split_artifact_sha256": "1" * 64,
+            "operation_config_sha256": "2" * 64,
+            "review_target_sha256": "3" * 64,
+        }
+        overrides["split_decisions"] = {"arm-layer": decision}
+
+        snapshot = ResolvedProjectBuilder().build(project_fixture(), overrides)
+        layer = snapshot["layers"][0]
+        self.assertEqual(decision, layer["split_decision"])
+        self.assertEqual(["arm-layer"], snapshot["qa"]["accepted_split_layer_ids"])
+        self.assertEqual([], snapshot["qa"]["unreviewed_split_layer_ids"])
+        self.assertEqual("ready", snapshot["qa"]["status"])
+
+        rejected = deepcopy(overrides)
+        rejected["split_decisions"]["arm-layer"] = {
+            **decision,
+            "action": "reject",
+            "reason": "wrong partition",
+        }
+        rejected_snapshot = ResolvedProjectBuilder().build(project_fixture(), rejected)
+        self.assertEqual(
+            ["arm-layer"], rejected_snapshot["qa"]["rejected_split_layer_ids"]
+        )
+        self.assertEqual("needs_review", rejected_snapshot["qa"]["status"])
+
     def test_unreviewed_low_confidence_joint_remains_visible_in_qa(self) -> None:
         snapshot = ResolvedProjectBuilder().build(project_fixture(), {"revision": 0})
         self.assertEqual("needs_review", snapshot["qa"]["status"])

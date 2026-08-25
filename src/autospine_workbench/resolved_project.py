@@ -39,28 +39,40 @@ class ResolvedProjectBuilder:
         revision = decision.get("revision", 0)
 
         layer_overrides = decision.get("layer_overrides") or {}
+        split_decisions = decision.get("split_decisions") or {}
         for layer in layers:
-            patch = layer_overrides.get(layer.get("id"))
+            layer_id = layer.get("id")
+            patch = layer_overrides.get(layer_id)
             if not isinstance(patch, Mapping):
                 layer["review_state"] = "unreviewed"
                 layer["reviewed_fields"] = []
-                continue
-            reviewed_fields: list[str] = []
-            for field in (
-                "canonical_role",
-                "side",
-                "disposition",
-                "visible",
-                "pivot_xy",
-                "candidate_bone",
-                "notes",
-            ):
-                if field in patch and patch[field] is not None:
-                    layer[field] = deepcopy(patch[field])
-                    reviewed_fields.append(field)
-            layer["review_state"] = "manual_adjusted"
-            layer["reviewed_fields"] = reviewed_fields
-            layer["decision_revision"] = revision
+            else:
+                reviewed_fields: list[str] = []
+                for field in (
+                    "canonical_role",
+                    "side",
+                    "disposition",
+                    "visible",
+                    "pivot_xy",
+                    "candidate_bone",
+                    "notes",
+                ):
+                    if field in patch and patch[field] is not None:
+                        layer[field] = deepcopy(patch[field])
+                        reviewed_fields.append(field)
+                layer["review_state"] = "manual_adjusted"
+                layer["reviewed_fields"] = reviewed_fields
+                layer["decision_revision"] = revision
+                if isinstance(patch.get("split_spec"), Mapping):
+                    # Authoring intent is not a reviewed raster claim.  It is
+                    # projected separately so preview generation can resolve
+                    # anchors without adding it to reviewed_fields.
+                    layer["split_spec"] = deepcopy(dict(patch["split_spec"]))
+                    layer["split_spec_revision"] = revision
+            split_decision = split_decisions.get(layer_id)
+            if isinstance(split_decision, Mapping):
+                layer["split_decision"] = deepcopy(dict(split_decision))
+                layer["split_decision_revision"] = revision
 
         joint_overrides = decision.get("joint_overrides") or {}
         joint_decisions = decision.get("joint_decisions") or {}
@@ -112,7 +124,32 @@ class ResolvedProjectBuilder:
             for joint in joints
             if joint.get("review_state") == "candidate_rejected"
         ]
-        qa_status = "ready" if not review_layer_ids and not unresolved_joint_ids else "needs_review"
+        split_layers = {
+            str(layer.get("id")): layer
+            for layer in layers
+            if layer.get("disposition") in {"split", "split_left_right"}
+        }
+        accepted_split_layer_ids = sorted(
+            layer_id
+            for layer_id, layer in split_layers.items()
+            if (layer.get("split_decision") or {}).get("action") == "accept"
+        )
+        rejected_split_layer_ids = sorted(
+            layer_id
+            for layer_id, layer in split_layers.items()
+            if (layer.get("split_decision") or {}).get("action") == "reject"
+        )
+        unreviewed_split_layer_ids = sorted(
+            set(split_layers) - set(accepted_split_layer_ids) - set(rejected_split_layer_ids)
+        )
+        split_review_pending = bool(
+            unreviewed_split_layer_ids or rejected_split_layer_ids
+        )
+        qa_status = (
+            "ready"
+            if not review_layer_ids and not unresolved_joint_ids and not split_review_pending
+            else "needs_review"
+        )
 
         base_payload = {
             "source": project.get("source"),
@@ -142,6 +179,10 @@ class ResolvedProjectBuilder:
                 "unresolved_joint_ids": unresolved_joint_ids,
                 "rejected_joint_ids": rejected_joint_ids,
                 "unobservable_joint_ids": unobservable_joint_ids,
+                "accepted_split_layer_ids": accepted_split_layer_ids,
+                "unreviewed_split_layer_ids": unreviewed_split_layer_ids,
+                "rejected_split_layer_ids": rejected_split_layer_ids,
+                "stale_split_layer_ids": [],
             },
         }
         snapshot["sha256"] = canonical_sha256(snapshot)
