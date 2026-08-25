@@ -1,0 +1,190 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/motion-mesh-regression-v1.schema.json",
+  "title": "AutoSpine P5 motion mesh regression v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "clip_id", "source", "prober",
+    "status", "summary", "sample_count", "attachments"
+  ],
+  "properties": {
+    "format": {"const": "autospine-motion-mesh-regression"},
+    "format_version": {"type": "integer", "const": 1},
+    "clip_id": {"$ref": "#/$defs/id"},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "instance_sha256", "target_profile_sha256",
+        "p3_rig_sha256", "p3_bundle_sha256"
+      ],
+      "properties": {
+        "instance_sha256": {"$ref": "#/$defs/sha256"},
+        "target_profile_sha256": {"$ref": "#/$defs/sha256"},
+        "p3_rig_sha256": {"$ref": "#/$defs/sha256"},
+        "p3_bundle_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "prober": {"$ref": "#/$defs/prober"},
+    "status": {"enum": ["passed", "rejected"]},
+    "summary": {
+      "type": "string",
+      "pattern": "^(reviewed-noop|attachments=[0-9]+)$"
+    },
+    "sample_count": {
+      "type": "integer", "minimum": 1, "maximum": 50000
+    },
+    "attachments": {
+      "type": "array", "maxItems": 1024,
+      "items": {"$ref": "#/$defs/attachment"}
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "passed"}}},
+      "then": {
+        "properties": {
+          "attachments": {
+            "items": {"properties": {"status": {"const": "passed"}}}
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "rejected"}}},
+      "then": {
+        "properties": {
+          "attachments": {
+            "contains": {"properties": {"status": {"const": "rejected"}}},
+            "minContains": 1
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "id": {
+      "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "finiteRatio": {
+      "type": "number", "minimum": -1000000000000,
+      "maximum": 1000000000000
+    },
+    "prober": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version", "config"],
+      "properties": {
+        "id": {"const": "motion-mesh-regression"},
+        "version": {"const": "1.0.0"},
+        "config": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "sample_step_ticks", "min_area_ratio", "max_area_ratio",
+            "max_edge_stretch", "root_translation_deformation_invariant"
+          ],
+          "properties": {
+            "sample_step_ticks": {"type": "integer", "const": 50000},
+            "min_area_ratio": {"type": "number", "const": 0.02},
+            "max_area_ratio": {"type": "number", "const": 20.0},
+            "max_edge_stretch": {"type": "number", "const": 3.0},
+            "root_translation_deformation_invariant": {"const": true}
+          }
+        }
+      }
+    },
+    "attachment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "attachment_id", "source_layer_id", "side",
+        "proximal_bone_id", "distal_bone_id", "status",
+        "failed_tick_count", "first_failure_tick", "worst"
+      ],
+      "properties": {
+        "attachment_id": {"$ref": "#/$defs/id"},
+        "source_layer_id": {"$ref": "#/$defs/id"},
+        "side": {"enum": ["left", "right"]},
+        "proximal_bone_id": {"enum": ["thigh.left", "thigh.right"]},
+        "distal_bone_id": {"enum": ["calf.left", "calf.right"]},
+        "status": {"enum": ["passed", "rejected"]},
+        "failed_tick_count": {
+          "type": "integer", "minimum": 0, "maximum": 50000
+        },
+        "first_failure_tick": {
+          "oneOf": [
+            {"type": "null"},
+            {"type": "integer", "minimum": 0, "maximum": 600000000}
+          ]
+        },
+        "worst": {"$ref": "#/$defs/worst"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"side": {"const": "left"}}},
+          "then": {
+            "properties": {
+              "proximal_bone_id": {"const": "thigh.left"},
+              "distal_bone_id": {"const": "calf.left"}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"side": {"const": "right"}}},
+          "then": {
+            "properties": {
+              "proximal_bone_id": {"const": "thigh.right"},
+              "distal_bone_id": {"const": "calf.right"}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"status": {"const": "passed"}}},
+          "then": {
+            "properties": {
+              "failed_tick_count": {"const": 0},
+              "first_failure_tick": {"type": "null"}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"status": {"const": "rejected"}}},
+          "then": {
+            "properties": {
+              "failed_tick_count": {"type": "integer", "minimum": 1},
+              "first_failure_tick": {"type": "integer"}
+            }
+          }
+        }
+      ]
+    },
+    "worst": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_flipped_count", "max_degenerate_count",
+        "min_signed_area_ratio", "max_signed_area_ratio",
+        "max_edge_stretch_ratio", "max_interior_crack_gap_px"
+      ],
+      "properties": {
+        "max_flipped_count": {
+          "type": "integer", "minimum": 0, "maximum": 65536
+        },
+        "max_degenerate_count": {
+          "type": "integer", "minimum": 0, "maximum": 65536
+        },
+        "min_signed_area_ratio": {"$ref": "#/$defs/finiteRatio"},
+        "max_signed_area_ratio": {"$ref": "#/$defs/finiteRatio"},
+        "max_edge_stretch_ratio": {
+          "type": "number", "minimum": 0, "maximum": 1000000000000
+        },
+        "max_interior_crack_gap_px": {
+          "type": "number", "minimum": 0, "maximum": 10000000
+        }
+      }
+    }
+  }
+}

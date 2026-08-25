@@ -36,6 +36,11 @@ from tests.test_motion_target_profile import (  # noqa: E402
     mesh_fixture,
 )
 
+try:
+    from jsonschema import Draft202012Validator
+except ImportError:  # pragma: no cover - optional contract test dependency
+    Draft202012Validator = None
+
 
 def encoded(value):
     return json.dumps(value, sort_keys=True, separators=(",", ":"))
@@ -157,6 +162,24 @@ class MotionMeshRegressionTests(unittest.TestCase):
         self.assertEqual("rejected", entry["status"])
         self.assertGreater(entry["failed_tick_count"], 0)
         self.assertIsInstance(entry["first_failure_tick"], int)
+
+    @unittest.skipIf(Draft202012Validator is None, "jsonschema is not installed")
+    def test_passed_and_rejected_reports_match_public_json_schema(self):
+        schema = json.loads(
+            (ROOT / "schemas" / "motion-mesh-regression-v1.schema.json")
+            .read_text(encoding="utf-8")
+        )
+        validator = Draft202012Validator(schema)
+        for failing, angle in ((False, 45.0), (True, 90.0)):
+            mesh, target = exact_mesh_and_target(
+                converted=True, failing=failing
+            )
+            instance = calf_bend_instance(target, angle=angle)
+            report = build_motion_mesh_regression(
+                instance, target.document, mesh
+            ).document
+            with self.subTest(status=report["status"]):
+                validator.validate(report)
 
     def test_identity_inventory_and_report_tamper_fail_closed(self):
         mesh, target = exact_mesh_and_target(converted=True)
