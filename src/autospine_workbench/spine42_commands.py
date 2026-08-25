@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass, field
+import json
 from pathlib import Path
 from typing import Any
 
@@ -37,14 +38,13 @@ class Spine42CommandResult:
     atlas_sha256: str
     png_sha256: str
     run_identity_sha256: str
-    run_sha256: str
+    run_document_sha256: str
     report_sha256: str
     bundle_sha256: str
     summary: str
     reused: bool | None
     _source_items: tuple[
-        tuple[str, tuple[tuple[str, str], ...] | None], ...
-    ] = field(repr=False)
+        tuple[str, tuple[tuple[str, str], ...] | None], ...] = field(repr=False)
 
     @property
     def source_addresses(self) -> dict[str, Any]:
@@ -60,7 +60,7 @@ class Spine42CommandResult:
             "atlas_sha256": self.atlas_sha256,
             "png_sha256": self.png_sha256,
             "run_identity_sha256": self.run_identity_sha256,
-            "run_document_sha256": self.run_sha256,
+            "run_document_sha256": self.run_document_sha256,
             "report_sha256": self.report_sha256,
             "bundle_sha256": self.bundle_sha256,
         }
@@ -113,15 +113,13 @@ def compile_spine42_bundle(
         rebuilt = pipeline.rebuild_and_verify(verified)
         if rebuilt != compilation:
             raise Spine42CommandError(
-                "Spine readback rebuild differs from the compiled snapshot"
-            )
+                "Spine readback rebuild differs from the compiled snapshot")
         return _result(verified, rebuilt, reused=published.reused,
                        expected_path=published.path)
     except Spine42CommandError:
         raise
     except _DOMAIN_ERRORS as exc:
-        raise Spine42CommandError(
-            f"Spine 4.2 bundle compilation failed: {exc}") from exc
+        raise Spine42CommandError(f"Spine 4.2 bundle compilation failed: {exc}") from exc
 
 
 def verify_spine42_bundle(
@@ -142,8 +140,7 @@ def verify_spine42_bundle(
     except Spine42CommandError:
         raise
     except _DOMAIN_ERRORS as exc:
-        raise Spine42CommandError(
-            f"Spine 4.2 bundle verification failed: {exc}") from exc
+        raise Spine42CommandError(f"Spine 4.2 bundle verification failed: {exc}") from exc
 
 
 def _require_compilation(
@@ -156,15 +153,23 @@ def _require_compilation(
     motion_bundle: str | None,
 ) -> None:
     expected_p5 = value.p5_source
+    contract_p5 = json.loads(
+        contract.document_bytes["run-manifest.json"]
+    )["inputs"]["p5"]
     if motion_instance is None:
-        valid_mode = value.mode == "setup-only" and expected_p5 is None
+        requested_p5 = expected_p5 is None
     else:
-        valid_mode = (
-            value.mode == "motion"
-            and isinstance(expected_p5, Mapping)
+        requested_p5 = (
+            isinstance(expected_p5, Mapping)
             and expected_p5.get("motion_instance_sha256") == motion_instance
             and expected_p5.get("bundle_sha256") == motion_bundle
         )
+    valid_mode = (
+        value.mode == contract.mode
+        and value.clip_id == contract.clip_id
+        and expected_p5 == contract_p5
+        and requested_p5
+    )
     expected_identities = {
         "skeleton_json_sha256": contract.skeleton_json_sha256,
         "atlas_sha256": contract.atlas_sha256,
@@ -184,8 +189,7 @@ def _require_compilation(
         or value.contract_identities != expected_identities
         or value.document_bytes != contract.document_bytes
     ):
-        raise Spine42CommandError(
-            "Spine pipeline identity or canonical contract differs")
+        raise Spine42CommandError("Spine pipeline identity or canonical contract differs")
 
 
 def _require_publication(published: Any, contract: Any) -> None:
@@ -265,12 +269,10 @@ def _summary(mode: str, clip_id: str | None, metrics: Mapping[str, Any]) -> str:
 
 def _require_motion_pair(instance: str | None, bundle: str | None) -> None:
     if (instance is None) != (bundle is None):
-        raise Spine42CommandError(
-            "Motion instance and bundle addresses must be supplied together")
+        raise Spine42CommandError("Motion addresses must be supplied together")
 
 
-_DOMAIN_ERRORS = (
-    AttributeError, KeyError, OSError, OverflowError,
+_DOMAIN_ERRORS = (AttributeError, KeyError, OSError, OverflowError,
     Spine42BundleContractError, Spine42BundleIntegrityError,
     Spine42BundleStoreError, VerifiedSpine42PipelineError,
     RuntimeError, TypeError, UnicodeError, ValueError,

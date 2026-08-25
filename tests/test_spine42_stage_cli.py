@@ -146,10 +146,12 @@ class Spine42StageCliTests(unittest.TestCase):
         self.assertEqual("passed", response["status"])
         self.assertEqual(result().source_addresses, response["source_addresses"])
         self.assertEqual(result().output_sha256s, response["output_sha256s"])
+        self.assertEqual(SHA["run"], response["run_document_sha256"])
+        self.assertNotIn("run_sha256", response)
         for name in (
             "path", "project_id", "mode", "clip_id",
             "skeleton_json_sha256", "atlas_sha256", "png_sha256",
-            "run_identity_sha256", "run_sha256", "report_sha256",
+            "run_identity_sha256", "run_document_sha256", "report_sha256",
             "bundle_sha256", "summary", "reused",
         ):
             self.assertIn(name, response)

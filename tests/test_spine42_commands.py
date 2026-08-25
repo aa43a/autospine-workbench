@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from contextlib import ExitStack
 from dataclasses import replace
+import hashlib
 from pathlib import Path
 import sys
 from tempfile import TemporaryDirectory
@@ -21,6 +22,9 @@ from autospine_workbench.spine42_commands import (  # noqa: E402
     compile_spine42_bundle,
     verify_spine42_bundle,
 )
+from autospine_workbench.spine42_bundle_contract import (  # noqa: E402
+    build_spine42_bundle_contract,
+)
 from autospine_workbench.spine42_pipeline import (  # noqa: E402
     VerifiedSpine42Pipeline,
 )
@@ -31,10 +35,14 @@ from tests.test_spine42_pipeline import (  # noqa: E402
 )
 
 
-def state_tree(root: Path) -> tuple[tuple[str, bytes], ...]:
+def state_tree(root: Path) -> tuple[tuple[str, str | None], ...]:
     return tuple(sorted(
-        (path.relative_to(root).as_posix(), path.read_bytes())
-        for path in root.rglob("*") if path.is_file()
+        (
+            path.relative_to(root).as_posix(),
+            hashlib.sha256(path.read_bytes()).hexdigest()
+            if path.is_file() else None,
+        )
+        for path in root.rglob("*")
     ))
 
 
@@ -123,6 +131,7 @@ class Spine42CommandTests(unittest.TestCase):
     def test_verify_is_read_only_and_rebuilds_exact_upstream(self):
         compiled = self.compile(motion=True)
         before = state_tree(self.state)
+        self.assertTrue(any(digest is None for _path, digest in before))
         with self.upstream(motion=True):
             verified = verify_spine42_bundle(
                 self.state,
@@ -134,6 +143,62 @@ class Spine42CommandTests(unittest.TestCase):
         self.assertIsNone(verified.reused)
         self.assertEqual(compiled.output_sha256s, verified.output_sha256s)
         self.assertEqual(compiled.source_addresses, verified.source_addresses)
+        self.assertEqual(before, state_tree(self.state))
+
+    def test_clip_and_full_p5_drift_fail_before_publication(self):
+        with self.upstream(motion=True):
+            compilation = VerifiedSpine42Pipeline(self.state).build(
+                PROJECT,
+                self.mesh.p3_rig_sha256,
+                self.mesh.p3_bundle_sha256,
+                motion_instance_sha256=self.motion.instance_sha256,
+                motion_bundle_sha256=self.motion.bundle_sha256,
+            )
+        contract = build_spine42_bundle_contract(
+            PROJECT, compilation.p3_source, compilation.skeleton_json,
+            compilation.atlas_bytes, compilation.png_bytes,
+            compilation.source_image_sha256s, p5_source=compilation.p5_source,
+        )
+        cases = (
+            replace(compilation, clip_id="wrong-clip"),
+            replace(compilation, p5_target_profile_sha256="f" * 64),
+        )
+        for drifted in cases:
+            with self.subTest(field=drifted.p5_source), patch(
+                "autospine_workbench.spine42_commands.VerifiedSpine42Pipeline"
+            ) as pipeline, patch(
+                "autospine_workbench.spine42_commands."
+                "build_spine42_bundle_contract", return_value=contract,
+            ), patch(
+                "autospine_workbench.spine42_commands.Spine42BundleStore"
+            ) as store, self.assertRaisesRegex(
+                Spine42CommandError, "identity or canonical contract"
+            ):
+                pipeline.return_value.build.return_value = drifted
+                compile_spine42_bundle(
+                    self.state,
+                    PROJECT,
+                    p3_rig_sha256=self.mesh.p3_rig_sha256,
+                    p3_bundle_sha256=self.mesh.p3_bundle_sha256,
+                    motion_instance_sha256=self.motion.instance_sha256,
+                    motion_bundle_sha256=self.motion.bundle_sha256,
+                )
+            store.assert_not_called()
+
+    def test_earlier_bundle_rebuilds_after_a_second_bundle_is_published(self):
+        earlier = self.compile()
+        later = self.compile(motion=True)
+        self.assertNotEqual(earlier.path, later.path)
+        before = state_tree(self.state)
+        with self.upstream():
+            verified = verify_spine42_bundle(
+                self.state,
+                PROJECT,
+                skeleton_json_sha256=earlier.skeleton_json_sha256,
+                bundle_sha256=earlier.bundle_sha256,
+            )
+        self.assertEqual(earlier.output_sha256s, verified.output_sha256s)
+        self.assertEqual(earlier.source_addresses, verified.source_addresses)
         self.assertEqual(before, state_tree(self.state))
 
     def test_incomplete_motion_pair_fails_before_pipeline_or_store(self):

@@ -90,7 +90,7 @@ def _payload(result: Any) -> dict[str, Any]:
         "atlas_sha256": result.atlas_sha256,
         "png_sha256": result.png_sha256,
         "run_identity_sha256": result.run_identity_sha256,
-        "run_sha256": result.run_sha256,
+        "run_document_sha256": result.run_document_sha256,
         "report_sha256": result.report_sha256,
         "bundle_sha256": result.bundle_sha256,
         "summary": result.summary,
