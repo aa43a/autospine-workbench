@@ -169,6 +169,81 @@ class LayerManifestMaterializationTests(unittest.TestCase):
                     project_fixture(), {"layer-001-arm-l": asset}
                 )
 
+    def test_builder_rejects_reserved_aliases_and_out_of_canvas_crops(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            asset = Path(directory) / "arm.png"
+            write_png(asset, 30, 40)
+            reserved = project_fixture()
+            reserved["resolved"]["layers"][0]["id"] = "CON"
+            with self.assertRaisesRegex(LayerManifestError, "Windows-reserved"):
+                LayerManifestBuilder().build(reserved, {"CON": asset})
+
+            outside = project_fixture()
+            outside["resolved"]["layers"][0]["bbox"]["x"] = 80
+            with self.assertRaisesRegex(LayerManifestError, "outside its canvas"):
+                LayerManifestBuilder().build(
+                    outside, {"layer-001-arm-l": asset}
+                )
+
+    def test_publish_rejects_noncanonical_path_before_creating_a_bundle(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            asset = root / "arm.png"
+            write_png(asset, 30, 40)
+            assets = {"layer-001-arm-l": asset}
+            manifest = LayerManifestBuilder().build(project_fixture(), assets)
+            manifest["layers"][0]["raster"]["artifact_path"] = "../escape.png"
+            store = LayerManifestBundleStore(root / "state")
+            with self.assertRaisesRegex(LayerManifestError, "not canonical"):
+                store.publish("sample-a", manifest, assets)
+            self.assertFalse((root / "state" / "builds").exists())
+            self.assertFalse((root / "escape.png").exists())
+
+    def test_materialized_overlay_does_not_mutate_or_rehash_resolved_snapshot(self) -> None:
+        project = project_fixture()
+        resolved_before = json.dumps(project["resolved"], sort_keys=True)
+        derived = dict(project["resolved"]["layers"][0])
+        derived["id"] = "layer-001-arm-l--left"
+        with tempfile.TemporaryDirectory() as directory:
+            asset = Path(directory) / "arm.png"
+            write_png(asset, 30, 40)
+            manifest = LayerManifestBuilder().build(
+                project,
+                {derived["id"]: asset},
+                materialized_layers=[derived],
+            )
+        self.assertEqual([derived["id"]], [item["layer_id"] for item in manifest["layers"]])
+        self.assertEqual(resolved_before, json.dumps(project["resolved"], sort_keys=True))
+
+    def test_duplicate_materialized_layer_ids_fail_loudly(self) -> None:
+        project = project_fixture()
+        layer = project["resolved"]["layers"][0]
+        with tempfile.TemporaryDirectory() as directory:
+            asset = Path(directory) / "arm.png"
+            write_png(asset, 30, 40)
+            with self.assertRaisesRegex(LayerManifestError, "duplicated"):
+                LayerManifestBuilder().build(
+                    project,
+                    {layer["id"]: asset},
+                    materialized_layers=[layer, layer],
+                )
+
+            alias = dict(layer)
+            alias["id"] = layer["id"].upper()
+            with self.assertRaisesRegex(LayerManifestError, "duplicated"):
+                LayerManifestBuilder().build(
+                    project,
+                    {layer["id"]: asset, alias["id"]: asset},
+                    materialized_layers=[layer, alias],
+                )
+
+            with self.assertRaisesRegex(LayerManifestError, "must be objects"):
+                LayerManifestBuilder().build(
+                    project,
+                    {layer["id"]: asset},
+                    materialized_layers=[layer, None],
+                )
+
 
 if __name__ == "__main__":
     unittest.main()

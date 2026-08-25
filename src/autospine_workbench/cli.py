@@ -7,15 +7,10 @@ import json
 from pathlib import Path
 from typing import Sequence
 
-from .layer_manifest import (
-    LayerManifestBuilder,
-    LayerManifestBundleStore,
-    LayerManifestError,
-)
+from .manifest_commands import materialize_manifest_command as _materialize_manifest
 from .pose_commands import analyze_joints as _analyze_joints
 from .pose_commands import evaluate_pose_command as _evaluate_pose
 from .pose_commands import import_pose as _import_pose
-from .project_store import ProjectStore, ProjectStoreError
 from .rig_validation import RigSemanticValidator
 from .rig_commands import (
     add_rig_subcommands,
@@ -273,36 +268,3 @@ def _validate_rig(path: Path) -> int:
         )
     )
     return 0 if valid else 1
-
-
-def _materialize_manifest(project_id: str, workspace: Path, state_root: Path) -> int:
-    try:
-        store = ProjectStore(
-            workspace, state_root=state_root, measure_composite_quality=False
-        )
-        project = store.get_project(project_id)
-        assets = {
-            layer["id"]: store.resolve_asset(project_id, "layer", layer["id"])
-            for layer in project["layers"]
-        }
-        manifest = LayerManifestBuilder().build(project, assets)
-        bundle, digest = LayerManifestBundleStore(state_root).publish(
-            project_id, manifest, assets
-        )
-    except (ProjectStoreError, LayerManifestError, OSError, ValueError) as exc:
-        print(json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=False))
-        return 2
-    print(
-        json.dumps(
-            {
-                "ok": True,
-                "project_id": project_id,
-                "revision": manifest["revision"],
-                "manifest_sha256": digest,
-                "bundle_path": str(bundle),
-            },
-            ensure_ascii=False,
-            indent=2,
-        )
-    )
-    return 0

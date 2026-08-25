@@ -2,33 +2,34 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 import os
 from pathlib import Path
-import re
 import shutil
-import struct
 import tempfile
-from typing import Any, Mapping
+from typing import Any, Mapping, Sequence
 
+from .manifest_artifacts import (
+    LayerManifestError,
+    canonical_layer_artifact_path,
+    inspect_bundle_layers,
+    png_ihdr,
+    prepare_publication,
+    read_strict_manifest,
+    safe_publication_parent,
+    require_safe_token,
+    safe_staging_target,
+    sha256_file,
+    validate_raster_geometry,
+)
 from .resolved_project import canonical_sha256
 from .rig_roles import region_bone_for_role
+from .split_bundle_validation import SplitBundleValidationError, validate_split_bundle
+from .split_derivation_contract import SplitDerivationError, normalize_derivation
 
 
-class LayerManifestError(RuntimeError):
-    """Raised when a reviewed project cannot be materialized losslessly."""
-
-
-_SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
-
-
-def sha256_file(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
+# Backwards-compatible private alias used by older callers during P2 migration.
+_png_ihdr = png_ihdr
 
 
 class LayerManifestBuilder:
@@ -36,6 +37,8 @@ class LayerManifestBuilder:
         self,
         project: Mapping[str, Any],
         layer_assets: Mapping[str, Path],
+        *,
+        materialized_layers: Sequence[Mapping[str, Any]] | None = None,
     ) -> dict[str, Any]:
         resolved = project.get("resolved")
         if not isinstance(resolved, Mapping):
@@ -44,23 +47,36 @@ class LayerManifestBuilder:
         width, height = int(canvas.get("width", 0)), int(canvas.get("height", 0))
         if width < 1 or height < 1:
             raise LayerManifestError("Canvas dimensions are invalid")
+        project_id = require_safe_token(project.get("id"), "Project id")
         source = project.get("source") or {}
         psd_sha = _required_sha(source.get("sha256"), "source PSD")
         audit_sha = _required_sha(source.get("audit_sha256"), "audit")
 
+        source_layers: Any = (
+            resolved.get("layers", [])
+            if materialized_layers is None
+            else materialized_layers
+        )
+        if not isinstance(source_layers, Sequence) or isinstance(
+            source_layers, (str, bytes, bytearray)
+        ):
+            raise LayerManifestError("Materialized layers must be an array")
         layers: list[dict[str, Any]] = []
+        seen_layer_ids: set[str] = set()
         aggregate_flags: set[str] = set()
-        for layer in resolved.get("layers", []):
+        for layer in source_layers:
             if not isinstance(layer, Mapping):
-                continue
-            layer_id = str(layer.get("id"))
-            if not _SAFE_ID.fullmatch(layer_id):
-                raise LayerManifestError("Layer id is not safe for artifact publication")
+                raise LayerManifestError("Materialized layer entries must be objects")
+            layer_id = require_safe_token(layer.get("id"), "Layer id")
+            identity_key = layer_id.casefold()
+            if identity_key in seen_layer_ids:
+                raise LayerManifestError(f"Layer id is duplicated: {layer_id}")
+            seen_layer_ids.add(identity_key)
             asset = layer_assets.get(layer_id)
             if asset is None or not Path(asset).is_file():
                 raise LayerManifestError(f"Layer asset is missing: {layer_id}")
             asset = Path(asset)
-            image_width, image_height, bit_depth, color_type = _png_ihdr(asset)
+            image_width, image_height, bit_depth, color_type = png_ihdr(asset)
             if bit_depth != 8 or color_type != 6:
                 raise LayerManifestError(
                     f"Layer {layer_id} must be an 8-bit RGBA PNG; got depth={bit_depth}, type={color_type}"
@@ -104,6 +120,29 @@ class LayerManifestBuilder:
                 reviewed_fields=reviewed_fields,
             )
             aggregate_flags.update(flags)
+            try:
+                derivation = normalize_derivation(layer_id, layer.get("derivation"))
+            except SplitDerivationError as exc:
+                raise LayerManifestError(str(exc)) from exc
+            raster = {
+                "artifact_path": canonical_layer_artifact_path(layer_id),
+                "sha256": sha256_file(asset),
+                "canvas_size": [width, height],
+                "crop_bbox_xywh": bbox_xywh,
+                "canvas_offset_xy": offset,
+                "channels": "RGBA",
+                "alpha_mode": "straight",
+                "color_space": "srgb",
+                "alpha_nonzero": int(
+                    (layer.get("metrics") or {}).get("alpha_nonzero", 0)
+                ),
+            }
+            validate_raster_geometry(
+                raster,
+                (image_width, image_height),
+                (width, height),
+                layer_id=layer_id,
+            )
             layers.append(
                 {
                     "layer_id": layer_id,
@@ -115,17 +154,7 @@ class LayerManifestBuilder:
                         "opacity": float(layer.get("opacity", 1)),
                         "blend_mode": _blend_mode(layer.get("blend_mode")),
                     },
-                    "raster": {
-                        "artifact_path": f"layers/{layer_id}.png",
-                        "sha256": sha256_file(asset),
-                        "canvas_size": [width, height],
-                        "crop_bbox_xywh": bbox_xywh,
-                        "canvas_offset_xy": offset,
-                        "channels": "RGBA",
-                        "alpha_mode": "straight",
-                        "color_space": "srgb",
-                        "alpha_nonzero": int((layer.get("metrics") or {}).get("alpha_nonzero", 0)),
-                    },
+                    "raster": raster,
                     "semantic": {
                         "source_tag": str(layer.get("name") or ""),
                         "canonical_role": str(layer.get("canonical_role") or "unclassified.layer"),
@@ -135,7 +164,7 @@ class LayerManifestBuilder:
                         "mapping_method": "manual" if semantic_manual else "alias",
                         "confidence": 1.0 if semantic_manual else 0.5,
                     },
-                    "derivation": {"operation": "source", "parent_layer_ids": []},
+                    "derivation": derivation,
                     "rig_hint": {
                         "attachment_kind": "excluded" if excluded else "region",
                         "deform_class": _deform_class(str(layer.get("canonical_role") or "")),
@@ -158,10 +187,10 @@ class LayerManifestBuilder:
                     },
                 }
             )
-        return {
+        manifest = {
             "format": "autospine-layer-manifest",
             "format_version": 1,
-            "project_id": str(project.get("id")),
+            "project_id": project_id,
             "revision": int(resolved.get("revision", 0)),
             "source": {
                 "psd_sha256": psd_sha,
@@ -184,6 +213,17 @@ class LayerManifestBuilder:
                 "notes": [],
             },
         }
+        try:
+            validate_split_bundle(
+                manifest,
+                {
+                    layer["layer_id"]: Path(layer_assets[layer["layer_id"]])
+                    for layer in layers
+                },
+            )
+        except (KeyError, SplitBundleValidationError) as exc:
+            raise LayerManifestError(str(exc)) from exc
+        return manifest
 
 
 class LayerManifestBundleStore:
@@ -198,14 +238,13 @@ class LayerManifestBundleStore:
         manifest: Mapping[str, Any],
         layer_assets: Mapping[str, Path],
     ) -> tuple[Path, str]:
-        if not _SAFE_ID.fullmatch(project_id):
-            raise LayerManifestError("Project id is not safe for artifact publication")
+        project_id = require_safe_token(project_id, "Project id")
+        entries = prepare_publication(manifest, layer_assets, project_id=project_id)
         digest = canonical_sha256(manifest)
-        parent = self.root / project_id / "layer-manifests"
+        parent = safe_publication_parent(self.root, project_id)
         destination = parent / digest
-        parent.mkdir(parents=True, exist_ok=True)
-        if destination.is_dir():
-            self._verify(destination, digest)
+        if destination.exists() or destination.is_symlink():
+            self._verify(destination, digest, project_id)
             return destination, digest
         staging: Path | None = Path(
             tempfile.mkdtemp(prefix=f".{digest[:12]}.", dir=parent)
@@ -214,14 +253,14 @@ class LayerManifestBundleStore:
             assert staging is not None
             layer_dir = staging / "layers"
             layer_dir.mkdir()
-            for layer in manifest.get("layers", []):
-                layer_id = layer["layer_id"]
-                source = Path(layer_assets[layer_id])
-                target = staging / layer["raster"]["artifact_path"]
+            rasters = {layer["layer_id"]: layer["raster"] for layer in manifest["layers"]}
+            for layer_id, relative, source in entries:
+                target = safe_staging_target(staging, layer_id, relative)
                 shutil.copyfile(source, target)
                 _fsync_file(target)
-                if sha256_file(target) != layer["raster"]["sha256"]:
+                if sha256_file(target) != rasters[layer_id]["sha256"]:
                     raise LayerManifestError(f"Layer changed while copying: {layer_id}")
+            inspect_bundle_layers(staging, manifest)
             manifest_path = staging / "manifest.json"
             encoded = (
                 json.dumps(manifest, ensure_ascii=False, allow_nan=False, indent=2, sort_keys=True)
@@ -235,9 +274,9 @@ class LayerManifestBundleStore:
                 os.rename(staging, destination)
                 staging = None
             except OSError:
-                if not destination.is_dir():
+                if not destination.exists() and not destination.is_symlink():
                     raise
-                self._verify(destination, digest)
+                self._verify(destination, digest, project_id)
         except LayerManifestError:
             raise
         except (OSError, KeyError, TypeError, ValueError) as exc:
@@ -248,17 +287,13 @@ class LayerManifestBundleStore:
         return destination, digest
 
     @staticmethod
-    def _verify(directory: Path, expected_digest: str) -> None:
-        try:
-            manifest = json.loads((directory / "manifest.json").read_text(encoding="utf-8"))
-            if canonical_sha256(manifest) != expected_digest:
-                raise LayerManifestError("Existing manifest has the wrong content address")
-            for layer in manifest["layers"]:
-                path = directory / layer["raster"]["artifact_path"]
-                if sha256_file(path) != layer["raster"]["sha256"]:
-                    raise LayerManifestError(f"Existing layer hash mismatch: {layer['layer_id']}")
-        except (OSError, KeyError, json.JSONDecodeError) as exc:
-            raise LayerManifestError("Existing manifest bundle is incomplete") from exc
+    def _verify(directory: Path, expected_digest: str, project_id: str) -> None:
+        manifest = read_strict_manifest(directory)
+        if canonical_sha256(manifest) != expected_digest:
+            raise LayerManifestError("Existing manifest has the wrong content address")
+        if manifest.get("project_id") != project_id:
+            raise LayerManifestError("Existing manifest belongs to another project")
+        inspect_bundle_layers(directory, manifest)
 
 
 def _required_sha(value: Any, label: str) -> str:
@@ -266,18 +301,6 @@ def _required_sha(value: Any, label: str) -> str:
     if len(value) != 64 or any(character not in "0123456789abcdef" for character in value):
         raise LayerManifestError(f"Missing or invalid {label} SHA-256")
     return value
-
-
-def _png_ihdr(path: Path) -> tuple[int, int, int, int]:
-    try:
-        with path.open("rb") as handle:
-            header = handle.read(26)
-        if len(header) < 26 or header[:8] != b"\x89PNG\r\n\x1a\n" or header[12:16] != b"IHDR":
-            raise LayerManifestError(f"Not a PNG file: {path.name}")
-        width, height = struct.unpack(">II", header[16:24])
-        return width, height, header[24], header[25]
-    except OSError as exc:
-        raise LayerManifestError(f"Cannot inspect PNG: {path.name}") from exc
 
 
 def _fsync_file(path: Path) -> None:

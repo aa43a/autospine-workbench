@@ -100,6 +100,79 @@ class LayerManifestBundleReaderTests(unittest.TestCase):
         with self.assertRaisesRegex(LayerManifestBundleError, "image hash"):
             LayerManifestBundleReader(self.root).load("sample-a", self.digest)
 
+    def test_duplicate_layer_identity_fails_before_path_aliasing(self) -> None:
+        manifest = json.loads(
+            (self.bundle / "manifest.json").read_text(encoding="utf-8")
+        )
+        manifest["layers"].append(dict(manifest["layers"][0]))
+        with self.assertRaisesRegex(LayerManifestBundleError, "duplicated"):
+            LayerManifestBundleReader._verify_layers(self.bundle.resolve(), manifest)
+
+    def test_noncanonical_traversal_and_reserved_paths_fail_closed(self) -> None:
+        original = json.loads(
+            (self.bundle / "manifest.json").read_text(encoding="utf-8")
+        )
+        for relative in (
+            "../outside.png",
+            "layers/./layer-arm-left.png",
+            "layers\\layer-arm-left.png",
+        ):
+            with self.subTest(relative=relative):
+                manifest = json.loads(json.dumps(original))
+                manifest["layers"][0]["raster"]["artifact_path"] = relative
+                with self.assertRaisesRegex(LayerManifestBundleError, "not canonical"):
+                    LayerManifestBundleReader._verify_layers(
+                        self.bundle.resolve(), manifest
+                    )
+
+        reserved = json.loads(json.dumps(original))
+        reserved["layers"][0]["layer_id"] = "NUL"
+        reserved["layers"][0]["raster"]["artifact_path"] = "layers/NUL.png"
+        with self.assertRaisesRegex(LayerManifestBundleError, "Windows-reserved"):
+            LayerManifestBundleReader._verify_layers(self.bundle.resolve(), reserved)
+
+    def test_case_normalized_layer_aliases_are_duplicates(self) -> None:
+        manifest = json.loads(
+            (self.bundle / "manifest.json").read_text(encoding="utf-8")
+        )
+        alias = json.loads(json.dumps(manifest["layers"][0]))
+        alias["layer_id"] = "LAYER-ARM-LEFT"
+        alias["raster"]["artifact_path"] = "layers/LAYER-ARM-LEFT.png"
+        manifest["layers"].append(alias)
+        with self.assertRaisesRegex(LayerManifestBundleError, "duplicated"):
+            LayerManifestBundleReader._verify_layers(self.bundle.resolve(), manifest)
+
+    def test_cropped_raster_geometry_must_match_png_and_canvas(self) -> None:
+        original = json.loads(
+            (self.bundle / "manifest.json").read_text(encoding="utf-8")
+        )
+        mutations = (
+            ("crop_bbox_xywh", [19, 29, 2, 2], "outside its canvas"),
+            ("canvas_offset_xy", [11, 20], "does not match its bbox"),
+            ("canvas_size", [21, 30], "differs from manifest"),
+        )
+        for field, value, message in mutations:
+            with self.subTest(field=field):
+                manifest = json.loads(json.dumps(original))
+                manifest["layers"][0]["raster"][field] = value
+                with self.assertRaisesRegex(LayerManifestBundleError, message):
+                    LayerManifestBundleReader._verify_layers(
+                        self.bundle.resolve(), manifest
+                    )
+
+    def test_full_canvas_raster_requires_zero_offset(self) -> None:
+        full_asset = self.root / "full.png"
+        write_rgba(full_asset, [[(0, 0, 0, 0)] * 20 for _ in range(30)])
+        manifest = LayerManifestBuilder().build(
+            project_fixture(), {"layer-arm-left": full_asset}
+        )
+        bundle, _digest = LayerManifestBundleStore(self.root / "full-state").publish(
+            "sample-a", manifest, {"layer-arm-left": full_asset}
+        )
+        manifest["layers"][0]["raster"]["canvas_offset_xy"] = [10, 20]
+        with self.assertRaisesRegex(LayerManifestBundleError, "nonzero offset"):
+            LayerManifestBundleReader._verify_layers(bundle.resolve(), manifest)
+
 
 if __name__ == "__main__":
     unittest.main()
