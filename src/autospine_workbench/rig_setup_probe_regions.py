@@ -11,9 +11,13 @@ from .rig_fk import RigFkError, evaluate_world_setup, local_to_world_point, worl
 TOLERANCE = 1e-6
 
 
-def run_region_checks(rig: Mapping[str, Any], manifest: Mapping[str, Any]) -> list[dict[str, Any]]:
+def run_region_checks(
+    rig: Mapping[str, Any],
+    manifest: Mapping[str, Any],
+    resolved: Mapping[str, Any],
+) -> list[dict[str, Any]]:
     return [
-        _binding_check(rig, manifest),
+        _binding_check(rig, manifest, resolved),
         _pivot_check(rig, manifest),
         _draw_order_check(rig, manifest),
     ]
@@ -28,11 +32,12 @@ def region_layers(manifest: Mapping[str, Any]) -> dict[str, Mapping[str, Any]]:
     }
 
 
-def _binding_check(rig: Mapping[str, Any], manifest: Mapping[str, Any]) -> dict[str, Any]:
+def _binding_check(rig, manifest, resolved) -> dict[str, Any]:
     errors: list[str] = []
     bones = _by_id(rig.get("bones"), "bone", errors)
     slots = _by_id(rig.get("slots"), "slot", errors)
     attachments = _by_id(rig.get("attachments"), "attachment", errors)
+    source_bones, bones_by_end_joint = _resolved_bones(resolved, errors)
     expected_layers = region_layers(manifest)
     found_layers: dict[str, str] = {}
     capabilities = rig.get("capabilities") or []
@@ -63,8 +68,18 @@ def _binding_check(rig: Mapping[str, Any], manifest: Mapping[str, Any]) -> dict[
         )
         if slot is None or slot.get("setup_attachment") != expected_setup:
             errors.append(f"attachment {attachment_id} slot binding is inconsistent")
-        elif slot.get("bone") not in bones:
-            errors.append(f"slot {slot_id} references a missing bone")
+        else:
+            if slot.get("bone") not in bones:
+                errors.append(f"slot {slot_id} references a missing bone")
+            if layer is not None:
+                expected_bone = _resolve_manifest_bone(
+                    layer_id, layer, source_bones, bones_by_end_joint, errors
+                )
+                if expected_bone is not None and slot.get("bone") != expected_bone:
+                    errors.append(
+                        f"slot {slot_id} bone does not match manifest layer {layer_id}"
+                    )
+                _compare_slot_style(slot_id, slot, layer, errors)
         skin_items = ((rig.get("skins") or {}).get("default") or {}).get(slot_id)
         if not isinstance(skin_items, list) or attachment_id not in skin_items:
             errors.append(f"attachment {attachment_id} is missing from default skin")
@@ -124,6 +139,19 @@ def _draw_order_check(rig: Mapping[str, Any], manifest: Mapping[str, Any]) -> di
         attachments_by_slot[slot_id] = attachment
     actual: list[tuple[int, str]] = []
     seen: set[int] = set()
+    expected: list[tuple[int, str]] = []
+    expected_by_layer: dict[str, int] = {}
+    expected_orders: set[int] = set()
+    for layer_id, layer in region_layers(manifest).items():
+        order = (layer.get("rig_hint") or {}).get("setup_draw_order")
+        if isinstance(order, bool) or not isinstance(order, int):
+            errors.append(f"layer {layer_id} has invalid setup draw order")
+            continue
+        if order in expected_orders:
+            errors.append(f"manifest setup draw order is ambiguous at {order}")
+        expected_orders.add(order)
+        expected_by_layer[layer_id] = order
+        expected.append((order, layer_id))
     for slot in _objects(rig.get("slots")):
         order = slot.get("setup_draw_order")
         attachment = attachments_by_slot.get(_text(slot.get("id"))) or {}
@@ -134,21 +162,73 @@ def _draw_order_check(rig: Mapping[str, Any], manifest: Mapping[str, Any]) -> di
         if order in seen:
             errors.append(f"duplicate setup draw order: {order}")
         seen.add(order)
-        actual.append((order, source_ids[0]))
-    expected: list[tuple[int, str]] = []
-    expected_orders: set[int] = set()
-    for layer_id, layer in region_layers(manifest).items():
-        order = (layer.get("rig_hint") or {}).get("setup_draw_order")
-        if isinstance(order, bool) or not isinstance(order, int):
-            errors.append(f"layer {layer_id} has invalid setup draw order")
-            continue
-        if order in expected_orders:
-            errors.append(f"manifest setup draw order is ambiguous at {order}")
-        expected_orders.add(order)
-        expected.append((order, layer_id))
+        layer_id = source_ids[0]
+        actual.append((order, layer_id))
+        expected_order = expected_by_layer.get(layer_id)
+        if expected_order is not None and order != expected_order:
+            errors.append(
+                f"slot {_text(slot.get('id'))} draw order does not match "
+                f"manifest layer {layer_id}"
+            )
     if [item[1] for item in sorted(actual)] != [item[1] for item in sorted(expected)]:
         errors.append("slot draw order does not preserve manifest relative order")
     return _check("slots.draw-order", errors, metrics={"slot_count": len(actual)})
+
+
+def _resolved_bones(resolved, errors: list[str]):
+    skeleton = resolved.get("skeleton") if isinstance(resolved, Mapping) else None
+    source_bones = _by_id((skeleton or {}).get("bones"), "resolved bone", errors)
+    by_end_joint: dict[str, list[str]] = {}
+    for bone_id, bone in source_bones.items():
+        end_joint = _text(bone.get("end_joint_id"))
+        if not end_joint:
+            errors.append(f"resolved bone {bone_id} has an invalid end joint")
+            continue
+        by_end_joint.setdefault(end_joint, []).append(bone_id)
+    return source_bones, by_end_joint
+
+
+def _resolve_manifest_bone(
+    layer_id: str,
+    layer: Mapping[str, Any],
+    source_bones: Mapping[str, Mapping[str, Any]],
+    bones_by_end_joint: Mapping[str, list[str]],
+    errors: list[str],
+) -> str | None:
+    hint = (layer.get("rig_hint") or {}).get("candidate_bone")
+    if hint is None:
+        return None
+    if isinstance(hint, str) and hint in source_bones:
+        return hint
+    matches = bones_by_end_joint.get(hint, []) if isinstance(hint, str) else []
+    if len(matches) == 1:
+        return matches[0]
+    reason = "ambiguous legacy joint" if len(matches) > 1 else "missing or unknown"
+    errors.append(f"manifest layer {layer_id} candidate_bone is {reason}")
+    return None
+
+
+def _compare_slot_style(
+    slot_id: Any,
+    slot: Mapping[str, Any],
+    layer: Mapping[str, Any],
+    errors: list[str],
+) -> None:
+    source = layer.get("source") or {}
+    if slot.get("blend") != source.get("blend_mode"):
+        errors.append(f"slot {slot_id} blend does not match manifest")
+    opacity = source.get("opacity")
+    if (
+        isinstance(opacity, bool)
+        or not isinstance(opacity, (int, float))
+        or not math.isfinite(float(opacity))
+        or not 0 <= float(opacity) <= 1
+    ):
+        errors.append(f"slot {slot_id} cannot derive color from manifest opacity")
+        return
+    alpha = math.floor(float(opacity) * 255 + 0.5)
+    if slot.get("color_rgba") != f"ffffff{alpha:02x}":
+        errors.append(f"slot {slot_id} color does not match manifest opacity")
 
 
 def _compare_raster(

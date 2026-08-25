@@ -24,6 +24,7 @@ from autospine_workbench.layer_manifest import (
 )
 from autospine_workbench.resolved_project import canonical_sha256
 from autospine_workbench.rig_bundle import RigBundleError, RigBundleStore
+from autospine_workbench.rig_bundle_validation import bundle_address_sha256
 from tests.test_layer_manifest import project_fixture, write_png
 
 
@@ -166,8 +167,13 @@ class RigBundleStoreTests(unittest.TestCase):
 
         self.assertEqual(first, second)
         bundle, rig_sha = first
+        bundle_sha = bundle_address_sha256(
+            rig_sha,
+            canonical_sha256(self.fixture.run),
+            canonical_sha256(self.fixture.probes),
+        )
         self.assertEqual(
-            self.fixture.state / "builds" / "sample-a" / "rig-ir" / rig_sha,
+            self.fixture.state / "builds" / "sample-a" / "rig-ir" / rig_sha / bundle_sha,
             bundle,
         )
         self.assertEqual(
@@ -184,6 +190,66 @@ class RigBundleStoreTests(unittest.TestCase):
         copied = bundle / "layers" / "layer-001-arm-l.png"
         self.assertEqual(source.read_bytes(), copied.read_bytes())
         self.assertEqual(sha256_file(source), sha256_file(copied))
+
+    def test_probe_version_gets_a_distinct_bundle_under_the_same_rig(self) -> None:
+        first, rig_sha = self.fixture.publish()
+        probes = deepcopy(self.fixture.probes)
+        probes["runner"]["version"] = "1.1.0"
+
+        second, repeated_rig_sha = self.fixture.publish(probes=probes)
+
+        self.assertEqual(rig_sha, repeated_rig_sha)
+        self.assertEqual(first.parent, second.parent)
+        self.assertNotEqual(first, second)
+        self.assertEqual(
+            bundle_address_sha256(
+                rig_sha,
+                canonical_sha256(self.fixture.run),
+                canonical_sha256(probes),
+            ),
+            second.name,
+        )
+        self.assertEqual(
+            {first.name, second.name},
+            {item.name for item in first.parent.iterdir()},
+        )
+        self.assertEqual(
+            "1.0.0",
+            json.loads((first / "probes.json").read_text(encoding="utf-8"))["runner"][
+                "version"
+            ],
+        )
+        self.assertEqual(
+            "1.1.0",
+            json.loads((second / "probes.json").read_text(encoding="utf-8"))["runner"][
+                "version"
+            ],
+        )
+
+    def test_bundle_address_covers_all_three_documents(self) -> None:
+        baseline = bundle_address_sha256("a" * 64, "b" * 64, "c" * 64)
+        for index, digests in enumerate(
+            (
+                ("d" * 64, "b" * 64, "c" * 64),
+                ("a" * 64, "d" * 64, "c" * 64),
+                ("a" * 64, "b" * 64, "d" * 64),
+            )
+        ):
+            with self.subTest(document=index):
+                self.assertNotEqual(baseline, bundle_address_sha256(*digests))
+
+    def test_legacy_flat_rig_bundle_fails_closed_without_mutation(self) -> None:
+        rig_sha = canonical_sha256(self.fixture.rig)
+        legacy = self.fixture.state / "builds" / "sample-a" / "rig-ir" / rig_sha
+        legacy.mkdir(parents=True)
+        marker = legacy / "rig.json"
+        marker.write_text('{"legacy":true}\n', encoding="utf-8")
+
+        with self.assertRaisesRegex(RigBundleError, "Legacy flat"):
+            self.fixture.publish()
+
+        self.assertEqual('{"legacy":true}\n', marker.read_text(encoding="utf-8"))
+        self.assertEqual({"rig.json"}, {item.name for item in legacy.iterdir()})
 
     def test_existing_document_or_layer_tampering_fails_loudly(self) -> None:
         for name in ("rig.json", "run-manifest.json", "probes.json"):
@@ -284,7 +350,8 @@ class RigBundleStoreTests(unittest.TestCase):
             with self.assertRaises(RigBundleError):
                 self.fixture.publish()
         parent = self.fixture.state / "builds" / "sample-a" / "rig-ir"
-        self.assertEqual([], list(parent.iterdir()))
+        rig_parent = parent / canonical_sha256(self.fixture.rig)
+        self.assertEqual([], list(rig_parent.iterdir()))
 
     def test_layer_bundle_symlink_is_rejected_when_supported(self) -> None:
         original = self.fixture.layer_bundle

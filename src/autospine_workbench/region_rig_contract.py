@@ -64,23 +64,52 @@ def validate_compile_inputs(
 def review_gate(
     manifest: Mapping[str, Any], resolved: Mapping[str, Any], allow: bool
 ) -> bool:
+    issues = review_issues(manifest, resolved)
+    if issues and not allow:
+        raise RegionRigContractError("Rig compile inputs require manual review")
+    return bool(issues)
+
+
+def review_issues(
+    manifest: Mapping[str, Any], resolved: Mapping[str, Any]
+) -> list[str]:
+    """Return every condition that keeps otherwise valid P2 inputs diagnostic."""
+
     statuses = [_qa_status(manifest.get("qa"), "Layer Manifest")]
     layers = manifest.get("layers")
     if not isinstance(layers, list):
         raise RegionRigContractError("Layer Manifest layers must be an array")
+    issues: list[str] = []
     for index, layer in enumerate(layers):
         layer = mapping(layer, f"layer {index}")
-        statuses.append(_qa_status(layer.get("qa"), f"layer {index}"))
+        layer_id = layer.get("layer_id")
+        label = layer_id if isinstance(layer_id, str) else str(index)
+        layer_status = _qa_status(layer.get("qa"), f"layer {index}")
+        statuses.append(layer_status)
+        if layer_status == "manual_required":
+            issues.append(f"layer {label} QA requires review")
+        hint = mapping(layer.get("rig_hint"), f"layer {index} rig hint")
+        if hint.get("attachment_kind") != "region":
+            continue
+        semantic = mapping(layer.get("semantic"), f"layer {index} semantic")
+        pivot = hint.get("pivot")
+        if semantic.get("mapping_method") != "manual":
+            issues.append(f"layer {label} semantic mapping is not manual")
+        if not isinstance(pivot, Mapping) or pivot.get("method") != "manual":
+            issues.append(f"layer {label} pivot is not manually reviewed")
+        if hint.get("candidate_bone") is None:
+            issues.append(f"layer {label} bone binding requires review")
     if "rejected" in statuses:
         raise RegionRigContractError("Rejected Layer Manifest data cannot be compiled")
+    if statuses[0] == "manual_required":
+        issues.append("layer manifest QA requires review")
     resolved_qa = mapping(resolved.get("qa"), "resolved project QA")
     resolved_status = resolved_qa.get("status")
     if resolved_status not in {"ready", "needs_review"}:
         raise RegionRigContractError("Resolved project QA status is invalid")
-    required = "manual_required" in statuses or resolved_status != "ready"
-    if required and not allow:
-        raise RegionRigContractError("Rig compile inputs require manual review")
-    return required
+    if resolved_status != "ready":
+        issues.append("resolved project still requires review")
+    return sorted(set(issues))
 
 
 def mapping(value: Any, label: str) -> Mapping[str, Any]:

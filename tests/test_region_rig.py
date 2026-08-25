@@ -39,7 +39,7 @@ def layer_fixture(layer_id: str = LAYER_ID, draw_order: int = 7) -> dict:
         "layer_id": layer_id,
         "source": {
             "name": "torso", "index": 1, "group_path": [], "visible": True,
-            "opacity": 0.5, "blend_mode": "multiply",
+            "opacity": 0.5, "blend_mode": "normal",
         },
         "raster": {
             "artifact_path": f"layers/{layer_id}.png", "sha256": SHA_IMAGE,
@@ -149,7 +149,7 @@ class RegionRigCompilerTests(unittest.TestCase):
         slot, attachment = rig["slots"][0], rig["attachments"][0]
         self.assertEqual({
             "id": LAYER_ID, "bone": "pelvis-chest", "setup_attachment": LAYER_ID,
-            "setup_draw_order": 7, "blend": "multiply", "color_rgba": "ffffff80",
+            "setup_draw_order": 7, "blend": "normal", "color_rgba": "ffffff80",
         }, slot)
         self.assertEqual("region", attachment["type"])
         self.assertEqual("layers/layer-001-torso.png", attachment["image_path"])
@@ -240,7 +240,7 @@ class RegionRigCompilerTests(unittest.TestCase):
         cases = {
             "attachment kind": lambda m: m["layers"][0]["rig_hint"].update(attachment_kind="mesh"),
             "blend mode": lambda m: m["layers"][0]["source"].update(blend_mode="pass-through"),
-            "pivot is unknown": lambda m: m["layers"][0]["rig_hint"]["pivot"].update(method="unknown"),
+            "unsupported blend": lambda m: m["layers"][0]["source"].update(blend_mode="multiply"),
             "does not exist": lambda m: m["layers"][0]["rig_hint"].update(candidate_bone="missing"),
             "image path is unsafe": lambda m: m["layers"][0]["raster"].update(artifact_path="../escape.png"),
         }
@@ -253,6 +253,19 @@ class RegionRigCompilerTests(unittest.TestCase):
             compile_fixture(sizes={})
         with self.assertRaisesRegex(RegionRigError, "does not match its raster"):
             compile_fixture(sizes={LAYER_ID: (31, 40)})
+
+    def test_diagnostic_mode_preserves_unreviewed_pivot_and_bilateral_region(self) -> None:
+        manifest = manifest_fixture()
+        layer = manifest["layers"][0]
+        layer["semantic"]["mapping_method"] = "alias"
+        layer["rig_hint"]["pivot"]["method"] = "unknown"
+        layer["rig_hint"]["candidate_bone"] = None
+        with self.assertRaisesRegex(RegionRigError, "require.*manual review"):
+            compile_fixture(manifest)
+        rig = compile_fixture(manifest, allow_manual_required=True).rig
+        self.assertEqual("manual_required", rig["qa"]["status"])
+        self.assertEqual("root-pelvis", rig["slots"][0]["bone"])
+        self.assertEqual([20, 25], rig["attachments"][0]["pivot_xy"])
 
     def test_duplicate_draw_order_fails_before_slot_generation(self) -> None:
         manifest = manifest_fixture()

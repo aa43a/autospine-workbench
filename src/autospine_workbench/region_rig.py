@@ -26,10 +26,10 @@ from .region_rig_contract import (
 from .rig_validation import RigSemanticValidationError, RigSemanticValidator
 
 
-_COMPILER_VERSION = "1.0.0"
+_COMPILER_VERSION = "1.1.0"
 _SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
-_BLENDS = frozenset({"normal", "additive", "multiply", "screen"})
-_PIVOT_METHODS = frozenset({"landmark", "overlap", "manual"})
+_BLENDS = frozenset({"normal"})
+_PIVOT_METHODS = frozenset({"landmark", "overlap", "manual", "unknown"})
 
 
 class RegionRigError(ValueError):
@@ -80,8 +80,15 @@ def compile_region_rig(
     bone_ids = _compiled_bone_ids(bones)
     try:
         regions = _compile_regions(
-            manifest, skeleton, bone_ids, image_sizes, identity["canvas"]
+            manifest,
+            skeleton,
+            bone_ids,
+            image_sizes,
+            identity["canvas"],
+            allow_manual_required,
         )
+        if not regions:
+            raise RegionRigContractError("Layer Manifest has no region attachments")
     except RegionRigContractError as exc:
         raise RegionRigError(str(exc)) from exc
     run_manifest = _run_manifest(identity, allow_manual_required)
@@ -136,7 +143,9 @@ def compile_region_rig(
     return RegionRigCompilation(encode(rig), encode(run_manifest))
 
 
-def _compile_regions(manifest, skeleton, bone_ids, image_sizes, canvas):
+def _compile_regions(
+    manifest, skeleton, bone_ids, image_sizes, canvas, allow_manual_required
+):
     if not isinstance(image_sizes, Mapping):
         raise RegionRigError("image_sizes must be keyed by layer id")
     source_bones = skeleton.get("bones")
@@ -180,7 +189,12 @@ def _compile_regions(manifest, skeleton, bone_ids, image_sizes, canvas):
         size = _positive_size(image_sizes.get(layer_id), f"layer {layer_id} image size")
         offset = _point(raster.get("canvas_offset_xy"), f"layer {layer_id} canvas offset")
         _validate_raster(layer_id, raster, size, offset, canvas)
-        bone = _resolve_candidate_bone(hint.get("candidate_bone"), bone_ids, source_bones)
+        bone = _resolve_candidate_bone(
+            hint.get("candidate_bone"),
+            bone_ids,
+            source_bones,
+            allow_manual_required=allow_manual_required,
+        )
         image_path = _relative_path(raster.get("artifact_path"), layer_id)
         image_sha = _required_sha(raster.get("sha256"), f"layer {layer_id} image")
         alpha = math.floor(float(opacity) * 255 + 0.5)
@@ -217,7 +231,15 @@ def _validate_raster(layer_id, raster, size, offset, canvas) -> None:
         raise RegionRigError(f"Layer {layer_id} image size or offset does not match its raster")
 
 
-def _resolve_candidate_bone(hint, bone_ids: set[str], source_bones: list[Any]) -> str:
+def _resolve_candidate_bone(
+    hint,
+    bone_ids: set[str],
+    source_bones: list[Any],
+    *,
+    allow_manual_required: bool,
+) -> str:
+    if hint is None and allow_manual_required and "root-pelvis" in bone_ids:
+        return "root-pelvis"
     if not isinstance(hint, str) or not _SAFE_ID.fullmatch(hint):
         raise RegionRigError("Region candidate_bone is missing or invalid")
     if hint in bone_ids:

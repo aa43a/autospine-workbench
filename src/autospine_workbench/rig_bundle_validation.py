@@ -33,7 +33,7 @@ def validate_bundle_inputs(
     run: Mapping[str, Any],
     probes: Mapping[str, Any],
     layer_bundle_path: Path,
-) -> tuple[str, dict[str, tuple[Path, str]]]:
+) -> tuple[str, str, dict[str, tuple[Path, str]]]:
     if not isinstance(project_id, str) or not _SAFE_ID.fullmatch(project_id):
         raise RigBundleError("Project id is unsafe")
     if not all(isinstance(value, Mapping) for value in (rig, run, probes)):
@@ -47,7 +47,7 @@ def validate_bundle_inputs(
         require_setup_probe_document(probes)
         rig_sha = canonical_sha256(rig)
         run_sha = canonical_sha256(run)
-        canonical_sha256(probes)
+        probe_sha = canonical_sha256(probes)
     except (RigArtifactValidationError, RigSemanticValidationError, TypeError, ValueError) as exc:
         raise RigBundleError("RigIR bundle documents are not valid canonical JSON") from exc
 
@@ -65,7 +65,28 @@ def validate_bundle_inputs(
         raise RigBundleError("Manual-required setup was not enabled by the compile run")
     bundle = _resolve_layer_bundle(layer_bundle_path)
     manifest_assets = _manifest_assets(project_id, bundle, layer_sha)
-    return rig_sha, _attachment_assets(rig, manifest_assets, bundle)
+    return (
+        rig_sha,
+        bundle_address_sha256(rig_sha, run_sha, probe_sha),
+        _attachment_assets(rig, manifest_assets, bundle),
+    )
+
+
+def bundle_address_sha256(rig_sha: str, run_sha: str, probe_sha: str) -> str:
+    """Hash the three immutable documents into one domain-separated address."""
+
+    documents = {
+        "rig.json": required_sha(rig_sha, "RigIR"),
+        "run-manifest.json": required_sha(run_sha, "compile run"),
+        "probes.json": required_sha(probe_sha, "setup probes"),
+    }
+    return canonical_sha256(
+        {
+            "format": "autospine-rig-bundle-address",
+            "format_version": 1,
+            "document_sha256": documents,
+        }
+    )
 
 
 def _validate_run(

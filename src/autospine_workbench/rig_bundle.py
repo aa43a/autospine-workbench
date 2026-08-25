@@ -13,8 +13,10 @@ from .layer_manifest import sha256_file
 from .resolved_project import canonical_sha256
 from .rig_bundle_validation import (
     RigBundleError,
+    bundle_address_sha256,
     read_json,
     require_png,
+    required_sha,
     safe_existing_file,
     validate_bundle_inputs,
 )
@@ -38,7 +40,7 @@ class RigBundleStore:
         probe_report: Mapping[str, Any],
         layer_bundle_path: Path,
     ) -> tuple[Path, str]:
-        rig_sha, assets = validate_bundle_inputs(
+        rig_sha, bundle_sha, assets = validate_bundle_inputs(
             project_id, rig, run_manifest, probe_report, Path(layer_bundle_path)
         )
         _require_expected_layer_bundle(
@@ -49,12 +51,20 @@ class RigBundleStore:
         )
         parent = self.root / project_id / "rig-ir"
         _prepare_parent(self.state_root, self.root, parent)
-        destination = parent / rig_sha
+        rig_parent = _prepare_rig_parent(parent, rig_sha)
+        destination = rig_parent / bundle_sha
         if destination.exists() or destination.is_symlink():
-            self._verify(destination, rig, run_manifest, probe_report, assets)
+            self._verify(
+                destination, rig, run_manifest, probe_report, assets,
+                rig_sha=rig_sha, bundle_sha=bundle_sha,
+            )
             return destination, rig_sha
 
-        staging = Path(tempfile.mkdtemp(prefix=f".{rig_sha[:12]}.", dir=parent))
+        staging = Path(
+            tempfile.mkdtemp(
+                prefix=f".{rig_sha[:12]}.{bundle_sha[:12]}.", dir=parent
+            )
+        )
         try:
             (staging / "layers").mkdir()
             for relative, (source, expected_sha) in assets.items():
@@ -67,11 +77,15 @@ class RigBundleStore:
             try:
                 os.rename(staging, destination)
                 staging = None
+                _fsync_directory(rig_parent)
                 _fsync_directory(parent)
             except OSError:
                 if destination.is_symlink() or not destination.is_dir():
                     raise
-                self._verify(destination, rig, run_manifest, probe_report, assets)
+                self._verify(
+                    destination, rig, run_manifest, probe_report, assets,
+                    rig_sha=rig_sha, bundle_sha=bundle_sha,
+                )
         except RigBundleError:
             raise
         except (OSError, TypeError, ValueError) as exc:
@@ -88,6 +102,9 @@ class RigBundleStore:
         run_manifest: Mapping[str, Any],
         probe_report: Mapping[str, Any],
         assets: Mapping[str, tuple[Path, str]],
+        *,
+        rig_sha: str,
+        bundle_sha: str,
     ) -> None:
         if directory.is_symlink() or not directory.is_dir():
             raise RigBundleError("Existing RigIR bundle is not a real directory")
@@ -99,8 +116,18 @@ class RigBundleStore:
         for name, digest in expected_documents.items():
             if canonical_sha256(read_json(directory / name)) != digest:
                 raise RigBundleError(f"Existing {name} does not match publication input")
-        if expected_documents["rig.json"] != directory.name:
-            raise RigBundleError("Existing RigIR directory has the wrong content address")
+        actual_address = bundle_address_sha256(
+            expected_documents["rig.json"],
+            expected_documents["run-manifest.json"],
+            expected_documents["probes.json"],
+        )
+        if (
+            expected_documents["rig.json"] != rig_sha
+            or directory.parent.name != rig_sha
+            or actual_address != bundle_sha
+            or directory.name != bundle_sha
+        ):
+            raise RigBundleError("Existing RigIR bundle has the wrong content address")
 
         expected_files = _DOCUMENT_NAMES | set(assets)
         expected_directories = {"layers"}
@@ -137,6 +164,37 @@ def _prepare_parent(state_root: Path, build_root: Path, parent: Path) -> None:
     for path in (state_root, build_root, parent.parent, parent):
         if path.is_symlink() or not path.is_dir():
             raise RigBundleError("RigIR build path is unsafe")
+
+
+def _prepare_rig_parent(parent: Path, rig_sha: str) -> Path:
+    rig_parent = parent / required_sha(rig_sha, "RigIR")
+    try:
+        rig_parent.mkdir()
+        _fsync_directory(parent)
+    except FileExistsError:
+        pass
+    except OSError as exc:
+        raise RigBundleError("Could not create RigIR content-address directory") from exc
+    if rig_parent.is_symlink() or not rig_parent.is_dir():
+        raise RigBundleError("RigIR content-address path is unsafe")
+    try:
+        children = list(rig_parent.iterdir())
+    except OSError as exc:
+        raise RigBundleError("Cannot inspect RigIR content-address directory") from exc
+    for child in children:
+        if child.is_symlink():
+            raise RigBundleError("RigIR content-address directory contains a symlink")
+        if child.is_file() or child.name in _DOCUMENT_NAMES | {"layers"}:
+            raise RigBundleError("Legacy flat RigIR bundle cannot be reused")
+        if not child.is_dir():
+            raise RigBundleError("RigIR content-address directory has an unsafe entry")
+        try:
+            required_sha(child.name, "Rig bundle")
+        except RigBundleError as exc:
+            raise RigBundleError(
+                "RigIR content-address directory has an unexpected entry"
+            ) from exc
+    return rig_parent
 
 
 def _require_expected_layer_bundle(

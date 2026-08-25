@@ -7,13 +7,14 @@ import math
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
+from .region_rig_contract import RegionRigContractError, review_issues
 from .resolved_project import canonical_sha256
-from .rig_fk import RigFkError, evaluate_world_setup
+from .rig_fk import RigFkError, compile_setup_bones, evaluate_world_setup
 from .rig_setup_probe_regions import region_layers, run_region_checks
 from .rig_setup_render import RigSetupRenderError, compare_region_setup
 
 
-RUNNER = {"id": "rig-setup-probes", "version": "1.0.0"}
+RUNNER = {"id": "rig-setup-probes", "version": "1.1.0"}
 TOLERANCE = 1e-6
 
 
@@ -27,8 +28,8 @@ def run_setup_probes(
 ) -> dict[str, Any]:
     """Return a stable report; all discovered problems are explicit checks."""
 
-    rig_source = rig.get("source") if isinstance(rig, Mapping) else {}
-    layer_sha = _text((rig_source or {}).get("layer_manifest_sha256"))
+    rig_source = rig.get("source") if isinstance(rig.get("source"), Mapping) else {}
+    layer_sha = _text(rig_source.get("layer_manifest_sha256"))
     resolved_sha = _text(resolved.get("sha256")) if isinstance(resolved, Mapping) else ""
     project_id = _text(resolved.get("project_id")) or _text(manifest.get("project_id"))
     checks = [
@@ -36,7 +37,7 @@ def run_setup_probes(
         _review_check(manifest, resolved),
         _parent_check(rig, resolved),
         _fk_check(rig, resolved),
-        *run_region_checks(rig, manifest),
+        *run_region_checks(rig, manifest, resolved),
     ]
     if bundle_path is not None:
         checks.append(_pixel_check(rig, manifest, bundle_path))
@@ -79,25 +80,49 @@ def _source_check(
             errors.append(f"{label} SHA-256 is invalid")
         elif claimed != actual:
             errors.append(f"{label} SHA-256 does not match content")
-    return _check("source.identity", errors, metrics={"project_id": project_id})
+    manifest_revision, resolved_revision = manifest.get("revision"), resolved.get("revision")
+    if (
+        isinstance(manifest_revision, bool)
+        or not isinstance(manifest_revision, int)
+        or isinstance(resolved_revision, bool)
+        or not isinstance(resolved_revision, int)
+        or manifest_revision != resolved_revision
+    ):
+        errors.append("manifest and resolved revisions do not match")
+    manifest_source = manifest.get("source") if isinstance(manifest.get("source"), Mapping) else {}
+    resolved_canvas = resolved.get("canvas") if isinstance(resolved.get("canvas"), Mapping) else {}
+    rig_canvas = rig.get("canvas") if isinstance(rig.get("canvas"), Mapping) else {}
+    manifest_canvas = manifest_source.get("canvas")
+    expected_canvas = [resolved_canvas.get("width"), resolved_canvas.get("height")]
+    if manifest_canvas != expected_canvas:
+        errors.append("manifest and resolved canvases do not match")
+    if [rig_canvas.get("width"), rig_canvas.get("height")] != expected_canvas:
+        errors.append("RigIR and resolved canvases do not match")
+    resolved_inputs = resolved.get("inputs") if isinstance(resolved.get("inputs"), Mapping) else {}
+    rig_source = rig.get("source") if isinstance(rig.get("source"), Mapping) else {}
+    if rig_source.get("override_patch_sha256") != resolved_inputs.get("override_sha256"):
+        errors.append("RigIR override binding does not match resolved project")
+    return _check(
+        "source.identity",
+        errors,
+        metrics={"project_id": project_id, "revision": manifest_revision},
+    )
 
 
 def _review_check(manifest: Mapping[str, Any], resolved: Mapping[str, Any]) -> dict[str, Any]:
-    warnings: list[str] = []
-    if _text((manifest.get("qa") or {}).get("status")) != "passed":
-        warnings.append("layer manifest QA is not passed")
-    if _text((resolved.get("qa") or {}).get("status")) != "ready":
-        warnings.append("resolved project still requires review")
-    reviewed_regions = region_layers(manifest)
-    for layer_id, layer in reviewed_regions.items():
-        semantic = layer.get("semantic") or {}
-        pivot = (layer.get("rig_hint") or {}).get("pivot")
-        if semantic.get("mapping_method") != "manual":
-            warnings.append(f"layer {layer_id} semantic mapping is not manual")
-        if not isinstance(pivot, Mapping) or pivot.get("method") != "manual":
-            warnings.append(f"layer {layer_id} pivot is not manually reviewed")
+    try:
+        warnings = review_issues(manifest, resolved)
+    except RegionRigContractError as exc:
+        return _check(
+            "inputs.reviewed", [str(exc)], metrics={"region_count": 0}
+        )
     status = "manual_required" if warnings else "passed"
-    return _check("inputs.reviewed", warnings, status=status, metrics={"region_count": len(reviewed_regions)})
+    return _check(
+        "inputs.reviewed",
+        warnings,
+        status=status,
+        metrics={"region_count": len(region_layers(manifest))},
+    )
 
 
 def _parent_check(rig: Mapping[str, Any], resolved: Mapping[str, Any]) -> dict[str, Any]:
@@ -117,9 +142,26 @@ def _fk_check(rig: Mapping[str, Any], resolved: Mapping[str, Any]) -> dict[str, 
     errors: list[str] = []
     origin_errors: list[float] = []
     endpoint_errors: list[float] = []
+    local_errors: list[float] = []
+    actual_bones: dict[str, Mapping[str, Any]] = {}
+    expected_bones: dict[str, Mapping[str, Any]] = {}
     try:
-        worlds = evaluate_world_setup(rig.get("bones"))
         skeleton = resolved.get("skeleton") or {}
+        actual_bones = _by_id(rig.get("bones"), "rig bone", errors)
+        expected_bones = _by_id(compile_setup_bones(skeleton), "expected bone", errors)
+        for bone_id in sorted(set(actual_bones) & set(expected_bones)):
+            actual_setup = actual_bones[bone_id].get("setup")
+            expected_setup = expected_bones[bone_id].get("setup")
+            if not isinstance(actual_setup, Mapping) or not isinstance(expected_setup, Mapping):
+                errors.append(f"bone {bone_id} local setup is invalid")
+                continue
+            for field in ("x", "y", "rotation_deg", "scale_x", "scale_y", "length"):
+                actual, expected = actual_setup.get(field), expected_setup.get(field)
+                if not _finite(actual) or not _finite(expected):
+                    errors.append(f"bone {bone_id}.{field} is not finite")
+                else:
+                    local_errors.append(abs(float(actual) - float(expected)))
+        worlds = evaluate_world_setup(rig.get("bones"))
         joints = _by_id(skeleton.get("joints"), "joint", errors)
         sources = _by_id(skeleton.get("bones"), "source bone", errors)
         for bone_id, source in sorted(sources.items()):
@@ -134,6 +176,9 @@ def _fk_check(rig: Mapping[str, Any], resolved: Mapping[str, Any]) -> dict[str, 
         errors.append(f"FK evaluation failed: {exc}")
     max_origin = max(origin_errors, default=0.0)
     max_endpoint = max(endpoint_errors, default=0.0)
+    max_local = max(local_errors, default=0.0)
+    if set(actual_bones) != set(expected_bones) or max_local > TOLERANCE:
+        errors.append("RigIR local setup does not match the resolved skeleton compilation")
     if max_origin > TOLERANCE:
         errors.append("FK world origins do not reconstruct resolved joints")
     if max_endpoint > TOLERANCE:
@@ -143,6 +188,8 @@ def _fk_check(rig: Mapping[str, Any], resolved: Mapping[str, Any]) -> dict[str, 
         errors,
         metrics={
             "compared_bones": len(origin_errors),
+            "compared_local_values": len(local_errors),
+            "max_local_setup_error": max_local,
             "max_origin_error_px": max_origin,
             "max_endpoint_error_px": max_endpoint,
         },
@@ -231,6 +278,10 @@ def _aggregate_status(checks: Sequence[Mapping[str, Any]]) -> str:
 
 def _is_sha(value: str) -> bool:
     return len(value) == 64 and all(character in "0123456789abcdef" for character in value)
+
+
+def _finite(value: Any) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
 
 
 def _text(value: Any) -> str:

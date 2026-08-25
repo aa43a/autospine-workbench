@@ -21,6 +21,7 @@ from tests.png_helpers import write_rgba  # noqa: E402
 
 
 IMAGE_SHA = "a" * 64
+OVERRIDE_SHA = "b" * 64
 
 
 def source_skeleton() -> dict:
@@ -57,15 +58,18 @@ def manifest_fixture() -> dict:
                 "semantic": {"mapping_method": "manual"},
                 "rig_hint": {
                     "attachment_kind": "region",
+                    "candidate_bone": "parent" if layer_id == "layer-parent" else "child",
                     "pivot": {"xy": pivot, "method": "manual", "confidence": 1.0},
                     "setup_draw_order": order,
                 },
+                "qa": {"status": "passed"},
             }
         )
     return {
         "format": "autospine-layer-manifest",
         "format_version": 1,
         "project_id": "sample",
+        "revision": 2,
         "source": {"canvas": [100, 200]},
         "layers": layers,
         "qa": {"status": "passed", "flags": [], "notes": []},
@@ -76,6 +80,9 @@ def resolved_fixture() -> dict:
     resolved = {
         "schema_version": "autospine.resolved-project/v1",
         "project_id": "sample",
+        "revision": 2,
+        "inputs": {"override_sha256": OVERRIDE_SHA},
+        "canvas": {"width": 100, "height": 200},
         "skeleton": source_skeleton(),
         "qa": {"status": "ready"},
     }
@@ -97,7 +104,7 @@ def rig_fixture(manifest: dict) -> dict:
                 "id": slot_id,
                 "bone": bone_id,
                 "setup_attachment": attachment_id,
-                "setup_draw_order": index,
+                "setup_draw_order": hint["setup_draw_order"],
                 "blend": "normal",
                 "color_rgba": "ffffffff",
             }
@@ -119,7 +126,10 @@ def rig_fixture(manifest: dict) -> dict:
     return {
         "format": "autospine-rig-ir",
         "format_version": 1,
-        "source": {"layer_manifest_sha256": canonical_sha256(manifest)},
+        "source": {
+            "layer_manifest_sha256": canonical_sha256(manifest),
+            "override_patch_sha256": OVERRIDE_SHA,
+        },
         "canvas": {"width": 100, "height": 200},
         "capabilities": ["region_attachment", "bone_rotate", "setup_draw_order"],
         "bones": bones,
@@ -153,6 +163,7 @@ class RigSetupProbeTests(unittest.TestCase):
         second = report_for(self.rig, self.manifest, self.resolved)
         self.assertEqual(first, second)
         self.assertEqual("autospine-rig-setup-probes", first["format"])
+        self.assertEqual({"id": "rig-setup-probes", "version": "1.1.0"}, first["runner"])
         self.assertEqual("passed", first["status"])
         self.assertTrue(all(check["status"] == "passed" for check in first["checks"]))
         fk = checks_by_id(first)["fk.setup-reconstruction"]["metrics"]
@@ -167,6 +178,15 @@ class RigSetupProbeTests(unittest.TestCase):
         self.assertEqual("rejected", checks["bones.parent-links"]["status"])
         self.assertEqual("rejected", checks["fk.setup-reconstruction"]["status"])
         self.assertEqual("rejected", report["status"])
+
+    def test_full_local_setup_including_scale_must_match_compiler(self) -> None:
+        rig = deepcopy(self.rig)
+        rig["bones"][-1]["setup"]["scale_y"] = 2.0
+        check = checks_by_id(report_for(rig, self.manifest, self.resolved))[
+            "fk.setup-reconstruction"
+        ]
+        self.assertEqual("rejected", check["status"])
+        self.assertEqual(1.0, check["metrics"]["max_local_setup_error"])
 
     def test_wrong_pivot_and_roundtrip_input_are_rejected(self) -> None:
         rig = deepcopy(self.rig)
@@ -188,7 +208,7 @@ class RigSetupProbeTests(unittest.TestCase):
         self.assertIn("relative order", check["message"])
 
         duplicate = deepcopy(self.rig)
-        duplicate["slots"][1]["setup_draw_order"] = 0
+        duplicate["slots"][1]["setup_draw_order"] = duplicate["slots"][0]["setup_draw_order"]
         check = checks_by_id(report_for(duplicate, self.manifest, self.resolved))[
             "slots.draw-order"
         ]
@@ -235,6 +255,40 @@ class RigSetupProbeTests(unittest.TestCase):
         review = checks_by_id(report)["inputs.reviewed"]
         self.assertEqual("manual_required", review["status"])
         self.assertIn("not manual", review["message"])
+
+    def test_review_probe_matches_candidate_binding_and_layer_qa_gate(self) -> None:
+        manifest = deepcopy(self.manifest)
+        manifest["layers"][0]["rig_hint"]["candidate_bone"] = None
+        manifest["layers"][1]["qa"]["status"] = "manual_required"
+        rig = rig_fixture(manifest)
+        report = report_for(rig, manifest, self.resolved)
+        review = checks_by_id(report)["inputs.reviewed"]
+        self.assertEqual("manual_required", report["status"])
+        self.assertEqual("manual_required", review["status"])
+        self.assertIn("bone binding requires review", review["message"])
+        self.assertIn("QA requires review", review["message"])
+
+    def test_source_identity_rejects_revision_canvas_and_override_mismatch(self) -> None:
+        manifest = deepcopy(self.manifest)
+        manifest["revision"] = 3
+        report = report_for(rig_fixture(manifest), manifest, self.resolved)
+        source = checks_by_id(report)["source.identity"]
+        self.assertEqual("rejected", source["status"])
+        self.assertIn("revisions do not match", source["message"])
+
+        resolved = deepcopy(self.resolved)
+        resolved["canvas"]["width"] = 101
+        resolved.pop("sha256")
+        resolved["sha256"] = canonical_sha256(resolved)
+        source = checks_by_id(report_for(self.rig, self.manifest, resolved))["source.identity"]
+        self.assertEqual("rejected", source["status"])
+        self.assertIn("canvases do not match", source["message"])
+
+        rig = deepcopy(self.rig)
+        rig["source"]["override_patch_sha256"] = "c" * 64
+        source = checks_by_id(report_for(rig, self.manifest, self.resolved))["source.identity"]
+        self.assertEqual("rejected", source["status"])
+        self.assertIn("override binding", source["message"])
 
     def test_asset_probe_requires_pixel_exact_setup_reconstruction(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
