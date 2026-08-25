@@ -9,6 +9,13 @@ import {
   createLocalPatchArtifact,
 } from "./modules/draft-transactions.js";
 import { refreshSavedProject } from "./modules/saved-project-refresh.js";
+import {
+  collectQaFlags as collectProjectQaFlags,
+  layerQaFlags,
+  normalizeQaFlags,
+  renderCapabilitiesPanel,
+  renderQaPanel,
+} from "./modules/review-panels.js";
 import { createSkeletonRenderer } from "./modules/skeleton-renderer.js";
 import { createSplitReview } from "./modules/split-review.js";
 import { clientSplitDecisions } from "./modules/split-review-state.js";
@@ -22,7 +29,7 @@ import { canonicalSide, normalizeLayerOverrideMap, normalizeOverrideMap } from "
 import { applyManualJoint, clearJointEdits, resolveEffectiveJoint } from "./modules/joint-edit-state.js";
 import { applyLayerRigReviewPatch, readLayerRigReview, renderLayerRigReview, semanticColor } from "./modules/layer-rig-review.js";
 import { clamp, createIcon, isTypingTarget, numberOr } from "./modules/ui-primitives.js";
-import { compositeQaFlag, confidenceLevel, formatConfidence, normalizeWorkflow, setConfidenceBadge, unresolvedJointIds } from "./modules/workflow.js";
+import { confidenceLevel, formatConfidence, normalizeWorkflow, setConfidenceBadge } from "./modules/workflow.js";
 
 const state = {
   projects: [],
@@ -751,134 +758,21 @@ function renderJointInspector() {
   setConfidenceBadge(dom.jointConfidence, joint.confidence);
 }
 
-function normalizeQaFlags(value) {
-  const list = Array.isArray(value) ? value : value ? [value] : [];
-  return list.map((flag, index) => {
-    if (typeof flag === "string") return { code: flag, message: flag, severity: "warning" };
-    return {
-      ...flag,
-      code: String(flag?.code || flag?.id || `QA-${index + 1}`),
-      message: String(flag?.message || flag?.detail || flag?.label || flag?.code || "需要复核"),
-      severity: String(flag?.severity || flag?.level || "warning").toLowerCase(),
-    };
-  });
-}
-
-function layerQaFlags(layer) {
-  const flags = normalizeQaFlags(layer.qa_flags);
-  if (layer.empty && !flags.some((flag) => flag.code === "EMPTY_LAYER")) {
-    flags.push({ code: "EMPTY_LAYER", message: "空图层需要排除或复核", severity: "warning" });
-  }
-  if (layer.disposition === "review" && !flags.some((flag) => flag.code === "LAYER_REVIEW")) {
-    flags.push({ code: "LAYER_REVIEW", message: "图层语义或侧别需要人工复核", severity: "warning" });
-  }
-  return flags;
-}
-
 function collectQaFlags() {
-  const items = normalizeQaFlags(state.project?.qa_flags).map((flag) => ({ ...flag, layerId: null }));
-  for (const layer of getLayers()) {
-    layerQaFlags(effectiveLayer(layer)).forEach((flag) => items.push({ ...flag, layerId: String(layer.id), layerName: layer.name }));
-  }
-  const auditWarnings = state.project?.workflow?.audit_warnings;
-  const compositeFlag = compositeQaFlag(auditWarnings);
-  if (compositeFlag) items.unshift(compositeFlag);
-  if (numberOr(auditWarnings?.empty_layer_count) > 0) {
-    items.unshift({
-      code: "EMPTY_LAYERS",
-      message: `${numberOr(auditWarnings.empty_layer_count)} 个空图层不会参与绑定`,
-      severity: "warning",
-      layerId: null,
-    });
-  }
-  const unresolvedCount = unresolvedJointIds(state.project, getJoints()).length;
-  if (unresolvedCount) {
-    items.push({
-      code: "UNRESOLVED_JOINTS",
-      message: `${unresolvedCount} 个启发式关节尚未复核，请在骨骼模式校正`,
-      severity: "warning",
-      layerId: null,
-    });
-  }
-  return items;
+  return collectProjectQaFlags({
+    project: state.project,
+    layers: getLayers(),
+    joints: getJoints(),
+    resolveLayer: effectiveLayer,
+  });
 }
 
 function renderQa() {
-  const flags = collectQaFlags();
-  dom.qaCounter.textContent = String(flags.length);
-  dom.qaList.replaceChildren();
-  if (!flags.length) {
-    const empty = document.createElement("div");
-    empty.className = "selection-empty";
-    empty.textContent = "当前项目没有 QA 警告。";
-    dom.qaList.append(empty);
-    return;
-  }
-
-  flags.slice(0, 30).forEach((flag) => {
-    const item = document.createElement(flag.layerId ? "button" : "div");
-    item.className = "qa-item";
-    item.dataset.severity = flag.severity;
-    if (flag.layerId) item.type = "button";
-    item.append(createIcon("warning"));
-    const content = document.createElement("span");
-    const title = document.createElement("strong");
-    title.textContent = flag.message;
-    const meta = document.createElement("small");
-    meta.textContent = flag.layerId ? `${flag.code} · ${flag.layerName || flag.layerId}` : flag.code;
-    content.append(title, meta);
-    item.append(content);
-    if (flag.layerId) item.addEventListener("click", () => selectLayer(flag.layerId));
-    dom.qaList.append(item);
-  });
-}
-
-function flattenCapabilities(value, prefix = "", depth = 0) {
-  if (depth > 4 || value == null) return [];
-  if (typeof value !== "object" || Array.isArray(value)) {
-    return [{ key: prefix || "value", value }];
-  }
-  if ("state" in value || "available" in value || "enabled" in value) {
-    const stateValue = value.state ?? value.available ?? value.enabled;
-    const confidence = Number(value.confidence);
-    const display = Number.isFinite(confidence) ? `${stateValue} · ${Math.round(confidence * 100)}%` : stateValue;
-    return [{ key: prefix || "capability", value: display, state: String(stateValue).toLowerCase() }];
-  }
-  return Object.entries(value).flatMap(([key, child]) => flattenCapabilities(child, prefix ? `${prefix}.${key}` : key, depth + 1));
+  renderQaPanel(dom, collectQaFlags(), selectLayer);
 }
 
 function renderCapabilities() {
-  const capabilities = flattenCapabilities(state.project?.capabilities).slice(0, 40);
-  dom.capabilityList.replaceChildren();
-  if (!capabilities.length) {
-    const empty = document.createElement("div");
-    empty.className = "selection-empty";
-    empty.textContent = "暂无能力数据。";
-    dom.capabilityList.append(empty);
-    return;
-  }
-
-  capabilities.forEach((capability) => {
-    const row = document.createElement("div");
-    row.className = "capability-row";
-    const key = document.createElement("span");
-    key.textContent = capability.key;
-    key.title = capability.key;
-    const value = document.createElement("span");
-    value.className = "capability-state";
-    const rawState = capability.state || String(capability.value).split(" · ")[0].toLowerCase();
-    value.dataset.state = rawState;
-    value.textContent = formatCapabilityValue(capability.value);
-    row.append(key, value);
-    dom.capabilityList.append(row);
-  });
-}
-
-function formatCapabilityValue(value) {
-  if (typeof value === "boolean") return value ? "ready" : "missing";
-  if (typeof value === "number") return Number.isInteger(value) ? String(value) : value.toFixed(2);
-  if (Array.isArray(value)) return value.join(", ");
-  return String(value ?? "—");
+  renderCapabilitiesPanel(dom, state.project?.capabilities);
 }
 
 function setEditMode(mode, { announceChange = true } = {}) {

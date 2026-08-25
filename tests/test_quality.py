@@ -14,7 +14,7 @@ DEFAULT_MAX_LINES = 400
 # Current ratchet ceilings. Entries may only be lowered or removed.
 LEGACY_MAX_LINES = {
     "src/autospine_workbench/project_store.py": 838,
-    "web/app.js": 1293,
+    "web/app.js": 1182,
     "web/styles.css": 1713,
 }
 
