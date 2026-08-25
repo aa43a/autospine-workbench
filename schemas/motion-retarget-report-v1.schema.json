@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/motion-retarget-report-v1.schema.json",
+  "title": "AutoSpine P5 kinematic retarget evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "status", "source", "sampler",
+    "finite_pose", "loop_closure", "ik", "contacts"
+  ],
+  "properties": {
+    "format": {"const": "autospine-motion-retarget-report"},
+    "format_version": {"type": "integer", "const": 1},
+    "status": {"const": "passed"},
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "motion_ir_sha256", "motion_bundle_sha256", "motion_run_sha256",
+        "target_profile_sha256", "instance_sha256",
+        "retarget_run_identity_sha256", "retarget_run_document_sha256"
+      ],
+      "properties": {
+        "motion_ir_sha256": {"$ref": "#/$defs/sha256"},
+        "motion_bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "motion_run_sha256": {"$ref": "#/$defs/sha256"},
+        "target_profile_sha256": {"$ref": "#/$defs/sha256"},
+        "instance_sha256": {"$ref": "#/$defs/sha256"},
+        "retarget_run_identity_sha256": {"$ref": "#/$defs/sha256"},
+        "retarget_run_document_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "sampler": {
+      "type": "object", "additionalProperties": false,
+      "required": ["step_ticks", "policy", "sample_count"],
+      "properties": {
+        "step_ticks": {"type": "integer", "const": 50000},
+        "policy": {"const": "fixed-step-plus-authored-keys-and-duration"},
+        "sample_count": {"type": "integer", "minimum": 1, "maximum": 50000}
+      }
+    },
+    "finite_pose": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "status", "bone_count", "world_bone_sample_count",
+        "max_abs_rotation_deg", "max_root_translation_px"
+      ],
+      "properties": {
+        "status": {"const": "passed"},
+        "bone_count": {"type": "integer", "minimum": 1, "maximum": 17},
+        "world_bone_sample_count": {
+          "type": "integer", "minimum": 1, "maximum": 850000
+        },
+        "max_abs_rotation_deg": {"$ref": "#/$defs/nonnegative"},
+        "max_root_translation_px": {"$ref": "#/$defs/nonnegative"}
+      }
+    },
+    "loop_closure": {"$ref": "#/$defs/loopClosure"},
+    "ik": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "status", "tolerance_px", "track_count", "key_count",
+        "setup_key_count", "maximum_effector_error_px", "tracks"
+      ],
+      "properties": {
+        "status": {"const": "passed"},
+        "tolerance_px": {"type": "number", "const": 1e-8},
+        "track_count": {"type": "integer", "minimum": 0, "maximum": 4},
+        "key_count": {"type": "integer", "minimum": 0, "maximum": 16384},
+        "setup_key_count": {"type": "integer", "minimum": 0, "maximum": 16384},
+        "maximum_effector_error_px": {"$ref": "#/$defs/toleratedError"},
+        "tracks": {
+          "type": "array", "maxItems": 4,
+          "items": {"$ref": "#/$defs/ikTrack"}
+        }
+      }
+    },
+    "contacts": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "source_count", "preserved_count"],
+      "properties": {
+        "status": {"const": "passed"},
+        "source_count": {"type": "integer", "minimum": 0, "maximum": 256},
+        "preserved_count": {"type": "integer", "minimum": 0, "maximum": 256}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "nonnegative": {"type": "number", "minimum": 0},
+    "toleratedError": {"type": "number", "minimum": 0, "maximum": 1e-8},
+    "loopClosure": {
+      "oneOf": [
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["result", "tolerance", "maximum_numeric_error"],
+          "properties": {
+            "result": {"const": "passed"},
+            "tolerance": {"type": "number", "const": 1e-8},
+            "maximum_numeric_error": {"$ref": "#/$defs/toleratedError"}
+          }
+        },
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["result", "tolerance"],
+          "properties": {
+            "result": {"const": "not_applicable"},
+            "tolerance": {"type": "number", "const": 1e-8}
+          }
+        }
+      ]
+    },
+    "ikTrack": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "handle_id", "key_count", "setup_key_count",
+        "maximum_effector_error_px"
+      ],
+      "properties": {
+        "handle_id": {"enum": ["arm.left", "arm.right", "leg.left", "leg.right"]},
+        "key_count": {"type": "integer", "minimum": 2, "maximum": 4096},
+        "setup_key_count": {"type": "integer", "minimum": 0, "maximum": 4096},
+        "maximum_effector_error_px": {"$ref": "#/$defs/toleratedError"}
+      }
+    }
+  }
+}
