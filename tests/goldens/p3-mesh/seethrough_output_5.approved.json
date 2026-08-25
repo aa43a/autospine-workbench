@@ -1,0 +1,24 @@
+{
+  "format": "autospine-p3-mesh-golden",
+  "format_version": 1,
+  "project_id": "seethrough_output_5",
+  "source": {
+    "base_rig_sha256": "fa12a226c9ca837aa5f626b90332de4535feb231a080b4d4d1dcb2e9a66fff5f",
+    "base_bundle_sha256": "61ed82746cd725d394891a968013ba5a1a0df7980086c072ec8e68fb58be80ff",
+    "layer_manifest_sha256": "45b5f2a90c55866a17c83a01e7ae46e9bd2bed51b4a918d60690a574f14bff51",
+    "resolved_project_sha256": "0d959229af6916e9878f509b43c73d29b084043f4b84620966fad3d76d0d0ece",
+    "rig_sha256": "897761e75bdd7e1cd3018cdab0f793f2d3ba637d88e01ce907beb179cfe0cd77",
+    "run_sha256": "c6810f44daa529ada9982cd7a2b49f62330ac21c4f6e92368abd9097874a620e",
+    "probes_sha256": "d93db4694bfcca6e17c763c488b17e0086a70fdefc5db70dd703536d5c13385b",
+    "visuals_sha256": "750d126d5c4e937e7f2108c9714c5fa7ea6362f5d52d0a650e8a4c260eb5c444",
+    "bundle_sha256": "21f4707eaf023d664ae8cea8b785fd8a5197187f846d6db10b9c3ef34d7c6576"
+  },
+  "summary": "reviewed-noop",
+  "totals": {
+    "target_count": 0,
+    "vertex_count": 0,
+    "triangle_count": 0,
+    "artifact_count": 0
+  },
+  "targets": []
+}

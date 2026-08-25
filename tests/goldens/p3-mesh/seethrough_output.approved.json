@@ -1,0 +1,111 @@
+{
+  "format": "autospine-p3-mesh-golden",
+  "format_version": 1,
+  "project_id": "seethrough_output",
+  "source": {
+    "base_rig_sha256": "3e97682c8acec2ba9055806dc9eb650f7e0453fd6cfc1ca82157e9394f7237a7",
+    "base_bundle_sha256": "b533a5bb8f77339a35e825c584e9c0c487a8457cdb85d1e427719201feae0de2",
+    "layer_manifest_sha256": "ed1e2458cd22b75c51f13656feb86ecf55682508b62413c980c3035743e8faa7",
+    "resolved_project_sha256": "3d96f605d428f1dbe66198c8a864004631ad1627839bf9849493d44f60178f11",
+    "rig_sha256": "40f96ade2f38f93caa7610b40f02ed9b30b8782396cee0e80499724a0450e327",
+    "run_sha256": "2449386e1bbc9743e1625e65d04686ad4345809e2f3dc59e5af2193895aa5a5d",
+    "probes_sha256": "5c2d30d9c87d8fde07b54a772e8073028ae0827aa8e9f287a1d525d4f0c4e561",
+    "visuals_sha256": "09832f979e354a2f0b721e698504b08e83e06fdd93661cc0c2bcbb73850c7c13",
+    "bundle_sha256": "7754406b1f6834a6b5c8fedfcd4743bd294d8cc568d7ff6413673cada3d79a1d"
+  },
+  "summary": "converted=2",
+  "totals": {
+    "target_count": 2,
+    "vertex_count": 739,
+    "triangle_count": 1212,
+    "artifact_count": 6
+  },
+  "targets": [
+    {
+      "attachment_id": "layer-004-legwear--left",
+      "source_layer_id": "layer-004-legwear--left",
+      "side": "left",
+      "proximal_bone_id": "thigh.left",
+      "distal_bone_id": "calf.left",
+      "vertex_count": 364,
+      "triangle_count": 596,
+      "continuous_safe_angle_deg": {"minimum": -15, "maximum": 40},
+      "widest_safe_bend": {"direction": "positive", "magnitude_deg": 40},
+      "artifacts": [
+        {
+          "kind": "pose",
+          "pose": "setup",
+          "path": "poses/layer-004-legwear--left.setup.png",
+          "angle_deg": 0,
+          "width": 1024,
+          "height": 1024,
+          "rgba_sha256": "ac8adbf5378e628e73d54c7f8f07a075dc8e936b0aa1575079b139218363f299",
+          "png_sha256": "240ed6a7b533d9d7de912b42ae47c7e20207a7314c3bdd68f826163996f8affa"
+        },
+        {
+          "kind": "weight_heatmap",
+          "pose": "weights",
+          "path": "weights/layer-004-legwear--left.png",
+          "angle_deg": null,
+          "width": 155,
+          "height": 409,
+          "rgba_sha256": "ada1f73ed47e2262c547067061f317b6a9b0b4cff73abe5bbe818d5d9378bf73",
+          "png_sha256": "698caaba86a02490227794bab560801e5d6c96bf25a1f6ff49df566cade090f5"
+        },
+        {
+          "kind": "pose",
+          "pose": "widest-safe",
+          "path": "poses/layer-004-legwear--left.widest-safe-p040.png",
+          "angle_deg": 40,
+          "width": 1024,
+          "height": 1024,
+          "rgba_sha256": "842fb1515d9d95e9ea32f8029693358958ca1963f7b3453d8ad0b9021e8c69fd",
+          "png_sha256": "048c7d6089047b221f632c40468ad9613f149a081d8148fdfe4828adc7cb86aa"
+        }
+      ]
+    },
+    {
+      "attachment_id": "layer-004-legwear--right",
+      "source_layer_id": "layer-004-legwear--right",
+      "side": "right",
+      "proximal_bone_id": "thigh.right",
+      "distal_bone_id": "calf.right",
+      "vertex_count": 375,
+      "triangle_count": 616,
+      "continuous_safe_angle_deg": {"minimum": -85, "maximum": 130},
+      "widest_safe_bend": {"direction": "positive", "magnitude_deg": 130},
+      "artifacts": [
+        {
+          "kind": "pose",
+          "pose": "setup",
+          "path": "poses/layer-004-legwear--right.setup.png",
+          "angle_deg": 0,
+          "width": 1024,
+          "height": 1024,
+          "rgba_sha256": "039548e1945dec4db714502e81952e4342bacdb6047351c4b4937e63cc6fedb3",
+          "png_sha256": "d2c022a67d35c34d2a49dce982fd174e850507d703a548f9095c26835738dd19"
+        },
+        {
+          "kind": "weight_heatmap",
+          "pose": "weights",
+          "path": "weights/layer-004-legwear--right.png",
+          "angle_deg": null,
+          "width": 155,
+          "height": 409,
+          "rgba_sha256": "86b119f54aa376119103de96d430d027baa35b60dec54fb65f66297c076fb22e",
+          "png_sha256": "e008a12ca9c0ea532da1e43feead0b69722782710a4e5209b2d882c5887e9053"
+        },
+        {
+          "kind": "pose",
+          "pose": "widest-safe",
+          "path": "poses/layer-004-legwear--right.widest-safe-p130.png",
+          "angle_deg": 130,
+          "width": 1024,
+          "height": 1024,
+          "rgba_sha256": "4f1d0a27ffe3f35156205b9dee3f1dce1921f27a4d7663a5d01c0afd7cbad03e",
+          "png_sha256": "84c6ba19093680b1a069cc9473f1f946ac7596235901933c1388436e9c48bd9e"
+        }
+      ]
+    }
+  ]
+}
