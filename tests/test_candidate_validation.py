@@ -71,6 +71,18 @@ class CandidateValidationTests(unittest.TestCase):
         self.assertIn("missing_joint", codes)
         self.assertIn("coordinate", codes)
 
+    def test_run_identity_and_nested_evidence_are_semantically_checked(self) -> None:
+        document = AuditBBoxHeuristicProvider().analyze(project_fixture())
+        broken = copy.deepcopy(document)
+        broken["analysis"]["provider_version"] = "changed-without-new-run"
+        candidate = broken["joints"]["elbow.left"]["candidates"][0]
+        candidate["error_radius_px"] = -1
+        candidate["evidence"][0]["kind"] = "unsupported"
+        candidate["qa_flags"] = ["DUPLICATE", "DUPLICATE"]
+        broken["qa"]["flags"] = ["DUPLICATE", "DUPLICATE"]
+        codes = {item.code for item in validate(broken)}
+        self.assertTrue({"identity", "bounds", "enum", "duplicate"}.issubset(codes))
+
 
 if __name__ == "__main__":
     unittest.main()
