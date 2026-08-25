@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/motion-compile-run-v1.schema.json",
+  "title": "AutoSpine built-in MotionIR compile provenance v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "format_version", "source", "compiler", "output"],
+  "properties": {
+    "format": {"const": "autospine-motion-compile-run"},
+    "format_version": {"type": "integer", "const": 1},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "builtin_id"],
+      "properties": {
+        "kind": {"const": "builtin"},
+        "builtin_id": {"enum": ["idle", "wave.left"]}
+      }
+    },
+    "compiler": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version", "config"],
+      "properties": {
+        "id": {"const": "builtin-motion-generator"},
+        "version": {"const": "1.0.0"},
+        "config": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["profile"],
+          "properties": {
+            "profile": {"const": "autospine-builtins-v1"}
+          }
+        }
+      }
+    },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["motion_ir_sha256"],
+      "properties": {
+        "motion_ir_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}
