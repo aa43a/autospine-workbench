@@ -19,6 +19,7 @@ AutoSpine Workbench 是一个本地人工复核界面，用于查看 See-through
 - 离线发布带 provenance 的关节候选、region-first Layer Manifest 与 region-only RigIR bundle。
 - 把固定的 COCO17 检测转换为显式左右/镜像 provenance 的 canonical pose，并用人工复核四肢点生成诊断误差报告。
 - 对 RigIR 执行跨引用、拓扑、权重、三角形及 timeline 语义验证；不支持特性会明确失败。
+- 从精确 P3 bundle 编译四个 canonical 两骨 IK 手柄，固定弯曲方向、可达环和 setup-local 数值探针。
 
 ## 快速启动
 
@@ -296,6 +297,26 @@ python -m autospine_workbench verify-mesh-bundle seethrough_output `
 
 两个命令都不接受 `latest`。验证器会重编译精确 P2 输入、重跑权重/拓扑/动作探针和视觉渲染，并逐字节比较 canonical JSON 与 PNG；任何 identity 漂移、目录别名、链接、额外文件或非有限数都会 fail closed。工作台底部的“P3 Mesh 证据”只负责发现不可变地址，必须由用户依次选择 rig SHA、bundle SHA 并点击读取，才会显示相同的严格验证结果。
 
+从一个已验证的 P3 双 SHA 地址编译四肢两骨 IK 目标、发布不可变 P4 bundle，并严格读回：
+
+```powershell
+python -m autospine_workbench compile-ik-targets seethrough_output `
+  --p3-rig-sha256 <p3-rig-sha256> `
+  --p3-bundle-sha256 <p3-bundle-sha256> `
+  --state-root .\workspace
+```
+
+命令固定完整的 9 项 P3 来源身份，以及 P4 profile、probes、bundle 三个 SHA-256。随后只读重验精确 P4 地址：
+
+```powershell
+python -m autospine_workbench verify-ik-bundle seethrough_output `
+  --profile-sha256 <p4-profile-sha256> `
+  --bundle-sha256 <p4-bundle-sha256> `
+  --state-root .\workspace
+```
+
+P4 不接受 `latest` 或自动发现。严格 reader 会从精确 P3 来源重建 profile 与全部数值探针并逐字节比较。`kinematic_reach` 只表示两段骨长决定的运动学可达环；它不能覆盖 P3 动作探针给出的 mesh 视觉安全角。完整步骤和错误解释见 [编译并验证两骨 IK 目标](docs/how-to-compile-ik-targets.md)。
+
 对版本中立 RigIR 做语义检查：
 
 ```powershell
@@ -367,7 +388,7 @@ P1 已交付 pose、alpha 中轴线和层接触候选，以及候选比较、四
 - 若要恢复旧 revision，先停止服务，备份整个项目 override 目录，再将目标历史快照作为新的、经过校验的 revision 提交；当前界面尚未提供历史浏览/回滚按钮。
 - validation 的 `valid=true` 仅表示结构和本地资产检查没有硬错误，不等于美术、遮挡补全、pivot、mesh 或动画通过视觉验收。
 
-## 已完成阶段：P2 region-only RigIR 与 P3 两骨 LBS
+## 已完成阶段：P2 region-only RigIR、P3 两骨 LBS 与 P4 离线 IK
 
 P0 合同加固、P1 四肢候选与 P2 region-only RigIR 已贯通：`stage-scoped analysis → immutable geometry/candidates → candidate-bound revision → deterministic resolved snapshot → reviewed Layer Manifest → RigIR/setup bundle`。P2 没有提前引入 mesh：
 
@@ -387,7 +408,18 @@ P3 在该精确 P2 基线上增加可独立验证的 alpha mesh 与参数化两�
 4. bundle 以 P3 rig SHA 与 bundle SHA 双重寻址；严格 reader 会重建全部上游/下游内容，并保证验证前后状态树完全不变。
 5. 两份真实 See-through 样本均有固定批准合同：A 转换 2 个 hinge，共 739 顶点/1212 三角形；B 由于没有合格 hinge，稳定发布 reviewed no-op。
 
-P3 的拓扑计数、安全角和每张 PNG 的 encoded-byte/RGBA SHA 固定在 `tests/goldens/p3-mesh/`。普通测试验证合同；设置 `AUTOSPINE_VERIFY_REAL_P3_GOLDENS=1` 后运行 `python -m unittest tests.test_p3_mesh_goldens`，会从精确 P2 地址重编译并只读复核真实 bundle。下一阶段是 P4 two-bone analytic IK、弯曲方向、可达范围和目标手柄。
+P3 的拓扑计数、安全角和每张 PNG 的 encoded-byte/RGBA SHA 固定在 `tests/goldens/p3-mesh/`。普通测试验证合同；设置 `AUTOSPINE_VERIFY_REAL_P3_GOLDENS=1` 后运行 `python -m unittest tests.test_p3_mesh_goldens`，会从精确 P2 地址重编译并只读复核真实 bundle。
+
+P4 在精确 P3 来源上建立版本中立的离线 IK 边界：
+
+1. 为左右臂和左右腿生成四个 canonical 两骨目标手柄，弯曲方向来自 setup 几何，不按角色左右硬编码。
+2. analytic solver 对可达、过远、过近、镜像、目标重合和退化骨长输入均返回有限结果或明确失败，不产生 NaN。
+3. 求解结果转换为 additive setup-local 旋转增量；setup 目标会精确重建肘/膝位置并产生零增量。
+4. 固定探针覆盖 setup、可达中点、过远、过近和重合目标；运动学可达环与 P3 mesh 视觉安全范围保持两个独立合同。
+5. profile/probes 以双 SHA 不可变发布，strict reader 从完整 9 项 P3 身份链重建并逐字节复验，不解析 `latest`。
+6. 两份真实样本各稳定生成 4 个手柄、20 个有效探针案例且无 N/A；身份、弯曲方向和可达范围固定在 `tests/goldens/p4-ik/`，显式真实复验还证明整个 state tree 前后不变。
+
+下一阶段是 P5 MotionIR：定义 setup-local 动画合同，生成 idle/wave，编译 BVH 并保留接触标记；同一 clip 必须在至少三个 rig 上通过。
 
 姿态 runner 与真实标注评估集仍是独立质量轨，不阻塞版本中立 P2 编译；诊断 setup prior 不能替代真实模型基线。
 
@@ -401,7 +433,7 @@ P3 的拓扑计数、安全角和每张 PNG 的 encoded-byte/RGBA SHA 固定在 
 - 下载或运行具体姿态模型；`import-pose` 只转换经过哈希固定且已还原到原画布的 COCO17 输出；
 - 自动解决 `head-obj`、`objects`、合并肢体等歧义语义；
 - 证明遮挡补全符合解剖或在大幅动作下不会露馅；
-- 自动生成自由形变 deform、IK、约束或动态 draw order；P3 只覆盖通过门禁的 alpha mesh 与参数化两骨 LBS；
+- 自动生成自由形变 deform、运行时 IK constraint 或动态 draw order；P3 只覆盖通过门禁的 alpha mesh 与参数化两骨 LBS，P4 只提供离线两骨目标求解；
 - 生成眨眼/口型素材、简单动画或通用动画重定向；
 - 导出 Spine JSON/atlas/PNG、判断真实 Spine 版本或集成官方 Spine runtime；
 - 代替输入素材、训练数据或模型权重的许可证与商业使用审查；
