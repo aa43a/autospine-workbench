@@ -1,0 +1,213 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/ik-target-probes-v1.schema.json",
+  "title": "AutoSpine IK target probes v1",
+  "description": "Deterministic P4 numerical evidence for canvas-space analytic two-bone target handles. Kinematic reach is intentionally distinct from P3 mesh visual safety.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "project_id", "source", "prober",
+    "status", "summary", "handles"
+  ],
+  "properties": {
+    "format": {"const": "autospine-ik-target-probes"},
+    "format_version": {"const": 1},
+    "project_id": {"$ref": "#/$defs/id"},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "base_rig_sha256", "base_bundle_sha256", "layer_manifest_sha256",
+        "resolved_project_sha256", "rig_sha256", "run_sha256",
+        "probes_sha256", "visuals_sha256", "bundle_sha256",
+        "profile_sha256"
+      ],
+      "properties": {
+        "base_rig_sha256": {"$ref": "#/$defs/sha256"},
+        "base_bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "layer_manifest_sha256": {"$ref": "#/$defs/sha256"},
+        "resolved_project_sha256": {"$ref": "#/$defs/sha256"},
+        "rig_sha256": {"$ref": "#/$defs/sha256"},
+        "run_sha256": {"$ref": "#/$defs/sha256"},
+        "probes_sha256": {"$ref": "#/$defs/sha256"},
+        "visuals_sha256": {"$ref": "#/$defs/sha256"},
+        "bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "profile_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "prober": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version", "config"],
+      "properties": {
+        "id": {"const": "ik-target-prober"},
+        "version": {"const": "1.0.0"},
+        "config": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "profile", "case_order", "reachable_radius_fraction",
+            "far_radius_multiplier", "near_radius_multiplier",
+            "geometry_tolerance_px", "rotation_tolerance_deg",
+            "reach_scope", "mesh_visual_safety"
+          ],
+          "properties": {
+            "profile": {"const": "two-bone-analytic-target-probes-v1"},
+            "case_order": {
+              "const": [
+                "setup", "reachable-mid", "unreachable-far",
+                "unreachable-near", "coincident-target"
+              ]
+            },
+            "reachable_radius_fraction": {"const": 0.5},
+            "far_radius_multiplier": {"const": 1.25},
+            "near_radius_multiplier": {"const": 0.5},
+            "geometry_tolerance_px": {"const": 0.000001},
+            "rotation_tolerance_deg": {"const": 0.000001},
+            "reach_scope": {"const": "kinematic-annulus-only"},
+            "mesh_visual_safety": {"const": "not-evaluated"}
+          }
+        }
+      }
+    },
+    "status": {"enum": ["passed", "rejected"]},
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["handle_count", "evaluated_case_count", "not_applicable_case_count"],
+      "properties": {
+        "handle_count": {"type": "integer", "minimum": 1},
+        "evaluated_case_count": {"type": "integer", "minimum": 1},
+        "not_applicable_case_count": {"type": "integer", "minimum": 0}
+      }
+    },
+    "handles": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/handle"}
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string", "minLength": 1, "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "point": {
+      "type": "array", "minItems": 2, "maxItems": 2,
+      "prefixItems": [{"type": "number"}, {"type": "number"}],
+      "items": false
+    },
+    "kinematicReach": {
+      "type": "object", "additionalProperties": false,
+      "required": ["minimum_px", "maximum_px"],
+      "properties": {
+        "minimum_px": {"type": "number", "minimum": 0},
+        "maximum_px": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "visualSafety": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "reason"],
+      "properties": {
+        "status": {"const": "not_evaluated"},
+        "reason": {"const": "P4 probes kinematic reach only; P3 mesh safe-angle evidence remains authoritative"}
+      }
+    },
+    "metrics": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "proximal_length_error_px", "distal_length_error_px",
+        "resolved_distance_error_px", "annulus_violation_px",
+        "setup_hinge_error_px", "setup_effector_error_px"
+      ],
+      "properties": {
+        "proximal_length_error_px": {"type": "number", "minimum": 0},
+        "distal_length_error_px": {"type": "number", "minimum": 0},
+        "resolved_distance_error_px": {"type": "number", "minimum": 0},
+        "annulus_violation_px": {"type": "number", "minimum": 0},
+        "setup_hinge_error_px": {
+          "oneOf": [{"type": "number", "minimum": 0}, {"type": "null"}]
+        },
+        "setup_effector_error_px": {
+          "oneOf": [{"type": "number", "minimum": 0}, {"type": "null"}]
+        }
+      }
+    },
+    "evaluatedCase": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "id", "applicability", "requested_target_xy", "resolved_target_xy",
+        "reach_state", "hinge_xy", "effector_xy", "used_fallback_direction",
+        "setup_local_deltas_deg", "metrics", "status"
+      ],
+      "properties": {
+        "id": {
+          "enum": [
+            "setup", "reachable-mid", "unreachable-far",
+            "unreachable-near", "coincident-target"
+          ]
+        },
+        "applicability": {"const": "evaluated"},
+        "requested_target_xy": {"$ref": "#/$defs/point"},
+        "resolved_target_xy": {"$ref": "#/$defs/point"},
+        "reach_state": {
+          "enum": ["reachable", "unreachable_too_far", "unreachable_too_near"]
+        },
+        "hinge_xy": {"$ref": "#/$defs/point"},
+        "effector_xy": {"$ref": "#/$defs/point"},
+        "used_fallback_direction": {"type": "boolean"},
+        "setup_local_deltas_deg": {
+          "type": "object", "additionalProperties": false,
+          "required": ["proximal", "distal"],
+          "properties": {
+            "proximal": {"type": "number"},
+            "distal": {"type": "number"}
+          }
+        },
+        "metrics": {"$ref": "#/$defs/metrics"},
+        "status": {"enum": ["passed", "rejected"]}
+      }
+    },
+    "notApplicableCase": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "applicability", "reason", "status"],
+      "properties": {
+        "id": {"const": "unreachable-near"},
+        "applicability": {"const": "not_applicable"},
+        "reason": {"const": "minimum_kinematic_reach_is_zero"},
+        "status": {"const": "not_applicable"}
+      }
+    },
+    "handle": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "handle_id", "limb", "side", "proximal_bone_id", "distal_bone_id",
+        "kinematic_reach", "mesh_visual_safety", "cases", "gate"
+      ],
+      "properties": {
+        "handle_id": {"$ref": "#/$defs/id"},
+        "limb": {"enum": ["arm", "leg"]},
+        "side": {"enum": ["left", "right"]},
+        "proximal_bone_id": {"$ref": "#/$defs/id"},
+        "distal_bone_id": {"$ref": "#/$defs/id"},
+        "kinematic_reach": {"$ref": "#/$defs/kinematicReach"},
+        "mesh_visual_safety": {"$ref": "#/$defs/visualSafety"},
+        "cases": {
+          "type": "array", "minItems": 5, "maxItems": 5,
+          "items": {
+            "oneOf": [
+              {"$ref": "#/$defs/evaluatedCase"},
+              {"$ref": "#/$defs/notApplicableCase"}
+            ]
+          }
+        },
+        "gate": {
+          "type": "object", "additionalProperties": false,
+          "required": ["status"],
+          "properties": {"status": {"enum": ["passed", "rejected"]}}
+        }
+      }
+    }
+  }
+}
