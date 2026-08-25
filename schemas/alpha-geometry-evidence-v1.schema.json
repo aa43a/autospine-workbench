@@ -1,0 +1,357 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/alpha-geometry-evidence-v1.schema.json",
+  "title": "AutoSpine alpha geometry evidence v1",
+  "description": "Content-addressed path and contact geometry for candidate review overlays.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "project_id", "source", "analysis",
+    "coordinate_system", "layers", "paths", "contacts", "observability", "qa"
+  ],
+  "properties": {
+    "format": { "const": "autospine-alpha-geometry-evidence" },
+    "format_version": { "const": 1 },
+    "project_id": { "$ref": "#/$defs/id" },
+    "source": { "$ref": "#/$defs/source" },
+    "analysis": { "$ref": "#/$defs/analysis" },
+    "coordinate_system": { "$ref": "#/$defs/coordinateSystem" },
+    "layers": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/layer" }
+    },
+    "paths": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/path" }
+    },
+    "contacts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/contact" }
+    },
+    "observability": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/id" },
+      "additionalProperties": { "$ref": "#/$defs/observability" }
+    },
+    "qa": { "$ref": "#/$defs/qa" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "paths": { "minItems": 1 } }, "required": ["paths"] },
+      "then": { "properties": { "source": { "required": ["pose_observations_sha256"] } } }
+    }
+  ],
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "nonnegative": { "type": "number", "minimum": 0 },
+    "point": {
+      "type": "array",
+      "prefixItems": [{ "type": "number" }, { "type": "number" }],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "bbox": {
+      "type": "array",
+      "prefixItems": [
+        { "type": "integer", "minimum": 0 },
+        { "type": "integer", "minimum": 0 },
+        { "type": "integer", "minimum": 1 },
+        { "type": "integer", "minimum": 1 }
+      ],
+      "items": false,
+      "minItems": 4,
+      "maxItems": 4
+    },
+    "flags": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/id" },
+      "uniqueItems": true
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["base_project_sha256", "source_image_sha256"],
+      "properties": {
+        "base_project_sha256": { "$ref": "#/$defs/sha256" },
+        "source_image_sha256": { "$ref": "#/$defs/sha256" },
+        "audit_sha256": { "$ref": "#/$defs/sha256" },
+        "pose_observations_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "analysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "provider_version", "input_sha256", "config_sha256", "run_sha256"],
+      "properties": {
+        "provider": { "$ref": "#/$defs/id" },
+        "provider_version": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "input_sha256": { "$ref": "#/$defs/sha256" },
+        "config_sha256": { "$ref": "#/$defs/sha256" },
+        "run_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "coordinateSystem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["origin", "x_axis", "y_axis", "units", "side_naming"],
+      "properties": {
+        "origin": { "const": "top_left" },
+        "x_axis": { "const": "right" },
+        "y_axis": { "const": "down" },
+        "units": { "const": "pixel" },
+        "side_naming": { "const": "character_side" }
+      }
+    },
+    "component": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["component_id", "area", "bbox_xywh"],
+      "properties": {
+        "component_id": { "type": "integer", "minimum": 0 },
+        "area": { "type": "integer", "minimum": 1 },
+        "bbox_xywh": { "$ref": "#/$defs/bbox" }
+      }
+    },
+    "layer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "layer_id", "raster_sha256", "canonical_role", "side", "disposition",
+        "alpha_threshold", "foreground_area", "components"
+      ],
+      "properties": {
+        "layer_id": { "$ref": "#/$defs/id" },
+        "raster_sha256": { "$ref": "#/$defs/sha256" },
+        "canonical_role": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+        },
+        "side": { "enum": ["left", "right", "center", "bilateral", "unknown"] },
+        "disposition": {
+          "enum": [
+            "auto", "keep", "exclude", "ignore", "split", "split_left_right",
+            "merge", "review"
+          ]
+        },
+        "alpha_threshold": { "type": "integer", "minimum": 1, "maximum": 255 },
+        "foreground_area": { "type": "integer", "minimum": 0 },
+        "components": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/component" }
+        }
+      }
+    },
+    "anchor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["joint_id", "input_xy", "projected_xy", "residual_px"],
+      "properties": {
+        "joint_id": { "$ref": "#/$defs/id" },
+        "input_xy": { "$ref": "#/$defs/point" },
+        "projected_xy": {
+          "oneOf": [{ "$ref": "#/$defs/point" }, { "type": "null" }]
+        },
+        "residual_px": {
+          "oneOf": [{ "$ref": "#/$defs/nonnegative" }, { "type": "null" }]
+        }
+      }
+    },
+    "anchors": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["proximal", "hinge", "distal"],
+      "properties": {
+        "proximal": { "$ref": "#/$defs/anchor" },
+        "hinge": { "$ref": "#/$defs/anchor" },
+        "distal": { "$ref": "#/$defs/anchor" }
+      }
+    },
+    "budgets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max_raster_pixels", "max_search_nodes", "raster_pixels", "search_nodes"],
+      "properties": {
+        "max_raster_pixels": { "type": "integer", "minimum": 1 },
+        "max_search_nodes": { "type": "integer", "minimum": 1 },
+        "raster_pixels": { "type": "integer", "minimum": 0 },
+        "search_nodes": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "path": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path_id", "limb_id", "status", "joint_ids", "layer_id", "component_id", "anchors",
+        "polyline_xy", "length_px", "min_clearance_px", "median_clearance_px",
+        "hinge_candidate_xy", "error_radius_px", "budgets", "flags"
+      ],
+      "properties": {
+        "path_id": { "$ref": "#/$defs/id" },
+        "limb_id": { "$ref": "#/$defs/id" },
+        "status": { "enum": ["valid", "unavailable"] },
+        "joint_ids": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/id" },
+          "minItems": 3,
+          "maxItems": 3,
+          "uniqueItems": true
+        },
+        "layer_id": { "$ref": "#/$defs/id" },
+        "component_id": { "type": "integer", "minimum": 0 },
+        "anchors": { "$ref": "#/$defs/anchors" },
+        "polyline_xy": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/point" },
+          "maxItems": 128
+        },
+        "length_px": { "oneOf": [{ "$ref": "#/$defs/nonnegative" }, { "type": "null" }] },
+        "min_clearance_px": { "oneOf": [{ "$ref": "#/$defs/nonnegative" }, { "type": "null" }] },
+        "median_clearance_px": { "oneOf": [{ "$ref": "#/$defs/nonnegative" }, { "type": "null" }] },
+        "hinge_candidate_xy": { "oneOf": [{ "$ref": "#/$defs/point" }, { "type": "null" }] },
+        "error_radius_px": { "oneOf": [{ "$ref": "#/$defs/nonnegative" }, { "type": "null" }] },
+        "budgets": { "$ref": "#/$defs/budgets" },
+        "flags": { "$ref": "#/$defs/flags" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "valid" } }, "required": ["status"] },
+          "then": {
+            "properties": {
+              "polyline_xy": { "minItems": 1 },
+              "length_px": { "$ref": "#/$defs/nonnegative" },
+              "min_clearance_px": { "$ref": "#/$defs/nonnegative" },
+              "median_clearance_px": { "$ref": "#/$defs/nonnegative" },
+              "hinge_candidate_xy": { "$ref": "#/$defs/point" },
+              "error_radius_px": { "$ref": "#/$defs/nonnegative" }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "status": { "const": "unavailable" } }, "required": ["status"] },
+          "then": {
+            "properties": {
+              "polyline_xy": { "maxItems": 0 },
+              "length_px": { "type": "null" },
+              "min_clearance_px": { "type": "null" },
+              "median_clearance_px": { "type": "null" },
+              "hinge_candidate_xy": { "type": "null" },
+              "error_radius_px": { "type": "null" }
+            }
+          }
+        }
+      ]
+    },
+    "contact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contact_id", "joint_id", "relation", "layer_ids", "mode", "area", "bbox_xywh",
+        "centroid_xy", "variance_xy", "representative_xy", "error_radius_px",
+        "overlap_ratios", "gap_distance_px", "endpoints_xy", "flags"
+      ],
+      "properties": {
+        "contact_id": { "$ref": "#/$defs/id" },
+        "joint_id": { "$ref": "#/$defs/id" },
+        "relation": { "enum": ["torso_arm", "pelvis_leg", "leg_foot"] },
+        "layer_ids": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/id" },
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true
+        },
+        "mode": { "enum": ["overlap", "gap"] },
+        "area": { "type": "integer", "minimum": 0 },
+        "bbox_xywh": { "$ref": "#/$defs/bbox" },
+        "centroid_xy": { "$ref": "#/$defs/point" },
+        "variance_xy": {
+          "type": "array",
+          "prefixItems": [{ "$ref": "#/$defs/nonnegative" }, { "$ref": "#/$defs/nonnegative" }],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "representative_xy": { "$ref": "#/$defs/point" },
+        "error_radius_px": { "$ref": "#/$defs/nonnegative" },
+        "overlap_ratios": {
+          "type": "array",
+          "prefixItems": [
+            { "type": "number", "minimum": 0, "maximum": 1 },
+            { "type": "number", "minimum": 0, "maximum": 1 }
+          ],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "gap_distance_px": { "$ref": "#/$defs/nonnegative" },
+        "endpoints_xy": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/point" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "flags": { "$ref": "#/$defs/flags" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "mode": { "const": "overlap" } }, "required": ["mode"] },
+          "then": {
+            "properties": {
+              "area": { "type": "integer", "minimum": 16 },
+              "gap_distance_px": { "const": 0 }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "mode": { "const": "gap" } }, "required": ["mode"] },
+          "then": {
+            "properties": {
+              "area": { "const": 0 },
+              "gap_distance_px": { "type": "number", "exclusiveMinimum": 0 },
+              "overlap_ratios": {
+                "prefixItems": [{ "const": 0 }, { "const": 0 }]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "observability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "path_ids", "contact_ids", "flags"],
+      "properties": {
+        "status": { "enum": ["visible", "occluded", "merged", "absent", "ambiguous"] },
+        "path_ids": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/id" },
+          "uniqueItems": true
+        },
+        "contact_ids": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/id" },
+          "uniqueItems": true
+        },
+        "flags": { "$ref": "#/$defs/flags" }
+      }
+    },
+    "qa": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "flags"],
+      "properties": {
+        "status": { "enum": ["passed", "manual_required", "rejected"] },
+        "flags": { "$ref": "#/$defs/flags" }
+      }
+    }
+  }
+}
