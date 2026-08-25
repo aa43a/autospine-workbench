@@ -17,6 +17,7 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from autospine_workbench.png_rgba import (  # noqa: E402
+    MAX_RGBA_DIMENSION,
     MAX_RGBA_PIXELS,
     RgbaImage,
     RgbaPngError,
@@ -107,7 +108,23 @@ class RgbaPngWriteTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "oversized.png"
             path.write_bytes(encoded)
-            with self.assertRaisesRegex(RgbaPngError, "exceeds"):
+            with self.assertRaisesRegex(RgbaPngError, "exceed"):
+                read_rgba_png(path)
+
+    def test_per_axis_cap_rejects_one_pixel_wide_pathological_png(self) -> None:
+        header = struct.pack(
+            ">IIBBBBB", 1, MAX_RGBA_DIMENSION + 1, 8, 6, 0, 0, 0
+        )
+        encoded = (
+            b"\x89PNG\r\n\x1a\n"
+            + png_chunk(b"IHDR", header)
+            + png_chunk(b"IDAT", b"x\x01\x03\x00\x00\x00\x00\x01")
+            + png_chunk(b"IEND", b"")
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "too-tall.png"
+            path.write_bytes(encoded)
+            with self.assertRaisesRegex(RgbaPngError, "per axis"):
                 read_rgba_png(path)
 
     def test_writer_rejects_invalid_dimensions_and_buffer_size(self) -> None:

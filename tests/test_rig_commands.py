@@ -21,6 +21,7 @@ from autospine_workbench.layer_manifest import (  # noqa: E402
     LayerManifestBuilder,
     LayerManifestBundleStore,
 )
+from autospine_workbench.resolved_project import canonical_sha256  # noqa: E402
 from tests.png_helpers import write_rgba  # noqa: E402
 from tests.test_project_store import StoreFixture  # noqa: E402
 
@@ -124,6 +125,10 @@ class RigCommandIntegrationTests(unittest.TestCase):
         bundle = Path(first["bundle_path"])
         self.assertEqual(first["bundle_sha256"], bundle.name)
         self.assertEqual(first["rig_sha256"], bundle.parent.name)
+        setup = json.loads((bundle / "setup-render.json").read_text(encoding="utf-8"))
+        self.assertEqual(first["setup_render_sha256"], canonical_sha256(setup))
+        self.assertEqual(first["setup_png_sha256"], setup["image"]["png_sha256"])
+        self.assertEqual(first["setup_rgba_sha256"], setup["image"]["rgba_sha256"])
         report = json.loads((bundle / "probes.json").read_text(encoding="utf-8"))
         checks = {check["id"]: check for check in report["checks"]}
         self.assertTrue(checks["setup.pixel-reconstruction"]["metrics"]["exact"])

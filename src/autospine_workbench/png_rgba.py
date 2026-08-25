@@ -18,7 +18,10 @@ class RgbaPngError(ValueError):
     """Raised when a PNG cannot be decoded without changing representation."""
 
 
-MAX_RGBA_PIXELS = 16_777_216
+MAX_RGBA_DIMENSION = 4096
+"""Largest accepted width or height, preventing pathological scanline shapes."""
+
+MAX_RGBA_PIXELS = MAX_RGBA_DIMENSION * MAX_RGBA_DIMENSION
 """Largest accepted decoded raster (4096 x 4096 pixels)."""
 
 MAX_RGBA_BYTES = MAX_RGBA_PIXELS * 4
@@ -193,6 +196,10 @@ def _rgba_byte_count(width: object, height: object) -> int:
         or height < 1
     ):
         raise RgbaPngError("Image dimensions must be positive integers")
+    if width > MAX_RGBA_DIMENSION or height > MAX_RGBA_DIMENSION:
+        raise RgbaPngError(
+            f"Image dimensions exceed {MAX_RGBA_DIMENSION} pixels per axis"
+        )
     pixels = width * height
     if pixels > MAX_RGBA_PIXELS:
         raise RgbaPngError(

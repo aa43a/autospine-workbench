@@ -17,6 +17,7 @@ if str(SRC) not in sys.path:
 from autospine_workbench.rig_setup_render import (  # noqa: E402
     RigSetupRenderError,
     compare_region_setup,
+    render_rig_setup,
 )
 from tests.png_helpers import write_rgba  # noqa: E402
 
@@ -108,6 +109,12 @@ class RegionSetupRenderTests(unittest.TestCase):
         changed["attachments"][0]["size"] = [2, 1]
         with self.assertRaisesRegex(RigSetupRenderError, "size"):
             compare_region_setup(self.manifest, changed, self.root)
+
+    def test_oversized_canvas_fails_before_allocating_pixels(self) -> None:
+        changed = deepcopy(self.rig)
+        changed["canvas"] = {"width": 4097, "height": 4096}
+        with self.assertRaisesRegex(RigSetupRenderError, "exceeds"):
+            render_rig_setup(changed, self.root)
 
 
 if __name__ == "__main__":

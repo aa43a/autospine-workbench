@@ -16,6 +16,7 @@ from .rig_commands import (
     add_rig_subcommands,
     compile_rig_command as _compile_rig,
     run_rig_probes_command as _run_rig_probes,
+    verify_setup_golden_command as _verify_setup_golden,
 )
 from .server import create_server
 from .split_preview_commands import (
@@ -240,6 +241,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             args.state_root,
             layer_manifest_sha256=args.layer_manifest_sha256,
         )
+    if args.command == "verify-setup-golden":
+        return _verify_setup_golden(args.bundle, args.golden_contract)
     if args.command != "serve":
         raise AssertionError(f"Unhandled command: {args.command}")
     try:

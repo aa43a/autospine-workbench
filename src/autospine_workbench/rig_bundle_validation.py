@@ -21,6 +21,7 @@ from .rig_validation import RigSemanticValidationError, RigSemanticValidator
 _SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 _PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
+MAX_RIG_JSON_BYTES = 4 * 1024 * 1024
 
 
 class RigBundleError(RuntimeError):
@@ -33,7 +34,28 @@ def validate_bundle_inputs(
     run: Mapping[str, Any],
     probes: Mapping[str, Any],
     layer_bundle_path: Path,
-) -> tuple[str, str, dict[str, tuple[Path, str]]]:
+) -> tuple[str, str, str, dict[str, tuple[Path, str]]]:
+    rig_sha, run_sha, probe_sha, layer_sha = validate_bundle_documents(
+        project_id, rig, run, probes
+    )
+    bundle = _resolve_layer_bundle(layer_bundle_path)
+    manifest_assets = _manifest_assets(project_id, bundle, layer_sha)
+    return (
+        rig_sha,
+        run_sha,
+        probe_sha,
+        _attachment_assets(rig, manifest_assets, bundle),
+    )
+
+
+def validate_bundle_documents(
+    project_id: str,
+    rig: Mapping[str, Any],
+    run: Mapping[str, Any],
+    probes: Mapping[str, Any],
+) -> tuple[str, str, str, str]:
+    """Validate the immutable JSON contracts and all cross-document bindings."""
+
     if not isinstance(project_id, str) or not _SAFE_ID.fullmatch(project_id):
         raise RigBundleError("Project id is unsafe")
     if not all(isinstance(value, Mapping) for value in (rig, run, probes)):
@@ -63,27 +85,24 @@ def validate_bundle_inputs(
         "allow_manual_required"
     ]:
         raise RigBundleError("Manual-required setup was not enabled by the compile run")
-    bundle = _resolve_layer_bundle(layer_bundle_path)
-    manifest_assets = _manifest_assets(project_id, bundle, layer_sha)
-    return (
-        rig_sha,
-        bundle_address_sha256(rig_sha, run_sha, probe_sha),
-        _attachment_assets(rig, manifest_assets, bundle),
-    )
+    return rig_sha, run_sha, probe_sha, layer_sha
 
 
-def bundle_address_sha256(rig_sha: str, run_sha: str, probe_sha: str) -> str:
-    """Hash the three immutable documents into one domain-separated address."""
+def bundle_address_sha256(
+    rig_sha: str, run_sha: str, probe_sha: str, setup_sha: str
+) -> str:
+    """Hash all four immutable documents into one domain-separated address."""
 
     documents = {
         "rig.json": required_sha(rig_sha, "RigIR"),
         "run-manifest.json": required_sha(run_sha, "compile run"),
         "probes.json": required_sha(probe_sha, "setup probes"),
+        "setup-render.json": required_sha(setup_sha, "setup render"),
     }
     return canonical_sha256(
         {
             "format": "autospine-rig-bundle-address",
-            "format_version": 1,
+            "format_version": 2,
             "document_sha256": documents,
         }
     )
@@ -230,12 +249,24 @@ def safe_existing_file(root: Path, relative: str) -> Path:
     return resolved
 
 
-def read_json(path: Path) -> dict[str, Any]:
+def read_json(
+    path: Path, *, max_bytes: int = MAX_RIG_JSON_BYTES
+) -> dict[str, Any]:
     if path.is_symlink():
         raise RigBundleError(f"JSON document cannot be a symlink: {path.name}")
+    if not isinstance(max_bytes, int) or isinstance(max_bytes, bool) or max_bytes < 1:
+        raise RigBundleError("JSON byte limit is invalid")
     try:
-        with path.open("r", encoding="utf-8") as handle:
-            value = json.load(handle, object_pairs_hook=_unique_object, parse_constant=_bad_constant)
+        with path.open("rb") as handle:
+            raw = handle.read(max_bytes + 1)
+        if len(raw) > max_bytes:
+            raise RigBundleError(f"JSON document exceeds its byte limit: {path.name}")
+        text = raw.decode("utf-8")
+        value = json.loads(
+            text,
+            object_pairs_hook=_unique_object,
+            parse_constant=_bad_constant,
+        )
     except RigBundleError:
         raise
     except (OSError, UnicodeError, json.JSONDecodeError) as exc:

@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/setup-golden-v1.schema.json",
+  "title": "AutoSpine approved setup visual golden v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "format_version", "project_id", "source", "renderer", "encoder", "image"],
+  "properties": {
+    "format": {"const": "autospine-setup-golden"},
+    "format_version": {"const": 1},
+    "project_id": {"$ref": "#/$defs/id"},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rig_sha256", "bundle_sha256", "setup_render_sha256"],
+      "properties": {
+        "rig_sha256": {"$ref": "#/$defs/sha256"},
+        "bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "setup_render_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "renderer": {"$ref": "#/$defs/renderer"},
+    "encoder": {"$ref": "#/$defs/encoder"},
+    "image": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "width", "height", "rgba_sha256", "png_sha256"],
+      "properties": {
+        "path": {
+          "allOf": [
+            {"$ref": "#/$defs/id"},
+            {"pattern": "\\.[Pp][Nn][Gg]$"}
+          ]
+        },
+        "width": {"type": "integer", "minimum": 1, "maximum": 4096},
+        "height": {"type": "integer", "minimum": 1, "maximum": 4096},
+        "rgba_sha256": {"$ref": "#/$defs/sha256"},
+        "png_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "allOf": [
+        {"not": {"pattern": "\\.$"}},
+        {"not": {"pattern": "^(?:[Cc][Oo][Nn]|[Pp][Rr][Nn]|[Aa][Uu][Xx]|[Nn][Uu][Ll]|[Cc][Oo][Mm][1-9]|[Ll][Pp][Tt][1-9])(?:\\.|$)"}}
+      ]
+    },
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "renderer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version"],
+      "properties": {
+        "id": {"const": "autospine-region-setup-renderer"},
+        "version": {"const": "1.0.0"}
+      }
+    },
+    "encoder": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version", "profile"],
+      "properties": {
+        "id": {"const": "autospine-canonical-rgba-png"},
+        "version": {"const": "1.0.0"},
+        "profile": {"const": "rgba8-filter0-stored-deflate"}
+      }
+    }
+  }
+}

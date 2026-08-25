@@ -8,7 +8,12 @@ import math
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
-from .png_rgba import RgbaPngError, read_rgba_png
+from .png_rgba import (
+    MAX_RGBA_DIMENSION,
+    MAX_RGBA_PIXELS,
+    RgbaPngError,
+    read_rgba_png,
+)
 
 
 class RigSetupRenderError(RuntimeError):
@@ -65,7 +70,7 @@ def render_manifest_setup(manifest: Mapping[str, Any], bundle_path: Path) -> byt
     if not isinstance(layers, list):
         raise RigSetupRenderError("Layer Manifest has no layers")
     ordered = sorted(layers, key=_manifest_draw_order)
-    canvas = bytearray(width * height * 4)
+    canvas = _blank_canvas(width, height)
     for layer in ordered:
         if not isinstance(layer, Mapping):
             raise RigSetupRenderError("Layer Manifest contains an invalid layer")
@@ -102,7 +107,7 @@ def render_rig_setup(rig: Mapping[str, Any], bundle_path: Path) -> bytes:
     slots = rig.get("slots")
     if not isinstance(slots, list):
         raise RigSetupRenderError("RigIR has no slots")
-    canvas = bytearray(width * height * 4)
+    canvas = _blank_canvas(width, height)
     for slot in sorted(slots, key=_rig_draw_order):
         if not isinstance(slot, Mapping):
             raise RigSetupRenderError("RigIR contains an invalid slot")
@@ -199,6 +204,18 @@ def _manifest_canvas(manifest: Mapping[str, Any]) -> tuple[int, int]:
     if not isinstance(canvas, Sequence) or isinstance(canvas, (str, bytes)) or len(canvas) != 2:
         raise RigSetupRenderError("Layer Manifest canvas is invalid")
     return _positive_int(canvas[0]), _positive_int(canvas[1])
+
+
+def _blank_canvas(width: int, height: int) -> bytearray:
+    if (
+        width > MAX_RGBA_DIMENSION
+        or height > MAX_RGBA_DIMENSION
+        or width * height > MAX_RGBA_PIXELS
+    ):
+        raise RigSetupRenderError(
+            "Setup canvas exceeds the 4096-per-axis or total pixel limit"
+        )
+    return bytearray(width * height * 4)
 
 
 def _manifest_draw_order(layer: Any) -> int:

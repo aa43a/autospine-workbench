@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import os
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 import shutil
 import tempfile
 from typing import Any, Mapping
@@ -14,15 +14,23 @@ from .resolved_project import canonical_sha256
 from .rig_bundle_validation import (
     RigBundleError,
     bundle_address_sha256,
-    read_json,
     require_png,
     required_sha,
-    safe_existing_file,
     validate_bundle_inputs,
+)
+from .rig_bundle_integrity import verify_rig_bundle_directory
+from .rig_setup_artifact import (
+    RigSetupArtifact,
+    RigSetupArtifactError,
+    SETUP_DOCUMENT_NAME,
+    SETUP_IMAGE_NAME,
+    build_setup_artifact,
 )
 
 
-_DOCUMENT_NAMES = {"rig.json", "run-manifest.json", "probes.json"}
+_DOCUMENT_NAMES = {
+    "rig.json", "run-manifest.json", "probes.json", SETUP_DOCUMENT_NAME,
+}
 
 
 class RigBundleStore:
@@ -40,7 +48,7 @@ class RigBundleStore:
         probe_report: Mapping[str, Any],
         layer_bundle_path: Path,
     ) -> tuple[Path, str]:
-        rig_sha, bundle_sha, assets = validate_bundle_inputs(
+        rig_sha, run_sha, probe_sha, assets = validate_bundle_inputs(
             project_id, rig, run_manifest, probe_report, Path(layer_bundle_path)
         )
         _require_expected_layer_bundle(
@@ -49,13 +57,22 @@ class RigBundleStore:
             rig["source"]["layer_manifest_sha256"],
             Path(layer_bundle_path),
         )
+        try:
+            setup = build_setup_artifact(
+                project_id, rig, rig_sha, Path(layer_bundle_path)
+            )
+        except RigSetupArtifactError as exc:
+            raise RigBundleError("Could not render canonical RigIR setup") from exc
+        bundle_sha = bundle_address_sha256(
+            rig_sha, run_sha, probe_sha, setup.sha256
+        )
         parent = self.root / project_id / "rig-ir"
         _prepare_parent(self.state_root, self.root, parent)
         rig_parent = _prepare_rig_parent(parent, rig_sha)
         destination = rig_parent / bundle_sha
         if destination.exists() or destination.is_symlink():
             self._verify(
-                destination, rig, run_manifest, probe_report, assets,
+                destination, rig, run_manifest, probe_report, setup,
                 rig_sha=rig_sha, bundle_sha=bundle_sha,
             )
             return destination, rig_sha
@@ -69,9 +86,24 @@ class RigBundleStore:
             (staging / "layers").mkdir()
             for relative, (source, expected_sha) in assets.items():
                 _copy_png(source, staging / relative, expected_sha)
+            staged_setup = build_setup_artifact(project_id, rig, rig_sha, staging)
+            if staged_setup != setup:
+                raise RigBundleError("Copied layers changed the canonical setup render")
             _write_json(staging / "rig.json", rig)
             _write_json(staging / "run-manifest.json", run_manifest)
             _write_json(staging / "probes.json", probe_report)
+            _write_json(staging / SETUP_DOCUMENT_NAME, setup.document)
+            _write_bytes(staging / SETUP_IMAGE_NAME, setup.png)
+            self._verify(
+                staging,
+                rig,
+                run_manifest,
+                probe_report,
+                setup,
+                rig_sha=rig_sha,
+                bundle_sha=bundle_sha,
+                require_content_address=False,
+            )
             _fsync_directory(staging / "layers")
             _fsync_directory(staging)
             try:
@@ -83,12 +115,12 @@ class RigBundleStore:
                 if destination.is_symlink() or not destination.is_dir():
                     raise
                 self._verify(
-                    destination, rig, run_manifest, probe_report, assets,
+                    destination, rig, run_manifest, probe_report, setup,
                     rig_sha=rig_sha, bundle_sha=bundle_sha,
                 )
         except RigBundleError:
             raise
-        except (OSError, TypeError, ValueError) as exc:
+        except (OSError, RigSetupArtifactError, TypeError, ValueError) as exc:
             raise RigBundleError("Could not publish RigIR bundle") from exc
         finally:
             if staging is not None and staging.is_dir():
@@ -101,57 +133,33 @@ class RigBundleStore:
         rig: Mapping[str, Any],
         run_manifest: Mapping[str, Any],
         probe_report: Mapping[str, Any],
-        assets: Mapping[str, tuple[Path, str]],
+        setup: RigSetupArtifact,
         *,
         rig_sha: str,
         bundle_sha: str,
+        require_content_address: bool = True,
     ) -> None:
-        if directory.is_symlink() or not directory.is_dir():
-            raise RigBundleError("Existing RigIR bundle is not a real directory")
         expected_documents = {
             "rig.json": canonical_sha256(rig),
             "run-manifest.json": canonical_sha256(run_manifest),
             "probes.json": canonical_sha256(probe_report),
+            SETUP_DOCUMENT_NAME: setup.sha256,
         }
-        for name, digest in expected_documents.items():
-            if canonical_sha256(read_json(directory / name)) != digest:
-                raise RigBundleError(f"Existing {name} does not match publication input")
-        actual_address = bundle_address_sha256(
-            expected_documents["rig.json"],
-            expected_documents["run-manifest.json"],
-            expected_documents["probes.json"],
+        verified = verify_rig_bundle_directory(
+            directory,
+            require_content_address=require_content_address,
+            expected_project_id=str(run_manifest.get("project_id") or ""),
         )
-        if (
-            expected_documents["rig.json"] != rig_sha
-            or directory.parent.name != rig_sha
-            or actual_address != bundle_sha
-            or directory.name != bundle_sha
-        ):
-            raise RigBundleError("Existing RigIR bundle has the wrong content address")
-
-        expected_files = _DOCUMENT_NAMES | set(assets)
-        expected_directories = {"layers"}
-        for relative in assets:
-            parent = PurePosixPath(relative).parent
-            while parent.as_posix() != ".":
-                expected_directories.add(parent.as_posix())
-                parent = parent.parent
-        observed_files: set[str] = set()
-        observed_directories: set[str] = set()
-        for path in directory.rglob("*"):
-            if path.is_symlink():
-                raise RigBundleError("Existing RigIR bundle contains a symlink")
-            if path.is_file():
-                observed_files.add(path.relative_to(directory).as_posix())
-            elif path.is_dir():
-                observed_directories.add(path.relative_to(directory).as_posix())
-        if observed_files != expected_files or observed_directories != expected_directories:
-            raise RigBundleError("Existing RigIR bundle has missing or unexpected files")
-        for relative, (_, digest) in assets.items():
-            target = safe_existing_file(directory, relative)
-            require_png(target)
-            if sha256_file(target) != digest:
-                raise RigBundleError(f"Existing layer hash mismatch: {relative}")
+        actual_documents = {
+            "rig.json": verified.rig_sha256,
+            "run-manifest.json": verified.run_sha256,
+            "probes.json": verified.probe_sha256,
+            SETUP_DOCUMENT_NAME: verified.setup_sha256,
+        }
+        if actual_documents != expected_documents:
+            raise RigBundleError("RigIR bundle documents differ from publication input")
+        if verified.rig_sha256 != rig_sha or verified.bundle_sha256 != bundle_sha:
+            raise RigBundleError("RigIR bundle has the wrong content address")
 
 
 def _prepare_parent(state_root: Path, build_root: Path, parent: Path) -> None:
@@ -228,6 +236,13 @@ def _write_json(path: Path, value: Mapping[str, Any]) -> None:
     ) + "\n"
     with path.open("w", encoding="utf-8", newline="\n") as handle:
         handle.write(encoded)
+        handle.flush()
+        os.fsync(handle.fileno())
+
+
+def _write_bytes(path: Path, value: bytes) -> None:
+    with path.open("wb") as handle:
+        handle.write(value)
         handle.flush()
         os.fsync(handle.fileno())
 

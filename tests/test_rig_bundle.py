@@ -33,11 +33,14 @@ SHA_D = "d" * 64
 
 
 class BundleFixture:
-    def __init__(self, root: Path) -> None:
+    def __init__(self, root: Path, *, asset_writer=None) -> None:
         self.root = root
         self.state = root / "state"
         asset = root / "arm.png"
-        write_png(asset, 30, 40)
+        if asset_writer is None:
+            write_png(asset, 30, 40)
+        else:
+            asset_writer(asset)
         project = project_fixture()
         self.manifest = LayerManifestBuilder().build(
             project, {"layer-001-arm-l": asset}
@@ -167,17 +170,21 @@ class RigBundleStoreTests(unittest.TestCase):
 
         self.assertEqual(first, second)
         bundle, rig_sha = first
+        setup_sha = canonical_sha256(
+            json.loads((bundle / "setup-render.json").read_text(encoding="utf-8"))
+        )
         bundle_sha = bundle_address_sha256(
             rig_sha,
             canonical_sha256(self.fixture.run),
             canonical_sha256(self.fixture.probes),
+            setup_sha,
         )
         self.assertEqual(
             self.fixture.state / "builds" / "sample-a" / "rig-ir" / rig_sha / bundle_sha,
             bundle,
         )
         self.assertEqual(
-            {"rig.json", "run-manifest.json", "probes.json", "layers"},
+            {"rig.json", "run-manifest.json", "probes.json", "setup-render.json", "setup.png", "layers"},
             {item.name for item in bundle.iterdir()},
         )
         for name, expected in (
@@ -206,6 +213,9 @@ class RigBundleStoreTests(unittest.TestCase):
                 rig_sha,
                 canonical_sha256(self.fixture.run),
                 canonical_sha256(probes),
+                canonical_sha256(json.loads(
+                    (second / "setup-render.json").read_text(encoding="utf-8")
+                )),
             ),
             second.name,
         )
@@ -226,13 +236,14 @@ class RigBundleStoreTests(unittest.TestCase):
             ],
         )
 
-    def test_bundle_address_covers_all_three_documents(self) -> None:
-        baseline = bundle_address_sha256("a" * 64, "b" * 64, "c" * 64)
+    def test_bundle_address_covers_all_four_documents(self) -> None:
+        baseline = bundle_address_sha256("a" * 64, "b" * 64, "c" * 64, "e" * 64)
         for index, digests in enumerate(
             (
-                ("d" * 64, "b" * 64, "c" * 64),
-                ("a" * 64, "d" * 64, "c" * 64),
-                ("a" * 64, "b" * 64, "d" * 64),
+                ("d" * 64, "b" * 64, "c" * 64, "e" * 64),
+                ("a" * 64, "d" * 64, "c" * 64, "e" * 64),
+                ("a" * 64, "b" * 64, "d" * 64, "e" * 64),
+                ("a" * 64, "b" * 64, "c" * 64, "d" * 64),
             )
         ):
             with self.subTest(document=index):
@@ -252,7 +263,7 @@ class RigBundleStoreTests(unittest.TestCase):
         self.assertEqual({"rig.json"}, {item.name for item in legacy.iterdir()})
 
     def test_existing_document_or_layer_tampering_fails_loudly(self) -> None:
-        for name in ("rig.json", "run-manifest.json", "probes.json"):
+        for name in ("rig.json", "run-manifest.json", "probes.json", "setup-render.json"):
             with self.subTest(name), tempfile.TemporaryDirectory() as directory:
                 fixture = BundleFixture(Path(directory))
                 bundle, _ = fixture.publish()

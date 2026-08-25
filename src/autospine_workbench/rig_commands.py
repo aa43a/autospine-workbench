@@ -14,6 +14,7 @@ from .resolved_project import canonical_sha256
 from .rig_bundle import RigBundleError, RigBundleStore
 from .rig_bundle_validation import read_json
 from .rig_setup_probes import run_setup_probes
+from .rig_setup_golden import SetupGoldenError, verify_setup_golden
 
 
 def add_rig_subcommands(
@@ -36,6 +37,13 @@ def add_rig_subcommands(
     )
     _project_arguments(probes, default_workspace, default_state_root)
     probes.add_argument("rig", type=Path, help="RigIR JSON document to probe")
+
+    golden = subparsers.add_parser(
+        "verify-setup-golden",
+        help="Read-only exact verification of a setup bundle against an approved golden",
+    )
+    golden.add_argument("bundle", type=Path, help="Immutable RigIR bundle directory")
+    golden.add_argument("golden_contract", type=Path, help="Approved setup golden JSON")
 
 
 def compile_rig_command(
@@ -73,6 +81,7 @@ def compile_rig_command(
         destination, published_sha = RigBundleStore(state_root).publish(
             project_id, rig, run_manifest, report, bundle.path
         )
+        setup = read_json(destination / "setup-render.json")
     except (
         LayerManifestBundleError,
         ProjectNotFoundError,
@@ -96,6 +105,9 @@ def compile_rig_command(
             "rig_sha256": published_sha,
             "probe_report_sha256": canonical_sha256(report),
             "probe_status": report["status"],
+            "setup_render_sha256": canonical_sha256(setup),
+            "setup_png_sha256": setup["image"]["png_sha256"],
+            "setup_rgba_sha256": setup["image"]["rgba_sha256"],
             "bundle_sha256": destination.name,
             "bundle_path": str(destination),
         }
@@ -138,6 +150,25 @@ def run_rig_probes_command(
         return 2
     _print(report)
     return {"passed": 0, "manual_required": 1, "rejected": 2}[report["status"]]
+
+
+def verify_setup_golden_command(bundle: Path, golden_contract: Path) -> int:
+    try:
+        report = verify_setup_golden(bundle, golden_contract)
+    except SetupGoldenError as exc:
+        _print(
+            {
+                "format": "autospine-setup-golden-verification",
+                "format_version": 1,
+                "ok": False,
+                "status": "error",
+                "code": exc.code,
+                "message": str(exc),
+            }
+        )
+        return 2
+    _print(report)
+    return 0 if report["ok"] else 1
 
 
 def _project_arguments(
