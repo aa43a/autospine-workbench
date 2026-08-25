@@ -14,6 +14,7 @@ from .png_rgba import RgbaPngError
 
 
 _LIMB_ROLE_TOKENS = ("arm", "hand", "leg", "foot", "pelvis")
+_CONTACT_REFERENCE_ROLE_TOKENS = ("torso",)
 _JOINT_ROLE_TOKENS = {
     "shoulder": ("arm", "hand"),
     "elbow": ("arm", "hand"),
@@ -77,9 +78,13 @@ def load_limb_evidence(
     layer_assets: Mapping[str, Path],
     canvas_size: tuple[int, int],
     config: Mapping[str, Any],
+    *,
+    include_contact_roles: bool = False,
 ) -> LimbEvidenceSet:
     """Load alpha geometry and the exact summaries consumed by run identity."""
 
+    if not isinstance(include_contact_roles, bool):
+        raise ValueError("include_contact_roles must be boolean")
     layers = effective_layers(project)
     evidence: list[dict[str, Any]] = []
     geometries: dict[str, AlphaGeometry] = {}
@@ -87,7 +92,10 @@ def load_limb_evidence(
     for layer in layers:
         layer_id = str(layer.get("id") or "")
         role = str(layer.get("canonical_role") or "")
-        if not is_limb_role(role) or is_excluded_layer(layer):
+        selected_role = is_limb_role(role) or (
+            include_contact_roles and is_contact_reference_role(role)
+        )
+        if not selected_role or is_excluded_layer(layer):
             continue
         asset_value = layer_assets.get(layer_id)
         asset = Path(asset_value) if asset_value is not None else None
@@ -149,6 +157,11 @@ def is_excluded_layer(layer: Mapping[str, Any]) -> bool:
 def is_limb_role(role: str) -> bool:
     normalized = _normalized_role(role)
     return any(token in normalized for token in _LIMB_ROLE_TOKENS)
+
+
+def is_contact_reference_role(role: str) -> bool:
+    normalized = _normalized_role(role)
+    return any(token in normalized for token in _CONTACT_REFERENCE_ROLE_TOKENS)
 
 
 def joint_role_matches(joint_name: str, role: str) -> bool:

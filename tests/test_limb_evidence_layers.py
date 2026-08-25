@@ -16,6 +16,7 @@ if str(SRC_ROOT) not in sys.path:
 from autospine_workbench.candidate_provenance import sha256_file  # noqa: E402
 from autospine_workbench.limb_candidates import PoseAlphaLimbProvider  # noqa: E402
 from autospine_workbench.limb_evidence_layers import (  # noqa: E402
+    is_contact_reference_role,
     is_limb_role,
     joint_role_matches,
     load_limb_evidence,
@@ -63,6 +64,8 @@ class LimbEvidenceLayerTests(unittest.TestCase):
         self.assertTrue(is_limb_role("body.hand"))
         self.assertTrue(is_limb_role("costume.lower-leg"))
         self.assertFalse(is_limb_role("body.head"))
+        self.assertTrue(is_contact_reference_role("body.torso"))
+        self.assertFalse(is_contact_reference_role("body.pelvis"))
         self.assertTrue(joint_role_matches("wrist", "body.hand"))
         self.assertTrue(joint_role_matches("hip", "body.pelvis"))
         self.assertFalse(joint_role_matches("knee", "body.pelvis"))
@@ -77,6 +80,32 @@ class LimbEvidenceLayerTests(unittest.TestCase):
             "3c9b562a39b3873c260856adebe6b16a55a2a5e8c393af650158fdf16a14b5d0",
             canonical_sha256(document),
         )
+
+    def test_contact_reference_layers_require_explicit_opt_in(self) -> None:
+        project = project_fixture()
+        torso = {
+            "id": "layer-torso",
+            "canonical_role": "body.torso",
+            "side": "center",
+            "disposition": "keep",
+            "empty": False,
+            "bbox": {"x": 10, "y": 20, "width": 20, "height": 20},
+        }
+        project["resolved"]["layers"].append(torso)
+        assets = {"layer-arm-left": self.asset, "layer-torso": self.asset}
+
+        default = load_limb_evidence(project, assets, (100, 100), self.provider.config)
+        expanded = load_limb_evidence(
+            project,
+            assets,
+            (100, 100),
+            self.provider.config,
+            include_contact_roles=True,
+        )
+
+        self.assertNotIn("layer-torso", default.geometries)
+        self.assertIn("layer-torso", expanded.geometries)
+        self.assertEqual(2, len(expanded.identity_summaries))
 
     def test_excluded_limb_layer_does_not_require_an_asset(self) -> None:
         project = project_fixture()
