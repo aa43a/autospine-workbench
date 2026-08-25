@@ -1,4 +1,5 @@
 import { API_BASE, apiRequest, normalizeProjectSummaries } from "./modules/api.js";
+import { normalizeBbox } from "./modules/canvas-geometry.js";
 import { createCandidateReview } from "./modules/candidate-review.js";
 import { collectRequiredElements } from "./modules/dom-elements.js";
 import {
@@ -17,6 +18,7 @@ import {
 } from "./modules/override-draft.js";
 import { canonicalSide, normalizeLayerOverrideMap, normalizeOverrideMap } from "./modules/override-normalizers.js";
 import { applyManualJoint, clearJointEdits, resolveEffectiveJoint } from "./modules/joint-edit-state.js";
+import { readLayerRigReview, renderLayerRigReview, semanticColor } from "./modules/layer-rig-review.js";
 import { compositeQaFlag, confidenceLevel, formatConfidence, normalizeWorkflow, setConfidenceBadge, unresolvedJointIds } from "./modules/workflow.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -304,6 +306,8 @@ function effectiveLayer(layer) {
   return {
     ...layer,
     visible: override.visible ?? layer.visible ?? true,
+    pivot_xy: override.pivot_xy ?? layer.pivot_xy,
+    candidate_bone: override.candidate_bone ?? layer.candidate_bone,
     canonical_role: canonicalRole,
     side,
     disposition,
@@ -518,26 +522,6 @@ function bulkSetVisibility(visible) {
   renderLayerInspector();
 }
 
-function normalizeBbox(bbox) {
-  const { width: canvasWidth, height: canvasHeight } = getCanvasSize();
-  if (Array.isArray(bbox)) {
-    return {
-      x: numberOr(bbox[0]),
-      y: numberOr(bbox[1]),
-      width: Math.max(0, numberOr(bbox[2], canvasWidth)),
-      height: Math.max(0, numberOr(bbox[3], canvasHeight)),
-    };
-  }
-  if (bbox && typeof bbox === "object") {
-    const x = numberOr(bbox.x ?? bbox.left ?? bbox.x0);
-    const y = numberOr(bbox.y ?? bbox.top ?? bbox.y0);
-    const width = numberOr(bbox.width ?? bbox.w, numberOr(bbox.x1) - x || canvasWidth);
-    const height = numberOr(bbox.height ?? bbox.h, numberOr(bbox.y1) - y || canvasHeight);
-    return { x, y, width: Math.max(0, width), height: Math.max(0, height) };
-  }
-  return { x: 0, y: 0, width: canvasWidth, height: canvasHeight };
-}
-
 function renderCanvas() {
   if (!state.project) {
     dom.canvasSpace.hidden = true;
@@ -584,7 +568,7 @@ function renderCanvasLayers() {
   getLayers().forEach((rawLayer, index) => {
     const layer = effectiveLayer(rawLayer);
     if (!layer.visible || layer.empty || !layer.image_url) return;
-    const bbox = normalizeBbox(layer.bbox);
+    const bbox = normalizeBbox(layer.bbox, getCanvasSize());
     const image = document.createElement("img");
     image.className = "layer-image";
     image.src = layer.image_url;
@@ -621,7 +605,7 @@ function renderLayerSelection() {
   dom.layerSelectionGroup.replaceChildren();
   const layer = getSelectedLayer();
   if (!layer) return;
-  const bbox = normalizeBbox(layer.bbox);
+  const bbox = normalizeBbox(layer.bbox, getCanvasSize());
   const rect = document.createElementNS(SVG_NS, "rect");
   rect.classList.add("selected-layer-box");
   rect.setAttribute("x", String(bbox.x));
@@ -735,7 +719,7 @@ function renderLayerInspector() {
     return;
   }
 
-  const bbox = normalizeBbox(layer.bbox);
+  const bbox = normalizeBbox(layer.bbox, getCanvasSize());
   const side = canonicalSide(layer.semantic?.side);
   dom.selectedLayerName.textContent = layer.name || String(layer.id);
   dom.selectedLayerId.textContent = String(layer.id);
@@ -746,6 +730,7 @@ function renderLayerInspector() {
   dom.layerDispositionSelect.value = ["keep", "exclude", "split", "review"].includes(layer.disposition) ? layer.disposition : "review";
   dom.selectedLayerVisible.checked = Boolean(layer.visible);
   dom.layerSwatch.style.background = semanticColor(layer.semantic?.role);
+  renderLayerRigReview(dom, layer, getBones(), getCanvasSize());
   setConfidenceBadge(dom.layerConfidence, layer.semantic?.confidence);
 }
 
@@ -765,14 +750,6 @@ function renderJointInspector() {
   dom.jointYInput.value = String(Math.round(joint.y * 10) / 10);
   dom.resetJointBtn.disabled = !joint.isManual && !joint.reviewAction;
   setConfidenceBadge(dom.jointConfidence, joint.confidence);
-}
-
-function semanticColor(role) {
-  const text = String(role || "unknown");
-  let hash = 0;
-  for (let i = 0; i < text.length; i += 1) hash = ((hash << 5) - hash + text.charCodeAt(i)) | 0;
-  const palette = ["#65c7ff", "#a998ff", "#54d89a", "#f0b85d", "#ff8ca0", "#57d5cc", "#7aa7ff"];
-  return palette[Math.abs(hash) % palette.length];
 }
 
 function normalizeQaFlags(value) {
@@ -1133,6 +1110,22 @@ function updateSelectedLayerSemantic() {
   renderLayerInspector();
 }
 
+function confirmSelectedLayerRig() {
+  const layer = getSelectedLayer();
+  if (!layer) return;
+  const patch = readLayerRigReview(
+    dom,
+    getCanvasSize(),
+    new Set(getBones().map((bone) => String(bone.id))),
+  );
+  if (!patch) return;
+  Object.assign(ensureLayerOverride(String(layer.id)), patch);
+  markDirty("图层 Rig 字段已确认");
+  renderLayerList();
+  renderLayerInspector();
+  renderQa();
+}
+
 function updateJointFromInputs() {
   const joint = getSelectedJoint();
   if (!joint) return;
@@ -1249,6 +1242,7 @@ function bindEvents() {
 
   dom.semanticRoleInput.addEventListener("change", updateSelectedLayerSemantic);
   dom.semanticSideSelect.addEventListener("change", updateSelectedLayerSemantic);
+  dom.confirmLayerRigBtn.addEventListener("click", confirmSelectedLayerRig);
   dom.layerDispositionSelect.addEventListener("change", () => {
     const layer = getSelectedLayer();
     if (!layer) return;
