@@ -18,7 +18,7 @@ import {
 } from "./modules/override-draft.js";
 import { canonicalSide, normalizeLayerOverrideMap, normalizeOverrideMap } from "./modules/override-normalizers.js";
 import { applyManualJoint, clearJointEdits, resolveEffectiveJoint } from "./modules/joint-edit-state.js";
-import { readLayerRigReview, renderLayerRigReview, semanticColor } from "./modules/layer-rig-review.js";
+import { applyLayerRigReviewPatch, readLayerRigReview, renderLayerRigReview, semanticColor } from "./modules/layer-rig-review.js";
 import { compositeQaFlag, confidenceLevel, formatConfidence, normalizeWorkflow, setConfidenceBadge, unresolvedJointIds } from "./modules/workflow.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -1117,9 +1117,10 @@ function confirmSelectedLayerRig() {
     dom,
     getCanvasSize(),
     new Set(getBones().map((bone) => String(bone.id))),
+    layer.disposition,
   );
   if (!patch) return;
-  Object.assign(ensureLayerOverride(String(layer.id)), patch);
+  applyLayerRigReviewPatch(ensureLayerOverride(String(layer.id)), patch);
   markDirty("图层 Rig 字段已确认");
   renderLayerList();
   renderLayerInspector();

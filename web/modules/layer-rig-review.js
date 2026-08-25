@@ -2,6 +2,7 @@
 
 const ROLE_TOKEN = /^[A-Za-z0-9][A-Za-z0-9_.:-]*$/;
 const SIDES = new Set(["left", "right", "center", "bilateral", "unknown"]);
+const BILATERAL_SPLIT_DISPOSITIONS = new Set(["split", "split_left_right"]);
 
 
 export function semanticColor(role) {
@@ -24,7 +25,9 @@ export function renderLayerRigReview(elements, layer, bones, canvas) {
   const owner = elements.candidateBoneSelect.ownerDocument;
   const placeholder = owner.createElement("option");
   placeholder.value = "";
-  placeholder.textContent = "选择目标骨…";
+  placeholder.textContent = isBilateralSplit(layer?.disposition, layer?.side)
+    ? "拆分后分配目标骨（可留空）"
+    : "选择目标骨…";
   const options = [placeholder];
   for (const bone of Array.isArray(bones) ? bones : []) {
     const id = String(bone?.id ?? "");
@@ -39,18 +42,19 @@ export function renderLayerRigReview(elements, layer, bones, canvas) {
 }
 
 
-export function readLayerRigReview(elements, canvas, boneIds) {
+export function readLayerRigReview(elements, canvas, boneIds, disposition = "keep") {
   const role = elements.semanticRoleInput.value.trim();
   const side = elements.semanticSideSelect.value;
   const x = Number(elements.layerPivotXInput.value);
   const y = Number(elements.layerPivotYInput.value);
-  const candidateBone = elements.candidateBoneSelect.value;
+  const candidateBone = elements.candidateBoneSelect.value.trim();
+  const candidateBoneOptional = isBilateralSplit(disposition, side) && !candidateBone;
   const issues = {
     semanticRoleInput: ROLE_TOKEN.test(role) ? "" : "请输入有效的语义 token",
     semanticSideSelect: SIDES.has(side) ? "" : "请选择角色侧别",
     layerPivotXInput: coordinateIssue(x, canvas?.width),
     layerPivotYInput: coordinateIssue(y, canvas?.height),
-    candidateBoneSelect: boneIds.has(candidateBone) ? "" : "请选择现有目标骨",
+    candidateBoneSelect: candidateBoneOptional || boneIds.has(candidateBone) ? "" : "请选择现有目标骨",
   };
   let valid = true;
   for (const [id, message] of Object.entries(issues)) {
@@ -61,12 +65,19 @@ export function readLayerRigReview(elements, canvas, boneIds) {
     Object.keys(issues).map((id) => elements[id]).find((field) => !field.checkValidity())?.reportValidity();
     return null;
   }
-  return {
+  const patch = {
     canonical_role: role,
     side,
     pivot_xy: [x, y],
-    candidate_bone: candidateBone,
   };
+  if (candidateBone) patch.candidate_bone = candidateBone;
+  return patch;
+}
+
+
+export function applyLayerRigReviewPatch(override, patch) {
+  if (!Object.hasOwn(patch, "candidate_bone")) delete override.candidate_bone;
+  return Object.assign(override, patch);
 }
 
 
@@ -86,4 +97,9 @@ function coordinateIssue(value, maximum) {
 
 function validPoint(value) {
   return Array.isArray(value) && value.length === 2 && value.every((item) => Number.isFinite(Number(item)));
+}
+
+
+function isBilateralSplit(disposition, side) {
+  return side === "bilateral" && BILATERAL_SPLIT_DISPOSITIONS.has(disposition);
 }

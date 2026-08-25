@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  applyLayerRigReviewPatch,
   readLayerRigReview,
   renderLayerRigReview,
 } from "../modules/layer-rig-review.js";
@@ -47,7 +48,20 @@ test("render exposes the current pivot and only real skeleton bones", () => {
   assert.equal(dom.layerPivotXInput.value, "12.3");
   assert.equal(dom.layerPivotYInput.value, "35.8");
   assert.deepEqual(dom.candidateBoneSelect.options.map((item) => item.value), ["", "root", "upper"]);
+  assert.equal(dom.candidateBoneSelect.options[0].textContent, "选择目标骨…");
   assert.equal(dom.candidateBoneSelect.value, "upper");
+});
+
+
+test("render explains that a bilateral split parent may omit its target bone", () => {
+  const dom = elements();
+  renderLayerRigReview(
+    dom,
+    { disposition: "split", side: "bilateral" },
+    [{ id: "root" }],
+    { width: 100, height: 200 },
+  );
+  assert.match(dom.candidateBoneSelect.options[0].textContent, /可留空/);
 });
 
 
@@ -82,4 +96,82 @@ test("read rejects invalid role, coordinates, side, and unknown bone", () => {
   assert.ok(dom.semanticRoleInput.validity);
   assert.ok(dom.layerPivotXInput.validity);
   assert.ok(dom.candidateBoneSelect.validity);
+});
+
+
+test("read omits the target bone for a bilateral split parent", () => {
+  for (const disposition of ["split", "split_left_right"]) {
+    const dom = elements();
+    dom.semanticSideSelect.value = "bilateral";
+    dom.layerPivotXInput.value = "12.5";
+    dom.layerPivotYInput.value = "30";
+    dom.candidateBoneSelect.value = "";
+    assert.deepEqual(
+      readLayerRigReview(dom, { width: 100, height: 200 }, new Set(["root"]), disposition),
+      {
+        canonical_role: "body.arm.lower",
+        side: "bilateral",
+        pivot_xy: [12.5, 30],
+      },
+    );
+    assert.equal(dom.candidateBoneSelect.validity, "");
+  }
+});
+
+
+test("keep and exclude reviews still require an existing target bone", () => {
+  for (const disposition of ["keep", "exclude"]) {
+    const dom = elements();
+    dom.semanticSideSelect.value = "bilateral";
+    dom.layerPivotXInput.value = "12.5";
+    dom.layerPivotYInput.value = "30";
+    assert.equal(
+      readLayerRigReview(dom, { width: 100, height: 200 }, new Set(["root"]), disposition),
+      null,
+    );
+    assert.equal(dom.candidateBoneSelect.validity, "请选择现有目标骨");
+  }
+});
+
+
+test("a one-sided split still requires a parent target bone", () => {
+  const dom = elements();
+  dom.layerPivotXInput.value = "12.5";
+  dom.layerPivotYInput.value = "30";
+  assert.equal(
+    readLayerRigReview(dom, { width: 100, height: 200 }, new Set(["root"]), "split"),
+    null,
+  );
+  assert.equal(dom.candidateBoneSelect.validity, "请选择现有目标骨");
+});
+
+
+test("a split review still rejects a non-empty unknown target bone", () => {
+  const dom = elements();
+  dom.semanticSideSelect.value = "bilateral";
+  dom.layerPivotXInput.value = "12.5";
+  dom.layerPivotYInput.value = "30";
+  dom.candidateBoneSelect.value = "missing";
+  assert.equal(
+    readLayerRigReview(dom, { width: 100, height: 200 }, new Set(["root"]), "split"),
+    null,
+  );
+  assert.equal(dom.candidateBoneSelect.validity, "请选择现有目标骨");
+});
+
+
+test("applying an unbound split patch removes an earlier parent bone", () => {
+  const override = { candidate_bone: "upper", notes: "preserve" };
+  const result = applyLayerRigReviewPatch(override, {
+    canonical_role: "body.arm",
+    side: "bilateral",
+    pivot_xy: [12.5, 30],
+  });
+  assert.equal(result, override);
+  assert.deepEqual(override, {
+    canonical_role: "body.arm",
+    side: "bilateral",
+    pivot_xy: [12.5, 30],
+    notes: "preserve",
+  });
 });
