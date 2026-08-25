@@ -11,13 +11,8 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import unquote, urlsplit
 
-from . import __version__
 from .analysis_routes import dispatch_analysis_artifact_get
-from .contracts import (
-    ContractValidationError,
-    PROJECT_LIST_SCHEMA_VERSION,
-    contract_descriptor,
-)
+from .contracts import ContractValidationError
 from .http_security import (
     allowed_origin as _allowed_origin,
     host_header_is_local as _host_header_is_local,
@@ -30,6 +25,8 @@ from .project_store import (
     ProjectStoreError,
     RevisionConflictError,
 )
+from .project_routes import dispatch_project_get
+from .split_preview_routes import dispatch_split_preview_get
 
 
 MAX_REQUEST_BODY = 1024 * 1024
@@ -142,73 +139,20 @@ def _handler_factory(store: ProjectStore, web_root: Path | None) -> type[BaseHTT
             return parts
 
         def _dispatch_api_get(self, parts: list[str]) -> bool:
-            if parts == ["api", "health"]:
-                projects = store.list_projects()
-                self._send_json(
-                    HTTPStatus.OK,
-                    {
-                        "status": "ok",
-                        "service": "autospine-workbench",
-                        "version": __version__,
-                        "project_count": len(projects),
-                    },
-                )
+            if dispatch_project_get(parts, store, self._send_json, self._send_file):
                 return True
-            if parts == ["api", "projects"]:
-                projects = store.list_projects()
-                self._send_json(
-                    HTTPStatus.OK,
-                    {
-                        "schema_version": PROJECT_LIST_SCHEMA_VERSION,
-                        "contract": contract_descriptor("project-list"),
-                        "count": len(projects),
-                        "projects": projects,
-                    },
-                )
+            if dispatch_analysis_artifact_get(
+                parts, store, self._send_json, self._send_error_json
+            ):
                 return True
-            if parts == ["api", "validate"]:
-                projects = store.list_projects()
-                reports = [store.validate_project(item["id"]) for item in projects]
-                self._send_json(
-                    HTTPStatus.OK,
-                    {
-                        "schema_version": "autospine-workbench.validation-list/v1",
-                        "valid": all(report["valid"] for report in reports),
-                        "reports": reports,
-                    },
-                )
+            if dispatch_split_preview_get(
+                parts,
+                store,
+                self._send_json,
+                self._send_error_json,
+                self._send_file,
+            ):
                 return True
-            if dispatch_analysis_artifact_get(parts, store, self._send_json, self._send_error_json):
-                return True
-            if len(parts) >= 3 and parts[:2] == ["api", "projects"]:
-                project_id = parts[2]
-                if len(parts) == 3:
-                    self._send_json(HTTPStatus.OK, store.get_project(project_id))
-                    return True
-                if len(parts) == 4 and parts[3] == "validate":
-                    self._send_json(HTTPStatus.OK, store.validate_project(project_id))
-                    return True
-                if len(parts) == 4 and parts[3] == "overrides":
-                    self._send_json(
-                        HTTPStatus.OK, store.get_project(project_id)["overrides"]
-                    )
-                    return True
-                if len(parts) == 4 and parts[3] in {
-                    "composite",
-                    "composite.png",
-                    "embedded-composite",
-                    "contact-sheet",
-                }:
-                    asset = "composite" if parts[3] == "composite.png" else parts[3]
-                    self._send_file(store.resolve_asset(project_id, asset))
-                    return True
-                if (
-                    len(parts) == 6
-                    and parts[3] == "layers"
-                    and parts[5] in {"image", "image.png"}
-                ):
-                    self._send_file(store.resolve_asset(project_id, "layer", parts[4]))
-                    return True
             return False
 
         def _serve_static(self, parts: list[str]) -> bool:
