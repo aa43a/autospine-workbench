@@ -125,17 +125,20 @@ def validate_project_document(
                 "message": "Skeleton ids, endpoints, or bounds are invalid.",
             }
         )
-    unresolved_low_confidence = [
-        joint
-        for joint in joints
-        if joint["confidence"] < 0.5 and joint.get("review_state") == "unreviewed"
-    ]
-    if unresolved_low_confidence:
+    resolved_qa = project.get("resolved_qa") or {}
+    unresolved_joint_ids = resolved_qa.get("unresolved_joint_ids")
+    if not isinstance(unresolved_joint_ids, list):
+        unresolved_joint_ids = [
+            joint["id"]
+            for joint in joints
+            if joint["confidence"] < 0.5 and joint.get("review_state") == "unreviewed"
+        ]
+    if unresolved_joint_ids:
         warnings.append(
             {
                 "path": "$.skeleton.joints",
-                "code": "low_confidence_joints",
-                "message": f"{len(unresolved_low_confidence)} heuristic joints need review.",
+                "code": "unresolved_joints",
+                "message": f"{len(unresolved_joint_ids)} heuristic joints need review.",
             }
         )
 

@@ -33,7 +33,6 @@ _PROJECT_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 _IMAGE_SUFFIXES = frozenset({".png", ".jpg", ".jpeg", ".webp"})
 _MAX_AUDIT_BYTES = 64 * 1024 * 1024
 
-
 class ProjectStoreError(RuntimeError):
     """Base error for project discovery and persistence."""
 
@@ -774,6 +773,7 @@ class ProjectStore:
             resolved = ResolvedProjectBuilder().build(project, overrides)
             project["layers"] = resolved["layers"]
             project["skeleton"] = resolved["skeleton"]
+            project["resolved_qa"] = resolved["qa"]
             checks.append({"id": "overrides", "status": "pass", "revision": revision})
         except ProjectStateError as exc:
             checks.append({"id": "overrides", "status": "fail"})

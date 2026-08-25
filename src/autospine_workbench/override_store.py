@@ -15,6 +15,7 @@ import threading
 from pathlib import Path
 from typing import Any, Mapping
 
+from .candidate_decisions import CandidateDecisionBinder, CandidateDecisionError
 from .contracts import (
     ContractValidationError,
     OVERRIDE_SCHEMA_VERSION,
@@ -52,6 +53,7 @@ class OverrideHistoryStore:
 
     def __init__(self, state_root: Path):
         self._root = Path(state_root) / "overrides"
+        self._decision_binder = CandidateDecisionBinder(state_root)
         self._lock = threading.RLock()
 
     def load(
@@ -126,6 +128,18 @@ class OverrideHistoryStore:
             if requested_revision != current["revision"]:
                 raise OverrideRevisionConflict(requested_revision, current["revision"])
 
+            try:
+                normalized["joint_decisions"] = self._decision_binder.bind(
+                    project_id,
+                    normalized["joint_decisions"],
+                    joint_ids=joint_ids,
+                    layer_ids=layer_ids,
+                    canvas_width=canvas_width,
+                    canvas_height=canvas_height,
+                )
+            except CandidateDecisionError as exc:
+                raise ContractValidationError(exc.as_validation_issues()) from exc
+
             normalized["revision"] = current["revision"] + 1
             project_dir = self._project_dir(project_id)
             history_dir = project_dir / "history"
@@ -193,9 +207,13 @@ class OverrideHistoryStore:
             if path.stat().st_size > _MAX_OVERRIDE_BYTES:
                 raise OverrideStateError(f"Override document is too large: {path.name}")
             with path.open("r", encoding="utf-8") as handle:
-                raw = json.load(handle)
+                raw = json.load(handle, object_pairs_hook=_unique_object)
         except OverrideStateError:
             raise
+        except _DuplicateJsonKey as exc:
+            raise OverrideStateError(
+                f"Override document contains duplicate field {exc}: {path.name}"
+            ) from exc
         except (OSError, UnicodeError, json.JSONDecodeError) as exc:
             raise OverrideStateError(f"Cannot read override document: {path.name}") from exc
         if not isinstance(raw, Mapping):
@@ -210,6 +228,7 @@ class OverrideHistoryStore:
             "schema_version": raw.get("schema_version", OVERRIDE_SCHEMA_VERSION),
             "base_revision": revision,
             "joint_overrides": raw.get("joint_overrides", {}),
+            "joint_decisions": raw.get("joint_decisions", {}),
             "layer_overrides": raw.get("layer_overrides", {}),
             "notes": raw.get("notes", ""),
         }
@@ -222,9 +241,22 @@ class OverrideHistoryStore:
                 layer_ids=layer_ids,
                 canvas_width=canvas_width,
                 canvas_height=canvas_height,
+                stored=True,
             )
         except ContractValidationError as exc:
             raise OverrideStateError(f"Stored overrides are invalid: {exc}") from exc
+        try:
+            normalized["joint_decisions"] = self._decision_binder.bind(
+                project_id,
+                normalized["joint_decisions"],
+                joint_ids=joint_ids,
+                layer_ids=layer_ids,
+                canvas_width=canvas_width,
+                canvas_height=canvas_height,
+                stored=True,
+            )
+        except CandidateDecisionError as exc:
+            raise OverrideStateError(f"Stored candidate decisions are invalid: {exc}") from exc
         normalized["revision"] = revision
         return normalized
 
@@ -325,3 +357,16 @@ class OverrideHistoryStore:
     def _validate_project_id(project_id: str) -> None:
         if not _PROJECT_ID_RE.fullmatch(project_id):
             raise OverrideStateError("Invalid project id for override storage")
+
+
+class _DuplicateJsonKey(ValueError):
+    pass
+
+
+def _unique_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise _DuplicateJsonKey(key)
+        result[key] = value
+    return result

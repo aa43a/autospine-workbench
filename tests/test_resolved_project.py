@@ -36,6 +36,7 @@ def project_fixture() -> dict:
             }
         ],
         "skeleton": {
+            "generation": {"method": "fixture", "requires_review": False},
             "joints": [
                 {"id": "elbow.left", "x": 20, "y": 30, "confidence": 0.2},
                 {"id": "head", "x": 50, "y": 20, "confidence": 0.9},
@@ -101,6 +102,77 @@ class ResolvedProjectBuilderTests(unittest.TestCase):
         changed = override_fixture()
         changed["revision"] = 4
         self.assertNotEqual(first["sha256"], builder.build(project_fixture(), changed)["sha256"])
+
+    def test_candidate_actions_are_distinct_and_analysis_is_hashed(self) -> None:
+        overrides = {"revision": 5, "joint_decisions": {}}
+        analysis = {
+            "provider": "fixture-provider",
+            "provider_version": "2",
+            "input_sha256": "1" * 64,
+            "config_sha256": "2" * 64,
+            "run_sha256": "3" * 64,
+        }
+        overrides["joint_decisions"] = {
+            "elbow.left": {
+                "action": "accept",
+                "candidate_artifact_sha256": "4" * 64,
+                "candidate_id": "elbow.left.pose.fixture",
+                "final_xy": [27.0, 39.0],
+                "analysis": analysis,
+            },
+            "head": {
+                "action": "unobservable",
+                "candidate_artifact_sha256": "4" * 64,
+                "reason": "covered by hair",
+                "analysis": analysis,
+            },
+        }
+        snapshot = ResolvedProjectBuilder().build(project_fixture(), overrides)
+        joints = {item["id"]: item for item in snapshot["skeleton"]["joints"]}
+        self.assertEqual((27.0, 39.0), (joints["elbow.left"]["x"], joints["elbow.left"]["y"]))
+        self.assertEqual("candidate_accepted", joints["elbow.left"]["review_state"])
+        self.assertEqual("unobservable", joints["head"]["review_state"])
+        self.assertEqual([], snapshot["qa"]["unresolved_joint_ids"])
+        self.assertEqual(["head"], snapshot["qa"]["unobservable_joint_ids"])
+        self.assertEqual("4" * 64, snapshot["inputs"]["candidate_analyses"][0]["candidate_artifact_sha256"])
+
+        changed = deepcopy(overrides)
+        changed["joint_decisions"]["elbow.left"]["analysis"]["provider_version"] = "3"
+        self.assertNotEqual(
+            snapshot["sha256"],
+            ResolvedProjectBuilder().build(project_fixture(), changed)["sha256"],
+        )
+
+    def test_rejected_and_required_review_joints_cannot_be_ready(self) -> None:
+        project = project_fixture()
+        project["skeleton"]["generation"]["requires_review"] = True
+        snapshot = ResolvedProjectBuilder().build(project, {"revision": 0})
+        self.assertEqual(["elbow.left", "head"], snapshot["qa"]["unresolved_joint_ids"])
+
+        analysis = {
+            "provider": "fixture-provider",
+            "provider_version": "2",
+            "input_sha256": "1" * 64,
+            "config_sha256": "2" * 64,
+            "run_sha256": "3" * 64,
+        }
+        rejected = {
+            "revision": 1,
+            "joint_overrides": {"head": {"x": 50, "y": 20}},
+            "joint_decisions": {
+                "elbow.left": {
+                    "action": "reject",
+                    "candidate_artifact_sha256": "4" * 64,
+                    "candidate_id": "elbow.left.pose.fixture",
+                    "reason": "wrong elbow",
+                    "analysis": analysis,
+                }
+            },
+        }
+        snapshot = ResolvedProjectBuilder().build(project, rejected)
+        self.assertEqual(["elbow.left"], snapshot["qa"]["rejected_joint_ids"])
+        self.assertEqual(["elbow.left"], snapshot["qa"]["unresolved_joint_ids"])
+        self.assertEqual("needs_review", snapshot["qa"]["status"])
 
 
 if __name__ == "__main__":

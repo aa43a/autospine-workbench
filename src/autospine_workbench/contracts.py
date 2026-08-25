@@ -17,7 +17,8 @@ from typing import Any, Mapping
 PROJECT_SCHEMA_VERSION = "autospine-workbench.project/v1"
 LAYER_SCHEMA_VERSION = "autospine-workbench.layer/v1"
 SKELETON_SCHEMA_VERSION = "autospine-workbench.skeleton/v1"
-OVERRIDE_SCHEMA_VERSION = "autospine-workbench.override/v1"
+OVERRIDE_SCHEMA_VERSION_V1 = "autospine-workbench.override/v1"
+OVERRIDE_SCHEMA_VERSION = "autospine-workbench.override/v2"
 PROJECT_LIST_SCHEMA_VERSION = "autospine-workbench.project-list/v1"
 VALIDATION_SCHEMA_VERSION = "autospine-workbench.validation/v1"
 
@@ -83,10 +84,11 @@ def empty_overrides(project_id: str) -> dict[str, Any]:
 
     return {
         "schema_version": OVERRIDE_SCHEMA_VERSION,
-        "contract": contract_descriptor("override"),
+        "contract": contract_descriptor("override", 2),
         "project_id": project_id,
         "revision": 0,
         "joint_overrides": {},
+        "joint_decisions": {},
         "layer_overrides": {},
         "notes": "",
     }
@@ -155,6 +157,7 @@ def normalize_override_request(
     layer_ids: set[str],
     canvas_width: int,
     canvas_height: int,
+    stored: bool = False,
 ) -> tuple[int, dict[str, Any]]:
     """Validate and normalize a PUT override request.
 
@@ -172,6 +175,7 @@ def normalize_override_request(
         "base_revision",
         "revision",
         "joint_overrides",
+        "joint_decisions",
         "layer_overrides",
         "notes",
         "joints",
@@ -181,11 +185,12 @@ def normalize_override_request(
     _unknown_fields(root, allowed_root, "$", issues)
 
     schema_version = root.get("schema_version")
-    if schema_version is not None and schema_version != OVERRIDE_SCHEMA_VERSION:
+    supported_versions = {OVERRIDE_SCHEMA_VERSION_V1, OVERRIDE_SCHEMA_VERSION}
+    if schema_version is not None and schema_version not in supported_versions:
         issues.append(
             ValidationIssue(
                 "$.schema_version",
-                f"must equal {OVERRIDE_SCHEMA_VERSION!r}",
+                f"must be one of {sorted(supported_versions)!r}",
                 "version",
             )
         )
@@ -250,6 +255,34 @@ def normalize_override_request(
                 override["reason"], f"{path}.reason", issues, MAX_REASON_LENGTH
             )
         normalized_joints[joint_id] = item
+
+    from .decision_contracts import normalize_joint_decisions
+
+    raw_joint_decisions = root.get("joint_decisions", {})
+    if schema_version == OVERRIDE_SCHEMA_VERSION_V1 and raw_joint_decisions:
+        issues.append(
+            ValidationIssue(
+                "$.joint_decisions",
+                "override/v1 cannot contain candidate-backed decisions",
+                "version",
+            )
+        )
+    normalized_decisions = normalize_joint_decisions(
+        raw_joint_decisions,
+        joint_ids=joint_ids,
+        canvas_width=canvas_width,
+        canvas_height=canvas_height,
+        issues=issues,
+        stored=stored,
+    )
+    for joint_id in sorted(set(normalized_joints) & set(normalized_decisions)):
+        issues.append(
+            ValidationIssue(
+                f"$.joint_decisions.{joint_id}",
+                "cannot coexist with a manual joint override for the same joint",
+                "conflict",
+            )
+        )
 
     raw_layer_overrides = root.get("layer_overrides", root.get("layers", {}))
     layer_overrides = _expect_mapping(raw_layer_overrides, "$.layer_overrides", issues)
@@ -344,12 +377,12 @@ def normalize_override_request(
 
     normalized = {
         "schema_version": OVERRIDE_SCHEMA_VERSION,
-        "contract": contract_descriptor("override"),
+        "contract": contract_descriptor("override", 2),
         "project_id": project_id,
         "revision": current_revision,
         "joint_overrides": normalized_joints,
+        "joint_decisions": normalized_decisions,
         "layer_overrides": normalized_layers,
         "notes": notes,
     }
     return int(base_revision), normalized
-
