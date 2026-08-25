@@ -138,6 +138,17 @@ class PoseImportCommandTests(unittest.TestCase):
         )
         self.assertEqual("unknown", parsed.view_orientation)
 
+    def test_analyze_cli_exposes_pose_geometry_provider(self) -> None:
+        parsed = build_parser().parse_args([
+            "analyze-joints",
+            "fixture-project",
+            "--provider",
+            "pose-geometry",
+            "--pose-observations",
+            "pose.json",
+        ])
+        self.assertEqual("pose-geometry", parsed.provider)
+
 
 class PoseEvaluationCommandTests(unittest.TestCase):
     def setUp(self) -> None:

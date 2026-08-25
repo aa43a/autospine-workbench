@@ -9,13 +9,23 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from .artifact_store import ArtifactStoreError, ImmutableJsonArtifactStore
+from .alpha_evidence_validation import (
+    AlphaEvidenceValidationError,
+    require_valid_alpha_geometry_evidence,
+)
+from .artifact_store import (
+    ArtifactStoreError,
+    ImmutableJsonArtifactStore,
+    PublishedArtifact,
+)
 from .candidate_provenance import sha256_file
 from .candidate_validation import CandidateValidationError, require_valid_candidate_document
 from .coco17_adapter import Coco17AdapterError, adapt_coco17_detections
 from .coco17_detections import Coco17DetectionError, load_coco17_detections
+from .geometry_candidate_binding import require_geometry_candidate_binding
 from .joint_candidates import AuditBBoxHeuristicProvider
 from .limb_candidates import LimbCandidateError, PoseAlphaLimbProvider
+from .pose_geometry_limb_provider import PoseGeometryLimbBundle, PoseGeometryLimbProvider
 from .pose_evaluation import PoseEvaluationError, evaluate_pose
 from .pose_observations import PoseObservationError, load_pose_observations
 from .project_store import ProjectStore, ProjectStoreError
@@ -30,19 +40,24 @@ def analyze_joints(
     pose_path: Path | None = None,
     alpha_threshold: int = 8,
 ) -> int:
-    """Publish one validated, content-addressed joint-candidate document."""
+    """Validate and publish a provenance-ordered joint-analysis artifact chain."""
 
     try:
         pose_document = None
         store = ProjectStore(workspace, state_root=state_root)
         project = store.get_project(project_id)
+        geometry_document = None
         if provider_name == "audit-bbox":
             if pose_path is not None:
-                raise ValueError("--pose-observations is only valid with --provider pose-alpha")
+                raise ValueError(
+                    "--pose-observations is only valid with --provider pose-alpha or pose-geometry"
+                )
             provider = AuditBBoxHeuristicProvider()
-        elif provider_name == "pose-alpha":
+        elif provider_name in {"pose-alpha", "pose-geometry"}:
             if pose_path is None:
-                raise ValueError("--provider pose-alpha requires --pose-observations")
+                raise ValueError(
+                    f"--provider {provider_name} requires --pose-observations"
+                )
             composite = store.resolve_asset(project_id, "composite")
             observations = load_pose_observations(
                 pose_path,
@@ -55,31 +70,68 @@ def analyze_joints(
                 layer["id"]: store.resolve_asset(project_id, "layer", layer["id"])
                 for layer in project["layers"]
             }
-            provider = PoseAlphaLimbProvider(
-                layer_assets,
-                observations,
-                alpha_threshold=alpha_threshold,
+            provider_class = (
+                PoseGeometryLimbProvider
+                if provider_name == "pose-geometry"
+                else PoseAlphaLimbProvider
             )
+            provider = provider_class(layer_assets, observations, alpha_threshold=alpha_threshold)
         else:
             raise ValueError("Unknown joint candidate provider")
-        document = provider.analyze(project)
+        result = provider.analyze(project)
+        if isinstance(result, PoseGeometryLimbBundle):
+            geometry_document = result.geometry_document
+            document = result.joint_candidate_document
+        else:
+            document = result
+        joint_ids = {item["id"] for item in project["skeleton"]["joints"]}
+        layer_ids = {item["id"] for item in project["layers"]}
+        validation_context = {
+            "joint_ids": joint_ids,
+            "layer_ids": layer_ids,
+            "canvas_width": project["canvas"]["width"],
+            "canvas_height": project["canvas"]["height"],
+        }
+        geometry_digest = None
+        if geometry_document is not None:
+            require_valid_alpha_geometry_evidence(
+                geometry_document,
+                project_id=project_id,
+                **validation_context,
+            )
         require_valid_candidate_document(
             document,
-            joint_ids={item["id"] for item in project["skeleton"]["joints"]},
-            layer_ids={item["id"] for item in project["layers"]},
-            canvas_width=project["canvas"]["width"],
-            canvas_height=project["canvas"]["height"],
+            **validation_context,
         )
+        if geometry_document is not None:
+            geometry_digest = require_geometry_candidate_binding(
+                document, geometry_document
+            )
         artifact_store = ImmutableJsonArtifactStore(state_root)
         pose_published = (
             artifact_store.publish("pose-observations", project_id, pose_document)
             if pose_document is not None
             else None
         )
+        if pose_published is not None and pose_published.sha256 != observations.document_sha256:
+            raise ArtifactStoreError("Published pose observation identity changed")
+        geometry_published = (
+            artifact_store.publish(
+                "alpha-geometry-evidence", project_id, geometry_document
+            )
+            if geometry_document is not None
+            else None
+        )
+        if (
+            geometry_published is not None
+            and geometry_published.sha256 != geometry_digest
+        ):
+            raise ArtifactStoreError("Published geometry evidence identity changed")
         published = artifact_store.publish("joint-candidates", project_id, document)
     except (
         ProjectStoreError,
         ArtifactStoreError,
+        AlphaEvidenceValidationError,
         CandidateValidationError,
         PoseObservationError,
         LimbCandidateError,
@@ -95,12 +147,26 @@ def analyze_joints(
         "analysis_run_sha256": document["analysis"]["run_sha256"],
         "artifact_sha256": published.sha256,
         "artifact_path": str(published.path),
+        "joint_candidate_artifact_sha256": published.sha256,
+        "joint_candidate_artifact_path": str(published.path),
     }
+    artifacts: dict[str, dict[str, str]] = {}
     if pose_published is not None:
         response["pose_artifact_sha256"] = pose_published.sha256
         response["pose_artifact_path"] = str(pose_published.path)
+        artifacts["pose_observations"] = _artifact_identity(pose_published)
+    if geometry_published is not None:
+        response["geometry_artifact_sha256"] = geometry_published.sha256
+        response["geometry_artifact_path"] = str(geometry_published.path)
+        artifacts["alpha_geometry_evidence"] = _artifact_identity(geometry_published)
+    artifacts["joint_candidates"] = _artifact_identity(published)
+    response["artifacts"] = artifacts
     print(json.dumps(response, ensure_ascii=False, indent=2))
     return 0
+
+
+def _artifact_identity(published: PublishedArtifact) -> dict[str, str]:
+    return {"sha256": published.sha256, "path": str(published.path)}
 
 
 def import_pose(

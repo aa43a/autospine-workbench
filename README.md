@@ -198,6 +198,19 @@ python -m autospine_workbench analyze-joints seethrough_output `
   --alpha-threshold 8
 ```
 
+需要同时发布可回看的中轴线/接触证据时，改用 `pose-geometry`。命令会先校验三份文档，再按 pose → geometry → candidates 的 provenance 顺序发布：
+
+```powershell
+python -m autospine_workbench analyze-joints seethrough_output `
+  --workspace .. `
+  --state-root .\workspace `
+  --provider pose-geometry `
+  --pose-observations .\inputs\seethrough_output.pose.json `
+  --alpha-threshold 8
+```
+
+每个 artifact 都由现有存储原子写入；若某一步发布失败，已发布的上游不可变 artifact 可复用，但不会继续发布下游。这是 provenance-safe 顺序，不是跨三个目录的事务。
+
 用当前人工复核关节生成诊断误差报告：
 
 ```powershell
@@ -223,7 +236,7 @@ python -m autospine_workbench materialize-manifest seethrough_output `
 python -m autospine_workbench validate-rig .\path\to\rig.json
 ```
 
-raw COCO17、canonical pose、评估报告和候选分别写入 `pose-adapter-inputs/`、`pose-observations/`、`pose-evaluations/` 和 `joint-candidates/`；manifest bundle 写入 `workspace/builds/layer-manifest/<project-id>/<sha256>/`。路径中的哈希来自 canonical 内容，相同输入不会产生相互覆盖的可变结果。`audit-bbox-heuristic` 和 `pose-alpha-limb-fusion` 都只输出 `heuristic_score`，不是经过标定的概率或模型置信度；后者始终保留原始 pose，并把 alpha 作为有限幅度的软证据。评估报告固定为 `diagnostic`，不内置合格阈值或自动左右修复。
+raw COCO17、canonical pose、几何证据、评估报告和候选分别写入 `pose-adapter-inputs/`、`pose-observations/`、`alpha-geometry-evidence/`、`pose-evaluations/` 和 `joint-candidates/`；manifest bundle 写入 `workspace/builds/layer-manifest/<project-id>/<sha256>/`。路径中的哈希来自 canonical 内容，相同输入不会产生相互覆盖的可变结果。`audit-bbox-heuristic`、`pose-alpha-limb-fusion` 和 `pose-alpha-geometry-limb` 都只输出 `heuristic_score`，不是经过标定的概率或模型置信度；pose provider 始终保留原始 pose，并把 alpha 作为有限幅度的软证据。评估报告固定为 `diagnostic`，不内置合格阈值或自动左右修复。
 
 ## HTTP API
 

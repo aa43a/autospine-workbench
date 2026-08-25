@@ -72,14 +72,17 @@ def build_parser() -> argparse.ArgumentParser:
     )
     analyze.add_argument(
         "--provider",
-        choices=("audit-bbox", "pose-alpha"),
+        choices=("audit-bbox", "pose-alpha", "pose-geometry"),
         default="audit-bbox",
-        help="Candidate provider (default: audit-bbox)",
+        help=(
+            "Candidate provider: audit-bbox, pose-alpha, or geometry-bound "
+            "pose-geometry (default: audit-bbox)"
+        ),
     )
     analyze.add_argument(
         "--pose-observations",
         type=Path,
-        help="Canonical pose-observations-v1 JSON; required by pose-alpha",
+        help="Canonical pose-observations v1/v2 JSON; required by pose providers",
     )
     analyze.add_argument(
         "--alpha-threshold",
