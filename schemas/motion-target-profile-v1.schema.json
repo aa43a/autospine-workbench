@@ -1,0 +1,242 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/motion-target-profile-v1.schema.json",
+  "title": "AutoSpine P5 motion target profile v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "project_id", "source", "target_space",
+    "generator", "bones", "ik_handles", "body_frame", "reference_length",
+    "mesh_evidence"
+  ],
+  "properties": {
+    "format": {"const": "autospine-motion-target-profile"},
+    "format_version": {"const": 1},
+    "project_id": {"$ref": "#/$defs/id"},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["p4_profile_sha256", "p4_probes_sha256", "p4_bundle_sha256", "p3"],
+      "properties": {
+        "p4_profile_sha256": {"$ref": "#/$defs/sha256"},
+        "p4_probes_sha256": {"$ref": "#/$defs/sha256"},
+        "p4_bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "p3": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "base_rig_sha256", "base_bundle_sha256", "layer_manifest_sha256",
+            "resolved_project_sha256", "rig_sha256", "run_sha256",
+            "probes_sha256", "visuals_sha256", "bundle_sha256"
+          ],
+          "properties": {
+            "base_rig_sha256": {"$ref": "#/$defs/sha256"},
+            "base_bundle_sha256": {"$ref": "#/$defs/sha256"},
+            "layer_manifest_sha256": {"$ref": "#/$defs/sha256"},
+            "resolved_project_sha256": {"$ref": "#/$defs/sha256"},
+            "rig_sha256": {"$ref": "#/$defs/sha256"},
+            "run_sha256": {"$ref": "#/$defs/sha256"},
+            "probes_sha256": {"$ref": "#/$defs/sha256"},
+            "visuals_sha256": {"$ref": "#/$defs/sha256"},
+            "bundle_sha256": {"$ref": "#/$defs/sha256"}
+          }
+        }
+      }
+    },
+    "target_space": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["translation", "rotation", "scale", "canvas"],
+      "properties": {
+        "translation": {"const": "setup-local-pixel"},
+        "rotation": {"const": "setup-local-degree"},
+        "scale": {"const": "positive-unit-only"},
+        "canvas": {"$ref": "#/$defs/canvas"}
+      }
+    },
+    "generator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version", "numeric_precision_decimals"],
+      "properties": {
+        "id": {"const": "motion-target-profile-compiler"},
+        "version": {"const": "1.0.0"},
+        "numeric_precision_decimals": {"const": 12}
+      }
+    },
+    "bones": {
+      "type": "array", "minItems": 17, "maxItems": 17,
+      "items": {"$ref": "#/$defs/bone"}
+    },
+    "ik_handles": {
+      "type": "array", "minItems": 4, "maxItems": 4,
+      "items": {"$ref": "#/$defs/handle"}
+    },
+    "body_frame": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method", "side_source", "screen_x_inference", "pelvis_xy",
+        "chest_xy", "shoulder_xy_by_side", "up_xy",
+        "left_outward_xy", "right_outward_xy"
+      ],
+      "properties": {
+        "method": {"const": "pelvis-chest-shoulder-gram-schmidt-v1"},
+        "side_source": {"const": "canonical-character-side"},
+        "screen_x_inference": {"const": false},
+        "pelvis_xy": {"$ref": "#/$defs/point"},
+        "chest_xy": {"$ref": "#/$defs/point"},
+        "shoulder_xy_by_side": {"$ref": "#/$defs/side_points"},
+        "up_xy": {"$ref": "#/$defs/point"},
+        "left_outward_xy": {"$ref": "#/$defs/point"},
+        "right_outward_xy": {"$ref": "#/$defs/point"}
+      }
+    },
+    "reference_length": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value_px", "method", "handle_ids"],
+      "properties": {
+        "value_px": {"type": "number", "exclusiveMinimum": 0},
+        "method": {"const": "mean-leg-maximum-kinematic-reach"},
+        "handle_ids": {"const": ["leg.left", "leg.right"]}
+      }
+    },
+    "mesh_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status", "summary", "rig_qa_status", "probes_status",
+        "visuals_status", "target_inventory"
+      ],
+      "properties": {
+        "status": {"enum": ["converted", "reviewed-noop"]},
+        "summary": {"type": "string"},
+        "rig_qa_status": {"const": "passed"},
+        "probes_status": {"const": "passed"},
+        "visuals_status": {"const": "passed"},
+        "target_inventory": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/mesh_target"}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string", "minLength": 1, "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "point": {
+      "type": "array", "minItems": 2, "maxItems": 2,
+      "prefixItems": [{"type": "number"}, {"type": "number"}]
+    },
+    "side_points": {
+      "type": "object", "additionalProperties": false,
+      "required": ["left", "right"],
+      "properties": {
+        "left": {"$ref": "#/$defs/point"},
+        "right": {"$ref": "#/$defs/point"}
+      }
+    },
+    "canvas": {
+      "type": "object", "additionalProperties": false,
+      "required": ["width", "height", "origin", "x_axis", "y_axis", "units"],
+      "properties": {
+        "width": {"type": "integer", "minimum": 1},
+        "height": {"type": "integer", "minimum": 1},
+        "origin": {"const": "top_left"},
+        "x_axis": {"const": "right"},
+        "y_axis": {"const": "down"},
+        "units": {"const": "pixel"}
+      }
+    },
+    "bone": {
+      "type": "object", "additionalProperties": false,
+      "required": ["role", "bone_id", "parent_bone_id", "setup_local"],
+      "properties": {
+        "role": {"$ref": "#/$defs/id"},
+        "bone_id": {"$ref": "#/$defs/id"},
+        "parent_bone_id": {"oneOf": [{"$ref": "#/$defs/id"}, {"type": "null"}]},
+        "setup_local": {
+          "type": "object", "additionalProperties": false,
+          "required": ["x", "y", "rotation_deg", "scale_x", "scale_y", "length_px"],
+          "properties": {
+            "x": {"type": "number"}, "y": {"type": "number"},
+            "rotation_deg": {"type": "number"},
+            "scale_x": {"const": 1.0}, "scale_y": {"const": 1.0},
+            "length_px": {"type": "number", "exclusiveMinimum": 0}
+          }
+        }
+      }
+    },
+    "handle": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "id", "limb", "side", "proximal_bone_id", "distal_bone_id",
+        "root_xy", "hinge_xy", "setup_effector_xy", "proximal_length_px",
+        "distal_length_px", "kinematic_reach", "setup_angles_deg",
+        "bend_direction", "bend_source", "fallback_direction"
+      ],
+      "properties": {
+        "id": {"enum": ["arm.left", "arm.right", "leg.left", "leg.right"]},
+        "limb": {"enum": ["arm", "leg"]},
+        "side": {"enum": ["left", "right"]},
+        "proximal_bone_id": {"$ref": "#/$defs/id"},
+        "distal_bone_id": {"$ref": "#/$defs/id"},
+        "root_xy": {"$ref": "#/$defs/point"},
+        "hinge_xy": {"$ref": "#/$defs/point"},
+        "setup_effector_xy": {"$ref": "#/$defs/point"},
+        "proximal_length_px": {"type": "number", "exclusiveMinimum": 0},
+        "distal_length_px": {"type": "number", "exclusiveMinimum": 0},
+        "kinematic_reach": {
+          "type": "object", "additionalProperties": false,
+          "required": ["minimum_px", "maximum_px"],
+          "properties": {
+            "minimum_px": {"type": "number", "minimum": 0},
+            "maximum_px": {"type": "number", "exclusiveMinimum": 0}
+          }
+        },
+        "setup_angles_deg": {
+          "type": "object", "additionalProperties": false,
+          "required": [
+            "proximal_parent_world", "proximal_world", "distal_world",
+            "proximal_local", "distal_local"
+          ],
+          "properties": {
+            "proximal_parent_world": {"type": "number"},
+            "proximal_world": {"type": "number"},
+            "distal_world": {"type": "number"},
+            "proximal_local": {"type": "number"},
+            "distal_local": {"type": "number"}
+          }
+        },
+        "bend_direction": {"enum": ["positive", "negative"]},
+        "bend_source": {"const": "setup.aim_cross_elbow"},
+        "fallback_direction": {
+          "type": "object", "additionalProperties": false,
+          "required": ["source", "xy"],
+          "properties": {
+            "source": {"const": "setup.root_to_effector"},
+            "xy": {"$ref": "#/$defs/point"}
+          }
+        }
+      }
+    },
+    "mesh_target": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "attachment_id", "source_layer_id", "side",
+        "proximal_bone_id", "distal_bone_id"
+      ],
+      "properties": {
+        "attachment_id": {"$ref": "#/$defs/id"},
+        "source_layer_id": {"$ref": "#/$defs/id"},
+        "side": {"enum": ["left", "right"]},
+        "proximal_bone_id": {"$ref": "#/$defs/id"},
+        "distal_bone_id": {"$ref": "#/$defs/id"}
+      }
+    }
+  }
+}
