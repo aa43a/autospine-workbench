@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/retarget-run-v1.schema.json",
+  "title": "AutoSpine MotionIR retarget provenance v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "run_identity_sha256",
+    "inputs", "compiler", "output"
+  ],
+  "properties": {
+    "format": {"const": "autospine-retarget-run"},
+    "format_version": {"type": "integer", "const": 1},
+    "run_identity_sha256": {"$ref": "#/$defs/sha256"},
+    "inputs": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "motion_ir_sha256", "motion_bundle_sha256", "motion_run_sha256",
+        "target_profile_sha256"
+      ],
+      "properties": {
+        "motion_ir_sha256": {"$ref": "#/$defs/sha256"},
+        "motion_bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "motion_run_sha256": {"$ref": "#/$defs/sha256"},
+        "target_profile_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "compiler": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "version", "config"],
+      "properties": {
+        "id": {"const": "setup-local-motion-retargeter"},
+        "version": {"const": "1.0.0"},
+        "config": {
+          "type": "object", "additionalProperties": false,
+          "required": [
+            "profile", "ik_solver_id", "ik_solver_version",
+            "ik_unreachable_policy", "rotation_conflict_policy",
+            "numeric_precision_decimals"
+          ],
+          "properties": {
+            "profile": {"const": "humanoid-setup-local-v1"},
+            "ik_solver_id": {"const": "autospine-two-bone-analytic"},
+            "ik_solver_version": {"const": "1.0.0"},
+            "ik_unreachable_policy": {"const": "reject"},
+            "rotation_conflict_policy": {"const": "reject"},
+            "numeric_precision_decimals": {"type": "integer", "const": 12}
+          }
+        }
+      }
+    },
+    "output": {
+      "type": "object", "additionalProperties": false,
+      "required": ["instance_sha256"],
+      "properties": {"instance_sha256": {"$ref": "#/$defs/sha256"}}
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}
