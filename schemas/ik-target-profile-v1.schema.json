@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/ik-target-profile-v1.schema.json",
+  "title": "AutoSpine P4 analytic two-bone IK target profile v1",
+  "description": "Four canonical rigid-chain handles bound to one exact verified P3 mesh bundle. kinematic_reach is bone-length reach, never P3 mesh visual safe range.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "format_version", "project_id", "source", "canvas", "solver", "handles"],
+  "properties": {
+    "format": {"const": "autospine-ik-target-profile"},
+    "format_version": {"const": 1},
+    "project_id": {"$ref": "#/$defs/id"},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "base_rig_sha256", "base_bundle_sha256", "layer_manifest_sha256",
+        "resolved_project_sha256", "rig_sha256", "run_sha256",
+        "probes_sha256", "visuals_sha256", "bundle_sha256"
+      ],
+      "properties": {
+        "base_rig_sha256": {"$ref": "#/$defs/sha256"},
+        "base_bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "layer_manifest_sha256": {"$ref": "#/$defs/sha256"},
+        "resolved_project_sha256": {"$ref": "#/$defs/sha256"},
+        "rig_sha256": {"$ref": "#/$defs/sha256"},
+        "run_sha256": {"$ref": "#/$defs/sha256"},
+        "probes_sha256": {"$ref": "#/$defs/sha256"},
+        "visuals_sha256": {"$ref": "#/$defs/sha256"},
+        "bundle_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "canvas": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["width", "height", "origin", "x_axis", "y_axis", "units"],
+      "properties": {
+        "width": {"type": "integer", "minimum": 1},
+        "height": {"type": "integer", "minimum": 1},
+        "origin": {"const": "top_left"},
+        "x_axis": {"const": "right"},
+        "y_axis": {"const": "down"},
+        "units": {"const": "pixel"}
+      }
+    },
+    "solver": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version", "config"],
+      "properties": {
+        "id": {"const": "autospine-two-bone-analytic"},
+        "version": {"const": "1.0.0"},
+        "config": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "rigid_chain_scale", "reach_policy", "kinematic_reach_semantics",
+            "bend_rule", "collinear_setup_policy", "setup_roundtrip_policy",
+            "numeric_precision_decimals", "position_tolerance_px",
+            "rotation_tolerance_deg", "collinear_sine_epsilon"
+          ],
+          "properties": {
+            "rigid_chain_scale": {"const": "positive-unit-only"},
+            "reach_policy": {"const": "clamp-to-kinematic-range"},
+            "kinematic_reach_semantics": {"const": "bone-length-only-not-mesh-visual-safe-range"},
+            "bend_rule": {"const": "sign(aim_cross_elbow)"},
+            "collinear_setup_policy": {"const": "reject"},
+            "setup_roundtrip_policy": {"const": "hinge-and-zero-local-delta"},
+            "numeric_precision_decimals": {"const": 12},
+            "position_tolerance_px": {"const": 1e-8},
+            "rotation_tolerance_deg": {"const": 1e-8},
+            "collinear_sine_epsilon": {"const": 1e-8}
+          }
+        }
+      }
+    },
+    "handles": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {"$ref": "#/$defs/handle"}
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "point": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "prefixItems": [{"type": "number"}, {"type": "number"}]
+    },
+    "handle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id", "limb", "side", "proximal_bone_id", "distal_bone_id",
+        "root_xy", "hinge_xy", "setup_effector_xy", "proximal_length_px",
+        "distal_length_px", "kinematic_reach", "setup_angles_deg",
+        "bend_direction", "bend_source", "fallback_direction"
+      ],
+      "properties": {
+        "id": {"enum": ["arm.left", "arm.right", "leg.left", "leg.right"]},
+        "limb": {"enum": ["arm", "leg"]},
+        "side": {"enum": ["left", "right"]},
+        "proximal_bone_id": {"$ref": "#/$defs/id"},
+        "distal_bone_id": {"$ref": "#/$defs/id"},
+        "root_xy": {"$ref": "#/$defs/point"},
+        "hinge_xy": {"$ref": "#/$defs/point"},
+        "setup_effector_xy": {"$ref": "#/$defs/point"},
+        "proximal_length_px": {"type": "number", "exclusiveMinimum": 0},
+        "distal_length_px": {"type": "number", "exclusiveMinimum": 0},
+        "kinematic_reach": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["minimum_px", "maximum_px"],
+          "properties": {
+            "minimum_px": {"type": "number", "minimum": 0},
+            "maximum_px": {"type": "number", "exclusiveMinimum": 0}
+          }
+        },
+        "setup_angles_deg": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["proximal_parent_world", "proximal_world", "distal_world", "proximal_local", "distal_local"],
+          "properties": {
+            "proximal_parent_world": {"type": "number"},
+            "proximal_world": {"type": "number"},
+            "distal_world": {"type": "number"},
+            "proximal_local": {"type": "number"},
+            "distal_local": {"type": "number"}
+          }
+        },
+        "bend_direction": {"enum": ["positive", "negative"]},
+        "bend_source": {"const": "setup.aim_cross_elbow"},
+        "fallback_direction": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["source", "xy"],
+          "properties": {
+            "source": {"const": "setup.root_to_effector"},
+            "xy": {"$ref": "#/$defs/point"}
+          }
+        }
+      }
+    }
+  }
+}
