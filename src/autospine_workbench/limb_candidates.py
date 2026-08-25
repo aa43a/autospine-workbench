@@ -6,10 +6,13 @@ import math
 from pathlib import Path
 from typing import Any, Mapping
 
-from .alpha_geometry import AlphaGeometry, AlphaHit, analyze_alpha_png
-from .candidate_provenance import candidate_run_identity, required_sha256, sha256_file
+from .candidate_provenance import candidate_run_identity, required_sha256
 from .limb_candidate_items import fallback_joint, pose_candidate, pose_score
-from .png_rgba import RgbaPngError
+from .limb_evidence_layers import (
+    LimbCandidateError,
+    LimbEvidenceSet,
+    load_limb_evidence,
+)
 from .pose_observations import PoseObservationSet, PoseJointObservation
 
 
@@ -18,18 +21,6 @@ _LIMB_JOINTS = frozenset(
     for joint in ("shoulder", "elbow", "wrist", "hip", "knee", "ankle")
     for side in ("left", "right")
 )
-_ROLE_TOKENS = {
-    "shoulder": ("arm", "hand"),
-    "elbow": ("arm", "hand"),
-    "wrist": ("arm", "hand"),
-    "hip": ("pelvis", "leg"),
-    "knee": ("leg",),
-    "ankle": ("leg", "foot"),
-}
-
-
-class LimbCandidateError(ValueError):
-    """Raised when alpha/pose evidence cannot be fused without guessing."""
 
 
 class PoseAlphaLimbProvider:
@@ -82,8 +73,12 @@ class PoseAlphaLimbProvider:
         source = project.get("source") or {}
         source_sha = required_sha256(source.get("sha256"), "source image")
         audit_sha = required_sha256(source.get("audit_sha256"), "audit")
-        layers = _effective_layers(project)
-        evidence_layers, geometries = self._load_evidence_layers(layers, (width, height))
+        evidence = load_limb_evidence(
+            project,
+            self.layer_assets,
+            (width, height),
+            self.config,
+        )
         run = candidate_run_identity(
             project,
             provider_id=self.provider_id,
@@ -91,12 +86,12 @@ class PoseAlphaLimbProvider:
             config=self.config,
             evidence_identity={
                 "pose_observations_sha256": self.observations.document_sha256,
-                "layers": evidence_layers,
+                "layers": list(evidence.identity_summaries),
             },
         )
         joints: dict[str, Any] = {}
         document_flags = {"FUSION_PROVIDER_REQUIRES_REVIEW", "HEURISTIC_SCORE_NOT_CALIBRATED"}
-        document_flags.update(_geometry_flags(evidence_layers, self.config))
+        document_flags.update(evidence.flags)
         skeleton_joints = (project.get("skeleton") or {}).get("joints", [])
         for joint in skeleton_joints:
             if not isinstance(joint, Mapping) or not isinstance(joint.get("id"), str):
@@ -113,8 +108,7 @@ class PoseAlphaLimbProvider:
             item, flags = self._fuse_joint(
                 joint_id,
                 observation,
-                layers,
-                geometries,
+                evidence,
                 run["run_sha256"],
                 math.hypot(width, height),
             )
@@ -148,66 +142,16 @@ class PoseAlphaLimbProvider:
             "qa": {"status": "manual_required", "flags": sorted(document_flags)},
         }
 
-    def _load_evidence_layers(
-        self,
-        layers: list[Mapping[str, Any]],
-        canvas_size: tuple[int, int],
-    ) -> tuple[list[dict[str, Any]], dict[str, AlphaGeometry]]:
-        evidence: list[dict[str, Any]] = []
-        geometries: dict[str, AlphaGeometry] = {}
-        for layer in layers:
-            layer_id = str(layer.get("id") or "")
-            role = str(layer.get("canonical_role") or "")
-            if not _is_limb_role(role) or _is_excluded(layer):
-                continue
-            asset = self.layer_assets.get(layer_id)
-            if asset is None or not asset.is_file():
-                raise LimbCandidateError(f"Limb layer asset is missing: {layer_id}")
-            bbox = layer.get("bbox") or {}
-            offset = (int(bbox.get("x", 0)), int(bbox.get("y", 0)))
-            try:
-                geometry = analyze_alpha_png(
-                    asset,
-                    canvas_offset_xy=offset,
-                    threshold=int(self.config["alpha_threshold"]),
-                )
-                if (geometry.width, geometry.height) == canvas_size:
-                    geometry = analyze_alpha_png(
-                        asset,
-                        canvas_offset_xy=(0, 0),
-                        threshold=int(self.config["alpha_threshold"]),
-                    )
-            except RgbaPngError as exc:
-                raise LimbCandidateError(f"Cannot decode limb layer: {layer_id}") from exc
-            bbox_size = (int(bbox.get("width", 0)), int(bbox.get("height", 0)))
-            if (geometry.width, geometry.height) not in {canvas_size, bbox_size}:
-                raise LimbCandidateError(f"Limb layer dimensions do not match bbox: {layer_id}")
-            digest = sha256_file(asset, "limb layer asset")
-            geometries[layer_id] = geometry
-            evidence.append(
-                {
-                    "layer_id": layer_id,
-                    "asset_sha256": digest,
-                    "canonical_role": role,
-                    "side": str(layer.get("side") or "unknown"),
-                    "bbox": dict(bbox),
-                    "foreground_area": geometry.foreground_area,
-                    "component_areas": [item.area for item in geometry.components],
-                }
-            )
-        return sorted(evidence, key=lambda item: item["layer_id"]), geometries
-
     def _fuse_joint(
         self,
         joint_id: str,
         observation: PoseJointObservation,
-        layers: list[Mapping[str, Any]],
-        geometries: Mapping[str, AlphaGeometry],
+        evidence: LimbEvidenceSet,
         run_sha: str,
         canvas_diagonal: float,
     ) -> tuple[dict[str, Any], set[str]]:
         joint_name, side = joint_id.split(".", 1)
-        layer_by_id = {str(layer.get("id")): layer for layer in layers}
+        layer_by_id = evidence.layers_by_id
         flags = {"SIDE_CONVENTION_AMBIGUOUS"}
         score = pose_score(observation)
         pose_flags = {"DETECTOR_SCORE_NOT_CALIBRATED"}
@@ -221,11 +165,10 @@ class PoseAlphaLimbProvider:
             self.observations.document_sha256,
             pose_flags,
         )
-        hits, empty_layers = self._alpha_hits(
-            joint_name,
-            observation,
-            layer_by_id,
-            geometries,
+        hits, empty_layers = evidence.alpha_hits(
+            joint_name, observation.x, observation.y,
+            component_min_area=int(self.config["component_min_area"]),
+            component_min_ratio=float(self.config["component_min_ratio"]),
         )
         if empty_layers:
             flags.add("EMPTY_LIMB_LAYER")
@@ -237,8 +180,10 @@ class PoseAlphaLimbProvider:
         hit, layer_id = min(hits, key=lambda item: (item[0].distance_px, item[1]))
         selected_layer = layer_by_id[layer_id]
         selected_role = str(selected_layer.get("canonical_role") or "")
-        pelvis_only = joint_name == "hip" and "pelvis" in selected_role and not any(
-            "leg" in str(layer_by_id[item].get("canonical_role") or "") for item in geometries
+        pelvis_only = (
+            joint_name == "hip"
+            and "pelvis" in selected_role
+            and not evidence.has_geometry_role_token("leg")
         )
         if pelvis_only:
             flags.add("OCCLUDED_JOINT")
@@ -303,74 +248,3 @@ class PoseAlphaLimbProvider:
             "observability": "visible" if visible else ("occluded" if pelvis_only else "ambiguous"),
             "candidates": [candidate, raw_candidate],
         }, fused_flags
-
-    def _alpha_hits(
-        self,
-        joint_name: str,
-        observation: PoseJointObservation,
-        layer_by_id: Mapping[str, Mapping[str, Any]],
-        geometries: Mapping[str, AlphaGeometry],
-    ) -> tuple[list[tuple[AlphaHit, str]], bool]:
-        hits: list[tuple[AlphaHit, str]] = []
-        empty_layers = False
-        for layer_id, geometry in geometries.items():
-            role = str(layer_by_id[layer_id].get("canonical_role") or "")
-            if not _role_matches(joint_name, role):
-                continue
-            significant = geometry.significant_component_ids(
-                min_area=int(self.config["component_min_area"]),
-                min_area_ratio=float(self.config["component_min_ratio"]),
-            )
-            if not significant:
-                empty_layers = True
-                continue
-            hit = geometry.nearest_foreground(
-                observation.x,
-                observation.y,
-                component_ids=significant,
-            )
-            if hit is not None:
-                hits.append((hit, layer_id))
-        return hits, empty_layers
-
-
-def _effective_layers(project: Mapping[str, Any]) -> list[Mapping[str, Any]]:
-    resolved = project.get("resolved")
-    source = resolved if isinstance(resolved, Mapping) else project
-    layers = source.get("layers") or []
-    return [layer for layer in layers if isinstance(layer, Mapping)]
-
-
-def _is_excluded(layer: Mapping[str, Any]) -> bool:
-    return bool(layer.get("empty")) or layer.get("disposition") in {"exclude", "ignore"}
-
-
-def _is_limb_role(role: str) -> bool:
-    return any(token in role.replace("-", "_").split(".")[-1] for token in ("arm", "hand", "leg", "foot", "pelvis"))
-
-
-def _role_matches(joint_name: str, role: str) -> bool:
-    normalized = role.replace("-", "_").split(".")[-1]
-    return any(token in normalized for token in _ROLE_TOKENS[joint_name])
-
-
-def _geometry_flags(
-    evidence_layers: list[dict[str, Any]], config: Mapping[str, Any]
-) -> set[str]:
-    flags: set[str] = set()
-    roles = {str(item["canonical_role"]).replace("-", "_").split(".")[-1] for item in evidence_layers}
-    if not any("leg" in role for role in roles):
-        flags.add("NO_LEG_SEMANTIC_LAYER")
-    for item in evidence_layers:
-        if item["side"] != "bilateral":
-            continue
-        threshold = max(
-            int(config["component_min_area"]),
-            math.ceil(item["foreground_area"] * float(config["component_min_ratio"])),
-        )
-        significant = sum(area >= threshold for area in item["component_areas"])
-        if significant == 1:
-            flags.add("BILATERAL_FUSED_COMPONENT")
-        elif significant > 2:
-            flags.add("EXCESS_LIMB_COMPONENTS")
-    return flags
