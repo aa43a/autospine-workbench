@@ -10,73 +10,28 @@ from __future__ import annotations
 
 import math
 import re
-from dataclasses import dataclass
 from typing import Any, Mapping
 
-
-PROJECT_SCHEMA_VERSION = "autospine-workbench.project/v1"
-LAYER_SCHEMA_VERSION = "autospine-workbench.layer/v1"
-SKELETON_SCHEMA_VERSION = "autospine-workbench.skeleton/v1"
-OVERRIDE_SCHEMA_VERSION_V1 = "autospine-workbench.override/v1"
-OVERRIDE_SCHEMA_VERSION = "autospine-workbench.override/v2"
-PROJECT_LIST_SCHEMA_VERSION = "autospine-workbench.project-list/v1"
-VALIDATION_SCHEMA_VERSION = "autospine-workbench.validation/v1"
-
-MAX_NOTES_LENGTH = 10_000
-MAX_REASON_LENGTH = 1_000
-MAX_ROLE_LENGTH = 96
-
-SIDE_VALUES = frozenset({"left", "right", "center", "bilateral", "unknown"})
-
-# ``disposition`` is a review decision, not a renderer mode.  Aliases retained
-# here cover the vocabulary used by the early workbench prototypes.
-DISPOSITION_VALUES = frozenset(
-    {
-        "auto",
-        "keep",
-        "exclude",
-        "ignore",
-        "split",
-        "split_left_right",
-        "merge",
-        "review",
-    }
+from .contract_types import (
+    ContractValidationError,
+    DISPOSITION_VALUES,
+    LAYER_SCHEMA_VERSION,
+    MAX_NOTES_LENGTH,
+    MAX_REASON_LENGTH,
+    MAX_ROLE_LENGTH,
+    OVERRIDE_SCHEMA_VERSION,
+    OVERRIDE_SCHEMA_VERSION_V1,
+    PROJECT_LIST_SCHEMA_VERSION,
+    PROJECT_SCHEMA_VERSION,
+    SIDE_VALUES,
+    SKELETON_SCHEMA_VERSION,
+    VALIDATION_SCHEMA_VERSION,
+    ValidationIssue,
+    contract_descriptor,
 )
 
 _SAFE_ROLE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.:-]*$")
-
-
-def contract_descriptor(kind: str, version: int = 1) -> dict[str, Any]:
-    return {"name": f"autospine-workbench.{kind}", "version": version}
-
-
-@dataclass(frozen=True)
-class ValidationIssue:
-    """A machine-readable field validation error."""
-
-    path: str
-    message: str
-    code: str = "invalid"
-
-    def as_dict(self) -> dict[str, str]:
-        return {"path": self.path, "message": self.message, "code": self.code}
-
-
-class ContractValidationError(ValueError):
-    """Raised when an API document fails contract validation."""
-
-    def __init__(self, issues: list[ValidationIssue] | ValidationIssue):
-        if isinstance(issues, ValidationIssue):
-            issues = [issues]
-        self.issues = tuple(issues)
-        super().__init__("; ".join(f"{item.path}: {item.message}" for item in self.issues))
-
-    def as_dict(self) -> dict[str, Any]:
-        return {
-            "error": "validation_error",
-            "message": "Request body does not satisfy the override contract.",
-            "issues": [item.as_dict() for item in self.issues],
-        }
+_SAFE_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 
 
 def empty_overrides(project_id: str) -> dict[str, Any]:
@@ -287,7 +242,10 @@ def normalize_override_request(
     raw_layer_overrides = root.get("layer_overrides", root.get("layers", {}))
     layer_overrides = _expect_mapping(raw_layer_overrides, "$.layer_overrides", issues)
     normalized_layers: dict[str, Any] = {}
-    layer_fields = {"canonical_role", "side", "disposition", "visible", "pivot_xy", "notes"}
+    layer_fields = {
+        "canonical_role", "side", "disposition", "visible",
+        "pivot_xy", "candidate_bone", "notes",
+    }
     for layer_id, raw_override in layer_overrides.items():
         path = f"$.layer_overrides.{layer_id}"
         if layer_id not in layer_ids:
@@ -353,6 +311,14 @@ def normalize_override_request(
             )
             if pivot is not None:
                 item["pivot_xy"] = pivot
+        if "candidate_bone" in override:
+            candidate_bone = override["candidate_bone"]
+            if not isinstance(candidate_bone, str) or not _SAFE_ID_RE.fullmatch(candidate_bone):
+                issues.append(ValidationIssue(
+                    f"{path}.candidate_bone", "must be a safe bone identifier", "format"
+                ))
+            else:
+                item["candidate_bone"] = candidate_bone
         if "notes" in override:
             item["notes"] = _validate_notes(
                 override["notes"], f"{path}.notes", issues, MAX_REASON_LENGTH

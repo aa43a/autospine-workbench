@@ -237,13 +237,13 @@ class ProjectStore:
     ``workspace`` directory and is the only location this class writes.
     """
 
-    def __init__(self, workspace_root: Path, state_root: Path | None = None):
+    def __init__(self, workspace_root: Path, state_root: Path | None = None, *, measure_composite_quality: bool = True):
         self.workspace_root = Path(workspace_root).expanduser().resolve()
         default_state_root = Path(__file__).resolve().parents[2] / "workspace"
         self.state_root = Path(state_root).expanduser().resolve() if state_root else default_state_root
         self.audit_root = self.workspace_root / "tmp" / "psd_audit" / "results"
         self._override_store = OverrideHistoryStore(self.state_root)
-        self._composite_quality = CompositeQualityCache()
+        self._composite_quality = CompositeQualityCache(measure_composite_quality)
 
     def _discover(self) -> dict[str, _ProjectRecord]:
         records: dict[str, _ProjectRecord] = {}
@@ -668,7 +668,7 @@ class ProjectStore:
                     "side",
                     "disposition",
                     "visible",
-                    "pivot_xy",
+                    "pivot_xy", "candidate_bone",
                     "notes",
                 ],
             },

@@ -12,6 +12,7 @@ try:  # Optional acceleration; the dependency-free decoder remains authoritative
 except ImportError:  # pragma: no cover - exercised in minimal runtime environments
     _np = None
 
+
 class CompositeQualityError(RuntimeError):
     """Raised when images cannot be compared without guessing a conversion."""
 
@@ -19,7 +20,8 @@ class CompositeQualityError(RuntimeError):
 class CompositeQualityCache:
     """Cache immutable audit comparisons by audit content hash."""
 
-    def __init__(self) -> None:
+    def __init__(self, enabled: bool = True) -> None:
+        self._enabled = enabled
         self._metrics: dict[str, dict] = {}
 
     def measure(
@@ -29,6 +31,12 @@ class CompositeQualityCache:
         composite_path: Path | None,
         embedded_path: Path | None,
     ) -> dict:
+        if not self._enabled:
+            return {
+                "status": "unavailable",
+                "raw_rgba_mae": raw_rgba_mae,
+                "alpha_representation": "not_measured",
+            }
         cached = self._metrics.get(audit_sha256)
         if cached is not None:
             return cached

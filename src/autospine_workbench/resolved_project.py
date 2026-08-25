@@ -43,18 +43,23 @@ class ResolvedProjectBuilder:
             patch = layer_overrides.get(layer.get("id"))
             if not isinstance(patch, Mapping):
                 layer["review_state"] = "unreviewed"
+                layer["reviewed_fields"] = []
                 continue
+            reviewed_fields: list[str] = []
             for field in (
                 "canonical_role",
                 "side",
                 "disposition",
                 "visible",
                 "pivot_xy",
+                "candidate_bone",
                 "notes",
             ):
                 if field in patch and patch[field] is not None:
                     layer[field] = deepcopy(patch[field])
+                    reviewed_fields.append(field)
             layer["review_state"] = "manual_adjusted"
+            layer["reviewed_fields"] = reviewed_fields
             layer["decision_revision"] = revision
 
         joint_overrides = decision.get("joint_overrides") or {}

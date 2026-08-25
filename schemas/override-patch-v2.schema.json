@@ -137,6 +137,7 @@
           ]
         },
         "pivot_xy": { "$ref": "#/$defs/point" },
+        "candidate_bone": { "$ref": "#/$defs/id" },
         "visible": { "type": "boolean" },
         "notes": { "type": "string", "maxLength": 1000 }
       }

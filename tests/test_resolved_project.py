@@ -85,7 +85,19 @@ class ResolvedProjectBuilderTests(unittest.TestCase):
         self.assertEqual(1.0, elbow["legacy_review_confidence"])
         self.assertEqual("manual_adjusted", elbow["review_state"])
         self.assertEqual("left", snapshot["layers"][0]["side"])
+        self.assertEqual(
+            ["canonical_role", "side", "disposition"],
+            snapshot["layers"][0]["reviewed_fields"],
+        )
         self.assertEqual("ready", snapshot["qa"]["status"])
+
+    def test_layer_review_provenance_is_field_specific(self) -> None:
+        overrides = {"revision": 1, "layer_overrides": {"arm-layer": {"visible": False}}}
+        layer = ResolvedProjectBuilder().build(project_fixture(), overrides)["layers"][0]
+        self.assertEqual("manual_adjusted", layer["review_state"])
+        self.assertEqual(["visible"], layer["reviewed_fields"])
+        self.assertEqual("unclassified.arm", layer["canonical_role"])
+        self.assertEqual([10, 20], layer["pivot_xy"])
 
     def test_unreviewed_low_confidence_joint_remains_visible_in_qa(self) -> None:
         snapshot = ResolvedProjectBuilder().build(project_fixture(), {"revision": 0})

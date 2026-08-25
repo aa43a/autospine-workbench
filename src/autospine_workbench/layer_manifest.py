@@ -80,11 +80,30 @@ class LayerManifestBuilder:
                 raise LayerManifestError(
                     f"Layer {layer_id} dimensions do not match canvas or alpha bbox"
                 )
-            flags = _layer_flags(layer)
-            aggregate_flags.update(flags)
-            manual = layer.get("review_state") == "manual_adjusted"
+            reviewed_fields = {
+                field for field in layer.get("reviewed_fields", []) if isinstance(field, str)
+            }
+            semantic_manual = {"canonical_role", "side"}.issubset(reviewed_fields)
+            pivot_manual = "pivot_xy" in reviewed_fields
             excluded = layer.get("disposition") == "exclude" or bool(layer.get("empty"))
             pivot_xy = layer.get("pivot_xy")
+            candidate_bone = (
+                layer.get("candidate_bone")
+                if "candidate_bone" in reviewed_fields
+                else _candidate_bone(
+                    str(layer.get("canonical_role") or ""),
+                    str(layer.get("side") or "unknown"),
+                )
+            )
+            flags = _layer_flags(
+                layer,
+                excluded=excluded,
+                semantic_manual=semantic_manual,
+                pivot_manual=pivot_manual,
+                candidate_bone=candidate_bone,
+                reviewed_fields=reviewed_fields,
+            )
+            aggregate_flags.update(flags)
             layers.append(
                 {
                     "layer_id": layer_id,
@@ -113,19 +132,19 @@ class LayerManifestBuilder:
                         "side": str(layer.get("side") or "unknown"),
                         "stratum": _stratum(str(layer.get("canonical_role") or "")),
                         "instance": 0,
-                        "mapping_method": "manual" if manual else "alias",
-                        "confidence": 1.0 if manual else 0.5,
+                        "mapping_method": "manual" if semantic_manual else "alias",
+                        "confidence": 1.0 if semantic_manual else 0.5,
                     },
                     "derivation": {"operation": "source", "parent_layer_ids": []},
                     "rig_hint": {
                         "attachment_kind": "excluded" if excluded else "region",
                         "deform_class": _deform_class(str(layer.get("canonical_role") or "")),
-                        "candidate_bone": _candidate_bone(str(layer.get("canonical_role") or ""), str(layer.get("side") or "unknown")),
+                        "candidate_bone": candidate_bone,
                         "pivot": (
                             {
                                 "xy": [float(pivot_xy[0]), float(pivot_xy[1])],
-                                "method": "manual" if manual else "unknown",
-                                "confidence": 1.0 if manual else 0.25,
+                                "method": "manual" if pivot_manual else "unknown",
+                                "confidence": 1.0 if pivot_manual else 0.25,
                             }
                             if isinstance(pivot_xy, (list, tuple)) and len(pivot_xy) == 2
                             else None
@@ -266,16 +285,35 @@ def _fsync_file(path: Path) -> None:
         os.fsync(handle.fileno())
 
 
-def _layer_flags(layer: Mapping[str, Any]) -> list[str]:
+def _layer_flags(
+    layer: Mapping[str, Any],
+    *,
+    excluded: bool,
+    semantic_manual: bool,
+    pivot_manual: bool,
+    candidate_bone: Any,
+    reviewed_fields: set[str],
+) -> list[str]:
     flags: list[str] = []
-    if layer.get("empty"):
+    if layer.get("empty") and not excluded:
         flags.append("EMPTY_LAYER")
-    if str(layer.get("canonical_role") or "").startswith("unclassified"):
+    if not excluded and str(layer.get("canonical_role") or "").startswith("unclassified"):
         flags.append("UNCLASSIFIED_ROLE")
     if layer.get("disposition") == "review":
         flags.append("LAYER_REVIEW_REQUIRED")
-    if int((layer.get("metrics") or {}).get("component_count", 0)) > 1:
+    accepted_components = (
+        "disposition" in reviewed_fields and layer.get("disposition") == "keep"
+    )
+    if not excluded and int((layer.get("metrics") or {}).get("component_count", 0)) > 1 and not accepted_components:
         flags.append("MULTIPLE_ALPHA_COMPONENTS")
+    if not excluded and layer.get("disposition") in {"split", "split_left_right"}:
+        flags.append("SPLIT_NOT_MATERIALIZED")
+    if not excluded and not semantic_manual:
+        flags.append("SEMANTIC_REVIEW_REQUIRED")
+    if not excluded and not pivot_manual:
+        flags.append("PIVOT_REVIEW_REQUIRED")
+    if not excluded and candidate_bone is None:
+        flags.append("BONE_BINDING_REVIEW_REQUIRED")
     return flags
 
 

@@ -13,11 +13,30 @@ SRC_ROOT = WORKBENCH_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from autospine_workbench.composite_quality import compare_composite_pngs  # noqa: E402
+from autospine_workbench.composite_quality import (  # noqa: E402
+    CompositeQualityCache,
+    compare_composite_pngs,
+)
 from tests.png_helpers import write_rgba  # noqa: E402
 
 
 class CompositeQualityTests(unittest.TestCase):
+    def test_disabled_cache_skips_pixel_decoding_for_offline_builds(self) -> None:
+        metrics = CompositeQualityCache(enabled=False).measure(
+            "a" * 64,
+            12.5,
+            Path("missing-composite.png"),
+            Path("missing-embedded.png"),
+        )
+        self.assertEqual(
+            {
+                "status": "unavailable",
+                "raw_rgba_mae": 12.5,
+                "alpha_representation": "not_measured",
+            },
+            metrics,
+        )
+
     def test_transparent_rgb_vs_flattened_black_is_not_a_visual_failure(self) -> None:
         transparent_white = (255, 255, 255, 0)
         opaque_black = (0, 0, 0, 255)

@@ -67,6 +67,7 @@ def project_fixture() -> dict:
         "bbox": {"x": 10, "y": 20, "width": 30, "height": 40},
         "pivot_xy": [20, 25],
         "review_state": "manual_adjusted",
+        "reviewed_fields": ["canonical_role", "side", "disposition", "pivot_xy"],
         "notes": "confirmed arm",
         "metrics": {"alpha_nonzero": 900, "component_count": 1},
     }
@@ -96,6 +97,7 @@ class LayerManifestMaterializationTests(unittest.TestCase):
         self.assertEqual("manual", layer["semantic"]["mapping_method"])
         self.assertEqual([10, 20], layer["raster"]["canvas_offset_xy"])
         self.assertEqual("left", layer["semantic"]["side"])
+        self.assertEqual("passed", manifest["qa"]["status"])
         if Draft202012Validator is not None:
             schema = json.loads(
                 (WORKBENCH_ROOT / "schemas" / "layer-manifest-v1.schema.json").read_text(
@@ -103,6 +105,37 @@ class LayerManifestMaterializationTests(unittest.TestCase):
                 )
             )
             Draft202012Validator(schema).validate(manifest)
+
+    def test_unrelated_override_does_not_claim_semantic_or_pivot_review(self) -> None:
+        project = project_fixture()
+        layer = project["resolved"]["layers"][0]
+        layer["reviewed_fields"] = ["visible"]
+        layer["metrics"]["component_count"] = 2
+        with tempfile.TemporaryDirectory() as directory:
+            asset = Path(directory) / "arm.png"
+            write_png(asset, 30, 40)
+            manifest = LayerManifestBuilder().build(
+                project, {"layer-001-arm-l": asset}
+            )
+        built = manifest["layers"][0]
+        self.assertEqual("alias", built["semantic"]["mapping_method"])
+        self.assertEqual("unknown", built["rig_hint"]["pivot"]["method"])
+        self.assertEqual("manual_required", manifest["qa"]["status"])
+        self.assertIn("SEMANTIC_REVIEW_REQUIRED", built["qa"]["flags"])
+        self.assertIn("PIVOT_REVIEW_REQUIRED", built["qa"]["flags"])
+        self.assertIn("MULTIPLE_ALPHA_COMPONENTS", built["qa"]["flags"])
+
+    def test_explicit_keep_accepts_multiple_components(self) -> None:
+        project = project_fixture()
+        layer = project["resolved"]["layers"][0]
+        layer["metrics"]["component_count"] = 2
+        with tempfile.TemporaryDirectory() as directory:
+            asset = Path(directory) / "arm.png"
+            write_png(asset, 30, 40)
+            manifest = LayerManifestBuilder().build(
+                project, {"layer-001-arm-l": asset}
+            )
+        self.assertNotIn("MULTIPLE_ALPHA_COMPONENTS", manifest["qa"]["flags"])
 
     def test_bundle_is_content_addressed_idempotent_and_verifies_assets(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

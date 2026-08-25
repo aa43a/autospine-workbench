@@ -265,8 +265,10 @@ class JsonSchemaContractTests(unittest.TestCase):
 
 class PythonOverrideContractTests(unittest.TestCase):
     def test_canonical_patch_normalizes_without_losing_visible(self) -> None:
+        patch = valid_override_patch()
+        patch["layer_overrides"]["layer_000"]["candidate_bone"] = "shoulder-elbow.L"
         base_revision, normalized = normalize_override_request(
-            valid_override_patch(),
+            patch,
             project_id="sample-a",
             current_revision=0,
             joint_ids={"shoulder.L"},
@@ -278,6 +280,25 @@ class PythonOverrideContractTests(unittest.TestCase):
         self.assertEqual(normalized["revision"], 0)
         self.assertEqual(normalized["joint_overrides"]["shoulder.L"]["x"], 320.5)
         self.assertIs(normalized["layer_overrides"]["layer_000"]["visible"], True)
+        self.assertEqual(
+            "shoulder-elbow.L",
+            normalized["layer_overrides"]["layer_000"]["candidate_bone"],
+        )
+
+    def test_candidate_bone_requires_a_safe_identifier(self) -> None:
+        patch = valid_override_patch()
+        patch["layer_overrides"]["layer_000"]["candidate_bone"] = "../escape"
+        with self.assertRaises(ContractValidationError) as caught:
+            normalize_override_request(
+                patch,
+                project_id="sample-a",
+                current_revision=0,
+                joint_ids={"shoulder.L"},
+                layer_ids={"layer_000"},
+                canvas_width=1024,
+                canvas_height=1024,
+            )
+        self.assertIn("format", {issue.code for issue in caught.exception.issues})
 
     def test_unknown_ids_and_non_finite_coordinates_are_rejected(self) -> None:
         patch = valid_override_patch()
