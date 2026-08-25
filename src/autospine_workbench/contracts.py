@@ -30,6 +30,7 @@ from .contract_types import (
     ValidationIssue,
     contract_descriptor,
 )
+from .split_decision_contracts import normalize_split_decision_root as _normalize_split_root
 from .split_specs import infer_humanoid_bone_ids, normalize_layer_split_authoring
 
 _SAFE_ROLE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.:-]*$")
@@ -46,6 +47,7 @@ def empty_overrides(project_id: str) -> dict[str, Any]:
         "revision": 0,
         "joint_overrides": {},
         "joint_decisions": {},
+        "split_decisions": {},
         "layer_overrides": {},
         "notes": "",
     }
@@ -119,11 +121,8 @@ def normalize_override_request(
 ) -> tuple[int, dict[str, Any]]:
     """Validate and normalize a PUT override request.
 
-    The canonical request is ``{base_revision, joint_overrides,
-    layer_overrides, notes}``.  Early UI aliases ``revision``, ``joints``,
-    ``layers`` and ``workflow.notes`` are accepted and normalized.  The
-    returned document does not increment the revision; the store does that
-    only after the compare-and-swap check succeeds.
+    Canonical fields cover reviews and decisions. Early aliases remain
+    accepted; the store increments only after compare-and-swap succeeds.
     """
 
     issues: list[ValidationIssue] = []
@@ -134,6 +133,7 @@ def normalize_override_request(
         "revision",
         "joint_overrides",
         "joint_decisions",
+        "split_decisions",
         "layer_overrides",
         "notes",
         "joints",
@@ -245,6 +245,10 @@ def normalize_override_request(
                 "conflict",
             )
         )
+
+    normalized_split_decisions = _normalize_split_root(
+        root, schema_version=schema_version, layer_ids=layer_ids, issues=issues, stored=stored,
+    )
 
     raw_layer_overrides = root.get("layer_overrides", root.get("layers", {}))
     layer_overrides = _expect_mapping(raw_layer_overrides, "$.layer_overrides", issues)
@@ -369,6 +373,7 @@ def normalize_override_request(
         "revision": current_revision,
         "joint_overrides": normalized_joints,
         "joint_decisions": normalized_decisions,
+        "split_decisions": normalized_split_decisions,
         "layer_overrides": normalized_layers,
         "notes": notes,
     }

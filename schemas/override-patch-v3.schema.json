@@ -9,6 +9,7 @@
     "base_revision",
     "joint_overrides",
     "joint_decisions",
+    "split_decisions",
     "layer_overrides",
     "notes"
   ],
@@ -24,6 +25,11 @@
       "type": "object",
       "propertyNames": { "$ref": "#/$defs/id" },
       "additionalProperties": { "$ref": "#/$defs/jointDecision" }
+    },
+    "split_decisions": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/id" },
+      "additionalProperties": { "$ref": "#/$defs/splitDecision" }
     },
     "layer_overrides": {
       "type": "object",
@@ -113,6 +119,64 @@
           }
         }
       ]
+    },
+    "splitDecisionAnalysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "layer_manifest_sha256",
+        "resolved_snapshot_sha256",
+        "split_spec_sha256",
+        "algorithm_id",
+        "algorithm_version"
+      ],
+      "properties": {
+        "layer_manifest_sha256": { "$ref": "#/$defs/sha256" },
+        "resolved_snapshot_sha256": { "$ref": "#/$defs/sha256" },
+        "split_spec_sha256": { "$ref": "#/$defs/sha256" },
+        "algorithm_id": { "$ref": "#/$defs/id" },
+        "algorithm_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]*$"
+        }
+      }
+    },
+    "splitDecision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action", "split_artifact_sha256"],
+      "properties": {
+        "action": { "enum": ["accept", "reject"] },
+        "split_artifact_sha256": { "$ref": "#/$defs/sha256" },
+        "reason": { "$ref": "#/$defs/nonblankReason" }
+      },
+      "allOf": [{
+        "if": { "properties": { "action": { "const": "reject" } }, "required": ["action"] },
+        "then": { "required": ["reason"] }
+      }]
+    },
+    "splitDecisionStored": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action", "split_artifact_sha256", "operation_config_sha256",
+        "review_target_sha256", "analysis", "binding_status"
+      ],
+      "properties": {
+        "action": { "enum": ["accept", "reject"] },
+        "split_artifact_sha256": { "$ref": "#/$defs/sha256" },
+        "operation_config_sha256": { "$ref": "#/$defs/sha256" },
+        "review_target_sha256": { "$ref": "#/$defs/sha256" },
+        "analysis": { "$ref": "#/$defs/splitDecisionAnalysis" },
+        "binding_status": { "enum": ["current", "stale"] },
+        "reason": { "$ref": "#/$defs/nonblankReason" }
+      },
+      "allOf": [{
+        "if": { "properties": { "action": { "const": "reject" } }, "required": ["action"] },
+        "then": { "required": ["reason"] }
+      }]
     },
     "jointAnchorLeft": {
       "type": "object",

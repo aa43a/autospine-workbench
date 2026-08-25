@@ -93,6 +93,11 @@ def valid_patch(*, version: str | None = "autospine-workbench.override/v3") -> d
         },
         "notes": "reviewed split anchors",
     }
+    if version not in {
+        "autospine-workbench.override/v1",
+        "autospine-workbench.override/v2",
+    }:
+        patch["split_decisions"] = {}
     if version is not None:
         patch["schema_version"] = version
     return patch
