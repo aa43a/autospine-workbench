@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/rig-compile-run-v1.schema.json",
+  "title": "AutoSpine region RigIR compile run v1",
+  "description": "Content-addressed identity for one Layer Manifest plus resolved setup compilation.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "format_version",
+    "project_id",
+    "inputs",
+    "compiler"
+  ],
+  "properties": {
+    "format": {
+      "const": "autospine-rig-compile-run"
+    },
+    "format_version": {
+      "const": 1
+    },
+    "project_id": {
+      "$ref": "#/$defs/id"
+    },
+    "inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "layer_manifest_sha256",
+        "resolved_project_sha256"
+      ],
+      "properties": {
+        "layer_manifest_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "resolved_project_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "override_patch_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "compiler": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "version",
+        "config"
+      ],
+      "properties": {
+        "id": {
+          "const": "region-rig-compiler"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "config": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "attachment_profile",
+            "allow_manual_required"
+          ],
+          "properties": {
+            "attachment_profile": {
+              "const": "region-only"
+            },
+            "allow_manual_required": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}

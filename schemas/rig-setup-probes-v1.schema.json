@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/rig-setup-probes-v1.schema.json",
+  "title": "AutoSpine region RigIR setup probes v1",
+  "description": "Deterministic FK, pivot, hierarchy, draw-order and setup reconstruction report.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "format_version",
+    "project_id",
+    "source",
+    "runner",
+    "status",
+    "checks"
+  ],
+  "properties": {
+    "format": {
+      "const": "autospine-rig-setup-probes"
+    },
+    "format_version": {
+      "const": 1
+    },
+    "project_id": {
+      "$ref": "#/$defs/id"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rig_sha256",
+        "layer_manifest_sha256",
+        "resolved_project_sha256"
+      ],
+      "properties": {
+        "rig_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "layer_manifest_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "resolved_project_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "runner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "version"
+      ],
+      "properties": {
+        "id": {
+          "const": "rig-setup-probes"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        }
+      }
+    },
+    "status": {
+      "$ref": "#/$defs/status"
+    },
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/$defs/id"
+          },
+          "status": {
+            "$ref": "#/$defs/status"
+          },
+          "message": {
+            "type": "string"
+          },
+          "metrics": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "status": {
+      "enum": [
+        "passed",
+        "manual_required",
+        "rejected"
+      ]
+    }
+  }
+}
