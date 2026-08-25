@@ -116,9 +116,21 @@ export function createMeshEvidenceBrowser({
       ));
       if (token !== sequence) return;
       const detail = normalizeMeshBundleDetail(payload, bound);
-      renderMeshEvidenceDetail(elements, detail, (pngSha) => meshBundleImageUrl(
-        apiBase, bound.projectId, bound.rigSha, bound.bundleSha, pngSha,
-      ));
+      renderMeshEvidenceDetail(
+        elements,
+        detail,
+        (pngSha) => meshBundleImageUrl(
+          apiBase, bound.projectId, bound.rigSha, bound.bundleSha, pngSha,
+        ),
+        () => {
+          if (token !== sequence) return;
+          setMeshEvidenceStatus(
+            elements,
+            "error",
+            "证据 PNG 未通过独立读取验证；该 bundle 不能视为完整可回看。",
+          );
+        },
+      );
       const summary = detail.status === "reviewed-noop"
         ? "已验证 no-op bundle" : `已验证 ${detail.hinges.length} 个 hinge`;
       setMeshEvidenceStatus(

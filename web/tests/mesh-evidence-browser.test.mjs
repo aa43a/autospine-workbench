@@ -173,10 +173,37 @@ test("no-op stays explicit and converted evidence gives every image useful alt t
 
   renderMeshEvidenceDetail(elements, detailPayload(), () => "/verified.png");
   const images = descendants(elements.hinges, "IMG");
+  assert.equal(elements.identity.children.length, 9);
   assert.equal(images.length, 3);
   assert.equal(images.every((image) => image.getAttribute("alt").includes("leg-left")), true);
   assert.equal(images.every((image) => image.getAttribute("loading") === "lazy"), true);
   assert.equal(elements.empty.hidden, true);
+});
+
+test("a failed verified PNG revokes the ready UI state", async () => {
+  const doc = new FakeDocument();
+  const mount = doc.createElement("div");
+  const requests = [];
+  const browser = createMeshEvidenceBrowser({
+    mount,
+    request: async (url) => {
+      requests.push(url);
+      return requests.length === 1 ? indexPayload() : detailPayload();
+    },
+  });
+  browser.syncProject("fixture");
+  await tick();
+  browser.elements.rigSelect.value = RIG_A;
+  browser.elements.rigSelect.dispatch("change");
+  browser.elements.bundleSelect.value = BUNDLE_A;
+  browser.elements.bundleSelect.dispatch("change");
+  browser.elements.loadBtn.dispatch("click");
+  await tick();
+  assert.equal(browser.elements.status.dataset.kind, "ready");
+
+  descendants(browser.elements.hinges, "IMG")[0].dispatch("error");
+  assert.equal(browser.elements.status.dataset.kind, "error");
+  assert.match(browser.elements.status.textContent, /不能视为完整可回看/);
 });
 
 test("controller discovers only; detail request waits for both user selections and click", async () => {

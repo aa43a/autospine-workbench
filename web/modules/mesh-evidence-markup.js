@@ -89,7 +89,7 @@ export function clearMeshEvidence(elements, message = "尚未选择并读取 mes
   elements.empty.textContent = message;
 }
 
-export function renderMeshEvidenceDetail(elements, detail, imageUrl) {
+export function renderMeshEvidenceDetail(elements, detail, imageUrl, onImageError = () => {}) {
   const doc = elements.section.ownerDocument;
   elements.identity.replaceChildren();
   for (const [label, key] of [
@@ -116,11 +116,11 @@ export function renderMeshEvidenceDetail(elements, detail, imageUrl) {
   }
   elements.empty.hidden = true;
   for (const hinge of detail.hinges) {
-    elements.hinges.append(hingeCard(doc, hinge, imageUrl));
+    elements.hinges.append(hingeCard(doc, hinge, imageUrl, onImageError));
   }
 }
 
-function hingeCard(doc, hinge, imageUrl) {
+function hingeCard(doc, hinge, imageUrl, onImageError) {
   const card = node(doc, "article", { class: "mesh-evidence-card", role: "listitem" });
   const heading = node(doc, "div", { class: "mesh-evidence-card-heading" });
   heading.append(
@@ -151,6 +151,7 @@ function hingeCard(doc, hinge, imageUrl) {
       width: evidence.width, height: evidence.height,
       loading: "lazy", decoding: "async",
     });
+    image.addEventListener("error", onImageError);
     figure.append(image, node(doc, "figcaption", {},
       `${label} · ${shortMeshSha(evidence.png_sha256)}`));
     gallery.append(figure);
