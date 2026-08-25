@@ -42,6 +42,10 @@ from .split_preview_commands import (
     add_split_preview_subcommand,
     publish_split_previews_command as _publish_split_previews,
 )
+from .spine42_stage_cli import (
+    add_spine42_stage_subcommands,
+    dispatch_spine42_stage_command as _dispatch_spine42_stage,
+)
 
 
 def _project_root() -> Path:
@@ -219,6 +223,10 @@ def build_parser() -> argparse.ArgumentParser:
         subparsers,
         default_state_root=_project_root() / "workspace",
     )
+    add_spine42_stage_subcommands(
+        subparsers,
+        default_state_root=_project_root() / "workspace",
+    )
     return parser
 
 
@@ -317,6 +325,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     motion_stage_status = _dispatch_motion_stage(args)
     if motion_stage_status is not None:
         return motion_stage_status
+    spine42_stage_status = _dispatch_spine42_stage(args)
+    if spine42_stage_status is not None:
+        return spine42_stage_status
     if args.command != "serve":
         raise AssertionError(f"Unhandled command: {args.command}")
     try:
