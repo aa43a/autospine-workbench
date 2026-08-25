@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
+from contextlib import redirect_stdout
+import io
+import json
 from pathlib import Path
 import sys
+import tempfile
 import unittest
 from unittest.mock import patch
 
@@ -14,6 +18,7 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from autospine_workbench.cli import build_parser, main  # noqa: E402
+from tests.test_bvh_motion_compile_run import RAW, mapping  # noqa: E402
 
 
 class P5CliWiringTests(unittest.TestCase):
@@ -56,6 +61,39 @@ class P5CliWiringTests(unittest.TestCase):
         args = dispatch.call_args.args[0]
         self.assertEqual("verify-motion-retarget", args.command)
         self.assertEqual("project", args.project_id)
+
+    def test_root_cli_compiles_and_read_only_verifies_real_bvh_fixture(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source, map_path, state = (
+                root / "source.bvh", root / "map.json", root / "state"
+            )
+            source.write_bytes(RAW)
+            map_path.write_text(json.dumps(mapping()), encoding="utf-8")
+            compiled = self._run([
+                "compile-bvh-motion", str(source), str(map_path),
+                "--state-root", str(state),
+            ])
+            verified = self._run([
+                "verify-bvh-motion",
+                "--clip-sha256", compiled["clip_sha256"],
+                "--bundle-sha256", compiled["bundle_sha256"],
+                "--state-root", str(state),
+            ])
+            self.assertFalse(compiled["reused"])
+            self.assertIsNone(verified["reused"])
+            for field in (
+                "clip_id", "map_id", "raw_bvh_sha256", "bvh_map_sha256",
+                "motion_ir_sha256", "clip_sha256", "run_sha256",
+                "bundle_sha256", "source_kind",
+            ):
+                self.assertEqual(compiled[field], verified[field])
+
+    def _run(self, argv: list[str]) -> dict:
+        output = io.StringIO()
+        with redirect_stdout(output):
+            self.assertEqual(0, main(argv))
+        return json.loads(output.getvalue())
 
 
 if __name__ == "__main__":
