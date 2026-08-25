@@ -5,7 +5,6 @@ from __future__ import annotations
 from copy import deepcopy
 from dataclasses import dataclass
 import hashlib
-import math
 from pathlib import Path
 import re
 from typing import Any, Mapping
@@ -20,6 +19,10 @@ from .split_derivation_contract import (
     SPLIT_TIE_BREAK,
     SplitDerivationError,
     build_split_derivation,
+)
+from .split_spec_resolution import (
+    SplitSpecResolutionError,
+    resolve_layer_split_authoring,
 )
 
 
@@ -37,7 +40,6 @@ class MaterializedLayerSet:
 
 _SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 _SPLIT = frozenset({"split", "split_left_right"})
-_USABLE_GUIDE_JOINT = frozenset({"candidate_accepted", "manual_adjusted"})
 
 
 def materialize_bilateral_splits(
@@ -73,7 +75,9 @@ def materialize_bilateral_splits(
         raise LayerSplitMaterializationError("Derived layer id is unsafe")
     if set(ids) & set(derived_ids) or len(derived_ids) != len(set(derived_ids)):
         raise LayerSplitMaterializationError("Derived layer id collides with another layer")
-    joints = _joint_index(resolved.get("skeleton"))
+    skeleton = resolved.get("skeleton")
+    joints = _joint_index(skeleton)
+    bone_ids = _bone_ids(skeleton)
     target = _output_directory(output_dir)
     assets = {str(key): Path(value) for key, value in layer_assets.items()}
     expanded: list[dict[str, Any]] = []
@@ -82,7 +86,9 @@ def materialize_bilateral_splits(
         if layer.get("disposition") not in _SPLIT:
             expanded.append(layer)
             continue
-        children, derived_assets = _materialize_layer(layer, joints, assets, target, canvas)
+        children, derived_assets = _materialize_layer(
+            layer, joints, bone_ids, assets, target, canvas
+        )
         layer["disposition"] = "exclude"
         layer["reviewed_fields"] = [v for v in layer.get("reviewed_fields", []) if v != "disposition"]
         expanded.append(layer)
@@ -125,6 +131,7 @@ def _ordered_layers(value: list[Any]) -> list[Mapping[str, Any]]:
 def _materialize_layer(
     layer: dict[str, Any],
     joints: Mapping[str, Mapping[str, Any]],
+    bone_ids: set[str],
     assets: Mapping[str, Path],
     target: Path,
     canvas: tuple[int, int],
@@ -132,18 +139,24 @@ def _materialize_layer(
     layer_id = layer["id"]
     if layer.get("side") != "bilateral":
         raise LayerSplitMaterializationError(f"Layer {layer_id} must be bilateral")
-    guide_names, pivot_name = _guide_spec(str(layer.get("canonical_role") or ""))
     source = _source_asset(layer_id, assets.get(layer_id))
     try:
         image = read_rgba_png(source)
     except RgbaPngError as exc:
         raise LayerSplitMaterializationError(f"Layer {layer_id} is not RGBA PNG") from exc
     bbox, offset = _raster_geometry(layer_id, layer.get("bbox"), image, canvas)
+    try:
+        authoring = resolve_layer_split_authoring(
+            layer,
+            joints=joints,
+            bone_ids=bone_ids,
+            canvas_width=canvas[0],
+            canvas_height=canvas[1],
+        )
+    except SplitSpecResolutionError as exc:
+        raise LayerSplitMaterializationError(str(exc)) from exc
     guide_anchors = {
-        side: [
-            _resolved_joint_anchor(layer_id, joints, f"{name}.{side}")
-            for name in guide_names
-        ]
+        side: authoring["parts"][side]["guide_anchors"]
         for side in ("left", "right")
     }
     guide_points = {
@@ -190,7 +203,6 @@ def _materialize_layer(
             write_rgba_png(path, output_image)
         except RgbaPngError as exc:
             raise LayerSplitMaterializationError(f"Layer {layer_id} write failed") from exc
-        pivot_id = f"{pivot_name}.{side}"
         children.append(
             _child_layer(
                 layer,
@@ -199,7 +211,8 @@ def _materialize_layer(
                 output_image,
                 path,
                 derivation,
-                _joint_point(layer_id, joints, pivot_id),
+                authoring["parts"][side]["pivot_xy"],
+                authoring["parts"][side].get("candidate_bone"),
             )
         )
     return children, {child["id"]: paths[child["side"]] for child in children}
@@ -213,6 +226,7 @@ def _child_layer(
     path: Path,
     derivation: Mapping[str, Any],
     pivot_xy: list[float],
+    proposed_candidate_bone: str | None,
 ) -> dict[str, Any]:
     child = deepcopy(dict(parent))
     child["id"] = f"{parent['id']}--{side}"
@@ -223,6 +237,9 @@ def _child_layer(
     child["derivation"] = deepcopy(dict(derivation))
     child.pop("image_url", None)
     child.pop("candidate_bone", None)
+    child.pop("proposed_candidate_bone", None)
+    if proposed_candidate_bone is not None:
+        child["proposed_candidate_bone"] = proposed_candidate_bone
     # A reviewed source layer or guide joint does not approve the generated
     # child raster, semantic side, pivot, or binding.  P2b may add reviewed
     # fields only after a decision is bound to this exact split artifact.
@@ -242,22 +259,6 @@ def _child_layer(
     return child
 
 
-def _guide_spec(role: str) -> tuple[tuple[str, ...], str]:
-    if role == "body.hand":
-        return ("elbow", "wrist"), "wrist"
-    if role == "body.foot":
-        return ("knee", "ankle"), "ankle"
-    if role.startswith("body.arm"):
-        if role.endswith(".lower"):
-            return ("elbow", "wrist"), "elbow"
-        return ("shoulder", "elbow", "wrist"), "shoulder"
-    if role.startswith("body.leg"):
-        if role.endswith(".lower"):
-            return ("knee", "ankle"), "knee"
-        return ("hip", "knee", "ankle"), "hip"
-    raise LayerSplitMaterializationError(f"Unsupported bilateral role: {role or '<empty>'}")
-
-
 def _joint_index(value: Any) -> dict[str, Mapping[str, Any]]:
     if not isinstance(value, Mapping) or not isinstance(value.get("joints"), list):
         raise LayerSplitMaterializationError("Resolved snapshot has no skeleton joints")
@@ -271,38 +272,17 @@ def _joint_index(value: Any) -> dict[str, Mapping[str, Any]]:
     return result
 
 
-def _joint_point(
-    layer_id: str, joints: Mapping[str, Mapping[str, Any]], joint_id: str
-) -> list[float]:
-    if joint_id not in joints:
-        raise LayerSplitMaterializationError(f"Layer {layer_id} needs joint {joint_id}")
-    values = (joints[joint_id].get("x"), joints[joint_id].get("y"))
-    if any(
-        isinstance(value, bool)
-        or not isinstance(value, (int, float))
-        or not math.isfinite(float(value))
-        for value in values
-    ):
-        raise LayerSplitMaterializationError(f"Guide joint {joint_id} is invalid")
-    return [float(value) for value in values]
-
-
-def _resolved_joint_anchor(
-    layer_id: str, joints: Mapping[str, Mapping[str, Any]], joint_id: str
-) -> dict[str, Any]:
-    if joint_id not in joints:
-        raise LayerSplitMaterializationError(f"Layer {layer_id} needs joint {joint_id}")
-    review_state = joints[joint_id].get("review_state")
-    if review_state not in _USABLE_GUIDE_JOINT:
-        raise LayerSplitMaterializationError(
-            f"Layer {layer_id} guide joint {joint_id} is not accepted"
-        )
-    return {
-        "kind": "resolved_joint",
-        "joint_id": joint_id,
-        "xy": _joint_point(layer_id, joints, joint_id),
-        "review_state": review_state,
-    }
+def _bone_ids(value: Any) -> set[str]:
+    if not isinstance(value, Mapping) or not isinstance(value.get("bones"), list):
+        raise LayerSplitMaterializationError("Resolved snapshot has no skeleton bones")
+    result: set[str] = set()
+    for bone in value["bones"]:
+        if not isinstance(bone, Mapping) or not isinstance(bone.get("id"), str):
+            raise LayerSplitMaterializationError("Resolved skeleton has an invalid bone")
+        if bone["id"] in result:
+            raise LayerSplitMaterializationError("Resolved bone ids are not unique")
+        result.add(bone["id"])
+    return result
 
 
 def _raster_geometry(

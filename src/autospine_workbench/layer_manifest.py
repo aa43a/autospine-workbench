@@ -103,20 +103,28 @@ class LayerManifestBuilder:
             pivot_manual = "pivot_xy" in reviewed_fields
             excluded = layer.get("disposition") == "exclude" or bool(layer.get("empty"))
             pivot_xy = layer.get("pivot_xy")
-            candidate_bone = (
-                layer.get("candidate_bone")
-                if "candidate_bone" in reviewed_fields
-                else _candidate_bone(
+            proposed_bone = layer.get("proposed_candidate_bone")
+            candidate_bone_reviewed = "candidate_bone" in reviewed_fields
+            if candidate_bone_reviewed:
+                candidate_bone = layer.get("candidate_bone")
+            elif proposed_bone is not None:
+                candidate_bone = require_safe_token(
+                    proposed_bone, f"Layer {layer_id} proposed candidate bone"
+                )
+            else:
+                candidate_bone = _candidate_bone(
                     str(layer.get("canonical_role") or ""),
                     str(layer.get("side") or "unknown"),
                 )
-            )
             flags = _layer_flags(
                 layer,
                 excluded=excluded,
                 semantic_manual=semantic_manual,
                 pivot_manual=pivot_manual,
                 candidate_bone=candidate_bone,
+                candidate_bone_proposed=(
+                    proposed_bone is not None and not candidate_bone_reviewed
+                ),
                 reviewed_fields=reviewed_fields,
             )
             aggregate_flags.update(flags)
@@ -315,6 +323,7 @@ def _layer_flags(
     semantic_manual: bool,
     pivot_manual: bool,
     candidate_bone: Any,
+    candidate_bone_proposed: bool,
     reviewed_fields: set[str],
 ) -> list[str]:
     flags: list[str] = []
@@ -335,7 +344,7 @@ def _layer_flags(
         flags.append("SEMANTIC_REVIEW_REQUIRED")
     if not excluded and not pivot_manual:
         flags.append("PIVOT_REVIEW_REQUIRED")
-    if not excluded and candidate_bone is None:
+    if not excluded and (candidate_bone is None or candidate_bone_proposed):
         flags.append("BONE_BINDING_REVIEW_REQUIRED")
     return flags
 

@@ -101,6 +101,43 @@ def project_fixture() -> dict:
     }
 
 
+def authored_split_spec() -> dict:
+    return {
+        "parts": {
+            "left": {
+                "guide": [
+                    {"kind": "joint", "joint_id": "hip.left"},
+                    {
+                        "kind": "manual_proxy",
+                        "proxy_id": "garment-opening.left",
+                        "xy": [3, 3],
+                        "label": "garment opening",
+                        "reason": "the ankle is hidden by the garment",
+                        "proxy_for_joint_id": "ankle.left",
+                    },
+                ],
+                "pivot": {
+                    "kind": "manual_proxy",
+                    "proxy_id": "garment-pivot.left",
+                    "xy": [3, 3],
+                    "label": "garment opening pivot",
+                    "reason": "the anatomical ankle is hidden",
+                    "proxy_for_joint_id": "ankle.left",
+                },
+                "candidate_bone": "calf.left",
+            },
+            "right": {
+                "guide": [
+                    {"kind": "joint", "joint_id": "hip.right"},
+                    {"kind": "joint", "joint_id": "ankle.right"},
+                ],
+                "pivot": {"kind": "joint", "joint_id": "hip.right"},
+                "candidate_bone": "calf.right",
+            },
+        }
+    }
+
+
 def visible_normalized(image: RgbaImage) -> bytes:
     output = bytearray(image.pixels)
     for offset in range(0, len(output), 4):
@@ -110,6 +147,47 @@ def visible_normalized(image: RgbaImage) -> bytes:
 
 
 class BilateralLayerMaterializerTests(unittest.TestCase):
+    def test_v3_split_spec_controls_guides_and_pivots_with_proxy_provenance(self) -> None:
+        project = project_fixture()
+        layer = project["resolved"]["layers"][0]
+        layer["split_spec"] = authored_split_spec()
+        project["resolved"]["skeleton"]["bones"] = [
+            {"id": "calf.left"},
+            {"id": "calf.right"},
+        ]
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "source.png"
+            write_rgba_png(source, source_image())
+            materialized = materialize_bilateral_splits(
+                project, {LAYER_ID: source}, root / "derived"
+            )
+            manifest = LayerManifestBuilder().build(
+                project,
+                materialized.assets,
+                materialized_layers=materialized.layers,
+            )
+
+        left, right = materialized.layers[1:]
+        config = left["derivation"]["operation_config"]
+        proxy = config["guide_anchors"]["left"][1]
+        self.assertEqual("manual_proxy", proxy["kind"])
+        self.assertEqual("ankle.left", proxy["proxy_for_joint_id"])
+        self.assertEqual([3.0, 3.0], left["pivot_xy"])
+        self.assertEqual([5.0, 0.0], right["pivot_xy"])
+        self.assertEqual(config, right["derivation"]["operation_config"])
+        self.assertEqual("calf.left", left["proposed_candidate_bone"])
+        self.assertEqual("calf.right", right["proposed_candidate_bone"])
+        self.assertEqual([], left["reviewed_fields"])
+        manifest_left, manifest_right = manifest["layers"][1:]
+        self.assertEqual("calf.left", manifest_left["rig_hint"]["candidate_bone"])
+        self.assertEqual("calf.right", manifest_right["rig_hint"]["candidate_bone"])
+        for child in (manifest_left, manifest_right):
+            self.assertEqual("alias", child["semantic"]["mapping_method"])
+            self.assertEqual("unknown", child["rig_hint"]["pivot"]["method"])
+            self.assertEqual("manual_required", child["qa"]["status"])
+            self.assertIn("BONE_BINDING_REVIEW_REQUIRED", child["qa"]["flags"])
+
     def test_retains_parent_and_emits_lossless_unreviewed_children(self) -> None:
         project = project_fixture()
         before = deepcopy(project)
