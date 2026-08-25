@@ -5,9 +5,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 import json
 from pathlib import Path
-import re
+import stat
 from typing import Any
 
+from .manifest_artifacts import (
+    LayerManifestError,
+    require_safe_token,
+    require_sha256,
+)
 from .resolved_project import canonical_sha256
 from .split_preview_contract import (
     SplitPreviewContractError,
@@ -15,8 +20,6 @@ from .split_preview_contract import (
 )
 
 
-_SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
-_SHA256 = re.compile(r"^[0-9a-f]{64}$")
 _MAX_ARTIFACT_BYTES = 2 * 1024 * 1024
 
 
@@ -39,10 +42,11 @@ class SplitPreviewReader:
         self.root = self.state_root / "analysis"
 
     def load(self, project_id: str, digest: str) -> LoadedSplitPreview:
-        if not isinstance(project_id, str) or not _SAFE_ID.fullmatch(project_id):
-            raise SplitPreviewReaderError("Split preview identity is invalid")
-        if not isinstance(digest, str) or not _SHA256.fullmatch(digest):
-            raise SplitPreviewReaderError("Split preview identity is invalid")
+        try:
+            project_id = require_safe_token(project_id, "Project id")
+            digest = require_sha256(digest, "Split preview digest")
+        except LayerManifestError as exc:
+            raise SplitPreviewReaderError("Split preview identity is invalid") from exc
         path = self._resolve(project_id, digest)
         raw = self._read(path)
         document = _decode(raw)
@@ -65,20 +69,24 @@ class SplitPreviewReader:
         return LoadedSplitPreview(path=path, sha256=digest, document=document)
 
     def _resolve(self, project_id: str, digest: str) -> Path:
-        project = self.root / project_id
-        directory = project / "split-previews"
-        lexical = directory / f"{digest}.json"
-        chain = (self.state_root, self.root, project, directory, lexical)
         try:
-            root = self.root.resolve(strict=True)
+            if _is_path_alias(self.state_root):
+                raise SplitPreviewReaderError("Split preview path is unsafe")
+            state_root = self.state_root.resolve(strict=True)
+            root = _exact_child(state_root, "analysis", want_directory=True)
+            project = _exact_child(root, project_id, want_directory=True)
+            directory = _exact_child(project, "split-previews", want_directory=True)
+            lexical = _exact_child(directory, f"{digest}.json", want_directory=False)
+            resolved_root = root.resolve(strict=True)
             resolved_directory = directory.resolve(strict=True)
             resolved = lexical.resolve(strict=True)
-            resolved_directory.relative_to(root)
+            resolved_root.relative_to(state_root)
+            resolved_directory.relative_to(resolved_root)
             resolved.relative_to(resolved_directory)
+        except SplitPreviewReaderError:
+            raise
         except (OSError, RuntimeError, ValueError) as exc:
             raise SplitPreviewReaderError("Split preview was not found") from exc
-        if any(item.is_symlink() for item in chain):
-            raise SplitPreviewReaderError("Split preview path is unsafe")
         if not resolved_directory.is_dir() or not resolved.is_file():
             raise SplitPreviewReaderError("Split preview path is unsafe")
         return resolved
@@ -96,6 +104,46 @@ class SplitPreviewReader:
         if len(raw) > _MAX_ARTIFACT_BYTES:
             raise SplitPreviewReaderError("Split preview exceeds 2 MiB")
         return raw
+
+
+def _exact_child(parent: Path, name: str, *, want_directory: bool) -> Path:
+    """Resolve one exact portable component without following path aliases."""
+
+    if _is_path_alias(parent):
+        raise SplitPreviewReaderError("Split preview path is unsafe")
+    try:
+        matches = [
+            child for child in parent.iterdir() if child.name.casefold() == name.casefold()
+        ]
+    except OSError as exc:
+        raise SplitPreviewReaderError("Split preview was not found") from exc
+    if not matches:
+        raise SplitPreviewReaderError("Split preview was not found")
+    if len(matches) != 1 or matches[0].name != name or _is_path_alias(matches[0]):
+        raise SplitPreviewReaderError("Split preview path is unsafe")
+    child = matches[0]
+    if (want_directory and not child.is_dir()) or (
+        not want_directory and not child.is_file()
+    ):
+        raise SplitPreviewReaderError("Split preview path is unsafe")
+    return child
+
+
+def _is_path_alias(path: Path) -> bool:
+    """Reject symlinks and every junction/reparse marker exposed by Python."""
+
+    try:
+        metadata = path.lstat()
+        if stat.S_ISLNK(metadata.st_mode):
+            return True
+        is_junction = getattr(path, "is_junction", None)
+        if callable(is_junction) and is_junction():
+            return True
+        reparse = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0)
+        attributes = getattr(metadata, "st_file_attributes", 0)
+        return bool(reparse and attributes & reparse)
+    except OSError:
+        return False
 
 
 class _DuplicateKey(ValueError):
