@@ -51,7 +51,7 @@ def strict_json_object(data: bytes, label: str) -> dict[str, Any]:
         for key, value in items:
             if key in result:
                 raise SafeInputFileError(
-                    f"{label} contains a duplicate JSON key"
+                    f"{label} contains a duplicate key"
                 )
             result[key] = value
         return result
