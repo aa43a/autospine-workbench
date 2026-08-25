@@ -1,0 +1,133 @@
+{
+  "capture": {
+    "background": "#20242aff",
+    "device_pixel_ratio": 1,
+    "viewport": {
+      "height": 640,
+      "width": 640
+    }
+  },
+  "cases": [
+    {
+      "assets": {
+        "atlas_sha256": "cd49ed5ea0b03f9049c328f8b0c4a1deb32f334a314bb402dee907b40c857e30",
+        "skeleton_sha256": "61caa6a00568400ee11416f9d45ffcab9d1584657ebf5339fca3d1b8d2c77aea",
+        "texture_sha256": "2af68619585ef34db11374c3506266629c9824e2126f07da0698d28110459b4d"
+      },
+      "clip": null,
+      "golden": {
+        "path": "a.setup.approved.png",
+        "png_sha256": "c4bf1d667096c6410719548240a050b94c64346b11549ec350ca47756cf01eab"
+      },
+      "id": "a.setup",
+      "thresholds": {
+        "max_channel_delta": 0,
+        "max_differing_pixel_ratio": 0.0,
+        "max_mean_absolute_error": 0.0
+      },
+      "time_seconds": 0.0
+    },
+    {
+      "assets": {
+        "atlas_sha256": "cd49ed5ea0b03f9049c328f8b0c4a1deb32f334a314bb402dee907b40c857e30",
+        "skeleton_sha256": "cc2d5e0f491e2c54b782cde9bf52877f590d8da5a9e20b324357dd8b7f34ceec",
+        "texture_sha256": "2af68619585ef34db11374c3506266629c9824e2126f07da0698d28110459b4d"
+      },
+      "clip": "idle",
+      "golden": {
+        "path": "a.idle.t1000.approved.png",
+        "png_sha256": "497d22abea4a46b645e928511b84143d259b7e193bb73e94035e75ea217aa80d"
+      },
+      "id": "a.idle.t1000",
+      "thresholds": {
+        "max_channel_delta": 0,
+        "max_differing_pixel_ratio": 0.0,
+        "max_mean_absolute_error": 0.0
+      },
+      "time_seconds": 1.0
+    },
+    {
+      "assets": {
+        "atlas_sha256": "cd49ed5ea0b03f9049c328f8b0c4a1deb32f334a314bb402dee907b40c857e30",
+        "skeleton_sha256": "25803f28f4be5a7bd364b6beed42450affe07087f92701fb874fba1b44f2b9b6",
+        "texture_sha256": "2af68619585ef34db11374c3506266629c9824e2126f07da0698d28110459b4d"
+      },
+      "clip": "wave.left",
+      "golden": {
+        "path": "a.wave-left.t0600.approved.png",
+        "png_sha256": "042661a625cfa7a2a129d6f775626d52b9090c45779e4d450cd3aa1aeef700c9"
+      },
+      "id": "a.wave-left.t0600",
+      "thresholds": {
+        "max_channel_delta": 0,
+        "max_differing_pixel_ratio": 0.0,
+        "max_mean_absolute_error": 0.0
+      },
+      "time_seconds": 0.6
+    },
+    {
+      "assets": {
+        "atlas_sha256": "55f8f19bf35de4f7561087d81528d9925424c4b4afdcbba207e4b9ee8231aede",
+        "skeleton_sha256": "f46662e4ab7c2e472f3441cd6c6884b75cc70c78142e994e6b01493a7a065aed",
+        "texture_sha256": "47184ad4c8a919725da655713b9cbbb9e014517b7d759d3147ae077c667a38e0"
+      },
+      "clip": null,
+      "golden": {
+        "path": "b.setup.approved.png",
+        "png_sha256": "d4ca9e6b852cccf09166d733c55e9148071e3d454e477e6ba9cd89aa4c746af9"
+      },
+      "id": "b.setup",
+      "thresholds": {
+        "max_channel_delta": 0,
+        "max_differing_pixel_ratio": 0.0,
+        "max_mean_absolute_error": 0.0
+      },
+      "time_seconds": 0.0
+    },
+    {
+      "assets": {
+        "atlas_sha256": "55f8f19bf35de4f7561087d81528d9925424c4b4afdcbba207e4b9ee8231aede",
+        "skeleton_sha256": "58b35e5de23780fc540bfe547c38b33e73962c5be4638ebe42e6c357bc5804c3",
+        "texture_sha256": "47184ad4c8a919725da655713b9cbbb9e014517b7d759d3147ae077c667a38e0"
+      },
+      "clip": "idle",
+      "golden": {
+        "path": "b.idle.t1000.approved.png",
+        "png_sha256": "3e6531036cb44de3ef149c8f3185967c0f04a748e4502e31e4ee1892b8c1354b"
+      },
+      "id": "b.idle.t1000",
+      "thresholds": {
+        "max_channel_delta": 0,
+        "max_differing_pixel_ratio": 0.0,
+        "max_mean_absolute_error": 0.0
+      },
+      "time_seconds": 1.0
+    },
+    {
+      "assets": {
+        "atlas_sha256": "55f8f19bf35de4f7561087d81528d9925424c4b4afdcbba207e4b9ee8231aede",
+        "skeleton_sha256": "3958a6e069dd9a2590f42a6d6eeee576f1c26ace0df8f463c2d8e389ae65e903",
+        "texture_sha256": "47184ad4c8a919725da655713b9cbbb9e014517b7d759d3147ae077c667a38e0"
+      },
+      "clip": "wave.left",
+      "golden": {
+        "path": "b.wave-left.t0600.approved.png",
+        "png_sha256": "07d336b4403594f62747e9d0982cefb3014fc6636b066b6aad02eb4c760cebf5"
+      },
+      "id": "b.wave-left.t0600",
+      "thresholds": {
+        "max_channel_delta": 0,
+        "max_differing_pixel_ratio": 0.0,
+        "max_mean_absolute_error": 0.0
+      },
+      "time_seconds": 0.6
+    }
+  ],
+  "format": "autospine-spine42-runtime-golden",
+  "format_version": 1,
+  "runtime": {
+    "npm_integrity": "sha512-hcbg1xaTq5DHjeLmyMP90YX8p0A9v4G1cS3Xp4tD+MDw/reVqJhL2O/8NbTnOlc6lQvc8Vi9S1JjYyIILgWm3Q==",
+    "package": "@esotericsoftware/spine-player",
+    "version": "4.2.119"
+  }
+}
