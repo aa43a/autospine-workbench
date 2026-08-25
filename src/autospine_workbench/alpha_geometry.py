@@ -5,8 +5,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 import math
 from pathlib import Path
+from typing import Iterator
 
-from .png_rgba import read_rgba_png
+from .png_rgba import MAX_RGBA_PIXELS, RgbaImage, read_rgba_png
+
+
+MAX_ALPHA_RUNS = 1_048_576
+"""Hard ceiling for connected-component run metadata."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -73,6 +78,18 @@ class AlphaGeometry:
             if component_id is None or run.label == component_id
         )
 
+    def iter_labeled_canvas_runs(self) -> Iterator[tuple[int, int, int, int]]:
+        """Yield ``(component_id, y, start_x, end_x)`` without another index."""
+
+        offset_x, offset_y = self.offset_xy
+        for run in self._runs:
+            yield (
+                run.label,
+                run.y + offset_y,
+                run.start + offset_x,
+                run.end + offset_x,
+            )
+
     def nearest_foreground(
         self,
         x: float,
@@ -112,15 +129,31 @@ def analyze_alpha_png(
     canvas_offset_xy: tuple[int, int] = (0, 0),
     threshold: int = 8,
 ) -> AlphaGeometry:
-    if not isinstance(threshold, int) or isinstance(threshold, bool) or not 1 <= threshold <= 255:
-        raise ValueError("alpha threshold must be an integer in [1, 255]")
-    if (
-        not isinstance(canvas_offset_xy, tuple)
-        or len(canvas_offset_xy) != 2
-        or any(not isinstance(value, int) or isinstance(value, bool) for value in canvas_offset_xy)
-    ):
-        raise ValueError("canvas offset must be a pair of integers")
+    _validate_analysis_inputs(canvas_offset_xy, threshold)
     image = read_rgba_png(Path(path))
+    return analyze_alpha_image(
+        image, canvas_offset_xy=canvas_offset_xy, threshold=threshold
+    )
+
+
+def analyze_alpha_image(
+    image: RgbaImage,
+    *,
+    canvas_offset_xy: tuple[int, int] = (0, 0),
+    threshold: int = 8,
+) -> AlphaGeometry:
+    """Analyze an already decoded image under the same bounded contract."""
+
+    _validate_analysis_inputs(canvas_offset_xy, threshold)
+    if (
+        not isinstance(image, RgbaImage)
+        or image.width < 1
+        or image.height < 1
+        or image.width * image.height > MAX_RGBA_PIXELS
+        or not isinstance(image.pixels, bytes)
+        or len(image.pixels) != image.width * image.height * 4
+    ):
+        raise ValueError("RGBA image is invalid")
     raw_runs, parents = _scan_runs(image.width, image.height, image.pixels, threshold)
     return _materialize(
         image.width,
@@ -130,6 +163,19 @@ def analyze_alpha_png(
         raw_runs,
         parents,
     )
+
+
+def _validate_analysis_inputs(
+    canvas_offset_xy: tuple[int, int], threshold: int
+) -> None:
+    if not isinstance(threshold, int) or isinstance(threshold, bool) or not 1 <= threshold <= 255:
+        raise ValueError("alpha threshold must be an integer in [1, 255]")
+    if (
+        not isinstance(canvas_offset_xy, tuple)
+        or len(canvas_offset_xy) != 2
+        or any(not isinstance(value, int) or isinstance(value, bool) for value in canvas_offset_xy)
+    ):
+        raise ValueError("canvas offset must be a pair of integers")
 
 
 def _scan_runs(
@@ -149,6 +195,8 @@ def _scan_runs(
             start = x
             while x + 1 < width and pixels[(y * width + x + 1) * 4 + 3] >= threshold:
                 x += 1
+            if len(all_runs) >= MAX_ALPHA_RUNS:
+                raise ValueError(f"alpha geometry exceeds {MAX_ALPHA_RUNS} runs")
             label = len(parents)
             parents.append(label)
             run = _Run(y, start, x, label)

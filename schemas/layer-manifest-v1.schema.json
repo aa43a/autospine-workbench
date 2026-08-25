@@ -284,7 +284,7 @@
       ],
       "properties": {
         "format": { "const": "autospine-bilateral-alpha-split" },
-        "format_version": { "const": 1 },
+        "format_version": { "enum": [1, 2] },
         "algorithm": {
           "type": "object",
           "additionalProperties": false,
@@ -298,6 +298,95 @@
               "pattern": "^\\S+$"
             }
           }
+        },
+        "component_policy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "perceptible_alpha_threshold",
+            "significant_min_area",
+            "significant_min_area_ratio",
+            "pair_min_component_ratio",
+            "pair_min_coverage_ratio",
+            "assignment_min_relative_margin",
+            "fused_endpoint_min_px",
+            "fused_endpoint_bbox_ratio",
+            "fused_min_side_pixel_ratio"
+          ],
+          "properties": {
+            "perceptible_alpha_threshold": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 255
+            },
+            "significant_min_area": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 16777216
+            },
+            "significant_min_area_ratio": { "type": "number", "minimum": 0, "maximum": 1 },
+            "pair_min_component_ratio": { "type": "number", "minimum": 0, "maximum": 1 },
+            "pair_min_coverage_ratio": { "type": "number", "minimum": 0, "maximum": 1 },
+            "assignment_min_relative_margin": { "type": "number", "minimum": 0, "maximum": 1 },
+            "fused_endpoint_min_px": { "type": "number", "minimum": 0 },
+            "fused_endpoint_bbox_ratio": { "type": "number", "minimum": 0, "maximum": 1 },
+            "fused_min_side_pixel_ratio": { "type": "number", "minimum": 0, "maximum": 1 }
+          }
+        },
+        "component_analysis": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "mode",
+            "perceptible_foreground_pixels",
+            "significant_component_areas",
+            "selected_assignment_cost",
+            "alternative_assignment_cost",
+            "assignment_relative_margin"
+          ],
+          "properties": {
+            "mode": {
+              "enum": ["verified_fused_pixel_fallback", "component_pair"]
+            },
+            "perceptible_foreground_pixels": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 16777216
+            },
+            "significant_component_areas": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 2,
+              "items": { "type": "integer", "minimum": 1 }
+            },
+            "selected_assignment_cost": { "type": ["number", "null"], "minimum": 0 },
+            "alternative_assignment_cost": { "type": ["number", "null"], "minimum": 0 },
+            "assignment_relative_margin": { "type": ["number", "null"], "minimum": 0, "maximum": 1 }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": { "mode": { "const": "component_pair" } },
+                "required": ["mode"]
+              },
+              "then": {
+                "properties": {
+                  "significant_component_areas": { "minItems": 2, "maxItems": 2 },
+                  "selected_assignment_cost": { "type": "number" },
+                  "alternative_assignment_cost": { "type": "number" },
+                  "assignment_relative_margin": { "type": "number" }
+                }
+              },
+              "else": {
+                "properties": {
+                  "significant_component_areas": { "minItems": 1, "maxItems": 1 },
+                  "selected_assignment_cost": { "type": "null" },
+                  "alternative_assignment_cost": { "type": "null" },
+                  "assignment_relative_margin": { "type": "null" }
+                }
+              }
+            }
+          ]
         },
         "source_layer_id": { "$ref": "#/$defs/id" },
         "source_raster_sha256": { "$ref": "#/$defs/sha256" },
@@ -335,7 +424,34 @@
         },
         "tie_break": { "const": "left" },
         "exact_partition": { "const": true }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "format_version": { "const": 2 } },
+            "required": ["format_version"]
+          },
+          "then": {
+            "required": ["component_analysis", "component_policy"],
+            "properties": {
+              "algorithm": {
+                "properties": {
+                  "id": { "const": "nearest-limb-polyline" },
+                  "version": { "const": "1.2.0" }
+                }
+              }
+            }
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                { "required": ["component_analysis"] },
+                { "required": ["component_policy"] }
+              ]
+            }
+          }
+        }
+      ]
     },
     "layer": {
       "type": "object",

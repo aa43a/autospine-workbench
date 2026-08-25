@@ -5,17 +5,26 @@ from __future__ import annotations
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 import math
-from typing import Any
+from typing import Any, Mapping
 
+from .bilateral_component_assignment import (
+    ComponentAssignmentError,
+    assign_component_sides,
+)
 from .png_rgba import MAX_RGBA_BYTES, MAX_RGBA_PIXELS, RgbaImage
+from .polyline_distance import (
+    MAX_GUIDE_POINTS,
+    normalize_polyline,
+    squared_distance_to_polyline,
+)
+from .split_component_policy import (
+    default_split_component_policy,
+    normalize_split_component_policy,
+)
 
 
 class AlphaBilateralSplitError(ValueError):
     """Raised when an RGBA layer cannot be split without guessing."""
-
-
-MAX_GUIDE_POINTS = 8
-"""Maximum anchors per anatomical-side guide at authoring and replay."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -28,21 +37,11 @@ class AlphaBilateralSplit:
     left_foreground_pixels: int
     right_foreground_pixels: int
     tie_foreground_pixels: int
+    component_analysis: dict[str, object] | None
 
     @property
     def foreground_pixels(self) -> int:
         return self.left_foreground_pixels + self.right_foreground_pixels
-
-
-@dataclass(frozen=True, slots=True)
-class _Segment:
-    start_x: float
-    start_y: float
-    end_x: float
-    end_y: float
-    delta_x: float
-    delta_y: float
-    length_squared: float
 
 
 def split_alpha_bilateral(
@@ -53,43 +52,132 @@ def split_alpha_bilateral(
     right_polyline_xy: Iterable[Sequence[float]],
     width: int | None = None,
     height: int | None = None,
+    component_policy: Mapping[str, Any] | None = None,
 ) -> AlphaBilateralSplit:
-    """Assign every non-transparent pixel to its nearest side polyline.
+    """Run current v1.2 component-cohesive bilateral assignment.
 
     Polylines and pixel coordinates are in canvas space. Pixel centers follow
     the existing alpha-geometry convention: local pixel ``(x, y)`` maps to
-    ``(offset_x + x, offset_y + y)``. Exact distance ties go to ``left``.
+    ``(offset_x + x, offset_y + y)``. Verified fused layers use the historical
+    pixel-nearest rule; pair-mode residual ties resolve by guide then ``left``.
 
     ``image`` may be the project's decoded :class:`RgbaImage` or raw RGBA
     bytes accompanied by ``width`` and ``height``. Fully transparent source
     RGB is intentionally cleared because it has no source-over contribution.
     """
 
+    raw_policy = (
+        default_split_component_policy()
+        if component_policy is None
+        else component_policy
+    )
+    try:
+        policy = normalize_split_component_policy(raw_policy)
+    except ValueError as exc:
+        raise AlphaBilateralSplitError(str(exc)) from exc
+    return _split_alpha_bilateral(
+        image,
+        canvas_offset_xy=canvas_offset_xy,
+        left_polyline_xy=left_polyline_xy,
+        right_polyline_xy=right_polyline_xy,
+        width=width,
+        height=height,
+        component_policy=policy,
+    )
+
+
+def split_alpha_bilateral_v1_1(
+    image: RgbaImage | bytes | bytearray | memoryview,
+    *,
+    canvas_offset_xy: Sequence[int],
+    left_polyline_xy: Iterable[Sequence[float]],
+    right_polyline_xy: Iterable[Sequence[float]],
+    width: int | None = None,
+    height: int | None = None,
+) -> AlphaBilateralSplit:
+    """Replay the immutable v1.1 pixel-nearest algorithm exactly."""
+
+    return _split_alpha_bilateral(
+        image,
+        canvas_offset_xy=canvas_offset_xy,
+        left_polyline_xy=left_polyline_xy,
+        right_polyline_xy=right_polyline_xy,
+        width=width,
+        height=height,
+        component_policy=None,
+    )
+
+
+def _split_alpha_bilateral(
+    image: RgbaImage | bytes | bytearray | memoryview,
+    *,
+    canvas_offset_xy: Sequence[int],
+    left_polyline_xy: Iterable[Sequence[float]],
+    right_polyline_xy: Iterable[Sequence[float]],
+    width: int | None,
+    height: int | None,
+    component_policy: Mapping[str, int | float] | None,
+) -> AlphaBilateralSplit:
     source = _normalize_image(image, width, height)
     offset_x, offset_y = _offset(canvas_offset_xy)
-    left_points, left_segments = _polyline(left_polyline_xy, "left")
-    right_points, right_segments = _polyline(right_polyline_xy, "right")
+    try:
+        left_points, left_segments = normalize_polyline(left_polyline_xy, "left")
+        right_points, right_segments = normalize_polyline(right_polyline_xy, "right")
+    except ValueError as exc:
+        raise AlphaBilateralSplitError(str(exc)) from exc
     if left_points == right_points or left_points == tuple(reversed(right_points)):
         raise AlphaBilateralSplitError("left and right polylines must be distinct")
 
+    component_assignment = None
+    if component_policy is not None:
+        try:
+            component_assignment = assign_component_sides(
+                source,
+                canvas_offset_xy=(offset_x, offset_y),
+                left_points=left_points,
+                right_points=right_points,
+                left_segments=left_segments,
+                right_segments=right_segments,
+                policy=component_policy,
+            )
+        except (ComponentAssignmentError, ValueError) as exc:
+            raise AlphaBilateralSplitError(str(exc)) from exc
+
     left_pixels = bytearray(len(source.pixels))
     right_pixels = bytearray(len(source.pixels))
+    assigned_sides = component_assignment.sides if component_assignment else None
     left_count = right_count = tie_count = 0
     for index in range(source.width * source.height):
         byte_offset = index * 4
         if source.pixels[byte_offset + 3] == 0:
             continue
-        local_x, local_y = index % source.width, index // source.width
-        canvas_x, canvas_y = offset_x + local_x, offset_y + local_y
-        left_distance = _squared_distance_to_polyline(canvas_x, canvas_y, left_segments)
-        right_distance = _squared_distance_to_polyline(canvas_x, canvas_y, right_segments)
-        target = left_pixels if left_distance <= right_distance else right_pixels
-        target[byte_offset : byte_offset + 4] = source.pixels[byte_offset : byte_offset + 4]
-        if left_distance <= right_distance:
-            left_count += 1
+        if assigned_sides is None:
+            local_x, local_y = index % source.width, index // source.width
+            canvas_x, canvas_y = offset_x + local_x, offset_y + local_y
+            try:
+                left_distance = squared_distance_to_polyline(
+                    canvas_x, canvas_y, left_segments
+                )
+                right_distance = squared_distance_to_polyline(
+                    canvas_x, canvas_y, right_segments
+                )
+            except ValueError as exc:
+                raise AlphaBilateralSplitError(str(exc)) from exc
+            side = 1 if left_distance <= right_distance else 2
             tie_count += left_distance == right_distance
         else:
+            side = assigned_sides[index]
+            if side not in (1, 2):
+                raise AlphaBilateralSplitError("component assignment left a pixel unassigned")
+        target = left_pixels if side == 1 else right_pixels
+        target[byte_offset : byte_offset + 4] = source.pixels[byte_offset : byte_offset + 4]
+        if side == 1:
+            left_count += 1
+        else:
             right_count += 1
+
+    if assigned_sides is not None:
+        tie_count = component_assignment.guide_tie_pixels
 
     if left_count + right_count == 0:
         raise AlphaBilateralSplitError("RGBA image has no alpha-positive pixels")
@@ -102,6 +190,9 @@ def split_alpha_bilateral(
         left_foreground_pixels=left_count,
         right_foreground_pixels=right_count,
         tie_foreground_pixels=tie_count,
+        component_analysis=(
+            component_assignment.analysis if component_assignment is not None else None
+        ),
     )
 
 
@@ -171,93 +262,3 @@ def _offset(value: Any) -> tuple[int, int]:
     if not finite:
         raise AlphaBilateralSplitError("canvas offset is outside the finite coordinate range")
     return result
-
-
-def _polyline(
-    value: Iterable[Sequence[float]], label: str
-) -> tuple[tuple[tuple[float, float], ...], tuple[_Segment, ...]]:
-    if isinstance(value, (str, bytes, bytearray)):
-        raise AlphaBilateralSplitError(f"{label} polyline must be an iterable of points")
-    try:
-        iterator = iter(value)
-    except TypeError as exc:
-        raise AlphaBilateralSplitError(
-            f"{label} polyline must be an iterable of points"
-        ) from exc
-    points_list: list[tuple[float, float]] = []
-    for index, item in enumerate(iterator):
-        if index == MAX_GUIDE_POINTS:
-            raise AlphaBilateralSplitError(
-                f"{label} polyline exceeds {MAX_GUIDE_POINTS} points"
-            )
-        points_list.append(_point(item, label))
-    points = tuple(points_list)
-    if len(points) < 2:
-        raise AlphaBilateralSplitError(f"{label} polyline needs at least two points")
-    segments: list[_Segment] = []
-    for start, end in zip(points, points[1:]):
-        dx, dy = end[0] - start[0], end[1] - start[1]
-        length_squared = dx * dx + dy * dy
-        if (
-            not math.isfinite(dx)
-            or not math.isfinite(dy)
-            or not math.isfinite(length_squared)
-        ):
-            raise AlphaBilateralSplitError(f"{label} polyline exceeds the finite coordinate range")
-        if length_squared == 0:
-            raise AlphaBilateralSplitError(f"{label} polyline has a zero-length segment")
-        segments.append(
-            _Segment(start[0], start[1], end[0], end[1], dx, dy, length_squared)
-        )
-    return points, tuple(segments)
-
-
-def _point(value: Any, label: str) -> tuple[float, float]:
-    if (
-        not isinstance(value, Sequence)
-        or isinstance(value, (str, bytes, bytearray))
-        or len(value) != 2
-    ):
-        raise AlphaBilateralSplitError(f"{label} polyline points must contain two numbers")
-    numbers: list[float] = []
-    for item in value:
-        if not isinstance(item, (int, float)) or isinstance(item, bool):
-            raise AlphaBilateralSplitError(f"{label} polyline points must contain two numbers")
-        try:
-            number = float(item)
-        except OverflowError as exc:
-            raise AlphaBilateralSplitError(f"{label} polyline points must be finite") from exc
-        if not math.isfinite(number):
-            raise AlphaBilateralSplitError(f"{label} polyline points must be finite")
-        numbers.append(number)
-    return numbers[0], numbers[1]
-
-
-def _squared_distance_to_polyline(
-    x: int, y: int, segments: tuple[_Segment, ...]
-) -> float:
-    """Return nearest squared distance without sqrt or normalized vectors.
-
-    Segment projection is classified by ``dot <= 0`` and
-    ``dot >= length_squared``.  Interior distance is the specified
-    ``cross_squared / length_squared`` expression.  Segments are visited in
-    authoring order and side equality is resolved only by the caller's
-    declared left tie-break.
-    """
-
-    best = math.inf
-    for segment in segments:
-        relative_x, relative_y = x - segment.start_x, y - segment.start_y
-        projection = relative_x * segment.delta_x + relative_y * segment.delta_y
-        if projection <= 0:
-            distance = relative_x * relative_x + relative_y * relative_y
-        elif projection >= segment.length_squared:
-            end_x, end_y = x - segment.end_x, y - segment.end_y
-            distance = end_x * end_x + end_y * end_y
-        else:
-            cross = relative_x * segment.delta_y - relative_y * segment.delta_x
-            distance = (cross * cross) / segment.length_squared
-        if not math.isfinite(projection) or not math.isfinite(distance):
-            raise AlphaBilateralSplitError("pixel-to-polyline distance is not finite")
-        best = min(best, distance)
-    return best

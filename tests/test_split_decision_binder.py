@@ -243,7 +243,10 @@ class SplitDecisionBinderTests(unittest.TestCase):
         operation_sha = None
         for child in manifest["layers"][1:3]:
             config = child["derivation"]["operation_config"]
-            config["algorithm"]["version"] = "0.9.0"
+            config["algorithm"]["version"] = "1.1.0"
+            config["format_version"] = 1
+            config.pop("component_analysis")
+            config.pop("component_policy")
             operation_sha = canonical_sha256(config)
             child["derivation"]["operation_config_sha256"] = operation_sha
         _path, manifest_sha = LayerManifestBundleStore(self.state).publish(
@@ -252,7 +255,7 @@ class SplitDecisionBinderTests(unittest.TestCase):
         preview = deepcopy(self.preview)
         preview["layer_manifest_sha256"] = manifest_sha
         operation = preview["review_target"]["operation"]
-        operation["algorithm"]["version"] = "0.9.0"
+        operation["algorithm"]["version"] = "1.1.0"
         operation["config_sha256"] = operation_sha
         preview["operation_config_sha256"] = operation_sha
         preview["review_target_sha256"] = canonical_sha256(preview["review_target"])

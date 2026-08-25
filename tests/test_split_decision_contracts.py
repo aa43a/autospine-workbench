@@ -44,7 +44,7 @@ def analysis() -> dict[str, str]:
         "resolved_snapshot_sha256": SHA_E,
         "split_spec_sha256": SHA_F,
         "algorithm_id": "nearest-limb-polyline",
-        "algorithm_version": "1.1.0",
+        "algorithm_version": "1.2.0",
     }
 
 

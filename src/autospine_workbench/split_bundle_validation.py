@@ -6,9 +6,18 @@ import hashlib
 from pathlib import Path
 from typing import Any, Mapping
 
-from .alpha_bilateral_split import AlphaBilateralSplitError, split_alpha_bilateral
+from .alpha_bilateral_split import (
+    AlphaBilateralSplitError,
+    split_alpha_bilateral,
+    split_alpha_bilateral_v1_1,
+)
 from .png_rgba import RgbaImage, RgbaPngError, read_rgba_png
-from .split_derivation_contract import SplitDerivationError, normalize_derivation
+from .split_derivation_contract import (
+    SPLIT_ALGORITHM_ID,
+    SPLIT_ALGORITHM_VERSION,
+    SplitDerivationError,
+    normalize_derivation,
+)
 
 
 class SplitBundleValidationError(ValueError):
@@ -98,12 +107,31 @@ def _validate_group(
         raise SplitBundleValidationError(f"Split parent RGBA hash differs: {source_id}")
     try:
         anchors = config["guide_anchors"]
-        replay = split_alpha_bilateral(
-            parent_image,
-            canvas_offset_xy=config["canvas_offset_xy"],
-            left_polyline_xy=[anchor["xy"] for anchor in anchors["left"]],
-            right_polyline_xy=[anchor["xy"] for anchor in anchors["right"]],
-        )
+        arguments = {
+            "canvas_offset_xy": config["canvas_offset_xy"],
+            "left_polyline_xy": [anchor["xy"] for anchor in anchors["left"]],
+            "right_polyline_xy": [anchor["xy"] for anchor in anchors["right"]],
+        }
+        algorithm = config["algorithm"]
+        if algorithm == {"id": SPLIT_ALGORITHM_ID, "version": "1.1.0"}:
+            replay = split_alpha_bilateral_v1_1(parent_image, **arguments)
+        elif algorithm == {
+            "id": SPLIT_ALGORITHM_ID,
+            "version": SPLIT_ALGORITHM_VERSION,
+        }:
+            replay = split_alpha_bilateral(
+                parent_image,
+                component_policy=config["component_policy"],
+                **arguments,
+            )
+            if replay.component_analysis != config["component_analysis"]:
+                raise SplitBundleValidationError(
+                    f"Split component analysis differs: {source_id}"
+                )
+        else:
+            raise SplitBundleValidationError(
+                f"Cannot replay unsupported split algorithm: {algorithm}"
+            )
     except AlphaBilateralSplitError as exc:
         raise SplitBundleValidationError(f"Cannot replay split {source_id}: {exc}") from exc
     expected = {"left": replay.left, "right": replay.right}

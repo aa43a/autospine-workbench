@@ -9,10 +9,15 @@ from typing import Any, Mapping
 
 from .alpha_bilateral_split import MAX_GUIDE_POINTS
 from .resolved_project import canonical_sha256
+from .split_component_policy import (
+    normalize_split_component_analysis,
+    normalize_split_component_policy,
+)
 
 
 SPLIT_ALGORITHM_ID = "nearest-limb-polyline"
-SPLIT_ALGORITHM_VERSION = "1.1.0"
+SPLIT_ALGORITHM_VERSION = "1.2.0"
+SPLIT_FORMAT_VERSION = 2
 SPLIT_TIE_BREAK = "left"
 
 _SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
@@ -85,7 +90,7 @@ def _validate_split(layer_id: str, derivation: Mapping[str, Any]) -> None:
     expected_hash = derivation.get("operation_config_sha256")
     if not isinstance(expected_hash, str) or canonical_sha256(config) != expected_hash:
         raise SplitDerivationError(f"Layer {layer_id} split config hash is invalid")
-    required = {
+    base_required = {
         "format",
         "format_version",
         "algorithm",
@@ -98,16 +103,6 @@ def _validate_split(layer_id: str, derivation: Mapping[str, Any]) -> None:
         "tie_break",
         "exact_partition",
     }
-    if set(config) != required:
-        raise SplitDerivationError(f"Layer {layer_id} split config fields are invalid")
-    source_id = config.get("source_layer_id")
-    if not _safe_id(source_id) or derivation.get("parent_layer_ids") != [source_id]:
-        raise SplitDerivationError(f"Layer {layer_id} split parent is invalid")
-    if (
-        config.get("format") != "autospine-bilateral-alpha-split"
-        or config.get("format_version") != 1
-    ):
-        raise SplitDerivationError(f"Layer {layer_id} split format is unsupported")
     algorithm = config.get("algorithm")
     if not isinstance(algorithm, Mapping) or set(algorithm) != {"id", "version"}:
         raise SplitDerivationError(f"Layer {layer_id} split algorithm is invalid")
@@ -120,6 +115,44 @@ def _validate_split(layer_id: str, derivation: Mapping[str, Any]) -> None:
         or any(character.isspace() for character in version)
     ):
         raise SplitDerivationError(f"Layer {layer_id} split algorithm is invalid")
+    current = algorithm == {
+        "id": SPLIT_ALGORITHM_ID,
+        "version": SPLIT_ALGORITHM_VERSION,
+    }
+    required = base_required | (
+        {"component_analysis", "component_policy"} if current else set()
+    )
+    if set(config) != required:
+        raise SplitDerivationError(f"Layer {layer_id} split config fields are invalid")
+    source_id = config.get("source_layer_id")
+    if not _safe_id(source_id) or derivation.get("parent_layer_ids") != [source_id]:
+        raise SplitDerivationError(f"Layer {layer_id} split parent is invalid")
+    expected_format_version = SPLIT_FORMAT_VERSION if current else 1
+    if (
+        config.get("format") != "autospine-bilateral-alpha-split"
+        or config.get("format_version") != expected_format_version
+    ):
+        raise SplitDerivationError(f"Layer {layer_id} split format is unsupported")
+    if current:
+        try:
+            normalized_policy = normalize_split_component_policy(
+                config.get("component_policy")
+            )
+            normalized_analysis = normalize_split_component_analysis(
+                config.get("component_analysis")
+            )
+        except ValueError as exc:
+            raise SplitDerivationError(
+                f"Layer {layer_id} split component policy is invalid"
+            ) from exc
+        if normalized_policy != config["component_policy"]:
+            raise SplitDerivationError(
+                f"Layer {layer_id} split component policy is not canonical"
+            )
+        if normalized_analysis != config["component_analysis"]:
+            raise SplitDerivationError(
+                f"Layer {layer_id} split component analysis is not canonical"
+            )
     if not _sha(config.get("source_raster_sha256")) or not _sha(
         config.get("source_rgba_sha256")
     ):

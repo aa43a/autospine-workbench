@@ -19,10 +19,12 @@ from .split_binding_manifest import (
 from .split_derivation_contract import (
     SPLIT_ALGORITHM_ID,
     SPLIT_ALGORITHM_VERSION,
+    SPLIT_FORMAT_VERSION,
     SPLIT_TIE_BREAK,
     SplitDerivationError,
     build_split_derivation,
 )
+from .split_component_policy import default_split_component_policy
 from .split_spec_resolution import SplitSpecResolutionError, resolve_split_spec
 
 
@@ -109,12 +111,14 @@ def _current_target(
     guides = {
         side: authoring["parts"][side]["guide_anchors"] for side in _SIDES
     }
+    component_policy = default_split_component_policy()
     try:
         split = split_alpha_bilateral(
             image,
             canvas_offset_xy=offset,
             left_polyline_xy=[anchor["xy"] for anchor in guides["left"]],
             right_polyline_xy=[anchor["xy"] for anchor in guides["right"]],
+            component_policy=component_policy,
         )
         outputs = {
             "left": hashlib.sha256(split.left.pixels).hexdigest(),
@@ -126,11 +130,13 @@ def _current_target(
         }
         config = {
             "format": "autospine-bilateral-alpha-split",
-            "format_version": 1,
+            "format_version": SPLIT_FORMAT_VERSION,
             "algorithm": {
                 "id": SPLIT_ALGORITHM_ID,
                 "version": SPLIT_ALGORITHM_VERSION,
             },
+            "component_analysis": split.component_analysis,
+            "component_policy": component_policy,
             "source_layer_id": layer_id,
             "source_raster_sha256": raster_sha,
             "source_rgba_sha256": rgba_sha,

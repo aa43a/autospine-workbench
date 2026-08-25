@@ -16,10 +16,12 @@ from .png_rgba import RgbaImage, RgbaPngError, read_rgba_png, write_rgba_png
 from .split_derivation_contract import (
     SPLIT_ALGORITHM_ID,
     SPLIT_ALGORITHM_VERSION,
+    SPLIT_FORMAT_VERSION,
     SPLIT_TIE_BREAK,
     SplitDerivationError,
     build_split_derivation,
 )
+from .split_component_policy import default_split_component_policy
 from .split_spec_resolution import (
     SplitSpecResolutionError,
     resolve_layer_split_authoring,
@@ -167,19 +169,23 @@ def _materialize_layer(
         side: [anchor["xy"] for anchor in guide_anchors[side]]
         for side in ("left", "right")
     }
+    component_policy = default_split_component_policy()
     try:
         split = split_alpha_bilateral(
             image,
             canvas_offset_xy=offset,
             left_polyline_xy=guide_points["left"],
             right_polyline_xy=guide_points["right"],
+            component_policy=component_policy,
         )
     except AlphaBilateralSplitError as exc:
         raise LayerSplitMaterializationError(f"Layer {layer_id} split failed: {exc}") from exc
     config = {
         "format": "autospine-bilateral-alpha-split",
-        "format_version": 1,
+        "format_version": SPLIT_FORMAT_VERSION,
         "algorithm": {"id": SPLIT_ALGORITHM_ID, "version": SPLIT_ALGORITHM_VERSION},
+        "component_analysis": split.component_analysis,
+        "component_policy": component_policy,
         "source_layer_id": layer_id,
         "source_raster_sha256": sha256_file(source),
         "source_rgba_sha256": hashlib.sha256(image.pixels).hexdigest(),

@@ -6,6 +6,7 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -13,7 +14,11 @@ SRC_ROOT = ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from autospine_workbench.alpha_geometry import analyze_alpha_png  # noqa: E402
+from autospine_workbench.alpha_geometry import (  # noqa: E402
+    analyze_alpha_image,
+    analyze_alpha_png,
+)
+from autospine_workbench.png_rgba import RgbaImage  # noqa: E402
 from tests.png_helpers import write_rgba  # noqa: E402
 
 
@@ -63,6 +68,16 @@ class AlphaGeometryTests(unittest.TestCase):
         self.assertIsNone(geometry.nearest_foreground(0, 0))
         with self.assertRaises(ValueError):
             analyze_alpha_png(path, threshold=0)
+
+    def test_run_metadata_cap_fails_before_unbounded_component_growth(self) -> None:
+        image = RgbaImage(
+            3,
+            1,
+            bytes((*VISIBLE, *TRANSPARENT, *VISIBLE)),
+        )
+        with patch("autospine_workbench.alpha_geometry.MAX_ALPHA_RUNS", 1):
+            with self.assertRaisesRegex(ValueError, "exceeds 1 runs"):
+                analyze_alpha_image(image, threshold=1)
 
 
 if __name__ == "__main__":

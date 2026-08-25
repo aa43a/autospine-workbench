@@ -21,8 +21,12 @@ from autospine_workbench.resolved_project import canonical_sha256  # noqa: E402
 from autospine_workbench.split_derivation_contract import (  # noqa: E402
     SPLIT_ALGORITHM_ID,
     SPLIT_ALGORITHM_VERSION,
+    SPLIT_FORMAT_VERSION,
     SPLIT_TIE_BREAK,
     build_split_derivation,
+)
+from autospine_workbench.split_component_policy import (  # noqa: E402
+    default_split_component_policy,
 )
 from autospine_workbench.split_preview import (  # noqa: E402
     SplitPreviewError,
@@ -111,8 +115,17 @@ def fixture() -> tuple[dict, list[dict], dict, str]:
     }
     config = {
         "format": "autospine-bilateral-alpha-split",
-        "format_version": 1,
+        "format_version": SPLIT_FORMAT_VERSION,
         "algorithm": {"id": SPLIT_ALGORITHM_ID, "version": SPLIT_ALGORITHM_VERSION},
+        "component_analysis": {
+            "mode": "component_pair",
+            "perceptible_foreground_pixels": 100,
+            "significant_component_areas": [50, 50],
+            "selected_assignment_cost": 10.0,
+            "alternative_assignment_cost": 20.0,
+            "assignment_relative_margin": 0.5,
+        },
+        "component_policy": default_split_component_policy(),
         "source_layer_id": PARENT_ID,
         "source_raster_sha256": SHA["a"],
         "source_rgba_sha256": SHA["b"],

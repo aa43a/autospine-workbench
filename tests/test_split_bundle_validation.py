@@ -8,6 +8,7 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -18,6 +19,7 @@ if str(SRC) not in sys.path:
 from autospine_workbench.alpha_bilateral_split import split_alpha_bilateral  # noqa: E402
 from autospine_workbench.layer_manifest import sha256_file  # noqa: E402
 from autospine_workbench.png_rgba import RgbaImage, write_rgba_png  # noqa: E402
+from autospine_workbench.resolved_project import canonical_sha256  # noqa: E402
 from autospine_workbench.split_bundle_validation import (  # noqa: E402
     SplitBundleValidationError,
     validate_split_bundle,
@@ -25,7 +27,11 @@ from autospine_workbench.split_bundle_validation import (  # noqa: E402
 from autospine_workbench.split_derivation_contract import (  # noqa: E402
     SPLIT_ALGORITHM_ID,
     SPLIT_ALGORITHM_VERSION,
+    SPLIT_FORMAT_VERSION,
     build_split_derivation,
+)
+from autospine_workbench.split_component_policy import (  # noqa: E402
+    default_split_component_policy,
 )
 
 
@@ -55,11 +61,14 @@ class SplitBundleValidationTests(unittest.TestCase):
             1,
             bytes([10, 20, 30, 255, 40, 50, 60, 128, 70, 80, 90, 255]),
         )
+        policy = default_split_component_policy()
+        policy["significant_min_area"] = 1
         split = split_alpha_bilateral(
             source,
             canvas_offset_xy=(10, 20),
             left_polyline_xy=((10, 19), (10, 21)),
             right_polyline_xy=((12, 19), (12, 21)),
+            component_policy=policy,
         )
         self.paths = {
             "parent": root / "parent.png",
@@ -71,11 +80,13 @@ class SplitBundleValidationTests(unittest.TestCase):
         write_rgba_png(self.paths["parent--right"], split.right)
         config = {
             "format": "autospine-bilateral-alpha-split",
-            "format_version": 1,
+            "format_version": SPLIT_FORMAT_VERSION,
             "algorithm": {
                 "id": SPLIT_ALGORITHM_ID,
                 "version": SPLIT_ALGORITHM_VERSION,
             },
+            "component_analysis": split.component_analysis,
+            "component_policy": policy,
             "source_layer_id": "parent",
             "source_raster_sha256": sha256_file(self.paths["parent"]),
             "source_rgba_sha256": hashlib.sha256(source.pixels).hexdigest(),
@@ -141,6 +152,28 @@ class SplitBundleValidationTests(unittest.TestCase):
 
     def test_replays_exact_children_from_bundled_parent(self) -> None:
         validate_split_bundle(self.manifest, self.paths)
+
+    def test_historical_v1_1_bundle_uses_pixel_nearest_replay(self) -> None:
+        manifest = deepcopy(self.manifest)
+        config = deepcopy(manifest["layers"][1]["derivation"]["operation_config"])
+        config["format_version"] = 1
+        config["algorithm"]["version"] = "1.1.0"
+        config.pop("component_analysis")
+        config.pop("component_policy")
+        derivation = {
+            "operation": "split",
+            "parent_layer_ids": ["parent"],
+            "operation_config_sha256": canonical_sha256(config),
+            "operation_config": config,
+        }
+        manifest["layers"][1]["derivation"] = derivation
+        manifest["layers"][2]["derivation"] = derivation
+
+        with patch(
+            "autospine_workbench.split_bundle_validation.split_alpha_bilateral",
+            side_effect=AssertionError("v1.2 replay must not serve a v1.1 bundle"),
+        ):
+            validate_split_bundle(manifest, self.paths)
 
     def test_replay_uses_manual_proxy_anchor_coordinates(self) -> None:
         manifest = deepcopy(self.manifest)

@@ -18,9 +18,13 @@ from autospine_workbench.resolved_project import canonical_sha256  # noqa: E402
 from autospine_workbench.split_derivation_contract import (  # noqa: E402
     SPLIT_ALGORITHM_ID,
     SPLIT_ALGORITHM_VERSION,
+    SPLIT_FORMAT_VERSION,
     SplitDerivationError,
     build_split_derivation,
     normalize_derivation,
+)
+from autospine_workbench.split_component_policy import (  # noqa: E402
+    default_split_component_policy,
 )
 from tests.test_contracts import valid_layer_manifest  # noqa: E402
 
@@ -33,11 +37,20 @@ except ImportError:  # pragma: no cover - optional test extra
 def split_config() -> dict:
     return {
         "format": "autospine-bilateral-alpha-split",
-        "format_version": 1,
+        "format_version": SPLIT_FORMAT_VERSION,
         "algorithm": {
             "id": SPLIT_ALGORITHM_ID,
             "version": SPLIT_ALGORITHM_VERSION,
         },
+        "component_analysis": {
+            "mode": "component_pair",
+            "perceptible_foreground_pixels": 100,
+            "significant_component_areas": [50, 50],
+            "selected_assignment_cost": 10.0,
+            "alternative_assignment_cost": 20.0,
+            "assignment_relative_margin": 0.5,
+        },
+        "component_policy": default_split_component_policy(),
         "source_layer_id": "layer-001-footwear",
         "source_raster_sha256": "a" * 64,
         "source_rgba_sha256": "b" * 64,
@@ -107,6 +120,12 @@ class SplitDerivationContractTests(unittest.TestCase):
             lambda item: item.update(operation_config_sha256="0" * 64),
             lambda item: item["operation_config"]["algorithm"].update(version="bad version"),
             lambda item: item["operation_config"].update(tie_break="right"),
+            lambda item: item["operation_config"]["component_policy"].update(
+                pair_min_coverage_ratio=1.5
+            ),
+            lambda item: item["operation_config"]["component_analysis"].update(
+                assignment_relative_margin=0.4
+            ),
             lambda item: item["operation_config"]["guide_anchors"].update(
                 left=[item["operation_config"]["guide_anchors"]["left"][0]]
             ),
@@ -133,12 +152,29 @@ class SplitDerivationContractTests(unittest.TestCase):
     def test_historical_algorithm_is_readable_but_cannot_be_newly_built(self) -> None:
         baseline = build_split_derivation(split_config())
         baseline["operation_config"]["algorithm"]["version"] = "0.9.0"
+        baseline["operation_config"]["format_version"] = 1
+        baseline["operation_config"].pop("component_analysis")
+        baseline["operation_config"].pop("component_policy")
         baseline["operation_config_sha256"] = canonical_sha256(
             baseline["operation_config"]
         )
         self.assertEqual(baseline, normalize_derivation("child-left", baseline))
         with self.assertRaisesRegex(SplitDerivationError, "current algorithm"):
             build_split_derivation(baseline["operation_config"])
+
+    def test_v1_2_policy_changes_operation_identity(self) -> None:
+        baseline = split_config()
+        changed = deepcopy(baseline)
+        changed["component_policy"]["assignment_min_relative_margin"] = 0.06
+
+        first = build_split_derivation(baseline)
+        second = build_split_derivation(changed)
+
+        self.assertNotEqual(
+            first["operation_config_sha256"], second["operation_config_sha256"]
+        )
+        self.assertEqual("1.2.0", first["operation_config"]["algorithm"]["version"])
+        self.assertEqual(2, first["operation_config"]["format_version"])
 
     def test_config_requires_distinct_side_polylines(self) -> None:
         config = split_config()

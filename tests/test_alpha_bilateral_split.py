@@ -17,7 +17,7 @@ if str(SRC) not in sys.path:
 from autospine_workbench.alpha_bilateral_split import (  # noqa: E402
     AlphaBilateralSplitError,
     MAX_GUIDE_POINTS,
-    split_alpha_bilateral,
+    split_alpha_bilateral_v1_1 as split_alpha_bilateral,
 )
 from autospine_workbench.png_rgba import MAX_RGBA_PIXELS, RgbaImage  # noqa: E402
 
