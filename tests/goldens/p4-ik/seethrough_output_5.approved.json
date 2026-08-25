@@ -1,0 +1,48 @@
+{
+  "format": "autospine-p4-ik-golden",
+  "format_version": 1,
+  "project_id": "seethrough_output_5",
+  "p3_source": {
+    "base_rig_sha256": "fa12a226c9ca837aa5f626b90332de4535feb231a080b4d4d1dcb2e9a66fff5f",
+    "base_bundle_sha256": "61ed82746cd725d394891a968013ba5a1a0df7980086c072ec8e68fb58be80ff",
+    "layer_manifest_sha256": "45b5f2a90c55866a17c83a01e7ae46e9bd2bed51b4a918d60690a574f14bff51",
+    "resolved_project_sha256": "0d959229af6916e9878f509b43c73d29b084043f4b84620966fad3d76d0d0ece",
+    "rig_sha256": "897761e75bdd7e1cd3018cdab0f793f2d3ba637d88e01ce907beb179cfe0cd77",
+    "run_sha256": "c6810f44daa529ada9982cd7a2b49f62330ac21c4f6e92368abd9097874a620e",
+    "probes_sha256": "d93db4694bfcca6e17c763c488b17e0086a70fdefc5db70dd703536d5c13385b",
+    "visuals_sha256": "750d126d5c4e937e7f2108c9714c5fa7ea6362f5d52d0a650e8a4c260eb5c444",
+    "bundle_sha256": "21f4707eaf023d664ae8cea8b785fd8a5197187f846d6db10b9c3ef34d7c6576"
+  },
+  "p4": {
+    "profile_sha256": "ee522acfdf729b179b0bd7fb15d29303c724b63d3f467a6a0ba035704ea4242d",
+    "probes_sha256": "71b22860a636d60508751e8b4a27fcc83dc3db84f82463f5a91d8e86536ca829",
+    "bundle_sha256": "a98a42e614f73f0df9dd6751a2a5a042dd707d6f4acff7e3410a4d69c6bd419b"
+  },
+  "summary": {
+    "handle_count": 4,
+    "evaluated_case_count": 20,
+    "not_applicable_case_count": 0
+  },
+  "handles": [
+    {
+      "id": "arm.left",
+      "bend_direction": "positive",
+      "kinematic_reach": {"minimum_px": 66.794445578765, "maximum_px": 450.353734346486}
+    },
+    {
+      "id": "arm.right",
+      "bend_direction": "negative",
+      "kinematic_reach": {"minimum_px": 81.945346732331, "maximum_px": 408.204752727008}
+    },
+    {
+      "id": "leg.left",
+      "bend_direction": "positive",
+      "kinematic_reach": {"minimum_px": 69.056597985529, "maximum_px": 356.061032794471}
+    },
+    {
+      "id": "leg.right",
+      "bend_direction": "negative",
+      "kinematic_reach": {"minimum_px": 31.449762407671, "maximum_px": 444.732135610303}
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "format": "autospine-p4-ik-golden",
+  "format_version": 1,
+  "project_id": "seethrough_output",
+  "p3_source": {
+    "base_rig_sha256": "3e97682c8acec2ba9055806dc9eb650f7e0453fd6cfc1ca82157e9394f7237a7",
+    "base_bundle_sha256": "b533a5bb8f77339a35e825c584e9c0c487a8457cdb85d1e427719201feae0de2",
+    "layer_manifest_sha256": "ed1e2458cd22b75c51f13656feb86ecf55682508b62413c980c3035743e8faa7",
+    "resolved_project_sha256": "3d96f605d428f1dbe66198c8a864004631ad1627839bf9849493d44f60178f11",
+    "rig_sha256": "40f96ade2f38f93caa7610b40f02ed9b30b8782396cee0e80499724a0450e327",
+    "run_sha256": "2449386e1bbc9743e1625e65d04686ad4345809e2f3dc59e5af2193895aa5a5d",
+    "probes_sha256": "5c2d30d9c87d8fde07b54a772e8073028ae0827aa8e9f287a1d525d4f0c4e561",
+    "visuals_sha256": "09832f979e354a2f0b721e698504b08e83e06fdd93661cc0c2bcbb73850c7c13",
+    "bundle_sha256": "7754406b1f6834a6b5c8fedfcd4743bd294d8cc568d7ff6413673cada3d79a1d"
+  },
+  "p4": {
+    "profile_sha256": "9fdecdbc084ab51b54768c4bbca18fbe484ad153ed8b426d1bd2937e6526b9d0",
+    "probes_sha256": "09295c183ddb55226fdcc4a37a868982207ac75fdb9e7498ee401125b9b35e3c",
+    "bundle_sha256": "9089fd1859286022288b2b79b63b461c1d60a4bdc9509f50cdd7a6834b3933c3"
+  },
+  "summary": {
+    "handle_count": 4,
+    "evaluated_case_count": 20,
+    "not_applicable_case_count": 0
+  },
+  "handles": [
+    {
+      "id": "arm.left",
+      "bend_direction": "positive",
+      "kinematic_reach": {"minimum_px": 29.446023801369, "maximum_px": 147.829806474504}
+    },
+    {
+      "id": "arm.right",
+      "bend_direction": "positive",
+      "kinematic_reach": {"minimum_px": 74.350486137406, "maximum_px": 253.282540280872}
+    },
+    {
+      "id": "leg.left",
+      "bend_direction": "positive",
+      "kinematic_reach": {"minimum_px": 49.471859453105, "maximum_px": 410.773118792177}
+    },
+    {
+      "id": "leg.right",
+      "bend_direction": "positive",
+      "kinematic_reach": {"minimum_px": 57.211467387426, "maximum_px": 432.803267084917}
+    }
+  ]
+}
