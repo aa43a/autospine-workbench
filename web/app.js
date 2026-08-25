@@ -1,4 +1,6 @@
 import { API_BASE, apiRequest, normalizeProjectSummaries } from "./modules/api.js";
+import { createCandidateReview } from "./modules/candidate-review.js";
+import { collectRequiredElements } from "./modules/dom-elements.js";
 import {
   applyDraftPatch,
   captureSaveSnapshot,
@@ -7,7 +9,14 @@ import {
   reconcileSaveResponse,
 } from "./modules/draft-transactions.js";
 import { createSkeletonRenderer } from "./modules/skeleton-renderer.js";
-import { applyOverrideDraft, captureOverrideDraft, overrideDraftFromServer } from "./modules/override-draft.js";
+import {
+  applyOverrideDraft,
+  captureOverrideDraft,
+  clientJointDecisions,
+  overrideDraftFromServer,
+} from "./modules/override-draft.js";
+import { canonicalSide, normalizeLayerOverrideMap, normalizeOverrideMap } from "./modules/override-normalizers.js";
+import { applyManualJoint, clearJointEdits, resolveEffectiveJoint } from "./modules/joint-edit-state.js";
 import { compositeQaFlag, confidenceLevel, formatConfidence, normalizeWorkflow, setConfidenceBadge, unresolvedJointIds } from "./modules/workflow.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -32,6 +41,7 @@ const state = {
   baseRevision: null,
   jointOverrides: {},
   jointDecisions: {},
+  resolvedJointDecisions: {},
   layerOverrides: {},
   notes: "",
   dragJointId: null,
@@ -42,53 +52,7 @@ const state = {
   conflictPatch: null,
 };
 
-const dom = Object.fromEntries([
-  "projectSelect", "refreshProjectsBtn", "workflowNav", "saveBtn", "saveIndicator",
-  "saveIndicatorText", "globalAlert", "globalAlertText", "dismissAlertBtn", "layerCounter",
-  "layerSearch", "clearSearchBtn", "showAllLayersBtn", "hideAllLayersBtn", "visibleLayerCount",
-  "layerList", "layerModeBtn", "jointModeBtn", "toggleCompositeBtn", "toggleSkeletonBtn",
-  "previewOpacity", "previewOpacityValue", "zoomOutBtn", "zoomInBtn", "zoomValueBtn",
-  "fitCanvasBtn", "canvasViewport", "canvasSpace", "canvasSurface", "compositeImage",
-  "layerStack", "skeletonSvg", "boneGroup", "layerSelectionGroup", "jointGroup", "canvasEmpty",
-  "canvasEmptyTitle", "canvasEmptyText", "canvasLoading", "revisionBadge", "layerInspector",
-  "layerConfidence", "layerSelectionEmpty", "layerFields", "layerSwatch", "selectedLayerName",
-  "selectedLayerId", "selectedLayerBbox", "selectedLayerState", "semanticRoleInput",
-  "semanticSideSelect", "layerDispositionSelect", "selectedLayerVisible", "jointConfidence", "jointSelectionEmpty",
-  "jointFields", "selectedJointName", "selectedJointState", "jointXInput", "jointYInput",
-  "resetJointBtn", "qaCounter", "qaList", "capabilityList", "overrideNotes", "canvasStatus",
-  "selectionStatus", "overrideStatus", "networkStatus", "liveRegion", "conflictActions",
-  "exportLocalPatchBtn", "replayConflictBtn",
-].map((id) => [id, document.getElementById(id)]));
-
-function normalizeOverrideMap(value) {
-  if (!value) return {};
-  if (Array.isArray(value)) {
-    return Object.fromEntries(value.filter(Boolean).map((entry) => [String(entry.id), cloneJson(entry, {})]));
-  }
-  return typeof value === "object" ? cloneJson(value, {}) : {};
-}
-
-function normalizeLayerOverrideMap(value) {
-  const overrides = normalizeOverrideMap(value);
-  for (const [layerId, rawOverride] of Object.entries(overrides)) {
-    if (!rawOverride || typeof rawOverride !== "object" || Array.isArray(rawOverride)) {
-      overrides[layerId] = {};
-      continue;
-    }
-    const semantic = rawOverride.semantic && typeof rawOverride.semantic === "object"
-      ? rawOverride.semantic
-      : {};
-    if (!("canonical_role" in rawOverride)) {
-      const role = semantic.canonical_role ?? semantic.role ?? rawOverride.role;
-      if (role != null) rawOverride.canonical_role = role;
-    }
-    if (!("side" in rawOverride) && "side" in semantic) rawOverride.side = semantic.side;
-    if ("side" in rawOverride) rawOverride.side = canonicalSide(rawOverride.side);
-    delete rawOverride.semantic;
-    delete rawOverride.role;
-  }
-  return overrides;
-}
+const dom = collectRequiredElements();
 
 function captureCurrentDraft() {
   return captureOverrideDraft(state);
@@ -281,7 +245,8 @@ function initializeProject(project, fallbackId) {
   const overrides = project?.overrides || {};
   state.baseRevision = overrides.revision ?? project?.revision ?? 0;
   state.jointOverrides = normalizeOverrideMap(overrides.joint_overrides);
-  state.jointDecisions = normalizeOverrideMap(overrides.joint_decisions);
+  state.resolvedJointDecisions = normalizeOverrideMap(overrides.joint_decisions);
+  state.jointDecisions = clientJointDecisions(state.resolvedJointDecisions);
   state.layerOverrides = normalizeLayerOverrideMap(overrides.layer_overrides);
   state.notes = String(overrides.notes ?? "");
   state.persistedDraft = captureCurrentDraft();
@@ -303,6 +268,7 @@ function initializeProject(project, fallbackId) {
   renderQa();
   renderCapabilities();
   updateStatusbar();
+  candidateReview.loadProject(state.selectedProjectId);
 }
 
 function getCanvasSize() {
@@ -353,16 +319,9 @@ function effectiveLayer(layer) {
 }
 
 function effectiveJoint(joint) {
-  const override = state.jointOverrides[String(joint.id)] || {};
   const decision = state.jointDecisions[String(joint.id)] || {};
-  const decisionPoint = Array.isArray(decision.final_xy) ? decision.final_xy : [];
-  return {
-    ...joint,
-    x: numberOr(override.x, numberOr(decisionPoint[0], numberOr(joint.x))),
-    y: numberOr(override.y, numberOr(decisionPoint[1], numberOr(joint.y))),
-    reviewAction: decision.action || null,
-    isManual: Object.prototype.hasOwnProperty.call(state.jointOverrides, String(joint.id)),
-  };
+  const cachedPoint = candidateReview.resolveDecisionPoint(joint.id, decision);
+  return resolveEffectiveJoint(joint, state, cachedPoint);
 }
 
 function getSelectedLayer() {
@@ -512,15 +471,6 @@ function normalizeSide(value) {
   if (["CENTER", "CENTRE", "C", "NONE", "N/A"].includes(side)) return "C";
   if (["BILATERAL", "B", "BOTH"].includes(side)) return "B";
   return "?";
-}
-
-function canonicalSide(value) {
-  const side = String(value ?? "unknown").toLowerCase();
-  if (["left", "l"].includes(side)) return "left";
-  if (["right", "r"].includes(side)) return "right";
-  if (["center", "centre", "c", "none", "n/a"].includes(side)) return "center";
-  if (["bilateral", "b", "both"].includes(side)) return "bilateral";
-  return "unknown";
 }
 
 function selectLayer(id) {
@@ -702,6 +652,18 @@ const skeletonRenderer = createSkeletonRenderer({
   onJointPointerDown,
   onSelectJoint: selectJoint,
 });
+const candidateReview = createCandidateReview({
+  elements: dom,
+  draftState: state,
+  getJoint: getSelectedJoint,
+  getCanvasSize,
+  announce,
+  onDecision: (jointId, decision) => {
+    markDirty(`关节 ${jointId} 已写入 ${decision.action} 审查`);
+    renderSkeleton();
+    renderJointInspector();
+  },
+});
 
 function renderSkeleton() {
   skeletonRenderer.render({
@@ -744,12 +706,7 @@ function updateJointFromPointer(event) {
 }
 
 function setJointOverride(jointId, x, y, { render = true, announceChange = true } = {}) {
-  delete state.jointDecisions[String(jointId)];
-  state.jointOverrides[String(jointId)] = {
-    ...(state.jointOverrides[String(jointId)] || {}),
-    x: Math.round(x * 10) / 10,
-    y: Math.round(y * 10) / 10,
-  };
+  applyManualJoint(state, jointId, x, y);
   markDirty(announceChange ? `关节 ${jointId} 已校正` : "");
   if (render) {
     renderSkeleton();
@@ -794,6 +751,7 @@ function renderLayerInspector() {
 
 function renderJointInspector() {
   const joint = getSelectedJoint();
+  candidateReview.setJoint(joint?.id ?? null);
   dom.jointSelectionEmpty.hidden = Boolean(joint);
   dom.jointFields.hidden = !joint;
   if (!joint) {
@@ -805,7 +763,7 @@ function renderJointInspector() {
   dom.selectedJointState.textContent = joint.isManual ? "已人工校正" : joint.state || joint.source || "自动推断";
   dom.jointXInput.value = String(Math.round(joint.x * 10) / 10);
   dom.jointYInput.value = String(Math.round(joint.y * 10) / 10);
-  dom.resetJointBtn.disabled = !joint.isManual;
+  dom.resetJointBtn.disabled = !joint.isManual && !joint.reviewAction;
   setConfidenceBadge(dom.jointConfidence, joint.confidence);
 }
 
@@ -1050,6 +1008,9 @@ async function saveOverrides() {
       serverDraft: draftFromServer(nextOverrides, snapshot.draft),
       currentEditEpoch: state.editEpoch,
     });
+    state.resolvedJointDecisions = normalizeOverrideMap(
+      nextOverrides.joint_decisions ?? snapshot.draft.joint_decisions,
+    );
     state.baseRevision = nextOverrides.revision ?? payload?.revision ?? state.baseRevision;
     state.persistedDraft = reconciled.persistedDraft;
     applyDraftToState(reconciled.draft);
@@ -1184,8 +1145,7 @@ function updateJointFromInputs() {
 function resetSelectedJoint() {
   const joint = getSelectedJoint();
   if (!joint) return;
-  delete state.jointOverrides[String(joint.id)];
-  delete state.jointDecisions[String(joint.id)];
+  clearJointEdits(state, joint.id);
   markDirty(`关节 ${joint.id} 已恢复自动位置`);
   renderSkeleton();
   renderJointInspector();
@@ -1202,6 +1162,7 @@ function onGlobalKeyDown(event) {
     return;
   }
   if (isTypingTarget(event.target)) return;
+  if (event.target.closest?.("#candidateReview")) return;
   if (event.key === "0") {
     event.preventDefault();
     fitCanvas();

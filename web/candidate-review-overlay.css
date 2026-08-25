@@ -1,0 +1,54 @@
+.skeleton-overlay.is-hidden #candidateGroup {
+  display: none;
+}
+
+.candidate-hit-plane {
+  fill: transparent;
+  pointer-events: none;
+}
+
+.candidate-marker {
+  outline: none;
+  cursor: pointer;
+  pointer-events: none;
+}
+
+.canvas-viewport[data-mode="joints"] .candidate-hit-plane {
+  pointer-events: all;
+  cursor: pointer;
+}
+
+.canvas-viewport[data-mode="layers"] .candidate-hit-plane {
+  pointer-events: none;
+}
+
+.candidate-point {
+  fill: #111923;
+  stroke: #f0b85d;
+  stroke-width: 3;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+.candidate-marker.selected .candidate-point {
+  fill: #17394b;
+  stroke: var(--primary);
+  stroke-width: 5;
+  stroke-dasharray: 2 2;
+}
+
+.candidate-marker:focus-visible .candidate-point {
+  stroke: #fff;
+  stroke-width: 6;
+}
+
+.candidate-marker-label {
+  fill: #fff;
+  stroke: rgba(7, 10, 15, 0.94);
+  stroke-width: 3px;
+  paint-order: stroke;
+  text-anchor: middle;
+  dominant-baseline: central;
+  font: 800 10px ui-monospace, SFMono-Regular, Consolas, monospace;
+  pointer-events: none;
+}

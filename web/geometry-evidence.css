@@ -1,0 +1,104 @@
+#geometryEvidenceGroup,
+#geometryEvidenceGroup * {
+  pointer-events: none;
+}
+
+.skeleton-overlay.is-hidden #geometryEvidenceGroup {
+  display: none;
+}
+
+.geometry-evidence-panel {
+  margin: 0 0 11px;
+  padding: 9px;
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  background: rgba(101, 199, 255, 0.045);
+}
+
+.geometry-evidence-panel > strong {
+  color: var(--text-secondary);
+  font-size: 10px;
+}
+
+.geometry-evidence-status {
+  min-height: 30px;
+  margin: 5px 0 0;
+  color: var(--candidate-muted, #9aabbe);
+  font-size: 10px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.geometry-evidence-status[data-kind="loading"] {
+  color: var(--primary);
+}
+
+.geometry-evidence-status[data-kind="error"] {
+  color: var(--danger);
+}
+
+.geometry-evidence-retry {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 7px;
+  cursor: pointer;
+}
+
+.geometry-evidence-retry[hidden] {
+  display: none;
+}
+
+.geometry-path,
+.geometry-residual,
+.geometry-contact-endpoints {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+
+.geometry-path {
+  stroke: #55e0ba;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.geometry-residual {
+  stroke: #ffb45f;
+  stroke-width: 2;
+  stroke-dasharray: 4 3;
+}
+
+.geometry-contact-endpoints {
+  stroke: #d9a7ff;
+  stroke-width: 2;
+}
+
+.geometry-anchor-input {
+  fill: #ffb45f;
+  stroke: #111720;
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.geometry-anchor-projected,
+.geometry-hinge,
+.geometry-contact-point {
+  fill: #55e0ba;
+  stroke: #f5fffc;
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.geometry-evidence-bbox,
+.geometry-error-radius {
+  fill: rgba(217, 167, 255, 0.06);
+  stroke: #d9a7ff;
+  stroke-width: 2;
+  stroke-dasharray: 6 4;
+  vector-effect: non-scaling-stroke;
+}
+
+.geometry-error-radius {
+  fill: rgba(85, 224, 186, 0.05);
+  stroke: #55e0ba;
+}

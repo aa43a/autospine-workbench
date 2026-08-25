@@ -8,6 +8,9 @@
   <title>AutoSpine Workbench</title>
   <link rel="stylesheet" href="./styles.css">
   <link rel="stylesheet" href="./conflict.css">
+  <link rel="stylesheet" href="./candidate-review.css">
+  <link rel="stylesheet" href="./candidate-review-overlay.css">
+  <link rel="stylesheet" href="./geometry-evidence.css">
 </head>
 <body>
   <a class="skip-link" href="#main-content">跳到画布</a>
@@ -199,6 +202,8 @@
               <svg class="skeleton-overlay" id="skeletonSvg" aria-label="可编辑骨骼覆盖层" role="group">
                 <g id="boneGroup"></g>
                 <g id="layerSelectionGroup"></g>
+                <g id="geometryEvidenceGroup" aria-label="当前候选的固定几何证据"></g>
+                <g id="candidateGroup" aria-label="当前关节候选点"></g>
                 <g id="jointGroup"></g>
               </svg>
             </div>
@@ -315,6 +320,8 @@
             <button class="button button-secondary full-width" id="resetJointBtn" type="button">恢复自动推断位置</button>
           </div>
         </section>
+
+        <div id="candidateReviewMount"></div>
 
         <section class="inspector-section" aria-labelledby="qaHeading">
           <div class="section-heading-row">
