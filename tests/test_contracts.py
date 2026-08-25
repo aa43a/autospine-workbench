@@ -211,6 +211,8 @@ class JsonSchemaContractTests(unittest.TestCase):
             "layer-manifest-v1.schema.json",
             "rig-ir-v1.schema.json",
             "override-patch-v1.schema.json",
+            "override-patch-v2.schema.json",
+            "override-patch-v3.schema.json",
             "joint-candidates-v1.schema.json",
             "pose-observations-v1.schema.json",
             "alpha-geometry-evidence-v1.schema.json",

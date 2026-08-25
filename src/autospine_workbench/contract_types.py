@@ -10,13 +10,15 @@ PROJECT_SCHEMA_VERSION = "autospine-workbench.project/v1"
 LAYER_SCHEMA_VERSION = "autospine-workbench.layer/v1"
 SKELETON_SCHEMA_VERSION = "autospine-workbench.skeleton/v1"
 OVERRIDE_SCHEMA_VERSION_V1 = "autospine-workbench.override/v1"
-OVERRIDE_SCHEMA_VERSION = "autospine-workbench.override/v2"
+OVERRIDE_SCHEMA_VERSION_V2 = "autospine-workbench.override/v2"
+OVERRIDE_SCHEMA_VERSION = "autospine-workbench.override/v3"
 PROJECT_LIST_SCHEMA_VERSION = "autospine-workbench.project-list/v1"
 VALIDATION_SCHEMA_VERSION = "autospine-workbench.validation/v1"
 
 MAX_NOTES_LENGTH = 10_000
 MAX_REASON_LENGTH = 1_000
 MAX_ROLE_LENGTH = 96
+MAX_LABEL_LENGTH = 96
 
 SIDE_VALUES = frozenset({"left", "right", "center", "bilateral", "unknown"})
 DISPOSITION_VALUES = frozenset(

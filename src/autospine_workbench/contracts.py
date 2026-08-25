@@ -21,6 +21,7 @@ from .contract_types import (
     MAX_ROLE_LENGTH,
     OVERRIDE_SCHEMA_VERSION,
     OVERRIDE_SCHEMA_VERSION_V1,
+    OVERRIDE_SCHEMA_VERSION_V2,
     PROJECT_LIST_SCHEMA_VERSION,
     PROJECT_SCHEMA_VERSION,
     SIDE_VALUES,
@@ -29,6 +30,7 @@ from .contract_types import (
     ValidationIssue,
     contract_descriptor,
 )
+from .split_specs import infer_humanoid_bone_ids, normalize_layer_split_authoring
 
 _SAFE_ROLE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.:-]*$")
 _SAFE_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
@@ -39,7 +41,7 @@ def empty_overrides(project_id: str) -> dict[str, Any]:
 
     return {
         "schema_version": OVERRIDE_SCHEMA_VERSION,
-        "contract": contract_descriptor("override", 2),
+        "contract": contract_descriptor("override", 3),
         "project_id": project_id,
         "revision": 0,
         "joint_overrides": {},
@@ -112,6 +114,7 @@ def normalize_override_request(
     layer_ids: set[str],
     canvas_width: int,
     canvas_height: int,
+    bone_ids: set[str] | None = None,
     stored: bool = False,
 ) -> tuple[int, dict[str, Any]]:
     """Validate and normalize a PUT override request.
@@ -140,7 +143,11 @@ def normalize_override_request(
     _unknown_fields(root, allowed_root, "$", issues)
 
     schema_version = root.get("schema_version")
-    supported_versions = {OVERRIDE_SCHEMA_VERSION_V1, OVERRIDE_SCHEMA_VERSION}
+    supported_versions = {
+        OVERRIDE_SCHEMA_VERSION_V1,
+        OVERRIDE_SCHEMA_VERSION_V2,
+        OVERRIDE_SCHEMA_VERSION,
+    }
     if schema_version is not None and schema_version not in supported_versions:
         issues.append(
             ValidationIssue(
@@ -244,8 +251,11 @@ def normalize_override_request(
     normalized_layers: dict[str, Any] = {}
     layer_fields = {
         "canonical_role", "side", "disposition", "visible",
-        "pivot_xy", "candidate_bone", "notes",
+        "pivot_xy", "candidate_bone", "split_spec", "notes",
     }
+    known_bone_ids = (
+        set(bone_ids) if bone_ids is not None else infer_humanoid_bone_ids(joint_ids)
+    )
     for layer_id, raw_override in layer_overrides.items():
         path = f"$.layer_overrides.{layer_id}"
         if layer_id not in layer_ids:
@@ -323,6 +333,17 @@ def normalize_override_request(
             item["notes"] = _validate_notes(
                 override["notes"], f"{path}.notes", issues, MAX_REASON_LENGTH
             )
+        normalize_layer_split_authoring(
+            override,
+            item,
+            path=path,
+            schema_version=schema_version,
+            joint_ids=joint_ids,
+            bone_ids=known_bone_ids,
+            canvas_width=canvas_width,
+            canvas_height=canvas_height,
+            issues=issues,
+        )
         normalized_layers[layer_id] = item
 
     notes_value = root.get("notes", "")
@@ -343,7 +364,7 @@ def normalize_override_request(
 
     normalized = {
         "schema_version": OVERRIDE_SCHEMA_VERSION,
-        "contract": contract_descriptor("override", 2),
+        "contract": contract_descriptor("override", 3),
         "project_id": project_id,
         "revision": current_revision,
         "joint_overrides": normalized_joints,
