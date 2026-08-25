@@ -458,6 +458,7 @@
             "canvas_offset_xy": true,
             "pivot_xy": true,
             "vertices": {
+              "description": "Vertex coordinates in source-raster-edge-px space; setup world position is canvas_offset_xy plus vertex, as pinned by the mesh compile run.",
               "type": "array",
               "minItems": 3,
               "items": {
@@ -465,6 +466,7 @@
               }
             },
             "uvs": {
+              "description": "Normalized top-left UV coordinates derived from source raster edge coordinates.",
               "type": "array",
               "minItems": 3,
               "items": {
@@ -472,6 +474,7 @@
               }
             },
             "triangles": {
+              "description": "Triangle vertex indices with clockwise winding in the canvas y-down coordinate system.",
               "type": "array",
               "minItems": 3,
               "items": {
@@ -480,6 +483,7 @@
               }
             },
             "weights": {
+              "description": "Linear blend influences evaluated with inverse setup bone transforms; quantization is pinned by the mesh compile run.",
               "type": "array",
               "items": {
                 "type": "array",

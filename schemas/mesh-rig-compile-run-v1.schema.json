@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/mesh-rig-compile-run-v1.schema.json",
+  "title": "AutoSpine mesh RigIR compile run v1",
+  "description": "Content-addressed P3 identity for compiling a reviewed P2 region-only RigIR into the pinned hinge alpha-grid two-bone mesh profile.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "format_version", "project_id", "inputs", "compiler"],
+  "properties": {
+    "format": {"const": "autospine-mesh-rig-compile-run"},
+    "format_version": {"const": 1},
+    "project_id": {"$ref": "#/$defs/id"},
+    "inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "base_rig_sha256",
+        "base_bundle_sha256",
+        "layer_manifest_sha256",
+        "resolved_project_sha256"
+      ],
+      "properties": {
+        "base_rig_sha256": {"$ref": "#/$defs/sha256"},
+        "base_bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "layer_manifest_sha256": {"$ref": "#/$defs/sha256"},
+        "resolved_project_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "compiler": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version", "config"],
+      "properties": {
+        "id": {"const": "mesh-rig-compiler"},
+        "version": {"const": "1.0.0"},
+        "config": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "profile",
+            "strict",
+            "alpha_threshold",
+            "grid_step_px",
+            "blend_fraction",
+            "weight_quantization",
+            "resource_limits",
+            "geometry_contract"
+          ],
+          "properties": {
+            "profile": {"const": "hinge-alpha-grid-two-bone-v1"},
+            "strict": {"const": true},
+            "alpha_threshold": {"const": 8},
+            "grid_step_px": {"const": 8},
+            "blend_fraction": {"const": 0.2},
+            "weight_quantization": {"const": "uint16-65535"},
+            "resource_limits": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "attachment_max_vertices",
+                "attachment_max_triangles",
+                "rig_max_vertices",
+                "rig_max_triangles"
+              ],
+              "properties": {
+                "attachment_max_vertices": {"const": 4096},
+                "attachment_max_triangles": {"const": 8192},
+                "rig_max_vertices": {"const": 32768},
+                "rig_max_triangles": {"const": 65536}
+              }
+            },
+            "geometry_contract": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "vertex_space",
+                "setup_world",
+                "uv_space",
+                "triangle_winding",
+                "skinning"
+              ],
+              "properties": {
+                "vertex_space": {"const": "source-raster-edge-px"},
+                "setup_world": {"const": "canvas-offset-plus-vertex"},
+                "uv_space": {"const": "normalized-top-left"},
+                "triangle_winding": {"const": "clockwise-canvas-y-down"},
+                "skinning": {"const": "linear-blend-inverse-setup-v1"}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}
