@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import hashlib
+import os
 from pathlib import Path, PurePosixPath
 import stat
 from typing import Any
@@ -17,7 +18,7 @@ from .manifest_artifacts import (
 from .png_rgba import (
     MAX_RGBA_BYTES,
     RgbaPngError,
-    read_rgba_png,
+    decode_rgba_png,
 )
 from .resolved_project import canonical_sha256
 from .rig_bundle_validation import (
@@ -60,6 +61,15 @@ class VerifiedRigBundle:
     setup_sha256: str
     bundle_sha256: str
     region_sha256: dict[str, str]
+    _region_png_items: tuple[tuple[str, bytes], ...] = field(
+        default=(), repr=False
+    )
+
+    @property
+    def region_pngs(self) -> dict[str, bytes]:
+        """Return a copy of path-bound PNG bytes captured during verification."""
+
+        return dict(self._region_png_items)
 
 
 def verify_rig_bundle_directory(
@@ -96,7 +106,7 @@ def verify_rig_bundle_directory(
     expected_files = set(_DOCUMENT_NAMES) | {SETUP_IMAGE_NAME} | set(regions)
     expected_directories = _parent_directories(regions)
     _verify_inventory(directory, expected_files, expected_directories)
-    _verify_regions(directory, regions)
+    region_pngs = _verify_regions(directory, regions)
     setup_png = _read_limited(
         _exact_child(directory, SETUP_IMAGE_NAME), MAX_RIG_PNG_BYTES, "Setup PNG"
     )
@@ -127,6 +137,7 @@ def verify_rig_bundle_directory(
         setup_sha256=setup_sha,
         bundle_sha256=bundle_sha,
         region_sha256=regions,
+        _region_png_items=tuple(sorted(region_pngs.items())),
     )
 
 
@@ -159,18 +170,19 @@ def _region_inventory(rig: dict[str, Any]) -> dict[str, str]:
     return dict(sorted(regions.items()))
 
 
-def _verify_regions(directory: Path, regions: dict[str, str]) -> None:
+def _verify_regions(directory: Path, regions: dict[str, str]) -> dict[str, bytes]:
+    snapshots: dict[str, bytes] = {}
     for relative, expected_sha in regions.items():
         path = _relative_file(directory, relative)
         raw = _read_limited(path, MAX_RIG_PNG_BYTES, f"Region {relative}")
         if hashlib.sha256(raw).hexdigest() != expected_sha:
             raise RigBundleError(f"Region image hash mismatch: {relative}")
         try:
-            read_rgba_png(path)
+            decode_rgba_png(raw, source_name=relative)
         except RgbaPngError as exc:
             raise RigBundleError(f"Region image profile is invalid: {relative}") from exc
-        if _read_limited(path, MAX_RIG_PNG_BYTES, f"Region {relative}") != raw:
-            raise RigBundleError(f"Region image changed while verifying: {relative}")
+        snapshots[relative] = raw
+    return snapshots
 
 
 def _verify_inventory(
@@ -250,16 +262,41 @@ def _safe_directory(path: Path, label: str) -> Path:
 
 
 def _read_limited(path: Path, maximum: int, label: str) -> bytes:
-    if _is_alias(path) or not path.is_file():
-        raise RigBundleError(f"{label} is not a regular file")
     try:
+        before = path.lstat()
+        if _is_alias(path) or not stat.S_ISREG(before.st_mode):
+            raise RigBundleError(f"{label} is not a regular file")
+        if before.st_size > maximum:
+            raise RigBundleError(f"{label} exceeds its byte limit")
         with path.open("rb") as handle:
+            opened = os.fstat(handle.fileno())
             value = handle.read(maximum + 1)
+            finished = os.fstat(handle.fileno())
+        after = path.lstat()
+    except RigBundleError:
+        raise
     except OSError as exc:
         raise RigBundleError(f"{label} cannot be read") from exc
     if len(value) > maximum:
         raise RigBundleError(f"{label} exceeds its byte limit")
+    if (
+        len(value) != before.st_size
+        or _file_identity(before) != _file_identity(opened)
+        or _file_identity(opened) != _file_identity(finished)
+        or _file_identity(finished) != _file_identity(after)
+    ):
+        raise RigBundleError(f"{label} changed while being read")
     return value
+
+
+def _file_identity(value: os.stat_result) -> tuple[int, ...]:
+    return (
+        value.st_mode,
+        value.st_size,
+        value.st_mtime_ns,
+        getattr(value, "st_dev", 0),
+        getattr(value, "st_ino", 0),
+    )
 
 
 def _is_alias(path: Path) -> bool:

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import json
 from pathlib import Path
 import stat
@@ -38,6 +38,9 @@ class VerifiedBaseRig:
     _run_manifest_json: str
     _probe_report_json: str
     _setup_document_json: str
+    _region_png_items: tuple[tuple[str, bytes], ...] = field(
+        default=(), repr=False
+    )
 
     @property
     def rig(self) -> dict[str, Any]:
@@ -54,6 +57,12 @@ class VerifiedBaseRig:
     @property
     def setup_document(self) -> dict[str, Any]:
         return json.loads(self._setup_document_json)
+
+    @property
+    def region_pngs(self) -> dict[str, bytes]:
+        """Return an isolated mapping of exact P2 attachment image snapshots."""
+
+        return dict(self._region_png_items)
 
 
 class VerifiedBaseRigReader:
@@ -123,6 +132,7 @@ class VerifiedBaseRigReader:
                 _run_manifest_json=_encode(verified.run),
                 _probe_report_json=_encode(verified.probes),
                 _setup_document_json=_encode(verified.setup),
+                _region_png_items=tuple(sorted(verified.region_pngs.items())),
             )
         except VerifiedBaseRigReaderError:
             raise

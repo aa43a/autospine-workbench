@@ -37,6 +37,9 @@ class VerifiedMeshCompilation:
     _target_image_snapshots_json: str
     _target_images: tuple[tuple[str, RgbaImage], ...] = field(repr=False)
     _target_png_bytes: tuple[tuple[str, bytes], ...] = field(repr=False)
+    _source_png_bytes: tuple[tuple[str, bytes], ...] = field(
+        default=(), repr=False
+    )
 
     @property
     def compilation(self) -> dict[str, Any]:
@@ -69,6 +72,12 @@ class VerifiedMeshCompilation:
     @property
     def target_png_bytes(self) -> dict[str, bytes]:
         return dict(self._target_png_bytes)
+
+    @property
+    def source_png_bytes(self) -> dict[str, bytes]:
+        """Return exact P2 region snapshots keyed by canonical image path."""
+
+        return dict(self._source_png_bytes)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -129,6 +138,7 @@ class VerifiedMeshCompiler:
                 _target_image_snapshots_json=_encode(snapshots),
                 _target_images=tuple(images.items()),
                 _target_png_bytes=tuple(png_bytes.items()),
+                _source_png_bytes=tuple(sorted(base.region_pngs.items())),
             )
         except VerifiedMeshCompilerError:
             raise

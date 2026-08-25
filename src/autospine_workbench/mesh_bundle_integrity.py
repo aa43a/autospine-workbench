@@ -59,6 +59,9 @@ class VerifiedMeshBundle:
     resolved_project_sha256: str
     _document_json_items: tuple[tuple[str, str], ...] = field(repr=False)
     _png_items: tuple[tuple[str, bytes], ...] = field(repr=False)
+    _source_png_items: tuple[tuple[str, bytes], ...] = field(
+        default=(), repr=False
+    )
 
     def _document(self, name: str) -> dict[str, Any]:
         return json.loads(dict(self._document_json_items)[name])
@@ -82,6 +85,12 @@ class VerifiedMeshBundle:
     @property
     def pngs(self) -> dict[str, bytes]:
         return dict(self._png_items)
+
+    @property
+    def source_pngs(self) -> dict[str, bytes]:
+        """Return exact P2 source PNG snapshots keyed by canonical image path."""
+
+        return dict(self._source_png_items)
 
     @property
     def inventory(self) -> tuple[str, ...]:
@@ -183,6 +192,7 @@ def verify_mesh_bundle_snapshot(
             resolved_project_sha256=resolved_project,
             _document_json_items=json_items,
             _png_items=tuple(sorted(pngs.items())),
+            _source_png_items=tuple(sorted(compiled.source_png_bytes.items())),
         )
     except MeshBundleIntegrityError:
         raise
