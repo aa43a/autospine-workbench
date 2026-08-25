@@ -105,7 +105,7 @@ class SplitDerivationContractTests(unittest.TestCase):
         baseline = build_split_derivation(split_config())
         mutations = (
             lambda item: item.update(operation_config_sha256="0" * 64),
-            lambda item: item["operation_config"]["algorithm"].update(version="2.0.0"),
+            lambda item: item["operation_config"]["algorithm"].update(version="bad version"),
             lambda item: item["operation_config"].update(tie_break="right"),
             lambda item: item["operation_config"]["guide_anchors"].update(
                 left=[item["operation_config"]["guide_anchors"]["left"][0]]
@@ -129,6 +129,16 @@ class SplitDerivationContractTests(unittest.TestCase):
                 )
             with self.subTest(value=value), self.assertRaises(SplitDerivationError):
                 normalize_derivation("child-left", value)
+
+    def test_historical_algorithm_is_readable_but_cannot_be_newly_built(self) -> None:
+        baseline = build_split_derivation(split_config())
+        baseline["operation_config"]["algorithm"]["version"] = "0.9.0"
+        baseline["operation_config_sha256"] = canonical_sha256(
+            baseline["operation_config"]
+        )
+        self.assertEqual(baseline, normalize_derivation("child-left", baseline))
+        with self.assertRaisesRegex(SplitDerivationError, "current algorithm"):
+            build_split_derivation(baseline["operation_config"])
 
     def test_config_requires_distinct_side_polylines(self) -> None:
         config = split_config()

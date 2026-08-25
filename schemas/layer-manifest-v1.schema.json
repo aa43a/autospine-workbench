@@ -290,8 +290,13 @@
           "additionalProperties": false,
           "required": ["id", "version"],
           "properties": {
-            "id": { "const": "nearest-limb-polyline" },
-            "version": { "const": "1.1.0" }
+            "id": { "$ref": "#/$defs/id" },
+            "version": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^\\S+$"
+            }
           }
         },
         "source_layer_id": { "$ref": "#/$defs/id" },

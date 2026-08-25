@@ -56,6 +56,11 @@ def build_split_derivation(config: Mapping[str, Any]) -> dict[str, Any]:
     source_layer_id = config_copy.get("source_layer_id")
     if not isinstance(source_layer_id, str):
         raise SplitDerivationError("Split config has no source layer id")
+    if config_copy.get("algorithm") != {
+        "id": SPLIT_ALGORITHM_ID,
+        "version": SPLIT_ALGORITHM_VERSION,
+    }:
+        raise SplitDerivationError("New split config must use the current algorithm")
     result = {
         "operation": "split",
         "parent_layer_ids": [source_layer_id],
@@ -104,8 +109,17 @@ def _validate_split(layer_id: str, derivation: Mapping[str, Any]) -> None:
     ):
         raise SplitDerivationError(f"Layer {layer_id} split format is unsupported")
     algorithm = config.get("algorithm")
-    if algorithm != {"id": SPLIT_ALGORITHM_ID, "version": SPLIT_ALGORITHM_VERSION}:
-        raise SplitDerivationError(f"Layer {layer_id} split algorithm is unsupported")
+    if not isinstance(algorithm, Mapping) or set(algorithm) != {"id", "version"}:
+        raise SplitDerivationError(f"Layer {layer_id} split algorithm is invalid")
+    version = algorithm.get("version")
+    if (
+        not _safe_id(algorithm.get("id"))
+        or not isinstance(version, str)
+        or not version
+        or len(version) > 64
+        or any(character.isspace() for character in version)
+    ):
+        raise SplitDerivationError(f"Layer {layer_id} split algorithm is invalid")
     if not _sha(config.get("source_raster_sha256")) or not _sha(
         config.get("source_rgba_sha256")
     ):

@@ -373,6 +373,12 @@ class SplitPreviewContractTests(unittest.TestCase):
         require_valid_split_preview(changed)
         self.assertNotEqual(canonical_sha256(original), canonical_sha256(changed))
 
+    def test_historical_algorithm_identity_remains_readable(self) -> None:
+        changed = preview()
+        changed["review_target"]["operation"]["algorithm"]["version"] = "0.9.0"
+        changed["review_target_sha256"] = canonical_sha256(changed["review_target"])
+        require_valid_split_preview(changed)
+
 
 class SplitPreviewReaderTests(unittest.TestCase):
     def setUp(self) -> None:
