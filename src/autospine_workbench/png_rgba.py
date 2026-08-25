@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import binascii
 from dataclasses import dataclass
 from pathlib import Path
 import struct
@@ -15,6 +16,13 @@ except ImportError:  # pragma: no cover - minimal runtime path
 
 class RgbaPngError(ValueError):
     """Raised when a PNG cannot be decoded without changing representation."""
+
+
+MAX_RGBA_PIXELS = 16_777_216
+"""Largest accepted decoded raster (4096 x 4096 pixels)."""
+
+MAX_RGBA_BYTES = MAX_RGBA_PIXELS * 4
+"""64 MiB decoded RGBA ceiling shared by decode and split boundaries."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -31,13 +39,80 @@ def read_rgba_png(path: Path) -> RgbaImage:
             with _PillowImage.open(path) as image:
                 if image.format != "PNG" or image.mode != "RGBA":
                     raise RgbaPngError("Expected an 8-bit RGBA PNG")
+                _rgba_byte_count(image.width, image.height)
                 image.load()
-                return RgbaImage(image.width, image.height, image.tobytes())
+                pixels = image.tobytes()
+                if len(pixels) != image.width * image.height * 4:
+                    raise RgbaPngError("PNG decoded to an inconsistent RGBA buffer")
+                return RgbaImage(image.width, image.height, pixels)
         except RgbaPngError:
             raise
         except (OSError, ValueError) as exc:
             raise RgbaPngError(f"Cannot decode PNG: {path.name}") from exc
     return _read_standard_png(path)
+
+
+def write_rgba_png(path: Path, image: RgbaImage) -> None:
+    """Write one fully specified, cross-zlib-stable RGBA PNG.
+
+    Scanlines always use PNG filter 0.  The zlib stream uses a 32 KiB window,
+    no preset dictionary, stored DEFLATE blocks of at most 65535 bytes, and an
+    RFC 1950 Adler-32 trailer.  No runtime compressor choices affect bytes.
+    """
+
+    expected = _rgba_byte_count(image.width, image.height)
+    if not isinstance(image.pixels, bytes) or len(image.pixels) != expected:
+        raise RgbaPngError("RGBA pixel buffer has the wrong size")
+    stride = image.width * 4
+    scanlines = bytearray()
+    for row in range(image.height):
+        scanlines.append(0)
+        start = row * stride
+        scanlines.extend(image.pixels[start : start + stride])
+    header = struct.pack(">IIBBBBB", image.width, image.height, 8, 6, 0, 0, 0)
+    encoded = (
+        b"\x89PNG\r\n\x1a\n"
+        + _chunk(b"IHDR", header)
+        + _chunk(b"IDAT", _stored_zlib(bytes(scanlines)))
+        + _chunk(b"IEND", b"")
+    )
+    try:
+        Path(path).write_bytes(encoded)
+    except OSError as exc:
+        raise RgbaPngError(f"Cannot write PNG: {Path(path).name}") from exc
+
+
+def _chunk(kind: bytes, payload: bytes) -> bytes:
+    checksum = binascii.crc32(kind)
+    checksum = binascii.crc32(payload, checksum) & 0xFFFFFFFF
+    return struct.pack(">I", len(payload)) + kind + payload + struct.pack(">I", checksum)
+
+
+def _stored_zlib(payload: bytes) -> bytes:
+    """Return a canonical RFC 1950 stream containing stored DEFLATE blocks."""
+
+    blocks = bytearray(b"\x78\x01")
+    for start in range(0, len(payload), 65_535):
+        block = payload[start : start + 65_535]
+        final = start + len(block) == len(payload)
+        blocks.append(1 if final else 0)
+        length = len(block)
+        blocks.extend(struct.pack("<HH", length, length ^ 0xFFFF))
+        blocks.extend(block)
+    blocks.extend(struct.pack(">I", _adler32(payload)))
+    return bytes(blocks)
+
+
+def _adler32(payload: bytes) -> int:
+    first, second = 1, 0
+    # 5552 is the largest chunk that keeps the pre-modulo sums in 32 bits.
+    for start in range(0, len(payload), 5_552):
+        for value in payload[start : start + 5_552]:
+            first += value
+            second += first
+        first %= 65_521
+        second %= 65_521
+    return (second << 16) | first
 
 
 def _read_standard_png(path: Path) -> RgbaImage:
@@ -48,12 +123,21 @@ def _read_standard_png(path: Path) -> RgbaImage:
     if data[:8] != b"\x89PNG\r\n\x1a\n":
         raise RgbaPngError(f"Not a PNG: {path.name}")
     width, height, compressed = _read_chunks(data, path.name)
+    expected_filtered = height * (width * 4 + 1)
     try:
-        filtered = zlib.decompress(compressed)
+        decoder = zlib.decompressobj()
+        filtered = decoder.decompress(compressed, expected_filtered + 1)
     except zlib.error as exc:
         raise RgbaPngError(f"Cannot decompress PNG: {path.name}") from exc
+    if (
+        len(filtered) > expected_filtered
+        or not decoder.eof
+        or decoder.unconsumed_tail
+        or decoder.unused_data
+    ):
+        raise RgbaPngError("PNG decompressed data exceeds its declared dimensions")
     stride = width * 4
-    if len(filtered) != height * (stride + 1):
+    if len(filtered) != expected_filtered:
         raise RgbaPngError("PNG scanline size is inconsistent")
     return RgbaImage(width, height, _unfilter(filtered, width, height))
 
@@ -90,7 +174,26 @@ def _parse_ihdr(payload: bytes) -> tuple[int, int]:
     )
     if (depth, color_type, compression, filtering, interlace) != (8, 6, 0, 0, 0):
         raise RgbaPngError("Expected a non-interlaced 8-bit RGBA PNG")
+    _rgba_byte_count(width, height)
     return width, height
+
+
+def _rgba_byte_count(width: object, height: object) -> int:
+    if (
+        not isinstance(width, int)
+        or isinstance(width, bool)
+        or not isinstance(height, int)
+        or isinstance(height, bool)
+        or width < 1
+        or height < 1
+    ):
+        raise RgbaPngError("Image dimensions must be positive integers")
+    pixels = width * height
+    if pixels > MAX_RGBA_PIXELS:
+        raise RgbaPngError(
+            f"Decoded image exceeds {MAX_RGBA_PIXELS} pixels ({MAX_RGBA_BYTES} RGBA bytes)"
+        )
+    return pixels * 4
 
 
 def _unfilter(filtered: bytes, width: int, height: int) -> bytes:

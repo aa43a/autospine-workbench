@@ -138,6 +138,20 @@
       "minItems": 2,
       "maxItems": 2
     },
+    "integerPoint": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "integer"
+        }
+      ],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
     "size": {
       "type": "array",
       "prefixItems": [
@@ -206,6 +220,116 @@
             "type": "string"
           }
         }
+      }
+    },
+    "resolvedJointGuideAnchor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "joint_id", "xy", "review_state"],
+      "properties": {
+        "kind": { "const": "resolved_joint" },
+        "joint_id": { "$ref": "#/$defs/id" },
+        "xy": { "$ref": "#/$defs/point" },
+        "review_state": {
+          "enum": [
+            "unreviewed",
+            "candidate_accepted",
+            "manual_adjusted",
+            "candidate_rejected",
+            "unobservable"
+          ]
+        }
+      }
+    },
+    "manualProxyGuideAnchor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "proxy_id", "xy", "label", "reason"],
+      "properties": {
+        "kind": { "const": "manual_proxy" },
+        "proxy_id": { "$ref": "#/$defs/id" },
+        "xy": { "$ref": "#/$defs/point" },
+        "proxy_for_joint_id": { "$ref": "#/$defs/id" },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "splitGuideAnchor": {
+      "oneOf": [
+        { "$ref": "#/$defs/resolvedJointGuideAnchor" },
+        { "$ref": "#/$defs/manualProxyGuideAnchor" }
+      ]
+    },
+    "bilateralSplitConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "format",
+        "format_version",
+        "algorithm",
+        "source_layer_id",
+        "source_raster_sha256",
+        "source_rgba_sha256",
+        "output_rgba_sha256",
+        "canvas_offset_xy",
+        "guide_anchors",
+        "tie_break",
+        "exact_partition"
+      ],
+      "properties": {
+        "format": { "const": "autospine-bilateral-alpha-split" },
+        "format_version": { "const": 1 },
+        "algorithm": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "version"],
+          "properties": {
+            "id": { "const": "nearest-limb-polyline" },
+            "version": { "const": "1.1.0" }
+          }
+        },
+        "source_layer_id": { "$ref": "#/$defs/id" },
+        "source_raster_sha256": { "$ref": "#/$defs/sha256" },
+        "source_rgba_sha256": { "$ref": "#/$defs/sha256" },
+        "output_rgba_sha256": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["left", "right"],
+          "properties": {
+            "left": { "$ref": "#/$defs/sha256" },
+            "right": { "$ref": "#/$defs/sha256" }
+          }
+        },
+        "canvas_offset_xy": { "$ref": "#/$defs/integerPoint" },
+        "guide_anchors": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["left", "right"],
+          "properties": {
+            "left": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 8,
+              "uniqueItems": true,
+              "items": { "$ref": "#/$defs/splitGuideAnchor" }
+            },
+            "right": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 8,
+              "uniqueItems": true,
+              "items": { "$ref": "#/$defs/splitGuideAnchor" }
+            }
+          }
+        },
+        "tie_break": { "const": "left" },
+        "exact_partition": { "const": true }
       }
     },
     "layer": {
@@ -380,9 +504,7 @@
             "operation": {
               "enum": [
                 "source",
-                "split",
-                "merge",
-                "cleanup"
+                "split"
               ]
             },
             "parent_layer_ids": {
@@ -394,8 +516,41 @@
             },
             "operation_config_sha256": {
               "$ref": "#/$defs/sha256"
+            },
+            "operation_config": {
+              "$ref": "#/$defs/bilateralSplitConfig"
             }
-          }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": { "operation": { "const": "split" } },
+                "required": ["operation"]
+              },
+              "then": {
+                "required": ["operation_config_sha256", "operation_config"],
+                "properties": {
+                  "parent_layer_ids": {
+                    "minItems": 1,
+                    "maxItems": 1
+                  }
+                }
+              },
+              "else": {
+                "properties": {
+                  "parent_layer_ids": {
+                    "maxItems": 0
+                  }
+                },
+                "not": {
+                  "anyOf": [
+                    { "required": ["operation_config_sha256"] },
+                    { "required": ["operation_config"] }
+                  ]
+                }
+              }
+            }
+          ]
         },
         "rig_hint": {
           "type": "object",
