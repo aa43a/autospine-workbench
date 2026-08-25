@@ -13,6 +13,7 @@ AutoSpine Workbench 是一个本地人工复核界面，用于查看 See-through
 - 拖动或精确输入关节坐标，并恢复自动推断位置。
 - 使用 optimistic concurrency 保存 override；过期 revision 不会覆盖新结果。
 - 每次成功保存都写入 append-only revision 历史，并生成应用人工决定后的 resolved snapshot。
+- 候选 accept/adjust/reject/unobservable 决定绑定完整内容 SHA；算法输出变化不会把旧决定静默套用到新工件。
 - 通过只读验证 API 检查画布、图层 ID、资产路径和骨架结构。
 - 离线发布带 provenance 的关节候选工件和 region-first Layer Manifest bundle。
 - 把固定的 COCO17 检测转换为显式左右/镜像 provenance 的 canonical pose，并用人工复核四肢点生成诊断误差报告。
@@ -122,6 +123,13 @@ python -m autospine_workbench serve `
       "reason": "reviewed against arm overlap"
     }
   },
+  "joint_decisions": {
+    "elbow.left": {
+      "action": "accept",
+      "candidate_artifact_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "candidate_id": "elbow.left.fusion.4aa35df3ca21"
+    }
+  },
   "layer_overrides": {
     "layer-008-hand-r": {
       "canonical_role": "body.hand",
@@ -136,11 +144,11 @@ python -m autospine_workbench serve `
 }
 ```
 
-`side` 使用 `left`、`right`、`center`、`bilateral` 或 `unknown`，始终表示角色自身左右。`visible` 只定义 setup/复核预览可见性，不会改写 PNG。关节与 pivot 必须是有限数，并位于画布内。
+`joint_overrides` 是与候选算法无关的绝对人工坐标；`joint_decisions` 表示 accept、adjust、reject 或 unobservable，同一关节不能同时出现在两者中。accept 坐标由服务端从内容寻址候选工件派生，客户端不能提交。`side` 使用 `left`、`right`、`center`、`bilateral` 或 `unknown`，始终表示角色自身左右。`visible` 只定义 setup/复核预览可见性，不会改写 PNG。关节与 pivot 必须是有限数，并位于画布内。完整语义见 [候选关节决定参考](docs/candidate-decisions-reference.md)。
 
 JSON Schema 位于：
 
-- `schemas/override-patch-v1.schema.json`：在线 API 的 canonical patch；
+- `schemas/override-patch-v2.schema.json`：当前在线 API 的 candidate-aware canonical patch；v1 仅用于历史兼容；
 - `schemas/coco17-detections-v1.schema.json`：模型 runner 与通用四肢 adapter 的固定输入；
 - `schemas/pose-observations-v1.schema.json`：外部姿态检测器的单角色、原画布观测输入；
 - `schemas/pose-observations-v2.schema.json`：带 adapter、左右、视角和镜像 provenance 的 canonical pose；
@@ -258,7 +266,7 @@ python -m unittest discover -s tests -v
 
 ## 下一阶段开发顺序
 
-当前已经贯通：`See-through audit → 人工复核 → append-only override → resolved snapshot → 外部 pose + alpha 四肢候选 → manifest 不可变工件`。后续按以下顺序推进：
+P0 合同加固已经贯通：`stage-scoped analysis → immutable candidate → candidate-bound revision → deterministic resolved snapshot`。外部 pose、alpha 四肢候选和 manifest 工件也已具备版本中立合同。后续按以下顺序推进：
 
 1. **姿态 runner 与真实评估集**：COCO17 固定输入、显式 view/mirror/character-side adapter 和人工误差报告已经完成；下一步为选定的 Anime/ONNX/MMPose runner 产出该合同，冻结真实模型 revision，并在两份样本与新增标注集上记录基线，不把参考点回灌 smoke 当作模型精度。
 2. **接触几何候选与比较 UI**：在现有连通域基础上增加 torso/arm、pelvis/leg、leg/foot 接触簇，并让用户接受、调整、拒绝或标记不可观测；宽袖、长裙、融合双腿和遮挡关节继续保留多解与证据回看。

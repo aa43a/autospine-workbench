@@ -102,7 +102,7 @@ alpha 是软约束：
 - 超出范围时保留 pose，并标记 `ALPHA_SNAP_OUTLIER`；
 - 所有输出分数均为 `score_kind=heuristic`，文档始终要求人工复核。
 
-provider 的 run SHA 覆盖 project/resolved revision、pose 文档哈希、参与分析的 layer 语义、PNG 哈希、alpha 组件统计、配置和 provider 版本。
+provider 的 run SHA 覆盖 stage-scoped project/source/canvas/base skeleton、pose 文档哈希、参与分析的 layer 语义、PNG 哈希、alpha 组件统计、配置和 provider 版本。最终 joint decision 与 resolved revision 被刻意排除，以避免 candidate↔decision 哈希环。
 
 ## 主要 QA flags
 

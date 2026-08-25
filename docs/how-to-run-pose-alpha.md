@@ -83,7 +83,7 @@ python -m autospine_workbench analyze-joints seethrough_output `
   --alpha-threshold 8
 ```
 
-成功时命令输出 provider、run SHA、候选 artifact 以及 pose artifact 的 SHA 和文件路径。经过验证的输入 pose JSON 会被独立保存，因此候选不会依赖原命令行路径长期存在。相同项目 revision、pose 文档、图层 PNG、配置和 provider 版本会得到相同的内容地址。
+成功时命令输出 provider、run SHA、候选 artifact 以及 pose artifact 的 SHA 和文件路径。经过验证的输入 pose JSON 会被独立保存，因此候选不会依赖原命令行路径长期存在。相同 stage-scoped 项目输入、pose 文档、有效图层语义与 PNG、配置和 provider 版本会得到相同的内容地址；最终 joint decision/revision 不进入该身份。
 
 ## 3. 检查工件
 
