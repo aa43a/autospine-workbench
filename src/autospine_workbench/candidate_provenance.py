@@ -35,22 +35,20 @@ def candidate_run_identity(
     config: Mapping[str, Any],
     evidence_identity: Mapping[str, Any],
 ) -> dict[str, str]:
-    raw_resolved = project.get("resolved")
-    if raw_resolved is not None and not isinstance(raw_resolved, Mapping):
-        raise ValueError("resolved snapshot must be an object")
-    resolved = raw_resolved or {}
-    resolved_sha = (
-        required_sha256(resolved.get("sha256"), "resolved snapshot")
-        if resolved
-        else None
-    )
+    """Return a stage-scoped identity without depending on final decisions.
+
+    Providers must place every effective layer semantic, raster digest, pose
+    observation, and other consumed input in ``evidence_identity``.  The base
+    skeleton is intentionally used here: hashing the final resolved snapshot
+    would make accepting a candidate change the input identity of the very
+    analysis that produced it.
+    """
+
     input_sha = canonical_sha256(
         {
             "project_id": project.get("id"),
             "source": project.get("source"),
             "canvas": project.get("canvas"),
-            "resolved_revision": resolved.get("revision"),
-            "resolved_snapshot_sha256": resolved_sha,
             "skeleton": project.get("skeleton"),
             "evidence": evidence_identity,
         }

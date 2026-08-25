@@ -34,7 +34,9 @@ class LimbCandidateError(ValueError):
 
 class PoseAlphaLimbProvider:
     provider_id = "pose-alpha-limb-fusion"
-    provider_version = "1"
+    # Version 2 pins the stage-scoped input identity.  Version 1 included the
+    # final resolved snapshot and therefore formed a decision/analysis loop.
+    provider_version = "2"
 
     def __init__(
         self,
