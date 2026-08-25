@@ -60,6 +60,15 @@ def write_rgba_png(path: Path, image: RgbaImage) -> None:
     RFC 1950 Adler-32 trailer.  No runtime compressor choices affect bytes.
     """
 
+    try:
+        Path(path).write_bytes(encode_rgba_png(image))
+    except OSError as exc:
+        raise RgbaPngError(f"Cannot write PNG: {Path(path).name}") from exc
+
+
+def encode_rgba_png(image: RgbaImage) -> bytes:
+    """Return the canonical bytes used by :func:`write_rgba_png`."""
+
     expected = _rgba_byte_count(image.width, image.height)
     if not isinstance(image.pixels, bytes) or len(image.pixels) != expected:
         raise RgbaPngError("RGBA pixel buffer has the wrong size")
@@ -70,16 +79,12 @@ def write_rgba_png(path: Path, image: RgbaImage) -> None:
         start = row * stride
         scanlines.extend(image.pixels[start : start + stride])
     header = struct.pack(">IIBBBBB", image.width, image.height, 8, 6, 0, 0, 0)
-    encoded = (
+    return (
         b"\x89PNG\r\n\x1a\n"
         + _chunk(b"IHDR", header)
         + _chunk(b"IDAT", _stored_zlib(bytes(scanlines)))
         + _chunk(b"IEND", b"")
     )
-    try:
-        Path(path).write_bytes(encoded)
-    except OSError as exc:
-        raise RgbaPngError(f"Cannot write PNG: {Path(path).name}") from exc
 
 
 def _chunk(kind: bytes, payload: bytes) -> bytes:
