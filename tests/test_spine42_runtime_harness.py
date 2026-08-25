@@ -30,6 +30,7 @@ from autospine_workbench.spine42_runtime_inputs import (  # noqa: E402
     require_export_files,
     require_runtime_package,
 )
+from autospine_workbench.spine42_runtime_page import HARNESS_JS  # noqa: E402
 from autospine_workbench.spine42_runtime_regression import (  # noqa: E402
     Spine42CaptureStore,
 )
@@ -120,6 +121,11 @@ class Spine42RuntimeContractTests(unittest.TestCase):
         self.assertEqual("idle", session["case"]["clip"])
         self.assertEqual(b"runtime-js", runtime.javascript_bytes)
         self.assertEqual((2, 2), exports.texture_size)
+
+    def test_browser_capture_waits_for_fixed_rgba_canvas(self) -> None:
+        self.assertIn(b"alpha: true", HARNESS_JS)
+        self.assertIn(b"player.canvas.style.width", HARNESS_JS)
+        self.assertIn(b"canvasHasFixedViewport(player)", HARNESS_JS)
 
     def test_package_version_atlas_page_and_skeleton_version_fail_closed(self) -> None:
         package = self.fx.runtime / "package.json"

@@ -95,6 +95,16 @@ HARNESS_JS = r""""use strict";
     poseApplied = true;
   }
 
+  function canvasHasFixedViewport(player) {
+    const expected = session.capture.viewport;
+    const dpr = window.devicePixelRatio;
+    if (dpr !== session.capture.device_pixel_ratio) {
+      throw new Error(`DPR ${dpr} differs from required ${session.capture.device_pixel_ratio}`);
+    }
+    return player.canvas.width === expected.width * dpr
+      && player.canvas.height === expected.height * dpr;
+  }
+
   async function captureCanvas(player) {
     const canvas = player.canvas;
     const expected = session.capture.viewport;
@@ -140,7 +150,7 @@ HARNESS_JS = r""""use strict";
     new spine.SpinePlayer("player", {
       skeleton: "/export/skeleton.json",
       atlas: "/export/skeleton.atlas",
-      alpha: false,
+      alpha: true,
       backgroundColor: session.capture.background,
       interactive: false,
       mipmaps: false,
@@ -150,15 +160,23 @@ HARNESS_JS = r""""use strict";
       showLoading: false,
       viewport: { ...world, padLeft: 0, padRight: 0, padTop: 0,
         padBottom: 0, transitionTime: 0 },
-      success: () => { playerLoaded = true; },
+      success: player => {
+        player.canvas.style.width = `${view.width}px`;
+        player.canvas.style.height = `${view.height}px`;
+        playerLoaded = true;
+      },
       error: (_player, message) => fail(message),
       frame: player => {
         if (playerLoaded && !poseApplied) applyExactPose(player);
       },
       draw: player => {
         if (poseApplied && !captureStarted) {
-          captureStarted = true;
-          void captureCanvas(player).catch(fail);
+          try {
+            if (canvasHasFixedViewport(player)) {
+              captureStarted = true;
+              void captureCanvas(player).catch(fail);
+            }
+          } catch (reason) { fail(reason); }
         }
       },
     });
