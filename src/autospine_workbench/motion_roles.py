@@ -33,4 +33,10 @@ CANONICAL_BONE_ROLES = frozenset(CANONICAL_BONE_ID_BY_ROLE)
 CANONICAL_IK_HANDLES = (
     "arm.left", "arm.right", "leg.left", "leg.right",
 )
+IK_BONE_ROLES_BY_HANDLE = MappingProxyType({
+    "arm.left": ("humanoid.arm.upper.left", "humanoid.arm.lower.left"),
+    "arm.right": ("humanoid.arm.upper.right", "humanoid.arm.lower.right"),
+    "leg.left": ("humanoid.leg.upper.left", "humanoid.leg.lower.left"),
+    "leg.right": ("humanoid.leg.upper.right", "humanoid.leg.lower.right"),
+})
 CONTACT_LIMBS = frozenset(CANONICAL_IK_HANDLES)

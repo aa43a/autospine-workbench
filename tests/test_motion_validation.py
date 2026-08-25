@@ -70,7 +70,7 @@ def motion_fixture(*, loop=False):
         "tracks": [
             {
                 "target_kind": "bone_role",
-                "target": "humanoid.arm.lower.left",
+                "target": "humanoid.clavicle.left",
                 "property": "rotation",
                 "interpolation": "linear",
                 "keys": rotation,
@@ -186,6 +186,22 @@ class MotionIrValidationTests(unittest.TestCase):
             mutate(value)
             with self.subTest(value=value), self.assertRaises(MotionValidationError):
                 require_motion_ir(value)
+
+    def test_ik_chain_rotations_cannot_compete_with_the_same_handle(self):
+        conflicts = (
+            "humanoid.arm.upper.left",
+            "humanoid.arm.lower.left",
+        )
+        for role in conflicts:
+            value = motion_fixture()
+            value["tracks"][0]["target"] = role
+            with self.subTest(role=role), self.assertRaisesRegex(
+                MotionValidationError, "IK chain"
+            ):
+                require_motion_ir(value)
+        allowed = motion_fixture()
+        allowed["tracks"][0]["target"] = "humanoid.arm.upper.right"
+        require_motion_ir(allowed)
         for forbidden in ("scale", "deform", "draw_order", "slot", "skin"):
             value = motion_fixture()
             value["tracks"][0]["property"] = forbidden

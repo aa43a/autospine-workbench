@@ -12,6 +12,7 @@ from .motion_roles import (
     CANONICAL_BONE_ROLES,
     CANONICAL_IK_HANDLES,
     CONTACT_LIMBS,
+    IK_BONE_ROLES_BY_HANDLE,
 )
 from .resolved_project import canonical_sha256
 
@@ -123,7 +124,18 @@ def _tracks(value: Any, duration: int, loop: bool) -> int:
         previous = identity
         keys = _track_keys(track, duration, loop)
         total += len(keys)
+    _require_no_ik_rotation_conflicts(seen)
     return total
+
+
+def _require_no_ik_rotation_conflicts(seen) -> None:
+    for handle, roles in IK_BONE_ROLES_BY_HANDLE.items():
+        if ("ik_handle", handle, "target") not in seen:
+            continue
+        if any(("bone_role", role, "rotation") in seen for role in roles):
+            raise MotionValidationError(
+                "MotionIR cannot drive an IK chain with explicit bone rotations"
+            )
 
 
 def _track_identity(track: Mapping[str, Any]) -> tuple[str, str, str]:
