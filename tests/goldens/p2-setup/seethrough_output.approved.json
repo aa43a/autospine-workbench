@@ -1,0 +1,26 @@
+{
+  "format": "autospine-setup-golden",
+  "format_version": 1,
+  "project_id": "seethrough_output",
+  "source": {
+    "rig_sha256": "3e97682c8acec2ba9055806dc9eb650f7e0453fd6cfc1ca82157e9394f7237a7",
+    "bundle_sha256": "b533a5bb8f77339a35e825c584e9c0c487a8457cdb85d1e427719201feae0de2",
+    "setup_render_sha256": "3fa477462a98e68cbb886ee0401f7d6d876a124d478e8d3639522691aaea1c8d"
+  },
+  "renderer": {
+    "id": "autospine-region-setup-renderer",
+    "version": "1.0.0"
+  },
+  "encoder": {
+    "id": "autospine-canonical-rgba-png",
+    "version": "1.0.0",
+    "profile": "rgba8-filter0-stored-deflate"
+  },
+  "image": {
+    "path": "seethrough_output.approved.png",
+    "width": 1024,
+    "height": 1024,
+    "rgba_sha256": "3ba82dd7c14b81e6b1e11b55da0159b67e34981dabfe5f92fe865a1627eec6be",
+    "png_sha256": "50b5478d6ae48477aec6fea797940781522e0d9575396ba77b7604b9d9de00ad"
+  }
+}

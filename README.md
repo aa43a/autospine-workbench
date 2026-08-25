@@ -160,7 +160,9 @@ JSON Schema 位于：
 - `schemas/layer-manifest-v1.schema.json`：规范化 RGBA 图层与语义、offset、QA 的 authoring 合同；
 - `schemas/rig-ir-v1.schema.json`：版本中立的骨骼、slot、attachment 与有限动画合同；
 - `schemas/rig-compile-run-v1.schema.json`：一次确定性 region RigIR 编译的输入与编译器身份；
-- `schemas/rig-setup-probes-v1.schema.json`：FK、pivot、父子关系、draw order 与像素重建探针报告。
+- `schemas/rig-setup-probes-v1.schema.json`：FK、pivot、父子关系、draw order 与像素重建探针报告；
+- `schemas/rig-setup-render-v1.schema.json`：canonical setup PNG 的 renderer、encoder、RGBA 与 PNG 身份；
+- `schemas/setup-golden-v1.schema.json`：经人工批准、只读验证的 setup 视觉 golden 合同。
 
 Layer Manifest 与 RigIR 是下游流水线合同。当前 UI 负责逐层 authoring 与复核，离线命令负责生成 region-only RigIR；它不包含 mesh、权重或动画，也不会冒充某一 Spine 版本。RigIR 对不支持特性的策略固定为 `fail`，防止 constraint、mesh 或 timeline 被静默丢弃。
 
@@ -235,6 +237,14 @@ python -m autospine_workbench materialize-manifest seethrough_output `
   --state-root .\workspace
 ```
 
+若 bilateral 图层尚未绑定当前算法预览，先发布预览，在 UI 的“切分预览审查”中逐项接受或拒绝并保存，再重跑命令。算法版本、策略、实际组件面积、两种 assignment cost 与 margin 都进入 operation config/hash；旧算法决定会变为 stale，不能静默复用：
+
+```powershell
+python -m autospine_workbench publish-split-previews seethrough_output `
+  --workspace .. `
+  --state-root .\workspace
+```
+
 把命令返回的 `manifest_sha256` 固定为输入，执行 P2 严格编译与 setup probes：
 
 ```powershell
@@ -254,6 +264,16 @@ python -m autospine_workbench run-probes seethrough_output `
   .\workspace\builds\seethrough_output\rig-ir\<rig-sha256>\<bundle-sha256>\rig.json
 ```
 
+严格 bundle 同时发布 `setup.png` 与 `setup-render.json`。人工批准代表性 setup 后，用只读 golden 门禁验证完整 bundle；验证器也会检查被遮挡 region、透明 RGB、原始 PNG 字节 SHA 与严格目录 inventory，而不只比较最终合成画面：
+
+```powershell
+python -m autospine_workbench verify-setup-golden `
+  .\workspace\builds\seethrough_output\rig-ir\<rig-sha256>\<bundle-sha256> `
+  .\tests\goldens\p2-setup\seethrough_output.approved.json
+```
+
+退出码 `0` 表示完全匹配，`1` 表示 bundle 与合法 golden 不同，`2` 表示 bundle、合同或输入不可信。命令不会自动更新 golden。
+
 逐层复核、严格/诊断模式、退出码与 bundle 校验步骤见 [编译并验证 region-only RigIR](docs/how-to-compile-region-rig.md)。
 
 对版本中立 RigIR 做语义检查：
@@ -262,7 +282,7 @@ python -m autospine_workbench run-probes seethrough_output `
 python -m autospine_workbench validate-rig .\path\to\rig.json
 ```
 
-raw COCO17、canonical pose、几何证据、评估报告和候选分别写入 `pose-adapter-inputs/`、`pose-observations/`、`alpha-geometry-evidence/`、`pose-evaluations/` 和 `joint-candidates/`；manifest bundle 写入 `workspace/builds/layer-manifest/<project-id>/<manifest-sha256>/`，RigIR bundle 写入 `workspace/builds/<project-id>/rig-ir/<rig-sha256>/<bundle-sha256>/`。路径中的哈希来自 canonical 内容，相同输入不会产生相互覆盖的可变结果；探针 runner 或报告变化会产生新的 bundle 地址。`audit-bbox-heuristic`、`pose-alpha-limb-fusion` 和 `pose-alpha-geometry-limb` 都只输出 `heuristic_score`，不是经过标定的概率或模型置信度；pose provider 始终保留原始 pose，并把 alpha 作为有限幅度的软证据。评估报告固定为 `diagnostic`，不内置合格阈值或自动左右修复。
+raw COCO17、canonical pose、几何证据、评估报告和候选分别写入 `pose-adapter-inputs/`、`pose-observations/`、`alpha-geometry-evidence/`、`pose-evaluations/` 和 `joint-candidates/`；manifest bundle 写入 `workspace/builds/<project-id>/layer-manifests/<manifest-sha256>/`，RigIR bundle 写入 `workspace/builds/<project-id>/rig-ir/<rig-sha256>/<bundle-sha256>/`。路径中的哈希来自 canonical 内容，相同输入不会产生相互覆盖的可变结果；编译 run、探针、setup renderer/encoder 或报告变化会产生新的 bundle 地址。`audit-bbox-heuristic`、`pose-alpha-limb-fusion` 和 `pose-alpha-geometry-limb` 都只输出 `heuristic_score`，不是经过标定的概率或模型置信度；pose provider 始终保留原始 pose，并把 alpha 作为有限幅度的软证据。评估报告固定为 `diagnostic`，不内置合格阈值或自动左右修复。
 
 ## HTTP API
 
@@ -283,6 +303,9 @@ raw COCO17、canonical pose、几何证据、评估报告和候选分别写入 `
 | `GET` | `/api/projects/{id}/candidate-artifacts/{sha256}` | 按完整内容 SHA 读取候选文档 |
 | `GET` | `/api/projects/{id}/geometry-evidence` | 已验证 alpha geometry artifact 索引 |
 | `GET` | `/api/projects/{id}/geometry-evidence/{sha256}` | 按完整内容 SHA 读取几何证据文档 |
+| `GET` | `/api/projects/{id}/split-previews` | 已验证 bilateral split 预览索引 |
+| `GET` | `/api/projects/{id}/split-previews/{sha256}` | 按完整内容 SHA 读取切分审查文档 |
+| `GET` | `/api/projects/{id}/split-previews/{sha256}/parts/{left\|right}/image` | 读取 manifest 绑定的左右子图 |
 
 API 响应带 `Cache-Control: no-store`。只接受 loopback Host；CORS 也只回显 loopback origin。分析工件端点会重新验证 strict JSON、内容地址和项目语义；损坏工件不会进入 UI。除 `PUT overrides` 外，API 不提供写操作。
 
@@ -321,16 +344,17 @@ P1 已交付 pose、alpha 中轴线和层接触候选，以及候选比较、四
 - 若要恢复旧 revision，先停止服务，备份整个项目 override 目录，再将目标历史快照作为新的、经过校验的 revision 提交；当前界面尚未提供历史浏览/回滚按钮。
 - validation 的 `valid=true` 仅表示结构和本地资产检查没有硬错误，不等于美术、遮挡补全、pivot、mesh 或动画通过视觉验收。
 
-## 当前阶段：P2 region-only RigIR
+## 已完成阶段：P2 region-only RigIR
 
-P0 合同加固与 P1 四肢候选已经贯通：`stage-scoped analysis → immutable geometry/candidates → candidate-bound revision → deterministic resolved snapshot`。P2 的编译器、bundle、UI 复核入口与 setup probes 已实现，不提前引入 mesh：
+P0 合同加固、P1 四肢候选与 P2 region-only RigIR 已贯通：`stage-scoped analysis → immutable geometry/candidates → candidate-bound revision → deterministic resolved snapshot → reviewed Layer Manifest → RigIR/setup bundle`。P2 没有提前引入 mesh：
 
 1. 从已复核 Layer Manifest 与 resolved joints 编译 region-only RigIR，固定规范骨角色、pivot、父子关系、slot 和 draw order。
 2. 用独立 FK setup probe 重建每个 region 的 world transform，并与 audit 合成基线比较。
 3. 对未知语义、缺失 pivot、非法父子关系或 draw order 歧义 fail closed，不用 bbox fallback 冒充人工确认。
-4. P2 只有在两份真实样本逐层复核后，严格编译通过，且 setup 精确重建、pivot/父子关系/draw order 语义测试和代表性截图回归全部通过后结束；随后才进入 P3 两骨 LBS。
+4. bilateral split v1.2 会优先整块分配可靠的双连通域，融合层才回退像素最近规则；算法升级使旧决定 stale，三个真实决定均已重新目视批准。
+5. 两份真实样本均以严格模式重复编译为相同内容地址；setup 精确重建，pivot/父子关系/draw order 与固定 visual golden 全部通过。
 
-当前正式门禁停在真实样本复核：仅修改可见性不会把语义、pivot 或目标骨标记为已复核；`split` 决定也尚未物化为独立 region。诊断编译可以验证其余管线，但不得代替人工确认或被计为 P2 完成。
+P2 验收证据：A 为 27 层/25 region，B 为 22 层/20 region；两者各 17 根骨骼，setup differing pixels/channels 均为 0、MAE 为 0。固定批准合同位于 `tests/goldens/p2-setup/`。下一阶段是 P3 alpha mesh、参数化两骨权重、权重热图与极值动作探针。
 
 姿态 runner 与真实标注评估集仍是独立质量轨，不阻塞版本中立 P2 编译；诊断 setup prior 不能替代真实模型基线。
 

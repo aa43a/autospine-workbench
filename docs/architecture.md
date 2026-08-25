@@ -38,7 +38,7 @@ web    → HTTP contracts only
 - 前端分为 API、authoring state、保存事务和各 stage view；view state 不得污染 revision draft。
 - 外部姿态模型只能通过 canonical pose observations 进入；alpha 几何只读取 resolved layer 与固定 PNG，融合结果必须保留原始 pose 和未标定分数语义。
 - COCO17 raw 输入、adapter、canonical pose、人工评估和候选工件分开内容寻址；坐标反镜像、左右标签交换、视角和镜像声明不得合并成一个隐式开关。
-- 离线命令最终按 `import-pose`、`evaluate-pose`、`materialize-manifest`、`analyze-joints`、`compile-rig`、`run-probes`、`validate-rig` 和 `export-spine` 划分。
+- 离线命令最终按 `import-pose`、`evaluate-pose`、`analyze-joints`、`publish-split-previews`、`materialize-manifest`、`compile-rig`、`run-probes`、`verify-setup-golden`、`validate-rig` 和 `export-spine` 划分。
 
 ## 文件长度预算
 
@@ -71,9 +71,11 @@ P1 已完成并冻结以下边界：
 - 两份 See-through 样本可用 diagnostic setup prior 重复发布相同工件链；该 smoke 明确不代表模型精度。
 - candidate/geometry API 在读取时重新验证 strict JSON、内容地址、project 和领域合同，损坏输入 fail closed。
 
-当前 P2 门禁是：reviewed Layer Manifest → region-only RigIR；FK setup 必须精确重建，pivot、父子关系和 draw order 全部通过语义与视觉回归。P2 不生成 mesh 或权重。
+P2 门禁已经完成：reviewed Layer Manifest → region-only RigIR；FK setup 精确重建，pivot、父子关系、draw order、完整 bundle inventory 与两份真实视觉 golden 均已通过。P2 不生成 mesh 或权重。
 
-图层复核按字段记录 provenance；`visible`、语义、side、pivot、disposition 与目标骨互不代替。RigIR bundle 地址固定为 `builds/<project-id>/rig-ir/<rig-sha256>/<bundle-sha256>/`，第二层哈希同时绑定 RigIR、编译 run manifest 和 probe report，runner 变化不会改写旧证据。`allow_manual_required` 只用于诊断，不能关闭阶段门禁。
+图层复核按字段记录 provenance；`visible`、语义、side、pivot、disposition 与目标骨互不代替。RigIR bundle 地址固定为 `builds/<project-id>/rig-ir/<rig-sha256>/<bundle-sha256>/`，第二层哈希同时绑定 RigIR、编译 run manifest、probe report 与 setup-render 合同，runner/renderer/encoder 变化不会改写旧证据。完整 verifier 还校验 region PNG 原始字节、规范路径和 exact inventory。`allow_manual_required` 只用于诊断，不能关闭阶段门禁。
+
+当前 P3 门禁是：为四肢 attachment 生成确定性 alpha mesh 与参数化两骨权重；权重和拓扑不变量必须通过，并用抬臂、屈肘、抬腿、屈膝极值探针证明无翻三角和明显裂缝。P3 工件仍保持版本中立，不在此阶段写 Spine 版本字段。
 
 后续阶段继续遵守：
 
