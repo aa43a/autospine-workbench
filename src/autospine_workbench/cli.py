@@ -17,6 +17,11 @@ from .pose_commands import evaluate_pose_command as _evaluate_pose
 from .pose_commands import import_pose as _import_pose
 from .project_store import ProjectStore, ProjectStoreError
 from .rig_validation import RigSemanticValidator
+from .rig_commands import (
+    add_rig_subcommands,
+    compile_rig_command as _compile_rig,
+    run_rig_probes_command as _run_rig_probes,
+)
 from .server import create_server
 
 
@@ -169,6 +174,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=_project_root() / "workspace",
         help="Root for immutable build bundles",
     )
+    add_rig_subcommands(
+        subparsers,
+        default_workspace=_project_root().parent,
+        default_state_root=_project_root() / "workspace",
+    )
     return parser
 
 
@@ -206,6 +216,22 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
     if args.command == "materialize-manifest":
         return _materialize_manifest(args.project_id, args.workspace, args.state_root)
+    if args.command == "compile-rig":
+        return _compile_rig(
+            args.project_id,
+            args.workspace,
+            args.state_root,
+            layer_manifest_sha256=args.layer_manifest_sha256,
+            allow_manual_required=args.allow_manual_required,
+        )
+    if args.command == "run-probes":
+        return _run_rig_probes(
+            args.project_id,
+            args.rig,
+            args.workspace,
+            args.state_root,
+            layer_manifest_sha256=args.layer_manifest_sha256,
+        )
     if args.command != "serve":
         raise AssertionError(f"Unhandled command: {args.command}")
     try:
@@ -251,7 +277,9 @@ def _validate_rig(path: Path) -> int:
 
 def _materialize_manifest(project_id: str, workspace: Path, state_root: Path) -> int:
     try:
-        store = ProjectStore(workspace, state_root=state_root)
+        store = ProjectStore(
+            workspace, state_root=state_root, measure_composite_quality=False
+        )
         project = store.get_project(project_id)
         assets = {
             layer["id"]: store.resolve_asset(project_id, "layer", layer["id"])
