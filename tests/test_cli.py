@@ -18,7 +18,11 @@ SRC_ROOT = ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from autospine_workbench.cli import _analyze_joints  # noqa: E402
+from autospine_workbench.cli import (  # noqa: E402
+    _analyze_joints,
+    build_parser,
+    main as cli_main,
+)
 from autospine_workbench.artifact_store import (  # noqa: E402
     ArtifactStoreError,
     ImmutableJsonArtifactStore,
@@ -286,6 +290,54 @@ class JointAnalysisCliTests(unittest.TestCase):
                 alpha_threshold=8,
             )
         return status, json.loads(output.getvalue())
+
+
+class MeshCliWiringTests(unittest.TestCase):
+    def test_mesh_parsers_require_and_preserve_explicit_addresses(self) -> None:
+        compile_args = build_parser().parse_args([
+            "compile-mesh-rig", "sample-a",
+            "--base-rig-sha256", "a" * 64,
+            "--base-bundle-sha256", "b" * 64,
+            "--state-root", "exact-state",
+        ])
+        self.assertEqual("compile-mesh-rig", compile_args.command)
+        self.assertEqual("a" * 64, compile_args.base_rig_sha256)
+        self.assertEqual("b" * 64, compile_args.base_bundle_sha256)
+        verify_args = build_parser().parse_args([
+            "verify-mesh-bundle", "sample-a",
+            "--rig-sha256", "c" * 64,
+            "--bundle-sha256", "d" * 64,
+            "--state-root", "exact-state",
+        ])
+        self.assertEqual("verify-mesh-bundle", verify_args.command)
+        self.assertEqual("c" * 64, verify_args.rig_sha256)
+        self.assertEqual("d" * 64, verify_args.bundle_sha256)
+
+    def test_main_routes_mesh_commands_without_workspace_or_latest(self) -> None:
+        with patch("autospine_workbench.cli._compile_mesh_rig", return_value=7) as command:
+            status = cli_main([
+                "compile-mesh-rig", "sample-a",
+                "--base-rig-sha256", "a" * 64,
+                "--base-bundle-sha256", "b" * 64,
+                "--state-root", "exact-state",
+            ])
+        self.assertEqual(7, status)
+        command.assert_called_once_with(
+            "sample-a", Path("exact-state"),
+            base_rig_sha256="a" * 64, base_bundle_sha256="b" * 64,
+        )
+        with patch("autospine_workbench.cli._verify_mesh_bundle", return_value=8) as command:
+            status = cli_main([
+                "verify-mesh-bundle", "sample-a",
+                "--rig-sha256", "c" * 64,
+                "--bundle-sha256", "d" * 64,
+                "--state-root", "exact-state",
+            ])
+        self.assertEqual(8, status)
+        command.assert_called_once_with(
+            "sample-a", Path("exact-state"),
+            rig_sha256="c" * 64, bundle_sha256="d" * 64,
+        )
 
 
 if __name__ == "__main__":

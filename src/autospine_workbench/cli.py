@@ -8,6 +8,11 @@ from pathlib import Path
 from typing import Sequence
 
 from .manifest_commands import materialize_manifest_command as _materialize_manifest
+from .mesh_commands import (
+    add_mesh_subcommands,
+    compile_mesh_rig_command as _compile_mesh_rig,
+    verify_mesh_bundle_command as _verify_mesh_bundle,
+)
 from .pose_commands import analyze_joints as _analyze_joints
 from .pose_commands import evaluate_pose_command as _evaluate_pose
 from .pose_commands import import_pose as _import_pose
@@ -184,6 +189,10 @@ def build_parser() -> argparse.ArgumentParser:
         default_workspace=_project_root().parent,
         default_state_root=_project_root() / "workspace",
     )
+    add_mesh_subcommands(
+        subparsers,
+        default_state_root=_project_root() / "workspace",
+    )
     return parser
 
 
@@ -243,6 +252,20 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
     if args.command == "verify-setup-golden":
         return _verify_setup_golden(args.bundle, args.golden_contract)
+    if args.command == "compile-mesh-rig":
+        return _compile_mesh_rig(
+            args.project_id,
+            args.state_root,
+            base_rig_sha256=args.base_rig_sha256,
+            base_bundle_sha256=args.base_bundle_sha256,
+        )
+    if args.command == "verify-mesh-bundle":
+        return _verify_mesh_bundle(
+            args.project_id,
+            args.state_root,
+            rig_sha256=args.rig_sha256,
+            bundle_sha256=args.bundle_sha256,
+        )
     if args.command != "serve":
         raise AssertionError(f"Unhandled command: {args.command}")
     try:
