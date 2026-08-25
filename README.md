@@ -13,7 +13,8 @@ AutoSpine Workbench 是一个本地人工复核界面，用于查看 See-through
 - 拖动或精确输入关节坐标，并恢复自动推断位置。
 - 使用 optimistic concurrency 保存 override；过期 revision 不会覆盖新结果。
 - 每次成功保存都写入 append-only revision 历史，并生成应用人工决定后的 resolved snapshot。
-- 候选 accept/adjust/reject/unobservable 决定绑定完整内容 SHA；算法输出变化不会把旧决定静默套用到新工件。
+- 在界面加载内容寻址候选，比较画布标记、alpha 中轴线/接触证据，并记录 accept/adjust/reject/unobservable 决定。
+- 候选决定绑定完整内容 SHA；算法输出变化不会把旧决定静默套用到新工件。
 - 通过只读验证 API 检查画布、图层 ID、资产路径和骨架结构。
 - 离线发布带 provenance 的关节候选工件和 region-first Layer Manifest bundle。
 - 把固定的 COCO17 检测转换为显式左右/镜像 provenance 的 canonical pose，并用人工复核四肢点生成诊断误差报告。
@@ -91,9 +92,10 @@ python -m autospine_workbench serve `
 
 1. 在顶部选择项目。切换项目前若存在未保存修改，界面会要求确认。
 2. 在“图层”模式搜索、选择、显示或隐藏图层；右侧可检查语义、角色左右、bbox、置信度和 QA。
-3. 在“关节”模式拖动关节，或在右侧输入 X/Y。坐标使用源画布像素，原点在左上，Y 向下。
-4. 使用参考图、骨骼、预览透明度和缩放控件比较 setup 状态。
-5. 填写校正备注后点击“保存校正”，或按 `Ctrl+S`。
+3. 在“关节”模式选择关节；若已发布候选，右侧“候选审查”会列出 artifact、候选方法、可观测性，并为带引用的候选显示固定几何证据。
+4. 候选可接受、按当前坐标调整或拒绝；无可靠候选时可把当前关节标记为不可观测。adjust/reject/unobservable 必须填写理由；手工拖动会把该关节转为绝对人工坐标。
+5. 使用参考图、骨骼、候选/几何覆盖、预览透明度和缩放控件比较 setup 状态。
+6. 填写校正备注后点击“保存校正”，或按 `Ctrl+S`。
 
 快捷键：
 
@@ -154,6 +156,7 @@ JSON Schema 位于：
 - `schemas/pose-observations-v2.schema.json`：带 adapter、左右、视角和镜像 provenance 的 canonical pose；
 - `schemas/pose-evaluation-v1.schema.json`：人工复核四肢点的阈值无关诊断报告；
 - `schemas/joint-candidates-v1.schema.json`：可复现的关节候选、证据分数和来源；
+- `schemas/alpha-geometry-evidence-v1.schema.json`：内容寻址的 layer component、alpha path/contact 与可观测性证据；
 - `schemas/layer-manifest-v1.schema.json`：规范化 RGBA 图层与语义、offset、QA 的 authoring 合同；
 - `schemas/rig-ir-v1.schema.json`：版本中立的骨骼、slot、attachment 与有限动画合同。
 
@@ -220,7 +223,7 @@ python -m autospine_workbench evaluate-pose seethrough_output `
   --state-root .\workspace
 ```
 
-COCO17 准备、导入、融合和评估步骤见 [导入并评估 COCO17 四肢姿态](docs/how-to-import-and-evaluate-pose.md)；已有 canonical 输入见 [使用 pose-alpha 生成四肢候选](docs/how-to-run-pose-alpha.md)；机器合同见 [姿态 adapter 与评估参考](docs/pose-adapter-reference.md) 和 [Pose observations v1/v2 参考](docs/pose-observations-reference.md)。
+COCO17 准备、导入、融合和评估步骤见 [导入并评估 COCO17 四肢姿态](docs/how-to-import-and-evaluate-pose.md)；已有 canonical 输入、`pose-geometry` 和诊断样本发布见 [生成并复核四肢候选](docs/how-to-run-pose-alpha.md)；只读 artifact/API 合同见 [分析工件参考](docs/analysis-artifacts-reference.md)。
 
 从当前已复核 revision 发布不可变的 region attachment bundle：
 
@@ -253,8 +256,12 @@ raw COCO17、canonical pose、几何证据、评估报告和候选分别写入 `
 | `GET` | `/api/projects/{id}/layers/{layer_id}/image` | 单图层图片 |
 | `GET` | `/api/projects/{id}/validate` | 单项目结构验证 |
 | `GET` | `/api/validate` | 所有项目结构验证 |
+| `GET` | `/api/projects/{id}/candidate-artifacts` | 已验证候选 artifact 索引 |
+| `GET` | `/api/projects/{id}/candidate-artifacts/{sha256}` | 按完整内容 SHA 读取候选文档 |
+| `GET` | `/api/projects/{id}/geometry-evidence` | 已验证 alpha geometry artifact 索引 |
+| `GET` | `/api/projects/{id}/geometry-evidence/{sha256}` | 按完整内容 SHA 读取几何证据文档 |
 
-API 响应带 `Cache-Control: no-store`。只接受 loopback Host；CORS 也只回显 loopback origin。除 `PUT overrides` 外，API 不提供写操作。
+API 响应带 `Cache-Control: no-store`。只接受 loopback Host；CORS 也只回显 loopback origin。分析工件端点会重新验证 strict JSON、内容地址和项目语义；损坏工件不会进入 UI。除 `PUT overrides` 外，API 不提供写操作。
 
 ## 运行测试
 
@@ -269,6 +276,20 @@ python -m unittest discover -s tests -v
 
 未安装 `jsonschema` 时，标准库运行与大部分测试仍可执行，完整 Draft 2020-12 实例校验会标记为 skipped。若仓库中存在两份真实 See-through audit，测试还会固定表示层差异和真实可见差异的区分：透明 RGB 与扁平背景造成的巨大 raw RGBA MAE 不会直接判为视觉失败；背景匹配后的可见颜色差异仍会失败。第 5 channel、空且隐藏图层、左右语义歧义与缺失部位仍需人工复核。
 
+## P1 门禁证据
+
+P1 已交付 pose、alpha 中轴线和层接触候选，以及候选比较、四类人工决定和固定证据回看。可复现证据如下：
+
+| 门禁 | 仓库证据 |
+| --- | --- |
+| 同一 stage 输入得到相同工件身份 | provider/CLI identity 测试；诊断发布重复运行得到相同 pose、geometry、candidate SHA |
+| 候选只能引用已发布几何内容 | 跨文档 validator 检查 SHA、path、contact、layer/component fragment；错引用在首次发布前失败 |
+| 可接受、调整、拒绝或标记不可观测 | candidate-aware override/binder 测试与候选审查 UI 状态测试 |
+| 证据可回看且损坏时 fail closed | candidate/geometry 只读 API、SVG overlay/controller 测试及严格 repository 读取边界 |
+| 两份样本可产出完整链 | `tools/publish_diagnostic_samples.py`；真实样本 geometry/candidate smoke 测试 |
+
+诊断样本使用 resolved setup 关节作为零分、未知可见性的 prior，只证明工作流和内容地址可复现，不代表姿态模型精度。复核命令见 [生成并复核四肢候选](docs/how-to-run-pose-alpha.md)。
+
 ## 数据与恢复
 
 - audit JSON、PSD 和 PNG 被视为不可变输入。
@@ -277,15 +298,16 @@ python -m unittest discover -s tests -v
 - 若要恢复旧 revision，先停止服务，备份整个项目 override 目录，再将目标历史快照作为新的、经过校验的 revision 提交；当前界面尚未提供历史浏览/回滚按钮。
 - validation 的 `valid=true` 仅表示结构和本地资产检查没有硬错误，不等于美术、遮挡补全、pivot、mesh 或动画通过视觉验收。
 
-## 下一阶段开发顺序
+## 下一阶段：P2 region-only RigIR
 
-P0 合同加固已经贯通：`stage-scoped analysis → immutable candidate → candidate-bound revision → deterministic resolved snapshot`。外部 pose、alpha 四肢候选和 manifest 工件也已具备版本中立合同。后续按以下顺序推进：
+P0 合同加固与 P1 四肢候选已经贯通：`stage-scoped analysis → immutable geometry/candidates → candidate-bound revision → deterministic resolved snapshot`。下一步只做 P2，不提前引入 mesh：
 
-1. **姿态 runner 与真实评估集**：COCO17 固定输入、显式 view/mirror/character-side adapter 和人工误差报告已经完成；下一步为选定的 Anime/ONNX/MMPose runner 产出该合同，冻结真实模型 revision，并在两份样本与新增标注集上记录基线，不把参考点回灌 smoke 当作模型精度。
-2. **接触几何候选与比较 UI**：在现有连通域基础上增加 torso/arm、pelvis/leg、leg/foot 接触簇，并让用户接受、调整、拒绝或标记不可观测；宽袖、长裙、融合双腿和遮挡关节继续保留多解与证据回看。
-3. **region-first RigIR 编译**：把已发布 Layer Manifest 和确认关节编译为规范骨角色、slot、draw order 与 region attachment；先做 setup 合成回归，不在这一阶段引入 mesh。
-4. **绑定与动作探针**：只对 region 无法连续弯曲的上臂、前臂、大腿、小腿生成轮廓网格、两骨权重和 LBS 预览，并用抬臂、屈肘、抬腿、屈膝四个极值探针暴露遮挡补全、翻三角与接缝问题。
-5. **通用动画重定向与版本适配**：动画库只引用 `humanoid-v1`；目标 Spine 版本仅进入 adapter，不支持的 mesh、deform、constraint 或 draw order 必须失败并报告。
+1. 从已复核 Layer Manifest 与 resolved joints 编译 region-only RigIR，固定规范骨角色、pivot、父子关系、slot 和 draw order。
+2. 用独立 FK setup probe 重建每个 region 的 world transform，并与 audit 合成基线比较。
+3. 对未知语义、缺失 pivot、非法父子关系或 draw order 歧义 fail closed，不用 bbox fallback 冒充人工确认。
+4. P2 只有在 setup 精确重建、pivot/父子关系/draw order 语义测试和代表性截图回归全部通过后结束；随后才进入 P3 两骨 LBS。
+
+姿态 runner 与真实标注评估集仍是独立质量轨，不阻塞版本中立 P2 编译；诊断 setup prior 不能替代真实模型基线。
 
 面部锚点、头发弹簧和实时追踪映射可以作为独立模块接到同一规范骨角色上；四肢扩展的关键不是增加更多屏幕坐标映射，而是建立 bind pose、父子骨、权重和重定向空间。
 
@@ -294,7 +316,7 @@ P0 合同加固已经贯通：`stage-scoped analysis → immutable candidate →
 当前版本不负责：
 
 - 运行 See-through 推理、选择 seed、编辑 PSD 或自动清理图层；
-- 下载或运行具体姿态模型；`import-pose` 只转换经过哈希固定且已还原到原画布的 COCO17 输出，当前 UI 也尚未加载离线候选工件；
+- 下载或运行具体姿态模型；`import-pose` 只转换经过哈希固定且已还原到原画布的 COCO17 输出；
 - 自动解决 `head-obj`、`objects`、合并肢体等歧义语义；
 - 证明遮挡补全符合解剖或在大幅动作下不会露馅；
 - 自动生成 mesh、权重、deform、IK、约束或动态 draw order；

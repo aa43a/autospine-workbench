@@ -5,7 +5,7 @@
 - v1 保持已有手工或外部 canonical 输入的只读兼容。
 - v2 增加必需的 `adapter` provenance；`import-pose` 固定输出 v2。
 
-两个版本都可由 `pose-alpha` 和 `evaluate-pose` 读取。完整 COCO17 输入、左右/镜像语义与评估合同见 [姿态 adapter 与评估参考](pose-adapter-reference.md)。
+两个版本都可由 `pose-alpha`、`pose-geometry` 和 `evaluate-pose` 读取。完整 COCO17 输入、左右/镜像语义与评估合同见 [姿态 adapter 与评估参考](pose-adapter-reference.md)。
 
 ## 顶层字段
 
@@ -90,7 +90,7 @@ ankle.left      ankle.right
 - `detector_score`：范围 `[0, 1]` 的检测器原生排序信号；
 - `visibility`：`visible`、`occluded`、`out_of_frame` 或 `unknown`。
 
-## pose-alpha 融合语义
+## pose-alpha / pose-geometry 融合语义
 
 provider 对相关肢体图层使用 alpha `>= threshold`，以 run-length 算法计算 8 连通域。小于 `max(16 px, 图层前景的 0.1%)` 的组件不参与最近轮廓证据。
 
@@ -103,6 +103,8 @@ alpha 是软约束：
 - 所有输出分数均为 `score_kind=heuristic`，文档始终要求人工复核。
 
 provider 的 run SHA 覆盖 stage-scoped project/source/canvas/base skeleton、pose 文档哈希、参与分析的 layer 语义、PNG 哈希、alpha 组件统计、配置和 provider 版本。最终 joint decision 与 resolved revision 被刻意排除，以避免 candidate↔decision 哈希环。
+
+`pose-geometry` 在此基础上先发布独立 geometry 文档，再把 path/contact/layer component fragment 绑定其完整内容 SHA；候选 provider 的 run identity 因此也受 geometry identity 约束。
 
 ## 主要 QA flags
 

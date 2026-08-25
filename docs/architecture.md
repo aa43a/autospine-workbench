@@ -49,9 +49,8 @@ web    → HTTP contracts only
 | 文件 | 当前上限 | 拆分目标 |
 | --- | ---: | ---: |
 | `web/styles.css` | 1713 | 每个主题/布局文件 ≤ 400 |
-| `web/app.js` | 1332 | façade ≤ 250，模块 ≤ 400 |
+| `web/app.js` | 1293 | façade ≤ 250，模块 ≤ 400 |
 | `src/autospine_workbench/project_store.py` | 838 | façade ≤ 300 |
-| `src/autospine_workbench/server.py` | 416 | HTTP adapter ≤ 300 |
 
 `tests/test_quality.py` 自动执行上述硬上限与 ratchet。JSON Schema、文档和生成工件不套用源码行数上限，但仍应按版本和领域拆分，禁止手工复制生成文件来规避检查。
 
@@ -63,7 +62,18 @@ web    → HTTP contracts only
 4. schema 通过只证明结构合法；跨引用、权重和骨架拓扑必须再经过语义验证器。
 5. 任何迁移先读旧格式并产出新格式，经过至少一个发布周期后再讨论删除兼容路径。
 
-## 完成门禁
+## 阶段门禁
+
+P1 已完成并冻结以下边界：
+
+- pose、alpha path/contact geometry 和 joint candidates 分别内容寻址，候选 fragment 在首次发布前绑定真实 geometry SHA 与目标。
+- 比较 UI 可以接受、调整、拒绝或标记不可观测，并按固定 SHA 回看几何证据；算法变化不会静默复用旧决定。
+- 两份 See-through 样本可用 diagnostic setup prior 重复发布相同工件链；该 smoke 明确不代表模型精度。
+- candidate/geometry API 在读取时重新验证 strict JSON、内容地址、project 和领域合同，损坏输入 fail closed。
+
+当前 P2 门禁是：reviewed Layer Manifest → region-only RigIR；FK setup 必须精确重建，pivot、父子关系和 draw order 全部通过语义与视觉回归。P2 不生成 mesh 或权重。
+
+后续阶段继续遵守：
 
 - setup：画布、原点、side 语义、draw order 和 region 合成回归通过。
 - visual：抬臂、屈肘、抬腿、屈膝探针在极值帧无明显断层、翻三角或越界。

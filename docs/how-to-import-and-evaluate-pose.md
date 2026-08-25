@@ -1,6 +1,6 @@
 # 导入并评估 COCO17 四肢姿态
 
-本指南面向正在把 Anime、ONNX 或 MMPose 推理结果接入 AutoSpine Workbench 的开发者。完成后会得到一份可供 `pose-alpha` 消费的 canonical pose，以及一份基于人工复核关节的诊断报告。
+本指南面向正在把 Anime、ONNX 或 MMPose 推理结果接入 AutoSpine Workbench 的开发者。完成后会得到一份可供 `pose-alpha`/`pose-geometry` 消费的 canonical pose，以及一份基于人工复核关节的诊断报告。
 
 本流程不下载或运行姿态模型，也不宣称某个模型已经达到生产精度。模型专用代码只需把输出转换为固定的 COCO17 输入合同。
 
@@ -96,18 +96,18 @@ workspace/analysis/<project-id>/pose-observations/<sha256>.json
 
 后续命令使用响应中的 pose observations 路径，不要手工修改哈希工件。
 
-## 3. 生成 pose-alpha 候选
+## 3. 生成 geometry-bound 候选
 
 ```powershell
 python -m autospine_workbench analyze-joints seethrough_output `
   --workspace .. `
   --state-root .\workspace `
-  --provider pose-alpha `
+  --provider pose-geometry `
   --pose-observations .\workspace\analysis\seethrough_output\pose-observations\<sha256>.json `
   --alpha-threshold 8
 ```
 
-检查原始 `pose` 候选、受限移动后的 `fusion` 候选、来源图层以及 QA flags。alpha 仍是软约束，不能替代人工复核。
+检查原始 `pose`、受限移动后的 `fusion`、`medial_axis`/`contact` 候选、来源图层和 QA flags。带 geometry 引用的候选可在工作台按固定 SHA 回看 alpha path/contact 证据；alpha 仍是软约束，不能替代人工复核。完整操作见 [生成并复核四肢候选](how-to-run-pose-alpha.md)。
 
 ## 4. 用人工关节生成误差报告
 

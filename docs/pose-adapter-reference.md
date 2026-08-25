@@ -11,7 +11,7 @@
 | `autospine-pose-observations/v2` | 带 adapter、左右、镜像和视角 provenance 的 canonical pose | [pose-observations-v2](../schemas/pose-observations-v2.schema.json) |
 | `autospine-pose-evaluation/v1` | 对人工复核四肢点的阈值无关诊断 | [pose-evaluation-v1](../schemas/pose-evaluation-v1.schema.json) |
 
-`analyze-joints --provider pose-alpha` 与 `evaluate-pose` 同时读取 pose v1 和 v2。`import-pose` 固定输出 v2。v1 保持只读兼容，不会被原地升级。
+`analyze-joints --provider pose-alpha|pose-geometry` 与 `evaluate-pose` 同时读取 pose v1 和 v2。`import-pose` 固定输出 v2。v1 保持只读兼容，不会被原地升级。
 
 ## COCO17 输入
 
@@ -112,6 +112,7 @@ review_state == manual_adjusted
 workspace/analysis/<project-id>/pose-adapter-inputs/<raw-sha256>.json
 workspace/analysis/<project-id>/pose-observations/<pose-sha256>.json
 workspace/analysis/<project-id>/pose-evaluations/<evaluation-sha256>.json
+workspace/analysis/<project-id>/alpha-geometry-evidence/<geometry-sha256>.json
 workspace/analysis/<project-id>/joint-candidates/<candidate-sha256>.json
 ```
 
