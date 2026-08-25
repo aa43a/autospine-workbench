@@ -1,0 +1,258 @@
+{
+  "cases": [
+    {
+      "clip_id": null,
+      "gate": {
+        "checks": {
+          "adapter-profile": "passed",
+          "attachment-atlas-binding": "passed",
+          "atlas-png-geometry": "passed",
+          "motion-binding": "not_applicable",
+          "source-image-binding": "passed"
+        },
+        "metrics": {
+          "animations": 0,
+          "atlas_height": 1227,
+          "atlas_regions": 25,
+          "atlas_width": 1166,
+          "attachments": 25,
+          "bones": 17,
+          "events": 0,
+          "slots": 25,
+          "source_images": 25
+        },
+        "status": "passed",
+        "summary": "mode=setup-only;clip=none;bones=17;slots=25;attachments=25;animations=0;events=0"
+      },
+      "mode": "setup-only",
+      "outputs": {
+        "atlas_sha256": "cd49ed5ea0b03f9049c328f8b0c4a1deb32f334a314bb402dee907b40c857e30",
+        "bundle_sha256": "5740a5956434b792a35ad850cdc517d77a03242436b7cf21ce8ddfe25b6a7de3",
+        "png_sha256": "2af68619585ef34db11374c3506266629c9824e2126f07da0698d28110459b4d",
+        "report_sha256": "967248a7424ea55465f2f5a5ba92c2dc9a3b6bce76e669a0a0b53c6f668e7396",
+        "run_document_sha256": "33a1e5c21c81b52d5ab1a80d64febfc0a76ddc3b8395133d4f1bbf74661d5fb0",
+        "run_identity_sha256": "3dfd50820d8691d1a1c0fdb26124e792ff4876782cdee0275e0868e5ed9fbfd1",
+        "skeleton_json_sha256": "61caa6a00568400ee11416f9d45ffcab9d1584657ebf5339fca3d1b8d2c77aea"
+      },
+      "project_id": "seethrough_output",
+      "request": {
+        "motion_bundle_sha256": null,
+        "motion_instance_sha256": null,
+        "p3_bundle_sha256": "7754406b1f6834a6b5c8fedfcd4743bd294d8cc568d7ff6413673cada3d79a1d",
+        "p3_rig_sha256": "40f96ade2f38f93caa7610b40f02ed9b30b8782396cee0e80499724a0450e327"
+      }
+    },
+    {
+      "clip_id": "idle",
+      "gate": {
+        "checks": {
+          "adapter-profile": "passed",
+          "attachment-atlas-binding": "passed",
+          "atlas-png-geometry": "passed",
+          "motion-binding": "passed",
+          "source-image-binding": "passed"
+        },
+        "metrics": {
+          "animations": 1,
+          "atlas_height": 1227,
+          "atlas_regions": 25,
+          "atlas_width": 1166,
+          "attachments": 25,
+          "bones": 17,
+          "events": 4,
+          "slots": 25,
+          "source_images": 25
+        },
+        "status": "passed",
+        "summary": "mode=motion;clip=idle;bones=17;slots=25;attachments=25;animations=1;events=4"
+      },
+      "mode": "motion",
+      "outputs": {
+        "atlas_sha256": "cd49ed5ea0b03f9049c328f8b0c4a1deb32f334a314bb402dee907b40c857e30",
+        "bundle_sha256": "ca6b1e48d09aadccaa91657d75506968ce4acc9cf013587f7ff7841c0e49915e",
+        "png_sha256": "2af68619585ef34db11374c3506266629c9824e2126f07da0698d28110459b4d",
+        "report_sha256": "21ae63ff915991f655fa894b1bb62f5d13f9966f0a6cc0b644f218c94d59cd02",
+        "run_document_sha256": "d3d48571861c1ddc404869441bd68f66874f200e35d66b32fcac7a4601a2595c",
+        "run_identity_sha256": "50789e36d26ec0519f8b977a7a779bc784a798965f1194438e54f09468f91005",
+        "skeleton_json_sha256": "cc2d5e0f491e2c54b782cde9bf52877f590d8da5a9e20b324357dd8b7f34ceec"
+      },
+      "project_id": "seethrough_output",
+      "request": {
+        "motion_bundle_sha256": "28f4da4e9f594f147543caa4253ac293df41e9bd980b8947c8eae5dabad743a8",
+        "motion_instance_sha256": "1cd7b10c038417fce5014e38c6e5dc794619de2cc31fdc18cbb253c383d0706b",
+        "p3_bundle_sha256": "7754406b1f6834a6b5c8fedfcd4743bd294d8cc568d7ff6413673cada3d79a1d",
+        "p3_rig_sha256": "40f96ade2f38f93caa7610b40f02ed9b30b8782396cee0e80499724a0450e327"
+      }
+    },
+    {
+      "clip_id": "wave.left",
+      "gate": {
+        "checks": {
+          "adapter-profile": "passed",
+          "attachment-atlas-binding": "passed",
+          "atlas-png-geometry": "passed",
+          "motion-binding": "passed",
+          "source-image-binding": "passed"
+        },
+        "metrics": {
+          "animations": 1,
+          "atlas_height": 1227,
+          "atlas_regions": 25,
+          "atlas_width": 1166,
+          "attachments": 25,
+          "bones": 17,
+          "events": 4,
+          "slots": 25,
+          "source_images": 25
+        },
+        "status": "passed",
+        "summary": "mode=motion;clip=wave.left;bones=17;slots=25;attachments=25;animations=1;events=4"
+      },
+      "mode": "motion",
+      "outputs": {
+        "atlas_sha256": "cd49ed5ea0b03f9049c328f8b0c4a1deb32f334a314bb402dee907b40c857e30",
+        "bundle_sha256": "4549497026c1a645674409f095a857d1443ff2e95f601802a51a1f8bcd130ce6",
+        "png_sha256": "2af68619585ef34db11374c3506266629c9824e2126f07da0698d28110459b4d",
+        "report_sha256": "410f5f3363096bfc097e9ee692b6b5f84941f10be83e36337aac7371ca949b39",
+        "run_document_sha256": "73f98d6d52935ac72d35693c21cc87d51279e194474c14ae8501d9bebc3d1999",
+        "run_identity_sha256": "3ed6bb2953c1bf28debcb4f2349b6eb120c182f093e88790fbf856f0c8f3c040",
+        "skeleton_json_sha256": "25803f28f4be5a7bd364b6beed42450affe07087f92701fb874fba1b44f2b9b6"
+      },
+      "project_id": "seethrough_output",
+      "request": {
+        "motion_bundle_sha256": "15e51bf989501c116754ff84a7aa48da37e46fbfd4df02a7aaea4971d2017d6e",
+        "motion_instance_sha256": "4ea61a1ea5b45737f82f2ad4b2eb21ab20334090f60c6466bf6ab5e485c409e1",
+        "p3_bundle_sha256": "7754406b1f6834a6b5c8fedfcd4743bd294d8cc568d7ff6413673cada3d79a1d",
+        "p3_rig_sha256": "40f96ade2f38f93caa7610b40f02ed9b30b8782396cee0e80499724a0450e327"
+      }
+    },
+    {
+      "clip_id": null,
+      "gate": {
+        "checks": {
+          "adapter-profile": "passed",
+          "attachment-atlas-binding": "passed",
+          "atlas-png-geometry": "passed",
+          "motion-binding": "not_applicable",
+          "source-image-binding": "passed"
+        },
+        "metrics": {
+          "animations": 0,
+          "atlas_height": 2408,
+          "atlas_regions": 20,
+          "atlas_width": 2371,
+          "attachments": 20,
+          "bones": 17,
+          "events": 0,
+          "slots": 20,
+          "source_images": 20
+        },
+        "status": "passed",
+        "summary": "mode=setup-only;clip=none;bones=17;slots=20;attachments=20;animations=0;events=0"
+      },
+      "mode": "setup-only",
+      "outputs": {
+        "atlas_sha256": "55f8f19bf35de4f7561087d81528d9925424c4b4afdcbba207e4b9ee8231aede",
+        "bundle_sha256": "20a172bd26e19e5b119d74fbd39c6721377c85f2bd721038ce88d13733c85156",
+        "png_sha256": "47184ad4c8a919725da655713b9cbbb9e014517b7d759d3147ae077c667a38e0",
+        "report_sha256": "e0c9c404c3a422dc8ced987a9008d86cc2a0c0628db7c56793517645d15ad93a",
+        "run_document_sha256": "8fb18b93703d818a21a2d199af1b4ede5bf6368b49143e912798f588fa1cc363",
+        "run_identity_sha256": "687ad5890e4d989eafd163ae03c2f10e56ef6a6be4a799a0cbf0c88e6a990bce",
+        "skeleton_json_sha256": "f46662e4ab7c2e472f3441cd6c6884b75cc70c78142e994e6b01493a7a065aed"
+      },
+      "project_id": "seethrough_output_5",
+      "request": {
+        "motion_bundle_sha256": null,
+        "motion_instance_sha256": null,
+        "p3_bundle_sha256": "21f4707eaf023d664ae8cea8b785fd8a5197187f846d6db10b9c3ef34d7c6576",
+        "p3_rig_sha256": "897761e75bdd7e1cd3018cdab0f793f2d3ba637d88e01ce907beb179cfe0cd77"
+      }
+    },
+    {
+      "clip_id": "idle",
+      "gate": {
+        "checks": {
+          "adapter-profile": "passed",
+          "attachment-atlas-binding": "passed",
+          "atlas-png-geometry": "passed",
+          "motion-binding": "passed",
+          "source-image-binding": "passed"
+        },
+        "metrics": {
+          "animations": 1,
+          "atlas_height": 2408,
+          "atlas_regions": 20,
+          "atlas_width": 2371,
+          "attachments": 20,
+          "bones": 17,
+          "events": 4,
+          "slots": 20,
+          "source_images": 20
+        },
+        "status": "passed",
+        "summary": "mode=motion;clip=idle;bones=17;slots=20;attachments=20;animations=1;events=4"
+      },
+      "mode": "motion",
+      "outputs": {
+        "atlas_sha256": "55f8f19bf35de4f7561087d81528d9925424c4b4afdcbba207e4b9ee8231aede",
+        "bundle_sha256": "c63ef62e12a90c7358a956aae2d27bdd749195ecc77ae152ff1bf6ee39af328e",
+        "png_sha256": "47184ad4c8a919725da655713b9cbbb9e014517b7d759d3147ae077c667a38e0",
+        "report_sha256": "73534836327f221cfd929a3fc7d9ac3e08b521c71131e06283c1cd8c7fb93373",
+        "run_document_sha256": "98d05c1382e3381cde70dc48262b73d066864d6a12066c6aed5d7a804945e02f",
+        "run_identity_sha256": "f97afc1120084550c408ff88fa2ddc8709b28c944a066aba68c85ae002a6f324",
+        "skeleton_json_sha256": "58b35e5de23780fc540bfe547c38b33e73962c5be4638ebe42e6c357bc5804c3"
+      },
+      "project_id": "seethrough_output_5",
+      "request": {
+        "motion_bundle_sha256": "7f8ea2fc1da8891b11cc19e1e2d07aad9a69bf6c948cfa9e8baaf05491d45030",
+        "motion_instance_sha256": "b00061c3cc8ee64b2c9130839974dfd357361c76f8082121c9ef0b73b8517801",
+        "p3_bundle_sha256": "21f4707eaf023d664ae8cea8b785fd8a5197187f846d6db10b9c3ef34d7c6576",
+        "p3_rig_sha256": "897761e75bdd7e1cd3018cdab0f793f2d3ba637d88e01ce907beb179cfe0cd77"
+      }
+    },
+    {
+      "clip_id": "wave.left",
+      "gate": {
+        "checks": {
+          "adapter-profile": "passed",
+          "attachment-atlas-binding": "passed",
+          "atlas-png-geometry": "passed",
+          "motion-binding": "passed",
+          "source-image-binding": "passed"
+        },
+        "metrics": {
+          "animations": 1,
+          "atlas_height": 2408,
+          "atlas_regions": 20,
+          "atlas_width": 2371,
+          "attachments": 20,
+          "bones": 17,
+          "events": 4,
+          "slots": 20,
+          "source_images": 20
+        },
+        "status": "passed",
+        "summary": "mode=motion;clip=wave.left;bones=17;slots=20;attachments=20;animations=1;events=4"
+      },
+      "mode": "motion",
+      "outputs": {
+        "atlas_sha256": "55f8f19bf35de4f7561087d81528d9925424c4b4afdcbba207e4b9ee8231aede",
+        "bundle_sha256": "1a4f768379e6e3e6dac315c9662adf6903e8449aed9b5e64f2015c092d71b066",
+        "png_sha256": "47184ad4c8a919725da655713b9cbbb9e014517b7d759d3147ae077c667a38e0",
+        "report_sha256": "1b172f6dc785fd29790d42a375cf18cc2a248cc62024a6558dcb6885b15e9bea",
+        "run_document_sha256": "38d2369b1bfa773458497857686fd70919d7fb697c836c6d495f738b36889b48",
+        "run_identity_sha256": "3f433338eb151b145047f1b0474b6d8f52d28f22eafaccedb55b1ea0bbe82edc",
+        "skeleton_json_sha256": "3958a6e069dd9a2590f42a6d6eeee576f1c26ace0df8f463c2d8e389ae65e903"
+      },
+      "project_id": "seethrough_output_5",
+      "request": {
+        "motion_bundle_sha256": "f822f2c8eae5acae6c8957fc71ba1757bde222c14c2be54ac10bccecd5eb702b",
+        "motion_instance_sha256": "2315ae6de7c5f093bec61653226698113919e33aeaad5b5f6f979ca4a377e677",
+        "p3_bundle_sha256": "21f4707eaf023d664ae8cea8b785fd8a5197187f846d6db10b9c3ef34d7c6576",
+        "p3_rig_sha256": "897761e75bdd7e1cd3018cdab0f793f2d3ba637d88e01ce907beb179cfe0cd77"
+      }
+    }
+  ],
+  "format": "autospine-p6-spine42-golden",
+  "format_version": 1
+}
