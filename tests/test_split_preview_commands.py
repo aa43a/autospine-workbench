@@ -143,6 +143,39 @@ class SplitPreviewCommandTests(unittest.TestCase):
             status = cli_main(arguments)
         return status, json.loads(output.getvalue())
 
+    def _accept_previews(self, artifacts: dict[str, str]) -> None:
+        store = self.fixture.store()
+        current = store.get_project("fixture-project")["overrides"]
+        decisions = {
+            layer_id: {
+                field: value[field]
+                for field in ("action", "split_artifact_sha256", "reason")
+                if field in value
+            }
+            for layer_id, value in current["split_decisions"].items()
+        }
+        decisions.update(
+            {
+                layer_id: {
+                    "action": "accept",
+                    "split_artifact_sha256": digest,
+                }
+                for layer_id, digest in artifacts.items()
+            }
+        )
+        store.save_overrides(
+            "fixture-project",
+            {
+                "schema_version": current["schema_version"],
+                "base_revision": current["revision"],
+                "joint_overrides": current["joint_overrides"],
+                "joint_decisions": {},
+                "layer_overrides": current["layer_overrides"],
+                "split_decisions": decisions,
+                "notes": current["notes"],
+            },
+        )
+
     def test_two_layer_publication_is_sorted_content_addressed_and_idempotent(self) -> None:
         expected_ids = self._author_splits(2)
         first_status, first = self._run()
@@ -166,6 +199,31 @@ class SplitPreviewCommandTests(unittest.TestCase):
             )
             self.assertEqual(item["layer_id"], loaded.document["layer_id"])
             self.assertEqual(first["manifest_sha256"], loaded.document["layer_manifest_sha256"])
+
+    def test_publication_skips_current_accepts_and_all_accepted_is_a_noop(self) -> None:
+        layer_ids = self._author_splits(2)
+        first_status, first = self._run()
+        first_artifacts = {
+            item["layer_id"]: item["split_artifact_sha256"]
+            for item in first["previews"]
+        }
+        self.assertEqual(0, first_status)
+
+        self._accept_previews({layer_ids[0]: first_artifacts[layer_ids[0]]})
+        second_status, second = self._run()
+        self.assertEqual(0, second_status)
+        self.assertEqual([layer_ids[0]], second["accepted_current_layer_ids"])
+        self.assertEqual([layer_ids[1]], [item["layer_id"] for item in second["previews"]])
+
+        self._accept_previews(
+            {layer_ids[1]: second["previews"][0]["split_artifact_sha256"]}
+        )
+        third_status, third = self._run()
+        fourth_status, fourth = self._run()
+        self.assertEqual((0, 0), (third_status, fourth_status))
+        self.assertEqual(third, fourth)
+        self.assertEqual(layer_ids, third["accepted_current_layer_ids"])
+        self.assertEqual([], third["previews"])
 
     def test_no_authored_split_fails_before_publication(self) -> None:
         self._configure_layers(1)

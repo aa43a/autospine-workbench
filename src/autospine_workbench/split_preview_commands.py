@@ -66,7 +66,10 @@ def publish_split_previews_command(
             measure_composite_quality=False,
         )
         project = store.get_project(project_id)
-        layer_ids = _authored_split_layer_ids(project)
+        layer_ids, accepted_layer_ids = _authored_split_partition(project)
+        pending_layer_ids = [
+            layer_id for layer_id in layer_ids if layer_id not in accepted_layer_ids
+        ]
         source_assets = {
             layer["id"]: store.resolve_asset(project_id, "layer", layer["id"])
             for layer in _source_layers(project)
@@ -94,7 +97,7 @@ def publish_split_previews_command(
                         parent_layer_id=layer_id,
                     ),
                 )
-                for layer_id in layer_ids
+                for layer_id in pending_layer_ids
             ]
             bundle, published_manifest_sha = LayerManifestBundleStore(
                 state_root
@@ -137,6 +140,7 @@ def publish_split_previews_command(
             "revision": manifest["revision"],
             "manifest_sha256": published_manifest_sha,
             "bundle_path": str(bundle),
+            "accepted_current_layer_ids": accepted_layer_ids,
             "previews": published,
         },
         indent=2,
@@ -144,11 +148,14 @@ def publish_split_previews_command(
     return 0
 
 
-def _authored_split_layer_ids(project: Mapping[str, Any]) -> list[str]:
+def _authored_split_partition(
+    project: Mapping[str, Any],
+) -> tuple[list[str], list[str]]:
     resolved = project.get("resolved")
     if not isinstance(resolved, Mapping):
         raise SplitPreviewPublicationError("Project has no resolved snapshot")
     result: list[str] = []
+    accepted: list[str] = []
     seen: set[str] = set()
     for layer in _layers(resolved.get("layers"), "resolved"):
         layer_id = layer.get("id")
@@ -165,11 +172,18 @@ def _authored_split_layer_ids(project: Mapping[str, Any]) -> list[str]:
                     f"Layer {layer_id} is not a canonical authored split"
                 )
             result.append(layer_id)
+            decision = layer.get("split_decision")
+            if (
+                isinstance(decision, Mapping)
+                and decision.get("action") == "accept"
+                and decision.get("binding_status") == "current"
+            ):
+                accepted.append(layer_id)
     if not result:
         raise SplitPreviewPublicationError(
             "Project has no authored split_left_right layer with split_spec"
         )
-    return sorted(result)
+    return sorted(result), sorted(accepted)
 
 
 def _source_layers(project: Mapping[str, Any]) -> list[Mapping[str, Any]]:
