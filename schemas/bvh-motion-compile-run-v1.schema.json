@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/bvh-motion-compile-run-v1.schema.json",
+  "title": "AutoSpine BVH-to-MotionIR compile provenance v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "format_version", "source", "compiler", "output"],
+  "properties": {
+    "format": {"const": "autospine-bvh-motion-compile-run"},
+    "format_version": {"type": "integer", "const": 1},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind", "raw_bvh_sha256", "raw_bvh_byte_length",
+        "bvh_map_sha256", "map_id", "clip_id"
+      ],
+      "properties": {
+        "kind": {"const": "bvh"},
+        "raw_bvh_sha256": {"$ref": "#/$defs/sha256"},
+        "raw_bvh_byte_length": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8388608
+        },
+        "bvh_map_sha256": {"$ref": "#/$defs/sha256"},
+        "map_id": {"$ref": "#/$defs/id"},
+        "clip_id": {"$ref": "#/$defs/id"}
+      }
+    },
+    "compiler": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version", "config"],
+      "properties": {
+        "id": {"const": "bvh-motionir-compiler"},
+        "version": {"const": "1.0.0"},
+        "config": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "fk", "projection", "rotation", "contact",
+            "contact_velocity", "contact_intervals",
+            "tick_schedule", "loop_closure",
+            "ticks_per_second", "decimal_places"
+          ],
+          "properties": {
+            "fk": {"const": "declared-channel-postmultiply-3d-affine-v1"},
+            "projection": {"const": "explicit-signed-basis-v1"},
+            "rotation": {"const": "projected-setup-local-delta-v1"},
+            "contact": {"const": "source-world-3d-contact-v1"},
+            "contact_velocity": {
+              "const": "backward-first-forward-loop-seam-bidirectional-max-v1"
+            },
+            "contact_intervals": {
+              "const": "gap-fill-then-minimum-half-open-v1"
+            },
+            "tick_schedule": {"const": "decimal-half-up-microsecond-v1"},
+            "loop_closure": {
+              "const": "quantized-full-projection-equality-v1"
+            },
+            "ticks_per_second": {"type": "integer", "const": 1000000},
+            "decimal_places": {"type": "integer", "const": 12}
+          }
+        }
+      }
+    },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["motion_ir_sha256"],
+      "properties": {
+        "motion_ir_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    }
+  }
+}
