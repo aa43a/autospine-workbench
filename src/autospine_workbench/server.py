@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import ipaddress
 import json
 import mimetypes
 import socket
@@ -13,10 +12,16 @@ from typing import Any
 from urllib.parse import unquote, urlsplit
 
 from . import __version__
+from .analysis_routes import dispatch_candidate_artifact_get
 from .contracts import (
     ContractValidationError,
     PROJECT_LIST_SCHEMA_VERSION,
     contract_descriptor,
+)
+from .http_security import (
+    allowed_origin as _allowed_origin,
+    host_header_is_local as _host_header_is_local,
+    is_loopback_host as _is_loopback_host,
 )
 from .project_store import (
     AssetNotFoundError,
@@ -28,40 +33,6 @@ from .project_store import (
 
 
 MAX_REQUEST_BODY = 1024 * 1024
-
-
-def _is_loopback_host(host: str) -> bool:
-    candidate = host.strip().lower()
-    if candidate == "localhost":
-        return True
-    if "%" in candidate:
-        candidate = candidate.split("%", 1)[0]
-    try:
-        return ipaddress.ip_address(candidate).is_loopback
-    except ValueError:
-        return False
-
-
-def _host_header_is_local(value: str | None) -> bool:
-    if not value:
-        return True  # HTTP/1.0 clients need not send Host.
-    try:
-        hostname = urlsplit(f"//{value}").hostname
-    except ValueError:
-        return False
-    return bool(hostname and _is_loopback_host(hostname))
-
-
-def _allowed_origin(value: str | None) -> str | None:
-    if not value:
-        return None
-    try:
-        parsed = urlsplit(value)
-    except ValueError:
-        return None
-    if parsed.scheme not in {"http", "https"} or not parsed.hostname:
-        return None
-    return value if _is_loopback_host(parsed.hostname) else None
 
 
 def _decode_json_object(raw: bytes) -> dict[str, Any]:
@@ -206,6 +177,8 @@ def _handler_factory(store: ProjectStore, web_root: Path | None) -> type[BaseHTT
                         "reports": reports,
                     },
                 )
+                return True
+            if dispatch_candidate_artifact_get(parts, store, self._send_json, self._send_error_json):
                 return True
             if len(parts) >= 3 and parts[:2] == ["api", "projects"]:
                 project_id = parts[2]
