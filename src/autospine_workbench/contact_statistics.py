@@ -25,6 +25,52 @@ class ContactEvidence:
     source_xy_a: tuple[float, float]
     source_xy_b: tuple[float, float]
 
+    def to_contract(
+        self,
+        *,
+        contact_id: str,
+        joint_id: str,
+        relation: str,
+        layer_ids: tuple[str, str],
+        flags: tuple[str, ...],
+    ) -> dict[str, object]:
+        """Serialize this statistic into the alpha-evidence contact contract."""
+
+        return {
+            "contact_id": contact_id,
+            "joint_id": joint_id,
+            "relation": relation,
+            "layer_ids": list(layer_ids),
+            "mode": self.mode,
+            "area": self.area,
+            "bbox_xywh": list(self.bbox_xywh),
+            "centroid_xy": list(self.centroid_xy),
+            "variance_xy": list(self.variance_xy),
+            "representative_xy": list(self.representative_xy),
+            "error_radius_px": self.error_radius,
+            "overlap_ratios": [self.overlap_ratio_a, self.overlap_ratio_b],
+            "gap_distance_px": self.gap_distance_px,
+            "endpoints_xy": [list(self.source_xy_a), list(self.source_xy_b)],
+            "flags": list(flags),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class ContactSite:
+    relation: str
+    joint_name: str
+    layer_ids: tuple[str, str]
+    evidence: ContactEvidence
+    flags: tuple[str, ...] = ()
+
+
+@dataclass(slots=True)
+class ContactSections:
+    contacts: list[dict[str, object]]
+    joint_contact_ids: dict[str, list[str]]
+    joint_flags: dict[str, list[str]]
+    qa_flags: set[str]
+
 
 def overlap_evidence(runs: tuple[CanvasRun, ...], area_a: int, area_b: int) -> ContactEvidence:
     area = sum(x1 - x0 + 1 for _, x0, x1 in runs)

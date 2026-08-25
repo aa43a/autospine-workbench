@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 from pathlib import Path
 import sys
 import tempfile
@@ -22,12 +23,17 @@ from autospine_workbench.limb_evidence_layers import (  # noqa: E402
     load_limb_evidence,
 )
 from autospine_workbench.resolved_project import canonical_sha256  # noqa: E402
-from tests.png_helpers import write_rgba  # noqa: E402
 from tests.test_limb_candidates import (  # noqa: E402
-    TRANSPARENT,
-    VISIBLE,
     observations,
     project_fixture,
+)
+
+
+# Pin the exact evidence bytes used by the provider/document golden. Generating
+# this PNG with zlib.compress() made the identity depend on zlib vs zlib-ng.
+_FIXED_ARM_PNG_BASE64 = (
+    "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAIUlEQVR4nGNgGAVUAwFR"
+    "Kf+JwaMGjho4auDgNnAUMJALAOg79hlXEaZAAAAAAElFTkSuQmCC"
 )
 
 
@@ -36,11 +42,7 @@ class LimbEvidenceLayerTests(unittest.TestCase):
         self.directory = tempfile.TemporaryDirectory()
         self.addCleanup(self.directory.cleanup)
         self.asset = Path(self.directory.name) / "arm.png"
-        rows = [[TRANSPARENT for _ in range(20)] for _ in range(20)]
-        for y in range(4, 16):
-            for x in range(2, 12):
-                rows[y][x] = VISIBLE
-        write_rgba(self.asset, rows)
+        self.asset.write_bytes(base64.b64decode(_FIXED_ARM_PNG_BASE64, validate=True))
         self.provider = PoseAlphaLimbProvider(
             {"layer-arm-left": self.asset}, observations()
         )
