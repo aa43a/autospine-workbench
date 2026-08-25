@@ -18,6 +18,10 @@ from .rig_commands import (
     run_rig_probes_command as _run_rig_probes,
 )
 from .server import create_server
+from .split_preview_commands import (
+    add_split_preview_subcommand,
+    publish_split_previews_command as _publish_split_previews,
+)
 
 
 def _project_root() -> Path:
@@ -169,6 +173,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=_project_root() / "workspace",
         help="Root for immutable build bundles",
     )
+    add_split_preview_subcommand(
+        subparsers,
+        default_workspace=_project_root().parent,
+        default_state_root=_project_root() / "workspace",
+    )
     add_rig_subcommands(
         subparsers,
         default_workspace=_project_root().parent,
@@ -211,6 +220,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
     if args.command == "materialize-manifest":
         return _materialize_manifest(args.project_id, args.workspace, args.state_root)
+    if args.command == "publish-split-previews":
+        return _publish_split_previews(
+            args.project_id, args.workspace, args.state_root
+        )
     if args.command == "compile-rig":
         return _compile_rig(
             args.project_id,
