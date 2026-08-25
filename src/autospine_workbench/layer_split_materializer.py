@@ -24,6 +24,10 @@ from .split_spec_resolution import (
     SplitSpecResolutionError,
     resolve_layer_split_authoring,
 )
+from .split_materialization_review import (
+    SplitMaterializationReviewError,
+    resolve_split_child_review,
+)
 
 
 class LayerSplitMaterializationError(ValueError):
@@ -192,6 +196,17 @@ def _materialize_layer(
         derivation = build_split_derivation(config)
     except SplitDerivationError as exc:
         raise LayerSplitMaterializationError(str(exc)) from exc
+    reviews = {}
+    try:
+        for side in ("left", "right"):
+            reviews[side] = resolve_split_child_review(
+                layer,
+                authoring,
+                derivation["operation_config_sha256"],
+                side,
+            )
+    except SplitMaterializationReviewError as exc:
+        raise LayerSplitMaterializationError(str(exc)) from exc
     paths = {side: target / f"{layer_id}--{side}.png" for side in ("left", "right")}
     if any(path.exists() or path.is_symlink() for path in paths.values()):
         raise LayerSplitMaterializationError(f"Layer {layer_id} output already exists")
@@ -212,7 +227,8 @@ def _materialize_layer(
                 path,
                 derivation,
                 authoring["parts"][side]["pivot_xy"],
-                authoring["parts"][side].get("candidate_bone"),
+                reviews[side].candidate_bone,
+                reviews[side].reviewed,
             )
         )
     return children, {child["id"]: paths[child["side"]] for child in children}
@@ -227,6 +243,7 @@ def _child_layer(
     derivation: Mapping[str, Any],
     pivot_xy: list[float],
     proposed_candidate_bone: str | None,
+    reviewed: bool,
 ) -> dict[str, Any]:
     child = deepcopy(dict(parent))
     child["id"] = f"{parent['id']}--{side}"
@@ -238,13 +255,18 @@ def _child_layer(
     child.pop("image_url", None)
     child.pop("candidate_bone", None)
     child.pop("proposed_candidate_bone", None)
-    if proposed_candidate_bone is not None:
+    if reviewed:
+        child["candidate_bone"] = proposed_candidate_bone
+    elif proposed_candidate_bone is not None:
         child["proposed_candidate_bone"] = proposed_candidate_bone
-    # A reviewed source layer or guide joint does not approve the generated
-    # child raster, semantic side, pivot, or binding.  P2b may add reviewed
-    # fields only after a decision is bound to this exact split artifact.
-    child["reviewed_fields"] = []
-    child["review_state"] = "unreviewed"
+    # Source review alone does not approve generated children.  Only a current
+    # decision bound to this exact split operation adds reviewed fields.
+    child["reviewed_fields"] = (
+        ["canonical_role", "side", "disposition", "pivot_xy", "candidate_bone"]
+        if reviewed
+        else []
+    )
+    child["review_state"] = "candidate_accepted" if reviewed else "unreviewed"
     alphas = image.pixels[3::4]
     geometry = analyze_alpha_png(path, threshold=1)
     areas = [component.area for component in geometry.components]

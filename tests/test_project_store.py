@@ -316,6 +316,19 @@ class ProjectStoreContractTests(unittest.TestCase):
         encoded = json.dumps(result)
         self.assertNotIn(str(self.root), encoded)
 
+    def test_non_split_save_does_not_force_unrelated_layer_asset_read(self) -> None:
+        self.fixture.layer_image.unlink()
+        saved = self.store.save_overrides(
+            "fixture-project",
+            {
+                "base_revision": 0,
+                "joint_overrides": {},
+                "layer_overrides": {},
+                "notes": "metadata-only save",
+            },
+        )
+        self.assertEqual(1, saved["revision"])
+
 
 if __name__ == "__main__":
     unittest.main()

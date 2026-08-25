@@ -7,10 +7,7 @@ read-only migration source.
 
 from __future__ import annotations
 
-import json
-import os
 import re
-import tempfile
 import threading
 from pathlib import Path
 from typing import Any, Mapping
@@ -22,11 +19,12 @@ from .contracts import (
     empty_overrides,
     normalize_override_request,
 )
+from .override_files import OverrideFileError, OverrideFiles, history_filename
+from .split_decision_binder import SplitDecisionBindingError
+from .split_decision_persistence import SplitDecisionPersistence
 
 
 _PROJECT_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
-_HISTORY_NAME_RE = re.compile(r"^r([0-9]{6,})\.json$")
-_MAX_OVERRIDE_BYTES = 2 * 1024 * 1024
 
 
 class OverrideStoreError(RuntimeError):
@@ -53,7 +51,9 @@ class OverrideHistoryStore:
 
     def __init__(self, state_root: Path):
         self._root = Path(state_root) / "overrides"
+        self._files = OverrideFiles(self._root)
         self._decision_binder = CandidateDecisionBinder(state_root)
+        self._split_decisions = SplitDecisionPersistence(state_root)
         self._lock = threading.RLock()
 
     def load(
@@ -64,12 +64,18 @@ class OverrideHistoryStore:
         layer_ids: set[str],
         canvas_width: int,
         canvas_height: int,
+        base_project: Mapping[str, Any] | None = None,
+        source_paths: Mapping[str, Path] | None = None,
     ) -> dict[str, Any]:
         """Return the highest valid persisted revision for a project."""
 
         self._validate_project_id(project_id)
         documents: dict[int, dict[str, Any]] = {}
-        for path, expected_revision in self._document_paths(project_id):
+        try:
+            paths = self._files.document_paths(project_id)
+        except OverrideFileError as exc:
+            raise OverrideStateError(str(exc)) from exc
+        for path, expected_revision in paths:
             document = self._read_document(
                 path,
                 project_id=project_id,
@@ -77,6 +83,8 @@ class OverrideHistoryStore:
                 layer_ids=layer_ids,
                 canvas_width=canvas_width,
                 canvas_height=canvas_height,
+                base_project=base_project,
+                source_paths=source_paths,
             )
             revision = document["revision"]
             if expected_revision is not None and revision != expected_revision:
@@ -102,6 +110,8 @@ class OverrideHistoryStore:
         layer_ids: set[str],
         canvas_width: int,
         canvas_height: int,
+        base_project: Mapping[str, Any] | None = None,
+        source_paths: Mapping[str, Path] | None = None,
     ) -> dict[str, Any]:
         """Compare revisions, append one snapshot, then atomically update latest."""
 
@@ -112,6 +122,8 @@ class OverrideHistoryStore:
                 layer_ids=layer_ids,
                 canvas_width=canvas_width,
                 canvas_height=canvas_height,
+                base_project=base_project,
+                source_paths=source_paths,
             )
             try:
                 requested_revision, normalized = normalize_override_request(
@@ -140,6 +152,18 @@ class OverrideHistoryStore:
             except CandidateDecisionError as exc:
                 raise ContractValidationError(exc.as_validation_issues()) from exc
 
+            try:
+                normalized["split_decisions"] = self._split_decisions.bind_save(
+                    project_id,
+                    normalized,
+                    current,
+                    next_revision=current["revision"] + 1,
+                    base_project=base_project,
+                    source_paths=source_paths,
+                )
+            except SplitDecisionBindingError as exc:
+                raise ContractValidationError(exc.as_validation_issues()) from exc
+
             normalized["revision"] = current["revision"] + 1
             project_dir = self._project_dir(project_id)
             history_dir = project_dir / "history"
@@ -154,9 +178,11 @@ class OverrideHistoryStore:
                     layer_ids=layer_ids,
                     canvas_width=canvas_width,
                     canvas_height=canvas_height,
+                    base_project=base_project,
+                    source_paths=source_paths,
                 )
             try:
-                self._publish_snapshot(history_dir, normalized)
+                self._files.publish(history_dir, normalized)
             except FileExistsError as exc:
                 observed = self.load(
                     project_id,
@@ -164,34 +190,19 @@ class OverrideHistoryStore:
                     layer_ids=layer_ids,
                     canvas_width=canvas_width,
                     canvas_height=canvas_height,
+                    base_project=base_project,
+                    source_paths=source_paths,
                 )
                 raise OverrideRevisionConflict(
                     requested_revision, observed["revision"]
                 ) from exc
-            self._write_latest(project_dir / "latest.json", normalized)
-            return normalized
-
-    def _document_paths(self, project_id: str) -> list[tuple[Path, int | None]]:
-        project_dir = self._project_dir(project_id)
-        paths: list[tuple[Path, int | None]] = []
-        legacy_path = self._root / f"{project_id}.json"
-        latest_path = project_dir / "latest.json"
-        if legacy_path.is_file():
-            paths.append((legacy_path, None))
-        if latest_path.is_file():
-            paths.append((latest_path, None))
-
-        history_dir = project_dir / "history"
-        if history_dir.is_dir():
+            except OverrideFileError as exc:
+                raise OverrideStoreError(str(exc)) from exc
             try:
-                entries = sorted(history_dir.iterdir(), key=lambda item: item.name)
-            except OSError as exc:
-                raise OverrideStateError("Could not enumerate override history") from exc
-            for path in entries:
-                match = _HISTORY_NAME_RE.fullmatch(path.name)
-                if match and path.is_file():
-                    paths.append((path, int(match.group(1))))
-        return paths
+                self._files.write_latest(project_dir / "latest.json", normalized)
+            except OverrideFileError as exc:
+                raise OverrideStoreError(str(exc)) from exc
+            return normalized
 
     def _read_document(
         self,
@@ -202,22 +213,13 @@ class OverrideHistoryStore:
         layer_ids: set[str],
         canvas_width: int,
         canvas_height: int,
+        base_project: Mapping[str, Any] | None,
+        source_paths: Mapping[str, Path] | None,
     ) -> dict[str, Any]:
         try:
-            if path.stat().st_size > _MAX_OVERRIDE_BYTES:
-                raise OverrideStateError(f"Override document is too large: {path.name}")
-            with path.open("r", encoding="utf-8") as handle:
-                raw = json.load(handle, object_pairs_hook=_unique_object)
-        except OverrideStateError:
-            raise
-        except _DuplicateJsonKey as exc:
-            raise OverrideStateError(
-                f"Override document contains duplicate field {exc}: {path.name}"
-            ) from exc
-        except (OSError, UnicodeError, json.JSONDecodeError) as exc:
-            raise OverrideStateError(f"Cannot read override document: {path.name}") from exc
-        if not isinstance(raw, Mapping):
-            raise OverrideStateError("Override document must be a JSON object")
+            raw = self._files.read(path)
+        except OverrideFileError as exc:
+            raise OverrideStateError(str(exc)) from exc
         revision = raw.get("revision")
         if not isinstance(revision, int) or isinstance(revision, bool) or revision < 0:
             raise OverrideStateError("Override revision is invalid")
@@ -232,6 +234,8 @@ class OverrideHistoryStore:
             "layer_overrides": raw.get("layer_overrides", {}),
             "notes": raw.get("notes", ""),
         }
+        if "split_decisions" in raw:
+            request["split_decisions"] = raw["split_decisions"]
         try:
             _, normalized = normalize_override_request(
                 request,
@@ -258,6 +262,15 @@ class OverrideHistoryStore:
         except CandidateDecisionError as exc:
             raise OverrideStateError(f"Stored candidate decisions are invalid: {exc}") from exc
         normalized["revision"] = revision
+        try:
+            normalized["split_decisions"] = self._split_decisions.revalidate_stored(
+                project_id,
+                normalized,
+                base_project=base_project,
+                source_paths=source_paths,
+            )
+        except SplitDecisionBindingError as exc:
+            raise OverrideStateError(f"Stored split decisions are invalid: {exc}") from exc
         return normalized
 
     def _ensure_snapshot(
@@ -270,14 +283,18 @@ class OverrideHistoryStore:
         layer_ids: set[str],
         canvas_width: int,
         canvas_height: int,
+        base_project: Mapping[str, Any] | None,
+        source_paths: Mapping[str, Path] | None,
     ) -> None:
-        destination = history_dir / self._history_name(int(document["revision"]))
+        destination = history_dir / history_filename(int(document["revision"]))
         if not destination.exists():
             try:
-                self._publish_snapshot(history_dir, document)
+                self._files.publish(history_dir, document)
                 return
             except FileExistsError:
                 pass
+            except OverrideFileError as exc:
+                raise OverrideStoreError(str(exc)) from exc
         existing = self._read_document(
             destination,
             project_id=project_id,
@@ -285,88 +302,19 @@ class OverrideHistoryStore:
             layer_ids=layer_ids,
             canvas_width=canvas_width,
             canvas_height=canvas_height,
+            base_project=base_project,
+            source_paths=source_paths,
         )
         if existing != document:
             raise OverrideStateError(
                 f"History revision {document['revision']} is already occupied"
             )
 
-    def _publish_snapshot(self, history_dir: Path, document: Mapping[str, Any]) -> None:
-        destination = history_dir / self._history_name(int(document["revision"]))
-        encoded = self._encode(document)
-        temp_path: Path | None = None
-        try:
-            fd, raw_temp_path = tempfile.mkstemp(
-                prefix=f".{destination.stem}.", suffix=".tmp", dir=history_dir
-            )
-            temp_path = Path(raw_temp_path)
-            with os.fdopen(fd, "wb") as handle:
-                handle.write(encoded)
-                handle.flush()
-                os.fsync(handle.fileno())
-            os.link(temp_path, destination)
-        except FileExistsError:
-            raise
-        except OSError as exc:
-            raise OverrideStoreError("Could not append override history") from exc
-        finally:
-            if temp_path is not None:
-                try:
-                    temp_path.unlink(missing_ok=True)
-                except OSError:
-                    pass
-
-    def _write_latest(self, destination: Path, document: Mapping[str, Any]) -> None:
-        encoded = self._encode(document)
-        temp_path: Path | None = None
-        try:
-            fd, raw_temp_path = tempfile.mkstemp(
-                prefix=".latest.", suffix=".tmp", dir=destination.parent
-            )
-            temp_path = Path(raw_temp_path)
-            with os.fdopen(fd, "wb") as handle:
-                handle.write(encoded)
-                handle.flush()
-                os.fsync(handle.fileno())
-            os.replace(temp_path, destination)
-            temp_path = None
-        except OSError as exc:
-            raise OverrideStoreError("Could not atomically save overrides") from exc
-        finally:
-            if temp_path is not None:
-                try:
-                    temp_path.unlink(missing_ok=True)
-                except OSError:
-                    pass
-
-    @staticmethod
-    def _encode(document: Mapping[str, Any]) -> bytes:
-        return (
-            json.dumps(document, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
-        ).encode("utf-8")
-
     def _project_dir(self, project_id: str) -> Path:
         self._validate_project_id(project_id)
         return self._root / project_id
 
     @staticmethod
-    def _history_name(revision: int) -> str:
-        return f"r{revision:06d}.json"
-
-    @staticmethod
     def _validate_project_id(project_id: str) -> None:
         if not _PROJECT_ID_RE.fullmatch(project_id):
             raise OverrideStateError("Invalid project id for override storage")
-
-
-class _DuplicateJsonKey(ValueError):
-    pass
-
-
-def _unique_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
-    result: dict[str, Any] = {}
-    for key, value in pairs:
-        if key in result:
-            raise _DuplicateJsonKey(key)
-        result[key] = value
-    return result

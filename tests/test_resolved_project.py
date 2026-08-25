@@ -127,6 +127,7 @@ class ResolvedProjectBuilderTests(unittest.TestCase):
             "split_artifact_sha256": "1" * 64,
             "operation_config_sha256": "2" * 64,
             "review_target_sha256": "3" * 64,
+            "binding_status": "current",
         }
         overrides["split_decisions"] = {"arm-layer": decision}
 
@@ -148,6 +149,40 @@ class ResolvedProjectBuilderTests(unittest.TestCase):
             ["arm-layer"], rejected_snapshot["qa"]["rejected_split_layer_ids"]
         )
         self.assertEqual("needs_review", rejected_snapshot["qa"]["status"])
+
+    def test_split_qa_lists_are_mutually_exclusive_and_stale_is_pending(self) -> None:
+        project = project_fixture()
+        template = project["layers"][0]
+        project["layers"] = []
+        overrides = {"revision": 1, "split_decisions": {}}
+        statuses = {
+            "accepted": {"action": "accept", "binding_status": "current"},
+            "rejected": {"action": "reject", "binding_status": "current"},
+            "stale": {"action": "accept", "binding_status": "stale"},
+            "unreviewed": None,
+        }
+        for index, (label, decision) in enumerate(statuses.items()):
+            layer = deepcopy(template)
+            layer.update(id=label, disposition="split", side="bilateral", z_index=index)
+            project["layers"].append(layer)
+            if decision is not None:
+                overrides["split_decisions"][label] = decision
+        qa = ResolvedProjectBuilder().build(project, overrides)["qa"]
+        self.assertEqual(["accepted"], qa["accepted_split_layer_ids"])
+        self.assertEqual(["rejected"], qa["rejected_split_layer_ids"])
+        self.assertEqual(["stale"], qa["stale_split_layer_ids"])
+        self.assertEqual(["unreviewed"], qa["unreviewed_split_layer_ids"])
+        classified = [
+            set(qa[field])
+            for field in (
+                "accepted_split_layer_ids",
+                "rejected_split_layer_ids",
+                "stale_split_layer_ids",
+                "unreviewed_split_layer_ids",
+            )
+        ]
+        self.assertTrue(all(not left & right for i, left in enumerate(classified) for right in classified[i + 1 :]))
+        self.assertEqual("needs_review", qa["status"])
 
     def test_unreviewed_low_confidence_joint_remains_visible_in_qa(self) -> None:
         snapshot = ResolvedProjectBuilder().build(project_fixture(), {"revision": 0})

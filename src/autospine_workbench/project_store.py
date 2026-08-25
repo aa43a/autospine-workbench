@@ -25,6 +25,7 @@ from .override_store import (
     OverrideStateError,
     OverrideStoreError,
 )
+from .lazy_source_paths import project_override_context
 from .resolved_project import ResolvedProjectBuilder
 from .project_validation import validate_project_document
 
@@ -600,10 +601,7 @@ class ProjectStore:
         try:
             return self._override_store.load(
                 project_id,
-                joint_ids={item["id"] for item in project["skeleton"]["joints"]},
-                layer_ids={item["id"] for item in project["layers"]},
-                canvas_width=project["canvas"]["width"],
-                canvas_height=project["canvas"]["height"],
+                **project_override_context(project, self.resolve_asset, AssetNotFoundError),
             )
         except OverrideStateError as exc:
             raise ProjectStateError(str(exc)) from exc
@@ -747,10 +745,7 @@ class ProjectStore:
             return self._override_store.save(
                 project_id,
                 payload,
-                joint_ids={item["id"] for item in project["skeleton"]["joints"]},
-                layer_ids={item["id"] for item in project["layers"]},
-                canvas_width=project["canvas"]["width"],
-                canvas_height=project["canvas"]["height"],
+                **project_override_context(project, self.resolve_asset, AssetNotFoundError),
             )
         except OverrideRevisionConflict as exc:
             raise RevisionConflictError(

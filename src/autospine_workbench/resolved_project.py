@@ -129,21 +129,19 @@ class ResolvedProjectBuilder:
             for layer in layers
             if layer.get("disposition") in {"split", "split_left_right"}
         }
-        accepted_split_layer_ids = sorted(
-            layer_id
-            for layer_id, layer in split_layers.items()
-            if (layer.get("split_decision") or {}).get("action") == "accept"
+        accepted_split_layer_ids, rejected_split_layer_ids, stale_split_layer_ids = (
+            _classified_split_decisions(split_layers)
         )
-        rejected_split_layer_ids = sorted(
-            layer_id
-            for layer_id, layer in split_layers.items()
-            if (layer.get("split_decision") or {}).get("action") == "reject"
+        classified = (
+            set(accepted_split_layer_ids)
+            | set(rejected_split_layer_ids)
+            | set(stale_split_layer_ids)
         )
-        unreviewed_split_layer_ids = sorted(
-            set(split_layers) - set(accepted_split_layer_ids) - set(rejected_split_layer_ids)
-        )
+        unreviewed_split_layer_ids = sorted(set(split_layers) - classified)
         split_review_pending = bool(
-            unreviewed_split_layer_ids or rejected_split_layer_ids
+            unreviewed_split_layer_ids
+            or rejected_split_layer_ids
+            or stale_split_layer_ids
         )
         qa_status = (
             "ready"
@@ -182,7 +180,7 @@ class ResolvedProjectBuilder:
                 "accepted_split_layer_ids": accepted_split_layer_ids,
                 "unreviewed_split_layer_ids": unreviewed_split_layer_ids,
                 "rejected_split_layer_ids": rejected_split_layer_ids,
-                "stale_split_layer_ids": [],
+                "stale_split_layer_ids": stale_split_layer_ids,
             },
         }
         snapshot["sha256"] = canonical_sha256(snapshot)
@@ -221,6 +219,25 @@ def _candidate_analyses(decisions: Mapping[str, Any]) -> list[dict[str, Any]]:
                 **deepcopy(dict(analysis)),
             }
     return [by_artifact[key] for key in sorted(by_artifact)]
+
+
+def _classified_split_decisions(
+    layers: Mapping[str, Mapping[str, Any]],
+) -> tuple[list[str], list[str], list[str]]:
+    accepted: list[str] = []
+    rejected: list[str] = []
+    stale: list[str] = []
+    for layer_id, layer in layers.items():
+        decision = layer.get("split_decision")
+        if not isinstance(decision, Mapping):
+            continue
+        if decision.get("binding_status") != "current":
+            stale.append(layer_id)
+        elif decision.get("action") == "accept":
+            accepted.append(layer_id)
+        elif decision.get("action") == "reject":
+            rejected.append(layer_id)
+    return sorted(accepted), sorted(rejected), sorted(stale)
 
 
 def _confidence(value: Any) -> float:
