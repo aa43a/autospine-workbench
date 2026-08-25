@@ -5,14 +5,25 @@ from __future__ import annotations
 from copy import deepcopy
 import json
 from pathlib import Path
+import sys
 import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMAS = ROOT / "schemas"
+SRC = ROOT / "src"
+if str(SRC) not in sys.path:
+    sys.path.insert(0, str(SRC))
 SHA_A = "a" * 64
 SHA_B = "b" * 64
 SHA_C = "c" * 64
+
+from autospine_workbench.rig_artifact_validation import (  # noqa: E402
+    RigArtifactValidationError,
+    require_compile_run_document,
+    require_region_rig_profile,
+    require_setup_probe_document,
+)
 
 try:
     from jsonschema import Draft202012Validator
@@ -61,10 +72,24 @@ def probe_report() -> dict:
         "status": "passed",
         "checks": [
             {
-                "id": "setup-fk",
+                "id": check_id,
                 "status": "passed",
-                "metrics": {"max_endpoint_error_px": 0.0},
+                **(
+                    {"metrics": {"exact": True}}
+                    if check_id == "setup.pixel-reconstruction"
+                    else {}
+                ),
             }
+            for check_id in (
+                "source.identity",
+                "inputs.reviewed",
+                "bones.parent-links",
+                "fk.setup-reconstruction",
+                "attachments.region-bindings",
+                "attachments.pivot-roundtrip",
+                "slots.draw-order",
+                "setup.pixel-reconstruction",
+            )
         ],
     }
 
@@ -102,6 +127,50 @@ class RigArtifactSchemaTests(unittest.TestCase):
             Draft202012Validator(load_schema("rig-setup-probes-v1.schema.json")).validate(
                 report
             )
+
+
+class RigArtifactSemanticTests(unittest.TestCase):
+    def test_compile_and_probe_documents_require_the_fixed_P2_profile(self) -> None:
+        require_compile_run_document(compile_run())
+        require_setup_probe_document(probe_report())
+
+        bad_run = deepcopy(compile_run())
+        bad_run["compiler"]["id"] = "latest"
+        with self.assertRaises(RigArtifactValidationError):
+            require_compile_run_document(bad_run)
+
+        missing = deepcopy(probe_report())
+        missing["checks"].pop()
+        with self.assertRaisesRegex(RigArtifactValidationError, "missing checks"):
+            require_setup_probe_document(missing)
+
+        inexact = deepcopy(probe_report())
+        inexact["checks"][-1]["metrics"]["exact"] = False
+        with self.assertRaisesRegex(RigArtifactValidationError, "pixel reconstruction"):
+            require_setup_probe_document(inexact)
+
+    def test_region_profile_rejects_mesh_animation_or_rejected_qa(self) -> None:
+        rig = {
+            "capabilities": ["region_attachment", "setup_draw_order"],
+            "attachments": [
+                {
+                    "type": "region",
+                    "source_layer_ids": ["layer-a"],
+                }
+            ],
+            "animations": [],
+            "qa": {"status": "passed"},
+        }
+        require_region_rig_profile(rig)
+        for field, value in (
+            ("capabilities", ["region_attachment", "mesh_attachment"]),
+            ("animations", [{"id": "probe"}]),
+            ("qa", {"status": "rejected"}),
+        ):
+            changed = deepcopy(rig)
+            changed[field] = value
+            with self.subTest(field=field), self.assertRaises(RigArtifactValidationError):
+                require_region_rig_profile(changed)
 
 
 if __name__ == "__main__":
