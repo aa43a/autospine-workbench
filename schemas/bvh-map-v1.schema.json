@@ -1,0 +1,206 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/bvh-map-v1.schema.json",
+  "title": "AutoSpine explicit BVH-to-MotionIR map v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "map_id", "clip", "basis", "root",
+    "bones", "contact"
+  ],
+  "properties": {
+    "format": {"const": "autospine-bvh-map"},
+    "format_version": {"type": "integer", "const": 1},
+    "map_id": {"$ref": "#/$defs/id"},
+    "clip": {"$ref": "#/$defs/clip"},
+    "basis": {"$ref": "#/$defs/basis"},
+    "root": {"$ref": "#/$defs/root"},
+    "bones": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 17,
+      "items": {"$ref": "#/$defs/bone"}
+    },
+    "contact": {
+      "oneOf": [
+        {"$ref": "#/$defs/contactDisabled"},
+        {"$ref": "#/$defs/contactEnabled"}
+      ]
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "jointName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[^\\s{}]+$"
+    },
+    "signedAxis": {
+      "enum": ["+X", "-X", "+Y", "-Y", "+Z", "-Z"]
+    },
+    "boneRole": {
+      "enum": [
+        "humanoid.root",
+        "humanoid.spine.lower",
+        "humanoid.spine.upper",
+        "humanoid.neck",
+        "humanoid.head",
+        "humanoid.clavicle.left",
+        "humanoid.arm.upper.left",
+        "humanoid.arm.lower.left",
+        "humanoid.hip.left",
+        "humanoid.leg.upper.left",
+        "humanoid.leg.lower.left",
+        "humanoid.clavicle.right",
+        "humanoid.arm.upper.right",
+        "humanoid.arm.lower.right",
+        "humanoid.hip.right",
+        "humanoid.leg.upper.right",
+        "humanoid.leg.lower.right"
+      ]
+    },
+    "clip": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["clip_id", "loop"],
+      "properties": {
+        "clip_id": {"$ref": "#/$defs/id"},
+        "loop": {"type": "boolean"}
+      }
+    },
+    "basis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["screen_x", "screen_y", "depth", "rotation_convention"],
+      "properties": {
+        "screen_x": {"$ref": "#/$defs/signedAxis"},
+        "screen_y": {"$ref": "#/$defs/signedAxis"},
+        "depth": {"$ref": "#/$defs/signedAxis"},
+        "rotation_convention": {
+          "const": "bvh_declared_channel_postmultiply"
+        }
+      }
+    },
+    "root": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "joint_name", "reference_length_source_units", "translation_policy"
+      ],
+      "properties": {
+        "joint_name": {"$ref": "#/$defs/jointName"},
+        "reference_length_source_units": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1000000
+        },
+        "translation_policy": {
+          "const": "projected_frame0_delta_normalized_reference_length"
+        }
+      }
+    },
+    "bone": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "joint_name", "aim", "rotation_policy"],
+      "properties": {
+        "role": {"$ref": "#/$defs/boneRole"},
+        "joint_name": {"$ref": "#/$defs/jointName"},
+        "aim": {"$ref": "#/$defs/aim"},
+        "rotation_policy": {"const": "projected_setup_local_delta"}
+      }
+    },
+    "aim": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "joint_name"],
+          "properties": {
+            "kind": {"const": "joint"},
+            "joint_name": {"$ref": "#/$defs/jointName"}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind"],
+          "properties": {"kind": {"const": "end_site"}}
+        }
+      ]
+    },
+    "contactDisabled": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "mode", "interval"],
+      "properties": {
+        "enabled": {"const": false},
+        "mode": {"const": "annotation_only"},
+        "interval": {"const": "half_open"}
+      }
+    },
+    "contactEnabled": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled", "feet", "floor_height_source_units",
+        "height_threshold_source_units",
+        "speed_threshold_source_units_per_second", "minimum_frames",
+        "gap_frames", "height_policy", "speed_policy", "mode", "interval"
+      ],
+      "properties": {
+        "enabled": {"const": true},
+        "feet": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "items": {"$ref": "#/$defs/contactFoot"}
+        },
+        "floor_height_source_units": {
+          "type": "number",
+          "minimum": -1000000,
+          "maximum": 1000000
+        },
+        "height_threshold_source_units": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "speed_threshold_source_units_per_second": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1000000000
+        },
+        "minimum_frames": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20000
+        },
+        "gap_frames": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 20000
+        },
+        "height_policy": {
+          "const": "absolute_signed_basis_screen_y_distance_to_floor"
+        },
+        "speed_policy": {"const": "source_world_3d_euclidean"},
+        "mode": {"const": "annotation_only"},
+        "interval": {"const": "half_open"}
+      }
+    },
+    "contactFoot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["limb", "foot_joint_name"],
+      "properties": {
+        "limb": {"enum": ["leg.left", "leg.right"]},
+        "foot_joint_name": {"$ref": "#/$defs/jointName"}
+      }
+    }
+  }
+}
