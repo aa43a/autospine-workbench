@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="./candidate-review-overlay.css">
   <link rel="stylesheet" href="./geometry-evidence.css">
   <link rel="stylesheet" href="./split-review.css">
+  <link rel="stylesheet" href="./mesh-evidence.css">
 </head>
 <body>
   <a class="skip-link" href="#main-content">跳到画布</a>
@@ -65,7 +66,6 @@
       <path d="m6 6 12 12M18 6 6 18"></path>
     </symbol>
   </svg>
-
   <div class="app-shell">
     <header class="topbar">
       <div class="brand-block" aria-label="AutoSpine Workbench">
@@ -77,7 +77,6 @@
           <small>Rig authoring workbench</small>
         </span>
       </div>
-
       <div class="project-picker">
         <label for="projectSelect">项目</label>
         <div class="select-wrap">
@@ -91,7 +90,6 @@
         </button>
         <span class="sr-only" id="projectLoadHint">切换项目前会提示保存未提交的校正</span>
       </div>
-
       <nav class="workflow-nav" id="workflowNav" aria-label="工作流阶段"></nav>
 
       <div class="save-cluster">
@@ -393,8 +391,8 @@
     <option value="accessory.headwear"></option>
     <option value="unknown"></option>
   </datalist>
-
   <div class="sr-only" id="liveRegion" aria-live="polite" aria-atomic="true"></div>
   <script type="module" src="./app.js"></script>
+  <script type="module" src="./modules/mesh-evidence-browser.js"></script>
 </body>
 </html>

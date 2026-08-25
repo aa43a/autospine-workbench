@@ -18,6 +18,7 @@ from .http_security import (
     host_header_is_local as _host_header_is_local,
     is_loopback_host as _is_loopback_host,
 )
+from .mesh_bundle_routes import dispatch_mesh_bundle_get
 from .project_store import (
     AssetNotFoundError,
     ProjectNotFoundError,
@@ -101,8 +102,25 @@ def _handler_factory(store: ProjectStore, web_root: Path | None) -> type[BaseHTT
             body = json.dumps(value, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
             self._send_bytes(status, body, "application/json; charset=utf-8")
 
+        def _send_png(self, body: bytes) -> None:
+            self._send_bytes(HTTPStatus.OK, body, "image/png")
+
         def _send_error_json(self, status: int, code: str, message: str) -> None:
             self._send_json(status, {"error": code, "message": message})
+
+        def _mesh_bundle_path(self, parts: list[str]) -> bool:
+            return len(parts) >= 4 and parts[:2] == ["api", "projects"] \
+                and parts[3] == "mesh-bundles"
+
+        def _send_method_not_allowed(self, *, read_only: bool = False) -> None:
+            allow = "GET, HEAD, OPTIONS" if read_only else "GET, HEAD, PUT, OPTIONS"
+            message = "Mesh bundle evidence is read-only." if read_only else "Method not allowed."
+            body = json.dumps({"error": "method_not_allowed", "message": message},
+                              separators=(",", ":")).encode("utf-8")
+            self._send_bytes(
+                HTTPStatus.METHOD_NOT_ALLOWED, body,
+                "application/json; charset=utf-8", extra_headers={"Allow": allow},
+            )
 
         def _send_file(self, path: Path) -> None:
             try:
@@ -140,6 +158,10 @@ def _handler_factory(store: ProjectStore, web_root: Path | None) -> type[BaseHTT
 
         def _dispatch_api_get(self, parts: list[str]) -> bool:
             if dispatch_project_get(parts, store, self._send_json, self._send_file):
+                return True
+            if dispatch_mesh_bundle_get(
+                parts, store, self._send_json, self._send_error_json, self._send_png
+            ):
                 return True
             if dispatch_analysis_artifact_get(
                 parts, store, self._send_json, self._send_error_json
@@ -217,9 +239,17 @@ def _handler_factory(store: ProjectStore, web_root: Path | None) -> type[BaseHTT
             if not _host_header_is_local(self.headers.get("Host")):
                 self._send_error_json(HTTPStatus.FORBIDDEN, "forbidden_host", "Host must be loopback-local.")
                 return
+            try:
+                parts = self._path_parts()
+            except ValueError as exc:
+                self._send_error_json(HTTPStatus.BAD_REQUEST, "invalid_path", str(exc))
+                return
             self.send_response(HTTPStatus.NO_CONTENT)
             self._common_headers()
-            self.send_header("Access-Control-Allow-Methods", "GET, HEAD, PUT, OPTIONS")
+            methods = "GET, HEAD, OPTIONS" if self._mesh_bundle_path(parts) \
+                else "GET, HEAD, PUT, OPTIONS"
+            self.send_header("Allow", methods)
+            self.send_header("Access-Control-Allow-Methods", methods)
             self.send_header("Access-Control-Allow-Headers", "Content-Type")
             self.send_header("Access-Control-Max-Age", "600")
             self.send_header("Content-Length", "0")
@@ -231,6 +261,9 @@ def _handler_factory(store: ProjectStore, web_root: Path | None) -> type[BaseHTT
                 return
             try:
                 parts = self._path_parts()
+                if self._mesh_bundle_path(parts):
+                    self._send_method_not_allowed(read_only=True)
+                    return
                 if not (
                     len(parts) == 4
                     and parts[:2] == ["api", "projects"]
@@ -290,12 +323,15 @@ def _handler_factory(store: ProjectStore, web_root: Path | None) -> type[BaseHTT
                 )
 
         def _method_not_allowed(self) -> None:
-            self._send_bytes(
-                HTTPStatus.METHOD_NOT_ALLOWED,
-                b'{"error":"method_not_allowed","message":"Method not allowed."}',
-                "application/json; charset=utf-8",
-                extra_headers={"Allow": "GET, HEAD, PUT, OPTIONS"},
-            )
+            if not _host_header_is_local(self.headers.get("Host")):
+                self._send_error_json(HTTPStatus.FORBIDDEN, "forbidden_host", "Host must be loopback-local.")
+                return
+            try:
+                parts = self._path_parts()
+            except ValueError as exc:
+                self._send_error_json(HTTPStatus.BAD_REQUEST, "invalid_path", str(exc))
+                return
+            self._send_method_not_allowed(read_only=self._mesh_bundle_path(parts))
 
         do_POST = _method_not_allowed
         do_PATCH = _method_not_allowed
