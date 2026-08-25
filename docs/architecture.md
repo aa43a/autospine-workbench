@@ -73,6 +73,8 @@ P1 已完成并冻结以下边界：
 
 当前 P2 门禁是：reviewed Layer Manifest → region-only RigIR；FK setup 必须精确重建，pivot、父子关系和 draw order 全部通过语义与视觉回归。P2 不生成 mesh 或权重。
 
+图层复核按字段记录 provenance；`visible`、语义、side、pivot、disposition 与目标骨互不代替。RigIR bundle 地址固定为 `builds/<project-id>/rig-ir/<rig-sha256>/<bundle-sha256>/`，第二层哈希同时绑定 RigIR、编译 run manifest 和 probe report，runner 变化不会改写旧证据。`allow_manual_required` 只用于诊断，不能关闭阶段门禁。
+
 后续阶段继续遵守：
 
 - setup：画布、原点、side 语义、draw order 和 region 合成回归通过。
