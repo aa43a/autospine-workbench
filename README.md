@@ -21,6 +21,7 @@ AutoSpine Workbench 是一个本地人工复核界面，用于查看 See-through
 - 对 RigIR 执行跨引用、拓扑、权重、三角形及 timeline 语义验证；不支持特性会明确失败。
 - 从精确 P3 bundle 编译四个 canonical 两骨 IK 手柄，固定弯曲方向、可达环和 setup-local 数值探针。
 - 编译可复用的 setup-local MotionIR（内建 idle/wave 或显式映射 BVH），并从精确 P3/P4/Motion 地址生成带接触、运动学与 mesh 回归证据的不可变 MotionInstance bundle。
+- 从精确 P3 或 P3/P5 地址导出、发布并重建验证固定 profile 的 Spine 4.2 JSON/atlas/PNG 五文件 bundle。
 
 ## 快速启动
 
@@ -324,6 +325,8 @@ P4 不接受 `latest` 或自动发现。严格 reader 会从精确 P3 来源重�
 
 P5 将动作与目标 rig 分开内容寻址。内建 `idle`/`wave.left`、显式 BVH map、目标重定向及只读复验分别使用 `compile-builtin-motion`、`compile-bvh-motion`、`compile-motion-retarget` 与对应 verify 命令。所有命令只接受精确 SHA，不解析 `latest`；完整合同、固定地址、A/B 示例和排障步骤见 [编译、重定向并复验 P5 动画](docs/how-to-compile-motion.md)。
 
+P6 使用 `compile-spine42` 把一个精确 P3 地址导出为 setup-only bundle，或与一对精确 P5 MotionInstance/bundle SHA 组合为单动画 bundle；`verify-spine42` 从导出双 SHA 重建完整上游链。五文件地址、官方 runtime 的本地安装边界与 capture 操作见 [导出、复验并运行 P6 Spine 4.2 资产](docs/how-to-export-spine42.md)。
+
 对版本中立 RigIR 做语义检查：
 
 ```powershell
@@ -434,7 +437,7 @@ P5 在精确 P3/P4 来源上完成版本中立动画、BVH 编译和通用动作
 4. 同一内建 clip 已在三个不同 setup rig 上通过；两份真实 See-through 样本的四组 idle/wave 结果也固定在 `tests/goldens/p5-motion/`。
 5. A 的两个 mesh attachment 在 41 个采样点均通过，B 稳定为 `reviewed-noop`；四组接触均为 2/2 保留，真实 opt-in 回归还证明只读重建不会改变 state tree。
 
-下一阶段是 P6 Spine adapter：固定 Spine 4.2 JSON profile，导出最小 JSON/atlas/PNG，并以对应官方 runtime 加载和固定截图回归作为门禁。
+P6 门禁已经完成：adapter profile 固定为 Spine JSON 4.2，`compile-spine42`/`verify-spine42` 发布并重建五文件内容寻址 bundle。A/B 两份真实样本的 setup、`idle`、`wave.left` 六个地址固定在 `tests/goldens/p6-spine42/real-exports.approved.json`；精确的 `@esotericsoftware/spine-player@4.2.119` 在 640×640、DPR 1 下加载六例，第二轮截图与批准 PNG 的 differing pixels、MAE 和最大通道差均为 0。runtime 合同与图片位于 `tests/goldens/p6-spine42/runtime.approved.json`，官方 runtime 仍由操作者在仓库外安装并确认许可。
 
 姿态 runner 与真实标注评估集仍是独立质量轨，不阻塞版本中立 P2 编译；诊断 setup prior 不能替代真实模型基线。
 
@@ -450,7 +453,7 @@ P5 在精确 P3/P4 来源上完成版本中立动画、BVH 编译和通用动作
 - 证明遮挡补全符合解剖或在大幅动作下不会露馅；
 - 自动生成自由形变 deform、运行时 IK constraint 或动态 draw order；P3 只覆盖通过门禁的 alpha mesh 与参数化两骨 LBS，P4 只提供离线两骨目标求解；
 - 生成眨眼/口型素材、实时追踪映射或运行时物理；
-- 导出 Spine JSON/atlas/PNG、判断真实 Spine 版本或集成官方 Spine runtime；
+- 捆绑或再分发官方 Spine runtime、判断任意未知 Spine 版本、生成 Spine Editor 工程，或覆盖固定 P6 profile 之外的特性；
 - 代替输入素材、训练数据或模型权重的许可证与商业使用审查；
 - 多用户权限、远程协作或生产部署。
 
