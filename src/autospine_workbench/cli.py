@@ -23,6 +23,10 @@ from .motion_commands import (
     compile_builtin_motion_command as _compile_builtin_motion,
     verify_motion_bundle_command as _verify_motion_bundle,
 )
+from .motion_stage_cli import (
+    add_motion_stage_subcommands,
+    dispatch_motion_stage_command as _dispatch_motion_stage,
+)
 from .pose_commands import analyze_joints as _analyze_joints
 from .pose_commands import evaluate_pose_command as _evaluate_pose
 from .pose_commands import import_pose as _import_pose
@@ -211,6 +215,10 @@ def build_parser() -> argparse.ArgumentParser:
         subparsers,
         default_state_root=_project_root() / "workspace",
     )
+    add_motion_stage_subcommands(
+        subparsers,
+        default_state_root=_project_root() / "workspace",
+    )
     return parser
 
 
@@ -306,6 +314,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             clip_sha256=args.clip_sha256,
             bundle_sha256=args.bundle_sha256,
         )
+    motion_stage_status = _dispatch_motion_stage(args)
+    if motion_stage_status is not None:
+        return motion_stage_status
     if args.command != "serve":
         raise AssertionError(f"Unhandled command: {args.command}")
     try:
