@@ -89,7 +89,10 @@ def fixture() -> tuple[dict, list[dict], dict, str]:
         "inputs": {"base_project_sha256": SHA["e"], "override_sha256": SHA["f"]},
         "canvas": {"width": 100, "height": 100},
         "layers": [deepcopy(parent)],
-        "skeleton": {"joints": joints, "bones": []},
+        "skeleton": {
+            "joints": joints,
+            "bones": [{"id": "thigh.left"}, {"id": "thigh.right"}],
+        },
         "qa": {"status": "needs_review"},
     }
     resolved["sha256"] = canonical_sha256(resolved)
@@ -142,6 +145,8 @@ def fixture() -> tuple[dict, list[dict], dict, str]:
                 "disposition": "keep",
                 "pivot_xy": pivot,
                 "proposed_candidate_bone": f"thigh.{side}",
+                "review_state": "unreviewed",
+                "reviewed_fields": [],
                 "z_index": order,
                 "derivation": deepcopy(derivation),
             }
@@ -150,13 +155,25 @@ def fixture() -> tuple[dict, list[dict], dict, str]:
             {
                 "layer_id": child_id,
                 "raster": {"sha256": SHA["e"] if side == "left" else SHA["f"]},
-                "semantic": {"canonical_role": "body.leg", "side": side},
+                "semantic": {
+                    "canonical_role": "body.leg",
+                    "side": side,
+                    "mapping_method": "alias",
+                },
                 "derivation": deepcopy(derivation),
                 "rig_hint": {
                     "attachment_kind": "region",
-                    "pivot": {"xy": pivot},
+                    "pivot": {"xy": pivot, "method": "unknown"},
                     "candidate_bone": f"thigh.{side}",
                     "setup_draw_order": order,
+                },
+                "qa": {
+                    "status": "manual_required",
+                    "flags": [
+                        "BONE_BINDING_REVIEW_REQUIRED",
+                        "PIVOT_REVIEW_REQUIRED",
+                        "SEMANTIC_REVIEW_REQUIRED",
+                    ],
                 },
             }
         )

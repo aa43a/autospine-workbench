@@ -14,7 +14,7 @@ from .split_preview_contract import (
     require_valid_split_preview,
 )
 from .split_spec_resolution import SplitSpecResolutionError, resolve_split_spec
-from .split_specs import infer_humanoid_bone_ids, normalize_split_spec
+from .split_specs import normalize_split_spec
 
 
 _SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
@@ -167,10 +167,7 @@ def _canonical_split_spec(
     spec = parent.get("split_spec")
     skeleton = _mapping(resolved.get("skeleton"), "resolved skeleton")
     joints = _index_named(skeleton.get("joints"), "joint")
-    bone_ids = set(infer_humanoid_bone_ids(set(joints)))
-    for bone in _sequence(skeleton.get("bones", []), "resolved bones"):
-        if isinstance(bone, Mapping) and isinstance(bone.get("id"), str):
-            bone_ids.add(bone["id"])
+    bone_ids = set(_index_named(skeleton.get("bones"), "bone"))
     canvas = _mapping(resolved.get("canvas"), "resolved canvas")
     width, height = canvas.get("width"), canvas.get("height")
     if not _positive_int(width) or not _positive_int(height):
@@ -227,15 +224,25 @@ def _target_part(parent_id, role, side, child, manifest_child, effective_part):
         or child.get("side") != side
         or child.get("canonical_role") != role
         or child.get("disposition") != "keep"
+        or child.get("review_state") != "unreviewed"
+        or child.get("reviewed_fields") != []
     ):
         raise SplitPreviewError(f"Materialized {side} child identity is invalid")
-    if semantic.get("side") != side or semantic.get("canonical_role") != role:
+    if (
+        semantic.get("side") != side
+        or semantic.get("canonical_role") != role
+        or semantic.get("mapping_method") != "alias"
+    ):
         raise SplitPreviewError(f"Manifest {side} child semantic identity is invalid")
     if hint.get("attachment_kind") != "region":
         raise SplitPreviewError(f"Manifest {side} child is not a region")
     pivot = list(effective_part["pivot_xy"])
     manifest_pivot = _mapping(hint.get("pivot"), f"{side} child pivot")
-    if child.get("pivot_xy") != pivot or manifest_pivot.get("xy") != pivot:
+    if (
+        child.get("pivot_xy") != pivot
+        or manifest_pivot.get("xy") != pivot
+        or manifest_pivot.get("method") != "unknown"
+    ):
         raise SplitPreviewError(f"{side} child pivot differs from split_spec")
     bone = effective_part["candidate_bone"]
     if hint.get("candidate_bone") != bone:
@@ -244,6 +251,19 @@ def _target_part(parent_id, role, side, child, manifest_child, effective_part):
         raise SplitPreviewError(
             f"Materialized {side} child proposed bone differs from split_spec"
         )
+    qa = _mapping(manifest_child.get("qa"), f"{side} child QA")
+    required_flags = {
+        "SEMANTIC_REVIEW_REQUIRED",
+        "PIVOT_REVIEW_REQUIRED",
+        "BONE_BINDING_REVIEW_REQUIRED",
+    }
+    flags = qa.get("flags")
+    if (
+        qa.get("status") != "manual_required"
+        or not isinstance(flags, list)
+        or not required_flags.issubset(set(flags))
+    ):
+        raise SplitPreviewError(f"Manifest {side} child review QA is invalid")
     order = child.get("z_index")
     if not isinstance(order, int) or isinstance(order, bool) or hint.get("setup_draw_order") != order:
         raise SplitPreviewError(f"{side} child draw order differs across inputs")
