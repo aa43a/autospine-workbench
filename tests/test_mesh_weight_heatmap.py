@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from dataclasses import FrozenInstanceError
+import hashlib
 import math
 from pathlib import Path
 import sys
@@ -15,6 +16,7 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
+from autospine_workbench.alpha_grid_mesh import build_alpha_grid_mesh  # noqa: E402
 from autospine_workbench.mesh_weight_heatmap import (  # noqa: E402
     BALANCED_RGB,
     DISTAL_RGB,
@@ -23,6 +25,10 @@ from autospine_workbench.mesh_weight_heatmap import (  # noqa: E402
     render_mesh_weight_heatmap,
 )
 from autospine_workbench.png_rgba import RgbaImage  # noqa: E402
+from autospine_workbench.two_bone_weights import (  # noqa: E402
+    build_two_bone_weights,
+    to_rigir_weights,
+)
 
 
 PROXIMAL = "thigh.left"
@@ -127,6 +133,50 @@ class MeshWeightHeatmapColorTests(unittest.TestCase):
 
         self.assertEqual(first.pixels, second.pixels)
         self.assertTrue(all(alpha == 255 for *_, alpha in rgba_rows(first)))
+
+    def test_eight_pixel_multicell_q16_grid_is_order_stable(self) -> None:
+        image = source(32, 80)
+        grid = build_alpha_grid_mesh(image, grid_step_px=8)
+        weight_result = build_two_bone_weights(
+            grid.vertices_xy,
+            proximal_bone_id=PROXIMAL,
+            distal_bone_id=DISTAL,
+            proximal_origin_xy=(16, 0),
+            proximal_endpoint_xy=(16, 40),
+            distal_origin_xy=(16, 40),
+            distal_endpoint_xy=(16, 80),
+            grid_step_px=8,
+            blend_fraction=0.20,
+        )
+        attachment = {
+            "type": "mesh",
+            "canvas_offset_xy": [104, 17],
+            "vertices": [list(point) for point in grid.vertices_xy],
+            "uvs": [list(point) for point in grid.uvs],
+            "triangles": [index for row in grid.triangles for index in row],
+            "weights": to_rigir_weights(weight_result),
+        }
+
+        first = render(image, attachment)
+        changed = deepcopy(attachment)
+        changed["triangles"] = [
+            index
+            for row in reversed(grid.triangles)
+            for index in (row[1], row[2], row[0])
+        ]
+        changed["weights"] = [
+            [{key: item[key] for key in reversed(item)} for item in reversed(row)]
+            for row in changed["weights"]
+        ]
+        changed = {key: changed[key] for key in reversed(changed)}
+        second = render(image, changed)
+
+        self.assertEqual(first.pixels, second.pixels)
+        self.assertEqual(image.pixels[3::4], first.pixels[3::4])
+        self.assertEqual(
+            "41b448339347e49ca4720507940cc6e383cabfaf9ba58cf245d28a537a0c8ff8",
+            hashlib.sha256(first.pixels).hexdigest(),
+        )
 
     def test_offset_is_validated_but_does_not_change_local_rendering(self) -> None:
         image = source(2, 1)

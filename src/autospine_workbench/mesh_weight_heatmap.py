@@ -102,7 +102,15 @@ def _raster_triangle(
                 _cross(first, point, third) / denominator,
                 _cross(first, second, point) / denominator,
             )
-            if min(barycentric) < -_BARYCENTRIC_TOLERANCE:
+            edges = ((second, third), (third, first), (first, second))
+            if any(
+                value < -_BARYCENTRIC_TOLERANCE
+                or (
+                    abs(value) <= _BARYCENTRIC_TOLERANCE
+                    and not _owns_shared_edge(*edge)
+                )
+                for value, edge in zip(barycentric, edges)
+            ):
                 continue
             value = min(1.0, max(0.0, sum(
                 barycentric[index] * weights[vertex]
@@ -271,6 +279,11 @@ def _array(value: Any, label: str) -> list[Any]:
 def _cross(first, second, third) -> float:
     return ((second[0] - first[0]) * (third[1] - first[1])
             - (second[1] - first[1]) * (third[0] - first[0]))
+
+
+def _owns_shared_edge(start, end) -> bool:
+    dx, dy = end[0] - start[0], end[1] - start[1]
+    return dy < 0.0 or (dy == 0.0 and dx > 0.0)
 
 
 def _round_half_up(value: float) -> int:
