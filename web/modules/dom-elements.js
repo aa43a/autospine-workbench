@@ -16,7 +16,7 @@ const REQUIRED_ELEMENT_IDS = [
   "canvasSurface", "compositeImage", "layerStack", "skeletonSvg", "boneGroup",
   "layerSelectionGroup", "geometryEvidenceGroup", "candidateGroup", "jointGroup", "canvasEmpty",
   "canvasEmptyTitle", "canvasEmptyText", "canvasLoading", "revisionBadge",
-  "layerInspector", "layerConfidence", "layerSelectionEmpty", "layerFields",
+  "layerInspector", "splitReviewMount", "layerConfidence", "layerSelectionEmpty", "layerFields",
   "layerSwatch", "selectedLayerName", "selectedLayerId", "selectedLayerBbox",
   "selectedLayerState", "semanticRoleInput", "semanticSideSelect",
   "layerDispositionSelect", "layerPivotXInput", "layerPivotYInput",

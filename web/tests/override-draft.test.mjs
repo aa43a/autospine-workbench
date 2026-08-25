@@ -92,6 +92,36 @@ test("server normalization never creates provenance-removal patch operations", (
   assert.deepEqual(createDraftPatch(persisted, live), []);
 });
 
+test("split decisions never replay binder-derived fields to the save payload", () => {
+  const stored = {
+    action: "accept",
+    split_artifact_sha256: "b".repeat(64),
+    binding_status: "current",
+    review_target_sha256: "c".repeat(64),
+    analysis: { provider: "split-binder" },
+  };
+  const client = {
+    action: "accept",
+    split_artifact_sha256: "b".repeat(64),
+  };
+  const state = {
+    jointOverrides: {}, jointDecisions: {}, layerOverrides: {}, notes: "",
+    splitDecisions: { sleeves: stored },
+  };
+  assert.deepEqual(captureOverrideDraft(state).split_decisions, { sleeves: client });
+
+  const draft = overrideDraftFromServer(
+    { split_decisions: { sleeves: stored } },
+    {},
+    normalizers,
+  );
+  const next = {};
+  applyOverrideDraft(next, draft, normalizers);
+  assert.deepEqual(next.splitDecisions, { sleeves: client });
+  assert.equal("binding_status" in next.splitDecisions.sleeves, false);
+  assert.equal("analysis" in next.splitDecisions.sleeves, false);
+});
+
 test("resolved accept point is used only for the exact client decision identity", () => {
   const client = {
     action: "accept",

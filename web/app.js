@@ -7,9 +7,11 @@ import {
   captureSaveSnapshot,
   cloneJson,
   createLocalPatchArtifact,
-  reconcileSaveResponse,
 } from "./modules/draft-transactions.js";
+import { refreshSavedProject } from "./modules/saved-project-refresh.js";
 import { createSkeletonRenderer } from "./modules/skeleton-renderer.js";
+import { createSplitReview } from "./modules/split-review.js";
+import { clientSplitDecisions } from "./modules/split-review-state.js";
 import {
   applyOverrideDraft,
   captureOverrideDraft,
@@ -19,9 +21,8 @@ import {
 import { canonicalSide, normalizeLayerOverrideMap, normalizeOverrideMap } from "./modules/override-normalizers.js";
 import { applyManualJoint, clearJointEdits, resolveEffectiveJoint } from "./modules/joint-edit-state.js";
 import { applyLayerRigReviewPatch, readLayerRigReview, renderLayerRigReview, semanticColor } from "./modules/layer-rig-review.js";
+import { clamp, createIcon, isTypingTarget, numberOr } from "./modules/ui-primitives.js";
 import { compositeQaFlag, confidenceLevel, formatConfidence, normalizeWorkflow, setConfidenceBadge, unresolvedJointIds } from "./modules/workflow.js";
-
-const SVG_NS = "http://www.w3.org/2000/svg";
 
 const state = {
   projects: [],
@@ -44,6 +45,8 @@ const state = {
   jointOverrides: {},
   jointDecisions: {},
   resolvedJointDecisions: {},
+  splitDecisions: {},
+  resolvedSplitDecisions: {},
   layerOverrides: {},
   notes: "",
   dragJointId: null,
@@ -55,7 +58,6 @@ const state = {
 };
 
 const dom = collectRequiredElements();
-
 function captureCurrentDraft() {
   return captureOverrideDraft(state);
 }
@@ -69,25 +71,6 @@ function draftFromServer(overrides, fallbackDraft = {}) {
   return overrideDraftFromServer(
     overrides, fallbackDraft, { normalizeOverrideMap, normalizeLayerOverrideMap },
   );
-}
-
-function createIcon(name) {
-  const svg = document.createElementNS(SVG_NS, "svg");
-  svg.classList.add("icon");
-  svg.setAttribute("aria-hidden", "true");
-  const use = document.createElementNS(SVG_NS, "use");
-  use.setAttribute("href", `#icon-${name}`);
-  svg.append(use);
-  return svg;
-}
-
-function clamp(value, min, max) {
-  return Math.min(max, Math.max(min, value));
-}
-
-function numberOr(value, fallback = 0) {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : fallback;
 }
 
 function announce(message) {
@@ -249,6 +232,8 @@ function initializeProject(project, fallbackId) {
   state.jointOverrides = normalizeOverrideMap(overrides.joint_overrides);
   state.resolvedJointDecisions = normalizeOverrideMap(overrides.joint_decisions);
   state.jointDecisions = clientJointDecisions(state.resolvedJointDecisions);
+  state.resolvedSplitDecisions = normalizeOverrideMap(overrides.split_decisions);
+  state.splitDecisions = clientSplitDecisions(state.resolvedSplitDecisions);
   state.layerOverrides = normalizeLayerOverrideMap(overrides.layer_overrides);
   state.notes = String(overrides.notes ?? "");
   state.persistedDraft = captureCurrentDraft();
@@ -271,6 +256,7 @@ function initializeProject(project, fallbackId) {
   renderCapabilities();
   updateStatusbar();
   candidateReview.loadProject(state.selectedProjectId);
+  splitReview.loadProject(state.selectedProjectId);
 }
 
 function getCanvasSize() {
@@ -296,6 +282,7 @@ function getBones() {
 
 function effectiveLayer(layer) {
   const override = state.layerOverrides[String(layer.id)] || {};
+  const resolvedLayer = state.project?.resolved?.layers?.find((item) => String(item.id) === String(layer.id)) || {};
   const semanticOverride = override.semantic || {};
   const sourceSemantic = layer.semantic || {};
   const canonicalRole = override.canonical_role ?? semanticOverride.canonical_role ?? semanticOverride.role
@@ -308,6 +295,7 @@ function effectiveLayer(layer) {
     visible: override.visible ?? layer.visible ?? true,
     pivot_xy: override.pivot_xy ?? layer.pivot_xy,
     candidate_bone: override.candidate_bone ?? layer.candidate_bone,
+    split_spec: override.split_spec ?? resolvedLayer.split_spec ?? layer.split_spec,
     canonical_role: canonicalRole,
     side,
     disposition,
@@ -648,6 +636,15 @@ const candidateReview = createCandidateReview({
     renderJointInspector();
   },
 });
+const splitReview = createSplitReview({
+  mount: dom.splitReviewMount,
+  draftState: state,
+  getResolvedSnapshotSha: () => state.project?.resolved?.sha256 || "",
+  announce,
+  onDecision: (layerId, decision) => {
+    markDirty(`图层 ${layerId} 已${decision ? "更新" : "移除"}切分决定`);
+  },
+});
 
 function renderSkeleton() {
   skeletonRenderer.render({
@@ -716,6 +713,7 @@ function renderLayerInspector() {
   dom.layerFields.hidden = !layer;
   if (!layer) {
     setConfidenceBadge(dom.layerConfidence, NaN);
+    splitReview.setLayer(null);
     return;
   }
 
@@ -727,11 +725,12 @@ function renderLayerInspector() {
   dom.selectedLayerState.textContent = layer.empty ? "空图层" : `${layer.visible ? "可见" : "隐藏"} · ${layer.disposition}`;
   dom.semanticRoleInput.value = layer.semantic?.role || "unknown";
   dom.semanticSideSelect.value = side;
-  dom.layerDispositionSelect.value = ["keep", "exclude", "split", "review"].includes(layer.disposition) ? layer.disposition : "review";
+  dom.layerDispositionSelect.value = layer.disposition === "split_left_right" ? "split" : ["keep", "exclude", "split", "review"].includes(layer.disposition) ? layer.disposition : "review";
   dom.selectedLayerVisible.checked = Boolean(layer.visible);
   dom.layerSwatch.style.background = semanticColor(layer.semantic?.role);
   renderLayerRigReview(dom, layer, getBones(), getCanvasSize());
   setConfidenceBadge(dom.layerConfidence, layer.semantic?.confidence);
+  splitReview.setLayer(layer);
 }
 
 function renderJointInspector() {
@@ -950,8 +949,9 @@ function updateStatusbar() {
     : layer ? `图层 ${layer.name || layer.id}` : "未选择对象";
   const jointCount = Object.keys(state.jointOverrides).length;
   const decisionCount = Object.keys(state.jointDecisions).length;
+  const splitDecisionCount = Object.keys(state.splitDecisions).length;
   const layerCount = Object.keys(state.layerOverrides).length;
-  dom.overrideStatus.textContent = `${jointCount + decisionCount + layerCount} 项校正 · r${state.baseRevision ?? "—"}`;
+  dom.overrideStatus.textContent = `${jointCount + decisionCount + splitDecisionCount + layerCount} 项校正 · r${state.baseRevision ?? "—"}`;
 }
 
 async function saveOverrides() {
@@ -967,26 +967,25 @@ async function saveOverrides() {
   setSaveState("saving", "正在保存");
   hideAlert();
 
-  const body = {
-    base_revision: snapshot.baseRevision,
-    ...snapshot.draft,
-  };
-
   try {
     const payload = await apiRequest(`${API_BASE}/${encodeURIComponent(snapshot.projectId)}/overrides`, {
       method: "PUT",
-      body: JSON.stringify(body),
+      body: JSON.stringify({ base_revision: snapshot.baseRevision, ...snapshot.draft }),
     });
     if (state.selectedProjectId !== snapshot.projectId) return;
-    const nextOverrides = payload?.overrides || payload || {};
-    const reconciled = reconcileSaveResponse({
-      snapshot,
-      liveDraft: captureCurrentDraft(),
-      serverDraft: draftFromServer(nextOverrides, snapshot.draft),
-      currentEditEpoch: state.editEpoch,
+    const refreshed = await refreshSavedProject({
+      currentProject: state.project, projectId: snapshot.projectId, savedOverrides: payload?.overrides || payload || {}, snapshot,
+      requestProject: () => apiRequest(`${API_BASE}/${encodeURIComponent(snapshot.projectId)}`, { cache: "no-store" }),
+      getLiveDraft: captureCurrentDraft, getEditEpoch: () => state.editEpoch, draftFromServer,
     });
+    if (state.selectedProjectId !== snapshot.projectId) return;
+    const { project: nextProject, overrides: nextOverrides, reconciled, refreshError } = refreshed;
+    state.project = nextProject;
     state.resolvedJointDecisions = normalizeOverrideMap(
       nextOverrides.joint_decisions ?? snapshot.draft.joint_decisions,
+    );
+    state.resolvedSplitDecisions = normalizeOverrideMap(
+      nextOverrides.split_decisions ?? snapshot.draft.split_decisions,
     );
     state.baseRevision = nextOverrides.revision ?? payload?.revision ?? state.baseRevision;
     state.persistedDraft = reconciled.persistedDraft;
@@ -999,6 +998,11 @@ async function saveOverrides() {
       announce("保存快照已完成；保存期间的新编辑仍待保存");
     } else {
       clearDirty();
+    }
+    if (refreshError) {
+      setSaveState(state.dirty ? "dirty" : "error", state.dirty ? "未保存；快照待刷新" : "已保存；快照待刷新");
+      showAlert(`校正已保存，但权威项目快照刷新失败；旧 snapshot 已停用。请点击刷新项目后再审查切分预览：${refreshError.message}`);
+      announce("校正已保存，但项目快照刷新失败");
     }
     renderLayerList();
     renderSkeleton();
@@ -1145,10 +1149,6 @@ function resetSelectedJoint() {
   renderJointInspector();
 }
 
-function isTypingTarget(target) {
-  return target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement || target?.isContentEditable;
-}
-
 function onGlobalKeyDown(event) {
   if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
     event.preventDefault();
@@ -1156,7 +1156,7 @@ function onGlobalKeyDown(event) {
     return;
   }
   if (isTypingTarget(event.target)) return;
-  if (event.target.closest?.("#candidateReview")) return;
+  if (event.target.closest?.("#candidateReview, #splitReview")) return;
   if (event.key === "0") {
     event.preventDefault();
     fitCanvas();

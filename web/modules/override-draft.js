@@ -1,4 +1,5 @@
 import { cloneJson } from "./draft-transactions.js";
+import { clientSplitDecisions } from "./split-review-state.js";
 
 export function clientJointDecisions(value) {
   const decisions = cloneJson(value, {});
@@ -14,6 +15,7 @@ export function captureOverrideDraft(state) {
   return {
     joint_overrides: cloneJson(state.jointOverrides, {}),
     joint_decisions: clientJointDecisions(state.jointDecisions),
+    split_decisions: clientSplitDecisions(state.splitDecisions),
     layer_overrides: cloneJson(state.layerOverrides, {}),
     notes: String(state.notes ?? ""),
   };
@@ -27,6 +29,9 @@ export function applyOverrideDraft(
   state.jointOverrides = normalizeOverrideMap(draft?.joint_overrides);
   state.jointDecisions = clientJointDecisions(
     normalizeOverrideMap(draft?.joint_decisions),
+  );
+  state.splitDecisions = clientSplitDecisions(
+    normalizeOverrideMap(draft?.split_decisions),
   );
   state.layerOverrides = normalizeLayerOverrideMap(draft?.layer_overrides);
   state.notes = String(draft?.notes ?? "");
@@ -44,6 +49,11 @@ export function overrideDraftFromServer(
     joint_decisions: clientJointDecisions(
       normalizeOverrideMap(
         overrides?.joint_decisions ?? fallbackDraft?.joint_decisions,
+      ),
+    ),
+    split_decisions: clientSplitDecisions(
+      normalizeOverrideMap(
+        overrides?.split_decisions ?? fallbackDraft?.split_decisions,
       ),
     ),
     layer_overrides: normalizeLayerOverrideMap(
