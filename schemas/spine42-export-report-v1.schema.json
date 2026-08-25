@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/spine42-export-report-v1.schema.json",
+  "title": "AutoSpine pinned Spine 4.2 export evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "status", "project_id", "mode",
+    "source", "outputs", "checks", "metrics"
+  ],
+  "properties": {
+    "format": {"const": "autospine-spine42-export-report"},
+    "format_version": {"type": "integer", "const": 1},
+    "status": {"const": "passed"},
+    "project_id": {"$ref": "spine42-export-run-v1.schema.json#/$defs/token"},
+    "mode": {"enum": ["setup-only", "motion"]},
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": ["p3", "p5", "run_identity_sha256", "run_document_sha256"],
+      "properties": {
+        "p3": {"$ref": "spine42-export-run-v1.schema.json#/$defs/p3"},
+        "p5": {
+          "oneOf": [
+            {"type": "null"},
+            {"$ref": "spine42-export-run-v1.schema.json#/$defs/p5"}
+          ]
+        },
+        "run_identity_sha256": {"$ref": "spine42-export-run-v1.schema.json#/$defs/sha256"},
+        "run_document_sha256": {"$ref": "spine42-export-run-v1.schema.json#/$defs/sha256"}
+      }
+    },
+    "outputs": {"$ref": "spine42-export-run-v1.schema.json#/$defs/outputs"},
+    "checks": {
+      "type": "array", "minItems": 5, "maxItems": 5,
+      "prefixItems": [
+        {"$ref": "#/$defs/passedProfile"},
+        {"$ref": "#/$defs/passedBinding"},
+        {"$ref": "#/$defs/passedGeometry"},
+        {"$ref": "#/$defs/passedSource"},
+        {"$ref": "#/$defs/motionCheck"}
+      ],
+      "items": false
+    },
+    "metrics": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "bones", "slots", "attachments", "animations", "events",
+        "atlas_regions", "atlas_width", "atlas_height", "source_images"
+      ],
+      "properties": {
+        "bones": {"type": "integer", "minimum": 1, "maximum": 4096},
+        "slots": {"type": "integer", "minimum": 1, "maximum": 4096},
+        "attachments": {"type": "integer", "minimum": 1, "maximum": 16384},
+        "animations": {"type": "integer", "minimum": 0, "maximum": 1},
+        "events": {"type": "integer", "minimum": 0, "maximum": 4096},
+        "atlas_regions": {"type": "integer", "minimum": 1, "maximum": 4096},
+        "atlas_width": {"type": "integer", "minimum": 1, "maximum": 4096},
+        "atlas_height": {"type": "integer", "minimum": 1, "maximum": 4096},
+        "source_images": {"type": "integer", "minimum": 1, "maximum": 4096}
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"mode": {"const": "setup-only"}}},
+      "then": {"properties": {"source": {"properties": {"p5": {"type": "null"}}}}}
+    },
+    {
+      "if": {"properties": {"mode": {"const": "motion"}}},
+      "then": {"properties": {"source": {"properties": {"p5": {"$ref": "spine42-export-run-v1.schema.json#/$defs/p5"}}}}}
+    }
+  ],
+  "$defs": {
+    "passedProfile": {"$ref": "#/$defs/passedCheck", "properties": {"id": {"const": "adapter-profile"}}},
+    "passedBinding": {"$ref": "#/$defs/passedCheck", "properties": {"id": {"const": "attachment-atlas-binding"}}},
+    "passedGeometry": {"$ref": "#/$defs/passedCheck", "properties": {"id": {"const": "atlas-png-geometry"}}},
+    "passedSource": {"$ref": "#/$defs/passedCheck", "properties": {"id": {"const": "source-image-binding"}}},
+    "passedCheck": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "status"],
+      "properties": {"id": {"type": "string"}, "status": {"const": "passed"}}
+    },
+    "motionCheck": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "status"],
+      "properties": {
+        "id": {"const": "motion-binding"},
+        "status": {"enum": ["passed", "not_applicable"]}
+      }
+    }
+  }
+}

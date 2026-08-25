@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/spine42-export-run-v1.schema.json",
+  "title": "AutoSpine pinned Spine 4.2 export provenance v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "project_id", "mode", "adapter_profile",
+    "inputs", "outputs", "run_identity_sha256"
+  ],
+  "properties": {
+    "format": {"const": "autospine-spine42-export-run"},
+    "format_version": {"type": "integer", "const": 1},
+    "project_id": {"$ref": "#/$defs/token"},
+    "mode": {"enum": ["setup-only", "motion"]},
+    "adapter_profile": {"$ref": "#/$defs/profile"},
+    "inputs": {
+      "type": "object", "additionalProperties": false,
+      "required": ["p3", "p5", "source_images"],
+      "properties": {
+        "p3": {"$ref": "#/$defs/p3"},
+        "p5": {
+          "oneOf": [
+            {"type": "null"},
+            {"$ref": "#/$defs/p5"}
+          ]
+        },
+        "source_images": {
+          "type": "array", "minItems": 1, "maxItems": 4096,
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["path", "sha256"],
+            "properties": {
+              "path": {"$ref": "#/$defs/token"},
+              "sha256": {"$ref": "#/$defs/sha256"}
+            }
+          }
+        }
+      }
+    },
+    "outputs": {"$ref": "#/$defs/outputs"},
+    "run_identity_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"mode": {"const": "setup-only"}}},
+      "then": {"properties": {"inputs": {"properties": {"p5": {"type": "null"}}}}}
+    },
+    {
+      "if": {"properties": {"mode": {"const": "motion"}}},
+      "then": {"properties": {"inputs": {"properties": {"p5": {"$ref": "#/$defs/p5"}}}}}
+    }
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "token": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "p3": {
+      "type": "object", "additionalProperties": false,
+      "required": ["rig_sha256", "bundle_sha256"],
+      "properties": {
+        "rig_sha256": {"$ref": "#/$defs/sha256"},
+        "bundle_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "p5": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "target_profile_sha256", "motion_instance_sha256",
+        "bundle_sha256", "clip_id"
+      ],
+      "properties": {
+        "target_profile_sha256": {"$ref": "#/$defs/sha256"},
+        "motion_instance_sha256": {"$ref": "#/$defs/sha256"},
+        "bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "clip_id": {"$ref": "#/$defs/token"}
+      }
+    },
+    "profile": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "adapter", "skeleton_format", "spine_major_minor",
+        "skeleton_json_version", "runtime"
+      ],
+      "properties": {
+        "adapter": {
+          "type": "object", "additionalProperties": false,
+          "required": ["id", "version"],
+          "properties": {
+            "id": {"const": "autospine-spine42-json-adapter"},
+            "version": {"const": "1.0.0"}
+          }
+        },
+        "skeleton_format": {"const": "json"},
+        "spine_major_minor": {"const": "4.2"},
+        "skeleton_json_version": {"const": "4.2"},
+        "runtime": {
+          "type": "object", "additionalProperties": false,
+          "required": ["package", "version"],
+          "properties": {
+            "package": {"const": "@esotericsoftware/spine-player"},
+            "version": {"const": "4.2.119"}
+          }
+        }
+      }
+    },
+    "outputs": {
+      "type": "object", "additionalProperties": false,
+      "required": ["skeleton_json_sha256", "atlas_sha256", "png_sha256"],
+      "properties": {
+        "skeleton_json_sha256": {"$ref": "#/$defs/sha256"},
+        "atlas_sha256": {"$ref": "#/$defs/sha256"},
+        "png_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  }
+}
