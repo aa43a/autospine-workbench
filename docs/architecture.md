@@ -49,7 +49,7 @@ web    → HTTP contracts only
 | 文件 | 当前上限 | 拆分目标 |
 | --- | ---: | ---: |
 | `web/styles.css` | 1713 | 每个主题/布局文件 ≤ 400 |
-| `web/app.js` | 1349 | façade ≤ 250，模块 ≤ 400 |
+| `web/app.js` | 1332 | façade ≤ 250，模块 ≤ 400 |
 | `src/autospine_workbench/project_store.py` | 838 | façade ≤ 300 |
 | `src/autospine_workbench/server.py` | 416 | HTTP adapter ≤ 300 |
 

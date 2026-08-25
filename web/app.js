@@ -7,7 +7,8 @@ import {
   reconcileSaveResponse,
 } from "./modules/draft-transactions.js";
 import { createSkeletonRenderer } from "./modules/skeleton-renderer.js";
-import { compositeQaFlag, normalizeWorkflow } from "./modules/workflow.js";
+import { applyOverrideDraft, captureOverrideDraft, overrideDraftFromServer } from "./modules/override-draft.js";
+import { compositeQaFlag, confidenceLevel, formatConfidence, normalizeWorkflow, setConfidenceBadge, unresolvedJointIds } from "./modules/workflow.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
@@ -30,6 +31,7 @@ const state = {
   loading: false,
   baseRevision: null,
   jointOverrides: {},
+  jointDecisions: {},
   layerOverrides: {},
   notes: "",
   dragJointId: null,
@@ -89,26 +91,18 @@ function normalizeLayerOverrideMap(value) {
 }
 
 function captureCurrentDraft() {
-  return {
-    joint_overrides: cloneJson(state.jointOverrides, {}),
-    layer_overrides: cloneJson(state.layerOverrides, {}),
-    notes: state.notes,
-  };
+  return captureOverrideDraft(state);
 }
 
 function applyDraftToState(draft) {
-  state.jointOverrides = normalizeOverrideMap(draft?.joint_overrides);
-  state.layerOverrides = normalizeLayerOverrideMap(draft?.layer_overrides);
-  state.notes = String(draft?.notes ?? "");
+  applyOverrideDraft(state, draft, { normalizeOverrideMap, normalizeLayerOverrideMap });
   if (dom.overrideNotes.value !== state.notes) dom.overrideNotes.value = state.notes;
 }
 
 function draftFromServer(overrides, fallbackDraft = {}) {
-  return {
-    joint_overrides: normalizeOverrideMap(overrides?.joint_overrides ?? fallbackDraft.joint_overrides),
-    layer_overrides: normalizeLayerOverrideMap(overrides?.layer_overrides ?? fallbackDraft.layer_overrides),
-    notes: String(overrides?.notes ?? fallbackDraft.notes ?? ""),
-  };
+  return overrideDraftFromServer(
+    overrides, fallbackDraft, { normalizeOverrideMap, normalizeLayerOverrideMap },
+  );
 }
 
 function createIcon(name) {
@@ -128,23 +122,6 @@ function clamp(value, min, max) {
 function numberOr(value, fallback = 0) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
-}
-
-function confidenceLevel(value) {
-  const score = numberOr(value, 0);
-  if (score >= 0.8) return "high";
-  if (score >= 0.55) return "medium";
-  return "low";
-}
-
-function formatConfidence(value) {
-  const score = Number(value);
-  return Number.isFinite(score) ? `${Math.round(score * 100)}%` : "—";
-}
-
-function setConfidenceBadge(element, value) {
-  element.textContent = formatConfidence(value);
-  element.dataset.level = Number.isFinite(Number(value)) ? confidenceLevel(value) : "unknown";
 }
 
 function announce(message) {
@@ -304,6 +281,7 @@ function initializeProject(project, fallbackId) {
   const overrides = project?.overrides || {};
   state.baseRevision = overrides.revision ?? project?.revision ?? 0;
   state.jointOverrides = normalizeOverrideMap(overrides.joint_overrides);
+  state.jointDecisions = normalizeOverrideMap(overrides.joint_decisions);
   state.layerOverrides = normalizeLayerOverrideMap(overrides.layer_overrides);
   state.notes = String(overrides.notes ?? "");
   state.persistedDraft = captureCurrentDraft();
@@ -376,10 +354,13 @@ function effectiveLayer(layer) {
 
 function effectiveJoint(joint) {
   const override = state.jointOverrides[String(joint.id)] || {};
+  const decision = state.jointDecisions[String(joint.id)] || {};
+  const decisionPoint = Array.isArray(decision.final_xy) ? decision.final_xy : [];
   return {
     ...joint,
-    x: numberOr(override.x, numberOr(joint.x)),
-    y: numberOr(override.y, numberOr(joint.y)),
+    x: numberOr(override.x, numberOr(decisionPoint[0], numberOr(joint.x))),
+    y: numberOr(override.y, numberOr(decisionPoint[1], numberOr(joint.y))),
+    reviewAction: decision.action || null,
     isManual: Object.prototype.hasOwnProperty.call(state.jointOverrides, String(joint.id)),
   };
 }
@@ -763,6 +744,7 @@ function updateJointFromPointer(event) {
 }
 
 function setJointOverride(jointId, x, y, { render = true, announceChange = true } = {}) {
+  delete state.jointDecisions[String(jointId)];
   state.jointOverrides[String(jointId)] = {
     ...(state.jointOverrides[String(jointId)] || {}),
     x: Math.round(x * 10) / 10,
@@ -875,12 +857,11 @@ function collectQaFlags() {
       layerId: null,
     });
   }
-  const lowConfidenceJointCount = getJoints()
-    .filter((joint) => numberOr(joint.confidence, 0) < 0.55).length;
-  if (lowConfidenceJointCount) {
+  const unresolvedCount = unresolvedJointIds(state.project, getJoints()).length;
+  if (unresolvedCount) {
     items.push({
-      code: "LOW_CONFIDENCE_JOINTS",
-      message: `${lowConfidenceJointCount} 个关节置信度较低，请在骨骼模式校正`,
+      code: "UNRESOLVED_JOINTS",
+      message: `${unresolvedCount} 个启发式关节尚未复核，请在骨骼模式校正`,
       severity: "warning",
       layerId: null,
     });
@@ -1033,8 +1014,9 @@ function updateStatusbar() {
     ? `关节 ${joint.id} · ${joint.x.toFixed(1)}, ${joint.y.toFixed(1)}`
     : layer ? `图层 ${layer.name || layer.id}` : "未选择对象";
   const jointCount = Object.keys(state.jointOverrides).length;
+  const decisionCount = Object.keys(state.jointDecisions).length;
   const layerCount = Object.keys(state.layerOverrides).length;
-  dom.overrideStatus.textContent = `${jointCount + layerCount} 项校正 · r${state.baseRevision ?? "—"}`;
+  dom.overrideStatus.textContent = `${jointCount + decisionCount + layerCount} 项校正 · r${state.baseRevision ?? "—"}`;
 }
 
 async function saveOverrides() {
@@ -1203,6 +1185,7 @@ function resetSelectedJoint() {
   const joint = getSelectedJoint();
   if (!joint) return;
   delete state.jointOverrides[String(joint.id)];
+  delete state.jointDecisions[String(joint.id)];
   markDirty(`关节 ${joint.id} 已恢复自动位置`);
   renderSkeleton();
   renderJointInspector();

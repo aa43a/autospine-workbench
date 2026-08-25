@@ -67,3 +67,28 @@ export function compositeQaFlag(auditWarnings) {
   }
   return null;
 }
+
+export function unresolvedJointIds(project, joints = []) {
+  const backendIds = project?.resolved?.qa?.unresolved_joint_ids;
+  if (Array.isArray(backendIds)) return backendIds.map(String);
+  return joints
+    .filter((joint) => joint?.review_state === "unreviewed" && Number(joint?.confidence ?? 0) < 0.55)
+    .map((joint) => String(joint.id));
+}
+
+export function confidenceLevel(value) {
+  const score = Number(value);
+  if (Number.isFinite(score) && score >= 0.8) return "high";
+  if (Number.isFinite(score) && score >= 0.55) return "medium";
+  return Number.isFinite(score) ? "low" : "unknown";
+}
+
+export function formatConfidence(value) {
+  const score = Number(value);
+  return Number.isFinite(score) ? `${Math.round(score * 100)}%` : "—";
+}
+
+export function setConfidenceBadge(element, value) {
+  element.textContent = formatConfidence(value);
+  element.dataset.level = confidenceLevel(value);
+}

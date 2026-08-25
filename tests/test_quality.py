@@ -15,7 +15,7 @@ DEFAULT_MAX_LINES = 400
 LEGACY_MAX_LINES = {
     "src/autospine_workbench/project_store.py": 838,
     "src/autospine_workbench/server.py": 416,
-    "web/app.js": 1349,
+    "web/app.js": 1332,
     "web/styles.css": 1713,
 }
 
