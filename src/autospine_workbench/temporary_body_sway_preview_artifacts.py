@@ -26,6 +26,11 @@ from .spine42_body_sway_preview_adapter import (
     Spine42BodySwayPreviewAdapterError,
     compile_spine42_body_sway_preview,
 )
+from .spine42_export_validation import (
+    MAX_ATLAS_BYTES as SPINE42_MAX_ATLAS_BYTES,
+    MAX_ATLAS_PNG_BYTES,
+    MAX_SKELETON_JSON_BYTES,
+)
 
 
 ARTIFACT_PATHS = (
@@ -35,11 +40,14 @@ ARTIFACT_PATHS = (
     "runtime/skeleton.json",
     "runtime/skeleton.png",
 )
-MAX_SKELETON_BYTES = 128 * 1024 * 1024
-MAX_ATLAS_BYTES = 4 * 1024 * 1024
-MAX_TEXTURE_BYTES = 128 * 1024 * 1024
+MAX_SKELETON_BYTES = MAX_SKELETON_JSON_BYTES
+MAX_ATLAS_BYTES = SPINE42_MAX_ATLAS_BYTES
+MAX_TEXTURE_BYTES = MAX_ATLAS_PNG_BYTES
 MAX_SMALL_FILE_BYTES = 1024 * 1024
-MAX_ARTIFACT_BYTES = 256 * 1024 * 1024
+MAX_ARTIFACT_BYTES = (
+    2 * MAX_SMALL_FILE_BYTES + MAX_ATLAS_BYTES
+    + MAX_SKELETON_BYTES + MAX_TEXTURE_BYTES
+)
 
 
 class TemporaryBodySwayPreviewArtifactError(ValueError):
@@ -92,7 +100,7 @@ def compile_temporary_body_sway_preview_artifacts(
         items = tuple(sorted({
             "runtime/player.html": body_sway_preview_player_html(),
             "runtime/session.json": build_body_sway_preview_session(
-                preview, atlas, plan
+                preview, atlas, plan, loop=inputs.timing["loop"]
             ),
             "runtime/skeleton.atlas": atlas.atlas_bytes,
             "runtime/skeleton.json": preview.skeleton_bytes,

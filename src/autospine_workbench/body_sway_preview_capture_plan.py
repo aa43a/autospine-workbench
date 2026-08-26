@@ -52,7 +52,9 @@ def build_body_sway_preview_capture_plan(
             raise BodySwayPreviewCapturePlanError(
                 "Capture projection differs from exact P10.2 evidence"
             )
-        ticks = _selected_ticks(inputs, projection.sample_ticks)
+        ticks = select_body_sway_preview_capture_ticks(
+            inputs.timing, inputs.selection, projection.sample_ticks
+        )
         cases = [_case("setup", None, 0, inputs.timing)]
         for tick in ticks:
             cases.extend((
@@ -115,11 +117,15 @@ def body_sway_capture_plan_sha256(plan: dict[str, Any]) -> str:
     return result
 
 
-def _selected_ticks(
-    inputs: BodySwayPreviewInputs, schedule: tuple[int, ...],
+def select_body_sway_preview_capture_ticks(
+    timing: dict[str, Any],
+    selection: dict[str, Any],
+    schedule: tuple[int, ...],
 ) -> tuple[int, ...]:
-    duration = inputs.timing["duration_ticks"]
-    parameters = inputs.selection["parameters"]
+    """Select exact schedule ticks for the fixed bounded still-frame plan."""
+
+    duration = timing["duration_ticks"]
+    parameters = selection["parameters"]
     cycles = require_cycles(parameters["cycles"])
     ideals = {Fraction(0), Fraction(duration)}
     ideals.update(Fraction(duration * index, 8) for index in range(9))

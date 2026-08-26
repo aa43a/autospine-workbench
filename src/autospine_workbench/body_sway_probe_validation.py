@@ -101,9 +101,11 @@ def require_body_sway_probe_report(document: Mapping[str, Any]) -> None:
             )
         identifier_value(root.get("project_id"), "project_id")
         identifier_value(root.get("clip_id"), "clip_id")
-        _source(root.get("source"))
+        require_body_sway_source(root.get("source"))
         require_timing(root.get("timing"))
-        overlay_bone_ids, amplitudes = _selection(root.get("selection"))
+        overlay_bone_ids, amplitudes = require_body_sway_selection(
+            root.get("selection")
+        )
         _fixed(root.get("prober"), body_sway_probe_profile(), "prober")
         _fixed(root.get("semantics"), SEMANTICS, "semantics")
         timing = root["timing"]
@@ -151,7 +153,9 @@ def body_sway_probe_report_sha256(document: Mapping[str, Any]) -> str:
     return canonical_sha256(document)
 
 
-def _source(value: Any) -> None:
+def require_body_sway_source(value: Any) -> None:
+    """Validate the exact P3/P5/P9 plus P10 candidate/decision source fields."""
+
     source = object_value(value, "Body-sway probe source")
     exact_fields(
         source,
@@ -177,7 +181,11 @@ def _source(value: Any) -> None:
         )
 
 
-def _selection(value: Any) -> tuple[list[str], dict[str, float]]:
+def require_body_sway_selection(
+    value: Any,
+) -> tuple[list[str], dict[str, float]]:
+    """Validate and summarize the sole reviewed body-sway adjustment."""
+
     selection = object_value(value, "Body-sway probe selection")
     exact_fields(
         selection,

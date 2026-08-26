@@ -19,9 +19,13 @@ def build_body_sway_preview_session(
     preview: Spine42BodySwayPreview,
     atlas: Spine42Atlas,
     capture_plan: dict[str, Any],
+    *,
+    loop: bool,
 ) -> bytes:
     """Bind exact runtime assets and plan without claiming runtime execution."""
 
+    if type(loop) is not bool:
+        raise ValueError("Temporary preview loop flag must be boolean")
     document = {
         "format": "autospine-temporary-body-sway-preview-session",
         "format_version": 1,
@@ -48,7 +52,7 @@ def build_body_sway_preview_session(
             "base": BASE_ANIMATION_NAME,
             "combined": COMBINED_ANIMATION_NAME,
             "default": COMBINED_ANIMATION_NAME,
-            "loop": True,
+            "loop": loop,
         },
         "capture_plan": capture_plan,
         "semantics": {

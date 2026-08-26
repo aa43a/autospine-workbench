@@ -75,7 +75,9 @@ def validate_spine42_export(
         if attachment_count > 16_384:
             raise Spine42ExportValidationError("Skeleton has too many attachments")
         source_items = _source_inventory(source_image_sha256s, paths)
-        atlas_width, atlas_height, atlas_regions = _atlas_inventory(atlas_bytes)
+        atlas_width, atlas_height, atlas_regions = (
+            require_spine42_atlas_inventory(atlas_bytes)
+        )
         if set(atlas_regions) != set(paths):
             raise Spine42ExportValidationError(
                 "Spine attachment paths differ from atlas regions"
@@ -159,7 +161,9 @@ def _source_inventory(value: Mapping[str, str], paths: tuple[str, ...]):
     return tuple(items)
 
 
-def _atlas_inventory(data: bytes):
+def require_spine42_atlas_inventory(data: bytes):
+    """Parse and strictly validate one canonical pinned atlas inventory."""
+
     if type(data) is not bytes or len(data) > MAX_ATLAS_BYTES:
         raise Spine42ExportValidationError("Atlas must be bounded immutable bytes")
     try:

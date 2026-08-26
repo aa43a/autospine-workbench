@@ -48,12 +48,13 @@ _PLAYER_HTML = b"""<!doctype html>
     const buttons = [...document.querySelectorAll("button[data-animation]")];
     let player = null;
     let selected = "p10.body-sway";
+    let playbackLoop = false;
     function select(name) {
       selected = name;
       for (const button of buttons) {
         button.setAttribute("aria-pressed", String(button.dataset.animation === name));
       }
-      if (player) player.animationState.setAnimation(0, name, true);
+      if (player) player.animationState.setAnimation(0, name, playbackLoop);
     }
     for (const button of buttons) {
       button.addEventListener("click", () => select(button.dataset.animation));
@@ -65,6 +66,7 @@ _PLAYER_HTML = b"""<!doctype html>
       const response = await fetch("./session.json", { cache: "no-store" });
       if (!response.ok) throw new Error("Preview session could not be loaded");
       const session = await response.json();
+      playbackLoop = session.animations.loop;
       const view = session.capture_plan.world_viewport;
       new spine.SpinePlayer("player", {
         skeleton: "./skeleton.json", atlas: "./skeleton.atlas",

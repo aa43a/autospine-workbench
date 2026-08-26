@@ -58,7 +58,7 @@ def build_spine42_json(
         "events": events,
         "animations": animations,
     }
-    _require_projected_document(document)
+    require_projected_spine42_document(document)
     return json.loads(canonical_spine42_json(document))
 
 
@@ -164,7 +164,9 @@ def _project_motion(
     )
 
 
-def _require_projected_document(document: Mapping[str, Any]) -> None:
+def require_projected_spine42_document(document: Mapping[str, Any]) -> None:
+    """Validate projected setup structure and attachment topology."""
+
     bones = document["bones"]
     ids: list[str] = []
     for bone in bones:
