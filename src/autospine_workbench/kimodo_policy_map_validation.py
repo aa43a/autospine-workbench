@@ -134,6 +134,10 @@ def _heading(value: Any) -> tuple[str, str]:
         axes.append(str(row["source_axis"]))
     if len({axis[1] for axis in axes}) != 2:
         raise KimodoPolicyMapError("Kimodo heading component axes must be distinct")
+    if str(local_forward)[1] not in {axis[1] for axis in axes}:
+        raise KimodoPolicyMapError(
+            "Kimodo root local-forward axis must lie in the heading plane"
+        )
     crosscheck = _object(heading.get("crosscheck"), "Kimodo heading crosscheck")
     _exact(crosscheck, _CROSSCHECK, "Kimodo heading crosscheck")
     if crosscheck.get("policy") != "projected_root_forward_angle":
@@ -162,6 +166,8 @@ def _contact(value: Any, mapping: Mapping[str, Any] | None) -> None:
             or contact.get("interval") != "half_open":
         raise KimodoPolicyMapError("Kimodo contact interpretation is unsupported")
     proxies = _array(contact.get("proxies"), "Kimodo contact proxies")
+    if not 1 <= len(proxies) <= 6:
+        raise KimodoPolicyMapError("Kimodo contact proxy count is invalid")
     normalized = []
     for index, raw in enumerate(proxies):
         row = _object(raw, "Kimodo contact proxy")

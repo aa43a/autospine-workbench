@@ -105,6 +105,7 @@ class KimodoPolicyMapValidationTests(unittest.TestCase):
 
         wrong_axes = policy_document(mapping, camera)
         wrong_axes["heading"]["components"][1]["source_axis"] = "+Y"
+        wrong_axes["heading"]["root_local_forward_axis"] = "+Y"
         with self.assertRaisesRegex(KimodoPolicyMapError, "lateral and depth"):
             require_kimodo_policy_map(
                 wrong_axes, kimodo_map=mapping, camera=camera
@@ -144,6 +145,8 @@ class KimodoPolicyMapValidationTests(unittest.TestCase):
             ),
             lambda value: value["heading"]["components"][0].update(index=1),
             lambda value: value["heading"].update(root_local_forward_axis="forward"),
+            lambda value: value["heading"].update(root_local_forward_axis="+Y"),
+            lambda value: value["contact"].update(proxies=[]),
         )
         for mutate in mutations:
             candidate = policy_document()
