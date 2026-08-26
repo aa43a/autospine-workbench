@@ -3,13 +3,11 @@
 from __future__ import annotations
 
 import json
-import mimetypes
 import socket
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
-from urllib.parse import unquote, urlsplit
 
 from .analysis_routes import dispatch_analysis_artifact_get
 from .contracts import ContractValidationError
@@ -18,6 +16,9 @@ from .http_security import (
     host_header_is_local as _host_header_is_local,
     is_loopback_host as _is_loopback_host,
 )
+from .http_file_response import send_file_response
+from .http_json_request import HttpJsonRequestError, read_json_object_request
+from .http_request_path import safe_url_path_parts
 from .mesh_bundle_routes import dispatch_mesh_bundle_get
 from .project_store import (
     AssetNotFoundError,
@@ -28,27 +29,6 @@ from .project_store import (
 )
 from .project_routes import dispatch_project_get
 from .split_preview_routes import dispatch_split_preview_get
-
-
-MAX_REQUEST_BODY = 1024 * 1024
-
-
-def _decode_json_object(raw: bytes) -> dict[str, Any]:
-    def reject_duplicates(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
-        result: dict[str, Any] = {}
-        for key, value in pairs:
-            if key in result:
-                raise ValueError(f"duplicate JSON field: {key}")
-            result[key] = value
-        return result
-
-    try:
-        value = json.loads(raw.decode("utf-8"), object_pairs_hook=reject_duplicates)
-    except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
-        raise ValueError(str(exc)) from exc
-    if not isinstance(value, dict):
-        raise ValueError("request body must be a JSON object")
-    return value
 
 
 def _handler_factory(store: ProjectStore, web_root: Path | None) -> type[BaseHTTPRequestHandler]:
@@ -123,38 +103,10 @@ def _handler_factory(store: ProjectStore, web_root: Path | None) -> type[BaseHTT
             )
 
         def _send_file(self, path: Path) -> None:
-            try:
-                stat = path.stat()
-                content_type = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
-                self.send_response(HTTPStatus.OK)
-                self._common_headers()
-                self.send_header("Content-Type", content_type)
-                self.send_header("Content-Length", str(stat.st_size))
-                self.send_header(
-                    "ETag", f'W/"{stat.st_mtime_ns:x}-{stat.st_size:x}"'
-                )
-                self.end_headers()
-                if self.command == "HEAD":
-                    return
-                with path.open("rb") as handle:
-                    while True:
-                        chunk = handle.read(64 * 1024)
-                        if not chunk:
-                            break
-                        self.wfile.write(chunk)
-            except (OSError, BrokenPipeError, ConnectionError):
-                if not self.wfile.closed:
-                    self.close_connection = True
+            send_file_response(self, path, self._common_headers)
 
         def _path_parts(self) -> list[str]:
-            path = urlsplit(self.path).path
-            try:
-                parts = [unquote(part) for part in path.split("/") if part]
-            except UnicodeError as exc:
-                raise ValueError("invalid URL encoding") from exc
-            if any(part in {".", ".."} or "\x00" in part or "/" in part or "\\" in part for part in parts):
-                raise ValueError("unsafe URL path")
-            return parts
+            return safe_url_path_parts(self.path)
 
         def _dispatch_api_get(self, parts: list[str]) -> bool:
             if dispatch_project_get(parts, store, self._send_json, self._send_file):
@@ -271,41 +223,12 @@ def _handler_factory(store: ProjectStore, web_root: Path | None) -> type[BaseHTT
                 ):
                     self._send_error_json(HTTPStatus.NOT_FOUND, "not_found", "API route not found.")
                     return
-                content_type = self.headers.get("Content-Type", "").split(";", 1)[0].strip().lower()
-                if content_type != "application/json":
-                    self._send_error_json(
-                        HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
-                        "unsupported_media_type",
-                        "Content-Type must be application/json.",
-                    )
-                    return
-                raw_length = self.headers.get("Content-Length")
                 try:
-                    content_length = int(raw_length or "")
-                except ValueError:
-                    content_length = -1
-                if content_length < 0:
+                    payload = read_json_object_request(self)
+                except HttpJsonRequestError as exc:
                     self._send_error_json(
-                        HTTPStatus.LENGTH_REQUIRED,
-                        "length_required",
-                        "A valid Content-Length header is required.",
+                        exc.status, exc.code, exc.public_message,
                     )
-                    return
-                if content_length > MAX_REQUEST_BODY:
-                    self._send_error_json(
-                        HTTPStatus.REQUEST_ENTITY_TOO_LARGE,
-                        "request_too_large",
-                        f"Request bodies are limited to {MAX_REQUEST_BODY} bytes.",
-                    )
-                    return
-                raw_body = self.rfile.read(content_length)
-                if len(raw_body) != content_length:
-                    self._send_error_json(HTTPStatus.BAD_REQUEST, "short_body", "Request body was incomplete.")
-                    return
-                try:
-                    payload = _decode_json_object(raw_body)
-                except ValueError as exc:
-                    self._send_error_json(HTTPStatus.BAD_REQUEST, "invalid_json", str(exc))
                     return
                 saved = store.save_overrides(parts[2], payload)
                 self._send_json(HTTPStatus.OK, saved)
