@@ -36,6 +36,7 @@ from .spine42_contract_v2 import (
     spine42_target_profile_v2,
 )
 from .spine42_json_adapter_v2 import build_spine42_json_v2
+from .spine42_v2_runtime_semantics import audit_spine42_v2_runtime_semantics
 
 
 class P9V2CommandError(RuntimeError):
@@ -198,6 +199,14 @@ def _require_p3_chain(policy: Mapping[str, Any], mesh: Any, project: str) -> Non
 
 
 def _export_report(project, mesh, p5, policy, compiled, skeleton, atlas):
+    timing = compiled.document["timing"]
+    duration = timing["duration_ticks"]
+    audit = audit_spine42_v2_runtime_semantics(
+        skeleton,
+        compiled.document["clip_id"],
+        sorted({0, duration // 4, duration // 2, 3 * duration // 4, duration}),
+        timing=timing,
+    )
     source_images = {
         item.name: item.source_sha256 for item in atlas.placements
     }
@@ -221,6 +230,8 @@ def _export_report(project, mesh, p5, policy, compiled, skeleton, atlas):
         "atlas_sha256": hashlib.sha256(atlas.atlas_bytes).hexdigest(),
         "atlas_text": atlas.atlas_text,
         "png_sha256": hashlib.sha256(atlas.png_bytes).hexdigest(),
+        "runtime_semantics_audit_sha256": audit.sha256,
+        "runtime_semantics_audit": audit.document,
     }
 
 

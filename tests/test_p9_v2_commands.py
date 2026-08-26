@@ -100,6 +100,13 @@ class P9V2CommandTests(unittest.TestCase):
         self.assertTrue(report["atlas_text"].startswith("skeleton.png\n"))
         self.assertEqual(64, len(report["png_sha256"]))
         self.assertEqual(64, len(report["atlas_sha256"]))
+        audit = report["runtime_semantics_audit"]
+        self.assertEqual(
+            "timeline-semantics-only", audit["semantics"]["scope"]
+        )
+        self.assertFalse(audit["semantics"]["official_runtime_loaded"])
+        self.assertFalse(audit["semantics"]["raster_truth_claimed"])
+        self.assertEqual(64, len(report["runtime_semantics_audit_sha256"]))
         self.assertEqual(result.report_sha256, canonical_sha256(report))
         encoded = json.dumps(report, allow_nan=False)
         self.assertNotIn("png_bytes", encoded)
