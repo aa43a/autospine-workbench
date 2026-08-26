@@ -1,0 +1,308 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/idle-behavior-candidates-v1.schema.json",
+  "title": "AutoSpine IdleBehaviorCandidates v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "project_id", "clip_id", "source", "timing",
+    "target_capabilities", "generator", "semantics", "features", "summary"
+  ],
+  "properties": {
+    "format": {"const": "autospine-idle-behavior-candidates"},
+    "format_version": {"type": "integer", "const": 1},
+    "project_id": {"$ref": "#/$defs/id"},
+    "clip_id": {"$ref": "#/$defs/id"},
+    "source": {"$ref": "#/$defs/source"},
+    "timing": {"$ref": "#/$defs/timing"},
+    "target_capabilities": {"$ref": "#/$defs/capabilities"},
+    "generator": {"$ref": "#/$defs/generator"},
+    "semantics": {"$ref": "#/$defs/semantics"},
+    "features": {
+      "type": "array", "minItems": 4, "maxItems": 4,
+      "prefixItems": [
+        {"$ref": "#/$defs/blinkFeature"},
+        {"$ref": "#/$defs/bodySwayFeature"},
+        {"$ref": "#/$defs/hairSpringFeature"},
+        {"$ref": "#/$defs/mouthFeature"}
+      ],
+      "items": false
+    },
+    "summary": {"$ref": "#/$defs/summary"}
+  },
+  "$defs": {
+    "id": {
+      "type": "string", "minLength": 1, "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": ["layer_manifest_sha256", "p3", "p5", "p9"],
+      "properties": {
+        "layer_manifest_sha256": {"$ref": "#/$defs/sha"},
+        "p3": {"$ref": "#/$defs/p3Source"},
+        "p5": {"$ref": "#/$defs/p5Source"},
+        "p9": {"$ref": "#/$defs/p9Source"}
+      }
+    },
+    "p3Source": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "base_rig_sha256", "base_bundle_sha256", "layer_manifest_sha256",
+        "resolved_project_sha256", "rig_sha256", "run_sha256",
+        "probes_sha256", "visuals_sha256", "bundle_sha256"
+      ],
+      "properties": {
+        "base_rig_sha256": {"$ref": "#/$defs/sha"},
+        "base_bundle_sha256": {"$ref": "#/$defs/sha"},
+        "layer_manifest_sha256": {"$ref": "#/$defs/sha"},
+        "resolved_project_sha256": {"$ref": "#/$defs/sha"},
+        "rig_sha256": {"$ref": "#/$defs/sha"},
+        "run_sha256": {"$ref": "#/$defs/sha"},
+        "probes_sha256": {"$ref": "#/$defs/sha"},
+        "visuals_sha256": {"$ref": "#/$defs/sha"},
+        "bundle_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "p5Source": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "target_profile_sha256", "instance_sha256", "run_sha256",
+        "retarget_report_sha256", "mesh_regression_sha256", "bundle_sha256"
+      ],
+      "properties": {
+        "target_profile_sha256": {"$ref": "#/$defs/sha"},
+        "instance_sha256": {"$ref": "#/$defs/sha"},
+        "run_sha256": {"$ref": "#/$defs/sha"},
+        "retarget_report_sha256": {"$ref": "#/$defs/sha"},
+        "mesh_regression_sha256": {"$ref": "#/$defs/sha"},
+        "bundle_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "p9Source": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "foot_lock_candidates_sha256", "depth_order_candidates_sha256",
+        "motion_policy_decision_sha256", "reviewed_motion_policy_sha256",
+        "motion_instance_v2_sha256", "run_sha256", "bundle_sha256"
+      ],
+      "properties": {
+        "foot_lock_candidates_sha256": {"$ref": "#/$defs/sha"},
+        "depth_order_candidates_sha256": {"$ref": "#/$defs/sha"},
+        "motion_policy_decision_sha256": {"$ref": "#/$defs/sha"},
+        "reviewed_motion_policy_sha256": {"$ref": "#/$defs/sha"},
+        "motion_instance_v2_sha256": {"$ref": "#/$defs/sha"},
+        "run_sha256": {"$ref": "#/$defs/sha"},
+        "bundle_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "timing": {
+      "type": "object", "additionalProperties": false,
+      "required": ["ticks_per_second", "duration_ticks", "loop"],
+      "properties": {
+        "ticks_per_second": {"type": "integer", "const": 1000000},
+        "duration_ticks": {"type": "integer", "minimum": 1, "maximum": 600000000},
+        "loop": {"type": "boolean"}
+      }
+    },
+    "capabilities": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "adapter_id", "adapter_version", "bone_rotation", "root_translation",
+        "draw_order", "attachment_switching", "deform", "physics", "extra_bones"
+      ],
+      "properties": {
+        "adapter_id": {"const": "autospine-spine42-json-adapter"},
+        "adapter_version": {"const": "2.0.0"},
+        "bone_rotation": {"const": true},
+        "root_translation": {"const": true},
+        "draw_order": {"const": true},
+        "attachment_switching": {"const": false},
+        "deform": {"const": false},
+        "physics": {"const": false},
+        "extra_bones": {"const": false}
+      }
+    },
+    "generator": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "version", "candidate_id_domain"],
+      "properties": {
+        "id": {"const": "idle-behavior-candidate-compiler"},
+        "version": {"const": "1.0.0"},
+        "candidate_id_domain": {"const": "autospine-idle-behavior-candidate-id/v1"}
+      }
+    },
+    "semantics": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "mode", "apply_policy", "decision_emitted", "runtime_timeline_emitted",
+        "generated_raster_emitted", "synthetic_visual_state_emitted",
+        "raster_truth_claimed"
+      ],
+      "properties": {
+        "mode": {"const": "candidate_only"},
+        "apply_policy": {"const": "review_required"},
+        "decision_emitted": {"const": false},
+        "runtime_timeline_emitted": {"const": false},
+        "generated_raster_emitted": {"const": false},
+        "synthetic_visual_state_emitted": {"const": false},
+        "raster_truth_claimed": {"const": false}
+      }
+    },
+    "featureBase": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "feature_id", "availability", "candidate_id", "evidence",
+        "reason_codes", "proposal"
+      ],
+      "properties": {
+        "feature_id": {"enum": ["blink", "body_sway", "hair_spring", "mouth"]},
+        "availability": {"enum": ["candidate", "unobservable", "unsupported"]},
+        "candidate_id": {"oneOf": [{"$ref": "#/$defs/id"}, {"type": "null"}]},
+        "evidence": {"$ref": "#/$defs/evidence"},
+        "reason_codes": {
+          "type": "array", "maxItems": 4096, "uniqueItems": true,
+          "items": {"$ref": "#/$defs/id"}
+        },
+        "proposal": {"oneOf": [{"$ref": "#/$defs/bodySwayProposal"}, {"type": "null"}]}
+      }
+    },
+    "unavailableFeature": {
+      "allOf": [
+        {"$ref": "#/$defs/featureBase"},
+        {
+          "properties": {
+            "availability": {"enum": ["unobservable", "unsupported"]},
+            "candidate_id": {"type": "null"},
+            "proposal": {"type": "null"}
+          }
+        }
+      ]
+    },
+    "blinkFeature": {
+      "allOf": [
+        {"$ref": "#/$defs/unavailableFeature"},
+        {"properties": {"feature_id": {"const": "blink"}}}
+      ]
+    },
+    "hairSpringFeature": {
+      "allOf": [
+        {"$ref": "#/$defs/unavailableFeature"},
+        {"properties": {"feature_id": {"const": "hair_spring"}}}
+      ]
+    },
+    "mouthFeature": {
+      "allOf": [
+        {"$ref": "#/$defs/unavailableFeature"},
+        {"properties": {"feature_id": {"const": "mouth"}}}
+      ]
+    },
+    "bodySwayFeature": {
+      "allOf": [
+        {"$ref": "#/$defs/featureBase"},
+        {"properties": {"feature_id": {"const": "body_sway"}}},
+        {
+          "if": {"properties": {"availability": {"const": "candidate"}}, "required": ["availability"]},
+          "then": {
+            "properties": {
+              "candidate_id": {
+                "type": "string", "pattern": "^body-sway-[0-9a-f]{64}$"
+              },
+              "proposal": {"$ref": "#/$defs/bodySwayProposal"}
+            }
+          },
+          "else": {
+            "properties": {
+              "candidate_id": {"type": "null"},
+              "proposal": {"type": "null"}
+            }
+          }
+        }
+      ]
+    },
+    "evidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["layers", "bindings", "bone_ids", "existing_tracks"],
+      "properties": {
+        "layers": {
+          "type": "array", "maxItems": 4096, "uniqueItems": true,
+          "items": {"$ref": "#/$defs/layer"}
+        },
+        "bindings": {
+          "type": "array", "maxItems": 4096, "uniqueItems": true,
+          "items": {"$ref": "#/$defs/binding"}
+        },
+        "bone_ids": {
+          "type": "array", "maxItems": 4096, "uniqueItems": true,
+          "items": {"$ref": "#/$defs/id"}
+        },
+        "existing_tracks": {
+          "type": "array", "maxItems": 4096, "uniqueItems": true,
+          "items": {"$ref": "#/$defs/existingTrack"}
+        }
+      }
+    },
+    "layer": {
+      "type": "object", "additionalProperties": false,
+      "required": ["layer_id", "canonical_role", "side", "raster_sha256", "review_state"],
+      "properties": {
+        "layer_id": {"$ref": "#/$defs/id"},
+        "canonical_role": {"$ref": "#/$defs/id"},
+        "side": {"enum": ["left", "right", "center", "bilateral", "unknown"]},
+        "raster_sha256": {"$ref": "#/$defs/sha"},
+        "review_state": {"enum": ["reviewed", "unreviewed"]}
+      }
+    },
+    "binding": {
+      "type": "object", "additionalProperties": false,
+      "required": ["attachment_id", "slot_id", "bone_id", "image_sha256", "type"],
+      "properties": {
+        "attachment_id": {"$ref": "#/$defs/id"},
+        "slot_id": {"$ref": "#/$defs/id"},
+        "bone_id": {"$ref": "#/$defs/id"},
+        "image_sha256": {"$ref": "#/$defs/sha"},
+        "type": {"enum": ["region", "mesh"]}
+      }
+    },
+    "existingTrack": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bone_id", "property"],
+      "properties": {
+        "bone_id": {"$ref": "#/$defs/id"},
+        "property": {"enum": ["rotation", "translation"]}
+      }
+    },
+    "bodySwayProposal": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "kind", "target_bone_ids", "required_review_parameters",
+        "safe_range_evidence"
+      ],
+      "properties": {
+        "kind": {"const": "reviewed-periodic-body-sway"},
+        "target_bone_ids": {
+          "const": ["pelvis-spine", "spine-chest", "chest-neck", "neck-head"]
+        },
+        "required_review_parameters": {
+          "const": ["cycles", "per_bone_amplitude_deg", "per_bone_phase_fraction"]
+        },
+        "safe_range_evidence": {"const": "unprobed"}
+      }
+    },
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "status", "feature_count", "candidate_count", "unobservable_count",
+        "unsupported_count"
+      ],
+      "properties": {
+        "status": {"const": "candidate_only"},
+        "feature_count": {"type": "integer", "const": 4},
+        "candidate_count": {"type": "integer", "minimum": 0, "maximum": 4},
+        "unobservable_count": {"type": "integer", "minimum": 0, "maximum": 4},
+        "unsupported_count": {"type": "integer", "minimum": 0, "maximum": 4}
+      }
+    }
+  }
+}
