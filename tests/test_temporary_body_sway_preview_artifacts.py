@@ -20,6 +20,9 @@ if str(SRC) not in sys.path:
 from autospine_workbench.body_sway_preview_page import (  # noqa: E402
     body_sway_preview_player_html,
 )
+from autospine_workbench.body_sway_preview_session import (  # noqa: E402
+    build_body_sway_preview_session,
+)
 from autospine_workbench.temporary_body_sway_preview_artifacts import (  # noqa: E402
     ARTIFACT_PATHS,
     TemporaryBodySwayPreviewArtifactError,
@@ -72,6 +75,18 @@ class TemporaryBodySwayPreviewArtifactTests(unittest.TestCase):
         self.assertFalse(
             session["semantics"]["official_runtime_execution_claimed"]
         )
+
+    def test_player_and_session_honor_non_loop_motion(self):
+        raw = build_body_sway_preview_session(
+            self.value.preview,
+            self.value.atlas,
+            self.value.capture_plan,
+            loop=False,
+        )
+        self.assertFalse(json.loads(raw)["animations"]["loop"])
+        page = body_sway_preview_player_html().decode("utf-8")
+        self.assertIn("setAnimation(0, name, playbackLoop)", page)
+        self.assertNotIn("setAnimation(0, name, true)", page)
 
     def test_values_are_frozen_and_accessors_are_copy_isolated(self):
         plan = self.value.capture_plan
