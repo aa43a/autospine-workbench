@@ -11,11 +11,10 @@ from typing import Any
 
 from .kimodo_npz_compile_run import (
     KimodoNpzCompileRunError,
-    build_kimodo_npz_compile_run,
+    compile_kimodo_npz_motion_run,
 )
 from .kimodo_npz_compiler import (
     KimodoNpzCompilerError,
-    compile_kimodo_npz_motion,
 )
 from .kimodo_npz_map_validation import (
     MAX_DOCUMENT_BYTES as MAX_KIMODO_MAP_BYTES,
@@ -98,9 +97,8 @@ def compile_kimodo_motion_bundle(
             ),
             "Kimodo NPZ map",
         )
-        compiled = compile_kimodo_npz_motion(raw_npz, source, mapping)
-        run = build_kimodo_npz_compile_run(
-            raw_npz, source, mapping, compiled.document
+        compiled, run = compile_kimodo_npz_motion_run(
+            raw_npz, source, mapping
         )
         expected = {
             "source.npz": raw_npz,

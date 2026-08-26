@@ -52,7 +52,7 @@ CONTACT_LAYOUTS = {
 
 _SAFE_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}")
 _SHA256 = re.compile(r"[0-9a-f]{64}")
-_REVISION = re.compile(r"[0-9a-f]{40,64}")
+_REVISION = re.compile(r"(?:[0-9a-f]{40}|[0-9a-f]{64})")
 _TOP = {
     "format", "format_version", "source_id", "raw_npz", "producer",
     "skeleton", "coordinate_system", "array_profile",
@@ -185,7 +185,10 @@ def _producer(value: Any) -> None:
 def _skeleton(value: Any) -> None:
     skeleton = _object(value, "Kimodo NPZ skeleton")
     _exact(
-        skeleton, {"profile_id", "joint_count", "definition_sha256"},
+        skeleton, {
+            "profile_id", "joint_count", "definition_sha256",
+            "definition_scope", "rest_geometry_policy",
+        },
         "Kimodo NPZ skeleton",
     )
     if skeleton.get("profile_id") != SOMA77_PROFILE_ID \
@@ -193,6 +196,12 @@ def _skeleton(value: Any) -> None:
             or skeleton.get("joint_count") != len(SOMA77_JOINT_NAMES) \
             or skeleton.get("definition_sha256") != SOMA77_DEFINITION_SHA256:
         raise KimodoNpzSourceError("Kimodo SOMA77 definition identity drifted")
+    if skeleton.get("definition_scope") != "joint_names_and_parents" \
+            or skeleton.get("rest_geometry_policy") != \
+            "source_frame0_unverified":
+        raise KimodoNpzSourceError(
+            "Kimodo SOMA77 rest-geometry interpretation is unsupported"
+        )
 
 
 def _array_profile(value: Any) -> None:

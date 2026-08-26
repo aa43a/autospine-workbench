@@ -41,7 +41,7 @@ from .motion_validation import (
 
 
 COMPILER_ID = "kimodo-npz-motionir-compiler"
-COMPILER_VERSION = "1.0.0"
+COMPILER_VERSION = "1.1.0"
 READER_PROFILE = "stdlib-zip-npy-v1-v2-primitive-c-order-v1"
 CONSISTENCY_PROFILE = "soma77-local-root-matrix-fk-crosscheck-v1"
 PROJECTION_PROFILE = "explicit-signed-basis-projected-segment-v1"
@@ -86,11 +86,15 @@ def kimodo_npz_compiler_config() -> dict[str, Any]:
     return {
         "reader": READER_PROFILE,
         "skeleton_definition_sha256": SOMA77_DEFINITION_SHA256,
+        "skeleton_definition_scope": "joint_names_and_parents",
+        "rest_geometry": "source-frame0-unverified-v1",
         "consistency": CONSISTENCY_PROFILE,
         "matrix_orthonormal_tolerance": MATRIX_ORTHONORMAL_TOLERANCE,
         "matrix_crosscheck_tolerance": MATRIX_CROSSCHECK_TOLERANCE,
         "position_crosscheck_meters": POSITION_CROSSCHECK_METERS,
         "heading_norm_tolerance": HEADING_NORM_TOLERANCE,
+        "smooth_root_evidence": "bounded-finite-only-v1",
+        "global_heading_evidence": "unit-norm-only-v1",
         "projection": PROJECTION_PROFILE,
         "baseline": BASELINE_PROFILE,
         "root": ROOT_PROFILE,

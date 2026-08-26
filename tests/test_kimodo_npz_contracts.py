@@ -39,6 +39,18 @@ except ImportError:  # pragma: no cover - optional test extra
     Draft202012Validator = None
 
 
+def _swap_mapped_character_sides(mapping: dict) -> None:
+    """Swap every pinned left/right branch while retaining canonical roles."""
+
+    for row in mapping["bones"]:
+        for field in ("joint_name", "aim_joint_name"):
+            value = row[field]
+            if value.startswith("Left"):
+                row[field] = "Right" + value[4:]
+            elif value.startswith("Right"):
+                row[field] = "Left" + value[5:]
+
+
 class KimodoNpzContractTests(unittest.TestCase):
     def test_pinned_soma77_identity_is_complete_and_stable(self):
         self.assertEqual(77, len(SOMA77_JOINT_NAMES))
@@ -93,6 +105,34 @@ class KimodoNpzContractTests(unittest.TestCase):
             with self.subTest(raw=changed), self.assertRaises(KimodoNpzSourceError):
                 require_kimodo_npz_source(baseline, raw_npz=changed)
 
+    def test_revision_lengths_match_the_json_schema(self):
+        valid = source_document(recorded=True)
+        for length in (40, 64):
+            candidate = deepcopy(valid)
+            candidate["producer"]["repository_revision"] = "a" * length
+            candidate["producer"]["checkpoint_revision"] = "b" * length
+            require_kimodo_npz_source(candidate)
+            self._schema("kimodo-npz-source-v1.schema.json", candidate)
+
+        schema = json.loads(
+            (ROOT / "schemas" / "kimodo-npz-source-v1.schema.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        validator = (
+            Draft202012Validator(schema)
+            if Draft202012Validator is not None else None
+        )
+        for length in (41, 63):
+            candidate = deepcopy(valid)
+            candidate["producer"]["repository_revision"] = "a" * length
+            with self.subTest(length=length), self.assertRaises(
+                KimodoNpzSourceError
+            ):
+                require_kimodo_npz_source(candidate)
+            if validator is not None:
+                self.assertFalse(validator.is_valid(candidate))
+
     def test_map_schema_semantics_and_source_cross_binding(self):
         source = source_document()
         mapping = map_document()
@@ -123,6 +163,7 @@ class KimodoNpzContractTests(unittest.TestCase):
             lambda value: value["bones"].reverse(),
             lambda value: value["bones"][1].update(joint_name="LeftArm"),
             lambda value: value["bones"][1].update(aim_joint_name="Hips"),
+            _swap_mapped_character_sides,
             lambda value: value["contact"]["channels"][0].update(index=1),
             lambda value: value["contact"].update(layout=
                 "left-heel-toe-toe_end-right-heel-toe-toe_end-v1"),

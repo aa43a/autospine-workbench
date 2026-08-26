@@ -100,13 +100,18 @@
     "skeleton": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["profile_id", "joint_count", "definition_sha256"],
+      "required": [
+        "profile_id", "joint_count", "definition_sha256",
+        "definition_scope", "rest_geometry_policy"
+      ],
       "properties": {
         "profile_id": {"const": "kimodo-soma77-v1"},
         "joint_count": {"type": "integer", "const": 77},
         "definition_sha256": {
           "const": "081e13564aed36abcbbc53df655d40e6ba5141023452b78f07a96409e71d8623"
-        }
+        },
+        "definition_scope": {"const": "joint_names_and_parents"},
+        "rest_geometry_policy": {"const": "source_frame0_unverified"}
       }
     },
     "coordinateSystem": {

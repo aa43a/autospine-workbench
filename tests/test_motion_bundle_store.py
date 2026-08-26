@@ -19,7 +19,6 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from autospine_workbench.motion_bundle_contract import (  # noqa: E402
-    MotionBundleContractError,
     build_motion_bundle_contract,
 )
 from autospine_workbench.motion_bundle_store import (  # noqa: E402
@@ -192,36 +191,25 @@ class MotionBundleStoreTests(unittest.TestCase):
                     fixture.publish()
             self.assertFalse(fixture.state.exists())
 
-    def test_write_or_semantic_rebuild_failure_cleans_staging(self) -> None:
-        cases = ("write", "rebuild")
-        for case in cases:
-            with self.subTest(case=case), tempfile.TemporaryDirectory() as directory:
-                fixture = StoreFixture(Path(directory))
-                contract = fixture.contract
-                if case == "write":
-                    mocked = patch(
-                        "autospine_workbench.motion_bundle_store._write_file",
-                        side_effect=OSError("synthetic write failure"),
-                    )
-                else:
-                    real = build_motion_bundle_contract
-                    count = {"value": 0}
+    def test_write_failure_cleans_staging(self) -> None:
+        contract = self.fixture.contract
+        with patch(
+            "autospine_workbench.motion_bundle_store._write_file",
+            side_effect=OSError("synthetic write failure"),
+        ), self.assertRaises(MotionBundleStoreError):
+            self.fixture.publish()
+        parent = self.fixture.state / "motions" / contract.clip_sha256
+        self.assertTrue(parent.is_dir())
+        self.assertEqual([], list(parent.iterdir()))
 
-                    def fail_second(*values):
-                        count["value"] += 1
-                        if count["value"] == 2:
-                            raise MotionBundleContractError("synthetic rebuild failure")
-                        return real(*values)
-
-                    mocked = patch(
-                        "autospine_workbench.motion_bundle_store.build_motion_bundle_contract",
-                        side_effect=fail_second,
-                    )
-                with mocked, self.assertRaises(MotionBundleStoreError):
-                    fixture.publish()
-                parent = fixture.state / "motions" / contract.clip_sha256
-                self.assertTrue(parent.is_dir())
-                self.assertEqual([], list(parent.iterdir()))
+    def test_publication_builds_one_semantic_contract(self) -> None:
+        real = build_motion_bundle_contract
+        with patch(
+            "autospine_workbench.motion_bundle_store.build_motion_bundle_contract",
+            wraps=real,
+        ) as build:
+            self.fixture.publish()
+        self.assertEqual(1, build.call_count)
 
     def test_rename_failure_without_winner_cleans_staging(self) -> None:
         contract = self.fixture.contract

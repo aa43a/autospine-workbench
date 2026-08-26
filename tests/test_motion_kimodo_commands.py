@@ -21,6 +21,7 @@ from autospine_workbench.motion_kimodo_commands import (  # noqa: E402
     compile_kimodo_motion_bundle,
     verify_kimodo_motion_bundle,
 )
+from autospine_workbench import kimodo_npz_compiler as compiler_impl  # noqa: E402
 from autospine_workbench.safe_input_files import read_real_file  # noqa: E402
 from tests.fixtures.kimodo_npz_archive import (  # noqa: E402
     build_npz,
@@ -72,8 +73,13 @@ class KimodoMotionCommandTests(unittest.TestCase):
         with patch(
             "autospine_workbench.motion_kimodo_commands.read_real_file",
             side_effect=tracked,
-        ):
+        ), patch.object(
+            compiler_impl,
+            "compile_kimodo_npz_motion",
+            wraps=compiler_impl.compile_kimodo_npz_motion,
+        ) as compile_call:
             first = self.fixture.compile()
+        self.assertEqual(3, compile_call.call_count)
         second = self.fixture.compile()
         self.assertEqual([
             self.fixture.raw_path,

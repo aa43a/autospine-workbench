@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass
-import json
 import os
 from pathlib import Path
 import shutil
@@ -167,6 +166,8 @@ def _write_file(path: Path, data: bytes) -> None:
 def _verify(
     directory: Path, contract: MotionBundleContract, *, content_address: bool,
 ) -> None:
+    """Verify durable bytes against the already validated input contract."""
+
     directory = _require_real_directory(directory, "motion bundle directory")
     if content_address and directory.name != contract.bundle_sha256:
         raise MotionBundleStoreError("motion bundle has the wrong content-address path")
@@ -177,28 +178,6 @@ def _verify(
     actual = {name: _read_exact(files[name], len(data)) for name, data in expected.items()}
     if actual != expected:
         raise MotionBundleStoreError("motion bundle document bytes changed")
-    try:
-        kwargs = {}
-        if contract.source_kind == "bvh":
-            kwargs = {
-                "raw_bvh": actual["source.bvh"],
-                "bvh_map": json.loads(actual["map.json"]),
-            }
-        elif contract.source_kind == "kimodo_npz":
-            kwargs = {
-                "raw_npz": actual["source.npz"],
-                "kimodo_source": json.loads(actual["sidecar.json"]),
-                "kimodo_map": json.loads(actual["map.json"]),
-            }
-        rebuilt = build_motion_bundle_contract(
-            json.loads(actual["motion.json"]),
-            json.loads(actual["run-manifest.json"]),
-            **kwargs,
-        )
-    except (json.JSONDecodeError, UnicodeDecodeError, MotionBundleContractError) as exc:
-        raise MotionBundleStoreError("motion bundle semantic rebuild failed") from exc
-    if rebuilt != contract:
-        raise MotionBundleStoreError("motion bundle semantic identity changed")
 
 def _inventory(root: Path) -> dict[str, Path]:
     try:

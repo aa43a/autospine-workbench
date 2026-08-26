@@ -52,14 +52,16 @@
       "required": ["id", "version", "config"],
       "properties": {
         "id": {"const": "kimodo-npz-motionir-compiler"},
-        "version": {"const": "1.0.0"},
+        "version": {"const": "1.1.0"},
         "config": {
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "reader", "skeleton_definition_sha256", "consistency",
+            "reader", "skeleton_definition_sha256",
+            "skeleton_definition_scope", "rest_geometry", "consistency",
             "matrix_orthonormal_tolerance", "matrix_crosscheck_tolerance",
             "position_crosscheck_meters", "heading_norm_tolerance",
+            "smooth_root_evidence", "global_heading_evidence",
             "projection", "baseline", "root", "contact", "tick_schedule",
             "ticks_per_second", "decimal_places"
           ],
@@ -68,11 +70,15 @@
             "skeleton_definition_sha256": {
               "const": "081e13564aed36abcbbc53df655d40e6ba5141023452b78f07a96409e71d8623"
             },
+            "skeleton_definition_scope": {"const": "joint_names_and_parents"},
+            "rest_geometry": {"const": "source-frame0-unverified-v1"},
             "consistency": {"const": "soma77-local-root-matrix-fk-crosscheck-v1"},
             "matrix_orthonormal_tolerance": {"type": "number", "const": 0.0005},
             "matrix_crosscheck_tolerance": {"type": "number", "const": 0.0005},
             "position_crosscheck_meters": {"type": "number", "const": 0.0005},
             "heading_norm_tolerance": {"type": "number", "const": 0.005},
+            "smooth_root_evidence": {"const": "bounded-finite-only-v1"},
+            "global_heading_evidence": {"const": "unit-norm-only-v1"},
             "projection": {"const": "explicit-signed-basis-projected-segment-v1"},
             "baseline": {"const": "source-frame0-setup-local-v1"},
             "root": {"const": "root-positions-frame0-normalized-reference-v1"},

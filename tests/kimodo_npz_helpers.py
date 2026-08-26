@@ -70,6 +70,8 @@ def source_document(
             "profile_id": PROFILE_ID,
             "joint_count": 77,
             "definition_sha256": SOMA77_DEFINITION_SHA256,
+            "definition_scope": "joint_names_and_parents",
+            "rest_geometry_policy": "source_frame0_unverified",
         },
         "coordinate_system": dict(COORDINATE_SYSTEM),
         "array_profile": {

@@ -18,8 +18,10 @@ if str(SRC) not in sys.path:
 from autospine_workbench.kimodo_npz_compile_run import (  # noqa: E402
     KimodoNpzCompileRunError,
     build_kimodo_npz_compile_run,
+    compile_kimodo_npz_motion_run,
     require_kimodo_npz_compile_run,
 )
+from autospine_workbench import kimodo_npz_compiler as compiler_impl  # noqa: E402
 from autospine_workbench.kimodo_npz_compiler import (  # noqa: E402
     compile_kimodo_npz_motion,
 )
@@ -44,6 +46,21 @@ def fixture(*, inventory="complete-v1"):
 
 
 class KimodoNpzCompileRunTests(unittest.TestCase):
+    def test_combined_compile_derives_run_from_one_fk_pass(self):
+        raw = build_npz(motion_member_bytes())
+        source = source_document(raw)
+        mapping = map_document()
+        with patch.object(
+            compiler_impl,
+            "compile_kimodo_npz_motion",
+            wraps=compiler_impl.compile_kimodo_npz_motion,
+        ) as compile_call:
+            compiled, run = compile_kimodo_npz_motion_run(
+                raw, source, mapping
+            )
+        self.assertEqual(1, compile_call.call_count)
+        self.assertEqual(compiled.sha256, run.document["output"]["motion_ir_sha256"])
+
     def test_schema_and_semantics_pin_every_exact_input(self):
         raw, source, mapping, motion = fixture()
         run = build_kimodo_npz_compile_run(raw, source, mapping, motion)

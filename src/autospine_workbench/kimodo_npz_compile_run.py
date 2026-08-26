@@ -82,21 +82,26 @@ def build_kimodo_npz_compile_run(
 
     try:
         source_row, compiled = _compile_inputs(raw_npz, source, mapping)
-        _same_motion(motion_ir, compiled)
-        document = {
-            "format": FORMAT,
-            "format_version": FORMAT_VERSION,
-            "source": source_row,
-            "compiler": {
-                "id": compiler_impl.COMPILER_ID,
-                "version": compiler_impl.COMPILER_VERSION,
-                "config": compiler_impl.kimodo_npz_compiler_config(),
-            },
-            "validation": dict(compiled.consistency_metrics),
-            "output": {"motion_ir_sha256": compiled.sha256},
-        }
-        require_kimodo_npz_compile_run(document)
-        return KimodoNpzCompileRun(_canonical(document).decode("utf-8"))
+        return _run_from_compiled(source_row, compiled, motion_ir)
+    except KimodoNpzCompileRunError:
+        raise
+    except (TypeError, ValueError) as exc:
+        raise KimodoNpzCompileRunError(
+            f"Kimodo NPZ compile-run generation failed: {exc}"
+        ) from exc
+
+
+def compile_kimodo_npz_motion_run(
+    raw_npz: bytes,
+    source: Mapping[str, Any],
+    mapping: Mapping[str, Any],
+) -> tuple[compiler_impl.CompiledKimodoMotion, KimodoNpzCompileRun]:
+    """Compile once and derive its exact run manifest from the same artifact."""
+
+    try:
+        source_row, compiled = _compile_inputs(raw_npz, source, mapping)
+        run = _run_from_compiled(source_row, compiled, compiled.document)
+        return compiled, run
     except KimodoNpzCompileRunError:
         raise
     except (TypeError, ValueError) as exc:
@@ -178,6 +183,24 @@ def _compile_inputs(raw_npz, source, mapping):
         "array_inventory_sha256": compiled.array_inventory_sha256,
     }
     return source_row, compiled
+
+
+def _run_from_compiled(source_row, compiled, motion_ir) -> KimodoNpzCompileRun:
+    _same_motion(motion_ir, compiled)
+    document = {
+        "format": FORMAT,
+        "format_version": FORMAT_VERSION,
+        "source": source_row,
+        "compiler": {
+            "id": compiler_impl.COMPILER_ID,
+            "version": compiler_impl.COMPILER_VERSION,
+            "config": compiler_impl.kimodo_npz_compiler_config(),
+        },
+        "validation": dict(compiled.consistency_metrics),
+        "output": {"motion_ir_sha256": compiled.sha256},
+    }
+    require_kimodo_npz_compile_run(document)
+    return KimodoNpzCompileRun(_canonical(document).decode("utf-8"))
 
 
 def _same_motion(motion_ir, compiled) -> None:

@@ -48,6 +48,23 @@ _CONTACT_LAYOUT_ROWS = {
         (5, "leg.right", "toe_end"),
     ),
 }
+_ROLE_JOINT_AIMS = {
+    "humanoid.root": ("Hips", "Spine1"),
+    "humanoid.spine.lower": ("Spine1", "Spine2"),
+    "humanoid.spine.upper": ("Spine2", "Chest"),
+    "humanoid.neck": ("Neck1", "Neck2"),
+    "humanoid.head": ("Head", "HeadEnd"),
+    "humanoid.clavicle.left": ("LeftShoulder", "LeftArm"),
+    "humanoid.arm.upper.left": ("LeftArm", "LeftForeArm"),
+    "humanoid.arm.lower.left": ("LeftForeArm", "LeftHand"),
+    "humanoid.leg.upper.left": ("LeftLeg", "LeftShin"),
+    "humanoid.leg.lower.left": ("LeftShin", "LeftFoot"),
+    "humanoid.clavicle.right": ("RightShoulder", "RightArm"),
+    "humanoid.arm.upper.right": ("RightArm", "RightForeArm"),
+    "humanoid.arm.lower.right": ("RightForeArm", "RightHand"),
+    "humanoid.leg.upper.right": ("RightLeg", "RightShin"),
+    "humanoid.leg.lower.right": ("RightShin", "RightFoot"),
+}
 
 
 class KimodoNpzMapError(ValueError):
@@ -152,6 +169,10 @@ def _bones(value: Any, root_joint: str) -> dict[str, Mapping[str, Any]]:
         previous = order
         joint = _joint(row.get("joint_name"), "bone joint_name")
         aim = _joint(row.get("aim_joint_name"), "bone aim_joint_name")
+        if _ROLE_JOINT_AIMS.get(str(role)) != (joint, aim):
+            raise KimodoNpzMapError(
+                "Kimodo NPZ bone role differs from the pinned SOMA77 mapping"
+            )
         if joint in joints or aim in aims or not soma77_descends(aim, joint):
             raise KimodoNpzMapError(
                 "Kimodo NPZ bone sources/aims must be unique descendants"
