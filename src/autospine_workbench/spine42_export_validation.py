@@ -175,6 +175,8 @@ def require_spine42_atlas_inventory(data: bytes):
     lines = text[:-1].split("\n")
     if len(lines) < 12 or (len(lines) - 5) % 7:
         raise Spine42ExportValidationError("Atlas inventory shape is invalid")
+    if (len(lines) - 5) // 7 > ATLAS_MAX_REGIONS:
+        raise Spine42ExportValidationError("Atlas region count is invalid")
     size = _match_pair(_SIZE, lines[1].removeprefix("size: "), "atlas size")
     if lines[:1] != ["skeleton.png"] or lines[1] != f"size: {size[0]},{size[1]}" \
             or lines[2:5] != ["format: RGBA8888", "filter: Linear,Linear", "repeat: none"]:
@@ -182,11 +184,14 @@ def require_spine42_atlas_inventory(data: bytes):
     if max(size) > ATLAS_MAX_SIZE or min(size) < 1:
         raise Spine42ExportValidationError("Atlas page dimensions are invalid")
     regions: dict[str, tuple[int, int, int, int]] = {}
+    folded: set[str] = set()
     for start in range(5, len(lines), 7):
         block = lines[start:start + 7]
         name = require_safe_token(block[0], "Atlas region")
-        if name in regions or any(key.casefold() == name.casefold() for key in regions):
+        folded_name = name.casefold()
+        if folded_name in folded:
             raise Spine42ExportValidationError("Atlas region is duplicated or aliased")
+        folded.add(folded_name)
         xy = _prefixed_pair(block[2], "  xy: ", "region position")
         wh = _prefixed_pair(block[3], "  size: ", "region size")
         if block[1] != "  rotate: false" or block[4] != f"  orig: {wh[0]}, {wh[1]}" \
@@ -195,7 +200,7 @@ def require_spine42_atlas_inventory(data: bytes):
         if min(wh) < 1 or xy[0] + wh[0] > size[0] or xy[1] + wh[1] > size[1]:
             raise Spine42ExportValidationError(f"Atlas region is outside its page: {name}")
         regions[name] = (*xy, *wh)
-    if len(regions) > ATLAS_MAX_REGIONS or list(regions) != sorted(regions):
+    if list(regions) != sorted(regions):
         raise Spine42ExportValidationError("Atlas regions are not canonical and sorted")
     _require_nonoverlap(regions)
     return size[0], size[1], regions

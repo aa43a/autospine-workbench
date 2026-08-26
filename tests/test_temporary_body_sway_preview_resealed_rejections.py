@@ -219,6 +219,13 @@ class TemporaryBodySwayPreviewResealedRejectionTests(unittest.TestCase):
         replace_json_artifact(artifacts, "runtime/skeleton.json", skeleton)
         self.assert_resealed_rejected(document, artifacts)
 
+    def test_malformed_bone_is_wrapped_after_reseal(self) -> None:
+        document, artifacts = self.package()
+        skeleton = json_artifact(artifacts, "runtime/skeleton.json")
+        skeleton["bones"][0] = 7
+        replace_json_artifact(artifacts, "runtime/skeleton.json", skeleton)
+        self.assert_resealed_rejected(document, artifacts)
+
     def test_changed_setup_is_rejected_after_reseal(self) -> None:
         document, artifacts = self.package()
         skeleton = json_artifact(artifacts, "runtime/skeleton.json")

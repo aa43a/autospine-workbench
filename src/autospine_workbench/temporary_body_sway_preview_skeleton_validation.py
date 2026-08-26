@@ -190,9 +190,13 @@ def _skins(rows, slot_ids):
                 )
             for key, raw_attachment in _object(raw_values, "slot attachments").items():
                 instances += 1
+                if instances > MAX_ATTACHMENT_INSTANCES:
+                    raise TemporaryBodySwayPreviewSkeletonError(
+                        "Preview attachment instance count is invalid"
+                    )
                 _attachment(key, raw_attachment, attachments, sizes)
     if names[0] != "default" or names[1:] != sorted(names[1:]) \
-            or not attachments or instances > MAX_ATTACHMENT_INSTANCES:
+            or not attachments:
         raise TemporaryBodySwayPreviewSkeletonError(
             "Preview skin order or attachment count is invalid"
         )

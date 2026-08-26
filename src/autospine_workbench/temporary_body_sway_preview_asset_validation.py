@@ -78,10 +78,10 @@ def require_temporary_body_sway_preview_artifacts(
         skeleton = _canonical_json(
             values["runtime/skeleton.json"], "preview skeleton"
         )
-        require_projected_spine42_document(skeleton)
         counts = require_temporary_body_sway_preview_skeleton(
             skeleton, capture_plan, source, projection
         )
+        require_projected_spine42_document(skeleton)
         require_temporary_body_sway_preview_timeline(
             skeleton, projection, timing, source, selection,
             project_id=project_id, clip_id=clip_id,
@@ -129,7 +129,8 @@ def require_temporary_body_sway_preview_artifacts(
         Spine42ExportValidationError, TemporaryBodySwayPreviewTimelineError,
         TemporaryBodySwayPreviewInventoryError,
         TemporaryBodySwayPreviewSkeletonError,
-        KeyError, OverflowError, TypeError, UnicodeError, ValueError,
+        AttributeError, KeyError, OverflowError, RecursionError,
+        TypeError, UnicodeError, ValueError,
     ) as exc:
         raise TemporaryBodySwayPreviewAssetValidationError(
             f"Temporary preview artifact validation failed: {exc}"
