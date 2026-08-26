@@ -167,6 +167,20 @@ def _project_motion(
 def require_projected_spine42_document(document: Mapping[str, Any]) -> None:
     """Validate projected setup structure and attachment topology."""
 
+    try:
+        _require_projected_spine42_document(document)
+    except Spine42ContractError:
+        raise
+    except (
+        AttributeError, KeyError, OverflowError, RecursionError,
+        TypeError, UnicodeError, ValueError,
+    ) as exc:
+        raise Spine42ContractError(
+            f"Projected Spine JSON structure is invalid: {exc}"
+        ) from exc
+
+
+def _require_projected_spine42_document(document: Mapping[str, Any]) -> None:
     bones = document["bones"]
     ids: list[str] = []
     for bone in bones:

@@ -18,9 +18,19 @@ from autospine_workbench.spine42_export_validation import (  # noqa: E402
     Spine42ExportValidationError,
     require_spine42_atlas_inventory,
 )
+from autospine_workbench.spine42_contract import Spine42ContractError  # noqa: E402
+from autospine_workbench.spine42_json_adapter import (  # noqa: E402
+    require_projected_spine42_document,
+)
 
 
 class Spine42ExportValidationTests(unittest.TestCase):
+    def test_public_projected_document_validator_wraps_malformed_rows(self):
+        with self.assertRaises(Spine42ContractError):
+            require_projected_spine42_document({
+                "bones": [7], "slots": [], "skins": [],
+            })
+
     def test_oversized_region_inventory_is_rejected_before_parsing_rows(self):
         header = [
             "skeleton.png", "size: 1,1", "format: RGBA8888",

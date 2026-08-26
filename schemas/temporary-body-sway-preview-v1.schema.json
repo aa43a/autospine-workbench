@@ -415,9 +415,9 @@
         "artifact_total_bytes": {"type": "integer", "minimum": 5, "maximum": 115343360},
         "bone_count": {"type": "integer", "minimum": 1, "maximum": 4096},
         "slot_count": {"type": "integer", "minimum": 1, "maximum": 4096},
-        "attachment_count": {"type": "integer", "minimum": 1, "maximum": 16384},
-        "region_attachment_count": {"type": "integer", "minimum": 0, "maximum": 16384},
-        "mesh_attachment_count": {"type": "integer", "minimum": 0, "maximum": 16384},
+        "attachment_count": {"type": "integer", "minimum": 1, "maximum": 4096},
+        "region_attachment_count": {"type": "integer", "minimum": 0, "maximum": 4096},
+        "mesh_attachment_count": {"type": "integer", "minimum": 0, "maximum": 4096},
         "atlas_width": {"type": "integer", "minimum": 1, "maximum": 4096},
         "atlas_height": {"type": "integer", "minimum": 1, "maximum": 4096}
       }

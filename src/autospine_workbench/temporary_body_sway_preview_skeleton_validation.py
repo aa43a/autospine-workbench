@@ -15,6 +15,7 @@ from .body_sway_preview_profile import (
 from .manifest_artifacts import LayerManifestError, require_safe_token
 from .resolved_project import canonical_sha256
 from .body_sway_preview_projection import body_sway_preview_setup_sha256
+from .spine42_atlas import ATLAS_MAX_REGIONS
 
 
 MAX_SKINS = 256
@@ -196,7 +197,7 @@ def _skins(rows, slot_ids):
                     )
                 _attachment(key, raw_attachment, attachments, sizes)
     if names[0] != "default" or names[1:] != sorted(names[1:]) \
-            or not attachments:
+            or not attachments or len(attachments) > ATLAS_MAX_REGIONS:
         raise TemporaryBodySwayPreviewSkeletonError(
             "Preview skin order or attachment count is invalid"
         )

@@ -219,9 +219,9 @@ def _summary(value, projection, case_count, files) -> dict[str, int]:
             or row["bone_count"] < 1 or row["slot_count"] < 1 \
             or row["attachment_count"] < 1 \
             or row["bone_count"] > 4096 or row["slot_count"] > 4096 \
-            or row["attachment_count"] > 16_384 \
-            or row["region_attachment_count"] > 16_384 \
-            or row["mesh_attachment_count"] > 16_384 \
+            or row["attachment_count"] > 4096 \
+            or row["region_attachment_count"] > 4096 \
+            or row["mesh_attachment_count"] > 4096 \
             or row["attachment_count"] != row["region_attachment_count"] \
             + row["mesh_attachment_count"] \
             or not 1 <= row["atlas_width"] <= 4096 \
