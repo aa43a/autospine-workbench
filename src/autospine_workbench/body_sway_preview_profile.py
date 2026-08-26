@@ -63,3 +63,13 @@ def body_sway_preview_adapter_profile() -> dict[str, Any]:
             "version": SPINE_RUNTIME_VERSION,
         },
     }
+
+
+def body_sway_preview_runtime_target() -> dict[str, Any]:
+    """Return the adapter profile plus the pinned official package integrity."""
+
+    from .spine42_runtime_contract import RUNTIME_NPM_INTEGRITY
+
+    value = body_sway_preview_adapter_profile()
+    value["runtime"]["npm_integrity"] = RUNTIME_NPM_INTEGRITY
+    return value
