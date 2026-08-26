@@ -19,7 +19,10 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from autospine_workbench.body_sway_probe_geometry import (  # noqa: E402
-    evaluate_body_sway_geometry_sample,
+    evaluate_prepared_body_sway_geometry_sample,
+)
+from autospine_workbench.body_sway_probe_geometry_context import (  # noqa: E402
+    prepare_body_sway_geometry_context,
 )
 from autospine_workbench.body_sway_probe_inputs import (  # noqa: E402
     BodySwayProbeInputs,
@@ -29,6 +32,9 @@ from autospine_workbench.body_sway_probe_report import (  # noqa: E402
     BodySwayProbeReportError,
     compile_body_sway_probe_report,
     select_representative_indices,
+)
+from autospine_workbench.body_sway_probe_sampler import (  # noqa: E402
+    prepare_body_sway_sampler,
 )
 from autospine_workbench.body_sway_probe_validation import (  # noqa: E402
     body_sway_probe_report_sha256,
@@ -82,14 +88,24 @@ class BodySwayProbeReportCompilerTests(unittest.TestCase):
         started = time.perf_counter()
         with patch(
             "autospine_workbench.body_sway_probe_report."
-            "evaluate_body_sway_geometry_sample",
-            wraps=evaluate_body_sway_geometry_sample,
-        ) as evaluator:
+            "evaluate_prepared_body_sway_geometry_sample",
+            wraps=evaluate_prepared_body_sway_geometry_sample,
+        ) as evaluator, patch(
+            "autospine_workbench.body_sway_probe_report."
+            "prepare_body_sway_geometry_context",
+            wraps=prepare_body_sway_geometry_context,
+        ) as prepare_geometry, patch(
+            "autospine_workbench.body_sway_probe_report."
+            "prepare_body_sway_sampler",
+            wraps=prepare_body_sway_sampler,
+        ) as prepare_sampler:
             value = compile_body_sway_probe_report(self.inputs)
         elapsed = time.perf_counter() - started
         document = value.document
         count = document["summary"]["schedule_sample_count"]
         self.assertEqual(count, evaluator.call_count)
+        self.assertEqual(1, prepare_geometry.call_count)
+        self.assertEqual(1, prepare_sampler.call_count)
         self.assertLess(elapsed, 30.0)
         self.assertEqual("structural_rejected", document["status"])
         self.assertEqual(0, document["summary"]["mesh_attachment_count"])

@@ -9,17 +9,20 @@ from typing import Any
 
 from .body_sway_probe_geometry import (
     BodySwayProbeGeometryError,
-    evaluate_body_sway_geometry_sample,
+    evaluate_prepared_body_sway_geometry_sample,
+)
+from .body_sway_probe_geometry_context import (
+    prepare_body_sway_geometry_context,
 )
 from .body_sway_probe_inputs import BodySwayProbeInputs
 from .body_sway_probe_math import (
     BodySwayPoseSample,
     audit_body_sway_loop,
     build_body_sway_sample_ticks,
-    sample_body_sway_pose,
 )
 from .body_sway_probe_math_inputs import BodySwayProbeMathError
 from .body_sway_probe_profile import MAX_SAMPLE_COUNT, body_sway_probe_profile
+from .body_sway_probe_sampler import prepare_body_sway_sampler
 from .body_sway_probe_report_evidence import (
     BodySwayProbeReportEvidenceError,
     SampleStreamSealer,
@@ -84,6 +87,14 @@ def compile_body_sway_probe_report(
         selection = inputs.selection
         parameters = selection["parameters"]
         tracks = motion["tracks"]
+        sampler = prepare_body_sway_sampler(
+            timing,
+            tracks,
+            cycles=parameters["cycles"],
+            per_bone_amplitude_deg=parameters["per_bone_amplitude_deg"],
+            per_bone_phase_fraction=parameters["per_bone_phase_fraction"],
+        )
+        geometry_context = prepare_body_sway_geometry_context(rig, target)
         ticks = build_body_sway_sample_ticks(
             timing, tracks, cycles=parameters["cycles"],
             per_bone_phase_fraction=parameters["per_bone_phase_fraction"],
@@ -111,11 +122,7 @@ def compile_body_sway_probe_report(
         start = end = None
         start_pose_sha = end_pose_sha = None
         for index, tick in enumerate(ticks):
-            sample = sample_body_sway_pose(
-                timing, tracks, tick=tick, cycles=parameters["cycles"],
-                per_bone_amplitude_deg=parameters["per_bone_amplitude_deg"],
-                per_bone_phase_fraction=parameters["per_bone_phase_fraction"],
-            )
+            sample = sampler.sample(tick)
             visible = _visible_sample(sample, rotation_bone_ids)
             pose_sha = visible["sample_sha256"]
             stream.observe(tick, pose_sha)
@@ -128,7 +135,9 @@ def compile_body_sway_probe_report(
                 end = sample
                 end_pose_sha = _endpoint_pose_state_sha256(visible)
             structural.observe(
-                evaluate_body_sway_geometry_sample(rig, target, sample)
+                evaluate_prepared_body_sway_geometry_sample(
+                    geometry_context, sample
+                )
             )
         if start is None or end is None \
                 or start_pose_sha is None or end_pose_sha is None:
