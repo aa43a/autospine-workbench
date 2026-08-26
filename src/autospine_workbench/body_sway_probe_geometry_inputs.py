@@ -25,6 +25,15 @@ class BodySwayProbeGeometryError(ValueError):
 
 
 @dataclass(frozen=True, slots=True)
+class NormalizedBodySwayStaticGeometryInput:
+    bones: tuple[Mapping[str, Any], ...]
+    slots: tuple[tuple[str, str], ...]
+    attachments: tuple[Mapping[str, Any], ...]
+    mesh_targets: tuple[tuple[str, Mapping[str, Any]], ...]
+    canvas_size: Point
+
+
+@dataclass(frozen=True, slots=True)
 class NormalizedBodySwayGeometryInput:
     bones: tuple[Mapping[str, Any], ...]
     slots: tuple[tuple[str, str], ...]
@@ -41,6 +50,22 @@ def normalize_body_sway_geometry_input(
     sample: BodySwayPoseSample,
 ) -> NormalizedBodySwayGeometryInput:
     """Cross-bind the exact rig/profile and admit finite sample values."""
+
+    static = normalize_body_sway_static_geometry_input(rig, target)
+    rotations, translation = normalize_body_sway_pose_sample(
+        sample, {row["id"] for row in static.bones}
+    )
+    return NormalizedBodySwayGeometryInput(
+        static.bones, static.slots, static.attachments, static.mesh_targets,
+        static.canvas_size, rotations, translation,
+    )
+
+
+def normalize_body_sway_static_geometry_input(
+    rig: Mapping[str, Any],
+    target: Mapping[str, Any],
+) -> NormalizedBodySwayStaticGeometryInput:
+    """Cross-bind and validate sample-independent RigIR geometry once."""
 
     if not isinstance(rig, Mapping) or not isinstance(target, Mapping):
         raise BodySwayProbeGeometryError("Rig and target profile must be objects")
@@ -65,12 +90,18 @@ def normalize_body_sway_geometry_input(
         raise BodySwayProbeGeometryError(
             "Rig mesh inventory differs from the target profile"
         )
-    rotations, translation = _sample(sample, set(indexed))
-    return NormalizedBodySwayGeometryInput(
+    return NormalizedBodySwayStaticGeometryInput(
         tuple(bones), slots, tuple(attachments), targets,
         (float(canvas["width"]), float(canvas["height"])),
-        rotations, translation,
     )
+
+
+def normalize_body_sway_pose_sample(
+    sample: BodySwayPoseSample, bone_ids: set[str] | frozenset[str],
+) -> tuple[tuple[tuple[str, float], ...], Point]:
+    """Admit one exact sampled pose against a prepared bone inventory."""
+
+    return _sample(sample, bone_ids)
 
 
 def number(value: Any, label: str) -> float:

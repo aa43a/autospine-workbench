@@ -178,7 +178,8 @@ class BodySwayProbeGeometryRejectionTests(unittest.TestCase):
     def test_resource_bound_is_fail_closed(self):
         rig, target = exact_rig_and_target()
         with patch(
-            "autospine_workbench.body_sway_probe_geometry.RIG_VERTEX_LIMIT", 2
+            "autospine_workbench.body_sway_probe_geometry_context."
+            "RIG_VERTEX_LIMIT", 2
         ):
             self.assert_rejected(rig, target)
 

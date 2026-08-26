@@ -13,21 +13,25 @@ from typing import Any, TypeAlias
 
 from .body_sway_probe_geometry_inputs import (
     BodySwayProbeGeometryError,
-    normalize_body_sway_geometry_input,
+    normalize_body_sway_pose_sample,
     number,
     point,
-    points,
+)
+from .body_sway_probe_geometry_context import (
+    PreparedBodySwayGeometryContext,
+    PreparedBodySwayMesh,
+    PreparedBodySwayRegion,
+    prepare_body_sway_geometry_context,
+)
+from .body_sway_probe_deformation import (
+    assess_prepared_body_sway_deformation,
 )
 from .body_sway_probe_math import BodySwayPoseSample
-from .body_sway_probe_profile import (
-    MAX_AREA_RATIO,
-    MAX_EDGE_STRETCH,
-    MIN_AREA_RATIO,
+from .mesh_deformation_metrics import DeformationAssessment
+from .mesh_skinning_prepared import (
+    evaluate_skinning_pose,
+    skin_prepared_vertices,
 )
-from .mesh_action_probe_inputs import normalize_probe_input
-from .mesh_deformation_metrics import DeformationAssessment, measure_deformation
-from .mesh_rig_profile import RIG_TRIANGLE_LIMIT, RIG_VERTEX_LIMIT
-from .mesh_skinning import skin_vertices_lbs
 from .rig_fk import evaluate_world_setup
 
 
@@ -86,48 +90,58 @@ def evaluate_body_sway_geometry_sample(
 ) -> BodySwayGeometrySample:
     """Pose every setup attachment and return sampled structural evidence."""
 
+    context = prepare_body_sway_geometry_context(rig, target_profile)
+    return evaluate_prepared_body_sway_geometry_sample(context, sample)
+
+
+def evaluate_prepared_body_sway_geometry_sample(
+    context: PreparedBodySwayGeometryContext,
+    sample: BodySwayPoseSample,
+) -> BodySwayGeometrySample:
+    """Evaluate one sample while reusing exact immutable setup admission."""
+
     try:
-        admitted = normalize_body_sway_geometry_input(
-            rig, target_profile, sample
+        if type(context) is not PreparedBodySwayGeometryContext:
+            raise BodySwayProbeGeometryError(
+                "Prepared body-sway geometry context is invalid"
+            )
+        admitted_rotations, translation = normalize_body_sway_pose_sample(
+            sample, context.bone_ids
         )
-        rotations = dict(admitted.rotations)
-        slots, targets = dict(admitted.slots), dict(admitted.mesh_targets)
-        world = _world_geometry(
-            admitted.bones, rotations, admitted.root_translation_xy
+        rotations = dict(admitted_rotations)
+        skinning_pose = evaluate_skinning_pose(
+            context.skinning_rig, rotations
         )
+        world = _world_geometry(context.bones, rotations, translation)
         results, failures = [], []
-        mesh_vertices = mesh_triangles = 0
-        for attachment in sorted(admitted.attachments,
-                                 key=lambda row: row["id"]):
-            slot_id = attachment["slot"]
-            slot_bone = slots[slot_id]
-            if attachment["type"] == "region":
-                setup, posed, topology, assessment = _region(
-                    admitted.bones, attachment, slot_bone, rotations,
-                    admitted.root_translation_xy,
+        for attachment in context.attachments:
+            if type(attachment) not in {
+                PreparedBodySwayMesh, PreparedBodySwayRegion,
+            }:
+                raise BodySwayProbeGeometryError(
+                    "Prepared body-sway attachment is invalid"
                 )
-            else:
-                setup, posed, topology, assessment, counts = _mesh(
-                    admitted.bones, attachment, targets[attachment["id"]],
-                    rotations, admitted.root_translation_xy,
+            posed = skin_prepared_vertices(
+                skinning_pose, attachment.binding
+            )
+            posed = _translate(posed, translation)
+            if type(attachment) is PreparedBodySwayMesh:
+                topology = "passed"
+                assessment = assess_prepared_body_sway_deformation(
+                    attachment.deformation, posed
                 )
-                mesh_vertices += counts[0]
-                mesh_triangles += counts[1]
-                if mesh_vertices > RIG_VERTEX_LIMIT \
-                        or mesh_triangles > RIG_TRIANGLE_LIMIT:
-                    raise BodySwayProbeGeometryError(
-                        "Body-sway mesh geometry exceeds resource limits"
-                    )
+            elif type(attachment) is PreparedBodySwayRegion:
+                topology, assessment = "not_applicable", None
             outside = _outside(
-                attachment["id"], posed, admitted.canvas_size
+                attachment.attachment_id, posed, context.canvas_size
             )
             failures.extend(outside)
             results.append(BodySwayAttachmentGeometry(
-                attachment_id=attachment["id"],
-                attachment_type=attachment["type"],
-                slot_id=slot_id,
-                slot_bone_id=slot_bone,
-                setup_vertices_xy=setup,
+                attachment_id=attachment.attachment_id,
+                attachment_type=attachment.attachment_type,
+                slot_id=attachment.slot_id,
+                slot_bone_id=attachment.slot_bone_id,
+                setup_vertices_xy=attachment.setup_vertices_xy,
                 posed_vertices_xy=posed,
                 canvas_status="rejected" if outside else "passed",
                 outside_vertex_indices=tuple(
@@ -179,61 +193,6 @@ def _world_geometry(bones, rotations, translation):
             point(world[bone_id]["endpoint_xy"], f"bone {bone_id} endpoint"),
         )
         for bone_id in sorted(world)
-    )
-
-
-def _region(bones, attachment, slot_bone, rotations, translation):
-    x, y = point(attachment.get("canvas_offset_xy"), "region offset")
-    width, height = point(attachment.get("size"), "region size")
-    if width <= 0.0 or height <= 0.0:
-        raise BodySwayProbeGeometryError("Region size must be positive")
-    setup = ((x, y), (x + width, y),
-             (x + width, y + height), (x, y + height))
-    weights = tuple(({"bone": slot_bone, "weight": 1.0},) for _ in setup)
-    posed = skin_vertices_lbs(bones, setup, weights, rotations)
-    return setup, _translate(posed, translation), "not_applicable", None
-
-
-def _mesh(bones, attachment, target, rotations, translation):
-    normalized = normalize_probe_input(
-        bones, attachment,
-        target["proximal_bone_id"], target["distal_bone_id"],
-    )
-    uvs = points(attachment.get("uvs"), "mesh UVs")
-    if len(uvs) != len(normalized.vertices_xy) or any(
-        not 0.0 <= value <= 1.0 for pair in uvs for value in pair
-    ):
-        raise BodySwayProbeGeometryError(
-            "Mesh shared-index UV inventory is invalid"
-        )
-    referenced = {index for triangle in normalized.triangles
-                  for index in triangle}
-    if referenced != set(range(len(normalized.vertices_xy))):
-        raise BodySwayProbeGeometryError(
-            "Mesh topology has unreferenced vertices"
-        )
-    thresholds = {
-        "min_area_ratio": MIN_AREA_RATIO,
-        "max_area_ratio": MAX_AREA_RATIO,
-        "max_edge_stretch": MAX_EDGE_STRETCH,
-    }
-    setup_assessment = measure_deformation(
-        normalized.vertices_xy, normalized.vertices_xy,
-        normalized.triangles, **thresholds,
-    )
-    if setup_assessment.status != "passed":
-        raise BodySwayProbeGeometryError("Mesh setup topology is rejected")
-    posed = skin_vertices_lbs(
-        normalized.rig_bones, normalized.vertices_xy,
-        normalized.weights, rotations,
-    )
-    posed = _translate(posed, translation)
-    assessment = measure_deformation(
-        normalized.vertices_xy, posed, normalized.triangles, **thresholds,
-    )
-    return (
-        normalized.vertices_xy, posed, "passed", assessment,
-        (len(normalized.vertices_xy), len(normalized.triangles)),
     )
 
 
