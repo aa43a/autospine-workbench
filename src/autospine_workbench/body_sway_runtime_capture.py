@@ -34,6 +34,10 @@ from .body_sway_runtime_capture_validation import (
     require_body_sway_runtime_capture,
 )
 from .browser_executable_snapshot import BrowserExecutableSnapshot
+from .browser_version_identity import (
+    BrowserVersionIdentityError,
+    browser_version_identity_sha256,
+)
 from .spine42_runtime_inputs import Spine42RuntimePackage
 from .temporary_body_sway_preview import TemporaryBodySwayPreview
 from .temporary_body_sway_preview_validation import (
@@ -211,10 +215,22 @@ def require_exact_body_sway_runtime_capture(
 
 
 def _browser(value: BrowserExecutableSnapshot) -> dict[str, Any]:
+    try:
+        version_sha256 = browser_version_identity_sha256(
+            value.family, value.reported_version
+        )
+    except BrowserVersionIdentityError as exc:
+        raise BodySwayRuntimeCaptureError(
+            "Browser snapshot version identity is invalid"
+        ) from exc
+    if value.version_output_sha256 != version_sha256:
+        raise BodySwayRuntimeCaptureError(
+            "Browser snapshot version identity SHA-256 is inconsistent"
+        )
     return {
         "family": value.family,
         "reported_version": value.reported_version,
-        "version_output_sha256": value.version_output_sha256,
+        "version_output_sha256": version_sha256,
         "executable_sha256": value.executable_sha256,
         "executable_size": value.size_bytes,
         "identity_scope": "launcher-executable-and-reported-version",

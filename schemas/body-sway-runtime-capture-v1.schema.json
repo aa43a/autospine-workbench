@@ -57,27 +57,55 @@
     "runner": {
       "const": {
         "id": "body-sway-official-runtime-headless-runner",
-        "version": "1.0.0",
+        "version": "1.1.0",
+        "supported_host_os": "windows",
         "host": "127.0.0.1",
         "transport": "loopback-http-post",
         "case_order": "exact-capture-plan-order",
         "case_isolation": "fresh-browser-profile",
         "completion_signal": "collector-terminal-capture",
         "network_dependency": "none",
+        "chromium_sandbox": "disabled-for-owned-job",
+        "chromium_sandbox_reason": "required-for-owned-inner-job-chromium-compatibility",
+        "input_trust": "pinned-runtime-and-compiler-generated-local-assets-only",
+        "content_boundary": "loopback-only-csp-no-external-assets",
+        "browser_executable_stability": {
+          "mechanism": "windows-deny-write-delete-file-handle",
+          "share_mode": "file-share-read-only",
+          "scope": "before-snapshot-through-final-exact-replay",
+          "mapped_page_identity_claimed": false
+        },
+        "process_tree_control": {
+          "windows": {
+            "creation": "create-suspended",
+            "assignment": "new-empty-inner-kill-on-close-job-before-primary-thread-resume",
+            "inherited_parent_jobs": "allowed-as-outer-job",
+            "verification": "exact-inner-job-membership-before-resume",
+            "image_identity": "query-launched-image-path-and-rehash-launcher-before-resume",
+            "cleanup": "close-job-then-bounded-root-wait"
+          }
+        },
         "fixed_browser_arguments": [
           "--headless=new",
+          "--no-sandbox",
           "--disable-background-networking",
           "--disable-component-update",
+          "--disable-component-extensions-with-background-pages",
+          "--disable-client-side-phishing-detection",
           "--disable-default-apps",
           "--disable-domain-reliability",
           "--disable-extensions",
           "--disable-popup-blocking",
+          "--disable-skia-graphite",
           "--disable-sync",
+          "--disable-features=MediaRouter,OptimizationHints,Translate",
           "--force-device-scale-factor=1",
           "--hide-scrollbars",
+          "--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1",
           "--metrics-recording-only",
           "--no-default-browser-check",
           "--no-first-run",
+          "--no-proxy-server",
           "--run-all-compositor-stages-before-draw",
           "--virtual-time-budget=25000",
           "--window-size=640,640"

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 import json
-import re
 from typing import Any
 
 from .body_sway_probe_validation import (
@@ -29,6 +28,10 @@ from .body_sway_runtime_capture_session_validation import (
     require_body_sway_runtime_identity,
 )
 from .browser_executable_snapshot import MAX_EXECUTABLE_BYTES
+from .browser_version_identity import (
+    BrowserVersionIdentityError,
+    browser_version_identity_sha256,
+)
 from .idle_behavior_decision_validation_fields import (
     digest_value,
     identifier_value,
@@ -55,9 +58,6 @@ _CASE_FIELDS = {
     "case_id", "animation", "tick", "time_seconds", "image_path",
     "png_sha256",
 }
-_BROWSER_VERSION = re.compile(r"^[0-9]{1,6}(?:\.[0-9]{1,6}){3}$")
-
-
 class BodySwayRuntimeCaptureValidationError(ValueError):
     """Raised when runtime capture evidence is incomplete or overclaims."""
 
@@ -199,18 +199,28 @@ def _browser(value: Any) -> None:
         "family", "reported_version", "version_output_sha256",
         "executable_sha256", "executable_size", "identity_scope",
     }, "browser")
-    if row.get("family") not in {"google-chrome", "chromium"} \
-            or row.get("identity_scope") \
+    if row.get("identity_scope") \
             != "launcher-executable-and-reported-version" \
-            or type(row.get("reported_version")) is not str \
-            or _BROWSER_VERSION.fullmatch(row["reported_version"]) is None \
             or type(row.get("executable_size")) is not int \
             or not 1 <= row["executable_size"] <= MAX_EXECUTABLE_BYTES:
         raise BodySwayRuntimeCaptureValidationError(
             "Runtime capture browser identity is invalid"
         )
-    row["reported_version"].encode("utf-8")
-    digest_value(row.get("version_output_sha256"), "browser version output SHA-256")
+    try:
+        expected_version_sha = browser_version_identity_sha256(
+            row.get("family"), row.get("reported_version")
+        )
+    except BrowserVersionIdentityError as exc:
+        raise BodySwayRuntimeCaptureValidationError(
+            "Runtime capture browser identity is invalid"
+        ) from exc
+    digest_value(
+        row.get("version_output_sha256"), "browser version output SHA-256"
+    )
+    if row["version_output_sha256"] != expected_version_sha:
+        raise BodySwayRuntimeCaptureValidationError(
+            "Runtime capture browser version identity SHA-256 is inconsistent"
+        )
     digest_value(row.get("executable_sha256"), "browser executable SHA-256")
 
 

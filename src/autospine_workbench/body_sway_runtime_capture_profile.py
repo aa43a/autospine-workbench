@@ -15,25 +15,32 @@ from .body_sway_runtime_capture_page import (
 COMPILER_ID = "body-sway-official-runtime-capture-compiler"
 COMPILER_VERSION = "1.0.0"
 RUNNER_ID = "body-sway-official-runtime-headless-runner"
-RUNNER_VERSION = "1.0.0"
+RUNNER_VERSION = "1.1.0"
 ARTIFACT_SET_DIGEST_DOMAIN = "autospine-body-sway-runtime-capture-artifacts/v1"
 CASE_STREAM_DIGEST_DOMAIN = "autospine-body-sway-runtime-capture-cases/v1"
 MAX_CAPTURE_DOCUMENT_BYTES = 2 * 1024 * 1024
 MAX_CAPTURE_ARTIFACTS = 55
 BROWSER_FIXED_ARGUMENTS = (
     "--headless=new",
+    "--no-sandbox",
     "--disable-background-networking",
     "--disable-component-update",
+    "--disable-component-extensions-with-background-pages",
+    "--disable-client-side-phishing-detection",
     "--disable-default-apps",
     "--disable-domain-reliability",
     "--disable-extensions",
     "--disable-popup-blocking",
+    "--disable-skia-graphite",
     "--disable-sync",
+    "--disable-features=MediaRouter,OptimizationHints,Translate",
     "--force-device-scale-factor=1",
     "--hide-scrollbars",
+    "--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1",
     "--metrics-recording-only",
     "--no-default-browser-check",
     "--no-first-run",
+    "--no-proxy-server",
     "--run-all-compositor-stages-before-draw",
     "--virtual-time-budget=25000",
     "--window-size=640,640",
@@ -90,12 +97,41 @@ def body_sway_runtime_capture_runner_profile() -> dict[str, Any]:
     return {
         "id": RUNNER_ID,
         "version": RUNNER_VERSION,
+        "supported_host_os": "windows",
         "host": "127.0.0.1",
         "transport": "loopback-http-post",
         "case_order": "exact-capture-plan-order",
         "case_isolation": "fresh-browser-profile",
         "completion_signal": "collector-terminal-capture",
         "network_dependency": "none",
+        "chromium_sandbox": "disabled-for-owned-job",
+        "chromium_sandbox_reason": (
+            "required-for-owned-inner-job-chromium-compatibility"
+        ),
+        "input_trust": (
+            "pinned-runtime-and-compiler-generated-local-assets-only"
+        ),
+        "content_boundary": "loopback-only-csp-no-external-assets",
+        "browser_executable_stability": {
+            "mechanism": "windows-deny-write-delete-file-handle",
+            "share_mode": "file-share-read-only",
+            "scope": "before-snapshot-through-final-exact-replay",
+            "mapped_page_identity_claimed": False,
+        },
+        "process_tree_control": {
+            "windows": {
+                "creation": "create-suspended",
+                "assignment": (
+                    "new-empty-inner-kill-on-close-job-before-primary-thread-resume"
+                ),
+                "inherited_parent_jobs": "allowed-as-outer-job",
+                "verification": "exact-inner-job-membership-before-resume",
+                "image_identity": (
+                    "query-launched-image-path-and-rehash-launcher-before-resume"
+                ),
+                "cleanup": "close-job-then-bounded-root-wait",
+            },
+        },
         "fixed_browser_arguments": list(BROWSER_FIXED_ARGUMENTS),
         "harness": {
             "javascript_sha256": hashlib.sha256(CAPTURE_JS).hexdigest(),

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 import hashlib
 import json
 from pathlib import Path
@@ -36,6 +37,9 @@ from autospine_workbench.body_sway_runtime_capture_validation import (  # noqa: 
 )
 from autospine_workbench.browser_executable_snapshot import (  # noqa: E402
     BrowserExecutableSnapshot,
+)
+from autospine_workbench.browser_version_identity import (  # noqa: E402
+    browser_version_identity_sha256,
 )
 from autospine_workbench.spine42_runtime_profile import (  # noqa: E402
     SPINE_PLAYER_JAVASCRIPT_SHA256,
@@ -134,8 +138,11 @@ class BodySwayRuntimeCaptureTests(unittest.TestCase):
         runtime["runtime"]["javascript_sha256"] = "f" * 64
         mutations.append(runtime)
         browser = self.capture.document
-        browser["browser"]["reported_version"] = "128"
+        browser["browser"]["reported_version"] = "129.0.6613.0"
         mutations.append(browser)
+        browser_sha = self.capture.document
+        browser_sha["browser"]["version_output_sha256"] = "0" * 64
+        mutations.append(browser_sha)
         cases = self.capture.document
         cases["cases"][1], cases["cases"][3] = (
             cases["cases"][3], cases["cases"][1]
@@ -159,6 +166,20 @@ class BodySwayRuntimeCaptureTests(unittest.TestCase):
                 self.fixture.preview, self.fixture.runtime,
                 self.fixture.sessions, self.snapshot, self.browser,
                 assets, self.capture.capture_bytes,
+            )
+
+        resealed_browser = self.capture.document
+        resealed_browser["browser"]["reported_version"] = "129.0.6613.0"
+        resealed_browser["browser"]["version_output_sha256"] = (
+            browser_version_identity_sha256("chromium", "129.0.6613.0")
+        )
+        with fake_runtime_profile(), self.assertRaises(
+            BodySwayRuntimeCaptureError
+        ):
+            require_exact_body_sway_runtime_capture(
+                self.fixture.preview, self.fixture.runtime,
+                self.fixture.sessions, self.snapshot, self.browser,
+                resealed_browser, self.capture.capture_bytes,
             )
 
     def test_png_bytes_and_snapshot_reports_are_exactly_bound(self):
@@ -200,6 +221,16 @@ class BodySwayRuntimeCaptureTests(unittest.TestCase):
             compile_body_sway_runtime_capture(
                 self.fixture.preview, self.fixture.runtime,
                 self.fixture.sessions, self.snapshot, {},
+            )
+
+    def test_compiler_rejects_forged_browser_version_identity_sha(self):
+        forged = replace(self.browser, version_output_sha256="a" * 64)
+        with fake_runtime_profile(), self.assertRaisesRegex(
+            BodySwayRuntimeCaptureError, "identity SHA-256"
+        ):
+            compile_body_sway_runtime_capture(
+                self.fixture.preview, self.fixture.runtime,
+                self.fixture.sessions, self.snapshot, forged,
             )
 
     @unittest.skipIf(Draft202012Validator is None, "jsonschema is optional")
