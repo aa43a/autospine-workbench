@@ -16,6 +16,7 @@ P10_PREFIXES = (
     "src/autospine_workbench/p10_",
     "web/body-sway-",
     "web/modules/body-sway-",
+    "web/tests/body-sway-review",
 )
 
 # Current ratchet ceilings. Entries may only be lowered or removed.

@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/body-sway-review.test.js tests/body-sway-review-accessibility.test.js"
+  }
+}
