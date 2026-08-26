@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/body-sway-visual-review-candidate-v1.schema.json",
+  "title": "AutoSpine BodySwayVisualReviewCandidate v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "project_id", "clip_id", "source",
+    "generator", "semantics", "cases", "status", "release_gate", "summary"
+  ],
+  "properties": {
+    "format": {"const": "autospine-body-sway-visual-review-candidate"},
+    "format_version": {"type": "integer", "const": 1},
+    "project_id": {"$ref": "#/$defs/id"},
+    "clip_id": {"$ref": "#/$defs/id"},
+    "source": {"$ref": "#/$defs/source"},
+    "generator": {
+      "const": {
+        "id": "body-sway-visual-review-candidate-compiler",
+        "version": "1.0.0",
+        "browser_profile_digest_domain": "autospine-body-sway-browser-profile/v1",
+        "case_evidence_digest_domain": "autospine-body-sway-visual-case-evidence/v1"
+      }
+    },
+    "semantics": {
+      "const": {
+        "scope": "sampled-official-runtime-still-visual-review",
+        "candidate_only": true,
+        "human_review_claimed": false,
+        "visual_quality_claimed": false,
+        "safe_range_claimed": false,
+        "continuous_time_safety_claimed": false,
+        "inter_attachment_seam_safety_claimed": false,
+        "publishable": false,
+        "release_authority": false,
+        "detached_validation_scope": "shape-and-internal-compiler-seals-only",
+        "content_digests_are_compiler_seals": true,
+        "exact_source_replay_required": true
+      }
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 55,
+      "items": {"$ref": "#/$defs/case"}
+    },
+    "status": {"const": "candidate_only"},
+    "release_gate": {
+      "const": {
+        "status": "blocked",
+        "reason_codes": [
+          "continuous_time_safety_unproven",
+          "manual_visual_review_required",
+          "preview_only_timeline",
+          "reviewed_seam_anchors_missing",
+          "safe_range_unproven"
+        ]
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["case_count", "pending_count", "status"],
+      "properties": {
+        "case_count": {"type": "integer", "minimum": 3, "maximum": 55},
+        "pending_count": {"type": "integer", "minimum": 3, "maximum": 55},
+        "status": {"const": "candidate_only"}
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "runtime_capture_manifest_sha256", "runtime_capture_bundle_sha256",
+        "temporary_preview_sha256", "capture_artifact_set_sha256",
+        "capture_case_stream_sha256", "browser_profile_sha256"
+      ],
+      "properties": {
+        "runtime_capture_manifest_sha256": {"$ref": "#/$defs/sha"},
+        "runtime_capture_bundle_sha256": {"$ref": "#/$defs/sha"},
+        "temporary_preview_sha256": {"$ref": "#/$defs/sha"},
+        "capture_artifact_set_sha256": {"$ref": "#/$defs/sha"},
+        "capture_case_stream_sha256": {"$ref": "#/$defs/sha"},
+        "browser_profile_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id", "animation", "tick", "time_seconds", "image",
+        "evidence_sha256"
+      ],
+      "properties": {
+        "case_id": {"$ref": "#/$defs/id"},
+        "animation": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/id"}]
+        },
+        "tick": {"type": "integer", "minimum": 0, "maximum": 600000000},
+        "time_seconds": {"type": "number", "minimum": 0, "maximum": 600},
+        "image": {"$ref": "#/$defs/image"},
+        "evidence_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "image": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "png_sha256", "size_bytes", "width", "height"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^captures/[A-Za-z0-9][A-Za-z0-9._-]{0,127}\\.png$"
+        },
+        "png_sha256": {"$ref": "#/$defs/sha"},
+        "size_bytes": {"type": "integer", "minimum": 1, "maximum": 4194304},
+        "width": {"const": 640},
+        "height": {"const": 640}
+      }
+    }
+  }
+}

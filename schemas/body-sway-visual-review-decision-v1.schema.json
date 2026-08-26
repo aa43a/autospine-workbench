@@ -1,0 +1,190 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/body-sway-visual-review-decision-v1.schema.json",
+  "title": "AutoSpine BodySwayVisualReviewDecision v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "project_id", "clip_id", "source", "review",
+    "semantics", "decisions", "status", "release_gate", "summary"
+  ],
+  "properties": {
+    "format": {"const": "autospine-body-sway-visual-review-decision"},
+    "format_version": {"type": "integer", "const": 1},
+    "project_id": {"$ref": "#/$defs/id"},
+    "clip_id": {"$ref": "#/$defs/id"},
+    "source": {"$ref": "#/$defs/source"},
+    "review": {"$ref": "#/$defs/review"},
+    "semantics": {"$ref": "#/$defs/semantics"},
+    "decisions": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 55,
+      "items": {"$ref": "#/$defs/decision"}
+    },
+    "status": {
+      "enum": ["sampled_visual_approved", "sampled_visual_rejected"]
+    },
+    "release_gate": {"$ref": "#/$defs/releaseGate"},
+    "summary": {"$ref": "#/$defs/summary"}
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "visual_review_candidate_sha256",
+        "runtime_capture_manifest_sha256", "runtime_capture_bundle_sha256",
+        "temporary_preview_sha256", "capture_artifact_set_sha256",
+        "capture_case_stream_sha256", "browser_profile_sha256"
+      ],
+      "properties": {
+        "visual_review_candidate_sha256": {"$ref": "#/$defs/sha"},
+        "runtime_capture_manifest_sha256": {"$ref": "#/$defs/sha"},
+        "runtime_capture_bundle_sha256": {"$ref": "#/$defs/sha"},
+        "temporary_preview_sha256": {"$ref": "#/$defs/sha"},
+        "capture_artifact_set_sha256": {"$ref": "#/$defs/sha"},
+        "capture_case_stream_sha256": {"$ref": "#/$defs/sha"},
+        "browser_profile_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method", "status", "reviewer_id", "notes", "revision",
+        "supersedes_decision_sha256"
+      ],
+      "properties": {
+        "method": {"const": "human"},
+        "status": {"const": "completed"},
+        "reviewer_id": {"$ref": "#/$defs/id"},
+        "notes": {"type": "string", "maxLength": 4096},
+        "revision": {
+          "type": "integer", "minimum": 1, "maximum": 64
+        },
+        "supersedes_decision_sha256": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha"}]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"revision": {"const": 1}},
+            "required": ["revision"]
+          },
+          "then": {
+            "properties": {"supersedes_decision_sha256": {"type": "null"}}
+          },
+          "else": {
+            "properties": {
+              "supersedes_decision_sha256": {"$ref": "#/$defs/sha"}
+            }
+          }
+        }
+      ]
+    },
+    "semantics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope", "candidate_only", "human_review_claimed",
+        "sampled_visual_review_claimed", "sampled_visual_approval_claimed",
+        "safe_range_claimed", "continuous_time_safety_claimed",
+        "inter_attachment_seam_safety_claimed", "publishable",
+        "release_authority", "detached_validation_scope",
+        "content_digests_are_compiler_seals", "exact_source_replay_required"
+      ],
+      "properties": {
+        "scope": {"const": "sampled-official-runtime-still-visual-review"},
+        "candidate_only": {"const": false},
+        "human_review_claimed": {"const": true},
+        "sampled_visual_review_claimed": {"const": true},
+        "sampled_visual_approval_claimed": {"type": "boolean"},
+        "safe_range_claimed": {"const": false},
+        "continuous_time_safety_claimed": {"const": false},
+        "inter_attachment_seam_safety_claimed": {"const": false},
+        "publishable": {"const": false},
+        "release_authority": {"const": false},
+        "detached_validation_scope": {
+          "const": "shape-and-internal-compiler-seals-only"
+        },
+        "content_digests_are_compiler_seals": {"const": true},
+        "exact_source_replay_required": {"const": true}
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["case_id", "evidence_sha256", "action", "notes"],
+      "properties": {
+        "case_id": {"$ref": "#/$defs/id"},
+        "evidence_sha256": {"$ref": "#/$defs/sha"},
+        "action": {"enum": ["approve", "reject", "unobservable"]},
+        "notes": {"type": "string", "maxLength": 2048}
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "action": {"enum": ["reject", "unobservable"]}
+            },
+            "required": ["action"]
+          },
+          "then": {"properties": {"notes": {"pattern": "\\S"}}}
+        }
+      ]
+    },
+    "releaseGate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reason_codes"],
+      "properties": {
+        "status": {"const": "blocked"},
+        "reason_codes": {
+          "oneOf": [
+            {
+              "const": [
+                "continuous_time_safety_unproven",
+                "preview_only_timeline",
+                "reviewed_seam_anchors_missing",
+                "safe_range_unproven"
+              ]
+            },
+            {
+              "const": [
+                "continuous_time_safety_unproven",
+                "preview_only_timeline",
+                "reviewed_seam_anchors_missing",
+                "safe_range_unproven",
+                "sampled_visual_review_rejected"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_count", "decision_count", "approve_count", "reject_count",
+        "unobservable_count"
+      ],
+      "properties": {
+        "case_count": {"type": "integer", "minimum": 3, "maximum": 55},
+        "decision_count": {"type": "integer", "minimum": 3, "maximum": 55},
+        "approve_count": {"type": "integer", "minimum": 0, "maximum": 55},
+        "reject_count": {"type": "integer", "minimum": 0, "maximum": 55},
+        "unobservable_count": {"type": "integer", "minimum": 0, "maximum": 55}
+      }
+    }
+  }
+}
