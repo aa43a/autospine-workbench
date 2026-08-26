@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/camera-model-v1.schema.json",
+  "title": "AutoSpine static orthographic camera model v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "camera_id", "projection", "basis",
+    "depth_positive", "origin", "normalization", "reference_length_meters"
+  ],
+  "properties": {
+    "format": {"const": "autospine-camera-model"},
+    "format_version": {"type": "integer", "const": 1},
+    "camera_id": {"$ref": "#/$defs/id"},
+    "projection": {"const": "static_orthographic"},
+    "basis": {"$ref": "#/$defs/basis"},
+    "depth_positive": {"enum": ["toward_camera", "away_from_camera"]},
+    "origin": {"const": "source_root_frame0"},
+    "normalization": {"const": "map_reference_length"},
+    "reference_length_meters": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1000000
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "signedAxis": {"enum": ["+X", "-X", "+Y", "-Y", "+Z", "-Z"]},
+    "basis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["screen_x", "screen_y", "depth"],
+      "properties": {
+        "screen_x": {"$ref": "#/$defs/signedAxis"},
+        "screen_y": {"$ref": "#/$defs/signedAxis"},
+        "depth": {"$ref": "#/$defs/signedAxis"}
+      }
+    }
+  }
+}

@@ -1,0 +1,175 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/projected-motion-ir-v1.schema.json",
+  "title": "AutoSpine target-independent ProjectedMotionIR v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "clip_id", "timing", "source",
+    "camera_sha256", "frames", "root_samples", "segment_tracks", "markers"
+  ],
+  "properties": {
+    "format": {"const": "autospine-projected-motion-ir"},
+    "format_version": {"type": "integer", "const": 1},
+    "clip_id": {"$ref": "#/$defs/id"},
+    "timing": {"$ref": "#/$defs/timing"},
+    "source": {"$ref": "#/$defs/source"},
+    "camera_sha256": {"$ref": "#/$defs/sha256"},
+    "frames": {
+      "type": "array", "minItems": 2, "maxItems": 4096,
+      "items": {"$ref": "#/$defs/frame"}
+    },
+    "root_samples": {
+      "type": "array", "minItems": 2, "maxItems": 4096,
+      "items": {"$ref": "#/$defs/rootSample"}
+    },
+    "segment_tracks": {
+      "type": "array", "minItems": 1, "maxItems": 17,
+      "items": {"$ref": "#/$defs/segmentTrack"}
+    },
+    "markers": {
+      "type": "array", "maxItems": 256,
+      "items": {"$ref": "#/$defs/marker"}
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "normalized": {"type": "number", "minimum": -1024, "maximum": 1024},
+    "nonnegativeNormalized": {
+      "type": "number", "minimum": 0, "maximum": 1024
+    },
+    "positiveNormalized": {
+      "type": "number", "exclusiveMinimum": 0, "maximum": 1024
+    },
+    "vector2": {
+      "type": "array", "minItems": 2, "maxItems": 2,
+      "prefixItems": [
+        {"$ref": "#/$defs/normalized"}, {"$ref": "#/$defs/normalized"}
+      ]
+    },
+    "boneRole": {
+      "enum": [
+        "humanoid.root", "humanoid.spine.lower", "humanoid.spine.upper",
+        "humanoid.neck", "humanoid.head", "humanoid.clavicle.left",
+        "humanoid.arm.upper.left", "humanoid.arm.lower.left",
+        "humanoid.hip.left", "humanoid.leg.upper.left",
+        "humanoid.leg.lower.left", "humanoid.clavicle.right",
+        "humanoid.arm.upper.right", "humanoid.arm.lower.right",
+        "humanoid.hip.right", "humanoid.leg.upper.right",
+        "humanoid.leg.lower.right"
+      ]
+    },
+    "timing": {
+      "type": "object", "additionalProperties": false,
+      "required": ["ticks_per_second", "duration_ticks", "loop", "frame_count"],
+      "properties": {
+        "ticks_per_second": {"type": "integer", "const": 1000000},
+        "duration_ticks": {"type": "integer", "minimum": 1, "maximum": 600000000},
+        "loop": {"type": "boolean"},
+        "frame_count": {"type": "integer", "minimum": 2, "maximum": 4096}
+      }
+    },
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "kind", "motion_ir_sha256", "motion_bundle_sha256",
+        "motion_run_sha256", "raw_npz_sha256", "source_sha256",
+        "map_sha256", "array_inventory_sha256"
+      ],
+      "properties": {
+        "kind": {"const": "kimodo_npz"},
+        "motion_ir_sha256": {"$ref": "#/$defs/sha256"},
+        "motion_bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "motion_run_sha256": {"$ref": "#/$defs/sha256"},
+        "raw_npz_sha256": {"$ref": "#/$defs/sha256"},
+        "source_sha256": {"$ref": "#/$defs/sha256"},
+        "map_sha256": {"$ref": "#/$defs/sha256"},
+        "array_inventory_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "frame": {
+      "type": "object", "additionalProperties": false,
+      "required": ["source_frame_index", "tick"],
+      "properties": {
+        "source_frame_index": {"type": "integer", "minimum": 0, "maximum": 4095},
+        "tick": {"type": "integer", "minimum": 0, "maximum": 600000000}
+      }
+    },
+    "rootSample": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "source_frame_index", "tick", "screen_translation_normalized",
+        "depth_translation_normalized"
+      ],
+      "properties": {
+        "source_frame_index": {"type": "integer", "minimum": 0, "maximum": 4095},
+        "tick": {"type": "integer", "minimum": 0, "maximum": 600000000},
+        "screen_translation_normalized": {"$ref": "#/$defs/vector2"},
+        "depth_translation_normalized": {"$ref": "#/$defs/normalized"}
+      }
+    },
+    "segmentTrack": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "role", "source_joint_name", "aim_joint_name", "delta_parent_role",
+        "setup_source_length_normalized", "setup_projected_length_normalized",
+        "samples"
+      ],
+      "properties": {
+        "role": {"$ref": "#/$defs/boneRole"},
+        "source_joint_name": {"$ref": "#/$defs/id"},
+        "aim_joint_name": {"$ref": "#/$defs/id"},
+        "delta_parent_role": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/boneRole"}]
+        },
+        "setup_source_length_normalized": {"$ref": "#/$defs/positiveNormalized"},
+        "setup_projected_length_normalized": {"$ref": "#/$defs/nonnegativeNormalized"},
+        "samples": {
+          "type": "array", "minItems": 2, "maxItems": 4096,
+          "items": {"$ref": "#/$defs/segmentSample"}
+        }
+      }
+    },
+    "segmentSample": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "source_frame_index", "tick", "projected_vector_normalized",
+        "source_length_normalized", "projected_length_normalized",
+        "foreshortening_ratio", "depth_cosine", "projected_world_angle_deg",
+        "start_depth_root_relative_normalized",
+        "end_depth_root_relative_normalized",
+        "midpoint_depth_root_relative_normalized", "projection_state"
+      ],
+      "properties": {
+        "source_frame_index": {"type": "integer", "minimum": 0, "maximum": 4095},
+        "tick": {"type": "integer", "minimum": 0, "maximum": 600000000},
+        "projected_vector_normalized": {"$ref": "#/$defs/vector2"},
+        "source_length_normalized": {"$ref": "#/$defs/positiveNormalized"},
+        "projected_length_normalized": {"$ref": "#/$defs/nonnegativeNormalized"},
+        "foreshortening_ratio": {"type": "number", "minimum": 0, "maximum": 1.001},
+        "depth_cosine": {"type": "number", "minimum": -1.001, "maximum": 1.001},
+        "projected_world_angle_deg": {
+          "type": "number", "minimum": -1000000, "maximum": 1000000
+        },
+        "start_depth_root_relative_normalized": {"$ref": "#/$defs/normalized"},
+        "end_depth_root_relative_normalized": {"$ref": "#/$defs/normalized"},
+        "midpoint_depth_root_relative_normalized": {"$ref": "#/$defs/normalized"},
+        "projection_state": {"enum": ["observable", "collapsed"]}
+      }
+    },
+    "marker": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "limb", "start_tick", "end_tick", "mode"],
+      "properties": {
+        "kind": {"const": "contact"},
+        "limb": {"enum": ["leg.left", "leg.right"]},
+        "start_tick": {"type": "integer", "minimum": 0, "maximum": 600000000},
+        "end_tick": {"type": "integer", "minimum": 1, "maximum": 600000000},
+        "mode": {"const": "annotation_only"}
+      }
+    }
+  }
+}
