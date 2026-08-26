@@ -16,6 +16,7 @@ if str(SRC) not in sys.path:
 from autospine_workbench.heading_evidence_math import (  # noqa: E402
     HeadingEvidenceMathError,
     heading_frame_math,
+    map_heading_components,
     unwrap_yaw_degrees,
 )
 
@@ -51,6 +52,13 @@ class HeadingEvidenceMathTests(unittest.TestCase):
             unwrap_yaw_degrees([170.0, -170.0, -160.0]),
             (170.0, 190.0, 200.0),
         )
+
+    def test_component_mapping_does_not_require_root_forward(self):
+        result = map_heading_components(
+            [0.0, 1.0], ["+X", "+Z"], BASIS
+        )
+        self.assertEqual(result["world_direction_xyz"], [0.0, 0.0, 1.0])
+        self.assertEqual(result["raw_yaw_deg"], 0.0)
 
     def test_rejects_nonunit_nonfinite_and_degenerate_root_projection(self):
         cases = (

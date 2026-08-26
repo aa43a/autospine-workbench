@@ -25,20 +25,12 @@ def heading_frame_math(
 ) -> dict:
     """Interpret one reviewed two-component direction and cross-check root FK."""
 
-    raw = _vector(raw_components, 2, "raw heading")
-    if abs(math.hypot(*raw) - 1.0) > HEADING_NORM_TOLERANCE:
-        raise HeadingEvidenceMathError("Raw heading is not a unit direction")
-    axes = tuple(component_axes)
-    if len(axes) != 2:
-        raise HeadingEvidenceMathError("Heading component axis count is invalid")
-    world = [0.0, 0.0, 0.0]
-    for value, token in zip(raw, axes):
-        index, sign = _axis(token)
-        world[index] += value * sign
-    lateral = _axis_component(world, camera_basis["screen_x"])
-    depth = _axis_component(world, camera_basis["depth"])
-    if math.hypot(lateral, depth) <= _EPSILON:
-        raise HeadingEvidenceMathError("Heading is degenerate in the camera plane")
+    mapped = map_heading_components(
+        raw_components, component_axes, camera_basis
+    )
+    world = mapped["world_direction_xyz"]
+    lateral = mapped["camera_screen_x_component"]
+    depth = mapped["camera_depth_component"]
 
     matrix = _matrix(root_global_matrix)
     local = [0.0, 0.0, 0.0]
@@ -61,15 +53,37 @@ def heading_frame_math(
     ) / (heading_length * root_length)
     angle = math.degrees(math.acos(max(-1.0, min(1.0, dot))))
     return {
-        "world_direction_xyz": [_q(value) for value in world],
-        "camera_screen_x_component": _q(lateral),
-        "camera_depth_component": _q(depth),
+        **mapped,
         "root_forward_camera_screen_x_component": _q(
             root_lateral / root_length
         ),
         "root_forward_camera_depth_component": _q(root_depth / root_length),
-        "raw_yaw_deg": _q(math.degrees(math.atan2(lateral, depth))),
         "root_forward_angle_error_deg": _q(angle),
+    }
+
+
+def map_heading_components(raw_components, component_axes, camera_basis) -> dict:
+    """Map only reviewed raw components; do not infer any root semantics."""
+
+    raw = _vector(raw_components, 2, "raw heading")
+    if abs(math.hypot(*raw) - 1.0) > HEADING_NORM_TOLERANCE:
+        raise HeadingEvidenceMathError("Raw heading is not a unit direction")
+    axes = tuple(component_axes)
+    if len(axes) != 2:
+        raise HeadingEvidenceMathError("Heading component axis count is invalid")
+    world = [0.0, 0.0, 0.0]
+    for value, token in zip(raw, axes):
+        index, sign = _axis(token)
+        world[index] += value * sign
+    lateral = _axis_component(world, camera_basis["screen_x"])
+    depth = _axis_component(world, camera_basis["depth"])
+    if math.hypot(lateral, depth) <= _EPSILON:
+        raise HeadingEvidenceMathError("Heading is degenerate in the camera plane")
+    return {
+        "world_direction_xyz": [_q(value) for value in world],
+        "camera_screen_x_component": _q(lateral),
+        "camera_depth_component": _q(depth),
+        "raw_yaw_deg": _q(math.degrees(math.atan2(lateral, depth))),
     }
 
 

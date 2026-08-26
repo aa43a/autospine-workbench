@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/heading-evidence-v1.schema.json",
+  "title": "AutoSpine reviewed heading evidence v1",
+  "type": "object", "additionalProperties": false,
+  "required": ["format", "format_version", "clip_id", "source", "status", "policy", "frames", "summary"],
+  "properties": {
+    "format": {"const": "autospine-heading-evidence"},
+    "format_version": {"const": 1},
+    "clip_id": {"$ref": "#/$defs/id"},
+    "source": {"$ref": "#/$defs/source"},
+    "status": {"enum": ["available", "unavailable"]},
+    "policy": {"$ref": "#/$defs/policy"},
+    "frames": {"type": "array", "maxItems": 4096, "items": {"$ref": "#/$defs/frame"}},
+    "summary": {"$ref": "#/$defs/summary"}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "axis": {"enum": ["+X", "-X", "+Y", "-Y", "+Z", "-Z"]},
+    "number": {"type": "number", "minimum": -1000000000000, "maximum": 1000000000000},
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": ["policy_evidence_sha256", "policy_map_sha256", "p7_motion_ir_sha256", "p7_bundle_sha256", "p7_run_sha256", "raw_npz_sha256", "kimodo_map_sha256", "p8_projected_motion_sha256", "p8_bundle_sha256", "p8_run_sha256", "camera_sha256"],
+      "properties": {
+        "policy_evidence_sha256": {"$ref": "#/$defs/sha"}, "policy_map_sha256": {"$ref": "#/$defs/sha"},
+        "p7_motion_ir_sha256": {"$ref": "#/$defs/sha"}, "p7_bundle_sha256": {"$ref": "#/$defs/sha"}, "p7_run_sha256": {"$ref": "#/$defs/sha"},
+        "raw_npz_sha256": {"$ref": "#/$defs/sha"}, "kimodo_map_sha256": {"$ref": "#/$defs/sha"},
+        "p8_projected_motion_sha256": {"$ref": "#/$defs/sha"}, "p8_bundle_sha256": {"$ref": "#/$defs/sha"}, "p8_run_sha256": {"$ref": "#/$defs/sha"}, "camera_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "policy": {
+      "type": "object", "additionalProperties": false,
+      "required": ["mode", "vector_semantics", "components", "root_local_forward_axis", "yaw_convention", "crosscheck", "camera_basis", "depth_positive", "candidate_emitted", "decision_emitted", "runtime_timeline_emitted"],
+      "properties": {
+        "mode": {"const": "evidence_only"}, "vector_semantics": {"const": "character_forward_world"},
+        "components": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "object", "additionalProperties": false, "required": ["index", "source_axis"], "properties": {"index": {"type": "integer", "minimum": 0, "maximum": 1}, "source_axis": {"$ref": "#/$defs/axis"}}}},
+        "root_local_forward_axis": {"$ref": "#/$defs/axis"},
+        "yaw_convention": {"const": "atan2_camera_screen_x_over_camera_depth"},
+        "crosscheck": {"type": "object", "additionalProperties": false, "required": ["policy", "maximum_angle_error_deg"], "properties": {"policy": {"const": "projected_root_forward_angle"}, "maximum_angle_error_deg": {"type": "number", "minimum": 0, "maximum": 180}}},
+        "camera_basis": {"type": "object", "additionalProperties": false, "required": ["screen_x", "screen_y", "depth"], "properties": {"screen_x": {"$ref": "#/$defs/axis"}, "screen_y": {"$ref": "#/$defs/axis"}, "depth": {"$ref": "#/$defs/axis"}}},
+        "depth_positive": {"enum": ["toward_camera", "away_from_camera"]},
+        "candidate_emitted": {"const": false}, "decision_emitted": {"const": false}, "runtime_timeline_emitted": {"const": false}
+      }
+    },
+    "frame": {
+      "type": "object", "additionalProperties": false,
+      "required": ["source_frame_index", "tick", "raw_components", "world_direction_xyz", "camera_screen_x_component", "camera_depth_component", "root_forward_camera_screen_x_component", "root_forward_camera_depth_component", "raw_yaw_deg", "unwrapped_yaw_deg", "root_forward_angle_error_deg"],
+      "properties": {
+        "source_frame_index": {"type": "integer", "minimum": 0, "maximum": 4095}, "tick": {"type": "integer", "minimum": 0},
+        "raw_components": {"$ref": "#/$defs/vector2"}, "world_direction_xyz": {"$ref": "#/$defs/vector3"},
+        "camera_screen_x_component": {"$ref": "#/$defs/number"}, "camera_depth_component": {"$ref": "#/$defs/number"},
+        "root_forward_camera_screen_x_component": {"$ref": "#/$defs/number"}, "root_forward_camera_depth_component": {"$ref": "#/$defs/number"},
+        "raw_yaw_deg": {"$ref": "#/$defs/number"}, "unwrapped_yaw_deg": {"$ref": "#/$defs/number"}, "root_forward_angle_error_deg": {"type": "number", "minimum": 0, "maximum": 180}
+      }
+    },
+    "vector2": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"$ref": "#/$defs/number"}},
+    "vector3": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"$ref": "#/$defs/number"}},
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "reason_code", "frame_count", "maximum_root_forward_angle_error_deg"],
+      "properties": {
+        "status": {"enum": ["available", "unavailable"]}, "reason_code": {"type": ["string", "null"]},
+        "frame_count": {"type": "integer", "minimum": 0, "maximum": 4096}, "maximum_root_forward_angle_error_deg": {"type": ["number", "null"], "minimum": 0, "maximum": 180}
+      }
+    }
+  }
+}
