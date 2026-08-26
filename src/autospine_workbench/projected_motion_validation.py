@@ -9,7 +9,6 @@ import re
 from typing import Any
 
 from .motion_roles import (
-    CANONICAL_BONE_ROLES,
     CONTACT_LIMBS,
 )
 from .motion_validation import MAX_DURATION_TICKS, TICKS_PER_SECOND
@@ -23,7 +22,6 @@ from .resolved_project import canonical_sha256
 FORMAT = "autospine-projected-motion-ir"
 FORMAT_VERSION = 1
 MAX_FRAMES = 4096
-MAX_TRACKS = len(CANONICAL_BONE_ROLES)
 MAX_MARKERS = 256
 MAX_DOCUMENT_BYTES = 64 * 1024 * 1024
 MAX_ABS_NORMALIZED = 1024.0

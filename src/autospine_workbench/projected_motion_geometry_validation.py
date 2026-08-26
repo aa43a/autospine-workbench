@@ -6,10 +6,10 @@ from collections.abc import Mapping
 import math
 from typing import Any
 
-from .motion_roles import CANONICAL_BONE_ROLES, nearest_mapped_parent_role
+from .motion_roles import CANONICAL_BONE_ROLE_ITEMS, nearest_mapped_parent_role
 
 
-MAX_TRACKS = len(CANONICAL_BONE_ROLES)
+MAX_TRACKS = len(CANONICAL_BONE_ROLE_ITEMS)
 MAX_ABS_NORMALIZED = 1024.0
 MAX_ABS_ANGLE_DEG = 1_000_000.0
 NUMERIC_TOLERANCE = 5e-4
@@ -42,7 +42,10 @@ def require_projected_segment_tracks(value: Any, frames, loop: bool) -> None:
         raise ProjectedMotionValidationError(
             "ProjectedMotionIR track resource limit exceeded"
         )
-    role_order = {role: index for index, role in enumerate(CANONICAL_BONE_ROLES)}
+    role_order = {
+        role: index for index, (role, _bone_id)
+        in enumerate(CANONICAL_BONE_ROLE_ITEMS)
+    }
     indexed: dict[str, Mapping[str, Any]] = {}
     previous = -1
     for raw in tracks:
@@ -89,9 +92,9 @@ def _samples(track: Mapping[str, Any], frames, loop: bool) -> None:
             raise ProjectedMotionValidationError(
                 "ProjectedMotionIR segment sample differs from frames"
             )
-        payload, angle = _geometry(row)
+        payload, angle, state = _geometry(row)
         payloads.append(payload)
-        angles.append(angle)
+        angles.append((angle, state))
     first = rows[0]
     if not _close(setup_source, float(first["source_length_normalized"])) \
             or not _close(
@@ -101,7 +104,8 @@ def _samples(track: Mapping[str, Any], frames, loop: bool) -> None:
             "ProjectedMotionIR setup lengths differ from frame zero"
         )
     for left, right in zip(angles, angles[1:]):
-        if abs(right - left) > 180.0 + NUMERIC_TOLERANCE:
+        if left[1] == right[1] == "observable" \
+                and abs(right[0] - left[0]) > 180.0 + NUMERIC_TOLERANCE:
             raise ProjectedMotionValidationError(
                 "ProjectedMotionIR angle contains a wrapped jump"
             )
@@ -154,10 +158,11 @@ def _geometry(row: Mapping[str, Any]):
             raise ProjectedMotionValidationError(
                 "ProjectedMotionIR angle differs from its projected vector"
             )
-    return (
+    payload = (
         vector, source, projected, ratio, cosine, angle, start, end, midpoint,
         state,
-    ), angle
+    )
+    return payload, angle, state
 
 
 def _vector2(value: Any, label: str) -> tuple[float, float]:
