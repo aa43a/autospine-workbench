@@ -132,10 +132,13 @@ def sample_body_sway_pose(
     for bone_id, prop, keys in normalize_tracks(tracks, duration):
         value = _sample(keys, tick)
         if prop == "rotation":
-            base[bone_id] = _quantize(float(value))
+            base[bone_id] = quantize_body_sway_number(float(value))
         else:
             vector = value
-            root = (_quantize(vector[0]), _quantize(vector[1]))
+            root = (
+                quantize_body_sway_number(vector[0]),
+                quantize_body_sway_number(vector[1]),
+            )
     if root is None:
         raise BodySwayProbeMathError("MotionInstance v2 root translation is missing")
     overlay: list[tuple[str, float]] = []
@@ -145,11 +148,14 @@ def sample_body_sway_pose(
         base.setdefault(bone_id, 0.0)
         overlay.append((
             bone_id,
-            _overlay(amplitude, phase, tick, duration, count),
+            sample_body_sway_overlay(amplitude, phase, tick, duration, count),
         ))
     overlay_map = dict(overlay)
     combined = tuple(
-        (bone_id, _quantize(value + overlay_map.get(bone_id, 0.0)))
+        (
+            bone_id,
+            quantize_body_sway_number(value + overlay_map.get(bone_id, 0.0)),
+        )
         for bone_id, value in sorted(base.items())
     )
     return BodySwayPoseSample(
@@ -216,11 +222,15 @@ def _sample(keys, tick: int):
     raise BodySwayProbeMathError("Body-sway sample is outside its key span")
 
 
-def _overlay(amplitude, phase, tick, duration, cycles):
+def sample_body_sway_overlay(amplitude, phase, tick, duration, cycles):
+    """Return the shared, endpoint-stable additive sway numeric kernel."""
+
     position = 0 if tick == duration else tick
     turns = Fraction(cycles * position, duration) + phase
     turns -= _floor(turns)
-    return _quantize(amplitude * math.sin(math.tau * float(turns)))
+    return quantize_body_sway_number(
+        amplitude * math.sin(math.tau * float(turns))
+    )
 
 
 def _add_neighbors(ticks: set[int], value: Fraction, duration: int) -> None:
@@ -237,7 +247,9 @@ def _ceil(value: Fraction) -> int:
     return -(-value.numerator // value.denominator)
 
 
-def _quantize(value: float) -> float:
+def quantize_body_sway_number(value: float) -> float:
+    """Apply the pinned Python nine-decimal numeric contract."""
+
     if not math.isfinite(value):
         raise BodySwayProbeMathError("Body-sway result must be finite")
     result = round(float(value), NUMERIC_PRECISION_DECIMALS)
