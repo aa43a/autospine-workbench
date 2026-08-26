@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from dataclasses import FrozenInstanceError
+from dataclasses import FrozenInstanceError, replace
 import json
+import os
 from pathlib import Path
 import sys
 import tempfile
@@ -21,11 +22,15 @@ from autospine_workbench.p10_preview_commands import (  # noqa: E402
     P10PreviewCommandError,
     compile_body_sway_preview_command,
     preview_artifact_sha256s,
+    require_exact_preview_for_mount,
 )
 from autospine_workbench.safe_input_files import (  # noqa: E402
     SafeInputFileError,
     read_real_file,
     strict_json_object,
+)
+from autospine_workbench.temporary_body_sway_preview import (  # noqa: E402
+    TemporaryBodySwayPreview,
 )
 from tests.body_sway_preview_helpers import BodySwayPreviewFixture  # noqa: E402
 from tests.p10_decision_command_helpers import write_json  # noqa: E402
@@ -103,6 +108,103 @@ class P10PreviewCommandTests(unittest.TestCase):
         self.assertTrue(first.document["summary"])
         with self.assertRaises(FrozenInstanceError):
             first.temporary_preview_sha256 = "f" * 64  # type: ignore[misc]
+
+    def test_mount_rebuilds_from_private_absolute_replay_spec(self):
+        result = self.compile()
+        spec = result._replay_spec
+        self.assertTrue(spec.state_root.is_absolute())
+        self.assertTrue(all(path.is_absolute() for path in spec.evidence_paths))
+        self.assertEqual(
+            self.fixture.persisted.command_kwargs,
+            spec.exact_chain_kwargs,
+        )
+        self.assertNotIn("_replay_spec", repr(result))
+
+        previous_cwd = Path.cwd()
+        try:
+            os.chdir(self.root)
+            with patch(
+                "autospine_workbench.p10_preview_commands."
+                "compile_body_sway_preview_command",
+                wraps=compile_body_sway_preview_command,
+            ) as compiler:
+                replay = require_exact_preview_for_mount(result)
+        finally:
+            os.chdir(previous_cwd)
+        self.assertEqual(1, compiler.call_count)
+        self.assertIsNot(result._preview, replay)
+        self.assertEqual(result._preview.canonical_bytes, replay.canonical_bytes)
+        self.assertEqual(result.artifact_bytes, replay.artifact_bytes)
+
+    def test_mount_rejects_modified_persisted_evidence(self):
+        documents = (
+            ("candidates", self.fixture.candidates),
+            ("decision", self.fixture.decision),
+            ("report", self.fixture.report.document),
+        )
+        for changed_index, (label, _) in enumerate(documents):
+            paths = tuple(
+                write_json(
+                    self.root / f"mutable-{label}-{name}.json", document
+                )
+                for name, document in documents
+            )
+            result = compile_body_sway_preview_command(
+                self.fixture.persisted.state,
+                self.fixture.persisted.mesh.project_id,
+                *paths,
+                **self.fixture.persisted.command_kwargs,
+            )
+            changed = json.loads(json.dumps(documents[changed_index][1]))
+            changed["project_id"] = f"changed-{label}-after-command"
+            write_json(paths[changed_index], changed)
+            with self.subTest(label=label), self.assertRaises(
+                P10PreviewCommandError
+            ):
+                require_exact_preview_for_mount(result)
+
+    def test_mount_compares_public_hashes_manifest_and_all_file_bytes(self):
+        result = self.compile()
+        public_hashes = (
+            "idle_behavior_candidates_sha256",
+            "idle_behavior_decision_sha256",
+            "body_sway_probe_report_sha256",
+            "temporary_preview_sha256",
+            "artifact_set_sha256",
+        )
+        for name in public_hashes:
+            with self.subTest(name=name), self.assertRaisesRegex(
+                P10PreviewCommandError, name
+            ):
+                require_exact_preview_for_mount(
+                    replace(result, **{name: "f" * 64})
+                )
+
+        manifest = result.document
+        manifest["status"] = "tampered-after-command"
+        forged_manifest = TemporaryBodySwayPreview(
+            _canonical_json=json.dumps(
+                manifest, ensure_ascii=False, allow_nan=False,
+                sort_keys=True, separators=(",", ":"),
+            ),
+            _artifact_items=tuple(sorted(result.artifact_bytes.items())),
+        )
+        with self.assertRaisesRegex(P10PreviewCommandError, "manifest"):
+            require_exact_preview_for_mount(
+                replace(result, _preview=forged_manifest)
+            )
+
+        artifacts = result.artifact_bytes
+        first_path = sorted(artifacts)[0]
+        artifacts[first_path] += b"tampered"
+        forged_artifacts = TemporaryBodySwayPreview(
+            _canonical_json=result._preview.canonical_bytes.decode("utf-8"),
+            _artifact_items=tuple(sorted(artifacts.items())),
+        )
+        with self.assertRaisesRegex(P10PreviewCommandError, "artifact bytes"):
+            require_exact_preview_for_mount(
+                replace(result, _preview=forged_artifacts)
+            )
 
     def test_each_exact_address_rejects_cross_wiring_without_writes(self):
         identities = tuple(self.fixture.persisted.command_kwargs.values())

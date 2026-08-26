@@ -16,6 +16,10 @@ from .body_sway_probe_inputs import (
     require_body_sway_probe_inputs,
 )
 from .p10_exact_chain import P10ExactChainError, load_p10_exact_chain
+from .p10_preview_replay_spec import (
+    P10PreviewReplaySpec,
+    build_p10_preview_replay_spec,
+)
 from .safe_input_files import (
     SafeInputFileError,
     read_real_file,
@@ -47,6 +51,7 @@ class P10PreviewCommandResult:
     temporary_preview_sha256: str
     artifact_set_sha256: str
     _preview: TemporaryBodySwayPreview = field(repr=False)
+    _replay_spec: P10PreviewReplaySpec = field(repr=False)
 
     @property
     def document(self) -> dict[str, Any]:
@@ -79,12 +84,9 @@ def compile_body_sway_preview_command(
     """Replay P3/P5/P9/P10 and compile five immutable bytes without writing."""
 
     try:
-        paths = tuple(Path(path) for path in (
+        replay_spec = build_p10_preview_replay_spec(
+            state_root, project_id,
             candidates_path, decision_path, probe_report_path,
-        ))
-        chain = load_p10_exact_chain(
-            state_root,
-            project_id,
             layer_manifest_sha256=layer_manifest_sha256,
             p3_rig_sha256=p3_rig_sha256,
             p3_bundle_sha256=p3_bundle_sha256,
@@ -92,6 +94,12 @@ def compile_body_sway_preview_command(
             motion_retarget_bundle_sha256=motion_retarget_bundle_sha256,
             motion_instance_v2_sha256=motion_instance_v2_sha256,
             reviewed_motion_bundle_sha256=reviewed_motion_bundle_sha256,
+        )
+        paths = replay_spec.evidence_paths
+        chain = load_p10_exact_chain(
+            replay_spec.state_root,
+            replay_spec.project_id,
+            **replay_spec.exact_chain_kwargs,
         )
         candidates, decision, report = tuple(
             _document(path, label) for path, label in zip(paths, (
@@ -132,6 +140,7 @@ def compile_body_sway_preview_command(
             temporary_preview_sha256=preview.sha256,
             artifact_set_sha256=preview.artifact_set_sha256,
             _preview=preview,
+            _replay_spec=replay_spec,
         )
     except P10PreviewCommandError:
         raise
@@ -156,6 +165,57 @@ def preview_artifact_sha256s(result: P10PreviewCommandResult) -> dict[str, str]:
         path: hashlib.sha256(raw).hexdigest()
         for path, raw in result.artifact_bytes.items()
     }
+
+
+def require_exact_preview_for_mount(
+    result: P10PreviewCommandResult,
+) -> TemporaryBodySwayPreview:
+    """Rebuild persisted inputs and reject any cached-result divergence."""
+
+    if type(result) is not P10PreviewCommandResult \
+            or type(result._replay_spec) is not P10PreviewReplaySpec:
+        raise P10PreviewCommandError("Preview command result is invalid")
+    try:
+        spec = result._replay_spec
+        replay = compile_body_sway_preview_command(
+            spec.state_root,
+            spec.project_id,
+            *spec.evidence_paths,
+            **spec.exact_chain_kwargs,
+        )
+        for name in _PUBLIC_SHA_FIELDS:
+            if getattr(result, name) != getattr(replay, name):
+                raise P10PreviewCommandError(
+                    f"Preview command {name} changed during mount replay"
+                )
+        if result.input_paths != replay.input_paths:
+            raise P10PreviewCommandError(
+                "Preview command input paths changed during mount replay"
+            )
+        if result._preview.canonical_bytes != replay._preview.canonical_bytes:
+            raise P10PreviewCommandError(
+                "Preview manifest changed during mount replay"
+            )
+        if result._preview.artifact_bytes != replay._preview.artifact_bytes:
+            raise P10PreviewCommandError(
+                "Preview artifact bytes changed during mount replay"
+            )
+        return replay._preview
+    except P10PreviewCommandError:
+        raise
+    except (AttributeError, TypeError, ValueError) as exc:
+        raise P10PreviewCommandError(
+            f"Preview mount replay failed: {exc}"
+        ) from exc
+
+
+_PUBLIC_SHA_FIELDS = (
+    "idle_behavior_candidates_sha256",
+    "idle_behavior_decision_sha256",
+    "body_sway_probe_report_sha256",
+    "temporary_preview_sha256",
+    "artifact_set_sha256",
+)
 
 
 _ERRORS = (
