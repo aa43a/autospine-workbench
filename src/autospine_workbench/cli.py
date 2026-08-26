@@ -30,6 +30,10 @@ from .motion_stage_cli import (
 from .pose_commands import analyze_joints as _analyze_joints
 from .pose_commands import evaluate_pose_command as _evaluate_pose
 from .pose_commands import import_pose as _import_pose
+from .projection_stage_cli import (
+    add_projection_stage_subcommands,
+    dispatch_projection_stage_command as _dispatch_projection_stage,
+)
 from .rig_validation import RigSemanticValidator
 from .rig_commands import (
     add_rig_subcommands,
@@ -223,6 +227,9 @@ def build_parser() -> argparse.ArgumentParser:
         subparsers,
         default_state_root=_project_root() / "workspace",
     )
+    add_projection_stage_subcommands(
+        subparsers, _project_root() / "workspace"
+    )
     add_spine42_stage_subcommands(
         subparsers,
         default_state_root=_project_root() / "workspace",
@@ -325,6 +332,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     motion_stage_status = _dispatch_motion_stage(args)
     if motion_stage_status is not None:
         return motion_stage_status
+    projection_stage_status = _dispatch_projection_stage(args)
+    if projection_stage_status is not None:
+        return projection_stage_status
     spine42_stage_status = _dispatch_spine42_stage(args)
     if spine42_stage_status is not None:
         return spine42_stage_status
