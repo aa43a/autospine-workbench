@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/reviewed-motion-bundle-run-v1.schema.json",
+  "title": "AutoSpine immutable reviewed-motion bundle provenance v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "project_id", "clip_id",
+    "inputs", "outputs", "compiler"
+  ],
+  "properties": {
+    "format": {"const": "autospine-reviewed-motion-bundle-run"},
+    "format_version": {"type": "integer", "const": 1},
+    "project_id": {"$ref": "#/$defs/token"},
+    "clip_id": {"$ref": "#/$defs/token"},
+    "inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "p3", "p5", "foot_lock_candidates_sha256",
+        "depth_order_candidates_sha256", "motion_policy_decision_sha256"
+      ],
+      "properties": {
+        "p3": {"$ref": "#/$defs/p3"},
+        "p5": {"$ref": "#/$defs/p5"},
+        "foot_lock_candidates_sha256": {"$ref": "#/$defs/sha256"},
+        "depth_order_candidates_sha256": {"$ref": "#/$defs/sha256"},
+        "motion_policy_decision_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reviewed_motion_policy_sha256", "motion_instance_v2_sha256"
+      ],
+      "properties": {
+        "reviewed_motion_policy_sha256": {"$ref": "#/$defs/sha256"},
+        "motion_instance_v2_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "compiler": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version"],
+      "properties": {
+        "id": {"const": "autospine-reviewed-motion-bundle-compiler"},
+        "version": {"const": "1.0.0"}
+      }
+    }
+  },
+  "$defs": {
+    "token": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "p3": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rig_sha256", "bundle_sha256"],
+      "properties": {
+        "rig_sha256": {"$ref": "#/$defs/sha256"},
+        "bundle_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "p5": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "instance_sha256", "bundle_sha256", "target_profile_sha256"
+      ],
+      "properties": {
+        "instance_sha256": {"$ref": "#/$defs/sha256"},
+        "bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "target_profile_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  }
+}
