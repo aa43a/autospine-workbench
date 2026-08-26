@@ -13,6 +13,7 @@ from .reviewed_motion_bundle_contract import (
     DOCUMENT_LIMITS,
     DOCUMENT_NAMES,
     MAX_TOTAL_DOCUMENT_BYTES,
+    ReviewedMotionBundleContract,
     ReviewedMotionBundleContractError,
     build_reviewed_motion_bundle_contract,
 )
@@ -77,6 +78,65 @@ class VerifiedReviewedMotionBundle:
             return json.loads(dict(self._document_items)[name])
         except KeyError as exc:
             raise KeyError(name) from exc
+
+
+def replay_verified_reviewed_motion_bundle(
+    bundle: VerifiedReviewedMotionBundle,
+    mesh_bundle: VerifiedMeshBundle,
+    retarget_bundle: VerifiedMotionRetargetBundle,
+) -> ReviewedMotionBundleContract:
+    """Rebuild one verified P9 value from its exact P3/P5 dependencies."""
+
+    try:
+        if type(bundle) is not VerifiedReviewedMotionBundle:
+            raise ReviewedMotionBundleIntegrityError(
+                "Reviewed-motion replay requires an exact verified bundle"
+            )
+        raw = bundle.document_bytes
+        if tuple(raw) != DOCUMENT_NAMES:
+            raise ReviewedMotionBundleIntegrityError(
+                "Verified reviewed-motion inventory differs from P9"
+            )
+        documents = {
+            name: strict_json_object(raw[name], name)
+            for name in DOCUMENT_NAMES
+        }
+        base_instance, target_profile = require_reviewed_motion_upstreams(
+            mesh_bundle, retarget_bundle
+        )
+        contract = build_reviewed_motion_bundle_contract(
+            bundle.project_id,
+            *(documents[name] for name in DOCUMENT_NAMES[:5]),
+            mesh_bundle,
+            base_instance,
+            target_profile,
+        )
+        if (
+            contract.project_id != bundle.project_id
+            or contract.clip_id != bundle.clip_id
+            or contract.inventory != bundle.inventory
+            or contract.identities != bundle.identities
+            or contract.document_bytes != raw
+        ):
+            raise ReviewedMotionBundleIntegrityError(
+                "Verified reviewed-motion bundle differs from its P9 replay"
+            )
+        return contract
+    except ReviewedMotionBundleIntegrityError:
+        raise
+    except (
+        ReviewedMotionBundleContractError,
+        ReviewedMotionBundleUpstreamError,
+        SafeInputFileError,
+        AttributeError,
+        KeyError,
+        OverflowError,
+        TypeError,
+        ValueError,
+    ) as exc:
+        raise ReviewedMotionBundleIntegrityError(
+            f"Reviewed-motion replay failed: {exc}"
+        ) from exc
 
 
 def verify_reviewed_motion_bundle_snapshot(

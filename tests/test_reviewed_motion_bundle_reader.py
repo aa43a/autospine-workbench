@@ -30,6 +30,7 @@ from autospine_workbench.reviewed_motion_bundle_reader import (  # noqa: E402
 from autospine_workbench.reviewed_motion_bundle_integrity import (  # noqa: E402
     ReviewedMotionBundleIntegrityError,
     ReviewedMotionBundleSnapshot,
+    replay_verified_reviewed_motion_bundle,
     verify_reviewed_motion_bundle_snapshot,
 )
 from tests.reviewed_motion_bundle_helpers import (  # noqa: E402
@@ -75,6 +76,20 @@ class ReviewedMotionBundleReaderTests(unittest.TestCase):
         isolated = verified.document_bytes
         isolated[DOCUMENT_NAMES[0]] = b"changed"
         self.assertNotEqual(isolated, verified.document_bytes)
+
+    def test_public_replay_rebuilds_exact_contract_and_rejects_spoof(self):
+        verified = self.load()
+        replayed = replay_verified_reviewed_motion_bundle(
+            verified, self.fixture.mesh, self.fixture.retarget
+        )
+        self.assertEqual(self.fixture.contract, replayed)
+        spoofed = replace(verified, bundle_sha256="f" * 64)
+        with self.assertRaisesRegex(
+            ReviewedMotionBundleIntegrityError, "differs from its P9 replay"
+        ):
+            replay_verified_reviewed_motion_bundle(
+                spoofed, self.fixture.mesh, self.fixture.retarget
+            )
 
     def test_reader_performs_zero_writes_and_has_no_latest_fallback(self):
         before = sorted(

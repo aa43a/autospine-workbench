@@ -22,21 +22,17 @@ from .motion_retarget_bundle_reader import (
     VerifiedMotionRetargetBundleReader,
     VerifiedMotionRetargetBundleReaderError,
 )
-from .reviewed_motion_bundle_contract import (
-    DOCUMENT_NAMES,
-    ReviewedMotionBundleContract,
-    ReviewedMotionBundleContractError,
-    build_reviewed_motion_bundle_contract,
+from .reviewed_motion_bundle_contract import ReviewedMotionBundleContractError
+from .reviewed_motion_bundle_integrity import (
+    ReviewedMotionBundleIntegrityError,
+    replay_verified_reviewed_motion_bundle,
 )
 from .reviewed_motion_bundle_reader import (
     VerifiedReviewedMotionBundleReader,
     VerifiedReviewedMotionBundleReaderError,
 )
-from .reviewed_motion_bundle_upstream import (
-    ReviewedMotionBundleUpstreamError,
-    require_reviewed_motion_upstreams,
-)
-from .safe_input_files import SafeInputFileError, strict_json_object
+from .reviewed_motion_bundle_upstream import ReviewedMotionBundleUpstreamError
+from .safe_input_files import SafeInputFileError
 
 
 class P10CandidateCommandError(RuntimeError):
@@ -86,8 +82,8 @@ def compile_idle_behavior_candidates_command(
             mesh_bundle=mesh,
             retarget_bundle=retarget,
         )
-        contract = _rebuild_reviewed_contract(
-            project_id, reviewed, mesh, retarget
+        contract = replay_verified_reviewed_motion_bundle(
+            reviewed, mesh, retarget
         )
         compiled = compile_idle_behavior_candidates(
             manifest.manifest, mesh, retarget, contract
@@ -106,43 +102,6 @@ def compile_idle_behavior_candidates_command(
             f"Idle behavior candidate command failed: {exc}"
         ) from exc
 
-
-def _rebuild_reviewed_contract(project_id, reviewed, mesh, retarget):
-    raw = reviewed.document_bytes
-    if tuple(raw) != DOCUMENT_NAMES:
-        raise P10CandidateCommandError(
-            "Verified reviewed-motion inventory differs from P9"
-        )
-    documents = {
-        name: strict_json_object(raw[name], name) for name in DOCUMENT_NAMES
-    }
-    base, target = require_reviewed_motion_upstreams(mesh, retarget)
-    rebuilt = build_reviewed_motion_bundle_contract(
-        project_id,
-        *(documents[name] for name in DOCUMENT_NAMES[:5]),
-        mesh,
-        base,
-        target,
-    )
-    _require_exact_reviewed_replay(rebuilt, reviewed)
-    return rebuilt
-
-
-def _require_exact_reviewed_replay(
-    rebuilt: ReviewedMotionBundleContract, reviewed: Any
-) -> None:
-    if (
-        rebuilt.project_id != reviewed.project_id
-        or rebuilt.clip_id != reviewed.clip_id
-        or rebuilt.inventory != reviewed.inventory
-        or rebuilt.identities != reviewed.identities
-        or rebuilt.document_bytes != reviewed.document_bytes
-    ):
-        raise P10CandidateCommandError(
-            "Verified reviewed-motion bundle differs from its P9 replay"
-        )
-
-
 _ERRORS = (
     AttributeError,
     IdleBehaviorCandidateError,
@@ -152,6 +111,7 @@ _ERRORS = (
     OverflowError,
     RecursionError,
     ReviewedMotionBundleContractError,
+    ReviewedMotionBundleIntegrityError,
     ReviewedMotionBundleUpstreamError,
     SafeInputFileError,
     TypeError,
