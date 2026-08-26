@@ -7,9 +7,7 @@ from pathlib import Path
 import stat
 
 from .manifest_artifacts import LayerManifestError, require_sha256
-from .motion_bundle_contract import (
-    BUILTIN_DOCUMENT_NAMES,
-    BVH_DOCUMENT_NAMES,
+from .motion_bundle_inventory import (
     MAX_BVH_BYTES,
     MAX_BVH_MAP_BYTES,
     MAX_BVH_RUN_BYTES,
@@ -17,6 +15,8 @@ from .motion_bundle_contract import (
     MAX_MOTION_BYTES,
     MAX_RUN_BYTES,
     MAX_TOTAL_DOCUMENT_BYTES,
+    MotionBundleInventoryError,
+    profile_for_file_names,
 )
 from .motion_bundle_integrity import (
     MotionBundleIntegrityError,
@@ -118,28 +118,27 @@ def _snapshot(root: Path) -> MotionBundleSnapshot:
     _real_directory(root, "Motion bundle directory")
     children = _children(root)
     files = {child.name: _regular_file(child, child.name) for child in children}
-    if set(files) == set(BUILTIN_DOCUMENT_NAMES):
-        inventory = BUILTIN_DOCUMENT_NAMES
-        limits = {
-            "motion.json": MAX_MOTION_BYTES,
-            "run-manifest.json": MAX_RUN_BYTES,
-        }
-        total_limit = MAX_TOTAL_DOCUMENT_BYTES
-    elif set(files) == set(BVH_DOCUMENT_NAMES):
-        inventory = BVH_DOCUMENT_NAMES
-        limits = {
-            "source.bvh": MAX_BVH_BYTES,
-            "map.json": MAX_BVH_MAP_BYTES,
-            "motion.json": MAX_MOTION_BYTES,
-            "run-manifest.json": MAX_BVH_RUN_BYTES,
-        }
-        total_limit = MAX_BVH_TOTAL_DOCUMENT_BYTES
-    else:
+    try:
+        profile = profile_for_file_names(set(files))
+    except MotionBundleInventoryError as exc:
         raise VerifiedMotionBundleReaderError(
             "Motion bundle inventory has missing or unexpected entries"
-        )
+        ) from exc
+    limits = profile.limit_by_name
+    limits.update({
+        "source.bvh": MAX_BVH_BYTES,
+        "map.json": MAX_BVH_MAP_BYTES,
+        "motion.json": MAX_MOTION_BYTES,
+        "run-manifest.json": (
+            MAX_RUN_BYTES if profile.source_kind == "builtin" else MAX_BVH_RUN_BYTES
+        ),
+    })
+    total_limit = (
+        MAX_TOTAL_DOCUMENT_BYTES
+        if profile.source_kind == "builtin" else MAX_BVH_TOTAL_DOCUMENT_BYTES
+    )
     items, total = [], 0
-    for name in inventory:
+    for name in profile.names:
         data = _read_snapshot(files[name], limits[name], name)
         total += len(data)
         if total > total_limit:

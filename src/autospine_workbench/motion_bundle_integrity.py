@@ -9,15 +9,12 @@ from pathlib import Path
 from typing import Any
 
 from .motion_bundle_contract import (
-    BUILTIN_DOCUMENT_NAMES,
-    BVH_DOCUMENT_NAMES,
-    MAX_BVH_BYTES,
-    MAX_BVH_MAP_BYTES,
-    MAX_BVH_RUN_BYTES,
-    MAX_MOTION_BYTES,
-    MAX_RUN_BYTES,
     MotionBundleContractError,
     build_motion_bundle_contract,
+)
+from .motion_bundle_inventory import (
+    MotionBundleInventoryError,
+    profile_for_ordered_names,
 )
 from .motion_compile_run import (
     MotionCompileRunError,
@@ -192,22 +189,11 @@ def _exact_items(items: Any) -> tuple[dict[str, bytes], str]:
     names = tuple(
         item[0] for item in items if type(item) is tuple and len(item) == 2
     )
-    if names == BUILTIN_DOCUMENT_NAMES:
-        source_kind = "builtin"
-        limits = {
-            "motion.json": MAX_MOTION_BYTES,
-            "run-manifest.json": MAX_RUN_BYTES,
-        }
-    elif names == BVH_DOCUMENT_NAMES:
-        source_kind = "bvh"
-        limits = {
-            "source.bvh": MAX_BVH_BYTES,
-            "map.json": MAX_BVH_MAP_BYTES,
-            "motion.json": MAX_MOTION_BYTES,
-            "run-manifest.json": MAX_BVH_RUN_BYTES,
-        }
-    else:
+    try:
+        profile = profile_for_ordered_names(names)
+    except MotionBundleInventoryError as exc:
         raise MotionBundleIntegrityError("Motion bundle inventory is invalid")
+    limits = profile.limit_by_name
     result: dict[str, bytes] = {}
     for item in items:
         if type(item) is not tuple or len(item) != 2:
@@ -218,7 +204,7 @@ def _exact_items(items: Any) -> tuple[dict[str, bytes], str]:
         if name not in limits or len(data) > limits[name]:
             raise MotionBundleIntegrityError("Motion bundle byte budget is exceeded")
         result[name] = data
-    return result, source_kind
+    return result, profile.source_kind
 
 
 def _rebuild_builtin(motion, stored_run):

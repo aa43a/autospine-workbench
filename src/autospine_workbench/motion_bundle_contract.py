@@ -8,20 +8,28 @@ import hashlib
 import json
 from typing import Any
 
-from .bvh_map_validation import MAX_DOCUMENT_BYTES as MAX_BVH_MAP_BYTES
 from .bvh_motion_compile_run import (
-    MAX_RUN_BYTES as MAX_BVH_RUN_BYTES,
     BvhMotionCompileRunError,
     build_bvh_motion_compile_run,
 )
-from .bvh_tokens import MAX_BVH_BYTES
 from .motion_compile_run import (
-    MAX_RUN_BYTES,
     MotionCompileRunError,
     require_motion_compile_run,
 )
+from .motion_bundle_inventory import (
+    BUILTIN_DOCUMENT_NAMES,
+    BVH_DOCUMENT_NAMES,
+    MAX_BVH_BYTES,
+    MAX_BVH_MAP_BYTES,
+    MAX_BVH_RUN_BYTES,
+    MAX_BVH_TOTAL_DOCUMENT_BYTES,
+    MAX_MOTION_BYTES,
+    MAX_RUN_BYTES,
+    MAX_TOTAL_DOCUMENT_BYTES,
+    MotionBundleInventoryError,
+    require_document_items,
+)
 from .motion_validation import (
-    MAX_DOCUMENT_BYTES as MAX_MOTION_BYTES,
     MotionValidationError,
     motion_ir_sha256,
     require_motion_ir,
@@ -29,16 +37,8 @@ from .motion_validation import (
 
 
 BUNDLE_ADDRESS_DOMAIN = b"autospine-motion-bundle-address/v1"
-BUILTIN_DOCUMENT_NAMES = ("motion.json", "run-manifest.json")
-BVH_DOCUMENT_NAMES = (
-    "source.bvh", "map.json", "motion.json", "run-manifest.json",
-)
 # Backward-compatible public name for the original built-in inventory.
 DOCUMENT_NAMES = BUILTIN_DOCUMENT_NAMES
-MAX_TOTAL_DOCUMENT_BYTES = MAX_MOTION_BYTES + MAX_RUN_BYTES
-MAX_BVH_TOTAL_DOCUMENT_BYTES = (
-    MAX_BVH_BYTES + MAX_BVH_MAP_BYTES + MAX_MOTION_BYTES + MAX_BVH_RUN_BYTES
-)
 
 
 class MotionBundleContractError(ValueError):
@@ -153,33 +153,30 @@ def motion_bundle_address_sha256(
 def _require_items(
     value: tuple[tuple[str, bytes], ...],
 ) -> tuple[tuple[str, bytes], ...]:
-    if type(value) is not tuple:
-        raise MotionBundleContractError("Motion bundle document inventory is invalid")
-    names = tuple(item[0] for item in value if type(item) is tuple and len(item) == 2)
-    if names == BUILTIN_DOCUMENT_NAMES:
-        limits = (MAX_MOTION_BYTES, MAX_RUN_BYTES)
-        total_limit = MAX_TOTAL_DOCUMENT_BYTES
-    elif names == BVH_DOCUMENT_NAMES:
-        limits = (
-            MAX_BVH_BYTES, MAX_BVH_MAP_BYTES, MAX_MOTION_BYTES, MAX_BVH_RUN_BYTES,
+    try:
+        names = tuple(
+            item[0] for item in value
+            if type(item) is tuple and len(item) == 2
+        ) if type(value) is tuple else ()
+        return require_document_items(
+            value,
+            limit_by_name={
+                "source.bvh": MAX_BVH_BYTES,
+                "map.json": MAX_BVH_MAP_BYTES,
+                "motion.json": MAX_MOTION_BYTES,
+                "run-manifest.json": (
+                    MAX_RUN_BYTES
+                    if names == BUILTIN_DOCUMENT_NAMES
+                    else MAX_BVH_RUN_BYTES
+                ),
+            },
+            total_by_kind={
+                "builtin": MAX_TOTAL_DOCUMENT_BYTES,
+                "bvh": MAX_BVH_TOTAL_DOCUMENT_BYTES,
+            },
         )
-        total_limit = MAX_BVH_TOTAL_DOCUMENT_BYTES
-    else:
-        raise MotionBundleContractError("Motion bundle document inventory is invalid")
-    result = []
-    for index, item in enumerate(value):
-        if type(item) is not tuple or len(item) != 2:
-            raise MotionBundleContractError("Motion bundle document inventory is invalid")
-        name, data = item
-        if name != names[index] or type(data) is not bytes:
-            raise MotionBundleContractError("Motion bundle document inventory is invalid")
-        limit = limits[index]
-        if len(data) > limit:
-            raise MotionBundleContractError(f"{name} exceeds its byte resource limit")
-        result.append((name, data))
-    if sum(len(data) for _name, data in result) > total_limit:
-        raise MotionBundleContractError("Motion bundle total byte resource limit exceeded")
-    return tuple(result)
+    except MotionBundleInventoryError as exc:
+        raise MotionBundleContractError(str(exc)) from exc
 
 
 def _feed(digest, value: bytes) -> None:
