@@ -182,7 +182,7 @@ JSON Schema 位于：
 - `schemas/camera-model-v1.schema.json`、`schemas/projected-motion-ir-v1.schema.json`、`schemas/projected-motion-compile-run-v1.schema.json` 与 `schemas/projected-scale-probes-v1.schema.json`：P8 相机、3D→2D 投影证据、编译 provenance 与目标 rig 候选尺度探针；
 - `schemas/motion-instance-v2.schema.json`、`schemas/motion-policy-decision-v1.schema.json`、`schemas/reviewed-motion-policy-v1.schema.json` 与 `schemas/reviewed-motion-bundle-run-v1.schema.json`：P9 人工决定、root/draw-order overlay、v2 instance 与六文件 bundle provenance；
 - `schemas/idle-behavior-candidates-v1.schema.json`、`schemas/idle-behavior-decision-v1.schema.json` 与 `schemas/body-sway-probe-report-v1.schema.json`：P10.0–P10.2 idle 候选、人工参数决定与只读采样结构诊断；
-- `schemas/body-sway-runtime-capture-v1.schema.json`、`schemas/body-sway-visual-review-*.schema.json` 与 `schemas/body-sway-review-admission-v1.schema.json`：P10.3 runtime 证据、sampled visual revision 与 P10.4a 当前审批头准入；
+- `schemas/body-sway-runtime-capture-v1.schema.json`、`schemas/body-sway-visual-review-*.schema.json`、`schemas/body-sway-review-admission-v1.schema.json` 与 `schemas/body-sway-amplitude-envelope-candidate-v1.schema.json`：P10.3 runtime 证据、sampled visual revision、P10.4a 当前审批头准入与 P10.4b1 离散幅度候选；
 - `schemas/motion-retarget-report-v1.schema.json` 与 `schemas/motion-mesh-regression-v1.schema.json`：P5 运动学、接触与逐帧 mesh 安全门禁。
 
 Layer Manifest 与 RigIR 是下游流水线合同。当前 UI 负责逐层 authoring 与复核，离线命令负责生成 region-only RigIR；它不包含 mesh、权重或动画，也不会冒充某一 Spine 版本。RigIR 对不支持特性的策略固定为 `fail`，防止 constraint、mesh 或 timeline 被静默丢弃。
@@ -375,6 +375,8 @@ P10.3a–P10.3c 将通过探针的决定编译为临时 Spine 4.2 preview，在�
 
 P10.4a 用 `compile-body-sway-review-admission` 重放同一 P10/capture 链，并执行 `history A → exact decision → history B`。只有两次快照一致且指定 revision 是当前 `sampled_visual_approved` head 时才输出 path-free canonical admission；命令零写入，且 release gate 继续 blocked。完整参数、保存方式和 head 失效语义见 [准入已批准的 body-sway 视觉复核头](docs/how-to-admit-body-sway-review.md)。
 
+P10.4b1 用 `compile-body-sway-amplitude-envelope` 在已复核四骨幅度向量的统一 gain 射线上检查 `0/8…8/8` 九个离散 key 状态。`8/8` 必须逐字节重放 P10.2 evidence 与临时 preview rotation keys，分析完成后还会再次执行 current-head 双快照；其余 gain 明确为未视觉复核的 candidate。该合同不推断点间区间、连续时间或安全范围，完整操作见 [编译 body-sway 幅度包络候选](docs/how-to-compile-body-sway-amplitude-envelope.md)。
+
 P6 使用 `compile-spine42` 把一个精确 P3 地址导出为 setup-only bundle，或与一对精确 P5 MotionInstance/bundle SHA 组合为单动画 bundle；`verify-spine42` 从导出双 SHA 重建完整上游链。五文件地址、官方 runtime 的本地安装边界与 capture 操作见 [导出、复验并运行 P6 Spine 4.2 资产](docs/how-to-export-spine42.md)。
 
 对版本中立 RigIR 做语义检查：
@@ -461,7 +463,7 @@ P1 已交付 pose、alpha 中轴线和层接触候选，以及候选比较、四
 - 若要恢复旧 revision，先停止服务，备份整个项目 override 目录，再将目标历史快照作为新的、经过校验的 revision 提交；当前界面尚未提供历史浏览/回滚按钮。
 - validation 的 `valid=true` 仅表示结构和本地资产检查没有硬错误，不等于美术、遮挡补全、pivot、mesh 或动画通过视觉验收。
 
-## 已完成阶段：P2 region RigIR 至 P9 reviewed motion，以及 P10.0–P10.4a review admission
+## 已完成阶段：P2 region RigIR 至 P9 reviewed motion，以及 P10.0–P10.4b1 amplitude candidates
 
 P0 合同加固、P1 四肢候选与 P2 region-only RigIR 已贯通：`stage-scoped analysis → immutable geometry/candidates → candidate-bound revision → deterministic resolved snapshot → reviewed Layer Manifest → RigIR/setup bundle`。P2 没有提前引入 mesh：
 
@@ -515,6 +517,8 @@ P10.0/P10.1 已建立 candidate/decision 分离的 idle 行为合同；当前只
 P10.3a/P10.3b 已完成 deterministic preview、固定 case 计划、官方 Spine 4.2.119 runtime runner 与内容寻址 capture 封存；真实采集必须由操作者提供已授权 runtime 并显式确认许可，test-only player stub 只用于进程 smoke。P10.3c 从 project/preview/bundle/artifact 精确四段地址确定性编译 sampled still candidate，并在独立页面、CLI 与 HTTP 上共享零写入 prepare、path-free evidence、不可变历史和严格 CAS。所有 case approve 时只得到 `sampled_visual_approved`；安全范围、连续时间、reviewed seam anchors 和 preview-only timeline 仍未关闭，因此 release gate 始终 blocked。
 
 P10.4a 已增加 `BodySwayReviewAdmission v1`：从精确 P10/capture/visual 地址先后读取两次 authoritative history，并在中间重放精确 decision；旧 approved revision、reject/unobservable head、读取期间 head 漂移和任一跨链输入都会 fail closed。admission 只声明 sampled visual 已批准且 head 在编译时被观察，五项发布相关 claims 固定为 false；它不发布 MotionInstance v3，也不能在后续 revision 产生后继续冒充 current-head authority。
+
+P10.4b1 已增加 `BodySwayAmplitudeEnvelopeCandidate v1`：只沿 reviewed amplitude vector 的统一 gain 射线生成九个 sampled structural probes，不构造四维独立幅度盒，也不假设单调性。reviewed gain 必须与 P10.2 stream/checks 和实际 sampled-linear preview keys 完全一致；命令在分析后再次按 `history → exact decision → history` 复核 head。所有范围、连续时间、视觉范围、seam、MotionInstance v3 与发布 claims 仍固定为 false。
 
 姿态 runner 与真实标注评估集仍是独立质量轨，不阻塞版本中立 P2 编译；诊断 setup prior 不能替代真实模型基线。
 
