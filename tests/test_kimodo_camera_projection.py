@@ -31,6 +31,10 @@ from autospine_workbench.motion_bundle_contract import (  # noqa: E402
 from autospine_workbench.motion_bundle_integrity import (  # noqa: E402
     VerifiedMotionBundle,
 )
+from autospine_workbench.motion_validation import motion_ir_sha256  # noqa: E402
+from autospine_workbench.projected_motion_legacy import (  # noqa: E402
+    compile_projected_motion_to_motion_ir,
+)
 from autospine_workbench.projected_motion_validation import (  # noqa: E402
     require_projected_motion_ir,
 )
@@ -116,6 +120,9 @@ class KimodoCameraProjectionTests(unittest.TestCase):
         self.assertEqual(0, dict(first.projection_metrics)[
             "collapsed_sample_count"
         ])
+        legacy = compile_projected_motion_to_motion_ir(first.document)
+        self.assertEqual(bundle.motion, legacy)
+        self.assertEqual(bundle.clip_sha256, motion_ir_sha256(legacy))
 
     def test_sixty_degree_depth_tilt_has_half_projected_length(self):
         bundle, mapping = verified_fixture(offsets={

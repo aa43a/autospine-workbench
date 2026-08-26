@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 
-def projected_motion_document(*, loop: bool = False, collapsed: bool = False) -> dict:
+def projected_motion_document(
+    *, loop: bool = False, collapsed: bool = False,
+    include_child: bool = False,
+) -> dict:
     """Build a minimal internally consistent two-frame document."""
 
     if collapsed:
@@ -39,6 +42,25 @@ def projected_motion_document(*, loop: bool = False, collapsed: bool = False) ->
         }
         for index in range(2)
     ]
+    tracks = [{
+        "role": "humanoid.root",
+        "source_joint_name": "Hips",
+        "aim_joint_name": "Spine1",
+        "delta_parent_role": None,
+        "setup_source_length_normalized": 1.0,
+        "setup_projected_length_normalized": projected,
+        "samples": samples,
+    }]
+    if include_child:
+        tracks.append({
+            "role": "humanoid.spine.lower",
+            "source_joint_name": "Spine1",
+            "aim_joint_name": "Spine2",
+            "delta_parent_role": "humanoid.root",
+            "setup_source_length_normalized": 1.0,
+            "setup_projected_length_normalized": projected,
+            "samples": [dict(sample) for sample in samples],
+        })
     return {
         "format": "autospine-projected-motion-ir",
         "format_version": 1,
@@ -73,14 +95,6 @@ def projected_motion_document(*, loop: bool = False, collapsed: bool = False) ->
             }
             for index in range(2)
         ],
-        "segment_tracks": [{
-            "role": "humanoid.root",
-            "source_joint_name": "Hips",
-            "aim_joint_name": "Spine1",
-            "delta_parent_role": None,
-            "setup_source_length_normalized": 1.0,
-            "setup_projected_length_normalized": projected,
-            "samples": samples,
-        }],
+        "segment_tracks": tracks,
         "markers": [],
     }
