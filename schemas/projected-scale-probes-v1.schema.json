@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/projected-scale-probes-v1.schema.json",
+  "title": "AutoSpine target-rig projected scale candidate probes v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "project_id", "clip_id", "source",
+    "policy", "summary", "tracks"
+  ],
+  "properties": {
+    "format": {"const": "autospine-projected-scale-probes"},
+    "format_version": {"type": "integer", "const": 1},
+    "project_id": {"$ref": "#/$defs/id"},
+    "clip_id": {"$ref": "#/$defs/id"},
+    "source": {"$ref": "#/$defs/source"},
+    "policy": {"$ref": "#/$defs/policy"},
+    "summary": {"$ref": "#/$defs/summary"},
+    "tracks": {
+      "type": "array", "minItems": 1, "maxItems": 17,
+      "items": {"$ref": "#/$defs/track"}
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string", "minLength": 1, "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "boneRole": {
+      "enum": [
+        "humanoid.root", "humanoid.spine.lower", "humanoid.spine.upper",
+        "humanoid.neck", "humanoid.head", "humanoid.clavicle.left",
+        "humanoid.arm.upper.left", "humanoid.arm.lower.left",
+        "humanoid.hip.left", "humanoid.leg.upper.left",
+        "humanoid.leg.lower.left", "humanoid.clavicle.right",
+        "humanoid.arm.upper.right", "humanoid.arm.lower.right",
+        "humanoid.hip.right", "humanoid.leg.upper.right",
+        "humanoid.leg.lower.right"
+      ]
+    },
+    "positiveRatio": {
+      "type": "number", "exclusiveMinimum": 0, "maximum": 1.001
+    },
+    "positiveScale": {
+      "type": "number", "exclusiveMinimum": 0, "maximum": 1000000000
+    },
+    "positiveLength": {
+      "type": "number", "exclusiveMinimum": 0, "maximum": 1000000000000
+    },
+    "nonnegativeLength": {
+      "type": "number", "minimum": 0, "maximum": 1000000000000
+    },
+    "boundedLengthDelta": {
+      "type": "number", "minimum": -1000000000000,
+      "maximum": 1000000000000
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "projected_motion_sha256", "projected_bundle_sha256",
+        "camera_sha256", "p7_motion_sha256", "target_profile_sha256",
+        "p3_rig_sha256", "p3_bundle_sha256"
+      ],
+      "properties": {
+        "projected_motion_sha256": {"$ref": "#/$defs/sha256"},
+        "projected_bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "camera_sha256": {"$ref": "#/$defs/sha256"},
+        "p7_motion_sha256": {"$ref": "#/$defs/sha256"},
+        "target_profile_sha256": {"$ref": "#/$defs/sha256"},
+        "p3_rig_sha256": {"$ref": "#/$defs/sha256"},
+        "p3_bundle_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode", "formula", "application", "baseline",
+        "target_scale_contract", "runtime_timeline_emitted",
+        "depth_consumption", "collapsed_policy"
+      ],
+      "properties": {
+        "mode": {"const": "candidate_only"},
+        "formula": {"const": "foreshortening_ratio_over_setup_ratio"},
+        "application": {"const": "independent_target_bone_length_probe"},
+        "baseline": {"const": "source_frame0"},
+        "target_scale_contract": {"const": "positive-unit-only-unchanged"},
+        "runtime_timeline_emitted": {"const": false},
+        "depth_consumption": {"const": "none"},
+        "collapsed_policy": {"const": "reject_report"}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status", "track_count", "sample_count", "collapsed_sample_count",
+        "minimum_scale_x_candidate", "maximum_scale_x_candidate"
+      ],
+      "properties": {
+        "status": {"const": "candidate_only"},
+        "track_count": {"type": "integer", "minimum": 1, "maximum": 17},
+        "sample_count": {
+          "type": "integer", "minimum": 2, "maximum": 69632
+        },
+        "collapsed_sample_count": {"type": "integer", "const": 0},
+        "minimum_scale_x_candidate": {"$ref": "#/$defs/positiveScale"},
+        "maximum_scale_x_candidate": {"$ref": "#/$defs/positiveScale"}
+      }
+    },
+    "track": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role", "bone_id", "setup_length_px",
+        "setup_foreshortening_ratio", "samples"
+      ],
+      "properties": {
+        "role": {"$ref": "#/$defs/boneRole"},
+        "bone_id": {"$ref": "#/$defs/id"},
+        "setup_length_px": {"$ref": "#/$defs/positiveLength"},
+        "setup_foreshortening_ratio": {"$ref": "#/$defs/positiveRatio"},
+        "samples": {
+          "type": "array", "minItems": 2, "maxItems": 4096,
+          "items": {"$ref": "#/$defs/sample"}
+        }
+      }
+    },
+    "sample": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_frame_index", "tick", "foreshortening_ratio",
+        "scale_x_candidate", "candidate_length_px", "delta_length_px",
+        "projection_state"
+      ],
+      "properties": {
+        "source_frame_index": {
+          "type": "integer", "minimum": 0, "maximum": 4095
+        },
+        "tick": {"type": "integer", "minimum": 0},
+        "foreshortening_ratio": {"$ref": "#/$defs/positiveRatio"},
+        "scale_x_candidate": {"$ref": "#/$defs/positiveScale"},
+        "candidate_length_px": {"$ref": "#/$defs/nonnegativeLength"},
+        "delta_length_px": {"$ref": "#/$defs/boundedLengthDelta"},
+        "projection_state": {"const": "observable"}
+      }
+    }
+  }
+}

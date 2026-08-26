@@ -69,6 +69,10 @@ class VerifiedProjectedMotionBundle:
         return self._document("run-manifest.json")
 
     @property
+    def document_bytes(self) -> dict[str, bytes]:
+        return dict(self._documents)
+
+    @property
     def legacy_motion(self) -> dict[str, Any]:
         return compile_projected_motion_to_motion_ir(self.projected_motion)
 

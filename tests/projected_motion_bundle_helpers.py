@@ -28,9 +28,11 @@ from tests.test_kimodo_camera_projection import camera_document
 
 
 class ProjectedBundleFixture:
-    def __init__(self, root: Path):
+    def __init__(
+        self, root: Path, *, motion_kwargs: dict | None = None
+    ):
         self.state = Path(root) / "state"
-        self.raw = build_npz(motion_member_bytes())
+        self.raw = build_npz(motion_member_bytes(**dict(motion_kwargs or {})))
         self.source = source_document(self.raw)
         self.mapping = map_document()
         self.p7_compiled = compile_kimodo_npz_motion(
