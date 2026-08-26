@@ -119,6 +119,14 @@ class BodySwayProbeMathTests(unittest.TestCase):
         with self.assertRaises(FrozenInstanceError):
             first.tick = 0  # type: ignore[misc]
 
+    def test_effective_subnanodegree_amplitude_uses_output_quantization(self):
+        sample = self.sample(
+            tick=250_000,
+            amplitude_rows=amplitudes((0.0, 0.0, 0.0, 0.0000000006)),
+            phase_rows=phases((0.0, 0.0, 0.0, 0.0)),
+        )
+        self.assertEqual(0.000000001, sample.overlay_rotation_deg[-1][1])
+
     def test_loop_requires_all_numeric_endpoints_to_close(self):
         spec = timing(loop=True)
         start = self.sample(spec=spec, tick=0)
@@ -168,6 +176,9 @@ class BodySwayProbeMathTests(unittest.TestCase):
             changed[0]["value"] = value
             cases.append({"amplitude_rows": changed})
         cases.append({"amplitude_rows": amplitudes((0.0, 0.0, 0.0, 0.0))})
+        cases.append({
+            "amplitude_rows": amplitudes((0.0, 0.0, 0.0, 0.0000000004)),
+        })
         mismatched = phases()
         mismatched.reverse()
         cases.append({"phase_rows": mismatched})

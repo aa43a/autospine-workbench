@@ -8,7 +8,7 @@ import math
 import re
 from typing import Any
 
-from .body_sway_probe_profile import MAX_CYCLES
+from .body_sway_probe_profile import MAX_CYCLES, NUMERIC_PRECISION_DECIMALS
 from .idle_behavior_decision_validation_fields import (
     MAX_REVIEW_AMPLITUDE_DEG,
 )
@@ -96,8 +96,13 @@ def normalize_amplitudes(value: Any):
                 "Body-sway amplitude is outside its review input envelope"
             )
         result.append((bone_id, number))
-    if not any(number > 0.0 for _bone, number in result):
-        raise BodySwayProbeMathError("Body-sway amplitudes cannot all be zero")
+    if not any(
+        round(number, NUMERIC_PRECISION_DECIMALS) != 0.0
+        for _bone, number in result
+    ):
+        raise BodySwayProbeMathError(
+            "Body-sway amplitudes cannot all quantize to zero"
+        )
     return tuple(result)
 
 
