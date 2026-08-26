@@ -37,6 +37,15 @@ builtin | BVH + map | Kimodo NPZ + sidecar + map
                          ↓
                  P5 retarget → P6 adapter
 
+verified Kimodo P7 + explicit CameraModel
+                         ↓
+       target-independent ProjectedMotionIR evidence
+                  ┌──────┴──────┐
+                  ↓             ↓
+        exact legacy bridge   target-rig candidates
+                  ↓             ↓
+           unchanged P5/P6   reviewed P9 policy
+
 server → application services only
 web    → HTTP contracts only
 ```
@@ -46,7 +55,7 @@ web    → HTTP contracts only
 - 前端分为 API、authoring state、保存事务和各 stage view；view state 不得污染 revision draft。
 - 外部姿态模型只能通过 canonical pose observations 进入；alpha 几何只读取 resolved layer 与固定 PNG，融合结果必须保留原始 pose 和未标定分数语义。
 - COCO17 raw 输入、adapter、canonical pose、人工评估和候选工件分开内容寻址；坐标反镜像、左右标签交换、视角和镜像声明不得合并成一个隐式开关。
-- 离线命令按 stage 边界拆分：P1 输入/候选、P2 manifest/RigIR、P3 mesh、P4 IK、P5 MotionIR、P6 目标版本 adapter 与 P7 Kimodo source adapter 分别拥有显式编译和只读验证入口；命令之间只传递精确内容地址，不解析 `latest`。
+- 离线命令按 stage 边界拆分：P1 输入/候选、P2 manifest/RigIR、P3 mesh、P4 IK、P5 MotionIR、P6 目标版本 adapter、P7 Kimodo source adapter 与 P8 camera/projected evidence 分别拥有显式编译或只读验证入口；命令之间只传递精确内容地址，不解析 `latest`。
 - Kimodo 的 raw NPZ、source sidecar 与 map 是三个独立输入。sidecar 解释数组/FPS/producer，map 决定投影/角色/contact；两者都不得根据文件名、数组数量或相邻目录隐式发现。
 
 ## 文件长度预算
@@ -115,6 +124,27 @@ three distinct P5 rigs → P6 adapter/bundle reader
 producer provenance 的 `recorded` 与 `unavailable` 是不同的显式状态。即使记录了外部 manifest/request 的 SHA，本仓库也只绑定 metadata，不认证 checkpoint 或生成请求本身；操作者必须另行保留原件。完整 NPZ 只把 `smooth_root_pos` 当有限数证据、把 `global_root_heading` 当单位方向证据，当前不用它们改写 MotionIR。contact 采用半开 `annotation_only` marker，不等于 foot lock。
 
 正式测试证明确定性合成 NPZ 的 root、代表性肢体旋转和 contact 可通过三个 rig 的 P5/P6 结构门禁；它尚未证明真实 Kimodo checkpoint 的动作质量、深度/遮挡效果或该 clip 的官方 Spine Player 截图。关闭真实资产门禁还需要 recorded provenance、干净 state 重编译、目标角色视觉对照与固定 runtime golden。
+
+P8 相机感知投影门禁已经完成：
+
+```text
+exact P7 Kimodo bundle + explicit static CameraModel
+                         ↓
+matrix-FK replay → signed orthographic projection
+                         ↓
+2D vector + L3/L2 + depth cosine/root-relative depth
+                         ↓
+three-file immutable ProjectedMotionIR bundle
+                  ┌──────┴──────┐
+                  ↓             ↓
+       exact P7 legacy bridge   target-rig scale candidates
+                  ↓             ↓
+          unchanged P5/P6      no runtime timeline
+```
+
+Camera basis 与 reference length 必须和 P7 map 完全一致。ProjectedMotionIR 保留相机、P7 raw/source/map/run 的完整身份，并由严格 reader 从原始 NPZ 逐字节重建。depth 是 target-independent 证据，不等于 draw order；foreshortening report 是与 P5 target profile 交叉绑定的 candidate，不等于已批准 scale 动画。任一 collapsed sample 在 v1 bundle/legacy/scale probe 边界 fail closed。
+
+P8 的零回归门要求 legacy MotionIR SHA 与 P7 完全相同，同一投影证据可用于三套不同目标 rig，并且 P5 MotionInstance 与 P6 Spine 4.2 仍只输出 rotation/translation。后续 P9 若消费 contact、heading、depth 或 scale，必须引入新的候选/决定合同和明确的 runtime 能力版本，不能修改 P8 证据或静默扩展 MotionInstance v1。
 
 后续阶段继续遵守：
 
