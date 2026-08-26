@@ -50,6 +50,16 @@ verified Kimodo P7 + explicit CameraModel
                                       ↓
                          six-document reviewed bundle
 
+exact Layer Manifest + exact P3/P5/P9 reviewed chain
+                                      ↓
+                         P10.0 idle candidates
+                                      ↓
+                         P10.1 human decision
+                                      ↓ adjust + pending_probe
+                    P10.2 sampled body-sway report
+                                      ↓
+                 blocked release → manual runtime preview
+
 server → application services only
 web    → HTTP contracts only
 ```
@@ -59,7 +69,8 @@ web    → HTTP contracts only
 - 前端分为 API、authoring state、保存事务和各 stage view；view state 不得污染 revision draft。
 - 外部姿态模型只能通过 canonical pose observations 进入；alpha 几何只读取 resolved layer 与固定 PNG，融合结果必须保留原始 pose 和未标定分数语义。
 - COCO17 raw 输入、adapter、canonical pose、人工评估和候选工件分开内容寻址；坐标反镜像、左右标签交换、视角和镜像声明不得合并成一个隐式开关。
-- 离线命令按 stage 边界拆分：P1 输入/候选、P2 manifest/RigIR、P3 mesh、P4 IK、P5 MotionIR、P6 目标版本 adapter、P7 Kimodo source adapter、P8 camera/projected evidence 与 P9 reviewed motion/bundle 分别拥有显式编译或只读验证入口；命令之间只传递精确内容地址，不解析 `latest`。
+- 离线命令按 stage 边界拆分：P1 输入/候选、P2 manifest/RigIR、P3 mesh、P4 IK、P5 MotionIR、P6 目标版本 adapter、P7 Kimodo source adapter、P8 camera/projected evidence、P9 reviewed motion/bundle 与 P10 idle behavior probe 分别拥有显式编译或只读验证入口；命令之间只传递精确内容地址，不解析 `latest`。
+- P10 application service 只通过共享 exact-chain loader 读取七个完整 SHA 所选的 Layer Manifest/P3/P5/P9 工件。Candidate、人工 review input、decision 和 probe report 保持独立；三条 CLI 都不发布工件或修改 state tree。
 - Kimodo 的 raw NPZ、source sidecar 与 map 是三个独立输入。sidecar 解释数组/FPS/producer，map 决定投影/角色/contact；两者都不得根据文件名、数组数量或相邻目录隐式发现。
 
 ## 文件长度预算
@@ -171,6 +182,32 @@ Evidence 保留源事实，candidate 把证据绑定到一个精确目标 rig，
 MotionInstance v2 和 Spine adapter v2 是新能力边界；v1 instance、P8 evidence 及既有 P6 bundle 的内容哈希保持不变。Reviewed bundle 固定六文件 inventory，地址显式包含 project、MotionInstance v2 SHA 和 bundle SHA。严格 reader 从 run manifest 重放 exact P3/P5 上游，不使用 `latest`、目录扫描或替代 bundle 回退。
 
 这一门禁关闭的是合同、provenance、发布与 loader-isomorphic audit 的结构闭环，不是官方 runtime 或 raster truth。P9 动态官方 runtime screenshot 和真实 Kimodo reviewed asset fixture 门禁仍未关闭，不得由合成 fixture 或结构 audit 代替。操作入口见 [复核并发布 Kimodo 动作策略](how-to-review-kimodo-motion-policy.md)。
+
+P10.0–P10.2 已完成只读 idle 行为候选、人工决定和 body-sway 采样结构诊断边界：
+
+```text
+exact Layer Manifest + exact P3 mesh + exact P5 retarget + exact P9 bundle
+                                  ↓ replay
+                four-feature idle evidence inventory
+                                  ↓
+                candidate-only report (P10.0)
+                                  ↓ exhaustive human decision
+                adjust + pending_probe (P10.1)
+                                  ↓
+        fixed-schedule setup-local body-sway overlay
+                                  ↓
+ loop / FK / mesh / canvas / shared-index checks (P10.2)
+                                  ↓
+       structural_rejected | manual_visual_required
+                                  ↓
+                  release gate always blocked
+```
+
+P10 exact loader 接受 Layer Manifest、P3 rig/bundle、P5 MotionInstance/bundle 与 P9 MotionInstance v2/bundle 七个完整 SHA，重放 P9 合同，不扫描目录或回退到 `latest`。Candidate compiler 固定列出 blink、body sway、hair spring、mouth；当前只有完整 canonical 躯干链能产生 body-sway candidate。Decision 必须绑定 exact candidate，且 body-sway 只有带人工参数的 `adjust` 才能保持 `pending_probe` 并进入探针。
+
+`BodySwayProbeReport v1` 固定检查 `loop_closure`、`fk_finite`、`sampled_mesh_deformation`、`sampled_canvas_containment`、`shared_index_internal_continuity`、`inter_attachment_seams` 与 `visual_quality`。前五项是采样结构证据；无 mesh 或非 loop 会显式 `not_applicable`。接缝缺少 reviewed anchors，视觉质量需要官方 runtime 人工预览，因此后两项保持 `unobservable`，顶层 release gate 无条件 blocked。
+
+代表性 `sample_sha256` 包含 tick；loop 端点比较使用不含 tick 的独立 pose-state domain，再封入 loop check evidence。Bulk evidence digest 是 compiler seal，不是独立重放载荷。该边界不产生 MotionInstance v3 或 runtime timeline，也不声明连续时间、幅度安全范围、接缝、raster truth 或视觉通过。操作入口见 [复核 idle 行为并运行 body-sway 结构探针](how-to-review-idle-behaviors.md)。
 
 后续阶段继续遵守：
 

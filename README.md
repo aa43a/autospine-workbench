@@ -25,6 +25,7 @@ AutoSpine Workbench 是一个本地人工复核界面，用于查看 See-through
 - 严格读取 Kimodo SOMA77 NPZ、独立 source sidecar 与显式 map，交叉验证矩阵 FK/关节位置，并发布可重建的五文件 MotionIR bundle。
 - 从精确 P7 bundle 与显式静态正交相机生成保留深度、透视缩短和可观测性的 ProjectedMotionIR；候选尺度探针可复用于不同目标 rig，但不会静默生成 runtime scale 或 draw-order timeline。
 - 从精确 P3/P5/P8 地址编译 foot-lock 和 depth-order 候选，经完整人工决定生成 reviewed policy、MotionInstance v2、Spine 4.2 v2 preview 与六文件不可变 P9 bundle；既有 v1 内容哈希不变。
+- 从精确 Layer Manifest/P3/P5/P9 链编译 idle 行为候选和人工决定，并对调整后的 `body_sway` 生成七项采样结构检查；报告始终阻塞发布并要求官方 runtime 人工预览。
 - 从精确 P3 或 P3/P5 地址导出、发布并重建验证固定 profile 的 Spine 4.2 JSON/atlas/PNG 五文件 bundle。
 
 ## 快速启动
@@ -176,6 +177,7 @@ JSON Schema 位于：
 - `schemas/kimodo-npz-source-v1.schema.json`、`schemas/kimodo-npz-map-v1.schema.json` 与 `schemas/kimodo-npz-motion-compile-run-v1.schema.json`：正式 P7 原始 NPZ 解释、投影映射与可重建编译 provenance；
 - `schemas/camera-model-v1.schema.json`、`schemas/projected-motion-ir-v1.schema.json`、`schemas/projected-motion-compile-run-v1.schema.json` 与 `schemas/projected-scale-probes-v1.schema.json`：P8 相机、3D→2D 投影证据、编译 provenance 与目标 rig 候选尺度探针；
 - `schemas/motion-instance-v2.schema.json`、`schemas/motion-policy-decision-v1.schema.json`、`schemas/reviewed-motion-policy-v1.schema.json` 与 `schemas/reviewed-motion-bundle-run-v1.schema.json`：P9 人工决定、root/draw-order overlay、v2 instance 与六文件 bundle provenance；
+- `schemas/idle-behavior-candidates-v1.schema.json`、`schemas/idle-behavior-decision-v1.schema.json` 与 `schemas/body-sway-probe-report-v1.schema.json`：P10.0–P10.2 idle 候选、人工参数决定与只读采样结构诊断；
 - `schemas/motion-retarget-report-v1.schema.json` 与 `schemas/motion-mesh-regression-v1.schema.json`：P5 运动学、接触与逐帧 mesh 安全门禁。
 
 Layer Manifest 与 RigIR 是下游流水线合同。当前 UI 负责逐层 authoring 与复核，离线命令负责生成 region-only RigIR；它不包含 mesh、权重或动画，也不会冒充某一 Spine 版本。RigIR 对不支持特性的策略固定为 `fail`，防止 constraint、mesh 或 timeline 被静默丢弃。
@@ -362,6 +364,8 @@ python -m autospine_workbench verify-projected-motion `
 
 P9 从精确 P3/P5/P8 身份发布候选，把人工决定编译为 reviewed root/draw-order policy，再生成 MotionInstance v2、Spine preview 和可独立复验的 bundle。全部交接使用精确 SHA，不解析 `latest`；完整 `--document-only` 操作见 [复核并发布 Kimodo 动作策略](docs/how-to-review-kimodo-motion-policy.md)。
 
+P10.0–P10.2 从精确 Layer Manifest/P3/P5/P9 七 SHA 链先编译 idle candidates，再把独立人工 review input 编译为 decision，最后为唯一的 `body_sway / adjust / pending_probe` 选择生成只读结构探针。三个入口均零写入；`--document-only` 只改变 stdout 形状。命令模板、七项 checks、hash 解释与人工 runtime 门禁见 [复核 idle 行为并运行 body-sway 结构探针](docs/how-to-review-idle-behaviors.md)。关键实现入口为 [exact chain loader](src/autospine_workbench/p10_exact_chain.py)、[candidate compiler](src/autospine_workbench/idle_behavior_candidates.py)、[decision compiler](src/autospine_workbench/idle_behavior_decision.py) 和 [probe report compiler](src/autospine_workbench/body_sway_probe_report.py)。
+
 P6 使用 `compile-spine42` 把一个精确 P3 地址导出为 setup-only bundle，或与一对精确 P5 MotionInstance/bundle SHA 组合为单动画 bundle；`verify-spine42` 从导出双 SHA 重建完整上游链。五文件地址、官方 runtime 的本地安装边界与 capture 操作见 [导出、复验并运行 P6 Spine 4.2 资产](docs/how-to-export-spine42.md)。
 
 对版本中立 RigIR 做语义检查：
@@ -435,7 +439,7 @@ P1 已交付 pose、alpha 中轴线和层接触候选，以及候选比较、四
 - 若要恢复旧 revision，先停止服务，备份整个项目 override 目录，再将目标历史快照作为新的、经过校验的 revision 提交；当前界面尚未提供历史浏览/回滚按钮。
 - validation 的 `valid=true` 仅表示结构和本地资产检查没有硬错误，不等于美术、遮挡补全、pivot、mesh 或动画通过视觉验收。
 
-## 已完成阶段：P2 region RigIR 至 P9 reviewed motion 结构闭环
+## 已完成阶段：P2 region RigIR 至 P9 reviewed motion，以及 P10.0–P10.2 结构诊断
 
 P0 合同加固、P1 四肢候选与 P2 region-only RigIR 已贯通：`stage-scoped analysis → immutable geometry/candidates → candidate-bound revision → deterministic resolved snapshot → reviewed Layer Manifest → RigIR/setup bundle`。P2 没有提前引入 mesh：
 
@@ -484,6 +488,8 @@ P8 相机感知投影与候选尺度门禁已完成：`CameraModel v1` 和 `Proj
 
 P9 reviewed motion 结构闭环已完成：foot-lock/depth-order evidence 与 candidate 不是决定；决定必须覆盖精确候选集，然后才能编译 reviewed policy、MotionInstance v2 与独立 Spine 4.2 v2 preview。六文件 reviewed bundle 固定 inventory，从 run manifest 重放精确 P3/P5 上游，无 `latest` 或扫描回退。MotionInstance v1/P8 哈希保持不变；heading/scale 仍是 evidence-only，attachment switch 尚未实现。loader-isomorphic audit 只是结构验证，不等于官方 runtime 或 raster truth；P9 动态官方 runtime screenshot 与真实 Kimodo reviewed asset 门禁仍未关闭。
 
+P10.0/P10.1 已建立 candidate/decision 分离的 idle 行为合同；当前只有完整 canonical 躯干链可产生 `body_sway` candidate，眨眼、口型和头发仍明确保持不可观测或不支持。P10.2 会把人工给出的周期、四骨幅度和相位叠加到 exact MotionInstance v2，在固定离散 schedule 上检查 loop、FK、mesh、画布和共享索引，并把接缝与视觉质量保留为不可观测。报告只可能是 `structural_rejected` 或 `manual_visual_required`，release gate 始终 blocked；它不生成 MotionInstance v3 或 runtime timeline，也不证明连续时间、安全范围、接缝或视觉质量。
+
 姿态 runner 与真实标注评估集仍是独立质量轨，不阻塞版本中立 P2 编译；诊断 setup prior 不能替代真实模型基线。
 
 面部锚点、头发弹簧和实时追踪映射可以作为独立模块接到同一规范骨角色上；四肢扩展的关键不是增加更多屏幕坐标映射，而是建立 bind pose、父子骨、权重和重定向空间。
@@ -500,6 +506,7 @@ P9 reviewed motion 结构闭环已完成：foot-lock/depth-order evidence 与 ca
 - 无人复核地把 Kimodo contact、heading、depth 或 scale 写入 runtime；P9 只消费人工批准的 foot correction 和 pairwise draw order，heading/scale 仍是 evidence-only，attachment switch 尚未实现；
 - 把合成 P7 门禁当作真实 Kimodo checkpoint、真实动作质量或该 clip 的官方 Spine Player 截图验收；
 - 把 loader-isomorphic audit 当作官方 runtime 或 raster truth；P9 动态官方 runtime screenshot 与真实 Kimodo reviewed asset 门禁仍需单独关闭；
+- 把 P10 `completed_diagnostic`、离散采样通过或 review 输入的 0–10 度语法包络当成 MotionInstance v3、连续时间安全、可发布 Spine timeline 或视觉通过；
 - 生成眨眼/口型素材、实时追踪映射或运行时物理；
 - 捆绑或再分发官方 Spine runtime、判断任意未知 Spine 版本、生成 Spine Editor 工程，或覆盖固定 P6 profile 之外的特性；
 - 代替输入素材、训练数据或模型权重的许可证与商业使用审查；
