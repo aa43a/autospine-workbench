@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from .body_sway_preview_inputs import (
+    BodySwayPreviewInputs,
     BodySwayPreviewInputError,
     require_body_sway_preview_inputs,
 )
@@ -51,6 +52,7 @@ class P10PreviewCommandResult:
     temporary_preview_sha256: str
     artifact_set_sha256: str
     _preview: TemporaryBodySwayPreview = field(repr=False)
+    _inputs: BodySwayPreviewInputs = field(repr=False)
     _replay_spec: P10PreviewReplaySpec = field(repr=False)
 
     @property
@@ -140,6 +142,7 @@ def compile_body_sway_preview_command(
             temporary_preview_sha256=preview.sha256,
             artifact_set_sha256=preview.artifact_set_sha256,
             _preview=preview,
+            _inputs=preview_inputs,
             _replay_spec=replay_spec,
         )
     except P10PreviewCommandError:

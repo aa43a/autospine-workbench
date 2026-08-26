@@ -82,6 +82,7 @@ class P10RuntimeCaptureRunnerTests(unittest.TestCase):
             temporary_preview_sha256=preview.sha256,
             artifact_set_sha256=preview.artifact_set_sha256,
             _preview=preview,
+            _inputs=cls.fixture.preview_fixture.preview_inputs,
             _replay_spec=spec,
         )
 

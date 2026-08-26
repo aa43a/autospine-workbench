@@ -1,0 +1,298 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/body-sway-amplitude-envelope-candidate-v1.schema.json",
+  "title": "AutoSpine BodySwayAmplitudeEnvelopeCandidate v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "project_id", "clip_id", "source", "timing",
+    "reviewed_selection", "parameterization", "probes", "analyzer", "claims",
+    "status", "release_gate", "summary"
+  ],
+  "properties": {
+    "format": {"const": "autospine-body-sway-amplitude-envelope-candidate"},
+    "format_version": {"type": "integer", "const": 1},
+    "project_id": {"$ref": "#/$defs/id"},
+    "clip_id": {"$ref": "#/$defs/id"},
+    "source": {"$ref": "#/$defs/source"},
+    "timing": {"$ref": "#/$defs/timing"},
+    "reviewed_selection": {"$ref": "#/$defs/selection"},
+    "parameterization": {"$ref": "#/$defs/parameterization"},
+    "probes": {"$ref": "#/$defs/probes"},
+    "analyzer": {"$ref": "#/$defs/analyzer"},
+    "claims": {
+      "const": {
+        "sampled_visual_approved_at_reviewed_gain": true,
+        "sampled_structural_gain_probes": true,
+        "safe_range": false,
+        "continuous_time": false,
+        "visual_range": false,
+        "reviewed_seam_anchors": false,
+        "motion_instance_v3": false,
+        "publishable_timeline": false,
+        "release_authority": false
+      }
+    },
+    "status": {"const": "candidate_only"},
+    "release_gate": {
+      "const": {
+        "status": "blocked",
+        "reason_codes": [
+          "continuous_time_safety_unproven", "preview_only_timeline",
+          "reviewed_seam_anchors_missing", "safe_range_unproven",
+          "visual_range_unreviewed"
+        ]
+      }
+    },
+    "summary": {"$ref": "#/$defs/summary"}
+  },
+  "$defs": {
+    "id": {
+      "type": "string", "minLength": 1, "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "review_admission_sha256", "review_admission",
+        "reviewed_probe_report"
+      ],
+      "properties": {
+        "review_admission_sha256": {"$ref": "#/$defs/sha"},
+        "review_admission": {"$ref": "body-sway-review-admission-v1.schema.json"},
+        "reviewed_probe_report": {"$ref": "body-sway-probe-report-v1.schema.json"}
+      }
+    },
+    "gainGrid": {
+      "const": {
+        "minimum_numerator": 0, "reviewed_numerator": 8,
+        "maximum_numerator": 8, "denominator": 8
+      }
+    },
+    "timing": {
+      "type": "object", "additionalProperties": false,
+      "required": ["ticks_per_second", "duration_ticks", "loop"],
+      "properties": {
+        "ticks_per_second": {"type": "integer", "const": 1000000},
+        "duration_ticks": {"type": "integer", "minimum": 1, "maximum": 600000000},
+        "loop": {"type": "boolean"}
+      }
+    },
+    "selection": {
+      "type": "object", "additionalProperties": false,
+      "required": ["candidate_id", "feature_id", "action", "probe_status", "parameters"],
+      "properties": {
+        "candidate_id": {"type": "string", "pattern": "^body-sway-[0-9a-f]{64}$"},
+        "feature_id": {"const": "body_sway"},
+        "action": {"const": "adjust"},
+        "probe_status": {"const": "pending_probe"},
+        "parameters": {
+          "type": "object", "additionalProperties": false,
+          "required": ["cycles", "per_bone_amplitude_deg", "per_bone_phase_fraction"],
+          "properties": {
+            "cycles": {"type": "integer", "minimum": 1, "maximum": 64},
+            "per_bone_amplitude_deg": {"$ref": "#/$defs/amplitudes"},
+            "per_bone_phase_fraction": {"$ref": "#/$defs/phases"}
+          }
+        }
+      }
+    },
+    "parameterization": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "kind", "gain_grid", "cycles", "reviewed_amplitudes",
+        "phase_fractions", "preview_time_model", "scope", "exclusions"
+      ],
+      "properties": {
+        "kind": {"const": "uniform_gain_along_reviewed_amplitude_vector"},
+        "gain_grid": {"$ref": "#/$defs/gainGrid"},
+        "cycles": {"type": "integer", "minimum": 1, "maximum": 64},
+        "reviewed_amplitudes": {"$ref": "#/$defs/amplitudes"},
+        "phase_fractions": {"$ref": "#/$defs/phases"},
+        "preview_time_model": {
+          "const": {
+            "rotation_interpolation": "sampled-linear",
+            "root_translation": "exact-motion-instance-v2",
+            "sampling": "p10-probe-schedule"
+          }
+        },
+        "scope": {
+          "const": [
+            "sampled_canvas_containment", "sampled_fk",
+            "sampled_mesh_deformation", "shared_index_internal_continuity"
+          ]
+        },
+        "exclusions": {
+          "const": [
+            "continuous_time", "inter_attachment_seams",
+            "raster_visual_quality", "runtime_equivalence"
+          ]
+        }
+      }
+    },
+    "amplitudes": {
+      "type": "array", "minItems": 4, "maxItems": 4,
+      "prefixItems": [
+        {"$ref": "#/$defs/amplitudePelvis"},
+        {"$ref": "#/$defs/amplitudeSpine"},
+        {"$ref": "#/$defs/amplitudeNeck"},
+        {"$ref": "#/$defs/amplitudeHead"}
+      ],
+      "items": false
+    },
+    "phases": {
+      "type": "array", "minItems": 4, "maxItems": 4,
+      "prefixItems": [
+        {"$ref": "#/$defs/phasePelvis"},
+        {"$ref": "#/$defs/phaseSpine"},
+        {"$ref": "#/$defs/phaseNeck"},
+        {"$ref": "#/$defs/phaseHead"}
+      ],
+      "items": false
+    },
+    "amplitude": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bone_id", "value"],
+      "properties": {
+        "bone_id": {"$ref": "#/$defs/id"},
+        "value": {"type": "number", "minimum": 0, "maximum": 10}
+      }
+    },
+    "phase": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bone_id", "value"],
+      "properties": {
+        "bone_id": {"$ref": "#/$defs/id"},
+        "value": {"type": "number", "minimum": 0, "exclusiveMaximum": 1}
+      }
+    },
+    "amplitudePelvis": {"allOf": [{"$ref": "#/$defs/amplitude"}, {"properties": {"bone_id": {"const": "pelvis-spine"}}}]},
+    "amplitudeSpine": {"allOf": [{"$ref": "#/$defs/amplitude"}, {"properties": {"bone_id": {"const": "spine-chest"}}}]},
+    "amplitudeNeck": {"allOf": [{"$ref": "#/$defs/amplitude"}, {"properties": {"bone_id": {"const": "chest-neck"}}}]},
+    "amplitudeHead": {"allOf": [{"$ref": "#/$defs/amplitude"}, {"properties": {"bone_id": {"const": "neck-head"}}}]},
+    "phasePelvis": {"allOf": [{"$ref": "#/$defs/phase"}, {"properties": {"bone_id": {"const": "pelvis-spine"}}}]},
+    "phaseSpine": {"allOf": [{"$ref": "#/$defs/phase"}, {"properties": {"bone_id": {"const": "spine-chest"}}}]},
+    "phaseNeck": {"allOf": [{"$ref": "#/$defs/phase"}, {"properties": {"bone_id": {"const": "chest-neck"}}}]},
+    "phaseHead": {"allOf": [{"$ref": "#/$defs/phase"}, {"properties": {"bone_id": {"const": "neck-head"}}}]},
+    "probes": {
+      "type": "array", "minItems": 9, "maxItems": 9,
+      "prefixItems": [
+        {"allOf": [{"$ref": "#/$defs/probe"}, {"properties": {"gain": {"properties": {"numerator": {"const": 0}}}}}]},
+        {"allOf": [{"$ref": "#/$defs/probe"}, {"properties": {"gain": {"properties": {"numerator": {"const": 1}}}}}]},
+        {"allOf": [{"$ref": "#/$defs/probe"}, {"properties": {"gain": {"properties": {"numerator": {"const": 2}}}}}]},
+        {"allOf": [{"$ref": "#/$defs/probe"}, {"properties": {"gain": {"properties": {"numerator": {"const": 3}}}}}]},
+        {"allOf": [{"$ref": "#/$defs/probe"}, {"properties": {"gain": {"properties": {"numerator": {"const": 4}}}}}]},
+        {"allOf": [{"$ref": "#/$defs/probe"}, {"properties": {"gain": {"properties": {"numerator": {"const": 5}}}}}]},
+        {"allOf": [{"$ref": "#/$defs/probe"}, {"properties": {"gain": {"properties": {"numerator": {"const": 6}}}}}]},
+        {"allOf": [{"$ref": "#/$defs/probe"}, {"properties": {"gain": {"properties": {"numerator": {"const": 7}}}}}]},
+        {"allOf": [{"$ref": "#/$defs/probe"}, {"properties": {"gain": {"properties": {"numerator": {"const": 8}}}}}]}
+      ],
+      "items": false
+    },
+    "probe": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "gain", "amplitudes", "sample_count", "tick_schedule_sha256",
+        "sample_stream_sha256", "checks", "sampled_evidence_sha256", "status",
+        "visual_review_status", "preview_relation"
+      ],
+      "properties": {
+        "gain": {
+          "type": "object", "additionalProperties": false,
+          "required": ["numerator", "denominator"],
+          "properties": {
+            "numerator": {"type": "integer", "minimum": 0, "maximum": 8},
+            "denominator": {"type": "integer", "const": 8}
+          }
+        },
+        "amplitudes": {"$ref": "#/$defs/amplitudes"},
+        "sample_count": {"type": "integer", "minimum": 2, "maximum": 65536},
+        "tick_schedule_sha256": {"$ref": "#/$defs/sha"},
+        "sample_stream_sha256": {"$ref": "#/$defs/sha"},
+        "checks": {"$ref": "#/$defs/checks"},
+        "sampled_evidence_sha256": {"$ref": "#/$defs/sha"},
+        "status": {"enum": ["sampled_structural_passed", "sampled_structural_rejected"]},
+        "visual_review_status": {"enum": ["approved", "not_reviewed"]},
+        "preview_relation": {"enum": ["exact-reviewed-probe-replay", "hypothetical-scaled-key-states"]}
+      }
+    },
+    "checks": {
+      "type": "array", "minItems": 7, "maxItems": 7,
+      "prefixItems": [
+        {"allOf": [{"$ref": "#/$defs/check"}, {"properties": {"check_id": {"const": "loop_closure"}}}]},
+        {"allOf": [{"$ref": "#/$defs/check"}, {"properties": {"check_id": {"const": "fk_finite"}}}]},
+        {"allOf": [{"$ref": "#/$defs/check"}, {"properties": {"check_id": {"const": "sampled_mesh_deformation"}}}]},
+        {"allOf": [{"$ref": "#/$defs/check"}, {"properties": {"check_id": {"const": "sampled_canvas_containment"}}}]},
+        {"allOf": [{"$ref": "#/$defs/check"}, {"properties": {"check_id": {"const": "shared_index_internal_continuity"}}}]},
+        {"allOf": [{"$ref": "#/$defs/check"}, {"properties": {"check_id": {"const": "inter_attachment_seams"}}}]},
+        {"allOf": [{"$ref": "#/$defs/check"}, {"properties": {"check_id": {"const": "visual_quality"}}}]}
+      ],
+      "items": false
+    },
+    "check": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "check_id", "status", "reason_code", "subject_count", "sample_count",
+        "failure_count", "evidence_sha256"
+      ],
+      "properties": {
+        "check_id": {"$ref": "#/$defs/id"},
+        "status": {"enum": ["passed", "rejected", "unobservable", "not_applicable"]},
+        "reason_code": {"$ref": "#/$defs/id"},
+        "subject_count": {"type": "integer", "minimum": 0, "maximum": 4096},
+        "sample_count": {"type": "integer", "minimum": 0, "maximum": 65536},
+        "failure_count": {"type": "integer", "minimum": 0, "maximum": 65536},
+        "evidence_sha256": {"oneOf": [{"$ref": "#/$defs/sha"}, {"type": "null"}]}
+      }
+    },
+    "analyzer": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "version", "canonicalization", "config"],
+      "properties": {
+        "id": {"const": "body-sway-amplitude-envelope-analyzer"},
+        "version": {"const": "1.0.0"},
+        "canonicalization": {"const": "canonical-json-utf8-sort-keys-no-nonfinite"},
+        "config": {
+          "type": "object", "additionalProperties": false,
+          "required": ["gain_grid", "time_scope", "body_sway_probe_profile"],
+          "properties": {
+            "gain_grid": {"$ref": "#/$defs/gainGrid"},
+            "time_scope": {"const": "sampled-key-states-only"},
+            "body_sway_probe_profile": {
+              "const": {
+                "id": "body-sway-structural-probe", "version": "1.0.0",
+                "config": {
+                  "fixed_sample_step_ticks": 50000,
+                  "uniform_samples_per_cycle": 32,
+                  "max_sample_count": 65536,
+                  "numeric_precision_decimals": 9,
+                  "mesh_thresholds": {
+                    "min_signed_area_ratio": 0.02,
+                    "max_signed_area_ratio": 20.0,
+                    "max_edge_stretch_ratio": 3.0
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "gain_probe_count", "sampled_structural_passed_count",
+        "sampled_structural_rejected_count", "reviewed_gain_status",
+        "sample_evaluation_count"
+      ],
+      "properties": {
+        "gain_probe_count": {"type": "integer", "const": 9},
+        "sampled_structural_passed_count": {"type": "integer", "minimum": 0, "maximum": 9},
+        "sampled_structural_rejected_count": {"type": "integer", "minimum": 0, "maximum": 9},
+        "reviewed_gain_status": {"enum": ["sampled_structural_passed", "sampled_structural_rejected"]},
+        "sample_evaluation_count": {"type": "integer", "minimum": 18, "maximum": 589824}
+      }
+    }
+  }
+}

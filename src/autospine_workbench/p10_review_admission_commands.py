@@ -28,6 +28,7 @@ from .body_sway_visual_review_application import (
     BodySwayVisualReviewApplicationError,
 )
 from .p10_preview_commands import (
+    P10PreviewCommandResult,
     P10PreviewCommandError,
     compile_body_sway_preview_command,
     require_exact_preview_for_mount,
@@ -56,6 +57,7 @@ class P10ReviewAdmissionCommandResult:
     visual_decision_sha256: str
     admission_sha256: str
     _admission: BodySwayReviewAdmission = field(repr=False)
+    _preview_result: P10PreviewCommandResult = field(repr=False)
 
     @property
     def document(self) -> dict[str, Any]:
@@ -157,6 +159,7 @@ def _result(preview, capture, admitted, admission):
         visual_decision_sha256=admitted.visual_decision_sha256,
         admission_sha256=admission.sha256,
         _admission=admission,
+        _preview_result=preview,
     )
 
 
