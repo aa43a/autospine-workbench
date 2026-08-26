@@ -6,7 +6,10 @@ from dataclasses import dataclass
 from typing import Any
 
 from .ik_target_geometry import SOURCE_IDENTITY_FIELDS
-from .mesh_bundle_contract import build_mesh_bundle_contract
+from .mesh_bundle_admission import (
+    MeshBundleAdmissionError,
+    require_exact_mesh_bundle,
+)
 from .mesh_bundle_integrity import VerifiedMeshBundle
 from .motion_retarget_bundle_contract import (
     build_motion_retarget_bundle_contract,
@@ -19,7 +22,6 @@ from .projected_motion_bundle_contract import (
 )
 from .projected_motion_bundle_integrity import VerifiedProjectedMotionBundle
 from .projected_motion_validation import require_projected_motion_ir
-from .rig_validation import RigSemanticValidator
 
 
 class DepthOrderInputError(ValueError):
@@ -59,7 +61,7 @@ def require_depth_order_inputs(
             )
         projected, camera = _projected(projected_bundle)
         target = _retarget(retarget_bundle)
-        rig = _mesh(mesh_bundle)
+        rig = require_exact_mesh_bundle(mesh_bundle)
         _cross(projected_bundle, retarget_bundle, mesh_bundle,
                projected, target, rig)
         return DepthOrderInputs(
@@ -73,7 +75,9 @@ def require_depth_order_inputs(
         )
     except DepthOrderInputError:
         raise
-    except (KeyError, OverflowError, TypeError, ValueError) as exc:
+    except (
+        KeyError, MeshBundleAdmissionError, OverflowError, TypeError, ValueError,
+    ) as exc:
         raise DepthOrderInputError(
             f"Depth-order input verification failed: {exc}"
         ) from exc
@@ -132,43 +136,6 @@ def _retarget(bundle: VerifiedMotionRetargetBundle):
         )
     require_motion_target_profile(values[0])
     return values[0]
-
-
-def _mesh(bundle: VerifiedMeshBundle):
-    rig, run = bundle.rig, bundle.run_manifest
-    contract = build_mesh_bundle_contract(
-        bundle.project_id, rig, run, bundle.probes,
-        bundle.visuals, bundle.pngs,
-    )
-    documents = {
-        name: text.encode("utf-8")
-        for name, text in bundle._document_json_items
-    }
-    checks = (
-        (contract.project_id, bundle.project_id),
-        (contract.rig_sha256, bundle.rig_sha256),
-        (contract.run_sha256, bundle.run_sha256),
-        (contract.probes_sha256, bundle.probes_sha256),
-        (contract.visuals_sha256, bundle.visuals_sha256),
-        (contract.bundle_sha256, bundle.bundle_sha256),
-    )
-    expected_inputs = {
-        "base_rig_sha256": bundle.base_rig_sha256,
-        "base_bundle_sha256": bundle.base_bundle_sha256,
-        "layer_manifest_sha256": bundle.layer_manifest_sha256,
-        "resolved_project_sha256": bundle.resolved_project_sha256,
-    }
-    issues = RigSemanticValidator().validate(rig)
-    errors = [item for item in issues if item.severity == "error"]
-    if errors or contract.document_bytes != documents \
-            or contract.png_bytes_by_path != bundle.pngs \
-            or contract.inventory != bundle.inventory \
-            or any(left != right for left, right in checks) \
-            or run.get("inputs") != expected_inputs:
-        raise DepthOrderInputError(
-            "Verified P3 bundle differs from its canonical content"
-        )
-    return rig
 
 
 def _retarget_sources(target, instance) -> dict[str, str]:
