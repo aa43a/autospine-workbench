@@ -7,6 +7,12 @@ import math
 import struct
 import zipfile
 
+from autospine_workbench.kimodo_soma77 import (
+    SOMA77_JOINT_NAMES,
+    SOMA77_PARENT_INDICES,
+)
+from tests.fixtures.kimodo_soma77_fixture import _JOINTS
+
 
 CORE_NAMES = (
     "posed_joints",
@@ -111,3 +117,127 @@ def build_npz(
             archive.writestr(info, data)
         archive.comment = archive_comment
     return output.getvalue()
+
+
+def motion_member_bytes(
+    *,
+    inventory: str = "complete-v1",
+    contacts: int = 4,
+    loop: bool = False,
+    offset_overrides: dict[str, tuple[float, float, float]] | None = None,
+    local_overrides: dict[tuple[int, str], tuple[tuple[float, ...], ...]] | None = None,
+    global_overrides: dict[tuple[int, str], tuple[tuple[float, ...], ...]] | None = None,
+    posed_overrides: dict[tuple[int, str], tuple[float, float, float]] | None = None,
+    frame_rotations: tuple[dict[str, float], ...] | None = None,
+    contact_rows: tuple[tuple[bool, ...], ...] | None = None,
+) -> dict[str, bytes]:
+    """Build a three-frame, internally consistent synthetic SOMA77 motion."""
+
+    rotations = frame_rotations or (
+        {},
+        {"Hips": 10.0, "LeftArm": 20.0, "RightForeArm": -15.0},
+        {} if loop else {"Hips": -5.0, "LeftArm": -10.0},
+    )
+    roots = (
+        (0.0, 1.0, 0.0),
+        (0.1, 1.0, 0.0),
+        (0.0, 1.0, 0.0) if loop else (0.2, 1.0, 0.0),
+    )
+    offsets = {
+        name: tuple(float(value) / 100.0 for value in offset)
+        for name, _parent, offset in _JOINTS
+    }
+    offsets.update(offset_overrides or {})
+    local_frames, global_frames, posed_frames = [], [], []
+    for frame in range(3):
+        local = []
+        for name in SOMA77_JOINT_NAMES:
+            matrix = _rotate_z(rotations[frame].get(name, 0.0))
+            matrix = (local_overrides or {}).get((frame, name), matrix)
+            local.append(matrix)
+        globals_, points = [], [roots[frame]]
+        for joint, (name, parent) in enumerate(zip(
+            SOMA77_JOINT_NAMES, SOMA77_PARENT_INDICES
+        )):
+            global_ = local[joint] if parent is None else _multiply(
+                globals_[parent], local[joint]
+            )
+            global_ = (global_overrides or {}).get((frame, name), global_)
+            globals_.append(global_)
+            if parent is not None:
+                points.append(_add(points[parent], _apply(
+                    globals_[parent], offsets[name]
+                )))
+        for joint, name in enumerate(SOMA77_JOINT_NAMES):
+            points[joint] = (posed_overrides or {}).get((frame, name), points[joint])
+        local_frames.append(tuple(local))
+        global_frames.append(tuple(globals_))
+        posed_frames.append(tuple(points))
+
+    selected_contacts = contact_rows or (
+        ((True, False, False, False),
+         (False, True, True, False),
+         (False, False, False, False))
+        if contacts == 4 else
+        ((True, False, False, False, False, False),
+         (False, True, False, True, False, False),
+         (False, False, False, False, False, False))
+    )
+    arrays = {
+        "posed_joints": ((3, 77, 3), _flatten_vectors(posed_frames)),
+        "global_rot_mats": ((3, 77, 3, 3), _flatten_matrices(global_frames)),
+        "local_rot_mats": ((3, 77, 3, 3), _flatten_matrices(local_frames)),
+        "root_positions": ((3, 3), [value for row in roots for value in row]),
+        "smooth_root_pos": ((3, 3), [value for row in roots for value in row]),
+        "global_root_heading": ((3, 2), [0.0, 1.0] * 3),
+    }
+    names = CORE_NAMES if inventory == "core-v1" else COMPLETE_NAMES
+    result = {}
+    for name in names:
+        if name == "foot_contacts":
+            shape = (3, contacts)
+            values = [value for row in selected_contacts for value in row]
+            result[f"{name}.npy"] = build_npy(
+                "|b1", shape, bool_payload(shape, values)
+            )
+        else:
+            shape, values = arrays[name]
+            result[f"{name}.npy"] = build_npy(
+                "<f4", shape, float_payload(shape, values)
+            )
+    return result
+
+
+def _rotate_z(degrees: float) -> tuple[tuple[float, ...], ...]:
+    radians = math.radians(degrees)
+    cosine, sine = math.cos(radians), math.sin(radians)
+    return ((cosine, -sine, 0.0), (sine, cosine, 0.0), (0.0, 0.0, 1.0))
+
+
+def _multiply(left, right):
+    return tuple(tuple(sum(left[row][axis] * right[axis][column]
+                           for axis in range(3))
+                       for column in range(3)) for row in range(3))
+
+
+def _apply(matrix, vector):
+    return tuple(sum(matrix[row][axis] * vector[axis] for axis in range(3))
+                 for row in range(3))
+
+
+def _add(left, right):
+    return tuple(left[index] + right[index] for index in range(3))
+
+
+def _flatten_vectors(frames):
+    return [value for frame in frames for vector in frame for value in vector]
+
+
+def _flatten_matrices(frames):
+    return [
+        value
+        for frame in frames
+        for matrix in frame
+        for row in matrix
+        for value in row
+    ]
