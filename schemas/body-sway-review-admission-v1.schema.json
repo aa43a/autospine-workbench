@@ -1,0 +1,291 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/body-sway-review-admission-v1.schema.json",
+  "title": "AutoSpine BodySwayReviewAdmission v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "project_id", "clip_id", "source",
+    "timing", "selection", "head_observation", "compiler", "claims",
+    "status", "release_gate"
+  ],
+  "properties": {
+    "format": {"const": "autospine-body-sway-review-admission"},
+    "format_version": {"type": "integer", "const": 1},
+    "project_id": {"$ref": "#/$defs/id"},
+    "clip_id": {"$ref": "#/$defs/id"},
+    "source": {"$ref": "#/$defs/source"},
+    "timing": {"$ref": "#/$defs/timing"},
+    "selection": {"$ref": "#/$defs/selection"},
+    "head_observation": {"$ref": "#/$defs/headObservation"},
+    "compiler": {
+      "const": {
+        "id": "body-sway-review-admission-compiler",
+        "version": "1.0.0",
+        "canonicalization": "canonical-json-utf8-sort-keys-no-nonfinite"
+      }
+    },
+    "claims": {
+      "const": {
+        "sampled_visual_approved": true,
+        "head_observed_at_compile_time": true,
+        "safe_range": false,
+        "continuous_time": false,
+        "reviewed_seam_anchors": false,
+        "publishable_timeline": false,
+        "release_authority": false
+      }
+    },
+    "status": {"const": "admitted_for_safety_analysis"},
+    "release_gate": {
+      "const": {
+        "status": "blocked",
+        "reason_codes": [
+          "continuous_time_safety_unproven",
+          "preview_only_timeline",
+          "reviewed_seam_anchors_missing",
+          "safe_range_unproven"
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string", "minLength": 1, "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "candidateId": {
+      "type": "string", "pattern": "^body-sway-[0-9a-f]{64}$"
+    },
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": ["p10_chain", "capture", "visual_review"],
+      "properties": {
+        "p10_chain": {"$ref": "#/$defs/p10Chain"},
+        "capture": {"$ref": "#/$defs/capture"},
+        "visual_review": {"$ref": "#/$defs/visualReview"}
+      }
+    },
+    "p10Chain": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "body_sway_probe_report_sha256", "idle_behavior_candidates_sha256",
+        "idle_behavior_decision_sha256", "layer_manifest_sha256",
+        "p3", "p5", "p9"
+      ],
+      "properties": {
+        "body_sway_probe_report_sha256": {"$ref": "#/$defs/sha"},
+        "idle_behavior_candidates_sha256": {"$ref": "#/$defs/sha"},
+        "idle_behavior_decision_sha256": {"$ref": "#/$defs/sha"},
+        "layer_manifest_sha256": {"$ref": "#/$defs/sha"},
+        "p3": {"$ref": "#/$defs/p3"},
+        "p5": {"$ref": "#/$defs/p5"},
+        "p9": {"$ref": "#/$defs/p9"}
+      }
+    },
+    "p3": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "base_rig_sha256", "base_bundle_sha256", "layer_manifest_sha256",
+        "resolved_project_sha256", "rig_sha256", "run_sha256",
+        "probes_sha256", "visuals_sha256", "bundle_sha256"
+      ],
+      "properties": {
+        "base_rig_sha256": {"$ref": "#/$defs/sha"},
+        "base_bundle_sha256": {"$ref": "#/$defs/sha"},
+        "layer_manifest_sha256": {"$ref": "#/$defs/sha"},
+        "resolved_project_sha256": {"$ref": "#/$defs/sha"},
+        "rig_sha256": {"$ref": "#/$defs/sha"},
+        "run_sha256": {"$ref": "#/$defs/sha"},
+        "probes_sha256": {"$ref": "#/$defs/sha"},
+        "visuals_sha256": {"$ref": "#/$defs/sha"},
+        "bundle_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "p5": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "target_profile_sha256", "instance_sha256", "run_sha256",
+        "retarget_report_sha256", "mesh_regression_sha256", "bundle_sha256"
+      ],
+      "properties": {
+        "target_profile_sha256": {"$ref": "#/$defs/sha"},
+        "instance_sha256": {"$ref": "#/$defs/sha"},
+        "run_sha256": {"$ref": "#/$defs/sha"},
+        "retarget_report_sha256": {"$ref": "#/$defs/sha"},
+        "mesh_regression_sha256": {"$ref": "#/$defs/sha"},
+        "bundle_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "p9": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "foot_lock_candidates_sha256", "depth_order_candidates_sha256",
+        "motion_policy_decision_sha256", "reviewed_motion_policy_sha256",
+        "motion_instance_v2_sha256", "run_sha256", "bundle_sha256"
+      ],
+      "properties": {
+        "foot_lock_candidates_sha256": {"$ref": "#/$defs/sha"},
+        "depth_order_candidates_sha256": {"$ref": "#/$defs/sha"},
+        "motion_policy_decision_sha256": {"$ref": "#/$defs/sha"},
+        "reviewed_motion_policy_sha256": {"$ref": "#/$defs/sha"},
+        "motion_instance_v2_sha256": {"$ref": "#/$defs/sha"},
+        "run_sha256": {"$ref": "#/$defs/sha"},
+        "bundle_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "capture": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "project_id", "temporary_preview_sha256",
+        "runtime_capture_manifest_sha256", "runtime_capture_bundle_sha256",
+        "capture_artifact_set_sha256", "preview_artifact_set_sha256"
+      ],
+      "properties": {
+        "project_id": {"$ref": "#/$defs/id"},
+        "temporary_preview_sha256": {"$ref": "#/$defs/sha"},
+        "runtime_capture_manifest_sha256": {"$ref": "#/$defs/sha"},
+        "runtime_capture_bundle_sha256": {"$ref": "#/$defs/sha"},
+        "capture_artifact_set_sha256": {"$ref": "#/$defs/sha"},
+        "preview_artifact_set_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "visualReview": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "candidate_sha256", "revision", "decision_sha256",
+        "head_decision_sha256"
+      ],
+      "properties": {
+        "candidate_sha256": {"$ref": "#/$defs/sha"},
+        "revision": {"type": "integer", "minimum": 1, "maximum": 64},
+        "decision_sha256": {"$ref": "#/$defs/sha"},
+        "head_decision_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "timing": {
+      "type": "object", "additionalProperties": false,
+      "required": ["ticks_per_second", "duration_ticks", "loop"],
+      "properties": {
+        "ticks_per_second": {"type": "integer", "const": 1000000},
+        "duration_ticks": {
+          "type": "integer", "minimum": 1, "maximum": 600000000
+        },
+        "loop": {"type": "boolean"}
+      }
+    },
+    "selection": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "candidate_id", "feature_id", "action", "probe_status", "parameters"
+      ],
+      "properties": {
+        "candidate_id": {"$ref": "#/$defs/candidateId"},
+        "feature_id": {"const": "body_sway"},
+        "action": {"const": "adjust"},
+        "probe_status": {"const": "pending_probe"},
+        "parameters": {"$ref": "#/$defs/parameters"}
+      }
+    },
+    "parameters": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "cycles", "per_bone_amplitude_deg", "per_bone_phase_fraction"
+      ],
+      "properties": {
+        "cycles": {"type": "integer", "minimum": 1, "maximum": 64},
+        "per_bone_amplitude_deg": {
+          "type": "array", "minItems": 4, "maxItems": 4,
+          "prefixItems": [
+            {
+              "allOf": [
+                {"$ref": "#/$defs/amplitude"},
+                {"properties": {"bone_id": {"const": "pelvis-spine"}}}
+              ]
+            },
+            {
+              "allOf": [
+                {"$ref": "#/$defs/amplitude"},
+                {"properties": {"bone_id": {"const": "spine-chest"}}}
+              ]
+            },
+            {
+              "allOf": [
+                {"$ref": "#/$defs/amplitude"},
+                {"properties": {"bone_id": {"const": "chest-neck"}}}
+              ]
+            },
+            {
+              "allOf": [
+                {"$ref": "#/$defs/amplitude"},
+                {"properties": {"bone_id": {"const": "neck-head"}}}
+              ]
+            }
+          ],
+          "items": false
+        },
+        "per_bone_phase_fraction": {
+          "type": "array", "minItems": 4, "maxItems": 4,
+          "prefixItems": [
+            {
+              "allOf": [
+                {"$ref": "#/$defs/phase"},
+                {"properties": {"bone_id": {"const": "pelvis-spine"}}}
+              ]
+            },
+            {
+              "allOf": [
+                {"$ref": "#/$defs/phase"},
+                {"properties": {"bone_id": {"const": "spine-chest"}}}
+              ]
+            },
+            {
+              "allOf": [
+                {"$ref": "#/$defs/phase"},
+                {"properties": {"bone_id": {"const": "chest-neck"}}}
+              ]
+            },
+            {
+              "allOf": [
+                {"$ref": "#/$defs/phase"},
+                {"properties": {"bone_id": {"const": "neck-head"}}}
+              ]
+            }
+          ],
+          "items": false
+        }
+      }
+    },
+    "amplitude": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bone_id", "value"],
+      "properties": {
+        "bone_id": {"$ref": "#/$defs/id"},
+        "value": {"type": "number", "minimum": 0, "maximum": 10}
+      }
+    },
+    "phase": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bone_id", "value"],
+      "properties": {
+        "bone_id": {"$ref": "#/$defs/id"},
+        "value": {"type": "number", "minimum": 0, "exclusiveMaximum": 1}
+      }
+    },
+    "headObservation": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "method", "scope", "revision", "head_decision_sha256",
+        "permanent_authority_claimed"
+      ],
+      "properties": {
+        "method": {"const": "double_snapshot"},
+        "scope": {"const": "compile_time"},
+        "revision": {"type": "integer", "minimum": 1, "maximum": 64},
+        "head_decision_sha256": {"$ref": "#/$defs/sha"},
+        "permanent_authority_claimed": {"const": false}
+      }
+    }
+  }
+}
