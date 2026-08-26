@@ -45,6 +45,10 @@ verified Kimodo P7 + explicit CameraModel
         exact legacy bridge   target-rig candidates
                   ↓             ↓
            unchanged P5/P6   reviewed P9 policy
+                                      ↓
+                        MotionInstance v2 → Spine v2 preview
+                                      ↓
+                         six-document reviewed bundle
 
 server → application services only
 web    → HTTP contracts only
@@ -55,7 +59,7 @@ web    → HTTP contracts only
 - 前端分为 API、authoring state、保存事务和各 stage view；view state 不得污染 revision draft。
 - 外部姿态模型只能通过 canonical pose observations 进入；alpha 几何只读取 resolved layer 与固定 PNG，融合结果必须保留原始 pose 和未标定分数语义。
 - COCO17 raw 输入、adapter、canonical pose、人工评估和候选工件分开内容寻址；坐标反镜像、左右标签交换、视角和镜像声明不得合并成一个隐式开关。
-- 离线命令按 stage 边界拆分：P1 输入/候选、P2 manifest/RigIR、P3 mesh、P4 IK、P5 MotionIR、P6 目标版本 adapter、P7 Kimodo source adapter 与 P8 camera/projected evidence 分别拥有显式编译或只读验证入口；命令之间只传递精确内容地址，不解析 `latest`。
+- 离线命令按 stage 边界拆分：P1 输入/候选、P2 manifest/RigIR、P3 mesh、P4 IK、P5 MotionIR、P6 目标版本 adapter、P7 Kimodo source adapter、P8 camera/projected evidence 与 P9 reviewed motion/bundle 分别拥有显式编译或只读验证入口；命令之间只传递精确内容地址，不解析 `latest`。
 - Kimodo 的 raw NPZ、source sidecar 与 map 是三个独立输入。sidecar 解释数组/FPS/producer，map 决定投影/角色/contact；两者都不得根据文件名、数组数量或相邻目录隐式发现。
 
 ## 文件长度预算
@@ -144,7 +148,29 @@ three-file immutable ProjectedMotionIR bundle
 
 Camera basis 与 reference length 必须和 P7 map 完全一致。ProjectedMotionIR 保留相机、P7 raw/source/map/run 的完整身份，并由严格 reader 从原始 NPZ 逐字节重建。depth 是 target-independent 证据，不等于 draw order；foreshortening report 是与 P5 target profile 交叉绑定的 candidate，不等于已批准 scale 动画。任一 collapsed sample 在 v1 bundle/legacy/scale probe 边界 fail closed。
 
-P8 的零回归门要求 legacy MotionIR SHA 与 P7 完全相同，同一投影证据可用于三套不同目标 rig，并且 P5 MotionInstance 与 P6 Spine 4.2 仍只输出 rotation/translation。后续 P9 若消费 contact、heading、depth 或 scale，必须引入新的候选/决定合同和明确的 runtime 能力版本，不能修改 P8 证据或静默扩展 MotionInstance v1。
+P8 的零回归门要求 legacy MotionIR SHA 与 P7 完全相同，同一投影证据可用于三套不同目标 rig，并且 P5 MotionInstance 与 P6 Spine 4.2 仍只输出 rotation/translation。P9 已以新候选/决定合同、MotionInstance v2 和独立 adapter v2 消费经批准的 contact/depth；它不修改 P8 证据或静默扩展 MotionInstance v1。
+
+P9 reviewed motion 结构门禁已完成：
+
+```text
+exact P8 evidence + exact P5 target + exact P3 mesh
+                         ↓
+             foot-lock/depth-order candidates
+                         ↓
+             exhaustive human policy decision
+                         ↓
+                  reviewed motion policy
+                         ↓
+          MotionInstance v2 → Spine 4.2 v2 preview
+                         ↓
+        six-document immutable reviewed-motion bundle
+```
+
+Evidence 保留源事实，candidate 把证据绑定到一个精确目标 rig，decision 必须对候选集逐项批准、拒绝或标记不可观测。Reviewed policy 才是 runtime 意图：foot root correction 显式编码 release/loop-reset，draw order 在全部帧上给出完整 slot permutation。Heading 和 scale 仍仅作 evidence，attachment switch 尚未实现。
+
+MotionInstance v2 和 Spine adapter v2 是新能力边界；v1 instance、P8 evidence 及既有 P6 bundle 的内容哈希保持不变。Reviewed bundle 固定六文件 inventory，地址显式包含 project、MotionInstance v2 SHA 和 bundle SHA。严格 reader 从 run manifest 重放 exact P3/P5 上游，不使用 `latest`、目录扫描或替代 bundle 回退。
+
+这一门禁关闭的是合同、provenance、发布与 loader-isomorphic audit 的结构闭环，不是官方 runtime 或 raster truth。P9 动态官方 runtime screenshot 和真实 Kimodo reviewed asset fixture 门禁仍未关闭，不得由合成 fixture 或结构 audit 代替。操作入口见 [复核并发布 Kimodo 动作策略](how-to-review-kimodo-motion-policy.md)。
 
 后续阶段继续遵守：
 
