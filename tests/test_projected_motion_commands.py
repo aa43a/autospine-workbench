@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import sys
 import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -18,7 +19,17 @@ if str(SRC) not in sys.path:
 from autospine_workbench.projected_motion_commands import (  # noqa: E402
     ProjectedMotionCommandError,
     compile_projected_motion_bundle,
+    probe_projected_scale,
     verify_projected_motion_bundle,
+)
+from autospine_workbench.projected_motion_bundle_reader import (  # noqa: E402
+    VerifiedProjectedMotionBundleReaderError,
+)
+from autospine_workbench.motion_retarget_bundle_reader import (  # noqa: E402
+    VerifiedMotionRetargetBundleReaderError,
+)
+from autospine_workbench.projected_scale_probe import (  # noqa: E402
+    ProjectedScaleProbeError,
 )
 from autospine_workbench.safe_input_files import read_real_file  # noqa: E402
 from tests.projected_motion_bundle_helpers import (  # noqa: E402
@@ -113,6 +124,99 @@ class ProjectedMotionCommandTests(unittest.TestCase):
                     motion_bundle_sha256=self.fixture.p7.bundle_sha256,
                 )
             self.assertFalse(namespace.exists())
+
+    def test_scale_probe_loads_two_exact_bundles_and_never_publishes(self):
+        projected = SimpleNamespace(path=self.root / "projected-input")
+        retarget = SimpleNamespace(
+            path=self.root / "retarget-input",
+            target_profile={"project_id": "sample"},
+        )
+        report = SimpleNamespace(
+            sha256="d" * 64,
+            document={
+                "format": "autospine-projected-scale-probes",
+                "policy": {"runtime_timeline_emitted": False},
+            },
+        )
+        before = sorted(self.fixture.state.rglob("*"))
+        with patch(
+            "autospine_workbench.projected_motion_commands."
+            "VerifiedProjectedMotionBundleReader"
+        ) as projected_reader, patch(
+            "autospine_workbench.projected_motion_commands."
+            "VerifiedMotionRetargetBundleReader"
+        ) as retarget_reader, patch(
+            "autospine_workbench.projected_motion_commands."
+            "compile_projected_scale_probes", return_value=report
+        ) as compiler, patch(
+            "autospine_workbench.projected_motion_commands."
+            "ProjectedMotionBundleStore"
+        ) as store:
+            projected_reader.return_value.load.return_value = projected
+            retarget_reader.return_value.load.return_value = retarget
+            result = probe_projected_scale(
+                self.fixture.state,
+                "sample",
+                projected_motion_sha256="1" * 64,
+                projected_bundle_sha256="2" * 64,
+                motion_instance_sha256="3" * 64,
+                motion_retarget_bundle_sha256="4" * 64,
+            )
+        projected_reader.assert_called_once_with(self.fixture.state)
+        projected_reader.return_value.load.assert_called_once_with(
+            "1" * 64, "2" * 64
+        )
+        retarget_reader.assert_called_once_with(self.fixture.state)
+        retarget_reader.return_value.load.assert_called_once_with(
+            "sample", "3" * 64, "4" * 64
+        )
+        compiler.assert_called_once_with(projected, retarget.target_profile)
+        store.assert_not_called()
+        self.assertEqual(before, sorted(self.fixture.state.rglob("*")))
+        self.assertEqual(projected.path, result.projected_bundle_path)
+        self.assertEqual(retarget.path, result.motion_retarget_bundle_path)
+        self.assertEqual(report.sha256, result.report_sha256)
+        self.assertEqual(report.document, result.report)
+
+    def test_scale_probe_fails_closed_on_reader_or_compiler_error(self):
+        cases = (
+            ("projected", VerifiedProjectedMotionBundleReaderError("bad")),
+            ("retarget", VerifiedMotionRetargetBundleReaderError("bad")),
+            ("compiler", ProjectedScaleProbeError("collapsed")),
+        )
+        for stage, failure in cases:
+            projected = SimpleNamespace(path=self.root / "projected")
+            retarget = SimpleNamespace(
+                path=self.root / "retarget", target_profile={}
+            )
+            with self.subTest(stage=stage), patch(
+                "autospine_workbench.projected_motion_commands."
+                "VerifiedProjectedMotionBundleReader"
+            ) as projected_reader, patch(
+                "autospine_workbench.projected_motion_commands."
+                "VerifiedMotionRetargetBundleReader"
+            ) as retarget_reader, patch(
+                "autospine_workbench.projected_motion_commands."
+                "compile_projected_scale_probes"
+            ) as compiler, self.assertRaisesRegex(
+                ProjectedMotionCommandError, "Projected scale probe failed"
+            ):
+                projected_reader.return_value.load.return_value = projected
+                retarget_reader.return_value.load.return_value = retarget
+                if stage == "projected":
+                    projected_reader.return_value.load.side_effect = failure
+                elif stage == "retarget":
+                    retarget_reader.return_value.load.side_effect = failure
+                else:
+                    compiler.side_effect = failure
+                probe_projected_scale(
+                    self.fixture.state,
+                    "sample",
+                    projected_motion_sha256="1" * 64,
+                    projected_bundle_sha256="2" * 64,
+                    motion_instance_sha256="3" * 64,
+                    motion_retarget_bundle_sha256="4" * 64,
+                )
 
 
 if __name__ == "__main__":

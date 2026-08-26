@@ -9,9 +9,9 @@ from pathlib import Path
 from typing import Any
 
 from .projected_motion_commands import (
-    ProjectedMotionBundleResult,
     ProjectedMotionCommandError,
     compile_projected_motion_bundle,
+    probe_projected_scale,
     verify_projected_motion_bundle,
 )
 
@@ -36,6 +36,17 @@ def add_projection_stage_subcommands(subparsers: Any, state_root: Path) -> None:
     verify_parser.add_argument("--bundle-sha256", required=True)
     _state_root(verify_parser, state_root)
 
+    probe_parser = subparsers.add_parser(
+        "probe-projected-scale",
+        help="Report candidate-only target bone scales from two exact bundles",
+    )
+    probe_parser.add_argument("project_id", metavar="PROJECT")
+    probe_parser.add_argument("--projected-motion-sha256", required=True)
+    probe_parser.add_argument("--projected-bundle-sha256", required=True)
+    probe_parser.add_argument("--motion-instance-sha256", required=True)
+    probe_parser.add_argument("--motion-retarget-bundle-sha256", required=True)
+    _state_root(probe_parser, state_root)
+
 
 def dispatch_projection_stage_command(args: argparse.Namespace) -> int | None:
     """Dispatch a P8 command, or return ``None`` when unrelated."""
@@ -55,6 +66,17 @@ def dispatch_projection_stage_command(args: argparse.Namespace) -> int | None:
                 args.projected_motion_sha256,
                 args.bundle_sha256,
             )
+        elif command == "probe-projected-scale":
+            result = probe_projected_scale(
+                args.state_root,
+                args.project_id,
+                projected_motion_sha256=args.projected_motion_sha256,
+                projected_bundle_sha256=args.projected_bundle_sha256,
+                motion_instance_sha256=args.motion_instance_sha256,
+                motion_retarget_bundle_sha256=(
+                    args.motion_retarget_bundle_sha256
+                ),
+            )
         else:
             return None
     except ProjectedMotionCommandError as exc:
@@ -66,12 +88,19 @@ def dispatch_projection_stage_command(args: argparse.Namespace) -> int | None:
     return 0
 
 
-def _payload(result: ProjectedMotionBundleResult) -> dict[str, Any]:
+def _payload(result: Any) -> dict[str, Any]:
     values = asdict(result) if is_dataclass(result) else vars(result)
-    return {
-        field: str(value) if field == "path" else value
-        for field, value in values.items()
-    }
+    return _jsonable(values)
+
+
+def _jsonable(value: Any) -> Any:
+    if isinstance(value, Path):
+        return str(value)
+    if isinstance(value, dict):
+        return {key: _jsonable(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_jsonable(item) for item in value]
+    return value
 
 
 def _state_root(parser: argparse.ArgumentParser, default: Path) -> None:

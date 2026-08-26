@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 from .camera_model_validation import MAX_DOCUMENT_BYTES, CameraModelError
 from .kimodo_camera_projection import (
@@ -13,6 +14,10 @@ from .kimodo_camera_projection import (
 from .motion_bundle_reader import (
     VerifiedMotionBundleReader,
     VerifiedMotionBundleReaderError,
+)
+from .motion_retarget_bundle_reader import (
+    VerifiedMotionRetargetBundleReader,
+    VerifiedMotionRetargetBundleReaderError,
 )
 from .projected_motion_bundle_reader import (
     VerifiedProjectedMotionBundleReader,
@@ -29,6 +34,10 @@ from .projected_motion_compile_run import (
 from .projected_motion_legacy import (
     ProjectedMotionLegacyError,
     compile_projected_motion_to_motion_ir,
+)
+from .projected_scale_probe import (
+    ProjectedScaleProbeError,
+    compile_projected_scale_probes,
 )
 from .safe_input_files import (
     SafeInputFileError,
@@ -59,6 +68,16 @@ class ProjectedMotionBundleResult:
     minimum_foreshortening_ratio: float
     maximum_foreshortening_ratio: float
     reused: bool | None
+
+
+@dataclass(frozen=True, slots=True)
+class ProjectedScaleProbeCommandResult:
+    """Candidate-only report and the two exact bundles that produced it."""
+
+    projected_bundle_path: Path
+    motion_retarget_bundle_path: Path
+    report_sha256: str
+    report: dict[str, Any]
 
 
 def compile_projected_motion_bundle(
@@ -118,6 +137,43 @@ def verify_projected_motion_bundle(
         ) from exc
 
 
+def probe_projected_scale(
+    state_root: Path,
+    project_id: str,
+    *,
+    projected_motion_sha256: str,
+    projected_bundle_sha256: str,
+    motion_instance_sha256: str,
+    motion_retarget_bundle_sha256: str,
+) -> ProjectedScaleProbeCommandResult:
+    """Compile a read-only target-rig scale probe from two exact bundles."""
+
+    try:
+        projected = VerifiedProjectedMotionBundleReader(state_root).load(
+            projected_motion_sha256, projected_bundle_sha256
+        )
+        retarget = VerifiedMotionRetargetBundleReader(state_root).load(
+            project_id,
+            motion_instance_sha256,
+            motion_retarget_bundle_sha256,
+        )
+        report = compile_projected_scale_probes(
+            projected, retarget.target_profile
+        )
+        return ProjectedScaleProbeCommandResult(
+            projected_bundle_path=projected.path,
+            motion_retarget_bundle_path=retarget.path,
+            report_sha256=report.sha256,
+            report=report.document,
+        )
+    except ProjectedMotionCommandError:
+        raise
+    except _DOMAIN_ERRORS as exc:
+        raise ProjectedMotionCommandError(
+            f"Projected scale probe failed: {exc}"
+        ) from exc
+
+
 def _result(verified, *, reused: bool | None) -> ProjectedMotionBundleResult:
     camera = verified.camera
     validation = verified.run_manifest["validation"]
@@ -151,10 +207,12 @@ _DOMAIN_ERRORS = (
     ProjectedMotionBundleStoreError,
     ProjectedMotionCompileRunError,
     ProjectedMotionLegacyError,
+    ProjectedScaleProbeError,
     RecursionError,
     SafeInputFileError,
     TypeError,
     ValueError,
     VerifiedMotionBundleReaderError,
+    VerifiedMotionRetargetBundleReaderError,
     VerifiedProjectedMotionBundleReaderError,
 )
