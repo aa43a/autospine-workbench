@@ -51,6 +51,10 @@ from .p10_visual_review_cli import (
     add_p10_visual_review_subcommands,
     dispatch_p10_visual_review_command,
 )
+from .p10_review_admission_cli import (
+    add_p10_review_admission_subcommands,
+    dispatch_p10_review_admission_command,
+)
 
 
 def add_projection_stage_subcommands(subparsers: Any, state_root: Path) -> None:
@@ -93,6 +97,7 @@ def add_projection_stage_subcommands(subparsers: Any, state_root: Path) -> None:
     add_p10_preview_subcommands(subparsers, state_root)
     add_p10_runtime_capture_subcommands(subparsers, state_root)
     add_p10_visual_review_subcommands(subparsers, state_root)
+    add_p10_review_admission_subcommands(subparsers, state_root)
 
 
 def dispatch_projection_stage_command(args: argparse.Namespace) -> int | None:
@@ -150,8 +155,11 @@ def dispatch_projection_stage_command(args: argparse.Namespace) -> int | None:
             if status is not None:
                 return status
             status = dispatch_p10_runtime_capture_command(args)
+            if status is not None:
+                return status
+            status = dispatch_p10_visual_review_command(args)
             return status if status is not None \
-                else dispatch_p10_visual_review_command(args)
+                else dispatch_p10_review_admission_command(args)
     except ProjectedMotionCommandError as exc:
         _print({"ok": False, "status": "error", "error": str(exc)})
         return 2
