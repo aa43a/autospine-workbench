@@ -27,15 +27,17 @@ from tests.body_sway_runtime_capture_helpers import (
 class BodySwayVisualReviewFixture:
     """Build and publish one complete deterministic runtime capture."""
 
-    def __init__(self, root: Path) -> None:
+    def __init__(self, root: Path, *, distinct_images: bool = False) -> None:
         self.state_root = root / "state"
         input_root = root / "inputs"
         input_root.mkdir(parents=True)
         self.inputs = RuntimeCaptureFixture(input_root)
         with fake_runtime_profile():
             collector = BodySwayRuntimeCaptureCollector(self.inputs.sessions)
-            image = capture_png()
-            for case_id in collector.case_ids:
+            for index, case_id in enumerate(collector.case_ids):
+                image = capture_png(
+                    pixel=(20 + index, 40 + index, 60 + index, 255)
+                ) if distinct_images else capture_png()
                 collector.record_capture(case_id, image, device_pixel_ratio=1)
             browser = BrowserExecutableSnapshot(
                 path=str(root / "chromium.exe"),

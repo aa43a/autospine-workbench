@@ -78,7 +78,16 @@ def publish_visual_review_decision(
         )
         chain = []
         if parent is not None:
-            revisions = exact_subdirectory(parent, "revisions", create=False)
+            try:
+                revisions = exact_subdirectory(
+                    parent, "revisions", create=False
+                )
+            except BodySwayVisualReviewFilesError:
+                if revision != 1:
+                    raise
+                revisions = exact_subdirectory(
+                    parent, "revisions", create=True
+                )
             chain = load_visual_review_chain(parent, revisions, candidate)
         require_body_sway_visual_review_decision(
             document, candidates=candidate.document,

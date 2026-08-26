@@ -37,8 +37,10 @@ def fake_runtime(root: Path) -> Spine42RuntimePackage:
     )
 
 
-def capture_png(width=640, height=640) -> bytes:
-    pixels = bytes((20, 40, 60, 255)) * (width * height)
+def capture_png(
+    width=640, height=640, *, pixel: tuple[int, int, int, int] = (20, 40, 60, 255),
+) -> bytes:
+    pixels = bytes(pixel) * (width * height)
     return encode_rgba_png(RgbaImage(width, height, pixels))
 
 
