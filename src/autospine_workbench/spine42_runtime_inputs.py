@@ -14,6 +14,10 @@ from typing import Any
 from .png_rgba import RgbaPngError, decode_rgba_png
 from .safe_input_files import SafeInputFileError, read_real_file, strict_json_object
 from .spine42_contract import SPINE_RUNTIME_PACKAGE, SPINE_RUNTIME_VERSION
+from .spine42_runtime_profile import (
+    SPINE_PLAYER_JAVASCRIPT_SHA256,
+    SPINE_PLAYER_STYLESHEET_SHA256,
+)
 
 
 class Spine42RuntimeInputError(ValueError):
@@ -28,6 +32,8 @@ class Spine42RuntimePackage:
     license_file: Path
     javascript_bytes: bytes
     stylesheet_bytes: bytes
+    javascript_sha256: str
+    stylesheet_sha256: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -64,8 +70,20 @@ def require_runtime_package(root: Path) -> Spine42RuntimePackage:
     javascript_bytes = _snapshot(javascript, 2 * 1024 * 1024, "runtime JavaScript")
     stylesheet_bytes = _snapshot(stylesheet, 512 * 1024, "runtime stylesheet")
     _snapshot(license_file, 256 * 1024, "runtime license")
+    expected_js = _sha256(
+        SPINE_PLAYER_JAVASCRIPT_SHA256, "runtime JavaScript SHA-256"
+    )
+    expected_css = _sha256(
+        SPINE_PLAYER_STYLESHEET_SHA256, "runtime stylesheet SHA-256"
+    )
+    actual_js, actual_css = _sha(javascript_bytes), _sha(stylesheet_bytes)
+    if actual_js != expected_js or actual_css != expected_css:
+        raise Spine42RuntimeInputError(
+            "runtime dist bytes differ from the pinned 4.2.119 snapshot"
+        )
     return Spine42RuntimePackage(
-        root, javascript, stylesheet, license_file, javascript_bytes, stylesheet_bytes
+        root, javascript, stylesheet, license_file,
+        javascript_bytes, stylesheet_bytes, actual_js, actual_css,
     )
 
 
@@ -173,3 +191,10 @@ def _mapping(value: Any, label: str) -> Mapping[str, Any]:
 
 def _sha(raw: bytes) -> str:
     return hashlib.sha256(raw).hexdigest()
+
+
+def _sha256(value: str, label: str) -> str:
+    if not isinstance(value, str) or len(value) != 64 \
+            or any(character not in "0123456789abcdef" for character in value):
+        raise Spine42RuntimeInputError(f"{label} is invalid")
+    return value

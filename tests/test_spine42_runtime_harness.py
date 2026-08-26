@@ -9,6 +9,7 @@ import tempfile
 import threading
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -41,6 +42,19 @@ from autospine_workbench.spine42_runtime_server import (  # noqa: E402
 
 def rgba_png(width: int, height: int, color: bytes = b"\x10\x20\x30\xff") -> bytes:
     return encode_rgba_png(RgbaImage(width, height, color * (width * height)))
+
+
+def runtime_package(path: Path):
+    with patch(
+        "autospine_workbench.spine42_runtime_inputs."
+        "SPINE_PLAYER_JAVASCRIPT_SHA256",
+        hashlib.sha256(b"runtime-js").hexdigest(),
+    ), patch(
+        "autospine_workbench.spine42_runtime_inputs."
+        "SPINE_PLAYER_STYLESHEET_SHA256",
+        hashlib.sha256(b"runtime-css").hexdigest(),
+    ):
+        return require_runtime_package(path)
 
 
 class RuntimeFixture:
@@ -110,7 +124,7 @@ class Spine42RuntimeContractTests(unittest.TestCase):
         self.temporary.cleanup()
 
     def test_exact_package_and_export_are_read_once_into_session(self) -> None:
-        runtime = require_runtime_package(self.fx.runtime)
+        runtime = runtime_package(self.fx.runtime)
         exports = require_export_files(self.fx.export)
         session = build_runtime_session(exports, viewport=(64, 96), case={
             "id": "idle.t1000", "clip": "idle", "time_seconds": 1,
@@ -133,12 +147,21 @@ class Spine42RuntimeContractTests(unittest.TestCase):
         value["version"] = "4.2.118"
         package.write_text(json.dumps(value), encoding="utf-8")
         with self.assertRaisesRegex(Spine42RuntimeInputError, "4.2.119"):
-            require_runtime_package(self.fx.runtime)
+            runtime_package(self.fx.runtime)
         package_value = {**value, "version": "4.2.119"}
         package.write_text(json.dumps(package_value), encoding="utf-8")
         (self.fx.export / "skeleton.atlas").write_text("other.png\n", encoding="utf-8")
         with self.assertRaisesRegex(Spine42RuntimeInputError, "first page"):
             require_export_files(self.fx.export)
+
+    def test_runtime_dist_bytes_must_match_the_pinned_snapshot(self) -> None:
+        runtime_package(self.fx.runtime)
+        javascript = (
+            self.fx.runtime / "dist" / "iife" / "spine-player.min.js"
+        )
+        javascript.write_bytes(b"forged-runtime-js")
+        with self.assertRaisesRegex(Spine42RuntimeInputError, "dist bytes"):
+            runtime_package(self.fx.runtime)
 
     def test_golden_suite_requires_exact_runtime_three_clips_sha_and_thresholds(self) -> None:
         exports = require_export_files(self.fx.export)
@@ -187,7 +210,7 @@ class Spine42RuntimeServerTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temporary = tempfile.TemporaryDirectory()
         self.fx = RuntimeFixture(Path(self.temporary.name))
-        self.runtime = require_runtime_package(self.fx.runtime)
+        self.runtime = runtime_package(self.fx.runtime)
         self.exports = require_export_files(self.fx.export)
         self.session = build_runtime_session(self.exports, viewport=(64, 64))
         self.store = Spine42CaptureStore(
