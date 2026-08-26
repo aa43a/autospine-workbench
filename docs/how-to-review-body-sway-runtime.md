@@ -151,6 +151,8 @@ P10.3 视觉复核不能证明：
 
 因此 sampled approval 后仍保留 `continuous_time_safety_unproven`、`preview_only_timeline`、`reviewed_seam_anchors_missing` 和 `safe_range_unproven`。出现 reject/unobservable 时还会加入 `sampled_visual_review_rejected`。眨眼、口型和头发弹簧仍不在这条 body-sway 视觉复核链内。
 
+当当前 head 已是 `sampled_visual_approved` 时，下一步按[准入已批准的 body-sway 视觉复核头](how-to-admit-body-sway-review.md)生成 P10.4a 只读交接合同。该命令会在精确 decision 重放前后各读取一次 authoritative history；它不会把 sampled approval 升级成安全范围、连续时间或发布证明。
+
 开发者在修改前端或 HTTP 适配器后，至少运行：
 
 ```powershell

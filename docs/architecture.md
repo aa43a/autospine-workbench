@@ -64,6 +64,8 @@ exact Layer Manifest + exact P3/P5/P9 reviewed chain
                                       ↓ exact-address human CAS
                     sampled visual decision history
                                       ↓
+                P10.4a double-snapshot admission
+                                      ↓
                            blocked release
 
 server → application services only
@@ -75,8 +77,9 @@ web    → HTTP contracts only
 - 前端分为 API、authoring state、保存事务和各 stage view；view state 不得污染 revision draft。
 - 外部姿态模型只能通过 canonical pose observations 进入；alpha 几何只读取 resolved layer 与固定 PNG，融合结果必须保留原始 pose 和未标定分数语义。
 - COCO17 raw 输入、adapter、canonical pose、人工评估和候选工件分开内容寻址；坐标反镜像、左右标签交换、视角和镜像声明不得合并成一个隐式开关。
-- 离线命令按 stage 边界拆分：P1 输入/候选、P2 manifest/RigIR、P3 mesh、P4 IK、P5 MotionIR、P6 目标版本 adapter、P7 Kimodo source adapter、P8 camera/projected evidence、P9 reviewed motion/bundle，以及 P10 idle probe/runtime capture/visual review 分别拥有显式入口；命令之间只传递精确内容地址，不解析 `latest`。
+- 离线命令按 stage 边界拆分：P1 输入/候选、P2 manifest/RigIR、P3 mesh、P4 IK、P5 MotionIR、P6 目标版本 adapter、P7 Kimodo source adapter、P8 camera/projected evidence、P9 reviewed motion/bundle，以及 P10 idle probe/runtime capture/visual review/review admission 分别拥有显式入口；命令之间只传递精确内容地址，不解析 `latest`。
 - P10.0–P10.2 application service 只通过共享 exact-chain loader 读取七个完整 SHA 所选的 Layer Manifest/P3/P5/P9 工件。Candidate、人工 review input、decision 和 probe report 保持独立；三条 CLI 都不发布工件或修改 state tree。P10.3 visual-review service 改从 project/preview/bundle/artifact 四段地址重放 capture；prepare 零写入，只有通过 CAS 的 submit 才追加 candidate-bound revision。
+- P10.4a admission command 重新编译 exact preview、重验 capture，并按 `history A → exact decision → history B` 观察当前 approved head。输出仅是 path-free compile-time 准入合同；它不持久化、不授予永久 authority，未来发布消费方必须重新读取当前 head。
 - Kimodo 的 raw NPZ、source sidecar 与 map 是三个独立输入。sidecar 解释数组/FPS/producer，map 决定投影/角色/contact；两者都不得根据文件名、数组数量或相邻目录隐式发现。
 
 ## 文件长度预算
