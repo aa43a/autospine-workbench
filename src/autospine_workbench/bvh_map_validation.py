@@ -10,7 +10,11 @@ import re
 from typing import Any
 
 from .bvh_parser import BvhDocument
-from .motion_roles import CANONICAL_BONE_ROLE_ITEMS
+from .bvh_motion_root import BvhMotionRootError, require_bvh_motion_root
+from .motion_roles import (
+    CANONICAL_BONE_ROLE_ITEMS,
+    nearest_mapped_parent_role,
+)
 
 
 FORMAT = "autospine-bvh-map"
@@ -24,9 +28,6 @@ _AXES = frozenset(("+X", "-X", "+Y", "-Y", "+Z", "-Z"))
 _ROLE_ORDER = {role: index for index, (role, _) in enumerate(
     CANONICAL_BONE_ROLE_ITEMS
 )}
-_PARENT_INDEX = (None, 0, 1, 2, 3, 2, 5, 6, 0, 8, 9, 2, 11, 12, 0, 14, 15)
-_PARENT_ROLE = {role: None if parent is None else CANONICAL_BONE_ROLE_ITEMS[parent][0]
-                for (role, _), parent in zip(CANONICAL_BONE_ROLE_ITEMS, _PARENT_INDEX)}
 _TOP = {"format", "format_version", "map_id", "clip", "basis", "root", "bones", "contact"}
 _BONE = {"role", "joint_name", "aim", "rotation_policy"}
 _CONTACT_ON = {
@@ -213,8 +214,10 @@ def _cross_bvh(
             or bad_parent:
         raise BvhMapValidationError("BVH source hierarchy is invalid")
     indexed = {name: index for index, name in enumerate(names)}
-    if root_joint != names[0]:
-        raise BvhMapValidationError("BVH map root does not bind the BVH ROOT")
+    try:
+        require_bvh_motion_root(bvh, root_joint)
+    except BvhMotionRootError as exc:
+        raise BvhMapValidationError(str(exc)) from exc
     for role, row in bones.items():
         source = _known(indexed, row["joint_name"], "bone")
         aim = row["aim"]
@@ -225,8 +228,8 @@ def _cross_bvh(
             target = _known(indexed, aim["joint_name"], "aim")
             if not _descends(bvh, target, source, allow_same=False):
                 raise BvhMapValidationError("BVH map aim must descend from its source joint")
-        parent = _PARENT_ROLE[role]
-        if parent in bones:
+        parent = nearest_mapped_parent_role(role, bones)
+        if parent is not None:
             parent_index = indexed[bones[parent]["joint_name"]]
             if not _descends(bvh, source, parent_index, allow_same=False):
                 raise BvhMapValidationError("BVH map role topology differs from humanoid-v1")

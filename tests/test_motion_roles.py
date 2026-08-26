@@ -16,8 +16,10 @@ from autospine_workbench.motion_roles import (  # noqa: E402
     CANONICAL_BONE_ID_BY_ROLE,
     CANONICAL_BONE_ROLE_BY_ID,
     CANONICAL_BONE_ROLES,
+    CANONICAL_PARENT_ROLE_BY_ROLE,
     CANONICAL_IK_HANDLES,
     CONTACT_LIMBS,
+    nearest_mapped_parent_role,
 )
 
 
@@ -57,6 +59,24 @@ class MotionRoleTests(unittest.TestCase):
             CANONICAL_IK_HANDLES,
         )
         self.assertEqual(set(CANONICAL_IK_HANDLES), CONTACT_LIMBS)
+        with self.assertRaises(TypeError):
+            CANONICAL_PARENT_ROLE_BY_ROLE["new"] = None  # type: ignore[index]
+
+    def test_nearest_mapped_parent_collapses_only_canonical_ancestors(self):
+        mapped = {
+            "humanoid.root", "humanoid.leg.upper.left",
+            "humanoid.leg.lower.left",
+        }
+        self.assertIsNone(nearest_mapped_parent_role("humanoid.root", mapped))
+        self.assertEqual(
+            "humanoid.root",
+            nearest_mapped_parent_role("humanoid.leg.upper.left", mapped),
+        )
+        self.assertEqual(
+            "humanoid.leg.upper.left",
+            nearest_mapped_parent_role("humanoid.leg.lower.left", mapped),
+        )
+        self.assertIsNone(nearest_mapped_parent_role("unknown", mapped))
 
 
 if __name__ == "__main__":

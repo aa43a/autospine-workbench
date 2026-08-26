@@ -30,6 +30,17 @@ CANONICAL_BONE_ROLE_BY_ID = MappingProxyType({
     bone_id: role for role, bone_id in CANONICAL_BONE_ROLE_ITEMS
 })
 CANONICAL_BONE_ROLES = frozenset(CANONICAL_BONE_ID_BY_ROLE)
+_CANONICAL_PARENT_INDEX = (
+    None, 0, 1, 2, 3, 2, 5, 6, 0, 8, 9, 2, 11, 12, 0, 14, 15,
+)
+CANONICAL_PARENT_ROLE_BY_ROLE = MappingProxyType({
+    role: (
+        None if parent is None else CANONICAL_BONE_ROLE_ITEMS[parent][0]
+    )
+    for (role, _bone_id), parent in zip(
+        CANONICAL_BONE_ROLE_ITEMS, _CANONICAL_PARENT_INDEX
+    )
+})
 CANONICAL_IK_HANDLES = (
     "arm.left", "arm.right", "leg.left", "leg.right",
 )
@@ -40,3 +51,12 @@ IK_BONE_ROLES_BY_HANDLE = MappingProxyType({
     "leg.right": ("humanoid.leg.upper.right", "humanoid.leg.lower.right"),
 })
 CONTACT_LIMBS = frozenset(CANONICAL_IK_HANDLES)
+
+
+def nearest_mapped_parent_role(role: str, mapped_roles) -> str | None:
+    """Return the nearest explicit canonical ancestor, collapsing omitted roles."""
+
+    parent = CANONICAL_PARENT_ROLE_BY_ROLE.get(role)
+    while parent is not None and parent not in mapped_roles:
+        parent = CANONICAL_PARENT_ROLE_BY_ROLE[parent]
+    return parent

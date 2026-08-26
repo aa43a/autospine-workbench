@@ -154,7 +154,7 @@ class BvhMotionCompilerSuccessTests(unittest.TestCase):
         self.assertEqual([0.0, -5.0, -10.0], values[
             ("humanoid.leg.lower.left", "rotation")
         ])
-        self.assertEqual([0.0, 30.0, 60.0], values[
+        self.assertEqual([0.0, 20.0, 40.0], values[
             ("humanoid.leg.upper.left", "rotation")
         ])
         self.assertEqual([0.0, 10.0, 20.0], values[

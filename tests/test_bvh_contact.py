@@ -28,12 +28,21 @@ from autospine_workbench.bvh_map_validation import bvh_map_sha256  # noqa: E402
 from autospine_workbench.bvh_parser import BvhDocument, BvhJoint  # noqa: E402
 
 
-def _joint(name: str, parent: int | None, *, end: bool = False) -> BvhJoint:
+def _joint(
+    name: str, parent: int | None, *, end: bool = False, root: bool = False
+) -> BvhJoint:
+    channels = (
+        (
+            "Xposition", "Yposition", "Zposition",
+            "Xrotation", "Yrotation", "Zrotation",
+        )
+        if root else ("Xrotation", "Yrotation", "Zrotation")
+    )
     return BvhJoint(
         name=name,
         parent_index=parent,
         offset=(0.0, 0.0, 0.0),
-        channels=(),
+        channels=channels,
         rotation_order=("Xrotation", "Yrotation", "Zrotation"),
         end_site_offset=(0.0, 1.0, 0.0) if end else None,
     )
@@ -44,14 +53,14 @@ def source(frame_count: int) -> BvhDocument:
         source_sha256="0" * 64,
         source_byte_length=1,
         joints=(
-            _joint("Hips", None),
+            _joint("Hips", None, root=True),
             _joint("LeftFoot", 0, end=True),
             _joint("RightFoot", 0, end=True),
         ),
         frame_count=frame_count,
         frame_time_seconds=0.00001,
-        channel_count=0,
-        frames=tuple(() for _ in range(frame_count)),
+        channel_count=12,
+        frames=tuple((0.0,) * 12 for _ in range(frame_count)),
     )
 
 

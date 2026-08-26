@@ -30,8 +30,8 @@ from .motion_validation import (
 
 
 COMPILER_ID = "bvh-motionir-compiler"
-COMPILER_VERSION = "1.0.0"
-FK_PROFILE = "declared-channel-postmultiply-3d-affine-v1"
+COMPILER_VERSION = "1.1.0"
+FK_PROFILE = "declared-channel-postmultiply-3d-affine-logical-root-v2"
 PROJECTION_PROFILE = "explicit-signed-basis-v1"
 ROTATION_PROFILE = "projected-setup-local-delta-v1"
 CONTACT_PROFILE = "source-world-3d-contact-v1"

@@ -141,11 +141,12 @@ class _Parser:
         offset = self._vector("joint offset")
         self._expect("CHANNELS")
         count = self._integer("channel count")
-        expected_count = 6 if root else 3
-        if count != expected_count:
+        expected_counts = (6,) if root else (3, 6)
+        if count not in expected_counts:
             kind = "root" if root else "non-root"
             self._fail(
-                f"BVH {kind} channel count must be {expected_count}"
+                f"BVH {kind} channel count must be "
+                f"{'6' if root else '3 or 6'}"
             )
         channels = tuple(self._take("channel").text for _ in range(count))
         rotations = self._channels(channels, root)
@@ -169,9 +170,9 @@ class _Parser:
     def _channels(
         self, channels: tuple[str, ...], root: bool
     ) -> tuple[str, str, str]:
-        allowed = _POSITION | _ROTATION if root else _ROTATION
-        expected = 6 if root else 3
-        if len(channels) != expected or set(channels) != allowed:
+        allowed = _POSITION | _ROTATION if len(channels) == 6 else _ROTATION
+        if root and len(channels) != 6 or len(channels) not in (3, 6) \
+                or set(channels) != allowed:
             kind = "root" if root else "non-root"
             self._fail(
                 f"BVH {kind} channels must contain each allowed channel exactly once"

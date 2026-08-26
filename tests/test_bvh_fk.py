@@ -196,7 +196,7 @@ class BvhFkTransformTests(unittest.TestCase):
 
 
 class BvhFkRotationContractTests(unittest.TestCase):
-    def test_missing_canonical_parent_uses_world_change_without_nearest_guess(self):
+    def test_missing_canonical_parent_collapses_to_nearest_mapped_ancestor(self):
         document = chain_bvh([
             (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
             (0, 0, 0, 10, 0, 0, 0, 0, 0, 30, 0, 0),
@@ -217,8 +217,8 @@ class BvhFkRotationContractTests(unittest.TestCase):
         upper = segment(output.frames[1], "humanoid.spine.upper")
 
         self.assertEqual(40.0, upper.projected_world_angle_deg)
-        self.assertEqual(40.0, upper.setup_local_additive_delta_deg)
-        self.assertIsNone(upper.delta_parent_role)
+        self.assertEqual(30.0, upper.setup_local_additive_delta_deg)
+        self.assertEqual("humanoid.root", upper.delta_parent_role)
 
     def test_mapped_canonical_parent_change_is_subtracted_exactly(self):
         document = chain_bvh([

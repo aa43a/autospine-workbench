@@ -34,7 +34,7 @@
       "required": ["id", "version", "config"],
       "properties": {
         "id": {"const": "bvh-motionir-compiler"},
-        "version": {"const": "1.0.0"},
+        "version": {"const": "1.1.0"},
         "config": {
           "type": "object",
           "additionalProperties": false,
@@ -45,7 +45,9 @@
             "ticks_per_second", "decimal_places"
           ],
           "properties": {
-            "fk": {"const": "declared-channel-postmultiply-3d-affine-v1"},
+            "fk": {
+              "const": "declared-channel-postmultiply-3d-affine-logical-root-v2"
+            },
             "projection": {"const": "explicit-signed-basis-v1"},
             "rotation": {"const": "projected-setup-local-delta-v1"},
             "contact": {"const": "source-world-3d-contact-v1"},

@@ -11,7 +11,8 @@ from typing import Any
 from .bvh_map_validation import bvh_map_sha256, require_bvh_map
 from .bvh_parser import BvhDocument, MAX_BVH_ABS_VALUE, MAX_BVH_FRAMES
 from .bvh_parser import MAX_BVH_JOINTS, MAX_BVH_TOTAL_SAMPLES
-from .motion_roles import CANONICAL_BONE_ROLE_ITEMS
+from .bvh_motion_root import BvhMotionRoot, require_bvh_motion_root
+from .motion_roles import nearest_mapped_parent_role
 from .motion_validation import MAX_DURATION_TICKS, TICKS_PER_SECOND
 
 PRECISION_DECIMALS = 12
@@ -20,9 +21,6 @@ _MIN_PROJECTED_SEGMENT_RATIO = 1e-6
 _MIN_REFERENCE_SEGMENT_RATIO = 1e-9
 _ROTATIONS = frozenset(("Xrotation", "Yrotation", "Zrotation"))
 _POSITIONS = frozenset(("Xposition", "Yposition", "Zposition"))
-_PARENT_INDEX = (None, 0, 1, 2, 3, 2, 5, 6, 0, 8, 9, 2, 11, 12, 0, 14, 15)
-_PARENT_ROLE = {role: None if parent is None else CANONICAL_BONE_ROLE_ITEMS[parent][0]
-                for (role, _), parent in zip(CANONICAL_BONE_ROLE_ITEMS, _PARENT_INDEX)}
 Matrix4 = tuple[tuple[float, float, float, float], ...]
 
 class BvhFkError(ValueError):
@@ -70,7 +68,10 @@ def project_bvh_frames(
 ) -> BvhProjectedFrames:
     """Run declared-channel 3D FK, then project through the explicit map basis."""
     require_bvh_map(bvh_map, bvh=bvh)
-    _require_document(bvh)
+    motion_root = require_bvh_motion_root(
+        bvh, bvh_map["root"]["joint_name"]
+    )
+    _require_document(bvh, motion_root)
     ticks = bvh_frame_ticks(bvh)
     basis, bones = bvh_map["basis"], bvh_map["bones"]
     names = {joint.name: index for index, joint in enumerate(bvh.joints)}
@@ -112,7 +113,7 @@ def project_bvh_frames(
         segments = []
         for row in bones:
             role = row["role"]
-            parent = _PARENT_ROLE[role] if _PARENT_ROLE[role] in changes else None
+            parent = nearest_mapped_parent_role(role, changes)
             delta = changes[role] - (changes[parent] if parent else 0.0)
             segments.append(BvhProjectedSegment(
                 role=role, source_joint_name=row["joint_name"],
@@ -139,7 +140,7 @@ def project_bvh_frames(
     return result
 
 
-def _require_document(bvh: BvhDocument) -> None:
+def _require_document(bvh: BvhDocument, motion_root: BvhMotionRoot) -> None:
     if type(bvh) is not BvhDocument or not isinstance(bvh.source_sha256, str) or len(bvh.source_sha256) != 64 \
             or any(value not in "0123456789abcdef" for value in bvh.source_sha256):
         raise BvhFkError("BVH projection requires one parsed content-addressed document")
@@ -151,7 +152,10 @@ def _require_document(bvh: BvhDocument) -> None:
     if bvh.channel_count != channel_count or bvh.frame_count * channel_count > MAX_BVH_TOTAL_SAMPLES:
         raise BvhFkError("BVH projection channel/sample count is inconsistent")
     for index, joint in enumerate(bvh.joints):
-        expected = _ROTATIONS | _POSITIONS if index == 0 else _ROTATIONS
+        expected = (
+            _ROTATIONS | _POSITIONS
+            if index in {0, motion_root.joint_index} else _ROTATIONS
+        )
         if type(joint.channels) is not tuple or len(joint.channels) != len(expected) \
                 or set(joint.channels) != expected:
             raise BvhFkError("BVH projection channel profile is unsupported")

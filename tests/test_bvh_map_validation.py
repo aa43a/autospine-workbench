@@ -29,12 +29,19 @@ from autospine_workbench.bvh_map_validation import (  # noqa: E402
 from autospine_workbench.bvh_parser import BvhDocument, BvhJoint  # noqa: E402
 
 
-def _joint(name, parent, *, end=False):
+def _joint(name, parent, *, end=False, root=False):
+    channels = (
+        (
+            "Xposition", "Yposition", "Zposition",
+            "Xrotation", "Yrotation", "Zrotation",
+        )
+        if root else ("Xrotation", "Yrotation", "Zrotation")
+    )
     return BvhJoint(
         name=name,
         parent_index=parent,
         offset=(0.0, 1.0, 0.0),
-        channels=("Xrotation", "Yrotation", "Zrotation"),
+        channels=channels,
         rotation_order=("Xrotation", "Yrotation", "Zrotation"),
         end_site_offset=(0.0, 1.0, 0.0) if end else None,
     )
@@ -42,7 +49,7 @@ def _joint(name, parent, *, end=False):
 
 def source_bvh():
     joints = (
-        _joint("Hips", None),
+        _joint("Hips", None, root=True),
         _joint("Spine", 0),
         _joint("Chest", 1, end=True),
         _joint("LeftUpLeg", 0),
@@ -183,6 +190,21 @@ class BvhMapRejectionTests(unittest.TestCase):
             mutate(value)
             with self.subTest(basis=value["basis"]):
                 self.assert_invalid(value)
+
+    def test_standard_root_rejects_an_additional_six_dof_joint(self):
+        source = source_bvh()
+        joints = list(source.joints)
+        joints[1] = replace(
+            joints[1],
+            channels=(
+                "Xposition", "Yposition", "Zposition",
+                "Xrotation", "Yrotation", "Zrotation",
+            ),
+        )
+        self.assert_invalid(
+            mapping(), bvh=replace(source, joints=tuple(joints)),
+            message="channel inventory",
+        )
 
     def test_joint_root_aim_end_site_and_contact_tampering_fail_against_bvh(self):
         source = source_bvh()
