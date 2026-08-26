@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/kimodo-npz-motion-compile-run-v1.schema.json",
+  "title": "AutoSpine Kimodo NPZ-to-MotionIR compile provenance v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "format_version", "source", "compiler", "validation", "output"],
+  "properties": {
+    "format": {"const": "autospine-kimodo-npz-motion-compile-run"},
+    "format_version": {"type": "integer", "const": 1},
+    "source": {"$ref": "#/$defs/source"},
+    "compiler": {"$ref": "#/$defs/compiler"},
+    "validation": {"$ref": "#/$defs/validation"},
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["motion_ir_sha256"],
+      "properties": {"motion_ir_sha256": {"$ref": "#/$defs/sha256"}}
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind", "raw_npz_sha256", "raw_npz_byte_length", "source_sha256",
+        "source_id", "map_sha256", "map_id", "clip_id",
+        "array_inventory_sha256"
+      ],
+      "properties": {
+        "kind": {"const": "kimodo_npz"},
+        "raw_npz_sha256": {"$ref": "#/$defs/sha256"},
+        "raw_npz_byte_length": {
+          "type": "integer", "minimum": 1, "maximum": 134217728
+        },
+        "source_sha256": {"$ref": "#/$defs/sha256"},
+        "source_id": {"$ref": "#/$defs/id"},
+        "map_sha256": {"$ref": "#/$defs/sha256"},
+        "map_id": {"$ref": "#/$defs/id"},
+        "clip_id": {"$ref": "#/$defs/id"},
+        "array_inventory_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "compiler": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version", "config"],
+      "properties": {
+        "id": {"const": "kimodo-npz-motionir-compiler"},
+        "version": {"const": "1.0.0"},
+        "config": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "reader", "skeleton_definition_sha256", "consistency",
+            "matrix_orthonormal_tolerance", "matrix_crosscheck_tolerance",
+            "position_crosscheck_meters", "heading_norm_tolerance",
+            "projection", "baseline", "root", "contact", "tick_schedule",
+            "ticks_per_second", "decimal_places"
+          ],
+          "properties": {
+            "reader": {"const": "stdlib-zip-npy-v1-v2-primitive-c-order-v1"},
+            "skeleton_definition_sha256": {
+              "const": "081e13564aed36abcbbc53df655d40e6ba5141023452b78f07a96409e71d8623"
+            },
+            "consistency": {"const": "soma77-local-root-matrix-fk-crosscheck-v1"},
+            "matrix_orthonormal_tolerance": {"type": "number", "const": 0.0005},
+            "matrix_crosscheck_tolerance": {"type": "number", "const": 0.0005},
+            "position_crosscheck_meters": {"type": "number", "const": 0.0005},
+            "heading_norm_tolerance": {"type": "number", "const": 0.005},
+            "projection": {"const": "explicit-signed-basis-projected-segment-v1"},
+            "baseline": {"const": "source-frame0-setup-local-v1"},
+            "root": {"const": "root-positions-frame0-normalized-reference-v1"},
+            "contact": {"const": "source-boolean-any-limb-half-open-v1"},
+            "tick_schedule": {"const": "rational-half-up-microsecond-v1"},
+            "ticks_per_second": {"type": "integer", "const": 1000000},
+            "decimal_places": {"type": "integer", "const": 5}
+          }
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_global_matrix_error", "max_heading_norm_error",
+        "max_position_error_meters", "max_root_position_error_meters"
+      ],
+      "properties": {
+        "max_global_matrix_error": {"type": "number", "minimum": 0, "maximum": 0.0005},
+        "max_heading_norm_error": {
+          "oneOf": [
+            {"type": "null"},
+            {"type": "number", "minimum": 0, "maximum": 0.005}
+          ]
+        },
+        "max_position_error_meters": {"type": "number", "minimum": 0, "maximum": 0.0005},
+        "max_root_position_error_meters": {"type": "number", "minimum": 0, "maximum": 0.0005}
+      }
+    }
+  }
+}
