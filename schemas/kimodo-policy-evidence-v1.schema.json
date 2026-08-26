@@ -1,0 +1,268 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/kimodo-policy-evidence-v1.schema.json",
+  "title": "AutoSpine candidate-free Kimodo policy evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "clip_id", "source", "array_profile",
+    "timing", "policy", "signals"
+  ],
+  "properties": {
+    "format": {"const": "autospine-kimodo-policy-evidence"},
+    "format_version": {"type": "integer", "const": 1},
+    "clip_id": {"$ref": "#/$defs/id"},
+    "source": {"$ref": "#/$defs/source"},
+    "array_profile": {"$ref": "#/$defs/arrayProfile"},
+    "timing": {"$ref": "#/$defs/timing"},
+    "policy": {"$ref": "#/$defs/policy"},
+    "signals": {"$ref": "#/$defs/signals"}
+  },
+  "$defs": {
+    "id": {
+      "type": "string", "minLength": 1, "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "p7_motion_ir_sha256", "p7_bundle_sha256", "p7_run_sha256",
+        "raw_npz_sha256", "kimodo_source_sha256", "kimodo_map_sha256",
+        "array_inventory_sha256", "p8_projected_motion_sha256",
+        "p8_bundle_sha256", "p8_run_sha256", "camera_sha256",
+        "legacy_motion_ir_sha256"
+      ],
+      "properties": {
+        "p7_motion_ir_sha256": {"$ref": "#/$defs/sha256"},
+        "p7_bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "p7_run_sha256": {"$ref": "#/$defs/sha256"},
+        "raw_npz_sha256": {"$ref": "#/$defs/sha256"},
+        "kimodo_source_sha256": {"$ref": "#/$defs/sha256"},
+        "kimodo_map_sha256": {"$ref": "#/$defs/sha256"},
+        "array_inventory_sha256": {"$ref": "#/$defs/sha256"},
+        "p8_projected_motion_sha256": {"$ref": "#/$defs/sha256"},
+        "p8_bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "p8_run_sha256": {"$ref": "#/$defs/sha256"},
+        "camera_sha256": {"$ref": "#/$defs/sha256"},
+        "legacy_motion_ir_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "arrayProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["inventory", "contact_layout"],
+      "properties": {
+        "inventory": {"enum": ["core-v1", "complete-v1"]},
+        "contact_layout": {
+          "enum": [
+            "left-heel-toe-right-heel-toe-v1",
+            "left-heel-toe-toe_end-right-heel-toe-toe_end-v1"
+          ]
+        }
+      }
+    },
+    "timing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ticks_per_second", "duration_ticks", "frame_count", "loop", "frames"
+      ],
+      "properties": {
+        "ticks_per_second": {"type": "integer", "const": 1000000},
+        "duration_ticks": {"type": "integer", "minimum": 1},
+        "frame_count": {"type": "integer", "minimum": 2, "maximum": 4096},
+        "loop": {"type": "boolean"},
+        "frames": {
+          "type": "array", "minItems": 2, "maxItems": 4096,
+          "items": {"$ref": "#/$defs/frame"}
+        }
+      }
+    },
+    "frame": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_frame_index", "tick"],
+      "properties": {
+        "source_frame_index": {
+          "type": "integer", "minimum": 0, "maximum": 4095
+        },
+        "tick": {"type": "integer", "minimum": 0}
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode", "candidate_emitted", "decision_emitted",
+        "runtime_timeline_emitted", "missing_signal_policy",
+        "contact_reduction", "heading_axis_interpretation"
+      ],
+      "properties": {
+        "mode": {"const": "evidence_only"},
+        "candidate_emitted": {"const": false},
+        "decision_emitted": {"const": false},
+        "runtime_timeline_emitted": {"const": false},
+        "missing_signal_policy": {
+          "const": "explicit_unavailable_no_inference"
+        },
+        "contact_reduction": {"const": "none_per_channel_preserved"},
+        "heading_axis_interpretation": {
+          "const": "deferred_to_reviewed_policy_map"
+        }
+      }
+    },
+    "signals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "foot_contact_channels", "global_root_heading", "smooth_root_position"
+      ],
+      "properties": {
+        "foot_contact_channels": {"$ref": "#/$defs/contacts"},
+        "global_root_heading": {
+          "oneOf": [
+            {"$ref": "#/$defs/headingAvailable"},
+            {"$ref": "#/$defs/headingUnavailable"}
+          ]
+        },
+        "smooth_root_position": {
+          "oneOf": [
+            {"$ref": "#/$defs/smoothAvailable"},
+            {"$ref": "#/$defs/smoothUnavailable"}
+          ]
+        }
+      }
+    },
+    "contacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status", "source_array", "dtype", "shape", "layout",
+        "raw_npy_sha256", "payload_sha256", "channels"
+      ],
+      "properties": {
+        "status": {"const": "available"},
+        "source_array": {"const": "foot_contacts"},
+        "dtype": {"const": "|b1"},
+        "shape": {"$ref": "#/$defs/shape"},
+        "layout": {
+          "enum": [
+            "left-heel-toe-right-heel-toe-v1",
+            "left-heel-toe-toe_end-right-heel-toe-toe_end-v1"
+          ]
+        },
+        "raw_npy_sha256": {"$ref": "#/$defs/sha256"},
+        "payload_sha256": {"$ref": "#/$defs/sha256"},
+        "channels": {
+          "type": "array", "minItems": 4, "maxItems": 6,
+          "items": {"$ref": "#/$defs/contactChannel"}
+        }
+      }
+    },
+    "contactChannel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["index", "limb", "point", "values"],
+      "properties": {
+        "index": {"type": "integer", "minimum": 0, "maximum": 5},
+        "limb": {"enum": ["leg.left", "leg.right"]},
+        "point": {"enum": ["heel", "toe", "toe_end"]},
+        "values": {
+          "type": "array", "minItems": 2, "maxItems": 4096,
+          "items": {"type": "boolean"}
+        }
+      }
+    },
+    "headingAvailable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status", "source_array", "dtype", "shape", "coordinate_space",
+        "unit", "raw_npy_sha256", "payload_sha256", "values"
+      ],
+      "properties": {
+        "status": {"const": "available"},
+        "source_array": {"const": "global_root_heading"},
+        "dtype": {"const": "<f4"},
+        "shape": {"$ref": "#/$defs/shape"},
+        "coordinate_space": {"const": "source_two_component_uninterpreted"},
+        "unit": {"const": "unit_direction"},
+        "raw_npy_sha256": {"$ref": "#/$defs/sha256"},
+        "payload_sha256": {"$ref": "#/$defs/sha256"},
+        "values": {
+          "type": "array", "minItems": 2, "maxItems": 4096,
+          "items": {"$ref": "#/$defs/vector2"}
+        }
+      }
+    },
+    "smoothAvailable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status", "source_array", "dtype", "shape", "coordinate_space",
+        "unit", "raw_npy_sha256", "payload_sha256", "values"
+      ],
+      "properties": {
+        "status": {"const": "available"},
+        "source_array": {"const": "smooth_root_pos"},
+        "dtype": {"const": "<f4"},
+        "shape": {"$ref": "#/$defs/shape"},
+        "coordinate_space": {"const": "source_xyz"},
+        "unit": {"const": "meter"},
+        "raw_npy_sha256": {"$ref": "#/$defs/sha256"},
+        "payload_sha256": {"$ref": "#/$defs/sha256"},
+        "values": {
+          "type": "array", "minItems": 2, "maxItems": 4096,
+          "items": {"$ref": "#/$defs/vector3"}
+        }
+      }
+    },
+    "headingUnavailable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "source_array", "reason_code"],
+      "properties": {
+        "status": {"const": "unavailable"},
+        "source_array": {"const": "global_root_heading"},
+        "reason_code": {"const": "array_not_in_core_v1"}
+      }
+    },
+    "smoothUnavailable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "source_array", "reason_code"],
+      "properties": {
+        "status": {"const": "unavailable"},
+        "source_array": {"const": "smooth_root_pos"},
+        "reason_code": {"const": "array_not_in_core_v1"}
+      }
+    },
+    "shape": {
+      "type": "array", "minItems": 2, "maxItems": 2,
+      "prefixItems": [
+        {"type": "integer", "minimum": 2, "maximum": 4096},
+        {"type": "integer", "minimum": 2, "maximum": 6}
+      ],
+      "items": false
+    },
+    "vector2": {
+      "type": "array", "minItems": 2, "maxItems": 2,
+      "prefixItems": [
+        {"type": "number", "minimum": -2, "maximum": 2},
+        {"type": "number", "minimum": -2, "maximum": 2}
+      ],
+      "items": false
+    },
+    "vector3": {
+      "type": "array", "minItems": 3, "maxItems": 3,
+      "prefixItems": [
+        {"type": "number", "minimum": -10000, "maximum": 10000},
+        {"type": "number", "minimum": -10000, "maximum": 10000},
+        {"type": "number", "minimum": -10000, "maximum": 10000}
+      ],
+      "items": false
+    }
+  }
+}
