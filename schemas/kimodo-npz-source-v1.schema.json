@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/kimodo-npz-source-v1.schema.json",
+  "title": "AutoSpine content-bound Kimodo NPZ source v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "source_id", "raw_npz", "producer",
+    "skeleton", "coordinate_system", "array_profile"
+  ],
+  "properties": {
+    "format": {"const": "autospine-kimodo-npz-source"},
+    "format_version": {"type": "integer", "const": 1},
+    "source_id": {"$ref": "#/$defs/id"},
+    "raw_npz": {"$ref": "#/$defs/rawNpz"},
+    "producer": {
+      "oneOf": [
+        {"$ref": "#/$defs/recordedProducer"},
+        {"$ref": "#/$defs/unavailableProducer"}
+      ]
+    },
+    "skeleton": {"$ref": "#/$defs/skeleton"},
+    "coordinate_system": {"$ref": "#/$defs/coordinateSystem"},
+    "array_profile": {"$ref": "#/$defs/arrayProfile"}
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "revision": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}([0-9a-f]{24})?$"
+    },
+    "rawNpz": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sha256", "byte_length", "frame_count", "frames_per_second"],
+      "properties": {
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "byte_length": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 134217728
+        },
+        "frame_count": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 4096
+        },
+        "frames_per_second": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["numerator", "denominator"],
+          "properties": {
+            "numerator": {"type": "integer", "minimum": 1, "maximum": 1000},
+            "denominator": {"type": "integer", "minimum": 1, "maximum": 1000}
+          }
+        }
+      }
+    },
+    "recordedProducer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status", "implementation", "repository_revision", "model_id",
+        "checkpoint_revision", "checkpoint_manifest_sha256",
+        "generation_request_sha256", "seed", "sample_index"
+      ],
+      "properties": {
+        "status": {"const": "recorded"},
+        "implementation": {"const": "nv-tlabs/kimodo"},
+        "repository_revision": {"$ref": "#/$defs/revision"},
+        "model_id": {"$ref": "#/$defs/id"},
+        "checkpoint_revision": {"$ref": "#/$defs/revision"},
+        "checkpoint_manifest_sha256": {"$ref": "#/$defs/sha256"},
+        "generation_request_sha256": {"$ref": "#/$defs/sha256"},
+        "seed": {
+          "type": "integer",
+          "minimum": -9223372036854775808,
+          "maximum": 9223372036854775807
+        },
+        "sample_index": {"type": "integer", "minimum": 0, "maximum": 1000000}
+      }
+    },
+    "unavailableProducer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "implementation", "reason_code"],
+      "properties": {
+        "status": {"const": "unavailable"},
+        "implementation": {"const": "nv-tlabs/kimodo"},
+        "reason_code": {"enum": ["legacy_export", "external_export"]}
+      }
+    },
+    "skeleton": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profile_id", "joint_count", "definition_sha256"],
+      "properties": {
+        "profile_id": {"const": "kimodo-soma77-v1"},
+        "joint_count": {"type": "integer", "const": 77},
+        "definition_sha256": {
+          "const": "081e13564aed36abcbbc53df655d40e6ba5141023452b78f07a96409e71d8623"
+        }
+      }
+    },
+    "coordinateSystem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "handedness", "right_axis", "up_axis", "forward_axis",
+        "length_unit", "side_naming"
+      ],
+      "properties": {
+        "handedness": {"const": "right"},
+        "right_axis": {"const": "+X"},
+        "up_axis": {"const": "+Y"},
+        "forward_axis": {"const": "+Z"},
+        "length_unit": {"const": "meter"},
+        "side_naming": {"const": "character_side"}
+      }
+    },
+    "arrayProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["inventory", "float_dtype", "contact_dtype", "contact_layout"],
+      "properties": {
+        "inventory": {"enum": ["core-v1", "complete-v1"]},
+        "float_dtype": {"const": "<f4"},
+        "contact_dtype": {"const": "|b1"},
+        "contact_layout": {
+          "enum": [
+            "left-heel-toe-right-heel-toe-v1",
+            "left-heel-toe-toe_end-right-heel-toe-toe_end-v1"
+          ]
+        }
+      }
+    }
+  }
+}
