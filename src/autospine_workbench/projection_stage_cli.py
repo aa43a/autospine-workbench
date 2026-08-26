@@ -1,4 +1,4 @@
-"""Argument and dispatch layer for exact-address P8 projection services."""
+"""Argument and dispatch layer for exact-address P8/P9 services."""
 
 from __future__ import annotations
 
@@ -13,6 +13,10 @@ from .projected_motion_commands import (
     compile_projected_motion_bundle,
     probe_projected_scale,
     verify_projected_motion_bundle,
+)
+from .p9_readonly_cli import (
+    add_p9_readonly_subcommands,
+    dispatch_p9_readonly_command,
 )
 
 
@@ -46,6 +50,7 @@ def add_projection_stage_subcommands(subparsers: Any, state_root: Path) -> None:
     probe_parser.add_argument("--motion-instance-sha256", required=True)
     probe_parser.add_argument("--motion-retarget-bundle-sha256", required=True)
     _state_root(probe_parser, state_root)
+    add_p9_readonly_subcommands(subparsers, state_root)
 
 
 def dispatch_projection_stage_command(args: argparse.Namespace) -> int | None:
@@ -78,7 +83,7 @@ def dispatch_projection_stage_command(args: argparse.Namespace) -> int | None:
                 ),
             )
         else:
-            return None
+            return dispatch_p9_readonly_command(args)
     except ProjectedMotionCommandError as exc:
         _print({"ok": False, "status": "error", "error": str(exc)})
         return 2
