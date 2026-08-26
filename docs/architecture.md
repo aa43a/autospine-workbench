@@ -29,6 +29,14 @@ audit repository ── analysis artifacts ── override history
                         ↓
               target-version adapters
 
+builtin | BVH + map | Kimodo NPZ + sidecar + map
+                         ↓
+             source-specific strict compiler
+                         ↓
+                       MotionIR
+                         ↓
+                 P5 retarget → P6 adapter
+
 server → application services only
 web    → HTTP contracts only
 ```
@@ -38,7 +46,8 @@ web    → HTTP contracts only
 - 前端分为 API、authoring state、保存事务和各 stage view；view state 不得污染 revision draft。
 - 外部姿态模型只能通过 canonical pose observations 进入；alpha 几何只读取 resolved layer 与固定 PNG，融合结果必须保留原始 pose 和未标定分数语义。
 - COCO17 raw 输入、adapter、canonical pose、人工评估和候选工件分开内容寻址；坐标反镜像、左右标签交换、视角和镜像声明不得合并成一个隐式开关。
-- 离线命令按 stage 边界拆分：P1 输入/候选、P2 manifest/RigIR、P3 mesh、P4 IK、P5 MotionIR 与 P6 目标版本 adapter 分别拥有显式编译和只读验证入口；命令之间只传递精确内容地址，不解析 `latest`。
+- 离线命令按 stage 边界拆分：P1 输入/候选、P2 manifest/RigIR、P3 mesh、P4 IK、P5 MotionIR、P6 目标版本 adapter 与 P7 Kimodo source adapter 分别拥有显式编译和只读验证入口；命令之间只传递精确内容地址，不解析 `latest`。
+- Kimodo 的 raw NPZ、source sidecar 与 map 是三个独立输入。sidecar 解释数组/FPS/producer，map 决定投影/角色/contact；两者都不得根据文件名、数组数量或相邻目录隐式发现。
 
 ## 文件长度预算
 
@@ -83,7 +92,29 @@ P5 门禁已经完成：setup-local MotionIR、deterministic idle/wave 和显式
 
 P6 门禁已经完成：adapter profile 固定为 Spine 4.2 JSON，五文件内容地址和显式 compile/verify 边界从精确 P3/P5 来源重建；A/B 两份真实样本的 setup、`idle`、`wave.left` 六个 bundle 均由 `@esotericsoftware/spine-player@4.2.119` 成功加载。固定 640×640、DPR 1 的第二轮截图比较在六例中均为零像素差、零 MAE 和零最大通道差，完整地址、语义指标、PNG SHA 与只读 state-tree 回归固定在 `tests/goldens/p6-spine42/`。版本或不支持特性不得静默降级，官方 runtime 由操作者在版本库之外单独安装并完成许可确认。操作入口见 [P6 Spine 4.2 导出与 runtime 检查](how-to-export-spine42.md)。
 
-P7a 兼容性门禁已经完成：BVH compiler 1.1.0 在保留旧单 ROOT 输入的同时，严格接受 Kimodo `Root(6DOF zero wrapper) → Hips(6DOF) → SOMA77`。原始 BVH 不经重写进入内容地址；稀疏角色通过 canonical 最近祖先折叠，`Hips` 旋转不会在目标 thigh 重复叠加。同一个合成 Kimodo-shaped MotionIR 已穿过三套不同 rig、P5 报告/mesh 门禁和 Spine 4.2 bundle reader。该门禁不等于真实 checkpoint 动作质量或官方 Spine Player 截图验收；正式 P7 仍是保留 contact/root/heading provenance 的 NPZ adapter。
+P7a 兼容性门禁已经完成：BVH compiler 1.1.0 在保留旧单 ROOT 输入的同时，严格接受 Kimodo `Root(6DOF zero wrapper) → Hips(6DOF) → SOMA77`。原始 BVH 不经重写进入内容地址；稀疏角色通过 canonical 最近祖先折叠，`Hips` 旋转不会在目标 thigh 重复叠加。同一个合成 Kimodo-shaped MotionIR 已穿过三套不同 rig、P5 报告/mesh 门禁和 Spine 4.2 bundle reader。该门禁不等于正式 NPZ 合同，也不代表真实 checkpoint 动作质量或官方 Spine Player 截图验收。
+
+正式 P7 合成门禁已经完成：
+
+```text
+raw NPZ + source sidecar + explicit map
+        ↓
+bounded ZIP/NPY snapshot
+        ↓
+SOMA77 local-matrix FK + global/position cross-check
+        ↓
+explicit signed-basis 2D projection + root/contact MotionIR
+        ↓
+five-file immutable bundle + exact-address rebuild
+        ↓
+three distinct P5 rigs → P6 adapter/bundle reader
+```
+
+原始 NPZ 原样保存，sidecar/map/run/MotionIR 使用 canonical JSON；固定 inventory 不接受额外文件。compiler ID、版本、数值容差和算法 profile 都进入 run manifest。`verify-kimodo-motion` 只能从两个明确 SHA 读取、重编译和逐字节复验，不解析 `latest`、不搜索替代 bundle、也不写 state。
+
+producer provenance 的 `recorded` 与 `unavailable` 是不同的显式状态。即使记录了外部 manifest/request 的 SHA，本仓库也只绑定 metadata，不认证 checkpoint 或生成请求本身；操作者必须另行保留原件。完整 NPZ 只把 `smooth_root_pos` 当有限数证据、把 `global_root_heading` 当单位方向证据，当前不用它们改写 MotionIR。contact 采用半开 `annotation_only` marker，不等于 foot lock。
+
+正式测试证明确定性合成 NPZ 的 root、代表性肢体旋转和 contact 可通过三个 rig 的 P5/P6 结构门禁；它尚未证明真实 Kimodo checkpoint 的动作质量、深度/遮挡效果或该 clip 的官方 Spine Player 截图。关闭真实资产门禁还需要 recorded provenance、干净 state 重编译、目标角色视觉对照与固定 runtime golden。
 
 后续阶段继续遵守：
 

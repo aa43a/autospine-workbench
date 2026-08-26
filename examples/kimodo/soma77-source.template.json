@@ -1,0 +1,40 @@
+{
+  "format": "autospine-kimodo-npz-source",
+  "format_version": 1,
+  "source_id": "replace.with.source.id-v1",
+  "raw_npz": {
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "byte_length": 1,
+    "frame_count": 2,
+    "frames_per_second": {
+      "numerator": 30,
+      "denominator": 1
+    }
+  },
+  "producer": {
+    "status": "unavailable",
+    "implementation": "nv-tlabs/kimodo",
+    "reason_code": "external_export"
+  },
+  "skeleton": {
+    "profile_id": "kimodo-soma77-v1",
+    "joint_count": 77,
+    "definition_sha256": "081e13564aed36abcbbc53df655d40e6ba5141023452b78f07a96409e71d8623",
+    "definition_scope": "joint_names_and_parents",
+    "rest_geometry_policy": "source_frame0_unverified"
+  },
+  "coordinate_system": {
+    "handedness": "right",
+    "right_axis": "+X",
+    "up_axis": "+Y",
+    "forward_axis": "+Z",
+    "length_unit": "meter",
+    "side_naming": "character_side"
+  },
+  "array_profile": {
+    "inventory": "complete-v1",
+    "float_dtype": "<f4",
+    "contact_dtype": "|b1",
+    "contact_layout": "left-heel-toe-right-heel-toe-v1"
+  }
+}

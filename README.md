@@ -22,6 +22,7 @@ AutoSpine Workbench 是一个本地人工复核界面，用于查看 See-through
 - 从精确 P3 bundle 编译四个 canonical 两骨 IK 手柄，固定弯曲方向、可达环和 setup-local 数值探针。
 - 编译可复用的 setup-local MotionIR（内建 idle/wave 或显式映射 BVH），并从精确 P3/P4/Motion 地址生成带接触、运动学与 mesh 回归证据的不可变 MotionInstance bundle。
 - 以 compiler 1.1.0 严格读取 Kimodo 双根 SOMA77 BVH，并让同一 MotionIR 穿过三 rig 与 Spine 4.2 bundle 兼容性门禁。
+- 严格读取 Kimodo SOMA77 NPZ、独立 source sidecar 与显式 map，交叉验证矩阵 FK/关节位置，并发布可重建的五文件 MotionIR bundle。
 - 从精确 P3 或 P3/P5 地址导出、发布并重建验证固定 profile 的 Spine 4.2 JSON/atlas/PNG 五文件 bundle。
 
 ## 快速启动
@@ -170,6 +171,7 @@ JSON Schema 位于：
 - `schemas/mesh-*.schema.json` 与 `schemas/ik-target-*.schema.json`：P3 两骨 LBS 和 P4 离线 IK 的 run、probe 与视觉证据；
 - `schemas/motion-ir-v1.schema.json`、`schemas/motion-instance-v1.schema.json` 与 `schemas/motion-target-profile-v1.schema.json`：P5 可复用动作、目标 rig 与烘焙实例合同；
 - `schemas/motion-compile-run-v1.schema.json`、`schemas/bvh-*.schema.json` 与 `schemas/retarget-run-v1.schema.json`：内建/BVH 编译和重定向 provenance；
+- `schemas/kimodo-npz-source-v1.schema.json`、`schemas/kimodo-npz-map-v1.schema.json` 与 `schemas/kimodo-npz-motion-compile-run-v1.schema.json`：正式 P7 原始 NPZ 解释、投影映射与可重建编译 provenance；
 - `schemas/motion-retarget-report-v1.schema.json` 与 `schemas/motion-mesh-regression-v1.schema.json`：P5 运动学、接触与逐帧 mesh 安全门禁。
 
 Layer Manifest 与 RigIR 是下游流水线合同。当前 UI 负责逐层 authoring 与复核，离线命令负责生成 region-only RigIR；它不包含 mesh、权重或动画，也不会冒充某一 Spine 版本。RigIR 对不支持特性的策略固定为 `fail`，防止 constraint、mesh 或 timeline 被静默丢弃。
@@ -324,7 +326,20 @@ python -m autospine_workbench verify-ik-bundle seethrough_output `
 
 P4 不接受 `latest` 或自动发现。严格 reader 会从精确 P3 来源重建 profile 与全部数值探针并逐字节比较。`kinematic_reach` 只表示两段骨长决定的运动学可达环；它不能覆盖 P3 动作探针给出的 mesh 视觉安全角。完整步骤和错误解释见 [编译并验证两骨 IK 目标](docs/how-to-compile-ik-targets.md)。
 
-P5 将动作与目标 rig 分开内容寻址。内建 `idle`/`wave.left`、显式 BVH map、目标重定向及只读复验分别使用 `compile-builtin-motion`、`compile-bvh-motion`、`compile-motion-retarget` 与对应 verify 命令。所有命令只接受精确 SHA，不解析 `latest`；完整合同、固定地址、A/B 示例和排障步骤见 [编译、重定向并复验 P5 动画](docs/how-to-compile-motion.md)。
+P5 将动作与目标 rig 分开内容寻址。内建 `idle`/`wave.left`、显式 BVH map、正式 Kimodo NPZ、目标重定向及只读复验分别使用 `compile-builtin-motion`、`compile-bvh-motion`、`compile-kimodo-motion`、`compile-motion-retarget` 与对应 verify 命令。所有命令只接受精确 SHA，不解析 `latest`；通用合同、固定地址、A/B 示例和排障步骤见 [编译、重定向并复验 P5 动画](docs/how-to-compile-motion.md)，Kimodo 的三输入边界见 [编译 Kimodo SOMA77 NPZ](docs/how-to-compile-kimodo-npz.md)。
+
+正式 Kimodo NPZ bundle 可用以下入口发布与只读复验；编译命令不会搜索相邻 sidecar 或 map：
+
+```powershell
+python -m autospine_workbench compile-kimodo-motion `
+  .\inputs\motion.npz .\inputs\motion.source.json .\inputs\motion.map.json `
+  --state-root .\workspace
+
+python -m autospine_workbench verify-kimodo-motion `
+  --clip-sha256 <motion-ir-sha256> `
+  --bundle-sha256 <motion-bundle-sha256> `
+  --state-root .\workspace
+```
 
 P6 使用 `compile-spine42` 把一个精确 P3 地址导出为 setup-only bundle，或与一对精确 P5 MotionInstance/bundle SHA 组合为单动画 bundle；`verify-spine42` 从导出双 SHA 重建完整上游链。五文件地址、官方 runtime 的本地安装边界与 capture 操作见 [导出、复验并运行 P6 Spine 4.2 资产](docs/how-to-export-spine42.md)。
 
@@ -399,7 +414,7 @@ P1 已交付 pose、alpha 中轴线和层接触候选，以及候选比较、四
 - 若要恢复旧 revision，先停止服务，备份整个项目 override 目录，再将目标历史快照作为新的、经过校验的 revision 提交；当前界面尚未提供历史浏览/回滚按钮。
 - validation 的 `valid=true` 仅表示结构和本地资产检查没有硬错误，不等于美术、遮挡补全、pivot、mesh 或动画通过视觉验收。
 
-## 已完成阶段：P2 region-only RigIR、P3 两骨 LBS、P4 离线 IK 与 P5 MotionIR
+## 已完成阶段：P2 region RigIR 至 P7 Kimodo NPZ
 
 P0 合同加固、P1 四肢候选与 P2 region-only RigIR 已贯通：`stage-scoped analysis → immutable geometry/candidates → candidate-bound revision → deterministic resolved snapshot → reviewed Layer Manifest → RigIR/setup bundle`。P2 没有提前引入 mesh：
 
@@ -440,7 +455,9 @@ P5 在精确 P3/P4 来源上完成版本中立动画、BVH 编译和通用动作
 
 P6 门禁已经完成：adapter profile 固定为 Spine JSON 4.2，`compile-spine42`/`verify-spine42` 发布并重建五文件内容寻址 bundle。A/B 两份真实样本的 setup、`idle`、`wave.left` 六个地址固定在 `tests/goldens/p6-spine42/real-exports.approved.json`；精确的 `@esotericsoftware/spine-player@4.2.119` 在 640×640、DPR 1 下加载六例，第二轮截图与批准 PNG 的 differing pixels、MAE 和最大通道差均为 0。runtime 合同与图片位于 `tests/goldens/p6-spine42/runtime.approved.json`，官方 runtime 仍由操作者在仓库外安装并确认许可。
 
-P7a 已完成 Kimodo SOMA77 BVH 结构兼容 smoke：严格支持零包装 `Root` 下的 6DOF `Hips`，保留原始 BVH 内容地址，并通过三套 rig 的 P5/P6 bundle 门禁。测试输入是合成的 Kimodo-shaped fixture，不代表真实模型动作质量，也尚未进入官方 Spine Player 截图 golden。生成、映射、编译与限制见 [编译 Kimodo SOMA77 BVH](docs/how-to-compile-kimodo-bvh.md)；下一步是正式 P7 NPZ adapter。
+P7a 已完成 Kimodo SOMA77 BVH 结构兼容 smoke：严格支持零包装 `Root` 下的 6DOF `Hips`，保留原始 BVH 内容地址，并通过三套 rig 的 P5/P6 bundle 门禁。测试输入是合成的 Kimodo-shaped fixture，不代表真实模型动作质量，也尚未进入官方 Spine Player 截图 golden。生成、映射、编译与限制见 [编译 Kimodo SOMA77 BVH](docs/how-to-compile-kimodo-bvh.md)。
+
+正式 P7 合同与合成门禁已完成：严格的 Kimodo SOMA77 NPZ、独立 source sidecar 和显式 map 被编译为五文件内容寻址 MotionIR bundle；同一个合成 MotionIR 已通过三套不同 rig 的 P5 重定向和 P6 adapter/bundle reader。测试输入由标准库确定性生成，不是 Kimodo checkpoint 输出，也尚未进入该动作的官方 Spine Player 截图 golden。完整操作、失败边界和模板见 [编译 Kimodo SOMA77 NPZ](docs/how-to-compile-kimodo-npz.md)。
 
 姿态 runner 与真实标注评估集仍是独立质量轨，不阻塞版本中立 P2 编译；诊断 setup prior 不能替代真实模型基线。
 
@@ -455,6 +472,8 @@ P7a 已完成 Kimodo SOMA77 BVH 结构兼容 smoke：严格支持零包装 `Root
 - 自动解决 `head-obj`、`objects`、合并肢体等歧义语义；
 - 证明遮挡补全符合解剖或在大幅动作下不会露馅；
 - 自动生成自由形变 deform、运行时 IK constraint 或动态 draw order；P3 只覆盖通过门禁的 alpha mesh 与参数化两骨 LBS，P4 只提供离线两骨目标求解；
+- 对 Kimodo NPZ 执行 foot lock、heading 驱动转身、透视缩短、深度 draw order 或附件切换；P7 contact 仍是 `annotation_only`，完整 heading/smoothed-root 仍是验证与 provenance 证据；
+- 把合成 P7 门禁当作真实 Kimodo checkpoint、真实动作质量或该 clip 的官方 Spine Player 截图验收；
 - 生成眨眼/口型素材、实时追踪映射或运行时物理；
 - 捆绑或再分发官方 Spine runtime、判断任意未知 Spine 版本、生成 Spine Editor 工程，或覆盖固定 P6 profile 之外的特性；
 - 代替输入素材、训练数据或模型权重的许可证与商业使用审查；

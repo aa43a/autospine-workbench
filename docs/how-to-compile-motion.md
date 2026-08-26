@@ -1,6 +1,6 @@
 # 编译、重定向并复验 P5 动画
 
-本指南面向已经取得精确 P3 mesh bundle 与 P4 IK bundle 地址的开发者。目标是把内建动作或显式映射的 BVH 编译为可复用 MotionIR，再为指定 rig 生成、发布并复验一个 P5 motion-retarget bundle。
+本指南面向已经取得精确 P3 mesh bundle 与 P4 IK bundle 地址的开发者。目标是把内建动作、显式映射的 BVH 或正式 Kimodo NPZ 编译为可复用 MotionIR，再为指定 rig 生成、发布并复验一个 P5 motion-retarget bundle。
 
 本文只处理 P5 的版本中立动画合同。P6 的 Spine 目标版本适配与导出不在本文范围内。
 
@@ -18,6 +18,7 @@ $env:PYTHONPATH = (Resolve-Path .\src).Path
 - 一个真实、非 symlink/junction 的 `--state-root`；
 - 需要重定向时，已经分别通过 `verify-mesh-bundle` 与 `verify-ik-bundle` 的 P3/P4 双 SHA 地址；
 - 使用 BVH 时，原始 `.bvh` 文件和一份人工确认的显式 map JSON；
+- 使用 Kimodo NPZ 时，原始 `.npz`、独立 source sidecar 和显式 map JSON；
 - 足够的空间保存不可变 bundle；编译不会覆盖已有内容地址。
 
 先阅读 [P3/P4 编译边界](how-to-compile-ik-targets.md)；不要使用 `latest`、目录扫描结果、大小写变体或手工拼接的 SHA 代替命令输出。
@@ -41,6 +42,14 @@ Motion bundle 使用固定内容地址：
 workspace/motions/<motion-ir-sha256>/<motion-bundle-sha256>/
 ```
 
+三种 source 使用不同的严格编译/复验入口与固定清单：
+
+| 来源 | 编译 | 复验 | 文件数 |
+| --- | --- | --- | ---: |
+| builtin | `compile-builtin-motion` | `verify-motion-bundle` | 2 |
+| BVH + map | `compile-bvh-motion` | `verify-bvh-motion` | 4 |
+| Kimodo NPZ + sidecar + map | `compile-kimodo-motion` | `verify-kimodo-motion` | 5 |
+
 内建 bundle 只包含 `motion.json` 与 `run-manifest.json`。BVH bundle 的固定清单是：
 
 ```text
@@ -49,6 +58,8 @@ map.json
 motion.json
 run-manifest.json
 ```
+
+Kimodo NPZ bundle 的固定清单是 `source.npz`、`sidecar.json`、`map.json`、`motion.json` 和 `run-manifest.json`。三种来源不能互换 verifier；目标 rig 的五文档 retarget bundle 则始终使用 `verify-motion-retarget`。
 
 重定向结果使用另一个固定地址：
 
@@ -86,7 +97,7 @@ python -m autospine_workbench verify-motion-bundle `
   --state-root .\workspace
 ```
 
-`verify-motion-bundle` 是内建动作的既有入口。不要用它复验四文件 BVH bundle；BVH 必须使用第 4 节的 `verify-bvh-motion`。
+`verify-motion-bundle` 是内建动作的既有入口。不要用它复验四文件 BVH 或五文件 Kimodo bundle；二者分别使用 `verify-bvh-motion` 与 `verify-kimodo-motion`。
 
 ## 3. 为 BVH 编写显式 map
 
@@ -163,7 +174,30 @@ python -m autospine_workbench verify-bvh-motion `
 
 复验会从已保存的 `source.bvh` 与 `map.json` 重编译 MotionIR，并要求 canonical 字节、全部来源 SHA 和请求地址一致。它不修改 state tree，也不接受内建两文件 bundle。
 
-## 5. 编译并复验 retarget bundle
+## 5. 编译并复验 Kimodo NPZ motion bundle
+
+正式 P7 把 raw NPZ、source sidecar 与 map 作为三个明确输入，不搜索同名文件，也不根据数组数量猜测 FPS、接触列或投影语义：
+
+```powershell
+python -m autospine_workbench compile-kimodo-motion `
+  .\inputs\motion.npz `
+  .\inputs\motion.source.json `
+  .\inputs\motion.map.json `
+  --state-root .\workspace
+```
+
+保存响应中的 `clip_sha256` 与 `bundle_sha256`，随后只读复验：
+
+```powershell
+python -m autospine_workbench verify-kimodo-motion `
+  --clip-sha256 <motion-ir-sha256> `
+  --bundle-sha256 <kimodo-motion-bundle-sha256> `
+  --state-root .\workspace
+```
+
+sidecar/map 模板、精确数组 profile、安全上限、provenance 和真实验收边界见 [编译 Kimodo SOMA77 NPZ](how-to-compile-kimodo-npz.md)。NPZ contact 仍是 `annotation_only`，不会在本阶段执行 foot lock。
+
+## 6. 编译并复验 retarget bundle
 
 把一个精确 MotionIR bundle 与同一项目中互相配对的 P3/P4 地址一起传入：
 
@@ -191,7 +225,7 @@ python -m autospine_workbench verify-motion-retarget <project-id> `
 
 该命令只读取指定地址，并从其完整 P3、P4 与 MotionIR 来源链重建全部五份文档；它不会寻找其他 clip、rig 或 bundle 来替代失败输入。
 
-## 6. 使用真实 A/B 输入地址
+## 7. 使用真实 A/B 输入地址
 
 下面的地址来自已批准的 P3/P4 golden。它们是 P5 输入示例，不是预先声明的 P5 输出地址。
 
@@ -215,7 +249,7 @@ python -m autospine_workbench compile-motion-retarget seethrough_output `
 
 对 B 或 `wave.left` 重复时，只替换表中四个目标 SHA，以及第 2 节中成对的 motion clip/bundle SHA。必须从命令响应取得新的 instance/bundle SHA；不要根据示例推测输出地址。
 
-## 7. 执行复用与 mesh 门禁
+## 8. 执行复用与 mesh 门禁
 
 同一个 MotionIR bundle 必须在至少三个不同 setup rig 上产生三个不同的 MotionInstance，同时保持相同 `motion_bundle_sha256`。运行合同门禁：
 
@@ -237,6 +271,10 @@ python -m unittest tests.test_motion_three_rig_gate -v
 
 逐项核对 joint 名的大小写、root、aim 后代关系、canonical role 顺序和三个有符号轴。不要通过放宽 validator 或按屏幕 x 坐标猜左右来绕过错误。
 
+### Kimodo NPZ 清单、矩阵或 sidecar 不一致
+
+不要重存、解压再打包或用 `allow_pickle=True` 绕过错误。逐项核对原始字节 SHA/长度、可信生成记录中的帧数/FPS、`core-v1`/`complete-v1` 精确成员、4/6 contact 布局和显式 basis。矩阵/位置证据矛盾表示输入不是同一个动作快照，应回到导出端修复。
+
 ### loop 或 IK 报告失败
 
 若 map 声明 `loop=true`，首尾姿势必须满足 loop closure。若 IK 目标不可达，MotionIR 的策略是 `reject`；应修正 map、动作范围或上游 rig，不要把 NaN、clamp 或静默丢轨当作成功。
@@ -251,7 +289,7 @@ python -m unittest tests.test_motion_three_rig_gate -v
 
 ### 用错复验命令
 
-两文件内建 bundle 使用 `verify-motion-bundle`；四文件 BVH bundle 使用 `verify-bvh-motion`；五文件、目标相关的结果使用 `verify-motion-retarget`。
+两文件内建 bundle 使用 `verify-motion-bundle`；四文件 BVH bundle 使用 `verify-bvh-motion`；五文件 Kimodo source bundle 使用 `verify-kimodo-motion`；五文件目标 rig 结果使用 `verify-motion-retarget`。
 
 ## 非目标
 

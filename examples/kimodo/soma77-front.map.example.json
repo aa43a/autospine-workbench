@@ -1,0 +1,128 @@
+{
+  "format": "autospine-kimodo-npz-map",
+  "format_version": 1,
+  "map_id": "kimodo.soma77.front-v1",
+  "clip": {
+    "clip_id": "kimodo.replace-me.front",
+    "loop": false
+  },
+  "basis": {
+    "screen_x": "+X",
+    "screen_y": "-Y",
+    "depth": "+Z",
+    "rotation_convention": "validated_matrix_fk_projected_segment"
+  },
+  "root": {
+    "joint_name": "Hips",
+    "position_source": "root_positions",
+    "reference_length_meters": 1.0,
+    "translation_policy": "projected_frame0_delta_normalized_reference_length",
+    "baseline_policy": "source_frame0"
+  },
+  "bones": [
+    {
+      "role": "humanoid.root",
+      "joint_name": "Hips",
+      "aim_joint_name": "Spine1",
+      "rotation_policy": "projected_setup_local_delta_from_validated_fk"
+    },
+    {
+      "role": "humanoid.spine.lower",
+      "joint_name": "Spine1",
+      "aim_joint_name": "Spine2",
+      "rotation_policy": "projected_setup_local_delta_from_validated_fk"
+    },
+    {
+      "role": "humanoid.spine.upper",
+      "joint_name": "Spine2",
+      "aim_joint_name": "Chest",
+      "rotation_policy": "projected_setup_local_delta_from_validated_fk"
+    },
+    {
+      "role": "humanoid.neck",
+      "joint_name": "Neck1",
+      "aim_joint_name": "Neck2",
+      "rotation_policy": "projected_setup_local_delta_from_validated_fk"
+    },
+    {
+      "role": "humanoid.head",
+      "joint_name": "Head",
+      "aim_joint_name": "HeadEnd",
+      "rotation_policy": "projected_setup_local_delta_from_validated_fk"
+    },
+    {
+      "role": "humanoid.clavicle.left",
+      "joint_name": "LeftShoulder",
+      "aim_joint_name": "LeftArm",
+      "rotation_policy": "projected_setup_local_delta_from_validated_fk"
+    },
+    {
+      "role": "humanoid.arm.upper.left",
+      "joint_name": "LeftArm",
+      "aim_joint_name": "LeftForeArm",
+      "rotation_policy": "projected_setup_local_delta_from_validated_fk"
+    },
+    {
+      "role": "humanoid.arm.lower.left",
+      "joint_name": "LeftForeArm",
+      "aim_joint_name": "LeftHand",
+      "rotation_policy": "projected_setup_local_delta_from_validated_fk"
+    },
+    {
+      "role": "humanoid.leg.upper.left",
+      "joint_name": "LeftLeg",
+      "aim_joint_name": "LeftShin",
+      "rotation_policy": "projected_setup_local_delta_from_validated_fk"
+    },
+    {
+      "role": "humanoid.leg.lower.left",
+      "joint_name": "LeftShin",
+      "aim_joint_name": "LeftFoot",
+      "rotation_policy": "projected_setup_local_delta_from_validated_fk"
+    },
+    {
+      "role": "humanoid.clavicle.right",
+      "joint_name": "RightShoulder",
+      "aim_joint_name": "RightArm",
+      "rotation_policy": "projected_setup_local_delta_from_validated_fk"
+    },
+    {
+      "role": "humanoid.arm.upper.right",
+      "joint_name": "RightArm",
+      "aim_joint_name": "RightForeArm",
+      "rotation_policy": "projected_setup_local_delta_from_validated_fk"
+    },
+    {
+      "role": "humanoid.arm.lower.right",
+      "joint_name": "RightForeArm",
+      "aim_joint_name": "RightHand",
+      "rotation_policy": "projected_setup_local_delta_from_validated_fk"
+    },
+    {
+      "role": "humanoid.leg.upper.right",
+      "joint_name": "RightLeg",
+      "aim_joint_name": "RightShin",
+      "rotation_policy": "projected_setup_local_delta_from_validated_fk"
+    },
+    {
+      "role": "humanoid.leg.lower.right",
+      "joint_name": "RightShin",
+      "aim_joint_name": "RightFoot",
+      "rotation_policy": "projected_setup_local_delta_from_validated_fk"
+    }
+  ],
+  "contact": {
+    "enabled": true,
+    "source": "foot_contacts",
+    "layout": "left-heel-toe-right-heel-toe-v1",
+    "channels": [
+      {"index": 0, "limb": "leg.left", "point": "heel"},
+      {"index": 1, "limb": "leg.left", "point": "toe"},
+      {"index": 2, "limb": "leg.right", "point": "heel"},
+      {"index": 3, "limb": "leg.right", "point": "toe"}
+    ],
+    "reduction_policy": "any_true_per_limb",
+    "mode": "annotation_only",
+    "interval": "half_open"
+  }
+}
