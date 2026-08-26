@@ -81,15 +81,18 @@ def create_spine42_runtime_server(
             prefix, capture = "/api/capture/", path.startswith("/api/capture/")
             error = path.startswith("/api/error/")
             if not capture and not error:
+                self._drain_rejected_body()
                 self._json(HTTPStatus.NOT_FOUND, {"error": "not_found"})
                 return
             supplied = path[len(prefix if capture else "/api/error/"):]
             if supplied != case_id or "/" in supplied:
+                self._drain_rejected_body()
                 self._json(HTTPStatus.BAD_REQUEST, {"error": "unknown_case"})
                 return
             try:
                 if capture:
                     if self.headers.get("Content-Type") != "image/png":
+                        self._drain_rejected_body()
                         raise Spine42RuntimeRegressionError("capture must be image/png")
                     raw = self._body(MAX_CAPTURE_BYTES)
                     dpr = _positive_int(
