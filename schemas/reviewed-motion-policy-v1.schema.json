@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/reviewed-motion-policy-v1.schema.json",
+  "title": "AutoSpine ReviewedMotionPolicy v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "project_id", "clip_id", "source",
+    "timing", "semantics", "root_correction_keys", "slot_order"
+  ],
+  "properties": {
+    "format": {"const": "autospine-reviewed-motion-policy"},
+    "format_version": {"type": "integer", "const": 1},
+    "project_id": {"$ref": "#/$defs/id"},
+    "clip_id": {"$ref": "#/$defs/id"},
+    "source": {"$ref": "#/$defs/source"},
+    "timing": {"$ref": "#/$defs/timing"},
+    "semantics": {"$ref": "#/$defs/semantics"},
+    "root_correction_keys": {
+      "type": "array", "minItems": 2, "maxItems": 4096,
+      "items": {"$ref": "#/$defs/rootKey"}
+    },
+    "slot_order": {"$ref": "#/$defs/slotOrder"}
+  },
+  "$defs": {
+    "id": {
+      "type": "string", "minLength": 1, "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "vector2": {
+      "type": "array", "minItems": 2, "maxItems": 2,
+      "prefixItems": [
+        {"type": "number", "minimum": -1000000000000, "maximum": 1000000000000},
+        {"type": "number", "minimum": -1000000000000, "maximum": 1000000000000}
+      ],
+      "items": false
+    },
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "motion_policy_decision_sha256", "foot_lock_candidates_sha256",
+        "depth_order_candidates_sha256", "depth_pair_policy_sha256",
+        "p8", "p5", "p3"
+      ],
+      "properties": {
+        "motion_policy_decision_sha256": {"$ref": "#/$defs/sha"},
+        "foot_lock_candidates_sha256": {"$ref": "#/$defs/sha"},
+        "depth_order_candidates_sha256": {"$ref": "#/$defs/sha"},
+        "depth_pair_policy_sha256": {"$ref": "#/$defs/sha"},
+        "p8": {"$ref": "#/$defs/p8Source"},
+        "p5": {"$ref": "#/$defs/p5Source"},
+        "p3": {"$ref": "#/$defs/p3Source"}
+      }
+    },
+    "p8Source": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "projected_motion_sha256", "bundle_sha256", "camera_sha256",
+        "run_sha256", "legacy_motion_sha256", "p7_motion_sha256",
+        "p7_bundle_sha256", "p7_run_sha256"
+      ],
+      "properties": {
+        "projected_motion_sha256": {"$ref": "#/$defs/sha"},
+        "bundle_sha256": {"$ref": "#/$defs/sha"},
+        "camera_sha256": {"$ref": "#/$defs/sha"},
+        "run_sha256": {"$ref": "#/$defs/sha"},
+        "legacy_motion_sha256": {"$ref": "#/$defs/sha"},
+        "p7_motion_sha256": {"$ref": "#/$defs/sha"},
+        "p7_bundle_sha256": {"$ref": "#/$defs/sha"},
+        "p7_run_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "p5Source": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "target_profile_sha256", "instance_sha256", "run_sha256",
+        "retarget_report_sha256", "mesh_regression_sha256", "bundle_sha256"
+      ],
+      "properties": {
+        "target_profile_sha256": {"$ref": "#/$defs/sha"},
+        "instance_sha256": {"$ref": "#/$defs/sha"},
+        "run_sha256": {"$ref": "#/$defs/sha"},
+        "retarget_report_sha256": {"$ref": "#/$defs/sha"},
+        "mesh_regression_sha256": {"$ref": "#/$defs/sha"},
+        "bundle_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "p3Source": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "base_rig_sha256", "base_bundle_sha256", "layer_manifest_sha256",
+        "resolved_project_sha256", "rig_sha256", "run_sha256",
+        "probes_sha256", "visuals_sha256", "bundle_sha256"
+      ],
+      "properties": {
+        "base_rig_sha256": {"$ref": "#/$defs/sha"},
+        "base_bundle_sha256": {"$ref": "#/$defs/sha"},
+        "layer_manifest_sha256": {"$ref": "#/$defs/sha"},
+        "resolved_project_sha256": {"$ref": "#/$defs/sha"},
+        "rig_sha256": {"$ref": "#/$defs/sha"},
+        "run_sha256": {"$ref": "#/$defs/sha"},
+        "probes_sha256": {"$ref": "#/$defs/sha"},
+        "visuals_sha256": {"$ref": "#/$defs/sha"},
+        "bundle_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "timing": {
+      "type": "object", "additionalProperties": false,
+      "required": ["ticks_per_second", "duration_ticks", "loop", "frame_count"],
+      "properties": {
+        "ticks_per_second": {"type": "integer", "const": 1000000},
+        "duration_ticks": {"type": "integer", "minimum": 1, "maximum": 600000000},
+        "loop": {"type": "boolean"},
+        "frame_count": {"type": "integer", "minimum": 2, "maximum": 4096}
+      }
+    },
+    "semantics": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "root_correction", "root_unit", "root_interpolation", "slot_order",
+        "slot_interpolation", "attachment_switching", "raster_truth_claimed"
+      ],
+      "properties": {
+        "root_correction": {"const": "additive-target-root-translation"},
+        "root_unit": {"const": "pixel"},
+        "root_interpolation": {"const": "linear"},
+        "slot_order": {"const": "full-back-to-front-permutation"},
+        "slot_interpolation": {"const": "stepped"},
+        "attachment_switching": {"const": false},
+        "raster_truth_claimed": {"const": false}
+      }
+    },
+    "rootKey": {
+      "type": "object", "additionalProperties": false,
+      "required": ["tick", "correction_xy_px", "incoming_interpolation"],
+      "properties": {
+        "tick": {"type": "integer", "minimum": 0, "maximum": 600000000},
+        "correction_xy_px": {"$ref": "#/$defs/vector2"},
+        "incoming_interpolation": {"const": "linear"}
+      }
+    },
+    "slotOrder": {
+      "type": "object", "additionalProperties": false,
+      "required": ["setup_slot_ids", "keys"],
+      "properties": {
+        "setup_slot_ids": {
+          "type": "array", "minItems": 1, "maxItems": 4096,
+          "uniqueItems": true, "items": {"$ref": "#/$defs/id"}
+        },
+        "keys": {
+          "type": "array", "minItems": 1, "maxItems": 4096,
+          "description": "Semantic validation permits one tick-zero setup key for a static loop; a loop that changes order must restore setup at duration.",
+          "items": {"$ref": "#/$defs/slotKey"}
+        }
+      }
+    },
+    "slotKey": {
+      "type": "object", "additionalProperties": false,
+      "required": ["tick", "slot_ids"],
+      "properties": {
+        "tick": {"type": "integer", "minimum": 0, "maximum": 600000000},
+        "slot_ids": {
+          "type": "array", "minItems": 1, "maxItems": 4096,
+          "uniqueItems": true, "items": {"$ref": "#/$defs/id"}
+        }
+      }
+    }
+  }
+}
