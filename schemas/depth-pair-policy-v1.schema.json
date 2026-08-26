@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/depth-pair-policy-v1.schema.json",
+  "title": "AutoSpine reviewed DepthPairPolicy v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "policy_id", "project_id", "clip_id",
+    "source", "review", "hysteresis", "pairs"
+  ],
+  "properties": {
+    "format": {"const": "autospine-depth-pair-policy"},
+    "format_version": {"type": "integer", "const": 1},
+    "policy_id": {"$ref": "#/$defs/id"},
+    "project_id": {"$ref": "#/$defs/id"},
+    "clip_id": {"$ref": "#/$defs/id"},
+    "source": {"$ref": "#/$defs/source"},
+    "review": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "method"],
+      "properties": {
+        "status": {"const": "approved"},
+        "method": {"const": "human"}
+      }
+    },
+    "hysteresis": {
+      "type": "object", "additionalProperties": false,
+      "required": ["unit", "enter_threshold", "exit_threshold", "minimum_hold_frames"],
+      "properties": {
+        "unit": {"const": "root_reference_normalized_depth"},
+        "enter_threshold": {"type": "number", "exclusiveMinimum": 0, "maximum": 1024},
+        "exit_threshold": {"type": "number", "minimum": 0, "maximum": 1024},
+        "minimum_hold_frames": {"type": "integer", "minimum": 1, "maximum": 4096}
+      }
+    },
+    "pairs": {
+      "type": "array", "minItems": 1, "maxItems": 64,
+      "items": {"$ref": "#/$defs/pair"}
+    }
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "shaObject": {
+      "type": "object", "additionalProperties": {"$ref": "#/$defs/sha"}
+    },
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": ["p8", "p5", "p3"],
+      "properties": {
+        "p8": {
+          "allOf": [{"$ref": "#/$defs/shaObject"}],
+          "required": [
+            "projected_motion_sha256", "bundle_sha256", "camera_sha256",
+            "run_sha256", "legacy_motion_sha256", "p7_motion_sha256",
+            "p7_bundle_sha256", "p7_run_sha256"
+          ]
+        },
+        "p5": {
+          "allOf": [{"$ref": "#/$defs/shaObject"}],
+          "required": [
+            "target_profile_sha256", "instance_sha256", "run_sha256",
+            "retarget_report_sha256", "mesh_regression_sha256", "bundle_sha256"
+          ]
+        },
+        "p3": {
+          "allOf": [{"$ref": "#/$defs/shaObject"}],
+          "required": [
+            "base_rig_sha256", "base_bundle_sha256", "layer_manifest_sha256",
+            "resolved_project_sha256", "rig_sha256", "run_sha256",
+            "probes_sha256", "visuals_sha256", "bundle_sha256"
+          ]
+        }
+      }
+    },
+    "boneRole": {
+      "enum": [
+        "humanoid.root", "humanoid.spine.lower", "humanoid.spine.upper",
+        "humanoid.neck", "humanoid.head", "humanoid.clavicle.left",
+        "humanoid.arm.upper.left", "humanoid.arm.lower.left",
+        "humanoid.hip.left", "humanoid.leg.upper.left",
+        "humanoid.leg.lower.left", "humanoid.clavicle.right",
+        "humanoid.arm.upper.right", "humanoid.arm.lower.right",
+        "humanoid.hip.right", "humanoid.leg.upper.right",
+        "humanoid.leg.lower.right"
+      ]
+    },
+    "slot": {
+      "type": "object", "additionalProperties": false,
+      "required": ["slot_id", "depth_role"],
+      "properties": {
+        "slot_id": {"$ref": "#/$defs/id"},
+        "depth_role": {"$ref": "#/$defs/boneRole"}
+      }
+    },
+    "pair": {
+      "type": "object", "additionalProperties": false,
+      "required": ["pair_id", "slots", "setup_front_slot"],
+      "properties": {
+        "pair_id": {"$ref": "#/$defs/id"},
+        "slots": {
+          "type": "array", "minItems": 2, "maxItems": 2,
+          "items": {"$ref": "#/$defs/slot"}
+        },
+        "setup_front_slot": {"$ref": "#/$defs/id"}
+      }
+    }
+  }
+}

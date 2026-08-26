@@ -1,0 +1,203 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/depth-order-candidates-v1.schema.json",
+  "title": "AutoSpine candidate-only DepthOrderCandidates v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "project_id", "clip_id", "source",
+    "timing", "projection", "generator", "semantics", "hysteresis",
+    "summary", "pairs"
+  ],
+  "properties": {
+    "format": {"const": "autospine-depth-order-candidates"},
+    "format_version": {"type": "integer", "const": 1},
+    "project_id": {"$ref": "#/$defs/id"},
+    "clip_id": {"$ref": "#/$defs/id"},
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": ["p8", "p5", "p3", "depth_pair_policy_sha256"],
+      "properties": {
+        "p8": {"$ref": "#/$defs/shaMap"},
+        "p5": {"$ref": "#/$defs/shaMap"},
+        "p3": {"$ref": "#/$defs/shaMap"},
+        "depth_pair_policy_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "timing": {
+      "type": "object", "additionalProperties": false,
+      "required": ["ticks_per_second", "duration_ticks", "loop", "frame_count"],
+      "properties": {
+        "ticks_per_second": {"type": "integer", "const": 1000000},
+        "duration_ticks": {"type": "integer", "minimum": 1, "maximum": 600000000},
+        "loop": {"type": "boolean"},
+        "frame_count": {"type": "integer", "minimum": 2, "maximum": 4096}
+      }
+    },
+    "projection": {
+      "type": "object", "additionalProperties": false,
+      "required": ["camera_depth_positive", "front_score_sign"],
+      "properties": {
+        "camera_depth_positive": {"enum": ["toward_camera", "away_from_camera"]},
+        "front_score_sign": {"enum": [-1, 1]}
+      }
+    },
+    "generator": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "version", "numeric_precision_decimals"],
+      "properties": {
+        "id": {"const": "depth-pair-schmitt-candidate-generator"},
+        "version": {"const": "1.0.0"},
+        "numeric_precision_decimals": {"type": "integer", "const": 9}
+      }
+    },
+    "semantics": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "mode", "apply_policy", "decision_emitted", "proxy_quality", "raster_truth_claimed",
+        "runtime_timeline_emitted", "motion_instance_mutated",
+        "spine_draw_order_emitted", "evidence_window"
+      ],
+      "properties": {
+        "mode": {"const": "candidate_only"},
+        "apply_policy": {"const": "review_required"},
+        "decision_emitted": {"const": false},
+        "proxy_quality": {"const": "bone-segment-midpoint"},
+        "raster_truth_claimed": {"const": false},
+        "runtime_timeline_emitted": {"const": false},
+        "motion_instance_mutated": {"const": false},
+        "spine_draw_order_emitted": {"const": false},
+        "evidence_window": {"const": "inclusive_source_frame_range"}
+      }
+    },
+    "hysteresis": {"$ref": "#/$defs/hysteresis"},
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "status", "pair_count", "sample_count", "event_count",
+        "collapsed_sample_count"
+      ],
+      "properties": {
+        "status": {"const": "candidate_only"},
+        "pair_count": {"type": "integer", "minimum": 1, "maximum": 64},
+        "sample_count": {"type": "integer", "minimum": 2, "maximum": 262144},
+        "event_count": {"type": "integer", "minimum": 0, "maximum": 262144},
+        "collapsed_sample_count": {"type": "integer", "const": 0}
+      }
+    },
+    "pairs": {
+      "type": "array", "minItems": 1, "maxItems": 64,
+      "items": {"$ref": "#/$defs/pair"}
+    }
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "shaMap": {
+      "type": "object", "minProperties": 1,
+      "additionalProperties": {"$ref": "#/$defs/sha"}
+    },
+    "hysteresis": {
+      "type": "object", "additionalProperties": false,
+      "required": ["unit", "enter_threshold", "exit_threshold", "minimum_hold_frames"],
+      "properties": {
+        "unit": {"const": "root_reference_normalized_depth"},
+        "enter_threshold": {"type": "number", "exclusiveMinimum": 0, "maximum": 1024},
+        "exit_threshold": {"type": "number", "minimum": 0, "maximum": 1024},
+        "minimum_hold_frames": {"type": "integer", "minimum": 1, "maximum": 4096}
+      }
+    },
+    "slot": {
+      "type": "object", "additionalProperties": false,
+      "required": ["slot_id", "depth_role"],
+      "properties": {
+        "slot_id": {"$ref": "#/$defs/id"},
+        "depth_role": {"$ref": "#/$defs/id"}
+      }
+    },
+    "score": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "slot_id", "depth_role", "midpoint_depth_root_relative_normalized",
+        "front_score"
+      ],
+      "properties": {
+        "slot_id": {"$ref": "#/$defs/id"},
+        "depth_role": {"$ref": "#/$defs/id"},
+        "midpoint_depth_root_relative_normalized": {"type": "number", "minimum": -1024, "maximum": 1024},
+        "front_score": {"type": "number", "minimum": -1024, "maximum": 1024}
+      }
+    },
+    "sample": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "source_frame_index", "tick", "scores",
+        "score_delta_first_minus_second", "current_front_slot",
+        "pending_front_slot", "pending_frame_count", "state"
+      ],
+      "properties": {
+        "source_frame_index": {"type": "integer", "minimum": 0, "maximum": 4095},
+        "tick": {"type": "integer", "minimum": 0, "maximum": 600000000},
+        "scores": {
+          "type": "array", "minItems": 2, "maxItems": 2,
+          "items": {"$ref": "#/$defs/score"}
+        },
+        "score_delta_first_minus_second": {"type": "number", "minimum": -2048, "maximum": 2048},
+        "current_front_slot": {"$ref": "#/$defs/id"},
+        "pending_front_slot": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/id"}]
+        },
+        "pending_frame_count": {"type": "integer", "minimum": 0, "maximum": 4096},
+        "state": {"enum": ["hold", "pending", "switch_candidate"]}
+      }
+    },
+    "window": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "start_source_frame_index", "end_source_frame_index",
+        "start_tick", "end_tick", "sample_count"
+      ],
+      "properties": {
+        "start_source_frame_index": {"type": "integer", "minimum": 0, "maximum": 4095},
+        "end_source_frame_index": {"type": "integer", "minimum": 0, "maximum": 4095},
+        "start_tick": {"type": "integer", "minimum": 0, "maximum": 600000000},
+        "end_tick": {"type": "integer", "minimum": 0, "maximum": 600000000},
+        "sample_count": {"type": "integer", "minimum": 1, "maximum": 4096}
+      }
+    },
+    "event": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "source_frame_index", "tick", "from_front_slot", "to_front_slot",
+        "evidence_window"
+      ],
+      "properties": {
+        "source_frame_index": {"type": "integer", "minimum": 0, "maximum": 4095},
+        "tick": {"type": "integer", "minimum": 0, "maximum": 600000000},
+        "from_front_slot": {"$ref": "#/$defs/id"},
+        "to_front_slot": {"$ref": "#/$defs/id"},
+        "evidence_window": {"$ref": "#/$defs/window"}
+      }
+    },
+    "pair": {
+      "type": "object", "additionalProperties": false,
+      "required": ["pair_id", "slots", "setup_front_slot", "samples", "events"],
+      "properties": {
+        "pair_id": {"$ref": "#/$defs/id"},
+        "slots": {
+          "type": "array", "minItems": 2, "maxItems": 2,
+          "items": {"$ref": "#/$defs/slot"}
+        },
+        "setup_front_slot": {"$ref": "#/$defs/id"},
+        "samples": {
+          "type": "array", "minItems": 2, "maxItems": 4096,
+          "items": {"$ref": "#/$defs/sample"}
+        },
+        "events": {
+          "type": "array", "maxItems": 4096,
+          "items": {"$ref": "#/$defs/event"}
+        }
+      }
+    }
+  }
+}
