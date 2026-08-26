@@ -19,6 +19,10 @@ from .body_sway_visual_review_decision_validation import (
     body_sway_visual_review_decision_sha256,
     require_body_sway_visual_review_decision,
 )
+from .body_sway_visual_review_errors import (
+    BodySwayVisualReviewHistoryError,
+    BodySwayVisualReviewRevisionConflict,
+)
 from .body_sway_visual_review_profile import (
     DECISION_NAMESPACE,
     MAX_VISUAL_REVIEW_REVISIONS,
@@ -28,6 +32,7 @@ from .body_sway_visual_review_store_files import (
     exact_payload,
     exact_subdirectory,
     existing_parent,
+    optional_existing_parent,
     publication_parent,
     publish_document,
     publish_named_document,
@@ -37,12 +42,7 @@ from .manifest_artifacts import LayerManifestError, require_safe_token, require_
 from .safe_input_files import SafeInputFileError, strict_json_object
 from .spine42_bundle_files import is_alias
 
-
 _REVISION_NAME = re.compile(r"^r([0-9]{6,10})\.json$")
-
-
-class BodySwayVisualReviewHistoryError(RuntimeError):
-    """Raised when the linear human-decision history is unsafe or stale."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -70,39 +70,60 @@ def publish_visual_review_decision(
         )
         document = decision.document
         revision = document["review"]["revision"]
-        parent = publication_parent(
+        digest = body_sway_visual_review_decision_sha256(document)
+        payload = exact_payload(decision.canonical_bytes, document, digest)
+        parent = optional_existing_parent(
             state_root, document["project_id"],
             DECISION_NAMESPACE, candidate.sha256,
         )
-        revisions = exact_subdirectory(parent, "revisions", create=True)
-        chain = _load_chain(parent, revisions, candidate)
-        digest = body_sway_visual_review_decision_sha256(document)
-        payload = exact_payload(decision.canonical_bytes, document, digest)
+        chain = []
+        if parent is not None:
+            revisions = exact_subdirectory(parent, "revisions", create=False)
+            chain = load_visual_review_chain(parent, revisions, candidate)
+        require_body_sway_visual_review_decision(
+            document, candidates=candidate.document,
+        )
         if revision <= len(chain):
             if chain[revision - 1].canonical_bytes != payload:
-                raise BodySwayVisualReviewHistoryError(
-                    "Visual review revision slot is already owned"
+                raise _conflict(
+                    "Visual review revision slot is already owned",
+                    document, chain,
                 )
             path, _reused = publish_document(parent, digest, payload)
             return PublishedBodySwayVisualReviewDecision(path, digest, True)
         if revision != len(chain) + 1:
-            raise BodySwayVisualReviewHistoryError(
-                "Visual review revisions must be contiguous"
+            raise _conflict(
+                "Visual review revisions must be contiguous", document, chain,
+            )
+        current_head = chain[-1].sha256 if chain else None
+        if document["review"]["supersedes_decision_sha256"] != current_head:
+            raise _conflict(
+                "Visual review predecessor is stale", document, chain,
             )
         previous = chain[-1].document if chain else None
         require_body_sway_visual_review_decision(
-            document,
-            candidates=candidate.document,
+            document, candidates=candidate.document,
             previous_decision=previous,
         )
+        if parent is None:
+            parent = publication_parent(
+                state_root, document["project_id"],
+                DECISION_NAMESPACE, candidate.sha256,
+            )
+            revisions = exact_subdirectory(parent, "revisions", create=True)
         path, content_reused = publish_document(parent, digest, payload)
-        _slot_path, slot_reused = publish_named_document(
-            revisions,
-            _revision_name(revision),
-            payload,
-            staging_parent=parent,
-        )
-        verified = _load_chain(parent, revisions, candidate)
+        try:
+            _slot_path, slot_reused = publish_named_document(
+                revisions, _revision_name(revision), payload,
+                staging_parent=parent,
+            )
+        except BodySwayVisualReviewFilesError as exc:
+            current = load_visual_review_chain(parent, revisions, candidate)
+            raise _conflict(
+                "Visual review revision lost its concurrent slot",
+                document, current,
+            ) from exc
+        verified = load_visual_review_chain(parent, revisions, candidate)
         if len(verified) != revision \
                 or verified[-1].canonical_bytes != payload:
             raise BodySwayVisualReviewHistoryError(
@@ -150,7 +171,7 @@ def load_visual_review_decision(
             state_root, project, DECISION_NAMESPACE, candidate_address
         )
         revisions = exact_subdirectory(parent, "revisions", create=False)
-        chain = _load_chain(parent, revisions, candidate)
+        chain = load_visual_review_chain(parent, revisions, candidate)
         matches = [
             item for item in chain if item.sha256 == decision_address
         ]
@@ -167,7 +188,7 @@ def load_visual_review_decision(
         ) from exc
 
 
-def _load_chain(
+def load_visual_review_chain(
     parent: Path,
     revisions: Path,
     candidate: BodySwayVisualReviewCandidate,
@@ -239,6 +260,17 @@ def _revision_name(revision: int) -> str:
             "Visual review revision is outside its bounded history"
         )
     return f"r{revision:06d}.json"
+
+
+def _conflict(message, document, chain):
+    review = document.get("review", {})
+    return BodySwayVisualReviewRevisionConflict(
+        message,
+        requested_revision=review.get("revision"),
+        current_revision=len(chain),
+        requested_head=review.get("supersedes_decision_sha256"),
+        current_head=chain[-1].sha256 if chain else None,
+    )
 
 
 _FAILURES = (

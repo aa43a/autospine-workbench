@@ -29,6 +29,13 @@ from autospine_workbench.body_sway_visual_review_decision import (  # noqa: E402
     BodySwayVisualReviewDecision,
     build_body_sway_visual_review_decision,
 )
+from autospine_workbench.body_sway_visual_review_history import (  # noqa: E402
+    BodySwayVisualReviewRevisionConflict,
+)
+from autospine_workbench.body_sway_visual_review_errors import (  # noqa: E402
+    BodySwayVisualReviewHistoryError,
+    BodySwayVisualReviewStoreError as ExplicitVisualReviewStoreError,
+)
 from autospine_workbench.body_sway_visual_review_store import (  # noqa: E402
     CANDIDATE_NAMESPACE,
     DECISION_NAMESPACE,
@@ -67,6 +74,19 @@ class BodySwayVisualReviewStoreTests(unittest.TestCase):
         )
         self.store = BodySwayVisualReviewStore(self.fixture.state_root)
 
+    def test_public_store_error_hierarchy_has_stable_named_types(self):
+        self.assertIs(BodySwayVisualReviewStoreError,
+                      ExplicitVisualReviewStoreError)
+        self.assertEqual("BodySwayVisualReviewStoreError",
+                         BodySwayVisualReviewStoreError.__name__)
+        self.assertTrue(issubclass(
+            BodySwayVisualReviewRevisionConflict,
+            BodySwayVisualReviewHistoryError,
+        ))
+        self.assertTrue(issubclass(
+            BodySwayVisualReviewRevisionConflict,
+            BodySwayVisualReviewStoreError,
+        ))
     def tearDown(self) -> None:
         try:
             self.runtime_profile.__exit__(None, None, None)
@@ -104,6 +124,76 @@ class BodySwayVisualReviewStoreTests(unittest.TestCase):
         self.assertEqual(self.decision.canonical_bytes,
                          recovered.canonical_bytes)
         self.assertEqual(DECISION_NAMESPACE, published.path.parents[1].name)
+
+    def test_history_snapshot_is_zero_write_then_reports_ordered_head(self):
+        before = {
+            path.relative_to(self.fixture.state_root): path.read_bytes()
+            for path in self.fixture.state_root.rglob("*") if path.is_file()
+        }
+        empty = self.store.snapshot_history(
+            candidates=self.candidate, capture=self.capture
+        )
+        after = {
+            path.relative_to(self.fixture.state_root): path.read_bytes()
+            for path in self.fixture.state_root.rglob("*") if path.is_file()
+        }
+        self.assertEqual(before, after)
+        self.assertEqual((0, 0, None, ()), (
+            empty.revision_count, empty.current_revision,
+            empty.head_decision_sha256, empty.rows,
+        ))
+        self.assertEqual(self.candidate.document["project_id"], empty.project_id)
+        self.assertEqual(self.candidate.sha256, empty.candidate_sha256)
+
+        self.store.publish_candidate(self.candidate, self.capture)
+        self.store.publish_decision(
+            self.decision, candidates=self.candidate, capture=self.capture
+        )
+        snapshot = self.store.snapshot_history(
+            candidates=self.candidate, capture=self.capture
+        )
+        self.assertEqual(1, snapshot.revision_count)
+        self.assertEqual(self.decision.sha256, snapshot.head_decision_sha256)
+        self.assertEqual(
+            (1, self.decision.sha256, "sampled_visual_approved"),
+            (snapshot.rows[0].revision, snapshot.rows[0].decision_sha256,
+             snapshot.rows[0].status),
+        )
+
+    def test_jump_conflict_is_structured_and_creates_no_decision_parent(self):
+        self.store.publish_candidate(self.candidate, self.capture)
+        jumped = build_body_sway_visual_review_decision(
+            self.candidate.document,
+            review={"reviewer_id": "artist-02", "notes": "jump"},
+            decisions=review_rows(self.candidate.document),
+            previous_decision=self.decision.document,
+        )
+        decision_parent = (
+            self.fixture.state_root / "builds"
+            / self.candidate.document["project_id"] / DECISION_NAMESPACE
+            / self.candidate.sha256
+        )
+        with self.assertRaises(BodySwayVisualReviewRevisionConflict) as raised:
+            self.store.publish_decision(
+                jumped, candidates=self.candidate, capture=self.capture
+            )
+        conflict = raised.exception
+        self.assertEqual((2, 0), (
+            conflict.requested_revision, conflict.current_revision
+        ))
+        self.assertEqual((self.decision.sha256, None), (
+            conflict.requested_head, conflict.current_head
+        ))
+        self.assertFalse(decision_parent.exists())
+
+        malformed = BodySwayVisualReviewDecision(
+            self.decision.canonical_bytes.decode("utf-8") + " "
+        )
+        with self.assertRaises(BodySwayVisualReviewStoreError):
+            self.store.publish_decision(
+                malformed, candidates=self.candidate, capture=self.capture
+            )
+        self.assertFalse(decision_parent.exists())
 
     def test_concurrent_publication_converges_to_one_immutable_file(self) -> None:
         with ThreadPoolExecutor(max_workers=8) as pool:
@@ -247,7 +337,13 @@ class BodySwayVisualReviewStoreTests(unittest.TestCase):
             results = list(pool.map(attempt, (self.decision, alternate)))
         winners = [result for result in results
                    if not isinstance(result, Exception)]
+        losers = [result for result in results if isinstance(result, Exception)]
         self.assertEqual(1, len(winners), results)
+        self.assertIsInstance(losers[0], BodySwayVisualReviewRevisionConflict)
+        self.assertEqual((1, 1), (
+            losers[0].requested_revision, losers[0].current_revision
+        ))
+        self.assertEqual(winners[0].sha256, losers[0].current_head)
         revisions = winners[0].path.parent / "revisions"
         self.assertEqual(
             {"r000001.json"}, {path.name for path in revisions.iterdir()}
@@ -294,7 +390,13 @@ class BodySwayVisualReviewStoreTests(unittest.TestCase):
             results = list(pool.map(attempt, revisions))
         winners = [result for result in results
                    if not isinstance(result, Exception)]
+        losers = [result for result in results if isinstance(result, Exception)]
         self.assertEqual(1, len(winners), results)
+        self.assertIsInstance(losers[0], BodySwayVisualReviewRevisionConflict)
+        self.assertEqual((2, 2), (
+            losers[0].requested_revision, losers[0].current_revision
+        ))
+        self.assertEqual(winners[0].sha256, losers[0].current_head)
         self.assertTrue(first.path.is_file())
         recovered = self.store.load_decision(
             self.candidate.document["project_id"],
@@ -320,6 +422,10 @@ class BodySwayVisualReviewStoreTests(unittest.TestCase):
                 self.decision.sha256,
                 candidates=self.candidate,
                 capture=self.capture,
+            )
+        with self.assertRaises(BodySwayVisualReviewStoreError):
+            self.store.snapshot_history(
+                candidates=self.candidate, capture=self.capture
             )
         slot.write_bytes(self.decision.canonical_bytes)
         (revisions / "foreign.json").write_bytes(b"{}")

@@ -10,6 +10,13 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE_ROOTS = (ROOT / "src", ROOT / "web")
 SOURCE_SUFFIXES = {".py", ".js", ".css", ".html"}
 DEFAULT_MAX_LINES = 400
+P10_MAX_LINES = 300
+P10_PREFIXES = (
+    "src/autospine_workbench/body_sway_",
+    "src/autospine_workbench/p10_",
+    "web/body-sway-",
+    "web/modules/body-sway-",
+)
 
 # Current ratchet ceilings. Entries may only be lowered or removed.
 LEGACY_MAX_LINES = {
@@ -35,12 +42,18 @@ def physical_line_count(path: Path) -> int:
         return sum(1 for _ in handle)
 
 
+def source_line_limit(relative: str) -> int:
+    if relative.startswith(P10_PREFIXES):
+        return P10_MAX_LINES
+    return LEGACY_MAX_LINES.get(relative, DEFAULT_MAX_LINES)
+
+
 class SourceQualityBudgetTests(unittest.TestCase):
     def test_source_files_respect_line_budgets(self) -> None:
         violations: list[str] = []
         for path in source_files():
             relative = path.relative_to(ROOT).as_posix()
-            limit = LEGACY_MAX_LINES.get(relative, DEFAULT_MAX_LINES)
+            limit = source_line_limit(relative)
             actual = physical_line_count(path)
             if actual > limit:
                 violations.append(f"{relative}: {actual} lines > {limit}")

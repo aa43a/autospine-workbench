@@ -138,6 +138,21 @@ def existing_parent(root, project: str, namespace: str, primary: str) -> Path:
     return current
 
 
+def optional_existing_parent(
+    root, project: str, namespace: str, primary: str,
+) -> Path | None:
+    """Resolve an exact parent without writes, returning None at first absence."""
+
+    current = _safe_root(root, create=False)
+    for name in ("builds", project, namespace, primary):
+        require_safe_token(name, "Visual review path component")
+        found = existing_exact_child(current, name)
+        if found is None:
+            return None
+        current = require_real_directory(found, "Visual review hierarchy")
+    return current
+
+
 def read_named_document(
     parent: Path, name: str, *, digest: str | None = None,
 ) -> bytes:

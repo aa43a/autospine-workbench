@@ -17,10 +17,18 @@ from .body_sway_visual_review_candidate_validation import (
     require_body_sway_visual_review_candidate,
 )
 from .body_sway_visual_review_decision import BodySwayVisualReviewDecision
-from .body_sway_visual_review_history import (
+from .body_sway_visual_review_errors import (
     BodySwayVisualReviewHistoryError,
+    BodySwayVisualReviewRevisionConflict,
+    BodySwayVisualReviewStoreError,
+)
+from .body_sway_visual_review_history import (
     load_visual_review_decision,
     publish_visual_review_decision,
+)
+from .body_sway_visual_review_history_snapshot import (
+    BodySwayVisualReviewHistorySnapshot,
+    snapshot_visual_review_history,
 )
 from .body_sway_visual_review_profile import (
     CANDIDATE_NAMESPACE,
@@ -36,10 +44,6 @@ from .body_sway_visual_review_store_files import (
 from .manifest_artifacts import LayerManifestError, require_safe_token, require_sha256
 from .safe_input_files import SafeInputFileError, strict_json_object
 from .spine42_bundle_files import Spine42BundleFilesError
-
-
-class BodySwayVisualReviewStoreError(RuntimeError):
-    """Raised when authoritative visual review history cannot be used safely."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -147,9 +151,27 @@ class BodySwayVisualReviewStore:
             return PublishedBodySwayVisualReviewDocument(
                 result.path, result.sha256, result.reused
             )
+        except BodySwayVisualReviewRevisionConflict:
+            raise
         except BodySwayVisualReviewHistoryError as exc:
             raise BodySwayVisualReviewStoreError(
                 f"Visual review decision publication failed: {exc}"
+            ) from exc
+
+    def snapshot_history(
+        self,
+        *,
+        candidates: BodySwayVisualReviewCandidate,
+        capture: VerifiedBodySwayRuntimeCapture,
+    ) -> BodySwayVisualReviewHistorySnapshot:
+        """Read the exact linear head and rows without mutating state."""
+        try:
+            return snapshot_visual_review_history(
+                self.state_root, candidates, capture
+            )
+        except BodySwayVisualReviewHistoryError as exc:
+            raise BodySwayVisualReviewStoreError(
+                f"Visual review history snapshot failed: {exc}"
             ) from exc
 
     def load_decision(
