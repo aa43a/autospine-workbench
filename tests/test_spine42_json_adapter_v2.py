@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import hashlib
 from pathlib import Path
 import sys
 import tempfile
@@ -158,6 +159,14 @@ class Spine42JsonAdapterV2Tests(unittest.TestCase):
                 motion_instance=deepcopy(self.instance),
                 target_profile=deepcopy(self.target),
             ),
+        )
+        self.assertEqual(
+            "8ea1bbfba60bc5ae9489176b4d6fd45ace71617a9ad5ce9f1cb27e7769408064",
+            hashlib.sha256(build_spine42_json_bytes_v2(
+                self.rig,
+                motion_instance=self.instance,
+                target_profile=self.target,
+            )).hexdigest(),
         )
 
     def test_exact_review_chain_compiles_through_the_v2_adapter(self) -> None:
