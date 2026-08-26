@@ -1,0 +1,234 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/foot-lock-candidates-v1.schema.json",
+  "title": "AutoSpine target-specific foot-lock candidates v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "project_id", "clip_id", "source",
+    "policy", "reference", "contacts", "samples", "summary"
+  ],
+  "properties": {
+    "format": {"const": "autospine-foot-lock-candidates"},
+    "format_version": {"type": "integer", "const": 1},
+    "project_id": {"$ref": "#/$defs/id"},
+    "clip_id": {"$ref": "#/$defs/id"},
+    "source": {"$ref": "#/$defs/source"},
+    "policy": {"$ref": "#/$defs/policy"},
+    "reference": {"$ref": "#/$defs/reference"},
+    "contacts": {
+      "type": "array", "maxItems": 256,
+      "items": {"$ref": "#/$defs/contact"}
+    },
+    "samples": {
+      "type": "array", "minItems": 2, "maxItems": 4096,
+      "items": {"$ref": "#/$defs/sample"}
+    },
+    "summary": {"$ref": "#/$defs/summary"}
+  },
+  "$defs": {
+    "id": {
+      "type": "string", "minLength": 1, "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "boundedNumber": {
+      "type": "number", "minimum": -1000000000000,
+      "maximum": 1000000000000
+    },
+    "nonnegativeNumber": {
+      "type": "number", "minimum": 0, "maximum": 1000000000000
+    },
+    "positiveNumber": {
+      "type": "number", "exclusiveMinimum": 0, "maximum": 1000000000000
+    },
+    "vector2": {
+      "type": "array", "minItems": 2, "maxItems": 2,
+      "prefixItems": [
+        {"$ref": "#/$defs/boundedNumber"},
+        {"$ref": "#/$defs/boundedNumber"}
+      ]
+    },
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "projected_motion_sha256", "projected_bundle_sha256", "camera_sha256",
+        "p7_motion_sha256", "p7_bundle_sha256", "p7_run_sha256",
+        "target_profile_sha256", "motion_instance_sha256",
+        "retarget_bundle_sha256", "retarget_run_document_sha256",
+        "p3_rig_sha256", "p3_bundle_sha256", "instance_motion_ir_sha256",
+        "instance_motion_bundle_sha256"
+      ],
+      "properties": {
+        "projected_motion_sha256": {"$ref": "#/$defs/sha256"},
+        "projected_bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "camera_sha256": {"$ref": "#/$defs/sha256"},
+        "p7_motion_sha256": {"$ref": "#/$defs/sha256"},
+        "p7_bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "p7_run_sha256": {"$ref": "#/$defs/sha256"},
+        "target_profile_sha256": {"$ref": "#/$defs/sha256"},
+        "motion_instance_sha256": {"$ref": "#/$defs/sha256"},
+        "retarget_bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "retarget_run_document_sha256": {"$ref": "#/$defs/sha256"},
+        "p3_rig_sha256": {"$ref": "#/$defs/sha256"},
+        "p3_bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "instance_motion_ir_sha256": {"$ref": "#/$defs/sha256"},
+        "instance_motion_bundle_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "policy": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "mode", "contact_source", "interval_semantics", "sample_schedule",
+        "anchor", "correction", "correction_unit", "single_support_solver",
+        "dual_support_solver", "release", "apply_policy", "decision_emitted",
+        "runtime_timeline_emitted", "clipping", "correction_limit",
+        "residual_limit"
+      ],
+      "properties": {
+        "mode": {"const": "candidate_only"},
+        "contact_source": {"const": "motion_instance.annotation_only"},
+        "interval_semantics": {"const": "half_open"},
+        "sample_schedule": {"const": "p8_source_frame_ticks"},
+        "anchor": {"const": "distal_endpoint_at_contact_start"},
+        "correction": {"const": "additive_target_root_translation"},
+        "correction_unit": {"const": "pixel"},
+        "single_support_solver": {"const": "exact_anchor_delta"},
+        "dual_support_solver": {"const": "unweighted_least_squares_mean"},
+        "release": {"const": "unresolved"},
+        "apply_policy": {"const": "review_required"},
+        "decision_emitted": {"const": false},
+        "runtime_timeline_emitted": {"const": false},
+        "clipping": {"const": "forbidden"},
+        "correction_limit": {"$ref": "#/$defs/correctionLimit"},
+        "residual_limit": {"$ref": "#/$defs/residualLimit"}
+      }
+    },
+    "correctionLimit": {
+      "type": "object", "additionalProperties": false,
+      "required": ["maximum", "quantity", "unit"],
+      "properties": {
+        "maximum": {"$ref": "#/$defs/positiveNumber"},
+        "quantity": {"const": "correction_magnitude_over_target_reference"},
+        "unit": {"const": "ratio"}
+      }
+    },
+    "residualLimit": {
+      "type": "object", "additionalProperties": false,
+      "required": ["maximum", "quantity", "unit"],
+      "properties": {
+        "maximum": {"$ref": "#/$defs/nonnegativeNumber"},
+        "quantity": {"const": "per_contact_residual_magnitude"},
+        "unit": {"const": "pixel"}
+      }
+    },
+    "reference": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "value_px", "unit"],
+      "properties": {
+        "kind": {"const": "target_profile.mean-leg-maximum-kinematic-reach"},
+        "value_px": {"$ref": "#/$defs/positiveNumber"},
+        "unit": {"const": "pixel"}
+      }
+    },
+    "contact": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "contact_id", "limb", "proximal_bone_id", "distal_bone_id",
+        "start_tick", "end_tick", "anchor_source_frame_index",
+        "anchor_endpoint_px"
+      ],
+      "properties": {
+        "contact_id": {"type": "string", "pattern": "^contact-[0-9]{3}$"},
+        "limb": {"enum": ["leg.left", "leg.right"]},
+        "proximal_bone_id": {"enum": ["thigh.left", "thigh.right"]},
+        "distal_bone_id": {"enum": ["calf.left", "calf.right"]},
+        "start_tick": {"type": "integer", "minimum": 0},
+        "end_tick": {"type": "integer", "minimum": 1},
+        "anchor_source_frame_index": {
+          "type": "integer", "minimum": 0, "maximum": 4095
+        },
+        "anchor_endpoint_px": {"$ref": "#/$defs/vector2"}
+      }
+    },
+    "observation": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "contact_id", "limb", "current_endpoint_px", "desired_correction_px",
+        "residual_after_candidate_px", "residual_magnitude_px",
+        "residual_reference_ratio"
+      ],
+      "properties": {
+        "contact_id": {"type": "string", "pattern": "^contact-[0-9]{3}$"},
+        "limb": {"enum": ["leg.left", "leg.right"]},
+        "current_endpoint_px": {"$ref": "#/$defs/vector2"},
+        "desired_correction_px": {"$ref": "#/$defs/vector2"},
+        "residual_after_candidate_px": {"$ref": "#/$defs/vector2"},
+        "residual_magnitude_px": {"$ref": "#/$defs/nonnegativeNumber"},
+        "residual_reference_ratio": {"$ref": "#/$defs/nonnegativeNumber"}
+      }
+    },
+    "sample": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "source_frame_index", "tick", "support_state", "state",
+        "active_contact_ids", "observations", "correction_candidate_px",
+        "correction_magnitude_px", "correction_reference_ratio",
+        "maximum_residual_px"
+      ],
+      "properties": {
+        "source_frame_index": {
+          "type": "integer", "minimum": 0, "maximum": 4095
+        },
+        "tick": {"type": "integer", "minimum": 0},
+        "support_state": {"enum": ["none", "single_support", "dual_support"]},
+        "state": {
+          "enum": [
+            "unconstrained", "candidate", "rejected_limit", "rejected_conflict"
+          ]
+        },
+        "active_contact_ids": {
+          "type": "array", "maxItems": 2,
+          "items": {"type": "string", "pattern": "^contact-[0-9]{3}$"}
+        },
+        "observations": {
+          "type": "array", "maxItems": 2,
+          "items": {"$ref": "#/$defs/observation"}
+        },
+        "correction_candidate_px": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/vector2"}]
+        },
+        "correction_magnitude_px": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/nonnegativeNumber"}]
+        },
+        "correction_reference_ratio": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/nonnegativeNumber"}]
+        },
+        "maximum_residual_px": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/nonnegativeNumber"}]
+        }
+      }
+    },
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "status", "sample_count", "contact_count", "unconstrained_count",
+        "candidate_count", "rejected_limit_count", "rejected_conflict_count",
+        "maximum_correction_px", "maximum_correction_reference_ratio",
+        "maximum_residual_px"
+      ],
+      "properties": {
+        "status": {"enum": ["candidate_only", "rejected_limit", "rejected_conflict"]},
+        "sample_count": {"type": "integer", "minimum": 2, "maximum": 4096},
+        "contact_count": {"type": "integer", "minimum": 0, "maximum": 256},
+        "unconstrained_count": {"type": "integer", "minimum": 0, "maximum": 4096},
+        "candidate_count": {"type": "integer", "minimum": 0, "maximum": 4096},
+        "rejected_limit_count": {"type": "integer", "minimum": 0, "maximum": 4096},
+        "rejected_conflict_count": {"type": "integer", "minimum": 0, "maximum": 4096},
+        "maximum_correction_px": {"$ref": "#/$defs/nonnegativeNumber"},
+        "maximum_correction_reference_ratio": {"$ref": "#/$defs/nonnegativeNumber"},
+        "maximum_residual_px": {"$ref": "#/$defs/nonnegativeNumber"}
+      }
+    }
+  }
+}
