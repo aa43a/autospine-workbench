@@ -35,6 +35,10 @@ from .p10_decision_cli import (
     add_p10_decision_subcommands,
     dispatch_p10_decision_command,
 )
+from .p10_probe_cli import (
+    add_p10_probe_subcommands,
+    dispatch_p10_probe_command,
+)
 
 
 def add_projection_stage_subcommands(subparsers: Any, state_root: Path) -> None:
@@ -73,6 +77,7 @@ def add_projection_stage_subcommands(subparsers: Any, state_root: Path) -> None:
     add_p9_bundle_subcommands(subparsers, state_root)
     add_p10_candidate_subcommands(subparsers, state_root)
     add_p10_decision_subcommands(subparsers)
+    add_p10_probe_subcommands(subparsers, state_root)
 
 
 def dispatch_projection_stage_command(args: argparse.Namespace) -> int | None:
@@ -118,8 +123,11 @@ def dispatch_projection_stage_command(args: argparse.Namespace) -> int | None:
             if status is not None:
                 return status
             status = dispatch_p10_candidate_command(args)
+            if status is not None:
+                return status
+            status = dispatch_p10_decision_command(args)
             return status if status is not None \
-                else dispatch_p10_decision_command(args)
+                else dispatch_p10_probe_command(args)
     except ProjectedMotionCommandError as exc:
         _print({"ok": False, "status": "error", "error": str(exc)})
         return 2
