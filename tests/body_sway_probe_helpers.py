@@ -210,3 +210,10 @@ def reject_check(document, index):
     document["release_gate"]["reason_codes"].sort()
     document["summary"]["passed_check_count"] -= 1
     document["summary"]["rejected_check_count"] += 1
+
+
+def open_loop_endpoint(document):
+    sample = document["sample_stream"]["representative_samples"][-1]
+    sample["base_rotation_deg"][0]["value"] += 1.0
+    sample["combined_rotation_deg"][0]["value"] += 1.0
+    sample["sample_sha256"] = representative_sample_sha256(sample)

@@ -77,11 +77,8 @@ def require_sample_stream(
         raise BodySwayProbeSampleError(
             "Body-sway overlay representative endpoints must always close"
         )
-    if loop and start_pose != end_pose:
-        raise BodySwayProbeSampleError(
-            "Loop representative base, overlay, combined, or root endpoints differ"
-        )
     return {
+        "loop_pose_closed": start_pose == end_pose,
         "rig_bone_count": len(rig_bone_ids),
         "rotation_bone_count": len(rotation_bone_ids),
         "overlay_bone_count": len(overlay_bone_ids),

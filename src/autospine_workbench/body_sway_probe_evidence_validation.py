@@ -56,6 +56,7 @@ def require_schedule(value: Any, *, duration: int) -> int:
 def require_checks(
     value: Any, *, loop: bool, schedule_count: int,
     rig_bone_count: int, attachment_count: int, mesh_attachment_count: int,
+    loop_pose_closed: bool,
 ) -> dict[str, int | bool]:
     """Validate seven ordered checks and their observable/not-applicable bounds."""
 
@@ -78,6 +79,7 @@ def require_checks(
             row, check_id=check_id, loop=loop, schedule_count=schedule_count,
             rig_bone_count=rig_bone_count, attachment_count=attachment_count,
             mesh_count=mesh_attachment_count,
+            loop_pose_closed=loop_pose_closed,
         )
         counts[row["status"]] += 1
     counts["structural_rejected"] = any(
@@ -90,7 +92,7 @@ def require_checks(
 def _check_row(
     row: Mapping[str, Any], *, check_id: str, loop: bool,
     schedule_count: int, rig_bone_count: int,
-    attachment_count: int, mesh_count: int,
+    attachment_count: int, mesh_count: int, loop_pose_closed: bool,
 ) -> None:
     if any(type(row.get(field)) is not int for field in (
         "subject_count", "sample_count", "failure_count",
@@ -119,6 +121,12 @@ def _check_row(
             f"Body-sway {check_id} evidence counts differ from its inventory"
         )
     _computed_status(row)
+    if check_id == "loop_closure":
+        expected_status = "passed" if loop_pose_closed else "rejected"
+        if row.get("status") != expected_status:
+            raise BodySwayProbeEvidenceError(
+                "Body-sway loop check differs from its visible endpoints"
+            )
 
 
 def _computed_status(row: Mapping[str, Any]) -> None:

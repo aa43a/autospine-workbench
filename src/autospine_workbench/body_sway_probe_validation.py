@@ -77,6 +77,10 @@ _SUMMARY = {
     "passed_check_count", "rejected_check_count", "unobservable_check_count",
     "not_applicable_check_count",
 }
+_INVENTORY_SUMMARY = {
+    "representative_sample_count", "rig_bone_count", "rotation_bone_count",
+    "overlay_bone_count", "attachment_count", "mesh_attachment_count",
+}
 
 
 class BodySwayProbeValidationError(ValueError):
@@ -117,6 +121,7 @@ def require_body_sway_probe_report(document: Mapping[str, Any]) -> None:
             rig_bone_count=inventory["rig_bone_count"],
             attachment_count=inventory["attachment_count"],
             mesh_attachment_count=inventory["mesh_attachment_count"],
+            loop_pose_closed=inventory["loop_pose_closed"],
         )
         _aggregate(root, schedule_count, inventory, checks)
         encoded = json.dumps(
@@ -225,7 +230,7 @@ def _aggregate(root, schedule_count, inventory, checks) -> None:
         )
     expected_summary = {
         "schedule_sample_count": schedule_count,
-        **inventory,
+        **{field: inventory[field] for field in _INVENTORY_SUMMARY},
         "check_count": len(CHECK_ORDER),
         "passed_check_count": checks["passed"],
         "rejected_check_count": checks["rejected"],

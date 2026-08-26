@@ -16,7 +16,11 @@ from autospine_workbench.body_sway_probe_validation import (
 from autospine_workbench.body_sway_probe_sample_validation import (
     representative_sample_sha256,
 )
-from tests.body_sway_probe_helpers import reject_check, valid_report
+from tests.body_sway_probe_helpers import (
+    open_loop_endpoint,
+    reject_check,
+    valid_report,
+)
 
 try:
     from jsonschema import Draft202012Validator
@@ -56,6 +60,8 @@ class BodySwayProbeValidationTests(unittest.TestCase):
     def test_each_sampled_structural_rejection_derives_top_rejection(self):
         for index in range(5):
             document = valid_report()
+            if index == 0:
+                open_loop_endpoint(document)
             reject_check(document, index)
             with self.subTest(check=document["checks"][index]["check_id"]):
                 require_body_sway_probe_report(document)
@@ -64,6 +70,19 @@ class BodySwayProbeValidationTests(unittest.TestCase):
                     "sampled_structural_check_rejected",
                     document["release_gate"]["reason_codes"],
                 )
+
+    def test_loop_check_is_bound_to_visible_endpoint_evidence(self):
+        opened = valid_report()
+        open_loop_endpoint(opened)
+        with self.assertRaises(BodySwayProbeValidationError):
+            require_body_sway_probe_report(opened)
+        reject_check(opened, 0)
+        require_body_sway_probe_report(opened)
+
+        false_rejection = valid_report()
+        reject_check(false_rejection, 0)
+        with self.assertRaises(BodySwayProbeValidationError):
+            require_body_sway_probe_report(false_rejection)
 
     def test_top_level_can_never_pass_or_release(self):
         self.assert_invalid(lambda row: row.__setitem__("status", "passed"))
@@ -331,6 +350,10 @@ class BodySwayProbeValidationTests(unittest.TestCase):
     def test_non_loop_requires_explicit_not_applicable_loop_check(self):
         document = valid_report()
         document["timing"]["loop"] = False
+        open_loop_endpoint(document)
+        endpoint = document["sample_stream"]["representative_samples"][-1]
+        endpoint["root_translation_xy"][0] += 2.0
+        endpoint["sample_sha256"] = representative_sample_sha256(endpoint)
         document["checks"][0] = {
             "check_id": "loop_closure", "status": "not_applicable",
             "reason_code": "clip_not_looping", "subject_count": 0,
