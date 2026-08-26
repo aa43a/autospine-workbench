@@ -1,0 +1,421 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/body-sway-probe-report-v1.schema.json",
+  "title": "AutoSpine BodySwayProbeReport v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "project_id", "clip_id", "source", "timing",
+    "selection", "prober", "semantics", "schedule", "sample_stream", "checks",
+    "status", "release_gate", "summary"
+  ],
+  "properties": {
+    "format": {"const": "autospine-body-sway-probe-report"},
+    "format_version": {"type": "integer", "const": 1},
+    "project_id": {"$ref": "#/$defs/id"},
+    "clip_id": {"$ref": "#/$defs/id"},
+    "source": {"$ref": "#/$defs/source"},
+    "timing": {"$ref": "#/$defs/timing"},
+    "selection": {"$ref": "#/$defs/selection"},
+    "prober": {"$ref": "#/$defs/prober"},
+    "semantics": {"$ref": "#/$defs/semantics"},
+    "schedule": {"$ref": "#/$defs/schedule"},
+    "sample_stream": {"$ref": "#/$defs/sampleStream"},
+    "checks": {
+      "type": "array", "minItems": 7, "maxItems": 7,
+      "prefixItems": [
+        {"$ref": "#/$defs/loopCheck"},
+        {"$ref": "#/$defs/fkCheck"},
+        {"$ref": "#/$defs/meshCheck"},
+        {"$ref": "#/$defs/canvasCheck"},
+        {"$ref": "#/$defs/continuityCheck"},
+        {"$ref": "#/$defs/seamCheck"},
+        {"$ref": "#/$defs/visualCheck"}
+      ],
+      "items": false
+    },
+    "status": {"enum": ["structural_rejected", "manual_visual_required"]},
+    "release_gate": {"$ref": "#/$defs/releaseGate"},
+    "summary": {"$ref": "#/$defs/summary"}
+  },
+  "$defs": {
+    "id": {
+      "type": "string", "minLength": 1, "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "candidateId": {
+      "type": "string", "pattern": "^body-sway-[0-9a-f]{64}$"
+    },
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "idle_behavior_candidates_sha256", "idle_behavior_decision_sha256",
+        "layer_manifest_sha256", "p3", "p5", "p9"
+      ],
+      "properties": {
+        "idle_behavior_candidates_sha256": {"$ref": "#/$defs/sha"},
+        "idle_behavior_decision_sha256": {"$ref": "#/$defs/sha"},
+        "layer_manifest_sha256": {"$ref": "#/$defs/sha"},
+        "p3": {"$ref": "#/$defs/p3Source"},
+        "p5": {"$ref": "#/$defs/p5Source"},
+        "p9": {"$ref": "#/$defs/p9Source"}
+      }
+    },
+    "p3Source": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "base_rig_sha256", "base_bundle_sha256", "layer_manifest_sha256",
+        "resolved_project_sha256", "rig_sha256", "run_sha256",
+        "probes_sha256", "visuals_sha256", "bundle_sha256"
+      ],
+      "properties": {
+        "base_rig_sha256": {"$ref": "#/$defs/sha"},
+        "base_bundle_sha256": {"$ref": "#/$defs/sha"},
+        "layer_manifest_sha256": {"$ref": "#/$defs/sha"},
+        "resolved_project_sha256": {"$ref": "#/$defs/sha"},
+        "rig_sha256": {"$ref": "#/$defs/sha"},
+        "run_sha256": {"$ref": "#/$defs/sha"},
+        "probes_sha256": {"$ref": "#/$defs/sha"},
+        "visuals_sha256": {"$ref": "#/$defs/sha"},
+        "bundle_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "p5Source": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "target_profile_sha256", "instance_sha256", "run_sha256",
+        "retarget_report_sha256", "mesh_regression_sha256", "bundle_sha256"
+      ],
+      "properties": {
+        "target_profile_sha256": {"$ref": "#/$defs/sha"},
+        "instance_sha256": {"$ref": "#/$defs/sha"},
+        "run_sha256": {"$ref": "#/$defs/sha"},
+        "retarget_report_sha256": {"$ref": "#/$defs/sha"},
+        "mesh_regression_sha256": {"$ref": "#/$defs/sha"},
+        "bundle_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "p9Source": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "foot_lock_candidates_sha256", "depth_order_candidates_sha256",
+        "motion_policy_decision_sha256", "reviewed_motion_policy_sha256",
+        "motion_instance_v2_sha256", "run_sha256", "bundle_sha256"
+      ],
+      "properties": {
+        "foot_lock_candidates_sha256": {"$ref": "#/$defs/sha"},
+        "depth_order_candidates_sha256": {"$ref": "#/$defs/sha"},
+        "motion_policy_decision_sha256": {"$ref": "#/$defs/sha"},
+        "reviewed_motion_policy_sha256": {"$ref": "#/$defs/sha"},
+        "motion_instance_v2_sha256": {"$ref": "#/$defs/sha"},
+        "run_sha256": {"$ref": "#/$defs/sha"},
+        "bundle_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "timing": {
+      "type": "object", "additionalProperties": false,
+      "required": ["ticks_per_second", "duration_ticks", "loop"],
+      "properties": {
+        "ticks_per_second": {"type": "integer", "const": 1000000},
+        "duration_ticks": {"type": "integer", "minimum": 1, "maximum": 600000000},
+        "loop": {"type": "boolean"}
+      }
+    },
+    "selection": {
+      "type": "object", "additionalProperties": false,
+      "required": ["candidate_id", "feature_id", "action", "probe_status", "parameters"],
+      "properties": {
+        "candidate_id": {"$ref": "#/$defs/candidateId"},
+        "feature_id": {"const": "body_sway"},
+        "action": {"const": "adjust"},
+        "probe_status": {"const": "pending_probe"},
+        "parameters": {"$ref": "#/$defs/parameters"}
+      }
+    },
+    "parameters": {
+      "type": "object", "additionalProperties": false,
+      "required": ["cycles", "per_bone_amplitude_deg", "per_bone_phase_fraction"],
+      "properties": {
+        "cycles": {"type": "integer", "minimum": 1, "maximum": 64},
+        "per_bone_amplitude_deg": {"$ref": "#/$defs/amplitudes"},
+        "per_bone_phase_fraction": {"$ref": "#/$defs/phases"}
+      }
+    },
+    "amplitudes": {
+      "type": "array", "minItems": 4, "maxItems": 4,
+      "prefixItems": [
+        {"$ref": "#/$defs/amplitudePelvis"},
+        {"$ref": "#/$defs/amplitudeSpine"},
+        {"$ref": "#/$defs/amplitudeChest"},
+        {"$ref": "#/$defs/amplitudeNeck"}
+      ],
+      "items": false,
+      "contains": {
+        "type": "object", "properties": {"value": {"exclusiveMinimum": 0}},
+        "required": ["value"]
+      },
+      "minContains": 1
+    },
+    "phases": {
+      "type": "array", "minItems": 4, "maxItems": 4,
+      "prefixItems": [
+        {"$ref": "#/$defs/phasePelvis"},
+        {"$ref": "#/$defs/phaseSpine"},
+        {"$ref": "#/$defs/phaseChest"},
+        {"$ref": "#/$defs/phaseNeck"}
+      ],
+      "items": false
+    },
+    "amplitudeBase": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bone_id", "value"],
+      "properties": {
+        "bone_id": {"$ref": "#/$defs/id"},
+        "value": {"type": "number", "minimum": 0, "maximum": 10}
+      }
+    },
+    "phaseBase": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bone_id", "value"],
+      "properties": {
+        "bone_id": {"$ref": "#/$defs/id"},
+        "value": {"type": "number", "minimum": 0, "exclusiveMaximum": 1}
+      }
+    },
+    "amplitudePelvis": {"allOf": [{"$ref": "#/$defs/amplitudeBase"}, {"properties": {"bone_id": {"const": "pelvis-spine"}}}]},
+    "amplitudeSpine": {"allOf": [{"$ref": "#/$defs/amplitudeBase"}, {"properties": {"bone_id": {"const": "spine-chest"}}}]},
+    "amplitudeChest": {"allOf": [{"$ref": "#/$defs/amplitudeBase"}, {"properties": {"bone_id": {"const": "chest-neck"}}}]},
+    "amplitudeNeck": {"allOf": [{"$ref": "#/$defs/amplitudeBase"}, {"properties": {"bone_id": {"const": "neck-head"}}}]},
+    "phasePelvis": {"allOf": [{"$ref": "#/$defs/phaseBase"}, {"properties": {"bone_id": {"const": "pelvis-spine"}}}]},
+    "phaseSpine": {"allOf": [{"$ref": "#/$defs/phaseBase"}, {"properties": {"bone_id": {"const": "spine-chest"}}}]},
+    "phaseChest": {"allOf": [{"$ref": "#/$defs/phaseBase"}, {"properties": {"bone_id": {"const": "chest-neck"}}}]},
+    "phaseNeck": {"allOf": [{"$ref": "#/$defs/phaseBase"}, {"properties": {"bone_id": {"const": "neck-head"}}}]},
+    "prober": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "version", "config"],
+      "properties": {
+        "id": {"const": "body-sway-structural-probe"},
+        "version": {"const": "1.0.0"},
+        "config": {
+          "type": "object", "additionalProperties": false,
+          "required": [
+            "fixed_sample_step_ticks", "uniform_samples_per_cycle",
+            "max_sample_count", "numeric_precision_decimals", "mesh_thresholds"
+          ],
+          "properties": {
+            "fixed_sample_step_ticks": {"type": "integer", "const": 50000},
+            "uniform_samples_per_cycle": {"type": "integer", "const": 32},
+            "max_sample_count": {"type": "integer", "const": 65536},
+            "numeric_precision_decimals": {"type": "integer", "const": 9},
+            "mesh_thresholds": {
+              "type": "object", "additionalProperties": false,
+              "required": [
+                "min_signed_area_ratio", "max_signed_area_ratio",
+                "max_edge_stretch_ratio"
+              ],
+              "properties": {
+                "min_signed_area_ratio": {"const": 0.02},
+                "max_signed_area_ratio": {"const": 20.0},
+                "max_edge_stretch_ratio": {"const": 3.0}
+              }
+            }
+          }
+        }
+      }
+    },
+    "semantics": {
+      "const": {
+        "scope": "sampled-structural",
+        "mode": "diagnostic-only",
+        "motion_instance_v3_emitted": false,
+        "runtime_timeline_emitted": false,
+        "safe_range_claimed": false,
+        "review_input_envelope_max_deg": 10.0,
+        "review_input_envelope_is_safety_evidence": false,
+        "continuous_time_safety_claimed": false,
+        "visual_quality_claimed": false,
+        "raster_truth_claimed": false,
+        "inter_attachment_seam_safety_claimed": false,
+        "manual_runtime_preview_required": true,
+        "bulk_evidence_digests_are_compiler_seals": true,
+        "bulk_evidence_standalone_replay_claimed": false,
+        "representative_sample_digest_domain": "autospine-body-sway-representative-sample/v1"
+      }
+    },
+    "schedule": {
+      "type": "object", "additionalProperties": false,
+      "required": ["tick_schedule_sha256", "sample_count", "first_tick", "last_tick"],
+      "properties": {
+        "tick_schedule_sha256": {"$ref": "#/$defs/sha"},
+        "sample_count": {"type": "integer", "minimum": 2, "maximum": 65536},
+        "first_tick": {"type": "integer", "const": 0},
+        "last_tick": {"type": "integer", "minimum": 1, "maximum": 600000000}
+      }
+    },
+    "sampleStream": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "sample_stream_sha256", "rig_bone_ids", "rotation_bone_ids",
+        "overlay_bone_ids", "attachments", "representative_samples"
+      ],
+      "properties": {
+        "sample_stream_sha256": {"$ref": "#/$defs/sha"},
+        "rig_bone_ids": {
+          "type": "array", "minItems": 1, "maxItems": 4096,
+          "uniqueItems": true, "items": {"$ref": "#/$defs/id"}
+        },
+        "rotation_bone_ids": {
+          "type": "array", "minItems": 4, "maxItems": 4096,
+          "uniqueItems": true, "items": {"$ref": "#/$defs/id"}
+        },
+        "overlay_bone_ids": {
+          "const": ["pelvis-spine", "spine-chest", "chest-neck", "neck-head"]
+        },
+        "attachments": {
+          "type": "array", "maxItems": 4096, "uniqueItems": true,
+          "items": {"$ref": "#/$defs/attachment"}
+        },
+        "representative_samples": {
+          "type": "array", "minItems": 2, "maxItems": 256,
+          "items": {"$ref": "#/$defs/representative"}
+        }
+      }
+    },
+    "attachment": {
+      "type": "object", "additionalProperties": false,
+      "required": ["attachment_id", "type"],
+      "properties": {
+        "attachment_id": {"$ref": "#/$defs/id"},
+        "type": {"enum": ["region", "mesh"]}
+      }
+    },
+    "representative": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "tick", "base_rotation_deg", "overlay_rotation_deg",
+        "combined_rotation_deg", "root_translation_xy", "sample_sha256"
+      ],
+      "properties": {
+        "tick": {"type": "integer", "minimum": 0, "maximum": 600000000},
+        "base_rotation_deg": {"$ref": "#/$defs/poseRotations"},
+        "overlay_rotation_deg": {"$ref": "#/$defs/overlayRotations"},
+        "combined_rotation_deg": {"$ref": "#/$defs/poseRotations"},
+        "root_translation_xy": {
+          "type": "array", "minItems": 2, "maxItems": 2,
+          "prefixItems": [
+            {"type": "number", "minimum": -1000000000000, "maximum": 1000000000000},
+            {"type": "number", "minimum": -1000000000000, "maximum": 1000000000000}
+          ],
+          "items": false
+        },
+        "sample_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "poseRotations": {
+      "type": "array", "minItems": 4, "maxItems": 4096,
+      "uniqueItems": true, "items": {"$ref": "#/$defs/poseRotation"}
+    },
+    "overlayRotations": {
+      "type": "array", "minItems": 4, "maxItems": 4096,
+      "uniqueItems": true, "items": {"$ref": "#/$defs/overlayRotation"}
+    },
+    "poseRotation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bone_id", "value"],
+      "properties": {
+        "bone_id": {"$ref": "#/$defs/id"},
+        "value": {"type": "number", "minimum": -1000000000000, "maximum": 1000000000000}
+      }
+    },
+    "overlayRotation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bone_id", "value"],
+      "properties": {
+        "bone_id": {"$ref": "#/$defs/id"},
+        "value": {"type": "number", "minimum": -10, "maximum": 10}
+      }
+    },
+    "computedCheck": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "check_id", "status", "reason_code", "subject_count", "sample_count",
+        "failure_count", "evidence_sha256"
+      ],
+      "properties": {
+        "check_id": {"$ref": "#/$defs/id"},
+        "status": {"enum": ["passed", "rejected", "not_applicable"]},
+        "reason_code": {"enum": [
+          "sampled_check_passed", "sampled_check_rejected", "reviewed_noop",
+          "clip_not_looping"
+        ]},
+        "subject_count": {"type": "integer", "minimum": 0, "maximum": 4096},
+        "sample_count": {"type": "integer", "minimum": 0, "maximum": 65536},
+        "failure_count": {"type": "integer", "minimum": 0, "maximum": 65536},
+        "evidence_sha256": {"oneOf": [{"$ref": "#/$defs/sha"}, {"type": "null"}]}
+      }
+    },
+    "loopCheck": {"allOf": [{"$ref": "#/$defs/computedCheck"}, {"properties": {"check_id": {"const": "loop_closure"}}}]},
+    "fkCheck": {"allOf": [{"$ref": "#/$defs/computedCheck"}, {"properties": {"check_id": {"const": "fk_finite"}}}]},
+    "meshCheck": {"allOf": [{"$ref": "#/$defs/computedCheck"}, {"properties": {"check_id": {"const": "sampled_mesh_deformation"}}}]},
+    "canvasCheck": {"allOf": [{"$ref": "#/$defs/computedCheck"}, {"properties": {"check_id": {"const": "sampled_canvas_containment"}}}]},
+    "continuityCheck": {"allOf": [{"$ref": "#/$defs/computedCheck"}, {"properties": {"check_id": {"const": "shared_index_internal_continuity"}}}]},
+    "seamCheck": {
+      "const": {
+        "check_id": "inter_attachment_seams", "status": "unobservable",
+        "reason_code": "reviewed_seam_anchors_missing", "subject_count": 0,
+        "sample_count": 0, "failure_count": 0, "evidence_sha256": null
+      }
+    },
+    "visualCheck": {
+      "const": {
+        "check_id": "visual_quality", "status": "unobservable",
+        "reason_code": "manual_runtime_preview_required", "subject_count": 0,
+        "sample_count": 0, "failure_count": 0, "evidence_sha256": null
+      }
+    },
+    "releaseGate": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "reason_codes"],
+      "properties": {
+        "status": {"const": "blocked"},
+        "reason_codes": {
+          "oneOf": [
+            {"const": [
+              "manual_runtime_preview_required", "reviewed_seam_anchors_missing",
+              "safe_range_unproven"
+            ]},
+            {"const": [
+              "manual_runtime_preview_required", "reviewed_seam_anchors_missing",
+              "safe_range_unproven", "sampled_structural_check_rejected"
+            ]}
+          ]
+        }
+      }
+    },
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "schedule_sample_count", "representative_sample_count",
+        "rig_bone_count", "rotation_bone_count", "overlay_bone_count",
+        "attachment_count", "mesh_attachment_count", "check_count",
+        "passed_check_count", "rejected_check_count", "unobservable_check_count",
+        "not_applicable_check_count"
+      ],
+      "properties": {
+        "schedule_sample_count": {"type": "integer", "minimum": 2, "maximum": 65536},
+        "representative_sample_count": {"type": "integer", "minimum": 2, "maximum": 256},
+        "rig_bone_count": {"type": "integer", "minimum": 1, "maximum": 4096},
+        "rotation_bone_count": {"type": "integer", "minimum": 4, "maximum": 4096},
+        "overlay_bone_count": {"type": "integer", "const": 4},
+        "attachment_count": {"type": "integer", "minimum": 0, "maximum": 4096},
+        "mesh_attachment_count": {"type": "integer", "minimum": 0, "maximum": 4096},
+        "check_count": {"type": "integer", "const": 7},
+        "passed_check_count": {"type": "integer", "minimum": 0, "maximum": 7},
+        "rejected_check_count": {"type": "integer", "minimum": 0, "maximum": 7},
+        "unobservable_check_count": {"type": "integer", "const": 2},
+        "not_applicable_check_count": {"type": "integer", "minimum": 0, "maximum": 5}
+      }
+    }
+  }
+}
