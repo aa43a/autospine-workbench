@@ -12,6 +12,11 @@ from .motion_bvh_commands import (
     compile_bvh_motion_bundle,
     verify_bvh_motion_bundle,
 )
+from .motion_kimodo_commands import (
+    KimodoMotionCommandError,
+    compile_kimodo_motion_bundle,
+    verify_kimodo_motion_bundle,
+)
 from .motion_retarget_commands import (
     MotionRetargetCommandError,
     compile_motion_retarget_bundle,
@@ -22,7 +27,7 @@ from .motion_retarget_commands import (
 def add_motion_stage_subcommands(
     subparsers: Any, default_state_root: Path,
 ) -> None:
-    """Register P5 BVH and retarget commands on an existing parser."""
+    """Register P5 motion-source and retarget commands on an existing parser."""
 
     compile_bvh = subparsers.add_parser(
         "compile-bvh-motion",
@@ -39,6 +44,23 @@ def add_motion_stage_subcommands(
     verify_bvh.add_argument("--clip-sha256", required=True)
     verify_bvh.add_argument("--bundle-sha256", required=True)
     _add_state_root(verify_bvh, default_state_root)
+
+    compile_kimodo = subparsers.add_parser(
+        "compile-kimodo-motion",
+        help="Compile formal Kimodo NPZ, sidecar, and map into a verified bundle",
+    )
+    compile_kimodo.add_argument("source", metavar="SOURCE", type=Path)
+    compile_kimodo.add_argument("sidecar", metavar="SIDECAR", type=Path)
+    compile_kimodo.add_argument("map", metavar="MAP", type=Path)
+    _add_state_root(compile_kimodo, default_state_root)
+
+    verify_kimodo = subparsers.add_parser(
+        "verify-kimodo-motion",
+        help="Verify one exact Kimodo NPZ MotionIR bundle address",
+    )
+    verify_kimodo.add_argument("--clip-sha256", required=True)
+    verify_kimodo.add_argument("--bundle-sha256", required=True)
+    _add_state_root(verify_kimodo, default_state_root)
 
     compile_retarget = subparsers.add_parser(
         "compile-motion-retarget",
@@ -75,6 +97,23 @@ def dispatch_motion_stage_command(args: argparse.Namespace) -> int | None:
         return _run(
             verify_bvh_motion_bundle,
             _bvh_payload,
+            args.state_root,
+            args.clip_sha256,
+            args.bundle_sha256,
+        )
+    if command == "compile-kimodo-motion":
+        return _run(
+            compile_kimodo_motion_bundle,
+            _kimodo_payload,
+            args.state_root,
+            args.source,
+            args.sidecar,
+            args.map,
+        )
+    if command == "verify-kimodo-motion":
+        return _run(
+            verify_kimodo_motion_bundle,
+            _kimodo_payload,
             args.state_root,
             args.clip_sha256,
             args.bundle_sha256,
@@ -156,6 +195,26 @@ def _retarget_payload(result: Any) -> dict[str, Any]:
     }
 
 
+def _kimodo_payload(result: Any) -> dict[str, Any]:
+    return {
+        "path": str(result.path),
+        "clip_id": result.clip_id,
+        "source_id": result.source_id,
+        "map_id": result.map_id,
+        "raw_npz_sha256": result.raw_npz_sha256,
+        "raw_npz_byte_length": result.raw_npz_byte_length,
+        "source_sha256": result.source_sha256,
+        "map_sha256": result.map_sha256,
+        "array_inventory_sha256": result.array_inventory_sha256,
+        "motion_ir_sha256": result.motion_ir_sha256,
+        "clip_sha256": result.clip_sha256,
+        "run_sha256": result.run_sha256,
+        "bundle_sha256": result.bundle_sha256,
+        "source_kind": result.source_kind,
+        "reused": result.reused,
+    }
+
+
 def _add_state_root(parser: argparse.ArgumentParser, default: Path) -> None:
     parser.add_argument("--state-root", type=Path, default=Path(default))
 
@@ -175,4 +234,8 @@ _RETARGET_INPUT_OPTIONS = (
     "--motion-bundle-sha256",
 )
 
-_SERVICE_ERRORS = (BvhMotionCommandError, MotionRetargetCommandError)
+_SERVICE_ERRORS = (
+    BvhMotionCommandError,
+    KimodoMotionCommandError,
+    MotionRetargetCommandError,
+)

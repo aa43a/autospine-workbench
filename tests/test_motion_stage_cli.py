@@ -21,6 +21,9 @@ if str(SRC) not in sys.path:
 from autospine_workbench.motion_bvh_commands import (  # noqa: E402
     BvhMotionCommandError,
 )
+from autospine_workbench.motion_kimodo_commands import (  # noqa: E402
+    KimodoMotionCommandError,
+)
 from autospine_workbench.motion_retarget_commands import (  # noqa: E402
     MotionRetargetCommandError,
 )
@@ -65,6 +68,26 @@ def bvh_result() -> SimpleNamespace:
     )
 
 
+def kimodo_result() -> SimpleNamespace:
+    return SimpleNamespace(
+        path=Path("state/motions/clip/bundle"),
+        clip_id="kimodo.walk",
+        source_id="kimodo.source-v1",
+        map_id="kimodo.map-v1",
+        raw_npz_sha256="1" * 64,
+        raw_npz_byte_length=456,
+        source_sha256="2" * 64,
+        map_sha256="3" * 64,
+        array_inventory_sha256="4" * 64,
+        motion_ir_sha256="5" * 64,
+        clip_sha256="5" * 64,
+        run_sha256="6" * 64,
+        bundle_sha256="7" * 64,
+        source_kind="kimodo_npz",
+        reused=False,
+    )
+
+
 def retarget_result() -> SimpleNamespace:
     return SimpleNamespace(
         path=Path("state/builds/project/motion-instances/instance/bundle"),
@@ -104,6 +127,14 @@ class MotionStageParserTests(unittest.TestCase):
         ])
         self.assertEqual(Path("other-state"), verified.state_root)
 
+        kimodo = self.parser.parse_args([
+            "compile-kimodo-motion", "walk.npz", "walk.source.json",
+            "walk.map.json",
+        ])
+        self.assertEqual(Path("walk.npz"), kimodo.source)
+        self.assertEqual(Path("walk.source.json"), kimodo.sidecar)
+        self.assertEqual(Path("walk.map.json"), kimodo.map)
+
     def test_retarget_requires_all_source_and_output_addresses(self) -> None:
         argv = ["compile-motion-retarget", "project", *_retarget_flags()]
         compiled = self.parser.parse_args(argv)
@@ -125,6 +156,7 @@ class MotionStageParserTests(unittest.TestCase):
     def test_verify_commands_have_no_implicit_address_fallback(self) -> None:
         incomplete = (
             ["verify-bvh-motion", "--clip-sha256", "a" * 64],
+            ["verify-kimodo-motion", "--clip-sha256", "a" * 64],
             [
                 "verify-motion-retarget", "project",
                 "--instance-sha256", SHA["instance"],
@@ -167,6 +199,33 @@ class MotionStageDispatchTests(unittest.TestCase):
                 self.assertEqual("passed", response["status"])
                 self.assertEqual(set(vars(bvh_result())), set(response) - {"ok", "status"})
                 self.assertIsInstance(response["path"], str)
+
+    def test_kimodo_dispatches_compile_verify_and_prints_all_identities(self):
+        cases = (
+            (
+                ["compile-kimodo-motion", "source.npz", "sidecar.json", "map.json"],
+                "compile_kimodo_motion_bundle",
+                (self.state, Path("source.npz"), Path("sidecar.json"), Path("map.json")),
+            ),
+            (
+                ["verify-kimodo-motion", "--clip-sha256", "5" * 64,
+                 "--bundle-sha256", "7" * 64],
+                "verify_kimodo_motion_bundle",
+                (self.state, "5" * 64, "7" * 64),
+            ),
+        )
+        for argv, service_name, expected in cases:
+            with self.subTest(argv=argv), patch(
+                f"autospine_workbench.motion_stage_cli.{service_name}",
+                return_value=kimodo_result(),
+            ) as service:
+                status, response = self._dispatch(argv)
+                self.assertEqual(0, status)
+                service.assert_called_once_with(*expected)
+                self.assertEqual(
+                    set(vars(kimodo_result())), set(response) - {"ok", "status"}
+                )
+                self.assertEqual("kimodo_npz", response["source_kind"])
 
     def test_retarget_dispatches_exact_compile_and_verify_calls(self) -> None:
         with patch(
@@ -214,6 +273,11 @@ class MotionStageDispatchTests(unittest.TestCase):
                 ["compile-motion-retarget", "project", *_retarget_flags()],
                 "compile_motion_retarget_bundle",
                 MotionRetargetCommandError("bad retarget"),
+            ),
+            (
+                ["compile-kimodo-motion", "source.npz", "sidecar.json", "map.json"],
+                "compile_kimodo_motion_bundle",
+                KimodoMotionCommandError("bad Kimodo"),
             ),
         )
         for argv, service_name, error in cases:
