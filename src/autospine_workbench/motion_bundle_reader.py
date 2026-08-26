@@ -12,7 +12,12 @@ from .motion_bundle_inventory import (
     MAX_BVH_MAP_BYTES,
     MAX_BVH_RUN_BYTES,
     MAX_BVH_TOTAL_DOCUMENT_BYTES,
+    MAX_KIMODO_MAP_BYTES,
+    MAX_KIMODO_RUN_BYTES,
+    MAX_KIMODO_SOURCE_BYTES,
+    MAX_KIMODO_TOTAL_DOCUMENT_BYTES,
     MAX_MOTION_BYTES,
+    MAX_RAW_NPZ_BYTES,
     MAX_RUN_BYTES,
     MAX_TOTAL_DOCUMENT_BYTES,
     MotionBundleInventoryError,
@@ -127,15 +132,25 @@ def _snapshot(root: Path) -> MotionBundleSnapshot:
     limits = profile.limit_by_name
     limits.update({
         "source.bvh": MAX_BVH_BYTES,
-        "map.json": MAX_BVH_MAP_BYTES,
+        "source.npz": MAX_RAW_NPZ_BYTES,
+        "sidecar.json": MAX_KIMODO_SOURCE_BYTES,
+        "map.json": (
+            MAX_KIMODO_MAP_BYTES
+            if profile.source_kind == "kimodo_npz" else MAX_BVH_MAP_BYTES
+        ),
         "motion.json": MAX_MOTION_BYTES,
         "run-manifest.json": (
-            MAX_RUN_BYTES if profile.source_kind == "builtin" else MAX_BVH_RUN_BYTES
+            MAX_RUN_BYTES if profile.source_kind == "builtin"
+            else MAX_KIMODO_RUN_BYTES if profile.source_kind == "kimodo_npz"
+            else MAX_BVH_RUN_BYTES
         ),
     })
     total_limit = (
         MAX_TOTAL_DOCUMENT_BYTES
-        if profile.source_kind == "builtin" else MAX_BVH_TOTAL_DOCUMENT_BYTES
+        if profile.source_kind == "builtin"
+        else MAX_KIMODO_TOTAL_DOCUMENT_BYTES
+        if profile.source_kind == "kimodo_npz"
+        else MAX_BVH_TOTAL_DOCUMENT_BYTES
     )
     items, total = [], 0
     for name in profile.names:

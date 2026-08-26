@@ -68,7 +68,24 @@ class VerifiedMotionBundle:
 
     @property
     def bvh_map(self) -> dict[str, Any] | None:
-        if "map.json" not in dict(self._document_items):
+        documents = dict(self._document_items)
+        if "source.bvh" not in documents:
+            return None
+        return self._document("map.json")
+
+    @property
+    def raw_npz(self) -> bytes | None:
+        return dict(self._document_items).get("source.npz")
+
+    @property
+    def kimodo_source(self) -> dict[str, Any] | None:
+        if "sidecar.json" not in dict(self._document_items):
+            return None
+        return self._document("sidecar.json")
+
+    @property
+    def kimodo_map(self) -> dict[str, Any] | None:
+        if "source.npz" not in dict(self._document_items):
             return None
         return self._document("map.json")
 
@@ -93,7 +110,9 @@ def verify_motion_bundle_snapshot(
         if not isinstance(snapshot, MotionBundleSnapshot):
             raise MotionBundleIntegrityError("Motion bundle snapshot is invalid")
         raw, source_kind = _exact_items(snapshot.document_items)
-        json_names = tuple(name for name in raw if name != "source.bvh")
+        json_names = tuple(
+            name for name in raw if name not in {"source.bvh", "source.npz"}
+        )
         documents = {name: _strict_json(raw[name], name) for name in json_names}
         motion = documents["motion.json"]
         stored_run = documents["run-manifest.json"]
@@ -101,9 +120,14 @@ def verify_motion_bundle_snapshot(
             clip_id, contract, rebuilt_run_sha = _rebuild_builtin(
                 motion, stored_run,
             )
-        else:
+        elif source_kind == "bvh":
             clip_id, contract, rebuilt_run_sha = _rebuild_bvh(
                 raw["source.bvh"], documents["map.json"], motion, stored_run,
+            )
+        else:
+            clip_id, contract, rebuilt_run_sha = _rebuild_kimodo(
+                raw["source.npz"], documents["sidecar.json"],
+                documents["map.json"], motion, stored_run,
             )
         if (
             contract.run_sha256 != rebuilt_run_sha
@@ -223,6 +247,17 @@ def _rebuild_bvh(raw_bvh, bvh_map, motion, stored_run):
     )
     # The contract already recompiles raw BVH + map and byte-compares the run.
     # Returning its bound run SHA avoids repeating the potentially large FK pass.
+    return contract.clip_id, contract, contract.run_sha256
+
+
+def _rebuild_kimodo(raw_npz, source, mapping, motion, stored_run):
+    require_motion_ir(motion)
+    contract = build_motion_bundle_contract(
+        motion, stored_run,
+        raw_npz=raw_npz, kimodo_source=source, kimodo_map=mapping,
+    )
+    # As with BVH, the source-specific contract has already recompiled the
+    # archive and byte-compared the run; avoid a second matrix-FK pass here.
     return contract.clip_id, contract, contract.run_sha256
 
 

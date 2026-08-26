@@ -44,10 +44,16 @@ class MotionBundleStore:
         *,
         raw_bvh: bytes | None = None,
         bvh_map: Mapping[str, Any] | None = None,
+        raw_npz: bytes | None = None,
+        kimodo_source: Mapping[str, Any] | None = None,
+        kimodo_map: Mapping[str, Any] | None = None,
     ) -> PublishedMotionBundle:
         try:
             contract = _build_contract(
-                motion_ir, run_manifest, raw_bvh=raw_bvh, bvh_map=bvh_map,
+                motion_ir, run_manifest,
+                raw_bvh=raw_bvh, bvh_map=bvh_map,
+                raw_npz=raw_npz, kimodo_source=kimodo_source,
+                kimodo_map=kimodo_map,
             )
         except MotionBundleContractError as exc:
             raise MotionBundleStoreError("motion bundle publication input is invalid") from exc
@@ -178,6 +184,12 @@ def _verify(
                 "raw_bvh": actual["source.bvh"],
                 "bvh_map": json.loads(actual["map.json"]),
             }
+        elif contract.source_kind == "kimodo_npz":
+            kwargs = {
+                "raw_npz": actual["source.npz"],
+                "kimodo_source": json.loads(actual["sidecar.json"]),
+                "kimodo_map": json.loads(actual["map.json"]),
+            }
         rebuilt = build_motion_bundle_contract(
             json.loads(actual["motion.json"]),
             json.loads(actual["run-manifest.json"]),
@@ -289,9 +301,27 @@ def _staging_name(name: str) -> bool:
         )
 
 
-def _build_contract(motion_ir, run_manifest, *, raw_bvh, bvh_map):
-    if raw_bvh is None and bvh_map is None:
+def _build_contract(
+    motion_ir, run_manifest, *, raw_bvh, bvh_map,
+    raw_npz, kimodo_source, kimodo_map,
+):
+    if all(value is None for value in (
+        raw_bvh, bvh_map, raw_npz, kimodo_source, kimodo_map
+    )):
         return build_motion_bundle_contract(motion_ir, run_manifest)
+    if raw_npz is None and kimodo_source is None and kimodo_map is None:
+        return build_motion_bundle_contract(
+            motion_ir, run_manifest, raw_bvh=raw_bvh, bvh_map=bvh_map,
+        )
+    if raw_bvh is None and bvh_map is None:
+        return build_motion_bundle_contract(
+            motion_ir, run_manifest,
+            raw_npz=raw_npz, kimodo_source=kimodo_source,
+            kimodo_map=kimodo_map,
+        )
     return build_motion_bundle_contract(
-        motion_ir, run_manifest, raw_bvh=raw_bvh, bvh_map=bvh_map,
+        motion_ir, run_manifest,
+        raw_bvh=raw_bvh, bvh_map=bvh_map,
+        raw_npz=raw_npz, kimodo_source=kimodo_source,
+        kimodo_map=kimodo_map,
     )

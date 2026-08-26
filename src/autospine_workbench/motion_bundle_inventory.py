@@ -7,6 +7,12 @@ from dataclasses import dataclass
 from .bvh_map_validation import MAX_DOCUMENT_BYTES as MAX_BVH_MAP_BYTES
 from .bvh_motion_compile_run import MAX_RUN_BYTES as MAX_BVH_RUN_BYTES
 from .bvh_tokens import MAX_BVH_BYTES
+from .kimodo_npz_compile_run import MAX_RUN_BYTES as MAX_KIMODO_RUN_BYTES
+from .kimodo_npz_map_validation import MAX_DOCUMENT_BYTES as MAX_KIMODO_MAP_BYTES
+from .kimodo_npz_source import (
+    MAX_RAW_NPZ_BYTES,
+    MAX_SOURCE_DOCUMENT_BYTES as MAX_KIMODO_SOURCE_BYTES,
+)
 from .motion_compile_run import MAX_RUN_BYTES
 from .motion_validation import MAX_DOCUMENT_BYTES as MAX_MOTION_BYTES
 
@@ -15,9 +21,17 @@ BUILTIN_DOCUMENT_NAMES = ("motion.json", "run-manifest.json")
 BVH_DOCUMENT_NAMES = (
     "source.bvh", "map.json", "motion.json", "run-manifest.json",
 )
+KIMODO_DOCUMENT_NAMES = (
+    "source.npz", "sidecar.json", "map.json", "motion.json",
+    "run-manifest.json",
+)
 MAX_TOTAL_DOCUMENT_BYTES = MAX_MOTION_BYTES + MAX_RUN_BYTES
 MAX_BVH_TOTAL_DOCUMENT_BYTES = (
     MAX_BVH_BYTES + MAX_BVH_MAP_BYTES + MAX_MOTION_BYTES + MAX_BVH_RUN_BYTES
+)
+MAX_KIMODO_TOTAL_DOCUMENT_BYTES = (
+    MAX_RAW_NPZ_BYTES + MAX_KIMODO_SOURCE_BYTES + MAX_KIMODO_MAP_BYTES
+    + MAX_MOTION_BYTES + MAX_KIMODO_RUN_BYTES
 )
 
 
@@ -51,7 +65,16 @@ BVH_PROFILE = MotionBundleInventoryProfile(
     (MAX_BVH_BYTES, MAX_BVH_MAP_BYTES, MAX_MOTION_BYTES, MAX_BVH_RUN_BYTES),
     MAX_BVH_TOTAL_DOCUMENT_BYTES,
 )
-PROFILES = (BUILTIN_PROFILE, BVH_PROFILE)
+KIMODO_PROFILE = MotionBundleInventoryProfile(
+    "kimodo_npz",
+    KIMODO_DOCUMENT_NAMES,
+    (
+        MAX_RAW_NPZ_BYTES, MAX_KIMODO_SOURCE_BYTES, MAX_KIMODO_MAP_BYTES,
+        MAX_MOTION_BYTES, MAX_KIMODO_RUN_BYTES,
+    ),
+    MAX_KIMODO_TOTAL_DOCUMENT_BYTES,
+)
+PROFILES = (BUILTIN_PROFILE, BVH_PROFILE, KIMODO_PROFILE)
 
 
 def profile_for_ordered_names(

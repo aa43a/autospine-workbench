@@ -8,14 +8,6 @@ import hashlib
 import json
 from typing import Any
 
-from .bvh_motion_compile_run import (
-    BvhMotionCompileRunError,
-    build_bvh_motion_compile_run,
-)
-from .motion_compile_run import (
-    MotionCompileRunError,
-    require_motion_compile_run,
-)
 from .motion_bundle_inventory import (
     BUILTIN_DOCUMENT_NAMES,
     BVH_DOCUMENT_NAMES,
@@ -26,8 +18,18 @@ from .motion_bundle_inventory import (
     MAX_MOTION_BYTES,
     MAX_RUN_BYTES,
     MAX_TOTAL_DOCUMENT_BYTES,
+    KIMODO_DOCUMENT_NAMES,
+    MAX_KIMODO_MAP_BYTES,
+    MAX_KIMODO_RUN_BYTES,
+    MAX_KIMODO_SOURCE_BYTES,
+    MAX_KIMODO_TOTAL_DOCUMENT_BYTES,
+    MAX_RAW_NPZ_BYTES,
     MotionBundleInventoryError,
     require_document_items,
+)
+from .motion_bundle_source_builders import (
+    MotionBundleSourceError,
+    build_motion_source_documents,
 )
 from .motion_validation import (
     MotionValidationError,
@@ -74,7 +76,23 @@ class MotionBundleContract:
 
     @property
     def bvh_map(self) -> dict[str, Any] | None:
-        data = dict(self._documents).get("map.json")
+        documents = dict(self._documents)
+        data = documents.get("map.json") if "source.bvh" in documents else None
+        return None if data is None else json.loads(data)
+
+    @property
+    def raw_npz(self) -> bytes | None:
+        return dict(self._documents).get("source.npz")
+
+    @property
+    def kimodo_source(self) -> dict[str, Any] | None:
+        data = dict(self._documents).get("sidecar.json")
+        return None if data is None else json.loads(data)
+
+    @property
+    def kimodo_map(self) -> dict[str, Any] | None:
+        documents = dict(self._documents)
+        data = documents.get("map.json") if "source.npz" in documents else None
         return None if data is None else json.loads(data)
 
     @property
@@ -88,29 +106,23 @@ def build_motion_bundle_contract(
     *,
     raw_bvh: bytes | None = None,
     bvh_map: Mapping[str, Any] | None = None,
+    raw_npz: bytes | None = None,
+    kimodo_source: Mapping[str, Any] | None = None,
+    kimodo_map: Mapping[str, Any] | None = None,
 ) -> MotionBundleContract:
     """Validate, rebuild, canonicalize, and address one exact motion bundle."""
 
     try:
         require_motion_ir(motion_ir)
         motion_bytes = _canonical(motion_ir)
-        if raw_bvh is None and bvh_map is None:
-            source_kind = "builtin"
-            require_motion_compile_run(run_manifest, motion_ir=motion_ir)
-            run_bytes = _canonical(run_manifest)
-            items = (
-                (BUILTIN_DOCUMENT_NAMES[0], motion_bytes),
-                (BUILTIN_DOCUMENT_NAMES[1], run_bytes),
-            )
-        elif raw_bvh is not None and bvh_map is not None:
-            source_kind = "bvh"
-            items, run_bytes = _bvh_items(
-                raw_bvh, bvh_map, motion_ir, run_manifest, motion_bytes,
-            )
-        else:
-            raise MotionBundleContractError(
-                "BVH bundle raw source and explicit map must be supplied together"
-            )
+        source_documents = build_motion_source_documents(
+            motion_ir, run_manifest, motion_bytes,
+            raw_bvh=raw_bvh, bvh_map=bvh_map,
+            raw_npz=raw_npz, kimodo_source=kimodo_source,
+            kimodo_map=kimodo_map,
+        )
+        source_kind = source_documents.source_kind
+        items, run_bytes = source_documents.items, source_documents.run_bytes
         _require_items(items)
         clip_sha = motion_ir_sha256(motion_ir)
         run_sha = _sha(run_bytes)
@@ -125,8 +137,7 @@ def build_motion_bundle_contract(
     except MotionBundleContractError:
         raise
     except (
-        MotionCompileRunError,
-        BvhMotionCompileRunError,
+        MotionBundleSourceError,
         MotionValidationError,
         KeyError,
         TypeError,
@@ -162,17 +173,25 @@ def _require_items(
             value,
             limit_by_name={
                 "source.bvh": MAX_BVH_BYTES,
-                "map.json": MAX_BVH_MAP_BYTES,
+                "map.json": (
+                    MAX_KIMODO_MAP_BYTES
+                    if names == KIMODO_DOCUMENT_NAMES else MAX_BVH_MAP_BYTES
+                ),
                 "motion.json": MAX_MOTION_BYTES,
                 "run-manifest.json": (
                     MAX_RUN_BYTES
                     if names == BUILTIN_DOCUMENT_NAMES
+                    else MAX_KIMODO_RUN_BYTES
+                    if names == KIMODO_DOCUMENT_NAMES
                     else MAX_BVH_RUN_BYTES
                 ),
+                "source.npz": MAX_RAW_NPZ_BYTES,
+                "sidecar.json": MAX_KIMODO_SOURCE_BYTES,
             },
             total_by_kind={
                 "builtin": MAX_TOTAL_DOCUMENT_BYTES,
                 "bvh": MAX_BVH_TOTAL_DOCUMENT_BYTES,
+                "kimodo_npz": MAX_KIMODO_TOTAL_DOCUMENT_BYTES,
             },
         )
     except MotionBundleInventoryError as exc:
@@ -193,21 +212,3 @@ def _canonical(value: Mapping[str, Any]) -> bytes:
 
 def _sha(value: bytes) -> str:
     return hashlib.sha256(value).hexdigest()
-
-
-def _bvh_items(raw_bvh, bvh_map, motion_ir, run_manifest, motion_bytes):
-    if type(raw_bvh) is not bytes:
-        raise MotionBundleContractError("BVH source must be immutable bytes")
-    map_bytes = _canonical(bvh_map)
-    rebuilt = build_bvh_motion_compile_run(raw_bvh, bvh_map, motion_ir)
-    supplied_run = _canonical(run_manifest)
-    if supplied_run != rebuilt.canonical_bytes:
-        raise MotionBundleContractError(
-            "BVH compile run differs from exact source recompile"
-        )
-    return (
-        ("source.bvh", raw_bvh),
-        ("map.json", map_bytes),
-        ("motion.json", motion_bytes),
-        ("run-manifest.json", supplied_run),
-    ), supplied_run
