@@ -65,7 +65,7 @@ class BodySwayRuntimeCaptureCollectorTests(unittest.TestCase):
         self.assertEqual(RUNTIME_JS_SHA, first["runtime"]["javascript_sha256"])
         self.assertEqual(RUNTIME_CSS_SHA, first["runtime"]["stylesheet_sha256"])
         self.assertIsNone(first["case"]["animation"])
-        collector = BodySwayRuntimeCaptureCollector(sessions)
+        collector = self._collector(sessions)
         detached = collector.session("setup")
         detached["case"].clear()
         self.assertTrue(collector.session("setup")["case"])
@@ -81,8 +81,14 @@ class BodySwayRuntimeCaptureCollectorTests(unittest.TestCase):
                 self.fixture.preview, changed
             )
 
+    def test_detached_session_set_rejects_unpinned_runtime_hashes(self):
+        with self.assertRaisesRegex(
+            BodySwayRuntimeCaptureCollectorError, "pinned Spine"
+        ):
+            BodySwayRuntimeCaptureCollector(self.fixture.sessions)
+
     def test_complete_capture_set_is_ordered_frozen_and_copy_isolated(self):
-        collector = BodySwayRuntimeCaptureCollector(self.fixture.sessions)
+        collector = self._collector()
         for case_id in collector.case_ids:
             report = collector.record_capture(
                 case_id, self.png, device_pixel_ratio=1
@@ -102,7 +108,7 @@ class BodySwayRuntimeCaptureCollectorTests(unittest.TestCase):
         self.assertTrue(snapshot.reports[0])
 
     def test_duplicate_wrong_dpr_size_total_limit_and_error_fail_closed(self):
-        collector = BodySwayRuntimeCaptureCollector(self.fixture.sessions)
+        collector = self._collector()
         case_id = collector.case_ids[0]
         with self.assertRaises(BodySwayRuntimeCaptureCollectorError):
             collector.record_capture(case_id, self.png, device_pixel_ratio=2)
@@ -146,12 +152,12 @@ class BodySwayRuntimeCaptureCollectorTests(unittest.TestCase):
             with self.subTest(), self.assertRaises(
                 BodySwayRuntimeCaptureCollectorError
             ):
-                BodySwayRuntimeCaptureCollector(self._session_set(value))
+                self._collector(self._session_set(value))
         with self.assertRaises(BodySwayRuntimeCaptureCollectorError):
-            BodySwayRuntimeCaptureCollector({})
+            self._collector({})
 
     def test_dimensions_are_preflighted_and_concurrent_decode_is_bounded(self):
-        collector = BodySwayRuntimeCaptureCollector(self.fixture.sessions)
+        collector = self._collector()
         with patch(
             "autospine_workbench.body_sway_runtime_capture_collector."
             "decode_rgba_png"
@@ -205,6 +211,12 @@ class BodySwayRuntimeCaptureCollectorTests(unittest.TestCase):
             document, ensure_ascii=False, allow_nan=False,
             sort_keys=True, separators=(",", ":"),
         ))
+
+    def _collector(self, sessions=None):
+        with fake_runtime_profile():
+            return BodySwayRuntimeCaptureCollector(
+                self.fixture.sessions if sessions is None else sessions
+            )
 
     @staticmethod
     def _reseal_plan(document):

@@ -1,0 +1,403 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/body-sway-runtime-capture-v1.schema.json",
+  "title": "AutoSpine BodySwayRuntimeCapture v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "project_id", "clip_id", "source",
+    "timing", "selection", "compiler", "semantics", "runtime", "assets",
+    "browser", "runner", "capture", "cases", "artifacts", "status",
+    "release_gate", "summary"
+  ],
+  "properties": {
+    "format": {"const": "autospine-body-sway-runtime-capture"},
+    "format_version": {"type": "integer", "const": 1},
+    "project_id": {"$ref": "#/$defs/id"},
+    "clip_id": {"$ref": "#/$defs/id"},
+    "source": {"$ref": "#/$defs/source"},
+    "timing": {"$ref": "#/$defs/timing"},
+    "selection": {"$ref": "#/$defs/selection"},
+    "compiler": {
+      "const": {
+        "id": "body-sway-official-runtime-capture-compiler",
+        "version": "1.0.0",
+        "artifact_set_digest_domain": "autospine-body-sway-runtime-capture-artifacts/v1",
+        "case_stream_digest_domain": "autospine-body-sway-runtime-capture-cases/v1",
+        "limits": {
+          "max_capture_document_bytes": 2097152,
+          "max_capture_artifacts": 55
+        }
+      }
+    },
+    "semantics": {
+      "const": {
+        "scope": "bounded-official-runtime-still-captures",
+        "official_runtime_execution_claimed": true,
+        "standalone_execution_attestation_claimed": false,
+        "browser_identity_scope": "launcher-executable-and-reported-version",
+        "capture_bytes_recorded": true,
+        "human_review_claimed": false,
+        "visual_quality_claimed": false,
+        "safe_range_claimed": false,
+        "continuous_time_safety_claimed": false,
+        "inter_attachment_seam_safety_claimed": false,
+        "motion_instance_v3_emitted": false,
+        "version_neutral_motion_contract_emitted": false,
+        "publishable": false,
+        "release_authority": false,
+        "content_digests_are_compiler_seals": true,
+        "detached_validation_scope": "structure-and-internal-consistency",
+        "upstream_replay_requires_exact_inputs": true
+      }
+    },
+    "runtime": {"$ref": "#/$defs/runtime"},
+    "assets": {"$ref": "#/$defs/assets"},
+    "browser": {"$ref": "#/$defs/browser"},
+    "runner": {
+      "const": {
+        "id": "body-sway-official-runtime-headless-runner",
+        "version": "1.0.0",
+        "host": "127.0.0.1",
+        "transport": "loopback-http-post",
+        "case_order": "exact-capture-plan-order",
+        "case_isolation": "fresh-browser-profile",
+        "completion_signal": "collector-terminal-capture",
+        "network_dependency": "none",
+        "fixed_browser_arguments": [
+          "--headless=new",
+          "--disable-background-networking",
+          "--disable-component-update",
+          "--disable-default-apps",
+          "--disable-domain-reliability",
+          "--disable-extensions",
+          "--disable-popup-blocking",
+          "--disable-sync",
+          "--force-device-scale-factor=1",
+          "--hide-scrollbars",
+          "--metrics-recording-only",
+          "--no-default-browser-check",
+          "--no-first-run",
+          "--run-all-compositor-stages-before-draw",
+          "--virtual-time-budget=25000",
+          "--window-size=640,640"
+        ],
+        "harness": {
+          "javascript_sha256": "d703755a102cc8e418bc05cd602ac9ce2580e723278625449f778fbb9839f7a0",
+          "stylesheet_sha256": "fd76e9d5c2d852d5cdcfce94e9c43454be05f6a2490b556f05630068330c368e",
+          "html_template_sha256": "36ad529978af637b89631a0be913047e284b03e9fdb1eb43c12fef8bd3096435"
+        }
+      }
+    },
+    "capture": {"$ref": "#/$defs/capture"},
+    "cases": {
+      "type": "array", "minItems": 3, "maxItems": 55,
+      "items": {"$ref": "#/$defs/capturedCase"}
+    },
+    "artifacts": {"$ref": "#/$defs/artifacts"},
+    "status": {"const": "captured_unreviewed"},
+    "release_gate": {
+      "const": {
+        "status": "blocked",
+        "reason_codes": [
+          "continuous_time_safety_unproven",
+          "manual_visual_review_required",
+          "preview_only_timeline",
+          "reviewed_seam_anchors_missing",
+          "safe_range_unproven"
+        ]
+      }
+    },
+    "summary": {"$ref": "#/$defs/summary"}
+  },
+  "$defs": {
+    "id": {
+      "type": "string", "minLength": 1, "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "temporary_preview_sha256", "preview_artifact_set_sha256",
+        "preview_projection_sha256", "capture_plan_sha256",
+        "runtime_session_set_sha256", "upstream"
+      ],
+      "properties": {
+        "temporary_preview_sha256": {"$ref": "#/$defs/sha"},
+        "preview_artifact_set_sha256": {"$ref": "#/$defs/sha"},
+        "preview_projection_sha256": {"$ref": "#/$defs/sha"},
+        "capture_plan_sha256": {"$ref": "#/$defs/sha"},
+        "runtime_session_set_sha256": {"$ref": "#/$defs/sha"},
+        "upstream": {"$ref": "#/$defs/upstream"}
+      }
+    },
+    "upstream": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "body_sway_probe_report_sha256", "idle_behavior_candidates_sha256",
+        "idle_behavior_decision_sha256", "layer_manifest_sha256", "p3", "p5", "p9"
+      ],
+      "properties": {
+        "body_sway_probe_report_sha256": {"$ref": "#/$defs/sha"},
+        "idle_behavior_candidates_sha256": {"$ref": "#/$defs/sha"},
+        "idle_behavior_decision_sha256": {"$ref": "#/$defs/sha"},
+        "layer_manifest_sha256": {"$ref": "#/$defs/sha"},
+        "p3": {"$ref": "#/$defs/p3"},
+        "p5": {"$ref": "#/$defs/p5"},
+        "p9": {"$ref": "#/$defs/p9"}
+      }
+    },
+    "p3": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "base_rig_sha256", "base_bundle_sha256", "layer_manifest_sha256",
+        "resolved_project_sha256", "rig_sha256", "run_sha256",
+        "probes_sha256", "visuals_sha256", "bundle_sha256"
+      ],
+      "properties": {
+        "base_rig_sha256": {"$ref": "#/$defs/sha"},
+        "base_bundle_sha256": {"$ref": "#/$defs/sha"},
+        "layer_manifest_sha256": {"$ref": "#/$defs/sha"},
+        "resolved_project_sha256": {"$ref": "#/$defs/sha"},
+        "rig_sha256": {"$ref": "#/$defs/sha"},
+        "run_sha256": {"$ref": "#/$defs/sha"},
+        "probes_sha256": {"$ref": "#/$defs/sha"},
+        "visuals_sha256": {"$ref": "#/$defs/sha"},
+        "bundle_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "p5": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "target_profile_sha256", "instance_sha256", "run_sha256",
+        "retarget_report_sha256", "mesh_regression_sha256", "bundle_sha256"
+      ],
+      "properties": {
+        "target_profile_sha256": {"$ref": "#/$defs/sha"},
+        "instance_sha256": {"$ref": "#/$defs/sha"},
+        "run_sha256": {"$ref": "#/$defs/sha"},
+        "retarget_report_sha256": {"$ref": "#/$defs/sha"},
+        "mesh_regression_sha256": {"$ref": "#/$defs/sha"},
+        "bundle_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "p9": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "foot_lock_candidates_sha256", "depth_order_candidates_sha256",
+        "motion_policy_decision_sha256", "reviewed_motion_policy_sha256",
+        "motion_instance_v2_sha256", "run_sha256", "bundle_sha256"
+      ],
+      "properties": {
+        "foot_lock_candidates_sha256": {"$ref": "#/$defs/sha"},
+        "depth_order_candidates_sha256": {"$ref": "#/$defs/sha"},
+        "motion_policy_decision_sha256": {"$ref": "#/$defs/sha"},
+        "reviewed_motion_policy_sha256": {"$ref": "#/$defs/sha"},
+        "motion_instance_v2_sha256": {"$ref": "#/$defs/sha"},
+        "run_sha256": {"$ref": "#/$defs/sha"},
+        "bundle_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "timing": {
+      "type": "object", "additionalProperties": false,
+      "required": ["ticks_per_second", "duration_ticks", "loop"],
+      "properties": {
+        "ticks_per_second": {"type": "integer", "const": 1000000},
+        "duration_ticks": {"type": "integer", "minimum": 1, "maximum": 600000000},
+        "loop": {"type": "boolean"}
+      }
+    },
+    "selection": {
+      "type": "object", "additionalProperties": false,
+      "required": ["candidate_id", "feature_id", "action", "probe_status", "parameters"],
+      "properties": {
+        "candidate_id": {"type": "string", "pattern": "^body-sway-[0-9a-f]{64}$"},
+        "feature_id": {"const": "body_sway"},
+        "action": {"const": "adjust"},
+        "probe_status": {"const": "pending_probe"},
+        "parameters": {
+          "type": "object", "additionalProperties": false,
+          "required": ["cycles", "per_bone_amplitude_deg", "per_bone_phase_fraction"],
+          "properties": {
+            "cycles": {"type": "integer", "minimum": 1, "maximum": 64},
+            "per_bone_amplitude_deg": {
+              "type": "array", "minItems": 4, "maxItems": 4,
+              "items": {"$ref": "#/$defs/boneValueAmplitude"}
+            },
+            "per_bone_phase_fraction": {
+              "type": "array", "minItems": 4, "maxItems": 4,
+              "items": {"$ref": "#/$defs/boneValuePhase"}
+            }
+          }
+        }
+      }
+    },
+    "boneValueAmplitude": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bone_id", "value"],
+      "properties": {
+        "bone_id": {"$ref": "#/$defs/id"},
+        "value": {"type": "number", "minimum": 0, "maximum": 10}
+      }
+    },
+    "boneValuePhase": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bone_id", "value"],
+      "properties": {
+        "bone_id": {"$ref": "#/$defs/id"},
+        "value": {"type": "number", "minimum": 0, "exclusiveMaximum": 1}
+      }
+    },
+    "runtime": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "package", "version", "npm_integrity", "javascript_sha256", "stylesheet_sha256"
+      ],
+      "properties": {
+        "package": {"const": "@esotericsoftware/spine-player"},
+        "version": {"const": "4.2.119"},
+        "npm_integrity": {"const": "sha512-hcbg1xaTq5DHjeLmyMP90YX8p0A9v4G1cS3Xp4tD+MDw/reVqJhL2O/8NbTnOlc6lQvc8Vi9S1JjYyIILgWm3Q=="},
+        "javascript_sha256": {"const": "d70f07ff2ec1d5fa392f97576f4b951c8af838702d46066dede4be98b1c99324"},
+        "stylesheet_sha256": {"const": "e911ac88f6a8525d87f85d6301fecdd0f5e2b52834e3bfa594b6df407af9679a"}
+      }
+    },
+    "assets": {
+      "type": "object", "additionalProperties": false,
+      "required": ["skeleton_sha256", "atlas_sha256", "texture_sha256", "texture_size"],
+      "properties": {
+        "skeleton_sha256": {"$ref": "#/$defs/sha"},
+        "atlas_sha256": {"$ref": "#/$defs/sha"},
+        "texture_sha256": {"$ref": "#/$defs/sha"},
+        "texture_size": {
+          "type": "array", "minItems": 2, "maxItems": 2,
+          "items": {"type": "integer", "minimum": 1, "maximum": 4096}
+        }
+      }
+    },
+    "browser": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "family", "reported_version", "version_output_sha256",
+        "executable_sha256", "executable_size", "identity_scope"
+      ],
+      "properties": {
+        "family": {"enum": ["google-chrome", "chromium"]},
+        "reported_version": {"type": "string", "pattern": "^[0-9]{1,6}(\\.[0-9]{1,6}){3}$"},
+        "version_output_sha256": {"$ref": "#/$defs/sha"},
+        "executable_sha256": {"$ref": "#/$defs/sha"},
+        "executable_size": {"type": "integer", "minimum": 1, "maximum": 536870912},
+        "identity_scope": {"const": "launcher-executable-and-reported-version"}
+      }
+    },
+    "capture": {
+      "type": "object", "additionalProperties": false,
+      "required": ["plan", "sample_ticks", "case_stream_sha256"],
+      "properties": {
+        "plan": {"$ref": "#/$defs/capturePlan"},
+        "sample_ticks": {
+          "type": "array", "minItems": 2, "maxItems": 4096,
+          "items": {"type": "integer", "minimum": 0, "maximum": 600000000}
+        },
+        "case_stream_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "capturePlan": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "capture_plan_sha256", "viewport", "device_pixel_ratio", "background",
+        "preserve_drawing_buffer", "world_viewport", "selection_scope", "cases"
+      ],
+      "properties": {
+        "capture_plan_sha256": {"$ref": "#/$defs/sha"},
+        "viewport": {
+          "type": "object", "additionalProperties": false,
+          "required": ["width", "height"],
+          "properties": {"width": {"const": 640}, "height": {"const": 640}}
+        },
+        "device_pixel_ratio": {"const": 1},
+        "background": {"const": "#20242aff"},
+        "preserve_drawing_buffer": {"const": true},
+        "world_viewport": {"$ref": "#/$defs/worldViewport"},
+        "selection_scope": {"const": "bounded-stills-for-manual-review"},
+        "cases": {
+          "type": "array", "minItems": 3, "maxItems": 55,
+          "items": {"$ref": "#/$defs/plannedCase"}
+        }
+      }
+    },
+    "worldViewport": {
+      "type": "object", "additionalProperties": false,
+      "required": ["x", "y", "width", "height"],
+      "properties": {
+        "x": {"const": 0.0}, "y": {"const": 0.0},
+        "width": {"type": "number", "exclusiveMinimum": 0},
+        "height": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "plannedCase": {
+      "type": "object", "additionalProperties": false,
+      "required": ["case_id", "animation", "tick", "time_seconds"],
+      "properties": {
+        "case_id": {"$ref": "#/$defs/id"},
+        "animation": {"type": ["string", "null"], "maxLength": 128},
+        "tick": {"type": "integer", "minimum": 0, "maximum": 600000000},
+        "time_seconds": {"type": "number", "minimum": 0, "maximum": 600}
+      }
+    },
+    "capturedCase": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "case_id", "animation", "tick", "time_seconds", "image_path", "png_sha256"
+      ],
+      "properties": {
+        "case_id": {"$ref": "#/$defs/id"},
+        "animation": {"type": ["string", "null"], "maxLength": 128},
+        "tick": {"type": "integer", "minimum": 0, "maximum": 600000000},
+        "time_seconds": {"type": "number", "minimum": 0, "maximum": 600},
+        "image_path": {"type": "string", "pattern": "^captures/[a-z0-9][a-z0-9.-]{0,127}\\.png$"},
+        "png_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "artifacts": {
+      "type": "object", "additionalProperties": false,
+      "required": ["artifact_set_sha256", "total_bytes", "files"],
+      "properties": {
+        "artifact_set_sha256": {"$ref": "#/$defs/sha"},
+        "total_bytes": {"type": "integer", "minimum": 1, "maximum": 134217728},
+        "files": {
+          "type": "array", "minItems": 3, "maxItems": 55,
+          "items": {"$ref": "#/$defs/artifact"}
+        }
+      }
+    },
+    "artifact": {
+      "type": "object", "additionalProperties": false,
+      "required": ["path", "role", "case_id", "sha256", "size_bytes", "width", "height"],
+      "properties": {
+        "path": {"type": "string", "pattern": "^captures/[a-z0-9][a-z0-9.-]{0,127}\\.png$"},
+        "role": {"const": "official-runtime-capture"},
+        "case_id": {"$ref": "#/$defs/id"},
+        "sha256": {"$ref": "#/$defs/sha"},
+        "size_bytes": {"type": "integer", "minimum": 1, "maximum": 4194304},
+        "width": {"const": 640},
+        "height": {"const": 640}
+      }
+    },
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "case_count", "setup_case_count", "base_case_count",
+        "combined_case_count", "runtime_error_count", "png_total_bytes"
+      ],
+      "properties": {
+        "case_count": {"type": "integer", "minimum": 3, "maximum": 55},
+        "setup_case_count": {"const": 1},
+        "base_case_count": {"type": "integer", "minimum": 1, "maximum": 27},
+        "combined_case_count": {"type": "integer", "minimum": 1, "maximum": 27},
+        "runtime_error_count": {"const": 0},
+        "png_total_bytes": {"type": "integer", "minimum": 1, "maximum": 134217728}
+      }
+    }
+  }
+}

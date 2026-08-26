@@ -16,6 +16,10 @@ from .spine42_contract import SPINE_RUNTIME_PACKAGE, SPINE_RUNTIME_VERSION
 from .spine42_runtime_contract import (
     RUNTIME_NPM_INTEGRITY,
 )
+from .spine42_runtime_profile import (
+    SPINE_PLAYER_JAVASCRIPT_SHA256,
+    SPINE_PLAYER_STYLESHEET_SHA256,
+)
 from .temporary_body_sway_preview_fields import require_preview_capture_plan
 
 
@@ -52,13 +56,15 @@ def require_body_sway_runtime_capture_session_set(
             )
         identifier_value(root.get("project_id"), "project_id")
         identifier_value(root.get("clip_id"), "clip_id")
-        _runtime(root.get("runtime"))
+        require_body_sway_runtime_identity(root.get("runtime"))
         source = _source(root.get("source"))
         duration, _loop = normalize_timing(root.get("timing"))
         selection = _object(root.get("selection"), "selection")
         require_body_sway_selection(selection)
-        sample_ticks = _ticks(root.get("sample_ticks"), duration)
-        _assets(root.get("assets"))
+        sample_ticks = require_body_sway_capture_sample_ticks(
+            root.get("sample_ticks"), duration
+        )
+        require_body_sway_runtime_capture_assets(root.get("assets"))
         count = require_preview_capture_plan(
             root.get("capture_plan"),
             duration=duration,
@@ -97,7 +103,9 @@ def require_body_sway_runtime_capture_session_set(
         ) from exc
 
 
-def _runtime(value: Any) -> None:
+def require_body_sway_runtime_identity(value: Any) -> None:
+    """Require the pinned package identity and two exact digest fields."""
+
     row = _object(value, "runtime")
     _exact(row, {
         "package", "version", "npm_integrity", "javascript_sha256",
@@ -111,6 +119,11 @@ def _runtime(value: Any) -> None:
         )
     digest_value(row.get("javascript_sha256"), "runtime JavaScript SHA-256")
     digest_value(row.get("stylesheet_sha256"), "runtime stylesheet SHA-256")
+    if row["javascript_sha256"] != SPINE_PLAYER_JAVASCRIPT_SHA256 \
+            or row["stylesheet_sha256"] != SPINE_PLAYER_STYLESHEET_SHA256:
+        raise BodySwayRuntimeCaptureSessionValidationError(
+            "Runtime dist hashes are not the pinned Spine 4.2 snapshot"
+        )
 
 
 def _source(value: Any) -> Mapping[str, Any]:
@@ -124,7 +137,9 @@ def _source(value: Any) -> Mapping[str, Any]:
     return row
 
 
-def _assets(value: Any) -> None:
+def require_body_sway_runtime_capture_assets(value: Any) -> None:
+    """Require exact skeleton/atlas/texture identities and texture bounds."""
+
     row = _object(value, "assets")
     _exact(row, {
         "skeleton_sha256", "atlas_sha256", "texture_sha256", "texture_size",
@@ -140,7 +155,11 @@ def _assets(value: Any) -> None:
         )
 
 
-def _ticks(value: Any, duration: int) -> tuple[int, ...]:
+def require_body_sway_capture_sample_ticks(
+    value: Any, duration: int,
+) -> tuple[int, ...]:
+    """Require a bounded, endpoint-complete ordered probe schedule."""
+
     if not isinstance(value, list) or not 2 <= len(value) <= MAX_SAMPLE_TICKS \
             or any(type(item) is not int for item in value):
         raise BodySwayRuntimeCaptureSessionValidationError(

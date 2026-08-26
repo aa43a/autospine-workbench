@@ -54,6 +54,14 @@ def fake_runtime_profile():
         "autospine_workbench.body_sway_runtime_capture_session."
         "SPINE_PLAYER_STYLESHEET_SHA256",
         RUNTIME_CSS_SHA,
+    ), patch(
+        "autospine_workbench.body_sway_runtime_capture_session_validation."
+        "SPINE_PLAYER_JAVASCRIPT_SHA256",
+        RUNTIME_JS_SHA,
+    ), patch(
+        "autospine_workbench.body_sway_runtime_capture_session_validation."
+        "SPINE_PLAYER_STYLESHEET_SHA256",
+        RUNTIME_CSS_SHA,
     ):
         yield
 

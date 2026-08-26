@@ -51,10 +51,10 @@ class BodySwayRuntimeCaptureServerTests(unittest.TestCase):
         cls.temporary.cleanup()
 
     def setUp(self) -> None:
-        self.collector = BodySwayRuntimeCaptureCollector(
-            self.fixture.sessions
-        )
         with fake_runtime_profile():
+            self.collector = BodySwayRuntimeCaptureCollector(
+                self.fixture.sessions
+            )
             self.server = create_body_sway_runtime_capture_server(
                 "127.0.0.1",
                 0,
@@ -224,14 +224,13 @@ class BodySwayRuntimeCaptureServerTests(unittest.TestCase):
             document, ensure_ascii=False, allow_nan=False,
             sort_keys=True, separators=(",", ":"),
         ))
-        collector = BodySwayRuntimeCaptureCollector(forged)
-        with fake_runtime_profile(), self.assertRaisesRegex(
-            ValueError, "cross-wired"
-        ):
-            create_body_sway_runtime_capture_server(
-                "127.0.0.1", 0, self.fixture.runtime,
-                self.fixture.preview, self.fixture.sessions, collector,
-            )
+        with fake_runtime_profile():
+            collector = BodySwayRuntimeCaptureCollector(forged)
+            with self.assertRaisesRegex(ValueError, "cross-wired"):
+                create_body_sway_runtime_capture_server(
+                    "127.0.0.1", 0, self.fixture.runtime,
+                    self.fixture.preview, self.fixture.sessions, collector,
+                )
 
     def test_refuses_non_loopback_binding(self) -> None:
         with self.assertRaisesRegex(ValueError, "loopback"):
