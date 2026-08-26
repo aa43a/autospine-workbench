@@ -120,7 +120,7 @@ def publish_visual_review_decision(
                 DECISION_NAMESPACE, candidate.sha256,
             )
             revisions = exact_subdirectory(parent, "revisions", create=True)
-        path, content_reused = publish_document(parent, digest, payload)
+        path, _content_reused = publish_document(parent, digest, payload)
         try:
             _slot_path, slot_reused = publish_named_document(
                 revisions, _revision_name(revision), payload,
@@ -139,7 +139,7 @@ def publish_visual_review_decision(
                 "Visual review revision failed authoritative readback"
             )
         return PublishedBodySwayVisualReviewDecision(
-            path, digest, content_reused and slot_reused
+            path, digest, slot_reused
         )
     except BodySwayVisualReviewHistoryError:
         raise

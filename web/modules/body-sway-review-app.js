@@ -250,6 +250,7 @@ const caseInteractions = createCaseInteractions({
   onAnnounce: (message) => announce(elements, message),
   onError: (error) => setStatus(elements.submitStatus, errorText(error), "error"),
   onSubmit: submitReview,
+  isLocked: () => activity.mutation,
 });
 
 elements.addressForm.addEventListener("submit", loadCandidate);

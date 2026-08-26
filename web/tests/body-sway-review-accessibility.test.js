@@ -58,6 +58,42 @@ test("case navigation restores focus by case_id and respects reduced motion", ()
   assert.deepEqual(cards[1].scrolled, { block: "nearest", behavior: "auto" });
 });
 
+test("mutation lock blocks synthetic shortcuts and draft changes", () => {
+  let locked = true;
+  let clicks = 0;
+  let changes = 0;
+  const card = {
+    dataset: { caseId: "setup" }, focus: () => {}, scrollIntoView: () => {},
+    querySelector: () => ({ click: () => { clicks += 1; } }),
+  };
+  const container = {
+    querySelectorAll(selector) {
+      return selector === ".review-case" ? [card] : [];
+    },
+  };
+  let state = { ...createReviewState(), candidate: { cases: [] }, currentCaseId: "setup" };
+  const interactions = createCaseInteractions({
+    container, submitButton: { disabled: false }, getState: () => state,
+    setState: (next) => { state = next; }, onChange: () => { changes += 1; },
+    onAnnounce: () => {}, onError: assert.fail, onSubmit: assert.fail,
+    isLocked: () => locked,
+  });
+  const event = keyEvent("2");
+  event.preventDefault = () => { event.defaultPrevented = true; };
+  interactions.handleKeyboard(event);
+  interactions.updateDraft({
+    dataset: { caseNotes: "setup" }, value: "must stay frozen",
+  });
+  assert.equal(event.defaultPrevented, false);
+  assert.equal(clicks, 0);
+  assert.equal(changes, 0);
+
+  locked = false;
+  interactions.handleKeyboard(event);
+  assert.equal(event.defaultPrevented, true);
+  assert.equal(clicks, 1);
+});
+
 test("DOM helper assigns untrusted labels through textContent", () => {
   class FakeElement {
     constructor(tag) { this.tag = tag; this.children = []; this.textContent = ""; }
@@ -97,6 +133,7 @@ test("static contracts cover semantic controls, narrow screens, and reduced moti
   ]);
   assert.match(html, /<meta name="viewport"/);
   assert.match(html, /<label>/);
+  assert.match(html, /id="reviewCases"[^>]*tabindex="-1"/);
   assert.match(markup, /createElement\("fieldset"\)/);
   assert.match(markup, /appendTextElement\(doc, fieldset, "legend"/);
   assert.equal(markup.includes("innerHTML"), false);

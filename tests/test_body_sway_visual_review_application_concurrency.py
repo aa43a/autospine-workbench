@@ -7,8 +7,9 @@ from copy import deepcopy
 from pathlib import Path
 import sys
 import tempfile
-from threading import Barrier
+from threading import Barrier, Event, local
 import unittest
+from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -26,6 +27,7 @@ from autospine_workbench.body_sway_visual_review_application import (  # noqa: E
 from autospine_workbench.body_sway_visual_review_history import (  # noqa: E402
     BodySwayVisualReviewRevisionConflict,
 )
+import autospine_workbench.body_sway_visual_review_history as history_module  # noqa: E402
 from tests.body_sway_runtime_capture_helpers import (  # noqa: E402
     fake_runtime_profile,
 )
@@ -70,6 +72,42 @@ class BodySwayVisualReviewApplicationConcurrencyTests(unittest.TestCase):
             results = list(pool.map(attempt, range(2)))
         self.assertEqual(1, sum(not result.reused for result in results))
         self.assertEqual(1, sum(result.reused for result in results))
+        self.assertEqual(1, len({result.decision_sha256 for result in results}))
+        self.assertEqual({1}, {result.revision for result in results})
+
+    def test_reuse_status_follows_revision_slot_owner_under_interleaving(self):
+        payload = self.payload(notes="forced same review")
+        barrier = Barrier(2)
+        slot_created = Event()
+        thread_state = local()
+        real_publish_document = history_module.publish_document
+        real_publish_named_document = history_module.publish_named_document
+
+        def publish_content(*args, **kwargs):
+            result = real_publish_document(*args, **kwargs)
+            thread_state.content_reused = result[1]
+            if not result[1] and not slot_created.wait(timeout=10):
+                raise RuntimeError("Concurrent revision slot was not created")
+            return result
+
+        def publish_slot(*args, **kwargs):
+            result = real_publish_named_document(*args, **kwargs)
+            if getattr(thread_state, "content_reused", None) is True:
+                slot_created.set()
+            return result
+
+        def attempt(_index):
+            barrier.wait()
+            return self.service.submit(self.address, deepcopy(payload))
+
+        with patch.object(
+            history_module, "publish_document", side_effect=publish_content,
+        ), patch.object(
+            history_module, "publish_named_document", side_effect=publish_slot,
+        ), fake_runtime_profile(), ThreadPoolExecutor(max_workers=2) as pool:
+            results = list(pool.map(attempt, range(2)))
+
+        self.assertEqual([False, True], sorted(result.reused for result in results))
         self.assertEqual(1, len({result.decision_sha256 for result in results}))
         self.assertEqual({1}, {result.revision for result in results})
 

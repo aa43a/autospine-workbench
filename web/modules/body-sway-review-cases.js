@@ -11,10 +11,11 @@ function notesElement(container, caseId) {
 
 export function createCaseInteractions({
   container, submitButton, getState, setState, onChange, onAnnounce,
-  onError, onSubmit, prefersReducedMotion = () =>
+  onError, onSubmit, isLocked = () => false, prefersReducedMotion = () =>
     globalThis.matchMedia?.("(prefers-reduced-motion: reduce)").matches,
 }) {
   function updateDraft(target) {
+    if (isLocked()) return;
     const caseId = target.dataset.caseId || target.dataset.caseNotes;
     if (!caseId) return;
     try {
@@ -58,7 +59,7 @@ export function createCaseInteractions({
 
   function handleKeyboard(event) {
     const intent = reviewKeyboardIntent(event);
-    if (!intent || !getState().candidate) return;
+    if (!intent || !getState().candidate || isLocked()) return;
     event.preventDefault();
     if (intent.type === "move") return focusByDelta(intent.delta);
     if (intent.type === "submit") return submitButton.disabled || onSubmit();
