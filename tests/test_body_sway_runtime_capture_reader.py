@@ -15,6 +15,7 @@ for candidate in (ROOT, SRC):
         sys.path.insert(0, str(candidate))
 
 from autospine_workbench.body_sway_runtime_capture_reader import (  # noqa: E402
+    VerifiedBodySwayRuntimeCaptureNotFound,
     VerifiedBodySwayRuntimeCaptureReader,
     VerifiedBodySwayRuntimeCaptureReaderError,
 )
@@ -77,9 +78,26 @@ class VerifiedBodySwayRuntimeCaptureReaderTests(unittest.TestCase):
     def test_missing_address_does_not_create_state(self) -> None:
         absent = self.root / "absent"
         reader = VerifiedBodySwayRuntimeCaptureReader(absent)
-        with self.assertRaises(VerifiedBodySwayRuntimeCaptureReaderError):
+        with self.assertRaises(VerifiedBodySwayRuntimeCaptureNotFound):
             reader.load(*self.fixture.address)
         self.assertFalse(absent.exists())
+
+    def test_missing_path_is_typed_but_artifact_mismatch_is_not(self) -> None:
+        address = list(self.fixture.address)
+        missing_bundle = [*address[:2], "a" * 64, address[3]]
+        with fake_runtime_profile(), self.assertRaises(
+            VerifiedBodySwayRuntimeCaptureNotFound
+        ):
+            self.reader.load(*missing_bundle)
+
+        wrong_artifact = [*address[:3], "a" * 64]
+        with fake_runtime_profile(), self.assertRaises(
+            VerifiedBodySwayRuntimeCaptureReaderError
+        ) as raised:
+            self.reader.load(*wrong_artifact)
+        self.assertNotIsInstance(
+            raised.exception, VerifiedBodySwayRuntimeCaptureNotFound
+        )
 
     def test_changed_bytes_extra_inventory_and_wrong_case_fail_closed(self) -> None:
         def changed_png(path):

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import socket
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -10,15 +9,20 @@ from pathlib import Path
 from typing import Any
 
 from .analysis_routes import dispatch_analysis_artifact_get
+from .body_sway_visual_review_routes import (
+    dispatch_body_sway_visual_review_get,
+    dispatch_body_sway_visual_review_put,
+    is_body_sway_visual_review_path,
+    visual_review_allow_methods,
+)
 from .contracts import ContractValidationError
 from .http_security import (
-    allowed_origin as _allowed_origin,
     host_header_is_local as _host_header_is_local,
     is_loopback_host as _is_loopback_host,
 )
-from .http_file_response import send_file_response
 from .http_json_request import HttpJsonRequestError, read_json_object_request
-from .http_request_path import safe_url_path_parts
+from .http_static_response import serve_static_response
+from .http_workbench_response import WorkbenchResponseMixin
 from .mesh_bundle_routes import dispatch_mesh_bundle_get
 from .project_store import (
     AssetNotFoundError,
@@ -32,7 +36,7 @@ from .split_preview_routes import dispatch_split_preview_get
 
 
 def _handler_factory(store: ProjectStore, web_root: Path | None) -> type[BaseHTTPRequestHandler]:
-    class WorkbenchHandler(BaseHTTPRequestHandler):
+    class WorkbenchHandler(WorkbenchResponseMixin, BaseHTTPRequestHandler):
         server_version = "AutoSpineWorkbench/0.1"
         sys_version = ""
         protocol_version = "HTTP/1.1"
@@ -45,70 +49,11 @@ def _handler_factory(store: ProjectStore, web_root: Path | None) -> type[BaseHTT
             # Keep the standard useful request log, but never include request bodies.
             super().log_message(format_string, *args)
 
-        def _common_headers(self) -> None:
-            self.send_header("X-Content-Type-Options", "nosniff")
-            self.send_header("Referrer-Policy", "no-referrer")
-            self.send_header("Cache-Control", "no-store")
-            self.send_header("Vary", "Origin")
-            # The workbench serves many layer images at once. Closing each
-            # response avoids idle HTTP/1.1 handler threads later printing
-            # socket timeout noise in the local authoring terminal.
-            self.send_header("Connection", "close")
-            self.close_connection = True
-            origin = _allowed_origin(self.headers.get("Origin"))
-            if origin:
-                self.send_header("Access-Control-Allow-Origin", origin)
-
-        def _send_bytes(
-            self,
-            status: int,
-            body: bytes,
-            content_type: str,
-            *,
-            extra_headers: dict[str, str] | None = None,
-        ) -> None:
-            self.send_response(status)
-            self._common_headers()
-            self.send_header("Content-Type", content_type)
-            self.send_header("Content-Length", str(len(body)))
-            if extra_headers:
-                for key, value in extra_headers.items():
-                    self.send_header(key, value)
-            self.end_headers()
-            if self.command != "HEAD" and body:
-                self.wfile.write(body)
-
-        def _send_json(self, status: int, value: Any) -> None:
-            body = json.dumps(value, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
-            self._send_bytes(status, body, "application/json; charset=utf-8")
-
-        def _send_png(self, body: bytes) -> None:
-            self._send_bytes(HTTPStatus.OK, body, "image/png")
-
-        def _send_error_json(self, status: int, code: str, message: str) -> None:
-            self._send_json(status, {"error": code, "message": message})
-
-        def _mesh_bundle_path(self, parts: list[str]) -> bool:
-            return len(parts) >= 4 and parts[:2] == ["api", "projects"] \
-                and parts[3] == "mesh-bundles"
-
-        def _send_method_not_allowed(self, *, read_only: bool = False) -> None:
-            allow = "GET, HEAD, OPTIONS" if read_only else "GET, HEAD, PUT, OPTIONS"
-            message = "Mesh bundle evidence is read-only." if read_only else "Method not allowed."
-            body = json.dumps({"error": "method_not_allowed", "message": message},
-                              separators=(",", ":")).encode("utf-8")
-            self._send_bytes(
-                HTTPStatus.METHOD_NOT_ALLOWED, body,
-                "application/json; charset=utf-8", extra_headers={"Allow": allow},
-            )
-
-        def _send_file(self, path: Path) -> None:
-            send_file_response(self, path, self._common_headers)
-
-        def _path_parts(self) -> list[str]:
-            return safe_url_path_parts(self.path)
-
         def _dispatch_api_get(self, parts: list[str]) -> bool:
+            if dispatch_body_sway_visual_review_get(
+                parts, store, self._send_visual_json, self._send_visual_bytes,
+            ):
+                return True
             if dispatch_project_get(parts, store, self._send_json, self._send_file):
                 return True
             if dispatch_mesh_bundle_get(
@@ -130,30 +75,9 @@ def _handler_factory(store: ProjectStore, web_root: Path | None) -> type[BaseHTT
             return False
 
         def _serve_static(self, parts: list[str]) -> bool:
-            if web_root is None:
-                return False
-            relative = Path(*parts) if parts else Path("index.html")
-            candidate = web_root / relative
-            try:
-                root = web_root.resolve(strict=True)
-                resolved = candidate.resolve(strict=True)
-                resolved.relative_to(root)
-            except (OSError, ValueError):
-                # Frontend history routes may fall back to index.html, but
-                # asset-like missing paths should remain a 404.
-                if parts and "." not in parts[-1]:
-                    candidate = web_root / "index.html"
-                    try:
-                        resolved = candidate.resolve(strict=True)
-                        resolved.relative_to(web_root.resolve(strict=True))
-                    except (OSError, ValueError):
-                        return False
-                else:
-                    return False
-            if not resolved.is_file():
-                return False
-            self._send_file(resolved)
-            return True
+            return serve_static_response(
+                parts, web_root, self._send_static_file
+            )
 
         def _handle_get_or_head(self) -> None:
             if not _host_header_is_local(self.headers.get("Host")):
@@ -197,12 +121,19 @@ def _handler_factory(store: ProjectStore, web_root: Path | None) -> type[BaseHTT
                 self._send_error_json(HTTPStatus.BAD_REQUEST, "invalid_path", str(exc))
                 return
             self.send_response(HTTPStatus.NO_CONTENT)
-            self._common_headers()
-            methods = "GET, HEAD, OPTIONS" if self._mesh_bundle_path(parts) \
+            visual_review = is_body_sway_visual_review_path(parts)
+            self._common_headers(visual_review=visual_review)
+            methods = visual_review_allow_methods(parts) if visual_review else (
+                "GET, HEAD, OPTIONS" if self._mesh_bundle_path(parts)
                 else "GET, HEAD, PUT, OPTIONS"
+            )
             self.send_header("Allow", methods)
             self.send_header("Access-Control-Allow-Methods", methods)
-            self.send_header("Access-Control-Allow-Headers", "Content-Type")
+            self.send_header(
+                "Access-Control-Allow-Headers",
+                "Content-Type, X-Autospine-Intent"
+                if visual_review else "Content-Type",
+            )
             self.send_header("Access-Control-Max-Age", "600")
             self.send_header("Content-Length", "0")
             self.end_headers()
@@ -213,6 +144,10 @@ def _handler_factory(store: ProjectStore, web_root: Path | None) -> type[BaseHTT
                 return
             try:
                 parts = self._path_parts()
+                if dispatch_body_sway_visual_review_put(
+                    parts, store, self, self._send_visual_json,
+                ):
+                    return
                 if self._mesh_bundle_path(parts):
                     self._send_method_not_allowed(read_only=True)
                     return
@@ -253,6 +188,10 @@ def _handler_factory(store: ProjectStore, web_root: Path | None) -> type[BaseHTT
                 parts = self._path_parts()
             except ValueError as exc:
                 self._send_error_json(HTTPStatus.BAD_REQUEST, "invalid_path", str(exc))
+                return
+            visual_review = is_body_sway_visual_review_path(parts)
+            if visual_review:
+                self._send_visual_method_not_allowed(parts)
                 return
             self._send_method_not_allowed(read_only=self._mesh_bundle_path(parts))
 

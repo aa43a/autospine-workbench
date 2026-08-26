@@ -14,6 +14,8 @@ def send_file_response(
     handler: Any,
     path: Path,
     common_headers: Callable[[], None],
+    *,
+    extra_headers: dict[str, str] | None = None,
 ) -> None:
     """Send one already-authorized real file without exposing read errors."""
 
@@ -30,6 +32,8 @@ def send_file_response(
         handler.send_header(
             "ETag", f'W/"{metadata.st_mtime_ns:x}-{metadata.st_size:x}"',
         )
+        for key, value in (extra_headers or {}).items():
+            handler.send_header(key, value)
         handler.end_headers()
         if handler.command == "HEAD":
             return

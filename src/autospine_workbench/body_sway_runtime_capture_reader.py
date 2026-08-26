@@ -51,6 +51,12 @@ class VerifiedBodySwayRuntimeCaptureReaderError(RuntimeError):
     """Raised when an explicit runtime-capture address cannot be trusted."""
 
 
+class VerifiedBodySwayRuntimeCaptureNotFound(
+    VerifiedBodySwayRuntimeCaptureReaderError
+):
+    """Raised only when an exact capture path component does not exist."""
+
+
 @dataclass(frozen=True, slots=True)
 class VerifiedBodySwayRuntimeCapture:
     """One fully snapshotted and internally verified published capture."""
@@ -159,13 +165,19 @@ def _exact_bundle_path(
 ) -> Path:
     try:
         root = Path(os.path.abspath(os.fspath(Path(state_root))))
+        try:
+            root.lstat()
+        except FileNotFoundError:
+            raise VerifiedBodySwayRuntimeCaptureNotFound(
+                "Exact runtime capture address does not exist"
+            )
         current = require_real_directory(root, "Runtime capture state root")
         for name in (
             "builds", project, NAMESPACE, preview_sha, bundle_sha,
         ):
             child = existing_exact_child(current, name)
             if child is None:
-                raise VerifiedBodySwayRuntimeCaptureReaderError(
+                raise VerifiedBodySwayRuntimeCaptureNotFound(
                     "Exact runtime capture address does not exist"
                 )
             current = require_real_directory(
