@@ -27,7 +27,6 @@ _STRUCTURAL_CHECKS = (
     "shared_index_internal_continuity",
 )
 
-
 class BodySwayProbeReportEvidenceError(ValueError):
     """Raised when compiler evidence is incomplete or cross-wired."""
 
@@ -222,6 +221,8 @@ def _sample_evidence(result: BodySwayGeometrySample):
 
 
 def _loop_check(audit, start_pose_sha, end_pose_sha):
+    if not audit.overlay_closed:
+        raise BodySwayProbeReportEvidenceError("Loop overlay endpoints are open")
     if not audit.loop:
         return _not_applicable("loop_closure", "clip_not_looping")
     audit_closed = audit.status == "closed"

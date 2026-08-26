@@ -169,6 +169,17 @@ class BodySwayProbeReportEvidenceTests(unittest.TestCase):
                     loop_audit=audit, start_pose_state_sha256=start_sha,
                     end_pose_state_sha256=end_sha, expected_sample_count=1,
                 )
+        open_overlay = replace(
+            _audit(), status="rejected", overlay_closed=False,
+            reason_codes=("overlay_not_closed",),
+        )
+        with self.assertRaisesRegex(
+            BodySwayProbeReportEvidenceError, "overlay endpoints"
+        ):
+            accumulator.checks(
+                loop_audit=open_overlay, start_pose_state_sha256="1" * 64,
+                end_pose_state_sha256="1" * 64, expected_sample_count=1,
+            )
 
 
 if __name__ == "__main__":
