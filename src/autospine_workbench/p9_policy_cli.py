@@ -21,6 +21,7 @@ def add_p9_policy_subcommands(subparsers: Any, state_root: Path) -> None:
         help="Bind explicit human choices to exact P9 candidate reports",
     )
     _review_files(decision)
+    _document_only(decision)
 
     policy = subparsers.add_parser(
         "compile-reviewed-motion-policy",
@@ -31,6 +32,7 @@ def add_p9_policy_subcommands(subparsers: Any, state_root: Path) -> None:
     policy.add_argument("--decision", type=Path, required=True)
     policy.add_argument("--p3-rig-sha256", required=True)
     policy.add_argument("--p3-bundle-sha256", required=True)
+    _document_only(policy)
     policy.add_argument("--state-root", type=Path, default=state_root)
 
 
@@ -58,6 +60,9 @@ def dispatch_p9_policy_command(args: argparse.Namespace) -> int | None:
     except P9PolicyCommandError as exc:
         _print({"error": str(exc), "ok": False, "status": "error"})
         return 2
+    if args.document_only:
+        _print(result.report)
+        return 0
     payload = _jsonable(asdict(result))
     payload.update(ok=True, status="passed")
     _print(payload)
@@ -69,6 +74,13 @@ def _review_files(parser, *, include_review: bool = True) -> None:
     parser.add_argument("--depth-candidates", type=Path, required=True)
     if include_review:
         parser.add_argument("--review-input", type=Path, required=True)
+
+
+def _document_only(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--document-only", action="store_true",
+        help="Print only the canonical document for pipeline handoff",
+    )
 
 
 def _jsonable(value: Any) -> Any:

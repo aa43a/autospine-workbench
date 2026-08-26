@@ -25,6 +25,7 @@ def add_p9_readonly_subcommands(subparsers: Any, state_root: Path) -> None:
         help="Compile candidate-free Kimodo policy evidence from exact P7/P8",
     )
     _p7_p8_arguments(policy)
+    _document_only(policy)
     _state_root(policy, state_root)
 
     heading = subparsers.add_parser(
@@ -33,6 +34,7 @@ def add_p9_readonly_subcommands(subparsers: Any, state_root: Path) -> None:
     )
     heading.add_argument("--policy-map", type=Path, required=True)
     _p7_p8_arguments(heading)
+    _document_only(heading)
     _state_root(heading, state_root)
 
     foot = subparsers.add_parser(
@@ -45,6 +47,7 @@ def add_p9_readonly_subcommands(subparsers: Any, state_root: Path) -> None:
         "--max-correction-reference-ratio", type=float, required=True
     )
     foot.add_argument("--max-residual-px", type=float, required=True)
+    _document_only(foot)
     _state_root(foot, state_root)
 
     depth = subparsers.add_parser(
@@ -56,6 +59,7 @@ def add_p9_readonly_subcommands(subparsers: Any, state_root: Path) -> None:
     _p8_p5_arguments(depth)
     depth.add_argument("--p3-rig-sha256", required=True)
     depth.add_argument("--p3-bundle-sha256", required=True)
+    _document_only(depth)
     _state_root(depth, state_root)
 
 
@@ -115,6 +119,9 @@ def dispatch_p9_readonly_command(args: argparse.Namespace) -> int | None:
     except P9ReadOnlyCommandError as exc:
         _print({"error": str(exc), "ok": False, "status": "error"})
         return 2
+    if args.document_only:
+        _print(result.report)
+        return 0
     payload = _jsonable(asdict(result))
     payload.update(ok=True, status="passed")
     _print(payload)
@@ -137,6 +144,13 @@ def _p8_p5_arguments(parser: argparse.ArgumentParser) -> None:
 
 def _state_root(parser: argparse.ArgumentParser, default: Path) -> None:
     parser.add_argument("--state-root", type=Path, default=default)
+
+
+def _document_only(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--document-only", action="store_true",
+        help="Print only the canonical report document for pipeline handoff",
+    )
 
 
 def _jsonable(value: Any) -> Any:

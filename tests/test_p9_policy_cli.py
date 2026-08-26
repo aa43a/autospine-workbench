@@ -68,6 +68,26 @@ class P9PolicyCliTests(unittest.TestCase):
             )
             self.assertTrue(payload["ok"])
 
+    def test_document_only_prints_the_pipeline_handoff(self):
+        result = P9PolicyCommandResult(
+            input_paths=(Path("a"),), report_sha256="f" * 64,
+            report={"format": "autospine-reviewed-motion-policy"},
+        )
+        argv = [
+            "compile-motion-policy-decision", "--document-only",
+            "--foot-candidates", "f.json", "--depth-candidates", "d.json",
+            "--review-input", "r.json",
+        ]
+        with patch(
+            "autospine_workbench.p9_policy_cli."
+            "compile_motion_policy_decision_command",
+            return_value=result,
+        ), redirect_stdout(io.StringIO()) as output:
+            status = dispatch_projection_stage_command(parser().parse_args(argv))
+        self.assertEqual(0, status)
+        self.assertEqual(result.report, json.loads(output.getvalue()))
+        self.assertNotIn("input_paths", output.getvalue())
+
 
 if __name__ == "__main__":
     unittest.main()

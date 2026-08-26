@@ -200,6 +200,26 @@ class P9ReadOnlyCliTests(unittest.TestCase):
             json.loads(output.getvalue()),
         )
 
+    def test_document_only_prints_a_canonical_handoff_document(self):
+        argv = [
+            "compile-kimodo-policy-evidence", "--document-only",
+            "--motion-sha256", SHA["1"],
+            "--motion-bundle-sha256", SHA["2"],
+            "--projected-motion-sha256", SHA["3"],
+            "--projected-bundle-sha256", SHA["4"],
+        ]
+        with patch(
+            "autospine_workbench.p9_readonly_cli."
+            "compile_kimodo_policy_evidence_command",
+            return_value=command_result(),
+        ), redirect_stdout(io.StringIO()) as output:
+            status = dispatch_projection_stage_command(
+                self.parser.parse_args(argv)
+            )
+        self.assertEqual(0, status)
+        self.assertEqual(command_result().report, json.loads(output.getvalue()))
+        self.assertNotIn("input_bundle_paths", output.getvalue())
+
 
 if __name__ == "__main__":
     unittest.main()
