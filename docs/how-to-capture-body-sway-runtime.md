@@ -100,4 +100,4 @@ python -B -m unittest tests.test_body_sway_licensed_runtime_smoke
 - 当前幅度适合所有角色；
 - 可以生成 MotionInstance v3 或发布 Spine 动画。
 
-下一步必须对固定 capture bundle 做逐 case 人工视觉复核；复核决定要绑定 capture、artifact set 和 bundle 的完整 SHA，不能按目录扫描或使用 `latest`。
+下一步必须按[复核 body-sway 官方 runtime 采样帧](how-to-review-body-sway-runtime.md)对固定 capture bundle 做逐 case 人工视觉复核。复核使用 project、temporary preview、capture bundle 与 artifact set 构成的精确四段地址；不能按目录扫描、使用缩写 SHA 或选择 `latest`。即使 sampled visual 全部批准，release gate 仍会保持 blocked。

@@ -58,7 +58,13 @@ exact Layer Manifest + exact P3/P5/P9 reviewed chain
                                       ↓ adjust + pending_probe
                     P10.2 sampled body-sway report
                                       ↓
-                 blocked release → manual runtime preview
+                 deterministic Spine 4.2 preview
+                                      ↓ licensed official runtime
+                     P10.3 immutable still capture
+                                      ↓ exact-address human CAS
+                    sampled visual decision history
+                                      ↓
+                           blocked release
 
 server → application services only
 web    → HTTP contracts only
@@ -69,8 +75,8 @@ web    → HTTP contracts only
 - 前端分为 API、authoring state、保存事务和各 stage view；view state 不得污染 revision draft。
 - 外部姿态模型只能通过 canonical pose observations 进入；alpha 几何只读取 resolved layer 与固定 PNG，融合结果必须保留原始 pose 和未标定分数语义。
 - COCO17 raw 输入、adapter、canonical pose、人工评估和候选工件分开内容寻址；坐标反镜像、左右标签交换、视角和镜像声明不得合并成一个隐式开关。
-- 离线命令按 stage 边界拆分：P1 输入/候选、P2 manifest/RigIR、P3 mesh、P4 IK、P5 MotionIR、P6 目标版本 adapter、P7 Kimodo source adapter、P8 camera/projected evidence、P9 reviewed motion/bundle 与 P10 idle behavior probe 分别拥有显式编译或只读验证入口；命令之间只传递精确内容地址，不解析 `latest`。
-- P10 application service 只通过共享 exact-chain loader 读取七个完整 SHA 所选的 Layer Manifest/P3/P5/P9 工件。Candidate、人工 review input、decision 和 probe report 保持独立；三条 CLI 都不发布工件或修改 state tree。
+- 离线命令按 stage 边界拆分：P1 输入/候选、P2 manifest/RigIR、P3 mesh、P4 IK、P5 MotionIR、P6 目标版本 adapter、P7 Kimodo source adapter、P8 camera/projected evidence、P9 reviewed motion/bundle，以及 P10 idle probe/runtime capture/visual review 分别拥有显式入口；命令之间只传递精确内容地址，不解析 `latest`。
+- P10.0–P10.2 application service 只通过共享 exact-chain loader 读取七个完整 SHA 所选的 Layer Manifest/P3/P5/P9 工件。Candidate、人工 review input、decision 和 probe report 保持独立；三条 CLI 都不发布工件或修改 state tree。P10.3 visual-review service 改从 project/preview/bundle/artifact 四段地址重放 capture；prepare 零写入，只有通过 CAS 的 submit 才追加 candidate-bound revision。
 - Kimodo 的 raw NPZ、source sidecar 与 map 是三个独立输入。sidecar 解释数组/FPS/producer，map 决定投影/角色/contact；两者都不得根据文件名、数组数量或相邻目录隐式发现。
 
 ## 文件长度预算
@@ -85,7 +91,7 @@ web    → HTTP contracts only
 | `web/app.js` | 1293 | façade ≤ 250，模块 ≤ 400 |
 | `src/autospine_workbench/project_store.py` | 838 | façade ≤ 300 |
 
-`tests/test_quality.py` 自动执行上述硬上限与 ratchet。JSON Schema、文档和生成工件不套用源码行数上限，但仍应按版本和领域拆分，禁止手工复制生成文件来规避检查。
+`tests/test_quality.py` 自动执行上述硬上限与 ratchet；P10 新增生产模块与 visual-review JS test 文件另有 300 行硬门禁。JSON Schema、文档和生成工件不套用源码行数上限，但仍应按版本和领域拆分，禁止手工复制生成文件来规避检查。
 
 ## 变更与提交
 
@@ -208,6 +214,32 @@ P10 exact loader 接受 Layer Manifest、P3 rig/bundle、P5 MotionInstance/bundl
 `BodySwayProbeReport v1` 固定检查 `loop_closure`、`fk_finite`、`sampled_mesh_deformation`、`sampled_canvas_containment`、`shared_index_internal_continuity`、`inter_attachment_seams` 与 `visual_quality`。前五项是采样结构证据；无 mesh 或非 loop 会显式 `not_applicable`。接缝缺少 reviewed anchors，视觉质量需要官方 runtime 人工预览，因此后两项保持 `unobservable`，顶层 release gate 无条件 blocked。
 
 代表性 `sample_sha256` 包含 tick；loop 端点比较使用不含 tick 的独立 pose-state domain，再封入 loop check evidence。Bulk evidence digest 是 compiler seal，不是独立重放载荷。该边界不产生 MotionInstance v3 或 runtime timeline，也不声明连续时间、幅度安全范围、接缝、raster truth 或视觉通过。操作入口见 [复核 idle 行为并运行 body-sway 结构探针](how-to-review-idle-behaviors.md)。
+
+P10.3a–P10.3c 在结构探针之后增加官方 runtime sampled-still 证据与人工 revision，但仍不跨越 release 边界：
+
+```text
+exact P10 candidate + decision + manual_visual_required probe
+                                  ↓ deterministic temporary compile
+               Spine 4.2 preview + fixed capture plan
+                                  ↓ licensed official 4.2.119 runtime
+                  immutable 640×640 PNG capture bundle
+                                  ↓ exact project / preview / bundle / artifact
+                   read-only visual candidate compiler
+                                  ↓ exhaustive human case decisions
+               candidate-bound linear revision + strict CAS
+                                  ↓
+          sampled_visual_approved | sampled_visual_rejected
+                                  ↓
+                  release gate always blocked
+```
+
+真实 capture 的外部信任前置条件是操作者提供并确认授权的官方 `@esotericsoftware/spine-player@4.2.119`。仓库不下载或再分发 runtime；test-only `SpinePlayer` stub 只覆盖 Chrome 进程、loopback 与 PNG 通路，不能进入真实视觉证据链。Capture 地址由 project ID、temporary preview SHA、runtime capture bundle SHA 和 capture artifact-set SHA 四项组成。Application service 从这四项重放 authoritative capture 并确定性编译 candidate；CLI 与 HTTP 都复用同一服务，不扫描目录或解析 `latest`。
+
+Prepare/candidate/history/exact-decision 是零写入读路径。首次提交才会发布 exact candidate，并在 candidate SHA 命名空间下同时写入内容寻址 decision 和连续 revision slot。提交 payload 只包含人工 review、逐 case action/evidence 绑定，以及 `base_revision`/`previous_decision_sha256`；revision 和其他 authority 字段由服务重建。CAS 拒绝 stale head、跳号和并发 slot 抢占，字节相同的安全重试可复用现有 decision。历史最多 64 项，读取任意 decision 前都会重放完整前驱链。
+
+HTTP 投影不返回本地路径。图片只能经 candidate 的 case/evidence/PNG SHA 读取；decision mutation 还要求完全同 authority 的 loopback Origin、JSON content type 和显式 intent header。独立 UI 不自动选择 capture、历史 revision 或 head 基线；409 会清除旧历史/基线并保留草稿，要求操作者重新读取后显式确认新 head。详细操作与路由见[复核 body-sway 官方 runtime 采样帧](how-to-review-body-sway-runtime.md)。
+
+`sampled_visual_approved` 只表示固定 still inventory 全部获人工批准。它不声明离散帧之间的连续时间、reviewed seam anchors、安全幅度、未采样姿势或可发布 timeline，因此 release gate 仍固定为 blocked；reject/unobservable 还会增加明确的 sampled rejection reason。
 
 后续阶段继续遵守：
 

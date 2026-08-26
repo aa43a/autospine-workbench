@@ -26,6 +26,7 @@ AutoSpine Workbench 是一个本地人工复核界面，用于查看 See-through
 - 从精确 P7 bundle 与显式静态正交相机生成保留深度、透视缩短和可观测性的 ProjectedMotionIR；候选尺度探针可复用于不同目标 rig，但不会静默生成 runtime scale 或 draw-order timeline。
 - 从精确 P3/P5/P8 地址编译 foot-lock 和 depth-order 候选，经完整人工决定生成 reviewed policy、MotionInstance v2、Spine 4.2 v2 preview 与六文件不可变 P9 bundle；既有 v1 内容哈希不变。
 - 从精确 Layer Manifest/P3/P5/P9 链编译 idle 行为候选和人工决定，并对调整后的 `body_sway` 生成七项采样结构检查；报告始终阻塞发布并要求官方 runtime 人工预览。
+- 用操作者提供且已授权的官方 Spine 4.2.119 runtime 捕获固定 body-sway case，再通过精确四段地址在独立 UI/CLI/API 中逐帧复核，并以 CAS 追加不可变 revision；sampled approval 不会解除发布门禁。
 - 从精确 P3 或 P3/P5 地址导出、发布并重建验证固定 profile 的 Spine 4.2 JSON/atlas/PNG 五文件 bundle。
 
 ## 快速启动
@@ -97,6 +98,8 @@ python -m autospine_workbench serve `
 若没有上述目录，服务仍可启动，但项目列表为空。
 
 ## 界面操作
+
+本节说明默认的图层/关节 authoring 页面。P10.3c 使用独立入口 [http://127.0.0.1:8765/body-sway-review.html](http://127.0.0.1:8765/body-sway-review.html)；它要求手工输入精确 capture 地址，不会继承当前项目或自动选择最新证据。逐帧流程见[复核 body-sway 官方 runtime 采样帧](docs/how-to-review-body-sway-runtime.md)。
 
 1. 在顶部选择项目。切换项目前若存在未保存修改，界面会要求确认。
 2. 在“图层”模式搜索、选择、显示或隐藏图层；右侧可检查语义、角色左右、bbox、置信度和 QA。要让图层进入 P2 严格编译，还需设置画布内 pivot、选择目标骨，并点击“确认语义、Pivot 与目标骨”。
@@ -366,6 +369,8 @@ P9 从精确 P3/P5/P8 身份发布候选，把人工决定编译为 reviewed roo
 
 P10.0–P10.2 从精确 Layer Manifest/P3/P5/P9 七 SHA 链先编译 idle candidates，再把独立人工 review input 编译为 decision，最后为唯一的 `body_sway / adjust / pending_probe` 选择生成只读结构探针。三个入口均零写入；`--document-only` 只改变 stdout 形状。命令模板、七项 checks、hash 解释与人工 runtime 门禁见 [复核 idle 行为并运行 body-sway 结构探针](docs/how-to-review-idle-behaviors.md)。关键实现入口为 [exact chain loader](src/autospine_workbench/p10_exact_chain.py)、[candidate compiler](src/autospine_workbench/idle_behavior_candidates.py)、[decision compiler](src/autospine_workbench/idle_behavior_decision.py) 和 [probe report compiler](src/autospine_workbench/body_sway_probe_report.py)。
 
+P10.3a–P10.3c 将通过探针的决定编译为临时 Spine 4.2 preview，在操作者提供且已确认授权的官方 `@esotericsoftware/spine-player@4.2.119` 中捕获固定 640×640 PNG，再把 project、temporary preview、runtime capture bundle 与 artifact set 四项完整身份交给视觉复核。复核 candidate、历史和 decision 保持分离；prepare/GET 零写入，提交使用显式 `base_revision`/head SHA 做 CAS，并把 decision 追加到最多 64 项的 write-once 线性历史。CLI、API 和页面都不发现 `latest`，页面初始也不会自动选择 capture、历史 revision 或提交基线。完整操作、路由和并发恢复见 [复核 body-sway 官方 runtime 采样帧](docs/how-to-review-body-sway-runtime.md)。真实采集的官方 runtime 与许可前置条件见 [捕获并封存 body-sway 官方 runtime 证据](docs/how-to-capture-body-sway-runtime.md)。
+
 P6 使用 `compile-spine42` 把一个精确 P3 地址导出为 setup-only bundle，或与一对精确 P5 MotionInstance/bundle SHA 组合为单动画 bundle；`verify-spine42` 从导出双 SHA 重建完整上游链。五文件地址、官方 runtime 的本地安装边界与 capture 操作见 [导出、复验并运行 P6 Spine 4.2 资产](docs/how-to-export-spine42.md)。
 
 对版本中立 RigIR 做语义检查：
@@ -401,8 +406,13 @@ raw COCO17、canonical pose、几何证据、评估报告和候选分别写入 `
 | `GET` | `/api/projects/{id}/mesh-bundles` | 发现 P3 不可变双 SHA 地址，不自动选择首项 |
 | `GET` | `/api/projects/{id}/mesh-bundles/{rig_sha256}/{bundle_sha256}` | 严格重验并读取精确 P3 证据 |
 | `GET` | `/api/projects/{id}/mesh-bundles/{rig_sha256}/{bundle_sha256}/images/{png_sha256}` | 读取经 bundle 绑定和哈希复核的证据图 |
+| `GET` | `/api/projects/{id}/body-sway-runtime-captures/{preview}/{bundle}/{artifact}/visual-review/candidate` | 从精确四段地址只读编译 P10.3c candidate |
+| `GET` | `.../visual-review/candidates/{candidate}/cases/{case}/image/{png}` | 读取 candidate 绑定且重新验真的 PNG |
+| `GET` | `.../visual-review/candidates/{candidate}/history` | 读取连续 revision 和 head，不自动选择基线 |
+| `GET` | `.../visual-review/candidates/{candidate}/history/{revision}/{decision}` | 读取精确 SHA 绑定的历史 decision |
+| `PUT` | `.../visual-review/candidates/{candidate}/decisions` | 通过同源 intent 校验与 CAS 追加完整人工复核 revision |
 
-API 响应带 `Cache-Control: no-store`。只接受 loopback Host；CORS 也只回显 loopback origin。分析工件端点会重新验证 strict JSON、内容地址和项目语义；损坏工件不会进入 UI。除 `PUT overrides` 外，API 不提供写操作。
+API 响应带 `Cache-Control: no-store`。只接受 loopback Host；CORS 也只回显同 authority 的 loopback origin。分析工件端点会重新验证 strict JSON、内容地址和项目语义；损坏工件不会进入 UI。写操作只有 `PUT overrides` 与精确 visual-review decision CAS；后者还要求 `X-Autospine-Intent: body-sway-visual-review`，不会接受跨端口 origin。
 
 ## 运行测试
 
@@ -412,6 +422,14 @@ API 响应带 `Cache-Control: no-store`。只接受 loopback Host；CORS 也只�
 python -m pip install -e ".[test]"
 python -m unittest discover -s tests -v
 ```
+
+P10.3c 独立视觉复核页面使用零依赖 Node test runner；修改 `web/body-sway-review.*` 或 `web/modules/body-sway-review-*.js` 后还应运行：
+
+```powershell
+npm test --prefix web
+```
+
+真实 runtime capture 另有两个 opt-in smoke：不含官方 runtime 的 Chrome smoke 只检查进程与 PNG 通路；只有在提供已授权 `@esotericsoftware/spine-player@4.2.119` 并显式确认许可时，licensed smoke 才检查实际 runtime。缺少这些外部前置条件会跳过相应测试，不能用 stub 结果冒充官方 runtime 证据。
 
 如需 Pillow/NumPy 图像比较加速，可安装 `python -m pip install -e ".[analysis]"`；不安装时仍有标准库 PNG 解码路径。
 
@@ -439,7 +457,7 @@ P1 已交付 pose、alpha 中轴线和层接触候选，以及候选比较、四
 - 若要恢复旧 revision，先停止服务，备份整个项目 override 目录，再将目标历史快照作为新的、经过校验的 revision 提交；当前界面尚未提供历史浏览/回滚按钮。
 - validation 的 `valid=true` 仅表示结构和本地资产检查没有硬错误，不等于美术、遮挡补全、pivot、mesh 或动画通过视觉验收。
 
-## 已完成阶段：P2 region RigIR 至 P9 reviewed motion，以及 P10.0–P10.2 结构诊断
+## 已完成阶段：P2 region RigIR 至 P9 reviewed motion，以及 P10.0–P10.3c sampled visual review
 
 P0 合同加固、P1 四肢候选与 P2 region-only RigIR 已贯通：`stage-scoped analysis → immutable geometry/candidates → candidate-bound revision → deterministic resolved snapshot → reviewed Layer Manifest → RigIR/setup bundle`。P2 没有提前引入 mesh：
 
@@ -490,6 +508,8 @@ P9 reviewed motion 结构闭环已完成：foot-lock/depth-order evidence 与 ca
 
 P10.0/P10.1 已建立 candidate/decision 分离的 idle 行为合同；当前只有完整 canonical 躯干链可产生 `body_sway` candidate，眨眼、口型和头发仍明确保持不可观测或不支持。P10.2 会把人工给出的周期、四骨幅度和相位叠加到 exact MotionInstance v2，在固定离散 schedule 上检查 loop、FK、mesh、画布和共享索引，并把接缝与视觉质量保留为不可观测。报告只可能是 `structural_rejected` 或 `manual_visual_required`，release gate 始终 blocked；它不生成 MotionInstance v3 或 runtime timeline，也不证明连续时间、安全范围、接缝或视觉质量。
 
+P10.3a/P10.3b 已完成 deterministic preview、固定 case 计划、官方 Spine 4.2.119 runtime runner 与内容寻址 capture 封存；真实采集必须由操作者提供已授权 runtime 并显式确认许可，test-only player stub 只用于进程 smoke。P10.3c 从 project/preview/bundle/artifact 精确四段地址确定性编译 sampled still candidate，并在独立页面、CLI 与 HTTP 上共享零写入 prepare、path-free evidence、不可变历史和严格 CAS。所有 case approve 时只得到 `sampled_visual_approved`；安全范围、连续时间、reviewed seam anchors 和 preview-only timeline 仍未关闭，因此 release gate 始终 blocked。
+
 姿态 runner 与真实标注评估集仍是独立质量轨，不阻塞版本中立 P2 编译；诊断 setup prior 不能替代真实模型基线。
 
 面部锚点、头发弹簧和实时追踪映射可以作为独立模块接到同一规范骨角色上；四肢扩展的关键不是增加更多屏幕坐标映射，而是建立 bind pose、父子骨、权重和重定向空间。
@@ -506,7 +526,8 @@ P10.0/P10.1 已建立 candidate/decision 分离的 idle 行为合同；当前只
 - 无人复核地把 Kimodo contact、heading、depth 或 scale 写入 runtime；P9 只消费人工批准的 foot correction 和 pairwise draw order，heading/scale 仍是 evidence-only，attachment switch 尚未实现；
 - 把合成 P7 门禁当作真实 Kimodo checkpoint、真实动作质量或该 clip 的官方 Spine Player 截图验收；
 - 把 loader-isomorphic audit 当作官方 runtime 或 raster truth；P9 动态官方 runtime screenshot 与真实 Kimodo reviewed asset 门禁仍需单独关闭；
-- 把 P10 `completed_diagnostic`、离散采样通过或 review 输入的 0–10 度语法包络当成 MotionInstance v3、连续时间安全、可发布 Spine timeline 或视觉通过；
+- 把 P10 `completed_diagnostic`、离散结构采样通过、sampled still 全部批准或 review 输入的 0–10 度语法包络当成 MotionInstance v3、连续时间安全、可发布 Spine timeline、接缝安全或安全幅度范围；
+- 在未提供并确认授权的官方 Spine 4.2.119 runtime 时，用 test-only player stub、进程 smoke 或任意相邻截图冒充真实 capture；
 - 生成眨眼/口型素材、实时追踪映射或运行时物理；
 - 捆绑或再分发官方 Spine runtime、判断任意未知 Spine 版本、生成 Spine Editor 工程，或覆盖固定 P6 profile 之外的特性；
 - 代替输入素材、训练数据或模型权重的许可证与商业使用审查；
