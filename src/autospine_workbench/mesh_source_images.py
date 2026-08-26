@@ -97,7 +97,7 @@ class VerifiedMeshSourceReader:
                 project_id, p3_rig_sha256, p3_bundle_sha256
             )
             rig = verified.rig
-            images = _attachment_images(rig, verified.source_pngs)
+            images = verified_attachment_images(rig, verified.source_pngs)
             return VerifiedMeshSource(
                 path=verified.path,
                 project_id=verified.project_id,
@@ -119,9 +119,11 @@ class VerifiedMeshSourceReader:
             ) from exc
 
 
-def _attachment_images(
+def verified_attachment_images(
     rig: Mapping[str, Any], png_by_path: Mapping[str, bytes]
 ) -> tuple[VerifiedAttachmentImage, ...]:
+    """Validate one detached rig and its exact original PNG snapshots."""
+
     attachments = _objects(rig.get("attachments"), "RigIR attachments")
     canvas = _canvas(rig.get("canvas"))
     if not isinstance(png_by_path, Mapping):
