@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from itertools import permutations
 from pathlib import Path
 import sys
 import unittest
@@ -36,6 +37,15 @@ class Spine42DrawOrderOffsetTests(unittest.TestCase):
             with self.subTest(target=target):
                 offsets = encode_spine42_draw_order_offsets(setup, target)
                 self.assertEqual(len(setup), len(offsets))
+                self.assertEqual(
+                    target, apply_spine42_draw_order_offsets(setup, offsets)
+                )
+
+    def test_every_permutation_through_seven_slots_roundtrips(self):
+        for count in range(1, 8):
+            setup = tuple(chr(ord("a") + index) for index in range(count))
+            for target in permutations(setup):
+                offsets = encode_spine42_draw_order_offsets(setup, target)
                 self.assertEqual(
                     target, apply_spine42_draw_order_offsets(setup, offsets)
                 )
