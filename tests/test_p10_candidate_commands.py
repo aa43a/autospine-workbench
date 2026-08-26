@@ -85,7 +85,7 @@ class P10CandidatePersistedReaderTests(unittest.TestCase):
         )
         before = tree(self.fixture.state)
         with patch(
-            "autospine_workbench.p10_candidate_commands."
+            "autospine_workbench.p10_exact_chain."
             "VerifiedReviewedMotionBundleReader"
         ) as reader, self.assertRaisesRegex(
             P10CandidateCommandError, "differs from its P9 replay"
@@ -109,7 +109,7 @@ class P10CandidatePersistedReaderTests(unittest.TestCase):
         )
         before = tree(self.fixture.state)
         with patch(
-            "autospine_workbench.p10_candidate_commands."
+            "autospine_workbench.p10_exact_chain."
             "VerifiedReviewedMotionBundleReader"
         ) as reader, self.assertRaisesRegex(
             P10CandidateCommandError, "differs from its P9 replay"

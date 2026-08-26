@@ -10,29 +10,7 @@ from .idle_behavior_candidates import (
     IdleBehaviorCandidateError,
     compile_idle_behavior_candidates,
 )
-from .manifest_bundle import (
-    LayerManifestBundleError,
-    LayerManifestBundleReader,
-)
-from .mesh_bundle_reader import (
-    VerifiedMeshBundleReader,
-    VerifiedMeshBundleReaderError,
-)
-from .motion_retarget_bundle_reader import (
-    VerifiedMotionRetargetBundleReader,
-    VerifiedMotionRetargetBundleReaderError,
-)
-from .reviewed_motion_bundle_contract import ReviewedMotionBundleContractError
-from .reviewed_motion_bundle_integrity import (
-    ReviewedMotionBundleIntegrityError,
-    replay_verified_reviewed_motion_bundle,
-)
-from .reviewed_motion_bundle_reader import (
-    VerifiedReviewedMotionBundleReader,
-    VerifiedReviewedMotionBundleReaderError,
-)
-from .reviewed_motion_bundle_upstream import ReviewedMotionBundleUpstreamError
-from .safe_input_files import SafeInputFileError
+from .p10_exact_chain import P10ExactChainError, load_p10_exact_chain
 
 
 class P10CandidateCommandError(RuntimeError):
@@ -63,35 +41,25 @@ def compile_idle_behavior_candidates_command(
     """Read four exact bundles, replay P9, then invoke the pure compiler."""
 
     try:
-        state = Path(state_root)
-        manifest = LayerManifestBundleReader(state).load(
-            project_id, layer_manifest_sha256
-        )
-        mesh = VerifiedMeshBundleReader(state).load(
-            project_id, p3_rig_sha256, p3_bundle_sha256
-        )
-        retarget = VerifiedMotionRetargetBundleReader(state).load(
+        chain = load_p10_exact_chain(
+            state_root,
             project_id,
-            motion_instance_sha256,
-            motion_retarget_bundle_sha256,
-        )
-        reviewed = VerifiedReviewedMotionBundleReader(state).load(
-            project_id,
-            motion_instance_v2_sha256,
-            reviewed_motion_bundle_sha256,
-            mesh_bundle=mesh,
-            retarget_bundle=retarget,
-        )
-        contract = replay_verified_reviewed_motion_bundle(
-            reviewed, mesh, retarget
+            layer_manifest_sha256=layer_manifest_sha256,
+            p3_rig_sha256=p3_rig_sha256,
+            p3_bundle_sha256=p3_bundle_sha256,
+            motion_instance_sha256=motion_instance_sha256,
+            motion_retarget_bundle_sha256=motion_retarget_bundle_sha256,
+            motion_instance_v2_sha256=motion_instance_v2_sha256,
+            reviewed_motion_bundle_sha256=reviewed_motion_bundle_sha256,
         )
         compiled = compile_idle_behavior_candidates(
-            manifest.manifest, mesh, retarget, contract
+            chain.manifest,
+            chain.mesh_bundle,
+            chain.retarget_bundle,
+            chain.reviewed_contract,
         )
         return P10CandidateCommandResult(
-            input_paths=(
-                manifest.path, mesh.path, retarget.path, reviewed.path,
-            ),
+            input_paths=chain.input_paths,
             idle_behavior_candidates_sha256=compiled.sha256,
             document=compiled.document,
         )
@@ -106,18 +74,11 @@ _ERRORS = (
     AttributeError,
     IdleBehaviorCandidateError,
     KeyError,
-    LayerManifestBundleError,
     OSError,
     OverflowError,
+    P10ExactChainError,
     RecursionError,
-    ReviewedMotionBundleContractError,
-    ReviewedMotionBundleIntegrityError,
-    ReviewedMotionBundleUpstreamError,
-    SafeInputFileError,
     TypeError,
     UnicodeError,
     ValueError,
-    VerifiedMeshBundleReaderError,
-    VerifiedMotionRetargetBundleReaderError,
-    VerifiedReviewedMotionBundleReaderError,
 )
