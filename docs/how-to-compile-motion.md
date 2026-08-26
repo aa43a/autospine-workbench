@@ -135,6 +135,8 @@ BVH 编译器不会根据名称、屏幕方向或左右侧做隐式猜测。map 
 
 要得到四肢轨道，继续把实际 BVH 关节映射到对应的 upper/lower limb role；aim 必须是该 source joint 的后代。启用 contact 后，检测结果仍只是半开区间 `[start_tick, end_tick)` 的 `annotation_only` marker。
 
+compiler 1.1.0 还接受 Kimodo 官方 `Root` 零包装节点下的 6DOF `Hips` 逻辑根，但只接受严格的单子节点、零 offset、全帧零 wrapper profile。映射稀疏时，setup-local 旋转会折叠到最近已显式映射的 canonical ancestor。完整限制与操作步骤见 [编译 Kimodo SOMA77 BVH](how-to-compile-kimodo-bvh.md)。
+
 `annotation_only` 不会锁脚、修改 root motion、重新求解 IK 或消除 foot sliding。需要这些行为时，应在后续消费端显式实现并建立独立合同。
 
 ## 4. 编译并复验 BVH motion bundle

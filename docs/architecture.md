@@ -83,6 +83,8 @@ P5 门禁已经完成：setup-local MotionIR、deterministic idle/wave 和显式
 
 P6 门禁已经完成：adapter profile 固定为 Spine 4.2 JSON，五文件内容地址和显式 compile/verify 边界从精确 P3/P5 来源重建；A/B 两份真实样本的 setup、`idle`、`wave.left` 六个 bundle 均由 `@esotericsoftware/spine-player@4.2.119` 成功加载。固定 640×640、DPR 1 的第二轮截图比较在六例中均为零像素差、零 MAE 和零最大通道差，完整地址、语义指标、PNG SHA 与只读 state-tree 回归固定在 `tests/goldens/p6-spine42/`。版本或不支持特性不得静默降级，官方 runtime 由操作者在版本库之外单独安装并完成许可确认。操作入口见 [P6 Spine 4.2 导出与 runtime 检查](how-to-export-spine42.md)。
 
+P7a 兼容性门禁已经完成：BVH compiler 1.1.0 在保留旧单 ROOT 输入的同时，严格接受 Kimodo `Root(6DOF zero wrapper) → Hips(6DOF) → SOMA77`。原始 BVH 不经重写进入内容地址；稀疏角色通过 canonical 最近祖先折叠，`Hips` 旋转不会在目标 thigh 重复叠加。同一个合成 Kimodo-shaped MotionIR 已穿过三套不同 rig、P5 报告/mesh 门禁和 Spine 4.2 bundle reader。该门禁不等于真实 checkpoint 动作质量或官方 Spine Player 截图验收；正式 P7 仍是保留 contact/root/heading provenance 的 NPZ adapter。
+
 后续阶段继续遵守：
 
 - setup：画布、原点、side 语义、draw order 和 region 合成回归通过。

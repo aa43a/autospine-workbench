@@ -21,6 +21,7 @@ AutoSpine Workbench 是一个本地人工复核界面，用于查看 See-through
 - 对 RigIR 执行跨引用、拓扑、权重、三角形及 timeline 语义验证；不支持特性会明确失败。
 - 从精确 P3 bundle 编译四个 canonical 两骨 IK 手柄，固定弯曲方向、可达环和 setup-local 数值探针。
 - 编译可复用的 setup-local MotionIR（内建 idle/wave 或显式映射 BVH），并从精确 P3/P4/Motion 地址生成带接触、运动学与 mesh 回归证据的不可变 MotionInstance bundle。
+- 以 compiler 1.1.0 严格读取 Kimodo 双根 SOMA77 BVH，并让同一 MotionIR 穿过三 rig 与 Spine 4.2 bundle 兼容性门禁。
 - 从精确 P3 或 P3/P5 地址导出、发布并重建验证固定 profile 的 Spine 4.2 JSON/atlas/PNG 五文件 bundle。
 
 ## 快速启动
@@ -438,6 +439,8 @@ P5 在精确 P3/P4 来源上完成版本中立动画、BVH 编译和通用动作
 5. A 的两个 mesh attachment 在 41 个采样点均通过，B 稳定为 `reviewed-noop`；四组接触均为 2/2 保留，真实 opt-in 回归还证明只读重建不会改变 state tree。
 
 P6 门禁已经完成：adapter profile 固定为 Spine JSON 4.2，`compile-spine42`/`verify-spine42` 发布并重建五文件内容寻址 bundle。A/B 两份真实样本的 setup、`idle`、`wave.left` 六个地址固定在 `tests/goldens/p6-spine42/real-exports.approved.json`；精确的 `@esotericsoftware/spine-player@4.2.119` 在 640×640、DPR 1 下加载六例，第二轮截图与批准 PNG 的 differing pixels、MAE 和最大通道差均为 0。runtime 合同与图片位于 `tests/goldens/p6-spine42/runtime.approved.json`，官方 runtime 仍由操作者在仓库外安装并确认许可。
+
+P7a 已完成 Kimodo SOMA77 BVH 结构兼容 smoke：严格支持零包装 `Root` 下的 6DOF `Hips`，保留原始 BVH 内容地址，并通过三套 rig 的 P5/P6 bundle 门禁。测试输入是合成的 Kimodo-shaped fixture，不代表真实模型动作质量，也尚未进入官方 Spine Player 截图 golden。生成、映射、编译与限制见 [编译 Kimodo SOMA77 BVH](docs/how-to-compile-kimodo-bvh.md)；下一步是正式 P7 NPZ adapter。
 
 姿态 runner 与真实标注评估集仍是独立质量轨，不阻塞版本中立 P2 编译；诊断 setup prior 不能替代真实模型基线。
 
