@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/motion-policy-decision-v1.schema.json",
+  "title": "AutoSpine reviewed MotionPolicyDecision v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "project_id", "clip_id", "source",
+    "review", "decisions", "root_release_keys", "draw_order_loop_reset"
+  ],
+  "properties": {
+    "format": {"const": "autospine-motion-policy-decision"},
+    "format_version": {"type": "integer", "const": 1},
+    "project_id": {"$ref": "#/$defs/id"},
+    "clip_id": {"$ref": "#/$defs/id"},
+    "source": {"$ref": "#/$defs/source"},
+    "review": {"$ref": "#/$defs/review"},
+    "decisions": {
+      "type": "array", "maxItems": 266240,
+      "items": {"$ref": "#/$defs/decision"}
+    },
+    "root_release_keys": {
+      "type": "array", "maxItems": 4096,
+      "items": {"$ref": "#/$defs/releaseKey"}
+    },
+    "draw_order_loop_reset": {"$ref": "#/$defs/loopReset"}
+  },
+  "$defs": {
+    "id": {
+      "type": "string", "minLength": 1, "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "candidateId": {
+      "type": "string", "pattern": "^(foot|depth)-[0-9a-f]{64}$"
+    },
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "foot_lock_candidates_sha256", "depth_order_candidates_sha256",
+        "depth_pair_policy_sha256", "p8", "p5", "p3"
+      ],
+      "properties": {
+        "foot_lock_candidates_sha256": {"$ref": "#/$defs/sha"},
+        "depth_order_candidates_sha256": {"$ref": "#/$defs/sha"},
+        "depth_pair_policy_sha256": {"$ref": "#/$defs/sha"},
+        "p8": {"$ref": "#/$defs/p8Source"},
+        "p5": {"$ref": "#/$defs/p5Source"},
+        "p3": {"$ref": "#/$defs/p3Source"}
+      }
+    },
+    "p8Source": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "projected_motion_sha256", "bundle_sha256", "camera_sha256",
+        "run_sha256", "legacy_motion_sha256", "p7_motion_sha256",
+        "p7_bundle_sha256", "p7_run_sha256"
+      ],
+      "properties": {
+        "projected_motion_sha256": {"$ref": "#/$defs/sha"},
+        "bundle_sha256": {"$ref": "#/$defs/sha"},
+        "camera_sha256": {"$ref": "#/$defs/sha"},
+        "run_sha256": {"$ref": "#/$defs/sha"},
+        "legacy_motion_sha256": {"$ref": "#/$defs/sha"},
+        "p7_motion_sha256": {"$ref": "#/$defs/sha"},
+        "p7_bundle_sha256": {"$ref": "#/$defs/sha"},
+        "p7_run_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "p5Source": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "target_profile_sha256", "instance_sha256", "run_sha256",
+        "retarget_report_sha256", "mesh_regression_sha256", "bundle_sha256"
+      ],
+      "properties": {
+        "target_profile_sha256": {"$ref": "#/$defs/sha"},
+        "instance_sha256": {"$ref": "#/$defs/sha"},
+        "run_sha256": {"$ref": "#/$defs/sha"},
+        "retarget_report_sha256": {"$ref": "#/$defs/sha"},
+        "mesh_regression_sha256": {"$ref": "#/$defs/sha"},
+        "bundle_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "p3Source": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "base_rig_sha256", "base_bundle_sha256", "layer_manifest_sha256",
+        "resolved_project_sha256", "rig_sha256", "run_sha256",
+        "probes_sha256", "visuals_sha256", "bundle_sha256"
+      ],
+      "properties": {
+        "base_rig_sha256": {"$ref": "#/$defs/sha"},
+        "base_bundle_sha256": {"$ref": "#/$defs/sha"},
+        "layer_manifest_sha256": {"$ref": "#/$defs/sha"},
+        "resolved_project_sha256": {"$ref": "#/$defs/sha"},
+        "rig_sha256": {"$ref": "#/$defs/sha"},
+        "run_sha256": {"$ref": "#/$defs/sha"},
+        "probes_sha256": {"$ref": "#/$defs/sha"},
+        "visuals_sha256": {"$ref": "#/$defs/sha"},
+        "bundle_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "review": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "method", "revision"],
+      "properties": {
+        "status": {"const": "approved"},
+        "method": {"const": "human"},
+        "revision": {
+          "type": "integer", "minimum": 1, "maximum": 2147483647
+        }
+      }
+    },
+    "decision": {
+      "type": "object", "additionalProperties": false,
+      "required": ["candidate_id", "action", "reason_code", "payload"],
+      "properties": {
+        "candidate_id": {"$ref": "#/$defs/candidateId"},
+        "action": {"enum": ["accept", "reject", "adjust", "unobservable"]},
+        "reason_code": {"$ref": "#/$defs/id"},
+        "payload": {
+          "oneOf": [
+            {"type": "null"},
+            {"$ref": "#/$defs/footAdjustment"},
+            {"$ref": "#/$defs/depthAdjustment"}
+          ]
+        }
+      },
+      "allOf": [{
+        "if": {"properties": {"action": {"const": "adjust"}}},
+        "then": {"properties": {"payload": {"not": {"type": "null"}}}},
+        "else": {"properties": {"payload": {"type": "null"}}}
+      }]
+    },
+    "footAdjustment": {
+      "type": "object", "additionalProperties": false,
+      "required": ["final_correction_xy_px"],
+      "properties": {
+        "final_correction_xy_px": {"$ref": "#/$defs/vector2"}
+      }
+    },
+    "depthAdjustment": {
+      "type": "object", "additionalProperties": false,
+      "required": ["final_front_slot"],
+      "properties": {"final_front_slot": {"$ref": "#/$defs/id"}}
+    },
+    "releaseKey": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "tick", "correction_xy_px", "incoming_interpolation", "reason_code"
+      ],
+      "properties": {
+        "tick": {"type": "integer", "minimum": 0, "maximum": 600000000},
+        "correction_xy_px": {"$ref": "#/$defs/vector2"},
+        "incoming_interpolation": {"enum": ["linear", "stepped"]},
+        "reason_code": {"$ref": "#/$defs/id"}
+      }
+    },
+    "loopReset": {
+      "type": "object", "additionalProperties": false,
+      "required": ["mode", "approved"],
+      "properties": {
+        "mode": {"const": "explicit"},
+        "approved": {"type": "boolean"}
+      }
+    },
+    "vector2": {
+      "type": "array", "minItems": 2, "maxItems": 2,
+      "prefixItems": [
+        {"type": "number", "minimum": -1000000000000, "maximum": 1000000000000},
+        {"type": "number", "minimum": -1000000000000, "maximum": 1000000000000}
+      ],
+      "items": false
+    }
+  }
+}
