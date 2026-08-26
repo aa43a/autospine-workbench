@@ -1,0 +1,193 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/idle-behavior-decision-v1.schema.json",
+  "title": "AutoSpine IdleBehaviorDecision v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "project_id", "clip_id", "source",
+    "timing", "review", "semantics", "decisions", "summary"
+  ],
+  "properties": {
+    "format": {"const": "autospine-idle-behavior-decision"},
+    "format_version": {"type": "integer", "const": 1},
+    "project_id": {"$ref": "#/$defs/id"},
+    "clip_id": {"$ref": "#/$defs/id"},
+    "source": {"$ref": "#/$defs/source"},
+    "timing": {"$ref": "#/$defs/timing"},
+    "review": {"$ref": "#/$defs/review"},
+    "semantics": {"$ref": "#/$defs/semantics"},
+    "decisions": {
+      "type": "array",
+      "maxItems": 4,
+      "items": {"$ref": "#/$defs/decision"}
+    },
+    "summary": {"$ref": "#/$defs/summary"}
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "idle_behavior_candidates_sha256", "target_profile_sha256",
+        "motion_instance_v2_sha256", "reviewed_motion_bundle_sha256"
+      ],
+      "properties": {
+        "idle_behavior_candidates_sha256": {"$ref": "#/$defs/sha"},
+        "target_profile_sha256": {"$ref": "#/$defs/sha"},
+        "motion_instance_v2_sha256": {"$ref": "#/$defs/sha"},
+        "reviewed_motion_bundle_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "timing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ticks_per_second", "duration_ticks", "loop"],
+      "properties": {
+        "ticks_per_second": {"type": "integer", "const": 1000000},
+        "duration_ticks": {
+          "type": "integer", "minimum": 1, "maximum": 600000000
+        },
+        "loop": {"type": "boolean"}
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["method", "status", "revision"],
+      "properties": {
+        "method": {"const": "human"},
+        "status": {"const": "completed"},
+        "revision": {
+          "type": "integer", "minimum": 1, "maximum": 2147483647
+        }
+      }
+    },
+    "semantics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode", "review_authority", "runtime_timeline_emitted",
+        "safe_range_claimed", "automatic_acceptance"
+      ],
+      "properties": {
+        "mode": {"const": "decision_only"},
+        "review_authority": {"const": "human"},
+        "runtime_timeline_emitted": {"const": false},
+        "safe_range_claimed": {"const": false},
+        "automatic_acceptance": {"const": false}
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_id", "feature_id", "action", "reason_code", "payload",
+        "probe_status"
+      ],
+      "properties": {
+        "candidate_id": {
+          "type": "string", "pattern": "^body-sway-[0-9a-f]{64}$"
+        },
+        "feature_id": {"const": "body_sway"},
+        "action": {"enum": ["adjust", "reject", "unobservable"]},
+        "reason_code": {"$ref": "#/$defs/id"},
+        "payload": {
+          "oneOf": [{"$ref": "#/$defs/adjustment"}, {"type": "null"}]
+        },
+        "probe_status": {"enum": ["pending_probe", "not_applicable"]}
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"action": {"const": "adjust"}},
+            "required": ["action"]
+          },
+          "then": {
+            "properties": {
+              "payload": {"$ref": "#/$defs/adjustment"},
+              "probe_status": {"const": "pending_probe"}
+            }
+          },
+          "else": {
+            "properties": {
+              "payload": {"type": "null"},
+              "probe_status": {"const": "not_applicable"}
+            }
+          }
+        }
+      ]
+    },
+    "adjustment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cycles", "per_bone_amplitude_deg", "per_bone_phase_fraction"
+      ],
+      "properties": {
+        "cycles": {"type": "integer", "minimum": 1, "maximum": 64},
+        "per_bone_amplitude_deg": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "items": {"$ref": "#/$defs/amplitude"},
+          "contains": {
+            "type": "object",
+            "properties": {"value": {"exclusiveMinimum": 0}},
+            "required": ["value"]
+          },
+          "minContains": 1
+        },
+        "per_bone_phase_fraction": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "items": {"$ref": "#/$defs/phase"}
+        }
+      }
+    },
+    "amplitude": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bone_id", "value"],
+      "properties": {
+        "bone_id": {"$ref": "#/$defs/id"},
+        "value": {"type": "number", "minimum": 0, "maximum": 10}
+      }
+    },
+    "phase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bone_id", "value"],
+      "properties": {
+        "bone_id": {"$ref": "#/$defs/id"},
+        "value": {
+          "type": "number", "minimum": 0, "exclusiveMaximum": 1
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_count", "decision_count", "adjust_count", "reject_count",
+        "unobservable_count", "pending_probe_count"
+      ],
+      "properties": {
+        "candidate_count": {"type": "integer", "minimum": 0, "maximum": 4},
+        "decision_count": {"type": "integer", "minimum": 0, "maximum": 4},
+        "adjust_count": {"type": "integer", "minimum": 0, "maximum": 4},
+        "reject_count": {"type": "integer", "minimum": 0, "maximum": 4},
+        "unobservable_count": {"type": "integer", "minimum": 0, "maximum": 4},
+        "pending_probe_count": {"type": "integer", "minimum": 0, "maximum": 4}
+      }
+    }
+  }
+}
