@@ -7,6 +7,8 @@ from typing import Any
 
 COMPILER_ID = "temporary-body-sway-spine42-preview-compiler"
 COMPILER_VERSION = "1.0.0"
+PREVIEW_ADAPTER_ID = "autospine-spine42-body-sway-preview-adapter"
+PREVIEW_ADAPTER_VERSION = "1.0.0"
 PROJECTION_DIGEST_DOMAIN = "autospine-body-sway-preview-projection/v1"
 ARTIFACT_SET_DIGEST_DOMAIN = (
     "autospine-temporary-body-sway-preview-artifact-set/v1"
@@ -34,5 +36,30 @@ def body_sway_preview_compiler_profile() -> dict[str, Any]:
             "max_preview_sample_count": MAX_PREVIEW_SAMPLE_COUNT,
             "max_rotation_track_count": MAX_ROTATION_TRACK_COUNT,
             "max_rotation_key_count": MAX_ROTATION_KEY_COUNT,
+        },
+    }
+
+
+def body_sway_preview_adapter_profile() -> dict[str, Any]:
+    """Return the exact temporary Spine adapter identity."""
+
+    from .spine42_contract import (
+        SPINE_JSON_VERSION,
+        SPINE_MAJOR_MINOR,
+        SPINE_RUNTIME_PACKAGE,
+        SPINE_RUNTIME_VERSION,
+    )
+
+    return {
+        "adapter": {
+            "id": PREVIEW_ADAPTER_ID,
+            "version": PREVIEW_ADAPTER_VERSION,
+        },
+        "skeleton_format": "json",
+        "spine_major_minor": SPINE_MAJOR_MINOR,
+        "skeleton_json_version": SPINE_JSON_VERSION,
+        "runtime": {
+            "package": SPINE_RUNTIME_PACKAGE,
+            "version": SPINE_RUNTIME_VERSION,
         },
     }
