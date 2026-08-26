@@ -35,6 +35,9 @@ class MotionPolicyCandidate:
     tick: int
     foot_state: str | None = None
     depth_slots: tuple[str, str] | None = None
+    depth_pair_id: str | None = None
+    depth_event_index: int | None = None
+    depth_to_front_slot: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -178,6 +181,9 @@ def _depth_candidates(document, report_sha: str) -> list[MotionPolicyCandidate]:
                 kind="depth_order",
                 tick=event["tick"],
                 depth_slots=(str(slots[0]), str(slots[1])),
+                depth_pair_id=str(pair["pair_id"]),
+                depth_event_index=event_index,
+                depth_to_front_slot=str(event["to_front_slot"]),
             ))
     return rows
 
