@@ -2,13 +2,12 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 import hashlib
-import io
 import os
 from pathlib import Path
 import stat
-import subprocess
 import sys
 import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -25,28 +24,10 @@ from autospine_workbench.browser_executable_snapshot import (
     recheck_browser_executable,
     snapshot_browser_executable,
 )
+from autospine_workbench.browser_version_identity import BrowserVersionIdentity
 
 
-CHROME_OUTPUT = b"Google Chrome 142.0.7444.60\r\n"
-CHROMIUM_OUTPUT = b"Chromium 141.0.7390.0\n"
-
-
-class _FakeProcess:
-    def __init__(self, output: bytes, *, code: int = 0, timeout: bool = False):
-        self.stdout = io.BytesIO(output)
-        self.code = code
-        self.timeout = timeout
-        self.wait_count = 0
-        self.killed = False
-
-    def wait(self, timeout: float) -> int:
-        self.wait_count += 1
-        if self.timeout and self.wait_count == 1:
-            raise subprocess.TimeoutExpired("browser", timeout)
-        return self.code
-
-    def kill(self) -> None:
-        self.killed = True
+CHROME_IDENTITY = b"Google Chrome 142.0.7444.60\n"
 
 
 class BrowserExecutableSnapshotTests(unittest.TestCase):
@@ -63,8 +44,12 @@ class BrowserExecutableSnapshotTests(unittest.TestCase):
         self.temporary.cleanup()
 
     @contextmanager
-    def version(self, output: bytes = CHROME_OUTPUT):
-        with patch.object(subject, "_bounded_version_output", return_value=output):
+    def version(self, family: str = "google-chrome", version: str = "142.0.7444.60"):
+        label = "Google Chrome" if family == "google-chrome" else "Chromium"
+        identity = BrowserVersionIdentity(
+            family, version, f"{label} {version}\n".encode()
+        )
+        with patch.object(subject, "identify_browser_version", return_value=identity):
             yield
 
     def test_snapshots_google_chrome_with_exact_byte_identity(self) -> None:
@@ -75,7 +60,10 @@ class BrowserExecutableSnapshotTests(unittest.TestCase):
         self.assertEqual("google-chrome", snapshot.family)
         self.assertEqual("142.0.7444.60", snapshot.reported_version)
         self.assertEqual(hashlib.sha256(raw).hexdigest(), snapshot.executable_sha256)
-        self.assertEqual(hashlib.sha256(CHROME_OUTPUT).hexdigest(), snapshot.version_output_sha256)
+        self.assertEqual(
+            hashlib.sha256(CHROME_IDENTITY).hexdigest(),
+            snapshot.version_output_sha256,
+        )
         self.assertEqual(len(raw), snapshot.size_bytes)
         self.assertEqual(str(self.executable), snapshot.path)
         self.assertEqual(
@@ -85,7 +73,7 @@ class BrowserExecutableSnapshotTests(unittest.TestCase):
                 "path": str(self.executable),
                 "family": "google-chrome",
                 "reported_version": "142.0.7444.60",
-                "version_output_sha256": hashlib.sha256(CHROME_OUTPUT).hexdigest(),
+                "version_output_sha256": hashlib.sha256(CHROME_IDENTITY).hexdigest(),
                 "executable_sha256": hashlib.sha256(raw).hexdigest(),
                 "size_bytes": len(raw),
             },
@@ -93,38 +81,10 @@ class BrowserExecutableSnapshotTests(unittest.TestCase):
         )
 
     def test_snapshots_chromium_family(self) -> None:
-        with self.version(CHROMIUM_OUTPUT):
+        with self.version("chromium", "141.0.7390.0"):
             snapshot = snapshot_browser_executable(self.executable)
         self.assertEqual("chromium", snapshot.family)
         self.assertEqual("141.0.7390.0", snapshot.reported_version)
-
-    def test_accepts_chrome_for_testing_and_known_chromium_build_suffix(self) -> None:
-        self.assertEqual(
-            ("google-chrome", "142.0.7444.60"),
-            subject._parse_version_output(
-                b"Google Chrome for Testing 142.0.7444.60\n"
-            ),
-        )
-        self.assertEqual(
-            ("chromium", "140.0.7339.80"),
-            subject._parse_version_output(
-                b"Chromium 140.0.7339.80 built on Debian GNU/Linux 12\n"
-            ),
-        )
-
-    def test_rejects_unsupported_or_ambiguous_version_output(self) -> None:
-        invalid = (
-            b"Microsoft Edge 142.0.7444.60\n",
-            b"Google Chrome 142.0.7444\n",
-            b"Google Chrome 142.0.7444.60\nwarning\n",
-            b"Chromium 142.0.7444.60 unexpected suffix\n",
-            b"\xff",
-            b"",
-        )
-        for output in invalid:
-            with self.subTest(output=output):
-                with self.assertRaises(BrowserExecutableSnapshotError):
-                    subject._parse_version_output(output)
 
     def test_requires_absolute_canonical_regular_executable(self) -> None:
         with self.assertRaisesRegex(BrowserExecutableSnapshotError, "absolute"):
@@ -179,6 +139,49 @@ class BrowserExecutableSnapshotTests(unittest.TestCase):
             with self.assertRaisesRegex(BrowserExecutableSnapshotError, "version"):
                 snapshot_browser_executable(self.executable)
 
+    def test_hash_accepts_windows_path_handle_ctime_difference(self) -> None:
+        path_state = SimpleNamespace(
+            st_mode=stat.S_IFREG,
+            st_dev=7,
+            st_ino=11,
+            st_size=3,
+            st_mtime_ns=13,
+            st_ctime_ns=17,
+        )
+        handle_state = SimpleNamespace(
+            **{**vars(path_state), "st_ctime_ns": 19}
+        )
+        changed_handle = SimpleNamespace(
+            **{**vars(handle_state), "st_ctime_ns": 23}
+        )
+        self.assertTrue(subject._same_content_state(path_state, handle_state))
+        self.assertFalse(subject._same_path_snapshot(path_state, handle_state))
+        self.assertFalse(subject._same_handle_snapshot(handle_state, changed_handle))
+        with patch.object(
+            Path, "lstat", side_effect=[path_state, path_state]
+        ), patch.object(subject.os, "open", return_value=23), patch.object(
+            subject.os, "fstat", side_effect=[handle_state, handle_state]
+        ), patch.object(
+            subject.os, "read", side_effect=[b"abc", b""]
+        ), patch.object(subject.os, "close"):
+            digest, size = subject._hash_executable(self.executable)
+        self.assertEqual(hashlib.sha256(b"abc").hexdigest(), digest)
+        self.assertEqual(3, size)
+
+    @unittest.skipUnless(os.name == "nt", "Windows VERSIONINFO smoke test")
+    def test_real_installed_chrome_snapshot_uses_version_info(self) -> None:
+        chrome = Path(r"C:\Program Files\Google\Chrome\Application\chrome.exe")
+        if not chrome.is_file():
+            self.skipTest("system Chrome is not installed at the standard path")
+        snapshot = snapshot_browser_executable(chrome)
+        self.assertEqual("google-chrome", snapshot.family)
+        self.assertRegex(snapshot.reported_version, r"^\d+(?:\.\d+){3}$")
+        identity = f"Google Chrome {snapshot.reported_version}\n".encode()
+        self.assertEqual(
+            hashlib.sha256(identity).hexdigest(), snapshot.version_output_sha256
+        )
+        self.assertEqual(chrome.stat().st_size, snapshot.size_bytes)
+
     def test_recheck_requires_every_field_and_current_bytes(self) -> None:
         with self.version():
             expected = snapshot_browser_executable(self.executable)
@@ -192,43 +195,9 @@ class BrowserExecutableSnapshotTests(unittest.TestCase):
     def test_recheck_rejects_changed_reported_version(self) -> None:
         with self.version():
             expected = snapshot_browser_executable(self.executable)
-        changed = b"Google Chrome 143.0.7444.60\n"
-        with self.version(changed):
+        with self.version(version="143.0.7444.60"):
             with self.assertRaisesRegex(BrowserExecutableSnapshotError, "changed"):
                 recheck_browser_executable(expected)
-
-    def test_bounded_version_command_uses_no_shell_and_exact_argument(self) -> None:
-        fake = _FakeProcess(CHROME_OUTPUT)
-        with patch.object(subject.subprocess, "Popen", return_value=fake) as launch:
-            output = subject._bounded_version_output(self.executable)
-        self.assertEqual(CHROME_OUTPUT, output)
-        args, kwargs = launch.call_args
-        self.assertEqual([str(self.executable), "--version"], args[0])
-        self.assertIs(False, kwargs["shell"])
-        self.assertEqual(str(self.executable.parent), kwargs["cwd"])
-        self.assertIs(subprocess.DEVNULL, kwargs["stdin"])
-        self.assertIs(subprocess.PIPE, kwargs["stdout"])
-        self.assertIs(subprocess.STDOUT, kwargs["stderr"])
-
-    def test_bounded_version_command_rejects_timeout_failure_and_overflow(self) -> None:
-        cases = (
-            (_FakeProcess(b"", timeout=True), "timed out"),
-            (_FakeProcess(b"failure", code=3), "failed"),
-            (_FakeProcess(b"x" * 10), "exceeds"),
-        )
-        for fake, message in cases:
-            with self.subTest(message=message), patch.object(
-                subject, "MAX_VERSION_OUTPUT_BYTES", 8
-            ), patch.object(subject.subprocess, "Popen", return_value=fake):
-                with self.assertRaisesRegex(BrowserExecutableSnapshotError, message):
-                    subject._bounded_version_output(self.executable)
-        self.assertTrue(cases[0][0].killed)
-        self.assertTrue(cases[2][0].killed)
-
-    def test_real_version_reader_is_bounded_and_cross_platform(self) -> None:
-        output = subject._bounded_version_output(Path(sys.executable))
-        self.assertIn(b"Python", output)
-        self.assertLessEqual(len(output), subject.MAX_VERSION_OUTPUT_BYTES)
 
 
 if __name__ == "__main__":

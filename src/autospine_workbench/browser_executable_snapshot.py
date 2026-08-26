@@ -6,30 +6,19 @@ from dataclasses import dataclass
 import hashlib
 import os
 from pathlib import Path
-import re
 import stat
-import subprocess
-import threading
 from typing import Any
 
-
-FORMAT = "autospine-browser-executable-snapshot"
-VERSION = 1
-MAX_EXECUTABLE_BYTES = 512 * 1024 * 1024
-MAX_VERSION_OUTPUT_BYTES = 4 * 1024
-VERSION_TIMEOUT_SECONDS = 5.0
-KILL_GRACE_SECONDS = 1.0
-_CHUNK_BYTES = 1024 * 1024
-_VERSION_PATTERNS = (
-    ("google-chrome", re.compile(
-        r"Google Chrome(?: for Testing)? "
-        r"(?P<version>[0-9]{1,6}(?:\.[0-9]{1,6}){3})"
-    )),
-    ("chromium", re.compile(
-        r"Chromium (?P<version>[0-9]{1,6}(?:\.[0-9]{1,6}){3})"
-        r"(?: built on [^\r\n]{1,160})?"
-    )),
+from .browser_version_identity import (
+    BrowserVersionIdentityError,
+    VERSION_IDENTITY_HASH_SEMANTICS,
+    identify_browser_version,
 )
+
+FORMAT, VERSION = "autospine-browser-executable-snapshot", 1
+MAX_EXECUTABLE_BYTES = 512 * 1024 * 1024
+VERSION_OUTPUT_SHA256_SEMANTICS = VERSION_IDENTITY_HASH_SEMANTICS
+_CHUNK_BYTES = 1024 * 1024
 
 
 class BrowserExecutableSnapshotError(ValueError):
@@ -38,7 +27,10 @@ class BrowserExecutableSnapshotError(ValueError):
 
 @dataclass(frozen=True, slots=True)
 class BrowserExecutableSnapshot:
-    """Exact launcher identity used for one bounded capture run."""
+    """Exact launcher identity used for one bounded capture run.
+
+    ``version_output_sha256`` follows ``VERSION_OUTPUT_SHA256_SEMANTICS``.
+    """
 
     path: str
     family: str
@@ -65,18 +57,22 @@ def snapshot_browser_executable(path: str | Path) -> BrowserExecutableSnapshot:
 
     executable = _explicit_real_executable(path)
     executable_sha256, size = _hash_executable(executable)
-    output = _bounded_version_output(executable)
+    try:
+        identity = identify_browser_version(executable)
+    except BrowserVersionIdentityError as exc:
+        raise BrowserExecutableSnapshotError(
+            "browser version identity cannot be established"
+        ) from exc
     final_sha256, final_size = _hash_executable(executable)
     if (final_sha256, final_size) != (executable_sha256, size):
         raise BrowserExecutableSnapshotError(
             "browser executable changed while its version was queried"
         )
-    family, reported_version = _parse_version_output(output)
     return BrowserExecutableSnapshot(
         path=os.fspath(executable),
-        family=family,
-        reported_version=reported_version,
-        version_output_sha256=hashlib.sha256(output).hexdigest(),
+        family=identity.family,
+        reported_version=identity.reported_version,
+        version_output_sha256=hashlib.sha256(identity.canonical_bytes).hexdigest(),
         executable_sha256=executable_sha256,
         size_bytes=size,
     )
@@ -146,13 +142,15 @@ def _hash_executable(path: Path) -> tuple[str, int]:
         before = path.lstat()
         if _is_alias(path, before) or not stat.S_ISREG(before.st_mode):
             raise BrowserExecutableSnapshotError("browser executable became aliased")
-        if before.st_size <= 0 or before.st_size > MAX_EXECUTABLE_BYTES:
+        if not 0 < before.st_size <= MAX_EXECUTABLE_BYTES:
             raise BrowserExecutableSnapshotError(
                 "browser executable size is outside the allowed range"
             )
         descriptor = os.open(path, flags)
         opened = os.fstat(descriptor)
-        if not stat.S_ISREG(opened.st_mode) or not _same_file(before, opened):
+        if not stat.S_ISREG(opened.st_mode) or not _same_content_state(
+            before, opened
+        ):
             raise BrowserExecutableSnapshotError(
                 "browser executable changed before hashing"
             )
@@ -171,9 +169,10 @@ def _hash_executable(path: Path) -> tuple[str, int]:
         final = path.lstat()
         if (
             total != before.st_size
-            or not _same_snapshot(before, opened)
-            or not _same_snapshot(opened, after)
-            or not _same_snapshot(after, final)
+            or not _same_path_snapshot(before, final)
+            or not _same_handle_snapshot(opened, after)
+            or not _same_content_state(before, opened)
+            or not _same_content_state(after, final)
             or _is_alias(path, final)
         ):
             raise BrowserExecutableSnapshotError(
@@ -191,85 +190,6 @@ def _hash_executable(path: Path) -> tuple[str, int]:
             os.close(descriptor)
 
 
-def _bounded_version_output(path: Path) -> bytes:
-    creationflags = getattr(subprocess, "CREATE_NO_WINDOW", 0) if os.name == "nt" else 0
-    try:
-        process = subprocess.Popen(
-            [os.fspath(path), "--version"],
-            stdin=subprocess.DEVNULL,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            shell=False,
-            cwd=os.fspath(path.parent),
-            close_fds=True,
-            creationflags=creationflags,
-        )
-    except OSError as exc:
-        raise BrowserExecutableSnapshotError(
-            "browser version command could not be started"
-        ) from exc
-    if process.stdout is None:  # pragma: no cover - guaranteed by PIPE
-        process.kill()
-        raise BrowserExecutableSnapshotError("browser version output is unavailable")
-    output, overflow, read_failed = bytearray(), threading.Event(), threading.Event()
-
-    def read_output() -> None:
-        try:
-            while chunk := process.stdout.read(1024):
-                remaining = MAX_VERSION_OUTPUT_BYTES + 1 - len(output)
-                if remaining > 0:
-                    output.extend(chunk[:remaining])
-                if len(output) > MAX_VERSION_OUTPUT_BYTES or len(chunk) > remaining:
-                    overflow.set()
-                    process.kill()
-        except (OSError, ValueError):
-            read_failed.set()
-
-    reader = threading.Thread(target=read_output, daemon=True)
-    reader.start()
-    timed_out = False
-    try:
-        return_code = process.wait(timeout=VERSION_TIMEOUT_SECONDS)
-    except subprocess.TimeoutExpired:
-        timed_out = True
-        process.kill()
-        try:
-            return_code = process.wait(timeout=KILL_GRACE_SECONDS)
-        except subprocess.TimeoutExpired:
-            return_code = None
-    reader.join(KILL_GRACE_SECONDS)
-    if reader.is_alive():
-        process.stdout.close()
-        reader.join(KILL_GRACE_SECONDS)
-    elif not process.stdout.closed:
-        process.stdout.close()
-    if timed_out:
-        raise BrowserExecutableSnapshotError("browser version command timed out")
-    if reader.is_alive() or read_failed.is_set():
-        raise BrowserExecutableSnapshotError("browser version output could not be read")
-    if overflow.is_set():
-        raise BrowserExecutableSnapshotError("browser version output exceeds its limit")
-    if return_code != 0:
-        raise BrowserExecutableSnapshotError("browser version command failed")
-    return bytes(output)
-
-
-def _parse_version_output(output: bytes) -> tuple[str, str]:
-    try:
-        text = output.decode("utf-8").strip()
-    except UnicodeError as exc:
-        raise BrowserExecutableSnapshotError(
-            "browser version output is not valid UTF-8"
-        ) from exc
-    for family, pattern in _VERSION_PATTERNS:
-        match = pattern.fullmatch(text)
-        if match is not None:
-            return family, match.group("version")
-    raise BrowserExecutableSnapshotError(
-        "browser must report itself as Google Chrome or Chromium"
-    )
-
-
 def _is_alias(path: Path, metadata: os.stat_result) -> bool:
     junction = getattr(path, "is_junction", None)
     reparse = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
@@ -278,11 +198,16 @@ def _is_alias(path: Path, metadata: os.stat_result) -> bool:
     ) or bool(getattr(metadata, "st_file_attributes", 0) & reparse)
 
 
-def _same_file(left: os.stat_result, right: os.stat_result) -> bool:
-    return (left.st_dev, left.st_ino) == (right.st_dev, right.st_ino)
+def _same_content_state(left: os.stat_result, right: os.stat_result) -> bool:
+    """Compare fields meaningful across a Windows path and open handle."""
+    left_state = (left.st_dev, left.st_ino, left.st_size, left.st_mtime_ns)
+    right_state = (right.st_dev, right.st_ino, right.st_size, right.st_mtime_ns)
+    return left_state == right_state
 
 
-def _same_snapshot(left: os.stat_result, right: os.stat_result) -> bool:
-    return _same_file(left, right) and (
-        left.st_size, left.st_mtime_ns, left.st_ctime_ns
-    ) == (right.st_size, right.st_mtime_ns, right.st_ctime_ns)
+def _same_path_snapshot(left: os.stat_result, right: os.stat_result) -> bool:
+    return _same_content_state(left, right) and left.st_ctime_ns == right.st_ctime_ns
+
+
+def _same_handle_snapshot(left: os.stat_result, right: os.stat_result) -> bool:
+    return _same_content_state(left, right) and left.st_ctime_ns == right.st_ctime_ns
