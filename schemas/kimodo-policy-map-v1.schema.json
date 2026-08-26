@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/kimodo-policy-map-v1.schema.json",
+  "title": "AutoSpine Kimodo Policy Map v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "format_version", "policy_map_id", "source", "heading", "contact"],
+  "properties": {
+    "format": {"const": "autospine-kimodo-policy-map"},
+    "format_version": {"const": 1},
+    "policy_map_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kimodo_map_sha256", "camera_sha256"],
+      "properties": {
+        "kimodo_map_sha256": {"$ref": "#/$defs/sha256"},
+        "camera_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "heading": {
+      "type": "object", "additionalProperties": false,
+      "required": ["source", "vector_semantics", "components", "root_joint_name", "root_local_forward_axis", "yaw_convention", "crosscheck"],
+      "properties": {
+        "source": {"const": "global_root_heading"},
+        "vector_semantics": {"const": "character_forward_world"},
+        "components": {
+          "type": "array", "minItems": 2, "maxItems": 2,
+          "items": {"$ref": "#/$defs/component"}
+        },
+        "root_joint_name": {"const": "Hips"},
+        "root_local_forward_axis": {"$ref": "#/$defs/axis"},
+        "yaw_convention": {"const": "atan2_camera_screen_x_over_camera_depth"},
+        "crosscheck": {
+          "type": "object", "additionalProperties": false,
+          "required": ["policy", "maximum_angle_error_deg"],
+          "properties": {
+            "policy": {"const": "projected_root_forward_angle"},
+            "maximum_angle_error_deg": {"type": "number", "minimum": 0, "maximum": 180}
+          }
+        }
+      }
+    },
+    "contact": {
+      "oneOf": [
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["status", "source", "interval", "proxies"],
+          "properties": {
+            "status": {"const": "mapped"},
+            "source": {"const": "foot_contacts"},
+            "interval": {"const": "half_open"},
+            "proxies": {"type": "array", "minItems": 1, "maxItems": 6, "items": {"$ref": "#/$defs/proxy"}}
+          }
+        },
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["status", "reason_code"],
+          "properties": {
+            "status": {"const": "unavailable"},
+            "reason_code": {"const": "map_contact_disabled"}
+          }
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "axis": {"enum": ["+X", "-X", "+Y", "-Y", "+Z", "-Z"]},
+    "component": {
+      "type": "object", "additionalProperties": false,
+      "required": ["index", "source_axis"],
+      "properties": {
+        "index": {"type": "integer", "minimum": 0, "maximum": 1},
+        "source_axis": {"$ref": "#/$defs/axis"}
+      }
+    },
+    "proxy": {
+      "type": "object", "additionalProperties": false,
+      "required": ["index", "limb", "point", "proxy_joint_name", "proxy_quality"],
+      "properties": {
+        "index": {"type": "integer", "minimum": 0, "maximum": 5},
+        "limb": {"enum": ["leg.left", "leg.right"]},
+        "point": {"enum": ["heel", "toe", "toe_end"]},
+        "proxy_joint_name": {"enum": ["LeftFoot", "LeftToeBase", "LeftToeEnd", "RightFoot", "RightToeBase", "RightToeEnd"]},
+        "proxy_quality": {"enum": ["ankle-joint-proxy", "toe-base-joint-proxy", "toe-end-joint-proxy"]}
+      }
+    }
+  }
+}
