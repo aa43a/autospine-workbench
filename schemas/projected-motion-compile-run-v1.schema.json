@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/projected-motion-compile-run-v1.schema.json",
+  "title": "AutoSpine ProjectedMotionIR compile run v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "source", "camera", "compiler",
+    "validation", "output"
+  ],
+  "properties": {
+    "format": {"const": "autospine-projected-motion-compile-run"},
+    "format_version": {"type": "integer", "const": 1},
+    "source": {"$ref": "#/$defs/source"},
+    "camera": {"$ref": "#/$defs/camera"},
+    "compiler": {"$ref": "#/$defs/compiler"},
+    "validation": {"$ref": "#/$defs/validation"},
+    "output": {"$ref": "#/$defs/output"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "id": {
+      "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "kind", "motion_ir_sha256", "motion_bundle_sha256",
+        "motion_run_sha256", "raw_npz_sha256", "source_sha256",
+        "map_sha256", "array_inventory_sha256"
+      ],
+      "properties": {
+        "kind": {"const": "kimodo_npz"},
+        "motion_ir_sha256": {"$ref": "#/$defs/sha256"},
+        "motion_bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "motion_run_sha256": {"$ref": "#/$defs/sha256"},
+        "raw_npz_sha256": {"$ref": "#/$defs/sha256"},
+        "source_sha256": {"$ref": "#/$defs/sha256"},
+        "map_sha256": {"$ref": "#/$defs/sha256"},
+        "array_inventory_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "camera": {
+      "type": "object", "additionalProperties": false,
+      "required": ["camera_sha256", "camera_id", "depth_positive"],
+      "properties": {
+        "camera_sha256": {"$ref": "#/$defs/sha256"},
+        "camera_id": {"$ref": "#/$defs/id"},
+        "depth_positive": {"enum": ["toward_camera", "away_from_camera"]}
+      }
+    },
+    "compiler": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "version", "config"],
+      "properties": {
+        "id": {"const": "kimodo-projected-motion-compiler"},
+        "version": {"const": "1.0.0"},
+        "config": {"$ref": "#/$defs/compilerConfig"}
+      }
+    },
+    "compilerConfig": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "projection", "geometry_source", "normalization", "root_baseline",
+        "angle_unwrap", "collapse_state", "minimum_source_length_normalized",
+        "minimum_projected_segment_ratio", "minimum_projected_reference_ratio",
+        "evidence_decimal_places", "legacy_decimal_places", "depth_use"
+      ],
+      "properties": {
+        "projection": {"const": "static-orthographic-signed-basis-v1"},
+        "geometry_source": {"const": "verified-soma77-matrix-fk-positions-v1"},
+        "normalization": {"const": "kimodo-map-reference-length-v1"},
+        "root_baseline": {"const": "source-root-frame0-v1"},
+        "angle_unwrap": {"const": "shortest-signed-delta-v1"},
+        "collapse_state": {"const": "normalized-l2-threshold-v1"},
+        "minimum_source_length_normalized": {"const": 1e-9},
+        "minimum_projected_segment_ratio": {"const": 1e-6},
+        "minimum_projected_reference_ratio": {"const": 1e-9},
+        "evidence_decimal_places": {"const": 9},
+        "legacy_decimal_places": {"const": 5},
+        "depth_use": {"const": "evidence-only-no-ordering-v1"}
+      }
+    },
+    "validation": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "max_global_matrix_error", "max_heading_norm_error",
+        "max_position_error_meters", "max_root_position_error_meters",
+        "collapsed_sample_count", "minimum_foreshortening_ratio",
+        "maximum_foreshortening_ratio"
+      ],
+      "properties": {
+        "max_global_matrix_error": {"type": "number", "minimum": 0, "maximum": 0.0005},
+        "max_heading_norm_error": {
+          "oneOf": [
+            {"type": "null"},
+            {"type": "number", "minimum": 0, "maximum": 0.005}
+          ]
+        },
+        "max_position_error_meters": {"type": "number", "minimum": 0, "maximum": 0.0005},
+        "max_root_position_error_meters": {"type": "number", "minimum": 0, "maximum": 0.0005},
+        "collapsed_sample_count": {"type": "integer", "minimum": 0, "maximum": 69632},
+        "minimum_foreshortening_ratio": {"type": "number", "minimum": 0, "maximum": 1.001},
+        "maximum_foreshortening_ratio": {"type": "number", "minimum": 0, "maximum": 1.001}
+      }
+    },
+    "output": {
+      "type": "object", "additionalProperties": false,
+      "required": ["projected_motion_ir_sha256", "legacy_motion_ir_sha256"],
+      "properties": {
+        "projected_motion_ir_sha256": {"$ref": "#/$defs/sha256"},
+        "legacy_motion_ir_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  }
+}
