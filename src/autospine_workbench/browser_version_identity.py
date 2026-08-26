@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import hashlib
 import os
 from pathlib import Path
 import re
+import signal
 import subprocess
+import sys
 import threading
 
 from .windows_file_version import WindowsFileVersionError, read_windows_file_version
@@ -37,6 +40,9 @@ _VERSION_PATTERNS = (
 )
 _CANONICAL_LABELS = {"google-chrome": "Google Chrome", "chromium": "Chromium"}
 _WINDOWS_PRODUCTS = {"Google Chrome", "Google Chrome for Testing", "Chromium"}
+_REPORTED_VERSION = re.compile(r"^[0-9]{1,6}(?:\.[0-9]{1,6}){3}$")
+_POSIX_TERMINATE_SIGNAL = getattr(signal, "SIGTERM", 15)
+_POSIX_KILL_SIGNAL = getattr(signal, "SIGKILL", 9)
 
 
 class BrowserVersionIdentityError(ValueError):
@@ -52,12 +58,31 @@ class BrowserVersionIdentity:
     canonical_bytes: bytes
 
 
+def canonical_browser_version_identity_bytes(
+    family: str, reported_version: str,
+) -> bytes:
+    """Return the only canonical bytes accepted for a browser identity."""
+
+    if type(family) is not str or family not in _CANONICAL_LABELS \
+            or type(reported_version) is not str \
+            or _REPORTED_VERSION.fullmatch(reported_version) is None:
+        raise BrowserVersionIdentityError("browser version identity is invalid")
+    return f"{_CANONICAL_LABELS[family]} {reported_version}\n".encode("utf-8")
+
+
+def browser_version_identity_sha256(family: str, reported_version: str) -> str:
+    """Hash canonical family/version identity bytes without external I/O."""
+
+    canonical = canonical_browser_version_identity_bytes(family, reported_version)
+    return hashlib.sha256(canonical).hexdigest()
+
+
 def identify_browser_version(path: Path) -> BrowserVersionIdentity:
     """Identify a browser and canonicalize source evidence before hashing."""
 
     evidence = _version_evidence(path)
     family, reported_version = _parse_version_output(evidence)
-    canonical = f"{_CANONICAL_LABELS[family]} {reported_version}\n".encode("utf-8")
+    canonical = canonical_browser_version_identity_bytes(family, reported_version)
     return BrowserVersionIdentity(family, reported_version, canonical)
 
 
@@ -72,20 +97,17 @@ def _version_evidence(path: Path) -> bytes:
             )
         version = ".".join(map(str, info.file_version))
         return f"{info.product_name} {version}\n".encode("utf-8")
-    except (BrowserVersionIdentityError, WindowsFileVersionError) as info_error:
-        try:
-            return _bounded_version_output(path)
-        except BrowserVersionIdentityError as command_error:
-            failures = ExceptionGroup(
-                "browser version identity failures", [info_error, command_error]
-            )
-            raise BrowserVersionIdentityError(
-                "browser version is unavailable from Windows VERSIONINFO and command"
-            ) from failures
+    except (BrowserVersionIdentityError, WindowsFileVersionError) as exc:
+        raise BrowserVersionIdentityError(
+            "browser requires valid Chrome or Chromium Windows VERSIONINFO"
+        ) from exc
 
 
 def _bounded_version_output(path: Path) -> bytes:
-    creationflags = getattr(subprocess, "CREATE_NO_WINDOW", 0) if os.name == "nt" else 0
+    launch_options = (
+        {"creationflags": getattr(subprocess, "CREATE_NO_WINDOW", 0)}
+        if os.name == "nt" else {"start_new_session": True}
+    )
     try:
         process = subprocess.Popen(
             [os.fspath(path), "--version"],
@@ -95,17 +117,27 @@ def _bounded_version_output(path: Path) -> bytes:
             shell=False,
             cwd=os.fspath(path.parent),
             close_fds=True,
-            creationflags=creationflags,
+            **launch_options,
         )
     except OSError as exc:
         raise BrowserVersionIdentityError(
             "browser version command could not be started"
         ) from exc
     if process.stdout is None:  # pragma: no cover - guaranteed by PIPE
-        process.kill()
-        raise BrowserVersionIdentityError("browser version output is unavailable")
+        failure = BrowserVersionIdentityError(
+            "browser version output is unavailable"
+        )
+        try:
+            _cleanup_version_process(process)
+        except Exception as cleanup_error:
+            failure.add_note(
+                "Browser version cleanup also failed: "
+                f"{cleanup_error}"
+            )
+        raise failure
     output, overflow = bytearray(), threading.Event()
     read_failed = threading.Event()
+    read_errors: list[BaseException] = []
 
     def read_output() -> None:
         try:
@@ -115,37 +147,110 @@ def _bounded_version_output(path: Path) -> bytes:
                     output.extend(chunk[:remaining])
                 if len(output) > MAX_VERSION_OUTPUT_BYTES or len(chunk) > remaining:
                     overflow.set()
-                    process.kill()
-        except (OSError, ValueError):
+        except (OSError, ValueError) as exc:
+            read_errors.append(exc)
             read_failed.set()
 
     reader = threading.Thread(target=read_output, daemon=True)
     reader.start()
-    timed_out = False
     try:
-        return_code = process.wait(timeout=VERSION_TIMEOUT_SECONDS)
-    except subprocess.TimeoutExpired:
-        timed_out = True
-        process.kill()
         try:
-            return_code = process.wait(timeout=KILL_GRACE_SECONDS)
+            return_code = process.wait(timeout=VERSION_TIMEOUT_SECONDS)
         except subprocess.TimeoutExpired:
-            return_code = None
-    reader.join(KILL_GRACE_SECONDS)
-    if reader.is_alive():
-        process.stdout.close()
+            raise BrowserVersionIdentityError(
+                "browser version command timed out"
+            ) from None
         reader.join(KILL_GRACE_SECONDS)
-    elif not process.stdout.closed:
-        process.stdout.close()
-    if timed_out:
-        raise BrowserVersionIdentityError("browser version command timed out")
-    if reader.is_alive() or read_failed.is_set():
-        raise BrowserVersionIdentityError("browser version output could not be read")
-    if overflow.is_set():
-        raise BrowserVersionIdentityError("browser version output exceeds its limit")
-    if return_code != 0:
-        raise BrowserVersionIdentityError("browser version command failed")
-    return bytes(output)
+        if reader.is_alive() or read_failed.is_set():
+            failure = BrowserVersionIdentityError(
+                "browser version output could not be read"
+            )
+            if read_errors:
+                raise failure from read_errors[0]
+            raise failure
+        if overflow.is_set():
+            raise BrowserVersionIdentityError(
+                "browser version output exceeds its limit"
+            )
+        if return_code != 0:
+            raise BrowserVersionIdentityError("browser version command failed")
+        return bytes(output)
+    finally:
+        primary_error = sys.exc_info()[1]
+        cleanup_errors: list[BaseException] = []
+        try:
+            _cleanup_version_process(process)
+        except Exception as exc:
+            cleanup_errors.append(exc)
+        try:
+            if not process.stdout.closed:
+                process.stdout.close()
+            reader.join(KILL_GRACE_SECONDS)
+            if reader.is_alive():
+                raise BrowserVersionIdentityError(
+                    "browser version output reader could not be stopped"
+                )
+        except Exception as exc:
+            cleanup_errors.append(exc)
+        if primary_error is not None:
+            for read_error in read_errors:
+                primary_error.add_note(
+                    f"Browser version output reader also failed: {read_error}"
+                )
+            for cleanup_error in cleanup_errors:
+                primary_error.add_note(
+                    "Browser version cleanup also failed: "
+                    f"{cleanup_error}"
+                )
+        elif cleanup_errors:
+            _raise_version_cleanup_error(cleanup_errors)
+
+
+def _raise_version_cleanup_error(errors: list[BaseException]) -> None:
+    primary = errors[0]
+    for secondary in errors[1:]:
+        primary.add_note(
+            f"Additional browser version cleanup failure: {secondary}"
+        )
+    if isinstance(primary, BrowserVersionIdentityError):
+        raise primary
+    raise BrowserVersionIdentityError(
+        "browser version process cleanup failed"
+    ) from primary
+
+
+def _cleanup_version_process(process) -> None:
+    """Bound cleanup to the process on Windows or its owned POSIX group."""
+
+    if os.name == "nt":
+        if process.poll() is None:
+            process.kill()
+            try:
+                process.wait(timeout=KILL_GRACE_SECONDS)
+            except subprocess.TimeoutExpired as exc:
+                raise BrowserVersionIdentityError(
+                    "browser version process could not be stopped"
+                ) from exc
+        return
+    process_group = process.pid
+    try:
+        os.killpg(process_group, _POSIX_TERMINATE_SIGNAL)
+    except ProcessLookupError:
+        return
+    try:
+        process.wait(timeout=KILL_GRACE_SECONDS)
+    except subprocess.TimeoutExpired:
+        pass
+    try:
+        os.killpg(process_group, _POSIX_KILL_SIGNAL)
+    except ProcessLookupError:
+        pass
+    try:
+        process.wait(timeout=KILL_GRACE_SECONDS)
+    except subprocess.TimeoutExpired as exc:
+        raise BrowserVersionIdentityError(
+            "browser version process group could not be stopped"
+        ) from exc
 
 
 def _parse_version_output(output: bytes) -> tuple[str, str]:

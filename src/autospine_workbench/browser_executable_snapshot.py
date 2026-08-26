@@ -7,11 +7,13 @@ import hashlib
 import os
 from pathlib import Path
 import stat
+import sys
 from typing import Any
 
 from .browser_version_identity import (
     BrowserVersionIdentityError,
     VERSION_IDENTITY_HASH_SEMANTICS,
+    browser_version_identity_sha256,
     identify_browser_version,
 )
 
@@ -72,7 +74,9 @@ def snapshot_browser_executable(path: str | Path) -> BrowserExecutableSnapshot:
         path=os.fspath(executable),
         family=identity.family,
         reported_version=identity.reported_version,
-        version_output_sha256=hashlib.sha256(identity.canonical_bytes).hexdigest(),
+        version_output_sha256=browser_version_identity_sha256(
+            identity.family, identity.reported_version
+        ),
         executable_sha256=executable_sha256,
         size_bytes=size,
     )
@@ -187,7 +191,18 @@ def _hash_executable(path: Path) -> tuple[str, int]:
         ) from exc
     finally:
         if descriptor >= 0:
-            os.close(descriptor)
+            primary_error = sys.exc_info()[1]
+            try:
+                os.close(descriptor)
+            except OSError as exc:
+                if primary_error is not None:
+                    primary_error.add_note(
+                        f"Browser executable descriptor cleanup also failed: {exc}"
+                    )
+                else:
+                    raise BrowserExecutableSnapshotError(
+                        "browser executable descriptor could not be closed"
+                    ) from exc
 
 
 def _is_alias(path: Path, metadata: os.stat_result) -> bool:

@@ -168,6 +168,40 @@ class BrowserExecutableSnapshotTests(unittest.TestCase):
         self.assertEqual(hashlib.sha256(b"abc").hexdigest(), digest)
         self.assertEqual(3, size)
 
+    def test_descriptor_close_failure_rejects_an_otherwise_valid_hash(self) -> None:
+        state = self.executable.lstat()
+        with patch.object(
+            Path, "lstat", side_effect=[state, state]
+        ), patch.object(subject.os, "open", return_value=23), patch.object(
+            subject.os, "fstat", side_effect=[state, state]
+        ), patch.object(
+            subject.os, "read", side_effect=[self.executable.read_bytes(), b""]
+        ), patch.object(
+            subject.os, "close", side_effect=OSError("close failed")
+        ), self.assertRaisesRegex(
+            BrowserExecutableSnapshotError, "descriptor"
+        ):
+            subject._hash_executable(self.executable)
+
+    def test_descriptor_close_failure_is_noted_on_primary_hash_error(self) -> None:
+        state = self.executable.lstat()
+        with patch.object(
+            Path, "lstat", return_value=state
+        ), patch.object(subject.os, "open", return_value=23), patch.object(
+            subject.os, "fstat", return_value=state
+        ), patch.object(
+            subject.os, "read", side_effect=OSError("read failed")
+        ), patch.object(
+            subject.os, "close", side_effect=OSError("close failed")
+        ), self.assertRaisesRegex(
+            BrowserExecutableSnapshotError, "hashed safely"
+        ) as raised:
+            subject._hash_executable(self.executable)
+        self.assertTrue(any(
+            "descriptor cleanup also failed" in note.lower()
+            for note in getattr(raised.exception, "__notes__", ())
+        ))
+
     @unittest.skipUnless(os.name == "nt", "Windows VERSIONINFO smoke test")
     def test_real_installed_chrome_snapshot_uses_version_info(self) -> None:
         chrome = Path(r"C:\Program Files\Google\Chrome\Application\chrome.exe")
