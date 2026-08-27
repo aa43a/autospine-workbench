@@ -209,7 +209,17 @@ E:\proj\unusual\localset\tmp\psd_audit\results\<project-id>\audit.json
 
 固定 Spine 4.2 profile 的 adapter 和验证链已经存在，但每个新 rig/clip 仍需分别完成 attachment 边界视觉回归、官方 Runtime 证据和许可审查。
 
-## 9. 常用验证命令
+## 9. 下一阶段开发者入口（P10.6a）
+
+普通图层/关节复核不需要运行这一阶段。开发版本中立动画编译链时，可按
+[编译 P10.6a body-sway 动作消费准入](how-to-compile-body-sway-motion-consumer-admission.md)
+把认证的 P10.5d probe 与精确 P9 MotionInstance v2 bundle 重新闭合。
+
+P10.6a 只说明 setup-local timeline 编译器可以开始消费这组输入；它不会生成
+MotionInstance v3 或 Spine timeline。其视觉与接缝 current-head 观察仅在本次编译时有效，
+完整边界视觉回归、官方 Runtime 和发布门禁仍须在后续阶段独立完成。
+
+## 10. 常用验证命令
 
 以下命令都在项目根目录执行。
 
@@ -260,7 +270,7 @@ git diff --check
 python -m pip install -e ".[test]"
 ```
 
-## 10. 建议的最小验收清单
+## 11. 建议的最小验收清单
 
 一次操作完成前，至少确认：
 

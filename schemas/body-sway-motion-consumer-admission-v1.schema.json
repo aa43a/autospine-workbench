@@ -1,0 +1,382 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/body-sway-motion-consumer-admission-v1.schema.json",
+  "title": "AutoSpine BodySwayMotionConsumerAdmission v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "project_id", "clip_id", "core_sha256",
+    "source", "motion_domain", "profile", "head_observations", "claims",
+    "status", "release_gate", "summary"
+  ],
+  "properties": {
+    "format": {"const": "autospine-body-sway-motion-consumer-admission"},
+    "format_version": {"type": "integer", "const": 1},
+    "project_id": {"$ref": "#/$defs/id"},
+    "clip_id": {"$ref": "#/$defs/id"},
+    "core_sha256": {"$ref": "#/$defs/sha"},
+    "source": {"$ref": "#/$defs/source"},
+    "motion_domain": {"$ref": "#/$defs/motionDomain"},
+    "profile": {"$ref": "#/$defs/profile"},
+    "head_observations": {"$ref": "#/$defs/headObservations"},
+    "claims": {"$ref": "#/$defs/claims"},
+    "status": {"const": "setup_local_timeline_compilation_admitted"},
+    "release_gate": {"$ref": "#/$defs/releaseGate"},
+    "summary": {"$ref": "#/$defs/summary"}
+  },
+  "$defs": {
+    "id": {
+      "type": "string", "minLength": 1, "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "revision": {"type": "integer", "minimum": 1, "maximum": 64},
+    "p9": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "foot_lock_candidates_sha256", "depth_order_candidates_sha256",
+        "motion_policy_decision_sha256", "reviewed_motion_policy_sha256",
+        "motion_instance_v2_sha256", "run_sha256", "bundle_sha256"
+      ],
+      "properties": {
+        "foot_lock_candidates_sha256": {"$ref": "#/$defs/sha"},
+        "depth_order_candidates_sha256": {"$ref": "#/$defs/sha"},
+        "motion_policy_decision_sha256": {"$ref": "#/$defs/sha"},
+        "reviewed_motion_policy_sha256": {"$ref": "#/$defs/sha"},
+        "motion_instance_v2_sha256": {"$ref": "#/$defs/sha"},
+        "run_sha256": {"$ref": "#/$defs/sha"},
+        "bundle_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "source_set_sha256", "dynamic_seam_probe_sha256",
+        "body_sway_dynamic_seam_probe", "dynamic_seam_source_set_sha256",
+        "continuous_preview_proof_sha256", "continuous_source_set_sha256",
+        "reviewed_seam_anchor_set_sha256",
+        "reviewed_seam_anchor_set_bundle_sha256", "rig_ir_sha256",
+        "target_profile_sha256", "preview_projection_sha256", "p9"
+      ],
+      "properties": {
+        "source_set_sha256": {"$ref": "#/$defs/sha"},
+        "dynamic_seam_probe_sha256": {"$ref": "#/$defs/sha"},
+        "body_sway_dynamic_seam_probe": {
+          "$ref": "body-sway-dynamic-seam-probe-v1.schema.json"
+        },
+        "dynamic_seam_source_set_sha256": {"$ref": "#/$defs/sha"},
+        "continuous_preview_proof_sha256": {"$ref": "#/$defs/sha"},
+        "continuous_source_set_sha256": {"$ref": "#/$defs/sha"},
+        "reviewed_seam_anchor_set_sha256": {"$ref": "#/$defs/sha"},
+        "reviewed_seam_anchor_set_bundle_sha256": {"$ref": "#/$defs/sha"},
+        "rig_ir_sha256": {"$ref": "#/$defs/sha"},
+        "target_profile_sha256": {"$ref": "#/$defs/sha"},
+        "preview_projection_sha256": {"$ref": "#/$defs/sha"},
+        "p9": {"$ref": "#/$defs/p9"}
+      }
+    },
+    "gain": {
+      "const": {"numerator": 1, "denominator": 1}
+    },
+    "sampleSchedule": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "sampling", "probe_tick_schedule_sha256",
+        "probe_sample_stream_sha256", "sample_count", "first_tick",
+        "last_tick"
+      ],
+      "properties": {
+        "sampling": {"const": "p10-probe-schedule"},
+        "probe_tick_schedule_sha256": {"$ref": "#/$defs/sha"},
+        "probe_sample_stream_sha256": {"$ref": "#/$defs/sha"},
+        "sample_count": {"type": "integer", "minimum": 2, "maximum": 4096},
+        "first_tick": {"type": "integer", "minimum": 0, "maximum": 600000000},
+        "last_tick": {"type": "integer", "minimum": 1, "maximum": 600000000}
+      }
+    },
+    "rotationTrack": {
+      "allOf": [
+        {"$ref": "motion-instance-v2.schema.json#/$defs/track"},
+        {"properties": {"property": {"const": "rotation"}}}
+      ]
+    },
+    "translationTrack": {
+      "allOf": [
+        {"$ref": "motion-instance-v2.schema.json#/$defs/track"},
+        {"properties": {
+          "bone_id": {"const": "root-pelvis"},
+          "property": {"const": "translation"}
+        }}
+      ]
+    },
+    "rotationTimeline": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "interpolation", "projection_sha256", "rotation_timeline_sha256",
+        "tracks"
+      ],
+      "properties": {
+        "interpolation": {"const": "sampled-linear"},
+        "projection_sha256": {"$ref": "#/$defs/sha"},
+        "rotation_timeline_sha256": {"$ref": "#/$defs/sha"},
+        "tracks": {
+          "type": "array", "minItems": 1, "maxItems": 17,
+          "items": {"$ref": "#/$defs/rotationTrack"}
+        }
+      }
+    },
+    "rootTranslation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["mode", "tracks"],
+      "properties": {
+        "mode": {"const": "exact-motion-instance-v2-linear"},
+        "tracks": {
+          "type": "array", "maxItems": 1,
+          "items": {"$ref": "#/$defs/translationTrack"}
+        }
+      }
+    },
+    "markers": {
+      "type": "object", "additionalProperties": false,
+      "required": ["mode", "items"],
+      "properties": {
+        "mode": {"const": "exact-motion-instance-v2"},
+        "items": {
+          "type": "array", "maxItems": 256,
+          "items": {
+            "$ref": "motion-instance-v2.schema.json#/$defs/contactMarker"
+          }
+        }
+      }
+    },
+    "drawOrder": {
+      "type": "object", "additionalProperties": false,
+      "required": ["mode", "value"],
+      "properties": {
+        "mode": {"const": "exact-motion-instance-v2-stepped"},
+        "value": {
+          "$ref": "motion-instance-v2.schema.json#/$defs/drawOrder"
+        }
+      }
+    },
+    "baseChannels": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "motion_instance_v2_sha256", "root_translation", "markers",
+        "draw_order", "base_channels_sha256"
+      ],
+      "properties": {
+        "motion_instance_v2_sha256": {"$ref": "#/$defs/sha"},
+        "root_translation": {"$ref": "#/$defs/rootTranslation"},
+        "markers": {"$ref": "#/$defs/markers"},
+        "draw_order": {"$ref": "#/$defs/drawOrder"},
+        "base_channels_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "motionDomain": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "coordinate_space", "timing", "selected_gain", "sample_ticks",
+        "sample_schedule", "rotation_timeline", "base_channels",
+        "motion_domain_sha256"
+      ],
+      "properties": {
+        "coordinate_space": {
+          "$ref": "motion-instance-v2.schema.json#/$defs/targetSpace"
+        },
+        "timing": {"$ref": "motion-instance-v2.schema.json#/$defs/timing"},
+        "selected_gain": {"$ref": "#/$defs/gain"},
+        "sample_ticks": {
+          "type": "array", "minItems": 2, "maxItems": 4096,
+          "uniqueItems": true,
+          "items": {"type": "integer", "minimum": 0, "maximum": 600000000}
+        },
+        "sample_schedule": {"$ref": "#/$defs/sampleSchedule"},
+        "rotation_timeline": {"$ref": "#/$defs/rotationTimeline"},
+        "base_channels": {"$ref": "#/$defs/baseChannels"},
+        "motion_domain_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "profile": {
+      "const": {
+        "id": "body-sway-motion-consumer-admission",
+        "version": "1.0.0",
+        "canonicalization": "canonical-json-utf8-sort-keys-no-nonfinite",
+        "config": {
+          "consumer_contract": "version-neutral-setup-local-timeline",
+          "selected_gain": {"numerator": 1, "denominator": 1},
+          "rotation_interpolation": "sampled-linear",
+          "root_translation": "exact-motion-instance-v2-linear",
+          "markers": "exact-motion-instance-v2",
+          "draw_order": "exact-motion-instance-v2-stepped",
+          "head_check": "before-and-after-exact-current-head-observation",
+          "exclusions": [
+            "dynamic-seam-safety",
+            "full-attachment-boundary-continuity",
+            "raster-or-visual-quality",
+            "runtime-equivalence",
+            "motion-instance-v3-emission",
+            "spine-adapter-emission",
+            "release-authority"
+          ]
+        }
+      }
+    },
+    "visualAddress": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "project_id", "temporary_preview_sha256",
+        "runtime_capture_bundle_sha256", "capture_artifact_set_sha256"
+      ],
+      "properties": {
+        "project_id": {"$ref": "#/$defs/id"},
+        "temporary_preview_sha256": {"$ref": "#/$defs/sha"},
+        "runtime_capture_bundle_sha256": {"$ref": "#/$defs/sha"},
+        "capture_artifact_set_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "seamAddress": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "project_id", "layer_manifest_sha256", "p3_rig_sha256",
+        "p3_bundle_sha256"
+      ],
+      "properties": {
+        "project_id": {"$ref": "#/$defs/id"},
+        "layer_manifest_sha256": {"$ref": "#/$defs/sha"},
+        "p3_rig_sha256": {"$ref": "#/$defs/sha"},
+        "p3_bundle_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "reviewIdentity": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "source_set_sha256", "project_id", "visual_review",
+        "seam_anchor_review", "reviewed_seam_anchor_set_sha256"
+      ],
+      "properties": {
+        "source_set_sha256": {"$ref": "#/$defs/sha"},
+        "project_id": {"$ref": "#/$defs/id"},
+        "visual_review": {
+          "type": "object", "additionalProperties": false,
+          "required": [
+            "address", "candidate_sha256", "revision", "decision_sha256"
+          ],
+          "properties": {
+            "address": {"$ref": "#/$defs/visualAddress"},
+            "candidate_sha256": {"$ref": "#/$defs/sha"},
+            "revision": {"$ref": "#/$defs/revision"},
+            "decision_sha256": {"$ref": "#/$defs/sha"}
+          }
+        },
+        "seam_anchor_review": {
+          "type": "object", "additionalProperties": false,
+          "required": [
+            "address", "candidate_sha256", "revision", "decision_sha256"
+          ],
+          "properties": {
+            "address": {"$ref": "#/$defs/seamAddress"},
+            "candidate_sha256": {"$ref": "#/$defs/sha"},
+            "revision": {"$ref": "#/$defs/revision"},
+            "decision_sha256": {"$ref": "#/$defs/sha"}
+          }
+        },
+        "reviewed_seam_anchor_set_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "observation": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "method", "scope", "identity", "checks",
+        "permanent_authority_claimed"
+      ],
+      "properties": {
+        "method": {
+          "const": "visual-review-double-snapshot-plus-seam-review-history-a-b"
+        },
+        "scope": {"const": "compile_time"},
+        "identity": {"$ref": "#/$defs/reviewIdentity"},
+        "checks": {
+          "const": {
+            "visual_review_head": "observed_current",
+            "seam_anchor_review_head": "observed_current",
+            "reviewed_seam_anchor_set": "canonical_replay_matched"
+          }
+        },
+        "permanent_authority_claimed": {"const": false}
+      }
+    },
+    "observationEntry": {
+      "type": "object", "additionalProperties": false,
+      "required": ["observation", "canonical_sha256"],
+      "properties": {
+        "observation": {"$ref": "#/$defs/observation"},
+        "canonical_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "headObservations": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "method", "scope", "before", "after", "observations_match",
+        "permanent_authority_claimed", "head_observations_sha256"
+      ],
+      "properties": {
+        "method": {"const": "before-after-current-head-recheck"},
+        "scope": {"const": "compile_time"},
+        "before": {"$ref": "#/$defs/observationEntry"},
+        "after": {"$ref": "#/$defs/observationEntry"},
+        "observations_match": {"const": true},
+        "permanent_authority_claimed": {"const": false},
+        "head_observations_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "claims": {
+      "const": {
+        "exact_source_closure": true,
+        "current_review_heads_at_compile_time": true,
+        "continuous_preview_model_structural_certified": true,
+        "reviewed_anchor_engineering_proximity_certified": true,
+        "setup_local_timeline_compilation_admitted": true,
+        "dynamic_seam_safety": false,
+        "full_attachment_boundary_continuity": false,
+        "raster_visual_quality": false,
+        "runtime_equivalence": false,
+        "motion_instance_v3_emitted": false,
+        "spine_adapter_emitted": false,
+        "publishable_timeline": false,
+        "release_authority": false
+      }
+    },
+    "releaseGate": {
+      "const": {
+        "status": "blocked",
+        "reason_codes": [
+          "dynamic_seam_safety_unproven",
+          "full_attachment_boundary_raster_visual_regression_missing",
+          "motion_instance_v3_not_emitted",
+          "publishable_timeline_not_emitted",
+          "runtime_equivalence_unproven",
+          "spine_adapter_not_emitted"
+        ]
+      }
+    },
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "sample_count", "rotation_track_count", "rotation_key_count",
+        "root_translation_track_count", "root_translation_key_count",
+        "marker_count", "draw_order_key_count", "head_observation_count"
+      ],
+      "properties": {
+        "sample_count": {"type": "integer", "minimum": 2, "maximum": 4096},
+        "rotation_track_count": {"type": "integer", "minimum": 1, "maximum": 17},
+        "rotation_key_count": {"type": "integer", "minimum": 2, "maximum": 69632},
+        "root_translation_track_count": {"type": "integer", "minimum": 0, "maximum": 1},
+        "root_translation_key_count": {"type": "integer", "minimum": 0, "maximum": 4096},
+        "marker_count": {"type": "integer", "minimum": 0, "maximum": 256},
+        "draw_order_key_count": {"type": "integer", "minimum": 1, "maximum": 4096},
+        "head_observation_count": {"type": "integer", "const": 2}
+      }
+    }
+  }
+}

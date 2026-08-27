@@ -31,6 +31,7 @@ AutoSpine Workbench 是一个本地人工复核界面，用于查看 See-through
 - 沿已复核四骨幅度向量的统一 gain 射线生成九个离散候选，并以有界区间细分覆盖每一对 sampled-linear preview key；只能授予预览数学模型的结构 claim，runtime、视觉范围、接缝和发布权仍保持阻塞。
 - 从精确 Layer Manifest/P3 静态链编译六条四肢 attachment 接缝关系，输出 region/mesh locator 候选与完整算法 profile；只供人工比较，不自动选择锚点。
 - 把完整 P10.4b2 proof 与精确 P10.5c bundle 接入双层 current-head 检查，在全部相邻 tick 和统一 gain 上证明 reviewed-anchor point 的 `4 px²` 工程距离代理；attachment 边界、raster/视觉、runtime 与发布仍保持阻塞。
+- 把认证的 P10.5d probe 与其内嵌精确 P9 bundle 重新闭合为 P10.6a 版本中立 setup-local timeline 消费准入，并在纯编译前后重查视觉与接缝 current head；它不发出 MotionInstance v3 或 Spine timeline。
 - 从精确 P3 或 P3/P5 地址导出、发布并重建验证固定 profile 的 Spine 4.2 JSON/atlas/PNG 五文件 bundle。
 
 ## 快速启动
@@ -187,6 +188,7 @@ JSON Schema 位于：
 - `schemas/idle-behavior-candidates-v1.schema.json`、`schemas/idle-behavior-decision-v1.schema.json` 与 `schemas/body-sway-probe-report-v1.schema.json`：P10.0–P10.2 idle 候选、人工参数决定与只读采样结构诊断；
 - `schemas/body-sway-runtime-capture-v1.schema.json`、`schemas/body-sway-visual-review-*.schema.json`、`schemas/body-sway-review-admission-v1.schema.json`、`schemas/body-sway-amplitude-envelope-candidate-v1.schema.json` 与 `schemas/body-sway-continuous-preview-proof-v1.schema.json`：P10.3 runtime 证据、sampled visual revision、P10.4a 当前审批头准入、P10.4b1 离散幅度候选与 P10.4b2 连续预览模型证明；
 - `schemas/seam-anchor-candidates-v1.schema.json`、`schemas/seam-anchor-review-decision-v1.schema.json`、`schemas/reviewed-seam-anchor-set-v1.schema.json` 与 `schemas/body-sway-dynamic-seam-probe-v1.schema.json`：P10.5a 六条静态接缝候选、P10.5b 候选/P3 绑定的人工 revision、P10.5c 固定六关系的已复核静态锚点集，以及 P10.5d 动态 reviewed-anchor proximity 工程代理；
+- `schemas/body-sway-motion-consumer-admission-v1.schema.json`：P10.6a 完整 P10.5d/P9 source closure、unit-gain setup-local motion domain 与 compile-time 双 head seal；
 - `schemas/motion-retarget-report-v1.schema.json` 与 `schemas/motion-mesh-regression-v1.schema.json`：P5 运动学、接触与逐帧 mesh 安全门禁。
 
 Layer Manifest 与 RigIR 是下游流水线合同。当前 UI 负责逐层 authoring 与复核，离线命令负责生成 region-only RigIR；它不包含 mesh、权重或动画，也不会冒充某一 Spine 版本。RigIR 对不支持特性的策略固定为 `fail`，防止 constraint、mesh 或 timeline 被静默丢弃。
@@ -391,6 +393,8 @@ P10.5c 用 `compile-reviewed-seam-anchor-set` 按 `history A → exact decision/
 
 P10.5d 用 `compile-body-sway-dynamic-seam-probe` 读取完整 P10.4b2 proof 文件与一个精确 P10.5c 双 SHA bundle，在分析前后分别重查视觉和接缝 current head，并覆盖每一对相邻 tick、统一 `λ∈[0,1]` 和全部 reviewed anchor pairs。成功 stdout 已包含完整 path-free probe；命令零写入，退出 `0` 时 probe 仍可能为 `indeterminate`。`4 px² = 2 px` 只是一项 anchor-point 工程代理，不是 attachment 边界、raster/视觉或 runtime 结论。完整操作、双层快照、失败语义与真实 A/B blocked gate 见 [探测 P10.5d body-sway 动态接缝锚点](docs/how-to-probe-body-sway-dynamic-seams.md)。
 
+P10.6a 用 `compile-body-sway-motion-consumer-admission` 读取一个完整 canonical P10.5d probe 文件及其显式 SHA，从 probe source closure 中按精确 P9 MotionInstance v2/bundle 地址复验 reviewed-motion bundle，并在 pure core 编译前后重查视觉与接缝 current head。输出内嵌完整 probe、unit-gain setup-local rotation timeline domain 和 MIv2 原有 root/marker/draw-order channels；命令零写入，head scope 仅为 `compile_time`，不发出 MotionInstance v3、Spine adapter 或发布 timeline。操作与边界见 [编译 P10.6a body-sway 动作消费准入](docs/how-to-compile-body-sway-motion-consumer-admission.md)。
+
 P6 使用 `compile-spine42` 把一个精确 P3 地址导出为 setup-only bundle，或与一对精确 P5 MotionInstance/bundle SHA 组合为单动画 bundle；`verify-spine42` 从导出双 SHA 重建完整上游链。五文件地址、官方 runtime 的本地安装边界与 capture 操作见 [导出、复验并运行 P6 Spine 4.2 资产](docs/how-to-export-spine42.md)。
 
 对版本中立 RigIR 做语义检查：
@@ -477,7 +481,7 @@ P1 已交付 pose、alpha 中轴线和层接触候选，以及候选比较、四
 - 若要恢复旧 revision，先停止服务，备份整个项目 override 目录，再将目标历史快照作为新的、经过校验的 revision 提交；当前界面尚未提供历史浏览/回滚按钮。
 - validation 的 `valid=true` 仅表示结构和本地资产检查没有硬错误，不等于美术、遮挡补全、pivot、mesh 或动画通过视觉验收。
 
-## 已完成阶段：P2 region RigIR 至 P9 reviewed motion，以及 P10.0–P10.5d dynamic seam probe
+## 已完成阶段：P2 region RigIR 至 P9 reviewed motion，以及 P10.0–P10.6a motion-consumer admission
 
 P0 合同加固、P1 四肢候选与 P2 region-only RigIR 已贯通：`stage-scoped analysis → immutable geometry/candidates → candidate-bound revision → deterministic resolved snapshot → reviewed Layer Manifest → RigIR/setup bundle`。P2 没有提前引入 mesh：
 
@@ -542,7 +546,9 @@ P10.5b 已增加 `SeamAnchorReviewDecision v1`：相同四段精确地址会重�
 
 P10.5c 已增加 `ReviewedSeamAnchorSet v1`：只有 current ready head 可被投影，set 固定六关系顺序、2–8 对 materialized anchors 和六项 source 身份，不重新选择 option 或生成 locator fallback。三文件 bundle 在写前重编并以 set/bundle 双 SHA 寻址；历史精确地址可复验但不拥有永久 current-head authority。真实 A/B opt-in gate 中 A 只使用明确标注的 test-only 内存决定验证合同可编译，B 的四条不可观测关系保持 blocked；该 gate 不构成真实人工批准或资产 golden。动态 seam、runtime/视觉质量和发布权仍固定为 false/blocked。
 
-P10.5d 已增加 `BodySwayDynamicSeamProbe v1`：它完整重放 P10.4b2 与 P10.5c source closure，用 region 刚性投影或 mesh 重心/LBS 投影检查固定六关系的全部 reviewed anchor pairs，并以有界区间覆盖相邻 tick 与统一 gain。命令在 pure analysis 外再包一层 before/after current-head 检查，每次观察内部又执行视觉与接缝双快照；scope 只在 compile time 有效。只有上游结构证明和全部 seam segment 同时认证才开放 proximity 工程 claim；`dynamic_seam_safety`、边界连续、raster/视觉、runtime、timeline 与 release authority 始终为 false/blocked。下一步应由 MotionInstance v3 消费方重新检查 heads，并补官方 runtime 与完整边界视觉回归。
+P10.5d 已增加 `BodySwayDynamicSeamProbe v1`：它完整重放 P10.4b2 与 P10.5c source closure，用 region 刚性投影或 mesh 重心/LBS 投影检查固定六关系的全部 reviewed anchor pairs，并以有界区间覆盖相邻 tick 与统一 gain。命令在 pure analysis 外再包一层 before/after current-head 检查，每次观察内部又执行视觉与接缝双快照；scope 只在 compile time 有效。只有上游结构证明和全部 seam segment 同时认证才开放 proximity 工程 claim；`dynamic_seam_safety`、边界连续、raster/视觉、runtime、timeline 与 release authority 始终为 false/blocked。
+
+P10.6a 已增加 `BodySwayMotionConsumerAdmission v1`：只有认证的 P10.5d probe 可以进入，source 内嵌其完整 canonical 文档，并重新绑定/复验精确 P9 MotionInstance v2 六文件 bundle。pure core 选定 reviewed unit gain，把 sampled-linear rotation keys 与 MIv2 原有 root translation、markers、stepped draw order 组织为版本中立 setup-local motion domain；seal 在前后两次 current-head observation 完全一致后才开放 `setup_local_timeline_compilation_admitted`。所有 observation scope 仅为 `compile_time`；MotionInstance v3、Spine adapter、完整 attachment 边界、raster/视觉、runtime、publishable timeline 与 release authority 均未生成或证明，release gate 保持 blocked。
 
 姿态 runner 与真实标注评估集仍是独立质量轨，不阻塞版本中立 P2 编译；诊断 setup prior 不能替代真实模型基线。
 
@@ -564,6 +570,7 @@ P10.5d 已增加 `BodySwayDynamicSeamProbe v1`：它完整重放 P10.4b2 与 P10
 - 把 P10.5a 静态候选、contact overlap 或 locator evidence 当成人工决定、reviewed seam anchor set 或动态动作域接缝安全；
 - 把 P10.5c 的静态 ReviewedSeamAnchorSet、历史 bundle 可复验或 compile-time current-head 观察当成永久审批权、动态 seam 证明、runtime/视觉质量或发布许可；
 - 把 P10.5d 的 `4 px²` reviewed-anchor point 代理、`compiled` 命令状态或保存的 stdout 当成完整 attachment 边界连续、raster/视觉接缝通过、runtime 等价、永久 current-head authority 或发布许可；
+- 把 P10.6a 的 setup-local timeline compilation admission 当成 MotionInstance v3/Spine adapter 已发出、完整边界或 raster 视觉通过、runtime 等价、永久 head authority、publishable timeline 或 release authority；
 - 在未提供并确认授权的官方 Spine 4.2.119 runtime 时，用 test-only player stub、进程 smoke 或任意相邻截图冒充真实 capture；
 - 生成眨眼/口型素材、实时追踪映射或运行时物理；
 - 捆绑或再分发官方 Spine runtime、判断任意未知 Spine 版本、生成 Spine Editor 工程，或覆盖固定 P6 profile 之外的特性；

@@ -80,6 +80,8 @@ exact Layer Manifest + exact P3 static bundle
                                       ↓
                  P10.5d dynamic seam probe
                                       ↓
+           P10.6a motion-consumer admission
+                                      ↓
                            blocked release
 
 server → application services only
@@ -100,6 +102,8 @@ web    → HTTP contracts only
 - P10.5b/P10.5c 把人工 revision 与静态 ReviewedSet 分离；历史 bundle 可以精确复验，但只有 current ready head 能进入后续编译。P10.5d 不从 candidate 重新选 locator，也不把历史可读性升级为 current authority。
 - P10.5d command 从完整 P10.4b2 proof 和精确 P10.5c 双 SHA 建立 source closure，在 pure analyzer 外执行 before/after current-head observation；每个 observation 内部又分别双快照视觉与接缝历史。全部 observation 只在 compile time 有效，consumer 必须重新检查。
 - P10.5d analyzer 对六关系全部 reviewed pairs 覆盖相邻 tick 与统一 gain，只认证 `4 px²` reviewed-anchor point proximity 工程代理。region–region、region–mesh、mesh–region 有固定投影；mesh–mesh、预算耗尽、非有限包络、backend 自相矛盾和任何 head 漂移都 fail closed。attachment 边界、raster/视觉、runtime、timeline 和发布明确排除。
+- P10.6a consumer admission 内嵌并完整重放 P10.5d probe，从其 source closure 读取精确 P9 双地址并复验 reviewed-motion bundle；pure core 只构造 unit-gain、setup-local、版本中立 motion domain，seal 前后重新观察视觉与接缝 current head。
+- P10.6a 不发出 MotionInstance v3、adapter 或 Spine timeline。其内部与 CLI 外层 head observation scope 都固定为 `compile_time`；完整 attachment 边界、raster/视觉、runtime、publishable timeline 和 release authority 保持 blocked。
 - Kimodo 的 raw NPZ、source sidecar 与 map 是三个独立输入。sidecar 解释数组/FPS/producer，map 决定投影/角色/contact；两者都不得根据文件名、数组数量或相邻目录隐式发现。
 
 ## 文件长度预算
@@ -376,9 +380,38 @@ head observation 的 scope 都固定为 `compile_time`，保存 stdout 或重复
 获得永久 authority。操作、退出码与真实 A/B test-only/blocked 边界见
 [探测 P10.5d body-sway 动态接缝锚点](how-to-probe-body-sway-dynamic-seams.md)。
 
-后续消费阶段继续遵守：
+P10.6a 在不改变 P9、P10.4b2、P10.5c 或 P10.5d hash 语义的前提下建立消费入口：
 
-- motion contract：MotionInstance v3 或通用动画消费方重新检查两个 current head，不直接信任历史 stdout。
+```text
+certified BodySwayDynamicSeamProbe v1（完整内嵌）
+                         +
+ exact P9 MotionInstance v2 / reviewed bundle
+                         ↓ full replay + byte identity
+       before current-head observation
+                         ↓
+                 pure core compiler
+  unit gain sampled-linear rotations + exact MIv2 base channels
+                         ↓
+       after current-head observation
+                         ↓ exact identity + canonical bytes
+        BodySwayMotionConsumerAdmission v1
+                         ↓
+                 release remains blocked
+```
+
+`motion_domain` 只组织后续编译器可以消费的版本中立 setup-local 数据：P10 preview 的
+sample ticks/rotation keys，以及 MIv2 原有 root translation、contact markers 和 stepped
+draw order。它有独立 source、base-channel、motion-domain 与 head-observation seal，公开
+validator 仍从内嵌 probe 和外部精确 P9 bundle 重编 pure core，不能只信任这些摘要。
+
+准入 status `setup_local_timeline_compilation_admitted` 只说明下一个 timeline compiler
+可以开始工作。它不含 MotionInstance v3、adapter 或 Spine export；before/after observation
+及 CLI 的外层 observation 都只在 `compile_time` 有效。操作入口见
+[编译 P10.6a body-sway 动作消费准入](how-to-compile-body-sway-motion-consumer-admission.md)。
+
+后续 timeline/runtime 阶段继续遵守：
+
+- motion contract：MotionInstance v3 或通用动画编译器在实际消费时重新检查两个 current head，不直接信任历史 admission/stdout。
 - setup：画布、原点、side 语义、draw order 和 region 合成回归通过。
 - visual：除锚点代理外，完整 attachment 边界在固定动作与极值帧通过 raster/人工回归。
 - runtime：目标 adapter 的能力矩阵明确，未支持特性 fail loud；产物不依赖伪造版本字段。
