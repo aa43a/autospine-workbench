@@ -8,16 +8,16 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import math
-from typing import TypeAlias
 
 from .body_sway_interval_arithmetic import (
     OutwardInterval,
-    ZERO,
-    cosine_interval,
-    radians_interval,
     round_down,
     round_up,
-    sine_interval,
+)
+from .body_sway_interval_pose import (
+    IntervalPoint,
+    prepare_body_sway_interval_pose,
+    skin_body_sway_interval_binding,
 )
 from .body_sway_probe_geometry_context import (
     PreparedBodySwayGeometryContext,
@@ -25,16 +25,6 @@ from .body_sway_probe_geometry_context import (
     PreparedBodySwayRegion,
 )
 from .mesh_deformation_metrics import SETUP_AREA_EPSILON
-
-
-IntervalPoint: TypeAlias = tuple[OutwardInterval, OutwardInterval]
-IntervalMatrix: TypeAlias = tuple[
-    OutwardInterval, OutwardInterval, OutwardInterval,
-    OutwardInterval, OutwardInterval, OutwardInterval,
-]
-_Q9_HALF_UNIT = round_up(0.5e-9)
-_Q4096_HALF_UNIT = 1.0 / 8192.0
-
 
 @dataclass(frozen=True, slots=True)
 class BodySwayIntervalGeometryBounds:
@@ -75,28 +65,22 @@ def assess_body_sway_interval_box(
 
     if type(context) is not PreparedBodySwayGeometryContext:
         raise ValueError("Continuous interval geometry context is invalid")
-    deltas = _rotation_deltas(
-        context, left_base_rotation_deg, right_base_rotation_deg,
-        left_overlay_rotation_deg, right_overlay_rotation_deg,
-        time_fraction, gain,
-    )
-    matrices = _skin_matrices(context, deltas)
-    root = (
-        _q9_linear_interval(
-            left_root_translation_xy[0], right_root_translation_xy[0],
-            time_fraction,
-        ),
-        _q9_linear_interval(
-            left_root_translation_xy[1], right_root_translation_xy[1],
-            time_fraction,
-        ),
+    pose = prepare_body_sway_interval_pose(
+        context,
+        left_base_rotation_deg=left_base_rotation_deg,
+        right_base_rotation_deg=right_base_rotation_deg,
+        left_overlay_rotation_deg=left_overlay_rotation_deg,
+        right_overlay_rotation_deg=right_overlay_rotation_deg,
+        left_root_translation_xy=left_root_translation_xy,
+        right_root_translation_xy=right_root_translation_xy,
+        time_fraction=time_fraction, gain=gain,
     )
     reasons: set[str] = set()
     canvas_margin = math.inf
     minimum_area, maximum_area, maximum_stretch = math.inf, -math.inf, -math.inf
     vertex_count = triangle_count = edge_count = 0
     for attachment in context.attachments:
-        vertices = _skin_attachment(attachment.binding, matrices, root)
+        vertices = skin_body_sway_interval_binding(pose, attachment.binding)
         vertex_count += len(vertices)
         for vertex in vertices:
             margin = _canvas_margin(vertex, context.canvas_size)
@@ -139,7 +123,7 @@ def assess_body_sway_interval_box(
             ).square().lower
             if squared.upper >= distance_limit:
                 reasons.add("maximum_edge_stretch_unproven")
-    if any(not matrix_value.finite for matrix in matrices
+    if any(not matrix_value.finite for matrix in pose.skin_matrices
            for matrix_value in matrix):
         reasons.add("non_finite_interval_bound")
     if vertex_count == 0:
@@ -165,93 +149,6 @@ def assess_body_sway_interval_box(
         vertex_count=vertex_count, triangle_count=triangle_count,
         edge_count=edge_count,
     )
-
-
-def _rotation_deltas(context, left_base, right_base, left_overlay,
-                     right_overlay, time_fraction, gain):
-    result = {}
-    for bone_id in context.skinning_rig.bone_ids:
-        base = _q9_linear_interval(
-            left_base.get(bone_id, 0.0), right_base.get(bone_id, 0.0),
-            time_fraction,
-        )
-        overlay = _q9_linear_interval(
-            left_overlay.get(bone_id, 0.0),
-            right_overlay.get(bone_id, 0.0), time_fraction,
-        )
-        result[bone_id] = base + gain * overlay + _q9_error()
-    return result
-
-
-def _skin_matrices(context, deltas) -> tuple[IntervalMatrix, ...]:
-    rig = context.skinning_rig
-    world: dict[str, IntervalMatrix] = {}
-    for bone_id in rig._order:
-        bone = rig._bones[rig._bone_index[bone_id]]
-        local = _local_matrix(bone, deltas[bone_id])
-        world[bone_id] = local if bone.parent is None else _compose(
-            world[bone.parent], local
-        )
-    return tuple(
-        _compose(
-            world[bone.identifier],
-            tuple(OutwardInterval.point(value)
-                  for value in rig._setup_inverse[index]),
-        )
-        for index, bone in enumerate(rig._bones)
-    )
-
-
-def _local_matrix(bone, delta) -> IntervalMatrix:
-    angle = radians_interval(OutwardInterval.point(bone.rotation_deg) + delta)
-    cosine, sine = cosine_interval(angle), sine_interval(angle)
-    scale_x, scale_y = (
-        OutwardInterval.point(bone.scale_x),
-        OutwardInterval.point(bone.scale_y),
-    )
-    return (
-        cosine * scale_x, sine * scale_x,
-        (ZERO - sine) * scale_y, cosine * scale_y,
-        OutwardInterval.point(bone.x), OutwardInterval.point(bone.y),
-    )
-
-
-def _compose(parent: IntervalMatrix, local: IntervalMatrix) -> IntervalMatrix:
-    pa, pb, pc, pd, ptx, pty = parent
-    la, lb, lc, ld, ltx, lty = local
-    return (
-        pa * la + pc * lb, pb * la + pd * lb,
-        pa * lc + pc * ld, pb * lc + pd * ld,
-        pa * ltx + pc * lty + ptx,
-        pb * ltx + pd * lty + pty,
-    )
-
-
-def _apply(matrix: IntervalMatrix, point) -> IntervalPoint:
-    a, b, c, d, tx, ty = matrix
-    x, y = OutwardInterval.point(point[0]), OutwardInterval.point(point[1])
-    return a * x + c * y + tx, b * x + d * y + ty
-
-
-def _skin_attachment(binding, matrices, root) -> tuple[IntervalPoint, ...]:
-    result = []
-    for bind, influences in zip(
-        binding._vertices, binding._influences, strict=True,
-    ):
-        x, y = ZERO, ZERO
-        for bone_index, weight in influences:
-            posed = _apply(matrices[bone_index], bind)
-            scalar = OutwardInterval.point(weight)
-            x, y = x + posed[0] * scalar, y + posed[1] * scalar
-        quantization = OutwardInterval(
-            -_Q4096_HALF_UNIT, _Q4096_HALF_UNIT
-        )
-        result.append((
-            x + root[0] + quantization,
-            y + root[1] + quantization,
-        ))
-    return tuple(result)
-
 
 def _canvas_margin(vertex, canvas) -> float:
     x, y = vertex
@@ -280,13 +177,3 @@ def _squared_ratio_upper(squared, setup_length) -> float:
     if setup_squared_lower <= 0.0:
         return math.inf
     return round_up(squared.upper / setup_squared_lower)
-
-
-def _q9_linear_interval(left, right, fraction):
-    left_value = OutwardInterval.point(left) + _q9_error()
-    right_value = OutwardInterval.point(right) + _q9_error()
-    return left_value + (right_value - left_value) * fraction
-
-
-def _q9_error():
-    return OutwardInterval(-_Q9_HALF_UNIT, _Q9_HALF_UNIT)
