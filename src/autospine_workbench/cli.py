@@ -35,6 +35,10 @@ from .projection_stage_cli import (
     dispatch_projection_stage_command as _dispatch_projection_stage,
 )
 from .rig_validation import RigSemanticValidator
+from .reviewed_seam_anchor_set_cli import (
+    add_reviewed_seam_anchor_set_subcommands,
+    dispatch_reviewed_seam_anchor_set_command as _dispatch_reviewed_seam_set,
+)
 from .rig_commands import (
     add_rig_subcommands,
     compile_rig_command as _compile_rig,
@@ -234,6 +238,10 @@ def build_parser() -> argparse.ArgumentParser:
         subparsers,
         default_state_root=_project_root() / "workspace",
     )
+    add_reviewed_seam_anchor_set_subcommands(
+        subparsers,
+        default_state_root=_project_root() / "workspace",
+    )
     return parser
 
 
@@ -338,6 +346,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     spine42_stage_status = _dispatch_spine42_stage(args)
     if spine42_stage_status is not None:
         return spine42_stage_status
+    reviewed_seam_set_status = _dispatch_reviewed_seam_set(args)
+    if reviewed_seam_set_status is not None:
+        return reviewed_seam_set_status
     if args.command != "serve":
         raise AssertionError(f"Unhandled command: {args.command}")
     try:
