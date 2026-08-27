@@ -6,6 +6,7 @@ import sys
 import tempfile
 import threading
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 
@@ -16,6 +17,7 @@ for candidate in (WORKBENCH_ROOT, SRC_ROOT):
         sys.path.insert(0, str(candidate))
 
 from autospine_workbench.server import create_server  # noqa: E402
+from autospine_workbench.project_store import ProjectStoreError  # noqa: E402
 
 try:  # Supports both unittest discovery and package-qualified execution.
     from tests.test_project_store import StoreFixture  # type: ignore  # noqa: E402
@@ -148,6 +150,28 @@ class WorkbenchHttpContractTests(unittest.TestCase):
     def test_server_refuses_non_loopback_binding(self) -> None:
         with self.assertRaises(ValueError):
             create_server("0.0.0.0", 0, self.fixture.workspace, state_root=self.fixture.state)
+
+    def test_server_fails_before_binding_when_project_state_is_unreadable(self) -> None:
+        with patch(
+            "autospine_workbench.server.ProjectStore.list_projects",
+            side_effect=ProjectStoreError("internal path must stay private"),
+        ):
+            with self.assertRaisesRegex(OSError, "Project state preflight failed") as caught:
+                create_server(
+                    "127.0.0.1", 0, self.fixture.workspace,
+                    state_root=self.fixture.state,
+                )
+        self.assertNotIn("internal path", str(caught.exception))
+
+    @unittest.skipUnless(sys.platform == "win32", "Windows exclusive-bind regression")
+    def test_server_refuses_a_second_listener_on_the_same_port(self) -> None:
+        with self.assertRaises(OSError):
+            create_server(
+                self.host,
+                self.port,
+                self.fixture.workspace,
+                state_root=self.fixture.state,
+            )
 
 
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"

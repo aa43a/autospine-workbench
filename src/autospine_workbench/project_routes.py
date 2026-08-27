@@ -23,14 +23,13 @@ def dispatch_project_get(
 ) -> bool:
     """Dispatch established health, project, validation, and asset GET routes."""
     if parts == ["api", "health"]:
-        projects = store.list_projects()
         send_json(
             HTTPStatus.OK,
             {
                 "status": "ok",
                 "service": "autospine-workbench",
                 "version": __version__,
-                "project_count": len(projects),
+                "project_count": store.discovered_project_count(),
             },
         )
         return True

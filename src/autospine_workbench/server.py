@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import socket
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -41,6 +42,23 @@ from .seam_anchor_review_routes import (
 )
 from .seam_anchor_review_replay_cache import SeamAnchorReviewReplayCache
 from .split_preview_routes import dispatch_split_preview_get
+
+
+_LOG = logging.getLogger(__name__)
+
+
+class WorkbenchThreadingHTTPServer(ThreadingHTTPServer):
+    """Use an exclusive bind where Windows otherwise permits port sharing."""
+
+    if hasattr(socket, "SO_EXCLUSIVEADDRUSE"):
+        allow_reuse_address = False
+
+    def server_bind(self) -> None:
+        if hasattr(socket, "SO_EXCLUSIVEADDRUSE"):
+            self.socket.setsockopt(
+                socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1,
+            )
+        super().server_bind()
 
 
 def _handler_factory(
@@ -124,7 +142,8 @@ def _handler_factory(
                 self._send_error_json(HTTPStatus.NOT_FOUND, "asset_not_found", str(exc))
             except ValueError as exc:
                 self._send_error_json(HTTPStatus.BAD_REQUEST, "invalid_path", str(exc))
-            except ProjectStoreError:
+            except ProjectStoreError as exc:
+                _LOG.exception("Project store GET failed: %s", type(exc).__name__)
                 self._send_error_json(
                     HTTPStatus.INTERNAL_SERVER_ERROR,
                     "project_store_error",
@@ -215,7 +234,8 @@ def _handler_factory(
                 self._send_json(HTTPStatus.CONFLICT, exc.as_dict())
             except ProjectNotFoundError as exc:
                 self._send_error_json(HTTPStatus.NOT_FOUND, "project_not_found", str(exc))
-            except ProjectStoreError:
+            except ProjectStoreError as exc:
+                _LOG.exception("Project store PUT failed: %s", type(exc).__name__)
                 self._send_error_json(
                     HTTPStatus.INTERNAL_SERVER_ERROR,
                     "project_store_error",
@@ -290,10 +310,17 @@ def create_server(
         if not resolved_web_root.is_dir():
             raise ValueError("web_root must be an existing directory")
     store = ProjectStore(Path(workspace_root), state_root=state_root)
+    try:
+        store.list_projects()
+    except ProjectStoreError as exc:
+        raise OSError(
+            "Project state preflight failed; verify workspace artifact permissions "
+            "and stored decision inputs."
+        ) from exc
     replay_cache = SeamAnchorReviewReplayCache(store.state_root)
     handler = _handler_factory(store, resolved_web_root, replay_cache)
     try:
-        server = ThreadingHTTPServer((host, port), handler)
+        server = WorkbenchThreadingHTTPServer((host, port), handler)
     except (OSError, socket.error) as exc:
         raise OSError(f"Could not bind AutoSpine workbench to {host}:{port}") from exc
     server.project_store = store  # type: ignore[attr-defined]

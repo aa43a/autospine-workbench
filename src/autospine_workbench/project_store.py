@@ -732,6 +732,11 @@ class ProjectStore:
             )
         return sorted(summaries, key=lambda item: item["id"])
 
+    def discovered_project_count(self) -> int:
+        """Count audit projects without resolving mutable authoring state."""
+
+        return len(self._discover())
+
     def get_project(self, project_id: str) -> dict[str, Any]:
         """Return a complete versioned project document."""
 
