@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import json
 from pathlib import Path
 
 from .manifest_bundle import (
     LayerManifestBundleError,
     LayerManifestBundleReader,
 )
-from .mesh_bundle_integrity import VerifiedMeshBundle
 from .mesh_bundle_reader import (
     VerifiedMeshBundleReader,
     VerifiedMeshBundleReaderError,
@@ -28,10 +28,19 @@ class SeamAnchorReviewCandidateBindingError(RuntimeError):
 
 @dataclass(frozen=True, slots=True)
 class BoundSeamAnchorReviewCandidate:
-    """Fresh candidate plus the exact P3 value needed for adjusted locators."""
+    """Fresh candidate plus a canonical, copy-isolated exact P3 rig."""
 
     candidates: SeamAnchorCandidates
-    mesh_bundle: VerifiedMeshBundle
+    _rig_json: str
+
+    @property
+    def rig(self) -> dict:
+        return json.loads(self._rig_json)
+
+    @property
+    def cache_weight_bytes(self) -> int:
+        return len(self.candidates.canonical_bytes) \
+            + len(self._rig_json.encode("utf-8"))
 
 
 def load_bound_seam_anchor_review_candidate(
@@ -62,7 +71,11 @@ def load_bound_seam_anchor_review_candidate(
             raise SeamAnchorReviewCandidateBindingError(
                 "Compiled seam candidate source differs from its address"
             )
-        return BoundSeamAnchorReviewCandidate(candidates, mesh)
+        rig_json = json.dumps(
+            mesh.rig, ensure_ascii=False, allow_nan=False,
+            sort_keys=True, separators=(",", ":"),
+        )
+        return BoundSeamAnchorReviewCandidate(candidates, rig_json)
     except SeamAnchorReviewCandidateBindingError:
         raise
     except (

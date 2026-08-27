@@ -133,6 +133,12 @@ class WorkbenchHttpContractTests(unittest.TestCase):
         self.assertEqual(status, 400)
         self.assertEqual(result["error"], "invalid_path")
 
+        for path in ("/api//health", "/api/health/"):
+            with self.subTest(path=path):
+                status, result = self.json_request("GET", path)
+                self.assertEqual(status, 400)
+                self.assertEqual(result["error"], "invalid_path")
+
         status, _, raw = self.request(
             "GET", "/api/health", headers={"Host": "attacker.example"}
         )

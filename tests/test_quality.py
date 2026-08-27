@@ -14,10 +14,14 @@ P10_MAX_LINES = 300
 P10_PREFIXES = (
     "src/autospine_workbench/body_sway_",
     "src/autospine_workbench/p10_",
+    "src/autospine_workbench/reviewed_seam_anchor_",
     "src/autospine_workbench/seam_anchor_",
     "web/body-sway-",
     "web/modules/body-sway-",
     "web/tests/body-sway-review",
+    "web/seam-anchor-",
+    "web/modules/seam-anchor-",
+    "web/tests/seam-anchor-review",
 )
 
 # Current ratchet ceilings. Entries may only be lowered or removed.

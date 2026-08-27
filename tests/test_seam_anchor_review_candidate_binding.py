@@ -48,8 +48,8 @@ class SeamAnchorReviewCandidateBindingTests(unittest.TestCase):
         )
         self.assertEqual(before, tree(self.fixture.state))
         self.assertEqual(first.candidates.sha256, second.candidates.sha256)
-        self.assertEqual(self.fixture.mesh.rig_sha256,
-                         first.mesh_bundle.rig_sha256)
+        self.assertEqual(self.fixture.mesh.rig, first.rig)
+        self.assertFalse(hasattr(first, "mesh_bundle"))
 
     def test_crosswired_exact_address_fails_without_writes(self):
         before = tree(self.fixture.state)

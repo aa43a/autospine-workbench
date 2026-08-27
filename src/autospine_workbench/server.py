@@ -32,10 +32,21 @@ from .project_store import (
     RevisionConflictError,
 )
 from .project_routes import dispatch_project_get
+from .seam_anchor_review_routes import (
+    dispatch_seam_anchor_review_get,
+    dispatch_seam_anchor_review_post,
+    is_seam_anchor_review_path,
+    seam_anchor_review_allow_methods,
+    seam_anchor_review_resource_methods,
+)
+from .seam_anchor_review_replay_cache import SeamAnchorReviewReplayCache
 from .split_preview_routes import dispatch_split_preview_get
 
 
-def _handler_factory(store: ProjectStore, web_root: Path | None) -> type[BaseHTTPRequestHandler]:
+def _handler_factory(
+    store: ProjectStore, web_root: Path | None,
+    replay_cache: SeamAnchorReviewReplayCache,
+) -> type[BaseHTTPRequestHandler]:
     class WorkbenchHandler(WorkbenchResponseMixin, BaseHTTPRequestHandler):
         server_version = "AutoSpineWorkbench/0.1"
         sys_version = ""
@@ -50,6 +61,14 @@ def _handler_factory(store: ProjectStore, web_root: Path | None) -> type[BaseHTT
             super().log_message(format_string, *args)
 
         def _dispatch_api_get(self, parts: list[str]) -> bool:
+            if is_seam_anchor_review_path(parts):
+                if dispatch_seam_anchor_review_get(
+                    parts, store, self._send_visual_json,
+                    self._send_visual_bytes, replay_cache,
+                ):
+                    return True
+                self._send_seam_anchor_review_method_not_allowed(parts)
+                return True
             if dispatch_body_sway_visual_review_get(
                 parts, store, self._send_visual_json, self._send_visual_bytes,
             ):
@@ -120,19 +139,32 @@ def _handler_factory(store: ProjectStore, web_root: Path | None) -> type[BaseHTT
             except ValueError as exc:
                 self._send_error_json(HTTPStatus.BAD_REQUEST, "invalid_path", str(exc))
                 return
+            body_review = is_body_sway_visual_review_path(parts)
+            seam_review = is_seam_anchor_review_path(parts)
+            seam_methods = seam_anchor_review_resource_methods(parts) \
+                if seam_review else None
+            if seam_review and seam_methods is None:
+                self._send_visual_json(HTTPStatus.NOT_FOUND, {
+                    "error": "seam_anchor_review_not_found",
+                    "message": (
+                        "The exact seam-anchor review resource was not found."
+                    ),
+                })
+                return
             self.send_response(HTTPStatus.NO_CONTENT)
-            visual_review = is_body_sway_visual_review_path(parts)
-            self._common_headers(visual_review=visual_review)
-            methods = visual_review_allow_methods(parts) if visual_review else (
+            local_review = body_review or seam_review
+            self._common_headers(visual_review=local_review)
+            methods = visual_review_allow_methods(parts) if body_review else (
+                seam_methods if seam_review else (
                 "GET, HEAD, OPTIONS" if self._mesh_bundle_path(parts)
                 else "GET, HEAD, PUT, OPTIONS"
-            )
+            ))
             self.send_header("Allow", methods)
             self.send_header("Access-Control-Allow-Methods", methods)
             self.send_header(
                 "Access-Control-Allow-Headers",
                 "Content-Type, X-Autospine-Intent"
-                if visual_review else "Content-Type",
+                if local_review else "Content-Type",
             )
             self.send_header("Access-Control-Max-Age", "600")
             self.send_header("Content-Length", "0")
@@ -147,6 +179,9 @@ def _handler_factory(store: ProjectStore, web_root: Path | None) -> type[BaseHTT
                 if dispatch_body_sway_visual_review_put(
                     parts, store, self, self._send_visual_json,
                 ):
+                    return
+                if is_seam_anchor_review_path(parts):
+                    self._send_seam_anchor_review_method_not_allowed(parts)
                     return
                 if self._mesh_bundle_path(parts):
                     self._send_method_not_allowed(read_only=True)
@@ -180,6 +215,29 @@ def _handler_factory(store: ProjectStore, web_root: Path | None) -> type[BaseHTT
                     "The local project store could not complete the request.",
                 )
 
+        def do_POST(self) -> None:  # noqa: N802 - BaseHTTPRequestHandler API
+            if not _host_header_is_local(self.headers.get("Host")):
+                self._send_error_json(
+                    HTTPStatus.FORBIDDEN, "forbidden_host",
+                    "Host must be loopback-local.",
+                )
+                return
+            try:
+                parts = self._path_parts()
+            except ValueError as exc:
+                self._send_error_json(
+                    HTTPStatus.BAD_REQUEST, "invalid_path", str(exc)
+                )
+                return
+            if dispatch_seam_anchor_review_post(
+                parts, store, self, self._send_visual_json, replay_cache,
+            ):
+                return
+            if is_seam_anchor_review_path(parts):
+                self._send_seam_anchor_review_method_not_allowed(parts)
+                return
+            self._send_route_method_not_allowed(parts)
+
         def _method_not_allowed(self) -> None:
             if not _host_header_is_local(self.headers.get("Host")):
                 self._send_error_json(HTTPStatus.FORBIDDEN, "forbidden_host", "Host must be loopback-local.")
@@ -189,13 +247,17 @@ def _handler_factory(store: ProjectStore, web_root: Path | None) -> type[BaseHTT
             except ValueError as exc:
                 self._send_error_json(HTTPStatus.BAD_REQUEST, "invalid_path", str(exc))
                 return
-            visual_review = is_body_sway_visual_review_path(parts)
-            if visual_review:
+            self._send_route_method_not_allowed(parts)
+
+        def _send_route_method_not_allowed(self, parts: list[str]) -> None:
+            if is_body_sway_visual_review_path(parts):
                 self._send_visual_method_not_allowed(parts)
+                return
+            if is_seam_anchor_review_path(parts):
+                self._send_seam_anchor_review_method_not_allowed(parts)
                 return
             self._send_method_not_allowed(read_only=self._mesh_bundle_path(parts))
 
-        do_POST = _method_not_allowed
         do_PATCH = _method_not_allowed
         do_DELETE = _method_not_allowed
 
@@ -221,11 +283,13 @@ def create_server(
         if not resolved_web_root.is_dir():
             raise ValueError("web_root must be an existing directory")
     store = ProjectStore(Path(workspace_root), state_root=state_root)
-    handler = _handler_factory(store, resolved_web_root)
+    replay_cache = SeamAnchorReviewReplayCache(store.state_root)
+    handler = _handler_factory(store, resolved_web_root, replay_cache)
     try:
         server = ThreadingHTTPServer((host, port), handler)
     except (OSError, socket.error) as exc:
         raise OSError(f"Could not bind AutoSpine workbench to {host}:{port}") from exc
     server.project_store = store  # type: ignore[attr-defined]
     server.web_root = resolved_web_root  # type: ignore[attr-defined]
+    server.seam_anchor_review_replay_cache = replay_cache  # type: ignore[attr-defined]
     return server

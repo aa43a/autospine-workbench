@@ -42,6 +42,7 @@ from .seam_anchor_review_history_snapshot import (
     snapshot_seam_anchor_review_history,
 )
 from .seam_anchor_review_profile import MAX_SEAM_ANCHOR_REVIEW_REVISIONS
+from .seam_anchor_review_replay_cache import SeamAnchorReviewReplayCache
 from .seam_anchor_review_submission import (
     SeamAnchorReviewSubmissionError,
     require_seam_anchor_review_submission,
@@ -65,8 +66,19 @@ class SeamAnchorReviewApplicationInvalidSubmission(
 class SeamAnchorReviewApplication:
     """Compile exact candidates and manage their immutable decision chain."""
 
-    def __init__(self, state_root: Path) -> None:
+    def __init__(
+        self, state_root: Path, *,
+        replay_cache: SeamAnchorReviewReplayCache | None = None,
+    ) -> None:
         self.state_root = Path(state_root)
+        if replay_cache is not None and (
+            type(replay_cache) is not SeamAnchorReviewReplayCache
+            or not replay_cache.owns_state_root(self.state_root)
+        ):
+            raise SeamAnchorReviewApplicationError(
+                "Seam-review replay cache state root differs"
+            )
+        self.replay_cache = replay_cache
 
     def prepare(
         self, address: ExactSeamAnchorReviewAddress,
@@ -75,7 +87,7 @@ class SeamAnchorReviewApplication:
 
         try:
             bound = self._load(address)
-            candidate, rig = bound.candidates, bound.mesh_bundle.rig
+            candidate, rig = bound.candidates, bound.rig
             history = snapshot_seam_anchor_review_history(
                 self.state_root, address, candidate, rig
             )
@@ -113,7 +125,7 @@ class SeamAnchorReviewApplication:
                     "Seam-review revision address is invalid"
                 )
             bound = self._load(address)
-            candidate, rig = bound.candidates, bound.mesh_bundle.rig
+            candidate, rig = bound.candidates, bound.rig
             if candidate.sha256 != candidate_address:
                 raise SeamAnchorReviewApplicationNotFound(
                     "Seam-review candidate address is stale"
@@ -157,7 +169,7 @@ class SeamAnchorReviewApplication:
         try:
             submission = require_seam_anchor_review_submission(payload)
             bound = self._load(address)
-            candidate, rig = bound.candidates, bound.mesh_bundle.rig
+            candidate, rig = bound.candidates, bound.rig
             if submission.candidate_sha256 != candidate.sha256:
                 raise SeamAnchorReviewApplicationInvalidSubmission(
                     "Seam-review submission candidate is stale"
@@ -210,9 +222,9 @@ class SeamAnchorReviewApplication:
             raise SeamAnchorReviewApplicationError(
                 "Seam review requires an exact address"
             )
-        return load_bound_seam_anchor_review_candidate(
-            self.state_root, address
-        )
+        if self.replay_cache is not None:
+            return self.replay_cache.load_candidate(address)
+        return load_bound_seam_anchor_review_candidate(self.state_root, address)
 
     def _previous(self, submission, address, candidate, rig, history):
         base, previous_sha = (

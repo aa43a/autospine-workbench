@@ -12,9 +12,10 @@ from .body_sway_visual_review_routes import visual_review_allow_methods
 from .http_file_response import send_file_response
 from .http_request_path import safe_url_path_parts
 from .http_security import allowed_origin
+from .seam_anchor_review_routes import seam_anchor_review_allow_methods
 
 
-BODY_SWAY_REVIEW_CSP = "; ".join((
+LOCAL_REVIEW_CSP = "; ".join((
     "default-src 'self'",
     "object-src 'none'",
     "base-uri 'none'",
@@ -114,13 +115,26 @@ class WorkbenchResponseMixin:
             visual_review=True,
         )
 
+    def _send_seam_anchor_review_method_not_allowed(
+        self, parts: list[str]
+    ) -> None:
+        self._send_bytes(
+            HTTPStatus.METHOD_NOT_ALLOWED,
+            _json_bytes({
+                "error": "method_not_allowed", "message": "Method not allowed.",
+            }),
+            "application/json; charset=utf-8",
+            extra_headers={"Allow": seam_anchor_review_allow_methods(parts)},
+            visual_review=True,
+        )
+
     def _send_file(self, path: Path) -> None:
         send_file_response(self, path, self._common_headers)
 
     def _send_static_file(self, path: Path) -> None:
         extra_headers = None
-        if path.name == "body-sway-review.html":
-            extra_headers = {"Content-Security-Policy": BODY_SWAY_REVIEW_CSP}
+        if path.name in {"body-sway-review.html", "seam-anchor-review.html"}:
+            extra_headers = {"Content-Security-Policy": LOCAL_REVIEW_CSP}
         send_file_response(
             self, path, self._common_headers, extra_headers=extra_headers
         )

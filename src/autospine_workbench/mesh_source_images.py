@@ -80,6 +80,14 @@ class VerifiedMeshSource:
     def png_by_attachment(self) -> dict[str, bytes]:
         return {item.attachment_id: item.png_bytes for item in self._images}
 
+    @property
+    def cache_weight_bytes(self) -> int:
+        """Estimate immutable payload bytes retained by a replay cache."""
+
+        return len(self._rig_json.encode("utf-8")) + sum(
+            len(item.png_bytes) for item in self._images
+        )
+
 
 @dataclass(frozen=True, slots=True)
 class VerifiedMeshSourceReader:
