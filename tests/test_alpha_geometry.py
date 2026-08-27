@@ -79,6 +79,12 @@ class AlphaGeometryTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "exceeds 1 runs"):
                 analyze_alpha_image(image, threshold=1)
 
+    def test_caller_run_ceiling_stops_checkerboard_at_8193rd_run(self) -> None:
+        row = bytes((*VISIBLE, *TRANSPARENT)) * 128 + bytes(VISIBLE)
+        image = RgbaImage(257, 64, row * 64)
+        with self.assertRaisesRegex(ValueError, "exceeds 8192 runs"):
+            analyze_alpha_image(image, threshold=1, max_runs=8192)
+
 
 if __name__ == "__main__":
     unittest.main()

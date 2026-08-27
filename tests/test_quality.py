@@ -14,6 +14,7 @@ P10_MAX_LINES = 300
 P10_PREFIXES = (
     "src/autospine_workbench/body_sway_",
     "src/autospine_workbench/p10_",
+    "src/autospine_workbench/seam_anchor_",
     "web/body-sway-",
     "web/modules/body-sway-",
     "web/tests/body-sway-review",

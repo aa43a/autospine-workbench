@@ -14,6 +14,10 @@ MAX_ALPHA_RUNS = 1_048_576
 """Hard ceiling for connected-component run metadata."""
 
 
+class AlphaGeometryLimitError(ValueError):
+    """Raised immediately when a caller's alpha-run ceiling is crossed."""
+
+
 @dataclass(frozen=True, slots=True)
 class AlphaComponent:
     component_id: int
@@ -56,6 +60,7 @@ class AlphaGeometry:
         self.offset_xy = offset_xy
         self.threshold = threshold
         self._runs = runs
+        self.run_count = len(runs)
         self.components = components
         self.foreground_area = sum(component.area for component in components)
         self._component_by_id = {item.component_id: item for item in components}
@@ -141,6 +146,7 @@ def analyze_alpha_image(
     *,
     canvas_offset_xy: tuple[int, int] = (0, 0),
     threshold: int = 8,
+    max_runs: int | None = None,
 ) -> AlphaGeometry:
     """Analyze an already decoded image under the same bounded contract."""
 
@@ -154,7 +160,16 @@ def analyze_alpha_image(
         or len(image.pixels) != image.width * image.height * 4
     ):
         raise ValueError("RGBA image is invalid")
-    raw_runs, parents = _scan_runs(image.width, image.height, image.pixels, threshold)
+    if max_runs is not None and (
+        type(max_runs) is not int or not 1 <= max_runs <= MAX_ALPHA_RUNS
+    ):
+        raise ValueError(
+            f"alpha max_runs must be an integer in [1, {MAX_ALPHA_RUNS}]"
+        )
+    run_limit = MAX_ALPHA_RUNS if max_runs is None else max_runs
+    raw_runs, parents = _scan_runs(
+        image.width, image.height, image.pixels, threshold, run_limit
+    )
     return _materialize(
         image.width,
         image.height,
@@ -179,7 +194,7 @@ def _validate_analysis_inputs(
 
 
 def _scan_runs(
-    width: int, height: int, pixels: bytes, threshold: int
+    width: int, height: int, pixels: bytes, threshold: int, max_runs: int
 ) -> tuple[list[_Run], list[int]]:
     all_runs: list[_Run] = []
     parents: list[int] = []
@@ -195,8 +210,10 @@ def _scan_runs(
             start = x
             while x + 1 < width and pixels[(y * width + x + 1) * 4 + 3] >= threshold:
                 x += 1
-            if len(all_runs) >= MAX_ALPHA_RUNS:
-                raise ValueError(f"alpha geometry exceeds {MAX_ALPHA_RUNS} runs")
+            if len(all_runs) >= max_runs:
+                raise AlphaGeometryLimitError(
+                    f"alpha geometry exceeds {max_runs} runs"
+                )
             label = len(parents)
             parents.append(label)
             run = _Run(y, start, x, label)

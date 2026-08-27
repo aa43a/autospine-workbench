@@ -6,6 +6,7 @@ import json
 
 from .mesh_bundle_integrity import VerifiedMeshBundle
 from .mesh_source_images import (
+    AttachmentImageBudget,
     VerifiedMeshSource,
     VerifiedMeshSourceReaderError,
     verified_attachment_images,
@@ -19,6 +20,7 @@ class VerifiedMeshBundleSourceError(ValueError):
 
 def verified_mesh_source_from_bundle(
     bundle: VerifiedMeshBundle,
+    *, image_budget: AttachmentImageBudget | None = None,
 ) -> VerifiedMeshSource:
     """Reuse one verified snapshot without loading its content address again."""
 
@@ -32,7 +34,9 @@ def verified_mesh_source_from_bundle(
             raise VerifiedMeshBundleSourceError(
                 "Verified P3 RigIR identity differs from its snapshot"
             )
-        images = verified_attachment_images(rig, bundle.source_pngs)
+        images = verified_attachment_images(
+            rig, bundle.source_pngs, budget=image_budget
+        )
         return VerifiedMeshSource(
             path=bundle.path,
             project_id=bundle.project_id,

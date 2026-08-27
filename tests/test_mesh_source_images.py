@@ -23,11 +23,14 @@ from autospine_workbench.mesh_bundle_reader import (  # noqa: E402
     VerifiedMeshBundleReader,
 )
 from autospine_workbench.mesh_source_images import (  # noqa: E402
+    AttachmentImageBudget,
     VerifiedMeshSourceReader,
     VerifiedMeshSourceReaderError,
+    verified_attachment_images,
 )
 from autospine_workbench.png_rgba import (  # noqa: E402
     RgbaImage,
+    decode_rgba_png,
     encode_rgba_png,
 )
 from autospine_workbench.verified_base_rig import (  # noqa: E402
@@ -325,6 +328,29 @@ class MeshSourceReaderTamperTests(unittest.TestCase):
             self.assertRaises(VerifiedMeshSourceReaderError),
         ):
             fixture.load()
+
+    def test_pixel_budget_stops_decoding_after_first_exceeding_image(self):
+        fixture = self.fixture()
+        first_attachment = fixture.verified.rig["attachments"][0]
+        first_raw = fixture.verified.source_pngs[first_attachment["image_path"]]
+        first = decode_rgba_png(first_raw)
+        budget = AttachmentImageBudget(
+            max_images=4096,
+            max_image_bytes=72 * 1024 * 1024,
+            max_total_bytes=256 * 1024 * 1024,
+            max_image_pixels=16_777_216,
+            max_total_pixels=first.width * first.height,
+        )
+        target = "autospine_workbench.mesh_source_images.decode_rgba_png"
+        with patch(target, wraps=decode_rgba_png) as decode, \
+                self.assertRaisesRegex(
+                    VerifiedMeshSourceReaderError, "resource limit"
+                ):
+            verified_attachment_images(
+                fixture.verified.rig, fixture.verified.source_pngs,
+                budget=budget,
+            )
+        self.assertEqual(2, decode.call_count)
 
 
 def _region(rig):

@@ -10,6 +10,10 @@ import math
 from pathlib import Path
 from typing import Any
 
+from .attachment_image_budget import (
+    AttachmentImageBudget,
+    AttachmentImageBudgetTracker,
+)
 from .manifest_artifacts import (
     LayerManifestError,
     canonical_layer_artifact_path,
@@ -120,12 +124,22 @@ class VerifiedMeshSourceReader:
 
 
 def verified_attachment_images(
-    rig: Mapping[str, Any], png_by_path: Mapping[str, bytes]
+    rig: Mapping[str, Any], png_by_path: Mapping[str, bytes], *,
+    budget: AttachmentImageBudget | None = None,
 ) -> tuple[VerifiedAttachmentImage, ...]:
     """Validate one detached rig and its exact original PNG snapshots."""
 
     attachments = _objects(rig.get("attachments"), "RigIR attachments")
     canvas = _canvas(rig.get("canvas"))
+    if budget is not None and not isinstance(budget, AttachmentImageBudget):
+        raise VerifiedMeshSourceReaderError(
+            "Attachment image budget is invalid"
+        )
+    tracker = AttachmentImageBudgetTracker(budget)
+    if not tracker.allows_inventory(len(attachments)):
+        raise VerifiedMeshSourceReaderError(
+            "Attachment image resource limit exceeded"
+        )
     if not isinstance(png_by_path, Mapping):
         raise VerifiedMeshSourceReaderError("Source PNG snapshots must be an object")
     snapshots: dict[str, bytes] = {}
@@ -136,6 +150,10 @@ def verified_attachment_images(
         if path.casefold() in folded_paths:
             raise VerifiedMeshSourceReaderError("Source PNG paths are case aliases")
         folded_paths.add(path.casefold())
+        if not tracker.add_snapshot(len(raw)):
+            raise VerifiedMeshSourceReaderError(
+                "Attachment image resource limit exceeded"
+            )
         snapshots[path] = raw
 
     result: list[VerifiedAttachmentImage] = []
@@ -161,6 +179,10 @@ def verified_attachment_images(
                 f"Attachment image hash differs: {identifier}"
             )
         decoded = decode_rgba_png(raw, source_name=image_path)
+        if not tracker.add_decoded(decoded.width, decoded.height):
+            raise VerifiedMeshSourceReaderError(
+                "Attachment image resource limit exceeded"
+            )
         _require_raster_bounds(attachment, decoded.width, decoded.height, canvas)
         result.append(VerifiedAttachmentImage(
             attachment_id=identifier,
