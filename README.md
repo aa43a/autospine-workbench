@@ -185,7 +185,7 @@ JSON Schema 位于：
 - `schemas/motion-instance-v2.schema.json`、`schemas/motion-policy-decision-v1.schema.json`、`schemas/reviewed-motion-policy-v1.schema.json` 与 `schemas/reviewed-motion-bundle-run-v1.schema.json`：P9 人工决定、root/draw-order overlay、v2 instance 与六文件 bundle provenance；
 - `schemas/idle-behavior-candidates-v1.schema.json`、`schemas/idle-behavior-decision-v1.schema.json` 与 `schemas/body-sway-probe-report-v1.schema.json`：P10.0–P10.2 idle 候选、人工参数决定与只读采样结构诊断；
 - `schemas/body-sway-runtime-capture-v1.schema.json`、`schemas/body-sway-visual-review-*.schema.json`、`schemas/body-sway-review-admission-v1.schema.json`、`schemas/body-sway-amplitude-envelope-candidate-v1.schema.json` 与 `schemas/body-sway-continuous-preview-proof-v1.schema.json`：P10.3 runtime 证据、sampled visual revision、P10.4a 当前审批头准入、P10.4b1 离散幅度候选与 P10.4b2 连续预览模型证明；
-- `schemas/seam-anchor-candidates-v1.schema.json` 与 `schemas/seam-anchor-review-decision-v1.schema.json`：P10.5a 六条静态接缝候选及 P10.5b 候选/P3 绑定的人工 revision；
+- `schemas/seam-anchor-candidates-v1.schema.json`、`schemas/seam-anchor-review-decision-v1.schema.json` 与 `schemas/reviewed-seam-anchor-set-v1.schema.json`：P10.5a 六条静态接缝候选、P10.5b 候选/P3 绑定的人工 revision，以及 P10.5c 固定六关系的已复核静态锚点集；
 - `schemas/motion-retarget-report-v1.schema.json` 与 `schemas/motion-mesh-regression-v1.schema.json`：P5 运动学、接触与逐帧 mesh 安全门禁。
 
 Layer Manifest 与 RigIR 是下游流水线合同。当前 UI 负责逐层 authoring 与复核，离线命令负责生成 region-only RigIR；它不包含 mesh、权重或动画，也不会冒充某一 Spine 版本。RigIR 对不支持特性的策略固定为 `fail`，防止 constraint、mesh 或 timeline 被静默丢弃。
@@ -386,6 +386,8 @@ P10.5a 用 `compile-seam-anchor-candidates` 从一个精确 Layer Manifest SHA �
 
 P10.5b 在独立页面、CLI 与精确 REST API 上比较 P10.5a option，并把固定六关系的 `accept/adjust/reject/unobservable` 选择追加为 candidate-bound write-once revision。prepare/GET 零写入；提交使用 base revision/head SHA 做严格 CAS；每个 option 的父子原始 PNG 由 option membership 与 P3 图片摘要共同寻址。完整流程见 [复核 P10.5b 静态接缝锚点](docs/how-to-review-seam-anchors.md)。
 
+P10.5c 用 `compile-reviewed-seam-anchor-set` 按 `history A → exact decision/P3/candidate replay → pure compile → history B` 确认指定 ready revision 仍是当前 head，再发布固定三文件、双 SHA 寻址的 ReviewedSeamAnchorSet bundle；`verify-reviewed-seam-anchor-set` 只按显式地址重放历史 bundle，不把历史复验冒充 current-head authority。完整命令、错误码、bundle inventory 与真实 A/B test-only gate 边界见 [编译并复验 P10.5c 静态接缝锚点集](docs/how-to-compile-reviewed-seam-anchor-set.md)。
+
 P6 使用 `compile-spine42` 把一个精确 P3 地址导出为 setup-only bundle，或与一对精确 P5 MotionInstance/bundle SHA 组合为单动画 bundle；`verify-spine42` 从导出双 SHA 重建完整上游链。五文件地址、官方 runtime 的本地安装边界与 capture 操作见 [导出、复验并运行 P6 Spine 4.2 资产](docs/how-to-export-spine42.md)。
 
 对版本中立 RigIR 做语义检查：
@@ -472,7 +474,7 @@ P1 已交付 pose、alpha 中轴线和层接触候选，以及候选比较、四
 - 若要恢复旧 revision，先停止服务，备份整个项目 override 目录，再将目标历史快照作为新的、经过校验的 revision 提交；当前界面尚未提供历史浏览/回滚按钮。
 - validation 的 `valid=true` 仅表示结构和本地资产检查没有硬错误，不等于美术、遮挡补全、pivot、mesh 或动画通过视觉验收。
 
-## 已完成阶段：P2 region RigIR 至 P9 reviewed motion，以及 P10.0–P10.5b seam review
+## 已完成阶段：P2 region RigIR 至 P9 reviewed motion，以及 P10.0–P10.5c static seam set
 
 P0 合同加固、P1 四肢候选与 P2 region-only RigIR 已贯通：`stage-scoped analysis → immutable geometry/candidates → candidate-bound revision → deterministic resolved snapshot → reviewed Layer Manifest → RigIR/setup bundle`。P2 没有提前引入 mesh：
 
@@ -535,6 +537,8 @@ P10.5a 已增加 `SeamAnchorCandidates v1`：从精确 Layer Manifest/P3 静态�
 
 P10.5b 已增加 `SeamAnchorReviewDecision v1`：相同四段精确地址会重编 candidate，人工提交必须逐行绑定 relationship/option evidence SHA，并以 candidate SHA 隔离最多 64 项的不可变线性历史。相同并发提交收敛到一个 revision，不同提交只有一个 CAS winner；历史 slot、content-address 文件、candidate 或 P3 任一篡改都会 fail closed。六行全部 accept/adjust 只得到 `reviewed_anchor_set_ready_for_compile`，仍需 P10.5c 编译 reviewed set，release gate 始终 blocked。
 
+P10.5c 已增加 `ReviewedSeamAnchorSet v1`：只有 current ready head 可被投影，set 固定六关系顺序、2–8 对 materialized anchors 和六项 source 身份，不重新选择 option 或生成 locator fallback。三文件 bundle 在写前重编并以 set/bundle 双 SHA 寻址；历史精确地址可复验但不拥有永久 current-head authority。真实 A/B opt-in gate 中 A 只使用明确标注的 test-only 内存决定验证合同可编译，B 的四条不可观测关系保持 blocked；该 gate 不构成真实人工批准或资产 golden。动态 seam、runtime/视觉质量和发布权仍固定为 false/blocked。
+
 姿态 runner 与真实标注评估集仍是独立质量轨，不阻塞版本中立 P2 编译；诊断 setup prior 不能替代真实模型基线。
 
 面部锚点、头发弹簧和实时追踪映射可以作为独立模块接到同一规范骨角色上；四肢扩展的关键不是增加更多屏幕坐标映射，而是建立 bind pose、父子骨、权重和重定向空间。
@@ -553,6 +557,7 @@ P10.5b 已增加 `SeamAnchorReviewDecision v1`：相同四段精确地址会重�
 - 把 loader-isomorphic audit 当作官方 runtime 或 raster truth；P9 动态官方 runtime screenshot 与真实 Kimodo reviewed asset 门禁仍需单独关闭；
 - 把 P10 `completed_diagnostic`、离散结构采样通过、sampled still 全部批准、review 输入的 0–10 度语法包络或 P10.4b2 preview-model 区间证明当成 MotionInstance v3、runtime 等价、可发布 Spine timeline、接缝安全或人工视觉安全范围；
 - 把 P10.5a 静态候选、contact overlap 或 locator evidence 当成人工决定、reviewed seam anchor set 或动态动作域接缝安全；
+- 把 P10.5c 的静态 ReviewedSeamAnchorSet、历史 bundle 可复验或 compile-time current-head 观察当成永久审批权、动态 seam 证明、runtime/视觉质量或发布许可；
 - 在未提供并确认授权的官方 Spine 4.2.119 runtime 时，用 test-only player stub、进程 smoke 或任意相邻截图冒充真实 capture；
 - 生成眨眼/口型素材、实时追踪映射或运行时物理；
 - 捆绑或再分发官方 Spine runtime、判断任意未知 Spine 版本、生成 Spine Editor 工程，或覆盖固定 P6 profile 之外的特性；

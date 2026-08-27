@@ -311,6 +311,26 @@ prepare 和 GET 只读重编 candidate；提交前不会发布 candidate，提�
 
 即使六条关系全部 accept/adjust，P10.5b 也只给出 `reviewed_anchor_set_ready_for_compile`。P10.5c 必须用双历史快照确认指定 decision 仍是当前 head，再编译独立 reviewed set；P10.5d 必须重放该 set 与 P10.4b2 动作域后才能产生动态 seam claim。
 
+P10.5c 已把这条静态边界实现为独立的 `ReviewedSeamAnchorSet v1`：
+
+```text
+exact address + history A + exact ready decision
+                         ↓
+       exact P3/candidate replay + pure six-row projection
+                         ↓
+                    history B
+                         ↓
+ fixed three-document bundle at reviewed-set SHA / bundle SHA
+```
+
+set 的 source 固定 manifest、P3 rig/bundle、candidate、review revision 和 decision
+六项身份；顶层 project 组成完整七段来源。compiler profile、静态语义、claims 和 release
+gate 都进入内容哈希。bundle 只含 exact candidate、exact decision 和 compiled set，writer
+在首个写入前重编，reader 按双 SHA 重放，不扫描或选择 `latest`。历史 bundle 在新 revision
+出现后仍可精确复验，但 compile-time 双快照不提供永久 current-head authority；P10.5d
+消费前仍须重新检查 review head。命令、失败语义与测试构造/真实人工批准的边界见
+[编译并复验 P10.5c 静态接缝锚点集](how-to-compile-reviewed-seam-anchor-set.md)。
+
 后续阶段继续遵守：
 
 - setup：画布、原点、side 语义、draw order 和 region 合成回归通过。

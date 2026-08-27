@@ -1,0 +1,257 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/reviewed-seam-anchor-set-v1.schema.json",
+  "title": "AutoSpine ReviewedSeamAnchorSet v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "project_id", "source", "compiler",
+    "semantics", "relationships", "status", "claims", "release_gate",
+    "summary"
+  ],
+  "properties": {
+    "format": {"const": "autospine-reviewed-seam-anchor-set"},
+    "format_version": {"type": "integer", "const": 1},
+    "project_id": {"$ref": "#/$defs/id"},
+    "source": {"$ref": "#/$defs/source"},
+    "compiler": {
+      "const": {
+        "compiler": "autospine-reviewed-seam-anchor-set-compiler",
+        "compiler_version": 1,
+        "candidate_format": "autospine-seam-anchor-candidates@1",
+        "decision_format": "autospine-seam-anchor-review-decision@1",
+        "required_decision_status": "reviewed_anchor_set_ready_for_compile",
+        "max_review_revision": 64,
+        "allowed_decision_actions": ["accept", "adjust"],
+        "relationship_ids": [
+          "seam.torso_arm.left",
+          "seam.torso_arm.right",
+          "seam.pelvis_leg.left",
+          "seam.pelvis_leg.right",
+          "seam.leg_foot.left",
+          "seam.leg_foot.right"
+        ],
+        "projection": "materialized-decision-anchor-pairs-only",
+        "candidate_reselection": "forbidden",
+        "fallback_locator": "forbidden"
+      }
+    },
+    "semantics": {
+      "const": {
+        "scope": "reviewed-static-seam-anchor-set",
+        "coordinate_space": "setup-attachment-local",
+        "anchor_direction": "parent-to-child",
+        "motion_or_clip_input_admitted": false,
+        "candidate_reselection_allowed": false,
+        "fallback_locator_allowed": false
+      }
+    },
+    "relationships": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "prefixItems": [
+        {"$ref": "#/$defs/torsoArmLeft"},
+        {"$ref": "#/$defs/torsoArmRight"},
+        {"$ref": "#/$defs/pelvisLegLeft"},
+        {"$ref": "#/$defs/pelvisLegRight"},
+        {"$ref": "#/$defs/legFootLeft"},
+        {"$ref": "#/$defs/legFootRight"}
+      ],
+      "items": false
+    },
+    "status": {"const": "reviewed_static_anchor_set_compiled"},
+    "claims": {
+      "const": {
+        "exact_candidate_and_decision_bound": true,
+        "human_static_locator_selection_recorded": true,
+        "reviewed_seam_anchor_set": true,
+        "dynamic_seam_safety": false,
+        "visual_seam_quality": false,
+        "runtime_equivalence": false,
+        "publishable_timeline": false,
+        "release_authority": false
+      }
+    },
+    "release_gate": {
+      "const": {
+        "status": "blocked",
+        "reason_codes": [
+          "dynamic_seam_safety_unproven",
+          "runtime_equivalence_unproven",
+          "visual_seam_quality_unproven"
+        ]
+      }
+    },
+    "summary": {"$ref": "#/$defs/summary"}
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "layer_manifest_sha256", "p3_rig_sha256", "p3_bundle_sha256",
+        "seam_anchor_candidate_sha256", "review_revision",
+        "seam_anchor_review_decision_sha256"
+      ],
+      "properties": {
+        "layer_manifest_sha256": {"$ref": "#/$defs/sha"},
+        "p3_rig_sha256": {"$ref": "#/$defs/sha"},
+        "p3_bundle_sha256": {"$ref": "#/$defs/sha"},
+        "seam_anchor_candidate_sha256": {"$ref": "#/$defs/sha"},
+        "review_revision": {
+          "type": "integer", "minimum": 1, "maximum": 64
+        },
+        "seam_anchor_review_decision_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "relationship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["relationship_id", "anchors"],
+      "properties": {
+        "relationship_id": {"$ref": "#/$defs/id"},
+        "anchors": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 8,
+          "items": {"$ref": "#/$defs/anchorPair"}
+        }
+      }
+    },
+    "torsoArmLeft": {
+      "allOf": [
+        {"$ref": "#/$defs/relationship"},
+        {"properties": {
+          "relationship_id": {"const": "seam.torso_arm.left"}
+        }}
+      ]
+    },
+    "torsoArmRight": {
+      "allOf": [
+        {"$ref": "#/$defs/relationship"},
+        {"properties": {
+          "relationship_id": {"const": "seam.torso_arm.right"}
+        }}
+      ]
+    },
+    "pelvisLegLeft": {
+      "allOf": [
+        {"$ref": "#/$defs/relationship"},
+        {"properties": {
+          "relationship_id": {"const": "seam.pelvis_leg.left"}
+        }}
+      ]
+    },
+    "pelvisLegRight": {
+      "allOf": [
+        {"$ref": "#/$defs/relationship"},
+        {"properties": {
+          "relationship_id": {"const": "seam.pelvis_leg.right"}
+        }}
+      ]
+    },
+    "legFootLeft": {
+      "allOf": [
+        {"$ref": "#/$defs/relationship"},
+        {"properties": {
+          "relationship_id": {"const": "seam.leg_foot.left"}
+        }}
+      ]
+    },
+    "legFootRight": {
+      "allOf": [
+        {"$ref": "#/$defs/relationship"},
+        {"properties": {
+          "relationship_id": {"const": "seam.leg_foot.right"}
+        }}
+      ]
+    },
+    "anchorPair": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pair_id", "parent", "child"],
+      "properties": {
+        "pair_id": {
+          "type": "string", "pattern": "^anchor\\.[0-9]{3}$"
+        },
+        "parent": {"$ref": "#/$defs/locator"},
+        "child": {"$ref": "#/$defs/locator"}
+      }
+    },
+    "locator": {
+      "oneOf": [
+        {"$ref": "#/$defs/regionLocator"},
+        {"$ref": "#/$defs/meshLocator"}
+      ]
+    },
+    "regionLocator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "attachment_id", "attachment_type", "locator_type",
+        "local_xy_q4096"
+      ],
+      "properties": {
+        "attachment_id": {"$ref": "#/$defs/id"},
+        "attachment_type": {"const": "region"},
+        "locator_type": {"const": "region-local-q4096"},
+        "local_xy_q4096": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "integer", "minimum": 0, "maximum": 4096000000000
+          }
+        }
+      }
+    },
+    "meshLocator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "attachment_id", "attachment_type", "locator_type",
+        "triangle_index", "vertex_indices", "weights_q65535"
+      ],
+      "properties": {
+        "attachment_id": {"$ref": "#/$defs/id"},
+        "attachment_type": {"const": "mesh"},
+        "locator_type": {"const": "mesh-barycentric-q65535"},
+        "triangle_index": {
+          "type": "integer", "minimum": 0, "maximum": 8191
+        },
+        "vertex_indices": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": {"type": "integer", "minimum": 0, "maximum": 4095}
+        },
+        "weights_q65535": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {"type": "integer", "minimum": 0, "maximum": 65535}
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["relationship_count", "anchor_pair_count"],
+      "properties": {
+        "relationship_count": {"type": "integer", "const": 6},
+        "anchor_pair_count": {
+          "type": "integer", "minimum": 12, "maximum": 48
+        }
+      }
+    }
+  }
+}
