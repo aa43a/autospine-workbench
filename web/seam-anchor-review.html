@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#090d13">
+  <title>P10.5b Seam Anchor 人工复核 — AutoSpine</title>
+  <link rel="stylesheet" href="./seam-anchor-review.css">
+</head>
+<body>
+  <a class="skip-link" href="#reviewRelationships">跳到 relationship 候选</a>
+  <header class="review-topbar">
+    <div>
+      <p class="eyebrow">P10.5b · STATIC SEAM EVIDENCE</p>
+      <h1>Seam Anchor 候选比较与人工决定</h1>
+    </div>
+    <a class="button secondary" href="./index.html">返回绑定工作台</a>
+  </header>
+
+  <main>
+    <section class="panel address-panel" aria-labelledby="addressHeading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">EXACT ADDRESS</p>
+          <h2 id="addressHeading">加载指定 Layer Manifest 与 P3 bundle</h2>
+        </div>
+        <span class="gate-badge">不会自动选择</span>
+      </div>
+      <p id="addressHint" class="lede">
+        四项内容地址缺一不可。修改任一字段会立即丢弃候选、图片证据、历史、基线和未提交草稿。
+      </p>
+      <form id="addressForm" class="address-grid" aria-describedby="addressHint" novalidate>
+        <label>
+          <span>项目 ID</span>
+          <input id="projectId" name="project_id" required maxlength="128"
+            pattern="[A-Za-z0-9][A-Za-z0-9._-]{0,127}" autocomplete="off" spellcheck="false">
+        </label>
+        <label>
+          <span>Layer Manifest SHA-256</span>
+          <input id="layerManifestSha256" name="layer_manifest_sha256" class="mono"
+            required minlength="64" maxlength="64" pattern="[0-9a-f]{64}"
+            autocomplete="off" spellcheck="false">
+        </label>
+        <label>
+          <span>P3 RigIR SHA-256</span>
+          <input id="p3RigSha256" name="p3_rig_sha256" class="mono" required
+            minlength="64" maxlength="64" pattern="[0-9a-f]{64}"
+            autocomplete="off" spellcheck="false">
+        </label>
+        <label>
+          <span>P3 bundle SHA-256</span>
+          <input id="p3BundleSha256" name="p3_bundle_sha256" class="mono" required
+            minlength="64" maxlength="64" pattern="[0-9a-f]{64}"
+            autocomplete="off" spellcheck="false">
+        </label>
+        <button id="loadCandidateBtn" class="button primary" type="submit">加载精确候选</button>
+      </form>
+      <p id="addressStatus" class="status-line" role="status" aria-live="polite">尚未加载。</p>
+    </section>
+
+    <div id="reviewWorkspace" class="review-layout" hidden>
+      <section class="panel relationships-panel" aria-labelledby="relationshipsHeading">
+        <div class="section-heading sticky-heading">
+          <div>
+            <p class="eyebrow">FIXED SIX RELATIONSHIPS</p>
+            <h2 id="relationshipsHeading">证据回看与决定</h2>
+          </div>
+          <code id="candidateDigest" class="digest">—</code>
+        </div>
+        <p class="shortcut-hint">
+          非编辑区可用方向键移动；数字 1–4 依次选择 accept、adjust、reject、unobservable。
+        </p>
+        <div class="summary-grid" aria-label="复核进度">
+          <div><span>进度</span><strong id="reviewProgress">0 / 0</strong></div>
+          <div><span>派生状态</span><strong id="derivedStatus">candidate_only</strong></div>
+          <div><span>发布门禁</span><strong id="releaseStatus">blocked</strong></div>
+        </div>
+        <section class="blockers" aria-labelledby="blockersHeading">
+          <h3 id="blockersHeading">仍阻止发布</h3>
+          <ul id="releaseReasons"></ul>
+        </section>
+        <div id="reviewRelationships" class="relationship-list" tabindex="-1"
+          aria-label="按合同顺序排列的六个 seam relationship"></div>
+      </section>
+
+      <aside class="review-sidebar" aria-label="历史与提交">
+        <section class="panel history-panel" aria-labelledby="historyHeading">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">IMMUTABLE HISTORY</p>
+              <h2 id="historyHeading">revision 历史</h2>
+            </div>
+            <button id="refreshHistoryBtn" class="button compact secondary" type="button">
+              重新读取
+            </button>
+          </div>
+          <p class="lede">列表不会自动成为提交基线；历史详情也按 revision 与 SHA 精确读取。</p>
+          <ol id="historyList" class="history-list"></ol>
+          <button id="useHeadBtn" class="button secondary full" type="button" disabled>
+            以当前 head 为基线
+          </button>
+          <p id="baselineStatus" class="status-line" role="status" aria-live="polite">尚未选择提交基线。</p>
+        </section>
+
+        <section class="panel decision-panel" aria-labelledby="decisionHeading">
+          <h2 id="decisionHeading">历史详情</h2>
+          <p id="historySelectionStatus" class="status-line" role="status" aria-live="polite">尚未选择历史 revision。</p>
+          <pre id="decisionDocument" tabindex="0" aria-label="所选历史 decision JSON">—</pre>
+        </section>
+
+        <section class="panel submit-panel" aria-labelledby="submitHeading">
+          <p class="eyebrow">HUMAN DECISION</p>
+          <h2 id="submitHeading">提交完整六项复核</h2>
+          <label>
+            <span>Reviewer ID</span>
+            <input id="reviewerId" required maxlength="128"
+              pattern="[A-Za-z0-9][A-Za-z0-9._-]{0,127}"
+              autocomplete="off" spellcheck="false">
+          </label>
+          <label>
+            <span>总备注</span>
+            <textarea id="reviewNotes" rows="4" maxlength="4096"></textarea>
+          </label>
+          <button id="submitReviewBtn" class="button primary full" type="button" disabled>
+            提交 revision <kbd>Ctrl</kbd> + <kbd>Enter</kbd>
+          </button>
+          <p id="submitStatus" class="status-line" role="status" aria-live="polite">
+            完成六项判定并显式选择基线后可提交。
+          </p>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <div id="liveRegion" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+  <script type="module" src="./modules/seam-anchor-review-app.js"></script>
+</body>
+</html>
