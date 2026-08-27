@@ -185,7 +185,7 @@ JSON Schema 位于：
 - `schemas/motion-instance-v2.schema.json`、`schemas/motion-policy-decision-v1.schema.json`、`schemas/reviewed-motion-policy-v1.schema.json` 与 `schemas/reviewed-motion-bundle-run-v1.schema.json`：P9 人工决定、root/draw-order overlay、v2 instance 与六文件 bundle provenance；
 - `schemas/idle-behavior-candidates-v1.schema.json`、`schemas/idle-behavior-decision-v1.schema.json` 与 `schemas/body-sway-probe-report-v1.schema.json`：P10.0–P10.2 idle 候选、人工参数决定与只读采样结构诊断；
 - `schemas/body-sway-runtime-capture-v1.schema.json`、`schemas/body-sway-visual-review-*.schema.json`、`schemas/body-sway-review-admission-v1.schema.json`、`schemas/body-sway-amplitude-envelope-candidate-v1.schema.json` 与 `schemas/body-sway-continuous-preview-proof-v1.schema.json`：P10.3 runtime 证据、sampled visual revision、P10.4a 当前审批头准入、P10.4b1 离散幅度候选与 P10.4b2 连续预览模型证明；
-- `schemas/seam-anchor-candidates-v1.schema.json`：P10.5a 六条静态接缝关系、候选 locator、原因矩阵、算法身份与阻塞发布声明；
+- `schemas/seam-anchor-candidates-v1.schema.json` 与 `schemas/seam-anchor-review-decision-v1.schema.json`：P10.5a 六条静态接缝候选及 P10.5b 候选/P3 绑定的人工 revision；
 - `schemas/motion-retarget-report-v1.schema.json` 与 `schemas/motion-mesh-regression-v1.schema.json`：P5 运动学、接触与逐帧 mesh 安全门禁。
 
 Layer Manifest 与 RigIR 是下游流水线合同。当前 UI 负责逐层 authoring 与复核，离线命令负责生成 region-only RigIR；它不包含 mesh、权重或动画，也不会冒充某一 Spine 版本。RigIR 对不支持特性的策略固定为 `fail`，防止 constraint、mesh 或 timeline 被静默丢弃。
@@ -384,6 +384,8 @@ P10.4b2 用 `compile-body-sway-continuous-proof` 重放 P10.4b1，并以向外�
 
 P10.5a 用 `compile-seam-anchor-candidates` 从一个精确 Layer Manifest SHA 和一个精确 P3 双 SHA 地址只读编译六条静态接缝关系。generator 绑定完整 canonical algorithm profile；candidate 只含 2–4 对 Q4096 region/Q65535 mesh locator，gap、mesh-mesh 和不可表示状态不会产生 fallback。完整参数、真实样本 golden 与人工边界见 [编译 P10.5a 静态接缝锚点候选](docs/how-to-compile-seam-anchor-candidates.md)。
 
+P10.5b 在独立页面、CLI 与精确 REST API 上比较 P10.5a option，并把固定六关系的 `accept/adjust/reject/unobservable` 选择追加为 candidate-bound write-once revision。prepare/GET 零写入；提交使用 base revision/head SHA 做严格 CAS；每个 option 的父子原始 PNG 由 option membership 与 P3 图片摘要共同寻址。完整流程见 [复核 P10.5b 静态接缝锚点](docs/how-to-review-seam-anchors.md)。
+
 P6 使用 `compile-spine42` 把一个精确 P3 地址导出为 setup-only bundle，或与一对精确 P5 MotionInstance/bundle SHA 组合为单动画 bundle；`verify-spine42` 从导出双 SHA 重建完整上游链。五文件地址、官方 runtime 的本地安装边界与 capture 操作见 [导出、复验并运行 P6 Spine 4.2 资产](docs/how-to-export-spine42.md)。
 
 对版本中立 RigIR 做语义检查：
@@ -470,7 +472,7 @@ P1 已交付 pose、alpha 中轴线和层接触候选，以及候选比较、四
 - 若要恢复旧 revision，先停止服务，备份整个项目 override 目录，再将目标历史快照作为新的、经过校验的 revision 提交；当前界面尚未提供历史浏览/回滚按钮。
 - validation 的 `valid=true` 仅表示结构和本地资产检查没有硬错误，不等于美术、遮挡补全、pivot、mesh 或动画通过视觉验收。
 
-## 已完成阶段：P2 region RigIR 至 P9 reviewed motion，以及 P10.0–P10.5a seam candidates
+## 已完成阶段：P2 region RigIR 至 P9 reviewed motion，以及 P10.0–P10.5b seam review
 
 P0 合同加固、P1 四肢候选与 P2 region-only RigIR 已贯通：`stage-scoped analysis → immutable geometry/candidates → candidate-bound revision → deterministic resolved snapshot → reviewed Layer Manifest → RigIR/setup bundle`。P2 没有提前引入 mesh：
 
@@ -530,6 +532,8 @@ P10.4b1 已增加 `BodySwayAmplitudeEnvelopeCandidate v1`：只沿 reviewed ampl
 P10.4b2 已增加 `BodySwayContinuousPreviewProof v1`：完整内嵌并重算 amplitude candidate、RigIR、target profile、MotionInstance v2、temporary preview manifest 与 preview projection，在统一 gain `λ∈[0,1]` 和全部相邻 preview tick 上执行有界区间证明。所有段通过时只开放两项 preview-model structural claims；预算耗尽、异常、非有限数或后端证明对象不一致均 fail closed 为 `indeterminate`。平台 libm/runtime 等价、raster 视觉范围、reviewed seam anchors、MotionInstance v3、可发布 timeline 与 release authority 仍固定为 false/blocked。
 
 P10.5a 已增加 `SeamAnchorCandidates v1`：从精确 Layer Manifest/P3 静态链建立 torso-arm、pelvis-leg、leg-foot 左右六条关系，比较 setup alpha contact lobe，并生成可回看的 region/mesh attachment-local locator。候选与人工决定严格分离，generator `1.1.0` 的算法 profile SHA 会随实际行为常量变化；两份真实样本分别稳定得到 9 个/36 对与 2 个/8 对 candidate。human decision、reviewed anchor set、动态 seam、runtime/视觉质量和发布权仍固定为 false/blocked。
+
+P10.5b 已增加 `SeamAnchorReviewDecision v1`：相同四段精确地址会重编 candidate，人工提交必须逐行绑定 relationship/option evidence SHA，并以 candidate SHA 隔离最多 64 项的不可变线性历史。相同并发提交收敛到一个 revision，不同提交只有一个 CAS winner；历史 slot、content-address 文件、candidate 或 P3 任一篡改都会 fail closed。六行全部 accept/adjust 只得到 `reviewed_anchor_set_ready_for_compile`，仍需 P10.5c 编译 reviewed set，release gate 始终 blocked。
 
 姿态 runner 与真实标注评估集仍是独立质量轨，不阻塞版本中立 P2 编译；诊断 setup prior 不能替代真实模型基线。
 

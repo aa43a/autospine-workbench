@@ -295,7 +295,21 @@ exact manifest + exact P3 rig/bundle + exact attachment PNG set
 
 region locator 使用 Q4096 attachment-local 坐标；mesh locator 使用 Q65535 重心坐标并在量化后重新规范到最小包含三角形。candidate 只有 2–4 对分别严格有序、连接线不相交也不相触的锚点。独立 validator 会重算完整 reason/status/contact/sampling/type 矩阵与 evidence seal；算法 profile 覆盖关系/角色、contact/lobe、采样、资源、locator 与 pair policy。操作入口见[编译 P10.5a 静态接缝锚点候选](how-to-compile-seam-anchor-candidates.md)。
 
-P10.5a 没有写路径，也没有 candidate 历史。P10.5b 应以 candidate SHA 和 option evidence SHA 为 CAS namespace 保存完整 `accept/adjust/reject/unobservable` revision；P10.5c 才能编译 reviewed set，P10.5d 必须重放该 set 与 P10.4b2 动作域后才能产生动态 seam claim。
+P10.5a 没有写路径，也没有 candidate 历史。P10.5b 已在独立 namespace 中完成 candidate SHA/option evidence SHA 绑定的 `accept/adjust/reject/unobservable` revision：
+
+```text
+fresh exact candidate + history A + explicit base/head
+                          ↓
+      fixed six-row human decision materialization
+                          ↓
+ candidate-bound validation against exact P3 topology
+                          ↓
+ write-once content + linear revision slot + readback
+```
+
+prepare 和 GET 只读重编 candidate；提交前不会发布 candidate，提交时才把 exact candidate 与 decision 写入各自内容地址。decision 历史以 candidate SHA 隔离，不提供 `latest`，同一输入的并发重试收敛，不同输入只允许一个 CAS winner。HTTP 图片证据还要求 candidate option、attachment 与 exact P3 source PNG SHA 同时匹配。操作入口见[复核 P10.5b 静态接缝锚点](how-to-review-seam-anchors.md)。
+
+即使六条关系全部 accept/adjust，P10.5b 也只给出 `reviewed_anchor_set_ready_for_compile`。P10.5c 必须用双历史快照确认指定 decision 仍是当前 head，再编译独立 reviewed set；P10.5d 必须重放该 set 与 P10.4b2 动作域后才能产生动态 seam claim。
 
 后续阶段继续遵守：
 

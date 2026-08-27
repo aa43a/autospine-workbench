@@ -102,7 +102,8 @@ P10.5a 不保存 candidate、不创建 revision，也不生成 reviewed anchor s
 证明、MotionInstance v3 或 Spine timeline。所有 human-selection、dynamic seam、
 runtime、视觉质量和发布 claims 均固定为 `false`。
 
-下一步 P10.5b 必须把 candidate SHA 和 option evidence SHA 绑定到独立人工决定，支持
-`accept`、`adjust`、`reject` 与 `unobservable`，并以 revision/CAS 保存完整历史。
-P10.5c 才能从当前人工决定编译 `ReviewedSeamAnchorSet`；P10.5d 再把它接入与
-P10.4b2 相同动作域的动态接缝探针。
+P10.5b 已把 candidate SHA 和 option evidence SHA 绑定到独立人工决定，支持
+`accept`、`adjust`、`reject` 与 `unobservable`，并以 revision/CAS 保存完整历史；
+操作见[复核 P10.5b 静态接缝锚点](how-to-review-seam-anchors.md)。P10.5c 才能从当前
+人工决定编译 `ReviewedSeamAnchorSet`；P10.5d 再把它接入与 P10.4b2 相同动作域的
+动态接缝探针。
