@@ -94,6 +94,13 @@ def _handler_factory(
             return False
 
         def _serve_static(self, parts: list[str]) -> bool:
+            if web_root is not None and parts[:1] == ["docs"]:
+                if len(parts) < 2 or Path(parts[-1]).suffix.lower() != ".md":
+                    return False
+                return serve_static_response(
+                    parts[1:], web_root.parent / "docs",
+                    self._send_static_file,
+                )
             return serve_static_response(
                 parts, web_root, self._send_static_file
             )

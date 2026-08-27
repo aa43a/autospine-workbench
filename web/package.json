@@ -2,6 +2,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test tests/body-sway-review.test.js tests/body-sway-review-accessibility.test.js tests/seam-anchor-review.test.js tests/seam-anchor-review-accessibility.test.js tests/layer-selection-renderer.test.mjs"
+    "test": "node --test tests/body-sway-review.test.js tests/body-sway-review-accessibility.test.js tests/seam-anchor-review.test.js tests/seam-anchor-review-accessibility.test.js tests/layer-selection-renderer.test.mjs tests/workflow-hub.test.mjs"
   }
 }

@@ -133,7 +133,12 @@ class WorkbenchResponseMixin:
 
     def _send_static_file(self, path: Path) -> None:
         extra_headers = None
-        if path.name in {"body-sway-review.html", "seam-anchor-review.html"}:
+        if path.name in {
+            "body-sway-review.html",
+            "document-viewer.html",
+            "seam-anchor-review.html",
+            "workflow-hub.html",
+        }:
             extra_headers = {"Content-Security-Policy": LOCAL_REVIEW_CSP}
         send_file_response(
             self, path, self._common_headers, extra_headers=extra_headers

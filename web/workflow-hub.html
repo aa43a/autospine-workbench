@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#090c12">
+  <title>功能入口中心 — AutoSpine</title>
+  <link rel="stylesheet" href="./workflow-hub.css">
+</head>
+<body>
+  <a class="skip-link" href="#workflowResults">跳到功能列表</a>
+  <header class="hub-header">
+    <div class="shell header-row">
+      <a class="brand" href="./index.html" aria-label="返回 AutoSpine 绑定复核工作台">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.5"></circle><circle cx="18" cy="7" r="2.5"></circle><circle cx="13" cy="18" r="2.5"></circle><path d="m8.2 7.1 7.4-.1M7.4 8.1l4.3 7.7m4.8-6.7-2.6 6.4"></path></svg>
+        </span>
+        <span><strong>AutoSpine</strong><small>功能入口中心</small></span>
+      </a>
+      <nav aria-label="常用页面">
+        <a class="button secondary" href="./index.html">绑定工作台</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="hero" aria-labelledby="pageHeading">
+      <div>
+        <p class="eyebrow">WORKFLOW DIRECTORY</p>
+        <h1 id="pageHeading">一个入口，找到整条工作流</h1>
+        <p class="lede">浏览现有页面与全部命令，区分可直接使用、需要外部前置和仍在规划中的能力。</p>
+      </div>
+      <div class="stage-card" aria-label="当前交付阶段">
+        <span>当前阶段</span>
+        <strong id="currentStage">—</strong>
+        <small>准入不等于可发布动画</small>
+      </div>
+    </section>
+
+    <section class="summary" aria-label="功能统计">
+      <div><span>目录条目</span><strong id="totalCount">—</strong></div>
+      <div><span>可直接使用</span><strong id="availableCount">—</strong></div>
+      <div><span>需要外部前置</span><strong id="externalCount">—</strong></div>
+      <div><span>计划中</span><strong id="plannedCount">—</strong></div>
+    </section>
+
+    <section class="filter-panel" aria-labelledby="filterHeading">
+      <div class="filter-heading">
+        <div>
+          <p class="eyebrow">FIND AN ENTRY</p>
+          <h2 id="filterHeading">搜索与筛选</h2>
+        </div>
+        <button class="button secondary" id="resetFilters" type="button">清除筛选</button>
+      </div>
+      <form class="filters" id="filterForm" role="search">
+        <label class="search-field">
+          <span>搜索功能、命令或说明</span>
+          <span class="input-wrap">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 5 5"></path></svg>
+            <input id="searchInput" type="search" autocomplete="off" placeholder="例如：Spine、Kimodo、接缝…">
+          </span>
+        </label>
+        <label>
+          <span>阶段</span>
+          <select id="stageFilter"><option value="all">全部阶段</option></select>
+        </label>
+        <label>
+          <span>状态</span>
+          <select id="statusFilter">
+            <option value="all">全部状态</option>
+            <option value="available">可直接使用</option>
+            <option value="external_required">需要外部前置</option>
+            <option value="planned">计划中</option>
+          </select>
+        </label>
+        <label>
+          <span>入口类型</span>
+          <select id="kindFilter">
+            <option value="all">全部类型</option>
+            <option value="page">操作页面</option>
+            <option value="cli">CLI 命令</option>
+            <option value="planned">规划能力</option>
+          </select>
+        </label>
+      </form>
+      <p class="result-status" id="resultStatus" role="status" aria-live="polite">正在加载目录…</p>
+    </section>
+
+    <section id="workflowResults" class="workflow-results" aria-label="按阶段分组的功能入口" tabindex="-1">
+      <div class="loading-card" id="loadingCard" role="status">正在读取功能目录…</div>
+    </section>
+    <noscript><p class="error-card">功能入口中心需要启用 JavaScript 才能读取目录和复制命令。</p></noscript>
+  </main>
+
+  <div class="sr-only" id="liveRegion" aria-live="polite" aria-atomic="true"></div>
+  <script type="module" src="./modules/workflow-hub-app.js"></script>
+</body>
+</html>

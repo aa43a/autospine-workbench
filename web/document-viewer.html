@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#090c12">
+  <title>文档查看器 — AutoSpine</title>
+  <link rel="stylesheet" href="./document-viewer.css">
+</head>
+<body>
+  <a class="skip-link" href="#documentContent">跳到文档正文</a>
+  <header>
+    <div class="shell header-row">
+      <a class="brand" href="./workflow-hub.html" aria-label="返回功能入口中心">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6V3Z"></path><path d="M9 10h6M9 14h6M9 18h4M14 3v4h4"></path></svg>
+        </span>
+        <span><strong>AutoSpine</strong><small>只读文档查看器</small></span>
+      </a>
+      <a class="button" href="./workflow-hub.html">返回功能入口中心</a>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="document-panel" aria-labelledby="documentTitle">
+      <p class="eyebrow">REPOSITORY DOCUMENT</p>
+      <h1 id="documentTitle">正在加载文档…</h1>
+      <p id="documentPath" class="document-path">—</p>
+      <p id="documentStatus" class="status" role="status" aria-live="polite">正在读取只读 Markdown 源文件。</p>
+      <pre id="documentContent" tabindex="0" aria-label="Markdown 文档正文">正在加载…</pre>
+    </section>
+  </main>
+
+  <script type="module" src="./modules/document-viewer.js"></script>
+</body>
+</html>

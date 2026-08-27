@@ -295,6 +295,54 @@ class BodySwayVisualReviewHttpTests(unittest.TestCase):
         self.assertTrue(raw)
         self.assertNotIn("content-security-policy", headers)
 
+    def test_workflow_hub_has_the_same_locked_down_csp(self) -> None:
+        status, headers, raw = self.fixture.request(
+            "GET", "/workflow-hub.html"
+        )
+        self.assertEqual(200, status)
+        self.assertTrue(raw)
+        policy = headers["content-security-policy"]
+        self.assertIn("default-src 'self'", policy)
+        self.assertIn("script-src 'self'", policy)
+        self.assertIn("object-src 'none'", policy)
+
+        resources = {
+            "/document-viewer.css": "text/css",
+            "/modules/document-viewer.js": "text/javascript",
+            "/workflow-hub.css": "text/css",
+            "/workflow-catalog.json": "application/json",
+            "/modules/workflow-hub-app.js": "text/javascript",
+            "/modules/workflow-hub-model.js": "text/javascript",
+            "/modules/workflow-hub-view.js": "text/javascript",
+        }
+        for path, content_type in resources.items():
+            with self.subTest(path=path):
+                status, headers, raw = self.fixture.request("GET", path)
+                self.assertEqual(200, status)
+                self.assertIn(content_type, headers["content-type"])
+                self.assertTrue(raw)
+
+        status, headers, raw = self.fixture.request(
+            "GET", "/document-viewer.html?doc=docs/architecture.md"
+        )
+        self.assertEqual(200, status)
+        self.assertIn("default-src 'self'", headers["content-security-policy"])
+        self.assertTrue(raw)
+
+    def test_documentation_is_available_read_only_under_docs(self) -> None:
+        status, headers, raw = self.fixture.request(
+            "GET", "/docs/architecture.md"
+        )
+        self.assertEqual(200, status)
+        self.assertIn("text/markdown", headers["content-type"])
+        self.assertIn(b"#", raw)
+
+        status, _, raw = self.fixture.request(
+            "GET", "/docs/../README.md"
+        )
+        self.assertIn(status, {400, 404})
+        self.assertNotIn(b"AutoSpine Workbench", raw)
+
 
 if __name__ == "__main__":
     unittest.main()

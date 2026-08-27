@@ -1,0 +1,102 @@
+"""Keep the workflow hub synchronized with executable and documented features."""
+
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+import sys
+import unittest
+
+
+ROOT = Path(__file__).resolve().parents[1]
+SRC = ROOT / "src"
+if str(SRC) not in sys.path:
+    sys.path.insert(0, str(SRC))
+
+from autospine_workbench.cli import build_parser  # noqa: E402
+
+
+CATALOG_PATH = ROOT / "web" / "workflow-catalog.json"
+
+
+def parser_commands() -> set[str]:
+    parser = build_parser()
+    actions = (
+        action for action in parser._actions
+        if isinstance(action, argparse._SubParsersAction)
+    )
+    return set(next(actions).choices)
+
+
+class WorkflowHubCatalogTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.catalog = json.loads(CATALOG_PATH.read_text(encoding="utf-8"))
+        cls.entries = cls.catalog["entries"]
+
+    def test_catalog_has_one_entry_for_every_cli_command(self) -> None:
+        commands = parser_commands()
+        catalog_commands = {
+            entry["command"] for entry in self.entries
+            if entry["kind"] == "cli"
+        }
+        self.assertEqual(54, len(commands))
+        self.assertEqual(commands, catalog_commands)
+
+    def test_entries_have_unique_ids_and_supported_taxonomy(self) -> None:
+        ids = [entry["id"] for entry in self.entries]
+        self.assertEqual(len(ids), len(set(ids)))
+        self.assertEqual(77, len(ids))
+        self.assertEqual(
+            {"cli": 54, "page": 3, "planned": 20},
+            {
+                kind: sum(entry["kind"] == kind for entry in self.entries)
+                for kind in ("cli", "page", "planned")
+            },
+        )
+        stages = {stage["id"] for stage in self.catalog["stages"]}
+        for entry in self.entries:
+            with self.subTest(entry=entry["id"]):
+                self.assertIn(entry["kind"], {"page", "cli", "planned"})
+                self.assertIn(
+                    entry["status"],
+                    {"available", "external_required", "planned"},
+                )
+                self.assertIn(entry["stage"], stages)
+                self.assertTrue(entry["title"].strip())
+                self.assertTrue(entry["summary"].strip())
+
+    def test_every_document_link_is_local_and_exists(self) -> None:
+        for entry in self.entries:
+            with self.subTest(entry=entry["id"]):
+                relative = Path(entry["doc"])
+                self.assertFalse(relative.is_absolute())
+                self.assertNotIn("..", relative.parts)
+                self.assertTrue((ROOT / relative).is_file(), relative)
+
+    def test_page_entries_target_all_existing_workbench_pages(self) -> None:
+        expected = {
+            "./index.html",
+            "./body-sway-review.html",
+            "./seam-anchor-review.html",
+        }
+        pages = {entry["href"] for entry in self.entries
+                 if entry["kind"] == "page"}
+        self.assertEqual(expected, pages)
+        for href in pages:
+            self.assertTrue((ROOT / "web" / href.removeprefix("./")).is_file())
+
+    def test_planned_entries_link_only_to_the_authoritative_roadmap(self) -> None:
+        planned = [entry for entry in self.entries
+                   if entry["kind"] == "planned"]
+        self.assertTrue(planned)
+        for entry in planned:
+            with self.subTest(entry=entry["id"]):
+                self.assertEqual("docs/development-roadmap.md", entry["doc"])
+                self.assertNotIn("command", entry)
+                self.assertNotIn("href", entry)
+
+
+if __name__ == "__main__":
+    unittest.main()
