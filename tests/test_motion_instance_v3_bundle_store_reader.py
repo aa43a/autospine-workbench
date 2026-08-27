@@ -4,8 +4,10 @@ from __future__ import annotations
 
 from dataclasses import replace
 from pathlib import Path
+import shutil
 import sys
 import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -19,9 +21,12 @@ for item in (ROOT, SRC):
 from autospine_workbench.motion_instance_v3_bundle_contract import (  # noqa: E402
     DOCUMENT_NAMES,
 )
+import autospine_workbench.motion_instance_v3_bundle_files as files  # noqa: E402
+import autospine_workbench.motion_instance_v3_staging_cleanup as cleanup  # noqa: E402
 from autospine_workbench.motion_instance_v3_bundle_files import (  # noqa: E402
     NAMESPACE,
     MotionInstanceV3BundleFilesError,
+    remove_staging,
 )
 from autospine_workbench.motion_instance_v3_bundle_integrity import (  # noqa: E402
     MotionInstanceV3BundleIntegrityError,
@@ -36,6 +41,7 @@ from autospine_workbench.motion_instance_v3_bundle_store import (  # noqa: E402
     MotionInstanceV3BundleStoreError,
 )
 from tests.body_sway_motion_consumer_helpers import (  # noqa: E402
+    head_observation,
     patched_probe_replay,
 )
 from tests.motion_instance_v3_bundle_helpers import (  # noqa: E402
@@ -141,9 +147,9 @@ class MotionInstanceV3BundleStoreReaderTests(unittest.TestCase):
     def test_path_traversal_and_wrong_explicit_address_never_fall_back(self):
         published = self.fixture.publish()
         store = MotionInstanceV3BundleStore(self.fixture.state_root)
-        with patched_probe_replay(
-            self.fixture.probe, self.fixture.identity
-        ), self.assertRaises(MotionInstanceV3BundleStoreError):
+        with self.fixture.publish_gate(), self.assertRaises(
+            MotionInstanceV3BundleStoreError
+        ):
             store.publish(
                 "../escape",
                 self.fixture.admission.document,
@@ -185,9 +191,9 @@ class MotionInstanceV3BundleStoreReaderTests(unittest.TestCase):
                 raise MotionInstanceV3BundleFilesError("injected partial write")
             real_write(path, data)
 
-        with patched_probe_replay(
-            self.fixture.probe, self.fixture.identity
-        ), patch.object(module, "write_file", side_effect=fail_second), \
+        with self.fixture.publish_gate(), patch.object(
+            module, "write_file", side_effect=fail_second
+        ), \
                 self.assertRaises(MotionInstanceV3BundleStoreError):
             store.publish(
                 contract.project_id,
@@ -201,6 +207,119 @@ class MotionInstanceV3BundleStoreReaderTests(unittest.TestCase):
         )
         self.assertTrue(parent.is_dir())
         self.assertEqual([], list(parent.iterdir()))
+
+    def test_direct_store_stale_head_and_drift_create_nothing(self):
+        store = MotionInstanceV3BundleStore(self.fixture.state_root)
+        contract = self.fixture.contract
+        primary_parent = (
+            self.fixture.state_root / "builds" / contract.project_id
+            / NAMESPACE / contract.motion_instance_v3_sha256
+        )
+        source = self.fixture.admission.document["source"][
+            "body_sway_dynamic_seam_probe"
+        ]["source"]
+        before_tree = _filesystem_snapshot(self.fixture.state_root)
+        with patch(
+            "autospine_workbench.motion_instance_v3_bundle_store."
+            "require_current_body_sway_dynamic_seam_heads",
+            side_effect=RuntimeError("stale head"),
+        ) as heads, self.assertRaises(MotionInstanceV3BundleStoreError):
+            store.publish(
+                contract.project_id,
+                self.fixture.admission.document,
+                self.fixture.motion_instance_v3.document,
+                self.fixture.reviewed_bundle,
+            )
+        heads.assert_called_once_with(self.fixture.state_root, source)
+        self.assertFalse(primary_parent.exists())
+        self.assertEqual(
+            before_tree, _filesystem_snapshot(self.fixture.state_root)
+        )
+
+        observed = head_observation(self.fixture.identity)
+        attacks = (
+            (
+                observed,
+                SimpleNamespace(
+                    identity=object(),
+                    canonical_bytes=observed.canonical_bytes,
+                ),
+            ),
+            (
+                observed,
+                SimpleNamespace(
+                    identity=observed.identity,
+                    canonical_bytes=observed.canonical_bytes + b"drift",
+                ),
+            ),
+        )
+        for index, observations in enumerate(attacks):
+            before_tree = _filesystem_snapshot(self.fixture.state_root)
+            with self.subTest(index=index), self.fixture.publish_gate(
+                observations=observations
+            ) as heads, self.assertRaisesRegex(
+                MotionInstanceV3BundleStoreError, "heads drifted"
+            ):
+                store.publish(
+                    contract.project_id,
+                    self.fixture.admission.document,
+                    self.fixture.motion_instance_v3.document,
+                    self.fixture.reviewed_bundle,
+                )
+            self.assertEqual(2, heads.call_count)
+            self.assertFalse(primary_parent.exists())
+            self.assertEqual(
+                before_tree, _filesystem_snapshot(self.fixture.state_root)
+            )
+
+    def test_staging_cleanup_never_resolves_its_recursive_target(self):
+        parent = self.fixture.root / "staging-cleanup"
+        parent.mkdir()
+        staging = parent / ".123456789abc.real"
+        staging.mkdir()
+        (staging / "partial.json").write_bytes(b"partial")
+        with patch.object(
+            Path, "resolve", side_effect=AssertionError("resolve called")
+        ):
+            remove_staging(staging, parent)
+        self.assertFalse(staging.exists())
+
+    def test_staging_root_swap_never_removes_external_data(self):
+        parent = self.fixture.root / "staging-swap"
+        parent.mkdir()
+        outside = self.fixture.root / "outside-data"
+        outside.mkdir()
+        sentinel = outside / "sentinel.txt"
+        sentinel.write_text("keep", encoding="utf-8")
+        probe = parent / "symlink-probe"
+        try:
+            probe.symlink_to(outside, target_is_directory=True)
+            probe.unlink()
+        except OSError as exc:
+            self.skipTest(f"directory symlinks unavailable: {exc}")
+
+        staging = parent / ".123456789abc.swap"
+        staging.mkdir()
+        (staging / "partial.json").write_bytes(b"partial")
+        parked = parent / "parked-stage"
+        real_rmtree = shutil.rmtree
+
+        def swap_then_remove(target, *args, **kwargs):
+            staging.rename(parked)
+            staging.symlink_to(outside, target_is_directory=True)
+            return real_rmtree(target, *args, **kwargs)
+
+        with patch.object(
+            cleanup.shutil, "rmtree", side_effect=swap_then_remove
+        ) as recursive_remove:
+            remove_staging(staging, parent)
+        recursive_remove.assert_called_once()
+        self.assertEqual("keep", sentinel.read_text(encoding="utf-8"))
+        self.assertTrue(outside.is_dir())
+        if staging.is_symlink():
+            staging.unlink()
+        if parked.exists():
+            real_rmtree(parked)
 
     def test_auto_resolves_exact_p9_only_after_run_and_address_validation(self):
         published = self.fixture.publish()
@@ -240,6 +359,16 @@ class MotionInstanceV3BundleStoreReaderTests(unittest.TestCase):
                 contract.bundle_sha256,
             )
         p9_reader.assert_not_called()
+
+
+def _filesystem_snapshot(root: Path):
+    return tuple(
+        (
+            path.relative_to(root).as_posix(),
+            "directory" if path.is_dir() else path.read_bytes(),
+        )
+        for path in sorted(root.rglob("*"))
+    )
 
 
 if __name__ == "__main__":

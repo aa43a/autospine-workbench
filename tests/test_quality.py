@@ -11,8 +11,10 @@ SOURCE_ROOTS = (ROOT / "src", ROOT / "web")
 SOURCE_SUFFIXES = {".py", ".js", ".css", ".html"}
 DEFAULT_MAX_LINES = 400
 P10_MAX_LINES = 300
+P10_TEST_MAX_LINES = 400
 P10_PREFIXES = (
     "src/autospine_workbench/body_sway_",
+    "src/autospine_workbench/motion_instance_v3_",
     "src/autospine_workbench/p10_",
     "src/autospine_workbench/reviewed_seam_anchor_",
     "src/autospine_workbench/seam_anchor_",
@@ -30,6 +32,11 @@ LEGACY_MAX_LINES = {
     "web/app.js": 1182,
     "web/styles.css": 1713,
 }
+P10_TEST_PREFIXES = (
+    "motion_instance_v3_",
+    "test_motion_instance_v3",
+    "test_p10_motion_instance_v3",
+)
 
 
 def source_files() -> list[Path]:
@@ -74,6 +81,18 @@ class SourceQualityBudgetTests(unittest.TestCase):
             elif physical_line_count(path) <= DEFAULT_MAX_LINES:
                 stale.append(f"{relative}: now fits the default budget; remove allowlist entry")
         self.assertEqual([], stale, "\n".join(stale))
+
+    def test_p10_motion_instance_v3_tests_respect_line_budget(self) -> None:
+        violations = []
+        for path in sorted((ROOT / "tests").glob("*.py")):
+            if not path.name.startswith(P10_TEST_PREFIXES):
+                continue
+            actual = physical_line_count(path)
+            if actual > P10_TEST_MAX_LINES:
+                violations.append(
+                    f"tests/{path.name}: {actual} lines > {P10_TEST_MAX_LINES}"
+                )
+        self.assertEqual([], violations, "\n".join(violations))
 
 
 if __name__ == "__main__":

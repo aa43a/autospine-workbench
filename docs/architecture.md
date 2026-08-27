@@ -83,7 +83,9 @@ exact Layer Manifest + exact P3 static bundle
                                       ↓
             P10.6a motion-consumer admission
                                        ↓
-           [planned] P10.6b MotionInstance v3
+             P10.6b MotionInstance v3 bundle
+                                       ↓
+          [planned] P10.7 Spine 4.2/runtime
                                        ↓
                             blocked release
 
@@ -112,7 +114,7 @@ web    → HTTP contracts only
 
 ## 文件长度预算
 
-生产源码的硬上限为 400 个物理行。新文件超过 300 行时就应评估按职责拆分；函数通常不超过 60 行，超过 100 行必须先拆解或在评审中记录理由。
+生产源码的硬上限为 400 个物理行。新文件超过 300 行时就应评估按职责拆分；函数通常不超过 60 行，超过 100 行必须先拆解或在评审中记录理由。P10 的 MotionInstance v3 测试模块另设 400 行硬门禁，防止安全与攻击用例持续堆入单文件。
 
 当前三个历史单体采用 ratchet：只允许缩短，不允许超过测试中记录的当前上限。
 
@@ -415,13 +417,18 @@ validator 仍从内嵌 probe 和外部精确 P9 bundle 重编 pure core，不能
 及 CLI 的外层 observation 都只在 `compile_time` 有效。操作入口见
 [编译 P10.6a body-sway 动作消费准入](how-to-compile-body-sway-motion-consumer-admission.md)。
 
-下一架构增量是 P10.6b：在实际消费时重新检查 visual/seam current head，并把上述 motion
-domain 编译为可严格重放的 MotionInstance v3/timeline bundle。它完成后仍须经过 P10.7
-Spine 4.2 adapter 与官方 Runtime/raster 回归；依赖和验收定义见[后续开发路线](development-roadmap.md)。
+P10.6b 已在实际消费时重新检查 visual/seam current head，并把上述 motion domain 编译为
+可严格重放的 MotionInstance v3/timeline bundle。固定库存为 admission、v3 与 run；发布使用
+v3/bundle 双 SHA，无 `latest`。MIv2 root translation、markers 与 stepped draw order 原样保留，
+rotation overlay 只允许躯干四骨。历史 reader 不观察 current head，因此只证明当时发布的字节
+可重放。store 在创建 publication parent 前独立执行 before → contract → after 门禁，公开命令
+发布后再按精确地址读回；run 的 authority 只开放 MotionInstance v3 emitted，release gate 固定
+blocked。admission 独立上限为 64 MiB。下一架构增量是 P10.7 Spine 4.2 adapter 与官方 Runtime/raster 回归；依赖和验收定义
+见[后续开发路线](development-roadmap.md)。
 
 后续 timeline/runtime 阶段继续遵守：
 
-- motion contract：MotionInstance v3 或通用动画编译器在实际消费时重新检查两个 current head，不直接信任历史 admission/stdout。
+- motion contract：MotionInstance v3 的公开 compile 路径与 store trust boundary 都在待发布值构造前后重新检查两个 current head，不直接信任历史 admission/stdout；发布后按内容地址读回，历史 verify 不反向声明 current authority。
 - setup：画布、原点、side 语义、draw order 和 region 合成回归通过。
 - visual：除锚点代理外，完整 attachment 边界在固定动作与极值帧通过 raster/人工回归。
 - runtime：目标 adapter 的能力矩阵明确，未支持特性 fail loud；产物不依赖伪造版本字段。

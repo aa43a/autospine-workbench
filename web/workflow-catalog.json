@@ -1,6 +1,6 @@
 {
   "catalog_version": "1.0.0",
-  "current_stage": "P10.6b",
+  "current_stage": "P10.7",
   "stages": [
     {"id":"P0","label":"合同、服务与基础验证"},
     {"id":"P1","label":"图层复核与四肢候选"},
@@ -72,6 +72,8 @@
     {"id":"cli-verify-reviewed-seam-anchor-set","stage":"P10","title":"验证 Reviewed Seam Set","summary":"验证一个精确历史 reviewed seam-anchor bundle。","kind":"cli","status":"available","command":"verify-reviewed-seam-anchor-set","doc":"docs/how-to-compile-reviewed-seam-anchor-set.md"},
     {"id":"cli-compile-body-sway-dynamic-seam-probe","stage":"P10","title":"证明动态接缝距离","summary":"在全部 tick 和 gain 上证明已复核锚点的动态邻近性。","kind":"cli","status":"available","command":"compile-body-sway-dynamic-seam-probe","doc":"docs/how-to-probe-body-sway-dynamic-seams.md"},
     {"id":"cli-compile-body-sway-motion-consumer-admission","stage":"P10","title":"准入 Body-sway 动作消费者","summary":"重放 P10.5d 与 P9，生成零写入 setup-local timeline 消费准入。","kind":"cli","status":"available","command":"compile-body-sway-motion-consumer-admission","doc":"docs/how-to-compile-body-sway-motion-consumer-admission.md"},
+    {"id":"cli-compile-body-sway-motion-instance-v3","stage":"P10","title":"编译 Body-sway MotionInstance v3","summary":"重查 visual/seam current heads，将 P10.6a 准入原子发布为严格三文件 v3 bundle。","kind":"cli","status":"available","command":"compile-body-sway-motion-instance-v3","doc":"docs/how-to-compile-motion-instance-v3.md"},
+    {"id":"cli-verify-body-sway-motion-instance-v3","stage":"P10","title":"验证 Body-sway MotionInstance v3","summary":"按精确 v3/bundle 双 SHA 历史重放，不声明 current-head authority。","kind":"cli","status":"available","command":"verify-body-sway-motion-instance-v3","doc":"docs/how-to-compile-motion-instance-v3.md"},
     {"id":"planned-seethrough-ingest","stage":"P0","title":"See-through 推理与 PSD 入库","summary":"自动运行多 seed 分层、质量筛选、PSD 清理并转为 Layer Manifest 输入。","kind":"planned","status":"external_required","doc":"docs/development-roadmap.md"},
     {"id":"planned-remote-collaboration","stage":"P0","title":"多用户与远程生产部署","summary":"在保留 CAS/revision 语义下加入身份、权限、任务队列和对象存储。","kind":"planned","status":"planned","doc":"docs/development-roadmap.md"},
     {"id":"planned-resolved-snapshot-v2","stage":"P0","title":"Resolved Project v2 语义升级","summary":"仅在生成、QA 或 provenance 语义变化时新增 v2 合同；v1 Schema、validator 与历史哈希已经冻结。","kind":"planned","status":"planned","doc":"docs/development-roadmap.md"},
@@ -85,7 +87,6 @@
     {"id":"planned-workbench-spine-export","stage":"P6","title":"主工作台 Spine 导出编排入口","summary":"把已完成的离线 P6 CLI 以显式地址、进度和错误回看接入主操作台。","kind":"planned","status":"planned","doc":"docs/development-roadmap.md"},
     {"id":"planned-real-kimodo-qa","stage":"P7","title":"真实 Kimodo Checkpoint 验收","summary":"接入真实 checkpoint 输出并建立动作质量、投影稳定性和回归门禁。","kind":"planned","status":"external_required","doc":"docs/development-roadmap.md"},
     {"id":"planned-attachment-switch","stage":"P9","title":"Attachment Switch Timeline","summary":"生成并验证口型、眨眼等离散附件切换时间线。","kind":"planned","status":"planned","doc":"docs/development-roadmap.md"},
-    {"id":"planned-motion-instance-v3","stage":"P10","title":"P10.6b MotionInstance v3 Timeline Compiler","summary":"当前后续开发入口：消费 P10.6a 准入，输出含 body-sway 的版本中立动作实例与严格 bundle。","kind":"planned","status":"planned","doc":"docs/development-roadmap.md"},
     {"id":"planned-blink","stage":"P10","title":"自动眨眼候选与生成","summary":"借鉴 PachiPakuGen，基于可用眼部附件生成可复核 blink 行为。","kind":"planned","status":"planned","doc":"docs/development-roadmap.md"},
     {"id":"planned-lipsync","stage":"P10","title":"自动口型候选与音素映射","summary":"检测可用嘴部附件并将音频或节奏映射为可复核口型序列。","kind":"planned","status":"planned","doc":"docs/development-roadmap.md"},
     {"id":"planned-hair-spring","stage":"P10","title":"头发弹簧绑定与次级运动","summary":"为已分层发束生成 spring chain、碰撞约束和确定性 bake。","kind":"planned","status":"planned","doc":"docs/development-roadmap.md"},

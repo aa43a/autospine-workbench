@@ -16,12 +16,29 @@ COMPILER = {
     "id": "autospine-body-sway-motion-instance-v3-bundle-compiler",
     "version": "1.0.0",
 }
+AUTHORITY = {
+    "motion_instance_v3_emitted": True,
+    "spine_adapter_emitted": False,
+    "runtime_equivalence": False,
+    "raster_visual_quality": False,
+    "persistent_current_head_authority": False,
+    "release_authority": False,
+}
+RELEASE_GATE = {
+    "status": "blocked",
+    "reason_codes": [
+        "persistent_current_head_authority_not_granted",
+        "raster_visual_quality_unproven",
+        "runtime_equivalence_unproven",
+        "spine_adapter_not_emitted",
+    ],
+}
 MAX_RUN_BYTES = 1024 * 1024
 _TOKEN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 _SHA = re.compile(r"^[0-9a-f]{64}$")
 _TOP = {
     "format", "format_version", "project_id", "clip_id",
-    "inputs", "outputs", "compiler",
+    "inputs", "outputs", "authority", "release_gate", "compiler",
 }
 _INPUTS = {
     "body_sway_motion_consumer_admission_sha256", "p9",
@@ -93,6 +110,11 @@ def build_motion_instance_v3_bundle_run(
             "motion_instance_v3_profile_sha256":
                 motion_instance_v3_profile_sha256,
         },
+        "authority": dict(AUTHORITY),
+        "release_gate": {
+            "status": RELEASE_GATE["status"],
+            "reason_codes": list(RELEASE_GATE["reason_codes"]),
+        },
         "compiler": dict(COMPILER),
     }
     require_motion_instance_v3_bundle_run(document)
@@ -129,6 +151,18 @@ def require_motion_instance_v3_bundle_run(
         _exact(outputs, _OUTPUTS, "bundle run outputs")
         for field in _OUTPUTS:
             _digest(outputs.get(field), field)
+        authority = _object(root.get("authority"), "bundle run authority")
+        if _canonical(authority) != _canonical(AUTHORITY):
+            raise MotionInstanceV3BundleRunError(
+                "MotionInstance v3 bundle authority is unsupported"
+            )
+        release_gate = _object(
+            root.get("release_gate"), "bundle run release gate"
+        )
+        if _canonical(release_gate) != _canonical(RELEASE_GATE):
+            raise MotionInstanceV3BundleRunError(
+                "MotionInstance v3 bundle release gate is unsupported"
+            )
         if root.get("compiler") != COMPILER:
             raise MotionInstanceV3BundleRunError(
                 "MotionInstance v3 bundle compiler identity is unsupported"
@@ -181,7 +215,8 @@ def _canonical(value: Mapping[str, Any]) -> bytes:
 
 
 __all__ = [
-    "COMPILER", "MotionInstanceV3BundleRun",
+    "AUTHORITY", "COMPILER", "MAX_RUN_BYTES", "RELEASE_GATE",
+    "MotionInstanceV3BundleRun",
     "MotionInstanceV3BundleRunError", "build_motion_instance_v3_bundle_run",
     "require_motion_instance_v3_bundle_run",
 ]

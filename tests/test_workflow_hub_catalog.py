@@ -41,15 +41,15 @@ class WorkflowHubCatalogTests(unittest.TestCase):
             entry["command"] for entry in self.entries
             if entry["kind"] == "cli"
         }
-        self.assertEqual(54, len(commands))
+        self.assertEqual(56, len(commands))
         self.assertEqual(commands, catalog_commands)
 
     def test_entries_have_unique_ids_and_supported_taxonomy(self) -> None:
         ids = [entry["id"] for entry in self.entries]
         self.assertEqual(len(ids), len(set(ids)))
-        self.assertEqual(77, len(ids))
+        self.assertEqual(78, len(ids))
         self.assertEqual(
-            {"cli": 54, "page": 3, "planned": 20},
+            {"cli": 56, "page": 3, "planned": 19},
             {
                 kind: sum(entry["kind"] == kind for entry in self.entries)
                 for kind in ("cli", "page", "planned")

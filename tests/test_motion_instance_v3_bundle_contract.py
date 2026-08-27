@@ -19,15 +19,28 @@ for item in (ROOT, SRC):
         sys.path.insert(0, str(item))
 
 from autospine_workbench.motion_instance_v3_bundle_contract import (  # noqa: E402
+    DOCUMENT_LIMITS,
     DOCUMENT_NAMES,
+    MAX_ADMISSION_BYTES,
+    MAX_TOTAL_DOCUMENT_BYTES,
     MotionInstanceV3BundleContractError,
     build_motion_instance_v3_bundle_contract,
     motion_instance_v3_bundle_address_sha256,
 )
 from autospine_workbench.motion_instance_v3_bundle_run import (  # noqa: E402
+    AUTHORITY,
     COMPILER,
+    RELEASE_GATE,
     MotionInstanceV3BundleRunError,
     require_motion_instance_v3_bundle_run,
+)
+from autospine_workbench.motion_instance_v3_bundle_integrity import (  # noqa: E402
+    MotionInstanceV3BundleIntegrityError,
+    MotionInstanceV3BundleSnapshot,
+    verify_motion_instance_v3_bundle_snapshot,
+)
+from autospine_workbench.seam_anchor_review_json import (  # noqa: E402
+    canonical_json_bytes,
 )
 from tests.body_sway_motion_consumer_helpers import (  # noqa: E402
     patched_probe_replay,
@@ -78,6 +91,8 @@ class MotionInstanceV3BundleContractTests(unittest.TestCase):
         run = json.loads(contract.document_bytes["run-manifest.json"])
         source = self.fixture.motion_instance_v3.document["source"]
         self.assertEqual(COMPILER, run["compiler"])
+        self.assertEqual(AUTHORITY, run["authority"])
+        self.assertEqual(RELEASE_GATE, run["release_gate"])
         self.assertEqual(contract.admission_sha256, run["inputs"][
             "body_sway_motion_consumer_admission_sha256"
         ])
@@ -122,6 +137,12 @@ class MotionInstanceV3BundleContractTests(unittest.TestCase):
             lambda row: row["inputs"].__setitem__(
                 "motion_domain_sha256", "A" * 64
             ),
+            lambda row: row["authority"].__setitem__(
+                "motion_instance_v3_emitted", False
+            ),
+            lambda row: row["authority"].__setitem__("spine", False),
+            lambda row: row["release_gate"].__setitem__("status", "passed"),
+            lambda row: row["release_gate"]["reason_codes"].pop(),
         ):
             changed = deepcopy(run)
             mutate(changed)
@@ -129,6 +150,66 @@ class MotionInstanceV3BundleContractTests(unittest.TestCase):
                 MotionInstanceV3BundleRunError
             ):
                 require_motion_instance_v3_bundle_run(changed)
+
+    def test_authority_and_release_gate_are_exact_byte_replayed(self):
+        contract = self.build()
+        for mutate in (
+            lambda row: row["authority"].__setitem__(
+                "runtime_equivalence", True
+            ),
+            lambda row: row["release_gate"]["reason_codes"].reverse(),
+        ):
+            items = list(contract.document_bytes.items())
+            run = json.loads(items[2][1])
+            mutate(run)
+            items[2] = (items[2][0], canonical_json_bytes(run))
+            tampered = tuple(items)
+            address = motion_instance_v3_bundle_address_sha256(
+                contract.project_id, contract.motion_instance_v3_sha256,
+                tampered,
+            )
+            snapshot = MotionInstanceV3BundleSnapshot(Path("unused"), tampered)
+            with self.subTest(mutate=mutate), patched_probe_replay(
+                self.fixture.probe, self.fixture.identity
+            ), self.assertRaisesRegex(
+                MotionInstanceV3BundleIntegrityError, "canonical snapshots"
+            ):
+                verify_motion_instance_v3_bundle_snapshot(
+                    snapshot,
+                    expected_project_id=contract.project_id,
+                    expected_motion_instance_v3_sha256=
+                        contract.motion_instance_v3_sha256,
+                    expected_bundle_sha256=address,
+                    reviewed_bundle=self.fixture.reviewed_bundle,
+                    require_address_path=False,
+                )
+
+    def test_real_bundle_limits_and_early_admission_rejection(self):
+        self.assertEqual(64 * 1024 * 1024, MAX_ADMISSION_BYTES)
+        self.assertEqual(MAX_ADMISSION_BYTES, DOCUMENT_LIMITS[0])
+        self.assertEqual(sum(DOCUMENT_LIMITS), MAX_TOTAL_DOCUMENT_BYTES)
+
+        class OversizedAdmissionBytes(bytes):
+            def __len__(self):
+                return MAX_ADMISSION_BYTES + 1
+
+        with patch(
+            "autospine_workbench.motion_instance_v3_bundle_contract."
+            "body_sway_motion_consumer_admission_canonical_bytes",
+            return_value=OversizedAdmissionBytes(b"{}"),
+        ), patch(
+            "autospine_workbench.motion_instance_v3_bundle_contract."
+            "compile_motion_instance_v3"
+        ) as compiler, self.assertRaisesRegex(
+            MotionInstanceV3BundleContractError, "exceeds its byte limit"
+        ):
+            build_motion_instance_v3_bundle_contract(
+                self.fixture.reviewed_bundle.project_id,
+                self.fixture.admission.document,
+                self.fixture.motion_instance_v3.document,
+                self.fixture.reviewed_bundle,
+            )
+        compiler.assert_not_called()
 
     def test_address_is_ordered_and_rejects_primary_or_budget_tamper(self):
         contract = self.build()

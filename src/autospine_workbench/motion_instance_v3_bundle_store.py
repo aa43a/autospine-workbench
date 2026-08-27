@@ -9,6 +9,9 @@ from pathlib import Path
 import tempfile
 from typing import Any
 
+from .body_sway_dynamic_seam_head_checks import (
+    require_current_body_sway_dynamic_seam_heads,
+)
 from .motion_instance_v3_bundle_contract import (
     MotionInstanceV3BundleContract,
     MotionInstanceV3BundleContractError,
@@ -60,15 +63,34 @@ class MotionInstanceV3BundleStore:
         motion_instance_v3: Mapping[str, Any],
         reviewed_bundle: VerifiedReviewedMotionBundle,
     ) -> PublishedMotionInstanceV3Bundle:
-        """Validate completely before creating directories or staging files."""
+        """Seal current review heads around validation before any filesystem write."""
 
         try:
+            dynamic_source = admission["source"][
+                "body_sway_dynamic_seam_probe"
+            ]["source"]
+            before = require_current_body_sway_dynamic_seam_heads(
+                self.state_root, dynamic_source
+            )
             contract = build_motion_instance_v3_bundle_contract(
                 project_id, admission, motion_instance_v3, reviewed_bundle
             )
-        except MotionInstanceV3BundleContractError as exc:
+            after = require_current_body_sway_dynamic_seam_heads(
+                self.state_root, dynamic_source
+            )
+            if before.identity != after.identity \
+                    or before.canonical_bytes != after.canonical_bytes:
+                raise MotionInstanceV3BundleStoreError(
+                    "MotionInstance v3 review heads drifted before publication"
+                )
+        except MotionInstanceV3BundleStoreError:
+            raise
+        except (
+            AttributeError, KeyError, MotionInstanceV3BundleContractError,
+            OSError, OverflowError, RuntimeError, TypeError, ValueError,
+        ) as exc:
             raise MotionInstanceV3BundleStoreError(
-                "MotionInstance v3 publication input is invalid"
+                "MotionInstance v3 publication input or head authority is invalid"
             ) from exc
         parent: Path | None = None
         staging: Path | None = None

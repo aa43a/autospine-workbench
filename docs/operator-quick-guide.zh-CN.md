@@ -47,7 +47,7 @@ cd E:\proj\unusual\localset\autospine-workbench
 “功能入口中心”提供：
 
 - 按 P0–P10 阶段、入口类型和状态筛选；
-- 搜索全部 54 个 CLI、三个任务页面和尚未实现的规划项；
+- 搜索全部 56 个 CLI、三个任务页面和尚未实现的规划项；
 - 直接打开绑定复核、Body-sway 视觉复核和 Seam Anchor 复核页面；
 - 复制精确的 `python -B -m autospine_workbench <command> --help` 帮助命令；
 - 通过 `/document-viewer.html?doc=docs/<文件名>.md` 安全文档查看器打开对应仓库文档。
@@ -254,7 +254,7 @@ python -B -m autospine_workbench verify-mesh-bundle --help
 
 ## 10. 当前阶段与下一开发入口
 
-P0 Resolved Project v1 合同与 P10.6a 均已完成。普通图层/关节复核不需要运行 P10.6a；开发版本中立动画编译链时，可按
+P0 Resolved Project v1 合同与 P10.6b MotionInstance v3 均已完成。普通图层/关节复核不需要运行 P10.6a/P10.6b；开发版本中立动画编译链时，先按
 [编译 P10.6a body-sway 动作消费准入](how-to-compile-body-sway-motion-consumer-admission.md)
 把认证的 P10.5d probe 与精确 P9 MotionInstance v2 bundle 重新闭合。对应命令是：
 
@@ -262,11 +262,18 @@ P0 Resolved Project v1 合同与 P10.6a 均已完成。普通图层/关节复核
 python -B -m autospine_workbench compile-body-sway-motion-consumer-admission --help
 ```
 
-P10.6a 只说明 setup-local timeline 编译器可以开始消费这组输入；它不会生成
-MotionInstance v3 或 Spine timeline。其视觉与接缝 current-head 观察仅在本次编译时有效，
-完整边界视觉回归、官方 Runtime 和发布门禁仍须在后续阶段独立完成。
+随后按[编译并复验 P10.6b MotionInstance v3](how-to-compile-motion-instance-v3.md)保存完整
+P10.6a 成功输出，编译并复验精确三文件 bundle：
 
-下一开发入口是 **P10.6b MotionInstance v3 / timeline compiler**。它目前没有 CLI，不应在操作台标记为可用。建议先完成确定性 MIv3 bundle 和严格 reader，再进入 P10.7 Spine 4.2 adapter/runtime 回归；完整依赖、交付、验收和风险见[后续开发路线](development-roadmap.md)。
+```powershell
+python -B -m autospine_workbench compile-body-sway-motion-instance-v3 --help
+python -B -m autospine_workbench verify-body-sway-motion-instance-v3 --help
+```
+
+P10.6b 会生成版本中立 MotionInstance v3，但发布前 head observation 仍不是永久审批权，也没有
+生成 Spine timeline。下一开发入口是 **P10.7 Spine 4.2 adapter/runtime 回归**；完整附件边界、
+raster 视觉、官方 Runtime 与发布门禁仍须在该阶段独立完成。依赖、交付与风险见
+[后续开发路线](development-roadmap.md)。
 
 ## 11. 常用验证命令
 

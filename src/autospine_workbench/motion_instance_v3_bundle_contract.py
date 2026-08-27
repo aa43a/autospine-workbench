@@ -7,9 +7,6 @@ from dataclasses import dataclass, field
 import hashlib
 from typing import Any
 
-from .body_sway_motion_consumer_profile import (
-    MAX_DOCUMENT_BYTES as MAX_ADMISSION_BYTES,
-)
 from .body_sway_motion_consumer_validation import (
     BodySwayMotionConsumerAdmissionValidationError,
     body_sway_motion_consumer_admission_canonical_bytes,
@@ -34,6 +31,7 @@ from .seam_anchor_review_json import canonical_json_bytes
 BUNDLE_ADDRESS_DOMAIN = (
     b"autospine-body-sway-motion-instance-v3-bundle-address/v1"
 )
+MAX_ADMISSION_BYTES = 64 * 1024 * 1024
 DOCUMENT_NAMES = (
     "body-sway-motion-consumer-admission.json",
     "motion-instance-v3.json",
@@ -112,6 +110,10 @@ def build_motion_instance_v3_bundle_contract(
         admission_bytes = body_sway_motion_consumer_admission_canonical_bytes(
             admission, reviewed_bundle=reviewed_bundle
         )
+        if len(admission_bytes) > MAX_ADMISSION_BYTES:
+            raise MotionInstanceV3BundleContractError(
+                f"{DOCUMENT_NAMES[0]} exceeds its byte limit"
+            )
         admission_document = _json_object(admission, DOCUMENT_NAMES[0])
         if canonical_json_bytes(admission_document) != admission_bytes:
             raise MotionInstanceV3BundleContractError(
@@ -276,7 +278,8 @@ def _sha(value: bytes) -> str:
 
 
 __all__ = [
-    "DOCUMENT_LIMITS", "DOCUMENT_NAMES", "MAX_TOTAL_DOCUMENT_BYTES",
+    "DOCUMENT_LIMITS", "DOCUMENT_NAMES", "MAX_ADMISSION_BYTES",
+    "MAX_TOTAL_DOCUMENT_BYTES",
     "MotionInstanceV3BundleContract", "MotionInstanceV3BundleContractError",
     "build_motion_instance_v3_bundle_contract",
     "motion_instance_v3_bundle_address_sha256",

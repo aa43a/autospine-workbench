@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-import shutil
 import stat
 
 from .manifest_artifacts import (
@@ -16,6 +15,10 @@ from .motion_instance_v3_bundle_contract import (
     DOCUMENT_LIMITS,
     DOCUMENT_NAMES,
     MAX_TOTAL_DOCUMENT_BYTES,
+)
+from .motion_instance_v3_staging_cleanup import (
+    is_alias,
+    remove_lexical_staging,
 )
 from .safe_input_files import SafeInputFileError, read_real_file
 
@@ -178,23 +181,6 @@ def require_real_directory(path: Path, label: str) -> Path:
     return path
 
 
-def is_alias(path: Path) -> bool:
-    try:
-        info = path.lstat()
-    except OSError:
-        return True
-    if stat.S_ISLNK(info.st_mode):
-        return True
-    junction = getattr(path, "is_junction", None)
-    try:
-        if callable(junction) and junction():
-            return True
-    except OSError:
-        return True
-    reparse = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
-    return bool(getattr(info, "st_file_attributes", 0) & reparse)
-
-
 def sync_directory(path: Path) -> None:
     if os.name == "nt":
         return
@@ -206,18 +192,17 @@ def sync_directory(path: Path) -> None:
 
 
 def remove_staging(path: Path, parent: Path | None) -> None:
-    """Remove only a validated staging child below its exact parent."""
+    """Best-effort removal without ever recursing through a resolved alias."""
 
     if parent is None or path.parent != parent or not _staging_name(path.name):
         return
     try:
         require_real_directory(parent, "MotionInstance v3 staging parent")
-        require_real_directory(path, "MotionInstance v3 staging directory")
-        if path.resolve(strict=True).parent != parent.resolve(strict=True):
-            return
-        _require_within(parent, path)
-        shutil.rmtree(path.resolve(strict=True))
-    except (OSError, RuntimeError, MotionInstanceV3BundleFilesError):
+        remove_lexical_staging(path, parent)
+    except (
+        NotImplementedError, OSError, RuntimeError,
+        MotionInstanceV3BundleFilesError,
+    ):
         return
 
 

@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from contextlib import contextmanager
 from pathlib import Path
+from unittest.mock import patch
 
 from autospine_workbench.body_sway_motion_consumer_admission import (
     compile_body_sway_motion_consumer_admission_core,
@@ -49,8 +51,21 @@ class MotionInstanceV3StorageFixture:
                 self.reviewed_bundle,
             )
 
+    @contextmanager
+    def publish_gate(self, *, observations=None):
+        observation = head_observation(self.identity)
+        values = observations or (observation, observation)
+        with patched_probe_replay(
+            self.probe, self.identity
+        ), patch(
+            "autospine_workbench.motion_instance_v3_bundle_store."
+            "require_current_body_sway_dynamic_seam_heads",
+            side_effect=values,
+        ) as heads:
+            yield heads
+
     def publish(self):
-        with patched_probe_replay(self.probe, self.identity):
+        with self.publish_gate():
             return MotionInstanceV3BundleStore(self.state_root).publish(
                 self.reviewed_bundle.project_id,
                 self.admission.document,
