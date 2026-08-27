@@ -1,0 +1,245 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/motion-instance-v3.schema.json",
+  "title": "AutoSpine body-sway MotionInstance v3",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "clip_id", "timing", "source", "profile",
+    "target_space", "tracks", "markers", "draw_order"
+  ],
+  "properties": {
+    "format": {"const": "autospine-motion-instance"},
+    "format_version": {"type": "integer", "const": 3},
+    "clip_id": {"$ref": "#/$defs/id"},
+    "timing": {"$ref": "#/$defs/timing"},
+    "source": {"$ref": "#/$defs/source"},
+    "profile": {"$ref": "#/$defs/profile"},
+    "target_space": {"$ref": "#/$defs/targetSpace"},
+    "tracks": {
+      "type": "array", "minItems": 1, "maxItems": 18,
+      "items": {"$ref": "#/$defs/track"}
+    },
+    "markers": {
+      "type": "array", "maxItems": 256,
+      "items": {"$ref": "#/$defs/contactMarker"}
+    },
+    "draw_order": {"$ref": "#/$defs/drawOrder"}
+  },
+  "$defs": {
+    "id": {
+      "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "timing": {
+      "type": "object", "additionalProperties": false,
+      "required": ["ticks_per_second", "duration_ticks", "loop"],
+      "properties": {
+        "ticks_per_second": {"type": "integer", "const": 1000000},
+        "duration_ticks": {
+          "type": "integer", "minimum": 1, "maximum": 600000000
+        },
+        "loop": {"type": "boolean"}
+      }
+    },
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "body_sway_motion_consumer_admission_sha256", "p9",
+        "motion_domain_sha256", "rotation_timeline_sha256",
+        "base_channels_sha256", "rig_ir_sha256", "target_profile_sha256",
+        "motion_instance_v3_profile_sha256"
+      ],
+      "properties": {
+        "body_sway_motion_consumer_admission_sha256": {"$ref": "#/$defs/sha"},
+        "p9": {"$ref": "#/$defs/p9"},
+        "motion_domain_sha256": {"$ref": "#/$defs/sha"},
+        "rotation_timeline_sha256": {"$ref": "#/$defs/sha"},
+        "base_channels_sha256": {"$ref": "#/$defs/sha"},
+        "rig_ir_sha256": {"$ref": "#/$defs/sha"},
+        "target_profile_sha256": {"$ref": "#/$defs/sha"},
+        "motion_instance_v3_profile_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "p9": {
+      "type": "object", "additionalProperties": false,
+      "required": ["motion_instance_v2_sha256", "bundle_sha256"],
+      "properties": {
+        "motion_instance_v2_sha256": {"$ref": "#/$defs/sha"},
+        "bundle_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "profile": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "id", "version", "canonicalization",
+        "source_rotation_interpolation", "target_interpolation",
+        "selected_gain", "overlay_rotation_bone_ids", "base_channel_modes"
+      ],
+      "properties": {
+        "id": {"const": "body-sway-motion-instance-v3"},
+        "version": {"const": "1.0.0"},
+        "canonicalization": {
+          "const": "canonical-json-utf8-sort-keys-no-nonfinite"
+        },
+        "source_rotation_interpolation": {"const": "sampled-linear"},
+        "target_interpolation": {"const": "linear"},
+        "selected_gain": {
+          "type": "object", "additionalProperties": false,
+          "required": ["numerator", "denominator"],
+          "properties": {
+            "numerator": {"type": "integer", "const": 1},
+            "denominator": {"type": "integer", "const": 1}
+          }
+        },
+        "overlay_rotation_bone_ids": {
+          "type": "array", "minItems": 4, "maxItems": 4,
+          "prefixItems": [
+            {"const": "pelvis-spine"},
+            {"const": "spine-chest"},
+            {"const": "chest-neck"},
+            {"const": "neck-head"}
+          ],
+          "items": false
+        },
+        "base_channel_modes": {
+          "type": "object", "additionalProperties": false,
+          "required": ["root_translation", "markers", "draw_order"],
+          "properties": {
+            "root_translation": {"const": "exact-motion-instance-v2-linear"},
+            "markers": {"const": "exact-motion-instance-v2"},
+            "draw_order": {"const": "exact-motion-instance-v2-stepped"}
+          }
+        }
+      }
+    },
+    "targetSpace": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "translation", "rotation", "positive_rotation", "interpolation",
+        "draw_order"
+      ],
+      "properties": {
+        "translation": {"const": "setup-local-pixel"},
+        "rotation": {"const": "setup-local-degree"},
+        "positive_rotation": {"const": "clockwise"},
+        "interpolation": {"const": "linear"},
+        "draw_order": {"const": "full-back-to-front-stepped"}
+      }
+    },
+    "boneId": {
+      "enum": [
+        "root-pelvis", "pelvis-spine", "spine-chest", "chest-neck",
+        "neck-head", "chest-shoulder.left", "upper-arm.left",
+        "forearm.left", "pelvis-hip.left", "thigh.left", "calf.left",
+        "chest-shoulder.right", "upper-arm.right", "forearm.right",
+        "pelvis-hip.right", "thigh.right", "calf.right"
+      ]
+    },
+    "track": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bone_id", "property", "keys"],
+      "properties": {
+        "bone_id": {"$ref": "#/$defs/boneId"},
+        "property": {"enum": ["rotation", "translation"]},
+        "keys": {
+          "type": "array", "minItems": 2, "maxItems": 4096,
+          "items": {"$ref": "#/$defs/key"}
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "property": {"const": "rotation"},
+            "keys": {"items": {"$ref": "#/$defs/rotationKey"}}
+          }
+        },
+        {
+          "properties": {
+            "bone_id": {"const": "root-pelvis"},
+            "property": {"const": "translation"},
+            "keys": {"items": {"$ref": "#/$defs/translationKey"}}
+          }
+        }
+      ]
+    },
+    "key": {
+      "type": "object", "additionalProperties": false,
+      "required": ["tick", "value"],
+      "properties": {
+        "tick": {"type": "integer", "minimum": 0, "maximum": 600000000},
+        "value": {}
+      }
+    },
+    "rotationKey": {
+      "allOf": [
+        {"$ref": "#/$defs/key"},
+        {"properties": {"value": {"$ref": "#/$defs/rotation"}}}
+      ]
+    },
+    "translationKey": {
+      "allOf": [
+        {"$ref": "#/$defs/key"},
+        {"properties": {"value": {"$ref": "#/$defs/vector2"}}}
+      ]
+    },
+    "rotation": {
+      "type": "number", "minimum": -1000000, "maximum": 1000000
+    },
+    "vector2": {
+      "type": "array", "minItems": 2, "maxItems": 2,
+      "prefixItems": [
+        {"type": "number", "minimum": -10000000, "maximum": 10000000},
+        {"type": "number", "minimum": -10000000, "maximum": 10000000}
+      ],
+      "items": false
+    },
+    "contactMarker": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "kind", "limb", "proximal_bone_id", "distal_bone_id",
+        "start_tick", "end_tick", "mode"
+      ],
+      "properties": {
+        "kind": {"const": "contact"},
+        "limb": {"enum": ["arm.left", "arm.right", "leg.left", "leg.right"]},
+        "proximal_bone_id": {"$ref": "#/$defs/boneId"},
+        "distal_bone_id": {"$ref": "#/$defs/boneId"},
+        "start_tick": {"type": "integer", "minimum": 0, "maximum": 600000000},
+        "end_tick": {"type": "integer", "minimum": 0, "maximum": 600000000},
+        "mode": {"const": "annotation_only"}
+      },
+      "oneOf": [
+        {"properties": {"limb": {"const": "arm.left"}, "proximal_bone_id": {"const": "upper-arm.left"}, "distal_bone_id": {"const": "forearm.left"}}},
+        {"properties": {"limb": {"const": "arm.right"}, "proximal_bone_id": {"const": "upper-arm.right"}, "distal_bone_id": {"const": "forearm.right"}}},
+        {"properties": {"limb": {"const": "leg.left"}, "proximal_bone_id": {"const": "thigh.left"}, "distal_bone_id": {"const": "calf.left"}}},
+        {"properties": {"limb": {"const": "leg.right"}, "proximal_bone_id": {"const": "thigh.right"}, "distal_bone_id": {"const": "calf.right"}}}
+      ]
+    },
+    "drawOrder": {
+      "type": "object", "additionalProperties": false,
+      "required": ["setup_slot_ids", "keys"],
+      "properties": {
+        "setup_slot_ids": {
+          "type": "array", "minItems": 1, "maxItems": 4096,
+          "uniqueItems": true, "items": {"$ref": "#/$defs/id"}
+        },
+        "keys": {
+          "type": "array", "minItems": 1, "maxItems": 4096,
+          "items": {"$ref": "#/$defs/drawOrderKey"}
+        }
+      }
+    },
+    "drawOrderKey": {
+      "type": "object", "additionalProperties": false,
+      "required": ["tick", "slot_ids"],
+      "properties": {
+        "tick": {"type": "integer", "minimum": 0, "maximum": 600000000},
+        "slot_ids": {
+          "type": "array", "minItems": 1, "maxItems": 4096,
+          "uniqueItems": true, "items": {"$ref": "#/$defs/id"}
+        }
+      }
+    }
+  }
+}
