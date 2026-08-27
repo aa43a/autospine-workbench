@@ -1,0 +1,471 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/resolved-project-v1.schema.json",
+  "title": "AutoSpine resolved project snapshot v1",
+  "description": "Canonical effective authoring state. The sha256 field hashes the strict canonical JSON object with only that field removed.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "project_id", "revision", "inputs", "canvas",
+    "layers", "skeleton", "qa", "sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "autospine.resolved-project/v1"},
+    "project_id": {"$ref": "#/$defs/id"},
+    "revision": {"type": "integer", "minimum": 0},
+    "inputs": {"$ref": "#/$defs/inputs"},
+    "canvas": {"$ref": "#/$defs/canvas"},
+    "layers": {
+      "type": "array",
+      "maxItems": 4096,
+      "items": {"$ref": "#/$defs/layer"}
+    },
+    "skeleton": {"$ref": "#/$defs/skeleton"},
+    "qa": {"$ref": "#/$defs/qa"},
+    "sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "role": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,95}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{0,63}$"
+    },
+    "point": {
+      "type": "array",
+      "prefixItems": [{"type": "number"}, {"type": "number"}],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "contractLayer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": {"const": "autospine-workbench.layer"},
+        "version": {"const": 1}
+      }
+    },
+    "contractSkeleton": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": {"const": "autospine-workbench.skeleton"},
+        "version": {"const": 1}
+      }
+    },
+    "candidateAnalysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_artifact_sha256", "provider", "provider_version",
+        "input_sha256", "config_sha256", "run_sha256"
+      ],
+      "properties": {
+        "candidate_artifact_sha256": {"$ref": "#/$defs/sha256"},
+        "provider": {"$ref": "#/$defs/id"},
+        "provider_version": {"$ref": "#/$defs/version"},
+        "input_sha256": {"$ref": "#/$defs/sha256"},
+        "config_sha256": {"$ref": "#/$defs/sha256"},
+        "run_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["base_project_sha256", "override_sha256", "candidate_analyses"],
+      "properties": {
+        "base_project_sha256": {"$ref": "#/$defs/sha256"},
+        "override_sha256": {"$ref": "#/$defs/sha256"},
+        "analysis_sha256": {"$ref": "#/$defs/sha256"},
+        "candidate_analyses": {
+          "type": "array",
+          "maxItems": 4096,
+          "items": {"$ref": "#/$defs/candidateAnalysis"}
+        }
+      }
+    },
+    "canvas": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["width", "height", "coordinate_system"],
+      "properties": {
+        "width": {"type": "integer", "minimum": 1},
+        "height": {"type": "integer", "minimum": 1},
+        "coordinate_system": {"const": "canvas-top-left-y-down"}
+      }
+    },
+    "bbox": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "width", "height", "right", "bottom"],
+      "properties": {
+        "x": {"type": "integer", "minimum": 0},
+        "y": {"type": "integer", "minimum": 0},
+        "width": {"type": "integer", "minimum": 0},
+        "height": {"type": "integer", "minimum": 0},
+        "right": {"type": "integer", "minimum": 0},
+        "bottom": {"type": "integer", "minimum": 0}
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "alpha_nonzero", "alpha_perceptible", "component_count",
+        "main_component_ratio", "fills_bbox_ratio"
+      ],
+      "properties": {
+        "alpha_nonzero": {"type": "integer", "minimum": 0},
+        "alpha_perceptible": {"type": "integer", "minimum": 0},
+        "component_count": {"type": "integer", "minimum": 0},
+        "main_component_ratio": {"type": "number", "minimum": 0, "maximum": 1},
+        "fills_bbox_ratio": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "jointDecisionAnalysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider", "provider_version", "input_sha256", "config_sha256", "run_sha256"
+      ],
+      "properties": {
+        "provider": {"$ref": "#/$defs/id"},
+        "provider_version": {"$ref": "#/$defs/version"},
+        "input_sha256": {"$ref": "#/$defs/sha256"},
+        "config_sha256": {"$ref": "#/$defs/sha256"},
+        "run_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "jointDecision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action", "candidate_artifact_sha256", "analysis"],
+      "properties": {
+        "action": {"enum": ["accept", "adjust", "reject", "unobservable"]},
+        "candidate_artifact_sha256": {"$ref": "#/$defs/sha256"},
+        "candidate_id": {"$ref": "#/$defs/id"},
+        "final_xy": {"$ref": "#/$defs/point"},
+        "reason": {"type": "string", "minLength": 1, "maxLength": 1000},
+        "analysis": {"$ref": "#/$defs/jointDecisionAnalysis"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"action": {"const": "accept"}}, "required": ["action"]},
+          "then": {"required": ["candidate_id", "final_xy"]}
+        },
+        {
+          "if": {"properties": {"action": {"const": "adjust"}}, "required": ["action"]},
+          "then": {"required": ["candidate_id", "final_xy", "reason"]}
+        },
+        {
+          "if": {"properties": {"action": {"const": "reject"}}, "required": ["action"]},
+          "then": {
+            "required": ["candidate_id", "reason"],
+            "not": {"required": ["final_xy"]}
+          }
+        },
+        {
+          "if": {"properties": {"action": {"const": "unobservable"}}, "required": ["action"]},
+          "then": {
+            "required": ["reason"],
+            "not": {"anyOf": [{"required": ["candidate_id"]}, {"required": ["final_xy"]}]}
+          }
+        }
+      ]
+    },
+    "jointAnchor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "joint_id"],
+      "properties": {
+        "kind": {"const": "joint"},
+        "joint_id": {"$ref": "#/$defs/id"}
+      }
+    },
+    "manualProxyAnchor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "proxy_id", "xy", "label", "reason"],
+      "properties": {
+        "kind": {"const": "manual_proxy"},
+        "proxy_id": {"$ref": "#/$defs/id"},
+        "xy": {"$ref": "#/$defs/point"},
+        "proxy_for_joint_id": {"$ref": "#/$defs/id"},
+        "label": {"type": "string", "minLength": 1, "maxLength": 96},
+        "reason": {"type": "string", "minLength": 1, "maxLength": 1000}
+      }
+    },
+    "anchor": {
+      "oneOf": [
+        {"$ref": "#/$defs/jointAnchor"},
+        {"$ref": "#/$defs/manualProxyAnchor"}
+      ]
+    },
+    "splitPart": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["guide", "pivot", "candidate_bone"],
+      "properties": {
+        "guide": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/anchor"}
+        },
+        "pivot": {"$ref": "#/$defs/anchor"},
+        "candidate_bone": {"$ref": "#/$defs/id"}
+      }
+    },
+    "splitSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["parts"],
+      "properties": {
+        "parts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["left", "right"],
+          "properties": {
+            "left": {"$ref": "#/$defs/splitPart"},
+            "right": {"$ref": "#/$defs/splitPart"}
+          }
+        }
+      }
+    },
+    "splitDecisionAnalysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "layer_manifest_sha256", "resolved_snapshot_sha256", "split_spec_sha256",
+        "algorithm_id", "algorithm_version"
+      ],
+      "properties": {
+        "layer_manifest_sha256": {"$ref": "#/$defs/sha256"},
+        "resolved_snapshot_sha256": {"$ref": "#/$defs/sha256"},
+        "split_spec_sha256": {"$ref": "#/$defs/sha256"},
+        "algorithm_id": {"$ref": "#/$defs/id"},
+        "algorithm_version": {"$ref": "#/$defs/version"}
+      }
+    },
+    "splitDecision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action", "split_artifact_sha256", "operation_config_sha256",
+        "review_target_sha256", "analysis", "binding_status"
+      ],
+      "properties": {
+        "action": {"enum": ["accept", "reject"]},
+        "split_artifact_sha256": {"$ref": "#/$defs/sha256"},
+        "operation_config_sha256": {"$ref": "#/$defs/sha256"},
+        "review_target_sha256": {"$ref": "#/$defs/sha256"},
+        "analysis": {"$ref": "#/$defs/splitDecisionAnalysis"},
+        "binding_status": {"enum": ["current", "stale"]},
+        "reason": {"type": "string", "minLength": 1, "maxLength": 1000}
+      },
+      "allOf": [{
+        "if": {"properties": {"action": {"const": "reject"}}, "required": ["action"]},
+        "then": {"required": ["reason"]}
+      }]
+    },
+    "layer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version", "contract", "id", "source_index", "name",
+        "canonical_role", "side", "disposition", "visible", "empty", "opacity",
+        "blend_mode", "z_index", "bbox", "pivot_xy", "image_url", "metrics",
+        "review_state", "reviewed_fields"
+      ],
+      "properties": {
+        "schema_version": {"const": "autospine-workbench.layer/v1"},
+        "contract": {"$ref": "#/$defs/contractLayer"},
+        "id": {"$ref": "#/$defs/id"},
+        "source_index": {"type": "integer", "minimum": 0},
+        "name": {"type": "string", "maxLength": 512},
+        "canonical_role": {"$ref": "#/$defs/role"},
+        "side": {"enum": ["left", "right", "center", "bilateral", "unknown"]},
+        "disposition": {
+          "enum": ["auto", "keep", "exclude", "ignore", "split", "split_left_right", "merge", "review"]
+        },
+        "visible": {"type": "boolean"},
+        "empty": {"type": "boolean"},
+        "opacity": {"type": "number", "minimum": 0, "maximum": 1},
+        "blend_mode": {"type": "string", "minLength": 1, "maxLength": 128},
+        "z_index": {"type": "integer", "minimum": 0},
+        "bbox": {"$ref": "#/$defs/bbox"},
+        "pivot_xy": {"$ref": "#/$defs/point"},
+        "image_url": {"type": "string", "minLength": 1, "maxLength": 1024},
+        "metrics": {"$ref": "#/$defs/metrics"},
+        "review_state": {"enum": ["unreviewed", "manual_adjusted"]},
+        "reviewed_fields": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": ["canonical_role", "side", "disposition", "visible", "pivot_xy", "candidate_bone", "notes"]
+          }
+        },
+        "decision_revision": {"type": "integer", "minimum": 0},
+        "candidate_bone": {"$ref": "#/$defs/id"},
+        "notes": {"type": "string", "maxLength": 1000},
+        "split_spec": {"$ref": "#/$defs/splitSpec"},
+        "split_spec_revision": {"type": "integer", "minimum": 0},
+        "split_decision": {"$ref": "#/$defs/splitDecision"},
+        "split_decision_revision": {"type": "integer", "minimum": 0}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"review_state": {"const": "manual_adjusted"}}, "required": ["review_state"]},
+          "then": {"required": ["decision_revision"]}
+        },
+        {
+          "if": {"required": ["split_spec"]},
+          "then": {
+            "required": ["split_spec_revision"],
+            "properties": {
+              "side": {"const": "bilateral"},
+              "disposition": {"enum": ["split", "split_left_right"]}
+            }
+          }
+        },
+        {
+          "if": {"required": ["split_decision"]},
+          "then": {"required": ["split_decision_revision"]}
+        }
+      ]
+    },
+    "joint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id", "role", "side", "x", "y", "confidence", "source", "editable",
+        "model_confidence", "review_state"
+      ],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "role": {"$ref": "#/$defs/role"},
+        "side": {"enum": ["left", "right", "center"]},
+        "x": {"type": "number"},
+        "y": {"type": "number"},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        "source": {"$ref": "#/$defs/id"},
+        "editable": {"type": "boolean"},
+        "model_confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        "review_state": {
+          "enum": ["unreviewed", "candidate_accepted", "manual_adjusted", "candidate_rejected", "unobservable"]
+        },
+        "decision_kind": {
+          "enum": ["manual_absolute", "candidate_accept", "candidate_adjust", "candidate_reject", "candidate_unobservable"]
+        },
+        "decision_revision": {"type": "integer", "minimum": 0},
+        "decision": {"$ref": "#/$defs/jointDecision"},
+        "review_reason": {"type": "string", "maxLength": 1000},
+        "legacy_review_confidence": {"type": "number", "minimum": 0, "maximum": 1}
+      },
+      "allOf": [{
+        "if": {
+          "properties": {"review_state": {"not": {"const": "unreviewed"}}},
+          "required": ["review_state"]
+        },
+        "then": {"required": ["decision_kind", "decision_revision"]}
+      }]
+    },
+    "bone": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "role", "parent_id", "start_joint_id", "end_joint_id"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "role": {"$ref": "#/$defs/role"},
+        "parent_id": {"oneOf": [{"$ref": "#/$defs/id"}, {"type": "null"}]},
+        "start_joint_id": {"$ref": "#/$defs/id"},
+        "end_joint_id": {"$ref": "#/$defs/id"}
+      }
+    },
+    "skeleton": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version", "contract", "template", "coordinate_system",
+        "generation", "joints", "bones"
+      ],
+      "properties": {
+        "schema_version": {"const": "autospine-workbench.skeleton/v1"},
+        "contract": {"$ref": "#/$defs/contractSkeleton"},
+        "template": {"$ref": "#/$defs/id"},
+        "coordinate_system": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["origin", "x_axis", "y_axis", "side_semantics"],
+          "properties": {
+            "origin": {"const": "canvas-top-left"},
+            "x_axis": {"const": "right"},
+            "y_axis": {"const": "down"},
+            "side_semantics": {"const": "character-own-left-right"}
+          }
+        },
+        "generation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["method", "requires_review"],
+          "properties": {
+            "method": {"type": "string", "minLength": 1, "maxLength": 128},
+            "requires_review": {"type": "boolean"}
+          }
+        },
+        "joints": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4096,
+          "items": {"$ref": "#/$defs/joint"}
+        },
+        "bones": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4096,
+          "items": {"$ref": "#/$defs/bone"}
+        }
+      }
+    },
+    "idList": {
+      "type": "array",
+      "uniqueItems": true,
+      "maxItems": 4096,
+      "items": {"$ref": "#/$defs/id"}
+    },
+    "qa": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status", "review_layer_ids", "unresolved_joint_ids", "rejected_joint_ids",
+        "unobservable_joint_ids", "accepted_split_layer_ids",
+        "unreviewed_split_layer_ids", "rejected_split_layer_ids", "stale_split_layer_ids"
+      ],
+      "properties": {
+        "status": {"enum": ["ready", "needs_review"]},
+        "review_layer_ids": {"$ref": "#/$defs/idList"},
+        "unresolved_joint_ids": {"$ref": "#/$defs/idList"},
+        "rejected_joint_ids": {"$ref": "#/$defs/idList"},
+        "unobservable_joint_ids": {"$ref": "#/$defs/idList"},
+        "accepted_split_layer_ids": {"$ref": "#/$defs/idList"},
+        "unreviewed_split_layer_ids": {"$ref": "#/$defs/idList"},
+        "rejected_split_layer_ids": {"$ref": "#/$defs/idList"},
+        "stale_split_layer_ids": {"$ref": "#/$defs/idList"}
+      }
+    }
+  }
+}
