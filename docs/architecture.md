@@ -68,6 +68,8 @@ exact Layer Manifest + exact P3/P5/P9 reviewed chain
                                       ↓
               P10.4b1 sampled gain candidates
                                       ↓
+          P10.4b2 bounded continuous interval proof
+                                      ↓
                            blocked release
 
 server → application services only
@@ -83,6 +85,7 @@ web    → HTTP contracts only
 - P10.0–P10.2 application service 只通过共享 exact-chain loader 读取七个完整 SHA 所选的 Layer Manifest/P3/P5/P9 工件。Candidate、人工 review input、decision 和 probe report 保持独立；三条 CLI 都不发布工件或修改 state tree。P10.3 visual-review service 改从 project/preview/bundle/artifact 四段地址重放 capture；prepare 零写入，只有通过 CAS 的 submit 才追加 candidate-bound revision。
 - P10.4a admission command 重新编译 exact preview、重验 capture，并按 `history A → exact decision → history B` 观察当前 approved head。输出仅是 path-free compile-time 准入合同；它不持久化、不授予永久 authority，未来发布消费方必须重新读取当前 head。
 - P10.4b1 amplitude-envelope command 只沿 reviewed 四骨幅度向量的统一 gain 射线重放九个 sampled key 状态；reviewed gain 必须精确匹配 P10.2 和临时 preview，分析结束后再次双快照 current head。候选不得包含 tracks/keys/animations，也不得声明连续时间、安全范围、seam 或发布 authority。
+- P10.4b2 continuous-proof command 完整重放 P10.4b1 source closure，以向外舍入区间同时覆盖 `time_fraction × λ`；每一对相邻 preview tick 都必须进入共享有界预算。后端异常、预算耗尽、非有限数或证明对象不满足内部计数/边界不变量时 fail closed 为 `indeterminate`。全段通过只授予 preview-model structural claims，平台 libm/runtime、raster、seam、MotionInstance v3 与发布仍明确排除。
 - Kimodo 的 raw NPZ、source sidecar 与 map 是三个独立输入。sidecar 解释数组/FPS/producer，map 决定投影/角色/contact；两者都不得根据文件名、数组数量或相邻目录隐式发现。
 
 ## 文件长度预算
@@ -246,6 +249,26 @@ Prepare/candidate/history/exact-decision 是零写入读路径。首次提交才
 HTTP 投影不返回本地路径。图片只能经 candidate 的 case/evidence/PNG SHA 读取；decision mutation 还要求完全同 authority 的 loopback Origin、JSON content type 和显式 intent header。独立 UI 不自动选择 capture、历史 revision 或 head 基线；409 会清除旧历史/基线并保留草稿，要求操作者重新读取后显式确认新 head。详细操作与路由见[复核 body-sway 官方 runtime 采样帧](how-to-review-body-sway-runtime.md)。
 
 `sampled_visual_approved` 只表示固定 still inventory 全部获人工批准。它不声明离散帧之间的连续时间、reviewed seam anchors、安全幅度、未采样姿势或可发布 timeline，因此 release gate 仍固定为 blocked；reject/unobservable 还会增加明确的 sampled rejection reason。
+
+P10.4a–P10.4b2 把 current visual head 准入、离散 gain candidates 和连续预览模型证明拆成三层只读合同：
+
+```text
+sampled_visual_approved current head
+                    ↓ double snapshot
+       BodySwayReviewAdmission v1
+                    ↓ exact replay
+ nine coupled-gain sampled candidates
+                    ↓ full source closure
+ every adjacent tick × λ∈[0,1]
+                    ↓ bounded interval subdivision
+ certified preview structure | indeterminate
+                    ↓
+          release gate always blocked
+```
+
+连续证明内嵌并重算 candidate、RigIR、target profile、MotionInstance v2、temporary preview manifest 与 preview projection。固定后端包围数学三角函数、Q9 图层与 Q4096 顶点量化误差，并检查 FK、画布、mesh area/edge 与共享索引内部连续性；它不把 point samples 当作区间证明。输入和结果都有显式 byte/box/depth 上限，任何未证明状态都不能升级为通过。操作入口见[编译 body-sway 连续预览模型证明](how-to-compile-body-sway-continuous-proof.md)。
+
+该结论只适用于固定 preview 数学模型，不代表目标平台 `libm`、官方 Spine runtime 或 raster truth；attachment 间 seam 仍缺少 reviewed anchors。静态 seam candidate、人工 decision 和 reviewed anchor set 应作为独立上游合同，之后才能在相同动作域上追加 seam 证明，不能修改本阶段既有 hash 语义。
 
 后续阶段继续遵守：
 

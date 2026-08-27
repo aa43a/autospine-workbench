@@ -28,6 +28,7 @@ AutoSpine Workbench 是一个本地人工复核界面，用于查看 See-through
 - 从精确 Layer Manifest/P3/P5/P9 链编译 idle 行为候选和人工决定，并对调整后的 `body_sway` 生成七项采样结构检查；报告始终阻塞发布并要求官方 runtime 人工预览。
 - 用操作者提供且已授权的官方 Spine 4.2.119 runtime 捕获固定 body-sway case，再通过精确四段地址在独立 UI/CLI/API 中逐帧复核，并以 CAS 追加不可变 revision；sampled approval 不会解除发布门禁。
 - 把 P10.3c 当前 `sampled_visual_approved` head 以双快照只读重放为 `BodySwayReviewAdmission v1`，供后续安全分析使用；合同明确不授予永久 head authority 或发布权。
+- 沿已复核四骨幅度向量的统一 gain 射线生成九个离散候选，并以有界区间细分覆盖每一对 sampled-linear preview key；只能授予预览数学模型的结构 claim，runtime、视觉范围、接缝和发布权仍保持阻塞。
 - 从精确 P3 或 P3/P5 地址导出、发布并重建验证固定 profile 的 Spine 4.2 JSON/atlas/PNG 五文件 bundle。
 
 ## 快速启动
@@ -182,7 +183,7 @@ JSON Schema 位于：
 - `schemas/camera-model-v1.schema.json`、`schemas/projected-motion-ir-v1.schema.json`、`schemas/projected-motion-compile-run-v1.schema.json` 与 `schemas/projected-scale-probes-v1.schema.json`：P8 相机、3D→2D 投影证据、编译 provenance 与目标 rig 候选尺度探针；
 - `schemas/motion-instance-v2.schema.json`、`schemas/motion-policy-decision-v1.schema.json`、`schemas/reviewed-motion-policy-v1.schema.json` 与 `schemas/reviewed-motion-bundle-run-v1.schema.json`：P9 人工决定、root/draw-order overlay、v2 instance 与六文件 bundle provenance；
 - `schemas/idle-behavior-candidates-v1.schema.json`、`schemas/idle-behavior-decision-v1.schema.json` 与 `schemas/body-sway-probe-report-v1.schema.json`：P10.0–P10.2 idle 候选、人工参数决定与只读采样结构诊断；
-- `schemas/body-sway-runtime-capture-v1.schema.json`、`schemas/body-sway-visual-review-*.schema.json`、`schemas/body-sway-review-admission-v1.schema.json` 与 `schemas/body-sway-amplitude-envelope-candidate-v1.schema.json`：P10.3 runtime 证据、sampled visual revision、P10.4a 当前审批头准入与 P10.4b1 离散幅度候选；
+- `schemas/body-sway-runtime-capture-v1.schema.json`、`schemas/body-sway-visual-review-*.schema.json`、`schemas/body-sway-review-admission-v1.schema.json`、`schemas/body-sway-amplitude-envelope-candidate-v1.schema.json` 与 `schemas/body-sway-continuous-preview-proof-v1.schema.json`：P10.3 runtime 证据、sampled visual revision、P10.4a 当前审批头准入、P10.4b1 离散幅度候选与 P10.4b2 连续预览模型证明；
 - `schemas/motion-retarget-report-v1.schema.json` 与 `schemas/motion-mesh-regression-v1.schema.json`：P5 运动学、接触与逐帧 mesh 安全门禁。
 
 Layer Manifest 与 RigIR 是下游流水线合同。当前 UI 负责逐层 authoring 与复核，离线命令负责生成 region-only RigIR；它不包含 mesh、权重或动画，也不会冒充某一 Spine 版本。RigIR 对不支持特性的策略固定为 `fail`，防止 constraint、mesh 或 timeline 被静默丢弃。
@@ -377,6 +378,8 @@ P10.4a 用 `compile-body-sway-review-admission` 重放同一 P10/capture 链，�
 
 P10.4b1 用 `compile-body-sway-amplitude-envelope` 在已复核四骨幅度向量的统一 gain 射线上检查 `0/8…8/8` 九个离散 key 状态。`8/8` 必须逐字节重放 P10.2 evidence 与临时 preview rotation keys，分析完成后还会再次执行 current-head 双快照；其余 gain 明确为未视觉复核的 candidate。该合同不推断点间区间、连续时间或安全范围，完整操作见 [编译 body-sway 幅度包络候选](docs/how-to-compile-body-sway-amplitude-envelope.md)。
 
+P10.4b2 用 `compile-body-sway-continuous-proof` 重放 P10.4b1，并以向外舍入的有界区间细分覆盖 `λ∈[0,1]` 与每一对 sampled-linear preview key。任何预算耗尽、异常、非有限值或未闭合边界都只产生 `indeterminate`；全段通过也只证明 preview-model 的 FK、画布、mesh 和共享索引结构，不证明平台 libm/runtime 等价、视觉范围、接缝或发布权。完整操作见 [编译 body-sway 连续预览模型证明](docs/how-to-compile-body-sway-continuous-proof.md)。
+
 P6 使用 `compile-spine42` 把一个精确 P3 地址导出为 setup-only bundle，或与一对精确 P5 MotionInstance/bundle SHA 组合为单动画 bundle；`verify-spine42` 从导出双 SHA 重建完整上游链。五文件地址、官方 runtime 的本地安装边界与 capture 操作见 [导出、复验并运行 P6 Spine 4.2 资产](docs/how-to-export-spine42.md)。
 
 对版本中立 RigIR 做语义检查：
@@ -463,7 +466,7 @@ P1 已交付 pose、alpha 中轴线和层接触候选，以及候选比较、四
 - 若要恢复旧 revision，先停止服务，备份整个项目 override 目录，再将目标历史快照作为新的、经过校验的 revision 提交；当前界面尚未提供历史浏览/回滚按钮。
 - validation 的 `valid=true` 仅表示结构和本地资产检查没有硬错误，不等于美术、遮挡补全、pivot、mesh 或动画通过视觉验收。
 
-## 已完成阶段：P2 region RigIR 至 P9 reviewed motion，以及 P10.0–P10.4b1 amplitude candidates
+## 已完成阶段：P2 region RigIR 至 P9 reviewed motion，以及 P10.0–P10.4b2 continuous proof
 
 P0 合同加固、P1 四肢候选与 P2 region-only RigIR 已贯通：`stage-scoped analysis → immutable geometry/candidates → candidate-bound revision → deterministic resolved snapshot → reviewed Layer Manifest → RigIR/setup bundle`。P2 没有提前引入 mesh：
 
@@ -520,6 +523,8 @@ P10.4a 已增加 `BodySwayReviewAdmission v1`：从精确 P10/capture/visual 地
 
 P10.4b1 已增加 `BodySwayAmplitudeEnvelopeCandidate v1`：只沿 reviewed amplitude vector 的统一 gain 射线生成九个 sampled structural probes，不构造四维独立幅度盒，也不假设单调性。reviewed gain 必须与 P10.2 stream/checks 和实际 sampled-linear preview keys 完全一致；命令在分析后再次按 `history → exact decision → history` 复核 head。所有范围、连续时间、视觉范围、seam、MotionInstance v3 与发布 claims 仍固定为 false。
 
+P10.4b2 已增加 `BodySwayContinuousPreviewProof v1`：完整内嵌并重算 amplitude candidate、RigIR、target profile、MotionInstance v2、temporary preview manifest 与 preview projection，在统一 gain `λ∈[0,1]` 和全部相邻 preview tick 上执行有界区间证明。所有段通过时只开放两项 preview-model structural claims；预算耗尽、异常、非有限数或后端证明对象不一致均 fail closed 为 `indeterminate`。平台 libm/runtime 等价、raster 视觉范围、reviewed seam anchors、MotionInstance v3、可发布 timeline 与 release authority 仍固定为 false/blocked。
+
 姿态 runner 与真实标注评估集仍是独立质量轨，不阻塞版本中立 P2 编译；诊断 setup prior 不能替代真实模型基线。
 
 面部锚点、头发弹簧和实时追踪映射可以作为独立模块接到同一规范骨角色上；四肢扩展的关键不是增加更多屏幕坐标映射，而是建立 bind pose、父子骨、权重和重定向空间。
@@ -536,7 +541,7 @@ P10.4b1 已增加 `BodySwayAmplitudeEnvelopeCandidate v1`：只沿 reviewed ampl
 - 无人复核地把 Kimodo contact、heading、depth 或 scale 写入 runtime；P9 只消费人工批准的 foot correction 和 pairwise draw order，heading/scale 仍是 evidence-only，attachment switch 尚未实现；
 - 把合成 P7 门禁当作真实 Kimodo checkpoint、真实动作质量或该 clip 的官方 Spine Player 截图验收；
 - 把 loader-isomorphic audit 当作官方 runtime 或 raster truth；P9 动态官方 runtime screenshot 与真实 Kimodo reviewed asset 门禁仍需单独关闭；
-- 把 P10 `completed_diagnostic`、离散结构采样通过、sampled still 全部批准或 review 输入的 0–10 度语法包络当成 MotionInstance v3、连续时间安全、可发布 Spine timeline、接缝安全或安全幅度范围；
+- 把 P10 `completed_diagnostic`、离散结构采样通过、sampled still 全部批准、review 输入的 0–10 度语法包络或 P10.4b2 preview-model 区间证明当成 MotionInstance v3、runtime 等价、可发布 Spine timeline、接缝安全或人工视觉安全范围；
 - 在未提供并确认授权的官方 Spine 4.2.119 runtime 时，用 test-only player stub、进程 smoke 或任意相邻截图冒充真实 capture；
 - 生成眨眼/口型素材、实时追踪映射或运行时物理；
 - 捆绑或再分发官方 Spine runtime、判断任意未知 Spine 版本、生成 Spine Editor 工程，或覆盖固定 P6 profile 之外的特性；
