@@ -1,8 +1,10 @@
 # AutoSpine Workbench
 
-AutoSpine Workbench 是一个本地人工复核界面，用于查看 See-through PSD 审计结果、校正图层语义和 setup 可见性、调整启发式关节，并保存带 revision 的 override。它不会修改 PSD、审计 JSON 或 PNG；默认只向 `autospine-workbench/workspace/overrides` 写入状态。
+AutoSpine Workbench 是一个本地人工复核与离线编译工作流，用于查看 See-through PSD 审计结果、校正图层语义和 setup 可见性、调整启发式关节，并保存带 revision 的 override。它不会修改 PSD、审计 JSON 或 PNG；主 authoring 页面写入 `workspace/overrides`，P10 人工复核使用各自独立的 revision namespace，离线 publish/compile 命令按阶段写入内容寻址的 analysis、motion、build 或 runtime 工件。
 
 当前阶段的目标是把“模型输出”变成可追溯、可复核的 authoring 输入，而不是直接宣称生成了可发布的 Spine 资产。
+
+当前功能及入口以[功能与入口参考](docs/capability-reference.md)为准；尚未实现的能力、依赖和验收顺序见[后续开发路线](docs/development-roadmap.md)。
 
 ## 能做什么
 
@@ -52,7 +54,7 @@ AutoSpine Workbench 是一个本地人工复核界面，用于查看 See-through
 4. 系统 `python`；
 5. Windows `py -3` launcher。
 
-启动后打开 [http://127.0.0.1:8765/](http://127.0.0.1:8765/)。默认配置为：
+启动后建议先打开[功能入口中心](http://127.0.0.1:8765/workflow-hub.html)。它可以搜索和筛选全部 Web/CLI/规划入口；CLI 卡片只复制 `python -B -m autospine_workbench <command> --help` 帮助命令，不会让浏览器或服务端直接执行。源码模式下应先在当前 PowerShell 设置 `$env:PYTHONPATH = (Resolve-Path .\src).Path`。卡片中的仓库文档通过 `/document-viewer.html?doc=docs/<文件名>.md` 安全文档查看器打开；查看器只读获取 `/docs/<文件名>.md`，并按纯文本显示，不解析其中的 HTML。主绑定复核页面仍是 [http://127.0.0.1:8765/](http://127.0.0.1:8765/)。默认配置为：
 
 - workspace：工作台目录的父目录；
 - state root：`autospine-workbench/workspace`；
@@ -104,7 +106,7 @@ python -m autospine_workbench serve `
 
 ## 界面操作
 
-本节说明默认的图层/关节 authoring 页面。P10.3c 使用独立入口 [http://127.0.0.1:8765/body-sway-review.html](http://127.0.0.1:8765/body-sway-review.html)；它要求手工输入精确 capture 地址，不会继承当前项目或自动选择最新证据。逐帧流程见[复核 body-sway 官方 runtime 采样帧](docs/how-to-review-body-sway-runtime.md)。
+本节说明默认的图层/关节 authoring 页面。所有入口可从[功能入口中心](http://127.0.0.1:8765/workflow-hub.html)打开。P10.3c 使用独立的 [Body-sway 视觉复核台](http://127.0.0.1:8765/body-sway-review.html)，P10.5b 使用独立的 [Seam Anchor 复核台](http://127.0.0.1:8765/seam-anchor-review.html)；两者都要求手工输入精确地址，不会继承当前项目或自动选择最新证据。逐帧流程见[复核 body-sway 官方 runtime 采样帧](docs/how-to-review-body-sway-runtime.md)和[复核静态接缝锚点](docs/how-to-review-seam-anchors.md)。
 
 1. 在顶部选择项目。切换项目前若存在未保存修改，界面会要求确认。
 2. 在“图层”模式搜索、选择、显示或隐藏图层；右侧可检查语义、角色左右、bbox、置信度和 QA。要让图层进入 P2 严格编译，还需设置画布内 pivot、选择目标骨，并点击“确认语义、Pivot 与目标骨”。
@@ -132,6 +134,7 @@ python -m autospine_workbench serve `
 
 ```json
 {
+  "schema_version": "autospine-workbench.override/v3",
   "base_revision": 0,
   "joint_overrides": {
     "shoulder.left": {
@@ -148,6 +151,12 @@ python -m autospine_workbench serve `
       "candidate_id": "elbow.left.fusion.4aa35df3ca21"
     }
   },
+  "split_decisions": {
+    "layer-012-sleeves": {
+      "action": "accept",
+      "split_artifact_sha256": "89abcdef0123456789abcdef0123456789abcdef0123456789abcdef01234567"
+    }
+  },
   "layer_overrides": {
     "layer-008-hand-r": {
       "canonical_role": "body.hand",
@@ -162,11 +171,11 @@ python -m autospine_workbench serve `
 }
 ```
 
-`joint_overrides` 是与候选算法无关的绝对人工坐标；`joint_decisions` 表示 accept、adjust、reject 或 unobservable，同一关节不能同时出现在两者中。accept 坐标由服务端从内容寻址候选工件派生，客户端不能提交。`side` 使用 `left`、`right`、`center`、`bilateral` 或 `unknown`，始终表示角色自身左右。`visible` 只定义 setup/复核预览可见性，不会改写 PNG。关节与 pivot 必须是有限数，并位于画布内。完整语义见 [候选关节决定参考](docs/candidate-decisions-reference.md)。
+`joint_overrides` 是与候选算法无关的绝对人工坐标；`joint_decisions` 表示 accept、adjust、reject 或 unobservable，同一关节不能同时出现在两者中。accept 坐标由服务端从内容寻址候选工件派生，客户端不能提交。`split_decisions` 只接受 `accept`/`reject` 和完整 split artifact SHA；服务端会绑定算法、operation config、review target 与 current/stale 状态。`side` 使用 `left`、`right`、`center`、`bilateral` 或 `unknown`，始终表示角色自身左右。`visible` 只定义 setup/复核预览可见性，不会改写 PNG。关节与 pivot 必须是有限数，并位于画布内。完整语义见 [候选关节与切分决定参考](docs/candidate-decisions-reference.md)。
 
 JSON Schema 位于：
 
-- `schemas/override-patch-v2.schema.json`：当前在线 API 的 candidate-aware canonical patch；v1 仅用于历史兼容；
+- `schemas/override-patch-v3.schema.json`：当前在线 API 的 candidate/split-aware canonical patch；v1/v2 仅用于历史兼容，不能携带 split decision；
 - `schemas/coco17-detections-v1.schema.json`：模型 runner 与通用四肢 adapter 的固定输入；
 - `schemas/pose-observations-v1.schema.json`：外部姿态检测器的单角色、原画布观测输入；
 - `schemas/pose-observations-v2.schema.json`：带 adapter、左右、视角和镜像 provenance 的 canonical pose；
@@ -377,7 +386,7 @@ P9 从精确 P3/P5/P8 身份发布候选，把人工决定编译为 reviewed roo
 
 P10.0–P10.2 从精确 Layer Manifest/P3/P5/P9 七 SHA 链先编译 idle candidates，再把独立人工 review input 编译为 decision，最后为唯一的 `body_sway / adjust / pending_probe` 选择生成只读结构探针。三个入口均零写入；`--document-only` 只改变 stdout 形状。命令模板、七项 checks、hash 解释与人工 runtime 门禁见 [复核 idle 行为并运行 body-sway 结构探针](docs/how-to-review-idle-behaviors.md)。关键实现入口为 [exact chain loader](src/autospine_workbench/p10_exact_chain.py)、[candidate compiler](src/autospine_workbench/idle_behavior_candidates.py)、[decision compiler](src/autospine_workbench/idle_behavior_decision.py) 和 [probe report compiler](src/autospine_workbench/body_sway_probe_report.py)。
 
-P10.3a–P10.3c 将通过探针的决定编译为临时 Spine 4.2 preview，在操作者提供且已确认授权的官方 `@esotericsoftware/spine-player@4.2.119` 中捕获固定 640×640 PNG，再把 project、temporary preview、runtime capture bundle 与 artifact set 四项完整身份交给视觉复核。复核 candidate、历史和 decision 保持分离；prepare/GET 零写入，提交使用显式 `base_revision`/head SHA 做 CAS，并把 decision 追加到最多 64 项的 write-once 线性历史。CLI、API 和页面都不发现 `latest`，页面初始也不会自动选择 capture、历史 revision 或提交基线。完整操作、路由和并发恢复见 [复核 body-sway 官方 runtime 采样帧](docs/how-to-review-body-sway-runtime.md)。真实采集的官方 runtime 与许可前置条件见 [捕获并封存 body-sway 官方 runtime 证据](docs/how-to-capture-body-sway-runtime.md)。
+P10.3a–P10.3c 先用 `compile-body-sway-preview` 把通过探针的决定编译为内存中的临时 Spine 4.2 preview，再在操作者提供且已确认授权的官方 `@esotericsoftware/spine-player@4.2.119` 中捕获固定 640×640 PNG，最后把 project、temporary preview、runtime capture bundle 与 artifact set 四项完整身份交给视觉复核。复核 candidate、历史和 decision 保持分离；prepare/GET 零写入，提交使用显式 `base_revision`/head SHA 做 CAS，并把 decision 追加到最多 64 项的 write-once 线性历史。CLI、API 和页面都不发现 `latest`，页面初始也不会自动选择 capture、历史 revision 或提交基线。完整操作、路由和并发恢复见 [复核 body-sway 官方 runtime 采样帧](docs/how-to-review-body-sway-runtime.md)。真实采集的官方 runtime 与许可前置条件见 [捕获并封存 body-sway 官方 runtime 证据](docs/how-to-capture-body-sway-runtime.md)。
 
 P10.4a 用 `compile-body-sway-review-admission` 重放同一 P10/capture 链，并执行 `history A → exact decision → history B`。只有两次快照一致且指定 revision 是当前 `sampled_visual_approved` head 时才输出 path-free canonical admission；命令零写入，且 release gate 继续 blocked。完整参数、保存方式和 head 失效语义见 [准入已批准的 body-sway 视觉复核头](docs/how-to-admit-body-sway-review.md)。
 
@@ -435,8 +444,13 @@ raw COCO17、canonical pose、几何证据、评估报告和候选分别写入 `
 | `GET` | `.../visual-review/candidates/{candidate}/history` | 读取连续 revision 和 head，不自动选择基线 |
 | `GET` | `.../visual-review/candidates/{candidate}/history/{revision}/{decision}` | 读取精确 SHA 绑定的历史 decision |
 | `PUT` | `.../visual-review/candidates/{candidate}/decisions` | 通过同源 intent 校验与 CAS 追加完整人工复核 revision |
+| `GET` | `/api/projects/{id}/seam-anchor-reviews/{manifest}/{p3_rig}/{p3_bundle}/candidate` | 从精确三 SHA 静态链只读编译 P10.5b candidate |
+| `GET` | `.../candidates/{candidate}/options/{option}/attachments/{attachment}/images/{png}` | 读取 option 绑定且重新验真的原始 attachment PNG |
+| `GET` | `.../candidates/{candidate}/history` | 读取 seam review 连续 revision 和 head |
+| `GET` | `.../candidates/{candidate}/history/{revision}/{decision}` | 读取精确 seam decision |
+| `POST` | `.../candidates/{candidate}/decisions` | 通过同源 intent 校验与 CAS 追加六关系人工决定 |
 
-API 响应带 `Cache-Control: no-store`。只接受 loopback Host；CORS 也只回显同 authority 的 loopback origin。分析工件端点会重新验证 strict JSON、内容地址和项目语义；损坏工件不会进入 UI。写操作只有 `PUT overrides` 与精确 visual-review decision CAS；后者还要求 `X-Autospine-Intent: body-sway-visual-review`，不会接受跨端口 origin。
+API 响应带 `Cache-Control: no-store`。只接受 loopback Host；CORS 也只回显同 authority 的 loopback origin。分析工件端点会重新验证 strict JSON、内容地址和项目语义；损坏工件不会进入 UI。HTTP 写操作只有三类：`PUT overrides`、精确 body-sway visual-review decision CAS，以及精确 seam-anchor review decision CAS。后两者都要求各自的 `X-Autospine-Intent` 并拒绝跨 authority origin。`/docs/<文件名>.md` 只读映射只允许仓库 `docs/` 目录内的 Markdown，不是写接口；功能入口中心不会直接导航到 `.md`，而是让安全文档查看器 fetch 该路由并按纯文本显示，不解析 HTML。
 
 ## 运行测试
 
@@ -548,7 +562,7 @@ P10.5c 已增加 `ReviewedSeamAnchorSet v1`：只有 current ready head 可被�
 
 P10.5d 已增加 `BodySwayDynamicSeamProbe v1`：它完整重放 P10.4b2 与 P10.5c source closure，用 region 刚性投影或 mesh 重心/LBS 投影检查固定六关系的全部 reviewed anchor pairs，并以有界区间覆盖相邻 tick 与统一 gain。命令在 pure analysis 外再包一层 before/after current-head 检查，每次观察内部又执行视觉与接缝双快照；scope 只在 compile time 有效。只有上游结构证明和全部 seam segment 同时认证才开放 proximity 工程 claim；`dynamic_seam_safety`、边界连续、raster/视觉、runtime、timeline 与 release authority 始终为 false/blocked。
 
-P10.6a 已增加 `BodySwayMotionConsumerAdmission v1`：只有认证的 P10.5d probe 可以进入，source 内嵌其完整 canonical 文档，并重新绑定/复验精确 P9 MotionInstance v2 六文件 bundle。pure core 选定 reviewed unit gain，把 sampled-linear rotation keys 与 MIv2 原有 root translation、markers、stepped draw order 组织为版本中立 setup-local motion domain；seal 在前后两次 current-head observation 完全一致后才开放 `setup_local_timeline_compilation_admitted`。所有 observation scope 仅为 `compile_time`；MotionInstance v3、Spine adapter、完整 attachment 边界、raster/视觉、runtime、publishable timeline 与 release authority 均未生成或证明，release gate 保持 blocked。
+P10.6a 已增加 `BodySwayMotionConsumerAdmission v1`：只有认证的 P10.5d probe 可以进入，source 内嵌其完整 canonical 文档，并重新绑定/复验精确 P9 MotionInstance v2 六文件 bundle。pure core 选定 reviewed unit gain，把 sampled-linear rotation keys 与 MIv2 原有 root translation、markers、stepped draw order 组织为版本中立 setup-local motion domain；seal 在前后两次 current-head observation 完全一致后才开放 `setup_local_timeline_compilation_admitted`。所有 observation scope 仅为 `compile_time`；MotionInstance v3、Spine adapter、完整 attachment 边界、raster/视觉、runtime、publishable timeline 与 release authority 均未生成或证明，release gate 保持 blocked。下一开发入口是 P10.6b MotionInstance v3/timeline compiler，依赖、输出、验收和风险见[后续开发路线](docs/development-roadmap.md)。
 
 姿态 runner 与真实标注评估集仍是独立质量轨，不阻塞版本中立 P2 编译；诊断 setup prior 不能替代真实模型基线。
 
@@ -576,6 +590,8 @@ P10.6a 已增加 `BodySwayMotionConsumerAdmission v1`：只有认证的 P10.5d p
 - 捆绑或再分发官方 Spine runtime、判断任意未知 Spine 版本、生成 Spine Editor 工程，或覆盖固定 P6 profile 之外的特性；
 - 代替输入素材、训练数据或模型权重的许可证与商业使用审查；
 - 多用户权限、远程协作或生产部署。
+
+这些边界并非都应一次性并入当前阶段。建议顺序是 P10.6b → P10.7 → attachment switch → blink/mouth，并把真实 Kimodo/P9 与输入模型 runner 作为独立质量轨；完整计划见[后续开发路线](docs/development-roadmap.md)。
 
 项目中显示的骨架来自 bbox/语义启发式，`requires_review=true`。只有在语义、左右、pivot、层级、合成回归和动作探针均通过后，才能把人工确认结果交给后续 RigIR/导出阶段。
 

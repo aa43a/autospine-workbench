@@ -1,6 +1,6 @@
 # AutoSpine Workbench 简明操作手册
 
-这份手册面向第一次使用工作台的人。目标是完成一次最小但完整的操作：打开 See-through 样本，复核图层和骨骼，处理关节候选，然后把结果保存为新的 revision。
+这份手册面向第一次使用工作台的人。目标是先从统一入口找到所需功能，再完成一次最小但完整的操作：打开 See-through 样本，复核图层和骨骼，处理关节候选，然后把结果保存为新的 revision。
 
 > 工作台是本地人工复核工具，不是“一键生成可发布 Spine 动画”的工具。看到结构检查通过、探针 `compiled` 或锚点距离合格，都不能据此认定视觉效果、官方 Spine Runtime 或发布许可已经通过。
 
@@ -38,7 +38,33 @@ cd E:\proj\unusual\localset\autospine-workbench
 
 不要把服务绑定或转发到局域网、公网。工作台没有用户认证，只供本机使用。
 
-## 2. 打开一个样本
+## 2. 从功能入口中心选择功能
+
+启动后优先打开：
+
+<http://127.0.0.1:8765/workflow-hub.html>
+
+“功能入口中心”提供：
+
+- 按 P0–P10 阶段、入口类型和状态筛选；
+- 搜索全部 54 个 CLI、三个任务页面和尚未实现的规划项；
+- 直接打开绑定复核、Body-sway 视觉复核和 Seam Anchor 复核页面；
+- 复制精确的 `python -B -m autospine_workbench <command> --help` 帮助命令；
+- 通过 `/document-viewer.html?doc=docs/<文件名>.md` 安全文档查看器打开对应仓库文档。
+
+浏览器不会执行 CLI，也不会替你选择 `latest`、填写项目或补齐 SHA。首次使用 CLI 时，先在项目根目录的当前 PowerShell 执行：
+
+```powershell
+$env:PYTHONPATH = (Resolve-Path .\src).Path
+```
+
+文档查看器只读获取 `/docs/<文件名>.md`，并把内容作为纯文本显示，不解析 Markdown 中的 HTML，也不会执行文档内容。
+
+然后粘贴入口中心复制的帮助命令，根据 `--help` 自己补充必填参数。计划项只是开发路线入口，不能当作已经可用的功能。
+
+完整入口清单见[功能与入口参考](capability-reference.md)。
+
+## 3. 打开一个样本
 
 1. 在页面顶部的“项目”下拉框选择 `seethrough_output` 或 `seethrough_output_5`。
 2. 等待合成图、图层列表和骨骼覆盖显示出来。
@@ -47,7 +73,7 @@ cd E:\proj\unusual\localset\autospine-workbench
 
 切换项目前先保存。若当前有未保存修改，页面会要求确认；继续切换会放弃这些未保存修改。
 
-## 3. 复核图层
+## 4. 复核图层
 
 先保持画布上方的“图层”模式处于选中状态。
 
@@ -73,7 +99,7 @@ cd E:\proj\unusual\localset\autospine-workbench
 
 切分算法或输入内容发生变化后，旧决定可能失效，需要重新复核。这是预期的安全行为。
 
-## 4. 复核骨骼和关节
+## 5. 复核骨骼和关节
 
 1. 点击画布上方的“关节”模式。
 2. 单击骨骼上的关节点，右侧会显示关节名称、坐标和置信度。
@@ -86,7 +112,7 @@ cd E:\proj\unusual\localset\autospine-workbench
 
 调整时同时观察参考合成图、图层轮廓和整条骨链。当前自动位置来自姿态、alpha 几何或 bbox/语义启发式，仍需要人工判断。
 
-## 5. 处理关节候选
+## 6. 处理关节候选
 
 选择关节后，右侧“候选审查”会显示当前候选 artifact、候选方法、可观测性和固定几何证据。先选候选，再选择一种处理方式：
 
@@ -118,7 +144,7 @@ python -m autospine_workbench analyze-joints seethrough_output `
 
 需要导入 COCO17、结合 alpha 中轴线与接触证据时，请按照[生成并复核四肢候选](how-to-run-pose-alpha.md)操作；工作台本身不会下载或运行姿态模型。
 
-## 6. 保存与 revision
+## 7. 保存与 revision
 
 1. 在右侧“校正备注”中记录仍需处理的问题。
 2. 点击顶部“保存校正”，或按 `Ctrl+S`。
@@ -135,6 +161,8 @@ workspace/overrides/<project-id>/
     └── rNNNNNN.json
 ```
 
+当前在线保存合同是 `autospine-workbench.override/v3`，会同时保留绝对关节、候选关节决定、bilateral split 决定和图层 authoring。不要使用旧 v2 示例删除 `split_decisions`。
+
 不要在服务运行时手工改写这些文件。原始 audit、PSD 和 PNG 也应保持不变。
 
 ### 出现 `409 revision_conflict`
@@ -146,7 +174,7 @@ workspace/overrides/<project-id>/
 3. 重新检查有冲突的字段。
 4. 再次保存。
 
-## 7. 常见问题
+## 8. 常见问题
 
 ### `Uncaught ReferenceError: SVG_NS is not defined`
 
@@ -187,7 +215,7 @@ E:\proj\unusual\localset\tmp\psd_audit\results\<project-id>\audit.json
 - `adjust`、`reject` 和 `unobservable` 必须填写理由。
 - 先查看页面顶部错误提示和右侧 QA，再修正具体字段。
 
-## 8. 当前能做与不能做
+## 9. 当前能做与不能做
 
 当前可以：
 
@@ -195,7 +223,8 @@ E:\proj\unusual\localset\tmp\psd_audit\results\<project-id>\audit.json
 - 复核图层语义、角色左右、可见性、处理决策、Pivot 和目标骨；
 - 查看并调整基础骨架，处理 pose/alpha/接触候选；
 - 以内容地址保存候选证据，以 revision 保存人工决定；
-- 通过离线命令生成和验证版本中立的 Layer Manifest、RigIR、mesh、IK、MotionIR 及受限的 Spine 4.2 adapter 工件。
+- 从独立页面完成人工 Body-sway still 与 Seam Anchor revision；
+- 通过离线命令生成和验证版本中立的 Layer Manifest、RigIR、mesh、IK、MotionIR、P10.6a admission 及受限的 Spine 4.2 adapter 工件。
 
 当前不能据此自动完成：
 
@@ -209,17 +238,34 @@ E:\proj\unusual\localset\tmp\psd_audit\results\<project-id>\audit.json
 
 固定 Spine 4.2 profile 的 adapter 和验证链已经存在，但每个新 rig/clip 仍需分别完成 attachment 边界视觉回归、官方 Runtime 证据和许可审查。
 
-## 9. 下一阶段开发者入口（P10.6a）
+### P3 Mesh 入口
 
-普通图层/关节复核不需要运行这一阶段。开发版本中立动画编译链时，可按
+在功能入口中心选择阶段 `P3`，可复制这两个帮助命令：
+
+```powershell
+python -B -m autospine_workbench compile-mesh-rig --help
+python -B -m autospine_workbench verify-mesh-bundle --help
+```
+
+编译后回到主工作台底部的“P3 Mesh 证据”，显式选择 rig SHA 与 bundle SHA，再点击读取。这里显示的是 setup、权重热图、极值姿势和严格复验结果；它不是 mesh/weight 编辑器，也不会自动选中最新 bundle。
+
+## 10. 当前阶段与下一开发入口
+
+P10.6a 已完成。普通图层/关节复核不需要运行它；开发版本中立动画编译链时，可按
 [编译 P10.6a body-sway 动作消费准入](how-to-compile-body-sway-motion-consumer-admission.md)
-把认证的 P10.5d probe 与精确 P9 MotionInstance v2 bundle 重新闭合。
+把认证的 P10.5d probe 与精确 P9 MotionInstance v2 bundle 重新闭合。对应命令是：
+
+```powershell
+python -B -m autospine_workbench compile-body-sway-motion-consumer-admission --help
+```
 
 P10.6a 只说明 setup-local timeline 编译器可以开始消费这组输入；它不会生成
 MotionInstance v3 或 Spine timeline。其视觉与接缝 current-head 观察仅在本次编译时有效，
 完整边界视觉回归、官方 Runtime 和发布门禁仍须在后续阶段独立完成。
 
-## 10. 常用验证命令
+下一开发入口是 **P10.6b MotionInstance v3 / timeline compiler**。它目前没有 CLI，不应在操作台标记为可用。建议先完成确定性 MIv3 bundle 和严格 reader，再进入 P10.7 Spine 4.2 adapter/runtime 回归；完整依赖、交付、验收和风险见[后续开发路线](development-roadmap.md)。
+
+## 11. 常用验证命令
 
 以下命令都在项目根目录执行。
 
@@ -270,7 +316,7 @@ git diff --check
 python -m pip install -e ".[test]"
 ```
 
-## 11. 建议的最小验收清单
+## 12. 建议的最小验收清单
 
 一次操作完成前，至少确认：
 

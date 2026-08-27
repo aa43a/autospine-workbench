@@ -80,9 +80,11 @@ exact Layer Manifest + exact P3 static bundle
                                       ↓
                  P10.5d dynamic seam probe
                                       ↓
-           P10.6a motion-consumer admission
-                                      ↓
-                           blocked release
+            P10.6a motion-consumer admission
+                                       ↓
+           [planned] P10.6b MotionInstance v3
+                                       ↓
+                            blocked release
 
 server → application services only
 web    → HTTP contracts only
@@ -93,7 +95,7 @@ web    → HTTP contracts only
 - 前端分为 API、authoring state、保存事务和各 stage view；view state 不得污染 revision draft。
 - 外部姿态模型只能通过 canonical pose observations 进入；alpha 几何只读取 resolved layer 与固定 PNG，融合结果必须保留原始 pose 和未标定分数语义。
 - COCO17 raw 输入、adapter、canonical pose、人工评估和候选工件分开内容寻址；坐标反镜像、左右标签交换、视角和镜像声明不得合并成一个隐式开关。
-- 离线命令按 stage 边界拆分：P1 输入/候选、P2 manifest/RigIR、P3 mesh、P4 IK、P5 MotionIR、P6 目标版本 adapter、P7 Kimodo source adapter、P8 camera/projected evidence、P9 reviewed motion/bundle，以及 P10 idle probe/runtime capture/visual review/review admission 分别拥有显式入口；命令之间只传递精确内容地址，不解析 `latest`。
+- 离线命令按 stage 边界拆分：P1 输入/候选、P2 manifest/RigIR、P3 mesh、P4 IK、P5 MotionIR、P6 目标版本 adapter、P7 Kimodo source adapter、P8 camera/projected evidence、P9 reviewed motion/bundle，以及 P10 idle probe/`compile-body-sway-preview`/runtime capture/visual review/review admission 分别拥有显式入口；命令之间只传递精确内容地址，不解析 `latest`。
 - P10.0–P10.2 application service 只通过共享 exact-chain loader 读取七个完整 SHA 所选的 Layer Manifest/P3/P5/P9 工件。Candidate、人工 review input、decision 和 probe report 保持独立；三条 CLI 都不发布工件或修改 state tree。P10.3 visual-review service 改从 project/preview/bundle/artifact 四段地址重放 capture；prepare 零写入，只有通过 CAS 的 submit 才追加 candidate-bound revision。
 - P10.4a admission command 重新编译 exact preview、重验 capture，并按 `history A → exact decision → history B` 观察当前 approved head。输出仅是 path-free compile-time 准入合同；它不持久化、不授予永久 authority，未来发布消费方必须重新读取当前 head。
 - P10.4b1 amplitude-envelope command 只沿 reviewed 四骨幅度向量的统一 gain 射线重放九个 sampled key 状态；reviewed gain 必须精确匹配 P10.2 和临时 preview，分析结束后再次双快照 current head。候选不得包含 tracks/keys/animations，也不得声明连续时间、安全范围、seam 或发布 authority。
@@ -110,12 +112,12 @@ web    → HTTP contracts only
 
 生产源码的硬上限为 400 个物理行。新文件超过 300 行时就应评估按职责拆分；函数通常不超过 60 行，超过 100 行必须先拆解或在评审中记录理由。
 
-当前四个历史单体采用 ratchet：只允许缩短，不允许超过测试中记录的当前上限。
+当前三个历史单体采用 ratchet：只允许缩短，不允许超过测试中记录的当前上限。
 
 | 文件 | 当前上限 | 拆分目标 |
 | --- | ---: | ---: |
 | `web/styles.css` | 1713 | 每个主题/布局文件 ≤ 400 |
-| `web/app.js` | 1293 | façade ≤ 250，模块 ≤ 400 |
+| `web/app.js` | 1182 | façade ≤ 250，模块 ≤ 400 |
 | `src/autospine_workbench/project_store.py` | 838 | façade ≤ 300 |
 
 `tests/test_quality.py` 自动执行上述硬上限与 ratchet；P10 新增生产模块与 visual-review JS test 文件另有 300 行硬门禁。JSON Schema、文档和生成工件不套用源码行数上限，但仍应按版本和领域拆分，禁止手工复制生成文件来规避检查。
@@ -141,7 +143,7 @@ P2 门禁已经完成：reviewed Layer Manifest → region-only RigIR；FK setup
 
 图层复核按字段记录 provenance；`visible`、语义、side、pivot、disposition 与目标骨互不代替。RigIR bundle 地址固定为 `builds/<project-id>/rig-ir/<rig-sha256>/<bundle-sha256>/`，第二层哈希同时绑定 RigIR、编译 run manifest、probe report 与 setup-render 合同，runner/renderer/encoder 变化不会改写旧证据。完整 verifier 还校验 region PNG 原始字节、规范路径和 exact inventory。`allow_manual_required` 只用于诊断，不能关闭阶段门禁。
 
-P3 门禁已经完成：四肢 attachment 的确定性 alpha mesh 与参数化两骨权重通过权重、拓扑、setup 和极值动作探针。安全角与代表性 PNG 进入不可变 bundle；不合格输入显式发布 `reviewed-noop`，不伪造 mesh。P3 工件保持版本中立。
+P3 门禁已经完成：四肢 attachment 的确定性 alpha mesh 与参数化两骨权重通过权重、拓扑、setup 和极值动作探针。安全角与代表性 PNG 进入不可变 bundle；不合格输入显式发布 `reviewed-noop`，不伪造 mesh。P3 工件保持版本中立。生产与复验入口分别为 `compile-mesh-rig`、`verify-mesh-bundle`；主工作台底部的“P3 Mesh 证据”只读回看精确双 SHA bundle。
 
 P4 门禁已经完成：从精确 P3 双 SHA 地址生成左右臂腿四个 canonical 两骨手柄；analytic IK 覆盖 reachable、unreachable、镜像、目标重合和退化输入，弯曲方向来自 setup 几何，结果表示为 additive setup-local 旋转。profile/probes 使用双 SHA 地址，严格 reader 重建完整 P3 身份链和数值证据。`kinematic_reach` 只表示数学可达环，P3 mesh 安全角仍是视觉限制。
 
@@ -408,6 +410,10 @@ validator 仍从内嵌 probe 和外部精确 P9 bundle 重编 pure core，不能
 可以开始工作。它不含 MotionInstance v3、adapter 或 Spine export；before/after observation
 及 CLI 的外层 observation 都只在 `compile_time` 有效。操作入口见
 [编译 P10.6a body-sway 动作消费准入](how-to-compile-body-sway-motion-consumer-admission.md)。
+
+下一架构增量是 P10.6b：在实际消费时重新检查 visual/seam current head，并把上述 motion
+domain 编译为可严格重放的 MotionInstance v3/timeline bundle。它完成后仍须经过 P10.7
+Spine 4.2 adapter 与官方 Runtime/raster 回归；依赖和验收定义见[后续开发路线](development-roadmap.md)。
 
 后续 timeline/runtime 阶段继续遵守：
 

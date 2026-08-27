@@ -1,6 +1,6 @@
-# Candidate-backed joint decisions reference
+# Candidate-backed joint and split decisions reference
 
-本文是 `autospine-workbench.override/v2` 中 `joint_decisions` 的机器语义参考。它面向 API、UI 和离线编译器开发者；人工操作步骤仍以工作台界面说明为准。
+本文是 `autospine-workbench.override/v3` 中 `joint_decisions` 与 `split_decisions` 的机器语义参考。它面向 API、UI 和离线编译器开发者；人工操作步骤仍以工作台界面说明为准。v3 继承 v2 的 candidate-backed joint decision，并增加 bilateral split artifact 的人工决定。
 
 ## 数据流
 
@@ -29,7 +29,7 @@ stage-scoped inputs → immutable candidate artifact → revisioned decision →
 
 ```json
 {
-  "schema_version": "autospine-workbench.override/v2",
+  "schema_version": "autospine-workbench.override/v3",
   "base_revision": 7,
   "joint_overrides": {},
   "joint_decisions": {
@@ -39,6 +39,7 @@ stage-scoped inputs → immutable candidate artifact → revisioned decision →
       "candidate_id": "elbow.left.fusion.4aa35df3ca21"
     }
   },
+  "split_decisions": {},
   "layer_overrides": {},
   "notes": "accepted after overlay review"
 }
@@ -63,6 +64,30 @@ stage-scoped inputs → immutable candidate artifact → revisioned decision →
 
 读取历史 revision 时会重新验证这些派生字段。工件缺失、内容被改写、候选属于另一关节、analysis 不一致或 accept 坐标不匹配都会 fail closed；不会退化成普通坐标 override。
 
+## Bilateral split 决定
+
+`split_decisions` 以原始 bilateral 图层 ID 为 key。客户端只能提交 `action`、完整 `split_artifact_sha256`，以及拒绝时的非空 `reason`：
+
+```json
+{
+  "split_decisions": {
+    "layer-012-sleeves": {
+      "action": "accept",
+      "split_artifact_sha256": "89abcdef0123456789abcdef0123456789abcdef0123456789abcdef01234567"
+    }
+  }
+}
+```
+
+| action | artifact SHA | reason | resolved 行为 |
+| --- | --- | --- | --- |
+| `accept` | 必需 | 可选 | 只有当前绑定仍有效时，左右 part 才能进入 resolved split layer |
+| `reject` | 必需 | 必需 | 保留拒绝证据，不把该预览用于下游 |
+
+保存时 binder 重新读取 split artifact，并验证 project、源图层、operation config、review target、Layer Manifest、resolved snapshot、split spec、算法 ID/版本和内容 SHA。服务端随后补充 `operation_config_sha256`、`review_target_sha256`、`analysis` 与 `binding_status`；这些字段不能由客户端伪造。
+
+`binding_status=current` 只表示决定仍绑定当前 authoring 输入和算法。图层 split spec、resolved snapshot、manifest、operation config 或算法身份变化时，已保存决定会变为 `stale`，必须针对新 artifact 重新复核。普通图层/关节编辑保存时，前端必须原样保留未编辑的 split decisions；显式移除决定则从下一 revision 中删除它。
+
 ## QA 语义
 
 - `requires_review=true` 的启发式骨架中，未作决定的关节始终进入 `unresolved_joint_ids`，高 heuristic score 不能替代复核。
@@ -70,7 +95,8 @@ stage-scoped inputs → immutable candidate artifact → revisioned decision →
 - `unobservable` 进入 `unobservable_joint_ids`，不伪造可见候选。
 - `accept` 的 review state 为 `candidate_accepted`；`adjust` 与绝对人工坐标保留人工调整语义，但 `decision_kind` 区分其来源。
 - 前端保存普通图层或关节修改时必须原样保留未编辑的 `joint_decisions`；手工拖动某关节会显式移除该关节的 candidate decision，转为绝对人工 override。
+- `split_decisions` 中 stale 或 reject 项不会进入可编译的 resolved split；QA 必须保留相应待处理状态。
 
 ## 兼容策略
 
-override v1 历史可只读加载，并规范化为 v2 的空 `joint_decisions`。旧 `joint_overrides` 被解释为算法无关的 `manual_absolute`，不会冒充对候选的 accept。下一次成功保存会向 append-only history 写入 v2 snapshot，不会原地修改旧文件。
+override v1/v2 历史可只读加载，并规范化为 v3：v1 得到空 `joint_decisions`，v1/v2 都得到空 `split_decisions`。旧 `joint_overrides` 被解释为算法无关的 `manual_absolute`，不会冒充对候选的 accept；旧版本也不能携带 split decision 或 split spec。下一次成功保存会向 append-only history 写入 v3 snapshot，不会原地修改旧文件。
