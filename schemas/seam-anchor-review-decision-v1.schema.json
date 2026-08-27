@@ -1,0 +1,379 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/seam-anchor-review-decision-v1.schema.json",
+  "title": "AutoSpine SeamAnchorReviewDecision v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "project_id", "source", "review",
+    "semantics", "decisions", "status", "release_gate", "summary"
+  ],
+  "properties": {
+    "format": {"const": "autospine-seam-anchor-review-decision"},
+    "format_version": {"type": "integer", "const": 1},
+    "project_id": {"$ref": "#/$defs/id"},
+    "source": {"$ref": "#/$defs/source"},
+    "review": {"$ref": "#/$defs/review"},
+    "semantics": {
+      "const": {
+        "scope": "reviewed-static-seam-anchor-selection",
+        "candidate_only": false,
+        "human_review_claimed": true,
+        "reviewed_seam_anchor_set_claimed": false,
+        "dynamic_seam_safety_claimed": false,
+        "visual_seam_quality_claimed": false,
+        "runtime_equivalence_claimed": false,
+        "publishable": false,
+        "release_authority": false,
+        "exact_candidate_replay_required": true,
+        "exact_p3_locator_validation_required": true
+      }
+    },
+    "decisions": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "prefixItems": [
+        {"$ref": "#/$defs/torsoArmLeft"},
+        {"$ref": "#/$defs/torsoArmRight"},
+        {"$ref": "#/$defs/pelvisLegLeft"},
+        {"$ref": "#/$defs/pelvisLegRight"},
+        {"$ref": "#/$defs/legFootLeft"},
+        {"$ref": "#/$defs/legFootRight"}
+      ],
+      "items": false
+    },
+    "status": {
+      "enum": [
+        "reviewed_anchor_set_ready_for_compile",
+        "reviewed_anchor_set_blocked"
+      ]
+    },
+    "release_gate": {"$ref": "#/$defs/releaseGate"},
+    "summary": {"$ref": "#/$defs/summary"}
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {"const": "reviewed_anchor_set_ready_for_compile"}
+        },
+        "required": ["status"]
+      },
+      "then": {
+        "properties": {
+          "release_gate": {"const": {
+            "status": "blocked",
+            "reason_codes": [
+              "dynamic_seam_safety_unproven",
+              "reviewed_seam_anchor_set_missing",
+              "runtime_equivalence_unproven",
+              "visual_seam_quality_unproven"
+            ]
+          }},
+          "summary": {
+            "properties": {
+              "reject_count": {"const": 0},
+              "unobservable_count": {"const": 0}
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "release_gate": {"const": {
+            "status": "blocked",
+            "reason_codes": [
+              "dynamic_seam_safety_unproven",
+              "reviewed_seam_anchor_set_missing",
+              "reviewed_seam_anchor_selection_blocked",
+              "runtime_equivalence_unproven",
+              "visual_seam_quality_unproven"
+            ]
+          }}
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "seam_anchor_candidate_sha256", "base_rig_sha256",
+        "base_bundle_sha256", "layer_manifest_sha256",
+        "resolved_project_sha256", "rig_sha256", "run_sha256",
+        "probes_sha256", "visuals_sha256", "bundle_sha256",
+        "attachment_image_set_sha256"
+      ],
+      "properties": {
+        "seam_anchor_candidate_sha256": {"$ref": "#/$defs/sha"},
+        "base_rig_sha256": {"$ref": "#/$defs/sha"},
+        "base_bundle_sha256": {"$ref": "#/$defs/sha"},
+        "layer_manifest_sha256": {"$ref": "#/$defs/sha"},
+        "resolved_project_sha256": {"$ref": "#/$defs/sha"},
+        "rig_sha256": {"$ref": "#/$defs/sha"},
+        "run_sha256": {"$ref": "#/$defs/sha"},
+        "probes_sha256": {"$ref": "#/$defs/sha"},
+        "visuals_sha256": {"$ref": "#/$defs/sha"},
+        "bundle_sha256": {"$ref": "#/$defs/sha"},
+        "attachment_image_set_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method", "status", "reviewer_id", "notes", "revision",
+        "supersedes_decision_sha256"
+      ],
+      "properties": {
+        "method": {"const": "human"},
+        "status": {"const": "completed"},
+        "reviewer_id": {"$ref": "#/$defs/id"},
+        "notes": {"type": "string", "maxLength": 4096},
+        "revision": {"type": "integer", "minimum": 1, "maximum": 64},
+        "supersedes_decision_sha256": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha"}]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"revision": {"const": 1}},
+            "required": ["revision"]
+          },
+          "then": {
+            "properties": {"supersedes_decision_sha256": {"type": "null"}}
+          },
+          "else": {
+            "properties": {
+              "supersedes_decision_sha256": {"$ref": "#/$defs/sha"}
+            }
+          }
+        }
+      ]
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "relationship_id", "relationship_evidence_sha256", "action",
+        "option_id", "option_evidence_sha256", "notes", "anchors"
+      ],
+      "properties": {
+        "relationship_id": {"$ref": "#/$defs/id"},
+        "relationship_evidence_sha256": {"$ref": "#/$defs/sha"},
+        "action": {
+          "enum": ["accept", "adjust", "reject", "unobservable"]
+        },
+        "option_id": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/id"}]
+        },
+        "option_evidence_sha256": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha"}]
+        },
+        "notes": {"type": "string", "maxLength": 2048},
+        "anchors": {
+          "type": "array",
+          "maxItems": 8,
+          "items": {"$ref": "#/$defs/anchorPair"}
+        }
+      },
+      "allOf": [
+        {
+          "oneOf": [
+            {
+              "properties": {
+                "option_id": {"type": "null"},
+                "option_evidence_sha256": {"type": "null"}
+              }
+            },
+            {
+              "properties": {
+                "option_id": {"$ref": "#/$defs/id"},
+                "option_evidence_sha256": {"$ref": "#/$defs/sha"}
+              }
+            }
+          ]
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {"enum": ["accept", "adjust"]}
+            },
+            "required": ["action"]
+          },
+          "then": {
+            "properties": {
+              "option_id": {"$ref": "#/$defs/id"},
+              "option_evidence_sha256": {"$ref": "#/$defs/sha"},
+              "anchors": {"minItems": 2, "maxItems": 8}
+            }
+          },
+          "else": {
+            "properties": {"anchors": {"maxItems": 0}}
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {"enum": ["adjust", "reject", "unobservable"]}
+            },
+            "required": ["action"]
+          },
+          "then": {"properties": {"notes": {"pattern": "\\S"}}}
+        }
+      ]
+    },
+    "torsoArmLeft": {
+      "allOf": [
+        {"$ref": "#/$defs/decision"},
+        {"properties": {"relationship_id": {"const": "seam.torso_arm.left"}}}
+      ]
+    },
+    "torsoArmRight": {
+      "allOf": [
+        {"$ref": "#/$defs/decision"},
+        {"properties": {"relationship_id": {"const": "seam.torso_arm.right"}}}
+      ]
+    },
+    "pelvisLegLeft": {
+      "allOf": [
+        {"$ref": "#/$defs/decision"},
+        {"properties": {"relationship_id": {"const": "seam.pelvis_leg.left"}}}
+      ]
+    },
+    "pelvisLegRight": {
+      "allOf": [
+        {"$ref": "#/$defs/decision"},
+        {"properties": {"relationship_id": {"const": "seam.pelvis_leg.right"}}}
+      ]
+    },
+    "legFootLeft": {
+      "allOf": [
+        {"$ref": "#/$defs/decision"},
+        {"properties": {"relationship_id": {"const": "seam.leg_foot.left"}}}
+      ]
+    },
+    "legFootRight": {
+      "allOf": [
+        {"$ref": "#/$defs/decision"},
+        {"properties": {"relationship_id": {"const": "seam.leg_foot.right"}}}
+      ]
+    },
+    "anchorPair": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pair_id", "parent", "child"],
+      "properties": {
+        "pair_id": {
+          "type": "string",
+          "pattern": "^anchor\\.[0-9]{3}$"
+        },
+        "parent": {"$ref": "#/$defs/locator"},
+        "child": {"$ref": "#/$defs/locator"}
+      }
+    },
+    "locator": {
+      "oneOf": [
+        {"$ref": "#/$defs/regionLocator"},
+        {"$ref": "#/$defs/meshLocator"}
+      ]
+    },
+    "regionLocator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "attachment_id", "attachment_type", "locator_type",
+        "local_xy_q4096"
+      ],
+      "properties": {
+        "attachment_id": {"$ref": "#/$defs/id"},
+        "attachment_type": {"const": "region"},
+        "locator_type": {"const": "region-local-q4096"},
+        "local_xy_q4096": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "integer", "minimum": 0, "maximum": 4096000000000
+          }
+        }
+      }
+    },
+    "meshLocator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "attachment_id", "attachment_type", "locator_type",
+        "triangle_index", "vertex_indices", "weights_q65535"
+      ],
+      "properties": {
+        "attachment_id": {"$ref": "#/$defs/id"},
+        "attachment_type": {"const": "mesh"},
+        "locator_type": {"const": "mesh-barycentric-q65535"},
+        "triangle_index": {"type": "integer", "minimum": 0, "maximum": 8191},
+        "vertex_indices": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": {"type": "integer", "minimum": 0, "maximum": 4095}
+        },
+        "weights_q65535": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {"type": "integer", "minimum": 0, "maximum": 65535}
+        }
+      }
+    },
+    "releaseGate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reason_codes"],
+      "properties": {
+        "status": {"const": "blocked"},
+        "reason_codes": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 5,
+          "uniqueItems": true,
+          "items": {"enum": [
+            "dynamic_seam_safety_unproven",
+            "reviewed_seam_anchor_set_missing",
+            "reviewed_seam_anchor_selection_blocked",
+            "runtime_equivalence_unproven",
+            "visual_seam_quality_unproven"
+          ]}
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "relationship_count", "decision_count", "accept_count",
+        "adjust_count", "reject_count", "unobservable_count",
+        "anchor_pair_count"
+      ],
+      "properties": {
+        "relationship_count": {"type": "integer", "const": 6},
+        "decision_count": {"type": "integer", "const": 6},
+        "accept_count": {"type": "integer", "minimum": 0, "maximum": 6},
+        "adjust_count": {"type": "integer", "minimum": 0, "maximum": 6},
+        "reject_count": {"type": "integer", "minimum": 0, "maximum": 6},
+        "unobservable_count": {"type": "integer", "minimum": 0, "maximum": 6},
+        "anchor_pair_count": {"type": "integer", "minimum": 0, "maximum": 48}
+      }
+    }
+  }
+}

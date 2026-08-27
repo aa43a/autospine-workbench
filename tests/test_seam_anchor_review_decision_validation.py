@@ -3,7 +3,14 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import json
+from pathlib import Path
 import unittest
+
+try:
+    from jsonschema import Draft202012Validator
+except ImportError:  # pragma: no cover - optional test dependency
+    Draft202012Validator = None
 
 from autospine_workbench.seam_anchor_review_decision import (
     build_seam_anchor_review_decision,
@@ -17,6 +24,9 @@ from tests.seam_anchor_review_helpers import (
     review_candidate_and_rig,
     seam_review_rows,
 )
+
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 class SeamAnchorReviewDecisionValidationTests(unittest.TestCase):
@@ -82,6 +92,37 @@ class SeamAnchorReviewDecisionValidationTests(unittest.TestCase):
 
         with self.assertRaises(SeamAnchorReviewDecisionValidationError):
             require_seam_anchor_review_decision(LyingDict(self.valid))
+
+    def test_schema_pins_format_relationship_order_and_semantics(self):
+        schema = json.loads((
+            ROOT / "schemas" / "seam-anchor-review-decision-v1.schema.json"
+        ).read_text(encoding="utf-8"))
+        self.assertEqual(
+            "autospine-seam-anchor-review-decision",
+            schema["properties"]["format"]["const"],
+        )
+        self.assertEqual(
+            self.valid["semantics"],
+            schema["properties"]["semantics"]["const"],
+        )
+
+    @unittest.skipIf(Draft202012Validator is None, "jsonschema is optional")
+    def test_json_schema_accepts_output_and_rejects_reordered_rows(self):
+        schema = json.loads((
+            ROOT / "schemas" / "seam-anchor-review-decision-v1.schema.json"
+        ).read_text(encoding="utf-8"))
+        Draft202012Validator.check_schema(schema)
+        validator = Draft202012Validator(schema)
+        validator.validate(self.valid)
+        blocked = build_seam_anchor_review_decision(
+            self.candidate, self.rig,
+            review={"reviewer_id": "artist", "notes": "blocked"},
+            decisions=seam_review_rows(self.candidate, "reject"),
+        ).document
+        validator.validate(blocked)
+        reordered = deepcopy(self.valid)
+        reordered["decisions"].reverse()
+        self.assertTrue(list(validator.iter_errors(reordered)))
 
 
 if __name__ == "__main__":
