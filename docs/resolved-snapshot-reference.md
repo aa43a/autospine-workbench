@@ -70,13 +70,15 @@ validator 不读取外部目录，主要执行以下检查：
 - 检查 joint decision 的 action、最终坐标、review state 和 decision kind 是否一致；
 - 要求被 joint decision 使用的 candidate artifact 出现在 `inputs.candidate_analyses`，并闭合
   provider、provider version、input/config/run identity；
-- 检查 split decision 的 algorithm、split spec、resolved snapshot 与 current/stale binding；
+- 检查 split decision 声明字段、algorithm、当前 split spec 与 current/stale 内部 binding；
 - 从 layers/joints/split decisions 重新派生全部 QA ID 列表与 `ready`/`needs_review` 状态；
 - 拒绝未知 authority 字段、非有限数、错误 SHA 和与可选可信上下文不一致的身份。
 
-候选或 split artifact 原始字节的完整重放仍属于各自 binder。standalone validator 验证的是
+候选或 split artifact 原始字节，以及 split decision 声明的 `resolved_snapshot_sha256` 是否
+指向真实外部工件，仍由各自 binder 负责。standalone validator 只验证这些 SHA 的形状、
 snapshot 内部闭合及调用方显式提供的可信身份，不会按相邻目录、文件名或 `latest` 猜测外部
-证据。
+证据。`require_resolved_snapshot_for_project(...)` 属于严格 trusted-context 边界，因此必须同时
+提供确切 override mapping；缺少 override 时 fail closed。
 
 v1 的 canonical JSON 明确定义为 Python `json.dumps` 的 `sort_keys=True`、紧凑分隔符、
 `ensure_ascii=False`、`allow_nan=False` 后的 UTF-8 字节。它不是 RFC 8785/JCS，也不会把
@@ -95,8 +97,10 @@ review target 的 accept 才能进入 `accepted_split_layer_ids`；stale 或 rej
 
 ## 历史兼容与版本升级
 
-补充公开 Schema 和 validator 没有修改 v1 builder 的既有字节。历史回归在本地存在真实
-See-through audit 与 override history 时固定：
+P0 在正式冻结 v1 前修正了“撤销 split authoring 后 stale decision 从 QA 消失”的派生缺陷；
+因此这类 pre-P0 临时状态重新生成时会得到修正后的 QA 与新 SHA。修正不会把旧决定静默标成
+current。正式冻结点同时用历史回归确认下列已知真实 revision 的既有字节没有变化；本地存在
+对应 See-through audit 与 override history 时固定：
 
 - `seethrough_output` 的 `r000005.json` snapshot；
 - `seethrough_output_5` 的 `r000007.json` snapshot。

@@ -134,7 +134,7 @@ web    → HTTP contracts only
 
 ## 阶段门禁
 
-P0 Resolved Project v1 合同门禁已经完成：独立 Draft 2020-12 Schema 固定完整结构，严格 Python validator 在无 `jsonschema` 时仍可执行语义检查，并支持可选 trusted project/revision/base/override 身份。候选 inventory 与 joint decision 的 provider/run identity 必须闭合；current split 必须绑定当前 split spec，stale split 不能进入 accepted QA；全部 QA 列表和总状态从实体重新派生。真实样本 r5/r7 的既有 snapshot SHA 由条件式历史回归固定，补充公开合同没有改写旧字节。v1 生成、QA 或 provenance 语义若需改变，必须新增 `autospine.resolved-project/v2`，不能复用 v1 hash domain。字段和调用入口见 [Resolved Project v1 参考](resolved-snapshot-reference.md)。
+P0 Resolved Project v1 合同门禁已经完成：独立 Draft 2020-12 Schema 固定完整结构，严格 Python validator 在无 `jsonschema` 时仍可执行语义检查；trusted project 边界必须同时提供确切 override，并固定 project/revision/base/override 身份。候选 inventory 与 joint decision 的 provider/run identity 必须闭合；current split 必须绑定当前 split spec，stale split 不能进入 accepted QA；全部 QA 列表和总状态从实体重新派生。P0 正式冻结前修正了撤销 split authoring 后 stale QA 消失的问题；真实样本 r5/r7 的既有 snapshot SHA 由条件式历史回归确认未受影响。此冻结点之后，v1 生成、QA 或 provenance 语义若需改变，必须新增 `autospine.resolved-project/v2`，不能复用 v1 hash domain。字段和调用入口见 [Resolved Project v1 参考](resolved-snapshot-reference.md)。
 
 P1 已完成并冻结以下边界：
 

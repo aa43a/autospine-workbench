@@ -191,16 +191,19 @@ def require_resolved_snapshot_for_project(
         "skeleton": project.get("skeleton"),
     }
     decision = overrides if overrides is not None else project.get("overrides")
-    expected_revision: int | None = None
-    expected_override_sha256: str | None = None
-    if isinstance(decision, Mapping):
-        expected_revision = integer(
-            decision.get("revision"), "project.overrides.revision"
+    if not isinstance(decision, Mapping):
+        raise ResolvedSnapshotValidationError(
+            "project.overrides",
+            "trusted override state is required",
+            "required",
         )
+    expected_revision = integer(
+        decision.get("revision"), "project.overrides.revision"
+    )
+    expected_override_sha256: str | None = None
     try:
         base_sha256 = canonical_sha256(base_payload)
-        if isinstance(decision, Mapping):
-            expected_override_sha256 = canonical_sha256(decision)
+        expected_override_sha256 = canonical_sha256(decision)
     except (OverflowError, TypeError, UnicodeError, ValueError) as exc:
         raise ResolvedSnapshotValidationError(
             "project", "trusted project context is not canonical JSON data",

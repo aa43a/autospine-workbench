@@ -19,6 +19,7 @@ from autospine_workbench.artifact_store import ImmutableJsonArtifactStore  # noq
 from autospine_workbench.alpha_bilateral_split import (  # noqa: E402
     AlphaBilateralSplitError,
 )
+from autospine_workbench.contracts import empty_overrides  # noqa: E402
 from autospine_workbench.layer_manifest import (  # noqa: E402
     LayerManifestBuilder,
     LayerManifestBundleStore,
@@ -39,6 +40,7 @@ from tests.test_layer_split_materializer import (  # noqa: E402
     project_fixture,
     source_image,
 )
+from tests.resolved_snapshot_helpers import refresh_resolved_snapshot  # noqa: E402
 
 
 def _rehash(resolved: dict) -> None:
@@ -56,20 +58,28 @@ class SplitDecisionBinderTests(unittest.TestCase):
         write_rgba_png(self.source, source_image())
         self.project = project_fixture()
         resolved = self.project["resolved"]
-        resolved.update(
-            schema_version="autospine.resolved-project/v1",
-            project_id=self.project["id"],
-            inputs={"base_project_sha256": "d" * 64, "override_sha256": "e" * 64},
-        )
         spec = authored_split_spec()
         spec["parts"]["left"]["candidate_bone"] = "thigh.left"
         spec["parts"]["right"]["candidate_bone"] = "thigh.right"
-        resolved["layers"][0]["split_spec"] = spec
-        resolved["skeleton"]["bones"] = [
-            {"id": "thigh.left"},
-            {"id": "thigh.right"},
+        layer = resolved["layers"][0]
+        layer.pop("candidate_bone")
+        layer["reviewed_fields"] = [
+            "canonical_role", "side", "disposition", "visible",
         ]
-        _rehash(resolved)
+        layer["split_spec"] = spec
+        layer["split_spec_revision"] = resolved["revision"]
+        overrides = empty_overrides(self.project["id"])
+        overrides["revision"] = resolved["revision"]
+        overrides["layer_overrides"] = {
+            LAYER_ID: {
+                "side": "bilateral",
+                "disposition": "split_left_right",
+                "split_spec": deepcopy(spec),
+            }
+        }
+        self.project["overrides"] = overrides
+        resolved["inputs"]["override_sha256"] = canonical_sha256(overrides)
+        self.project["resolved"] = refresh_resolved_snapshot(resolved)
         materialized = materialize_bilateral_splits(
             self.project, {LAYER_ID: self.source}, self.root / "derived"
         )
@@ -192,7 +202,11 @@ class SplitDecisionBinderTests(unittest.TestCase):
             "pivot": lambda value: value["layers"][0]["split_spec"]["parts"]["left"][
                 "pivot"
             ].update(xy=[2.5, 3.0]),
-            "bone": lambda value: value["skeleton"]["bones"].pop(),
+            "bone": lambda value: value["skeleton"]["bones"].pop(next(
+                index
+                for index, bone in enumerate(value["skeleton"]["bones"])
+                if bone["id"] == "thigh.right"
+            )),
             "role": lambda value: value["layers"][0].update(canonical_role="body.leg.lower"),
             "draw order": lambda value: value["layers"].append(
                 {"id": "layer-before", "z_index": -1, "disposition": "keep"}

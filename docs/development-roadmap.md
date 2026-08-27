@@ -54,12 +54,13 @@ Revision 历史 UI（独立 authoring 可用性轨）
 
 ## 已完成横向前置：Resolved Project v1
 
-P0 已在不改写既有 snapshot 字节的前提下交付独立
-`schemas/resolved-project-v1.schema.json` 与无第三方依赖的严格语义 validator。公开 validator
+P0 已在正式冻结点交付独立 `schemas/resolved-project-v1.schema.json` 与无第三方依赖的严格
+语义 validator，并修正撤销 split authoring 后 stale QA 消失的 pre-P0 缺陷。公开 validator
 重算 canonical 内容地址，校验 project/layer/joint/bone 交叉引用、candidate inventory/run
 identity、current/stale split provenance，以及由 resolved 实体状态派生的完整 QA 列表。
 
-历史回归固定两份真实样本的 r5/r7 snapshot 哈希；当本地缺少对应 audit 或历史 revision
+该修正可能改变相应临时状态重新生成时的 QA/SHA，但不会把旧决定静默标为 current。历史回归
+确认两份真实样本的 r5/r7 snapshot 哈希未受影响；当本地缺少对应 audit 或历史 revision
 fixture 时，该真实样本用例会明确跳过，不能据此宣称它已在当前环境执行。Draft 2020-12
 Schema 的实例校验同样依赖可选 `jsonschema`，但 Python 语义 validator 及其测试不依赖该包。
 

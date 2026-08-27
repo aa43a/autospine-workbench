@@ -221,10 +221,13 @@ def resolved_project_envelope(
         "layers": deepcopy(snapshot["layers"]),
         "skeleton": deepcopy(snapshot["skeleton"]),
     }
+    overrides = {"revision": snapshot["revision"]}
+    project["overrides"] = overrides
     base_payload = {
         key: project.get(key) for key in ("source", "canvas", "layers", "skeleton")
     }
     snapshot["inputs"]["base_project_sha256"] = canonical_sha256(base_payload)
+    snapshot["inputs"]["override_sha256"] = canonical_sha256(overrides)
     project["resolved"] = refresh_resolved_snapshot(snapshot)
     return project
 

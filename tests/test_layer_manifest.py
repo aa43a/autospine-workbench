@@ -134,6 +134,17 @@ class LayerManifestMaterializationTests(unittest.TestCase):
                     project, {"layer-001-arm-l": asset}
                 )
 
+    def test_builder_requires_exact_trusted_override_context(self) -> None:
+        project = project_fixture()
+        project.pop("overrides")
+        with tempfile.TemporaryDirectory() as directory:
+            asset = Path(directory) / "arm.png"
+            write_png(asset, 30, 40)
+            with self.assertRaisesRegex(LayerManifestError, "override state"):
+                LayerManifestBuilder().build(
+                    project, {"layer-001-arm-l": asset}
+                )
+
     def test_unrelated_override_does_not_claim_semantic_or_pivot_review(self) -> None:
         project = project_fixture()
         layer = project["resolved"]["layers"][0]

@@ -19,7 +19,6 @@ if str(SRC) not in sys.path:
 from autospine_workbench.artifact_store import ImmutableJsonArtifactStore  # noqa: E402
 from autospine_workbench.contracts import (  # noqa: E402
     ContractValidationError,
-    empty_overrides,
 )
 from autospine_workbench.layer_manifest import (  # noqa: E402
     LayerManifestBuilder,
@@ -79,12 +78,22 @@ class SplitPersistenceFixture:
         write_rgba_png(self.source, source_image())
         raw = project_fixture()
         layer = deepcopy(raw["resolved"]["layers"][0])
-        layer["split_spec"] = split_spec()
+        for field in ("review_state", "reviewed_fields", "decision_revision"):
+            layer.pop(field, None)
+        layer.pop("candidate_bone", None)
         skeleton = deepcopy(raw["resolved"]["skeleton"])
         for joint in skeleton["joints"]:
             joint["confidence"] = 1.0
+            for field in (
+                "review_state",
+                "decision_kind",
+                "decision_revision",
+                "decision",
+                "review_reason",
+                "legacy_review_confidence",
+            ):
+                joint.pop(field, None)
         skeleton["generation"] = {"method": "fixture", "requires_review": False}
-        skeleton["bones"] = [{"id": "thigh.left"}, {"id": "thigh.right"}]
         self.base = {
             "id": raw["id"],
             "source": deepcopy(raw["source"]),
@@ -92,8 +101,23 @@ class SplitPersistenceFixture:
             "layers": [layer],
             "skeleton": skeleton,
         }
-        self.empty = empty_overrides(self.base["id"])
+        self.base["canvas"]["coordinate_system"] = "canvas-top-left-y-down"
+        self.store = OverrideHistoryStore(self.state)
+        initial = {
+            "schema_version": "autospine-workbench.override/v3",
+            "base_revision": 0,
+            "joint_overrides": {},
+            "joint_decisions": {},
+            "layer_overrides": self._split_authoring(),
+            "split_decisions": {},
+            "notes": "split authoring",
+        }
+        self.empty = self.store.save(
+            self.base["id"], initial, **self.context
+        )
+        self.initial_revision = self.empty["revision"]
         project = deepcopy(self.base)
+        project["overrides"] = deepcopy(self.empty)
         project["resolved"] = ResolvedProjectBuilder().build(self.base, self.empty)
         materialized = materialize_bilateral_splits(
             project, {LAYER_ID: self.source}, root / "preview-layers"
@@ -116,7 +140,6 @@ class SplitPersistenceFixture:
         self.artifact = ImmutableJsonArtifactStore(self.state).publish(
             "split-previews", self.base["id"], preview
         )
-        self.store = OverrideHistoryStore(self.state)
 
     @property
     def context(self) -> dict:
@@ -138,6 +161,16 @@ class SplitPersistenceFixture:
             value["reason"] = "visible garment partition needs another pass"
         return value
 
+    @staticmethod
+    def _split_authoring() -> dict:
+        return {
+            LAYER_ID: {
+                "side": "bilateral",
+                "disposition": "split_left_right",
+                "split_spec": split_spec(),
+            }
+        }
+
     def payload(
         self,
         revision: int,
@@ -148,10 +181,14 @@ class SplitPersistenceFixture:
     ) -> dict:
         return {
             "schema_version": "autospine-workbench.override/v3",
-            "base_revision": revision,
+            "base_revision": revision + self.initial_revision,
             "joint_overrides": {},
             "joint_decisions": {},
-            "layer_overrides": layer_overrides or {},
+            "layer_overrides": (
+                deepcopy(layer_overrides)
+                if layer_overrides is not None
+                else self._split_authoring()
+            ),
             "split_decisions": ({LAYER_ID: decision} if decision is not None else {}),
             "notes": notes,
         }
@@ -191,7 +228,12 @@ class SplitDecisionPersistenceTests(unittest.TestCase):
         self.assertEqual(third, reloaded)
         history = self.fx.state / "overrides" / self.fx.base["id"] / "history"
         self.assertEqual(
-            ["r000001.json", "r000002.json", "r000003.json"],
+            [
+                "r000001.json",
+                "r000002.json",
+                "r000003.json",
+                "r000004.json",
+            ],
             sorted(path.name for path in history.glob("*.json")),
         )
 
@@ -252,7 +294,10 @@ class SplitDecisionPersistenceTests(unittest.TestCase):
                 self.fx.payload(0, decision=self.fx.decision(), layer_overrides=patch),
                 **self.fx.context,
             )
-        self.assertEqual(0, self.fx.store.load(self.fx.base["id"], **self.fx.context)["revision"])
+        self.assertEqual(
+            self.fx.initial_revision,
+            self.fx.store.load(self.fx.base["id"], **self.fx.context)["revision"],
+        )
 
         saved = self.fx.store.save(
             self.fx.base["id"], self.fx.payload(0, decision=self.fx.decision()), **self.fx.context
@@ -287,7 +332,7 @@ class SplitDecisionPersistenceTests(unittest.TestCase):
             other.store.save(
                 other.base["id"], other.payload(0, decision=other.decision()), **other.context
             )
-        self.assertEqual(1, saved["revision"])
+        self.assertEqual(self.fx.initial_revision + 1, saved["revision"])
 
     def test_algorithm_upgrade_marks_stored_decision_stale(self) -> None:
         self.fx.store.save(
@@ -316,6 +361,7 @@ class SplitDecisionPersistenceTests(unittest.TestCase):
             self.fx.base["id"], self.fx.payload(0, decision=self.fx.decision()), **self.fx.context
         )
         current_project = deepcopy(self.fx.base)
+        current_project["overrides"] = deepcopy(accepted)
         current_project["resolved"] = ResolvedProjectBuilder().build(self.fx.base, accepted)
         current = materialize_bilateral_splits(
             current_project,
@@ -341,6 +387,7 @@ class SplitDecisionPersistenceTests(unittest.TestCase):
         stale = deepcopy(accepted)
         stale["split_decisions"][LAYER_ID]["binding_status"] = "stale"
         stale_project = deepcopy(self.fx.base)
+        stale_project["overrides"] = deepcopy(stale)
         stale_project["resolved"] = ResolvedProjectBuilder().build(self.fx.base, stale)
         materialized = materialize_bilateral_splits(
             stale_project,

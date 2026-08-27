@@ -267,10 +267,9 @@ def _resolved_for_project():
                 joint_id,
                 side=side,
                 x=source["x"],
-                # The shared full-rig fixture extends 37 px below its declared
-                # canvas.  A rigid setup translation preserves every local
-                # transform while making this persisted boundary fixture valid.
-                y=source["y"] - 40,
+                # The shared P9 strict fixture already applies the one rigid
+                # y-translation needed to fit the declared canvas.
+                y=source["y"],
                 revision=1,
             )
         bones.append(resolved_bone(
