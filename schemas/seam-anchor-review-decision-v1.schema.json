@@ -85,8 +85,8 @@
             "status": "blocked",
             "reason_codes": [
               "dynamic_seam_safety_unproven",
-              "reviewed_seam_anchor_set_missing",
               "reviewed_seam_anchor_selection_blocked",
+              "reviewed_seam_anchor_set_missing",
               "runtime_equivalence_unproven",
               "visual_seam_quality_unproven"
             ]
