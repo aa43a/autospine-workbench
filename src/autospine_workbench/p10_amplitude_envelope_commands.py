@@ -13,6 +13,7 @@ from .body_sway_amplitude_envelope import (
 )
 from .body_sway_amplitude_envelope_inputs import (
     BodySwayAmplitudeEnvelopeInputError,
+    BodySwayAmplitudeEnvelopeInputs,
     require_body_sway_amplitude_envelope_inputs,
 )
 from .body_sway_visual_review_address import ExactVisualReviewAddress
@@ -44,6 +45,7 @@ class P10AmplitudeEnvelopeCommandResult:
     visual_decision_sha256: str
     amplitude_envelope_sha256: str
     _candidate: BodySwayAmplitudeEnvelopeCandidate = field(repr=False)
+    _inputs: BodySwayAmplitudeEnvelopeInputs = field(repr=False)
 
     @property
     def document(self) -> dict[str, Any]:
@@ -96,7 +98,7 @@ def compile_body_sway_amplitude_envelope_command(
             admitted._admission, preview._inputs, preview._preview
         )
         candidate = compile_body_sway_amplitude_envelope_candidate(inputs)
-        _require_unchanged_head(
+        require_unchanged_visual_review_head(
             state_root, project_id,
             temporary_preview_sha256, runtime_capture_bundle_sha256,
             capture_artifact_set_sha256, visual_candidate_sha256,
@@ -113,6 +115,7 @@ def compile_body_sway_amplitude_envelope_command(
             visual_decision_sha256=admitted.visual_decision_sha256,
             amplitude_envelope_sha256=candidate.sha256,
             _candidate=candidate,
+            _inputs=inputs,
         )
     except P10AmplitudeEnvelopeCommandError:
         raise
@@ -122,10 +125,11 @@ def compile_body_sway_amplitude_envelope_command(
         ) from exc
 
 
-def _require_unchanged_head(
+def require_unchanged_visual_review_head(
     state_root, project_id, preview_sha, capture_bundle_sha,
     capture_artifact_sha, candidate_sha, revision, decision_sha,
 ) -> None:
+    """Require the exact approved head in two fresh snapshots."""
     address = ExactVisualReviewAddress(
         project_id, preview_sha, capture_bundle_sha, capture_artifact_sha
     )
