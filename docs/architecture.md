@@ -72,6 +72,14 @@ exact Layer Manifest + exact P3/P5/P9 reviewed chain
                                       ↓
                            blocked release
 
+exact Layer Manifest + exact P3 static bundle
+                                      ↓
+                P10.5a static seam candidates
+                                      ↓
+          P10.5b decision → P10.5c reviewed set
+                                      ↓
+                 P10.5d dynamic seam probe
+
 server → application services only
 web    → HTTP contracts only
 ```
@@ -86,6 +94,7 @@ web    → HTTP contracts only
 - P10.4a admission command 重新编译 exact preview、重验 capture，并按 `history A → exact decision → history B` 观察当前 approved head。输出仅是 path-free compile-time 准入合同；它不持久化、不授予永久 authority，未来发布消费方必须重新读取当前 head。
 - P10.4b1 amplitude-envelope command 只沿 reviewed 四骨幅度向量的统一 gain 射线重放九个 sampled key 状态；reviewed gain 必须精确匹配 P10.2 和临时 preview，分析结束后再次双快照 current head。候选不得包含 tracks/keys/animations，也不得声明连续时间、安全范围、seam 或发布 authority。
 - P10.4b2 continuous-proof command 完整重放 P10.4b1 source closure，以向外舍入区间同时覆盖 `time_fraction × λ`；每一对相邻 preview tick 都必须进入共享有界预算。后端异常、预算耗尽、非有限数或证明对象不满足内部计数/边界不变量时 fail closed 为 `indeterminate`。全段通过只授予 preview-model structural claims，平台 libm/runtime、raster、seam、MotionInstance v3 与发布仍明确排除。
+- P10.5a seam candidate command 只读取精确 Layer Manifest/P3 静态地址，固定输出六条左右关系和可回看的 attachment-local locator。candidate generator 内嵌从实际行为常量重建的 canonical algorithm profile；candidate、human decision、reviewed set 和动态 probe 是四个独立合同，任何一层都不能改写上一层 evidence hash。
 - Kimodo 的 raw NPZ、source sidecar 与 map 是三个独立输入。sidecar 解释数组/FPS/producer，map 决定投影/角色/contact；两者都不得根据文件名、数组数量或相邻目录隐式发现。
 
 ## 文件长度预算
@@ -269,6 +278,24 @@ sampled_visual_approved current head
 连续证明内嵌并重算 candidate、RigIR、target profile、MotionInstance v2、temporary preview manifest 与 preview projection。固定后端包围数学三角函数、Q9 图层与 Q4096 顶点量化误差，并检查 FK、画布、mesh area/edge 与共享索引内部连续性；它不把 point samples 当作区间证明。输入和结果都有显式 byte/box/depth 上限，任何未证明状态都不能升级为通过。操作入口见[编译 body-sway 连续预览模型证明](how-to-compile-body-sway-continuous-proof.md)。
 
 该结论只适用于固定 preview 数学模型，不代表目标平台 `libm`、官方 Spine runtime 或 raster truth；attachment 间 seam 仍缺少 reviewed anchors。静态 seam candidate、人工 decision 和 reviewed anchor set 应作为独立上游合同，之后才能在相同动作域上追加 seam 证明，不能修改本阶段既有 hash 语义。
+
+P10.5a 已实现上述第一层静态合同：
+
+```text
+exact manifest + exact P3 rig/bundle + exact attachment PNG set
+                              ↓
+       fixed semantic relationship inventory (6 rows)
+                              ↓
+       bounded alpha contact/lobe candidate comparison
+                              ↓
+     sealed option evidence + sealed relationship evidence
+                              ↓
+       human decision missing; release remains blocked
+```
+
+region locator 使用 Q4096 attachment-local 坐标；mesh locator 使用 Q65535 重心坐标并在量化后重新规范到最小包含三角形。candidate 只有 2–4 对分别严格有序、连接线不相交也不相触的锚点。独立 validator 会重算完整 reason/status/contact/sampling/type 矩阵与 evidence seal；算法 profile 覆盖关系/角色、contact/lobe、采样、资源、locator 与 pair policy。操作入口见[编译 P10.5a 静态接缝锚点候选](how-to-compile-seam-anchor-candidates.md)。
+
+P10.5a 没有写路径，也没有 candidate 历史。P10.5b 应以 candidate SHA 和 option evidence SHA 为 CAS namespace 保存完整 `accept/adjust/reject/unobservable` revision；P10.5c 才能编译 reviewed set，P10.5d 必须重放该 set 与 P10.4b2 动作域后才能产生动态 seam claim。
 
 后续阶段继续遵守：
 
