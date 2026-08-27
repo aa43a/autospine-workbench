@@ -1,0 +1,644 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/body-sway-dynamic-seam-probe-v1.schema.json",
+  "title": "AutoSpine BodySwayDynamicSeamProbe v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "project_id", "clip_id", "source",
+    "problem", "segments", "analyzer", "claims", "status",
+    "release_gate", "summary"
+  ],
+  "properties": {
+    "format": {"const": "autospine-body-sway-dynamic-seam-probe"},
+    "format_version": {"type": "integer", "const": 1},
+    "project_id": {"$ref": "#/$defs/id"},
+    "clip_id": {"$ref": "#/$defs/id"},
+    "source": {"$ref": "#/$defs/source"},
+    "problem": {"$ref": "#/$defs/problem"},
+    "segments": {
+      "type": "array", "minItems": 1, "maxItems": 4095,
+      "items": {"$ref": "#/$defs/segment"}
+    },
+    "analyzer": {"$ref": "#/$defs/analyzer"},
+    "claims": {"$ref": "#/$defs/claims"},
+    "status": {
+      "enum": [
+        "continuous_preview_model_reviewed_anchor_proximity_certified",
+        "indeterminate"
+      ]
+    },
+    "release_gate": {"$ref": "#/$defs/releaseGate"},
+    "summary": {"$ref": "#/$defs/summary"}
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "continuous_preview_model_reviewed_anchor_proximity_certified"
+          }
+        },
+        "required": ["status"]
+      },
+      "then": {
+        "properties": {
+          "segments": {
+            "items": {
+              "properties": {
+                "status": {"const": "continuous_anchor_proximity_certified"}
+              }
+            }
+          },
+          "claims": {
+            "properties": {
+              "continuous_preview_model_reviewed_anchor_proximity_within_engineering_tolerance": {
+                "const": true
+              }
+            }
+          },
+          "release_gate": {"$ref": "#/$defs/certifiedReleaseGate"},
+          "summary": {
+            "properties": {
+              "max_squared_distance_upper_px2": {"type": "number"},
+              "all_seam_segments_certified": {"const": true},
+              "reason_codes": {"const": []}
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "claims": {
+            "properties": {
+              "continuous_preview_model_reviewed_anchor_proximity_within_engineering_tolerance": {
+                "const": false
+              }
+            }
+          },
+          "release_gate": {"$ref": "#/$defs/indeterminateReleaseGate"},
+          "summary": {
+            "properties": {
+              "reason_codes": {"minItems": 1}
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "id": {
+      "type": "string", "minLength": 1, "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "source_set_sha256", "body_sway_continuous_proof_sha256",
+        "body_sway_continuous_preview_proof",
+        "seam_anchor_candidate_sha256", "seam_anchor_candidates",
+        "seam_anchor_review_decision_sha256",
+        "seam_anchor_review_decision", "review_revision",
+        "reviewed_seam_anchor_set_sha256",
+        "reviewed_seam_anchor_set_bundle_sha256",
+        "reviewed_seam_anchor_set"
+      ],
+      "properties": {
+        "source_set_sha256": {"$ref": "#/$defs/sha"},
+        "body_sway_continuous_proof_sha256": {"$ref": "#/$defs/sha"},
+        "body_sway_continuous_preview_proof": {
+          "$ref": "body-sway-continuous-preview-proof-v1.schema.json"
+        },
+        "seam_anchor_candidate_sha256": {"$ref": "#/$defs/sha"},
+        "seam_anchor_candidates": {
+          "$ref": "seam-anchor-candidates-v1.schema.json"
+        },
+        "seam_anchor_review_decision_sha256": {"$ref": "#/$defs/sha"},
+        "seam_anchor_review_decision": {
+          "$ref": "seam-anchor-review-decision-v1.schema.json"
+        },
+        "review_revision": {
+          "type": "integer", "minimum": 1, "maximum": 64
+        },
+        "reviewed_seam_anchor_set_sha256": {"$ref": "#/$defs/sha"},
+        "reviewed_seam_anchor_set_bundle_sha256": {"$ref": "#/$defs/sha"},
+        "reviewed_seam_anchor_set": {
+          "$ref": "reviewed-seam-anchor-set-v1.schema.json"
+        }
+      }
+    },
+    "gainDomain": {
+      "const": {
+        "kind": "coupled-four-bone-uniform-gain",
+        "minimum": {"numerator": 0, "denominator": 1},
+        "maximum": {"numerator": 1, "denominator": 1},
+        "closure": "closed"
+      }
+    },
+    "interpolation": {
+      "const": {
+        "rotation": "sampled-linear-between-adjacent-preview-sample-ticks",
+        "root_translation": "sampled-linear-between-adjacent-preview-sample-ticks",
+        "segment_coverage": "every-adjacent-preview-sample-tick-pair"
+      }
+    },
+    "threshold": {
+      "const": {
+        "metric": "squared-distance-between-reviewed-anchor-world-points",
+        "max_squared_anchor_gap_px2": 4.0,
+        "equivalent_anchor_gap_px": 2.0,
+        "interpretation": "engineering-proxy-not-visual-calibration-threshold"
+      }
+    },
+    "budget": {
+      "const": {
+        "max_depth": 14,
+        "max_boxes_per_segment": 32768,
+        "max_total_boxes": 32768
+      }
+    },
+    "backend": {
+      "const": {
+        "method": "adaptive-interval-box-subdivision-no-point-sampling",
+        "interval_arithmetic": "binary64-directed-basic-ops-rational-trig-q9-q4096-v1",
+        "trigonometry": "rational-taylor-enclosure-v1",
+        "numeric_enclosure": "q9-per-layer-plus-q4096-half-step-v1",
+        "locator_enclosure": "reviewed-region-q4096-or-mesh-barycentric-q65535-rational-v1",
+        "anchor_pose": "exact-rational-lbs-moments-common-root-cancelled-v1",
+        "distance_bound": "outward-squared-euclidean-no-square-root-v1"
+      }
+    },
+    "problemScope": {
+      "const": [
+        "all-reviewed-anchor-pairs",
+        "all-six-static-seam-relationships",
+        "all-adjacent-preview-sample-tick-pairs",
+        "coupled-uniform-gain-closed-zero-to-one"
+      ]
+    },
+    "problemExclusions": {
+      "const": [
+        "dynamic-seam-safety-claim",
+        "full-attachment-boundary-continuity",
+        "platform-libm-equivalence",
+        "raster-or-visual-seam-calibration",
+        "runtime-equivalence",
+        "unreviewed-anchor-inference"
+      ]
+    },
+    "timeDomain": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "sample_ticks", "sample_count", "segment_count",
+        "adjacent_tick_pairs_sha256"
+      ],
+      "properties": {
+        "sample_ticks": {
+          "type": "array", "minItems": 2, "maxItems": 4096,
+          "uniqueItems": true,
+          "items": {"type": "integer", "minimum": 0}
+        },
+        "sample_count": {"type": "integer", "minimum": 2, "maximum": 4096},
+        "segment_count": {"type": "integer", "minimum": 1, "maximum": 4095},
+        "adjacent_tick_pairs_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "inventory": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "relationship_ids", "relationship_count", "anchor_pair_count",
+        "reviewed_seam_anchor_set_sha256",
+        "reviewed_anchor_inventory_sha256"
+      ],
+      "properties": {
+        "relationship_ids": {
+          "const": [
+            "seam.torso_arm.left", "seam.torso_arm.right",
+            "seam.pelvis_leg.left", "seam.pelvis_leg.right",
+            "seam.leg_foot.left", "seam.leg_foot.right"
+          ]
+        },
+        "relationship_count": {"type": "integer", "const": 6},
+        "anchor_pair_count": {
+          "type": "integer", "minimum": 12, "maximum": 48
+        },
+        "reviewed_seam_anchor_set_sha256": {"$ref": "#/$defs/sha"},
+        "reviewed_anchor_inventory_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "problem": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "source_set_sha256", "gain_domain", "time_domain",
+        "interpolation", "reviewed_anchor_inventory", "threshold",
+        "budget", "backend", "scope", "exclusions", "problem_sha256"
+      ],
+      "properties": {
+        "source_set_sha256": {"$ref": "#/$defs/sha"},
+        "gain_domain": {"$ref": "#/$defs/gainDomain"},
+        "time_domain": {"$ref": "#/$defs/timeDomain"},
+        "interpolation": {"$ref": "#/$defs/interpolation"},
+        "reviewed_anchor_inventory": {"$ref": "#/$defs/inventory"},
+        "threshold": {"$ref": "#/$defs/threshold"},
+        "budget": {"$ref": "#/$defs/budget"},
+        "backend": {"$ref": "#/$defs/backend"},
+        "scope": {"$ref": "#/$defs/problemScope"},
+        "exclusions": {"$ref": "#/$defs/problemExclusions"},
+        "problem_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "segmentReason": {
+      "enum": [
+        "anchor_proximity_unproven",
+        "global_subdivision_box_budget_exhausted",
+        "interval_backend_error", "non_finite_interval_bound",
+        "parameter_resolution_exhausted",
+        "subdivision_box_budget_exhausted",
+        "subdivision_depth_exhausted"
+      ]
+    },
+    "summaryReason": {
+      "oneOf": [
+        {"$ref": "#/$defs/segmentReason"},
+        {"const": "upstream_continuous_preview_model_structural_unproven"}
+      ]
+    },
+    "nullableUpper": {
+      "oneOf": [
+        {"type": "number", "minimum": 0},
+        {"type": "null"}
+      ]
+    },
+    "pair": {
+      "type": "object", "additionalProperties": false,
+      "required": ["pair_id", "max_squared_distance_upper_px2"],
+      "properties": {
+        "pair_id": {
+          "type": "string", "pattern": "^anchor\\.[0-9]{3}$"
+        },
+        "max_squared_distance_upper_px2": {"$ref": "#/$defs/nullableUpper"}
+      }
+    },
+    "certifiedPair": {
+      "allOf": [
+        {"$ref": "#/$defs/pair"},
+        {"properties": {
+          "max_squared_distance_upper_px2": {
+            "type": "number", "minimum": 0, "maximum": 4.0
+          }
+        }}
+      ]
+    },
+    "relationship": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "relationship_id", "pairs", "max_squared_distance_upper_px2"
+      ],
+      "properties": {
+        "relationship_id": {"$ref": "#/$defs/id"},
+        "pairs": {
+          "type": "array", "minItems": 2, "maxItems": 8,
+          "items": {"$ref": "#/$defs/pair"}
+        },
+        "max_squared_distance_upper_px2": {"$ref": "#/$defs/nullableUpper"}
+      }
+    },
+    "certifiedRelationship": {
+      "allOf": [
+        {"$ref": "#/$defs/relationship"},
+        {"properties": {
+          "pairs": {
+            "type": "array", "minItems": 2, "maxItems": 8,
+            "items": {"$ref": "#/$defs/certifiedPair"}
+          },
+          "max_squared_distance_upper_px2": {
+            "type": "number", "minimum": 0, "maximum": 4.0
+          }
+        }}
+      ]
+    },
+    "torsoArmLeft": {"allOf": [
+      {"$ref": "#/$defs/relationship"},
+      {"properties": {"relationship_id": {"const": "seam.torso_arm.left"}}}
+    ]},
+    "torsoArmRight": {"allOf": [
+      {"$ref": "#/$defs/relationship"},
+      {"properties": {"relationship_id": {"const": "seam.torso_arm.right"}}}
+    ]},
+    "pelvisLegLeft": {"allOf": [
+      {"$ref": "#/$defs/relationship"},
+      {"properties": {"relationship_id": {"const": "seam.pelvis_leg.left"}}}
+    ]},
+    "pelvisLegRight": {"allOf": [
+      {"$ref": "#/$defs/relationship"},
+      {"properties": {"relationship_id": {"const": "seam.pelvis_leg.right"}}}
+    ]},
+    "legFootLeft": {"allOf": [
+      {"$ref": "#/$defs/relationship"},
+      {"properties": {"relationship_id": {"const": "seam.leg_foot.left"}}}
+    ]},
+    "legFootRight": {"allOf": [
+      {"$ref": "#/$defs/relationship"},
+      {"properties": {"relationship_id": {"const": "seam.leg_foot.right"}}}
+    ]},
+    "certifiedTorsoArmLeft": {"allOf": [
+      {"$ref": "#/$defs/certifiedRelationship"},
+      {"properties": {"relationship_id": {"const": "seam.torso_arm.left"}}}
+    ]},
+    "certifiedTorsoArmRight": {"allOf": [
+      {"$ref": "#/$defs/certifiedRelationship"},
+      {"properties": {"relationship_id": {"const": "seam.torso_arm.right"}}}
+    ]},
+    "certifiedPelvisLegLeft": {"allOf": [
+      {"$ref": "#/$defs/certifiedRelationship"},
+      {"properties": {"relationship_id": {"const": "seam.pelvis_leg.left"}}}
+    ]},
+    "certifiedPelvisLegRight": {"allOf": [
+      {"$ref": "#/$defs/certifiedRelationship"},
+      {"properties": {"relationship_id": {"const": "seam.pelvis_leg.right"}}}
+    ]},
+    "certifiedLegFootLeft": {"allOf": [
+      {"$ref": "#/$defs/certifiedRelationship"},
+      {"properties": {"relationship_id": {"const": "seam.leg_foot.left"}}}
+    ]},
+    "certifiedLegFootRight": {"allOf": [
+      {"$ref": "#/$defs/certifiedRelationship"},
+      {"properties": {"relationship_id": {"const": "seam.leg_foot.right"}}}
+    ]},
+    "relationships": {
+      "type": "array", "minItems": 6, "maxItems": 6,
+      "prefixItems": [
+        {"$ref": "#/$defs/torsoArmLeft"},
+        {"$ref": "#/$defs/torsoArmRight"},
+        {"$ref": "#/$defs/pelvisLegLeft"},
+        {"$ref": "#/$defs/pelvisLegRight"},
+        {"$ref": "#/$defs/legFootLeft"},
+        {"$ref": "#/$defs/legFootRight"}
+      ],
+      "items": false
+    },
+    "certifiedRelationships": {
+      "type": "array", "minItems": 6, "maxItems": 6,
+      "prefixItems": [
+        {"$ref": "#/$defs/certifiedTorsoArmLeft"},
+        {"$ref": "#/$defs/certifiedTorsoArmRight"},
+        {"$ref": "#/$defs/certifiedPelvisLegLeft"},
+        {"$ref": "#/$defs/certifiedPelvisLegRight"},
+        {"$ref": "#/$defs/certifiedLegFootLeft"},
+        {"$ref": "#/$defs/certifiedLegFootRight"}
+      ],
+      "items": false
+    },
+    "segmentScope": {
+      "const": [
+        "all-reviewed-anchor-pairs",
+        "all-six-static-seam-relationships",
+        "one-supplied-increasing-endpoint-segment",
+        "coupled-uniform-gain-closed-zero-to-one"
+      ]
+    },
+    "segmentExclusions": {
+      "const": [
+        "dynamic-seam-safety-claim",
+        "full-attachment-boundary-continuity",
+        "platform-libm-equivalence",
+        "raster-or-visual-seam-calibration",
+        "runtime-equivalence",
+        "unreviewed-anchor-inference",
+        "upstream-preview-key-adjacency-binding"
+      ]
+    },
+    "segment": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "left_tick", "right_tick", "status", "reason_codes",
+        "relationships", "max_squared_distance_upper_px2",
+        "threshold_squared_px2", "evaluated_box_count",
+        "certified_terminal_box_count", "indeterminate_terminal_box_count",
+        "maximum_depth_reached", "relationship_count", "pair_count",
+        "time_model", "gain_model", "proof_method", "rounding_profile",
+        "scope", "exclusions", "metric_interpretation",
+        "visual_seam_quality_claimed", "segment_evidence_sha256"
+      ],
+      "properties": {
+        "left_tick": {"type": "integer", "minimum": 0},
+        "right_tick": {"type": "integer", "minimum": 1},
+        "status": {
+          "enum": ["continuous_anchor_proximity_certified", "indeterminate"]
+        },
+        "reason_codes": {
+          "type": "array", "maxItems": 7, "uniqueItems": true,
+          "items": {"$ref": "#/$defs/segmentReason"}
+        },
+        "relationships": {"$ref": "#/$defs/relationships"},
+        "max_squared_distance_upper_px2": {"$ref": "#/$defs/nullableUpper"},
+        "threshold_squared_px2": {"type": "number", "const": 4.0},
+        "evaluated_box_count": {
+          "type": "integer", "minimum": 0, "maximum": 32768
+        },
+        "certified_terminal_box_count": {
+          "type": "integer", "minimum": 0, "maximum": 32768
+        },
+        "indeterminate_terminal_box_count": {
+          "type": "integer", "minimum": 0, "maximum": 32768
+        },
+        "maximum_depth_reached": {
+          "type": "integer", "minimum": 0, "maximum": 14
+        },
+        "relationship_count": {"type": "integer", "const": 6},
+        "pair_count": {"type": "integer", "minimum": 12, "maximum": 48},
+        "time_model": {"const": "sampled-linear-over-supplied-endpoint-segment"},
+        "gain_model": {"const": "coupled-four-bone-uniform-gain-closed-unit-interval"},
+        "proof_method": {"const": "adaptive-interval-box-subdivision-no-point-sampling"},
+        "rounding_profile": {"const": "binary64-directed-basic-ops-rational-trig-q9-q4096-v1"},
+        "scope": {"$ref": "#/$defs/segmentScope"},
+        "exclusions": {"$ref": "#/$defs/segmentExclusions"},
+        "metric_interpretation": {"const": "engineering-proxy-not-visual-calibration-threshold"},
+        "visual_seam_quality_claimed": {"const": false},
+        "segment_evidence_sha256": {"$ref": "#/$defs/sha"}
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {"const": "continuous_anchor_proximity_certified"}
+            },
+            "required": ["status"]
+          },
+          "then": {
+            "properties": {
+              "reason_codes": {"const": []},
+              "relationships": {"$ref": "#/$defs/certifiedRelationships"},
+              "max_squared_distance_upper_px2": {
+                "type": "number", "minimum": 0, "maximum": 4.0
+              },
+              "evaluated_box_count": {"minimum": 1},
+              "certified_terminal_box_count": {"minimum": 1},
+              "indeterminate_terminal_box_count": {"const": 0}
+            }
+          },
+          "else": {
+            "properties": {
+              "reason_codes": {"minItems": 1},
+              "indeterminate_terminal_box_count": {"minimum": 1}
+            }
+          }
+        }
+      ]
+    },
+    "analyzer": {
+      "const": {
+        "id": "body-sway-dynamic-seam-proximity-analyzer",
+        "version": "1.0.0",
+        "canonicalization": "canonical-json-utf8-sort-keys-no-nonfinite",
+        "config": {
+          "threshold": {
+            "metric": "squared-distance-between-reviewed-anchor-world-points",
+            "max_squared_anchor_gap_px2": 4.0,
+            "equivalent_anchor_gap_px": 2.0,
+            "interpretation": "engineering-proxy-not-visual-calibration-threshold"
+          },
+          "gain_domain": {
+            "kind": "coupled-four-bone-uniform-gain",
+            "minimum": {"numerator": 0, "denominator": 1},
+            "maximum": {"numerator": 1, "denominator": 1},
+            "closure": "closed"
+          },
+          "interpolation": {
+            "rotation": "sampled-linear-between-adjacent-preview-sample-ticks",
+            "root_translation": "sampled-linear-between-adjacent-preview-sample-ticks",
+            "segment_coverage": "every-adjacent-preview-sample-tick-pair"
+          },
+          "budget": {
+            "max_depth": 14,
+            "max_boxes_per_segment": 32768,
+            "max_total_boxes": 32768
+          },
+          "backend": {
+            "method": "adaptive-interval-box-subdivision-no-point-sampling",
+            "interval_arithmetic": "binary64-directed-basic-ops-rational-trig-q9-q4096-v1",
+            "trigonometry": "rational-taylor-enclosure-v1",
+            "numeric_enclosure": "q9-per-layer-plus-q4096-half-step-v1",
+            "locator_enclosure": "reviewed-region-q4096-or-mesh-barycentric-q65535-rational-v1",
+            "anchor_pose": "exact-rational-lbs-moments-common-root-cancelled-v1",
+            "distance_bound": "outward-squared-euclidean-no-square-root-v1"
+          },
+          "scope": [
+            "all-reviewed-anchor-pairs",
+            "all-six-static-seam-relationships",
+            "all-adjacent-preview-sample-tick-pairs",
+            "coupled-uniform-gain-closed-zero-to-one"
+          ],
+          "exclusions": [
+            "dynamic-seam-safety-claim",
+            "full-attachment-boundary-continuity",
+            "platform-libm-equivalence",
+            "raster-or-visual-seam-calibration",
+            "runtime-equivalence",
+            "unreviewed-anchor-inference"
+          ]
+        }
+      }
+    },
+    "claims": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "reviewed_seam_anchor_set_bound",
+        "continuous_preview_model_reviewed_anchor_proximity_within_engineering_tolerance",
+        "dynamic_seam_safety", "visual_seam_quality",
+        "runtime_equivalence", "publishable_timeline", "release_authority"
+      ],
+      "properties": {
+        "reviewed_seam_anchor_set_bound": {"const": true},
+        "continuous_preview_model_reviewed_anchor_proximity_within_engineering_tolerance": {
+          "type": "boolean"
+        },
+        "dynamic_seam_safety": {"const": false},
+        "visual_seam_quality": {"const": false},
+        "runtime_equivalence": {"const": false},
+        "publishable_timeline": {"const": false},
+        "release_authority": {"const": false}
+      }
+    },
+    "certifiedReleaseGate": {
+      "const": {
+        "status": "blocked",
+        "reason_codes": [
+          "dynamic_seam_safety_unproven",
+          "engineering_proxy_not_visual_calibration",
+          "publishable_timeline_not_emitted",
+          "runtime_equivalence_unproven",
+          "visual_seam_quality_unproven"
+        ]
+      }
+    },
+    "indeterminateReleaseGate": {
+      "const": {
+        "status": "blocked",
+        "reason_codes": [
+          "continuous_preview_model_reviewed_anchor_proximity_unproven",
+          "dynamic_seam_safety_unproven",
+          "engineering_proxy_not_visual_calibration",
+          "publishable_timeline_not_emitted",
+          "runtime_equivalence_unproven",
+          "unit_gain_interval_unproven",
+          "visual_seam_quality_unproven"
+        ]
+      }
+    },
+    "releaseGate": {
+      "oneOf": [
+        {"$ref": "#/$defs/certifiedReleaseGate"},
+        {"$ref": "#/$defs/indeterminateReleaseGate"}
+      ]
+    },
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "segment_count", "certified_segment_count",
+        "indeterminate_segment_count", "evaluated_box_count",
+        "certified_terminal_box_count", "indeterminate_terminal_box_count",
+        "maximum_depth_reached", "relationship_count", "anchor_pair_count",
+        "max_squared_distance_upper_px2", "threshold_squared_px2",
+        "upstream_continuous_preview_model_status",
+        "all_seam_segments_certified", "reason_codes"
+      ],
+      "properties": {
+        "segment_count": {"type": "integer", "minimum": 1, "maximum": 4095},
+        "certified_segment_count": {
+          "type": "integer", "minimum": 0, "maximum": 4095
+        },
+        "indeterminate_segment_count": {
+          "type": "integer", "minimum": 0, "maximum": 4095
+        },
+        "evaluated_box_count": {
+          "type": "integer", "minimum": 0, "maximum": 32768
+        },
+        "certified_terminal_box_count": {
+          "type": "integer", "minimum": 0, "maximum": 32768
+        },
+        "indeterminate_terminal_box_count": {
+          "type": "integer", "minimum": 0, "maximum": 32768
+        },
+        "maximum_depth_reached": {
+          "type": "integer", "minimum": 0, "maximum": 14
+        },
+        "relationship_count": {"type": "integer", "const": 6},
+        "anchor_pair_count": {
+          "type": "integer", "minimum": 12, "maximum": 48
+        },
+        "max_squared_distance_upper_px2": {"$ref": "#/$defs/nullableUpper"},
+        "threshold_squared_px2": {"type": "number", "const": 4.0},
+        "upstream_continuous_preview_model_status": {
+          "enum": ["continuous_preview_model_structural_certified", "indeterminate"]
+        },
+        "all_seam_segments_certified": {"type": "boolean"},
+        "reason_codes": {
+          "type": "array", "maxItems": 8, "uniqueItems": true,
+          "items": {"$ref": "#/$defs/summaryReason"}
+        }
+      }
+    }
+  }
+}
