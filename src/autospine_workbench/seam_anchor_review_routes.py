@@ -44,7 +44,11 @@ from .seam_anchor_review_route_support import (
     send_not_found,
     submission_is_invalid,
 )
-from .http_json_request import HttpJsonRequestError, read_json_object_request
+from .http_json_request import (
+    HttpJsonRequestError,
+    drain_bounded_request_body,
+    read_json_object_request,
+)
 
 
 SendJson = Callable[[int, Any], None]
@@ -221,6 +225,10 @@ def dispatch_seam_anchor_review_post(
             submitted_response(result),
         )
     except SeamAnchorReviewHttpSecurityError as exc:
+        drain_bounded_request_body(
+            handler,
+            maximum_bytes=MAX_SEAM_ANCHOR_REVIEW_DOCUMENT_BYTES,
+        )
         send_json(HTTPStatus.FORBIDDEN, {
             "error": exc.code, "message": exc.public_message,
         })

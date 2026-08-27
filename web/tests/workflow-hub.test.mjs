@@ -30,12 +30,15 @@ const EXPECTED_COMMANDS = [
   "compile-body-sway-dynamic-seam-probe", "compile-body-sway-motion-consumer-admission",
   "compile-body-sway-motion-instance-v3", "verify-body-sway-motion-instance-v3",
   "compile-body-sway-spine42-v3", "verify-body-sway-spine42-v3",
+  "capture-body-sway-spine42-v3-runtime", "verify-body-sway-spine42-v3-runtime",
+  "prepare-body-sway-spine42-v3-raster-review",
+  "submit-body-sway-spine42-v3-raster-review",
   "compile-seam-anchor-candidates", "prepare-seam-anchor-review",
   "submit-seam-anchor-review", "compile-spine42", "verify-spine42",
   "compile-reviewed-seam-anchor-set", "verify-reviewed-seam-anchor-set",
 ];
 
-test("catalog is valid and matches all 58 CLI entry points", () => {
+test("catalog is valid and matches all 62 CLI entry points", () => {
   assert.equal(validateCatalog(catalog), catalog);
   assert.equal(catalog.catalog_version, "1.0.0");
   assert.equal(catalog.current_stage, "P10.7b");
@@ -55,8 +58,23 @@ test("catalog exposes all pages, all stage groups, and explicit delivery states"
   assert.ok(catalog.entries.some(({ status }) => status === "available"));
   assert.ok(catalog.entries.some(({ status }) => status === "external_required"));
   assert.ok(catalog.entries.some(({ status }) => status === "planned"));
-  assert.equal(catalog.entries.length, 80);
-  assert.equal(catalog.entries.filter(({ kind }) => kind === "planned").length, 19);
+  assert.equal(catalog.entries.length, 83);
+  assert.equal(catalog.entries.filter(({ kind }) => kind === "planned").length, 18);
+  assert.equal(
+    catalog.entries.find(({ command }) => command === "capture-body-sway-spine42-v3-runtime").status,
+    "external_required",
+  );
+  for (const command of [
+    "verify-body-sway-spine42-v3-runtime",
+    "prepare-body-sway-spine42-v3-raster-review",
+    "submit-body-sway-spine42-v3-raster-review",
+  ]) {
+    assert.equal(catalog.entries.find((entry) => entry.command === command).status, "available");
+  }
+  assert.ok(catalog.entries.some(({ id, status }) => (
+    id === "planned-real-sample-spine42-v3-raster-acceptance"
+      && status === "external_required"
+  )));
 });
 
 test("search and filters compose without mutating the catalog", () => {

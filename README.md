@@ -37,6 +37,7 @@ AutoSpine Workbench 是一个本地人工复核与离线编译工作流，用于
 - 把认证的 P10.5d probe 与其内嵌精确 P9 bundle 重新闭合为 P10.6a 版本中立 setup-local timeline 消费准入，并在纯编译前后重查视觉与接缝 current head；它不发出 MotionInstance v3 或 Spine timeline。
 - 将完整 P10.6a 成功 wrapper 编译为 MotionInstance v3：只允许躯干四骨 rotation 覆盖，逐值保留 MIv2 root/marker/draw-order，并在发布前重查 current heads；三文件 bundle 可按 v3/bundle 双 SHA 历史复验，但不授予永久审批或 Spine 发布权。
 - 从精确 MotionInstance v3 双 SHA 重放 P9/P5/P3 和源 PNG，用独立 Spine 4.2 adapter v3 发布 JSON/atlas/PNG/run/report 五文件 bundle；compile/store 重查 current heads，历史 verify 不读取 current heads，且 run 只授予 adapter emitted。
+- 用操作者明确确认有权使用的官方 Spine Player 4.2.119，对精确 P10.7a bundle 执行固定 case、完整 setup attachment isolate 的捕获和 sampled raster 指标；证据可按双 SHA 复验，并可编译逐 case、逐 attachment 的人工决定，但不会授予连续时间、永久 head、发布或 release authority。
 - 从精确 P3 或 P3/P5 地址导出、发布并重建验证固定 profile 的 Spine 4.2 JSON/atlas/PNG 五文件 bundle。
 
 ## 快速启动
@@ -414,6 +415,8 @@ P10.6b 用 `compile-body-sway-motion-instance-v3` 严格读取 P10.6a 的完整�
 
 P10.7a 用 `compile-body-sway-spine42-v3` 从精确 MIv3 双 SHA 完整重放 P9/P5/P3、RigIR 与源 PNG，并以独立 adapter profile 生成和原子发布 `skeleton.json/.atlas/.png/run/report` 五文件 bundle。`verify-body-sway-spine42-v3` 只按 skeleton/bundle 双 SHA 历史重放，不读取 current head。未知 timeline/attachment/constraint 会 fail loud；成功只声明 adapter emitted，不声明官方 Runtime、raster、永久 head、publishable timeline 或 release authority。操作见 [编译并复验 P10.7a Spine 4.2 v3](docs/how-to-compile-spine42-v3.md)。
 
+P10.7b 已提供 `capture-body-sway-spine42-v3-runtime`、`verify-body-sway-spine42-v3-runtime`、`prepare-body-sway-spine42-v3-raster-review` 与 `submit-body-sway-spine42-v3-raster-review`。capture 需要操作者提供并明确确认有权使用的官方 `@esotericsoftware/spine-player@4.2.119` 与本机 Chrome；其余命令按精确 P10.7a/capture 地址复验 sampled evidence、准备候选或编译人工决定。基础设施已可用，但两份真实 See-through 样本的官方 Runtime 捕获和逐项人工验收仍待完成；任何成功结果都保持 continuous、persistent-head、publish 和 release claims 为 false/blocked。操作见 [捕获并复核 P10.7b Spine 4.2 v3 Raster 证据](docs/how-to-capture-spine42-v3-runtime.md)。
+
 P6 使用 `compile-spine42` 把一个精确 P3 地址导出为 setup-only bundle，或与一对精确 P5 MotionInstance/bundle SHA 组合为单动画 bundle；`verify-spine42` 从导出双 SHA 重建完整上游链。五文件地址、官方 runtime 的本地安装边界与 capture 操作见 [导出、复验并运行 P6 Spine 4.2 资产](docs/how-to-export-spine42.md)。
 
 对版本中立 RigIR 做语义检查：
@@ -507,7 +510,7 @@ P1 已交付 pose、alpha 中轴线和层接触候选，以及候选比较、四
 - 若要恢复旧 revision，先停止服务，备份整个项目 override 目录，再将目标历史快照作为新的、经过校验的 revision 提交；当前界面尚未提供历史浏览/回滚按钮。
 - validation 的 `valid=true` 仅表示结构和本地资产检查没有硬错误，不等于美术、遮挡补全、pivot、mesh 或动画通过视觉验收。
 
-## 已完成合同与阶段：P0、P2 region RigIR 至 P9 reviewed motion，以及 P10.0–P10.7a Spine adapter bundle
+## 已完成合同与阶段：P0、P2 region RigIR 至 P9 reviewed motion，以及 P10.0–P10.7b Raster 基础设施
 
 P0 合同加固、P1 四肢候选与 P2 region-only RigIR 已贯通：`stage-scoped analysis → immutable geometry/candidates → candidate-bound revision → deterministic resolved snapshot → reviewed Layer Manifest → RigIR/setup bundle`。P2 没有提前引入 mesh：
 
@@ -580,7 +583,9 @@ P10.6a 已增加 `BodySwayMotionConsumerAdmission v1`：只有认证的 P10.5d p
 
 P10.6b 已增加严格 `MotionInstance v3` Schema、pure compiler、三文件内容寻址 bundle、原子 store、exact reader，以及 compile/verify CLI。compile 不直接信任历史 admission 的 head 结论；公开命令和 store 自身都在待发布值构造前后重新观察 current heads，任何 identity/bytes 漂移均零发布，成功写入后还会按精确地址重新读取并逐字节验证。admission 上限固定为 64 MiB。run manifest 只授予 `motion_instance_v3_emitted`，其余 Spine adapter、完整 attachment 边界、raster/视觉、官方 runtime、永久 head authority、publishable Spine timeline 与 release authority 均为 false/blocked；历史 verify 也明确不观察 current heads。
 
-P10.7a 已增加独立 Spine 4.2 adapter v3 capability、MIv3→P9→P5/P3 完整精确重放、五文件内容寻址 bundle、current-head 门禁、原子 store、exact reader 与 compile/verify CLI。旧 P6 profile、adapter 和 golden 哈希不变；未知 timeline、attachment、constraint 或 interpolation 会 fail loud。run 唯一授予 `spine_adapter_emitted`，官方 Runtime、完整 attachment raster、永久 current-head authority、publishable timeline 与 release authority 仍为 false/blocked。下一开发入口是 P10.7b 官方 Runtime/raster 回归。
+P10.7a 已增加独立 Spine 4.2 adapter v3 capability、MIv3→P9→P5/P3 完整精确重放、五文件内容寻址 bundle、current-head 门禁、原子 store、exact reader 与 compile/verify CLI。旧 P6 profile、adapter 和 golden 哈希不变；未知 timeline、attachment、constraint 或 interpolation 会 fail loud。run 唯一授予 `spine_adapter_emitted`，官方 Runtime、完整 attachment raster、永久 current-head authority、publishable timeline 与 release authority 仍为 false/blocked。
+
+P10.7b 已增加固定 runtime/capture profile、确定性 case plan、官方 Spine Player/浏览器精确身份封存、opaque/transparent composite 与完整 setup attachment isolate 捕获、sampled alpha/raster 指标、不可变 capture store/exact reader，以及 candidate/人工 decision 分离的四个 CLI。capture 是 `external_required`，不会下载 runtime 或代替操作者确认许可；prepare/submit 不扫描 `latest`，submit 也不发布 authoritative revision。基础设施交付不等于真实资产验收：两份真实 See-through 样本仍需各自具备 P10.7a 输入、运行官方 capture 并完成人工逐项决定；continuous runtime raster safety、永久 head、publishable timeline 与 release authority 始终 blocked。
 
 姿态 runner 与真实标注评估集仍是独立质量轨，不阻塞版本中立 P2 编译；诊断 setup prior 不能替代真实模型基线。
 
@@ -604,14 +609,14 @@ P10.7a 已增加独立 Spine 4.2 adapter v3 capability、MIv3→P9→P5/P3 完�
 - 把 P10.5d 的 `4 px²` reviewed-anchor point 代理、`compiled` 命令状态或保存的 stdout 当成完整 attachment 边界连续、raster/视觉接缝通过、runtime 等价、永久 current-head authority 或发布许可；
 - 把 P10.6a 的 setup-local timeline compilation admission 当成 MotionInstance v3/Spine adapter 已发出、完整边界或 raster 视觉通过、runtime 等价、永久 head authority、publishable timeline 或 release authority；
 - 把 P10.6b 的 MotionInstance v3、历史 bundle 可重放或发布前 head 双观察当成 Spine adapter 已编译、官方 runtime/raster 通过、永久 head authority、publishable Spine timeline 或 release authority；
-- 把 P10.7a 的 Spine adapter bundle、结构重建或有限 current-head observation 当成官方 Runtime 已加载、完整 attachment raster/视觉通过、永久审批、可发布 timeline 或 release authority；
+- 把 P10.7a adapter、P10.7b sampled capture/指标或一次人工 decision 当成连续时间 raster 安全、永久审批、可发布 timeline 或 release authority；
 - 在未提供并确认授权的官方 Spine 4.2.119 runtime 时，用 test-only player stub、进程 smoke 或任意相邻截图冒充真实 capture；
 - 生成眨眼/口型素材、实时追踪映射或运行时物理；
 - 捆绑或再分发官方 Spine runtime、判断任意未知 Spine 版本、生成 Spine Editor 工程，或覆盖固定 P6 profile 之外的特性；
 - 代替输入素材、训练数据或模型权重的许可证与商业使用审查；
 - 多用户权限、远程协作或生产部署。
 
-这些边界并非都应一次性并入当前阶段。下一顺序是 P10.7b → attachment switch → blink/mouth，并把真实 Kimodo/P9 与输入模型 runner 作为独立质量轨；完整计划见[后续开发路线](docs/development-roadmap.md)。
+这些边界并非都应一次性并入当前阶段。下一顺序是完成 P10.7b 两份真实 See-through 样本验收 → attachment switch → blink/mouth，并把真实 Kimodo/P9 与输入模型 runner 作为独立质量轨；完整计划见[后续开发路线](docs/development-roadmap.md)。
 
 项目中显示的骨架来自 bbox/语义启发式，`requires_review=true`。只有在语义、左右、pivot、层级、合成回归和动作探针均通过后，才能把人工确认结果交给后续 RigIR/导出阶段。
 

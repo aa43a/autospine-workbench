@@ -42,6 +42,7 @@ class BodySwayBrowserProfileLeaseTests(unittest.TestCase):
     def test_success_removes_profile_before_return(self):
         with BodySwayBrowserProfileLease() as profile:
             self.assertTrue(profile.is_dir())
+            self.assertEqual(profile, profile.resolve(strict=True))
         self.assertFalse(profile.exists())
 
     def test_transient_cleanup_failure_is_retried_and_recovers(self):

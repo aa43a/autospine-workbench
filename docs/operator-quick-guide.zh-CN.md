@@ -228,6 +228,7 @@ E:\proj\unusual\localset\tmp\psd_audit\results\<project-id>\audit.json
 - 生成并严格验证版本化的 Resolved Project v1 snapshot，同时保持历史 r5/r7 内容地址不变；
 - 从独立页面完成人工 Body-sway still 与 Seam Anchor revision；
 - 通过离线命令生成和验证版本中立的 Layer Manifest、RigIR、mesh、IK、MotionIR、P10.6a admission、MotionInstance v3 及 P10.7a Spine 4.2 v3 五文件 adapter 工件。
+- 在操作者提供并确认有权使用官方 Spine Player 4.2.119 时，捕获 P10.7a 的固定 sampled raster 证据，复验不可变 capture，并编译逐 case、逐 setup attachment 的人工决定。
 
 当前不能据此自动完成：
 
@@ -235,7 +236,7 @@ E:\proj\unusual\localset\tmp\psd_audit\results\<project-id>\audit.json
 - 无人复核地生成可靠绑定、权重和通用动画；
 - 自动生成眨眼、口型、头发物理、实时追踪或自由形变；
 - 保证大幅动作下没有露底、裂缝、错误遮挡或翻三角；
-- 把结构探针、离散截图、锚点点距或 loader-isomorphic 检查当作完整 raster/视觉验收；
+- 把结构探针、离散截图、sampled raster 指标、锚点点距或一次人工决定当作连续时间或完整发布验收；
 - 在未提供并确认授权的官方 Spine Runtime 时声称 runtime 等价；
 - 自动授予商业使用、发布许可或生成 Spine Editor 工程。
 
@@ -279,9 +280,22 @@ python -B -m autospine_workbench verify-body-sway-spine42-v3 --help
 ```
 
 P10.7a 的发布前 head observation 仍不是永久审批权，成功结果也只声明 adapter 已发出。
-下一开发入口是 **P10.7b 官方 Runtime/raster 回归**；完整附件边界、raster 视觉、官方
-Runtime 与发布门禁仍须独立完成。依赖、交付与风险见
-[后续开发路线](development-roadmap.md)。
+
+P10.7b 的捕获、精确复验、raster 候选与人工 decision 基础设施已经可用。capture 需要外部
+官方 Runtime 与显式许可确认；另外三个入口可从功能入口中心直接复制帮助命令：
+
+```powershell
+python -B -m autospine_workbench capture-body-sway-spine42-v3-runtime --help
+python -B -m autospine_workbench verify-body-sway-spine42-v3-runtime --help
+python -B -m autospine_workbench prepare-body-sway-spine42-v3-raster-review --help
+python -B -m autospine_workbench submit-body-sway-spine42-v3-raster-review --help
+```
+
+完整流程见[捕获并复核 P10.7b Spine 4.2 v3 Raster 证据](how-to-capture-spine42-v3-runtime.md)。
+目前仍需对两份真实 See-through 样本分别生成 P10.7a 输入、运行官方 Runtime capture，并逐
+case、逐 attachment 完成人工决定。fixture 或单个样本不能替代这项验收；通过 sampled
+decision 也不会证明连续时间安全，不会授予永久 head、可发布 timeline 或 release authority。
+后续依赖、交付与风险见[后续开发路线](development-roadmap.md)。
 
 ## 11. 常用验证命令
 

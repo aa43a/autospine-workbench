@@ -6,10 +6,13 @@ from dataclasses import dataclass
 from http import HTTPStatus
 import json
 import math
+import time
 from typing import Any
 
 
 MAX_REQUEST_BODY = 1024 * 1024
+REJECTED_BODY_DRAIN_SECONDS = 0.25
+_DRAIN_CHUNK_BYTES = 64 * 1024
 
 
 @dataclass(frozen=True, slots=True)
@@ -48,8 +51,7 @@ def read_json_object_request(
         )
     raw_lengths = handler.headers.get_all("Content-Length", []) or []
     raw_length = raw_lengths[0] if len(raw_lengths) == 1 else ""
-    content_length = int(raw_length) \
-        if raw_length.isascii() and raw_length.isdecimal() else -1
+    content_length = int(raw_length) if _decimal_length(raw_length) else -1
     if content_length < 0:
         raise HttpJsonRequestError(
             HTTPStatus.LENGTH_REQUIRED,
@@ -70,6 +72,96 @@ def read_json_object_request(
             "Request body was incomplete.",
         )
     return decode_json_object(raw)
+
+
+def drain_bounded_request_body(
+    handler: Any,
+    *,
+    maximum_bytes: int = MAX_REQUEST_BODY,
+    maximum_seconds: float = REJECTED_BODY_DRAIN_SECONDS,
+) -> bool:
+    """Best-effort drain one unambiguous bounded body without waiting forever.
+
+    This is only for a route that rejects request metadata before reading any
+    body bytes. Ambiguous framing is never consumed, and an incomplete drain
+    forces the HTTP/1.1 connection closed after the fixed response.
+    """
+
+    if type(maximum_bytes) is not int or maximum_bytes < 0 \
+            or type(maximum_seconds) not in {int, float} \
+            or not math.isfinite(maximum_seconds) or maximum_seconds <= 0:
+        raise ValueError("Rejected-body drain bounds are invalid")
+    length = _safe_bounded_length(handler, maximum_bytes)
+    if length is None:
+        _close_after_response(handler)
+        return False
+    if length == 0:
+        return True
+    connection = getattr(handler, "connection", None)
+    get_timeout = getattr(connection, "gettimeout", None)
+    set_timeout = getattr(connection, "settimeout", None)
+    reader = getattr(getattr(handler, "rfile", None), "read1", None)
+    if not callable(reader):
+        reader = getattr(getattr(handler, "rfile", None), "read", None)
+    if not callable(get_timeout) or not callable(set_timeout) \
+            or not callable(reader):
+        _close_after_response(handler)
+        return False
+    drained, original_timeout, timeout_known = False, None, False
+    try:
+        original_timeout = get_timeout()
+        timeout_known = True
+        deadline = time.monotonic() + maximum_seconds
+        remaining = length
+        while remaining:
+            wait = deadline - time.monotonic()
+            if wait <= 0:
+                break
+            set_timeout(wait)
+            chunk = reader(min(remaining, _DRAIN_CHUNK_BYTES))
+            if not isinstance(chunk, bytes) or not chunk:
+                break
+            remaining -= len(chunk)
+        drained = remaining == 0
+    except (BlockingIOError, OSError, TimeoutError, TypeError, ValueError):
+        drained = False
+    finally:
+        try:
+            if timeout_known:
+                set_timeout(original_timeout)
+            else:
+                drained = False
+        except (OSError, TypeError, ValueError):
+            drained = False
+    if not drained:
+        _close_after_response(handler)
+    return drained
+
+
+def _safe_bounded_length(handler: Any, maximum_bytes: int) -> int | None:
+    try:
+        headers = handler.headers
+        if headers.get_all("Transfer-Encoding", []):
+            return None
+        values = headers.get_all("Content-Length", []) or []
+    except (AttributeError, TypeError, ValueError):
+        return None
+    if len(values) != 1 or not _decimal_length(values[0]):
+        return None
+    length = int(values[0])
+    return length if length <= maximum_bytes else None
+
+
+def _decimal_length(value: Any) -> bool:
+    return type(value) is str and 0 < len(value) <= 20 \
+        and value.isascii() and value.isdecimal()
+
+
+def _close_after_response(handler: Any) -> None:
+    try:
+        handler.close_connection = True
+    except (AttributeError, TypeError, ValueError):
+        pass
 
 
 def decode_json_object(raw: bytes) -> dict[str, Any]:

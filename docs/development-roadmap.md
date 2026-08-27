@@ -1,6 +1,6 @@
 # AutoSpine Workbench 后续开发路线
 
-本文是 Explanation 与交付计划，面向维护者和需要评估可行性的项目负责人。它从 **P0 Resolved Project v1 合同、P10.6b MotionInstance v3 与 P10.7a Spine adapter bundle 已完成** 的事实出发，说明尚未实现的能力应按什么依赖关系推进。当前后续开发入口是 P10.7b 官方 Runtime/raster 回归。这里的阶段名、优先级和验收条件是建议，不代表对应功能已经存在，也不构成发布日期承诺。
+本文是 Explanation 与交付计划，面向维护者和需要评估可行性的项目负责人。它从 **P0 Resolved Project v1 合同、P10.6b MotionInstance v3、P10.7a Spine adapter bundle 与 P10.7b sampled raster 基础设施已完成** 的事实出发，说明尚未实现的能力应按什么依赖关系推进。当前验收入口是 P10.7b 两份真实 See-through 样本的官方 Runtime 捕获与人工复核。这里的阶段名、优先级和验收条件是建议，不构成发布日期承诺；基础设施可用也不等于真实样本、连续时间或发布门禁已经通过。
 
 ## 规划原则
 
@@ -17,7 +17,7 @@
 
 | 优先级 | 能力 | 原因 |
 | --- | --- | --- |
-| P0 | P10.7b 官方 Runtime 与 raster 回归 | v3 adapter 已能发布；只有穿过目标 runtime，body-sway 才形成可验证视觉交付链 |
+| P0 | P10.7b 两份真实样本验收 | capture/metrics/review 基础设施已存在；仍需让两个真实 P10.7a bundle 穿过已授权官方 Runtime 并完成人工决定 |
 | P1 | Revision 历史浏览/恢复 UI | 历史已不可变保存，但操作者尚不能便捷查看或安全恢复 |
 | P1 | 主工作台 Spine 导出编排入口 | 离线 P6 已完成，主项目能力仍明确为 `export_spine=false` |
 | P1 | Attachment switch 基础合同 | 眨眼和口型的共同前置能力 |
@@ -40,7 +40,9 @@ P10.6b MotionInstance v3（已完成）
         ↓
 P10.7a Spine 4.2 adapter + immutable bundle（已完成）
         ↓
-P10.7b official runtime/raster regression（需要外部授权环境）
+P10.7b capture/metrics/review 基础设施（已完成）
+        ↓
+两份真实 See-through 样本官方 Runtime + 人工验收（需要外部授权环境）
         ↓
 attachment switch ──→ blink / mouth
         │
@@ -133,9 +135,9 @@ P10.6b 已交付，不再是规划项。操作入口见
 - release gate 仍明确 blocked，不能在本阶段声称 Spine Runtime 或 raster 通过。
 
 保留边界：head observation 只覆盖本次发布前编译，不是永久 authority；历史 verify 只证明精确
-字节可重放。Spine adapter bundle 已由 P10.7a 关闭；官方 Runtime、完整 attachment raster 与
-release authority 仍由 P10.7b 关闭。后续维护必须继续防止 current-head TOCTOU、MIv2/channel
-合成和插值语义漂移。
+字节可重放。Spine adapter bundle 已由 P10.7a 关闭；P10.7b 只增加 sampled official-runtime
+raster evidence 与人工 decision，不会授予连续时间或 release authority。后续维护必须继续
+防止 current-head TOCTOU、MIv2/channel 合成和插值语义漂移。
 
 ## 已完成：P10.7a Spine 4.2 v3 Adapter 与五文件 Bundle
 
@@ -155,28 +157,45 @@ P10.7a 已交付，不再是规划项。操作入口见
 fail closed；历史 reader 能从完整上游逐字节重建；run 唯一授予 `spine_adapter_emitted=true`。
 官方 runtime、raster、永久 head、publishable timeline 和 release authority 均保持 false/blocked。
 
-## P10.7b：官方 Runtime 与 Raster 回归
+## P10.7b：Raster 基础设施已交付，真实双样本验收待完成
 
-**建议优先级：P0，紧接已完成的 P10.7a。**
+**当前优先级：P0。基础设施可用；真实资产验收仍需要外部授权环境。**
 
-依赖：P10.7a 五文件 bundle，以及操作者提供且明确确认已授权的
-`@esotericsoftware/spine-player@4.2.119`。仓库不下载、捆绑或代替许可确认。
+依赖：P10.7a 五文件 bundle，以及操作者提供并明确确认有权使用的
+`@esotericsoftware/spine-player@4.2.119`。仓库不会从 CDN 回退、捆绑 runtime，或把包内
+`LICENSE` 文件存在当作授权确认。
 
-待交付：
+已交付：
 
-- 固定 canvas、DPR、tick/case 的官方 Runtime capture plan；
-- attachment 完整边界的 raster 指标与人工截图复核合同；
-- setup、现有 idle/wave 和 body-sway 的兼容回归。
+- 固定 runtime 版本、canvas、DPR、case/tick、setup attachment inventory 和资源上限的 capture plan；
+- runtime JS/CSS、`package.json`、`LICENSE`、浏览器可执行文件与 P10.7a 来源的精确身份封存；
+- opaque/transparent composite 与每个 setup attachment isolate 的正式浏览器捕获通路；
+- alpha union、missing/extra/xor、边界、裁切和 isolate 非空的 sampled raster 指标；
+- manifest/metrics/PNG 的不可变 store、精确 reader 与 P10.7a source replay；
+- candidate 与人工 decision 分离，逐 case、逐 attachment 的 exhaustive review 合同；
+- capture、verify、prepare、submit 四个 CLI 与功能入口中心接入。
 
-验收条件：
+`capture` 标记为 `external_required`；其余命令在已有精确 capture 上可直接使用。capture
+证据的 authority 只覆盖“目标 runtime 已在本次固定会话加载、attachment isolate 已捕获、
+sampled 指标已计算”。candidate 不声明人工判断；decision 也只覆盖操作者显式复核的离散
+case 和 setup attachment inventory。continuous time、永久 current head、publishable timeline、
+publish/release authority 固定为 false/blocked。
 
-- 两份真实 See-through 样本和至少一个结构差异 fixture 均可由官方 Runtime 加载；
-- adapter 对未知 timeline/attachment/constraint fail loud，不静默降级；
-- setup 和既有 P6 golden 不发生未批准变化；
-- body-sway 固定帧、极值姿势、loop 接缝和 attachment 边界均有可回放证据；
-- capture 记录 runtime 精确版本和授权确认，test stub 不得进入正式证据链。
+仍待完成的真实验收：
 
-主要风险：Spine interpolation 与版本中立语义不完全同构、不同 GPU/浏览器 raster 差异、官方 Runtime 获取和许可前置条件。
+- 两份真实 See-through 样本都要先产生可精确重放的 P10.7a bundle；
+- 两份样本分别使用已授权官方 Runtime 完整 capture，test stub 与另一角色证据不可替代；
+- setup 与既有 P6 golden 对照，不允许未批准变化；
+- 每份 capture 都要按地址复验，并由操作者逐 case、逐 attachment 形成完整 decision；
+- 至少一个结构差异 fixture 继续作为工具链回归，但其通过不等同于真实样本视觉通过。
+
+真实双样本完成后，P10.7b 也只形成 bounded sampled evidence。若产品需要连续 runtime raster
+安全、永久审批或发布授权，必须建立新的独立合同和验收阶段，不能扩写现有 decision 的含义。
+
+操作入口见[捕获并复核 P10.7b Spine 4.2 v3 Raster 证据](how-to-capture-spine42-v3-runtime.md)。
+
+主要风险：Spine interpolation 与版本中立语义不完全同构、不同 GPU/浏览器 raster 差异、
+真实样本缺少 P10.7a 前置地址，以及官方 Runtime 获取和许可条件。
 
 ## Spine Editor 工程生成与更多版本 Adapter
 

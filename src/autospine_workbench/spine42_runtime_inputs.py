@@ -34,6 +34,8 @@ class Spine42RuntimePackage:
     stylesheet_bytes: bytes
     javascript_sha256: str
     stylesheet_sha256: str
+    package_json_sha256: str = ""
+    license_sha256: str = ""
 
 
 @dataclass(frozen=True, slots=True)
@@ -56,7 +58,10 @@ def require_runtime_package(root: Path) -> Spine42RuntimePackage:
     """Verify an installed official package without copying or modifying it."""
 
     root = _real_directory(root, "runtime package root")
-    package = _json_snapshot(root / "package.json", 64 * 1024, "runtime package.json")
+    package_bytes = _snapshot(
+        root / "package.json", 64 * 1024, "runtime package.json"
+    )
+    package = _json_bytes(package_bytes, "runtime package.json")
     if package.get("name") != SPINE_RUNTIME_PACKAGE:
         raise Spine42RuntimeInputError("runtime package name is not pinned")
     if package.get("version") != SPINE_RUNTIME_VERSION:
@@ -69,7 +74,7 @@ def require_runtime_package(root: Path) -> Spine42RuntimePackage:
     license_file = root / "LICENSE"
     javascript_bytes = _snapshot(javascript, 2 * 1024 * 1024, "runtime JavaScript")
     stylesheet_bytes = _snapshot(stylesheet, 512 * 1024, "runtime stylesheet")
-    _snapshot(license_file, 256 * 1024, "runtime license")
+    license_bytes = _snapshot(license_file, 256 * 1024, "runtime license")
     expected_js = _sha256(
         SPINE_PLAYER_JAVASCRIPT_SHA256, "runtime JavaScript SHA-256"
     )
@@ -84,6 +89,7 @@ def require_runtime_package(root: Path) -> Spine42RuntimePackage:
     return Spine42RuntimePackage(
         root, javascript, stylesheet, license_file,
         javascript_bytes, stylesheet_bytes, actual_js, actual_css,
+        _sha(package_bytes), _sha(license_bytes),
     )
 
 

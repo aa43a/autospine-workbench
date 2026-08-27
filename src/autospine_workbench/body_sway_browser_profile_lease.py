@@ -21,7 +21,10 @@ class BodySwayBrowserProfileLease:
         self._temporary = tempfile.TemporaryDirectory(
             prefix="autospine-body-sway-profile-"
         )
-        self._path = Path(self._temporary.name)
+        # Windows can spell the process temp directory with an 8.3 segment
+        # such as ``ADMINI~1``.  Canonicalize the directory we just created so
+        # downstream browser guards receive one stable absolute path.
+        self._path = Path(self._temporary.name).resolve(strict=True)
         self._entered = False
 
     def __enter__(self) -> Path:

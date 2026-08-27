@@ -21,6 +21,7 @@ from autospine_workbench.seam_anchor_review_http_security import (  # noqa: E402
 )
 from autospine_workbench.http_json_request import (  # noqa: E402
     HttpJsonRequestError,
+    drain_bounded_request_body,
     read_json_object_request,
 )
 from tests.seam_anchor_review_http_helpers import (  # noqa: E402
@@ -41,6 +42,26 @@ def request_headers(**overrides: str | None) -> Message:
         if value is not None:
             headers[name] = value
     return headers
+
+
+class _TimeoutConnection:
+    def __init__(self) -> None:
+        self.timeout = 10.0
+
+    def gettimeout(self):
+        return self.timeout
+
+    def settimeout(self, value):
+        self.timeout = value
+
+
+def drain_handler(headers, raw):
+    return type("Handler", (), {
+        "headers": headers,
+        "rfile": BytesIO(raw),
+        "connection": _TimeoutConnection(),
+        "close_connection": False,
+    })()
 
 
 class SeamAnchorReviewHttpSecurityTests(unittest.TestCase):
@@ -166,6 +187,50 @@ class SeamAnchorReviewStaticSecurityTests(unittest.TestCase):
 
 
 class StrictJsonRequestMetadataTests(unittest.TestCase):
+    def test_rejected_body_drain_consumes_only_one_safe_finite_body(self):
+        headers = Message()
+        headers["Content-Length"] = "2"
+        handler = drain_handler(headers, b"{}next")
+        self.assertTrue(drain_bounded_request_body(handler, maximum_bytes=2))
+        self.assertEqual(b"next", handler.rfile.read())
+        self.assertFalse(handler.close_connection)
+        self.assertEqual(10.0, handler.connection.timeout)
+
+    def test_rejected_body_drain_never_guesses_ambiguous_framing(self):
+        cases = []
+        duplicate = Message()
+        duplicate["Content-Length"] = "2"
+        duplicate["Content-Length"] = "2"
+        cases.append(duplicate)
+        chunked = Message()
+        chunked["Transfer-Encoding"] = "chunked"
+        chunked["Content-Length"] = "2"
+        cases.append(chunked)
+        invalid = Message()
+        invalid["Content-Length"] = " 2"
+        cases.append(invalid)
+        oversized = Message()
+        oversized["Content-Length"] = "3"
+        cases.append(oversized)
+        for index, headers in enumerate(cases):
+            handler = drain_handler(headers, b"{}")
+            with self.subTest(index=index):
+                self.assertFalse(drain_bounded_request_body(
+                    handler, maximum_bytes=2
+                ))
+                self.assertEqual(0, handler.rfile.tell())
+                self.assertTrue(handler.close_connection)
+
+    def test_rejected_body_drain_short_body_fails_closed(self):
+        headers = Message()
+        headers["Content-Length"] = "3"
+        handler = drain_handler(headers, b"{}")
+        self.assertFalse(drain_bounded_request_body(
+            handler, maximum_bytes=3
+        ))
+        self.assertTrue(handler.close_connection)
+        self.assertEqual(10.0, handler.connection.timeout)
+
     def test_rejects_duplicate_content_headers(self):
         for name, value in (
             ("Content-Type", "application/json"),

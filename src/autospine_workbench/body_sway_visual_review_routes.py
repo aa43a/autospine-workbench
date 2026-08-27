@@ -36,7 +36,11 @@ from .body_sway_visual_review_profile import MAX_VISUAL_REVIEW_REVISIONS
 from .body_sway_visual_review_submission import (
     BodySwayVisualReviewSubmissionError,
 )
-from .http_json_request import HttpJsonRequestError, read_json_object_request
+from .http_json_request import (
+    HttpJsonRequestError,
+    drain_bounded_request_body,
+    read_json_object_request,
+)
 from .manifest_artifacts import LayerManifestError, require_sha256
 from .project_store import ProjectNotFoundError, ProjectStore, ProjectStoreError
 
@@ -179,6 +183,7 @@ def dispatch_body_sway_visual_review_put(
             submitted_response(result),
         )
     except BodySwayVisualReviewHttpSecurityError as exc:
+        drain_bounded_request_body(handler)
         send_json(HTTPStatus.FORBIDDEN, {
             "error": exc.code, "message": exc.public_message,
         })

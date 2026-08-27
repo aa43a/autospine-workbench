@@ -1,6 +1,6 @@
 # AutoSpine Workbench 功能与入口参考
 
-本文是面向操作者和开发者的 Reference。它回答“功能是否已经实现、从哪里进入、会得到什么”，不替代具体操作步骤。P0 Resolved Project v1、P10.6b MotionInstance v3 与 P10.7a Spine 4.2 v3 adapter bundle 已完成；当前后续开发入口是 **P10.7b 官方 Runtime/raster 回归**。计划项见[开发路线](development-roadmap.md)。
+本文是面向操作者和开发者的 Reference。它回答“功能是否已经实现、从哪里进入、会得到什么”，不替代具体操作步骤。P0 Resolved Project v1、P10.6b MotionInstance v3、P10.7a Spine 4.2 v3 adapter bundle 与 P10.7b sampled raster 基础设施已完成；当前验收入口是 **P10.7b 两份真实 See-through 样本的官方 Runtime 捕获与人工复核**。计划项见[开发路线](development-roadmap.md)。
 
 ## 统一入口
 
@@ -217,7 +217,22 @@ Resolved Project v1 是已完成的 P0 合同能力，但没有伪造一个独�
 | `compile-body-sway-spine42-v3` | 从精确 MIv3 双 SHA 重放 P9/P5/P3，在 current-head 门禁下发布五文件 Spine 4.2 v3 bundle，并按地址读回 |
 | `verify-body-sway-spine42-v3` | 按 skeleton/bundle 双 SHA 重建完整上游和五文件历史产物，不读取 current heads |
 
-操作说明：[编译并复验 P10.7a Spine 4.2 v3](how-to-compile-spine42-v3.md)。run 只授予 `spine_adapter_emitted`；官方 Runtime、raster、永久 head、publishable timeline 和 release authority 仍为 false/blocked。下一开发入口是 P10.7b。
+操作说明：[编译并复验 P10.7a Spine 4.2 v3](how-to-compile-spine42-v3.md)。run 只授予 `spine_adapter_emitted`；官方 Runtime、raster、永久 head、publishable timeline 和 release authority 仍为 false/blocked。P10.7b 必须从这个精确地址开始。
+
+### P10.7b：官方 Runtime 与 Sampled Raster 证据
+
+| 命令 | 状态 | 功能 |
+| --- | --- | --- |
+| `capture-body-sway-spine42-v3-runtime` | `external_required` | 用操作者提供并确认有权使用的官方 Spine Player 4.2.119 与本机 Chrome，捕获固定 case 的 composite 和全部 setup attachment isolate，计算 sampled raster 指标并发布不可变 evidence |
+| `verify-body-sway-spine42-v3-runtime` | `available` | 按 P10.7a/capture 双 SHA 复验目录库存、PNG、metrics、manifest 与精确 P10.7a 来源 |
+| `prepare-body-sway-spine42-v3-raster-review` | `available` | 从精确 capture 只读编译逐 case、逐 attachment 的 candidate，不作人工批准声明 |
+| `submit-body-sway-spine42-v3-raster-review` | `available` | 将覆盖全部 candidate 行的显式人工输入编译为 path-free decision；不发布 revision 或 release authority |
+
+capture manifest 会记录 runtime JS/CSS、`package.json`、`LICENSE`、浏览器、capture plan、P10.7a 来源与 PNG 摘要。`LICENSE` 文件存在不等于已经取得授权，许可确认仍由操作者负责。
+
+指标只以 `alpha >= 1` 的二值掩码比较捕获计划内 transparent composite 与 attachment isolate union，并检查 missing/extra/xor、边界、裁切和非空 isolate。人工 decision 只覆盖同一组 sampled case 与 setup attachment inventory。两者都不证明未采样时间、连续 runtime raster safety、永久 current-head authority、publishable timeline 或 release authority；release gate 始终 blocked。
+
+操作说明：[捕获并复核 P10.7b Spine 4.2 v3 Raster 证据](how-to-capture-spine42-v3-runtime.md)。基础设施可用，但两份真实 See-through 样本的外部 Runtime 捕获、P6 golden 对照和逐项人工决定仍待完成；结构 fixture 不能替代真实样本验收。
 
 ## HTTP 写入边界
 
@@ -237,8 +252,8 @@ Resolved Project v1 是已完成的 P0 合同能力，但没有伪造一个独�
 - P6 当前只有离线 CLI；主工作台没有 Spine 导出编排，Project API 的 `export_spine` 仍为 `false`。
 - resolved snapshot 已确定性生成并被下游寻址，现有独立 v1 JSON Schema、严格语义 validator、派生 QA 校验及 r5/r7 历史哈希回归；它仍没有独立 CLI/UI，外部 candidate/split artifact 字节重放继续由各自 binder 负责。
 - override history 已 append-only 保存，但主工作台尚无历史浏览/恢复 UI；安全恢复必须追加新 revision，不能改写历史。
-- P10 body-sway 已完成到 P10.7a Spine 4.2 v3 五文件 adapter bundle；它仍不是可发布 timeline，且尚未通过官方 Runtime/raster 回归。
+- P10 body-sway 已完成到 P10.7b sampled raster 基础设施；官方 capture 依赖外部已授权 runtime，两份真实 See-through 样本尚未完成人工验收，且任何 sampled 结果都不是连续时间证明或可发布 timeline。
 - `blink`、口型和头发目前只存在 idle candidate 类型或规划入口，没有可靠素材生成、绑定与 runtime 交付。
 - See-through/pose 推理、真实 Kimodo checkpoint 质量门禁、实时追踪、自由形变、runtime IK、生产部署仍未实现。
 
-不要把结构验证、sampled screenshot、anchor-point 距离或 loader replay 写成完整 raster、官方 Runtime 或发布通过。
+不要把结构验证、fixture、sampled screenshot/指标、anchor-point 距离、loader replay 或一次人工 decision 写成连续 raster 安全、真实双样本验收或发布通过。
