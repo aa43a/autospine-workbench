@@ -67,6 +67,10 @@ from .p10_dynamic_seam_cli import (
     add_p10_dynamic_seam_subcommands,
     dispatch_p10_dynamic_seam_command,
 )
+from .p10_motion_consumer_admission_cli import (
+    add_p10_motion_consumer_admission_subcommands,
+    dispatch_p10_motion_consumer_admission_command,
+)
 from .seam_anchor_candidate_cli import (
     add_seam_anchor_candidate_subcommands,
     dispatch_seam_anchor_candidate_command,
@@ -121,6 +125,7 @@ def add_projection_stage_subcommands(subparsers: Any, state_root: Path) -> None:
     add_p10_amplitude_envelope_subcommands(subparsers, state_root)
     add_p10_continuous_proof_subcommands(subparsers, state_root)
     add_p10_dynamic_seam_subcommands(subparsers, state_root)
+    add_p10_motion_consumer_admission_subcommands(subparsers, state_root)
     add_seam_anchor_candidate_subcommands(subparsers, state_root)
     add_seam_anchor_review_subcommands(subparsers, state_root)
 
@@ -195,6 +200,9 @@ def dispatch_projection_stage_command(args: argparse.Namespace) -> int | None:
             if status is not None:
                 return status
             status = dispatch_p10_dynamic_seam_command(args)
+            if status is not None:
+                return status
+            status = dispatch_p10_motion_consumer_admission_command(args)
             if status is not None:
                 return status
             status = dispatch_seam_anchor_candidate_command(args)
