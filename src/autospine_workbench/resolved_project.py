@@ -129,8 +129,9 @@ class ResolvedProjectBuilder:
             for layer in layers
             if layer.get("disposition") in {"split", "split_left_right"}
         }
+        all_layers = {str(layer.get("id")): layer for layer in layers}
         accepted_split_layer_ids, rejected_split_layer_ids, stale_split_layer_ids = (
-            _classified_split_decisions(split_layers)
+            _classified_split_decisions(all_layers)
         )
         classified = (
             set(accepted_split_layer_ids)

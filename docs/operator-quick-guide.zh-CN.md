@@ -163,6 +163,8 @@ workspace/overrides/<project-id>/
 
 当前在线保存合同是 `autospine-workbench.override/v3`，会同时保留绝对关节、候选关节决定、bilateral split 决定和图层 authoring。不要使用旧 v2 示例删除 `split_decisions`。
 
+保存后的 resolved authoring 状态使用冻结的 `autospine.resolved-project/v1`。它已有独立 JSON Schema 与严格 Python 语义 validator，会重算内容哈希、候选/拆分 provenance、实体交叉引用和派生 QA。普通操作者不需要额外运行一个 CLI；需要在 API 或编译器边界校验文档的开发者请查阅 [Resolved Project v1 参考](resolved-snapshot-reference.md)。未来 resolved 算法语义变化必须升级到 v2，不能让旧 revision 在 v1 标识下改变含义。
+
 不要在服务运行时手工改写这些文件。原始 audit、PSD 和 PNG 也应保持不变。
 
 ### 出现 `409 revision_conflict`
@@ -223,6 +225,7 @@ E:\proj\unusual\localset\tmp\psd_audit\results\<project-id>\audit.json
 - 复核图层语义、角色左右、可见性、处理决策、Pivot 和目标骨；
 - 查看并调整基础骨架，处理 pose/alpha/接触候选；
 - 以内容地址保存候选证据，以 revision 保存人工决定；
+- 生成并严格验证版本化的 Resolved Project v1 snapshot，同时保持历史 r5/r7 内容地址不变；
 - 从独立页面完成人工 Body-sway still 与 Seam Anchor revision；
 - 通过离线命令生成和验证版本中立的 Layer Manifest、RigIR、mesh、IK、MotionIR、P10.6a admission 及受限的 Spine 4.2 adapter 工件。
 
@@ -251,7 +254,7 @@ python -B -m autospine_workbench verify-mesh-bundle --help
 
 ## 10. 当前阶段与下一开发入口
 
-P10.6a 已完成。普通图层/关节复核不需要运行它；开发版本中立动画编译链时，可按
+P0 Resolved Project v1 合同与 P10.6a 均已完成。普通图层/关节复核不需要运行 P10.6a；开发版本中立动画编译链时，可按
 [编译 P10.6a body-sway 动作消费准入](how-to-compile-body-sway-motion-consumer-admission.md)
 把认证的 P10.5d probe 与精确 P9 MotionInstance v2 bundle 重新闭合。对应命令是：
 
@@ -315,6 +318,14 @@ git diff --check
 ```powershell
 python -m pip install -e ".[test]"
 ```
+
+只验证 Resolved Project v1 时可运行：
+
+```powershell
+python -m unittest tests.test_resolved_snapshot_validation tests.test_resolved_snapshot_schema -v
+```
+
+其中语义 validator 测试不依赖 `jsonschema`；若该可选依赖未安装，命令会明确跳过 Schema 实例用例。只有输出显示实例用例实际执行并通过时，才能声明完成 Draft 2020-12 实例验证。
 
 ## 12. 建议的最小验收清单
 

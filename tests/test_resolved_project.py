@@ -184,6 +184,15 @@ class ResolvedProjectBuilderTests(unittest.TestCase):
         self.assertTrue(all(not left & right for i, left in enumerate(classified) for right in classified[i + 1 :]))
         self.assertEqual("needs_review", qa["status"])
 
+    def test_stale_split_decision_stays_pending_after_authoring_is_removed(self) -> None:
+        overrides = override_fixture()
+        overrides["split_decisions"] = {
+            "arm-layer": {"action": "accept", "binding_status": "stale"}
+        }
+        qa = ResolvedProjectBuilder().build(project_fixture(), overrides)["qa"]
+        self.assertEqual(["arm-layer"], qa["stale_split_layer_ids"])
+        self.assertEqual("needs_review", qa["status"])
+
     def test_unreviewed_low_confidence_joint_remains_visible_in_qa(self) -> None:
         snapshot = ResolvedProjectBuilder().build(project_fixture(), {"revision": 0})
         self.assertEqual("needs_review", snapshot["qa"]["status"])

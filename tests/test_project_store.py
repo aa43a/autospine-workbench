@@ -5,6 +5,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 
 WORKBENCH_ROOT = Path(__file__).resolve().parents[1]
@@ -15,6 +16,7 @@ if str(SRC_ROOT) not in sys.path:
 from autospine_workbench.project_store import (  # noqa: E402
     AssetNotFoundError,
     ProjectNotFoundError,
+    ProjectStateError,
     ProjectStore,
     RevisionConflictError,
 )
@@ -120,6 +122,14 @@ class ProjectStoreContractTests(unittest.TestCase):
         self.assertFalse(project["capabilities"]["export_spine"])
         self.assertEqual(64, len(project["source"]["audit_sha256"]))
         self.assertEqual("BlendMode.NORMAL", project["layers"][0]["blend_mode"])
+
+    def test_project_api_boundary_rejects_an_invalid_resolved_snapshot(self) -> None:
+        with patch(
+            "autospine_workbench.project_store.ResolvedProjectBuilder.build",
+            return_value={"schema_version": "autospine.resolved-project/v1"},
+        ):
+            with self.assertRaisesRegex(ProjectStateError, "strict validation"):
+                self.store.get_project("fixture-project")
 
     def test_revision_conflict_preserves_the_winning_write(self) -> None:
         first = {

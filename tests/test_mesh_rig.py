@@ -27,6 +27,11 @@ from autospine_workbench.png_rgba import RgbaImage  # noqa: E402
 from autospine_workbench.region_rig import compile_region_rig  # noqa: E402
 from autospine_workbench.resolved_project import canonical_sha256  # noqa: E402
 from autospine_workbench.rig_validation import RigSemanticValidator  # noqa: E402
+from tests.resolved_snapshot_helpers import (  # noqa: E402
+    resolved_bone,
+    resolved_joint,
+    resolved_snapshot_from_parts,
+)
 from tests.test_region_rig import (  # noqa: E402
     compile_fixture,
     manifest_fixture,
@@ -105,39 +110,65 @@ def manifest_a() -> dict:
     }
 
 
-def _seal(document: dict) -> dict:
-    document.pop("sha256", None)
-    document["sha256"] = canonical_sha256(document)
-    return document
-
-
 def resolved_a() -> dict:
+    revision = 1
     joints = [
-        {"id": "spine-start", "x": 80, "y": 90, "confidence": 1.0, "decision_kind": "manual_absolute"},
-        {"id": "spine-end", "x": 80, "y": 10, "confidence": 1.0, "decision_kind": "manual_absolute"},
+        resolved_joint(
+            "spine-start", side="center", x=80, y=90, revision=revision,
+        ),
+        resolved_joint(
+            "spine-end", side="center", x=80, y=10, revision=revision,
+        ),
     ]
-    bones = [{
-        "id": "spine", "parent_id": None,
-        "start_joint_id": "spine-start", "end_joint_id": "spine-end",
-    }]
+    bones = [resolved_bone(
+        "spine",
+        start_joint_id="spine-start",
+        end_joint_id="spine-end",
+        role="humanoid.spine",
+    )]
     for side, x in (("left", 40), ("right", 120)):
         joints.extend([
-            {"id": f"hip.{side}", "x": x, "y": 0, "confidence": 1.0, "decision_kind": "manual_absolute"},
-            {"id": f"knee.{side}", "x": x, "y": 40, "confidence": 1.0, "decision_kind": "manual_absolute"},
-            {"id": f"ankle.{side}", "x": x, "y": 80, "confidence": 1.0, "decision_kind": "manual_absolute"},
+            resolved_joint(
+                f"hip.{side}", side=side, x=x, y=0, revision=revision,
+            ),
+            resolved_joint(
+                f"knee.{side}", side=side, x=x, y=40, revision=revision,
+            ),
+            resolved_joint(
+                f"ankle.{side}", side=side, x=x, y=80, revision=revision,
+            ),
         ])
         bones.extend([
-            {"id": f"thigh.{side}", "parent_id": None, "start_joint_id": f"hip.{side}", "end_joint_id": f"knee.{side}"},
-            {"id": f"calf.{side}", "parent_id": f"thigh.{side}", "start_joint_id": f"knee.{side}", "end_joint_id": f"ankle.{side}"},
+            resolved_bone(
+                f"spine-hip.{side}",
+                parent_id="spine",
+                start_joint_id="spine-end",
+                end_joint_id=f"hip.{side}",
+            ),
+            resolved_bone(
+                f"thigh.{side}",
+                parent_id=f"spine-hip.{side}",
+                start_joint_id=f"hip.{side}",
+                end_joint_id=f"knee.{side}",
+            ),
+            resolved_bone(
+                f"calf.{side}",
+                parent_id=f"thigh.{side}",
+                start_joint_id=f"knee.{side}",
+                end_joint_id=f"ankle.{side}",
+            ),
         ])
-    return _seal({
-        "schema_version": "autospine.resolved-project/v1",
-        "project_id": "mesh-a", "revision": 1,
-        "inputs": {"base_project_sha256": "c" * 64, "override_sha256": "2" * 64},
-        "canvas": {"width": 160, "height": 100},
-        "layers": [], "skeleton": {"joints": joints, "bones": bones},
-        "qa": {"status": "ready", "review_layer_ids": [], "unresolved_joint_ids": []},
-    })
+    return resolved_snapshot_from_parts(
+        project_id="mesh-a",
+        revision=revision,
+        width=160,
+        height=100,
+        layers=[],
+        joints=joints,
+        bones=bones,
+        base_project_sha256="c" * 64,
+        override_sha256="2" * 64,
+    )
 
 
 def base_a() -> tuple[dict, dict, dict]:

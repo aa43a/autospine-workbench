@@ -8,6 +8,10 @@ import re
 from typing import Any, Mapping, Sequence
 
 from .resolved_project import canonical_sha256
+from .resolved_snapshot_validation import (
+    ResolvedSnapshotValidationError,
+    require_resolved_snapshot,
+)
 
 
 _SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
@@ -25,24 +29,26 @@ def validate_compile_inputs(
     resolved = mapping(resolved, "resolved project")
     if manifest.get("format") != "autospine-layer-manifest" or manifest.get("format_version") != 1:
         raise RegionRigContractError("Unsupported Layer Manifest")
-    if resolved.get("schema_version") != "autospine.resolved-project/v1":
-        raise RegionRigContractError("Unsupported resolved project")
     layer_sha = required_sha(layer_sha, "layer manifest")
     if _canonical(manifest, "Layer Manifest") != layer_sha:
         raise RegionRigContractError("Layer Manifest content does not match its SHA-256")
-    resolved_sha = required_sha(resolved.get("sha256"), "resolved project")
-    unhashed = dict(resolved)
-    unhashed.pop("sha256", None)
-    if _canonical(unhashed, "resolved project") != resolved_sha:
-        raise RegionRigContractError("Resolved project self-hash is invalid")
     project_id = manifest.get("project_id")
     if not isinstance(project_id, str) or not _SAFE_ID.fullmatch(project_id):
         raise RegionRigContractError("Project id is invalid")
     if resolved.get("project_id") != project_id:
         raise RegionRigContractError("Layer Manifest and resolved project ids differ")
     revision = manifest.get("revision")
-    if not is_integer(revision) or resolved.get("revision") != revision:
-        raise RegionRigContractError("Layer Manifest and resolved revisions differ")
+    if not is_integer(revision):
+        raise RegionRigContractError("Layer Manifest revision is invalid")
+    try:
+        require_resolved_snapshot(
+            resolved,
+            expected_project_id=project_id,
+            expected_revision=revision,
+        )
+    except ResolvedSnapshotValidationError as exc:
+        raise RegionRigContractError(f"Resolved project is invalid: {exc}") from exc
+    resolved_sha = str(resolved["sha256"])
     source = mapping(manifest.get("source"), "Layer Manifest source")
     canvas = positive_size(source.get("canvas"), "Layer Manifest canvas")
     resolved_canvas = mapping(resolved.get("canvas"), "resolved canvas")

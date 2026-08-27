@@ -1,6 +1,6 @@
 # AutoSpine Workbench 后续开发路线
 
-本文是 Explanation 与交付计划，面向维护者和需要评估可行性的项目负责人。它从当前 **P10.6a 已完成** 的事实出发，说明尚未实现的能力应按什么依赖关系推进。这里的阶段名、优先级和验收条件是建议，不代表对应功能已经存在，也不构成发布日期承诺。
+本文是 Explanation 与交付计划，面向维护者和需要评估可行性的项目负责人。它从 **P0 Resolved Project v1 合同与 P10.6a 已完成** 的事实出发，说明尚未实现的能力应按什么依赖关系推进。当前后续开发入口是 P10.6b。这里的阶段名、优先级和验收条件是建议，不代表对应功能已经存在，也不构成发布日期承诺。
 
 ## 规划原则
 
@@ -17,7 +17,6 @@
 
 | 优先级 | 能力 | 原因 |
 | --- | --- | --- |
-| P0 | Resolved Snapshot 独立 Schema | snapshot 已被多阶段寻址，但尚缺独立、公开的结构合同 |
 | P0 | P10.6b MotionInstance v3 / timeline compiler | P10.6a 已为它建立了明确准入，是当前最短关键路径 |
 | P0 | P10.7 P6 adapter 接入与官方 Runtime 回归 | 只有穿过目标 runtime，body-sway 才形成可验证交付链 |
 | P1 | Revision 历史浏览/恢复 UI | 历史已不可变保存，但操作者尚不能便捷查看或安全恢复 |
@@ -34,7 +33,7 @@
 关键路径建议：
 
 ```text
-Resolved Snapshot 独立 Schema（合同横向前置）
+Resolved Project v1 Schema + semantic validator（已完成）
         │
 P10.6a（已完成）
         ↓
@@ -53,22 +52,21 @@ Revision 历史 UI（独立 authoring 可用性轨）
 主工作台 Spine 导出编排（P6 已完成，UI 仍待接入）
 ```
 
-## Resolved Snapshot 独立 Schema
+## 已完成横向前置：Resolved Project v1
 
-**建议优先级：P0，作为合同横向加固。**
+P0 已在不改写既有 snapshot 字节的前提下交付独立
+`schemas/resolved-project-v1.schema.json` 与无第三方依赖的严格语义 validator。公开 validator
+重算 canonical 内容地址，校验 project/layer/joint/bone 交叉引用、candidate inventory/run
+identity、current/stale split provenance，以及由 resolved 实体状态派生的完整 QA 列表。
 
-依赖：当前 resolved project builder、override v3、candidate/split binder、现有 snapshot SHA 及所有引用该 SHA 的 P1–P10 工件。
+历史回归固定两份真实样本的 r5/r7 snapshot 哈希；当本地缺少对应 audit 或历史 revision
+fixture 时，该真实样本用例会明确跳过，不能据此宣称它已在当前环境执行。Draft 2020-12
+Schema 的实例校验同样依赖可选 `jsonschema`，但 Python 语义 validator 及其测试不依赖该包。
 
-交付：
-
-- 描述当前 resolved snapshot 形状的独立 JSON Schema 和语义 validator；
-- 明确 project/layer/joint/QA、candidate provenance、split decision 与 canonical hash domain；
-- 旧 snapshot 的只读兼容测试，以及格式升级时使用新版本 token 的迁移规则；
-- Project API、Layer Manifest 和下游 compiler 共用同一 validator，不各自复制隐式字段假设。
-
-验收条件：现有历史 snapshot 与固定 golden 在不改字节、不改 SHA 的前提下通过；缺字段、额外 authority 字段、非法 SHA、stale split 冒充 current 和非有限坐标均 fail closed；同一 audit、override revision 和算法身份产生同一 snapshot SHA；新格式不得静默复用旧 hash domain。
-
-主要风险：为了补 `schema_version` 改写既有 snapshot 字节并破坏所有下游地址，或只做 JSON Schema 而漏掉跨引用、画布和 current/stale 等语义检查。
+v1 的字段、哈希算法和语义现已冻结。未来只要 resolved 生成算法、QA 派生规则或 provenance
+解释发生语义变化，就必须发布 `autospine.resolved-project/v2` 及新的 Schema/validator；不得
+沿用 v1 token、改写 r5/r7 历史地址，或让既有 candidate/split 决定静默获得新含义。完整
+合同见 [Resolved Project v1 参考](resolved-snapshot-reference.md)。
 
 ## Revision 历史浏览与恢复 UI
 

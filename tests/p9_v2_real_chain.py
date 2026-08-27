@@ -26,6 +26,11 @@ from autospine_workbench.resolved_project import canonical_sha256
 from autospine_workbench.reviewed_motion_policy_validation import SEMANTICS
 from autospine_workbench.rig_bundle import RigBundleStore
 from autospine_workbench.rig_fk import evaluate_world_setup
+from tests.resolved_snapshot_helpers import (
+    resolved_bone,
+    resolved_joint,
+    resolved_snapshot_from_parts,
+)
 from tests.test_motion_target_profile import full_rig
 from tests.test_verified_mesh_compiler import _probes
 
@@ -145,32 +150,57 @@ def _manifest(asset: Path) -> dict:
 def _resolved() -> dict:
     source_bones = full_rig()["bones"]
     world = evaluate_world_setup(source_bones)
-    joints, bones = [], []
+    joints_by_id, bones = {}, []
     for bone in source_bones:
         bone_id, frame = bone["id"], world[bone["id"]]
-        start_id, end_id = f"{bone_id}.start", f"{bone_id}.end"
+        parent_id = bone["parent"]
+        start_id = (
+            f"{bone_id}.start"
+            if parent_id is None
+            else f"{parent_id}.end"
+        )
+        end_id = f"{bone_id}.end"
         for joint_id, point in (
             (start_id, frame["origin_xy"]),
             (end_id, frame["endpoint_xy"]),
         ):
-            joints.append({
-                "id": joint_id, "x": point[0], "y": point[1],
-                "confidence": 1.0, "decision_kind": "manual_absolute",
-            })
-        bones.append({
-            "id": bone_id, "parent_id": bone["parent"],
-            "start_joint_id": start_id, "end_joint_id": end_id,
-        })
-    result = {
-        "schema_version": "autospine.resolved-project/v1",
-        "project_id": PROJECT, "revision": 1,
-        "inputs": {"base_project_sha256": "c" * 64, "override_sha256": "d" * 64},
-        "canvas": {"width": 400, "height": 400}, "layers": [],
-        "skeleton": {"joints": joints, "bones": bones},
-        "qa": {"status": "ready", "review_layer_ids": [], "unresolved_joint_ids": []},
-    }
-    result["sha256"] = canonical_sha256(result)
-    return result
+            if joint_id in joints_by_id:
+                continue
+            side = (
+                "left" if ".left" in joint_id
+                else "right" if ".right" in joint_id
+                else "center"
+            )
+            joint = resolved_joint(
+                joint_id,
+                side=side,
+                x=point[0],
+                # The source pose extends 37 px below the 400 px canvas.
+                # Translating the whole setup keeps every local transform.
+                y=point[1] - 40,
+                revision=1,
+            )
+            joint["confidence"] = 1.0
+            joint["model_confidence"] = 1.0
+            joints_by_id[joint_id] = joint
+        bones.append(resolved_bone(
+            bone_id,
+            parent_id=parent_id,
+            start_joint_id=start_id,
+            end_joint_id=end_id,
+            role=f"humanoid.{bone_id}",
+        ))
+    return resolved_snapshot_from_parts(
+        project_id=PROJECT,
+        revision=1,
+        width=400,
+        height=400,
+        layers=[],
+        joints=list(joints_by_id.values()),
+        bones=bones,
+        base_project_sha256="c" * 64,
+        override_sha256="d" * 64,
+    )
 
 
 def _policy(p5, bundle_sha: str) -> dict:

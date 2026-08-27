@@ -11,6 +11,324 @@ PROJECT_ID = "sample-a"
 REVISION = 3
 
 
+def resolved_layer(
+    layer_id: str,
+    *,
+    project_id: str,
+    revision: int,
+    source_index: int,
+    z_index: int,
+    name: str,
+    canonical_role: str,
+    side: str,
+    bbox_xywh: tuple[int, int, int, int],
+    pivot_xy: tuple[float, float],
+    disposition: str = "keep",
+    reviewed_fields: list[str] | None = None,
+    candidate_bone: str | None = None,
+    notes: str | None = None,
+    alpha_nonzero: int | None = None,
+    component_count: int = 1,
+) -> dict:
+    """Build one complete, manually reviewed layer authority object."""
+
+    x, y, width, height = bbox_xywh
+    reviewed = list(reviewed_fields or [
+        "canonical_role", "side", "disposition", "visible", "pivot_xy",
+    ])
+    layer = {
+        "schema_version": "autospine-workbench.layer/v1",
+        "contract": {"name": "autospine-workbench.layer", "version": 1},
+        "id": layer_id,
+        "source_index": source_index,
+        "name": name,
+        "canonical_role": canonical_role,
+        "side": side,
+        "disposition": disposition,
+        "visible": True,
+        "empty": False,
+        "opacity": 1.0,
+        "blend_mode": "normal",
+        "z_index": z_index,
+        "bbox": {
+            "x": x,
+            "y": y,
+            "width": width,
+            "height": height,
+            "right": x + width,
+            "bottom": y + height,
+        },
+        "pivot_xy": [float(pivot_xy[0]), float(pivot_xy[1])],
+        "image_url": f"/api/projects/{project_id}/layers/{layer_id}/image",
+        "metrics": {
+            "alpha_nonzero": alpha_nonzero if alpha_nonzero is not None else width * height,
+            "alpha_perceptible": alpha_nonzero if alpha_nonzero is not None else width * height,
+            "component_count": component_count,
+            "main_component_ratio": 1.0,
+            "fills_bbox_ratio": 1.0,
+        },
+        "review_state": "manual_adjusted",
+        "reviewed_fields": reviewed,
+        "decision_revision": revision,
+    }
+    if candidate_bone is not None:
+        layer["candidate_bone"] = candidate_bone
+        if "candidate_bone" not in reviewed:
+            reviewed.append("candidate_bone")
+    if notes is not None:
+        layer["notes"] = notes
+        if "notes" not in reviewed:
+            reviewed.append("notes")
+    return layer
+
+
+def resolved_joint(
+    joint_id: str,
+    *,
+    side: str,
+    x: float,
+    y: float,
+    revision: int,
+    review_state: str = "manual_adjusted",
+) -> dict:
+    """Build a complete manual or candidate-accepted joint."""
+
+    joint = {
+        "id": joint_id,
+        "role": f"humanoid.{joint_id}",
+        "side": side,
+        "x": float(x),
+        "y": float(y),
+        "confidence": 0.75,
+        "source": "fixture",
+        "editable": True,
+        "model_confidence": 0.75,
+        "review_state": review_state,
+        "decision_revision": revision,
+    }
+    if review_state == "manual_adjusted":
+        joint["decision_kind"] = "manual_absolute"
+        return joint
+    if review_state != "candidate_accepted":
+        raise ValueError(f"unsupported fixture review state: {review_state}")
+    analysis = {
+        "provider": "fixture-provider",
+        "provider_version": "1.0.0",
+        "input_sha256": canonical_sha256({"joint": joint_id, "input": 1}),
+        "config_sha256": canonical_sha256({"joint": joint_id, "config": 1}),
+    }
+    analysis["run_sha256"] = canonical_sha256(analysis)
+    joint.update(
+        decision_kind="candidate_accept",
+        decision={
+            "action": "accept",
+            "candidate_artifact_sha256": canonical_sha256(
+                {"joint": joint_id, "artifact": 1}
+            ),
+            "candidate_id": f"{joint_id}.fixture",
+            "final_xy": [float(x), float(y)],
+            "analysis": analysis,
+        },
+    )
+    return joint
+
+
+def resolved_bone(
+    bone_id: str,
+    *,
+    start_joint_id: str,
+    end_joint_id: str,
+    parent_id: str | None = None,
+    role: str | None = None,
+) -> dict:
+    return {
+        "id": bone_id,
+        "role": role or f"humanoid.{bone_id}",
+        "parent_id": parent_id,
+        "start_joint_id": start_joint_id,
+        "end_joint_id": end_joint_id,
+    }
+
+
+def resolved_snapshot_from_parts(
+    *,
+    project_id: str,
+    revision: int,
+    width: int,
+    height: int,
+    layers: list[dict],
+    joints: list[dict],
+    bones: list[dict],
+    base_project_sha256: str = "a" * 64,
+    override_sha256: str = "b" * 64,
+    requires_review: bool = True,
+) -> dict:
+    """Build and seal a complete Resolved Project v1 from test entities."""
+
+    document = {
+        "schema_version": "autospine.resolved-project/v1",
+        "project_id": project_id,
+        "revision": revision,
+        "inputs": {
+            "base_project_sha256": base_project_sha256,
+            "override_sha256": override_sha256,
+            "candidate_analyses": [],
+        },
+        "canvas": {
+            "width": width,
+            "height": height,
+            "coordinate_system": "canvas-top-left-y-down",
+        },
+        "layers": deepcopy(layers),
+        "skeleton": {
+            "schema_version": "autospine-workbench.skeleton/v1",
+            "contract": {"name": "autospine-workbench.skeleton", "version": 1},
+            "template": "humanoid-v1",
+            "coordinate_system": {
+                "origin": "canvas-top-left",
+                "x_axis": "right",
+                "y_axis": "down",
+                "side_semantics": "character-own-left-right",
+            },
+            "generation": {
+                "method": "fixture-v1",
+                "requires_review": requires_review,
+            },
+            "joints": deepcopy(joints),
+            "bones": deepcopy(bones),
+        },
+        "qa": {},
+    }
+    return refresh_resolved_snapshot(document)
+
+
+def resolved_project_envelope(
+    resolved: dict,
+    *,
+    psd_sha256: str = "a" * 64,
+    audit_sha256: str = "b" * 64,
+) -> dict:
+    """Wrap a strict snapshot in the legacy project envelope used by builders."""
+
+    snapshot = deepcopy(resolved)
+    project = {
+        "id": snapshot["project_id"],
+        "source": {"sha256": psd_sha256, "audit_sha256": audit_sha256},
+        "canvas": {
+            "width": snapshot["canvas"]["width"],
+            "height": snapshot["canvas"]["height"],
+        },
+        "layers": deepcopy(snapshot["layers"]),
+        "skeleton": deepcopy(snapshot["skeleton"]),
+    }
+    base_payload = {
+        key: project.get(key) for key in ("source", "canvas", "layers", "skeleton")
+    }
+    snapshot["inputs"]["base_project_sha256"] = canonical_sha256(base_payload)
+    project["resolved"] = refresh_resolved_snapshot(snapshot)
+    return project
+
+
+def refresh_resolved_snapshot(document: dict, *, sync_revision: bool = False) -> dict:
+    """Refresh derived inventories and QA, then seal a semantically valid edit."""
+
+    result = deepcopy(document)
+    revision = result["revision"]
+    if sync_revision:
+        for layer in result["layers"]:
+            if layer.get("review_state") == "manual_adjusted":
+                layer["decision_revision"] = revision
+            if "split_spec" in layer:
+                layer["split_spec_revision"] = revision
+            if "split_decision" in layer:
+                layer["split_decision_revision"] = revision
+        for joint in result["skeleton"]["joints"]:
+            if joint.get("review_state") != "unreviewed":
+                joint["decision_revision"] = revision
+    result["inputs"]["candidate_analyses"] = _candidate_inventory(
+        result["skeleton"]["joints"]
+    )
+    result["qa"] = _derived_qa(
+        result["layers"],
+        result["skeleton"]["joints"],
+        bool(result["skeleton"]["generation"]["requires_review"]),
+    )
+    return reseal(result)
+
+
+def _candidate_inventory(joints: list[dict]) -> list[dict]:
+    inventory: dict[str, dict] = {}
+    for joint in joints:
+        decision = joint.get("decision")
+        if not isinstance(decision, dict):
+            continue
+        digest = decision["candidate_artifact_sha256"]
+        inventory[digest] = {
+            "candidate_artifact_sha256": digest,
+            **deepcopy(decision["analysis"]),
+        }
+    return [inventory[digest] for digest in sorted(inventory)]
+
+
+def _derived_qa(layers: list[dict], joints: list[dict], requires_review: bool) -> dict:
+    review_layers = [
+        layer["id"] for layer in layers
+        if layer.get("disposition") == "review"
+        or (layer.get("empty") and layer.get("disposition") != "exclude")
+    ]
+    unresolved = [
+        joint["id"] for joint in joints
+        if joint.get("review_state") == "candidate_rejected"
+        or (
+            joint.get("review_state") == "unreviewed"
+            and (requires_review or float(joint["model_confidence"]) < 0.5)
+        )
+    ]
+    rejected = [
+        joint["id"] for joint in joints
+        if joint.get("review_state") == "candidate_rejected"
+    ]
+    unobservable = [
+        joint["id"] for joint in joints
+        if joint.get("review_state") == "unobservable"
+    ]
+    split_layers = {
+        layer["id"]: layer for layer in layers
+        if layer.get("disposition") in {"split", "split_left_right"}
+    }
+    accepted, rejected_split, stale = [], [], []
+    for layer in layers:
+        layer_id = layer["id"]
+        decision = layer.get("split_decision")
+        if not isinstance(decision, dict):
+            continue
+        if decision.get("binding_status") != "current":
+            stale.append(layer_id)
+        elif decision.get("action") == "accept":
+            accepted.append(layer_id)
+        elif decision.get("action") == "reject":
+            rejected_split.append(layer_id)
+    accepted.sort()
+    rejected_split.sort()
+    stale.sort()
+    classified = set(accepted) | set(rejected_split) | set(stale)
+    unreviewed_split = sorted(set(split_layers) - classified)
+    needs_review = bool(
+        review_layers or unresolved or unreviewed_split or rejected_split or stale
+    )
+    return {
+        "status": "needs_review" if needs_review else "ready",
+        "review_layer_ids": review_layers,
+        "unresolved_joint_ids": unresolved,
+        "rejected_joint_ids": rejected,
+        "unobservable_joint_ids": unobservable,
+        "accepted_split_layer_ids": accepted,
+        "unreviewed_split_layer_ids": unreviewed_split,
+        "rejected_split_layer_ids": rejected_split,
+        "stale_split_layer_ids": stale,
+    }
+
+
 def resolved_snapshot_fixture() -> dict:
     split_spec = {
         "parts": {

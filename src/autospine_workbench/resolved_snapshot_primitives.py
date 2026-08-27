@@ -50,10 +50,13 @@ def object_exact(
     return value
 
 
-def array(value: Any, path: str) -> list[Any]:
+def array(value: Any, path: str, *, maximum: int | None = None) -> list[Any]:
     if not isinstance(value, Sequence) or isinstance(value, (str, bytes, bytearray)):
         fail(path, "must be a JSON array", "type")
-    return list(value)
+    values = list(value)
+    if maximum is not None and len(values) > maximum:
+        fail(path, f"must contain at most {maximum} items", "length")
+    return values
 
 
 def safe_id(value: Any, path: str) -> str:
@@ -132,8 +135,9 @@ def exact_string_list(
     *,
     allowed: set[str] | None = None,
     sorted_values: bool = False,
+    maximum: int | None = None,
 ) -> list[str]:
-    values = array(value, path)
+    values = array(value, path, maximum=maximum)
     for index, item in enumerate(values):
         if not isinstance(item, str):
             fail(f"{path}[{index}]", "must be a string", "type")

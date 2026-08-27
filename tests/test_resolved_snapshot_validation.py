@@ -30,6 +30,12 @@ from tests.resolved_snapshot_helpers import (  # noqa: E402
 
 
 class ResolvedSnapshotValidationTests(unittest.TestCase):
+    def test_portable_fixture_hash_is_pinned_without_local_workspace(self) -> None:
+        self.assertEqual(
+            "1b8778011c663cdfaac698e4b8cb0570dad27ec78284d92d2f8885f2522769ef",
+            resolved_snapshot_fixture()["sha256"],
+        )
+
     def test_complete_snapshot_and_expected_context_validate(self) -> None:
         document = resolved_snapshot_fixture()
         require_resolved_snapshot(
@@ -57,6 +63,15 @@ class ResolvedSnapshotValidationTests(unittest.TestCase):
         first["layers"][0]["name"] = "tampered"
         with self.assertRaisesRegex(ResolvedSnapshotValidationError, "canonical snapshot content"):
             require_resolved_snapshot(first)
+
+    def test_v1_hash_domain_preserves_json_number_representation(self) -> None:
+        floating = resolved_snapshot_fixture()
+        floating["skeleton"]["joints"][0]["x"] = 100.0
+        floating = reseal(floating)
+        integral = resolved_snapshot_fixture()
+        require_resolved_snapshot(floating)
+        require_resolved_snapshot(integral)
+        self.assertNotEqual(floating["sha256"], integral["sha256"])
 
     def test_unknown_authority_field_fails_even_when_resealed(self) -> None:
         document = resolved_snapshot_fixture()
@@ -132,6 +147,58 @@ class ResolvedSnapshotValidationTests(unittest.TestCase):
         document["qa"]["stale_split_layer_ids"] = ["layer-001-legwear"]
         document["qa"]["status"] = "needs_review"
         require_resolved_snapshot(reseal(document))
+
+    def test_stale_split_remains_pending_after_split_authoring_is_removed(self) -> None:
+        document = resolved_snapshot_fixture()
+        layer = document["layers"][1]
+        layer["split_decision"]["binding_status"] = "stale"
+        layer["disposition"] = "keep"
+        layer["side"] = "center"
+        layer.pop("split_spec")
+        layer.pop("split_spec_revision")
+        document["qa"]["accepted_split_layer_ids"] = []
+        document["qa"]["stale_split_layer_ids"] = [layer["id"]]
+        document["qa"]["status"] = "needs_review"
+        require_resolved_snapshot(reseal(document))
+
+        hidden = reseal({
+            **document,
+            "qa": {
+                **document["qa"],
+                "stale_split_layer_ids": [],
+                "status": "ready",
+            },
+        })
+        with self.assertRaisesRegex(ResolvedSnapshotValidationError, "stale_split"):
+            require_resolved_snapshot(hidden)
+
+    def test_layer_bone_binding_and_skeleton_root_are_cross_checked(self) -> None:
+        wrong_bone = resolved_snapshot_fixture()
+        wrong_bone["layers"][0]["candidate_bone"] = "missing-bone"
+        with self.assertRaisesRegex(ResolvedSnapshotValidationError, "unknown skeleton bone"):
+            require_resolved_snapshot(reseal(wrong_bone))
+
+        forest = resolved_snapshot_fixture()
+        forest["skeleton"]["bones"][1]["parent_id"] = None
+        with self.assertRaisesRegex(ResolvedSnapshotValidationError, "one root bone"):
+            require_resolved_snapshot(reseal(forest))
+
+    def test_semantic_validator_enforces_schema_collection_limits(self) -> None:
+        document = resolved_snapshot_fixture()
+        template = document["inputs"]["candidate_analyses"]
+        document["inputs"]["candidate_analyses"] = template + [
+            {
+                "candidate_artifact_sha256": f"{index:064x}",
+                "provider": "fixture-provider",
+                "provider_version": "1.0.0",
+                "input_sha256": "6" * 64,
+                "config_sha256": "7" * 64,
+                "run_sha256": "8" * 64,
+            }
+            for index in range(1, 4098)
+        ]
+        with self.assertRaisesRegex(ResolvedSnapshotValidationError, "at most 4096"):
+            require_resolved_snapshot(reseal(document))
 
     def test_qa_lists_and_status_are_recomputed(self) -> None:
         document = resolved_snapshot_fixture()

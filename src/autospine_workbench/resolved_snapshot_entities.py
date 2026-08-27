@@ -75,7 +75,7 @@ def validate_entities(
     skeleton, joints, bones, requires_review = _skeleton(
         skeleton_value, width, height
     )
-    layers = _layers(layers_value, project_id, width, height)
+    layers = _layers(layers_value, project_id, width, height, bones)
     return ResolvedEntities(
         width=width,
         height=height,
@@ -99,11 +99,16 @@ def _canvas(value: Any) -> tuple[int, int]:
     return width, height
 
 
-def _layers(value: Any, project_id: str, width: int, height: int) -> list[Mapping[str, Any]]:
-    layers = array(value, "$.layers")
+def _layers(
+    value: Any,
+    project_id: str,
+    width: int,
+    height: int,
+    bones: Mapping[str, Mapping[str, Any]],
+) -> list[Mapping[str, Any]]:
+    layers = array(value, "$.layers", maximum=4096)
     result: list[Mapping[str, Any]] = []
     identifiers: set[str] = set()
-    source_indices: set[int] = set()
     for index, raw in enumerate(layers):
         path = f"$.layers[{index}]"
         layer = object_exact(
@@ -116,10 +121,7 @@ def _layers(value: Any, project_id: str, width: int, height: int) -> list[Mappin
         if layer_id in identifiers:
             fail(f"{path}.id", "layer id is duplicated", "duplicate")
         identifiers.add(layer_id)
-        source_index = integer(layer.get("source_index"), f"{path}.source_index")
-        if source_index in source_indices:
-            fail(f"{path}.source_index", "source index is duplicated", "duplicate")
-        source_indices.add(source_index)
+        integer(layer.get("source_index"), f"{path}.source_index")
         text(layer.get("name"), f"{path}.name", maximum=512)
         role(layer.get("canonical_role"), f"{path}.canonical_role")
         if layer.get("side") not in _SIDES:
@@ -145,7 +147,13 @@ def _layers(value: Any, project_id: str, width: int, height: int) -> list[Mappin
             allowed=_REVIEWED_FIELDS,
         )
         if "candidate_bone" in layer:
-            safe_id(layer["candidate_bone"], f"{path}.candidate_bone")
+            candidate_bone = safe_id(layer["candidate_bone"], f"{path}.candidate_bone")
+            if candidate_bone not in bones:
+                fail(
+                    f"{path}.candidate_bone",
+                    "references an unknown skeleton bone",
+                    "cross_reference",
+                )
         if "notes" in layer:
             text(layer["notes"], f"{path}.notes", maximum=1000)
         for field in ("decision_revision", "split_spec_revision", "split_decision_revision"):
@@ -233,7 +241,7 @@ def _skeleton(
 
 def _joints(value: Any, width: int, height: int) -> dict[str, Mapping[str, Any]]:
     result: dict[str, Mapping[str, Any]] = {}
-    for index, raw in enumerate(array(value, "$.skeleton.joints")):
+    for index, raw in enumerate(array(value, "$.skeleton.joints", maximum=4096)):
         path = f"$.skeleton.joints[{index}]"
         joint = object_exact(raw, required=_JOINT_REQUIRED, optional=_JOINT_OPTIONAL, path=path)
         joint_id = safe_id(joint.get("id"), f"{path}.id")
@@ -280,7 +288,7 @@ def _bones(
     value: Any, joints: Mapping[str, Mapping[str, Any]]
 ) -> dict[str, Mapping[str, Any]]:
     result: dict[str, Mapping[str, Any]] = {}
-    for index, raw in enumerate(array(value, "$.skeleton.bones")):
+    for index, raw in enumerate(array(value, "$.skeleton.bones", maximum=4096)):
         path = f"$.skeleton.bones[{index}]"
         bone = object_exact(
             raw,
@@ -303,6 +311,9 @@ def _bones(
         result[bone_id] = bone
     if not result:
         fail("$.skeleton.bones", "must contain at least one bone", "length")
+    roots = [bone_id for bone_id, bone in result.items() if bone.get("parent_id") is None]
+    if len(roots) != 1:
+        fail("$.skeleton.bones", "must contain exactly one root bone", "topology")
     for bone_id, bone in result.items():
         parent_id = bone.get("parent_id")
         if parent_id is not None:

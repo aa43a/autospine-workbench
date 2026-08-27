@@ -23,6 +23,10 @@ from .manifest_artifacts import (
     validate_raster_geometry,
 )
 from .resolved_project import canonical_sha256
+from .resolved_snapshot_validation import (
+    ResolvedSnapshotValidationError,
+    require_resolved_snapshot_for_project,
+)
 from .rig_roles import region_bone_for_role
 from .split_bundle_validation import SplitBundleValidationError, validate_split_bundle
 from .split_derivation_contract import SplitDerivationError, normalize_derivation
@@ -43,11 +47,15 @@ class LayerManifestBuilder:
         resolved = project.get("resolved")
         if not isinstance(resolved, Mapping):
             raise LayerManifestError("Project has no resolved snapshot")
+        project_id = require_safe_token(project.get("id"), "Project id")
+        try:
+            require_resolved_snapshot_for_project(resolved, project)
+        except ResolvedSnapshotValidationError as exc:
+            raise LayerManifestError(f"Resolved project is invalid: {exc}") from exc
         canvas = resolved.get("canvas") or project.get("canvas") or {}
         width, height = int(canvas.get("width", 0)), int(canvas.get("height", 0))
         if width < 1 or height < 1:
             raise LayerManifestError("Canvas dimensions are invalid")
-        project_id = require_safe_token(project.get("id"), "Project id")
         source = project.get("source") or {}
         psd_sha = _required_sha(source.get("sha256"), "source PSD")
         audit_sha = _required_sha(source.get("audit_sha256"), "audit")

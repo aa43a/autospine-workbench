@@ -23,37 +23,50 @@ from autospine_workbench.manifest_bundle import (  # noqa: E402
     LayerManifestBundleReader,
 )
 from tests.png_helpers import write_rgba  # noqa: E402
+from tests.resolved_snapshot_helpers import (  # noqa: E402
+    resolved_bone,
+    resolved_joint,
+    resolved_layer,
+    resolved_project_envelope,
+    resolved_snapshot_from_parts,
+)
 
 
 def project_fixture() -> dict:
-    layer = {
-        "id": "layer-arm-left",
-        "source_index": 1,
-        "name": "arm-left",
-        "canonical_role": "body.hand",
-        "side": "left",
-        "disposition": "keep",
-        "visible": True,
-        "empty": False,
-        "opacity": 1.0,
-        "blend_mode": "normal",
-        "z_index": 3,
-        "bbox": {"x": 10, "y": 20, "width": 2, "height": 2},
-        "pivot_xy": [10.5, 20.5],
-        "review_state": "manual_adjusted",
-        "metrics": {"alpha_nonzero": 4, "component_count": 1},
-    }
-    return {
-        "id": "sample-a",
-        "source": {"sha256": "a" * 64, "audit_sha256": "b" * 64},
-        "canvas": {"width": 20, "height": 30},
-        "layers": [layer],
-        "resolved": {
-            "revision": 2,
-            "canvas": {"width": 20, "height": 30},
-            "layers": [layer],
-        },
-    }
+    revision = 2
+    layer = resolved_layer(
+        "layer-arm-left",
+        project_id="sample-a",
+        revision=revision,
+        source_index=1,
+        z_index=0,
+        name="arm-left",
+        canonical_role="body.hand",
+        side="left",
+        bbox_xywh=(10, 20, 2, 2),
+        pivot_xy=(10.5, 20.5),
+        alpha_nonzero=4,
+    )
+    joints = [
+        resolved_joint(
+            "root", side="center", x=10, y=28, revision=revision
+        ),
+        resolved_joint(
+            "tip", side="center", x=10, y=10, revision=revision
+        ),
+    ]
+    resolved = resolved_snapshot_from_parts(
+        project_id="sample-a",
+        revision=revision,
+        width=20,
+        height=30,
+        layers=[layer],
+        joints=joints,
+        bones=[resolved_bone(
+            "root-tip", start_joint_id="root", end_joint_id="tip"
+        )],
+    )
+    return resolved_project_envelope(resolved)
 
 
 class LayerManifestBundleReaderTests(unittest.TestCase):

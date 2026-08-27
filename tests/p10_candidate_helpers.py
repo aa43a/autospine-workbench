@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from copy import deepcopy
 import hashlib
 from pathlib import Path
 
@@ -36,6 +35,11 @@ from autospine_workbench.reviewed_motion_bundle_store import (
 from autospine_workbench.rig_bundle import RigBundleStore
 from tests.p10_candidate_documents import build_reviewed_documents
 from tests.p9_v2_real_chain import _resolved
+from tests.resolved_snapshot_helpers import (
+    resolved_bone,
+    resolved_joint,
+    resolved_snapshot_from_parts,
+)
 from tests.test_verified_mesh_compiler import _probes
 
 
@@ -228,8 +232,62 @@ def _layer(layer_id, role, bone, order, offset, digest):
 
 
 def _resolved_for_project():
-    value = deepcopy(_resolved())
-    value["project_id"] = PROJECT
-    value.pop("sha256")
-    value["sha256"] = canonical_sha256(value)
-    return value
+    legacy = _resolved()
+    source_joints = {
+        joint["id"]: joint for joint in legacy["skeleton"]["joints"]
+    }
+    source_bones = legacy["skeleton"]["bones"]
+    end_joint_by_bone = {
+        bone["id"]: bone["end_joint_id"] for bone in source_bones
+    }
+    joints_by_id = {}
+    bones = []
+    for bone in source_bones:
+        parent_id = bone["parent_id"]
+        source_start_id = bone["start_joint_id"]
+        start_joint_id = (
+            source_start_id
+            if parent_id is None
+            else end_joint_by_bone[parent_id]
+        )
+        end_joint_id = bone["end_joint_id"]
+        for joint_id, source_id in (
+            (start_joint_id, source_start_id),
+            (end_joint_id, end_joint_id),
+        ):
+            if joint_id in joints_by_id:
+                continue
+            source = source_joints[source_id]
+            side = (
+                "left" if ".left" in joint_id
+                else "right" if ".right" in joint_id
+                else "center"
+            )
+            joints_by_id[joint_id] = resolved_joint(
+                joint_id,
+                side=side,
+                x=source["x"],
+                # The shared full-rig fixture extends 37 px below its declared
+                # canvas.  A rigid setup translation preserves every local
+                # transform while making this persisted boundary fixture valid.
+                y=source["y"] - 40,
+                revision=1,
+            )
+        bones.append(resolved_bone(
+            bone["id"],
+            parent_id=parent_id,
+            start_joint_id=start_joint_id,
+            end_joint_id=end_joint_id,
+            role=f"humanoid.{bone['id']}",
+        ))
+    return resolved_snapshot_from_parts(
+        project_id=PROJECT,
+        revision=1,
+        width=400,
+        height=400,
+        layers=[],
+        joints=list(joints_by_id.values()),
+        bones=bones,
+        base_project_sha256="c" * 64,
+        override_sha256="d" * 64,
+    )

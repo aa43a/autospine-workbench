@@ -22,6 +22,14 @@ from autospine_workbench.layer_manifest import (  # noqa: E402
     LayerManifestBundleStore,
     LayerManifestError,
 )
+from tests.resolved_snapshot_helpers import (  # noqa: E402
+    refresh_resolved_snapshot,
+    resolved_bone,
+    resolved_joint,
+    resolved_layer,
+    resolved_project_envelope,
+    resolved_snapshot_from_parts,
+)
 
 try:
     from jsonschema import Draft202012Validator
@@ -52,36 +60,44 @@ def write_png(path: Path, width: int, height: int, *, color_type: int = 6) -> No
 
 
 def project_fixture() -> dict:
-    layer = {
-        "id": "layer-001-arm-l",
-        "source_index": 1,
-        "name": "arm-l",
-        "canonical_role": "body.arm.lower",
-        "side": "left",
-        "disposition": "keep",
-        "visible": True,
-        "empty": False,
-        "opacity": 1.0,
-        "blend_mode": "BlendMode.NORMAL",
-        "z_index": 3,
-        "bbox": {"x": 10, "y": 20, "width": 30, "height": 40},
-        "pivot_xy": [20, 25],
-        "review_state": "manual_adjusted",
-        "reviewed_fields": ["canonical_role", "side", "disposition", "pivot_xy"],
-        "notes": "confirmed arm",
-        "metrics": {"alpha_nonzero": 900, "component_count": 1},
-    }
-    return {
-        "id": "sample-a",
-        "source": {"sha256": "a" * 64, "audit_sha256": "b" * 64},
-        "canvas": {"width": 100, "height": 200},
-        "layers": [layer],
-        "resolved": {
-            "revision": 2,
-            "canvas": {"width": 100, "height": 200},
-            "layers": [layer],
-        },
-    }
+    revision = 2
+    layer = resolved_layer(
+        "layer-001-arm-l",
+        project_id="sample-a",
+        revision=revision,
+        source_index=1,
+        z_index=0,
+        name="arm-l",
+        canonical_role="body.arm.lower",
+        side="left",
+        bbox_xywh=(10, 20, 30, 40),
+        pivot_xy=(20, 25),
+        notes="confirmed arm",
+        alpha_nonzero=900,
+    )
+    joints = [
+        resolved_joint(
+            "root", side="center", x=50, y=180, revision=revision
+        ),
+        resolved_joint(
+            "tip", side="center", x=50, y=100, revision=revision
+        ),
+    ]
+    bones = [
+        resolved_bone(
+            "root-tip", start_joint_id="root", end_joint_id="tip"
+        )
+    ]
+    resolved = resolved_snapshot_from_parts(
+        project_id="sample-a",
+        revision=revision,
+        width=100,
+        height=200,
+        layers=[layer],
+        joints=joints,
+        bones=bones,
+    )
+    return resolved_project_envelope(resolved)
 
 
 class LayerManifestMaterializationTests(unittest.TestCase):
@@ -106,11 +122,24 @@ class LayerManifestMaterializationTests(unittest.TestCase):
             )
             Draft202012Validator(schema).validate(manifest)
 
+    def test_builder_rejects_resealed_unknown_resolved_authority(self) -> None:
+        project = project_fixture()
+        project["resolved"]["layers"][0]["release_approved"] = True
+        project["resolved"] = refresh_resolved_snapshot(project["resolved"])
+        with tempfile.TemporaryDirectory() as directory:
+            asset = Path(directory) / "arm.png"
+            write_png(asset, 30, 40)
+            with self.assertRaisesRegex(LayerManifestError, "authority field"):
+                LayerManifestBuilder().build(
+                    project, {"layer-001-arm-l": asset}
+                )
+
     def test_unrelated_override_does_not_claim_semantic_or_pivot_review(self) -> None:
         project = project_fixture()
         layer = project["resolved"]["layers"][0]
-        layer["reviewed_fields"] = ["visible"]
+        layer["reviewed_fields"] = ["visible", "notes"]
         layer["metrics"]["component_count"] = 2
+        project["resolved"] = refresh_resolved_snapshot(project["resolved"])
         with tempfile.TemporaryDirectory() as directory:
             asset = Path(directory) / "arm.png"
             write_png(asset, 30, 40)
@@ -129,6 +158,7 @@ class LayerManifestMaterializationTests(unittest.TestCase):
         project = project_fixture()
         layer = project["resolved"]["layers"][0]
         layer["metrics"]["component_count"] = 2
+        project["resolved"] = refresh_resolved_snapshot(project["resolved"])
         with tempfile.TemporaryDirectory() as directory:
             asset = Path(directory) / "arm.png"
             write_png(asset, 30, 40)
@@ -175,12 +205,18 @@ class LayerManifestMaterializationTests(unittest.TestCase):
             write_png(asset, 30, 40)
             reserved = project_fixture()
             reserved["resolved"]["layers"][0]["id"] = "CON"
+            reserved["resolved"]["layers"][0]["image_url"] = (
+                "/api/projects/sample-a/layers/CON/image"
+            )
+            reserved["resolved"] = refresh_resolved_snapshot(reserved["resolved"])
             with self.assertRaisesRegex(LayerManifestError, "Windows-reserved"):
                 LayerManifestBuilder().build(reserved, {"CON": asset})
 
             outside = project_fixture()
             outside["resolved"]["layers"][0]["bbox"]["x"] = 80
-            with self.assertRaisesRegex(LayerManifestError, "outside its canvas"):
+            outside["resolved"]["layers"][0]["bbox"]["right"] = 110
+            outside["resolved"] = refresh_resolved_snapshot(outside["resolved"])
+            with self.assertRaisesRegex(LayerManifestError, "outside (?:the|its) canvas"):
                 LayerManifestBuilder().build(
                     outside, {"layer-001-arm-l": asset}
                 )

@@ -25,8 +25,19 @@ from .override_store import (
     OverrideStateError,
     OverrideStoreError,
 )
+from .project_errors import (
+    AssetNotFoundError,
+    ProjectNotFoundError,
+    ProjectStateError,
+    ProjectStoreError,
+    RevisionConflictError,
+)
 from .lazy_source_paths import project_override_context
 from .resolved_project import ResolvedProjectBuilder
+from .resolved_snapshot_validation import (
+    ResolvedSnapshotValidationError,
+    require_resolved_snapshot_for_project,
+)
 from .project_validation import validate_project_document
 
 
@@ -34,42 +45,16 @@ _PROJECT_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 _IMAGE_SUFFIXES = frozenset({".png", ".jpg", ".jpeg", ".webp"})
 _MAX_AUDIT_BYTES = 64 * 1024 * 1024
 
-class ProjectStoreError(RuntimeError):
-    """Base error for project discovery and persistence."""
 
-
-class ProjectNotFoundError(ProjectStoreError):
-    def __init__(self, project_id: str):
-        self.project_id = project_id
-        super().__init__(f"Unknown project: {project_id}")
-
-
-class AssetNotFoundError(ProjectStoreError):
-    def __init__(self, project_id: str, asset: str):
-        self.project_id = project_id
-        self.asset = asset
-        super().__init__(f"Asset not found for {project_id}: {asset}")
-
-
-class RevisionConflictError(ProjectStoreError):
-    def __init__(self, requested_revision: int, current_revision: int):
-        self.requested_revision = requested_revision
-        self.current_revision = current_revision
-        super().__init__(
-            f"Revision conflict: requested {requested_revision}, current {current_revision}"
-        )
-
-    def as_dict(self) -> dict[str, Any]:
-        return {
-            "error": "revision_conflict",
-            "message": str(self),
-            "requested_revision": self.requested_revision,
-            "current_revision": self.current_revision,
-        }
-
-
-class ProjectStateError(ProjectStoreError):
-    """Raised when a persisted override document is unreadable or invalid."""
+def _build_resolved_snapshot(
+    project: Mapping[str, Any], overrides: Mapping[str, Any]
+) -> dict[str, Any]:
+    snapshot = ResolvedProjectBuilder().build(project, overrides)
+    try:
+        require_resolved_snapshot_for_project(snapshot, project, overrides)
+    except ResolvedSnapshotValidationError as exc:
+        raise ProjectStateError(f"Resolved project failed strict validation: {exc}") from exc
+    return snapshot
 
 
 @dataclass(frozen=True)
@@ -695,7 +680,7 @@ class ProjectStore:
         if include_overrides:
             overrides = self._read_overrides(project)
             project["overrides"] = overrides
-            resolved = ResolvedProjectBuilder().build(project, overrides)
+            resolved = _build_resolved_snapshot(project, overrides)
             project["resolved"] = resolved
             project["workflow"]["status"] = resolved["qa"]["status"]
             project["workflow"]["steps"][1]["status"] = (
@@ -770,7 +755,7 @@ class ProjectStore:
         try:
             overrides = self._read_overrides(project)
             revision = overrides["revision"]
-            resolved = ResolvedProjectBuilder().build(project, overrides)
+            resolved = _build_resolved_snapshot(project, overrides)
             project["layers"] = resolved["layers"]
             project["skeleton"] = resolved["skeleton"]
             project["resolved_qa"] = resolved["qa"]

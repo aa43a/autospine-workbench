@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from .resolved_project import canonical_sha256
+from .resolved_project import RESOLVED_SCHEMA_VERSION, canonical_sha256
 from .resolved_snapshot_entities import ResolvedEntities, validate_entities
 from .resolved_snapshot_primitives import (
     ResolvedSnapshotValidationError,
@@ -19,7 +19,7 @@ from .resolved_snapshot_primitives import (
 from .resolved_snapshot_provenance import validate_provenance
 
 
-RESOLVED_SNAPSHOT_SCHEMA_VERSION = "autospine.resolved-project/v1"
+RESOLVED_SNAPSHOT_SCHEMA_VERSION = RESOLVED_SCHEMA_VERSION
 _TOP_FIELDS = {
     "schema_version", "project_id", "revision", "inputs", "canvas", "layers",
     "skeleton", "qa", "sha256",
@@ -99,7 +99,7 @@ def _qa(value: Any, entities: ResolvedEntities) -> None:
     observed: dict[str, list[str]] = {}
     for field in _QA_FIELDS - {"status"}:
         path = f"$.qa.{field}"
-        values = exact_string_list(qa.get(field), path)
+        values = exact_string_list(qa.get(field), path, maximum=4096)
         known = layer_ids if "layer" in field else joint_ids
         unknown = [item for item in values if item not in known]
         if unknown:
@@ -137,7 +137,8 @@ def _qa(value: Any, entities: ResolvedEntities) -> None:
     accepted: list[str] = []
     rejected_split: list[str] = []
     stale: list[str] = []
-    for layer_id, layer in split_layers.items():
+    for layer in entities.layers:
+        layer_id = str(layer["id"])
         decision = layer.get("split_decision")
         if not isinstance(decision, Mapping):
             continue
@@ -175,6 +176,45 @@ def _qa(value: Any, entities: ResolvedEntities) -> None:
         fail("$.qa.status", "does not match derived review state", "derived")
 
 
+def require_resolved_snapshot_for_project(
+    document: Any,
+    project: Mapping[str, Any],
+    overrides: Mapping[str, Any] | None = None,
+) -> None:
+    """Bind a snapshot to the exact base project and optional override state."""
+
+    project_id = safe_id(project.get("id"), "project.id")
+    base_payload = {
+        "source": project.get("source"),
+        "canvas": project.get("canvas"),
+        "layers": project.get("layers"),
+        "skeleton": project.get("skeleton"),
+    }
+    decision = overrides if overrides is not None else project.get("overrides")
+    expected_revision: int | None = None
+    expected_override_sha256: str | None = None
+    if isinstance(decision, Mapping):
+        expected_revision = integer(
+            decision.get("revision"), "project.overrides.revision"
+        )
+    try:
+        base_sha256 = canonical_sha256(base_payload)
+        if isinstance(decision, Mapping):
+            expected_override_sha256 = canonical_sha256(decision)
+    except (OverflowError, TypeError, UnicodeError, ValueError) as exc:
+        raise ResolvedSnapshotValidationError(
+            "project", "trusted project context is not canonical JSON data",
+            "canonical_json",
+        ) from exc
+    require_resolved_snapshot(
+        document,
+        expected_project_id=project_id,
+        expected_revision=expected_revision,
+        expected_base_project_sha256=base_sha256,
+        expected_override_sha256=expected_override_sha256,
+    )
+
+
 def _expected_identity(
     *,
     project_id: str,
@@ -208,5 +248,6 @@ __all__ = [
     "RESOLVED_SNAPSHOT_SCHEMA_VERSION",
     "ResolvedSnapshotValidationError",
     "require_resolved_snapshot",
+    "require_resolved_snapshot_for_project",
     "resolved_snapshot_sha256",
 ]

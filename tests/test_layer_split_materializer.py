@@ -25,6 +25,14 @@ from autospine_workbench.png_rgba import (  # noqa: E402
     read_rgba_png,
     write_rgba_png,
 )
+from tests.resolved_snapshot_helpers import (  # noqa: E402
+    refresh_resolved_snapshot,
+    resolved_bone,
+    resolved_joint,
+    resolved_layer,
+    resolved_project_envelope,
+    resolved_snapshot_from_parts,
+)
 
 
 LAYER_ID = "layer-001-legs"
@@ -46,59 +54,86 @@ def source_image(*, full_canvas: bool = False) -> RgbaImage:
 
 
 def project_fixture() -> dict:
-    layer = {
-        "id": LAYER_ID,
-        "source_index": 7,
-        "name": "legwear",
-        "canonical_role": "body.leg",
-        "side": "bilateral",
-        "disposition": "split_left_right",
-        "visible": True,
-        "empty": False,
-        "opacity": 1.0,
-        "blend_mode": "normal",
-        "z_index": 9,
-        "bbox": {"x": 1, "y": 0, "width": 6, "height": 4},
-        "pivot_xy": [4, 1],
-        "candidate_bone": "root-pelvis",
-        "review_state": "manual_adjusted",
-        "reviewed_fields": [
-            "canonical_role",
-            "side",
-            "disposition",
-            "pivot_xy",
-            "candidate_bone",
-        ],
-        "metrics": {"alpha_nonzero": 23, "component_count": 1},
-    }
+    revision = 3
+    layer = resolved_layer(
+        LAYER_ID,
+        project_id="sample-split",
+        revision=revision,
+        source_index=7,
+        z_index=0,
+        name="legwear",
+        canonical_role="body.leg",
+        side="bilateral",
+        disposition="split_left_right",
+        bbox_xywh=(1, 0, 6, 4),
+        pivot_xy=(4, 1),
+        candidate_bone="root-pelvis",
+        alpha_nonzero=23,
+    )
     joints = []
     for side, x, review_state in (
         ("left", 2, "candidate_accepted"),
         ("right", 5, "manual_adjusted"),
     ):
         for name, y in (("hip", 0), ("knee", 2), ("ankle", 3)):
-            joints.append(
-                {
-                    "id": f"{name}.{side}",
-                    "x": x,
-                    "y": y,
-                    "review_state": review_state,
-                }
+            joints.append(resolved_joint(
+                f"{name}.{side}",
+                side=side,
+                x=x,
+                y=y,
+                revision=revision,
+                review_state=review_state,
+            ))
+    joints.extend([
+        resolved_joint(
+            "root", side="center", x=4, y=4, revision=revision
+        ),
+        resolved_joint(
+            "pelvis", side="center", x=4, y=0, revision=revision
+        ),
+    ])
+    bones = [
+        resolved_bone(
+            "root-pelvis",
+            start_joint_id="root",
+            end_joint_id="pelvis",
+            role="humanoid.root",
+        )
+    ]
+    for side in ("left", "right"):
+        bones.extend([
+            resolved_bone(
+                f"pelvis-hip.{side}",
+                parent_id="root-pelvis",
+                start_joint_id="pelvis",
+                end_joint_id=f"hip.{side}",
+                role=f"humanoid.hip.{side}",
+            ),
+            resolved_bone(
+                f"thigh.{side}",
+                parent_id=f"pelvis-hip.{side}",
+                start_joint_id=f"hip.{side}",
+                end_joint_id=f"knee.{side}",
+                role=f"humanoid.leg.upper.{side}",
+            ),
+            resolved_bone(
+                f"calf.{side}",
+                parent_id=f"thigh.{side}",
+                start_joint_id=f"knee.{side}",
+                end_joint_id=f"ankle.{side}",
+                role=f"humanoid.leg.lower.{side}",
             )
-    return {
-        "id": "sample-split",
-        "source": {"sha256": "a" * 64, "audit_sha256": "b" * 64},
-        "canvas": {"width": 8, "height": 4},
-        "layers": [deepcopy(layer)],
-        "resolved": {
-            "revision": 3,
-            "sha256": "c" * 64,
-            "canvas": {"width": 8, "height": 4},
-            "layers": [deepcopy(layer)],
-            "skeleton": {"joints": joints, "bones": []},
-            "qa": {"status": "ready"},
-        },
-    }
+        ])
+    resolved = resolved_snapshot_from_parts(
+        project_id="sample-split",
+        revision=revision,
+        width=8,
+        height=4,
+        layers=[layer],
+        joints=joints,
+        bones=bones,
+    )
+    return resolved_project_envelope(resolved)
 
 
 def authored_split_spec() -> dict:
@@ -150,11 +185,13 @@ class BilateralLayerMaterializerTests(unittest.TestCase):
     def test_v3_split_spec_controls_guides_and_pivots_with_proxy_provenance(self) -> None:
         project = project_fixture()
         layer = project["resolved"]["layers"][0]
-        layer["split_spec"] = authored_split_spec()
-        project["resolved"]["skeleton"]["bones"] = [
-            {"id": "calf.left"},
-            {"id": "calf.right"},
+        layer.pop("candidate_bone")
+        layer["reviewed_fields"] = [
+            "canonical_role", "side", "disposition", "visible",
         ]
+        layer["split_spec"] = authored_split_spec()
+        layer["split_spec_revision"] = project["resolved"]["revision"]
+        project["resolved"] = refresh_resolved_snapshot(project["resolved"])
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             source = root / "source.png"
@@ -329,6 +366,9 @@ class BilateralLayerMaterializerTests(unittest.TestCase):
         project = project_fixture()
         for joint in project["resolved"]["skeleton"]["joints"]:
             joint["review_state"] = "manual_adjusted"
+            joint["decision_kind"] = "manual_absolute"
+            joint.pop("decision", None)
+        project["resolved"] = refresh_resolved_snapshot(project["resolved"])
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             source = root / "source.png"
@@ -356,6 +396,8 @@ class BilateralLayerMaterializerTests(unittest.TestCase):
     def test_unreviewed_source_layer_never_gains_manual_child_claims(self) -> None:
         project = project_fixture()
         project["resolved"]["layers"][0]["reviewed_fields"] = []
+        project["resolved"]["layers"][0].pop("candidate_bone")
+        project["resolved"] = refresh_resolved_snapshot(project["resolved"])
         with tempfile.TemporaryDirectory() as directory:
             source = Path(directory) / "source.png"
             write_rgba_png(source, source_image())
@@ -370,7 +412,7 @@ class BilateralLayerMaterializerTests(unittest.TestCase):
         mutations = {
             "non-bilateral": lambda project: project["resolved"]["layers"][0].update(side="left"),
             "unsupported role": lambda project: project["resolved"]["layers"][0].update(canonical_role="body.torso"),
-            "missing joint": lambda project: project["resolved"]["skeleton"]["joints"].pop(),
+            "missing joint": lambda project: project["resolved"]["skeleton"]["joints"].pop(0),
             "unobservable guide": lambda project: project["resolved"]["skeleton"]["joints"][0].update(
                 review_state="unobservable"
             ),

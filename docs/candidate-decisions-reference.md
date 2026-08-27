@@ -10,6 +10,8 @@ stage-scoped inputs → immutable candidate artifact → revisioned decision →
 
 候选工件位于 `<state-root>/analysis/<project-id>/joint-candidates/<sha256>.json`。决定只引用完整工件 SHA，不能只引用 provider run 或候选 ID。resolved snapshot 同时哈希 override 和去重后的候选 analysis provenance，因此能够重建某一 revision 使用的确切算法输出。
 
+Resolved snapshot 的独立结构与严格派生校验见 [Resolved Project v1 参考](resolved-snapshot-reference.md)。当前 v1 会交叉核对 candidate inventory/run identity、joint decision 与 current/stale split provenance；未来若改变这些语义，必须升级 resolved snapshot v2，不能只替换算法实现而沿用 v1 token。
+
 工作台通过只读 candidate index/detail API 枚举并校验工件；geometry-bound 候选再按引用的 SHA/fragment 读取固定 path、contact 或 layer/component 证据。端点与错误语义见 [分析工件与只读 API 参考](analysis-artifacts-reference.md)。
 
 候选的阶段输入不包含最终 joint decision 或 resolved revision。否则接受候选会反过来改变生成该候选的输入身份，形成哈希环。有效图层语义、PNG、pose、provider 版本和配置仍必须进入候选的 stage-scoped input identity。

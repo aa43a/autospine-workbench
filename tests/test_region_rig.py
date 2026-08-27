@@ -22,6 +22,12 @@ from autospine_workbench.region_rig import (  # noqa: E402
 )
 from autospine_workbench.resolved_project import canonical_sha256  # noqa: E402
 from autospine_workbench.rig_validation import RigSemanticValidator  # noqa: E402
+from tests.resolved_snapshot_helpers import (  # noqa: E402
+    refresh_resolved_snapshot,
+    resolved_bone,
+    resolved_joint,
+    resolved_snapshot_from_parts,
+)
 
 try:
     from jsonschema import Draft202012Validator
@@ -81,36 +87,50 @@ def manifest_fixture() -> dict:
 
 
 def resolved_fixture() -> dict:
-    document = {
-        "schema_version": "autospine.resolved-project/v1",
-        "project_id": "sample-a", "revision": 3,
-        "inputs": {"base_project_sha256": "c" * 64, "override_sha256": SHA_OVERRIDE},
-        "canvas": {"width": 100, "height": 200},
-        "layers": [],
-        "skeleton": {
-            "joints": [
-                {"id": "root", "x": 50, "y": 180, "confidence": 1.0,
-                 "decision_kind": "manual_absolute"},
-                {"id": "pelvis", "x": 50, "y": 120, "confidence": 1.0,
-                 "decision_kind": "manual_absolute"},
-                {"id": "chest", "x": 50, "y": 60, "confidence": 1.0,
-                 "decision_kind": "manual_absolute"},
-            ],
-            "bones": [
-                {"id": "root-pelvis", "parent_id": None,
-                 "start_joint_id": "root", "end_joint_id": "pelvis"},
-                {"id": "pelvis-chest", "parent_id": "root-pelvis",
-                 "start_joint_id": "pelvis", "end_joint_id": "chest"},
-            ],
-        },
-        "qa": {"status": "ready", "review_layer_ids": [], "unresolved_joint_ids": []},
-    }
-    return seal_resolved(document)
+    revision = 3
+    joints = [
+        resolved_joint(
+            "root", side="center", x=50, y=180, revision=revision
+        ),
+        resolved_joint(
+            "pelvis", side="center", x=50, y=120, revision=revision
+        ),
+        resolved_joint(
+            "chest", side="center", x=50, y=60, revision=revision
+        ),
+    ]
+    bones = [
+        resolved_bone(
+            "root-pelvis",
+            start_joint_id="root",
+            end_joint_id="pelvis",
+            role="humanoid.root",
+        ),
+        resolved_bone(
+            "pelvis-chest",
+            parent_id="root-pelvis",
+            start_joint_id="pelvis",
+            end_joint_id="chest",
+            role="humanoid.spine",
+        ),
+    ]
+    return resolved_snapshot_from_parts(
+        project_id="sample-a",
+        revision=revision,
+        width=100,
+        height=200,
+        layers=[],
+        joints=joints,
+        bones=bones,
+        base_project_sha256="c" * 64,
+        override_sha256=SHA_OVERRIDE,
+    )
 
 
 def seal_resolved(document: dict) -> dict:
-    document.pop("sha256", None)
-    document["sha256"] = canonical_sha256(document)
+    refreshed = refresh_resolved_snapshot(document, sync_revision=True)
+    document.clear()
+    document.update(refreshed)
     return document
 
 
@@ -201,10 +221,11 @@ class RegionRigCompilerTests(unittest.TestCase):
         self.assertTrue(allowed.run_manifest["compiler"]["config"]["allow_manual_required"])
 
         resolved = resolved_fixture()
-        resolved["qa"]["status"] = "needs_review"
-        resolved["sha256"] = canonical_sha256(
-            {key: value for key, value in resolved.items() if key != "sha256"}
-        )
+        unresolved = resolved["skeleton"]["joints"][2]
+        unresolved["review_state"] = "unreviewed"
+        unresolved.pop("decision_kind")
+        unresolved.pop("decision_revision")
+        seal_resolved(resolved)
         with self.assertRaisesRegex(RegionRigError, "require.*manual review"):
             compile_fixture(manifest_fixture(), resolved=resolved)
         allowed = compile_fixture(
@@ -221,12 +242,19 @@ class RegionRigCompilerTests(unittest.TestCase):
                 image_sizes={LAYER_ID: (30, 40)},
             )
         corrupt = deepcopy(resolved)
-        corrupt["revision"] = 4
-        with self.assertRaisesRegex(RegionRigError, "self-hash"):
+        corrupt["skeleton"]["generation"]["method"] = "tampered-fixture"
+        with self.assertRaisesRegex(
+            RegionRigError, "self-hash|canonical snapshot content"
+        ):
             compile_fixture(manifest, corrupt)
+        unknown = deepcopy(resolved)
+        unknown["skeleton"]["generation"]["release_approved"] = True
+        seal_resolved(unknown)
+        with self.assertRaisesRegex(RegionRigError, "authority field"):
+            compile_fixture(manifest, unknown)
         cases = {
             "ids differ": lambda item: item.update(project_id="sample-b"),
-            "revisions differ": lambda item: item.update(revision=4),
+            "revision": lambda item: item.update(revision=4),
             "canvases differ": lambda item: item["canvas"].update(width=101),
         }
         for message, mutate in cases.items():
@@ -282,10 +310,13 @@ class RegionRigCompilerTests(unittest.TestCase):
         self.assertEqual("pelvis-chest", rig["slots"][0]["bone"])
 
         resolved = resolved_fixture()
-        resolved["skeleton"]["bones"].append({
-            "id": "root-chest", "parent_id": None,
-            "start_joint_id": "root", "end_joint_id": "chest",
-        })
+        resolved["skeleton"]["bones"].append(resolved_bone(
+            "root-chest",
+            parent_id="root-pelvis",
+            start_joint_id="pelvis",
+            end_joint_id="chest",
+            role="humanoid.spine.alternate",
+        ))
         seal_resolved(resolved)
         with self.assertRaisesRegex(RegionRigError, "ambiguous"):
             compile_fixture(manifest, resolved)

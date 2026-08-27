@@ -32,6 +32,7 @@ from autospine_workbench.region_rig import compile_region_rig  # noqa: E402
 from autospine_workbench.resolved_project import canonical_sha256  # noqa: E402
 from autospine_workbench.rig_bundle import RigBundleStore  # noqa: E402
 from autospine_workbench.verified_mesh_compiler import VerifiedMeshCompiler  # noqa: E402
+from tests.resolved_snapshot_helpers import refresh_resolved_snapshot  # noqa: E402
 from tests.test_mesh_rig import manifest_a, resolved_a, solid  # noqa: E402
 from tests.test_verified_mesh_compiler import PublishedFixture, _probes  # noqa: E402
 
@@ -70,12 +71,12 @@ class MeshReaderFixture:
             ]
             raster["crop_bbox_xywh"][0] += 100
             raster["crop_bbox_xywh"][1] += 100
-        resolved["canvas"] = {"width": 360, "height": 300}
+        resolved["canvas"]["width"] = 360
+        resolved["canvas"]["height"] = 300
         for joint in resolved["skeleton"]["joints"]:
             joint["x"] += 100
             joint["y"] += 100
-        resolved.pop("sha256")
-        resolved["sha256"] = canonical_sha256(resolved)
+        resolved = refresh_resolved_snapshot(resolved)
         sizes = {"torso": (16, 64), "leg-left": (32, 80), "leg-right": (32, 80)}
         paths = {}
         for layer in manifest["layers"]:

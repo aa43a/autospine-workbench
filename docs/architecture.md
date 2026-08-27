@@ -21,7 +21,8 @@ contracts / value objects
 audit repository ── analysis artifacts ── override history
         └───────────────┬──────────────────┘
                         ↓
-              resolved project snapshot
+       resolved project snapshot v1
+           + strict semantic validator
                         ↓
              manifest / RigIR compilers
                         ↓
@@ -91,6 +92,7 @@ web    → HTTP contracts only
 ```
 
 - `project_store.py` 只保留发现项目和协调 application service 的 façade 职责，不再承载分析算法、持久化实现或 Rig 编译。
+- Resolved Project v1 的 builder 与 public validator 分离：builder 保持历史字节，validator 独立重算 canonical SHA、实体/候选/拆分 provenance 和派生 QA；Project API 输出、Layer Manifest 构建与 region RigIR 编译共用这个 validator。candidate/split 原始 artifact 的字节重放仍由已有 binder 负责，避免 resolved validator 反向读取外部目录。
 - `server.py` 负责 HTTP、输入大小、loopback 安全和错误映射，不实现领域规则。
 - 前端分为 API、authoring state、保存事务和各 stage view；view state 不得污染 revision draft。
 - 外部姿态模型只能通过 canonical pose observations 进入；alpha 几何只读取 resolved layer 与固定 PNG，融合结果必须保留原始 pose 和未标定分数语义。
@@ -131,6 +133,8 @@ web    → HTTP contracts only
 5. 任何迁移先读旧格式并产出新格式，经过至少一个发布周期后再讨论删除兼容路径。
 
 ## 阶段门禁
+
+P0 Resolved Project v1 合同门禁已经完成：独立 Draft 2020-12 Schema 固定完整结构，严格 Python validator 在无 `jsonschema` 时仍可执行语义检查，并支持可选 trusted project/revision/base/override 身份。候选 inventory 与 joint decision 的 provider/run identity 必须闭合；current split 必须绑定当前 split spec，stale split 不能进入 accepted QA；全部 QA 列表和总状态从实体重新派生。真实样本 r5/r7 的既有 snapshot SHA 由条件式历史回归固定，补充公开合同没有改写旧字节。v1 生成、QA 或 provenance 语义若需改变，必须新增 `autospine.resolved-project/v2`，不能复用 v1 hash domain。字段和调用入口见 [Resolved Project v1 参考](resolved-snapshot-reference.md)。
 
 P1 已完成并冻结以下边界：
 

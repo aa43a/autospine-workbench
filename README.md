@@ -15,6 +15,7 @@ AutoSpine Workbench 是一个本地人工复核与离线编译工作流，用于
 - 拖动或精确输入关节坐标，并恢复自动推断位置。
 - 使用 optimistic concurrency 保存 override；过期 revision 不会覆盖新结果。
 - 每次成功保存都写入 append-only revision 历史，并生成应用人工决定后的 resolved snapshot。
+- 以独立 `Resolved Project v1` JSON Schema 和无第三方依赖的严格语义 validator 校验 snapshot 的内容哈希、候选/拆分 provenance、实体交叉引用与派生 QA；既有 r5/r7 历史哈希保持不变。
 - 在界面加载内容寻址候选，比较画布标记、alpha 中轴线/接触证据，并记录 accept/adjust/reject/unobservable 决定。
 - 候选决定绑定完整内容 SHA；算法输出变化不会把旧决定静默套用到新工件。
 - 通过只读验证 API 检查画布、图层 ID、资产路径和骨架结构。
@@ -176,6 +177,7 @@ python -m autospine_workbench serve `
 JSON Schema 位于：
 
 - `schemas/override-patch-v3.schema.json`：当前在线 API 的 candidate/split-aware canonical patch；v1/v2 仅用于历史兼容，不能携带 split decision；
+- `schemas/resolved-project-v1.schema.json`：resolved authoring snapshot 的严格结构、provenance、候选/拆分决定、派生 QA 与 canonical 内容地址；完整语义仍须经过 Python validator；
 - `schemas/coco17-detections-v1.schema.json`：模型 runner 与通用四肢 adapter 的固定输入；
 - `schemas/pose-observations-v1.schema.json`：外部姿态检测器的单角色、原画布观测输入；
 - `schemas/pose-observations-v2.schema.json`：带 adapter、左右、视角和镜像 provenance 的 canonical pose；
@@ -473,6 +475,8 @@ npm test --prefix web
 
 未安装 `jsonschema` 时，标准库运行与大部分测试仍可执行，完整 Draft 2020-12 实例校验会标记为 skipped。若仓库中存在两份真实 See-through audit，测试还会固定表示层差异和真实可见差异的区分：透明 RGB 与扁平背景造成的巨大 raw RGBA MAE 不会直接判为视觉失败；背景匹配后的可见颜色差异仍会失败。第 5 channel、空且隐藏图层、左右语义歧义与缺失部位仍需人工复核。
 
+Resolved Project v1 的 Python 语义测试不依赖 `jsonschema`；可选依赖只决定 Draft 2020-12 实例测试是否执行。合同字段、公开 validator、r5/r7 历史回归和版本升级规则见 [Resolved Project v1 参考](docs/resolved-snapshot-reference.md)。
+
 ## P1 门禁证据
 
 P1 已交付 pose、alpha 中轴线和层接触候选，以及候选比较、四类人工决定和固定证据回看。可复现证据如下：
@@ -495,9 +499,11 @@ P1 已交付 pose、alpha 中轴线和层接触候选，以及候选比较、四
 - 若要恢复旧 revision，先停止服务，备份整个项目 override 目录，再将目标历史快照作为新的、经过校验的 revision 提交；当前界面尚未提供历史浏览/回滚按钮。
 - validation 的 `valid=true` 仅表示结构和本地资产检查没有硬错误，不等于美术、遮挡补全、pivot、mesh 或动画通过视觉验收。
 
-## 已完成阶段：P2 region RigIR 至 P9 reviewed motion，以及 P10.0–P10.6a motion-consumer admission
+## 已完成合同与阶段：P0、P2 region RigIR 至 P9 reviewed motion，以及 P10.0–P10.6a motion-consumer admission
 
 P0 合同加固、P1 四肢候选与 P2 region-only RigIR 已贯通：`stage-scoped analysis → immutable geometry/candidates → candidate-bound revision → deterministic resolved snapshot → reviewed Layer Manifest → RigIR/setup bundle`。P2 没有提前引入 mesh：
+
+P0 的 Resolved Project v1 已有独立 Draft 2020-12 Schema 与严格语义 validator。validator 会重算 snapshot SHA、候选 inventory/run identity、current/stale split provenance、实体交叉引用和全部 QA 列表；两个真实历史 revision 的既有哈希由回归测试固定，不因补充公开合同而改写。v1 的字段与解释已冻结，未来任何改变 resolved 生成或 QA/provenance 语义的算法升级都必须发布 `autospine.resolved-project/v2`，不能沿用 v1 token 或让旧决定静默获得新含义。
 
 1. 从已复核 Layer Manifest 与 resolved joints 编译 region-only RigIR，固定规范骨角色、pivot、父子关系、slot 和 draw order。
 2. 用独立 FK setup probe 重建每个 region 的 world transform，并与 audit 合成基线比较。

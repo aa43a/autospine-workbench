@@ -67,7 +67,7 @@ def validate_provenance(
 
 
 def _candidate_analysis_inventory(value: Any) -> list[dict[str, str]]:
-    items = array(value, "$.inputs.candidate_analyses")
+    items = array(value, "$.inputs.candidate_analyses", maximum=4096)
     result: list[dict[str, str]] = []
     previous = ""
     for index, raw in enumerate(items):

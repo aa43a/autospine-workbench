@@ -1,6 +1,6 @@
 # AutoSpine Workbench 功能与入口参考
 
-本文是面向操作者和开发者的 Reference。它回答“功能是否已经实现、从哪里进入、会得到什么”，不替代具体操作步骤。当前实现边界为 **P10.6a**；计划项见[开发路线](development-roadmap.md)。
+本文是面向操作者和开发者的 Reference。它回答“功能是否已经实现、从哪里进入、会得到什么”，不替代具体操作步骤。P0 Resolved Project v1 合同与 P10.6a 已完成；当前后续开发入口是 **P10.6b MotionInstance v3 / timeline compiler**。计划项见[开发路线](development-roadmap.md)。
 
 ## 统一入口
 
@@ -62,6 +62,8 @@ python -B -m autospine_workbench <command> --help
 | --- | --- |
 | `serve` | 启动仅监听 loopback 的 Web 工作台和 HTTP API |
 | `validate-rig` | 验证 RigIR 交叉引用、拓扑和有限数不变量 |
+
+Resolved Project v1 是已完成的 P0 合同能力，但没有伪造一个独立 CLI 或操作页面。工作台保存/读取流程继续生成既有字节；开发者可使用 `schemas/resolved-project-v1.schema.json` 和 `autospine_workbench.resolved_snapshot_validation.require_resolved_snapshot(...)` 做结构与语义校验。完整字段、信任边界与版本规则见 [Resolved Project v1 参考](resolved-snapshot-reference.md)。
 
 ### P1：图层与四肢候选
 
@@ -215,7 +217,7 @@ python -B -m autospine_workbench <command> --help
 
 - P3/P5 可以进入现有 P6 Spine 4.2 导出链。
 - P6 当前只有离线 CLI；主工作台没有 Spine 导出编排，Project API 的 `export_spine` 仍为 `false`。
-- resolved snapshot 已确定性生成并被下游寻址，但尚无独立 JSON Schema。
+- resolved snapshot 已确定性生成并被下游寻址，现有独立 v1 JSON Schema、严格语义 validator、派生 QA 校验及 r5/r7 历史哈希回归；它仍没有独立 CLI/UI，外部 candidate/split artifact 字节重放继续由各自 binder 负责。
 - override history 已 append-only 保存，但主工作台尚无历史浏览/恢复 UI；安全恢复必须追加新 revision，不能改写历史。
 - P10 body-sway 已完成到 P10.6a 消费准入，但尚未生成 MotionInstance v3 或可发布 Spine timeline。
 - `blink`、口型和头发目前只存在 idle candidate 类型或规划入口，没有可靠素材生成、绑定与 runtime 交付。
