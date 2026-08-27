@@ -6,10 +6,21 @@ from collections.abc import Sequence
 from typing import Any
 
 
+SUPPORTED_ATTACHMENT_PAIRS = (
+    "region-region", "region-mesh", "mesh-region",
+)
+MESH_MESH_POLICY = "unsupported_in_v1"
+
+
 def materialize_supported_attachment_pairs(
     parents: Sequence[Any], children: Sequence[Any], maximum: int,
 ) -> tuple[list[dict[str, Any]], set[str]]:
     """Skip mesh-mesh in O(P+C+supported) and enforce before allocation."""
+
+    if SUPPORTED_ATTACHMENT_PAIRS != (
+        "region-region", "region-mesh", "mesh-region",
+    ) or MESH_MESH_POLICY != "unsupported_in_v1":
+        raise ValueError("Static seam attachment-pair policy is unsupported")
 
     nonmesh_children = tuple(
         child for child in children if child.kind != "mesh"

@@ -63,6 +63,10 @@ from .p10_continuous_proof_cli import (
     add_p10_continuous_proof_subcommands,
     dispatch_p10_continuous_proof_command,
 )
+from .seam_anchor_candidate_cli import (
+    add_seam_anchor_candidate_subcommands,
+    dispatch_seam_anchor_candidate_command,
+)
 
 
 def add_projection_stage_subcommands(subparsers: Any, state_root: Path) -> None:
@@ -108,6 +112,7 @@ def add_projection_stage_subcommands(subparsers: Any, state_root: Path) -> None:
     add_p10_review_admission_subcommands(subparsers, state_root)
     add_p10_amplitude_envelope_subcommands(subparsers, state_root)
     add_p10_continuous_proof_subcommands(subparsers, state_root)
+    add_seam_anchor_candidate_subcommands(subparsers, state_root)
 
 
 def dispatch_projection_stage_command(args: argparse.Namespace) -> int | None:
@@ -174,8 +179,11 @@ def dispatch_projection_stage_command(args: argparse.Namespace) -> int | None:
             if status is not None:
                 return status
             status = dispatch_p10_amplitude_envelope_command(args)
+            if status is not None:
+                return status
+            status = dispatch_p10_continuous_proof_command(args)
             return status if status is not None \
-                else dispatch_p10_continuous_proof_command(args)
+                else dispatch_seam_anchor_candidate_command(args)
     except ProjectedMotionCommandError as exc:
         _print({"ok": False, "status": "error", "error": str(exc)})
         return 2

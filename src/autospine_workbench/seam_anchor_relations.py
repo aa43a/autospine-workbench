@@ -18,6 +18,12 @@ _SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 _SUPPORTED_TYPES = frozenset({"region", "mesh"})
 _NEUTRAL_SIDES = frozenset({"center", "bilateral"})
 _VALID_SIDES = frozenset({*SIDES, *_NEUTRAL_SIDES})
+ROLE_TOKEN_PROFILE = (
+    ("torso", ("torso",)), ("pelvis", ("pelvis",)),
+    ("foot", ("foot",)), ("leg", ("leg",)),
+    ("arm", ("arm", "hand")),
+)
+PARENT_NEUTRAL_RELATIONS = frozenset({"torso_arm", "pelvis_leg"})
 
 class SeamAnchorRelationError(ValueError):
     """Raised when the two admitted documents are not exactly cross-bound."""
@@ -73,7 +79,7 @@ def build_seam_relationship_inventory(
 def _relationship_row(
     relation, parent_role, child_role, joint, side, attachments, role_sides
 ):
-    parent_neutral = relation != "leg_foot"
+    parent_neutral = relation in PARENT_NEUTRAL_RELATIONS
     reasons: set[str] = set()
     _role_availability(
         reasons, "PARENT", parent_role, side, parent_neutral, role_sides
@@ -238,11 +244,10 @@ def _side_relevant(values, side, neutral):
 
 def _role_families(value: str) -> frozenset[str]:
     tokens = set(re.split(r"[._-]+", value.casefold()))
-    roles = {role for role in ("torso", "pelvis", "foot", "leg", "arm")
-             if role in tokens}
-    if "hand" in tokens:
-        roles.add("arm")
-    return frozenset(roles)
+    return frozenset(
+        role for role, aliases in ROLE_TOKEN_PROFILE
+        if tokens.intersection(aliases)
+    )
 
 
 def _require_documents(manifest, rig):

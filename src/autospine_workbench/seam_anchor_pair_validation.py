@@ -15,6 +15,8 @@ from .seam_anchor_locators import (
 
 MIN_ANCHOR_PAIRS = 2
 MAX_ANCHOR_PAIRS = 8
+PAIR_ORDER_POLICY = "strict_on_both_principal_axes"
+CONNECTOR_INTERSECTION_POLICY = "reject_intersection_or_touch_exact"
 
 
 class SeamAnchorUnsupportedError(SeamAnchorLocatorError):
@@ -36,6 +38,11 @@ def validate_anchor_pairs(
     principal_axis: str,
 ) -> tuple[ResolvedAnchorPair, ...]:
     """Validate two-to-eight canonical, ordered, disjoint locator pairs."""
+
+    if PAIR_ORDER_POLICY != "strict_on_both_principal_axes" \
+            or CONNECTOR_INTERSECTION_POLICY \
+            != "reject_intersection_or_touch_exact":
+        raise SeamAnchorLocatorError("Seam anchor pair policy is unsupported")
 
     kind_a = attachment_a.get("type") \
         if isinstance(attachment_a, Mapping) else None

@@ -12,6 +12,9 @@ from .contact_statistics import ContactEvidence, gap_evidence, overlap_evidence,
 
 CanvasRun = tuple[int, int, int]
 MAX_GAP_PX = 256.0
+CONTACT_CONNECTIVITY = 8
+MIN_CONTACT_LOBE_AREA = 16
+MIN_CONTACT_LOBE_RATIO = 0.001
 
 
 @dataclass(frozen=True, slots=True)
@@ -62,7 +65,10 @@ def contact_between_runs(
         raise ValueError(f"max_gap must be finite and lie in [0, {MAX_GAP_PX:g}]")
     left, right = _validate_runs(runs_a), _validate_runs(runs_b)
     area_a, area_b = _run_area(left), _run_area(right)
-    threshold = max(16, math.ceil(min(area_a, area_b) * 0.001))
+    threshold = max(
+        MIN_CONTACT_LOBE_AREA,
+        math.ceil(min(area_a, area_b) * MIN_CONTACT_LOBE_RATIO),
+    )
     overlap = _intersect(left, right)
     if overlap:
         contacts = _overlap_contacts(overlap, area_a, area_b, threshold)
@@ -121,6 +127,9 @@ def _intersect(left: tuple[CanvasRun, ...], right: tuple[CanvasRun, ...]) -> tup
 def _overlap_contacts(
     runs: tuple[CanvasRun, ...], area_a: int, area_b: int, threshold: int
 ) -> tuple[ContactEvidence, ...]:
+    if CONTACT_CONNECTIVITY not in (4, 8):
+        raise ValueError("contact connectivity must be 4 or 8")
+    margin = 1 if CONTACT_CONNECTIVITY == 8 else 0
     segments = tuple(_Segment(y, x0, x1, index) for index, (y, x0, x1) in enumerate(runs))
     parents = list(range(len(segments)))
     previous: list[_Segment] = []
@@ -134,10 +143,12 @@ def _overlap_contacts(
         if previous and previous[0].y == y - 1:
             prior_index = 0
             for item in current:
-                while prior_index < len(previous) and previous[prior_index].x1 < item.x0 - 1:
+                while prior_index < len(previous) \
+                        and previous[prior_index].x1 < item.x0 - margin:
                     prior_index += 1
                 scan = prior_index
-                while scan < len(previous) and previous[scan].x0 <= item.x1 + 1:
+                while scan < len(previous) \
+                        and previous[scan].x0 <= item.x1 + margin:
                     _union(parents, item.label, previous[scan].label)
                     scan += 1
         previous = current

@@ -14,6 +14,7 @@ MESH_QUANTIZATION = 65535
 MAX_MESH_VERTICES = 4096
 MAX_MESH_TRIANGLES = 8192
 MAX_ABS_ATTACHMENT_COORDINATE = 1_000_000_000
+MESH_SHARED_EDGE_POLICY = "smallest_triangle_after_quantization"
 
 
 class SeamAnchorLocatorError(ValueError):
@@ -183,6 +184,8 @@ def _smallest_containing_triangle(point, vertices, triangles):
 
 
 def _canonical_mesh_locator(point, vertices, triangles):
+    if MESH_SHARED_EDGE_POLICY != "smallest_triangle_after_quantization":
+        raise SeamAnchorLocatorError("Mesh shared-edge policy is unsupported")
     selected = _smallest_containing_triangle(point, vertices, triangles)
     if selected is None:
         raise SeamAnchorLocatorError(

@@ -1,0 +1,669 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/seam-anchor-candidates-v1.schema.json",
+  "title": "AutoSpine SeamAnchorCandidates v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "project_id", "source", "generator",
+    "semantics", "relationships", "claims", "release_gate", "summary"
+  ],
+  "properties": {
+    "format": {"const": "autospine-seam-anchor-candidates"},
+    "format_version": {"type": "integer", "const": 1},
+    "project_id": {"$ref": "#/$defs/id"},
+    "source": {"$ref": "#/$defs/source"},
+    "generator": {
+      "const": {
+        "id": "static-seam-anchor-candidate-compiler",
+        "version": "1.1.0",
+        "algorithm_profile_sha256": "c2408ec97b1ef372b11a7812930b84652e1394979c509add12f01417dc4383fe",
+        "algorithm_profile": {
+          "input_admission": {
+            "max_layer_manifest_bytes": 4194304,
+            "max_rig_ir_bytes": 67108864,
+            "max_manifest_layers": 4096,
+            "max_json_preflight_nodes": 262144,
+            "max_json_preflight_depth": 128,
+            "max_attachments": 4096,
+            "max_relation_candidate_pairs": 256,
+            "max_attachment_png_bytes": 75497472,
+            "max_total_attachment_png_bytes": 268435456,
+            "max_attachment_pixels": 16777216,
+            "max_total_attachment_pixels": 67108864
+          },
+          "alpha": {
+            "threshold": 8,
+            "max_total_runs": 262144,
+            "max_runs_per_mask_by_consumer": {
+              "alpha_cache": 8192,
+              "candidate_geometry": 8192,
+              "lobe_isolation": 8192,
+              "sampler": 8192
+            }
+          },
+          "contact": {
+            "candidate_max_gap_px": 8.0,
+            "contact_api_max_gap_px": 256.0,
+            "connectivity": 8,
+            "minimum_lobe_area_px": 16,
+            "minimum_lobe_ratio": 0.001,
+            "lobe_connectivity": 8,
+            "lobe_identity": "unique-area-bbox-8-connected-v1"
+          },
+          "relationships": {
+            "rows": [
+              {
+                "relation": "torso_arm",
+                "parent_role": "torso",
+                "child_role": "arm",
+                "joint": "shoulder"
+              },
+              {
+                "relation": "pelvis_leg",
+                "parent_role": "pelvis",
+                "child_role": "leg",
+                "joint": "hip"
+              },
+              {
+                "relation": "leg_foot",
+                "parent_role": "leg",
+                "child_role": "foot",
+                "joint": "ankle"
+              }
+            ],
+            "sides": ["left", "right"],
+            "role_token_rows": [
+              {"role": "torso", "tokens": ["torso"]},
+              {"role": "pelvis", "tokens": ["pelvis"]},
+              {"role": "foot", "tokens": ["foot"]},
+              {"role": "leg", "tokens": ["leg"]},
+              {"role": "arm", "tokens": ["arm", "hand"]}
+            ],
+            "parent_neutral_relations": ["pelvis_leg", "torso_arm"],
+            "neutral_sides": ["bilateral", "center"],
+            "supported_attachment_types": ["mesh", "region"],
+            "max_candidate_pairs_by_consumer": {
+              "inventory": 256,
+              "candidate_geometry": 256
+            }
+          },
+          "limits": {
+            "max_options_per_relationship": 64,
+            "max_total_options": 384,
+            "max_lobe_intersection_runs": 16384,
+            "max_sampling_intersection_runs": 16384,
+            "max_common_alpha_pixels": 262144,
+            "max_document_bytes": 67108864
+          },
+          "sampling": {
+            "profile_by_consumer": {
+              "sampler": "bbox-major-axis-common-alpha-quantiles-v1",
+              "candidate_policy": "bbox-major-axis-common-alpha-quantiles-v1"
+            },
+            "requested_anchor_pairs_by_consumer": {
+              "candidate_geometry": 4,
+              "sampler_default": 4,
+              "candidate_policy_max": 4
+            },
+            "sampler_pair_range": [2, 8],
+            "pair_validation_range": [2, 8],
+            "max_abs_canvas_coordinate": 1000000
+          },
+          "locators": {
+            "region_quantization": 4096,
+            "mesh_quantization": 65535,
+            "max_mesh_vertices": 4096,
+            "max_mesh_triangles": 8192,
+            "max_abs_attachment_coordinate": 1000000000,
+            "mesh_shared_edge_policy": "smallest_triangle_after_quantization"
+          },
+          "pair_policy": {
+            "supported_types": [
+              "region-region", "region-mesh", "mesh-region"
+            ],
+            "mesh_mesh": "unsupported_in_v1",
+            "order": "strict_on_both_principal_axes",
+            "connector_intersection": "reject_intersection_or_touch_exact"
+          },
+          "reason_policy": {
+            "relationship_codes": [
+              "CHILD_ATTACHMENT_NOT_SETUP_VISIBLE",
+              "CHILD_ATTACHMENT_TYPE_UNSUPPORTED",
+              "CHILD_ROLE_MISSING",
+              "CHILD_SIDE_UNAVAILABLE",
+              "CHILD_SOURCE_LAYER_CROSSWIRE",
+              "CHILD_SOURCE_LAYER_MISSING",
+              "CHILD_SOURCE_ROLE_CONFLICT",
+              "CHILD_SOURCE_ROLE_MISSING_OR_UNSUPPORTED",
+              "CHILD_SOURCE_SIDE_CONFLICT",
+              "CHILD_SOURCE_SIDE_MISSING_OR_UNSUPPORTED",
+              "MESH_MESH_UNSUPPORTED",
+              "MULTIPLE_CANDIDATE_PAIRS",
+              "NO_SUPPORTED_CANDIDATE_PAIR",
+              "PARENT_ATTACHMENT_NOT_SETUP_VISIBLE",
+              "PARENT_ATTACHMENT_TYPE_UNSUPPORTED",
+              "PARENT_ROLE_MISSING",
+              "PARENT_SIDE_UNAVAILABLE",
+              "PARENT_SOURCE_LAYER_CROSSWIRE",
+              "PARENT_SOURCE_LAYER_MISSING",
+              "PARENT_SOURCE_ROLE_CONFLICT",
+              "PARENT_SOURCE_ROLE_MISSING_OR_UNSUPPORTED",
+              "PARENT_SOURCE_SIDE_CONFLICT",
+              "PARENT_SOURCE_SIDE_MISSING_OR_UNSUPPORTED",
+              "RELATION_CANDIDATE_PAIR_BUDGET_EXCEEDED"
+            ],
+            "relationship_absence_codes": [
+              "CHILD_ROLE_MISSING",
+              "CHILD_SIDE_UNAVAILABLE",
+              "PARENT_ROLE_MISSING",
+              "PARENT_SIDE_UNAVAILABLE"
+            ],
+            "option_codes": [
+              "CONTACT_GAP_TOO_LARGE",
+              "CONTACT_MASK_EMPTY",
+              "CONTACT_OVERLAP_BELOW_THRESHOLD",
+              "CONTACT_UNOBSERVABLE",
+              "GAP_LOCATOR_UNSUPPORTED_IN_V1",
+              "INSUFFICIENT_COMMON_ALPHA_POINTS",
+              "LOCATOR_UNREPRESENTABLE",
+              "SAMPLING_BUDGET_EXCEEDED"
+            ],
+            "no_contact_codes": [
+              "CONTACT_GAP_TOO_LARGE",
+              "CONTACT_MASK_EMPTY",
+              "CONTACT_OVERLAP_BELOW_THRESHOLD",
+              "CONTACT_UNOBSERVABLE",
+              "SAMPLING_BUDGET_EXCEEDED"
+            ],
+            "overlap_unavailable_codes": [
+              "INSUFFICIENT_COMMON_ALPHA_POINTS",
+              "LOCATOR_UNREPRESENTABLE",
+              "SAMPLING_BUDGET_EXCEEDED"
+            ],
+            "gap_unavailable_codes": [
+              "GAP_LOCATOR_UNSUPPORTED_IN_V1"
+            ],
+            "relationship_option_diagnostics": "exact_set_equality"
+          }
+        }
+      }
+    },
+    "semantics": {
+      "const": {
+        "mode": "candidate_only",
+        "coordinate_space": "setup_canvas_top_left_y_down_pixels",
+        "locator_space": "attachment_local",
+        "human_decision_emitted": false,
+        "motion_or_clip_input_admitted": false,
+        "automatic_fallback_locator_emitted": false,
+        "gap_locator_emitted": false
+      }
+    },
+    "relationships": {
+      "type": "array", "minItems": 6, "maxItems": 6,
+      "prefixItems": [
+        {"$ref": "#/$defs/torsoArmLeft"},
+        {"$ref": "#/$defs/torsoArmRight"},
+        {"$ref": "#/$defs/pelvisLegLeft"},
+        {"$ref": "#/$defs/pelvisLegRight"},
+        {"$ref": "#/$defs/legFootLeft"},
+        {"$ref": "#/$defs/legFootRight"}
+      ],
+      "items": false
+    },
+    "claims": {
+      "const": {
+        "exact_static_source_admitted": true,
+        "semantic_relationships_compiled": true,
+        "static_locator_candidates_compiled": true,
+        "human_static_locator_selection_recorded": false,
+        "reviewed_seam_anchor_set": false,
+        "dynamic_seam_safety": false,
+        "visual_seam_quality": false,
+        "runtime_equivalence": false,
+        "publishable_timeline": false,
+        "release_authority": false
+      }
+    },
+    "release_gate": {
+      "const": {
+        "status": "blocked",
+        "reasons": [
+          "dynamic_seam_safety_unproven",
+          "human_seam_anchor_decision_missing",
+          "reviewed_seam_anchor_set_missing",
+          "runtime_equivalence_unproven",
+          "visual_seam_quality_unproven"
+        ]
+      }
+    },
+    "summary": {"$ref": "#/$defs/summary"}
+  },
+  "$defs": {
+    "id": {
+      "type": "string", "minLength": 1, "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "reasonArray": {
+      "type": "array", "maxItems": 64, "uniqueItems": true,
+      "items": {"enum": [
+        "CHILD_ATTACHMENT_NOT_SETUP_VISIBLE",
+        "CHILD_ATTACHMENT_TYPE_UNSUPPORTED", "CHILD_ROLE_MISSING",
+        "CHILD_SIDE_UNAVAILABLE", "CHILD_SOURCE_LAYER_CROSSWIRE",
+        "CHILD_SOURCE_LAYER_MISSING", "CHILD_SOURCE_ROLE_CONFLICT",
+        "CHILD_SOURCE_ROLE_MISSING_OR_UNSUPPORTED",
+        "CHILD_SOURCE_SIDE_CONFLICT",
+        "CHILD_SOURCE_SIDE_MISSING_OR_UNSUPPORTED",
+        "CONTACT_GAP_TOO_LARGE", "CONTACT_MASK_EMPTY",
+        "CONTACT_OVERLAP_BELOW_THRESHOLD", "CONTACT_UNOBSERVABLE",
+        "GAP_LOCATOR_UNSUPPORTED_IN_V1",
+        "INSUFFICIENT_COMMON_ALPHA_POINTS", "LOCATOR_UNREPRESENTABLE",
+        "MESH_MESH_UNSUPPORTED", "MULTIPLE_CANDIDATE_PAIRS",
+        "NO_SUPPORTED_CANDIDATE_PAIR",
+        "PARENT_ATTACHMENT_NOT_SETUP_VISIBLE",
+        "PARENT_ATTACHMENT_TYPE_UNSUPPORTED", "PARENT_ROLE_MISSING",
+        "PARENT_SIDE_UNAVAILABLE", "PARENT_SOURCE_LAYER_CROSSWIRE",
+        "PARENT_SOURCE_LAYER_MISSING", "PARENT_SOURCE_ROLE_CONFLICT",
+        "PARENT_SOURCE_ROLE_MISSING_OR_UNSUPPORTED",
+        "PARENT_SOURCE_SIDE_CONFLICT",
+        "PARENT_SOURCE_SIDE_MISSING_OR_UNSUPPORTED",
+        "RELATION_CANDIDATE_PAIR_BUDGET_EXCEEDED",
+        "SAMPLING_BUDGET_EXCEEDED"
+      ]}
+    },
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "base_rig_sha256", "base_bundle_sha256", "layer_manifest_sha256",
+        "resolved_project_sha256", "rig_sha256", "run_sha256",
+        "probes_sha256", "visuals_sha256", "bundle_sha256",
+        "attachment_image_set_sha256"
+      ],
+      "properties": {
+        "base_rig_sha256": {"$ref": "#/$defs/sha"},
+        "base_bundle_sha256": {"$ref": "#/$defs/sha"},
+        "layer_manifest_sha256": {"$ref": "#/$defs/sha"},
+        "resolved_project_sha256": {"$ref": "#/$defs/sha"},
+        "rig_sha256": {"$ref": "#/$defs/sha"},
+        "run_sha256": {"$ref": "#/$defs/sha"},
+        "probes_sha256": {"$ref": "#/$defs/sha"},
+        "visuals_sha256": {"$ref": "#/$defs/sha"},
+        "bundle_sha256": {"$ref": "#/$defs/sha"},
+        "attachment_image_set_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "relationship": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "relationship_id", "relation", "joint", "side", "status",
+        "reason_codes", "options", "evidence_sha256"
+      ],
+      "properties": {
+        "relationship_id": {"$ref": "#/$defs/id"},
+        "relation": {"enum": ["torso_arm", "pelvis_leg", "leg_foot"]},
+        "joint": {"$ref": "#/$defs/id"},
+        "side": {"enum": ["left", "right"]},
+        "status": {"enum": ["review_required", "unobservable"]},
+        "reason_codes": {"$ref": "#/$defs/reasonArray"},
+        "options": {
+          "type": "array", "maxItems": 64,
+          "items": {"$ref": "#/$defs/option"}
+        },
+        "evidence_sha256": {"$ref": "#/$defs/sha"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"status": {"const": "review_required"}}},
+          "then": {
+            "properties": {
+              "options": {
+                "contains": {
+                  "type": "object",
+                  "properties": {"status": {"const": "candidate"}},
+                  "required": ["status"]
+                },
+                "minContains": 1
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "reason_codes": {"minItems": 1},
+              "options": {
+                "contains": {
+                  "type": "object",
+                  "properties": {"status": {"const": "candidate"}},
+                  "required": ["status"]
+                },
+                "minContains": 0,
+                "maxContains": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "torsoArmLeft": {
+      "allOf": [
+        {"$ref": "#/$defs/relationship"},
+        {"properties": {
+          "relationship_id": {"const": "seam.torso_arm.left"},
+          "relation": {"const": "torso_arm"},
+          "joint": {"const": "shoulder.left"}, "side": {"const": "left"}
+        }}
+      ]
+    },
+    "torsoArmRight": {
+      "allOf": [
+        {"$ref": "#/$defs/relationship"},
+        {"properties": {
+          "relationship_id": {"const": "seam.torso_arm.right"},
+          "relation": {"const": "torso_arm"},
+          "joint": {"const": "shoulder.right"}, "side": {"const": "right"}
+        }}
+      ]
+    },
+    "pelvisLegLeft": {
+      "allOf": [
+        {"$ref": "#/$defs/relationship"},
+        {"properties": {
+          "relationship_id": {"const": "seam.pelvis_leg.left"},
+          "relation": {"const": "pelvis_leg"},
+          "joint": {"const": "hip.left"}, "side": {"const": "left"}
+        }}
+      ]
+    },
+    "pelvisLegRight": {
+      "allOf": [
+        {"$ref": "#/$defs/relationship"},
+        {"properties": {
+          "relationship_id": {"const": "seam.pelvis_leg.right"},
+          "relation": {"const": "pelvis_leg"},
+          "joint": {"const": "hip.right"}, "side": {"const": "right"}
+        }}
+      ]
+    },
+    "legFootLeft": {
+      "allOf": [
+        {"$ref": "#/$defs/relationship"},
+        {"properties": {
+          "relationship_id": {"const": "seam.leg_foot.left"},
+          "relation": {"const": "leg_foot"},
+          "joint": {"const": "ankle.left"}, "side": {"const": "left"}
+        }}
+      ]
+    },
+    "legFootRight": {
+      "allOf": [
+        {"$ref": "#/$defs/relationship"},
+        {"properties": {
+          "relationship_id": {"const": "seam.leg_foot.right"},
+          "relation": {"const": "leg_foot"},
+          "joint": {"const": "ankle.right"}, "side": {"const": "right"}
+        }}
+      ]
+    },
+    "option": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "option_id", "parent_attachment_id", "child_attachment_id",
+        "parent_attachment_type", "child_attachment_type", "status",
+        "reason_codes", "contact_evidence", "principal_axis",
+        "sampling_profile", "anchors", "evidence_sha256"
+      ],
+      "properties": {
+        "option_id": {"$ref": "#/$defs/id"},
+        "parent_attachment_id": {"$ref": "#/$defs/id"},
+        "child_attachment_id": {"$ref": "#/$defs/id"},
+        "parent_attachment_type": {"enum": ["region", "mesh"]},
+        "child_attachment_type": {"enum": ["region", "mesh"]},
+        "status": {"enum": ["candidate", "unavailable"]},
+        "reason_codes": {"$ref": "#/$defs/reasonArray"},
+        "contact_evidence": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/contact"}]
+        },
+        "principal_axis": {"enum": [null, "x", "y"]},
+        "sampling_profile": {
+          "enum": [null, "bbox-major-axis-common-alpha-quantiles-v1"]
+        },
+        "anchors": {
+          "type": "array", "maxItems": 4,
+          "items": {"$ref": "#/$defs/anchor"}
+        },
+        "evidence_sha256": {"$ref": "#/$defs/sha"}
+      },
+      "allOf": [
+        {
+          "oneOf": [
+            {"properties": {
+              "principal_axis": {"type": "null"},
+              "sampling_profile": {"type": "null"}
+            }},
+            {"properties": {
+              "principal_axis": {"enum": ["x", "y"]},
+              "sampling_profile": {
+                "const": "bbox-major-axis-common-alpha-quantiles-v1"
+              }
+            }}
+          ]
+        },
+        {
+          "if": {"properties": {"status": {"const": "candidate"}}},
+          "then": {
+            "properties": {
+              "reason_codes": {"maxItems": 0},
+              "contact_evidence": {"$ref": "#/$defs/overlapContact"},
+              "principal_axis": {"enum": ["x", "y"]},
+              "sampling_profile": {
+                "const": "bbox-major-axis-common-alpha-quantiles-v1"
+              },
+              "anchors": {"minItems": 2, "maxItems": 4}
+            }
+          },
+          "else": {
+            "properties": {
+              "anchors": {"maxItems": 0}
+            },
+            "oneOf": [
+              {"properties": {
+                "contact_evidence": {"type": "null"},
+                "principal_axis": {"type": "null"},
+                "sampling_profile": {"type": "null"},
+                "reason_codes": {
+                  "minItems": 1, "maxItems": 1,
+                  "items": {"enum": [
+                    "SAMPLING_BUDGET_EXCEEDED",
+                    "CONTACT_OVERLAP_BELOW_THRESHOLD", "CONTACT_MASK_EMPTY",
+                    "CONTACT_GAP_TOO_LARGE", "CONTACT_UNOBSERVABLE"
+                  ]}
+                }
+              }},
+              {"properties": {
+                "contact_evidence": {"$ref": "#/$defs/gapContact"},
+                "principal_axis": {"type": "null"},
+                "sampling_profile": {"type": "null"},
+                "reason_codes": {"const": ["GAP_LOCATOR_UNSUPPORTED_IN_V1"]}
+              }},
+              {"properties": {
+                "contact_evidence": {"$ref": "#/$defs/overlapContact"},
+                "principal_axis": {"enum": ["x", "y"]},
+                "sampling_profile": {
+                  "const": "bbox-major-axis-common-alpha-quantiles-v1"
+                },
+                "reason_codes": {
+                  "minItems": 1, "maxItems": 1,
+                  "items": {"enum": [
+                    "SAMPLING_BUDGET_EXCEEDED",
+                    "INSUFFICIENT_COMMON_ALPHA_POINTS",
+                    "LOCATOR_UNREPRESENTABLE"
+                  ]}
+                }
+              }}
+            ]
+          }
+        }
+      ],
+      "not": {
+        "properties": {
+          "parent_attachment_type": {"const": "mesh"},
+          "child_attachment_type": {"const": "mesh"}
+        },
+        "required": ["parent_attachment_type", "child_attachment_type"]
+      }
+    },
+    "contact": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "contact_id", "mode", "area", "bbox_xywh", "centroid_xy",
+        "variance_xy", "representative_xy", "error_radius_px",
+        "overlap_ratios", "gap_distance_px", "endpoints_xy"
+      ],
+      "properties": {
+        "contact_id": {"$ref": "#/$defs/id"},
+        "mode": {"enum": ["overlap", "gap"]},
+        "area": {"type": "integer", "minimum": 0, "maximum": 16777216},
+        "bbox_xywh": {
+          "type": "array", "minItems": 4, "maxItems": 4,
+          "prefixItems": [
+            {"type": "integer"}, {"type": "integer"},
+            {"type": "integer", "minimum": 1},
+            {"type": "integer", "minimum": 1}
+          ], "items": false
+        },
+        "centroid_xy": {"$ref": "#/$defs/point"},
+        "variance_xy": {
+          "type": "array", "minItems": 2, "maxItems": 2,
+          "items": {"type": "number", "minimum": 0, "maximum": 1e18}
+        },
+        "representative_xy": {"$ref": "#/$defs/point"},
+        "error_radius_px": {
+          "type": "number", "minimum": 0, "maximum": 1000000000
+        },
+        "overlap_ratios": {
+          "type": "array", "minItems": 2, "maxItems": 2,
+          "items": {"type": "number", "minimum": 0, "maximum": 1}
+        },
+        "gap_distance_px": {
+          "type": "number", "minimum": 0, "maximum": 8.0
+        },
+        "endpoints_xy": {
+          "type": "array", "minItems": 2, "maxItems": 2,
+          "items": {"$ref": "#/$defs/point"}
+        }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"mode": {"const": "overlap"}}},
+          "then": {"properties": {
+            "contact_id": {"pattern": "^overlap\\.[0-9]{3}$"},
+            "area": {"minimum": 1},
+            "overlap_ratios": {
+              "items": {"type": "number", "exclusiveMinimum": 0, "maximum": 1}
+            },
+            "gap_distance_px": {"const": 0}
+          }},
+          "else": {"properties": {
+            "contact_id": {"const": "gap.000"},
+            "area": {"const": 0},
+            "overlap_ratios": {"const": [0.0, 0.0]},
+            "gap_distance_px": {"exclusiveMinimum": 0, "maximum": 8.0}
+          }}
+        }
+      ]
+    },
+    "overlapContact": {
+      "allOf": [
+        {"$ref": "#/$defs/contact"},
+        {"properties": {"mode": {"const": "overlap"}}}
+      ]
+    },
+    "gapContact": {
+      "allOf": [
+        {"$ref": "#/$defs/contact"},
+        {"properties": {"mode": {"const": "gap"}}}
+      ]
+    },
+    "point": {
+      "type": "array", "minItems": 2, "maxItems": 2,
+      "items": {
+        "type": "number", "minimum": -1000000000,
+        "maximum": 1000000000
+      }
+    },
+    "anchor": {
+      "type": "object", "additionalProperties": false,
+      "required": ["pair_id", "parent", "child"],
+      "properties": {
+        "pair_id": {"$ref": "#/$defs/id"},
+        "parent": {"$ref": "#/$defs/locator"},
+        "child": {"$ref": "#/$defs/locator"}
+      }
+    },
+    "locator": {
+      "oneOf": [
+        {"$ref": "#/$defs/regionLocator"},
+        {"$ref": "#/$defs/meshLocator"}
+      ]
+    },
+    "regionLocator": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "attachment_id", "attachment_type", "locator_type",
+        "local_xy_q4096"
+      ],
+      "properties": {
+        "attachment_id": {"$ref": "#/$defs/id"},
+        "attachment_type": {"const": "region"},
+        "locator_type": {"const": "region-local-q4096"},
+        "local_xy_q4096": {
+          "type": "array", "minItems": 2, "maxItems": 2,
+          "items": {
+            "type": "integer", "minimum": 0, "maximum": 4096000000000
+          }
+        }
+      }
+    },
+    "meshLocator": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "attachment_id", "attachment_type", "locator_type",
+        "triangle_index", "vertex_indices", "weights_q65535"
+      ],
+      "properties": {
+        "attachment_id": {"$ref": "#/$defs/id"},
+        "attachment_type": {"const": "mesh"},
+        "locator_type": {"const": "mesh-barycentric-q65535"},
+        "triangle_index": {"type": "integer", "minimum": 0, "maximum": 8191},
+        "vertex_indices": {
+          "type": "array", "minItems": 3, "maxItems": 3,
+          "uniqueItems": true,
+          "items": {"type": "integer", "minimum": 0, "maximum": 4095}
+        },
+        "weights_q65535": {
+          "type": "array", "minItems": 3, "maxItems": 3,
+          "items": {"type": "integer", "minimum": 0, "maximum": 65535}
+        }
+      }
+    },
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "status", "relationship_count", "review_required_count",
+        "unobservable_count", "option_count", "candidate_option_count",
+        "unavailable_option_count", "anchor_pair_count"
+      ],
+      "properties": {
+        "status": {"const": "manual_review_required"},
+        "relationship_count": {"type": "integer", "const": 6},
+        "review_required_count": {"type": "integer", "minimum": 0, "maximum": 6},
+        "unobservable_count": {"type": "integer", "minimum": 0, "maximum": 6},
+        "option_count": {"type": "integer", "minimum": 0, "maximum": 384},
+        "candidate_option_count": {"type": "integer", "minimum": 0, "maximum": 384},
+        "unavailable_option_count": {"type": "integer", "minimum": 0, "maximum": 384},
+        "anchor_pair_count": {"type": "integer", "minimum": 0, "maximum": 1536}
+      }
+    }
+  }
+}

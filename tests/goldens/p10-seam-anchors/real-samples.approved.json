@@ -1,0 +1,119 @@
+{
+  "format": "autospine-p10-seam-anchor-goldens",
+  "format_version": 1,
+  "samples": [
+    {
+      "project_id": "seethrough_output",
+      "source": {
+        "layer_manifest_sha256": "ed1e2458cd22b75c51f13656feb86ecf55682508b62413c980c3035743e8faa7",
+        "p3_rig_sha256": "40f96ade2f38f93caa7610b40f02ed9b30b8782396cee0e80499724a0450e327",
+        "p3_bundle_sha256": "7754406b1f6834a6b5c8fedfcd4743bd294d8cc568d7ff6413673cada3d79a1d"
+      },
+      "candidate_sha256": "8b84858b1a723e20374892c0fc570385c8a23ff91b7398839af3218b67f21ff6",
+      "summary": {
+        "status": "manual_review_required",
+        "relationship_count": 6,
+        "review_required_count": 6,
+        "unobservable_count": 0,
+        "option_count": 9,
+        "candidate_option_count": 9,
+        "unavailable_option_count": 0,
+        "anchor_pair_count": 36
+      },
+      "relationships": [
+        {
+          "relationship_id": "seam.torso_arm.left",
+          "status": "review_required",
+          "reason_codes": [],
+          "options": [
+            {"parent": "layer-006-topwear", "child": "layer-007-handwear-l", "types": ["region", "region"], "status": "candidate", "mode": "overlap", "anchor_pair_count": 4},
+            {"parent": "layer-006-topwear", "child": "layer-007-handwear-l", "types": ["region", "region"], "status": "candidate", "mode": "overlap", "anchor_pair_count": 4},
+            {"parent": "layer-006-topwear", "child": "layer-007-handwear-l", "types": ["region", "region"], "status": "candidate", "mode": "overlap", "anchor_pair_count": 4}
+          ]
+        },
+        {
+          "relationship_id": "seam.torso_arm.right",
+          "status": "review_required",
+          "reason_codes": [],
+          "options": [
+            {"parent": "layer-006-topwear", "child": "layer-003-handwear-r", "types": ["region", "region"], "status": "candidate", "mode": "overlap", "anchor_pair_count": 4},
+            {"parent": "layer-006-topwear", "child": "layer-003-handwear-r", "types": ["region", "region"], "status": "candidate", "mode": "overlap", "anchor_pair_count": 4}
+          ]
+        },
+        {
+          "relationship_id": "seam.pelvis_leg.left",
+          "status": "review_required",
+          "reason_codes": [],
+          "options": [
+            {"parent": "layer-005-bottomwear", "child": "layer-004-legwear--left", "types": ["region", "mesh"], "status": "candidate", "mode": "overlap", "anchor_pair_count": 4}
+          ]
+        },
+        {
+          "relationship_id": "seam.pelvis_leg.right",
+          "status": "review_required",
+          "reason_codes": [],
+          "options": [
+            {"parent": "layer-005-bottomwear", "child": "layer-004-legwear--right", "types": ["region", "mesh"], "status": "candidate", "mode": "overlap", "anchor_pair_count": 4}
+          ]
+        },
+        {
+          "relationship_id": "seam.leg_foot.left",
+          "status": "review_required",
+          "reason_codes": [],
+          "options": [
+            {"parent": "layer-004-legwear--left", "child": "layer-002-footwear--left", "types": ["mesh", "region"], "status": "candidate", "mode": "overlap", "anchor_pair_count": 4}
+          ]
+        },
+        {
+          "relationship_id": "seam.leg_foot.right",
+          "status": "review_required",
+          "reason_codes": [],
+          "options": [
+            {"parent": "layer-004-legwear--right", "child": "layer-002-footwear--right", "types": ["mesh", "region"], "status": "candidate", "mode": "overlap", "anchor_pair_count": 4}
+          ]
+        }
+      ]
+    },
+    {
+      "project_id": "seethrough_output_5",
+      "source": {
+        "layer_manifest_sha256": "45b5f2a90c55866a17c83a01e7ae46e9bd2bed51b4a918d60690a574f14bff51",
+        "p3_rig_sha256": "897761e75bdd7e1cd3018cdab0f793f2d3ba637d88e01ce907beb179cfe0cd77",
+        "p3_bundle_sha256": "21f4707eaf023d664ae8cea8b785fd8a5197187f846d6db10b9c3ef34d7c6576"
+      },
+      "candidate_sha256": "f53d049df823b2507db5cafa7e0d06bf97519e6bf0494bbfb53c5911d37d2a37",
+      "summary": {
+        "status": "manual_review_required",
+        "relationship_count": 6,
+        "review_required_count": 2,
+        "unobservable_count": 4,
+        "option_count": 2,
+        "candidate_option_count": 2,
+        "unavailable_option_count": 0,
+        "anchor_pair_count": 8
+      },
+      "relationships": [
+        {
+          "relationship_id": "seam.torso_arm.left",
+          "status": "review_required",
+          "reason_codes": [],
+          "options": [
+            {"parent": "layer-005-topwear", "child": "layer-008-hand-r", "types": ["region", "region"], "status": "candidate", "mode": "overlap", "anchor_pair_count": 4}
+          ]
+        },
+        {
+          "relationship_id": "seam.torso_arm.right",
+          "status": "review_required",
+          "reason_codes": [],
+          "options": [
+            {"parent": "layer-005-topwear", "child": "layer-009-hand-l", "types": ["region", "region"], "status": "candidate", "mode": "overlap", "anchor_pair_count": 4}
+          ]
+        },
+        {"relationship_id": "seam.pelvis_leg.left", "status": "unobservable", "reason_codes": ["CHILD_ROLE_MISSING", "NO_SUPPORTED_CANDIDATE_PAIR"], "options": []},
+        {"relationship_id": "seam.pelvis_leg.right", "status": "unobservable", "reason_codes": ["CHILD_ROLE_MISSING", "NO_SUPPORTED_CANDIDATE_PAIR"], "options": []},
+        {"relationship_id": "seam.leg_foot.left", "status": "unobservable", "reason_codes": ["NO_SUPPORTED_CANDIDATE_PAIR", "PARENT_ROLE_MISSING"], "options": []},
+        {"relationship_id": "seam.leg_foot.right", "status": "unobservable", "reason_codes": ["NO_SUPPORTED_CANDIDATE_PAIR", "PARENT_ROLE_MISSING"], "options": []}
+      ]
+    }
+  ]
+}

@@ -179,6 +179,24 @@ class ProjectionStageCliTests(unittest.TestCase):
             payload["report"]["policy"]["runtime_timeline_emitted"]
         )
 
+    def test_seam_candidate_command_is_registered_and_dispatched(self):
+        argv = [
+            "compile-seam-anchor-candidates", "sample",
+            "--layer-manifest-sha256", "1" * 64,
+            "--p3-rig-sha256", "2" * 64,
+            "--p3-bundle-sha256", "3" * 64,
+        ]
+        parsed = self.parser.parse_args(argv)
+        self.assertEqual(self.state, parsed.state_root)
+        with patch(
+            "autospine_workbench.projection_stage_cli."
+            "dispatch_seam_anchor_candidate_command",
+            return_value=0,
+        ) as dispatch:
+            status = dispatch_projection_stage_command(parsed)
+        self.assertEqual(0, status)
+        dispatch.assert_called_once_with(parsed)
+
 
 if __name__ == "__main__":
     unittest.main()
