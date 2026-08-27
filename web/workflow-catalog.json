@@ -1,6 +1,6 @@
 {
   "catalog_version": "1.0.0",
-  "current_stage": "P10.7",
+  "current_stage": "P10.7b",
   "stages": [
     {"id":"P0","label":"合同、服务与基础验证"},
     {"id":"P1","label":"图层复核与四肢候选"},
@@ -74,6 +74,8 @@
     {"id":"cli-compile-body-sway-motion-consumer-admission","stage":"P10","title":"准入 Body-sway 动作消费者","summary":"重放 P10.5d 与 P9，生成零写入 setup-local timeline 消费准入。","kind":"cli","status":"available","command":"compile-body-sway-motion-consumer-admission","doc":"docs/how-to-compile-body-sway-motion-consumer-admission.md"},
     {"id":"cli-compile-body-sway-motion-instance-v3","stage":"P10","title":"编译 Body-sway MotionInstance v3","summary":"重查 visual/seam current heads，将 P10.6a 准入原子发布为严格三文件 v3 bundle。","kind":"cli","status":"available","command":"compile-body-sway-motion-instance-v3","doc":"docs/how-to-compile-motion-instance-v3.md"},
     {"id":"cli-verify-body-sway-motion-instance-v3","stage":"P10","title":"验证 Body-sway MotionInstance v3","summary":"按精确 v3/bundle 双 SHA 历史重放，不声明 current-head authority。","kind":"cli","status":"available","command":"verify-body-sway-motion-instance-v3","doc":"docs/how-to-compile-motion-instance-v3.md"},
+    {"id":"cli-compile-body-sway-spine42-v3","stage":"P10","title":"编译 Body-sway Spine 4.2 v3","summary":"重放 MIv3→P9→P5/P3，在 current-head 门禁下发布五文件 Spine adapter bundle。","kind":"cli","status":"available","command":"compile-body-sway-spine42-v3","doc":"docs/how-to-compile-spine42-v3.md"},
+    {"id":"cli-verify-body-sway-spine42-v3","stage":"P10","title":"验证 Body-sway Spine 4.2 v3","summary":"按 skeleton/bundle 双 SHA 重建全部上游和五文件历史产物，不读取 current heads。","kind":"cli","status":"available","command":"verify-body-sway-spine42-v3","doc":"docs/how-to-compile-spine42-v3.md"},
     {"id":"planned-seethrough-ingest","stage":"P0","title":"See-through 推理与 PSD 入库","summary":"自动运行多 seed 分层、质量筛选、PSD 清理并转为 Layer Manifest 输入。","kind":"planned","status":"external_required","doc":"docs/development-roadmap.md"},
     {"id":"planned-remote-collaboration","stage":"P0","title":"多用户与远程生产部署","summary":"在保留 CAS/revision 语义下加入身份、权限、任务队列和对象存储。","kind":"planned","status":"planned","doc":"docs/development-roadmap.md"},
     {"id":"planned-resolved-snapshot-v2","stage":"P0","title":"Resolved Project v2 语义升级","summary":"仅在生成、QA 或 provenance 语义变化时新增 v2 合同；v1 Schema、validator 与历史哈希已经冻结。","kind":"planned","status":"planned","doc":"docs/development-roadmap.md"},
@@ -91,7 +93,7 @@
     {"id":"planned-lipsync","stage":"P10","title":"自动口型候选与音素映射","summary":"检测可用嘴部附件并将音频或节奏映射为可复核口型序列。","kind":"planned","status":"planned","doc":"docs/development-roadmap.md"},
     {"id":"planned-hair-spring","stage":"P10","title":"头发弹簧绑定与次级运动","summary":"为已分层发束生成 spring chain、碰撞约束和确定性 bake。","kind":"planned","status":"planned","doc":"docs/development-roadmap.md"},
     {"id":"planned-realtime-tracking","stage":"P10","title":"实时面部与身体追踪映射","summary":"把面部锚点和四肢姿态映射到受限 RigIR 控制通道。","kind":"planned","status":"external_required","doc":"docs/development-roadmap.md"},
-    {"id":"planned-body-sway-spine","stage":"P10","title":"P10.7 Body-sway 接入 Spine 4.2","summary":"在 P10.6b 完成后，将 MotionInstance v3 编译到明确的 Spine 4.2 adapter 并建立 runtime 证据链。","kind":"planned","status":"planned","doc":"docs/development-roadmap.md"},
+    {"id":"planned-body-sway-spine-runtime","stage":"P10","title":"P10.7b 官方 Runtime 与 Raster 回归","summary":"在已完成的 v3 adapter bundle 上，用已授权 Spine 4.2.119 建立加载、固定帧、完整附件边界和人工批准证据。","kind":"planned","status":"external_required","doc":"docs/development-roadmap.md"},
     {"id":"planned-raster-boundary-regression","stage":"P10","title":"完整附件边界 Raster 回归","summary":"对连续时间、极值姿势和 attachment 边界建立截图差异门禁。","kind":"planned","status":"external_required","doc":"docs/development-roadmap.md"}
   ]
 }

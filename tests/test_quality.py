@@ -16,6 +16,9 @@ P10_PREFIXES = (
     "src/autospine_workbench/body_sway_",
     "src/autospine_workbench/motion_instance_v3_",
     "src/autospine_workbench/p10_",
+    "src/autospine_workbench/spine42_v3_",
+    "src/autospine_workbench/spine42_contract_v3.py",
+    "src/autospine_workbench/spine42_json_adapter_v3.py",
     "src/autospine_workbench/reviewed_seam_anchor_",
     "src/autospine_workbench/seam_anchor_",
     "web/body-sway-",
@@ -36,6 +39,11 @@ P10_TEST_PREFIXES = (
     "motion_instance_v3_",
     "test_motion_instance_v3",
     "test_p10_motion_instance_v3",
+    "spine42_v3_",
+    "test_spine42_v3",
+    "test_spine42_contract_v3",
+    "test_spine42_json_adapter_v3",
+    "test_p10_spine42_v3",
 )
 
 
@@ -82,7 +90,7 @@ class SourceQualityBudgetTests(unittest.TestCase):
                 stale.append(f"{relative}: now fits the default budget; remove allowlist entry")
         self.assertEqual([], stale, "\n".join(stale))
 
-    def test_p10_motion_instance_v3_tests_respect_line_budget(self) -> None:
+    def test_p10_contract_tests_respect_line_budget(self) -> None:
         violations = []
         for path in sorted((ROOT / "tests").glob("*.py")):
             if not path.name.startswith(P10_TEST_PREFIXES):

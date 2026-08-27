@@ -1,6 +1,6 @@
 # AutoSpine Workbench 功能与入口参考
 
-本文是面向操作者和开发者的 Reference。它回答“功能是否已经实现、从哪里进入、会得到什么”，不替代具体操作步骤。P0 Resolved Project v1 合同与 P10.6b MotionInstance v3 已完成；当前后续开发入口是 **P10.7 Spine 4.2 adapter/runtime 回归**。计划项见[开发路线](development-roadmap.md)。
+本文是面向操作者和开发者的 Reference。它回答“功能是否已经实现、从哪里进入、会得到什么”，不替代具体操作步骤。P0 Resolved Project v1、P10.6b MotionInstance v3 与 P10.7a Spine 4.2 v3 adapter bundle 已完成；当前后续开发入口是 **P10.7b 官方 Runtime/raster 回归**。计划项见[开发路线](development-roadmap.md)。
 
 ## 统一入口
 
@@ -11,7 +11,7 @@
 - [Body-sway 视觉复核台](http://127.0.0.1:8765/body-sway-review.html)：P10.3c sampled still 复核；
 - [Seam Anchor 复核台](http://127.0.0.1:8765/seam-anchor-review.html)：P10.5b 静态接缝锚点复核。
 
-功能入口中心读取 [`web/workflow-catalog.json`](../web/workflow-catalog.json)，列出 56 个已注册 CLI、三个任务页面和尚未实现的计划项。对于 CLI，它只复制 `python -B -m autospine_workbench <command> --help` 帮助命令，不在浏览器或服务端执行命令；源码模式下须先在当前 PowerShell 执行 `$env:PYTHONPATH = (Resolve-Path .\src).Path`，再复制和运行帮助命令。文档卡片通过 `/document-viewer.html?doc=docs/<文件名>.md` 安全文档查看器打开；查看器只读获取 `/docs/<文件名>.md`，不能访问目录外文件，并把响应作为纯文本显示，不解析 HTML 或执行文档内容。
+功能入口中心读取 [`web/workflow-catalog.json`](../web/workflow-catalog.json)，列出 58 个已注册 CLI、三个任务页面和尚未实现的计划项。对于 CLI，它只复制 `python -B -m autospine_workbench <command> --help` 帮助命令，不在浏览器或服务端执行命令；源码模式下须先在当前 PowerShell 执行 `$env:PYTHONPATH = (Resolve-Path .\src).Path`，再复制和运行帮助命令。文档卡片通过 `/document-viewer.html?doc=docs/<文件名>.md` 安全文档查看器打开；查看器只读获取 `/docs/<文件名>.md`，不能访问目录外文件，并把响应作为纯文本显示，不解析 HTML 或执行文档内容。
 
 入口状态含义：
 
@@ -54,7 +54,7 @@ python -B -m autospine_workbench --help
 python -B -m autospine_workbench <command> --help
 ```
 
-下表与当前 CLI parser 的 56 个命令一一对应。具体必填 SHA、文件路径和外部前置条件以各命令 `--help` 及链接的 how-to 为准。
+下表与当前 CLI parser 的 58 个命令一一对应。具体必填 SHA、文件路径和外部前置条件以各命令 `--help` 及链接的 how-to 为准。
 
 ### P0：服务与合同
 
@@ -208,7 +208,16 @@ Resolved Project v1 是已完成的 P0 合同能力，但没有伪造一个独�
 | `compile-body-sway-motion-instance-v3` | 命令/store 双重查 current heads，把完整 P10.6a 成功 wrapper 原子发布为三文件 v3 bundle，并按地址读回 |
 | `verify-body-sway-motion-instance-v3` | 按精确 v3/bundle 双 SHA 重编历史 bundle，不声明 current-head authority |
 
-操作说明：[编译并复验 P10.6b MotionInstance v3](how-to-compile-motion-instance-v3.md)。admission 上限为 64 MiB；run 只授予 MotionInstance v3 emitted，release gate 仍 blocked。输出是版本中立 setup-local timeline，不是 Spine 4.2 timeline；下一开发入口是 P10.7。
+操作说明：[编译并复验 P10.6b MotionInstance v3](how-to-compile-motion-instance-v3.md)。admission 上限为 64 MiB；run 只授予 MotionInstance v3 emitted，release gate 仍 blocked。输出是版本中立 setup-local timeline；P10.7a 会显式消费它。
+
+### P10.7a：Spine 4.2 v3 Adapter Bundle
+
+| 命令 | 功能 |
+| --- | --- |
+| `compile-body-sway-spine42-v3` | 从精确 MIv3 双 SHA 重放 P9/P5/P3，在 current-head 门禁下发布五文件 Spine 4.2 v3 bundle，并按地址读回 |
+| `verify-body-sway-spine42-v3` | 按 skeleton/bundle 双 SHA 重建完整上游和五文件历史产物，不读取 current heads |
+
+操作说明：[编译并复验 P10.7a Spine 4.2 v3](how-to-compile-spine42-v3.md)。run 只授予 `spine_adapter_emitted`；官方 Runtime、raster、永久 head、publishable timeline 和 release authority 仍为 false/blocked。下一开发入口是 P10.7b。
 
 ## HTTP 写入边界
 
@@ -228,7 +237,7 @@ Resolved Project v1 是已完成的 P0 合同能力，但没有伪造一个独�
 - P6 当前只有离线 CLI；主工作台没有 Spine 导出编排，Project API 的 `export_spine` 仍为 `false`。
 - resolved snapshot 已确定性生成并被下游寻址，现有独立 v1 JSON Schema、严格语义 validator、派生 QA 校验及 r5/r7 历史哈希回归；它仍没有独立 CLI/UI，外部 candidate/split artifact 字节重放继续由各自 binder 负责。
 - override history 已 append-only 保存，但主工作台尚无历史浏览/恢复 UI；安全恢复必须追加新 revision，不能改写历史。
-- P10 body-sway 已完成到 P10.6b MotionInstance v3 与严格 bundle；尚未生成可发布 Spine timeline，也未通过官方 Runtime/raster 回归。
+- P10 body-sway 已完成到 P10.7a Spine 4.2 v3 五文件 adapter bundle；它仍不是可发布 timeline，且尚未通过官方 Runtime/raster 回归。
 - `blink`、口型和头发目前只存在 idle candidate 类型或规划入口，没有可靠素材生成、绑定与 runtime 交付。
 - See-through/pose 推理、真实 Kimodo checkpoint 质量门禁、实时追踪、自由形变、runtime IK、生产部署仍未实现。
 

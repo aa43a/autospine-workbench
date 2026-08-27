@@ -85,7 +85,9 @@ exact Layer Manifest + exact P3 static bundle
                                        ↓
              P10.6b MotionInstance v3 bundle
                                        ↓
-          [planned] P10.7 Spine 4.2/runtime
+             P10.7a Spine 4.2 v3 bundle
+                                       ↓
+       [external] P10.7b Runtime/raster gate
                                        ↓
                             blocked release
 
@@ -423,8 +425,15 @@ v3/bundle 双 SHA，无 `latest`。MIv2 root translation、markers 与 stepped d
 rotation overlay 只允许躯干四骨。历史 reader 不观察 current head，因此只证明当时发布的字节
 可重放。store 在创建 publication parent 前独立执行 before → contract → after 门禁，公开命令
 发布后再按精确地址读回；run 的 authority 只开放 MotionInstance v3 emitted，release gate 固定
-blocked。admission 独立上限为 64 MiB。下一架构增量是 P10.7 Spine 4.2 adapter 与官方 Runtime/raster 回归；依赖和验收定义
-见[后续开发路线](development-roadmap.md)。
+blocked。admission 独立上限为 64 MiB。
+
+P10.7a 以 project 与 MIv3 双 SHA 作为公开输入，严格重放 MIv3→P9→P5/P3→RigIR/源 PNG，
+再用独立 adapter profile `3.0.0` 生成固定 Spine 4.2 JSON、atlas 与 PNG。五文件 bundle 使用
+独立 `spine42-v3/<skeleton-sha>/<bundle-sha>` 地址空间；store 和公开命令均执行 current-head
+门禁，发布后 exact reader 会从完整上游逐字节重建。旧 P6 profile/hash 不变，未知能力 fail
+loud。run 只开放 adapter emitted，官方 Runtime/raster、永久 head、publishable timeline 和
+release authority 均保持 blocked。下一架构增量是 P10.7b 官方 Runtime/raster 回归；依赖和
+验收定义见[后续开发路线](development-roadmap.md)。
 
 后续 timeline/runtime 阶段继续遵守：
 

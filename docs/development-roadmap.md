@@ -1,6 +1,6 @@
 # AutoSpine Workbench 后续开发路线
 
-本文是 Explanation 与交付计划，面向维护者和需要评估可行性的项目负责人。它从 **P0 Resolved Project v1 合同与 P10.6b MotionInstance v3 已完成** 的事实出发，说明尚未实现的能力应按什么依赖关系推进。当前后续开发入口是 P10.7。这里的阶段名、优先级和验收条件是建议，不代表对应功能已经存在，也不构成发布日期承诺。
+本文是 Explanation 与交付计划，面向维护者和需要评估可行性的项目负责人。它从 **P0 Resolved Project v1 合同、P10.6b MotionInstance v3 与 P10.7a Spine adapter bundle 已完成** 的事实出发，说明尚未实现的能力应按什么依赖关系推进。当前后续开发入口是 P10.7b 官方 Runtime/raster 回归。这里的阶段名、优先级和验收条件是建议，不代表对应功能已经存在，也不构成发布日期承诺。
 
 ## 规划原则
 
@@ -17,7 +17,7 @@
 
 | 优先级 | 能力 | 原因 |
 | --- | --- | --- |
-| P0 | P10.7 P6 adapter 接入与官方 Runtime 回归 | 只有穿过目标 runtime，body-sway 才形成可验证交付链 |
+| P0 | P10.7b 官方 Runtime 与 raster 回归 | v3 adapter 已能发布；只有穿过目标 runtime，body-sway 才形成可验证视觉交付链 |
 | P1 | Revision 历史浏览/恢复 UI | 历史已不可变保存，但操作者尚不能便捷查看或安全恢复 |
 | P1 | 主工作台 Spine 导出编排入口 | 离线 P6 已完成，主项目能力仍明确为 `export_spine=false` |
 | P1 | Attachment switch 基础合同 | 眨眼和口型的共同前置能力 |
@@ -38,7 +38,9 @@ P10.6a（已完成）
         ↓
 P10.6b MotionInstance v3（已完成）
         ↓
-P10.7 Spine 4.2 adapter + runtime/raster regression
+P10.7a Spine 4.2 adapter + immutable bundle（已完成）
+        ↓
+P10.7b official runtime/raster regression（需要外部授权环境）
         ↓
 attachment switch ──→ blink / mouth
         │
@@ -131,19 +133,37 @@ P10.6b 已交付，不再是规划项。操作入口见
 - release gate 仍明确 blocked，不能在本阶段声称 Spine Runtime 或 raster 通过。
 
 保留边界：head observation 只覆盖本次发布前编译，不是永久 authority；历史 verify 只证明精确
-字节可重放。Spine adapter、官方 Runtime、完整 attachment raster 与 release authority 仍由
-P10.7 关闭。后续维护必须继续防止 current-head TOCTOU、MIv2/channel 合成和插值语义漂移。
+字节可重放。Spine adapter bundle 已由 P10.7a 关闭；官方 Runtime、完整 attachment raster 与
+release authority 仍由 P10.7b 关闭。后续维护必须继续防止 current-head TOCTOU、MIv2/channel
+合成和插值语义漂移。
 
-## P10.7：接入 P6 Spine 4.2 与 Runtime 回归
+## 已完成：P10.7a Spine 4.2 v3 Adapter 与五文件 Bundle
 
-**建议优先级：P0，紧接 P10.6b。**
+P10.7a 已交付，不再是规划项。操作入口见
+[编译并复验 P10.7a Spine 4.2 v3 Bundle](how-to-compile-spine42-v3.md)。
 
-依赖：MotionInstance v3 严格 bundle、现有 P6 Spine 4.2 profile、操作者提供且已授权的 `@esotericsoftware/spine-player@4.2.119`。
+已交付：
 
-交付：
+- 独立 adapter profile `3.0.0`，显式支持 rotation、root translation、marker、stepped draw order、region 与 weighted mesh；
+- 未知 timeline、attachment、constraint 和 interpolation fail loud，不修改或扩写旧 P6 profile/hash；
+- 公开编译输入只有 project 与 MIv3 双 SHA，并完整重放 MIv3→P9→P5/P3→RigIR/源 PNG；
+- 固定 JSON/atlas/PNG/run/report 五文件库存与独立 `spine42-v3` 内容地址；
+- command/store current-head 门禁、原子写入、发布后精确读回，以及不观察 current heads 的历史 verify；
+- 300 行生产文件硬门禁与 P6/P10.6b 零回归。
 
-- P6 adapter 的显式 v3 capability profile；
-- MIv3 → Spine 4.2 timeline 编译与五文件内容寻址 bundle；
+已关闭的进入下一阶段条件：同一输入产生相同 skeleton/bundle SHA；任一上游跨线或文件篡改
+fail closed；历史 reader 能从完整上游逐字节重建；run 唯一授予 `spine_adapter_emitted=true`。
+官方 runtime、raster、永久 head、publishable timeline 和 release authority 均保持 false/blocked。
+
+## P10.7b：官方 Runtime 与 Raster 回归
+
+**建议优先级：P0，紧接已完成的 P10.7a。**
+
+依赖：P10.7a 五文件 bundle，以及操作者提供且明确确认已授权的
+`@esotericsoftware/spine-player@4.2.119`。仓库不下载、捆绑或代替许可确认。
+
+待交付：
+
 - 固定 canvas、DPR、tick/case 的官方 Runtime capture plan；
 - attachment 完整边界的 raster 指标与人工截图复核合同；
 - setup、现有 idle/wave 和 body-sway 的兼容回归。

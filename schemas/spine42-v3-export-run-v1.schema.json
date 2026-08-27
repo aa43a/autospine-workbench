@@ -1,0 +1,216 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/spine42-v3-export-run-v1.schema.json",
+  "title": "AutoSpine MotionInstance v3 to Spine 4.2 export run v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "project_id", "clip_id",
+    "adapter_profile", "adapter_profile_sha256", "evidence_profile",
+    "inputs", "outputs", "authority", "release_gate",
+    "run_identity_sha256"
+  ],
+  "properties": {
+    "format": {"const": "autospine-spine42-v3-export-run"},
+    "format_version": {"type": "integer", "const": 1},
+    "project_id": {"$ref": "#/$defs/token"},
+    "clip_id": {"$ref": "#/$defs/token"},
+    "adapter_profile": {"$ref": "#/$defs/adapterProfile"},
+    "adapter_profile_sha256": {"$ref": "#/$defs/sha256"},
+    "evidence_profile": {"$ref": "#/$defs/evidenceProfile"},
+    "inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["p3", "motion_instance_v3", "source_images"],
+      "properties": {
+        "p3": {"$ref": "#/$defs/p3"},
+        "motion_instance_v3": {"$ref": "#/$defs/motionInstanceV3"},
+        "source_images": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4096,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "sha256"],
+            "properties": {
+              "path": {"$ref": "#/$defs/token"},
+              "sha256": {"$ref": "#/$defs/sha256"}
+            }
+          }
+        }
+      }
+    },
+    "outputs": {"$ref": "#/$defs/outputs"},
+    "authority": {"$ref": "#/$defs/authority"},
+    "release_gate": {"$ref": "#/$defs/releaseGate"},
+    "run_identity_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "token": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "p3": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rig_sha256", "bundle_sha256"],
+      "properties": {
+        "rig_sha256": {"$ref": "#/$defs/sha256"},
+        "bundle_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "motionInstanceV3": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "motion_instance_v3_sha256", "bundle_sha256", "admission_sha256",
+        "profile_sha256", "target_profile_sha256"
+      ],
+      "properties": {
+        "motion_instance_v3_sha256": {"$ref": "#/$defs/sha256"},
+        "bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "admission_sha256": {"$ref": "#/$defs/sha256"},
+        "profile_sha256": {"$ref": "#/$defs/sha256"},
+        "target_profile_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "adapterProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "adapter", "skeleton_format", "spine_major_minor",
+        "skeleton_json_version", "runtime", "capabilities",
+        "unsupported_feature_policy"
+      ],
+      "properties": {
+        "adapter": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "version"],
+          "properties": {
+            "id": {"const": "autospine-spine42-json-adapter"},
+            "version": {"const": "3.0.0"}
+          }
+        },
+        "skeleton_format": {"const": "json"},
+        "spine_major_minor": {"const": "4.2"},
+        "skeleton_json_version": {"const": "4.2"},
+        "runtime": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["package", "version"],
+          "properties": {
+            "package": {"const": "@esotericsoftware/spine-player"},
+            "version": {"const": "4.2.119"}
+          }
+        },
+        "capabilities": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["motion_instance_v3", "rig_ir_attachments"],
+          "properties": {
+            "motion_instance_v3": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "rotation", "root_translation", "markers", "draw_order"
+              ],
+              "properties": {
+                "rotation": {"const": "setup-local-degree-linear"},
+                "root_translation": {"const": "setup-local-pixel-linear"},
+                "markers": {"const": "contact-boundary-events"},
+                "draw_order": {"const": "full-back-to-front-stepped"}
+              }
+            },
+            "rig_ir_attachments": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "prefixItems": [
+                {"const": "region"},
+                {"const": "weighted_mesh"}
+              ],
+              "items": false
+            }
+          }
+        },
+        "unsupported_feature_policy": {"const": "fail"}
+      }
+    },
+    "evidenceProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version", "canonicalization", "bundle_inventory"],
+      "properties": {
+        "id": {"const": "autospine-spine42-v3-export-evidence"},
+        "version": {"const": "1.0.0"},
+        "canonicalization": {
+          "const": "canonical-json-utf8-sort-keys-no-nonfinite"
+        },
+        "bundle_inventory": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "prefixItems": [
+            {"const": "skeleton.json"},
+            {"const": "skeleton.atlas"},
+            {"const": "skeleton.png"},
+            {"const": "run-manifest.json"},
+            {"const": "export-report.json"}
+          ],
+          "items": false
+        }
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["skeleton_json_sha256", "atlas_sha256", "png_sha256"],
+      "properties": {
+        "skeleton_json_sha256": {"$ref": "#/$defs/sha256"},
+        "atlas_sha256": {"$ref": "#/$defs/sha256"},
+        "png_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "spine_adapter_emitted", "official_runtime_loaded",
+        "raster_visual_quality", "persistent_current_head_authority",
+        "publishable_spine_timeline", "release_authority"
+      ],
+      "properties": {
+        "spine_adapter_emitted": {"const": true},
+        "official_runtime_loaded": {"const": false},
+        "raster_visual_quality": {"const": false},
+        "persistent_current_head_authority": {"const": false},
+        "publishable_spine_timeline": {"const": false},
+        "release_authority": {"const": false}
+      }
+    },
+    "releaseGate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reason_codes"],
+      "properties": {
+        "status": {"const": "blocked"},
+        "reason_codes": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "prefixItems": [
+            {"const": "complete_attachment_boundary_not_proven"},
+            {"const": "official_runtime_not_loaded"},
+            {"const": "persistent_current_head_authority_not_granted"},
+            {"const": "publishable_spine_timeline_not_granted"},
+            {"const": "raster_visual_quality_unproven"}
+          ],
+          "items": false
+        }
+      }
+    }
+  }
+}

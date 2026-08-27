@@ -47,7 +47,7 @@ cd E:\proj\unusual\localset\autospine-workbench
 “功能入口中心”提供：
 
 - 按 P0–P10 阶段、入口类型和状态筛选；
-- 搜索全部 56 个 CLI、三个任务页面和尚未实现的规划项；
+- 搜索全部 58 个 CLI、三个任务页面和尚未实现的规划项；
 - 直接打开绑定复核、Body-sway 视觉复核和 Seam Anchor 复核页面；
 - 复制精确的 `python -B -m autospine_workbench <command> --help` 帮助命令；
 - 通过 `/document-viewer.html?doc=docs/<文件名>.md` 安全文档查看器打开对应仓库文档。
@@ -227,7 +227,7 @@ E:\proj\unusual\localset\tmp\psd_audit\results\<project-id>\audit.json
 - 以内容地址保存候选证据，以 revision 保存人工决定；
 - 生成并严格验证版本化的 Resolved Project v1 snapshot，同时保持历史 r5/r7 内容地址不变；
 - 从独立页面完成人工 Body-sway still 与 Seam Anchor revision；
-- 通过离线命令生成和验证版本中立的 Layer Manifest、RigIR、mesh、IK、MotionIR、P10.6a admission 及受限的 Spine 4.2 adapter 工件。
+- 通过离线命令生成和验证版本中立的 Layer Manifest、RigIR、mesh、IK、MotionIR、P10.6a admission、MotionInstance v3 及 P10.7a Spine 4.2 v3 五文件 adapter 工件。
 
 当前不能据此自动完成：
 
@@ -254,7 +254,7 @@ python -B -m autospine_workbench verify-mesh-bundle --help
 
 ## 10. 当前阶段与下一开发入口
 
-P0 Resolved Project v1 合同与 P10.6b MotionInstance v3 均已完成。普通图层/关节复核不需要运行 P10.6a/P10.6b；开发版本中立动画编译链时，先按
+P0 Resolved Project v1、P10.6b MotionInstance v3 与 P10.7a Spine adapter bundle 均已完成。普通图层/关节复核不需要运行这些命令；开发 body-sway 动画编译链时，先按
 [编译 P10.6a body-sway 动作消费准入](how-to-compile-body-sway-motion-consumer-admission.md)
 把认证的 P10.5d probe 与精确 P9 MotionInstance v2 bundle 重新闭合。对应命令是：
 
@@ -270,9 +270,17 @@ python -B -m autospine_workbench compile-body-sway-motion-instance-v3 --help
 python -B -m autospine_workbench verify-body-sway-motion-instance-v3 --help
 ```
 
-P10.6b 会生成版本中立 MotionInstance v3，但发布前 head observation 仍不是永久审批权，也没有
-生成 Spine timeline。下一开发入口是 **P10.7 Spine 4.2 adapter/runtime 回归**；完整附件边界、
-raster 视觉、官方 Runtime 与发布门禁仍须在该阶段独立完成。依赖、交付与风险见
+然后按[编译并复验 P10.7a Spine 4.2 v3](how-to-compile-spine42-v3.md)生成并复验五文件
+adapter bundle：
+
+```powershell
+python -B -m autospine_workbench compile-body-sway-spine42-v3 --help
+python -B -m autospine_workbench verify-body-sway-spine42-v3 --help
+```
+
+P10.7a 的发布前 head observation 仍不是永久审批权，成功结果也只声明 adapter 已发出。
+下一开发入口是 **P10.7b 官方 Runtime/raster 回归**；完整附件边界、raster 视觉、官方
+Runtime 与发布门禁仍须独立完成。依赖、交付与风险见
 [后续开发路线](development-roadmap.md)。
 
 ## 11. 常用验证命令

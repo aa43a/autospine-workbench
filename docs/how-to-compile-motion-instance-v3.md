@@ -146,5 +146,5 @@ P10.6b 只交付版本中立、setup-local、可严格重放的 MotionInstance v
 - source sampled-linear 语义被编译为 target `linear` timeline；
 - release gate 仍然 blocked。
 
-它没有证明 Spine 4.2 adapter 等价、官方 Runtime 加载、完整附件边界、raster 视觉或永久 head
-authority。这些属于 P10.7。
+它本身没有证明 Spine 4.2 adapter、官方 Runtime 加载、完整附件边界、raster 视觉或永久 head
+authority。adapter bundle 由已完成的 P10.7a 显式消费；Runtime/raster 与人工批准属于 P10.7b。
