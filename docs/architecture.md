@@ -79,6 +79,8 @@ exact Layer Manifest + exact P3 static bundle
           P10.5b decision → P10.5c reviewed set
                                       ↓
                  P10.5d dynamic seam probe
+                                      ↓
+                           blocked release
 
 server → application services only
 web    → HTTP contracts only
@@ -95,6 +97,9 @@ web    → HTTP contracts only
 - P10.4b1 amplitude-envelope command 只沿 reviewed 四骨幅度向量的统一 gain 射线重放九个 sampled key 状态；reviewed gain 必须精确匹配 P10.2 和临时 preview，分析结束后再次双快照 current head。候选不得包含 tracks/keys/animations，也不得声明连续时间、安全范围、seam 或发布 authority。
 - P10.4b2 continuous-proof command 完整重放 P10.4b1 source closure，以向外舍入区间同时覆盖 `time_fraction × λ`；每一对相邻 preview tick 都必须进入共享有界预算。后端异常、预算耗尽、非有限数或证明对象不满足内部计数/边界不变量时 fail closed 为 `indeterminate`。全段通过只授予 preview-model structural claims，平台 libm/runtime、raster、seam、MotionInstance v3 与发布仍明确排除。
 - P10.5a seam candidate command 只读取精确 Layer Manifest/P3 静态地址，固定输出六条左右关系和可回看的 attachment-local locator。candidate generator 内嵌从实际行为常量重建的 canonical algorithm profile；candidate、human decision、reviewed set 和动态 probe 是四个独立合同，任何一层都不能改写上一层 evidence hash。
+- P10.5b/P10.5c 把人工 revision 与静态 ReviewedSet 分离；历史 bundle 可以精确复验，但只有 current ready head 能进入后续编译。P10.5d 不从 candidate 重新选 locator，也不把历史可读性升级为 current authority。
+- P10.5d command 从完整 P10.4b2 proof 和精确 P10.5c 双 SHA 建立 source closure，在 pure analyzer 外执行 before/after current-head observation；每个 observation 内部又分别双快照视觉与接缝历史。全部 observation 只在 compile time 有效，consumer 必须重新检查。
+- P10.5d analyzer 对六关系全部 reviewed pairs 覆盖相邻 tick 与统一 gain，只认证 `4 px²` reviewed-anchor point proximity 工程代理。region–region、region–mesh、mesh–region 有固定投影；mesh–mesh、预算耗尽、非有限包络、backend 自相矛盾和任何 head 漂移都 fail closed。attachment 边界、raster/视觉、runtime、timeline 和发布明确排除。
 - Kimodo 的 raw NPZ、source sidecar 与 map 是三个独立输入。sidecar 解释数组/FPS/producer，map 决定投影/角色/contact；两者都不得根据文件名、数组数量或相邻目录隐式发现。
 
 ## 文件长度预算
@@ -331,9 +336,50 @@ gate 都进入内容哈希。bundle 只含 exact candidate、exact decision 和 
 消费前仍须重新检查 review head。命令、失败语义与测试构造/真实人工批准的边界见
 [编译并复验 P10.5c 静态接缝锚点集](how-to-compile-reviewed-seam-anchor-set.md)。
 
-后续阶段继续遵守：
+P10.5d 在不修改 P10.4b2 或 P10.5c hash 语义的前提下合并两条链：
 
+```text
+exact BodySwayContinuousPreviewProof v1
+                         +
+exact ReviewedSeamAnchorSet bundle (set SHA / bundle SHA)
+                         ↓ full replay + cross-binding
+       outer before current-head observation
+       ├─ visual history A → decision → history B
+       └─ seam history A → decision/replay → history B
+                         ↓
+ six relationships × every reviewed pair
+ × every adjacent preview tick × uniform λ∈[0,1]
+                         ↓ bounded outward interval subdivision
+     anchor proximity certified | indeterminate
+                         ↓
+       outer after current-head observation
+                         ↓ exact before/after comparison
+              BodySwayDynamicSeamProbe v1
+                         ↓
+                 release remains blocked
+```
+
+region locator 使用 Q4096 attachment-local 点与 slot bone 刚性投影；mesh locator 使用
+Q65535 重心坐标和动态 LBS 三角形顶点。共同 root translation 在距离计算前代数消去，
+距离使用无平方根的平方上界。`4 px²` 等价于 anchor point 距离 `2 px`，但它只是一项
+版本化工程容差，不是完整 attachment 边界或视觉标定阈值。v1 对 mesh–mesh 明确
+fail closed，不会退回 setup 点或最近顶点。
+
+每段结果固定包含六关系、全部 pair 的最大平方距离上界、box/terminal/depth 计数、
+scope、exclusions 与独立 evidence seal。每段最多 32,768 box、深度 14，全部段共享
+32,768 box；全局预算耗尽后的段仍输出完整 indeterminate inventory。backend evidence
+必须满足完整二叉树计数以及 upper/reason 一致性，异常或伪造对象不会变成通过。
+
+顶层认证还要求上游 P10.4b2 已是
+`continuous_preview_model_structural_certified`。即使 proximity 通过，外层和内层
+head observation 的 scope 都固定为 `compile_time`，保存 stdout 或重复验证 hash 不会
+获得永久 authority。操作、退出码与真实 A/B test-only/blocked 边界见
+[探测 P10.5d body-sway 动态接缝锚点](how-to-probe-body-sway-dynamic-seams.md)。
+
+后续消费阶段继续遵守：
+
+- motion contract：MotionInstance v3 或通用动画消费方重新检查两个 current head，不直接信任历史 stdout。
 - setup：画布、原点、side 语义、draw order 和 region 合成回归通过。
-- visual：抬臂、屈肘、抬腿、屈膝探针在极值帧无明显断层、翻三角或越界。
+- visual：除锚点代理外，完整 attachment 边界在固定动作与极值帧通过 raster/人工回归。
 - runtime：目标 adapter 的能力矩阵明确，未支持特性 fail loud；产物不依赖伪造版本字段。
 - provenance：输入、analysis、override revision、manifest、RigIR 和 probe 报告均能由哈希串联。
