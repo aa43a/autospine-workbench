@@ -352,6 +352,39 @@ class MeshSourceReaderTamperTests(unittest.TestCase):
             )
         self.assertEqual(2, decode.call_count)
 
+    def test_image_count_budget_precedes_attachment_item_validation(self):
+        fixture = self.fixture()
+        budget = AttachmentImageBudget(
+            max_images=1,
+            max_image_bytes=72 * 1024 * 1024,
+            max_total_bytes=256 * 1024 * 1024,
+            max_image_pixels=16_777_216,
+            max_total_pixels=67_108_864,
+        )
+        target = "autospine_workbench.mesh_source_images._objects"
+        with patch(target, side_effect=AssertionError("must not traverse")), \
+                self.assertRaisesRegex(
+                    VerifiedMeshSourceReaderError, "resource limit"
+                ):
+            verified_attachment_images(
+                fixture.verified.rig, fixture.verified.source_pngs,
+                budget=budget,
+            )
+
+        class LyingList(list):
+            def __len__(self):
+                return 0
+
+        forged = dict(fixture.verified.rig)
+        forged["attachments"] = LyingList(
+            fixture.verified.rig["attachments"]
+        )
+        with patch(target, side_effect=AssertionError("must not traverse")), \
+                self.assertRaises(VerifiedMeshSourceReaderError):
+            verified_attachment_images(
+                forged, fixture.verified.source_pngs, budget=budget,
+            )
+
 
 def _region(rig):
     return next(item for item in rig["attachments"] if item["type"] == "region")

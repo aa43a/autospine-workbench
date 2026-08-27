@@ -16,6 +16,7 @@ from .manifest_artifacts import (
 )
 from .mesh_bundle_integrity import VerifiedMeshBundle
 from . import seam_anchor_profile as profile
+from .seam_anchor_json_snapshot import snapshot_layer_manifest
 from .seam_anchor_source import SeamAnchorSourceError, admit_seam_anchor_source
 from .split_derivation_contract import SplitDerivationError, normalize_derivation
 
@@ -92,8 +93,7 @@ def require_seam_anchor_inputs(
             raise SeamAnchorInputError(
                 "Seam anchors require an exact VerifiedMeshBundle"
             )
-        manifest, manifest_json = _snapshot(
-            layer_manifest, "Layer Manifest", profile.MAX_LAYER_MANIFEST_BYTES)
+        manifest, manifest_json = snapshot_layer_manifest(layer_manifest)
         canvas, layers = _require_manifest(manifest)
         admitted = admit_seam_anchor_source(
             manifest, canvas, layers, mesh_bundle
@@ -237,15 +237,6 @@ def _require_layer_shape(layer, identifier, canvas) -> None:
         normalize_derivation(identifier, layer["derivation"])
 
 
-def _snapshot(value, label, maximum):
-    if not isinstance(value, Mapping):
-        raise SeamAnchorInputError(f"{label} must be an object")
-    text = _canonical(dict(value))
-    if len(text.encode("utf-8")) > maximum:
-        raise SeamAnchorInputError(f"{label} resource limit exceeded")
-    return json.loads(text), text
-
-
 def _shape(value, required, allowed, label):
     if not required <= set(value) or not set(value) <= allowed:
         raise SeamAnchorInputError(f"{label} fields are unsupported")
@@ -284,13 +275,8 @@ def _qa(value, label):
         raise SeamAnchorInputError(f"{label} QA is invalid")
 
 
-def _canonical(value):
-    return json.dumps(value, ensure_ascii=False, allow_nan=False,
-                      sort_keys=True, separators=(",", ":"))
-
-
 _FAILURES = (
     AttributeError, KeyError, LayerManifestError, OverflowError,
-    RecursionError, SeamAnchorSourceError, SplitDerivationError,
+    RecursionError, RuntimeError, SeamAnchorSourceError, SplitDerivationError,
     TypeError, UnicodeError, ValueError,
 )

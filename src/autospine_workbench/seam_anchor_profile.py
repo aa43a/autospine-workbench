@@ -20,6 +20,8 @@ SEAM_SOURCE_IDENTITY_FIELDS = (
 MAX_LAYER_MANIFEST_BYTES = 4 * 1024 * 1024
 MAX_RIG_IR_BYTES = 64 * 1024 * 1024
 MAX_MANIFEST_LAYERS = 4_096
+MAX_JSON_PREFLIGHT_NODES = 262_144
+MAX_JSON_PREFLIGHT_DEPTH = 128
 MAX_ATTACHMENTS = 4_096
 MAX_RELATION_CANDIDATE_PAIRS = 256
 MAX_ATTACHMENT_PNG_BYTES = 72 * 1024 * 1024
@@ -43,6 +45,8 @@ def seam_anchor_resource_limits() -> dict[str, int]:
         "max_layer_manifest_bytes": MAX_LAYER_MANIFEST_BYTES,
         "max_rig_ir_bytes": MAX_RIG_IR_BYTES,
         "max_manifest_layers": MAX_MANIFEST_LAYERS,
+        "max_json_preflight_nodes": MAX_JSON_PREFLIGHT_NODES,
+        "max_json_preflight_depth": MAX_JSON_PREFLIGHT_DEPTH,
         "max_attachments": MAX_ATTACHMENTS,
         "max_relation_candidate_pairs": MAX_RELATION_CANDIDATE_PAIRS,
         "max_attachment_png_bytes": MAX_ATTACHMENT_PNG_BYTES,

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from copy import deepcopy
 from dataclasses import FrozenInstanceError, replace
 import hashlib
@@ -53,6 +54,25 @@ def _reverse_keys(value):
     if isinstance(value, list):
         return [_reverse_keys(item) for item in value]
     return value
+
+
+class _ExplosiveRootMapping(Mapping):
+    def __getitem__(self, key):
+        raise AssertionError("oversized root must not be read")
+
+    def __iter__(self):
+        raise AssertionError("oversized root must not be iterated")
+
+    def __len__(self):
+        return 1_000_000
+
+
+class _LyingList(list):
+    def __len__(self):
+        return 0
+
+    def __reversed__(self):
+        raise AssertionError("container subclass must not be traversed")
 
 
 class SeamAnchorInputTests(unittest.TestCase):
@@ -237,6 +257,8 @@ class SeamAnchorInputTests(unittest.TestCase):
             ("MAX_LAYER_MANIFEST_BYTES", 1),
             ("MAX_RIG_IR_BYTES", 1),
             ("MAX_MANIFEST_LAYERS", len(self.manifest["layers"]) - 1),
+            ("MAX_JSON_PREFLIGHT_NODES", 1),
+            ("MAX_JSON_PREFLIGHT_DEPTH", 1),
             ("MAX_ATTACHMENTS", len(rows) - 1),
             ("MAX_ATTACHMENT_PNG_BYTES", max(map(len, pngs.values())) - 1),
             ("MAX_TOTAL_ATTACHMENT_PNG_BYTES", sum(map(len, pngs.values())) - 1),
@@ -252,6 +274,18 @@ class SeamAnchorInputTests(unittest.TestCase):
                 f"autospine_workbench.seam_anchor_profile.{name}", maximum
             ), self.assertRaisesRegex(SeamAnchorInputError, "resource limit"):
                 require_seam_anchor_inputs(self.manifest, self.fixture.mesh)
+
+    def test_oversized_mapping_is_rejected_before_copy_or_serialization(self):
+        with self.assertRaisesRegex(SeamAnchorInputError, "resource limit"):
+            require_seam_anchor_inputs(
+                _ExplosiveRootMapping(), self.fixture.mesh
+            )
+
+    def test_container_subclass_cannot_forge_preflight_length(self):
+        changed = deepcopy(self.manifest)
+        changed["qa"]["flags"] = _LyingList(["hidden"])
+        with self.assertRaises(SeamAnchorInputError):
+            require_seam_anchor_inputs(changed, self.fixture.mesh)
 
     def test_profile_rejects_noncanonical_image_metadata(self):
         rows = list(self.inputs.attachment_images)

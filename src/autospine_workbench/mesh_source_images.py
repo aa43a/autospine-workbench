@@ -129,17 +129,22 @@ def verified_attachment_images(
 ) -> tuple[VerifiedAttachmentImage, ...]:
     """Validate one detached rig and its exact original PNG snapshots."""
 
-    attachments = _objects(rig.get("attachments"), "RigIR attachments")
-    canvas = _canvas(rig.get("canvas"))
+    raw_attachments = rig.get("attachments")
+    if type(raw_attachments) is not list:
+        raise VerifiedMeshSourceReaderError(
+            "RigIR attachments must be an array"
+        )
     if budget is not None and not isinstance(budget, AttachmentImageBudget):
         raise VerifiedMeshSourceReaderError(
             "Attachment image budget is invalid"
         )
     tracker = AttachmentImageBudgetTracker(budget)
-    if not tracker.allows_inventory(len(attachments)):
+    if not tracker.allows_inventory(len(raw_attachments)):
         raise VerifiedMeshSourceReaderError(
             "Attachment image resource limit exceeded"
         )
+    attachments = _objects(raw_attachments, "RigIR attachments")
+    canvas = _canvas(rig.get("canvas"))
     if not isinstance(png_by_path, Mapping):
         raise VerifiedMeshSourceReaderError("Source PNG snapshots must be an object")
     snapshots: dict[str, bytes] = {}
