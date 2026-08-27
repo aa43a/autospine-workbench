@@ -159,7 +159,10 @@ class Spine42JsonAdapterTests(unittest.TestCase):
             for value in attachments.values()
         ]
         self.assertEqual(["mesh", "mesh", "region"], kinds)
-        self.assertEqual(5, len(result["bones"]))
+        self.assertEqual(
+            [bone["id"] for bone in p3["bones"]],
+            [bone["name"] for bone in result["bones"]],
+        )
 
     def test_region_setup_and_draw_order_reconstruct_exactly(self) -> None:
         result = build_spine42_json(self.rig)

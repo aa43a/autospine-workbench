@@ -49,7 +49,10 @@ def renderable_a():
     rig = deepcopy(compiled.rig)
     rig["canvas"].update(width=360, height=300)
     for bone in rig["bones"]:
-        if bone["id"].startswith("thigh."):
+        # Translate the rig in world space.  Limbs may have rotated connector
+        # parents, so changing their local setup coordinates is not equivalent
+        # to the matching canvas-space attachment translation below.
+        if bone["parent"] is None:
             bone["setup"]["x"] += 100
             bone["setup"]["y"] += 100
     for attachment in rig["attachments"]:

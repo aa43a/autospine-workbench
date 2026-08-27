@@ -53,9 +53,11 @@ LEGACY_POSE_ORACLE_BYTES = 6_396
 LEGACY_POSE_ORACLE_SHA256 = (
     "9046a61de62ed245a423f7d0af8f59e7691cc1cee66a4e1e9dbde75402d5de03"
 )
-P104B2_CANONICAL_BYTES = 269_912
+# The lock includes the strict P0 resolved snapshot fixture.  Refresh it only
+# when that fixture is intentionally resealed with canvas-valid joint geometry.
+P104B2_CANONICAL_BYTES = 269_927
 P104B2_CANONICAL_SHA256 = (
-    "e704766b4633a36dfcedd48d8e35f13bd62eeec16f0a37bf2e67de0ced68fd51"
+    "f4f43238c3b547172493507c3558376c5a579cfe4db806bb5c1e31e6dc061c7a"
 )
 
 
@@ -188,6 +190,12 @@ class BodySwayP104B2CanonicalLockTests(unittest.TestCase):
             inputs = admitted_continuous_proof_inputs(fixture)
             proof = compile_body_sway_continuous_preview_proof(inputs)
 
+        bones = proof.document["source"]["rig_ir"]["bones"]
+        root = next(bone for bone in bones if bone["id"] == "root-pelvis")
+        self.assertEqual(320.0, root["setup"]["y"])
+        self.assertEqual({0.75}, {
+            bone["inference"]["confidence"] for bone in bones
+        })
         self.assertEqual(P104B2_CANONICAL_BYTES, len(proof.canonical_bytes))
         self.assertEqual(P104B2_CANONICAL_SHA256, proof.sha256)
         self.assertEqual(

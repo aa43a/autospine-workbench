@@ -39,6 +39,9 @@ from autospine_workbench.rig_setup_artifact import (  # noqa: E402
 )
 from autospine_workbench.rig_setup_render import render_rig_setup  # noqa: E402
 from tests.png_helpers import write_rgba  # noqa: E402
+from tests.resolved_snapshot_helpers import (  # noqa: E402
+    resolved_project_envelope,
+)
 from tests.test_layer_manifest import project_fixture, write_png  # noqa: E402
 from tests.test_rig_bundle import BundleFixture  # noqa: E402
 
@@ -229,12 +232,20 @@ class RigBundleIntegrityTests(unittest.TestCase):
 
     def _publish_two_layer_bundle(self, fixture: BundleFixture) -> tuple[Path, str]:
         project = project_fixture()
-        cover_layer = deepcopy(project["layers"][0])
+        cover_layer = deepcopy(project["resolved"]["layers"][0])
         cover_layer.update(
-            {"id": "layer-002-cover", "source_index": 2, "name": "cover", "z_index": 4}
+            {
+                "id": "layer-002-cover",
+                "source_index": 2,
+                "name": "cover",
+                "z_index": 1,
+                "image_url": (
+                    "/api/projects/sample-a/layers/layer-002-cover/image"
+                ),
+            }
         )
-        project["layers"].append(cover_layer)
         project["resolved"]["layers"].append(cover_layer)
+        project = resolved_project_envelope(project["resolved"])
         back, cover = fixture.root / "back.png", fixture.root / "cover.png"
         write_png(back, 30, 40)
         write_png(cover, 30, 40)
