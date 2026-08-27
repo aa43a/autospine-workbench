@@ -28,6 +28,7 @@ import {
 import { canonicalSide, normalizeLayerOverrideMap, normalizeOverrideMap } from "./modules/override-normalizers.js";
 import { applyManualJoint, clearJointEdits, resolveEffectiveJoint } from "./modules/joint-edit-state.js";
 import { applyLayerRigReviewPatch, readLayerRigReview, renderLayerRigReview, semanticColor } from "./modules/layer-rig-review.js";
+import { renderLayerSelection } from "./modules/layer-selection-renderer.js";
 import { clamp, createIcon, isTypingTarget, numberOr } from "./modules/ui-primitives.js";
 import { confidenceLevel, formatConfidence, normalizeWorkflow, setConfidenceBadge } from "./modules/workflow.js";
 
@@ -477,7 +478,7 @@ function selectLayer(id) {
   setEditMode("layers", { announceChange: false });
   renderLayerList();
   renderLayerInspector();
-  renderLayerSelection();
+  renderLayerSelection(dom.layerSelectionGroup, getSelectedLayer(), getCanvasSize());
   updateStatusbar();
   const layer = getSelectedLayer();
   announce(`已选择图层 ${layer?.name || id}`);
@@ -593,32 +594,7 @@ function renderCanvasLayers() {
   });
 
   applyPreviewOpacity();
-  renderLayerSelection();
-}
-
-function renderLayerSelection() {
-  dom.layerSelectionGroup.replaceChildren();
-  const layer = getSelectedLayer();
-  if (!layer) return;
-  const bbox = normalizeBbox(layer.bbox, getCanvasSize());
-  const rect = document.createElementNS(SVG_NS, "rect");
-  rect.classList.add("selected-layer-box");
-  rect.setAttribute("x", String(bbox.x));
-  rect.setAttribute("y", String(bbox.y));
-  rect.setAttribute("width", String(bbox.width));
-  rect.setAttribute("height", String(bbox.height));
-  dom.layerSelectionGroup.append(rect);
-
-  const radius = Math.max(2.5, Math.min(getCanvasSize().width, getCanvasSize().height) * 0.0035);
-  [[bbox.x, bbox.y], [bbox.x + bbox.width, bbox.y], [bbox.x, bbox.y + bbox.height], [bbox.x + bbox.width, bbox.y + bbox.height]]
-    .forEach(([x, y]) => {
-      const point = document.createElementNS(SVG_NS, "circle");
-      point.classList.add("selected-layer-corner");
-      point.setAttribute("cx", String(x));
-      point.setAttribute("cy", String(y));
-      point.setAttribute("r", String(radius));
-      dom.layerSelectionGroup.append(point);
-    });
+  renderLayerSelection(dom.layerSelectionGroup, getSelectedLayer(), getCanvasSize());
 }
 
 const skeletonRenderer = createSkeletonRenderer({
