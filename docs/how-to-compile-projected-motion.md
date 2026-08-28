@@ -23,7 +23,7 @@ P8 不接受 BVH 或内建 MotionIR，也不从 P7 目录旁边猜测相机。
 
 ## 1. 声明相机
 
-正面静态正交相机示例：
+可复制 [正面 camera 示例](../examples/kimodo/soma77-front.camera.example.json)，再按实际 map 修改。其内容为：
 
 ```json
 {

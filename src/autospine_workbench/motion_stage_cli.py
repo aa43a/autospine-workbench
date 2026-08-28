@@ -1,4 +1,4 @@
-"""Argument and dispatch layer for exact-address P5 motion services."""
+"""Argument and dispatch layer for motion, retarget, and P7 intake services."""
 
 from __future__ import annotations
 
@@ -7,6 +7,10 @@ import json
 from pathlib import Path
 from typing import Any, Callable
 
+from .kimodo_pilot_intake_cli import (
+    add_kimodo_pilot_intake_subcommands,
+    dispatch_kimodo_pilot_intake_command,
+)
 from .motion_bvh_commands import (
     BvhMotionCommandError,
     compile_bvh_motion_bundle,
@@ -27,7 +31,9 @@ from .motion_retarget_commands import (
 def add_motion_stage_subcommands(
     subparsers: Any, default_state_root: Path,
 ) -> None:
-    """Register P5 motion-source and retarget commands on an existing parser."""
+    """Register motion-source, retarget, and P7 intake commands."""
+
+    add_kimodo_pilot_intake_subcommands(subparsers)
 
     compile_bvh = subparsers.add_parser(
         "compile-bvh-motion",
@@ -82,9 +88,12 @@ def add_motion_stage_subcommands(
 
 
 def dispatch_motion_stage_command(args: argparse.Namespace) -> int | None:
-    """Dispatch a P5 namespace, returning ``None`` for unrelated commands."""
+    """Dispatch the motion namespace, returning ``None`` when unrelated."""
 
     command = getattr(args, "command", None)
+    intake_status = dispatch_kimodo_pilot_intake_command(args)
+    if intake_status is not None:
+        return intake_status
     if command == "compile-bvh-motion":
         return _run(
             compile_bvh_motion_bundle,

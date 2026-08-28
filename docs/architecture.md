@@ -186,9 +186,11 @@ three distinct P5 rigs → P6 adapter/bundle reader
 
 原始 NPZ 原样保存，sidecar/map/run/MotionIR 使用 canonical JSON；固定 inventory 不接受额外文件。compiler ID、版本、数值容差和算法 profile 都进入 run manifest。`verify-kimodo-motion` 只能从两个明确 SHA 读取、重编译和逐字节复验，不解析 `latest`、不搜索替代 bundle、也不写 state。
 
-producer provenance 的 `recorded` 与 `unavailable` 是不同的显式状态。即使记录了外部 manifest/request 的 SHA，本仓库也只绑定 metadata，不认证 checkpoint 或生成请求本身；操作者必须另行保留原件。完整 NPZ 只把 `smooth_root_pos` 当有限数证据、把 `global_root_heading` 当单位方向证据，当前不用它们改写 MotionIR。contact 采用半开 `annotation_only` marker，不等于 foot lock。
+producer provenance 的 `recorded` 与 `unavailable` 是不同的显式状态。P7 bundle 只保存外部 manifest/request 的 SHA；M1.0 `audit-kimodo-pilot-intake` 补充发布前的六输入边界：安全读取 raw NPZ、sidecar、map、camera 和两份 opaque provenance 原件，逐字节固定 NPZ/两份原件、以 canonical JSON 固定三份文档，并要求原件 SHA 与 recorded sidecar 闭合；随后在内存重跑 P7 结构编译并验证 camera/map。它不写 state、不发布 P7/P8，报告不含路径，且固定声明 checkpoint authenticity、动作质量、P8 projection、P9 review 与 release authority 均未获得。操作者仍须保留原件及许可记录。
 
-正式测试证明确定性合成 NPZ 的 root、代表性肢体旋转和 contact 可通过三个 rig 的 P5/P6 结构门禁；它尚未证明真实 Kimodo checkpoint 的动作质量、深度/遮挡效果或该 clip 的官方 Spine Player 截图。关闭真实资产门禁还需要 recorded provenance、干净 state 重编译、目标角色视觉对照与固定 runtime golden。
+完整 NPZ 只把 `smooth_root_pos` 当有限数证据、把 `global_root_heading` 当单位方向证据，当前不用它们改写 MotionIR。contact 采用半开 `annotation_only` marker，不等于 foot lock。
+
+正式测试证明确定性合成 NPZ 的 root、代表性肢体旋转和 contact 可通过三个 rig 的 P5/P6 结构门禁；M1.0 另证明同一六输入可得到确定性 path-free intake report，且其 P7 preview 身份可与后续正式编译对齐。当前工作区仍没有真实六输入，所以尚未证明真实 Kimodo checkpoint 的真实性、动作质量、深度/遮挡效果或该 clip 的官方 Spine Player 截图。关闭真实资产门禁还需要真实输入、干净 state 重编译、目标角色视觉对照与固定 runtime golden。
 
 P8 相机感知投影门禁已经完成：
 

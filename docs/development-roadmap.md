@@ -1,6 +1,6 @@
 # AutoSpine Workbench 后续开发路线
 
-本文是 Explanation 与交付计划，面向维护者和需要评估可行性的项目负责人。它从 **P0 Resolved Project v1 合同、P10.6b MotionInstance v3、P10.7a Spine adapter bundle、P10.7b sampled raster 基础设施与独立 P10.7c setup regression 已完成** 的事实出发，说明尚未实现的能力应按什么依赖关系推进。当前阶段是 **P10.7c-setup-regression**：比较机制已经交付，但两份真实 See-through 样本仍须先补齐外部 Kimodo/P9、seam 与官方 Runtime capture 证据。这里的阶段名、优先级和验收条件是建议，不构成发布日期承诺；基础设施可用也不等于真实样本、连续时间或发布门禁已经通过。
+本文是 Explanation 与交付计划，面向维护者和需要评估可行性的项目负责人。它从 **P0 Resolved Project v1 合同、P10.6b MotionInstance v3、P10.7a Spine adapter bundle、P10.7b sampled raster 基础设施与独立 P10.7c setup regression 已完成** 的事实出发，说明尚未实现的能力应按什么依赖关系推进。当前开发入口是 **P7-real-kimodo-pilot-intake**：M1.0 零写入输入审计已交付，但两份真实 See-through 样本仍须取得真实 Kimodo 输入、完成 P7/P8/P9、关闭 seam，再进入官方 Runtime capture。这里的阶段名、优先级和验收条件是建议，不构成发布日期承诺；基础设施可用也不等于真实样本、连续时间或发布门禁已经通过。
 
 ## 规划原则
 
@@ -17,6 +17,7 @@
 
 | 优先级 | 能力 | 原因 |
 | --- | --- | --- |
+| P0 | 真实 Kimodo Pilot Intake 与 P7/P8/P9 | M1.0 六输入零写入审计已交付；当前没有真实六文件输入，后续 exact bundle 与动作质量结论尚未产生 |
 | P0 | P10.7c setup golden 独立回归 | 零写入入口已交付；真实执行仍依赖 exact P10.7a/capture 与批准 P6 基线，readiness v1 保持冻结且第八项仍 missing |
 | P0 | P10.7b 两份真实样本验收 | Runtime/capture/metrics/review 基础设施已存在，但真实链尚未到达 P10.7a；仍需先关闭 Kimodo 与 seam 门禁，再做官方 Runtime 和人工决定 |
 | P1 | Revision 历史浏览/恢复 UI | 历史已不可变保存，但操作者尚不能便捷查看或安全恢复 |
@@ -46,6 +47,8 @@ P10.7b capture/metrics/review 基础设施（已完成）
 P10.7b-readiness 显式 Manifest 审计（已完成入口）
         ↓
 P10.7c 独立 setup golden 比较机制（已完成入口；真实执行在 capture 后）
+        ↓
+真实 Kimodo 六输入审计（M1.0 已完成入口；外部输入待提供）
         ↓
 真实 Kimodo P7/P8/P9 + seam 人工/语义门禁（当前最早 blocker）
         ↓
@@ -234,7 +237,7 @@ See-through 分层，并让新的 Manifest/P3/candidate 内容地址失效旧决
 
 最短后续顺序：
 
-1. 获取并封存可合法使用的真实 Kimodo P7 NPZ、source sidecar 与显式 map，再为动作提供显式 P8 camera/projection。
+1. 获取可合法使用的真实 Kimodo NPZ、recorded source sidecar、显式 map/camera，以及 checkpoint manifest 与 generation request 原件；先用 `audit-kimodo-pilot-intake` 零写入闭合六份输入，再发布并复验 P7/P8。
 2. 完成 P9 foot/depth 候选的人工决定并发布真实 reviewed-motion bundle；fixture、内建 idle/wave 或测试 P8 SHA 不可替代。
 3. 对 A 完成或确认 P10.5b 人审、编译 P10.5c 并声明 exact 地址；对 B 先选择“上游修复”或“另立 partial 合同”，不得伪造六关系通过。
 4. 在精确 P9/seam 地址上依次完成 P10.0–P10.7a；每次只把实际生成的双 SHA 回填请求。
@@ -393,13 +396,17 @@ PNG 的 immutable comparison bundle，并由 reader 重放实际 capture。
 
 ## 真实 Kimodo/P9 质量门禁
 
-**建议优先级：P1，可与 attachment switch 并行。**
+**当前优先级：P0；M1.0 输入审计已交付，真实外部输入待提供。**
 
-依赖：可合法使用的真实 Kimodo checkpoint 输出、camera/calibration evidence、现有 P7–P9 精确链和人工 policy review。
+依赖：可合法使用的真实 Kimodo checkpoint 输出、checkpoint manifest、generation request、recorded sidecar、显式 map/camera、现有 P7–P9 精确链和人工 policy review。
 
-交付：不可变真实样本集、source provenance、P8 投影校准、P9 foot/depth 决定、三 rig 重定向、Spine Runtime capture 和人工质量报告。heading/scale 只有在独立 reviewed 合同完成后才能进入 runtime。
+已交付的 M1.0 `audit-kimodo-pilot-intake` 会安全读取六份精确文件，要求两份 provenance 原件的逐字节 SHA 与 recorded sidecar 闭合，在内存中重跑 P7 结构编译，并验证 camera/map 一致性。输出是 path-free、自哈希、零写入报告；它明确把 checkpoint authenticity、动作质量、P8 projection、P9 review 与 release authority 保持为 false。操作见[审计真实 Kimodo Pilot 输入](how-to-audit-real-kimodo-pilot-intake.md)。
 
-验收条件：至少包含慢动作、快速动作、交叉肢体、转身和脚接触案例；三 rig 无非有限数和明显滑脚；人工决定覆盖全部候选；P9 bundle reader 与官方 Runtime 截图回归通过；合成 fixture 与真实质量结论明确分开。
+下一交付：用通过审计的同一输入发布不可变 P7/P8；为 A/B 分别生成新的 P5；完成人工 P9 foot/depth 决定、三 rig 重定向、Spine Runtime capture 和人工质量报告。heading/scale 只有在独立 reviewed 合同完成后才能进入 runtime。
+
+当前实物状态：工作区没有真实 NPZ、P7/P8/P9 bundle；现有 motion/P5 仅绑定 builtin `idle`/`wave.left`，不能复用为 Kimodo 凭据。A/B 也都没有 seam review history/head；A 的六条关系可进入人审，B 的长裙遮挡导致四条下肢关系不可观测，必须换新分层资产或建立明确禁止通用腿部动画的 partial 合同。
+
+验收条件：同六份输入重复审计报告哈希相同，审计 preview 与随后 P7 发布身份一致；真实样本集至少包含慢动作、快速动作、交叉肢体、转身和脚接触案例；三 rig 无非有限数和明显滑脚；人工决定覆盖全部候选；P9 bundle reader 与官方 Runtime 截图回归通过；合成 fixture 与真实质量结论明确分开。
 
 主要风险：单目 3D 深度/朝向歧义、角色比例差异、contact 标签误差、真实模型版本和许可不可复现。
 

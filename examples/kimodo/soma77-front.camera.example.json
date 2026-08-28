@@ -1,0 +1,15 @@
+{
+  "format": "autospine-camera-model",
+  "format_version": 1,
+  "camera_id": "kimodo-front-orthographic-v1",
+  "projection": "static_orthographic",
+  "basis": {
+    "screen_x": "+X",
+    "screen_y": "-Y",
+    "depth": "+Z"
+  },
+  "depth_positive": "away_from_camera",
+  "origin": "source_root_frame0",
+  "normalization": "map_reference_length",
+  "reference_length_meters": 1.0
+}

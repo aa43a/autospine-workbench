@@ -16,7 +16,8 @@ const EXPECTED_COMMANDS = [
   "materialize-manifest", "publish-split-previews", "compile-rig", "run-probes",
   "verify-setup-golden", "compile-mesh-rig", "verify-mesh-bundle", "compile-ik-targets",
   "verify-ik-bundle", "compile-builtin-motion", "verify-motion-bundle", "compile-bvh-motion",
-  "verify-bvh-motion", "compile-kimodo-motion", "verify-kimodo-motion",
+  "verify-bvh-motion", "audit-kimodo-pilot-intake", "compile-kimodo-motion",
+  "verify-kimodo-motion",
   "compile-motion-retarget", "verify-motion-retarget", "compile-projected-motion",
   "verify-projected-motion", "probe-projected-scale", "compile-kimodo-policy-evidence",
   "compile-heading-evidence", "probe-foot-lock", "probe-depth-order",
@@ -40,10 +41,10 @@ const EXPECTED_COMMANDS = [
   "compile-reviewed-seam-anchor-set", "verify-reviewed-seam-anchor-set",
 ];
 
-test("catalog is valid and matches all 64 CLI entry points", () => {
+test("catalog is valid and matches all 65 CLI entry points", () => {
   assert.equal(validateCatalog(catalog), catalog);
   assert.equal(catalog.catalog_version, "1.0.0");
-  assert.equal(catalog.current_stage, "P10.7c-setup-regression");
+  assert.equal(catalog.current_stage, "P7-real-kimodo-pilot-intake");
   const commands = catalog.entries.filter(({ kind }) => kind === "cli").map(({ command }) => command);
   assert.deepEqual(new Set(commands), new Set(EXPECTED_COMMANDS));
   assert.equal(commands.length, EXPECTED_COMMANDS.length);
@@ -60,7 +61,7 @@ test("catalog exposes all pages, all stage groups, and explicit delivery states"
   assert.ok(catalog.entries.some(({ status }) => status === "available"));
   assert.ok(catalog.entries.some(({ status }) => status === "external_required"));
   assert.ok(catalog.entries.some(({ status }) => status === "planned"));
-  assert.equal(catalog.entries.length, 85);
+  assert.equal(catalog.entries.length, 86);
   assert.equal(catalog.entries.filter(({ kind }) => kind === "planned").length, 18);
   assert.equal(
     catalog.entries.find(({ command }) => command === "capture-body-sway-spine42-v3-runtime").status,

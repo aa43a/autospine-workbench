@@ -1,0 +1,185 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/kimodo-pilot-intake-report-v1.schema.json",
+  "title": "AutoSpine real Kimodo pilot intake report v1",
+  "description": "Path-free, self-hashed, zero-write admission report. The Python semantic validator additionally enforces P7 metric bounds, canonical self-hash, exact derived claims, and authority denial.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "source", "producer", "p7_preview",
+    "p8_input", "claims", "authority", "status", "intake_report_sha256"
+  ],
+  "properties": {
+    "format": {"const": "autospine-kimodo-pilot-intake-report"},
+    "format_version": {"type": "integer", "const": 1},
+    "source": {"$ref": "#/$defs/source"},
+    "producer": {"$ref": "#/$defs/producer"},
+    "p7_preview": {"$ref": "#/$defs/p7Preview"},
+    "p8_input": {"$ref": "#/$defs/p8Input"},
+    "claims": {"$ref": "#/$defs/claims"},
+    "authority": {"$ref": "#/$defs/authority"},
+    "status": {"const": "eligible_for_p7_p8_compile"},
+    "intake_report_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "minLength": 64,
+      "maxLength": 64,
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "token": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "revision": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}([0-9a-f]{24})?$"
+    },
+    "rawByteLength": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 134217728
+    },
+    "provenanceByteLength": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 4194304
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "raw_npz_sha256", "raw_npz_byte_length", "source_sha256", "source_id",
+        "map_sha256", "map_id", "clip_id", "camera_sha256", "camera_id",
+        "checkpoint_manifest_sha256", "checkpoint_manifest_byte_length",
+        "generation_request_sha256", "generation_request_byte_length"
+      ],
+      "properties": {
+        "raw_npz_sha256": {"$ref": "#/$defs/sha256"},
+        "raw_npz_byte_length": {"$ref": "#/$defs/rawByteLength"},
+        "source_sha256": {"$ref": "#/$defs/sha256"},
+        "source_id": {"$ref": "#/$defs/token"},
+        "map_sha256": {"$ref": "#/$defs/sha256"},
+        "map_id": {"$ref": "#/$defs/token"},
+        "clip_id": {"$ref": "#/$defs/token"},
+        "camera_sha256": {"$ref": "#/$defs/sha256"},
+        "camera_id": {"$ref": "#/$defs/token"},
+        "checkpoint_manifest_sha256": {"$ref": "#/$defs/sha256"},
+        "checkpoint_manifest_byte_length": {"$ref": "#/$defs/provenanceByteLength"},
+        "generation_request_sha256": {"$ref": "#/$defs/sha256"},
+        "generation_request_byte_length": {"$ref": "#/$defs/provenanceByteLength"}
+      }
+    },
+    "producer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "implementation", "repository_revision", "model_id",
+        "checkpoint_revision", "seed", "sample_index"
+      ],
+      "properties": {
+        "implementation": {"const": "nv-tlabs/kimodo"},
+        "repository_revision": {"$ref": "#/$defs/revision"},
+        "model_id": {"$ref": "#/$defs/token"},
+        "checkpoint_revision": {"$ref": "#/$defs/revision"},
+        "seed": {
+          "type": "integer",
+          "minimum": -9223372036854775808,
+          "maximum": 9223372036854775807
+        },
+        "sample_index": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        }
+      }
+    },
+    "metric": {
+      "type": "number",
+      "minimum": 0
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_global_matrix_error", "max_heading_norm_error",
+        "max_position_error_meters", "max_root_position_error_meters"
+      ],
+      "properties": {
+        "max_global_matrix_error": {"$ref": "#/$defs/metric"},
+        "max_heading_norm_error": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/metric"}]
+        },
+        "max_position_error_meters": {"$ref": "#/$defs/metric"},
+        "max_root_position_error_meters": {"$ref": "#/$defs/metric"}
+      }
+    },
+    "p7Preview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "compiler_id", "compiler_version", "motion_ir_sha256",
+        "compile_run_sha256", "array_inventory_sha256", "validation"
+      ],
+      "properties": {
+        "compiler_id": {"const": "kimodo-npz-motionir-compiler"},
+        "compiler_version": {"const": "1.1.0"},
+        "motion_ir_sha256": {"$ref": "#/$defs/sha256"},
+        "compile_run_sha256": {"$ref": "#/$defs/sha256"},
+        "array_inventory_sha256": {"$ref": "#/$defs/sha256"},
+        "validation": {"$ref": "#/$defs/validation"}
+      }
+    },
+    "p8Input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["camera_map_binding", "projection", "depth_positive"],
+      "properties": {
+        "camera_map_binding": {"const": "verified"},
+        "projection": {"const": "static_orthographic"},
+        "depth_positive": {"enum": ["toward_camera", "away_from_camera"]}
+      }
+    },
+    "claims": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "raw_npz_and_external_provenance_bytes_bound",
+        "canonical_json_input_identities_bound", "p7_structural_compile_passed",
+        "p8_camera_input_admitted", "checkpoint_authenticity_verified",
+        "motion_quality_approved", "p8_projection_emitted", "p9_reviewed",
+        "release_authority"
+      ],
+      "properties": {
+        "raw_npz_and_external_provenance_bytes_bound": {"const": true},
+        "canonical_json_input_identities_bound": {"const": true},
+        "p7_structural_compile_passed": {"const": true},
+        "p8_camera_input_admitted": {"const": true},
+        "checkpoint_authenticity_verified": {"const": false},
+        "motion_quality_approved": {"const": false},
+        "p8_projection_emitted": {"const": false},
+        "p9_reviewed": {"const": false},
+        "release_authority": {"const": false}
+      }
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state_mutation", "latest_selection", "pipeline_publication",
+        "human_decision", "publish", "release"
+      ],
+      "properties": {
+        "state_mutation": {"const": false},
+        "latest_selection": {"const": false},
+        "pipeline_publication": {"const": false},
+        "human_decision": {"const": false},
+        "publish": {"const": false},
+        "release": {"const": false}
+      }
+    }
+  }
+}

@@ -2,7 +2,7 @@
 
 本指南把一份已经导出的 Kimodo SOMA77 NPZ 编译为版本中立 MotionIR，并发布为可重建验证的五文件 motion bundle。随后可沿既有 P5/P6 命令把同一动作重定向到不同二维 rig，再导出 Spine 4.2 bundle。
 
-这是正式 P7 NPZ 边界。它不会运行 Kimodo、下载 checkpoint，也不会把未知 NPZ 当作可信输入猜测解释。
+这是正式 P7 NPZ 边界。它不会运行 Kimodo、下载 checkpoint，也不会把未知 NPZ 当作可信输入猜测解释。真实 pilot 应先按[真实 Kimodo 输入审计](how-to-audit-real-kimodo-pilot-intake.md)闭合 NPZ、recorded sidecar、map、camera 与两份 provenance 原件；该审计通过也不代替本页的正式发布和精确地址复验。
 
 ## 前提
 

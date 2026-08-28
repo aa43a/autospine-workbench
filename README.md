@@ -2,7 +2,7 @@
 
 AutoSpine Workbench 是一个本地人工复核与离线编译工作流，用于查看 See-through PSD 审计结果、校正图层语义和 setup 可见性、调整启发式关节，并保存带 revision 的 override。它不会修改 PSD、审计 JSON 或 PNG；主 authoring 页面写入 `workspace/overrides`，P10 人工复核使用各自独立的 revision namespace，离线 publish/compile 命令按阶段写入内容寻址的 analysis、motion、build 或 runtime 工件。
 
-当前阶段是 **P10.7c-setup-regression**：独立的 P6 setup golden 只读对照机制已经交付，但当前目标仍是把“模型输出”变成可追溯、可复核的 authoring 输入，而不是直接宣称生成了可发布的 Spine 资产。
+当前开发入口是 **P7-real-kimodo-pilot-intake**：独立的 P6 setup golden 只读对照机制已经交付，M1.0 真实 Kimodo 六输入零写入审计也已落地；当前仍须取得真实输入并完成 P7/P8/P9 与 seam，不能直接宣称生成了可发布的 Spine 资产。
 
 当前功能及入口以[功能与入口参考](docs/capability-reference.md)为准；尚未实现的能力、依赖和验收顺序见[后续开发路线](docs/development-roadmap.md)。
 
@@ -26,6 +26,7 @@ AutoSpine Workbench 是一个本地人工复核与离线编译工作流，用于
 - 编译可复用的 setup-local MotionIR（内建 idle/wave 或显式映射 BVH），并从精确 P3/P4/Motion 地址生成带接触、运动学与 mesh 回归证据的不可变 MotionInstance bundle。
 - 以 compiler 1.1.0 严格读取 Kimodo 双根 SOMA77 BVH，并让同一 MotionIR 穿过三 rig 与 Spine 4.2 bundle 兼容性门禁。
 - 严格读取 Kimodo SOMA77 NPZ、独立 source sidecar 与显式 map，交叉验证矩阵 FK/关节位置，并发布可重建的五文件 MotionIR bundle。
+- 在发布前零写入审计真实 NPZ、recorded sidecar、map、camera、checkpoint manifest 与 generation request 原件；报告只授予 P7/P8 编译准入，不认证 checkpoint 或动作质量。
 - 从精确 P7 bundle 与显式静态正交相机生成保留深度、透视缩短和可观测性的 ProjectedMotionIR；候选尺度探针可复用于不同目标 rig，但不会静默生成 runtime scale 或 draw-order timeline。
 - 从精确 P3/P5/P8 地址编译 foot-lock 和 depth-order 候选，经完整人工决定生成 reviewed policy、MotionInstance v2、Spine 4.2 v2 preview 与六文件不可变 P9 bundle；既有 v1 内容哈希不变。
 - 从精确 Layer Manifest/P3/P5/P9 链编译 idle 行为候选和人工决定，并对调整后的 `body_sway` 生成七项采样结构检查；报告始终阻塞发布并要求官方 runtime 人工预览。
@@ -198,7 +199,7 @@ JSON Schema 位于：
 - `schemas/mesh-*.schema.json` 与 `schemas/ik-target-*.schema.json`：P3 两骨 LBS 和 P4 离线 IK 的 run、probe 与视觉证据；
 - `schemas/motion-ir-v1.schema.json`、`schemas/motion-instance-v1.schema.json` 与 `schemas/motion-target-profile-v1.schema.json`：P5 可复用动作、目标 rig 与烘焙实例合同；
 - `schemas/motion-compile-run-v1.schema.json`、`schemas/bvh-*.schema.json` 与 `schemas/retarget-run-v1.schema.json`：内建/BVH 编译和重定向 provenance；
-- `schemas/kimodo-npz-source-v1.schema.json`、`schemas/kimodo-npz-map-v1.schema.json` 与 `schemas/kimodo-npz-motion-compile-run-v1.schema.json`：正式 P7 原始 NPZ 解释、投影映射与可重建编译 provenance；
+- `schemas/kimodo-npz-source-v1.schema.json`、`schemas/kimodo-npz-map-v1.schema.json`、`schemas/kimodo-npz-motion-compile-run-v1.schema.json` 与 `schemas/kimodo-pilot-intake-report-v1.schema.json`：真实 pilot 准入报告、正式 P7 原始 NPZ 解释、投影映射与可重建编译 provenance；
 - `schemas/camera-model-v1.schema.json`、`schemas/projected-motion-ir-v1.schema.json`、`schemas/projected-motion-compile-run-v1.schema.json` 与 `schemas/projected-scale-probes-v1.schema.json`：P8 相机、3D→2D 投影证据、编译 provenance 与目标 rig 候选尺度探针；
 - `schemas/motion-instance-v2.schema.json`、`schemas/motion-policy-decision-v1.schema.json`、`schemas/reviewed-motion-policy-v1.schema.json` 与 `schemas/reviewed-motion-bundle-run-v1.schema.json`：P9 人工决定、root/draw-order overlay、v2 instance 与六文件 bundle provenance；
 - `schemas/idle-behavior-candidates-v1.schema.json`、`schemas/idle-behavior-decision-v1.schema.json` 与 `schemas/body-sway-probe-report-v1.schema.json`：P10.0–P10.2 idle 候选、人工参数决定与只读采样结构诊断；
@@ -363,9 +364,18 @@ python -m autospine_workbench verify-ik-bundle seethrough_output `
 
 P4 不接受 `latest` 或自动发现。严格 reader 会从精确 P3 来源重建 profile 与全部数值探针并逐字节比较。`kinematic_reach` 只表示两段骨长决定的运动学可达环；它不能覆盖 P3 动作探针给出的 mesh 视觉安全角。完整步骤和错误解释见 [编译并验证两骨 IK 目标](docs/how-to-compile-ik-targets.md)。
 
-P5 将动作与目标 rig 分开内容寻址。内建 `idle`/`wave.left`、显式 BVH map、正式 Kimodo NPZ、目标重定向及只读复验分别使用 `compile-builtin-motion`、`compile-bvh-motion`、`compile-kimodo-motion`、`compile-motion-retarget` 与对应 verify 命令。所有命令只接受精确 SHA，不解析 `latest`；通用合同、固定地址、A/B 示例和排障步骤见 [编译、重定向并复验 P5 动画](docs/how-to-compile-motion.md)，Kimodo 的三输入边界见 [编译 Kimodo SOMA77 NPZ](docs/how-to-compile-kimodo-npz.md)。
+P5 将动作与目标 rig 分开内容寻址。内建 `idle`/`wave.left`、显式 BVH map、正式 Kimodo NPZ、目标重定向及只读复验分别使用 `compile-builtin-motion`、`compile-bvh-motion`、`compile-kimodo-motion`、`compile-motion-retarget` 与对应 verify 命令。所有命令只接受精确 SHA，不解析 `latest`；通用合同、固定地址、A/B 示例和排障步骤见 [编译、重定向并复验 P5 动画](docs/how-to-compile-motion.md)。真实 Kimodo 在三输入 P7 边界之前，先按[真实 Pilot 输入审计](docs/how-to-audit-real-kimodo-pilot-intake.md)闭合六份输入。
 
-正式 Kimodo NPZ bundle 可用以下入口发布与只读复验；编译命令不会搜索相邻 sidecar 或 map：
+正式 Kimodo NPZ 先用以下入口做零写入准入；它不会发布工件或回显输入路径：
+
+```powershell
+python -m autospine_workbench audit-kimodo-pilot-intake `
+  <raw.npz> <sidecar.json> <map.json> <camera.json> `
+  --checkpoint-manifest <checkpoint.manifest> `
+  --generation-request <generation-request>
+```
+
+审计通过后才用以下入口发布与只读复验；编译命令不会搜索相邻 sidecar 或 map：
 
 ```powershell
 python -m autospine_workbench compile-kimodo-motion `
@@ -630,7 +640,7 @@ P10.7c 已增加 strict canonical setup-regression request/report、冻结 compa
 - 代替输入素材、训练数据或模型权重的许可证与商业使用审查；
 - 多用户权限、远程协作或生产部署。
 
-这些边界并非都应一次性并入当前阶段。下一顺序是先生成、复核并声明真实 Kimodo P7/P8/P9 exact 地址，完成或确认 A 的 seam 人审并声明 P10.5c 地址，以及完成 B 的上游语义/分层修复或独立 partial 合同；再完成两份真实样本的官方 Runtime capture、逐项人审，并使用已交付的 P10.7c 命令执行 P6 setup golden 对照；随后把 canonical request/report、批准合同和批准 PNG 封存为可寻址 comparison bundle，再接 readiness v2；之后进入 attachment switch → blink/mouth。输入模型 runner 继续作为独立质量轨；完整计划见[后续开发路线](docs/development-roadmap.md)。
+这些边界并非都应一次性并入当前阶段。下一顺序是先用已交付的 M1.0 入口审计真实 Kimodo 六输入，再生成、复核并声明 P7/P8/P9 exact 地址；同时完成 A 的 seam 人审与 P10.5c，并为 B 选择新分层资产或禁止通用腿部动画的独立 partial 合同。之后再做两份真实样本的官方 Runtime capture、逐项人审和 P10.7c P6 setup golden 对照；随后封存 immutable comparison bundle并接 readiness v2；最后进入 attachment switch → blink/mouth。输入模型 runner 继续作为独立质量轨；完整计划见[后续开发路线](docs/development-roadmap.md)。
 
 项目中显示的骨架来自 bbox/语义启发式，`requires_review=true`。只有在语义、左右、pivot、层级、合成回归和动作探针均通过后，才能把人工确认结果交给后续 RigIR/导出阶段。
 

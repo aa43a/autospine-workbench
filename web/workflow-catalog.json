@@ -1,6 +1,6 @@
 {
   "catalog_version": "1.0.0",
-  "current_stage": "P10.7c-setup-regression",
+  "current_stage": "P7-real-kimodo-pilot-intake",
   "stages": [
     {"id":"P0","label":"合同、服务与基础验证"},
     {"id":"P1","label":"图层复核与四肢候选"},
@@ -38,6 +38,7 @@
     {"id":"cli-verify-motion-retarget","stage":"P5","title":"验证动作重定向","summary":"按实例与 bundle SHA 重放不可变重定向工件。","kind":"cli","status":"available","command":"verify-motion-retarget","doc":"docs/how-to-compile-motion.md"},
     {"id":"cli-compile-spine42","stage":"P6","title":"导出 Spine 4.2 Bundle","summary":"从精确 P3 或 P3/P5 链生成固定 Spine 4.2 profile。","kind":"cli","status":"available","command":"compile-spine42","doc":"docs/how-to-export-spine42.md"},
     {"id":"cli-verify-spine42","stage":"P6","title":"验证 Spine 4.2 Bundle","summary":"重建上游并验证精确 Spine 4.2 skeleton 与 bundle。","kind":"cli","status":"available","command":"verify-spine42","doc":"docs/how-to-export-spine42.md"},
+    {"id":"cli-audit-kimodo-pilot-intake","stage":"P7","title":"审计真实 Kimodo 输入","summary":"零写入闭合 NPZ、recorded sidecar、map、camera 与两份上游 provenance 原件；只授予 P7/P8 编译准入，不代替动作质量或人审。","kind":"cli","status":"available","command":"audit-kimodo-pilot-intake","doc":"docs/how-to-audit-real-kimodo-pilot-intake.md"},
     {"id":"cli-compile-kimodo-motion","stage":"P7","title":"编译 Kimodo NPZ","summary":"从固定 NPZ、sidecar 和 map 生成可验证 MotionIR。","kind":"cli","status":"available","command":"compile-kimodo-motion","doc":"docs/how-to-compile-kimodo-npz.md"},
     {"id":"cli-verify-kimodo-motion","stage":"P7","title":"验证 Kimodo MotionIR","summary":"复验一个精确 Kimodo NPZ MotionIR bundle。","kind":"cli","status":"available","command":"verify-kimodo-motion","doc":"docs/how-to-compile-kimodo-npz.md"},
     {"id":"cli-compile-projected-motion","stage":"P8","title":"编译相机投影动作","summary":"通过显式 CameraModel 将精确 Kimodo 动作投影到 2D。","kind":"cli","status":"available","command":"compile-projected-motion","doc":"docs/how-to-compile-projected-motion.md"},

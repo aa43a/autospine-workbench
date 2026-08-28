@@ -257,7 +257,18 @@ python -B -m autospine_workbench verify-mesh-bundle --help
 
 ## 10. 当前阶段与下一开发入口
 
-当前阶段是 **P10.7c-setup-regression**。先在项目根目录运行冻结的 readiness v1 只读预检：
+当前开发入口是 **P7-real-kimodo-pilot-intake**。如果已经取得真实 Kimodo 六输入，先运行零写入准入审计：
+
+```powershell
+python -B -m autospine_workbench audit-kimodo-pilot-intake `
+  <raw.npz> <sidecar.json> <map.json> <camera.json> `
+  --checkpoint-manifest <checkpoint.manifest> `
+  --generation-request <generation-request>
+```
+
+该命令要求 `producer.status=recorded`，闭合两份 provenance 原件 SHA，在内存重跑 P7 结构编译并检查 camera/map；它不写 state、不认证 checkpoint、不批准动作质量，也不生成 P7/P8/P9 bundle。当前工作区没有真实六输入，因此只能确认入口和测试机制可用。完整准备步骤见[审计真实 Kimodo Pilot 输入](how-to-audit-real-kimodo-pilot-intake.md)。
+
+随后仍可运行冻结的 readiness v1 只读预检，查看两份目标项目尚缺哪些 exact 地址：
 
 ```powershell
 python -B -m autospine_workbench audit-body-sway-spine42-v3-readiness `
@@ -266,7 +277,7 @@ python -B -m autospine_workbench audit-body-sway-spine42-v3-readiness `
   --document-only
 ```
 
-readiness v1 的 Schema、哈希和 checkpoint 语义已经冻结；即使 P10.7c 已交付，第八项仍固定为 `p6_setup_golden_comparison_not_declared`，不能把 readiness 报告当作 setup 对照结果。当前结果是：A/B 都未声明真实 Kimodo P7/P8/P9 的 reviewed-motion 地址；A 还未声明 P10.5c 双 SHA，审计不读取 current review head，因此不能据此断言人审是否已经发生；B 的 P3 candidate 则证明有四条不可观测腿/脚 seam，必须修复上游语义/分层或另立 partial 合同。Runtime 已存在，但不是最早 blocker。请求格式、报告读取方式和权限边界见[审计两份真实样本的 Spine 4.2 v3 就绪状态](how-to-audit-spine42-v3-readiness.md)。
+readiness v1 的 Schema、哈希和 checkpoint 语义已经冻结；即使 P10.7c 已交付，第八项仍固定为 `p6_setup_golden_comparison_not_declared`，不能把 readiness 报告当作 setup 对照结果。当前结果是：A/B 都未声明真实 Kimodo P7/P8/P9 的 reviewed-motion 地址。默认 state 的独立 seam 盘点还确认 A/B 都没有 review history/head；A 的六条关系可直接进入人审，B 的长裙遮挡使四条腿/脚关系不可观测，必须换新分层资产或另立禁止通用腿部动画的 partial 合同。Runtime 已存在，但不是最早 blocker。请求格式、报告读取方式和权限边界见[审计两份真实样本的 Spine 4.2 v3 就绪状态](how-to-audit-spine42-v3-readiness.md)。
 
 P10.7c 的独立入口已经可从功能中心复制，也可直接查看帮助：
 

@@ -16,6 +16,9 @@ if str(SRC) not in sys.path:
 from autospine_workbench.kimodo_npz_map_validation import (  # noqa: E402
     require_kimodo_npz_map,
 )
+from autospine_workbench.camera_model_validation import (  # noqa: E402
+    require_camera_matches_kimodo_map,
+)
 from autospine_workbench.kimodo_npz_source import (  # noqa: E402
     require_kimodo_npz_source,
 )
@@ -32,9 +35,13 @@ class KimodoNpzExampleTests(unittest.TestCase):
         mapping = json.loads(
             (EXAMPLES / "soma77-front.map.example.json").read_text("utf-8")
         )
+        camera = json.loads(
+            (EXAMPLES / "soma77-front.camera.example.json").read_text("utf-8")
+        )
 
         require_kimodo_npz_source(source)
         require_kimodo_npz_map(mapping, source=source)
+        require_camera_matches_kimodo_map(camera, mapping)
         self.assertEqual("0" * 64, source["raw_npz"]["sha256"])
         self.assertIn("replace", source["source_id"])
         self.assertIn("replace", mapping["clip"]["clip_id"])
