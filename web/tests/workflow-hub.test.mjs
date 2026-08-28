@@ -44,7 +44,7 @@ const EXPECTED_COMMANDS = [
 test("catalog is valid and matches all 65 CLI entry points", () => {
   assert.equal(validateCatalog(catalog), catalog);
   assert.equal(catalog.catalog_version, "1.0.0");
-  assert.equal(catalog.current_stage, "P7-real-kimodo-pilot-intake");
+  assert.equal(catalog.current_stage, "P9-real-kimodo-policy-review");
   const commands = catalog.entries.filter(({ kind }) => kind === "cli").map(({ command }) => command);
   assert.deepEqual(new Set(commands), new Set(EXPECTED_COMMANDS));
   assert.equal(commands.length, EXPECTED_COMMANDS.length);
@@ -119,6 +119,10 @@ test("Chinese search, grouping, statistics, and help command are deterministic",
 
 test("document viewer admits only repository docs Markdown paths", () => {
   assert.equal(validatedDocumentPath("docs/operator-quick-guide.zh-CN.md"), "docs/operator-quick-guide.zh-CN.md");
+  assert.equal(
+    validatedDocumentPath("docs/pilots/kimodo-wave-left-v1.md"),
+    "docs/pilots/kimodo-wave-left-v1.md",
+  );
   for (const value of [
     "../README.md", "docs/../README.md", "/docs/architecture.md",
     "docs\\architecture.md", "docs/architecture.html", "README.md", "",

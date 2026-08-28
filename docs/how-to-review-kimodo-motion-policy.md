@@ -266,7 +266,7 @@ P9 通过新增 MotionInstance v2 与 Spine adapter v2 承载动态策略；Moti
 
 结构闭环已经覆盖 exact address、候选/决定分离、root correction、draw order、MotionInstance v2、Spine v2 preview 和六文件 bundle 重放。仍未关闭的门禁包括：
 
-- 真实 Kimodo checkpoint 生成的、经人工批准的 reviewed asset fixture；
+- `wave-left-v1` 当前只有已复验的 P7/P8；它仍缺 A/B 各自的 P5、穷尽候选的人工决定和 P9 reviewed asset fixture；
 - 动态 draw order/foot correction 在官方 Spine runtime 中的固定截图回归；
 - heading 或 scale timeline 的人工决定与 runtime 消费合同；
 - attachment switch、deform、runtime IK 和物理。

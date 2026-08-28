@@ -1,6 +1,6 @@
 # AutoSpine Workbench 后续开发路线
 
-本文是 Explanation 与交付计划，面向维护者和需要评估可行性的项目负责人。它从 **P0 Resolved Project v1 合同、P10.6b MotionInstance v3、P10.7a Spine adapter bundle、P10.7b sampled raster 基础设施与独立 P10.7c setup regression 已完成** 的事实出发，说明尚未实现的能力应按什么依赖关系推进。当前开发入口是 **P7-real-kimodo-pilot-intake**：M1.0 零写入输入审计已交付，但两份真实 See-through 样本仍须取得真实 Kimodo 输入、完成 P7/P8/P9、关闭 seam，再进入官方 Runtime capture。这里的阶段名、优先级和验收条件是建议，不构成发布日期承诺；基础设施可用也不等于真实样本、连续时间或发布门禁已经通过。
+本文是 Explanation 与交付计划，面向维护者和需要评估可行性的项目负责人。它从 **P0 Resolved Project v1 合同、P10.6b MotionInstance v3、P10.7a Spine adapter bundle、P10.7b sampled raster 基础设施与独立 P10.7c setup regression 已完成** 的事实出发，说明尚未实现的能力应按什么依赖关系推进。当前开发入口是 **P9-real-kimodo-policy-review**：`wave-left-v1` 已完成六输入准入及 P7/P8 exact replay；两份真实 See-through 样本仍须分别完成 P5、P9 与 seam，才能进入官方 Runtime capture。这里的阶段名、优先级和验收条件是建议，不构成发布日期承诺；单一 pilot 和基础设施可用也不等于广泛动作质量、真实样本、连续时间或发布门禁已经通过。
 
 ## 规划原则
 
@@ -17,14 +17,14 @@
 
 | 优先级 | 能力 | 原因 |
 | --- | --- | --- |
-| P0 | 真实 Kimodo Pilot Intake 与 P7/P8/P9 | M1.0 六输入零写入审计已交付；当前没有真实六文件输入，后续 exact bundle 与动作质量结论尚未产生 |
+| P0 | `wave-left-v1` 目标 P5 与 P9 人审 | 六输入 intake 和 P7/P8 exact replay 已完成；A/B 各自的 P5、候选决定和 P9 reviewed-motion 地址尚未产生 |
 | P0 | P10.7c setup golden 独立回归 | 零写入入口已交付；真实执行仍依赖 exact P10.7a/capture 与批准 P6 基线，readiness v1 保持冻结且第八项仍 missing |
 | P0 | P10.7b 两份真实样本验收 | Runtime/capture/metrics/review 基础设施已存在，但真实链尚未到达 P10.7a；仍需先关闭 Kimodo 与 seam 门禁，再做官方 Runtime 和人工决定 |
 | P1 | Revision 历史浏览/恢复 UI | 历史已不可变保存，但操作者尚不能便捷查看或安全恢复 |
 | P1 | 主工作台 Spine 导出编排入口 | 离线 P6 已完成，主项目能力仍明确为 `export_spine=false` |
 | P1 | Attachment switch 基础合同 | 眨眼和口型的共同前置能力 |
 | P1 | 自动眨眼、口型候选与人工复核 | 价值高、动作域相对局部，适合在离散切换合同上先落地 |
-| P1 | 真实 Kimodo/P9 质量门禁 | 当前仅有合成兼容性证据，真实动作质量风险必须单独关闭 |
+| P1 | 扩展真实 Kimodo 动作质量样本集 | 单一 `wave-left-v1` 关闭了结构链，但尚未覆盖快慢动作、交叉肢体、转身、接触和官方 Runtime 视觉质量 |
 | P2 | 头发弹簧、自由形变、多骨权重、runtime IK | 需要新的连续变形、约束和视觉安全合同 |
 | P2 | See-through/pose 离线 runner | 可提高自动化，但依赖模型、显存、许可证和确定性封存策略 |
 | P2 | Spine Editor 工程与更多版本 adapter | 必须按版本、格式和许可证隔离，不能扩展现有 4.2 声明来冒充兼容 |
@@ -48,9 +48,11 @@ P10.7b-readiness 显式 Manifest 审计（已完成入口）
         ↓
 P10.7c 独立 setup golden 比较机制（已完成入口；真实执行在 capture 后）
         ↓
-真实 Kimodo 六输入审计（M1.0 已完成入口；外部输入待提供）
+真实 `wave-left-v1` 六输入审计 + P7/P8（已完成）
         ↓
-真实 Kimodo P7/P8/P9 + seam 人工/语义门禁（当前最早 blocker）
+A/B P5 重定向 + P9 人工策略复核（当前最早动作 blocker）
+        ↓
+seam 人工/语义门禁
         ↓
 两份真实 See-through 样本官方 Runtime + 人工验收（需要外部授权环境）
         ↓
@@ -237,8 +239,8 @@ See-through 分层，并让新的 Manifest/P3/candidate 内容地址失效旧决
 
 最短后续顺序：
 
-1. 获取可合法使用的真实 Kimodo NPZ、recorded source sidecar、显式 map/camera，以及 checkpoint manifest 与 generation request 原件；先用 `audit-kimodo-pilot-intake` 零写入闭合六份输入，再发布并复验 P7/P8。
-2. 完成 P9 foot/depth 候选的人工决定并发布真实 reviewed-motion bundle；fixture、内建 idle/wave 或测试 P8 SHA 不可替代。
+1. 从 [`wave-left-v1` handoff](pilots/kimodo-wave-left-v1.md) 读取已复验的 P7/P8 exact 地址，为 A/B 分别编译并复验新的 P5；不得把 builtin `wave.left` 的 P5 地址复用为 Kimodo 凭据。
+2. 用同一 P7/P8 与各目标 P5 生成 P9 foot/depth 候选，完成人工决定并发布真实 reviewed-motion bundle；intake/P7/P8 SHA、fixture 或测试地址都不能替代 P9 地址。
 3. 对 A 完成或确认 P10.5b 人审、编译 P10.5c 并声明 exact 地址；对 B 先选择“上游修复”或“另立 partial 合同”，不得伪造六关系通过。
 4. 在精确 P9/seam 地址上依次完成 P10.0–P10.7a；每次只把实际生成的双 SHA 回填请求。
 5. 使用现有且已获授权的官方 Runtime 执行 P10.7b capture、精确复验和逐 case/attachment 人工决定。
@@ -262,9 +264,10 @@ golden 合同和精确 P10.7a/P10.7b 地址。它以冻结 comparison profile �
 
 readiness v1 的 Schema、哈希和八项 checkpoint 已冻结；第八项仍固定为
 `p6_setup_golden_comparison_not_declared`。P10.7c 使用独立合同，避免让旧请求或报告静默获得新含义。
-当前只能确认机制与既有 P6 批准基线可被严格验证，不能声称真实 A/B 通过：两项目仍缺真实
-Kimodo/P9 链，A 尚未声明 P10.5c，B 的四条腿/脚 seam 不可观测，且真实 P10.7a/capture
-尚未交付。只有这些前置关闭后，才能生成真实 canonical 请求并执行两项目对照。当前 stdout
+当前只能确认机制与既有 P6 批准基线可被严格验证，不能声称真实 A/B 通过：共享的
+`wave-left-v1` 已到达 P7/P8，但两项目仍缺各自的 P5/P9 exact 地址；A 尚未声明 P10.5c，
+B 的四条腿/脚 seam 不可观测，且真实 P10.7a/capture 尚未交付。只有这些前置关闭后，
+才能生成真实 canonical 请求并执行两项目对照。当前 stdout
 报告仍是临时、不可寻址工件；进入 readiness v2 前还要交付封存 request/report、批准合同和批准
 PNG 的 immutable comparison bundle，并由 reader 重放实际 capture。
 
@@ -396,15 +399,15 @@ PNG 的 immutable comparison bundle，并由 reader 重放实际 capture。
 
 ## 真实 Kimodo/P9 质量门禁
 
-**当前优先级：P0；M1.0 输入审计已交付，真实外部输入待提供。**
+**当前优先级：P0；单一 `wave-left-v1` 已完成 intake 与 P7/P8，目标 P5/P9 和质量验收待完成。**
 
 依赖：可合法使用的真实 Kimodo checkpoint 输出、checkpoint manifest、generation request、recorded sidecar、显式 map/camera、现有 P7–P9 精确链和人工 policy review。
 
 已交付的 M1.0 `audit-kimodo-pilot-intake` 会安全读取六份精确文件，要求两份 provenance 原件的逐字节 SHA 与 recorded sidecar 闭合，在内存中重跑 P7 结构编译，并验证 camera/map 一致性。输出是 path-free、自哈希、零写入报告；它明确把 checkpoint authenticity、动作质量、P8 projection、P9 review 与 release authority 保持为 false。操作见[审计真实 Kimodo Pilot 输入](how-to-audit-real-kimodo-pilot-intake.md)。
 
-下一交付：用通过审计的同一输入发布不可变 P7/P8；为 A/B 分别生成新的 P5；完成人工 P9 foot/depth 决定、三 rig 重定向、Spine Runtime capture 和人工质量报告。heading/scale 只有在独立 reviewed 合同完成后才能进入 runtime。
+下一交付：从 [`wave-left-v1` handoff](pilots/kimodo-wave-left-v1.md) 的 exact P7/P8 地址为 A/B 分别生成新的 P5；完成人工 P9 foot/depth 决定、三 rig 重定向、Spine Runtime capture 和人工质量报告。heading/scale 只有在独立 reviewed 合同完成后才能进入 runtime。
 
-当前实物状态：工作区没有真实 NPZ、P7/P8/P9 bundle；现有 motion/P5 仅绑定 builtin `idle`/`wave.left`，不能复用为 Kimodo 凭据。A/B 也都没有 seam review history/head；A 的六条关系可进入人审，B 的长裙遮挡导致四条下肢关系不可观测，必须换新分层资产或建立明确禁止通用腿部动画的 partial 合同。
+当前实物状态：真实运行的 `wave-left-v1` 已有 recorded 六输入、intake 报告和通过 exact reader 的 P7/P8 bundle；collapsed sample 为零。它尚未产生绑定到 A/B 的 P5 或 P9 bundle，也不认证 checkpoint 或批准动作质量。A/B 也都没有 seam review history/head；A 的六条关系可进入人审，B 的长裙遮挡导致四条下肢关系不可观测，必须换新分层资产或建立明确禁止通用腿部动画的 partial 合同。
 
 验收条件：同六份输入重复审计报告哈希相同，审计 preview 与随后 P7 发布身份一致；真实样本集至少包含慢动作、快速动作、交叉肢体、转身和脚接触案例；三 rig 无非有限数和明显滑脚；人工决定覆盖全部候选；P9 bundle reader 与官方 Runtime 截图回归通过；合成 fixture 与真实质量结论明确分开。
 

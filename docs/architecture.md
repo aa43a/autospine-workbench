@@ -190,7 +190,7 @@ producer provenance 的 `recorded` 与 `unavailable` 是不同的显式状态。
 
 完整 NPZ 只把 `smooth_root_pos` 当有限数证据、把 `global_root_heading` 当单位方向证据，当前不用它们改写 MotionIR。contact 采用半开 `annotation_only` marker，不等于 foot lock。
 
-正式测试证明确定性合成 NPZ 的 root、代表性肢体旋转和 contact 可通过三个 rig 的 P5/P6 结构门禁；M1.0 另证明同一六输入可得到确定性 path-free intake report，且其 P7 preview 身份可与后续正式编译对齐。当前工作区仍没有真实六输入，所以尚未证明真实 Kimodo checkpoint 的真实性、动作质量、深度/遮挡效果或该 clip 的官方 Spine Player 截图。关闭真实资产门禁还需要真实输入、干净 state 重编译、目标角色视觉对照与固定 runtime golden。
+正式测试证明确定性合成 NPZ 的 root、代表性肢体旋转和 contact 可通过三个 rig 的 P5/P6 结构门禁；M1.0 另证明同一六输入可得到确定性 path-free intake report，且其 P7 preview 身份可与后续正式编译对齐。真实运行的 `wave-left-v1` 已通过 intake，并完成 P7/P8 exact replay；身份集中记录在 [pilot handoff](pilots/kimodo-wave-left-v1.md)。这仍未证明 checkpoint authenticity、广泛动作质量、目标角色深度/遮挡效果或该 clip 的官方 Spine Player 截图。关闭真实资产门禁还需要 A/B 的 P5/P9、干净 state 重编译、目标角色视觉对照与固定 runtime golden。
 
 P8 相机感知投影门禁已经完成：
 
@@ -461,7 +461,7 @@ atlas/texture 不变，再从 capture plan 中选出唯一 `animation=null/tick=
 sample 冒充 replay。命令不启动 Runtime、不扫描 mutable head、不写 state、不修改 golden，
 临时 stdout 只授予 bounded setup-frame equivalence，release gate 固定 blocked；readiness v2
 之前还必须把 request/report、批准合同与批准 PNG 封存成可寻址、可重放的 immutable comparison
-bundle。真实 A/B 仍受 Kimodo/P9、seam 与官方
+bundle。共享的 `wave-left-v1` 已到达 P7/P8，但真实 A/B 仍受各自的 P5/P9、seam 与官方
 capture 外部前置阻塞；机制交付不能写成真实样本通过。操作入口见
 [P10.7c Setup Golden How-to](how-to-compare-spine42-v3-setup-golden.md)、
 [就绪状态审计 How-to](how-to-audit-spine42-v3-readiness.md)和[后续开发路线](development-roadmap.md)。

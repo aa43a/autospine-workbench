@@ -161,6 +161,6 @@ python -m unittest `
 
 ## 当前边界与下一阶段
 
-P8 已证明相机、投影证据、P7 legacy 等价性和三 rig 候选复用可重复；合成 fixture 仍不证明真实 Kimodo checkpoint 的动作质量。
+P8 已证明相机、投影证据、P7 legacy 等价性和三 rig 候选复用可重复。真实运行的 `wave-left-v1` 也已发布并复验单一 P8 bundle，且没有 collapsed sample；身份与比例范围见 [pilot handoff](pilots/kimodo-wave-left-v1.md)。合成 fixture 与这一个 pilot 都不证明 checkpoint authenticity、广泛动作质量或目标角色视觉质量。
 
 P9 才会定义需要人工批准的消费策略：contact 驱动的 foot lock、heading/root 处理、带滞回的 depth ordering、最小 draw-order 事件，以及可选的 reviewed scale timeline。P9 必须继续把原始证据、算法候选和人工决定分开；不能直接把 P8 depth 排序或把所有骨的 foreshortening 无条件写进 Spine。

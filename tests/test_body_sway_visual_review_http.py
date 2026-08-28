@@ -337,6 +337,13 @@ class BodySwayVisualReviewHttpTests(unittest.TestCase):
         self.assertIn("text/markdown", headers["content-type"])
         self.assertIn(b"#", raw)
 
+        status, headers, raw = self.fixture.request(
+            "GET", "/docs/pilots/kimodo-wave-left-v1.md"
+        )
+        self.assertEqual(200, status)
+        self.assertIn("text/markdown", headers["content-type"])
+        self.assertIn(b"# Kimodo `wave-left-v1` Pilot Handoff", raw)
+
         status, _, raw = self.fixture.request(
             "GET", "/docs/../README.md"
         )
