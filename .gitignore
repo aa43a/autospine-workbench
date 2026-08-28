@@ -11,5 +11,6 @@ workspace/overrides/*/
 workspace/analysis/
 workspace/builds/
 workspace/motions/
+workspace/projected-motions/
 workspace/runtime/
 workspace/runtime-logs/
