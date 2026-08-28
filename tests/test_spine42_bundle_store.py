@@ -23,6 +23,7 @@ from autospine_workbench.spine42_bundle_integrity import (  # noqa: E402
     Spine42BundleIntegrityError,
     Spine42BundleSnapshot,
     VerifiedSpine42BundleReader,
+    replay_verified_spine42_bundle,
     verify_spine42_bundle_snapshot,
 )
 from autospine_workbench.spine42_bundle_store import (  # noqa: E402
@@ -74,6 +75,12 @@ class Spine42BundleStoreTests(unittest.TestCase):
         self.assertEqual(DOCUMENT_NAMES, verified.inventory)
         self.assertEqual(self.values["source_image_sha256s"],
                          verified.source_image_sha256s)
+        replayed = replay_verified_spine42_bundle(verified)
+        self.assertEqual(self.contract.bundle_sha256, replayed.bundle_sha256)
+        with self.assertRaises(Spine42BundleIntegrityError):
+            replay_verified_spine42_bundle(replace(
+                verified, bundle_sha256="f" * 64
+            ))
         verified.skeleton_json.clear()
         verified.document_bytes.clear()
         self.assertTrue(verified.skeleton_json)

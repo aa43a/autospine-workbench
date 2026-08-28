@@ -5,7 +5,6 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 import json
 import math
-from pathlib import Path
 import re
 from typing import Any
 
@@ -27,6 +26,14 @@ DEFAULT_CASE = {"id": "setup", "clip": None, "time_seconds": 0.0}
 
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 _RGBA = re.compile(r"^#[0-9a-fA-F]{8}$")
+_APPROVED_PNG = re.compile(
+    r"^[A-Za-z0-9][A-Za-z0-9._-]{0,111}\.approved\.png$"
+)
+_WINDOWS_DEVICES = {
+    "CON", "PRN", "AUX", "NUL",
+    *(f"COM{index}" for index in range(1, 10)),
+    *(f"LPT{index}" for index in range(1, 10)),
+}
 
 
 class Spine42RuntimeContractError(ValueError):
@@ -82,7 +89,9 @@ def require_runtime_golden(value: Mapping[str, Any]) -> dict[str, Any]:
         {"format", "format_version", "runtime", "capture", "cases"},
         "runtime golden",
     )
-    if value.get("format") != GOLDEN_FORMAT or value.get("format_version") != 1:
+    if value.get("format") != GOLDEN_FORMAT \
+            or type(value.get("format_version")) is not int \
+            or value.get("format_version") != 1:
         raise Spine42RuntimeContractError("runtime golden format is unsupported")
     runtime = _mapping(value.get("runtime"), "golden runtime")
     _fields(runtime, {"package", "version", "npm_integrity"}, "golden runtime")
@@ -121,7 +130,9 @@ def require_runtime_golden(value: Mapping[str, Any]) -> dict[str, Any]:
         golden = _mapping(original.get("golden"), "case golden")
         _fields(golden, {"path", "png_sha256"}, "case golden")
         path = golden.get("path")
-        if not isinstance(path, str) or Path(path).name != path or not path.endswith(".approved.png"):
+        prefix = path.split(".", 1)[0].upper() if isinstance(path, str) else ""
+        if not isinstance(path, str) or not _APPROVED_PNG.fullmatch(path) \
+                or ".." in path or prefix in _WINDOWS_DEVICES:
             raise Spine42RuntimeContractError("golden PNG path must be a safe approved basename")
         if not isinstance(golden.get("png_sha256"), str) or not _SHA256.fullmatch(golden["png_sha256"]):
             raise Spine42RuntimeContractError("golden PNG SHA-256 is invalid")

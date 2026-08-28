@@ -1,0 +1,227 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/spine42-v3-setup-regression-report-v1.schema.json",
+  "title": "AutoSpine Spine 4.2 v3 setup regression report v1",
+  "description": "Path-free bounded comparison of exact P10.7b opaque setup captures against approved P6 runtime PNGs. Frozen profile, derived metrics, evidence bindings, authority, sample identities, and self-hash require the Python semantic validator; hashes identify content but do not authenticate evidence.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "request_sha256",
+    "approved_p6_export_contract_sha256",
+    "approved_runtime_golden_sha256", "comparison_profile_sha256",
+    "runtime", "capture", "samples",
+    "summary", "semantics", "authority", "status", "release_gate",
+    "setup_regression_report_sha256"
+  ],
+  "properties": {
+    "format": {"const": "autospine-spine42-v3-setup-regression-report"},
+    "format_version": {"type": "integer", "const": 1},
+    "request_sha256": {"$ref": "#/$defs/sha256"},
+    "approved_p6_export_contract_sha256": {"$ref": "#/$defs/sha256"},
+    "approved_runtime_golden_sha256": {"$ref": "#/$defs/sha256"},
+    "comparison_profile_sha256": {
+      "const": "98e12906fea7f5c9f194eac1af06deb402705392d5c5ed459b1c00878f9a92de"
+    },
+    "runtime": {"$ref": "#/$defs/runtime"},
+    "capture": {"$ref": "#/$defs/capture"},
+    "samples": {
+      "type": "array", "minItems": 1, "maxItems": 8,
+      "items": {"$ref": "#/$defs/sample"}
+    },
+    "summary": {"$ref": "#/$defs/summary"},
+    "semantics": {"$ref": "#/$defs/semantics"},
+    "authority": {"$ref": "#/$defs/authority"},
+    "status": {"enum": ["passed", "rejected"]},
+    "release_gate": {"$ref": "#/$defs/releaseGate"},
+    "setup_regression_report_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string", "minLength": 64, "maxLength": 64,
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "token": {
+      "type": "string", "minLength": 1, "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "runtime": {
+      "type": "object", "additionalProperties": false,
+      "required": ["package", "version", "npm_integrity"],
+      "properties": {
+        "package": {"const": "@esotericsoftware/spine-player"},
+        "version": {"const": "4.2.119"},
+        "npm_integrity": {"type": "string", "minLength": 1}
+      }
+    },
+    "capture": {
+      "type": "object", "additionalProperties": false,
+      "required": ["viewport", "device_pixel_ratio", "background"],
+      "properties": {
+        "viewport": {
+          "type": "object", "additionalProperties": false,
+          "required": ["width", "height"],
+          "properties": {"width": {"const": 640}, "height": {"const": 640}}
+        },
+        "device_pixel_ratio": {"const": 1},
+        "background": {"const": "#20242aff"}
+      }
+    },
+    "sample": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "project_id", "source", "actual", "approved", "metrics",
+        "thresholds", "reason_codes", "status", "comparison_sha256"
+      ],
+      "properties": {
+        "project_id": {"$ref": "#/$defs/token"},
+        "source": {"$ref": "#/$defs/source"},
+        "actual": {"$ref": "#/$defs/actualImage"},
+        "approved": {"$ref": "#/$defs/approvedImage"},
+        "metrics": {"$ref": "#/$defs/metrics"},
+        "thresholds": {"$ref": "#/$defs/thresholds"},
+        "reason_codes": {
+          "type": "array", "maxItems": 3, "uniqueItems": true,
+          "items": {"enum": [
+            "differing_pixel_ratio_exceeded",
+            "mean_absolute_error_exceeded",
+            "max_channel_delta_exceeded"
+          ]}
+        },
+        "status": {"enum": ["passed", "rejected"]},
+        "comparison_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "p3_rig_sha256", "p3_bundle_sha256", "p6_skeleton_json_sha256",
+        "p6_bundle_sha256", "spine42_v3_skeleton_json_sha256",
+        "spine42_v3_bundle_sha256", "runtime_capture_bundle_sha256",
+        "capture_plan_sha256", "spine42_v3_run_document_sha256",
+        "raster_metrics_sha256", "runtime_session_set_sha256",
+        "runtime_capture_manifest_sha256"
+      ],
+      "properties": {
+        "p3_rig_sha256": {"$ref": "#/$defs/sha256"},
+        "p3_bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "p6_skeleton_json_sha256": {"$ref": "#/$defs/sha256"},
+        "p6_bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "spine42_v3_skeleton_json_sha256": {"$ref": "#/$defs/sha256"},
+        "spine42_v3_bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "runtime_capture_bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "capture_plan_sha256": {"$ref": "#/$defs/sha256"},
+        "spine42_v3_run_document_sha256": {"$ref": "#/$defs/sha256"},
+        "raster_metrics_sha256": {"$ref": "#/$defs/sha256"},
+        "runtime_session_set_sha256": {"$ref": "#/$defs/sha256"},
+        "runtime_capture_manifest_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "actualImage": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "artifact_id", "case_id", "kind", "animation", "tick",
+        "png_sha256", "rgba_sha256", "width", "height"
+      ],
+      "properties": {
+        "artifact_id": {"$ref": "#/$defs/token"},
+        "case_id": {"const": "setup"},
+        "kind": {"const": "opaque_composite"},
+        "animation": {"type": "null"},
+        "tick": {"type": "integer", "const": 0},
+        "png_sha256": {"$ref": "#/$defs/sha256"},
+        "rgba_sha256": {"$ref": "#/$defs/sha256"},
+        "width": {"type": "integer", "minimum": 1, "maximum": 4096},
+        "height": {"type": "integer", "minimum": 1, "maximum": 4096}
+      }
+    },
+    "approvedImage": {
+      "type": "object", "additionalProperties": false,
+      "required": ["runtime_case_id", "png_sha256", "rgba_sha256", "width", "height"],
+      "properties": {
+        "runtime_case_id": {"$ref": "#/$defs/token"},
+        "png_sha256": {"$ref": "#/$defs/sha256"},
+        "rgba_sha256": {"$ref": "#/$defs/sha256"},
+        "width": {"type": "integer", "minimum": 1, "maximum": 4096},
+        "height": {"type": "integer", "minimum": 1, "maximum": 4096}
+      }
+    },
+    "metrics": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "differing_pixels", "differing_pixel_ratio",
+        "mean_absolute_error", "max_channel_delta"
+      ],
+      "properties": {
+        "differing_pixels": {"type": "integer", "minimum": 0},
+        "differing_pixel_ratio": {"type": "number", "minimum": 0, "maximum": 1},
+        "mean_absolute_error": {"type": "number", "minimum": 0, "maximum": 255},
+        "max_channel_delta": {"type": "integer", "minimum": 0, "maximum": 255}
+      }
+    },
+    "thresholds": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "max_differing_pixel_ratio", "max_mean_absolute_error",
+        "max_channel_delta"
+      ],
+      "properties": {
+        "max_differing_pixel_ratio": {"type": "number", "minimum": 0, "maximum": 1},
+        "max_mean_absolute_error": {"type": "number", "minimum": 0, "maximum": 255},
+        "max_channel_delta": {"type": "integer", "minimum": 0, "maximum": 255}
+      }
+    },
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": ["sample_count", "passed_count", "rejected_count"],
+      "properties": {
+        "sample_count": {"type": "integer", "minimum": 1, "maximum": 8},
+        "passed_count": {"type": "integer", "minimum": 0, "maximum": 8},
+        "rejected_count": {"type": "integer", "minimum": 0, "maximum": 8}
+      }
+    },
+    "semantics": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "scope", "current_head_discovery", "official_runtime_execution",
+        "approved_golden_selection", "p6_setup_raster_comparison_included",
+        "human_review_substitution", "continuous_time_safety_claimed",
+        "release_authority"
+      ],
+      "properties": {
+        "scope": {"const": "bounded-setup-frame-only"},
+        "current_head_discovery": {"const": false},
+        "official_runtime_execution": {"const": false},
+        "approved_golden_selection": {"const": "explicit-case-and-exact-source-binding"},
+        "p6_setup_raster_comparison_included": {"const": true},
+        "human_review_substitution": {"const": false},
+        "continuous_time_safety_claimed": {"const": false},
+        "release_authority": {"const": false}
+      }
+    },
+    "authority": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "state_mutation", "approved_golden_mutation", "human_decision",
+        "publish", "release"
+      ],
+      "properties": {
+        "state_mutation": {"const": false},
+        "approved_golden_mutation": {"const": false},
+        "human_decision": {"const": false},
+        "publish": {"const": false},
+        "release": {"const": false}
+      }
+    },
+    "releaseGate": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "reason_codes"],
+      "properties": {
+        "status": {"const": "blocked"},
+        "reason_codes": {
+          "type": "array", "minItems": 4, "maxItems": 5,
+          "uniqueItems": true, "items": {"$ref": "#/$defs/token"}
+        }
+      }
+    }
+  }
+}

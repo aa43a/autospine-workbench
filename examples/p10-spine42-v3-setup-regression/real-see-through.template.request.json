@@ -1,0 +1,47 @@
+{
+  "approved_p6_export_contract_sha256": "9dfee739ab25af26d8e77878bafd785c806d7a1d8dc0deb6f55662a6ecd4be22",
+  "approved_runtime_golden_sha256": "e8d5045f66041542b6d10dc63a9b357751b16bb1e30a3174d30b65a9670b53bf",
+  "comparison_profile_sha256": "98e12906fea7f5c9f194eac1af06deb402705392d5c5ed459b1c00878f9a92de",
+  "format": "autospine-spine42-v3-setup-regression-request",
+  "format_version": 1,
+  "samples": [
+    {
+      "approved_png_sha256": "c4bf1d667096c6410719548240a050b94c64346b11549ec350ca47756cf01eab",
+      "approved_runtime_case_id": "a.setup",
+      "p3_bundle_sha256": "7754406b1f6834a6b5c8fedfcd4743bd294d8cc568d7ff6413673cada3d79a1d",
+      "p3_rig_sha256": "40f96ade2f38f93caa7610b40f02ed9b30b8782396cee0e80499724a0450e327",
+      "p6_setup_address": {
+        "bundle_sha256": "5740a5956434b792a35ad850cdc517d77a03242436b7cf21ce8ddfe25b6a7de3",
+        "skeleton_json_sha256": "61caa6a00568400ee11416f9d45ffcab9d1584657ebf5339fca3d1b8d2c77aea"
+      },
+      "project_id": "seethrough_output",
+      "runtime_capture_address": {
+        "capture_bundle_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "spine42_v3_bundle_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "spine42_v3_address": {
+        "bundle_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "skeleton_json_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    },
+    {
+      "approved_png_sha256": "d4ca9e6b852cccf09166d733c55e9148071e3d454e477e6ba9cd89aa4c746af9",
+      "approved_runtime_case_id": "b.setup",
+      "p3_bundle_sha256": "21f4707eaf023d664ae8cea8b785fd8a5197187f846d6db10b9c3ef34d7c6576",
+      "p3_rig_sha256": "897761e75bdd7e1cd3018cdab0f793f2d3ba637d88e01ce907beb179cfe0cd77",
+      "p6_setup_address": {
+        "bundle_sha256": "20a172bd26e19e5b119d74fbd39c6721377c85f2bd721038ce88d13733c85156",
+        "skeleton_json_sha256": "f46662e4ab7c2e472f3441cd6c6884b75cc70c78142e994e6b01493a7a065aed"
+      },
+      "project_id": "seethrough_output_5",
+      "runtime_capture_address": {
+        "capture_bundle_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "spine42_v3_bundle_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "spine42_v3_address": {
+        "bundle_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "skeleton_json_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # AutoSpine Workbench 功能与入口参考
 
-本文是面向操作者和开发者的 Reference。它回答“功能是否已经实现、从哪里进入、会得到什么”，不替代具体操作步骤。P0 Resolved Project v1、P10.6b MotionInstance v3、P10.7a Spine 4.2 v3 adapter bundle 与 P10.7b sampled raster 基础设施已完成；当前阶段是 **P10.7b-readiness**，先审计两份真实 See-through 样本的精确前置，再执行外部验收。计划项见[开发路线](development-roadmap.md)。
+本文是面向操作者和开发者的 Reference。它回答“功能是否已经实现、从哪里进入、会得到什么”，不替代具体操作步骤。P0 Resolved Project v1、P10.6b MotionInstance v3、P10.7a Spine 4.2 v3 adapter bundle、P10.7b sampled raster 基础设施与独立 P10.7c setup regression 已完成；当前阶段是 **P10.7c-setup-regression**。真实 A/B 仍须先关闭 Kimodo/P9、seam 与官方 capture 外部 blocker。计划项见[开发路线](development-roadmap.md)。
 
 ## 统一入口
 
@@ -11,7 +11,7 @@
 - [Body-sway 视觉复核台](http://127.0.0.1:8765/body-sway-review.html)：P10.3c sampled still 复核；
 - [Seam Anchor 复核台](http://127.0.0.1:8765/seam-anchor-review.html)：P10.5b 静态接缝锚点复核。
 
-功能入口中心读取 [`web/workflow-catalog.json`](../web/workflow-catalog.json)，列出 63 个已注册 CLI、三个任务页面和尚未实现的计划项。对于 CLI，它只复制 `python -B -m autospine_workbench <command> --help` 帮助命令，不在浏览器或服务端执行命令；源码模式下须先在当前 PowerShell 执行 `$env:PYTHONPATH = (Resolve-Path .\src).Path`，再复制和运行帮助命令。文档卡片通过 `/document-viewer.html?doc=docs/<文件名>.md` 安全文档查看器打开；查看器只读获取 `/docs/<文件名>.md`，不能访问目录外文件，并把响应作为纯文本显示，不解析 HTML 或执行文档内容。
+功能入口中心读取 [`web/workflow-catalog.json`](../web/workflow-catalog.json)，列出 64 个已注册 CLI、三个任务页面和尚未实现的计划项。对于 CLI，它只复制 `python -B -m autospine_workbench <command> --help` 帮助命令，不在浏览器或服务端执行命令；源码模式下须先在当前 PowerShell 执行 `$env:PYTHONPATH = (Resolve-Path .\src).Path`，再复制和运行帮助命令。文档卡片通过 `/document-viewer.html?doc=docs/<文件名>.md` 安全文档查看器打开；查看器只读获取 `/docs/<文件名>.md`，不能访问目录外文件，并把响应作为纯文本显示，不解析 HTML 或执行文档内容。
 
 入口状态含义：
 
@@ -233,9 +233,17 @@ capture manifest 会记录 runtime JS/CSS、`package.json`、`LICENSE`、浏览�
 
 指标只以 `alpha >= 1` 的二值掩码比较捕获计划内 transparent composite 与 attachment isolate union，并检查 missing/extra/xor、边界、裁切和非空 isolate。人工 decision 只覆盖同一组 sampled case 与 setup attachment inventory。两者都不证明未采样时间、连续 runtime raster safety、永久 current-head authority、publishable timeline 或 release authority；release gate 始终 blocked。
 
-操作说明：[捕获并复核 P10.7b Spine 4.2 v3 Raster 证据](how-to-capture-spine42-v3-runtime.md)、[审计两份真实样本的 Spine 4.2 v3 就绪状态](how-to-audit-spine42-v3-readiness.md)。公开结构见 [request Schema](../schemas/spine42-v3-readiness-request-v1.schema.json) 与 [report Schema](../schemas/spine42-v3-readiness-report-v1.schema.json)；Schema 不替代 canonical/self-hash/dependency 的 Python 语义 validator。readiness 请求中的五组后续地址和 raster decision 可以为 `null`，但不得由命令猜测或从 `latest`/current review head 补齐。有效审计即使业务状态 blocked 也以退出码 0 返回；它只说明本次显式地址的 preflight 结果。命令会在内存中运行只读 pure replay compiler/validator 来复验 exact artifacts，但不运行外部阶段、官方 Runtime、capture、发布或写入，不代替人工决定，也不授予发布权。P6 setup golden comparison 尚未纳入该审计。
+操作说明：[捕获并复核 P10.7b Spine 4.2 v3 Raster 证据](how-to-capture-spine42-v3-runtime.md)、[审计两份真实样本的 Spine 4.2 v3 就绪状态](how-to-audit-spine42-v3-readiness.md)。公开结构见 [request Schema](../schemas/spine42-v3-readiness-request-v1.schema.json) 与 [report Schema](../schemas/spine42-v3-readiness-report-v1.schema.json)；Schema 不替代 canonical/self-hash/dependency 的 Python 语义 validator。readiness v1 已冻结，第八项仍固定为 `p6_setup_golden_comparison_not_declared`。新增 P10.7c 不修改该合同；有效审计只说明本次显式地址的 preflight 结果，不等于 setup golden 对照或发布权。
 
 当前示例请求没有声明两项目的 P9 exact 地址。A 的 P3 candidate 六条 seam 均可观测，但其 P10.5c 地址为 `null`，所以审计只能报告 `reviewed_seam_anchor_set_address_not_declared`；它没有读取 current review head，不能声称 head 为空。B 的 P3 candidate pure replay 则证明左右 pelvis-leg 与 leg-foot 共四条关系不可观测，必须修复上游语义/分层或另立版本化 partial 合同。官方 Runtime 已存在，但位于这些更早 blocker 之后；结构 fixture 不能替代真实样本验收。
+
+### P10.7c：P6 Setup Golden 独立回归
+
+| 命令 | 状态 | 功能 |
+| --- | --- | --- |
+| `compare-body-sway-spine42-v3-setup-golden` | `available` | 锁定 comparison profile、显式 P3、P6 export/runtime golden 合同和精确 P10.7a/P10.7b 地址，重放后只读比较唯一 opaque setup 帧 |
+
+操作说明：[对照 P10.7c Spine 4.2 v3 Setup Golden](how-to-compare-spine42-v3-setup-golden.md)。请求与报告分别使用独立的 `spine42-v3-setup-regression-*-v1` Schema；report/sample 自哈希只是内容身份，命令的 gate 会从 exact P6/P10/capture/PNG 在内部重新计算并绑定 sample。命令不会运行 Runtime、扫描 `latest`/current head、写入 state 或修改 approved PNG；stdout 报告临时且不可寻址，readiness v2 前仍需 immutable comparison bundle。`passed` 只表示固定 setup 帧在批准阈值内，不证明动画 case、连续时间安全、永久审批或发布权。真实 A/B 当前缺少真实 Kimodo/P9、seam、P10.7a 与 capture 地址，尚无真实 P10.7c 通过结论。
 
 ## HTTP 写入边界
 
@@ -255,7 +263,7 @@ capture manifest 会记录 runtime JS/CSS、`package.json`、`LICENSE`、浏览�
 - P6 当前只有离线 CLI；主工作台没有 Spine 导出编排，Project API 的 `export_spine` 仍为 `false`。
 - resolved snapshot 已确定性生成并被下游寻址，现有独立 v1 JSON Schema、严格语义 validator、派生 QA 校验及 r5/r7 历史哈希回归；它仍没有独立 CLI/UI，外部 candidate/split artifact 字节重放继续由各自 binder 负责。
 - override history 已 append-only 保存，但主工作台尚无历史浏览/恢复 UI；安全恢复必须追加新 revision，不能改写历史。
-- P10 body-sway 已完成到 P10.7b sampled raster 基础设施，并提供 P10.7b-readiness exact-address 只读 pure replay 审计；当前请求未声明两份样本的 P9 地址，A 未声明 P10.5c 地址且审计不发现 review head，B 的 P3 candidate 证明四条腿/脚 seam 不可观测，P6 setup golden comparison 尚未纳入审计。
+- P10 body-sway 已完成 P10.7b sampled raster 基础设施、冻结的 P10.7b-readiness v1 审计和独立 P10.7c setup regression 命令；readiness 第八项仍固定为 missing。当前请求未声明两份样本的 P9 地址，A 未声明 P10.5c 地址且审计不发现 review head，B 的 P3 candidate 证明四条腿/脚 seam 不可观测，真实 capture 也尚未交付，因此不能声称 A/B 已通过 P10.7c。
 - `blink`、口型和头发目前只存在 idle candidate 类型或规划入口，没有可靠素材生成、绑定与 runtime 交付。
 - See-through/pose 推理、真实 Kimodo checkpoint 质量门禁、实时追踪、自由形变、runtime IK、生产部署仍未实现。
 

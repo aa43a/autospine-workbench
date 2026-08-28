@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 import json
 from pathlib import Path
 from types import SimpleNamespace
@@ -26,6 +27,7 @@ from autospine_workbench.spine42_v3_bundle_files import (  # noqa: E402
 from autospine_workbench.spine42_v3_bundle_integrity import (  # noqa: E402
     Spine42V3BundleIntegrityError,
     Spine42V3BundleSnapshot,
+    replay_verified_spine42_v3_bundle,
     verify_spine42_v3_bundle_snapshot,
 )
 from autospine_workbench.spine42_v3_bundle_reader import (  # noqa: E402
@@ -88,6 +90,25 @@ class Spine42V3StorageBoundaryTests(unittest.TestCase):
         with self.assertRaises(Spine42V3BundleStoreError):
             self._publish(self.fixture, observations=(observed, drifted))
         self.assertEqual(before, _tree_snapshot(namespace))
+
+    def test_pure_replay_rejects_forged_exposed_identity(self):
+        published = self._publish(self.fixture)
+        verified = verify_spine42_v3_bundle_snapshot(
+            Spine42V3BundleSnapshot(
+                published.path, read_bundle_files(published.path)
+            ),
+            expected_project_id=self.fixture.project_id,
+            expected_skeleton_json_sha256=published.skeleton_json_sha256,
+            expected_bundle_sha256=published.bundle_sha256,
+        )
+        self.assertEqual(
+            published.bundle_sha256,
+            replay_verified_spine42_v3_bundle(verified).bundle_sha256,
+        )
+        with self.assertRaises(Spine42V3BundleIntegrityError):
+            replay_verified_spine42_v3_bundle(replace(
+                verified, p3_rig_sha256="f" * 64
+            ))
 
     def test_copied_snapshot_tamper_extra_and_wrong_case_fail_closed(self):
         published = self._publish(self.fixture)

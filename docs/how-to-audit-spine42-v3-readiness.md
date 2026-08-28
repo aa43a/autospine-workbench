@@ -1,6 +1,6 @@
 # 审计两份真实样本的 Spine 4.2 v3 就绪状态
 
-本文是一个只读 How-to。它帮助操作者从两份真实 See-through 项目的精确 Layer Manifest/P3 地址开始，逐项确认 P9、接缝复核、MotionInstance v3、Spine 4.2 v3、官方 Runtime capture 和 sampled raster 人工决定是否已经具备。审计会运行只读 pure replay compiler/validator 来复验请求中明确声明的工件；它不会扫描 `latest` 或 current review head，不会替你运行外部阶段、官方 Runtime、发布或写入，也不会授予发布权。
+本文是一个只读 How-to。它帮助操作者从两份真实 See-through 项目的精确 Layer Manifest/P3 地址开始，逐项确认 P9、接缝复核、MotionInstance v3、Spine 4.2 v3、官方 Runtime capture 和 sampled raster 人工决定是否已经具备。readiness v1 已冻结，其第八项仍固定为 missing；已交付的 P10.7c setup golden 对照使用独立命令和合同。审计会运行只读 pure replay compiler/validator 来复验请求中明确声明的工件；它不会扫描 `latest` 或 current review head，不会替你运行外部阶段、官方 Runtime、发布或写入，也不会授予发布权。
 
 ## 运行现有真实样本基线
 
@@ -55,9 +55,9 @@ python -B -m autospine_workbench audit-body-sway-spine42-v3-readiness `
 | `p10_7a_spine42_v3` | 精确五文件 Spine 4.2 v3 bundle 可重放 | 编译并填写 P10.7a 双 SHA |
 | `p10_7b_runtime_capture` | 精确官方 Runtime capture 可重放并绑定 P10.7a | 在已授权环境执行 capture |
 | `p10_7b_raster_review` | sampled 指标与完整人工决定闭合 | 逐 case、逐 attachment 复核 |
-| `p6_setup_regression` | 与既有 P6 setup golden 的独立比较 | 运行后续的 P6 setup 对照流程 |
+| `p6_setup_regression` | readiness v1 中保留的 P6 setup 对照缺口 | 使用独立 P10.7c setup regression 命令 |
 
-`verified` 只表示该 checkpoint 的精确地址经过只读 pure replay 和合同校验；`prerequisite_missing`、`review_blocked`、`metrics_rejected` 和 `source_mismatch` 都会阻止该样本进入下一步。只有前七项均为 `verified` 时，样本状态才会成为 `ready_for_p6_setup_comparison`。第八项目前始终报告 `p6_setup_golden_comparison_not_declared`，因为 P6 setup golden comparison 尚未纳入本审计合同。
+`verified` 只表示该 checkpoint 的精确地址经过只读 pure replay 和合同校验；`prerequisite_missing`、`review_blocked`、`metrics_rejected` 和 `source_mismatch` 都会阻止该样本进入下一步。只有前七项均为 `verified` 时，样本状态才会成为 `ready_for_p6_setup_comparison`。readiness v1 的 Schema、哈希与 checkpoint 语义已经冻结，因此第八项仍始终报告 `p6_setup_golden_comparison_not_declared`。P10.7c 已通过独立 `compare-body-sway-spine42-v3-setup-golden` 命令交付，不能把它的结果回填或伪装成 readiness v1 的第八项；操作见[对照 P10.7c Spine 4.2 v3 Setup Golden](how-to-compare-spine42-v3-setup-golden.md)。
 
 地址为 `null` 时，审计只报告“请求未声明该精确地址”，不会搜索 `latest` 或 current review head 来判断工件是否已存在。例如，A 的 `reviewed_seam_anchor_set_address=null` 只会得到 `reviewed_seam_anchor_set_address_not_declared`；该 reason code 不能证明 review head 为空，也不能证明人工复核尚未发生。操作者需要完成或确认 P10.5b 人审、编译 P10.5c，并把精确双 SHA 写入请求后重新审计。
 
@@ -69,6 +69,7 @@ python -B -m autospine_workbench audit-body-sway-spine42-v3-readiness `
 - `seethrough_output` 的 P3 seam candidate pure replay 显示六条 relationship 可观测；由于请求未声明 P10.5c 双 SHA，checkpoint 只报告 `reviewed_seam_anchor_set_address_not_declared`。审计没有检查 seam review head 是否存在；进入下一步前必须完成或确认 P10.5b 人审、编译 P10.5c，并声明精确双 SHA。
 - `seethrough_output_5` 有四条腿/脚关系不可观测：左右 `pelvis_leg` 缺 child role，左右 `leg_foot` 缺 parent role。P10.5c 的完整六关系合同不能把这些行自动批准；需要回到上游修复语义/分层并重新生成受内容地址约束的 Manifest/P3，或者另立、版本化并单独验收 partial seam 合同。
 - 官方 Spine 4.2 Runtime/Capture 基础设施当前已存在，因此不需要把“下载 Runtime”作为第一步；P9 和 seam 人工门禁更早。审计不会主动发现或调用该 Runtime。
+- P10.7c 独立比较命令已经存在，但当前 A/B 都没有满足其请求合同所需的真实 P10.7a/capture 地址；这项能力交付不能被表述为真实双样本已通过。
 
 建议先并行生成、复核并声明真实 Kimodo P7/P8/P9 地址，完成或确认项目 A 的 seam 人审并声明 P10.5c 地址，同时对项目 B 做上游修复方案评审。只有精确工件实际产生后，才把对应地址从 `null` 改成真实 SHA 并重新运行审计。
 
@@ -83,6 +84,6 @@ python -B -m autospine_workbench audit-body-sway-spine42-v3-readiness `
 - 不修改 state root，不发布 bundle；
 - 不证明未采样时间、连续 Runtime raster 安全或永久 current-head authority；
 - 不授予 publish、release 或可发布 Spine timeline 权限；
-- 不包含 P6 setup golden comparison。
+- 不执行 P10.7c setup golden comparison；readiness v1 的第八项保持 missing，比较必须通过[独立 P10.7c 流程](how-to-compare-spine42-v3-setup-golden.md)完成。
 
 因此，保存 readiness report 只能作为“这次显式地址预检的结果”，不能作为发布签字或自动验收记录。

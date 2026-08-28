@@ -189,6 +189,58 @@ def verify_spine42_bundle_snapshot(
         ) from exc
 
 
+def replay_verified_spine42_bundle(
+    bundle: VerifiedSpine42Bundle,
+):
+    """Purely rebuild one verified P6 bundle and every exposed identity."""
+
+    if type(bundle) is not VerifiedSpine42Bundle:
+        raise Spine42BundleIntegrityError(
+            "Spine bundle replay requires an exact verified bundle"
+        )
+    try:
+        items = _exact_items(bundle._document_items)
+        raw = dict(items)
+        skeleton = strict_json_object(raw["skeleton.json"], "skeleton.json")
+        run = strict_json_object(raw["run-manifest.json"], "run-manifest.json")
+        strict_json_object(raw["export-report.json"], "export-report.json")
+        inputs = _object(run.get("inputs"), "run inputs")
+        source_images = _source_images(inputs.get("source_images"))
+        contract = build_spine42_bundle_contract(
+            bundle.project_id, _object(inputs.get("p3"), "P3 source"),
+            skeleton, raw["skeleton.atlas"], raw["skeleton.png"],
+            source_images, p5_source=inputs.get("p5"),
+        )
+        exposed = (
+            bundle.project_id, bundle.mode, bundle.clip_id,
+            bundle.skeleton_json_sha256, bundle.atlas_sha256,
+            bundle.png_sha256, bundle.run_identity_sha256,
+            bundle.run_document_sha256, bundle.report_sha256,
+            bundle.bundle_sha256, bundle.source_image_sha256s,
+        )
+        expected = (
+            contract.project_id, contract.mode, contract.clip_id,
+            contract.skeleton_json_sha256, contract.atlas_sha256,
+            contract.png_sha256, contract.run_identity_sha256,
+            contract.run_document_sha256, contract.report_sha256,
+            contract.bundle_sha256, contract.source_image_sha256s,
+        )
+        if contract.document_bytes != raw or exposed != expected:
+            raise Spine42BundleIntegrityError(
+                "Verified Spine bundle differs from exact replay"
+            )
+        return contract
+    except Spine42BundleIntegrityError:
+        raise
+    except (
+        KeyError, LayerManifestError, SafeInputFileError,
+        Spine42BundleContractError, TypeError, ValueError,
+    ) as exc:
+        raise Spine42BundleIntegrityError(
+            "Verified Spine bundle replay failed"
+        ) from exc
+
+
 def _exact_items(value: Any) -> tuple[tuple[str, bytes], ...]:
     if type(value) is not tuple or len(value) != len(DOCUMENT_NAMES):
         raise Spine42BundleIntegrityError("Spine snapshot inventory is invalid")

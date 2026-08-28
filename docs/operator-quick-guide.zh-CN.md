@@ -230,6 +230,7 @@ E:\proj\unusual\localset\tmp\psd_audit\results\<project-id>\audit.json
 - 通过离线命令生成和验证版本中立的 Layer Manifest、RigIR、mesh、IK、MotionIR、P10.6a admission、MotionInstance v3 及 P10.7a Spine 4.2 v3 五文件 adapter 工件。
 - 在操作者提供并确认有权使用官方 Spine Player 4.2.119 时，捕获 P10.7a 的固定 sampled raster 证据，复验不可变 capture，并编译逐 case、逐 setup attachment 的人工决定。
 - 从 strict canonical 示例 Manifest 只读审计两份真实样本的 P3→P10.7b 前置；审计不会自动执行阶段、代替人审或授予发布权。
+- 使用独立 P10.7c 命令，把精确 capture 中唯一的 opaque setup 帧与既有 P6 approved golden 做零写入 RGBA 对照；该入口已交付，但真实样本仍需先补齐外部前置。
 
 当前不能据此自动完成：
 
@@ -256,7 +257,7 @@ python -B -m autospine_workbench verify-mesh-bundle --help
 
 ## 10. 当前阶段与下一开发入口
 
-当前阶段是 P10.7b-readiness。先在项目根目录运行真实样本的只读预检：
+当前阶段是 **P10.7c-setup-regression**。先在项目根目录运行冻结的 readiness v1 只读预检：
 
 ```powershell
 python -B -m autospine_workbench audit-body-sway-spine42-v3-readiness `
@@ -265,7 +266,15 @@ python -B -m autospine_workbench audit-body-sway-spine42-v3-readiness `
   --document-only
 ```
 
-当前结果是：A/B 都未声明真实 Kimodo P7/P8/P9 的 reviewed-motion 地址；A 还未声明 P10.5c 双 SHA，审计不读取 current review head，因此不能据此断言人审是否已经发生；B 的 P3 candidate 则证明有四条不可观测腿/脚 seam，必须修复上游语义/分层或另立 partial 合同。Runtime 已存在，但不是最早 blocker。该命令会运行只读 pure replay compiler/validator，但不会扫描 `latest`/current head、运行外部阶段、调用官方 Runtime、发布或写入。请求格式、报告读取方式和权限边界见[审计两份真实样本的 Spine 4.2 v3 就绪状态](how-to-audit-spine42-v3-readiness.md)。只有相应真实地址实际交付后，才按下面的 P10.6/P10.7 命令继续；不能跳过审计列出的前置。
+readiness v1 的 Schema、哈希和 checkpoint 语义已经冻结；即使 P10.7c 已交付，第八项仍固定为 `p6_setup_golden_comparison_not_declared`，不能把 readiness 报告当作 setup 对照结果。当前结果是：A/B 都未声明真实 Kimodo P7/P8/P9 的 reviewed-motion 地址；A 还未声明 P10.5c 双 SHA，审计不读取 current review head，因此不能据此断言人审是否已经发生；B 的 P3 candidate 则证明有四条不可观测腿/脚 seam，必须修复上游语义/分层或另立 partial 合同。Runtime 已存在，但不是最早 blocker。请求格式、报告读取方式和权限边界见[审计两份真实样本的 Spine 4.2 v3 就绪状态](how-to-audit-spine42-v3-readiness.md)。
+
+P10.7c 的独立入口已经可从功能中心复制，也可直接查看帮助：
+
+```powershell
+python -B -m autospine_workbench compare-body-sway-spine42-v3-setup-golden --help
+```
+
+该命令需要每个项目真实的 P10.7a 与 P10.7b capture 精确地址，并同时锁定既有 P6 export/runtime golden 合同。当前 A/B 尚受 Kimodo/P9、seam 和官方 capture 外部 blocker，因此不要用全零请求模板或 fixture 声称真实比较通过。准备 canonical 请求和读取报告见[对照 P10.7c Spine 4.2 v3 Setup Golden](how-to-compare-spine42-v3-setup-golden.md)。
 
 P0 Resolved Project v1、P10.6b MotionInstance v3 与 P10.7a Spine adapter bundle 均已完成。普通图层/关节复核不需要运行这些命令；开发 body-sway 动画编译链时，先按
 [编译 P10.6a body-sway 动作消费准入](how-to-compile-body-sway-motion-consumer-admission.md)
@@ -307,6 +316,8 @@ python -B -m autospine_workbench submit-body-sway-spine42-v3-raster-review --hel
 目前仍需对两份真实 See-through 样本分别生成 P10.7a 输入、运行官方 Runtime capture，并逐
 case、逐 attachment 完成人工决定。fixture 或单个样本不能替代这项验收；通过 sampled
 decision 也不会证明连续时间安全，不会授予永久 head、可发布 timeline 或 release authority。
+具备精确 capture 后，再按[对照 P10.7c Spine 4.2 v3 Setup Golden](how-to-compare-spine42-v3-setup-golden.md)
+运行独立 setup 回归；该单帧对照同样不替代完整人工决定或发布门禁。
 后续依赖、交付与风险见[后续开发路线](development-roadmap.md)。
 
 ## 11. 常用验证命令

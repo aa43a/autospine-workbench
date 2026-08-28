@@ -89,7 +89,12 @@ exact Layer Manifest + exact P3 static bundle
                                        ↓
        [external] P10.7b Runtime/raster gate
                                        ↓
-       exact-address, zero-write readiness audit
+       exact-address, zero-write readiness v1 audit
+                (frozen; checkpoint 8 remains missing)
+                                       │
+P6 approved golden + exact P10.7a/P10.7b capture
+                                       ↓
+          P10.7c zero-write setup regression
                                        ↓
                             blocked release
 
@@ -438,14 +443,25 @@ release authority 均保持 blocked。
 
 P10.7b 用固定官方 Runtime/浏览器身份、case plan、完整 setup attachment isolate 与 sampled
 raster 指标形成不可变 capture；candidate 和完整 human decision 保持分离。其后的 readiness
-层不是新的发布编译阶段：strict canonical request 只声明 Manifest/P3 与可选 P9、P10.5c、
+v1 不是新的发布编译阶段：strict canonical request 只声明 Manifest/P3 与可选 P9、P10.5c、
 P10.6b、P10.7a、capture 和 decision 精确地址，reader 按声明调用现有只读 pure replay
-compiler/validator 重建并验证 exact artifacts，再输出八个固定 checkpoint。该层不扫描
-`latest` 或 current review head，不运行外部阶段、官方 Runtime、发布或 state 写入，也不把
-sampled evidence、pure replay 结果或 P6 setup 对照提升为发布权。`null` 地址只产生未声明原因；
-尤其 A 的空 P10.5c 地址不能被解释为 review head 为空。B 的四条不可观测关系则来自精确 P3
-candidate 的 replay evidence。request、stage evaluator、runtime/raster evaluator、报告
-validator 与 CLI boundary 分文件且均受 300 行门禁。当前真实链的更早 blocker 与操作入口见
+compiler/validator 重建并验证 exact artifacts，再输出八个固定 checkpoint。v1 Schema、哈希和
+checkpoint 语义已经冻结，第八项仍固定为 missing；P10.7c 不反向扩写它。`null` 地址只产生
+未声明原因；尤其 A 的空 P10.5c 地址不能被解释为 review head 为空。B 的四条不可观测关系则
+来自精确 P3 candidate 的 replay evidence。
+
+P10.7c 是独立的 exact-address、zero-write 比较边界。它用自己的 strict canonical request
+同时锁定 comparison profile、显式 P3、P6 export/runtime golden 文件字节、P6 setup-only 双 SHA、
+P10.7a 双 SHA 和 P10.7b capture 双 SHA；reader 必须证明两代 adapter 绑定同一 P3 且
+atlas/texture 不变，再从 capture plan 中选出唯一 `animation=null/tick=0` 的 opaque setup PNG，
+与 approved PNG 计算 RGBA 指标。report validator 只证明结构、派生字段与内容身份；gate binding
+在内部从 exact P6/P10/capture/PNG 重新计算 sample 后才接受报告，调用者不能提供报告自己的
+sample 冒充 replay。命令不启动 Runtime、不扫描 mutable head、不写 state、不修改 golden，
+临时 stdout 只授予 bounded setup-frame equivalence，release gate 固定 blocked；readiness v2
+之前还必须把 request/report、批准合同与批准 PNG 封存成可寻址、可重放的 immutable comparison
+bundle。真实 A/B 仍受 Kimodo/P9、seam 与官方
+capture 外部前置阻塞；机制交付不能写成真实样本通过。操作入口见
+[P10.7c Setup Golden How-to](how-to-compare-spine42-v3-setup-golden.md)、
 [就绪状态审计 How-to](how-to-audit-spine42-v3-readiness.md)和[后续开发路线](development-roadmap.md)。
 
 后续 timeline/runtime 阶段继续遵守：

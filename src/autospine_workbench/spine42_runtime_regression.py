@@ -13,6 +13,7 @@ import threading
 from typing import Any
 
 from .png_rgba import RgbaPngError, decode_rgba_png
+from .rgba_regression_metrics import compute_rgba_regression_metrics
 from .safe_input_files import SafeInputFileError, read_real_file
 from .spine42_runtime_contract import (
     canonical_json_bytes,
@@ -177,7 +178,7 @@ class Spine42CaptureStore:
             raise Spine42RuntimeRegressionError(f"invalid approved PNG: {exc}") from exc
         if (expected.width, expected.height) != (actual.width, actual.height):
             raise Spine42RuntimeRegressionError("approved PNG dimensions differ")
-        metrics = _pixel_metrics(actual.pixels, expected.pixels)
+        metrics = compute_rgba_regression_metrics(actual, expected)
         thresholds = golden_case["thresholds"]
         passed = (
             metrics["differing_pixel_ratio"] <= thresholds["max_differing_pixel_ratio"]
@@ -190,26 +191,6 @@ class Spine42CaptureStore:
             "metrics": metrics,
             "thresholds": thresholds,
         }
-
-
-def _pixel_metrics(actual: bytes, expected: bytes) -> dict[str, Any]:
-    if len(actual) != len(expected) or len(actual) % 4:
-        raise Spine42RuntimeRegressionError("RGBA buffers differ in length")
-    differing_pixels = 0
-    total_delta = 0
-    max_delta = 0
-    for offset in range(0, len(actual), 4):
-        deltas = [abs(actual[offset + index] - expected[offset + index]) for index in range(4)]
-        differing_pixels += int(any(deltas))
-        total_delta += sum(deltas)
-        max_delta = max(max_delta, *deltas)
-    pixels = len(actual) // 4
-    return {
-        "differing_pixels": differing_pixels,
-        "differing_pixel_ratio": differing_pixels / pixels,
-        "mean_absolute_error": total_delta / len(actual),
-        "max_channel_delta": max_delta,
-    }
 
 
 def _output_directory(path: Path) -> Path:

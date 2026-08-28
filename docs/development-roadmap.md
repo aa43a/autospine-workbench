@@ -1,6 +1,6 @@
 # AutoSpine Workbench 后续开发路线
 
-本文是 Explanation 与交付计划，面向维护者和需要评估可行性的项目负责人。它从 **P0 Resolved Project v1 合同、P10.6b MotionInstance v3、P10.7a Spine adapter bundle 与 P10.7b sampled raster 基础设施已完成** 的事实出发，说明尚未实现的能力应按什么依赖关系推进。当前阶段是 **P10.7b-readiness**：先用显式 Manifest 只读审计两份真实 See-through 样本的最早 blocker，再补齐外部 Kimodo、人审和 Runtime 证据。这里的阶段名、优先级和验收条件是建议，不构成发布日期承诺；基础设施可用也不等于真实样本、连续时间或发布门禁已经通过。
+本文是 Explanation 与交付计划，面向维护者和需要评估可行性的项目负责人。它从 **P0 Resolved Project v1 合同、P10.6b MotionInstance v3、P10.7a Spine adapter bundle、P10.7b sampled raster 基础设施与独立 P10.7c setup regression 已完成** 的事实出发，说明尚未实现的能力应按什么依赖关系推进。当前阶段是 **P10.7c-setup-regression**：比较机制已经交付，但两份真实 See-through 样本仍须先补齐外部 Kimodo/P9、seam 与官方 Runtime capture 证据。这里的阶段名、优先级和验收条件是建议，不构成发布日期承诺；基础设施可用也不等于真实样本、连续时间或发布门禁已经通过。
 
 ## 规划原则
 
@@ -17,7 +17,7 @@
 
 | 优先级 | 能力 | 原因 |
 | --- | --- | --- |
-| P0 | P10.7b-readiness 精确地址审计 | 只读入口已可用；它用 pure replay compiler/validator 复验显式地址，不扫描 latest/current review head，也不运行外部阶段、官方 Runtime、发布或写入 |
+| P0 | P10.7c setup golden 独立回归 | 零写入入口已交付；真实执行仍依赖 exact P10.7a/capture 与批准 P6 基线，readiness v1 保持冻结且第八项仍 missing |
 | P0 | P10.7b 两份真实样本验收 | Runtime/capture/metrics/review 基础设施已存在，但真实链尚未到达 P10.7a；仍需先关闭 Kimodo 与 seam 门禁，再做官方 Runtime 和人工决定 |
 | P1 | Revision 历史浏览/恢复 UI | 历史已不可变保存，但操作者尚不能便捷查看或安全恢复 |
 | P1 | 主工作台 Spine 导出编排入口 | 离线 P6 已完成，主项目能力仍明确为 `export_spine=false` |
@@ -44,6 +44,8 @@ P10.7a Spine 4.2 adapter + immutable bundle（已完成）
 P10.7b capture/metrics/review 基础设施（已完成）
         ↓
 P10.7b-readiness 显式 Manifest 审计（已完成入口）
+        ↓
+P10.7c 独立 setup golden 比较机制（已完成入口；真实执行在 capture 后）
         ↓
 真实 Kimodo P7/P8/P9 + seam 人工/语义门禁（当前最早 blocker）
         ↓
@@ -237,11 +239,31 @@ See-through 分层，并让新的 Manifest/P3/candidate 内容地址失效旧决
 3. 对 A 完成或确认 P10.5b 人审、编译 P10.5c 并声明 exact 地址；对 B 先选择“上游修复”或“另立 partial 合同”，不得伪造六关系通过。
 4. 在精确 P9/seam 地址上依次完成 P10.0–P10.7a；每次只把实际生成的双 SHA 回填请求。
 5. 使用现有且已获授权的官方 Runtime 执行 P10.7b capture、精确复验和逐 case/attachment 人工决定。
-6. 单独比较 setup case 与既有 P6 approved golden。此比较尚未纳入 readiness 命令，即使前七项通过，审计也只会给出 `ready_for_p6_setup_comparison`。
+6. 使用已交付的 `compare-body-sway-spine42-v3-setup-golden` 独立比较 setup case 与既有 P6 approved golden。readiness v1 已冻结且不会消费这份报告；即使前七项通过，它的第八项仍保持 missing，只会给出 `ready_for_p6_setup_comparison`。
 
 进入真实验收的条件：请求中每条依赖均由 exact reader 复验，A 的 seam 决定来自真实人审，B
 满足明确选择的完整或新 partial 合同，官方 capture 与 raster decision 均与同一 P10.7a 地址
 闭合。审计报告本身不是 pipeline runner、人工签字或发布许可。
+
+## P10.7c-setup-regression：独立 P6 Setup Golden 对照
+
+**当前阶段：实现已交付；真实 A/B 仍被外部前置阻塞。**
+
+`compare-body-sway-spine42-v3-setup-golden` 读取独立 strict canonical 请求、固定 P6 export/runtime
+golden 合同和精确 P10.7a/P10.7b 地址。它以冻结 comparison profile 和显式 P3 防止旧请求
+静默复用新语义，只读证明 P6 与 P10.7a 绑定同一 P3、atlas/texture 身份不变、capture 来源与
+固定 Runtime profile 闭合，再把唯一 opaque setup 帧与 approved PNG 计算 RGBA 指标。gate
+会从 exact evidence 在内部重新计算 sample；报告自哈希只表示内容身份。命令不启动 Runtime、不扫描
+`latest`/current head、不写 state，也不修改 approved golden。完整操作见
+[对照 P10.7c Spine 4.2 v3 Setup Golden](how-to-compare-spine42-v3-setup-golden.md)。
+
+readiness v1 的 Schema、哈希和八项 checkpoint 已冻结；第八项仍固定为
+`p6_setup_golden_comparison_not_declared`。P10.7c 使用独立合同，避免让旧请求或报告静默获得新含义。
+当前只能确认机制与既有 P6 批准基线可被严格验证，不能声称真实 A/B 通过：两项目仍缺真实
+Kimodo/P9 链，A 尚未声明 P10.5c，B 的四条腿/脚 seam 不可观测，且真实 P10.7a/capture
+尚未交付。只有这些前置关闭后，才能生成真实 canonical 请求并执行两项目对照。当前 stdout
+报告仍是临时、不可寻址工件；进入 readiness v2 前还要交付封存 request/report、批准合同和批准
+PNG 的 immutable comparison bundle，并由 reader 重放实际 capture。
 
 ## Spine Editor 工程生成与更多版本 Adapter
 

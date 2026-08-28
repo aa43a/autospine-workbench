@@ -2,7 +2,7 @@
 
 AutoSpine Workbench 是一个本地人工复核与离线编译工作流，用于查看 See-through PSD 审计结果、校正图层语义和 setup 可见性、调整启发式关节，并保存带 revision 的 override。它不会修改 PSD、审计 JSON 或 PNG；主 authoring 页面写入 `workspace/overrides`，P10 人工复核使用各自独立的 revision namespace，离线 publish/compile 命令按阶段写入内容寻址的 analysis、motion、build 或 runtime 工件。
 
-当前阶段的目标是把“模型输出”变成可追溯、可复核的 authoring 输入，而不是直接宣称生成了可发布的 Spine 资产。
+当前阶段是 **P10.7c-setup-regression**：独立的 P6 setup golden 只读对照机制已经交付，但当前目标仍是把“模型输出”变成可追溯、可复核的 authoring 输入，而不是直接宣称生成了可发布的 Spine 资产。
 
 当前功能及入口以[功能与入口参考](docs/capability-reference.md)为准；尚未实现的能力、依赖和验收顺序见[后续开发路线](docs/development-roadmap.md)。
 
@@ -38,7 +38,8 @@ AutoSpine Workbench 是一个本地人工复核与离线编译工作流，用于
 - 将完整 P10.6a 成功 wrapper 编译为 MotionInstance v3：只允许躯干四骨 rotation 覆盖，逐值保留 MIv2 root/marker/draw-order，并在发布前重查 current heads；三文件 bundle 可按 v3/bundle 双 SHA 历史复验，但不授予永久审批或 Spine 发布权。
 - 从精确 MotionInstance v3 双 SHA 重放 P9/P5/P3 和源 PNG，用独立 Spine 4.2 adapter v3 发布 JSON/atlas/PNG/run/report 五文件 bundle；compile/store 重查 current heads，历史 verify 不读取 current heads，且 run 只授予 adapter emitted。
 - 用操作者明确确认有权使用的官方 Spine Player 4.2.119，对精确 P10.7a bundle 执行固定 case、完整 setup attachment isolate 的捕获和 sampled raster 指标；证据可按双 SHA 复验，并可编译逐 case、逐 attachment 的人工决定，但不会授予连续时间、永久 head、发布或 release authority。
-- 用 strict canonical 请求只读审计两份真实样本从精确 Manifest/P3 到 P10.7b 的八个 checkpoint；审计不扫描 `latest` 或 current review head，不自动运行外部阶段、官方 Runtime、发布或写入，但会调用只读 pure replay compiler/validator 复验请求声明的精确工件；它不代替人审，并明确把 P6 setup golden comparison 留给后续独立门禁。
+- 用 strict canonical 请求只读审计两份真实样本从精确 Manifest/P3 到 P10.7b 的八个 checkpoint；readiness v1 已冻结，第八项仍固定为 missing。审计不扫描 `latest` 或 current review head，不自动运行外部阶段、官方 Runtime、发布或写入，也不代替人审。
+- 用独立的 P10.7c 命令把精确 P10.7b capture 中唯一的 opaque setup 帧与既有 P6 官方 Runtime approved golden 做零写入 RGBA 对照；命令不启动 Runtime、不修改批准图，也不授予发布权。
 - 从精确 P3 或 P3/P5 地址导出、发布并重建验证固定 profile 的 Spine 4.2 JSON/atlas/PNG 五文件 bundle。
 
 ## 快速启动
@@ -206,6 +207,8 @@ JSON Schema 位于：
 - `schemas/body-sway-motion-consumer-admission-v1.schema.json`：P10.6a 完整 P10.5d/P9 source closure、unit-gain setup-local motion domain 与 compile-time 双 head seal；
 - `schemas/motion-instance-v3.schema.json` 与 `schemas/motion-instance-v3-bundle-run-v1.schema.json`：P10.6b setup-local timeline、三文件 bundle provenance、能力边界与固定 blocked release gate；
 - `schemas/spine42-v3-export-run-v1.schema.json` 与 `schemas/spine42-v3-export-report-v1.schema.json`：P10.7a 五文件 adapter bundle 的精确 P3/MIv3 来源、输出身份、能力边界与固定 blocked release gate；
+- `schemas/spine42-v3-readiness-request-v1.schema.json` 与 `schemas/spine42-v3-readiness-report-v1.schema.json`：冻结的 P10.7b-readiness exact-address 预检合同；其第八项保持 `p6_setup_golden_comparison_not_declared`；
+- `schemas/spine42-v3-setup-regression-request-v1.schema.json` 与 `schemas/spine42-v3-setup-regression-report-v1.schema.json`：独立 P10.7c P3/P6/P10.7a/capture/approved-golden 来源闭合、冻结 comparison profile、RGBA 指标与 path-free 内容身份；
 - `schemas/motion-retarget-report-v1.schema.json` 与 `schemas/motion-mesh-regression-v1.schema.json`：P5 运动学、接触与逐帧 mesh 安全门禁。
 
 Layer Manifest 与 RigIR 是下游流水线合同。当前 UI 负责逐层 authoring 与复核，离线命令负责生成 region-only RigIR；它不包含 mesh、权重或动画，也不会冒充某一 Spine 版本。RigIR 对不支持特性的策略固定为 `fail`，防止 constraint、mesh 或 timeline 被静默丢弃。
@@ -418,7 +421,9 @@ P10.7a 用 `compile-body-sway-spine42-v3` 从精确 MIv3 双 SHA 完整重放 P9
 
 P10.7b 已提供 `capture-body-sway-spine42-v3-runtime`、`verify-body-sway-spine42-v3-runtime`、`prepare-body-sway-spine42-v3-raster-review` 与 `submit-body-sway-spine42-v3-raster-review`。capture 需要操作者提供并明确确认有权使用的官方 `@esotericsoftware/spine-player@4.2.119` 与本机 Chrome；其余命令按精确 P10.7a/capture 地址复验 sampled evidence、准备候选或编译人工决定。基础设施已可用，但两份真实 See-through 样本的官方 Runtime 捕获和逐项人工验收仍待完成；任何成功结果都保持 continuous、persistent-head、publish 和 release claims 为 false/blocked。操作见 [捕获并复核 P10.7b Spine 4.2 v3 Raster 证据](docs/how-to-capture-spine42-v3-runtime.md)。
 
-P10.7b-readiness 用 `audit-body-sway-spine42-v3-readiness --manifest ... --state-root .\workspace [--document-only]` 对请求中显式声明的真实地址做零写入预检。当前 canonical 示例固定两份已审计 Manifest/P3 地址，后续五组地址与 raster decision 均为 `null`。因此两个 P9 checkpoint 只报告未声明 exact reviewed-motion 地址；A 的 seam checkpoint 报告 `reviewed_seam_anchor_set_address_not_declared`，这不表示审计读取过或证明不存在 current review head，操作者仍需完成或确认人审并声明 P10.5c 双 SHA。B 则由精确 P3 seam candidate 的 pure replay 证明四条腿/脚关系不可观测。现有 Runtime 不是最早 blocker；命令不会扫描 `latest`/current review head、运行外部流水线或授予发布权，但会在内存中运行只读 pure replay compiler/validator 复验显式地址，且尚不包含 P6 setup golden comparison。操作见 [审计两份真实样本的 Spine 4.2 v3 就绪状态](docs/how-to-audit-spine42-v3-readiness.md)。
+P10.7b-readiness 用 `audit-body-sway-spine42-v3-readiness --manifest ... --state-root .\workspace [--document-only]` 对请求中显式声明的真实地址做零写入预检。readiness v1 的 Schema、哈希与八项 checkpoint 语义已经冻结，第八项仍固定报告 `p6_setup_golden_comparison_not_declared`；新增 P10.7c 不会反向改写它。当前 canonical 示例固定两份已审计 Manifest/P3 地址，后续五组地址与 raster decision 均为 `null`。因此两个 P9 checkpoint 只报告未声明 exact reviewed-motion 地址；A 的 seam checkpoint 报告 `reviewed_seam_anchor_set_address_not_declared`，这不表示审计读取过或证明不存在 current review head。B 则由精确 P3 seam candidate 的 pure replay 证明四条腿/脚关系不可观测。操作见 [审计两份真实样本的 Spine 4.2 v3 就绪状态](docs/how-to-audit-spine42-v3-readiness.md)。
+
+P10.7c 已交付独立 `compare-body-sway-spine42-v3-setup-golden` 命令。它读取 strict canonical 请求、两份操作者选定的 P6 批准合同和精确 P10.7a/P10.7b 地址，只读重放证据后比较 capture 中唯一的 `setup + opaque_composite` 与对应 approved PNG；报告自哈希只是内容身份，不替代证据重放。命令不会启动官方 Runtime、扫描 mutable head、写入 state 或修改 golden，标准输出仍是临时、不可寻址结果。真实 A/B 当前仍缺真实 Kimodo/P9、seam、P10.7a/capture 等前置，因而尚未执行或通过这项真实样本对照。请求制作、命令和结果解释见 [对照 P10.7c Spine 4.2 v3 Setup Golden](docs/how-to-compare-spine42-v3-setup-golden.md)。
 
 P6 使用 `compile-spine42` 把一个精确 P3 地址导出为 setup-only bundle，或与一对精确 P5 MotionInstance/bundle SHA 组合为单动画 bundle；`verify-spine42` 从导出双 SHA 重建完整上游链。五文件地址、官方 runtime 的本地安装边界与 capture 操作见 [导出、复验并运行 P6 Spine 4.2 资产](docs/how-to-export-spine42.md)。
 
@@ -513,7 +518,7 @@ P1 已交付 pose、alpha 中轴线和层接触候选，以及候选比较、四
 - 若要恢复旧 revision，先停止服务，备份整个项目 override 目录，再将目标历史快照作为新的、经过校验的 revision 提交；当前界面尚未提供历史浏览/回滚按钮。
 - validation 的 `valid=true` 仅表示结构和本地资产检查没有硬错误，不等于美术、遮挡补全、pivot、mesh 或动画通过视觉验收。
 
-## 已完成合同与阶段：P0、P2 region RigIR 至 P9 reviewed motion，以及 P10.0–P10.7b-readiness
+## 已完成合同与阶段：P0、P2 region RigIR 至 P9 reviewed motion，以及 P10.0–P10.7c setup regression 基础设施
 
 P0 合同加固、P1 四肢候选与 P2 region-only RigIR 已贯通：`stage-scoped analysis → immutable geometry/candidates → candidate-bound revision → deterministic resolved snapshot → reviewed Layer Manifest → RigIR/setup bundle`。P2 没有提前引入 mesh：
 
@@ -590,7 +595,9 @@ P10.7a 已增加独立 Spine 4.2 adapter v3 capability、MIv3→P9→P5/P3 完�
 
 P10.7b 已增加固定 runtime/capture profile、确定性 case plan、官方 Spine Player/浏览器精确身份封存、opaque/transparent composite 与完整 setup attachment isolate 捕获、sampled alpha/raster 指标、不可变 capture store/exact reader，以及 candidate/人工 decision 分离的四个 CLI。capture 是 `external_required`，不会下载 runtime 或代替操作者确认许可；prepare/submit 不扫描 `latest`，submit 也不发布 authoritative revision。基础设施交付不等于真实资产验收：两份真实 See-through 样本仍需各自具备 P10.7a 输入、运行官方 capture 并完成人工逐项决定；continuous runtime raster safety、永久 head、publishable timeline 与 release authority 始终 blocked。
 
-P10.7b-readiness 已增加 strict canonical request 与 exact-address、zero-write 审计 CLI。它只重放请求明确声明的 Manifest/P3 和后续地址，并报告 P3 seam、P9、P10.5c、P10.6b、P10.7a、runtime capture、raster review 与 P6 setup comparison 八个 checkpoint。它不扫描 `latest` 或 current review head，不运行外部阶段、官方 Runtime、发布或写入，也不生成人工决定；为验证 exact artifacts，它会在内存中运行只读 pure replay compiler/validator。当前示例未声明两个项目的 P9 地址；A 也未声明 P10.5c 地址，所以只能报告 `reviewed_seam_anchor_set_address_not_declared`，不能据此声称 review head 为空。B 的精确 P3 candidate 则证明左右 pelvis-leg/leg-foot 四关系不可观测，必须修复上游语义/分层或建立独立 partial 合同。Runtime 已存在但不是最早 blocker；P6 setup golden comparison 尚未纳入，任何 readiness 结果都不授予 publish/release authority。
+P10.7b-readiness 已增加 strict canonical request 与 exact-address、zero-write 审计 CLI。它只重放请求明确声明的 Manifest/P3 和后续地址，并报告 P3 seam、P9、P10.5c、P10.6b、P10.7a、runtime capture、raster review 与 P6 setup comparison 八个 checkpoint。v1 已冻结且第八项仍固定为 missing；独立 P10.7c 命令不会改变其 Schema、哈希或报告含义。当前示例未声明两个项目的 P9 地址；A 也未声明 P10.5c 地址，B 的精确 P3 candidate 则证明左右 pelvis-leg/leg-foot 四关系不可观测。任何 readiness 结果都不授予 publish/release authority。
+
+P10.7c 已增加 strict canonical setup-regression request/report、冻结 comparison profile、P6 批准合同精确字节绑定、P6/P10.7a 同 P3 与 atlas/texture 来源闭合、P10.7b setup capture 只读提取、RGBA 指标，以及由 exact evidence 在函数内部重新计算 sample 的 replay binding。该能力已交付不等于真实双样本通过：A/B 仍须先提供真实 Kimodo/P9、seam、P10.7a 与官方 capture 地址，之后才能运行对应真实请求；当前只能验证机制与既有 P6 基线，没有真实 P10.7c 通过结论。临时报告尚不是 readiness admission；readiness v2 前必须增加可寻址、不可变且可重放的 comparison bundle。
 
 姿态 runner 与真实标注评估集仍是独立质量轨，不阻塞版本中立 P2 编译；诊断 setup prior 不能替代真实模型基线。
 
@@ -615,14 +622,15 @@ P10.7b-readiness 已增加 strict canonical request 与 exact-address、zero-wri
 - 把 P10.6a 的 setup-local timeline compilation admission 当成 MotionInstance v3/Spine adapter 已发出、完整边界或 raster 视觉通过、runtime 等价、永久 head authority、publishable timeline 或 release authority；
 - 把 P10.6b 的 MotionInstance v3、历史 bundle 可重放或发布前 head 双观察当成 Spine adapter 已编译、官方 runtime/raster 通过、永久 head authority、publishable Spine timeline 或 release authority；
 - 把 P10.7a adapter、P10.7b sampled capture/指标或一次人工 decision 当成连续时间 raster 安全、永久审批、可发布 timeline 或 release authority；
-- 把 P10.7b-readiness 的只读 pure replay 报告当成外部阶段执行记录、current review head 发现、人工决定、P6 setup golden 对照或发布授权；
+- 把冻结的 P10.7b-readiness v1 报告当成外部阶段执行记录、current review head 发现、人工决定、P10.7c setup golden 对照或发布授权；
+- 把 P10.7c 单帧 setup RGBA 对照当成动画 case 人审、连续时间 raster 安全、真实双样本已验收或发布授权；
 - 在未提供并确认授权的官方 Spine 4.2.119 runtime 时，用 test-only player stub、进程 smoke 或任意相邻截图冒充真实 capture；
 - 生成眨眼/口型素材、实时追踪映射或运行时物理；
 - 捆绑或再分发官方 Spine runtime、判断任意未知 Spine 版本、生成 Spine Editor 工程，或覆盖固定 P6 profile 之外的特性；
 - 代替输入素材、训练数据或模型权重的许可证与商业使用审查；
 - 多用户权限、远程协作或生产部署。
 
-这些边界并非都应一次性并入当前阶段。下一顺序是先生成、复核并声明真实 Kimodo P7/P8/P9 exact 地址，完成或确认 A 的 seam 人审并声明 P10.5c 地址，以及完成 B 的上游语义/分层修复或独立 partial 合同；再完成两份真实样本的官方 Runtime capture、逐项人审与 P6 setup golden 对照；之后进入 attachment switch → blink/mouth。输入模型 runner 继续作为独立质量轨；完整计划见[后续开发路线](docs/development-roadmap.md)。
+这些边界并非都应一次性并入当前阶段。下一顺序是先生成、复核并声明真实 Kimodo P7/P8/P9 exact 地址，完成或确认 A 的 seam 人审并声明 P10.5c 地址，以及完成 B 的上游语义/分层修复或独立 partial 合同；再完成两份真实样本的官方 Runtime capture、逐项人审，并使用已交付的 P10.7c 命令执行 P6 setup golden 对照；随后把 canonical request/report、批准合同和批准 PNG 封存为可寻址 comparison bundle，再接 readiness v2；之后进入 attachment switch → blink/mouth。输入模型 runner 继续作为独立质量轨；完整计划见[后续开发路线](docs/development-roadmap.md)。
 
 项目中显示的骨架来自 bbox/语义启发式，`requires_review=true`。只有在语义、左右、pivot、层级、合成回归和动作探针均通过后，才能把人工确认结果交给后续 RigIR/导出阶段。
 

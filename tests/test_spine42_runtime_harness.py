@@ -181,6 +181,21 @@ class Spine42RuntimeContractTests(unittest.TestCase):
         bad["cases"][0]["assets"]["unbound_sha256"] = "f" * 64
         with self.assertRaisesRegex(Spine42RuntimeContractError, "fields"):
             require_runtime_golden(bad)
+        for unsafe in (
+            "base:stream.approved.png", "CON.approved.png",
+            "base..approved.png",
+        ):
+            with self.subTest(path=unsafe):
+                bad = copy.deepcopy(contract)
+                bad["cases"][0]["golden"]["path"] = unsafe
+                with self.assertRaisesRegex(
+                    Spine42RuntimeContractError, "safe approved basename"
+                ):
+                    require_runtime_golden(bad)
+        bad = copy.deepcopy(contract)
+        bad["format_version"] = True
+        with self.assertRaisesRegex(Spine42RuntimeContractError, "unsupported"):
+            require_runtime_golden(bad)
 
     def test_capture_store_hashes_and_compares_without_approving(self) -> None:
         exports = require_export_files(self.fx.export)

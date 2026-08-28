@@ -170,23 +170,31 @@ def replay_verified_spine42_v3_bundle(
         raise Spine42V3BundleIntegrityError(
             "Spine v3 replay requires an exact verified bundle"
         )
-    raw = bundle.document_bytes
-    run = bundle.run_manifest
+    items = _exact_items(bundle._document_items)
+    raw = dict(items)
+    skeleton = strict_json_object(raw[DOCUMENT_NAMES[0]], DOCUMENT_NAMES[0])
+    run = strict_json_object(raw[DOCUMENT_NAMES[3]], DOCUMENT_NAMES[3])
     inputs = _object(run.get("inputs"), "Spine v3 run inputs")
     try:
         contract = build_spine42_v3_bundle_contract(
             bundle.project_id, bundle.clip_id,
             _object(inputs.get("p3"), "P3 source"),
             _object(inputs.get("motion_instance_v3"), "MotionInstance v3 source"),
-            bundle.skeleton_json, raw[DOCUMENT_NAMES[1]],
+            skeleton, raw[DOCUMENT_NAMES[1]],
             raw[DOCUMENT_NAMES[2]], bundle.source_image_sha256s,
         )
     except (Spine42V3BundleContractError, TypeError, ValueError) as exc:
         raise Spine42V3BundleIntegrityError(
             "Verified Spine v3 bundle replay failed"
         ) from exc
+    identities = {
+        name: getattr(contract, name) for name in bundle.contract_identities
+    }
     if contract.document_bytes != raw \
-            or contract.bundle_sha256 != bundle.bundle_sha256:
+            or identities != bundle.contract_identities \
+            or contract.project_id != bundle.project_id \
+            or contract.clip_id != bundle.clip_id \
+            or contract.source_image_sha256s != bundle.source_image_sha256s:
         raise Spine42V3BundleIntegrityError(
             "Verified Spine v3 bundle differs from exact replay"
         )

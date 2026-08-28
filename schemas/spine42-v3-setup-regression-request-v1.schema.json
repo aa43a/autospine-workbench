@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/spine42-v3-setup-regression-request-v1.schema.json",
+  "title": "AutoSpine Spine 4.2 v3 setup regression request v1",
+  "description": "Explicit P3, P6 setup, P10.7a, P10.7b, approved-runtime, and frozen comparison-profile identities for a zero-write setup comparison. Canonical bytes, dependency closure, and hashes are enforced by the Python semantic validator.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "approved_p6_export_contract_sha256",
+    "approved_runtime_golden_sha256", "comparison_profile_sha256", "samples"
+  ],
+  "properties": {
+    "format": {"const": "autospine-spine42-v3-setup-regression-request"},
+    "format_version": {"type": "integer", "const": 1},
+    "approved_p6_export_contract_sha256": {"$ref": "#/$defs/sha256"},
+    "approved_runtime_golden_sha256": {"$ref": "#/$defs/sha256"},
+    "comparison_profile_sha256": {
+      "const": "98e12906fea7f5c9f194eac1af06deb402705392d5c5ed459b1c00878f9a92de"
+    },
+    "samples": {
+      "type": "array", "minItems": 1, "maxItems": 8,
+      "items": {"$ref": "#/$defs/sample"}
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string", "minLength": 64, "maxLength": 64,
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "token": {
+      "type": "string", "minLength": 1, "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "p6Address": {
+      "type": "object", "additionalProperties": false,
+      "required": ["skeleton_json_sha256", "bundle_sha256"],
+      "properties": {
+        "skeleton_json_sha256": {"$ref": "#/$defs/sha256"},
+        "bundle_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "spineV3Address": {
+      "type": "object", "additionalProperties": false,
+      "required": ["skeleton_json_sha256", "bundle_sha256"],
+      "properties": {
+        "skeleton_json_sha256": {"$ref": "#/$defs/sha256"},
+        "bundle_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "runtimeAddress": {
+      "type": "object", "additionalProperties": false,
+      "required": ["spine42_v3_bundle_sha256", "capture_bundle_sha256"],
+      "properties": {
+        "spine42_v3_bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "capture_bundle_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "sample": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "project_id", "p3_rig_sha256", "p3_bundle_sha256",
+        "p6_setup_address", "spine42_v3_address",
+        "runtime_capture_address", "approved_runtime_case_id",
+        "approved_png_sha256"
+      ],
+      "properties": {
+        "project_id": {"$ref": "#/$defs/token"},
+        "p3_rig_sha256": {"$ref": "#/$defs/sha256"},
+        "p3_bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "p6_setup_address": {"$ref": "#/$defs/p6Address"},
+        "spine42_v3_address": {"$ref": "#/$defs/spineV3Address"},
+        "runtime_capture_address": {"$ref": "#/$defs/runtimeAddress"},
+        "approved_runtime_case_id": {"$ref": "#/$defs/token"},
+        "approved_png_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  }
+}

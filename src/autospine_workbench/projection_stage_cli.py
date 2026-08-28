@@ -87,6 +87,10 @@ from .p10_spine42_v3_readiness_cli import (
     add_p10_spine42_v3_readiness_subcommands,
     dispatch_p10_spine42_v3_readiness_command,
 )
+from .p10_spine42_v3_setup_regression_cli import (
+    add_p10_spine42_v3_setup_regression_subcommands,
+    dispatch_p10_spine42_v3_setup_regression_command,
+)
 from .p10_spine42_v3_runtime_cli import (
     add_p10_spine42_v3_runtime_subcommands,
     dispatch_p10_spine42_v3_runtime_command,
@@ -151,6 +155,7 @@ def add_projection_stage_subcommands(subparsers: Any, state_root: Path) -> None:
     add_p10_spine42_v3_runtime_subcommands(subparsers, state_root)
     add_p10_spine42_v3_raster_review_subcommands(subparsers, state_root)
     add_p10_spine42_v3_readiness_subcommands(subparsers, state_root)
+    add_p10_spine42_v3_setup_regression_subcommands(subparsers, state_root)
     add_seam_anchor_candidate_subcommands(subparsers, state_root)
     add_seam_anchor_review_subcommands(subparsers, state_root)
 
@@ -243,6 +248,9 @@ def dispatch_projection_stage_command(args: argparse.Namespace) -> int | None:
             if status is not None:
                 return status
             status = dispatch_p10_spine42_v3_readiness_command(args)
+            if status is not None:
+                return status
+            status = dispatch_p10_spine42_v3_setup_regression_command(args)
             if status is not None:
                 return status
             status = dispatch_seam_anchor_candidate_command(args)
