@@ -83,12 +83,15 @@ def _reject_collapsed_samples(tracks) -> None:
 
 
 def _world_angle_changes(tracks) -> dict[str, tuple[float, ...]]:
+    # Keep the sealed nine-decimal evidence intact until the setup-local
+    # subtraction is complete.  Quantizing each world delta first can move a
+    # child and its parent across different five-decimal rounding boundaries.
     result = {}
     for track in tracks:
         samples = track["samples"]
         baseline = float(samples[0]["projected_world_angle_deg"])
         result[track["role"]] = tuple(
-            _quantize(float(sample["projected_world_angle_deg"]) - baseline)
+            float(sample["projected_world_angle_deg"]) - baseline
             for sample in samples
         )
     return result

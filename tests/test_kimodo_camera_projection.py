@@ -63,8 +63,11 @@ def camera_document(mapping: dict, *, depth_positive="away_from_camera") -> dict
     }
 
 
-def verified_fixture(*, offsets=None, basis=None):
-    raw = build_npz(motion_member_bytes(offset_overrides=offsets))
+def verified_fixture(*, offsets=None, basis=None, frame_rotations=None):
+    raw = build_npz(motion_member_bytes(
+        offset_overrides=offsets,
+        frame_rotations=frame_rotations,
+    ))
     source = source_document(raw)
     mapping = map_document()
     if basis is not None:
@@ -121,6 +124,21 @@ class KimodoCameraProjectionTests(unittest.TestCase):
             "collapsed_sample_count"
         ])
         legacy = compile_projected_motion_to_motion_ir(first.document)
+        self.assertEqual(bundle.motion, legacy)
+        self.assertEqual(bundle.clip_sha256, motion_ir_sha256(legacy))
+
+    def test_legacy_preserves_p7_hash_at_parent_rounding_boundary(self):
+        bundle, mapping = verified_fixture(frame_rotations=(
+            {},
+            {"Hips": 0.000006, "Spine1": 0.000008},
+            {},
+        ))
+
+        projected = compile_verified_kimodo_projection(
+            bundle, camera_document(mapping)
+        )
+        legacy = compile_projected_motion_to_motion_ir(projected.document)
+
         self.assertEqual(bundle.motion, legacy)
         self.assertEqual(bundle.clip_sha256, motion_ir_sha256(legacy))
 

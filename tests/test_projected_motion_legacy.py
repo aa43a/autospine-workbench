@@ -80,6 +80,31 @@ class ProjectedMotionLegacyTests(unittest.TestCase):
             )["keys"]],
         )
 
+    def test_parent_delta_is_quantized_only_after_world_changes_are_subtracted(
+        self,
+    ):
+        projected = projected_motion_document(include_child=True)
+        root, child = projected["segment_tracks"]
+        _set_angle(root["samples"][0], 10.0)
+        _set_angle(root["samples"][1], 10.000006)
+        _set_angle(child["samples"][0], 30.0)
+        _set_angle(child["samples"][1], 30.000014)
+
+        result = compile_projected_motion_to_motion_ir(projected)
+
+        self.assertEqual(
+            [0.0, 0.00001],
+            [key["value"] for key in _track(
+                result, "humanoid.root", "rotation"
+            )["keys"]],
+        )
+        self.assertEqual(
+            [0.0, 0.00001],
+            [key["value"] for key in _track(
+                result, "humanoid.spine.lower", "rotation"
+            )["keys"]],
+        )
+
     def test_rejects_any_collapsed_sample(self):
         projected = projected_motion_document(
             collapsed=True, include_child=True,

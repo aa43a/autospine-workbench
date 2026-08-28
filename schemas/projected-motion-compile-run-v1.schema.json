@@ -54,7 +54,7 @@
       "required": ["id", "version", "config"],
       "properties": {
         "id": {"const": "kimodo-projected-motion-compiler"},
-        "version": {"const": "1.0.0"},
+        "version": {"const": "1.0.1"},
         "config": {"$ref": "#/$defs/compilerConfig"}
       }
     },

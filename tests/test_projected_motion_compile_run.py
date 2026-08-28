@@ -98,7 +98,7 @@ class ProjectedMotionCompileRunTests(unittest.TestCase):
                 target = target[key]
             target[path[-1]] = True
             mutations.append(candidate)
-        for field, value in (("id", "other"), ("version", "1.0.1")):
+        for field, value in (("id", "other"), ("version", "1.0.0")):
             candidate = deepcopy(baseline)
             candidate["compiler"][field] = value
             mutations.append(candidate)

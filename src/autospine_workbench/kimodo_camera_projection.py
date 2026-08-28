@@ -36,7 +36,7 @@ from .projected_motion_validation import (
 
 
 COMPILER_ID = "kimodo-projected-motion-compiler"
-COMPILER_VERSION = "1.0.0"
+COMPILER_VERSION = "1.0.1"
 EVIDENCE_DECIMALS = 9
 LEGACY_DECIMALS = 5
 MIN_SOURCE_LENGTH_NORMALIZED = 1e-9
