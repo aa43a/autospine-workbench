@@ -89,6 +89,8 @@ exact Layer Manifest + exact P3 static bundle
                                        ↓
        [external] P10.7b Runtime/raster gate
                                        ↓
+       exact-address, zero-write readiness audit
+                                       ↓
                             blocked release
 
 server → application services only
@@ -432,8 +434,19 @@ P10.7a 以 project 与 MIv3 双 SHA 作为公开输入，严格重放 MIv3→P9�
 独立 `spine42-v3/<skeleton-sha>/<bundle-sha>` 地址空间；store 和公开命令均执行 current-head
 门禁，发布后 exact reader 会从完整上游逐字节重建。旧 P6 profile/hash 不变，未知能力 fail
 loud。run 只开放 adapter emitted，官方 Runtime/raster、永久 head、publishable timeline 和
-release authority 均保持 blocked。下一架构增量是 P10.7b 官方 Runtime/raster 回归；依赖和
-验收定义见[后续开发路线](development-roadmap.md)。
+release authority 均保持 blocked。
+
+P10.7b 用固定官方 Runtime/浏览器身份、case plan、完整 setup attachment isolate 与 sampled
+raster 指标形成不可变 capture；candidate 和完整 human decision 保持分离。其后的 readiness
+层不是新的发布编译阶段：strict canonical request 只声明 Manifest/P3 与可选 P9、P10.5c、
+P10.6b、P10.7a、capture 和 decision 精确地址，reader 按声明调用现有只读 pure replay
+compiler/validator 重建并验证 exact artifacts，再输出八个固定 checkpoint。该层不扫描
+`latest` 或 current review head，不运行外部阶段、官方 Runtime、发布或 state 写入，也不把
+sampled evidence、pure replay 结果或 P6 setup 对照提升为发布权。`null` 地址只产生未声明原因；
+尤其 A 的空 P10.5c 地址不能被解释为 review head 为空。B 的四条不可观测关系则来自精确 P3
+candidate 的 replay evidence。request、stage evaluator、runtime/raster evaluator、报告
+validator 与 CLI boundary 分文件且均受 300 行门禁。当前真实链的更早 blocker 与操作入口见
+[就绪状态审计 How-to](how-to-audit-spine42-v3-readiness.md)和[后续开发路线](development-roadmap.md)。
 
 后续 timeline/runtime 阶段继续遵守：
 

@@ -41,7 +41,9 @@ from .seam_anchor_review_errors import (
     SeamAnchorReviewHistoryError,
     SeamAnchorReviewStoreError,
 )
-from .seam_anchor_review_history import load_seam_anchor_review_decision
+from .seam_anchor_review_prefix import (
+    load_seam_anchor_review_decision_prefix,
+)
 
 
 class VerifiedReviewedSeamAnchorSetBundleReaderError(RuntimeError):
@@ -105,11 +107,12 @@ class VerifiedReviewedSeamAnchorSetBundleReader:
                 raise VerifiedReviewedSeamAnchorSetBundleReaderError(
                     "Reviewed set points to different review evidence"
                 )
-            historical = load_seam_anchor_review_decision(
+            historical = load_seam_anchor_review_decision_prefix(
                 self.state_root,
                 address,
                 candidate_sha,
                 decision_sha,
+                set_source["review_revision"],
                 candidates=bound.candidates,
                 rig=bound.rig,
             )

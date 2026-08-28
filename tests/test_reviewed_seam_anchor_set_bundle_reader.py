@@ -77,7 +77,7 @@ class ReviewedSeamAnchorSetBundleReaderTests(unittest.TestCase):
             f"{_READER_MODULE}.load_bound_seam_anchor_review_candidate",
             return_value=bound,
         ) as candidate_loader, patch(
-            f"{_READER_MODULE}.load_seam_anchor_review_decision",
+            f"{_READER_MODULE}.load_seam_anchor_review_decision_prefix",
             return_value=self.decision,
         ) as decision_loader:
             verified = self.load()
@@ -90,6 +90,10 @@ class ReviewedSeamAnchorSetBundleReaderTests(unittest.TestCase):
         self.assertEqual(
             self.published.decision_sha256,
             decision_loader.call_args.args[3],
+        )
+        self.assertEqual(
+            self.published.review_revision,
+            decision_loader.call_args.args[4],
         )
         self.assertEqual(DOCUMENT_NAMES, verified.inventory)
         self.assertEqual(self.published.review_revision,

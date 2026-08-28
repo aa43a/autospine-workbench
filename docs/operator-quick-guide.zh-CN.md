@@ -47,7 +47,7 @@ cd E:\proj\unusual\localset\autospine-workbench
 “功能入口中心”提供：
 
 - 按 P0–P10 阶段、入口类型和状态筛选；
-- 搜索全部 58 个 CLI、三个任务页面和尚未实现的规划项；
+- 搜索全部 63 个 CLI、三个任务页面和尚未实现的规划项；
 - 直接打开绑定复核、Body-sway 视觉复核和 Seam Anchor 复核页面；
 - 复制精确的 `python -B -m autospine_workbench <command> --help` 帮助命令；
 - 通过 `/document-viewer.html?doc=docs/<文件名>.md` 安全文档查看器打开对应仓库文档。
@@ -229,6 +229,7 @@ E:\proj\unusual\localset\tmp\psd_audit\results\<project-id>\audit.json
 - 从独立页面完成人工 Body-sway still 与 Seam Anchor revision；
 - 通过离线命令生成和验证版本中立的 Layer Manifest、RigIR、mesh、IK、MotionIR、P10.6a admission、MotionInstance v3 及 P10.7a Spine 4.2 v3 五文件 adapter 工件。
 - 在操作者提供并确认有权使用官方 Spine Player 4.2.119 时，捕获 P10.7a 的固定 sampled raster 证据，复验不可变 capture，并编译逐 case、逐 setup attachment 的人工决定。
+- 从 strict canonical 示例 Manifest 只读审计两份真实样本的 P3→P10.7b 前置；审计不会自动执行阶段、代替人审或授予发布权。
 
 当前不能据此自动完成：
 
@@ -254,6 +255,17 @@ python -B -m autospine_workbench verify-mesh-bundle --help
 编译后回到主工作台底部的“P3 Mesh 证据”，显式选择 rig SHA 与 bundle SHA，再点击读取。这里显示的是 setup、权重热图、极值姿势和严格复验结果；它不是 mesh/weight 编辑器，也不会自动选中最新 bundle。
 
 ## 10. 当前阶段与下一开发入口
+
+当前阶段是 P10.7b-readiness。先在项目根目录运行真实样本的只读预检：
+
+```powershell
+python -B -m autospine_workbench audit-body-sway-spine42-v3-readiness `
+  --manifest .\examples\p10-spine42-v3-readiness\real-see-through.request.json `
+  --state-root .\workspace `
+  --document-only
+```
+
+当前结果是：A/B 都未声明真实 Kimodo P7/P8/P9 的 reviewed-motion 地址；A 还未声明 P10.5c 双 SHA，审计不读取 current review head，因此不能据此断言人审是否已经发生；B 的 P3 candidate 则证明有四条不可观测腿/脚 seam，必须修复上游语义/分层或另立 partial 合同。Runtime 已存在，但不是最早 blocker。该命令会运行只读 pure replay compiler/validator，但不会扫描 `latest`/current head、运行外部阶段、调用官方 Runtime、发布或写入。请求格式、报告读取方式和权限边界见[审计两份真实样本的 Spine 4.2 v3 就绪状态](how-to-audit-spine42-v3-readiness.md)。只有相应真实地址实际交付后，才按下面的 P10.6/P10.7 命令继续；不能跳过审计列出的前置。
 
 P0 Resolved Project v1、P10.6b MotionInstance v3 与 P10.7a Spine adapter bundle 均已完成。普通图层/关节复核不需要运行这些命令；开发 body-sway 动画编译链时，先按
 [编译 P10.6a body-sway 动作消费准入](how-to-compile-body-sway-motion-consumer-admission.md)

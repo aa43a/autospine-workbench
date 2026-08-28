@@ -1,0 +1,252 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/spine42-v3-readiness-request-v1.schema.json",
+  "title": "AutoSpine Spine 4.2 v3 readiness request v1",
+  "description": "Strict structural contract for an explicit, content-addressed P10.7b readiness audit. The semantic validator require_spine42_v3_readiness_request additionally enforces canonical UTF-8 JSON, unique ascending project_id order, dependency closure, cross-address and embedded-decision source bindings, bounded scalar rules, decision self-hash, and the domain-separated request hash; those relations are intentionally not represented by this schema alone.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "format_version", "samples"],
+  "properties": {
+    "format": {"const": "autospine-spine42-v3-readiness-request"},
+    "format_version": {"type": "integer", "const": 1},
+    "samples": {
+      "type": "array", "minItems": 1, "maxItems": 8,
+      "items": {"$ref": "#/$defs/sample"}
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string", "minLength": 64, "maxLength": 64,
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "token": {
+      "type": "string", "minLength": 1, "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "pairToken": {
+      "type": "string", "minLength": 1, "maxLength": 256,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$"
+    },
+    "sample": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_id", "layer_manifest_sha256", "p3_rig_sha256",
+        "p3_bundle_sha256", "reviewed_motion_address",
+        "reviewed_seam_anchor_set_address", "motion_instance_v3_address",
+        "spine42_v3_address", "runtime_capture_address",
+        "raster_review_decision"
+      ],
+      "properties": {
+        "project_id": {"$ref": "#/$defs/token"},
+        "layer_manifest_sha256": {"$ref": "#/$defs/sha256"},
+        "p3_rig_sha256": {"$ref": "#/$defs/sha256"},
+        "p3_bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "reviewed_motion_address": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/reviewedMotionAddress"}]
+        },
+        "reviewed_seam_anchor_set_address": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/reviewedSeamAddress"}]
+        },
+        "motion_instance_v3_address": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/motionV3Address"}]
+        },
+        "spine42_v3_address": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/spineV3Address"}]
+        },
+        "runtime_capture_address": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/runtimeAddress"}]
+        },
+        "raster_review_decision": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/rasterDecision"}]
+        }
+      }
+    },
+    "reviewedMotionAddress": {
+      "type": "object", "additionalProperties": false,
+      "required": ["motion_instance_v2_sha256", "bundle_sha256"],
+      "properties": {
+        "motion_instance_v2_sha256": {"$ref": "#/$defs/sha256"},
+        "bundle_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "reviewedSeamAddress": {
+      "type": "object", "additionalProperties": false,
+      "required": ["reviewed_seam_anchor_set_sha256", "bundle_sha256"],
+      "properties": {
+        "reviewed_seam_anchor_set_sha256": {"$ref": "#/$defs/sha256"},
+        "bundle_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "motionV3Address": {
+      "type": "object", "additionalProperties": false,
+      "required": ["motion_instance_v3_sha256", "bundle_sha256"],
+      "properties": {
+        "motion_instance_v3_sha256": {"$ref": "#/$defs/sha256"},
+        "bundle_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "spineV3Address": {
+      "type": "object", "additionalProperties": false,
+      "required": ["skeleton_json_sha256", "bundle_sha256"],
+      "properties": {
+        "skeleton_json_sha256": {"$ref": "#/$defs/sha256"},
+        "bundle_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "runtimeAddress": {
+      "type": "object", "additionalProperties": false,
+      "required": ["spine42_v3_bundle_sha256", "capture_bundle_sha256"],
+      "properties": {
+        "spine42_v3_bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "capture_bundle_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "rasterDecision": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "format", "format_version", "project_id", "clip_id", "source",
+        "review", "case_decisions", "attachment_decisions", "claims",
+        "semantics", "authority", "status", "release_gate",
+        "decision_sha256"
+      ],
+      "properties": {
+        "format": {"const": "autospine-spine42-v3-raster-review-decision"},
+        "format_version": {"type": "integer", "const": 1},
+        "project_id": {"$ref": "#/$defs/token"},
+        "clip_id": {"$ref": "#/$defs/token"},
+        "source": {"$ref": "#/$defs/decisionSource"},
+        "review": {"$ref": "#/$defs/review"},
+        "case_decisions": {
+          "type": "array", "minItems": 1, "maxItems": 96,
+          "items": {"$ref": "#/$defs/caseDecision"}
+        },
+        "attachment_decisions": {
+          "type": "array", "minItems": 1, "maxItems": 96,
+          "items": {"$ref": "#/$defs/attachmentDecision"}
+        },
+        "claims": {"$ref": "#/$defs/claims"},
+        "semantics": {"$ref": "#/$defs/decisionSemantics"},
+        "authority": {"$ref": "#/$defs/decisionAuthority"},
+        "status": {"enum": ["sampled_raster_approved", "sampled_raster_rejected"]},
+        "release_gate": {"$ref": "#/$defs/decisionReleaseGate"},
+        "decision_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "decisionSource": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "candidate_sha256", "skeleton_json_sha256",
+        "spine42_v3_bundle_sha256", "run_document_sha256",
+        "capture_plan_sha256", "runtime_session_set_sha256",
+        "runtime_capture_manifest_sha256", "runtime_capture_bundle_sha256",
+        "raster_metrics_sha256"
+      ],
+      "properties": {
+        "candidate_sha256": {"$ref": "#/$defs/sha256"},
+        "skeleton_json_sha256": {"$ref": "#/$defs/sha256"},
+        "spine42_v3_bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "run_document_sha256": {"$ref": "#/$defs/sha256"},
+        "capture_plan_sha256": {"$ref": "#/$defs/sha256"},
+        "runtime_session_set_sha256": {"$ref": "#/$defs/sha256"},
+        "runtime_capture_manifest_sha256": {"$ref": "#/$defs/sha256"},
+        "runtime_capture_bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "raster_metrics_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "review": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "method", "status", "reviewer_id", "notes", "revision",
+        "supersedes_decision_sha256"
+      ],
+      "properties": {
+        "method": {"const": "human"},
+        "status": {"const": "completed"},
+        "reviewer_id": {"$ref": "#/$defs/token"},
+        "notes": {"type": "string", "maxLength": 2000},
+        "revision": {"type": "integer", "const": 1},
+        "supersedes_decision_sha256": {"type": "null"}
+      }
+    },
+    "caseDecision": {
+      "type": "object", "additionalProperties": false,
+      "required": ["case_id", "evidence_sha256", "action", "notes"],
+      "properties": {
+        "case_id": {"$ref": "#/$defs/token"},
+        "evidence_sha256": {"$ref": "#/$defs/sha256"},
+        "action": {"enum": ["approve", "reject", "unobservable"]},
+        "notes": {"type": "string", "maxLength": 2000}
+      }
+    },
+    "attachmentDecision": {
+      "type": "object", "additionalProperties": false,
+      "required": ["attachment_key", "evidence_sha256", "action", "notes"],
+      "properties": {
+        "attachment_key": {"$ref": "#/$defs/pairToken"},
+        "evidence_sha256": {"$ref": "#/$defs/sha256"},
+        "action": {"enum": ["approve", "reject", "unobservable"]},
+        "notes": {"type": "string", "maxLength": 2000}
+      }
+    },
+    "claims": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "human_reviewed", "sampled_raster_visual_quality",
+        "sampled_complete_attachment_inventory_reviewed",
+        "continuous_runtime_raster_safety", "persistent_current_head_authority",
+        "publishable_spine_timeline", "release_authority"
+      ],
+      "properties": {
+        "human_reviewed": {"const": true},
+        "sampled_raster_visual_quality": {"type": "boolean"},
+        "sampled_complete_attachment_inventory_reviewed": {"type": "boolean"},
+        "continuous_runtime_raster_safety": {"const": false},
+        "persistent_current_head_authority": {"const": false},
+        "publishable_spine_timeline": {"const": false},
+        "release_authority": {"const": false}
+      }
+    },
+    "decisionSemantics": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "scope", "review_method", "continuous_time_safety_claimed",
+        "release_authority"
+      ],
+      "properties": {
+        "scope": {"const": "bounded-discrete-samples-only"},
+        "review_method": {"const": "explicit-exhaustive-human-rows"},
+        "continuous_time_safety_claimed": {"const": false},
+        "release_authority": {"const": false}
+      }
+    },
+    "decisionAuthority": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "human_decision_recorded", "continuous_runtime_raster_safety_authority",
+        "persistent_current_head_authority", "publish_authority",
+        "release_authority"
+      ],
+      "properties": {
+        "human_decision_recorded": {"const": true},
+        "continuous_runtime_raster_safety_authority": {"const": false},
+        "persistent_current_head_authority": {"const": false},
+        "publish_authority": {"const": false},
+        "release_authority": {"const": false}
+      }
+    },
+    "decisionReleaseGate": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "reason_codes"],
+      "properties": {
+        "status": {"const": "blocked"},
+        "reason_codes": {"const": [
+          "continuous_runtime_raster_safety_unproven",
+          "persistent_current_head_authority_not_granted",
+          "publishable_spine_timeline_not_granted",
+          "release_authority_not_granted"
+        ]}
+      }
+    }
+  }
+}

@@ -1,6 +1,6 @@
 {
   "catalog_version": "1.0.0",
-  "current_stage": "P10.7b",
+  "current_stage": "P10.7b-readiness",
   "stages": [
     {"id":"P0","label":"合同、服务与基础验证"},
     {"id":"P1","label":"图层复核与四肢候选"},
@@ -97,6 +97,7 @@
     {"id":"cli-verify-body-sway-spine42-v3-runtime","stage":"P10","title":"复验 P10.7b Runtime Capture","summary":"按 P10.7a/capture 双 SHA 重放 manifest、metrics、PNG 与精确上游，不扫描 latest。","kind":"cli","status":"available","command":"verify-body-sway-spine42-v3-runtime","doc":"docs/how-to-capture-spine42-v3-runtime.md"},
     {"id":"cli-prepare-body-sway-spine42-v3-raster-review","stage":"P10","title":"准备 P10.7b Raster 复核","summary":"从精确 capture 只读编译逐 case、逐 setup attachment 的 sampled review candidate。","kind":"cli","status":"available","command":"prepare-body-sway-spine42-v3-raster-review","doc":"docs/how-to-capture-spine42-v3-runtime.md"},
     {"id":"cli-submit-body-sway-spine42-v3-raster-review","stage":"P10","title":"编译 P10.7b Raster 人工决定","summary":"把完整显式人工输入编译为 path-free sampled decision；不发布 revision 或 release authority。","kind":"cli","status":"available","command":"submit-body-sway-spine42-v3-raster-review","doc":"docs/how-to-capture-spine42-v3-runtime.md"},
-    {"id":"planned-real-sample-spine42-v3-raster-acceptance","stage":"P10","title":"P10.7b 两份真实样本验收","summary":"为两份真实 See-through 样本生成 P10.7a 地址，运行已授权官方 Runtime capture，并逐 case、逐 attachment 人工复核；fixture 不能替代。","kind":"planned","status":"external_required","doc":"docs/development-roadmap.md"}
+    {"id":"cli-audit-body-sway-spine42-v3-readiness","stage":"P10","title":"审计 P10.7b 真实样本就绪状态","summary":"对 strict canonical Manifest 的精确地址运行只读 pure replay 并报告 P3→P10.7b 与 P6 对照缺口；不扫描 latest/current head，不运行外部阶段、Runtime、发布或写入。","kind":"cli","status":"available","command":"audit-body-sway-spine42-v3-readiness","doc":"docs/how-to-audit-spine42-v3-readiness.md"},
+    {"id":"planned-real-sample-spine42-v3-raster-acceptance","stage":"P10","title":"P10.7b 两份真实样本验收","summary":"先补齐真实 Kimodo P7/P8/P9 与 seam 门禁，再运行已授权官方 Runtime capture、逐项人审和独立 P6 setup golden 对照；fixture 不能替代。","kind":"planned","status":"external_required","doc":"docs/development-roadmap.md"}
   ]
 }

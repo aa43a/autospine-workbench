@@ -33,15 +33,16 @@ const EXPECTED_COMMANDS = [
   "capture-body-sway-spine42-v3-runtime", "verify-body-sway-spine42-v3-runtime",
   "prepare-body-sway-spine42-v3-raster-review",
   "submit-body-sway-spine42-v3-raster-review",
+  "audit-body-sway-spine42-v3-readiness",
   "compile-seam-anchor-candidates", "prepare-seam-anchor-review",
   "submit-seam-anchor-review", "compile-spine42", "verify-spine42",
   "compile-reviewed-seam-anchor-set", "verify-reviewed-seam-anchor-set",
 ];
 
-test("catalog is valid and matches all 62 CLI entry points", () => {
+test("catalog is valid and matches all 63 CLI entry points", () => {
   assert.equal(validateCatalog(catalog), catalog);
   assert.equal(catalog.catalog_version, "1.0.0");
-  assert.equal(catalog.current_stage, "P10.7b");
+  assert.equal(catalog.current_stage, "P10.7b-readiness");
   const commands = catalog.entries.filter(({ kind }) => kind === "cli").map(({ command }) => command);
   assert.deepEqual(new Set(commands), new Set(EXPECTED_COMMANDS));
   assert.equal(commands.length, EXPECTED_COMMANDS.length);
@@ -58,7 +59,7 @@ test("catalog exposes all pages, all stage groups, and explicit delivery states"
   assert.ok(catalog.entries.some(({ status }) => status === "available"));
   assert.ok(catalog.entries.some(({ status }) => status === "external_required"));
   assert.ok(catalog.entries.some(({ status }) => status === "planned"));
-  assert.equal(catalog.entries.length, 83);
+  assert.equal(catalog.entries.length, 84);
   assert.equal(catalog.entries.filter(({ kind }) => kind === "planned").length, 18);
   assert.equal(
     catalog.entries.find(({ command }) => command === "capture-body-sway-spine42-v3-runtime").status,
@@ -68,6 +69,7 @@ test("catalog exposes all pages, all stage groups, and explicit delivery states"
     "verify-body-sway-spine42-v3-runtime",
     "prepare-body-sway-spine42-v3-raster-review",
     "submit-body-sway-spine42-v3-raster-review",
+    "audit-body-sway-spine42-v3-readiness",
   ]) {
     assert.equal(catalog.entries.find((entry) => entry.command === command).status, "available");
   }
@@ -75,6 +77,13 @@ test("catalog exposes all pages, all stage groups, and explicit delivery states"
     id === "planned-real-sample-spine42-v3-raster-acceptance"
       && status === "external_required"
   )));
+  const audit = catalog.entries.find(({ command }) => (
+    command === "audit-body-sway-spine42-v3-readiness"
+  ));
+  assert.equal(audit.doc, "docs/how-to-audit-spine42-v3-readiness.md");
+  assert.match(audit.summary, /不扫描 latest/);
+  assert.match(audit.summary, /只读 pure replay/);
+  assert.match(audit.summary, /不运行外部阶段、Runtime、发布或写入/);
 });
 
 test("search and filters compose without mutating the catalog", () => {

@@ -38,6 +38,7 @@ AutoSpine Workbench 是一个本地人工复核与离线编译工作流，用于
 - 将完整 P10.6a 成功 wrapper 编译为 MotionInstance v3：只允许躯干四骨 rotation 覆盖，逐值保留 MIv2 root/marker/draw-order，并在发布前重查 current heads；三文件 bundle 可按 v3/bundle 双 SHA 历史复验，但不授予永久审批或 Spine 发布权。
 - 从精确 MotionInstance v3 双 SHA 重放 P9/P5/P3 和源 PNG，用独立 Spine 4.2 adapter v3 发布 JSON/atlas/PNG/run/report 五文件 bundle；compile/store 重查 current heads，历史 verify 不读取 current heads，且 run 只授予 adapter emitted。
 - 用操作者明确确认有权使用的官方 Spine Player 4.2.119，对精确 P10.7a bundle 执行固定 case、完整 setup attachment isolate 的捕获和 sampled raster 指标；证据可按双 SHA 复验，并可编译逐 case、逐 attachment 的人工决定，但不会授予连续时间、永久 head、发布或 release authority。
+- 用 strict canonical 请求只读审计两份真实样本从精确 Manifest/P3 到 P10.7b 的八个 checkpoint；审计不扫描 `latest` 或 current review head，不自动运行外部阶段、官方 Runtime、发布或写入，但会调用只读 pure replay compiler/validator 复验请求声明的精确工件；它不代替人审，并明确把 P6 setup golden comparison 留给后续独立门禁。
 - 从精确 P3 或 P3/P5 地址导出、发布并重建验证固定 profile 的 Spine 4.2 JSON/atlas/PNG 五文件 bundle。
 
 ## 快速启动
@@ -417,6 +418,8 @@ P10.7a 用 `compile-body-sway-spine42-v3` 从精确 MIv3 双 SHA 完整重放 P9
 
 P10.7b 已提供 `capture-body-sway-spine42-v3-runtime`、`verify-body-sway-spine42-v3-runtime`、`prepare-body-sway-spine42-v3-raster-review` 与 `submit-body-sway-spine42-v3-raster-review`。capture 需要操作者提供并明确确认有权使用的官方 `@esotericsoftware/spine-player@4.2.119` 与本机 Chrome；其余命令按精确 P10.7a/capture 地址复验 sampled evidence、准备候选或编译人工决定。基础设施已可用，但两份真实 See-through 样本的官方 Runtime 捕获和逐项人工验收仍待完成；任何成功结果都保持 continuous、persistent-head、publish 和 release claims 为 false/blocked。操作见 [捕获并复核 P10.7b Spine 4.2 v3 Raster 证据](docs/how-to-capture-spine42-v3-runtime.md)。
 
+P10.7b-readiness 用 `audit-body-sway-spine42-v3-readiness --manifest ... --state-root .\workspace [--document-only]` 对请求中显式声明的真实地址做零写入预检。当前 canonical 示例固定两份已审计 Manifest/P3 地址，后续五组地址与 raster decision 均为 `null`。因此两个 P9 checkpoint 只报告未声明 exact reviewed-motion 地址；A 的 seam checkpoint 报告 `reviewed_seam_anchor_set_address_not_declared`，这不表示审计读取过或证明不存在 current review head，操作者仍需完成或确认人审并声明 P10.5c 双 SHA。B 则由精确 P3 seam candidate 的 pure replay 证明四条腿/脚关系不可观测。现有 Runtime 不是最早 blocker；命令不会扫描 `latest`/current review head、运行外部流水线或授予发布权，但会在内存中运行只读 pure replay compiler/validator 复验显式地址，且尚不包含 P6 setup golden comparison。操作见 [审计两份真实样本的 Spine 4.2 v3 就绪状态](docs/how-to-audit-spine42-v3-readiness.md)。
+
 P6 使用 `compile-spine42` 把一个精确 P3 地址导出为 setup-only bundle，或与一对精确 P5 MotionInstance/bundle SHA 组合为单动画 bundle；`verify-spine42` 从导出双 SHA 重建完整上游链。五文件地址、官方 runtime 的本地安装边界与 capture 操作见 [导出、复验并运行 P6 Spine 4.2 资产](docs/how-to-export-spine42.md)。
 
 对版本中立 RigIR 做语义检查：
@@ -510,7 +513,7 @@ P1 已交付 pose、alpha 中轴线和层接触候选，以及候选比较、四
 - 若要恢复旧 revision，先停止服务，备份整个项目 override 目录，再将目标历史快照作为新的、经过校验的 revision 提交；当前界面尚未提供历史浏览/回滚按钮。
 - validation 的 `valid=true` 仅表示结构和本地资产检查没有硬错误，不等于美术、遮挡补全、pivot、mesh 或动画通过视觉验收。
 
-## 已完成合同与阶段：P0、P2 region RigIR 至 P9 reviewed motion，以及 P10.0–P10.7b Raster 基础设施
+## 已完成合同与阶段：P0、P2 region RigIR 至 P9 reviewed motion，以及 P10.0–P10.7b-readiness
 
 P0 合同加固、P1 四肢候选与 P2 region-only RigIR 已贯通：`stage-scoped analysis → immutable geometry/candidates → candidate-bound revision → deterministic resolved snapshot → reviewed Layer Manifest → RigIR/setup bundle`。P2 没有提前引入 mesh：
 
@@ -587,6 +590,8 @@ P10.7a 已增加独立 Spine 4.2 adapter v3 capability、MIv3→P9→P5/P3 完�
 
 P10.7b 已增加固定 runtime/capture profile、确定性 case plan、官方 Spine Player/浏览器精确身份封存、opaque/transparent composite 与完整 setup attachment isolate 捕获、sampled alpha/raster 指标、不可变 capture store/exact reader，以及 candidate/人工 decision 分离的四个 CLI。capture 是 `external_required`，不会下载 runtime 或代替操作者确认许可；prepare/submit 不扫描 `latest`，submit 也不发布 authoritative revision。基础设施交付不等于真实资产验收：两份真实 See-through 样本仍需各自具备 P10.7a 输入、运行官方 capture 并完成人工逐项决定；continuous runtime raster safety、永久 head、publishable timeline 与 release authority 始终 blocked。
 
+P10.7b-readiness 已增加 strict canonical request 与 exact-address、zero-write 审计 CLI。它只重放请求明确声明的 Manifest/P3 和后续地址，并报告 P3 seam、P9、P10.5c、P10.6b、P10.7a、runtime capture、raster review 与 P6 setup comparison 八个 checkpoint。它不扫描 `latest` 或 current review head，不运行外部阶段、官方 Runtime、发布或写入，也不生成人工决定；为验证 exact artifacts，它会在内存中运行只读 pure replay compiler/validator。当前示例未声明两个项目的 P9 地址；A 也未声明 P10.5c 地址，所以只能报告 `reviewed_seam_anchor_set_address_not_declared`，不能据此声称 review head 为空。B 的精确 P3 candidate 则证明左右 pelvis-leg/leg-foot 四关系不可观测，必须修复上游语义/分层或建立独立 partial 合同。Runtime 已存在但不是最早 blocker；P6 setup golden comparison 尚未纳入，任何 readiness 结果都不授予 publish/release authority。
+
 姿态 runner 与真实标注评估集仍是独立质量轨，不阻塞版本中立 P2 编译；诊断 setup prior 不能替代真实模型基线。
 
 面部锚点、头发弹簧和实时追踪映射可以作为独立模块接到同一规范骨角色上；四肢扩展的关键不是增加更多屏幕坐标映射，而是建立 bind pose、父子骨、权重和重定向空间。
@@ -610,13 +615,14 @@ P10.7b 已增加固定 runtime/capture profile、确定性 case plan、官方 Sp
 - 把 P10.6a 的 setup-local timeline compilation admission 当成 MotionInstance v3/Spine adapter 已发出、完整边界或 raster 视觉通过、runtime 等价、永久 head authority、publishable timeline 或 release authority；
 - 把 P10.6b 的 MotionInstance v3、历史 bundle 可重放或发布前 head 双观察当成 Spine adapter 已编译、官方 runtime/raster 通过、永久 head authority、publishable Spine timeline 或 release authority；
 - 把 P10.7a adapter、P10.7b sampled capture/指标或一次人工 decision 当成连续时间 raster 安全、永久审批、可发布 timeline 或 release authority；
+- 把 P10.7b-readiness 的只读 pure replay 报告当成外部阶段执行记录、current review head 发现、人工决定、P6 setup golden 对照或发布授权；
 - 在未提供并确认授权的官方 Spine 4.2.119 runtime 时，用 test-only player stub、进程 smoke 或任意相邻截图冒充真实 capture；
 - 生成眨眼/口型素材、实时追踪映射或运行时物理；
 - 捆绑或再分发官方 Spine runtime、判断任意未知 Spine 版本、生成 Spine Editor 工程，或覆盖固定 P6 profile 之外的特性；
 - 代替输入素材、训练数据或模型权重的许可证与商业使用审查；
 - 多用户权限、远程协作或生产部署。
 
-这些边界并非都应一次性并入当前阶段。下一顺序是完成 P10.7b 两份真实 See-through 样本验收 → attachment switch → blink/mouth，并把真实 Kimodo/P9 与输入模型 runner 作为独立质量轨；完整计划见[后续开发路线](docs/development-roadmap.md)。
+这些边界并非都应一次性并入当前阶段。下一顺序是先生成、复核并声明真实 Kimodo P7/P8/P9 exact 地址，完成或确认 A 的 seam 人审并声明 P10.5c 地址，以及完成 B 的上游语义/分层修复或独立 partial 合同；再完成两份真实样本的官方 Runtime capture、逐项人审与 P6 setup golden 对照；之后进入 attachment switch → blink/mouth。输入模型 runner 继续作为独立质量轨；完整计划见[后续开发路线](docs/development-roadmap.md)。
 
 项目中显示的骨架来自 bbox/语义启发式，`requires_review=true`。只有在语义、左右、pivot、层级、合成回归和动作探针均通过后，才能把人工确认结果交给后续 RigIR/导出阶段。
 

@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import stat
 import tempfile
 
 from .manifest_artifacts import require_safe_token
@@ -165,6 +166,29 @@ def read_named_document(
     payload = read_real_file(
         found, MAX_DOCUMENT_BYTES, "Seam-review document"
     )
+    document = strict_json_object(payload, "Seam-review document")
+    expected = digest or hashlib.sha256(payload).hexdigest()
+    return exact_payload(payload, document, expected)
+
+
+def read_fixed_named_document(
+    parent: Path, name: str, *, digest: str | None = None,
+) -> bytes:
+    """Read one fixed child without enumerating mutable sibling entries."""
+
+    require_safe_token(name, "Seam-review document name")
+    target = require_real_directory(parent, "Seam-review document parent") / name
+    try:
+        if is_alias(target) or target.resolve(strict=True).name != name \
+                or not stat.S_ISREG(target.lstat().st_mode):
+            raise SeamAnchorReviewFilesError(
+                "Exact seam-review document does not exist"
+            )
+    except OSError as exc:
+        raise SeamAnchorReviewFilesError(
+            "Exact seam-review document cannot be inspected"
+        ) from exc
+    payload = read_real_file(target, MAX_DOCUMENT_BYTES, "Seam-review document")
     document = strict_json_object(payload, "Seam-review document")
     expected = digest or hashlib.sha256(payload).hexdigest()
     return exact_payload(payload, document, expected)

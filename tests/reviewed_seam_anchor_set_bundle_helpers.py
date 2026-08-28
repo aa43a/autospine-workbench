@@ -73,7 +73,7 @@ def bound_value(candidates: SeamAnchorCandidates, rig: dict):
 class PersistedReviewedSeamAnchorSetFixture:
     """Publish P3, revision 1 bundle, then advance review head to revision 2."""
 
-    def __init__(self, root: Path) -> None:
+    def __init__(self, root: Path, *, advance: bool = True) -> None:
         self.state = Path(root) / "state"
         manifest, assets, sizes = _manifest_and_assets(Path(root) / "assets")
         compiled = compile_region_rig(
@@ -133,8 +133,13 @@ class PersistedReviewedSeamAnchorSetFixture:
         self.published = ReviewedSeamAnchorSetBundleStore(
             self.state
         ).publish(bound.candidates, decision, bound.rig, reviewed_set)
-        current = app.prepare(self.address)
-        second = app.submit(
+        self._application = app
+        if advance:
+            self.advance()
+
+    def advance(self) -> None:
+        current = self._application.prepare(self.address)
+        second = self._application.submit(
             self.address, self._payload(current, "second ready review")
         )
         self.current_revision = second.revision

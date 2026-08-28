@@ -1,0 +1,297 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/spine42-v3-readiness-report-v1.schema.json",
+  "title": "AutoSpine Spine 4.2 v3 readiness report v1",
+  "description": "Strict structural contract for the read-only P10.7b readiness report. The semantic validator require_spine42_v3_readiness_report additionally enforces unique ascending projects, derived summary/status/action fields, checkpoint status/reason coupling, exact evidence relationships, canonical JSON handling, and the domain-separated report self-hash. Request dependency closure is enforced by the request semantic validator, not by this schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "request_sha256", "samples", "summary",
+    "semantics", "authority", "status", "release_gate",
+    "readiness_report_sha256"
+  ],
+  "properties": {
+    "format": {"const": "autospine-spine42-v3-readiness-report"},
+    "format_version": {"type": "integer", "const": 1},
+    "request_sha256": {"$ref": "#/$defs/sha256"},
+    "samples": {
+      "type": "array", "minItems": 1, "maxItems": 8,
+      "items": {"$ref": "#/$defs/sample"}
+    },
+    "summary": {"$ref": "#/$defs/summary"},
+    "semantics": {"$ref": "#/$defs/semantics"},
+    "authority": {"$ref": "#/$defs/authority"},
+    "status": {
+      "enum": ["ready_for_p6_setup_comparison", "blocked_prerequisites_or_review"]
+    },
+    "release_gate": {"$ref": "#/$defs/releaseGate"},
+    "readiness_report_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string", "minLength": 64, "maxLength": 64,
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "token": {
+      "type": "string", "minLength": 1, "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "sample": {
+      "type": "object", "additionalProperties": false,
+      "required": ["project_id", "checkpoints", "next_action_codes", "status"],
+      "properties": {
+        "project_id": {"$ref": "#/$defs/token"},
+        "checkpoints": {
+          "type": "array", "minItems": 8, "maxItems": 8,
+          "prefixItems": [
+            {"$ref": "#/$defs/p3Checkpoint"},
+            {"$ref": "#/$defs/p9Checkpoint"},
+            {"$ref": "#/$defs/seamCheckpoint"},
+            {"$ref": "#/$defs/motionV3Checkpoint"},
+            {"$ref": "#/$defs/spineCheckpoint"},
+            {"$ref": "#/$defs/runtimeCheckpoint"},
+            {"$ref": "#/$defs/rasterCheckpoint"},
+            {"$ref": "#/$defs/p6Checkpoint"}
+          ],
+          "items": false
+        },
+        "next_action_codes": {
+          "type": "array", "minItems": 0, "maxItems": 8,
+          "uniqueItems": true, "items": {"$ref": "#/$defs/token"}
+        },
+        "status": {"enum": ["ready_for_p6_setup_comparison", "blocked"]}
+      }
+    },
+    "checkpointBase": {
+      "type": "object", "additionalProperties": false,
+      "required": ["checkpoint_id", "status", "reason_codes", "next_action_code", "evidence"],
+      "properties": {
+        "checkpoint_id": {"$ref": "#/$defs/token"},
+        "status": {"enum": [
+          "verified", "prerequisite_missing", "review_blocked",
+          "metrics_rejected", "source_mismatch"
+        ]},
+        "reason_codes": {
+          "type": "array", "minItems": 0, "maxItems": 32,
+          "uniqueItems": true, "items": {"$ref": "#/$defs/token"}
+        },
+        "next_action_code": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/token"}]
+        },
+        "evidence": {}
+      }
+    },
+    "p3Checkpoint": {
+      "allOf": [{"$ref": "#/$defs/checkpointBase"}, {"properties": {
+        "checkpoint_id": {"const": "p3_seam_source"},
+        "evidence": {"oneOf": [
+          {"$ref": "#/$defs/emptyEvidence"}, {"$ref": "#/$defs/p3Evidence"}
+        ]}
+      }}]
+    },
+    "p9Checkpoint": {
+      "allOf": [{"$ref": "#/$defs/checkpointBase"}, {"properties": {
+        "checkpoint_id": {"const": "p9_reviewed_motion"},
+        "evidence": {"oneOf": [
+          {"$ref": "#/$defs/emptyEvidence"}, {"$ref": "#/$defs/p9Evidence"}
+        ]}
+      }}]
+    },
+    "seamCheckpoint": {
+      "allOf": [{"$ref": "#/$defs/checkpointBase"}, {"properties": {
+        "checkpoint_id": {"const": "p10_5_reviewed_seam_anchor_set"},
+        "evidence": {"oneOf": [
+          {"$ref": "#/$defs/emptyEvidence"},
+          {"$ref": "#/$defs/seamPendingEvidence"}, {"$ref": "#/$defs/seamVerifiedEvidence"}
+        ]}
+      }}]
+    },
+    "motionV3Checkpoint": {
+      "allOf": [{"$ref": "#/$defs/checkpointBase"}, {"properties": {
+        "checkpoint_id": {"const": "p10_6b_motion_instance_v3"},
+        "evidence": {"oneOf": [
+          {"$ref": "#/$defs/emptyEvidence"}, {"$ref": "#/$defs/motionV3Evidence"}
+        ]}
+      }}]
+    },
+    "spineCheckpoint": {
+      "allOf": [{"$ref": "#/$defs/checkpointBase"}, {"properties": {
+        "checkpoint_id": {"const": "p10_7a_spine42_v3"},
+        "evidence": {"oneOf": [
+          {"$ref": "#/$defs/emptyEvidence"}, {"$ref": "#/$defs/spineEvidence"}
+        ]}
+      }}]
+    },
+    "runtimeCheckpoint": {
+      "allOf": [{"$ref": "#/$defs/checkpointBase"}, {"properties": {
+        "checkpoint_id": {"const": "p10_7b_runtime_capture"},
+        "evidence": {"oneOf": [
+          {"$ref": "#/$defs/emptyEvidence"}, {"$ref": "#/$defs/runtimeEvidence"}
+        ]}
+      }}]
+    },
+    "rasterCheckpoint": {
+      "allOf": [{"$ref": "#/$defs/checkpointBase"}, {"properties": {
+        "checkpoint_id": {"const": "p10_7b_raster_review"},
+        "evidence": {"oneOf": [
+          {"$ref": "#/$defs/emptyEvidence"}, {"$ref": "#/$defs/rasterEvidence"}
+        ]}
+      }}]
+    },
+    "p6Checkpoint": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "checkpoint_id", "status", "reason_codes", "next_action_code", "evidence"
+      ],
+      "properties": {
+        "checkpoint_id": {"const": "p6_setup_regression"},
+        "status": {"const": "prerequisite_missing"},
+        "reason_codes": {"const": ["p6_setup_golden_comparison_not_declared"]},
+        "next_action_code": {"const": "compare_setup_case_with_p6_approved_golden"},
+        "evidence": {"$ref": "#/$defs/emptyEvidence"}
+      }
+    },
+    "emptyEvidence": {"type": "object", "additionalProperties": false, "maxProperties": 0},
+    "p3Evidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["candidate_sha256", "relationship_count", "review_required_count",
+        "unobservable_count"],
+      "properties": {
+        "candidate_sha256": {"$ref": "#/$defs/sha256"},
+        "relationship_count": {"const": 6},
+        "review_required_count": {"type": "integer", "minimum": 0},
+        "unobservable_count": {"type": "integer", "minimum": 0}
+      }
+    },
+    "p9Evidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["clip_id", "motion_instance_v2_sha256", "bundle_sha256"],
+      "properties": {
+        "clip_id": {"$ref": "#/$defs/token"},
+        "motion_instance_v2_sha256": {"$ref": "#/$defs/sha256"},
+        "bundle_sha256": {"$ref": "#/$defs/sha256"}}
+    },
+    "seamPendingEvidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["candidate_sha256", "unobservable_count"],
+      "properties": {
+        "candidate_sha256": {"$ref": "#/$defs/sha256"},
+        "unobservable_count": {"type": "integer", "minimum": 0}
+      }
+    },
+    "seamVerifiedEvidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["candidate_sha256", "decision_sha256", "review_revision",
+        "reviewed_seam_anchor_set_sha256", "bundle_sha256"],
+      "properties": {
+        "candidate_sha256": {"$ref": "#/$defs/sha256"},
+        "decision_sha256": {"$ref": "#/$defs/sha256"},
+        "review_revision": {"type": "integer", "minimum": 1, "maximum": 64},
+        "reviewed_seam_anchor_set_sha256": {"$ref": "#/$defs/sha256"},
+        "bundle_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "motionV3Evidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["clip_id", "motion_instance_v3_sha256", "bundle_sha256"],
+      "properties": {
+        "clip_id": {"$ref": "#/$defs/token"},
+        "motion_instance_v3_sha256": {"$ref": "#/$defs/sha256"},
+        "bundle_sha256": {"$ref": "#/$defs/sha256"}}
+    },
+    "spineEvidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["clip_id", "skeleton_json_sha256", "bundle_sha256"],
+      "properties": {
+        "clip_id": {"$ref": "#/$defs/token"},
+        "skeleton_json_sha256": {"$ref": "#/$defs/sha256"},
+        "bundle_sha256": {"$ref": "#/$defs/sha256"}}
+    },
+    "runtimeEvidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["clip_id", "spine42_v3_bundle_sha256", "capture_bundle_sha256",
+        "raster_metrics_sha256", "sampled_metrics_passed"],
+      "properties": {
+        "clip_id": {"$ref": "#/$defs/token"},
+        "spine42_v3_bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "capture_bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "raster_metrics_sha256": {"$ref": "#/$defs/sha256"},
+        "sampled_metrics_passed": {"type": "boolean"}
+      }
+    },
+    "rasterEvidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["candidate_sha256", "metrics_status"],
+      "properties": {
+        "candidate_sha256": {"$ref": "#/$defs/sha256"},
+        "metrics_status": {"enum": ["passed", "rejected"]},
+        "decision_sha256": {"$ref": "#/$defs/sha256"},
+        "decision_status": {"enum": [
+          "sampled_raster_approved", "sampled_raster_rejected"]}
+      }
+    },
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": ["sample_count", "ready_for_p6_setup_comparison_count",
+        "blocked_sample_count", "checkpoint_status_counts"],
+      "properties": {
+        "sample_count": {"type": "integer", "minimum": 1, "maximum": 8},
+        "ready_for_p6_setup_comparison_count": {"type": "integer", "minimum": 0, "maximum": 8},
+        "blocked_sample_count": {"type": "integer", "minimum": 0, "maximum": 8},
+        "checkpoint_status_counts": {"$ref": "#/$defs/statusCounts"}
+      }
+    },
+    "statusCounts": {
+      "type": "object", "additionalProperties": false,
+      "required": ["metrics_rejected", "prerequisite_missing", "review_blocked",
+        "source_mismatch", "verified"],
+      "properties": {
+        "metrics_rejected": {"type": "integer", "minimum": 0, "maximum": 64},
+        "prerequisite_missing": {"type": "integer", "minimum": 0, "maximum": 64},
+        "review_blocked": {"type": "integer", "minimum": 0, "maximum": 64},
+        "source_mismatch": {"type": "integer", "minimum": 0, "maximum": 64},
+        "verified": {"type": "integer", "minimum": 0, "maximum": 64}
+      }
+    },
+    "semantics": {
+      "type": "object", "additionalProperties": false,
+      "required": ["scope", "current_head_discovery", "external_stage_execution",
+        "pure_replay_compilation",
+        "human_review_substitution", "p6_setup_raster_comparison_included",
+        "release_authority"],
+      "properties": {
+        "scope": {"const": "exact-address-read-only-preflight"},
+        "current_head_discovery": {"const": false},
+        "external_stage_execution": {"const": false},
+        "pure_replay_compilation": {"const": true},
+        "human_review_substitution": {"const": false},
+        "p6_setup_raster_comparison_included": {"const": false},
+        "release_authority": {"const": false}
+      }
+    },
+    "authority": {
+      "type": "object", "additionalProperties": false,
+      "required": ["state_mutation", "latest_selection", "pipeline_execution",
+        "human_decision", "publish", "release"],
+      "properties": {
+        "state_mutation": {"const": false},
+        "latest_selection": {"const": false},
+        "pipeline_execution": {"const": false},
+        "human_decision": {"const": false},
+        "publish": {"const": false},
+        "release": {"const": false}
+      }
+    },
+    "releaseGate": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "reason_codes"],
+      "properties": {
+        "status": {"const": "blocked"},
+        "reason_codes": {"const": [
+          "bounded_preflight_not_release_authority",
+          "p6_setup_golden_comparison_missing"
+        ]}
+      }
+    }
+  }
+}

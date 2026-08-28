@@ -1,6 +1,6 @@
 # AutoSpine Workbench 后续开发路线
 
-本文是 Explanation 与交付计划，面向维护者和需要评估可行性的项目负责人。它从 **P0 Resolved Project v1 合同、P10.6b MotionInstance v3、P10.7a Spine adapter bundle 与 P10.7b sampled raster 基础设施已完成** 的事实出发，说明尚未实现的能力应按什么依赖关系推进。当前验收入口是 P10.7b 两份真实 See-through 样本的官方 Runtime 捕获与人工复核。这里的阶段名、优先级和验收条件是建议，不构成发布日期承诺；基础设施可用也不等于真实样本、连续时间或发布门禁已经通过。
+本文是 Explanation 与交付计划，面向维护者和需要评估可行性的项目负责人。它从 **P0 Resolved Project v1 合同、P10.6b MotionInstance v3、P10.7a Spine adapter bundle 与 P10.7b sampled raster 基础设施已完成** 的事实出发，说明尚未实现的能力应按什么依赖关系推进。当前阶段是 **P10.7b-readiness**：先用显式 Manifest 只读审计两份真实 See-through 样本的最早 blocker，再补齐外部 Kimodo、人审和 Runtime 证据。这里的阶段名、优先级和验收条件是建议，不构成发布日期承诺；基础设施可用也不等于真实样本、连续时间或发布门禁已经通过。
 
 ## 规划原则
 
@@ -17,7 +17,8 @@
 
 | 优先级 | 能力 | 原因 |
 | --- | --- | --- |
-| P0 | P10.7b 两份真实样本验收 | capture/metrics/review 基础设施已存在；仍需让两个真实 P10.7a bundle 穿过已授权官方 Runtime 并完成人工决定 |
+| P0 | P10.7b-readiness 精确地址审计 | 只读入口已可用；它用 pure replay compiler/validator 复验显式地址，不扫描 latest/current review head，也不运行外部阶段、官方 Runtime、发布或写入 |
+| P0 | P10.7b 两份真实样本验收 | Runtime/capture/metrics/review 基础设施已存在，但真实链尚未到达 P10.7a；仍需先关闭 Kimodo 与 seam 门禁，再做官方 Runtime 和人工决定 |
 | P1 | Revision 历史浏览/恢复 UI | 历史已不可变保存，但操作者尚不能便捷查看或安全恢复 |
 | P1 | 主工作台 Spine 导出编排入口 | 离线 P6 已完成，主项目能力仍明确为 `export_spine=false` |
 | P1 | Attachment switch 基础合同 | 眨眼和口型的共同前置能力 |
@@ -41,6 +42,10 @@ P10.6b MotionInstance v3（已完成）
 P10.7a Spine 4.2 adapter + immutable bundle（已完成）
         ↓
 P10.7b capture/metrics/review 基础设施（已完成）
+        ↓
+P10.7b-readiness 显式 Manifest 审计（已完成入口）
+        ↓
+真实 Kimodo P7/P8/P9 + seam 人工/语义门禁（当前最早 blocker）
         ↓
 两份真实 See-through 样本官方 Runtime + 人工验收（需要外部授权环境）
         ↓
@@ -196,6 +201,47 @@ publish/release authority 固定为 false/blocked。
 
 主要风险：Spine interpolation 与版本中立语义不完全同构、不同 GPU/浏览器 raster 差异、
 真实样本缺少 P10.7a 前置地址，以及官方 Runtime 获取和许可条件。
+
+## P10.7b-readiness：真实样本精确地址审计
+
+**当前优先级：P0。审计入口已交付；报告显示真实链仍被更早前置阻塞。**
+
+`audit-body-sway-spine42-v3-readiness --manifest ... --state-root .\workspace
+[--document-only]` 接受一个 strict canonical 单行请求。请求必须显式固定每个项目的 Layer
+Manifest、P3 rig/bundle，以及可选的 P9、P10.5c、P10.6b、P10.7a、Runtime capture 与
+raster decision 地址。命令会在内存中运行只读 pure replay compiler/validator 来重建并验证
+声明的 exact artifacts；它不扫描 `latest` 或 current review head，不运行外部阶段、官方
+Runtime、capture、发布或写入，不代替人工决定，也不授予 publish/release authority。操作与示例见
+[审计两份真实样本的 Spine 4.2 v3 就绪状态](how-to-audit-spine42-v3-readiness.md)。
+
+当前示例 Manifest 固定两份已审计的真实 Manifest/P3 地址，后续五组地址与 raster decision
+全部为 `null`。审计只能对显式地址和 P3 pure replay 给出以下结论：
+
+| 项目 | 最早共同动作 blocker | 接缝 blocker | Runtime 状态 |
+| --- | --- | --- | --- |
+| `seethrough_output` | 未声明 P9 exact 地址 | P3 candidate 六关系可观测；P10.5c 地址未声明，审计不推断 review head 是否存在 | Runtime 已存在，但不是最早 blocker |
+| `seethrough_output_5` | 未声明 P9 exact 地址 | P3 candidate 证明四条腿/脚关系不可观测，完整六关系 P10.5c 被阻塞 | Runtime 已存在，但不是最早 blocker |
+
+A 的 seam checkpoint 必须表述为 `reviewed_seam_anchor_set_address_not_declared`。这只说明请求没有
+提供 P10.5c 双 SHA，不说明 current review head 为空；操作者需要完成或确认 P10.5b 人审、编译
+P10.5c，并显式声明地址。P9 的 `null` 地址同理只表示 exact reviewed-motion 地址未声明。
+
+项目 B 不得把 `unobservable` 自动改成 accept。进入完整 P10.5c 前必须修复上游腿/脚语义或
+See-through 分层，并让新的 Manifest/P3/candidate 内容地址失效旧决定；若产品确实接受缺腿脚
+接缝，只能另立版本化 partial seam 合同、能力边界和独立验收，不能扩写现有六关系合同。
+
+最短后续顺序：
+
+1. 获取并封存可合法使用的真实 Kimodo P7 NPZ、source sidecar 与显式 map，再为动作提供显式 P8 camera/projection。
+2. 完成 P9 foot/depth 候选的人工决定并发布真实 reviewed-motion bundle；fixture、内建 idle/wave 或测试 P8 SHA 不可替代。
+3. 对 A 完成或确认 P10.5b 人审、编译 P10.5c 并声明 exact 地址；对 B 先选择“上游修复”或“另立 partial 合同”，不得伪造六关系通过。
+4. 在精确 P9/seam 地址上依次完成 P10.0–P10.7a；每次只把实际生成的双 SHA 回填请求。
+5. 使用现有且已获授权的官方 Runtime 执行 P10.7b capture、精确复验和逐 case/attachment 人工决定。
+6. 单独比较 setup case 与既有 P6 approved golden。此比较尚未纳入 readiness 命令，即使前七项通过，审计也只会给出 `ready_for_p6_setup_comparison`。
+
+进入真实验收的条件：请求中每条依赖均由 exact reader 复验，A 的 seam 决定来自真实人审，B
+满足明确选择的完整或新 partial 合同，官方 capture 与 raster decision 均与同一 P10.7a 地址
+闭合。审计报告本身不是 pipeline runner、人工签字或发布许可。
 
 ## Spine Editor 工程生成与更多版本 Adapter
 
