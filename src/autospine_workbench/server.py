@@ -25,6 +25,7 @@ from .http_json_request import HttpJsonRequestError, read_json_object_request
 from .http_static_response import serve_static_response
 from .http_workbench_response import WorkbenchResponseMixin
 from .mesh_bundle_routes import dispatch_mesh_bundle_get
+from . import motion_policy_adoption_routes as policy_adoption
 from .motion_policy_preflight_routes import (
     ALLOW_METHODS as MOTION_POLICY_PREFLIGHT_ALLOW_METHODS,
     dispatch_motion_policy_preflight_post,
@@ -91,6 +92,9 @@ def _handler_factory(
             super().log_message(format_string, *args)
 
         def _dispatch_api_get(self, parts: list[str]) -> bool:
+            if policy_adoption.is_motion_policy_adoption_path(parts):
+                policy_adoption.send_motion_policy_adoption_method_not_allowed(self)
+                return True
             if is_motion_policy_preflight_path(parts):
                 send_motion_policy_preflight_method_not_allowed(self)
                 return True
@@ -187,6 +191,7 @@ def _handler_factory(
             body_review = is_body_sway_visual_review_path(parts)
             seam_review = is_seam_anchor_review_path(parts)
             policy_preflight = is_motion_policy_preflight_path(parts)
+            adoption = policy_adoption.is_motion_policy_adoption_path(parts)
             policy_package = is_motion_policy_review_package_path(parts)
             seam_methods = seam_anchor_review_resource_methods(parts) \
                 if seam_review else None
@@ -200,9 +205,11 @@ def _handler_factory(
                 return
             self.send_response(HTTPStatus.NO_CONTENT)
             local_review = body_review or seam_review or policy_preflight \
-                or policy_package
+                or adoption or policy_package
             self._common_headers(visual_review=local_review)
-            if policy_preflight:
+            if adoption:
+                methods = policy_adoption.ALLOW_METHODS
+            elif policy_preflight:
                 methods = MOTION_POLICY_PREFLIGHT_ALLOW_METHODS
             elif policy_package:
                 methods = MOTION_POLICY_PACKAGE_ALLOW_METHODS
@@ -231,6 +238,9 @@ def _handler_factory(
                 return
             try:
                 parts = self._path_parts()
+                if policy_adoption.is_motion_policy_adoption_path(parts):
+                    policy_adoption.send_motion_policy_adoption_method_not_allowed(self)
+                    return
                 if is_motion_policy_preflight_path(parts):
                     send_motion_policy_preflight_method_not_allowed(self)
                     return
@@ -291,6 +301,10 @@ def _handler_factory(
                     HTTPStatus.BAD_REQUEST, "invalid_path", str(exc)
                 )
                 return
+            if policy_adoption.dispatch_motion_policy_adoption_post(
+                parts, self, store, self._send_visual_json,
+            ):
+                return
             if dispatch_motion_policy_preflight_post(
                 parts, self, self._send_visual_json,
             ):
@@ -319,6 +333,9 @@ def _handler_factory(
             self._send_route_method_not_allowed(parts)
 
         def _send_route_method_not_allowed(self, parts: list[str]) -> None:
+            if policy_adoption.is_motion_policy_adoption_path(parts):
+                policy_adoption.send_motion_policy_adoption_method_not_allowed(self)
+                return
             if is_motion_policy_preflight_path(parts):
                 send_motion_policy_preflight_method_not_allowed(self)
                 return

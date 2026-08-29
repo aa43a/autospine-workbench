@@ -46,8 +46,8 @@ function packageRow(packageId, projectId) {
   };
 }
 
-function packageList(rows, recommended = rows[0]?.package_id ?? null) {
-  return { packages: rows, recommended_package_id: recommended };
+function packageList(rows, recommended = rows[0]?.package_id ?? null, skippedCount = 0) {
+  return { packages: rows, recommended_package_id: recommended, skipped_count: skippedCount };
 }
 
 function storage(initial = null) {
@@ -103,6 +103,25 @@ test("automatic controller restores the last exact package and loads it without 
   assert.equal(ui.autoStartPanel.attributes["aria-busy"], undefined);
   assert.equal(ui.autoLoadStatus.dataset.tone, "success");
   assert.match(ui.autoLoadStatus.textContent, /文件、SHA 与来源校验/);
+});
+
+test("automatic controller surfaces skipped review packages instead of hiding them", async () => {
+  const ui = elements();
+  const rows = [packageRow(PACKAGE_A, "sample-a")];
+  const controller = createMotionPolicyAutoController(ui, {
+    api: {
+      list: async () => packageList(rows, PACKAGE_A, 2),
+      package: async () => ({ ...rows[0] }),
+    },
+    storage: storage(),
+    onLoad: async () => {},
+  });
+
+  await controller.start();
+
+  assert.equal(ui.autoLoadStatus.dataset.tone, "warning");
+  assert.match(ui.autoLoadStatus.textContent, /另有 2 个复核包无法自动加载/);
+  assert.match(ui.autoLoadStatus.textContent, /专业输入排查/);
 });
 
 test("automatic controller discards stale package responses after a project switch", async () => {
@@ -186,12 +205,68 @@ test("a project switch invalidates an older load already inside secondary prefli
   assert.equal(ui.autoLoadStatus.dataset.tone, "success");
 });
 
+test("automatic loading freezes expert inputs and captures one assist preference", async () => {
+  const ui = elements();
+  const rows = [packageRow(PACKAGE_A, "sample-a")];
+  const detail = deferred();
+  const loaded = [];
+  let requested = 0;
+  const controller = createMotionPolicyAutoController(ui, {
+    api: {
+      list: async () => packageList(rows, PACKAGE_A),
+      package: async () => { requested += 1; return detail.promise; },
+    },
+    storage: storage(),
+    onLoad: async (_, context) => loaded.push(context.applySafe),
+  });
+
+  const starting = controller.start();
+  await waitFor(() => requested === 1);
+  assert.equal(ui.autoApplySafe.disabled, true);
+  ui.autoApplySafe.checked = false;
+  detail.resolve({ ...rows[0] });
+  await starting;
+
+  assert.deepEqual(loaded, [true]);
+  assert.equal(ui.expertInputs.inert, false);
+  assert.equal(ui.autoApplySafe.disabled, false);
+});
+
+test("entering expert mode invalidates an older automatic response", async () => {
+  const ui = elements();
+  const rows = [packageRow(PACKAGE_A, "sample-a")];
+  const detail = deferred();
+  let loaded = 0;
+  let resets = 0;
+  let requested = 0;
+  const controller = createMotionPolicyAutoController(ui, {
+    api: {
+      list: async () => packageList(rows, PACKAGE_A),
+      package: async () => { requested += 1; return detail.promise; },
+    },
+    storage: storage(),
+    onReset: () => { resets += 1; },
+    onLoad: async () => { loaded += 1; },
+  });
+
+  const starting = controller.start();
+  await waitFor(() => requested === 1);
+  controller.enterExpertMode();
+  detail.resolve({ ...rows[0] });
+  await starting;
+
+  assert.equal(loaded, 0);
+  assert.equal(resets, 2);
+  assert.equal(ui.expertInputs.inert, false);
+  assert.match(ui.autoLoadStatus.textContent, /较早的自动加载结果不会覆盖/);
+});
+
 test("automatic controller falls back to expert inputs when no complete package exists", async () => {
   const ui = elements();
   let loadCount = 0;
   const controller = createMotionPolicyAutoController(ui, {
     api: {
-      list: async () => packageList([], null),
+      list: async () => packageList([], null, 3),
       package: async () => { throw new Error("must not run"); },
     },
     storage: storage(),
@@ -204,6 +279,7 @@ test("automatic controller falls back to expert inputs when no complete package 
   assert.equal(ui.expertInputs.open, true);
   assert.equal(ui.autoLoadStatus.dataset.tone, "error");
   assert.match(ui.autoLoadStatus.textContent, /没有发现完整的自动复核包/);
+  assert.match(ui.autoLoadStatus.textContent, /3 个复核包校验失败/);
   assert.equal(ui.autoProjectSelect.disabled, true);
 });
 
@@ -221,4 +297,33 @@ test("assist toggle explains the next automatic behavior without approving anyth
   ui.autoApplySafe.checked = true;
   ui.autoApplySafe.dispatchEvent(new Event("change"));
   assert.match(ui.autoLoadStatus.textContent, /安全建议已开启/);
+});
+
+test("a completed package is labelled and continues to the next unprocessed sample this run", async () => {
+  const ui = elements();
+  const rows = [packageRow(PACKAGE_A, "sample-a"), packageRow(PACKAGE_B, "sample-b")];
+  const loaded = [];
+  const controller = createMotionPolicyAutoController(ui, {
+    api: {
+      list: async () => packageList(rows, PACKAGE_A),
+      package: async (packageId) => ({ ...rows.find((row) => row.package_id === packageId) }),
+    },
+    storage: storage(),
+    onLoad: async (detail) => loaded.push(detail.package_id),
+  });
+  await controller.start();
+
+  const next = controller.markCompleted(PACKAGE_A);
+  assert.deepEqual(next, {
+    packageId: PACKAGE_B,
+    projectId: "sample-b",
+    motionId: "kimodo-wave",
+  });
+  assert.match(ui.autoProjectSelect.children[0].textContent, /本轮已完成/);
+  assert.doesNotMatch(ui.autoProjectSelect.children[1].textContent, /本轮已完成/);
+
+  await controller.continueTo(next.packageId);
+  assert.equal(ui.autoProjectSelect.value, PACKAGE_B);
+  assert.deepEqual(loaded, [PACKAGE_A, PACKAGE_B]);
+  assert.equal(controller.markCompleted(PACKAGE_B), null);
 });

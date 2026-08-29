@@ -3,14 +3,15 @@ import { createMotionPolicyEvidenceView } from "./motion-policy-evidence-view.js
 import { createMotionPolicyBatchController } from "./motion-policy-batch-controller.js";
 import { createMotionPolicyAssistController } from "./motion-policy-assist-controller.js";
 import { handleCandidateKeyboard } from "./motion-policy-keyboard.js";
+import { createMotionPolicyPublicationController } from "./motion-policy-publication-controller.js";
 import {
-  buildReviewInput, createReviewState, reviewProgress, setDecision, setRelease, validateDecision,
+  buildReviewDraftBackup, buildReviewInput, createReviewState, reviewProgress,
+  setDecision, setRelease, validateDecision,
 } from "./motion-policy-review-state.js";
 import {
   renderCandidateList, renderReleaseList, setReleaseFields, updateCandidateCard,
 } from "./motion-policy-review-view.js";
 import { downloadJson, errorMessage, integerOrNull, setStatus } from "./motion-policy-review-utils.js";
-
 const IDS = [
   "reviewWorkspace", "candidateSearch", "kindFilter", "progressFilter", "candidateList",
   "candidateDetails", "exceptionBadge", "coverageBadge", "reviewRevision", "loopResetFieldset",
@@ -21,10 +22,9 @@ const IDS = [
   "segmentList", "batchForm", "batchAction", "batchReason", "batchPreview", "batchConfirm",
   "batchOverwriteRow", "batchOverwriteConfirm", "batchApply", "batchUndo", "batchStatus",
   "decisionSummary", "automationSummary", "autoDecisionStatus", "autoApplyAllBtn",
-  "autoUndoBtn", "approveOnScrub", "autoDownloadBtn", "autoCoverageBar",
+  "autoUndoBtn", "approveOnScrub", "autoCoverageBar",
 ];
-
-export function createMotionPolicyDecisionController(doc) {
+export function createMotionPolicyDecisionController(doc, dependencies = {}) {
   const elements = Object.fromEntries(IDS.map((id) => [id, doc.getElementById(id)]));
   let state = null;
   let evidenceModel = null;
@@ -40,9 +40,14 @@ export function createMotionPolicyDecisionController(doc) {
   const assist = createMotionPolicyAssistController(elements, {
     onChanged: syncAfterBatch,
     onLocate: locateCandidate,
-    onAdopt: adoptAndDownload,
   });
-
+  const publication = createMotionPolicyPublicationController(doc, {
+    api: dependencies.adoptionApi,
+    buildReview: buildConfirmedReview,
+    onPublished: dependencies.onPublished,
+    onContinue: dependencies.onContinue,
+    onPublishingChange: dependencies.onPublishingChange,
+  });
   elements.candidateList.addEventListener("change", handleCandidateChange);
   elements.candidateList.addEventListener("input", handleCandidateChange);
   elements.candidateList.addEventListener("focusin", focusFrameFromCard);
@@ -57,10 +62,8 @@ export function createMotionPolicyDecisionController(doc) {
   elements.releaseList.addEventListener("input", handleReleaseChange);
   elements.finalConfirm.addEventListener("change", updateFinalConfirmation);
   elements.downloadReviewBtn.addEventListener("click", downloadReviewInput);
-
   return { load, clear };
-
-  function load(inventory, { assistOnScrub = true } = {}) {
+  function load(inventory, { assistOnScrub = true, packageDetail = null } = {}) {
     clear();
     evidenceModel = buildMotionPolicyEvidenceModel(inventory);
     state = createReviewState(inventory);
@@ -81,11 +84,11 @@ export function createMotionPolicyDecisionController(doc) {
     evidenceView.load(evidenceModel);
     batch.load(state, evidenceModel);
     assist.load(state, evidenceModel, { assistOnScrub });
+    publication.load(packageDetail);
     elements.reviewWorkspace.hidden = false;
     applyFilters();
     refreshProgress();
   }
-
   function clear() {
     state = null;
     evidenceModel = null;
@@ -93,6 +96,7 @@ export function createMotionPolicyDecisionController(doc) {
     evidenceView.clear();
     batch.clear();
     assist.clear();
+    publication.clear();
     elements.candidateList.replaceChildren();
     elements.releaseList.replaceChildren();
     elements.coverageBadge.textContent = "0 / 0";
@@ -100,7 +104,6 @@ export function createMotionPolicyDecisionController(doc) {
     elements.finalConfirm.checked = false;
     elements.reviewWorkspace.hidden = true;
   }
-
   function handleCandidateChange(event) {
     if (!state) return;
     const id = event.target.dataset.candidateId;
@@ -117,7 +120,6 @@ export function createMotionPolicyDecisionController(doc) {
     updateCandidateCard(card, current, issue);
     changed();
   }
-
   function chooseKeyboardAction(id, action, card) {
     if (!state) return;
     const candidate = candidatesById.get(id);
@@ -129,13 +131,11 @@ export function createMotionPolicyDecisionController(doc) {
     syncCard(card, candidate);
     changed();
   }
-
   function adjustmentFromCard(candidate, card) {
     return candidate.kind === "foot_lock"
       ? { x: card.querySelector("[data-adjust-x]").value, y: card.querySelector("[data-adjust-y]").value }
       : { frontSlot: card.querySelector("[data-adjust-front]").value };
   }
-
   function handleReleaseChange(event) {
     if (!state) return;
     const row = event.target.closest("[data-tick]");
@@ -150,7 +150,6 @@ export function createMotionPolicyDecisionController(doc) {
     } : null);
     changed();
   }
-
   function updateRevision() {
     if (!state) return;
     state.revision = integerOrNull(elements.reviewRevision.value);
@@ -171,6 +170,7 @@ export function createMotionPolicyDecisionController(doc) {
 
   function changed() {
     invalidateConfirmation();
+    publication.draftChanged();
     batch.refresh();
     assist.refresh();
     applyFilters();
@@ -229,7 +229,7 @@ export function createMotionPolicyDecisionController(doc) {
     elements.finalConfirm.disabled = !progress.ready;
     if (!progress.ready) invalidateConfirmation();
     elements.downloadReviewBtn.disabled = !progress.ready || !state.humanConfirmed;
-    elements.autoDownloadBtn.disabled = !progress.ready;
+    publication.setReady(progress.ready);
     setStatus(elements.reviewStatus, progress.ready ? "覆盖率 100%，全局字段有效；等待最终人工确认。"
       : `${progress.complete}/${progress.total} 项有效；${progress.errors[0]?.message || "仍有未完成字段"}`,
     progress.ready ? "success" : "warning");
@@ -274,17 +274,25 @@ export function createMotionPolicyDecisionController(doc) {
   function downloadReviewInput() {
     try {
       const review = buildReviewInput(state);
-      downloadJson(`${state.inventory.projectId}.motion-policy-review-input.json`, review);
+      downloadJson(`${state.inventory.projectId}.${state.inventory.clipId}.` +
+        `${state.inventory.candidateIdsSha256.slice(0, 12)}.motion-policy-review-input.json`, review);
       setStatus(elements.reviewStatus, "严格四字段 review input 已下载；请交给 CLI 做最终合同校验。", "success");
     } catch (error) {
       setStatus(elements.reviewStatus, errorMessage(error), "error");
     }
   }
 
-  function adoptAndDownload() {
-    if (!state || !reviewProgress(state).ready) return;
-    state.humanConfirmed = true;
-    elements.finalConfirm.checked = true;
-    downloadReviewInput();
+  function buildConfirmedReview({ authoritative = true } = {}) {
+    if (!state || !reviewProgress(state).ready) throw new Error("尚未完成全部复核项");
+    if (!authoritative) return {
+      reviewInput: buildReviewDraftBackup(state),
+      filename: `${state.inventory.projectId}.${state.inventory.clipId}.` +
+        `${state.inventory.candidateIdsSha256.slice(0, 12)}.motion-policy-review-draft.json`,
+    };
+    const confirmedState = { ...state, humanConfirmed: true };
+    return {
+      reviewInput: buildReviewInput(confirmedState),
+      filename: `${state.inventory.projectId}.motion-policy-review-input.json`,
+    };
   }
 }

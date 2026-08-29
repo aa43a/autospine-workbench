@@ -168,6 +168,21 @@ export function buildReviewInput(state) {
   };
 }
 
+export function buildReviewDraftBackup(state) {
+  const reviewInput = buildReviewInput({ ...state, humanConfirmed: true });
+  return {
+    format: "autospine-motion-policy-review-draft-backup",
+    format_version: 1,
+    project_id: state.inventory.projectId,
+    clip_id: state.inventory.clipId,
+    adoptable: false,
+    draft: {
+      ...reviewInput,
+      review: { status: "draft", method: "unconfirmed", revision: state.revision },
+    },
+  };
+}
+
 export function validateDecision(candidate, row) {
   if (!row || !ACTIONS.has(row.action)) return "尚未选择 action";
   if (!ID.test(row.reason_code || "")) return "reason_code 必须是安全标识符";

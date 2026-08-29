@@ -4,6 +4,7 @@ import { authorizeCandidateInventory } from "./motion-policy-candidate-preflight
 import { createMotionPolicyDecisionController } from "./motion-policy-decision-controller.js";
 import { createLoadGuard, sameIdentitySnapshot } from "./motion-policy-load-guard.js";
 import { createMotionPolicyPreflightApi } from "./motion-policy-preflight-api.js";
+import { createMotionPolicyPageLock } from "./motion-policy-page-lock.js";
 import { createPolicyStep } from "./motion-policy-policy-step.js";
 import { errorMessage, setStatus } from "./motion-policy-review-utils.js";
 
@@ -18,7 +19,13 @@ const ids = [
 const elements = Object.fromEntries(ids.map((id) => [id, document.getElementById(id)]));
 const guards = { foot: createLoadGuard(), depth: createLoadGuard(), inventory: createLoadGuard() };
 const api = createMotionPolicyPreflightApi();
-const review = createMotionPolicyDecisionController(document);
+const publicationLock = createMotionPolicyPageLock(document);
+let auto = null;
+const review = createMotionPolicyDecisionController(document, {
+  onPublished: (receipt) => auto?.markCompleted(receipt.packageId) || null,
+  onContinue: (packageId) => auto?.continueTo(packageId) || false,
+  onPublishingChange: (locked) => publicationLock.setLocked(locked),
+});
 let footInput = null;
 let depthInput = null;
 
@@ -26,13 +33,19 @@ const policyStep = createPolicyStep(elements, (open) => {
   if (open) unlockCandidateStep();
   else lockCandidateStep();
 }, { api });
-const auto = createMotionPolicyAutoController(elements, {
+auto = createMotionPolicyAutoController(elements, {
   onReset: resetAutomaticLoad,
   onLoad: loadAutomaticPackage,
   onAssistChange: (enabled) => {
     const toggle = document.getElementById("approveOnScrub");
     if (toggle) toggle.checked = enabled;
   },
+});
+
+elements.expertInputs.addEventListener("input", () => auto.enterExpertMode(), true);
+elements.expertInputs.addEventListener("change", () => auto.enterExpertMode(), true);
+document.getElementById("approveOnScrub")?.addEventListener("change", (event) => {
+  elements.autoApplySafe.checked = event.currentTarget.checked;
 });
 
 elements.footFile.addEventListener("change", () => loadCandidateFile("foot"));
@@ -59,6 +72,7 @@ async function loadCandidateFile(kind) {
 
 async function loadInventory(event, {
   assistOnScrub = true, throwOnError = false, isCurrent = () => true,
+  packageDetail = null,
 } = {}) {
   event?.preventDefault();
   if (!isCurrent()) return false;
@@ -79,7 +93,7 @@ async function loadInventory(event, {
       isCurrent: stillCurrent,
     });
     if (!inventory || !stillCurrent()) return false;
-    review.load(inventory, { assistOnScrub });
+    review.load(inventory, { assistOnScrub, packageDetail });
     setStatus(elements.candidateStatus,
       `已绑定 ${inventory.projectId} / ${inventory.clipId}；${inventory.candidates.length} 项已组织为连续视觉证据。`,
       "success");
@@ -118,7 +132,7 @@ async function loadAutomaticPackage(packageDetail, {
   elements.depthSha.value = packageDetail.identities.depth_candidates_sha256;
   if (!isCurrent()) return false;
   const loaded = await loadInventory(null, {
-    assistOnScrub: applySafe, throwOnError: true, isCurrent,
+    assistOnScrub: applySafe, throwOnError: true, isCurrent, packageDetail,
   });
   if (!isCurrent()) return false;
   if (!loaded) throw new Error("自动项目加载已被新的选择替代");

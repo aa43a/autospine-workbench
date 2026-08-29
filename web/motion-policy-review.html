@@ -108,10 +108,43 @@
           <div class="automation-actions">
             <button id="autoApplyAllBtn" class="button primary" type="button" disabled>一键采用全部安全建议</button>
             <button id="autoUndoBtn" class="button secondary" type="button" disabled>撤销最近一次自动采用</button>
-            <button id="autoDownloadBtn" class="button primary final-action" type="button" disabled>确认结果并下载</button>
+            <button id="autoBackupBtn" class="button secondary" type="button" disabled>仅下载复核备份</button>
+            <button id="autoPublishBtn" class="button primary final-action" type="button" disabled>确认并发布到本地</button>
           </div>
           <p id="autoDecisionStatus" class="status-line" role="status" aria-live="polite">等待项目证据。</p>
-          <p class="automation-boundary">最终按钮是 MotionPolicyDecision v1 的一次人工采用；Depth、算法拒绝、证据缺失或超阈值项始终需要人工处理。</p>
+          <p class="automation-boundary">最终按钮是 MotionPolicyDecision v1 的一次人工采用；确认后系统会在本机依次校验、编译、发布和精确复验。Depth、算法拒绝、证据缺失或超阈值项始终需要人工处理。</p>
+
+          <section id="p9PublishPanel" class="publish-panel" aria-labelledby="p9PublishHeading">
+            <div class="publish-heading">
+              <div><p class="eyebrow">LOCAL P9 RESULT</p><h3 id="p9PublishHeading">本地发布进度</h3></div>
+              <span id="p9PublishBadge" class="gate-badge">等待确认</span>
+            </div>
+            <ol id="p9PublishSteps" class="publish-steps" aria-label="P9 本地发布步骤">
+              <li data-publish-phase="validate" data-state="pending"><span aria-hidden="true">1</span><strong>校验</strong><small>等待</small></li>
+              <li data-publish-phase="compile" data-state="pending"><span aria-hidden="true">2</span><strong>编译</strong><small>等待</small></li>
+              <li data-publish-phase="publish" data-state="pending"><span aria-hidden="true">3</span><strong>发布</strong><small>等待</small></li>
+              <li data-publish-phase="verify" data-state="pending"><span aria-hidden="true">4</span><strong>精确复验</strong><small>等待</small></li>
+            </ol>
+            <p id="p9PublishStatus" class="status-line" role="status" aria-live="polite">候选覆盖完整后，可确认并发布到本地。</p>
+            <div id="p9PublishReceipt" class="publish-receipt" hidden>
+              <div class="publish-receipt-heading">
+                <div><p class="eyebrow">VERIFIED RECEIPT</p><h4>本地 P9 结果已通过复验</h4></div>
+                <span id="p9ReceiptReuse" class="gate-badge">新结果</span>
+              </div>
+              <dl class="receipt-facts">
+                <div><dt>项目</dt><dd id="p9ReceiptProject">—</dd></div>
+                <div><dt>动作</dt><dd id="p9ReceiptMotion">—</dd></div>
+                <div><dt>片段</dt><dd id="p9ReceiptClip">—</dd></div>
+                <div><dt>MotionInstance v2</dt><dd><code id="p9ReceiptInstance">—</code></dd></div>
+                <div><dt>Reviewed bundle</dt><dd><code id="p9ReceiptBundle">—</code></dd></div>
+              </dl>
+              <div class="receipt-actions">
+                <a id="p9SeamReviewLink" class="button primary" href="./seam-anchor-review.html">进入接缝复核</a>
+                <button id="p9NextProjectBtn" class="button secondary" type="button" hidden>继续下一个本轮未处理样本</button>
+              </div>
+              <p id="p9NextProjectHint" class="status-line">完成后会自动推荐下一个本轮未处理样本。</p>
+            </div>
+          </section>
         </section>
 
         <section id="evidenceReview" class="evidence-dashboard" aria-labelledby="evidenceHeading">
@@ -204,7 +237,7 @@
 
         <section class="download-panel" aria-labelledby="downloadHeading">
           <div><h3 id="downloadHeading">下载严格四字段 review input</h3><p id="reviewStatus" class="status-line" role="status" aria-live="polite">尚未完成。</p></div>
-          <label class="confirm-row"><input id="finalConfirm" type="checkbox" disabled><span>专业流程最终确认。普通流程可直接使用上方“确认结果并下载”；CLI 仍执行最终合同校验。</span></label>
+          <label class="confirm-row"><input id="finalConfirm" type="checkbox" disabled><span>专业流程最终确认。普通流程可直接使用上方“确认并发布到本地”；本机服务仍执行最终合同校验。</span></label>
           <button id="downloadReviewBtn" class="button primary" type="button" disabled>下载 review input（不发布）</button>
         </section>
           </div>
@@ -212,7 +245,7 @@
       </div>
   </main>
   <div id="liveRegion" class="sr-only" aria-live="polite" aria-atomic="true"></div>
-  <footer class="review-footer">本台调用本机 Python 只读预检，零写入；CLI 仍是最终带 exact bundle 的合同校验器。</footer>
+  <footer class="review-footer">证据预检保持零写入；只有“确认并发布到本地”会写入不可变 P9 bundle，并立即执行 exact replay。</footer>
   <script type="module" src="./modules/motion-policy-review-app.js"></script>
 </body>
 </html>

@@ -7,14 +7,13 @@ import {
 } from "./motion-policy-review-state.js";
 import { errorMessage, setStatus } from "./motion-policy-review-utils.js";
 
-export function createMotionPolicyAssistController(elements, { onChanged, onLocate, onAdopt }) {
+export function createMotionPolicyAssistController(elements, { onChanged, onLocate }) {
   let state = null;
   let model = null;
 
   elements.autoApplyAllBtn.addEventListener("click", applyAll);
   elements.autoUndoBtn.addEventListener("click", undoLastAssisted);
   elements.approveOnScrub.addEventListener("change", refresh);
-  elements.autoDownloadBtn.addEventListener("click", () => onAdopt());
 
   return { load, clear, applyRange, refresh };
 
@@ -32,7 +31,6 @@ export function createMotionPolicyAssistController(elements, { onChanged, onLoca
     model = null;
     elements.autoApplyAllBtn.disabled = true;
     elements.autoUndoBtn.disabled = true;
-    elements.autoDownloadBtn.disabled = true;
     elements.autoCoverageBar.value = 0;
     elements.autoCoverageBar.max = 1;
     elements.automationSummary.textContent = "等待项目证据。";

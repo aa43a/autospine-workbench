@@ -5,24 +5,31 @@ import test from "node:test";
 const root = new URL("../", import.meta.url);
 const read = (path) => readFile(new URL(path, root), "utf8");
 
-test("visual review exposes timeline, overlay, segment drafts, exceptions, and final audit", async () => {
-  const [html, css] = await Promise.all([
+test("visual review exposes timeline, publication progress, exceptions, and final audit", async () => {
+  const [html, css, autoCss] = await Promise.all([
     read("motion-policy-review.html"), read("motion-policy-visual-review.css"),
+    read("motion-policy-auto.css"),
   ]);
   for (const id of [
     "metricChart", "frameScrubber", "attentionList", "metricTableBody", "characterComposite",
     "footOverlay", "observationBody", "segmentList", "batchAction", "batchReason",
     "batchConfirm", "batchOverwriteConfirm", "batchUndo", "candidateDetails", "decisionSummary",
+    "autoPublishBtn", "autoBackupBtn", "p9PublishSteps", "p9PublishReceipt",
+    "p9ReceiptInstance", "p9ReceiptBundle", "p9NextProjectBtn", "p9SeamReviewLink",
   ]) assert.match(html, new RegExp(`id="${id}"`));
   assert.match(html, /拖动即可处理/);
   assert.match(html, /批量填写会展开为精确 candidate ID/);
   assert.match(html, /Adjust 仍需逐项处理/);
-  assert.match(html, /普通流程可直接使用上方“确认结果并下载”/);
+  assert.match(html, /普通流程可直接使用上方“确认并发布到本地”/);
+  assert.match(html, /校验[\s\S]*编译[\s\S]*发布[\s\S]*精确复验/);
   assert.doesNotMatch(html, /id="batchAction"[^>]*>\s*<option[^>]+selected/i);
   assert.doesNotMatch(html, /id="(?:batchConfirm|batchOverwriteConfirm)"[^>]+checked/i);
   assert.match(css, /min-height:\s*44px/);
   assert.match(css, /@media \(max-width:\s*760px\)/);
   assert.match(css, /@media \(prefers-reduced-motion:\s*reduce\)/);
+  assert.match(autoCss, /\.publish-steps/);
+  assert.match(autoCss, /min-height:\s*44px/);
+  assert.match(autoCss, /@media \(max-width:\s*420px\)/);
 });
 
 test("review modules are split, safe, and remain within the maintainability budget", async () => {
@@ -33,6 +40,9 @@ test("review modules are split, safe, and remain within the maintainability budg
     "modules/motion-policy-batch-view.js",
     "modules/motion-policy-evidence-model.js",
     "modules/motion-policy-evidence-view.js",
+    "modules/motion-policy-publication-controller.js",
+    "modules/motion-policy-adoption-api.js",
+    "modules/motion-policy-page-lock.js",
   ];
   const sources = await Promise.all(paths.map(read));
   sources.forEach((source, index) => {
@@ -44,11 +54,13 @@ test("review modules are split, safe, and remain within the maintainability budg
   assert.match(sources[1], /\.candidate-card\[data-candidate-id\]/);
   assert.match(sources[1], /onFrameCandidate: locateCandidate/);
   assert.match(sources[1], /candidateDetails\.open = true/);
+  assert.match(sources[1], /candidateIdsSha256\.slice\(0, 12\)/);
   assert.match(sources[2], /createBatchPreview/);
   assert.match(sources[2], /batchOverwriteConfirm/);
   assert.match(sources[4], /requireExactCoverage/);
   assert.match(sources[5], /const SVG_NS/);
   assert.match(sources[5], /encodeURIComponent\(model\.projectId/);
+  assert.match(sources[6], /new URLSearchParams\(\{ package_id: packageId \}\)/);
 });
 
 test("segment cards explain visual evidence in words before exact numeric metrics", async () => {

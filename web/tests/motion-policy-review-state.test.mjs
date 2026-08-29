@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
-  buildReviewInput, createReviewState, reviewProgress, setDecision, setRelease,
+  buildReviewDraftBackup, buildReviewInput, createReviewState, reviewProgress, setDecision, setRelease,
   validateDecision,
 } from "../modules/motion-policy-review-state.js";
 
@@ -51,6 +51,14 @@ test("review state preserves human gates and exports only the four CLI input fie
   assert.match(reviewProgress(state).errors.at(-1).message, /非 loop/);
   state.loopResetApproved = false;
   assert.equal(reviewProgress(state).ready, true);
+  const backup = buildReviewDraftBackup(state);
+  assert.equal(state.humanConfirmed, false);
+  assert.equal(backup.format, "autospine-motion-policy-review-draft-backup");
+  assert.equal(backup.adoptable, false);
+  assert.deepEqual(backup.draft.review, {
+    status: "draft", method: "unconfirmed", revision: 1,
+  });
+  assert.equal(Object.hasOwn(backup, "review"), false);
   state.humanConfirmed = true;
   const result = buildReviewInput(state);
   assert.deepEqual(Object.keys(result), [
