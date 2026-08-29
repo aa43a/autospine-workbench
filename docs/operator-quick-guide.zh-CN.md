@@ -2,7 +2,7 @@
 
 这份手册面向第一次使用工作台的人。目标是先从统一入口找到所需功能，再完成一次最小但完整的操作：打开 See-through 样本，复核图层和骨骼，处理关节候选，然后把结果保存为新的 revision。
 
-P9 Kimodo 动作进入策略复核时，可从功能入口中心打开 `Motion Policy 自动工作流`。普通用户只需确认项目：存在推荐项时页面会自动选择并加载对应的 exact package，重算 SHA-256 和 candidate inventory。随后拖动时间轴或点击“一键采用全部安全建议”，只让系统覆盖 `state=candidate`、证据完整有限且 correction ratio/residual 均不超过合同上限 80% 的 Foot candidates，再处理少量异常并做一次最终明确采纳。三份 JSON 与 SHA 手工输入只在“专业模式”中保留。Depth、`rejected_*`、缺证、非有限值和超阈值项不会自动批准；页面也不保存 revision、不发布 P9。完整流程见 [复核并发布 Kimodo 动作策略](how-to-review-kimodo-motion-policy.md)。
+P9 Kimodo 动作进入策略复核时，可从功能入口中心打开 `Motion Policy 自动工作流`。普通用户只需确认项目：存在推荐项时页面会自动选择并加载对应的 exact package，重算 SHA-256 和 candidate inventory。随后拖动时间轴或点击“一键采用全部安全建议”，只让系统覆盖 `state=candidate`、证据完整有限且 correction ratio/residual 均不超过合同上限 80% 的 Foot candidates，再处理少量异常并做一次最终明确采纳。三份 JSON 与 SHA 手工输入只在“专业模式”中保留。Depth、`rejected_*`、缺证、非有限值和超阈值项不会自动批准；最终确认后，本机服务会编译、发布并精确复验 P9，review input 下载仅作备份。完整流程见 [复核并发布 Kimodo 动作策略](how-to-review-kimodo-motion-policy.md)。
 
 > 工作台是本地人工复核工具，不是“一键生成可发布 Spine 动画”的工具。看到结构检查通过、探针 `compiled` 或锚点距离合格，都不能据此认定视觉效果、官方 Spine Runtime 或发布许可已经通过。
 
@@ -54,7 +54,7 @@ cd E:\proj\unusual\localset\autospine-workbench
 - 复制精确的 `python -B -m autospine_workbench <command> --help` 帮助命令；
 - 通过 `/document-viewer.html?doc=docs/<文件名>.md` 安全文档查看器打开对应仓库文档。
 
-浏览器不会执行 CLI，也不会选择不明确的 `latest`。P9 页面只会自动选择服务端列出的确定性 exact package，并自动补齐该 package 的 SHA；其他需要精确地址的页面仍由操作者填写。首次使用 CLI 时，先在项目根目录的当前 PowerShell 执行：
+浏览器不会执行 CLI，也不会选择不明确的 `latest`。P9 页面只会自动选择服务端列出的确定性 exact package，并自动补齐该 package 的 SHA；P9 成功回执可用 `package_id` 自动进入 Seam，Seam 的四段地址只在专业审计模式中手填。其他需要精确地址的页面仍由操作者填写。首次使用 CLI 时，先在项目根目录的当前 PowerShell 执行：
 
 ```powershell
 $env:PYTHONPATH = (Resolve-Path .\src).Path
@@ -73,9 +73,10 @@ $env:PYTHONPATH = (Resolve-Path .\src).Path
 3. 等待状态显示 exact package、SHA 重算和预检均通过。普通流程无需选择文件或填写 SHA。
 4. 拖动时间轴查看整段动作。保持“拖动时采用安全建议”开启时，一次拖动会采用经过范围内尚未决定的安全 Foot 建议；也可点击“一键采用全部安全建议”。两种操作都可以撤销。
 5. 只处理“需要人工处理”的项目。Depth、`rejected_*`、缺证、非有限值、超 80% 阈值和需要 `adjust` 的项目不会自动批准。重点窗口只是帮你定位边界或极值，不会单独阻止满足安全规则的 Foot 建议。
-6. 确认覆盖完整后，点击最终采用并下载。这一次点击表示你把当前辅助结果采纳为 Motion Policy Decision v1 的 `human` review input。
+6. 确认覆盖完整后，点击“确认并发布到本地”。这一次点击表示你把当前辅助结果采纳为 Motion Policy Decision v1 的 `human` review input；本机服务随后自动执行“校验 → 编译 → 发布 → 精确复验”。
+7. 等待成功或“已复用”回执出现，然后点击“进入接缝复核”。无需下载文件、复制 SHA 或选择 JSON；该入口只完成精确证据交接，不会自动批准任何接缝关系。
 
-自动选择项目、预检通过或覆盖率达到 100% 都不会自行下载或发布。若要载入外部副本或排查身份问题，再展开“专业模式：手动导入 JSON 与 SHA”。
+自动选择项目、预检通过或覆盖率达到 100% 都不会自行发布；必须有最后一次明确人工确认。若要载入外部副本、独立运行 CLI 或排查身份问题，再展开“专业模式：手动导入 JSON 与 SHA”。
 
 ## 3. 打开一个样本
 
@@ -240,6 +241,7 @@ E:\proj\unusual\localset\tmp\psd_audit\results\<project-id>\audit.json
 - 以内容地址保存候选证据，以 revision 保存人工决定；
 - 生成并严格验证版本化的 Resolved Project v1 snapshot，同时保持历史 r5/r7 内容地址不变；
 - 从独立页面完成人工 Body-sway still 与 Seam Anchor revision；
+- 在 P9 页面完成一次明确 human adoption 后，由本机编译 decision/reviewed policy、原子发布 MotionInstance v2 六文件 bundle，并立即 exact verify；CLI 仍可独立复验，review input 下载仅作备份；
 - 通过离线命令生成和验证版本中立的 Layer Manifest、RigIR、mesh、IK、MotionIR、P10.6a admission、MotionInstance v3 及 P10.7a Spine 4.2 v3 五文件 adapter 工件。
 - 在操作者提供并确认有权使用官方 Spine Player 4.2.119 时，捕获 P10.7a 的固定 sampled raster 证据，复验不可变 capture，并编译逐 case、逐 setup attachment 的人工决定。
 - 从 strict canonical 示例 Manifest 只读审计两份真实样本的 P3→P10.7b 前置；审计不会自动执行阶段、代替人审或授予发布权。
@@ -270,7 +272,7 @@ python -B -m autospine_workbench verify-mesh-bundle --help
 
 ## 10. 当前阶段与下一开发入口
 
-当前开发入口是 **P9-real-kimodo-candidate-review**。真实运行的 `wave-left-v1` 已完成六输入准入、P7/P8、A/B P5 精确复验、正式 depth policy，以及两组 foot/depth candidates；P9 页面已接入按项目自动发现 exact package、身份重算、视觉复核和安全 Foot 辅助采用。唯一身份记录见 [Kimodo `wave-left-v1` Pilot Handoff](pilots/kimodo-wave-left-v1.md)。对新的 Kimodo 输入，仍应先运行零写入准入审计：
+**P9-real-kimodo-policy-adoption** 对当前 `wave-left-v1` 的 A/B 已关闭：两项目都已完成最终 human adoption，本地发布的 P9 reviewed-motion bundle 也已按 exact 上游重放通过。普通用户可从 P9 回执直接点击“进入接缝复核”。项目 A 会自动载入 6 条待人审关系；项目 B 会明确显示左右 pelvis-leg 与 leg-foot 4 条不可观测 blocker，不会自动批准或生成 fallback。唯一身份、P9 package ID 与双 SHA 见 [Kimodo `wave-left-v1` Pilot Handoff](pilots/kimodo-wave-left-v1.md)。对新的 Kimodo 输入，仍应先运行零写入准入审计：
 
 ```powershell
 python -B -m autospine_workbench audit-kimodo-pilot-intake `
@@ -281,7 +283,7 @@ python -B -m autospine_workbench audit-kimodo-pilot-intake `
 
 该命令要求 `producer.status=recorded`，闭合两份 provenance 原件 SHA，在内存重跑 P7 结构编译并检查 camera/map；它不写 state、不认证 checkpoint、不批准动作质量，也不生成 P7/P8/P9 bundle。完整准备步骤见[审计真实 Kimodo Pilot 输入](how-to-audit-real-kimodo-pilot-intake.md)。
 
-继续当前 `wave-left-v1` 时，不要再次编译或扫描 P5 地址：A/B 正式 policy 与 depth candidates 已生成并通过 candidate inventory preflight。打开 [Motion Policy 自动工作流](http://127.0.0.1:8765/motion-policy-review.html)，页面会自动选择一个推荐项目并绑定其 exact package；切换 A/B 只使用项目列表，不再从下载目录手工挑选三文件或抄写 SHA。每个项目有 119 个 Foot candidates，本轮 Depth event 为 0；拖动时间轴或一键操作可采用全部符合规则的安全 Foot 建议，然后只需检查异常并做一次最终 human adoption。辅助结果不等于自动批准，两个项目要分别完成并分别下载。随后仍必须用 CLI 编译并复验 P9。下列命令用于复验或继续 exact 链：
+继续当前 `wave-left-v1` 时，不要重复 P9 adoption 或扫描 P5 地址；除非输入、算法或人工决定发生版本化变化，否则沿用 handoff 中已复验的 P9 双 SHA。[Motion Policy 自动工作流](http://127.0.0.1:8765/motion-policy-review.html)仍用于新的项目或新 review revision；CLI 只用于独立专业复验或无浏览器 exact 链。下列命令用于复验或排障：
 
 ```powershell
 python -B -m autospine_workbench compile-motion-retarget --help
@@ -291,7 +293,7 @@ python -B -m autospine_workbench probe-foot-lock --help
 python -B -m autospine_workbench probe-depth-order --help
 ```
 
-intake report SHA、P7/P8 SHA 和 builtin `wave.left` 地址都不能作为 P9 reviewed-motion 地址填入 readiness 请求。
+intake report SHA、P7/P8 SHA 和 builtin `wave.left` 地址都不能作为 P9 reviewed-motion 地址填入 readiness 请求；当前 A/B 的正确双 SHA 只从 pilot handoff 读取。
 
 随后仍可运行冻结的 readiness v1 只读预检，查看两份目标项目尚缺哪些 exact 地址：
 
@@ -302,7 +304,7 @@ python -B -m autospine_workbench audit-body-sway-spine42-v3-readiness `
   --document-only
 ```
 
-readiness v1 的 Schema、哈希和 checkpoint 语义已经冻结；即使 P10.7c 已交付，第八项仍固定为 `p6_setup_golden_comparison_not_declared`，不能把 readiness 报告当作 setup 对照结果。当前结果是：A/B 的 P5、正式 depth policy 与 depth candidates 已完成，但都未声明 P9 reviewed-motion exact 地址；package 自动加载、candidate preflight 的 `passed` 或安全 Foot 草稿仍不等于最终人工采纳。默认 state 的独立 seam 盘点还确认 A/B 都没有 review history/head；A 的六条关系可直接进入人审，B 的长裙遮挡使四条腿/脚关系不可观测，必须换新分层资产或另立禁止通用腿部动画的 partial 合同。Runtime 已存在，但不是最早 blocker。请求格式、报告读取方式和权限边界见[审计两份真实样本的 Spine 4.2 v3 就绪状态](how-to-audit-spine42-v3-readiness.md)。
+readiness v1 的 Schema、哈希和 checkpoint 语义已经冻结；即使 P10.7c 已交付，第八项仍固定为 `p6_setup_golden_comparison_not_declared`，不能把 readiness 报告当作 setup 对照结果。仓库自带的 baseline 请求仍把 P9 地址设为 `null`，所以直接运行上面的命令会继续报告未声明；这不表示真实 P9 不存在。应使用 canonical builder 生成新请求并显式写入 handoff 中的双 SHA。A 随后完成真实 seam 人审、P10.5c reviewed set 与动态 seam 门禁。B 的长裙/分层限制使左右 pelvis-leg 与 leg-foot 四条关系不可观测，必须换新分层资产、修复语义，或另立明确禁止通用腿部动画的版本化 partial 合同；不能把 P9 成功写成完整下肢可用。Runtime 已存在，但位于 seam 之后。请求格式、报告读取方式和权限边界见[审计两份真实样本的 Spine 4.2 v3 就绪状态](how-to-audit-spine42-v3-readiness.md)。
 
 P10.7c 的独立入口已经可从功能中心复制，也可直接查看帮助：
 
@@ -310,7 +312,7 @@ P10.7c 的独立入口已经可从功能中心复制，也可直接查看帮助�
 python -B -m autospine_workbench compare-body-sway-spine42-v3-setup-golden --help
 ```
 
-该命令需要每个项目真实的 P10.7a 与 P10.7b capture 精确地址，并同时锁定既有 P6 export/runtime golden 合同。当前 A/B 尚受 P9 人审/发布、seam 和官方 capture 外部 blocker，因此不要用全零请求模板、P7/P8/P5 地址或 fixture 声称真实比较通过。准备 canonical 请求和读取报告见[对照 P10.7c Spine 4.2 v3 Setup Golden](how-to-compare-spine42-v3-setup-golden.md)。
+该命令需要每个项目真实的 P10.7a 与 P10.7b capture 精确地址，并同时锁定既有 P6 export/runtime golden 合同。当前 A/B 的 P9 已通过，但 seam 和官方 capture 仍未关闭，因此不要用全零请求模板、P7/P8/P5 地址或 fixture 声称真实比较通过。准备 canonical 请求和读取报告见[对照 P10.7c Spine 4.2 v3 Setup Golden](how-to-compare-spine42-v3-setup-golden.md)。
 
 P0 Resolved Project v1、P10.6b MotionInstance v3 与 P10.7a Spine adapter bundle 均已完成。普通图层/关节复核不需要运行这些命令；开发 body-sway 动画编译链时，先按
 [编译 P10.6a body-sway 动作消费准入](how-to-compile-body-sway-motion-consumer-admission.md)

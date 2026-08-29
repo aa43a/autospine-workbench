@@ -7,7 +7,11 @@ P10.5b 把一份精确 `SeamAnchorCandidates v1` 交给人工逐关系复核，�
 
 ## 前置条件
 
-准备同一项目的四段精确地址：
+普通流程从 P9 成功或幂等复用回执点击“进入接缝复核”。链接只携带 exact
+`package_id`；服务端重新读取该 package，闭合 Foot/Depth 共享的 P3 来源，精确复验 P3
+bundle，并自动填入下列四段地址。浏览器不会拼接 SHA，也不会扫描 `latest`。
+
+只有专业审计、历史排障或未登记 package 才需要手工准备同一项目的四段精确地址：
 
 - `project_id`；
 - `layer_manifest_sha256`；
@@ -27,9 +31,12 @@ cd E:\proj\unusual\localset\autospine-workbench
 .\run.ps1
 ```
 
-打开 [http://127.0.0.1:8765/seam-anchor-review.html](http://127.0.0.1:8765/seam-anchor-review.html)，
-填写四段地址并加载候选。页面不会发现 `latest`，也不会自动选择历史 revision 或提交
-基线。
+正常情况下先在 P9 页面完成发布，再点击回执中的“进入接缝复核”。页面会自动加载当前
+package 对应的四段地址、candidate 和可观测性摘要；若存在 blocker，会在顶部逐条显示且
+不会自动 accept 或生成 locator/image fallback。直接打开
+[http://127.0.0.1:8765/seam-anchor-review.html](http://127.0.0.1:8765/seam-anchor-review.html)
+时，可展开“专业模式”手工填写四段地址。两种模式都不会发现 `latest`，也不会自动选择
+历史 revision、提交基线或批准任何关系。
 
 页面固定显示六条关系：左右 `torso_arm`、左右 `pelvis_leg`、左右 `leg_foot`。每个
 option 都显示 contact evidence、父子 attachment、locator 与 anchor pairs；父子原始

@@ -115,4 +115,4 @@ python -B -m autospine_workbench compare-body-sway-spine42-v3-setup-golden `
 
 ### 真实样本尚无 P10.7a/capture 地址
 
-先按 [readiness 审计](how-to-audit-spine42-v3-readiness.md)关闭更早的 Kimodo、P9 与 seam blocker，再按 [P10.7b Runtime 捕获](how-to-capture-spine42-v3-runtime.md)生成精确 capture。fixture 只能验证机制，不能替代真实样本验收。
+`wave-left-v1` 的 A/B P9 reviewed-motion 双地址已经 exact replay 通过；先按 [readiness 审计](how-to-audit-spine42-v3-readiness.md)把这些地址写入新的 canonical 请求，并关闭剩余 seam blocker，再按 [P10.7b Runtime 捕获](how-to-capture-spine42-v3-runtime.md)生成精确 capture。A 可直接进入 seam 人审；B 虽然 P9 通过，仍被四条下肢关系不可观测阻塞。fixture 只能验证机制，不能替代真实样本验收。

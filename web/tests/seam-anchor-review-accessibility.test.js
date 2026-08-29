@@ -114,13 +114,22 @@ test("DOM helper treats untrusted labels only as text", () => {
 
 test("static page exposes structured evidence, semantic controls, and responsive guards", async () => {
   const root = new URL("../", import.meta.url);
-  const [html, css, markup, evidence] = await Promise.all([
+  const [html, baseCss, entryCss, markup, evidence, entryView, entryContract, entryFlow] = await Promise.all([
     readFile(new URL("seam-anchor-review.html", root), "utf8"),
     readFile(new URL("seam-anchor-review.css", root), "utf8"),
+    readFile(new URL("seam-anchor-review-entry.css", root), "utf8"),
     readFile(new URL("modules/seam-anchor-review-markup.js", root), "utf8"),
     readFile(new URL("modules/seam-anchor-review-evidence.js", root), "utf8"),
+    readFile(new URL("modules/seam-anchor-review-entry-view.js", root), "utf8"),
+    readFile(new URL("modules/seam-anchor-review-entry.js", root), "utf8"),
+    readFile(new URL("modules/seam-anchor-review-entry-flow.js", root), "utf8"),
   ]);
+  const css = `${baseCss}\n${entryCss}`;
   assert.match(html, /<meta name="viewport"/);
+  assert.match(html, /id="entryStatus"[^>]*role="status"/s);
+  assert.match(html, /id="entryBlockers"/);
+  assert.match(html, /<details id="expertAddressDetails"[^>]*class="expert-address"/);
+  assert.match(html, /专业模式：手动输入项目与四项 exact 地址/);
   assert.match(html, /id="reviewRelationships"[^>]*tabindex="-1"/s);
   assert.match(html, /<label>/);
   assert.match(markup, /createElement\("fieldset"\)/);
@@ -133,7 +142,12 @@ test("static page exposes structured evidence, semantic controls, and responsive
   assert.match(evidence, /选择 \$\{option\.option_id\}/);
   assert.equal(markup.includes("innerHTML"), false);
   assert.equal(evidence.includes("innerHTML"), false);
+  assert.equal(entryView.includes("innerHTML"), false);
+  assert.equal(entryContract.includes("innerHTML"), false);
+  assert.equal(entryFlow.includes("innerHTML"), false);
+  assert.match(entryView, /不会自动 accept 或生成 fallback/);
   assert.match(css, /min-height: 44px/);
+  assert.match(css, /\.entry-blockers/);
   assert.match(css, /@media \(max-width: 420px\)/);
   assert.match(css, /minmax\(0, 1fr\)/);
   assert.match(css, /prefers-reduced-motion: reduce/);

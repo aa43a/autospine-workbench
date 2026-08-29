@@ -1,6 +1,6 @@
 # 复核并发布 Kimodo 动作策略
 
-本指南同时面向普通操作者和需要继续 exact CLI 链的开发者。普通操作者只需选择项目、查看动作并处理异常；工作台会从本地 review package 自动加载正式 policy、Foot/Depth candidates，重算 SHA-256 并运行交叉预检。开发者可在“专业模式”手动导入三份 JSON 与 SHA，或继续使用下文 CLI 发布并复验不可变 P9 bundle。
+本指南同时面向普通操作者和需要独立复验 exact CLI 链的开发者。普通操作者只需选择项目、查看动作、处理异常并执行一次最终人工确认；工作台会从本地 review package 自动加载正式 policy、Foot/Depth candidates，重算 SHA-256，运行交叉预检，再由本机 Python 编译 decision 与 reviewed policy、原子发布 P9 reviewed-motion bundle，并按返回的精确地址立即复验。下载的 review input 只是备份和审计副本，不再是普通流程继续发布的必需交接文件。开发者仍可使用下文 CLI 独立重放同一过程。
 
 本流程不会自动批准 heading、scale、附件切换、Depth 事件、`rejected_*`、证据缺失、非有限值或超安全阈值项。正式 handoff 文档使用 `--document-only`；Foot/Depth 候选同时保留默认 CLI envelope，因为其中的 `report_sha256` 是复核台绑定同一次结果所必需的身份。
 
@@ -12,10 +12,10 @@
 2. 等待“身份与预检通过”。服务端会读取 package 中固定文件，重算 policy、Foot、Depth 与 candidate inventory 身份，再由页面执行同一 candidate preflight。普通用户不需要选择 JSON 文件或填写 SHA-256。
 3. 拖动时间轴查看角色足点、校正曲线和重点窗口。启用“拖动时采用安全建议”后，一次拖动会把经过的、尚未决定且符合当前安全规则的 Foot candidates 作为一组可撤销的辅助决定；也可点击“一键采用全部安全建议”。重点窗口只是接触边界、极值、p95、过零或跳变的视觉导航，本身既不批准也不排除候选。
 4. 查看“需要处理的异常”。自动采用必须同时满足：类型为 Foot、`state=candidate`、observations 完整且全部数值有限、correction ratio 与 residual 均不超过各自合同上限的 80%。Depth、`rejected_limit`、`rejected_conflict`、缺证、非有限值和超阈值项不会被安全结果覆盖；`adjust` 始终需要明确输入最终值。
-5. 检查自动覆盖数量和异常数量，必要时撤销最近一次辅助操作。确认结果后点击页面上的最终采用并下载按钮。这一次明确动作把辅助结果采纳为 v1 的 `human` review input。
-6. 把下载的 `motion-policy-review-input.json` 交给开发者，继续执行第 5–8 节的 exact CLI 编译、发布和复验。
+5. 检查自动覆盖数量和异常数量，必要时撤销最近一次辅助操作。确认结果后执行页面上的最终采用。这一次明确动作把辅助结果采纳为 v1 的 `human` review input，并提交给与当前 exact package 绑定的本地 adoption 入口。
+6. 等待成功或幂等复用回执，再点击“进入接缝复核”。链接只携带当前 exact `package_id`；服务端会重放 package 与共享 P3 来源、复验 P3 bundle，并自动加载 Seam candidate。普通用户无需下载文件、记录双 SHA 或抄写 P3/P5 地址。
 
-这里的“自动”只减少文件选择、SHA 抄写和低风险 Foot 重复操作。Motion Policy Decision v1 的合同仍是 **human adoption**：页面不会零点击下载、发布或授予 release authority。选择项目、预检通过、拖完时间轴或候选达到 100% 覆盖，都不等于最终人工采纳。
+这里的“自动”覆盖文件选择、SHA 绑定、低风险 Foot 重复操作，以及确认后的本地编译、内容寻址发布和 exact verify。Motion Policy Decision v1 的合同仍是 **human adoption**：页面不会零点击发布，也不会授予 seam、官方 Runtime 或 release authority。选择项目、预检通过、拖完时间轴或候选达到 100% 覆盖，都不等于最终人工采纳；只有最后一次明确确认才允许调用 adoption 入口。
 
 如需审计外部文件、处理未登记 package 或排查身份错误，再展开“专业模式：手动导入 JSON 与 SHA”。专业模式不是普通流程的必经步骤。
 
@@ -167,16 +167,19 @@ Write-Utf8NoBom .\review\depth-order-candidates.json $DepthCandidates
 4. 点击校验后，页面把三份原文和声明 SHA 送入 `candidate_inventory` preflight。服务端重验完整 standalone 合同，并检查 project/clip、tick schedule、P8/P5/P3 source chain、Depth policy 绑定与候选 ID inventory。全部身份和摘要一致后才显示候选。
 5. 专业模式与默认模式共享同一视觉证据、辅助决定、逐项异常和最终采用步骤。手工导入不会降低门禁，也不会允许用编辑 JSON 或手改 SHA 绕过绑定。
 
-`rejected_limit` / `rejected_conflict` Foot 项不能 accept。Foot adjust 要明确填写最终 X/Y；Depth adjust 必须从当前 pair 的两个 slot 里选择最终 front。Root release 只能引用报告列出的 unconstrained ticks。辅助采用只写入当前页面的、带来源标记且可撤销的草稿，不覆盖已有人工或批量决定；最终下载仍要求 100% 精确覆盖、全局字段有效和一次明确人工采纳。加载 package、切换项目或输入身份变化会使旧异步结果和草稿预览失效，必须基于当前快照重新校验。
+`rejected_limit` / `rejected_conflict` Foot 项不能 accept。Foot adjust 要明确填写最终 X/Y；Depth adjust 必须从当前 pair 的两个 slot 里选择最终 front。Root release 只能引用报告列出的 unconstrained ticks。辅助采用只写入当前页面的、带来源标记且可撤销的草稿，不覆盖已有人工或批量决定；最终 adoption 要求 100% 精确覆盖、全局字段有效和一次明确人工采纳。加载 package、切换项目或输入身份变化会使旧异步结果和草稿预览失效，必须基于当前快照重新校验。
 
-默认项目流程先调用两个只读接口；通常不需要手工调用：
+默认项目流程先调用两个只读接口；最终人工确认后再调用一个本地写入口。通常不需要手工调用：
 
 | 资源 | 作用 |
 | --- | --- |
 | `GET /api/motion-policy/review-packages` | 列出本地 exact packages，并返回确定性的推荐 package ID |
 | `GET /api/motion-policy/review-packages/{package_id}` | 按完整 ID 读取并重验该 package；响应不含本地路径 |
+| `POST /api/motion-policy/review-packages/{package_id}/adoptions` | 接收与当前页面快照对应的严格四字段 human review input；重新读取 exact package，编译 decision/reviewed policy，原子发布 P9 bundle，按双 SHA 精确复验并返回 path-free 结果 |
 
 推荐 ID 只是默认界面选择，不是批准状态。完整 package ID 绑定项目、动作、clip、policy/Foot/Depth 身份与 candidate inventory；任一内容变化都产生不同 ID，页面不会按 mtime 或 `latest` 回退。
+
+Adoption 正文是严格 wrapper：`format=autospine-motion-policy-adoption-request`、`format_version=1`、`intent=motion-policy-adoption-v1`、与 URL 完全相同的 `package_id`，以及只含 `review`、`decisions`、`root_release_keys`、`draw_order_loop_reset` 的 `review_input`。多余字段、package ID 不一致或不完整决定都会被拒绝。成功回执固定为 `autospine-motion-policy-adoption-receipt` v1；只有 `status=passed`、`verification.replayed_from_exact_upstreams=true`，且 `address` 中同时包含 `project_id`、`motion_instance_v2_sha256` 与 `bundle_sha256` 时，页面才显示发布完成。
 
 身份与候选预检使用以下 zero-write POST 合同：
 
@@ -187,9 +190,13 @@ Write-Utf8NoBom .\review\depth-order-candidates.json $DepthCandidates
 
 两类请求的 `format` 都是 `autospine-motion-policy-preflight-request`，`format_version=1`。`declared` 必须恰含 `policy_sha256`、`foot_candidates_sha256`、`depth_candidates_sha256`。成功响应固定为 `autospine-motion-policy-preflight-result` v1，并携带 `status=passed`、`operation`、`project_id`、`clip_id` 与上述身份；它不是可持久化 P9 工件。
 
-`POST /api/motion-policy/preflight` 只接受 loopback authority、精确同源 `Origin`、`Content-Type: application/json` 和 `X-Autospine-Intent: motion-policy-preflight-v1`；若存在 `Sec-Fetch-Site`，只能是 `same-origin` 或 `none`。外层请求总上限为 48 MiB；内层 policy 原文限 1 MiB，foot/depth 原文各限 16 MiB。该入口零写入，不读取或返回本地路径，不创建 revision，不保存人工决定，也不发布或批准任何状态。浏览器只负责本地文件读取、人工表单、candidate ID 展示和 generation/snapshot guard；Python preflight 负责进入表单前的 canonical identity 与完整合同交叉验证，最终 CLI 仍会再次拒绝不匹配的 policy/candidate SHA。不要编辑 candidate JSON 或手工改写 SHA 来绕过绑定。
+`POST /api/motion-policy/preflight` 只接受 loopback authority、精确同源 `Origin`、`Content-Type: application/json` 和 `X-Autospine-Intent: motion-policy-preflight-v1`；若存在 `Sec-Fetch-Site`，只能是 `same-origin` 或 `none`。外层请求总上限为 48 MiB；内层 policy 原文限 1 MiB，foot/depth 原文各限 16 MiB。该入口零写入，不读取或返回本地路径，不创建 revision，不保存人工决定，也不发布或批准任何状态。
 
-## 5. 记录人工决定
+最终采用入口要求 `X-Autospine-Intent: motion-policy-adoption-v1`，只接受 URL 中的完整 package ID 和正文中的严格 human review input。服务端不会信任浏览器缓存的 policy、候选、P3/P5 地址或声明 SHA，而是重新按 package ID 读取和验证固定证据，再调用与 CLI 相同的领域编译器、不可变 store 和 exact reader。相同 canonical 输入可以安全复用相同内容地址；package 已变化、决定未穷尽、身份交叉绑定失败或发布后无法精确复验时均 fail closed。成功响应只返回 path-free 身份、P9 双 SHA 与复验状态。回执的 Seam 链接只传 `package_id`，后端再次闭合 package→P3 exact 链，浏览器不会构造 Manifest/P3 SHA。P9 成功不会被提升为 seam、Runtime 或 release authority。CLI 仍会拒绝同样的不匹配输入，可用于独立专业复验。不要编辑 candidate JSON 或手工改写 SHA 来绕过绑定。
+
+## 5. 专业复验路径：记录人工决定
+
+普通流程已经在最终确认后完成本节到第 8 节，并把 review input 作为可选备份下载。只有需要审计备份、复验外部副本、排查身份问题或在无浏览器环境中重放时，才手工执行以下 CLI。
 
 不要修改 candidate JSON。新建 `motion-policy-review-input.json`，并满足以下规则：
 
@@ -214,7 +221,7 @@ Write-Utf8NoBom .\review\motion-policy-decision.json $Decision
 
 Candidate 算法或上游地址变化后必须重新审查；旧决定的 SHA 绑定会变 stale，不会静默套用。
 
-## 6. 编译 reviewed policy
+## 6. 专业复验路径：编译 reviewed policy
 
 Reviewed policy 把人工决定投影为完整 root-correction schedule 和 full back-to-front slot permutations：
 
@@ -233,7 +240,7 @@ Write-Utf8NoBom .\review\reviewed-motion-policy.json $ReviewedPolicy
 
 这一步仍是版本中立策略，不是 Spine 文件，也不会生成 attachment switch、deform 或 runtime IK。
 
-## 7. 预览 MotionInstance v2 与 Spine 4.2 v2
+## 7. 专业复验路径：预览 MotionInstance v2 与 Spine 4.2 v2
 
 先生成只读 MotionInstance v2 handoff，检查 root translation、完整 draw-order key 和 loop closure：
 
@@ -265,7 +272,7 @@ Write-Utf8NoBom .\review\spine42-v2.preview.json $SpinePreview
 
 预览中的 loader-isomorphic draw-order audit 重放 Spine 4.2 loader 的 offset 解释，用于发现 adapter 排列错误。它不是官方 runtime 加载结果，也不是 raster truth、截图 golden 或美术验收。
 
-## 8. 发布并复验 reviewed bundle
+## 8. 专业复验路径：发布并复验 reviewed bundle
 
 发布命令不会读取预览出来的 MotionInstance v2 文件；它会从 exact P5 与 reviewed policy 自己重编译 v2，再由 Store 完整重编 policy/v2。固定六文件清单为：
 
@@ -328,9 +335,11 @@ P9 通过新增 MotionInstance v2 与 Spine adapter v2 承载动态策略；Moti
 
 ## 10. 当前验收边界
 
-结构闭环已经覆盖 exact address、候选/决定分离、root correction、draw order、MotionInstance v2、Spine v2 preview 和六文件 bundle 重放。仍未关闭的门禁包括：
+普通流程的一次最终 human adoption 现在会闭合 exact address、候选/决定分离、root correction、draw order、MotionInstance v2、六文件 bundle 发布和 exact replay；CLI 保留为独立专业复验路径。P9 成功仍未关闭以下门禁：
 
-- `wave-left-v1` 已有已复验的 P7/P8、A/B P5、共享 policy evidence、正式 depth policy 以及两组 foot/depth candidates；复核台可自动选择各自的 exact package、重算 SHA/预检并辅助采用本轮 119 个安全 Foot 建议，但两个项目仍须分别完成一次 human adoption，并生成 P9 reviewed asset fixture；
+- `wave-left-v1` 的两个项目已于 2026-08-30 分别完成人工 adoption，并通过 P9 exact replay；可进入下游的双 SHA 与完整上游身份集中记录在 [pilot handoff](pilots/kimodo-wave-left-v1.md)；
+- A（`seethrough_output`）的下一步是静态 seam 人审、P10.5c reviewed set 与后续动态 seam 门禁；
+- B（`seethrough_output_5`）的左右 pelvis-leg 与 leg-foot 四条关系受长裙/分层限制而不可观测；在修复上游资产/语义或建立版本化 partial 合同前，不能伪造完整下肢 seam 通过，也不能宣称通用腿部动画可用；
 - 动态 draw order/foot correction 在官方 Spine runtime 中的固定截图回归；
 - heading 或 scale timeline 的人工决定与 runtime 消费合同；
 - attachment switch、deform、runtime IK 和物理。

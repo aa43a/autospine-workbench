@@ -1,6 +1,8 @@
 "use strict";
 
-import { seamAnchorReviewPaths } from "./seam-anchor-review-address.js";
+import {
+  requireSha256, seamAnchorReviewPaths,
+} from "./seam-anchor-review-address.js";
 
 export const REVIEW_INTENT = "seam-anchor-review";
 
@@ -11,6 +13,12 @@ export class SeamAnchorReviewApiError extends Error {
     this.status = status;
     this.payload = payload;
   }
+}
+
+export function seamReviewEntryPath(packageId) {
+  return `/api/motion-policy/review-packages/${
+    requireSha256(packageId, "Motion Policy package ID")
+  }/seam-review-entry`;
 }
 
 async function responsePayload(response) {
@@ -48,6 +56,9 @@ async function requestJson(fetchImpl, url, options = {}) {
 export function createSeamAnchorReviewApi(fetchImpl = globalThis.fetch) {
   if (typeof fetchImpl !== "function") throw new TypeError("fetch implementation is required");
   return Object.freeze({
+    loadEntry(packageId) {
+      return requestJson(fetchImpl, seamReviewEntryPath(packageId));
+    },
     loadCandidate(address) {
       return requestJson(fetchImpl, seamAnchorReviewPaths(address).candidate());
     },

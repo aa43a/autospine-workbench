@@ -7,6 +7,7 @@ import {
   SeamAnchorReviewApiError, createSeamAnchorReviewApi,
 } from "./seam-anchor-review-api.js";
 import { normalizeSeamCandidateEnvelope } from "./seam-anchor-review-candidate.js";
+import { createSeamReviewEntryFlow } from "./seam-anchor-review-entry-flow.js";
 import {
   createSeamReviewHistoryController,
 } from "./seam-anchor-review-history-controller.js";
@@ -28,6 +29,7 @@ const requests = createRequestSequence();
 let state = createSeamReviewState();
 let address = null;
 let activity = { candidate: false, history: false, mutation: false };
+let entryFlow = null;
 
 function syncOperationControls() {
   const locked = activity.mutation;
@@ -96,6 +98,7 @@ async function loadCandidate(event) {
         address, payload.candidate_sha256, optionId, attachmentId, imageSha,
       ),
     );
+    entryFlow?.verifyCandidate(envelope);
     state = {
       ...state, candidate: envelope.candidate,
       candidateSha256: envelope.candidateSha256,
@@ -117,7 +120,9 @@ async function loadCandidate(event) {
     }
   } catch (error) {
     if (!requests.isCurrent(token)) return;
+    state = clearSeamReviewForAddress(state, address);
     resetSeamReviewView(elements);
+    entryFlow?.candidateFailed(error);
     setStatus(elements.addressStatus, `加载失败：${errorText(error)}`, "error");
   } finally {
     busy.finish("candidate", busyToken);
@@ -225,11 +230,26 @@ const historyController = createSeamReviewHistoryController({
   setState: (next) => { state = next; },
 });
 
+entryFlow = createSeamReviewEntryFlow({
+  api, elements, busy,
+  onReset: () => {
+    requests.invalidate();
+    state = clearSeamReviewForAddress(state);
+    address = null;
+    resetSeamReviewView(elements);
+    setStatus(elements.addressStatus, "等待自动入口或专业模式地址。");
+  },
+  onSubmitAddress: () => elements.addressForm.requestSubmit(),
+});
+
 elements.addressForm.addEventListener("submit", loadCandidate);
 for (const input of [
   elements.projectId, elements.layerManifestSha256,
   elements.p3RigSha256, elements.p3BundleSha256,
-]) input.addEventListener("input", invalidateAddress);
+]) input.addEventListener("input", () => {
+  entryFlow.enterManual();
+  invalidateAddress();
+});
 elements.reviewRelationships.addEventListener("change", (event) => {
   if (event.target.dataset.seamOption || event.target.dataset.seamAction) {
     interactions.updateDraft(event.target);
@@ -259,3 +279,7 @@ elements.reviewNotes.addEventListener("input", () => {
 });
 elements.submitReviewBtn.addEventListener("click", submitReview);
 document.addEventListener("keydown", interactions.handleKeyboard);
+window.addEventListener("popstate", () => {
+  void entryFlow.loadSearch(window.location.search);
+});
+void entryFlow.loadSearch(window.location.search);

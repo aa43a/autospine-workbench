@@ -1,7 +1,7 @@
 # Kimodo `wave-left-v1` Pilot Handoff
 
-本文是当前真实运行 pilot 的唯一身份记录，面向需要继续 P9 人审的维护者。它固定
-`wave-left-v1` 的六输入准入、P7/P8、两个目标 P5 和候选交接地址，避免 README、路线图
+本文是当前真实运行 pilot 的唯一身份记录，面向需要沿 exact 链继续 seam 与 P10 的维护者。它固定
+`wave-left-v1` 的六输入准入、P7/P8、两个目标 P5、候选身份和已复验 P9 地址，避免 README、路线图
 和操作手册重复抄写 SHA 后发生漂移。
 
 ## 已闭合的证据
@@ -38,6 +38,10 @@
 | Approved depth policy identity | `f54ccb8e48a99a6df97a67b2d64de5a776f94b8bd7ba8cffe4382c7e0357c1ae` | `b1353fc5f722a10f83f98df7e67820310ff77029ca06ba2841937836d3b3324a` |
 | Depth candidate report | `766837d64859fb27815dc084069116f7737505a17a578735116b655d89cb4ab7` | `1d1e13cc45b4f952c2c3bcd95bbcd8ec79be36df429102a2fc5392b95fb6c7a4` |
 | Candidate ID inventory | `909c80506d6f869df7c94445bc1ab8d841c6ae37a2ca7b9d72237f0f30f29f1e` | `898ce987c04bf7b35b8f5bfe23aa6f9eb13a62b1d64b0fe8ef34b79ed84debd3` |
+| P9 review package ID | `a933df26a457be609c6c30f08ad8ad0284ad2f2a02bd655163ebb6e7775764c0` | `5278cae0594a4f63a3b7029e4198a1cfc9b59beb06f7843d649653bfef1dede7` |
+| P9 MotionInstance v2 | `3c7bb6efcdb91d3ad3c1984ae19159a2ceb2b7aa8f0b88fc405d63956bd59823` | `706225aca7359f46daf0c318e186252b36c44650cd1539eb667e40f50e715754` |
+| P9 reviewed-motion bundle | `b347c56a217b4cc844da3f115f100ae8b1352389207f357824ba322bdb46649c` | `39076c3589b046268b01c6c85bb0f7393403d2d0973ae417ef78271b649d0e96` |
+| Seam 自动入口状态 | `manual_review_required`：6 条待人审，0 条不可观测 | `blocked_unobservable`：2 条可人审，4 条不可观测 |
 
 P3、P4、P7 与两个 P5 均已按 exact 地址复验；重复 P5 编译返回 `reused=true`。A/B
 各得到 `120` 个 foot sample：`119` 个 `candidate`、`1` 个 `unconstrained`，且本轮阈值
@@ -65,28 +69,29 @@ validator 和生产 `policy_identity` preflight 通过，与各自草案相比�
 120 个 sample、0 个切换 event。Python `candidate_inventory` 对两组 policy/foot/depth 原文、三份
 声明 SHA、完整 schedule、source/policy 交叉绑定和 candidate ID 清单复算均为 `passed`。每个项目
 当前需要决定 119 个 Foot 候选，另有 1 个 unconstrained sample；没有 Depth event 需要决定。
-复核台现在从 `workspace/reviews/wave-left-v1/<project>/` 发现两份 exact package，按项目选择加载并重算上述身份；推荐项只是确定性起点，不会按下载文件名或 mtime 猜测。120 个时间样本会显示为曲线、重点窗口和角色足点叠加。操作者拖动时间轴或点击“一键采用”时，页面只为尚未决定、`state=candidate`、observations 完整有限且 correction ratio/residual 均不超过合同上限 80% 的 Foot candidates 写入带 provenance 且可撤销的辅助草稿；Depth、`rejected_*`、缺证、非有限值和超阈值项不会自动批准。重点窗口只是视觉提示，不改变这项判定。两个项目仍须各做一次最终 human adoption。这些结果尚未产生 decision、reviewed policy 或 P9 bundle。
+复核台从 `workspace/reviews/wave-left-v1/<project>/` 发现两份 exact package，按项目选择加载并重算上述身份；推荐项只是确定性起点，不会按下载文件名或 mtime 猜测。120 个时间样本会显示为曲线、重点窗口和角色足点叠加。操作者拖动时间轴或点击“一键采用”时，页面只为尚未决定、`state=candidate`、observations 完整有限且 correction ratio/residual 均不超过合同上限 80% 的 Foot candidates 写入带 provenance 且可撤销的辅助草稿；Depth、`rejected_*`、缺证、非有限值和超阈值项不会自动批准。重点窗口只是视觉提示，不改变这项判定。
+
+2026-08-30，操作者分别完成 A/B 的最终 human adoption。本机服务从各自 exact package 重新编译 decision、reviewed policy 与 MotionInstance v2，发布六文件 reviewed-motion bundle，并立即按表中的双 SHA 读回。随后独立运行 `verify-reviewed-motion-bundle`，两项目均返回 `verification.status=passed` 与 `replayed_from_exact_upstreams=true`。因此本 pilot 的 P9 人工决定与 exact reviewed-motion 地址已经闭合；这项结论只适用于表中固定的两个项目、当前 clip 和当前候选身份。
 
 ## 权限与质量边界
 
 这份 handoff 只允许声明：该组 recorded 输入已经闭合、P7 结构编译与 exact replay 通过、
-显式相机的 P8 投影与 exact replay 通过，以及 A/B 的 P5 目标重定向结构与 exact replay 通过。
+显式相机的 P8 投影与 exact replay 通过、A/B 的 P5 目标重定向结构与 exact replay 通过，
+以及表中两个 P9 reviewed-motion bundle 已从精确上游重放通过。
 它不授予或证明：
 
 - 外部 checkpoint authenticity、模型或素材许可；
 - 广泛动作集的质量验收，或目标角色上的视觉质量；
 - P5 在目标角色上的 raster、接缝或作品质量；
-- P9 foot-lock/depth-order 人工决定或 reviewed-motion bundle；
 - seam、官方 Spine Runtime、连续 raster 安全、publishable timeline 或 release authority。
 
-intake report SHA 不是 P7/P8 bundle 地址；P7/P8 地址也不能作为 P9 reviewed-motion 地址填入
+intake report SHA、P7/P8 bundle 地址和 P5 地址都不能替代表中的 P9 双 SHA 填入
 readiness 请求。任何输入、map、camera、compiler 或算法 profile 变化都必须生成新地址，不能
 沿用本 handoff 的人工结论。
 
 ## 下一步
 
-1. 在 P9 复核页确认自动推荐的项目；页面会加载该选项绑定的 exact package，重算 policy/foot/depth SHA 和 `candidate_inventory`。切换 A/B 时使用项目选择器，不要从下载目录手工挑选同名文件。
-2. 先复核曲线、重点窗口和足点叠加；拖动时间轴或一键采用本轮安全 Foot 建议，再处理异常。每个项目分别做一次最终明确 human adoption，并下载严格 review input；本轮 Depth event 数为 0。
-3. 用 CLI 编译 decision 与 reviewed policy。
-4. 发布并复验各项目的 P9 reviewed-motion bundle；只有取得 P9 exact 地址后，才能继续
-   回填 readiness 和后续 P10 链。
+1. 项目 A（`seethrough_output`）从 P9 回执携带表中的 exact package ID 进入真实 seam 人审；完成六条决定后编译 P10.5c reviewed set，并继续动态 seam 门禁。P9 双 SHA 继续用于 readiness/P10 身份，不要求普通用户抄写后进入 Seam。
+2. 项目 B（`seethrough_output_5`）虽然 P9 已通过，但左右 `pelvis_leg` 与 `leg_foot` 四条关系不可观测。必须修复 See-through 分层/语义并生成新内容地址，或另立明确禁止通用腿部动画的版本化 partial seam 合同；不得把 P9 成功改写成完整下肢 seam 通过。
+3. 为 readiness v1 生成新的 strict canonical 请求并显式写入表中 P9 双 SHA。仓库自带的 baseline 请求仍把下游字段设为 `null`，不会自动发现这些地址。
+4. 只有各项目实际关闭自己的 seam 合同后，才继续 P10.0–P10.7a、官方 Runtime capture、sampled raster 人审与独立 P10.7c setup golden 对照。

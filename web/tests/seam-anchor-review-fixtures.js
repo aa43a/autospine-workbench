@@ -10,6 +10,7 @@ export const SHA = {
   manifest: "a".repeat(64), rig: "b".repeat(64), bundle: "c".repeat(64),
   candidate: "d".repeat(64), relationship: "e".repeat(64),
   option: "f".repeat(64), image: "1".repeat(64), decision: "2".repeat(64),
+  package: "3".repeat(64),
 };
 export const RELATIONSHIPS = [
   "seam.torso_arm.left", "seam.torso_arm.right",
@@ -68,7 +69,10 @@ export function candidateEnvelope() {
       layer_manifest_sha256: SHA.manifest, rig_sha256: SHA.rig,
       bundle_sha256: SHA.bundle,
     },
-    summary: { status: "manual_review_required" },
+    summary: {
+      status: "manual_review_required", relationship_count: 6,
+      review_required_count: 6, unobservable_count: 0,
+    },
     release_gate: { status: "blocked", reason_codes: ["manual_review_required"] },
     relationships,
   };
@@ -91,6 +95,55 @@ export function candidateEnvelope() {
   });
   return {
     candidate_sha256: SHA.candidate, candidate, attachment_images: attachmentImages,
+  };
+}
+
+export function blockedCandidateEnvelope() {
+  const payload = candidateEnvelope();
+  const reasonCodes = [
+    ["CHILD_ROLE_MISSING", "NO_SUPPORTED_CANDIDATE_PAIR"],
+    ["CHILD_ROLE_MISSING", "NO_SUPPORTED_CANDIDATE_PAIR"],
+    ["NO_SUPPORTED_CANDIDATE_PAIR", "PARENT_ROLE_MISSING"],
+    ["NO_SUPPORTED_CANDIDATE_PAIR", "PARENT_ROLE_MISSING"],
+  ];
+  payload.candidate.relationships.slice(2).forEach((relationship, index) => {
+    const removed = relationship.options.map((row) => row.option_id);
+    relationship.status = "unobservable";
+    relationship.reason_codes = reasonCodes[index];
+    relationship.options = [];
+    payload.attachment_images = payload.attachment_images.filter(
+      (row) => !removed.includes(row.option_id),
+    );
+  });
+  payload.candidate.summary.review_required_count = 2;
+  payload.candidate.summary.unobservable_count = 4;
+  return payload;
+}
+
+export function seamEntryPayload(blocked = false, packageId = SHA.package) {
+  const blockingRelationships = blocked ? [
+    [RELATIONSHIPS[2], ["CHILD_ROLE_MISSING", "NO_SUPPORTED_CANDIDATE_PAIR"]],
+    [RELATIONSHIPS[3], ["CHILD_ROLE_MISSING", "NO_SUPPORTED_CANDIDATE_PAIR"]],
+    [RELATIONSHIPS[4], ["NO_SUPPORTED_CANDIDATE_PAIR", "PARENT_ROLE_MISSING"]],
+    [RELATIONSHIPS[5], ["NO_SUPPORTED_CANDIDATE_PAIR", "PARENT_ROLE_MISSING"]],
+  ].map(([relationship_id, reason_codes]) => ({ relationship_id, reason_codes })) : [];
+  return {
+    format: "autospine-seam-review-entry", format_version: 1,
+    package_id: packageId, project_id: ADDRESS.projectId,
+    address: {
+      project_id: ADDRESS.projectId,
+      layer_manifest_sha256: ADDRESS.layerManifestSha256,
+      p3_rig_sha256: ADDRESS.p3RigSha256,
+      p3_bundle_sha256: ADDRESS.p3BundleSha256,
+    },
+    candidate_sha256: SHA.candidate,
+    status: blocked ? "blocked_unobservable" : "manual_review_required",
+    summary: {
+      relationship_count: 6,
+      review_required_count: blocked ? 2 : 6,
+      unobservable_count: blocked ? 4 : 0,
+    },
+    blocking_relationships: blockingRelationships,
   };
 }
 

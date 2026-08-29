@@ -29,7 +29,14 @@ python -B -m autospine_workbench audit-body-sway-spine42-v3-readiness `
 | `seethrough_output` | `ed1e2458cd22b75c51f13656feb86ecf55682508b62413c980c3035743e8faa7` | `40f96ade2f38f93caa7610b40f02ed9b30b8782396cee0e80499724a0450e327` | `7754406b1f6834a6b5c8fedfcd4743bd294d8cc568d7ff6413673cada3d79a1d` |
 | `seethrough_output_5` | `45b5f2a90c55866a17c83a01e7ae46e9bd2bed51b4a918d60690a574f14bff51` | `897761e75bdd7e1cd3018cdab0f793f2d3ba637d88e01ce907beb179cfe0cd77` | `21f4707eaf023d664ae8cea8b785fd8a5197187f846d6db10b9c3ef34d7c6576` |
 
-该文件故意把以下五组下游地址和 raster 人工决定全部设为 `null`：
+2026-08-30，两个项目的真实 P9 reviewed-motion bundle 已分别通过 exact reader 重放：
+
+| 项目 | P9 MotionInstance v2 SHA-256 | P9 reviewed-motion bundle SHA-256 |
+| --- | --- | --- |
+| `seethrough_output` | `3c7bb6efcdb91d3ad3c1984ae19159a2ceb2b7aa8f0b88fc405d63956bd59823` | `b347c56a217b4cc844da3f115f100ae8b1352389207f357824ba322bdb46649c` |
+| `seethrough_output_5` | `706225aca7359f46daf0c318e186252b36c44650cd1539eb667e40f50e715754` | `39076c3589b046268b01c6c85bb0f7393403d2d0973ae417ef78271b649d0e96` |
+
+仓库自带的示例文件是冻结的 baseline，仍故意把以下五组下游地址和 raster 人工决定全部设为 `null`。因此直接运行本节开头的示例命令仍会报告 P9 地址未声明；这不再代表当前工作区没有真实 P9。要审计最新状态，应以示例为结构起点，使用 canonical builder 生成一份新的请求，并把上表双 SHA 填入对应项目的 `reviewed_motion_address`：
 
 - `reviewed_motion_address`：P9 的 `motion_instance_v2_sha256` 与 `bundle_sha256`；
 - `reviewed_seam_anchor_set_address`：P10.5c 的 `reviewed_seam_anchor_set_sha256` 与 `bundle_sha256`；
@@ -49,7 +56,7 @@ python -B -m autospine_workbench audit-body-sway-spine42-v3-readiness `
 | Checkpoint | 证明范围 | 常见下一步 |
 | --- | --- | --- |
 | `p3_seam_source` | 精确 Manifest/P3 能重放静态接缝候选 | 修复精确 P3 来源地址 |
-| `p9_reviewed_motion` | 精确真实 Kimodo reviewed-motion bundle 可重放且绑定当前 P3 | 完成真实 P7/P8/P9 并填写双 SHA |
+| `p9_reviewed_motion` | 精确真实 Kimodo reviewed-motion bundle 可重放且绑定当前 P3 | 填入并复验当前真实 P9 双 SHA |
 | `p10_5_reviewed_seam_anchor_set` | 六关系人工复核与 P10.5c bundle 已闭合 | 完成人审，或修复不可观测语义/分层 |
 | `p10_6b_motion_instance_v3` | 精确 P10.6b bundle 可重放并绑定 P9/seam set | 完成 P10.0–P10.6b |
 | `p10_7a_spine42_v3` | 精确五文件 Spine 4.2 v3 bundle 可重放 | 编译并填写 P10.7a 双 SHA |
@@ -63,15 +70,15 @@ python -B -m autospine_workbench audit-body-sway-spine42-v3-readiness `
 
 ## 当前两份真实样本结论
 
-在示例请求所固定的当前地址下，以下结论只来自已声明地址及其只读 pure replay；没有声明的地址不会被自动发现：
+以下结论区分“真实工件已存在”与“冻结 baseline 是否声明地址”。审计只重放请求中显式声明的地址，不会自动发现工作区内容：
 
-- 两个项目都没有在请求中声明真实 reviewed-motion 双 SHA，所以 `p9_reviewed_motion` 报告 `exact_reviewed_motion_address_not_declared`。这不是对 state root 中 current/latest 工件的发现结论；现有内建 idle/wave 或合成 Kimodo fixture 仍不能替代真实 P7/P8/P9。
-- `seethrough_output` 的 P3 seam candidate pure replay 显示六条 relationship 可观测；由于请求未声明 P10.5c 双 SHA，checkpoint 只报告 `reviewed_seam_anchor_set_address_not_declared`。审计没有检查 seam review head 是否存在；进入下一步前必须完成或确认 P10.5b 人审、编译 P10.5c，并声明精确双 SHA。
-- `seethrough_output_5` 有四条腿/脚关系不可观测：左右 `pelvis_leg` 缺 child role，左右 `leg_foot` 缺 parent role。P10.5c 的完整六关系合同不能把这些行自动批准；需要回到上游修复语义/分层并重新生成受内容地址约束的 Manifest/P3，或者另立、版本化并单独验收 partial seam 合同。
-- 官方 Spine 4.2 Runtime/Capture 基础设施当前已存在，因此不需要把“下载 Runtime”作为第一步；P9 和 seam 人工门禁更早。审计不会主动发现或调用该 Runtime。
+- A/B 的真实 P9 双 SHA 已由 `verify-reviewed-motion-bundle` 复验，均返回 `verification.status=passed` 与 `replayed_from_exact_upstreams=true`。冻结 baseline 仍为 `null`，所以直接运行它时 `p9_reviewed_motion` 仍报告 `exact_reviewed_motion_address_not_declared`；只有生成并审计显式填入上表地址的新请求，才能让 readiness checkpoint 记录这项事实。
+- `seethrough_output` 的 P3 seam candidate pure replay 显示六条 relationship 可观测。P9 已关闭后，下一步是完成或确认 P10.5b 人审、编译 P10.5c，并在新请求中声明精确双 SHA；在此之前 seam checkpoint 仍只能报告 `reviewed_seam_anchor_set_address_not_declared`。
+- `seethrough_output_5` 的 P9 同样已经通过，但四条腿/脚关系不可观测：左右 `pelvis_leg` 缺 child role，左右 `leg_foot` 缺 parent role。P10.5c 的完整六关系合同不能把这些行自动批准；需要回到上游修复语义/分层并重新生成受内容地址约束的 Manifest/P3，或者另立、版本化并单独验收 partial seam 合同。
+- 官方 Spine 4.2 Runtime/Capture 基础设施当前已存在，因此不需要把“下载 Runtime”作为第一步；当前更早的 blocker 是各项目的 seam 合同。审计不会主动发现或调用该 Runtime。
 - P10.7c 独立比较命令已经存在，但当前 A/B 都没有满足其请求合同所需的真实 P10.7a/capture 地址；这项能力交付不能被表述为真实双样本已通过。
 
-建议先并行生成、复核并声明真实 Kimodo P7/P8/P9 地址，完成或确认项目 A 的 seam 人审并声明 P10.5c 地址，同时对项目 B 做上游修复方案评审。只有精确工件实际产生后，才把对应地址从 `null` 改成真实 SHA 并重新运行审计。
+建议先生成一份显式包含上述 P9 地址的新 canonical readiness 请求。项目 A 随后进入 seam 人审和 P10.5c；项目 B 先完成“上游修复”或“版本化 partial seam 合同”的方案评审。只有相应 seam 精确工件实际产生后，才继续填写 P10.5c 及更下游地址并重新运行审计。
 
 ## 审计不会做什么
 

@@ -15,14 +15,24 @@ import {
 } from "../modules/seam-anchor-review-history.js";
 import {
   buildSeamReviewSubmission, createBusyGroup, deriveSeamReviewSummary,
+  createSeamReviewState,
   expectedSeamSubmissionResult, hasLoadedSeamReviewAddress,
   markSeamSubmissionConflict,
   setAdjustedAnchorsText, setSeamAction, setSeamNotes, setSeamOption,
 } from "../modules/seam-anchor-review-state.js";
 import {
-  ADDRESS, RELATIONSHIPS, SHA, candidateEnvelope, decideAll,
-  jsonResponse, normalizedState,
+  ADDRESS, RELATIONSHIPS, SHA, candidateEnvelope,
+  decideAll, jsonResponse, normalizedState,
 } from "./seam-anchor-review-fixtures.js";
+
+function normalizeCandidate(payload) {
+  const paths = seamAnchorReviewPaths(ADDRESS);
+  return normalizeSeamCandidateEnvelope(
+    payload, ADDRESS, (optionId, attachmentId, sha) => paths.optionImage(
+      SHA.candidate, optionId, attachmentId, sha,
+    ),
+  );
+}
 
 test("uses exact REST paths and never discovers an address", async () => {
   const calls = [];

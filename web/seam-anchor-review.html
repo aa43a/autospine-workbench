@@ -7,6 +7,7 @@
   <meta name="theme-color" content="#090d13">
   <title>P10.5b Seam Anchor 人工复核 — AutoSpine</title>
   <link rel="stylesheet" href="./seam-anchor-review.css">
+  <link rel="stylesheet" href="./seam-anchor-review-entry.css">
 </head>
 <body>
   <a class="skip-link" href="#reviewRelationships">跳到 relationship 候选</a>
@@ -23,16 +24,46 @@
   </header>
 
   <main>
-    <section class="panel address-panel" aria-labelledby="addressHeading">
+    <section class="panel entry-panel" aria-labelledby="entryHeading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">P9 → P10.5b · VERIFIED HANDOFF</p>
+          <h2 id="entryHeading">从 Motion Policy 自动进入 Seam 复核</h2>
+        </div>
+        <span id="entryBadge" class="entry-badge" data-tone="neutral">等待 P9 package</span>
+      </div>
+      <p id="entryStatus" class="status-line entry-status" role="status"
+        aria-live="polite" aria-atomic="true">
+        正在检查页面入口。
+      </p>
+      <div id="entrySummary" class="entry-summary" hidden>
+        <dl class="entry-facts" aria-label="自动入口摘要">
+          <div><dt>项目</dt><dd id="entryProject">—</dd></div>
+          <div><dt>Package</dt><dd><code id="entryPackageId">—</code></dd></div>
+          <div><dt>需人工复核</dt><dd id="entryReviewRequired">—</dd></div>
+          <div><dt>不可观测</dt><dd id="entryUnobservable">—</dd></div>
+        </dl>
+        <section id="entryBlockers" class="entry-blockers" aria-labelledby="entryBlockersHeading" hidden>
+          <h3 id="entryBlockersHeading">不可观测 blocker</h3>
+          <p>这些关系没有可接受的源证据，必须保留为人工处理项。</p>
+          <ul id="entryBlockerList"></ul>
+          <p class="blocker-guard">不会自动 accept，也不会生成 locator 或图像 fallback。</p>
+        </section>
+      </div>
+    </section>
+
+    <details id="expertAddressDetails" class="expert-address">
+      <summary>专业模式：手动输入项目与四项 exact 地址</summary>
+      <section class="panel address-panel" aria-labelledby="addressHeading">
       <div class="section-heading">
         <div>
           <p class="eyebrow">EXACT ADDRESS</p>
-          <h2 id="addressHeading">加载指定 Layer Manifest 与 P3 bundle</h2>
+          <h2 id="addressHeading">手动加载 Layer Manifest 与 P3 bundle</h2>
         </div>
-        <span class="gate-badge">不会自动选择</span>
+        <span class="gate-badge">审计 / 排障 fallback</span>
       </div>
       <p id="addressHint" class="lede">
-        四项内容地址缺一不可。修改任一字段会立即丢弃候选、图片证据、历史、基线和未提交草稿。
+        普通流程无需查看或填写这些字段。手工修改任一地址会退出 package 模式，并立即丢弃候选、图片证据、历史、基线和未提交草稿。
       </p>
       <form id="addressForm" class="address-grid" aria-describedby="addressHint" novalidate>
         <label>
@@ -61,7 +92,8 @@
         <button id="loadCandidateBtn" class="button primary" type="submit">加载精确候选</button>
       </form>
       <p id="addressStatus" class="status-line" role="status" aria-live="polite">尚未加载。</p>
-    </section>
+      </section>
+    </details>
 
     <div id="reviewWorkspace" class="review-layout" hidden>
       <section class="panel relationships-panel" aria-labelledby="relationshipsHeading">

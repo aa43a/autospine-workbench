@@ -11,6 +11,10 @@ from .motion_policy_review_packages import (
     get_motion_policy_review_package,
     list_motion_policy_review_packages,
 )
+from .motion_policy_seam_review_entry_routes import (
+    dispatch_motion_policy_seam_review_entry_get,
+    is_motion_policy_seam_review_entry_path,
+)
 from .project_store import ProjectStore
 
 
@@ -19,14 +23,17 @@ ALLOW_METHODS = "GET, HEAD, OPTIONS"
 
 
 def is_motion_policy_review_package_path(parts: list[str]) -> bool:
-    return parts[:3] == ["api", "motion-policy", "review-packages"] and (
-        len(parts) == 3 or len(parts) == 4
+    return is_motion_policy_seam_review_entry_path(parts) or (
+        parts[:3] == ["api", "motion-policy", "review-packages"]
+        and len(parts) in {3, 4}
     )
 
 
 def dispatch_motion_policy_review_package_get(
     parts: list[str], store: ProjectStore, send_json: SendJson,
 ) -> bool:
+    if dispatch_motion_policy_seam_review_entry_get(parts, store, send_json):
+        return True
     if parts == ["api", "motion-policy", "review-packages"]:
         try:
             send_json(

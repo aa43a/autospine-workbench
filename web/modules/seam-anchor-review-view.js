@@ -6,6 +6,9 @@ import {
 import { deriveSeamReviewSummary } from "./seam-anchor-review-state.js";
 
 const IDS = [
+  "entryBadge", "entryStatus", "entrySummary", "entryProject", "entryPackageId",
+  "entryReviewRequired", "entryUnobservable", "entryBlockers", "entryBlockerList",
+  "expertAddressDetails",
   "addressForm", "projectId", "layerManifestSha256", "p3RigSha256",
   "p3BundleSha256", "loadCandidateBtn", "addressStatus", "reviewWorkspace",
   "candidateDigest", "reviewProgress", "derivedStatus", "releaseStatus",
