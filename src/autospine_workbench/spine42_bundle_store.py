@@ -6,9 +6,9 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 import os
 from pathlib import Path
-import tempfile
 from typing import Any
 
+from .atomic_staging import create_same_parent_staging
 from .safe_input_files import SafeInputFileError, strict_json_object
 from .spine42_bundle_contract import (
     Spine42BundleContract,
@@ -83,9 +83,9 @@ class Spine42BundleStore:
             if destination is not None:
                 verify_spine42_bundle_directory(destination, contract)
                 return _published(destination, contract, reused=True)
-            staging = Path(tempfile.mkdtemp(
-                prefix=f".{contract.bundle_sha256[:12]}.", dir=parent,
-            ))
+            staging = create_same_parent_staging(
+                parent, prefix=f".{contract.bundle_sha256[:12]}.",
+            )
             require_real_directory(staging, "Spine bundle staging directory")
             for name, data in contract.document_bytes.items():
                 write_file(staging / name, data)

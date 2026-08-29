@@ -6,9 +6,9 @@ from dataclasses import dataclass
 import os
 from pathlib import Path
 import shutil
-import tempfile
 from typing import TYPE_CHECKING
 
+from .atomic_staging import create_same_parent_staging
 from .immutable_bundle_fs import (
     ImmutableBundleFSError,
     _child,
@@ -49,7 +49,9 @@ def publish_exact_bundle(
         if existing is not None:
             _require_same(store, primary, address, payloads)
             return PublishedImmutableBundle(existing, primary, address, True)
-        staging = Path(tempfile.mkdtemp(prefix=f".{address[:12]}.", dir=parent))
+        staging = create_same_parent_staging(
+            parent, prefix=f".{address[:12]}.",
+        )
         _real_dir(staging, "staging directory")
         for name, data in zip(store.ordered_names, payloads, strict=True):
             _write(staging / name, data)

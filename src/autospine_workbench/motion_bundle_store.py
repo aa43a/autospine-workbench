@@ -8,9 +8,9 @@ import os
 from pathlib import Path
 import shutil
 import stat
-import tempfile
 from typing import Any
 
+from .atomic_staging import create_same_parent_staging
 from .motion_bundle_contract import (
     MotionBundleContract,
     MotionBundleContractError,
@@ -68,9 +68,9 @@ class MotionBundleStore:
             if destination is not None:
                 _verify(destination, contract, content_address=True)
                 return _published(destination, contract, reused=True)
-            staging = Path(tempfile.mkdtemp(
-                prefix=f".{contract.bundle_sha256[:12]}.", dir=clip_parent,
-            ))
+            staging = create_same_parent_staging(
+                clip_parent, prefix=f".{contract.bundle_sha256[:12]}.",
+            )
             _require_real_directory(staging, "motion bundle staging directory")
             for name, data in contract.document_bytes.items():
                 _write_file(staging / name, data)

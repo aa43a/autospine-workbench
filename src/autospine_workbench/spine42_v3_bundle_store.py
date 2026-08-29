@@ -5,8 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 import os
 from pathlib import Path
-import tempfile
 
+from .atomic_staging import create_same_parent_staging
 from .spine42_v3_bundle_contract import (
     Spine42V3BundleContract,
     Spine42V3BundleContractError,
@@ -96,9 +96,9 @@ class Spine42V3BundleStore:
                 _verify(destination, contract)
                 reused = True
             else:
-                staging = Path(tempfile.mkdtemp(
-                    prefix=f".{contract.bundle_sha256[:12]}.", dir=parent,
-                ))
+                staging = create_same_parent_staging(
+                    parent, prefix=f".{contract.bundle_sha256[:12]}.",
+                )
                 require_real_directory(staging, "Spine v3 staging directory")
                 for name, data in contract.document_bytes.items():
                     write_file(staging / name, data)

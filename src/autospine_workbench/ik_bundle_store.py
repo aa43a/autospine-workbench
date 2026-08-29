@@ -8,9 +8,9 @@ import os
 from pathlib import Path
 import shutil
 import stat
-import tempfile
 from typing import Any
 
+from .atomic_staging import create_same_parent_staging
 from .ik_bundle_contract import (
     IkBundleContract,
     IkBundleContractError,
@@ -53,9 +53,9 @@ class IkBundleStore:
             if destination is not None:
                 _verify(destination, contract, content_address=True)
                 return _published(destination, contract)
-            staging = Path(tempfile.mkdtemp(
-                prefix=f".{contract.bundle_sha256[:12]}.", dir=profile_parent
-            ))
+            staging = create_same_parent_staging(
+                profile_parent, prefix=f".{contract.bundle_sha256[:12]}.",
+            )
             _require_real_directory(staging, "IK bundle staging directory")
             _write_contract(staging, contract)
             _verify(staging, contract, content_address=False)

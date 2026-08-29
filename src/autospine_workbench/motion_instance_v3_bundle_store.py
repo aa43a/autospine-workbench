@@ -6,9 +6,9 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 import os
 from pathlib import Path
-import tempfile
 from typing import Any
 
+from .atomic_staging import create_same_parent_staging
 from .body_sway_dynamic_seam_head_checks import (
     require_current_body_sway_dynamic_seam_heads,
 )
@@ -103,9 +103,9 @@ class MotionInstanceV3BundleStore:
             if existing is not None:
                 _verify(existing, contract, reviewed_bundle)
                 return _published(existing, contract, reused=True)
-            staging = Path(tempfile.mkdtemp(
-                prefix=f".{contract.bundle_sha256[:12]}.", dir=parent,
-            ))
+            staging = create_same_parent_staging(
+                parent, prefix=f".{contract.bundle_sha256[:12]}.",
+            )
             require_real_directory(
                 staging, "MotionInstance v3 staging directory"
             )

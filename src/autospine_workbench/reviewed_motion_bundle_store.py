@@ -6,9 +6,9 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 import os
 from pathlib import Path
-import tempfile
 from typing import Any
 
+from .atomic_staging import create_same_parent_staging
 from .mesh_bundle_integrity import VerifiedMeshBundle
 from .motion_retarget_bundle_integrity import VerifiedMotionRetargetBundle
 from .reviewed_motion_bundle_contract import (
@@ -97,9 +97,9 @@ class ReviewedMotionBundleStore:
             if existing is not None:
                 _verify(existing, contract, mesh_bundle, retarget_bundle)
                 return _published(existing, contract, reused=True)
-            staging = Path(tempfile.mkdtemp(
-                prefix=f".{contract.bundle_sha256[:12]}.", dir=parent,
-            ))
+            staging = create_same_parent_staging(
+                parent, prefix=f".{contract.bundle_sha256[:12]}.",
+            )
             require_real_directory(staging, "Reviewed-motion staging directory")
             for name, data in contract.document_bytes.items():
                 write_file(staging / name, data)

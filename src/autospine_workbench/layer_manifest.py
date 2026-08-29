@@ -6,9 +6,9 @@ import json
 import os
 from pathlib import Path
 import shutil
-import tempfile
 from typing import Any, Mapping, Sequence
 
+from .atomic_staging import create_same_parent_staging
 from .manifest_artifacts import (
     LayerManifestError,
     canonical_layer_artifact_path,
@@ -262,8 +262,8 @@ class LayerManifestBundleStore:
         if destination.exists() or destination.is_symlink():
             self._verify(destination, digest, project_id)
             return destination, digest
-        staging: Path | None = Path(
-            tempfile.mkdtemp(prefix=f".{digest[:12]}.", dir=parent)
+        staging: Path | None = create_same_parent_staging(
+            parent, prefix=f".{digest[:12]}.",
         )
         try:
             assert staging is not None

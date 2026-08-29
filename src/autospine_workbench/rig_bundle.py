@@ -6,9 +6,9 @@ import json
 import os
 from pathlib import Path
 import shutil
-import tempfile
 from typing import Any, Mapping
 
+from .atomic_staging import create_same_parent_staging
 from .layer_manifest import sha256_file
 from .resolved_project import canonical_sha256
 from .rig_bundle_validation import (
@@ -77,10 +77,8 @@ class RigBundleStore:
             )
             return destination, rig_sha
 
-        staging = Path(
-            tempfile.mkdtemp(
-                prefix=f".{rig_sha[:12]}.{bundle_sha[:12]}.", dir=parent
-            )
+        staging = create_same_parent_staging(
+            parent, prefix=f".{rig_sha[:12]}.{bundle_sha[:12]}.",
         )
         try:
             (staging / "layers").mkdir()

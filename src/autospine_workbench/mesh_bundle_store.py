@@ -8,9 +8,9 @@ import os
 from pathlib import Path
 import shutil
 import stat
-import tempfile
 from typing import Any
 
+from .atomic_staging import create_same_parent_staging
 from .mesh_bundle_contract import (
     MeshBundleContract,
     MeshBundleContractError,
@@ -52,9 +52,9 @@ class MeshBundleStore:
             if destination is not None:
                 _verify(destination, contract, content_address=True)
                 return _published(destination, contract)
-            staging = Path(tempfile.mkdtemp(
-                prefix=f".{contract.bundle_sha256[:12]}.", dir=rig_parent
-            ))
+            staging = create_same_parent_staging(
+                rig_parent, prefix=f".{contract.bundle_sha256[:12]}.",
+            )
             _require_real_directory(staging, "mesh bundle staging directory")
             _write_contract(staging, contract)
             _verify(staging, contract, content_address=False)

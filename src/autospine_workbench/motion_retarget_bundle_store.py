@@ -9,9 +9,9 @@ import os
 from pathlib import Path
 import shutil
 import stat
-import tempfile
 from typing import Any
 
+from .atomic_staging import create_same_parent_staging
 from .motion_retarget_bundle_contract import (
     MotionRetargetBundleContract, MotionRetargetBundleContractError,
     build_motion_retarget_bundle_contract,
@@ -63,8 +63,9 @@ class MotionRetargetBundleStore:
             if destination is not None:
                 _verify(destination, contract, content_address=True)
                 return _published(destination, contract, reused=True)
-            staging = Path(tempfile.mkdtemp(
-                prefix=f".{contract.bundle_sha256[:12]}.", dir=instance_parent))
+            staging = create_same_parent_staging(
+                instance_parent, prefix=f".{contract.bundle_sha256[:12]}.",
+            )
             _require_real_directory(staging, "retarget bundle staging directory")
             for name, data in contract.document_bytes.items():
                 _write_file(staging / name, data)

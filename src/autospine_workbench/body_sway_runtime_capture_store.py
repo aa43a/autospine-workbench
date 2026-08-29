@@ -7,8 +7,8 @@ import json
 import os
 from pathlib import Path
 import stat
-import tempfile
 
+from .atomic_staging import create_same_parent_staging
 from .body_sway_runtime_capture import BodySwayRuntimeCapture
 from .body_sway_runtime_capture_bundle import (
     MANIFEST_NAME,
@@ -81,9 +81,9 @@ class BodySwayRuntimeCaptureStore:
             if destination is not None:
                 _verify_directory(destination, bundle)
                 return _published(destination, bundle, reused=True)
-            staging = Path(tempfile.mkdtemp(
-                prefix=f".{bundle.bundle_sha256[:12]}.", dir=parent,
-            ))
+            staging = create_same_parent_staging(
+                parent, prefix=f".{bundle.bundle_sha256[:12]}.",
+            )
             require_real_directory(staging, "Runtime capture staging directory")
             captures_dir = staging / "captures"
             captures_dir.mkdir()

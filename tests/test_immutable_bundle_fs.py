@@ -19,6 +19,7 @@ from autospine_workbench.immutable_bundle_fs import (  # noqa: E402
     ImmutableThreeFileBundleFS,
     framed_bundle_sha256,
 )
+from autospine_workbench import immutable_bundle_publish  # noqa: E402
 
 NAMES = ("evidence.json", "run.json", "summary.json")
 PRIMARY = "a" * 64
@@ -83,6 +84,26 @@ class ImmutableBundleFSTests(unittest.TestCase):
         self.assertEqual({self.address}, {
             child.name for child in results[0].path.parent.iterdir()
         })
+
+    def test_partial_write_failure_removes_stage_and_publishes_nothing(self) -> None:
+        original = immutable_bundle_publish._write
+        calls = 0
+
+        def fail_after_first_file(path: Path, data: bytes) -> None:
+            nonlocal calls
+            calls += 1
+            if calls == 2:
+                raise OSError("injected write failure")
+            original(path, data)
+
+        with patch.object(
+            immutable_bundle_publish, "_write", fail_after_first_file,
+        ), self.assertRaises(ImmutableBundleFSError):
+            self.store.publish(PRIMARY, self.address, self.files)
+        parent = self.root / "camera-motion" / PRIMARY
+        self.assertTrue(parent.is_dir())
+        self.assertEqual([], list(parent.iterdir()))
+        self.assertFalse(self.store.exact_path(PRIMARY, self.address).exists())
 
     def test_bad_addresses_inventory_bytes_and_limits_fail_closed(self) -> None:
         with self.assertRaises(ImmutableBundleFSError):
