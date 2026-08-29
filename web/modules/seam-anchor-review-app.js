@@ -4,22 +4,23 @@ import {
   normalizeSeamReviewAddress,
 } from "./seam-anchor-review-address.js";
 import {
-  SeamAnchorReviewApiError, createSeamAnchorReviewApi,
+  createSeamAnchorReviewApi,
 } from "./seam-anchor-review-api.js";
+import { createSeamAssistController } from "./seam-anchor-review-assist-controller.js";
 import { normalizeSeamCandidateEnvelope } from "./seam-anchor-review-candidate.js";
 import { createSeamReviewEntryFlow } from "./seam-anchor-review-entry-flow.js";
 import {
   createSeamReviewHistoryController,
 } from "./seam-anchor-review-history-controller.js";
 import { createSeamReviewInteractions } from "./seam-anchor-review-interactions.js";
+import { createSeamReviewSubmitFlow } from "./seam-anchor-review-submit-flow.js";
 import {
-  buildSeamReviewSubmission, clearSeamReviewForAddress, createBusyGroup,
-  createRequestSequence, createSeamReviewState, expectedSeamSubmissionResult,
-  hasLoadedSeamReviewAddress, markSeamSubmissionConflict,
+  clearSeamReviewForAddress, createBusyGroup, createRequestSequence,
+  createSeamReviewState, hasLoadedSeamReviewAddress,
 } from "./seam-anchor-review-state.js";
 import {
   announce, resetSeamReviewView, seamAddressValues, seamReviewElements,
-  setSeamDraftDisabled, setStatus, showSeamCandidate,
+  setSeamDraftDisabled, setStatus, showSeamAssist, showSeamCandidate,
   updateAnchorValidity, updateSeamReviewSummary,
 } from "./seam-anchor-review-view.js";
 
@@ -30,19 +31,27 @@ let state = createSeamReviewState();
 let address = null;
 let activity = { candidate: false, history: false, mutation: false };
 let entryFlow = null;
+let assistUndoAvailable = false;
+let submitFlow = null;
 
 function syncOperationControls() {
   const locked = activity.mutation;
+  const committed = Boolean(submitFlow?.snapshot().decisionCommitted);
   for (const control of elements.addressForm.querySelectorAll("input, button")) {
     control.disabled = locked;
   }
   elements.loadCandidateBtn.disabled = activity.candidate || locked;
+  elements.applyAssistBtn.disabled = activity.candidate || locked || committed
+    || !state.reviewAssist;
+  elements.undoAssistBtn.disabled = locked || committed || !assistUndoAvailable;
+  elements.retryPublicationBtn.disabled = locked;
+  elements.downloadPublicationBtn.disabled = locked || !submitFlow?.hasReceipt();
   elements.refreshHistoryBtn.disabled = activity.history || locked || !state.candidate;
   elements.useHeadBtn.disabled = activity.history || locked || !state.history;
   elements.historyList.inert = activity.history || locked;
   elements.historyList.setAttribute("aria-busy", String(activity.history));
-  setSeamDraftDisabled(elements, locked);
-  if (activity.candidate || activity.history || locked) {
+  setSeamDraftDisabled(elements, locked || committed);
+  if (activity.candidate || activity.history || locked || committed) {
     elements.submitReviewBtn.disabled = true;
   } else updateSeamReviewSummary(elements, state);
 }
@@ -59,7 +68,9 @@ function invalidateAddress() {
   requests.invalidate();
   state = clearSeamReviewForAddress(state);
   address = null;
+  submitFlow?.reset();
   resetSeamReviewView(elements);
+  assistController?.reset();
   setStatus(
     elements.addressStatus,
     "地址已改变；候选、图片证据、历史、基线和草稿均已清空。", "warning",
@@ -98,20 +109,27 @@ async function loadCandidate(event) {
         address, payload.candidate_sha256, optionId, attachmentId, imageSha,
       ),
     );
-    entryFlow?.verifyCandidate(envelope);
+    const packageEntry = entryFlow?.verifyCandidate(envelope);
     state = {
       ...state, candidate: envelope.candidate,
       candidateSha256: envelope.candidateSha256,
       attachmentImages: envelope.attachmentImages,
+      setupCanvas: envelope.setupCanvas, reviewAssist: envelope.reviewAssist,
+      reviewerId: packageEntry ? "workbench-operator" : state.reviewerId,
     };
-    showSeamCandidate(elements, state, focusId);
+    elements.reviewerId.value = state.reviewerId;
+    assistController.reset();
+    assistController.apply({ automatic: true });
+    showSeamAssist(elements, state.reviewAssist, true);
     setStatus(
       elements.addressStatus,
       `已加载固定 ${state.candidate.relationships.length} 个 relationship。`, "success",
     );
     try {
       const history = await api.loadHistory(address, state.candidateSha256);
-      if (requests.isCurrent(token)) historyController.applyHistory(history);
+      if (requests.isCurrent(token)) historyController.applyHistory(history, {
+        autoBaseline: Boolean(entryFlow?.currentEntry()),
+      });
     } catch (historyError) {
       if (requests.isCurrent(token)) setStatus(
         elements.baselineStatus,
@@ -121,6 +139,7 @@ async function loadCandidate(event) {
   } catch (error) {
     if (!requests.isCurrent(token)) return;
     state = clearSeamReviewForAddress(state, address);
+    assistController.reset();
     resetSeamReviewView(elements);
     entryFlow?.candidateFailed(error);
     setStatus(elements.addressStatus, `加载失败：${errorText(error)}`, "error");
@@ -128,82 +147,16 @@ async function loadCandidate(event) {
     busy.finish("candidate", busyToken);
   }
 }
-function validateSubmitEnvelope(payload, baseline, expected) {
-  if (payload?.candidate_sha256 !== state.candidateSha256
-      || payload?.revision !== baseline.revision + 1
-      || !/^[0-9a-f]{64}$/.test(payload?.decision_sha256)
-      || typeof payload?.reused !== "boolean"
-      || payload?.status !== expected.status
-      || JSON.stringify(payload?.release_gate) !== JSON.stringify(expected.releaseGate)
-      || JSON.stringify(payload?.summary) !== JSON.stringify(expected.summary)) {
-    throw new Error("提交响应与请求的 revision 链不一致");
-  }
-  return payload;
-}
-
-async function submitReview() {
-  let payload;
-  try {
-    state = {
-      ...state, reviewerId: elements.reviewerId.value,
-      reviewNotes: elements.reviewNotes.value,
-    };
-    payload = buildSeamReviewSubmission(state);
-  } catch (error) {
-    setStatus(elements.submitStatus, errorText(error), "error");
-    return;
-  }
-  const baseline = state.baseline;
-  const expected = expectedSeamSubmissionResult(state);
-  const token = requests.next();
-  const busyToken = busy.begin("mutation");
-  setStatus(elements.submitStatus, "正在提交不可变 seam review revision…");
-  try {
-    const response = validateSubmitEnvelope(
-      await api.submit(address, state.candidateSha256, payload), baseline,
-      expected,
-    );
-    if (!requests.isCurrent(token)) return;
-    state = {
-      ...state, history: null, selectedDecision: null, baseline: null, stale: false,
-    };
-    elements.historyList.replaceChildren();
-    elements.decisionDocument.textContent = "—";
-    elements.useHeadBtn.disabled = true;
-    setStatus(elements.historySelectionStatus, "历史选择已清除。");
-    setStatus(elements.baselineStatus, "已提交；必须重新读取并显式选择下一基线。");
-    setStatus(elements.submitStatus, `提交成功：revision ${response.revision}`, "success");
-    announce(elements, `Seam anchor review revision ${response.revision} 已提交`);
-    try {
-      const history = await api.loadHistory(address, state.candidateSha256);
-      if (requests.isCurrent(token)) historyController.applyHistory(history);
-    } catch (historyError) {
-      if (requests.isCurrent(token)) setStatus(
-        elements.submitStatus,
-        `revision ${response.revision} 已提交，但历史刷新失败：${errorText(historyError)}`,
-        "warning",
-      );
-    }
-  } catch (error) {
-    if (!requests.isCurrent(token)) return;
-    if (error instanceof SeamAnchorReviewApiError && error.status === 409) {
-      state = markSeamSubmissionConflict(state);
-      elements.historyList.replaceChildren();
-      elements.decisionDocument.textContent = "—";
-      elements.useHeadBtn.disabled = true;
-      setStatus(elements.baselineStatus, "旧基线已失效；请重新读取历史。", "warning");
-      setStatus(elements.historySelectionStatus, "历史选择已清除。", "warning");
-      setStatus(
-        elements.submitStatus,
-        "基线已过期（409）。草稿与 anchors 已保留；请读取新 head 后再提交。",
-        "warning",
-      );
-    } else setStatus(elements.submitStatus, `提交失败：${errorText(error)}`, "error");
-  } finally {
-    busy.finish("mutation", busyToken);
-    if (requests.isCurrent(token)) updateSeamReviewSummary(elements, state);
-  }
-}
+const assistController = createSeamAssistController({
+  getState: () => state,
+  setState: (next) => { state = next; },
+  onRender: () => showSeamCandidate(elements, state, state.currentRelationshipId),
+  onStatus: (message, tone) => setStatus(elements.assistStatus, message, tone),
+  onUndoAvailability: (available) => {
+    assistUndoAvailable = available;
+    elements.undoAssistBtn.disabled = activity.mutation || !available;
+  },
+});
 
 const interactions = createSeamReviewInteractions({
   container: elements.reviewRelationships,
@@ -219,7 +172,7 @@ const interactions = createSeamReviewInteractions({
   ),
   onAnnounce: (message) => announce(elements, message),
   onError: (error) => setStatus(elements.submitStatus, errorText(error), "error"),
-  onSubmit: submitReview,
+  onSubmit: () => submitFlow.submit(),
   isLocked: () => activity.mutation,
 });
 
@@ -229,6 +182,15 @@ const historyController = createSeamReviewHistoryController({
   getState: () => state,
   setState: (next) => { state = next; },
 });
+submitFlow = createSeamReviewSubmitFlow({
+  api, elements, requests, busy, errorText,
+  announce: (message) => announce(elements, message),
+  getState: () => state,
+  setState: (next) => { state = next; },
+  getAddress: () => address,
+  getPackageId: () => entryFlow?.currentEntry()?.packageId || null,
+  getHistoryController: () => historyController,
+});
 
 entryFlow = createSeamReviewEntryFlow({
   api, elements, busy,
@@ -236,6 +198,8 @@ entryFlow = createSeamReviewEntryFlow({
     requests.invalidate();
     state = clearSeamReviewForAddress(state);
     address = null;
+    assistController.reset();
+    submitFlow.reset();
     resetSeamReviewView(elements);
     setStatus(elements.addressStatus, "等待自动入口或专业模式地址。");
   },
@@ -252,11 +216,13 @@ for (const input of [
 });
 elements.reviewRelationships.addEventListener("change", (event) => {
   if (event.target.dataset.seamOption || event.target.dataset.seamAction) {
+    assistController.authoredChange();
     interactions.updateDraft(event.target);
   }
 });
 elements.reviewRelationships.addEventListener("input", (event) => {
   if (event.target.dataset.seamNotes || event.target.dataset.anchorJson) {
+    assistController.authoredChange();
     interactions.updateDraft(event.target);
   }
 });
@@ -269,6 +235,10 @@ elements.historyList.addEventListener("click", (event) => {
   if (target) historyController.select(target);
 });
 elements.useHeadBtn.addEventListener("click", historyController.applyHeadBaseline);
+elements.applyAssistBtn.addEventListener("click", () => assistController.apply());
+elements.undoAssistBtn.addEventListener("click", () => assistController.undo());
+elements.retryPublicationBtn.addEventListener("click", submitFlow.retryPublication);
+elements.downloadPublicationBtn.addEventListener("click", submitFlow.download);
 elements.reviewerId.addEventListener("input", () => {
   state = { ...state, reviewerId: elements.reviewerId.value };
   updateSeamReviewSummary(elements, state);
@@ -277,7 +247,7 @@ elements.reviewNotes.addEventListener("input", () => {
   state = { ...state, reviewNotes: elements.reviewNotes.value };
   updateSeamReviewSummary(elements, state);
 });
-elements.submitReviewBtn.addEventListener("click", submitReview);
+elements.submitReviewBtn.addEventListener("click", submitFlow.submit);
 document.addEventListener("keydown", interactions.handleKeyboard);
 window.addEventListener("popstate", () => {
   void entryFlow.loadSearch(window.location.search);

@@ -26,6 +26,13 @@ class SeamAnchorReviewEvidenceNotFound(SeamAnchorReviewEvidenceError):
 
 
 @dataclass(frozen=True, slots=True)
+class SeamAnchorReviewAnchorPoint:
+    pair_id: str
+    x_q1000_px: int
+    y_q1000_px: int
+
+
+@dataclass(frozen=True, slots=True)
 class SeamAnchorReviewAttachmentRef:
     option_id: str
     attachment_role: str
@@ -34,6 +41,8 @@ class SeamAnchorReviewAttachmentRef:
     image_sha256: str
     width: int
     height: int
+    canvas_offset_xy: tuple[int, int]
+    anchor_points: tuple[SeamAnchorReviewAnchorPoint, ...]
 
 
 @dataclass(frozen=True, slots=True)
@@ -160,7 +169,7 @@ class SeamAnchorReviewEvidenceRepository:
 
 def _candidate_attachment_refs(candidate: dict[str, Any], source):
     images = source.image_by_attachment
-    attachments = _attachment_types(source.rig)
+    attachments = _attachment_rows(source.rig)
     refs: list[SeamAnchorReviewAttachmentRef] = []
     option_ids: set[str] = set()
     for relationship in candidate.get("relationships", []):
@@ -175,13 +184,25 @@ def _candidate_attachment_refs(candidate: dict[str, Any], source):
                 identifier = option.get(f"{role}_attachment_id")
                 kind = option.get(f"{role}_attachment_type")
                 image = images.get(identifier)
-                if image is None or attachments.get(identifier) != kind:
+                attachment = attachments.get(identifier)
+                if image is None or attachment is None \
+                        or attachment.get("type") != kind:
                     raise SeamAnchorReviewEvidenceError(
                         "Candidate attachment differs from exact P3 source"
+                    )
+                points = _option_anchor_points(
+                    option, role, attachment, image.width, image.height,
+                )
+                offset = attachment.get("canvas_offset_xy")
+                if type(offset) is not list or len(offset) != 2 \
+                        or any(type(value) is not int for value in offset):
+                    raise SeamAnchorReviewEvidenceError(
+                        "Candidate attachment offset is invalid"
                     )
                 refs.append(SeamAnchorReviewAttachmentRef(
                     option_id, role, identifier, kind,
                     image.image_sha256, image.width, image.height,
+                    tuple(offset), points,
                 ))
     keys = [(row.option_id, row.attachment_id) for row in refs]
     if len(keys) != len(set(keys)):
@@ -194,11 +215,11 @@ def _candidate_attachment_refs(candidate: dict[str, Any], source):
     ))
 
 
-def _attachment_types(rig: dict[str, Any]) -> dict[str, str]:
+def _attachment_rows(rig: dict[str, Any]) -> dict[str, dict[str, Any]]:
     rows = rig.get("attachments")
     if type(rows) is not list:
         raise SeamAnchorReviewEvidenceError("P3 attachment inventory is invalid")
-    result: dict[str, str] = {}
+    result: dict[str, dict[str, Any]] = {}
     for row in rows:
         if type(row) is not dict or type(row.get("id")) is not str \
                 or row["id"] in result \
@@ -206,8 +227,68 @@ def _attachment_types(rig: dict[str, Any]) -> dict[str, str]:
             raise SeamAnchorReviewEvidenceError(
                 "P3 attachment inventory is invalid"
             )
-        result[row["id"]] = row["type"]
+        result[row["id"]] = row
     return result
+
+
+def _option_anchor_points(option, role, attachment, width, height):
+    anchors = option.get("anchors")
+    status = option.get("status")
+    if type(anchors) is not list:
+        raise SeamAnchorReviewEvidenceError(
+            "Candidate anchor inventory is invalid"
+        )
+    if status == "unavailable":
+        if anchors:
+            raise SeamAnchorReviewEvidenceError(
+                "Unavailable option cannot expose generated anchors"
+            )
+        return ()
+    if status != "candidate" or not 2 <= len(anchors) <= 8:
+        raise SeamAnchorReviewEvidenceError(
+            "Candidate anchor inventory is invalid"
+        )
+    points = []
+    for anchor in anchors:
+        if type(anchor) is not dict:
+            raise SeamAnchorReviewEvidenceError(
+                "Candidate locator is invalid"
+            )
+        locator = anchor.get(role)
+        if type(locator) is not dict:
+            raise SeamAnchorReviewEvidenceError("Candidate locator is invalid")
+        x, y = _locator_millipixels(locator, attachment)
+        if not 0 <= x <= width * 1000 or not 0 <= y <= height * 1000:
+            raise SeamAnchorReviewEvidenceError(
+                "Candidate locator is outside attachment evidence"
+            )
+        points.append(SeamAnchorReviewAnchorPoint(anchor["pair_id"], x, y))
+    return tuple(points)
+
+
+def _locator_millipixels(locator, attachment):
+    if locator.get("locator_type") == "region-local-q4096":
+        values = locator.get("local_xy_q4096")
+        if type(values) is not list or len(values) != 2:
+            raise SeamAnchorReviewEvidenceError("Region locator is invalid")
+        return tuple((value * 1000 + 2048) // 4096 for value in values)
+    if locator.get("locator_type") != "mesh-barycentric-q65535":
+        raise SeamAnchorReviewEvidenceError("Mesh locator is invalid")
+    vertices = attachment.get("vertices")
+    indices = locator.get("vertex_indices")
+    weights = locator.get("weights_q65535")
+    if type(vertices) is not list or type(indices) is not list \
+            or type(weights) is not list or len(indices) != 3 \
+            or len(weights) != 3:
+        raise SeamAnchorReviewEvidenceError("Mesh locator is invalid")
+    try:
+        selected = [vertices[index] for index in indices]
+        numerators = [sum(row[axis] * weight for row, weight in zip(
+            selected, weights, strict=True
+        )) for axis in (0, 1)]
+    except (IndexError, TypeError, ValueError) as exc:
+        raise SeamAnchorReviewEvidenceError("Mesh locator is invalid") from exc
+    return tuple((value * 1000 + 32767) // 65535 for value in numerators)
 
 
 _FAILURES = (

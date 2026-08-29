@@ -3,6 +3,7 @@
 import {
   requireSafeId, requireSha256,
 } from "./seam-anchor-review-address.js";
+import { normalizeSeamReviewAssist } from "./seam-anchor-review-assist-contract.js";
 
 const RELATIONSHIP_IDS = [
   "seam.torso_arm.left", "seam.torso_arm.right",
@@ -11,7 +12,7 @@ const RELATIONSHIP_IDS = [
 ];
 const IMAGE_FIELDS = [
   "option_id", "attachment_role", "attachment_id", "attachment_type",
-  "image_sha256", "width", "height", "url",
+  "image_sha256", "width", "height", "canvas_offset_xy", "anchor_points", "url",
 ];
 
 export const hasExactFields = (value, fields) => value
@@ -68,6 +69,10 @@ function requireOption(raw, relationshipId, index) {
       || !Array.isArray(raw.anchors) || !Array.isArray(raw.reason_codes)) {
     throw new Error("候选包含无效 seam option");
   }
+  if (raw.status === "candidate" && (raw.anchors.length < 2 || raw.anchors.length > 8)
+      || raw.status === "unavailable" && raw.anchors.length !== 0) {
+    throw new Error("候选 option 状态与 anchor 数量不一致");
+  }
   requireSafeId(raw.parent_attachment_id, "parent attachment ID");
   requireSafeId(raw.child_attachment_id, "child attachment ID");
   requireSha256(raw.evidence_sha256, "option evidence SHA-256");
@@ -121,9 +126,23 @@ function requireAttachmentImages(rows, candidate, expectedUrl) {
     if (!hasExactFields(row, IMAGE_FIELDS) || row.option_id !== option.option_id
         || row.attachment_role !== role || row.attachment_id !== id
         || row.attachment_type !== type || !Number.isInteger(row.width) || row.width < 1
-        || !Number.isInteger(row.height) || row.height < 1) {
+        || !Number.isInteger(row.height) || row.height < 1
+        || !Array.isArray(row.canvas_offset_xy) || row.canvas_offset_xy.length !== 2
+        || row.canvas_offset_xy.some((value) => !Number.isInteger(value))
+        || !Array.isArray(row.anchor_points)
+        || row.anchor_points.length !== option.anchors.length) {
       throw new Error("attachment image evidence 与 option 不一致");
     }
+    row.anchor_points.forEach((point, pointIndex) => {
+      if (!hasExactFields(point, ["pair_id", "x_q1000_px", "y_q1000_px"])
+          || point.pair_id !== option.anchors[pointIndex].pair_id
+          || !Number.isInteger(point.x_q1000_px) || point.x_q1000_px < 0
+          || point.x_q1000_px > row.width * 1000
+          || !Number.isInteger(point.y_q1000_px) || point.y_q1000_px < 0
+          || point.y_q1000_px > row.height * 1000) {
+        throw new Error("attachment anchor preview 与 option 不一致");
+      }
+    });
     const sha = requireSha256(row.image_sha256, "attachment image SHA-256");
     if (row.url !== expectedUrl(option.option_id, id, sha)) {
       throw new Error("attachment image URL 与精确证据地址不一致");
@@ -146,8 +165,20 @@ export function normalizeSeamCandidateEnvelope(payload, address, expectedUrl) {
     throw new Error("候选响应与显式地址不一致");
   }
   requireRelationships(candidate);
+  const setupCanvas = payload?.setup_canvas;
+  if (!hasExactFields(setupCanvas, ["width", "height"])
+      || !Number.isInteger(setupCanvas.width) || setupCanvas.width < 1
+      || !Number.isInteger(setupCanvas.height) || setupCanvas.height < 1) {
+    throw new Error("setup canvas evidence 无效");
+  }
   const attachmentImages = requireAttachmentImages(
     payload.attachment_images, candidate, expectedUrl,
   );
-  return { candidateSha256, candidate, attachmentImages };
+  const reviewAssist = normalizeSeamReviewAssist(
+    payload.review_assist, candidateSha256, candidate,
+  );
+  return {
+    candidateSha256, candidate, attachmentImages,
+    setupCanvas: { ...setupCanvas }, reviewAssist,
+  };
 }

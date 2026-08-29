@@ -55,6 +55,44 @@ function option(relationshipId, index) {
   };
 }
 
+export function assistFor(candidate) {
+  const suggestions = candidate.relationships.map((relationship) => {
+    if (relationship.status === "unobservable") return {
+      relationship_id: relationship.relationship_id,
+      action: "unobservable", option_id: null, option_evidence_sha256: null,
+      highlight_option_id: null, batch_eligible: true,
+      disposition: "blocked_unobservable",
+      selection_basis: "source_evidence_unobservable",
+      reason_codes: [...relationship.reason_codes], metrics: null,
+    };
+    const optionRow = relationship.options[0];
+    return {
+      relationship_id: relationship.relationship_id,
+      action: null, option_id: optionRow.option_id,
+      option_evidence_sha256: optionRow.evidence_sha256,
+      highlight_option_id: optionRow.option_id, batch_eligible: true,
+      disposition: "single_option",
+      selection_basis: "only_complete_overlap_option",
+      reason_codes: [], metrics: {
+        minimum_overlap_ratio_q1000000: 200000,
+        area_px: 16, error_radius_q1000_px: 1581,
+      },
+    };
+  });
+  return {
+    format: "autospine-seam-anchor-review-assist", format_version: 1,
+    profile_id: "contact-overlap-strength-v1",
+    candidate_sha256: SHA.candidate, human_confirmation_required: true,
+    auto_fill_count: suggestions.filter(
+      (row) => row.action !== null || row.option_id !== null,
+    ).length,
+    manual_required_count: suggestions.filter(
+      (row) => ["compare_options", "manual_required"].includes(row.disposition),
+    ).length,
+    suggestions,
+  };
+}
+
 export function candidateEnvelope() {
   const relationships = RELATIONSHIPS.map((relationshipId, index) => ({
     relationship_id: relationshipId, relation: relationshipId.split(".")[1],
@@ -77,7 +115,7 @@ export function candidateEnvelope() {
     relationships,
   };
   const paths = seamAnchorReviewPaths(ADDRESS);
-  const attachmentImages = relationships.flatMap((relationship) => {
+  const attachmentImages = relationships.flatMap((relationship, index) => {
     const row = relationship.options[0];
     return ["parent", "child"].map((role) => {
       const attachmentId = row[`${role}_attachment_id`];
@@ -85,6 +123,15 @@ export function candidateEnvelope() {
         option_id: row.option_id, attachment_role: role,
         attachment_id: attachmentId, attachment_type: "region",
         image_sha256: SHA.image, width: 64, height: 96,
+        canvas_offset_xy: [index * 8 + (role === "child" ? 4 : 0), index * 6],
+        anchor_points: row.anchors.map((anchor) => {
+          const point = anchor[role].local_xy_q4096;
+          return {
+            pair_id: anchor.pair_id,
+            x_q1000_px: Math.round(point[0] * 1000 / 4096),
+            y_q1000_px: Math.round(point[1] * 1000 / 4096),
+          };
+        }),
         url: paths.optionImage(SHA.candidate, row.option_id, attachmentId, SHA.image),
       };
     });
@@ -94,7 +141,9 @@ export function candidateEnvelope() {
     return left.attachment_role === "parent" ? -1 : 1;
   });
   return {
-    candidate_sha256: SHA.candidate, candidate, attachment_images: attachmentImages,
+    candidate_sha256: SHA.candidate, candidate,
+    setup_canvas: { width: 400, height: 400 },
+    attachment_images: attachmentImages, review_assist: assistFor(candidate),
   };
 }
 
@@ -117,6 +166,7 @@ export function blockedCandidateEnvelope() {
   });
   payload.candidate.summary.review_required_count = 2;
   payload.candidate.summary.unobservable_count = 4;
+  payload.review_assist = assistFor(payload.candidate);
   return payload;
 }
 
@@ -159,6 +209,7 @@ export function normalizedState() {
     ...createSeamReviewState(), candidate: result.candidate,
     candidateSha256: result.candidateSha256,
     attachmentImages: result.attachmentImages,
+    setupCanvas: result.setupCanvas, reviewAssist: result.reviewAssist,
   };
 }
 

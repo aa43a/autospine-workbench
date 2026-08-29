@@ -12,8 +12,10 @@ from autospine_workbench.seam_anchor_candidates import (
 from tests.seam_anchor_candidate_helpers import seam_inputs
 
 
-def review_candidate_and_rig(*, mesh_id: str | None = None):
-    inputs = seam_inputs(mesh_id=mesh_id)
+def review_candidate_and_rig(
+    *, mesh_id: str | None = None, gap_arm_left: bool = False,
+):
+    inputs = seam_inputs(mesh_id=mesh_id, gap_arm_left=gap_arm_left)
     with patch(
         "autospine_workbench.seam_anchor_candidates."
         "require_seam_anchor_inputs",

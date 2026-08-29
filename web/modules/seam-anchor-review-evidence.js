@@ -3,6 +3,7 @@
 import {
   appendTextElement, evidenceMetadata, reasonList,
 } from "./seam-anchor-review-dom.js";
+import { renderSeamOptionVisual } from "./seam-anchor-review-visual.js";
 
 function locatorText(locator) {
   if (locator.locator_type === "region-local-q4096") {
@@ -92,11 +93,14 @@ function attachmentFigures(doc, option, images) {
 }
 
 export function seamOptionEvidence(
-  doc, relationship, option, selected, images, index,
+  doc, relationship, option, selected, images, index, setupCanvas = null,
+  suggestion = null,
 ) {
   const article = doc.createElement("article");
   article.className = "option-card";
   article.dataset.optionStatus = option.status;
+  const highlighted = suggestion?.highlight_option_id === option.option_id;
+  if (highlighted) article.dataset.assistHighlight = "true";
   const top = doc.createElement("div");
   top.className = "option-topline";
   if (option.status === "candidate") {
@@ -110,14 +114,25 @@ export function seamOptionEvidence(
     radio.dataset.relationshipId = relationship.relationship_id;
     radio.checked = selected;
     label.append(radio);
-    appendTextElement(doc, label, "span", "", `选择 ${option.option_id}`);
+    appendTextElement(
+      doc, label, "span", "",
+      `候选 ${index + 1}：选择并确认为正确${highlighted ? "（建议先看）" : ""}`,
+    );
     top.append(label);
   }
   appendTextElement(doc, top, "span", `status-badge ${option.status}`, option.status);
   article.append(top);
+  if (highlighted) appendTextElement(
+    doc, article, "p", "seam-option-suggestion",
+    "建议重点查看。建议重点查看 ≠ 批准，仍需人工选择并最终确认。",
+  );
+  article.append(renderSeamOptionVisual(doc, option, images, setupCanvas));
   const details = doc.createElement("details");
-  details.open = selected || index === 0;
-  appendTextElement(doc, details, "summary", "mono", option.option_id);
+  details.className = "option-technical-details";
+  details.dataset.optionIndex = String(index);
+  appendTextElement(
+    doc, details, "summary", "", `技术详情：原始标识、数值与单层图（${option.option_id}）`,
+  );
   details.append(evidenceMetadata(doc, [
     ["parent", `${option.parent_attachment_id} / ${option.parent_attachment_type}`],
     ["child", `${option.child_attachment_id} / ${option.child_attachment_type}`],

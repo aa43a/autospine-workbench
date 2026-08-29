@@ -59,6 +59,7 @@ class SeamAnchorReviewEvidenceTests(unittest.TestCase):
         self.prepared = PreparedSeamAnchorReview(
             self.address, digest,
             json.dumps(self.candidate, separators=(",", ":")), history,
+            400, 400,
         )
         self.images = {}
         for attachment in self.rig["attachments"]:
@@ -99,10 +100,18 @@ class SeamAnchorReviewEvidenceTests(unittest.TestCase):
 
         response = candidate_response(self.prepared, refs)
         self.assertEqual(self.candidate, response["candidate"])
+        self.assertEqual(400, response["setup_canvas"]["width"])
+        self.assertTrue(response["review_assist"][
+            "human_confirmation_required"
+        ])
+        self.assertEqual(self.prepared.candidate_sha256, response[
+            "review_assist"
+        ]["candidate_sha256"])
         self.assertEqual(12, len(response["attachment_images"]))
         expected = {
             "option_id", "attachment_role", "attachment_id",
-            "attachment_type", "image_sha256", "width", "height", "url",
+            "attachment_type", "image_sha256", "width", "height",
+            "canvas_offset_xy", "anchor_points", "url",
         }
         for item in response["attachment_images"]:
             self.assertEqual(expected, set(item))
@@ -113,6 +122,12 @@ class SeamAnchorReviewEvidenceTests(unittest.TestCase):
             ))
             self.assertIn(f"/options/{item['option_id']}/", item["url"])
             self.assertTrue(item["url"].endswith(item["image_sha256"]))
+            self.assertEqual(4, len(item["anchor_points"]))
+            self.assertTrue(all(
+                0 <= point["x_q1000_px"] <= item["width"] * 1000
+                and 0 <= point["y_q1000_px"] <= item["height"] * 1000
+                for point in item["anchor_points"]
+            ))
 
     def test_image_requires_candidate_option_attachment_and_digest(self):
         with self.load_patch():
@@ -149,6 +164,75 @@ class SeamAnchorReviewEvidenceTests(unittest.TestCase):
                 self.repository.image(
                     self.address, self.prepared, **(base | changes)
                 )
+
+    def test_unavailable_option_keeps_images_with_zero_anchor_points(self):
+        candidate, rig = review_candidate_and_rig(gap_arm_left=True)
+        source = candidate["source"]
+        address = ExactSeamAnchorReviewAddress(
+            candidate["project_id"], source["layer_manifest_sha256"],
+            source["rig_sha256"], source["bundle_sha256"],
+        )
+        digest = seam_anchor_candidates_sha256(candidate)
+        prepared = PreparedSeamAnchorReview(
+            address, digest,
+            json.dumps(candidate, separators=(",", ":")),
+            SeamAnchorReviewHistorySnapshot(
+                address.project_id, digest, 0, 0, None, ()
+            ),
+            400, 400,
+        )
+        exact_source = SimpleNamespace(
+            rig=rig, images=self.source.images,
+            image_by_attachment=dict(self.images),
+        )
+        repository = SeamAnchorReviewEvidenceRepository(ROOT / "unused")
+        with patch(
+            "autospine_workbench.seam_anchor_review_evidence."
+            "VerifiedMeshSourceReader.load",
+            return_value=exact_source,
+        ):
+            refs = repository.attachment_refs(address, prepared)
+
+        option = candidate["relationships"][0]["options"][0]
+        self.assertEqual("unavailable", option["status"])
+        self.assertEqual([], option["anchors"])
+        option_refs = [
+            row for row in refs if row.option_id == option["option_id"]
+        ]
+        self.assertEqual(["parent", "child"], [
+            row.attachment_role for row in option_refs
+        ])
+        self.assertTrue(all(row.anchor_points == () for row in option_refs))
+        response_rows = [
+            row for row in candidate_response(prepared, refs)[
+                "attachment_images"
+            ] if row["option_id"] == option["option_id"]
+        ]
+        self.assertEqual(2, len(response_rows))
+        self.assertTrue(all(row["anchor_points"] == []
+                            for row in response_rows))
+
+    def test_option_status_anchor_mismatch_fails_closed(self):
+        cases = (("candidate", []), ("unavailable", [
+            self.candidate["relationships"][0]["options"][0]["anchors"][0]
+        ]))
+        for status, anchors in cases:
+            with self.subTest(status=status):
+                forged = json.loads(json.dumps(self.candidate))
+                option = forged["relationships"][0]["options"][0]
+                option["status"] = status
+                option["anchors"] = anchors
+                prepared = PreparedSeamAnchorReview(
+                    self.address, self.prepared.candidate_sha256,
+                    json.dumps(forged, separators=(",", ":")),
+                    self.prepared.history, 400, 400,
+                )
+                with self.load_patch(), self.assertRaises(
+                    SeamAnchorReviewEvidenceError
+                ):
+                    self.repository.attachment_refs(
+                        self.address, prepared
+                    )
 
     def test_crosswired_type_and_tampered_bytes_fail_closed(self):
         rig = json.loads(json.dumps(self.rig))

@@ -1,0 +1,72 @@
+.assist-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  margin-block: 1rem;
+  padding: 1rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 65%, var(--border));
+  border-radius: 10px;
+  background: linear-gradient(135deg, #10231f, #101923);
+}
+
+.assist-panel h3,
+.assist-panel .status-line,
+.assist-panel .assist-summary { margin-block-end: 0; }
+.assist-summary { margin-block-start: 0.35rem; color: var(--muted); }
+.assist-actions { display: grid; min-width: 13rem; gap: 0.55rem; }
+.assist-hint {
+  margin-block: 0.75rem;
+  padding: 0.7rem 0.8rem;
+  border-left: 3px solid var(--accent);
+  border-radius: 0 7px 7px 0;
+  background: #10211f;
+  color: var(--muted);
+}
+.assist-hint.compare_options,
+.assist-hint.blocked_unobservable { border-left-color: var(--warning); background: #211d14; }
+.assist-hint p { margin: 0; }
+
+progress {
+  width: 100%;
+  height: 0.45rem;
+  margin-block-start: 0.4rem;
+  accent-color: var(--accent);
+}
+
+.technical-details > summary,
+.expert-review > summary {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+.technical-details[open] > summary,
+.expert-review[open] > summary { color: var(--text); }
+.release-details { margin-block: 0.65rem 1rem; }
+.operator-details {
+  padding: 0.15rem 0.75rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.operator-details label + label { margin-block-start: 0.7rem; }
+.expert-review { display: grid; gap: 0.75rem; }
+.expert-review > .panel { margin-block-start: 0.75rem; }
+
+.publication-panel { display: grid; gap: 0.75rem; padding: clamp(1rem, 2vw, 1.5rem); }
+.publication-panel[data-status="passed"] { border-color: var(--accent); }
+.publication-panel[data-status="failed"] { border-color: var(--danger); }
+.publication-facts { display: grid; gap: 0.55rem; margin: 0; }
+.publication-facts div {
+  min-width: 0;
+  padding: 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--panel-soft);
+}
+.publication-facts dt { color: var(--muted); font-size: 0.72rem; }
+.publication-facts dd { margin: 0.15rem 0 0; overflow-wrap: anywhere; }
+.publication-facts code { font-size: 0.72rem; }
+
+@media (max-width: 700px) {
+  .assist-panel { grid-template-columns: minmax(0, 1fr); }
+  .assist-actions { min-width: 0; }
+}

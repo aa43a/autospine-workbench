@@ -8,13 +8,15 @@
   <title>P10.5b Seam Anchor 人工复核 — AutoSpine</title>
   <link rel="stylesheet" href="./seam-anchor-review.css">
   <link rel="stylesheet" href="./seam-anchor-review-entry.css">
+  <link rel="stylesheet" href="./seam-anchor-review-visual.css">
+  <link rel="stylesheet" href="./seam-anchor-review-workflow.css">
 </head>
 <body>
   <a class="skip-link" href="#reviewRelationships">跳到 relationship 候选</a>
   <header class="review-topbar">
     <div>
       <p class="eyebrow">P10.5b · STATIC SEAM EVIDENCE</p>
-      <h1>Seam Anchor 候选比较与人工决定</h1>
+      <h1>接缝检查与静态锚点生成</h1>
     </div>
     <nav class="review-nav" aria-label="工作台导航">
       <a class="button secondary" href="./motion-policy-review.html">P9 动作策略复核</a>
@@ -100,27 +102,99 @@
         <div class="section-heading sticky-heading">
           <div>
             <p class="eyebrow">FIXED SIX RELATIONSHIPS</p>
-            <h2 id="relationshipsHeading">证据回看与决定</h2>
+            <h2 id="relationshipsHeading">查看图片接缝并统一确认</h2>
           </div>
           <code id="candidateDigest" class="digest">—</code>
         </div>
+        <section id="assistPanel" class="assist-panel" aria-labelledby="assistHeading">
+          <div>
+            <p class="eyebrow">AUTOMATED DRAFT · 可撤销</p>
+            <h3 id="assistHeading">系统先完成明确项</h3>
+            <p id="assistStatus" class="status-line" role="status" aria-live="polite">
+              正在等待候选证据。
+            </p>
+            <p id="assistSummary" class="assist-summary">—</p>
+          </div>
+          <div class="assist-actions">
+            <button id="applyAssistBtn" class="button primary" type="button" disabled>
+              重新应用明确候选
+            </button>
+            <button id="undoAssistBtn" class="button secondary" type="button" disabled>
+              撤销自动草稿
+            </button>
+          </div>
+        </section>
         <p class="shortcut-hint">
-          非编辑区可用方向键移动；数字 1–4 依次选择 accept、adjust、reject、unobservable。
+          系统会自动填入唯一候选；有多个候选时只需查看叠加图。方向键可移动，数字 1–4 可快速判定。
         </p>
         <div class="summary-grid" aria-label="复核进度">
-          <div><span>进度</span><strong id="reviewProgress">0 / 0</strong></div>
-          <div><span>派生状态</span><strong id="derivedStatus">candidate_only</strong></div>
-          <div><span>发布门禁</span><strong id="releaseStatus">blocked</strong></div>
+          <div>
+            <span>已检查</span><strong id="reviewProgress">0 / 0</strong>
+            <progress id="reviewProgressBar" max="6" value="0">0 / 6</progress>
+          </div>
+          <div><span>当前状态</span><strong id="derivedStatus">等待候选</strong></div>
+          <div><span>本阶段结果</span><strong id="releaseStatus">尚未完成</strong></div>
         </div>
-        <section class="blockers" aria-labelledby="blockersHeading">
-          <h3 id="blockersHeading">仍阻止发布</h3>
-          <ul id="releaseReasons"></ul>
-        </section>
+        <details class="technical-details release-details">
+          <summary>技术详情：后续发布门禁</summary>
+          <section class="blockers" aria-labelledby="blockersHeading">
+            <h3 id="blockersHeading">当前仍阻止最终发布的合同项</h3>
+            <ul id="releaseReasons"></ul>
+          </section>
+        </details>
         <div id="reviewRelationships" class="relationship-list" tabindex="-1"
           aria-label="按合同顺序排列的六个 seam relationship"></div>
       </section>
 
-      <aside class="review-sidebar" aria-label="历史与提交">
+      <aside class="review-sidebar" aria-label="确认、发布结果与技术历史">
+        <section class="panel submit-panel" aria-labelledby="submitHeading">
+          <p class="eyebrow">ONE FINAL CONFIRMATION</p>
+          <h2 id="submitHeading">确认本次自动复核</h2>
+          <p class="lede">最后一次确认会保存完整六项复核；全部可用时会继续生成并精确复验静态接缝集。</p>
+          <details class="technical-details operator-details">
+            <summary>可选：复核标识与总备注</summary>
+            <label>
+              <span>本机复核标识</span>
+              <input id="reviewerId" required maxlength="128"
+                pattern="[A-Za-z0-9][A-Za-z0-9._-]{0,127}"
+                autocomplete="off" spellcheck="false">
+            </label>
+            <label>
+              <span>总备注</span>
+              <textarea id="reviewNotes" rows="4" maxlength="4096"></textarea>
+            </label>
+          </details>
+          <button id="submitReviewBtn" class="button primary full" type="button" disabled>
+            确认复核并生成静态接缝集 <kbd>Ctrl</kbd> + <kbd>Enter</kbd>
+          </button>
+          <p id="submitStatus" class="status-line" role="status" aria-live="polite">
+            系统完成明确项后，请检查剩余候选。
+          </p>
+        </section>
+
+        <section id="publicationPanel" class="panel publication-panel" aria-labelledby="publicationHeading" hidden>
+          <p class="eyebrow">P10.5c · EXACT READBACK</p>
+          <h2 id="publicationHeading">静态接缝集结果</h2>
+          <p id="publicationStatus" class="status-line" role="status" aria-live="polite">尚未生成。</p>
+          <dl class="publication-facts">
+            <div><dt>阶段</dt><dd id="publicationStage">—</dd></div>
+            <div><dt>Reviewed set</dt><dd><code id="reviewedSetSha">—</code></dd></div>
+            <div><dt>Bundle</dt><dd><code id="reviewedSetBundleSha">—</code></dd></div>
+          </dl>
+          <button id="retryPublicationBtn" class="button primary full" type="button" hidden>
+            仅重试生成静态接缝集
+          </button>
+          <button id="downloadPublicationBtn" class="button secondary full" type="button" disabled>
+            下载精确复验回执
+          </button>
+          <a id="nextDynamicSeamLink" class="button secondary full"
+            href="./document-viewer.html?doc=docs%2Fhow-to-probe-body-sway-dynamic-seams.md" hidden>
+            查看下一步：动态接缝验证
+          </a>
+        </section>
+
+        <details class="expert-review">
+          <summary>专业模式：revision 历史与原始 JSON</summary>
         <section class="panel history-panel" aria-labelledby="historyHeading">
           <div class="section-heading">
             <div>
@@ -131,10 +205,10 @@
               重新读取
             </button>
           </div>
-          <p class="lede">列表不会自动成为提交基线；历史详情也按 revision 与 SHA 精确读取。</p>
+          <p class="lede">自动入口会绑定当前 head；手动地址模式仍需显式选择。历史详情按 revision 与 SHA 精确读取。</p>
           <ol id="historyList" class="history-list"></ol>
           <button id="useHeadBtn" class="button secondary full" type="button" disabled>
-            以当前 head 为基线
+            重新绑定当前 head
           </button>
           <p id="baselineStatus" class="status-line" role="status" aria-live="polite">尚未选择提交基线。</p>
         </section>
@@ -144,27 +218,7 @@
           <p id="historySelectionStatus" class="status-line" role="status" aria-live="polite">尚未选择历史 revision。</p>
           <pre id="decisionDocument" tabindex="0" aria-label="所选历史 decision JSON">—</pre>
         </section>
-
-        <section class="panel submit-panel" aria-labelledby="submitHeading">
-          <p class="eyebrow">HUMAN DECISION</p>
-          <h2 id="submitHeading">提交完整六项复核</h2>
-          <label>
-            <span>Reviewer ID</span>
-            <input id="reviewerId" required maxlength="128"
-              pattern="[A-Za-z0-9][A-Za-z0-9._-]{0,127}"
-              autocomplete="off" spellcheck="false">
-          </label>
-          <label>
-            <span>总备注</span>
-            <textarea id="reviewNotes" rows="4" maxlength="4096"></textarea>
-          </label>
-          <button id="submitReviewBtn" class="button primary full" type="button" disabled>
-            提交 revision <kbd>Ctrl</kbd> + <kbd>Enter</kbd>
-          </button>
-          <p id="submitStatus" class="status-line" role="status" aria-live="polite">
-            完成六项判定并显式选择基线后可提交。
-          </p>
-        </section>
+        </details>
       </aside>
     </div>
   </main>

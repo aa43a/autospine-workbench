@@ -3,6 +3,10 @@
 import {
   requireSha256, seamAnchorReviewPaths,
 } from "./seam-anchor-review-address.js";
+import {
+  SEAM_PUBLICATION_INTENT, normalizeSeamPublicationReceipt,
+  normalizeSeamPublicationRequest,
+} from "./seam-anchor-review-publication.js";
 
 export const REVIEW_INTENT = "seam-anchor-review";
 
@@ -19,6 +23,12 @@ export function seamReviewEntryPath(packageId) {
   return `/api/motion-policy/review-packages/${
     requireSha256(packageId, "Motion Policy package ID")
   }/seam-review-entry`;
+}
+
+export function seamReviewPublicationPath(packageId) {
+  return `/api/motion-policy/review-packages/${
+    requireSha256(packageId, "Motion Policy package ID")
+  }/seam-publications`;
 }
 
 async function responsePayload(response) {
@@ -81,6 +91,21 @@ export function createSeamAnchorReviewApi(fetchImpl = globalThis.fetch) {
         },
         body: JSON.stringify(payload),
       });
+    },
+    async publish(packageId, payload) {
+      const request = normalizeSeamPublicationRequest(payload, packageId);
+      const response = await requestJson(
+        fetchImpl, seamReviewPublicationPath(packageId), {
+          method: "POST",
+          credentials: "same-origin",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Autospine-Intent": SEAM_PUBLICATION_INTENT,
+          },
+          body: JSON.stringify(request),
+        },
+      );
+      return normalizeSeamPublicationReceipt(response, request);
     },
     imageUrl(address, candidateSha256, optionId, attachmentId, imageSha256) {
       return seamAnchorReviewPaths(address).optionImage(

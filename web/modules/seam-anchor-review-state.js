@@ -52,7 +52,8 @@ export function createBusyGroup(names, onChange) {
 export function createSeamReviewState() {
   return {
     addressKey: null, candidate: null, candidateSha256: null,
-    attachmentImages: [], history: null, selectedDecision: null,
+    attachmentImages: [], setupCanvas: null, reviewAssist: null,
+    history: null, selectedDecision: null,
     baseline: null, decisions: {}, reviewerId: "", reviewNotes: "",
     currentRelationshipId: null, stale: false,
   };

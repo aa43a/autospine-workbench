@@ -1,6 +1,6 @@
 # AutoSpine Workbench 功能与入口参考
 
-本文是面向操作者和开发者的 Reference。它回答“功能是否已经实现、从哪里进入、会得到什么”，不替代具体操作步骤。P0 Resolved Project v1、P10.6b MotionInstance v3、P10.7a Spine 4.2 v3 adapter bundle、P10.7b sampled raster 基础设施与独立 P10.7c setup regression 已完成；**P9-real-kimodo-policy-adoption** 对真实 `wave-left-v1` 的 A/B 也已关闭：两项目各自的 human adoption、P9 内容寻址发布和 exact replay 均通过，双 SHA 集中记录在 [pilot handoff](pilots/kimodo-wave-left-v1.md)。A 的下一步是 seam；B 虽然 P9 通过，仍受四条下肢关系不可观测阻塞。计划项见[开发路线](development-roadmap.md)。
+本文是面向操作者和开发者的 Reference。它回答“功能是否已经实现、从哪里进入、会得到什么”，不替代具体操作步骤。P0 Resolved Project v1、P10.6b MotionInstance v3、P10.7a Spine 4.2 v3 adapter bundle、P10.7b sampled raster 基础设施与独立 P10.7c setup regression 已完成；**P9-real-kimodo-policy-adoption** 对真实 `wave-left-v1` 的 A/B 也已关闭：两项目各自的 human adoption、P9 内容寻址发布和 exact replay 均通过，双 SHA 集中记录在 [pilot handoff](pilots/kimodo-wave-left-v1.md)。P10.5b 自动复核和 package-bound P10.5c publication/exact readback 已实现，但本轮尚未代替操作者提交 A，因此没有新增真实 A 的 P10.5b/P10.5c 凭据；取得 receipt 后的下一真实阶段是 P10.5d。B 虽然 P9 通过，仍受四条下肢关系不可观测阻塞并保持 fail closed。计划项见[开发路线](development-roadmap.md)。
 
 ## 统一入口
 
@@ -9,7 +9,7 @@
 - [功能入口中心](http://127.0.0.1:8765/workflow-hub.html)：按阶段、入口类型和状态搜索全部功能；
 - [绑定复核工作台](http://127.0.0.1:8765/)：图层、拆分、关节、候选和 P3 证据复核；
 - [Body-sway 视觉复核台](http://127.0.0.1:8765/body-sway-review.html)：P10.3c sampled still 复核；
-- [Seam Anchor 复核台](http://127.0.0.1:8765/seam-anchor-review.html)：P10.5b 静态接缝锚点复核；
+- [接缝自动复核与静态锚点生成](http://127.0.0.1:8765/seam-anchor-review.html)：P10.5b 自动看图复核；ready 时由同一次最终确认继续 P10.5c 发布与精确读回；
 - [Motion Policy 自动工作流](http://127.0.0.1:8765/motion-policy-review.html)：P9 项目/package 自动加载、安全 Foot 辅助采用、异常处理，以及一次人工确认后的本地编译、发布和精确复验。
 
 功能入口中心读取 [`web/workflow-catalog.json`](../web/workflow-catalog.json)，列出 65 个已注册 CLI、四个任务页面和尚未实现的计划项。对于 CLI，它只复制 `python -B -m autospine_workbench <command> --help` 帮助命令，不在浏览器或服务端执行命令；源码模式下须先在当前 PowerShell 执行 `$env:PYTHONPATH = (Resolve-Path .\src).Path`，再复制和运行帮助命令。文档卡片通过 `/document-viewer.html?doc=docs/<文件名>.md` 安全文档查看器打开；查看器只读获取 `/docs/<文件名>.md`，不能访问目录外文件，并把响应作为纯文本显示，不解析 HTML 或执行文档内容。
@@ -43,7 +43,17 @@
 
 ### Seam Anchor 复核台
 
-普通流程从 P9 成功回执携带 exact `package_id` 进入；服务端重放 package 与共享 P3 来源、复验 P3 bundle，并自动加载左右六条静态接缝关系。Layer Manifest/P3 三 SHA 手填保留为专业 fallback。每条关系可 `accept`、`adjust`、`reject` 或 `unobservable`；`adjust` 保存最终 locator 对。blocker 只会显式列出，不会自动 accept 或生成 fallback。全量 accept/adjust 只得到 `reviewed_anchor_set_ready_for_compile`，仍须经过 P10.5c 与 P10.5d。
+普通流程从 P9 成功回执携带 exact `package_id` 进入；服务端重放 package 与共享 P3 来源、复验 P3 bundle，并自动加载左右六条静态接缝关系和 candidate namespace 的 current head。Layer Manifest/P3 三 SHA 手填保留为专业 fallback。
+
+candidate HTTP envelope 除 canonical candidate 外还固定返回：
+
+- `setup_canvas.width/height`；
+- 每个 option 的 parent/child attachment image、`canvas_offset_xy` 与同序 `anchor_points`；
+- `autospine-seam-anchor-review-assist` v1 确定性 advisory 文档。
+
+页面在统一 SVG 画布中合成 parent/child alpha，绘制 contact bbox、编号 anchor 和配对连线；原始 SHA、contact 数字、locator 表与单层图默认位于关闭的技术详情。assist 会把唯一候选和不可观测项写入可撤销草稿；多候选只设置 `highlight_option_id`，且显示“建议重点查看 ≠ 批准”。点击多候选 option 才会形成该关系的 `accept` 草稿。任何自动填充、高亮、current-head 绑定或进度完成都不写 revision。
+
+最后一次明确确认才以 CAS 提交完整 P10.5b decision。若包含 `reject/unobservable`，只保存 blocked revision；若六条均 `accept/adjust` 且处于 package 模式，页面继续调用 package-bound P10.5c publication，服务端重放 current decision、发布三文件 bundle、按精确上游读回，并返回 path-free receipt。P10.5b 已提交而 P10.5c 失败时，只能重试 publication，不重复人工 decision。P10.5c 成功仍须经过 P10.5d，且不授予 runtime/视觉或 release authority。
 
 ### Motion Policy 复核台
 
@@ -259,17 +269,18 @@ capture manifest 会记录 runtime JS/CSS、`package.json`、`LICENSE`、浏览�
 
 ## HTTP 写入边界
 
-P9 页面使用两个只读 package GET、一个严格的 zero-write preflight POST，以及一次明确人工确认后才能调用的 adoption POST：
+P9 与 Seam 自动页面使用下列 package 资源；preflight 与 GET 零写入，两个 publication POST 都只在各自最终确认后调用：
 
-| 方法与资源 | 只读计算 | 安全边界 |
+| 方法与资源 | 行为 | 安全边界 |
 | --- | --- | --- |
 | `GET /api/motion-policy/review-packages` | 发现固定文件名的本地 exact review package，重算身份并返回确定性的推荐 package ID | loopback-only；响应 path-free，不扫描下载目录、不按 mtime 选 `latest`，不批准或发布 |
 | `GET /api/motion-policy/review-packages/{package_id}` | 按完整 package ID 读取正式 policy、Foot/Depth reports 和预检 inventory | exact ID 必须绑定项目、动作、clip、三份报告 SHA 与 candidate inventory；损坏或变化时 fail closed |
 | `GET /api/motion-policy/review-packages/{package_id}/seam-review-entry` | 零写入重放 exact package 与 Foot/Depth 共享 P3 来源，复验 P3 bundle，重新准备 P10.5b candidate | 不接受客户端 Manifest/P3 SHA；响应 path-free，只返回 exact 地址、candidate SHA、可观测性摘要与 blocker |
+| `POST /api/motion-policy/review-packages/{package_id}/seam-publications` | 从已提交的 current ready P10.5b decision 编译、发布并 exact-readback P10.5c | 独立 intent；只接受 package/candidate/revision/decision 身份，不接受路径或客户端上游地址；响应 path-free |
 | `POST /api/motion-policy/preflight` | 从原始 JSON 文本运行 inner strict decoder；`policy_identity` 返回 Python canonical SHA，`candidate_inventory` 解包受支持 envelope 后重算 policy/foot/depth 三 SHA、完整 standalone 合同、交叉绑定、四项计数及候选 ID 清单 SHA | loopback + exact same-origin、JSON、`X-Autospine-Intent: motion-policy-preflight-v1`；外层 48 MiB、内层 policy/foot/depth 1/16/16 MiB；不读路径、不写 state、不批准或发布 |
 | `POST /api/motion-policy/review-packages/{package_id}/adoptions` | 用严格 human review input 编译 decision/reviewed policy，原子发布 MotionInstance v2 六文件 P9 bundle，并按精确双 SHA 读回复验 | loopback + exact same-origin、JSON、`X-Autospine-Intent: motion-policy-adoption-v1`；服务端重读完整 package，不接受任意路径、shell 命令或客户端提供的上游地址；成功响应 path-free |
 
-Preflight POST 只用于承载有界完整 JSON 文档，不代表 mutation。Adoption POST 是独立的内容寻址发布操作；它只有在页面形成完整 human review input 并执行最终确认后才会调用。本地 HTTP 服务当前有四类写操作：
+Preflight POST 只用于承载有界完整 JSON 文档，不代表 mutation。Adoption 与 seam-publication POST 是两个独立的内容寻址发布操作；前者需要 P9 最终确认，后者需要已经提交的 current ready P10.5b decision。本地 HTTP 服务当前有五类写操作：
 
 | 方法与资源 | 写入内容 | 并发边界 |
 | --- | --- | --- |
@@ -277,6 +288,7 @@ Preflight POST 只用于承载有界完整 JSON 文档，不代表 mutation。Ad
 | `PUT .../visual-review/candidates/{candidate}/decisions` | P10.3c sampled visual decision revision | exact candidate、intent header 与 head CAS |
 | `POST .../seam-anchor-reviews/.../candidates/{candidate}/decisions` | P10.5b seam decision revision | exact candidate、intent header 与 head CAS |
 | `POST /api/motion-policy/review-packages/{package_id}/adoptions` | P9 decision、reviewed policy、MotionInstance v2 与六文件不可变 bundle | exact package、显式 intent、穷尽 human decision、内容地址幂等复用及发布后 exact verify |
+| `POST /api/motion-policy/review-packages/{package_id}/seam-publications` | P10.5c ReviewedSeamAnchorSet 三文件不可变 bundle | 已提交 current ready P10.5b decision、独立 intent、package/source 重放、双快照与发布后 exact readback |
 
 其余浏览器 API 为读取或 zero-write 计算。Package 推荐、motion-policy preflight 的 `passed` 和辅助 Foot 草稿都不是最终 human adoption；只有带 adoption intent 的最终确认可触发 P9 发布。CLI 对 exact decision/policy/bundle 的编译与复验继续作为专业审计和无浏览器重放路径。离线 CLI 中的 `compile`/`publish` 命令可能向 state root 发布内容寻址工件，因此运行前仍应查看对应 `--help` 和 how-to。完整路由见 [README 的 HTTP API](../README.md#http-api)。
 
@@ -287,7 +299,7 @@ Preflight POST 只用于承载有界完整 JSON 文档，不代表 mutation。Ad
 - resolved snapshot 已确定性生成并被下游寻址，现有独立 v1 JSON Schema、严格语义 validator、派生 QA 校验及 r5/r7 历史哈希回归；它仍没有独立 CLI/UI，外部 candidate/split artifact 字节重放继续由各自 binder 负责。
 - override history 已 append-only 保存，但主工作台尚无历史浏览/恢复 UI；安全恢复必须追加新 revision，不能改写历史。
 - P7 real-pilot intake 审计已经可用：它把真实 NPZ、recorded sidecar、map、camera 与两份 provenance 原件闭合为零写入 path-free 报告。`wave-left-v1` 已通过该审计并完成 P7/P8、A/B P5 exact replay、正式 depth policy/depth candidates 和各自 P9 exact replay，身份集中记录在 [pilot handoff](pilots/kimodo-wave-left-v1.md)。Preflight 或辅助草稿本身仍不认证 checkpoint 或批准动作质量；当前 P9 结论来自最终 human adoption 与发布后 exact reader。
-- P10 body-sway 已完成 P10.7b sampled raster 基础设施、冻结的 P10.7b-readiness v1 审计和独立 P10.7c setup regression 命令；readiness 第八项仍固定为 missing。A 现在应进入真实 seam 人审和 P10.5c；B 虽然 P9 通过，但左右 pelvis-leg 与 leg-foot 四条关系不可观测，必须修复上游分层/语义或建立版本化 partial 合同。真实 capture 尚未交付，因此不能声称 A/B 已通过 P10.7c。
+- P10 body-sway 已完成 P10.7b sampled raster 基础设施、冻结的 P10.7b-readiness v1 审计、独立 P10.7c setup regression 命令，以及 P10.5b 自动复核/P10.5c package publication 机制；readiness 第八项仍固定为 missing。A 的六关系证据可进入自动页面，但本轮尚无操作者最终确认和真实 P10.5c receipt，不能声称已形成对应双 SHA；取得凭据后进入 P10.5d。B 虽然 P9 通过，但左右 pelvis-leg 与 leg-foot 四条关系不可观测，完整合同 fail closed，必须修复上游分层/语义或建立版本化 partial 合同。真实 capture 尚未交付，因此不能声称 A/B 已通过 P10.7c。
 - `blink`、口型和头发目前只存在 idle candidate 类型或规划入口，没有可靠素材生成、绑定与 runtime 交付。
 - See-through/pose 推理、真实 Kimodo checkpoint authenticity/动作质量验收、实时追踪、自由形变、runtime IK、生产部署仍未实现。
 

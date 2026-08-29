@@ -22,9 +22,10 @@ export function createSeamReviewInteractions({
       let state = getState();
       if (target.dataset.seamOption) {
         state = setSeamOption(state, relationshipId, target.dataset.seamOption);
+        state = setSeamAction(state, relationshipId, "accept");
         setState(state);
         onRender(relationshipId, `[data-seam-option="${target.dataset.seamOption}"]`);
-        onAnnounce(`${relationshipId} 已选择 ${target.dataset.seamOption}`);
+        onAnnounce(`${relationshipId} 已选择候选并确认接缝正确`);
       } else if (target.dataset.seamAction) {
         state = setSeamAction(state, relationshipId, target.dataset.seamAction);
         setState(state);

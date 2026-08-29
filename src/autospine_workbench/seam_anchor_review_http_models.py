@@ -7,9 +7,15 @@ from urllib.parse import quote
 
 
 def candidate_response(prepared, attachment_refs) -> dict[str, Any]:
+    from .seam_anchor_review_assist import build_seam_anchor_review_assist
+
     return {
         "candidate_sha256": prepared.candidate_sha256,
         "candidate": prepared.candidate_document,
+        "setup_canvas": {
+            "width": prepared.canvas_width,
+            "height": prepared.canvas_height,
+        },
         "attachment_images": [
             {
                 "option_id": row.option_id,
@@ -19,10 +25,22 @@ def candidate_response(prepared, attachment_refs) -> dict[str, Any]:
                 "image_sha256": row.image_sha256,
                 "width": row.width,
                 "height": row.height,
+                "canvas_offset_xy": list(row.canvas_offset_xy),
+                "anchor_points": [
+                    {
+                        "pair_id": point.pair_id,
+                        "x_q1000_px": point.x_q1000_px,
+                        "y_q1000_px": point.y_q1000_px,
+                    }
+                    for point in row.anchor_points
+                ],
                 "url": _attachment_url(prepared, row),
             }
             for row in attachment_refs
         ],
+        "review_assist": build_seam_anchor_review_assist(
+            prepared.candidate_document, prepared.candidate_sha256,
+        ),
     }
 
 

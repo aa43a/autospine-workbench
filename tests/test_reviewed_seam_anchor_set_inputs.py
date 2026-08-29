@@ -107,6 +107,7 @@ class _Fixture:
         return PreparedSeamAnchorReview(
             self.address, self.candidate.sha256,
             self.candidate.canonical_bytes.decode("utf-8"), history,
+            400, 400,
         )
 
     def run(self, root, *, snapshots=None, exact=None, bound=None,

@@ -92,9 +92,18 @@ class SeamAnchorReviewApplication:
                 self.state_root, address, candidate, rig
             )
             require_consistent_seam_anchor_review_history(candidate, history)
+            canvas = rig.get("canvas")
+            if type(canvas) is not dict \
+                    or type(canvas.get("width")) is not int \
+                    or type(canvas.get("height")) is not int \
+                    or canvas["width"] < 1 or canvas["height"] < 1:
+                raise SeamAnchorReviewApplicationError(
+                    "Seam-review canvas is invalid"
+                )
             return PreparedSeamAnchorReview(
                 address, candidate.sha256,
                 candidate.canonical_bytes.decode("utf-8"), history,
+                canvas["width"], canvas["height"],
             )
         except SeamAnchorReviewApplicationError:
             raise

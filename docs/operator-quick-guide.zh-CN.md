@@ -4,6 +4,8 @@
 
 P9 Kimodo 动作进入策略复核时，可从功能入口中心打开 `Motion Policy 自动工作流`。普通用户只需确认项目：存在推荐项时页面会自动选择并加载对应的 exact package，重算 SHA-256 和 candidate inventory。随后拖动时间轴或点击“一键采用全部安全建议”，只让系统覆盖 `state=candidate`、证据完整有限且 correction ratio/residual 均不超过合同上限 80% 的 Foot candidates，再处理少量异常并做一次最终明确采纳。三份 JSON 与 SHA 手工输入只在“专业模式”中保留。Depth、`rejected_*`、缺证、非有限值和超阈值项不会自动批准；最终确认后，本机服务会编译、发布并精确复验 P9，review input 下载仅作备份。完整流程见 [复核并发布 Kimodo 动作策略](how-to-review-kimodo-motion-policy.md)。
 
+P9 成功后可直接进入 `Seam Anchor 复核台`。页面会自动加载 package、绑定 current head、把明确的唯一候选和不可观测项填入可撤销草稿，并用图片叠加代替默认展示 SHA/JSON；普通操作者只需检查多候选和最后明确确认。若六条关系均可用，同一次确认会继续生成并精确读回 P10.5c 静态接缝集。完整流程见 [复核 P10.5b 静态接缝锚点](how-to-review-seam-anchors.md)。
+
 > 工作台是本地人工复核工具，不是“一键生成可发布 Spine 动画”的工具。看到结构检查通过、探针 `compiled` 或锚点距离合格，都不能据此认定视觉效果、官方 Spine Runtime 或发布许可已经通过。
 
 ## 1. 启动工作台
@@ -77,6 +79,18 @@ $env:PYTHONPATH = (Resolve-Path .\src).Path
 7. 等待成功或“已复用”回执出现，然后点击“进入接缝复核”。无需下载文件、复制 SHA 或选择 JSON；该入口只完成精确证据交接，不会自动批准任何接缝关系。
 
 自动选择项目、预检通过或覆盖率达到 100% 都不会自行发布；必须有最后一次明确人工确认。若要载入外部副本、独立运行 CLI 或排查身份问题，再展开“专业模式：手动导入 JSON 与 SHA”。
+
+### P10.5：用图片完成接缝复核
+
+1. 从 P9 成功或“已复用”回执点击“进入接缝复核”。页面只接收该回执的 `package_id`，自动加载对应项目、候选、图片证据和 current head；不要复制 SHA 或选择 JSON。
+2. 先看每处接缝的叠加图：青色是 parent，紫色是 child，虚线框是 contact 范围，同编号圆点与连线是一对锚点。SHA、contact 数字、locator 表和单层原图默认收在“技术详情”中，普通复核无需展开。
+3. 系统会把唯一完整候选填成 `accept` 草稿，把源图不可观测项填成带原因的 `unobservable` 草稿。所有自动结果都可以撤销，且最后确认前不会写入 revision。
+4. 若一处有多个候选，逐张比较叠加图。系统可能标记“建议重点查看”，但这不等于批准；点击你认可的候选后，页面才会形成该项的 `accept` 草稿。需要时可改为“手动调整”“候选不正确”或“源图不可见”。
+5. 确认页面显示六项已检查后，点击“确认复核并生成静态接缝集”。这是唯一会提交人工决定的最终操作；自动加载、自动草稿和 6/6 进度都不会代替这次点击。
+6. 若六条关系全部 `accept/adjust` 且页面来自 P9 package，本机随后自动执行 P10.5c 编译、内容寻址发布和 exact readback。成功后可下载 path-free 精确复验回执，并进入“动态接缝验证”。
+7. 若页面提示“P10.5b 已保存；P10.5c 未完成”，只点击“仅重试生成静态接缝集”。不要再次提交六项人工决定；页面会保留已经写入的 revision。若结果包含 `reject/unobservable`，页面只保存阻塞结论，不会生成不可信的 P10.5c。
+
+当前真实状态要单独理解：样本 A 的自动页面和六条可观测证据已经可用，但本轮没有代替操作者执行最后一次确认，因此不能声称已有 A 的真实 P10.5b revision 或 P10.5c 双 SHA。样本 B 的左右髋/脚踝共四条关系不可观测，完整六关系合同会 fail closed；自动草稿不会把它们改成 `accept`。
 
 ## 3. 打开一个样本
 
@@ -240,7 +254,7 @@ E:\proj\unusual\localset\tmp\psd_audit\results\<project-id>\audit.json
 - 查看并调整基础骨架，处理 pose/alpha/接触候选；
 - 以内容地址保存候选证据，以 revision 保存人工决定；
 - 生成并严格验证版本化的 Resolved Project v1 snapshot，同时保持历史 r5/r7 内容地址不变；
-- 从独立页面完成人工 Body-sway still 与 Seam Anchor revision；
+- 从独立页面完成人工 Body-sway still；从 P9 package 自动进入 Seam Anchor 页面，以叠加图、确定性建议草稿和一次最终确认完成 P10.5b，并在 ready 时继续 P10.5c exact publication/readback；
 - 在 P9 页面完成一次明确 human adoption 后，由本机编译 decision/reviewed policy、原子发布 MotionInstance v2 六文件 bundle，并立即 exact verify；CLI 仍可独立复验，review input 下载仅作备份；
 - 通过离线命令生成和验证版本中立的 Layer Manifest、RigIR、mesh、IK、MotionIR、P10.6a admission、MotionInstance v3 及 P10.7a Spine 4.2 v3 五文件 adapter 工件。
 - 在操作者提供并确认有权使用官方 Spine Player 4.2.119 时，捕获 P10.7a 的固定 sampled raster 证据，复验不可变 capture，并编译逐 case、逐 setup attachment 的人工决定。
@@ -272,7 +286,7 @@ python -B -m autospine_workbench verify-mesh-bundle --help
 
 ## 10. 当前阶段与下一开发入口
 
-**P9-real-kimodo-policy-adoption** 对当前 `wave-left-v1` 的 A/B 已关闭：两项目都已完成最终 human adoption，本地发布的 P9 reviewed-motion bundle 也已按 exact 上游重放通过。普通用户可从 P9 回执直接点击“进入接缝复核”。项目 A 会自动载入 6 条待人审关系；项目 B 会明确显示左右 pelvis-leg 与 leg-foot 4 条不可观测 blocker，不会自动批准或生成 fallback。唯一身份、P9 package ID 与双 SHA 见 [Kimodo `wave-left-v1` Pilot Handoff](pilots/kimodo-wave-left-v1.md)。对新的 Kimodo 输入，仍应先运行零写入准入审计：
+**P9-real-kimodo-policy-adoption** 对当前 `wave-left-v1` 的 A/B 已关闭：两项目都已完成最终 human adoption，本地发布的 P9 reviewed-motion bundle 也已按 exact 上游重放通过。普通用户可从 P9 回执直接点击“进入接缝复核”；P10.5b 自动草稿、current-head 绑定和 package-bound P10.5c 发布/精确读回机制均已可用。项目 A 会自动载入 6 条可观测关系，但本轮尚未代替操作者点击最后确认，因此没有新增真实 A P10.5b/P10.5c 凭据；完成确认并取得 receipt 后，下一真实阶段是 P10.5d 动态接缝验证。项目 B 会明确显示左右 pelvis-leg 与 leg-foot 4 条不可观测 blocker，完整合同保持 fail closed，不会自动批准或生成 fallback。唯一身份、P9 package ID 与双 SHA 见 [Kimodo `wave-left-v1` Pilot Handoff](pilots/kimodo-wave-left-v1.md)。对新的 Kimodo 输入，仍应先运行零写入准入审计：
 
 ```powershell
 python -B -m autospine_workbench audit-kimodo-pilot-intake `
@@ -304,7 +318,7 @@ python -B -m autospine_workbench audit-body-sway-spine42-v3-readiness `
   --document-only
 ```
 
-readiness v1 的 Schema、哈希和 checkpoint 语义已经冻结；即使 P10.7c 已交付，第八项仍固定为 `p6_setup_golden_comparison_not_declared`，不能把 readiness 报告当作 setup 对照结果。仓库自带的 baseline 请求仍把 P9 地址设为 `null`，所以直接运行上面的命令会继续报告未声明；这不表示真实 P9 不存在。应使用 canonical builder 生成新请求并显式写入 handoff 中的双 SHA。A 随后完成真实 seam 人审、P10.5c reviewed set 与动态 seam 门禁。B 的长裙/分层限制使左右 pelvis-leg 与 leg-foot 四条关系不可观测，必须换新分层资产、修复语义，或另立明确禁止通用腿部动画的版本化 partial 合同；不能把 P9 成功写成完整下肢可用。Runtime 已存在，但位于 seam 之后。请求格式、报告读取方式和权限边界见[审计两份真实样本的 Spine 4.2 v3 就绪状态](how-to-audit-spine42-v3-readiness.md)。
+readiness v1 的 Schema、哈希和 checkpoint 语义已经冻结；即使 P10.7c 已交付，第八项仍固定为 `p6_setup_golden_comparison_not_declared`，不能把 readiness 报告当作 setup 对照结果。仓库自带的 baseline 请求仍把 P9 地址设为 `null`，所以直接运行上面的命令会继续报告未声明；这不表示真实 P9 不存在。应使用 canonical builder 生成新请求并显式写入 handoff 中的双 SHA。A 的自动 Seam 入口已经可用，但仍须操作者最后确认并取得真实 P10.5c receipt，随后进入 P10.5d 动态 seam。B 的长裙/分层限制使左右 pelvis-leg 与 leg-foot 四条关系不可观测，必须换新分层资产、修复语义，或另立明确禁止通用腿部动画的版本化 partial 合同；不能把 P9 成功写成完整下肢可用。Runtime 已存在，但位于 seam 之后。请求格式、报告读取方式和权限边界见[审计两份真实样本的 Spine 4.2 v3 就绪状态](how-to-audit-spine42-v3-readiness.md)。
 
 P10.7c 的独立入口已经可从功能中心复制，也可直接查看帮助：
 
@@ -427,5 +441,6 @@ python -m unittest tests.test_resolved_snapshot_validation tests.test_resolved_s
 - QA 警告已处理，或在备注中说明为什么暂不处理；
 - 保存后 revision 增加；
 - 刷新页面后修改可以读回；
+- 接缝页面的建议高亮和自动草稿已由人看图确认，并且只执行了一次最终提交；若 P10.5c 失败，只重试 publication；
 - 前端与相关 Python 测试通过；
 - 没有把结构证明写成视觉、官方 Runtime 或发布通过。

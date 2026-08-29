@@ -25,7 +25,7 @@ from .http_json_request import HttpJsonRequestError, read_json_object_request
 from .http_static_response import serve_static_response
 from .http_workbench_response import WorkbenchResponseMixin
 from .mesh_bundle_routes import dispatch_mesh_bundle_get
-from . import motion_policy_adoption_routes as policy_adoption
+from . import motion_policy_mutation_routes as policy_mutation
 from .motion_policy_preflight_routes import (
     ALLOW_METHODS as MOTION_POLICY_PREFLIGHT_ALLOW_METHODS,
     dispatch_motion_policy_preflight_post,
@@ -92,8 +92,8 @@ def _handler_factory(
             super().log_message(format_string, *args)
 
         def _dispatch_api_get(self, parts: list[str]) -> bool:
-            if policy_adoption.is_motion_policy_adoption_path(parts):
-                policy_adoption.send_motion_policy_adoption_method_not_allowed(self)
+            if policy_mutation.is_motion_policy_mutation_path(parts):
+                policy_mutation.send_motion_policy_mutation_method_not_allowed(parts, self)
                 return True
             if is_motion_policy_preflight_path(parts):
                 send_motion_policy_preflight_method_not_allowed(self)
@@ -191,7 +191,7 @@ def _handler_factory(
             body_review = is_body_sway_visual_review_path(parts)
             seam_review = is_seam_anchor_review_path(parts)
             policy_preflight = is_motion_policy_preflight_path(parts)
-            adoption = policy_adoption.is_motion_policy_adoption_path(parts)
+            adoption = policy_mutation.is_motion_policy_mutation_path(parts)
             policy_package = is_motion_policy_review_package_path(parts)
             seam_methods = seam_anchor_review_resource_methods(parts) \
                 if seam_review else None
@@ -208,7 +208,7 @@ def _handler_factory(
                 or adoption or policy_package
             self._common_headers(visual_review=local_review)
             if adoption:
-                methods = policy_adoption.ALLOW_METHODS
+                methods = policy_mutation.motion_policy_mutation_allow_methods(parts)
             elif policy_preflight:
                 methods = MOTION_POLICY_PREFLIGHT_ALLOW_METHODS
             elif policy_package:
@@ -238,8 +238,8 @@ def _handler_factory(
                 return
             try:
                 parts = self._path_parts()
-                if policy_adoption.is_motion_policy_adoption_path(parts):
-                    policy_adoption.send_motion_policy_adoption_method_not_allowed(self)
+                if policy_mutation.is_motion_policy_mutation_path(parts):
+                    policy_mutation.send_motion_policy_mutation_method_not_allowed(parts, self)
                     return
                 if is_motion_policy_preflight_path(parts):
                     send_motion_policy_preflight_method_not_allowed(self)
@@ -301,7 +301,7 @@ def _handler_factory(
                     HTTPStatus.BAD_REQUEST, "invalid_path", str(exc)
                 )
                 return
-            if policy_adoption.dispatch_motion_policy_adoption_post(
+            if policy_mutation.dispatch_motion_policy_mutation_post(
                 parts, self, store, self._send_visual_json,
             ):
                 return
@@ -333,8 +333,8 @@ def _handler_factory(
             self._send_route_method_not_allowed(parts)
 
         def _send_route_method_not_allowed(self, parts: list[str]) -> None:
-            if policy_adoption.is_motion_policy_adoption_path(parts):
-                policy_adoption.send_motion_policy_adoption_method_not_allowed(self)
+            if policy_mutation.is_motion_policy_mutation_path(parts):
+                policy_mutation.send_motion_policy_mutation_method_not_allowed(parts, self)
                 return
             if is_motion_policy_preflight_path(parts):
                 send_motion_policy_preflight_method_not_allowed(self)

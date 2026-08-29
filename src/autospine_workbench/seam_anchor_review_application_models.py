@@ -16,6 +16,8 @@ class PreparedSeamAnchorReview:
     candidate_sha256: str
     _candidate_json: str
     history: SeamAnchorReviewHistorySnapshot
+    canvas_width: int
+    canvas_height: int
 
     @property
     def candidate_document(self) -> dict[str, Any]:

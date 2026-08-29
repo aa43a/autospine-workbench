@@ -72,7 +72,7 @@ def prepared():
     return PreparedSeamAnchorReview(
         ADDRESS, "d" * 64,
         json.dumps(candidate, sort_keys=True, separators=(",", ":")),
-        history,
+        history, 400, 400,
     )
 
 

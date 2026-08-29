@@ -1,6 +1,6 @@
 # AutoSpine Workbench 后续开发路线
 
-本文是 Explanation 与交付计划，面向维护者和需要评估可行性的项目负责人。它从 **P0 Resolved Project v1 合同、P10.6b MotionInstance v3、P10.7a Spine adapter bundle、P10.7b sampled raster 基础设施与独立 P10.7c setup regression 已完成** 的事实出发，说明尚未实现的能力应按什么依赖关系推进。**P9-real-kimodo-policy-adoption** 对真实 `wave-left-v1` 的 A/B 已关闭：两个项目都完成了最终 human adoption，内容寻址发布和 exact replay 也分别通过；双 SHA 集中记录在 [pilot handoff](pilots/kimodo-wave-left-v1.md)。当前下一步是让 A 进入 seam 人审/P10.5c，同时为 B 选择“修复四条不可观测下肢关系”或“另立版本化 partial seam 合同”。这里的阶段名、优先级和验收条件是建议，不构成发布日期承诺；P9 通过或基础设施可用也不等于广泛动作质量、seam、真实样本 Runtime、连续时间或 release authority 已经通过。
+本文是 Explanation 与交付计划，面向维护者和需要评估可行性的项目负责人。它从 **P0 Resolved Project v1 合同、P10.5b 自动复核/P10.5c package publication、P10.6b MotionInstance v3、P10.7a Spine adapter bundle、P10.7b sampled raster 基础设施与独立 P10.7c setup regression 已完成** 的事实出发，说明尚未实现或尚未在真实资产上关闭的能力应按什么依赖关系推进。**P9-real-kimodo-policy-adoption** 对真实 `wave-left-v1` 的 A/B 已关闭：两个项目都完成了最终 human adoption，内容寻址发布和 exact replay 也分别通过；双 SHA 集中记录在 [pilot handoff](pilots/kimodo-wave-left-v1.md)。当前操作任务是由操作者检查并最终确认 A，取得真实 P10.5b revision 与 P10.5c receipt；本轮没有代替用户提交，所以不能宣称这些凭据已存在。取得凭据后的下一真实验证阶段是 P10.5d。B 仍须选择“修复四条不可观测下肢关系”或“另立版本化 partial seam 合同”，现有完整合同保持 fail closed。这里的阶段名、优先级和验收条件是建议，不构成发布日期承诺；P9 通过或基础设施可用也不等于广泛动作质量、seam、真实样本 Runtime、连续时间或 release authority 已经通过。
 
 ## 规划原则
 
@@ -17,7 +17,8 @@
 
 | 优先级 | 能力 | 原因 |
 | --- | --- | --- |
-| P0 | A 的真实 seam 人审与 P10.5c | A 的 P9 已精确复验，六条 seam relationship 可观测；下一步是形成真实人工 revision 与 reviewed set |
+| P0 | A 的真实 P10.5b/P10.5c 凭据收口 | 自动页面与 package publication 已交付，六条关系可观测；仍需操作者最后一次确认，不能以自动草稿代替真实 revision/receipt |
+| P0 | A 的 P10.5d 动态接缝验证 | 取得真实 P10.5c 双 SHA 后，立即在精确 P10.4b2 动作域上运行下一真实阶段 |
 | P0 | B 的 seam 能力决策 | B 的 P9 已精确复验，但四条下肢关系不可观测；必须选择上游修复或另立版本化 partial 合同 |
 | P0 | P10.7c setup golden 独立回归 | 零写入入口已交付；真实执行仍依赖 exact P10.7a/capture 与批准 P6 基线，readiness v1 保持冻结且第八项仍 missing |
 | P0 | P10.7b 两份真实样本验收 | Runtime/capture/metrics/review 基础设施已存在，但真实链尚未到达 P10.7a；仍需先关闭各自 seam 门禁，再做官方 Runtime 和人工决定 |
@@ -55,7 +56,13 @@ A/B P5 重定向 + P9 package/preflight/安全 Foot 辅助采用（已完成）
         ↓
 P9 异常复核 + 一次 human adoption → 本地发布/exact verify（A/B 已完成）
         ↓
-seam 人工/语义门禁（A 可进入；B 被四条下肢关系阻塞）
+P10.5b 自动看图复核 → P10.5c package publication（机制已完成）
+        ↓
+真实 A 最终确认与 exact receipt（待操作者执行；本轮未代提交）
+        ↓
+P10.5d 动态接缝验证（下一真实阶段）
+        ↓
+B 上游修复或 partial 合同（现有完整合同 fail closed）
         ↓
 两份真实 See-through 样本官方 Runtime + 人工验收（需要外部授权环境）
         ↓
@@ -69,6 +76,24 @@ See-through/pose runner（独立输入质量轨，可并行）
 Revision 历史 UI（独立 authoring 可用性轨）
 主工作台 Spine 导出编排（P6 已完成，UI 仍待接入）
 ```
+
+## 已完成入口：P10.5b 自动复核与 P10.5c 发布
+
+这部分开发能力已经交付，不再要求普通操作者逐条读取 SHA、contact 数字或 locator JSON：
+
+- candidate envelope 提供 `setup_canvas`，以及 parent/child attachment 的
+  `canvas_offset_xy`、`anchor_points` 和精确图片地址；页面合成 alpha、contact bbox 与编号连线；
+- 确定性 advisory assist 自动填唯一候选和不可观测项；多候选只给建议高亮，明确
+  “建议重点查看 ≠ 批准”，点击候选才形成 `accept` 草稿；
+- package 自动入口绑定 current head；SHA、原始 JSON、contact 数值、locator 表和单层图默认
+  隐藏在技术详情；
+- 一次最终确认才提交 P10.5b。ready 时继续 package-bound P10.5c publication 与 exact
+  readback；P10.5b 已提交而 P10.5c 失败时，只能重试 publication，不重复写人工 revision。
+
+这里的“已完成”只指合同、UI、服务端发布和回执验证能力。真实状态仍是：A 尚未由本轮操作者
+点击最后确认，所以没有新的真实 P10.5b/P10.5c 凭据；B 的四条下肢关系不可观测，自动流程只会
+保存 blocked 结论而不会发布完整 P10.5c。A 取得 receipt 后，后续工作直接转向 P10.5d 动态接缝
+验证，而不是继续扩充静态复核表单。
 
 ## 已完成横向前置：Resolved Project v1
 
@@ -230,12 +255,13 @@ Runtime、capture、发布或写入，不代替人工决定，也不授予 publi
 
 | 项目 | 最早共同动作 blocker | 接缝 blocker | Runtime 状态 |
 | --- | --- | --- | --- |
-| `seethrough_output` | P9 exact reader 已通过；冻结请求尚未声明 | P3 candidate 六关系可观测；P10.5c 地址未声明，下一步进入真实人审 | Runtime 已存在，但 seam 是更早 blocker |
+| `seethrough_output` | P9 exact reader 已通过；冻结请求尚未声明 | 六关系可观测，自动 P10.5b/P10.5c 入口已交付；本轮尚无操作者最终确认或真实 P10.5c receipt | Runtime 已存在，但 seam 是更早 blocker |
 | `seethrough_output_5` | P9 exact reader 已通过；冻结请求尚未声明 | P3 candidate 证明四条腿/脚关系不可观测，完整六关系 P10.5c 被阻塞 | Runtime 已存在，但 seam 是更早 blocker |
 
 A 的 seam checkpoint 必须表述为 `reviewed_seam_anchor_set_address_not_declared`。这只说明请求没有
-提供 P10.5c 双 SHA，不说明 current review head 为空；操作者需要完成或确认 P10.5b 人审、编译
-P10.5c，并显式声明地址。冻结请求中的 P9 `null` 只表示该请求未声明当前已存在的 exact reviewed-motion 地址。
+提供 P10.5c 双 SHA，不说明 current review head 为空；自动草稿或页面 6/6 也不是凭据。操作者
+需要执行最后一次确认，让 package 页面提交 P10.5b、发布并精确读回 P10.5c，再显式声明 receipt
+中的双 SHA。冻结请求中的 P9 `null` 只表示该请求未声明当前已存在的 exact reviewed-motion 地址。
 
 项目 B 不得把 `unobservable` 自动改成 accept。进入完整 P10.5c 前必须修复上游腿/脚语义或
 See-through 分层，并让新的 Manifest/P3/candidate 内容地址失效旧决定；若产品确实接受缺腿脚
@@ -244,8 +270,8 @@ See-through 分层，并让新的 Manifest/P3/candidate 内容地址失效旧决
 最短后续顺序：
 
 1. 从 [pilot handoff](pilots/kimodo-wave-left-v1.md) 读取 A/B 已复验 P9 双 SHA，并用 canonical builder 生成一份显式声明这些地址的新 readiness 请求；不得手工格式化冻结 baseline。
-2. 对 A 完成或确认 P10.5b 人审、编译 P10.5c 并声明 exact 地址；对 B 先选择“上游修复”或“另立 partial 合同”，不得伪造六关系通过。
-3. 在精确 P9/seam 地址上依次完成 P10.0–P10.7a；每次只把实际生成的双 SHA 回填请求。
+2. 对 A 在自动页面完成最终确认，取得 P10.5b revision 与 P10.5c exact receipt；若 publication 失败只重试 P10.5c，不重复提交 decision。对 B 先选择“上游修复”或“另立 partial 合同”，不得伪造六关系通过。
+3. 以 A 的真实 P10.5c 双 SHA 进入 P10.5d 动态接缝验证，再在精确 P9/seam 地址上依次完成后续 P10.6–P10.7a；每次只把实际生成的双 SHA 回填请求。
 4. 使用现有且已获授权的官方 Runtime 执行 P10.7b capture、精确复验和逐 case/attachment 人工决定。
 5. 使用已交付的 `compare-body-sway-spine42-v3-setup-golden` 独立比较 setup case 与既有 P6 approved golden。readiness v1 已冻结且不会消费这份报告；即使前七项通过，它的第八项仍保持 missing，只会给出 `ready_for_p6_setup_comparison`。
 
@@ -268,8 +294,9 @@ golden 合同和精确 P10.7a/P10.7b 地址。它以冻结 comparison profile �
 readiness v1 的 Schema、哈希和八项 checkpoint 已冻结；第八项仍固定为
 `p6_setup_golden_comparison_not_declared`。P10.7c 使用独立合同，避免让旧请求或报告静默获得新含义。
 当前只能确认机制与既有 P6 批准基线可被严格验证，不能声称真实 A/B 通过：共享的
-`wave-left-v1` 已到达 P7/P8、两个目标 P5 与各自 exact replay 通过的 P9；A 尚未声明 P10.5c，
-B 的四条腿/脚 seam 不可观测，且真实 P10.7a/capture 尚未交付。只有这些前置关闭后，
+`wave-left-v1` 已到达 P7/P8、两个目标 P5 与各自 exact replay 通过的 P9；A 的自动 Seam
+入口已经可用，但本轮尚未由操作者提交真实 P10.5b/P10.5c 凭据，B 的四条腿/脚 seam
+不可观测，且真实 P10.7a/capture 尚未交付。只有这些前置关闭后，
 才能生成真实 canonical 请求并执行两项目对照。当前 stdout
 报告仍是临时、不可寻址工件；进入 readiness v2 前还要交付封存 request/report、批准合同和批准
 PNG 的 immutable comparison bundle，并由 reader 重放实际 capture。
@@ -402,7 +429,7 @@ PNG 的 immutable comparison bundle，并由 reader 重放实际 capture。
 
 ## 真实 Kimodo/P9 质量门禁
 
-**当前状态：单一 `wave-left-v1` 已完成 intake、P7/P8、两个目标 P5，以及 A/B 各自的最终 human adoption、P9 发布与 exact verify；P0 工作转向 seam 和更广泛动作质量样本集。**
+**当前状态：单一 `wave-left-v1` 已完成 intake、P7/P8、两个目标 P5，以及 A/B 各自的最终 human adoption、P9 发布与 exact verify；P10.5b/P10.5c 自动入口已交付，但 A 尚待操作者最终确认，B 保持 fail closed。A 取得 receipt 后，P0 工作转向 P10.5d 和更广泛动作质量样本集。**
 
 依赖：可合法使用的真实 Kimodo checkpoint 输出、checkpoint manifest、generation request、recorded sidecar、显式 map/camera、现有 P7–P9 精确链和人工 policy review。
 
@@ -410,7 +437,7 @@ PNG 的 immutable comparison bundle，并由 reader 重放实际 capture。
 
 已交付的 P9 安全收口把 policy identity 和 candidate inventory 从浏览器推断改为 loopback-only、zero-write Python preflight；它验证原始 JSON、完整 standalone 合同、声明 SHA 与跨 source/policy 绑定，但不保存或批准状态。`wave-left-v1` 的两份 proposal 已人工批准，A/B depth candidates 也已生成并通过该 preflight。复核台能按项目发现并自动加载 exact package、重算身份，显示 Correction/residual 时间轴、动态重点窗口和角色足点 observation；拖动时间轴或一键操作只会把 `state=candidate`、observations 完整有限且 correction ratio/residual 均不超过合同上限 80% 的 Foot candidates 写成带 provenance、可撤销的辅助草稿。Depth、`rejected_*`、缺证、非有限值、超阈值与 `adjust` 仍逐项处理；重点窗口只是视觉导航，不改变安全判定。
 
-最终 human adoption 使用独立 `POST /api/motion-policy/review-packages/{package_id}/adoptions` 写边界和 `X-Autospine-Intent: motion-policy-adoption-v1`。服务端重新加载 exact package，只接受严格 review input，不接受任意路径、客户端上游地址或 shell；随后复用既有 compiler/store/reader，原子发布并 exact verify P9。A/B 已分别走完这条路径，真实双 SHA 固定在 [pilot handoff](pilots/kimodo-wave-left-v1.md)。下一交付是让 A 进入 seam 人审；B 必须先解决四条下肢 seam 不可观测或建立版本化 partial 合同，不能因为 P9 成功就绕过。heading/scale 只有在独立 reviewed 合同完成后才能进入 runtime。
+最终 human adoption 使用独立 `POST /api/motion-policy/review-packages/{package_id}/adoptions` 写边界和 `X-Autospine-Intent: motion-policy-adoption-v1`。服务端重新加载 exact package，只接受严格 review input，不接受任意路径、客户端上游地址或 shell；随后复用既有 compiler/store/reader，原子发布并 exact verify P9。A/B 已分别走完这条路径，真实双 SHA 固定在 [pilot handoff](pilots/kimodo-wave-left-v1.md)。Seam 自动入口随后可以形成 P10.5b 草稿并在最终确认后继续 P10.5c，但本轮尚未代替操作者提交 A；因此下一真实交付是 A 的 P10.5d，而前置操作仍是取得 A 的真实 P10.5c receipt。B 必须先解决四条下肢 seam 不可观测或建立版本化 partial 合同，不能因为 P9 成功就绕过。heading/scale 只有在独立 reviewed 合同完成后才能进入 runtime。
 
 当前实物状态：真实运行的 `wave-left-v1` 已有 recorded 六输入、intake 报告、通过 exact reader 的 P7/P8 bundle、绑定到 A/B 的 P5 bundle、正式 depth policy、各自的 foot/depth candidates，以及分别 exact replay 通过的 P9 reviewed-motion bundle；collapsed sample 为零。两份 depth report 各有 120 个 sample、0 个 event；A/B 的 P9 双 SHA 见 [pilot handoff](pilots/kimodo-wave-left-v1.md)。这不认证 checkpoint 或批准作品质量。P9 与 seam 相互独立：A 的六条关系可进入人审；B 的长裙/分层限制导致左右 pelvis-leg 与 leg-foot 四条关系不可观测，必须换新分层资产、修复语义，或建立明确禁止通用腿部动画的版本化 partial 合同。
 

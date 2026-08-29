@@ -7,6 +7,7 @@ import { seamReviewKeyboardIntent } from "../modules/seam-anchor-review-keyboard
 import { createSeamReviewInteractions } from "../modules/seam-anchor-review-interactions.js";
 import { createSeamReviewState } from "../modules/seam-anchor-review-state.js";
 import { setSeamDraftDisabled } from "../modules/seam-anchor-review-view.js";
+import { renderSeamOptionVisual } from "../modules/seam-anchor-review-visual.js";
 
 function keyEvent(key, target = { tagName: "DIV" }, extra = {}) {
   return {
@@ -112,25 +113,65 @@ test("DOM helper treats untrusted labels only as text", () => {
   assert.equal(child.children.length, 0);
 });
 
+test("unavailable option still renders two alpha layers without anchors", () => {
+  class FakeElement {
+    constructor(tag) {
+      this.tag = tag; this.children = []; this.attributes = {};
+      this.dataset = {}; this.textContent = ""; this.className = "";
+    }
+    append(...children) { this.children.push(...children); }
+    setAttribute(name, value) { this.attributes[name] = String(value); }
+  }
+  const doc = {
+    createElement: (tag) => new FakeElement(tag),
+    createElementNS: (_namespace, tag) => new FakeElement(tag),
+  };
+  const option = {
+    option_id: "seam.torso_arm.left.option.000", status: "unavailable",
+    contact_evidence: { bbox_xywh: [10, 20, 4, 4] }, anchors: [],
+  };
+  const images = ["parent", "child"].map((role, index) => ({
+    option_id: option.option_id, attachment_role: role,
+    attachment_id: `${role}.arm`, url: `/evidence/${role}`,
+    width: 64, height: 96, canvas_offset_xy: [index * 4, 0],
+    anchor_points: [],
+  }));
+  const figure = renderSeamOptionVisual(
+    doc, option, images, { width: 400, height: 400 },
+  );
+  const descendants = (root) => [root, ...root.children.flatMap(descendants)];
+  const nodes = descendants(figure);
+  assert.equal(nodes.filter((row) => row.tag === "image").length, 2);
+  assert.equal(nodes.filter((row) => row.tag === "line").length, 0);
+  assert.equal(nodes.filter((row) => row.tag === "circle").length, 0);
+});
+
 test("static page exposes structured evidence, semantic controls, and responsive guards", async () => {
   const root = new URL("../", import.meta.url);
-  const [html, baseCss, entryCss, markup, evidence, entryView, entryContract, entryFlow] = await Promise.all([
+  const [html, baseCss, entryCss, visualCss, workflowCss, markup, evidence,
+    visual, entryView, entryContract, entryFlow] = await Promise.all([
     readFile(new URL("seam-anchor-review.html", root), "utf8"),
     readFile(new URL("seam-anchor-review.css", root), "utf8"),
     readFile(new URL("seam-anchor-review-entry.css", root), "utf8"),
+    readFile(new URL("seam-anchor-review-visual.css", root), "utf8"),
+    readFile(new URL("seam-anchor-review-workflow.css", root), "utf8"),
     readFile(new URL("modules/seam-anchor-review-markup.js", root), "utf8"),
     readFile(new URL("modules/seam-anchor-review-evidence.js", root), "utf8"),
+    readFile(new URL("modules/seam-anchor-review-visual.js", root), "utf8"),
     readFile(new URL("modules/seam-anchor-review-entry-view.js", root), "utf8"),
     readFile(new URL("modules/seam-anchor-review-entry.js", root), "utf8"),
     readFile(new URL("modules/seam-anchor-review-entry-flow.js", root), "utf8"),
   ]);
-  const css = `${baseCss}\n${entryCss}`;
+  const css = `${baseCss}\n${entryCss}\n${visualCss}\n${workflowCss}`;
   assert.match(html, /<meta name="viewport"/);
   assert.match(html, /id="entryStatus"[^>]*role="status"/s);
   assert.match(html, /id="entryBlockers"/);
   assert.match(html, /<details id="expertAddressDetails"[^>]*class="expert-address"/);
   assert.match(html, /专业模式：手动输入项目与四项 exact 地址/);
   assert.match(html, /id="reviewRelationships"[^>]*tabindex="-1"/s);
+  assert.match(html, /id="applyAssistBtn"/);
+  assert.match(html, /id="publicationPanel"/);
+  assert.match(html, /id="retryPublicationBtn"/);
   assert.match(html, /<label>/);
   assert.match(markup, /createElement\("fieldset"\)/);
   assert.match(markup, /完整 final_anchors JSON/);
@@ -139,9 +180,14 @@ test("static page exposes structured evidence, semantic controls, and responsive
   assert.match(evidence, /parent_attachment_type/);
   assert.match(evidence, /anchorTable/);
   assert.match(evidence, /setup alpha 证据/);
-  assert.match(evidence, /选择 \$\{option\.option_id\}/);
+  assert.match(evidence, /选择并确认为正确/);
+  assert.match(evidence, /建议重点查看 ≠ 批准/);
+  assert.match(visual, /const SVG_NS/);
+  assert.match(visual, /seam-contact-box/);
+  assert.match(visual, /seam-anchor-link/);
   assert.equal(markup.includes("innerHTML"), false);
   assert.equal(evidence.includes("innerHTML"), false);
+  assert.equal(visual.includes("innerHTML"), false);
   assert.equal(entryView.includes("innerHTML"), false);
   assert.equal(entryContract.includes("innerHTML"), false);
   assert.equal(entryFlow.includes("innerHTML"), false);

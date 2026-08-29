@@ -12,17 +12,21 @@ import {
 export function createSeamReviewHistoryController({
   api, elements, requests, busy, getAddress, getState, setState, errorText,
 }) {
-  function applyHistory(payload) {
+  function applyHistory(payload, { autoBaseline = false } = {}) {
     let state = getState();
     state = {
       ...state,
       history: normalizeSeamReviewHistory(payload, state.candidateSha256),
       selectedDecision: null, baseline: null, stale: false,
     };
+    if (autoBaseline) state = {
+      ...state, baseline: currentSeamHeadBaseline(state.history),
+    };
     setState(state);
     showSeamHistory(elements, state.history);
     elements.decisionDocument.textContent = "—";
     setStatus(elements.historySelectionStatus, "尚未选择历史 revision。");
+    if (autoBaseline) showSeamBaseline(elements, state.baseline, true);
     updateSeamReviewSummary(elements, state);
   }
 

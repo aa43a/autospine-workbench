@@ -21,7 +21,7 @@ import {
   setAdjustedAnchorsText, setSeamAction, setSeamNotes, setSeamOption,
 } from "../modules/seam-anchor-review-state.js";
 import {
-  ADDRESS, RELATIONSHIPS, SHA, candidateEnvelope,
+  ADDRESS, RELATIONSHIPS, SHA, assistFor, candidateEnvelope,
   decideAll, jsonResponse, normalizedState,
 } from "./seam-anchor-review-fixtures.js";
 
@@ -96,6 +96,49 @@ test("candidate keeps fixed order and exact option-bound image evidence", () => 
   assert.throws(() => normalizeSeamCandidateEnvelope(
     reordered, ADDRESS, () => reordered.attachment_images[0].url,
   ), /option/);
+});
+
+test("unavailable option keeps both images with an empty anchor preview", () => {
+  const payload = candidateEnvelope();
+  const relationship = payload.candidate.relationships[0];
+  const option = relationship.options[0];
+  option.status = "unavailable";
+  option.reason_codes = ["GAP_LOCATOR_UNSUPPORTED_IN_V1"];
+  option.anchors = [];
+  relationship.status = "unobservable";
+  relationship.reason_codes = ["GAP_LOCATOR_UNSUPPORTED_IN_V1"];
+  payload.attachment_images
+    .filter((row) => row.option_id === option.option_id)
+    .forEach((row) => { row.anchor_points = []; });
+  payload.review_assist = assistFor(payload.candidate);
+  const paths = seamAnchorReviewPaths(ADDRESS);
+  const normalized = normalizeSeamCandidateEnvelope(
+    payload, ADDRESS, (optionId, attachmentId, sha) => paths.optionImage(
+      SHA.candidate, optionId, attachmentId, sha,
+    ),
+  );
+  const images = normalized.attachmentImages.filter(
+    (row) => row.option_id === option.option_id,
+  );
+  assert.deepEqual(images.map((row) => row.attachment_role), ["parent", "child"]);
+  assert.equal(images.every((row) => row.anchor_points.length === 0), true);
+});
+
+test("option status and anchor cardinality remain fail closed", () => {
+  for (const [status, clearAnchors] of [
+    ["candidate", true], ["unavailable", false],
+  ]) {
+    const payload = candidateEnvelope();
+    const relationship = payload.candidate.relationships[0];
+    const option = relationship.options[0];
+    option.status = status;
+    if (clearAnchors) option.anchors = [];
+    if (status === "unavailable") relationship.status = "unobservable";
+    payload.review_assist = assistFor(payload.candidate);
+    assert.throws(() => normalizeSeamCandidateEnvelope(
+      payload, ADDRESS, () => payload.attachment_images[0].url,
+    ), /anchor 数量/);
+  }
 });
 
 test("submission contains only exhaustive human CAS fields and evidence identity", () => {
@@ -208,6 +251,7 @@ test("candidate-unobservable relationship accepts only an explicit null-option d
   payload.attachment_images = payload.attachment_images.filter(
     (row) => row.option_id !== removedOptionId,
   );
+  payload.review_assist = assistFor(payload.candidate);
   const paths = seamAnchorReviewPaths(ADDRESS);
   const normalized = normalizeSeamCandidateEnvelope(
     payload, ADDRESS, (optionId, attachmentId, sha) => paths.optionImage(
