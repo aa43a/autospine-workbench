@@ -464,8 +464,8 @@ atlas/texture 不变，再从 capture plan 中选出唯一 `animation=null/tick=
 sample 冒充 replay。命令不启动 Runtime、不扫描 mutable head、不写 state、不修改 golden，
 临时 stdout 只授予 bounded setup-frame equivalence，release gate 固定 blocked；readiness v2
 之前还必须把 request/report、批准合同与批准 PNG 封存成可寻址、可重放的 immutable comparison
-bundle。共享的 `wave-left-v1` 已到达 P7/P8 与真实 A/B 各自的 P5，P9 页面也已有 zero-write
-Python preflight；但两份 proposal 尚未人工批准，仍受 P9 人审、seam 与官方
+bundle。共享的 `wave-left-v1` 已到达 P7/P8、真实 A/B 各自的 P5、正式 depth policy 与
+depth candidates，P9 页面也已有 zero-write Python preflight；但两组 Foot 候选尚未穷尽决定，仍受 P9 人审、seam 与官方
 capture 外部前置阻塞；机制交付不能写成真实样本通过。操作入口见
 [P10.7c Setup Golden How-to](how-to-compare-spine42-v3-setup-golden.md)、
 [就绪状态审计 How-to](how-to-audit-spine42-v3-readiness.md)和[后续开发路线](development-roadmap.md)。

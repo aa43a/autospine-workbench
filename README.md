@@ -2,7 +2,7 @@
 
 AutoSpine Workbench 是一个本地人工复核与离线编译工作流，用于查看 See-through PSD 审计结果、校正图层语义和 setup 可见性、调整启发式关节，并保存带 revision 的 override。它不会修改 PSD、审计 JSON 或 PNG；主 authoring 页面写入 `workspace/overrides`，P10 人工复核使用各自独立的 revision namespace，离线 publish/compile 命令按阶段写入内容寻址的 analysis、motion、build 或 runtime 工件。
 
-当前开发入口是 **P9-real-kimodo-policy-review**：`wave-left-v1` 已完成六输入准入、P7/P8、A/B 两个目标 P5 的发布与精确复验，并已生成共享 policy evidence、两份 foot-lock candidates 和待人工批准的 depth-pair proposal。下一步是在 P9 两步复核台批准或调整 depth policy、生成 depth-order candidates、穷尽人工决定并发布 P9。该 pilot 不证明 checkpoint authenticity、广泛动作质量、seam、官方 Runtime 或发布权，不能直接宣称生成了可发布的 Spine 资产。
+当前开发入口是 **P9-real-kimodo-candidate-review**：`wave-left-v1` 已完成六输入准入、P7/P8、A/B 两个目标 P5 的发布与精确复验，并已生成共享 policy evidence、两份 foot-lock candidates；两份 depth-pair proposal 也已人工批准为正式 policy，并生成、交叉预检各自的 depth-order candidates。两份报告都包含 120 个 depth sample、0 个切换事件；下一步是在 P9 两步复核台分别穷尽 119 个 Foot 候选决定，再由 CLI 发布 P9。该 pilot 不证明 checkpoint authenticity、广泛动作质量、seam、官方 Runtime 或发布权，不能直接宣称生成了可发布的 Spine 资产。
 
 当前功能及入口以[功能与入口参考](docs/capability-reference.md)为准；尚未实现的能力、依赖和验收顺序见[后续开发路线](docs/development-roadmap.md)。
 
@@ -578,7 +578,7 @@ P7a 已完成 Kimodo SOMA77 BVH 结构兼容 smoke：严格支持零包装 `Root
 
 P8 相机感知投影与候选尺度门禁已完成：`CameraModel v1` 和 `ProjectedMotionIR v1` 保留逐段二维向量、L2/L3、深度余弦、root-relative depth、透视缩短比和 collapsed/observable 状态，并发布为精确重放 P7 的三文件不可变 bundle。legacy bridge 必须逐字节重建 P7 MotionIR；同一投影证据已经在三套不同目标 rig 上产生 setup-relative 长度候选，并再次通过 P5/P6，目标 profile 与 Spine 输出没有新增 scale timeline。P8 深度只作为证据，不决定前后遮挡；候选报告也不会自动成为动画。操作与边界见 [编译并复验 P8 投影证据](docs/how-to-compile-projected-motion.md)。
 
-真实运行的 `wave-left-v1` 已通过六输入 intake，并按 exact 地址完成 P7/P8 与 A/B 目标 P5 发布和 reader 复验；唯一身份、P5 QA、foot candidates 与 pending depth proposal 见 [Kimodo `wave-left-v1` Pilot Handoff](docs/pilots/kimodo-wave-left-v1.md)。这只关闭单一输入的结构、投影和目标重定向重放，不认证 checkpoint，也不替代 P9 人审、作品质量、seam 或官方 Runtime 门禁。
+真实运行的 `wave-left-v1` 已通过六输入 intake，并按 exact 地址完成 P7/P8 与 A/B 目标 P5 发布和 reader 复验；唯一身份、P5 QA、正式 depth policy 与候选身份见 [Kimodo `wave-left-v1` Pilot Handoff](docs/pilots/kimodo-wave-left-v1.md)。这只关闭单一输入的结构、投影、目标重定向重放和候选准入，不认证 checkpoint，也不替代 P9 候选人审、作品质量、seam 或官方 Runtime 门禁。
 
 P9 reviewed motion 结构闭环已完成：foot-lock/depth-order evidence 与 candidate 不是决定；决定必须覆盖精确候选集，然后才能编译 reviewed policy、MotionInstance v2 与独立 Spine 4.2 v2 preview。复核页的 loopback-only Python preflight 现已覆盖 policy canonical identity、三份 standalone 合同、声明 SHA 重算、source/schedule 与 policy/depth 交叉绑定；其 `passed` 只准许页面显示候选，不授予人工或发布权限。六文件 reviewed bundle 固定 inventory，从 run manifest 重放精确 P3/P5 上游，无 `latest` 或扫描回退。MotionInstance v1/P8 哈希保持不变；heading/scale 仍是 evidence-only，attachment switch 尚未实现。loader-isomorphic audit 只是结构验证，不等于官方 runtime 或 raster truth；`wave-left-v1` 的 P9 人工决定、动态官方 runtime screenshot 与真实 reviewed asset 门禁仍未关闭。
 
@@ -644,7 +644,7 @@ P10.7c 已增加 strict canonical setup-regression request/report、冻结 compa
 - 代替输入素材、训练数据或模型权重的许可证与商业使用审查；
 - 多用户权限、远程协作或生产部署。
 
-这些边界并非都应一次性并入当前阶段。`wave-left-v1` 的六输入审计、P7/P8 与 A/B P5 exact replay 已完成，P9 页面的 Python preflight 安全边界也已交付；下一顺序仍是人工批准或调整两份 depth-pair proposal、生成 depth candidates、在 P9 页面穷尽决定并由 CLI 发布/复验 reviewed-motion exact 地址。同时完成 A 的 seam 人审与 P10.5c，并为 B 选择新分层资产或禁止通用腿部动画的独立 partial 合同。之后再做两份真实样本的官方 Runtime capture、逐项人审和 P10.7c P6 setup golden 对照；随后封存 immutable comparison bundle并接 readiness v2；最后进入 attachment switch → blink/mouth。输入模型 runner 继续作为独立质量轨；完整计划见[后续开发路线](docs/development-roadmap.md)。
+这些边界并非都应一次性并入当前阶段。`wave-left-v1` 的六输入审计、P7/P8、A/B P5 exact replay、正式 depth policy 与 depth candidates 已完成，P9 页面的 Python preflight 也已对两组 policy/foot/depth 输入交叉验证通过；下一顺序是在 P9 页面分别穷尽 119 个 Foot 候选决定，并由 CLI 发布/复验 reviewed-motion exact 地址。同时完成 A 的 seam 人审与 P10.5c，并为 B 选择新分层资产或禁止通用腿部动画的独立 partial 合同。之后再做两份真实样本的官方 Runtime capture、逐项人审和 P10.7c P6 setup golden 对照；随后封存 immutable comparison bundle并接 readiness v2；最后进入 attachment switch → blink/mouth。输入模型 runner 继续作为独立质量轨；完整计划见[后续开发路线](docs/development-roadmap.md)。
 
 项目中显示的骨架来自 bbox/语义启发式，`requires_review=true`。只有在语义、左右、pivot、层级、合成回归和动作探针均通过后，才能把人工确认结果交给后续 RigIR/导出阶段。
 

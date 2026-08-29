@@ -305,7 +305,7 @@ P9 通过新增 MotionInstance v2 与 Spine adapter v2 承载动态策略；Moti
 
 结构闭环已经覆盖 exact address、候选/决定分离、root correction、draw order、MotionInstance v2、Spine v2 preview 和六文件 bundle 重放。仍未关闭的门禁包括：
 
-- `wave-left-v1` 已有已复验的 P7/P8、A/B P5、共享 policy evidence 与两份 foot candidates；它仍缺人工批准的 depth policy、depth candidates、穷尽候选的人工决定和 P9 reviewed asset fixture；
+- `wave-left-v1` 已有已复验的 P7/P8、A/B P5、共享 policy evidence、正式 depth policy 以及两组 foot/depth candidates；两组 candidate inventory preflight 均通过，但每个项目仍缺 119 个 Foot 人工决定和 P9 reviewed asset fixture；
 - 动态 draw order/foot correction 在官方 Spine runtime 中的固定截图回归；
 - heading 或 scale timeline 的人工决定与 runtime 消费合同；
 - attachment switch、deform、runtime IK 和物理。

@@ -1,6 +1,6 @@
 # AutoSpine Workbench 功能与入口参考
 
-本文是面向操作者和开发者的 Reference。它回答“功能是否已经实现、从哪里进入、会得到什么”，不替代具体操作步骤。P0 Resolved Project v1、P10.6b MotionInstance v3、P10.7a Spine 4.2 v3 adapter bundle、P10.7b sampled raster 基础设施与独立 P10.7c setup regression 已完成；当前开发入口是 **P9-real-kimodo-policy-review**。`wave-left-v1` 已完成 intake、P7/P8 exact replay 与真实 A/B 各自的 P5 exact replay，P9 页面的 loopback-only Python preflight 也已交付；当前仍须关闭 P9 人审、seam 与官方 capture blocker。计划项见[开发路线](development-roadmap.md)。
+本文是面向操作者和开发者的 Reference。它回答“功能是否已经实现、从哪里进入、会得到什么”，不替代具体操作步骤。P0 Resolved Project v1、P10.6b MotionInstance v3、P10.7a Spine 4.2 v3 adapter bundle、P10.7b sampled raster 基础设施与独立 P10.7c setup regression 已完成；当前开发入口是 **P9-real-kimodo-candidate-review**。`wave-left-v1` 已完成 intake、P7/P8、真实 A/B 各自的 P5 exact replay、正式 depth policy 与候选交叉预检；当前仍须关闭每项目 119 个 Foot 决定、seam 与官方 capture blocker。计划项见[开发路线](development-roadmap.md)。
 
 ## 统一入口
 
@@ -275,7 +275,7 @@ POST 在这里只用于承载有界完整 JSON 文档，不代表 mutation。本
 - P6 当前只有离线 CLI；主工作台没有 Spine 导出编排，Project API 的 `export_spine` 仍为 `false`。
 - resolved snapshot 已确定性生成并被下游寻址，现有独立 v1 JSON Schema、严格语义 validator、派生 QA 校验及 r5/r7 历史哈希回归；它仍没有独立 CLI/UI，外部 candidate/split artifact 字节重放继续由各自 binder 负责。
 - override history 已 append-only 保存，但主工作台尚无历史浏览/恢复 UI；安全恢复必须追加新 revision，不能改写历史。
-- P7 real-pilot intake 审计已经可用：它把真实 NPZ、recorded sidecar、map、camera 与两份 provenance 原件闭合为零写入 path-free 报告。`wave-left-v1` 已通过该审计并完成 P7/P8 与 A/B P5 exact replay，身份集中记录在 [pilot handoff](pilots/kimodo-wave-left-v1.md)。P9 页面已有 Python preflight 安全准入，但两份 proposal 尚未获得人工批准、depth candidates 尚未产生，因而仍没有 A/B 各自的 P9 地址；preflight 也不认证 checkpoint 或批准动作质量。
+- P7 real-pilot intake 审计已经可用：它把真实 NPZ、recorded sidecar、map、camera 与两份 provenance 原件闭合为零写入 path-free 报告。`wave-left-v1` 已通过该审计并完成 P7/P8、A/B P5 exact replay、正式 depth policy 与 depth candidates，身份集中记录在 [pilot handoff](pilots/kimodo-wave-left-v1.md)。两组 candidate inventory preflight 均已通过，但每个项目仍缺 119 个 Foot 人工决定和 P9 地址；preflight 也不认证 checkpoint 或批准动作质量。
 - P10 body-sway 已完成 P10.7b sampled raster 基础设施、冻结的 P10.7b-readiness v1 审计和独立 P10.7c setup regression 命令；readiness 第八项仍固定为 missing。当前默认 state 的独立 seam 审计确认 A/B 都没有 review history/head：A 的六条关系可复核，B 有四条腿/脚关系不可观测；真实 capture 也尚未交付，因此不能声称 A/B 已通过 P10.7c。
 - `blink`、口型和头发目前只存在 idle candidate 类型或规划入口，没有可靠素材生成、绑定与 runtime 交付。
 - See-through/pose 推理、真实 Kimodo checkpoint authenticity/动作质量验收、实时追踪、自由形变、runtime IK、生产部署仍未实现。

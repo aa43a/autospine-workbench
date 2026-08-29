@@ -259,7 +259,7 @@ python -B -m autospine_workbench verify-mesh-bundle --help
 
 ## 10. 当前阶段与下一开发入口
 
-当前开发入口是 **P9-real-kimodo-policy-review**。真实运行的 `wave-left-v1` 已完成六输入准入、P7/P8、A/B P5 精确复验、共享 policy evidence 和两份 foot candidates；唯一身份记录见 [Kimodo `wave-left-v1` Pilot Handoff](pilots/kimodo-wave-left-v1.md)。对新的 Kimodo 输入，仍应先运行零写入准入审计：
+当前开发入口是 **P9-real-kimodo-candidate-review**。真实运行的 `wave-left-v1` 已完成六输入准入、P7/P8、A/B P5 精确复验、正式 depth policy，以及两组 foot/depth candidates；唯一身份记录见 [Kimodo `wave-left-v1` Pilot Handoff](pilots/kimodo-wave-left-v1.md)。对新的 Kimodo 输入，仍应先运行零写入准入审计：
 
 ```powershell
 python -B -m autospine_workbench audit-kimodo-pilot-intake `
@@ -270,7 +270,7 @@ python -B -m autospine_workbench audit-kimodo-pilot-intake `
 
 该命令要求 `producer.status=recorded`，闭合两份 provenance 原件 SHA，在内存重跑 P7 结构编译并检查 camera/map；它不写 state、不认证 checkpoint、不批准动作质量，也不生成 P7/P8/P9 bundle。完整准备步骤见[审计真实 Kimodo Pilot 输入](how-to-audit-real-kimodo-pilot-intake.md)。
 
-继续当前 `wave-left-v1` 时，不要再次编译或扫描 P5 地址：从 handoff 读取两份已复验 P5、foot candidates 与 pending depth proposal，在 [Motion Policy 两步人工复核台](http://127.0.0.1:8765/motion-policy-review.html)核对并批准或调整 proposal。页面通过 `POST /api/motion-policy/preflight` 与 `X-Autospine-Intent: motion-policy-preflight-v1` 把所选文件的原始文本交给 Python 取得 policy identity；生成 depth candidates 后，它还会用 policy/foot/depth 原文和三份声明 SHA 运行 candidate inventory preflight，由 Python 解包 envelope 并验证完整 standalone 合同。只有 preflight 通过才会开放逐项表单，但这仍不等于人工批准。完成全部人工决定后，必须继续用 CLI 编译并复验 P9。下列命令用于复验或继续 exact 链：
+继续当前 `wave-left-v1` 时，不要再次编译或扫描 P5 地址：A/B 正式 policy 与 depth candidates 已生成并通过 candidate inventory preflight。现在从 handoff 读取每个项目的 policy、Foot report、Depth envelope 和三份 SHA，在 [Motion Policy 两步人工复核台](http://127.0.0.1:8765/motion-policy-review.html)逐项目加载；不要混用 A/B。每个项目需要决定 119 个 Foot 候选，本轮 Depth event 为 0。只有 preflight 通过才会开放逐项表单，但这仍不等于人工决定。完成全部决定后，必须继续用 CLI 编译并复验 P9。下列命令用于复验或继续 exact 链：
 
 ```powershell
 python -B -m autospine_workbench compile-motion-retarget --help
@@ -291,7 +291,7 @@ python -B -m autospine_workbench audit-body-sway-spine42-v3-readiness `
   --document-only
 ```
 
-readiness v1 的 Schema、哈希和 checkpoint 语义已经冻结；即使 P10.7c 已交付，第八项仍固定为 `p6_setup_golden_comparison_not_declared`，不能把 readiness 报告当作 setup 对照结果。当前结果是：A/B 的 P5 已完成，但都未声明 P9 reviewed-motion exact 地址；pending depth proposal、candidate 或 motion-policy preflight 的 `passed` 都不等于人工决定。默认 state 的独立 seam 盘点还确认 A/B 都没有 review history/head；A 的六条关系可直接进入人审，B 的长裙遮挡使四条腿/脚关系不可观测，必须换新分层资产或另立禁止通用腿部动画的 partial 合同。Runtime 已存在，但不是最早 blocker。请求格式、报告读取方式和权限边界见[审计两份真实样本的 Spine 4.2 v3 就绪状态](how-to-audit-spine42-v3-readiness.md)。
+readiness v1 的 Schema、哈希和 checkpoint 语义已经冻结；即使 P10.7c 已交付，第八项仍固定为 `p6_setup_golden_comparison_not_declared`，不能把 readiness 报告当作 setup 对照结果。当前结果是：A/B 的 P5、正式 depth policy 与 depth candidates 已完成，但都未声明 P9 reviewed-motion exact 地址；candidate 或 motion-policy preflight 的 `passed` 仍不等于人工决定。默认 state 的独立 seam 盘点还确认 A/B 都没有 review history/head；A 的六条关系可直接进入人审，B 的长裙遮挡使四条腿/脚关系不可观测，必须换新分层资产或另立禁止通用腿部动画的 partial 合同。Runtime 已存在，但不是最早 blocker。请求格式、报告读取方式和权限边界见[审计两份真实样本的 Spine 4.2 v3 就绪状态](how-to-audit-spine42-v3-readiness.md)。
 
 P10.7c 的独立入口已经可从功能中心复制，也可直接查看帮助：
 

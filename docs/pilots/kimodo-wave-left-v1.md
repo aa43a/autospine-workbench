@@ -35,6 +35,9 @@
 | P5 bundle | `cd8717839fe66165f6b32cded0569c82497dc5e79d953c230fa5c905a02dc902` | `9acce5424a3d54cad51791695d787fc7f808a9c5dd59997354681c0162eacd2e` |
 | Foot candidate report | `0d747347d7c4558239e2d9ea25eded676497d441e4f29c2433a57941cc296ccc` | `f845b74acd61ed0503505e55a7187f4a831b44ed4bf1b4faaf53336d4caf2bbf` |
 | Pending depth proposal file | `3d0ebe51ac1ca0de9ee73a1880a61e781c7504ee9dfb067c308c9549a7267fe3` | `60dc9235fc56df2648cf1ce140fd54a1bd3c0de621528cf8b9ba25e9e3c9623b` |
+| Approved depth policy identity | `f54ccb8e48a99a6df97a67b2d64de5a776f94b8bd7ba8cffe4382c7e0357c1ae` | `b1353fc5f722a10f83f98df7e67820310ff77029ca06ba2841937836d3b3324a` |
+| Depth candidate report | `766837d64859fb27815dc084069116f7737505a17a578735116b655d89cb4ab7` | `1d1e13cc45b4f952c2c3bcd95bbcd8ec79be36df429102a2fc5392b95fb6c7a4` |
+| Candidate ID inventory | `909c80506d6f869df7c94445bc1ab8d841c6ae37a2ca7b9d72237f0f30f29f1e` | `898ce987c04bf7b35b8f5bfe23aa6f9eb13a62b1d64b0fe8ef34b79ed84debd3` |
 
 P3、P4、P7 与两个 P5 均已按 exact 地址复验；重复 P5 编译返回 `reused=true`。A/B
 各得到 `120` 个 foot sample：`119` 个 `candidate`、`1` 个 `unconstrained`，且本轮阈值
@@ -42,19 +45,27 @@ P3、P4、P7 与两个 P5 均已按 exact 地址复验；重复 P5 编译返回 
 `max_correction_reference_ratio=0.25`、`max_residual_px=8`，这两个值属于本次审查策略，
 不是跨角色的视觉安全常量。
 
-候选文件位于 `workspace/reviews/wave-left-v1/<project>/`。其中
+候选与授权历史文件位于 `workspace/reviews/wave-left-v1/<project>/`。保留的历史
 `depth-pair-policy.proposal.json` 故意使用 proposal format 和
 `pending_human_review`，正式 validator 必须拒绝它；表中的 SHA 只是草案文件身份，不是
 `depth_pair_policy_sha256`。首轮草案每个项目只比较 character-left 挥动手与 face，以限制
-人工复核规模。操作者必须在复核页面查看 exact source、slot/role、setup front 与滞回参数，
-再显式下载正式 approved policy。
+人工复核规模。在 2026-08-29 批准前，操作者按要求在复核页面查看 exact source、slot/role、
+setup front 与滞回参数，再显式下载正式 approved policy。
 
-两份草案还经过了只读 test-only preflight：在内存中投影为正式字段后，分别重新加载 exact
+批准前，两份草案还经过了只读 test-only preflight：在内存中投影为正式字段后，分别重新加载 exact
 P8/P5/P3 并通过 `require_depth_pair_policy(..., inputs=...)`，证明 source、slot/role、setup
-front 与全帧可观测性结构兼容。该历史预检没有保存 approved policy，也没有生成 depth candidates，
+front 与全帧可观测性结构兼容。当时的历史预检没有保存 approved policy，也没有生成 depth candidates，
 不能代替人工批准。工作台现已另有生产级 loopback-only、zero-write Python preflight，可从原始
 JSON 文本重算正式 policy identity 与完整 candidate inventory；它同样不升级这两份 proposal 的
 `pending_human_review` 状态。
+
+2026-08-29，操作者在 P9 复核页分别批准 A/B 草案；下载的正式 policy 经 strict JSON、正式
+validator 和生产 `policy_identity` preflight 通过，与各自草案相比只发生允许的 proposal→formal
+投影。随后从表中固定的 P3/P5/P8 exact 地址生成两份 depth candidate report：每份均有 1 个 pair、
+120 个 sample、0 个切换 event。Python `candidate_inventory` 对两组 policy/foot/depth 原文、三份
+声明 SHA、完整 schedule、source/policy 交叉绑定和 candidate ID 清单复算均为 `passed`。每个项目
+当前需要决定 119 个 Foot 候选，另有 1 个 unconstrained sample；没有 Depth event 需要决定。
+这些结果只开放逐项人审，尚未产生 decision、reviewed policy 或 P9 bundle。
 
 ## 权限与质量边界
 
@@ -74,10 +85,9 @@ readiness 请求。任何输入、map、camera、compiler 或算法 profile 变�
 
 ## 下一步
 
-1. 分别人工检查并批准或修改两份 depth-pair policy proposal，并以生产 Python `policy_identity`
-   preflight 取得正式 canonical SHA；preflight 通过仍不等于批准。
-2. 用批准后的 exact policy 生成各目标 depth-order candidates，再以 Python `candidate_inventory`
-   重算 policy/foot/depth 三 SHA、完整合同与交叉 source/policy 绑定。
-3. 在 P9 复核页穷尽 foot/depth 决定，用 CLI 编译 decision 与 reviewed policy。
+1. 在 P9 复核页分别加载已批准的正式 policy、Foot report 与 Depth envelope，并使用表中的
+   policy/foot/depth SHA 运行 `candidate_inventory`；不得混用 A/B 文件。
+2. 穷尽每个项目的 119 个 Foot 决定并下载严格 review input；本轮 Depth event 数为 0。
+3. 用 CLI 编译 decision 与 reviewed policy。
 4. 发布并复验各项目的 P9 reviewed-motion bundle；只有取得 P9 exact 地址后，才能继续
    回填 readiness 和后续 P10 链。
