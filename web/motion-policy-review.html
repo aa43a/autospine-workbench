@@ -5,17 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#0b0e14">
-  <title>P9 Motion Policy 人工复核 — AutoSpine</title>
+  <title>P9 Motion Policy 自动工作流 — AutoSpine</title>
   <link rel="stylesheet" href="./body-sway-review.css">
   <link rel="stylesheet" href="./motion-policy-review.css">
   <link rel="stylesheet" href="./motion-policy-visual-review.css">
+  <link rel="stylesheet" href="./motion-policy-auto.css">
 </head>
 <body>
   <a class="skip-link" href="#evidenceReview">跳到视觉复核</a>
   <header class="review-topbar">
     <div>
-      <p class="eyebrow">P9 · HUMAN POLICY GATE</p>
-      <h1>Motion Policy 两步人工复核</h1>
+      <p class="eyebrow">P9 · ASSISTED POLICY GATE</p>
+      <h1>Motion Policy 自动工作流</h1>
     </div>
     <nav class="review-nav" aria-label="工作台导航">
       <a class="button secondary" href="./workflow-hub.html">功能入口中心</a>
@@ -24,6 +25,24 @@
   </header>
 
   <main>
+    <section id="autoStartPanel" class="panel auto-start-panel" aria-labelledby="autoStartHeading">
+      <div class="section-heading">
+        <div><p class="eyebrow">快速开始</p><h2 id="autoStartHeading">选择项目，其余内容自动准备</h2></div>
+        <span id="coverageBadge" class="gate-badge">0 / 0</span>
+      </div>
+      <p class="lede">系统会自动选择推荐项目，绑定正确的动作包，重算文件身份并完成来源校验。无需挑选 JSON，也无需填写 SHA-256。</p>
+      <div class="auto-start-grid">
+        <label><span>项目与动作</span><select id="autoProjectSelect" disabled aria-describedby="autoLoadStatus"><option>正在查找…</option></select></label>
+        <button id="autoReloadProject" class="button secondary" type="button" disabled>重新加载</button>
+      </div>
+      <label class="assist-toggle"><input id="autoApplySafe" type="checkbox" checked><span>拖动时间轴后自动采用安全建议（异常项不会自动通过）</span></label>
+      <p id="autoLoadStatus" class="status-line" role="status" aria-live="polite">正在查找可用项目…</p>
+    </section>
+
+    <details id="expertInputs" class="expert-inputs">
+      <summary>专业模式：手动导入 JSON 与 SHA-256</summary>
+      <div class="expert-inputs-body">
+        <p class="lede">仅在维护历史包、创建新 policy 或自动发现失败时使用。常规操作不需要打开这里。</p>
     <ol class="wizard-steps" aria-label="复核步骤">
       <li id="stepOneMarker" aria-current="step"><strong>1</strong><span>批准 Depth pair policy</span></li>
       <li id="stepTwoMarker"><strong>2</strong><span>视觉复核与分段裁决</span></li>
@@ -34,7 +53,7 @@
         <div><p class="eyebrow">STEP 1</p><h2 id="policyHeading">检查并批准深度配对策略</h2></div>
         <span class="gate-badge">草案无应用权限</span>
       </div>
-      <p class="lede">加载 proposal 后逐项核对 slot、角色、setup front、滞回阈值与完整 exact source。正式 identity 由本机 Python 只读预检计算；页面不会修改草案，也不会替你批准。</p>
+      <p class="lede">专业流程可加载 proposal 并逐项核对 slot、角色、setup front、滞回阈值与 exact source。</p>
       <label class="file-field">
         <span>Depth policy proposal 或已批准的正式 policy</span>
         <input id="policyFile" type="file" accept="application/json,.json">
@@ -43,9 +62,9 @@
         <span>已批准 policy SHA-256（第 2 步必须显式绑定）</span>
         <input id="policySha" class="mono" minlength="64" maxlength="64"
           pattern="[0-9a-f]{64}" autocomplete="off" spellcheck="false" disabled
-          placeholder="从下方本机 Python 预检结果复制，不自动填写">
+          placeholder="仅专业模式需要显式绑定">
       </label>
-      <p class="lede">SHA 字段不会从未批准草案或 candidate 自动填充；只有它与本机 Python 返回值及 Depth candidates 中的 <code>depth_pair_policy_sha256</code> 完全一致时，才可开始候选复核。</p>
+      <p class="lede">自动流程会重算并绑定 SHA；这里只保留显式合同维护入口。</p>
       <p class="status-line">本机 Python 只读预检 policy SHA：<code id="policyIdentitySha">等待本机 Python 预检</code></p>
       <p id="policyStatus" class="status-line" role="status" aria-live="polite">尚未加载。</p>
       <div id="policyDetails" class="policy-details" hidden></div>
@@ -61,7 +80,7 @@
     <section id="candidateStep" class="panel wizard-panel locked" aria-labelledby="candidateHeading">
       <div class="section-heading">
         <div><p class="eyebrow">STEP 2</p><h2 id="candidateHeading">加载候选并进行视觉化裁决</h2></div>
-        <span id="coverageBadge" class="gate-badge">0 / 0</span>
+        <span class="gate-badge">专业输入</span>
       </div>
       <p id="candidateLockHint" class="lede">先完成第 1 步并下载正式 policy，或加载一份已经人工批准的正式 policy。</p>
       <form id="candidateForm" class="candidate-load-grid" aria-describedby="candidateLoadHint">
@@ -73,14 +92,34 @@
         <button id="loadCandidatesBtn" class="button primary" type="submit" disabled>校验来源并生成 candidate ID</button>
       </form>
       <p id="candidateStatus" class="status-line" role="status" aria-live="polite">等待第 1 步。</p>
+    </section>
+      </div>
+    </details>
 
       <div id="reviewWorkspace" hidden>
+        <section class="automation-review" aria-labelledby="automationHeading">
+          <div class="section-heading">
+            <div><p class="eyebrow">自动辅助</p><h2 id="automationHeading">浏览动作，系统自动处理安全项</h2></div>
+            <span class="gate-badge">可撤销</span>
+          </div>
+          <p id="automationSummary" class="automation-summary">等待项目证据。</p>
+          <progress id="autoCoverageBar" class="auto-coverage" value="0" max="1" aria-label="候选处理进度"></progress>
+          <label class="assist-toggle"><input id="approveOnScrub" type="checkbox" checked><span>拖动时间轴时采用经过阈值与证据检查的 Foot 建议</span></label>
+          <div class="automation-actions">
+            <button id="autoApplyAllBtn" class="button primary" type="button" disabled>一键采用全部安全建议</button>
+            <button id="autoUndoBtn" class="button secondary" type="button" disabled>撤销最近一次自动采用</button>
+            <button id="autoDownloadBtn" class="button primary final-action" type="button" disabled>确认结果并下载</button>
+          </div>
+          <p id="autoDecisionStatus" class="status-line" role="status" aria-live="polite">等待项目证据。</p>
+          <p class="automation-boundary">最终按钮是 MotionPolicyDecision v1 的一次人工采用；Depth、算法拒绝、证据缺失或超阈值项始终需要人工处理。</p>
+        </section>
+
         <section id="evidenceReview" class="evidence-dashboard" aria-labelledby="evidenceHeading">
           <div class="section-heading">
             <div><p class="eyebrow">VISUAL EVIDENCE</p><h3 id="evidenceHeading">先看全片趋势，再决定批次</h3></div>
-            <span class="gate-badge">预检通过 ≠ 人工批准</span>
+            <span class="gate-badge">拖动即可处理</span>
           </div>
-          <p class="lede">曲线、重点窗口和角色足点覆盖只用于人工判断与排序。页面不会根据阈值自动选择 action。</p>
+          <p class="lede">拖动时间轴即可预览动作；安全的 Foot 候选会按经过测试的规则整批采用，异常项会留在下方待处理。</p>
           <div id="evidenceSummary" class="evidence-summary" aria-label="候选范围摘要"></div>
           <div class="evidence-layout">
             <section class="metric-panel" aria-labelledby="timelineHeading">
@@ -88,11 +127,14 @@
               <svg id="metricChart" class="metric-chart" viewBox="0 0 1000 264" role="img" aria-label="Foot correction X、Y、residual 与 ratio 时间轴"></svg>
               <label class="scrubber-field"><span>检查帧</span><input id="frameScrubber" type="range" min="0" max="0" value="0" step="1"></label>
               <div id="attentionList" class="attention-list" aria-label="优先复核窗口"></div>
-              <table class="metric-table">
-                <caption>曲线数值范围与策略上限</caption>
-                <thead><tr><th scope="col">指标</th><th scope="col">最小</th><th scope="col">最大</th><th scope="col">上限利用</th></tr></thead>
-                <tbody id="metricTableBody"></tbody>
-              </table>
+              <details class="metric-details">
+                <summary>查看完整数值与策略上限</summary>
+                <table class="metric-table">
+                  <caption>曲线数值范围与策略上限</caption>
+                  <thead><tr><th scope="col">指标</th><th scope="col">最小</th><th scope="col">最大</th><th scope="col">上限利用</th></tr></thead>
+                  <tbody id="metricTableBody"></tbody>
+                </table>
+              </details>
             </section>
             <section class="footprint-panel" aria-labelledby="footprintHeading">
               <div class="subheading-row"><h4 id="footprintHeading">角色上的双脚约束</h4><span id="frameState" class="frame-chip">等待帧</span></div>
@@ -113,6 +155,9 @@
           </div>
         </section>
 
+        <details class="advanced-review-details">
+          <summary>异常与高级设置 <span id="exceptionBadge">0 项待处理</span></summary>
+          <div class="advanced-review-body">
         <section class="batch-review" aria-labelledby="batchHeading">
           <div class="section-heading">
             <div><p class="eyebrow">BATCH DRAFT</p><h3 id="batchHeading">按连续证据段批量填写草稿</h3></div>
@@ -133,7 +178,7 @@
         </section>
 
         <details id="candidateDetails" class="candidate-details">
-          <summary>逐项例外与完整数字 <span id="exceptionBadge">119 项待处理</span></summary>
+          <summary>逐项例外与完整数字</summary>
           <div class="review-toolbar" aria-label="候选筛选">
             <label><span>搜索 ID、tick、frame、pair 或状态</span><input id="candidateSearch" type="search" autocomplete="off"></label>
             <label><span>类型</span><select id="kindFilter"><option value="all">全部</option><option value="foot_lock">Foot lock</option><option value="depth_order">Depth order</option></select></label>
@@ -147,7 +192,7 @@
           <h3 id="globalHeading">全局人工字段</h3>
           <div id="decisionSummary" class="decision-summary" aria-label="人工决定汇总"></div>
           <div class="global-grid">
-            <label><span>Review revision</span><input id="reviewRevision" type="number" min="1" max="2147483647" step="1" placeholder="不预填"></label>
+            <label><span>Review revision</span><input id="reviewRevision" type="number" min="1" max="2147483647" step="1" value="1"></label>
             <fieldset id="loopResetFieldset"><legend>Loop draw-order reset（必须明确选择）</legend><label><input type="radio" name="loopReset" value="true">批准显式 reset</label><label><input type="radio" name="loopReset" value="false">不批准 reset</label></fieldset>
           </div>
           <div>
@@ -159,11 +204,12 @@
 
         <section class="download-panel" aria-labelledby="downloadHeading">
           <div><h3 id="downloadHeading">下载严格四字段 review input</h3><p id="reviewStatus" class="status-line" role="status" aria-live="polite">尚未完成。</p></div>
-          <label class="confirm-row"><input id="finalConfirm" type="checkbox" disabled><span>我已检查每个批量证据段及全部逐项例外，确认 100% 候选决定与全局字段；此操作只下载 review input，CLI 才执行最终合同校验与发布。</span></label>
+          <label class="confirm-row"><input id="finalConfirm" type="checkbox" disabled><span>专业流程最终确认。普通流程可直接使用上方“确认结果并下载”；CLI 仍执行最终合同校验。</span></label>
           <button id="downloadReviewBtn" class="button primary" type="button" disabled>下载 review input（不发布）</button>
         </section>
+          </div>
+        </details>
       </div>
-    </section>
   </main>
   <div id="liveRegion" class="sr-only" aria-live="polite" aria-atomic="true"></div>
   <footer class="review-footer">本台调用本机 Python 只读预检，零写入；CLI 仍是最终带 exact bundle 的合同校验器。</footer>

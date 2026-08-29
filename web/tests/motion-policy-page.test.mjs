@@ -17,7 +17,9 @@ test("page keeps a read-only Python preflight and accessible rendering boundary"
   assert.match(html, /class="skip-link"/);
   assert.match(html, /role="status" aria-live="polite"/);
   assert.match(html, /href="\.\/workflow-hub\.html"/);
-  assert.match(html, /不预填/);
+  assert.match(html, /id="autoProjectSelect"/);
+  assert.match(html, /无需挑选 JSON，也无需填写 SHA-256/);
+  assert.match(html, /<details id="expertInputs"/);
   assert.match(html, /id="policySha"/);
   assert.match(html, /id="policyIdentitySha"/);
   assert.match(html, /本机 Python 只读预检/);

@@ -35,6 +35,29 @@ export function createPolicyStep(elements, onGateChange, dependencies = {}) {
     return { policy: approvedPolicy, policyJson, policySha: explicitSha };
   }
 
+  async function loadApprovedText(exactJson, declaredSha) {
+    const token = guard.begin();
+    resetPolicy();
+    onGateChange(false);
+    try {
+      const raw = parseJsonFile(exactJson, "自动 Depth policy", MAX_POLICY_BYTES);
+      const checked = validateDepthPolicyInput(raw);
+      if (!checked.approved) throw new Error("自动包中的 Depth policy 尚未批准");
+      const result = await api.policyIdentity(exactJson, checked.document);
+      if (!guard.isCurrent(token)) return null;
+      const canonicalSha = result.identities.policy_sha256;
+      if (canonicalSha !== declaredSha) throw new Error("自动包 policy SHA 与 Python 重算值不一致");
+      commitApproved(checked.document, exactJson, canonicalSha);
+      elements.policySha.value = canonicalSha;
+      syncGate();
+      setStatus(elements.policyStatus, "正式 policy 与 SHA 已由本机自动绑定。", "success");
+      return binding();
+    } catch (error) {
+      if (guard.isCurrent(token)) setStatus(elements.policyStatus, errorMessage(error), "error");
+      throw error;
+    }
+  }
+
   async function loadPolicy() {
     const token = guard.begin();
     resetPolicy();
@@ -122,11 +145,17 @@ export function createPolicyStep(elements, onGateChange, dependencies = {}) {
     elements.downloadPolicyBtn.disabled = true;
   }
 
+  function clear() {
+    guard.invalidate();
+    resetPolicy();
+    onGateChange(false);
+  }
+
   function currentFile(token, file) {
     return guard.isCurrent(token) && elements.policyFile.files?.[0] === file;
   }
 
-  return { binding };
+  return { binding, loadApprovedText, clear };
 }
 
 export function gateIssue(policy, identitySha, explicitSha) {

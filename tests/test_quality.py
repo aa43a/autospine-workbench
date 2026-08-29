@@ -13,7 +13,9 @@ DEFAULT_MAX_LINES = 400
 P10_MAX_LINES = 300
 P10_TEST_MAX_LINES = 400
 P10_PREFIXES = (
+    "src/autospine_workbench/bounded_review_evidence.py",
     "src/autospine_workbench/body_sway_",
+    "src/autospine_workbench/motion_policy_",
     "src/autospine_workbench/motion_instance_v3_",
     "src/autospine_workbench/p10_",
     "src/autospine_workbench/spine42_v3_",

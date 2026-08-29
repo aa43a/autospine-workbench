@@ -59,6 +59,7 @@ export function createMotionPolicyBatchController(elements, { onChanged, onLocat
   function refresh() {
     if (!state || !model) return;
     if (preview && preview.decisionVersion !== state.decisionVersion) rebuildPreview();
+    elements.batchUndo.disabled = !latestManualBatch();
     updateStaticState();
   }
 
@@ -135,10 +136,11 @@ export function createMotionPolicyBatchController(elements, { onChanged, onLocat
   }
 
   function undoLastBatch() {
-    if (!state || !state.batchHistory.some((row) => !row.undone)) return;
+    const record = latestManualBatch();
+    if (!record) return;
     try {
-      const result = undoDecisionBatch(state);
-      elements.batchUndo.disabled = !state.batchHistory.some((row) => !row.undone);
+      const result = undoDecisionBatch(state, record.batchId);
+      elements.batchUndo.disabled = !latestManualBatch();
       onChanged([]);
       setStatus(elements.batchStatus, `已撤销 ${result.restoredCount} 项；${result.skippedCount} 项因后续逐项修改而保留。`, "success");
     } catch (error) {
@@ -164,5 +166,10 @@ export function createMotionPolicyBatchController(elements, { onChanged, onLocat
 
   function actionableCount() {
     return model?.reviewSegments.filter((row) => row.candidateIds.length > 0).length || 0;
+  }
+
+  function latestManualBatch() {
+    return [...(state?.batchHistory || [])].reverse()
+      .find((row) => !row.undone && row.sourceKind === "batch") || null;
   }
 }

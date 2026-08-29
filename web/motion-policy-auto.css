@@ -1,0 +1,114 @@
+.auto-start-panel,
+.automation-review {
+  min-width: 0;
+  padding: clamp(1rem, 2vw, 1.5rem);
+}
+
+.auto-start-panel { margin-block-end: 1rem; border-color: #437f76; }
+
+.auto-start-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 0.75rem;
+  max-width: 64rem;
+}
+
+.auto-start-grid .button { min-width: 9rem; }
+
+.assist-toggle {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  gap: 0.65rem;
+  margin-block-start: 0.75rem;
+  cursor: pointer;
+}
+
+.assist-toggle input {
+  width: 1.25rem;
+  min-height: 1.25rem;
+  flex: 0 0 auto;
+  accent-color: var(--accent);
+}
+
+.assist-toggle span { color: var(--text); font-size: 0.9rem; }
+
+.expert-inputs,
+.advanced-review-details,
+.metric-details {
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #0f141e;
+}
+
+.expert-inputs { margin-block-end: 1rem; }
+
+.expert-inputs > summary,
+.advanced-review-details > summary,
+.metric-details > summary {
+  min-height: 44px;
+  padding: 0.7rem 0.85rem;
+  cursor: pointer;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.expert-inputs-body,
+.advanced-review-body { padding: 0 0.85rem 0.85rem; }
+
+.automation-review {
+  margin-block: 1rem;
+  border: 1px solid #437f76;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #14241f, #101722 70%);
+}
+
+.automation-summary {
+  margin-block-end: 0.55rem;
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  font-weight: 750;
+}
+
+.auto-coverage {
+  display: block;
+  width: 100%;
+  height: 0.8rem;
+  border: 0;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #0a1018;
+  accent-color: var(--accent);
+}
+
+.auto-coverage::-webkit-progress-bar { background: #0a1018; }
+.auto-coverage::-webkit-progress-value { background: var(--accent); }
+.auto-coverage::-moz-progress-bar { background: var(--accent); }
+
+.automation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-block-start: 0.8rem;
+}
+
+.automation-actions .final-action { margin-inline-start: auto; }
+.automation-boundary { margin: 0.7rem 0 0; color: var(--muted); font-size: 0.8rem; }
+.advanced-review-details { margin-block: 1rem 2rem; }
+.advanced-review-details > summary span { margin-inline-start: 0.4rem; color: var(--warning); font-size: 0.8rem; }
+.metric-details { margin-block-start: 0.65rem; }
+.metric-details .metric-table { margin: 0 0.75rem 0.75rem; width: calc(100% - 1.5rem); }
+
+@media (max-width: 700px) {
+  .auto-start-grid { grid-template-columns: minmax(0, 1fr); }
+  .auto-start-grid .button,
+  .automation-actions .button { width: 100%; }
+  .automation-actions .final-action { margin-inline-start: 0; }
+  .expert-inputs-body,
+  .advanced-review-body { padding-inline: 0.55rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auto-coverage { transition: none; }
+}

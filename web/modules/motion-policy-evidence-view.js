@@ -3,12 +3,29 @@
 const SVG_NS = "http://www.w3.org/2000/svg";
 const CHART = { width: 1000, left: 76, right: 976, correctionTop: 28, correctionBottom: 132, usageTop: 166, usageBottom: 232 };
 
-export function createMotionPolicyEvidenceView(elements, { onFrameCandidate = () => {} } = {}) {
+export function createMotionPolicyEvidenceView(elements, {
+  onFrameCandidate = () => {}, onFrameRange = () => {},
+} = {}) {
   const doc = elements.metricChart.ownerDocument;
   let model = null;
   let selectedIndex = 0;
+  let gestureStart = null;
   let imageReady = false;
-  elements.frameScrubber.addEventListener("input", () => chooseFrame(Number(elements.frameScrubber.value), true));
+  elements.frameScrubber.addEventListener("pointerdown", () => { gestureStart = selectedIndex; });
+  elements.frameScrubber.addEventListener("keydown", () => {
+    if (gestureStart === null) gestureStart = selectedIndex;
+  });
+  elements.frameScrubber.addEventListener("input", () => {
+    if (gestureStart === null) gestureStart = selectedIndex;
+    chooseFrame(Number(elements.frameScrubber.value), false);
+  });
+  elements.frameScrubber.addEventListener("change", () => {
+    const end = Number(elements.frameScrubber.value);
+    const start = gestureStart === null ? selectedIndex : gestureStart;
+    chooseFrame(end, false);
+    gestureStart = null;
+    onFrameRange(start, selectedIndex, { trigger: "timeline" });
+  });
   elements.metricChart.addEventListener("click", (event) => {
     if (!model?.samples.length) return;
     const rect = elements.metricChart.getBoundingClientRect?.();
@@ -32,6 +49,7 @@ export function createMotionPolicyEvidenceView(elements, { onFrameCandidate = ()
   function load(nextModel) {
     model = nextModel;
     selectedIndex = 0;
+    gestureStart = null;
     imageReady = false;
     renderSummary(doc, elements.evidenceSummary, model);
     renderMetricTable(doc, elements.metricTableBody, model);
@@ -49,6 +67,7 @@ export function createMotionPolicyEvidenceView(elements, { onFrameCandidate = ()
   function clear() {
     model = null;
     selectedIndex = 0;
+    gestureStart = null;
     imageReady = false;
     for (const element of [elements.evidenceSummary, elements.attentionList, elements.metricTableBody,
       elements.metricChart, elements.footOverlay, elements.frameFacts, elements.observationBody]) element.replaceChildren();
@@ -61,7 +80,7 @@ export function createMotionPolicyEvidenceView(elements, { onFrameCandidate = ()
     showOverlayMessage("等待角色图与候选帧。");
   }
 
-  function selectFrame(index) { chooseFrame(index, false); }
+  function selectFrame(index) { gestureStart = null; chooseFrame(index, false); }
   function chooseFrame(index, notify) {
     if (!model?.samples.length) return;
     selectedIndex = clamp(Math.round(index), 0, model.samples.length - 1);
@@ -73,6 +92,8 @@ export function createMotionPolicyEvidenceView(elements, { onFrameCandidate = ()
   }
   function renderFrame(sample) {
     elements.frameLabel.textContent = `frame ${sample.sourceFrameIndex} · tick ${sample.tick}`;
+    elements.frameScrubber.setAttribute("aria-valuetext",
+      `第 ${selectedIndex + 1} 个样本，frame ${sample.sourceFrameIndex}，${humanState(sample.state)}`);
     elements.frameState.textContent = `${humanState(sample.state)} · ${humanSupport(sample.supportState)}`;
     renderFacts(doc, elements.frameFacts, sample);
     const observations = normalizeObservations(sample);

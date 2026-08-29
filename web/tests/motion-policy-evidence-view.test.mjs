@@ -162,8 +162,10 @@ test("load URL-encodes project identity and renders an accessible numeric table"
 test("frame selection updates facts, table, overlay, scrubber, and candidate callback", () => {
   const elements = fixture();
   const focused = [];
+  const ranges = [];
   const view = createMotionPolicyEvidenceView(elements, {
     onFrameCandidate: (candidateId) => focused.push(candidateId),
+    onFrameRange: (start, end) => ranges.push([start, end]),
   });
   view.load(model());
   elements.characterComposite.naturalWidth = 100;
@@ -185,7 +187,9 @@ test("frame selection updates facts, table, overlay, scrubber, and candidate cal
   elements.frameScrubber.value = "2";
   elements.frameScrubber.dispatchEvent(new Event("input"));
   assert.equal(elements.frameLabel.textContent, "frame 22 · tick 733333");
-  assert.deepEqual(focused, ["foot-22"]);
+  assert.deepEqual(focused, []);
+  elements.frameScrubber.dispatchEvent(new Event("change"));
+  assert.deepEqual(ranges, [[1, 2]]);
 });
 
 test("attention button locates its window and clear returns the view to a waiting state", () => {

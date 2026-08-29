@@ -1,4 +1,5 @@
-import { readCandidateFile } from "./motion-policy-candidate-files.js";
+import { parseCandidateText, readCandidateFile } from "./motion-policy-candidate-files.js";
+import { createMotionPolicyAutoController } from "./motion-policy-auto-controller.js";
 import { authorizeCandidateInventory } from "./motion-policy-candidate-preflight.js";
 import { createMotionPolicyDecisionController } from "./motion-policy-decision-controller.js";
 import { createLoadGuard, sameIdentitySnapshot } from "./motion-policy-load-guard.js";
@@ -11,6 +12,8 @@ const ids = [
   "policyApproval", "approvePolicyConfirm", "downloadPolicyBtn", "stepOneMarker",
   "stepTwoMarker", "candidateStep", "candidateLockHint", "candidateForm", "footFile",
   "footSha", "depthFile", "depthSha", "loadCandidatesBtn", "candidateStatus",
+  "autoStartPanel", "autoProjectSelect", "autoApplySafe", "autoReloadProject",
+  "autoLoadStatus", "expertInputs",
 ];
 const elements = Object.fromEntries(ids.map((id) => [id, document.getElementById(id)]));
 const guards = { foot: createLoadGuard(), depth: createLoadGuard(), inventory: createLoadGuard() };
@@ -23,12 +26,22 @@ const policyStep = createPolicyStep(elements, (open) => {
   if (open) unlockCandidateStep();
   else lockCandidateStep();
 }, { api });
+const auto = createMotionPolicyAutoController(elements, {
+  onReset: resetAutomaticLoad,
+  onLoad: loadAutomaticPackage,
+  onAssistChange: (enabled) => {
+    const toggle = document.getElementById("approveOnScrub");
+    if (toggle) toggle.checked = enabled;
+  },
+});
 
 elements.footFile.addEventListener("change", () => loadCandidateFile("foot"));
 elements.depthFile.addEventListener("change", () => loadCandidateFile("depth"));
 elements.footSha.addEventListener("input", clearLoadedReview);
 elements.depthSha.addEventListener("input", clearLoadedReview);
-elements.candidateForm.addEventListener("submit", loadInventory);
+elements.candidateForm.addEventListener("submit", (event) => loadInventory(event, {
+  assistOnScrub: elements.autoApplySafe.checked,
+}));
 
 async function loadCandidateFile(kind) {
   clearLoadedReview(false);
@@ -44,36 +57,81 @@ async function loadCandidateFile(kind) {
   else depthInput = loaded;
 }
 
-async function loadInventory(event) {
-  event.preventDefault();
+async function loadInventory(event, {
+  assistOnScrub = true, throwOnError = false, isCurrent = () => true,
+} = {}) {
+  event?.preventDefault();
+  if (!isCurrent()) return false;
   clearLoadedReview(false);
   const token = guards.inventory.begin();
   const snapshot = identitySnapshot();
+  const stillCurrent = () => isCurrent() && guards.inventory.isCurrent(token) &&
+    sameIdentitySnapshot(snapshot, identitySnapshot());
   setCandidateBusy(true);
   try {
     if (!snapshot.policy) throw new Error("第 1 步尚未完成精确 policy SHA 绑定");
     if (!snapshot.foot || !snapshot.depth) throw new Error("请先加载两份 candidate 文件");
     setStatus(elements.candidateStatus, "正在执行本机 Python 完整候选预检并构建视觉证据…", "warning");
+    if (!stillCurrent()) return false;
     const inventory = await authorizeCandidateInventory({
       api,
       snapshot,
-      isCurrent: () => guards.inventory.isCurrent(token) &&
-        sameIdentitySnapshot(snapshot, identitySnapshot()),
+      isCurrent: stillCurrent,
     });
-    if (!inventory) return;
-    review.load(inventory);
+    if (!inventory || !stillCurrent()) return false;
+    review.load(inventory, { assistOnScrub });
     setStatus(elements.candidateStatus,
-      `已绑定 ${inventory.projectId} / ${inventory.clipId}；${inventory.candidates.length} 项已组织为连续证据段，不含自动决定。`,
+      `已绑定 ${inventory.projectId} / ${inventory.clipId}；${inventory.candidates.length} 项已组织为连续视觉证据。`,
       "success");
+    return true;
   } catch (error) {
-    if (guards.inventory.isCurrent(token) && sameIdentitySnapshot(snapshot, identitySnapshot())) {
+    if (stillCurrent()) {
       setStatus(elements.candidateStatus, errorMessage(error), "error");
     }
+    if (throwOnError) throw error;
+    return false;
   } finally {
-    if (guards.inventory.isCurrent(token) && sameIdentitySnapshot(snapshot, identitySnapshot())) {
+    if (stillCurrent()) {
       setCandidateBusy(false);
     }
   }
+}
+
+async function loadAutomaticPackage(packageDetail, {
+  applySafe = true, isCurrent = () => true,
+} = {}) {
+  if (!isCurrent()) return false;
+  const binding = await policyStep.loadApprovedText(
+    packageDetail.policy_json, packageDetail.identities.policy_sha256,
+  );
+  if (!binding || !isCurrent()) return false;
+  const nextFootInput = parseCandidateText(
+    "foot", packageDetail.foot_candidates_json, packageDetail.identities.foot_candidates_sha256,
+  );
+  const nextDepthInput = parseCandidateText(
+    "depth", packageDetail.depth_candidates_json, packageDetail.identities.depth_candidates_sha256,
+  );
+  if (!isCurrent()) return false;
+  footInput = nextFootInput;
+  depthInput = nextDepthInput;
+  elements.footSha.value = packageDetail.identities.foot_candidates_sha256;
+  elements.depthSha.value = packageDetail.identities.depth_candidates_sha256;
+  if (!isCurrent()) return false;
+  const loaded = await loadInventory(null, {
+    assistOnScrub: applySafe, throwOnError: true, isCurrent,
+  });
+  if (!isCurrent()) return false;
+  if (!loaded) throw new Error("自动项目加载已被新的选择替代");
+  return true;
+}
+
+function resetAutomaticLoad() {
+  guards.foot.invalidate();
+  guards.depth.invalidate();
+  guards.inventory.invalidate();
+  footInput = null;
+  depthInput = null;
+  policyStep.clear();
 }
 
 function identitySnapshot() {
@@ -136,3 +194,5 @@ function setCandidateBusy(busy) {
 function candidateFields() {
   return [elements.footFile, elements.footSha, elements.depthFile, elements.depthSha, elements.loadCandidatesBtn];
 }
+
+auto.start();

@@ -14,10 +14,10 @@ test("visual review exposes timeline, overlay, segment drafts, exceptions, and f
     "footOverlay", "observationBody", "segmentList", "batchAction", "batchReason",
     "batchConfirm", "batchOverwriteConfirm", "batchUndo", "candidateDetails", "decisionSummary",
   ]) assert.match(html, new RegExp(`id="${id}"`));
-  assert.match(html, /预检通过 ≠ 人工批准/);
+  assert.match(html, /拖动即可处理/);
   assert.match(html, /批量填写会展开为精确 candidate ID/);
   assert.match(html, /Adjust 仍需逐项处理/);
-  assert.match(html, /只下载 review input，CLI 才执行最终合同校验与发布/);
+  assert.match(html, /普通流程可直接使用上方“确认结果并下载”/);
   assert.doesNotMatch(html, /id="batchAction"[^>]*>\s*<option[^>]+selected/i);
   assert.doesNotMatch(html, /id="(?:batchConfirm|batchOverwriteConfirm)"[^>]+checked/i);
   assert.match(css, /min-height:\s*44px/);

@@ -65,7 +65,7 @@ validator 和生产 `policy_identity` preflight 通过，与各自草案相比�
 120 个 sample、0 个切换 event。Python `candidate_inventory` 对两组 policy/foot/depth 原文、三份
 声明 SHA、完整 schedule、source/policy 交叉绑定和 candidate ID 清单复算均为 `passed`。每个项目
 当前需要决定 119 个 Foot 候选，另有 1 个 unconstrained sample；没有 Depth event 需要决定。
-复核台会把 120 个时间样本显示为曲线、重点窗口和角色足点叠加，并把 119 个候选组织为连续证据段；操作者可以批量填写冻结到精确 ID 的草稿，再处理逐项例外。这些结果尚未产生 decision、reviewed policy 或 P9 bundle。
+复核台现在从 `workspace/reviews/wave-left-v1/<project>/` 发现两份 exact package，按项目选择加载并重算上述身份；推荐项只是确定性起点，不会按下载文件名或 mtime 猜测。120 个时间样本会显示为曲线、重点窗口和角色足点叠加。操作者拖动时间轴或点击“一键采用”时，页面只为尚未决定、`state=candidate`、observations 完整有限且 correction ratio/residual 均不超过合同上限 80% 的 Foot candidates 写入带 provenance 且可撤销的辅助草稿；Depth、`rejected_*`、缺证、非有限值和超阈值项不会自动批准。重点窗口只是视觉提示，不改变这项判定。两个项目仍须各做一次最终 human adoption。这些结果尚未产生 decision、reviewed policy 或 P9 bundle。
 
 ## 权限与质量边界
 
@@ -85,9 +85,8 @@ readiness 请求。任何输入、map、camera、compiler 或算法 profile 变�
 
 ## 下一步
 
-1. 在 P9 复核页分别加载已批准的正式 policy、Foot report 与 Depth envelope，并使用表中的
-   policy/foot/depth SHA 运行 `candidate_inventory`；不得混用 A/B 文件。
-2. 先复核曲线、重点窗口和足点叠加，再用连续证据段批量草稿与逐项例外覆盖每个项目的 119 个精确 Foot 决定，并下载严格 review input；本轮 Depth event 数为 0。
+1. 在 P9 复核页确认自动推荐的项目；页面会加载该选项绑定的 exact package，重算 policy/foot/depth SHA 和 `candidate_inventory`。切换 A/B 时使用项目选择器，不要从下载目录手工挑选同名文件。
+2. 先复核曲线、重点窗口和足点叠加；拖动时间轴或一键采用本轮安全 Foot 建议，再处理异常。每个项目分别做一次最终明确 human adoption，并下载严格 review input；本轮 Depth event 数为 0。
 3. 用 CLI 编译 decision 与 reviewed policy。
 4. 发布并复验各项目的 P9 reviewed-motion bundle；只有取得 P9 exact 地址后，才能继续
    回填 readiness 和后续 P10 链。

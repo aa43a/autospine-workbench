@@ -1,6 +1,7 @@
 import { buildMotionPolicyEvidenceModel } from "./motion-policy-evidence-model.js";
 import { createMotionPolicyEvidenceView } from "./motion-policy-evidence-view.js";
 import { createMotionPolicyBatchController } from "./motion-policy-batch-controller.js";
+import { createMotionPolicyAssistController } from "./motion-policy-assist-controller.js";
 import { handleCandidateKeyboard } from "./motion-policy-keyboard.js";
 import {
   buildReviewInput, createReviewState, reviewProgress, setDecision, setRelease, validateDecision,
@@ -19,7 +20,8 @@ const IDS = [
   "frameState", "frameFacts", "observationBody", "segmentBadge", "selectAllSegments",
   "segmentList", "batchForm", "batchAction", "batchReason", "batchPreview", "batchConfirm",
   "batchOverwriteRow", "batchOverwriteConfirm", "batchApply", "batchUndo", "batchStatus",
-  "decisionSummary",
+  "decisionSummary", "automationSummary", "autoDecisionStatus", "autoApplyAllBtn",
+  "autoUndoBtn", "approveOnScrub", "autoDownloadBtn", "autoCoverageBar",
 ];
 
 export function createMotionPolicyDecisionController(doc) {
@@ -27,10 +29,18 @@ export function createMotionPolicyDecisionController(doc) {
   let state = null;
   let evidenceModel = null;
   let candidatesById = new Map();
-  const evidenceView = createMotionPolicyEvidenceView(elements, { onFrameCandidate: locateCandidate });
+  const evidenceView = createMotionPolicyEvidenceView(elements, {
+    onFrameCandidate: locateCandidate,
+    onFrameRange: (start, end) => assist.applyRange(start, end),
+  });
   const batch = createMotionPolicyBatchController(elements, {
     onChanged: syncAfterBatch,
     onLocate: locateSegment,
+  });
+  const assist = createMotionPolicyAssistController(elements, {
+    onChanged: syncAfterBatch,
+    onLocate: locateCandidate,
+    onAdopt: adoptAndDownload,
   });
 
   elements.candidateList.addEventListener("change", handleCandidateChange);
@@ -50,20 +60,27 @@ export function createMotionPolicyDecisionController(doc) {
 
   return { load, clear };
 
-  function load(inventory) {
+  function load(inventory, { assistOnScrub = true } = {}) {
     clear();
     evidenceModel = buildMotionPolicyEvidenceModel(inventory);
     state = createReviewState(inventory);
     candidatesById = new Map(inventory.candidates.map((row) => [row.candidateId, row]));
     renderCandidateList(elements.candidateList, inventory.candidates);
     renderReleaseList(elements.releaseList, inventory.unconstrainedTicks);
-    elements.reviewRevision.value = "";
+    state.revision = 1;
+    elements.reviewRevision.value = "1";
     elements.loopResetFieldset.querySelectorAll("input").forEach((input) => { input.checked = false; });
+    if (!inventory.loop) {
+      state.loopResetApproved = false;
+      const disabledReset = elements.loopResetFieldset.querySelector('input[value="false"]');
+      if (disabledReset) disabledReset.checked = true;
+    }
     elements.candidateSearch.value = "";
     elements.kindFilter.value = "all";
     elements.progressFilter.value = "pending";
     evidenceView.load(evidenceModel);
     batch.load(state, evidenceModel);
+    assist.load(state, evidenceModel, { assistOnScrub });
     elements.reviewWorkspace.hidden = false;
     applyFilters();
     refreshProgress();
@@ -75,6 +92,7 @@ export function createMotionPolicyDecisionController(doc) {
     candidatesById = new Map();
     evidenceView.clear();
     batch.clear();
+    assist.clear();
     elements.candidateList.replaceChildren();
     elements.releaseList.replaceChildren();
     elements.coverageBadge.textContent = "0 / 0";
@@ -154,6 +172,7 @@ export function createMotionPolicyDecisionController(doc) {
   function changed() {
     invalidateConfirmation();
     batch.refresh();
+    assist.refresh();
     applyFilters();
     refreshProgress();
   }
@@ -210,6 +229,7 @@ export function createMotionPolicyDecisionController(doc) {
     elements.finalConfirm.disabled = !progress.ready;
     if (!progress.ready) invalidateConfirmation();
     elements.downloadReviewBtn.disabled = !progress.ready || !state.humanConfirmed;
+    elements.autoDownloadBtn.disabled = !progress.ready;
     setStatus(elements.reviewStatus, progress.ready ? "覆盖率 100%，全局字段有效；等待最终人工确认。"
       : `${progress.complete}/${progress.total} 项有效；${progress.errors[0]?.message || "仍有未完成字段"}`,
     progress.ready ? "success" : "warning");
@@ -259,5 +279,12 @@ export function createMotionPolicyDecisionController(doc) {
     } catch (error) {
       setStatus(elements.reviewStatus, errorMessage(error), "error");
     }
+  }
+
+  function adoptAndDownload() {
+    if (!state || !reviewProgress(state).ready) return;
+    state.humanConfirmed = true;
+    elements.finalConfirm.checked = true;
+    downloadReviewInput();
   }
 }

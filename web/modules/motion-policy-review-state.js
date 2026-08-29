@@ -30,14 +30,15 @@ export function setDecision(state, candidate, patch) {
   return validateDecision(candidate, next);
 }
 
-export function setDecisionBatch(state, candidateIds, patch) {
+export function setDecisionBatch(state, candidateIds, patch, options = {}) {
   const candidates = exactCandidates(state, candidateIds);
   const decision = batchDecision(patch);
+  const source = batchSource(state, options);
   for (const candidate of candidates) {
     const issue = validateDecision(candidate, decision);
     if (issue) throw new Error(`${candidate.candidateId}: ${issue}`);
   }
-  const batchId = `batch-${state.nextBatchId}`;
+  const batchId = `${source.kind === "assisted" ? "assist" : "batch"}-${state.nextBatchId}`;
   const before = candidates.map((candidate) => ({
     candidateId: candidate.candidateId,
     decision: cloneDecision(state.decisions.get(candidate.candidateId)),
@@ -48,7 +49,7 @@ export function setDecisionBatch(state, candidateIds, patch) {
     state.decisions.set(candidate.candidateId, { ...decision });
     state.decisionSources.set(
       candidate.candidateId,
-      Object.freeze({ kind: "batch", batchId }),
+      Object.freeze({ ...source, batchId }),
     );
   }
   state.nextBatchId += 1;
@@ -57,6 +58,8 @@ export function setDecisionBatch(state, candidateIds, patch) {
     batchId,
     candidateIds: Object.freeze(candidates.map((row) => row.candidateId)),
     decision: Object.freeze({ ...decision }),
+    sourceKind: source.kind,
+    provenance: Object.freeze({ ...source }),
     before,
     undone: false,
   });
@@ -76,7 +79,7 @@ export function undoDecisionBatch(state, requestedBatchId = null) {
   let restoredCount = 0;
   for (const before of record.before) {
     const source = state.decisionSources.get(before.candidateId);
-    if (source?.kind !== "batch" || source.batchId !== record.batchId) continue;
+    if (source?.batchId !== record.batchId) continue;
     if (before.decision === null) {
       state.decisions.delete(before.candidateId);
       state.decisionSources.delete(before.candidateId);
@@ -219,6 +222,21 @@ function batchDecision(patch) {
     throw new Error("批量草稿 payload 必须为 null");
   }
   return { action: patch.action, reason_code: patch.reason_code, payload: null };
+}
+
+function batchSource(state, options) {
+  const kind = options?.sourceKind ?? "batch";
+  if (!["batch", "assisted"].includes(kind)) throw new Error("批量来源无效");
+  if (kind === "batch") return { kind };
+  if (options.snapshotKey !== state.snapshotKey || options.profile !== "safe-assist-v1" ||
+      typeof options.rule !== "string" || !ID.test(options.rule) ||
+      !["timeline", "all-safe"].includes(options.trigger)) {
+    throw new Error("自动辅助来源与当前 candidate snapshot 不一致");
+  }
+  return {
+    kind, profile: options.profile, rule: options.rule,
+    trigger: options.trigger, snapshotKey: options.snapshotKey,
+  };
 }
 
 function cloneDecision(value) {

@@ -31,6 +31,12 @@ from .motion_policy_preflight_routes import (
     is_motion_policy_preflight_path,
     send_motion_policy_preflight_method_not_allowed,
 )
+from .motion_policy_review_package_routes import (
+    ALLOW_METHODS as MOTION_POLICY_PACKAGE_ALLOW_METHODS,
+    dispatch_motion_policy_review_package_get,
+    is_motion_policy_review_package_path,
+    send_motion_policy_review_package_method_not_allowed,
+)
 from .project_store import (
     AssetNotFoundError,
     ProjectNotFoundError,
@@ -98,6 +104,10 @@ def _handler_factory(
                 return True
             if dispatch_body_sway_visual_review_get(
                 parts, store, self._send_visual_json, self._send_visual_bytes,
+            ):
+                return True
+            if dispatch_motion_policy_review_package_get(
+                parts, store, self._send_visual_json,
             ):
                 return True
             if dispatch_project_get(parts, store, self._send_json, self._send_file):
@@ -177,6 +187,7 @@ def _handler_factory(
             body_review = is_body_sway_visual_review_path(parts)
             seam_review = is_seam_anchor_review_path(parts)
             policy_preflight = is_motion_policy_preflight_path(parts)
+            policy_package = is_motion_policy_review_package_path(parts)
             seam_methods = seam_anchor_review_resource_methods(parts) \
                 if seam_review else None
             if seam_review and seam_methods is None:
@@ -188,10 +199,13 @@ def _handler_factory(
                 })
                 return
             self.send_response(HTTPStatus.NO_CONTENT)
-            local_review = body_review or seam_review or policy_preflight
+            local_review = body_review or seam_review or policy_preflight \
+                or policy_package
             self._common_headers(visual_review=local_review)
             if policy_preflight:
                 methods = MOTION_POLICY_PREFLIGHT_ALLOW_METHODS
+            elif policy_package:
+                methods = MOTION_POLICY_PACKAGE_ALLOW_METHODS
             elif body_review:
                 methods = visual_review_allow_methods(parts)
             elif seam_review:
@@ -219,6 +233,9 @@ def _handler_factory(
                 parts = self._path_parts()
                 if is_motion_policy_preflight_path(parts):
                     send_motion_policy_preflight_method_not_allowed(self)
+                    return
+                if is_motion_policy_review_package_path(parts):
+                    send_motion_policy_review_package_method_not_allowed(self)
                     return
                 if dispatch_body_sway_visual_review_put(
                     parts, store, self, self._send_visual_json,
@@ -278,6 +295,9 @@ def _handler_factory(
                 parts, self, self._send_visual_json,
             ):
                 return
+            if is_motion_policy_review_package_path(parts):
+                send_motion_policy_review_package_method_not_allowed(self)
+                return
             if dispatch_seam_anchor_review_post(
                 parts, store, self, self._send_visual_json, replay_cache,
             ):
@@ -301,6 +321,9 @@ def _handler_factory(
         def _send_route_method_not_allowed(self, parts: list[str]) -> None:
             if is_motion_policy_preflight_path(parts):
                 send_motion_policy_preflight_method_not_allowed(self)
+                return
+            if is_motion_policy_review_package_path(parts):
+                send_motion_policy_review_package_method_not_allowed(self)
                 return
             if is_body_sway_visual_review_path(parts):
                 self._send_visual_method_not_allowed(parts)

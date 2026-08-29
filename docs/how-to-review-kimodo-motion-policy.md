@@ -1,10 +1,25 @@
 # 复核并发布 Kimodo 动作策略
 
-本指南面向已经发布 P3 mesh、P5 retarget、P7 Kimodo NPZ 和 P8 projected-motion bundle 的开发者。目标是把脚接触与深度证据转为人工批准的 root correction 和 draw order，预览 MotionInstance v2/Spine 4.2 v2，再发布并只读复验一个不可变 P9 bundle。
+本指南同时面向普通操作者和需要继续 exact CLI 链的开发者。普通操作者只需选择项目、查看动作并处理异常；工作台会从本地 review package 自动加载正式 policy、Foot/Depth candidates，重算 SHA-256 并运行交叉预检。开发者可在“专业模式”手动导入三份 JSON 与 SHA，或继续使用下文 CLI 发布并复验不可变 P9 bundle。
 
-本流程不会自动批准 heading、scale 或附件切换。正式 handoff 文档使用 `--document-only`；Foot/Depth 候选同时保留默认 CLI envelope，因为其中的 `report_sha256` 是复核台绑定同一次结果所必需的身份。
+本流程不会自动批准 heading、scale、附件切换、Depth 事件、`rejected_*`、证据缺失、非有限值或超安全阈值项。正式 handoff 文档使用 `--document-only`；Foot/Depth 候选同时保留默认 CLI envelope，因为其中的 `report_sha256` 是复核台绑定同一次结果所必需的身份。
 
-## 1. 固定输入地址
+## 普通操作者：默认自动流程
+
+启动工作台并打开 [Motion Policy 自动工作流](http://127.0.0.1:8765/motion-policy-review.html)。建议按以下顺序完成：
+
+1. 在“项目 / 动作”中确认目标。存在推荐项时页面会自动选择并加载；切换项目时始终按该选项对应的 exact package 读取，不会把 A/B 文件混用。
+2. 等待“身份与预检通过”。服务端会读取 package 中固定文件，重算 policy、Foot、Depth 与 candidate inventory 身份，再由页面执行同一 candidate preflight。普通用户不需要选择 JSON 文件或填写 SHA-256。
+3. 拖动时间轴查看角色足点、校正曲线和重点窗口。启用“拖动时采用安全建议”后，一次拖动会把经过的、尚未决定且符合当前安全规则的 Foot candidates 作为一组可撤销的辅助决定；也可点击“一键采用全部安全建议”。重点窗口只是接触边界、极值、p95、过零或跳变的视觉导航，本身既不批准也不排除候选。
+4. 查看“需要处理的异常”。自动采用必须同时满足：类型为 Foot、`state=candidate`、observations 完整且全部数值有限、correction ratio 与 residual 均不超过各自合同上限的 80%。Depth、`rejected_limit`、`rejected_conflict`、缺证、非有限值和超阈值项不会被安全结果覆盖；`adjust` 始终需要明确输入最终值。
+5. 检查自动覆盖数量和异常数量，必要时撤销最近一次辅助操作。确认结果后点击页面上的最终采用并下载按钮。这一次明确动作把辅助结果采纳为 v1 的 `human` review input。
+6. 把下载的 `motion-policy-review-input.json` 交给开发者，继续执行第 5–8 节的 exact CLI 编译、发布和复验。
+
+这里的“自动”只减少文件选择、SHA 抄写和低风险 Foot 重复操作。Motion Policy Decision v1 的合同仍是 **human adoption**：页面不会零点击下载、发布或授予 release authority。选择项目、预检通过、拖完时间轴或候选达到 100% 覆盖，都不等于最终人工采纳。
+
+如需审计外部文件、处理未登记 package 或排查身份错误，再展开“专业模式：手动导入 JSON 与 SHA”。专业模式不是普通流程的必经步骤。
+
+## 1. 开发者：固定输入地址
 
 开始前记录同一来源链上的完整地址，不要使用目录扫描结果、缩写 SHA 或 `latest`：
 
@@ -142,19 +157,28 @@ Write-Utf8NoBom .\review\depth-order-candidates.json $DepthCandidates
 
 检查每个 foot sample 的 support/state/correction/residual，并查看每个 depth event 的证据窗口、滞回状态与 proposed front slot。`$FootCandidatesSha`、`$DepthCandidatesSha` 必须是各自 envelope 中的完整小写 SHA；复核台可直接加载两个 `.envelope.json` 并暂填它们，随后仍会由 Python 对内嵌 report 重算。默认 envelope 可能包含本机输入路径，只能作为本地临时文件，不要提交或对外传递；两个不带 `.envelope` 的 path-free canonical report 才用于后续 CLI 和 handoff。`rejected_limit` 或 `rejected_conflict` 的 foot 候选不能直接 `accept`；需要 `adjust`、`reject` 或 `unobservable`。
 
-### 使用两步人工复核台
+### 专业模式：手动导入三文件与 SHA
 
-打开 [P9 Motion Policy 两步人工复核台](http://127.0.0.1:8765/motion-policy-review.html) 后按以下顺序操作：
+默认项目选择器读取本地 `workspace/reviews/<motion>/<project>/` 中已经登记的 exact package，并自动完成正式 policy、Foot report、Depth report 与三份 SHA 的装载。只有 package 未登记、需要复核外部副本或排查身份问题时，才展开专业模式：
 
-1. 加载 `autospine-depth-pair-policy-proposal` 草案。页面会完整显示 pair、slot/role、setup front、滞回参数、exact P8/P5/P3 地址和草案限制；只有勾选明确人工批准后，才会把草案投影为严格正式 policy。页面会丢弃草案专用 `proposal` 字段，固定 `review` 为 `approved/human`，并只序列化一次；这份同一文本先作为 `policy_json` 通过 Python `policy_identity` preflight，成功后才原样下载为 `depth-pair-policy.json`。页面不会预选或自动批准。
-2. 若加载的是既有正式 policy，页面会把它的 `File.text()` 原文作为 `policy_json` 发送到同一 loopback 服务，不先经过 JavaScript parse/stringify；因此 `1.0`、负零、非 ASCII 键和对象顺序不会在 Python 读取前被浏览器改写。若正式 policy 来自第 1 步，则 preflight 与下载使用第 1 步唯一一次序列化所得的同一文本。只有返回 `status=passed` 且 `identities.policy_sha256` 是完整小写 SHA-256 时，页面才显示这份 **Python canonical identity**。把该值显式复制到“已批准 policy SHA-256”输入框；页面不会从草案或 candidate 替你填写。
-3. 用下载的正式 policy 运行 `probe-depth-order`。重新进入或继续当前页面，加载正式 policy 与上一步保存的 Foot/Depth `.envelope.json`；页面会暂填 envelope 的完整小写 `report_sha256`，点击校验后仍由 Python 重算。若改用 standalone report，则必须自行填写同一次默认 CLI envelope 中的 SHA；`--document-only` 输出本身不携带 SHA，不能凭文件名或相邻结果猜测。
-4. 点击加载候选时，页面把 `policy_json`、`foot_candidates_json`、`depth_candidates_json` 三份原文和三份声明 SHA 发送到 Python `candidate_inventory` preflight。服务端 inner strict decoder 会解开受支持的 CLI envelope，重新验证完整 standalone 合同并重算 report SHA；envelope 自带的 `report_sha256`、请求中的 declared SHA 与重算值必须三者一致。随后服务检查 project/clip、tick schedule、P8/P5/P3 source chain，以及 policy 与 Depth candidates 的内嵌 policy SHA、hysteresis、pair 顺序、slot/role 和 setup front。只有响应 identity 逐项等于当前输入快照、inventory 计数一致、Python 候选 ID 清单摘要与浏览器待展示清单摘要一致且 `status=passed` 时，页面才显示候选。浏览器生成的 candidate ID 只是供人工表单使用；Python 摘要负责阻止同计数但不同 ID 的清单误解锁，最终合同权威仍是 CLI exact 编译。
-5. 先在“视觉证据”查看全片 Correction X/Y、maximum residual 与 correction/reference 上限利用曲线。点击重点窗口或拖动帧滑杆，可在角色 setup 合成图上比较当前足点、候选校正后足点和目标锚点；同一帧的完整数值仍在表格中提供。重点窗口来自接触/状态边界、极值、p95、过零和校正跳变，只负责排序，不是通过阈值，也不会生成决定。
-6. 在“批量草稿”显式选择一个或多个连续证据段，再选择 `accept`、`reject` 或 `unobservable` 并填写 reason code。页面先冻结并显示将覆盖的精确 candidate ID 数量；操作者确认后才写入内存草稿。覆盖已有草稿需要第二次确认，最近一次批量填写可以撤销。页面不会预选证据段、action 或 reason，也不会提供批量 `adjust`；需要调整 X/Y 或 Depth front slot 的候选必须在“逐项例外与完整数字”中处理。
-7. `rejected_limit` / `rejected_conflict` foot 项不能 accept。Foot adjust 要人工填写最终 X/Y；空白或只有空格的数字会被拒绝，不会按零处理。Depth adjust 必须从当前 pair 的两个 slot 里选择最终 front。Root release 只能在报告列出的 unconstrained ticks 上显式启用；revision 和 loop reset 也不预填。只有全部精确候选都有有效决定、全局字段有效且勾选最终人工确认后，页面才下载严格四字段的 `motion-policy-review-input.json`。批量草稿在下载时仍逐 candidate 展开，不改变 CLI 合同。随后仍必须运行 `compile-motion-policy-decision`；preflight 和浏览器表单都不是 Python CLI exact 编译/发布链的替代品。加载文件或 preflight 期间若任一文件、声明 SHA 或 generation 发生变化，旧异步结果和批量预览都会失效，必须基于当前快照重新校验。
+1. 加载 `autospine-depth-pair-policy-proposal` 草案时，页面会完整显示 pair、slot/role、setup front、滞回参数、exact P8/P5/P3 地址和草案限制。只有明确批准后，才会把草案投影为严格正式 policy；页面丢弃草案专用 `proposal` 字段，固定 `review` 为 `approved/human`，并只序列化一次。正式 policy 先通过 Python `policy_identity` preflight，再原样下载。
+2. 加载既有正式 policy 时，页面把 `File.text()` 原文作为 `policy_json` 送入同一 loopback 服务，不先经过 JavaScript parse/stringify。成功后页面显示并自动填入 Python canonical policy SHA；不要从文件名或相邻结果猜测身份。
+3. 加载 Foot/Depth `.envelope.json` 时，页面可读取 envelope 的 `report_sha256`，但仍由 Python 对内嵌 standalone report 重算。若使用 standalone report，须提供生成它的同一次 CLI envelope 中的 SHA；`--document-only` 输出本身不携带 SHA。
+4. 点击校验后，页面把三份原文和声明 SHA 送入 `candidate_inventory` preflight。服务端重验完整 standalone 合同，并检查 project/clip、tick schedule、P8/P5/P3 source chain、Depth policy 绑定与候选 ID inventory。全部身份和摘要一致后才显示候选。
+5. 专业模式与默认模式共享同一视觉证据、辅助决定、逐项异常和最终采用步骤。手工导入不会降低门禁，也不会允许用编辑 JSON 或手改 SHA 绕过绑定。
 
-页面会自动使用以下 zero-write HTTP 合同；通常不需要手工调用：
+`rejected_limit` / `rejected_conflict` Foot 项不能 accept。Foot adjust 要明确填写最终 X/Y；Depth adjust 必须从当前 pair 的两个 slot 里选择最终 front。Root release 只能引用报告列出的 unconstrained ticks。辅助采用只写入当前页面的、带来源标记且可撤销的草稿，不覆盖已有人工或批量决定；最终下载仍要求 100% 精确覆盖、全局字段有效和一次明确人工采纳。加载 package、切换项目或输入身份变化会使旧异步结果和草稿预览失效，必须基于当前快照重新校验。
+
+默认项目流程先调用两个只读接口；通常不需要手工调用：
+
+| 资源 | 作用 |
+| --- | --- |
+| `GET /api/motion-policy/review-packages` | 列出本地 exact packages，并返回确定性的推荐 package ID |
+| `GET /api/motion-policy/review-packages/{package_id}` | 按完整 ID 读取并重验该 package；响应不含本地路径 |
+
+推荐 ID 只是默认界面选择，不是批准状态。完整 package ID 绑定项目、动作、clip、policy/Foot/Depth 身份与 candidate inventory；任一内容变化都产生不同 ID，页面不会按 mtime 或 `latest` 回退。
+
+身份与候选预检使用以下 zero-write POST 合同：
 
 | `operation` | 请求中的 operation 专属字段 | `passed` 响应 |
 | --- | --- | --- |
@@ -306,7 +330,7 @@ P9 通过新增 MotionInstance v2 与 Spine adapter v2 承载动态策略；Moti
 
 结构闭环已经覆盖 exact address、候选/决定分离、root correction、draw order、MotionInstance v2、Spine v2 preview 和六文件 bundle 重放。仍未关闭的门禁包括：
 
-- `wave-left-v1` 已有已复验的 P7/P8、A/B P5、共享 policy evidence、正式 depth policy 以及两组 foot/depth candidates；两组 candidate inventory preflight 均通过，但每个项目仍缺 119 个 Foot 人工决定和 P9 reviewed asset fixture；
+- `wave-left-v1` 已有已复验的 P7/P8、A/B P5、共享 policy evidence、正式 depth policy 以及两组 foot/depth candidates；复核台可自动选择各自的 exact package、重算 SHA/预检并辅助采用本轮 119 个安全 Foot 建议，但两个项目仍须分别完成一次 human adoption，并生成 P9 reviewed asset fixture；
 - 动态 draw order/foot correction 在官方 Spine runtime 中的固定截图回归；
 - heading 或 scale timeline 的人工决定与 runtime 消费合同；
 - attachment switch、deform、runtime IK 和物理。

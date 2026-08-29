@@ -194,6 +194,37 @@ test("approved proposal preflights and downloads one identical fixed JSON text",
   assert.equal(gates.includes(true), false);
 });
 
+test("automatic approved policy fills the exact Python identity without a file or SHA field", async () => {
+  const proposal = JSON.parse(await readFile(fixtureUrl, "utf8"));
+  const approved = approveDepthPolicy(proposal);
+  const exactJson = JSON.stringify(approved);
+  const serverSha = "d".repeat(64);
+  const elements = policyElements();
+  const gates = [];
+  const step = createPolicyStep(elements, (open) => gates.push(open), {
+    api: {
+      policyIdentity: async (text, document) => {
+        assert.equal(text, exactJson);
+        assert.deepEqual(document, approved);
+        return { identities: { policy_sha256: serverSha } };
+      },
+    },
+    renderDetails: () => {},
+    download: () => assert.fail("automatic load must not download a policy"),
+  });
+
+  const binding = await step.loadApprovedText(exactJson, serverSha);
+  assert.equal(binding.policySha, serverSha);
+  assert.equal(binding.policyJson, exactJson);
+  assert.equal(elements.policySha.value, serverSha);
+  assert.equal(elements.policyIdentitySha.textContent, serverSha);
+  assert.equal(gates.at(-1), true);
+
+  step.clear();
+  assert.equal(gates.at(-1), false);
+  assert.equal(elements.policySha.value, "");
+});
+
 test("late candidate preflight is discarded after a DOM identity change", async () => {
   const proposal = JSON.parse(await readFile(fixtureUrl, "utf8"));
   const approved = approveDepthPolicy(proposal);
