@@ -6,6 +6,11 @@ from http import HTTPStatus
 import json
 from typing import Any, Callable
 
+from .idle_behavior_review_routes import (
+    dispatch_idle_behavior_review_get,
+    is_idle_behavior_review_get_path,
+)
+
 from .motion_policy_review_packages import (
     MotionPolicyReviewPackageError,
     get_motion_policy_review_package,
@@ -23,7 +28,8 @@ ALLOW_METHODS = "GET, HEAD, OPTIONS"
 
 
 def is_motion_policy_review_package_path(parts: list[str]) -> bool:
-    return is_motion_policy_seam_review_entry_path(parts) or (
+    return is_idle_behavior_review_get_path(parts) \
+        or is_motion_policy_seam_review_entry_path(parts) or (
         parts[:3] == ["api", "motion-policy", "review-packages"]
         and len(parts) in {3, 4}
     )
@@ -32,6 +38,8 @@ def is_motion_policy_review_package_path(parts: list[str]) -> bool:
 def dispatch_motion_policy_review_package_get(
     parts: list[str], store: ProjectStore, send_json: SendJson,
 ) -> bool:
+    if dispatch_idle_behavior_review_get(parts, store, send_json):
+        return True
     if dispatch_motion_policy_seam_review_entry_get(parts, store, send_json):
         return True
     if parts == ["api", "motion-policy", "review-packages"]:

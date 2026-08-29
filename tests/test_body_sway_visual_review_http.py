@@ -278,18 +278,21 @@ class BodySwayVisualReviewHttpTests(unittest.TestCase):
         self.assertEqual("visual_review_error", json.loads(raw)["error"])
 
     def test_review_page_has_dedicated_csp_without_changing_index(self) -> None:
-        status, headers, raw = self.fixture.request(
-            "GET", "/body-sway-review.html"
-        )
-        self.assertEqual(200, status)
-        self.assertTrue(raw)
-        policy = headers["content-security-policy"]
-        for directive in (
-            "default-src 'self'", "object-src 'none'", "base-uri 'none'",
-            "frame-ancestors 'none'", "connect-src 'self'",
-            "img-src 'self' data:", "script-src 'self'", "style-src 'self'",
-        ):
-            self.assertIn(directive, policy)
+        for page in ("body-sway-review.html", "idle-behavior-review.html"):
+            with self.subTest(page=page):
+                status, headers, raw = self.fixture.request(
+                    "GET", f"/{page}"
+                )
+                self.assertEqual(200, status)
+                self.assertTrue(raw)
+                policy = headers["content-security-policy"]
+                for directive in (
+                    "default-src 'self'", "object-src 'none'",
+                    "base-uri 'none'", "frame-ancestors 'none'",
+                    "connect-src 'self'", "img-src 'self' data:",
+                    "script-src 'self'", "style-src 'self'",
+                ):
+                    self.assertIn(directive, policy)
         status, headers, raw = self.fixture.request("GET", "/")
         self.assertEqual(200, status)
         self.assertTrue(raw)

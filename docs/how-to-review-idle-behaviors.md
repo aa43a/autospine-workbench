@@ -1,8 +1,26 @@
 # 复核 idle 行为并运行 body-sway 结构探针
 
-本指南面向已经发布 P3 mesh、P5 retarget 和 P9 reviewed-motion bundle 的维护者。目标是从同一条精确输入链生成 idle 行为候选，记录人工决定，再为 `body_sway` 生成 `BodySwayProbeReport v1`。
+本指南面向已经发布 P3 mesh、P5 retarget 和 P9 reviewed-motion bundle 的操作者与维护者。目标是从同一条精确输入链生成 idle 行为候选，记录人工决定，再为 `body_sway` 生成 `BodySwayProbeReport v1`。
 
-这三条命令都是只读编译：它们不会发布 bundle、更新 `latest` 或写入 state tree。`--document-only` 只让 stdout 输出 canonical 文档；它不是“通过”开关。
+普通操作者优先使用可视页面；CLI 三条命令仍是只读专业流程，它们不会发布 bundle、更新 `latest` 或写入 state tree。页面的候选重放与草稿也是零写入，只有最后一次明确确认会把 P10.1 decision 追加到 candidate-bound revision history。`--document-only` 只让 stdout 输出 canonical 文档；它不是“通过”开关。
+
+## 普通操作：不用文件或 SHA
+
+启动工作台后打开：
+
+<http://127.0.0.1:8765/idle-behavior-review.html>
+
+1. 页面只列出已经完成 P9 human adoption、且能由内容身份闭合到 reviewed-motion bundle 的项目/动作。存在唯一或确定性推荐项时会自动选择；同一项目/clip 若有多个合法决定，页面不会按时间或 `latest` 猜测，必须由你选择具体版本。
+2. 等待“精确重放完成”。首次重放可能需要约一分钟，因为本机 Python 会重新读取并验证 P3/P5/P9，而不是信任浏览器缓存。普通模式不会要求你选择 JSON 或填写 SHA。
+3. 查看行为可用性。当前真实样本的 `body_sway` 可形成候选；`blink`、`mouth` 和 `hair_spring` 会按证据显示“不可观测”或“不支持”，页面不会为它们生成假动作。
+4. 在角色 composite 上查看四骨 setup 示意，使用播放/暂停和时间轴比较草稿。普通参数只控制循环次数、下躯干摆幅、颈头摆幅和逐节相位延迟；“高级详情”才显示四骨数组与精确身份。
+5. 页面给出的低幅值只是 `unvalidated_draft`，用于减少手填数字，不是安全范围、Spine Runtime 结果或视觉批准。拖动时间轴、播放完整一遍或修改参数都不会自动提交。
+6. 若要继续，点击“确认这些参数并送往结构探针”。该点击会携带显式 intent 与 `explicit_confirmation=true`，服务端再次重编 P10.0、确认 candidate/current head，然后构造标准 `human / completed` P10.1 decision 并以 CAS 追加 revision。也可以明确选择“不使用身体摆动”；这会记录 `reject / not_applicable`，不会进入 P10.2。
+7. 成功回执只表示 candidate-bound decision 已记录。`adjust` 仍是 `pending_probe`，下一步必须运行 P10.2；它不证明连续时间、动态接缝、官方 Runtime、raster 或发布权。
+
+若提交返回 revision conflict，刷新页面读取 current head 后再次确认。网络结果不确定时不要盲目重复修改：先刷新历史；字节相同的安全重试会复用既有 revision，不同内容不会覆盖已占用的 slot。
+
+## 专业流程：显式七地址与 canonical JSON
 
 ## 1. 固定七个地址
 

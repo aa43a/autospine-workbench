@@ -112,7 +112,7 @@ web    → HTTP contracts only
 - P9 UI 的读取与采纳边界分离。`POST /api/motion-policy/preflight` 仍是 zero-write Python application service：既有文件请求携带 `File.text()` 原文字符串，不先经 JavaScript parse/stringify；proposal 投影出的正式 policy 只序列化一次。`policy_identity` 对完整正式 policy 运行 inner strict decoder、validator 与 canonical SHA，`candidate_inventory` 对 standalone report 或正常 CLI envelope 解包后重算 policy/foot/depth 三 SHA、完整 candidate inventory 及 source/schedule/policy 交叉绑定，并把排序后 candidate ID 字符串清单的 canonical SHA 返回页面。页面只在身份、计数和该清单摘要全部一致时渲染表单。
 - 一次最终 human adoption 通过 `POST /api/motion-policy/review-packages/{package_id}/adoptions` 进入写边界，并要求 `X-Autospine-Intent: motion-policy-adoption-v1`。Application service 只接受完整 package ID 与严格四字段 review input；它重新加载 exact package，不接受任意文件路径、shell 命令、客户端 P3/P5 地址或候选文档，随后复用既有 decision/policy compiler、ReviewedMotionBundleStore 与 exact reader。发布是内容寻址且可幂等复用；成功响应 path-free，并同时证明刚返回的 P9 双 SHA 已读回复验。HTTP adapter 继续负责 loopback/same-origin、JSON、大小、intent 与错误映射。下载 review input 只是备份，不参与服务端 authority；P9 adoption 也不授予 seam、Runtime、raster 或 release authority。
 - P9→P10.5b 使用只读 `GET /api/motion-policy/review-packages/{package_id}/seam-review-entry`。Application service 从 package ID 重新加载 Foot/Depth exact package，验证共享 P3 来源，再由 VerifiedMeshBundleReader 重放 P3，并准备固定六关系 Seam candidate；客户端不能提交 Manifest/P3 SHA。响应只含 path-free 地址、candidate 身份、摘要和 blocker。handoff 本身不写 revision、不选择 locator；页面随后从独立 candidate/history 资源加载精确证据、自动绑定 current head，并把服务端 advisory assist 投影为可撤销草稿。手工四段地址只保留为专业审计 fallback。
-- P10.0–P10.2 application service 只通过共享 exact-chain loader 读取七个完整 SHA 所选的 Layer Manifest/P3/P5/P9 工件。Candidate、人工 review input、decision 和 probe report 保持独立；三条 CLI 都不发布工件或修改 state tree。P10.3 visual-review service 改从 project/preview/bundle/artifact 四段地址重放 capture；prepare 零写入，只有通过 CAS 的 submit 才追加 candidate-bound revision。
+- P10.0–P10.2 共享 exact-chain loader 只读取七个完整 SHA 所选的 Layer Manifest/P3/P5/P9 工件。Candidate、人工 review、decision 和 probe report 保持独立；三条 CLI 都不发布工件或修改 state tree。普通 P10.0–P10.1 service 只把已采用 P9 bundle 作为待 exact replay 的 entry，并在最后显式确认时把标准 decision 追加到 candidate-bound CAS history；浏览器不提交上游地址或 `human` 字段。P10.3 visual-review service 改从 project/preview/bundle/artifact 四段地址重放 capture；prepare 零写入，只有通过 CAS 的 submit 才追加 candidate-bound revision。
 - P10.4a admission command 重新编译 exact preview、重验 capture，并按 `history A → exact decision → history B` 观察当前 approved head。输出仅是 path-free compile-time 准入合同；它不持久化、不授予永久 authority，未来发布消费方必须重新读取当前 head。
 - P10.4b1 amplitude-envelope command 只沿 reviewed 四骨幅度向量的统一 gain 射线重放九个 sampled key 状态；reviewed gain 必须精确匹配 P10.2 和临时 preview，分析结束后再次双快照 current head。候选不得包含 tracks/keys/animations，也不得声明连续时间、安全范围、seam 或发布 authority。
 - P10.4b2 continuous-proof command 完整重放 P10.4b1 source closure，以向外舍入区间同时覆盖 `time_fraction × λ`；每一对相邻 preview tick 都必须进入共享有界预算。后端异常、预算耗尽、非有限数或证明对象不满足内部计数/边界不变量时 fail closed 为 `indeterminate`。全段通过只授予 preview-model structural claims，平台 libm/runtime、raster、seam、MotionInstance v3 与发布仍明确排除。
@@ -125,6 +125,7 @@ web    → HTTP contracts only
 - P10.6a consumer admission 内嵌并完整重放 P10.5d probe，从其 source closure 读取精确 P9 双地址并复验 reviewed-motion bundle；pure core 只构造 unit-gain、setup-local、版本中立 motion domain，seal 前后重新观察视觉与接缝 current head。
 - P10.6a 不发出 MotionInstance v3、adapter 或 Spine timeline。其内部与 CLI 外层 head observation scope 都固定为 `compile_time`；完整 attachment 边界、raster/视觉、runtime、publishable timeline 和 release authority 保持 blocked。
 - Kimodo 的 raw NPZ、source sidecar 与 map 是三个独立输入。sidecar 解释数组/FPS/producer，map 决定投影/角色/contact；两者都不得根据文件名、数组数量或相邻目录隐式发现。
+- 所有同卷目录发布统一经 `atomic_staging.create_same_parent_staging` 创建 staging。POSIX 保留 owner-only `mkdtemp`；Windows 不传 `0o700`，以不可预测名称和原子 `mkdir()` 继承 publication parent 的 DACL，再由同卷 rename 发布。这样不会把 Python 3.14 `mkdtemp` 的 protected creator-only DACL 带到最终 bundle；碰撞、失败清理、并发收敛、固定 inventory 与发布后 exact readback 语义保持不变。历史受限 ACL 只允许通过另行授权、精确地址、前后字节/哈希不变的窄范围迁移处理，禁止对整个 state tree 递归重置权限。
 
 ## 文件长度预算
 
@@ -195,7 +196,7 @@ producer provenance 的 `recorded` 与 `unavailable` 是不同的显式状态。
 
 完整 NPZ 只把 `smooth_root_pos` 当有限数证据、把 `global_root_heading` 当单位方向证据，当前不用它们改写 MotionIR。contact 采用半开 `annotation_only` marker，不等于 foot lock。
 
-正式测试证明确定性合成 NPZ 的 root、代表性肢体旋转和 contact 可通过三个 rig 的 P5/P6 结构门禁；M1.0 另证明同一六输入可得到确定性 path-free intake report，且其 P7 preview 身份可与后续正式编译对齐。真实运行的 `wave-left-v1` 已通过 intake，并完成 P7/P8、A/B P5 与各自 P9 reviewed-motion bundle 的 exact replay；身份集中记录在 [pilot handoff](pilots/kimodo-wave-left-v1.md)。这仍未证明 checkpoint authenticity、广泛动作质量、目标角色深度/遮挡效果、seam 或该 clip 的官方 Spine Player 截图。关闭真实资产门禁还需要 A 的 seam/P10.5 链、B 的上游修复或版本化 partial seam 合同、干净 state 重编译、目标角色视觉对照与固定 runtime golden。
+正式测试证明确定性合成 NPZ 的 root、代表性肢体旋转和 contact 可通过三个 rig 的 P5/P6 结构门禁；M1.0 另证明同一六输入可得到确定性 path-free intake report，且其 P7 preview 身份可与后续正式编译对齐。真实运行的 `wave-left-v1` 已通过 intake，并完成 P7/P8、A/B P5 与各自 P9 reviewed-motion bundle 的 exact replay；身份集中记录在 [pilot handoff](pilots/kimodo-wave-left-v1.md)。A 另有已确认并 exact replay 的 P10.5c 静态接缝集，但这仍未证明 checkpoint authenticity、广泛动作质量、目标角色动态遮挡/接缝效果或该 clip 的官方 Spine Player 截图。关闭真实资产门禁还需要 A 的 P10.0–P10.4 动作域与 P10.5d、B 的上游修复或版本化 partial seam 合同、干净 state 重编译、目标角色视觉对照与固定 runtime golden。
 
 P8 相机感知投影门禁已经完成：
 
@@ -242,7 +243,7 @@ MotionInstance v2 和 Spine adapter v2 是新能力边界；v1 instance、P8 evi
 
 这一门禁关闭的是合同、provenance、内容寻址发布与 exact reader 重放的结构闭环，不是官方 runtime 或 raster truth。Preflight 只把候选展示边界收窄到 loopback Python 语义；最终 adoption 才调用服务端 decision/policy 编译、不可变 store 和 exact reader。CLI 使用相同领域边界，保留为专业复验与无浏览器流程，不再是普通页面确认后的手工交接步骤。P9 动态官方 runtime screenshot、seam 和真实作品质量门禁仍未关闭，不得由 preflight、adoption 成功、合成 fixture 或结构 audit 代替。操作入口见 [复核并发布 Kimodo 动作策略](how-to-review-kimodo-motion-policy.md)。
 
-P10.0–P10.2 已完成只读 idle 行为候选、人工决定和 body-sway 采样结构诊断边界：
+P10.0–P10.2 已完成 idle 行为候选、candidate-bound 人工决定和 body-sway 采样结构诊断边界：
 
 ```text
 exact Layer Manifest + exact P3 mesh + exact P5 retarget + exact P9 bundle
@@ -263,6 +264,10 @@ exact Layer Manifest + exact P3 mesh + exact P5 retarget + exact P9 bundle
 ```
 
 P10 exact loader 接受 Layer Manifest、P3 rig/bundle、P5 MotionInstance/bundle 与 P9 MotionInstance v2/bundle 七个完整 SHA，重放 P9 合同，不扫描目录或回退到 `latest`。Candidate compiler 固定列出 blink、body sway、hair spring、mouth；当前只有完整 canonical 躯干链能产生 body-sway candidate。Decision 必须绑定 exact candidate，且 body-sway 只有带人工参数的 `adjust` 才能保持 `pending_probe` 并进入探针。
+
+普通 P10.0–P10.1 入口不把七个 SHA 或本地文件交给浏览器。服务端以 motion-policy package 的 foot/depth 身份匹配内容寻址 P9 adoption；匹配只形成待重放 entry，随后仍由 exact reader 闭合 P3/P5/P9 并重编 candidate。零匹配会报告前置缺失；同一 project/clip 多匹配不会按 mtime 或 `latest` 猜测。entry ID 绑定 package 与精确 P9 adoption，candidate SHA 另行绑定算法输出，因此算法变化会进入新的 decision namespace。
+
+页面的 composite、四骨 FK 示意、播放时间轴和低幅参数只属于 `unvalidated_draft`，全部安全、Runtime、raster、seam 与 release claim 都为 false。拖动或播放不产生人工 authority。最后一次显式确认同时要求 intent 和 `explicit_confirmation=true`；服务端再次重编 candidate、检查 base revision/head，再自行构造 `human / completed` 字段。P10.1 历史在 candidate SHA 下使用内容寻址 decision 与连续 revision slot，字节相同的重试幂等复用，不同并发输入只能有一个 CAS winner。CLI 的 candidate/decision/probe 仍保持零写入，供专业复验。
 
 `BodySwayProbeReport v1` 固定检查 `loop_closure`、`fk_finite`、`sampled_mesh_deformation`、`sampled_canvas_containment`、`shared_index_internal_continuity`、`inter_attachment_seams` 与 `visual_quality`。前五项是采样结构证据；无 mesh 或非 loop 会显式 `not_applicable`。接缝缺少 reviewed anchors，视觉质量需要官方 runtime 人工预览，因此后两项保持 `unobservable`，顶层 release gate 无条件 blocked。
 
@@ -370,8 +375,9 @@ gate 都进入内容哈希。bundle 只含 exact candidate、exact decision 和 
 package/candidate/revision/decision 身份；服务端重新生成 P9→P3→candidate closure、确认 ready
 current head，再复用同一 compiler/store/reader 返回 path-free exact receipt。该便利入口没有把
 P10.5b 与 P10.5c 合并成一个合同：revision 已经落盘后 publication 失败，重试不会再次写 decision。
-当前真实 A 尚未由本轮操作者最终确认，因此机制已交付不能写成已有 A P10.5c credential；B 的
-四条不可观测关系仍在 ready gate 前 fail closed。
+当前真实 A 已由操作者确认 P10.5b revision 1，P10.5c set/bundle 也已 exact verify；B 的四条
+不可观测关系仍在 ready gate 前 fail closed。A 的静态凭据不能跨过尚缺的 P10.1 动作参数、
+P10.2/P10.3 与 P10.4b2，直接冒充 P10.5d 动态接缝证明。
 
 P10.5d 在不修改 P10.4b2 或 P10.5c hash 语义的前提下合并两条链：
 
@@ -476,7 +482,7 @@ sample 冒充 replay。命令不启动 Runtime、不扫描 mutable head、不写
 临时 stdout 只授予 bounded setup-frame equivalence，release gate 固定 blocked；readiness v2
 之前还必须把 request/report、批准合同与批准 PNG 封存成可寻址、可重放的 immutable comparison
 bundle。共享的 `wave-left-v1` 已到达 P7/P8、真实 A/B 各自的 P5、正式 depth policy、
-depth candidates 与各自 exact replay 通过的 P9 reviewed-motion bundle。P9 成功仍不能写成 seam 或真实样本通过：A 的自动 P10.5b/P10.5c 入口已交付，但本轮尚无操作者最终确认或真实 receipt；取得凭据后下一真实阶段是 P10.5d。B 的四条下肢关系不可观测，在修复分层/语义或建立版本化 partial 合同前仍被阻塞；两者之后还需要官方 capture。操作入口见
+depth candidates 与各自 exact replay 通过的 P9 reviewed-motion bundle。A 还具有操作者确认并 exact replay 通过的 P10.5b/P10.5c 静态接缝凭据；当前应从 P10.0–P10.1 身体摆动设置继续，依次补齐 P10.2、官方 Runtime/P10.3 与 P10.4b2 后，才能进入 P10.5d。B 的四条下肢关系不可观测，在修复分层/语义或建立版本化 partial 合同前仍被阻塞；两者之后还需要官方 capture。操作入口见
 [P10.7c Setup Golden How-to](how-to-compare-spine42-v3-setup-golden.md)、
 [就绪状态审计 How-to](how-to-audit-spine42-v3-readiness.md)和[后续开发路线](development-roadmap.md)。
 

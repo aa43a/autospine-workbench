@@ -1,6 +1,6 @@
 {
   "catalog_version": "1.0.0",
-  "current_stage": "P9-real-kimodo-policy-review",
+  "current_stage": "P10-idle-body-sway-human-review",
   "stages": [
     {"id":"P0","label":"合同、服务与基础验证"},
     {"id":"P1","label":"图层复核与四肢候选"},
@@ -55,7 +55,8 @@
     {"id":"cli-export-spine42-v2","stage":"P9","title":"生成 Spine 4.2 v2 报告","summary":"只读构建含 reviewed motion 的 Spine 4.2 v2 导出报告。","kind":"cli","status":"available","command":"export-spine42-v2","doc":"docs/how-to-review-kimodo-motion-policy.md"},
     {"id":"cli-publish-reviewed-motion-bundle","stage":"P9","title":"发布 Reviewed Motion Bundle","summary":"编译 MotionInstance v2 并发布精确六文件 P9 bundle。","kind":"cli","status":"available","command":"publish-reviewed-motion-bundle","doc":"docs/how-to-review-kimodo-motion-policy.md"},
     {"id":"cli-verify-reviewed-motion-bundle","stage":"P9","title":"验证 Reviewed Motion Bundle","summary":"重放精确不可变的 P9 reviewed-motion bundle。","kind":"cli","status":"available","command":"verify-reviewed-motion-bundle","doc":"docs/how-to-review-kimodo-motion-policy.md"},
-    {"id":"page-body-sway-review","stage":"P10","title":"Body-sway 视觉复核台","summary":"回看官方 Runtime 固定帧并提交 sampled still 人工决定。","kind":"page","status":"available","href":"./body-sway-review.html","doc":"docs/how-to-review-body-sway-runtime.md"},
+    {"id":"page-idle-behavior-review","stage":"P10","title":"身体摆动设置","summary":"自动发现已采用的精确 P9 动作，重放 P10.0 候选，用角色合成图、四骨示意和少量通俗参数完成一次明确 P10.1 人工决定；无需选择文件或填写 SHA。草稿仍须进入结构、Runtime 与接缝探针。","kind":"page","status":"available","href":"./idle-behavior-review.html","doc":"docs/how-to-review-idle-behaviors.md"},
+    {"id":"page-body-sway-review","stage":"P10","title":"Body-sway 视觉复核台","summary":"在 P10.2 与官方 Runtime capture 完成后，回看固定帧并提交 sampled still 人工决定。","kind":"page","status":"available","href":"./body-sway-review.html","doc":"docs/how-to-review-body-sway-runtime.md"},
     {"id":"page-seam-anchor-review","stage":"P10","title":"接缝自动复核与静态锚点生成","summary":"选择 P9 package 后自动加载图片叠加、填入明确候选并绑定当前版本；普通用户只需看图处理少量多候选并最终确认，全部可用时继续生成并精确复验 P10.5c。SHA 与原始 JSON 仅保留在专业详情。","kind":"page","status":"available","href":"./seam-anchor-review.html","doc":"docs/how-to-review-seam-anchors.md"},
     {"id":"cli-compile-idle-behavior-candidates","stage":"P10","title":"编译 Idle 行为候选","summary":"从精确 P3/P5/P9 生成眨眼、摆动等行为候选合同。","kind":"cli","status":"available","command":"compile-idle-behavior-candidates","doc":"docs/how-to-review-idle-behaviors.md"},
     {"id":"cli-compile-idle-behavior-decision","stage":"P10","title":"编译 Idle 人工决定","summary":"将显式人工复核绑定到一个精确 idle 候选集。","kind":"cli","status":"available","command":"compile-idle-behavior-decision","doc":"docs/how-to-review-idle-behaviors.md"},
@@ -89,7 +90,7 @@
     {"id":"planned-spine-editor-project","stage":"P6","title":"Spine Editor 工程生成","summary":"在明确 Spine 版本与许可边界内生成可继续 authoring 的编辑器工程。","kind":"planned","status":"external_required","doc":"docs/development-roadmap.md"},
     {"id":"planned-spine-adapters","stage":"P6","title":"更多 Spine 版本适配器","summary":"用版本隔离 profile 扩展 4.2 之外的输入和导出兼容范围。","kind":"planned","status":"planned","doc":"docs/development-roadmap.md"},
     {"id":"planned-workbench-spine-export","stage":"P6","title":"主工作台 Spine 导出编排入口","summary":"把已完成的离线 P6 CLI 以显式地址、进度和错误回看接入主操作台。","kind":"planned","status":"planned","doc":"docs/development-roadmap.md"},
-    {"id":"planned-real-kimodo-qa","stage":"P7","title":"真实 Kimodo Checkpoint 验收","summary":"单一 wave-left-v1 已完成 intake、P7/P8、A/B P5 exact replay 与 P9 自动复核入口；仍需最终 human adoption、checkpoint authenticity、扩展动作质量和 Runtime 回归门禁。","kind":"planned","status":"external_required","doc":"docs/development-roadmap.md"},
+    {"id":"planned-real-kimodo-qa","stage":"P7","title":"真实 Kimodo Checkpoint 验收","summary":"wave-left-v1 已完成 intake、P7/P8、A/B P5 与各自 P9 human adoption/exact replay；仍需 checkpoint authenticity、扩展动作质量、P10 body-sway/接缝链和 Runtime 回归门禁。","kind":"planned","status":"external_required","doc":"docs/development-roadmap.md"},
     {"id":"planned-attachment-switch","stage":"P9","title":"Attachment Switch Timeline","summary":"生成并验证口型、眨眼等离散附件切换时间线。","kind":"planned","status":"planned","doc":"docs/development-roadmap.md"},
     {"id":"planned-blink","stage":"P10","title":"自动眨眼候选与生成","summary":"借鉴 PachiPakuGen，基于可用眼部附件生成可复核 blink 行为。","kind":"planned","status":"planned","doc":"docs/development-roadmap.md"},
     {"id":"planned-lipsync","stage":"P10","title":"自动口型候选与音素映射","summary":"检测可用嘴部附件并将音频或节奏映射为可复核口型序列。","kind":"planned","status":"planned","doc":"docs/development-roadmap.md"},

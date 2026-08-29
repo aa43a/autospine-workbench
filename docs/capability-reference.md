@@ -1,6 +1,6 @@
 # AutoSpine Workbench 功能与入口参考
 
-本文是面向操作者和开发者的 Reference。它回答“功能是否已经实现、从哪里进入、会得到什么”，不替代具体操作步骤。P0 Resolved Project v1、P10.6b MotionInstance v3、P10.7a Spine 4.2 v3 adapter bundle、P10.7b sampled raster 基础设施与独立 P10.7c setup regression 已完成；**P9-real-kimodo-policy-adoption** 对真实 `wave-left-v1` 的 A/B 也已关闭：两项目各自的 human adoption、P9 内容寻址发布和 exact replay 均通过，双 SHA 集中记录在 [pilot handoff](pilots/kimodo-wave-left-v1.md)。P10.5b 自动复核和 package-bound P10.5c publication/exact readback 已实现，但本轮尚未代替操作者提交 A，因此没有新增真实 A 的 P10.5b/P10.5c 凭据；取得 receipt 后的下一真实阶段是 P10.5d。B 虽然 P9 通过，仍受四条下肢关系不可观测阻塞并保持 fail closed。计划项见[开发路线](development-roadmap.md)。
+本文是面向操作者和开发者的 Reference。它回答“功能是否已经实现、从哪里进入、会得到什么”，不替代具体操作步骤。P0 Resolved Project v1、P10.6b MotionInstance v3、P10.7a Spine 4.2 v3 adapter bundle、P10.7b sampled raster 基础设施与独立 P10.7c setup regression 已完成；**P9-real-kimodo-policy-adoption** 对真实 `wave-left-v1` 的 A/B 也已关闭：两项目各自的 human adoption、P9 内容寻址发布和 exact replay 均通过，双 SHA 集中记录在 [pilot handoff](pilots/kimodo-wave-left-v1.md)。样本 A 的 P10.5b revision 1 已由操作者确认，package-bound P10.5c 静态接缝集也已发布并通过 exact replay；这只关闭静态锚点凭据。当前真实顺序是 P10.0/P10.1 身体摆动候选与人工确认 → P10.2 → P10.3 → P10.4b2 → P10.5d，不能因已有静态 set 跳过动作域。B 虽然 P9 通过，仍受四条下肢关系不可观测阻塞并保持 fail closed。计划项见[开发路线](development-roadmap.md)。
 
 ## 统一入口
 
@@ -8,11 +8,12 @@
 
 - [功能入口中心](http://127.0.0.1:8765/workflow-hub.html)：按阶段、入口类型和状态搜索全部功能；
 - [绑定复核工作台](http://127.0.0.1:8765/)：图层、拆分、关节、候选和 P3 证据复核；
+- [身体摆动设置](http://127.0.0.1:8765/idle-behavior-review.html)：从已采用 P9 链自动准备 P10.0 候选，并由操作者显式提交 P10.1 决定；
 - [Body-sway 视觉复核台](http://127.0.0.1:8765/body-sway-review.html)：P10.3c sampled still 复核；
 - [接缝自动复核与静态锚点生成](http://127.0.0.1:8765/seam-anchor-review.html)：P10.5b 自动看图复核；ready 时由同一次最终确认继续 P10.5c 发布与精确读回；
 - [Motion Policy 自动工作流](http://127.0.0.1:8765/motion-policy-review.html)：P9 项目/package 自动加载、安全 Foot 辅助采用、异常处理，以及一次人工确认后的本地编译、发布和精确复验。
 
-功能入口中心读取 [`web/workflow-catalog.json`](../web/workflow-catalog.json)，列出 65 个已注册 CLI、四个任务页面和尚未实现的计划项。对于 CLI，它只复制 `python -B -m autospine_workbench <command> --help` 帮助命令，不在浏览器或服务端执行命令；源码模式下须先在当前 PowerShell 执行 `$env:PYTHONPATH = (Resolve-Path .\src).Path`，再复制和运行帮助命令。文档卡片通过 `/document-viewer.html?doc=docs/<文件名>.md` 安全文档查看器打开；查看器只读获取 `/docs/<文件名>.md`，不能访问目录外文件，并把响应作为纯文本显示，不解析 HTML 或执行文档内容。
+功能入口中心读取 [`web/workflow-catalog.json`](../web/workflow-catalog.json)，列出 65 个已注册 CLI、五个任务页面和尚未实现的计划项。对于 CLI，它只复制 `python -B -m autospine_workbench <command> --help` 帮助命令，不在浏览器或服务端执行命令；源码模式下须先在当前 PowerShell 执行 `$env:PYTHONPATH = (Resolve-Path .\src).Path`，再复制和运行帮助命令。文档卡片通过 `/document-viewer.html?doc=docs/<文件名>.md` 安全文档查看器打开；查看器只读获取 `/docs/<文件名>.md`，不能访问目录外文件，并把响应作为纯文本显示，不解析 HTML 或执行文档内容。
 
 入口状态含义：
 
@@ -37,6 +38,12 @@
 | P3 Mesh 证据 | 页面底部“P3 Mesh 证据” | 显式选择 rig/bundle SHA 后只读重验；不是权重编辑器 |
 | Revision 保存 | “保存校正”或 `Ctrl+S` | override v3、CAS、append-only history、409 草稿恢复 |
 
+### 身体摆动设置
+
+普通流程只列出已经 adopted 且能够精确重放的 P9 链；存在唯一或确定性推荐项时自动选择项目和 package。服务端从 package 重新闭合 Layer Manifest/P3/P5/P9，并编译当前 P10.0 idle candidate，浏览器不要求选择 JSON、输入路径或抄写 SHA。
+
+页面以角色合成图、躯干四骨示意、播放/暂停、时间轴和少量幅度/节奏控件呈现候选；原始身份和历史只放在技术详情。自动加载、推荐值、播放预览或拖动时间轴都只形成 `unvalidated_draft`，不会写 revision。只有操作者明确执行最后确认，页面才把完整参数、candidate SHA 和 current-head 基线提交为 candidate-bound P10.1 revision；成功状态仍是 `pending_probe`，必须继续 P10.2 结构探针，不能据此声称 Runtime、视觉、动态接缝或发布通过。
+
 ### Body-sway 视觉复核台
 
 以 project、temporary preview、runtime capture bundle 和 artifact set 四段地址读取官方 Spine Runtime 固定帧。每个 case 可标记 `approve`、`reject` 或 `unobservable`，并通过 CAS 追加不可变 revision。全部批准只得到 `sampled_visual_approved`，不证明连续时间、完整接缝、runtime 等价或发布安全。
@@ -53,7 +60,7 @@ candidate HTTP envelope 除 canonical candidate 外还固定返回：
 
 页面在统一 SVG 画布中合成 parent/child alpha，绘制 contact bbox、编号 anchor 和配对连线；原始 SHA、contact 数字、locator 表与单层图默认位于关闭的技术详情。assist 会把唯一候选和不可观测项写入可撤销草稿；多候选只设置 `highlight_option_id`，且显示“建议重点查看 ≠ 批准”。点击多候选 option 才会形成该关系的 `accept` 草稿。任何自动填充、高亮、current-head 绑定或进度完成都不写 revision。
 
-最后一次明确确认才以 CAS 提交完整 P10.5b decision。若包含 `reject/unobservable`，只保存 blocked revision；若六条均 `accept/adjust` 且处于 package 模式，页面继续调用 package-bound P10.5c publication，服务端重放 current decision、发布三文件 bundle、按精确上游读回，并返回 path-free receipt。P10.5b 已提交而 P10.5c 失败时，只能重试 publication，不重复人工 decision。P10.5c 成功仍须经过 P10.5d，且不授予 runtime/视觉或 release authority。
+最后一次明确确认才以 CAS 提交完整 P10.5b decision。若包含 `reject/unobservable`，只保存 blocked revision；若六条均 `accept/adjust` 且处于 package 模式，页面继续调用 package-bound P10.5c publication，服务端重放 current decision、发布三文件 bundle、按精确上游读回，并返回 path-free receipt。P10.5b 已提交而 P10.5c 失败时，只能重试 publication，不重复人工 decision。P10.5c 成功只提供静态 set；必须先有精确 P10.4b2 动作域才能进入 P10.5d，且两者都不授予 runtime/视觉或 release authority。
 
 ### Motion Policy 复核台
 
@@ -202,6 +209,8 @@ Resolved Project v1 是已完成的 P0 合同能力，但没有伪造一个独�
 
 操作说明：[Idle/body-sway](how-to-review-idle-behaviors.md)、[临时预览与视觉复核](how-to-review-body-sway-runtime.md)、[Runtime 捕获](how-to-capture-body-sway-runtime.md)、[连续证明](how-to-compile-body-sway-continuous-proof.md)。
 
+普通操作者优先使用[身体摆动设置](http://127.0.0.1:8765/idle-behavior-review.html)。页面自动选择无歧义项目、由服务端 exact replay 上游并隐藏文件/SHA 输入；CLI 保留给历史复验和专业排障。页面准备出的候选是 `unvalidated_draft`，必须由操作者显式确认才形成 P10.1 revision，且 P10.1 通过并不代替后续 P10.2/P10.3/P10.4b2。
+
 ### P10.5：接缝锚点
 
 | 命令 | 功能 |
@@ -257,7 +266,7 @@ capture manifest 会记录 runtime JS/CSS、`package.json`、`LICENSE`、浏览�
 
 操作说明：[捕获并复核 P10.7b Spine 4.2 v3 Raster 证据](how-to-capture-spine42-v3-runtime.md)、[审计两份真实样本的 Spine 4.2 v3 就绪状态](how-to-audit-spine42-v3-readiness.md)。公开结构见 [request Schema](../schemas/spine42-v3-readiness-request-v1.schema.json) 与 [report Schema](../schemas/spine42-v3-readiness-report-v1.schema.json)；Schema 不替代 canonical/self-hash/dependency 的 Python 语义 validator。readiness v1 已冻结，第八项仍固定为 `p6_setup_golden_comparison_not_declared`。新增 P10.7c 不修改该合同；有效审计只说明本次显式地址的 preflight 结果，不等于 setup golden 对照或发布权。
 
-冻结的示例请求仍没有声明两项目的 P9 exact 地址，所以直接运行示例仍会报告 `exact_reviewed_motion_address_not_declared`；这不代表当前真实工件不存在。A/B 的 P9 双 SHA 已通过独立 exact reader，见 [pilot handoff](pilots/kimodo-wave-left-v1.md)，应写入新生成的 canonical readiness 请求。A 的 P3 candidate 六条 seam 均可观测，但其 P10.5c 地址仍未声明；B 的 P3 candidate pure replay 则证明左右 pelvis-leg 与 leg-foot 共四条关系不可观测，必须修复上游语义/分层或另立版本化 partial 合同。官方 Runtime 已存在，但位于这些 seam blocker 之后；结构 fixture 不能替代真实样本验收。
+冻结的示例请求仍没有声明两项目的 P9 exact 地址，所以直接运行示例仍会报告 `exact_reviewed_motion_address_not_declared`；这不代表当前真实工件不存在。A/B 的 P9 双 SHA 已通过独立 exact reader，见 [pilot handoff](pilots/kimodo-wave-left-v1.md)，应写入新生成的 canonical readiness 请求。A 的真实 P10.5c 静态接缝集也已通过 exact replay，但冻结请求仍未声明该地址；请求中的 `null` 不能推翻已存在的工件。A 仍须按 P10.0/P10.1 → P10.2 → P10.3 → P10.4b2 补齐动作域后才能运行 P10.5d。B 的 P3 candidate pure replay 则证明左右 pelvis-leg 与 leg-foot 共四条关系不可观测，必须修复上游语义/分层或另立版本化 partial 合同。结构 fixture 不能替代真实样本验收。
 
 ### P10.7c：P6 Setup Golden 独立回归
 
@@ -265,32 +274,36 @@ capture manifest 会记录 runtime JS/CSS、`package.json`、`LICENSE`、浏览�
 | --- | --- | --- |
 | `compare-body-sway-spine42-v3-setup-golden` | `available` | 锁定 comparison profile、显式 P3、P6 export/runtime golden 合同和精确 P10.7a/P10.7b 地址，重放后只读比较唯一 opaque setup 帧 |
 
-操作说明：[对照 P10.7c Spine 4.2 v3 Setup Golden](how-to-compare-spine42-v3-setup-golden.md)。请求与报告分别使用独立的 `spine42-v3-setup-regression-*-v1` Schema；report/sample 自哈希只是内容身份，命令的 gate 会从 exact P6/P10/capture/PNG 在内部重新计算并绑定 sample。命令不会运行 Runtime、扫描 `latest`/current head、写入 state 或修改 approved PNG；stdout 报告临时且不可寻址，readiness v2 前仍需 immutable comparison bundle。`passed` 只表示固定 setup 帧在批准阈值内，不证明动画 case、连续时间安全、永久审批或发布权。共享的 `wave-left-v1` 已有 P7/P8、真实 A/B 各自的 P5 与已复验 P9；当前仍缺 seam、P10.7a 与 capture 地址，尚无真实 P10.7c 通过结论。
+操作说明：[对照 P10.7c Spine 4.2 v3 Setup Golden](how-to-compare-spine42-v3-setup-golden.md)。请求与报告分别使用独立的 `spine42-v3-setup-regression-*-v1` Schema；report/sample 自哈希只是内容身份，命令的 gate 会从 exact P6/P10/capture/PNG 在内部重新计算并绑定 sample。命令不会运行 Runtime、扫描 `latest`/current head、写入 state 或修改 approved PNG；stdout 报告临时且不可寻址，readiness v2 前仍需 immutable comparison bundle。`passed` 只表示固定 setup 帧在批准阈值内，不证明动画 case、连续时间安全、永久审批或发布权。共享的 `wave-left-v1` 已有 P7/P8、真实 A/B 各自的 P5 与已复验 P9；A 已有静态 P10.5c，但仍缺 P10.1–P10.5d 动作域、P10.7a 与 capture 地址，B 则仍受完整静态 seam 合同阻塞，因此尚无真实 P10.7c 通过结论。
 
 ## HTTP 写入边界
 
-P9 与 Seam 自动页面使用下列 package 资源；preflight 与 GET 零写入，两个 publication POST 都只在各自最终确认后调用：
+P9、Idle 与 Seam 自动页面使用下列 package 资源；preflight 与 GET 零写入，authority-changing POST 都只在各自最终确认后调用：
 
 | 方法与资源 | 行为 | 安全边界 |
 | --- | --- | --- |
 | `GET /api/motion-policy/review-packages` | 发现固定文件名的本地 exact review package，重算身份并返回确定性的推荐 package ID | loopback-only；响应 path-free，不扫描下载目录、不按 mtime 选 `latest`，不批准或发布 |
 | `GET /api/motion-policy/review-packages/{package_id}` | 按完整 package ID 读取正式 policy、Foot/Depth reports 和预检 inventory | exact ID 必须绑定项目、动作、clip、三份报告 SHA 与 candidate inventory；损坏或变化时 fail closed |
+| `GET /api/idle-behavior/review-packages` | 从已 adopted P9 链发现 P10.0/P10.1 review package，并返回确定性推荐项 | path-free；不按 mtime/`latest` 猜测；多个同项目/clip adoption 时不自动推荐 |
+| `GET /api/idle-behavior/review-packages/{package_id}` | 服务端 exact replay P3/P5/P9/P10.0，返回角色预览、四骨参数建议和 current history | 自动结果固定为 `unvalidated_draft`；不接受客户端上游 SHA 或路径 |
+| `POST /api/idle-behavior/review-packages/{package_id}/decisions` | 提交一次显式 P10.1 人工决定 | `X-Autospine-Intent: body-sway-human-review-v1`、exact candidate、显式最终确认与 head CAS；成功仍为 `pending_probe` |
 | `GET /api/motion-policy/review-packages/{package_id}/seam-review-entry` | 零写入重放 exact package 与 Foot/Depth 共享 P3 来源，复验 P3 bundle，重新准备 P10.5b candidate | 不接受客户端 Manifest/P3 SHA；响应 path-free，只返回 exact 地址、candidate SHA、可观测性摘要与 blocker |
 | `POST /api/motion-policy/review-packages/{package_id}/seam-publications` | 从已提交的 current ready P10.5b decision 编译、发布并 exact-readback P10.5c | 独立 intent；只接受 package/candidate/revision/decision 身份，不接受路径或客户端上游地址；响应 path-free |
 | `POST /api/motion-policy/preflight` | 从原始 JSON 文本运行 inner strict decoder；`policy_identity` 返回 Python canonical SHA，`candidate_inventory` 解包受支持 envelope 后重算 policy/foot/depth 三 SHA、完整 standalone 合同、交叉绑定、四项计数及候选 ID 清单 SHA | loopback + exact same-origin、JSON、`X-Autospine-Intent: motion-policy-preflight-v1`；外层 48 MiB、内层 policy/foot/depth 1/16/16 MiB；不读路径、不写 state、不批准或发布 |
 | `POST /api/motion-policy/review-packages/{package_id}/adoptions` | 用严格 human review input 编译 decision/reviewed policy，原子发布 MotionInstance v2 六文件 P9 bundle，并按精确双 SHA 读回复验 | loopback + exact same-origin、JSON、`X-Autospine-Intent: motion-policy-adoption-v1`；服务端重读完整 package，不接受任意路径、shell 命令或客户端提供的上游地址；成功响应 path-free |
 
-Preflight POST 只用于承载有界完整 JSON 文档，不代表 mutation。Adoption 与 seam-publication POST 是两个独立的内容寻址发布操作；前者需要 P9 最终确认，后者需要已经提交的 current ready P10.5b decision。本地 HTTP 服务当前有五类写操作：
+Preflight POST 只用于承载有界完整 JSON 文档，不代表 mutation。P9 adoption、P10.1 decision 与 seam-publication 属于三个独立写边界；它们的最终确认不能互相替代。本地 HTTP 服务当前有六类写操作：
 
 | 方法与资源 | 写入内容 | 并发边界 |
 | --- | --- | --- |
 | `PUT /api/projects/{id}/overrides` | override v3 与 resolved snapshot | `base_revision` CAS |
 | `PUT .../visual-review/candidates/{candidate}/decisions` | P10.3c sampled visual decision revision | exact candidate、intent header 与 head CAS |
+| `POST /api/idle-behavior/review-packages/{package_id}/decisions` | P10.1 idle/body-sway decision revision | exact package/candidate、显式确认、intent header 与 head CAS |
 | `POST .../seam-anchor-reviews/.../candidates/{candidate}/decisions` | P10.5b seam decision revision | exact candidate、intent header 与 head CAS |
 | `POST /api/motion-policy/review-packages/{package_id}/adoptions` | P9 decision、reviewed policy、MotionInstance v2 与六文件不可变 bundle | exact package、显式 intent、穷尽 human decision、内容地址幂等复用及发布后 exact verify |
 | `POST /api/motion-policy/review-packages/{package_id}/seam-publications` | P10.5c ReviewedSeamAnchorSet 三文件不可变 bundle | 已提交 current ready P10.5b decision、独立 intent、package/source 重放、双快照与发布后 exact readback |
 
-其余浏览器 API 为读取或 zero-write 计算。Package 推荐、motion-policy preflight 的 `passed` 和辅助 Foot 草稿都不是最终 human adoption；只有带 adoption intent 的最终确认可触发 P9 发布。CLI 对 exact decision/policy/bundle 的编译与复验继续作为专业审计和无浏览器重放路径。离线 CLI 中的 `compile`/`publish` 命令可能向 state root 发布内容寻址工件，因此运行前仍应查看对应 `--help` 和 how-to。完整路由见 [README 的 HTTP API](../README.md#http-api)。
+其余浏览器 API 为读取或 zero-write 计算。Package 推荐、motion-policy preflight 的 `passed`、辅助 Foot 草稿、P10.0 推荐参数和时间轴预览都不是最终 human adoption；P9 与 P10.1 各自需要独立的显式最终确认。CLI 对 exact decision/policy/bundle 的编译与复验继续作为专业审计和无浏览器重放路径。离线 CLI 中的 `compile`/`publish` 命令可能向 state root 发布内容寻址工件，因此运行前仍应查看对应 `--help` 和 how-to。完整路由见 [README 的 HTTP API](../README.md#http-api)。
 
 ## 当前能力边界
 
@@ -299,7 +312,7 @@ Preflight POST 只用于承载有界完整 JSON 文档，不代表 mutation。Ad
 - resolved snapshot 已确定性生成并被下游寻址，现有独立 v1 JSON Schema、严格语义 validator、派生 QA 校验及 r5/r7 历史哈希回归；它仍没有独立 CLI/UI，外部 candidate/split artifact 字节重放继续由各自 binder 负责。
 - override history 已 append-only 保存，但主工作台尚无历史浏览/恢复 UI；安全恢复必须追加新 revision，不能改写历史。
 - P7 real-pilot intake 审计已经可用：它把真实 NPZ、recorded sidecar、map、camera 与两份 provenance 原件闭合为零写入 path-free 报告。`wave-left-v1` 已通过该审计并完成 P7/P8、A/B P5 exact replay、正式 depth policy/depth candidates 和各自 P9 exact replay，身份集中记录在 [pilot handoff](pilots/kimodo-wave-left-v1.md)。Preflight 或辅助草稿本身仍不认证 checkpoint 或批准动作质量；当前 P9 结论来自最终 human adoption 与发布后 exact reader。
-- P10 body-sway 已完成 P10.7b sampled raster 基础设施、冻结的 P10.7b-readiness v1 审计、独立 P10.7c setup regression 命令，以及 P10.5b 自动复核/P10.5c package publication 机制；readiness 第八项仍固定为 missing。A 的六关系证据可进入自动页面，但本轮尚无操作者最终确认和真实 P10.5c receipt，不能声称已形成对应双 SHA；取得凭据后进入 P10.5d。B 虽然 P9 通过，但左右 pelvis-leg 与 leg-foot 四条关系不可观测，完整合同 fail closed，必须修复上游分层/语义或建立版本化 partial 合同。真实 capture 尚未交付，因此不能声称 A/B 已通过 P10.7c。
+- P10 body-sway 已完成普通用户 P10.0/P10.1 review 入口、P10.7b sampled raster 基础设施、冻结的 P10.7b-readiness v1 审计、独立 P10.7c setup regression 命令，以及 P10.5b 自动复核/P10.5c package publication 机制；readiness 第八项仍固定为 missing。A 的 P10.5b revision 1 与 P10.5c 双 SHA 已经真实闭合，但 P10.1 尚未由操作者确认，必须依次完成 P10.1、P10.2、P10.3、P10.4b2 后才进入 P10.5d。B 虽然 P9 通过，但左右 pelvis-leg 与 leg-foot 四条关系不可观测，完整合同 fail closed，必须修复上游分层/语义或建立版本化 partial 合同。真实 capture 尚未交付，因此不能声称 A/B 已通过 P10.7c。
 - `blink`、口型和头发目前只存在 idle candidate 类型或规划入口，没有可靠素材生成、绑定与 runtime 交付。
 - See-through/pose 推理、真实 Kimodo checkpoint authenticity/动作质量验收、实时追踪、自由形变、runtime IK、生产部署仍未实现。
 

@@ -36,6 +36,12 @@ python -B -m autospine_workbench audit-body-sway-spine42-v3-readiness `
 | `seethrough_output` | `3c7bb6efcdb91d3ad3c1984ae19159a2ceb2b7aa8f0b88fc405d63956bd59823` | `b347c56a217b4cc844da3f115f100ae8b1352389207f357824ba322bdb46649c` |
 | `seethrough_output_5` | `706225aca7359f46daf0c318e186252b36c44650cd1539eb667e40f50e715754` | `39076c3589b046268b01c6c85bb0f7393403d2d0973ae417ef78271b649d0e96` |
 
+同日，样本 A 的 P10.5b revision 1 已由操作者确认，P10.5c 静态接缝集已发布并通过 exact replay：
+
+| 项目 | P10.5c reviewed-set SHA-256 | P10.5c bundle SHA-256 |
+| --- | --- | --- |
+| `seethrough_output` | `47656c2510e98b7598937a2c3315cd8f6e05274162160cf11a07cc167ed0e4d9` | `fb8886cf1dcbff5d0ccb1fc36c6a087d93ad4e87678169dbad435e9e30e1adbe` |
+
 仓库自带的示例文件是冻结的 baseline，仍故意把以下五组下游地址和 raster 人工决定全部设为 `null`。因此直接运行本节开头的示例命令仍会报告 P9 地址未声明；这不再代表当前工作区没有真实 P9。要审计最新状态，应以示例为结构起点，使用 canonical builder 生成一份新的请求，并把上表双 SHA 填入对应项目的 `reviewed_motion_address`：
 
 - `reviewed_motion_address`：P9 的 `motion_instance_v2_sha256` 与 `bundle_sha256`；
@@ -66,19 +72,19 @@ python -B -m autospine_workbench audit-body-sway-spine42-v3-readiness `
 
 `verified` 只表示该 checkpoint 的精确地址经过只读 pure replay 和合同校验；`prerequisite_missing`、`review_blocked`、`metrics_rejected` 和 `source_mismatch` 都会阻止该样本进入下一步。只有前七项均为 `verified` 时，样本状态才会成为 `ready_for_p6_setup_comparison`。readiness v1 的 Schema、哈希与 checkpoint 语义已经冻结，因此第八项仍始终报告 `p6_setup_golden_comparison_not_declared`。P10.7c 已通过独立 `compare-body-sway-spine42-v3-setup-golden` 命令交付，不能把它的结果回填或伪装成 readiness v1 的第八项；操作见[对照 P10.7c Spine 4.2 v3 Setup Golden](how-to-compare-spine42-v3-setup-golden.md)。
 
-地址为 `null` 时，审计只报告“请求未声明该精确地址”，不会搜索 `latest` 或 current review head 来判断工件是否已存在。例如，A 的 `reviewed_seam_anchor_set_address=null` 只会得到 `reviewed_seam_anchor_set_address_not_declared`；该 reason code 不能证明 review head 为空，也不能证明人工复核尚未发生。操作者需要完成或确认 P10.5b 人审、编译 P10.5c，并把精确双 SHA 写入请求后重新审计。
+地址为 `null` 时，审计只报告“请求未声明该精确地址”，不会搜索 `latest` 或 current review head 来判断工件是否已存在。例如，冻结请求中 A 的 `reviewed_seam_anchor_set_address=null` 仍会得到 `reviewed_seam_anchor_set_address_not_declared`；该 reason code 不能证明 review head 为空，也不能推翻上表已经 exact replay 的 P10.5c。使用 canonical builder 生成新请求并写入该双 SHA 后，审计才会重放这项真实凭据。
 
 ## 当前两份真实样本结论
 
 以下结论区分“真实工件已存在”与“冻结 baseline 是否声明地址”。审计只重放请求中显式声明的地址，不会自动发现工作区内容：
 
 - A/B 的真实 P9 双 SHA 已由 `verify-reviewed-motion-bundle` 复验，均返回 `verification.status=passed` 与 `replayed_from_exact_upstreams=true`。冻结 baseline 仍为 `null`，所以直接运行它时 `p9_reviewed_motion` 仍报告 `exact_reviewed_motion_address_not_declared`；只有生成并审计显式填入上表地址的新请求，才能让 readiness checkpoint 记录这项事实。
-- `seethrough_output` 的 P3 seam candidate pure replay 显示六条 relationship 可观测。P9 已关闭后，下一步是完成或确认 P10.5b 人审、编译 P10.5c，并在新请求中声明精确双 SHA；在此之前 seam checkpoint 仍只能报告 `reviewed_seam_anchor_set_address_not_declared`。
+- `seethrough_output` 的 P10.5b revision 1 与 P10.5c exact bundle 已闭合。冻结 baseline 仍未声明该双 SHA，所以直接运行它时 seam checkpoint 仍报告 `reviewed_seam_anchor_set_address_not_declared`；生成新请求后才能审计已存在的静态凭据。A 当前真实动作顺序是 P10.0/P10.1 → P10.2 → P10.3 → P10.4b2 → P10.5d，不能从静态 set 直接跳级。
 - `seethrough_output_5` 的 P9 同样已经通过，但四条腿/脚关系不可观测：左右 `pelvis_leg` 缺 child role，左右 `leg_foot` 缺 parent role。P10.5c 的完整六关系合同不能把这些行自动批准；需要回到上游修复语义/分层并重新生成受内容地址约束的 Manifest/P3，或者另立、版本化并单独验收 partial seam 合同。
-- 官方 Spine 4.2 Runtime/Capture 基础设施当前已存在，因此不需要把“下载 Runtime”作为第一步；当前更早的 blocker 是各项目的 seam 合同。审计不会主动发现或调用该 Runtime。
+- 官方 Spine 4.2 Runtime/Capture 基础设施当前已存在，因此不需要把“下载 Runtime”作为第一步；A 更早的 blocker 是 P10.1–P10.5d 动作域，B 更早的 blocker 是完整静态 seam 合同。审计不会主动发现或调用该 Runtime。
 - P10.7c 独立比较命令已经存在，但当前 A/B 都没有满足其请求合同所需的真实 P10.7a/capture 地址；这项能力交付不能被表述为真实双样本已通过。
 
-建议先生成一份显式包含上述 P9 地址的新 canonical readiness 请求。项目 A 随后进入 seam 人审和 P10.5c；项目 B 先完成“上游修复”或“版本化 partial seam 合同”的方案评审。只有相应 seam 精确工件实际产生后，才继续填写 P10.5c 及更下游地址并重新运行审计。
+建议先生成一份显式包含上述 P9 地址与 A 的 P10.5c 双 SHA 的新 canonical readiness 请求。项目 A 随后通过普通身体摆动入口显式确认 P10.1，并依次完成 P10.2、P10.3、P10.4b2 与 P10.5d；项目 B 先完成“上游修复”或“版本化 partial seam 合同”的方案评审。只有各自精确前置实际闭合后，才继续填写更下游地址并重新运行审计。
 
 ## 审计不会做什么
 

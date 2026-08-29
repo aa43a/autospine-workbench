@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0b0e14">
+  <title>身体摆动设置 — AutoSpine</title>
+  <link rel="stylesheet" href="./idle-behavior-review.css">
+</head>
+<body>
+  <a class="skip-link" href="#bodySwayForm">跳到身体摆动设置</a>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">P10.0–P10.1 · ASSISTED HUMAN REVIEW</p>
+      <h1>身体摆动设置</h1>
+    </div>
+    <nav aria-label="工作台导航">
+      <a class="button secondary" href="./workflow-hub.html">功能入口中心</a>
+      <a class="button secondary" href="./index.html">绑定工作台</a>
+    </nav>
+  </header>
+
+  <main>
+    <section id="autoEntryPanel" class="panel auto-entry" aria-labelledby="entryHeading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">AUTOMATIC ENTRY</p>
+          <h2 id="entryHeading">选择角色和动作</h2>
+        </div>
+        <span class="badge success">自动校验来源</span>
+      </div>
+      <p class="lede">系统会自动读取已经完成 P9 的项目、候选参数和提交历史，无需选择文件或填写 SHA-256。</p>
+      <div class="entry-grid">
+        <label for="projectSelect">
+          <span>项目与动作</span>
+          <select id="projectSelect" disabled></select>
+        </label>
+        <button id="reloadProject" class="button secondary" type="button" disabled>重新读取</button>
+      </div>
+      <p id="autoLoadStatus" class="status" role="status" aria-live="polite">正在启动自动入口…</p>
+    </section>
+
+    <div id="reviewWorkspace" hidden>
+      <section class="project-summary" aria-labelledby="projectTitle">
+        <div>
+          <p class="eyebrow">CURRENT PACKAGE</p>
+          <h2 id="projectTitle">—</h2>
+          <p id="projectFacts" class="lede">—</p>
+        </div>
+        <ul id="featureList" class="feature-list" aria-label="Idle 功能候选状态"></ul>
+      </section>
+
+      <div class="workspace-grid">
+        <section class="panel preview-panel" aria-labelledby="previewHeading">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">SETUP-LOCAL SCHEMATIC</p>
+              <h2 id="previewHeading">身体摆动示意</h2>
+            </div>
+            <span class="badge warning">待结构探针</span>
+          </div>
+          <p class="boundary-note">
+            这是参数与四骨链示意，不是 Spine Runtime 画面，也不构成安全范围或视觉质量证据。
+          </p>
+          <figure class="preview-stage">
+            <img id="previewImage" alt="当前项目角色合成图" hidden>
+            <svg id="previewSvg" role="img" aria-label="setup 骨骼与身体摆动草稿对比"
+              preserveAspectRatio="xMidYMid meet"></svg>
+            <figcaption id="previewFallback" hidden></figcaption>
+          </figure>
+          <div class="timeline-controls">
+            <button id="playPreview" class="button secondary compact" type="button"
+              aria-pressed="false">播放</button>
+            <label for="timeline">
+              <span>时间轴</span>
+              <input id="timeline" type="range" min="0" max="1000" step="1" value="0">
+            </label>
+            <output id="timeOutput" for="timeline">0.00 s</output>
+          </div>
+          <div class="legend" aria-label="骨骼示意图例">
+            <span><i class="setup-key"></i>setup 骨骼</span>
+            <span><i class="draft-key"></i>参数草稿</span>
+          </div>
+        </section>
+
+        <section class="panel settings-panel" aria-labelledby="settingsHeading">
+          <p class="eyebrow">HUMAN PARAMETERS</p>
+          <h2 id="settingsHeading">简单设置</h2>
+          <p id="bodySwayAvailability" class="status">等待候选。</p>
+          <form id="bodySwayForm" novalidate>
+            <fieldset class="control-list">
+              <legend>四个常用参数</legend>
+              <label for="cycles">
+                <span><strong>摆动次数</strong><small>整个动作片段内完成几次往返</small></span>
+                <input id="cycles" type="range" min="1" max="64" step="1" value="2">
+                <output id="cyclesValue" for="cycles">2 次</output>
+              </label>
+              <label for="lowerAmplitude">
+                <span><strong>腰部幅度</strong><small>控制骨盆和胸腔下部</small></span>
+                <input id="lowerAmplitude" type="range" min="0" max="10" step="any" value="0.8">
+                <output id="lowerAmplitudeValue" for="lowerAmplitude">0.8°</output>
+              </label>
+              <label for="headAmplitude">
+                <span><strong>头颈幅度</strong><small>控制胸口到头部的跟随</small></span>
+                <input id="headAmplitude" type="range" min="0" max="10" step="any" value="0.2">
+                <output id="headAmplitudeValue" for="headAmplitude">0.2°</output>
+              </label>
+              <label for="phaseDelay">
+                <span><strong>跟随延迟</strong><small>越大越有逐节跟随感</small></span>
+                <input id="phaseDelay" type="range" min="0" max="0.333333333333" step="any" value="0.04">
+                <output id="phaseDelayValue" for="phaseDelay">4%</output>
+              </label>
+            </fieldset>
+            <label class="confirmation" for="explicitConfirmation">
+              <input id="explicitConfirmation" type="checkbox">
+              <span>我已查看时间轴和骨骼示意，确认保存本次人工选择。保存后仍须通过结构与视觉探针。</span>
+            </label>
+            <div class="decision-actions">
+              <button id="confirmAdjust" class="button primary" type="button" disabled>
+                保存 P10.1，下一步运行结构探针
+              </button>
+              <button id="rejectBodySway" class="button danger" type="button" disabled>
+                不使用身体摆动
+              </button>
+              <button id="unobservableBodySway" class="button secondary" type="button" disabled>
+                当前无法判断
+              </button>
+            </div>
+          </form>
+          <p id="decisionStatus" class="status" role="status" aria-live="polite">等待自动加载候选。</p>
+        </section>
+      </div>
+
+      <section id="receiptPanel" class="panel receipt" aria-labelledby="receiptHeading" hidden>
+        <p class="eyebrow">IMMUTABLE RECEIPT</p>
+        <h2 id="receiptHeading">决定已保存</h2>
+        <p id="receiptSummary"></p>
+      </section>
+
+      <details class="panel expert-details">
+        <summary>专家详情：候选身份与历史 revision</summary>
+        <div class="expert-grid">
+          <section>
+            <h3>候选 SHA-256</h3>
+            <code id="candidateDigest">—</code>
+            <h3>提交历史</h3>
+            <ol id="historyList"></ol>
+          </section>
+          <pre id="expertDocument" tabindex="0" aria-label="只读精确身份">—</pre>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <div id="liveRegion" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+  <script type="module" src="./modules/idle-behavior-review-app.js"></script>
+</body>
+</html>

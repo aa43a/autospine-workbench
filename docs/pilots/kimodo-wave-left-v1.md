@@ -1,8 +1,8 @@
 # Kimodo `wave-left-v1` Pilot Handoff
 
 本文是当前真实运行 pilot 的唯一身份记录，面向需要沿 exact 链继续 seam 与 P10 的维护者。它固定
-`wave-left-v1` 的六输入准入、P7/P8、两个目标 P5、候选身份和已复验 P9 地址，避免 README、路线图
-和操作手册重复抄写 SHA 后发生漂移。
+`wave-left-v1` 的六输入准入、P7/P8、两个目标 P5、候选身份、已复验 P9 地址，以及样本 A 已闭合的
+P10.5b/P10.5c 静态接缝身份，避免 README、路线图和操作手册重复抄写 SHA 后发生漂移。
 
 ## 已闭合的证据
 
@@ -73,17 +73,36 @@ validator 和生产 `policy_identity` preflight 通过，与各自草案相比�
 
 2026-08-30，操作者分别完成 A/B 的最终 human adoption。本机服务从各自 exact package 重新编译 decision、reviewed policy 与 MotionInstance v2，发布六文件 reviewed-motion bundle，并立即按表中的双 SHA 读回。随后独立运行 `verify-reviewed-motion-bundle`，两项目均返回 `verification.status=passed` 与 `replayed_from_exact_upstreams=true`。因此本 pilot 的 P9 人工决定与 exact reviewed-motion 地址已经闭合；这项结论只适用于表中固定的两个项目、当前 clip 和当前候选身份。
 
+## 样本 A 的静态接缝凭据
+
+2026-08-30，操作者完成样本 A 的 P10.5b 最终确认；同一 package-bound 流程随后发布 P10.5c，
+并从精确上游读回复验：
+
+| 地址 | SHA-256 / revision |
+| --- | --- |
+| P9 review package | `a933df26a457be609c6c30f08ad8ad0284ad2f2a02bd655163ebb6e7775764c0` |
+| P10.5b candidate | `8b84858b1a723e20374892c0fc570385c8a23ff91b7398839af3218b67f21ff6` |
+| P10.5b decision | `111d7da8589204e300b9aa8067b1f69baf938ca6f2cd715961b0b506fb55f680` |
+| P10.5b revision | `1` |
+| P10.5c reviewed set | `47656c2510e98b7598937a2c3315cd8f6e05274162160cf11a07cc167ed0e4d9` |
+| P10.5c bundle | `fb8886cf1dcbff5d0ccb1fc36c6a087d93ad4e87678169dbad435e9e30e1adbe` |
+
+该组凭据只证明样本 A 的六条 setup 静态 locator 已通过人工决定、内容寻址发布与 exact replay。
+它不证明 P10.1 身体摆动已经批准，也不证明动作中的接缝、官方 Runtime、连续 raster 安全或发布权。
+
 ## 权限与质量边界
 
 这份 handoff 只允许声明：该组 recorded 输入已经闭合、P7 结构编译与 exact replay 通过、
 显式相机的 P8 投影与 exact replay 通过、A/B 的 P5 目标重定向结构与 exact replay 通过，
-以及表中两个 P9 reviewed-motion bundle 已从精确上游重放通过。
+表中两个 P9 reviewed-motion bundle 已从精确上游重放通过，以及样本 A 上表 P10.5b/P10.5c
+静态接缝身份已经闭合。
 它不授予或证明：
 
 - 外部 checkpoint authenticity、模型或素材许可；
 - 广泛动作集的质量验收，或目标角色上的视觉质量；
 - P5 在目标角色上的 raster、接缝或作品质量；
-- seam、官方 Spine Runtime、连续 raster 安全、publishable timeline 或 release authority。
+- 样本 A 的动态 seam、样本 B 的完整静态 seam、官方 Spine Runtime、连续 raster 安全、
+  publishable timeline 或 release authority。
 
 intake report SHA、P7/P8 bundle 地址和 P5 地址都不能替代表中的 P9 双 SHA 填入
 readiness 请求。任何输入、map、camera、compiler 或算法 profile 变化都必须生成新地址，不能
@@ -91,7 +110,8 @@ readiness 请求。任何输入、map、camera、compiler 或算法 profile 变�
 
 ## 下一步
 
-1. 项目 A（`seethrough_output`）从 P9 回执携带表中的 exact package ID 进入真实 seam 人审；完成六条决定后编译 P10.5c reviewed set，并继续动态 seam 门禁。P9 双 SHA 继续用于 readiness/P10 身份，不要求普通用户抄写后进入 Seam。
+1. 项目 A（`seethrough_output`）打开 `idle-behavior-review.html`。页面自动选择确定性 P9 package，并由服务端 exact replay P3/P5/P9、准备 P10.0 候选；普通用户不选择文件或填写 SHA。推荐参数只是 `unvalidated_draft`，必须看图、播放并最后明确确认，才能形成 P10.1 revision。目前不能声称 P10.1 已通过。
 2. 项目 B（`seethrough_output_5`）虽然 P9 已通过，但左右 `pelvis_leg` 与 `leg_foot` 四条关系不可观测。必须修复 See-through 分层/语义并生成新内容地址，或另立明确禁止通用腿部动画的版本化 partial seam 合同；不得把 P9 成功改写成完整下肢 seam 通过。
-3. 为 readiness v1 生成新的 strict canonical 请求并显式写入表中 P9 双 SHA。仓库自带的 baseline 请求仍把下游字段设为 `null`，不会自动发现这些地址。
-4. 只有各项目实际关闭自己的 seam 合同后，才继续 P10.0–P10.7a、官方 Runtime capture、sampled raster 人审与独立 P10.7c setup golden 对照。
+3. A 的 P10.1 确认后依次完成 P10.2、P10.3 与 P10.4b2，再将该精确动作域与既有 P10.5c 双 SHA 组合为 P10.5d；静态 set 不能直接证明动态 seam。
+4. 为 readiness v1 生成新的 strict canonical 请求并显式写入表中 P9 双 SHA 与 A 的 P10.5c 双 SHA。仓库自带的 baseline 请求仍把下游字段设为 `null`，不会自动发现这些地址。
+5. 在相应 P10.5d 合同关闭后继续 P10.6–P10.7a、官方 Runtime capture、sampled raster 人审与独立 P10.7c setup golden 对照。

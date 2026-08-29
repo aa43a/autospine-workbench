@@ -6,6 +6,10 @@ P10.5b 本身只记录静态 locator 选择；从 P9 package 进入且结果 rea
 最终确认后继续 P10.5c，发布并精确读回 `ReviewedSeamAnchorSet`。两阶段都不证明动作中的
 动态接缝、视觉质量、runtime 等价或发布安全。
 
+样本 A 已完成这套流程：P10.5b revision 1 由操作者确认，P10.5c 静态 set 已发布并通过 exact
+replay。除非候选或上游发生版本化变化，不要再次提交同一组六项决定；当前应转到
+[身体摆动设置](http://127.0.0.1:8765/idle-behavior-review.html)，先关闭 P10.0/P10.1 与后续动作域。
+
 ## 前置条件
 
 普通流程从 P9 成功或幂等复用回执点击“进入接缝复核”。链接只携带 exact
@@ -212,9 +216,13 @@ decision 的机器合同位于
 
 ## 当前 A/B 状态
 
-- 样本 A（`seethrough_output`）的 package 自动入口和六条可观测关系已经可加载，但本轮没有
-  代替操作者点击最终确认；因此目前不得宣称真实 A 已产生 P10.5b revision、P10.5c receipt
-  或 reviewed-set/bundle 双 SHA。
+- 样本 A（`seethrough_output`）已由操作者确认 P10.5b revision `1`。精确身份为 package
+  `a933df26a457be609c6c30f08ad8ad0284ad2f2a02bd655163ebb6e7775764c0`、candidate
+  `8b84858b1a723e20374892c0fc570385c8a23ff91b7398839af3218b67f21ff6`、decision
+  `111d7da8589204e300b9aa8067b1f69baf938ca6f2cd715961b0b506fb55f680`。P10.5c reviewed set
+  `47656c2510e98b7598937a2c3315cd8f6e05274162160cf11a07cc167ed0e4d9` 与 bundle
+  `fb8886cf1dcbff5d0ccb1fc36c6a087d93ad4e87678169dbad435e9e30e1adbe` 已通过 exact replay。
+  这些身份只证明静态 locator 链闭合。
 - 样本 B（`seethrough_output_5`）的左右 `pelvis_leg` 与 `leg_foot` 四条关系由源证据判为
   不可观测。自动流程会保留这些 `unobservable` 草稿并在确认后保存阻塞结论，不会把它们改成
   `accept`，也不会发布完整六关系 P10.5c。
@@ -237,5 +245,6 @@ P10.5c、图片 option 绑定、键盘操作、窄屏结构和 reduced-motion。
 
 P10.5c 无论由 package 页面还是 CLI 触发，都必须读取
 `history A → exact decision → history B`，且两次快照一致、指定 revision 仍是 current ready
-head，才允许编译不可变 `ReviewedSeamAnchorSet`。取得真实 P10.5c exact receipt 后，下一真实
-阶段是 P10.5d：把该 set 与精确 P10.4b2 动作域组合。P10.5b 自动草稿本身不拥有这两项权力。
+head，才允许编译不可变 `ReviewedSeamAnchorSet`。样本 A 已取得该 exact receipt，但当前还没有
+可供组合的 P10.4b2 动作域。真实顺序是 P10.0/P10.1 身体摆动候选与人工确认 → P10.2 → P10.3
+→ P10.4b2 → P10.5d；P10.5b 自动草稿或既有静态 set 都不能跳过这些门禁。
