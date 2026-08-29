@@ -11,7 +11,9 @@ import {
 import {
   SeamReviewSubmitControllerError, createSeamReviewSubmitController,
 } from "../modules/seam-anchor-review-submit-controller.js";
-import { verifiedCommittedRevision } from "../modules/seam-anchor-review-submit-flow.js";
+import {
+  verifiedCommittedRevision,
+} from "../modules/seam-anchor-review-submit-flow.js";
 
 const PACKAGE = "3".repeat(64);
 const CANDIDATE = "d".repeat(64);
@@ -111,6 +113,7 @@ function submitInput(packageId = PACKAGE) {
     packageId,
   };
 }
+
 
 test("P10.5c API posts one exact intent-bound request and returns a path-free receipt", async () => {
   const request = buildSeamPublicationRequest(PACKAGE, decisionReceipt());

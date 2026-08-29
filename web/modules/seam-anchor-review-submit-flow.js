@@ -6,6 +6,9 @@ import {
   markSeamSubmissionConflict,
 } from "./seam-anchor-review-state.js";
 import { createSeamReviewSubmitController } from "./seam-anchor-review-submit-controller.js";
+import {
+  assessDefinitiveNoCommit, isDefinitiveServerResponseFailure,
+} from "./seam-anchor-review-submit-reconciliation.js";
 import { renderSeamSubmitTransition } from "./seam-anchor-review-submit-view.js";
 import { setStatus, updateSeamReviewSummary } from "./seam-anchor-review-view.js";
 
@@ -76,6 +79,34 @@ export function createSeamReviewSubmitFlow({
     }
   }
 
+  async function recoverVerifiedNoCommit(error, token) {
+    if (!pendingBaseline || !isDefinitiveServerResponseFailure(error)) return false;
+    let historyPayload;
+    try {
+      historyPayload = await api.loadHistory(getAddress(), getState().candidateSha256);
+      if (!requests.isCurrent(token)) return false;
+      const assessment = assessDefinitiveNoCommit({
+        error, historyPayload, candidateSha256: getState().candidateSha256,
+        baseline: pendingBaseline,
+      });
+      if (assessment?.status !== "not_committed") return false;
+      controller.allowDecisionRetryAfterVerifiedNoCommit({
+        candidateSha256: getState().candidateSha256,
+        packageId: getPackageId(),
+      });
+      getHistoryController().applyHistory(historyPayload, { autoBaseline: true });
+      setStatus(
+        elements.submitStatus,
+        "服务端未保存本次复核；草稿已保留并重新绑定当前基线，请再次确认。",
+        "warning",
+      );
+      announce("本次 Seam anchor review 未保存，草稿已保留，可以再次确认");
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   async function submit() {
     let payload;
     let state = getState();
@@ -110,7 +141,11 @@ export function createSeamReviewSubmitFlow({
         if (verifiedCommittedRevision(snapshot) === null) {
           setStatus(elements.submitStatus, errorText(error), "error");
         }
+      } else if (await recoverVerifiedNoCommit(error, token)) {
+        // A completed server response plus an unchanged exact history proves
+        // that no authoritative revision was written.  The draft stays local.
       } else {
+        if (!requests.isCurrent(token)) return;
         const stale = markSeamSubmissionConflict(getState());
         setState(stale);
         elements.historyList.replaceChildren();

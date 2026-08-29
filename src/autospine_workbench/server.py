@@ -32,6 +32,7 @@ from .motion_policy_preflight_routes import (
     is_motion_policy_preflight_path,
     send_motion_policy_preflight_method_not_allowed,
 )
+from . import state_root_preflight
 from .motion_policy_review_package_routes import (
     ALLOW_METHODS as MOTION_POLICY_PACKAGE_ALLOW_METHODS,
     dispatch_motion_policy_review_package_get,
@@ -376,10 +377,15 @@ def create_server(
             raise ValueError("web_root must be an existing directory")
     store = ProjectStore(Path(workspace_root), state_root=state_root)
     try:
-        store.list_projects()
-    except ProjectStoreError as exc:
+        projects = store.list_projects()
+        state_root_preflight.preflight_state_root_mutations(
+            store.state_root, tuple(project["id"] for project in projects)
+        )
+    except (
+        ProjectStoreError, state_root_preflight.StateRootMutationUnavailable,
+    ) as exc:
         raise OSError(
-            "Project state preflight failed; verify workspace artifact permissions "
+            "Project state preflight failed; verify workspace mutation permissions "
             "and stored decision inputs."
         ) from exc
     replay_cache = SeamAnchorReviewReplayCache(store.state_root)

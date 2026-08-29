@@ -18,6 +18,9 @@ for candidate in (WORKBENCH_ROOT, SRC_ROOT):
 
 from autospine_workbench.server import create_server  # noqa: E402
 from autospine_workbench.project_store import ProjectStoreError  # noqa: E402
+from autospine_workbench.state_root_preflight import (  # noqa: E402
+    StateRootMutationUnavailable,
+)
 
 try:  # Supports both unittest discovery and package-qualified execution.
     from tests.test_project_store import StoreFixture  # type: ignore  # noqa: E402
@@ -162,6 +165,19 @@ class WorkbenchHttpContractTests(unittest.TestCase):
                     state_root=self.fixture.state,
                 )
         self.assertNotIn("internal path", str(caught.exception))
+
+    def test_server_fails_before_binding_when_state_root_is_not_mutable(self) -> None:
+        with patch(
+            "autospine_workbench.server.state_root_preflight."
+            "preflight_state_root_mutations",
+            side_effect=StateRootMutationUnavailable("internal state path"),
+        ):
+            with self.assertRaisesRegex(OSError, "Project state preflight failed") as caught:
+                create_server(
+                    "127.0.0.1", 0, self.fixture.workspace,
+                    state_root=self.fixture.state,
+                )
+        self.assertNotIn("internal state path", str(caught.exception))
 
     @unittest.skipUnless(sys.platform == "win32", "Windows exclusive-bind regression")
     def test_server_refuses_a_second_listener_on_the_same_port(self) -> None:

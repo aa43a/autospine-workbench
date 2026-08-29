@@ -7,8 +7,8 @@ import {
 } from "./seam-anchor-review-publication.js";
 
 export class SeamReviewSubmitControllerError extends Error {
-  constructor(message, code) {
-    super(message);
+  constructor(message, code, cause = null) {
+    super(message, cause === null ? undefined : { cause });
     this.name = "SeamReviewSubmitControllerError";
     this.code = code;
   }
@@ -42,8 +42,8 @@ function fixedFailure(stage, code) {
   return Object.freeze({ stage, code });
 }
 
-function controllerError(message, code) {
-  return new SeamReviewSubmitControllerError(message, code);
+function controllerError(message, code, cause = null) {
+  return new SeamReviewSubmitControllerError(message, code, cause);
 }
 
 function requirePublicationResult(value, request) {
@@ -183,7 +183,7 @@ export function createSeamReviewSubmitController({
     let rawDecision;
     try {
       rawDecision = await api.submit(address, candidate, payload);
-    } catch {
+    } catch (error) {
       transition({
         phase: "decision_uncertain", busy: false,
         failure: fixedFailure("decision", "decision_request_failed"),
@@ -191,6 +191,7 @@ export function createSeamReviewSubmitController({
       throw controllerError(
         "P10.5b 提交结果不确定；请刷新历史后再操作",
         "decision_request_failed",
+        error,
       );
     }
     let decision;
@@ -226,6 +227,30 @@ export function createSeamReviewSubmitController({
     return publishPending();
   }
 
+  function allowDecisionRetryAfterVerifiedNoCommit({
+    candidateSha256, packageId = null,
+  } = {}) {
+    requireIdle();
+    const candidate = requireSha256(candidateSha256, "candidate SHA-256");
+    const requestedPackage = optionalPackageId(packageId);
+    if (!decisionLocked || state.decisionCommitted
+        || state.phase !== "decision_uncertain" || publicationRequest !== null) {
+      throw controllerError(
+        "当前提交状态不能按未写入结果恢复", "decision_retry_not_allowed",
+      );
+    }
+    if (candidate !== state.candidateSha256 || requestedPackage !== state.packageId) {
+      throw controllerError(
+        "历史核对身份与待恢复提交不一致", "decision_retry_identity_mismatch",
+      );
+    }
+    decisionLocked = false;
+    return transition({
+      phase: "decision_retry_available", failure: null,
+      decision: null, decisionCommitted: false,
+    });
+  }
+
   function reset() {
     requireIdle();
     publicationRequest = null;
@@ -236,6 +261,7 @@ export function createSeamReviewSubmitController({
   }
 
   return Object.freeze({
+    allowDecisionRetryAfterVerifiedNoCommit,
     submit,
     retryPublication: publishPending,
     reset,
