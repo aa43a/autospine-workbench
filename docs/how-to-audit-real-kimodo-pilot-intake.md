@@ -96,4 +96,4 @@ P7 的文件合同见[编译 Kimodo SOMA77 NPZ](how-to-compile-kimodo-npz.md)，
 
 ## 当前工作区状态
 
-真实运行的 `wave-left-v1` 已用 recorded 六输入通过本页审计，并完成 P7/P8 发布和 exact reader 复验；唯一身份记录见 [Kimodo `wave-left-v1` Pilot Handoff](pilots/kimodo-wave-left-v1.md)。它尚未形成绑定到 A/B 的 P5 或 P9 reviewed-motion 地址，也不认证 checkpoint 或批准动作质量。对后续新 pilot 仍须逐一提供上述六份输入；测试夹具、builtin `idle`/`wave.left`、既有 intake 报告或全零模板都不能替代。
+真实运行的 `wave-left-v1` 已用 recorded 六输入通过本页审计，并完成 P7/P8 与绑定到 A/B 的 P5 发布和 exact reader 复验；唯一身份记录见 [Kimodo `wave-left-v1` Pilot Handoff](pilots/kimodo-wave-left-v1.md)。它尚未形成绑定到 A/B 的 P9 reviewed-motion 地址，也不认证 checkpoint 或批准动作质量。对后续新 pilot 仍须逐一提供上述六份输入；测试夹具、builtin `idle`/`wave.left`、既有 intake 报告或全零模板都不能替代。

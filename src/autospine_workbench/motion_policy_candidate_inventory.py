@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 import hashlib
 import json
@@ -54,6 +54,12 @@ class MotionPolicyCandidateInventory:
     @property
     def source(self) -> dict[str, Any]:
         return json.loads(self._source_json)
+
+    @property
+    def candidate_ids_sha256(self) -> str:
+        return motion_policy_candidate_ids_sha256(
+            row.candidate_id for row in self.candidates
+        )
 
 
 def derive_motion_policy_candidates(
@@ -135,12 +141,19 @@ def _cross_sources(foot, depth) -> None:
         raise MotionPolicyCandidateInventoryError(
             "Motion-policy candidate P8/P5/P3 source chains differ"
         )
-    foot_ticks = [row["tick"] for row in foot["samples"]]
-    depth_ticks = [row["tick"] for row in depth["pairs"][0]["samples"]]
-    if foot_ticks != depth_ticks:
-        raise MotionPolicyCandidateInventoryError(
-            "Motion-policy candidate frame schedules differ"
-        )
+    foot_schedule = [
+        (row["source_frame_index"], row["tick"])
+        for row in foot["samples"]
+    ]
+    for pair in depth["pairs"]:
+        depth_schedule = [
+            (row["source_frame_index"], row["tick"])
+            for row in pair["samples"]
+        ]
+        if foot_schedule != depth_schedule:
+            raise MotionPolicyCandidateInventoryError(
+                "Motion-policy candidate frame schedules differ"
+            )
 
 
 def _foot_candidates(document, report_sha: str) -> list[MotionPolicyCandidate]:
@@ -197,8 +210,22 @@ def _candidate_id(domain: str, payload: Mapping[str, Any]) -> str:
     return f"{prefix}-{digest.hexdigest()}"
 
 
-def _canonical(value: Mapping[str, Any]) -> str:
+def motion_policy_candidate_ids_sha256(
+    candidate_ids: Iterable[str],
+) -> str:
+    """Seal one candidate inventory independently of presentation order."""
+
+    payload = list(candidate_ids)
+    if any(not isinstance(value, str) for value in payload):
+        raise MotionPolicyCandidateInventoryError(
+            "Motion-policy candidate ID inventory is invalid"
+        )
+    payload.sort()
+    return hashlib.sha256(_canonical(payload).encode("utf-8")).hexdigest()
+
+
+def _canonical(value: Any) -> str:
     return json.dumps(
-        dict(value), ensure_ascii=False, allow_nan=False,
+        value, ensure_ascii=False, allow_nan=False,
         sort_keys=True, separators=(",", ":"),
     )

@@ -8,6 +8,7 @@ import re
 from typing import Any
 
 from .depth_order_schmitt import evaluate_depth_pair, quantize_depth_score
+from .exact_json_contract import exact_json_equal
 
 
 _SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
@@ -34,6 +35,7 @@ def validate_candidate_pairs(value, frames, sign, hysteresis):
     if not 1 <= len(pairs) <= 64:
         raise DepthOrderEvidenceError("Depth-order pair count is invalid")
     previous, samples_total, events_total = None, 0, 0
+    shared_schedule = None
     for raw in pairs:
         pair = _object(raw, "Depth-order pair")
         _exact(pair, _PAIR, "Depth-order pair")
@@ -53,6 +55,16 @@ def validate_candidate_pairs(value, frames, sign, hysteresis):
         score_rows, states = _samples(
             pair.get("samples"), slots, frames, sign
         )
+        schedule = tuple(
+            (row["source_frame_index"], row["tick"])
+            for row in pair["samples"]
+        )
+        if shared_schedule is None:
+            shared_schedule = schedule
+        elif schedule != shared_schedule:
+            raise DepthOrderEvidenceError(
+                "Depth-order pair frame schedules differ"
+            )
         expected_states, expected_events = evaluate_depth_pair(
             score_rows,
             slot_ids=slot_ids,
@@ -61,7 +73,8 @@ def validate_candidate_pairs(value, frames, sign, hysteresis):
             exit_threshold=hysteresis[1],
             minimum_hold_frames=hysteresis[2],
         )
-        if states != expected_states or pair.get("events") != expected_events:
+        if not exact_json_equal(states, expected_states) \
+                or not exact_json_equal(pair.get("events"), expected_events):
             raise DepthOrderEvidenceError(
                 "Depth-order Schmitt evidence is inconsistent"
             )
@@ -102,7 +115,8 @@ def _samples(value, slots, frames, sign):
         sample = _object(raw, "Depth-order sample")
         _exact(sample, _SAMPLE, "Depth-order sample")
         tick = sample.get("tick")
-        if sample.get("source_frame_index") != index \
+        if type(sample.get("source_frame_index")) is not int \
+                or sample["source_frame_index"] != index \
                 or type(tick) is not int or tick <= previous_tick \
                 or tick > frames[1]:
             raise DepthOrderEvidenceError(
@@ -113,7 +127,9 @@ def _samples(value, slots, frames, sign):
         delta = quantize_depth_score(
             scores[slots[0]["slot_id"]] - scores[slots[1]["slot_id"]]
         )
-        if sample.get("score_delta_first_minus_second") != delta:
+        if not exact_json_equal(
+            sample.get("score_delta_first_minus_second"), delta
+        ):
             raise DepthOrderEvidenceError(
                 "Depth-order pair score delta is inconsistent"
             )
@@ -153,7 +169,7 @@ def _scores(value, slots, sign):
             row.get("midpoint_depth_root_relative_normalized"), "midpoint"
         )
         expected_score = quantize_depth_score(midpoint * sign)
-        if row.get("front_score") != expected_score:
+        if not exact_json_equal(row.get("front_score"), expected_score):
             raise DepthOrderEvidenceError(
                 "Depth-order front score math is inconsistent"
             )

@@ -1,0 +1,31 @@
+@media (max-width: 760px) {
+  .topbar {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .save-cluster {
+    min-width: 0;
+    max-width: 100%;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+}
+
+@media (max-width: 520px) {
+  .topbar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .save-cluster {
+    display: grid;
+    grid-column: 1;
+    grid-row: 4;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .save-cluster > .button {
+    min-width: 0;
+    padding-inline: 8px;
+  }
+}

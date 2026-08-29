@@ -25,6 +25,12 @@ from .http_json_request import HttpJsonRequestError, read_json_object_request
 from .http_static_response import serve_static_response
 from .http_workbench_response import WorkbenchResponseMixin
 from .mesh_bundle_routes import dispatch_mesh_bundle_get
+from .motion_policy_preflight_routes import (
+    ALLOW_METHODS as MOTION_POLICY_PREFLIGHT_ALLOW_METHODS,
+    dispatch_motion_policy_preflight_post,
+    is_motion_policy_preflight_path,
+    send_motion_policy_preflight_method_not_allowed,
+)
 from .project_store import (
     AssetNotFoundError,
     ProjectNotFoundError,
@@ -79,6 +85,9 @@ def _handler_factory(
             super().log_message(format_string, *args)
 
         def _dispatch_api_get(self, parts: list[str]) -> bool:
+            if is_motion_policy_preflight_path(parts):
+                send_motion_policy_preflight_method_not_allowed(self)
+                return True
             if is_seam_anchor_review_path(parts):
                 if dispatch_seam_anchor_review_get(
                     parts, store, self._send_visual_json,
@@ -167,6 +176,7 @@ def _handler_factory(
                 return
             body_review = is_body_sway_visual_review_path(parts)
             seam_review = is_seam_anchor_review_path(parts)
+            policy_preflight = is_motion_policy_preflight_path(parts)
             seam_methods = seam_anchor_review_resource_methods(parts) \
                 if seam_review else None
             if seam_review and seam_methods is None:
@@ -178,13 +188,18 @@ def _handler_factory(
                 })
                 return
             self.send_response(HTTPStatus.NO_CONTENT)
-            local_review = body_review or seam_review
+            local_review = body_review or seam_review or policy_preflight
             self._common_headers(visual_review=local_review)
-            methods = visual_review_allow_methods(parts) if body_review else (
-                seam_methods if seam_review else (
-                "GET, HEAD, OPTIONS" if self._mesh_bundle_path(parts)
-                else "GET, HEAD, PUT, OPTIONS"
-            ))
+            if policy_preflight:
+                methods = MOTION_POLICY_PREFLIGHT_ALLOW_METHODS
+            elif body_review:
+                methods = visual_review_allow_methods(parts)
+            elif seam_review:
+                methods = seam_methods
+            elif self._mesh_bundle_path(parts):
+                methods = "GET, HEAD, OPTIONS"
+            else:
+                methods = "GET, HEAD, PUT, OPTIONS"
             self.send_header("Allow", methods)
             self.send_header("Access-Control-Allow-Methods", methods)
             self.send_header(
@@ -202,6 +217,9 @@ def _handler_factory(
                 return
             try:
                 parts = self._path_parts()
+                if is_motion_policy_preflight_path(parts):
+                    send_motion_policy_preflight_method_not_allowed(self)
+                    return
                 if dispatch_body_sway_visual_review_put(
                     parts, store, self, self._send_visual_json,
                 ):
@@ -256,6 +274,10 @@ def _handler_factory(
                     HTTPStatus.BAD_REQUEST, "invalid_path", str(exc)
                 )
                 return
+            if dispatch_motion_policy_preflight_post(
+                parts, self, self._send_visual_json,
+            ):
+                return
             if dispatch_seam_anchor_review_post(
                 parts, store, self, self._send_visual_json, replay_cache,
             ):
@@ -277,6 +299,9 @@ def _handler_factory(
             self._send_route_method_not_allowed(parts)
 
         def _send_route_method_not_allowed(self, parts: list[str]) -> None:
+            if is_motion_policy_preflight_path(parts):
+                send_motion_policy_preflight_method_not_allowed(self)
+                return
             if is_body_sway_visual_review_path(parts):
                 self._send_visual_method_not_allowed(parts)
                 return

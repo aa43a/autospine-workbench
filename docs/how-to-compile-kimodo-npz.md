@@ -206,6 +206,6 @@ P5 通过后再按 [Spine 4.2 导出指南](how-to-export-spine42.md) 编译 P6�
 
 `wave-left-v1` 已提供一份 recorded 真实运行 NPZ，并完成 P7/P8 exact replay；身份见 [pilot handoff](pilots/kimodo-wave-left-v1.md)。这关闭的是单一输入的结构编译和重放，不认证 checkpoint，也不批准目标角色动作质量。
 
-在把真实动作列为广泛已验收之前，还需要固定并批准上游 exporter/checkpoint 身份、干净 state 重编译、选定帧 3D/2D 人工对照、A/B 的 P5/P9、固定 Spine Player 截图，以及快慢动作、交叉肢体、转身和脚接触样本集。当前也尚未以 Windows/Linux 双平台 golden 证明临界 `atan2`/量化输入的逐字节一致性；若用于跨平台发布，应先补该门禁。
+在把真实动作列为广泛已验收之前，还需要固定并批准上游 exporter/checkpoint 身份、干净 state 重编译、选定帧 3D/2D 人工对照、A/B 的 P9、固定 Spine Player 截图，以及快慢动作、交叉肢体、转身和脚接触样本集。`wave-left-v1` 的 A/B P5 已完成并按 exact reader 复验，但不能替代这些质量门禁。当前也尚未以 Windows/Linux 双平台 golden 证明临界 `atan2`/量化输入的逐字节一致性；若用于跨平台发布，应先补该门禁。
 
 P7 v1 尚未执行 foot lock、heading 驱动转身、透视缩短 scale、动态 draw order、附件切换或关键帧压缩；contact 当前只是可保留的半开区间证据。`smooth_root_pos` 只做有界有限数检查，`global_root_heading` 只做单位方向检查，两者都不会改写 MotionIR root/rotation。

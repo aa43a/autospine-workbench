@@ -16,6 +16,7 @@ from .depth_pair_policy import (
     require_depth_pair_policy,
 )
 from .resolved_project import canonical_sha256
+from .exact_json_contract import exact_json_equal
 
 
 FORMAT = "autospine-depth-order-candidates"
@@ -81,7 +82,7 @@ def require_depth_order_candidates(
         frames = _timing(root.get("timing"))
         sign = _projection(root.get("projection"))
         _generator(root.get("generator"))
-        if root.get("semantics") != _SEMANTICS:
+        if not exact_json_equal(root.get("semantics"), _SEMANTICS):
             raise DepthOrderCandidateValidationError(
                 "Depth-order candidate semantics are unsupported"
             )
@@ -111,11 +112,9 @@ def require_depth_order_candidates(
             f"Depth-order candidate validation failed: {exc}"
         ) from exc
 
-
 def depth_order_candidates_sha256(document: Mapping[str, Any]) -> str:
     require_depth_order_candidates(document)
     return canonical_sha256(document)
-
 
 def _source(value):
     source = _object(value, "Depth-order candidate source")
@@ -136,14 +135,14 @@ def _source(value):
                 f"Depth-order {stage} source SHA inventory is invalid"
             )
 
-
 def _timing(value):
     row = _object(value, "Depth-order timing")
     _exact(row, {"ticks_per_second", "duration_ticks", "loop", "frame_count"},
            "Depth-order timing")
     count = row.get("frame_count")
     duration = row.get("duration_ticks")
-    if row.get("ticks_per_second") != 1_000_000 \
+    if type(row.get("ticks_per_second")) is not int \
+            or row["ticks_per_second"] != 1_000_000 \
             or type(count) is not int or not 2 <= count <= 4096 \
             or type(duration) is not int or not 1 <= duration <= 600_000_000 \
             or type(row.get("loop")) is not bool:
@@ -152,7 +151,6 @@ def _timing(value):
         )
     return count, duration
 
-
 def _projection(value):
     row = _object(value, "Depth-order projection")
     _exact(row, {"camera_depth_positive", "front_score_sign"},
@@ -160,12 +158,12 @@ def _projection(value):
     expected = {
         "toward_camera": 1, "away_from_camera": -1,
     }.get(row.get("camera_depth_positive"))
-    if expected is None or row.get("front_score_sign") != expected:
+    if expected is None or type(row.get("front_score_sign")) is not int \
+            or row["front_score_sign"] != expected:
         raise DepthOrderCandidateValidationError(
             "Depth-order front-score direction is invalid"
         )
     return expected
-
 
 def _generator(value):
     from .depth_order_candidates import GENERATOR_ID, GENERATOR_VERSION
@@ -173,11 +171,10 @@ def _generator(value):
         "id": GENERATOR_ID, "version": GENERATOR_VERSION,
         "numeric_precision_decimals": 9,
     }
-    if value != expected:
+    if not exact_json_equal(value, expected):
         raise DepthOrderCandidateValidationError(
             "Depth-order candidate generator is unsupported"
         )
-
 
 def _hysteresis(value):
     row = _object(value, "Depth-order hysteresis")
@@ -198,14 +195,13 @@ def _hysteresis(value):
         )
     return enter, exit_, hold
 
-
 def _summary(value, counts):
     expected = {
         "status": "candidate_only", "pair_count": counts[0],
         "sample_count": counts[1], "event_count": counts[2],
         "collapsed_sample_count": 0,
     }
-    if value != expected:
+    if not exact_json_equal(value, expected):
         raise DepthOrderCandidateValidationError(
             "Depth-order summary differs from its evidence"
         )
@@ -225,7 +221,9 @@ def _cross(root, policy, inputs):
             or root["project_id"] != policy["project_id"] \
             or root["clip_id"] != policy["clip_id"] \
             or root["timing"] != inputs.projected["timing"] \
-            or root["hysteresis"] != policy["hysteresis"]:
+            or not exact_json_equal(
+                root["hysteresis"], policy["hysteresis"]
+            ):
         raise DepthOrderCandidateValidationError(
             "Depth-order source or policy binding is stale"
         )
@@ -241,15 +239,29 @@ def _cross(root, policy, inputs):
     for pair in root["pairs"]:
         for slot in pair["slots"]:
             upstream = tracks[slot["depth_role"]]["samples"]
+            candidate_schedule = _schedule(pair["samples"])
+            upstream_schedule = _schedule(upstream)
+            if not exact_json_equal(candidate_schedule, upstream_schedule):
+                raise DepthOrderCandidateValidationError(
+                    "Depth-order frame schedule differs from P8"
+                )
             for sample, source_sample in zip(pair["samples"], upstream):
                 score = next(row for row in sample["scores"]
                              if row["slot_id"] == slot["slot_id"])
                 if source_sample["projection_state"] != "observable" \
-                        or score["midpoint_depth_root_relative_normalized"] != \
-                        source_sample["midpoint_depth_root_relative_normalized"]:
+                        or not exact_json_equal(
+                            score["midpoint_depth_root_relative_normalized"],
+                            source_sample[
+                                "midpoint_depth_root_relative_normalized"
+                            ],
+                        ):
                     raise DepthOrderCandidateValidationError(
                         "Depth-order midpoint evidence differs from P8"
                     )
+
+
+def _schedule(rows):
+    return [(row["source_frame_index"], row["tick"]) for row in rows]
 
 
 def _number(value, label, *, absolute=False):

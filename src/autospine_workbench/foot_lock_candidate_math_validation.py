@@ -76,7 +76,8 @@ def require_samples(value, contacts, reference, correction_limit, residual_limit
         row = _object(raw, "Foot-lock candidate sample")
         _exact(row, _SAMPLE, "Foot-lock candidate sample")
         tick = row.get("tick")
-        if row.get("source_frame_index") != index \
+        if type(row.get("source_frame_index")) is not int \
+                or row["source_frame_index"] != index \
                 or type(tick) is not int or tick <= previous_tick:
             raise FootLockCandidateMathError(
                 "Foot-lock sample schedule is invalid"
@@ -192,7 +193,8 @@ def require_summary(value, contact_count, stats) -> None:
         "maximum_correction_reference_ratio": max(ratios, default=0.0),
         "maximum_residual_px": max(residuals, default=0.0),
     }
-    if row != expected:
+    from .exact_json_contract import exact_json_equal
+    if not exact_json_equal(row, expected):
         raise FootLockCandidateMathError(
             "Foot-lock candidate summary differs from its samples"
         )

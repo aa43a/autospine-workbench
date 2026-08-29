@@ -309,6 +309,9 @@ class BodySwayVisualReviewHttpTests(unittest.TestCase):
         resources = {
             "/document-viewer.css": "text/css",
             "/modules/document-viewer.js": "text/javascript",
+            "/motion-policy-review.html": "text/html",
+            "/motion-policy-review.css": "text/css",
+            "/modules/motion-policy-review-app.js": "text/javascript",
             "/workflow-hub.css": "text/css",
             "/workflow-catalog.json": "application/json",
             "/modules/workflow-hub-app.js": "text/javascript",

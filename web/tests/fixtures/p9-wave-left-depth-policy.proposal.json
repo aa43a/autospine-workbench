@@ -1,0 +1,57 @@
+{
+  "format": "autospine-depth-pair-policy-proposal",
+  "format_version": 1,
+  "policy_id": "wave-left-v1.hand-left-vs-face",
+  "project_id": "seethrough_output",
+  "clip_id": "kimodo.wave-left.semantic.front",
+  "source": {
+    "p8": {
+      "projected_motion_sha256": "24608181e658a188aa6e05e5639b1c511dd9ce7fafcbc56d074815ec9c3a3195",
+      "bundle_sha256": "0e0275f8508e291c4f21b851b8a515ba635b24429c348ed7f15c40dea3150634",
+      "camera_sha256": "495231014572b7a357b0157bf6f3328fd845a70190bfd8f4d1eafe6b84522173",
+      "run_sha256": "5f7d05000bec92a1b9535d7392f5a48c1e0d83d27d23e5b2589225346d57fdf2",
+      "legacy_motion_sha256": "f67a9e9beae9d1292c0bd16bcb03024692ea43179be4ceeaf4ca413690636a93",
+      "p7_motion_sha256": "f67a9e9beae9d1292c0bd16bcb03024692ea43179be4ceeaf4ca413690636a93",
+      "p7_bundle_sha256": "7d564a7f26e4a21a8f7d1e85e0d3875a8996ce191e8f4eea56d65856a786451f",
+      "p7_run_sha256": "5fd8378eccf199b59e16502a71045ccfaf2e8045b35d08b580f829c430bc35a9"
+    },
+    "p5": {
+      "target_profile_sha256": "e20fd4c297c2e047a987456b3275fd3c5b9c5a6944d0c17059cb865e81b81301",
+      "instance_sha256": "1ce78189d2b71d01d2f6806da4ed6727c347f7e80f84605402b5f70cb7a0c89b",
+      "run_sha256": "0bddae07162ffbf2ccec6a05e799f7ba4c9560eb92f61130f69a37a67fbe179c",
+      "retarget_report_sha256": "21fe6c4b47cf97c4cc900269ca612b9c3522526af94de54d179d28b9f7e8a7ca",
+      "mesh_regression_sha256": "2f8d9d1a42a33184c58ea74d88e33c7c4ba88dc52da976c4cff2eba1eff998a8",
+      "bundle_sha256": "cd8717839fe66165f6b32cded0569c82497dc5e79d953c230fa5c905a02dc902"
+    },
+    "p3": {
+      "base_rig_sha256": "3e97682c8acec2ba9055806dc9eb650f7e0453fd6cfc1ca82157e9394f7237a7",
+      "base_bundle_sha256": "b533a5bb8f77339a35e825c584e9c0c487a8457cdb85d1e427719201feae0de2",
+      "layer_manifest_sha256": "ed1e2458cd22b75c51f13656feb86ecf55682508b62413c980c3035743e8faa7",
+      "resolved_project_sha256": "3d96f605d428f1dbe66198c8a864004631ad1627839bf9849493d44f60178f11",
+      "rig_sha256": "40f96ade2f38f93caa7610b40f02ed9b30b8782396cee0e80499724a0450e327",
+      "run_sha256": "2449386e1bbc9743e1625e65d04686ad4345809e2f3dc59e5af2193895aa5a5d",
+      "probes_sha256": "5c2d30d9c87d8fde07b54a772e8073028ae0827aa8e9f287a1d525d4f0c4e561",
+      "visuals_sha256": "09832f979e354a2f0b721e698504b08e83e06fdd93661cc0c2bcbb73850c7c13",
+      "bundle_sha256": "7754406b1f6834a6b5c8fedfcd4743bd294d8cc568d7ff6413673cada3d79a1d"
+    }
+  },
+  "review": {"status": "pending_human_review", "method": "human"},
+  "hysteresis": {"unit": "root_reference_normalized_depth", "enter_threshold": 0.05, "exit_threshold": 0.02, "minimum_hold_frames": 2},
+  "pairs": [{
+    "pair_id": "hand-left-vs-face",
+    "slots": [
+      {"slot_id": "layer-007-handwear-l", "depth_role": "humanoid.arm.lower.left"},
+      {"slot_id": "layer-011-face", "depth_role": "humanoid.head"}
+    ],
+    "setup_front_slot": "layer-011-face"
+  }],
+  "proposal": {
+    "method": "minimal_single_pair_operator_review",
+    "scope": "character-left waving hand versus face",
+    "rationale": "The pair is source-bound to the reviewed setup draw order and the observable projected forearm/head roles.",
+    "limitations": [
+      "This proposal is not an approved depth policy and must not be consumed as one.",
+      "The hysteresis values are review starting points, not automatically validated artistic thresholds."
+    ]
+  }
+}

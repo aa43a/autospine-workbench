@@ -53,7 +53,8 @@ test("catalog is valid and matches all 65 CLI entry points", () => {
 test("catalog exposes all pages, all stage groups, and explicit delivery states", () => {
   const pages = catalog.entries.filter(({ kind }) => kind === "page");
   assert.deepEqual(pages.map(({ href }) => href).sort(), [
-    "./body-sway-review.html", "./index.html", "./seam-anchor-review.html",
+    "./body-sway-review.html", "./index.html", "./motion-policy-review.html",
+    "./seam-anchor-review.html",
   ]);
   assert.deepEqual(catalog.stages.map(({ id }) => id), [
     "P0", "P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P9", "P10",
@@ -61,7 +62,7 @@ test("catalog exposes all pages, all stage groups, and explicit delivery states"
   assert.ok(catalog.entries.some(({ status }) => status === "available"));
   assert.ok(catalog.entries.some(({ status }) => status === "external_required"));
   assert.ok(catalog.entries.some(({ status }) => status === "planned"));
-  assert.equal(catalog.entries.length, 86);
+  assert.equal(catalog.entries.length, 87);
   assert.equal(catalog.entries.filter(({ kind }) => kind === "planned").length, 18);
   assert.equal(
     catalog.entries.find(({ command }) => command === "capture-body-sway-spine42-v3-runtime").status,
@@ -138,7 +139,7 @@ test("document viewer admits only repository docs Markdown paths", () => {
 test("static page and renderer preserve the accessibility and safe-DOM contract", async () => {
   const [
     html, css, view, app, viewerHtml, viewerCss, viewer,
-    mainHtml, bodySwayHtml, seamHtml,
+    mainHtml, bodySwayHtml, seamHtml, motionPolicyHtml,
   ] = await Promise.all([
     readFile(new URL("workflow-hub.html", webRoot), "utf8"),
     readFile(new URL("workflow-hub.css", webRoot), "utf8"),
@@ -150,6 +151,7 @@ test("static page and renderer preserve the accessibility and safe-DOM contract"
     readFile(new URL("index.html", webRoot), "utf8"),
     readFile(new URL("body-sway-review.html", webRoot), "utf8"),
     readFile(new URL("seam-anchor-review.html", webRoot), "utf8"),
+    readFile(new URL("motion-policy-review.html", webRoot), "utf8"),
   ]);
   assert.match(html, /<meta name="viewport" content="width=device-width, initial-scale=1">/);
   assert.match(html, /class="skip-link"/);
@@ -171,7 +173,10 @@ test("static page and renderer preserve the accessibility and safe-DOM contract"
   assert.match(viewerCss, /min-height:\s*44px/);
   assert.match(viewerCss, /@media \(max-width:\s*520px\)/);
   assert.match(viewerCss, /@media \(prefers-reduced-motion:\s*reduce\)/);
-  for (const taskPage of [mainHtml, bodySwayHtml, seamHtml]) {
+  for (const taskPage of [mainHtml, bodySwayHtml, seamHtml, motionPolicyHtml]) {
     assert.match(taskPage, /href="\.\/workflow-hub\.html"/);
+  }
+  for (const taskPage of [html, mainHtml, bodySwayHtml, seamHtml]) {
+    assert.match(taskPage, /href="\.\/motion-policy-review\.html"/);
   }
 });

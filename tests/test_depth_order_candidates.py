@@ -117,6 +117,105 @@ class DepthOrderCandidateTests(unittest.TestCase):
         ):
             require_depth_order_candidates(tampered)
 
+    def test_all_pairs_must_share_the_complete_frame_schedule(self):
+        _fixture, _inputs, _policy, result = self.compile(degrees=20.0)
+        document = result.document
+        second = deepcopy(document["pairs"][0])
+        second["pair_id"] = "z-second-pair"
+        second["samples"][1]["tick"] += 1
+        document["pairs"].append(second)
+        document["summary"]["pair_count"] = 2
+        document["summary"]["sample_count"] *= 2
+        with self.assertRaisesRegex(
+            DepthOrderCandidateValidationError, "frame schedules differ"
+        ):
+            require_depth_order_candidates(document)
+
+    def test_exact_binding_closes_schedule_to_p8(self):
+        _fixture, inputs, policy, result = self.compile(degrees=20.0)
+        document = result.document
+        for pair in document["pairs"]:
+            pair["samples"][1]["tick"] += 1
+        require_depth_order_candidates(document)
+        with self.assertRaisesRegex(
+            DepthOrderCandidateValidationError, "schedule differs from P8"
+        ):
+            require_depth_order_candidates(
+                document, policy=policy, inputs=inputs
+            )
+
+    def test_discrete_numeric_fields_reject_float_aliases(self):
+        _fixture, _inputs, _policy, result = self.compile()
+        mutations = (
+            lambda row: row["pairs"][0]["samples"][0].update(
+                source_frame_index=0.0
+            ),
+            lambda row: row["projection"].update(front_score_sign=-1.0),
+            lambda row: row["generator"].update(
+                numeric_precision_decimals=9.0
+            ),
+            lambda row: row["summary"].update(pair_count=1.0),
+        )
+        for mutate in mutations:
+            with self.subTest(mutate=mutate):
+                document = deepcopy(result.document)
+                mutate(document)
+                with self.assertRaises(DepthOrderCandidateValidationError):
+                    require_depth_order_candidates(document)
+
+    def test_exact_binding_preserves_numeric_type_and_negative_zero(self):
+        _fixture, inputs, policy, result = self.compile()
+        score = result.document["pairs"][0]["samples"][0]["scores"][0]
+        upstream = next(
+            row for row in inputs.projected["segment_tracks"]
+            if row["role"] == score["depth_role"]
+        )["samples"][0]
+        self.assertEqual(0.0, upstream[
+            "midpoint_depth_root_relative_normalized"
+        ])
+        for replacement in (0, -0.0):
+            with self.subTest(replacement=replacement):
+                candidate = deepcopy(result.document)
+                original = upstream[
+                    "midpoint_depth_root_relative_normalized"
+                ]
+                upstream[
+                    "midpoint_depth_root_relative_normalized"
+                ] = replacement
+                try:
+                    with self.assertRaisesRegex(
+                        DepthOrderCandidateValidationError,
+                        "midpoint evidence",
+                    ):
+                        require_depth_order_candidates(
+                            candidate, policy=policy, inputs=inputs
+                        )
+                finally:
+                    upstream[
+                        "midpoint_depth_root_relative_normalized"
+                    ] = original
+
+    def test_exact_policy_binding_rejects_equal_numeric_aliases(self):
+        fixture, inputs, base_policy, _result = self.compile()
+        for field, policy_value, candidate_value in (
+            ("exit_threshold", 0, -0.0),
+            ("enter_threshold", 1, 1.0),
+        ):
+            with self.subTest(field=field):
+                policy = deepcopy(base_policy)
+                policy["hysteresis"][field] = policy_value
+                result = compile_depth_order_candidates(
+                    fixture.projected, fixture.retarget, fixture.mesh, policy
+                )
+                candidate = result.document
+                candidate["hysteresis"][field] = candidate_value
+                with self.assertRaisesRegex(
+                    DepthOrderCandidateValidationError, "binding is stale"
+                ):
+                    require_depth_order_candidates(
+                        candidate, policy=policy, inputs=inputs
+                    )
+
     @unittest.skipIf(Draft202012Validator is None, "install test extra")
     def test_schema_is_valid_and_accepts_candidates(self):
         _fixture, _inputs, _policy, result = self.compile()

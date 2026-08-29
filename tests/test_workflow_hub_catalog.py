@@ -47,9 +47,9 @@ class WorkflowHubCatalogTests(unittest.TestCase):
     def test_entries_have_unique_ids_and_supported_taxonomy(self) -> None:
         ids = [entry["id"] for entry in self.entries]
         self.assertEqual(len(ids), len(set(ids)))
-        self.assertEqual(86, len(ids))
+        self.assertEqual(87, len(ids))
         self.assertEqual(
-            {"cli": 65, "page": 3, "planned": 18},
+            {"cli": 65, "page": 4, "planned": 18},
             {
                 kind: sum(entry["kind"] == kind for entry in self.entries)
                 for kind in ("cli", "page", "planned")
@@ -79,6 +79,7 @@ class WorkflowHubCatalogTests(unittest.TestCase):
         expected = {
             "./index.html",
             "./body-sway-review.html",
+            "./motion-policy-review.html",
             "./seam-anchor-review.html",
         }
         pages = {entry["href"] for entry in self.entries
@@ -86,6 +87,15 @@ class WorkflowHubCatalogTests(unittest.TestCase):
         self.assertEqual(expected, pages)
         for href in pages:
             self.assertTrue((ROOT / "web" / href.removeprefix("./")).is_file())
+
+    def test_motion_policy_page_describes_python_preflight_without_authority(self) -> None:
+        entry = next(
+            entry for entry in self.entries
+            if entry["id"] == "page-motion-policy-review"
+        )
+        self.assertIn("zero-write Python preflight", entry["summary"])
+        self.assertIn("不保存、发布或自动批准", entry["summary"])
+        self.assertNotIn("纯前端", entry["summary"])
 
     def test_planned_entries_link_only_to_the_authoritative_roadmap(self) -> None:
         planned = [entry for entry in self.entries

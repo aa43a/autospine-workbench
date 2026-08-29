@@ -187,6 +187,23 @@ class FootLockCandidateTests(unittest.TestCase):
         with self.assertRaisesRegex(FootLockCandidateError, "absent from P8"):
             self.compile(p5=off_frame)
 
+    def test_sample_frame_index_and_discrete_summary_are_exact(self):
+        document = self.compile().document
+        float_index = deepcopy(document)
+        float_index["samples"][0]["source_frame_index"] = 0.0
+        with self.assertRaisesRegex(
+            FootLockCandidateValidationError, "schedule"
+        ):
+            require_foot_lock_candidates(float_index)
+        float_count = deepcopy(document)
+        float_count["summary"]["sample_count"] = float(
+            float_count["summary"]["sample_count"]
+        )
+        with self.assertRaisesRegex(
+            FootLockCandidateValidationError, "summary"
+        ):
+            require_foot_lock_candidates(float_count)
+
     def test_three_rigs_are_target_specific(self):
         rigs = (
             self.rig,

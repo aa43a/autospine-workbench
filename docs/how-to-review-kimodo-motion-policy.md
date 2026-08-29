@@ -2,7 +2,7 @@
 
 本指南面向已经发布 P3 mesh、P5 retarget、P7 Kimodo NPZ 和 P8 projected-motion bundle 的开发者。目标是把脚接触与深度证据转为人工批准的 root correction 和 draw order，预览 MotionInstance v2/Spine 4.2 v2，再发布并只读复验一个不可变 P9 bundle。
 
-本流程不会自动批准 heading、scale 或附件切换。所有命令示例都使用 `--document-only`，便于把稳定的 canonical handoff 文档写入版本控制或评审系统。
+本流程不会自动批准 heading、scale 或附件切换。正式 handoff 文档使用 `--document-only`；Foot/Depth 候选同时保留默认 CLI envelope，因为其中的 `report_sha256` 是复核台绑定同一次结果所必需的身份。
 
 ## 1. 固定输入地址
 
@@ -51,9 +51,18 @@ function Write-Utf8NoBom {
   $Encoding = [System.Text.UTF8Encoding]::new($false)
   [System.IO.File]::WriteAllText($FullPath, $Text, $Encoding)
 }
+
+function Read-CanonicalCliReport {
+  param([Parameter(Mandatory = $true)][string]$EnvelopePath)
+  $Report = (& python -c `
+    "import json,sys; value=json.load(open(sys.argv[1],encoding='utf-8')); print(json.dumps(value['report'],ensure_ascii=False,allow_nan=False,sort_keys=True,separators=(',',':')))" `
+    $EnvelopePath) -join "`n"
+  if ($LASTEXITCODE -ne 0) { throw "CLI envelope extraction failed" }
+  return $Report
+}
 ```
 
-每次调用 CLI 后先检查 `$LASTEXITCODE`，再写文件。不要把错误 wrapper 当成下一阶段输入。
+每次调用 CLI 后先检查 `$LASTEXITCODE`，再写文件。不要把错误 wrapper 当成下一阶段输入。`Read-CanonicalCliReport` 只从已成功的默认 envelope 提取并 canonical 序列化 `report`；不要用 PowerShell 的 JSON round-trip 重写候选，因为它可能改变数值类型。
 
 ## 3. 生成并检查 source evidence
 
@@ -93,23 +102,27 @@ Heading 在当前 P9 仍是 evidence-only：它不会写入 root rotation、角�
 脚锁候选把 P8 contact schedule 与精确 P5 FK 端点组合起来。阈值是审查策略的一部分，不是自动批准：
 
 ```powershell
-$FootCandidates = (& python -m autospine_workbench probe-foot-lock $Project `
+$FootEnvelope = (& python -m autospine_workbench probe-foot-lock $Project `
   --projected-motion-sha256 $P8Motion `
   --projected-bundle-sha256 $P8Bundle `
   --motion-instance-sha256 $P5Instance `
   --motion-retarget-bundle-sha256 $P5Bundle `
   --max-correction-reference-ratio 0.25 `
   --max-residual-px 8 `
-  --state-root $StateRoot `
-  --document-only) -join "`n"
+  --state-root $StateRoot) -join "`n"
 if ($LASTEXITCODE -ne 0) { throw "foot-lock probe failed" }
+Write-Utf8NoBom .\review\foot-lock-candidates.envelope.json $FootEnvelope
+$FootEnvelopeObject = $FootEnvelope | ConvertFrom-Json
+$FootCandidatesSha = [string]$FootEnvelopeObject.report_sha256
+$FootCandidates = Read-CanonicalCliReport `
+  .\review\foot-lock-candidates.envelope.json
 Write-Utf8NoBom .\review\foot-lock-candidates.json $FootCandidates
 ```
 
 Depth-order 候选还需要一份人工批准的 slot pair policy。它只比较 policy 明确列出的 slot 对，不把骨骼深度冒充 raster 遮挡真值：
 
 ```powershell
-$DepthCandidates = (& python -m autospine_workbench probe-depth-order $Project `
+$DepthEnvelope = (& python -m autospine_workbench probe-depth-order $Project `
   --policy .\review\depth-pair-policy.json `
   --projected-motion-sha256 $P8Motion `
   --projected-bundle-sha256 $P8Bundle `
@@ -117,13 +130,39 @@ $DepthCandidates = (& python -m autospine_workbench probe-depth-order $Project `
   --motion-retarget-bundle-sha256 $P5Bundle `
   --p3-rig-sha256 $P3Rig `
   --p3-bundle-sha256 $P3Bundle `
-  --state-root $StateRoot `
-  --document-only) -join "`n"
+  --state-root $StateRoot) -join "`n"
 if ($LASTEXITCODE -ne 0) { throw "depth-order probe failed" }
+Write-Utf8NoBom .\review\depth-order-candidates.envelope.json $DepthEnvelope
+$DepthEnvelopeObject = $DepthEnvelope | ConvertFrom-Json
+$DepthCandidatesSha = [string]$DepthEnvelopeObject.report_sha256
+$DepthCandidates = Read-CanonicalCliReport `
+  .\review\depth-order-candidates.envelope.json
 Write-Utf8NoBom .\review\depth-order-candidates.json $DepthCandidates
 ```
 
-检查每个 foot sample 的 support/state/correction/residual，并查看每个 depth event 的证据窗口、滞回状态与 proposed front slot。`rejected_limit` 或 `rejected_conflict` 的 foot 候选不能直接 `accept`；需要 `adjust`、`reject` 或 `unobservable`。
+检查每个 foot sample 的 support/state/correction/residual，并查看每个 depth event 的证据窗口、滞回状态与 proposed front slot。`$FootCandidatesSha`、`$DepthCandidatesSha` 必须是各自 envelope 中的完整小写 SHA；复核台可直接加载两个 `.envelope.json` 并暂填它们，随后仍会由 Python 对内嵌 report 重算。默认 envelope 可能包含本机输入路径，只能作为本地临时文件，不要提交或对外传递；两个不带 `.envelope` 的 path-free canonical report 才用于后续 CLI 和 handoff。`rejected_limit` 或 `rejected_conflict` 的 foot 候选不能直接 `accept`；需要 `adjust`、`reject` 或 `unobservable`。
+
+### 使用两步人工复核台
+
+打开 [P9 Motion Policy 两步人工复核台](http://127.0.0.1:8765/motion-policy-review.html) 后按以下顺序操作：
+
+1. 加载 `autospine-depth-pair-policy-proposal` 草案。页面会完整显示 pair、slot/role、setup front、滞回参数、exact P8/P5/P3 地址和草案限制；只有勾选明确人工批准后，才会把草案投影为严格正式 policy。页面会丢弃草案专用 `proposal` 字段，固定 `review` 为 `approved/human`，并只序列化一次；这份同一文本先作为 `policy_json` 通过 Python `policy_identity` preflight，成功后才原样下载为 `depth-pair-policy.json`。页面不会预选或自动批准。
+2. 若加载的是既有正式 policy，页面会把它的 `File.text()` 原文作为 `policy_json` 发送到同一 loopback 服务，不先经过 JavaScript parse/stringify；因此 `1.0`、负零、非 ASCII 键和对象顺序不会在 Python 读取前被浏览器改写。若正式 policy 来自第 1 步，则 preflight 与下载使用第 1 步唯一一次序列化所得的同一文本。只有返回 `status=passed` 且 `identities.policy_sha256` 是完整小写 SHA-256 时，页面才显示这份 **Python canonical identity**。把该值显式复制到“已批准 policy SHA-256”输入框；页面不会从草案或 candidate 替你填写。
+3. 用下载的正式 policy 运行 `probe-depth-order`。重新进入或继续当前页面，加载正式 policy与上一步保存的 Foot/Depth `.envelope.json`；页面会暂填 envelope 的完整小写 `report_sha256`，点击校验后仍由 Python 重算。若改用 standalone report，则必须自行填写同一次默认 CLI envelope 中的 SHA；`--document-only` 输出本身不携带 SHA，不能凭文件名或相邻结果猜测。
+4. 点击加载候选时，页面把 `policy_json`、`foot_candidates_json`、`depth_candidates_json` 三份原文和三份声明 SHA 发送到 Python `candidate_inventory` preflight。服务端 inner strict decoder 会解开受支持的 CLI envelope，重新验证完整 standalone 合同并重算 report SHA；envelope 自带的 `report_sha256`、请求中的 declared SHA 与重算值必须三者一致。随后服务检查 project/clip、tick schedule、P8/P5/P3 source chain，以及 policy 与 Depth candidates 的内嵌 policy SHA、hysteresis、pair 顺序、slot/role 和 setup front。只有响应 identity 逐项等于当前输入快照、inventory 计数一致、Python 候选 ID 清单摘要与浏览器待展示清单摘要一致且 `status=passed` 时，页面才显示候选。浏览器生成的 candidate ID 只是供人工表单使用；Python 摘要负责阻止同计数但不同 ID 的清单误解锁，最终合同权威仍是 CLI exact 编译。
+5. `rejected_limit` / `rejected_conflict` foot 项不能 accept。Foot adjust 要人工填写最终 X/Y；空白或只有空格的数字会被拒绝，不会按零处理。Depth adjust 必须从当前 pair 的两个 slot 里选择最终 front。Root release 只能在报告列出的 unconstrained ticks 上显式启用；revision 和 loop reset 也不预填。
+6. 逐项选择 `accept`、`adjust`、`reject` 或 `unobservable` 并填写 reason code；界面不会给任何 action、adjust payload 或 reason 预设值。只有候选覆盖率达到 100%、全局字段有效且勾选最终人工确认后，页面才下载严格四字段的 `motion-policy-review-input.json`。随后仍必须运行 `compile-motion-policy-decision`；preflight 和浏览器表单都不是 Python CLI exact 编译/发布链的替代品。加载文件或 preflight 期间若任一文件、声明 SHA 或 generation 发生变化，旧异步结果会失效，必须基于当前快照重新校验。
+
+页面会自动使用以下 zero-write HTTP 合同；通常不需要手工调用：
+
+| `operation` | 请求中的 operation 专属字段 | `passed` 响应 |
+| --- | --- | --- |
+| `policy_identity` | `policy_json` 原文字符串 | `identities` 只含 Python `policy_sha256`，不含 inventory |
+| `candidate_inventory` | `policy_json`、`foot_candidates_json`、`depth_candidates_json` 原文字符串，以及 `declared` | `identities` 含 policy/foot/depth 三 SHA；`inventory` 恰含四项计数与 `candidate_ids_sha256`，后者是 Python 排序后的完整 candidate ID 字符串清单之 canonical JSON SHA-256 |
+
+两类请求的 `format` 都是 `autospine-motion-policy-preflight-request`，`format_version=1`。`declared` 必须恰含 `policy_sha256`、`foot_candidates_sha256`、`depth_candidates_sha256`。成功响应固定为 `autospine-motion-policy-preflight-result` v1，并携带 `status=passed`、`operation`、`project_id`、`clip_id` 与上述身份；它不是可持久化 P9 工件。
+
+`POST /api/motion-policy/preflight` 只接受 loopback authority、精确同源 `Origin`、`Content-Type: application/json` 和 `X-Autospine-Intent: motion-policy-preflight-v1`；若存在 `Sec-Fetch-Site`，只能是 `same-origin` 或 `none`。外层请求总上限为 48 MiB；内层 policy 原文限 1 MiB，foot/depth 原文各限 16 MiB。该入口零写入，不读取或返回本地路径，不创建 revision，不保存人工决定，也不发布或批准任何状态。浏览器只负责本地文件读取、人工表单、candidate ID 展示和 generation/snapshot guard；Python preflight 负责进入表单前的 canonical identity 与完整合同交叉验证，最终 CLI 仍会再次拒绝不匹配的 policy/candidate SHA。不要编辑 candidate JSON 或手工改写 SHA 来绕过绑定。
 
 ## 5. 记录人工决定
 
@@ -266,7 +305,7 @@ P9 通过新增 MotionInstance v2 与 Spine adapter v2 承载动态策略；Moti
 
 结构闭环已经覆盖 exact address、候选/决定分离、root correction、draw order、MotionInstance v2、Spine v2 preview 和六文件 bundle 重放。仍未关闭的门禁包括：
 
-- `wave-left-v1` 当前只有已复验的 P7/P8；它仍缺 A/B 各自的 P5、穷尽候选的人工决定和 P9 reviewed asset fixture；
+- `wave-left-v1` 已有已复验的 P7/P8、A/B P5、共享 policy evidence 与两份 foot candidates；它仍缺人工批准的 depth policy、depth candidates、穷尽候选的人工决定和 P9 reviewed asset fixture；
 - 动态 draw order/foot correction 在官方 Spine runtime 中的固定截图回归；
 - heading 或 scale timeline 的人工决定与 runtime 消费合同；
 - attachment switch、deform、runtime IK 和物理。

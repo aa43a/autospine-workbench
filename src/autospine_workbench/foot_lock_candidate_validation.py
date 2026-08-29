@@ -23,6 +23,7 @@ from .motion_instance_sampling import sample_instance_pose
 from .motion_retarget_bundle_integrity import VerifiedMotionRetargetBundle
 from .projected_motion_bundle_integrity import VerifiedProjectedMotionBundle
 from .resolved_project import canonical_sha256
+from .exact_json_contract import exact_json_equal
 
 
 FORMAT = "autospine-foot-lock-candidates"
@@ -172,7 +173,9 @@ def _policy(value) -> tuple[float, float]:
         policy.get("residual_limit"),
         "per_contact_residual_magnitude", "pixel", positive=False,
     )
-    if policy != foot_lock_policy(correction, residual):
+    if not exact_json_equal(
+        policy, foot_lock_policy(correction, residual)
+    ):
         raise FootLockCandidateValidationError(
             "Foot-lock candidate policy is unsupported"
         )

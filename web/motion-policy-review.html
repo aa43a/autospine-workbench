@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0b0e14">
+  <title>P9 Motion Policy 人工复核 — AutoSpine</title>
+  <link rel="stylesheet" href="./body-sway-review.css">
+  <link rel="stylesheet" href="./motion-policy-review.css">
+</head>
+<body>
+  <a class="skip-link" href="#candidateList">跳到候选列表</a>
+  <header class="review-topbar">
+    <div>
+      <p class="eyebrow">P9 · HUMAN POLICY GATE</p>
+      <h1>Motion Policy 两步人工复核</h1>
+    </div>
+    <nav class="review-nav" aria-label="工作台导航">
+      <a class="button secondary" href="./workflow-hub.html">功能入口中心</a>
+      <a class="button secondary" href="./index.html">绑定工作台</a>
+    </nav>
+  </header>
+
+  <main>
+    <ol class="wizard-steps" aria-label="复核步骤">
+      <li id="stepOneMarker" aria-current="step"><strong>1</strong><span>批准 Depth pair policy</span></li>
+      <li id="stepTwoMarker"><strong>2</strong><span>裁决 Foot / Depth candidates</span></li>
+    </ol>
+
+    <section class="panel wizard-panel" aria-labelledby="policyHeading">
+      <div class="section-heading">
+        <div><p class="eyebrow">STEP 1</p><h2 id="policyHeading">检查并批准深度配对策略</h2></div>
+        <span class="gate-badge">草案无应用权限</span>
+      </div>
+      <p class="lede">加载 proposal 后逐项核对 slot、角色、setup front、滞回阈值与完整 exact source。正式 identity 由本机 Python 只读预检计算；页面不会修改草案，也不会替你批准。</p>
+      <label class="file-field">
+        <span>Depth policy proposal 或已批准的正式 policy</span>
+        <input id="policyFile" type="file" accept="application/json,.json">
+      </label>
+      <label class="file-field">
+        <span>已批准 policy SHA-256（第 2 步必须显式绑定）</span>
+        <input id="policySha" class="mono" minlength="64" maxlength="64"
+          pattern="[0-9a-f]{64}" autocomplete="off" spellcheck="false" disabled
+          placeholder="从下方本机 Python 预检结果复制，不自动填写">
+      </label>
+      <p class="lede">SHA 字段不会从未批准草案或 candidate 自动填充；只有它与本机 Python 返回值及 Depth candidates 中的 <code>depth_pair_policy_sha256</code> 完全一致时，才可开始候选复核。</p>
+      <p class="status-line">本机 Python 只读预检 policy SHA：<code id="policyIdentitySha">等待本机 Python 预检</code></p>
+      <p id="policyStatus" class="status-line" role="status" aria-live="polite">尚未加载。</p>
+      <div id="policyDetails" class="policy-details" hidden></div>
+      <div id="policyApproval" class="approval-box" hidden>
+        <label class="confirm-row">
+          <input id="approvePolicyConfirm" type="checkbox">
+          <span>我已人工核对全部 pair、setup front、角色、滞回参数和 exact source，并明确批准此 policy。</span>
+        </label>
+        <button id="downloadPolicyBtn" class="button primary" type="button" disabled>下载正式 depth-pair-policy.json</button>
+      </div>
+    </section>
+
+    <section id="candidateStep" class="panel wizard-panel locked" aria-labelledby="candidateHeading">
+      <div class="section-heading">
+        <div><p class="eyebrow">STEP 2</p><h2 id="candidateHeading">加载并逐项裁决候选</h2></div>
+        <span id="coverageBadge" class="gate-badge">0 / 0</span>
+      </div>
+      <p id="candidateLockHint" class="lede">先完成第 1 步并下载正式 policy，或加载一份已经人工批准的正式 policy。</p>
+      <form id="candidateForm" class="candidate-load-grid" aria-describedby="candidateLoadHint">
+        <p id="candidateLoadHint" class="wide-note">Raw candidate 必须填写 CLI 报告 SHA；CLI envelope 的 <code>report_sha256</code> 只会暂填，点击校验后仍由本机 Python 对完整报告重算并核验。</p>
+        <label><span>Foot candidates JSON</span><input id="footFile" type="file" accept="application/json,.json" disabled required></label>
+        <label><span>Foot report SHA-256</span><input id="footSha" class="mono" minlength="64" maxlength="64" pattern="[0-9a-f]{64}" autocomplete="off" spellcheck="false" disabled></label>
+        <label><span>Depth candidates JSON</span><input id="depthFile" type="file" accept="application/json,.json" disabled required></label>
+        <label><span>Depth report SHA-256</span><input id="depthSha" class="mono" minlength="64" maxlength="64" pattern="[0-9a-f]{64}" autocomplete="off" spellcheck="false" disabled></label>
+        <button id="loadCandidatesBtn" class="button primary" type="submit" disabled>校验来源并生成 candidate ID</button>
+      </form>
+      <p id="candidateStatus" class="status-line" role="status" aria-live="polite">等待第 1 步。</p>
+
+      <div id="reviewWorkspace" hidden>
+        <div class="review-toolbar" aria-label="候选筛选">
+          <label><span>搜索 ID、tick、pair 或状态</span><input id="candidateSearch" type="search" autocomplete="off"></label>
+          <label><span>类型</span><select id="kindFilter"><option value="all">全部</option><option value="foot_lock">Foot lock</option><option value="depth_order">Depth order</option></select></label>
+          <label><span>进度</span><select id="progressFilter"><option value="all">全部</option><option value="pending">未完成</option><option value="reviewed">已完成</option><option value="blocked">算法拒绝 foot</option></select></label>
+        </div>
+        <p class="keyboard-hint"><kbd>↑</kbd><kbd>↓</kbd> 移动；<kbd>A</kbd> accept；<kbd>X</kbd> adjust；<kbd>R</kbd> reject；<kbd>U</kbd> unobservable。输入框聚焦时快捷键暂停。</p>
+        <div id="candidateList" class="candidate-list" aria-label="Motion policy candidates"></div>
+
+        <section class="final-fields" aria-labelledby="globalHeading">
+          <h3 id="globalHeading">全局人工字段</h3>
+          <div class="global-grid">
+            <label><span>Review revision</span><input id="reviewRevision" type="number" min="1" max="2147483647" step="1" placeholder="不预填"></label>
+            <fieldset id="loopResetFieldset"><legend>Loop draw-order reset（必须明确选择）</legend><label><input type="radio" name="loopReset" value="true">批准显式 reset</label><label><input type="radio" name="loopReset" value="false">不批准 reset</label></fieldset>
+          </div>
+          <div>
+            <h3>Root release keys</h3>
+            <p class="lede">只列出 Foot 报告中的 unconstrained ticks；默认不生成 release。</p>
+            <div id="releaseList" class="release-list"></div>
+          </div>
+        </section>
+
+        <section class="download-panel" aria-labelledby="downloadHeading">
+          <div><h3 id="downloadHeading">下载严格四字段 review input</h3><p id="reviewStatus" class="status-line" role="status" aria-live="polite">尚未完成。</p></div>
+          <label class="confirm-row"><input id="finalConfirm" type="checkbox" disabled><span>我确认所有候选决定与全局字段均由人工逐项完成，并理解 CLI 才是最终合同校验器。</span></label>
+          <button id="downloadReviewBtn" class="button primary" type="button" disabled>下载 motion-policy-review-input.json</button>
+        </section>
+      </div>
+    </section>
+  </main>
+  <div id="liveRegion" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+  <footer class="review-footer">本台调用本机 Python 只读预检，零写入；CLI 仍是最终带 exact bundle 的合同校验器。</footer>
+  <script type="module" src="./modules/motion-policy-review-app.js"></script>
+</body>
+</html>
