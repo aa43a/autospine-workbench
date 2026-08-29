@@ -65,7 +65,7 @@ validator 和生产 `policy_identity` preflight 通过，与各自草案相比�
 120 个 sample、0 个切换 event。Python `candidate_inventory` 对两组 policy/foot/depth 原文、三份
 声明 SHA、完整 schedule、source/policy 交叉绑定和 candidate ID 清单复算均为 `passed`。每个项目
 当前需要决定 119 个 Foot 候选，另有 1 个 unconstrained sample；没有 Depth event 需要决定。
-这些结果只开放逐项人审，尚未产生 decision、reviewed policy 或 P9 bundle。
+复核台会把 120 个时间样本显示为曲线、重点窗口和角色足点叠加，并把 119 个候选组织为连续证据段；操作者可以批量填写冻结到精确 ID 的草稿，再处理逐项例外。这些结果尚未产生 decision、reviewed policy 或 P9 bundle。
 
 ## 权限与质量边界
 
@@ -87,7 +87,7 @@ readiness 请求。任何输入、map、camera、compiler 或算法 profile 变�
 
 1. 在 P9 复核页分别加载已批准的正式 policy、Foot report 与 Depth envelope，并使用表中的
    policy/foot/depth SHA 运行 `candidate_inventory`；不得混用 A/B 文件。
-2. 穷尽每个项目的 119 个 Foot 决定并下载严格 review input；本轮 Depth event 数为 0。
+2. 先复核曲线、重点窗口和足点叠加，再用连续证据段批量草稿与逐项例外覆盖每个项目的 119 个精确 Foot 决定，并下载严格 review input；本轮 Depth event 数为 0。
 3. 用 CLI 编译 decision 与 reviewed policy。
 4. 发布并复验各项目的 P9 reviewed-motion bundle；只有取得 P9 exact 地址后，才能继续
    回填 readiness 和后续 P10 链。

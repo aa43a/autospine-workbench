@@ -1,6 +1,6 @@
 # AutoSpine Workbench 功能与入口参考
 
-本文是面向操作者和开发者的 Reference。它回答“功能是否已经实现、从哪里进入、会得到什么”，不替代具体操作步骤。P0 Resolved Project v1、P10.6b MotionInstance v3、P10.7a Spine 4.2 v3 adapter bundle、P10.7b sampled raster 基础设施与独立 P10.7c setup regression 已完成；当前开发入口是 **P9-real-kimodo-candidate-review**。`wave-left-v1` 已完成 intake、P7/P8、真实 A/B 各自的 P5 exact replay、正式 depth policy 与候选交叉预检；当前仍须关闭每项目 119 个 Foot 决定、seam 与官方 capture blocker。计划项见[开发路线](development-roadmap.md)。
+本文是面向操作者和开发者的 Reference。它回答“功能是否已经实现、从哪里进入、会得到什么”，不替代具体操作步骤。P0 Resolved Project v1、P10.6b MotionInstance v3、P10.7a Spine 4.2 v3 adapter bundle、P10.7b sampled raster 基础设施与独立 P10.7c setup regression 已完成；当前开发入口是 **P9-real-kimodo-candidate-review**。`wave-left-v1` 已完成 intake、P7/P8、真实 A/B 各自的 P5 exact replay、正式 depth policy 与候选交叉预检；P9 时间轴、足点叠加、证据分段和可撤销批量草稿也已可用。当前仍须关闭每项目 119 个精确 Foot 决定、seam 与官方 capture blocker。计划项见[开发路线](development-roadmap.md)。
 
 ## 统一入口
 
@@ -47,7 +47,7 @@
 
 ### Motion Policy 复核台
 
-第一步读取 pending depth-pair proposal，完整展示来源、图层对、setup 前后关系与 hysteresis；只有操作者显式确认后，页面才投影正式 policy 并只序列化一次，经 loopback-only、zero-write Python `policy_identity` preflight 取得 canonical SHA，成功后再原样下载。既有正式 policy 则直接把 `File.text()` 原文送入同一 preflight。第二步把 policy/foot/depth 原文与声明 SHA 交给 Python `candidate_inventory`；Python 可解包正常 CLI envelope，但 identity 始终针对完整 standalone report 重算，并复验 source、schedule 和 policy/depth 交叉绑定。页面还必须把 Python 返回的 `candidate_ids_sha256` 与待展示 ID 清单摘要比对，计数和摘要都一致后才逐项开放 `accept`、`adjust`、`reject` 或 `unobservable`。页面不预选决定，只有 100% 覆盖、全局字段合法和最终人工确认后才下载严格四字段 review input；它不保存 revision、不发布 P9，也不会把 proposal、candidate 或 preflight 通过自动升级为人工决定。
+第一步读取 pending depth-pair proposal，完整展示来源、图层对、setup 前后关系与 hysteresis；只有操作者显式确认后，页面才投影正式 policy 并只序列化一次，经 loopback-only、zero-write Python `policy_identity` preflight 取得 canonical SHA，成功后再原样下载。既有正式 policy 则直接把 `File.text()` 原文送入同一 preflight。第二步把 policy/foot/depth 原文与声明 SHA 交给 Python `candidate_inventory`；Python 可解包正常 CLI envelope，但 identity 始终针对完整 standalone report 重算，并复验 source、schedule 和 policy/depth 交叉绑定。页面还必须把 Python 返回的 `candidate_ids_sha256` 与待展示 ID 清单摘要比对。计数和摘要一致后，纯前端证据模型按时间排序 Foot samples，保留 observations，推导曲线、动态重点窗口和连续复核段，并验证每个 exact candidate 在全部段中恰好出现一次。操作者可按证据段批量填写 `accept`、`reject` 或 `unobservable` 草稿；预览绑定当前快照、决定版本和冻结 ID，覆盖旧草稿需要额外确认，`adjust` 仍逐项完成。页面不预选决定，只有 100% 覆盖、全局字段合法和最终人工确认后才下载逐 candidate 展开的严格四字段 review input；它不保存 revision、不发布 P9，也不会把 proposal、candidate、重点窗口或 preflight 通过自动升级为人工决定。
 
 ## CLI 功能
 

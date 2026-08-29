@@ -8,9 +8,10 @@
   <title>P9 Motion Policy 人工复核 — AutoSpine</title>
   <link rel="stylesheet" href="./body-sway-review.css">
   <link rel="stylesheet" href="./motion-policy-review.css">
+  <link rel="stylesheet" href="./motion-policy-visual-review.css">
 </head>
 <body>
-  <a class="skip-link" href="#candidateList">跳到候选列表</a>
+  <a class="skip-link" href="#evidenceReview">跳到视觉复核</a>
   <header class="review-topbar">
     <div>
       <p class="eyebrow">P9 · HUMAN POLICY GATE</p>
@@ -25,7 +26,7 @@
   <main>
     <ol class="wizard-steps" aria-label="复核步骤">
       <li id="stepOneMarker" aria-current="step"><strong>1</strong><span>批准 Depth pair policy</span></li>
-      <li id="stepTwoMarker"><strong>2</strong><span>裁决 Foot / Depth candidates</span></li>
+      <li id="stepTwoMarker"><strong>2</strong><span>视觉复核与分段裁决</span></li>
     </ol>
 
     <section class="panel wizard-panel" aria-labelledby="policyHeading">
@@ -59,7 +60,7 @@
 
     <section id="candidateStep" class="panel wizard-panel locked" aria-labelledby="candidateHeading">
       <div class="section-heading">
-        <div><p class="eyebrow">STEP 2</p><h2 id="candidateHeading">加载并逐项裁决候选</h2></div>
+        <div><p class="eyebrow">STEP 2</p><h2 id="candidateHeading">加载候选并进行视觉化裁决</h2></div>
         <span id="coverageBadge" class="gate-badge">0 / 0</span>
       </div>
       <p id="candidateLockHint" class="lede">先完成第 1 步并下载正式 policy，或加载一份已经人工批准的正式 policy。</p>
@@ -74,16 +75,77 @@
       <p id="candidateStatus" class="status-line" role="status" aria-live="polite">等待第 1 步。</p>
 
       <div id="reviewWorkspace" hidden>
-        <div class="review-toolbar" aria-label="候选筛选">
-          <label><span>搜索 ID、tick、pair 或状态</span><input id="candidateSearch" type="search" autocomplete="off"></label>
-          <label><span>类型</span><select id="kindFilter"><option value="all">全部</option><option value="foot_lock">Foot lock</option><option value="depth_order">Depth order</option></select></label>
-          <label><span>进度</span><select id="progressFilter"><option value="all">全部</option><option value="pending">未完成</option><option value="reviewed">已完成</option><option value="blocked">算法拒绝 foot</option></select></label>
-        </div>
-        <p class="keyboard-hint"><kbd>↑</kbd><kbd>↓</kbd> 移动；<kbd>A</kbd> accept；<kbd>X</kbd> adjust；<kbd>R</kbd> reject；<kbd>U</kbd> unobservable。输入框聚焦时快捷键暂停。</p>
-        <div id="candidateList" class="candidate-list" aria-label="Motion policy candidates"></div>
+        <section id="evidenceReview" class="evidence-dashboard" aria-labelledby="evidenceHeading">
+          <div class="section-heading">
+            <div><p class="eyebrow">VISUAL EVIDENCE</p><h3 id="evidenceHeading">先看全片趋势，再决定批次</h3></div>
+            <span class="gate-badge">预检通过 ≠ 人工批准</span>
+          </div>
+          <p class="lede">曲线、重点窗口和角色足点覆盖只用于人工判断与排序。页面不会根据阈值自动选择 action。</p>
+          <div id="evidenceSummary" class="evidence-summary" aria-label="候选范围摘要"></div>
+          <div class="evidence-layout">
+            <section class="metric-panel" aria-labelledby="timelineHeading">
+              <div class="subheading-row"><h4 id="timelineHeading">Correction / residual 时间轴</h4><span id="frameLabel" class="frame-chip">frame —</span></div>
+              <svg id="metricChart" class="metric-chart" viewBox="0 0 1000 264" role="img" aria-label="Foot correction X、Y、residual 与 ratio 时间轴"></svg>
+              <label class="scrubber-field"><span>检查帧</span><input id="frameScrubber" type="range" min="0" max="0" value="0" step="1"></label>
+              <div id="attentionList" class="attention-list" aria-label="优先复核窗口"></div>
+              <table class="metric-table">
+                <caption>曲线数值范围与策略上限</caption>
+                <thead><tr><th scope="col">指标</th><th scope="col">最小</th><th scope="col">最大</th><th scope="col">上限利用</th></tr></thead>
+                <tbody id="metricTableBody"></tbody>
+              </table>
+            </section>
+            <section class="footprint-panel" aria-labelledby="footprintHeading">
+              <div class="subheading-row"><h4 id="footprintHeading">角色上的双脚约束</h4><span id="frameState" class="frame-chip">等待帧</span></div>
+              <div class="character-stage">
+                <img id="characterComposite" alt="当前项目的角色 setup 合成图">
+                <svg id="footOverlay" aria-hidden="true"></svg>
+                <p id="overlayEmpty" class="overlay-empty">等待角色图与候选帧。</p>
+              </div>
+              <dl id="frameFacts" class="frame-facts"></dl>
+              <div class="table-scroll">
+                <table class="observation-table">
+                  <caption>当前帧足点、候选校正与残差</caption>
+                  <thead><tr><th scope="col">肢体</th><th scope="col">当前足点</th><th scope="col">校正后</th><th scope="col">目标锚点</th><th scope="col">残差</th></tr></thead>
+                  <tbody id="observationBody"></tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="batch-review" aria-labelledby="batchHeading">
+          <div class="section-heading">
+            <div><p class="eyebrow">BATCH DRAFT</p><h3 id="batchHeading">按连续证据段批量填写草稿</h3></div>
+            <span id="segmentBadge" class="gate-badge">0 段</span>
+          </div>
+          <p class="lede">先查看重点窗口和曲线，再显式选段、action 与 reason。批量填写会展开为精确 candidate ID 决定，可撤销；Adjust 仍需逐项处理。</p>
+          <label class="select-all-row"><input id="selectAllSegments" type="checkbox"><span>选择当前全部证据段（不选择 action）</span></label>
+          <div id="segmentList" class="segment-list" aria-label="连续证据段"></div>
+          <form id="batchForm" class="batch-form">
+            <label><span>批量 action（无默认值）</span><select id="batchAction" required><option value="">请选择</option><option value="accept">Accept</option><option value="reject">Reject</option><option value="unobservable">Unobservable</option></select></label>
+            <label><span>Reason code（必填）</span><input id="batchReason" maxlength="128" pattern="[A-Za-z0-9][A-Za-z0-9._-]{0,127}" autocomplete="off" placeholder="例如 visual-segment-reviewed" required></label>
+            <p id="batchPreview" class="batch-preview">尚未形成批量预览。</p>
+            <label class="confirm-row"><input id="batchConfirm" type="checkbox" disabled><span>我已查看所选证据段、重点窗口及精确覆盖数量，确认将相同 action 写入这些候选草稿。</span></label>
+            <label id="batchOverwriteRow" class="confirm-row" hidden><input id="batchOverwriteConfirm" type="checkbox"><span>我确认覆盖已有逐项或批量草稿。</span></label>
+            <div class="batch-actions"><button id="batchApply" class="button primary" type="submit" disabled>写入所选候选草稿</button><button id="batchUndo" class="button secondary" type="button" disabled>撤销最近一次批量填写</button></div>
+          </form>
+          <p id="batchStatus" class="status-line" role="status" aria-live="polite">未选择证据段。</p>
+        </section>
+
+        <details id="candidateDetails" class="candidate-details">
+          <summary>逐项例外与完整数字 <span id="exceptionBadge">119 项待处理</span></summary>
+          <div class="review-toolbar" aria-label="候选筛选">
+            <label><span>搜索 ID、tick、frame、pair 或状态</span><input id="candidateSearch" type="search" autocomplete="off"></label>
+            <label><span>类型</span><select id="kindFilter"><option value="all">全部</option><option value="foot_lock">Foot lock</option><option value="depth_order">Depth order</option></select></label>
+            <label><span>进度</span><select id="progressFilter"><option value="pending">未完成</option><option value="all">全部</option><option value="reviewed">已完成</option><option value="blocked">算法拒绝 foot</option></select></label>
+          </div>
+          <p class="keyboard-hint"><kbd>↑</kbd><kbd>↓</kbd> 移动；<kbd>A</kbd> accept；<kbd>X</kbd> adjust；<kbd>R</kbd> reject；<kbd>U</kbd> unobservable。输入框聚焦时快捷键暂停。</p>
+          <div id="candidateList" class="candidate-list" aria-label="Motion policy candidates"></div>
+        </details>
 
         <section class="final-fields" aria-labelledby="globalHeading">
           <h3 id="globalHeading">全局人工字段</h3>
+          <div id="decisionSummary" class="decision-summary" aria-label="人工决定汇总"></div>
           <div class="global-grid">
             <label><span>Review revision</span><input id="reviewRevision" type="number" min="1" max="2147483647" step="1" placeholder="不预填"></label>
             <fieldset id="loopResetFieldset"><legend>Loop draw-order reset（必须明确选择）</legend><label><input type="radio" name="loopReset" value="true">批准显式 reset</label><label><input type="radio" name="loopReset" value="false">不批准 reset</label></fieldset>
@@ -97,8 +159,8 @@
 
         <section class="download-panel" aria-labelledby="downloadHeading">
           <div><h3 id="downloadHeading">下载严格四字段 review input</h3><p id="reviewStatus" class="status-line" role="status" aria-live="polite">尚未完成。</p></div>
-          <label class="confirm-row"><input id="finalConfirm" type="checkbox" disabled><span>我确认所有候选决定与全局字段均由人工逐项完成，并理解 CLI 才是最终合同校验器。</span></label>
-          <button id="downloadReviewBtn" class="button primary" type="button" disabled>下载 motion-policy-review-input.json</button>
+          <label class="confirm-row"><input id="finalConfirm" type="checkbox" disabled><span>我已检查每个批量证据段及全部逐项例外，确认 100% 候选决定与全局字段；此操作只下载 review input，CLI 才执行最终合同校验与发布。</span></label>
+          <button id="downloadReviewBtn" class="button primary" type="button" disabled>下载 review input（不发布）</button>
         </section>
       </div>
     </section>

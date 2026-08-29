@@ -2,7 +2,7 @@
 
 AutoSpine Workbench 是一个本地人工复核与离线编译工作流，用于查看 See-through PSD 审计结果、校正图层语义和 setup 可见性、调整启发式关节，并保存带 revision 的 override。它不会修改 PSD、审计 JSON 或 PNG；主 authoring 页面写入 `workspace/overrides`，P10 人工复核使用各自独立的 revision namespace，离线 publish/compile 命令按阶段写入内容寻址的 analysis、motion、build 或 runtime 工件。
 
-当前开发入口是 **P9-real-kimodo-candidate-review**：`wave-left-v1` 已完成六输入准入、P7/P8、A/B 两个目标 P5 的发布与精确复验，并已生成共享 policy evidence、两份 foot-lock candidates；两份 depth-pair proposal 也已人工批准为正式 policy，并生成、交叉预检各自的 depth-order candidates。两份报告都包含 120 个 depth sample、0 个切换事件；下一步是在 P9 两步复核台分别穷尽 119 个 Foot 候选决定，再由 CLI 发布 P9。该 pilot 不证明 checkpoint authenticity、广泛动作质量、seam、官方 Runtime 或发布权，不能直接宣称生成了可发布的 Spine 资产。
+当前开发入口是 **P9-real-kimodo-candidate-review**：`wave-left-v1` 已完成六输入准入、P7/P8、A/B 两个目标 P5 的发布与精确复验，并已生成共享 policy evidence、两份 foot-lock candidates；两份 depth-pair proposal 也已人工批准为正式 policy，并生成、交叉预检各自的 depth-order candidates。两份报告都包含 120 个 depth sample、0 个切换事件。P9 复核台现已提供趋势曲线、角色足点叠加、动态重点窗口、连续证据段和可撤销批量草稿；下一步是由操作者为 A/B 各自覆盖 119 个精确 Foot 决定，再由 CLI 发布 P9。该 pilot 不证明 checkpoint authenticity、广泛动作质量、seam、官方 Runtime 或发布权，不能直接宣称生成了可发布的 Spine 资产。
 
 当前功能及入口以[功能与入口参考](docs/capability-reference.md)为准；尚未实现的能力、依赖和验收顺序见[后续开发路线](docs/development-roadmap.md)。
 
@@ -113,7 +113,7 @@ python -m autospine_workbench serve `
 
 ## 界面操作
 
-本节说明默认的图层/关节 authoring 页面。所有入口可从[功能入口中心](http://127.0.0.1:8765/workflow-hub.html)打开。P9 使用 [Motion Policy 两步人工复核台](http://127.0.0.1:8765/motion-policy-review.html)：浏览器读取本地文件和承载人工表单，但 policy canonical identity 与完整 candidate inventory 必须经同一 loopback 服务的 zero-write Python preflight 复算。页面只下载正式 policy 与 review input，不保存 revision、不发布 P9，也不自动批准。P10.3c 使用独立的 [Body-sway 视觉复核台](http://127.0.0.1:8765/body-sway-review.html)，P10.5b 使用独立的 [Seam Anchor 复核台](http://127.0.0.1:8765/seam-anchor-review.html)；后两者要求手工输入精确地址，不会继承当前项目或自动选择最新证据。具体流程见[复核并发布 Kimodo 动作策略](docs/how-to-review-kimodo-motion-policy.md)、[复核 body-sway 官方 runtime 采样帧](docs/how-to-review-body-sway-runtime.md)和[复核静态接缝锚点](docs/how-to-review-seam-anchors.md)。
+本节说明默认的图层/关节 authoring 页面。所有入口可从[功能入口中心](http://127.0.0.1:8765/workflow-hub.html)打开。P9 使用 [Motion Policy 两步人工复核台](http://127.0.0.1:8765/motion-policy-review.html)：浏览器读取本地文件和承载人工表单，但 policy canonical identity 与完整 candidate inventory 必须经同一 loopback 服务的 zero-write Python preflight 复算。候选通过后先显示 Correction/residual 时间轴、重点窗口和 setup 角色足点叠加，再把完整清单组织为连续证据段；批量操作只填写冻结到精确 ID 的可撤销草稿，`adjust` 和其他例外仍逐项处理。页面只下载正式 policy 与 review input，不保存 revision、不发布 P9，也不自动批准。P10.3c 使用独立的 [Body-sway 视觉复核台](http://127.0.0.1:8765/body-sway-review.html)，P10.5b 使用独立的 [Seam Anchor 复核台](http://127.0.0.1:8765/seam-anchor-review.html)；后两者要求手工输入精确地址，不会继承当前项目或自动选择最新证据。具体流程见[复核并发布 Kimodo 动作策略](docs/how-to-review-kimodo-motion-policy.md)、[复核 body-sway 官方 runtime 采样帧](docs/how-to-review-body-sway-runtime.md)和[复核静态接缝锚点](docs/how-to-review-seam-anchors.md)。
 
 1. 在顶部选择项目。切换项目前若存在未保存修改，界面会要求确认。
 2. 在“图层”模式搜索、选择、显示或隐藏图层；右侧可检查语义、角色左右、bbox、置信度和 QA。要让图层进入 P2 严格编译，还需设置画布内 pivot、选择目标骨，并点击“确认语义、Pivot 与目标骨”。
@@ -403,7 +403,7 @@ python -m autospine_workbench verify-projected-motion `
   --state-root .\workspace
 ```
 
-P9 从精确 P3/P5/P8 身份发布候选，把人工决定编译为 reviewed root/draw-order policy，再生成 MotionInstance v2、Spine preview 和可独立复验的 bundle。复核页通过 `POST /api/motion-policy/preflight` 把既有文件的 `File.text()` 原文，或从 proposal 投影后只序列化一次、随后原样下载的正式 policy 文本，交给 zero-write Python validator：`policy_identity` 给出 Python canonical policy SHA，`candidate_inventory` 解开受支持的 CLI envelope 后重算并绑定完整 policy/foot/depth standalone 合同与三份声明 SHA，并返回完整候选 ID 清单摘要供页面逐项比对。这样既有文件不会先被浏览器 parse/stringify 并把 `1.0`、负零或对象顺序归一化，同计数但不同 ID 的清单也不能解锁。Preflight 通过不是人工决定或发布凭据；最终 decision、policy 与 bundle 仍由 CLI 按 exact 输入编译和复验。全部交接使用精确 SHA，不解析 `latest`；完整操作见 [复核并发布 Kimodo 动作策略](docs/how-to-review-kimodo-motion-policy.md)。
+P9 从精确 P3/P5/P8 身份发布候选，把人工决定编译为 reviewed root/draw-order policy，再生成 MotionInstance v2、Spine preview 和可独立复验的 bundle。复核页通过 `POST /api/motion-policy/preflight` 把既有文件的 `File.text()` 原文，或从 proposal 投影后只序列化一次、随后原样下载的正式 policy 文本，交给 zero-write Python validator：`policy_identity` 给出 Python canonical policy SHA，`candidate_inventory` 解开受支持的 CLI envelope 后重算并绑定完整 policy/foot/depth standalone 合同与三份声明 SHA，并返回完整候选 ID 清单摘要供页面比对。页面在该快照上纯推导时间轴、足点 observation、重点窗口和不超过 24 项的普通连续段；每个候选必须在全部段中精确出现一次，否则拒绝打开复核。批量预览同时绑定 snapshot key、决定版本与冻结 ID，任何逐项改动都会使其失效；批量结果仍按每个 candidate 展开为既有四字段 review input。Preflight 或可视化分段通过都不是人工决定或发布凭据；最终 decision、policy 与 bundle 仍由 CLI 按 exact 输入编译和复验。全部交接使用精确 SHA，不解析 `latest`；完整操作见 [复核并发布 Kimodo 动作策略](docs/how-to-review-kimodo-motion-policy.md)。
 
 P10.0–P10.2 从精确 Layer Manifest/P3/P5/P9 七 SHA 链先编译 idle candidates，再把独立人工 review input 编译为 decision，最后为唯一的 `body_sway / adjust / pending_probe` 选择生成只读结构探针。三个入口均零写入；`--document-only` 只改变 stdout 形状。命令模板、七项 checks、hash 解释与人工 runtime 门禁见 [复核 idle 行为并运行 body-sway 结构探针](docs/how-to-review-idle-behaviors.md)。关键实现入口为 [exact chain loader](src/autospine_workbench/p10_exact_chain.py)、[candidate compiler](src/autospine_workbench/idle_behavior_candidates.py)、[decision compiler](src/autospine_workbench/idle_behavior_decision.py) 和 [probe report compiler](src/autospine_workbench/body_sway_probe_report.py)。
 
@@ -644,7 +644,7 @@ P10.7c 已增加 strict canonical setup-regression request/report、冻结 compa
 - 代替输入素材、训练数据或模型权重的许可证与商业使用审查；
 - 多用户权限、远程协作或生产部署。
 
-这些边界并非都应一次性并入当前阶段。`wave-left-v1` 的六输入审计、P7/P8、A/B P5 exact replay、正式 depth policy 与 depth candidates 已完成，P9 页面的 Python preflight 也已对两组 policy/foot/depth 输入交叉验证通过；下一顺序是在 P9 页面分别穷尽 119 个 Foot 候选决定，并由 CLI 发布/复验 reviewed-motion exact 地址。同时完成 A 的 seam 人审与 P10.5c，并为 B 选择新分层资产或禁止通用腿部动画的独立 partial 合同。之后再做两份真实样本的官方 Runtime capture、逐项人审和 P10.7c P6 setup golden 对照；随后封存 immutable comparison bundle并接 readiness v2；最后进入 attachment switch → blink/mouth。输入模型 runner 继续作为独立质量轨；完整计划见[后续开发路线](docs/development-roadmap.md)。
+这些边界并非都应一次性并入当前阶段。`wave-left-v1` 的六输入审计、P7/P8、A/B P5 exact replay、正式 depth policy 与 depth candidates 已完成，P9 页面的 Python preflight 也已对两组 policy/foot/depth 输入交叉验证通过；视觉时间轴、足点叠加、证据分段和批量草稿入口也已交付。下一顺序是在 P9 页面分别覆盖 119 个 Foot 精确决定，并由 CLI 发布/复验 reviewed-motion exact 地址。同时完成 A 的 seam 人审与 P10.5c，并为 B 选择新分层资产或禁止通用腿部动画的独立 partial 合同。之后再做两份真实样本的官方 Runtime capture、逐项人审和 P10.7c P6 setup golden 对照；随后封存 immutable comparison bundle并接 readiness v2；最后进入 attachment switch → blink/mouth。输入模型 runner 继续作为独立质量轨；完整计划见[后续开发路线](docs/development-roadmap.md)。
 
 项目中显示的骨架来自 bbox/语义启发式，`requires_review=true`。只有在语义、左右、pivot、层级、合成回归和动作探针均通过后，才能把人工确认结果交给后续 RigIR/导出阶段。
 

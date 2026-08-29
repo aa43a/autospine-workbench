@@ -34,6 +34,7 @@ test("review state preserves human gates and exports only the four CLI input fie
   assert.equal(setDecision(state, depth, {
     action: "adjust", reason_code: "manual-front", payload: { frontSlot: "slot-b" },
   }), "");
+  assert.deepEqual(state.decisionSources.get(depth.candidateId), { kind: "manual" });
   assert.throws(() => setRelease(state, 20, {}), /unconstrained/);
   setRelease(state, 30, {
     x: "", y: " ", interpolation: "stepped", reasonCode: "release-zero",
@@ -67,4 +68,5 @@ test("review state preserves human gates and exports only the four CLI input fie
     incoming_interpolation: "stepped",
     reason_code: "release-zero",
   });
+  assert.equal(state.batchHistory.length, 0);
 });

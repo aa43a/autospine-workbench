@@ -110,8 +110,12 @@ function renderCandidate(doc, candidate) {
   card.dataset.kind = candidate.kind;
   card.dataset.blocked = String(candidate.kind === "foot_lock" && candidate.footState.startsWith("rejected_"));
   const header = node(doc, "header");
-  header.append(textNode(doc, "h3", candidate.candidateId), textNode(doc, "span", candidate.kind === "foot_lock" ? "FOOT" : "DEPTH", "candidate-kind"));
-  card.append(header, evidence(doc, candidate), actions(doc, candidate), fields(doc, candidate));
+  const title = candidate.kind === "foot_lock"
+    ? `Foot · frame ${candidate.sourceFrameIndex}`
+    : `Depth · frame ${candidate.sourceFrameIndex} · ${candidate.pairId}`;
+  header.append(textNode(doc, "h3", title), textNode(doc, "span", candidate.kind === "foot_lock" ? "FOOT" : "DEPTH", "candidate-kind"));
+  card.append(header, textNode(doc, "p", `Exact ID · ${candidate.candidateId}`, "candidate-id-line"),
+    evidence(doc, candidate), actions(doc, candidate), fields(doc, candidate));
   const error = textNode(doc, "p", "尚未选择 action", "candidate-error");
   error.dataset.candidateError = "true";
   card.append(error);

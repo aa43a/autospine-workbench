@@ -43,5 +43,20 @@ export async function deriveInventory(foot, footSha, depth, depthSha) {
   return {
     candidates,
     unconstrainedTicks: foot.samples.filter((row) => row.state === "unconstrained").map((row) => row.tick),
+    evidence: {
+      foot: structuredClone({
+        policy: foot.policy,
+        reference: foot.reference,
+        summary: foot.summary,
+        timing: foot.timing,
+        samples: foot.samples,
+      }),
+      depth: structuredClone({
+        hysteresis: depth.hysteresis,
+        summary: depth.summary,
+        timing: depth.timing,
+        pairs: depth.pairs,
+      }),
+    },
   };
 }

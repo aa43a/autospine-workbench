@@ -4,7 +4,12 @@ const ACTIONS = new Set(["accept", "adjust", "reject", "unobservable"]);
 export function createReviewState(inventory) {
   return {
     inventory,
+    snapshotKey: inventory.snapshotKey || null,
     decisions: new Map(),
+    decisionSources: new Map(),
+    decisionVersion: 0,
+    batchHistory: [],
+    nextBatchId: 1,
     releases: new Map(),
     revision: null,
     loopResetApproved: null,
@@ -19,8 +24,79 @@ export function setDecision(state, candidate, patch) {
   const next = { ...previous, ...patch };
   if (next.action !== "adjust") next.payload = null;
   state.decisions.set(candidate.candidateId, next);
+  state.decisionSources.set(candidate.candidateId, Object.freeze({ kind: "manual" }));
+  state.decisionVersion += 1;
   state.humanConfirmed = false;
   return validateDecision(candidate, next);
+}
+
+export function setDecisionBatch(state, candidateIds, patch) {
+  const candidates = exactCandidates(state, candidateIds);
+  const decision = batchDecision(patch);
+  for (const candidate of candidates) {
+    const issue = validateDecision(candidate, decision);
+    if (issue) throw new Error(`${candidate.candidateId}: ${issue}`);
+  }
+  const batchId = `batch-${state.nextBatchId}`;
+  const before = candidates.map((candidate) => ({
+    candidateId: candidate.candidateId,
+    decision: cloneDecision(state.decisions.get(candidate.candidateId)),
+    source: state.decisionSources.get(candidate.candidateId) || null,
+  }));
+  const overwriteCount = before.filter((row) => row.decision !== null).length;
+  for (const candidate of candidates) {
+    state.decisions.set(candidate.candidateId, { ...decision });
+    state.decisionSources.set(
+      candidate.candidateId,
+      Object.freeze({ kind: "batch", batchId }),
+    );
+  }
+  state.nextBatchId += 1;
+  state.decisionVersion += 1;
+  state.batchHistory.push({
+    batchId,
+    candidateIds: Object.freeze(candidates.map((row) => row.candidateId)),
+    decision: Object.freeze({ ...decision }),
+    before,
+    undone: false,
+  });
+  state.humanConfirmed = false;
+  return Object.freeze({
+    batchId,
+    candidateIds: state.batchHistory.at(-1).candidateIds,
+    overwriteCount,
+  });
+}
+
+export function undoDecisionBatch(state, requestedBatchId = null) {
+  const record = requestedBatchId === null
+    ? [...state.batchHistory].reverse().find((row) => !row.undone)
+    : state.batchHistory.find((row) => row.batchId === requestedBatchId);
+  if (!record || record.undone) throw new Error("找不到可撤销的批量草稿");
+  let restoredCount = 0;
+  for (const before of record.before) {
+    const source = state.decisionSources.get(before.candidateId);
+    if (source?.kind !== "batch" || source.batchId !== record.batchId) continue;
+    if (before.decision === null) {
+      state.decisions.delete(before.candidateId);
+      state.decisionSources.delete(before.candidateId);
+    } else {
+      state.decisions.set(before.candidateId, cloneDecision(before.decision));
+      if (before.source) state.decisionSources.set(before.candidateId, before.source);
+      else state.decisionSources.delete(before.candidateId);
+    }
+    restoredCount += 1;
+  }
+  record.undone = true;
+  if (restoredCount) {
+    state.decisionVersion += 1;
+    state.humanConfirmed = false;
+  }
+  return Object.freeze({
+    batchId: record.batchId,
+    restoredCount,
+    skippedCount: record.candidateIds.length - restoredCount,
+  });
 }
 
 export function setRelease(state, tick, value) {
@@ -113,6 +189,45 @@ function normalizedPayload(candidate, payload) {
   return candidate.kind === "foot_lock"
     ? { final_correction_xy_px: [finite(payload.x), finite(payload.y)] }
     : { final_front_slot: payload.frontSlot };
+}
+
+function exactCandidates(state, candidateIds) {
+  if (!Array.isArray(candidateIds) || candidateIds.length === 0) {
+    throw new Error("批量草稿必须包含至少一个 candidate ID");
+  }
+  const byId = new Map(state.inventory.candidates.map((row) => [row.candidateId, row]));
+  const unique = new Set();
+  return candidateIds.map((candidateId) => {
+    if (typeof candidateId !== "string" || unique.has(candidateId)) {
+      throw new Error("批量 candidate ID 必须是唯一字符串");
+    }
+    unique.add(candidateId);
+    const candidate = byId.get(candidateId);
+    if (!candidate) throw new Error(`未知 candidate ID: ${candidateId}`);
+    return candidate;
+  });
+}
+
+function batchDecision(patch) {
+  if (!patch || !["accept", "reject", "unobservable"].includes(patch.action)) {
+    throw new Error("批量草稿只允许 accept、reject 或 unobservable");
+  }
+  if (!ID.test(patch.reason_code || "")) {
+    throw new Error("批量 reason_code 必须是非空安全标识符");
+  }
+  if (patch.payload !== undefined && patch.payload !== null) {
+    throw new Error("批量草稿 payload 必须为 null");
+  }
+  return { action: patch.action, reason_code: patch.reason_code, payload: null };
+}
+
+function cloneDecision(value) {
+  if (!value) return null;
+  return {
+    action: value.action,
+    reason_code: value.reason_code,
+    payload: value.payload === null ? null : structuredClone(value.payload),
+  };
 }
 
 function validateRelease(allowed, tick, row) {

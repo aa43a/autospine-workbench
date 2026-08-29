@@ -1,6 +1,6 @@
 # AutoSpine Workbench 后续开发路线
 
-本文是 Explanation 与交付计划，面向维护者和需要评估可行性的项目负责人。它从 **P0 Resolved Project v1 合同、P10.6b MotionInstance v3、P10.7a Spine adapter bundle、P10.7b sampled raster 基础设施与独立 P10.7c setup regression 已完成** 的事实出发，说明尚未实现的能力应按什么依赖关系推进。当前开发入口是 **P9-real-kimodo-candidate-review**：`wave-left-v1` 已完成六输入准入、P7/P8 exact replay、两份真实 See-through 样本各自的 P5 发布与精确复验，以及 A/B 正式 depth policy 和 depth-order candidates；两组候选均通过 Python candidate inventory 交叉预检。下一道动作门禁是分别穷尽 119 个 Foot 候选决定并发布 P9；seam 仍是进入官方 Runtime capture 前的独立门禁。这里的阶段名、优先级和验收条件是建议，不构成发布日期承诺；单一 pilot、preflight 或基础设施可用也不等于候选人工审批、广泛动作质量、真实样本、连续时间或发布门禁已经通过。
+本文是 Explanation 与交付计划，面向维护者和需要评估可行性的项目负责人。它从 **P0 Resolved Project v1 合同、P10.6b MotionInstance v3、P10.7a Spine adapter bundle、P10.7b sampled raster 基础设施与独立 P10.7c setup regression 已完成** 的事实出发，说明尚未实现的能力应按什么依赖关系推进。当前开发入口是 **P9-real-kimodo-candidate-review**：`wave-left-v1` 已完成六输入准入、P7/P8 exact replay、两份真实 See-through 样本各自的 P5 发布与精确复验，以及 A/B 正式 depth policy 和 depth-order candidates；两组候选均通过 Python candidate inventory 交叉预检，P9 可视化与分段批量草稿也已交付。下一道动作门禁是由操作者覆盖 A/B 各 119 个精确 Foot 决定并发布 P9；seam 仍是进入官方 Runtime capture 前的独立门禁。这里的阶段名、优先级和验收条件是建议，不构成发布日期承诺；单一 pilot、preflight、分段算法或基础设施可用也不等于候选人工审批、广泛动作质量、真实样本、连续时间或发布门禁已经通过。
 
 ## 规划原则
 
@@ -17,7 +17,7 @@
 
 | 优先级 | 能力 | 原因 |
 | --- | --- | --- |
-| P0 | `wave-left-v1` P9 候选人工决定 | A/B 正式 depth policy、foot/depth candidates 与 Python 交叉预检已完成；每个项目仍需穷尽 119 个 Foot 决定，尚无 P9 reviewed-motion 地址 |
+| P0 | `wave-left-v1` P9 候选人工决定 | A/B 正式 depth policy、foot/depth candidates、Python 交叉预检与可视化分段入口已完成；每个项目仍需人工覆盖 119 个精确 Foot 决定，尚无 P9 reviewed-motion 地址 |
 | P0 | P10.7c setup golden 独立回归 | 零写入入口已交付；真实执行仍依赖 exact P10.7a/capture 与批准 P6 基线，readiness v1 保持冻结且第八项仍 missing |
 | P0 | P10.7b 两份真实样本验收 | Runtime/capture/metrics/review 基础设施已存在，但真实链尚未到达 P10.7a；仍需先关闭 Kimodo 与 seam 门禁，再做官方 Runtime 和人工决定 |
 | P1 | Revision 历史浏览/恢复 UI | 历史已不可变保存，但操作者尚不能便捷查看或安全恢复 |
@@ -242,7 +242,7 @@ See-through 分层，并让新的 Manifest/P3/candidate 内容地址失效旧决
 最短后续顺序：
 
 1. 从 [`wave-left-v1` handoff](pilots/kimodo-wave-left-v1.md) 读取 A/B 各自的正式 policy、foot report、depth envelope 和三份精确 SHA；不得混用项目，也不得把 preflight `passed` 当作人工决定。
-2. 在 P9 复核台分别穷尽 119 个 Foot 候选决定，再由 CLI 发布/复验真实 reviewed-motion bundle；本轮 Depth event 为 0，但 depth report 仍必须参与完整合同绑定。intake/P7/P8/P5 SHA、fixture、proposal、preflight 响应或测试地址都不能替代 P9 地址。
+2. 在 P9 复核台先看趋势曲线、重点窗口和角色足点叠加，再通过连续证据段批量草稿与逐项例外分别覆盖 119 个精确 Foot 候选决定；随后由 CLI 发布/复验真实 reviewed-motion bundle。本轮 Depth event 为 0，但 depth report 仍必须参与完整合同绑定。intake/P7/P8/P5 SHA、fixture、proposal、preflight 响应、批量预览或测试地址都不能替代 P9 地址。
 3. 对 A 完成或确认 P10.5b 人审、编译 P10.5c 并声明 exact 地址；对 B 先选择“上游修复”或“另立 partial 合同”，不得伪造六关系通过。
 4. 在精确 P9/seam 地址上依次完成 P10.0–P10.7a；每次只把实际生成的双 SHA 回填请求。
 5. 使用现有且已获授权的官方 Runtime 执行 P10.7b capture、精确复验和逐 case/attachment 人工决定。
@@ -407,11 +407,11 @@ PNG 的 immutable comparison bundle，并由 reader 重放实际 capture。
 
 已交付的 M1.0 `audit-kimodo-pilot-intake` 会安全读取六份精确文件，要求两份 provenance 原件的逐字节 SHA 与 recorded sidecar 闭合，在内存中重跑 P7 结构编译，并验证 camera/map 一致性。输出是 path-free、自哈希、零写入报告；它明确把 checkpoint authenticity、动作质量、P8 projection、P9 review 与 release authority 保持为 false。操作见[审计真实 Kimodo Pilot 输入](how-to-audit-real-kimodo-pilot-intake.md)。
 
-已交付的 P9 安全收口把 policy identity 和 candidate inventory 从浏览器推断改为 loopback-only、zero-write Python preflight；它验证原始 JSON、完整 standalone 合同、声明 SHA 与跨 source/policy 绑定，但不保存或批准状态。`wave-left-v1` 的两份 proposal 已人工批准，A/B depth candidates 也已生成并通过该 preflight。下一交付是在 P9 复核台分别完成人工 Foot 决定、CLI exact bundle、三 rig 质量门禁、Spine Runtime capture 和人工质量报告。heading/scale 只有在独立 reviewed 合同完成后才能进入 runtime。
+已交付的 P9 安全收口把 policy identity 和 candidate inventory 从浏览器推断改为 loopback-only、zero-write Python preflight；它验证原始 JSON、完整 standalone 合同、声明 SHA 与跨 source/policy 绑定，但不保存或批准状态。`wave-left-v1` 的两份 proposal 已人工批准，A/B depth candidates 也已生成并通过该 preflight。复核台已补充 Correction/residual 时间轴、动态重点窗口、角色足点 observation、最多 24 项的普通连续段、冻结 ID 的可撤销批量草稿和逐项例外入口；分段完整性与批量原子性均有合同测试，但没有自动 action。下一交付是在该复核台分别完成人工 Foot 决定、CLI exact bundle、三 rig 质量门禁、Spine Runtime capture 和人工质量报告。heading/scale 只有在独立 reviewed 合同完成后才能进入 runtime。
 
 当前实物状态：真实运行的 `wave-left-v1` 已有 recorded 六输入、intake 报告、通过 exact reader 的 P7/P8 bundle、绑定到 A/B 的 P5 bundle、正式 depth policy，以及各自的 foot/depth candidates；collapsed sample 为零。两份 depth report 各有 120 个 sample、0 个 event；候选交叉预检均通过。每个项目仍缺 119 个 Foot 人工决定、decision、reviewed policy 和 P9 bundle，也不认证 checkpoint 或批准动作质量。A/B 也都没有 seam review history/head；A 的六条关系可进入人审，B 的长裙遮挡导致四条下肢关系不可观测，必须换新分层资产或建立明确禁止通用腿部动画的 partial 合同。
 
-工程加固待办（P2，不阻塞当前人工门禁）：把 Foot FK/最小二乘校验的相对容差改为由 9 位量化误差、浮点 ULP 和明确坐标上限共同定义，并加入高尺度回归；为候选卡增加可展开的 Foot observations 与 Depth window sample/score/state；补齐快捷键的 modifier、IME composition 和 `defaultPrevented` 防护；让 TRACE/CONNECT 等未实现 HTTP 方法统一返回带 `Allow` 的 405。生产模块继续保持 300 行上限，接近上限时必须先拆分。
+工程加固待办（P2，不阻塞当前人工门禁）：把 Foot FK/最小二乘校验的相对容差改为由 9 位量化误差、浮点 ULP 和明确坐标上限共同定义，并加入高尺度回归；为出现事件的 Depth pair 增加 window sample/score/state 图形化轨道；补齐快捷键的 modifier、IME composition 和 `defaultPrevented` 防护；让 TRACE/CONNECT 等未实现 HTTP 方法统一返回带 `Allow` 的 405。生产模块继续保持 300 行上限，接近上限时必须先拆分。
 
 验收条件：同六份输入重复审计报告哈希相同，审计 preview 与随后 P7 发布身份一致；真实样本集至少包含慢动作、快速动作、交叉肢体、转身和脚接触案例；三 rig 无非有限数和明显滑脚；人工决定覆盖全部候选；P9 bundle reader 与官方 Runtime 截图回归通过；合成 fixture 与真实质量结论明确分开。
 

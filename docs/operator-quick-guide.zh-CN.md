@@ -2,7 +2,7 @@
 
 这份手册面向第一次使用工作台的人。目标是先从统一入口找到所需功能，再完成一次最小但完整的操作：打开 See-through 样本，复核图层和骨骼，处理关节候选，然后把结果保存为新的 revision。
 
-P9 Kimodo 动作进入人工策略阶段时，可从功能入口中心打开 `Motion Policy 两步人工复核台`：先核对并明确批准 Depth pair policy，再加载 exact Foot/Depth candidates 逐项裁决。页面会把既有文件的原始 JSON 文本，或把草案投影后只序列化一次的正式 policy 文本，送到同一 loopback 服务的 zero-write Python preflight，取得 canonical policy SHA 并复验 candidate inventory；它仍只下载正式 policy 与严格四字段 review input，不保存 revision、不发布 P9、也不自动批准。完整流程见 [复核并发布 Kimodo 动作策略](how-to-review-kimodo-motion-policy.md)。
+P9 Kimodo 动作进入人工策略阶段时，可从功能入口中心打开 `Motion Policy 两步人工复核台`：先核对并明确批准 Depth pair policy，再加载 exact Foot/Depth candidates。第二步先看时间轴、重点窗口和角色足点叠加，再按连续证据段批量填写可撤销草稿，最后只处理逐项例外；119 个精确决定仍会完整展开到 review input，不要求人工逐卡阅读 119 组数字。页面会把既有文件的原始 JSON 文本，或把草案投影后只序列化一次的正式 policy 文本，送到同一 loopback 服务的 zero-write Python preflight，取得 canonical policy SHA 并复验 candidate inventory；它仍只下载正式 policy 与严格四字段 review input，不保存 revision、不发布 P9、也不自动批准。完整流程见 [复核并发布 Kimodo 动作策略](how-to-review-kimodo-motion-policy.md)。
 
 > 工作台是本地人工复核工具，不是“一键生成可发布 Spine 动画”的工具。看到结构检查通过、探针 `compiled` 或锚点距离合格，都不能据此认定视觉效果、官方 Spine Runtime 或发布许可已经通过。
 
@@ -270,7 +270,7 @@ python -B -m autospine_workbench audit-kimodo-pilot-intake `
 
 该命令要求 `producer.status=recorded`，闭合两份 provenance 原件 SHA，在内存重跑 P7 结构编译并检查 camera/map；它不写 state、不认证 checkpoint、不批准动作质量，也不生成 P7/P8/P9 bundle。完整准备步骤见[审计真实 Kimodo Pilot 输入](how-to-audit-real-kimodo-pilot-intake.md)。
 
-继续当前 `wave-left-v1` 时，不要再次编译或扫描 P5 地址：A/B 正式 policy 与 depth candidates 已生成并通过 candidate inventory preflight。现在从 handoff 读取每个项目的 policy、Foot report、Depth envelope 和三份 SHA，在 [Motion Policy 两步人工复核台](http://127.0.0.1:8765/motion-policy-review.html)逐项目加载；不要混用 A/B。每个项目需要决定 119 个 Foot 候选，本轮 Depth event 为 0。只有 preflight 通过才会开放逐项表单，但这仍不等于人工决定。完成全部决定后，必须继续用 CLI 编译并复验 P9。下列命令用于复验或继续 exact 链：
+继续当前 `wave-left-v1` 时，不要再次编译或扫描 P5 地址：A/B 正式 policy 与 depth candidates 已生成并通过 candidate inventory preflight。现在从 handoff 读取每个项目的 policy、Foot report、Depth envelope 和三份 SHA，在 [Motion Policy 两步人工复核台](http://127.0.0.1:8765/motion-policy-review.html)逐项目加载；不要混用 A/B。每个项目需要覆盖 119 个 Foot 候选，本轮 Depth event 为 0。先复核时间轴和重点窗口，再显式选择连续证据段、action 与 reason 写入批量草稿；`adjust`、算法拒绝项和其他例外留在折叠的逐项区处理。批量预览不等于人工批准，覆盖旧草稿还需要第二次确认。完成全部决定后，必须继续用 CLI 编译并复验 P9。下列命令用于复验或继续 exact 链：
 
 ```powershell
 python -B -m autospine_workbench compile-motion-retarget --help

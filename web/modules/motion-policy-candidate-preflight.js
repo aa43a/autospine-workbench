@@ -25,7 +25,12 @@ export async function authorizeCandidateInventory({ api, snapshot, isCurrent }) 
   if (!isCurrent()) return null;
   await validateInventory(result.inventory, derived);
   if (!isCurrent()) return null;
-  return { ...binding, ...derived };
+  const candidateIdsSha256 = result.inventory.candidate_ids_sha256;
+  const snapshotKey = [
+    binding.projectId, binding.clipId, snapshot.policySha,
+    binding.footSha256, binding.depthSha256, candidateIdsSha256,
+  ].join("|");
+  return { ...binding, ...derived, candidateIdsSha256, snapshotKey };
 }
 
 export async function validateInventory(expected, derived, cryptoApi = globalThis.crypto) {
