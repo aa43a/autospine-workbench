@@ -23,19 +23,27 @@ export class IdleBehaviorReviewApiError extends Error {
 
 export function createIdleBehaviorReviewApi(fetchApi = globalThis.fetch) {
   return {
-    async list() {
-      return normalizeIdleReviewPackageList(await request(fetchApi, BASE));
+    async list(projectId = null) {
+      return normalizeIdleReviewPackageList(await request(
+        fetchApi, scopedUrl(BASE, projectId),
+      ));
     },
-    async entry(packageId) {
+    async entry(packageId, projectId = null) {
       requirePackageId(packageId);
-      const payload = await request(fetchApi, `${BASE}/${packageId}`);
+      const payload = await request(
+        fetchApi, scopedUrl(`${BASE}/${packageId}`, projectId),
+      );
       return normalizeIdleReviewEntry(payload, packageId);
     },
-    async entryWithCanvasAdjustment(packageId, candidateSha256) {
+    async entryWithCanvasAdjustment(
+      packageId, candidateSha256, projectId = null,
+    ) {
       requirePackageId(packageId);
       requirePackageId(candidateSha256);
-      const payload = await request(fetchApi,
-        `${BASE}/${packageId}/canvas-adjustment-drafts/${candidateSha256}`);
+      const payload = await request(fetchApi, scopedUrl(
+        `${BASE}/${packageId}/canvas-adjustment-drafts/${candidateSha256}`,
+        projectId,
+      ));
       return normalizeIdleCanvasAdjustmentDraft(payload, {
         packageId, canvasAdjustmentSha256: candidateSha256,
       });
@@ -82,4 +90,13 @@ function requirePackageId(value) {
   if (typeof value !== "string" || !SHA.test(value)) {
     throw new Error("P10 复核包 ID 无效");
   }
+}
+
+function scopedUrl(url, projectId) {
+  if (projectId === null) return url;
+  if (typeof projectId !== "string"
+      || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(projectId)) {
+    throw new Error("P10 项目 ID 无效");
+  }
+  return `${url}?project_id=${encodeURIComponent(projectId)}`;
 }

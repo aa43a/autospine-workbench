@@ -12,6 +12,11 @@ from .split_decision_binder import (
     SplitDecisionBindingError,
     SplitDecisionBindingIssue,
 )
+from .split_decision_validation_cache import (
+    SplitDecisionValidationCacheError,
+    process_split_decision_validation_cache,
+    split_decision_validation_cache_key,
+)
 
 
 _DERIVED = (
@@ -27,6 +32,7 @@ class SplitDecisionPersistence:
     """Keep persisted decisions derived while allowing full-document saves."""
 
     def __init__(self, state_root: Path) -> None:
+        self._state_root = Path(state_root)
         self._binder = SplitDecisionBinder(state_root)
         self._resolved = ResolvedProjectBuilder()
 
@@ -43,13 +49,42 @@ class SplitDecisionPersistence:
             return {}
         project, paths = self._context(project_id, base_project, source_paths)
         resolved = self._resolved.build(project, document)
-        return self._binder.bind(
-            project_id,
-            decisions,
-            resolved=resolved,
-            source_paths=paths,
-            stored=True,
-        )
+        try:
+            before = split_decision_validation_cache_key(
+                self._state_root, project_id, decisions, resolved, paths,
+            )
+        except SplitDecisionValidationCacheError:
+            return self._binder.bind(
+                project_id, decisions, resolved=resolved,
+                source_paths=paths, stored=True,
+            )
+
+        def validate() -> dict[str, dict[str, Any]]:
+            result = self._binder.bind(
+                project_id, decisions, resolved=resolved,
+                source_paths=paths, stored=True,
+            )
+            after = split_decision_validation_cache_key(
+                self._state_root, project_id, decisions, resolved, paths,
+            )
+            if after != before:
+                raise SplitDecisionValidationCacheError(
+                    "Stored split inputs changed during validation"
+                )
+            return result
+
+        try:
+            return process_split_decision_validation_cache().get_or_validate(
+                before, validate,
+            )
+        except SplitDecisionValidationCacheError as exc:
+            raise SplitDecisionBindingError(
+                SplitDecisionBindingIssue(
+                    "$.split_decisions",
+                    "binding_context",
+                    "stored split inputs changed during validation",
+                )
+            ) from exc
 
     def bind_save(
         self,

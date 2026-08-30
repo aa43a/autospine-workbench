@@ -136,6 +136,41 @@ class IdleBehaviorReviewHttpTests(
         self.assertNotIn("format_version", payload["packages"][0])
         self.assertEqual("same-origin", headers["cross-origin-resource-policy"])
 
+    def test_list_project_scope_rebuilds_only_the_requested_project(self):
+        current = {"fixture-project": object()}
+        with patch(
+            "autospine_workbench.idle_behavior_review_routes."
+            "list_idle_behavior_review_packages",
+            return_value=self._inventory(),
+        ) as listed, patch(
+            "autospine_workbench.idle_behavior_review_routes."
+            "rebuild_current_project_chains",
+            return_value=current,
+        ) as rebuilt:
+            status, _, _raw = self._request(
+                "GET", "?project_id=fixture-project",
+            )
+        self.assertEqual(200, status)
+        self.assertEqual(2, rebuilt.call_count)
+        self.assertTrue(all(
+            call.args[1] == ("fixture-project",)
+            for call in rebuilt.call_args_list
+        ))
+        self.assertEqual(
+            ("fixture-project",), listed.call_args.kwargs["project_ids"],
+        )
+
+    def test_list_rejects_ambiguous_or_unsafe_project_scope(self):
+        for query in (
+            "?project_id=fixture-project&project_id=fixture-project",
+            "?project_id=..%2Funsafe",
+            "?unexpected=fixture-project",
+        ):
+            with self.subTest(query=query):
+                status, _, raw = self._request("GET", query)
+                self.assertEqual(400, status)
+                self.assertEqual("invalid_path", json.loads(raw)["error"])
+
     def test_detail_and_receipt_are_returned_without_path_fields(self):
         entry = {
             "format": "autospine-idle-behavior-review-entry",

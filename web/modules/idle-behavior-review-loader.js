@@ -43,7 +43,7 @@ export function createIdleBehaviorReviewLoader(elements, dependencies = {}) {
     setBusy(true);
     status(`正在定位 ${handoff.projectId} 的当前动作…`, "warning");
     try {
-      const result = await api.list();
+      const result = await api.list(handoff.projectId);
       if (current !== generation) return false;
       packages = result.packages;
       skippedCount = result.skipped_count;
@@ -77,6 +77,7 @@ export function createIdleBehaviorReviewLoader(elements, dependencies = {}) {
       if (handoff.kind === "canvas") {
         draft = await api.entryWithCanvasAdjustment(
           handoff.packageId, handoff.canvasAdjustmentSha256,
+          handoff.projectId ?? null,
         );
         entry = draft.entry;
       } else entry = await api.entry(handoff.packageId);
@@ -148,7 +149,7 @@ export function createIdleBehaviorReviewLoader(elements, dependencies = {}) {
   }
 
   async function hydrateInventory(current, packageId, entry, draft) {
-    const result = await api.list();
+    const result = await api.list(entry.package.project_id);
     if (current !== generation) return;
     packages = result.packages;
     skippedCount = result.skipped_count;
@@ -187,7 +188,7 @@ export function createIdleBehaviorReviewLoader(elements, dependencies = {}) {
     setBusy(true);
     status(`${prefix}：${selected.project_id} / ${selected.motion_id}…`, "warning");
     try {
-      const entry = await api.entry(packageId);
+      const entry = await api.entry(packageId, selected.project_id);
       if (!isCurrent(current, packageId)) return false;
       await onLoad(entry, {
         canvasAdjustmentDraft: null, packageRow: selected,

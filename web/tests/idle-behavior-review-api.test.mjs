@@ -42,6 +42,24 @@ test("API loads the automatic package and submits one explicit path-free decisio
   assert.equal(JSON.parse(calls[2].options.body).explicit_confirmation, true);
 });
 
+test("API scopes automatic inventory and detail to one validated project", async () => {
+  const calls = [];
+  const api = createIdleBehaviorReviewApi(async (url) => {
+    calls.push(url);
+    return url.includes(`/${DIGESTS.package}`)
+      ? jsonResponse(200, entryDocument())
+      : jsonResponse(200, packageList());
+  });
+  await api.list("seethrough_output");
+  await api.entry(DIGESTS.package, "seethrough_output");
+  assert.deepEqual(calls, [
+    "/api/idle-behavior/review-packages?project_id=seethrough_output",
+    `/api/idle-behavior/review-packages/${DIGESTS.package}`
+      + "?project_id=seethrough_output",
+  ]);
+  await assert.rejects(api.list("../unsafe"), /项目 ID 无效/);
+});
+
 test("API rejects package cross-wiring, private paths, and elevated draft claims", async () => {
   const crosswired = entryDocument();
   crosswired.package.package_id = "9".repeat(64);
@@ -178,13 +196,16 @@ test("API loads one exact P10.2 canvas draft without file or SHA form input", as
     calls.push(url);
     return jsonResponse(200, canvasAdjustmentDraftEntry());
   });
-  const draft = await api.entryWithCanvasAdjustment(DIGESTS.package, ADJUSTMENT_SHA);
+  const draft = await api.entryWithCanvasAdjustment(
+    DIGESTS.package, ADJUSTMENT_SHA, "seethrough_output",
+  );
   assert.equal(draft.entry.history.current_revision, 1);
   assert.equal(draft.canvasAdjustment.candidateSha256, ADJUSTMENT_SHA);
   assert.equal(draft.proposal.gain.numerator, 4);
   assert.deepEqual(calls, [
     `/api/idle-behavior/review-packages/${DIGESTS.package}`
-      + `/canvas-adjustment-drafts/${ADJUSTMENT_SHA}`,
+      + `/canvas-adjustment-drafts/${ADJUSTMENT_SHA}`
+      + "?project_id=seethrough_output",
   ]);
   await assert.rejects(
     api.entryWithCanvasAdjustment(DIGESTS.package, "../latest"), /ID 无效/,

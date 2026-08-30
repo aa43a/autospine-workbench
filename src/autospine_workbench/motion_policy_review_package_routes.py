@@ -48,10 +48,13 @@ def is_motion_policy_review_package_path(parts: list[str]) -> bool:
 
 def dispatch_motion_policy_review_package_get(
     parts: list[str], store: ProjectStore, send_json: SendJson,
+    request_target: str | None = None,
 ) -> bool:
     if dispatch_body_sway_probe_get(parts, store, send_json):
         return True
-    if dispatch_idle_behavior_review_get(parts, store, send_json):
+    if dispatch_idle_behavior_review_get(
+        parts, store, send_json, request_target,
+    ):
         return True
     if dispatch_motion_policy_seam_review_entry_get(parts, store, send_json):
         return True

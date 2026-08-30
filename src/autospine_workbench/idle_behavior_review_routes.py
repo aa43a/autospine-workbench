@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from http import HTTPStatus
 import json
+import re
 from typing import Any, Callable
+from urllib.parse import parse_qs, urlsplit
 
 from .current_project_chain import (
     CurrentProjectChainChangedError,
@@ -55,6 +57,7 @@ _LIST_FIELDS = (
     "package_id", "project_id", "motion_id", "clip_id",
     "motion_policy_package_id", "p9_decision_sha256", "status",
 )
+_PROJECT_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 
 
 def is_idle_behavior_review_get_path(parts: list[str]) -> bool:
@@ -71,13 +74,14 @@ def is_idle_behavior_review_mutation_path(parts: list[str]) -> bool:
 
 def dispatch_idle_behavior_review_get(
     parts: list[str], store: ProjectStore, send_json: SendJson,
+    request_target: str | None = None,
 ) -> bool:
     """Serve a strict list projection or one exact replayed entry."""
 
     if not is_idle_behavior_review_get_path(parts):
         return False
     try:
-        project_ids = _project_ids(store)
+        project_ids = _project_ids(store, request_target)
         if len(parts) == 3:
             before = rebuild_current_project_chains(store, project_ids)
             inventory = list_idle_behavior_review_packages(
@@ -226,8 +230,30 @@ def send_idle_behavior_review_method_not_allowed(handler: Any) -> None:
     )
 
 
-def _project_ids(store: ProjectStore) -> tuple[str, ...]:
-    return store.discover_project_ids()
+def _project_ids(
+    store: ProjectStore, request_target: str | None = None,
+) -> tuple[str, ...]:
+    discovered = store.discover_project_ids()
+    if request_target is None:
+        return discovered
+    try:
+        query = parse_qs(
+            urlsplit(request_target).query,
+            keep_blank_values=True,
+            strict_parsing=True,
+        )
+    except ValueError as exc:
+        raise ValueError("Invalid idle-review project scope") from exc
+    if not query:
+        return discovered
+    if set(query) != {"project_id"} or len(query["project_id"]) != 1:
+        raise ValueError("Invalid idle-review project scope")
+    project_id = query["project_id"][0]
+    if not _PROJECT_ID.fullmatch(project_id):
+        raise ValueError("Invalid idle-review project scope")
+    if project_id not in discovered:
+        raise IdleBehaviorReviewApplicationNotFound(project_id)
+    return (project_id,)
 
 
 def _not_found(send_json: SendJson) -> None:

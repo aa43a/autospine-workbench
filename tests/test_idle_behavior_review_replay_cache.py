@@ -12,6 +12,7 @@ import time
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
+from threading import Barrier, Event
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -252,6 +253,75 @@ class IdleBehaviorReviewReplayCacheTests(unittest.TestCase):
             results = list(pool.map(lambda _index: self._load(loader), range(4)))
         self.assertTrue(all(result is self.chain for result in results))
         self.assertEqual(1, calls)
+
+    def test_concurrent_warm_hits_share_one_full_byte_seal(self) -> None:
+        self._load(lambda: self.chain)
+        from autospine_workbench import idle_behavior_review_replay_cache
+        original = idle_behavior_review_replay_cache.seal_exact_directories
+        seals = 0
+
+        def seal(*args, **kwargs):
+            nonlocal seals
+            seals += 1
+            time.sleep(0.05)
+            return original(*args, **kwargs)
+
+        with patch.object(
+            idle_behavior_review_replay_cache,
+            "seal_exact_directories",
+            side_effect=seal,
+        ), ThreadPoolExecutor(max_workers=4) as pool:
+            results = list(pool.map(
+                lambda _index: self._load(lambda: self.chain), range(4),
+            ))
+        self.assertTrue(all(result is self.chain for result in results))
+        self.assertEqual(1, seals)
+
+    def test_clear_during_flight_starts_a_new_generation(self) -> None:
+        started = Event()
+        release = Event()
+        calls = 0
+
+        def loader():
+            nonlocal calls
+            calls += 1
+            if calls == 1:
+                started.set()
+                self.assertTrue(release.wait(timeout=1))
+            return self.chain
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            old = pool.submit(self._load, loader)
+            self.assertTrue(started.wait(timeout=1))
+            clear_idle_behavior_review_replay_cache()
+            current = pool.submit(self._load, loader)
+            self.assertIs(self.chain, current.result(timeout=1))
+            release.set()
+            self.assertIs(self.chain, old.result(timeout=1))
+        self.assertIs(self.chain, self._load(loader))
+        self.assertEqual(2, calls)
+
+    def test_different_exact_addresses_do_not_share_a_global_io_lock(self) -> None:
+        from autospine_workbench import idle_behavior_review_replay_cache
+        barrier = Barrier(2)
+
+        def replay(*_args, **_kwargs):
+            barrier.wait(timeout=1)
+            return self.chain
+
+        def load(bundle):
+            return load_cached_reviewed_motion_chain(
+                self.root, self.project, self.instance, bundle,
+                lambda: self.chain,
+            )
+
+        with patch.object(
+            idle_behavior_review_replay_cache,
+            "_load_or_reuse",
+            side_effect=replay,
+        ), ThreadPoolExecutor(max_workers=2) as pool:
+            results = list(pool.map(load, ("2" * 64, "3" * 64)))
+        self.assertTrue(all(result is self.chain for result in results))
 
 
 if __name__ == "__main__":

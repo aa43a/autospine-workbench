@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from collections import OrderedDict
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 import re
-from threading import RLock
+from threading import Event, RLock
 
 from .idle_behavior_review_byte_seal import (
     IdleBehaviorReviewReplayCacheError,
@@ -37,8 +37,17 @@ class _Entry:
     chain: VerifiedReviewedMotionBundleChain
 
 
+@dataclass(slots=True)
+class _Flight:
+    done: Event = field(default_factory=Event)
+    value: VerifiedReviewedMotionBundleChain | None = None
+    error: BaseException | None = None
+
+
 _LOCK = RLock()
 _CACHE: OrderedDict[tuple[str, str, str, str], _Entry] = OrderedDict()
+_FLIGHTS: dict[tuple[int, str, str, str, str], _Flight] = {}
+_GENERATION = 0
 
 
 def load_cached_reviewed_motion_chain(
@@ -55,48 +64,94 @@ def load_cached_reviewed_motion_chain(
         str(root), project_id, motion_instance_v2_sha256, bundle_sha256,
     )
     with _LOCK:
-        entry = _CACHE.get(key)
-        if entry is not None:
-            try:
-                if seal_exact_directories(root, entry.paths) == entry.seal:
-                    _CACHE.move_to_end(key)
-                    return entry.chain
-            except IdleBehaviorReviewReplayCacheError:
-                pass
-            _CACHE.pop(key, None)
-        try:
-            paths_before = _discover_chain_paths(
-                root, project_id, motion_instance_v2_sha256, bundle_sha256,
-            )
-            seal_before = seal_exact_directories(root, paths_before)
-        except IdleBehaviorReviewReplayCacheError:
-            # Acceleration must not narrow the underlying exact-reader
-            # contract.  Unsafe evidence will still fail in the loader;
-            # a valid chain outside cache budgets is returned uncached.
-            return _require_chain(loader())
-        chain = loader()
-        chain = _require_chain(chain)
-        paths = _chain_paths(root, chain)
-        if paths != paths_before:
-            raise IdleBehaviorReviewReplayCacheError(
-                "Exact replay inputs changed during verification"
-            )
-        seal = seal_exact_directories(root, paths)
-        if seal != seal_before:
-            raise IdleBehaviorReviewReplayCacheError(
-                "Exact replay bytes changed during verification"
-            )
-        _CACHE[key] = _Entry(paths, seal, chain)
-        _CACHE.move_to_end(key)
-        while len(_CACHE) > _MAX_ENTRIES:
-            _CACHE.popitem(last=False)
+        generation = _GENERATION
+        flight_key = (generation, *key)
+        flight = _FLIGHTS.get(flight_key)
+        leader = flight is None
+        if flight is None:
+            flight = _Flight()
+            _FLIGHTS[flight_key] = flight
+        entry = _CACHE.get(key) if leader else None
+    if not leader:
+        flight.done.wait()
+        if flight.error is not None:
+            raise flight.error
+        return _require_chain(flight.value)
+    try:
+        chain = _load_or_reuse(
+            root, key, generation, entry, project_id, motion_instance_v2_sha256,
+            bundle_sha256, loader,
+        )
+        with _LOCK:
+            _FLIGHTS.pop(flight_key, None)
+            flight.value = chain
+            flight.done.set()
         return chain
+    except BaseException as exc:
+        with _LOCK:
+            _FLIGHTS.pop(flight_key, None)
+            flight.error = exc
+            flight.done.set()
+        raise
+
+
+def _load_or_reuse(
+    root: Path,
+    key: tuple[str, str, str, str],
+    generation: int,
+    entry: _Entry | None,
+    project_id: str,
+    motion_instance_v2_sha256: str,
+    bundle_sha256: str,
+    loader: Callable[[], VerifiedReviewedMotionBundleChain],
+) -> VerifiedReviewedMotionBundleChain:
+    if entry is not None:
+        try:
+            if seal_exact_directories(root, entry.paths) == entry.seal:
+                with _LOCK:
+                    if _CACHE.get(key) is entry:
+                        _CACHE.move_to_end(key)
+                return entry.chain
+        except IdleBehaviorReviewReplayCacheError:
+            pass
+        with _LOCK:
+            if _CACHE.get(key) is entry:
+                _CACHE.pop(key, None)
+    try:
+        paths_before = _discover_chain_paths(
+            root, project_id, motion_instance_v2_sha256, bundle_sha256,
+        )
+        seal_before = seal_exact_directories(root, paths_before)
+    except IdleBehaviorReviewReplayCacheError:
+        # Acceleration must not narrow the underlying exact-reader
+        # contract. Unsafe evidence will still fail in the exact loader.
+        return _require_chain(loader())
+    chain = _require_chain(loader())
+    paths = _chain_paths(root, chain)
+    if paths != paths_before:
+        raise IdleBehaviorReviewReplayCacheError(
+            "Exact replay inputs changed during verification"
+        )
+    seal = seal_exact_directories(root, paths)
+    if seal != seal_before:
+        raise IdleBehaviorReviewReplayCacheError(
+            "Exact replay bytes changed during verification"
+        )
+    with _LOCK:
+        if generation == _GENERATION:
+            _CACHE[key] = _Entry(paths, seal, chain)
+            _CACHE.move_to_end(key)
+            while len(_CACHE) > _MAX_ENTRIES:
+                _CACHE.popitem(last=False)
+    return chain
 
 
 def clear_idle_behavior_review_replay_cache() -> None:
     """Clear process-local acceleration state; primarily for test isolation."""
 
+    global _GENERATION
     with _LOCK:
+        _GENERATION += 1
         _CACHE.clear()
 
 

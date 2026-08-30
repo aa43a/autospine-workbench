@@ -112,7 +112,7 @@ def _handler_factory(
             ):
                 return True
             if dispatch_motion_policy_review_package_get(
-                parts, store, self._send_visual_json,
+                parts, store, self._send_visual_json, self.path,
             ):
                 return True
             if dispatch_project_get(parts, store, self._send_json, self._send_file):

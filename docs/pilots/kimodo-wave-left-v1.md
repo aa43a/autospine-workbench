@@ -125,13 +125,13 @@ root correction，直到有版本化 proxy-effector/observability 合同。
 `fb8886cf1dcbff5d0ccb1fc36c6a087d93ad4e87678169dbad435e9e30e1adbe`。
 
 当前 revision 2 凭据只证明样本 A 的六条 setup 静态 locator 已通过人工决定、内容寻址发布与
-exact replay。它不证明 P10.1 身体摆动已经批准，也不证明动作中的接缝、官方 Runtime、连续
+exact replay。P10.1 身体摆动另已保存 revision 2，但它不证明 P10.2 通过，也不证明动作中的接缝、官方 Runtime、连续
 raster 安全或发布权；`dynamic_seam_safety_unproven`、`runtime_equivalence_unproven` 与
 `visual_seam_quality_unproven` 仍使 release gate 保持 blocked。
 
 ## P10.1 current heads 与 P10.2 结构诊断
 
-2026-08-30 的 current-head 双快照读取与零写入 P10.2 编译结果如下。P10.2 report 没有发布到
+2026-08-31 的 current-head 双快照读取与零写入 P10.2 编译结果如下。P10.2 report 没有发布到
 mutable alias；SHA 是相同 exact 输入与固定算法重新编译所得的 canonical 内容身份。
 
 下表绑定的是本页前半部分已采用的历史 P9 链，不会自动迁移到 revision 16 新草案。样本 B 只有
@@ -141,16 +141,24 @@ mutable alias；SHA 是相同 exact 输入与固定算法重新编译所得的 c
 | --- | --- | --- |
 | P10 review package | `183d5d2d970a1861360261f3607cf83910f25f6487dc4be3c5690d5d0099dec3` | `d2591818597c856a58e433a029fbf6c2d8a5efbb9bb4ea250970639abbb82212` |
 | P10.0 candidate | `cd19684f792ca3e2c364c8abc6a5cde2c7a79e05e72b634a92e381d39b051cad` | `a46b9fcbdad898d8e6c45033210e3f09090b7b4bd3da3334532b8164dca72bb6` |
-| P10.1 revision | `1` | `2` |
-| P10.1 decision | `d52b49e1353499ad3c72ee69d5aa8f5d53505c0677166a7ead7cbee95fe4fc83` | `206ec2d4b74ac0d94508d9aa7d95cee3f6a7b6339e4a5bd6ab8c5f9b08395a46` |
-| P10.1 current state | `unobservable / not_applicable` | `adjust / pending_probe` |
-| P10.2 report | 不适用 | `73fcea3c70aa03d4ffbda03d8971a1c33e29a363e3f09c7a0260a224d44bb7ad` |
-| P10.2 status | 未运行 | `structural_rejected` |
+| P10.1 revision | `2` | `2` |
+| P10.1 decision | `70d62da63a1ea392b79181d280984730b049bb018fcc443222f58e0f7878275e` | `206ec2d4b74ac0d94508d9aa7d95cee3f6a7b6339e4a5bd6ab8c5f9b08395a46` |
+| P10.1 current state | `adjust / pending_probe` | `adjust / pending_probe` |
+| P10.2 report | `4406289ece9ad0e707b2598eab0ba885bcb5f62d1e6be7d37bfa5c942a558e72` | `73fcea3c70aa03d4ffbda03d8971a1c33e29a363e3f09c7a0260a224d44bb7ad` |
+| P10.2 status | `structural_rejected` | `structural_rejected` |
 
-样本 B 的 `fk_finite` 通过；`sampled_canvas_containment` 在 `334` 个采样 tick 拒绝；无 mesh
-的 mesh/shared-index 项为 not applicable；attachment seam 与 Runtime visual 仍为 unobservable。
-因此当前没有任何一个样本取得 P10.3 准入。A 必须由操作者形成新的 `adjust/pending_probe`
-revision；B 必须形成新参数 revision 或修复画布/attachment 输入后重跑，系统不得自动改写人类决定。
+样本 A 的 r2 参数为 cycles `2`、四骨幅度 `0.8/0.7/0.4/0.2°`、相位
+`0/0.04/0.08/0.12`。P10.2 在 334 个采样中发现 218 个画布失败，`0/8` 仍失败 217 个，
+分类 `upstream_base_motion_canvas_overflow` 且没有参数候选。唯一责任附件是
+`layer-007-handwear-l`；`0/8` 的 failure sides 为 top/right，最大越界约 `154.2355 px`，
+发生在 tick `1500000`。因此 A 必须回绑定工作台修复基础动作、附件/骨绑定或画布并重建下游，
+不能进入 P10.3。B 表中结果仍是 revision 16 之前的历史链证据，也不能授权新链进入 P10.3。
+
+本轮读取性能优化不改变上述证据边界：stored split revalidation 缓存绑定
+source/preview/manifest 全字节、Resolved/decision 与 runtime，P9 exact replay 按 key
+single-flight，list/detail 可按 `project_id` 限定范围；前后双快照仍保留，缓存不授予 authority。
+实测全项目 warm 从约 `10.85 s` 降至约 `0.61 s`，A scope warm 约 `0.28 s`；冷启动仍需约
+`18 s` 完整重放 A 的 P9 链。
 
 ## 权限与质量边界
 
@@ -173,8 +181,8 @@ readiness 请求。任何输入、map、camera、compiler 或算法 profile 变�
 ## 下一步
 
 1. 项目 B（`seethrough_output_5`）先人工复核 `wave-left-v1-r16-draft` 的 Depth proposal，生成正式 policy 与 Depth candidates，再完成一次绑定新 P3/P5 的最终 P9 adoption；左腿 foot-lock 保持拒绝或不可观测。
-2. 项目 A（`seethrough_output`）打开 <http://127.0.0.1:8765/idle-behavior-review.html?package_id=183d5d2d970a1861360261f3607cf83910f25f6487dc4be3c5690d5d0099dec3>，由操作者查看并明确保存参数，追加新的 `adjust/pending_probe` revision；不能把现有不可观测 head 静默改写。
-3. 项目 B 在新 P9 adoption 后重新建立 P10.0/P10.1，再根据 P10.2 的画布越界见证调整 attachment/画布/骨绑定或上游动作。其四条下肢静态 seam 不可观测是另一条独立 blocker，仍须修复分层/语义或另立 partial 合同。
-4. 任一项目只有 P10.2 得到 `manual_visual_required` 后，才依次完成 P10.3a–P10.3c、P10.4a、P10.4b1 与 P10.4b2；A 再把该精确动作域与既有 P10.5c 双 SHA 组合为 P10.5d。
+2. 项目 A（`seethrough_output`）回绑定工作台修复 `layer-007-handwear-l`、基础动作/骨绑定或画布，并重建受影响的 P3/P5/P9/P10 地址；保留 r2 与 report `4406289e…` 为历史证据。
+3. 项目 B 在新 P9 adoption 后重新建立 P10.0/P10.1，再按新 P10.2 证据选择上游修复；其四条下肢静态 seam 仍须按新链复核。
+4. 任一项目只有重建后的 P10.2 得到 `manual_visual_required`，才进入 P10.3 及后续动作域；A 再把该精确动作域与既有 P10.5c 双 SHA 组合为 P10.5d。
 5. 为 readiness v1 生成新的 strict canonical 请求并显式写入实际采用的 P9 双 SHA 与 A 的 P10.5c 双 SHA。仓库自带的 baseline 请求仍把下游字段设为 `null`，不会自动发现这些地址。
 6. 在相应 P10.5d 合同关闭后继续 P10.6–P10.7a、官方 Runtime capture、sampled raster 人审与独立 P10.7c setup golden 对照。

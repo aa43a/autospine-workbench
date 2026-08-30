@@ -180,17 +180,25 @@ test("project handoff selects the matching current package instead of another sa
     packageSummary({ package_id: PACKAGE_B, project_id: "sample-b" }),
   ];
   const loaded = [];
+  const listScopes = [];
+  const entryScopes = [];
   const loader = createIdleBehaviorReviewLoader(elements, {
     locationSearch: "?project_id=sample-b",
     storage: storage(DIGESTS.package),
     api: {
-      list: async () => packageList(rows, DIGESTS.package),
-      entry: async (packageId) => entryDocument({
+      list: async (projectId) => {
+        listScopes.push(projectId);
+        return packageList(rows, DIGESTS.package);
+      },
+      entry: async (packageId, projectId) => {
+        entryScopes.push(projectId);
+        return entryDocument({
         package: {
           ...entryDocument().package,
           ...rows.find((row) => row.package_id === packageId),
         },
-      }),
+        });
+      },
     },
     onLoad: async (entry) => loaded.push(entry.package.package_id),
   });
@@ -198,6 +206,8 @@ test("project handoff selects the matching current package instead of another sa
   assert.equal(await loader.start(), true);
   assert.equal(elements.projectSelect.value, PACKAGE_B);
   assert.deepEqual(loaded, [PACKAGE_B]);
+  assert.deepEqual(listScopes, ["sample-b"]);
+  assert.deepEqual(entryScopes, ["sample-b"]);
 });
 
 test("project handoff does not guess from an incomplete inventory", async () => {
