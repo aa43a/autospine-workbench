@@ -173,6 +173,70 @@ test("explicit package handoff wins over a previously saved selection", async ()
   assert.deepEqual(loaded, [PACKAGE_B, PACKAGE_B]);
 });
 
+test("project handoff selects the matching current package instead of another saved project", async () => {
+  const elements = ui();
+  const rows = [
+    packageSummary(),
+    packageSummary({ package_id: PACKAGE_B, project_id: "sample-b" }),
+  ];
+  const loaded = [];
+  const loader = createIdleBehaviorReviewLoader(elements, {
+    locationSearch: "?project_id=sample-b",
+    storage: storage(DIGESTS.package),
+    api: {
+      list: async () => packageList(rows, DIGESTS.package),
+      entry: async (packageId) => entryDocument({
+        package: {
+          ...entryDocument().package,
+          ...rows.find((row) => row.package_id === packageId),
+        },
+      }),
+    },
+    onLoad: async (entry) => loaded.push(entry.package.package_id),
+  });
+
+  assert.equal(await loader.start(), true);
+  assert.equal(elements.projectSelect.value, PACKAGE_B);
+  assert.deepEqual(loaded, [PACKAGE_B]);
+});
+
+test("project handoff does not guess from an incomplete inventory", async () => {
+  const elements = ui();
+  let loads = 0;
+  const incomplete = { ...packageList([packageSummary()], null), skipped_count: 1 };
+  const loader = createIdleBehaviorReviewLoader(elements, {
+    locationSearch: "?project_id=seethrough_output",
+    storage: storage(),
+    api: {
+      list: async () => incomplete,
+      entry: async () => { loads += 1; return entryDocument(); },
+    },
+  });
+
+  assert.equal(await loader.start(), false);
+  assert.equal(loads, 0);
+  assert.match(elements.status.textContent, /清单有 1 个版本校验失败/);
+});
+
+test("project handoff accepts the server recommendation despite unrelated skipped history", async () => {
+  const elements = ui();
+  const loaded = [];
+  const inventory = { ...packageList(), skipped_count: 1 };
+  const loader = createIdleBehaviorReviewLoader(elements, {
+    locationSearch: "?project_id=seethrough_output",
+    storage: storage(),
+    api: {
+      list: async () => inventory,
+      entry: async () => entryDocument(),
+    },
+    onLoad: async (entry) => loaded.push(entry.package.package_id),
+  });
+
+  assert.equal(await loader.start(), true);
+  assert.deepEqual(loaded, [DIGESTS.package]);
+  assert.match(elements.status.textContent, /另有 1 个版本校验失败/);
+});
+
 test("loader does not guess when multiple valid packages have no recommendation", async () => {
   const elements = ui();
   const rows = [packageSummary(), packageSummary({ package_id: PACKAGE_B })];
@@ -340,9 +404,15 @@ test("explicit historical handoff remains viewable but never upgrades to writabl
 
 test("handoff parser rejects incomplete, duplicate, or noncanonical identity pairs", async () => {
   assert.deepEqual(parseIdleReviewHandoff(""), { kind: "none" });
+  assert.deepEqual(parseIdleReviewHandoff("?project_id=seethrough_output"), {
+    kind: "project", projectId: "seethrough_output",
+  });
   assert.deepEqual(parseIdleReviewHandoff(`?package_id=${DIGESTS.package}`), {
     kind: "package", packageId: DIGESTS.package,
   });
+  assert.throws(() => parseIdleReviewHandoff(
+    `?project_id=seethrough_output&package_id=${DIGESTS.package}`), /不能与 package/);
+  assert.throws(() => parseIdleReviewHandoff("?project_id=../unsafe"), /安全标识符/);
   assert.throws(() => parseIdleReviewHandoff(
     `?canvas_adjustment_sha256=${ADJUSTMENT_SHA}`), /唯一的小写 SHA-256 对/);
   assert.throws(() => parseIdleReviewHandoff(

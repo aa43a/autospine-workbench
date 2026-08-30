@@ -1,6 +1,6 @@
 # AutoSpine Workbench 后续开发路线
 
-本文是 Explanation 与交付计划，面向维护者和需要评估可行性的项目负责人。它从 **P0 Resolved Project v1 合同、P10.2 current-head 自动结构探针与 P10.2a 统一 gain 诊断、P10.5b 自动复核/P10.5c package publication、P10.6b MotionInstance v3、P10.7a Spine adapter bundle、P10.7b sampled raster 基础设施与独立 P10.7c setup regression 已完成** 的事实出发，说明尚未实现或尚未在真实资产上关闭的能力应按什么依赖关系推进。**P9-real-kimodo-policy-adoption** 对真实 `wave-left-v1` 的 A/B 历史精确链已关闭。样本 A 已有 P10.5c 静态接缝集，但 current P10.1 r1 为 `unobservable/not_applicable`。样本 B 历史链的 P10.1 r2 为 `adjust/pending_probe`，`8/8` 有 `334/334`、`0/8` 有 `333/334` 个 sampled canvas 失败 tick；这些数字不能外推到绑定 revision 16。B 必须完成新 P9 adoption，再重建 P10.0、显式形成新 P10.1 并重跑 P10.2/P10.2a。任一项目只有新报告得到 `manual_visual_required` 才进入 P10.3a–P10.3c → P10.4a → P10.4b1 → P10.4b2 → P10.5d。这里的阶段名、优先级和验收条件是建议，不构成发布日期承诺；历史结构报告、P9 或静态接缝通过都不等于当前 Resolved Project、Runtime、连续时间或 release authority 已经通过。
+本文是 Explanation 与交付计划，面向维护者和需要评估可行性的项目负责人。它从 **P0 Resolved Project v1 合同、P10.2 current-head 自动结构探针与 P10.2a 统一 gain 诊断、P10.5b 自动复核/P10.5c package publication、P10.6b MotionInstance v3、P10.7a Spine adapter bundle、P10.7b sampled raster 基础设施与独立 P10.7c setup regression 已完成** 的事实出发，说明尚未实现或尚未在真实资产上关闭的能力应按什么依赖关系推进。**P9-real-kimodo-policy-adoption** 对真实 `wave-left-v1` 的 A/B 历史精确链已关闭。样本 A 当前为 P10.5b revision 2（`6/6 accept`、`24` 个 anchor pairs），对应 P10.5c 静态接缝集已 exact replay；revision 1 只保留为历史，但 current P10.1 r1 仍为 `unobservable/not_applicable`。样本 B 历史链的 P10.1 r2 为 `adjust/pending_probe`，`8/8` 有 `334/334`、`0/8` 有 `333/334` 个 sampled canvas 失败 tick；这些数字不能外推到绑定 revision 16。B 必须完成新 P9 adoption，再重建 P10.0、显式形成新 P10.1 并重跑 P10.2/P10.2a。任一项目只有新报告得到 `manual_visual_required` 才进入 P10.3a–P10.3c → P10.4a → P10.4b1 → P10.4b2 → P10.5d。这里的阶段名、优先级和验收条件是建议，不构成发布日期承诺；历史结构报告、P9 或静态接缝通过都不等于当前 Resolved Project、Runtime、连续时间或 release authority 已经通过。
 
 样本 B 在上述历史链之后又保存了绑定 revision 16。新 Manifest/P2–P5 已 strict verify，
 `wave-left-v1-r16-draft` 也已生成，但仍停在 pending Depth proposal：旧 P9/P10 决定不会跨链
@@ -109,8 +109,9 @@ Revision 历史 UI（独立 authoring 可用性轨）
 - 一次最终确认才提交 P10.5b。ready 时继续 package-bound P10.5c publication 与 exact
   readback；P10.5b 已提交而 P10.5c 失败时，只能重试 publication，不重复写人工 revision。
 
-这里的“已完成”包括 A 的真实静态凭据：P10.5b revision 1 已由操作者确认，P10.5c bundle 已
-发布并通过 exact replay。它只固定六条 setup locator，不能直接进入 P10.5d；当前要先关闭
+这里的“已完成”包括 A 的真实静态凭据：P10.5b revision 2 已由操作者以 `6/6 accept`、`24` 个
+anchor pairs 确认并明确取代 revision 1；对应 P10.5c bundle 已发布并通过 exact replay。它只
+固定六条 setup locator，不能直接进入 P10.5d；当前要先关闭
 P10.0/P10.1、P10.2、P10.3、P10.4a、P10.4b1 与 P10.4b2 动作域。B 历史链的四条下肢关系
 不可观测，自动流程只会保存 blocked 结论而不会发布完整 P10.5c；revision 16 必须按新
 Manifest/P3/candidate 重新判断，不能继承该 blocker 或把它自动改成通过。
@@ -344,11 +345,11 @@ Runtime、capture、发布或写入，不代替人工决定，也不授予 publi
 
 | 项目 | 最早共同动作 blocker | 接缝 blocker | Runtime 状态 |
 | --- | --- | --- | --- |
-| `seethrough_output` | P9 exact reader 已通过；冻结请求尚未声明 | P10.5b revision 1 与 P10.5c exact bundle 已存在；冻结请求仍未声明 | 下一 blocker 是 P10.1→P10.2→P10.3→P10.4a→P10.4b1→P10.4b2 动作域，不是静态 seam |
+| `seethrough_output` | P9 exact reader 已通过；冻结请求尚未声明 | current P10.5b revision 2 与 P10.5c exact bundle 已存在；revision 1 为历史，冻结请求仍未声明 | 下一 blocker 是 P10.1→P10.2→P10.3→P10.4a→P10.4b1→P10.4b2 动作域，不是静态 seam |
 | `seethrough_output_5` | 历史 P9 exact reader 已通过；r16 新 P9 尚待 adoption，冻结请求也未声明 | 历史 P3 candidate 的四条腿/脚不可观测结论不能替代 r16 新链复验 | 官方 Runtime 包与 P6 baseline 可用，但 r16 须重建 P10.0/P10.1、重跑 P10.2 后再判断更早 blocker |
 
 A 的 seam checkpoint 必须表述为 `reviewed_seam_anchor_set_address_not_declared`。这只说明冻结请求
-没有提供 P10.5c 双 SHA，不说明 current review head 或真实工件为空。A 的 P10.5b revision 1 和
+没有提供 P10.5c 双 SHA，不说明 current review head 或真实工件为空。A 的 current P10.5b revision 2 和
 P10.5c exact bundle 已经存在，应把 [pilot handoff](pilots/kimodo-wave-left-v1.md) 中的双 SHA 写入
 新 canonical 请求；冻结请求中的 P9 `null` 同样只表示该请求未声明当前已存在的 exact 地址。
 
@@ -538,7 +539,7 @@ P5 v2 mesh regression；v1/v2 双读与能力矩阵；极值姿势、热图、�
 
 ## 真实 Kimodo/P9 质量门禁
 
-**当前状态：单一 `wave-left-v1` 的历史链已完成 intake、P7/P8、两个目标 P5，以及 A/B 各自的最终 human adoption、P9 发布与 exact verify；A 的 P10.5b revision 1 与 P10.5c exact bundle 已闭合。P10.2/P10.2a 自动入口已经交付：A current P10.1 不适用；B 历史链在 gain `8/8` 与 `0/8` 均有画布越界，但 revision 16 已改变上游身份，不能把该结果或旧 seam blocker外推到新链。B r16 尚待新 P9 adoption，之后还须重建 P10.0/P10.1 并重跑 P10.2。两者都尚未进入 P10.3；package-centric 自动采集仍是规划。**
+**当前状态：单一 `wave-left-v1` 的历史链已完成 intake、P7/P8、两个目标 P5，以及 A/B 各自的最终 human adoption、P9 发布与 exact verify；A 的 current P10.5b revision 2（`6/6 accept`、`24` 个 anchor pairs）与对应 P10.5c exact bundle 已闭合，revision 1 只保留为历史。P10.2/P10.2a 自动入口已经交付：A current P10.1 不适用；B 历史链在 gain `8/8` 与 `0/8` 均有画布越界，但 revision 16 已改变上游身份，不能把该结果或旧 seam blocker外推到新链。B r16 尚待新 P9 adoption，之后还须重建 P10.0/P10.1 并重跑 P10.2。两者都尚未进入 P10.3；package-centric 自动采集仍是规划。动态接缝、Runtime 等价和视觉接缝质量仍未通过。**
 
 上述状态描述的是已采用的历史精确链。样本 B revision 16 已产生新的 Manifest/P2–P5 地址，并
 准备 `wave-left-v1-r16-draft`；它尚无正式 Depth policy、Depth candidates 或新 P9 adoption。

@@ -165,8 +165,15 @@ export function showSeamPublicationReceipt(elements, receipt) {
   elements.reviewedSetBundleSha.textContent = receipt.address.bundleSha256;
   elements.downloadPublicationBtn.disabled = false;
   elements.retryPublicationBtn.hidden = true;
+  elements.nextDynamicSeamLink.href = `./idle-behavior-review.html?project_id=${
+    encodeURIComponent(receipt.address.projectId)}`;
+  elements.nextDynamicSeamLink.textContent = "继续同一项目：补齐身体摆动动作域";
   elements.nextDynamicSeamLink.hidden = false;
-  setStatus(elements.publicationStatus, "静态接缝集已生成，且已从精确上游重新读取验证。", "success");
+  setStatus(
+    elements.publicationStatus,
+    "静态接缝集已生成并精确复验；动态接缝仍需先补齐身体摆动动作域。",
+    "success",
+  );
 }
 
 export function showSeamPublicationFailure(elements, message, retryable = false) {

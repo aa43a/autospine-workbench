@@ -36,11 +36,15 @@ python -B -m autospine_workbench audit-body-sway-spine42-v3-readiness `
 | `seethrough_output` | `3c7bb6efcdb91d3ad3c1984ae19159a2ceb2b7aa8f0b88fc405d63956bd59823` | `b347c56a217b4cc844da3f115f100ae8b1352389207f357824ba322bdb46649c` |
 | `seethrough_output_5` | `706225aca7359f46daf0c318e186252b36c44650cd1539eb667e40f50e715754` | `39076c3589b046268b01c6c85bb0f7393403d2d0973ae417ef78271b649d0e96` |
 
-同日，样本 A 的 P10.5b revision 1 已由操作者确认，P10.5c 静态接缝集已发布并通过 exact replay：
+样本 A 当前的 P10.5b revision 2 已由操作者确认，以 `6/6 accept`、`24` 个 anchor pairs 明确
+取代 revision 1；对应 P10.5c 静态接缝集已发布并通过 exact replay：
 
 | 项目 | P10.5c reviewed-set SHA-256 | P10.5c bundle SHA-256 |
 | --- | --- | --- |
-| `seethrough_output` | `47656c2510e98b7598937a2c3315cd8f6e05274162160cf11a07cc167ed0e4d9` | `fb8886cf1dcbff5d0ccb1fc36c6a087d93ad4e87678169dbad435e9e30e1adbe` |
+| `seethrough_output` | `d801bdd2d60675242ece25aa5ed043cc2be1da6fea43c322c6377d1b93a8c8e1` | `66318839656b1f5ad5c89aa49286f4c9a0bcb25e81434d0a9ba8af210a8c7ce9` |
+
+被取代的 revision 1 set/bundle 仍是可复验历史，不再是 current-head authority。上述当前静态凭据
+也没有关闭动态接缝、Runtime 等价或视觉接缝质量门。
 
 仓库自带的示例文件是冻结的 baseline，仍故意把以下五组下游地址和 raster 人工决定全部设为 `null`。因此直接运行本节开头的示例命令仍会报告 P9 地址未声明；这不再代表当前工作区没有真实 P9。要审计最新状态，应以示例为结构起点，使用 canonical builder 生成一份新的请求，并把上表双 SHA 填入对应项目的 `reviewed_motion_address`：
 
@@ -79,7 +83,7 @@ python -B -m autospine_workbench audit-body-sway-spine42-v3-readiness `
 以下结论区分“真实工件已存在”与“冻结 baseline 是否声明地址”。审计只重放请求中显式声明的地址，不会自动发现工作区内容：
 
 - A/B 的真实 P9 双 SHA 已由 `verify-reviewed-motion-bundle` 复验，均返回 `verification.status=passed` 与 `replayed_from_exact_upstreams=true`。冻结 baseline 仍为 `null`，所以直接运行它时 `p9_reviewed_motion` 仍报告 `exact_reviewed_motion_address_not_declared`；只有生成并审计显式填入上表地址的新请求，才能让 readiness checkpoint 记录这项事实。
-- `seethrough_output` 的 P10.5b revision 1 与 P10.5c exact bundle 已闭合。冻结 baseline 仍未声明该双 SHA，所以直接运行它时 seam checkpoint 仍报告 `reviewed_seam_anchor_set_address_not_declared`；生成新请求后才能审计已存在的静态凭据。A 当前真实动作顺序是 P10.0/P10.1 → P10.2 → P10.3a–P10.3c → P10.4a → P10.4b1 → P10.4b2 → P10.5d，不能从静态 set 直接跳级。
+- `seethrough_output` 的 current P10.5b revision 2 与 P10.5c exact bundle 已闭合；revision 1 只保留为历史精确地址。冻结 baseline 仍未声明当前双 SHA，所以直接运行它时 seam checkpoint 仍报告 `reviewed_seam_anchor_set_address_not_declared`；生成新请求后才能审计已存在的静态凭据。A 当前真实动作顺序是 P10.0/P10.1 → P10.2 → P10.3a–P10.3c → P10.4a → P10.4b1 → P10.4b2 → P10.5d，不能从静态 set 直接跳级。
 - `seethrough_output_5` 的 P9 同样已经通过，但四条腿/脚关系不可观测：左右 `pelvis_leg` 缺 child role，左右 `leg_foot` 缺 parent role。P10.5c 的完整六关系合同不能把这些行自动批准；需要回到上游修复语义/分层并重新生成受内容地址约束的 Manifest/P3，或者另立、版本化并单独验收 partial seam 合同。
 - 官方 Spine 4.2 Runtime/Capture 基础设施当前已存在，因此不需要把“下载 Runtime”作为第一步；A 更早的 blocker 是 P10.1–P10.5d 动作域，B 更早的 blocker 是完整静态 seam 合同。审计不会主动发现或调用该 Runtime。
 - P10.7c 独立比较命令已经存在，但当前 A/B 都没有满足其请求合同所需的真实 P10.7a/capture 地址；这项能力交付不能被表述为真实双样本已通过。

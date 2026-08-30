@@ -6,9 +6,10 @@ P10.5b 本身只记录静态 locator 选择；从 P9 package 进入且结果 rea
 最终确认后继续 P10.5c，发布并精确读回 `ReviewedSeamAnchorSet`。两阶段都不证明动作中的
 动态接缝、视觉质量、runtime 等价或发布安全。
 
-样本 A 已完成这套流程：P10.5b revision 1 由操作者确认，P10.5c 静态 set 已发布并通过 exact
-replay。除非候选或上游发生版本化变化，不要再次提交同一组六项决定；当前应转到
-[身体摆动设置](http://127.0.0.1:8765/idle-behavior-review.html)，先关闭 P10.0/P10.1 与后续动作域。
+样本 A 已完成这套流程：P10.5b revision 2 由操作者确认，并以 `6/6 accept`、`24` 个 anchor
+pairs 取代 revision 1；对应 P10.5c 静态 set 已发布并通过 exact replay。除非候选或上游发生
+版本化变化，不要再次提交同一组六项决定；当前应转到
+[身体摆动设置](http://127.0.0.1:8765/idle-behavior-review.html?project_id=seethrough_output)，先关闭 P10.0/P10.1 与后续动作域。该项目入口会自动定位当前 P9 package；只有同一项目存在多个当前动作版本时才要求选择。
 
 ## 前置条件
 
@@ -216,13 +217,16 @@ decision 的机器合同位于
 
 ## 当前 A/B 状态
 
-- 样本 A（`seethrough_output`）已由操作者确认 P10.5b revision `1`。精确身份为 package
+- 样本 A（`seethrough_output`）当前由操作者确认 P10.5b revision `2`，它明确 supersede
+  revision `1`，结果为 `6/6 accept`、`24` 个 anchor pairs。精确身份为 package
   `a933df26a457be609c6c30f08ad8ad0284ad2f2a02bd655163ebb6e7775764c0`、candidate
   `8b84858b1a723e20374892c0fc570385c8a23ff91b7398839af3218b67f21ff6`、decision
-  `111d7da8589204e300b9aa8067b1f69baf938ca6f2cd715961b0b506fb55f680`。P10.5c reviewed set
-  `47656c2510e98b7598937a2c3315cd8f6e05274162160cf11a07cc167ed0e4d9` 与 bundle
-  `fb8886cf1dcbff5d0ccb1fc36c6a087d93ad4e87678169dbad435e9e30e1adbe` 已通过 exact replay。
-  这些身份只证明静态 locator 链闭合。
+  `e80a07afc009276a6073684d8ce5a1bbf253cda9286bcc1f1ef8c95ef9669612`。P10.5c reviewed set
+  `d801bdd2d60675242ece25aa5ed043cc2be1da6fea43c322c6377d1b93a8c8e1` 与 bundle
+  `66318839656b1f5ad5c89aa49286f4c9a0bcb25e81434d0a9ba8af210a8c7ce9` 已通过 exact replay。
+  历史 revision `1` 仍可复验，但不再具有 current-head authority；其 decision/set/bundle 见
+  [pilot handoff](pilots/kimodo-wave-left-v1.md)。这些身份只证明静态 locator 链闭合；动态接缝、
+  Runtime 等价和视觉接缝质量仍为 blocked。
 - 样本 B（`seethrough_output_5`）的左右 `pelvis_leg` 与 `leg_foot` 四条关系由源证据判为
   不可观测。自动流程会保留这些 `unobservable` 草稿并在确认后保存阻塞结论，不会把它们改成
   `accept`，也不会发布完整六关系 P10.5c。

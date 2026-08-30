@@ -114,7 +114,7 @@ $env:PYTHONPATH = (Resolve-Path .\src).Path
 6. 若六条关系全部 `accept/adjust` 且页面来自 P9 package，本机随后自动执行 P10.5c 编译、内容寻址发布和 exact readback。成功后可下载 path-free 精确复验回执；只有精确 P10.4b2 动作域也已闭合时，才能进入“动态接缝验证”。
 7. 若页面提示“P10.5b 已保存；P10.5c 未完成”，只点击“仅重试生成静态接缝集”。不要再次提交六项人工决定；页面会保留已经写入的 revision。若结果包含 `reject/unobservable`，页面只保存阻塞结论，不会生成不可信的 P10.5c。
 
-当前真实状态要单独理解：样本 A 的 P10.5b revision 1 已确认，P10.5c 静态接缝集也已发布并通过 exact replay，无需重复提交六项决定；但它的 current P10.1 不适用，仍须回设置页形成可探针 revision。样本 B 在 `8/8` 和 `0/8` 都被画布越界拒绝，且左右髋/脚踝共四条静态关系不可观测；参数、画布结构与静态 seam 是不同 blocker，自动流程不会把它们改成通过。
+当前真实状态要单独理解：样本 A 的 P10.5b revision 2 已以 `6/6 accept`、`24` 个 anchor pairs 取代 revision 1；对应 P10.5c 静态接缝集也已发布并通过 exact replay，无需重复提交六项决定。该结果不表示动态接缝、Runtime 等价或视觉接缝质量已经通过；这些门仍为 blocked。A 的 current P10.1 也仍不适用，须回设置页形成可探针 revision。样本 B 在 `8/8` 和 `0/8` 都被画布越界拒绝，且左右髋/脚踝共四条静态关系不可观测；参数、画布结构与静态 seam 是不同 blocker，自动流程不会把它们改成通过。
 
 ## 3. 打开一个样本
 

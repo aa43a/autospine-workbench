@@ -403,9 +403,10 @@ gate 都进入内容哈希。bundle 只含 exact candidate、exact decision 和 
 package/candidate/revision/decision 身份；服务端重新生成 P9→P3→candidate closure、确认 ready
 current head，再复用同一 compiler/store/reader 返回 path-free exact receipt。该便利入口没有把
 P10.5b 与 P10.5c 合并成一个合同：revision 已经落盘后 publication 失败，重试不会再次写 decision。
-当前真实 A 已由操作者确认 P10.5b revision 1，P10.5c set/bundle 也已 exact verify；B 的四条
-不可观测关系仍在 ready gate 前 fail closed。A 的静态凭据不能跨过尚缺的 P10.1 动作参数、
-P10.2/P10.3 与 P10.4b2，直接冒充 P10.5d 动态接缝证明。
+当前真实 A 已由操作者确认 P10.5b revision 2（`6/6 accept`、`24` 个 anchor pairs），该 revision
+明确 supersede revision 1；新的 P10.5c set/bundle 也已 exact verify。B 的四条不可观测关系仍在
+ready gate 前 fail closed。A 的静态凭据不能跨过尚缺的 P10.1 动作参数、P10.2/P10.3 与
+P10.4b2，直接冒充 P10.5d 动态接缝证明；动态接缝、Runtime 等价和视觉接缝质量仍为 blocked。
 
 P10.5d 在不修改 P10.4b2 或 P10.5c hash 语义的前提下合并两条链：
 

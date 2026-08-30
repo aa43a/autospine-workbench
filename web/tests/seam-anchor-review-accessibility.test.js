@@ -6,7 +6,9 @@ import { appendTextElement, restoreSeamFocus } from "../modules/seam-anchor-revi
 import { seamReviewKeyboardIntent } from "../modules/seam-anchor-review-keyboard.js";
 import { createSeamReviewInteractions } from "../modules/seam-anchor-review-interactions.js";
 import { createSeamReviewState } from "../modules/seam-anchor-review-state.js";
-import { setSeamDraftDisabled } from "../modules/seam-anchor-review-view.js";
+import {
+  setSeamDraftDisabled, showSeamPublicationReceipt,
+} from "../modules/seam-anchor-review-view.js";
 import { renderSeamOptionVisual } from "../modules/seam-anchor-review-visual.js";
 
 function keyEvent(key, target = { tagName: "DIV" }, extra = {}) {
@@ -98,6 +100,29 @@ test("mutation lock freezes every authored control and synthetic shortcut", () =
   interactions.handleKeyboard(event);
   assert.equal(event.defaultPrevented, false);
   assert.equal(clicked, 0);
+});
+
+test("static seam receipt routes the same project through the missing motion domain", () => {
+  const elements = {
+    publicationPanel: { hidden: true, dataset: {} },
+    publicationStage: {}, reviewedSetSha: {}, reviewedSetBundleSha: {},
+    downloadPublicationBtn: { disabled: true }, retryPublicationBtn: { hidden: false },
+    nextDynamicSeamLink: { hidden: true, href: "", textContent: "" },
+    publicationStatus: { textContent: "", dataset: {} },
+  };
+  showSeamPublicationReceipt(elements, {
+    address: {
+      projectId: "seethrough_output_5",
+      reviewedSetSha256: "a".repeat(64), bundleSha256: "b".repeat(64),
+    },
+  });
+
+  assert.equal(
+    elements.nextDynamicSeamLink.href,
+    "./idle-behavior-review.html?project_id=seethrough_output_5",
+  );
+  assert.match(elements.nextDynamicSeamLink.textContent, /补齐身体摆动动作域/);
+  assert.match(elements.publicationStatus.textContent, /动态接缝仍需先补齐/);
 });
 
 test("DOM helper treats untrusted labels only as text", () => {

@@ -4,6 +4,7 @@ import { createIdleBehaviorReviewApi } from "./idle-behavior-review-api.js";
 
 const STORAGE_KEY = "autospine.idle-behavior.last-package.v1";
 const SHA = /^[0-9a-f]{64}$/;
+const PROJECT_ID = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
 const READY_STATUS = "ready_for_candidate_replay";
 
 export function createIdleBehaviorReviewLoader(elements, dependencies = {}) {
@@ -33,8 +34,37 @@ export function createIdleBehaviorReviewLoader(elements, dependencies = {}) {
       setBusy(false);
       return false;
     }
-    return handoff.kind === "none"
-      ? startFromInventory(current) : startDirect(handoff, current);
+    if (handoff.kind === "none") return startFromInventory(current);
+    if (handoff.kind === "project") return startFromProjectInventory(handoff, current);
+    return startDirect(handoff, current);
+  }
+
+  async function startFromProjectInventory(handoff, current) {
+    setBusy(true);
+    status(`正在定位 ${handoff.projectId} 的当前动作…`, "warning");
+    try {
+      const result = await api.list();
+      if (current !== generation) return false;
+      packages = result.packages;
+      skippedCount = result.skipped_count;
+      const selected = projectSelection(handoff.projectId, result.recommended_package_id);
+      renderOptions(!selected);
+      if (!selected) {
+        onReset();
+        status(projectSelectionMessage(handoff.projectId), "warning");
+        return false;
+      }
+      elements.projectSelect.value = selected;
+      return loadSelected("已自动定位同一项目", current);
+    } catch (error) {
+      if (current === generation) {
+        onReset();
+        status(message(error), "error");
+      }
+      return false;
+    } finally {
+      if (current === generation) setBusy(false);
+    }
   }
 
   async function startDirect(handoff, current) {
@@ -222,6 +252,24 @@ export function createIdleBehaviorReviewLoader(elements, dependencies = {}) {
     return current.length === 1 ? current[0].package_id : null;
   }
 
+  function projectSelection(projectId, recommended) {
+    const current = packages.filter((row) => row.project_id === projectId && isReady(row));
+    if (current.some((row) => row.package_id === recommended)) return recommended;
+    if (skippedCount > 0) return null;
+    return current.length === 1 ? current[0].package_id : null;
+  }
+
+  function projectSelectionMessage(projectId) {
+    const matching = packages.filter((row) => row.project_id === projectId && isReady(row));
+    if (skippedCount) {
+      return `${projectId} 的项目清单有 ${skippedCount} 个版本校验失败；请明确选择当前动作。`;
+    }
+    if (matching.length > 1) {
+      return `${projectId} 有多个当前动作版本；请明确选择要继续的动作。`;
+    }
+    return `${projectId} 尚无可复验的当前 P9 动作；请先完成该项目的 P9 采用。`;
+  }
+
   function selectionRequiredMessage() {
     const currentCount = packages.filter(isReady).length;
     if (!currentCount) {
@@ -281,7 +329,15 @@ export function parseIdleReviewHandoff(search) {
   const query = new URLSearchParams(search);
   const packages = query.getAll("package_id");
   const adjustments = query.getAll("canvas_adjustment_sha256");
-  if (!packages.length && !adjustments.length) return { kind: "none" };
+  const projects = query.getAll("project_id");
+  if (!packages.length && !adjustments.length && !projects.length) return { kind: "none" };
+  if (projects.length) {
+    if (projects.length !== 1 || packages.length || adjustments.length
+        || !PROJECT_ID.test(projects[0])) {
+      throw new Error("project_id 必须是唯一的安全标识符，且不能与 package handoff 混用");
+    }
+    return { kind: "project", projectId: projects[0] };
+  }
   if (packages.length !== 1 || adjustments.length > 1
       || !SHA.test(packages[0]) || (adjustments.length && !SHA.test(adjustments[0]))) {
     throw new Error("package_id 与调整候选必须是唯一的小写 SHA-256 对");

@@ -105,20 +105,29 @@ root correction，直到有版本化 proxy-effector/observability 合同。
 
 ## 样本 A 的静态接缝凭据
 
-2026-08-30，操作者完成样本 A 的 P10.5b 最终确认；同一 package-bound 流程随后发布 P10.5c，
-并从精确上游读回复验：
+2026-08-30，操作者完成样本 A 的 P10.5b revision 1 与首个 P10.5c 发布。2026-08-31，
+操作者提交 revision 2；它明确 supersede revision 1，并以 `6/6 accept`、`24` 个 anchor pairs
+重新发布 P10.5c。当前精确身份如下：
 
 | 地址 | SHA-256 / revision |
 | --- | --- |
 | P9 review package | `a933df26a457be609c6c30f08ad8ad0284ad2f2a02bd655163ebb6e7775764c0` |
 | P10.5b candidate | `8b84858b1a723e20374892c0fc570385c8a23ff91b7398839af3218b67f21ff6` |
-| P10.5b decision | `111d7da8589204e300b9aa8067b1f69baf938ca6f2cd715961b0b506fb55f680` |
-| P10.5b revision | `1` |
-| P10.5c reviewed set | `47656c2510e98b7598937a2c3315cd8f6e05274162160cf11a07cc167ed0e4d9` |
-| P10.5c bundle | `fb8886cf1dcbff5d0ccb1fc36c6a087d93ad4e87678169dbad435e9e30e1adbe` |
+| P10.5b decision | `e80a07afc009276a6073684d8ce5a1bbf253cda9286bcc1f1ef8c95ef9669612` |
+| P10.5b revision | `2`（supersedes revision 1） |
+| P10.5b summary | `6/6 accept`；`24` anchor pairs |
+| P10.5c reviewed set | `d801bdd2d60675242ece25aa5ed043cc2be1da6fea43c322c6377d1b93a8c8e1` |
+| P10.5c bundle | `66318839656b1f5ad5c89aa49286f4c9a0bcb25e81434d0a9ba8af210a8c7ce9` |
 
-该组凭据只证明样本 A 的六条 setup 静态 locator 已通过人工决定、内容寻址发布与 exact replay。
-它不证明 P10.1 身体摆动已经批准，也不证明动作中的接缝、官方 Runtime、连续 raster 安全或发布权。
+被取代的历史 revision 1 仍可按精确地址复验，但不再具有 current-head authority：decision
+`111d7da8589204e300b9aa8067b1f69baf938ca6f2cd715961b0b506fb55f680`、reviewed set
+`47656c2510e98b7598937a2c3315cd8f6e05274162160cf11a07cc167ed0e4d9`、bundle
+`fb8886cf1dcbff5d0ccb1fc36c6a087d93ad4e87678169dbad435e9e30e1adbe`。
+
+当前 revision 2 凭据只证明样本 A 的六条 setup 静态 locator 已通过人工决定、内容寻址发布与
+exact replay。它不证明 P10.1 身体摆动已经批准，也不证明动作中的接缝、官方 Runtime、连续
+raster 安全或发布权；`dynamic_seam_safety_unproven`、`runtime_equivalence_unproven` 与
+`visual_seam_quality_unproven` 仍使 release gate 保持 blocked。
 
 ## P10.1 current heads 与 P10.2 结构诊断
 
