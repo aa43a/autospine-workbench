@@ -1,10 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { createIdleBehaviorReviewLoader } from "../modules/idle-behavior-review-loader.js";
 import {
-  DIGESTS, entryDocument, packageList, packageSummary,
+  createIdleBehaviorReviewLoader, parseIdleReviewHandoff,
+} from "../modules/idle-behavior-review-loader.js";
+import {
+  DIGESTS, canvasAdjustmentDraftEntry, entryDocument, packageList, packageSummary,
 } from "./idle-behavior-review-fixtures.mjs";
+import { ADJUSTMENT_SHA } from "./body-sway-canvas-adjustment-fixtures.mjs";
 
 const PACKAGE_B = "8".repeat(64);
 const PREFIX_PACKAGE_A = `abcdef12a${"1".repeat(55)}`;
@@ -222,4 +225,57 @@ test("loader discards a late detail after the operator switches packages", async
 
   assert.deepEqual(loaded, [PACKAGE_B]);
   assert.equal(elements.projectSelect.value, PACKAGE_B);
+});
+
+test("paired P10.2 handoff renders its exact draft before the slow inventory", async () => {
+  const elements = ui();
+  const inventory = deferred();
+  const calls = [];
+  const loaded = [];
+  const loader = createIdleBehaviorReviewLoader(elements, {
+    locationSearch: `?package_id=${DIGESTS.package}`
+      + `&canvas_adjustment_sha256=${ADJUSTMENT_SHA}`,
+    storage: storage(),
+    api: {
+      async entryWithCanvasAdjustment(packageId, sha) {
+        calls.push(`draft:${packageId}:${sha}`);
+        return canvasAdjustmentDraftEntry();
+      },
+      async list() { calls.push("list"); return inventory.promise; },
+    },
+    onLoad(_entry, context) {
+      loaded.push(context.canvasAdjustmentDraft.proposal.gain.numerator);
+    },
+  });
+  const starting = loader.start();
+  await eventually(() => calls.includes("list"));
+  assert.deepEqual(loaded, [4]);
+  assert.equal(calls[0], `draft:${DIGESTS.package}:${ADJUSTMENT_SHA}`);
+  inventory.resolve(packageList());
+  assert.equal(await starting, true);
+  assert.equal(loader.currentPackageId(), DIGESTS.package);
+});
+
+test("handoff parser rejects incomplete, duplicate, or noncanonical identity pairs", async () => {
+  assert.deepEqual(parseIdleReviewHandoff(""), { kind: "none" });
+  assert.deepEqual(parseIdleReviewHandoff(`?package_id=${DIGESTS.package}`), {
+    kind: "package", packageId: DIGESTS.package,
+  });
+  assert.throws(() => parseIdleReviewHandoff(
+    `?canvas_adjustment_sha256=${ADJUSTMENT_SHA}`), /唯一的小写 SHA-256 对/);
+  assert.throws(() => parseIdleReviewHandoff(
+    `?package_id=${DIGESTS.package}&package_id=${DIGESTS.package}`), /唯一/);
+  assert.throws(() => parseIdleReviewHandoff(
+    `?package_id=${DIGESTS.package}&canvas_adjustment_sha256=${"F".repeat(64)}`), /唯一/);
+
+  const elements = ui();
+  let calls = 0;
+  const loader = createIdleBehaviorReviewLoader(elements, {
+    locationSearch: `?package_id=${DIGESTS.package}`
+      + `&package_id=${DIGESTS.package}`,
+    api: { list: async () => { calls += 1; }, entry: async () => { calls += 1; } },
+  });
+  assert.equal(await loader.start(), false);
+  assert.equal(calls, 0);
+  assert.match(elements.status.textContent, /不会猜测其他项目/);
 });

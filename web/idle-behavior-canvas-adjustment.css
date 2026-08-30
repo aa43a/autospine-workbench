@@ -1,0 +1,30 @@
+.canvas-draft {
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid #8a6b2f;
+  border-radius: 12px;
+  background: #1c190f;
+}
+
+.canvas-draft h3, .canvas-draft p { margin-top: 0; }
+
+.canvas-draft-summary {
+  display: grid;
+  grid-template-columns: minmax(100px, .5fr) minmax(0, 2fr);
+  gap: .65rem;
+  margin: 1rem 0;
+}
+
+.canvas-draft-summary div {
+  padding: .7rem;
+  border-radius: 8px;
+  background: #101722;
+}
+
+.canvas-draft-summary dt { color: #91a7bf; font-size: .82rem; }
+.canvas-draft-summary dd { margin: .3rem 0 0; overflow-wrap: anywhere; }
+
+@media (max-width: 560px) {
+  .canvas-draft-summary { grid-template-columns: 1fr; }
+  .canvas-draft .button { width: 100%; }
+}

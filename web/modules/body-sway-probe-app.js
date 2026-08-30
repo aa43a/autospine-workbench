@@ -7,10 +7,14 @@ import {
 import { createBodySwayProbeLoader } from "./body-sway-probe-loader.js";
 import { createBodySwayProbePreview } from "./body-sway-probe-preview.js";
 import {
+  canvasAdjustmentElements, renderCanvasAdjustment, resetCanvasAdjustmentView,
+} from "./body-sway-canvas-adjustment-view.js";
+import {
   probeElements, renderProbeEntry, resetProbeView, setStatus,
 } from "./body-sway-probe-view.js";
 
 const elements = probeElements();
+const canvasElements = canvasAdjustmentElements();
 const api = createBodySwayProbeApi();
 const preview = createBodySwayProbePreview({
   image: elements.previewImage,
@@ -43,6 +47,7 @@ function reset() {
   currentDownload = null;
   preview.reset();
   resetProbeView(elements);
+  resetCanvasAdjustmentView(canvasElements);
 }
 
 async function loadEntry(payload, context) {
@@ -53,6 +58,7 @@ async function loadEntry(payload, context) {
   currentEntry = entry;
   currentDownload = reportDownload(entry);
   renderProbeEntry(elements, entry);
+  renderCanvasAdjustment(canvasElements, entry);
   preview.load(entry.preview);
   return entry;
 }

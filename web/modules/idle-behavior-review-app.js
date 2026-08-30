@@ -13,11 +13,16 @@ import {
 } from "./idle-behavior-review-model.js";
 import { createIdleBehaviorPreview } from "./idle-behavior-review-preview.js";
 import {
+  idleCanvasDraftElements, markIdleCanvasDraftRestored,
+  renderIdleCanvasDraft, resetIdleCanvasDraftView,
+} from "./idle-behavior-canvas-adjustment-view.js";
+import {
   applyControlValues, controlValues, idleReviewElements, renderIdleReviewEntry,
   resetIdleReviewView, setStatus, showIdleReviewReceipt, syncDecisionControls,
 } from "./idle-behavior-review-view.js";
 
 const elements = idleReviewElements();
+const canvasElements = idleCanvasDraftElements();
 const api = createIdleBehaviorReviewApi();
 const decisionConfirmation = createIdleDecisionConfirmation();
 const preview = createIdleBehaviorPreview({
@@ -56,12 +61,14 @@ elements.rejectBodySway.addEventListener(
 elements.unobservableBodySway.addEventListener(
   "click", (event) => requestDecision("unobservable", event.currentTarget),
 );
+canvasElements.restoreCanvasParameters.addEventListener("click", restoreCurrentParameters);
 
 loader.start();
 
 function emptyState() {
   return {
-    entry: null, baseParameters: null, baseControls: null,
+    entry: null, baseParameters: null, baseControls: null, currentParameters: null,
+    canvasAdjustmentDraft: null,
     parametersTouched: false, available: false,
     confirming: false, busy: false, committed: false, uncertain: false,
   };
@@ -71,14 +78,18 @@ function reset() {
   state = emptyState();
   preview.reset();
   resetIdleReviewView(elements);
+  resetIdleCanvasDraftView(canvasElements);
 }
 
 async function loadEntry(entry, context) {
   if (!context.isCurrent()) return;
-  const baseParameters = initialBodySwayParameters(entry);
+  const currentParameters = initialBodySwayParameters(entry);
+  const draft = context.canvasAdjustmentDraft;
+  const baseParameters = draft?.proposal?.parameters ?? currentParameters;
   const controls = controlsFromParameters(baseParameters);
   state = {
-    entry, baseParameters, baseControls: controls, parametersTouched: false,
+    entry, baseParameters, baseControls: controls, currentParameters,
+    canvasAdjustmentDraft: draft, parametersTouched: Boolean(draft),
     available: renderIdleReviewEntry(elements, entry) && entry.history !== null,
     confirming: false, busy: false,
     committed: false,
@@ -87,12 +98,33 @@ async function loadEntry(entry, context) {
   applyControlValues(elements, controls);
   elements.explicitConfirmation.checked = false;
   preview.load(entry.preview, baseParameters);
+  renderIdleCanvasDraft(canvasElements, draft, currentParameters);
   syncControls();
   setStatus(elements.decisionStatus,
     state.available
-      ? "请先预览并调整；勾选人工确认后才能保存。"
+      ? (draft
+        ? "P10.2 建议已预填但尚未批准；请预览，仍须勾选并通过确认弹窗。"
+        : "请先预览并调整；勾选人工确认后才能保存。")
       : "缺少可决定的身体摆动候选或提交基线。",
     state.available ? "warning" : "error");
+}
+
+function restoreCurrentParameters() {
+  if (!state.entry || !state.canvasAdjustmentDraft || !state.currentParameters
+      || state.confirming || state.busy || state.committed || state.uncertain) return;
+  const controls = controlsFromParameters(state.currentParameters);
+  state = {
+    ...state, baseParameters: state.currentParameters, baseControls: controls,
+    canvasAdjustmentDraft: null, parametersTouched: false,
+  };
+  applyControlValues(elements, controls);
+  preview.setParameters(state.currentParameters);
+  elements.explicitConfirmation.checked = false;
+  elements.receiptPanel.hidden = true;
+  markIdleCanvasDraftRestored(canvasElements);
+  setStatus(elements.decisionStatus,
+    "已恢复当前 revision 参数；尚未提交，人工确认仍为空。", "warning");
+  syncControls();
 }
 
 function changeParameters() {

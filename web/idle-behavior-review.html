@@ -7,6 +7,7 @@
   <meta name="theme-color" content="#0b0e14">
   <title>身体摆动设置 — AutoSpine</title>
   <link rel="stylesheet" href="./idle-behavior-review.css">
+  <link rel="stylesheet" href="./idle-behavior-canvas-adjustment.css">
 </head>
 <body>
   <a class="skip-link" href="#bodySwayForm">跳到身体摆动设置</a>
@@ -88,6 +89,24 @@
           <p class="eyebrow">HUMAN PARAMETERS</p>
           <h2 id="settingsHeading">简单设置</h2>
           <p id="bodySwayAvailability" class="status">等待候选。</p>
+          <section id="canvasDraftPanel" class="canvas-draft"
+            aria-labelledby="canvasDraftHeading" hidden>
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">P10.2 SAMPLED SUGGESTION</p>
+                <h3 id="canvasDraftHeading">已带回画布调整草稿</h3>
+              </div>
+              <span id="canvasDraftBadge" class="badge warning">未验证草稿</span>
+            </div>
+            <p id="canvasDraftMessage">—</p>
+            <dl class="canvas-draft-summary">
+              <div><dt>实测幅度档</dt><dd id="canvasDraftGain">—</dd></div>
+              <div><dt>当前与建议</dt><dd id="canvasDraftCurrent">—</dd></div>
+            </dl>
+            <button id="restoreCanvasParameters" class="button secondary" type="button">
+              恢复当前 revision 参数
+            </button>
+          </section>
           <form id="bodySwayForm" novalidate>
             <fieldset class="control-list">
               <legend>四个常用参数</legend>

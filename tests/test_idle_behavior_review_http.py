@@ -4,11 +4,25 @@ from __future__ import annotations
 
 import http.client
 import json
+from pathlib import Path
+import sys
 import unittest
 from unittest.mock import patch
 
+
+ROOT = Path(__file__).resolve().parents[1]
+SRC = ROOT / "src"
+for candidate in (ROOT, SRC):
+    if str(candidate) not in sys.path:
+        sys.path.insert(0, str(candidate))
+
 from autospine_workbench.idle_behavior_review_application import (
     IdleBehaviorReviewApplicationUnavailable,
+)
+from autospine_workbench.idle_behavior_canvas_adjustment_drafts import (
+    IdleBehaviorCanvasAdjustmentDraftNotFound,
+    IdleBehaviorCanvasAdjustmentDraftStale,
+    IdleBehaviorCanvasAdjustmentDraftUnavailable,
 )
 from tests.motion_policy_preflight_helpers import MotionPolicyHttpFixtureMixin
 from tests.test_idle_behavior_review_submission import valid_submission
@@ -145,6 +159,79 @@ class IdleBehaviorReviewHttpTests(
         self.assertEqual(self._receipt(), json.loads(raw))
         self.assertTrue(submit.called)
         self.assertNotIn("path", raw.decode("utf-8").lower())
+
+    def test_exact_canvas_adjustment_draft_get_is_path_free(self):
+        draft = {
+            "format": "autospine-idle-behavior-canvas-adjustment-draft-entry",
+            "format_version": 1,
+            "status": "unvalidated_draft",
+            "entry": {"package": {"package_id": self.package_id}},
+            "canvas_adjustment": {
+                "candidate_sha256": self.candidate_sha,
+                "document": {},
+            },
+            "proposal": {"authority": "none"},
+        }
+        suffix = (
+            f"/{self.package_id}/canvas-adjustment-drafts/"
+            f"{self.candidate_sha}"
+        )
+        with patch(
+            "autospine_workbench.idle_behavior_review_routes."
+            "IdleBehaviorCanvasAdjustmentDraftApplication.prepare",
+            return_value=draft,
+        ) as prepare:
+            status, _, raw = self._request("GET", suffix)
+
+        self.assertEqual(200, status)
+        self.assertEqual(draft, json.loads(raw))
+        prepare.assert_called_once()
+        self.assertEqual(self.package_id, prepare.call_args.args[0])
+        self.assertEqual(self.candidate_sha, prepare.call_args.args[1])
+        self.assertNotIn("path", raw.decode("utf-8").lower())
+
+    def test_canvas_adjustment_draft_failures_are_public_and_fail_closed(self):
+        suffix = (
+            f"/{self.package_id}/canvas-adjustment-drafts/"
+            f"{self.candidate_sha}"
+        )
+        cases = (
+            (
+                IdleBehaviorCanvasAdjustmentDraftNotFound("private"),
+                404,
+                "body_sway_canvas_adjustment_draft_not_found",
+            ),
+            (
+                IdleBehaviorCanvasAdjustmentDraftStale("private"),
+                409,
+                "body_sway_canvas_adjustment_draft_stale",
+            ),
+            (
+                IdleBehaviorCanvasAdjustmentDraftUnavailable("private"),
+                409,
+                "body_sway_canvas_adjustment_draft_unavailable",
+            ),
+        )
+        for error, expected_status, expected_code in cases:
+            with self.subTest(error=type(error).__name__), patch(
+                "autospine_workbench.idle_behavior_review_routes."
+                "IdleBehaviorCanvasAdjustmentDraftApplication.prepare",
+                side_effect=error,
+            ):
+                status, _, raw = self._request("GET", suffix)
+            payload = json.loads(raw)
+            self.assertEqual(expected_status, status)
+            self.assertEqual(expected_code, payload["error"])
+            self.assertNotIn("private", raw.decode("utf-8"))
+
+    def test_invalid_canvas_adjustment_sha_is_404(self):
+        suffix = f"/{self.package_id}/canvas-adjustment-drafts/not-a-sha"
+        status, _, raw = self._request("GET", suffix)
+        self.assertEqual(404, status)
+        self.assertEqual(
+            "body_sway_canvas_adjustment_draft_not_found",
+            json.loads(raw)["error"],
+        )
 
     def test_mutation_requires_same_origin_and_exact_intent(self):
         request = valid_submission(

@@ -1,0 +1,42 @@
+.canvas-adjustment {
+  margin-top: 1.25rem;
+  padding: 1rem;
+  border: 1px solid #284259;
+  border-radius: 12px;
+  background: #0c141f;
+}
+
+.canvas-adjustment .section-heading { align-items: start; }
+
+.gain-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: .7rem;
+  margin: 1rem 0;
+}
+
+.gain-card {
+  min-width: 0;
+  padding: .8rem;
+  border: 1px solid #314157;
+  border-radius: 10px;
+  background: #101927;
+}
+
+.gain-card[data-tone="success"] { border-color: #2d756b; }
+.gain-card[data-tone="error"] { border-color: #7b3b4a; }
+.gain-card h4, .gain-card p { margin: 0; }
+.gain-card strong { display: block; margin: .35rem 0; color: #6ee7d4; }
+.gain-card[data-tone="error"] strong { color: #ff9aab; }
+.gain-card p { color: #b9c7d9; font-size: .88rem; line-height: 1.45; }
+
+.canvas-adjustment-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+}
+
+@media (max-width: 560px) {
+  .gain-grid { grid-template-columns: 1fr; }
+  .canvas-adjustment-actions .button { width: 100%; }
+}

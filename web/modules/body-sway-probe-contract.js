@@ -10,13 +10,18 @@ import { normalizeProbePreview } from "./body-sway-probe-preview-contract.js";
 import {
   CHECK_IDS, normalizeProbeResult, normalizeProbeTechnical,
 } from "./body-sway-probe-result-contract.js";
+import {
+  normalizeCanvasAdjustmentEnvelope,
+} from "./body-sway-canvas-adjustment-contract.js";
 
 export { CHECK_IDS, FORMAT_VERSION, LIST_FORMAT };
 export const ENTRY_FORMAT = "autospine-body-sway-probe-entry";
+export const ENTRY_FORMAT_VERSION = 2;
 
 const TOP_FIELDS = [
   "format", "format_version", "status", "probeability", "package",
   "candidate_sha256", "history", "report_sha256", "result", "preview", "technical",
+  "canvas_adjustment",
 ];
 const PACKAGE_FIELDS = [
   "package_id", "motion_policy_package_id", "project_id", "motion_id", "clip_id",
@@ -46,7 +51,7 @@ export function normalizeProbeInventory(value) {
 
 export function normalizeProbeEntry(value, expectedPackageId) {
   exactFields(value, TOP_FIELDS, "结构探针结果");
-  if (value.format !== ENTRY_FORMAT || value.format_version !== FORMAT_VERSION
+  if (value.format !== ENTRY_FORMAT || value.format_version !== ENTRY_FORMAT_VERSION
       || !ENTRY_STATUSES.has(value.status) || !PROBEABILITIES.has(value.probeability)) {
     throw new Error("结构探针结果合同无效");
   }
@@ -68,9 +73,17 @@ export function normalizeProbeEntry(value, expectedPackageId) {
   const technical = normalizeProbeTechnical(value.technical, {
     result, preview, packageRow, sourceReview, candidateSha,
   });
+  const canvasAdjustment = value.canvas_adjustment === null ? null
+    : normalizeCanvasAdjustmentEnvelope(value.canvas_adjustment, {
+      packageRow, candidateSha, sourceReview,
+      report: technical.report, reportSha256: result?.reportSha256, result,
+    });
+  if (!result && canvasAdjustment !== null) {
+    throw new Error("无结构探针结果时不能携带画布调整诊断");
+  }
   return {
     raw: exactCopy(value), status: value.status, package: packageRow,
-    candidateSha, head, sourceReview, preview, result, technical,
+    candidateSha, head, sourceReview, preview, result, technical, canvasAdjustment,
   };
 }
 

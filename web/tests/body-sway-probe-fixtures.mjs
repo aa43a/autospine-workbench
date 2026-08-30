@@ -1,6 +1,15 @@
 export const PACKAGE_A = "a".repeat(64);
 export const PACKAGE_B = "b".repeat(64);
 export const REPORT_SHA = "c".repeat(64);
+export const BODY_SWAY_PARAMETERS = Object.freeze({
+  cycles: 2,
+  per_bone_amplitude_deg: [8, 7, 4, 2].map((value, index) => ({
+    bone_id: ["pelvis-spine", "spine-chest", "chest-neck", "neck-head"][index], value,
+  })),
+  per_bone_phase_fraction: [0, 0.04, 0.08, 0.12].map((value, index) => ({
+    bone_id: ["pelvis-spine", "spine-chest", "chest-neck", "neck-head"][index], value,
+  })),
+});
 
 export function inventoryFixture(
   packages = [packageRow(PACKAGE_B, "probe_ready")], recommended = PACKAGE_B, skippedCount = 0,
@@ -94,7 +103,7 @@ export function probeEntryFixture({
   const report = reportFixture({ result, timing });
   return {
     format: "autospine-body-sway-probe-entry",
-    format_version: 1,
+    format_version: 2,
     status: resultStatus,
     probeability: "probe_ready",
     package: {
@@ -145,6 +154,7 @@ export function probeEntryFixture({
         continuous_time_safety_claimed: false,
       },
     },
+    canvas_adjustment: null,
   };
 }
 
@@ -220,7 +230,8 @@ function reportFixture({ result, timing }) {
     timing,
     selection: {
       candidate_id: "body-sway-candidate", feature_id: "body_sway",
-      action: "adjust", probe_status: "pending_probe", parameters: {},
+      action: "adjust", probe_status: "pending_probe",
+      parameters: structuredClone(BODY_SWAY_PARAMETERS),
     },
     prober: {},
     semantics: {},

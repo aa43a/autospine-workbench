@@ -9,7 +9,7 @@ from .body_sway_probe_packages import classify_body_sway_probe_head
 
 
 ENTRY_FORMAT = "autospine-body-sway-probe-entry"
-FORMAT_VERSION = 1
+FORMAT_VERSION = 2
 
 
 def body_sway_probe_entry(
@@ -18,6 +18,7 @@ def body_sway_probe_entry(
     *,
     report=None,
     preview: dict[str, Any] | None = None,
+    canvas_adjustment=None,
 ) -> dict[str, Any]:
     """Project exact evidence without exposing filesystem paths."""
 
@@ -53,6 +54,12 @@ def body_sway_probe_entry(
                 "/composite"
             ),
         }
+    adjustment_projection = None
+    if canvas_adjustment is not None:
+        adjustment_projection = {
+            "candidate_sha256": canvas_adjustment.sha256,
+            "document": canvas_adjustment.document,
+        }
     return {
         "format": ENTRY_FORMAT,
         "format_version": FORMAT_VERSION,
@@ -74,6 +81,7 @@ def body_sway_probe_entry(
         "report_sha256": report.sha256 if report is not None else None,
         "result": result,
         "preview": preview,
+        "canvas_adjustment": adjustment_projection,
         "technical": {
             "report": report_document,
             "semantics": {

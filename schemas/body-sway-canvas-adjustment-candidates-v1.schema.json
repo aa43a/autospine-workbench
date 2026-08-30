@@ -1,0 +1,292 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/body-sway-canvas-adjustment-candidates-v1.schema.json",
+  "title": "AutoSpine BodySwayCanvasAdjustmentCandidates v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "project_id", "clip_id", "source", "timing",
+    "reviewed_selection", "analyzer", "semantics", "diagnosis", "probes",
+    "adjustment_candidates", "status", "release_gate", "summary"
+  ],
+  "properties": {
+    "format": {"const": "autospine-body-sway-canvas-adjustment-candidates"},
+    "format_version": {"const": 1},
+    "project_id": {"$ref": "#/$defs/id"},
+    "clip_id": {"$ref": "#/$defs/id"},
+    "source": {"$ref": "#/$defs/source"},
+    "timing": {"$ref": "body-sway-probe-report-v1.schema.json#/$defs/timing"},
+    "reviewed_selection": {"$ref": "body-sway-probe-report-v1.schema.json#/$defs/selection"},
+    "analyzer": {"$ref": "#/$defs/analyzer"},
+    "semantics": {"$ref": "#/$defs/semantics"},
+    "diagnosis": {"$ref": "#/$defs/diagnosis"},
+    "probes": {
+      "type": "array", "minItems": 1, "maxItems": 9,
+      "items": {"$ref": "#/$defs/probe"}
+    },
+    "adjustment_candidates": {
+      "type": "array", "maxItems": 1,
+      "items": {"$ref": "#/$defs/candidate"}
+    },
+    "status": {"const": "candidate_only"},
+    "release_gate": {"$ref": "#/$defs/releaseGate"},
+    "summary": {"$ref": "#/$defs/summary"}
+  },
+  "$defs": {
+    "id": {
+      "type": "string", "minLength": 1, "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "probe_inputs", "current_p10_1_head", "body_sway_probe_report_sha256"
+      ],
+      "properties": {
+        "probe_inputs": {
+          "$ref": "body-sway-probe-report-v1.schema.json#/$defs/source"
+        },
+        "current_p10_1_head": {"$ref": "#/$defs/head"},
+        "body_sway_probe_report_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "head": {
+      "type": "object", "additionalProperties": false,
+      "required": ["candidate_sha256", "decision_sha256", "revision"],
+      "properties": {
+        "candidate_sha256": {"$ref": "#/$defs/sha"},
+        "decision_sha256": {"$ref": "#/$defs/sha"},
+        "revision": {"type": "integer", "minimum": 1, "maximum": 10000}
+      }
+    },
+    "analyzer": {
+      "const": {
+        "id": "body-sway-canvas-adjustment-analyzer",
+        "version": "1.0.0",
+        "config": {
+          "parameterization": "uniform-amplitude-gain",
+          "gain_denominator": 8,
+          "reviewed_gain_numerator": 8,
+          "search_order": [7, 6, 5, 4, 3, 2, 1],
+          "search_stop": "first-sampled-structural-pass",
+          "zero_gain_probe_required_after_reviewed_failure": true,
+          "sample_schedule": "exact-p10.2-probe-schedule"
+        }
+      }
+    },
+    "semantics": {
+      "const": {
+        "scope": "sampled-canvas-adjustment-candidate-only",
+        "authority": "none",
+        "human_decision_emitted": false,
+        "review_revision_written": false,
+        "temporary_preview_emitted": false,
+        "sampled_canvas_observation_claimed": true,
+        "discrete_gain_samples_are_safe_interval": false,
+        "safe_parameters_claimed": false,
+        "continuous_time_safety_claimed": false,
+        "visual_quality_claimed": false,
+        "runtime_equivalence_claimed": false,
+        "inter_attachment_seam_safety_claimed": false
+      }
+    },
+    "diagnosis": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "classification", "reason_codes", "reviewed_canvas_check",
+        "zero_gain_canvas_status", "other_rejected_check_ids"
+      ],
+      "properties": {
+        "classification": {"enum": [
+          "reviewed_canvas_passed", "upstream_base_motion_canvas_overflow",
+          "sampled_adjustment_candidate_available",
+          "no_nonzero_sampled_adjustment_candidate"
+        ]},
+        "reason_codes": {
+          "type": "array", "minItems": 1, "maxItems": 16,
+          "uniqueItems": true, "items": {"$ref": "#/$defs/id"}
+        },
+        "reviewed_canvas_check": {"$ref": "#/$defs/reviewedCheck"},
+        "zero_gain_canvas_status": {
+          "enum": ["passed", "rejected", "not_evaluated"]
+        },
+        "other_rejected_check_ids": {
+          "type": "array", "maxItems": 6, "uniqueItems": true,
+          "items": {"$ref": "#/$defs/id"}
+        }
+      }
+    },
+    "reviewedCheck": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "sample_count", "failure_count", "evidence_sha256"],
+      "properties": {
+        "status": {"enum": ["passed", "rejected"]},
+        "sample_count": {"type": "integer", "minimum": 2, "maximum": 65536},
+        "failure_count": {"type": "integer", "minimum": 0, "maximum": 65536},
+        "evidence_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "gain": {
+      "type": "object", "additionalProperties": false,
+      "required": ["numerator", "denominator"],
+      "properties": {
+        "numerator": {"type": "integer", "minimum": 0, "maximum": 8},
+        "denominator": {"const": 8}
+      }
+    },
+    "candidateGain": {
+      "type": "object", "additionalProperties": false,
+      "required": ["numerator", "denominator"],
+      "properties": {
+        "numerator": {"type": "integer", "minimum": 1, "maximum": 7},
+        "denominator": {"const": 8}
+      }
+    },
+    "probe": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "gain", "sample_count", "canvas_status", "sampled_geometry_status",
+        "canvas_failure_tick_count", "canvas_failure_vertex_count",
+        "geometry_rejection_tick_count", "first_failure_tick", "last_failure_tick",
+        "affected_attachment_ids", "failure_sides", "max_overflow_px",
+        "worst_failure", "sampled_body_sway_peak_abs_delta_deg", "evidence_sha256"
+      ],
+      "properties": {
+        "gain": {"$ref": "#/$defs/gain"},
+        "sample_count": {"type": "integer", "minimum": 2, "maximum": 65536},
+        "canvas_status": {"enum": ["passed", "rejected"]},
+        "sampled_geometry_status": {"enum": ["passed", "rejected"]},
+        "canvas_failure_tick_count": {"type": "integer", "minimum": 0, "maximum": 65536},
+        "canvas_failure_vertex_count": {"type": "integer", "minimum": 0},
+        "geometry_rejection_tick_count": {"type": "integer", "minimum": 0, "maximum": 65536},
+        "first_failure_tick": {"$ref": "#/$defs/nullableTick"},
+        "last_failure_tick": {"$ref": "#/$defs/nullableTick"},
+        "affected_attachment_ids": {
+          "type": "array", "maxItems": 4096, "uniqueItems": true,
+          "items": {"$ref": "#/$defs/id"}
+        },
+        "failure_sides": {
+          "type": "array", "maxItems": 4, "uniqueItems": true,
+          "items": {"enum": ["left", "right", "top", "bottom"]}
+        },
+        "max_overflow_px": {"type": "number", "minimum": 0, "maximum": 1000000000000},
+        "worst_failure": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/worstFailure"}]
+        },
+        "sampled_body_sway_peak_abs_delta_deg": {
+          "type": "array", "minItems": 4, "maxItems": 4,
+          "prefixItems": [
+            {"$ref": "#/$defs/peakPelvis"}, {"$ref": "#/$defs/peakSpine"},
+            {"$ref": "#/$defs/peakChest"}, {"$ref": "#/$defs/peakNeck"}
+          ],
+          "items": false
+        },
+        "evidence_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "nullableTick": {
+      "oneOf": [
+        {"type": "null"},
+        {"type": "integer", "minimum": 0, "maximum": 600000000}
+      ]
+    },
+    "worstFailure": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "tick", "attachment_id", "vertex_index", "point_xy", "sides", "overflow_px"
+      ],
+      "properties": {
+        "tick": {"type": "integer", "minimum": 0, "maximum": 600000000},
+        "attachment_id": {"$ref": "#/$defs/id"},
+        "vertex_index": {"type": "integer", "minimum": 0},
+        "point_xy": {
+          "type": "array", "minItems": 2, "maxItems": 2,
+          "items": {"type": "number", "minimum": -1000000000000, "maximum": 1000000000000}
+        },
+        "sides": {
+          "type": "array", "minItems": 1, "maxItems": 4, "uniqueItems": true,
+          "items": {"enum": ["left", "right", "top", "bottom"]}
+        },
+        "overflow_px": {"type": "number", "exclusiveMinimum": 0, "maximum": 1000000000000}
+      }
+    },
+    "peak": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bone_id", "value"],
+      "properties": {
+        "bone_id": {"$ref": "#/$defs/id"},
+        "value": {"type": "number", "minimum": 0, "maximum": 10}
+      }
+    },
+    "peakPelvis": {"allOf": [{"$ref": "#/$defs/peak"}, {"properties": {"bone_id": {"const": "pelvis-spine"}}}]},
+    "peakSpine": {"allOf": [{"$ref": "#/$defs/peak"}, {"properties": {"bone_id": {"const": "spine-chest"}}}]},
+    "peakChest": {"allOf": [{"$ref": "#/$defs/peak"}, {"properties": {"bone_id": {"const": "chest-neck"}}}]},
+    "peakNeck": {"allOf": [{"$ref": "#/$defs/peak"}, {"properties": {"bone_id": {"const": "neck-head"}}}]},
+    "candidate": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "candidate_id", "kind", "status", "authority", "gain", "parameters",
+        "probe_evidence_sha256", "requires_explicit_p10_1_revision", "claims"
+      ],
+      "properties": {
+        "candidate_id": {
+          "type": "string",
+          "pattern": "^body-sway-canvas-adjustment-[0-9a-f]{64}$"
+        },
+        "kind": {"const": "uniform_amplitude_gain"},
+        "status": {"const": "unvalidated_draft"},
+        "authority": {"const": "none"},
+        "gain": {"$ref": "#/$defs/candidateGain"},
+        "parameters": {"$ref": "body-sway-probe-report-v1.schema.json#/$defs/parameters"},
+        "probe_evidence_sha256": {"$ref": "#/$defs/sha"},
+        "requires_explicit_p10_1_revision": {"const": true},
+        "claims": {
+          "const": {
+            "sampled_canvas_passed": true,
+            "sampled_geometry_passed": true,
+            "safe_parameters": false,
+            "continuous_time": false,
+            "visual_quality": false,
+            "release_authority": false
+          }
+        }
+      }
+    },
+    "releaseGate": {
+      "const": {
+        "status": "blocked",
+        "reason_codes": [
+          "candidate_requires_explicit_p10_1_review",
+          "continuous_time_safety_unproven",
+          "manual_runtime_preview_required",
+          "reviewed_seam_anchors_missing",
+          "safe_parameters_unproven"
+        ]
+      }
+    },
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "classification", "tested_gain_count", "adjustment_candidate_count",
+        "reviewed_canvas_failure_tick_count", "zero_gain_canvas_failure_tick_count"
+      ],
+      "properties": {
+        "classification": {"enum": [
+          "reviewed_canvas_passed", "upstream_base_motion_canvas_overflow",
+          "sampled_adjustment_candidate_available",
+          "no_nonzero_sampled_adjustment_candidate"
+        ]},
+        "tested_gain_count": {"type": "integer", "minimum": 1, "maximum": 9},
+        "adjustment_candidate_count": {"type": "integer", "minimum": 0, "maximum": 1},
+        "reviewed_canvas_failure_tick_count": {"type": "integer", "minimum": 0, "maximum": 65536},
+        "zero_gain_canvas_failure_tick_count": {
+          "oneOf": [
+            {"type": "null"},
+            {"type": "integer", "minimum": 0, "maximum": 65536}
+          ]
+        }
+      }
+    }
+  }
+}

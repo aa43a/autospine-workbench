@@ -1,3 +1,5 @@
+import { canvasAdjustmentEnvelope } from "./body-sway-canvas-adjustment-fixtures.mjs";
+
 export const DIGESTS = Object.freeze({
   package: "a".repeat(64), policy: "b".repeat(64), p9: "c".repeat(64),
   candidate: "d".repeat(64), decision: "e".repeat(64), bundle: "f".repeat(64),
@@ -166,6 +168,61 @@ export function entryDocument(overrides = {}) {
       revision_count: 0, items: [],
     },
     ...overrides,
+  };
+}
+
+export function reviewedEntryDocument(overrides = {}) {
+  const parameters = structuredClone(suggestionDocument().payload);
+  return entryDocument({
+    status: "reviewed",
+    history: {
+      current_revision: 1, head_decision_sha256: DIGESTS.decision,
+      revision_count: 1,
+      items: [{
+        revision: 1, decision_sha256: DIGESTS.decision,
+        action: "adjust", probe_status: "pending_probe", parameters,
+      }],
+    },
+    ...overrides,
+  });
+}
+
+export function canvasAdjustmentDraftEntry() {
+  const entry = reviewedEntryDocument();
+  const fullSource = {
+    idle_behavior_candidates_sha256: entry.candidate_sha256,
+    idle_behavior_decision_sha256: entry.history.head_decision_sha256,
+    ...structuredClone(entry.package.source),
+  };
+  const selection = {
+    candidate_id: entry.candidate.features.find(
+      (row) => row.feature_id === "body_sway",
+    ).candidate_id,
+    feature_id: "body_sway", action: "adjust", probe_status: "pending_probe",
+    parameters: structuredClone(entry.history.items[0].parameters),
+  };
+  const canvasCheck = {
+    check_id: "sampled_canvas_containment", status: "rejected",
+    reason_code: "sampled_check_rejected", subject_count: 4,
+    sample_count: 81, failure_count: 2, evidence_sha256: "4".repeat(64),
+  };
+  const pseudoProbeEntry = {
+    package: entry.package, candidate_sha256: entry.candidate_sha256,
+    history: {
+      current_revision: 1, head_decision_sha256: DIGESTS.decision,
+    },
+    report_sha256: "c".repeat(64),
+    result: { checks: [canvasCheck] },
+    technical: { report: {
+      source: fullSource, timing: structuredClone(entry.candidate.timing), selection,
+    } },
+  };
+  const canvasAdjustment = canvasAdjustmentEnvelope(pseudoProbeEntry);
+  return {
+    format: "autospine-idle-behavior-canvas-adjustment-draft-entry",
+    format_version: 1, status: "unvalidated_draft", entry,
+    canvas_adjustment: canvasAdjustment,
+    proposal: structuredClone(canvasAdjustment.document.adjustment_candidates[0]),
   };
 }
 

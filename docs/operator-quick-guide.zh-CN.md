@@ -4,7 +4,7 @@
 
 P9 Kimodo 动作进入策略复核时，可从功能入口中心打开 `Motion Policy 自动工作流`。普通用户只需确认项目：存在推荐项时页面会自动选择并加载对应的 exact package，重算 SHA-256 和 candidate inventory。随后拖动时间轴或点击“一键采用全部安全建议”，只让系统覆盖 `state=candidate`、证据完整有限且 correction ratio/residual 均不超过合同上限 80% 的 Foot candidates，再处理少量异常并做一次最终明确采纳。三份 JSON 与 SHA 手工输入只在“专业模式”中保留。Depth、`rejected_*`、缺证、非有限值和超阈值项不会自动批准；最终确认后，本机服务会编译、发布并精确复验 P9，review input 下载仅作备份。完整流程见 [复核并发布 Kimodo 动作策略](how-to-review-kimodo-motion-policy.md)。
 
-P9 已采用后，从功能入口中心打开 `身体摆动设置`。页面会自动选择无歧义的项目/package，由服务端 exact replay P3/P5/P9 并准备 P10.0 候选；普通用户不用选 JSON、填写 SHA 或寻找目录。先看角色合成图和四骨示意，再播放、拖动时间轴并调整少量参数。页面上的推荐只是 `unvalidated_draft`，时间轴操作不会自行批准；保存、拒绝和无法判断三个按钮都会先显示项目、动作与后果，取消弹窗不会写入。只有在弹窗中点击“确认并提交”才形成 P10.1 revision，随后仍要继续相应门禁。
+P9 已采用后，从功能入口中心打开 `身体摆动设置`。页面会自动选择无歧义的项目/package，由服务端 exact replay P3/P5/P9 并准备 P10.0 候选；普通用户不用选 JSON、填写 SHA 或寻找目录。先看角色合成图和四骨示意，再播放、拖动时间轴并调整少量参数。页面上的推荐只是 `unvalidated_draft`，时间轴操作不会自行批准；保存、拒绝和无法判断三个按钮都会先显示项目、动作与后果，取消弹窗不会写入。只有在弹窗中点击“确认并提交”才形成 P10.1 revision。P10.2 会自动运行七项结构检查，并用 P10.2a `0/8…8/8` 统一 gain 诊断帮助区分“幅度可调”与“基础结构仍越界”；该诊断不会自行批准或保存参数。
 
 P9 成功后可直接进入 `Seam Anchor 复核台`。页面会自动加载 package、绑定 current head、把明确的唯一候选和不可观测项填入可撤销草稿，并用图片叠加代替默认展示 SHA/JSON；普通操作者只需检查多候选和最后明确确认。若六条关系均可用，同一次确认会继续生成并精确读回 P10.5c 静态接缝集。完整流程见 [复核 P10.5b 静态接缝锚点](how-to-review-seam-anchors.md)。
 
@@ -58,7 +58,7 @@ cd E:\proj\unusual\localset\autospine-workbench
 - 复制精确的 `python -B -m autospine_workbench <command> --help` 帮助命令；
 - 通过 `/document-viewer.html?doc=docs/<文件名>.md` 安全文档查看器打开对应仓库文档。
 
-浏览器不会执行 CLI，也不会选择不明确的 `latest`。P9 与身体摆动页面只会自动选择服务端列出的确定性 exact package，并由服务端补齐、重算上游身份；P9 成功回执可用 `package_id` 自动进入 Seam，Seam 的四段地址只在专业审计模式中手填。Body-sway Runtime 视觉复核等专业页面仍需要精确地址。首次使用 CLI 时，先在项目根目录的当前 PowerShell 执行：
+浏览器不会执行 CLI，也不会选择不明确的 `latest`。P9 与身体摆动页面只会自动选择服务端列出的确定性 exact package，并由服务端补齐、重算上游身份；P9 成功回执可用 `package_id` 自动进入 Seam，Seam 的四段地址只在专业审计模式中手填。Body-sway Runtime 视觉复核目前仍需要精确地址；从 `package_id` 自动生成临时预览、经许可确认启动 capture 并带入 exact 地址属于下一阶段规划，尚未实现。首次使用 CLI 时，先在项目根目录的当前 PowerShell 执行：
 
 ```powershell
 $env:PYTHONPATH = (Resolve-Path .\src).Path
@@ -95,13 +95,14 @@ $env:PYTHONPATH = (Resolve-Path .\src).Path
 ### P10.2：自动运行结构探针
 
 1. 打开 <http://127.0.0.1:8765/body-sway-probe.html>，或从 P10.1 成功回执进入。页面会优先选择 URL 指定的 package；没有指定时，只自动选择唯一 `adjust/pending_probe` current head。
-2. 等待自动重放和结构编译完成。首次冷加载可能较慢；页面不要求选择文件、填写 SHA 或逐项点击批准。切换项目或重读也不会写 revision。
+2. 等待自动重放和结构编译完成。首次冷加载或首次项目发现可能较慢；同一服务进程会对完整 package、candidate、current revision/decision 与算法 profile 都相同的结果使用有界缓存，但每次仍会在前后重放 exact 链并检查 current head。缓存不落盘、不跨服务重启，也不代表批准。页面不要求选择文件、填写 SHA 或逐项点击批准；切换项目或重读也不会写 revision。
 3. 查看顶部结论、角色图和四骨时间轴。拖动时间轴只切换有界采样见证；它不会批准 tick，也不代表穷尽全部采样。
 4. 查看五项自动结构卡：loop、FK、mesh、画布和共享索引。接缝与 Runtime 视觉两卡固定列为后续门禁，不能因为前五项通过而当作已发布。
-5. 若显示“结构拒绝”，点击“返回身体摆动设置”，在同一 package 上调整参数并再次明确提交 P10.1；系统不会自行改写人工参数。若显示“需要 Runtime 视觉复核”，才可开始准备 P10.3 capture，但 release 仍保持 blocked。
-6. 专家详情中的 canonical report 与唯一文件名下载只用于备份/排障；普通流程无需下载后重新选文件。
+5. 若显示“结构拒绝”，查看 P10.2a 的 `0/8…8/8` 统一 gain 诊断。`0/8` 只是“移除 body-sway 后是否仍越界”的测试，不能保存为动作。只有非零 gain 的 sampled canvas 和 geometry 都通过时，系统才会给出 `unvalidated_draft`；把它带回 P10.1 后，仍须在确认弹窗中保存一个新 revision，再回本页重跑 P10.2。
+6. 若所有非零候选都失败，特别是 `0/8` 也失败，不要继续盲目调小幅度；应修复画布余量、attachment/骨绑定或上游动作。若显示“需要 Runtime 视觉复核”，才可开始准备 P10.3 capture，但 release 仍保持 blocked。
+7. 专家详情中的 canonical report 与唯一文件名下载只用于备份/排障；普通流程无需下载后重新选文件。
 
-当前真实数据中，`seethrough_output` 的 P10.1 r1 是不可观测、不进入探针；`seethrough_output_5` 的 r2 是唯一 ready 项，但 P10.2 因 334 个 sampled canvas containment tick 被结构拒绝。先修复该结果，不要绕到 P10.3。
+当前真实数据中，`seethrough_output` 的 P10.1 r1 是不可观测、不进入探针；`seethrough_output_5` 的 r2 是唯一 ready 项，但 reviewed gain `8/8` 有 `334/334` 个画布失败 tick，`0/8` 仍有 `333/334` 个，主要涉及 `layer-006-objects`、`layer-000-back-hair` 与 `layer-008-hand-r`。这证明纯参数无法修复；先处理结构输入，不要绕到 P10.3。
 
 ### P10.5：用图片完成接缝复核
 
@@ -113,7 +114,7 @@ $env:PYTHONPATH = (Resolve-Path .\src).Path
 6. 若六条关系全部 `accept/adjust` 且页面来自 P9 package，本机随后自动执行 P10.5c 编译、内容寻址发布和 exact readback。成功后可下载 path-free 精确复验回执；只有精确 P10.4b2 动作域也已闭合时，才能进入“动态接缝验证”。
 7. 若页面提示“P10.5b 已保存；P10.5c 未完成”，只点击“仅重试生成静态接缝集”。不要再次提交六项人工决定；页面会保留已经写入的 revision。若结果包含 `reject/unobservable`，页面只保存阻塞结论，不会生成不可信的 P10.5c。
 
-当前真实状态要单独理解：样本 A 的 P10.5b revision 1 已确认，P10.5c 静态接缝集也已发布并通过 exact replay，无需重复提交六项决定；但它的 current P10.1 不适用，仍须回设置页形成可探针 revision。样本 B 的 P10.2 当前被画布越界拒绝，且左右髋/脚踝共四条静态关系不可观测；两条 blocker 相互独立，自动流程不会把它们改成通过。
+当前真实状态要单独理解：样本 A 的 P10.5b revision 1 已确认，P10.5c 静态接缝集也已发布并通过 exact replay，无需重复提交六项决定；但它的 current P10.1 不适用，仍须回设置页形成可探针 revision。样本 B 在 `8/8` 和 `0/8` 都被画布越界拒绝，且左右髋/脚踝共四条静态关系不可观测；参数、画布结构与静态 seam 是不同 blocker，自动流程不会把它们改成通过。
 
 ## 3. 打开一个样本
 
@@ -278,7 +279,7 @@ E:\proj\unusual\localset\tmp\psd_audit\results\<project-id>\audit.json
 - 以内容地址保存候选证据，以 revision 保存人工决定；
 - 生成并严格验证版本化的 Resolved Project v1 snapshot，同时保持历史 r5/r7 内容地址不变；
 - 从已采用的 P9 链自动选择项目和 exact package，在“身体摆动设置”中用角色合成图、四骨示意、播放/时间轴和少量参数准备 P10.0 草稿；同进程 exact-chain 缓存命中仍全字节重验，三个决定按钮均经项目/动作/后果二次确认，取消零写入；
-- 从 current P10.1 head 自动推荐唯一可探针项目，在 P10.2 页面只读编译七项结构报告，并以通俗卡片、角色图和四骨采样见证显示结果；
+- 从 current P10.1 head 自动推荐唯一可探针项目，在 P10.2 页面只读编译七项结构报告和 P10.2a `0/8…8/8` 零权威诊断，并以通俗卡片、角色图和四骨采样见证显示结果；有界 derived cache 只复用完整 root/address/candidate/head/profile 身份相同的可重建结果，仍执行前后 exact replay/head 检查；
 - 从独立页面完成人工 Body-sway still；从 P9 package 自动进入 Seam Anchor 页面，以叠加图、确定性建议草稿和一次最终确认完成 P10.5b，并在 ready 时继续 P10.5c exact publication/readback；
 - 在 P9 页面完成一次明确 human adoption 后，由本机编译 decision/reviewed policy、原子发布 MotionInstance v2 六文件 bundle，并立即 exact verify；CLI 仍可独立复验，review input 下载仅作备份；
 - 通过离线命令生成和验证版本中立的 Layer Manifest、RigIR、mesh、IK、MotionIR、P10.6a admission、MotionInstance v3 及 P10.7a Spine 4.2 v3 五文件 adapter 工件。
@@ -311,7 +312,7 @@ python -B -m autospine_workbench verify-mesh-bundle --help
 
 ## 10. 当前阶段与下一开发入口
 
-**P9-real-kimodo-policy-adoption** 对当前 `wave-left-v1` 的 A/B 已关闭，P10.2 自动结构探针入口也已交付。项目 A 的 P10.5c 静态集已闭合，但 current P10.1 r1 为不可观测；项目 B current r2 可探针，真实 P10.2 因 334 个画布越界采样被拒绝，同时四条下肢 seam 仍不可观测。当前应让 A 回 P10.1 形成可探针 revision，让 B 修复参数或 attachment/画布结构后重跑 P10.2；只有非拒绝结果才进入 P10.3a–P10.3c → P10.4a → P10.4b1 → P10.4b2 → P10.5d。对新的 Kimodo 输入，仍应先运行零写入准入审计：
+**P9-real-kimodo-policy-adoption** 对当前 `wave-left-v1` 的 A/B 已关闭，P10.2/P10.2a 自动诊断入口也已交付。项目 A 的 P10.5c 静态集已闭合，但 current P10.1 r1 为不可观测；项目 B current r2 可探针，却在 `8/8` 和 `0/8` 均有大面积画布越界，同时四条下肢 seam 仍不可观测。当前应让 A 回 P10.1 形成可探针 revision，让 B 修复画布、attachment/骨绑定或上游动作后重跑 P10.2；不能再把单纯调小 gain 当成充分修复。只有非拒绝结果才进入 P10.3a–P10.3c → P10.4a → P10.4b1 → P10.4b2 → P10.5d。P10.3 package-centric 自动 capture 仍是未实现规划。对新的 Kimodo 输入，仍应先运行零写入准入审计：
 
 ```powershell
 python -B -m autospine_workbench audit-kimodo-pilot-intake `
@@ -467,6 +468,7 @@ python -m unittest tests.test_resolved_snapshot_validation tests.test_resolved_s
 - 保存后 revision 增加；
 - 刷新页面后修改可以读回；
 - 身体摆动页的自动项目、推荐参数和时间轴预览已由人看图确认，并且只通过最终确认提交一次 P10.1；
+- P10.2a 的离散 gain 结果只当作诊断；若采用非零 draft，已经回 P10.1 显式保存新 revision 并重新运行 P10.2；
 - 接缝页面的建议高亮和自动草稿已由人看图确认，并且只执行了一次最终提交；若 P10.5c 失败，只重试 publication；
 - 前端与相关 Python 测试通过；
 - 没有把结构证明写成视觉、官方 Runtime 或发布通过。

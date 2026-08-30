@@ -11,6 +11,13 @@ from .http_json_request import (
     drain_bounded_request_body,
     read_json_object_request,
 )
+from .idle_behavior_canvas_adjustment_drafts import (
+    IdleBehaviorCanvasAdjustmentDraftApplication,
+    IdleBehaviorCanvasAdjustmentDraftError,
+    IdleBehaviorCanvasAdjustmentDraftNotFound,
+    IdleBehaviorCanvasAdjustmentDraftStale,
+    IdleBehaviorCanvasAdjustmentDraftUnavailable,
+)
 from .idle_behavior_review_application import (
     IdleBehaviorReviewApplication,
     IdleBehaviorReviewApplicationError,
@@ -43,7 +50,10 @@ _LIST_FIELDS = (
 
 
 def is_idle_behavior_review_get_path(parts: list[str]) -> bool:
-    return parts[:3] == _PREFIX and len(parts) in {3, 4}
+    return parts[:3] == _PREFIX and (
+        len(parts) in {3, 4}
+        or len(parts) == 6 and parts[4] == "canvas-adjustment-drafts"
+    )
 
 
 def is_idle_behavior_review_mutation_path(parts: list[str]) -> bool:
@@ -69,18 +79,43 @@ def dispatch_idle_behavior_review_get(
                 for row in inventory["packages"]
             ]
             send_json(HTTPStatus.OK, inventory)
-        else:
+        elif len(parts) == 4:
             entry = IdleBehaviorReviewApplication(store.state_root).prepare(
                 parts[3], project_ids=project_ids,
             )
             send_json(HTTPStatus.OK, entry)
+        else:
+            draft = IdleBehaviorCanvasAdjustmentDraftApplication(
+                store.state_root,
+            ).prepare(
+                parts[3], parts[5], project_ids=project_ids,
+            )
+            send_json(HTTPStatus.OK, draft)
+    except IdleBehaviorCanvasAdjustmentDraftNotFound:
+        send_json(HTTPStatus.NOT_FOUND, {
+            "error": "body_sway_canvas_adjustment_draft_not_found",
+            "message": "The exact canvas adjustment draft is unavailable.",
+        })
+    except IdleBehaviorCanvasAdjustmentDraftStale:
+        send_json(HTTPStatus.CONFLICT, {
+            "error": "body_sway_canvas_adjustment_draft_stale",
+            "message": "The P10.1 head changed; rerun the P10.2 diagnosis.",
+        })
+    except IdleBehaviorCanvasAdjustmentDraftUnavailable:
+        send_json(HTTPStatus.CONFLICT, {
+            "error": "body_sway_canvas_adjustment_draft_unavailable",
+            "message": "The canvas adjustment draft could not be replayed.",
+        })
     except IdleBehaviorReviewApplicationNotFound:
         _not_found(send_json)
     except IdleBehaviorReviewPackageError:
         _internal(send_json)
     except IdleBehaviorReviewApplicationUnavailable:
         _unavailable(send_json)
-    except (IdleBehaviorReviewApplicationError, ProjectStoreError):
+    except (
+        IdleBehaviorCanvasAdjustmentDraftError,
+        IdleBehaviorReviewApplicationError, ProjectStoreError,
+    ):
         _internal(send_json)
     return True
 

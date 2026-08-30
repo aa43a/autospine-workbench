@@ -60,7 +60,13 @@ function renderSourceBadge(element, entry) {
 }
 
 function renderOutcome(elements, entry, outcome) {
-  const copy = ({
+  const upstream = entry.canvasAdjustment?.classification
+    === "upstream_base_motion_canvas_overflow";
+  const copy = upstream ? [
+    "基础动作需要修复",
+    "0% 身体摆动仍然越界；请检查画布、附件、骨绑定或上游动作，单纯降低摆动参数无效。",
+    "error",
+  ] : ({
     visual_required: ["结构检查完成", "自动结构项未发现阻断；下一步仍须进行 P10.3 Runtime 与视觉复核。", "success"],
     rejected: ["需要返回调整", "至少一项自动结构检查被拒绝。请返回 P10.1 降低或修改摆动参数后重试。", "error"],
     not_applicable: ["本项目不运行探针", "当前 P10.1 决定是不使用或不可观测，因此没有可检查的身体摆动参数。", "warning"],
@@ -138,14 +144,18 @@ function checkDescription(row) {
 
 function renderNext(elements, entry, outcome) {
   const query = `?package_id=${encodeURIComponent(entry.package.package_id)}`;
+  const upstream = entry.canvasAdjustment?.classification
+    === "upstream_base_motion_canvas_overflow";
   elements.returnToP10.href = `./idle-behavior-review.html${query}`;
   elements.visualNext.href =
     "./document-viewer.html?doc=docs%2Fhow-to-capture-body-sway-runtime.md";
-  elements.returnToP10.hidden = !outcome.shouldReturnToP10;
+  elements.returnToP10.hidden = !outcome.shouldReturnToP10 || upstream;
   elements.visualNext.hidden = !outcome.canEnterVisual;
   setStatus(
     elements.nextHint,
-    outcome.canEnterVisual
+    upstream
+      ? "基础动作在 0% 摆动时仍越界；请使用上方绑定工作台入口，不能进入 P10.3。"
+      : outcome.canEnterVisual
       ? "结构检查允许准备视觉阶段，但自动 Runtime capture 交接尚未交付；请按文档先生成精确证据。"
       : "返回 P10.1 只会创建新的人工 revision，不会改写现有历史。",
     outcome.canEnterVisual ? "success" : "warning",

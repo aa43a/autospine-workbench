@@ -6,6 +6,17 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
+from .body_sway_canvas_adjustment_candidates import (
+    BodySwayCanvasAdjustmentError,
+    compile_body_sway_canvas_adjustment_candidates,
+)
+from .body_sway_derived_cache import (
+    BodySwayDerivedCache,
+    BodySwayDerivedCacheError,
+    BodySwayDerivedResult,
+    body_sway_derived_cache_key,
+    process_body_sway_derived_cache,
+)
 from .body_sway_probe_http_models import body_sway_probe_entry
 from .body_sway_probe_inputs import (
     BodySwayProbeInputError,
@@ -22,7 +33,6 @@ from .body_sway_probe_preview import (
 )
 from .body_sway_probe_report import (
     BodySwayProbeReportError,
-    compile_body_sway_probe_report,
 )
 from .idle_behavior_review_head import (
     IdleBehaviorReviewHeadError,
@@ -58,8 +68,17 @@ class BodySwayProbeApplicationUnavailable(BodySwayProbeApplicationError):
 class BodySwayProbeApplication:
     """Discover or compile diagnostics without publishing any state."""
 
-    def __init__(self, state_root: Path) -> None:
+    def __init__(
+        self, state_root: Path, *,
+        derived_cache: BodySwayDerivedCache | None = None,
+    ) -> None:
         self.state_root = Path(state_root)
+        if derived_cache is not None \
+                and type(derived_cache) is not BodySwayDerivedCache:
+            raise BodySwayProbeApplicationUnavailable(
+                "Body-sway derived cache is invalid"
+            )
+        self.derived_cache = derived_cache or process_body_sway_derived_cache()
 
     def list_packages(
         self, *, project_ids: Iterable[str] | None = None,
@@ -101,7 +120,7 @@ class BodySwayProbeApplication:
                 row for row in candidates["features"]
                 if row["feature_id"] == "body_sway"
             )
-            report = preview = None
+            report = preview = canvas_adjustment = None
             if classify_body_sway_probe_head(feature, before) == "probe_ready":
                 if before.decision is None:
                     raise BodySwayProbeApplicationUnavailable(
@@ -115,8 +134,16 @@ class BodySwayProbeApplication:
                     evidence.retarget_bundle,
                     evidence.reviewed_contract,
                 )
-                report = compile_body_sway_probe_report(inputs)
-                preview = build_body_sway_probe_preview(inputs, report)
+                key = body_sway_derived_cache_key(
+                    self.state_root, address,
+                    evidence.candidates.sha256, before,
+                )
+                derived = self.derived_cache.get_or_compile(
+                    key, lambda: _compile_derived(inputs, before),
+                )
+                canvas_adjustment = derived.canvas_adjustment
+                report = canvas_adjustment.reviewed_report
+                preview = derived.preview
             current = replay_idle_behavior_review_package(
                 self.state_root, address,
             )
@@ -133,6 +160,7 @@ class BodySwayProbeApplication:
                 )
             return body_sway_probe_entry(
                 evidence, before, report=report, preview=preview,
+                canvas_adjustment=canvas_adjustment,
             )
         except BodySwayProbeApplicationHeadChanged:
             raise
@@ -145,8 +173,19 @@ class BodySwayProbeApplication:
 
 
 _PREPARE_FAILURES = (
-    AttributeError, BodySwayProbeInputError, BodySwayProbePreviewError,
+    AttributeError, BodySwayCanvasAdjustmentError, BodySwayDerivedCacheError,
+    BodySwayProbeInputError, BodySwayProbePreviewError,
     BodySwayProbeReportError, IdleBehaviorReviewHeadError,
     IdleBehaviorReviewReplayError, KeyError, OSError, OverflowError,
     RuntimeError, StopIteration, TypeError, UnicodeError, ValueError,
 )
+
+
+def _compile_derived(inputs, current_head) -> BodySwayDerivedResult:
+    adjustment = compile_body_sway_canvas_adjustment_candidates(
+        inputs, current_head,
+    )
+    preview = build_body_sway_probe_preview(
+        inputs, adjustment.reviewed_report,
+    )
+    return BodySwayDerivedResult.freeze(adjustment, preview)

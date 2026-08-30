@@ -24,6 +24,12 @@ from autospine_workbench.body_sway_probe_application import (  # noqa: E402
     BodySwayProbeApplicationHeadChanged,
     BodySwayProbeApplicationUnavailable,
 )
+from autospine_workbench.body_sway_canvas_adjustment_candidates import (  # noqa: E402
+    compile_body_sway_canvas_adjustment_candidates,
+)
+from autospine_workbench.body_sway_derived_cache import (  # noqa: E402
+    clear_body_sway_derived_cache,
+)
 from autospine_workbench.body_sway_probe_inputs import (  # noqa: E402
     require_body_sway_probe_inputs,
 )
@@ -74,6 +80,7 @@ class BodySwayProbeApplicationTests(unittest.TestCase):
         cls.temporary.cleanup()
 
     def setUp(self) -> None:
+        clear_body_sway_derived_cache()
         shutil.rmtree(self._history_root(), ignore_errors=True)
         self.service = BodySwayProbeApplication(self.fixture.state)
 
@@ -187,7 +194,11 @@ class BodySwayProbeApplicationTests(unittest.TestCase):
         before = tree_snapshot(self.fixture.state)
         with self._patch_inventory():
             inventory = self.service.list_packages()
-        with self._patch_detail():
+        with self._patch_detail(), patch(
+            "autospine_workbench.body_sway_probe_application."
+            "compile_body_sway_canvas_adjustment_candidates",
+            wraps=compile_body_sway_canvas_adjustment_candidates,
+        ) as compiler:
             first = self.service.prepare(self.address.package_id)
             second = self.service.prepare(self.address.package_id)
         head = read_idle_behavior_review_head(
@@ -202,8 +213,31 @@ class BodySwayProbeApplicationTests(unittest.TestCase):
         self.assertEqual(self.address.package_id, inventory["recommended_package_id"])
         self.assertEqual("probe_ready", inventory["packages"][0]["status"])
         self.assertEqual(first, second)
+        self.assertEqual(1, compiler.call_count)
+        self.assertEqual(2, first["format_version"])
         self.assertEqual(direct.sha256, first["report_sha256"])
         self.assertEqual(direct.document, first["technical"]["report"])
+        adjustment = first["canvas_adjustment"]
+        self.assertIsNotNone(adjustment)
+        adjustment_document = adjustment["document"]
+        self.assertEqual(
+            direct.sha256,
+            adjustment_document["source"][
+                "body_sway_probe_report_sha256"
+            ],
+        )
+        self.assertEqual(
+            first["candidate_sha256"],
+            adjustment_document["source"]["current_p10_1_head"][
+                "candidate_sha256"
+            ],
+        )
+        self.assertEqual(
+            first["history"]["head_decision_sha256"],
+            adjustment_document["source"]["current_p10_1_head"][
+                "decision_sha256"
+            ],
+        )
         self.assertIn(first["status"], {"manual_visual_required", "structural_rejected"})
         self.assertEqual("none", first["preview"]["authority"])
         self.assertEqual(
@@ -248,6 +282,57 @@ class BodySwayProbeApplicationTests(unittest.TestCase):
         self.assertEqual(2, inventory["ready_count"])
         self.assertIsNone(inventory["recommended_package_id"])
 
+    def test_cache_hit_keeps_both_exact_replay_and_head_checks(self):
+        self._publish()
+        target = "autospine_workbench.body_sway_probe_application."
+        with patch(
+            target + "get_idle_behavior_review_address",
+            return_value=self.address,
+        ), patch(
+            target + "replay_idle_behavior_review_package",
+            return_value=self.evidence,
+        ) as replay, patch(
+            target + "read_idle_behavior_review_head",
+            wraps=read_idle_behavior_review_head,
+        ) as read_head, patch(
+            target + "compile_body_sway_canvas_adjustment_candidates",
+            wraps=compile_body_sway_canvas_adjustment_candidates,
+        ) as compiler:
+            self.service.prepare(self.address.package_id)
+            self.service.prepare(self.address.package_id)
+        self.assertEqual(4, replay.call_count)
+        self.assertEqual(4, read_head.call_count)
+        self.assertEqual(1, compiler.call_count)
+
+    def test_warm_cache_does_not_mask_concurrent_head_change(self):
+        _decision, published = self._publish()
+        with self._patch_detail():
+            self.service.prepare(self.address.package_id)
+        real_read = read_idle_behavior_review_head
+        reads = 0
+
+        def read_then_advance(state_root, candidates):
+            nonlocal reads
+            head = real_read(state_root, candidates)
+            reads += 1
+            if reads == 1:
+                self._publish(
+                    revision=2, previous=published.sha256, cycles=3,
+                )
+            return head
+
+        target = "autospine_workbench.body_sway_probe_application."
+        with self._patch_detail(), patch(
+            target + "read_idle_behavior_review_head",
+            side_effect=read_then_advance,
+        ), patch(
+            target + "compile_body_sway_canvas_adjustment_candidates",
+            wraps=compile_body_sway_canvas_adjustment_candidates,
+        ) as compiler, self.assertRaises(BodySwayProbeApplicationHeadChanged):
+            self.service.prepare(self.address.package_id)
+        self.assertEqual(2, reads)
+        self.assertEqual(0, compiler.call_count)
+
     def test_skipped_package_suppresses_automatic_recommendation(self):
         self._publish()
         with patch(
@@ -266,18 +351,18 @@ class BodySwayProbeApplicationTests(unittest.TestCase):
 
     def test_head_change_during_compile_discards_report(self):
         first, published = self._publish()
-        real_compile = compile_body_sway_probe_report
+        real_compile = compile_body_sway_canvas_adjustment_candidates
 
-        def compile_then_advance(inputs):
-            report = real_compile(inputs)
+        def compile_then_advance(inputs, current_head):
+            adjustment = real_compile(inputs, current_head)
             self._publish(
                 revision=2, previous=published.sha256, cycles=3,
             )
-            return report
+            return adjustment
 
         with self._patch_detail(), patch(
             "autospine_workbench.body_sway_probe_application."
-            "compile_body_sway_probe_report",
+            "compile_body_sway_canvas_adjustment_candidates",
             side_effect=compile_then_advance,
         ), self.assertRaises(BodySwayProbeApplicationHeadChanged):
             self.service.prepare(self.address.package_id)

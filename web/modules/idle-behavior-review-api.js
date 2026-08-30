@@ -4,6 +4,9 @@ import {
   normalizeIdleReviewEntry, normalizeIdleReviewPackageList,
   normalizeIdleReviewReceipt,
 } from "./idle-behavior-review-contract.js";
+import {
+  normalizeIdleCanvasAdjustmentDraft,
+} from "./idle-behavior-canvas-adjustment-contract.js";
 
 const BASE = "/api/idle-behavior/review-packages";
 const SHA = /^[0-9a-f]{64}$/;
@@ -27,6 +30,15 @@ export function createIdleBehaviorReviewApi(fetchApi = globalThis.fetch) {
       requirePackageId(packageId);
       const payload = await request(fetchApi, `${BASE}/${packageId}`);
       return normalizeIdleReviewEntry(payload, packageId);
+    },
+    async entryWithCanvasAdjustment(packageId, candidateSha256) {
+      requirePackageId(packageId);
+      requirePackageId(candidateSha256);
+      const payload = await request(fetchApi,
+        `${BASE}/${packageId}/canvas-adjustment-drafts/${candidateSha256}`);
+      return normalizeIdleCanvasAdjustmentDraft(payload, {
+        packageId, canvasAdjustmentSha256: candidateSha256,
+      });
     },
     async submit(packageId, body) {
       requirePackageId(packageId);

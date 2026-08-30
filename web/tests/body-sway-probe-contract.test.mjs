@@ -5,9 +5,24 @@ import {
   CHECK_IDS, deriveProbeOutcome, normalizeProbeEntry, normalizeProbeInventory,
   reportDownload, requireInventoryEntryMatch,
 } from "../modules/body-sway-probe-contract.js";
+import { sameJson } from "../modules/body-sway-probe-contract-utils.js";
 import {
   PACKAGE_A, PACKAGE_B, REPORT_SHA, inventoryFixture, packageRow, probeEntryFixture,
 } from "./body-sway-probe-fixtures.mjs";
+import {
+  canvasAdjustmentEnvelope,
+} from "./body-sway-canvas-adjustment-fixtures.mjs";
+
+test("JSON identity ignores object key order but preserves array order", () => {
+  assert.equal(sameJson(
+    { source: { b: 2, a: 1 }, order: [1, 2] },
+    { order: [1, 2], source: { a: 1, b: 2 } },
+  ), true);
+  assert.equal(sameJson(
+    { source: { a: 1, b: 2 }, order: [1, 2] },
+    { source: { b: 2, a: 1 }, order: [2, 1] },
+  ), false);
+});
 
 test("inventory and detail normalize exact package-bound P10.2 evidence", () => {
   const inventory = normalizeProbeInventory(inventoryFixture([
@@ -51,6 +66,38 @@ test("realistic canvas rejection preserves sampled overflow markers for visual d
   assert.deepEqual(deriveProbeOutcome(rejected), {
     kind: "rejected", canEnterVisual: false, shouldReturnToP10: true,
   });
+});
+
+test("canvas rejection exposes an exact highest-passing P10.1 draft without authority", () => {
+  const value = probeEntryFixture({
+    resultStatus: "structural_rejected", rejectedCheck: "sampled_canvas_containment",
+  });
+  value.canvas_adjustment = canvasAdjustmentEnvelope(value);
+  const entry = normalizeProbeEntry(value, PACKAGE_B);
+  assert.equal(entry.canvasAdjustment.classification,
+    "sampled_adjustment_candidate_available");
+  assert.equal(entry.canvasAdjustment.proposal.gain.numerator, 4);
+  assert.equal(entry.canvasAdjustment.proposal.status, "unvalidated_draft");
+  assert.deepEqual(entry.canvasAdjustment.probes.map((row) => row.gain.numerator),
+    [0, 4, 5, 6, 7, 8]);
+
+  const crossWired = structuredClone(value);
+  crossWired.canvas_adjustment.document.source.current_p10_1_head.revision = 3;
+  assert.throws(() => normalizeProbeEntry(crossWired, PACKAGE_B), /current head/);
+});
+
+test("zero-gain overflow is classified as an upstream blocker with no fake proposal", () => {
+  const value = probeEntryFixture({
+    resultStatus: "structural_rejected", rejectedCheck: "sampled_canvas_containment",
+  });
+  value.canvas_adjustment = canvasAdjustmentEnvelope(value, {
+    classification: "upstream_base_motion_canvas_overflow",
+  });
+  const entry = normalizeProbeEntry(value, PACKAGE_B);
+  assert.equal(entry.canvasAdjustment.classification,
+    "upstream_base_motion_canvas_overflow");
+  assert.equal(entry.canvasAdjustment.proposal, null);
+  assert.equal(entry.canvasAdjustment.probes[0].canvas_status, "rejected");
 });
 
 test("not-applicable current head has no fake report or visual-stage claim", () => {

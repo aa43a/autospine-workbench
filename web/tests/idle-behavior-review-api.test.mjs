@@ -6,8 +6,10 @@ import {
 } from "../modules/idle-behavior-review-api.js";
 import { buildIdleReviewSubmission } from "../modules/idle-behavior-review-model.js";
 import {
-  DIGESTS, entryDocument, jsonResponse, packageList, receiptDocument,
+  DIGESTS, canvasAdjustmentDraftEntry, entryDocument, jsonResponse,
+  packageList, receiptDocument,
 } from "./idle-behavior-review-fixtures.mjs";
+import { ADJUSTMENT_SHA } from "./body-sway-canvas-adjustment-fixtures.mjs";
 
 test("API loads the automatic package and submits one explicit path-free decision", async () => {
   const calls = [];
@@ -153,4 +155,23 @@ test("API exposes only the server public error message", async () => {
   await assert.rejects(api.list(), (error) =>
     error instanceof IdleBehaviorReviewApiError
     && error.status === 409 && error.message === "人工基线已变化");
+});
+
+test("API loads one exact P10.2 canvas draft without file or SHA form input", async () => {
+  const calls = [];
+  const api = createIdleBehaviorReviewApi(async (url) => {
+    calls.push(url);
+    return jsonResponse(200, canvasAdjustmentDraftEntry());
+  });
+  const draft = await api.entryWithCanvasAdjustment(DIGESTS.package, ADJUSTMENT_SHA);
+  assert.equal(draft.entry.history.current_revision, 1);
+  assert.equal(draft.canvasAdjustment.candidateSha256, ADJUSTMENT_SHA);
+  assert.equal(draft.proposal.gain.numerator, 4);
+  assert.deepEqual(calls, [
+    `/api/idle-behavior/review-packages/${DIGESTS.package}`
+      + `/canvas-adjustment-drafts/${ADJUSTMENT_SHA}`,
+  ]);
+  await assert.rejects(
+    api.entryWithCanvasAdjustment(DIGESTS.package, "../latest"), /ID 无效/,
+  );
 });
