@@ -3,6 +3,9 @@
 import {
   IdleBehaviorReviewApiError, createIdleBehaviorReviewApi,
 } from "./idle-behavior-review-api.js";
+import {
+  createIdleDecisionConfirmation,
+} from "./idle-behavior-review-confirmation.js";
 import { createIdleBehaviorReviewLoader } from "./idle-behavior-review-loader.js";
 import {
   buildIdleReviewSubmission, controlsFromParameters,
@@ -16,6 +19,7 @@ import {
 
 const elements = idleReviewElements();
 const api = createIdleBehaviorReviewApi();
+const decisionConfirmation = createIdleDecisionConfirmation();
 const preview = createIdleBehaviorPreview({
   image: elements.previewImage,
   svg: elements.previewSvg,
@@ -43,10 +47,14 @@ for (const input of [
 ]) input.addEventListener("input", changeParameters);
 
 elements.explicitConfirmation.addEventListener("change", syncControls);
-elements.confirmAdjust.addEventListener("click", () => submitDecision("adjust"));
-elements.rejectBodySway.addEventListener("click", () => submitDecision("reject"));
+elements.confirmAdjust.addEventListener(
+  "click", (event) => requestDecision("adjust", event.currentTarget),
+);
+elements.rejectBodySway.addEventListener(
+  "click", (event) => requestDecision("reject", event.currentTarget),
+);
 elements.unobservableBodySway.addEventListener(
-  "click", () => submitDecision("unobservable"),
+  "click", (event) => requestDecision("unobservable", event.currentTarget),
 );
 
 loader.start();
@@ -55,7 +63,7 @@ function emptyState() {
   return {
     entry: null, baseParameters: null, baseControls: null,
     parametersTouched: false, available: false,
-    busy: false, committed: false, uncertain: false,
+    confirming: false, busy: false, committed: false, uncertain: false,
   };
 }
 
@@ -72,7 +80,7 @@ async function loadEntry(entry, context) {
   state = {
     entry, baseParameters, baseControls: controls, parametersTouched: false,
     available: renderIdleReviewEntry(elements, entry) && entry.history !== null,
-    busy: false,
+    confirming: false, busy: false,
     committed: false,
     uncertain: false,
   };
@@ -88,7 +96,7 @@ async function loadEntry(entry, context) {
 }
 
 function changeParameters() {
-  if (!state.entry || state.busy || state.committed) return;
+  if (!state.entry || state.confirming || state.busy || state.committed || state.uncertain) return;
   try {
     const controls = controlValues(elements);
     state = { ...state, parametersTouched: true };
@@ -106,13 +114,13 @@ function changeParameters() {
 function syncControls() {
   syncDecisionControls(elements, {
     available: state.available && !state.committed && !state.uncertain,
-    busy: state.busy || state.committed || state.uncertain,
+    busy: state.confirming || state.busy || state.committed || state.uncertain,
   });
 }
 
-async function submitDecision(action) {
+async function requestDecision(action, invoker) {
   if (!state.entry || !elements.explicitConfirmation.checked
-      || state.busy || state.committed || state.uncertain) return;
+      || state.confirming || state.busy || state.committed || state.uncertain) return;
   let request;
   const identity = {
     packageId: state.entry.package.package_id,
@@ -128,10 +136,46 @@ async function submitDecision(action) {
     setStatus(elements.decisionStatus, errorText(error), "error");
     return;
   }
-  state = { ...state, busy: true };
+  state = { ...state, confirming: true };
   loader.setMutationLocked(true);
   syncControls();
+  setStatus(elements.decisionStatus,
+    "请在确认弹窗中核对项目、动作与决定；取消不会发送请求。", "warning");
+  try {
+    const confirmed = await decisionConfirmation.request({
+      entry: state.entry, action, invoker,
+    });
+    if (!confirmed) {
+      state = { ...state, confirming: false };
+      loader.setMutationLocked(false);
+      syncControls();
+      setStatus(elements.decisionStatus, "已取消，本次决定未发送。", "warning");
+      return;
+    }
+  } catch (error) {
+    state = { ...state, confirming: false };
+    loader.setMutationLocked(false);
+    syncControls();
+    setStatus(elements.decisionStatus, `无法打开确认弹窗：${errorText(error)}`, "error");
+    return;
+  }
+  if (!submissionIsCurrent(identity)) {
+    state = { ...state, confirming: false, uncertain: true };
+    loader.setMutationLocked(false);
+    syncControls();
+    setStatus(elements.decisionStatus,
+      "项目身份在确认期间发生变化。页面未发送请求，请重新读取。", "error");
+    return;
+  }
+  state = { ...state, confirming: false };
+  await submitDecision(identity, request);
+}
+
+async function submitDecision(identity, request) {
+  state = { ...state, busy: true };
+  syncControls();
   setStatus(elements.decisionStatus, "正在保存不可变人工决定…", "warning");
+  elements.decisionStatus.focus({ preventScroll: true });
   try {
     const receipt = await api.submit(identity.packageId, request);
     if (!submissionIsCurrent(identity)) {

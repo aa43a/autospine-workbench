@@ -320,6 +320,7 @@ class ReviewedMotionBundleReaderTests(unittest.TestCase):
             contract.project_id,
             inputs["p5"]["instance_sha256"],
             inputs["p5"]["bundle_sha256"],
+            mesh_bundle=self.fixture.mesh,
         )
         self.assertEqual(contract.bundle_sha256, verified.bundle_sha256)
 

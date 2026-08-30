@@ -38,6 +38,9 @@ from autospine_workbench.idle_behavior_review_packages import (  # noqa: E402
     get_idle_behavior_review_address,
     list_idle_behavior_review_packages,
 )
+from autospine_workbench.idle_behavior_review_replay_cache import (  # noqa: E402
+    IdleBehaviorReviewReplayCacheError,
+)
 from autospine_workbench.motion_instance_v2_compiler import (  # noqa: E402
     compile_motion_instance_v2,
 )
@@ -142,17 +145,17 @@ class _ExactP9Fixture:
 
     @contextmanager
     def exact_reader(self):
-        def load(_reader, project_id, instance_sha, bundle_sha):
+        def load(_state, project_id, instance_sha, bundle_sha, _loader):
             value = self.verified.get((instance_sha, bundle_sha))
             if value is None or value.project_id != project_id:
                 raise VerifiedReviewedMotionBundleReaderError(
                     "synthetic exact-reader rejection"
                 )
-            return value
+            return SimpleNamespace(reviewed_bundle=value)
 
         with patch(
             "autospine_workbench.idle_behavior_review_packages."
-            "VerifiedReviewedMotionBundleReader.load",
+            "load_cached_reviewed_motion_chain",
             new=load,
         ):
             yield
@@ -311,6 +314,28 @@ class IdleBehaviorReviewPackageTests(unittest.TestCase):
 
 
 class IdleBehaviorAdoptedRunExactReaderTests(unittest.TestCase):
+    def test_cache_seal_failure_is_counted_as_skipped(self):
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        fixture = P10PersistedFixture(Path(temporary.name))
+        with patch(
+            "autospine_workbench.idle_behavior_review_packages."
+            "load_cached_reviewed_motion_chain",
+            side_effect=IdleBehaviorReviewReplayCacheError("seal rejected"),
+        ):
+            runs, skipped = _adopted_runs(fixture.state, None)
+        self.assertEqual([], runs)
+        self.assertEqual(1, skipped)
+
+    def test_invalid_address_manifest_is_counted_as_skipped(self):
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        fixture = P10PersistedFixture(Path(temporary.name))
+        (fixture.reviewed.path / "run-manifest.json").write_bytes(b"{")
+        runs, skipped = _adopted_runs(fixture.state, None)
+        self.assertEqual([], runs)
+        self.assertEqual(1, skipped)
+
     def test_fake_missing_and_tampered_bundles_fail_real_exact_discovery(self):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)

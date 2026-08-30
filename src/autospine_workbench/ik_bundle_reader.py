@@ -17,6 +17,7 @@ from .ik_bundle_integrity import (
     VerifiedIkBundle,
     verify_ik_bundle_snapshot,
 )
+from .mesh_bundle_integrity import VerifiedMeshBundle
 from .manifest_artifacts import (
     LayerManifestError,
     require_safe_token,
@@ -42,6 +43,8 @@ class VerifiedIkBundleReader:
         project_id: str,
         profile_sha256: str,
         bundle_sha256: str,
+        *,
+        mesh_bundle: VerifiedMeshBundle | None = None,
     ) -> VerifiedIkBundle:
         """Read each admitted file once, then rebuild all P4 evidence."""
 
@@ -64,6 +67,7 @@ class VerifiedIkBundleReader:
                 expected_project_id=project,
                 expected_profile_sha256=profile_sha,
                 expected_bundle_sha256=bundle_sha,
+                mesh_bundle=mesh_bundle,
             )
             if verified.path != directory:
                 raise VerifiedIkBundleReaderError(

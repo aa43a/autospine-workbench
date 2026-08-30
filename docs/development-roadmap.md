@@ -104,10 +104,17 @@ blocked 结论而不会发布完整 P10.5c。
 package，存在唯一或确定性推荐项时自动选中；服务端重新闭合 Layer Manifest/P3/P5/P9 并编译
 P10.0 candidate，不要求用户选择文件、输入路径或填写 SHA。
 
+已交付的读取优化仅复用同一服务进程内的 immutable exact-chain 对象。缓存命中仍会重新枚举
+七段来源目录、读取全部文件字节并校验 seal；任一字节、inventory 或 alias 状态变化都会失效并
+执行完整 replay，服务冷启动也始终从完整 replay 开始。该缓存不落盘、无 authority，并明确排除
+P10.1 revision history、current head 与 CAS publication，因此不能成为当前审批头或发布凭据。
+
 角色合成图、躯干四骨示意、播放/暂停、时间轴与少量幅度/节奏控件用于理解和调整候选。自动
-推荐、时间轴预览和参数默认值只构成 `unvalidated_draft`。只有操作者最后一次显式确认才通过
-独立 intent 和 current-head CAS 追加 candidate-bound P10.1 revision；当前没有真实 P10.1 通过
-结论。P10.1 成功也只进入 `pending_probe`，下一项必须是 P10.2 七项 sampled 结构诊断。
+推荐、时间轴预览和参数默认值只构成 `unvalidated_draft`。保存、拒绝与不可判断三个决定按钮
+统一显示项目、动作、决定类型和后果的二次确认弹窗；取消、Esc 与遮罩点击都在 mutation 前返回，
+不会写 revision。只有操作者点击“确认并提交”才通过独立 intent 和实时 current-head CAS 追加
+candidate-bound P10.1 revision；当前没有真实 P10.1 通过结论。`adjust` 成功也只进入
+`pending_probe`，下一项必须是 P10.2 七项 sampled 结构诊断。
 
 ## 已完成横向前置：Resolved Project v1
 
@@ -284,7 +291,7 @@ See-through 分层，并让新的 Manifest/P3/candidate 内容地址失效旧决
 最短后续顺序：
 
 1. 从 [pilot handoff](pilots/kimodo-wave-left-v1.md) 读取 A/B 已复验 P9 双 SHA，并用 canonical builder 生成一份显式声明这些地址的新 readiness 请求；不得手工格式化冻结 baseline。
-2. 对 A 打开 `idle-behavior-review.html`，让服务端 exact replay P9 链并准备 P10.0 草稿；操作者看图、播放和调整后显式确认 P10.1。自动推荐、时间轴拖动或参数默认值都不能代替这次确认。
+2. 对 A 打开 `idle-behavior-review.html`，让服务端 exact replay P9 链并准备 P10.0 草稿；操作者看图、播放和调整后，在列明项目/动作/后果的二次确认弹窗中显式提交 P10.1。自动推荐、时间轴拖动、参数默认值或缓存命中都不能代替这次确认；取消弹窗不写入。
 3. 对 A 依次运行 P10.2、P10.3 与 P10.4b2，再把该动作域与已存在的 P10.5c 双 SHA 组合为 P10.5d；不能从静态 set 直接跳到动态探针。对 B 先选择“上游修复”或“另立 partial 合同”，不得伪造六关系通过。
 4. 在精确 P9/P10.5d 地址上依次完成 P10.6–P10.7a；每次只把实际生成的双 SHA 回填请求。
 5. 使用现有且已获授权的官方 Runtime 执行 P10.7b capture、精确复验和逐 case/attachment 人工决定。

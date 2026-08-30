@@ -16,6 +16,10 @@ from .idle_behavior_review_profile import (
     MAX_PACKAGES,
     PACKAGE_FORMAT,
 )
+from .idle_behavior_review_replay_cache import (
+    IdleBehaviorReviewReplayCacheError,
+    load_cached_reviewed_motion_chain,
+)
 from .motion_policy_review_packages import (
     MotionPolicyReviewPackageError,
     list_motion_policy_review_packages,
@@ -207,9 +211,14 @@ def _run(
     """Admit only a complete six-file bundle replayed from exact P3/P5."""
 
     try:
-        verified = VerifiedReviewedMotionBundleReader(state_root).load(
-            project_id, instance_sha, bundle_sha,
+        reader = VerifiedReviewedMotionBundleReader(state_root)
+        chain = load_cached_reviewed_motion_chain(
+            state_root, project_id, instance_sha, bundle_sha,
+            lambda: reader.load_chain(
+                project_id, instance_sha, bundle_sha,
+            ),
         )
+        verified = chain.reviewed_bundle
         return _AdoptedRun(
             verified.project_id, verified.clip_id,
             verified.motion_instance_v2_sha256, verified.bundle_sha256,
@@ -217,7 +226,10 @@ def _run(
             verified.depth_order_candidates_sha256,
             verified.motion_policy_decision_sha256,
         )
-    except VerifiedReviewedMotionBundleReaderError as exc:
+    except (
+        IdleBehaviorReviewReplayCacheError,
+        VerifiedReviewedMotionBundleReaderError,
+    ) as exc:
         raise IdleBehaviorReviewPackageError(
             "Adopted P9 bundle failed exact replay"
         ) from exc

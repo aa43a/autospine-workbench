@@ -8,6 +8,7 @@ test("P10 operator page is visual, automatic, accessible, and keeps one human bo
     "idle-behavior-review-app.js", "idle-behavior-review-api.js",
     "idle-behavior-review-contract.js", "idle-behavior-review-contract-evidence.js",
     "idle-behavior-review-contract-package.js",
+    "idle-behavior-review-confirmation.js",
     "idle-behavior-review-loader.js", "idle-behavior-review-model.js",
     "idle-behavior-review-preview.js", "idle-behavior-review-view.js",
   ];
@@ -34,11 +35,20 @@ test("P10 operator page is visual, automatic, accessible, and keeps one human bo
   assert.match(html, /id="phaseDelay"[^>]*step="any"/);
   assert.doesNotMatch(`${html}\n${modules.join("\n")}`, /送往结构探针|将进入结构探针/);
   assert.match(html, /id="unobservableBodySway"/);
+  assert.match(html, /<dialog id="decisionDialog"/);
+  assert.match(html, /aria-labelledby="decisionDialogTitle"/);
+  assert.match(html, /按 Esc 或点击弹窗外遮罩可取消/);
+  assert.match(html, /id="cancelDecision"[^>]*autofocus/);
+  assert.match(html, /id="commitDecision"/);
   assert.match(html, /不是 Spine Runtime 画面/);
   assert.match(html, /role="status" aria-live="polite"/);
   assert.match(css, /min-height:\s*44px/);
   assert.match(css, /@media \(max-width: 560px\)/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
+  const app = modules[moduleNames.indexOf("idle-behavior-review-app.js")];
+  const cancelGate = app.match(/if \(!confirmed\) \{[\s\S]*?return;\s*\}/)?.[0] ?? "";
+  assert.match(cancelGate, /setMutationLocked\(false\)/);
+  assert.ok(app.indexOf(cancelGate) < app.indexOf("await submitDecision(identity, request)"));
   assert.doesNotMatch(modules.join("\n"), /innerHTML|insertAdjacentHTML|document\.write|\beval\s*\(/);
   for (const [index, source] of modules.entries()) {
     assert.ok(source.split(/\r?\n/).length < 400, `${moduleNames[index]} must stay below 400 lines`);

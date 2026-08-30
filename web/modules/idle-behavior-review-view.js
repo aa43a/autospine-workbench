@@ -12,7 +12,7 @@ const IDS = [
   "previewImage", "previewSvg",
   "previewFallback", "playPreview", "timeline", "timeOutput",
   "candidateDigest", "historyList", "expertDocument", "receiptPanel",
-  "receiptSummary", "liveRegion",
+  "receiptHeading", "receiptSummary", "liveRegion",
 ];
 
 export function idleReviewElements(doc = document) {
@@ -93,6 +93,7 @@ export function showIdleReviewReceipt(elements, receipt) {
   elements.receiptSummary.textContent =
     `P10.1 revision ${receipt.revision} 已保存；动作：${receipt.action}。下一步请运行结构探针。`;
   elements.liveRegion.textContent = `身体摆动决定 revision ${receipt.revision} 已保存`;
+  elements.receiptHeading.focus({ preventScroll: true });
 }
 
 function setFormEnabled(elements, enabled) {

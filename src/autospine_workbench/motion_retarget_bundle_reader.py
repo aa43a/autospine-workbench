@@ -23,6 +23,7 @@ from .motion_retarget_bundle_integrity import (
     VerifiedMotionRetargetBundle,
     verify_motion_retarget_bundle_snapshot,
 )
+from .mesh_bundle_integrity import VerifiedMeshBundle
 
 
 _LIMITS = (
@@ -52,6 +53,8 @@ class VerifiedMotionRetargetBundleReader:
         project_id: str,
         instance_sha256: str,
         bundle_sha256: str,
+        *,
+        mesh_bundle: VerifiedMeshBundle | None = None,
     ) -> VerifiedMotionRetargetBundle:
         """Read every admitted file once, then reproduce all evidence."""
 
@@ -74,6 +77,7 @@ class VerifiedMotionRetargetBundleReader:
                 expected_project_id=project,
                 expected_instance_sha256=instance_sha,
                 expected_bundle_sha256=bundle_sha,
+                mesh_bundle=mesh_bundle,
             )
             if verified.path != directory:
                 raise VerifiedMotionRetargetBundleReaderError(

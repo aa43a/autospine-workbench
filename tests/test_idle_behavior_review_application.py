@@ -22,6 +22,7 @@ from autospine_workbench.idle_behavior_review_history import (
     IdleBehaviorReviewRevisionConflict,
 )
 from autospine_workbench.idle_behavior_review_replay import (
+    clear_idle_behavior_review_evidence_cache,
     replay_idle_behavior_review_package,
 )
 from tests.p10_candidate_helpers import P10PersistedFixture
@@ -104,6 +105,27 @@ class IdleBehaviorReviewApplicationTests(unittest.TestCase):
                 "motion_policy_decision_sha256"
             ],
         )
+
+    def test_authority_free_evidence_is_cached_but_manifest_is_isolated(self):
+        from autospine_workbench import idle_behavior_review_replay as module
+
+        clear_idle_behavior_review_evidence_cache()
+        with patch.object(
+            module,
+            "compile_idle_behavior_candidates",
+            wraps=module.compile_idle_behavior_candidates,
+        ) as compiler:
+            first = replay_idle_behavior_review_package(
+                self.fixture.state, self.address,
+            )
+            second = replay_idle_behavior_review_package(
+                self.fixture.state, self.address,
+            )
+        self.assertIs(first, second)
+        compiler.assert_called_once()
+        changed = first.manifest
+        changed.clear()
+        self.assertTrue(second.manifest)
 
     def test_prepare_is_path_free_and_exposes_four_bone_fk_preview(self):
         entry = self.prepare()

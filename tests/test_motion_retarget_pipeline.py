@@ -153,7 +153,8 @@ class VerifiedMotionRetargetPipelineTests(unittest.TestCase):
                 *self.fixture.args[:3]
             )
             ik_reader.return_value.load.assert_called_once_with(
-                self.fixture.args[0], *self.fixture.args[3:5]
+                self.fixture.args[0], *self.fixture.args[3:5],
+                mesh_bundle=self.fixture.mesh,
             )
             motion_reader.return_value.load.assert_called_once_with(
                 *self.fixture.args[5:]
@@ -166,6 +167,27 @@ class VerifiedMotionRetargetPipelineTests(unittest.TestCase):
                 VerifiedMotionRetargetPipelineError
             ), self.fixture.patched_readers():
                 VerifiedMotionRetargetPipeline(self.fixture.state).build(*changed)
+
+    def test_preverified_p3_is_reused_and_still_exactly_bound(self):
+        with self.fixture.patched_readers() as readers:
+            result = VerifiedMotionRetargetPipeline(self.fixture.state).build(
+                *self.fixture.args, mesh_bundle=self.fixture.mesh,
+            )
+        mesh_reader, ik_reader, _motion_reader = readers
+        mesh_reader.return_value.load.assert_not_called()
+        ik_reader.return_value.load.assert_called_once_with(
+            self.fixture.args[0], *self.fixture.args[3:5],
+            mesh_bundle=self.fixture.mesh,
+        )
+        self.assertEqual("idle", result.clip_id)
+
+        changed = replace(self.fixture.mesh, bundle_sha256="f" * 64)
+        with self.fixture.patched_readers(), self.assertRaises(
+            VerifiedMotionRetargetPipelineError
+        ):
+            VerifiedMotionRetargetPipeline(self.fixture.state).build(
+                *self.fixture.args, mesh_bundle=changed,
+            )
 
     def test_reader_address_and_p3_p4_chain_tamper_fail_closed(self):
         cases = (

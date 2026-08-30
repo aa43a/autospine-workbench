@@ -23,6 +23,7 @@ from .motion_retarget_pipeline import (
     VerifiedMotionRetargetPipeline,
     VerifiedMotionRetargetPipelineError,
 )
+from .mesh_bundle_integrity import VerifiedMeshBundle
 from .safe_input_files import strict_json_object
 
 
@@ -105,6 +106,7 @@ def verify_motion_retarget_bundle_snapshot(
     expected_project_id: str,
     expected_instance_sha256: str,
     expected_bundle_sha256: str,
+    mesh_bundle: VerifiedMeshBundle | None = None,
 ) -> VerifiedMotionRetargetBundle:
     """Validate the pure contract, then rebuild from exact upstream bundles."""
 
@@ -133,9 +135,15 @@ def verify_motion_retarget_bundle_snapshot(
                 "Retarget bundle differs from its requested content address")
         _require_address(snapshot.directory, Path(state_root), contract)
         sources = _source_addresses(values[0], values[1])
-        rebuilt = VerifiedMotionRetargetPipeline(Path(state_root)).build(
+        pipeline = VerifiedMotionRetargetPipeline(Path(state_root))
+        pipeline_args = (
             contract.project_id,
             *(sources[field] for field in _SOURCE_FIELDS),
+        )
+        rebuilt = (
+            pipeline.build(*pipeline_args)
+            if mesh_bundle is None
+            else pipeline.build(*pipeline_args, mesh_bundle=mesh_bundle)
         )
         rebuilt_values = (
             rebuilt.target_profile,

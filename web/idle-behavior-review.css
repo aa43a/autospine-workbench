@@ -231,6 +231,34 @@ input[type="range"] { width: 100%; min-height: 32px; accent-color: var(--accent)
 .expert-grid { display: grid; grid-template-columns: minmax(15rem, 0.65fr) minmax(0, 1.35fr); gap: 1rem; }
 .expert-grid code { display: block; overflow-wrap: anywhere; color: var(--warning); }
 .expert-grid pre { max-height: 24rem; margin: 0; padding: 0.8rem; overflow: auto; border-radius: 8px; background: #080b10; white-space: pre-wrap; }
+.decision-dialog {
+  width: min(34rem, calc(100% - 2rem));
+  max-height: calc(100dvh - 2rem);
+  padding: 0;
+  overflow: auto;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 24px 80px rgb(0 0 0 / 60%);
+}
+.decision-dialog::backdrop { background: rgb(2 5 9 / 78%); backdrop-filter: blur(3px); }
+.decision-dialog-card { padding: clamp(1rem, 3vw, 1.5rem); }
+.decision-dialog-summary { display: grid; gap: 0.55rem; margin: 1rem 0; }
+.decision-dialog-summary div {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr);
+  gap: 0.7rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel-strong);
+}
+.decision-dialog-summary dt { color: var(--muted); font-weight: 700; }
+.decision-dialog-summary dd { min-width: 0; margin: 0; overflow-wrap: anywhere; font-weight: 750; }
+.decision-dialog-consequence { padding: 0.7rem 0.8rem; border-left: 4px solid var(--warning); background: #201c14; }
+.decision-dialog-hint { color: var(--muted); font-size: 0.84rem; }
+.decision-dialog-actions { display: flex; justify-content: flex-end; gap: 0.65rem; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
 @media (max-width: 900px) {
@@ -247,6 +275,7 @@ input[type="range"] { width: 100%; min-height: 32px; accent-color: var(--accent)
   .control-list output { text-align: start; }
   .timeline-controls { grid-template-columns: minmax(0, 1fr) auto; }
   .timeline-controls label { grid-column: 1 / -1; grid-row: 1; }
+  .decision-dialog-actions { align-items: stretch; flex-direction: column-reverse; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }

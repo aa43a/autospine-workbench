@@ -42,6 +42,15 @@ class VerifiedReviewedMotionBundleReaderError(RuntimeError):
 
 
 @dataclass(frozen=True, slots=True)
+class VerifiedReviewedMotionBundleChain:
+    """One exact P3/P5/P9 load whose upstream values may be reused."""
+
+    mesh_bundle: VerifiedMeshBundle
+    retarget_bundle: VerifiedMotionRetargetBundle
+    reviewed_bundle: VerifiedReviewedMotionBundle
+
+
+@dataclass(frozen=True, slots=True)
 class VerifiedReviewedMotionBundleReader:
     """Read six files once and rebuild them from exact P3/P5 dependencies."""
 
@@ -60,6 +69,25 @@ class VerifiedReviewedMotionBundleReader:
         retarget_bundle: VerifiedMotionRetargetBundle | None = None,
     ) -> VerifiedReviewedMotionBundle:
         """Load only one explicit address; never scan or consult a latest link."""
+
+        return self.load_chain(
+            project_id,
+            motion_instance_v2_sha256,
+            bundle_sha256,
+            mesh_bundle=mesh_bundle,
+            retarget_bundle=retarget_bundle,
+        ).reviewed_bundle
+
+    def load_chain(
+        self,
+        project_id: str,
+        motion_instance_v2_sha256: str,
+        bundle_sha256: str,
+        *,
+        mesh_bundle: VerifiedMeshBundle | None = None,
+        retarget_bundle: VerifiedMotionRetargetBundle | None = None,
+    ) -> VerifiedReviewedMotionBundleChain:
+        """Load P9 plus the exact P3/P5 values used to verify it."""
 
         try:
             if (mesh_bundle is None) != (retarget_bundle is None):
@@ -99,15 +127,19 @@ class VerifiedReviewedMotionBundleReader:
                     project_id,
                     inputs["p5"]["instance_sha256"],
                     inputs["p5"]["bundle_sha256"],
+                    mesh_bundle=mesh_bundle,
                 )
             assert mesh_bundle is not None and retarget_bundle is not None
-            return verify_reviewed_motion_bundle_snapshot(
+            reviewed = verify_reviewed_motion_bundle_snapshot(
                 snapshot,
                 expected_project_id=project_id,
                 expected_motion_instance_v2_sha256=motion_instance_v2_sha256,
                 expected_bundle_sha256=bundle_sha256,
                 mesh_bundle=mesh_bundle,
                 retarget_bundle=retarget_bundle,
+            )
+            return VerifiedReviewedMotionBundleChain(
+                mesh_bundle, retarget_bundle, reviewed,
             )
         except VerifiedReviewedMotionBundleReaderError:
             raise

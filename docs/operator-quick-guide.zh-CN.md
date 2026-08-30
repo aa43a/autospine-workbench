@@ -4,7 +4,7 @@
 
 P9 Kimodo 动作进入策略复核时，可从功能入口中心打开 `Motion Policy 自动工作流`。普通用户只需确认项目：存在推荐项时页面会自动选择并加载对应的 exact package，重算 SHA-256 和 candidate inventory。随后拖动时间轴或点击“一键采用全部安全建议”，只让系统覆盖 `state=candidate`、证据完整有限且 correction ratio/residual 均不超过合同上限 80% 的 Foot candidates，再处理少量异常并做一次最终明确采纳。三份 JSON 与 SHA 手工输入只在“专业模式”中保留。Depth、`rejected_*`、缺证、非有限值和超阈值项不会自动批准；最终确认后，本机服务会编译、发布并精确复验 P9，review input 下载仅作备份。完整流程见 [复核并发布 Kimodo 动作策略](how-to-review-kimodo-motion-policy.md)。
 
-P9 已采用后，从功能入口中心打开 `身体摆动设置`。页面会自动选择无歧义的项目/package，由服务端 exact replay P3/P5/P9 并准备 P10.0 候选；普通用户不用选 JSON、填写 SHA 或寻找目录。先看角色合成图和四骨示意，再播放、拖动时间轴并调整少量参数。页面上的推荐只是 `unvalidated_draft`，时间轴操作不会自行批准；必须点击最后一次明确确认才形成 P10.1 revision，随后仍要继续 P10.2 结构探针。
+P9 已采用后，从功能入口中心打开 `身体摆动设置`。页面会自动选择无歧义的项目/package，由服务端 exact replay P3/P5/P9 并准备 P10.0 候选；普通用户不用选 JSON、填写 SHA 或寻找目录。先看角色合成图和四骨示意，再播放、拖动时间轴并调整少量参数。页面上的推荐只是 `unvalidated_draft`，时间轴操作不会自行批准；保存、拒绝和无法判断三个按钮都会先显示项目、动作与后果，取消弹窗不会写入。只有在弹窗中点击“确认并提交”才形成 P10.1 revision，随后仍要继续相应门禁。
 
 P9 成功后可直接进入 `Seam Anchor 复核台`。页面会自动加载 package、绑定 current head、把明确的唯一候选和不可观测项填入可撤销草稿，并用图片叠加代替默认展示 SHA/JSON；普通操作者只需检查多候选和最后明确确认。若六条关系均可用，同一次确认会继续生成并精确读回 P10.5c 静态接缝集。完整流程见 [复核 P10.5b 静态接缝锚点](how-to-review-seam-anchors.md)。
 
@@ -86,10 +86,10 @@ $env:PYTHONPATH = (Resolve-Path .\src).Path
 
 1. 打开 <http://127.0.0.1:8765/idle-behavior-review.html>。
 2. 查看页面自动选择的“项目 / 动作”。如果只有一个推荐项，页面会直接加载；如果存在多个同项目/clip 的有效 adoption，系统不会猜测，需从列表明确选择。
-3. 等待服务端 exact replay 完成。普通流程不选择文件、不填写 SHA；原始身份、revision 和历史只在“技术详情”中显示。
+3. 等待服务端 exact replay 完成。服务冷启动会完整 replay；同一服务进程可以复用经过全字节 seal 重验的非权威 chain 缓存。普通流程不选择文件、不填写 SHA；原始身份、revision 和历史只在“技术详情”中显示。缓存不会保存 history、current head 或 CAS。
 4. 查看角色合成图和 `pelvis-spine`、`spine-chest`、`chest-neck`、`neck-head` 四骨示意。播放或拖动时间轴，检查摆动方向、幅度和循环是否符合角色。
 5. 用页面提供的少量通俗参数调整幅度与节奏。推荐值、播放结果和时间轴停留位置都只是 `unvalidated_draft`，不会在后台批准。
-6. 满意后点击最后的明确确认按钮。只有这一步会以 current-head CAS 写入 candidate-bound P10.1 revision；若另一窗口先保存，刷新历史并重新确认，不要沿用旧基线。
+6. 满意后先勾选人工确认，再点击“保存 P10.1，下一步运行结构探针”。如需停止使用候选，可选择“不使用身体摆动”或“当前无法判断”。三个按钮都会打开二次确认弹窗，显示当前项目、动作、决定类型和后果；按 Esc、点击遮罩或点击“取消”均不发送请求。只有点击“确认并提交”才会以实时 current-head CAS 写入 candidate-bound P10.1 revision；若另一窗口先保存，刷新历史并重新确认，不要沿用旧基线。
 7. 成功回执仍应显示 `pending_probe`。继续 P10.2 七项 sampled 结构探针；不要把 P10.1 当成 Runtime、视觉、动态接缝或发布批准。
 
 ### P10.5：用图片完成接缝复核
@@ -266,7 +266,7 @@ E:\proj\unusual\localset\tmp\psd_audit\results\<project-id>\audit.json
 - 查看并调整基础骨架，处理 pose/alpha/接触候选；
 - 以内容地址保存候选证据，以 revision 保存人工决定；
 - 生成并严格验证版本化的 Resolved Project v1 snapshot，同时保持历史 r5/r7 内容地址不变；
-- 从已采用的 P9 链自动选择项目和 exact package，在“身体摆动设置”中用角色合成图、四骨示意、播放/时间轴和少量参数准备 P10.0 草稿，并在一次明确确认后保存 P10.1 revision；
+- 从已采用的 P9 链自动选择项目和 exact package，在“身体摆动设置”中用角色合成图、四骨示意、播放/时间轴和少量参数准备 P10.0 草稿；同进程 exact-chain 缓存命中仍全字节重验，三个决定按钮均经项目/动作/后果二次确认，取消零写入；
 - 从独立页面完成人工 Body-sway still；从 P9 package 自动进入 Seam Anchor 页面，以叠加图、确定性建议草稿和一次最终确认完成 P10.5b，并在 ready 时继续 P10.5c exact publication/readback；
 - 在 P9 页面完成一次明确 human adoption 后，由本机编译 decision/reviewed policy、原子发布 MotionInstance v2 六文件 bundle，并立即 exact verify；CLI 仍可独立复验，review input 下载仅作备份；
 - 通过离线命令生成和验证版本中立的 Layer Manifest、RigIR、mesh、IK、MotionIR、P10.6a admission、MotionInstance v3 及 P10.7a Spine 4.2 v3 五文件 adapter 工件。
@@ -299,7 +299,7 @@ python -B -m autospine_workbench verify-mesh-bundle --help
 
 ## 10. 当前阶段与下一开发入口
 
-**P9-real-kimodo-policy-adoption** 对当前 `wave-left-v1` 的 A/B 已关闭：两项目都已完成最终 human adoption，本地发布的 P9 reviewed-motion bundle 也已按 exact 上游重放通过。项目 A 的 P10.5b revision 1 与 P10.5c 静态接缝集也已真实闭合；唯一身份见 [Kimodo `wave-left-v1` Pilot Handoff](pilots/kimodo-wave-left-v1.md)。当前普通用户应打开[身体摆动设置](http://127.0.0.1:8765/idle-behavior-review.html)，让服务端自动 exact replay 并准备 P10.0 草稿；确认参数后显式提交 P10.1，再按 P10.2 → P10.3 → P10.4b2 → P10.5d 前进。当前不能声称 P10.1 已通过，也不能从静态 set 直接跳到 P10.5d。项目 B 会明确显示左右 pelvis-leg 与 leg-foot 4 条不可观测 blocker，完整合同保持 fail closed，不会自动批准或生成 fallback。对新的 Kimodo 输入，仍应先运行零写入准入审计：
+**P9-real-kimodo-policy-adoption** 对当前 `wave-left-v1` 的 A/B 已关闭：两项目都已完成最终 human adoption，本地发布的 P9 reviewed-motion bundle 也已按 exact 上游重放通过。项目 A 的 P10.5b revision 1 与 P10.5c 静态接缝集也已真实闭合；唯一身份见 [Kimodo `wave-left-v1` Pilot Handoff](pilots/kimodo-wave-left-v1.md)。当前普通用户应打开[身体摆动设置](http://127.0.0.1:8765/idle-behavior-review.html)，让服务端自动 exact replay 并准备 P10.0 草稿；在二次确认弹窗核对项目、动作、决定和后果后显式提交 P10.1，再按 P10.2 → P10.3 → P10.4b2 → P10.5d 前进。缓存命中不能代替人工确认或 current-head CAS，取消弹窗不会写入。当前不能声称 P10.1 已通过，也不能从静态 set 直接跳到 P10.5d。项目 B 会明确显示左右 pelvis-leg 与 leg-foot 4 条不可观测 blocker，完整合同保持 fail closed，不会自动批准或生成 fallback。对新的 Kimodo 输入，仍应先运行零写入准入审计：
 
 ```powershell
 python -B -m autospine_workbench audit-kimodo-pilot-intake `

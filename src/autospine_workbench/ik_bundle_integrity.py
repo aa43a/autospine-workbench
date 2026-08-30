@@ -28,6 +28,7 @@ from .mesh_bundle_reader import (
     VerifiedMeshBundleReader,
     VerifiedMeshBundleReaderError,
 )
+from .mesh_bundle_integrity import VerifiedMeshBundle
 
 
 class IkBundleIntegrityError(ValueError):
@@ -83,6 +84,7 @@ def verify_ik_bundle_snapshot(
     expected_project_id: str,
     expected_profile_sha256: str,
     expected_bundle_sha256: str,
+    mesh_bundle: VerifiedMeshBundle | None = None,
 ) -> VerifiedIkBundle:
     """Validate address and bytes, then rebuild both documents from strict P3."""
 
@@ -111,11 +113,18 @@ def verify_ik_bundle_snapshot(
             )
         _require_address(snapshot.directory, contract)
         source = _source(profile.get("source"))
-        p3 = VerifiedMeshBundleReader(Path(state_root)).load(
-            expected_project_id,
-            source["rig_sha256"],
-            source["bundle_sha256"],
-        )
+        if mesh_bundle is None:
+            p3 = VerifiedMeshBundleReader(Path(state_root)).load(
+                expected_project_id,
+                source["rig_sha256"],
+                source["bundle_sha256"],
+            )
+        elif type(mesh_bundle) is VerifiedMeshBundle:
+            p3 = mesh_bundle
+        else:
+            raise IkBundleIntegrityError(
+                "IK bundle preverified P3 input has an invalid type"
+            )
         require_ik_target_profile(profile, verified_bundle=p3)
         rebuilt_profile = compile_ik_target_profile(p3).document
         if _canonical(rebuilt_profile) != raw["profile.json"]:

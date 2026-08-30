@@ -40,9 +40,9 @@
 
 ### 身体摆动设置
 
-普通流程只列出已经 adopted 且能够精确重放的 P9 链；存在唯一或确定性推荐项时自动选择项目和 package。服务端从 package 重新闭合 Layer Manifest/P3/P5/P9，并编译当前 P10.0 idle candidate，浏览器不要求选择 JSON、输入路径或抄写 SHA。
+普通流程只列出已经 adopted 且能够精确重放的 P9 链；存在唯一或确定性推荐项时自动选择项目和 package。服务端从 package 重新闭合 Layer Manifest/P3/P5/P9，并编译当前 P10.0 idle candidate，浏览器不要求选择 JSON、输入路径或抄写 SHA。同一服务进程内可复用非权威 exact-chain 缓存，但每次命中仍枚举 inventory、读取全部文件字节并重算 seal；服务冷启动、缓存失效或任一字节变化都会执行完整 replay。P10.1 history、current head 和 CAS 不缓存。
 
-页面以角色合成图、躯干四骨示意、播放/暂停、时间轴和少量幅度/节奏控件呈现候选；原始身份和历史只放在技术详情。自动加载、推荐值、播放预览或拖动时间轴都只形成 `unvalidated_draft`，不会写 revision。只有操作者明确执行最后确认，页面才把完整参数、candidate SHA 和 current-head 基线提交为 candidate-bound P10.1 revision；成功状态仍是 `pending_probe`，必须继续 P10.2 结构探针，不能据此声称 Runtime、视觉、动态接缝或发布通过。
+页面以角色合成图、躯干四骨示意、播放/暂停、时间轴和少量幅度/节奏控件呈现候选；原始身份和历史只放在技术详情。自动加载、推荐值、播放预览或拖动时间轴都只形成 `unvalidated_draft`，不会写 revision。“保存 P10.1”“不使用身体摆动”和“当前无法判断”三个按钮都会先打开二次确认弹窗，显示项目、动作、决定类型与后果；取消、Esc 或点击遮罩均不调用 mutation。只有操作者在弹窗中选择“确认并提交”，页面才把完整参数或明确的非采用决定、candidate SHA 和 current-head 基线提交为 candidate-bound P10.1 revision；`adjust` 成功状态仍是 `pending_probe`，必须继续 P10.2 结构探针，不能据此声称 Runtime、视觉、动态接缝或发布通过。
 
 ### Body-sway 视觉复核台
 
@@ -209,7 +209,7 @@ Resolved Project v1 是已完成的 P0 合同能力，但没有伪造一个独�
 
 操作说明：[Idle/body-sway](how-to-review-idle-behaviors.md)、[临时预览与视觉复核](how-to-review-body-sway-runtime.md)、[Runtime 捕获](how-to-capture-body-sway-runtime.md)、[连续证明](how-to-compile-body-sway-continuous-proof.md)。
 
-普通操作者优先使用[身体摆动设置](http://127.0.0.1:8765/idle-behavior-review.html)。页面自动选择无歧义项目、由服务端 exact replay 上游并隐藏文件/SHA 输入；CLI 保留给历史复验和专业排障。页面准备出的候选是 `unvalidated_draft`，必须由操作者显式确认才形成 P10.1 revision，且 P10.1 通过并不代替后续 P10.2/P10.3/P10.4b2。
+普通操作者优先使用[身体摆动设置](http://127.0.0.1:8765/idle-behavior-review.html)。页面自动选择无歧义项目、由服务端 exact replay 上游并隐藏文件/SHA 输入；同进程缓存只能加速 immutable chain 解析，命中仍做全字节 seal 重验，history/head/CAS 继续实时读取。CLI 保留给历史复验和专业排障。页面准备出的候选是 `unvalidated_draft`，必须由操作者在显示项目、动作、决定和后果的二次确认弹窗中提交才形成 P10.1 revision；所有取消路径零写入，且 P10.1 通过并不代替后续 P10.2/P10.3/P10.4b2。
 
 ### P10.5：接缝锚点
 
@@ -284,9 +284,9 @@ P9、Idle 与 Seam 自动页面使用下列 package 资源；preflight 与 GET �
 | --- | --- | --- |
 | `GET /api/motion-policy/review-packages` | 发现固定文件名的本地 exact review package，重算身份并返回确定性的推荐 package ID | loopback-only；响应 path-free，不扫描下载目录、不按 mtime 选 `latest`，不批准或发布 |
 | `GET /api/motion-policy/review-packages/{package_id}` | 按完整 package ID 读取正式 policy、Foot/Depth reports 和预检 inventory | exact ID 必须绑定项目、动作、clip、三份报告 SHA 与 candidate inventory；损坏或变化时 fail closed |
-| `GET /api/idle-behavior/review-packages` | 从已 adopted P9 链发现 P10.0/P10.1 review package，并返回确定性推荐项 | path-free；不按 mtime/`latest` 猜测；多个同项目/clip adoption 时不自动推荐 |
-| `GET /api/idle-behavior/review-packages/{package_id}` | 服务端 exact replay P3/P5/P9/P10.0，返回角色预览、四骨参数建议和 current history | 自动结果固定为 `unvalidated_draft`；不接受客户端上游 SHA 或路径 |
-| `POST /api/idle-behavior/review-packages/{package_id}/decisions` | 提交一次显式 P10.1 人工决定 | `X-Autospine-Intent: body-sway-human-review-v1`、exact candidate、显式最终确认与 head CAS；成功仍为 `pending_probe` |
+| `GET /api/idle-behavior/review-packages` | 从已 adopted P9 链发现 P10.0/P10.1 review package，并返回确定性推荐项 | path-free；不按 mtime/`latest` 猜测；同进程缓存命中仍做全字节 seal 重验，多个同项目/clip adoption 时不自动推荐 |
+| `GET /api/idle-behavior/review-packages/{package_id}` | 服务端 exact replay P3/P5/P9/P10.0，返回角色预览、四骨参数建议和 current history | immutable chain 缓存非权威；history/current head 实时读取；自动结果固定为 `unvalidated_draft`，不接受客户端上游 SHA 或路径 |
+| `POST /api/idle-behavior/review-packages/{package_id}/decisions` | 二次确认后提交一次显式 P10.1 人工决定 | 取消不发请求；确认要求 `X-Autospine-Intent: body-sway-human-review-v1`、exact candidate、`explicit_confirmation=true` 与实时 head CAS；成功仍为 `pending_probe` 或明确 `not_applicable` |
 | `GET /api/motion-policy/review-packages/{package_id}/seam-review-entry` | 零写入重放 exact package 与 Foot/Depth 共享 P3 来源，复验 P3 bundle，重新准备 P10.5b candidate | 不接受客户端 Manifest/P3 SHA；响应 path-free，只返回 exact 地址、candidate SHA、可观测性摘要与 blocker |
 | `POST /api/motion-policy/review-packages/{package_id}/seam-publications` | 从已提交的 current ready P10.5b decision 编译、发布并 exact-readback P10.5c | 独立 intent；只接受 package/candidate/revision/decision 身份，不接受路径或客户端上游地址；响应 path-free |
 | `POST /api/motion-policy/preflight` | 从原始 JSON 文本运行 inner strict decoder；`policy_identity` 返回 Python canonical SHA，`candidate_inventory` 解包受支持 envelope 后重算 policy/foot/depth 三 SHA、完整 standalone 合同、交叉绑定、四项计数及候选 ID 清单 SHA | loopback + exact same-origin、JSON、`X-Autospine-Intent: motion-policy-preflight-v1`；外层 48 MiB、内层 policy/foot/depth 1/16/16 MiB；不读路径、不写 state、不批准或发布 |

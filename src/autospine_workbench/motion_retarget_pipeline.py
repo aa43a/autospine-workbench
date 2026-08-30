@@ -11,6 +11,7 @@ from typing import Any
 from .ik_bundle_reader import VerifiedIkBundleReader
 from .ik_target_geometry import SOURCE_IDENTITY_FIELDS
 from .mesh_bundle_reader import VerifiedMeshBundleReader
+from .mesh_bundle_integrity import VerifiedMeshBundle
 from .motion_bundle_reader import VerifiedMotionBundleReader
 from .motion_instance_validation import require_motion_instance
 from .motion_mesh_regression import (
@@ -98,6 +99,8 @@ class VerifiedMotionRetargetPipeline:
         p4_bundle_sha256: str,
         motion_clip_sha256: str,
         motion_bundle_sha256: str,
+        *,
+        mesh_bundle: VerifiedMeshBundle | None = None,
     ) -> VerifiedMotionRetargetPipelineResult:
         """Strictly load, retarget, and gate one immutable motion/rig pair."""
 
@@ -107,13 +110,20 @@ class VerifiedMotionRetargetPipeline:
                 p4_profile_sha256, p4_bundle_sha256,
                 motion_clip_sha256, motion_bundle_sha256,
             )
-            mesh = VerifiedMeshBundleReader(self.state_root).load(
-                requested["project_id"], requested["p3_rig_sha256"],
-                requested["p3_bundle_sha256"],
-            )
+            if mesh_bundle is None:
+                mesh = VerifiedMeshBundleReader(self.state_root).load(
+                    requested["project_id"], requested["p3_rig_sha256"],
+                    requested["p3_bundle_sha256"],
+                )
+            elif type(mesh_bundle) is VerifiedMeshBundle:
+                mesh = mesh_bundle
+            else:
+                raise VerifiedMotionRetargetPipelineError(
+                    "Preverified P3 input has an invalid type"
+                )
             ik = VerifiedIkBundleReader(self.state_root).load(
                 requested["project_id"], requested["p4_profile_sha256"],
-                requested["p4_bundle_sha256"],
+                requested["p4_bundle_sha256"], mesh_bundle=mesh,
             )
             motion = VerifiedMotionBundleReader(self.state_root).load(
                 requested["motion_clip_sha256"],
