@@ -11,12 +11,15 @@ import unittest
 from tests.motion_policy_preflight_helpers import MotionPolicyFixtureMixin
 from tests.motion_policy_review_package_helpers import write_review_package
 
+from autospine_workbench.current_project_chain import CurrentProjectChain
 from autospine_workbench.motion_policy_review_packages import (
     MotionPolicyReviewPackageError,
+    MotionPolicyReviewPackageHistoricalError,
     _is_linklike,
     _read_text,
     get_motion_policy_review_package,
     list_motion_policy_review_packages,
+    require_current_motion_policy_review_package,
 )
 
 
@@ -30,6 +33,17 @@ class MotionPolicyReviewPackageTests(
 
     def tearDown(self) -> None:
         self.state_temporary.cleanup()
+
+    def _current(self, *, resolved=None, manifest=None):
+        project_id = self.policy["project_id"]
+        p3 = self.policy["source"]["p3"]
+        return {
+            project_id: CurrentProjectChain(
+                project_id,
+                resolved or p3["resolved_project_sha256"],
+                manifest or p3["layer_manifest_sha256"],
+            ),
+        }
 
     def test_list_and_exact_detail_are_deterministic_and_path_free(self):
         write_review_package(
@@ -59,11 +73,13 @@ class MotionPolicyReviewPackageTests(
             first["packages"][1]["package_id"],
         )
         self.assertNotIn("policy_json", first["packages"][0])
+        self.assertNotIn("authoring_alignment", first["packages"][0])
 
         detail = get_motion_policy_review_package(
             self.state, first["recommended_package_id"],
         )
         self.assertEqual(self.policy, json.loads(detail["policy_json"]))
+        self.assertNotIn("authoring_alignment", detail)
         self.assertEqual(self.foot, json.loads(detail["foot_candidates_json"]))
         self.assertEqual(
             self.depth, json.loads(detail["depth_candidates_json"]),
@@ -71,6 +87,81 @@ class MotionPolicyReviewPackageTests(
         encoded = json.dumps(detail)
         self.assertNotIn("private-package-root", encoded)
         self.assertNotIn("input_bundle_paths", encoded)
+
+    def test_explicit_current_inventory_aligns_and_recommends_only_unique(self):
+        write_review_package(self.state, self.policy, self.foot, self.depth)
+        current = self._current()
+
+        listing = list_motion_policy_review_packages(
+            self.state, current_project_chains=current,
+        )
+        row = listing["packages"][0]
+        self.assertEqual(2, listing["format_version"])
+        self.assertEqual(2, row["format_version"])
+        self.assertEqual("current", row["authoring_alignment"])
+        self.assertEqual(row["package_id"], listing["recommended_package_id"])
+        detail = get_motion_policy_review_package(
+            self.state,
+            row["package_id"],
+            current_project_chains=current,
+        )
+        self.assertEqual("current", detail["authoring_alignment"])
+        self.assertEqual(2, detail["format_version"])
+        self.assertEqual(
+            row["package_id"],
+            require_current_motion_policy_review_package(
+                self.state,
+                row["package_id"],
+                current_project_chains=current,
+            )["package_id"],
+        )
+
+        historical = self._current(manifest="f" * 64)
+        stale = list_motion_policy_review_packages(
+            self.state, current_project_chains=historical,
+        )
+        self.assertIsNone(stale["recommended_package_id"])
+        self.assertEqual(
+            "historical", stale["packages"][0]["authoring_alignment"],
+        )
+        with self.assertRaises(MotionPolicyReviewPackageHistoricalError):
+            require_current_motion_policy_review_package(
+                self.state,
+                row["package_id"],
+                current_project_chains=historical,
+            )
+        for stale_current in (
+            self._current(resolved="e" * 64),
+            {},
+        ):
+            with self.subTest(stale_current=stale_current):
+                stale = list_motion_policy_review_packages(
+                    self.state, current_project_chains=stale_current,
+                )
+                self.assertIsNone(stale["recommended_package_id"])
+                self.assertEqual(
+                    "historical",
+                    stale["packages"][0]["authoring_alignment"],
+                )
+
+    def test_two_current_packages_are_not_ambiguously_recommended(self):
+        write_review_package(
+            self.state, self.policy, self.foot, self.depth,
+            motion_id="motion-a",
+        )
+        write_review_package(
+            self.state, self.policy, self.foot, self.depth,
+            motion_id="motion-b",
+        )
+        listing = list_motion_policy_review_packages(
+            self.state, current_project_chains=self._current(),
+        )
+        self.assertEqual(2, listing["count"])
+        self.assertIsNone(listing["recommended_package_id"])
+        self.assertEqual(
+            {"current"},
+            {row["authoring_alignment"] for row in listing["packages"]},
+        )
 
     def test_invalid_and_crosswired_packages_are_skipped(self):
         write_review_package(self.state, self.policy, self.foot, self.depth)

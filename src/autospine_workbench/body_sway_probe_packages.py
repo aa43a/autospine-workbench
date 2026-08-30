@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from pathlib import Path
 from typing import Any
 
+from .current_project_chain import CurrentProjectChain
 from .idle_behavior_review_head import (
     IdleBehaviorReviewHeadError,
     read_idle_behavior_review_head,
@@ -13,6 +14,7 @@ from .idle_behavior_review_head import (
 from .idle_behavior_review_packages import (
     IdleBehaviorReviewPackageError,
     list_idle_behavior_review_addresses,
+    list_current_idle_behavior_review_addresses,
 )
 from .idle_behavior_review_replay import (
     IdleBehaviorReviewReplayError,
@@ -33,13 +35,21 @@ def list_body_sway_probe_packages(
     state_root: Path,
     *,
     project_ids: Iterable[str] | None = None,
+    current_project_chains: Mapping[str, CurrentProjectChain] | None = None,
 ) -> dict[str, Any]:
     """Classify exact current P10.1 heads and recommend one unique ready row."""
 
     try:
-        addresses, skipped = list_idle_behavior_review_addresses(
-            state_root, project_ids=project_ids,
-        )
+        if current_project_chains is None:
+            addresses, skipped = list_idle_behavior_review_addresses(
+                state_root, project_ids=project_ids,
+            )
+        else:
+            addresses, skipped = list_current_idle_behavior_review_addresses(
+                state_root,
+                project_ids=project_ids,
+                current_project_chains=current_project_chains,
+            )
         rows = []
         for address in addresses:
             try:
@@ -72,7 +82,8 @@ def list_body_sway_probe_packages(
             "skipped_count": skipped,
             "recommended_package_id": (
                 ready[0]["package_id"]
-                if len(ready) == 1 and skipped == 0 else None
+                if current_project_chains is not None
+                and len(ready) == 1 and skipped == 0 else None
             ),
             "packages": rows,
         }

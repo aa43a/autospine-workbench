@@ -225,6 +225,7 @@ async function loadProject(projectId) {
 function initializeProject(project, fallbackId) {
   state.project = project || {};
   state.selectedProjectId = String(project?.id ?? fallbackId);
+  dom.motionPolicyReviewLink.href = `./motion-policy-review.html?project=${encodeURIComponent(state.selectedProjectId)}`;
   state.selectedLayerId = null;
   state.selectedJointId = null;
   state.search = "";

@@ -123,6 +123,15 @@ class ProjectStoreContractTests(unittest.TestCase):
         self.assertEqual(64, len(project["source"]["audit_sha256"]))
         self.assertEqual("BlendMode.NORMAL", project["layers"][0]["blend_mode"])
 
+    def test_project_id_discovery_does_not_rebuild_mutable_snapshots(self) -> None:
+        with patch.object(
+            self.store, "_build_project",
+            side_effect=AssertionError("must not rebuild a project"),
+        ):
+            self.assertEqual(
+                ("fixture-project",), self.store.discover_project_ids(),
+            )
+
     def test_project_api_boundary_rejects_an_invalid_resolved_snapshot(self) -> None:
         with patch(
             "autospine_workbench.project_store.ResolvedProjectBuilder.build",

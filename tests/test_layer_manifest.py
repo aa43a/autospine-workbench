@@ -9,6 +9,7 @@ import struct
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 import zlib
 
 
@@ -21,6 +22,13 @@ from autospine_workbench.layer_manifest import (  # noqa: E402
     LayerManifestBuilder,
     LayerManifestBundleStore,
     LayerManifestError,
+    _deform_class,
+)
+from autospine_workbench.current_project_chain import (  # noqa: E402
+    rebuild_current_project_chains,
+)
+from autospine_workbench.mesh_eligibility import (  # noqa: E402
+    resolve_hinge_targets,
 )
 from tests.resolved_snapshot_helpers import (  # noqa: E402
     refresh_resolved_snapshot,
@@ -68,7 +76,7 @@ def project_fixture() -> dict:
         source_index=1,
         z_index=0,
         name="arm-l",
-        canonical_role="body.arm.lower",
+        canonical_role="body.arm.upper",
         side="left",
         bbox_xywh=(10, 20, 30, 40),
         pivot_xy=(20, 25),
@@ -101,6 +109,56 @@ def project_fixture() -> dict:
 
 
 class LayerManifestMaterializationTests(unittest.TestCase):
+    def test_current_chain_detects_manifest_algorithm_drift(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            asset = Path(directory) / "arm.png"
+            write_png(asset, 30, 40)
+            project = project_fixture()
+
+            class Store:
+                def get_project(self, project_id):
+                    if project_id != project["id"]:
+                        raise AssertionError("unexpected project")
+                    return project
+
+                def resolve_asset(self, project_id, kind, layer_id):
+                    if (project_id, kind, layer_id) != (
+                        project["id"], "layer", "layer-001-arm-l",
+                    ):
+                        raise AssertionError("unexpected asset")
+                    return asset
+
+            first = rebuild_current_project_chains(Store(), [project["id"]])[
+                project["id"]
+            ]
+            with patch(
+                "autospine_workbench.layer_manifest._deform_class",
+                return_value="hinge",
+            ):
+                second = rebuild_current_project_chains(
+                    Store(), [project["id"]],
+                )[project["id"]]
+        self.assertEqual(
+            first.resolved_project_sha256,
+            second.resolved_project_sha256,
+        )
+        self.assertNotEqual(
+            first.layer_manifest_sha256,
+            second.layer_manifest_sha256,
+        )
+
+    def test_profile_v1_only_emits_supported_generic_leg_hinges(self) -> None:
+        expected = {
+            "body.leg": "hinge",
+            "body.arm.upper": "rigid",
+            "body.arm.lower": "rigid",
+            "body.leg.upper": "rigid",
+            "body.leg.lower": "rigid",
+        }
+        for role, deform_class in expected.items():
+            with self.subTest(role=role):
+                self.assertEqual(deform_class, _deform_class(role))
+
     def test_reviewed_layer_builds_a_schema_valid_region_baseline(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             asset = Path(directory) / "arm.png"
@@ -113,6 +171,8 @@ class LayerManifestMaterializationTests(unittest.TestCase):
         self.assertEqual("manual", layer["semantic"]["mapping_method"])
         self.assertEqual([10, 20], layer["raster"]["canvas_offset_xy"])
         self.assertEqual("left", layer["semantic"]["side"])
+        self.assertEqual("rigid", layer["rig_hint"]["deform_class"])
+        self.assertEqual((), resolve_hinge_targets(manifest, {}))
         self.assertEqual("passed", manifest["qa"]["status"])
         if Draft202012Validator is not None:
             schema = json.loads(

@@ -131,6 +131,13 @@ class MeshEligibilityTests(unittest.TestCase):
         )
         self.assertEqual((), resolve_hinge_targets(hand, {}))
 
+        arm = manifest_b()
+        arm["layers"][0]["semantic"].update(
+            canonical_role="body.arm.upper", side="left"
+        )
+        arm["layers"][0]["rig_hint"]["candidate_bone"] = "upper-arm.left"
+        self.assertEqual((), resolve_hinge_targets(arm, {}))
+
     def test_excluded_bilateral_parent_is_ignored(self) -> None:
         manifest = manifest_a()
         manifest["layers"].append(
@@ -152,6 +159,9 @@ class MeshEligibilityTests(unittest.TestCase):
         mutations = (
             ("profile-v1 role", lambda layer: layer["semantic"].update(
                 canonical_role="body.arm"
+            )),
+            ("profile-v1 role", lambda layer: layer["semantic"].update(
+                canonical_role="body.arm.upper"
             )),
             ("profile-v1 role", lambda layer: layer["semantic"].update(
                 canonical_role="body.hand"

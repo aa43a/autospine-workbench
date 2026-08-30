@@ -24,6 +24,9 @@ from autospine_workbench.body_sway_probe_application import (  # noqa: E402
     BodySwayProbeApplicationHeadChanged,
     BodySwayProbeApplicationUnavailable,
 )
+from autospine_workbench.current_project_chain import (  # noqa: E402
+    CurrentProjectChain,
+)
 from autospine_workbench.body_sway_canvas_adjustment_candidates import (  # noqa: E402
     compile_body_sway_canvas_adjustment_candidates,
 )
@@ -90,6 +93,15 @@ class BodySwayProbeApplicationTests(unittest.TestCase):
             / "idle-behavior-decisions"
         )
 
+    def _current_chains(self):
+        return {
+            self.address.project_id: CurrentProjectChain(
+                self.address.project_id,
+                self.evidence.mesh_bundle.resolved_project_sha256,
+                self.evidence.mesh_bundle.layer_manifest_sha256,
+            ),
+        }
+
     @contextmanager
     def _patch_detail(self):
         with patch(
@@ -111,6 +123,10 @@ class BodySwayProbeApplicationTests(unittest.TestCase):
         with patch(
             "autospine_workbench.body_sway_probe_packages."
             "list_idle_behavior_review_addresses",
+            return_value=(addresses, 0),
+        ), patch(
+            "autospine_workbench.body_sway_probe_packages."
+            "list_current_idle_behavior_review_addresses",
             return_value=(addresses, 0),
         ), patch(
             "autospine_workbench.body_sway_probe_packages."
@@ -164,7 +180,9 @@ class BodySwayProbeApplicationTests(unittest.TestCase):
         self.assertEqual(0, head.current_revision)
         self.assertIsNone(head.decision)
         with self._patch_inventory():
-            inventory = self.service.list_packages()
+            inventory = self.service.list_packages(
+                current_project_chains=self._current_chains(),
+            )
         with self._patch_detail():
             detail = self.service.prepare(self.address.package_id)
         self.assertEqual("p10_1_review_required", inventory["packages"][0]["status"])
@@ -180,7 +198,9 @@ class BodySwayProbeApplicationTests(unittest.TestCase):
         self.assertEqual(decision.sha256, head.decision_sha256)
         self.assertEqual(decision.document, head.decision.document)
         with self._patch_inventory():
-            inventory = self.service.list_packages()
+            inventory = self.service.list_packages(
+                current_project_chains=self._current_chains(),
+            )
         with self._patch_detail():
             detail = self.service.prepare(self.address.package_id)
         self.assertEqual(0, inventory["ready_count"])
@@ -193,7 +213,9 @@ class BodySwayProbeApplicationTests(unittest.TestCase):
         self._publish()
         before = tree_snapshot(self.fixture.state)
         with self._patch_inventory():
-            inventory = self.service.list_packages()
+            inventory = self.service.list_packages(
+                current_project_chains=self._current_chains(),
+            )
         with self._patch_detail(), patch(
             "autospine_workbench.body_sway_probe_application."
             "compile_body_sway_canvas_adjustment_candidates",
@@ -278,8 +300,17 @@ class BodySwayProbeApplicationTests(unittest.TestCase):
         with self._patch_inventory(
             (self.address, other), (self.evidence, other_evidence),
         ):
-            inventory = self.service.list_packages()
+            inventory = self.service.list_packages(
+                current_project_chains=self._current_chains(),
+            )
         self.assertEqual(2, inventory["ready_count"])
+        self.assertIsNone(inventory["recommended_package_id"])
+
+    def test_missing_current_chain_inventory_never_recommends(self):
+        self._publish()
+        with self._patch_inventory():
+            inventory = self.service.list_packages()
+        self.assertEqual(1, inventory["ready_count"])
         self.assertIsNone(inventory["recommended_package_id"])
 
     def test_cache_hit_keeps_both_exact_replay_and_head_checks(self):
@@ -337,17 +368,47 @@ class BodySwayProbeApplicationTests(unittest.TestCase):
         self._publish()
         with patch(
             "autospine_workbench.body_sway_probe_packages."
-            "list_idle_behavior_review_addresses",
+            "list_current_idle_behavior_review_addresses",
             return_value=((self.address,), 1),
         ), patch(
             "autospine_workbench.body_sway_probe_packages."
             "replay_idle_behavior_review_package",
             return_value=self.evidence,
         ):
-            inventory = self.service.list_packages()
+            inventory = self.service.list_packages(
+                current_project_chains=self._current_chains(),
+            )
         self.assertEqual(1, inventory["ready_count"])
         self.assertEqual(1, inventory["skipped_count"])
         self.assertIsNone(inventory["recommended_package_id"])
+
+    def test_stale_chain_is_not_discovered_but_exact_id_remains_viewable(self):
+        self._publish()
+        current = {
+            self.address.project_id: CurrentProjectChain(
+                self.address.project_id, "e" * 64, "f" * 64,
+            ),
+        }
+        with patch(
+            "autospine_workbench.body_sway_probe_packages."
+            "list_current_idle_behavior_review_addresses",
+            return_value=((), 0),
+        ) as listed:
+            inventory = self.service.list_packages(
+                current_project_chains=current,
+            )
+        self.assertEqual((0, []), (
+            inventory["count"], inventory["packages"],
+        ))
+        self.assertIsNone(inventory["recommended_package_id"])
+        listed.assert_called_once_with(
+            self.fixture.state,
+            project_ids=None,
+            current_project_chains=current,
+        )
+        with self._patch_detail():
+            detail = self.service.prepare(self.address.package_id)
+        self.assertEqual(self.address.package_id, detail["package"]["package_id"])
 
     def test_head_change_during_compile_discards_report(self):
         first, published = self._publish()

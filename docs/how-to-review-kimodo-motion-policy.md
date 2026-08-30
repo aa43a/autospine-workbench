@@ -4,11 +4,13 @@
 
 本流程不会自动批准 heading、scale、附件切换、Depth 事件、`rejected_*`、证据缺失、非有限值或超安全阈值项。正式 handoff 文档使用 `--document-only`；Foot/Depth 候选同时保留默认 CLI envelope，因为其中的 `report_sha256` 是复核台绑定同一次结果所必需的身份。
 
+自动页面读取的是 HTTP projection v2：它在不可变 P9 package v1 的只读字段上增加 `authoring_alignment=current|historical`，用于当前绑定门禁。该投影升级不会改变 package ID、policy/Foot/Depth SHA 或磁盘 package v1；严格 v1 工件读取器也不会接收这个展示字段。
+
 ## 普通操作者：默认自动流程
 
 启动工作台并打开 [Motion Policy 自动工作流](http://127.0.0.1:8765/motion-policy-review.html)。建议按以下顺序完成：
 
-1. 在“项目 / 动作”中确认目标。存在推荐项时页面会自动选择并加载；切换项目时始终按该选项对应的 exact package 读取，不会把 A/B 文件混用。
+1. 从绑定工作台的“P9 复核”进入，页面会携带当前 project。存在唯一 current package 时才自动选择并加载；历史 package 会标记为“历史版本，只读”并禁用，目标项目没有 current package 时也不会跳到 A/B 的另一角色。
 2. 等待“身份与预检通过”。服务端会读取 package 中固定文件，重算 policy、Foot、Depth 与 candidate inventory 身份，再由页面执行同一 candidate preflight。普通用户不需要选择 JSON 文件或填写 SHA-256。
 3. 拖动时间轴查看角色足点、校正曲线和重点窗口。启用“拖动时采用安全建议”后，一次拖动会把经过的、尚未决定且符合当前安全规则的 Foot candidates 作为一组可撤销的辅助决定；也可点击“一键采用全部安全建议”。重点窗口只是接触边界、极值、p95、过零或跳变的视觉导航，本身既不批准也不排除候选。
 4. 查看“需要处理的异常”。自动采用必须同时满足：类型为 Foot、`state=candidate`、observations 完整且全部数值有限、correction ratio 与 residual 均不超过各自合同上限的 80%。Depth、`rejected_limit`、`rejected_conflict`、缺证、非有限值和超阈值项不会被安全结果覆盖；`adjust` 始终需要明确输入最终值。
@@ -173,11 +175,11 @@ Write-Utf8NoBom .\review\depth-order-candidates.json $DepthCandidates
 
 | 资源 | 作用 |
 | --- | --- |
-| `GET /api/motion-policy/review-packages` | 列出本地 exact packages，并返回确定性的推荐 package ID |
-| `GET /api/motion-policy/review-packages/{package_id}` | 按完整 ID 读取并重验该 package；响应不含本地路径 |
-| `POST /api/motion-policy/review-packages/{package_id}/adoptions` | 接收与当前页面快照对应的严格四字段 human review input；重新读取 exact package，编译 decision/reviewed policy，原子发布 P9 bundle，按双 SHA 精确复验并返回 path-free 结果 |
+| `GET /api/motion-policy/review-packages` | 列出本地 exact packages，按当前 Resolved + Manifest 双 SHA 分类，只推荐唯一 current package |
+| `GET /api/motion-policy/review-packages/{package_id}` | 按完整 ID 读取并重验 package，返回 `current/historical` 对齐状态；响应不含本地路径 |
+| `POST /api/motion-policy/review-packages/{package_id}/adoptions` | 写前执行两次 current-chain 快照和 exact package 校验；历史项 409 零写入，current 项才编译、原子发布并 exact verify |
 
-推荐 ID 只是默认界面选择，不是批准状态。完整 package ID 绑定项目、动作、clip、policy/Foot/Depth 身份与 candidate inventory；任一内容变化都产生不同 ID，页面不会按 mtime 或 `latest` 回退。
+推荐 ID 只是默认界面选择，不是批准状态。完整 package ID 绑定项目、动作、clip、policy/Foot/Depth 身份与 candidate inventory；`authoring_alignment=current` 还要求 package 的 P3 Resolved 与 Manifest 双 SHA 同时匹配当前绑定。任一内容变化都产生不同 ID或转为历史项，页面不会按 mtime、`latest` 或其他项目回退。
 
 Adoption 正文是严格 wrapper：`format=autospine-motion-policy-adoption-request`、`format_version=1`、`intent=motion-policy-adoption-v1`、与 URL 完全相同的 `package_id`，以及只含 `review`、`decisions`、`root_release_keys`、`draw_order_loop_reset` 的 `review_input`。多余字段、package ID 不一致或不完整决定都会被拒绝。成功回执固定为 `autospine-motion-policy-adoption-receipt` v1；只有 `status=passed`、`verification.replayed_from_exact_upstreams=true`，且 `address` 中同时包含 `project_id`、`motion_instance_v2_sha256` 与 `bundle_sha256` 时，页面才显示发布完成。
 

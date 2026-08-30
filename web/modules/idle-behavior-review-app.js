@@ -70,6 +70,7 @@ function emptyState() {
     entry: null, baseParameters: null, baseControls: null, currentParameters: null,
     canvasAdjustmentDraft: null,
     parametersTouched: false, available: false,
+    readOnly: true,
     confirming: false, busy: false, committed: false, uncertain: false,
   };
 }
@@ -87,10 +88,13 @@ async function loadEntry(entry, context) {
   const draft = context.canvasAdjustmentDraft;
   const baseParameters = draft?.proposal?.parameters ?? currentParameters;
   const controls = controlsFromParameters(baseParameters);
+  const readOnly = context.readOnly !== false;
   state = {
     entry, baseParameters, baseControls: controls, currentParameters,
     canvasAdjustmentDraft: draft, parametersTouched: Boolean(draft),
-    available: renderIdleReviewEntry(elements, entry) && entry.history !== null,
+    available: renderIdleReviewEntry(elements, entry)
+      && entry.history !== null && !readOnly,
+    readOnly,
     confirming: false, busy: false,
     committed: false,
     uncertain: false,
@@ -101,7 +105,9 @@ async function loadEntry(entry, context) {
   renderIdleCanvasDraft(canvasElements, draft, currentParameters);
   syncControls();
   setStatus(elements.decisionStatus,
-    state.available
+    state.readOnly
+      ? "这是历史版本（只读）；可查看证据，但不能作为当前绑定的决定来源。"
+      : state.available
       ? (draft
         ? "P10.2 建议已预填但尚未批准；请预览，仍须勾选并通过确认弹窗。"
         : "请先预览并调整；勾选人工确认后才能保存。")

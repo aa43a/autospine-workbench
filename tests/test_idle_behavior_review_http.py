@@ -19,12 +19,21 @@ for candidate in (ROOT, SRC):
 from autospine_workbench.idle_behavior_review_application import (
     IdleBehaviorReviewApplicationUnavailable,
 )
+from autospine_workbench.idle_behavior_review_packages import (
+    IdleBehaviorReviewPackageStale,
+)
 from autospine_workbench.idle_behavior_canvas_adjustment_drafts import (
     IdleBehaviorCanvasAdjustmentDraftNotFound,
     IdleBehaviorCanvasAdjustmentDraftStale,
     IdleBehaviorCanvasAdjustmentDraftUnavailable,
 )
-from tests.motion_policy_preflight_helpers import MotionPolicyHttpFixtureMixin
+from autospine_workbench.current_project_chain import (
+    CurrentProjectChainUnavailableError,
+)
+from tests.motion_policy_preflight_helpers import (
+    MotionPolicyHttpFixtureMixin,
+    tree_snapshot,
+)
 from tests.test_idle_behavior_review_submission import valid_submission
 
 
@@ -115,6 +124,10 @@ class IdleBehaviorReviewHttpTests(
             "autospine_workbench.idle_behavior_review_routes."
             "list_idle_behavior_review_packages",
             return_value=self._inventory(),
+        ), patch(
+            "autospine_workbench.idle_behavior_review_routes."
+            "rebuild_current_project_chains",
+            return_value={"fixture-project": object()},
         ):
             status, headers, raw = self._request("GET")
         self.assertEqual(200, status)
@@ -146,11 +159,19 @@ class IdleBehaviorReviewHttpTests(
             package_id=self.package_id,
             candidate_sha256=self.candidate_sha,
         )
+        current = {"fixture-project": object()}
         with patch(
             "autospine_workbench.idle_behavior_review_routes."
             "IdleBehaviorReviewApplication.submit",
             return_value=self._receipt(),
-        ) as submit:
+        ) as submit, patch(
+            "autospine_workbench.idle_behavior_review_routes."
+            "rebuild_current_project_chains",
+            return_value=current,
+        ) as rebuilt, patch(
+            "autospine_workbench.idle_behavior_review_routes."
+            "require_current_idle_behavior_review_address",
+        ):
             status, _, raw = self._request(
                 "POST", f"/{self.package_id}/decisions",
                 request, self._headers(),
@@ -158,7 +179,98 @@ class IdleBehaviorReviewHttpTests(
         self.assertEqual(200, status)
         self.assertEqual(self._receipt(), json.loads(raw))
         self.assertTrue(submit.called)
+        self.assertEqual(2, rebuilt.call_count)
         self.assertNotIn("path", raw.decode("utf-8").lower())
+
+    def test_historical_package_mutation_is_read_only_and_zero_write(self):
+        request = valid_submission(
+            package_id=self.package_id,
+            candidate_sha256=self.candidate_sha,
+        )
+        before = tree_snapshot(self.store.state)
+        with patch(
+            "autospine_workbench.idle_behavior_review_routes."
+            "rebuild_current_project_chains",
+            return_value={"fixture-project": object()},
+        ), patch(
+            "autospine_workbench.idle_behavior_review_routes."
+            "require_current_idle_behavior_review_address",
+            side_effect=IdleBehaviorReviewPackageStale("historical"),
+        ), patch(
+            "autospine_workbench.idle_behavior_review_routes."
+            "IdleBehaviorReviewApplication.submit",
+        ) as submit:
+            status, _, raw = self._request(
+                "POST", f"/{self.package_id}/decisions",
+                request, self._headers(),
+            )
+        self.assertEqual(409, status)
+        self.assertEqual(
+            "idle_behavior_review_historical_read_only",
+            json.loads(raw)["error"],
+        )
+        submit.assert_not_called()
+        self.assertEqual(before, tree_snapshot(self.store.state))
+
+    def test_authoring_drift_before_submit_is_zero_write(self):
+        request = valid_submission(
+            package_id=self.package_id,
+            candidate_sha256=self.candidate_sha,
+        )
+        before = tree_snapshot(self.store.state)
+        with patch(
+            "autospine_workbench.idle_behavior_review_routes."
+            "rebuild_current_project_chains",
+            side_effect=(
+                {"fixture-project": object()},
+                {"fixture-project": object()},
+            ),
+        ), patch(
+            "autospine_workbench.idle_behavior_review_routes."
+            "require_current_idle_behavior_review_address",
+        ), patch(
+            "autospine_workbench.idle_behavior_review_routes."
+            "IdleBehaviorReviewApplication.submit",
+        ) as submit:
+            status, _, raw = self._request(
+                "POST", f"/{self.package_id}/decisions",
+                request, self._headers(),
+            )
+        self.assertEqual(409, status)
+        self.assertEqual(
+            "idle_behavior_project_chain_changed", json.loads(raw)["error"],
+        )
+        submit.assert_not_called()
+        self.assertEqual(before, tree_snapshot(self.store.state))
+
+    def test_chain_rebuild_unavailable_is_500_and_zero_write(self):
+        request = valid_submission(
+            package_id=self.package_id, candidate_sha256=self.candidate_sha,
+        )
+        before = tree_snapshot(self.store.state)
+        private = f"persistent project store at {self.store.state}"
+        for method, suffix, body, headers in (
+            ("GET", "", None, None),
+            ("POST", f"/{self.package_id}/decisions", request, self._headers()),
+        ):
+            with self.subTest(method=method), patch(
+                "autospine_workbench.idle_behavior_review_routes."
+                "rebuild_current_project_chains",
+                side_effect=CurrentProjectChainUnavailableError(private),
+            ), patch(
+                "autospine_workbench.idle_behavior_review_routes."
+                "IdleBehaviorReviewApplication.submit",
+            ) as submit:
+                status, _, raw = self._request(method, suffix, body, headers)
+            self.assertEqual(500, status)
+            self.assertEqual(
+                "idle_behavior_project_chain_unavailable",
+                json.loads(raw)["error"],
+            )
+            submit.assert_not_called()
+            self.assertNotIn(private, raw.decode("utf-8"))
+            self.assertNotIn(str(self.store.state), raw.decode("utf-8"))
+            self.assertEqual(before, tree_snapshot(self.store.state))
 
     def test_exact_canvas_adjustment_draft_get_is_path_free(self):
         draft = {

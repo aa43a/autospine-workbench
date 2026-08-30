@@ -7,6 +7,7 @@ import {
 
 const REQUIRED_ELEMENT_IDS = [
   "projectSelect", "refreshProjectsBtn", "workflowNav", "saveBtn",
+  "motionPolicyReviewLink",
   "saveIndicator", "saveIndicatorText", "globalAlert", "globalAlertText",
   "dismissAlertBtn", "layerCounter", "layerSearch", "clearSearchBtn",
   "showAllLayersBtn", "hideAllLayersBtn", "visibleLayerCount", "layerList",

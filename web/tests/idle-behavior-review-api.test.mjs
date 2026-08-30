@@ -148,6 +148,21 @@ test("API rejects malformed inventory and receipt identities", async () => {
   }), /回执与请求身份不一致/);
 });
 
+test("inventory contract rejects a server recommendation that points at a stale package", async () => {
+  const stale = packageList();
+  stale.packages[0].status = "stale_for_current_project";
+  await assert.rejects(
+    createIdleBehaviorReviewApi(async () => jsonResponse(200, stale)).list(),
+    /推荐复核包不是当前可重放版本/,
+  );
+
+  stale.recommended_package_id = null;
+  const accepted = await createIdleBehaviorReviewApi(
+    async () => jsonResponse(200, stale),
+  ).list();
+  assert.equal(accepted.packages[0].status, "stale_for_current_project");
+});
+
 test("API exposes only the server public error message", async () => {
   const api = createIdleBehaviorReviewApi(async () => jsonResponse(409, {
     error: "stale_revision", message: "人工基线已变化",

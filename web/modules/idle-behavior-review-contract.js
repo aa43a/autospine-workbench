@@ -13,6 +13,9 @@ export const TARGET_BONES = Object.freeze([
 
 const SHA = /^[0-9a-f]{64}$/;
 const ID = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
+const PACKAGE_STATUSES = new Set([
+  "ready_for_candidate_replay", "stale_for_current_project",
+]);
 const LIST_FIELDS = new Set([
   "package_id", "project_id", "motion_id", "clip_id",
   "motion_policy_package_id", "p9_decision_sha256", "status",
@@ -38,8 +41,14 @@ export function normalizeIdleReviewPackageList(value) {
   if (new Set(ids).size !== ids.length) throw new Error("P10 复核包 ID 重复");
   if (root.recommended_package_id !== null) {
     digest(root.recommended_package_id, "recommended_package_id");
-    if (!ids.includes(root.recommended_package_id)) {
+    const recommended = rows.find(
+      (row) => row.package_id === root.recommended_package_id,
+    );
+    if (!recommended) {
       throw new Error("P10 推荐复核包不在清单中");
+    }
+    if (recommended.status !== "ready_for_candidate_replay") {
+      throw new Error("P10 推荐复核包不是当前可重放版本");
     }
   }
   return { ...root, packages: rows };
@@ -110,6 +119,9 @@ function packageSummary(value) {
   }
   for (const field of ["project_id", "motion_id", "clip_id", "status"]) {
     identifier(row[field], field);
+  }
+  if (!PACKAGE_STATUSES.has(row.status)) {
+    throw new Error("P10 复核包摘要 status 不受支持");
   }
   return row;
 }

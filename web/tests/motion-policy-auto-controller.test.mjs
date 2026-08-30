@@ -37,12 +37,13 @@ function elements() {
   return result;
 }
 
-function packageRow(packageId, projectId) {
+function packageRow(packageId, projectId, alignment = "current") {
   return {
     package_id: packageId,
     project_id: projectId,
     motion_id: "kimodo-wave",
     inventory: { total_count: 119 },
+    authoring_alignment: alignment,
   };
 }
 
@@ -105,6 +106,74 @@ test("automatic controller restores the last exact package and loads it without 
   assert.match(ui.autoLoadStatus.textContent, /文件、SHA 与来源校验/);
 });
 
+test("multiple current packages without a saved or recommended choice require explicit selection", async () => {
+  const ui = elements();
+  const rows = [packageRow(PACKAGE_A, "sample-a"), packageRow(PACKAGE_B, "sample-b")];
+  const requested = [];
+  const loaded = [];
+  const saved = storage();
+  const controller = createMotionPolicyAutoController(ui, {
+    api: {
+      list: async () => packageList(rows, null),
+      package: async (packageId) => {
+        requested.push(packageId);
+        return { ...rows.find((row) => row.package_id === packageId) };
+      },
+    },
+    storage: saved,
+    onLoad: async (detail) => loaded.push(detail.package_id),
+  });
+
+  await controller.start();
+
+  assert.equal(ui.autoProjectSelect.value, "");
+  assert.equal(ui.autoProjectSelect.children.length, 3);
+  assert.equal(ui.autoProjectSelect.children[0].value, "");
+  assert.equal(ui.autoProjectSelect.children[0].disabled, true);
+  assert.match(ui.autoProjectSelect.children[0].textContent, /请选择角色与动作/);
+  assert.deepEqual(requested, []);
+  assert.deepEqual(loaded, []);
+  assert.equal(saved.value(), null);
+  assert.equal(ui.autoProjectSelect.disabled, false);
+  assert.equal(ui.autoReloadProject.disabled, true);
+  assert.equal(ui.autoLoadStatus.dataset.tone, "warning");
+  assert.match(ui.autoLoadStatus.textContent, /多个当前绑定的 P9 复核包/);
+  assert.match(ui.autoLoadStatus.textContent, /选择后才会加载和预检/);
+
+  ui.autoProjectSelect.value = PACKAGE_B;
+  ui.autoProjectSelect.dispatchEvent(new Event("change"));
+  await waitFor(() => loaded.length === 1);
+
+  assert.deepEqual(requested, [PACKAGE_B]);
+  assert.deepEqual(loaded, [PACKAGE_B]);
+  assert.equal(saved.value(), PACKAGE_B);
+  controller.markCompleted(PACKAGE_B);
+  assert.equal(ui.autoProjectSelect.children[0].textContent, "请选择角色与动作");
+});
+
+test("one current package remains an unambiguous automatic choice without a recommendation", async () => {
+  const ui = elements();
+  const row = packageRow(PACKAGE_A, "sample-a");
+  const requested = [];
+  const controller = createMotionPolicyAutoController(ui, {
+    api: {
+      list: async () => packageList([row], null),
+      package: async (packageId) => {
+        requested.push(packageId);
+        return { ...row };
+      },
+    },
+    storage: storage(),
+    onLoad: async () => {},
+  });
+
+  await controller.start();
+
+  assert.equal(ui.autoProjectSelect.value, PACKAGE_A);
+  assert.deepEqual(requested, [PACKAGE_A]);
+  assert.equal(ui.autoLoadStatus.dataset.tone, "success");
+});
+
 test("automatic controller surfaces skipped review packages instead of hiding them", async () => {
   const ui = elements();
   const rows = [packageRow(PACKAGE_A, "sample-a")];
@@ -122,6 +191,111 @@ test("automatic controller surfaces skipped review packages instead of hiding th
   assert.equal(ui.autoLoadStatus.dataset.tone, "warning");
   assert.match(ui.autoLoadStatus.textContent, /另有 2 个复核包无法自动加载/);
   assert.match(ui.autoLoadStatus.textContent, /专业输入排查/);
+});
+
+test("saved historical packages are labelled read-only and cannot enter detail or preflight", async () => {
+  const ui = elements();
+  const rows = [
+    packageRow(PACKAGE_A, "sample-a", "historical"),
+    packageRow(PACKAGE_B, "sample-b"),
+  ];
+  const requested = [];
+  const loaded = [];
+  const controller = createMotionPolicyAutoController(ui, {
+    api: {
+      list: async () => packageList(rows, PACKAGE_B),
+      package: async (packageId) => {
+        requested.push(packageId);
+        return { ...rows.find((row) => row.package_id === packageId) };
+      },
+    },
+    storage: storage(PACKAGE_A),
+    onLoad: async (detail) => loaded.push(detail.package_id),
+  });
+
+  await controller.start();
+  assert.equal(ui.autoProjectSelect.value, PACKAGE_B);
+  assert.equal(ui.autoProjectSelect.children[0].disabled, true);
+  assert.equal(ui.autoProjectSelect.disabled, false);
+  assert.match(ui.autoProjectSelect.children[0].textContent, /历史版本，只读/);
+  assert.deepEqual(requested, [PACKAGE_B]);
+  assert.deepEqual(loaded, [PACKAGE_B]);
+
+  ui.autoProjectSelect.value = PACKAGE_A;
+  await controller.reload();
+  assert.deepEqual(requested, [PACKAGE_B]);
+  assert.deepEqual(loaded, [PACKAGE_B]);
+  assert.match(ui.autoLoadStatus.textContent, /仅供审计/);
+});
+
+test("historical-only inventory remains visible and explains the required current P9 rebuild", async () => {
+  const ui = elements();
+  const rows = [packageRow(PACKAGE_A, "sample-a", "historical")];
+  let detailCalls = 0;
+  let loadCalls = 0;
+  const controller = createMotionPolicyAutoController(ui, {
+    api: {
+      list: async () => packageList(rows, null),
+      package: async () => { detailCalls += 1; return { ...rows[0] }; },
+    },
+    storage: storage(PACKAGE_A),
+    onLoad: async () => { loadCalls += 1; },
+  });
+
+  await controller.start();
+  assert.equal(ui.autoProjectSelect.value, "");
+  assert.equal(ui.autoProjectSelect.children.length, 1);
+  assert.equal(ui.autoProjectSelect.children[0].disabled, true);
+  assert.equal(ui.autoProjectSelect.disabled, true);
+  assert.equal(detailCalls, 0);
+  assert.equal(loadCalls, 0);
+  assert.equal(ui.expertInputs.open, false);
+  assert.equal(ui.autoLoadStatus.dataset.tone, "warning");
+  assert.match(ui.autoLoadStatus.textContent, /只发现历史版本/);
+  assert.match(ui.autoLoadStatus.textContent, /当前绑定生成 P9/);
+});
+
+test("project query filters exactly and never falls through to another project's current package", async () => {
+  const ui = elements();
+  const rows = [packageRow(PACKAGE_A, "sample-a")];
+  let detailCalls = 0;
+  const controller = createMotionPolicyAutoController(ui, {
+    api: {
+      list: async () => packageList(rows, PACKAGE_A),
+      package: async () => { detailCalls += 1; return { ...rows[0] }; },
+    },
+    storage: storage(PACKAGE_A),
+    locationSearch: "?project=sample-b",
+    onLoad: async () => { throw new Error("must not load another project"); },
+  });
+
+  await controller.start();
+  assert.equal(detailCalls, 0);
+  assert.equal(ui.autoProjectSelect.children.length, 0);
+  assert.equal(ui.autoProjectSelect.value, "");
+  assert.match(ui.autoLoadStatus.textContent, /项目 sample-b/);
+  assert.match(ui.autoLoadStatus.textContent, /不会切换到其他项目/);
+});
+
+test("a package that becomes historical during detail load never reaches onLoad", async () => {
+  const ui = elements();
+  const row = packageRow(PACKAGE_A, "sample-a");
+  let loadCalls = 0;
+  const saved = storage();
+  const controller = createMotionPolicyAutoController(ui, {
+    api: {
+      list: async () => packageList([row], PACKAGE_A),
+      package: async () => ({ ...row, authoring_alignment: "historical" }),
+    },
+    storage: saved,
+    onLoad: async () => { loadCalls += 1; },
+  });
+
+  await controller.start();
+  assert.equal(loadCalls, 0);
+  assert.equal(saved.value(), null);
+  assert.equal(ui.autoLoadStatus.dataset.tone, "error");
+  assert.match(ui.autoLoadStatus.textContent, /未进入预检或采用/);
 });
 
 test("automatic controller discards stale package responses after a project switch", async () => {

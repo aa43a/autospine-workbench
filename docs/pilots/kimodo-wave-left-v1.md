@@ -73,6 +73,36 @@ validator 和生产 `policy_identity` preflight 通过，与各自草案相比�
 
 2026-08-30，操作者分别完成 A/B 的最终 human adoption。本机服务从各自 exact package 重新编译 decision、reviewed policy 与 MotionInstance v2，发布六文件 reviewed-motion bundle，并立即按表中的双 SHA 读回。随后独立运行 `verify-reviewed-motion-bundle`，两项目均返回 `verification.status=passed` 与 `replayed_from_exact_upstreams=true`。因此本 pilot 的 P9 人工决定与 exact reviewed-motion 地址已经闭合；这项结论只适用于表中固定的两个项目、当前 clip 和当前候选身份。
 
+## 样本 B revision 16 的新链草案
+
+2026-08-30，操作者又保存了样本 B 的绑定 revision 16。上表中的 P9 adoption 仍可按原字节链
+精确复验，但不能授权这次新的绑定/语义身份。新链已从 revision 16 严格重建到 P5，并在独立
+`wave-left-v1-r16-draft` namespace 中准备 P9 非权威输入：
+
+| 地址 | SHA-256 |
+| --- | --- |
+| Layer Manifest | `947a8e3f1723d535a0f61d3dd67191252b53c4a2d9d6823e941e54d33bee5d88` |
+| P2 rig / bundle | `d12837b4d8a8d71fe5ef8b9b66030268bd2809302e9f800f8344e0422825269c` / `77c6d0f8f1a0bcc3e87913529bea117b2fcac30069344ae7e1fe33d43b6233f6` |
+| P3 rig / bundle | `c254a13adcf6b255fd0d51f8ad8aaa44e9d7097eadf57feb8836e61e0ad1a7ad` / `4c5d0044b64b43a995a6467dcbead52fd7d0f98d3396e3337c81070901410e63` |
+| P4 profile / bundle | `39ee630756608ff819e509bbdbb928e8fdb97ea27adadf65d7b3cb4249802f4e` / `81595efe8d7f2f6ffa67ce481ff053a30adef761e32876ebf8ef9ebc038f2e6b` |
+| P5 target profile | `25b99cc1cda43a458ba69419aef74d16e2cc96154b2d66f5f8b09fb075636ba8` |
+| P5 MotionInstance / bundle | `61cf4b8b907269dbf40156c771b406ff80c41ac13248ec91077bde50adebf772` / `f679df13d861e53fbb9aa9e318ced08e4e7678c006679ec3a84cfe2a3ef45b51` |
+| Foot candidate report | `4a53f4e67d225ad969d42954d2822fffdf1a5d1452f1578e2beabd3aca4faf9c` |
+| Pending Depth proposal | `432308add08014d4749cf0904ff2c1c4f409c1e9433398ffb0b4df206803b8a1` |
+| Draft manifest | `f9280c2034141a2135a5183df82710c1394e8e738c0cb889d03402c7ecec1ac7` |
+
+P2 setup PNG/RGBA 与修正前逐字节相同；变化是能力语义：`layer-008-hand-r` 仍为
+`body.arm.upper`、side `left`、绑定 `upper-arm.left`，但 P3 profile-v1 将其保持为 rigid
+region。当前真实 alpha 上的临时手臂 mesh 探针在 `+15°` 已出现翻三角，且 `-30°` 拉伸超过
+v1 上限，因此不能把它伪装为通过的 arm hinge；新 P3 正确结果是 `reviewed-noop`。
+
+草案的 proposal 已从新链推导出 `humanoid.arm.upper.left`，但状态仍是
+`pending_human_depth_policy_review`：没有正式 Depth policy、Depth candidates、decision 或
+P9 adoption。另一个独立 blocker 是 `ankle.left=unobservable`。当前 P4/Foot v1 仍使用原启发式
+骨端 `(696.2, 1582.68)`，而已审鞋口代理约为 `(701, 1435)`，两点相距约 `147.758 px`；数值探针
+通过不能证明解剖脚踝、真实接触或 `leg.left` foot-lock。正式复核时不得自动批准依赖左腿足点的
+root correction，直到有版本化 proxy-effector/observability 合同。
+
 ## 样本 A 的静态接缝凭据
 
 2026-08-30，操作者完成样本 A 的 P10.5b 最终确认；同一 package-bound 流程随后发布 P10.5c，
@@ -94,6 +124,9 @@ validator 和生产 `policy_identity` preflight 通过，与各自草案相比�
 
 2026-08-30 的 current-head 双快照读取与零写入 P10.2 编译结果如下。P10.2 report 没有发布到
 mutable alias；SHA 是相同 exact 输入与固定算法重新编译所得的 canonical 内容身份。
+
+下表绑定的是本页前半部分已采用的历史 P9 链，不会自动迁移到 revision 16 新草案。样本 B 只有
+完成新的 Depth policy、Depth candidates 与最终 P9 adoption 后，才能为新链重新建立 P10 current head。
 
 | 地址 / 结果 | `seethrough_output` | `seethrough_output_5` |
 | --- | --- | --- |
@@ -130,8 +163,9 @@ readiness 请求。任何输入、map、camera、compiler 或算法 profile 变�
 
 ## 下一步
 
-1. 项目 A（`seethrough_output`）打开 <http://127.0.0.1:8765/idle-behavior-review.html?package_id=183d5d2d970a1861360261f3607cf83910f25f6487dc4be3c5690d5d0099dec3>，由操作者查看并明确保存参数，追加新的 `adjust/pending_probe` revision；不能把现有不可观测 head 静默改写。
-2. 项目 B（`seethrough_output_5`）根据 P10.2 的画布越界见证调整摆动参数，或修复 attachment/画布输入，再形成新 P10.1 revision 并重跑。其四条下肢静态 seam 不可观测是另一条独立 blocker，仍须修复分层/语义或另立 partial 合同。
-3. 任一项目只有 P10.2 得到 `manual_visual_required` 后，才依次完成 P10.3a–P10.3c、P10.4a、P10.4b1 与 P10.4b2；A 再把该精确动作域与既有 P10.5c 双 SHA 组合为 P10.5d。
-4. 为 readiness v1 生成新的 strict canonical 请求并显式写入表中 P9 双 SHA 与 A 的 P10.5c 双 SHA。仓库自带的 baseline 请求仍把下游字段设为 `null`，不会自动发现这些地址。
-5. 在相应 P10.5d 合同关闭后继续 P10.6–P10.7a、官方 Runtime capture、sampled raster 人审与独立 P10.7c setup golden 对照。
+1. 项目 B（`seethrough_output_5`）先人工复核 `wave-left-v1-r16-draft` 的 Depth proposal，生成正式 policy 与 Depth candidates，再完成一次绑定新 P3/P5 的最终 P9 adoption；左腿 foot-lock 保持拒绝或不可观测。
+2. 项目 A（`seethrough_output`）打开 <http://127.0.0.1:8765/idle-behavior-review.html?package_id=183d5d2d970a1861360261f3607cf83910f25f6487dc4be3c5690d5d0099dec3>，由操作者查看并明确保存参数，追加新的 `adjust/pending_probe` revision；不能把现有不可观测 head 静默改写。
+3. 项目 B 在新 P9 adoption 后重新建立 P10.0/P10.1，再根据 P10.2 的画布越界见证调整 attachment/画布/骨绑定或上游动作。其四条下肢静态 seam 不可观测是另一条独立 blocker，仍须修复分层/语义或另立 partial 合同。
+4. 任一项目只有 P10.2 得到 `manual_visual_required` 后，才依次完成 P10.3a–P10.3c、P10.4a、P10.4b1 与 P10.4b2；A 再把该精确动作域与既有 P10.5c 双 SHA 组合为 P10.5d。
+5. 为 readiness v1 生成新的 strict canonical 请求并显式写入实际采用的 P9 双 SHA 与 A 的 P10.5c 双 SHA。仓库自带的 baseline 请求仍把下游字段设为 `null`，不会自动发现这些地址。
+6. 在相应 P10.5d 合同关闭后继续 P10.6–P10.7a、官方 Runtime capture、sampled raster 人审与独立 P10.7c setup golden 对照。

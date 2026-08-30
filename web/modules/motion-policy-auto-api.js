@@ -11,7 +11,9 @@ export function createMotionPolicyAutoApi(fetchApi = globalThis.fetch) {
         throw new Error("自动复核包 ID 无效");
       }
       const path = `${LIST_URL}/${packageId}`;
-      return validatePackage(await request(fetchApi, path), true);
+      const value = validatePackage(await request(fetchApi, path), true);
+      if (value.package_id !== packageId) throw new Error("自动复核包详情身份不匹配");
+      return value;
     },
   };
 }
@@ -29,7 +31,7 @@ async function request(fetchApi, url) {
 function validateList(value) {
   exact(value, ["format", "format_version", "count", "skipped_count",
     "recommended_package_id", "packages"], "自动项目清单");
-  if (value.format !== "autospine-motion-policy-package-list" || value.format_version !== 1 ||
+  if (value.format !== "autospine-motion-policy-package-list" || value.format_version !== 2 ||
       !Number.isInteger(value.count) || value.count < 0 ||
       !Number.isInteger(value.skipped_count) || value.skipped_count < 0 ||
       !Array.isArray(value.packages) || value.count !== value.packages.length) {
@@ -37,20 +39,29 @@ function validateList(value) {
   }
   const packages = value.packages.map((row) => validatePackage(row, false));
   const ids = packages.map((row) => row.package_id);
+  const recommended = packages.find(
+    (row) => row.package_id === value.recommended_package_id,
+  );
   if (new Set(ids).size !== ids.length ||
-      (value.recommended_package_id !== null && !ids.includes(value.recommended_package_id))) {
+      (value.recommended_package_id !== null && !recommended)) {
     throw new Error("自动项目清单含重复或未知推荐项");
+  }
+  if (recommended?.authoring_alignment !== "current") {
+    throw new Error("自动项目清单不得推荐历史版本");
   }
   return { ...value, packages };
 }
 
 function validatePackage(value, documents) {
   const fields = ["format", "format_version", "project_id", "package_id", "motion_id", "clip_id",
-    "identities", "inventory", "automation_profile"];
+    "identities", "inventory", "automation_profile", "authoring_alignment"];
   if (documents) fields.push("policy_json", "foot_candidates_json", "depth_candidates_json");
   exact(value, fields, "自动复核包");
-  if (value.format !== "autospine-motion-policy-review-package" || value.format_version !== 1 ||
+  if (value.format !== "autospine-motion-policy-review-package" || value.format_version !== 2 ||
       value.automation_profile !== "safe-assist-v1") throw new Error("自动复核包版本无效");
+  if (!["current", "historical"].includes(value.authoring_alignment)) {
+    throw new Error("自动复核包绑定对齐状态无效");
+  }
   for (const field of ["project_id", "motion_id", "clip_id"]) {
     if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(value[field])) throw new Error(`自动复核包 ${field} 无效`);
   }

@@ -22,6 +22,9 @@ for candidate in (ROOT, SRC):
 from autospine_workbench.depth_order_inputs import (  # noqa: E402
     require_depth_order_inputs,
 )
+from autospine_workbench.current_project_chain import (  # noqa: E402
+    CurrentProjectChain,
+)
 from autospine_workbench.depth_order_candidate_validation import (  # noqa: E402
     depth_order_candidates_sha256,
 )
@@ -34,9 +37,11 @@ from autospine_workbench.idle_behavior_review_address import (  # noqa: E402
 )
 from autospine_workbench.idle_behavior_review_packages import (  # noqa: E402
     IdleBehaviorReviewPackageError,
+    IdleBehaviorReviewPackageStale,
     _adopted_runs,
     get_idle_behavior_review_address,
     list_idle_behavior_review_packages,
+    require_current_idle_behavior_review_address,
 )
 from autospine_workbench.idle_behavior_review_replay_cache import (  # noqa: E402
     IdleBehaviorReviewReplayCacheError,
@@ -46,6 +51,9 @@ from autospine_workbench.motion_instance_v2_compiler import (  # noqa: E402
 )
 from autospine_workbench.motion_policy_decision import (  # noqa: E402
     build_motion_policy_decision,
+)
+from autospine_workbench.motion_policy_review_packages import (  # noqa: E402
+    MotionPolicyReviewPackageError,
 )
 from autospine_workbench.reviewed_motion_bundle_store import (  # noqa: E402
     ReviewedMotionBundleStore,
@@ -140,6 +148,12 @@ class _ExactP9Fixture:
                 self.source.depth
             ),
             motion_policy_decision_sha256=artifact.sha256,
+            resolved_project_sha256=(
+                self.source.upstream.mesh.resolved_project_sha256
+            ),
+            layer_manifest_sha256=(
+                self.source.upstream.mesh.layer_manifest_sha256
+            ),
         )
         return published, artifact.sha256
 
@@ -151,18 +165,38 @@ class _ExactP9Fixture:
                 raise VerifiedReviewedMotionBundleReaderError(
                     "synthetic exact-reader rejection"
                 )
-            return SimpleNamespace(reviewed_bundle=value)
+            return SimpleNamespace(
+                reviewed_bundle=value,
+                mesh_bundle=SimpleNamespace(
+                    resolved_project_sha256=(
+                        value.resolved_project_sha256
+                    ),
+                    layer_manifest_sha256=value.layer_manifest_sha256,
+                ),
+            )
 
         with patch(
-            "autospine_workbench.idle_behavior_review_packages."
+            "autospine_workbench.idle_behavior_adopted_runs."
             "load_cached_reviewed_motion_chain",
             new=load,
         ):
             yield
 
-    def list(self):
+    def list(self, current_project_chains=None):
+        if current_project_chains is None:
+            mesh = self.source.upstream.mesh
+            current_project_chains = {
+                mesh.project_id: CurrentProjectChain(
+                    mesh.project_id,
+                    mesh.resolved_project_sha256,
+                    mesh.layer_manifest_sha256,
+                ),
+            }
         with self.exact_reader():
-            return list_idle_behavior_review_packages(self.state)
+            return list_idle_behavior_review_packages(
+                self.state,
+                current_project_chains=current_project_chains,
+            )
 
     def get(self, package_id):
         with self.exact_reader():
@@ -263,6 +297,49 @@ class IdleBehaviorReviewPackageTests(unittest.TestCase):
         self.assertEqual([], result["packages"])
         self.assertIsNone(result["recommended_package_id"])
 
+    def test_manifest_drift_marks_history_and_preserves_exact_lookup(self):
+        self.fixture.publish()
+        source = self.fixture.source.upstream.mesh
+        current = {
+            source.project_id: CurrentProjectChain(
+                source.project_id,
+                source.resolved_project_sha256,
+                "f" * 64,
+            ),
+        }
+        result = self.fixture.list(current)
+        row = result["packages"][0]
+        self.assertEqual("stale_for_current_project", row["status"])
+        self.assertIsNone(result["recommended_package_id"])
+        self.assertEqual(
+            row["package_id"], self.fixture.get(row["package_id"]).package_id,
+        )
+        with self.fixture.exact_reader(), self.assertRaises(
+            IdleBehaviorReviewPackageStale,
+        ):
+            require_current_idle_behavior_review_address(
+                self.fixture.state,
+                row["package_id"],
+                current_project_chains=current,
+            )
+
+    def test_incomplete_current_chain_inventory_fails_closed(self):
+        self.fixture.publish()
+        result = self.fixture.list({})
+        self.assertEqual(
+            "stale_for_current_project", result["packages"][0]["status"],
+        )
+        self.assertIsNone(result["recommended_package_id"])
+
+    def test_missing_current_chain_inventory_never_recommends(self):
+        self.fixture.publish()
+        with self.fixture.exact_reader():
+            result = list_idle_behavior_review_packages(self.fixture.state)
+        self.assertEqual(
+            "stale_for_current_project", result["packages"][0]["status"],
+        )
+        self.assertIsNone(result["recommended_package_id"])
+
     def test_two_adoptions_for_same_project_and_clip_are_not_recommended(self) -> None:
         first, _first_decision = self.fixture.publish(revision=1)
         second, _second_decision = self.fixture.publish(revision=2)
@@ -293,6 +370,15 @@ class IdleBehaviorReviewPackageTests(unittest.TestCase):
         with self.assertRaises(IdleBehaviorReviewPackageError):
             list_idle_behavior_review_packages(state)
 
+    def test_upstream_inventory_failure_is_normalized(self) -> None:
+        with patch(
+            "autospine_workbench.idle_behavior_review_packages."
+            "list_motion_policy_review_packages",
+            side_effect=MotionPolicyReviewPackageError("private detail"),
+        ):
+            with self.assertRaises(IdleBehaviorReviewPackageError):
+                list_idle_behavior_review_packages(self.fixture.state)
+
     def test_bad_bundles_are_skipped_without_hiding_unique_recommendation(self) -> None:
         published, _decision_sha = self.fixture.publish()
         namespace = published.path.parent.parent
@@ -319,7 +405,7 @@ class IdleBehaviorAdoptedRunExactReaderTests(unittest.TestCase):
         self.addCleanup(temporary.cleanup)
         fixture = P10PersistedFixture(Path(temporary.name))
         with patch(
-            "autospine_workbench.idle_behavior_review_packages."
+            "autospine_workbench.idle_behavior_adopted_runs."
             "load_cached_reviewed_motion_chain",
             side_effect=IdleBehaviorReviewReplayCacheError("seal rejected"),
         ):

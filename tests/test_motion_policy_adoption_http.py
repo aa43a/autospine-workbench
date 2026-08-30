@@ -13,6 +13,10 @@ from tests.motion_policy_decision_helpers import approved_review
 from tests.motion_policy_preflight_helpers import MotionPolicyHttpFixtureMixin
 from tests.motion_policy_review_package_helpers import write_review_package
 
+from autospine_workbench.current_project_chain import (
+    CurrentProjectChain,
+    rebuild_current_project_chains,
+)
 from autospine_workbench.motion_policy_adoption import (
     INTENT_VALUE,
     REQUEST_FORMAT,
@@ -20,6 +24,7 @@ from autospine_workbench.motion_policy_adoption import (
 from autospine_workbench.motion_policy_review_packages import (
     list_motion_policy_review_packages,
 )
+from autospine_workbench.project_store import ProjectStoreError
 
 
 class MotionPolicyAdoptionHttpTests(
@@ -47,6 +52,21 @@ class MotionPolicyAdoptionHttpTests(
                 },
             },
         }
+        p3 = self.policy["source"]["p3"]
+        self.current = {
+            self.policy["project_id"]: CurrentProjectChain(
+                self.policy["project_id"],
+                p3["resolved_project_sha256"],
+                p3["layer_manifest_sha256"],
+            ),
+        }
+        current_patch = patch(
+            "autospine_workbench.motion_policy_adoption_routes."
+            "rebuild_current_project_chains",
+            return_value=self.current,
+        )
+        current_patch.start()
+        self.addCleanup(current_patch.stop)
 
     def tearDown(self) -> None:
         shutil.rmtree(self.store.state / "reviews", ignore_errors=True)
@@ -206,6 +226,93 @@ class MotionPolicyAdoptionHttpTests(
         self.assertNotIn(str(self.store.state), decoded)
         self.assertNotIn("private", decoded)
         self.assertFalse(self._p9_root().exists())
+
+    def test_historical_package_returns_distinct_conflict_and_zero_writes(self):
+        project_id = self.policy["project_id"]
+        historical = {
+            project_id: CurrentProjectChain(
+                project_id,
+                self.current[project_id].resolved_project_sha256,
+                "f" * 64,
+            ),
+        }
+        with patch(
+            "autospine_workbench.motion_policy_adoption_routes."
+            "rebuild_current_project_chains",
+            return_value=historical,
+        ), patch(
+            "autospine_workbench.motion_policy_adoption_routes."
+            "adopt_motion_policy_package",
+        ) as adopt:
+            status, _, raw = self._adoption_request()
+        self.assertEqual(409, status)
+        self.assertEqual(
+            "motion_policy_package_historical_read_only",
+            json.loads(raw.decode("utf-8"))["error"],
+        )
+        adopt.assert_not_called()
+        self.assertFalse(self._p9_root().exists())
+
+    def test_authoring_drift_fails_before_publish_and_store_error_is_public(self):
+        project_id = self.policy["project_id"]
+        changed = {
+            project_id: CurrentProjectChain(
+                project_id,
+                self.current[project_id].resolved_project_sha256,
+                "e" * 64,
+            ),
+        }
+        with patch(
+            "autospine_workbench.motion_policy_adoption_routes."
+            "rebuild_current_project_chains",
+            side_effect=[self.current, changed],
+        ), patch(
+            "autospine_workbench.motion_policy_adoption_routes."
+            "adopt_motion_policy_package",
+        ) as adopt:
+            status, _, raw = self._adoption_request()
+        self.assertEqual(409, status)
+        self.assertEqual(
+            "motion_policy_project_chain_changed",
+            json.loads(raw.decode("utf-8"))["error"],
+        )
+        adopt.assert_not_called()
+        self.assertFalse(self._p9_root().exists())
+
+        with patch(
+            "autospine_workbench.motion_policy_adoption_routes._project_ids",
+            side_effect=ProjectStoreError(f"private {self.store.state}"),
+        ):
+            status, _, raw = self._adoption_request()
+        self.assertEqual(500, status)
+        decoded = raw.decode("utf-8")
+        self.assertNotIn("private", decoded)
+        self.assertNotIn(str(self.store.state), decoded)
+        self.assertFalse(self._p9_root().exists())
+
+    def test_rebuild_unavailable_is_500_and_zero_publication(self):
+        private = f"persistent project store at {self.store.state}"
+        with patch(
+            "autospine_workbench.motion_policy_adoption_routes."
+            "rebuild_current_project_chains",
+            wraps=rebuild_current_project_chains,
+        ), patch.object(
+            self.server.project_store, "get_project",
+            side_effect=ProjectStoreError(private),
+        ), patch(
+            "autospine_workbench.motion_policy_adoption_routes."
+            "adopt_motion_policy_package",
+        ) as adopt:
+            status, _, raw = self._adoption_request()
+        self.assertEqual(500, status)
+        self.assertEqual(
+            "motion_policy_project_chain_unavailable",
+            json.loads(raw.decode("utf-8"))["error"],
+        )
+        adopt.assert_not_called()
+        self.assertFalse(self._p9_root().exists())
+        self.assertNotIn(private, raw.decode("utf-8"))
+        self.assertNotIn(str(self.store.state), raw.decode("utf-8"))
 
 
 if __name__ == "__main__":

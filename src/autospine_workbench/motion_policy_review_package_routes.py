@@ -6,6 +6,12 @@ from http import HTTPStatus
 import json
 from typing import Any, Callable
 
+from .current_project_chain import (
+    CurrentProjectChainChangedError,
+    CurrentProjectChainError,
+    rebuild_current_project_chains,
+    require_unchanged_current_project_chains,
+)
 from .body_sway_probe_routes import (
     dispatch_body_sway_probe_get,
     is_body_sway_probe_path,
@@ -24,7 +30,7 @@ from .motion_policy_seam_review_entry_routes import (
     dispatch_motion_policy_seam_review_entry_get,
     is_motion_policy_seam_review_entry_path,
 )
-from .project_store import ProjectStore
+from .project_store import ProjectStore, ProjectStoreError
 
 
 SendJson = Callable[[int, Any], None]
@@ -51,27 +57,41 @@ def dispatch_motion_policy_review_package_get(
         return True
     if parts == ["api", "motion-policy", "review-packages"]:
         try:
-            send_json(
-                HTTPStatus.OK,
-                list_motion_policy_review_packages(store.state_root),
+            project_ids = _project_ids(store)
+            before = rebuild_current_project_chains(store, project_ids)
+            payload = list_motion_policy_review_packages(
+                store.state_root, current_project_chains=before,
             )
+            after = rebuild_current_project_chains(store, project_ids)
+            require_unchanged_current_project_chains(before, after)
+            send_json(HTTPStatus.OK, payload)
+        except CurrentProjectChainChangedError:
+            _chain_changed(send_json)
+        except (CurrentProjectChainError, ProjectStoreError):
+            _chain_unavailable(send_json)
         except MotionPolicyReviewPackageError:
-            send_json(HTTPStatus.INTERNAL_SERVER_ERROR, {
-                "error": "motion_policy_package_error",
-                "message": "Automatic review packages could not be inspected.",
-            })
+            _internal(send_json)
         return True
     if len(parts) == 4 \
             and parts[:3] == ["api", "motion-policy", "review-packages"]:
         try:
+            project_ids = _project_ids(store)
+            before = rebuild_current_project_chains(store, project_ids)
             package = get_motion_policy_review_package(
                 store.state_root, parts[3],
+                current_project_chains=before,
             )
+            after = rebuild_current_project_chains(store, project_ids)
+            require_unchanged_current_project_chains(before, after)
         except MotionPolicyReviewPackageError:
             send_json(HTTPStatus.NOT_FOUND, {
                 "error": "motion_policy_package_not_found",
                 "message": "No validated automatic review package is available.",
             })
+        except CurrentProjectChainChangedError:
+            _chain_changed(send_json)
+        except (CurrentProjectChainError, ProjectStoreError):
+            _chain_unavailable(send_json)
         else:
             send_json(HTTPStatus.OK, package)
         return True
@@ -87,3 +107,28 @@ def send_motion_policy_review_package_method_not_allowed(handler: Any) -> None:
         "application/json; charset=utf-8",
         extra_headers={"Allow": ALLOW_METHODS}, visual_review=True,
     )
+
+
+def _project_ids(store: ProjectStore) -> tuple[str, ...]:
+    return store.discover_project_ids()
+
+
+def _chain_changed(send_json: SendJson) -> None:
+    send_json(HTTPStatus.CONFLICT, {
+        "error": "motion_policy_project_chain_changed",
+        "message": "The project changed; reload the motion-policy packages.",
+    })
+
+
+def _chain_unavailable(send_json: SendJson) -> None:
+    send_json(HTTPStatus.INTERNAL_SERVER_ERROR, {
+        "error": "motion_policy_project_chain_unavailable",
+        "message": "The current project chain could not be inspected.",
+    })
+
+
+def _internal(send_json: SendJson) -> None:
+    send_json(HTTPStatus.INTERNAL_SERVER_ERROR, {
+        "error": "motion_policy_package_error",
+        "message": "Automatic review packages could not be inspected.",
+    })

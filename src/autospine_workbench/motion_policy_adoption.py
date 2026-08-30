@@ -7,6 +7,7 @@ from pathlib import Path
 import re
 from typing import Any
 
+from .current_project_chain import CurrentProjectChain
 from .http_json_request import HttpJsonRequestError, decode_json_object
 from .mesh_bundle_reader import (
     VerifiedMeshBundleReader,
@@ -22,7 +23,8 @@ from .motion_policy_decision import (
 )
 from .motion_policy_review_packages import (
     MotionPolicyReviewPackageError,
-    get_motion_policy_review_package,
+    MotionPolicyReviewPackageHistoricalError,
+    require_current_motion_policy_review_package,
 )
 from .motion_retarget_bundle_reader import (
     VerifiedMotionRetargetBundleReader,
@@ -63,6 +65,10 @@ class MotionPolicyAdoptionPackageNotFoundError(MotionPolicyAdoptionError):
     """Raised when the requested exact package is no longer available."""
 
 
+class MotionPolicyAdoptionHistoricalError(MotionPolicyAdoptionError):
+    """Raised when adoption targets older project authoring bytes."""
+
+
 class MotionPolicyAdoptionUnavailableError(RuntimeError):
     """Raised when exact upstreams cannot safely publish or replay P9."""
 
@@ -71,12 +77,22 @@ def adopt_motion_policy_package(
     state_root: Path,
     package_id: str,
     request: Mapping[str, Any],
+    *,
+    current_project_chains: Mapping[str, CurrentProjectChain],
 ) -> dict[str, Any]:
     """Publish and replay one explicit human adoption without path inputs."""
 
     requested_id, review = _require_request(package_id, request)
     try:
-        package = get_motion_policy_review_package(state_root, requested_id)
+        package = require_current_motion_policy_review_package(
+            state_root,
+            requested_id,
+            current_project_chains=current_project_chains,
+        )
+    except MotionPolicyReviewPackageHistoricalError as exc:
+        raise MotionPolicyAdoptionHistoricalError(
+            "Historical motion-policy packages are read-only"
+        ) from exc
     except MotionPolicyReviewPackageError as exc:
         raise MotionPolicyAdoptionPackageNotFoundError(
             "The exact motion-policy package is unavailable"

@@ -722,6 +722,11 @@ class ProjectStore:
 
         return len(self._discover())
 
+    def discover_project_ids(self) -> tuple[str, ...]:
+        """List audit project ids without rebuilding overrides or snapshots."""
+
+        return tuple(sorted(self._discover()))
+
     def get_project(self, project_id: str) -> dict[str, Any]:
         """Return a complete versioned project document."""
 

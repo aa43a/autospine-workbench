@@ -4,6 +4,7 @@ import { createIdleBehaviorReviewApi } from "./idle-behavior-review-api.js";
 
 const STORAGE_KEY = "autospine.idle-behavior.last-package.v1";
 const SHA = /^[0-9a-f]{64}$/;
+const READY_STATUS = "ready_for_candidate_replay";
 
 export function createIdleBehaviorReviewLoader(elements, dependencies = {}) {
   const api = dependencies.api || createIdleBehaviorReviewApi();
@@ -54,6 +55,7 @@ export function createIdleBehaviorReviewLoader(elements, dependencies = {}) {
       await onLoad(entry, {
         canvasAdjustmentDraft: draft,
         packageRow: { package_id: handoff.packageId },
+        readOnly: true,
         isCurrent: () => current === generation && activePackageId === handoff.packageId,
       });
       if (current !== generation) return false;
@@ -70,7 +72,7 @@ export function createIdleBehaviorReviewLoader(elements, dependencies = {}) {
     }
     try {
       setBusy(true);
-      await hydrateInventory(current, handoff.packageId, entry);
+      await hydrateInventory(current, handoff.packageId, entry, draft);
     } catch (error) {
       if (current === generation) {
         status(`草稿已显示，但项目列表暂不可用：${message(error)}`, "warning");
@@ -90,7 +92,7 @@ export function createIdleBehaviorReviewLoader(elements, dependencies = {}) {
       packages = result.packages;
       skippedCount = result.skipped_count;
       const selected = initialSelection(result.recommended_package_id);
-      renderOptions(Boolean(packages.length > 1 || skippedCount > 0) && !selected);
+      renderOptions(!selected);
       if (!packages.length) {
         onReset();
         status(emptyMessage(), "error");
@@ -99,9 +101,7 @@ export function createIdleBehaviorReviewLoader(elements, dependencies = {}) {
       if (!selected) {
         elements.projectSelect.value = "";
         onReset();
-        status(skippedCount
-          ? `有 ${skippedCount} 个版本校验失败，列表可能不完整；请明确选择一个已验证项目。`
-          : "发现同一动作的多个有效版本，请先选择要继续的项目。", "warning");
+        status(selectionRequiredMessage(), "warning");
         return false;
       }
       elements.projectSelect.value = selected;
@@ -117,7 +117,7 @@ export function createIdleBehaviorReviewLoader(elements, dependencies = {}) {
     }
   }
 
-  async function hydrateInventory(current, packageId, entry) {
+  async function hydrateInventory(current, packageId, entry, draft) {
     const result = await api.list();
     if (current !== generation) return;
     packages = result.packages;
@@ -128,11 +128,19 @@ export function createIdleBehaviorReviewLoader(elements, dependencies = {}) {
     elements.projectSelect.value = aligned ? packageId : "";
     activePackageId = aligned ? packageId : null;
     if (!aligned) onReset();
+    else if (isReady(selected)) {
+      await onLoad(entry, {
+        canvasAdjustmentDraft: draft,
+        packageRow: selected,
+        readOnly: false,
+        isCurrent: () => current === generation && activePackageId === packageId,
+      });
+      if (current !== generation) return;
+    }
     status(aligned
-      ? (skippedCount ? `当前项目已核对；另有 ${skippedCount} 个版本校验失败。`
-        : "项目和草稿已精确核对。无需选择文件或填写 SHA。")
+      ? inventoryLoadedMessage(selected)
       : "项目清单与直达入口不一致；旧草稿已停用，请重新读取。",
-    aligned && !skippedCount ? "success" : "warning");
+    aligned && isReady(selected) && !skippedCount ? "success" : "warning");
   }
 
   async function loadSelected(prefix = "正在加载", inherited = null) {
@@ -153,13 +161,18 @@ export function createIdleBehaviorReviewLoader(elements, dependencies = {}) {
       if (!isCurrent(current, packageId)) return false;
       await onLoad(entry, {
         canvasAdjustmentDraft: null, packageRow: selected,
+        readOnly: !isReady(selected),
         isCurrent: () => isCurrent(current, packageId),
       });
       if (!isCurrent(current, packageId)) return false;
-      try { storage?.setItem(STORAGE_KEY, packageId); } catch { /* optional */ }
+      if (isReady(selected)) {
+        try { storage?.setItem(STORAGE_KEY, packageId); } catch { /* optional */ }
+      }
       const skipped = skippedCount ? `；另有 ${skippedCount} 个版本校验失败已跳过` : "";
-      status(`已加载候选和人工基线${skipped}。无需选择文件或填写 SHA。`,
-        skippedCount ? "warning" : "success");
+      status(isReady(selected)
+        ? `已加载候选和人工基线${skipped}。无需选择文件或填写 SHA。`
+        : "已加载历史版本（只读）；它不匹配当前绑定，不会成为自动选择或当前决定来源。",
+      skippedCount || !isReady(selected) ? "warning" : "success");
       return true;
     } catch (error) {
       if (isCurrent(current, packageId)) {
@@ -189,9 +202,10 @@ export function createIdleBehaviorReviewLoader(elements, dependencies = {}) {
       const peers = packages.filter((peer) => peer.project_id === row.project_id
         && peer.motion_id === row.motion_id && peer.clip_id === row.clip_id)
         .sort((left, right) => left.package_id.localeCompare(right.package_id));
-      option.textContent = peers.length > 1
+      const versioned = peers.length > 1
         ? `${label} · 版本 ${peers.indexOf(row) + 1} · ${uniquePrefix(row.package_id, peers)}`
         : label;
+      option.textContent = isReady(row) ? versioned : `${versioned} · 历史版本（只读）`;
       elements.projectSelect.append(option);
     }
   }
@@ -199,10 +213,32 @@ export function createIdleBehaviorReviewLoader(elements, dependencies = {}) {
   function initialSelection(recommended) {
     let saved = null;
     try { saved = storage?.getItem(STORAGE_KEY); } catch { /* optional */ }
-    if (packages.some((row) => row.package_id === saved)) return saved;
+    if (packages.some((row) => row.package_id === saved && isReady(row))) return saved;
     if (skippedCount > 0) return null;
-    if (packages.some((row) => row.package_id === recommended)) return recommended;
-    return packages.length === 1 ? packages[0].package_id : null;
+    if (packages.some((row) => row.package_id === recommended && isReady(row))) {
+      return recommended;
+    }
+    const current = packages.filter(isReady);
+    return current.length === 1 ? current[0].package_id : null;
+  }
+
+  function selectionRequiredMessage() {
+    const currentCount = packages.filter(isReady).length;
+    if (!currentCount) {
+      const skipped = skippedCount ? `；另有 ${skippedCount} 个版本校验失败` : "";
+      return `仅发现历史版本（只读）${skipped}；请先完成当前绑定的新 P9 动作采用。`;
+    }
+    return skippedCount
+      ? `有 ${skippedCount} 个版本校验失败，列表可能不完整；请明确选择一个当前版本。`
+      : "发现同一动作的多个当前版本，请先选择要继续的项目。";
+  }
+
+  function inventoryLoadedMessage(selected) {
+    if (!isReady(selected)) {
+      return "已核对为历史版本（只读）；它不匹配当前绑定，不能作为当前决定来源。";
+    }
+    return skippedCount ? `当前项目已核对；另有 ${skippedCount} 个版本校验失败。`
+      : "项目和草稿已精确核对。无需选择文件或填写 SHA。";
   }
 
   function currentPackageId() { return activePackageId; }
@@ -265,8 +301,12 @@ function handoffSearch(dependencies) {
 
 function inventoryMatchesEntry(row, entry) {
   return ["package_id", "project_id", "motion_id", "clip_id",
-    "motion_policy_package_id", "p9_decision_sha256", "status"]
+    "motion_policy_package_id", "p9_decision_sha256"]
     .every((field) => row[field] === entry.package[field]);
+}
+
+function isReady(row) {
+  return row?.status === READY_STATUS;
 }
 
 function message(error) {

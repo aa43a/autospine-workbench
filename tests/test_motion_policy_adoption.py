@@ -17,10 +17,12 @@ from tests.motion_policy_preflight_helpers import (
 )
 from tests.motion_policy_review_package_helpers import write_review_package
 
+from autospine_workbench.current_project_chain import CurrentProjectChain
 from autospine_workbench.motion_policy_adoption import (
     INTENT_VALUE,
     REQUEST_FORMAT,
     MotionPolicyAdoptionError,
+    MotionPolicyAdoptionHistoricalError,
     MotionPolicyAdoptionPackageNotFoundError,
     MotionPolicyAdoptionUnavailableError,
     adopt_motion_policy_package,
@@ -55,6 +57,14 @@ class MotionPolicyAdoptionTests(MotionPolicyFixtureMixin, unittest.TestCase):
                 },
             },
         }
+        p3 = self.policy["source"]["p3"]
+        self.current = {
+            self.policy["project_id"]: CurrentProjectChain(
+                self.policy["project_id"],
+                p3["resolved_project_sha256"],
+                p3["layer_manifest_sha256"],
+            ),
+        }
 
     def _adopt(self, request=None, package_id=None):
         upstream = self.chain.upstream
@@ -71,6 +81,7 @@ class MotionPolicyAdoptionTests(MotionPolicyFixtureMixin, unittest.TestCase):
                 self.state,
                 package_id or self.package_id,
                 request or self.request,
+                current_project_chains=self.current,
             )
         return result
 
@@ -140,7 +151,10 @@ class MotionPolicyAdoptionTests(MotionPolicyFixtureMixin, unittest.TestCase):
         ):
             reader.return_value.load.side_effect = ValueError("private path")
             adopt_motion_policy_package(
-                self.state, self.package_id, self.request,
+                self.state,
+                self.package_id,
+                self.request,
+                current_project_chains=self.current,
             )
         self.assertEqual(before, tree_snapshot(self.state))
 
@@ -158,7 +172,10 @@ class MotionPolicyAdoptionTests(MotionPolicyFixtureMixin, unittest.TestCase):
             with ThreadPoolExecutor(max_workers=4) as executor:
                 receipts = list(executor.map(
                     lambda _index: adopt_motion_policy_package(
-                        self.state, self.package_id, self.request,
+                        self.state,
+                        self.package_id,
+                        self.request,
+                        current_project_chains=self.current,
                     ),
                     range(4),
                 ))
@@ -168,6 +185,25 @@ class MotionPolicyAdoptionTests(MotionPolicyFixtureMixin, unittest.TestCase):
              row["address"]["bundle_sha256"])
             for row in receipts
         }))
+
+    def test_historical_package_is_read_only_and_makes_zero_writes(self):
+        before = tree_snapshot(self.state)
+        project_id = self.policy["project_id"]
+        historical = {
+            project_id: CurrentProjectChain(
+                project_id,
+                self.current[project_id].resolved_project_sha256,
+                "f" * 64,
+            ),
+        }
+        with self.assertRaises(MotionPolicyAdoptionHistoricalError):
+            adopt_motion_policy_package(
+                self.state,
+                self.package_id,
+                self.request,
+                current_project_chains=historical,
+            )
+        self.assertEqual(before, tree_snapshot(self.state))
 
 
 if __name__ == "__main__":

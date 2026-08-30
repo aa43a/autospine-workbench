@@ -6,6 +6,12 @@ from http import HTTPStatus
 import json
 from typing import Any, Callable
 
+from .current_project_chain import (
+    CurrentProjectChainChangedError,
+    CurrentProjectChainError,
+    rebuild_current_project_chains,
+    require_unchanged_current_project_chains,
+)
 from .http_json_request import (
     HttpJsonRequestError,
     drain_bounded_request_body,
@@ -34,7 +40,9 @@ from .idle_behavior_review_http_security import (
 )
 from .idle_behavior_review_packages import (
     IdleBehaviorReviewPackageError,
+    IdleBehaviorReviewPackageStale,
     list_idle_behavior_review_packages,
+    require_current_idle_behavior_review_address,
 )
 from .idle_behavior_review_profile import MAX_REQUEST_BYTES
 from .project_store import ProjectStore, ProjectStoreError
@@ -71,9 +79,14 @@ def dispatch_idle_behavior_review_get(
     try:
         project_ids = _project_ids(store)
         if len(parts) == 3:
+            before = rebuild_current_project_chains(store, project_ids)
             inventory = list_idle_behavior_review_packages(
-                store.state_root, project_ids=project_ids,
+                store.state_root,
+                project_ids=project_ids,
+                current_project_chains=before,
             )
+            after = rebuild_current_project_chains(store, project_ids)
+            require_unchanged_current_project_chains(before, after)
             inventory["packages"] = [
                 {field: row[field] for field in _LIST_FIELDS}
                 for row in inventory["packages"]
@@ -108,13 +121,20 @@ def dispatch_idle_behavior_review_get(
         })
     except IdleBehaviorReviewApplicationNotFound:
         _not_found(send_json)
+    except CurrentProjectChainChangedError:
+        send_json(HTTPStatus.CONFLICT, {
+            "error": "idle_behavior_project_chain_changed",
+            "message": "The project changed; reload the current package list.",
+        })
+    except (CurrentProjectChainError, ProjectStoreError):
+        _chain_unavailable(send_json)
     except IdleBehaviorReviewPackageError:
         _internal(send_json)
     except IdleBehaviorReviewApplicationUnavailable:
         _unavailable(send_json)
     except (
         IdleBehaviorCanvasAdjustmentDraftError,
-        IdleBehaviorReviewApplicationError, ProjectStoreError,
+        IdleBehaviorReviewApplicationError,
     ):
         _internal(send_json)
     return True
@@ -133,8 +153,18 @@ def dispatch_idle_behavior_review_post(
         payload = read_json_object_request(
             handler, maximum_bytes=MAX_REQUEST_BYTES,
         )
+        project_ids = _project_ids(store)
+        before = rebuild_current_project_chains(store, project_ids)
+        require_current_idle_behavior_review_address(
+            store.state_root,
+            parts[3],
+            project_ids=project_ids,
+            current_project_chains=before,
+        )
+        after = rebuild_current_project_chains(store, project_ids)
+        require_unchanged_current_project_chains(before, after)
         receipt = IdleBehaviorReviewApplication(store.state_root).submit(
-            parts[3], payload, project_ids=_project_ids(store),
+            parts[3], payload, project_ids=project_ids,
         )
         send_json(HTTPStatus.OK, receipt)
     except IdleBehaviorReviewHttpSecurityError as exc:
@@ -147,6 +177,13 @@ def dispatch_idle_behavior_review_post(
             "error": exc.code, "message": exc.public_message,
         })
     except IdleBehaviorReviewApplicationNotFound:
+        _not_found(send_json)
+    except IdleBehaviorReviewPackageStale:
+        send_json(HTTPStatus.CONFLICT, {
+            "error": "idle_behavior_review_historical_read_only",
+            "message": "Historical body-sway review packages are read-only.",
+        })
+    except IdleBehaviorReviewPackageError:
         _not_found(send_json)
     except IdleBehaviorReviewApplicationInvalidSubmission:
         send_json(HTTPStatus.BAD_REQUEST, {
@@ -164,7 +201,16 @@ def dispatch_idle_behavior_review_post(
         })
     except IdleBehaviorReviewApplicationUnavailable:
         _unavailable(send_json)
-    except (IdleBehaviorReviewApplicationError, ProjectStoreError):
+    except CurrentProjectChainChangedError:
+        send_json(HTTPStatus.CONFLICT, {
+            "error": "idle_behavior_project_chain_changed",
+            "message": "The project changed; reload before submitting.",
+        })
+    except (CurrentProjectChainError, ProjectStoreError):
+        _chain_unavailable(send_json)
+    except (
+        IdleBehaviorReviewApplicationError,
+    ):
         _internal(send_json)
     return True
 
@@ -181,7 +227,7 @@ def send_idle_behavior_review_method_not_allowed(handler: Any) -> None:
 
 
 def _project_ids(store: ProjectStore) -> tuple[str, ...]:
-    return tuple(project["id"] for project in store.list_projects())
+    return store.discover_project_ids()
 
 
 def _not_found(send_json: SendJson) -> None:
@@ -195,6 +241,13 @@ def _unavailable(send_json: SendJson) -> None:
     send_json(HTTPStatus.CONFLICT, {
         "error": "idle_behavior_review_unavailable",
         "message": "The exact body-sway review could not be completed.",
+    })
+
+
+def _chain_unavailable(send_json: SendJson) -> None:
+    send_json(HTTPStatus.INTERNAL_SERVER_ERROR, {
+        "error": "idle_behavior_project_chain_unavailable",
+        "message": "The current project chain could not be inspected.",
     })
 
 

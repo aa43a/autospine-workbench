@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from pathlib import Path
 from typing import Any
 
+from .current_project_chain import CurrentProjectChain
 from .body_sway_canvas_adjustment_candidates import (
     BodySwayCanvasAdjustmentError,
     compile_body_sway_canvas_adjustment_candidates,
@@ -82,12 +83,17 @@ class BodySwayProbeApplication:
 
     def list_packages(
         self, *, project_ids: Iterable[str] | None = None,
+        current_project_chains: Mapping[
+            str, CurrentProjectChain
+        ] | None = None,
     ) -> dict[str, Any]:
         """Return current exact readiness with one unique recommendation."""
 
         try:
             return list_body_sway_probe_packages(
-                self.state_root, project_ids=project_ids,
+                self.state_root,
+                project_ids=project_ids,
+                current_project_chains=current_project_chains,
             )
         except BodySwayProbePackageError as exc:
             raise BodySwayProbeApplicationUnavailable(

@@ -6,10 +6,10 @@ import { createMotionPolicyAutoApi } from "../modules/motion-policy-auto-api.js"
 const PACKAGE_A = "a".repeat(64);
 const PACKAGE_B = "b".repeat(64);
 
-function packageRow(packageId = PACKAGE_A, documents = false) {
+function packageRow(packageId = PACKAGE_A, documents = false, alignment = "current") {
   const row = {
     format: "autospine-motion-policy-review-package",
-    format_version: 1,
+    format_version: 2,
     project_id: packageId === PACKAGE_A ? "sample-a" : "sample-b",
     package_id: packageId,
     motion_id: "kimodo-wave",
@@ -27,6 +27,7 @@ function packageRow(packageId = PACKAGE_A, documents = false) {
       candidate_ids_sha256: "4".repeat(64),
     },
     automation_profile: "safe-assist-v1",
+    authoring_alignment: alignment,
   };
   if (documents) {
     row.policy_json = "{\"policy\":true}";
@@ -39,7 +40,7 @@ function packageRow(packageId = PACKAGE_A, documents = false) {
 function listPayload(rows = [packageRow()]) {
   return {
     format: "autospine-motion-policy-package-list",
-    format_version: 1,
+    format_version: 2,
     count: rows.length,
     skipped_count: 0,
     recommended_package_id: rows[0]?.package_id ?? null,
@@ -89,6 +90,11 @@ test("automatic package API rejects malformed IDs before making a request", asyn
   assert.equal(requestCount, 0);
 });
 
+test("automatic package detail must retain the requested exact package identity", async () => {
+  const api = createMotionPolicyAutoApi(async () => response(packageRow(PACKAGE_B, true)));
+  await assert.rejects(api.package(PACKAGE_A), /详情身份不匹配/);
+});
+
 test("automatic package list rejects duplicate identities and unknown recommendations", async () => {
   const duplicate = listPayload([packageRow(PACKAGE_A), packageRow(PACKAGE_A)]);
   const apiDuplicate = createMotionPolicyAutoApi(async () => response(duplicate));
@@ -98,6 +104,24 @@ test("automatic package list rejects duplicate identities and unknown recommenda
   unknown.recommended_package_id = PACKAGE_B;
   const apiUnknown = createMotionPolicyAutoApi(async () => response(unknown));
   await assert.rejects(apiUnknown.list(), /重复或未知推荐项/);
+});
+
+test("automatic package list accepts historical rows but never a historical recommendation", async () => {
+  const rows = [
+    packageRow(PACKAGE_A, false, "historical"),
+    packageRow(PACKAGE_B),
+  ];
+  const accepted = listPayload(rows);
+  accepted.recommended_package_id = PACKAGE_B;
+  const list = await createMotionPolicyAutoApi(async () => response(accepted)).list();
+  assert.equal(list.packages[0].authoring_alignment, "historical");
+
+  const unsafe = listPayload(rows);
+  unsafe.recommended_package_id = PACKAGE_A;
+  await assert.rejects(
+    createMotionPolicyAutoApi(async () => response(unsafe)).list(),
+    /不得推荐历史版本/,
+  );
 });
 
 test("automatic package API fails closed on extra fields, invalid counts, and missing evidence", async () => {
@@ -127,6 +151,13 @@ test("automatic package API fails closed on extra fields, invalid counts, and mi
   await assert.rejects(
     createMotionPolicyAutoApi(async () => response(missingDocument)).package(PACKAGE_A),
     /缺少 JSON 证据/,
+  );
+
+  const invalidAlignment = packageRow(PACKAGE_A, true);
+  invalidAlignment.authoring_alignment = "unknown";
+  await assert.rejects(
+    createMotionPolicyAutoApi(async () => response(invalidAlignment)).package(PACKAGE_A),
+    /对齐状态无效/,
   );
 });
 

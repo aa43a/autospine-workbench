@@ -5,6 +5,12 @@ from __future__ import annotations
 from http import HTTPStatus
 from typing import Any, Callable
 
+from .current_project_chain import (
+    CurrentProjectChainChangedError,
+    CurrentProjectChainError,
+    rebuild_current_project_chains,
+    require_unchanged_current_project_chains,
+)
 from .body_sway_probe_application import (
     BodySwayProbeApplication,
     BodySwayProbeApplicationError,
@@ -36,7 +42,13 @@ def dispatch_body_sway_probe_get(
         application = BodySwayProbeApplication(store.state_root)
         project_ids = _project_ids(store)
         if len(parts) == 3:
-            payload = application.list_packages(project_ids=project_ids)
+            before = rebuild_current_project_chains(store, project_ids)
+            payload = application.list_packages(
+                project_ids=project_ids,
+                current_project_chains=before,
+            )
+            after = rebuild_current_project_chains(store, project_ids)
+            require_unchanged_current_project_chains(before, after)
         else:
             payload = application.prepare(
                 parts[3], project_ids=project_ids,
@@ -57,7 +69,17 @@ def dispatch_body_sway_probe_get(
             "error": "body_sway_probe_unavailable",
             "message": "The body-sway structural probe could not be prepared.",
         })
-    except (BodySwayProbeApplicationError, ProjectStoreError):
+    except CurrentProjectChainChangedError:
+        send_json(HTTPStatus.CONFLICT, {
+            "error": "body_sway_project_chain_changed",
+            "message": "The project changed; reload the probe inventory.",
+        })
+    except (CurrentProjectChainError, ProjectStoreError):
+        send_json(HTTPStatus.INTERNAL_SERVER_ERROR, {
+            "error": "body_sway_project_chain_unavailable",
+            "message": "The current project chain could not be inspected.",
+        })
+    except BodySwayProbeApplicationError:
         send_json(HTTPStatus.INTERNAL_SERVER_ERROR, {
             "error": "body_sway_probe_error",
             "message": (
@@ -69,4 +91,4 @@ def dispatch_body_sway_probe_get(
 
 
 def _project_ids(store: ProjectStore) -> tuple[str, ...]:
-    return tuple(project["id"] for project in store.list_projects())
+    return store.discover_project_ids()

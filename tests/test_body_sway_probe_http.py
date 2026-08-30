@@ -23,6 +23,9 @@ from autospine_workbench.body_sway_probe_application import (
     BodySwayProbeApplicationNotFound,
     BodySwayProbeApplicationUnavailable,
 )
+from autospine_workbench.current_project_chain import (
+    CurrentProjectChainUnavailableError,
+)
 from tests.motion_policy_preflight_helpers import (
     MotionPolicyHttpFixtureMixin,
     tree_snapshot,
@@ -130,18 +133,26 @@ class BodySwayProbeHttpTests(
 
     def test_list_and_detail_are_path_free_zero_write_gets(self):
         before = tree_snapshot(self.store.state)
+        current = {"fixture-project": object()}
         with patch(
             "autospine_workbench.body_sway_probe_routes."
             "BodySwayProbeApplication.list_packages",
             return_value=self._list(),
-        ) as listed:
+        ) as listed, patch(
+            "autospine_workbench.body_sway_probe_routes."
+            "rebuild_current_project_chains",
+            return_value=current,
+        ):
             status, headers, raw = self._probe_request("GET")
         self.assertEqual(200, status)
         self.assertEqual(self._list(), json.loads(raw))
         self.assertEqual("same-origin", headers[
             "cross-origin-resource-policy"
         ])
-        listed.assert_called_once_with(project_ids=("fixture-project",))
+        listed.assert_called_once_with(
+            project_ids=("fixture-project",),
+            current_project_chains=current,
+        )
 
         with patch(
             "autospine_workbench.body_sway_probe_routes."
@@ -161,13 +172,58 @@ class BodySwayProbeHttpTests(
 
     def test_empty_real_inventory_uses_the_application_without_writes(self):
         before = tree_snapshot(self.store.state)
-        status, _, raw = self._probe_request("GET")
+        with patch(
+            "autospine_workbench.body_sway_probe_routes."
+            "rebuild_current_project_chains",
+            return_value={"fixture-project": object()},
+        ):
+            status, _, raw = self._probe_request("GET")
         payload = json.loads(raw)
         self.assertEqual(200, status)
         self.assertEqual(
             "autospine-body-sway-probe-package-list", payload["format"],
         )
         self.assertEqual((0, []), (payload["count"], payload["packages"]))
+        self.assertEqual(before, tree_snapshot(self.store.state))
+
+    def test_current_project_drift_rejects_completed_inventory(self):
+        before = {"fixture-project": object()}
+        after = {"fixture-project": object()}
+        with patch(
+            "autospine_workbench.body_sway_probe_routes."
+            "BodySwayProbeApplication.list_packages",
+            return_value=self._list(),
+        ), patch(
+            "autospine_workbench.body_sway_probe_routes."
+            "rebuild_current_project_chains",
+            side_effect=(before, after),
+        ):
+            status, _, raw = self._probe_request("GET")
+        self.assertEqual(409, status)
+        self.assertEqual(
+            "body_sway_project_chain_changed", json.loads(raw)["error"],
+        )
+
+    def test_chain_rebuild_unavailable_is_500_and_zero_write(self):
+        before = tree_snapshot(self.store.state)
+        private = f"persistent project store at {self.store.state}"
+        with patch(
+            "autospine_workbench.body_sway_probe_routes."
+            "rebuild_current_project_chains",
+            side_effect=CurrentProjectChainUnavailableError(private),
+        ), patch(
+            "autospine_workbench.body_sway_probe_routes."
+            "BodySwayProbeApplication.list_packages",
+        ) as listed:
+            status, _, raw = self._probe_request("GET")
+        self.assertEqual(500, status)
+        self.assertEqual(
+            "body_sway_project_chain_unavailable",
+            json.loads(raw)["error"],
+        )
+        listed.assert_not_called()
+        self.assertNotIn(private, raw.decode("utf-8"))
+        self.assertNotIn(str(self.store.state), raw.decode("utf-8"))
         self.assertEqual(before, tree_snapshot(self.store.state))
 
     def test_head_matches_get_metadata_without_a_body(self):

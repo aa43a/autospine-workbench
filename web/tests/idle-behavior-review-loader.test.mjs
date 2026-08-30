@@ -78,16 +78,72 @@ test("loader restores a saved package and loads it without files or SHA input", 
         package: { ...entryDocument().package, ...rows.find((row) => row.package_id === packageId) },
       }),
     },
-    onLoad: async (entry) => loaded.push(entry.package.package_id),
+    onLoad: async (entry, context) => loaded.push({
+      packageId: entry.package.package_id, readOnly: context.readOnly,
+    }),
   });
   await loader.start();
 
   assert.equal(elements.projectSelect.children.length, 2);
   assert.equal(elements.projectSelect.value, PACKAGE_B);
-  assert.deepEqual(loaded, [PACKAGE_B]);
+  assert.deepEqual(loaded, [
+    { packageId: PACKAGE_B, readOnly: false },
+  ]);
   assert.equal(saved.selected(), PACKAGE_B);
   assert.equal(elements.status.dataset.tone, "success");
   assert.match(elements.status.textContent, /无需选择文件或填写 SHA/);
+});
+
+test("stale-only inventory stays selection-only and explains historical read-only state", async () => {
+  const elements = ui();
+  const rows = [packageSummary({ status: "stale_for_current_project" })];
+  let loads = 0;
+  const loader = createIdleBehaviorReviewLoader(elements, {
+    storage: storage(DIGESTS.package),
+    api: {
+      // Deliberately bypass the API contract to prove the loader also refuses
+      // saved, recommended, and singleton historical fallbacks.
+      list: async () => packageList(rows, DIGESTS.package),
+      entry: async () => { loads += 1; return entryDocument(); },
+    },
+  });
+
+  assert.equal(await loader.start(), false);
+  assert.equal(loads, 0);
+  assert.equal(elements.projectSelect.value, "");
+  assert.equal(elements.projectSelect.disabled, false);
+  assert.equal(elements.status.dataset.tone, "warning");
+  assert.match(elements.status.textContent, /仅发现历史版本（只读）/);
+  assert.match(elements.projectSelect.children[1].textContent, /历史版本（只读）/);
+});
+
+test("saved stale package is ignored and the unique current package is selected", async () => {
+  const elements = ui();
+  const saved = storage(DIGESTS.package);
+  const rows = [
+    packageSummary({ status: "stale_for_current_project" }),
+    packageSummary({ package_id: PACKAGE_B, project_id: "sample-b" }),
+  ];
+  const loaded = [];
+  const loader = createIdleBehaviorReviewLoader(elements, {
+    storage: saved,
+    api: {
+      list: async () => packageList(rows, null),
+      entry: async (packageId) => entryDocument({
+        package: {
+          ...entryDocument().package,
+          ...rows.find((row) => row.package_id === packageId),
+          status: "ready_for_candidate_replay",
+        },
+      }),
+    },
+    onLoad: async (entry) => loaded.push(entry.package.package_id),
+  });
+
+  assert.equal(await loader.start(), true);
+  assert.equal(elements.projectSelect.value, PACKAGE_B);
+  assert.deepEqual(loaded, [PACKAGE_B]);
+  assert.equal(saved.selected(), PACKAGE_B);
 });
 
 test("explicit package handoff wins over a previously saved selection", async () => {
@@ -114,7 +170,7 @@ test("explicit package handoff wins over a previously saved selection", async ()
   await loader.start();
 
   assert.equal(elements.projectSelect.value, PACKAGE_B);
-  assert.deepEqual(loaded, [PACKAGE_B]);
+  assert.deepEqual(loaded, [PACKAGE_B, PACKAGE_B]);
 });
 
 test("loader does not guess when multiple valid packages have no recommendation", async () => {
@@ -244,16 +300,42 @@ test("paired P10.2 handoff renders its exact draft before the slow inventory", a
       async list() { calls.push("list"); return inventory.promise; },
     },
     onLoad(_entry, context) {
-      loaded.push(context.canvasAdjustmentDraft.proposal.gain.numerator);
+      loaded.push({
+        gain: context.canvasAdjustmentDraft.proposal.gain.numerator,
+        readOnly: context.readOnly,
+      });
     },
   });
   const starting = loader.start();
   await eventually(() => calls.includes("list"));
-  assert.deepEqual(loaded, [4]);
+  assert.deepEqual(loaded, [{ gain: 4, readOnly: true }]);
   assert.equal(calls[0], `draft:${DIGESTS.package}:${ADJUSTMENT_SHA}`);
   inventory.resolve(packageList());
   assert.equal(await starting, true);
+  assert.deepEqual(loaded, [
+    { gain: 4, readOnly: true },
+    { gain: 4, readOnly: false },
+  ]);
   assert.equal(loader.currentPackageId(), DIGESTS.package);
+});
+
+test("explicit historical handoff remains viewable but never upgrades to writable", async () => {
+  const elements = ui();
+  const stale = packageSummary({ status: "stale_for_current_project" });
+  const modes = [];
+  const loader = createIdleBehaviorReviewLoader(elements, {
+    requestedPackageId: DIGESTS.package,
+    storage: storage(),
+    api: {
+      list: async () => packageList([stale], null),
+      entry: async () => entryDocument(),
+    },
+    onLoad: async (_entry, context) => modes.push(context.readOnly),
+  });
+
+  assert.equal(await loader.start(), true);
+  assert.deepEqual(modes, [true]);
+  assert.match(elements.status.textContent, /历史版本（只读）/);
 });
 
 test("handoff parser rejects incomplete, duplicate, or noncanonical identity pairs", async () => {

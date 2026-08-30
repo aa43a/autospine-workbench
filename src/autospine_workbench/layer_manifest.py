@@ -375,7 +375,7 @@ def _deform_class(role: str) -> str:
         return "hair"
     if role.startswith("face"):
         return "face"
-    if role.startswith("body.arm") or role.startswith("body.leg"):
+    if role == "body.leg":
         return "hinge"
     if role.startswith("body") or role.startswith("accessory"):
         return "rigid"

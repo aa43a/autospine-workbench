@@ -6,9 +6,14 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 import re
-import stat
 from typing import Any
 
+from .current_project_chain import CurrentProjectChain, chain_is_current
+from .idle_behavior_adopted_runs import (
+    AdoptedRun,
+    AdoptedRunInventoryError,
+    list_adopted_runs,
+)
 from .idle_behavior_review_address import IdleBehaviorReviewAddress
 from .idle_behavior_review_profile import (
     FORMAT_VERSION,
@@ -16,51 +21,50 @@ from .idle_behavior_review_profile import (
     MAX_PACKAGES,
     PACKAGE_FORMAT,
 )
-from .idle_behavior_review_replay_cache import (
-    IdleBehaviorReviewReplayCacheError,
-    load_cached_reviewed_motion_chain,
-)
 from .motion_policy_review_packages import (
     MotionPolicyReviewPackageError,
     list_motion_policy_review_packages,
 )
-from .reviewed_motion_bundle_files import is_alias
-from .reviewed_motion_bundle_reader import (
-    VerifiedReviewedMotionBundleReader,
-    VerifiedReviewedMotionBundleReaderError,
-)
 
 
 _SHA = re.compile(r"^[0-9a-f]{64}$")
-_NAMESPACE = "reviewed-motion-instances"
 
 
 class IdleBehaviorReviewPackageError(RuntimeError):
     """Raised when adopted P9 package inventory cannot be inspected safely."""
 
 
+class IdleBehaviorReviewPackageStale(IdleBehaviorReviewPackageError):
+    """Raised when a historical package is selected for mutation."""
+
+
 @dataclass(frozen=True, slots=True)
-class _AdoptedRun:
-    project_id: str
-    clip_id: str
-    motion_instance_v2_sha256: str
-    bundle_sha256: str
-    foot_sha256: str
-    depth_sha256: str
-    decision_sha256: str
+class _ResolvedAddress:
+    address: IdleBehaviorReviewAddress
+    current: bool
 
 
 def list_idle_behavior_review_packages(
     state_root: Path,
     *,
     project_ids: Iterable[str] | None = None,
+    current_project_chains: Mapping[str, CurrentProjectChain] | None = None,
 ) -> dict[str, Any]:
     """Match validated review packages to every exact adopted P9 bundle."""
 
-    addresses, skipped = list_idle_behavior_review_addresses(
-        state_root, project_ids=project_ids,
+    allowed = set(project_ids) if project_ids is not None else None
+    records, skipped = _resolved_addresses(
+        state_root, allowed, current_project_chains,
     )
-    rows = [_summary(address) for address in addresses]
+    records.sort(key=lambda row: (
+        row.address.project_id, row.address.motion_id,
+        row.address.p9_decision_sha256, row.address.package_id,
+    ))
+    if len(records) > MAX_PACKAGES:
+        raise IdleBehaviorReviewPackageError(
+            "Idle behavior review package count exceeds its limit"
+        )
+    rows = [_summary(record) for record in records]
     return {
         "format": LIST_FORMAT,
         "format_version": FORMAT_VERSION,
@@ -80,7 +84,8 @@ def list_idle_behavior_review_addresses(
 
     try:
         allowed = set(project_ids) if project_ids is not None else None
-        addresses, skipped = _resolved_addresses(state_root, allowed)
+        records, skipped = _resolved_addresses(state_root, allowed, None)
+        addresses = [record.address for record in records]
         addresses.sort(key=lambda row: (
             row.project_id, row.motion_id,
             row.p9_decision_sha256, row.package_id,
@@ -101,6 +106,40 @@ def list_idle_behavior_review_addresses(
         ) from exc
 
 
+def list_current_idle_behavior_review_addresses(
+    state_root: Path,
+    *,
+    project_ids: Iterable[str] | None = None,
+    current_project_chains: Mapping[str, CurrentProjectChain],
+) -> tuple[tuple[IdleBehaviorReviewAddress, ...], int]:
+    """Return only adopted P9 addresses bound to current authoring bytes."""
+
+    try:
+        allowed = set(project_ids) if project_ids is not None else None
+        records, skipped = _resolved_addresses(
+            state_root, allowed, current_project_chains,
+        )
+        addresses = [record.address for record in records if record.current]
+        addresses.sort(key=lambda row: (
+            row.project_id, row.motion_id,
+            row.p9_decision_sha256, row.package_id,
+        ))
+        if len(addresses) > MAX_PACKAGES:
+            raise IdleBehaviorReviewPackageError(
+                "Idle behavior review package count exceeds its limit"
+            )
+        return tuple(addresses), skipped
+    except IdleBehaviorReviewPackageError:
+        raise
+    except (
+        KeyError, MotionPolicyReviewPackageError, OSError, TypeError,
+        ValueError,
+    ) as exc:
+        raise IdleBehaviorReviewPackageError(
+            "Current idle behavior review addresses could not be resolved"
+        ) from exc
+
+
 def get_idle_behavior_review_address(
     state_root: Path,
     package_id: str,
@@ -114,8 +153,11 @@ def get_idle_behavior_review_address(
             "Idle behavior review package id is invalid"
         )
     allowed = set(project_ids) if project_ids is not None else None
-    addresses, _skipped = _resolved_addresses(state_root, allowed)
-    matches = [row for row in addresses if row.package_id == package_id]
+    records, _skipped = _resolved_addresses(state_root, allowed, None)
+    matches = [
+        row.address for row in records
+        if row.address.package_id == package_id
+    ]
     if len(matches) != 1:
         raise IdleBehaviorReviewPackageError(
             "The exact idle behavior review package is unavailable"
@@ -123,7 +165,39 @@ def get_idle_behavior_review_address(
     return matches[0]
 
 
-def _summary(address: IdleBehaviorReviewAddress) -> dict[str, Any]:
+def require_current_idle_behavior_review_address(
+    state_root: Path,
+    package_id: str,
+    *,
+    project_ids: Iterable[str] | None = None,
+    current_project_chains: Mapping[str, CurrentProjectChain],
+) -> IdleBehaviorReviewAddress:
+    """Admit mutation only for one exact package on the current chain."""
+
+    if not isinstance(package_id, str) or not _SHA.fullmatch(package_id):
+        raise IdleBehaviorReviewPackageError(
+            "Idle behavior review package id is invalid"
+        )
+    allowed = set(project_ids) if project_ids is not None else None
+    records, _skipped = _resolved_addresses(
+        state_root, allowed, current_project_chains,
+    )
+    matches = [
+        row for row in records if row.address.package_id == package_id
+    ]
+    if len(matches) != 1:
+        raise IdleBehaviorReviewPackageError(
+            "The exact idle behavior review package is unavailable"
+        )
+    if not matches[0].current:
+        raise IdleBehaviorReviewPackageStale(
+            "Historical idle behavior review packages are read-only"
+        )
+    return matches[0].address
+
+
+def _summary(record: _ResolvedAddress) -> dict[str, Any]:
+    address = record.address
     return {
         "format": PACKAGE_FORMAT,
         "format_version": FORMAT_VERSION,
@@ -133,31 +207,55 @@ def _summary(address: IdleBehaviorReviewAddress) -> dict[str, Any]:
         "clip_id": address.clip_id,
         "motion_policy_package_id": address.motion_policy_package_id,
         "p9_decision_sha256": address.p9_decision_sha256,
-        "status": "ready_for_candidate_replay",
+        "status": (
+            "ready_for_candidate_replay"
+            if record.current else "stale_for_current_project"
+        ),
     }
 
 
 def _resolved_addresses(
-    state_root: Path, allowed: set[str] | None,
-) -> tuple[list[IdleBehaviorReviewAddress], int]:
-    policy_inventory = list_motion_policy_review_packages(state_root)
-    runs, skipped_runs = _adopted_runs(state_root, allowed)
-    result = []
-    for package in policy_inventory["packages"]:
-        if allowed is not None and package["project_id"] not in allowed:
-            continue
-        for run in runs:
-            if _matches(package, run):
-                result.append(IdleBehaviorReviewAddress(
-                    package["package_id"], run.project_id,
-                    package["motion_id"], run.clip_id,
-                    run.motion_instance_v2_sha256, run.bundle_sha256,
-                    run.decision_sha256,
-                ))
-    return result, policy_inventory.get("skipped_count", 0) + skipped_runs
+    state_root: Path,
+    allowed: set[str] | None,
+    current_project_chains: Mapping[str, CurrentProjectChain] | None,
+) -> tuple[list[_ResolvedAddress], int]:
+    try:
+        policy_inventory = list_motion_policy_review_packages(state_root)
+        runs, skipped_runs = _adopted_runs(state_root, allowed)
+        result = []
+        for package in policy_inventory["packages"]:
+            if allowed is not None and package["project_id"] not in allowed:
+                continue
+            for run in runs:
+                if _matches(package, run):
+                    address = IdleBehaviorReviewAddress(
+                        package["package_id"], run.project_id,
+                        package["motion_id"], run.clip_id,
+                        run.motion_instance_v2_sha256, run.bundle_sha256,
+                        run.decision_sha256,
+                    )
+                    result.append(_ResolvedAddress(
+                        address,
+                        chain_is_current(
+                            run.project_id,
+                            run.resolved_project_sha256,
+                            run.layer_manifest_sha256,
+                            current_project_chains,
+                        ),
+                    ))
+        return result, policy_inventory.get("skipped_count", 0) + skipped_runs
+    except IdleBehaviorReviewPackageError:
+        raise
+    except (
+        KeyError, MotionPolicyReviewPackageError, OSError, TypeError,
+        ValueError,
+    ) as exc:
+        raise IdleBehaviorReviewPackageError(
+            "Idle behavior review package addresses could not be resolved"
+        ) from exc
 
 
-def _matches(package: Mapping[str, Any], run: _AdoptedRun) -> bool:
+def _matches(package: Mapping[str, Any], run: AdoptedRun) -> bool:
     identities = package.get("identities")
     return isinstance(identities, Mapping) \
         and package.get("project_id") == run.project_id \
@@ -167,6 +265,10 @@ def _matches(package: Mapping[str, Any], run: _AdoptedRun) -> bool:
 
 
 def _recommended(rows: list[dict[str, Any]]) -> str | None:
+    rows = [
+        row for row in rows
+        if row["status"] == "ready_for_candidate_replay"
+    ]
     if not rows:
         return None
     groups: dict[tuple[str, str], int] = {}
@@ -180,104 +282,11 @@ def _recommended(rows: list[dict[str, Any]]) -> str | None:
 
 def _adopted_runs(
     state_root: Path, allowed: set[str] | None,
-) -> tuple[list[_AdoptedRun], int]:
-    root = _real_directory(Path(state_root), "Idle review state root")
-    builds = _optional_child(root, "builds")
-    if builds is None:
-        return [], 0
-    result, skipped = [], 0
-    for project in _children(builds):
-        if allowed is not None and project.name not in allowed:
-            continue
-        namespace = _optional_child(project, _NAMESPACE)
-        if namespace is None:
-            continue
-        for instance in _children(namespace):
-            if not _SHA.fullmatch(instance.name):
-                skipped += 1
-                continue
-            for bundle in _children(instance):
-                if not _SHA.fullmatch(bundle.name):
-                    skipped += 1
-                    continue
-                try:
-                    result.append(_run(
-                        state_root, project.name,
-                        instance.name, bundle.name,
-                    ))
-                except (IdleBehaviorReviewPackageError, OSError, ValueError):
-                    skipped += 1
-                if len(result) > MAX_PACKAGES:
-                    raise IdleBehaviorReviewPackageError(
-                        "Adopted P9 package count exceeds its limit"
-                    )
-    return result, skipped
-
-
-def _run(
-    state_root: Path, project_id: str,
-    instance_sha: str, bundle_sha: str,
-) -> _AdoptedRun:
-    """Admit only a complete six-file bundle replayed from exact P3/P5."""
-
+) -> tuple[list[AdoptedRun], int]:
+    """Compatibility wrapper around the bounded adopted-run inventory."""
     try:
-        reader = VerifiedReviewedMotionBundleReader(state_root)
-        chain = load_cached_reviewed_motion_chain(
-            state_root, project_id, instance_sha, bundle_sha,
-            lambda: reader.load_chain(
-                project_id, instance_sha, bundle_sha,
-            ),
-        )
-        verified = chain.reviewed_bundle
-        return _AdoptedRun(
-            verified.project_id, verified.clip_id,
-            verified.motion_instance_v2_sha256, verified.bundle_sha256,
-            verified.foot_lock_candidates_sha256,
-            verified.depth_order_candidates_sha256,
-            verified.motion_policy_decision_sha256,
-        )
-    except (
-        IdleBehaviorReviewReplayCacheError,
-        VerifiedReviewedMotionBundleReaderError,
-    ) as exc:
+        return list_adopted_runs(state_root, allowed)
+    except AdoptedRunInventoryError as exc:
         raise IdleBehaviorReviewPackageError(
-            "Adopted P9 bundle failed exact replay"
+            "Adopted P9 package inventory could not be inspected"
         ) from exc
-
-
-def _optional_child(parent: Path, name: str) -> Path | None:
-    matches = [item for item in _children(parent)
-               if item.name.casefold() == name.casefold()]
-    if not matches:
-        return None
-    if len(matches) != 1 or matches[0].name != name:
-        raise IdleBehaviorReviewPackageError(
-            "Idle review hierarchy contains a case alias"
-        )
-    return _real_directory(matches[0], name)
-
-
-def _children(directory: Path) -> list[Path]:
-    directory = _real_directory(directory, "Idle review directory")
-    try:
-        items = list(directory.iterdir())
-    except OSError as exc:
-        raise IdleBehaviorReviewPackageError(
-            "Idle review hierarchy cannot be enumerated"
-        ) from exc
-    folded = [item.name.casefold() for item in items]
-    if len(folded) != len(set(folded)):
-        raise IdleBehaviorReviewPackageError(
-            "Idle review hierarchy contains case aliases"
-        )
-    return items
-
-
-def _real_directory(path: Path, label: str) -> Path:
-    try:
-        metadata = path.lstat()
-        if is_alias(path) or not stat.S_ISDIR(metadata.st_mode):
-            raise IdleBehaviorReviewPackageError(f"{label} is unsafe")
-    except OSError as exc:
-        raise IdleBehaviorReviewPackageError(f"{label} is unavailable") from exc
-    return path
