@@ -12,7 +12,7 @@ const IDS = [
   "previewImage", "previewSvg",
   "previewFallback", "playPreview", "timeline", "timeOutput",
   "candidateDigest", "historyList", "expertDocument", "receiptPanel",
-  "receiptHeading", "receiptSummary", "liveRegion",
+  "receiptHeading", "receiptSummary", "receiptProbeLink", "liveRegion",
 ];
 
 export function idleReviewElements(doc = document) {
@@ -90,8 +90,15 @@ export function setStatus(element, text, tone = "neutral") {
 
 export function showIdleReviewReceipt(elements, receipt) {
   elements.receiptPanel.hidden = false;
-  elements.receiptSummary.textContent =
-    `P10.1 revision ${receipt.revision} 已保存；动作：${receipt.action}。下一步请运行结构探针。`;
+  const probeReady = receipt.action === "adjust"
+    && receipt.probe_status === "pending_probe";
+  elements.receiptSummary.textContent = probeReady
+    ? `P10.1 revision ${receipt.revision} 已保存；现在可以自动运行结构探针。`
+    : `P10.1 revision ${receipt.revision} 已保存；本决定不进入结构探针。`;
+  elements.receiptProbeLink.hidden = !probeReady;
+  elements.receiptProbeLink.href = probeReady
+    ? `./body-sway-probe.html?package_id=${encodeURIComponent(receipt.package_id)}`
+    : "./body-sway-probe.html";
   elements.liveRegion.textContent = `身体摆动决定 revision ${receipt.revision} 已保存`;
   elements.receiptHeading.focus({ preventScroll: true });
 }

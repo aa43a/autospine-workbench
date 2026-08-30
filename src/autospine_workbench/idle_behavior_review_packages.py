@@ -57,29 +57,39 @@ def list_idle_behavior_review_packages(
 ) -> dict[str, Any]:
     """Match validated review packages to every exact adopted P9 bundle."""
 
+    addresses, skipped = list_idle_behavior_review_addresses(
+        state_root, project_ids=project_ids,
+    )
+    rows = [_summary(address) for address in addresses]
+    return {
+        "format": LIST_FORMAT,
+        "format_version": FORMAT_VERSION,
+        "count": len(rows),
+        "skipped_count": skipped,
+        "recommended_package_id": _recommended(rows),
+        "packages": rows,
+    }
+
+
+def list_idle_behavior_review_addresses(
+    state_root: Path,
+    *,
+    project_ids: Iterable[str] | None = None,
+) -> tuple[tuple[IdleBehaviorReviewAddress, ...], int]:
+    """Return sorted exact addresses for trusted in-process consumers."""
+
     try:
         allowed = set(project_ids) if project_ids is not None else None
         addresses, skipped = _resolved_addresses(state_root, allowed)
-        rows = [_summary(address) for address in addresses]
-        rows.sort(key=lambda row: (
-            row["project_id"], row["motion_id"],
-            row["p9_decision_sha256"], row["package_id"],
+        addresses.sort(key=lambda row: (
+            row.project_id, row.motion_id,
+            row.p9_decision_sha256, row.package_id,
         ))
-        if len(rows) > MAX_PACKAGES:
+        if len(addresses) > MAX_PACKAGES:
             raise IdleBehaviorReviewPackageError(
                 "Idle behavior review package count exceeds its limit"
             )
-        recommended = _recommended(rows)
-        return {
-            "format": LIST_FORMAT,
-            "format_version": FORMAT_VERSION,
-            "count": len(rows),
-            "skipped_count": (
-                skipped
-            ),
-            "recommended_package_id": recommended,
-            "packages": rows,
-        }
+        return tuple(addresses), skipped
     except IdleBehaviorReviewPackageError:
         raise
     except (
@@ -87,7 +97,7 @@ def list_idle_behavior_review_packages(
         ValueError,
     ) as exc:
         raise IdleBehaviorReviewPackageError(
-            "Idle behavior review packages could not be resolved"
+            "Idle behavior review addresses could not be resolved"
         ) from exc
 
 

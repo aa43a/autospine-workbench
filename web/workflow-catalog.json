@@ -1,6 +1,6 @@
 {
   "catalog_version": "1.0.0",
-  "current_stage": "P10-idle-body-sway-human-review",
+  "current_stage": "P10.2-body-sway-structural-probe",
   "stages": [
     {"id":"P0","label":"合同、服务与基础验证"},
     {"id":"P1","label":"图层复核与四肢候选"},
@@ -55,10 +55,11 @@
     {"id":"cli-export-spine42-v2","stage":"P9","title":"生成 Spine 4.2 v2 报告","summary":"只读构建含 reviewed motion 的 Spine 4.2 v2 导出报告。","kind":"cli","status":"available","command":"export-spine42-v2","doc":"docs/how-to-review-kimodo-motion-policy.md"},
     {"id":"cli-publish-reviewed-motion-bundle","stage":"P9","title":"发布 Reviewed Motion Bundle","summary":"编译 MotionInstance v2 并发布精确六文件 P9 bundle。","kind":"cli","status":"available","command":"publish-reviewed-motion-bundle","doc":"docs/how-to-review-kimodo-motion-policy.md"},
     {"id":"cli-verify-reviewed-motion-bundle","stage":"P9","title":"验证 Reviewed Motion Bundle","summary":"重放精确不可变的 P9 reviewed-motion bundle。","kind":"cli","status":"available","command":"verify-reviewed-motion-bundle","doc":"docs/how-to-review-kimodo-motion-policy.md"},
-    {"id":"page-idle-behavior-review","stage":"P10","title":"身体摆动设置","summary":"自动发现已采用的精确 P9 动作，重放 P10.0 候选，用角色合成图、四骨示意和少量通俗参数完成一次明确 P10.1 人工决定；无需选择文件或填写 SHA。草稿仍须进入结构、Runtime 与接缝探针。","kind":"page","status":"available","href":"./idle-behavior-review.html","doc":"docs/how-to-review-idle-behaviors.md"},
+    {"id":"page-idle-behavior-review","stage":"P10","title":"身体摆动设置","summary":"自动发现已采用的精确 P9 动作，重放 P10.0 候选，用角色合成图、四骨示意和少量通俗参数完成一次明确 P10.1 人工决定；无需选择文件或填写 SHA。只有提交后的 adjust/pending_probe 决定进入 P10.2，拒绝或不可观测项保持不适用。","kind":"page","status":"available","href":"./idle-behavior-review.html","doc":"docs/how-to-review-idle-behaviors.md"},
+    {"id":"page-body-sway-probe","stage":"P10","title":"身体摆动结构探针","summary":"实时分类 current P10.1 heads，仅在 adjust/pending_probe ready 项唯一时自动推荐；随后重放精确 P3/P5/P9 链并可视化 P10.2 七项结构诊断。只读运行，不要求选择文件或填写 SHA。","kind":"page","status":"available","href":"./body-sway-probe.html","doc":"docs/how-to-review-idle-behaviors.md"},
     {"id":"page-body-sway-review","stage":"P10","title":"Body-sway 视觉复核台","summary":"在 P10.2 与官方 Runtime capture 完成后，回看固定帧并提交 sampled still 人工决定。","kind":"page","status":"available","href":"./body-sway-review.html","doc":"docs/how-to-review-body-sway-runtime.md"},
     {"id":"page-seam-anchor-review","stage":"P10","title":"接缝自动复核与静态锚点生成","summary":"选择 P9 package 后自动加载图片叠加、填入明确候选并绑定当前版本；普通用户只需看图处理少量多候选并最终确认，全部可用时继续生成并精确复验 P10.5c。SHA 与原始 JSON 仅保留在专业详情。","kind":"page","status":"available","href":"./seam-anchor-review.html","doc":"docs/how-to-review-seam-anchors.md"},
-    {"id":"cli-compile-idle-behavior-candidates","stage":"P10","title":"编译 Idle 行为候选","summary":"从精确 P3/P5/P9 生成眨眼、摆动等行为候选合同。","kind":"cli","status":"available","command":"compile-idle-behavior-candidates","doc":"docs/how-to-review-idle-behaviors.md"},
+    {"id":"cli-compile-idle-behavior-candidates","stage":"P10","title":"编译 Idle 行为候选","summary":"从精确 P3/P5/P9 枚举 blink、body_sway、hair_spring 与 mouth 的可用性；当前只有证据完整的 body_sway 会成为可参数化候选。","kind":"cli","status":"available","command":"compile-idle-behavior-candidates","doc":"docs/how-to-review-idle-behaviors.md"},
     {"id":"cli-compile-idle-behavior-decision","stage":"P10","title":"编译 Idle 人工决定","summary":"将显式人工复核绑定到一个精确 idle 候选集。","kind":"cli","status":"available","command":"compile-idle-behavior-decision","doc":"docs/how-to-review-idle-behaviors.md"},
     {"id":"cli-compile-body-sway-probe","stage":"P10","title":"编译 Body-sway 探针","summary":"对精确 P3/P5/P9/P10 链生成七项采样诊断。","kind":"cli","status":"available","command":"compile-body-sway-probe","doc":"docs/how-to-review-idle-behaviors.md"},
     {"id":"cli-compile-body-sway-preview","stage":"P10","title":"编译 Body-sway 临时预览","summary":"在内存中生成不具发布权的 Spine 4.2 临时预览。","kind":"cli","status":"available","command":"compile-body-sway-preview","doc":"docs/how-to-review-body-sway-runtime.md"},
@@ -102,6 +103,6 @@
     {"id":"cli-submit-body-sway-spine42-v3-raster-review","stage":"P10","title":"编译 P10.7b Raster 人工决定","summary":"把完整显式人工输入编译为 path-free sampled decision；不发布 revision 或 release authority。","kind":"cli","status":"available","command":"submit-body-sway-spine42-v3-raster-review","doc":"docs/how-to-capture-spine42-v3-runtime.md"},
     {"id":"cli-audit-body-sway-spine42-v3-readiness","stage":"P10","title":"审计 P10.7b 真实样本就绪状态","summary":"对 strict canonical Manifest 的精确地址运行只读 pure replay 并报告 P3→P10.7b 与 P6 对照缺口；不扫描 latest/current head，不运行外部阶段、Runtime、发布或写入。","kind":"cli","status":"available","command":"audit-body-sway-spine42-v3-readiness","doc":"docs/how-to-audit-spine42-v3-readiness.md"},
     {"id":"cli-compare-body-sway-spine42-v3-setup-golden","stage":"P10","title":"对照 P6 Setup Golden","summary":"按显式 P6、P10.7a、capture 与 approved golden 身份，只读比较唯一 opaque setup 帧；输出 path-free 自哈希报告，不运行 Runtime 或写入。","kind":"cli","status":"available","command":"compare-body-sway-spine42-v3-setup-golden","doc":"docs/how-to-compare-spine42-v3-setup-golden.md"},
-    {"id":"planned-real-sample-spine42-v3-raster-acceptance","stage":"P10","title":"P10.7b 两份真实样本验收","summary":"wave-left-v1 已到达 P7/P8 与 A/B P5；仍须补齐 P9 与 seam，再运行已授权官方 Runtime capture、逐项人审和独立 P6 setup golden 对照。","kind":"planned","status":"external_required","doc":"docs/development-roadmap.md"}
+    {"id":"planned-real-sample-spine42-v3-raster-acceptance","stage":"P10","title":"P10.7b 两份真实样本验收","summary":"wave-left-v1 的 P7/P8、A/B P5 与各自 P9 exact replay 已闭合；仍须修复 A/B 的 P10.1/P10.2 动作域、完成 P10.3–P10.5d、解决 B 的 seam 能力边界并生成 P10.6/P10.7a，之后才能运行已授权官方 Runtime capture、逐项人审和独立 P6 setup golden 对照。","kind":"planned","status":"external_required","doc":"docs/development-roadmap.md"}
   ]
 }

@@ -25,6 +25,7 @@ from .reviewed_motion_bundle_integrity import (
     VerifiedReviewedMotionBundle,
     replay_verified_reviewed_motion_bundle,
 )
+from .reviewed_motion_bundle_contract import ReviewedMotionBundleContract
 from .reviewed_motion_bundle_reader import VerifiedReviewedMotionBundleReader
 from .reviewed_motion_bundle_run import require_reviewed_motion_bundle_run
 
@@ -49,6 +50,16 @@ class IdleBehaviorReviewEvidence:
         """Return an isolated manifest copy so cached evidence stays immutable."""
 
         return json.loads(self._manifest_json)
+
+    @property
+    def reviewed_contract(self) -> ReviewedMotionBundleContract:
+        """Rebuild the large canonical contract without retaining it in the LRU."""
+
+        return replay_verified_reviewed_motion_bundle(
+            self.reviewed_bundle,
+            self.mesh_bundle,
+            self.retarget_bundle,
+        )
 
 
 _MAX_EVIDENCE_ENTRIES = 64

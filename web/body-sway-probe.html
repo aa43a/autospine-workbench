@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0b0e14">
+  <title>P10.2 身体摆动结构检查 — AutoSpine</title>
+  <link rel="stylesheet" href="./body-sway-probe.css">
+</head>
+<body>
+  <a class="skip-link" href="#probeResult">跳到结构检查结果</a>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">P10.2 · AUTOMATIC STRUCTURAL PROBE</p>
+      <h1>身体摆动结构检查</h1>
+    </div>
+    <nav aria-label="工作台导航">
+      <a class="button secondary" href="./workflow-hub.html">功能入口中心</a>
+      <a class="button secondary" href="./idle-behavior-review.html">身体摆动设置</a>
+      <a class="button secondary" href="./index.html">绑定工作台</a>
+    </nav>
+  </header>
+
+  <main>
+    <section id="autoEntryPanel" class="panel auto-entry" aria-labelledby="entryHeading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">AUTOMATIC ENTRY</p>
+          <h2 id="entryHeading">选择角色和动作</h2>
+        </div>
+        <span class="badge success">自动读取 P10.1</span>
+      </div>
+      <p class="lede">
+        系统会读取当前身体摆动决定并运行结构检查。无需选择文件、填写路径或输入 SHA-256。
+      </p>
+      <div class="entry-grid">
+        <label for="projectSelect">
+          <span>项目与动作</span>
+          <select id="projectSelect" disabled></select>
+        </label>
+        <button id="reloadProject" class="button secondary" type="button" disabled>重新检查</button>
+      </div>
+      <p id="autoLoadStatus" class="status" role="status" aria-live="polite">
+        正在查找可检查的项目…
+      </p>
+    </section>
+
+    <div id="probeWorkspace" hidden>
+      <section class="project-summary" aria-labelledby="projectTitle">
+        <div>
+          <p class="eyebrow">CURRENT P10.1 HEAD</p>
+          <h2 id="projectTitle">—</h2>
+          <p id="projectFacts" class="lede">—</p>
+        </div>
+        <span id="sourceBadge" class="badge">等待检查</span>
+      </section>
+
+      <div class="workspace-grid">
+        <section class="panel preview-panel" aria-labelledby="previewHeading">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">REPRESENTATIVE SAMPLES</p>
+              <h2 id="previewHeading">四骨代表样本</h2>
+            </div>
+            <span id="samplePosition" class="sample-position">0 / 0</span>
+          </div>
+          <p class="boundary-note">
+            这里显示结构探针的代表样本，不是官方 Spine Runtime 画面，也不证明视觉质量或连续时间安全。
+          </p>
+          <figure class="preview-stage">
+            <img id="previewImage" alt="当前项目角色合成图" hidden>
+            <svg id="previewSvg" role="img" aria-label="身体摆动四骨代表样本"
+              preserveAspectRatio="xMidYMid meet"></svg>
+            <figcaption id="previewFallback" hidden></figcaption>
+          </figure>
+          <div class="timeline-controls">
+            <button id="playPreview" class="button secondary compact" type="button"
+              aria-pressed="false" disabled>播放</button>
+            <label for="sampleTimeline">
+              <span>代表样本</span>
+              <input id="sampleTimeline" type="range" min="0" max="0" step="1" value="0" disabled>
+            </label>
+            <output id="sampleTime" for="sampleTimeline">—</output>
+          </div>
+          <div class="legend" aria-label="示意图例">
+            <span><i class="setup-key"></i>首个代表样本</span>
+            <span><i class="sample-key"></i>当前代表样本</span>
+            <span><i class="failure-key"></i>越界方向（投影到边缘，最多显示 16 个）</span>
+          </div>
+        </section>
+
+        <section id="probeResult" class="panel result-panel" aria-labelledby="resultHeading" tabindex="-1">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">AUTOMATIC RESULT</p>
+              <h2 id="resultHeading">结构检查结果</h2>
+            </div>
+            <span id="outcomeBadge" class="badge">等待检查</span>
+          </div>
+          <p id="outcomeMessage" class="outcome-message">正在读取检查结果。</p>
+          <dl id="probeStats" class="stats-grid" aria-label="结构检查摘要"></dl>
+          <div id="checkCards" class="check-grid" aria-label="七项结构检查"></div>
+          <section class="release-note" aria-labelledby="releaseHeading">
+            <h3 id="releaseHeading">发布门禁</h3>
+            <p id="releaseMessage">结构探针不会授予发布权。</p>
+          </section>
+          <div class="next-actions">
+            <a id="returnToP10" class="button primary" href="./idle-behavior-review.html" hidden>
+              返回 P10.1 调整身体摆动
+            </a>
+            <a id="visualNext" class="button primary"
+              href="./document-viewer.html?doc=docs%2Fhow-to-capture-body-sway-runtime.md" hidden>
+              查看如何准备 P10.3 Runtime 证据
+            </a>
+          </div>
+          <p id="nextHint" class="status">等待结构检查。</p>
+        </section>
+      </div>
+
+      <details class="panel expert-details">
+        <summary>专家详情：精确来源与报告</summary>
+        <div class="expert-toolbar">
+          <p>以下内容只用于技术复核；正常流程不依赖下载文件。</p>
+          <button id="downloadReport" class="button secondary" type="button" disabled>
+            下载本次报告 JSON
+          </button>
+        </div>
+        <pre id="expertDocument" tabindex="0" aria-label="P10.2 只读技术详情">—</pre>
+      </details>
+    </div>
+  </main>
+
+  <div id="liveRegion" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+  <script type="module" src="./modules/body-sway-probe-app.js"></script>
+</body>
+</html>

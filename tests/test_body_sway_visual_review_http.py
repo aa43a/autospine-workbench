@@ -278,7 +278,10 @@ class BodySwayVisualReviewHttpTests(unittest.TestCase):
         self.assertEqual("visual_review_error", json.loads(raw)["error"])
 
     def test_review_page_has_dedicated_csp_without_changing_index(self) -> None:
-        for page in ("body-sway-review.html", "idle-behavior-review.html"):
+        for page in (
+            "body-sway-probe.html", "body-sway-review.html",
+            "idle-behavior-review.html",
+        ):
             with self.subTest(page=page):
                 status, headers, raw = self.fixture.request(
                     "GET", f"/{page}"

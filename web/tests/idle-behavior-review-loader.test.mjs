@@ -87,6 +87,33 @@ test("loader restores a saved package and loads it without files or SHA input", 
   assert.match(elements.status.textContent, /无需选择文件或填写 SHA/);
 });
 
+test("explicit package handoff wins over a previously saved selection", async () => {
+  const elements = ui();
+  const rows = [
+    packageSummary(),
+    packageSummary({ package_id: PACKAGE_B, project_id: "sample-b" }),
+  ];
+  const loaded = [];
+  const loader = createIdleBehaviorReviewLoader(elements, {
+    requestedPackageId: PACKAGE_B,
+    storage: storage(DIGESTS.package),
+    api: {
+      list: async () => packageList(rows, DIGESTS.package),
+      entry: async (packageId) => entryDocument({
+        package: {
+          ...entryDocument().package,
+          ...rows.find((row) => row.package_id === packageId),
+        },
+      }),
+    },
+    onLoad: async (entry) => loaded.push(entry.package.package_id),
+  });
+  await loader.start();
+
+  assert.equal(elements.projectSelect.value, PACKAGE_B);
+  assert.deepEqual(loaded, [PACKAGE_B]);
+});
+
 test("loader does not guess when multiple valid packages have no recommendation", async () => {
   const elements = ui();
   const rows = [packageSummary(), packageSummary({ package_id: PACKAGE_B })];

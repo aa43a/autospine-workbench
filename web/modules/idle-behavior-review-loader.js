@@ -7,6 +7,8 @@ const STORAGE_KEY = "autospine.idle-behavior.last-package.v1";
 export function createIdleBehaviorReviewLoader(elements, dependencies = {}) {
   const api = dependencies.api || createIdleBehaviorReviewApi();
   const storage = dependencies.storage || globalThis.localStorage;
+  const requestedPackageId = dependencies.requestedPackageId
+    ?? new URLSearchParams(globalThis.location?.search || "").get("package_id");
   const onLoad = dependencies.onLoad || (() => {});
   const onReset = dependencies.onReset || (() => {});
   let generation = 0;
@@ -117,6 +119,9 @@ export function createIdleBehaviorReviewLoader(elements, dependencies = {}) {
   }
 
   function initialSelection(recommended) {
+    if (packages.some((row) => row.package_id === requestedPackageId)) {
+      return requestedPackageId;
+    }
     let saved = null;
     try { saved = storage?.getItem(STORAGE_KEY); } catch { /* optional */ }
     if (packages.some((row) => row.package_id === saved)) return saved;

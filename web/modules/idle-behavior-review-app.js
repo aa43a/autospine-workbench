@@ -187,8 +187,10 @@ async function submitDecision(identity, request) {
     state = { ...state, busy: false, committed: true };
     elements.explicitConfirmation.checked = false;
     showIdleReviewReceipt(elements, receipt);
+    const next = receipt.probe_status === "pending_probe"
+      ? "可打开 P10.2 自动结构探针。" : "本决定不进入结构探针。";
     setStatus(elements.decisionStatus,
-      `P10.1 revision ${receipt.revision} 已保存。下一步请运行结构探针。`, "success");
+      `P10.1 revision ${receipt.revision} 已保存。${next}`, "success");
   } catch (error) {
     if (!submissionIsCurrent(identity)) {
       state = { ...state, busy: false, uncertain: true };

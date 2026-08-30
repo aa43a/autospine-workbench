@@ -134,6 +134,7 @@ class WorkbenchResponseMixin:
     def _send_static_file(self, path: Path) -> None:
         extra_headers = None
         if path.name in {
+            "body-sway-probe.html",
             "body-sway-review.html",
             "document-viewer.html",
             "idle-behavior-review.html",

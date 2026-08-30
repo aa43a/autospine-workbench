@@ -47,9 +47,9 @@ class WorkflowHubCatalogTests(unittest.TestCase):
     def test_entries_have_unique_ids_and_supported_taxonomy(self) -> None:
         ids = [entry["id"] for entry in self.entries]
         self.assertEqual(len(ids), len(set(ids)))
-        self.assertEqual(88, len(ids))
+        self.assertEqual(89, len(ids))
         self.assertEqual(
-            {"cli": 65, "page": 5, "planned": 18},
+            {"cli": 65, "page": 6, "planned": 18},
             {
                 kind: sum(entry["kind"] == kind for entry in self.entries)
                 for kind in ("cli", "page", "planned")
@@ -78,6 +78,7 @@ class WorkflowHubCatalogTests(unittest.TestCase):
     def test_page_entries_target_all_existing_workbench_pages(self) -> None:
         expected = {
             "./index.html",
+            "./body-sway-probe.html",
             "./body-sway-review.html",
             "./idle-behavior-review.html",
             "./motion-policy-review.html",
@@ -88,6 +89,19 @@ class WorkflowHubCatalogTests(unittest.TestCase):
         self.assertEqual(expected, pages)
         for href in pages:
             self.assertTrue((ROOT / "web" / href.removeprefix("./")).is_file())
+
+    def test_current_stage_names_the_structural_probe_workflow(self) -> None:
+        self.assertEqual(
+            "P10.2-body-sway-structural-probe",
+            self.catalog["current_stage"],
+        )
+        entry = next(
+            entry for entry in self.entries
+            if entry["id"] == "page-body-sway-probe"
+        )
+        self.assertEqual("./body-sway-probe.html", entry["href"])
+        self.assertIn("七项结构诊断", entry["summary"])
+        self.assertIn("只读", entry["summary"])
 
     def test_motion_policy_page_describes_python_preflight_without_authority(self) -> None:
         entry = next(

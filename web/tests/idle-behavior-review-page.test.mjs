@@ -40,6 +40,8 @@ test("P10 operator page is visual, automatic, accessible, and keeps one human bo
   assert.match(html, /按 Esc 或点击弹窗外遮罩可取消/);
   assert.match(html, /id="cancelDecision"[^>]*autofocus/);
   assert.match(html, /id="commitDecision"/);
+  assert.match(html, /id="receiptProbeLink"/);
+  assert.match(html, /打开 P10\.2 自动结构探针/);
   assert.match(html, /不是 Spine Runtime 画面/);
   assert.match(html, /role="status" aria-live="polite"/);
   assert.match(css, /min-height:\s*44px/);

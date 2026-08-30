@@ -1,0 +1,152 @@
+"""Read-only, path-free application service for P10.2 structural probes."""
+
+from __future__ import annotations
+
+from collections.abc import Iterable
+from pathlib import Path
+from typing import Any
+
+from .body_sway_probe_http_models import body_sway_probe_entry
+from .body_sway_probe_inputs import (
+    BodySwayProbeInputError,
+    require_body_sway_probe_inputs,
+)
+from .body_sway_probe_packages import (
+    BodySwayProbePackageError,
+    classify_body_sway_probe_head,
+    list_body_sway_probe_packages,
+)
+from .body_sway_probe_preview import (
+    BodySwayProbePreviewError,
+    build_body_sway_probe_preview,
+)
+from .body_sway_probe_report import (
+    BodySwayProbeReportError,
+    compile_body_sway_probe_report,
+)
+from .idle_behavior_review_head import (
+    IdleBehaviorReviewHeadError,
+    read_idle_behavior_review_head,
+    same_idle_behavior_review_head,
+)
+from .idle_behavior_review_packages import (
+    IdleBehaviorReviewPackageError,
+    get_idle_behavior_review_address,
+)
+from .idle_behavior_review_replay import (
+    IdleBehaviorReviewReplayError,
+    replay_idle_behavior_review_package,
+)
+
+
+class BodySwayProbeApplicationError(RuntimeError):
+    """Raised when an operator P10.2 request cannot complete safely."""
+
+
+class BodySwayProbeApplicationNotFound(BodySwayProbeApplicationError):
+    """Raised when the selected exact package is unavailable."""
+
+
+class BodySwayProbeApplicationHeadChanged(BodySwayProbeApplicationError):
+    """Raised when the P10.1 current head changes during compilation."""
+
+
+class BodySwayProbeApplicationUnavailable(BodySwayProbeApplicationError):
+    """Raised when exact evidence cannot produce a public diagnostic."""
+
+
+class BodySwayProbeApplication:
+    """Discover or compile diagnostics without publishing any state."""
+
+    def __init__(self, state_root: Path) -> None:
+        self.state_root = Path(state_root)
+
+    def list_packages(
+        self, *, project_ids: Iterable[str] | None = None,
+    ) -> dict[str, Any]:
+        """Return current exact readiness with one unique recommendation."""
+
+        try:
+            return list_body_sway_probe_packages(
+                self.state_root, project_ids=project_ids,
+            )
+        except BodySwayProbePackageError as exc:
+            raise BodySwayProbeApplicationUnavailable(
+                "Body-sway probe inventory is unavailable"
+            ) from exc
+
+    def prepare(
+        self, package_id: str, *,
+        project_ids: Iterable[str] | None = None,
+    ) -> dict[str, Any]:
+        """Compile one current exact head and reject any concurrent change."""
+
+        try:
+            address = get_idle_behavior_review_address(
+                self.state_root, package_id, project_ids=project_ids,
+            )
+        except IdleBehaviorReviewPackageError as exc:
+            raise BodySwayProbeApplicationNotFound(
+                "The exact body-sway probe package is unavailable"
+            ) from exc
+        try:
+            evidence = replay_idle_behavior_review_package(
+                self.state_root, address,
+            )
+            candidates = evidence.candidates.document
+            before = read_idle_behavior_review_head(
+                self.state_root, candidates,
+            )
+            feature = next(
+                row for row in candidates["features"]
+                if row["feature_id"] == "body_sway"
+            )
+            report = preview = None
+            if classify_body_sway_probe_head(feature, before) == "probe_ready":
+                if before.decision is None:
+                    raise BodySwayProbeApplicationUnavailable(
+                        "Body-sway probe-ready head has no decision"
+                    )
+                inputs = require_body_sway_probe_inputs(
+                    evidence.manifest,
+                    candidates,
+                    before.decision.document,
+                    evidence.mesh_bundle,
+                    evidence.retarget_bundle,
+                    evidence.reviewed_contract,
+                )
+                report = compile_body_sway_probe_report(inputs)
+                preview = build_body_sway_probe_preview(inputs, report)
+            current = replay_idle_behavior_review_package(
+                self.state_root, address,
+            )
+            if current.candidates.sha256 != evidence.candidates.sha256:
+                raise BodySwayProbeApplicationHeadChanged(
+                    "Body-sway candidate changed during probe compilation"
+                )
+            after = read_idle_behavior_review_head(
+                self.state_root, current.candidates.document,
+            )
+            if not same_idle_behavior_review_head(before, after):
+                raise BodySwayProbeApplicationHeadChanged(
+                    "P10.1 current head changed during probe compilation"
+                )
+            return body_sway_probe_entry(
+                evidence, before, report=report, preview=preview,
+            )
+        except BodySwayProbeApplicationHeadChanged:
+            raise
+        except BodySwayProbeApplicationUnavailable:
+            raise
+        except _PREPARE_FAILURES as exc:
+            raise BodySwayProbeApplicationUnavailable(
+                "Body-sway structural probe could not be completed"
+            ) from exc
+
+
+_PREPARE_FAILURES = (
+    AttributeError, BodySwayProbeInputError, BodySwayProbePreviewError,
+    BodySwayProbeReportError, IdleBehaviorReviewHeadError,
+    IdleBehaviorReviewReplayError, KeyError, OSError, OverflowError,
+    RuntimeError, StopIteration, TypeError, UnicodeError, ValueError,
+)

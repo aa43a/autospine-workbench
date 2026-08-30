@@ -79,12 +79,12 @@ python -B -m autospine_workbench audit-body-sway-spine42-v3-readiness `
 以下结论区分“真实工件已存在”与“冻结 baseline 是否声明地址”。审计只重放请求中显式声明的地址，不会自动发现工作区内容：
 
 - A/B 的真实 P9 双 SHA 已由 `verify-reviewed-motion-bundle` 复验，均返回 `verification.status=passed` 与 `replayed_from_exact_upstreams=true`。冻结 baseline 仍为 `null`，所以直接运行它时 `p9_reviewed_motion` 仍报告 `exact_reviewed_motion_address_not_declared`；只有生成并审计显式填入上表地址的新请求，才能让 readiness checkpoint 记录这项事实。
-- `seethrough_output` 的 P10.5b revision 1 与 P10.5c exact bundle 已闭合。冻结 baseline 仍未声明该双 SHA，所以直接运行它时 seam checkpoint 仍报告 `reviewed_seam_anchor_set_address_not_declared`；生成新请求后才能审计已存在的静态凭据。A 当前真实动作顺序是 P10.0/P10.1 → P10.2 → P10.3 → P10.4b2 → P10.5d，不能从静态 set 直接跳级。
+- `seethrough_output` 的 P10.5b revision 1 与 P10.5c exact bundle 已闭合。冻结 baseline 仍未声明该双 SHA，所以直接运行它时 seam checkpoint 仍报告 `reviewed_seam_anchor_set_address_not_declared`；生成新请求后才能审计已存在的静态凭据。A 当前真实动作顺序是 P10.0/P10.1 → P10.2 → P10.3a–P10.3c → P10.4a → P10.4b1 → P10.4b2 → P10.5d，不能从静态 set 直接跳级。
 - `seethrough_output_5` 的 P9 同样已经通过，但四条腿/脚关系不可观测：左右 `pelvis_leg` 缺 child role，左右 `leg_foot` 缺 parent role。P10.5c 的完整六关系合同不能把这些行自动批准；需要回到上游修复语义/分层并重新生成受内容地址约束的 Manifest/P3，或者另立、版本化并单独验收 partial seam 合同。
 - 官方 Spine 4.2 Runtime/Capture 基础设施当前已存在，因此不需要把“下载 Runtime”作为第一步；A 更早的 blocker 是 P10.1–P10.5d 动作域，B 更早的 blocker 是完整静态 seam 合同。审计不会主动发现或调用该 Runtime。
 - P10.7c 独立比较命令已经存在，但当前 A/B 都没有满足其请求合同所需的真实 P10.7a/capture 地址；这项能力交付不能被表述为真实双样本已通过。
 
-建议先生成一份显式包含上述 P9 地址与 A 的 P10.5c 双 SHA 的新 canonical readiness 请求。项目 A 随后通过普通身体摆动入口显式确认 P10.1，并依次完成 P10.2、P10.3、P10.4b2 与 P10.5d；项目 B 先完成“上游修复”或“版本化 partial seam 合同”的方案评审。只有各自精确前置实际闭合后，才继续填写更下游地址并重新运行审计。
+建议先生成一份显式包含上述 P9 地址与 A 的 P10.5c 双 SHA 的新 canonical readiness 请求。项目 A 随后通过普通身体摆动入口显式确认 P10.1，并依次完成 P10.2、P10.3a–P10.3c、P10.4a、P10.4b1、P10.4b2 与 P10.5d；项目 B 先完成“上游修复”或“版本化 partial seam 合同”的方案评审。只有各自精确前置实际闭合后，才继续填写更下游地址并重新运行审计。
 
 ## 审计不会做什么
 

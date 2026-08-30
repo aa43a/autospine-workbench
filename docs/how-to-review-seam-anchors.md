@@ -246,5 +246,5 @@ P10.5c、图片 option 绑定、键盘操作、窄屏结构和 reduced-motion。
 P10.5c 无论由 package 页面还是 CLI 触发，都必须读取
 `history A → exact decision → history B`，且两次快照一致、指定 revision 仍是 current ready
 head，才允许编译不可变 `ReviewedSeamAnchorSet`。样本 A 已取得该 exact receipt，但当前还没有
-可供组合的 P10.4b2 动作域。真实顺序是 P10.0/P10.1 身体摆动候选与人工确认 → P10.2 → P10.3
-→ P10.4b2 → P10.5d；P10.5b 自动草稿或既有静态 set 都不能跳过这些门禁。
+可供组合的 P10.4b2 动作域。真实顺序是 P10.0/P10.1 身体摆动候选与人工确认 → P10.2 →
+P10.3a–P10.3c → P10.4a → P10.4b1 → P10.4b2 → P10.5d；P10.5b 自动草稿或既有静态 set 都不能跳过这些门禁。

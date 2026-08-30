@@ -2,7 +2,7 @@
 
 本指南面向已经发布 P3 mesh、P5 retarget 和 P9 reviewed-motion bundle 的操作者与维护者。目标是从同一条精确输入链生成 idle 行为候选，记录人工决定，再为 `body_sway` 生成 `BodySwayProbeReport v1`。
 
-普通操作者优先使用可视页面；CLI 三条命令仍是只读专业流程，它们不会发布 bundle、更新 `latest` 或写入 state tree。页面的候选重放与草稿也是零写入；三个决定按钮还要经过显示项目、动作、决定和后果的二次确认，取消不会调用 mutation。只有在弹窗中选择“确认并提交”才会把 P10.1 decision 追加到 candidate-bound revision history。`--document-only` 只让 stdout 输出 canonical 文档；它不是“通过”开关。
+普通操作者优先使用 P10.1 设置页和 P10.2 自动结构探针页；CLI 三条命令仍是专业复验流程。P10.1 候选重放与草稿零写入，三个决定按钮还要经过显示项目、动作、决定和后果的二次确认；只有“确认并提交”才会把 decision 追加到 candidate-bound revision history。P10.2 根据当前 head 自动重放并编译确定性报告，全程只读，不要求第二次人工批准、选择文件或填写 SHA。`--document-only` 只让 stdout 输出 canonical 文档；它不是“通过”开关。
 
 ## 普通操作：不用文件或 SHA
 
@@ -16,11 +16,25 @@
 4. 在角色 composite 上查看四骨 setup 示意，使用播放/暂停和时间轴比较草稿。普通参数只控制循环次数、下躯干摆幅、颈头摆幅和逐节相位延迟；“高级详情”才显示四骨数组与精确身份。
 5. 页面给出的低幅值只是 `unvalidated_draft`，用于减少手填数字，不是安全范围、Spine Runtime 结果或视觉批准。拖动时间轴、播放完整一遍或修改参数都不会自动提交。
 6. 勾选页面中的人工确认后，点击“保存 P10.1，下一步运行结构探针”“不使用身体摆动”或“当前无法判断”。三者都会先打开二次确认弹窗，逐项列出项目、动作、决定类型和后果。按 Esc、点击遮罩或点击“取消”都会关闭弹窗且不发送 POST、不写 revision。只有点击“确认并提交”才携带显式 intent 与 `explicit_confirmation=true`；服务端会再次重编 P10.0、读取 current history/head，然后以 CAS 追加标准 `human / completed` P10.1 decision。保存参数记录 `adjust / pending_probe`；另外两项分别记录 `reject / not_applicable` 或 `unobservable / not_applicable`，不会进入 P10.2。
-7. 成功回执只表示 candidate-bound decision 已记录。`adjust` 仍是 `pending_probe`，下一步必须运行 P10.2；它不证明连续时间、动态接缝、官方 Runtime、raster 或发布权。
+7. 成功回执只表示 candidate-bound decision 已记录。`adjust` 仍是 `pending_probe`；点击回执中的“打开 P10.2 自动结构探针”即可把同一 package 交给下一页。它不证明连续时间、动态接缝、官方 Runtime、raster 或发布权。
 
 若提交返回 revision conflict，刷新页面读取 current head 后再次确认。网络结果不确定时不要盲目重复修改：先刷新历史；字节相同的安全重试会复用既有 revision，不同内容不会覆盖已占用的 slot。
 
 进程内缓存只加速 immutable P3/P5/P9 exact chain 的读取，不缓存候选决定历史、current head 或 CAS。缓存命中不是人工确认，也不能证明 revision 仍是当前 head；服务重启后的第一次请求仍执行完整 replay。
+
+## 普通操作：P10.2 自动结构探针
+
+打开：
+
+<http://127.0.0.1:8765/body-sway-probe.html>
+
+1. 页面读取所有 P10 package 的**当前** P10.1 head，只在恰好一个 package 为 `adjust / pending_probe` 时自动推荐它；URL 中的 `package_id` 或你在下拉框中的明确选择优先。历史上曾经可探测、但当前已经拒绝或标记不可观测的 revision 不会被静默复用。
+2. 服务端自动重放精确 Layer Manifest/P3/P5/P9/P10.0，并读取 candidate-bound 的 exact P10.1 decision。编译前后再次读取 current head；中途出现新 revision 时返回冲突，页面要求重新读取，不把旧报告冒充当前结果。
+3. 等待七项检查卡出现。页面把 loop、FK、mesh、画布和共享索引列为自动结构项，把 attachment 接缝与 Runtime 视觉列为后续门禁；默认界面不显示 SHA，也不要求逐项批准。
+4. 使用角色合成图、四骨时间轴和有界采样见证查看结果。见证只是帮助理解 canonical report 的离散采样投影，不穷尽全部 tick，也不替代七项报告。
+5. 若结果为“结构拒绝”，点击返回 P10.1 调小或修改摆动参数，再经过一次明确人工确认形成新 revision；系统不会自行改写参数。若结果为“需要 Runtime 视觉复核”，也只表示前五项 sampled structural checks 未拒绝，下一步仍须准备官方 Spine Runtime capture 和 P10.3 人工视觉证据。
+
+P10.2 页面加载、切换项目、拖动时间轴和下载技术备份均为零写入。报告下载文件名包含项目、clip 和报告哈希前缀，以免两份样本互相覆盖；正常工作流不依赖该下载。无论结构结果为何，`release_gate` 都保持 `blocked`。
 
 ## 专业流程：显式七地址与 canonical JSON
 
@@ -191,7 +205,7 @@ Write-Utf8NoBom .\review\body-sway-probe-report.json $ProbeText
 | `sampled_mesh_deformation` | mesh 的面积比、翻转与边长拉伸采样结果 | 无 mesh 为 `not_applicable` |
 | `sampled_canvas_containment` | region/mesh 采样顶点是否留在画布内 | `passed` / `rejected` |
 | `shared_index_internal_continuity` | mesh 的共享索引拓扑是否保持内部连续 | 无 mesh 为 `not_applicable` |
-| `inter_attachment_seams` | attachment 之间的接缝 | 固定为 `unobservable`，尚无 reviewed seam anchors |
+| `inter_attachment_seams` | attachment 之间的接缝 | 固定为 `unobservable`；P10.2 合同不消费或验证 P10.5c reviewed anchors，即使项目已有静态锚点也不据此推断动态接缝 |
 | `visual_quality` | 官方 runtime 中的最终外观 | 固定为 `unobservable`，需要人工 runtime preview |
 
 前五项中的任一可计算结构检查被拒绝时，report 顶层 `status` 为 `structural_rejected`；否则为 `manual_visual_required`。无论哪种情况，`release_gate.status` 都是 `blocked`。修复结构拒绝后仍必须在明确版本的官方 runtime 中人工检查接缝、遮挡、轮廓与观感。

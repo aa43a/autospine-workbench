@@ -482,7 +482,7 @@ sample 冒充 replay。命令不启动 Runtime、不扫描 mutable head、不写
 临时 stdout 只授予 bounded setup-frame equivalence，release gate 固定 blocked；readiness v2
 之前还必须把 request/report、批准合同与批准 PNG 封存成可寻址、可重放的 immutable comparison
 bundle。共享的 `wave-left-v1` 已到达 P7/P8、真实 A/B 各自的 P5、正式 depth policy、
-depth candidates 与各自 exact replay 通过的 P9 reviewed-motion bundle。A 还具有操作者确认并 exact replay 通过的 P10.5b/P10.5c 静态接缝凭据；当前应从 P10.0–P10.1 身体摆动设置继续，依次补齐 P10.2、官方 Runtime/P10.3 与 P10.4b2 后，才能进入 P10.5d。B 的四条下肢关系不可观测，在修复分层/语义或建立版本化 partial 合同前仍被阻塞；两者之后还需要官方 capture。操作入口见
+depth candidates 与各自 exact replay 通过的 P9 reviewed-motion bundle。A 还具有操作者确认并 exact replay 通过的 P10.5b/P10.5c 静态接缝凭据；当前应从 P10.0–P10.1 身体摆动设置继续，依次补齐 P10.2、P10.3a–P10.3c、P10.4a、P10.4b1 与 P10.4b2 后，才能进入 P10.5d。B 的四条下肢关系不可观测，在修复分层/语义或建立版本化 partial 合同前仍被阻塞；两者之后还需要官方 capture。操作入口见
 [P10.7c Setup Golden How-to](how-to-compare-spine42-v3-setup-golden.md)、
 [就绪状态审计 How-to](how-to-audit-spine42-v3-readiness.md)和[后续开发路线](development-roadmap.md)。
 

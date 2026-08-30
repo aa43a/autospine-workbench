@@ -90,6 +90,26 @@ validator 和生产 `policy_identity` preflight 通过，与各自草案相比�
 该组凭据只证明样本 A 的六条 setup 静态 locator 已通过人工决定、内容寻址发布与 exact replay。
 它不证明 P10.1 身体摆动已经批准，也不证明动作中的接缝、官方 Runtime、连续 raster 安全或发布权。
 
+## P10.1 current heads 与 P10.2 结构诊断
+
+2026-08-30 的 current-head 双快照读取与零写入 P10.2 编译结果如下。P10.2 report 没有发布到
+mutable alias；SHA 是相同 exact 输入与固定算法重新编译所得的 canonical 内容身份。
+
+| 地址 / 结果 | `seethrough_output` | `seethrough_output_5` |
+| --- | --- | --- |
+| P10 review package | `183d5d2d970a1861360261f3607cf83910f25f6487dc4be3c5690d5d0099dec3` | `d2591818597c856a58e433a029fbf6c2d8a5efbb9bb4ea250970639abbb82212` |
+| P10.0 candidate | `cd19684f792ca3e2c364c8abc6a5cde2c7a79e05e72b634a92e381d39b051cad` | `a46b9fcbdad898d8e6c45033210e3f09090b7b4bd3da3334532b8164dca72bb6` |
+| P10.1 revision | `1` | `2` |
+| P10.1 decision | `d52b49e1353499ad3c72ee69d5aa8f5d53505c0677166a7ead7cbee95fe4fc83` | `206ec2d4b74ac0d94508d9aa7d95cee3f6a7b6339e4a5bd6ab8c5f9b08395a46` |
+| P10.1 current state | `unobservable / not_applicable` | `adjust / pending_probe` |
+| P10.2 report | 不适用 | `73fcea3c70aa03d4ffbda03d8971a1c33e29a363e3f09c7a0260a224d44bb7ad` |
+| P10.2 status | 未运行 | `structural_rejected` |
+
+样本 B 的 `fk_finite` 通过；`sampled_canvas_containment` 在 `334` 个采样 tick 拒绝；无 mesh
+的 mesh/shared-index 项为 not applicable；attachment seam 与 Runtime visual 仍为 unobservable。
+因此当前没有任何一个样本取得 P10.3 准入。A 必须由操作者形成新的 `adjust/pending_probe`
+revision；B 必须形成新参数 revision 或修复画布/attachment 输入后重跑，系统不得自动改写人类决定。
+
 ## 权限与质量边界
 
 这份 handoff 只允许声明：该组 recorded 输入已经闭合、P7 结构编译与 exact replay 通过、
@@ -110,8 +130,8 @@ readiness 请求。任何输入、map、camera、compiler 或算法 profile 变�
 
 ## 下一步
 
-1. 项目 A（`seethrough_output`）打开 `idle-behavior-review.html`。页面自动选择确定性 P9 package，并由服务端 exact replay P3/P5/P9、准备 P10.0 候选；普通用户不选择文件或填写 SHA。推荐参数只是 `unvalidated_draft`，必须看图、播放并最后明确确认，才能形成 P10.1 revision。目前不能声称 P10.1 已通过。
-2. 项目 B（`seethrough_output_5`）虽然 P9 已通过，但左右 `pelvis_leg` 与 `leg_foot` 四条关系不可观测。必须修复 See-through 分层/语义并生成新内容地址，或另立明确禁止通用腿部动画的版本化 partial seam 合同；不得把 P9 成功改写成完整下肢 seam 通过。
-3. A 的 P10.1 确认后依次完成 P10.2、P10.3 与 P10.4b2，再将该精确动作域与既有 P10.5c 双 SHA 组合为 P10.5d；静态 set 不能直接证明动态 seam。
+1. 项目 A（`seethrough_output`）打开 <http://127.0.0.1:8765/idle-behavior-review.html?package_id=183d5d2d970a1861360261f3607cf83910f25f6487dc4be3c5690d5d0099dec3>，由操作者查看并明确保存参数，追加新的 `adjust/pending_probe` revision；不能把现有不可观测 head 静默改写。
+2. 项目 B（`seethrough_output_5`）根据 P10.2 的画布越界见证调整摆动参数，或修复 attachment/画布输入，再形成新 P10.1 revision 并重跑。其四条下肢静态 seam 不可观测是另一条独立 blocker，仍须修复分层/语义或另立 partial 合同。
+3. 任一项目只有 P10.2 得到 `manual_visual_required` 后，才依次完成 P10.3a–P10.3c、P10.4a、P10.4b1 与 P10.4b2；A 再把该精确动作域与既有 P10.5c 双 SHA 组合为 P10.5d。
 4. 为 readiness v1 生成新的 strict canonical 请求并显式写入表中 P9 双 SHA 与 A 的 P10.5c 双 SHA。仓库自带的 baseline 请求仍把下游字段设为 `null`，不会自动发现这些地址。
 5. 在相应 P10.5d 合同关闭后继续 P10.6–P10.7a、官方 Runtime capture、sampled raster 人审与独立 P10.7c setup golden 对照。
