@@ -41,15 +41,15 @@ class WorkflowHubCatalogTests(unittest.TestCase):
             entry["command"] for entry in self.entries
             if entry["kind"] == "cli"
         }
-        self.assertEqual(65, len(commands))
+        self.assertEqual(66, len(commands))
         self.assertEqual(commands, catalog_commands)
 
     def test_entries_have_unique_ids_and_supported_taxonomy(self) -> None:
         ids = [entry["id"] for entry in self.entries]
         self.assertEqual(len(ids), len(set(ids)))
-        self.assertEqual(89, len(ids))
+        self.assertEqual(90, len(ids))
         self.assertEqual(
-            {"cli": 65, "page": 6, "planned": 18},
+            {"cli": 66, "page": 6, "planned": 18},
             {
                 kind: sum(entry["kind"] == kind for entry in self.entries)
                 for kind in ("cli", "page", "planned")
@@ -111,6 +111,20 @@ class WorkflowHubCatalogTests(unittest.TestCase):
         self.assertIn("zero-write Python preflight", entry["summary"])
         self.assertIn("不保存、发布或自动批准", entry["summary"])
         self.assertNotIn("纯前端", entry["summary"])
+
+    def test_motion_policy_draft_entry_stays_non_authoritative(self) -> None:
+        entry = next(
+            entry for entry in self.entries
+            if entry["id"] == "cli-prepare-motion-policy-review-draft"
+        )
+        self.assertEqual("prepare-motion-policy-review-draft", entry["command"])
+        self.assertIn("pending Depth proposal", entry["summary"])
+        self.assertIn("草案不是批准", entry["summary"])
+        self.assertIn("不生成正式 Depth policy", entry["summary"])
+        self.assertEqual(
+            "docs/how-to-prepare-motion-policy-review-draft.md",
+            entry["doc"],
+        )
 
     def test_planned_entries_link_only_to_the_authoritative_roadmap(self) -> None:
         planned = [entry for entry in self.entries

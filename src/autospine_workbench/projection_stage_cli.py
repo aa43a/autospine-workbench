@@ -18,6 +18,10 @@ from .p9_readonly_cli import (
     add_p9_readonly_subcommands,
     dispatch_p9_readonly_command,
 )
+from .p9_review_draft_cli import (
+    add_p9_review_draft_subcommand,
+    dispatch_p9_review_draft_command,
+)
 from .p9_policy_cli import (
     add_p9_policy_subcommands,
     dispatch_p9_policy_command,
@@ -136,6 +140,7 @@ def add_projection_stage_subcommands(subparsers: Any, state_root: Path) -> None:
     probe_parser.add_argument("--motion-retarget-bundle-sha256", required=True)
     _state_root(probe_parser, state_root)
     add_p9_readonly_subcommands(subparsers, state_root)
+    add_p9_review_draft_subcommand(subparsers, state_root)
     add_p9_policy_subcommands(subparsers, state_root)
     add_p9_v2_subcommands(subparsers, state_root)
     add_p9_bundle_subcommands(subparsers, state_root)
@@ -190,6 +195,9 @@ def dispatch_projection_stage_command(args: argparse.Namespace) -> int | None:
                 ),
             )
         else:
+            status = dispatch_p9_review_draft_command(args)
+            if status is not None:
+                return status
             status = dispatch_p9_readonly_command(args)
             if status is not None:
                 return status

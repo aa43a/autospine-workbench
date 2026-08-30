@@ -29,6 +29,7 @@ AutoSpine Workbench 是一个本地人工复核与离线编译工作流，用于
 - 在发布前零写入审计真实 NPZ、recorded sidecar、map、camera、checkpoint manifest 与 generation request 原件；报告只授予 P7/P8 编译准入，不认证 checkpoint 或动作质量。
 - 从精确 P7 bundle 与显式静态正交相机生成保留深度、透视缩短和可观测性的 ProjectedMotionIR；候选尺度探针可复用于不同目标 rig，但不会静默生成 runtime scale 或 draw-order timeline。
 - 从精确 P3/P5/P8 地址编译 foot-lock 和 depth-order 候选，经完整人工决定生成 reviewed policy、MotionInstance v2、Spine 4.2 v2 preview 与六文件不可变 P9 bundle；既有 v1 内容哈希不变。
+- 当绑定或语义修正使 P3/P4/P5 身份变化时，使用 `prepare-motion-policy-review-draft` 交叉重放精确 P3–P8 链，并在新 namespace 中原子准备 Kimodo evidence、standalone Foot 候选和 pending Depth proposal。该草案不会批准 Depth policy、生成 Depth 候选、复用旧人工决定或发布 P9 adoption。
 - 在 P9 页面按项目发现并自动加载 exact review package，服务端重算 policy/Foot/Depth/candidate inventory 身份；时间轴辅助采用和“一键采用”只覆盖 `state=candidate`、证据完整有限且 correction ratio/residual 均不超过合同上限 80% 的 Foot 建议，Depth、`rejected_*`、缺证、非有限值与超阈值项留给人工；一次最终 v1 human adoption 后由本机完成编译、内容寻址发布和 exact verify，review input 下载仅作备份。
 - 从已采用的 P9 package 自动发现精确 Layer Manifest/P3/P5/P9 链，在“身体摆动设置”页面重放 idle 行为候选；普通操作者通过角色合成图、四骨示意和少量参数准备 P10.1 决定，无需选择 JSON 或填写 SHA。三个决定按钮都会先显示项目、动作、决定类型和后果；取消、按 Esc 或点击遮罩均零写入，只有在弹窗中确认提交才调用既有 mutation。草稿不具安全权，调整后仍由 P10.2 生成七项采样结构检查并保持发布阻塞。
 - P10 package 发现与候选准备可在同一服务进程内复用非权威 exact-chain 缓存；每次复用前仍读取全部受保护文件字节重算 seal，任一内容或 inventory 变化都会失效并执行完整 replay。缓存不跨服务重启，也不缓存 P10.1 history、current head 或 CAS；冷启动始终执行完整 replay。
@@ -410,7 +411,9 @@ python -m autospine_workbench verify-projected-motion `
   --state-root .\workspace
 ```
 
-P9 从精确 P3/P5/P8 身份发布候选，把人工决定编译为 reviewed root/draw-order policy，再生成 MotionInstance v2、Spine preview 和可独立复验的 bundle。复核页先从只读 package API 获取可用项目/动作，并按推荐或用户选择的 exact package 自动加载正式 policy、Foot 与 Depth；服务端不按 mtime 猜测 `latest`，package 身份绑定项目、动作、clip、三份报告 SHA 和 candidate inventory。随后 `POST /api/motion-policy/preflight` 再次重算完整 standalone 合同、source/policy 交叉绑定与候选 ID 清单摘要。页面在该快照上推导时间轴、足点 observation、重点窗口和连续证据段；拖动时间轴或一键操作只会为尚未决定、`state=candidate`、observations 完整有限且 correction ratio/residual 均不超过各自合同上限 80% 的 Foot candidates 写入带来源、可撤销的辅助草稿，不会覆盖已有人工决定。Depth、`rejected_*`、缺证、非有限值、超阈值和 `adjust` 不自动接受；重点窗口本身只是视觉提示，不影响安全判定。
+P9 从精确 P3/P5/P8 身份发布候选，把人工决定编译为 reviewed root/draw-order policy，再生成 MotionInstance v2、Spine preview 和可独立复验的 bundle。当 P3/P4/P5 因新绑定或语义修正而改变时，`prepare-motion-policy-review-draft` 先交叉验证精确 P3/P4/P5/P7/P8，再将共享 Kimodo evidence、standalone Foot report、pending Depth proposal 和 draft manifest 原子写入一个新 review namespace。其中没有正式 `depth-pair-policy.json`、Depth candidates、decision 或 P9 bundle，因此不会被 package 发现器当成可采用项，也不能沿用旧决定。CLI 回执仅返回 namespace、project、是否幂等复用及三份内容 SHA，不泄露本机目录。完整命令和后续边界见 [准备新的 Motion Policy 复核草案](docs/how-to-prepare-motion-policy-review-draft.md)。
+
+复核页先从只读 package API 获取可用项目/动作，并按推荐或用户选择的 exact package 自动加载正式 policy、Foot 与 Depth；服务端不按 mtime 猜测 `latest`，package 身份绑定项目、动作、clip、三份报告 SHA 和 candidate inventory。随后 `POST /api/motion-policy/preflight` 再次重算完整 standalone 合同、source/policy 交叉绑定与候选 ID 清单摘要。页面在该快照上推导时间轴、足点 observation、重点窗口和连续证据段；拖动时间轴或一键操作只会为尚未决定、`state=candidate`、observations 完整有限且 correction ratio/residual 均不超过各自合同上限 80% 的 Foot candidates 写入带来源、可撤销的辅助草稿，不会覆盖已有人工决定。Depth、`rejected_*`、缺证、非有限值、超阈值和 `adjust` 不自动接受；重点窗口本身只是视觉提示，不影响安全判定。
 
 最终结果仍按 candidate 展开为既有四字段 review input，并由操作者做一次明确 v1 human adoption。`POST /api/motion-policy/review-packages/{package_id}/adoptions` 使用 `motion-policy-adoption-v1` intent，重新读取当前 exact package，不信任客户端 P3/P5 地址或候选文件；它调用既有 compiler/store/reader，原子发布六文件 P9 bundle 并按返回的双 SHA exact verify。Preflight、辅助草稿或 100% 覆盖都不是发布凭据；下载仅作备份，CLI 保留为独立专业复验。专业模式保留三文件/SHA 手工导入，用于审计和排障。完整操作见 [复核并发布 Kimodo 动作策略](docs/how-to-review-kimodo-motion-policy.md)。
 

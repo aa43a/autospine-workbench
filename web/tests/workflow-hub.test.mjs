@@ -20,7 +20,7 @@ const EXPECTED_COMMANDS = [
   "verify-kimodo-motion",
   "compile-motion-retarget", "verify-motion-retarget", "compile-projected-motion",
   "verify-projected-motion", "probe-projected-scale", "compile-kimodo-policy-evidence",
-  "compile-heading-evidence", "probe-foot-lock", "probe-depth-order",
+  "prepare-motion-policy-review-draft", "compile-heading-evidence", "probe-foot-lock", "probe-depth-order",
   "compile-motion-policy-decision", "compile-reviewed-motion-policy",
   "compile-motion-instance-v2", "export-spine42-v2", "publish-reviewed-motion-bundle",
   "verify-reviewed-motion-bundle", "compile-idle-behavior-candidates",
@@ -41,7 +41,7 @@ const EXPECTED_COMMANDS = [
   "compile-reviewed-seam-anchor-set", "verify-reviewed-seam-anchor-set",
 ];
 
-test("catalog is valid and matches all 65 CLI entry points", () => {
+test("catalog is valid and matches all 66 CLI entry points", () => {
   assert.equal(validateCatalog(catalog), catalog);
   assert.equal(catalog.catalog_version, "1.0.0");
   assert.equal(catalog.current_stage, "P10.2-body-sway-structural-probe");
@@ -62,7 +62,7 @@ test("catalog exposes all pages, all stage groups, and explicit delivery states"
   assert.ok(catalog.entries.some(({ status }) => status === "available"));
   assert.ok(catalog.entries.some(({ status }) => status === "external_required"));
   assert.ok(catalog.entries.some(({ status }) => status === "planned"));
-  assert.equal(catalog.entries.length, 89);
+  assert.equal(catalog.entries.length, 90);
   assert.equal(catalog.entries.filter(({ kind }) => kind === "planned").length, 18);
   assert.equal(
     catalog.entries.find(({ command }) => command === "capture-body-sway-spine42-v3-runtime").status,
@@ -88,6 +88,13 @@ test("catalog exposes all pages, all stage groups, and explicit delivery states"
   assert.match(audit.summary, /不扫描 latest/);
   assert.match(audit.summary, /只读 pure replay/);
   assert.match(audit.summary, /不运行外部阶段、Runtime、发布或写入/);
+  const draft = catalog.entries.find(({ command }) => (
+    command === "prepare-motion-policy-review-draft"
+  ));
+  assert.equal(draft.status, "available");
+  assert.equal(draft.doc, "docs/how-to-prepare-motion-policy-review-draft.md");
+  assert.match(draft.summary, /草案不是批准/);
+  assert.match(draft.summary, /不生成正式 Depth policy/);
 });
 
 test("search and filters compose without mutating the catalog", () => {

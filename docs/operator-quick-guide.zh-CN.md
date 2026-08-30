@@ -53,7 +53,7 @@ cd E:\proj\unusual\localset\autospine-workbench
 “功能入口中心”提供：
 
 - 按 P0–P10 阶段、入口类型和状态筛选；
-- 搜索全部 65 个 CLI、六个任务页面和尚未实现的规划项；
+- 搜索全部 66 个 CLI、六个任务页面和尚未实现的规划项；
 - 直接打开绑定复核、P9 Motion Policy、身体摆动设置、P10.2 结构探针、Body-sway 视觉复核和 Seam Anchor 复核页面；
 - 复制精确的 `python -B -m autospine_workbench <command> --help` 帮助命令；
 - 通过 `/document-viewer.html?doc=docs/<文件名>.md` 安全文档查看器打开对应仓库文档。
@@ -325,10 +325,13 @@ python -B -m autospine_workbench audit-kimodo-pilot-intake `
 
 继续当前 `wave-left-v1` 时，不要重复 P9 adoption 或扫描 P5 地址；除非输入、算法或人工决定发生版本化变化，否则沿用 handoff 中已复验的 P9 双 SHA。[Motion Policy 自动工作流](http://127.0.0.1:8765/motion-policy-review.html)仍用于新的项目或新 review revision；CLI 只用于独立专业复验或无浏览器 exact 链。下列命令用于复验或排障：
 
+如果新绑定或语义修正已经改变 P3/P4/P5，不要把旧 P9 policy、candidate 或 human decision 复制到新链。维护者应运行 `prepare-motion-policy-review-draft`，使用一个从未存在的新 namespace；它会自动重生 Kimodo evidence、standalone Foot candidates 和 pending Depth proposal。命令完成不表示已批准：还需先复核 proposal、显式形成正式 Depth policy，再生成 Depth candidates 并进入 Motion Policy 页面的最终人工确认。CLI 回执只显示 namespace、project、幂等复用状态和内容 SHA，不显示本机目录。详细参数和输出文件见[准备新的 Motion Policy 复核草案](how-to-prepare-motion-policy-review-draft.md)。
+
 ```powershell
 python -B -m autospine_workbench compile-motion-retarget --help
 python -B -m autospine_workbench verify-motion-retarget --help
 python -B -m autospine_workbench compile-kimodo-policy-evidence --help
+python -B -m autospine_workbench prepare-motion-policy-review-draft --help
 python -B -m autospine_workbench probe-foot-lock --help
 python -B -m autospine_workbench probe-depth-order --help
 ```

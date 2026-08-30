@@ -111,6 +111,7 @@ web    → HTTP contracts only
 - 外部姿态模型只能通过 canonical pose observations 进入；alpha 几何只读取 resolved layer 与固定 PNG，融合结果必须保留原始 pose 和未标定分数语义。
 - COCO17 raw 输入、adapter、canonical pose、人工评估和候选工件分开内容寻址；坐标反镜像、左右标签交换、视角和镜像声明不得合并成一个隐式开关。
 - 离线命令按 stage 边界拆分：P1 输入/候选、P2 manifest/RigIR、P3 mesh、P4 IK、P5 MotionIR、P6 目标版本 adapter、P7 Kimodo source adapter、P8 camera/projected evidence、P9 reviewed motion/bundle，以及 P10 idle probe/`compile-body-sway-preview`/runtime capture/visual review/review admission 分别拥有显式入口；命令之间只传递精确内容地址，不解析 `latest`。
+- P9 草案准备是独立的非权威边界。`prepare-motion-policy-review-draft` 只读并交叉验证显式 P3/P4/P5/P7/P8 双 SHA，然后在一个新 namespace 中原子发布 Kimodo evidence、standalone Foot candidate 和 `pending_human_review` Depth proposal。该 inventory 故意不包含正式 `depth-pair-policy.json`、Depth candidates、decision 或 adoption；package 发现器不得把它升级为可采用 P9 package，也不得从旧 namespace 复制人工权威。CLI 回执不暴露 state-root 下的本机目录。
 - P9 UI 的读取与采纳边界分离。`POST /api/motion-policy/preflight` 仍是 zero-write Python application service：既有文件请求携带 `File.text()` 原文字符串，不先经 JavaScript parse/stringify；proposal 投影出的正式 policy 只序列化一次。`policy_identity` 对完整正式 policy 运行 inner strict decoder、validator 与 canonical SHA，`candidate_inventory` 对 standalone report 或正常 CLI envelope 解包后重算 policy/foot/depth 三 SHA、完整 candidate inventory 及 source/schedule/policy 交叉绑定，并把排序后 candidate ID 字符串清单的 canonical SHA 返回页面。页面只在身份、计数和该清单摘要全部一致时渲染表单。
 - 一次最终 human adoption 通过 `POST /api/motion-policy/review-packages/{package_id}/adoptions` 进入写边界，并要求 `X-Autospine-Intent: motion-policy-adoption-v1`。Application service 只接受完整 package ID 与严格四字段 review input；它重新加载 exact package，不接受任意文件路径、shell 命令、客户端 P3/P5 地址或候选文档，随后复用既有 decision/policy compiler、ReviewedMotionBundleStore 与 exact reader。发布是内容寻址且可幂等复用；成功响应 path-free，并同时证明刚返回的 P9 双 SHA 已读回复验。HTTP adapter 继续负责 loopback/same-origin、JSON、大小、intent 与错误映射。下载 review input 只是备份，不参与服务端 authority；P9 adoption 也不授予 seam、Runtime、raster 或 release authority。
 - P9→P10.5b 使用只读 `GET /api/motion-policy/review-packages/{package_id}/seam-review-entry`。Application service 从 package ID 重新加载 Foot/Depth exact package，验证共享 P3 来源，再由 VerifiedMeshBundleReader 重放 P3，并准备固定六关系 Seam candidate；客户端不能提交 Manifest/P3 SHA。响应只含 path-free 地址、candidate 身份、摘要和 blocker。handoff 本身不写 revision、不选择 locator；页面随后从独立 candidate/history 资源加载精确证据、自动绑定 current head，并把服务端 advisory assist 投影为可撤销草稿。手工四段地址只保留为专业审计 fallback。
@@ -224,9 +225,16 @@ P8 的零回归门要求 legacy MotionIR SHA 与 P7 完全相同，同一投影�
 P9 reviewed motion 结构门禁已完成：
 
 ```text
-exact P8 evidence + exact P5 target + exact P3 mesh
+exact P3/P4/P5 target chain + exact P7/P8 evidence
                          ↓
-             foot-lock/depth-order candidates
+    fresh non-authoritative namespace preparation
+                         ↓
+       Kimodo evidence + Foot candidates
+            + pending Depth proposal
+                         ↓ explicit policy approval
+             formal Depth pair policy
+                         ↓
+              depth-order candidates
                          ↓
        loopback-only zero-write Python preflight
                          ↓
@@ -239,7 +247,7 @@ exact P8 evidence + exact P5 target + exact P3 mesh
        six-document immutable bundle → exact verify
 ```
 
-Evidence 保留源事实，candidate 把证据绑定到一个精确目标 rig。进入人工表单前，Python preflight 先为正式 policy 返回 canonical identity，再重算 policy/foot/depth 三份 identity 与完整 candidate inventory；声明 SHA、P8/P5/P3 source、tick schedule、hysteresis、pair/slot/setup-front 任一不闭合都会 fail closed。Preflight 的 `passed` 只说明这组内存文档可进入当前页面，不是 decision、revision、reviewed policy 或 bundle 地址。Decision 仍必须由人对候选集逐项批准、拒绝或标记不可观测。Reviewed policy 才是 runtime 意图：foot root correction 显式编码 release/loop-reset，draw order 在全部帧上给出完整 slot permutation。Heading 和 scale 仍仅作 evidence，attachment switch 尚未实现。
+Evidence 保留源事实，candidate 把证据绑定到一个精确目标 rig。草案准备仅将当前 slot 绑定、canonical bone role 和 setup draw order 投影为可复核的 Depth proposal；`pending_human_review` 不是正式 policy，也不能触发 Depth candidate 或 runtime draw order。进入人工表单前，Python preflight 先为已明确批准的正式 policy 返回 canonical identity，再重算 policy/foot/depth 三份 identity 与完整 candidate inventory；声明 SHA、P8/P5/P3 source、tick schedule、hysteresis、pair/slot/setup-front 任一不闭合都会 fail closed。Preflight 的 `passed` 只说明这组内存文档可进入当前页面，不是 decision、revision、reviewed policy 或 bundle 地址。Decision 仍必须由人对候选集逐项批准、拒绝或标记不可观测。Reviewed policy 才是 runtime 意图：foot root correction 显式编码 release/loop-reset，draw order 在全部帧上给出完整 slot permutation。Heading 和 scale 仍仅作 evidence，attachment switch 尚未实现。
 
 MotionInstance v2 和 Spine adapter v2 是新能力边界；v1 instance、P8 evidence 及既有 P6 bundle 的内容哈希保持不变。Reviewed bundle 固定六文件 inventory，地址显式包含 project、MotionInstance v2 SHA 和 bundle SHA。严格 reader 从 run manifest 重放 exact P3/P5 上游，不使用 `latest`、目录扫描或替代 bundle 回退。
 

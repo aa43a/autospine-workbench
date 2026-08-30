@@ -14,7 +14,7 @@
 - [接缝自动复核与静态锚点生成](http://127.0.0.1:8765/seam-anchor-review.html)：P10.5b 自动看图复核；ready 时由同一次最终确认继续 P10.5c 发布与精确读回；
 - [Motion Policy 自动工作流](http://127.0.0.1:8765/motion-policy-review.html)：P9 项目/package 自动加载、安全 Foot 辅助采用、异常处理，以及一次人工确认后的本地编译、发布和精确复验。
 
-功能入口中心读取 [`web/workflow-catalog.json`](../web/workflow-catalog.json)，列出 65 个已注册 CLI、六个任务页面和尚未实现的计划项。对于 CLI，它只复制 `python -B -m autospine_workbench <command> --help` 帮助命令，不在浏览器或服务端执行命令；源码模式下须先在当前 PowerShell 执行 `$env:PYTHONPATH = (Resolve-Path .\src).Path`，再复制和运行帮助命令。文档卡片通过 `/document-viewer.html?doc=docs/<文件名>.md` 安全文档查看器打开；查看器只读获取 `/docs/<文件名>.md`，不能访问目录外文件，并把响应作为纯文本显示，不解析 HTML 或执行文档内容。
+功能入口中心读取 [`web/workflow-catalog.json`](../web/workflow-catalog.json)，列出 66 个已注册 CLI、六个任务页面和尚未实现的计划项。对于 CLI，它只复制 `python -B -m autospine_workbench <command> --help` 帮助命令，不在浏览器或服务端执行命令；源码模式下须先在当前 PowerShell 执行 `$env:PYTHONPATH = (Resolve-Path .\src).Path`，再复制和运行帮助命令。文档卡片通过 `/document-viewer.html?doc=docs/<文件名>.md` 安全文档查看器打开；查看器只读获取 `/docs/<文件名>.md`，不能访问目录外文件，并把响应作为纯文本显示，不解析 HTML 或执行文档内容。
 
 入口状态含义：
 
@@ -77,6 +77,8 @@ candidate HTTP envelope 除 canonical candidate 外还固定返回：
 
 ### Motion Policy 复核台
 
+若绑定、语义或重定向发生变化，旧 P9 决定不能静默继承到新 P3/P4/P5 链。专业 CLI `prepare-motion-policy-review-draft` 会重放显式 P3/P4/P5/P7/P8 地址，并在新 namespace 中准备 Kimodo evidence、standalone Foot candidates 和 pending Depth proposal。它会写入可重放草案，但不生成正式 Depth policy、Depth candidates、human decision 或 P9 adoption；草案本身不会出现在可采用 package 列表中，回执也不返回本机目录。
+
 普通模式先从只读 package API 列出本地项目/动作；存在推荐项时自动选择，并按 exact package ID 加载正式 policy、Foot/Depth reports。package ID 绑定项目、动作、clip、三份报告身份和 candidate inventory，不按文件名、mtime 或 `latest` 推测。服务端重算 package 身份，页面随后再用 loopback-only、zero-write Python `candidate_inventory` 复验 source、schedule、policy/depth 交叉绑定与 `candidate_ids_sha256`。通过后，证据模型按时间排序 Foot samples，显示曲线、重点窗口和角色足点。
 
 启用时间轴辅助采用时，一次拖动会把经过范围内尚未决定且满足当前规则的安全 Foot candidates 作为一个可撤销事务写入草稿；“一键采用”覆盖其余安全 Foot。安全规则固定要求 Foot `state=candidate`、observations 完整且数值有限、correction ratio 与 residual 均不超过各自合同上限的 80%。辅助决定带来源，不覆盖现有人工或批量决定。Depth、`rejected_limit`、`rejected_conflict`、缺证、非有限值、超阈值和 `adjust` 不自动批准，仍进入异常区；重点窗口只是边界/极值/p95 等视觉提示，不单独排除候选。
@@ -95,7 +97,7 @@ python -B -m autospine_workbench --help
 python -B -m autospine_workbench <command> --help
 ```
 
-下表与当前 CLI parser 的 65 个命令一一对应。具体必填 SHA、文件路径和外部前置条件以各命令 `--help` 及链接的 how-to 为准。
+下表与当前 CLI parser 的 66 个命令一一对应。具体必填 SHA、文件路径和外部前置条件以各命令 `--help` 及链接的 how-to 为准。
 
 ### P0：服务与合同
 
@@ -193,6 +195,7 @@ Resolved Project v1 是已完成的 P0 合同能力，但没有伪造一个独�
 | 命令 | 功能 |
 | --- | --- |
 | `compile-kimodo-policy-evidence` | 从精确 P7/P8 编译不含人工决定的策略证据 |
+| `prepare-motion-policy-review-draft` | 从新 P3/P4/P5 与既有 P7/P8 原子准备独立 namespace、standalone Foot 候选和 pending Depth proposal；不生成正式 policy、Depth candidates、批准或 adoption |
 | `compile-heading-evidence` | 通过显式 policy map 编译 heading evidence |
 | `probe-foot-lock` | 报告只供人工复核的 foot-lock 候选 |
 | `probe-depth-order` | 报告只供人工复核的 pairwise depth-order 候选 |
@@ -203,7 +206,7 @@ Resolved Project v1 是已完成的 P0 合同能力，但没有伪造一个独�
 | `publish-reviewed-motion-bundle` | 发布 MotionInstance v2 六文件 bundle |
 | `verify-reviewed-motion-bundle` | 重放精确 P9 reviewed-motion bundle |
 
-操作说明：[复核 Kimodo 动作策略](how-to-review-kimodo-motion-policy.md)。
+操作说明：[准备新的 Motion Policy 复核草案](how-to-prepare-motion-policy-review-draft.md)、[复核 Kimodo 动作策略](how-to-review-kimodo-motion-policy.md)。
 
 ### P10.0–P10.4：Idle 与 Body-sway
 
