@@ -3,8 +3,11 @@
 import { reviewKeyboardIntent } from "./body-sway-review-keyboard.js";
 import { setCaseDecision, setCaseNotes } from "./body-sway-review-state.js";
 import {
+  createTimelineImagePool, waitForVisibleTimelineGroup,
+} from "./body-sway-review-v2-image-pool.js";
+import {
   buildReviewTimelineGroups, clampTimelineIndex, groupIndexForCase,
-  markVisitedRange, timelineCoverage,
+  timelineCoverage,
 } from "./body-sway-review-v2-timeline-model.js";
 import {
   animationLabel, draftLabel, positionLabel, renderTimelineExceptions,
@@ -18,22 +21,33 @@ export function createBodySwayReviewTimeline({
   let groups = [];
   let currentIndex = 0;
   let visited = new Set();
+  let renderGeneration = 0;
+  let scrubTimer = null;
+  let imagePool = null;
 
   elements.reviewTimeline.addEventListener("input", () => {
-    navigate(Number(elements.reviewTimeline.value), false);
+    scheduleScrub(Number(elements.reviewTimeline.value));
   });
-  elements.reviewTimeline.addEventListener("change", announcePosition);
-  elements.previousTimeBtn.addEventListener("click", () => navigate(currentIndex - 1));
-  elements.nextTimeBtn.addEventListener("click", () => navigate(currentIndex + 1));
+  elements.reviewTimeline.addEventListener("change", () => {
+    cancelScrub();
+    navigate(Number(elements.reviewTimeline.value));
+  });
+  elements.previousTimeBtn.addEventListener("click", () => immediateNavigate(currentIndex - 1));
+  elements.nextTimeBtn.addEventListener("click", () => immediateNavigate(currentIndex + 1));
   elements.frameCompare.addEventListener("change", updateAction);
   elements.frameCompare.addEventListener("input", updateNotes);
   elements.frameCompare.addEventListener("focusin", rememberCase);
   elements.exceptionList.addEventListener("click", jumpToException);
 
   function mount(candidate) {
+    cancelScrub();
+    imagePool?.dispose();
+    imagePool = createTimelineImagePool({
+      doc: elements.frameCompare.ownerDocument, imageUrl,
+    });
     groups = buildReviewTimelineGroups(candidate.cases);
     currentIndex = 0;
-    visited = new Set([groups[0].id]);
+    visited = new Set();
     setActiveCase(groups[0]);
     renderAll();
   }
@@ -41,7 +55,6 @@ export function createBodySwayReviewTimeline({
   function navigate(value, shouldAnnounce = true) {
     if (!groups.length || isLocked()) return;
     const next = clampTimelineIndex(value, groups.length);
-    visited = markVisitedRange(visited, groups, currentIndex, next);
     currentIndex = next;
     setActiveCase(groups[currentIndex]);
     renderAll();
@@ -51,11 +64,51 @@ export function createBodySwayReviewTimeline({
 
   function renderAll() {
     if (!groups.length) return;
+    const groupRow = groups[currentIndex];
+    const groupIndex = currentIndex;
+    const token = renderGeneration += 1;
     renderPosition();
     const state = getState();
-    renderTimelineFrames(elements, groups[currentIndex], state.decisions, imageUrl);
+    const images = imagePool.focus(groupRow.cases);
+    renderTimelineFrames(elements, groupRow, state.decisions, images);
     renderTimelineMarkers(elements, groups, state.decisions, visited, currentIndex);
     renderTimelineExceptions(elements, groups, state.decisions);
+    imagePool.waitFor(groupRow.cases).then(async (results) => {
+      if (token !== renderGeneration || groupIndex !== currentIndex) return;
+      if (results.every((result) => result === "loaded")) {
+        const visible = await waitForVisibleTimelineGroup(elements.frameCompare);
+        if (!visible || token !== renderGeneration || groupIndex !== currentIndex) return;
+        if (!visited.has(groupRow.id)) {
+          visited.add(groupRow.id);
+          renderPosition();
+          renderTimelineMarkers(
+            elements, groups, getState().decisions, visited, currentIndex,
+          );
+          onChange(getState());
+        }
+        if (groups[groupIndex + 1]) imagePool.prime(groups[groupIndex + 1].cases);
+      } else {
+        onAnnounce(`${positionLabel(groupRow)}图片加载失败，未计入已查看`);
+      }
+    }).catch(onError);
+  }
+
+  function scheduleScrub(value) {
+    cancelScrub();
+    scrubTimer = setTimeout(() => {
+      scrubTimer = null;
+      navigate(value, false);
+    }, 100);
+  }
+
+  function cancelScrub() {
+    if (scrubTimer !== null) clearTimeout(scrubTimer);
+    scrubTimer = null;
+  }
+
+  function immediateNavigate(value) {
+    cancelScrub();
+    navigate(value);
   }
 
   function renderPosition() {
@@ -138,7 +191,7 @@ export function createBodySwayReviewTimeline({
     const intent = reviewKeyboardIntent(event);
     if (!intent || !groups.length || isLocked()) return;
     event.preventDefault();
-    if (intent.type === "move") return navigate(currentIndex + intent.delta);
+    if (intent.type === "move") return immediateNavigate(currentIndex + intent.delta);
     if (intent.type === "submit") return onSubmit();
     const groupRow = groups[currentIndex];
     const active = groupRow.cases.find(
@@ -159,6 +212,7 @@ export function createBodySwayReviewTimeline({
   }
 
   function setLocked(value) {
+    if (value) cancelScrub();
     elements.timelineStage.inert = value;
     renderPosition();
   }

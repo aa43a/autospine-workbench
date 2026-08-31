@@ -46,6 +46,12 @@ from .p10_visual_review_v2_http_security import (
     P10VisualReviewV2HttpSecurityError,
     require_p10_visual_review_v2_headers,
 )
+from .p10_visual_review_v2_image_cache import (
+    P10VisualReviewV2ImageCacheError,
+    P10VisualReviewV2ImageCacheKey,
+    P10VisualReviewV2ImageCacheNotFound,
+    P10VisualReviewV2ImageReplayCache,
+)
 from .p10_visual_review_v2_http_responses import (
     internal_error as _internal_error,
     invalid_address as _invalid_address,
@@ -83,6 +89,7 @@ def p10_visual_review_v2_allow_methods(parts: list[str]) -> str | None:
 def dispatch_p10_visual_review_v2_get(
     parts: list[str], manager: P10CaptureJobManager, store: ProjectStore,
     send_json: SendJson, send_bytes: SendBytes,
+    image_cache: P10VisualReviewV2ImageReplayCache,
 ) -> bool:
     if not is_p10_visual_review_v2_path(parts):
         return False
@@ -103,10 +110,20 @@ def dispatch_p10_visual_review_v2_get(
             return True
         if len(tail) == 6 and tail[0] == "candidates" \
                 and tail[2] == "cases" and tail[4] == "image":
-            image = service.image_evidence(
-                context.address, context.preview,
-                candidate_sha256=tail[1], case_id=tail[3],
-                png_sha256=tail[5],
+            if not image_cache.owns_state_root(store.state_root):
+                raise P10VisualReviewV2ImageCacheError(
+                    "Visual review v2 image cache belongs to another store"
+                )
+            key = P10VisualReviewV2ImageCacheKey(
+                context.job_id, context.package_id,
+                context.address, tail[1],
+            )
+            image = image_cache.image(
+                key, case_id=tail[3], png_sha256=tail[5],
+                loader=lambda: service.prepare_image_snapshot(
+                    context.address, context.preview,
+                    candidate_sha256=tail[1],
+                ),
             )
             send_bytes(
                 HTTPStatus.OK, image.png_bytes, "image/png",
@@ -134,7 +151,7 @@ def dispatch_p10_visual_review_v2_get(
         value = exact_decision_response(exact)
         value["job_id"] = context.job_id
         send_json(HTTPStatus.OK, value)
-    except _NotFound:
+    except (_NotFound, P10VisualReviewV2ImageCacheNotFound):
         _not_found(send_json)
     except (P10VisualReviewV2JobNotFound,
             BodySwayVisualReviewApplicationV2NotFound):
@@ -154,6 +171,8 @@ def dispatch_p10_visual_review_v2_get(
             _invalid_address(send_json)
         else:
             _internal_error(send_json)
+    except P10VisualReviewV2ImageCacheError:
+        _internal_error(send_json)
     return True
 
 

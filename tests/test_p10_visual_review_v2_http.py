@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import http.client
+import hashlib
 import json
 from pathlib import Path
 from types import SimpleNamespace
@@ -30,6 +31,9 @@ from autospine_workbench.p10_capture_job_contract import (  # noqa: E402
 )
 from autospine_workbench.p10_preview_v2_commands import (  # noqa: E402
     P10PreviewV2CommandError,
+)
+from autospine_workbench.body_sway_visual_review_application_models_v2 import (  # noqa: E402
+    BodySwayVisualReviewImageV2,
 )
 from autospine_workbench.p10_visual_review_v2_http_security import (  # noqa: E402
     INTENT,
@@ -82,6 +86,7 @@ class P10VisualReviewV2HttpTests(unittest.TestCase):
             document={"source": {"current_p10_1_head": self.p10}},
         )
         self.candidate_sha = SHA("9")
+        self.png_sha = hashlib.sha256(b"PNG").hexdigest()
         self.decision_sha = SHA("a")
         self.candidate = {
             "format_version": 2, "project_id": "fixture-project",
@@ -102,8 +107,11 @@ class P10VisualReviewV2HttpTests(unittest.TestCase):
         )
         self.service = Mock()
         self.service.prepare.return_value = self.prepared
-        self.service.image_evidence.return_value = SimpleNamespace(
-            png_bytes=b"PNG", png_sha256=SHA("b"),
+        self.service.prepare_image_snapshot.return_value = (
+            BodySwayVisualReviewImageV2(
+                self.candidate_sha, "case-1", SHA("c"), self.png_sha,
+                3, 640, 640, b"PNG",
+            ),
         )
         self.service.exact_decision.return_value = SimpleNamespace(
             candidate_sha256=self.candidate_sha,
@@ -208,11 +216,14 @@ class P10VisualReviewV2HttpTests(unittest.TestCase):
             self.assertEqual(200, status)
         image = (
             f"{self.base}/candidates/{self.candidate_sha}/cases/case-1/"
-            f"image/{SHA('b')}"
+            f"image/{self.png_sha}"
         )
         status, headers, raw = self.request("GET", image)
         self.assertEqual((200, b"PNG"), (status, raw))
-        self.assertEqual(f'"{SHA("b")}"', headers["etag"])
+        self.assertEqual(f'"{self.png_sha}"', headers["etag"])
+        status, _, repeated = self.request("GET", image)
+        self.assertEqual((200, b"PNG"), (status, repeated))
+        self.service.prepare_image_snapshot.assert_called_once()
 
         endpoint = f"{self.base}/candidates/{self.candidate_sha}/decisions"
         status, _, result = self.json_request(
@@ -230,7 +241,20 @@ class P10VisualReviewV2HttpTests(unittest.TestCase):
         )
         self.assertEqual(200, status)
         self.assertTrue(retried["reused"])
-        self.assertEqual(6, self.manager.get.call_count)
+        self.assertEqual(7, self.manager.get.call_count)
+
+    def test_cache_hit_still_rejects_current_source_drift(self):
+        image = (
+            f"{self.base}/candidates/{self.candidate_sha}/cases/case-1/"
+            f"image/{self.png_sha}"
+        )
+        status, _, raw = self.request("GET", image)
+        self.assertEqual((200, b"PNG"), (status, raw))
+        self.preview.temporary_preview_v2_sha256 = SHA("0")
+        status, _, value = self.json_request("GET", image)
+        self.assertEqual(409, status)
+        self.assertEqual("visual_review_v2_source_changed", value["error"])
+        self.service.prepare_image_snapshot.assert_called_once()
 
     def test_wrong_intent_is_zero_replay_and_v1_intent_is_rejected(self):
         endpoint = f"{self.base}/candidates/{self.candidate_sha}/decisions"

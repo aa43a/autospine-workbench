@@ -44,7 +44,7 @@ P10.2 的自由缩放/平移和 `DynamicViewportFit v1` 仍是零权威诊断；
 - 同一 P10.2 exact schedule 只生成一次完整 pose/attachment geometry，并由此编译 `DynamicViewportFit v1` 及所有越界 region 的 `RegionRebindCandidates v1`。换绑候选只比较当前骨与同链一跳父/子骨，具有 `authority: none`；页面会把推荐带到绑定工作台，在独立建议卡中预览目标骨而不写入共享 Rig 表单。普通保存和 `Ctrl+S` 不能绕过专用采用入口；正式换绑仍需一次明确确认和一次 override 保存。保存会创建新 revision，并使依赖旧 Manifest/P3/P5/P9/P10 地址的产物进入历史链，必须按新身份重建。
 - 在同一次 P10.2 详情编译中生成 `BodySwayCanvasAdjustmentCandidates v1`：沿已复核四骨幅度的统一 gain 网格 `0/8…8/8` 做采样画布/几何诊断。结果零权威、零写入；`0/8` 只能区分基础动作越界，不能成为 body-sway 候选。只有非零 gain 的 sampled canvas 和 sampled geometry 同时通过时，才会给出一个 `unvalidated_draft`；操作者仍须把它带回 P10.1、显式确认新 revision，然后重跑 P10.2。
 - 冻结 v1：用操作者提供且已授权的官方 Spine 4.2.119 runtime 捕获固定 body-sway case，再由专业用户通过精确四段地址在独立 UI/CLI/API 中逐帧复核，并以 CAS 追加不可变 revision。
-- package/job-centric v2：普通用户按项目/动作包准备 Preview v2，经许可与本次运行二次确认创建异步 official Runtime job；completed `job_id` 自动进入 P10.3c v2，普通用户不手填四段地址或 SHA。页面用 setup + 21 组 A/B 时间轴预填本地通过草稿，只有完整浏览、剔除异常、current head 和最终声明后才提交人工决定；不会自动批准或解除发布门禁。
+- package/job-centric v2：普通用户按项目/动作包准备 Preview v2，经许可与本次运行二次确认创建异步 official Runtime job；completed `job_id` 自动进入 P10.3c v2，普通用户不手填四段地址或 SHA。页面用 setup + 21 组 A/B 时间轴预填本地通过草稿，图片按 exact URL 单页复用、最多两张并发并有限预取，且真实加载后才计入浏览覆盖；只有完整浏览、剔除异常、current head 和最终声明后才提交人工决定，不会自动批准或解除发布门禁。
 - 冻结 v1：把 v1 P10.3c 当前 `sampled_visual_approved` head 以双快照只读重放为 `BodySwayReviewAdmission v1`。它不能消费 v2 head；v2 仍需独立 P10.4a admission/consumer。
 - 沿已复核四骨幅度向量的统一 gain 射线生成九个离散候选，并以有界区间细分覆盖每一对 sampled-linear preview key；只能授予预览数学模型的结构 claim，runtime、视觉范围、接缝和发布权仍保持阻塞。
 - 从精确 Layer Manifest/P3 静态链编译六条四肢 attachment 接缝关系，输出 region/mesh locator 候选与完整算法 profile；只供人工比较，不自动选择锚点。

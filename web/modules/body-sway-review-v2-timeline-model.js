@@ -115,21 +115,6 @@ export function timelineExceptions(groups, decisions) {
   return rows;
 }
 
-export function markVisitedRange(visited, groups, fromIndex, toIndex) {
-  const result = new Set(visited || []);
-  if (!groups.length) return result;
-  const start = Math.min(
-    clampTimelineIndex(fromIndex, groups.length),
-    clampTimelineIndex(toIndex, groups.length),
-  );
-  const end = Math.max(
-    clampTimelineIndex(fromIndex, groups.length),
-    clampTimelineIndex(toIndex, groups.length),
-  );
-  for (let index = start; index <= end; index += 1) result.add(groups[index].id);
-  return result;
-}
-
 function group(id, kind, row, cases) {
   return {
     id,

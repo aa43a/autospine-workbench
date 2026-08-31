@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 from pathlib import Path
 from typing import Any
 
@@ -29,6 +28,9 @@ from .body_sway_visual_review_decision_v2 import (
 from .body_sway_visual_review_errors_v2 import (
     BodySwayVisualReviewRevisionV2Conflict,
 )
+from .body_sway_visual_review_image_snapshot_v2 import (
+    compile_body_sway_visual_review_image_snapshot_v2,
+)
 from .body_sway_visual_review_profile_v2 import MAX_VISUAL_REVIEW_REVISIONS
 from .body_sway_visual_review_store_v2 import BodySwayVisualReviewStoreV2
 from .body_sway_visual_review_submission import (
@@ -38,7 +40,6 @@ from .manifest_artifacts import require_safe_token, require_sha256
 from .p10_preview_v2_commands import (
     P10PreviewV2CommandResult, require_exact_preview_v2_for_mount,
 )
-from .png_rgba import decode_rgba_png
 
 
 class BodySwayVisualReviewApplicationV2Error(RuntimeError):
@@ -93,12 +94,37 @@ class BodySwayVisualReviewApplicationV2:
         preview_result: P10PreviewV2CommandResult, *,
         candidate_sha256: str, case_id: str, png_sha256: str,
     ) -> BodySwayVisualReviewImageV2:
+        images = self.prepare_image_snapshot(
+            address, preview_result,
+            candidate_sha256=candidate_sha256,
+        )
+        try:
+            expected_case = require_safe_token(case_id, "Visual review v2 case")
+            expected_png = require_sha256(png_sha256, "Visual review v2 PNG")
+            rows = [row for row in images if row.case_id == expected_case]
+            if len(rows) != 1 or rows[0].png_sha256 != expected_png:
+                raise BodySwayVisualReviewApplicationV2NotFound(
+                    "Visual review image v2 identity is cross-wired"
+                )
+            return rows[0]
+        except BodySwayVisualReviewApplicationV2Error:
+            raise
+        except _APPLICATION_ERRORS as exc:
+            raise BodySwayVisualReviewApplicationV2Error(
+                "Visual review image v2 load failed"
+            ) from exc
+
+    def prepare_image_snapshot(
+        self, address: ExactVisualReviewAddressV2,
+        preview_result: P10PreviewV2CommandResult, *,
+        candidate_sha256: str,
+    ) -> tuple[BodySwayVisualReviewImageV2, ...]:
+        """Replay one candidate once and expose its verified immutable PNGs."""
+
         try:
             candidate_address = require_sha256(
                 candidate_sha256, "Visual review candidate v2",
             )
-            expected_case = require_safe_token(case_id, "Visual review v2 case")
-            expected_png = require_sha256(png_sha256, "Visual review v2 PNG")
             execution, _preview, candidate = self._load_candidate(
                 address, preview_result,
             )
@@ -106,37 +132,14 @@ class BodySwayVisualReviewApplicationV2:
                 raise BodySwayVisualReviewApplicationV2NotFound(
                     "Visual review candidate v2 address is stale"
                 )
-            rows = [row for row in candidate.document["cases"]
-                    if row["case_id"] == expected_case]
-            if len(rows) != 1 \
-                    or rows[0]["image"]["png_sha256"] != expected_png:
-                raise BodySwayVisualReviewApplicationV2NotFound(
-                    "Visual review image v2 identity is cross-wired"
-                )
-            row, image = rows[0], rows[0]["image"]
-            raw = execution.execution.capture.capture_bytes.get(image["path"])
-            if type(raw) is not bytes:
-                raise BodySwayVisualReviewApplicationV2Error(
-                    "Visual review image v2 bytes are missing"
-                )
-            decoded = decode_rgba_png(raw, source_name="visual review v2 evidence")
-            actual = (hashlib.sha256(raw).hexdigest(), len(raw),
-                      decoded.width, decoded.height)
-            declared = (expected_png, image["size_bytes"],
-                        image["width"], image["height"])
-            if actual != declared or actual[2:] != (640, 640):
-                raise BodySwayVisualReviewApplicationV2Error(
-                    "Visual review image v2 bytes differ from evidence"
-                )
-            return BodySwayVisualReviewImageV2(
-                candidate.sha256, expected_case, row["evidence_sha256"],
-                expected_png, len(raw), decoded.width, decoded.height, raw,
+            return compile_body_sway_visual_review_image_snapshot_v2(
+                execution, candidate,
             )
         except BodySwayVisualReviewApplicationV2Error:
             raise
         except _APPLICATION_ERRORS as exc:
             raise BodySwayVisualReviewApplicationV2Error(
-                "Visual review image v2 load failed"
+                "Visual review image v2 snapshot failed"
             ) from exc
 
     def exact_decision(

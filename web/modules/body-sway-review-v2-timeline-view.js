@@ -11,10 +11,10 @@ const ACTIONS = [
   ["unobservable", "无法判断"],
 ];
 
-export function renderTimelineFrames(elements, groupRow, decisions, imageUrl) {
+export function renderTimelineFrames(elements, groupRow, decisions, images) {
   const doc = elements.frameCompare.ownerDocument;
-  const cards = groupRow.cases.map((row) => frameCard(
-    doc, row, decisions[row.case_id], imageUrl(row), groupRow,
+  const cards = groupRow.cases.map((row, index) => frameCard(
+    doc, row, decisions[row.case_id], images[index], groupRow,
   ));
   elements.frameCompare.dataset.columns = String(Math.min(cards.length, 2));
   elements.frameCompare.replaceChildren(...cards);
@@ -93,7 +93,7 @@ export function draftLabel(value) {
   }[value] || "通过";
 }
 
-function frameCard(doc, row, choice, source, groupRow) {
+function frameCard(doc, row, choice, image, groupRow) {
   const card = doc.createElement("article");
   card.className = "timeline-frame";
   card.dataset.caseId = row.case_id;
@@ -108,13 +108,6 @@ function frameCard(doc, row, choice, source, groupRow) {
   card.append(header);
 
   const figure = doc.createElement("figure");
-  const image = doc.createElement("img");
-  image.src = source;
-  image.alt = `${animationLabel(row)}，${formatSeconds(row.time_seconds)} 秒官方 Runtime 采样图`;
-  image.width = row.image.width;
-  image.height = row.image.height;
-  image.decoding = "async";
-  image.loading = "eager";
   figure.append(image);
   card.append(figure, actionFieldset(doc, row, choice));
   card.append(notesField(doc, row, choice), evidenceDetails(doc, row, groupRow));

@@ -113,7 +113,7 @@ $env:PYTHONPATH = (Resolve-Path .\src).Path
 3. 阅读许可提示并勾选授权确认，点击运行后再在二次确认弹窗核对项目、动作和 current revision。取消弹窗不会创建 job；每次真实运行都必须重新确认。
 4. 查看异步进度。刷新页面可以继续查询同一 job；失败卡会从不可变事件链显示停止阶段、path-free 精确 `failure_code`、已完成数量和下一个未完成样本序号，不显示本地路径或原始异常。该序号是续跑边界，不等于证明该样本有错。失败或服务关闭造成的中断不会自动重试；当前没有主动取消运行中 job 的按钮，修复原因后重新确认并创建新 job，不要把未封存截图当作证据。
 5. job 完成后点击“进入视觉复核”。链接只携带完整 `job_id`，服务端自动解析 project、Preview v2、execution bundle 和 artifact set；不要求手工填地址。
-6. 在 P10.3c v2 页面从 Setup 拖动时间轴到末端；21 个动作时间点会并排显示基础动作和身体摆动。43 个 case 默认填为本地通过草稿，只需把异常图片改为“剔除”或“无法判断”并填写原因；默认草稿不会自动提交或批准。
+6. 在 P10.3c v2 页面从 Setup 逐点拖动时间轴到末端；21 个动作时间点会并排显示基础动作和身体摆动。图片实际加载后才计入“已查看”，快速跳过不计数；同一帧在当前页面内只请求一次并有限预取下一组。43 个 case 默认填为本地通过草稿，只需把异常图片改为“剔除”或“无法判断”并填写原因；默认草稿不会自动提交或批准。
 7. 确认“已查看 22 / 22”，核对 current history head，在最终弹窗勾选复核声明后提交。发生 revision conflict 时刷新历史、重新核对后再提交；旧决定不会被覆盖。
 8. 全部 case 通过也只表示 sampled visual approved，发布仍然 blocked。详细步骤见[运行 P10.3 官方 Runtime 自动采集](how-to-capture-body-sway-runtime.md)和[复核 P10.3c 官方 Runtime 采样帧](how-to-review-body-sway-runtime.md)。
 

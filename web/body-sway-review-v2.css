@@ -102,6 +102,9 @@
 .timeline-frame[data-state="unobservable"] .frame-draft-badge { color: var(--warning); }
 
 .timeline-frame figure {
+  position: relative;
+  display: grid;
+  place-items: center;
   aspect-ratio: 1 / 1;
   min-height: 0;
   margin: 0.65rem 0;
@@ -113,6 +116,24 @@
   height: 100%;
   max-width: none;
   object-fit: contain;
+  transition: opacity 120ms ease;
+}
+
+.timeline-frame figure img[data-load-state="queued"],
+.timeline-frame figure img[data-load-state="loading"] { opacity: 0.14; }
+.timeline-frame figure img[data-load-state="error"] { opacity: 0.08; }
+.timeline-frame figure:has(img[data-load-state="queued"])::after,
+.timeline-frame figure:has(img[data-load-state="loading"])::after {
+  position: absolute;
+  content: "正在校验并加载采样图…";
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+.timeline-frame figure:has(img[data-load-state="error"])::after {
+  position: absolute;
+  content: "加载失败；返回此帧会受控重试一次";
+  color: var(--danger);
+  font-size: 0.78rem;
 }
 
 .frame-actions { margin-bottom: 0.6rem; padding: 0.4rem; }

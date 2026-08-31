@@ -4,7 +4,7 @@ import test from "node:test";
 import { buildReviewSubmission, createReviewState } from "../modules/body-sway-review-state.js";
 import {
   buildReviewTimelineGroups, createDefaultApproveDraft, groupDraftState,
-  markVisitedRange, timelineCoverage, timelineExceptions,
+  timelineCoverage, timelineExceptions,
 } from "../modules/body-sway-review-v2-timeline-model.js";
 
 const SHA = (character) => character.repeat(64);
@@ -56,14 +56,14 @@ test("pairing fails closed for wrong order, missing pair, duplicate, or tick mis
   assert.throws(() => buildReviewTimelineGroups(reordered), /严格递增/);
 });
 
-test("default approve is a complete local draft and full scrub records coverage", () => {
+test("default approve is local-only and coverage needs each loaded group identity", () => {
   const cases = runtimeCases();
   const groups = buildReviewTimelineGroups(cases);
   const draft = createDefaultApproveDraft(cases);
   assert.equal(Object.keys(draft).length, 43);
   assert.ok(Object.values(draft).every((choice) => choice.action === "approve"));
   assert.throws(() => createDefaultApproveDraft([cases[0], cases[0]]), /重复/);
-  const visited = markVisitedRange(new Set([groups[0].id]), groups, 0, 21);
+  const visited = new Set(groups.map((group) => group.id));
   assert.deepEqual(timelineCoverage(groups, visited), {
     visitedCount: 22, groupCount: 22, complete: true,
   });

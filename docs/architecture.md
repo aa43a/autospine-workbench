@@ -334,7 +334,9 @@ job request 与 event history 采用 append-only store；页面可以按 job ID 
 closed。该 runner 与 profile 是新 v2 身份；不会改写冻结 v1 或六个历史失败 job。runner 1.1.0
 的后续 job 已完成 43/43，并发布完整 execution；P10.3c 人工 revision 仍未提交。
 
-P10.3c v2 从 completed job 解析内部四段地址，并绑定 current Preview v2、framing、P10.1、report 与 world viewport。43 个不可变 case 必须严格是一个 setup 和 21 个同 tick 的 `p10.base/p10.body-sway` pair，UI 才会建立 22 位置时间轴；错序、缺帧、重复或 tick 不一致都失败关闭。默认 approve 只初始化浏览器内存草稿，完整浏览门禁、current-head 基线、复核人、最终声明和确认全部满足后，首次人工提交才会发布 exact candidate，并在 candidate SHA 命名空间下写入内容寻址 decision 与连续 revision slot。CAS 拒绝 stale head、跳号和并发抢占；字节相同的安全重试可复用。HTTP 投影不返回本地路径，图片只能经 job/candidate/case/PNG identity 读取。详细操作见[运行 P10.3 官方 Runtime 自动采集](how-to-capture-body-sway-runtime.md)和[复核 P10.3c 官方 Runtime 采样帧](how-to-review-body-sway-runtime.md)。
+P10.3c v2 从 completed job 解析内部四段地址，并绑定 current Preview v2、framing、P10.1、report 与 world viewport。43 个不可变 case 必须严格是一个 setup 和 21 个同 tick 的 `p10.base/p10.body-sway` pair，UI 才会建立 22 位置时间轴；错序、缺帧、重复或 tick 不一致都失败关闭。默认 approve 只初始化浏览器内存草稿，只有图片已加载且当前组真实显示才增加浏览覆盖；完整浏览门禁、current-head 基线、复核人、最终声明和确认全部满足后，首次人工提交才会发布 exact candidate，并在 candidate SHA 命名空间下写入内容寻址 decision 与连续 revision slot。CAS 拒绝 stale head、跳号和并发抢占；字节相同的安全重试可复用。HTTP 投影不返回本地路径，图片只能经 job/candidate/case/PNG identity 读取。
+
+图片展示采用两级非权威加速。浏览器以完整 exact URL 强引用唯一图片节点，限制两张并发并只预取下一组；服务端按 job/package/四段 execution/candidate 身份维护有界 single-flight 图片快照 LRU。LRU 只缓存完整 exact replay 后的不可变 PNG bytes/metadata，只供 image GET，命中仍重新核对 current context 和所请求 case/PNG SHA；candidate、history、exact decision 与 PUT 永远绕过它。响应保持 `Cache-Control: no-store`，因此浏览器不会绕过 source-drift 409，进程重启也会清空服务端加速状态。详细操作见[运行 P10.3 官方 Runtime 自动采集](how-to-capture-body-sway-runtime.md)和[复核 P10.3c 官方 Runtime 采样帧](how-to-review-body-sway-runtime.md)。
 
 `sampled_visual_approved` 只表示固定 still inventory 全部获人工批准。它不声明离散帧之间的连续时间、reviewed seam anchors、安全幅度、未采样姿势或可发布 timeline，因此 release gate 仍固定为 blocked；reject/unobservable 还会增加明确的 sampled rejection reason。
 

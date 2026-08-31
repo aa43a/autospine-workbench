@@ -195,12 +195,13 @@ class BodySwayVisualReviewV2Tests(unittest.TestCase):
         row = prepared.candidate_document["cases"][0]
         runtime, preview = self.current()
         with runtime, preview:
-            image = self.service.image_evidence(
+            images = self.service.prepare_image_snapshot(
                 self.fixture.address, object(),
                 candidate_sha256=prepared.candidate_sha256,
-                case_id=row["case_id"],
-                png_sha256=row["image"]["png_sha256"],
             )
+            image = images[0]
+        self.assertEqual(len(prepared.candidate_document["cases"]), len(images))
+        self.assertEqual(prepared.candidate_sha256, images[0].candidate_sha256)
         self.assertEqual((640, 640), (image.width, image.height))
         self.assertEqual(row["evidence_sha256"], image.evidence_sha256)
 

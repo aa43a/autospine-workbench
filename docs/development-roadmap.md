@@ -243,6 +243,11 @@ case 都必须进入完整人工 decision，系统不自动提交或批准。页
 六次失败 job 仍不可变且没有部分 execution，runner 1.1.0 的后续 job 已完成 43/43 official Runtime
 采样，但 sampled visual 尚未通过。
 
+P10.3c v2 的展示性能加固已经交付：完整 exact URL 在单页只创建一个图片节点，拖动有防抖，
+当前帧优先且最多两张并发，只有限预取下一组；只有真实加载并显示的组才计入覆盖。服务端图片 GET
+使用有界 candidate-snapshot single-flight LRU，命中前仍重验 current context；所有权威读取与 PUT
+绕过缓存，HTTP `no-store` 和 source-drift 409 语义不变。
+
 旧 execution v2 驱动继承了冻结 v1 的 `--dump-dom` 与 `--virtual-time-budget`，会和异步
 collector-terminal 生命周期竞争；另一个失败窗口发生在 exact 截图已提交后，主动 teardown 与
 stdout reader 关闭相互竞争。新的 v2 runner `1.1.0` 固定 `page_lifetime=collector-terminal`，移除

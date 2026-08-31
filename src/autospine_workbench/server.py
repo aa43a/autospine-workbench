@@ -50,6 +50,9 @@ from .p10_runtime_capture_routes import (
 from .p10_visual_review_v2_routes import (
     dispatch_p10_visual_review_v2_put,
 )
+from .p10_visual_review_v2_image_cache import (
+    P10VisualReviewV2ImageReplayCache,
+)
 from .seam_anchor_review_routes import (
     dispatch_seam_anchor_review_post,
     is_seam_anchor_review_path,
@@ -66,6 +69,7 @@ def _handler_factory(
     store: ProjectStore, web_root: Path | None,
     replay_cache: SeamAnchorReviewReplayCache,
     capture_manager: P10CaptureJobManager,
+    visual_review_v2_image_cache: P10VisualReviewV2ImageReplayCache,
 ) -> type[BaseHTTPRequestHandler]:
     class WorkbenchHandler(WorkbenchResponseMixin, BaseHTTPRequestHandler):
         server_version = "AutoSpineWorkbench/0.1"
@@ -82,7 +86,8 @@ def _handler_factory(
 
         def _dispatch_api_get(self, parts: list[str]) -> bool:
             return dispatch_workbench_api_get(
-                parts, store, replay_cache, capture_manager, self,
+                parts, store, replay_cache, capture_manager,
+                visual_review_v2_image_cache, self,
             )
 
         def _serve_static(self, parts: list[str]) -> bool:
@@ -285,8 +290,12 @@ def create_server(
         capture_manager = P10CaptureJobManager(store)
     except P10CaptureJobManagerError as exc:
         raise OSError("P10 Runtime capture manager could not start.") from exc
+    visual_review_v2_image_cache = P10VisualReviewV2ImageReplayCache(
+        store.state_root,
+    )
     handler = _handler_factory(
         store, resolved_web_root, replay_cache, capture_manager,
+        visual_review_v2_image_cache,
     )
     try:
         server = WorkbenchThreadingHTTPServer((host, port), handler)
@@ -297,4 +306,7 @@ def create_server(
     server.web_root = resolved_web_root  # type: ignore[attr-defined]
     server.seam_anchor_review_replay_cache = replay_cache  # type: ignore[attr-defined]
     server.p10_capture_job_manager = capture_manager  # type: ignore[attr-defined]
+    server.p10_visual_review_v2_image_cache = (  # type: ignore[attr-defined]
+        visual_review_v2_image_cache
+    )
     return server
