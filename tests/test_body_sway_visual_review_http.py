@@ -325,6 +325,8 @@ class BodySwayVisualReviewHttpTests(unittest.TestCase):
             "/modules/motion-policy-assist-model.js": "text/javascript",
             "/modules/motion-policy-auto-api.js": "text/javascript",
             "/modules/motion-policy-auto-controller.js": "text/javascript",
+            "/modules/motion-policy-draft-api.js": "text/javascript",
+            "/modules/motion-policy-draft-controller.js": "text/javascript",
             "/modules/motion-policy-evidence-model.js": "text/javascript",
             "/modules/motion-policy-evidence-view.js": "text/javascript",
             "/modules/motion-policy-batch-model.js": "text/javascript",

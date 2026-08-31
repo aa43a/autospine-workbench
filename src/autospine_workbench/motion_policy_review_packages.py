@@ -41,22 +41,22 @@ class MotionPolicyReviewPackageError(ValueError):
     """Raised when an on-disk automatic review package is unsafe or stale."""
 
 
-class MotionPolicyReviewPackageHistoricalError(
-    MotionPolicyReviewPackageError
-):
+class MotionPolicyReviewPackageHistoricalError(MotionPolicyReviewPackageError):
     """Raised when a package belongs to older project authoring bytes."""
 
 
 def list_motion_policy_review_packages(
-    state_root: Path,
-    *,
+    state_root: Path, *,
     current_project_chains: Mapping[str, CurrentProjectChain] | None = None,
+    project_ids: frozenset[str] | None = None,
 ) -> dict[str, Any]:
     """Return deterministic summaries for every strictly valid local package."""
 
     rows = []
     skipped = 0
     for directory in _package_directories(state_root):
+        if project_ids is not None and directory.name not in project_ids:
+            continue
         try:
             package = _load_package(directory, include_documents=False)
             rows.append(_aligned(package, current_project_chains))
@@ -85,16 +85,16 @@ def list_motion_policy_review_packages(
 
 
 def get_motion_policy_review_package(
-    state_root: Path,
-    package_id: str,
-    *,
+    state_root: Path, package_id: str, *,
     current_project_chains: Mapping[str, CurrentProjectChain] | None = None,
+    project_ids: frozenset[str] | None = None,
 ) -> dict[str, Any]:
     """Return one exact package selected by its evidence-bound identity."""
 
     if not isinstance(package_id, str) or not _SHA.fullmatch(package_id):
         raise MotionPolicyReviewPackageError("package_id is invalid")
     for directory in _package_directories(state_root):
+        if project_ids is not None and directory.name not in project_ids: continue
         try:
             package = _load_package(directory, include_documents=True)
         except ValueError:

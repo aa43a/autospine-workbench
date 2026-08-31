@@ -40,6 +40,7 @@ from .resolved_snapshot_validation import (
     require_resolved_snapshot_for_project,
 )
 from .project_validation import validate_project_document
+from .project_authoring_transaction import project_authoring_transaction
 
 
 _PROJECT_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
@@ -739,24 +740,23 @@ class ProjectStore:
     ) -> dict[str, Any]:
         """Append overrides; provenance is reserved for trusted applications."""
 
-        project = self._build_project(self._record(project_id), include_overrides=False)
-        try:
-            return self._override_store.save(
-                project_id,
-                payload,
-                revision_provenance=revision_provenance,
-                **project_override_context(project, self.resolve_asset, AssetNotFoundError),
-            )
-        except OverrideRevisionCommitted as committed:
-            # Immutable history is the commit point. A stale replaceable
-            # latest index must not turn a successful revision into a retry.
-            return committed.document
-        except OverrideRevisionConflict as exc:
-            raise RevisionConflictError(
-                exc.requested_revision, exc.current_revision
-            ) from exc
-        except OverrideStoreError as exc:
-            raise ProjectStoreError(str(exc)) from exc
+        with project_authoring_transaction(self.state_root, project_id):
+            project = self._build_project(self._record(project_id), include_overrides=False)
+            try:
+                return self._override_store.save(
+                    project_id,
+                    payload,
+                    revision_provenance=revision_provenance,
+                    **project_override_context(project, self.resolve_asset, AssetNotFoundError),
+                )
+            except OverrideRevisionCommitted as committed:
+                # Immutable history is the commit point. A stale replaceable
+                # latest index must not turn a successful revision into a retry.
+                return committed.document
+            except OverrideRevisionConflict as exc:
+                raise RevisionConflictError(exc.requested_revision, exc.current_revision) from exc
+            except OverrideStoreError as exc:
+                raise ProjectStoreError(str(exc)) from exc
 
     def validate_project(self, project_id: str) -> dict[str, Any]:
         """Run deterministic structural and local-asset validation."""

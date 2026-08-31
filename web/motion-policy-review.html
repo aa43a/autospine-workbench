@@ -39,6 +39,31 @@
       <p id="autoLoadStatus" class="status-line" role="status" aria-live="polite">正在查找可用项目…</p>
     </section>
 
+    <section id="draftPolicyPanel" class="panel draft-policy-panel" aria-labelledby="draftPolicyHeading" hidden>
+      <div class="section-heading">
+        <div><p class="eyebrow">PENDING DEPTH POLICY</p><h2 id="draftPolicyHeading">确认遮挡关系，再自动生成候选</h2></div>
+        <span id="draftPolicyBadge" class="gate-badge">等待人工确认</span>
+      </div>
+      <p class="lede">这是新绑定链生成的非权威草案。系统负责来源、SHA 和候选生成；你只需确认画面中的前后关系，不必选择文件或填写数字。</p>
+      <div class="draft-policy-picker">
+        <label><span>待确认项目</span><select id="draftProjectSelect" disabled><option>正在查找…</option></select></label>
+        <button id="draftReloadBtn" class="button secondary" type="button" disabled>重新读取</button>
+      </div>
+      <div id="draftPolicyEvidence" class="draft-policy-evidence" hidden>
+        <figure class="draft-character-card">
+          <img id="draftCharacterComposite" alt="待确认项目的角色合成图">
+          <figcaption>请结合角色画面确认下方两个图层的遮挡关系。</figcaption>
+        </figure>
+        <div>
+          <h3>系统从当前绑定读出的关系</h3>
+          <div id="draftPairFacts" class="draft-pair-facts"></div>
+          <p class="draft-policy-boundary">确认只批准这一个 Depth pair policy 及其 proposal SHA 已绑定的系统防抖参数；119 个 Foot 候选仍会在下一步按安全规则自动辅助，Depth 候选仍需在 P9 画面中最终采用。</p>
+          <button id="draftApproveBtn" class="button primary" type="button" disabled>确认前后关系并生成候选</button>
+        </div>
+      </div>
+      <p id="draftPolicyStatus" class="status-line" role="status" aria-live="polite">正在查找当前绑定的待确认草案…</p>
+    </section>
+
     <details id="expertInputs" class="expert-inputs">
       <summary>专业模式：手动导入 JSON 与 SHA-256</summary>
       <div class="expert-inputs-body">

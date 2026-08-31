@@ -2,6 +2,7 @@ import { parseCandidateText, readCandidateFile } from "./motion-policy-candidate
 import { createMotionPolicyAutoController } from "./motion-policy-auto-controller.js";
 import { authorizeCandidateInventory } from "./motion-policy-candidate-preflight.js";
 import { createMotionPolicyDecisionController } from "./motion-policy-decision-controller.js";
+import { createMotionPolicyDraftController } from "./motion-policy-draft-controller.js";
 import { createLoadGuard, sameIdentitySnapshot } from "./motion-policy-load-guard.js";
 import { createMotionPolicyPreflightApi } from "./motion-policy-preflight-api.js";
 import { createMotionPolicyPageLock } from "./motion-policy-page-lock.js";
@@ -39,6 +40,14 @@ auto = createMotionPolicyAutoController(elements, {
   onAssistChange: (enabled) => {
     const toggle = document.getElementById("approveOnScrub");
     if (toggle) toggle.checked = enabled;
+  },
+});
+const drafts = createMotionPolicyDraftController(document, {
+  packageInventory: () => auto.packageInventory(),
+  onCurrentDraft: () => auto.showPendingDraft(),
+  onPublishingChange: (locked) => publicationLock.setLocked(locked),
+  onPromoted: async (packageDetail) => {
+    await auto.loadPromoted(packageDetail);
   },
 });
 
@@ -209,4 +218,11 @@ function candidateFields() {
   return [elements.footFile, elements.footSha, elements.depthFile, elements.depthSha, elements.loadCandidatesBtn];
 }
 
-auto.start();
+async function startAutomaticEntry() {
+  // Both controllers inspect the current project chain. Run them in order so the
+  // draft discovery can reuse the already validated package inventory.
+  await auto.start();
+  await drafts.start();
+}
+
+startAutomaticEntry();

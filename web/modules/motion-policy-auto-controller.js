@@ -16,6 +16,7 @@ export function createMotionPolicyAutoController(elements, dependencies = {}) {
   let mode = "auto";
   let packages = [];
   let skippedCount = 0;
+  let inventoryReady = false;
   const completed = new Set();
 
   elements.autoProjectSelect.addEventListener("change", () => loadSelected("项目已切换"));
@@ -27,7 +28,11 @@ export function createMotionPolicyAutoController(elements, dependencies = {}) {
       : "时间轴现在只预览，不会自动采用候选。", "warning");
   });
 
-  return { start, reload: loadSelected, markCompleted, continueTo, enterExpertMode };
+  return {
+    start, reload: loadSelected, loadPromoted,
+    packageInventory, markCompleted, continueTo, enterExpertMode,
+    showPendingDraft,
+  };
 
   async function start() {
     mode = "auto";
@@ -35,8 +40,9 @@ export function createMotionPolicyAutoController(elements, dependencies = {}) {
     setBusy(true);
     setStatus(elements.autoLoadStatus, "正在寻找可直接使用的项目…", "warning");
     try {
-      const result = await api.list();
+      const result = await api.list(requestedProject);
       if (current !== generation) return;
+      inventoryReady = true;
       packages = requestedProject === null
         ? result.packages
         : result.packages.filter((row) => row.project_id === requestedProject);
@@ -96,7 +102,7 @@ export function createMotionPolicyAutoController(elements, dependencies = {}) {
     setBusy(true);
     setStatus(elements.autoLoadStatus, `${prefix}：${selected.project_id} / ${selected.motion_id}…`, "warning");
     try {
-      const detail = await api.package(packageId);
+      const detail = await api.package(packageId, selected.project_id);
       if (current !== generation || elements.autoProjectSelect.value !== packageId) return;
       if (detail.authoring_alignment !== "current") {
         throw new Error("复核包在加载期间已成为历史绑定；未进入预检或采用。");
@@ -119,6 +125,48 @@ export function createMotionPolicyAutoController(elements, dependencies = {}) {
         onReset();
         setStatus(elements.autoLoadStatus, errorMessage(error), "error");
       }
+    } finally {
+      if (current === generation) setBusy(false);
+    }
+  }
+
+  async function loadPromoted(packageDetail) {
+    mode = "auto";
+    const current = ++generation;
+    onReset();
+    setBusy(true);
+    setStatus(elements.autoLoadStatus, "正在同步新生成的 P9 复核包…", "warning");
+    try {
+      const result = await api.list(requestedProject);
+      if (current !== generation) return false;
+      inventoryReady = true;
+      packages = requestedProject === null
+        ? result.packages
+        : result.packages.filter((row) => row.project_id === requestedProject);
+      skippedCount = result.skipped_count ?? 0;
+      const row = packages.find((item) => item.package_id === packageDetail?.package_id);
+      if (!row || row.authoring_alignment !== "current" ||
+          row.project_id !== packageDetail.project_id ||
+          row.motion_id !== packageDetail.motion_id) {
+        throw new Error("新生成的 P9 复核包未出现在当前项目清单中");
+      }
+      renderOptions(result.recommended_package_id);
+      elements.autoProjectSelect.value = row.package_id;
+      const applySafe = elements.autoApplySafe.checked;
+      await onLoad(packageDetail, {
+        applySafe,
+        isCurrent: () => current === generation &&
+          elements.autoProjectSelect.value === row.package_id,
+      });
+      if (current !== generation) return false;
+      try { storage?.setItem(STORAGE_KEY, row.package_id); } catch { /* optional */ }
+      setStatus(elements.autoLoadStatus,
+        `${row.project_id} 的正式 policy 与候选已自动绑定；可直接浏览动作并采用安全建议。`,
+        "success");
+      return true;
+    } catch (error) {
+      if (current === generation) setStatus(elements.autoLoadStatus, errorMessage(error), "error");
+      throw error;
     } finally {
       if (current === generation) setBusy(false);
     }
@@ -150,6 +198,11 @@ export function createMotionPolicyAutoController(elements, dependencies = {}) {
       elements.autoProjectSelect.append(option);
     }
     elements.autoProjectSelect.value = selected;
+  }
+
+  function packageInventory() {
+    if (!inventoryReady) return null;
+    return { packages: packages.map((row) => ({ ...row })) };
   }
 
   function markCompleted(packageId) {
@@ -193,6 +246,15 @@ export function createMotionPolicyAutoController(elements, dependencies = {}) {
       "已切换到专业模式；较早的自动加载结果不会覆盖当前输入。", "warning");
   }
 
+  function showPendingDraft() {
+    if (mode !== "auto") return;
+    elements.expertInputs.open = false;
+    const scope = requestedProject ? `项目 ${requestedProject} ` : "";
+    setStatus(elements.autoLoadStatus,
+      `${scope}尚无当前正式 P9 复核包；请先确认下方待处理的遮挡草案。`,
+      "warning");
+  }
+
   function optionLabel(base, packageId) {
     const row = packages.find((candidate) => candidate.package_id === packageId);
     if (row?.authoring_alignment === "historical") return `${base}（历史版本，只读）`;
@@ -213,6 +275,7 @@ export function createMotionPolicyAutoController(elements, dependencies = {}) {
 }
 
 function projectFromSearch(search) {
-  const value = new URLSearchParams(String(search || "")).get("project");
+  const params = new URLSearchParams(String(search || ""));
+  const value = params.get("project") ?? params.get("project_id");
   return value === null || value === "" ? null : value;
 }

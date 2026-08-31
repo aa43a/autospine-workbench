@@ -104,6 +104,7 @@ test("automatic controller restores the last exact package and loads it without 
   assert.equal(ui.autoStartPanel.attributes["aria-busy"], undefined);
   assert.equal(ui.autoLoadStatus.dataset.tone, "success");
   assert.match(ui.autoLoadStatus.textContent, /文件、SHA 与来源校验/);
+  assert.deepEqual(controller.packageInventory().packages, rows);
 });
 
 test("multiple current packages without a saved or recommended choice require explicit selection", async () => {
@@ -275,6 +276,28 @@ test("project query filters exactly and never falls through to another project's
   assert.equal(ui.autoProjectSelect.value, "");
   assert.match(ui.autoLoadStatus.textContent, /项目 sample-b/);
   assert.match(ui.autoLoadStatus.textContent, /不会切换到其他项目/);
+});
+
+test("legacy project_id query also scopes automatic package discovery", async () => {
+  const ui = elements();
+  const rows = [packageRow(PACKAGE_A, "sample-a"), packageRow(PACKAGE_B, "sample-b")];
+  const requested = [];
+  const controller = createMotionPolicyAutoController(ui, {
+    api: {
+      list: async () => packageList(rows, PACKAGE_A),
+      package: async (packageId) => {
+        requested.push(packageId);
+        return { ...rows.find((row) => row.package_id === packageId) };
+      },
+    },
+    storage: storage(PACKAGE_A),
+    locationSearch: "?project_id=sample-b",
+    onLoad: async () => {},
+  });
+
+  await controller.start();
+  assert.deepEqual(requested, [PACKAGE_B]);
+  assert.equal(ui.autoProjectSelect.value, PACKAGE_B);
 });
 
 test("a package that becomes historical during detail load never reaches onLoad", async () => {
@@ -455,6 +478,11 @@ test("automatic controller falls back to expert inputs when no complete package 
   assert.match(ui.autoLoadStatus.textContent, /没有发现完整的自动复核包/);
   assert.match(ui.autoLoadStatus.textContent, /3 个复核包校验失败/);
   assert.equal(ui.autoProjectSelect.disabled, true);
+
+  controller.showPendingDraft();
+  assert.equal(ui.expertInputs.open, false);
+  assert.equal(ui.autoLoadStatus.dataset.tone, "warning");
+  assert.match(ui.autoLoadStatus.textContent, /先确认下方待处理的遮挡草案/);
 });
 
 test("assist toggle explains the next automatic behavior without approving anything", () => {
@@ -471,6 +499,28 @@ test("assist toggle explains the next automatic behavior without approving anyth
   ui.autoApplySafe.checked = true;
   ui.autoApplySafe.dispatchEvent(new Event("change"));
   assert.match(ui.autoLoadStatus.textContent, /安全建议已开启/);
+});
+
+test("a promoted draft refreshes the selector before loading the new exact package", async () => {
+  const ui = elements();
+  const row = packageRow(PACKAGE_B, "sample-b");
+  const loaded = [];
+  const saved = storage();
+  const controller = createMotionPolicyAutoController(ui, {
+    api: { list: async () => packageList([row], PACKAGE_B) },
+    storage: saved,
+    onLoad: async (detail, context) => loaded.push([
+      detail.package_id, context.isCurrent(), context.applySafe,
+    ]),
+  });
+
+  const result = await controller.loadPromoted({ ...row });
+  assert.equal(result, true);
+  assert.equal(ui.autoProjectSelect.value, PACKAGE_B);
+  assert.equal(ui.autoProjectSelect.children.length, 1);
+  assert.equal(saved.value(), PACKAGE_B);
+  assert.deepEqual(loaded, [[PACKAGE_B, true, true]]);
+  assert.match(ui.autoLoadStatus.textContent, /正式 policy 与候选已自动绑定/);
 });
 
 test("a completed package is labelled and continues to the next unprocessed sample this run", async () => {

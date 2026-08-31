@@ -30,6 +30,7 @@ test("page keeps read-only preflight and one explicit local P9 adoption boundary
   assert.doesNotMatch(html, /\son[a-z]+\s*=/i);
   assert.doesNotMatch(`${app}\n${view}`, /innerHTML|insertAdjacentHTML|document\.write|\beval\s*\(/);
   assert.doesNotMatch(`${hash}\n${policyStep}`, /canonicalSha256|canonicalJson/);
+  assert.match(app, /await auto\.start\(\);\s*await drafts\.start\(\);/);
   assert.match(api, /\/api\/motion-policy\/preflight/);
   assert.match(api, /motion-policy-preflight-v1/);
   assert.match(api, /policy_json/);

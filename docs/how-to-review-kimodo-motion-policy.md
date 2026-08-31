@@ -1,6 +1,6 @@
 # 复核并发布 Kimodo 动作策略
 
-本指南同时面向普通操作者和需要独立复验 exact CLI 链的开发者。普通操作者只需选择项目、查看动作、处理异常并执行一次最终人工确认；工作台会从本地 review package 自动加载正式 policy、Foot/Depth candidates，重算 SHA-256，运行交叉预检，再由本机 Python 编译 decision 与 reviewed policy、原子发布 P9 reviewed-motion bundle，并按返回的精确地址立即复验。下载的 review input 只是备份和审计副本，不再是普通流程继续发布的必需交接文件。开发者仍可使用下文 CLI 独立重放同一过程。
+本指南同时面向普通操作者和需要独立复验 exact CLI 链的开发者。普通操作者只需选择项目、查看遮挡与动作、处理异常并执行必要的明确确认。若当前绑定只有 pending P9 draft，页面会先自动读取草案；操作者确认 setup 前后关系后，本机 Python 生成正式 Depth policy、Depth candidates 与 exact review package。随后工作台自动加载正式 policy、Foot/Depth candidates，重算 SHA-256，运行交叉预检；只有第二次、最终的 P9 human adoption 才会编译 decision 与 reviewed policy、原子发布 P9 reviewed-motion bundle，并按返回的精确地址立即复验。下载的 review input 只是备份和审计副本，不再是普通流程继续发布的必需交接文件。开发者仍可使用下文 CLI 独立重放同一过程。
 
 本流程不会自动批准 heading、scale、附件切换、Depth 事件、`rejected_*`、证据缺失、非有限值或超安全阈值项。正式 handoff 文档使用 `--document-only`；Foot/Depth 候选同时保留默认 CLI envelope，因为其中的 `report_sha256` 是复核台绑定同一次结果所必需的身份。
 
@@ -10,14 +10,16 @@
 
 启动工作台并打开 [Motion Policy 自动工作流](http://127.0.0.1:8765/motion-policy-review.html)。建议按以下顺序完成：
 
-1. 从绑定工作台的“P9 复核”进入，页面会携带当前 project。存在唯一 current package 时才自动选择并加载；历史 package 会标记为“历史版本，只读”并禁用，目标项目没有 current package 时也不会跳到 A/B 的另一角色。
-2. 等待“身份与预检通过”。服务端会读取 package 中固定文件，重算 policy、Foot、Depth 与 candidate inventory 身份，再由页面执行同一 candidate preflight。普通用户不需要选择 JSON 文件或填写 SHA-256。
-3. 拖动时间轴查看角色足点、校正曲线和重点窗口。启用“拖动时采用安全建议”后，一次拖动会把经过的、尚未决定且符合当前安全规则的 Foot candidates 作为一组可撤销的辅助决定；也可点击“一键采用全部安全建议”。重点窗口只是接触边界、极值、p95、过零或跳变的视觉导航，本身既不批准也不排除候选。
-4. 查看“需要处理的异常”。自动采用必须同时满足：类型为 Foot、`state=candidate`、observations 完整且全部数值有限、correction ratio 与 residual 均不超过各自合同上限的 80%。Depth、`rejected_limit`、`rejected_conflict`、缺证、非有限值和超阈值项不会被安全结果覆盖；`adjust` 始终需要明确输入最终值。
-5. 检查自动覆盖数量和异常数量，必要时撤销最近一次辅助操作。确认结果后执行页面上的最终采用。这一次明确动作把辅助结果采纳为 v1 的 `human` review input，并提交给与当前 exact package 绑定的本地 adoption 入口。
-6. 等待成功或幂等复用回执，再点击“进入接缝复核”。链接只携带当前 exact `package_id`；服务端会重放 package 与共享 P3 来源、复验 P3 bundle，并自动加载 Seam candidate。普通用户无需下载文件、记录双 SHA 或抄写 P3/P5 地址。
+1. 从绑定工作台的“P9 复核”进入，页面会携带当前 project，并同时查找 current pending draft 与 current exact package。历史草案/package 都会保持只读，目标项目缺少 current 项时也不会跳到另一角色。
+2. 如果出现“确认遮挡关系，再自动生成候选”，先对照角色合成图、两个透明独立图层、对应 slot/role 和高亮的 setup 前景。唯一 current draft 会自动选中；多个 current draft 时只需选择项目。点击“确认前后关系并生成候选”后，还要在确认框中再次核对前景关系。
+3. 等待草案晋级回执。服务端会重放并交叉核对 P3/P4/P5/P7/P8 current chain、把 proposal 投影为正式人工批准的 Depth policy、生成 Depth candidates、原子发布并读回 exact review package，然后在同一页面自动进入 P9 候选复核。此时 **P9 尚未最终采用**。
+4. 等待“身份与预检通过”。服务端会读取 package 中固定文件，重算 policy、Foot、Depth 与 candidate inventory 身份，再由页面执行同一 candidate preflight。普通用户不需要选择 JSON 文件或填写 SHA-256。
+5. 拖动时间轴查看角色足点、校正曲线和重点窗口。启用“拖动时采用安全建议”后，一次拖动会把经过的、尚未决定且符合当前安全规则的 Foot candidates 作为一组可撤销的辅助决定；也可点击“一键采用全部安全建议”。重点窗口只是接触边界、极值、p95、过零或跳变的视觉导航，本身既不批准也不排除候选。
+6. 查看“需要处理的异常”。自动采用必须同时满足：类型为 Foot、`state=candidate`、observations 完整且全部数值有限、correction ratio 与 residual 均不超过各自合同上限的 80%。Depth、`rejected_limit`、`rejected_conflict`、缺证、非有限值和超阈值项不会被安全结果覆盖；`adjust` 始终需要明确输入最终值。
+7. 检查自动覆盖数量和异常数量，必要时撤销最近一次辅助操作。确认结果后执行页面上的最终采用。这是与草案晋级不同的第二个 authority-changing 动作：它把辅助结果采纳为 v1 的 `human` review input，并提交给与当前 exact package 绑定的本地 adoption 入口。
+8. 等待成功或幂等复用回执，再点击“进入接缝复核”。链接只携带当前 exact `package_id`；服务端会重放 package 与共享 P3 来源、复验 P3 bundle，并自动加载 Seam candidate。普通用户无需下载文件、记录双 SHA 或抄写 P3/P5 地址。
 
-这里的“自动”覆盖文件选择、SHA 绑定、低风险 Foot 重复操作，以及确认后的本地编译、内容寻址发布和 exact verify。Motion Policy Decision v1 的合同仍是 **human adoption**：页面不会零点击发布，也不会授予 seam、官方 Runtime 或 release authority。选择项目、预检通过、拖完时间轴或候选达到 100% 覆盖，都不等于最终人工采纳；只有最后一次明确确认才允许调用 adoption 入口。
+这里的“自动”覆盖草案/package 发现、文件选择、SHA 绑定、Depth candidates 生成、低风险 Foot 重复操作，以及确认后的本地编译、内容寻址发布和 exact verify。页面不会零点击改变 authority。确认 Depth 前后关系只授权草案晋级；它不是 Motion Policy Decision v1 的最终 **human adoption**，也不会发布 MotionInstance v2。选择项目、草案晋级、预检通过、拖完时间轴或候选达到 100% 覆盖，都不等于最终人工采纳；只有最后一次明确确认才允许调用最终 adoption 入口。两次动作都不授予 seam、官方 Runtime 或 release authority。
 
 如需审计外部文件、处理未登记 package 或排查身份错误，再展开“专业模式：手动导入 JSON 与 SHA”。专业模式不是普通流程的必经步骤。
 
@@ -159,6 +161,30 @@ Write-Utf8NoBom .\review\depth-order-candidates.json $DepthCandidates
 
 检查每个 foot sample 的 support/state/correction/residual，并查看每个 depth event 的证据窗口、滞回状态与 proposed front slot。`$FootCandidatesSha`、`$DepthCandidatesSha` 必须是各自 envelope 中的完整小写 SHA；复核台可直接加载两个 `.envelope.json` 并暂填它们，随后仍会由 Python 对内嵌 report 重算。默认 envelope 可能包含本机输入路径，只能作为本地临时文件，不要提交或对外传递；两个不带 `.envelope` 的 path-free canonical report 才用于后续 CLI 和 handoff。`rejected_limit` 或 `rejected_conflict` 的 foot 候选不能直接 `accept`；需要 `adjust`、`reject` 或 `unobservable`。
 
+### 默认模式：从 current draft 晋级为 exact review package
+
+`prepare-motion-policy-review-draft` 生成的 namespace 故意不包含正式 policy 或 Depth candidates，
+因此不会被既有 package inventory 当成最终可采用项。默认页面现在通过独立接口发现草案：
+
+| 资源 | 作用 |
+| --- | --- |
+| `GET /api/motion-policy/review-drafts` | 严格读取 draft manifest、proposal、Foot candidates 和共享 evidence；按 current Resolved + Manifest 双 SHA 分类，仅在唯一 current draft 时给出推荐 ID |
+| `GET /api/motion-policy/review-drafts/{draft_id}` | 返回 proposal SHA 与 path-free pair/slot/setup-front 摘要；不返回 proposal 自由文本，历史草案只读 |
+| `POST /api/motion-policy/review-drafts/{draft_id}/policy-adoptions` | 在显式确认和 current-chain 双检查下生成正式 policy、Depth candidates 与三文件 exact review package |
+
+POST 要求 `X-Autospine-Intent: depth-policy-draft-adoption-v1`。正文固定为
+`autospine-depth-policy-draft-adoption-request` v1，绑定完整 `draft_id`、draft manifest SHA、proposal
+SHA，并要求 `explicit_confirmation=true`。服务端不信任浏览器提供的 P3/P5/P8 地址；它从封存草案
+重新读取和复验 exact bundle。发布成功后回执给出新的 `motion_id`、policy SHA、Depth candidate
+SHA 与 package ID，页面再按 package ID 读回 current package。相同 canonical 输入可以幂等复用；
+草案已变为 historical、current chain 在操作中变化、目录 inventory/bytes 不一致或读回复验失败都会
+fail closed。
+
+“policy-adoptions”这里指 pending Depth policy 的明确批准与 package 准备，不是最终 Motion Policy
+Decision/P9 adoption。它不会生成 candidate decision、reviewed policy、MotionInstance v2 或六文件
+reviewed-motion bundle。页面进入时间轴后，仍须处理全部 Foot/Depth candidates，并执行本指南第 7 步
+所述最终确认。
+
 ### 专业模式：手动导入三文件与 SHA
 
 默认项目选择器读取本地 `workspace/reviews/<motion>/<project>/` 中已经登记的 exact package，并自动完成正式 policy、Foot report、Depth report 与三份 SHA 的装载。只有 package 未登记、需要复核外部副本或排查身份问题时，才展开专业模式：
@@ -171,15 +197,19 @@ Write-Utf8NoBom .\review\depth-order-candidates.json $DepthCandidates
 
 `rejected_limit` / `rejected_conflict` Foot 项不能 accept。Foot adjust 要明确填写最终 X/Y；Depth adjust 必须从当前 pair 的两个 slot 里选择最终 front。Root release 只能引用报告列出的 unconstrained ticks。辅助采用只写入当前页面的、带来源标记且可撤销的草稿，不覆盖已有人工或批量决定；最终 adoption 要求 100% 精确覆盖、全局字段有效和一次明确人工采纳。加载 package、切换项目或输入身份变化会使旧异步结果和草稿预览失效，必须基于当前快照重新校验。
 
-默认项目流程先调用两个只读接口；最终人工确认后再调用一个本地写入口。通常不需要手工调用：
+默认项目流程先调用草案或 package 只读接口；需要草案晋级时调用一次受保护写入口，最终 P9 人工确认
+再调用另一个独立写入口。通常不需要手工调用：
 
 | 资源 | 作用 |
 | --- | --- |
+| `GET /api/motion-policy/review-drafts` | 发现 current pending drafts；唯一 current 项才自动推荐 |
+| `GET /api/motion-policy/review-drafts/{draft_id}` | 读取 exact 草案身份和可视化遮挡摘要；不返回路径或 proposal 自由文本 |
+| `POST /api/motion-policy/review-drafts/{draft_id}/policy-adoptions` | 只晋级 Depth policy 并生成 Depth candidates/exact package；不提交最终 P9 adoption |
 | `GET /api/motion-policy/review-packages` | 列出本地 exact packages，按当前 Resolved + Manifest 双 SHA 分类，只推荐唯一 current package |
 | `GET /api/motion-policy/review-packages/{package_id}` | 按完整 ID 读取并重验 package，返回 `current/historical` 对齐状态；响应不含本地路径 |
 | `POST /api/motion-policy/review-packages/{package_id}/adoptions` | 写前执行两次 current-chain 快照和 exact package 校验；历史项 409 零写入，current 项才编译、原子发布并 exact verify |
 
-推荐 ID 只是默认界面选择，不是批准状态。完整 package ID 绑定项目、动作、clip、policy/Foot/Depth 身份与 candidate inventory；`authoring_alignment=current` 还要求 package 的 P3 Resolved 与 Manifest 双 SHA 同时匹配当前绑定。任一内容变化都产生不同 ID或转为历史项，页面不会按 mtime、`latest` 或其他项目回退。
+推荐 draft/package ID 只是默认界面选择，不是批准状态。完整 draft ID 绑定 namespace、manifest、proposal、Foot candidates 与共享 evidence；完整 package ID 绑定项目、动作、clip、policy/Foot/Depth 身份与 candidate inventory。`authoring_alignment=current` 都要求来源 P3 的 Resolved 与 Manifest 双 SHA 同时匹配当前绑定。任一内容变化都产生不同 ID 或转为历史项，页面不会按 mtime、`latest` 或其他项目回退。
 
 Adoption 正文是严格 wrapper：`format=autospine-motion-policy-adoption-request`、`format_version=1`、`intent=motion-policy-adoption-v1`、与 URL 完全相同的 `package_id`，以及只含 `review`、`decisions`、`root_release_keys`、`draw_order_loop_reset` 的 `review_input`。多余字段、package ID 不一致或不完整决定都会被拒绝。成功回执固定为 `autospine-motion-policy-adoption-receipt` v1；只有 `status=passed`、`verification.replayed_from_exact_upstreams=true`，且 `address` 中同时包含 `project_id`、`motion_instance_v2_sha256` 与 `bundle_sha256` 时，页面才显示发布完成。
 
@@ -337,11 +367,13 @@ P9 通过新增 MotionInstance v2 与 Spine adapter v2 承载动态策略；Moti
 
 ## 10. 当前验收边界
 
-普通流程的一次最终 human adoption 现在会闭合 exact address、候选/决定分离、root correction、draw order、MotionInstance v2、六文件 bundle 发布和 exact replay；CLI 保留为独立专业复验路径。P9 成功仍未关闭以下门禁：
+普通流程中，草案前后关系确认只生成正式 policy、Depth candidates 和 exact review package；后续一次独立的最终 human adoption 才会闭合 exact address、候选/决定分离、root correction、draw order、MotionInstance v2、六文件 bundle 发布和 exact replay。CLI 保留为独立专业复验路径。P9 成功仍未关闭以下门禁：
 
-- `wave-left-v1` 的两个项目已于 2026-08-30 分别完成人工 adoption，并通过 P9 exact replay；可进入下游的双 SHA 与完整上游身份集中记录在 [pilot handoff](pilots/kimodo-wave-left-v1.md)；
-- A（`seethrough_output`）的下一步是静态 seam 人审、P10.5c reviewed set 与后续动态 seam 门禁；
-- B（`seethrough_output_5`）的左右 pelvis-leg 与 leg-foot 四条关系受长裙/分层限制而不可观测；在修复上游资产/语义或建立版本化 partial 合同前，不能伪造完整下肢 seam 通过，也不能宣称通用腿部动画可用；
+- `wave-left-v1` 的两个项目已于 2026-08-30 对旧绑定链分别完成人工 adoption，并通过 P9 exact replay；历史双 SHA 与完整上游身份集中记录在 [pilot handoff](pilots/kimodo-wave-left-v1.md)；
+- A（`seethrough_output`）随后确认动作证据换绑并保存 revision 6，新 Manifest/P2–P5 已通过复验，`wave-left-v1-r6-draft` 可由本页自动发现；在草案晋级后仍须完成新的最终 P9 adoption；
+- B（`seethrough_output_5`）revision 16 的 `wave-left-v1-r16-draft` 同样可自动发现并晋级，但左脚仍不可观测；相关 foot-lock 必须保持 reject/unobservable，不能用数值探针伪造真实接触；
+- A/B 旧 P9 以及依赖旧 P3/P9 的 P10、seam 决定都只是历史证据。新 P9 完成后必须重建 P10.0/P10.1、重跑 P10.2 并重建 seam candidate；
+- 若新 P10.2 仍仅因固定素材画布被拒，后续 CaptureFraming/TemporaryPreview v2 必须以 setup、base、combined 完整包络和独立人工取景决定为前置，不能把 `DynamicViewportFit v1` 或草案晋级回执直接当成 P10.3 准入；
 - 动态 draw order/foot correction 在官方 Spine runtime 中的固定截图回归；
 - heading 或 scale timeline 的人工决定与 runtime 消费合同；
 - attachment switch、deform、runtime IK 和物理。

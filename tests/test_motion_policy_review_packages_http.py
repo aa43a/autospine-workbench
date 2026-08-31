@@ -188,7 +188,7 @@ class MotionPolicyReviewPackageHttpTests(
 
         with patch(
             "autospine_workbench.motion_policy_review_package_routes."
-            "_project_ids",
+            "resolve_motion_policy_project_scope",
             side_effect=ProjectStoreError(f"private {self.store.state}"),
         ):
             status, _, raw = self._package_request("GET")
@@ -196,6 +196,37 @@ class MotionPolicyReviewPackageHttpTests(
         decoded = raw.decode("utf-8")
         self.assertNotIn("private", decoded)
         self.assertNotIn(str(self.store.state), decoded)
+
+    def test_list_project_scope_filters_inventory_and_rejects_bad_queries(self):
+        project_id = self.policy["project_id"]
+        status, _, raw = self._package_request(
+            "GET", f"?project_id={project_id}",
+        )
+        self.assertEqual(200, status)
+        self.assertEqual(1, json.loads(raw)["count"])
+
+        status, _, raw = self._package_request(
+            "GET", f"/{self.package_id}?project_id={project_id}",
+        )
+        self.assertEqual(200, status)
+        self.assertEqual(self.package_id, json.loads(raw)["package_id"])
+
+        status, _, raw = self._package_request(
+            "GET", "?project_id=unrelated-project",
+        )
+        self.assertEqual(200, status)
+        self.assertEqual(0, json.loads(raw)["count"])
+
+        status, _, _ = self._package_request(
+            "GET", f"/{self.package_id}?project_id=unrelated-project",
+        )
+        self.assertEqual(404, status)
+
+        status, _, raw = self._package_request("GET", "?project_id=../bad")
+        self.assertEqual(400, status)
+        self.assertEqual(
+            "invalid_motion_policy_project_scope", json.loads(raw)["error"],
+        )
 
     def test_rebuild_unavailable_is_500_not_authoring_drift(self):
         private = f"persistent project store at {self.store.state}"

@@ -17,10 +17,7 @@ from .body_sway_visual_review_routes import (
     visual_review_allow_methods,
 )
 from .contracts import ContractValidationError
-from .http_security import (
-    host_header_is_local as _host_header_is_local,
-    is_loopback_host as _is_loopback_host,
-)
+from .http_security import host_header_is_local as _host_header_is_local
 from .http_json_request import HttpJsonRequestError, read_json_object_request
 from .http_static_response import serve_static_response
 from .http_workbench_response import WorkbenchResponseMixin
@@ -39,6 +36,12 @@ from .motion_policy_review_package_routes import (
     is_motion_policy_review_package_path,
     send_motion_policy_review_package_method_not_allowed,
 )
+from .motion_policy_review_draft_routes import (
+    READ_METHODS as MOTION_POLICY_DRAFT_READ_METHODS,
+    dispatch_motion_policy_review_draft_get,
+    is_motion_policy_review_draft_get_path,
+    send_motion_policy_review_draft_method_not_allowed,
+)
 from .project_store import (
     AssetNotFoundError,
     ProjectNotFoundError,
@@ -55,24 +58,11 @@ from .seam_anchor_review_routes import (
     seam_anchor_review_resource_methods,
 )
 from .seam_anchor_review_replay_cache import SeamAnchorReviewReplayCache
+from .server_binding import WorkbenchThreadingHTTPServer, validate_server_configuration
 from .split_preview_routes import dispatch_split_preview_get
 
 
 _LOG = logging.getLogger(__name__)
-
-
-class WorkbenchThreadingHTTPServer(ThreadingHTTPServer):
-    """Use an exclusive bind where Windows otherwise permits port sharing."""
-
-    if hasattr(socket, "SO_EXCLUSIVEADDRUSE"):
-        allow_reuse_address = False
-
-    def server_bind(self) -> None:
-        if hasattr(socket, "SO_EXCLUSIVEADDRUSE"):
-            self.socket.setsockopt(
-                socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1,
-            )
-        super().server_bind()
 
 
 def _handler_factory(
@@ -112,6 +102,10 @@ def _handler_factory(
             ):
                 return True
             if dispatch_motion_policy_review_package_get(
+                parts, store, self._send_visual_json, self.path,
+            ):
+                return True
+            if dispatch_motion_policy_review_draft_get(
                 parts, store, self._send_visual_json, self.path,
             ):
                 return True
@@ -194,6 +188,7 @@ def _handler_factory(
             policy_preflight = is_motion_policy_preflight_path(parts)
             adoption = policy_mutation.is_motion_policy_mutation_path(parts)
             policy_package = is_motion_policy_review_package_path(parts)
+            policy_draft = is_motion_policy_review_draft_get_path(parts)
             seam_methods = seam_anchor_review_resource_methods(parts) \
                 if seam_review else None
             if seam_review and seam_methods is None:
@@ -206,7 +201,7 @@ def _handler_factory(
                 return
             self.send_response(HTTPStatus.NO_CONTENT)
             local_review = body_review or seam_review or policy_preflight \
-                or adoption or policy_package
+                or adoption or policy_package or policy_draft
             self._common_headers(visual_review=local_review)
             if adoption:
                 methods = policy_mutation.motion_policy_mutation_allow_methods(parts)
@@ -214,6 +209,8 @@ def _handler_factory(
                 methods = MOTION_POLICY_PREFLIGHT_ALLOW_METHODS
             elif policy_package:
                 methods = MOTION_POLICY_PACKAGE_ALLOW_METHODS
+            elif policy_draft:
+                methods = MOTION_POLICY_DRAFT_READ_METHODS
             elif body_review:
                 methods = visual_review_allow_methods(parts)
             elif seam_review:
@@ -247,6 +244,9 @@ def _handler_factory(
                     return
                 if is_motion_policy_review_package_path(parts):
                     send_motion_policy_review_package_method_not_allowed(self)
+                    return
+                if is_motion_policy_review_draft_get_path(parts):
+                    send_motion_policy_review_draft_method_not_allowed(self)
                     return
                 if dispatch_body_sway_visual_review_put(
                     parts, store, self, self._send_visual_json,
@@ -313,6 +313,9 @@ def _handler_factory(
             if is_motion_policy_review_package_path(parts):
                 send_motion_policy_review_package_method_not_allowed(self)
                 return
+            if is_motion_policy_review_draft_get_path(parts):
+                send_motion_policy_review_draft_method_not_allowed(self)
+                return
             if dispatch_seam_anchor_review_post(
                 parts, store, self, self._send_visual_json, replay_cache,
             ):
@@ -343,6 +346,9 @@ def _handler_factory(
             if is_motion_policy_review_package_path(parts):
                 send_motion_policy_review_package_method_not_allowed(self)
                 return
+            if is_motion_policy_review_draft_get_path(parts):
+                send_motion_policy_review_draft_method_not_allowed(self)
+                return
             if is_body_sway_visual_review_path(parts):
                 self._send_visual_method_not_allowed(parts)
                 return
@@ -366,15 +372,7 @@ def create_server(
 ) -> ThreadingHTTPServer:
     """Create, but do not start, a loopback-only workbench server."""
 
-    if not _is_loopback_host(host):
-        raise ValueError("AutoSpine workbench may only bind to localhost or a loopback IP.")
-    if not isinstance(port, int) or isinstance(port, bool) or not (0 <= port <= 65535):
-        raise ValueError("port must be an integer between 0 and 65535")
-    resolved_web_root: Path | None = None
-    if web_root is not None:
-        resolved_web_root = Path(web_root).expanduser().resolve()
-        if not resolved_web_root.is_dir():
-            raise ValueError("web_root must be an existing directory")
+    resolved_web_root = validate_server_configuration(host, port, web_root)
     store = ProjectStore(Path(workspace_root), state_root=state_root)
     try:
         projects = store.list_projects()

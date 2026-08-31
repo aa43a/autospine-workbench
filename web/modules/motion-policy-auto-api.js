@@ -3,19 +3,35 @@ const SHA = /^[0-9a-f]{64}$/;
 
 export function createMotionPolicyAutoApi(fetchApi = globalThis.fetch) {
   return {
-    async list() {
-      return validateList(await request(fetchApi, LIST_URL));
+    async list(projectId = null) {
+      return validateList(await request(fetchApi, scopedListUrl(projectId)));
     },
-    async package(packageId) {
+    async package(packageId, projectId = null) {
       if (!SHA.test(packageId)) {
         throw new Error("自动复核包 ID 无效");
       }
-      const path = `${LIST_URL}/${packageId}`;
+      const path = scopedDetailUrl(packageId, projectId);
       const value = validatePackage(await request(fetchApi, path), true);
       if (value.package_id !== packageId) throw new Error("自动复核包详情身份不匹配");
       return value;
     },
   };
+}
+
+function scopedDetailUrl(packageId, projectId) {
+  if (projectId === null) return `${LIST_URL}/${packageId}`;
+  if (typeof projectId !== "string" || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(projectId)) {
+    throw new Error("自动项目范围无效");
+  }
+  return `${LIST_URL}/${packageId}?project_id=${encodeURIComponent(projectId)}`;
+}
+
+function scopedListUrl(projectId) {
+  if (projectId === null) return LIST_URL;
+  if (typeof projectId !== "string" || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(projectId)) {
+    throw new Error("自动项目范围无效");
+  }
+  return `${LIST_URL}?project_id=${encodeURIComponent(projectId)}`;
 }
 
 async function request(fetchApi, url) {
@@ -46,7 +62,7 @@ function validateList(value) {
       (value.recommended_package_id !== null && !recommended)) {
     throw new Error("自动项目清单含重复或未知推荐项");
   }
-  if (recommended?.authoring_alignment !== "current") {
+  if (recommended && recommended.authoring_alignment !== "current") {
     throw new Error("自动项目清单不得推荐历史版本");
   }
   return { ...value, packages };

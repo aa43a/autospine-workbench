@@ -90,6 +90,32 @@ test("automatic package API rejects malformed IDs before making a request", asyn
   assert.equal(requestCount, 0);
 });
 
+test("automatic package list sends one canonical project scope", async () => {
+  const urls = [];
+  const api = createMotionPolicyAutoApi(async (url) => {
+    urls.push(url);
+    return response(listPayload());
+  });
+  await api.list("sample-a");
+  assert.deepEqual(urls, ["/api/motion-policy/review-packages?project_id=sample-a"]);
+  await assert.rejects(api.list("../sample"), /范围无效/);
+  assert.equal(urls.length, 1);
+});
+
+test("automatic package detail sends the same canonical project scope", async () => {
+  const urls = [];
+  const api = createMotionPolicyAutoApi(async (url) => {
+    urls.push(url);
+    return response(packageRow(PACKAGE_A, true));
+  });
+  await api.package(PACKAGE_A, "sample-a");
+  assert.deepEqual(urls, [
+    `/api/motion-policy/review-packages/${PACKAGE_A}?project_id=sample-a`,
+  ]);
+  await assert.rejects(api.package(PACKAGE_A, "../sample"), /范围无效/);
+  assert.equal(urls.length, 1);
+});
+
 test("automatic package detail must retain the requested exact package identity", async () => {
   const api = createMotionPolicyAutoApi(async () => response(packageRow(PACKAGE_B, true)));
   await assert.rejects(api.package(PACKAGE_A), /详情身份不匹配/);
@@ -115,6 +141,13 @@ test("automatic package list accepts historical rows but never a historical reco
   accepted.recommended_package_id = PACKAGE_B;
   const list = await createMotionPolicyAutoApi(async () => response(accepted)).list();
   assert.equal(list.packages[0].authoring_alignment, "historical");
+
+  const historicalOnly = listPayload([packageRow(PACKAGE_A, false, "historical")]);
+  historicalOnly.recommended_package_id = null;
+  const noRecommendation = await createMotionPolicyAutoApi(
+    async () => response(historicalOnly),
+  ).list();
+  assert.equal(noRecommendation.recommended_package_id, null);
 
   const unsafe = listPayload(rows);
   unsafe.recommended_package_id = PACKAGE_A;

@@ -8,10 +8,12 @@ from . import motion_policy_adoption_routes as adoption
 from . import seam_review_publication_routes as seam_publication
 from . import idle_behavior_review_routes as idle_review
 from . import region_rebind_adoption_routes as region_rebind
+from . import motion_policy_review_draft_routes as draft_policy
 
 
 def is_motion_policy_mutation_path(parts: list[str]) -> bool:
     return idle_review.is_idle_behavior_review_mutation_path(parts) \
+        or draft_policy.is_p9_draft_policy_adoption_path(parts) \
         or adoption.is_motion_policy_adoption_path(parts) \
         or seam_publication.is_seam_review_publication_path(parts) \
         or region_rebind.is_region_rebind_adoption_path(parts)
@@ -20,6 +22,8 @@ def is_motion_policy_mutation_path(parts: list[str]) -> bool:
 def motion_policy_mutation_allow_methods(parts: list[str]) -> str:
     if idle_review.is_idle_behavior_review_mutation_path(parts):
         return idle_review.ALLOW_METHODS
+    if draft_policy.is_p9_draft_policy_adoption_path(parts):
+        return draft_policy.WRITE_METHODS
     if adoption.is_motion_policy_adoption_path(parts):
         return adoption.ALLOW_METHODS
     if seam_publication.is_seam_review_publication_path(parts):
@@ -31,6 +35,8 @@ def motion_policy_mutation_allow_methods(parts: list[str]) -> str:
 
 def dispatch_motion_policy_mutation_post(parts, handler, store, send_json):
     return idle_review.dispatch_idle_behavior_review_post(
+        parts, handler, store, send_json,
+    ) or draft_policy.dispatch_p9_draft_policy_adoption_post(
         parts, handler, store, send_json,
     ) or adoption.dispatch_motion_policy_adoption_post(
         parts, handler, store, send_json,
@@ -46,6 +52,10 @@ def send_motion_policy_mutation_method_not_allowed(
 ) -> None:
     if idle_review.is_idle_behavior_review_mutation_path(parts):
         idle_review.send_idle_behavior_review_method_not_allowed(handler)
+    elif draft_policy.is_p9_draft_policy_adoption_path(parts):
+        draft_policy.send_motion_policy_review_draft_method_not_allowed(
+            handler, write=True,
+        )
     elif adoption.is_motion_policy_adoption_path(parts):
         adoption.send_motion_policy_adoption_method_not_allowed(handler)
     elif seam_publication.is_seam_review_publication_path(parts):
