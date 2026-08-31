@@ -10,7 +10,9 @@ from .body_sway_runtime_capture_page import (
     CAPTURE_JS,
     body_sway_capture_case_html,
 )
-from .body_sway_runtime_capture_profile import BROWSER_FIXED_ARGUMENTS
+from .body_sway_runtime_capture_profile import (
+    BROWSER_FIXED_ARGUMENTS as FROZEN_V1_BROWSER_FIXED_ARGUMENTS,
+)
 
 
 FORMAT = "autospine-body-sway-runtime-execution"
@@ -20,6 +22,11 @@ PAYLOAD_NAME = "body-sway-runtime-capture-v2.json"
 NAMESPACE = "body-sway-runtime-executions"
 BUNDLE_ADDRESS_DOMAIN = b"autospine.body-sway-runtime-execution-bundle/v1\x00"
 MAX_MANIFEST_BYTES = 2 * 1024 * 1024
+RUNNER_VERSION = "1.1.0"
+BROWSER_FIXED_ARGUMENTS = tuple(
+    argument for argument in FROZEN_V1_BROWSER_FIXED_ARGUMENTS
+    if not argument.startswith("--virtual-time-budget=")
+)
 
 AUTHORITY = {
     "scope": "bounded-capture-framed-official-runtime-still-execution",
@@ -70,13 +77,14 @@ def body_sway_runtime_execution_compiler_profile() -> dict[str, Any]:
 def body_sway_runtime_execution_runner_profile() -> dict[str, Any]:
     return {
         "id": "body-sway-capture-framed-official-runtime-runner",
-        "version": "1.0.0",
+        "version": RUNNER_VERSION,
         "supported_host_os": "windows",
         "host": "127.0.0.1",
         "transport": "loopback-http-post",
         "case_order": "exact-capture-plan-order",
         "case_isolation": "fresh-browser-profile",
         "completion_signal": "collector-terminal-capture",
+        "page_lifetime": "collector-terminal",
         "network_dependency": "none",
         "input_trust": "pinned-runtime-and-exact-preview-v2-assets-only",
         "browser_executable_stability": {
@@ -101,8 +109,9 @@ def body_sway_runtime_execution_runner_profile() -> dict[str, Any]:
 
 
 __all__ = [
-    "AUTHORITY", "BUNDLE_ADDRESS_DOMAIN", "FORMAT", "FORMAT_VERSION",
-    "MANIFEST_NAME", "MAX_MANIFEST_BYTES", "NAMESPACE", "PAYLOAD_NAME",
-    "RELEASE_GATE", "body_sway_runtime_execution_compiler_profile",
+    "AUTHORITY", "BROWSER_FIXED_ARGUMENTS", "BUNDLE_ADDRESS_DOMAIN",
+    "FORMAT", "FORMAT_VERSION", "MANIFEST_NAME", "MAX_MANIFEST_BYTES",
+    "NAMESPACE", "PAYLOAD_NAME", "RELEASE_GATE", "RUNNER_VERSION",
+    "body_sway_runtime_execution_compiler_profile",
     "body_sway_runtime_execution_runner_profile",
 ]

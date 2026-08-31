@@ -39,7 +39,7 @@
 
 P10.2 页面加载、切换项目、拖动时间轴和下载技术备份均为零写入。报告下载文件名包含项目、clip 和报告哈希前缀，以免两份样本互相覆盖；正常工作流不依赖该下载。无论结构结果为何，`release_gate` 都保持 `blocked`。
 
-真实样本 A `seethrough_output` 已经完成该换绑：`layer-007-handwear-l` 当前绑定到 `upper-arm.left`，override revision 为 6，Manifest/P2–P5、P9、P10.1 与 P10.2 已按新身份重建。当前 P10.2 仅因旧素材框 containment 保留结构拒绝，完整动作包络已由动态视口覆盖；CaptureFraming 已接受 revision 1。真实 official Runtime job 和 P10.3c 人工视觉决定尚未发生。
+真实样本 A `seethrough_output` 已经完成该换绑：`layer-007-handwear-l` 当前绑定到 `upper-arm.left`，override revision 为 6，Manifest/P2–P5、P9、P10.1 与 P10.2 已按新身份重建。当前 P10.2 仅因旧素材框 containment 保留结构拒绝，完整动作包络已由动态视口覆盖；CaptureFraming 已接受 revision 1。六次 official Runtime job 均在不固定 case 处失败且没有发布部分证据；runner 1.1.0 尚待操作者重新显式运行，P10.3c 人工视觉决定也尚未发生。
 
 真实样本 B `seethrough_output_5` 是“不能只调小幅度”的实例：reviewed gain `8/8` 有 `334/334` 个画布失败 tick，`0/8` 仍有 `333/334` 个，主要涉及 `layer-006-objects`、`layer-000-back-hair` 与 `layer-008-hand-r`。这些数字属于 revision 16 之前的历史链，不能外推到新绑定；新链仍须完成 P9 adoption 并重跑 P10.2。
 

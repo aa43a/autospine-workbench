@@ -122,14 +122,14 @@ test("retryable failure exposes a new explicitly confirmed run instead of a dead
   const last = value.events.at(-1);
   Object.assign(last, {
     status: "failed_retryable", addresses: null,
-    failure_code: "runtime_capture_failed",
+    failure_code: "runtime_browser_exited_without_capture",
   });
   Object.assign(value, {
     status: last.status, retryable: true, terminal: false,
     addresses: null, failure_code: last.failure_code,
     failure_diagnostic: {
       format: "autospine-p10-capture-failure-diagnostic", format_version: 1,
-      stage: "evidence_publication", category: "runtime_execution",
+      stage: "evidence_publication", category: "browser_execution",
       completed_case_count: 1, total_case_count: 1,
       next_incomplete_case_ordinal: null,
     },
@@ -140,6 +140,7 @@ test("retryable failure exposes a new explicitly confirmed run instead of a dead
   assert.equal(elements.reviewNext.hidden, true);
   assert.equal(elements.newRun.textContent, "重新校验并创建新采集");
   assert.match(elements.resultSummary.textContent, /证据密封发布未完成/);
+  assert.match(elements.resultSummary.textContent, /浏览器采样执行异常/);
   assert.match(elements.resultSummary.textContent, /已完成 1\/1 个样本/);
 });
 

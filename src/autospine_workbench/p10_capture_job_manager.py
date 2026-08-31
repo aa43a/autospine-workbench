@@ -8,6 +8,7 @@ import threading
 from typing import Any
 
 from .p10_capture_job_contract import ACTIVE_STATUSES
+from .p10_capture_failure_codes import classify_p10_capture_failure
 from .p10_capture_job_store import P10CaptureJobConflict, P10CaptureJobSnapshot, P10CaptureJobStore
 from .p10_preview_v2_commands import (
     P10PreviewV2CommandError, P10PreviewV2CommandResult,
@@ -22,7 +23,6 @@ from .p10_runtime_environment import P10RuntimeEnvironment, discover_p10_runtime
 from .project_store import ProjectStore
 
 FORMAT, FORMAT_VERSION = "autospine-p10-runtime-capture-preflight", 1
-
 class P10CaptureJobManagerError(RuntimeError):
     """Raised when safe asynchronous orchestration cannot be established."""
 
@@ -188,7 +188,8 @@ class P10CaptureJobManager:
                 self._interrupt(job_id)
                 return
             changed = self._current_input_changed(request_document)
-            code = "input_head_changed" if changed else "runtime_capture_failed"
+            code = "input_head_changed" if changed \
+                else classify_p10_capture_failure(exc)
             self._fail_current(job_id, changed, code)
 
     def _progress(

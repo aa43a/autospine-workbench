@@ -19,6 +19,9 @@ for candidate in (ROOT, SRC):
 from autospine_workbench.browser_executable_snapshot import (  # noqa: E402
     BrowserExecutableSnapshot,
 )
+from autospine_workbench.body_sway_headless_browser_inputs import (  # noqa: E402
+    BodySwayHeadlessBrowserError,
+)
 from autospine_workbench.p10_capture_job_manager import (  # noqa: E402
     FORMAT,
     FORMAT_VERSION,
@@ -35,7 +38,7 @@ from autospine_workbench.p10_runtime_capture_v2_commands import (  # noqa: E402
     P10RuntimeCaptureV2CommandResult,
 )
 from autospine_workbench.p10_runtime_capture_v2_runner import (  # noqa: E402
-    P10RuntimeCaptureV2Progress,
+    P10RuntimeCaptureV2Progress, P10RuntimeCaptureV2RunnerError,
 )
 from autospine_workbench.p10_runtime_environment import (  # noqa: E402
     P10RuntimeEnvironment,
@@ -165,6 +168,24 @@ class P10CaptureJobManagerTests(unittest.TestCase):
         self.assertEqual("failed_retryable", manager.submit(payload)["status"])
         self.assertEqual(1, len(self.executor_calls))
         self.assertFalse(hasattr(manager, "retry"))
+
+    def test_nested_browser_failure_persists_only_its_safe_code(self):
+        def fail(*_args, **_kwargs):
+            browser = BodySwayHeadlessBrowserError(
+                "Headless browser exited without posting the exact capture"
+            )
+            runner = caused(P10RuntimeCaptureV2RunnerError("runner"), browser)
+            raise P10RuntimeCaptureV2CommandError(r"C:\\private\\error.log") \
+                from runner
+
+        manager = self._manager(executor=fail)
+        queued = manager.submit(self._payload("safe-code"))
+        settled = manager.wait(queued["job_id"], timeout=5)
+        self.assertEqual(
+            "runtime_browser_exited_without_capture",
+            settled["failure_code"],
+        )
+        self.assertNotIn("private", repr(settled))
 
     def test_startup_marks_old_active_job_interrupted_without_execution(self):
         jobs = P10CaptureJobStore(self.state)
@@ -297,6 +318,15 @@ class P10CaptureJobManagerTests(unittest.TestCase):
             "explicit_runtime_license_confirmation": True,
             "explicit_run_confirmation": True,
         }
+
+def caused(outer, inner):
+    try:
+        raise inner
+    except BaseException as failure:
+        try:
+            raise outer from failure
+        except BaseException as wrapped:
+            return wrapped
 
 
 if __name__ == "__main__":

@@ -116,7 +116,7 @@ web    → HTTP contracts only
 - P9→P10.5b 使用只读 `GET /api/motion-policy/review-packages/{package_id}/seam-review-entry`。Application service 从 package ID 重新加载 Foot/Depth exact package，验证共享 P3 来源，再由 VerifiedMeshBundleReader 重放 P3，并准备固定六关系 Seam candidate；客户端不能提交 Manifest/P3 SHA。响应只含 path-free 地址、candidate 身份、摘要和 blocker。handoff 本身不写 revision、不选择 locator；页面随后从独立 candidate/history 资源加载精确证据、自动绑定 current head，并把服务端 advisory assist 投影为可撤销草稿。手工四段地址只保留为专业审计 fallback。
 - P10.0–P10.2a 共享 exact-chain loader 只读取七个完整 SHA 所选的 Layer Manifest/P3/P5/P9 工件。Candidate、人工 review、decision、probe report 和 P10.2a 诊断候选保持独立；普通 P10.0–P10.1 service 只把已采用 P9 bundle 作为待 exact replay 的 entry，并在最后显式确认时把标准 decision 追加到 candidate-bound CAS history；浏览器不提交上游地址或 `human` 字段。P10.2a 的统一 gain 与动态视口都只输出零权威诊断；只有独立 CaptureFraming `accept/adjust` revision 可以进入 Preview v2。所有进程内缓存都只保存可重建结果，命中仍执行 exact replay/current-head 检查，不落盘、不授予 authority。
 - P10.3 v2 以 package 为普通用户入口。Preflight 从 current package 重放 P10.1、P10.2、CaptureFraming、world viewport、Preview v2、projection、plan 和 source，再校验固定 Spine Player 4.2.119 JS/CSS/package/LICENSE 与 Chrome。浏览器只提交服务端给出的 current identities、显式许可确认和本次运行确认；不提交文件路径或自选 SHA。
-- capture job request 和事件链 append-only 保存。状态查询可跨页面刷新恢复；失败和进程/服务中断都不会自动重试，当前没有用户主动取消 API。runner 只有在 exact session 与环境 snapshot 一致时才捕获，collector 同时校验 v1 或 v2 session 而不改变冻结 v1 字节。成功结果以 project/Preview v2/execution bundle/artifact set 四段地址发布，partial output 不进入正式 execution。
+- capture job request 和事件链 append-only 保存。状态查询可跨页面刷新恢复；失败和进程/服务中断都不会自动重试，当前没有用户主动取消 API。execution v2 runner `1.1.0` 只有在 exact session 与环境 snapshot 一致时才捕获，以 `page_lifetime=collector-terminal` 等待 exact callback 提交；它不使用冻结 v1 的 `--dump-dom`/`--virtual-time-budget`。collector 同时校验 v1 或 v2 session 而不改变冻结 v1 字节。成功结果以 project/Preview v2/execution bundle/artifact set 四段地址发布，partial output 不进入正式 execution；失败事件保存 path-free 精确 failure code。
 - P10.3c v2 HTTP/UI 以 completed `job_id` 为外部地址。服务端从不可变 job 解析内部四段地址，重放 execution 并双检查 current P10.1/CaptureFraming；candidate、history、decision 与 store 使用独立 v2 namespace。读取零写入，只有覆盖完整 cases、通过 head CAS 的人工提交才追加 revision；系统不自动生成或批准视觉决定。v1 capture/review namespace 与 CLI 冻结且不与 v2 混用。
 - P9/P10 current-chain inventory 的项目 ID 使用轻量 audit discovery，不触发 override/Resolved 构建。双快照中的 Layer Manifest 派生可复用 8 项进程内 LRU/single-flight 缓存；key 包含 exact Resolved SHA、全部源 raster 内容 SHA 及 15 个相关模块的源码/live callable 算法身份，warm hit 前仍执行 `get_project` 并逐字节重算素材 SHA，compile 后再次核对相同 key。失败、输入漂移和算法变化均不驻留或命中。缓存不落盘、不参与 package/current 判定本身，也没有绕过 before/after 比较；Resolved/override 目前故意不缓存。
 - 现有 P10.4a admission、P10.4b1 amplitude-envelope 与 P10.4b2 continuous-proof 都属于冻结 v1 visual-review 链，不能消费 v2 head。v2 的下一工程边界必须先增加独立 P10.4a v2 admission/consumer：重放 completed execution、v2 current history 与 exact decision，并以双快照观察 current head；在此之前不得把 v2 sampled approval 接到现有幅度、连续证明或下游 seam consumer。
@@ -310,7 +310,7 @@ current package + P10.1 + P10.2 + accepted CaptureFraming
                     explicit license acknowledgement
                                   ↓ per-run second confirmation
                      append-only asynchronous job
-                                  ↓ official 4.2.119 execution
+      ↓ runner 1.1.0 / collector-terminal official 4.2.119 execution
             immutable execution JSON + payload v2 + PNGs
                                   ↓ completed job_id
                  v2 candidate + exhaustive human cases
@@ -322,7 +322,15 @@ current package + P10.1 + P10.2 + accepted CaptureFraming
 
 真实 capture 的外部信任前置条件是操作者提供并确认有权使用官方 `@esotericsoftware/spine-player@4.2.119`。仓库不下载、再分发或从 `LICENSE` 文件推断授权；test-only `SpinePlayer` stub 只覆盖 Chrome 进程、loopback 与 PNG 通路，不能进入真实视觉证据链。environment snapshot 固定绑定 Runtime JS/CSS/package/LICENSE、Chrome executable/version 和 capture profile。每次执行还要求独立的许可勾选与本次运行二次确认。
 
-job request 与 event history 采用 append-only store；页面可以按 job ID 恢复查询，但 manager 不自动重试失败/中断 job。成功后 store 按 `builds/{project}/body-sway-runtime-executions/{preview-v2-sha}/{bundle-sha}` 发布固定 execution JSON、payload v2 JSON 和 captures；exact reader 使用 project/preview/bundle/artifact 四段地址读回。completed job 是普通 UI 的唯一 handoff，页面 URL 只携带完整 `job_id`。
+job request 与 event history 采用 append-only store；页面可以按 job ID 恢复查询，但 manager 不自动重试失败/中断 job。失败终态保留 path-free 精确 `failure_code`，不暴露原始异常、路径或命令行。成功后 store 按 `builds/{project}/body-sway-runtime-executions/{preview-v2-sha}/{bundle-sha}` 发布固定 execution JSON、payload v2 JSON 和 captures；exact reader 使用 project/preview/bundle/artifact 四段地址读回。completed job 是普通 UI 的唯一 handoff，页面 URL 只携带完整 `job_id`。
+
+六次真实样本 A job 分别在不固定 case 处失败；这些 job 与事件链不可变，没有发布部分 execution。
+根因包括旧 execution v2 驱动携带 `--dump-dom`/`--virtual-time-budget` 与异步 collector-terminal
+完成条件冲突，以及 exact 截图提交后的主动 teardown 与 stdout reader 退出竞争。v2 runner `1.1.0`
+把 page lifetime 固定为 collector terminal，并且仅在 capture 已提交、异常由主动 teardown 引发时
+容忍 stdout reader 关闭错误。提交前读取失败、输出超限、reader 未退出或 pipe 无法关闭仍 fail
+closed。该 runner 与 profile 是新 v2 身份；不会改写冻结 v1 或六个历史失败 job。真实 Runtime 尚未
+用 runner 1.1.0 重跑，必须由操作者再次显式确认。
 
 P10.3c v2 从 completed job 解析内部四段地址，并绑定 current Preview v2、framing、P10.1、report 与 world viewport。Prepare/candidate/history/exact-decision 是零写入读路径；首次人工提交才会发布 exact candidate，并在 candidate SHA 命名空间下写入内容寻址 decision 与连续 revision slot。CAS 拒绝 stale head、跳号和并发抢占；字节相同的安全重试可复用。HTTP 投影不返回本地路径，图片只能经 job/candidate/case/PNG identity 读取。详细操作见[运行 P10.3 官方 Runtime 自动采集](how-to-capture-body-sway-runtime.md)和[复核 P10.3c 官方 Runtime 采样帧](how-to-review-body-sway-runtime.md)。
 
@@ -514,7 +522,7 @@ sample 冒充 replay。命令不启动 Runtime、不扫描 mutable head、不写
 临时 stdout 只授予 bounded setup-frame equivalence，release gate 固定 blocked；readiness v2
 之前还必须把 request/report、批准合同与批准 PNG 封存成可寻址、可重放的 immutable comparison
 bundle。共享的 `wave-left-v1` 已到达 P7/P8、真实 A/B 各自的 P5、正式 depth policy、
-depth candidates 与各自 exact replay 通过的 P9 reviewed-motion bundle。A 还具有操作者确认并 exact replay 通过的 P10.5b/P10.5c 静态接缝凭据；当前应从 P10.0–P10.1 身体摆动设置继续，依次补齐 P10.2、P10.3a–P10.3c、P10.4a、P10.4b1 与 P10.4b2 后，才能进入 P10.5d。B 的四条下肢关系不可观测，在修复分层/语义或建立版本化 partial 合同前仍被阻塞；两者之后还需要官方 capture。操作入口见
+depth candidates 与各自 exact replay 通过的历史 P9 reviewed-motion bundle。A revision 6 current chain 已重建到 P10.2 并接受 CaptureFraming revision 1，但六次 P10.3 v2 真实 job 均失败且没有部分证据；runner 1.1.0 仍待操作者显式重跑，之后才可进入 P10.3c v2 人审。A 的旧 P10.5b/P10.5c 静态接缝凭据仍可 exact replay，但不能授权 revision 6 current chain。B revision 16 必须沿自己的 current chain 重建；旧链四条下肢关系不可观测的结论不能直接外推。操作入口见
 [P10.7c Setup Golden How-to](how-to-compare-spine42-v3-setup-golden.md)、
 [就绪状态审计 How-to](how-to-audit-spine42-v3-readiness.md)和[后续开发路线](development-roadmap.md)。
 

@@ -16,7 +16,7 @@ from .body_sway_capture_server_lease import (
     BodySwayCaptureServerLease,
     BodySwayCaptureServerLeaseError,
 )
-from .body_sway_headless_browser import (
+from .body_sway_headless_browser_v2 import (
     BodySwayHeadlessBrowserError,
     run_body_sway_headless_capture_case,
 )

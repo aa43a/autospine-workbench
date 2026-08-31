@@ -1,4 +1,4 @@
-"""Opt-in real Chrome smoke for loopback capture and process cleanup."""
+"""Opt-in real Chrome smoke for the v2 collector-terminal driver."""
 
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ for candidate in (ROOT, SRC):
 from autospine_workbench.body_sway_capture_server_lease import (  # noqa: E402
     BodySwayCaptureServerLease,
 )
-from autospine_workbench.body_sway_headless_browser import (  # noqa: E402
+from autospine_workbench.body_sway_headless_browser_v2 import (  # noqa: E402
     run_body_sway_headless_capture_case,
 )
 from autospine_workbench.body_sway_runtime_capture_harness import (  # noqa: E402
@@ -65,9 +65,11 @@ window.spine = {
         updateWorldTransform() {},
       },
     };
-    config.success(player);
-    config.frame(player);
-    config.draw(player);
+    setTimeout(function () {
+      config.success(player);
+      config.frame(player);
+      config.draw(player);
+    }, 150);
   },
 };
 '''
@@ -75,7 +77,7 @@ window.spine = {
 
 @unittest.skipUnless(os.environ.get(CHROME_ENV), f"set {CHROME_ENV}")
 class BodySwayRealChromeSmokeTests(unittest.TestCase):
-    def test_one_real_process_posts_png_and_releases_its_profile(self):
+    def test_v2_process_waits_for_delayed_png_and_releases_its_profile(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             fixture_root = root / "fixture"
