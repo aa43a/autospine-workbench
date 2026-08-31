@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/body-sway-runtime-capture-v2.schema.json",
+  "title": "AutoSpine BodySwayRuntimeCapture v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "project_id", "clip_id", "source",
+    "timing", "selection", "compiler", "semantics", "runtime", "assets",
+    "browser", "capture", "cases", "artifacts", "status", "release_gate",
+    "summary"
+  ],
+  "properties": {
+    "format": {"const": "autospine-body-sway-runtime-capture"},
+    "format_version": {"const": 2},
+    "project_id": {"$ref": "#/$defs/id"},
+    "clip_id": {"$ref": "#/$defs/id"},
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "temporary_preview_v2_sha256", "preview_artifact_set_sha256",
+        "preview_projection_v2_sha256", "capture_plan_v2_sha256",
+        "preview_source_sha256",
+        "capture_framing_candidate_sha256",
+        "capture_framing_decision_sha256", "capture_framing_revision",
+        "body_sway_probe_report_sha256", "current_p10_1_head",
+        "world_viewport"
+      ],
+      "properties": {
+        "temporary_preview_v2_sha256": {"$ref": "#/$defs/sha"},
+        "preview_artifact_set_sha256": {"$ref": "#/$defs/sha"},
+        "preview_projection_v2_sha256": {"$ref": "#/$defs/sha"},
+        "capture_plan_v2_sha256": {"$ref": "#/$defs/sha"},
+        "preview_source_sha256": {"$ref": "#/$defs/sha"},
+        "capture_framing_candidate_sha256": {"$ref": "#/$defs/sha"},
+        "capture_framing_decision_sha256": {"$ref": "#/$defs/sha"},
+        "capture_framing_revision": {"type": "integer", "minimum": 1, "maximum": 64},
+        "body_sway_probe_report_sha256": {"$ref": "#/$defs/sha"},
+        "current_p10_1_head": {"$ref": "#/$defs/head"},
+        "world_viewport": {"$ref": "#/$defs/worldViewport"}
+      }
+    },
+    "timing": {"type": "object"},
+    "selection": {"type": "object"},
+    "compiler": {"type": "object"},
+    "semantics": {"type": "object"},
+    "runtime": {"type": "object"},
+    "assets": {"type": "object"},
+    "browser": {"type": "object"},
+    "capture": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "viewport", "device_pixel_ratio", "background",
+        "preserve_drawing_buffer", "world_viewport", "capture_plan_sha256",
+        "case_stream_sha256", "cases"
+      ],
+      "properties": {
+        "viewport": {
+          "const": {"width": 640, "height": 640}
+        },
+        "device_pixel_ratio": {"const": 1},
+        "background": {"const": "#20242aff"},
+        "preserve_drawing_buffer": {"const": true},
+        "world_viewport": {"$ref": "#/$defs/worldViewport"},
+        "capture_plan_sha256": {"$ref": "#/$defs/sha"},
+        "case_stream_sha256": {"$ref": "#/$defs/sha"},
+        "cases": {
+          "type": "array", "minItems": 3, "maxItems": 55,
+          "items": {"$ref": "#/$defs/planCase"}
+        }
+      }
+    },
+    "cases": {
+      "type": "array", "minItems": 3, "maxItems": 55,
+      "items": {"$ref": "#/$defs/capturedCase"}
+    },
+    "artifacts": {"type": "object"},
+    "status": {
+      "const": "validated_capture_payload_ready_for_official_runtime_execution"
+    },
+    "release_gate": {"type": "object"},
+    "summary": {"type": "object"}
+  },
+  "$defs": {
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "finite": {"type": "number", "minimum": -1000000000000, "maximum": 1000000000000},
+    "worldViewport": {
+      "type": "object", "additionalProperties": false,
+      "required": ["x", "y", "width", "height"],
+      "properties": {
+        "x": {"$ref": "#/$defs/finite"},
+        "y": {"$ref": "#/$defs/finite"},
+        "width": {"type": "number", "exclusiveMinimum": 0, "maximum": 1000000000000},
+        "height": {"type": "number", "exclusiveMinimum": 0, "maximum": 1000000000000}
+      }
+    },
+    "head": {
+      "type": "object", "additionalProperties": false,
+      "required": ["candidate_sha256", "decision_sha256", "revision"],
+      "properties": {
+        "candidate_sha256": {"$ref": "#/$defs/sha"},
+        "decision_sha256": {"$ref": "#/$defs/sha"},
+        "revision": {"type": "integer", "minimum": 1, "maximum": 10000}
+      }
+    },
+    "planCase": {
+      "type": "object", "additionalProperties": false,
+      "required": ["case_id", "animation", "tick", "time_seconds"],
+      "properties": {
+        "case_id": {"$ref": "#/$defs/id"},
+        "animation": {"type": ["string", "null"]},
+        "tick": {"type": "integer", "minimum": 0},
+        "time_seconds": {"type": "number", "minimum": 0}
+      }
+    },
+    "capturedCase": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "case_id", "animation", "tick", "time_seconds",
+        "image_path", "png_sha256"
+      ],
+      "properties": {
+        "case_id": {"$ref": "#/$defs/id"},
+        "animation": {"type": ["string", "null"]},
+        "tick": {"type": "integer", "minimum": 0},
+        "time_seconds": {"type": "number", "minimum": 0},
+        "image_path": {"type": "string", "pattern": "^captures/[a-z0-9][a-z0-9.-]{0,95}\\.png$"},
+        "png_sha256": {"$ref": "#/$defs/sha"}
+      }
+    }
+  }
+}

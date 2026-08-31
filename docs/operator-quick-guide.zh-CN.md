@@ -4,7 +4,7 @@
 
 P9 Kimodo 动作进入策略复核时，可从功能入口中心打开 `Motion Policy 自动工作流`。普通用户只需确认项目：存在推荐项时页面会自动选择并加载对应的 exact package，重算 SHA-256 和 candidate inventory。随后拖动时间轴或点击“一键采用全部安全建议”，只让系统覆盖 `state=candidate`、证据完整有限且 correction ratio/residual 均不超过合同上限 80% 的 Foot candidates，再处理少量异常并做一次最终明确采纳。三份 JSON 与 SHA 手工输入只在“专业模式”中保留。Depth、`rejected_*`、缺证、非有限值和超阈值项不会自动批准；最终确认后，本机服务会编译、发布并精确复验 P9，review input 下载仅作备份。完整流程见 [复核并发布 Kimodo 动作策略](how-to-review-kimodo-motion-policy.md)。
 
-P9 已采用后，从功能入口中心打开 `身体摆动设置`。页面会自动选择无歧义的项目/package，由服务端 exact replay P3/P5/P9 并准备 P10.0 候选；普通用户不用选 JSON、填写 SHA 或寻找目录。先看角色合成图和四骨示意，再播放、拖动时间轴并调整少量参数。页面上的推荐只是 `unvalidated_draft`，时间轴操作不会自行批准；保存、拒绝和无法判断三个按钮都会先显示项目、动作与后果，取消弹窗不会写入。只有在弹窗中点击“确认并提交”才形成 P10.1 revision。P10.2 会自动运行七项结构检查，并用 P10.2a `0/8…8/8` 统一 gain 诊断帮助区分“幅度可调”与“基础结构仍越界”；该诊断不会自行批准或保存参数。
+P9 已采用后，从功能入口中心打开 `身体摆动设置`。页面会自动选择无歧义的项目/package，由服务端 exact replay P3/P5/P9 并准备 P10.0 候选；普通用户不用选 JSON、填写 SHA 或寻找目录。先看角色合成图和四骨示意，再播放、拖动时间轴并调整少量参数。页面上的推荐只是 `unvalidated_draft`，时间轴操作不会自行批准；保存、拒绝和无法判断三个按钮都会先显示项目、动作与后果，取消弹窗不会写入。只有在弹窗中点击“确认并提交”才形成 P10.1 revision。P10.2 会自动运行七项结构检查，并用 P10.2a `0/8…8/8` 统一 gain 诊断帮助区分“幅度可调”与“基础结构仍越界”；当唯一问题只是旧素材框 containment 时，P10.2b 会进一步生成覆盖 setup、base 与 combined 动作包络的自动取景候选，仍须一次明确确认才形成取景 revision。
 
 P9 成功后可直接进入 `Seam Anchor 复核台`。页面会自动加载 package、绑定 current head、把明确的唯一候选和不可观测项填入可撤销草稿，并用图片叠加代替默认展示 SHA/JSON；普通操作者只需检查多候选和最后明确确认。若六条关系均可用，同一次确认会继续生成并精确读回 P10.5c 静态接缝集。完整流程见 [复核 P10.5b 静态接缝锚点](how-to-review-seam-anchors.md)。
 
@@ -58,7 +58,7 @@ cd E:\proj\unusual\localset\autospine-workbench
 - 复制精确的 `python -B -m autospine_workbench <command> --help` 帮助命令；
 - 通过 `/document-viewer.html?doc=docs/<文件名>.md` 安全文档查看器打开对应仓库文档。
 
-浏览器不会执行 CLI，也不会选择不明确的 `latest`。P9 与身体摆动页面只会自动选择服务端列出的确定性 exact package，并由服务端补齐、重算上游身份；P9 成功回执可用 `package_id` 自动进入 Seam，Seam 的四段地址只在专业审计模式中手填。Body-sway Runtime 视觉复核目前仍需要精确地址；从 `package_id` 自动生成临时预览、经许可确认启动 capture 并带入 exact 地址属于下一阶段规划，尚未实现。首次使用 CLI 时，先在项目根目录的当前 PowerShell 执行：
+浏览器不会执行 CLI，也不会选择不明确的 `latest`。P9 与身体摆动页面只会自动选择服务端列出的确定性 exact package，并由服务端补齐、重算上游身份；P9 成功回执可用 `package_id` 自动进入 Seam，Seam 的四段地址只在专业审计模式中手填。P10.2b 自动取景和 Temporary Preview v2/Runtime Capture v2 的版本化合同已经实现；后者当前只表示“采集载荷已验证、可以交给官方 Runtime 执行”，不证明官方 Runtime 已经运行。把 `package_id`、许可确认、异步官方 capture 和 P10.3c 视觉复核串成一个普通用户入口仍是下一阶段。首次使用 CLI 时，先在项目根目录的当前 PowerShell 执行：
 
 ```powershell
 $env:PYTHONPATH = (Resolve-Path .\src).Path
@@ -99,11 +99,12 @@ $env:PYTHONPATH = (Resolve-Path .\src).Path
 3. 查看顶部结论、角色图和四骨时间轴。`1024×1024` 等数字只是 See-through 素材/setup 坐标，不是 Rig 或 Runtime 相机边界。可滚轮或按钮缩放、在画布上拖拽平移，点击“适配全部动作”查看完整采样包络；这些操作只改变本地视图。拖动时间轴只切换有界采样见证，不会批准 tick，也不代表穷尽全部采样。
 4. 查看五项自动结构卡：loop、FK、mesh、画布和共享索引。接缝与 Runtime 视觉两卡固定列为后续门禁，不能因为前五项通过而当作已发布。
 5. 若显示“结构拒绝”，查看 P10.2a 的 `0/8…8/8` 统一 gain 诊断。`0/8` 只是“移除 body-sway 后是否仍越界”的测试，不能保存为动作。只有非零 gain 的 sampled canvas 和 geometry 都通过时，系统才会给出 `unvalidated_draft`；把它带回 P10.1 后，仍须在确认弹窗中保存一个新 revision，再回本页重跑 P10.2。
-6. 若旧报告只因素材框 containment 被拒绝、而动态视口能够覆盖完整动作，页面会显示“动态视口已适配”；旧 v1 报告仍作为审计证据保留，但不再把素材框越界解释成 Rig 结构失败。若同时出现 region 换绑建议，点击入口会打开绑定工作台、选择责任图层，并在独立建议卡预览目标骨；建议不会填入上方共享 Rig 表单，普通保存也不能绕过专用入口。你只需复核一次并确认保存，新 override revision 才会生效。历史 package、来源骨已变化或 revision 冲突都会零写入拒绝。
-7. 若所有非零候选都失败且动态视口也无法判定，或还存在 FK、mesh、拓扑等拒绝，不要继续盲目调小幅度；应修复 attachment、骨绑定或上游动作。若显示“需要 Runtime 视觉复核”，才可开始准备 P10.3 capture，但 release 仍保持 blocked。
-8. 专家详情中的 canonical report 与唯一文件名下载只用于备份/排障；普通流程无需下载后重新选文件。
+6. 若旧报告只因素材框 containment 被拒绝、而动态视口能够覆盖完整动作，页面会显示“动态视口已适配”；旧 v1 报告仍作为审计证据保留，但不再把素材框越界解释成 Rig 结构失败。继续向下查看“自动取景确认”：系统会自动显示 setup、base、combined 三张覆盖卡和最多四个责任点，不要求坐标、SHA 或文件。图像完整且留白合理时点击“采用自动取景”；不合适时点“不采用”，素材不足时点“当前无法判断”。三个按钮都会先弹出项目、动作、决定与后果，只有“确认并提交”才追加 P10.2b revision。
+7. 只有 current `accept/adjust` 取景决定才能成为 Temporary Preview v2 的输入；自动候选、拖动画布、滚动时间轴或动态视口适配本身都不会批准。当前 Runtime Capture v2 仅能验证固定 640×640、DPR=1 的内容寻址采集载荷，尚不能证明官方 Spine Runtime 已执行。
+8. 若同时出现 region 换绑建议，点击入口会打开绑定工作台、选择责任图层，并在独立建议卡预览目标骨；建议不会填入上方共享 Rig 表单，普通保存也不能绕过专用入口。确认保存后会产生新 override revision，旧下游链随即变成历史。若还存在 FK、mesh、拓扑等拒绝，不要继续盲目调小幅度，应修复 attachment、骨绑定或上游动作。
+9. 专家详情中的 canonical report 与唯一文件名下载只用于备份/排障；普通流程无需下载后重新选文件。
 
-当前真实数据中，`seethrough_output` 已保存 P10.1 r2（decision `70d62da6…`）。旧 P10.2 report `4406289e…` 仍记录固定素材框下的 218/334 个失败采样，`0/8` 为 217/334；v3 动态视口已能覆盖完整动作，因此这些数字不再单独构成 Rig 结构失败。对唯一责任附件 `layer-007-handwear-l`，动作证据推荐 `forearm.left → upper-arm.left`，root-compensated motion extent 改善约 `31.81%`。请从页面进入绑定工作台，复核系统自动选择的图层和目标骨，再确认保存新 revision；之后重建 Manifest/P2–P10。P10.3 尚未消费该动态视口候选，不能直接进入。样本 B 的旧链诊断也不能外推到 revision 16。
+当前真实数据中，`seethrough_output` 已把 `layer-007-handwear-l` 改绑到 `upper-arm.left` 并保存 override revision 6；Manifest/P2–P5、P9、P10.1 与 P10.2 已按新身份重建。当前 P10.2 唯一拒绝项是旧素材框 containment，动态视口已经覆盖完整动作，P10.2b 自动取景候选已生成但仍等待操作者决定。样本 B revision 16 必须沿它自己的 current chain 重建，不能继承 A 或任一旧链的 P9/P10 数字。
 
 ### P10.5：用图片完成接缝复核
 
@@ -115,7 +116,7 @@ $env:PYTHONPATH = (Resolve-Path .\src).Path
 6. 若六条关系全部 `accept/adjust` 且页面来自 P9 package，本机随后自动执行 P10.5c 编译、内容寻址发布和 exact readback。成功后可下载 path-free 精确复验回执；只有精确 P10.4b2 动作域也已闭合时，才能进入“动态接缝验证”。
 7. 若页面提示“P10.5b 已保存；P10.5c 未完成”，只点击“仅重试生成静态接缝集”。不要再次提交六项人工决定；页面会保留已经写入的 revision。若结果包含 `reject/unobservable`，页面只保存阻塞结论，不会生成不可信的 P10.5c。
 
-当前真实状态要单独理解：样本 A 的 P10.5b revision 2 已以 `6/6 accept`、`24` 个 anchor pairs 取代 revision 1；对应 P10.5c 静态接缝集也已发布并通过 exact replay，无需重复提交六项决定。A 的 P10.1 r2 也已保存；P10.2 v1 的 `0/8` 越界是固定素材框的历史诊断，v3 动态视口已经能适配完整动作。系统另为 `layer-007-handwear-l` 推荐 `upper-arm.left`，须在绑定工作台明确确认、保存新 revision 并重建下游。P10.3 尚未消费动态视口，不能直接跳过重建和门禁。静态接缝结果不表示动态接缝、Runtime 等价或视觉接缝质量已经通过。样本 B 的旧链参数、画布与静态 seam 结论同样不能自动变成 revision 16 的当前结论。
+当前真实状态要单独理解：样本 A 的旧 P10.5b revision 2 与 P10.5c 静态接缝集仍可 exact replay，但 override revision 6 已改变 Manifest/P3 身份，因此不能作为新链 current seam authority。`layer-007-handwear-l` 已换绑到 `upper-arm.left`，新 P9/P10.1/P10.2 已重建；当前待办是 P10.2b 自动取景决定。静态接缝结果不表示动态接缝、Runtime 等价或视觉接缝质量已经通过。样本 B 的旧链参数、画布与静态 seam 结论同样不能自动变成 revision 16 的当前结论。
 
 ## 3. 打开一个样本
 
@@ -281,6 +282,7 @@ E:\proj\unusual\localset\tmp\psd_audit\results\<project-id>\audit.json
 - 生成并严格验证版本化的 Resolved Project v1 snapshot，同时保持历史 r5/r7 内容地址不变；
 - 从已采用的 P9 链按 `project_id` 自动选择 exact package，在“身体摆动设置”中用角色合成图、四骨示意、播放/时间轴和少量参数准备 P10.0 草稿；P9 per-key single-flight 与 chain/split 缓存命中仍全字节重验，双快照不省略，三个决定按钮均经项目/动作/后果二次确认，取消零写入；
 - 从 current P10.1 head 自动推荐唯一可探针项目，在 P10.2 页面只读编译七项结构报告和 P10.2a `0/8…8/8` 零权威诊断，并以通俗卡片、角色图和四骨采样见证显示结果；有界 derived cache 只复用完整 root/address/candidate/head/profile 身份相同的可重建结果，仍执行前后 exact replay/head 检查；
+- 在 P10.2 页面生成 setup/base/combined 三域的 CaptureFraming 候选，通过一次确认保存独立 revision；current `accept/adjust` 可编译 Temporary Preview v2 和 Runtime Capture v2 验证载荷，且 v1 合同保持冻结；
 - 从独立页面完成人工 Body-sway still；从 P9 package 自动进入 Seam Anchor 页面，以叠加图、确定性建议草稿和一次最终确认完成 P10.5b，并在 ready 时继续 P10.5c exact publication/readback；
 - 在 P9 页面完成一次明确 human adoption 后，由本机编译 decision/reviewed policy、原子发布 MotionInstance v2 六文件 bundle，并立即 exact verify；CLI 仍可独立复验，review input 下载仅作备份；
 - 通过离线命令生成和验证版本中立的 Layer Manifest、RigIR、mesh、IK、MotionIR、P10.6a admission、MotionInstance v3 及 P10.7a Spine 4.2 v3 五文件 adapter 工件。
@@ -295,7 +297,7 @@ E:\proj\unusual\localset\tmp\psd_audit\results\<project-id>\audit.json
 - 自动生成眨眼、口型、头发物理、实时追踪或自由形变；
 - 保证大幅动作下没有露底、裂缝、错误遮挡或翻三角；
 - 把结构探针、离散截图、sampled raster 指标、锚点点距或一次人工决定当作连续时间或完整发布验收；
-- 在未提供并确认授权的官方 Spine Runtime 时声称 runtime 等价；
+- 在未提供并确认授权的官方 Spine Runtime、且未留下 exact session/runner 凭据时，把 Runtime Capture v2 验证载荷声称为官方 Runtime 已执行或 runtime 等价；
 - 自动授予商业使用、发布许可或生成 Spine Editor 工程。
 
 固定 Spine 4.2 profile 的 adapter 和验证链已经存在，但每个新 rig/clip 仍需分别完成 attachment 边界视觉回归、官方 Runtime 证据和许可审查。
@@ -313,7 +315,7 @@ python -B -m autospine_workbench verify-mesh-bundle --help
 
 ## 10. 当前阶段与下一开发入口
 
-**P9-real-kimodo-policy-adoption** 对当前 `wave-left-v1` 的 A/B 历史链已关闭；P10.2/P10.2a、动态视口与 region 换绑候选也已交付。项目 A 的 P10.5c 静态集与 P10.1 r2 均已闭合；旧 report `4406289e…` 的固定素材框拒绝继续保留，v3 已把它与 Rig 结构错误分开，并为 `layer-007-handwear-l` 推荐 `forearm.left → upper-arm.left`。下一步是复核独立建议卡并通过专用入口保存新 override revision，再重建下游。项目 B revision 16 则须完成新 P9 后重建 P10.0/P10.1 并重跑诊断。只有新链取得合格的结构与 Runtime 证据才进入 P10.3a–P10.3c → P10.4a → P10.4b1 → P10.4b2 → P10.5d。P10.3 package-centric 自动 capture 仍是未实现规划。对新的 Kimodo 输入，仍应先运行零写入准入审计：
+**P9-real-kimodo-policy-adoption** 对当前 `wave-left-v1` 的 A/B 历史链已关闭；P10.2/P10.2a、动态视口、region 换绑、CaptureFraming 与 P10.3 v2 验证载荷合同也已交付。项目 A 已保存 override revision 6，并按新身份重建到 canvas-only P10.2；当前下一步是在同页完成一次“自动取景确认”。项目 B revision 16 必须沿自己的 current chain 完成 P9/P10 重建。取景通过后，仍需 package-centric v2 编译、许可确认、带 exact session/runner 的官方 capture 与 P10.3c 逐 case 视觉复核；验证载荷本身不代表 Runtime 已执行。对新的 Kimodo 输入，仍应先运行零写入准入审计：
 
 ```powershell
 python -B -m autospine_workbench audit-kimodo-pilot-intake `
@@ -348,7 +350,7 @@ python -B -m autospine_workbench audit-body-sway-spine42-v3-readiness `
   --document-only
 ```
 
-readiness v1 的 Schema、哈希和 checkpoint 语义已经冻结；即使 P10.7c 已交付，第八项仍固定为 `p6_setup_golden_comparison_not_declared`。仓库 baseline 仍把 P9 与下游地址设为 `null`，所以直接运行会继续报告未声明；这不推翻当前真实 P9/P10 状态。A 的 P10.1/P10.2 已运行：固定素材框越界已与 Rig 结构失败分离，但推荐换绑仍须明确确认并按新 revision 重建，P10.3 也尚未消费动态视口候选。B revision 16 缺新 P9/P10，并另须按新链复核下肢 seam。Runtime 基础设施不能绕过这些更早门禁。
+readiness v1 的 Schema、哈希和 checkpoint 语义已经冻结；即使 P10.7c 已交付，第八项仍固定为 `p6_setup_golden_comparison_not_declared`。仓库 baseline 仍把 P9 与下游地址设为 `null`，所以直接运行会继续报告未声明；这不推翻当前真实 P9/P10 状态。A 已按 revision 6 新身份重建到 canvas-only P10.2，当前待 CaptureFraming 人工决定与之后的官方 Runtime capture；B revision 16 缺自己的 current P9/P10，并另须按新链复核下肢 seam。Runtime 基础设施不能绕过这些更早门禁。
 
 P10.7c 的独立入口已经可从功能中心复制，也可直接查看帮助：
 

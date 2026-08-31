@@ -1,6 +1,6 @@
 # 复核 idle 行为并运行 body-sway 结构探针
 
-本指南面向已经发布 P3 mesh、P5 retarget 和 P9 reviewed-motion bundle 的操作者与维护者。目标是从同一条精确输入链生成 idle 行为候选，记录人工决定，再为 `body_sway` 生成 `BodySwayProbeReport v1`、`BodySwayCanvasAdjustmentCandidates v1`、`DynamicViewportFit v1` 与受影响 region 的零权威换绑候选。
+本指南面向已经发布 P3 mesh、P5 retarget 和 P9 reviewed-motion bundle 的操作者与维护者。目标是从同一条精确输入链生成 idle 行为候选，记录人工决定，再为 `body_sway` 生成 `BodySwayProbeReport v1`、`BodySwayCanvasAdjustmentCandidates v1`、`DynamicViewportFit v1`、受影响 region 的零权威换绑候选，以及 canvas-only 情形下独立的 `CaptureFramingCandidate/Decision v1`。
 
 普通操作者优先使用 P10.1 设置页和 P10.2 自动结构探针页；CLI 三条命令仍是专业复验流程。P10.1 候选重放与草稿零写入，三个决定按钮还要经过显示项目、动作、决定和后果的二次确认；只有“确认并提交”才会把 decision 追加到 candidate-bound revision history。P10.2 根据当前 head 自动重放并编译确定性报告，同次详情还生成 P10.2a `0/8…8/8` 统一 gain、动态视口和受影响 region 的换绑候选。所有候选全程只读，不要求选择文件或填写 SHA；只有真正保存绑定或 P10.1 决定时才需要一次明确确认。`--document-only` 只让 stdout 输出 canonical 文档；它不是“通过”开关。
 
@@ -34,11 +34,12 @@
 4. 使用角色合成图、四骨时间轴和有界采样见证查看结果。预览中的 `1024×1024` 是素材/setup 坐标，不是 Rig 或 Runtime 相机的硬边界；可用滚轮或按钮缩放、按住画布拖拽平移、重置视图，或点击“适配全部动作”应用系统根据全部采样附件包络计算的缩放和平移草稿。上述操作全是本地视图变化，不会修改 Rig、动作或 revision。
 5. 若结果为“结构拒绝”，先查看 P10.2a 的统一 gain 诊断。`0/8` 只用于判断不加 body-sway 时是否仍越界，不能被保存为 body-sway 参数。若旧 v1 报告唯一拒绝项是 `sampled_canvas_containment`，并且完整动作包络可以通过动态视口适配，页面会显示 `viewport_adjustment_available`；这只是把“素材坐标越界”与“Rig 结构错误”分开，内嵌 v1 report 和发布门禁仍不改变。若存在一个**非零**且 sampled canvas/geometry 同时通过的 `unvalidated_draft`，可把它带回 P10.1；仍须明确确认并保存新 revision，再回本页重跑 P10.2。
 6. 若页面给出 region 换绑建议，可点击入口回绑定工作台。项目与图层会先显示，exact P10.2 证据在后台核验；只有 package、candidate、Resolved SHA 和来源骨全部一致时，系统才选中责任图层，并在独立建议卡预览建议骨。它不会填入共享 Rig 表单；active handoff 期间普通 Rig 确认、普通保存和 `Ctrl+S` 都不能采用该建议。确认图像整体应跟随哪段骨后，点击“确认换绑并保存 revision”，再通过一次确认弹窗；服务端随后重放证据并创建新 revision。取消、历史 package、核验期间项目/P10.1 head 变化或 revision 冲突都不会写入。新的绑定会改变 Resolved/Manifest/RigIR 身份，旧 P3/P5/P9/P10 只能作为历史证据，必须按新链重建。若同时还有 FK、mesh、拓扑等结构拒绝，动态视口不会放行这些错误。
-7. 若结果为“需要 Runtime 视觉复核”，也只表示前五项 sampled structural checks 未拒绝，下一步仍须准备官方 Spine Runtime capture 和 P10.3 人工视觉证据。当前 P10.3 尚未消费 `DynamicViewportFit v1`，所以 `viewport_adjustment_available` 不能直接作为 P10.3 准入。
+7. 当唯一拒绝项是旧素材框 containment 时，继续向下查看“自动取景确认”。页面用三张卡显示 setup、base、combined 包络，并最多列四个直观责任点；普通流程不输入 world viewport、SHA 或文件。确认完整动作都在框内且余量合理后选择“采用自动取景”；否则选择“不采用”或“当前无法判断”。弹窗取消、Esc 或点击遮罩均零写入，只有“确认并提交”才追加 candidate-bound CaptureFraming revision。
+8. `DynamicViewportFit v1` 本身不能进入 P10.3；只有 current CaptureFraming `accept/adjust` decision 才能进入 Temporary Preview v2。新的 Runtime Capture v2 当前会验证固定 640×640、DPR=1、五项 case 与取景身份绑定的内容载荷，但不会在缺少 exact session/collector/runner 凭据时声称官方 Spine Runtime 已执行。官方 capture 与 P10.3 人工视觉证据仍是独立门禁。
 
 P10.2 页面加载、切换项目、拖动时间轴和下载技术备份均为零写入。报告下载文件名包含项目、clip 和报告哈希前缀，以免两份样本互相覆盖；正常工作流不依赖该下载。无论结构结果为何，`release_gate` 都保持 `blocked`。
 
-真实样本 A `seethrough_output` 的 `layer-007-handwear-l` 是换绑候选实例。当前 region rigid 绑定在 `forearm.left`；同一 reviewed schedule 的证据推荐 `upper-arm.left`，包络覆盖骨段由 1 增至 2，root-compensated motion extent 改善约 `31.81%`，最大 viewport overflow 诊断约从 `157.26 px` 降至 `25.54 px`。这些数字不证明视觉正确、接缝安全或 Runtime 等价；只有操作者明确确认并保存新 revision 后，新的绑定才生效，随后仍须重建和重跑下游。
+真实样本 A `seethrough_output` 已经完成该换绑：`layer-007-handwear-l` 当前绑定到 `upper-arm.left`，override revision 为 6，Manifest/P2–P5、P9、P10.1 与 P10.2 已按新身份重建。当前 P10.2 仅因旧素材框 containment 保留结构拒绝，完整动作包络已由动态视口覆盖；CaptureFraming 候选已生成但尚未形成任何人工 decision revision。
 
 真实样本 B `seethrough_output_5` 是“不能只调小幅度”的实例：reviewed gain `8/8` 有 `334/334` 个画布失败 tick，`0/8` 仍有 `333/334` 个，主要涉及 `layer-006-objects`、`layer-000-back-hair` 与 `layer-008-hand-r`。这些数字属于 revision 16 之前的历史链，不能外推到新绑定；新链仍须完成 P9 adoption 并重跑 P10.2。
 
@@ -233,6 +234,8 @@ Write-Utf8NoBom .\review\body-sway-probe-report.json $ProbeText
 
 这里的“画布余量”只描述素材坐标基准中的固定 containment 检查。`DynamicViewportFit v1` 会对同一 exact schedule 的全部 attachment 顶点求运动包络，再给出统一 scale 和 translation，使操作者可以自由查看或适配完整动作。它是 `candidate_only / authority: none`：不会覆盖旧 `BodySwayProbeReport v1`，不会写 Runtime camera，也不会批准 P10.3。
 
+`CaptureFramingCandidate v1` 是另一个版本化合同，不是动态视图状态的重命名。它绑定 current P10.1/P10.2、setup/base/combined 完整包络、固定输出像素规格和可解释责任点；`CaptureFramingDecision v1` 则把独立人工 action、revision 与 candidate SHA 分开保存。输入链或算法 profile 改变时，旧决定不会静默复用。
+
 若越界责任来自 region，系统还会在当前骨及同链一跳父/子骨之间比较 setup 重建、包络内骨段覆盖和 root-compensated motion extent。推荐项只能作为绑定工作台草稿；禁止自动写 override、冒充人工复核或跨 revision 继承。保存正式换绑后必须重建所有依赖旧 Layer Manifest/RigIR 的下游产物。
 
 ## 7. 不要用 sample SHA 判断 loop
@@ -249,8 +252,9 @@ P10.2 只对固定离散 schedule 采样 setup-local base motion 与人工 body-
 - 证明采样点之间的连续时间安全、输入幅度的安全范围或 attachment 接缝安全；
 - 证明 raster truth 或视觉质量；
 - 替代明确版本的官方 runtime 加载、人工预览与截图回归。
-- 让 P10.3 自动消费 viewport transform，或把 `viewport_adjustment_available` 当成视觉准入。
+- 让 P10.3 自动消费原始 `DynamicViewportFit v1`，或把 `viewport_adjustment_available` 当成视觉准入；
+- 把 Runtime Capture v2 的验证载荷当成官方 Runtime 已执行、真实 raster 已采集或视觉已经批准。
 
-当前 P10.3 视觉页仍要求精确 project/preview/bundle/artifact 地址。未来可规划从 `package_id` 自动闭合七个 SHA、生成 temporary preview、在操作者显式确认 Runtime 许可与本次启动后异步 capture，并自动带入 exact 地址；这条 package-centric 自动编排尚未实现，也不能绕过逐 case 视觉确认。
+Temporary Preview v2 与 Runtime Capture v2 的版本化编译/验证合同已经实现，但当前 P10.3 视觉页仍要求精确 project/preview/bundle/artifact 地址。下一步是从 `package_id` 自动闭合 current CaptureFraming decision、生成 preview，在操作者显式确认 Runtime 许可与本次启动后异步执行官方 capture，并自动带入 exact 地址；这条 package-centric 编排尚未实现，也不能绕过逐 case 视觉确认。
 
-合同参考：[IdleBehaviorCandidates v1](../schemas/idle-behavior-candidates-v1.schema.json)、[IdleBehaviorDecision v1](../schemas/idle-behavior-decision-v1.schema.json)、[BodySwayProbeReport v1](../schemas/body-sway-probe-report-v1.schema.json)、[BodySwayCanvasAdjustmentCandidates v1](../schemas/body-sway-canvas-adjustment-candidates-v1.schema.json)、[DynamicViewportFit v1](../schemas/dynamic-viewport-fit-v1.schema.json)、[RegionRebindCandidates v1](../schemas/region-rebind-candidates-v1.schema.json)。
+合同参考：[IdleBehaviorCandidates v1](../schemas/idle-behavior-candidates-v1.schema.json)、[IdleBehaviorDecision v1](../schemas/idle-behavior-decision-v1.schema.json)、[BodySwayProbeReport v1](../schemas/body-sway-probe-report-v1.schema.json)、[BodySwayCanvasAdjustmentCandidates v1](../schemas/body-sway-canvas-adjustment-candidates-v1.schema.json)、[DynamicViewportFit v1](../schemas/dynamic-viewport-fit-v1.schema.json)、[RegionRebindCandidates v1](../schemas/region-rebind-candidates-v1.schema.json)、[CaptureFramingCandidate v1](../schemas/capture-framing-candidate-v1.schema.json)、[CaptureFramingDecision v1](../schemas/capture-framing-decision-v1.schema.json)、[TemporaryBodySwayPreview v2](../schemas/temporary-body-sway-preview-v2.schema.json) 与 [BodySwayRuntimeCapture v2](../schemas/body-sway-runtime-capture-v2.schema.json)。

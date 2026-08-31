@@ -1,0 +1,209 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/temporary-body-sway-preview-v2.schema.json",
+  "title": "AutoSpine Temporary Body Sway Preview v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "project_id", "clip_id", "source",
+    "timing", "selection", "compiler", "semantics", "runtime_target",
+    "projection", "capture_plan", "artifacts", "status", "release_gate",
+    "summary"
+  ],
+  "properties": {
+    "format": {"const": "autospine-temporary-body-sway-preview"},
+    "format_version": {"const": 2},
+    "project_id": {"$ref": "#/$defs/id"},
+    "clip_id": {"$ref": "#/$defs/id"},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "body_sway_probe_report_sha256", "capture_framing_candidate_sha256",
+        "capture_framing_decision_sha256", "capture_framing_revision",
+        "current_p10_1_head", "idle_behavior_candidates_sha256",
+        "idle_behavior_decision_sha256", "layer_manifest_sha256", "p3",
+        "p5", "p9"
+      ],
+      "properties": {
+        "body_sway_probe_report_sha256": {"$ref": "#/$defs/sha"},
+        "capture_framing_candidate_sha256": {"$ref": "#/$defs/sha"},
+        "capture_framing_decision_sha256": {"$ref": "#/$defs/sha"},
+        "capture_framing_revision": {"type": "integer", "minimum": 1, "maximum": 64},
+        "current_p10_1_head": {"$ref": "#/$defs/head"},
+        "idle_behavior_candidates_sha256": {"$ref": "#/$defs/sha"},
+        "idle_behavior_decision_sha256": {"$ref": "#/$defs/sha"},
+        "layer_manifest_sha256": {"$ref": "#/$defs/sha"},
+        "p3": {"type": "object"},
+        "p5": {"type": "object"},
+        "p9": {"type": "object"}
+      }
+    },
+    "timing": {"type": "object"},
+    "selection": {"type": "object"},
+    "compiler": {"type": "object"},
+    "semantics": {"type": "object"},
+    "runtime_target": {"type": "object"},
+    "projection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "projection_sha256", "legacy_projection_sha256",
+        "probe_tick_schedule_sha256", "probe_sample_stream_sha256",
+        "base_motion_instance_v2_sha256", "capture_framing_candidate_sha256",
+        "capture_framing_decision_sha256", "capture_framing_revision",
+        "world_viewport", "framing_mode", "base_animation_sha256",
+        "setup_sha256", "rotation_timeline_sha256", "sample_count",
+        "rotation_track_count", "rotation_key_count", "sample_ticks",
+        "rotation_bone_ids", "sampling", "rotation_interpolation",
+        "root_translation", "markers", "draw_order", "animation_names"
+      ],
+      "properties": {
+        "projection_sha256": {"$ref": "#/$defs/sha"},
+        "legacy_projection_sha256": {"$ref": "#/$defs/sha"},
+        "probe_tick_schedule_sha256": {"$ref": "#/$defs/sha"},
+        "probe_sample_stream_sha256": {"$ref": "#/$defs/sha"},
+        "base_motion_instance_v2_sha256": {"$ref": "#/$defs/sha"},
+        "capture_framing_candidate_sha256": {"$ref": "#/$defs/sha"},
+        "capture_framing_decision_sha256": {"$ref": "#/$defs/sha"},
+        "capture_framing_revision": {"type": "integer", "minimum": 1, "maximum": 64},
+        "world_viewport": {"$ref": "#/$defs/world_viewport"},
+        "framing_mode": {"const": "human-reviewed-capture-framing"},
+        "base_animation_sha256": {"$ref": "#/$defs/sha"},
+        "setup_sha256": {"$ref": "#/$defs/sha"},
+        "rotation_timeline_sha256": {"$ref": "#/$defs/sha"},
+        "sample_count": {"type": "integer", "minimum": 2, "maximum": 4096},
+        "rotation_track_count": {"type": "integer", "minimum": 1, "maximum": 17},
+        "rotation_key_count": {"type": "integer", "minimum": 2, "maximum": 69632},
+        "sample_ticks": {"type": "array", "minItems": 2, "maxItems": 4096, "items": {"type": "integer", "minimum": 0}},
+        "rotation_bone_ids": {"type": "array", "minItems": 1, "maxItems": 17, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
+        "sampling": {"const": "p10-probe-schedule"},
+        "rotation_interpolation": {"const": "sampled-linear"},
+        "root_translation": {"const": "exact-motion-instance-v2"},
+        "markers": {"const": "exact-motion-instance-v2"},
+        "draw_order": {"const": "exact-motion-instance-v2-stepped"},
+        "animation_names": {
+          "const": {"base": "p10.base", "combined": "p10.body-sway"}
+        }
+      }
+    },
+    "capture_plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "capture_plan_sha256", "source", "viewport", "device_pixel_ratio",
+        "background", "preserve_drawing_buffer", "world_viewport",
+        "selection_scope", "cases"
+      ],
+      "properties": {
+        "capture_plan_sha256": {"$ref": "#/$defs/sha"},
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "preview_projection_sha256", "capture_framing_candidate_sha256",
+            "capture_framing_decision_sha256", "capture_framing_revision"
+          ],
+          "properties": {
+            "preview_projection_sha256": {"$ref": "#/$defs/sha"},
+            "capture_framing_candidate_sha256": {"$ref": "#/$defs/sha"},
+            "capture_framing_decision_sha256": {"$ref": "#/$defs/sha"},
+            "capture_framing_revision": {"type": "integer", "minimum": 1, "maximum": 64}
+          }
+        },
+        "viewport": {"const": {"width": 640, "height": 640}},
+        "device_pixel_ratio": {"const": 1},
+        "background": {"type": "string"},
+        "preserve_drawing_buffer": {"const": true},
+        "world_viewport": {"$ref": "#/$defs/world_viewport"},
+        "selection_scope": {"const": "capture-framed-bounded-stills-for-manual-review-v2"},
+        "cases": {"type": "array", "minItems": 3, "maxItems": 55, "items": {"$ref": "#/$defs/case"}}
+      }
+    },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_set_sha256", "files"],
+      "properties": {
+        "artifact_set_sha256": {"$ref": "#/$defs/sha"},
+        "files": {"type": "array", "minItems": 5, "maxItems": 5, "items": {"$ref": "#/$defs/file"}}
+      }
+    },
+    "status": {"const": "ready_for_official_runtime_capture_v2"},
+    "release_gate": {"type": "object"},
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "probe_sample_count", "rotation_track_count", "rotation_key_count",
+        "capture_case_count", "artifact_file_count", "artifact_total_bytes",
+        "bone_count", "slot_count", "attachment_count",
+        "region_attachment_count", "mesh_attachment_count", "atlas_width",
+        "atlas_height"
+      ],
+      "properties": {
+        "probe_sample_count": {"type": "integer", "minimum": 0},
+        "rotation_track_count": {"type": "integer", "minimum": 0},
+        "rotation_key_count": {"type": "integer", "minimum": 0},
+        "capture_case_count": {"type": "integer", "minimum": 0},
+        "artifact_file_count": {"const": 5},
+        "artifact_total_bytes": {"type": "integer", "minimum": 1},
+        "bone_count": {"type": "integer", "minimum": 1},
+        "slot_count": {"type": "integer", "minimum": 1},
+        "attachment_count": {"type": "integer", "minimum": 1},
+        "region_attachment_count": {"type": "integer", "minimum": 0},
+        "mesh_attachment_count": {"type": "integer", "minimum": 0},
+        "atlas_width": {"type": "integer", "minimum": 1, "maximum": 4096},
+        "atlas_height": {"type": "integer", "minimum": 1, "maximum": 4096}
+      }
+    }
+  },
+  "$defs": {
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "head": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["candidate_sha256", "decision_sha256", "revision"],
+      "properties": {
+        "candidate_sha256": {"$ref": "#/$defs/sha"},
+        "decision_sha256": {"$ref": "#/$defs/sha"},
+        "revision": {"type": "integer", "minimum": 1, "maximum": 64}
+      }
+    },
+    "world_viewport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "width", "height"],
+      "properties": {
+        "x": {"type": "number"},
+        "y": {"type": "number"},
+        "width": {"type": "number", "exclusiveMinimum": 0},
+        "height": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["case_id", "animation", "tick", "time_seconds"],
+      "properties": {
+        "case_id": {"$ref": "#/$defs/id"},
+        "animation": {"type": ["string", "null"]},
+        "tick": {"type": "integer", "minimum": 0},
+        "time_seconds": {"type": "number", "minimum": 0}
+      }
+    },
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "role", "media_type", "size_bytes", "sha256"],
+      "properties": {
+        "path": {"type": "string"},
+        "role": {"type": "string"},
+        "media_type": {"type": "string"},
+        "size_bytes": {"type": "integer", "minimum": 1},
+        "sha256": {"$ref": "#/$defs/sha"}
+      }
+    }
+  }
+}

@@ -190,9 +190,10 @@ mutable alias；SHA 是相同 exact 输入与固定算法重新编译所得的 c
 历史素材框诊断，不是 Rig 或 Runtime 相机的硬边界。P10.2 v3 的零权威动态视口候选已能
 适配完整动作包络。唯一责任附件仍是 `layer-007-handwear-l`；动作证据候选推荐
 `forearm.left → upper-arm.left`，setup 包络覆盖骨段由 1 增至 2，root-compensated motion
-extent 改善约 `31.81%`。操作者已经完成这次确认并保存 revision 6；上节列出的新
-Manifest/P2–P5 与 P9 草案是其结果。旧 P10 不会迁移到新链。P10.3 尚未消费动态视口候选，
-因此不能仅凭 dynamic fit 直接进入；B 表中结果也仍是 revision 16 之前的历史链证据。
+extent 改善约 `31.81%`。操作者已经完成这次确认并保存 revision 6；随后新
+Manifest/P2–P5、P9、P10.1 与 P10.2 已按 current 身份重建。旧 P10 没有迁移到新链；当前
+canvas-only P10.2 通过独立 CaptureFraming candidate/decision 和 P10.3 v2 合同承接，不能仅凭
+dynamic fit 进入官方 Runtime。B 表中结果仍是 revision 16 之前的历史链证据。
 
 本轮读取性能优化不改变上述证据边界：stored split revalidation 缓存绑定
 source/preview/manifest 全字节、Resolved/decision 与 runtime，P9 exact replay 按 key
