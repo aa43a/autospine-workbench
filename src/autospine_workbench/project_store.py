@@ -25,6 +25,7 @@ from .override_store import (
     OverrideStateError,
     OverrideStoreError,
 )
+from .override_commit import OverrideRevisionCommitted
 from .project_errors import (
     AssetNotFoundError,
     ProjectNotFoundError,
@@ -732,16 +733,24 @@ class ProjectStore:
 
         return self._build_project(self._record(project_id))
 
-    def save_overrides(self, project_id: str, payload: Any) -> dict[str, Any]:
-        """Validate and append overrides using revision compare-and-swap."""
+    def save_overrides(
+        self, project_id: str, payload: Any, *,
+        revision_provenance: Mapping[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Append overrides; provenance is reserved for trusted applications."""
 
         project = self._build_project(self._record(project_id), include_overrides=False)
         try:
             return self._override_store.save(
                 project_id,
                 payload,
+                revision_provenance=revision_provenance,
                 **project_override_context(project, self.resolve_asset, AssetNotFoundError),
             )
+        except OverrideRevisionCommitted as committed:
+            # Immutable history is the commit point. A stale replaceable
+            # latest index must not turn a successful revision into a retry.
+            return committed.document
         except OverrideRevisionConflict as exc:
             raise RevisionConflictError(
                 exc.requested_revision, exc.current_revision

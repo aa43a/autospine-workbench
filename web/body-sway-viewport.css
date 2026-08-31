@@ -1,0 +1,51 @@
+.preview-stage {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.preview-stage[data-panning="true"] { cursor: grabbing; }
+.preview-stage svg image { opacity: 0.72; pointer-events: none; }
+.source-canvas-outline {
+  fill: none;
+  stroke: #9aa8bd;
+  stroke-width: 2;
+  stroke-dasharray: 12 8;
+  vector-effect: non-scaling-stroke;
+}
+.motion-envelope-outline {
+  fill: rgb(101 215 199 / 5%);
+  stroke: var(--accent);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.viewport-controls {
+  display: grid;
+  grid-template-columns: auto minmax(8rem, 1fr) 4rem auto auto auto;
+  align-items: center;
+  gap: 0.55rem;
+  margin-block-start: 0.8rem;
+}
+.viewport-controls label {
+  grid-template-columns: auto minmax(5rem, 1fr);
+  align-items: center;
+}
+.viewport-controls output {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.viewport-status {
+  min-height: 1.4em;
+  margin: 0.4rem 0 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.legend .canvas-key { border-style: dashed; border-color: #9aa8bd; }
+.legend .envelope-key { border-color: var(--accent); }
+
+@media (max-width: 1200px) {
+  .viewport-controls { grid-template-columns: auto minmax(7rem, 1fr) 3.5rem auto; }
+  .viewport-controls #viewportFitMotion,
+  .viewport-controls #viewportReset { grid-column: span 2; }
+}

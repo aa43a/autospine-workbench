@@ -1,0 +1,185 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/region-rebind-candidates-v1.schema.json",
+  "title": "AutoSpine RegionRebindCandidates v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "project_id", "source", "analyzer",
+    "semantics", "candidates", "recommendation", "status"
+  ],
+  "properties": {
+    "format": {"const": "autospine-region-rebind-candidates"},
+    "format_version": {"const": 1},
+    "project_id": {"$ref": "#/$defs/id"},
+    "source": {"$ref": "#/$defs/source"},
+    "analyzer": {
+      "const": {
+        "id": "sampled-region-rebind-analyzer",
+        "version": "1.0.0",
+        "config": {
+          "geometry_source": "region-corner-envelope",
+          "default_candidate_scope": "current-direct-parent-and-children",
+          "explicit_candidate_scope": "one-hop-same-chain-only",
+          "sample_pose_space": "setup-local-bone-rotation-plus-root-translation",
+          "motion_metric": "root-compensated-corner-displacement",
+          "recommendation_ranking": [
+            "setup-subtree-segment-coverage-descending",
+            "root-compensated-centroid-rms",
+            "root-compensated-maximum-vertex-motion",
+            "viewport-overflow-sample-count-diagnostic",
+            "viewport-maximum-overflow-diagnostic",
+            "bone-id"
+          ],
+          "minimum_relative_motion_improvement": 0.05,
+          "rank_tie_relative_tolerance": 0.01,
+          "setup_reconstruction_tolerance_px": 1e-7,
+          "numeric_precision_decimals": 9,
+          "viewport_policy": "diagnostic-only-free-camera-compatible",
+          "recommendation_gate": "one-hop-parent-with-increased-region-envelope-chain-coverage-and-motion-improvement"
+        }
+      }
+    },
+    "semantics": {
+      "const": {
+        "scope": "sampled-region-rebind-candidate-only",
+        "authority": "none",
+        "human_decision_emitted": false,
+        "override_written": false,
+        "automatic_application_performed": false,
+        "setup_reconstruction_claimed": true,
+        "sampled_motion_evidence_claimed": true,
+        "geometry_basis": "region-corner-envelope-not-alpha-visible-pixels",
+        "viewport_overflow_is_correctness_gate": false,
+        "continuous_time_safety_claimed": false,
+        "visual_quality_claimed": false,
+        "seam_safety_claimed": false,
+        "release_authority": false
+      }
+    },
+    "candidates": {
+      "type": "array", "minItems": 1, "maxItems": 16,
+      "items": {"$ref": "#/$defs/candidate"}
+    },
+    "recommendation": {"$ref": "#/$defs/recommendation"},
+    "status": {"const": "candidate_only"}
+  },
+  "$defs": {
+    "id": {
+      "type": "string", "minLength": 1, "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "rig_sha256", "motion_sha256", "motion_samples_sha256",
+        "motion_sample_count", "attachment_id", "slot_id",
+        "current_bone_id", "candidate_bone_ids_sha256",
+        "analyzer_profile_sha256"
+      ],
+      "properties": {
+        "rig_sha256": {"$ref": "#/$defs/sha"},
+        "motion_sha256": {"$ref": "#/$defs/sha"},
+        "motion_samples_sha256": {"$ref": "#/$defs/sha"},
+        "motion_sample_count": {
+          "type": "integer", "minimum": 2, "maximum": 65536
+        },
+        "attachment_id": {"$ref": "#/$defs/id"},
+        "slot_id": {"$ref": "#/$defs/id"},
+        "current_bone_id": {"$ref": "#/$defs/id"},
+        "candidate_bone_ids_sha256": {"$ref": "#/$defs/sha"},
+        "analyzer_profile_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "candidate": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "candidate_id", "bone_id", "relationship", "hop_distance",
+        "metrics", "evidence_sha256"
+      ],
+      "properties": {
+        "candidate_id": {
+          "type": "string", "pattern": "^region-rebind-[0-9a-f]{64}$"
+        },
+        "bone_id": {"$ref": "#/$defs/id"},
+        "relationship": {"enum": ["current", "parent", "child"]},
+        "hop_distance": {"type": "integer", "minimum": 0, "maximum": 1},
+        "metrics": {"$ref": "#/$defs/metrics"},
+        "evidence_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "metrics": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "sample_count", "fk_status", "setup_reconstruction_max_error_px",
+        "root_compensated_centroid_motion_rms_px",
+        "root_compensated_max_vertex_motion_px",
+        "normalized_centroid_motion_rms", "normalized_max_vertex_motion",
+        "setup_subtree_segment_coverage_count",
+        "setup_subtree_segment_ids_fully_inside_region",
+        "setup_pivot_distance_to_bone_origin_px",
+        "setup_pivot_distance_to_bone_endpoint_px",
+        "viewport_overflow_sample_count", "viewport_overflow_vertex_count",
+        "max_viewport_overflow_px", "sampled_envelope_xyxy"
+      ],
+      "properties": {
+        "sample_count": {"type": "integer", "minimum": 2, "maximum": 65536},
+        "fk_status": {"const": "passed"},
+        "setup_reconstruction_max_error_px": {
+          "type": "number", "minimum": 0, "maximum": 1e-7
+        },
+        "root_compensated_centroid_motion_rms_px": {"$ref": "#/$defs/nonnegative"},
+        "root_compensated_max_vertex_motion_px": {"$ref": "#/$defs/nonnegative"},
+        "normalized_centroid_motion_rms": {"$ref": "#/$defs/nonnegative"},
+        "normalized_max_vertex_motion": {"$ref": "#/$defs/nonnegative"},
+        "setup_subtree_segment_coverage_count": {
+          "type": "integer", "minimum": 0, "maximum": 17
+        },
+        "setup_subtree_segment_ids_fully_inside_region": {
+          "type": "array", "maxItems": 17, "uniqueItems": true,
+          "items": {"$ref": "#/$defs/id"}
+        },
+        "setup_pivot_distance_to_bone_origin_px": {"$ref": "#/$defs/nonnegative"},
+        "setup_pivot_distance_to_bone_endpoint_px": {"$ref": "#/$defs/nonnegative"},
+        "viewport_overflow_sample_count": {
+          "type": "integer", "minimum": 0, "maximum": 65536
+        },
+        "viewport_overflow_vertex_count": {
+          "type": "integer", "minimum": 0, "maximum": 262144
+        },
+        "max_viewport_overflow_px": {"$ref": "#/$defs/nonnegative"},
+        "sampled_envelope_xyxy": {
+          "type": "array", "minItems": 4, "maxItems": 4,
+          "items": {"type": "number", "minimum": -1e12, "maximum": 1e12}
+        }
+      }
+    },
+    "recommendation": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "status", "candidate_id", "from_bone_id", "to_bone_id",
+        "relative_motion_improvement", "reason_codes", "authority",
+        "requires_explicit_review"
+      ],
+      "properties": {
+        "status": {"enum": ["recommended", "keep_current", "ambiguous"]},
+        "candidate_id": {
+          "type": "string", "pattern": "^region-rebind-[0-9a-f]{64}$"
+        },
+        "from_bone_id": {"$ref": "#/$defs/id"},
+        "to_bone_id": {"$ref": "#/$defs/id"},
+        "relative_motion_improvement": {"type": "number", "minimum": 0, "maximum": 1},
+        "reason_codes": {
+          "type": "array", "minItems": 1, "maxItems": 8,
+          "uniqueItems": true, "items": {"$ref": "#/$defs/id"}
+        },
+        "authority": {"const": "none"},
+        "requires_explicit_review": {"const": true}
+      }
+    },
+    "nonnegative": {
+      "type": "number", "minimum": 0, "maximum": 1e12
+    }
+  }
+}

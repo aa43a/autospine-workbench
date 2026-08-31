@@ -67,6 +67,7 @@ def project_override_context(
 
     return {
         "joint_ids": {item["id"] for item in project["skeleton"]["joints"]},
+        "bone_ids": {item["id"] for item in project["skeleton"]["bones"]},
         "layer_ids": {item["id"] for item in project["layers"]},
         "canvas_width": project["canvas"]["width"],
         "canvas_height": project["canvas"]["height"],

@@ -7,6 +7,9 @@ import {
 import { createBodySwayProbeLoader } from "./body-sway-probe-loader.js";
 import { createBodySwayProbePreview } from "./body-sway-probe-preview.js";
 import {
+  createBodySwayProbeViewport, viewportElements,
+} from "./body-sway-probe-viewport.js";
+import {
   canvasAdjustmentElements, renderCanvasAdjustment, resetCanvasAdjustmentView,
 } from "./body-sway-canvas-adjustment-view.js";
 import {
@@ -15,15 +18,18 @@ import {
 
 const elements = probeElements();
 const canvasElements = canvasAdjustmentElements();
+const viewportControls = viewportElements();
 const api = createBodySwayProbeApi();
 const preview = createBodySwayProbePreview({
-  image: elements.previewImage,
   svg: elements.previewSvg,
   fallback: elements.previewFallback,
   playButton: elements.playPreview,
   timeline: elements.sampleTimeline,
   timeOutput: elements.sampleTime,
   position: elements.samplePosition,
+});
+const viewport = createBodySwayProbeViewport(viewportControls, {
+  onViewChange: preview.setView,
 });
 let currentEntry = null;
 let currentDownload = null;
@@ -46,6 +52,7 @@ function reset() {
   currentEntry = null;
   currentDownload = null;
   preview.reset();
+  viewport.reset();
   resetProbeView(elements);
   resetCanvasAdjustmentView(canvasElements);
 }
@@ -59,7 +66,8 @@ async function loadEntry(payload, context) {
   currentDownload = reportDownload(entry);
   renderProbeEntry(elements, entry);
   renderCanvasAdjustment(canvasElements, entry);
-  preview.load(entry.preview);
+  preview.load(entry.preview, entry.viewportFit);
+  if (entry.preview) viewport.load(entry.preview.canvas, entry.viewportFit);
   return entry;
 }
 

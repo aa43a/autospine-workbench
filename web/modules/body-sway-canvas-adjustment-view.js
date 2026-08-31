@@ -27,13 +27,14 @@ export function renderCanvasAdjustment(elements, entry) {
   resetCanvasAdjustmentView(elements);
   const adjustment = entry.canvasAdjustment;
   if (!adjustment) return;
+  const viewportFitted = entry.viewportFit?.document?.fit_status === "fitted";
   const copy = classificationCopy(adjustment.classification);
   elements.canvasAdjustmentPanel.hidden = false;
   elements.canvasAdjustmentBadge.textContent = copy.badge;
   elements.canvasAdjustmentBadge.dataset.tone = copy.tone;
   elements.canvasAdjustmentMessage.textContent = copy.message;
   elements.canvasGainGrid.replaceChildren(...adjustment.probes.map((row) =>
-    gainCard(elements.canvasGainGrid.ownerDocument, row)));
+    gainCard(elements.canvasGainGrid.ownerDocument, row, viewportFitted)));
   if (adjustment.proposal) {
     const query = new URLSearchParams({
       package_id: entry.package.package_id,
@@ -45,12 +46,23 @@ export function renderCanvasAdjustment(elements, entry) {
       "建议只会预填为草稿；不会自动勾选、保存或覆盖现有 revision。仍需查看预览并在确认弹窗中提交。";
     elements.canvasAdjustmentHint.dataset.tone = "warning";
   } else if (adjustment.classification === "upstream_base_motion_canvas_overflow") {
-    elements.canvasBindingAction.href =
-      `./index.html?project=${encodeURIComponent(entry.package.project_id)}`;
+    const recommendation = entry.rebindCandidates.find((row) =>
+      row.recommendation.status === "recommended");
+    const query = new URLSearchParams({ project: entry.package.project_id });
+    if (recommendation) {
+      query.set("layer", recommendation.attachmentId);
+      query.set("rebind_package", entry.package.package_id);
+      query.set("rebind_candidate", recommendation.candidateSha256);
+    }
+    elements.canvasBindingAction.href = `./index.html?${query}`;
     elements.canvasBindingAction.hidden = false;
-    elements.canvasAdjustmentHint.textContent =
-      "0% 身体摆动仍越界，说明问题来自基础动作、附件或画布；降低摆动参数无法修复。";
-    elements.canvasAdjustmentHint.dataset.tone = "error";
+    elements.canvasBindingAction.textContent = recommendation
+      ? `复核自动换绑：${recommendation.recommendation.from_bone_id} → ${recommendation.recommendation.to_bone_id}`
+      : "打开绑定工作台检查基础动作";
+    elements.canvasAdjustmentHint.textContent = viewportFitted
+      ? "0% 的旧素材框越界已由动态视口覆盖，不再视为 Rig 结构错误；换绑建议仍是独立的视觉/接缝候选，采用后会创建新 revision。"
+      : "0% 身体摆动仍越界，说明问题来自基础动作、附件或画布；降低摆动参数无法修复。";
+    elements.canvasAdjustmentHint.dataset.tone = viewportFitted ? "success" : "error";
   } else {
     elements.canvasAdjustmentHint.textContent = adjustment.classification
       === "reviewed_canvas_passed"
@@ -60,26 +72,28 @@ export function renderCanvasAdjustment(elements, entry) {
   }
 }
 
-function gainCard(document, row) {
+function gainCard(document, row, viewportFitted = false) {
   const canvasFailed = row.canvas_status === "rejected";
   const geometryFailed = row.sampled_geometry_status === "rejected";
   const passed = !canvasFailed && !geometryFailed;
   const percent = Math.round(row.gain.numerator / row.gain.denominator * 100);
   const card = document.createElement("article");
   card.className = "gain-card";
-  card.dataset.tone = passed ? "success" : "error";
+  card.dataset.tone = passed ? "success" : viewportFitted && canvasFailed ? "warning" : "error";
   card.setAttribute("role", "listitem");
-  card.setAttribute("aria-label", `${percent}% 幅度：${passed ? "采样通过" : "采样未通过"}`);
+  card.setAttribute("aria-label", `${percent}% 幅度：${passed ? "采样通过"
+    : viewportFitted && canvasFailed ? "旧素材框越界，动态视口已覆盖" : "采样未通过"}`);
   const heading = document.createElement("h4");
   heading.textContent = `${percent}% 幅度`;
   const status = document.createElement("strong");
   status.textContent = passed ? "采样通过"
-    : canvasFailed ? "画布越界" : "采样几何未通过";
+    : canvasFailed ? viewportFitted ? "旧素材框越界" : "画布越界"
+      : "采样几何未通过";
   const detail = document.createElement("p");
   detail.textContent = passed
     ? `检查 ${row.sample_count} 个姿势，未发现画布越界或采样几何拒绝。`
     : canvasFailed
-      ? `越界 ${row.canvas_failure_tick_count} 个姿势、${row.canvas_failure_vertex_count} 个顶点；最大超出 ${formatPx(row.max_overflow_px)}。`
+      ? `旧素材框记录 ${row.canvas_failure_tick_count} 个姿势、${row.canvas_failure_vertex_count} 个顶点越界；最大超出 ${formatPx(row.max_overflow_px)}${viewportFitted ? "；动态视口已覆盖完整动作。" : "。"}`
       : `画布范围通过，但有 ${row.geometry_rejection_tick_count} 个采样 tick（姿势）的几何检查未通过。`;
   card.append(heading, status, detail);
   if (canvasFailed) {
@@ -107,8 +121,8 @@ function classificationCopy(value) {
       message: "系统逐档实测后找到最高的非零通过档位，可带回 P10.1 由你复核。",
     },
     upstream_base_motion_canvas_overflow: {
-      badge: "基础动作越界", tone: "error",
-      message: "即使把身体摆动降到 0%，角色仍然越界；这不是摆动参数能够修复的问题。",
+      badge: "旧素材框越界", tone: "warning",
+      message: "即使把身体摆动降到 0%，动作仍超出原始素材框；动态视口会完整容纳它，固定框数字只保留为诊断。",
     },
     no_nonzero_sampled_adjustment_candidate: {
       badge: "没有非零通过档", tone: "error",

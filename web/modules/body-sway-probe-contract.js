@@ -13,15 +13,21 @@ import {
 import {
   normalizeCanvasAdjustmentEnvelope,
 } from "./body-sway-canvas-adjustment-contract.js";
+import {
+  normalizeDynamicViewportEnvelope,
+} from "./body-sway-dynamic-viewport-contract.js";
+import {
+  normalizeRegionRebindEnvelopes,
+} from "./body-sway-rebind-contract.js";
 
 export { CHECK_IDS, FORMAT_VERSION, LIST_FORMAT };
 export const ENTRY_FORMAT = "autospine-body-sway-probe-entry";
-export const ENTRY_FORMAT_VERSION = 2;
+export const ENTRY_FORMAT_VERSION = 3;
 
 const TOP_FIELDS = [
   "format", "format_version", "status", "probeability", "package",
   "candidate_sha256", "history", "report_sha256", "result", "preview", "technical",
-  "canvas_adjustment",
+  "canvas_adjustment", "dynamic_viewport", "rebind_candidates",
 ];
 const PACKAGE_FIELDS = [
   "package_id", "motion_policy_package_id", "project_id", "motion_id", "clip_id",
@@ -30,6 +36,7 @@ const PACKAGE_FIELDS = [
 const ENTRY_STATUSES = new Set([
   "p10_1_review_required", "not_applicable",
   "manual_visual_required", "structural_rejected",
+  "viewport_adjustment_available",
 ]);
 const PROBEABILITIES = new Set([
   "probe_ready", "p10_1_review_required", "not_applicable",
@@ -81,9 +88,17 @@ export function normalizeProbeEntry(value, expectedPackageId) {
   if (!result && canvasAdjustment !== null) {
     throw new Error("无结构探针结果时不能携带画布调整诊断");
   }
+  const viewportFit = normalizeDynamicViewportEnvelope(value.dynamic_viewport, {
+    packageRow, result, report: technical.report,
+  });
+  const rebindCandidates = normalizeRegionRebindEnvelopes(value.rebind_candidates, {
+    packageRow, result, report: technical.report,
+  });
+  requireRemediationState(value.status, result, viewportFit, rebindCandidates);
   return {
     raw: exactCopy(value), status: value.status, package: packageRow,
     candidateSha, head, sourceReview, preview, result, technical, canvasAdjustment,
+    viewportFit, rebindCandidates,
   };
 }
 
@@ -113,10 +128,39 @@ export function deriveProbeOutcome(entry) {
     const kind = entry.status === "not_applicable" ? "not_applicable" : "p10_1_required";
     return { kind, canEnterVisual: false, shouldReturnToP10: true };
   }
+  if (entry.status === "viewport_adjustment_available") {
+    return {
+      kind: "viewport_adjustment", canEnterVisual: false,
+      shouldReturnToP10: false,
+    };
+  }
   if (entry.result.status === "structural_rejected") {
     return { kind: "rejected", canEnterVisual: false, shouldReturnToP10: true };
   }
   return { kind: "visual_required", canEnterVisual: true, shouldReturnToP10: false };
+}
+
+function requireRemediationState(status, result, viewportFit, rebindCandidates) {
+  if (!result) {
+    if (viewportFit !== null || rebindCandidates.length) {
+      throw new Error("无结构结果时不能携带视口或换绑候选");
+    }
+    return;
+  }
+  const rejected = result.checks.filter((row) => row.status === "rejected")
+    .map((row) => row.check_id);
+  const framingOnly = rejected.length === 1
+    && rejected[0] === "sampled_canvas_containment";
+  const framingAvailable = framingOnly
+    && viewportFit?.document?.fit_status === "fitted";
+  if ((status === "viewport_adjustment_available") !== framingAvailable
+      || (framingOnly && !viewportFit)) {
+    throw new Error("动态视口分类与 P10.2 结构证据不一致");
+  }
+  if (rebindCandidates.some((candidate) =>
+    candidate.document.source.motion_sample_count !== result.schedule.sample_count)) {
+    throw new Error("动作换绑候选与 P10.2 采样计划不一致");
+  }
 }
 
 export function reportDownload(entry) {

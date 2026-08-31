@@ -331,6 +331,10 @@ def normalize_override_request(
                 issues.append(ValidationIssue(
                     f"{path}.candidate_bone", "must be a safe bone identifier", "format"
                 ))
+            elif bone_ids is not None and candidate_bone not in known_bone_ids:
+                issues.append(ValidationIssue(
+                    f"{path}.candidate_bone", "unknown bone id", "unknown_id"
+                ))
             else:
                 item["candidate_bone"] = candidate_bone
         if "notes" in override:

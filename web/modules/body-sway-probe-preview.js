@@ -1,6 +1,12 @@
 "use strict";
 
+import {
+  markerGroup, projectFailureMarker,
+} from "./body-sway-probe-markers.js";
+
 const SVG_NS = "http://www.w3.org/2000/svg";
+
+export { projectFailureMarker };
 
 export function createBodySwayProbePreview(elements, dependencies = {}) {
   const reduced = dependencies.prefersReducedMotion
@@ -11,23 +17,20 @@ export function createBodySwayProbePreview(elements, dependencies = {}) {
   let index = 0;
   let playing = false;
   let timer = null;
+  let viewportFit = null;
+  let viewportView = null;
 
   elements.playButton.addEventListener("click", toggle);
   elements.timeline.addEventListener("input", () => {
     pause();
     setIndex(Number(elements.timeline.value));
   });
-  elements.image.addEventListener("error", () => {
-    elements.image.hidden = true;
-    elements.fallback.hidden = false;
-    elements.fallback.textContent = "角色合成图不可用；仍可查看四骨代表样本。";
-  });
+  return Object.freeze({ load, reset, setIndex, setView, pause });
 
-  return Object.freeze({ load, reset, setIndex, pause });
-
-  function load(nextPreview) {
+  function load(nextPreview, nextViewportFit = null) {
     reset();
     preview = nextPreview;
+    viewportFit = nextViewportFit;
     if (!preview?.samples?.length) {
       elements.fallback.hidden = false;
       elements.fallback.textContent = "当前结果没有可显示的四骨代表样本。";
@@ -36,10 +39,6 @@ export function createBodySwayProbePreview(elements, dependencies = {}) {
     elements.svg.setAttribute(
       "viewBox", `0 0 ${preview.canvas.width} ${preview.canvas.height}`,
     );
-    if (preview.compositeUrl) {
-      elements.image.src = preview.compositeUrl;
-      elements.image.hidden = false;
-    }
     elements.timeline.max = String(preview.samples.length - 1);
     elements.timeline.disabled = false;
     elements.playButton.disabled = preview.samples.length < 2;
@@ -50,11 +49,11 @@ export function createBodySwayProbePreview(elements, dependencies = {}) {
   function reset() {
     pause();
     preview = null;
+    viewportFit = null;
+    viewportView = null;
     index = 0;
     elements.svg.replaceChildren();
     elements.svg.removeAttribute("viewBox");
-    elements.image.hidden = true;
-    elements.image.removeAttribute("src");
     elements.fallback.hidden = true;
     elements.timeline.min = "0";
     elements.timeline.max = "0";
@@ -88,10 +87,28 @@ export function createBodySwayProbePreview(elements, dependencies = {}) {
     elements.svg.replaceChildren(
       accessible.title,
       accessible.description,
+      backgroundImage(elements.svg.ownerDocument, preview, elements.fallback),
+      boundsGroup(elements.svg.ownerDocument, preview.canvas, viewportFit),
       boneGroup(elements.svg.ownerDocument, preview.setupBones, "setup-bones"),
       boneGroup(elements.svg.ownerDocument, sample.bones, "sample-bones", true),
-      markerGroup(elements.svg.ownerDocument, sample.markers, preview.canvas),
+      markerGroup(
+        elements.svg.ownerDocument, sample.markers, preview.canvas, viewportView,
+      ),
     );
+  }
+
+  function setView(nextView) {
+    viewportView = nextView ? { ...nextView } : null;
+    if (!preview?.samples?.length) return;
+    const current = elements.svg.querySelector?.(".failure-markers");
+    if (!current) {
+      setIndex(index);
+      return;
+    }
+    current.replaceWith(markerGroup(
+      elements.svg.ownerDocument, preview.samples[index].markers,
+      preview.canvas, viewportView,
+    ));
   }
 
   function toggle() {
@@ -149,44 +166,43 @@ function joint(document, point) {
   return circle;
 }
 
-function markerGroup(document, markers, canvas) {
-  const group = document.createElementNS(SVG_NS, "g");
-  group.setAttribute("class", "failure-markers");
-  for (const marker of markers) {
-    const projected = projectFailureMarker(marker, canvas);
-    const circle = document.createElementNS(SVG_NS, "circle");
-    circle.setAttribute("cx", projected.x);
-    circle.setAttribute("cy", projected.y);
-    circle.setAttribute("r", 9);
-    const arrow = document.createElementNS(SVG_NS, "text");
-    arrow.setAttribute("x", projected.x);
-    arrow.setAttribute("y", projected.y);
-    arrow.textContent = projected.glyph;
-    const title = document.createElementNS(SVG_NS, "title");
-    title.textContent = projected.label;
-    const markerNode = document.createElementNS(SVG_NS, "g");
-    markerNode.append(title, circle, arrow);
-    group.append(markerNode);
-  }
-  return group;
+function backgroundImage(document, preview, fallback) {
+  const image = document.createElementNS(SVG_NS, "image");
+  image.setAttribute("x", "0");
+  image.setAttribute("y", "0");
+  image.setAttribute("width", preview.canvas.width);
+  image.setAttribute("height", preview.canvas.height);
+  image.setAttribute("preserveAspectRatio", "none");
+  if (preview.compositeUrl) image.setAttribute("href", preview.compositeUrl);
+  image.addEventListener("error", () => {
+    image.remove();
+    fallback.hidden = false;
+    fallback.textContent = "角色合成图不可用；仍可查看四骨代表样本。";
+  }, { once: true });
+  return image;
 }
 
-export function projectFailureMarker(marker, canvas, margin = 14) {
-  const x = clamp(marker.point.x, margin, canvas.width - margin);
-  const y = clamp(marker.point.y, margin, canvas.height - margin);
-  const key = marker.sides.join("+");
-  const glyph = ({
-    left: "←", right: "→", top: "↑", bottom: "↓",
-    "left+top": "↖", "left+bottom": "↙",
-    "right+top": "↗", "right+bottom": "↘",
-  })[key] || "!";
-  const direction = marker.sides.map((side) => ({
-    left: "左侧", right: "右侧", top: "上方", bottom: "下方",
-  })[side]).join("和");
-  return {
-    x, y, glyph,
-    label: `${marker.attachmentId} 顶点 ${marker.vertexIndex} 位于画布${direction}`,
-  };
+function boundsGroup(document, canvas, viewportFit) {
+  const group = document.createElementNS(SVG_NS, "g");
+  const source = document.createElementNS(SVG_NS, "rect");
+  source.setAttribute("class", "source-canvas-outline");
+  source.setAttribute("x", "0");
+  source.setAttribute("y", "0");
+  source.setAttribute("width", canvas.width);
+  source.setAttribute("height", canvas.height);
+  group.append(source);
+  const envelope = viewportFit?.document?.motion_envelope
+    ?? viewportFit?.motion_envelope;
+  if (Array.isArray(envelope?.min_xy) && Array.isArray(envelope?.max_xy)) {
+    const motion = document.createElementNS(SVG_NS, "rect");
+    motion.setAttribute("class", "motion-envelope-outline");
+    motion.setAttribute("x", envelope.min_xy[0]);
+    motion.setAttribute("y", envelope.min_xy[1]);
+    motion.setAttribute("width", envelope.max_xy[0] - envelope.min_xy[0]);
+    motion.setAttribute("height", envelope.max_xy[1] - envelope.min_xy[1]);
+    group.append(motion);
+  }
+  return group;
 }
 
 export function sampleAriaText(sample, index, count, ticksPerSecond) {
@@ -208,8 +224,4 @@ function accessibleSvg(document, ariaText, sample) {
     ? `${ariaText}。越界方向：${directions.join("、")}。`
     : `${ariaText}。`;
   return { title, description };
-}
-
-function clamp(value, minimum, maximum) {
-  return Math.max(minimum, Math.min(maximum, value));
 }

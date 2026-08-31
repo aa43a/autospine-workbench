@@ -5,7 +5,7 @@ import { CHECK_COPY, deriveProbeOutcome } from "./body-sway-probe-contract.js";
 const IDS = [
   "autoEntryPanel", "projectSelect", "reloadProject", "autoLoadStatus",
   "probeWorkspace", "projectTitle", "projectFacts", "sourceBadge",
-  "previewImage", "previewSvg", "previewFallback", "playPreview",
+  "previewSvg", "previewFallback", "playPreview",
   "sampleTimeline", "sampleTime", "samplePosition", "probeResult",
   "outcomeBadge", "outcomeMessage", "probeStats", "checkCards",
   "releaseMessage", "returnToP10", "visualNext", "nextHint",
@@ -62,7 +62,11 @@ function renderSourceBadge(element, entry) {
 function renderOutcome(elements, entry, outcome) {
   const upstream = entry.canvasAdjustment?.classification
     === "upstream_base_motion_canvas_overflow";
-  const copy = upstream ? [
+  const copy = outcome.kind === "viewport_adjustment" ? [
+    "动态视口已适配",
+    "完整动作包络已自动纳入可缩放、可平移视口；原始素材框越界不再被解释为 Rig 结构失败。",
+    "success",
+  ] : upstream ? [
     "基础动作需要修复",
     "0% 身体摆动仍然越界；请检查画布、附件、骨绑定或上游动作，单纯降低摆动参数无效。",
     "error",
@@ -84,10 +88,12 @@ function renderOutcome(elements, entry, outcome) {
 function renderStats(container, entry) {
   const document = container.ownerDocument;
   const checks = entry.result?.checks || [];
+  const viewportAdjusted = entry.status === "viewport_adjustment_available";
   const values = [
     ["采样姿势", entry.result?.summary?.schedule_sample_count ?? 0],
     ["自动通过", checks.filter((row) => row.status === "passed").length],
-    ["需要调整", checks.filter((row) => row.status === "rejected").length],
+    [viewportAdjusted ? "动态视口" : "需要调整",
+      viewportAdjusted ? 1 : checks.filter((row) => row.status === "rejected").length],
     ["后续阶段", checks.filter((row) => row.status === "unobservable").length],
   ];
   container.replaceChildren(...values.map(([label, value]) => {
@@ -111,28 +117,36 @@ function renderChecks(container, entry) {
     container.replaceChildren(message);
     return;
   }
-  container.replaceChildren(...rows.map((row) => checkCard(document, row)));
+  const viewportAdjusted = entry.status === "viewport_adjustment_available";
+  container.replaceChildren(...rows.map((row) =>
+    checkCard(document, row, viewportAdjusted)));
 }
 
-function checkCard(document, row) {
+function checkCard(document, row, viewportAdjusted) {
+  const displayStatus = viewportAdjusted
+    && row.check_id === "sampled_canvas_containment"
+    && row.status === "rejected" ? "viewport_adjusted" : row.status;
   const card = document.createElement("article");
   card.className = "check-card";
-  card.dataset.tone = checkTone(row.status);
+  card.dataset.tone = checkTone(displayStatus);
   const header = document.createElement("header");
   const title = document.createElement("h3");
   const status = document.createElement("span");
   title.textContent = CHECK_COPY[row.check_id][0];
   status.className = "check-status";
-  status.textContent = checkStatus(row.status);
+  status.textContent = checkStatus(displayStatus);
   header.append(title, status);
   const description = document.createElement("p");
-  description.textContent = checkDescription(row);
+  description.textContent = checkDescription(row, displayStatus);
   card.append(header, description);
   return card;
 }
 
-function checkDescription(row) {
+function checkDescription(row, displayStatus) {
   const base = CHECK_COPY[row.check_id][1];
+  if (displayStatus === "viewport_adjusted") {
+    return `${base} 旧报告保留 ${row.failure_count} 个素材框越界采样；动态视口已覆盖完整动作包络。`;
+  }
   if (row.status === "rejected") {
     return `${base} 发现 ${row.failure_count} 个失败采样，请返回调整。`;
   }
@@ -153,7 +167,9 @@ function renderNext(elements, entry, outcome) {
   elements.visualNext.hidden = !outcome.canEnterVisual;
   setStatus(
     elements.nextHint,
-    upstream
+    outcome.kind === "viewport_adjustment"
+      ? "动态视口候选没有发布权；可先复核上方自动换绑建议。P10.3 Runtime 需消费同一视口候选后才能继续。"
+      : upstream
       ? "基础动作在 0% 摆动时仍越界；请使用上方绑定工作台入口，不能进入 P10.3。"
       : outcome.canEnterVisual
       ? "结构检查允许准备视觉阶段，但自动 Runtime capture 交接尚未交付；请按文档先生成精确证据。"
@@ -170,11 +186,13 @@ function sourceFacts(entry) {
 }
 
 function checkTone(status) {
-  return status === "passed" ? "success" : status === "rejected" ? "error" : "warning";
+  return ["passed", "viewport_adjusted"].includes(status)
+    ? "success" : status === "rejected" ? "error" : "warning";
 }
 
 function checkStatus(status) {
-  return ({ passed: "已通过", rejected: "需调整", unobservable: "后续检查", not_applicable: "不适用" })[status];
+  return ({ passed: "已通过", viewport_adjusted: "视口已适配", rejected: "需调整",
+    unobservable: "后续检查", not_applicable: "不适用" })[status];
 }
 
 function outcomeAnnouncement(outcome) {

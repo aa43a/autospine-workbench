@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/dynamic-viewport-fit-v1.schema.json",
+  "title": "AutoSpine DynamicViewportFit v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "source", "viewport", "margin_px",
+    "motion_envelope", "transform", "fitted_envelope", "fit_status",
+    "profile", "semantics", "status", "release_gate"
+  ],
+  "properties": {
+    "format": {"const": "autospine-dynamic-viewport-fit"},
+    "format_version": {"const": 1},
+    "source": {"$ref": "#/$defs/source"},
+    "viewport": {"$ref": "#/$defs/viewport"},
+    "margin_px": {"$ref": "#/$defs/margin"},
+    "motion_envelope": {"$ref": "#/$defs/envelope"},
+    "transform": {"$ref": "#/$defs/transform"},
+    "fitted_envelope": {"$ref": "#/$defs/envelope"},
+    "fit_status": {"enum": ["fitted", "indeterminate"]},
+    "profile": {
+      "const": {
+        "id": "dynamic-viewport-fit",
+        "version": "1.0.0",
+        "config": {
+          "transform": "output_xy=source_xy*uniform_scale+translation_xy",
+          "scale_policy": "free-uniform-contain-and-center",
+          "numeric_precision_decimals": 12,
+          "fit_tolerance_px": 0.000001,
+          "max_sample_count": 65536,
+          "max_geometry_item_count": 262144,
+          "max_point_count": 2000000
+        }
+      }
+    },
+    "semantics": {
+      "const": {
+        "scope": "dynamic-viewport-fit-candidate-only",
+        "authority": "none",
+        "source_canvas_containment_required": false,
+        "source_canvas_overflow_is_rig_structural_failure": false,
+        "rig_binding_changed": false,
+        "human_decision_emitted": false,
+        "review_revision_written": false,
+        "visual_quality_claimed": false,
+        "continuous_time_safety_claimed": false,
+        "runtime_equivalence_claimed": false,
+        "release_authority_claimed": false
+      }
+    },
+    "status": {"const": "candidate_only"},
+    "release_gate": {
+      "const": {
+        "status": "blocked",
+        "reason_codes": [
+          "candidate_has_no_review_authority",
+          "sampled_envelope_is_not_continuous_time_proof",
+          "runtime_visual_review_required"
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "number": {
+      "type": "number",
+      "minimum": -1000000000,
+      "maximum": 1000000000
+    },
+    "point": {
+      "type": "array", "minItems": 2, "maxItems": 2,
+      "prefixItems": [
+        {"$ref": "#/$defs/number"}, {"$ref": "#/$defs/number"}
+      ],
+      "items": false
+    },
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "kind", "evidence_sha256", "sample_count",
+        "geometry_item_count", "point_count"
+      ],
+      "properties": {
+        "kind": {"enum": ["sampled_attachment_geometry", "point_bounds"]},
+        "evidence_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "sample_count": {"type": "integer", "minimum": 0, "maximum": 65536},
+        "geometry_item_count": {
+          "type": "integer", "minimum": 1, "maximum": 262144
+        },
+        "point_count": {"type": "integer", "minimum": 0, "maximum": 2000000}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"kind": {"const": "point_bounds"}}},
+          "then": {
+            "properties": {
+              "sample_count": {"const": 0}, "point_count": {"const": 0}
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {"kind": {"const": "sampled_attachment_geometry"}}
+          },
+          "then": {
+            "properties": {
+              "sample_count": {"minimum": 1}, "point_count": {"minimum": 1}
+            }
+          }
+        }
+      ]
+    },
+    "viewport": {
+      "type": "object", "additionalProperties": false,
+      "required": ["width", "height"],
+      "properties": {
+        "width": {"type": "number", "minimum": 1, "maximum": 1000000},
+        "height": {"type": "number", "minimum": 1, "maximum": 1000000}
+      }
+    },
+    "margin": {
+      "type": "object", "additionalProperties": false,
+      "required": ["left", "right", "top", "bottom"],
+      "properties": {
+        "left": {"type": "number", "minimum": 0, "maximum": 1000000},
+        "right": {"type": "number", "minimum": 0, "maximum": 1000000},
+        "top": {"type": "number", "minimum": 0, "maximum": 1000000},
+        "bottom": {"type": "number", "minimum": 0, "maximum": 1000000}
+      }
+    },
+    "envelope": {
+      "type": "object", "additionalProperties": false,
+      "required": ["min_xy", "max_xy", "size", "center_xy"],
+      "properties": {
+        "min_xy": {"$ref": "#/$defs/point"},
+        "max_xy": {"$ref": "#/$defs/point"},
+        "size": {
+          "type": "array", "minItems": 2, "maxItems": 2,
+          "prefixItems": [
+            {"type": "number", "minimum": 0, "maximum": 2000000000},
+            {"type": "number", "minimum": 0, "maximum": 2000000000}
+          ],
+          "items": false
+        },
+        "center_xy": {"$ref": "#/$defs/point"}
+      }
+    },
+    "transform": {
+      "type": "object", "additionalProperties": false,
+      "required": ["uniform_scale", "translation_xy", "equation"],
+      "properties": {
+        "uniform_scale": {
+          "type": "number", "exclusiveMinimum": 0, "maximum": 1000000000000000
+        },
+        "translation_xy": {
+          "type": "array", "minItems": 2, "maxItems": 2,
+          "prefixItems": [
+            {"type": "number", "minimum": -1e24, "maximum": 1e24},
+            {"type": "number", "minimum": -1e24, "maximum": 1e24}
+          ],
+          "items": false
+        },
+        "equation": {
+          "const": "output_xy=source_xy*uniform_scale+translation_xy"
+        }
+      }
+    }
+  }
+}

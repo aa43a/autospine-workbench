@@ -148,11 +148,14 @@ mutable alias；SHA 是相同 exact 输入与固定算法重新编译所得的 c
 | P10.2 status | `structural_rejected` | `structural_rejected` |
 
 样本 A 的 r2 参数为 cycles `2`、四骨幅度 `0.8/0.7/0.4/0.2°`、相位
-`0/0.04/0.08/0.12`。P10.2 在 334 个采样中发现 218 个画布失败，`0/8` 仍失败 217 个，
-分类 `upstream_base_motion_canvas_overflow` 且没有参数候选。唯一责任附件是
-`layer-007-handwear-l`；`0/8` 的 failure sides 为 top/right，最大越界约 `154.2355 px`，
-发生在 tick `1500000`。因此 A 必须回绑定工作台修复基础动作、附件/骨绑定或画布并重建下游，
-不能进入 P10.3。B 表中结果仍是 revision 16 之前的历史链证据，也不能授权新链进入 P10.3。
+`0/0.04/0.08/0.12`。不可变的 P10.2 v1 报告仍诚实记录：在固定 `1024×1024`
+素材/setup 坐标下，334 个采样中有 218 个 containment 失败，`0/8` 仍有 217 个；这是一项
+历史素材框诊断，不是 Rig 或 Runtime 相机的硬边界。P10.2 v3 的零权威动态视口候选已能
+适配完整动作包络。唯一责任附件仍是 `layer-007-handwear-l`；动作证据候选推荐
+`forearm.left → upper-arm.left`，setup 包络覆盖骨段由 1 增至 2，root-compensated motion
+extent 改善约 `31.81%`。操作者须在绑定工作台检查自动选层和独立建议卡，再明确确认并保存
+新 override revision；随后重建 Manifest/P2–P10。P10.3 尚未消费动态视口候选，因此不能仅凭
+动态 fit 直接进入。B 表中结果仍是 revision 16 之前的历史链证据，也不能授权新链进入 P10.3。
 
 本轮读取性能优化不改变上述证据边界：stored split revalidation 缓存绑定
 source/preview/manifest 全字节、Resolved/decision 与 runtime，P9 exact replay 按 key
@@ -181,7 +184,7 @@ readiness 请求。任何输入、map、camera、compiler 或算法 profile 变�
 ## 下一步
 
 1. 项目 B（`seethrough_output_5`）先人工复核 `wave-left-v1-r16-draft` 的 Depth proposal，生成正式 policy 与 Depth candidates，再完成一次绑定新 P3/P5 的最终 P9 adoption；左腿 foot-lock 保持拒绝或不可观测。
-2. 项目 A（`seethrough_output`）回绑定工作台修复 `layer-007-handwear-l`、基础动作/骨绑定或画布，并重建受影响的 P3/P5/P9/P10 地址；保留 r2 与 report `4406289e…` 为历史证据。
+2. 项目 A（`seethrough_output`）从 P10.2 的“复核自动换绑”进入绑定工作台，检查系统为 `layer-007-handwear-l` 在独立建议卡显示的 `upper-arm.left`；该值不会进入共享 Rig 表单。明确确认后保存新 override revision，并重建受影响的 Manifest/P2–P10 地址；保留 r2 与 report `4406289e…` 为历史证据。缩放、平移与动态 fit 只改变视图，不写入 Rig。
 3. 项目 B 在新 P9 adoption 后重新建立 P10.0/P10.1，再按新 P10.2 证据选择上游修复；其四条下肢静态 seam 仍须按新链复核。
 4. 任一项目只有重建后的 P10.2 得到 `manual_visual_required`，才进入 P10.3 及后续动作域；A 再把该精确动作域与既有 P10.5c 双 SHA 组合为 P10.5d。
 5. 为 readiness v1 生成新的 strict canonical 请求并显式写入实际采用的 P9 双 SHA 与 A 的 P10.5c 双 SHA。仓库自带的 baseline 请求仍把下游字段设为 `null`，不会自动发现这些地址。

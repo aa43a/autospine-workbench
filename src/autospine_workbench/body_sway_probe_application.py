@@ -32,6 +32,10 @@ from .body_sway_probe_preview import (
     BodySwayProbePreviewError,
     build_body_sway_probe_preview,
 )
+from .body_sway_remediation_analysis import (
+    BodySwayRemediationAnalysisError,
+    compile_body_sway_remediation_analysis,
+)
 from .body_sway_probe_report import (
     BodySwayProbeReportError,
 )
@@ -126,7 +130,8 @@ class BodySwayProbeApplication:
                 row for row in candidates["features"]
                 if row["feature_id"] == "body_sway"
             )
-            report = preview = canvas_adjustment = None
+            report = preview = canvas_adjustment = dynamic_viewport = None
+            rebind_candidates = ()
             if classify_body_sway_probe_head(feature, before) == "probe_ready":
                 if before.decision is None:
                     raise BodySwayProbeApplicationUnavailable(
@@ -150,6 +155,8 @@ class BodySwayProbeApplication:
                 canvas_adjustment = derived.canvas_adjustment
                 report = canvas_adjustment.reviewed_report
                 preview = derived.preview
+                dynamic_viewport = derived.dynamic_viewport
+                rebind_candidates = derived.rebind_candidates
             current = replay_idle_behavior_review_package(
                 self.state_root, address,
             )
@@ -167,6 +174,8 @@ class BodySwayProbeApplication:
             return body_sway_probe_entry(
                 evidence, before, report=report, preview=preview,
                 canvas_adjustment=canvas_adjustment,
+                dynamic_viewport=dynamic_viewport,
+                rebind_candidates=rebind_candidates,
             )
         except BodySwayProbeApplicationHeadChanged:
             raise
@@ -181,7 +190,8 @@ class BodySwayProbeApplication:
 _PREPARE_FAILURES = (
     AttributeError, BodySwayCanvasAdjustmentError, BodySwayDerivedCacheError,
     BodySwayProbeInputError, BodySwayProbePreviewError,
-    BodySwayProbeReportError, IdleBehaviorReviewHeadError,
+    BodySwayProbeReportError, BodySwayRemediationAnalysisError,
+    IdleBehaviorReviewHeadError,
     IdleBehaviorReviewReplayError, KeyError, OSError, OverflowError,
     RuntimeError, StopIteration, TypeError, UnicodeError, ValueError,
 )
@@ -194,4 +204,10 @@ def _compile_derived(inputs, current_head) -> BodySwayDerivedResult:
     preview = build_body_sway_probe_preview(
         inputs, adjustment.reviewed_report,
     )
-    return BodySwayDerivedResult.freeze(adjustment, preview)
+    remediation = compile_body_sway_remediation_analysis(
+        inputs, adjustment.reviewed_report,
+    )
+    return BodySwayDerivedResult.freeze(
+        adjustment, preview, remediation.dynamic_viewport,
+        remediation.rebind_candidates,
+    )

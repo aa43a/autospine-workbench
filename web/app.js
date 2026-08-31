@@ -31,6 +31,9 @@ import { applyLayerRigReviewPatch, readLayerRigReview, renderLayerRigReview, sem
 import { renderLayerSelection } from "./modules/layer-selection-renderer.js";
 import { clamp, createIcon, isTypingTarget, numberOr } from "./modules/ui-primitives.js";
 import { confidenceLevel, formatConfidence, normalizeWorkflow, setConfidenceBadge } from "./modules/workflow.js";
+import { createWorkbenchViewportPan } from "./modules/workbench-viewport-pan.js";
+import { createRegionRebindHandoffController } from "./modules/workbench-rebind-handoff.js";
+import { adoptionDraft, submitRegionRebindAdoption } from "./modules/workbench-rebind-adoption-api.js";
 
 const state = {
   projects: [],
@@ -66,6 +69,14 @@ const state = {
 };
 
 const dom = collectRequiredElements();
+const workbenchViewport = createWorkbenchViewportPan(dom.canvasViewport);
+const rebindHandoff = createRegionRebindHandoffController(document, {
+  apiRequest, layers: getLayers, effectiveLayer, selectLayer,
+  selectedLayer: getSelectedLayer, isDirty: () => state.dirty,
+  currentResolvedSha256: () => state.project?.resolved?.sha256,
+  save: saveOverrides,
+  showAlert, announce, renderLayerInspector,
+});
 function captureCurrentDraft() {
   return captureOverrideDraft(state);
 }
@@ -205,6 +216,10 @@ async function loadProject(projectId) {
     const project = await apiRequest(`${API_BASE}/${encodeURIComponent(projectId)}`);
     if (sequence !== state.loadSequence) return;
     initializeProject(project, projectId);
+    rebindHandoff.load(
+      location.search, projectId, () => sequence === state.loadSequence,
+    );
+    if (sequence !== state.loadSequence) return;
     const query = new URL(location.href);
     query.searchParams.set("project", projectId);
     history.replaceState(null, "", query);
@@ -232,6 +247,7 @@ function initializeProject(project, fallbackId) {
   state.dirty = false;
   state.editEpoch = 0;
   state.conflictPatch = null;
+  rebindHandoff.reset();
   state.previewOpacity = 1;
   state.showComposite = true;
   state.showSkeleton = true;
@@ -698,6 +714,7 @@ function renderLayerInspector() {
   if (!layer) {
     setConfidenceBadge(dom.layerConfidence, NaN);
     splitReview.setLayer(null);
+    rebindHandoff.reset();
     return;
   }
 
@@ -715,6 +732,7 @@ function renderLayerInspector() {
   renderLayerRigReview(dom, layer, getBones(), getCanvasSize());
   setConfidenceBadge(dom.layerConfidence, layer.semantic?.confidence);
   splitReview.setLayer(layer);
+  rebindHandoff.render(layer, dom.candidateBoneSelect);
 }
 
 function renderJointInspector() {
@@ -779,17 +797,10 @@ function setZoom(nextZoom) {
 function applyZoom() {
   if (!state.project) return;
   const { width, height } = getCanvasSize();
-  const padding = 48;
   dom.canvasSurface.style.transform = `scale(${state.zoom})`;
-  dom.canvasSpace.style.width = `${Math.max(dom.canvasViewport.clientWidth, width * state.zoom + padding)}px`;
-  dom.canvasSpace.style.height = `${Math.max(dom.canvasViewport.clientHeight, height * state.zoom + padding)}px`;
-
   const scaledWidth = width * state.zoom;
   const scaledHeight = height * state.zoom;
-  const left = Math.max(24, (dom.canvasViewport.clientWidth - scaledWidth) / 2);
-  const top = Math.max(24, (dom.canvasViewport.clientHeight - scaledHeight) / 2);
-  dom.canvasSurface.style.left = `${left}px`;
-  dom.canvasSurface.style.top = `${top}px`;
+  workbenchViewport.layout(scaledWidth, scaledHeight);
   dom.zoomValueBtn.textContent = `${Math.round(state.zoom * 100)}%`;
   updateStatusbar();
 }
@@ -801,7 +812,7 @@ function fitCanvas() {
   const availableHeight = Math.max(100, dom.canvasViewport.clientHeight - 52);
   state.fitZoom = clamp(Math.min(availableWidth / width, availableHeight / height), 0.05, 4);
   setZoom(state.fitZoom);
-  dom.canvasViewport.scrollTo({ left: 0, top: 0, behavior: "auto" });
+  workbenchViewport.center();
 }
 
 function updateStatusbar() {
@@ -825,13 +836,16 @@ function updateStatusbar() {
   dom.overrideStatus.textContent = `${jointCount + decisionCount + splitDecisionCount + layerCount} 项校正 · r${state.baseRevision ?? "—"}`;
 }
 
-async function saveOverrides() {
-  if (!state.project || state.saving || !state.dirty) return;
+async function saveOverrides(adoption = null) {
+  if (!adoption && rebindHandoff.blockGeneralMutation("普通保存")) return false;
+  if (!state.project || state.saving || (!state.dirty && !adoption)) return false;
+  const draft = adoption
+    ? adoptionDraft(captureCurrentDraft(), adoption) : captureCurrentDraft();
   const snapshot = captureSaveSnapshot({
     projectId: state.selectedProjectId,
     baseRevision: state.baseRevision,
     editEpoch: state.editEpoch,
-    draft: captureCurrentDraft(),
+    draft,
   });
   state.saving = true;
   dom.saveBtn.disabled = true;
@@ -839,15 +853,18 @@ async function saveOverrides() {
   hideAlert();
 
   try {
-    const payload = await apiRequest(`${API_BASE}/${encodeURIComponent(snapshot.projectId)}/overrides`, {
-      method: "PUT",
-      body: JSON.stringify({ base_revision: snapshot.baseRevision, ...snapshot.draft }),
-    });
+    const payload = adoption
+      ? await submitRegionRebindAdoption(apiRequest, adoption, snapshot)
+      : await apiRequest(`${API_BASE}/${encodeURIComponent(snapshot.projectId)}/overrides`, {
+        method: "PUT", body: JSON.stringify({ base_revision: snapshot.baseRevision, ...snapshot.draft }),
+      });
     if (state.selectedProjectId !== snapshot.projectId) return;
     const refreshed = await refreshSavedProject({
       currentProject: state.project, projectId: snapshot.projectId, savedOverrides: payload?.overrides || payload || {}, snapshot,
       requestProject: () => apiRequest(`${API_BASE}/${encodeURIComponent(snapshot.projectId)}`, { cache: "no-store" }),
-      getLiveDraft: captureCurrentDraft, getEditEpoch: () => state.editEpoch, draftFromServer,
+      getLiveDraft: () => adoption
+        ? adoptionDraft(captureCurrentDraft(), adoption) : captureCurrentDraft(),
+      getEditEpoch: () => state.editEpoch, draftFromServer,
     });
     if (state.selectedProjectId !== snapshot.projectId) return;
     const { project: nextProject, overrides: nextOverrides, reconciled, refreshError } = refreshed;
@@ -880,6 +897,7 @@ async function saveOverrides() {
     renderInspectors();
     renderQa();
     updateStatusbar();
+    return true;
   } catch (error) {
     const conflict = error.status === 409;
     if (conflict && state.selectedProjectId === snapshot.projectId) {
@@ -894,6 +912,7 @@ async function saveOverrides() {
     );
     announce(conflict ? "保存时发生版本冲突，本地校正已保留" : "保存失败");
     dom.saveBtn.disabled = false;
+    return false;
   } finally {
     state.saving = false;
     if (state.dirty) dom.saveBtn.disabled = false;
@@ -986,20 +1005,22 @@ function updateSelectedLayerSemantic() {
 }
 
 function confirmSelectedLayerRig() {
+  if (rebindHandoff.blockGeneralMutation("普通 Rig 确认")) return false;
   const layer = getSelectedLayer();
-  if (!layer) return;
+  if (!layer) return false;
   const patch = readLayerRigReview(
     dom,
     getCanvasSize(),
     new Set(getBones().map((bone) => String(bone.id))),
     layer.disposition,
   );
-  if (!patch) return;
+  if (!patch) return false;
   applyLayerRigReviewPatch(ensureLayerOverride(String(layer.id)), patch);
   markDirty("图层 Rig 字段已确认");
   renderLayerList();
   renderLayerInspector();
   renderQa();
+  return true;
 }
 
 function updateJointFromInputs() {
@@ -1058,7 +1079,7 @@ function bindEvents() {
   dom.dismissAlertBtn.addEventListener("click", hideAlert);
   dom.exportLocalPatchBtn.addEventListener("click", exportLocalPatch);
   dom.replayConflictBtn.addEventListener("click", reloadLatestAndReplay);
-  dom.saveBtn.addEventListener("click", saveOverrides);
+  dom.saveBtn.addEventListener("click", () => saveOverrides());
 
   dom.layerSearch.addEventListener("input", (event) => {
     state.search = event.target.value;

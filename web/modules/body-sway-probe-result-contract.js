@@ -62,7 +62,10 @@ export function normalizeProbeResult(value, entryStatus, reportSha256) {
   const checks = value.checks.map((row, index) => normalizeCheck(row, index));
   const rejected = checks.slice(0, 5).some((row) => row.status === "rejected");
   const expectedStatus = rejected ? "structural_rejected" : "manual_visual_required";
-  if (value.status !== expectedStatus || entryStatus !== expectedStatus) {
+  const projectedStatus = expectedStatus === "structural_rejected"
+    && entryStatus === "viewport_adjustment_available"
+    ? "viewport_adjustment_available" : expectedStatus;
+  if (value.status !== expectedStatus || entryStatus !== projectedStatus) {
     throw new Error("结构探针状态与结构检查不一致");
   }
   const releaseGate = normalizeReleaseGate(value.release_gate, rejected);

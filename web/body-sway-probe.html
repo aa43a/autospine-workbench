@@ -8,6 +8,7 @@
   <title>P10.2 身体摆动结构检查 — AutoSpine</title>
   <link rel="stylesheet" href="./body-sway-probe.css">
   <link rel="stylesheet" href="./body-sway-canvas-adjustment.css">
+  <link rel="stylesheet" href="./body-sway-viewport.css">
 </head>
 <body>
   <a class="skip-link" href="#probeResult">跳到结构检查结果</a>
@@ -67,14 +68,34 @@
             <span id="samplePosition" class="sample-position">0 / 0</span>
           </div>
           <p class="boundary-note">
-            这里显示结构探针的代表样本，不是官方 Spine Runtime 画面，也不证明视觉质量或连续时间安全。
+            角色合成图的 1024×1024 等原始尺寸只作为素材坐标系；预览视口会自动覆盖完整动作，但这不是官方 Spine Runtime 画面，也不证明连续时间安全。
           </p>
-          <figure class="preview-stage">
-            <img id="previewImage" alt="当前项目角色合成图" hidden>
+          <figure id="previewStage" class="preview-stage" tabindex="0"
+            aria-label="身体摆动预览，可拖拽平移并使用滚轮缩放">
             <svg id="previewSvg" role="img" aria-label="身体摆动四骨代表样本"
               preserveAspectRatio="xMidYMid meet"></svg>
             <figcaption id="previewFallback" hidden></figcaption>
           </figure>
+          <div class="viewport-controls" role="toolbar" aria-label="动作视口">
+            <button id="viewportZoomOut" class="button secondary compact" type="button"
+              aria-label="缩小动作视图">−</button>
+            <label for="viewportZoom">
+              <span>视图缩放</span>
+              <input id="viewportZoom" type="range" min="5" max="800" step="1" value="100">
+            </label>
+            <output id="viewportZoomValue" for="viewportZoom">100%</output>
+            <button id="viewportZoomIn" class="button secondary compact" type="button"
+              aria-label="放大动作视图">＋</button>
+            <button id="viewportFitMotion" class="button primary compact" type="button">
+              适配全部动作
+            </button>
+            <button id="viewportReset" class="button secondary compact" type="button">
+              原始素材框
+            </button>
+          </div>
+          <p id="viewportStatus" class="viewport-status" role="status" aria-live="polite">
+            等待动作包络。
+          </p>
           <div class="timeline-controls">
             <button id="playPreview" class="button secondary compact" type="button"
               aria-pressed="false" disabled>播放</button>
@@ -87,7 +108,9 @@
           <div class="legend" aria-label="示意图例">
             <span><i class="setup-key"></i>首个代表样本</span>
             <span><i class="sample-key"></i>当前代表样本</span>
-            <span><i class="failure-key"></i>越界方向（投影到边缘，最多显示 16 个）</span>
+            <span><i class="canvas-key"></i>原始素材框</span>
+            <span><i class="envelope-key"></i>完整动作包络</span>
+            <span><i class="failure-key"></i>原始越界证据（最多显示 16 个）</span>
           </div>
         </section>
 

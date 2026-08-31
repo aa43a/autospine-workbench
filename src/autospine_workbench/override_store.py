@@ -15,11 +15,16 @@ from typing import Any, Mapping
 from .candidate_decisions import CandidateDecisionBinder, CandidateDecisionError
 from .contracts import (
     ContractValidationError,
-    OVERRIDE_SCHEMA_VERSION,
     empty_overrides,
     normalize_override_request,
 )
+from .override_commit import refresh_latest_after_commit
+from .override_document_reader import OverrideDocumentReader
 from .override_files import OverrideFileError, OverrideFiles, history_filename
+from .region_rebind_revision_provenance import (
+    RegionRebindRevisionProvenanceError,
+    normalize_region_rebind_revision_provenance,
+)
 from .split_decision_binder import SplitDecisionBindingError
 from .split_decision_persistence import SplitDecisionPersistence
 
@@ -54,6 +59,12 @@ class OverrideHistoryStore:
         self._files = OverrideFiles(self._root)
         self._decision_binder = CandidateDecisionBinder(state_root)
         self._split_decisions = SplitDecisionPersistence(state_root)
+        self._documents = OverrideDocumentReader(
+            self._files,
+            self._decision_binder,
+            self._split_decisions,
+            OverrideStateError,
+        )
         self._lock = threading.RLock()
 
     def load(
@@ -61,6 +72,7 @@ class OverrideHistoryStore:
         project_id: str,
         *,
         joint_ids: set[str],
+        bone_ids: set[str] | None = None,
         layer_ids: set[str],
         canvas_width: int,
         canvas_height: int,
@@ -76,10 +88,11 @@ class OverrideHistoryStore:
         except OverrideFileError as exc:
             raise OverrideStateError(str(exc)) from exc
         for path, expected_revision in paths:
-            document = self._read_document(
+            document = self._documents.read(
                 path,
                 project_id=project_id,
                 joint_ids=joint_ids,
+                bone_ids=bone_ids,
                 layer_ids=layer_ids,
                 canvas_width=canvas_width,
                 canvas_height=canvas_height,
@@ -106,7 +119,9 @@ class OverrideHistoryStore:
         project_id: str,
         payload: Any,
         *,
+        revision_provenance: Mapping[str, Any] | None = None,
         joint_ids: set[str],
+        bone_ids: set[str] | None = None,
         layer_ids: set[str],
         canvas_width: int,
         canvas_height: int,
@@ -119,6 +134,7 @@ class OverrideHistoryStore:
             current = self.load(
                 project_id,
                 joint_ids=joint_ids,
+                bone_ids=bone_ids,
                 layer_ids=layer_ids,
                 canvas_width=canvas_width,
                 canvas_height=canvas_height,
@@ -131,6 +147,7 @@ class OverrideHistoryStore:
                     project_id=project_id,
                     current_revision=current["revision"],
                     joint_ids=joint_ids,
+                    bone_ids=bone_ids,
                     layer_ids=layer_ids,
                     canvas_width=canvas_width,
                     canvas_height=canvas_height,
@@ -165,6 +182,19 @@ class OverrideHistoryStore:
                 raise ContractValidationError(exc.as_validation_issues()) from exc
 
             normalized["revision"] = current["revision"] + 1
+            if revision_provenance is not None:
+                try:
+                    normalized["revision_provenance"] = (
+                        normalize_region_rebind_revision_provenance(
+                            revision_provenance,
+                            project_id=project_id,
+                            revision=normalized["revision"],
+                        )
+                    )
+                except RegionRebindRevisionProvenanceError as exc:
+                    raise OverrideStoreError(
+                        "Trusted revision provenance is invalid"
+                    ) from exc
             project_dir = self._project_dir(project_id)
             history_dir = project_dir / "history"
             history_dir.mkdir(parents=True, exist_ok=True)
@@ -175,6 +205,7 @@ class OverrideHistoryStore:
                     current,
                     project_id=project_id,
                     joint_ids=joint_ids,
+                    bone_ids=bone_ids,
                     layer_ids=layer_ids,
                     canvas_width=canvas_width,
                     canvas_height=canvas_height,
@@ -187,6 +218,7 @@ class OverrideHistoryStore:
                 observed = self.load(
                     project_id,
                     joint_ids=joint_ids,
+                    bone_ids=bone_ids,
                     layer_ids=layer_ids,
                     canvas_width=canvas_width,
                     canvas_height=canvas_height,
@@ -198,80 +230,14 @@ class OverrideHistoryStore:
                 ) from exc
             except OverrideFileError as exc:
                 raise OverrideStoreError(str(exc)) from exc
-            try:
-                self._files.write_latest(project_dir / "latest.json", normalized)
-            except OverrideFileError as exc:
-                raise OverrideStoreError(str(exc)) from exc
-            return normalized
-
-    def _read_document(
-        self,
-        path: Path,
-        *,
-        project_id: str,
-        joint_ids: set[str],
-        layer_ids: set[str],
-        canvas_width: int,
-        canvas_height: int,
-        base_project: Mapping[str, Any] | None,
-        source_paths: Mapping[str, Path] | None,
-    ) -> dict[str, Any]:
-        try:
-            raw = self._files.read(path)
-        except OverrideFileError as exc:
-            raise OverrideStateError(str(exc)) from exc
-        revision = raw.get("revision")
-        if not isinstance(revision, int) or isinstance(revision, bool) or revision < 0:
-            raise OverrideStateError("Override revision is invalid")
-        stored_project_id = raw.get("project_id")
-        if stored_project_id is not None and stored_project_id != project_id:
-            raise OverrideStateError("Override document belongs to another project")
-        request = {
-            "schema_version": raw.get("schema_version", OVERRIDE_SCHEMA_VERSION),
-            "base_revision": revision,
-            "joint_overrides": raw.get("joint_overrides", {}),
-            "joint_decisions": raw.get("joint_decisions", {}),
-            "layer_overrides": raw.get("layer_overrides", {}),
-            "notes": raw.get("notes", ""),
-        }
-        if "split_decisions" in raw:
-            request["split_decisions"] = raw["split_decisions"]
-        try:
-            _, normalized = normalize_override_request(
-                request,
-                project_id=project_id,
-                current_revision=revision,
-                joint_ids=joint_ids,
-                layer_ids=layer_ids,
-                canvas_width=canvas_width,
-                canvas_height=canvas_height,
-                stored=True,
+            return refresh_latest_after_commit(
+                self._files,
+                history_path=(
+                    history_dir / history_filename(int(normalized["revision"]))
+                ),
+                latest_path=project_dir / "latest.json",
+                document=normalized,
             )
-        except ContractValidationError as exc:
-            raise OverrideStateError(f"Stored overrides are invalid: {exc}") from exc
-        try:
-            normalized["joint_decisions"] = self._decision_binder.bind(
-                project_id,
-                normalized["joint_decisions"],
-                joint_ids=joint_ids,
-                layer_ids=layer_ids,
-                canvas_width=canvas_width,
-                canvas_height=canvas_height,
-                stored=True,
-            )
-        except CandidateDecisionError as exc:
-            raise OverrideStateError(f"Stored candidate decisions are invalid: {exc}") from exc
-        normalized["revision"] = revision
-        try:
-            normalized["split_decisions"] = self._split_decisions.revalidate_stored(
-                project_id,
-                normalized,
-                base_project=base_project,
-                source_paths=source_paths,
-            )
-        except SplitDecisionBindingError as exc:
-            raise OverrideStateError(f"Stored split decisions are invalid: {exc}") from exc
-        return normalized
 
     def _ensure_snapshot(
         self,
@@ -280,6 +246,7 @@ class OverrideHistoryStore:
         *,
         project_id: str,
         joint_ids: set[str],
+        bone_ids: set[str] | None,
         layer_ids: set[str],
         canvas_width: int,
         canvas_height: int,
@@ -295,10 +262,11 @@ class OverrideHistoryStore:
                 pass
             except OverrideFileError as exc:
                 raise OverrideStoreError(str(exc)) from exc
-        existing = self._read_document(
+        existing = self._documents.read(
             destination,
             project_id=project_id,
             joint_ids=joint_ids,
+            bone_ids=bone_ids,
             layer_ids=layer_ids,
             canvas_width=canvas_width,
             canvas_height=canvas_height,

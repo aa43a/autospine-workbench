@@ -12,6 +12,9 @@ import {
 import {
   canvasAdjustmentEnvelope,
 } from "./body-sway-canvas-adjustment-fixtures.mjs";
+import {
+  indeterminateDynamicViewportEnvelope,
+} from "./body-sway-remediation-fixtures.mjs";
 
 test("JSON identity ignores object key order but preserves array order", () => {
   assert.equal(sameJson(
@@ -64,8 +67,11 @@ test("realistic canvas rejection preserves sampled overflow markers for visual d
   assert.deepEqual(rejected.preview.samples[1].markers[0].sides, ["right"]);
   assert.deepEqual(rejected.preview.samples[1].markers[0].point, { x: 1040, y: 488 });
   assert.deepEqual(deriveProbeOutcome(rejected), {
-    kind: "rejected", canEnterVisual: false, shouldReturnToP10: true,
+    kind: "viewport_adjustment", canEnterVisual: false, shouldReturnToP10: false,
   });
+  assert.equal(rejected.viewportFit.document.motion_envelope.min_xy[1], -100);
+  assert.equal(rejected.rebindCandidates[0].recommendation.to_bone_id,
+    "upper-arm.left");
 });
 
 test("canvas rejection exposes an exact highest-passing P10.1 draft without authority", () => {
@@ -110,11 +116,59 @@ test("not-applicable current head has no fake report or visual-stage claim", () 
   value.preview = null;
   value.result = null;
   value.technical.report = null;
+  value.dynamic_viewport = null;
+  value.rebind_candidates = [];
   const entry = normalizeProbeEntry(value, PACKAGE_B);
   assert.deepEqual(deriveProbeOutcome(entry), {
     kind: "not_applicable", canEnterVisual: false, shouldReturnToP10: true,
   });
   assert.equal(reportDownload(entry), null);
+});
+
+test("viewport and rebind evidence stay candidate-only and source-bound", () => {
+  const value = probeEntryFixture({
+    resultStatus: "structural_rejected", rejectedCheck: "sampled_canvas_containment",
+  });
+  const entry = normalizeProbeEntry(value, PACKAGE_B);
+  assert.equal(entry.viewportFit.document.semantics.authority, "none");
+  assert.equal(entry.rebindCandidates[0].document.semantics.override_written, false);
+
+  const staleRig = structuredClone(value);
+  staleRig.rebind_candidates[0].document.source.rig_sha256 = "0".repeat(64);
+  assert.throws(() => normalizeProbeEntry(staleRig, PACKAGE_B), /精确链/);
+  const crossMotion = structuredClone(value);
+  crossMotion.rebind_candidates[0].document.source.motion_sha256 = "0".repeat(64);
+  assert.throws(() => normalizeProbeEntry(crossMotion, PACKAGE_B), /精确链/);
+  const clipped = structuredClone(value);
+  clipped.dynamic_viewport.document.fitted_envelope.max_xy[0] = 1200;
+  assert.throws(() => normalizeProbeEntry(clipped, PACKAGE_B), /包络|变换/);
+});
+
+test("indeterminate viewport remains candidate-only and cannot clear canvas rejection", () => {
+  const value = probeEntryFixture({
+    resultStatus: "structural_rejected", rejectedCheck: "sampled_canvas_containment",
+  });
+  value.status = "structural_rejected";
+  value.dynamic_viewport = indeterminateDynamicViewportEnvelope(
+    value.result.schedule.sample_count,
+  );
+  const entry = normalizeProbeEntry(value, PACKAGE_B);
+  assert.equal(entry.viewportFit.document.fit_status, "indeterminate");
+  assert.equal(entry.viewportFit.document.semantics.authority, "none");
+  assert.deepEqual(deriveProbeOutcome(entry), {
+    kind: "rejected", canEnterVisual: false, shouldReturnToP10: true,
+  });
+
+  const overclaimed = structuredClone(value);
+  overclaimed.status = "viewport_adjustment_available";
+  assert.throws(() => normalizeProbeEntry(overclaimed, PACKAGE_B), /动态视口分类/);
+
+  const falseIndeterminate = probeEntryFixture({
+    resultStatus: "structural_rejected", rejectedCheck: "sampled_canvas_containment",
+  });
+  falseIndeterminate.status = "structural_rejected";
+  falseIndeterminate.dynamic_viewport.document.fit_status = "indeterminate";
+  assert.throws(() => normalizeProbeEntry(falseIndeterminate, PACKAGE_B), /适配状态/);
 });
 
 test("download name binds project, clip, and report address to avoid overwrite", () => {

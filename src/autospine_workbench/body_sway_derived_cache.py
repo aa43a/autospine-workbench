@@ -5,29 +5,34 @@ from __future__ import annotations
 from collections import OrderedDict
 from collections.abc import Callable
 from dataclasses import dataclass, field
-import json
 from pathlib import Path
 import re
 from threading import Event, RLock
-from typing import Any
 
-from .body_sway_canvas_adjustment_candidates import (
-    BodySwayCanvasAdjustmentCandidates,
-)
 from .body_sway_canvas_adjustment_profile import (
     FORMAT as CANVAS_FORMAT,
     FORMAT_VERSION as CANVAS_FORMAT_VERSION,
     body_sway_canvas_adjustment_analyzer_profile,
 )
+from .body_sway_derived_value import BodySwayDerivedResult
 from .body_sway_probe_profile import body_sway_probe_profile
-from .body_sway_probe_report import BodySwayProbeReport
 from .body_sway_probe_validation import (
     FORMAT as PROBE_FORMAT,
     FORMAT_VERSION as PROBE_FORMAT_VERSION,
 )
+from .dynamic_viewport_fit import (
+    FORMAT as VIEWPORT_FORMAT,
+    FORMAT_VERSION as VIEWPORT_FORMAT_VERSION,
+    dynamic_viewport_fit_profile,
+)
 from .idle_behavior_review_address import IdleBehaviorReviewAddress
 from .idle_behavior_review_head import IdleBehaviorReviewHead
 from .resolved_project import canonical_sha256
+from .region_rebind_profile import (
+    FORMAT as REBIND_FORMAT,
+    FORMAT_VERSION as REBIND_FORMAT_VERSION,
+    region_rebind_analyzer_profile,
+)
 
 
 MIN_CAPACITY = 4
@@ -54,50 +59,8 @@ class BodySwayDerivedCacheKey:
     decision_sha256: str
     probe_profile_sha256: str
     canvas_profile_sha256: str
-
-
-@dataclass(frozen=True, slots=True)
-class BodySwayDerivedResult:
-    """JSON-frozen derived values whose accessors return detached objects."""
-
-    _adjustment_json: str = field(repr=False)
-    _report_json: str = field(repr=False)
-    _preview_json: str = field(repr=False)
-
-    @classmethod
-    def freeze(
-        cls,
-        adjustment: BodySwayCanvasAdjustmentCandidates,
-        preview: dict[str, Any],
-    ) -> BodySwayDerivedResult:
-        if type(adjustment) is not BodySwayCanvasAdjustmentCandidates \
-                or type(adjustment.reviewed_report) is not BodySwayProbeReport \
-                or type(preview) is not dict:
-            raise BodySwayDerivedCacheError(
-                "P10.2 derived compiler returned an unsupported value"
-            )
-        return cls(
-            adjustment.canonical_bytes.decode("utf-8"),
-            adjustment.reviewed_report.canonical_bytes.decode("utf-8"),
-            _canonical(preview),
-        )
-
-    @property
-    def canvas_adjustment(self) -> BodySwayCanvasAdjustmentCandidates:
-        report = BodySwayProbeReport(self._report_json)
-        return BodySwayCanvasAdjustmentCandidates(
-            self._adjustment_json, report,
-        )
-
-    @property
-    def preview(self) -> dict[str, Any]:
-        return json.loads(self._preview_json)
-
-    @property
-    def cache_weight_bytes(self) -> int:
-        return sum(len(value.encode("utf-8")) for value in (
-            self._adjustment_json, self._report_json, self._preview_json,
-        ))
+    viewport_profile_sha256: str
+    rebind_profile_sha256: str
 
 
 @dataclass(slots=True)
@@ -245,6 +208,16 @@ def body_sway_derived_cache_key(
             CANVAS_FORMAT, CANVAS_FORMAT_VERSION,
             body_sway_canvas_adjustment_analyzer_profile(),
         ),
+        _profile_sha(
+            "autospine-dynamic-viewport-cache-profile/v1",
+            VIEWPORT_FORMAT, VIEWPORT_FORMAT_VERSION,
+            dynamic_viewport_fit_profile(),
+        ),
+        _profile_sha(
+            "autospine-region-rebind-cache-profile/v1",
+            REBIND_FORMAT, REBIND_FORMAT_VERSION,
+            region_rebind_analyzer_profile(),
+        ),
     )
 
 
@@ -253,18 +226,6 @@ def _profile_sha(domain, format_name, format_version, profile) -> str:
         "domain": domain, "format": format_name,
         "format_version": format_version, "profile": profile,
     })
-
-
-def _canonical(value: Any) -> str:
-    try:
-        return json.dumps(
-            value, ensure_ascii=False, allow_nan=False,
-            sort_keys=True, separators=(",", ":"),
-        )
-    except (OverflowError, TypeError, UnicodeError, ValueError) as exc:
-        raise BodySwayDerivedCacheError(
-            "P10.2 derived cache value is not canonical JSON"
-        ) from exc
 
 
 _PROCESS_CACHE = BodySwayDerivedCache()

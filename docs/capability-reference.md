@@ -1,6 +1,6 @@
 # AutoSpine Workbench 功能与入口参考
 
-本文是面向操作者和开发者的 Reference。它回答“功能是否已经实现、从哪里进入、会得到什么”，不替代具体操作步骤。P0 Resolved Project v1、P10.2/P10.2a 自动诊断、P10.6b MotionInstance v3、P10.7a Spine 4.2 v3 adapter bundle、P10.7b sampled raster 基础设施与独立 P10.7c setup regression 已完成；**P9-real-kimodo-policy-adoption** 对真实 `wave-left-v1` 的 A/B 历史精确链已关闭。样本 A 已保存 P10.1 revision 2（decision `70d62da6…`）为 `adjust/pending_probe`，并以 report `4406289e…` 完成零写入 P10.2；结果为 `structural_rejected`：334 个采样中 218 个画布失败，`0/8` 仍失败 217 个，分类 `upstream_base_motion_canvas_overflow`，没有参数候选，唯一责任附件为 `layer-007-handwear-l`。A 必须回绑定工作台修复基础动作、附件/骨绑定或画布并重建下游，不能进入 P10.3。A 的 P10.5b revision 2 与 P10.5c exact bundle 仍只关闭静态锚点凭据。B revision 16 已改变 Resolved Project 与 Manifest/P2–P5 身份，旧链的画布失败和旧 P10.1 head 都不能外推到新链；B 须先完成新 P9 adoption，再重建 P10.0/P10.1 并重跑 P10.2/P10.2a。计划项见[开发路线](development-roadmap.md)。
+本文是面向操作者和开发者的 Reference。它回答“功能是否已经实现、从哪里进入、会得到什么”，不替代具体操作步骤。P0 Resolved Project v1、P10.2/P10.2a 自动诊断、P10.2 动态视口与 region 换绑候选、P10.6b MotionInstance v3、P10.7a Spine 4.2 v3 adapter bundle、P10.7b sampled raster 基础设施与独立 P10.7c setup regression 已完成；**P9-real-kimodo-policy-adoption** 对真实 `wave-left-v1` 的 A/B 历史精确链已关闭。样本 A 的旧 report `4406289e…` 继续保留固定素材框 containment 的 218/334 个失败采样；动态视口已能覆盖完整动作，`1024×1024` 不再作为 Rig/Runtime 相机硬边界。动作证据为唯一责任附件 `layer-007-handwear-l` 推荐 `forearm.left → upper-arm.left`，但必须明确确认并保存新 override revision，再重建 Manifest/P2–P10。A 的 P10.5b revision 2 与 P10.5c exact bundle 仍只关闭静态锚点凭据；P10.3 尚未消费动态视口候选。B revision 16 已改变 Resolved Project 与 Manifest/P2–P5 身份，旧链结论不能外推到新链；B 须先完成新 P9 adoption，再重建 P10.0/P10.1 并重跑 P10.2/P10.2a。计划项见[开发路线](development-roadmap.md)。
 
 ## 统一入口
 
@@ -31,12 +31,13 @@
 | 功能 | 入口 | 当前边界 |
 | --- | --- | --- |
 | 项目发现与切换 | 顶部项目选择器 | 发现已有 See-through audit，不运行 See-through |
-| 图层浏览与 QA | “图层”模式、图层列表和 QA 面板 | 搜索、显隐、语义、左右、bbox、空层及合成差异 |
+| 图层浏览与 QA | “图层”模式、图层列表和 QA 面板 | 搜索、显隐、语义、左右、bbox、空层及合成差异；画布可缩放并以空白左拖/任意位置中键拖动平移 |
 | 图层 authoring | 右侧图层编辑器 | 语义、side、disposition、setup 可见性、pivot、目标骨和备注 |
 | 双侧切分复核 | 右侧“切分预览审查” | 接受或拒绝精确 split artifact；算法变化使旧决定 stale |
 | 关节校正 | “关节”模式和坐标编辑器 | 拖动、数值输入、键盘微调、恢复自动位置 |
 | 四肢候选比较 | 右侧“候选审查” | accept、adjust、reject、unobservable；证据按 SHA 回看 |
 | P3 Mesh 证据 | 页面底部“P3 Mesh 证据” | 显式选择 rig/bundle SHA 后只读重验；不是权重编辑器 |
+| 动作证据换绑 | 从 P10.2 的“复核自动换绑”进入 | 自动选择责任图层，并在独立建议卡预览同链一跳目标骨；不污染共享 Rig 表单，且一次明确确认后才以 candidate/current-chain/CAS 保护保存 revision |
 | Revision 保存 | “保存校正”或 `Ctrl+S` | override v3、CAS、append-only history、409 草稿恢复 |
 
 ### 身体摆动设置
@@ -49,13 +50,13 @@
 
 普通流程不再要求执行七地址 CLI、选择 candidate/decision 文件或复制 SHA。只读 package inventory 会实时读取 current-project-matched、candidate-bound P10.1 current head，分类为“可探针”“需回 P10.1”或“不适用”；历史 exact 链不进入普通清单，只有掌握 exact package ID 的审计直达入口才能只读复验。只有 current-project-matched ready 项唯一时页面才自动选择。详情加载采用 `exact replay → history/exact decision → compile or bounded derived-cache lookup → exact replay → history`；cache key 绑定 state root、完整 exact package/address、candidate SHA、current revision/decision SHA 与 probe/canvas profile SHA。命中不跳过后半段 exact replay/head 检查，任何 candidate 或 head 漂移都会 fail closed。
 
-页面显示角色 composite、四骨代表样本时间轴、五项自动结构卡和两项后续门禁卡。SHA、source seal 与 canonical report 收在专家详情；下载文件名包含项目、clip 与报告哈希前缀，且只作备份。页面无逐项人工 action，也没有 mutation：拖动时间轴只导航采样见证。`structural_rejected` 会返回同一 package 的 P10.1 参数页；`manual_visual_required` 只开放准备官方 Runtime/P10.3 的含义，`release_gate` 始终 blocked。
+页面显示角色 composite、四骨代表样本时间轴、五项自动结构卡和两项后续门禁卡。预览以 SVG `viewBox` 支持 5%–800% 缩放、指针锚点滚轮缩放、拖拽/方向键平移、原始素材框重置与完整动作包络适配；角色图、骨骼和越界证据使用同一变换。SHA、source seal 与 canonical report 收在专家详情；下载只作备份。`viewport_adjustment_available` 只表示旧报告唯一拒绝项是素材框 containment 且动态 fit 成功，内嵌 v1 report 与 release gate 不变；其他 FK/mesh/拓扑拒绝仍保持 `structural_rejected`。
 
-derived cache 是进程内有界性能优化，只保存可重建的 report/adjustment/preview，不落盘、不跨进程、不授予审批或发布权。stored split revalidation 另有有界进程缓存，key 绑定 source/preview/manifest 全字节内容、Resolved/decision 身份与 runtime profile；失败或任何字节/身份变化均不复用。两份 current-head/current-chain 快照仍保留。实测全项目 warm list/detail 由约 `10.85 s` 降至约 `0.61 s`，A scope warm 约 `0.28 s`；首次服务启动仍需约 `18 s` 完整重放 A 的 P9 链。
+derived cache 是进程内有界性能优化，保存可重建的 report/adjustment/preview/dynamic viewport/rebind candidates，不落盘、不跨进程、不授予审批或发布权。key 同时绑定四类 analyzer profile，算法变化不会静默复用旧候选。stored split revalidation 另有有界进程缓存，key 绑定 source/preview/manifest 全字节内容、Resolved/decision 身份与 runtime profile；失败或任何字节/身份变化均不复用。两份 current-head/current-chain 快照仍保留。
 
 同一次详情编译还会返回 P10.2a `BodySwayCanvasAdjustmentCandidates v1`。它把已复核的四骨幅度统一乘以离散 gain `0/8…8/8`，分别复跑 sampled canvas 与 sampled geometry，结果只用于零权威诊断。`0/8` 只回答“去掉 body-sway 后基础动作是否仍越界”，永远不能成为新的 body-sway 参数。只有**非零** gain 的两类检查都通过时，系统才产生可带回 P10.1 的 `unvalidated_draft`；它不会自动保存、批准或改写 current head。操作者必须在 P10.1 明确确认一个新 revision，再回到 P10.2 重跑完整报告。
 
-截至本次真实状态复核，`seethrough_output` 的 current P10.1 为 r2 `adjust / pending_probe`，参数固定为 cycles `2`、四骨幅度 `0.8/0.7/0.4/0.2°`、相位 `0/0.04/0.08/0.12`。P10.2 report `4406289ece9ad0e707b2598eab0ba885bcb5f62d1e6be7d37bfa5c942a558e72` 为 `structural_rejected`：334 个采样中 218 个失败，`0/8` 仍有 217 个失败，分类 `upstream_base_motion_canvas_overflow` 且没有参数候选；唯一责任附件 `layer-007-handwear-l` 在 tick `1500000` 的 top/right 最大越界约 `154.2355 px`。因此应修复基础动作、附件/骨绑定或画布并重建下游，而不是调小 body-sway 或进入 P10.3。`seethrough_output_5` 的历史 P9/P10 数字仍只约束旧 exact 链；revision 16 完成新 P9 后必须重建 P10.0/P10.1 并重跑 P10.2/P10.2a。
+截至本次真实状态复核，`seethrough_output` 的 current P10.1 为 r2 `adjust / pending_probe`。旧 report `4406289ece9ad0e707b2598eab0ba885bcb5f62d1e6be7d37bfa5c942a558e72` 仍以固定素材框记录 218/334 个失败采样，`0/8` 为 217/334；v3 动态 fit 已覆盖完整动作包络。`RegionRebindCandidates v1` 对 `layer-007-handwear-l` 推荐 `forearm.left → upper-arm.left`，root-compensated motion extent 改善约 31.81%，setup 包络覆盖骨段由 1 增至 2。建议只有 `authority: none`：工作台自动选层并在独立卡片预览目标骨，普通 Rig 保存不会采用它；仍须一次专用确认。保存会生成新 revision 并使旧 Manifest/P3/P5/P9/P10 进入历史链。`seethrough_output_5` 的历史 P9/P10 数字仍只约束旧 exact 链；revision 16 完成新 P9 后必须重建 P10.0/P10.1 并重跑 P10.2/P10.2a。
 
 ### Body-sway 视觉复核台
 
@@ -288,7 +289,7 @@ capture manifest 会记录 runtime JS/CSS、`package.json`、`LICENSE`、浏览�
 
 操作说明：[捕获并复核 P10.7b Spine 4.2 v3 Raster 证据](how-to-capture-spine42-v3-runtime.md)、[审计两份真实样本的 Spine 4.2 v3 就绪状态](how-to-audit-spine42-v3-readiness.md)。公开结构见 [request Schema](../schemas/spine42-v3-readiness-request-v1.schema.json) 与 [report Schema](../schemas/spine42-v3-readiness-report-v1.schema.json)；Schema 不替代 canonical/self-hash/dependency 的 Python 语义 validator。readiness v1 已冻结，第八项仍固定为 `p6_setup_golden_comparison_not_declared`。新增 P10.7c 不修改该合同；有效审计只说明本次显式地址的 preflight 结果，不等于 setup golden 对照或发布权。
 
-冻结的示例请求仍没有声明两项目的 P9 exact 地址，所以直接运行示例仍会报告 `exact_reviewed_motion_address_not_declared`；这不代表历史工件不存在。A 与 B 历史链的 P9 双 SHA 已通过独立 exact reader，见 [pilot handoff](pilots/kimodo-wave-left-v1.md)。A 可把当前匹配地址写入新 canonical readiness 请求；B revision 16 则必须等待新 P9 adoption，不能把历史 P9 或旧 P3 seam 结论写成当前链。A 的真实 P10.5c 静态接缝集也已通过 exact replay，但冻结请求仍未声明该地址；请求中的 `null` 不能推翻已存在的工件。A 的 P10.1/P10.2 已运行但因基础动作画布越界被拒绝，必须先在绑定工作台修复并重建下游，不能顺序进入 P10.3。结构 fixture 或 B 历史链的四条不可观测关系都不能替代 revision 16 的新链验收。
+冻结的示例请求仍没有声明两项目的 P9 exact 地址，所以直接运行示例仍会报告 `exact_reviewed_motion_address_not_declared`；这不代表历史工件不存在。A 与 B 历史链的 P9 双 SHA 已通过独立 exact reader，见 [pilot handoff](pilots/kimodo-wave-left-v1.md)。A 可把当前匹配地址写入新 canonical readiness 请求；B revision 16 则必须等待新 P9 adoption，不能把历史 P9 或旧 P3 seam 结论写成当前链。A 的真实 P10.5c 静态接缝集也已通过 exact replay，但冻结请求仍未声明该地址；请求中的 `null` 不能推翻已存在的工件。A 的 P10.1/P10.2 已运行；v3 已将固定素材框越界与 Rig 结构失败分离并给出动态视口和证据换绑候选。换绑仍须明确确认、保存新 revision 并重建，且 P10.3 尚未消费动态视口，不能顺序跳过门禁。结构 fixture 或 B 历史链的四条不可观测关系都不能替代 revision 16 的新链验收。
 
 ### P10.7c：P6 Setup Golden 独立回归
 
@@ -296,7 +297,7 @@ capture manifest 会记录 runtime JS/CSS、`package.json`、`LICENSE`、浏览�
 | --- | --- | --- |
 | `compare-body-sway-spine42-v3-setup-golden` | `available` | 锁定 comparison profile、显式 P3、P6 export/runtime golden 合同和精确 P10.7a/P10.7b 地址，重放后只读比较唯一 opaque setup 帧 |
 
-操作说明：[对照 P10.7c Spine 4.2 v3 Setup Golden](how-to-compare-spine42-v3-setup-golden.md)。请求与报告分别使用独立的 `spine42-v3-setup-regression-*-v1` Schema；report/sample 自哈希只是内容身份，命令的 gate 会从 exact P6/P10/capture/PNG 在内部重新计算并绑定 sample。命令不会运行 Runtime、扫描 `latest`/current head、写入 state 或修改 approved PNG；stdout 报告临时且不可寻址，readiness v2 前仍需 immutable comparison bundle。`passed` 只表示固定 setup 帧在批准阈值内，不证明动画 case、连续时间安全、永久审批或发布权。共享的 `wave-left-v1` 已有 P7/P8 与历史 A/B P5/P9；A 已有静态 P10.5c 和 P10.1 r2，但须先修复 P10.2 基础动作画布越界并重建，之后仍缺 P10.3–P10.5d、P10.7a 与 capture 地址。B revision 16 还须完成新 P9、重建 P10.0/P10.1 并重跑 P10.2/seam，因此尚无当前链 P10.7c 通过结论。
+操作说明：[对照 P10.7c Spine 4.2 v3 Setup Golden](how-to-compare-spine42-v3-setup-golden.md)。请求与报告分别使用独立的 `spine42-v3-setup-regression-*-v1` Schema；report/sample 自哈希只是内容身份，命令的 gate 会从 exact P6/P10/capture/PNG 在内部重新计算并绑定 sample。命令不会运行 Runtime、扫描 `latest`/current head、写入 state 或修改 approved PNG；stdout 报告临时且不可寻址，readiness v2 前仍需 immutable comparison bundle。`passed` 只表示固定 setup 帧在批准阈值内，不证明动画 case、连续时间安全、永久审批或发布权。共享的 `wave-left-v1` 已有 P7/P8 与历史 A/B P5/P9；A 已有静态 P10.5c 和 P10.1 r2，但须先确认动作证据换绑并按新 revision 重建，P10.3 也尚未消费动态视口；之后仍缺 P10.3–P10.5d、P10.7a 与 capture 地址。B revision 16 还须完成新 P9、重建 P10.0/P10.1 并重跑 P10.2/seam，因此尚无当前链 P10.7c 通过结论。
 
 ## HTTP 写入边界
 
@@ -312,18 +313,20 @@ P9、Idle 与 Seam 自动页面使用下列 package 资源；preflight 与 GET �
 | `POST /api/idle-behavior/review-packages/{package_id}/decisions` | 二次确认后提交一次显式 P10.1 人工决定 | 取消不发请求；确认要求 `X-Autospine-Intent: body-sway-human-review-v1`、exact candidate、`explicit_confirmation=true` 与实时 head CAS；成功仍为 `pending_probe` 或明确 `not_applicable` |
 | `GET /api/idle-behavior/structural-probes` | 实时分类各 package 的 current P10.1 head，并只在 ready 项唯一时返回推荐 package | path-free、零写入；历史 ready revision 不会覆盖新的 reject/unobservable head |
 | `GET /api/idle-behavior/structural-probes/{package_id}` | 重放 exact P3/P5/P9/P10.0/P10.1 链，编译 P10.2 七项诊断、P10.2a `0/8…8/8` gain 诊断与有界可视投影 | 派生缓存 key 绑定 state root、完整 exact address、candidate SHA、current revision/decision SHA 与 probe/canvas profile；命中仍执行前后 exact replay/head 检查，head 漂移 fail closed；零写入且不授予 Runtime、视觉或发布权 |
+| `POST /api/idle-behavior/structural-probes/{package_id}/rebind-adoptions/{candidate_sha256}` | 一次明确确认后采用当前 region 换绑建议并追加 override revision | 要求 `X-Autospine-Intent: region-rebind-adoption-v1`；服务端重放 exact 候选、当前 Resolved/Manifest、来源骨与 P10.1 head，并在共享候选事务锁内完成最终 head 核验和 override CAS；revision 内保存可信 provenance，取消或任一身份漂移均零写入 |
 | `GET /api/motion-policy/review-packages/{package_id}/seam-review-entry` | 零写入重放 exact package 与 Foot/Depth 共享 P3 来源，复验 P3 bundle，重新准备 P10.5b candidate | 不接受客户端 Manifest/P3 SHA；响应 path-free，只返回 exact 地址、candidate SHA、可观测性摘要与 blocker |
 | `POST /api/motion-policy/review-packages/{package_id}/seam-publications` | 从已提交的 current ready P10.5b decision 编译、发布并 exact-readback P10.5c | 独立 intent；只接受 package/candidate/revision/decision 身份，不接受路径或客户端上游地址；响应 path-free |
 | `POST /api/motion-policy/preflight` | 从原始 JSON 文本运行 inner strict decoder；`policy_identity` 返回 Python canonical SHA，`candidate_inventory` 解包受支持 envelope 后重算 policy/foot/depth 三 SHA、完整 standalone 合同、交叉绑定、四项计数及候选 ID 清单 SHA | loopback + exact same-origin、JSON、`X-Autospine-Intent: motion-policy-preflight-v1`；外层 48 MiB、内层 policy/foot/depth 1/16/16 MiB；不读路径、不写 state、不批准或发布 |
 | `POST /api/motion-policy/review-packages/{package_id}/adoptions` | 用严格 human review input 编译 decision/reviewed policy，原子发布 MotionInstance v2 六文件 P9 bundle，并按精确双 SHA 读回复验 | loopback + exact same-origin、JSON、`X-Autospine-Intent: motion-policy-adoption-v1`；服务端重读完整 package，不接受任意路径、shell 命令或客户端提供的上游地址；成功响应 path-free |
 
-Preflight POST 只用于承载有界完整 JSON 文档，不代表 mutation。P9 adoption、P10.1 decision 与 seam-publication 属于三个独立写边界；它们的最终确认不能互相替代。本地 HTTP 服务当前有六类写操作：
+Preflight POST 只用于承载有界完整 JSON 文档，不代表 mutation。P9 adoption、P10.1 decision、region rebind adoption 与 seam-publication 属于独立写边界；它们的最终确认不能互相替代。本地 HTTP 服务当前有七类写操作：
 
 | 方法与资源 | 写入内容 | 并发边界 |
 | --- | --- | --- |
 | `PUT /api/projects/{id}/overrides` | override v3 与 resolved snapshot | `base_revision` CAS |
 | `PUT .../visual-review/candidates/{candidate}/decisions` | P10.3c sampled visual decision revision | exact candidate、intent header 与 head CAS |
 | `POST /api/idle-behavior/review-packages/{package_id}/decisions` | P10.1 idle/body-sway decision revision | exact package/candidate、显式确认、intent header 与 head CAS |
+| `POST /api/idle-behavior/structural-probes/{package_id}/rebind-adoptions/{candidate_sha256}` | 候选绑定的 override revision 与不可变 `revision_provenance` | exact package/candidate/current chain/来源骨、显式 intent、P10.1 共享事务锁与 override `base_revision` CAS |
 | `POST .../seam-anchor-reviews/.../candidates/{candidate}/decisions` | P10.5b seam decision revision | exact candidate、intent header 与 head CAS |
 | `POST /api/motion-policy/review-packages/{package_id}/adoptions` | P9 decision、reviewed policy、MotionInstance v2 与六文件不可变 bundle | exact package、显式 intent、穷尽 human decision、内容地址幂等复用及发布后 exact verify |
 | `POST /api/motion-policy/review-packages/{package_id}/seam-publications` | P10.5c ReviewedSeamAnchorSet 三文件不可变 bundle | 已提交 current ready P10.5b decision、独立 intent、package/source 重放、双快照与发布后 exact readback |

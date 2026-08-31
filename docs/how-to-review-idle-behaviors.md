@@ -1,8 +1,8 @@
 # 复核 idle 行为并运行 body-sway 结构探针
 
-本指南面向已经发布 P3 mesh、P5 retarget 和 P9 reviewed-motion bundle 的操作者与维护者。目标是从同一条精确输入链生成 idle 行为候选，记录人工决定，再为 `body_sway` 生成 `BodySwayProbeReport v1` 与零权威的 `BodySwayCanvasAdjustmentCandidates v1`。
+本指南面向已经发布 P3 mesh、P5 retarget 和 P9 reviewed-motion bundle 的操作者与维护者。目标是从同一条精确输入链生成 idle 行为候选，记录人工决定，再为 `body_sway` 生成 `BodySwayProbeReport v1`、`BodySwayCanvasAdjustmentCandidates v1`、`DynamicViewportFit v1` 与受影响 region 的零权威换绑候选。
 
-普通操作者优先使用 P10.1 设置页和 P10.2 自动结构探针页；CLI 三条命令仍是专业复验流程。P10.1 候选重放与草稿零写入，三个决定按钮还要经过显示项目、动作、决定和后果的二次确认；只有“确认并提交”才会把 decision 追加到 candidate-bound revision history。P10.2 根据当前 head 自动重放并编译确定性报告，同次详情还生成 P10.2a `0/8…8/8` 统一 gain 诊断。两者全程只读，不要求第二次人工批准、选择文件或填写 SHA。`--document-only` 只让 stdout 输出 canonical 文档；它不是“通过”开关。
+普通操作者优先使用 P10.1 设置页和 P10.2 自动结构探针页；CLI 三条命令仍是专业复验流程。P10.1 候选重放与草稿零写入，三个决定按钮还要经过显示项目、动作、决定和后果的二次确认；只有“确认并提交”才会把 decision 追加到 candidate-bound revision history。P10.2 根据当前 head 自动重放并编译确定性报告，同次详情还生成 P10.2a `0/8…8/8` 统一 gain、动态视口和受影响 region 的换绑候选。所有候选全程只读，不要求选择文件或填写 SHA；只有真正保存绑定或 P10.1 决定时才需要一次明确确认。`--document-only` 只让 stdout 输出 canonical 文档；它不是“通过”开关。
 
 ## 普通操作：不用文件或 SHA
 
@@ -20,7 +20,7 @@
 
 若提交返回 revision conflict，刷新页面读取 current head 后再次确认。网络结果不确定时不要盲目重复修改：先刷新历史；字节相同的安全重试会复用既有 revision，不同内容不会覆盖已占用的 slot。
 
-进程内 exact-chain cache 只加速 immutable P3/P5/P9 chain 的读取，不缓存候选决定历史、current head 或 CAS。P10.2 详情与 P10.2a 草稿交接另共享一个有界 derived cache；它只在 state root、完整 exact package/address、candidate SHA、current revision/decision SHA 以及 probe/canvas profile SHA 全部相同时复用 report/adjustment/preview。每个请求仍在缓存查找/编译前后执行 exact replay 和 current-head 检查。两类缓存都不落盘、不跨进程、不授予 authority；命中不是人工确认，也不能证明 revision 永远是 current head。服务重启后的冷发现、首次请求或新 key 仍会完整重放并可能较慢。
+进程内 exact-chain cache 只加速 immutable P3/P5/P9 chain 的读取，不缓存候选决定历史、current head 或 CAS。P10.2 详情与 P10.2a 草稿交接另共享一个有界 derived cache；它只在 state root、完整 exact package/address、candidate SHA、current revision/decision SHA，以及 probe、canvas adjustment、dynamic viewport、region rebind 四类 profile SHA 全部相同时复用 report、preview 和候选。每个请求仍在缓存查找/编译前后执行 exact replay 和 current-head 检查。两类缓存都不落盘、不跨进程、不授予 authority；命中不是人工确认，也不能证明 revision 永远是 current head。服务重启后的冷发现、首次请求或新 key 仍会完整重放并可能较慢。
 
 ## 普通操作：P10.2 自动结构探针
 
@@ -31,12 +31,16 @@
 1. 页面读取所有 P10 package 的**当前** P10.1 head，只在恰好一个 package 为 `adjust / pending_probe` 时自动推荐它；URL 中的 `package_id` 或你在下拉框中的明确选择优先。历史上曾经可探测、但当前已经拒绝或标记不可观测的 revision 不会被静默复用。
 2. 服务端自动重放精确 Layer Manifest/P3/P5/P9/P10.0，并读取 candidate-bound 的 exact P10.1 decision。编译前后再次读取 current head；中途出现新 revision 时返回冲突，页面要求重新读取，不把旧报告冒充当前结果。
 3. 等待七项检查卡出现。页面把 loop、FK、mesh、画布和共享索引列为自动结构项，把 attachment 接缝与 Runtime 视觉列为后续门禁；默认界面不显示 SHA，也不要求逐项批准。
-4. 使用角色合成图、四骨时间轴和有界采样见证查看结果。见证只是帮助理解 canonical report 的离散采样投影，不穷尽全部 tick，也不替代七项报告。
-5. 若结果为“结构拒绝”，先查看 P10.2a 的统一 gain 诊断。`0/8` 只用于判断不加 body-sway 时是否仍越界，不能被保存为 body-sway 参数。若存在一个**非零**且 sampled canvas/geometry 同时通过的 `unvalidated_draft`，可把它带回 P10.1；仍须由你明确确认并保存新 revision，再回本页重跑 P10.2。若没有这种候选，应修复画布、attachment/骨绑定或上游动作，不能靠页面自动批准。若结果为“需要 Runtime 视觉复核”，也只表示前五项 sampled structural checks 未拒绝，下一步仍须准备官方 Spine Runtime capture 和 P10.3 人工视觉证据。
+4. 使用角色合成图、四骨时间轴和有界采样见证查看结果。预览中的 `1024×1024` 是素材/setup 坐标，不是 Rig 或 Runtime 相机的硬边界；可用滚轮或按钮缩放、按住画布拖拽平移、重置视图，或点击“适配全部动作”应用系统根据全部采样附件包络计算的缩放和平移草稿。上述操作全是本地视图变化，不会修改 Rig、动作或 revision。
+5. 若结果为“结构拒绝”，先查看 P10.2a 的统一 gain 诊断。`0/8` 只用于判断不加 body-sway 时是否仍越界，不能被保存为 body-sway 参数。若旧 v1 报告唯一拒绝项是 `sampled_canvas_containment`，并且完整动作包络可以通过动态视口适配，页面会显示 `viewport_adjustment_available`；这只是把“素材坐标越界”与“Rig 结构错误”分开，内嵌 v1 report 和发布门禁仍不改变。若存在一个**非零**且 sampled canvas/geometry 同时通过的 `unvalidated_draft`，可把它带回 P10.1；仍须明确确认并保存新 revision，再回本页重跑 P10.2。
+6. 若页面给出 region 换绑建议，可点击入口回绑定工作台。项目与图层会先显示，exact P10.2 证据在后台核验；只有 package、candidate、Resolved SHA 和来源骨全部一致时，系统才选中责任图层，并在独立建议卡预览建议骨。它不会填入共享 Rig 表单；active handoff 期间普通 Rig 确认、普通保存和 `Ctrl+S` 都不能采用该建议。确认图像整体应跟随哪段骨后，点击“确认换绑并保存 revision”，再通过一次确认弹窗；服务端随后重放证据并创建新 revision。取消、历史 package、核验期间项目/P10.1 head 变化或 revision 冲突都不会写入。新的绑定会改变 Resolved/Manifest/RigIR 身份，旧 P3/P5/P9/P10 只能作为历史证据，必须按新链重建。若同时还有 FK、mesh、拓扑等结构拒绝，动态视口不会放行这些错误。
+7. 若结果为“需要 Runtime 视觉复核”，也只表示前五项 sampled structural checks 未拒绝，下一步仍须准备官方 Spine Runtime capture 和 P10.3 人工视觉证据。当前 P10.3 尚未消费 `DynamicViewportFit v1`，所以 `viewport_adjustment_available` 不能直接作为 P10.3 准入。
 
 P10.2 页面加载、切换项目、拖动时间轴和下载技术备份均为零写入。报告下载文件名包含项目、clip 和报告哈希前缀，以免两份样本互相覆盖；正常工作流不依赖该下载。无论结构结果为何，`release_gate` 都保持 `blocked`。
 
-真实样本 B `seethrough_output_5` 是“不能只调小幅度”的实例：reviewed gain `8/8` 有 `334/334` 个画布失败 tick，`0/8` 仍有 `333/334` 个，主要涉及 `layer-006-objects`、`layer-000-back-hair` 与 `layer-008-hand-r`。该样本没有可用的纯参数 draft，当前必须保持 P10.3 fail closed。
+真实样本 A `seethrough_output` 的 `layer-007-handwear-l` 是换绑候选实例。当前 region rigid 绑定在 `forearm.left`；同一 reviewed schedule 的证据推荐 `upper-arm.left`，包络覆盖骨段由 1 增至 2，root-compensated motion extent 改善约 `31.81%`，最大 viewport overflow 诊断约从 `157.26 px` 降至 `25.54 px`。这些数字不证明视觉正确、接缝安全或 Runtime 等价；只有操作者明确确认并保存新 revision 后，新的绑定才生效，随后仍须重建和重跑下游。
+
+真实样本 B `seethrough_output_5` 是“不能只调小幅度”的实例：reviewed gain `8/8` 有 `334/334` 个画布失败 tick，`0/8` 仍有 `333/334` 个，主要涉及 `layer-006-objects`、`layer-000-back-hair` 与 `layer-008-hand-r`。这些数字属于 revision 16 之前的历史链，不能外推到新绑定；新链仍须完成 P9 adoption 并重跑 P10.2。
 
 ## 专业流程：显式七地址与 canonical JSON
 
@@ -227,6 +231,10 @@ Write-Utf8NoBom .\review\body-sway-probe-report.json $ProbeText
 
 若 `0/8` 也失败，应优先检查基础动作、画布余量、attachment 的 setup rectangle/mesh、目标骨和绑定方向。此时继续减小 body-sway 幅度没有意义；必须修复这些结构输入。
 
+这里的“画布余量”只描述素材坐标基准中的固定 containment 检查。`DynamicViewportFit v1` 会对同一 exact schedule 的全部 attachment 顶点求运动包络，再给出统一 scale 和 translation，使操作者可以自由查看或适配完整动作。它是 `candidate_only / authority: none`：不会覆盖旧 `BodySwayProbeReport v1`，不会写 Runtime camera，也不会批准 P10.3。
+
+若越界责任来自 region，系统还会在当前骨及同链一跳父/子骨之间比较 setup 重建、包络内骨段覆盖和 root-compensated motion extent。推荐项只能作为绑定工作台草稿；禁止自动写 override、冒充人工复核或跨 revision 继承。保存正式换绑后必须重建所有依赖旧 Layer Manifest/RigIR 的下游产物。
+
 ## 7. 不要用 sample SHA 判断 loop
 
 代表性行的 `sample_sha256` 使用 `autospine-body-sway-representative-sample/v1`，哈希内容包括 `tick`、base/overlay/combined rotations 和 root translation。因此 loop 起点与终点即使 pose 完全相同，其 tick 不同，`sample_sha256` 也应不同。
@@ -235,13 +243,14 @@ loop 检查另行计算不含 tick 的 endpoint pose-state SHA（domain 为 `aut
 
 ## 8. 当前能力边界
 
-P10.2 只对固定离散 schedule 采样 setup-local base motion 与人工 body-sway overlay，再检查结构几何；P10.2a 只在同一离散 schedule 上比较统一 gain。它们明确不：
+P10.2 只对固定离散 schedule 采样 setup-local base motion 与人工 body-sway overlay，再检查结构几何；P10.2a 只在同一离散 schedule 上比较统一 gain。动态视口和 region 换绑也只是由该离散证据派生的候选。它们明确不：
 
 - 生成 MotionInstance v3、Spine timeline 或可发布动画；
 - 证明采样点之间的连续时间安全、输入幅度的安全范围或 attachment 接缝安全；
 - 证明 raster truth 或视觉质量；
 - 替代明确版本的官方 runtime 加载、人工预览与截图回归。
+- 让 P10.3 自动消费 viewport transform，或把 `viewport_adjustment_available` 当成视觉准入。
 
 当前 P10.3 视觉页仍要求精确 project/preview/bundle/artifact 地址。未来可规划从 `package_id` 自动闭合七个 SHA、生成 temporary preview、在操作者显式确认 Runtime 许可与本次启动后异步 capture，并自动带入 exact 地址；这条 package-centric 自动编排尚未实现，也不能绕过逐 case 视觉确认。
 
-合同参考：[IdleBehaviorCandidates v1](../schemas/idle-behavior-candidates-v1.schema.json)、[IdleBehaviorDecision v1](../schemas/idle-behavior-decision-v1.schema.json)、[BodySwayProbeReport v1](../schemas/body-sway-probe-report-v1.schema.json)、[BodySwayCanvasAdjustmentCandidates v1](../schemas/body-sway-canvas-adjustment-candidates-v1.schema.json)。
+合同参考：[IdleBehaviorCandidates v1](../schemas/idle-behavior-candidates-v1.schema.json)、[IdleBehaviorDecision v1](../schemas/idle-behavior-decision-v1.schema.json)、[BodySwayProbeReport v1](../schemas/body-sway-probe-report-v1.schema.json)、[BodySwayCanvasAdjustmentCandidates v1](../schemas/body-sway-canvas-adjustment-candidates-v1.schema.json)、[DynamicViewportFit v1](../schemas/dynamic-viewport-fit-v1.schema.json)、[RegionRebindCandidates v1](../schemas/region-rebind-candidates-v1.schema.json)。

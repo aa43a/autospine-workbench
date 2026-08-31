@@ -1,3 +1,7 @@
+import {
+  dynamicViewportEnvelope, regionRebindEnvelope,
+} from "./body-sway-remediation-fixtures.mjs";
+
 export const PACKAGE_A = "a".repeat(64);
 export const PACKAGE_B = "b".repeat(64);
 export const REPORT_SHA = "c".repeat(64);
@@ -15,7 +19,7 @@ export function inventoryFixture(
   packages = [packageRow(PACKAGE_B, "probe_ready")], recommended = PACKAGE_B, skippedCount = 0,
 ) {
   const count = (status) => packages.filter((row) => row.status === status).length;
-  return {
+  const value = {
     format: "autospine-body-sway-probe-package-list",
     format_version: 1,
     count: packages.length,
@@ -26,6 +30,7 @@ export function inventoryFixture(
     recommended_package_id: recommended,
     skipped_count: skippedCount,
   };
+  return value;
 }
 
 export function packageRow(packageId, status, projectId = "seethrough_output_5") {
@@ -101,10 +106,11 @@ export function probeEntryFixture({
     summary,
   };
   const report = reportFixture({ result, timing });
-  return {
+  const value = {
     format: "autospine-body-sway-probe-entry",
-    format_version: 2,
-    status: resultStatus,
+    format_version: 3,
+    status: rejectedCheck === "sampled_canvas_containment"
+      ? "viewport_adjustment_available" : resultStatus,
     probeability: "probe_ready",
     package: {
       package_id: packageId,
@@ -155,7 +161,13 @@ export function probeEntryFixture({
       },
     },
     canvas_adjustment: null,
+    dynamic_viewport: dynamicViewportEnvelope(schedule.sample_count),
+    rebind_candidates: [],
   };
+  if (rejectedCheck === "sampled_canvas_containment") {
+    value.rebind_candidates = [regionRebindEnvelope(value)];
+  }
+  return value;
 }
 
 export const CHECK_IDS = [

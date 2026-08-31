@@ -236,7 +236,7 @@ class BodySwayProbeApplicationTests(unittest.TestCase):
         self.assertEqual("probe_ready", inventory["packages"][0]["status"])
         self.assertEqual(first, second)
         self.assertEqual(1, compiler.call_count)
-        self.assertEqual(2, first["format_version"])
+        self.assertEqual(3, first["format_version"])
         self.assertEqual(direct.sha256, first["report_sha256"])
         self.assertEqual(direct.document, first["technical"]["report"])
         adjustment = first["canvas_adjustment"]
@@ -260,7 +260,22 @@ class BodySwayProbeApplicationTests(unittest.TestCase):
                 "decision_sha256"
             ],
         )
-        self.assertIn(first["status"], {"manual_visual_required", "structural_rejected"})
+        legacy_status = direct.document["status"]
+        expected_status = (
+            "viewport_adjustment_available"
+            if legacy_status == "structural_rejected" else legacy_status
+        )
+        self.assertEqual(expected_status, first["status"])
+        self.assertEqual(legacy_status, first["result"]["status"])
+        viewport = first["dynamic_viewport"]
+        self.assertEqual("fitted", viewport["document"]["fit_status"])
+        self.assertEqual(64, len(viewport["candidate_sha256"]))
+        self.assertIsInstance(first["rebind_candidates"], list)
+        self.assertTrue(all(
+            set(row) == {"candidate_sha256", "document"}
+            and row["document"]["status"] == "candidate_only"
+            for row in first["rebind_candidates"]
+        ))
         self.assertEqual("none", first["preview"]["authority"])
         self.assertEqual(
             direct.document["timing"], first["preview"]["timing"],

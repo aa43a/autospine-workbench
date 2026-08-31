@@ -31,6 +31,7 @@ from autospine_workbench.body_sway_derived_cache import (
     body_sway_derived_cache_key,
 )
 from autospine_workbench.body_sway_probe_report import BodySwayProbeReport
+from autospine_workbench.dynamic_viewport_fit import DynamicViewportFit
 from autospine_workbench.idle_behavior_review_address import (
     IdleBehaviorReviewAddress,
 )
@@ -39,6 +40,9 @@ from autospine_workbench.idle_behavior_review_head import (
 )
 from autospine_workbench.idle_behavior_review_history import (
     IdleBehaviorReviewHistorySnapshot,
+)
+from autospine_workbench.region_rebind_candidates import (
+    RegionRebindCandidateArtifact,
 )
 
 
@@ -61,6 +65,7 @@ def _key(index: int = 0) -> BodySwayDerivedCacheKey:
         f"C:/state/{index}", _address(index), chars[index + 4] * 64,
         index + 1, chars[index + 5] * 64,
         chars[index + 6] * 64, chars[index + 7] * 64,
+        chars[index + 8] * 64, chars[index + 9] * 64,
     )
 
 
@@ -71,6 +76,8 @@ def _result(marker: int) -> BodySwayDerivedResult:
     )
     return BodySwayDerivedResult.freeze(
         adjustment, {"nested": {"marker": marker}},
+        DynamicViewportFit(_canonical({"viewport": marker})),
+        (RegionRebindCandidateArtifact(_canonical({"rebind": marker})),),
     )
 
 
@@ -198,12 +205,18 @@ class BodySwayDerivedCacheTests(unittest.TestCase):
         preview["nested"]["marker"] = 99
         adjustment = first.canvas_adjustment.document
         adjustment["adjustment"] = 99
+        viewport = first.dynamic_viewport.document
+        viewport["viewport"] = 99
+        rebind = first.rebind_candidates[0].document
+        rebind["rebind"] = 99
 
         second = cache.get_or_compile(
             _key(), lambda: self.fail("resident result was not reused"),
         )
         self.assertEqual(3, second.preview["nested"]["marker"])
         self.assertEqual(3, second.canvas_adjustment.document["adjustment"])
+        self.assertEqual(3, second.dynamic_viewport.document["viewport"])
+        self.assertEqual(3, second.rebind_candidates[0].document["rebind"])
 
     def test_key_separates_root_address_head_candidate_and_profiles(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -243,6 +256,24 @@ class BodySwayDerivedCacheTests(unittest.TestCase):
                     root, _address(), "c" * 64, head,
                 )
             self.assertNotEqual(base, changed_profile)
+            with patch(
+                "autospine_workbench.body_sway_derived_cache."
+                "dynamic_viewport_fit_profile",
+                return_value={"id": "changed"},
+            ):
+                changed_viewport = body_sway_derived_cache_key(
+                    root, _address(), "c" * 64, head,
+                )
+            self.assertNotEqual(base, changed_viewport)
+            with patch(
+                "autospine_workbench.body_sway_derived_cache."
+                "region_rebind_analyzer_profile",
+                return_value={"id": "changed"},
+            ):
+                changed_rebind = body_sway_derived_cache_key(
+                    root, _address(), "c" * 64, head,
+                )
+            self.assertNotEqual(base, changed_rebind)
 
 
 if __name__ == "__main__":
