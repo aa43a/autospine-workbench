@@ -1,6 +1,6 @@
 # AutoSpine Workbench 功能与入口参考
 
-本文是面向操作者和开发者的 Reference。它回答“功能是否已经实现、从哪里进入、会得到什么”，不替代具体操作步骤。P10.3 已交付 package-centric Preview v2、固定本地 Spine Player 4.2.119/Chrome 校验、显式许可/本次运行确认、append-only 异步 job、official Runtime execution v2 内容寻址封存及 job-centric P10.3c v2 复核合同。样本 A 已确认 `layer-007-handwear-l: forearm.left → upper-arm.left`、保存 override revision 6，并接受 CaptureFraming revision 1；随后六次真实采集分别在不固定 case 处失败，失败 job 均不可变且没有发布部分 execution 证据。execution v2 runner `1.1.0` 已交付，但升级后尚未由操作者重新确认并运行官方 Runtime，P10.3c 也尚无人工批准。样本 B revision 16 必须沿自己的 current chain 重建；旧链结论不能外推。P10.3 v1 保持冻结，所有 release gate 继续 blocked。计划项见[开发路线](development-roadmap.md)。
+本文是面向操作者和开发者的 Reference。它回答“功能是否已经实现、从哪里进入、会得到什么”，不替代具体操作步骤。P10.3 已交付 package-centric Preview v2、固定本地 Spine Player 4.2.119/Chrome 校验、显式许可/本次运行确认、append-only 异步 job、official Runtime execution v2 内容寻址封存及 job-centric P10.3c v2 复核合同。样本 A 已确认 `layer-007-handwear-l: forearm.left → upper-arm.left`、保存 override revision 6，并接受 CaptureFraming revision 1；六次失败 execution 作为不可变历史保留且没有部分证据，runner `1.1.0` 的后续 job 已完成 43/43。P10.3c 已提供 setup + 21 组 A/B 的单时间轴异常复核，但尚无人工 revision。样本 B revision 16 必须沿自己的 current chain 重建；旧链结论不能外推。P10.3 v1 保持冻结，所有 release gate 继续 blocked。计划项见[开发路线](development-roadmap.md)。
 
 ## 统一入口
 
@@ -11,7 +11,7 @@
 - [身体摆动设置](http://127.0.0.1:8765/idle-behavior-review.html)：从已采用 P9 链自动准备 P10.0 候选，并由操作者显式提交 P10.1 决定；
 - [身体摆动结构探针](http://127.0.0.1:8765/body-sway-probe.html)：实时分类 current P10.1 heads，仅在 ready 且与当前 Resolved Project 匹配的项唯一时自动推荐、重放并可视化 P10.2 七项结构诊断、P10.2a 离散 gain 诊断与 P10.2b 自动取景确认；
 - [P10.3 官方 Runtime 自动采集](http://127.0.0.1:8765/body-sway-runtime-capture.html)：按 package 自动准备 Preview v2、校验固定环境、显式确认后创建异步 official Runtime job；
-- [P10.3c v2 视觉复核台](http://127.0.0.1:8765/body-sway-review-v2.html)：由 completed job 的完整 `job_id` 进入，逐 case 保存人工 sampled still 决定；
+- [P10.3c v2 时间轴视觉复核台](http://127.0.0.1:8765/body-sway-review-v2.html)：由 completed job 的完整 `job_id` 进入，以 setup + 21 组 A/B 时间点复核 43 个不可变 case；默认通过仅为本地草稿，最终保存完整人工 sampled still 决定；
 - [P10.3c v1 视觉复核台](http://127.0.0.1:8765/body-sway-review.html)：冻结的历史/回归入口，不用于新 v2 job；
 - [接缝自动复核与静态锚点生成](http://127.0.0.1:8765/seam-anchor-review.html)：P10.5b 自动看图复核；ready 时由同一次最终确认继续 P10.5c 发布与精确读回；
 - [Motion Policy 自动工作流](http://127.0.0.1:8765/motion-policy-review.html)：P9 项目/package 自动加载、安全 Foot 辅助采用、异常处理，以及一次人工确认后的本地编译、发布和精确复验。
@@ -60,13 +60,13 @@ derived cache 是进程内有界性能优化，保存可重建的 report/adjustm
 
 同一次详情编译还会返回 P10.2a `BodySwayCanvasAdjustmentCandidates v1`。它把已复核的四骨幅度统一乘以离散 gain `0/8…8/8`，分别复跑 sampled canvas 与 sampled geometry，结果只用于零权威诊断。`0/8` 只回答“去掉 body-sway 后基础动作是否仍越界”，永远不能成为新的 body-sway 参数。只有**非零** gain 的两类检查都通过时，系统才产生可带回 P10.1 的 `unvalidated_draft`；它不会自动保存、批准或改写 current head。操作者必须在 P10.1 明确确认一个新 revision，再回到 P10.2 重跑完整报告。
 
-截至本次真实状态复核，`seethrough_output` 的换绑已经在 override revision 6 生效，P9/P10 已按新链重建；当前 P10.2 只保留旧素材框 containment 拒绝，完整动作包络由动态视口覆盖，CaptureFraming 已接受 revision 1。样本 A 的六次 official Runtime job 均在不固定 case 处失败，作为不可变历史保留且未发布部分证据；runner 1.1.0 修复已知生命周期冲突后仍须由操作者显式创建新 job。`seethrough_output_5` 的历史 P9/P10 数字仍只约束旧 exact 链，不能跨 revision 复用。
+截至本次真实状态复核，`seethrough_output` 的换绑已经在 override revision 6 生效，P9/P10 已按新链重建；当前 P10.2 只保留旧素材框 containment 拒绝，完整动作包络由动态视口覆盖，CaptureFraming 已接受 revision 1。样本 A 的六次失败 official Runtime job 作为不可变历史保留且未发布部分证据；runner 1.1.0 的后续 job 已完成 43/43，P10.3c history 仍为 revision 0。`seethrough_output_5` 的历史 P9/P10 数字仍只约束旧 exact 链，不能跨 revision 复用。
 
 ### P10.3 official Runtime 采集与 P10.3c v2 复核
 
 采集页从 `package_id` 自动闭合 current P10.1、P10.2、CaptureFraming、world viewport、Preview v2、projection、plan、source、assets、timing、selection 和完整 cases。固定环境校验绑定 Spine Player 4.2.119 的 JS/CSS/package/LICENSE 与 Chrome；只有操作者勾选许可并对本次运行二次确认后，才创建 append-only 异步 job。job 可刷新查询进度；失败或服务关闭造成的中断不自动重试，当前没有用户主动取消 API，未封存截图不会发布为 execution。
 
-P10.3 v2 execution runner `1.1.0` 固定 `page_lifetime=collector-terminal`，不再携带冻结 v1 驱动的 `--dump-dom` 或 `--virtual-time-budget`。它只在 exact 截图已经提交且 runner 主动 teardown 的条件下容忍 stdout reader 关闭异常；提交前读取失败、输出超限、reader 未退出或 pipe 无法关闭继续 fail closed。新失败事件保存 path-free 精确 `failure_code`，不公开异常文本、路径或命令行。六次历史失败 job 不会被升级或改写，且 runner 1.1.0 尚无真实 completed job。
+P10.3 v2 execution runner `1.1.0` 固定 `page_lifetime=collector-terminal`，不再携带冻结 v1 驱动的 `--dump-dom` 或 `--virtual-time-budget`。它只在 exact 截图已经提交且 runner 主动 teardown 的条件下容忍 stdout reader 关闭异常；提交前读取失败、输出超限、reader 未退出或 pipe 无法关闭继续 fail closed。新失败事件保存 path-free 精确 `failure_code`，不公开异常文本、路径或命令行。六次历史失败 job 不会被升级或改写；后续 43/43 completed job 已覆盖真实 runner 1.1.0 路径。
 
 completed job 绑定 project/Preview v2/execution bundle/artifact set 四段内部地址，并以完整 `job_id` 自动进入 v2 复核页。服务端从 job 解析 exact 地址，重验 current P10.1/CaptureFraming，再准备 v2 candidate、图像和 append-only history。每个 case 必须由人选择 `approve`、`reject` 或 `unobservable`；系统绝不自动批准。全部批准只得到 v2 sampled visual head，不证明连续时间、完整接缝、runtime 等价或发布安全。现有 `BodySwayReviewAdmission v1` 只消费冻结 v1 review；v2 head 仍需要独立 P10.4a v2 admission/consumer 适配。
 
@@ -299,7 +299,7 @@ capture manifest 会记录 runtime JS/CSS、`package.json`、`LICENSE`、浏览�
 
 操作说明：[捕获并复核 P10.7b Spine 4.2 v3 Raster 证据](how-to-capture-spine42-v3-runtime.md)、[审计两份真实样本的 Spine 4.2 v3 就绪状态](how-to-audit-spine42-v3-readiness.md)。公开结构见 [request Schema](../schemas/spine42-v3-readiness-request-v1.schema.json) 与 [report Schema](../schemas/spine42-v3-readiness-report-v1.schema.json)；Schema 不替代 canonical/self-hash/dependency 的 Python 语义 validator。readiness v1 已冻结，第八项仍固定为 `p6_setup_golden_comparison_not_declared`。新增 P10.7c 不修改该合同；有效审计只说明本次显式地址的 preflight 结果，不等于 setup golden 对照或发布权。
 
-冻结的示例请求仍没有声明两项目的 P9 exact 地址，所以直接运行示例仍会报告 `exact_reviewed_motion_address_not_declared`；这不代表历史工件不存在。A 与 B 历史链的 P9 双 SHA 已通过独立 exact reader，见 [pilot handoff](pilots/kimodo-wave-left-v1.md)。A revision 6 已完成 current P9/P10.2 重建并接受 CaptureFraming revision 1；B revision 16 仍不能把历史 P9 或旧 P3 seam 结论写成当前链。A 的真实旧 P10.5c 静态接缝集仍可 exact replay，但冻结请求中的 `null` 不能替代 current-chain 声明。A 的六次官方 Runtime job 均失败且没有部分证据，runner 1.1.0 尚待显式重跑；结构 fixture 或 B 历史链的不可观测关系都不能替代新链验收。
+冻结的示例请求仍没有声明两项目的 P9 exact 地址，所以直接运行示例仍会报告 `exact_reviewed_motion_address_not_declared`；这不代表历史工件不存在。A 与 B 历史链的 P9 双 SHA 已通过独立 exact reader，见 [pilot handoff](pilots/kimodo-wave-left-v1.md)。A revision 6 已完成 current P9/P10.2 重建并接受 CaptureFraming revision 1；B revision 16 仍不能把历史 P9 或旧 P3 seam 结论写成当前链。A 的真实旧 P10.5c 静态接缝集仍可 exact replay，但冻结请求中的 `null` 不能替代 current-chain 声明。A 的六次失败 Runtime job 没有部分证据，runner 1.1.0 的后续 job 已完成 43/43，但仍缺 P10.3c 人工 revision；结构 fixture 或 B 历史链的不可观测关系都不能替代新链验收。
 
 ### P10.7c：P6 Setup Golden 独立回归
 
@@ -307,7 +307,7 @@ capture manifest 会记录 runtime JS/CSS、`package.json`、`LICENSE`、浏览�
 | --- | --- | --- |
 | `compare-body-sway-spine42-v3-setup-golden` | `available` | 锁定 comparison profile、显式 P3、P6 export/runtime golden 合同和精确 P10.7a/P10.7b 地址，重放后只读比较唯一 opaque setup 帧 |
 
-操作说明：[对照 P10.7c Spine 4.2 v3 Setup Golden](how-to-compare-spine42-v3-setup-golden.md)。请求与报告分别使用独立的 `spine42-v3-setup-regression-*-v1` Schema；report/sample 自哈希只是内容身份，命令的 gate 会从 exact P6/P10/capture/PNG 在内部重新计算并绑定 sample。命令不会运行 Runtime、扫描 `latest`/current head、写入 state 或修改 approved PNG；stdout 报告临时且不可寻址，readiness v2 前仍需 immutable comparison bundle。`passed` 只表示固定 setup 帧在批准阈值内，不证明动画 case、连续时间安全、永久审批或发布权。A revision 6 已接受 CaptureFraming revision 1，但仍缺真实官方 Runtime execution、P10.3c v2 人工视觉与后续 v2 admission；B revision 16 还须完成自己的 P9/P10/seam，因此两者都没有 current-chain P10.7c 通过结论。
+操作说明：[对照 P10.7c Spine 4.2 v3 Setup Golden](how-to-compare-spine42-v3-setup-golden.md)。请求与报告分别使用独立的 `spine42-v3-setup-regression-*-v1` Schema；report/sample 自哈希只是内容身份，命令的 gate 会从 exact P6/P10/capture/PNG 在内部重新计算并绑定 sample。命令不会运行 Runtime、扫描 `latest`/current head、写入 state 或修改 approved PNG；stdout 报告临时且不可寻址，readiness v2 前仍需 immutable comparison bundle。`passed` 只表示固定 setup 帧在批准阈值内，不证明动画 case、连续时间安全、永久审批或发布权。A revision 6 已接受 CaptureFraming revision 1 并完成一份真实 official Runtime execution，但仍缺 P10.3c v2 人工视觉与后续 v2 admission；B revision 16 还须完成自己的 P9/P10/seam，因此两者都没有 current-chain P10.7c 通过结论。
 
 ## HTTP 写入边界
 
@@ -362,7 +362,7 @@ Preflight POST 只用于承载有界完整 JSON 文档，不代表 mutation。P9
 - resolved snapshot 已确定性生成并被下游寻址，现有独立 v1 JSON Schema、严格语义 validator、派生 QA 校验及 r5/r7 历史哈希回归；它仍没有独立 CLI/UI，外部 candidate/split artifact 字节重放继续由各自 binder 负责。
 - override history 已 append-only 保存，但主工作台尚无历史浏览/恢复 UI；安全恢复必须追加新 revision，不能改写历史。
 - P7 real-pilot intake 审计已经可用：它把真实 NPZ、recorded sidecar、map、camera 与两份 provenance 原件闭合为零写入 path-free 报告。`wave-left-v1` 已通过该审计并完成 P7/P8、历史 A/B P5 exact replay、正式 depth policy/depth candidates 和各自历史 P9 exact replay，身份集中记录在 [pilot handoff](pilots/kimodo-wave-left-v1.md)。Preflight 或辅助草稿本身仍不认证 checkpoint 或批准动作质量；B revision 16 的 current P9 必须在新链上重新 human adopt 并 exact verify。
-- P10 body-sway 已完成普通用户 P10.0/P10.1 review、P10.2 current-head 结构探针、P10.2a 离散 gain、P10.2b CaptureFraming，以及 package-centric Preview v2、exact session/runner、official Runtime execution store、异步 job 和 P10.3c v2 review 合同。A revision 6 current chain 的 CaptureFraming 已接受 revision 1；六次真实 job 均失败且无部分证据，runner 1.1.0 尚待操作者显式重跑，成功后才能逐 case 人审。B revision 16 仍须沿自己的链重建。现有 P10.4a/b1/b2 只消费冻结 v1 visual review；在新增 v2 admission/consumer 前，v2 head 不能进入这些链，也不能声称 P10.4b2、P10.5d 或 release authority。
+- P10 body-sway 已完成普通用户 P10.0/P10.1 review、P10.2 current-head 结构探针、P10.2a 离散 gain、P10.2b CaptureFraming，以及 package-centric Preview v2、exact session/runner、official Runtime execution store、异步 job 和 P10.3c v2 review 合同。A revision 6 current chain 的 CaptureFraming 已接受 revision 1；runner 1.1.0 已完成 43/43，当前待沿时间轴提交 P10.3c 人工 revision。B revision 16 仍须沿自己的链重建。现有 P10.4a/b1/b2 只消费冻结 v1 visual review；在新增 v2 admission/consumer 前，v2 head 不能进入这些链，也不能声称 P10.4b2、P10.5d 或 release authority。
 - `blink`、口型和头发目前只存在 idle candidate 类型或规划入口，没有可靠素材生成、绑定与 runtime 交付。
 - See-through/pose 推理、真实 Kimodo checkpoint authenticity/动作质量验收、实时追踪、自由形变、runtime IK、生产部署仍未实现。
 

@@ -38,6 +38,166 @@
 
 .decision-summary strong { color: var(--text); }
 
+.draft-notice {
+  max-width: none;
+  padding: 0.75rem;
+  border-left: 3px solid var(--accent);
+  background: var(--accent-dark);
+}
+
+.timeline-stage {
+  min-width: 0;
+  margin-top: 1rem;
+  padding: clamp(0.75rem, 2vw, 1rem);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: #0d121b;
+}
+
+.timeline-heading,
+.timeline-frame > header,
+.timeline-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.timeline-heading { margin-bottom: 0.75rem; }
+.timeline-heading h3 { margin: 0.1rem 0 0; font-size: 1rem; }
+.timeline-position { color: var(--accent); font-size: 0.78rem; font-weight: 800; }
+.timeline-time { color: var(--muted); font-size: 0.85rem; text-align: right; }
+
+.frame-compare {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.frame-compare[data-columns="1"] { grid-template-columns: minmax(0, 1fr); }
+
+.timeline-frame {
+  min-width: 0;
+  padding: 0.7rem;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-strong);
+}
+
+.timeline-frame[data-state="approve"] { border-color: #3c726a; }
+.timeline-frame[data-state="reject"] { border-color: var(--danger); }
+.timeline-frame[data-state="unobservable"] { border-color: var(--warning); }
+.frame-kind { font-weight: 800; }
+
+.frame-draft-badge {
+  padding: 0.15rem 0.45rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  color: var(--accent);
+  font-size: 0.74rem;
+}
+
+.timeline-frame[data-state="reject"] .frame-draft-badge { color: var(--danger); }
+.timeline-frame[data-state="unobservable"] .frame-draft-badge { color: var(--warning); }
+
+.timeline-frame figure {
+  aspect-ratio: 1 / 1;
+  min-height: 0;
+  margin: 0.65rem 0;
+  background: #070a0f;
+}
+
+.timeline-frame figure img {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: contain;
+}
+
+.frame-actions { margin-bottom: 0.6rem; padding: 0.4rem; }
+.frame-notes { margin: 0.5rem 0; }
+.frame-evidence { color: var(--muted); font-size: 0.75rem; }
+.frame-evidence summary { min-height: 44px; padding-block: 0.65rem; cursor: pointer; }
+.frame-evidence dl { display: grid; gap: 0.3rem; margin: 0; }
+.frame-evidence dl div { display: grid; grid-template-columns: 4rem minmax(0, 1fr); gap: 0.5rem; }
+.frame-evidence dd { margin: 0; overflow-wrap: anywhere; }
+
+.timeline-controls {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.65rem;
+  margin-top: 0.8rem;
+}
+
+.timeline-range { display: block; }
+.timeline-range input {
+  display: block;
+  min-height: 44px;
+  padding: 0;
+  accent-color: var(--accent);
+  cursor: ew-resize;
+}
+
+.timeline-markers {
+  display: flex;
+  gap: 3px;
+  min-height: 16px;
+  margin: 0.35rem 0;
+}
+
+.timeline-marker {
+  flex: 1 1 0;
+  min-width: 3px;
+  height: 8px;
+  border-radius: 999px;
+  background: #556073;
+}
+
+.timeline-marker[data-visited="true"][data-state="approve"] { background: var(--accent); }
+.timeline-marker[data-visited="true"][data-state="reject"] { background: var(--danger); }
+.timeline-marker[data-visited="true"][data-state="unobservable"] { background: var(--warning); }
+.timeline-marker[data-state="incomplete"] { background: #ff5d67; }
+.timeline-marker[data-active="true"] { height: 14px; margin-top: -3px; outline: 2px solid var(--text); }
+
+.timeline-meta { align-items: flex-start; }
+.timeline-help { max-width: 52ch; margin: 0.75rem 0 0; color: var(--muted); font-size: 0.78rem; text-align: right; }
+.timeline-legend { display: flex; flex-wrap: wrap; gap: 0.45rem 0.9rem; margin: 0.75rem 0 0; padding: 0; list-style: none; color: var(--muted); font-size: 0.75rem; }
+.timeline-legend li::before { content: ""; display: inline-block; width: 0.7rem; height: 0.7rem; margin-right: 0.35rem; border-radius: 999px; background: #556073; }
+.timeline-legend li[data-state="approve"]::before { background: var(--accent); }
+.timeline-legend li[data-state="reject"]::before { background: var(--danger); }
+.timeline-legend li[data-state="unobservable"]::before { background: var(--warning); }
+.timeline-legend li[data-state="incomplete"]::before { background: #ff5d67; }
+
+.exceptions-panel {
+  margin-top: 1rem;
+  padding: 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-strong);
+}
+
+.exceptions-panel .section-heading { margin-bottom: 0.35rem; }
+.exception-list { display: grid; gap: 0.45rem; }
+.exception-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+  background: #0d121b;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+}
+.exception-item:hover { border-color: var(--accent); }
+.exception-item span { color: var(--muted); font-size: 0.78rem; }
+
 dialog {
   width: min(100% - 2rem, 36rem);
   border: 1px solid var(--border-strong);
@@ -52,9 +212,30 @@ dialog::backdrop { background: rgb(0 0 0 / 70%); }
 
 .confirm-card { padding: 1.3rem; }
 .warning-copy { padding: 0.75rem; border-left: 3px solid var(--warning); background: #211d14; color: var(--warning); }
+.confirm-attestation {
+  display: flex;
+  grid-template-columns: none;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+}
+.confirm-attestation input { flex: 0 0 auto; width: 1.2rem; min-height: auto; margin-top: 0.15rem; accent-color: var(--accent); }
+.confirm-attestation span { color: var(--text); font-size: 0.9rem; }
 .dialog-actions { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem; }
+
+@media (max-width: 800px) {
+  .frame-compare { grid-template-columns: minmax(0, 1fr); }
+  .timeline-meta { display: grid; }
+  .timeline-help { text-align: left; }
+}
 
 @media (max-width: 640px) {
   .job-facts { grid-template-columns: minmax(0, 1fr); }
+  .timeline-controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .timeline-range { grid-column: 1 / -1; grid-row: 1; }
+  .exception-item { align-items: flex-start; flex-direction: column; }
   .dialog-actions { display: grid; }
 }

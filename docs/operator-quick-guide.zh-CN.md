@@ -104,7 +104,7 @@ $env:PYTHONPATH = (Resolve-Path .\src).Path
 8. 若同时出现 region 换绑建议，点击入口会打开绑定工作台、选择责任图层，并在独立建议卡预览目标骨；建议不会填入上方共享 Rig 表单，普通保存也不能绕过专用入口。确认保存后会产生新 override revision，旧下游链随即变成历史。若还存在 FK、mesh、拓扑等拒绝，不要继续盲目调小幅度，应修复 attachment、骨绑定或上游动作。
 9. 专家详情中的 canonical report 与唯一文件名下载只用于备份/排障；普通流程无需下载后重新选文件。
 
-当前真实数据中，`seethrough_output` 已把 `layer-007-handwear-l` 改绑到 `upper-arm.left` 并保存 override revision 6；Manifest/P2–P5、P9、P10.1 与 P10.2 已按新身份重建，P10.2b CaptureFraming 已接受 revision 1。样本 A 已进行六次官方 Runtime 采集，但分别在不固定 case 处失败；失败 job 均不可变且没有发布部分证据。runner 1.1.0 已修复已知生命周期冲突，但尚未重跑，仍需操作者重新显式确认。样本 B revision 16 必须沿它自己的 current chain 重建，不能继承 A 或任一旧链的 P9/P10 数字。
+当前真实数据中，`seethrough_output` 已把 `layer-007-handwear-l` 改绑到 `upper-arm.left` 并保存 override revision 6；Manifest/P2–P5、P9、P10.1 与 P10.2 已按新身份重建，P10.2b CaptureFraming 已接受 revision 1。六次旧官方 Runtime job 分别在不固定 case 处失败，失败任务仍作为不可变历史保留且没有发布部分证据；runner 1.1.0 随后的 job `d7150fa1…` 已完成 43/43 采样。P10.3c v2 history 仍为 revision 0，下一步是人工时间轴复核，不是再次采集。样本 B revision 16 必须沿它自己的 current chain 重建，不能继承 A 或任一旧链的 P9/P10 数字。
 
 ### P10.3–P10.3c：采集并人工复核官方 Runtime 画面
 
@@ -113,8 +113,8 @@ $env:PYTHONPATH = (Resolve-Path .\src).Path
 3. 阅读许可提示并勾选授权确认，点击运行后再在二次确认弹窗核对项目、动作和 current revision。取消弹窗不会创建 job；每次真实运行都必须重新确认。
 4. 查看异步进度。刷新页面可以继续查询同一 job；失败卡会从不可变事件链显示停止阶段、path-free 精确 `failure_code`、已完成数量和下一个未完成样本序号，不显示本地路径或原始异常。该序号是续跑边界，不等于证明该样本有错。失败或服务关闭造成的中断不会自动重试；当前没有主动取消运行中 job 的按钮，修复原因后重新确认并创建新 job，不要把未封存截图当作证据。
 5. job 完成后点击“进入视觉复核”。链接只携带完整 `job_id`，服务端自动解析 project、Preview v2、execution bundle 和 artifact set；不要求手工填地址。
-6. 在 P10.3c v2 页面逐 case 查看图像，为每项选择通过、拒绝或无法判断；拒绝/无法判断要填写原因。系统不会自动批准任何 case。
-7. 核对 current history head 并最终确认提交。发生 revision conflict 时刷新历史、重新核对后再提交；旧决定不会被覆盖。
+6. 在 P10.3c v2 页面从 Setup 拖动时间轴到末端；21 个动作时间点会并排显示基础动作和身体摆动。43 个 case 默认填为本地通过草稿，只需把异常图片改为“剔除”或“无法判断”并填写原因；默认草稿不会自动提交或批准。
+7. 确认“已查看 22 / 22”，核对 current history head，在最终弹窗勾选复核声明后提交。发生 revision conflict 时刷新历史、重新核对后再提交；旧决定不会被覆盖。
 8. 全部 case 通过也只表示 sampled visual approved，发布仍然 blocked。详细步骤见[运行 P10.3 官方 Runtime 自动采集](how-to-capture-body-sway-runtime.md)和[复核 P10.3c 官方 Runtime 采样帧](how-to-review-body-sway-runtime.md)。
 
 当前 P10.3 v2 runner 版本为 `1.1.0`。它以 collector 的 exact 截图提交作为页面终态，移除了旧
@@ -132,7 +132,7 @@ reader 关闭异常。提交前读取失败、输出超限或截图未提交仍�
 6. 若六条关系全部 `accept/adjust` 且页面来自 P9 package，本机随后自动执行 P10.5c 编译、内容寻址发布和 exact readback。成功后可下载 path-free 精确复验回执；只有精确 P10.4b2 动作域也已闭合时，才能进入“动态接缝验证”。
 7. 若页面提示“P10.5b 已保存；P10.5c 未完成”，只点击“仅重试生成静态接缝集”。不要再次提交六项人工决定；页面会保留已经写入的 revision。若结果包含 `reject/unobservable`，页面只保存阻塞结论，不会生成不可信的 P10.5c。
 
-当前真实状态要单独理解：样本 A 的旧 P10.5b revision 2 与 P10.5c 静态接缝集仍可 exact replay，但 override revision 6 已改变 Manifest/P3 身份，因此不能作为新链 current seam authority。`layer-007-handwear-l` 已换绑到 `upper-arm.left`，新 P9/P10.1/P10.2 已重建，P10.2b CaptureFraming revision 1 也已接受；当前待办是用 runner 1.1.0 显式重跑 P10.3。静态接缝结果不表示动态接缝、Runtime 等价或视觉接缝质量已经通过。样本 B 的旧链参数、画布与静态 seam 结论同样不能自动变成 revision 16 的当前结论。
+当前真实状态要单独理解：样本 A 的旧 P10.5b revision 2 与 P10.5c 静态接缝集仍可 exact replay，但 override revision 6 已改变 Manifest/P3 身份，因此不能作为新链 current seam authority。`layer-007-handwear-l` 已换绑到 `upper-arm.left`，新 P9/P10.1/P10.2 已重建，P10.2b CaptureFraming revision 1 也已接受；runner 1.1.0 已完成一份 43/43 execution，当前待办是 P10.3c 时间轴人工复核。静态接缝结果不表示动态接缝、Runtime 等价或视觉接缝质量已经通过。样本 B 的旧链参数、画布与静态 seam 结论同样不能自动变成 revision 16 的当前结论。
 
 ## 3. 打开一个样本
 
@@ -300,7 +300,7 @@ workspace/overrides/<project-id>/
 - 从 current P10.1 head 自动推荐唯一可探针项目，在 P10.2 页面只读编译七项结构报告和 P10.2a `0/8…8/8` 零权威诊断，并以通俗卡片、角色图和四骨采样见证显示结果；有界 derived cache 只复用完整 root/address/candidate/head/profile 身份相同的可重建结果，仍执行前后 exact replay/head 检查；
 - 在 P10.2 页面生成 setup/base/combined 三域的 CaptureFraming 候选，通过一次确认保存独立 revision；current `accept/adjust` 可进入 package-centric Preview v2，且 v1 合同保持冻结；
 - 从项目/动作包自动准备 P10.3 official Runtime execution，验证固定 Spine Player 4.2.119/Chrome 环境，要求许可勾选与每次运行二次确认，以 append-only 异步 job 报告进度，并在完成后自动进入 P10.3c v2；
-- 在 P10.3c v2 页面逐 case 人工复核 Body-sway still，并以 append-only history/CAS 保存决定；系统不自动批准；样本 A 的六次真实 job 均失败且没有部分证据，runner 1.1.0 尚待显式重跑；
+- 在 P10.3c v2 页面用单时间轴复核 Setup 与 21 组 Body-sway A/B still；系统只预填本地通过草稿，异常项由人剔除，最终决定仍以 append-only history/CAS 保存；样本 A 已有 runner 1.1.0 的 43/43 completed job，但尚无人工 revision；
 - 从 P9 package 自动进入 Seam Anchor 页面，以叠加图、确定性建议草稿和一次最终确认完成 P10.5b，并在 ready 时继续 P10.5c exact publication/readback；
 - 在 P9 页面完成一次明确 human adoption 后，由本机编译 decision/reviewed policy、原子发布 MotionInstance v2 六文件 bundle，并立即 exact verify；CLI 仍可独立复验，review input 下载仅作备份；
 - 通过离线命令生成和验证版本中立的 Layer Manifest、RigIR、mesh、IK、MotionIR、P10.6a admission、MotionInstance v3 及 P10.7a Spine 4.2 v3 五文件 adapter 工件。
@@ -333,7 +333,7 @@ python -B -m autospine_workbench verify-mesh-bundle --help
 
 ## 10. 当前阶段与下一开发入口
 
-**P9-real-kimodo-policy-adoption** 对当前 `wave-left-v1` 的 A/B 历史链已关闭；P10.2/P10.2a、动态视口、region 换绑、CaptureFraming 与 P10.3 package-centric v2 核心也已交付。项目 A 已保存 override revision 6、按新身份重建到 canvas-only P10.2，并接受 CaptureFraming revision 1。六次真实 Runtime job 在不固定 case 处失败并作为不可变历史保留，没有形成可复核的部分 evidence。runner 1.1.0 已交付但尚未重跑；当前操作者下一步仍是在 P10.3 页面重新确认许可与本次运行，成功后进入 P10.3c 逐 case 人工复核。项目 B revision 16 必须沿自己的 current chain 完成 P9/P10 重建。对新的 Kimodo 输入，仍应先运行零写入准入审计：
+**P9-real-kimodo-policy-adoption** 对当前 `wave-left-v1` 的 A/B 历史链已关闭；P10.2/P10.2a、动态视口、region 换绑、CaptureFraming 与 P10.3 package-centric v2 核心也已交付。项目 A 已保存 override revision 6、按新身份重建到 canvas-only P10.2，并接受 CaptureFraming revision 1。六次失败 Runtime job 作为不可变历史保留且没有部分 evidence；runner 1.1.0 的后续 job 已完成 43/43，当前操作者下一步是进入 P10.3c 沿时间轴完成人工复核并提交首个 revision。项目 B revision 16 必须沿自己的 current chain 完成 P9/P10 重建。对新的 Kimodo 输入，仍应先运行零写入准入审计：
 
 ```powershell
 python -B -m autospine_workbench audit-kimodo-pilot-intake `
@@ -368,7 +368,7 @@ python -B -m autospine_workbench audit-body-sway-spine42-v3-readiness `
   --document-only
 ```
 
-readiness v1 的 Schema、哈希和 checkpoint 语义已经冻结；即使 P10.7c 已交付，第八项仍固定为 `p6_setup_golden_comparison_not_declared`。仓库 baseline 仍把 P9 与下游地址设为 `null`，所以直接运行会继续报告未声明；这不推翻当前真实 P9/P10 状态。A 已按 revision 6 新身份重建到 canvas-only P10.2，并接受 CaptureFraming revision 1；六次 job 失败且无部分证据，runner 1.1.0 仍待显式重跑，之后才可进行 P10.3c 人工视觉复核。B revision 16 缺自己的 current P9/P10，并另须按新链复核下肢 seam。Runtime 基础设施不能绕过这些更早门禁。
+readiness v1 的 Schema、哈希和 checkpoint 语义已经冻结；即使 P10.7c 已交付，第八项仍固定为 `p6_setup_golden_comparison_not_declared`。仓库 baseline 仍把 P9 与下游地址设为 `null`，所以直接运行会继续报告未声明；这不推翻当前真实 P9/P10 状态。A 已按 revision 6 新身份重建到 canvas-only P10.2，并接受 CaptureFraming revision 1；六次失败 job 无部分证据，runner 1.1.0 的后续 job 已完成 43/43，P10.3c 人工视觉 revision 仍待提交。B revision 16 缺自己的 current P9/P10，并另须按新链复核下肢 seam。Runtime 基础设施不能绕过这些更早门禁。
 
 P10.7c 的独立入口已经可从功能中心复制，也可直接查看帮助：
 

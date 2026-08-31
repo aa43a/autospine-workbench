@@ -8,7 +8,10 @@
 
 必须先在 P10.3 采集页完成一次真实官方 Runtime job，并得到不可变 execution bundle。测试 stub、未完成 job 或零散截图都不能进入正式复核。
 
-当前系统的 v2 review candidate、append-only history、decision 和 store 已实现，但样本尚未完成真实 Runtime 执行和人工视觉批准。系统不会自动生成任何人工决定。
+当前样本 A 已由 runner 1.1.0 完成一次 43/43 的真实 Runtime 采集，job
+`d7150fa1f63999d669ebb8ae58aec64e4a2afbe392d8ac9555beb0810fb8fb13` 可进入本页；它的
+v2 review history 仍为 revision 0，尚无人工视觉决定。页面生成的默认通过草稿只在浏览器内存中，
+不会自动写入 revision，也不代表批准。
 
 ## 1. 从完成的 job 进入
 
@@ -29,9 +32,17 @@ http://127.0.0.1:8765/body-sway-review-v2.html?job_id=<完整 job ID>
 
 若通过书签进入，页面必须包含完整 `job_id`。job 不存在、未完成、current P10.1/CaptureFraming 已变化或 exact replay 失败时，应返回采集历史重新打开；不要手工拼四段地址、从目录扫描或选择 `latest`。
 
-## 2. 逐 case 检查画面
+## 2. 沿时间轴检查画面
 
-按页面顺序检查每个 case 的官方 Runtime 图像、采样时刻和证据摘要。重点查看：
+工作台把 43 个不可变 case 组织成 22 个时间轴位置：1 个 Setup 参考位置，以及 21 组同一时刻的
+`p10.base` / `p10.body-sway` 对比。页面一次只加载当前位置的一张或两张图，不再要求在 43 个分散窗口间滚动。
+
+1. 从 Setup 开始，拖动时间轴到末端。拖动经过的时间点都会记为“已查看”。
+2. 在每个动作时间点并排比较“基础动作”和“身体摆动”。
+3. 默认保持“通过”草稿；发现异常时，只修改对应图片为“剔除”或“无法判断”。
+4. 从“已剔除与无法判断”列表跳回异常时间点复查。
+
+重点查看：
 
 - 角色是否完整可见；
 - 身体摆动方向和幅度是否合理；
@@ -39,20 +50,25 @@ http://127.0.0.1:8765/body-sway-review-v2.html?job_id=<完整 job ID>
 - 肩、腰、髋及其他连接处是否出现裂缝或错误重叠；
 - 该帧是否足以作出判断。
 
-每个 case 必须由人选择：
+每个 case 的正式 decision 仍必须包含以下一种动作：
 
 - `approve`：该采样帧可接受；
 - `reject`：观察到明确问题；
 - `unobservable`：当前证据无法可靠判断。
 
-`reject` 和 `unobservable` 必须填写原因。系统不会因为大多数 case 通过而替你批准剩余 case，也不会把 `unobservable` 当作通过。
+`reject` 和 `unobservable` 必须填写原因。“剔除”只会把该 case 写成 `reject`；不会删除截图、
+case 或证据。默认 `approve` 是可撤销的本地草稿，只有完成时间轴浏览并最终提交后才会进入正式 revision。
 
 ## 3. 提交一个 revision
 
-1. 确认所有 case 都已选择动作。
+1. 确认时间轴显示“已查看 22 / 22 个时间点”，异常列表中没有“待填写原因”。
 2. 填写复核人标识和必要备注。
 3. 核对页面显示的当前 history head。
-4. 点击提交，并在最终确认中确认本 revision。
+4. 点击提交，在最终弹窗勾选“我已沿时间轴完成复核，未剔除项按通过提交”。
+5. 核对通过、剔除、无法判断数量和目标 revision，再点击“确认并提交”。
+
+没有完整拖过时间轴、没有选择 current head、异常项缺原因、复核人 ID 无效或未勾选最终声明时，
+提交按钮都会保持禁用或失败关闭。取消弹窗不会产生写入。
 
 decision history 是 append-only：
 

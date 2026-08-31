@@ -313,7 +313,9 @@ current package + P10.1 + P10.2 + accepted CaptureFraming
       ↓ runner 1.1.0 / collector-terminal official 4.2.119 execution
             immutable execution JSON + payload v2 + PNGs
                                   ↓ completed job_id
-                 v2 candidate + exhaustive human cases
+          v2 candidate + setup/21-pair timeline projection
+               ↓ default approve browser draft only
+                 exhaustive human case decisions
                                   ↓ candidate-bound history/CAS
        sampled_visual_approved | sampled_visual_rejected
                                   ↓
@@ -324,15 +326,15 @@ current package + P10.1 + P10.2 + accepted CaptureFraming
 
 job request 与 event history 采用 append-only store；页面可以按 job ID 恢复查询，但 manager 不自动重试失败/中断 job。失败终态保留 path-free 精确 `failure_code`，不暴露原始异常、路径或命令行。成功后 store 按 `builds/{project}/body-sway-runtime-executions/{preview-v2-sha}/{bundle-sha}` 发布固定 execution JSON、payload v2 JSON 和 captures；exact reader 使用 project/preview/bundle/artifact 四段地址读回。completed job 是普通 UI 的唯一 handoff，页面 URL 只携带完整 `job_id`。
 
-六次真实样本 A job 分别在不固定 case 处失败；这些 job 与事件链不可变，没有发布部分 execution。
+六次历史样本 A job 分别在不固定 case 处失败；这些 job 与事件链不可变，没有发布部分 execution。
 根因包括旧 execution v2 驱动携带 `--dump-dom`/`--virtual-time-budget` 与异步 collector-terminal
 完成条件冲突，以及 exact 截图提交后的主动 teardown 与 stdout reader 退出竞争。v2 runner `1.1.0`
 把 page lifetime 固定为 collector terminal，并且仅在 capture 已提交、异常由主动 teardown 引发时
 容忍 stdout reader 关闭错误。提交前读取失败、输出超限、reader 未退出或 pipe 无法关闭仍 fail
-closed。该 runner 与 profile 是新 v2 身份；不会改写冻结 v1 或六个历史失败 job。真实 Runtime 尚未
-用 runner 1.1.0 重跑，必须由操作者再次显式确认。
+closed。该 runner 与 profile 是新 v2 身份；不会改写冻结 v1 或六个历史失败 job。runner 1.1.0
+的后续 job 已完成 43/43，并发布完整 execution；P10.3c 人工 revision 仍未提交。
 
-P10.3c v2 从 completed job 解析内部四段地址，并绑定 current Preview v2、framing、P10.1、report 与 world viewport。Prepare/candidate/history/exact-decision 是零写入读路径；首次人工提交才会发布 exact candidate，并在 candidate SHA 命名空间下写入内容寻址 decision 与连续 revision slot。CAS 拒绝 stale head、跳号和并发抢占；字节相同的安全重试可复用。HTTP 投影不返回本地路径，图片只能经 job/candidate/case/PNG identity 读取。详细操作见[运行 P10.3 官方 Runtime 自动采集](how-to-capture-body-sway-runtime.md)和[复核 P10.3c 官方 Runtime 采样帧](how-to-review-body-sway-runtime.md)。
+P10.3c v2 从 completed job 解析内部四段地址，并绑定 current Preview v2、framing、P10.1、report 与 world viewport。43 个不可变 case 必须严格是一个 setup 和 21 个同 tick 的 `p10.base/p10.body-sway` pair，UI 才会建立 22 位置时间轴；错序、缺帧、重复或 tick 不一致都失败关闭。默认 approve 只初始化浏览器内存草稿，完整浏览门禁、current-head 基线、复核人、最终声明和确认全部满足后，首次人工提交才会发布 exact candidate，并在 candidate SHA 命名空间下写入内容寻址 decision 与连续 revision slot。CAS 拒绝 stale head、跳号和并发抢占；字节相同的安全重试可复用。HTTP 投影不返回本地路径，图片只能经 job/candidate/case/PNG identity 读取。详细操作见[运行 P10.3 官方 Runtime 自动采集](how-to-capture-body-sway-runtime.md)和[复核 P10.3c 官方 Runtime 采样帧](how-to-review-body-sway-runtime.md)。
 
 `sampled_visual_approved` 只表示固定 still inventory 全部获人工批准。它不声明离散帧之间的连续时间、reviewed seam anchors、安全幅度、未采样姿势或可发布 timeline，因此 release gate 仍固定为 blocked；reject/unobservable 还会增加明确的 sampled rejection reason。
 
@@ -522,7 +524,7 @@ sample 冒充 replay。命令不启动 Runtime、不扫描 mutable head、不写
 临时 stdout 只授予 bounded setup-frame equivalence，release gate 固定 blocked；readiness v2
 之前还必须把 request/report、批准合同与批准 PNG 封存成可寻址、可重放的 immutable comparison
 bundle。共享的 `wave-left-v1` 已到达 P7/P8、真实 A/B 各自的 P5、正式 depth policy、
-depth candidates 与各自 exact replay 通过的历史 P9 reviewed-motion bundle。A revision 6 current chain 已重建到 P10.2 并接受 CaptureFraming revision 1，但六次 P10.3 v2 真实 job 均失败且没有部分证据；runner 1.1.0 仍待操作者显式重跑，之后才可进入 P10.3c v2 人审。A 的旧 P10.5b/P10.5c 静态接缝凭据仍可 exact replay，但不能授权 revision 6 current chain。B revision 16 必须沿自己的 current chain 重建；旧链四条下肢关系不可观测的结论不能直接外推。操作入口见
+depth candidates 与各自 exact replay 通过的历史 P9 reviewed-motion bundle。A revision 6 current chain 已重建到 P10.2 并接受 CaptureFraming revision 1；六次失败 P10.3 v2 job 没有部分证据，runner 1.1.0 的后续 job 已完成 43/43，当前待 P10.3c v2 时间轴人审。A 的旧 P10.5b/P10.5c 静态接缝凭据仍可 exact replay，但不能授权 revision 6 current chain。B revision 16 必须沿自己的 current chain 重建；旧链四条下肢关系不可观测的结论不能直接外推。操作入口见
 [P10.7c Setup Golden How-to](how-to-compare-spine42-v3-setup-golden.md)、
 [就绪状态审计 How-to](how-to-audit-spine42-v3-readiness.md)和[后续开发路线](development-roadmap.md)。
 

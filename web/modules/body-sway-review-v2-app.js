@@ -8,12 +8,12 @@ import {
   normalizeReviewDecisionV2, normalizeReviewHistoryV2,
   normalizeReviewSubmissionV2, requireReviewJobId,
 } from "./body-sway-review-v2-contract.js";
-import { createCaseInteractions } from "./body-sway-review-cases.js";
 import { currentHeadBaseline } from "./body-sway-review-history.js";
 import {
   buildReviewSubmission, createReviewState, markSubmissionConflict,
-  setCaseDecision,
 } from "./body-sway-review-state.js";
+import { createDefaultApproveDraft } from "./body-sway-review-v2-timeline-model.js";
+import { createBodySwayReviewTimeline } from "./body-sway-review-v2-timeline.js";
 import {
   announce, renderBaseline, renderCandidate, renderDecisionSummary,
   renderHistory, renderJobFacts, reviewV2Elements, setLocked, setStatus,
@@ -28,24 +28,36 @@ let busy = false;
 let generation = 0;
 let pendingSubmission = null;
 
+const timeline = createBodySwayReviewTimeline({
+  elements,
+  getState: () => state,
+  setState: (next) => { state = next; },
+  imageUrl: (row) => api.imageUrl(
+    state.candidateSha256, row.case_id, row.image.png_sha256,
+  ),
+  onChange: syncControls,
+  onAnnounce: (value) => announce(elements, value),
+  onError: (error) => setStatus(elements.submitStatus, message(error), "error"),
+  onSubmit: openSubmitConfirmation,
+  isLocked: () => busy || elements.confirmDialog.open,
+});
+
 elements.refreshHistoryBtn.addEventListener("click", refreshHistory);
 elements.useHeadBtn.addEventListener("click", selectCurrentHead);
-elements.batchApproveBtn.addEventListener("click", () => {
-  if (!busy && state.candidate) elements.batchDialog.showModal();
-});
-elements.confirmBatchBtn.addEventListener("click", applyBatchApprove);
 elements.submitReviewBtn.addEventListener("click", openSubmitConfirmation);
 elements.cancelSubmitBtn.addEventListener("click", clearPendingSubmission);
 elements.confirmSubmitBtn.addEventListener("click", submitConfirmedReview);
+elements.reviewAttestation.addEventListener("change", () => {
+  elements.confirmSubmitBtn.disabled = busy || !pendingSubmission
+    || !elements.reviewAttestation.checked;
+});
 elements.confirmDialog.addEventListener("cancel", clearPendingSubmission);
 elements.confirmDialog.addEventListener("close", () => {
   if (elements.confirmDialog.returnValue !== "confirm") clearPendingSubmission();
 });
-for (const dialog of [elements.confirmDialog, elements.batchDialog]) {
-  dialog.addEventListener("click", (event) => {
-    if (event.target === dialog) dialog.close("cancel");
-  });
-}
+elements.confirmDialog.addEventListener("click", (event) => {
+  if (event.target === elements.confirmDialog) elements.confirmDialog.close("cancel");
+});
 elements.reviewerId.addEventListener("input", syncHumanFields);
 elements.reviewNotes.addEventListener("input", syncHumanFields);
 elements.historyList.addEventListener("click", (event) => {
@@ -53,28 +65,7 @@ elements.historyList.addEventListener("click", (event) => {
   if (target) selectHistory(target);
 });
 
-const caseInteractions = createCaseInteractions({
-  container: elements.reviewCases,
-  submitButton: elements.submitReviewBtn,
-  getState: () => state,
-  setState: (next) => { state = next; },
-  onChange: syncControls,
-  onAnnounce: (message) => announce(elements, message),
-  onError: (error) => setStatus(elements.submitStatus, message(error), "error"),
-  onSubmit: openSubmitConfirmation,
-  isLocked: () => busy,
-});
-
-elements.reviewCases.addEventListener("change", (event) => {
-  if (event.target.dataset.caseAction) caseInteractions.updateDraft(event.target);
-});
-elements.reviewCases.addEventListener("input", (event) => {
-  if (event.target.dataset.caseNotes) caseInteractions.updateDraft(event.target);
-});
-elements.reviewCases.addEventListener("focusin", (event) => {
-  caseInteractions.rememberFocus(event.target);
-});
-document.addEventListener("keydown", caseInteractions.handleKeyboard);
+document.addEventListener("keydown", timeline.handleKeyboard);
 
 boot();
 
@@ -93,11 +84,14 @@ async function boot() {
     state = {
       ...createReviewState(), candidate: envelope.candidate,
       candidateSha256: envelope.candidateSha256,
+      decisions: createDefaultApproveDraft(envelope.candidate.cases),
     };
     renderJobFacts(elements, job, envelope.job);
-    renderCandidate(elements, state, api);
+    timeline.mount(state.candidate);
+    renderCandidate(elements);
     setStatus(elements.entryStatus,
-      `已自动加载 ${envelope.job.case_count} 个官方 Runtime 采样帧。`, "success");
+      `已自动加载 ${envelope.job.case_count} 个官方采样帧；通过草稿尚未形成批准。`,
+      "success");
     await loadHistory(token);
   } catch (error) {
     if (token === generation) {
@@ -180,21 +174,6 @@ function selectCurrentHead() {
   syncControls();
 }
 
-function applyBatchApprove() {
-  if (busy || !state.candidate) return;
-  for (const row of state.candidate.cases) {
-    if (!state.decisions[row.case_id]?.action) {
-      state = setCaseDecision(state, row.case_id, "approve", "");
-      const radio = elements.reviewCases.querySelector(
-        `input[data-case-id="${CSS.escape(row.case_id)}"][data-case-action="approve"]`,
-      );
-      if (radio) radio.checked = true;
-    }
-  }
-  announce(elements, "所有未判定帧已标记为通过草稿，尚未提交");
-  syncControls();
-}
-
 function syncHumanFields() {
   state = {
     ...state,
@@ -205,19 +184,22 @@ function syncHumanFields() {
 }
 
 function openSubmitConfirmation() {
-  if (busy) return;
+  if (busy || elements.confirmDialog.open) return;
   try {
     syncHumanFields();
+    timeline.requireComplete();
     pendingSubmission = {
       payload: buildReviewSubmission(state), baseline: state.baseline,
     };
-    const summary = updateSummary(elements, state);
+    const summary = updateSummary(elements, state, timeline.coverage());
     elements.confirmSummary.textContent = [
       `项目 ${job.addresses.project}，共 ${summary.caseCount} 帧；`,
       `通过 ${summary.counts.approve}，拒绝 ${summary.counts.reject}，`,
       `不可观测 ${summary.counts.unobservable}；`,
       `提交为 revision ${state.baseline.revision + 1}。`,
     ].join("");
+    elements.reviewAttestation.checked = false;
+    elements.confirmSubmitBtn.disabled = true;
     elements.confirmDialog.showModal();
   } catch (error) {
     pendingSubmission = null;
@@ -227,10 +209,12 @@ function openSubmitConfirmation() {
 
 function clearPendingSubmission() {
   pendingSubmission = null;
+  elements.reviewAttestation.checked = false;
+  elements.confirmSubmitBtn.disabled = true;
 }
 
 async function submitConfirmedReview() {
-  if (!pendingSubmission || busy) return;
+  if (!pendingSubmission || busy || !elements.reviewAttestation.checked) return;
   const current = pendingSubmission;
   pendingSubmission = null;
   const token = ++generation;
@@ -275,12 +259,12 @@ async function submitConfirmedReview() {
 function setBusy(value) {
   busy = value;
   setLocked(elements, value);
+  timeline.setLocked(value);
   syncControls();
 }
 
 function syncControls() {
-  const summary = updateSummary(elements, state);
-  elements.batchApproveBtn.disabled = busy || !state.candidate || summary.counts.pending === 0;
+  updateSummary(elements, state, timeline.coverage());
   elements.refreshHistoryBtn.disabled = busy || !state.candidate;
   elements.useHeadBtn.disabled = busy || !state.history;
   if (busy) elements.submitReviewBtn.disabled = true;

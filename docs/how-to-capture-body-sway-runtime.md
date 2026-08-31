@@ -14,7 +14,7 @@
 - 本机已按授权要求安装 Spine Player `4.2.119`，并安装 Chrome；
 - 你有权在本项目中使用该 Spine Runtime。
 
-样本 A 的 CaptureFraming 已接受 revision 1。操作者随后进行了六次真实采集，但六个 job 分别在不固定的 case 处失败；每个失败 job 都作为不可变历史保留，且没有发布可进入复核的部分 execution 证据。execution v2 runner 已升级到 `1.1.0`，但升级后尚未重新运行官方 Runtime；下一次执行仍必须由操作者在页面中重新确认许可与本次运行。
+样本 A 的 CaptureFraming 已接受 revision 1。六个旧 job 分别在不固定的 case 处失败；每个失败 job 都作为不可变历史保留，且没有发布部分 execution 证据。execution v2 runner `1.1.0` 随后已完成 job `d7150fa1…` 的 43/43 采样并发布完整 execution；该 job 尚未提交 P10.3c 人工视觉 revision。
 
 ## 1. 打开采集页
 
@@ -68,7 +68,7 @@
 
 失败或服务关闭造成的中断都不会自动重试。当前页面没有主动取消运行中 job 的按钮。检查原因后，由操作者重新确认并创建一次新的 job。未完整封存的截图不会作为可复核的 execution 发布。
 
-### 六次失败与 runner 1.1.0
+### 六次历史失败与 runner 1.1.0 completed job
 
 六次真实 job 的失败位置并不固定。复盘确认旧 execution v2 浏览器驱动仍携带冻结 v1 使用的
 `--dump-dom` 和 `--virtual-time-budget`，它们与异步 `collector-terminal` 完成信号冲突；另外，
@@ -84,7 +84,7 @@ collector 回调误报为失败。
 - 新失败 job 继续保存 path-free 的精确 `failure_code`，不把异常文本、本地路径或命令行写入公开事件。
 
 这些变化只作用于 P10.3 execution v2。冻结的 P10.3 v1 driver、地址和复核语义保持不变。runner
-测试通过不等于真实 Runtime 采集通过；当前还没有 runner 1.1.0 的真实 completed job。
+上述修正已经由 runner 1.1.0 的 43/43 completed job 覆盖真实执行路径。它只证明该次固定采样完整封存，不能代替 P10.3c 人工视觉决定。
 
 ## 5. 完成后进入 P10.3c
 
@@ -106,14 +106,14 @@ collector 回调误报为失败。
 | Chrome 校验失败 | 安装或恢复标准 Chrome，并重新读取环境。 |
 | 点击运行后没有 job | 检查许可勾选与二次确认是否都完成。 |
 | job 中断或失败 | 查看失败卡中的阶段、错误类别和未完成样本序号；系统不会自动重试，修复后重新显式启动。 |
-| 看到历史六次失败 job | 这是不可变运行历史，不要删除或改写。runner 1.1.0 已修正已知生命周期冲突，但仍须重新确认后创建新 job。 |
-| job 已完成但仍显示发布阻塞 | 正常。还必须完成 P10.3c 逐 case 人工复核，后续门禁也仍存在。 |
+| 看到历史六次失败 job | 这是不可变运行历史，不要删除或改写；选择 runner 1.1.0 的 completed job 进入复核。 |
+| job 已完成但仍显示发布阻塞 | 正常。还必须完成 P10.3c 时间轴人工复核，后续门禁也仍存在。 |
 
 ## 安全与证据边界
 
 捕获器只用于可信的单用户 loopback 工作台和固定本地资产。它不会打开第三方 URL，也不把进程 smoke 或测试 stub 当作官方 Runtime 证据。
 
-当前六次失败 execution 没有产生可进入 P10.3c 的部分证据。未来一次成功 execution 也只能证明：固定 Preview v2、固定 Runtime/Chrome profile 和固定 cases 产生了可验证的采样图像。它不能证明：
+六次失败 execution 没有产生可进入 P10.3c 的部分证据。当前 completed execution 只能证明：固定 Preview v2、固定 Runtime/Chrome profile 和固定 cases 产生了可验证的采样图像。它不能证明：
 
 - 人工视觉质量已经通过；
 - 离散采样之间连续安全；
@@ -121,4 +121,4 @@ collector 回调误报为失败。
 - 当前幅度适合其他角色；
 - 动画已经可以发布。
 
-下一步按[复核 P10.3c 官方 Runtime 采样帧](how-to-review-body-sway-runtime.md)逐 case 判断。系统绝不会根据截图自动批准。
+下一步按[复核 P10.3c 官方 Runtime 采样帧](how-to-review-body-sway-runtime.md)沿时间轴判断。页面会预填本地通过草稿以减少点击，但系统绝不会据此自动提交或批准。

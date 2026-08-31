@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#0b0e14">
-  <title>P10.3c 自动入口人工视觉复核 — AutoSpine</title>
+  <title>P10.3c 时间轴人工视觉复核 — AutoSpine</title>
   <link rel="stylesheet" href="./body-sway-review.css">
   <link rel="stylesheet" href="./body-sway-review-v2.css">
 </head>
 <body>
-  <a class="skip-link" href="#reviewCases">跳到采样帧</a>
+  <a class="skip-link" href="#timelineStage">跳到时间轴复核</a>
   <header class="review-topbar">
     <div>
       <p class="eyebrow">P10.3c v2 · JOB-CENTRIC HUMAN REVIEW</p>
@@ -44,24 +44,70 @@
         <div class="section-heading sticky-heading">
           <div>
             <p class="eyebrow">OFFICIAL RUNTIME STILLS</p>
-            <h2 id="casesHeading">逐帧看图</h2>
+            <h2 id="casesHeading">时间轴对比复核</h2>
           </div>
-          <button id="batchApproveBtn" class="button compact secondary" type="button">
-            标记所有未判定为通过
-          </button>
         </div>
-        <p class="lede">批量标记只修改本页草稿，不会提交或产生批准。</p>
+        <p class="lede draft-notice">
+          43 帧已预填为“通过”草稿，但尚未批准。拖完整条时间轴比较基础动作与身体摆动，只剔除异常帧或标记无法判断。
+        </p>
         <div class="summary-grid" aria-label="复核进度">
-          <div><span>已处理</span><strong id="reviewProgress">0 / 0</strong></div>
-          <div><span>草稿状态</span><strong id="derivedStatus">candidate_only</strong></div>
-          <div><span>发布门禁</span><strong id="releaseStatus">blocked</strong></div>
+          <div><span>草稿判定</span><strong id="reviewProgress">0 / 0</strong></div>
+          <div><span>草稿结果</span><strong id="derivedStatus">尚未加载</strong></div>
+          <div><span>发布门禁</span><strong id="releaseStatus">仍阻塞</strong></div>
         </div>
         <section class="blockers" aria-labelledby="blockersHeading">
           <h3 id="blockersHeading">即使通过仍保持阻塞</h3>
           <ul id="releaseReasons"></ul>
         </section>
-        <div id="reviewCases" class="case-list" tabindex="-1"
-          aria-label="按官方采集顺序排列的视觉复核帧"></div>
+        <section id="timelineStage" class="timeline-stage" tabindex="-1"
+          aria-labelledby="timelineLabel">
+          <header class="timeline-heading">
+            <div>
+              <span id="timelinePosition" class="timeline-position">1 / 1</span>
+              <h3 id="timelineLabel">正在载入采样帧</h3>
+            </div>
+            <strong id="timelineTime" class="timeline-time">—</strong>
+          </header>
+
+          <div id="frameCompare" class="frame-compare" data-columns="2"
+            aria-label="当前时间点的官方 Runtime 对比图"></div>
+
+          <div class="timeline-controls">
+            <button id="previousTimeBtn" class="button secondary" type="button"
+              aria-label="上一个时间点">上一帧</button>
+            <label class="timeline-range" for="reviewTimeline">
+              <span class="sr-only">复核时间轴</span>
+              <input id="reviewTimeline" type="range" min="0" max="0" value="0"
+                step="1" aria-describedby="timelineHelp timelineCoverage">
+            </label>
+            <button id="nextTimeBtn" class="button secondary" type="button"
+              aria-label="下一个时间点">下一帧</button>
+          </div>
+          <div id="timelineMarkers" class="timeline-markers" aria-hidden="true"></div>
+          <div class="timeline-meta">
+            <p id="timelineCoverage" class="status-line">已查看 0 / 0 个时间点</p>
+            <p id="timelineHelp" class="timeline-help">
+              拖动滑块会把经过的时间点记为已查看；方向键移动，数字 1/2/3 判定当前图。
+            </p>
+          </div>
+          <ul class="timeline-legend" aria-label="时间轴状态图例">
+            <li data-state="unvisited">未查看</li>
+            <li data-state="approve">已查看通过</li>
+            <li data-state="reject">剔除</li>
+            <li data-state="unobservable">无法判断</li>
+            <li data-state="incomplete">待补原因</li>
+          </ul>
+        </section>
+
+        <section class="exceptions-panel" aria-labelledby="exceptionsHeading">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">EXCEPTIONS ONLY</p>
+              <h3 id="exceptionsHeading">已剔除与无法判断 <span id="exceptionCount">0</span></h3>
+            </div>
+          </div>
+          <div id="exceptionList" class="exception-list"></div>
+        </section>
       </section>
 
       <aside class="review-sidebar" aria-label="历史与提交">
@@ -103,7 +149,7 @@
             检查并提交 <kbd>Ctrl</kbd> + <kbd>Enter</kbd>
           </button>
           <p id="submitStatus" class="status-line" role="status" aria-live="polite">
-            完成全部帧、填写复核人并显式选择基线后可提交。
+            拖完时间轴、处理异常、填写复核人并显式选择基线后可提交。
           </p>
         </section>
       </aside>
@@ -116,21 +162,13 @@
       <h2 id="confirmHeading">确认提交这次人工复核？</h2>
       <p id="confirmSummary" class="lede"></p>
       <p class="warning-copy">提交会追加不可变 revision；它只覆盖这些采样帧，不解除连续时间、接缝或发布门禁。</p>
+      <label class="confirm-attestation">
+        <input id="reviewAttestation" type="checkbox">
+        <span>我已沿时间轴完成复核，未剔除项按通过提交。</span>
+      </label>
       <div class="dialog-actions">
         <button id="cancelSubmitBtn" class="button secondary" value="cancel">取消</button>
-        <button id="confirmSubmitBtn" class="button primary" value="confirm">确认并提交</button>
-      </div>
-    </form>
-  </dialog>
-
-  <dialog id="batchDialog" aria-labelledby="batchHeading">
-    <form method="dialog" class="confirm-card">
-      <p class="eyebrow">DRAFT ONLY</p>
-      <h2 id="batchHeading">把所有未判定帧标记为通过？</h2>
-      <p class="lede">这只是可继续修改的本地草稿；不会选择基线，也不会提交 revision。</p>
-      <div class="dialog-actions">
-        <button class="button secondary" value="cancel">取消</button>
-        <button id="confirmBatchBtn" class="button primary" value="confirm">确认标记草稿</button>
+        <button id="confirmSubmitBtn" class="button primary" value="confirm" disabled>确认并提交</button>
       </div>
     </form>
   </dialog>

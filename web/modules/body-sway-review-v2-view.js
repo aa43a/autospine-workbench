@@ -1,16 +1,18 @@
 "use strict";
 
-import { renderReviewCases } from "./body-sway-review-markup.js";
 import { deriveReviewSummary } from "./body-sway-review-state.js";
 
 const IDS = [
   "entryBadge", "jobFacts", "entryStatus", "reviewWorkspace",
   "reviewProgress", "derivedStatus", "releaseStatus", "releaseReasons",
-  "reviewCases", "batchApproveBtn", "refreshHistoryBtn", "historyList",
+  "timelineStage", "timelinePosition", "timelineLabel", "timelineTime",
+  "previousTimeBtn", "nextTimeBtn", "frameCompare", "reviewTimeline",
+  "timelineCoverage", "timelineMarkers", "exceptionCount", "exceptionList",
+  "refreshHistoryBtn", "historyList",
   "useHeadBtn", "baselineStatus", "historySelectionStatus",
   "decisionSummary", "reviewerId", "reviewNotes", "submitReviewBtn",
   "submitStatus", "confirmDialog", "confirmSummary", "cancelSubmitBtn",
-  "confirmSubmitBtn", "batchDialog", "confirmBatchBtn", "liveRegion",
+  "confirmSubmitBtn", "reviewAttestation", "liveRegion",
 ];
 
 export function reviewV2Elements(doc = document) {
@@ -48,29 +50,21 @@ export function renderJobFacts(elements, job, summary) {
   elements.entryBadge.dataset.tone = "success";
 }
 
-export function renderCandidate(elements, state, api) {
+export function renderCandidate(elements) {
   elements.reviewWorkspace.hidden = false;
-  renderReviewCases({
-    container: elements.reviewCases,
-    cases: state.candidate.cases,
-    decisions: state.decisions,
-    focusCaseId: state.currentCaseId,
-    showDigests: false,
-    imageUrl: (row) => api.imageUrl(
-      state.candidateSha256, row.case_id, row.image.png_sha256,
-    ),
-  });
-  updateSummary(elements, state);
 }
 
-export function updateSummary(elements, state) {
+export function updateSummary(elements, state, coverage = {}) {
   const summary = deriveReviewSummary(state.candidate, state.decisions);
   const done = summary.caseCount - summary.counts.pending;
   elements.reviewProgress.textContent = `${done} / ${summary.caseCount}`;
-  elements.derivedStatus.textContent = summary.status;
-  elements.releaseStatus.textContent = summary.releaseGate.status;
+  elements.derivedStatus.textContent = statusLabel(summary.status);
+  elements.releaseStatus.textContent = "仍阻塞";
   const doc = elements.releaseReasons.ownerDocument;
-  elements.releaseReasons.replaceChildren(...summary.releaseGate.reasonCodes.map((reason) => {
+  const reasons = state.candidate
+    ? ["local_draft_not_submitted", ...summary.releaseGate.reasonCodes]
+    : summary.releaseGate.reasonCodes;
+  elements.releaseReasons.replaceChildren(...[...new Set(reasons)].map((reason) => {
     const item = doc.createElement("li");
     item.textContent = reasonLabel(reason);
     return item;
@@ -78,7 +72,7 @@ export function updateSummary(elements, state) {
   const reviewerReady = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/
     .test(state.reviewerId || "");
   elements.submitReviewBtn.disabled = summary.counts.pending > 0
-    || !state.baseline || !reviewerReady || state.stale;
+    || !state.baseline || !reviewerReady || state.stale || !coverage.complete;
   return summary;
 }
 
@@ -126,12 +120,10 @@ export function renderBaseline(elements, baseline) {
 }
 
 export function setLocked(elements, locked) {
-  elements.reviewCases.inert = locked;
   elements.reviewerId.disabled = locked;
   elements.reviewNotes.disabled = locked;
   elements.refreshHistoryBtn.disabled = locked;
   elements.useHeadBtn.disabled = locked || !elements.historyList.children.length;
-  elements.batchApproveBtn.disabled = locked;
 }
 
 export function announce(elements, message) {
@@ -154,6 +146,15 @@ function reasonLabel(value) {
     safe_range_unproven: "安全参数范围尚未证明",
     manual_visual_review_required: "仍需完整人工看图",
     sampled_visual_review_rejected: "采样视觉复核存在拒绝",
+    local_draft_not_submitted: "本页默认通过只是草稿；正式 authority 以 history revision 为准",
   };
   return labels[value] || value;
+}
+
+function statusLabel(value) {
+  return {
+    candidate_only: "仍有待补原因",
+    sampled_visual_approved: "全部通过草稿",
+    sampled_visual_rejected: "存在剔除项",
+  }[value] || value;
 }

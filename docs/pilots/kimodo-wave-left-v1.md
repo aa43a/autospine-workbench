@@ -193,8 +193,8 @@ mutable alias；SHA 是相同 exact 输入与固定算法重新编译所得的 c
 extent 改善约 `31.81%`。操作者已经完成这次确认并保存 revision 6；随后新
 Manifest/P2–P5、P9、P10.1 与 P10.2 已按 current 身份重建，CaptureFraming 已接受 revision 1。
 旧 P10 没有迁移到新链；当前 canvas-only P10.2 通过 package-centric P10.3 v2 承接，不能仅凭
-dynamic fit 进入官方 Runtime。真实 execution 尚未运行，P10.3c 尚无人工视觉批准。B 表中结果
-仍是 revision 16 之前的历史链证据。
+dynamic fit 进入官方 Runtime。runner 1.1.0 的后续 execution 已完成 43/43，P10.3c 仍无人工视觉
+revision。B 表中结果仍是 revision 16 之前的历史链证据。
 
 本轮读取性能优化不改变上述证据边界：stored split revalidation 缓存绑定
 source/preview/manifest 全字节、Resolved/decision 与 runtime，P9 exact replay 按 key
@@ -222,8 +222,8 @@ readiness 请求。任何输入、map、camera、compiler 或算法 profile 变�
 
 ## 下一步
 
-1. 样本 A 打开 [P10.3 官方 Runtime 自动采集](http://127.0.0.1:8765/body-sway-runtime-capture.html)，选择 current package，检查 Preview v2 与固定 Spine Player 4.2.119/Chrome 环境，显式确认许可和本次运行。真实 job 完成前不得声称 Runtime 已执行。
-2. 从 completed job 自动进入 P10.3c v2，逐 case 人工选择 approve/reject/unobservable 并提交 revision；系统不会自动批准，任何结果都不解除 release gate。
+1. 样本 A 从 runner 1.1.0 的 43/43 completed job 自动进入 P10.3c v2；六次失败 job 继续作为不可变历史保留。
+2. 从 Setup 拖动到时间轴末端，比较 21 组 base/body-sway；页面默认通过仅为本地草稿，操作者只剔除异常或标记无法判断，核对 current head 和最终声明后提交首个 revision。任何结果都不解除 release gate。
 3. 为 v2 head 新增独立 P10.4a v2 admission/consumer。现有 P10.4a/b1/b2 只消费冻结 v1 visual review，不能接收 v2 head；完成 v2 admission 后才继续 v2 幅度与连续证明。
 4. 样本 B 在 [Motion Policy 自动工作流](http://127.0.0.1:8765/motion-policy-review.html) 选择 revision 16 current 草案，生成正式 policy/Depth candidates/exact package，再完成独立 P9 human adoption；左腿 foot-lock 保持拒绝或不可观测。
 5. B 按新 P9 地址重建 P10.0/P10.1、重跑 P10.2；两个项目都按新 Manifest/P3 重建静态 seam candidate。旧 P10 与 A 旧 P10.5c 只供历史复验。
