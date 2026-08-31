@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 
 import {
   normalizeRuntimeCaptureJob, normalizeRuntimeCapturePreflight,
@@ -73,7 +74,7 @@ function completedJob() {
     },
     status: "completed", event_count: events.length,
     head_event_sha: events.at(-1).event_sha, retryable: false, terminal: true,
-    progress: null, failure_code: null, events, addresses,
+    progress: null, failure_code: null, failure_diagnostic: null, events, addresses,
   };
 }
 
@@ -126,12 +127,48 @@ test("retryable failure exposes a new explicitly confirmed run instead of a dead
   Object.assign(value, {
     status: last.status, retryable: true, terminal: false,
     addresses: null, failure_code: last.failure_code,
+    failure_diagnostic: {
+      format: "autospine-p10-capture-failure-diagnostic", format_version: 1,
+      stage: "evidence_publication", category: "runtime_execution",
+      completed_case_count: 1, total_case_count: 1,
+      next_incomplete_case_ordinal: null,
+    },
   });
   const elements = viewElements();
   assert.equal(renderJob(elements, normalizeRuntimeCaptureJob(value)), true);
   assert.equal(elements.resultPanel.hidden, false);
   assert.equal(elements.reviewNext.hidden, true);
   assert.equal(elements.newRun.textContent, "重新校验并创建新采集");
+  assert.match(elements.resultSummary.textContent, /证据密封发布未完成/);
+  assert.match(elements.resultSummary.textContent, /已完成 1\/1 个样本/);
+});
+
+test("failure diagnostic cannot contradict the append-only event chain", () => {
+  const value = completedJob();
+  const last = value.events.at(-1);
+  Object.assign(last, {
+    status: "failed_retryable", addresses: null,
+    failure_code: "runtime_capture_failed",
+  });
+  Object.assign(value, {
+    status: last.status, retryable: true, terminal: false,
+    addresses: null, failure_code: last.failure_code,
+    failure_diagnostic: {
+      format: "autospine-p10-capture-failure-diagnostic", format_version: 1,
+      stage: "case_capture", category: "runtime_execution",
+      completed_case_count: 1, total_case_count: 1,
+      next_incomplete_case_ordinal: null,
+    },
+  });
+  assert.throws(() => normalizeRuntimeCaptureJob(value), /不可变事件链/);
+});
+
+test("job recovery keeps the loaded immutable job identity in the URL", async () => {
+  const source = await readFile(
+    new URL("../modules/p10-runtime-capture-app.js", import.meta.url), "utf8",
+  );
+  assert.match(source, /job_id:\s*currentJob\.job_id/);
+  assert.doesNotMatch(source, /package_id:\s*currentJob\.request\.package_id,\s*job_id\s*}/);
 });
 
 test("API submits intent header and polls the exact returned job", async () => {

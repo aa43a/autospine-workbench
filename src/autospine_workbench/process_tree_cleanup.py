@@ -27,10 +27,13 @@ def stop_owned_process_tree(
             process.wait(timeout=kill_grace_seconds)
             return
         except subprocess.TimeoutExpired:
+            # Closing a KILL_ON_JOB_CLOSE handle has already issued the
+            # process-tree termination.  The root handle can nevertheless
+            # remain signalled late while Chromium finishes Windows teardown.
+            # A successful bounded root kill/wait is a complete recovery, not
+            # evidence that capture itself failed.
             _force_stop_root(process, kill_grace_seconds)
-            raise WindowsProcessJobError(
-                "Browser did not exit after its Job Object was closed"
-            )
+            return
         except WindowsProcessJobError as close_error:
             _best_effort_stop_root(
                 process, terminate_grace_seconds, kill_grace_seconds

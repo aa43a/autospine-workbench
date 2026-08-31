@@ -51,6 +51,14 @@ class _OwnedJob(KillOnCloseProcessJob):
         self._handle = None
 
 
+class _SlowExitOwnedJob(_OwnedJob):
+    """Close the owned tree, but model a late-signalling Chromium root."""
+
+    def close(self):
+        self.closed = True
+        self._handle = None
+
+
 class BodySwayHeadlessBrowserTests(HeadlessBrowserFixture, unittest.TestCase):
     def test_launches_fixed_loopback_case_with_fresh_profile(self):
         process = FakeProcess(b"bounded merged browser output")
@@ -116,6 +124,32 @@ class BodySwayHeadlessBrowserTests(HeadlessBrowserFixture, unittest.TestCase):
         self.assertTrue(job.closed)
         self.assertFalse(process.terminated)
         self.assertEqual([subject.KILL_GRACE_SECONDS], process.wait_timeouts)
+
+    def test_late_root_exit_after_capture_recovers_with_bounded_kill(self):
+        process = FakeProcess()
+        job = _SlowExitOwnedJob(process)
+        with patch.object(subject.subprocess, "Popen", return_value=process), \
+                patch.object(
+                    subject, "attach_kill_on_close_process_job", return_value=job
+                ), patch.object(
+                    subject, "verify_suspended_browser_image"
+                ), patch.object(
+                    subject, "resume_suspended_primary_thread"
+                ):
+            run_body_sway_headless_capture_case(
+                self.browser,
+                URL,
+                self.profile,
+                collector(PENDING, CAPTURED),
+                CASE_ID,
+            )
+
+        self.assertTrue(job.closed)
+        self.assertTrue(process.killed)
+        self.assertEqual(
+            [subject.KILL_GRACE_SECONDS, subject.KILL_GRACE_SECONDS],
+            process.wait_timeouts,
+        )
 
     def test_job_assignment_failure_is_explicit_and_root_is_stopped(self):
         process = FakeProcess()

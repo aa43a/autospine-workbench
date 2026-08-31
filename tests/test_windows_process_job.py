@@ -195,11 +195,25 @@ class WindowsProcessJobTests(unittest.TestCase):
         self.assertFalse(process.killed)
         self.assertFalse(job.owns_windows_process_tree)
 
-    def test_job_close_timeout_fails_even_after_root_kill(self):
+    def test_job_close_timeout_recovers_after_bounded_root_kill(self):
         process = _Process(None)
         backend = _Backend()
         job = KillOnCloseProcessJob(73, backend)
-        with self.assertRaisesRegex(WindowsProcessJobError, "did not exit"):
+        stop_owned_process_tree(process, job, 0.4, 0.6)
+        self.assertTrue(process.killed)
+        self.assertEqual([0.6, 0.6], process.wait_timeouts)
+
+    def test_job_close_timeout_still_fails_if_root_cannot_be_stopped(self):
+        class StubbornProcess(_Process):
+            def kill(self):
+                self.killed = True
+
+        process = StubbornProcess(None)
+        backend = _Backend()
+        job = KillOnCloseProcessJob(73, backend)
+        with self.assertRaisesRegex(
+            WindowsProcessJobError, "could not be stopped"
+        ):
             stop_owned_process_tree(process, job, 0.4, 0.6)
         self.assertTrue(process.killed)
         self.assertEqual([0.6, 0.6], process.wait_timeouts)

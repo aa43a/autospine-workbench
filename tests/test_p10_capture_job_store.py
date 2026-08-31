@@ -188,6 +188,26 @@ class P10CaptureJobStoreTests(unittest.TestCase):
                 failure_code=r"C:\private\error.log",
             )
 
+    def test_public_failure_diagnostic_is_derived_without_rewriting_events(self):
+        snapshot = self.store.create(request_payload("diagnostic"))
+        snapshot = self._append(snapshot, "exact_replay")
+        snapshot = self._append(snapshot, "preview_compiled")
+        snapshot = self._append(snapshot, "runtime_verified")
+        snapshot = self._append(snapshot, "capturing", current=0, total=43)
+        snapshot = self._append(snapshot, "capturing", current=13, total=43)
+        before = tuple(event.canonical_bytes for event in snapshot.events)
+        snapshot = self._append(
+            snapshot, "failed_retryable", failure_code="runtime_capture_failed",
+        )
+        diagnostic = snapshot.public_document()["failure_diagnostic"]
+        self.assertEqual("case_capture", diagnostic["stage"])
+        self.assertEqual("runtime_execution", diagnostic["category"])
+        self.assertEqual(13, diagnostic["completed_case_count"])
+        self.assertEqual(14, diagnostic["next_incomplete_case_ordinal"])
+        self.assertEqual(before, tuple(
+            event.canonical_bytes for event in snapshot.events[:-1]
+        ))
+
     def test_tamper_and_non_contiguous_inventory_fail_closed(self):
         snapshot = self.store.create(request_payload())
         events = self._events(snapshot)

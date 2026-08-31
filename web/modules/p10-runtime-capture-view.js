@@ -21,6 +21,26 @@ const STAGES = [
   ["sealing", "密封凭据", "原子发布并读回"],
   ["completed", "待视觉复核", "进入 P10.3c"],
 ];
+const FAILURE_STAGE_STATUS = {
+  input_replay: "queued", preview_compilation: "exact_replay",
+  environment_verification: "preview_compiled", runtime_launch: "runtime_verified",
+  case_capture: "capturing", capture_compilation: "capturing",
+  evidence_publication: "sealing",
+};
+const FAILURE_STAGE_COPY = {
+  input_replay: "输入精确重放", preview_compilation: "Preview v2 编译",
+  environment_verification: "执行环境复核", runtime_launch: "Runtime 启动",
+  case_capture: "逐帧采集", capture_compilation: "采集结果编译",
+  evidence_publication: "证据密封发布", unknown: "未分类阶段",
+};
+const FAILURE_CATEGORY_COPY = {
+  input_identity: "输入决定已改变", runtime_environment: "Runtime 或浏览器环境不可用",
+  orchestration: "本地任务调度中断", browser_identity: "浏览器执行身份改变",
+  browser_execution: "浏览器采样执行异常", capture_transport: "本地采集通道异常",
+  capture_evidence: "采样回传不完整", evidence_validation: "采集证据校验失败",
+  evidence_publication: "采集证据发布失败", runtime_execution: "Runtime 执行异常",
+  unclassified: "未分类的安全错误",
+};
 
 export function runtimeCaptureElements(doc = document) {
   return Object.fromEntries(IDS.map((id) => {
@@ -91,8 +111,9 @@ export function renderJob(elements, job) {
   elements.captureProgress.value = progress?.current || (job.status === "completed" ? 1 : 0);
   elements.progressText.textContent = progress
     ? `${progress.current} / ${progress.total} 个样本`
-    : job.status === "completed" ? "全部样本已密封" : statusCopy(job.status, job.failure_code);
-  renderTimeline(elements, job.status);
+    : job.status === "completed" ? "全部样本已密封"
+      : statusCopy(job.status, job.failure_code, job.failure_diagnostic);
+  renderTimeline(elements, job.status, job.failure_diagnostic);
   const stopped = job.terminal || job.retryable;
   elements.resultPanel.hidden = !stopped;
   if (job.status === "completed") {
@@ -105,7 +126,9 @@ export function renderJob(elements, job) {
     queueMicrotask(() => elements.resultHeading.focus());
   } else if (stopped) {
     elements.resultHeading.textContent = "本次采集未完成";
-    elements.resultSummary.textContent = statusCopy(job.status, job.failure_code);
+    elements.resultSummary.textContent = statusCopy(
+      job.status, job.failure_code, job.failure_diagnostic,
+    );
     elements.reviewNext.hidden = true;
     elements.newRun.textContent = "重新校验并创建新采集";
     queueMicrotask(() => elements.resultHeading.focus());
@@ -134,13 +157,15 @@ export function resetRun(elements) {
   elements.reviewNext.hidden = true;
 }
 
-function renderTimeline(elements, currentStatus) {
-  const active = STAGES.findIndex(([status]) => status === currentStatus);
+function renderTimeline(elements, currentStatus, diagnostic = null) {
+  const shownStatus = diagnostic
+    ? FAILURE_STAGE_STATUS[diagnostic.stage] || currentStatus : currentStatus;
+  const active = STAGES.findIndex(([status]) => status === shownStatus);
   const failed = currentStatus.startsWith("failed_") || currentStatus === "interrupted_retryable";
   elements.eventTimeline.replaceChildren(...STAGES.map(([status, title, detail], index) => {
     const item = elements.eventTimeline.ownerDocument.createElement("li");
-    item.dataset.state = !failed && index < active ? "done"
-      : !failed && index === active ? "active" : "pending";
+    item.dataset.state = index < active ? "done"
+      : index === active ? (failed ? "error" : "active") : "pending";
     const strong = item.ownerDocument.createElement("strong");
     const small = item.ownerDocument.createElement("small");
     strong.textContent = title;
@@ -150,12 +175,25 @@ function renderTimeline(elements, currentStatus) {
   }));
 }
 
-function statusCopy(status, failureCode) {
+function statusCopy(status, failureCode, diagnostic = null) {
   if (status === "failed_retryable" || status === "interrupted_retryable") {
-    return `本次任务未完成（${failureCode || "retryable"}）；不会发布部分证据。`;
+    return failureCopy(diagnostic, failureCode, "可重新开始；不会发布部分证据。");
   }
-  if (status === "failed_terminal") return `输入已失效（${failureCode || "terminal"}），请重新校验。`;
+  if (status === "failed_terminal") {
+    return failureCopy(diagnostic, failureCode, "输入已失效，请重新校验。");
+  }
   return "正在准备执行…";
+}
+
+function failureCopy(diagnostic, failureCode, action) {
+  if (!diagnostic) return `本次任务未完成（${failureCode || "unknown"}）；${action}`;
+  const stage = FAILURE_STAGE_COPY[diagnostic.stage] || "未分类阶段";
+  const category = FAILURE_CATEGORY_COPY[diagnostic.category] || "未分类的安全错误";
+  const cases = diagnostic.completed_case_count === null ? ""
+    : ` 已完成 ${diagnostic.completed_case_count}/${diagnostic.total_case_count} 个样本。`
+      + (diagnostic.next_incomplete_case_ordinal === null ? ""
+        : `下一个未完成样本序号为 ${diagnostic.next_incomplete_case_ordinal}。`);
+  return `${stage}未完成：${category}。${cases}${action}`;
 }
 
 function badge(element, text, tone) {

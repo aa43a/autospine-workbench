@@ -237,8 +237,8 @@ Player 4.2.119 的 JS/CSS/package/LICENSE 和 Chrome。只有许可勾选与本�
 
 完成的 job 按 project/Preview v2/execution bundle/artifact set 四段地址封存 execution，并用完整
 `job_id` 自动进入 P10.3c v2。candidate、history、decision 与 store 使用独立 v2 namespace；每个
-case 都必须由人判断，系统不自动批准。样本 A 当前仅完成 CaptureFraming revision 1，尚未执行真实
-job，不能声称 official Runtime 或 sampled visual 已通过。
+case 都必须由人判断，系统不自动批准。样本 A 当前已完成 CaptureFraming revision 1，一次真实 job
+未完成且未发布部分证据，不能声称 official Runtime 或 sampled visual 已通过。
 
 ## 下一阶段：P10.4a v2 admission/consumer
 

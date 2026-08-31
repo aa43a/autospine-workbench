@@ -1,5 +1,7 @@
 "use strict";
 
+import { normalizeRuntimeCaptureFailure } from "./p10-runtime-capture-failure.js";
+
 const SHA = /^[0-9a-f]{64}$/;
 const TOKEN = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
 const JOB_STATUSES = new Set([
@@ -41,7 +43,8 @@ export function normalizeRuntimeCaptureJob(value, expectedJobId = null) {
   const root = object(value, "Runtime 采集任务");
   exact(root, [
     "job_id", "request", "status", "event_count", "head_event_sha",
-    "retryable", "terminal", "progress", "addresses", "failure_code", "events",
+    "retryable", "terminal", "progress", "addresses", "failure_code",
+    "failure_diagnostic", "events",
   ]);
   digest(root.job_id, "job_id");
   if (expectedJobId !== null && root.job_id !== expectedJobId) {
@@ -67,6 +70,9 @@ export function normalizeRuntimeCaptureJob(value, expectedJobId = null) {
   }
   const progress = root.progress === null ? null : normalizeProgress(root.progress);
   const addresses = root.addresses === null ? null : normalizeAddresses(root.addresses);
+  const failureDiagnostic = normalizeRuntimeCaptureFailure(
+    root.failure_diagnostic, root.status, events,
+  );
   if ((root.status === "completed") !== (addresses !== null)) {
     throw new Error("任务完成状态与凭据地址不一致");
   }
@@ -77,7 +83,10 @@ export function normalizeRuntimeCaptureJob(value, expectedJobId = null) {
     throw new Error("Runtime 采集任务摘要与事件 head 不一致");
   }
   rejectPrivateKeys(root);
-  return { ...root, request, progress, addresses, events };
+  return {
+    ...root, request, progress, addresses,
+    failure_diagnostic: failureDiagnostic, events,
+  };
 }
 
 export function runtimeCaptureRequest(preflight, clientRequestId) {

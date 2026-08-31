@@ -60,7 +60,7 @@ derived cache 是进程内有界性能优化，保存可重建的 report/adjustm
 
 同一次详情编译还会返回 P10.2a `BodySwayCanvasAdjustmentCandidates v1`。它把已复核的四骨幅度统一乘以离散 gain `0/8…8/8`，分别复跑 sampled canvas 与 sampled geometry，结果只用于零权威诊断。`0/8` 只回答“去掉 body-sway 后基础动作是否仍越界”，永远不能成为新的 body-sway 参数。只有**非零** gain 的两类检查都通过时，系统才产生可带回 P10.1 的 `unvalidated_draft`；它不会自动保存、批准或改写 current head。操作者必须在 P10.1 明确确认一个新 revision，再回到 P10.2 重跑完整报告。
 
-截至本次真实状态复核，`seethrough_output` 的换绑已经在 override revision 6 生效，P9/P10 已按新链重建；当前 P10.2 只保留旧素材框 containment 拒绝，完整动作包络由动态视口覆盖，CaptureFraming 已接受 revision 1。尚未执行真实 official Runtime job。`seethrough_output_5` 的历史 P9/P10 数字仍只约束旧 exact 链，不能跨 revision 复用。
+截至本次真实状态复核，`seethrough_output` 的换绑已经在 override revision 6 生效，P9/P10 已按新链重建；当前 P10.2 只保留旧素材框 containment 拒绝，完整动作包络由动态视口覆盖，CaptureFraming 已接受 revision 1。样本 A 的一次 official Runtime job 未完成且未发布部分证据，修复后仍须显式创建新 job。`seethrough_output_5` 的历史 P9/P10 数字仍只约束旧 exact 链，不能跨 revision 复用。
 
 ### P10.3 official Runtime 采集与 P10.3c v2 复核
 

@@ -129,7 +129,10 @@ async function resumeJob(jobId, loadedJob = null) {
       renderHistoricalPackage(currentJob);
     }
     const stopped = renderJob(elements, currentJob);
-    replaceQuery({ package_id: currentJob.request.package_id, job_id });
+    replaceQuery({
+      package_id: currentJob.request.package_id,
+      job_id: currentJob.job_id,
+    });
     updateStartButton(elements, true, true);
     if (!stopped) schedulePoll();
   } catch (error) {

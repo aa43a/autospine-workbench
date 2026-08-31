@@ -19,6 +19,7 @@ from .p10_capture_job_contract import (
     RETRYABLE_STATUSES, TERMINAL_STATUSES,
     require_p10_capture_job_transition,
 )
+from .p10_capture_job_diagnostics import capture_failure_diagnostic
 from .safe_input_files import strict_json_object
 from .spine42_bundle_files import (
     Spine42BundleFilesError, is_alias, require_real_directory,
@@ -71,6 +72,7 @@ class P10CaptureJobSnapshot:
             "progress": head.get("progress"),
             "addresses": head.get("addresses"),
             "failure_code": head.get("failure_code"),
+            "failure_diagnostic": capture_failure_diagnostic(self.events),
             "events": [event.public_document() for event in self.events],
         }
 

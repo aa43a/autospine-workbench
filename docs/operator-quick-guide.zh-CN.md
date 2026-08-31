@@ -104,14 +104,14 @@ $env:PYTHONPATH = (Resolve-Path .\src).Path
 8. 若同时出现 region 换绑建议，点击入口会打开绑定工作台、选择责任图层，并在独立建议卡预览目标骨；建议不会填入上方共享 Rig 表单，普通保存也不能绕过专用入口。确认保存后会产生新 override revision，旧下游链随即变成历史。若还存在 FK、mesh、拓扑等拒绝，不要继续盲目调小幅度，应修复 attachment、骨绑定或上游动作。
 9. 专家详情中的 canonical report 与唯一文件名下载只用于备份/排障；普通流程无需下载后重新选文件。
 
-当前真实数据中，`seethrough_output` 已把 `layer-007-handwear-l` 改绑到 `upper-arm.left` 并保存 override revision 6；Manifest/P2–P5、P9、P10.1 与 P10.2 已按新身份重建，P10.2b CaptureFraming 已接受 revision 1。样本尚未执行真实官方 Runtime job。样本 B revision 16 必须沿它自己的 current chain 重建，不能继承 A 或任一旧链的 P9/P10 数字。
+当前真实数据中，`seethrough_output` 已把 `layer-007-handwear-l` 改绑到 `upper-arm.left` 并保存 override revision 6；Manifest/P2–P5、P9、P10.1 与 P10.2 已按新身份重建，P10.2b CaptureFraming 已接受 revision 1。样本 A 有一次未完成的官方 Runtime job，未发布部分证据；修复后需操作者重新显式确认。样本 B revision 16 必须沿它自己的 current chain 重建，不能继承 A 或任一旧链的 P9/P10 数字。
 
 ### P10.3–P10.3c：采集并人工复核官方 Runtime 画面
 
 1. 打开 <http://127.0.0.1:8765/body-sway-runtime-capture.html>。页面会列出已具备 current P10.1 和 CaptureFraming 的项目/动作包，并尽量自动选择唯一可用项。
 2. 等待 Preview v2 与环境卡完成。固定 profile 必须验证本地 Spine Player 4.2.119、Chrome、Runtime JS/CSS/package/LICENSE、采样计划和完整 cases；普通用户不选择 JSON、不复制 SHA。
 3. 阅读许可提示并勾选授权确认，点击运行后再在二次确认弹窗核对项目、动作和 current revision。取消弹窗不会创建 job；每次真实运行都必须重新确认。
-4. 查看异步进度。刷新页面可以继续查询同一 job；失败或服务关闭造成的中断不会自动重试。当前没有主动取消运行中 job 的按钮；修复原因后重新确认并创建新 job，不要把未封存截图当作证据。
+4. 查看异步进度。刷新页面可以继续查询同一 job；失败卡会从不可变事件链显示停止阶段、安全错误类别、已完成数量和下一个未完成样本序号，不显示本地路径或原始异常。该序号是续跑边界，不等于证明该样本有错。失败或服务关闭造成的中断不会自动重试；当前没有主动取消运行中 job 的按钮，修复原因后重新确认并创建新 job，不要把未封存截图当作证据。
 5. job 完成后点击“进入视觉复核”。链接只携带完整 `job_id`，服务端自动解析 project、Preview v2、execution bundle 和 artifact set；不要求手工填地址。
 6. 在 P10.3c v2 页面逐 case 查看图像，为每项选择通过、拒绝或无法判断；拒绝/无法判断要填写原因。系统不会自动批准任何 case。
 7. 核对 current history head 并最终确认提交。发生 revision conflict 时刷新历史、重新核对后再提交；旧决定不会被覆盖。

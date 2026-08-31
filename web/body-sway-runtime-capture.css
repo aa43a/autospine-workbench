@@ -111,6 +111,12 @@ progress::-moz-progress-bar { background: #62dcc9; }
   box-shadow: 0 0 0 1px #c69b3960 inset;
 }
 
+.event-timeline li[data-state="error"] {
+  border-color: #c95561;
+  color: #ff9ba5;
+  box-shadow: 0 0 0 1px #c9556160 inset;
+}
+
 .event-timeline strong,
 .event-timeline small { display: block; }
 
