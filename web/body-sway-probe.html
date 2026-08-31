@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="./body-sway-probe.css">
   <link rel="stylesheet" href="./body-sway-canvas-adjustment.css">
   <link rel="stylesheet" href="./body-sway-viewport.css">
+  <link rel="stylesheet" href="./body-sway-capture-framing.css">
 </head>
 <body>
   <a class="skip-link" href="#probeResult">跳到结构检查结果</a>
@@ -147,6 +148,38 @@
             </div>
             <p id="canvasAdjustmentHint" class="status">—</p>
           </section>
+          <section id="captureFramingPanel" class="capture-framing"
+            aria-labelledby="captureFramingHeading" hidden>
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">P10.2b · ASSISTED CAPTURE FRAMING</p>
+                <h3 id="captureFramingHeading">自动取景确认</h3>
+              </div>
+              <span id="captureFramingBadge" class="badge">等待候选</span>
+            </div>
+            <p id="captureFramingMessage" class="outcome-message">—</p>
+            <div id="captureFramingCoverage" class="capture-coverage-grid" role="list"
+              aria-label="初始姿势、基础动作和合成动作覆盖结果"></div>
+            <div class="capture-witness-section">
+              <h4>为什么需要这么大的取景范围</h4>
+              <p>以下最多四个责任点来自完整动作边界，只显示附件和时刻，无需填写坐标或身份。</p>
+              <ul id="captureFramingWitnesses" class="capture-witness-list"></ul>
+            </div>
+            <div class="capture-framing-actions">
+              <button id="acceptCaptureFraming" class="button primary" type="button" disabled>
+                采用自动取景
+              </button>
+              <button id="rejectCaptureFraming" class="button danger" type="button" disabled>
+                不采用
+              </button>
+              <button id="unobservableCaptureFraming" class="button secondary" type="button" disabled>
+                当前无法判断
+              </button>
+            </div>
+            <p id="captureFramingStatus" class="status" role="status" aria-live="polite">
+              等待自动取景候选。
+            </p>
+          </section>
           <section class="release-note" aria-labelledby="releaseHeading">
             <h3 id="releaseHeading">发布门禁</h3>
             <p id="releaseMessage">结构探针不会授予发布权。</p>
@@ -176,6 +209,32 @@
       </details>
     </div>
   </main>
+
+  <dialog id="captureFramingDialog" class="capture-framing-dialog"
+    aria-labelledby="captureFramingDialogTitle"
+    aria-describedby="captureFramingDialogConsequence captureFramingDialogHint">
+    <div class="capture-framing-dialog-card">
+      <p class="eyebrow">FINAL HUMAN CONFIRMATION</p>
+      <h2 id="captureFramingDialogTitle">确认自动取景决定</h2>
+      <dl class="capture-framing-dialog-summary">
+        <div><dt>项目</dt><dd id="captureFramingDialogProject">—</dd></div>
+        <div><dt>动作</dt><dd id="captureFramingDialogMotion">—</dd></div>
+        <div><dt>决定</dt><dd id="captureFramingDialogAction">—</dd></div>
+      </dl>
+      <p id="captureFramingDialogConsequence" class="capture-framing-dialog-consequence">—</p>
+      <p id="captureFramingDialogHint" class="capture-framing-dialog-hint">
+        按 Esc 或点击弹窗外遮罩可取消；取消不会向服务端发送请求。
+      </p>
+      <div class="capture-framing-dialog-actions">
+        <button id="cancelCaptureFraming" class="button secondary" type="button" autofocus>
+          取消
+        </button>
+        <button id="commitCaptureFraming" class="button primary" type="button">
+          确认并提交
+        </button>
+      </div>
+    </div>
+  </dialog>
 
   <div id="liveRegion" class="sr-only" aria-live="polite" aria-atomic="true"></div>
   <script type="module" src="./modules/body-sway-probe-app.js"></script>

@@ -12,14 +12,27 @@ import {
 import {
   canvasAdjustmentElements, renderCanvasAdjustment, resetCanvasAdjustmentView,
 } from "./body-sway-canvas-adjustment-view.js";
+import { createCaptureFramingApi } from "./body-sway-capture-framing-api.js";
+import {
+  captureFramingConfirmationElements, createCaptureFramingConfirmation,
+} from "./body-sway-capture-framing-confirmation.js";
+import {
+  createCaptureFramingController,
+} from "./body-sway-capture-framing-controller.js";
+import { captureFramingElements } from "./body-sway-capture-framing-view.js";
 import {
   probeElements, renderProbeEntry, resetProbeView, setStatus,
 } from "./body-sway-probe-view.js";
 
 const elements = probeElements();
 const canvasElements = canvasAdjustmentElements();
+const framingElements = captureFramingElements();
 const viewportControls = viewportElements();
 const api = createBodySwayProbeApi();
+const framingApi = createCaptureFramingApi();
+const framingConfirmation = createCaptureFramingConfirmation({
+  elements: captureFramingConfirmationElements(),
+});
 const preview = createBodySwayProbePreview({
   svg: elements.previewSvg,
   fallback: elements.previewFallback,
@@ -33,8 +46,15 @@ const viewport = createBodySwayProbeViewport(viewportControls, {
 });
 let currentEntry = null;
 let currentDownload = null;
+let loader = null;
+const framingController = createCaptureFramingController({
+  elements: framingElements,
+  api: framingApi,
+  confirmation: framingConfirmation,
+  onReload: (prefix) => loader?.reload(prefix),
+});
 
-const loader = createBodySwayProbeLoader({
+loader = createBodySwayProbeLoader({
   panel: elements.autoEntryPanel,
   projectSelect: elements.projectSelect,
   reloadButton: elements.reloadProject,
@@ -55,6 +75,7 @@ function reset() {
   viewport.reset();
   resetProbeView(elements);
   resetCanvasAdjustmentView(canvasElements);
+  framingController.reset();
 }
 
 async function loadEntry(payload, context) {
@@ -66,6 +87,7 @@ async function loadEntry(payload, context) {
   currentDownload = reportDownload(entry);
   renderProbeEntry(elements, entry);
   renderCanvasAdjustment(canvasElements, entry);
+  framingController.load(entry);
   preview.load(entry.preview, entry.viewportFit);
   if (entry.preview) viewport.load(entry.preview.canvas, entry.viewportFit);
   return entry;

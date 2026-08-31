@@ -39,6 +39,9 @@ from autospine_workbench.body_sway_probe_inputs import (  # noqa: E402
 from autospine_workbench.body_sway_probe_report import (  # noqa: E402
     compile_body_sway_probe_report,
 )
+from autospine_workbench.capture_framing_candidate import (  # noqa: E402
+    compile_capture_framing_candidate,
+)
 from autospine_workbench.idle_behavior_decision import (  # noqa: E402
     build_idle_behavior_decision,
 )
@@ -220,7 +223,11 @@ class BodySwayProbeApplicationTests(unittest.TestCase):
             "autospine_workbench.body_sway_probe_application."
             "compile_body_sway_canvas_adjustment_candidates",
             wraps=compile_body_sway_canvas_adjustment_candidates,
-        ) as compiler:
+        ) as compiler, patch(
+            "autospine_workbench.body_sway_probe_application."
+            "compile_capture_framing_candidate",
+            wraps=compile_capture_framing_candidate,
+        ) as framing_compiler:
             first = self.service.prepare(self.address.package_id)
             second = self.service.prepare(self.address.package_id)
         head = read_idle_behavior_review_head(
@@ -236,7 +243,7 @@ class BodySwayProbeApplicationTests(unittest.TestCase):
         self.assertEqual("probe_ready", inventory["packages"][0]["status"])
         self.assertEqual(first, second)
         self.assertEqual(1, compiler.call_count)
-        self.assertEqual(3, first["format_version"])
+        self.assertEqual(4, first["format_version"])
         self.assertEqual(direct.sha256, first["report_sha256"])
         self.assertEqual(direct.document, first["technical"]["report"])
         adjustment = first["canvas_adjustment"]
@@ -276,6 +283,21 @@ class BodySwayProbeApplicationTests(unittest.TestCase):
             and row["document"]["status"] == "candidate_only"
             for row in first["rebind_candidates"]
         ))
+        framing = first["capture_framing"]
+        if first["status"] == "viewport_adjustment_available":
+            self.assertIsNotNone(framing)
+            self.assertEqual(
+                {"setup": True, "base": True, "combined": True},
+                framing["document"]["coverage"],
+            )
+            self.assertEqual(0, framing["history"]["current_revision"])
+            args = framing_compiler.call_args.args
+            direct_framing = compile_capture_framing_candidate(
+                *args, package_id=self.address.package_id,
+            )
+            self.assertEqual(
+                framing["candidate_sha256"], direct_framing.sha256,
+            )
         self.assertEqual("none", first["preview"]["authority"])
         self.assertEqual(
             direct.document["timing"], first["preview"]["timing"],

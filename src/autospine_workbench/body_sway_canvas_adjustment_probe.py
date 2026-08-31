@@ -33,6 +33,11 @@ from .body_sway_probe_sampler import (
     prepare_body_sway_sampler,
 )
 from .idle_behavior_inventory import BODY_BONE_IDS
+from .capture_framing_envelopes import (
+    CaptureEnvelopeAccumulator,
+    CaptureFramingEnvelopeError,
+    observe_geometry,
+)
 
 
 class BodySwayCanvasAdjustmentProbeError(ValueError):
@@ -49,6 +54,20 @@ class PreparedBodySwayCanvasAdjustmentProbe:
     tick_schedule_sha256: str
     sampler: PreparedBodySwaySampler
     geometry: PreparedBodySwayGeometryContext
+
+
+@dataclass(frozen=True, slots=True)
+class BodySwayCanvasGainObservation:
+    _document_json: str
+    _envelope_json: str | None = None
+    @property
+    def document(self) -> dict[str, Any]:
+        return json.loads(self._document_json)
+
+    @property
+    def envelope_record(self) -> dict[str, Any] | None:
+        return json.loads(self._envelope_json) \
+            if self._envelope_json is not None else None
 
 
 def prepare_body_sway_canvas_adjustment_probe(
@@ -98,6 +117,14 @@ def probe_body_sway_canvas_gain(
 ) -> dict[str, Any]:
     """Evaluate one discrete gain; this is not a safe interval claim."""
 
+    return observe_body_sway_canvas_gain(prepared, numerator).document
+
+
+def observe_body_sway_canvas_gain(
+    prepared: PreparedBodySwayCanvasAdjustmentProbe,
+    numerator: int,
+    *, envelope_kind: str | None = None,
+) -> BodySwayCanvasGainObservation:
     try:
         if type(prepared) is not PreparedBodySwayCanvasAdjustmentProbe:
             raise BodySwayCanvasAdjustmentProbeError(
@@ -117,6 +144,9 @@ def probe_body_sway_canvas_gain(
             "tick_schedule_sha256": prepared.tick_schedule_sha256,
         })
         stats = _CanvasStats(prepared.geometry.canvas_size)
+        envelope = CaptureEnvelopeAccumulator(
+            envelope_kind, prepared.geometry.canvas_size[1],
+        ) if envelope_kind is not None else None
         peaks = {bone_id: 0.0 for bone_id in BODY_BONE_IDS}
         for tick in prepared.ticks:
             sample = _scaled_sample(
@@ -127,6 +157,8 @@ def probe_body_sway_canvas_gain(
                 prepared.geometry, sample,
             )
             stats.observe(result)
+            if envelope is not None:
+                observe_geometry(envelope, tick, result)
             for bone_id, value in sample.overlay_rotation_deg:
                 peaks[bone_id] = max(peaks[bone_id], abs(value))
             _feed(digest, {
@@ -137,12 +169,18 @@ def probe_body_sway_canvas_gain(
                     asdict(failure) for failure in result.canvas_failures
                 ],
             })
-        return stats.document(
-            numerator, len(prepared.ticks), peaks, digest.hexdigest(),
+        document = stats.document(
+            numerator, len(prepared.ticks), peaks, digest.hexdigest())
+        record = envelope.finish() if envelope is not None else None
+        return BodySwayCanvasGainObservation(
+            _canonical(document), _canonical(record) if record else None,
         )
     except BodySwayCanvasAdjustmentProbeError:
         raise
-    except (KeyError, OverflowError, TypeError, ValueError) as exc:
+    except (
+        CaptureFramingEnvelopeError, KeyError, OverflowError,
+        TypeError, ValueError,
+    ) as exc:
         raise BodySwayCanvasAdjustmentProbeError(
             f"Canvas adjustment gain probe failed: {exc}"
         ) from exc
@@ -253,3 +291,10 @@ def _feed(digest, value):
     ).encode("utf-8")
     digest.update(len(payload).to_bytes(8, "big"))
     digest.update(payload)
+
+
+def _canonical(value):
+    return json.dumps(
+        value, ensure_ascii=False, allow_nan=False,
+        sort_keys=True, separators=(",", ":"),
+    )

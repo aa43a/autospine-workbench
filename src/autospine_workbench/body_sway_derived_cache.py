@@ -20,6 +20,11 @@ from .body_sway_probe_validation import (
     FORMAT as PROBE_FORMAT,
     FORMAT_VERSION as PROBE_FORMAT_VERSION,
 )
+from .capture_framing_profile import (
+    FORMAT as FRAMING_FORMAT,
+    FORMAT_VERSION as FRAMING_FORMAT_VERSION,
+    capture_framing_profile,
+)
 from .dynamic_viewport_fit import (
     FORMAT as VIEWPORT_FORMAT,
     FORMAT_VERSION as VIEWPORT_FORMAT_VERSION,
@@ -61,6 +66,7 @@ class BodySwayDerivedCacheKey:
     canvas_profile_sha256: str
     viewport_profile_sha256: str
     rebind_profile_sha256: str
+    framing_profile_sha256: str
 
 
 @dataclass(slots=True)
@@ -217,6 +223,11 @@ def body_sway_derived_cache_key(
             "autospine-region-rebind-cache-profile/v1",
             REBIND_FORMAT, REBIND_FORMAT_VERSION,
             region_rebind_analyzer_profile(),
+        ),
+        _profile_sha(
+            "autospine-capture-framing-cache-profile/v1",
+            FRAMING_FORMAT, FRAMING_FORMAT_VERSION,
+            capture_framing_profile(),
         ),
     )
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from . import capture_framing_routes as capture_framing
 from . import motion_policy_adoption_routes as adoption
 from . import seam_review_publication_routes as seam_publication
 from . import idle_behavior_review_routes as idle_review
@@ -12,7 +13,8 @@ from . import motion_policy_review_draft_routes as draft_policy
 
 
 def is_motion_policy_mutation_path(parts: list[str]) -> bool:
-    return idle_review.is_idle_behavior_review_mutation_path(parts) \
+    return capture_framing.is_capture_framing_mutation_path(parts) \
+        or idle_review.is_idle_behavior_review_mutation_path(parts) \
         or draft_policy.is_p9_draft_policy_adoption_path(parts) \
         or adoption.is_motion_policy_adoption_path(parts) \
         or seam_publication.is_seam_review_publication_path(parts) \
@@ -20,6 +22,8 @@ def is_motion_policy_mutation_path(parts: list[str]) -> bool:
 
 
 def motion_policy_mutation_allow_methods(parts: list[str]) -> str:
+    if capture_framing.is_capture_framing_mutation_path(parts):
+        return capture_framing.ALLOW_METHODS
     if idle_review.is_idle_behavior_review_mutation_path(parts):
         return idle_review.ALLOW_METHODS
     if draft_policy.is_p9_draft_policy_adoption_path(parts):
@@ -34,7 +38,9 @@ def motion_policy_mutation_allow_methods(parts: list[str]) -> str:
 
 
 def dispatch_motion_policy_mutation_post(parts, handler, store, send_json):
-    return idle_review.dispatch_idle_behavior_review_post(
+    return capture_framing.dispatch_capture_framing_post(
+        parts, handler, store, send_json,
+    ) or idle_review.dispatch_idle_behavior_review_post(
         parts, handler, store, send_json,
     ) or draft_policy.dispatch_p9_draft_policy_adoption_post(
         parts, handler, store, send_json,
@@ -50,7 +56,9 @@ def dispatch_motion_policy_mutation_post(parts, handler, store, send_json):
 def send_motion_policy_mutation_method_not_allowed(
     parts: list[str], handler: Any,
 ) -> None:
-    if idle_review.is_idle_behavior_review_mutation_path(parts):
+    if capture_framing.is_capture_framing_mutation_path(parts):
+        capture_framing.send_capture_framing_method_not_allowed(handler)
+    elif idle_review.is_idle_behavior_review_mutation_path(parts):
         idle_review.send_idle_behavior_review_method_not_allowed(handler)
     elif draft_policy.is_p9_draft_policy_adoption_path(parts):
         draft_policy.send_motion_policy_review_draft_method_not_allowed(

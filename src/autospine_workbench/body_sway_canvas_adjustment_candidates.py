@@ -19,8 +19,13 @@ from .body_sway_canvas_adjustment_builder import (
 )
 from .body_sway_canvas_adjustment_probe import (
     BodySwayCanvasAdjustmentProbeError,
+    observe_body_sway_canvas_gain,
     prepare_body_sway_canvas_adjustment_probe,
-    probe_body_sway_canvas_gain,
+)
+from .capture_framing_envelopes import (
+    CaptureFramingEnvelopeSet,
+    build_capture_framing_envelope_set,
+    setup_capture_envelope,
 )
 from .body_sway_canvas_adjustment_profile import (
     FORMAT,
@@ -60,6 +65,9 @@ class BodySwayCanvasAdjustmentCandidates:
 
     _canonical_json: str = field(repr=False)
     _reviewed_report: BodySwayProbeReport = field(repr=False)
+    _capture_framing_envelopes: CaptureFramingEnvelopeSet | None = field(
+        default=None, repr=False,
+    )
 
     @property
     def document(self) -> dict[str, Any]:
@@ -76,6 +84,10 @@ class BodySwayCanvasAdjustmentCandidates:
     @property
     def reviewed_report(self) -> BodySwayProbeReport:
         return self._reviewed_report
+
+    @property
+    def capture_framing_envelopes(self) -> CaptureFramingEnvelopeSet | None:
+        return self._capture_framing_envelopes
 
 
 def compile_body_sway_canvas_adjustment_candidates(
@@ -95,17 +107,22 @@ def compile_body_sway_canvas_adjustment_candidates(
             raise BodySwayCanvasAdjustmentError(
                 "Canvas adjustment schedule differs from exact P10.2"
             )
-        reviewed_probe = probe_body_sway_canvas_gain(
-            prepared, GAIN_DENOMINATOR,
+        reviewed_observation = observe_body_sway_canvas_gain(
+            prepared, GAIN_DENOMINATOR, envelope_kind="combined",
         )
+        reviewed_probe = reviewed_observation.document
         require_reviewed_canvas_probe(reviewed_check, reviewed_probe)
         probes = [reviewed_probe]
+        zero_observation = None
         candidate = None
         if reviewed_check["status"] == "passed":
             classification = "reviewed_canvas_passed"
             reasons = ["reviewed_canvas_containment_passed"]
         else:
-            zero = probe_body_sway_canvas_gain(prepared, 0)
+            zero_observation = observe_body_sway_canvas_gain(
+                prepared, 0, envelope_kind="base",
+            )
+            zero = zero_observation.document
             probes.append(zero)
             if zero["canvas_status"] == "rejected":
                 classification = "upstream_base_motion_canvas_overflow"
@@ -187,8 +204,18 @@ def compile_body_sway_canvas_adjustment_candidates(
             },
         }
         require_body_sway_canvas_adjustment_candidates(document)
+        framing = None
+        if zero_observation is not None \
+                and zero_observation.envelope_record is not None \
+                and reviewed_observation.envelope_record is not None:
+            framing = build_capture_framing_envelope_set(
+                setup_capture_envelope(prepared.geometry),
+                zero_observation.envelope_record,
+                reviewed_observation.envelope_record,
+                prepared.geometry.canvas_size[1],
+            )
         value = BodySwayCanvasAdjustmentCandidates(
-            _canonical(document), report,
+            _canonical(document), report, framing,
         )
         if value.sha256 != body_sway_canvas_adjustment_candidates_sha256(
             value.document

@@ -1,0 +1,109 @@
+.capture-framing {
+  margin-top: 1.25rem;
+  padding: 1rem;
+  border: 1px solid #437f76;
+  border-radius: 12px;
+  background: #0c181b;
+}
+
+.capture-framing .section-heading { align-items: start; }
+
+.capture-coverage-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .7rem;
+  margin: 1rem 0;
+}
+
+.capture-coverage-card {
+  min-width: 0;
+  padding: .8rem;
+  border: 1px solid #376b63;
+  border-radius: 10px;
+  background: #101b20;
+}
+
+.capture-coverage-card h4,
+.capture-coverage-card p { margin: 0; }
+.capture-coverage-card strong { display: block; margin: .3rem 0; color: var(--accent); }
+.capture-coverage-card p { color: var(--muted); font-size: .84rem; }
+.capture-coverage-card[data-tone="error"] { border-color: #74414a; }
+.capture-coverage-card[data-tone="error"] strong { color: var(--danger); }
+
+.capture-witness-section {
+  margin-block: 1rem;
+  padding: .8rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #0d121b;
+}
+
+.capture-witness-section h4,
+.capture-witness-section p { margin: 0; }
+.capture-witness-section p { color: var(--muted); font-size: .84rem; }
+.capture-witness-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .55rem;
+  margin: .75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.capture-witness-card {
+  display: grid;
+  gap: .15rem;
+  min-width: 0;
+  padding: .6rem;
+  border-left: 3px solid var(--accent);
+  background: var(--panel-strong);
+}
+.capture-witness-card span { color: var(--muted); font-size: .8rem; overflow-wrap: anywhere; }
+
+.capture-framing-actions { display: flex; flex-wrap: wrap; gap: .65rem; }
+.button.danger { border-color: #74414a; background: #28161c; color: var(--danger); }
+
+.capture-framing-dialog {
+  width: min(34rem, calc(100% - 2rem));
+  max-height: calc(100dvh - 2rem);
+  padding: 0;
+  overflow: auto;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 24px 80px rgb(0 0 0 / 60%);
+}
+.capture-framing-dialog::backdrop { background: rgb(2 5 9 / 78%); backdrop-filter: blur(3px); }
+.capture-framing-dialog-card { padding: clamp(1rem, 3vw, 1.5rem); }
+.capture-framing-dialog-summary { display: grid; gap: .55rem; margin: 1rem 0; }
+.capture-framing-dialog-summary div {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr);
+  gap: .7rem;
+  padding: .55rem .65rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel-strong);
+}
+.capture-framing-dialog-summary dt { color: var(--muted); font-weight: 700; }
+.capture-framing-dialog-summary dd { min-width: 0; margin: 0; overflow-wrap: anywhere; font-weight: 750; }
+.capture-framing-dialog-consequence {
+  padding: .7rem .8rem;
+  border-left: 4px solid var(--warning);
+  background: #201c14;
+}
+.capture-framing-dialog-hint { color: var(--muted); font-size: .84rem; }
+.capture-framing-dialog-actions { display: flex; justify-content: flex-end; gap: .65rem; }
+
+@media (max-width: 680px) {
+  .capture-coverage-grid,
+  .capture-witness-list { grid-template-columns: minmax(0, 1fr); }
+  .capture-framing-actions,
+  .capture-framing-actions .button { width: 100%; }
+  .capture-framing-dialog-actions { align-items: stretch; flex-direction: column-reverse; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .capture-framing-dialog::backdrop { backdrop-filter: none; }
+}

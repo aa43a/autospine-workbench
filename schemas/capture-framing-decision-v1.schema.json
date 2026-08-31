@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/capture-framing-decision-v1.schema.json",
+  "title": "AutoSpine CaptureFramingDecision v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "project_id", "clip_id", "source",
+    "review", "decision", "semantics", "status", "release_gate"
+  ],
+  "properties": {
+    "format": {"const": "autospine-capture-framing-decision"},
+    "format_version": {"const": 1},
+    "project_id": {"$ref": "#/$defs/id"},
+    "clip_id": {"$ref": "#/$defs/id"},
+    "source": {
+      "type": "object", "minProperties": 2,
+      "required": ["capture_framing_candidate_sha256", "package_id"],
+      "properties": {
+        "capture_framing_candidate_sha256": {"$ref": "#/$defs/sha"},
+        "package_id": {"$ref": "#/$defs/sha"}
+      },
+      "additionalProperties": true
+    },
+    "review": {
+      "type": "object", "additionalProperties": false,
+      "required": ["method", "status", "revision", "supersedes_decision_sha256"],
+      "properties": {
+        "method": {"const": "human"}, "status": {"const": "completed"},
+        "revision": {"type": "integer", "minimum": 1, "maximum": 64},
+        "supersedes_decision_sha256": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha"}]
+        }
+      }
+    },
+    "decision": {
+      "type": "object", "additionalProperties": false,
+      "required": ["action", "reason_code", "world_viewport"],
+      "properties": {
+        "action": {"enum": ["accept", "adjust", "reject", "unobservable"]},
+        "reason_code": {"$ref": "#/$defs/id"},
+        "world_viewport": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/worldViewport"}]
+        }
+      }
+    },
+    "semantics": {
+      "const": {
+        "scope": "sampled-capture-framing-human-decision",
+        "human_review_claimed": true,
+        "runtime_equivalence_claimed": false,
+        "visual_quality_claimed": false,
+        "continuous_time_safety_claimed": false,
+        "release_authority": false
+      }
+    },
+    "status": {
+      "enum": ["ready_for_temporary_preview_v2", "capture_framing_not_approved"]
+    },
+    "release_gate": {"type": "object"}
+  },
+  "$defs": {
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "number": {"type": "number", "minimum": -1000000000000, "maximum": 1000000000000},
+    "worldViewport": {
+      "type": "object", "additionalProperties": false,
+      "required": ["x", "y", "width", "height"],
+      "properties": {
+        "x": {"$ref": "#/$defs/number"}, "y": {"$ref": "#/$defs/number"},
+        "width": {"type": "number", "exclusiveMinimum": 0, "maximum": 1000000000000},
+        "height": {"type": "number", "exclusiveMinimum": 0, "maximum": 1000000000000}
+      }
+    }
+  }
+}

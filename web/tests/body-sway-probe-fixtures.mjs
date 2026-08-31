@@ -1,6 +1,7 @@
 import {
   dynamicViewportEnvelope, regionRebindEnvelope,
 } from "./body-sway-remediation-fixtures.mjs";
+import { captureFramingEnvelope } from "./body-sway-capture-framing-fixtures.mjs";
 
 export const PACKAGE_A = "a".repeat(64);
 export const PACKAGE_B = "b".repeat(64);
@@ -108,7 +109,7 @@ export function probeEntryFixture({
   const report = reportFixture({ result, timing });
   const value = {
     format: "autospine-body-sway-probe-entry",
-    format_version: 3,
+    format_version: 4,
     status: rejectedCheck === "sampled_canvas_containment"
       ? "viewport_adjustment_available" : resultStatus,
     probeability: "probe_ready",
@@ -163,9 +164,11 @@ export function probeEntryFixture({
     canvas_adjustment: null,
     dynamic_viewport: dynamicViewportEnvelope(schedule.sample_count),
     rebind_candidates: [],
+    capture_framing: null,
   };
   if (rejectedCheck === "sampled_canvas_containment") {
     value.rebind_candidates = [regionRebindEnvelope(value)];
+    value.capture_framing = captureFramingEnvelope(value);
   }
   return value;
 }

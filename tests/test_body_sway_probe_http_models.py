@@ -92,7 +92,7 @@ class BodySwayProbeHttpModelTests(unittest.TestCase):
             document={"status": "candidate_only"},
         ),)
         entry = self._entry(report, _dynamic(), rebind)
-        self.assertEqual(3, entry["format_version"])
+        self.assertEqual(4, entry["format_version"])
         self.assertEqual("viewport_adjustment_available", entry["status"])
         self.assertEqual("structural_rejected", entry["result"]["status"])
         self.assertEqual(original, entry["technical"]["report"])

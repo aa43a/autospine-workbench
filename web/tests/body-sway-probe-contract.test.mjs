@@ -15,6 +15,7 @@ import {
 import {
   indeterminateDynamicViewportEnvelope,
 } from "./body-sway-remediation-fixtures.mjs";
+import { captureFramingSubmission } from "../modules/body-sway-capture-framing-contract.js";
 
 test("JSON identity ignores object key order but preserves array order", () => {
   assert.equal(sameJson(
@@ -152,6 +153,7 @@ test("indeterminate viewport remains candidate-only and cannot clear canvas reje
   value.dynamic_viewport = indeterminateDynamicViewportEnvelope(
     value.result.schedule.sample_count,
   );
+  value.capture_framing = null;
   const entry = normalizeProbeEntry(value, PACKAGE_B);
   assert.equal(entry.viewportFit.document.fit_status, "indeterminate");
   assert.equal(entry.viewportFit.document.semantics.authority, "none");
@@ -169,6 +171,50 @@ test("indeterminate viewport remains candidate-only and cannot clear canvas reje
   falseIndeterminate.status = "structural_rejected";
   falseIndeterminate.dynamic_viewport.document.fit_status = "indeterminate";
   assert.throws(() => normalizeProbeEntry(falseIndeterminate, PACKAGE_B), /适配状态/);
+});
+
+test("canvas-only rejection exposes a source-bound three-domain framing candidate", () => {
+  const entry = normalizeProbeEntry(probeEntryFixture({
+    resultStatus: "structural_rejected", rejectedCheck: "sampled_canvas_containment",
+  }), PACKAGE_B);
+  assert.deepEqual(entry.captureFraming.document.coverage, {
+    setup: true, base: true, combined: true,
+  });
+  assert.equal(entry.captureFraming.history.currentRevision, 0);
+  assert.equal(Object.keys(entry.captureFraming.document.union_extrema_witnesses).length, 4);
+
+  const payload = captureFramingSubmission(entry, "accept");
+  assert.equal(payload.explicit_confirmation, true);
+  assert.equal(payload.intent, "capture-framing-human-review-v1");
+  assert.equal(payload.package_id, PACKAGE_B);
+  assert.deepEqual(payload.world_viewport,
+    entry.captureFraming.document.proposed_world_viewport);
+  assert.equal(Object.hasOwn(payload, "project_id"), false);
+  assert.equal(captureFramingSubmission(entry, "reject").world_viewport, null);
+});
+
+test("framing candidate fails closed when coverage, source, or history is cross-wired", () => {
+  const value = probeEntryFixture({
+    resultStatus: "structural_rejected", rejectedCheck: "sampled_canvas_containment",
+  });
+  value.capture_framing.document.coverage.combined = false;
+  assert.throws(() => normalizeProbeEntry(value, PACKAGE_B), /完整三域/);
+
+  const source = probeEntryFixture({
+    resultStatus: "structural_rejected", rejectedCheck: "sampled_canvas_containment",
+  });
+  source.capture_framing.document.source.current_p10_1_head.revision += 1;
+  assert.throws(() => normalizeProbeEntry(source, PACKAGE_B), /精确来源/);
+
+  const history = probeEntryFixture({
+    resultStatus: "structural_rejected", rejectedCheck: "sampled_canvas_containment",
+  });
+  history.capture_framing.history.current_revision = 1;
+  history.capture_framing.history.head_decision_sha256 = "f".repeat(64);
+  history.capture_framing.history.action = "accept";
+  history.capture_framing.history.status = "ready_for_temporary_preview_v2";
+  const normalized = normalizeProbeEntry(history, PACKAGE_B);
+  assert.equal(normalized.captureFraming.history.action, "accept");
 });
 
 test("download name binds project, clip, and report address to avoid overwrite", () => {

@@ -19,15 +19,19 @@ import {
 import {
   normalizeRegionRebindEnvelopes,
 } from "./body-sway-rebind-contract.js";
+import {
+  normalizeCaptureFramingEnvelope,
+} from "./body-sway-capture-framing-contract.js";
 
 export { CHECK_IDS, FORMAT_VERSION, LIST_FORMAT };
 export const ENTRY_FORMAT = "autospine-body-sway-probe-entry";
-export const ENTRY_FORMAT_VERSION = 3;
+export const ENTRY_FORMAT_VERSION = 4;
 
 const TOP_FIELDS = [
   "format", "format_version", "status", "probeability", "package",
   "candidate_sha256", "history", "report_sha256", "result", "preview", "technical",
   "canvas_adjustment", "dynamic_viewport", "rebind_candidates",
+  "capture_framing",
 ];
 const PACKAGE_FIELDS = [
   "package_id", "motion_policy_package_id", "project_id", "motion_id", "clip_id",
@@ -94,11 +98,17 @@ export function normalizeProbeEntry(value, expectedPackageId) {
   const rebindCandidates = normalizeRegionRebindEnvelopes(value.rebind_candidates, {
     packageRow, result, report: technical.report,
   });
-  requireRemediationState(value.status, result, viewportFit, rebindCandidates);
+  const captureFraming = normalizeCaptureFramingEnvelope(value.capture_framing, {
+    packageRow, candidateSha, sourceReview, result, preview,
+    report: technical.report, reportSha256: result?.reportSha256, viewportFit,
+  });
+  requireRemediationState(
+    value.status, result, viewportFit, rebindCandidates, captureFraming,
+  );
   return {
     raw: exactCopy(value), status: value.status, package: packageRow,
     candidateSha, head, sourceReview, preview, result, technical, canvasAdjustment,
-    viewportFit, rebindCandidates,
+    viewportFit, rebindCandidates, captureFraming,
   };
 }
 
@@ -140,9 +150,11 @@ export function deriveProbeOutcome(entry) {
   return { kind: "visual_required", canEnterVisual: true, shouldReturnToP10: false };
 }
 
-function requireRemediationState(status, result, viewportFit, rebindCandidates) {
+function requireRemediationState(
+  status, result, viewportFit, rebindCandidates, captureFraming,
+) {
   if (!result) {
-    if (viewportFit !== null || rebindCandidates.length) {
+    if (viewportFit !== null || rebindCandidates.length || captureFraming !== null) {
       throw new Error("无结构结果时不能携带视口或换绑候选");
     }
     return;
@@ -156,6 +168,9 @@ function requireRemediationState(status, result, viewportFit, rebindCandidates) 
   if ((status === "viewport_adjustment_available") !== framingAvailable
       || (framingOnly && !viewportFit)) {
     throw new Error("动态视口分类与 P10.2 结构证据不一致");
+  }
+  if ((framingAvailable && !captureFraming) || (!framingAvailable && captureFraming)) {
+    throw new Error("自动取景候选与画布单项拒绝不一致");
   }
   if (rebindCandidates.some((candidate) =>
     candidate.document.source.motion_sample_count !== result.schedule.sample_count)) {

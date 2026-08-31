@@ -9,6 +9,11 @@ const moduleNames = [
   "body-sway-canvas-adjustment-contract.js",
   "body-sway-canvas-adjustment-probe-contract.js",
   "body-sway-canvas-adjustment-view.js",
+  "body-sway-capture-framing-api.js",
+  "body-sway-capture-framing-confirmation.js",
+  "body-sway-capture-framing-contract.js",
+  "body-sway-capture-framing-controller.js",
+  "body-sway-capture-framing-view.js",
   "body-sway-dynamic-viewport-contract.js",
   "body-sway-probe-contract.js",
   "body-sway-probe-contract-utils.js",
@@ -24,11 +29,12 @@ const moduleNames = [
 ];
 
 test("P10.2 page is automatic, visual, accessible, and non-authoritative", async () => {
-  const [html, css, canvasCss, viewportCss, ...modules] = await Promise.all([
+  const [html, css, canvasCss, viewportCss, framingCss, ...modules] = await Promise.all([
     readFile(new URL("body-sway-probe.html", root), "utf8"),
     readFile(new URL("body-sway-probe.css", root), "utf8"),
     readFile(new URL("body-sway-canvas-adjustment.css", root), "utf8"),
     readFile(new URL("body-sway-viewport.css", root), "utf8"),
+    readFile(new URL("body-sway-capture-framing.css", root), "utf8"),
     ...moduleNames.map((name) => readFile(new URL(`modules/${name}`, root), "utf8")),
   ]);
   const source = `${html}\n${modules.join("\n")}`;
@@ -50,12 +56,23 @@ test("P10.2 page is automatic, visual, accessible, and non-authoritative", async
   assert.match(html, /id="canvasGainGrid"[^>]*role="list"/);
   assert.match(html, /将建议带回 P10\.1 作为草稿/);
   assert.match(html, /打开绑定工作台检查基础动作/);
+  assert.match(html, /id="captureFramingPanel"/);
+  assert.match(html, /自动取景确认/);
+  assert.match(html, /初始姿势、基础动作和合成动作覆盖结果/);
+  assert.match(html, /最多四个责任点/);
+  assert.match(html, /采用自动取景/);
+  assert.match(html, /不采用/);
+  assert.match(html, /当前无法判断/);
+  assert.match(html, /<dialog id="captureFramingDialog"/);
+  assert.match(html, /按 Esc 或点击弹窗外遮罩可取消/);
+  assert.match(html, /id="commitCaptureFraming"/);
   assert.match(html, /how-to-capture-body-sway-runtime\.md/);
   assert.doesNotMatch(html, /id="visualNext"[^>]+body-sway-review\.html/);
   assert.match(html, /正常流程不依赖下载文件/);
   assert.match(html, /role="status" aria-live="polite"/);
   assert.doesNotMatch(source, /innerHTML|insertAdjacentHTML|document\.write|\beval\s*\(/);
   assert.doesNotMatch(html, /\son[a-z]+\s*=/i);
+  assert.doesNotMatch(html, /capture.*(?:sha|coordinate).*type="(?:text|number|file)"/i);
   for (const label of [
     "循环首尾闭合", "骨骼计算稳定", "网格变形稳定", "画布范围完整",
     "网格内部连续", "图层接缝", "视觉质量",
@@ -78,6 +95,9 @@ test("P10.2 page is automatic, visual, accessible, and non-authoritative", async
   assert.match(css, /@media \(prefers-reduced-motion:\s*reduce\)/);
   assert.match(css, /:focus-visible/);
   assert.match(css, /\.legend \.failure-key/);
+  assert.match(framingCss, /\.capture-coverage-grid/);
+  assert.match(framingCss, /\.capture-framing-dialog::backdrop/);
+  assert.match(framingCss, /@media \(max-width:\s*680px\)/);
   for (const [index, module] of modules.entries()) {
     assert.ok(module.split(/\r?\n/).length <= 300, `${moduleNames[index]} must stay <= 300 lines`);
   }
@@ -86,6 +106,8 @@ test("P10.2 page is automatic, visual, accessible, and non-authoritative", async
     "canvas adjustment CSS must stay <= 300 lines");
   assert.ok(viewportCss.split(/\r?\n/).length <= 300,
     "viewport CSS must stay <= 300 lines");
+  assert.ok(framingCss.split(/\r?\n/).length <= 300,
+    "capture framing CSS must stay <= 300 lines");
 });
 
 test("download uses one collision-resistant operator filename and no workflow input", async () => {

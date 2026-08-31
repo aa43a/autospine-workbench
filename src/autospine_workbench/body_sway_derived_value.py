@@ -10,6 +10,7 @@ from .body_sway_canvas_adjustment_candidates import (
     BodySwayCanvasAdjustmentCandidates,
 )
 from .body_sway_probe_report import BodySwayProbeReport
+from .capture_framing_candidate import CaptureFramingCandidate
 from .dynamic_viewport_fit import DynamicViewportFit
 from .region_rebind_candidates import RegionRebindCandidateArtifact
 
@@ -27,6 +28,7 @@ class BodySwayDerivedResult:
     _preview_json: str = field(repr=False)
     _dynamic_viewport_json: str | None = field(default=None, repr=False)
     _rebind_json: tuple[str, ...] = field(default=(), repr=False)
+    _capture_framing_json: str | None = field(default=None, repr=False)
 
     @classmethod
     def freeze(
@@ -35,6 +37,7 @@ class BodySwayDerivedResult:
         preview: dict[str, Any],
         dynamic_viewport: DynamicViewportFit | None = None,
         rebind_candidates: tuple[RegionRebindCandidateArtifact, ...] = (),
+        capture_framing: CaptureFramingCandidate | None = None,
     ) -> BodySwayDerivedResult:
         if type(adjustment) is not BodySwayCanvasAdjustmentCandidates \
                 or type(adjustment.reviewed_report) is not BodySwayProbeReport \
@@ -43,7 +46,9 @@ class BodySwayDerivedResult:
                 and type(dynamic_viewport) is not DynamicViewportFit \
                 or type(rebind_candidates) is not tuple \
                 or any(type(row) is not RegionRebindCandidateArtifact
-                       for row in rebind_candidates):
+                       for row in rebind_candidates) \
+                or capture_framing is not None \
+                and type(capture_framing) is not CaptureFramingCandidate:
             raise BodySwayDerivedValueError(
                 "P10.2 derived compiler returned an unsupported value"
             )
@@ -54,6 +59,8 @@ class BodySwayDerivedResult:
             dynamic_viewport.canonical_bytes.decode("utf-8")
             if dynamic_viewport is not None else None,
             tuple(_canonical(row.document) for row in rebind_candidates),
+            capture_framing.canonical_bytes.decode("utf-8")
+            if capture_framing is not None else None,
         )
 
     @property
@@ -81,10 +88,17 @@ class BodySwayDerivedResult:
         )
 
     @property
+    def capture_framing(self) -> CaptureFramingCandidate | None:
+        if self._capture_framing_json is None:
+            return None
+        return CaptureFramingCandidate(self._capture_framing_json)
+
+    @property
     def cache_weight_bytes(self) -> int:
         values = (
             self._adjustment_json, self._report_json, self._preview_json,
             self._dynamic_viewport_json, *self._rebind_json,
+            self._capture_framing_json,
         )
         return sum(
             len(value.encode("utf-8")) for value in values

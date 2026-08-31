@@ -33,6 +33,7 @@ from .region_rebind_adoption_evidence import (
     RegionRebindAdoptionEvidenceError,
     RegionRebindLayerBindingChanged,
     RegionRebindLayerUnavailable,
+    require_adoptable_region_rebind_head,
     require_current_region_binding,
     require_idle_candidate_identity,
     require_live_region_rebind_relationship,
@@ -141,9 +142,16 @@ class RegionRebindAdoptionApplication:
                 raise RegionRebindAdoptionHeadChanged(
                     "P10.1 head changed before region rebind adoption"
                 )
+            final_chain = rebuild_current_project_chains(
+                self.store, project_ids,
+            )
+            require_unchanged_current_project_chains(after, final_chain)
+            project = self.store.get_project(project_id)
+            _require_revision(project, request["base_revision"])
+            _current_binding(project, request)
             provenance = _provenance(
                 package_id, candidate_sha256, request, document,
-                before[project_id], head,
+                final_chain[project_id], head,
             )
             saved = self.store.save_overrides(
                 project_id, _override_payload(request),
@@ -223,7 +231,7 @@ def _candidate(detail, request, chain):
             raise RegionRebindAdoptionInvalid(
                 "Request differs from recommendation"
             )
-        _require_head(head)
+        require_adoptable_region_rebind_head(head)
         idle_candidate_sha256 = require_idle_candidate_identity(detail, report)
         return document, deepcopy(dict(head)), idle_candidate_sha256
     except (RegionRebindAdoptionError, RegionRebindAdoptionUnavailable):
@@ -288,13 +296,3 @@ def _require_saved(request, provenance, saved):
         raise RegionRebindAdoptionUnavailable(
             "Saved override does not contain the adopted binding"
         )
-
-
-def _require_head(value):
-    if not isinstance(value, Mapping):
-        raise RegionRebindAdoptionUnavailable("P10 head is invalid")
-    required = {
-        "current_revision", "head_decision_sha256", "action", "probe_status",
-    }
-    if set(value) != required:
-        raise RegionRebindAdoptionUnavailable("P10 head fields are invalid")

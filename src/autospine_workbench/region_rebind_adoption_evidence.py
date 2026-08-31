@@ -22,6 +22,16 @@ class RegionRebindLayerBindingChanged(RegionRebindAdoptionEvidenceError):
     """The effective source binding no longer matches the recommendation."""
 
 
+def require_adoptable_region_rebind_head(value: Any) -> None:
+    """Require the exact P10.1 head fields consumed by rebind provenance."""
+
+    required = {
+        "current_revision", "head_decision_sha256", "action", "probe_status",
+    }
+    if not isinstance(value, Mapping) or set(value) != required:
+        raise RegionRebindAdoptionEvidenceError("P10 head is invalid")
+
+
 def require_idle_candidate_identity(
     detail: Mapping[str, Any], report: Mapping[str, Any],
 ) -> str:

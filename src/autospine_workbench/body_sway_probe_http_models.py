@@ -6,10 +6,11 @@ from typing import Any
 from urllib.parse import quote
 
 from .body_sway_probe_packages import classify_body_sway_probe_head
+from .capture_framing_history import snapshot_capture_framing_history
 
 
 ENTRY_FORMAT = "autospine-body-sway-probe-entry"
-FORMAT_VERSION = 3
+FORMAT_VERSION = 4
 
 
 def body_sway_probe_entry(
@@ -21,6 +22,8 @@ def body_sway_probe_entry(
     canvas_adjustment=None,
     dynamic_viewport=None,
     rebind_candidates=(),
+    capture_framing=None,
+    state_root=None,
 ) -> dict[str, Any]:
     """Project exact evidence without exposing filesystem paths."""
 
@@ -72,6 +75,23 @@ def body_sway_probe_entry(
         {"candidate_sha256": row.sha256, "document": row.document}
         for row in rebind_candidates
     ]
+    framing_projection = None
+    if capture_framing is not None:
+        if state_root is None:
+            raise ValueError("Capture framing history root is required")
+        framing_history = snapshot_capture_framing_history(
+            state_root, capture_framing,
+        )
+        framing_projection = {
+            "candidate_sha256": capture_framing.sha256,
+            "document": capture_framing.document,
+            "history": {
+                "current_revision": framing_history.current_revision,
+                "head_decision_sha256": framing_history.head_decision_sha256,
+                "action": framing_history.action,
+                "status": framing_history.status,
+            },
+        }
     status = _entry_status(report_document, dynamic_viewport, report_status)
     return {
         "format": ENTRY_FORMAT,
@@ -97,6 +117,7 @@ def body_sway_probe_entry(
         "canvas_adjustment": adjustment_projection,
         "dynamic_viewport": viewport_projection,
         "rebind_candidates": rebind_projection,
+        "capture_framing": framing_projection,
         "technical": {
             "report": report_document,
             "semantics": {

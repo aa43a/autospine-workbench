@@ -66,6 +66,7 @@ def _key(index: int = 0) -> BodySwayDerivedCacheKey:
         index + 1, chars[index + 5] * 64,
         chars[index + 6] * 64, chars[index + 7] * 64,
         chars[index + 8] * 64, chars[index + 9] * 64,
+        chars[index + 10] * 64,
     )
 
 

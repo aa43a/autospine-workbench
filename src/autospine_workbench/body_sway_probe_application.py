@@ -39,6 +39,10 @@ from .body_sway_remediation_analysis import (
 from .body_sway_probe_report import (
     BodySwayProbeReportError,
 )
+from .capture_framing_candidate import (
+    CaptureFramingCandidateError,
+    compile_capture_framing_candidate,
+)
 from .idle_behavior_review_head import (
     IdleBehaviorReviewHeadError,
     read_idle_behavior_review_head,
@@ -150,13 +154,18 @@ class BodySwayProbeApplication:
                     evidence.candidates.sha256, before,
                 )
                 derived = self.derived_cache.get_or_compile(
-                    key, lambda: _compile_derived(inputs, before),
+                    key, lambda: _compile_derived(
+                        inputs, before, address.package_id,
+                    ),
                 )
                 canvas_adjustment = derived.canvas_adjustment
                 report = canvas_adjustment.reviewed_report
                 preview = derived.preview
                 dynamic_viewport = derived.dynamic_viewport
                 rebind_candidates = derived.rebind_candidates
+                capture_framing = derived.capture_framing
+            else:
+                capture_framing = None
             current = replay_idle_behavior_review_package(
                 self.state_root, address,
             )
@@ -176,6 +185,8 @@ class BodySwayProbeApplication:
                 canvas_adjustment=canvas_adjustment,
                 dynamic_viewport=dynamic_viewport,
                 rebind_candidates=rebind_candidates,
+                capture_framing=capture_framing,
+                state_root=self.state_root,
             )
         except BodySwayProbeApplicationHeadChanged:
             raise
@@ -191,13 +202,14 @@ _PREPARE_FAILURES = (
     AttributeError, BodySwayCanvasAdjustmentError, BodySwayDerivedCacheError,
     BodySwayProbeInputError, BodySwayProbePreviewError,
     BodySwayProbeReportError, BodySwayRemediationAnalysisError,
+    CaptureFramingCandidateError,
     IdleBehaviorReviewHeadError,
     IdleBehaviorReviewReplayError, KeyError, OSError, OverflowError,
     RuntimeError, StopIteration, TypeError, UnicodeError, ValueError,
 )
 
 
-def _compile_derived(inputs, current_head) -> BodySwayDerivedResult:
+def _compile_derived(inputs, current_head, package_id) -> BodySwayDerivedResult:
     adjustment = compile_body_sway_canvas_adjustment_candidates(
         inputs, current_head,
     )
@@ -207,7 +219,26 @@ def _compile_derived(inputs, current_head) -> BodySwayDerivedResult:
     remediation = compile_body_sway_remediation_analysis(
         inputs, adjustment.reviewed_report,
     )
+    framing = None
+    report_document = adjustment.reviewed_report.document
+    rejected = sorted(
+        row["check_id"] for row in report_document["checks"]
+        if row["status"] == "rejected"
+    )
+    if report_document["status"] == "structural_rejected" \
+            and rejected == ["sampled_canvas_containment"] \
+            and remediation.dynamic_viewport.document["fit_status"] == "fitted" \
+            and adjustment.document["diagnosis"]["classification"] \
+            == "upstream_base_motion_canvas_overflow" \
+            and adjustment.capture_framing_envelopes is not None:
+        framing = compile_capture_framing_candidate(
+            inputs, adjustment.reviewed_report,
+            remediation.dynamic_viewport, current_head,
+            package_id=package_id,
+            envelope_set=adjustment.capture_framing_envelopes,
+        )
     return BodySwayDerivedResult.freeze(
         adjustment, preview, remediation.dynamic_viewport,
         remediation.rebind_candidates,
+        framing,
     )

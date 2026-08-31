@@ -20,7 +20,10 @@ for candidate in (ROOT, SRC):
     if str(candidate) not in sys.path:
         sys.path.insert(0, str(candidate))
 
-from autospine_workbench.current_project_chain import CurrentProjectChain  # noqa: E402
+from autospine_workbench.current_project_chain import (  # noqa: E402
+    CurrentProjectChain,
+    CurrentProjectChainChangedError,
+)
 from autospine_workbench.idle_behavior_review_packages import (  # noqa: E402
     IdleBehaviorReviewPackageStale,
 )
@@ -272,6 +275,33 @@ class RegionRebindAdoptionTests(unittest.TestCase):
                 PACKAGE_ID, self.candidate.sha256, self.request,
             )
         self.assertEqual(2, prepared.call_count)
+        self.assertEqual(before, tree_snapshot(self.fixture.state))
+
+    def test_final_current_chain_drift_is_conflict_and_zero_write(self):
+        changed = CurrentProjectChain(
+            self.project_id, "f" * 64, self.chain.layer_manifest_sha256,
+            self.chain.input_identity_sha256,
+        )
+        snapshots = [
+            {self.project_id: self.chain},
+            {self.project_id: self.chain},
+            {self.project_id: changed},
+        ]
+        before = tree_snapshot(self.fixture.state)
+        target = "autospine_workbench.region_rebind_adoption."
+        with patch(
+            target + "rebuild_current_project_chains",
+            side_effect=snapshots,
+        ), patch(
+            target + "require_current_idle_behavior_review_address",
+            return_value=SimpleNamespace(project_id=self.project_id),
+        ), patch(
+            target + "BodySwayProbeApplication.prepare",
+            return_value=self.detail,
+        ), self.assertRaises(CurrentProjectChainChangedError):
+            RegionRebindAdoptionApplication(self.store).adopt(
+                PACKAGE_ID, self.candidate.sha256, self.request,
+            )
         self.assertEqual(before, tree_snapshot(self.fixture.state))
 
     def test_adoption_holds_shared_p10_lock_through_override_write(self):

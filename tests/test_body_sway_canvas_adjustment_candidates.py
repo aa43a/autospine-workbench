@@ -32,6 +32,9 @@ from autospine_workbench.body_sway_canvas_adjustment_candidates import (  # noqa
     compile_body_sway_canvas_adjustment_candidates,
     require_exact_body_sway_canvas_adjustment_candidates,
 )
+from autospine_workbench.body_sway_canvas_adjustment_probe import (  # noqa: E402
+    BodySwayCanvasGainObservation,
+)
 from autospine_workbench.body_sway_canvas_adjustment_candidate_validation import (  # noqa: E402
     body_sway_canvas_adjustment_candidate_id,
 )
@@ -353,6 +356,11 @@ class BodySwayCanvasAdjustmentCandidateTests(unittest.TestCase):
         def sample(_prepared, numerator):
             return deepcopy(probes[numerator])
 
+        def observe(_prepared, numerator, **_kwargs):
+            return BodySwayCanvasGainObservation(
+                _canonical(deepcopy(probes[numerator])), None,
+            )
+
         with patch(
             "autospine_workbench.body_sway_canvas_adjustment_candidates."
             "compile_body_sway_probe_report", return_value=report,
@@ -364,7 +372,7 @@ class BodySwayCanvasAdjustmentCandidateTests(unittest.TestCase):
             ]),
         ), patch(
             "autospine_workbench.body_sway_canvas_adjustment_candidates."
-            "probe_body_sway_canvas_gain", side_effect=sample,
+            "observe_body_sway_canvas_gain", side_effect=observe,
         ), patch(
             "autospine_workbench.body_sway_canvas_adjustment_builder."
             "probe_body_sway_canvas_gain", side_effect=sample,
