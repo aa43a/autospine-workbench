@@ -191,9 +191,10 @@ mutable alias；SHA 是相同 exact 输入与固定算法重新编译所得的 c
 适配完整动作包络。唯一责任附件仍是 `layer-007-handwear-l`；动作证据候选推荐
 `forearm.left → upper-arm.left`，setup 包络覆盖骨段由 1 增至 2，root-compensated motion
 extent 改善约 `31.81%`。操作者已经完成这次确认并保存 revision 6；随后新
-Manifest/P2–P5、P9、P10.1 与 P10.2 已按 current 身份重建。旧 P10 没有迁移到新链；当前
-canvas-only P10.2 通过独立 CaptureFraming candidate/decision 和 P10.3 v2 合同承接，不能仅凭
-dynamic fit 进入官方 Runtime。B 表中结果仍是 revision 16 之前的历史链证据。
+Manifest/P2–P5、P9、P10.1 与 P10.2 已按 current 身份重建，CaptureFraming 已接受 revision 1。
+旧 P10 没有迁移到新链；当前 canvas-only P10.2 通过 package-centric P10.3 v2 承接，不能仅凭
+dynamic fit 进入官方 Runtime。真实 execution 尚未运行，P10.3c 尚无人工视觉批准。B 表中结果
+仍是 revision 16 之前的历史链证据。
 
 本轮读取性能优化不改变上述证据边界：stored split revalidation 缓存绑定
 source/preview/manifest 全字节、Resolved/decision 与 runtime，P9 exact replay 按 key
@@ -205,8 +206,8 @@ single-flight，list/detail 可按 `project_id` 限定范围；前后双快照�
 
 这份 handoff 只允许声明：该组 recorded 输入已经闭合、P7 结构编译与 exact replay 通过、
 显式相机的 P8 投影与 exact replay 通过、A/B 的历史 P5/P9 已从精确上游重放通过；A revision 6
-和 B revision 16 已分别重建到 P5 并准备 pending P9 草案；样本 A 旧链的 P10.5b/P10.5c
-静态接缝身份仍可精确复验。
+已完成 current P9/P10 重建并接受 CaptureFraming revision 1，B revision 16 已重建到 P5 并准备
+pending P9 草案；样本 A 旧链的 P10.5b/P10.5c 静态接缝身份仍可精确复验。
 它不授予或证明：
 
 - 外部 checkpoint authenticity、模型或素材许可；
@@ -221,9 +222,10 @@ readiness 请求。任何输入、map、camera、compiler 或算法 profile 变�
 
 ## 下一步
 
-1. 在 [Motion Policy 自动工作流](http://127.0.0.1:8765/motion-policy-review.html) 选择 A revision 6 或 B revision 16 的 current 草案。页面自动读取来源和 SHA；操作者只确认 setup 前后关系，服务端生成正式 policy、Depth candidates 与新的 exact review package。
-2. 不要把上一步回执当成 P9 完成。继续在同一页面复核晋级后的 Foot/Depth candidates，并执行一次独立的最终 P9 human adoption；B 的左腿 foot-lock 保持拒绝或不可观测。
-3. 两个项目都按各自新 P9 地址重新建立 P10.0/P10.1、重跑 P10.2，并按新 Manifest/P3 重新生成静态 seam candidate。旧 P10 与 A 旧 P10.5c 只供历史复验。
-4. 若新 P10.2 为 `manual_visual_required`，可按现有 v1 入口进入 P10.3。若唯一拒绝项仍是 `sampled_canvas_containment`，必须等待 CaptureFraming candidate/显式人工 decision 与 TemporaryPreview/RuntimeCapture v2：新合同须覆盖 setup、base、combined 完整包络，并保持原 v1 report/hash 不变；`DynamicViewportFit v1` 不能直接成为准入。
-5. P10.3 sampled visual head、P10.4 区间证明和新链 P10.5c 闭合后，再组合为 P10.5d；草案晋级、取景决定和 sampled still approval 都不单独授予动态 seam 或 release authority。
-6. 为 readiness 生成新的 strict canonical 请求，只写入实际最终采用并 exact verify 的 P9/P10 双 SHA；之后继续 P10.6–P10.7a、官方 Runtime capture、sampled raster 人审与独立 P10.7c setup golden 对照。
+1. 样本 A 打开 [P10.3 官方 Runtime 自动采集](http://127.0.0.1:8765/body-sway-runtime-capture.html)，选择 current package，检查 Preview v2 与固定 Spine Player 4.2.119/Chrome 环境，显式确认许可和本次运行。真实 job 完成前不得声称 Runtime 已执行。
+2. 从 completed job 自动进入 P10.3c v2，逐 case 人工选择 approve/reject/unobservable 并提交 revision；系统不会自动批准，任何结果都不解除 release gate。
+3. 为 v2 head 新增独立 P10.4a v2 admission/consumer。现有 P10.4a/b1/b2 只消费冻结 v1 visual review，不能接收 v2 head；完成 v2 admission 后才继续 v2 幅度与连续证明。
+4. 样本 B 在 [Motion Policy 自动工作流](http://127.0.0.1:8765/motion-policy-review.html) 选择 revision 16 current 草案，生成正式 policy/Depth candidates/exact package，再完成独立 P9 human adoption；左腿 foot-lock 保持拒绝或不可观测。
+5. B 按新 P9 地址重建 P10.0/P10.1、重跑 P10.2；两个项目都按新 Manifest/P3 重建静态 seam candidate。旧 P10 与 A 旧 P10.5c 只供历史复验。
+6. 只有 v2 admission、相应动作域和新链 P10.5c 闭合后，才能组合新的 P10.5d；取景决定、completed execution 和 sampled still approval 都不单独授予动态 seam 或 release authority。
+7. 为 readiness 生成新的 strict canonical 请求，只写入实际最终采用并 exact verify 的 P9/P10 双 SHA；之后继续 P10.6–P10.7a、官方 Runtime capture、sampled raster 人审与独立 P10.7c setup golden 对照。

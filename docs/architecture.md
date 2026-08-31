@@ -61,17 +61,15 @@ exact Layer Manifest + exact P3/P5/P9 reviewed chain
                     ├── no non-zero passing draft ──→ repair upstream structure
                     ├── non-zero passing draft ──→ explicit new P10.1 revision
                     │                                      ↓ rerun P10.2
-                    └── manual_visual_required ──→ deterministic Spine 4.2 preview
-                                      ↓ licensed official runtime
-                     P10.3 immutable still capture
-                                      ↓ exact-address human CAS
-                    sampled visual decision history
+                    └── canvas-only ──→ CaptureFraming human revision
+                                      ↓ current accept / adjust
+                    package-centric Preview v2 + exact session
+                                      ↓ explicit license + run confirmation
+                 append-only async official Runtime execution job
+                                      ↓ completed job_id → exact four-part address
+                     P10.3c v2 human case decisions
                                       ↓
-                P10.4a double-snapshot admission
-                                      ↓
-              P10.4b1 sampled gain candidates
-                                      ↓
-          P10.4b2 bounded continuous interval proof
+                  future P10.4a v2 admission/consumer
                                       ↓
                            blocked release
 
@@ -116,11 +114,12 @@ web    → HTTP contracts only
 - 一次最终 human adoption 通过 `POST /api/motion-policy/review-packages/{package_id}/adoptions` 进入写边界，并要求 `X-Autospine-Intent: motion-policy-adoption-v1`。Application service 只接受完整 package ID 与严格四字段 review input；它重新加载 exact package，不接受任意文件路径、shell 命令、客户端 P3/P5 地址或候选文档，随后复用既有 decision/policy compiler、ReviewedMotionBundleStore 与 exact reader。发布是内容寻址且可幂等复用；成功响应 path-free，并同时证明刚返回的 P9 双 SHA 已读回复验。HTTP adapter 继续负责 loopback/same-origin、JSON、大小、intent 与错误映射。下载 review input 只是备份，不参与服务端 authority；P9 adoption 也不授予 seam、Runtime、raster 或 release authority。
 - P9/P10 current authoring gate 把“快照不可重建”和“两个完整快照实际不同”建模为独立异常。ProjectStore、OSError、split materialization 或 Layer Manifest 构建失败统一 fail closed 为 path-free 500 unavailable；只有成功取得的 before/after inventory 不同才成为 409 changed。写路由在 unavailable/changed 两类结果下都不进入 mutation，读路由也不返回混合时点 inventory。
 - P9→P10.5b 使用只读 `GET /api/motion-policy/review-packages/{package_id}/seam-review-entry`。Application service 从 package ID 重新加载 Foot/Depth exact package，验证共享 P3 来源，再由 VerifiedMeshBundleReader 重放 P3，并准备固定六关系 Seam candidate；客户端不能提交 Manifest/P3 SHA。响应只含 path-free 地址、candidate 身份、摘要和 blocker。handoff 本身不写 revision、不选择 locator；页面随后从独立 candidate/history 资源加载精确证据、自动绑定 current head，并把服务端 advisory assist 投影为可撤销草稿。手工四段地址只保留为专业审计 fallback。
-- P10.0–P10.2a 共享 exact-chain loader 只读取七个完整 SHA 所选的 Layer Manifest/P3/P5/P9 工件。Candidate、人工 review、decision、probe report 和 P10.2a 诊断候选保持独立；三条 CLI 都不发布工件或修改 state tree。普通 P10.0–P10.1 service 只把已采用 P9 bundle 作为待 exact replay 的 entry，并在最后显式确认时把标准 decision 追加到 candidate-bound CAS history；浏览器不提交上游地址或 `human` 字段。P10.2a 在同次详情编译中对统一 gain `0/8…8/8` 重跑 sampled canvas/geometry，输出零权威诊断；`0/8` 不可成为候选，非零通过点也只形成 `unvalidated_draft`，不能自动写 P10.1 revision。P10 exact replay 可以复用进程内、非权威的 verified-chain 对象，但每次命中都重新枚举目录并读取全部文件字节计算 seal；内容、inventory 或 alias 状态变化会使缓存失效并回到完整 replay。P10.2 详情与 P10.2a→P10.1 草稿交接另共享一个有界 derived cache：key 绑定解析后的 state root、完整 `IdleBehaviorReviewAddress`（package/project/motion/clip 与 P9 三 SHA）、P10.0 candidate SHA、P10.1 current revision/decision SHA，以及 probe/canvas profile SHA。缓存值只含 JSON 冻结、按访问分离的 report/adjustment/preview；失败不做负缓存，超预算结果不驻留。无论命中与否，请求仍执行编译前后的 exact replay、candidate 比对与 current-head 双快照。两类缓存都不落盘、不跨进程、不授予 authority；服务冷启动及首次 package 发现仍可能执行昂贵的完整发现/replay。P10.1 history、current head 和 CAS publication 不缓存，继续从 write-once store 读取并线性化。P10.3 visual-review service 改从 project/preview/bundle/artifact 四段地址重放 capture；prepare 零写入，只有通过 CAS 的 submit 才追加 candidate-bound revision。
+- P10.0–P10.2a 共享 exact-chain loader 只读取七个完整 SHA 所选的 Layer Manifest/P3/P5/P9 工件。Candidate、人工 review、decision、probe report 和 P10.2a 诊断候选保持独立；普通 P10.0–P10.1 service 只把已采用 P9 bundle 作为待 exact replay 的 entry，并在最后显式确认时把标准 decision 追加到 candidate-bound CAS history；浏览器不提交上游地址或 `human` 字段。P10.2a 的统一 gain 与动态视口都只输出零权威诊断；只有独立 CaptureFraming `accept/adjust` revision 可以进入 Preview v2。所有进程内缓存都只保存可重建结果，命中仍执行 exact replay/current-head 检查，不落盘、不授予 authority。
+- P10.3 v2 以 package 为普通用户入口。Preflight 从 current package 重放 P10.1、P10.2、CaptureFraming、world viewport、Preview v2、projection、plan 和 source，再校验固定 Spine Player 4.2.119 JS/CSS/package/LICENSE 与 Chrome。浏览器只提交服务端给出的 current identities、显式许可确认和本次运行确认；不提交文件路径或自选 SHA。
+- capture job request 和事件链 append-only 保存。状态查询可跨页面刷新恢复；失败和进程/服务中断都不会自动重试，当前没有用户主动取消 API。runner 只有在 exact session 与环境 snapshot 一致时才捕获，collector 同时校验 v1 或 v2 session 而不改变冻结 v1 字节。成功结果以 project/Preview v2/execution bundle/artifact set 四段地址发布，partial output 不进入正式 execution。
+- P10.3c v2 HTTP/UI 以 completed `job_id` 为外部地址。服务端从不可变 job 解析内部四段地址，重放 execution 并双检查 current P10.1/CaptureFraming；candidate、history、decision 与 store 使用独立 v2 namespace。读取零写入，只有覆盖完整 cases、通过 head CAS 的人工提交才追加 revision；系统不自动生成或批准视觉决定。v1 capture/review namespace 与 CLI 冻结且不与 v2 混用。
 - P9/P10 current-chain inventory 的项目 ID 使用轻量 audit discovery，不触发 override/Resolved 构建。双快照中的 Layer Manifest 派生可复用 8 项进程内 LRU/single-flight 缓存；key 包含 exact Resolved SHA、全部源 raster 内容 SHA 及 15 个相关模块的源码/live callable 算法身份，warm hit 前仍执行 `get_project` 并逐字节重算素材 SHA，compile 后再次核对相同 key。失败、输入漂移和算法变化均不驻留或命中。缓存不落盘、不参与 package/current 判定本身，也没有绕过 before/after 比较；Resolved/override 目前故意不缓存。
-- P10.4a admission command 重新编译 exact preview、重验 capture，并按 `history A → exact decision → history B` 观察当前 approved head。输出仅是 path-free compile-time 准入合同；它不持久化、不授予永久 authority，未来发布消费方必须重新读取当前 head。
-- P10.4b1 amplitude-envelope command 只沿 reviewed 四骨幅度向量的统一 gain 射线重放九个 sampled key 状态；reviewed gain 必须精确匹配 P10.2 和临时 preview，分析结束后再次双快照 current head。候选不得包含 tracks/keys/animations，也不得声明连续时间、安全范围、seam 或发布 authority。
-- P10.4b2 continuous-proof command 完整重放 P10.4b1 source closure，以向外舍入区间同时覆盖 `time_fraction × λ`；每一对相邻 preview tick 都必须进入共享有界预算。后端异常、预算耗尽、非有限数或证明对象不满足内部计数/边界不变量时 fail closed 为 `indeterminate`。全段通过只授予 preview-model structural claims，平台 libm/runtime、raster、seam、MotionInstance v3 与发布仍明确排除。
+- 现有 P10.4a admission、P10.4b1 amplitude-envelope 与 P10.4b2 continuous-proof 都属于冻结 v1 visual-review 链，不能消费 v2 head。v2 的下一工程边界必须先增加独立 P10.4a v2 admission/consumer：重放 completed execution、v2 current history 与 exact decision，并以双快照观察 current head；在此之前不得把 v2 sampled approval 接到现有幅度、连续证明或下游 seam consumer。
 - P10.5a seam candidate command 只读取精确 Layer Manifest/P3 静态地址，固定输出六条左右关系和可回看的 attachment-local locator。candidate generator 内嵌从实际行为常量重建的 canonical algorithm profile；candidate、human decision、reviewed set 和动态 probe 是四个独立合同，任何一层都不能改写上一层 evidence hash。
 - P10.5b candidate HTTP projection 把 `setup_canvas` 与每个 option/role 的 exact image、`canvas_offset_xy`、同序 `anchor_points` 分开返回；浏览器只用这些字段合成 SVG alpha、contact bbox 和编号锚点，不从 raster 反推 locator。SHA、数值、locator 与单层图默认折叠只影响展示，不改变 canonical evidence。
 - P10.5b advisory assist 是独立、确定性、candidate-SHA 绑定的只读合同。`single_option` 和 `blocked_unobservable` 可形成可撤销草稿；`compare_options` 只给 `highlight_option_id`，明确不构成批准。自动草稿、current-head 基线和 option 点击都只修改浏览器 state；只有最终显式确认才进入 decision CAS。
@@ -301,33 +300,35 @@ P10 exact loader 接受 Layer Manifest、P3 rig/bundle、P5 MotionInstance/bundl
 
 代表性 `sample_sha256` 包含 tick；loop 端点比较使用不含 tick 的独立 pose-state domain，再封入 loop check evidence。Bulk evidence digest 是 compiler seal，不是独立重放载荷。该边界不产生 MotionInstance v3 或 runtime timeline，也不声明连续时间、幅度安全范围、接缝、raster truth 或视觉通过。操作入口见 [复核 idle 行为并运行 body-sway 结构探针](how-to-review-idle-behaviors.md)。
 
-P10.3a–P10.3c 在结构探针之后增加官方 runtime sampled-still 证据与人工 revision，但仍不跨越 release 边界：
+P10.3 v2 在结构探针和独立 CaptureFraming 决定之后增加官方 Runtime sampled-still 证据与人工 revision，但仍不跨越 release 边界：
 
 ```text
-exact P10 candidate + decision + manual_visual_required probe
-                                  ↓ deterministic temporary compile
-               Spine 4.2 preview + fixed capture plan
-                                  ↓ licensed official 4.2.119 runtime
-                  immutable 640×640 PNG capture bundle
-                                  ↓ exact project / preview / bundle / artifact
-                   read-only visual candidate compiler
-                                  ↓ exhaustive human case decisions
-               candidate-bound linear revision + strict CAS
-                                  ↓
-          sampled_visual_approved | sampled_visual_rejected
+current package + P10.1 + P10.2 + accepted CaptureFraming
+                                  ↓ package-centric exact replay
+           Preview v2 + projection + plan + world viewport
+                                  ↓ fixed Runtime/Chrome validation
+                    explicit license acknowledgement
+                                  ↓ per-run second confirmation
+                     append-only asynchronous job
+                                  ↓ official 4.2.119 execution
+            immutable execution JSON + payload v2 + PNGs
+                                  ↓ completed job_id
+                 v2 candidate + exhaustive human cases
+                                  ↓ candidate-bound history/CAS
+       sampled_visual_approved | sampled_visual_rejected
                                   ↓
                   release gate always blocked
 ```
 
-真实 capture 的外部信任前置条件是操作者提供并确认授权的官方 `@esotericsoftware/spine-player@4.2.119`。仓库不下载或再分发 runtime；test-only `SpinePlayer` stub 只覆盖 Chrome 进程、loopback 与 PNG 通路，不能进入真实视觉证据链。Capture 地址由 project ID、temporary preview SHA、runtime capture bundle SHA 和 capture artifact-set SHA 四项组成。Application service 从这四项重放 authoritative capture 并确定性编译 candidate；CLI 与 HTTP 都复用同一服务，不扫描目录或解析 `latest`。
+真实 capture 的外部信任前置条件是操作者提供并确认有权使用官方 `@esotericsoftware/spine-player@4.2.119`。仓库不下载、再分发或从 `LICENSE` 文件推断授权；test-only `SpinePlayer` stub 只覆盖 Chrome 进程、loopback 与 PNG 通路，不能进入真实视觉证据链。environment snapshot 固定绑定 Runtime JS/CSS/package/LICENSE、Chrome executable/version 和 capture profile。每次执行还要求独立的许可勾选与本次运行二次确认。
 
-Prepare/candidate/history/exact-decision 是零写入读路径。首次提交才会发布 exact candidate，并在 candidate SHA 命名空间下同时写入内容寻址 decision 和连续 revision slot。提交 payload 只包含人工 review、逐 case action/evidence 绑定，以及 `base_revision`/`previous_decision_sha256`；revision 和其他 authority 字段由服务重建。CAS 拒绝 stale head、跳号和并发 slot 抢占，字节相同的安全重试可复用现有 decision。历史最多 64 项，读取任意 decision 前都会重放完整前驱链。
+job request 与 event history 采用 append-only store；页面可以按 job ID 恢复查询，但 manager 不自动重试失败/中断 job。成功后 store 按 `builds/{project}/body-sway-runtime-executions/{preview-v2-sha}/{bundle-sha}` 发布固定 execution JSON、payload v2 JSON 和 captures；exact reader 使用 project/preview/bundle/artifact 四段地址读回。completed job 是普通 UI 的唯一 handoff，页面 URL 只携带完整 `job_id`。
 
-HTTP 投影不返回本地路径。图片只能经 candidate 的 case/evidence/PNG SHA 读取；decision mutation 还要求完全同 authority 的 loopback Origin、JSON content type 和显式 intent header。独立 UI 不自动选择 capture、历史 revision 或 head 基线；409 会清除旧历史/基线并保留草稿，要求操作者重新读取后显式确认新 head。以 `package_id` 自动闭合七个 SHA、生成 temporary preview、经显式许可/启动确认后异步 capture，并把 exact capture 地址自动交给视觉复核，是下一阶段编排方案，当前未实现。详细操作与路由见[复核 body-sway 官方 runtime 采样帧](how-to-review-body-sway-runtime.md)。
+P10.3c v2 从 completed job 解析内部四段地址，并绑定 current Preview v2、framing、P10.1、report 与 world viewport。Prepare/candidate/history/exact-decision 是零写入读路径；首次人工提交才会发布 exact candidate，并在 candidate SHA 命名空间下写入内容寻址 decision 与连续 revision slot。CAS 拒绝 stale head、跳号和并发抢占；字节相同的安全重试可复用。HTTP 投影不返回本地路径，图片只能经 job/candidate/case/PNG identity 读取。详细操作见[运行 P10.3 官方 Runtime 自动采集](how-to-capture-body-sway-runtime.md)和[复核 P10.3c 官方 Runtime 采样帧](how-to-review-body-sway-runtime.md)。
 
 `sampled_visual_approved` 只表示固定 still inventory 全部获人工批准。它不声明离散帧之间的连续时间、reviewed seam anchors、安全幅度、未采样姿势或可发布 timeline，因此 release gate 仍固定为 blocked；reject/unobservable 还会增加明确的 sampled rejection reason。
 
-P10.4a–P10.4b2 把 current visual head 准入、离散 gain candidates 和连续预览模型证明拆成三层只读合同：
+冻结 v1 的 P10.4a–P10.4b2 把 v1 current visual head 准入、离散 gain candidates 和连续预览模型证明拆成三层只读合同：
 
 ```text
 sampled_visual_approved current head
@@ -342,6 +343,8 @@ sampled_visual_approved current head
                     ↓
           release gate always blocked
 ```
+
+该图不能用于 v2 head。P10.3c v2 下一步首先需要独立 P10.4a v2 admission/consumer，之后才可设计 v2 幅度候选和连续证明；不得让 v2 sampled approval 静默落入 v1 admission。
 
 连续证明内嵌并重算 candidate、RigIR、target profile、MotionInstance v2、temporary preview manifest 与 preview projection。固定后端包围数学三角函数、Q9 图层与 Q4096 顶点量化误差，并检查 FK、画布、mesh area/edge 与共享索引内部连续性；它不把 point samples 当作区间证明。输入和结果都有显式 byte/box/depth 上限，任何未证明状态都不能升级为通过。操作入口见[编译 body-sway 连续预览模型证明](how-to-compile-body-sway-continuous-proof.md)。
 

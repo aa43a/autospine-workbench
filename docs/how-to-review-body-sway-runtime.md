@@ -1,169 +1,101 @@
-# 复核 body-sway 官方 runtime 采样帧
+# 复核 P10.3c 官方 Runtime 采样帧
 
-本文面向负责 P10.3 视觉验收的操作员，也提供 CLI 与 HTTP 客户端开发者所需的精确合同。目标是从一份不可变 runtime capture 生成候选、逐帧作出人工判断，并把判断追加为可回看的 revision。
+本文面向普通操作员，说明如何复核一份已完成的 P10.3 official Runtime execution。工作台会从完成的 job 自动带入精确证据地址；不需要选择文件或填写 SHA-256。
 
-本流程只批准或拒绝**已采样的静态帧**。即使所有 case 都是 `approve`，结果也只是 `sampled_visual_approved`；`release_gate.status` 仍为 `blocked`，不能据此发布 Spine 动画。
+本流程只判断已经采样的 cases。即使全部通过，结果也只是采样画面获得人工认可；发布门禁仍保持 `blocked`。
 
-## 前置条件
+## 开始前
 
-开始前必须具备：
+必须先在 P10.3 采集页完成一次真实官方 Runtime job，并得到不可变 execution bundle。测试 stub、未完成 job 或零散截图都不能进入正式复核。
 
-- 已通过 P10.2 结构探针的 exact candidate、decision 与 probe report；
-- 同一来源链的 7 个完整 SHA；
-- 操作者自行在仓库外安装且有权使用的官方 `@esotericsoftware/spine-player@4.2.119`；
-- Windows 本机 Chrome/Chromium，以及捕获命令要求的显式许可确认；
-- 捕获命令生成的 `captured_unreviewed` bundle。
+当前系统的 v2 review candidate、append-only history、decision 和 store 已实现，但样本尚未完成真实 Runtime 执行和人工视觉批准。系统不会自动生成任何人工决定。
 
-真实证据必须由已授权的官方 Spine runtime 产生。`tests.test_body_sway_real_chrome_smoke` 使用 test-only `SpinePlayer` stub，只验证浏览器驱动和 PNG 通路，不能作为视觉复核输入或官方 runtime 兼容性证明。安装包内存在 `LICENSE` 文件也不等于已取得使用授权。
+## 1. 从完成的 job 进入
 
-先按[捕获并封存 body-sway 官方 runtime 证据](how-to-capture-body-sway-runtime.md)运行真实捕获。视觉复核工具不会下载 runtime、运行捕获或从目录中猜测可用 bundle。
+在 P10.3 采集页找到状态为“已完成”的 job，点击“进入视觉复核”。页面 URL 只携带完整 `job_id`；服务端从这个不可变 completed job 自动解析并重放：
 
-## 1. 记录精确四段地址
+- project；
+- Preview v2；
+- execution bundle；
+- artifact set。
 
-从捕获命令的调用参数与 canonical stdout 保存以下四项：
+直达格式为：
 
-| 地址项 | 来源 |
+```text
+http://127.0.0.1:8765/body-sway-review-v2.html?job_id=<完整 job ID>
+```
+
+内部四段地址共同定位一份不可变 execution。工作台还会重新核对当前 Preview v2、CaptureFraming 和 P10.1 身份，避免旧证据静默套用到新决定。
+
+若通过书签进入，页面必须包含完整 `job_id`。job 不存在、未完成、current P10.1/CaptureFraming 已变化或 exact replay 失败时，应返回采集历史重新打开；不要手工拼四段地址、从目录扫描或选择 `latest`。
+
+## 2. 逐 case 检查画面
+
+按页面顺序检查每个 case 的官方 Runtime 图像、采样时刻和证据摘要。重点查看：
+
+- 角色是否完整可见；
+- 身体摆动方向和幅度是否合理；
+- 骨骼、附件和 draw order 是否异常；
+- 肩、腰、髋及其他连接处是否出现裂缝或错误重叠；
+- 该帧是否足以作出判断。
+
+每个 case 必须由人选择：
+
+- `approve`：该采样帧可接受；
+- `reject`：观察到明确问题；
+- `unobservable`：当前证据无法可靠判断。
+
+`reject` 和 `unobservable` 必须填写原因。系统不会因为大多数 case 通过而替你批准剩余 case，也不会把 `unobservable` 当作通过。
+
+## 3. 提交一个 revision
+
+1. 确认所有 case 都已选择动作。
+2. 填写复核人标识和必要备注。
+3. 核对页面显示的当前 history head。
+4. 点击提交，并在最终确认中确认本 revision。
+
+decision history 是 append-only：
+
+- revision 从 1 开始并严格连续；
+- 同一候选最多保存 64 个 revision；
+- 同一基线、相同字节的安全重试会复用原决定；
+- 其他人先提交或页面基线过期时会产生冲突，必须刷新 history、重新核对 head 后再提交；
+- 系统不会覆盖、改写或自动迁移旧决定。
+
+候选算法、Preview、execution、framing 或 P10.1 任一身份变化，都会形成不同候选；旧人工决定不会静默复用。
+
+## 4. 理解结果
+
+- 所有 case 都是 `approve`：该候选得到 `sampled_visual_approved`。
+- 任一 case 是 `reject` 或 `unobservable`：结果为 `sampled_visual_rejected`。
+- 未完成或未提交：仍是待人工复核。
+
+无论哪种结果，`release_gate.status` 都继续是 `blocked`。P10.3c 不证明连续时间安全、所有接缝安全、可复用安全范围或最终发布质量。
+
+## 专家参考：精确地址与冻结 v1
+
+v2 使用独立 namespace，并以四段地址读取 authoritative execution：
+
+| 地址项 | 含义 |
 | --- | --- |
-| `project_id` | 捕获命令的 `<project-id>` 位置参数 |
-| `temporary_preview_sha256` | stdout 的同名字段 |
-| `runtime_capture_bundle_sha256` | stdout 的 `bundle_sha256` 字段 |
-| `capture_artifact_set_sha256` | stdout 的 `artifact_set_sha256` 字段 |
+| `project_id` | 项目标识 |
+| `temporary_preview_v2_sha256` | package-centric Preview v2 身份 |
+| `bundle_sha256` | official Runtime execution bundle 身份 |
+| `artifact_set_sha256` | 本次 execution 的固定捕获集合 |
 
-四项共同定位一份不可变 capture。所有 SHA 必须是 64 位小写十六进制。CLI、API 和 UI 都不会扫描目录、选择首项、解析缩写 SHA，或自动回退到 `latest`。`candidate_sha256` 是从该 capture 确定性编译出的后续身份，不属于上述四段源地址。
+普通操作员不需要手填这些值。API/自动化客户端必须使用完整身份并接受 exact replay；不得扫描目录或回退到最新项。
 
-## 2. 用 CLI 预检候选和历史
+旧 P10.3 v1 capture/review 合同已经冻结，只用于历史证据和回归。不要把 v1 capture bundle、v1 candidate 或 v1 decision 混入 v2 地址和历史。
 
-在仓库根目录执行：
+## 本流程不包含
 
-```powershell
-$env:PYTHONPATH = (Resolve-Path .\src).Path
+- 自动批准视觉质量；
+- 用测试 stub 代替官方 Spine Runtime；
+- 检查所有连续时间点；
+- 自动证明 seam、遮挡或 draw order 在未采样姿势中安全；
+- 解除发布门禁；
+- 自动生成 MotionInstance v3 或最终 Spine 动画。
 
-python -B -m autospine_workbench prepare-body-sway-visual-review <project-id> `
-  --temporary-preview-sha256 <temporary-preview-sha256> `
-  --runtime-capture-bundle-sha256 <runtime-capture-bundle-sha256> `
-  --capture-artifact-set-sha256 <capture-artifact-set-sha256> `
-  --state-root .\workspace `
-  --document-only
-```
+若采样通过，后续必须先实现独立的 P10.4a v2 admission/consumer 适配，才能进入 v2 幅度与连续安全工作。现有 `BodySwayReviewAdmission v1` 只消费冻结 v1 visual review，不能读取或替代 v2 head。若采样失败，回到绑定、动作参数、framing 或资产修正相应来源后，创建新的 Preview v2 和 execution，不要覆盖旧证据。
 
-`prepare` 会重新验证 authoritative capture、确定性编译 candidate，并读取与该 candidate 绑定的完整线性历史。它不发布 candidate、不创建空历史目录，也不修改 state tree。省略 `--document-only` 时 stdout 只包含候选摘要和 bounded history；保留该参数时会输出完整的 path-free candidate 和历史快照。
-
-记录输出中的：
-
-- `candidate_sha256`；
-- candidate 的全部 `cases[]`，尤其是 `case_id` 与 `evidence_sha256`；
-- `history.current_revision` 与 `history.head_decision_sha256`。
-
-若 exact capture 不存在、字节或哈希不一致、来源交叉接线，命令会 fail closed，而不是寻找替代 bundle。
-
-## 3. 在可视化工作台逐 case 复核
-
-启动本地服务：
-
-```powershell
-.\run.ps1
-```
-
-打开 [http://127.0.0.1:8765/body-sway-review.html](http://127.0.0.1:8765/body-sway-review.html)，然后：
-
-1. 手工填写项目 ID 和三个完整 SHA，选择“加载精确候选”。页面初始不会自动选择任何 capture。
-2. 检查候选摘要、固定顺序的 case、对应 PNG，以及持续显示的 release blocker。
-3. 为每个 case 选择 `approve`、`reject` 或 `unobservable`。`reject` 与 `unobservable` 必须填写非空备注；这两种动作都会使总体状态成为 `sampled_visual_rejected`。
-4. 在历史区重新读取当前历史，然后显式选择“以当前 head 为基线”。空历史也需要这个动作，它会选择 revision `0` / `null` 基线。历史列表本身不会自动选中 revision；点击某行才会按 revision 与 decision SHA 读取精确文档。
-5. 填写安全格式的 Reviewer ID 和可选总备注，确认所有 case 已完成后提交。
-
-非输入控件聚焦时，可用方向键移动 case，按 `1`、`2`、`3` 分别选择 approve、reject、unobservable；`Ctrl+Enter` 提交。窄屏布局、键盘焦点与 reduced-motion 已纳入前端回归，但实际图像判断仍由操作者负责。
-
-提交成功后，页面会清除旧历史详情和提交基线，重新读取历史。若继续提交下一 revision，必须再次显式选择新的 head。
-
-## 4. 用 CLI 提交（可选）
-
-自动化客户端可以构造一个只含人工字段与 CAS 基线的 JSON：
-
-```json
-{
-  "base_revision": 0,
-  "candidate_sha256": "<candidate-sha256>",
-  "previous_decision_sha256": null,
-  "review": {
-    "reviewer_id": "reviewer-01",
-    "notes": "逐帧检查轮廓、遮挡和接缝。"
-  },
-  "decisions": [
-    {
-      "case_id": "<case-id>",
-      "evidence_sha256": "<case-evidence-sha256>",
-      "action": "approve",
-      "notes": ""
-    }
-  ]
-}
-```
-
-`decisions` 必须按 candidate 覆盖全部 case；不要自行省略、增加、重排或改写 `case_id` / `evidence_sha256`。上例只演示行结构，不能直接提交，因为实际 candidate 至少包含 3 个 case。对于 revision 1，基线固定为 `0` / `null`；后续 revision 必须使用最新的 `current_revision` 和 `head_decision_sha256`。
-
-保存为 `review\body-sway-visual-review-submission.json` 后执行：
-
-```powershell
-python -B -m autospine_workbench submit-body-sway-visual-review <project-id> `
-  --temporary-preview-sha256 <temporary-preview-sha256> `
-  --runtime-capture-bundle-sha256 <runtime-capture-bundle-sha256> `
-  --capture-artifact-set-sha256 <capture-artifact-set-sha256> `
-  --state-root .\workspace `
-  --submission .\review\body-sway-visual-review-submission.json
-```
-
-新 revision 成功时返回退出码 0 和 canonical JSON。相同基线、相同内容的安全重试会返回同一 decision，并以 `reused: true` 表示复用。旧基线或并发抢占返回退出码 3、`status: "conflict"` 和当前 head；重新运行 `prepare`、保留仍适用的草稿、显式换用新 head 后再提交。其他输入或重放失败返回退出码 2，stdout 不泄露本地路径或内部异常。
-
-## 5. HTTP API 参考
-
-以下 `{project}/{preview}/{bundle}/{artifact}` 就是同一个精确四段地址。`{candidate}`、`{decision}` 和 `{png}` 也只接受完整 SHA。
-
-| 方法 | 路径 | 用途 |
-| --- | --- | --- |
-| `GET` | `/api/projects/{project}/body-sway-runtime-captures/{preview}/{bundle}/{artifact}/visual-review/candidate` | 只读编译 candidate |
-| `GET` | `.../visual-review/candidates/{candidate}/cases/{case}/image/{png}` | 读取 candidate 绑定的权威 PNG 字节 |
-| `GET` | `.../visual-review/candidates/{candidate}/history` | 读取连续 revision 与当前 head；不自动选择 |
-| `GET` | `.../visual-review/candidates/{candidate}/history/{revision}/{decision}` | 读取一个精确历史 decision |
-| `PUT` | `.../visual-review/candidates/{candidate}/decisions` | 以 CAS 追加一个完整 decision |
-
-所有响应都是 path-free；PNG 响应带由其 SHA 构成的 `ETag`。mutation 必须来自完全相同 authority 的 loopback 页面，并发送 `Content-Type: application/json` 与 `X-Autospine-Intent: body-sway-visual-review`。服务不会为跨端口 origin 放宽 CORS。
-
-每个新 revision 返回 HTTP 201；字节相同的幂等重试返回 200；过期或跳号基线返回 409，并给出 requested/current revision 与 head SHA。客户端收到 409 后必须废弃旧历史与基线、重新读取 exact history，再让用户显式确认新 head；不得静默重放旧决定。
-
-## 历史与 CAS 语义
-
-- candidate 与 decision 分开保存；算法、capture 或浏览器 profile 变化会生成新 candidate SHA，旧决定不会静默复用。
-- revision 从 1 开始、严格连续，最多 64 个。每个 slot 和内容寻址 decision 都是 write-once；读取会重放完整前驱链。
-- `prepare`、candidate GET、history GET 和历史详情 GET 都是零写入。
-- 只有提交会在通过 authoritative capture/candidate replay 与 CAS 后发布 candidate，并追加 decision revision。
-- `sampled_visual_approved` 要求全部 case 都是 `approve`；任何 `reject` 或 `unobservable` 都会得到 `sampled_visual_rejected`。
-
-## 已知限制与后续门禁
-
-P10.3 视觉复核不能证明：
-
-- 离散采样之间的连续时间安全；
-- 未标注 attachment 接缝在所有姿势都安全；
-- 人工幅度已形成可复用的安全范围；
-- preview-only timeline 已成为 MotionInstance v3 或可发布 runtime timeline；
-- 未采样姿势、其他角色或其他 Spine runtime 版本具有同等效果。
-
-因此 sampled approval 后仍保留 `continuous_time_safety_unproven`、`preview_only_timeline`、`reviewed_seam_anchors_missing` 和 `safe_range_unproven`。出现 reject/unobservable 时还会加入 `sampled_visual_review_rejected`。眨眼、口型和头发弹簧仍不在这条 body-sway 视觉复核链内。
-
-当当前 head 已是 `sampled_visual_approved` 时，下一步按[准入已批准的 body-sway 视觉复核头](how-to-admit-body-sway-review.md)生成 P10.4a 只读交接合同。该命令会在精确 decision 重放前后各读取一次 authoritative history；它不会把 sampled approval 升级成安全范围、连续时间或发布证明。
-
-开发者在修改前端或 HTTP 适配器后，至少运行：
-
-```powershell
-npm test --prefix web
-
-$env:PYTHONPATH = 'src'
-python -B -m unittest `
-  tests.test_body_sway_visual_review_http `
-  tests.test_body_sway_visual_review_http_security `
-  tests.test_p10_visual_review_cli `
-  tests.test_quality
-```
-
-完整回归仍使用 `python -B -m unittest discover -s tests`。真实官方 runtime smoke 需要额外的已授权 runtime 环境，缺少它时相关测试会跳过，而不是由 stub 结果替代。
+开发者修改 v2 复核合同时，应运行对应的 v2 candidate/history/decision/store 与 HTTP/UI 定向测试，并保留冻结 v1 回归。真实 Runtime 测试仍必须由有授权的操作者显式启动；测试通过本身不代表样本已被人工批准。

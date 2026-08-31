@@ -47,9 +47,9 @@ class WorkflowHubCatalogTests(unittest.TestCase):
     def test_entries_have_unique_ids_and_supported_taxonomy(self) -> None:
         ids = [entry["id"] for entry in self.entries]
         self.assertEqual(len(ids), len(set(ids)))
-        self.assertEqual(90, len(ids))
+        self.assertEqual(92, len(ids))
         self.assertEqual(
-            {"cli": 66, "page": 6, "planned": 18},
+            {"cli": 66, "page": 8, "planned": 18},
             {
                 kind: sum(entry["kind"] == kind for entry in self.entries)
                 for kind in ("cli", "page", "planned")
@@ -80,6 +80,8 @@ class WorkflowHubCatalogTests(unittest.TestCase):
             "./index.html",
             "./body-sway-probe.html",
             "./body-sway-review.html",
+            "./body-sway-review-v2.html",
+            "./body-sway-runtime-capture.html",
             "./idle-behavior-review.html",
             "./motion-policy-review.html",
             "./seam-anchor-review.html",
@@ -90,18 +92,18 @@ class WorkflowHubCatalogTests(unittest.TestCase):
         for href in pages:
             self.assertTrue((ROOT / "web" / href.removeprefix("./")).is_file())
 
-    def test_current_stage_names_the_structural_probe_workflow(self) -> None:
+    def test_current_stage_names_the_job_visual_review_workflow(self) -> None:
         self.assertEqual(
-            "P10.2-body-sway-structural-probe",
+            "P10.3c-job-visual-review-v2",
             self.catalog["current_stage"],
         )
         entry = next(
             entry for entry in self.entries
-            if entry["id"] == "page-body-sway-probe"
+            if entry["id"] == "page-body-sway-review-v2"
         )
-        self.assertEqual("./body-sway-probe.html", entry["href"])
-        self.assertIn("七项结构诊断", entry["summary"])
-        self.assertIn("只读", entry["summary"])
+        self.assertEqual("./body-sway-review-v2.html", entry["href"])
+        self.assertIn("不显示或填写 SHA", entry["summary"])
+        self.assertIn("不默认批准", entry["summary"])
 
     def test_motion_policy_page_describes_python_preflight_without_authority(self) -> None:
         entry = next(

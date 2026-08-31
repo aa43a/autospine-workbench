@@ -66,7 +66,7 @@ test("P10.2 page is automatic, visual, accessible, and non-authoritative", async
   assert.match(html, /<dialog id="captureFramingDialog"/);
   assert.match(html, /按 Esc 或点击弹窗外遮罩可取消/);
   assert.match(html, /id="commitCaptureFraming"/);
-  assert.match(html, /how-to-capture-body-sway-runtime\.md/);
+  assert.match(html, /id="visualNext"[^>]+body-sway-runtime-capture\.html/);
   assert.doesNotMatch(html, /id="visualNext"[^>]+body-sway-review\.html/);
   assert.match(html, /正常流程不依赖下载文件/);
   assert.match(html, /role="status" aria-live="polite"/);

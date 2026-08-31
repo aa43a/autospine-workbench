@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0b0e14">
+  <title>P10.3 官方 Runtime 采集 — AutoSpine</title>
+  <link rel="stylesheet" href="./idle-behavior-review.css">
+  <link rel="stylesheet" href="./body-sway-runtime-capture.css">
+</head>
+<body>
+  <a class="skip-link" href="#captureWorkspace">跳到 Runtime 采集</a>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">P10.3 · OFFICIAL RUNTIME CAPTURE</p>
+      <h1>官方 Runtime 自动采集</h1>
+    </div>
+    <nav aria-label="工作台导航">
+      <a class="button secondary" href="./workflow-hub.html">功能入口中心</a>
+      <a class="button secondary" href="./body-sway-probe.html">结构检查</a>
+      <a class="button secondary" href="./index.html">绑定工作台</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="panel auto-entry" aria-labelledby="entryHeading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">AUTOMATIC ENTRY</p>
+          <h2 id="entryHeading">选择角色和动作</h2>
+        </div>
+        <span class="badge success">自动校验全部来源</span>
+      </div>
+      <p class="lede">
+        系统会自动读取当前 P10.1、已确认取景、固定 Spine 4.2 Runtime 和 Chrome；无需选文件或填写 SHA-256。
+      </p>
+      <div class="entry-grid">
+        <label for="packageSelect">
+          <span>项目与动作</span>
+          <select id="packageSelect" disabled></select>
+        </label>
+        <button id="reloadPackage" class="button secondary" type="button" disabled>重新校验</button>
+      </div>
+      <p id="entryStatus" class="status" role="status" aria-live="polite">正在读取可用项目…</p>
+    </section>
+
+    <div id="captureWorkspace" hidden>
+      <section class="project-summary" aria-labelledby="packageTitle">
+        <div>
+          <p class="eyebrow">CURRENT EXACT PACKAGE</p>
+          <h2 id="packageTitle">—</h2>
+          <p id="packageFacts" class="lede">—</p>
+        </div>
+        <span id="readinessBadge" class="badge">等待校验</span>
+      </section>
+
+      <div class="capture-grid">
+        <section class="panel" aria-labelledby="environmentHeading">
+          <p class="eyebrow">PINNED ENVIRONMENT</p>
+          <h2 id="environmentHeading">执行环境</h2>
+          <div class="environment-grid">
+            <article id="runtimeCard" class="environment-card">
+              <span class="environment-icon" aria-hidden="true">S</span>
+              <div><h3>Spine Player</h3><p id="runtimeFacts">正在检测…</p></div>
+              <span id="runtimeBadge" class="badge">等待</span>
+            </article>
+            <article id="browserCard" class="environment-card">
+              <span class="environment-icon" aria-hidden="true">C</span>
+              <div><h3>隔离浏览器</h3><p id="browserFacts">正在检测…</p></div>
+              <span id="browserBadge" class="badge">等待</span>
+            </article>
+          </div>
+          <p class="boundary-note">
+            检测到 LICENSE 文件不等于获得许可。系统不会下载 Runtime，也不会在你确认前启动官方代码。
+          </p>
+        </section>
+
+        <section class="panel" aria-labelledby="startHeading">
+          <p class="eyebrow">ONE CONFIRMED RUN</p>
+          <h2 id="startHeading">开始自动采集</h2>
+          <ol class="automatic-steps">
+            <li>重放当前 Preview v2 与取景决定</li>
+            <li>在独立 Chrome 配置中逐帧采集</li>
+            <li>原子发布完整凭据后进入人工视觉复核</li>
+          </ol>
+          <label class="confirmation" for="licenseConfirmation">
+            <input id="licenseConfirmation" type="checkbox">
+            <span>我已阅读本地 Spine Runtime 许可，并确认本次执行符合我的授权范围。</span>
+          </label>
+          <button id="startCapture" class="button primary full" type="button" disabled>
+            启动本次官方 Runtime 自动采集
+          </button>
+          <p id="startStatus" class="status" role="status" aria-live="polite">
+            等待环境和许可确认。
+          </p>
+        </section>
+      </div>
+
+      <section id="jobPanel" class="panel job-panel" aria-labelledby="jobHeading" hidden>
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">ASYNCHRONOUS CAPTURE JOB</p>
+            <h2 id="jobHeading">自动采集进度</h2>
+          </div>
+          <span id="jobBadge" class="badge">排队中</span>
+        </div>
+        <div class="progress-shell">
+          <progress id="captureProgress" max="1" value="0">0%</progress>
+          <p id="progressText">等待执行…</p>
+        </div>
+        <ol id="eventTimeline" class="event-timeline" aria-label="采集阶段"></ol>
+        <p class="boundary-note">
+          页面可继续打开；刷新后可通过当前任务地址恢复进度。部分截图不会被发布为正式证据。
+        </p>
+      </section>
+
+      <section id="resultPanel" class="panel receipt" aria-labelledby="resultHeading" hidden>
+        <p class="eyebrow">IMMUTABLE EXECUTION RECEIPT</p>
+        <h2 id="resultHeading" tabindex="-1">官方 Runtime 采集完成</h2>
+        <p id="resultSummary">完整证据已经原子发布并精确读回。</p>
+        <div class="result-actions">
+          <a id="reviewNext" class="button primary" href="#">进入 P10.3c 视觉复核</a>
+          <button id="newRun" class="button secondary" type="button">创建一次新的采集</button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <dialog id="runDialog" class="decision-dialog" aria-labelledby="runDialogTitle"
+    aria-describedby="runDialogConsequence runDialogHint">
+    <div class="decision-dialog-card">
+      <p class="eyebrow">EXPLICIT EXECUTION CONFIRMATION</p>
+      <h2 id="runDialogTitle">确认启动官方 Runtime</h2>
+      <dl class="decision-dialog-summary">
+        <div><dt>项目</dt><dd id="dialogProject">—</dd></div>
+        <div><dt>动作</dt><dd id="dialogClip">—</dd></div>
+        <div><dt>采样</dt><dd id="dialogCases">—</dd></div>
+      </dl>
+      <p id="runDialogConsequence" class="decision-dialog-consequence">
+        确认后会启动本地官方 Spine Runtime 和隔离 Chrome，通常需要数分钟。
+      </p>
+      <p id="runDialogHint" class="decision-dialog-hint">
+        取消不会创建任务；完成后仍需你在 P10.3c 判断视觉质量。
+      </p>
+      <div class="decision-dialog-actions">
+        <button id="cancelRun" class="button secondary" type="button" autofocus>取消</button>
+        <button id="confirmRun" class="button primary" type="button">确认并启动</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div id="liveRegion" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+  <script type="module" src="./modules/p10-runtime-capture-app.js"></script>
+</body>
+</html>

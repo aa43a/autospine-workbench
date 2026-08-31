@@ -72,7 +72,7 @@ function notesField(doc, row, choice) {
   return label;
 }
 
-function caseCard(doc, row, index, total, choice, imageUrl) {
+function caseCard(doc, row, index, total, choice, imageUrl, showDigests) {
   const card = doc.createElement("article");
   card.className = "review-case";
   card.dataset.caseId = row.case_id;
@@ -95,25 +95,30 @@ function caseCard(doc, row, index, total, choice, imageUrl) {
   card.append(figure);
 
   const animation = row.animation === null ? "setup" : row.animation;
-  card.append(metadata(doc, [
+  const values = [
     ["动画", animation],
     ["tick", row.tick],
     ["时间", `${row.time_seconds} s`],
+    ["尺寸", `${row.image.width}×${row.image.height} / ${row.image.size_bytes} B`],
+  ];
+  if (showDigests) values.splice(3, 0,
     ["证据", row.evidence_sha256.slice(0, 16), row.evidence_sha256],
     ["PNG", row.image.png_sha256.slice(0, 16), row.image.png_sha256],
-    ["尺寸", `${row.image.width}×${row.image.height} / ${row.image.size_bytes} B`],
-  ]));
+  );
+  card.append(metadata(doc, values));
   card.append(actionFieldset(doc, row, choice), notesField(doc, row, choice));
   return card;
 }
 
 export function renderReviewCases({
   doc = document, container, cases, decisions, imageUrl, focusCaseId = null,
+  showDigests = true,
 }) {
   const fragment = doc.createDocumentFragment();
   cases.forEach((row, index) => {
     fragment.append(caseCard(
       doc, row, index, cases.length, decisions?.[row.case_id], imageUrl(row),
+      showDigests,
     ));
   });
   container.replaceChildren(fragment);

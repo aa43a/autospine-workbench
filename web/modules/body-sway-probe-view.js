@@ -161,8 +161,7 @@ function renderNext(elements, entry, outcome) {
   const upstream = entry.canvasAdjustment?.classification
     === "upstream_base_motion_canvas_overflow";
   elements.returnToP10.href = `./idle-behavior-review.html${query}`;
-  elements.visualNext.href =
-    "./document-viewer.html?doc=docs%2Fhow-to-capture-body-sway-runtime.md";
+  elements.visualNext.href = `./body-sway-runtime-capture.html${query}`;
   elements.returnToP10.hidden = !outcome.shouldReturnToP10 || upstream;
   elements.visualNext.hidden = !outcome.canEnterVisual;
   setStatus(
@@ -172,7 +171,7 @@ function renderNext(elements, entry, outcome) {
       : upstream
       ? "基础动作在 0% 摆动时仍越界；请使用上方绑定工作台入口，不能进入 P10.3。"
       : outcome.canEnterVisual
-      ? "结构检查允许准备视觉阶段，但自动 Runtime capture 交接尚未交付；请按文档先生成精确证据。"
+      ? "结构检查与人工取景允许进入 P10.3；下一页会自动绑定当前决定并采集官方 Runtime 证据。"
       : "返回 P10.1 只会创建新的人工 revision，不会改写现有历史。",
     outcome.canEnterVisual ? "success" : "warning",
   );

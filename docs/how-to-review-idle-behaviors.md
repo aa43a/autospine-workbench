@@ -35,11 +35,11 @@
 5. 若结果为“结构拒绝”，先查看 P10.2a 的统一 gain 诊断。`0/8` 只用于判断不加 body-sway 时是否仍越界，不能被保存为 body-sway 参数。若旧 v1 报告唯一拒绝项是 `sampled_canvas_containment`，并且完整动作包络可以通过动态视口适配，页面会显示 `viewport_adjustment_available`；这只是把“素材坐标越界”与“Rig 结构错误”分开，内嵌 v1 report 和发布门禁仍不改变。若存在一个**非零**且 sampled canvas/geometry 同时通过的 `unvalidated_draft`，可把它带回 P10.1；仍须明确确认并保存新 revision，再回本页重跑 P10.2。
 6. 若页面给出 region 换绑建议，可点击入口回绑定工作台。项目与图层会先显示，exact P10.2 证据在后台核验；只有 package、candidate、Resolved SHA 和来源骨全部一致时，系统才选中责任图层，并在独立建议卡预览建议骨。它不会填入共享 Rig 表单；active handoff 期间普通 Rig 确认、普通保存和 `Ctrl+S` 都不能采用该建议。确认图像整体应跟随哪段骨后，点击“确认换绑并保存 revision”，再通过一次确认弹窗；服务端随后重放证据并创建新 revision。取消、历史 package、核验期间项目/P10.1 head 变化或 revision 冲突都不会写入。新的绑定会改变 Resolved/Manifest/RigIR 身份，旧 P3/P5/P9/P10 只能作为历史证据，必须按新链重建。若同时还有 FK、mesh、拓扑等结构拒绝，动态视口不会放行这些错误。
 7. 当唯一拒绝项是旧素材框 containment 时，继续向下查看“自动取景确认”。页面用三张卡显示 setup、base、combined 包络，并最多列四个直观责任点；普通流程不输入 world viewport、SHA 或文件。确认完整动作都在框内且余量合理后选择“采用自动取景”；否则选择“不采用”或“当前无法判断”。弹窗取消、Esc 或点击遮罩均零写入，只有“确认并提交”才追加 candidate-bound CaptureFraming revision。
-8. `DynamicViewportFit v1` 本身不能进入 P10.3；只有 current CaptureFraming `accept/adjust` decision 才能进入 Temporary Preview v2。新的 Runtime Capture v2 当前会验证固定 640×640、DPR=1、五项 case 与取景身份绑定的内容载荷，但不会在缺少 exact session/collector/runner 凭据时声称官方 Spine Runtime 已执行。官方 capture 与 P10.3 人工视觉证据仍是独立门禁。
+8. `DynamicViewportFit v1` 本身不能进入 P10.3；只有 current CaptureFraming `accept/adjust` decision 才能进入 package-centric Temporary Preview v2。保存取景后打开 [P10.3 官方 Runtime 自动采集页](http://127.0.0.1:8765/body-sway-runtime-capture.html)：页面自动闭合 package、Preview v2 和固定环境，但仍要求操作者确认 Runtime 许可与本次运行。完成的异步 job 自动进入 P10.3c v2；逐 case 视觉决定仍必须由人提交。
 
 P10.2 页面加载、切换项目、拖动时间轴和下载技术备份均为零写入。报告下载文件名包含项目、clip 和报告哈希前缀，以免两份样本互相覆盖；正常工作流不依赖该下载。无论结构结果为何，`release_gate` 都保持 `blocked`。
 
-真实样本 A `seethrough_output` 已经完成该换绑：`layer-007-handwear-l` 当前绑定到 `upper-arm.left`，override revision 为 6，Manifest/P2–P5、P9、P10.1 与 P10.2 已按新身份重建。当前 P10.2 仅因旧素材框 containment 保留结构拒绝，完整动作包络已由动态视口覆盖；CaptureFraming 候选已生成但尚未形成任何人工 decision revision。
+真实样本 A `seethrough_output` 已经完成该换绑：`layer-007-handwear-l` 当前绑定到 `upper-arm.left`，override revision 为 6，Manifest/P2–P5、P9、P10.1 与 P10.2 已按新身份重建。当前 P10.2 仅因旧素材框 containment 保留结构拒绝，完整动作包络已由动态视口覆盖；CaptureFraming 已接受 revision 1。真实 official Runtime job 和 P10.3c 人工视觉决定尚未发生。
 
 真实样本 B `seethrough_output_5` 是“不能只调小幅度”的实例：reviewed gain `8/8` 有 `334/334` 个画布失败 tick，`0/8` 仍有 `333/334` 个，主要涉及 `layer-006-objects`、`layer-000-back-hair` 与 `layer-008-hand-r`。这些数字属于 revision 16 之前的历史链，不能外推到新绑定；新链仍须完成 P9 adoption 并重跑 P10.2。
 
@@ -253,8 +253,8 @@ P10.2 只对固定离散 schedule 采样 setup-local base motion 与人工 body-
 - 证明 raster truth 或视觉质量；
 - 替代明确版本的官方 runtime 加载、人工预览与截图回归。
 - 让 P10.3 自动消费原始 `DynamicViewportFit v1`，或把 `viewport_adjustment_available` 当成视觉准入；
-- 把 Runtime Capture v2 的验证载荷当成官方 Runtime 已执行、真实 raster 已采集或视觉已经批准。
+- 把 Preview/session/job 合同、环境校验或测试结果当成真实官方 Runtime 已执行、raster 已采集或视觉已经批准。
 
-Temporary Preview v2 与 Runtime Capture v2 的版本化编译/验证合同已经实现，但当前 P10.3 视觉页仍要求精确 project/preview/bundle/artifact 地址。下一步是从 `package_id` 自动闭合 current CaptureFraming decision、生成 preview，在操作者显式确认 Runtime 许可与本次启动后异步执行官方 capture，并自动带入 exact 地址；这条 package-centric 编排尚未实现，也不能绕过逐 case 视觉确认。
+P10.3 package-centric 编排已经实现：服务端从 `package_id` 自动闭合 current CaptureFraming、生成 Preview v2，校验固定 Spine Player 4.2.119/Chrome，并在操作者显式确认许可与本次启动后创建 append-only 异步 job。completed job 用完整 `job_id` 自动进入 P10.3c v2；普通用户不手填四段地址。真实样本当前仍未运行该 job，逐 case 人工视觉确认也绝不能由系统代替。现有 P10.4a v1 只消费冻结 v1 review，v2 head 还需后续独立 admission/consumer。
 
 合同参考：[IdleBehaviorCandidates v1](../schemas/idle-behavior-candidates-v1.schema.json)、[IdleBehaviorDecision v1](../schemas/idle-behavior-decision-v1.schema.json)、[BodySwayProbeReport v1](../schemas/body-sway-probe-report-v1.schema.json)、[BodySwayCanvasAdjustmentCandidates v1](../schemas/body-sway-canvas-adjustment-candidates-v1.schema.json)、[DynamicViewportFit v1](../schemas/dynamic-viewport-fit-v1.schema.json)、[RegionRebindCandidates v1](../schemas/region-rebind-candidates-v1.schema.json)、[CaptureFramingCandidate v1](../schemas/capture-framing-candidate-v1.schema.json)、[CaptureFramingDecision v1](../schemas/capture-framing-decision-v1.schema.json)、[TemporaryBodySwayPreview v2](../schemas/temporary-body-sway-preview-v2.schema.json) 与 [BodySwayRuntimeCapture v2](../schemas/body-sway-runtime-capture-v2.schema.json)。

@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0b0e14">
+  <title>P10.3c 自动入口人工视觉复核 — AutoSpine</title>
+  <link rel="stylesheet" href="./body-sway-review.css">
+  <link rel="stylesheet" href="./body-sway-review-v2.css">
+</head>
+<body>
+  <a class="skip-link" href="#reviewCases">跳到采样帧</a>
+  <header class="review-topbar">
+    <div>
+      <p class="eyebrow">P10.3c v2 · JOB-CENTRIC HUMAN REVIEW</p>
+      <h1>身体摆动视觉复核</h1>
+    </div>
+    <nav class="review-nav" aria-label="工作台导航">
+      <a class="button secondary" href="./body-sway-runtime-capture.html">Runtime 采集</a>
+      <a class="button secondary" href="./workflow-hub.html">功能入口中心</a>
+      <a class="button secondary" href="./index.html">绑定工作台</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="panel automatic-panel" aria-labelledby="entryHeading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">AUTOMATIC ENTRY</p>
+          <h2 id="entryHeading">自动读取已完成采集</h2>
+        </div>
+        <span id="entryBadge" class="gate-badge">正在校验</span>
+      </div>
+      <p class="lede">
+        页面从采集任务自动取得项目和证据，不需要选择文件或填写 SHA。每次操作都会重放当前 P10.1 与取景决定。
+      </p>
+      <dl id="jobFacts" class="job-facts"></dl>
+      <p id="entryStatus" class="status-line" role="status" aria-live="polite">正在读取任务…</p>
+    </section>
+
+    <div id="reviewWorkspace" class="review-layout" hidden>
+      <section class="panel cases-panel" aria-labelledby="casesHeading">
+        <div class="section-heading sticky-heading">
+          <div>
+            <p class="eyebrow">OFFICIAL RUNTIME STILLS</p>
+            <h2 id="casesHeading">逐帧看图</h2>
+          </div>
+          <button id="batchApproveBtn" class="button compact secondary" type="button">
+            标记所有未判定为通过
+          </button>
+        </div>
+        <p class="lede">批量标记只修改本页草稿，不会提交或产生批准。</p>
+        <div class="summary-grid" aria-label="复核进度">
+          <div><span>已处理</span><strong id="reviewProgress">0 / 0</strong></div>
+          <div><span>草稿状态</span><strong id="derivedStatus">candidate_only</strong></div>
+          <div><span>发布门禁</span><strong id="releaseStatus">blocked</strong></div>
+        </div>
+        <section class="blockers" aria-labelledby="blockersHeading">
+          <h3 id="blockersHeading">即使通过仍保持阻塞</h3>
+          <ul id="releaseReasons"></ul>
+        </section>
+        <div id="reviewCases" class="case-list" tabindex="-1"
+          aria-label="按官方采集顺序排列的视觉复核帧"></div>
+      </section>
+
+      <aside class="review-sidebar" aria-label="历史与提交">
+        <section class="panel history-panel" aria-labelledby="historyHeading">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">IMMUTABLE HISTORY</p>
+              <h2 id="historyHeading">revision 历史</h2>
+            </div>
+            <button id="refreshHistoryBtn" class="button compact secondary" type="button">刷新</button>
+          </div>
+          <p class="lede">不会自动选择提交基线。请显式选择当前 head。</p>
+          <ol id="historyList" class="history-list"></ol>
+          <button id="useHeadBtn" class="button secondary full" type="button" disabled>
+            以当前 head 为基线
+          </button>
+          <p id="baselineStatus" class="status-line">尚未选择提交基线。</p>
+        </section>
+
+        <section class="panel decision-panel" aria-labelledby="decisionHeading">
+          <h2 id="decisionHeading">历史结果</h2>
+          <p id="historySelectionStatus" class="status-line">尚未选择历史 revision。</p>
+          <div id="decisionSummary" class="decision-summary">—</div>
+        </section>
+
+        <section class="panel submit-panel" aria-labelledby="submitHeading">
+          <p class="eyebrow">EXPLICIT HUMAN DECISION</p>
+          <h2 id="submitHeading">提交完整复核</h2>
+          <label>
+            <span>复核人 ID</span>
+            <input id="reviewerId" required maxlength="128"
+              pattern="[A-Za-z0-9][A-Za-z0-9._-]{0,127}" autocomplete="off" spellcheck="false">
+          </label>
+          <label>
+            <span>总备注</span>
+            <textarea id="reviewNotes" rows="4" maxlength="4096"></textarea>
+          </label>
+          <button id="submitReviewBtn" class="button primary full" type="button" disabled>
+            检查并提交 <kbd>Ctrl</kbd> + <kbd>Enter</kbd>
+          </button>
+          <p id="submitStatus" class="status-line" role="status" aria-live="polite">
+            完成全部帧、填写复核人并显式选择基线后可提交。
+          </p>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <dialog id="confirmDialog" aria-labelledby="confirmHeading">
+    <form method="dialog" class="confirm-card">
+      <p class="eyebrow">FINAL CONFIRMATION</p>
+      <h2 id="confirmHeading">确认提交这次人工复核？</h2>
+      <p id="confirmSummary" class="lede"></p>
+      <p class="warning-copy">提交会追加不可变 revision；它只覆盖这些采样帧，不解除连续时间、接缝或发布门禁。</p>
+      <div class="dialog-actions">
+        <button id="cancelSubmitBtn" class="button secondary" value="cancel">取消</button>
+        <button id="confirmSubmitBtn" class="button primary" value="confirm">确认并提交</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="batchDialog" aria-labelledby="batchHeading">
+    <form method="dialog" class="confirm-card">
+      <p class="eyebrow">DRAFT ONLY</p>
+      <h2 id="batchHeading">把所有未判定帧标记为通过？</h2>
+      <p class="lede">这只是可继续修改的本地草稿；不会选择基线，也不会提交 revision。</p>
+      <div class="dialog-actions">
+        <button class="button secondary" value="cancel">取消</button>
+        <button id="confirmBatchBtn" class="button primary" value="confirm">确认标记草稿</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="liveRegion" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+  <script type="module" src="./modules/body-sway-review-v2-app.js"></script>
+</body>
+</html>

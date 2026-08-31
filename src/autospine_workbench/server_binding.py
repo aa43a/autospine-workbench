@@ -22,6 +22,14 @@ class WorkbenchThreadingHTTPServer(ThreadingHTTPServer):
             )
         super().server_bind()
 
+    def server_close(self) -> None:
+        manager = getattr(self, "p10_capture_job_manager", None)
+        try:
+            if manager is not None:
+                manager.close()
+        finally:
+            super().server_close()
+
 
 def validate_server_configuration(
     host: str, port: int, web_root: Path | None,

@@ -1,0 +1,60 @@
+.automatic-panel {
+  padding: clamp(1rem, 2vw, 1.5rem);
+}
+
+.job-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin: 1rem 0 0;
+}
+
+.job-facts > div,
+.decision-summary {
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel-strong);
+}
+
+.job-facts dt {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.job-facts dd {
+  margin: 0.15rem 0 0;
+  overflow-wrap: anywhere;
+  font-weight: 800;
+}
+
+.decision-summary {
+  display: grid;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+  color: var(--muted);
+}
+
+.decision-summary strong { color: var(--text); }
+
+dialog {
+  width: min(100% - 2rem, 36rem);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  padding: 0;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 24px 80px rgb(0 0 0 / 55%);
+}
+
+dialog::backdrop { background: rgb(0 0 0 / 70%); }
+
+.confirm-card { padding: 1.3rem; }
+.warning-copy { padding: 0.75rem; border-left: 3px solid var(--warning); background: #211d14; color: var(--warning); }
+.dialog-actions { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem; }
+
+@media (max-width: 640px) {
+  .job-facts { grid-template-columns: minmax(0, 1fr); }
+  .dialog-actions { display: grid; }
+}

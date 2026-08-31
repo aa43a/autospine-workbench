@@ -1,103 +1,103 @@
-# 捕获并封存 body-sway 官方 runtime 证据
+# 运行 P10.3 官方 Runtime 自动采集
 
-本文说明如何把一个已通过 P10.2 结构探针的 body-sway 决定，重新编译为临时 Spine 4.2 预览，并用本机 Chrome/Chromium 捕获固定姿势 PNG。命令只产生 `captured_unreviewed` 证据，不会自动批准动画或解除发布门禁。
+本文面向普通操作员，说明如何从已复核的 body-sway 动作包启动一次官方 Spine Player 采集。页面会自动读取项目、动作包、当前 P10.1 决定、CaptureFraming 和 Preview v2；不需要选择 JSON 文件或填写 SHA-256。
 
-## 前置条件
+采集成功只会得到 `captured_unreviewed` 的精确证据。它不会自动批准画面，也不会解除发布门禁。
 
-准备以下输入：
+## 开始前
 
-- P10 candidate、人工 decision 和 P10.2 probe report 三个 canonical JSON 文件；
-- 同一项目的 Layer Manifest、P3、P5 和 P9 七个完整 SHA；
-- Windows 本机一个明确路径的 Google Chrome 或 Chromium；当前 runner 不在其他操作系统上启动浏览器；
-- 由操作者在仓库外安装的 `@esotericsoftware/spine-player@4.2.119` 包目录。
+请确认：
 
-runtime 包必须包含精确版本的 `package.json`、`spine-player.min.js`、`spine-player.min.css` 和 `LICENSE`。工具不会下载 runtime，也不会从 CDN 回退。`LICENSE` 文件存在不代表已经取得授权；运行前仍需由操作者确认自己的使用权限。
+- 项目的 P10.1 身体摆动决定已经保存；
+- P10.2 结构探针没有基础动作阻塞项；
+- 当前 CaptureFraming 已有人工 `accept` 或 `adjust` 决定；
+- 本机已按授权要求安装 Spine Player `4.2.119`，并安装 Chrome；
+- 你有权在本项目中使用该 Spine Runtime。
 
-当前 harness 的威胁模型是可信的单用户本机：服务只绑定 loopback，并校验 Host 与同源 POST，但不把同一台机器上的恶意进程视为隔离边界。Windows 驱动会从首次 snapshot 前到最终 exact replay 后持续持有浏览器文件句柄，阻止随后打开的写入、重命名和删除操作；它还会在恢复主线程前查询已启动进程的映像路径并重新哈希 launcher 文件。这不是对内存中已映射 PE 页的规范化密码学哈希，也不声称抵抗预先持有可写句柄的同用户攻击者。不要在不可信的共享主机上运行捕获命令。
+样本 A 的 CaptureFraming 已接受 revision 1，可以进入本流程。当前仓库尚未替样本执行一次真实官方 Runtime 采集；这一步必须由操作者在页面中明确确认。
 
-Windows 捕获器为了在恢复 Chrome 主线程前把完整进程树放入可关闭的 Job Object，会固定传入 `--no-sandbox`；Chrome 自身的 sandbox 子 Job 与该归属模型不兼容。这个选择不是一般浏览器安全建议，而是一个被 capture profile 明文记录的测试专用降级：`chromium_sandbox` 为 `disabled-for-owned-job`，`input_trust` 只允许精确固定的 runtime 与编译器生成的本地资产，`content_boundary` 只允许 loopback、CSP 和零外部资产。不得用该驱动打开任意 URL、第三方 HTML、用户脚本或外部资源；发布门禁不会因为进程 smoke 或截图成功而解除。
+## 1. 打开采集页
 
-## 运行捕获命令
+启动工作台后，打开：
 
-在项目根目录执行：
+[http://127.0.0.1:8765/body-sway-runtime-capture.html](http://127.0.0.1:8765/body-sway-runtime-capture.html)
 
-```powershell
-$runtimeRoot = Resolve-Path `
-  .\workspace\runtime\spine-player-4.2.119\node_modules\@esotericsoftware\spine-player
-$chrome = Resolve-Path 'C:\Program Files\Google\Chrome\Application\chrome.exe'
+页面会自动完成以下工作：
 
-python -m autospine_workbench capture-body-sway-runtime <project-id> `
-  --candidates <idle-behavior-candidates.json> `
-  --decision <idle-behavior-decision.json> `
-  --probe-report <body-sway-probe-report.json> `
-  --layer-manifest-sha256 <sha256> `
-  --p3-rig-sha256 <sha256> `
-  --p3-bundle-sha256 <sha256> `
-  --motion-instance-sha256 <sha256> `
-  --motion-retarget-bundle-sha256 <sha256> `
-  --motion-instance-v2-sha256 <sha256> `
-  --reviewed-motion-bundle-sha256 <sha256> `
-  --runtime-root $runtimeRoot `
-  --browser-executable $chrome `
-  --state-root .\workspace `
-  --acknowledge-spine-runtime-license
-```
+1. 列出具备当前 P10.1 和 CaptureFraming 的项目/动作包，并尽量选择唯一可用项。
+2. 读取当前 P10.1、framing、source、plan 和 report 身份。
+3. 编译 package-centric Preview v2，并校验它绑定的 world viewport、采样时刻和完整 cases。
+4. 校验固定的本地 Spine Player 与 Chrome 环境。
 
-也可以把许可确认设为精确环境值 `1`：
+普通操作员不需要复制 Preview SHA、execution bundle SHA 或 artifact SHA。这些身份由工作台在后续步骤中自动传递。
 
-```powershell
-$env:AUTOSPINE_SPINE42_RUNTIME_LICENSE_ACKNOWLEDGED = '1'
-```
+## 2. 检查 Runtime 环境
 
-`true`、`yes`、带空格的 `1` 或仅存在 `LICENSE` 文件都不会被视为确认。
+当前固定 profile 使用：
 
-## 读取结果
+- `@esotericsoftware/spine-player@4.2.119`；
+- 包内 `package.json`、`spine-player.min.js`、`spine-player.min.css` 和 `LICENSE` 的精确字节；
+- 本机 Chrome 的精确可执行文件与版本；
+- 工作区内固定的 Runtime 目录 `runtime/spine-player-4.2.119/node_modules/@esotericsoftware/spine-player`。
 
-成功时，stdout 是单个 canonical JSON 对象，主要字段包括：
+页面会显示每项校验结果。缺文件、版本不符、字节变化或 Chrome 不可用时，不要手工绕过；按页面提示修复环境后重新读取。
 
-- `status: "captured_unreviewed"`；
-- preview、capture、artifact set 和 bundle SHA；
-- 固定 case 数与浏览器 family/version；
-- content-addressed 发布目录；
-- `release_gate.status: "blocked"` 及未关闭的原因。
+`LICENSE` 文件存在不等于已经取得使用授权。工作台不会下载 Runtime、不会从 CDN 回退，也不会替操作者判断许可。
 
-固定库存只包含一个 canonical capture manifest 和 `captures/*.png`。默认地址为：
+## 3. 显式确认并启动
 
-```text
-workspace/builds/<project>/body-sway-runtime-captures/
-  <temporary-preview-sha>/<bundle-sha>/
-```
+1. 阅读许可说明，勾选“我确认拥有使用该 Spine Runtime 的权限”。
+2. 点击运行按钮。
+3. 在二次确认弹窗中核对项目、动作包和当前 revision，再确认启动。
 
-同一组精确字节再次发布时只会完整回读后复用；缺文件、多文件、大小写别名、路径 alias 或字节变化都会失败，不会覆盖旧证据。
+取消弹窗不会创建 job，也不会写入决定。许可勾选不会跨运行替你自动确认；每次真实执行都需要二次确认。
 
-## 运行真实浏览器 smoke
+## 4. 查看异步进度
 
-仅验证浏览器进程、loopback POST、PNG 解码、Job Object 清理和 profile 释放时，可以运行不含官方 runtime 的进程 smoke：
+采集以可恢复查询的异步 job 运行。页面会显示当前阶段、进度、事件和 job ID。刷新页面后可按同一 job 继续查询，不需要重新提交。
 
-```powershell
-$env:AUTOSPINE_REAL_CHROME = $chrome
-python -B -m unittest tests.test_body_sway_real_chrome_smoke
-```
+可能看到的阶段包括：
 
-这个测试使用 test-only `SpinePlayer` stub，不证明官方 Spine runtime 兼容性。
+- 排队与 exact replay；
+- Preview v2 编译与 Runtime 环境复核；
+- 官方 Runtime 捕获；
+- execution bundle 封存；
+- 完成、取消、中断或失败。
 
-要验证实际 `4.2.119` runtime 的 setup 和组合姿势，必须同时提供已授权 runtime，并显式确认许可：
+失败或服务关闭造成的中断都不会自动重试。当前页面没有主动取消运行中 job 的按钮。检查原因后，由操作者重新确认并创建一次新的 job。未完整封存的截图不会作为可复核的 execution 发布。
 
-```powershell
-$env:AUTOSPINE_REAL_CHROME = $chrome
-$env:AUTOSPINE_SPINE42_RUNTIME_ROOT = $runtimeRoot
-$env:AUTOSPINE_SPINE42_RUNTIME_LICENSE_ACKNOWLEDGED = '1'
-python -B -m unittest tests.test_body_sway_licensed_runtime_smoke
-```
+## 5. 完成后进入 P10.3c
 
-## 结果不能证明什么
+完成的 job 会生成不可变 execution bundle，并显示“进入视觉复核”入口。页面只携带完整 `job_id`；服务端从不可变 completed job 自动解析以下四段精确地址：
 
-捕获成功只证明固定浏览器、固定 runtime 和固定 case 产生了可验证 PNG。它仍不证明：
+- project；
+- Preview v2；
+- execution bundle；
+- artifact set。
+
+点击入口即可进入 P10.3c v2。不要从构建目录猜测 `latest`，也不要手工改写地址。
+
+## 常见问题
+
+| 现象 | 处理 |
+| --- | --- |
+| 没有可选动作包 | 先完成 P10.1、P10.2 和 CaptureFraming；刷新项目列表。 |
+| Runtime 校验失败 | 检查固定 4.2.119 包的必需文件与版本；不要用其他版本冒充。 |
+| Chrome 校验失败 | 安装或恢复标准 Chrome，并重新读取环境。 |
+| 点击运行后没有 job | 检查许可勾选与二次确认是否都完成。 |
+| job 中断或失败 | 阅读事件记录；系统不会自动重试，修复后重新显式启动。 |
+| job 已完成但仍显示发布阻塞 | 正常。还必须完成 P10.3c 逐 case 人工复核，后续门禁也仍存在。 |
+
+## 安全与证据边界
+
+捕获器只用于可信的单用户 loopback 工作台和固定本地资产。它不会打开第三方 URL，也不把进程 smoke 或测试 stub 当作官方 Runtime 证据。
+
+一次成功 execution 只能证明：固定 Preview v2、固定 Runtime/Chrome profile 和固定 cases 产生了可验证的采样图像。它不能证明：
 
 - 人工视觉质量已经通过；
-- 离散采样之间的连续时间安全；
-- 未标注 attachment 接缝没有裂缝；
-- 当前幅度适合所有角色；
-- 可以生成 MotionInstance v3 或发布 Spine 动画。
+- 离散采样之间连续安全；
+- 所有接缝与遮挡都安全；
+- 当前幅度适合其他角色；
+- 动画已经可以发布。
 
-下一步必须按[复核 body-sway 官方 runtime 采样帧](how-to-review-body-sway-runtime.md)对固定 capture bundle 做逐 case 人工视觉复核。复核使用 project、temporary preview、capture bundle 与 artifact set 构成的精确四段地址；不能按目录扫描、使用缩写 SHA 或选择 `latest`。即使 sampled visual 全部批准，release gate 仍会保持 blocked。
+下一步按[复核 P10.3c 官方 Runtime 采样帧](how-to-review-body-sway-runtime.md)逐 case 判断。系统绝不会根据截图自动批准。

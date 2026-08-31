@@ -9,36 +9,25 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
 
-from .analysis_routes import dispatch_analysis_artifact_get
 from .body_sway_visual_review_routes import (
-    dispatch_body_sway_visual_review_get,
     dispatch_body_sway_visual_review_put,
-    is_body_sway_visual_review_path,
-    visual_review_allow_methods,
 )
 from .contracts import ContractValidationError
 from .http_security import host_header_is_local as _host_header_is_local
 from .http_json_request import HttpJsonRequestError, read_json_object_request
 from .http_static_response import serve_static_response
 from .http_workbench_response import WorkbenchResponseMixin
-from .mesh_bundle_routes import dispatch_mesh_bundle_get
 from . import motion_policy_mutation_routes as policy_mutation
 from .motion_policy_preflight_routes import (
-    ALLOW_METHODS as MOTION_POLICY_PREFLIGHT_ALLOW_METHODS,
-    dispatch_motion_policy_preflight_post,
-    is_motion_policy_preflight_path,
+    dispatch_motion_policy_preflight_post, is_motion_policy_preflight_path,
     send_motion_policy_preflight_method_not_allowed,
 )
 from . import state_root_preflight
 from .motion_policy_review_package_routes import (
-    ALLOW_METHODS as MOTION_POLICY_PACKAGE_ALLOW_METHODS,
-    dispatch_motion_policy_review_package_get,
     is_motion_policy_review_package_path,
     send_motion_policy_review_package_method_not_allowed,
 )
 from .motion_policy_review_draft_routes import (
-    READ_METHODS as MOTION_POLICY_DRAFT_READ_METHODS,
-    dispatch_motion_policy_review_draft_get,
     is_motion_policy_review_draft_get_path,
     send_motion_policy_review_draft_method_not_allowed,
 )
@@ -49,25 +38,34 @@ from .project_store import (
     ProjectStoreError,
     RevisionConflictError,
 )
-from .project_routes import dispatch_project_get
+from .p10_capture_job_manager import (
+    P10CaptureJobManager,
+    P10CaptureJobManagerError,
+)
+from .p10_runtime_capture_routes import (
+    dispatch_p10_runtime_capture_post,
+    is_p10_runtime_capture_path,
+    send_p10_runtime_capture_method_not_allowed,
+)
+from .p10_visual_review_v2_routes import (
+    dispatch_p10_visual_review_v2_put,
+)
 from .seam_anchor_review_routes import (
-    dispatch_seam_anchor_review_get,
     dispatch_seam_anchor_review_post,
     is_seam_anchor_review_path,
-    seam_anchor_review_allow_methods,
-    seam_anchor_review_resource_methods,
 )
 from .seam_anchor_review_replay_cache import SeamAnchorReviewReplayCache
 from .server_binding import WorkbenchThreadingHTTPServer, validate_server_configuration
-from .split_preview_routes import dispatch_split_preview_get
+from .server_get_routes import dispatch_workbench_api_get
+from .server_method_routes import send_workbench_route_method_not_allowed
+from .workbench_options import send_workbench_options
 
 
 _LOG = logging.getLogger(__name__)
-
-
 def _handler_factory(
     store: ProjectStore, web_root: Path | None,
     replay_cache: SeamAnchorReviewReplayCache,
+    capture_manager: P10CaptureJobManager,
 ) -> type[BaseHTTPRequestHandler]:
     class WorkbenchHandler(WorkbenchResponseMixin, BaseHTTPRequestHandler):
         server_version = "AutoSpineWorkbench/0.1"
@@ -83,51 +81,9 @@ def _handler_factory(
             super().log_message(format_string, *args)
 
         def _dispatch_api_get(self, parts: list[str]) -> bool:
-            if policy_mutation.is_motion_policy_mutation_path(parts):
-                policy_mutation.send_motion_policy_mutation_method_not_allowed(parts, self)
-                return True
-            if is_motion_policy_preflight_path(parts):
-                send_motion_policy_preflight_method_not_allowed(self)
-                return True
-            if is_seam_anchor_review_path(parts):
-                if dispatch_seam_anchor_review_get(
-                    parts, store, self._send_visual_json,
-                    self._send_visual_bytes, replay_cache,
-                ):
-                    return True
-                self._send_seam_anchor_review_method_not_allowed(parts)
-                return True
-            if dispatch_body_sway_visual_review_get(
-                parts, store, self._send_visual_json, self._send_visual_bytes,
-            ):
-                return True
-            if dispatch_motion_policy_review_package_get(
-                parts, store, self._send_visual_json, self.path,
-            ):
-                return True
-            if dispatch_motion_policy_review_draft_get(
-                parts, store, self._send_visual_json, self.path,
-            ):
-                return True
-            if dispatch_project_get(parts, store, self._send_json, self._send_file):
-                return True
-            if dispatch_mesh_bundle_get(
-                parts, store, self._send_json, self._send_error_json, self._send_png
-            ):
-                return True
-            if dispatch_analysis_artifact_get(
-                parts, store, self._send_json, self._send_error_json
-            ):
-                return True
-            if dispatch_split_preview_get(
-                parts,
-                store,
-                self._send_json,
-                self._send_error_json,
-                self._send_file,
-            ):
-                return True
-            return False
+            return dispatch_workbench_api_get(
+                parts, store, replay_cache, capture_manager, self,
+            )
 
         def _serve_static(self, parts: list[str]) -> bool:
             if web_root is not None and parts[:1] == ["docs"]:
@@ -183,52 +139,7 @@ def _handler_factory(
             except ValueError as exc:
                 self._send_error_json(HTTPStatus.BAD_REQUEST, "invalid_path", str(exc))
                 return
-            body_review = is_body_sway_visual_review_path(parts)
-            seam_review = is_seam_anchor_review_path(parts)
-            policy_preflight = is_motion_policy_preflight_path(parts)
-            adoption = policy_mutation.is_motion_policy_mutation_path(parts)
-            policy_package = is_motion_policy_review_package_path(parts)
-            policy_draft = is_motion_policy_review_draft_get_path(parts)
-            seam_methods = seam_anchor_review_resource_methods(parts) \
-                if seam_review else None
-            if seam_review and seam_methods is None:
-                self._send_visual_json(HTTPStatus.NOT_FOUND, {
-                    "error": "seam_anchor_review_not_found",
-                    "message": (
-                        "The exact seam-anchor review resource was not found."
-                    ),
-                })
-                return
-            self.send_response(HTTPStatus.NO_CONTENT)
-            local_review = body_review or seam_review or policy_preflight \
-                or adoption or policy_package or policy_draft
-            self._common_headers(visual_review=local_review)
-            if adoption:
-                methods = policy_mutation.motion_policy_mutation_allow_methods(parts)
-            elif policy_preflight:
-                methods = MOTION_POLICY_PREFLIGHT_ALLOW_METHODS
-            elif policy_package:
-                methods = MOTION_POLICY_PACKAGE_ALLOW_METHODS
-            elif policy_draft:
-                methods = MOTION_POLICY_DRAFT_READ_METHODS
-            elif body_review:
-                methods = visual_review_allow_methods(parts)
-            elif seam_review:
-                methods = seam_methods
-            elif self._mesh_bundle_path(parts):
-                methods = "GET, HEAD, OPTIONS"
-            else:
-                methods = "GET, HEAD, PUT, OPTIONS"
-            self.send_header("Allow", methods)
-            self.send_header("Access-Control-Allow-Methods", methods)
-            self.send_header(
-                "Access-Control-Allow-Headers",
-                "Content-Type, X-Autospine-Intent"
-                if local_review else "Content-Type",
-            )
-            self.send_header("Access-Control-Max-Age", "600")
-            self.send_header("Content-Length", "0")
-            self.end_headers()
+            send_workbench_options(parts, self)
 
         def do_PUT(self) -> None:  # noqa: N802 - BaseHTTPRequestHandler API
             if not _host_header_is_local(self.headers.get("Host")):
@@ -247,6 +158,14 @@ def _handler_factory(
                     return
                 if is_motion_policy_review_draft_get_path(parts):
                     send_motion_policy_review_draft_method_not_allowed(self)
+                    return
+                if dispatch_p10_visual_review_v2_put(
+                    parts, capture_manager, store, self,
+                    self._send_visual_json,
+                ):
+                    return
+                if is_p10_runtime_capture_path(parts):
+                    send_p10_runtime_capture_method_not_allowed(parts, self)
                     return
                 if dispatch_body_sway_visual_review_put(
                     parts, store, self, self._send_visual_json,
@@ -306,22 +225,17 @@ def _handler_factory(
                 parts, self, store, self._send_visual_json,
             ):
                 return
+            if dispatch_p10_runtime_capture_post(
+                parts, self, capture_manager, self._send_visual_json,
+            ):
+                return
             if dispatch_motion_policy_preflight_post(
                 parts, self, self._send_visual_json,
             ):
                 return
-            if is_motion_policy_review_package_path(parts):
-                send_motion_policy_review_package_method_not_allowed(self)
-                return
-            if is_motion_policy_review_draft_get_path(parts):
-                send_motion_policy_review_draft_method_not_allowed(self)
-                return
             if dispatch_seam_anchor_review_post(
                 parts, store, self, self._send_visual_json, replay_cache,
             ):
-                return
-            if is_seam_anchor_review_path(parts):
-                self._send_seam_anchor_review_method_not_allowed(parts)
                 return
             self._send_route_method_not_allowed(parts)
 
@@ -337,32 +251,12 @@ def _handler_factory(
             self._send_route_method_not_allowed(parts)
 
         def _send_route_method_not_allowed(self, parts: list[str]) -> None:
-            if policy_mutation.is_motion_policy_mutation_path(parts):
-                policy_mutation.send_motion_policy_mutation_method_not_allowed(parts, self)
-                return
-            if is_motion_policy_preflight_path(parts):
-                send_motion_policy_preflight_method_not_allowed(self)
-                return
-            if is_motion_policy_review_package_path(parts):
-                send_motion_policy_review_package_method_not_allowed(self)
-                return
-            if is_motion_policy_review_draft_get_path(parts):
-                send_motion_policy_review_draft_method_not_allowed(self)
-                return
-            if is_body_sway_visual_review_path(parts):
-                self._send_visual_method_not_allowed(parts)
-                return
-            if is_seam_anchor_review_path(parts):
-                self._send_seam_anchor_review_method_not_allowed(parts)
-                return
-            self._send_method_not_allowed(read_only=self._mesh_bundle_path(parts))
+            send_workbench_route_method_not_allowed(parts, self)
 
         do_PATCH = _method_not_allowed
         do_DELETE = _method_not_allowed
 
     return WorkbenchHandler
-
-
 def create_server(
     host: str,
     port: int,
@@ -387,12 +281,20 @@ def create_server(
             "and stored decision inputs."
         ) from exc
     replay_cache = SeamAnchorReviewReplayCache(store.state_root)
-    handler = _handler_factory(store, resolved_web_root, replay_cache)
+    try:
+        capture_manager = P10CaptureJobManager(store)
+    except P10CaptureJobManagerError as exc:
+        raise OSError("P10 Runtime capture manager could not start.") from exc
+    handler = _handler_factory(
+        store, resolved_web_root, replay_cache, capture_manager,
+    )
     try:
         server = WorkbenchThreadingHTTPServer((host, port), handler)
     except (OSError, socket.error) as exc:
+        capture_manager.close()
         raise OSError(f"Could not bind AutoSpine workbench to {host}:{port}") from exc
     server.project_store = store  # type: ignore[attr-defined]
     server.web_root = resolved_web_root  # type: ignore[attr-defined]
     server.seam_anchor_review_replay_cache = replay_cache  # type: ignore[attr-defined]
+    server.p10_capture_job_manager = capture_manager  # type: ignore[attr-defined]
     return server

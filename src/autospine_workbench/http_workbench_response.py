@@ -136,6 +136,8 @@ class WorkbenchResponseMixin:
         if path.name in {
             "body-sway-probe.html",
             "body-sway-review.html",
+            "body-sway-review-v2.html",
+            "body-sway-runtime-capture.html",
             "document-viewer.html",
             "idle-behavior-review.html",
             "motion-policy-review.html",

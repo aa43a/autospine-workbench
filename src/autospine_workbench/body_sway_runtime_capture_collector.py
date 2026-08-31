@@ -15,6 +15,12 @@ from .body_sway_runtime_capture_session import (
 from .body_sway_runtime_capture_session_validation import (
     require_body_sway_runtime_capture_session_set,
 )
+from .body_sway_runtime_capture_session_v2 import (
+    BodySwayRuntimeCaptureSessionsV2,
+)
+from .body_sway_runtime_capture_session_v2_validation import (
+    require_body_sway_runtime_capture_session_set_v2,
+)
 from .png_rgba import RgbaPngError, decode_rgba_png
 
 
@@ -47,13 +53,21 @@ class BodySwayRuntimeCaptureSnapshot:
 class BodySwayRuntimeCaptureCollector:
     """Accept at most one terminal browser result for every fixed case."""
 
-    def __init__(self, sessions: BodySwayRuntimeCaptureSessions) -> None:
+    def __init__(
+        self,
+        sessions: BodySwayRuntimeCaptureSessions
+        | BodySwayRuntimeCaptureSessionsV2,
+    ) -> None:
         try:
-            if type(sessions) is not BodySwayRuntimeCaptureSessions:
+            if type(sessions) is BodySwayRuntimeCaptureSessions:
+                validate = require_body_sway_runtime_capture_session_set
+            elif type(sessions) is BodySwayRuntimeCaptureSessionsV2:
+                validate = require_body_sway_runtime_capture_session_set_v2
+            else:
                 raise BodySwayRuntimeCaptureCollectorError(
                     "Collector requires a frozen complete session set"
                 )
-            require_body_sway_runtime_capture_session_set(sessions.document)
+            validate(sessions.document)
             self._sessions = sessions
             self._case_ids = sessions.case_ids
         except BodySwayRuntimeCaptureCollectorError:
