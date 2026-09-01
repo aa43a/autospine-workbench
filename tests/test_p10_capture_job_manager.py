@@ -8,6 +8,7 @@ import sys
 import tempfile
 import threading
 import unittest
+from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -105,9 +106,16 @@ class P10CaptureJobManagerTests(unittest.TestCase):
         self.assertNotIn("path", repr(first).lower())
 
     def test_success_records_every_stage_and_exact_completed_addresses(self):
+        observed_mount_status = []
         manager = self._manager()
-        queued = manager.submit(self._payload("success"))
-        completed = manager.wait(queued["job_id"], timeout=5)
+        publication = (
+            "autospine_workbench.p10_capture_job_manager."
+            "publish_visual_review_mount_best_effort"
+        )
+        with patch(publication, side_effect=lambda _projects, job_id, _result:
+                   observed_mount_status.append(manager.get(job_id)["status"])):
+            queued = manager.submit(self._payload("success"))
+            completed = manager.wait(queued["job_id"], timeout=5)
         self.assertEqual("queued", queued["status"])
         self.assertEqual("completed", completed["status"])
         self.assertEqual([
@@ -126,6 +134,7 @@ class P10CaptureJobManagerTests(unittest.TestCase):
             "execution_bundle": SHA["bundle"], "artifact": SHA["artifact"],
         }, completed["addresses"])
         self.assertEqual([(P10_HEAD, FRAMING, True, True)], self.executor_calls)
+        self.assertEqual(["completed"], observed_mount_status)
         repeated = manager.submit(self._payload("success"))
         self.assertEqual("completed", repeated["status"])
         self.assertEqual(1, len(self.executor_calls))

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 
 from .body_sway_derived_cache import (
@@ -40,6 +41,10 @@ from .p10_preview_v2_cache import (
     P10PreviewV2CacheLocator, P10PreviewV2CacheRecord,
     process_p10_preview_v2_cache,
 )
+from .p10_preview_v2_compiler_inventory import (
+    P10PreviewV2CompilerInventoryError,
+    preview_v2_compiler_inventory_sha256,
+)
 from .p10_preview_v2_result import (
     P10PreviewV2CommandError, preview_v2_command_result,
 )
@@ -68,15 +73,25 @@ def compile_cached_body_sway_preview_v2(
 ):
     """Compile once; every hit rechecks current mutable heads and inventory."""
 
+    return compile_cached_body_sway_preview_v2_record(
+        store, package_id,
+    ).result
+
+
+def compile_cached_body_sway_preview_v2_record(
+    store: ProjectStore, package_id: str,
+) -> P10PreviewV2CacheRecord:
+    """Return the fully verified cache record for trusted local consumers."""
+
     locator = _locator(store, package_id)
     cache = process_p10_preview_v2_cache()
     try:
         record = cache.get_or_compile(
             locator,
-            lambda value: _validate_record(store, value),
+            lambda value: p10_preview_v2_record_is_current(store, value),
             lambda: _compile_record(store, locator),
         )
-        return record.result
+        return record
     except P10PreviewV2CommandError:
         raise
     except _FAILURES as exc:
@@ -133,7 +148,10 @@ def _compile_record(store, locator):
         _key(context, candidate, framing), context.address,
         evidence.candidates, candidate, result,
     )
-    if not _validate_record(store, record):
+    if not p10_preview_v2_record_is_current(
+        store, record,
+        project_ids=context.project_ids, chains=context.chains,
+    ):
         raise P10PreviewV2CommandError(
             "The selected current package changed during compilation"
         )
@@ -164,10 +182,16 @@ def _load_context(store, locator):
     )
 
 
-def _validate_record(store, record):
+def p10_preview_v2_record_is_current(
+    store, record, *, project_ids=None, chains=None,
+):
+    """Recompute every mutable head and the complete cache inventory."""
+
     locator = record.key.locator
-    project_ids = tuple(store.discover_project_ids())
-    chains = rebuild_current_project_chains(store, project_ids)
+    project_ids = tuple(store.discover_project_ids()) \
+        if project_ids is None else tuple(project_ids)
+    chains = rebuild_current_project_chains(store, project_ids) \
+        if chains is None else chains
     address = require_current_idle_behavior_review_address(
         store.state_root, locator.package_id,
         project_ids=project_ids, current_project_chains=chains,
@@ -207,19 +231,24 @@ def _key(context, candidate, framing):
 
 
 def _inventory_sha(locator, project_ids, chains, address, candidate_sha):
+    selected = address.project_id
+    if tuple(project_ids).count(selected) != 1 or selected not in chains:
+        raise P10PreviewV2CommandError(
+            "Preview v2 selected project inventory is incomplete"
+        )
+    chain = chains[selected]
     return canonical_sha256({
-        "domain": "autospine-p10-preview-v2-cache-inventory/v1",
+        "domain": "autospine-p10-preview-v2-selected-dependency/v2",
         "locator": {
             "package_id": locator.package_id,
             "compiler_inventory_sha256": locator.compiler_inventory_sha256,
         },
-        "project_ids": list(project_ids),
-        "current_chains": [{
-            "project_id": key,
-            "resolved_project_sha256": chains[key].resolved_project_sha256,
-            "layer_manifest_sha256": chains[key].layer_manifest_sha256,
-            "input_identity_sha256": chains[key].input_identity_sha256,
-        } for key in sorted(chains)],
+        "selected_project": {
+            "project_id": selected,
+            "resolved_project_sha256": chain.resolved_project_sha256,
+            "layer_manifest_sha256": chain.layer_manifest_sha256,
+            "input_identity_sha256": chain.input_identity_sha256,
+        },
         "address": address.public_document(),
         "p10_candidate_sha256": candidate_sha,
     })
@@ -231,26 +260,28 @@ def _locator(store, package_id):
     try:
         state = str(Path(store.state_root).resolve(strict=True))
         workspace = str(Path(store.workspace_root).resolve(strict=True))
-    except (OSError, RuntimeError, TypeError, ValueError) as exc:
+        inventory = _compiler_inventory_sha256()
+    except (
+        OSError, P10PreviewV2CompilerInventoryError,
+        RuntimeError, TypeError, ValueError,
+    ) as exc:
         raise P10PreviewV2CommandError("Preview v2 roots are unavailable") from exc
-    inventory = canonical_sha256({
-        "domain": "autospine-p10-preview-v2-compiler-inventory/v1",
-        "callables": [{
-            "name": name,
-            "process_object_id": id(globals()[name]),
-        } for name in _COMPILER_NAMES],
-    })
     return P10PreviewV2CacheLocator(state, workspace, package_id, inventory)
 
 
-_COMPILER_NAMES = (
-    "_compile_derived",
-    "compile_capture_framing_candidate",
-    "compile_temporary_body_sway_preview_v2",
-    "require_exact_temporary_body_sway_preview_v2",
-    "require_body_sway_preview_inputs_v2",
-    "require_body_sway_probe_inputs",
-)
+def p10_preview_v2_cache_locator(
+    store: ProjectStore, package_id: str,
+) -> P10PreviewV2CacheLocator:
+    """Build the process-bound locator used to rehydrate derived snapshots."""
+
+    return _locator(store, package_id)
+
+
+@lru_cache(maxsize=1)
+def _compiler_inventory_sha256() -> str:
+    """Stable across restarts and scoped to the static Preview v2 closure."""
+
+    return preview_v2_compiler_inventory_sha256(Path(__file__).parent)
 
 _FAILURES = (
     BodySwayDerivedCacheError, BodySwayPreviewInputV2Error,

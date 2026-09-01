@@ -14,10 +14,10 @@ from .body_sway_visual_review_application_models_v2 import (
     PreparedBodySwayVisualReviewV2, SubmittedBodySwayVisualReviewV2,
 )
 from .body_sway_visual_review_application_support_v2 import (
+    load_previous_visual_review_decision_v2,
     require_consistent_visual_review_history_v2,
     require_visual_review_compare_and_swap_v2,
     submitted_visual_review_result_v2,
-    visual_review_revision_conflict_v2,
 )
 from .body_sway_visual_review_candidate_v2 import (
     compile_body_sway_visual_review_candidate_v2,
@@ -39,6 +39,14 @@ from .body_sway_visual_review_submission import (
 from .manifest_artifacts import require_safe_token, require_sha256
 from .p10_preview_v2_commands import (
     P10PreviewV2CommandResult, require_exact_preview_v2_for_mount,
+)
+from .p10_visual_review_v2_verified_mount import (
+    VerifiedP10VisualReviewV2Mount,
+)
+
+
+PreviewMountInput = (
+    P10PreviewV2CommandResult | VerifiedP10VisualReviewV2Mount
 )
 
 
@@ -68,7 +76,7 @@ class BodySwayVisualReviewApplicationV2:
 
     def prepare(
         self, address: ExactVisualReviewAddressV2,
-        preview_result: P10PreviewV2CommandResult,
+        preview_result: PreviewMountInput,
     ) -> PreparedBodySwayVisualReviewV2:
         try:
             execution, preview, candidate = self._load_candidate(
@@ -91,7 +99,7 @@ class BodySwayVisualReviewApplicationV2:
 
     def image_evidence(
         self, address: ExactVisualReviewAddressV2,
-        preview_result: P10PreviewV2CommandResult, *,
+        preview_result: PreviewMountInput, *,
         candidate_sha256: str, case_id: str, png_sha256: str,
     ) -> BodySwayVisualReviewImageV2:
         images = self.prepare_image_snapshot(
@@ -116,7 +124,7 @@ class BodySwayVisualReviewApplicationV2:
 
     def prepare_image_snapshot(
         self, address: ExactVisualReviewAddressV2,
-        preview_result: P10PreviewV2CommandResult, *,
+        preview_result: PreviewMountInput, *,
         candidate_sha256: str,
     ) -> tuple[BodySwayVisualReviewImageV2, ...]:
         """Replay one candidate once and expose its verified immutable PNGs."""
@@ -144,7 +152,7 @@ class BodySwayVisualReviewApplicationV2:
 
     def exact_decision(
         self, address: ExactVisualReviewAddressV2,
-        preview_result: P10PreviewV2CommandResult, *,
+        preview_result: PreviewMountInput, *,
         candidate_sha256: str, revision: int, decision_sha256: str,
     ) -> ExactBodySwayVisualReviewDecisionV2:
         try:
@@ -197,7 +205,7 @@ class BodySwayVisualReviewApplicationV2:
 
     def submit(
         self, address: ExactVisualReviewAddressV2,
-        preview_result: P10PreviewV2CommandResult,
+        preview_result: PreviewMountInput,
         payload: dict[str, Any],
     ) -> SubmittedBodySwayVisualReviewV2:
         try:
@@ -213,8 +221,8 @@ class BodySwayVisualReviewApplicationV2:
                 candidates=candidate, execution=execution, preview=preview,
             )
             require_consistent_visual_review_history_v2(candidate, history)
-            previous = self._previous_decision(
-                submission, candidate, execution, preview, history,
+            previous = load_previous_visual_review_decision_v2(
+                self._store, submission, candidate, execution, preview, history,
             )
             decision = build_body_sway_visual_review_decision_v2(
                 candidate.document, review=submission.review,
@@ -255,37 +263,31 @@ class BodySwayVisualReviewApplicationV2:
             raise BodySwayVisualReviewApplicationV2Error(
                 "Visual review v2 requires an exact four-part address"
             )
-        preview = require_exact_preview_v2_for_mount(preview_result)
-        if preview.sha256 != address.temporary_preview_v2_sha256 \
+        if type(preview_result) is VerifiedP10VisualReviewV2Mount:
+            result = preview_result.result
+            preview = preview_result.preview
+            execution = preview_result.execution
+        else:
+            result = None
+            preview = require_exact_preview_v2_for_mount(preview_result)
+            execution = None
+        if (
+            result is not None and (
+                result.temporary_preview_v2_sha256
+                    != address.temporary_preview_v2_sha256
+                or result.project_id != address.project_id
+            )
+        ) or preview.sha256 != address.temporary_preview_v2_sha256 \
                 or preview.document["project_id"] != address.project_id:
             raise BodySwayVisualReviewApplicationV2Error(
                 "Current Preview v2 differs from the execution address"
             )
-        execution = self._reader.load(*address.reader_arguments)
+        if execution is None:
+            execution = self._reader.load(*address.reader_arguments)
         candidate = compile_body_sway_visual_review_candidate_v2(
             execution, preview,
         )
         return execution, preview, candidate
-
-    def _previous_decision(
-        self, submission, candidate, execution, preview, history,
-    ):
-        base, previous_sha = (
-            submission.base_revision, submission.previous_decision_sha256,
-        )
-        if base == 0:
-            return None
-        if base > history.current_revision \
-                or history.rows[base - 1].decision_sha256 != previous_sha:
-            raise visual_review_revision_conflict_v2(submission, history)
-        previous = self._store.load_decision(
-            candidate.document["project_id"], candidate.sha256, previous_sha,
-            candidates=candidate, execution=execution, preview=preview,
-        )
-        if previous.document["review"]["revision"] != base:
-            raise visual_review_revision_conflict_v2(submission, history)
-        return previous
-
 
 _APPLICATION_ERRORS = (
     AttributeError, KeyError, OSError, OverflowError, RecursionError,

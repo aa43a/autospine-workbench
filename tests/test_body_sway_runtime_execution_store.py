@@ -28,6 +28,9 @@ from autospine_workbench.body_sway_runtime_capture_session_v2 import (  # noqa: 
 from autospine_workbench.body_sway_runtime_capture_v2_compiler import (  # noqa: E402
     compile_body_sway_runtime_capture_v2,
 )
+from autospine_workbench.body_sway_runtime_capture_v2_validation import (  # noqa: E402
+    require_body_sway_runtime_capture_v2,
+)
 from autospine_workbench.body_sway_runtime_capture_v2_profile import (  # noqa: E402
     MAX_CAPTURE_ARTIFACTS,
 )
@@ -232,6 +235,44 @@ class BodySwayRuntimeExecutionStoreTests(unittest.TestCase):
                          loaded.execution.capture.canonical_bytes)
         self.assertEqual(self.capture.capture_bytes,
                          loaded.execution.capture.capture_bytes)
+
+    def test_exact_reader_validates_capture_once_and_bundle_once(self):
+        published = self.publish()
+        capture_validator = (
+            "autospine_workbench.body_sway_runtime_capture_v2."
+            "require_body_sway_runtime_capture_v2"
+        )
+        bundle_hasher = (
+            "autospine_workbench.body_sway_runtime_execution_reader."
+            "body_sway_runtime_execution_bundle_sha256"
+        )
+        with _fake_runtime_profile(), \
+                patch(capture_validator,
+                      wraps=require_body_sway_runtime_capture_v2) as validate, \
+                patch(bundle_hasher,
+                      wraps=body_sway_runtime_execution_bundle_sha256) as hash_bundle:
+            VerifiedBodySwayRuntimeExecutionReader(self.state).load(
+                published.project_id,
+                published.temporary_preview_v2_sha256,
+                published.bundle_sha256,
+                published.artifact_set_sha256,
+            )
+        self.assertEqual(1, validate.call_count)
+        self.assertEqual(1, hash_bundle.call_count)
+
+    def test_exact_reader_single_pass_rejects_capture_byte_tamper(self):
+        published = self.publish()
+        capture = next((published.path / "captures").iterdir())
+        capture.write_bytes(capture.read_bytes() + b"tamper")
+        with _fake_runtime_profile(), self.assertRaises(
+            VerifiedBodySwayRuntimeExecutionReaderError,
+        ):
+            VerifiedBodySwayRuntimeExecutionReader(self.state).load(
+                published.project_id,
+                published.temporary_preview_v2_sha256,
+                published.bundle_sha256,
+                published.artifact_set_sha256,
+            )
 
     def test_reader_requires_all_four_exact_address_components(self):
         published = self.publish()

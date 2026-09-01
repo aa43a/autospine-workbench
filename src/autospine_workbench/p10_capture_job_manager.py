@@ -8,6 +8,9 @@ import threading
 from typing import Any
 
 from .p10_capture_job_contract import ACTIVE_STATUSES
+from .p10_capture_job_completion import (
+    capture_result_matches, publish_visual_review_mount_best_effort,
+)
 from .p10_capture_failure_codes import classify_p10_capture_failure
 from .p10_capture_job_store import P10CaptureJobConflict, P10CaptureJobSnapshot, P10CaptureJobStore
 from .p10_preview_v2_commands import (
@@ -169,7 +172,10 @@ class P10CaptureJobManager:
                     job_id, preview.case_count, value),
                 is_cancelled=self._cancel.is_set,
             )
-            _require_result(request_document, preview, result)
+            if not capture_result_matches(request_document, preview, result):
+                raise P10CaptureJobManagerError(
+                    "Runtime result differs from Preview v2"
+                )
             snapshot = self._jobs.load(job_id)
             if snapshot.status != "sealing":
                 return
@@ -179,6 +185,9 @@ class P10CaptureJobManager:
                 "execution_bundle": result.bundle_sha256,
                 "artifact": result.artifact_set_sha256,
             })
+            publish_visual_review_mount_best_effort(
+                self._projects, job_id, result,
+            )
         except P10CaptureJobConflict:
             return
         except P10PreviewV2CommandError:
@@ -288,13 +297,3 @@ def _matches(request, preview) -> bool:
             and request["expected_framing"] == expected[1]
     except (KeyError, TypeError, P10CaptureJobManagerError):
         return False
-
-def _require_result(request, preview, result) -> None:
-    if type(result) is not P10RuntimeCaptureV2CommandResult \
-            or result.package_id != request["package_id"] \
-            or result.project_id != preview.project_id \
-            or result.clip_id != preview.clip_id \
-            or result.temporary_preview_v2_sha256 \
-                != preview.temporary_preview_v2_sha256 \
-            or result.case_count != preview.case_count:
-        raise P10CaptureJobManagerError("Runtime result differs from Preview v2")

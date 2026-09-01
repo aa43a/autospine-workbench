@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
+from functools import wraps
 import os
 from pathlib import Path
+import shutil
+import subprocess
 from threading import Event, Lock
 import tempfile
 import time
@@ -188,6 +191,62 @@ class CurrentProjectChainCacheTests(unittest.TestCase):
         self.assertEqual(
             baseline, current_manifest_algorithm_runtime_sha256(),
         )
+
+    def test_algorithm_identity_is_stable_across_processes(self) -> None:
+        interpreters = {str(Path(sys.executable).resolve())}
+        system_python = shutil.which("python")
+        if system_python:
+            interpreters.add(str(Path(system_python).resolve()))
+        profile = os.environ.get("USERPROFILE")
+        bundled = Path(profile or ".") / (
+            ".cache/codex-runtimes/codex-primary-runtime/"
+            "dependencies/python/python.exe"
+        )
+        if profile and bundled.is_file():
+            interpreters.add(str(bundled.resolve()))
+        values = []
+        for index, interpreter in enumerate(sorted(interpreters)):
+            environment = os.environ.copy()
+            environment["PYTHONHASHSEED"] = str(index + 1)
+            environment["PYTHONPATH"] = os.pathsep.join(filter(None, (
+                str(SRC), environment.get("PYTHONPATH", ""),
+            )))
+            values.append(subprocess.check_output(
+                [
+                    interpreter, "-B", "-c",
+                    "from autospine_workbench.current_project_chain_cache "
+                    "import current_manifest_algorithm_runtime_sha256 as f; "
+                    "print(f())",
+                ],
+                env=environment, text=True, timeout=30,
+            ).strip())
+        self.assertEqual(1, len(set(values)))
+
+    def test_wrapped_function_rebinding_changes_identity(self) -> None:
+        from autospine_workbench import layer_manifest
+
+        original = layer_manifest._deform_class
+
+        @wraps(original)
+        def replacement(*args, **kwargs):
+            return original(*args, **kwargs)
+
+        baseline = current_manifest_algorithm_runtime_sha256()
+        with patch.object(layer_manifest, "_deform_class", replacement):
+            self.assertNotEqual(
+                baseline, current_manifest_algorithm_runtime_sha256(),
+            )
+
+    def test_local_class_method_rebinding_changes_identity(self) -> None:
+        from autospine_workbench import layer_manifest
+
+        owner = layer_manifest.LayerManifestBuilder
+        original = owner.build
+        baseline = current_manifest_algorithm_runtime_sha256()
+        with patch.object(owner, "build", side_effect=original):
+            self.assertNotEqual(
+                baseline, current_manifest_algorithm_runtime_sha256(),
+            )
 
 
 if __name__ == "__main__":

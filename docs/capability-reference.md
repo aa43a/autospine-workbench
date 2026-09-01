@@ -70,7 +70,7 @@ P10.3 v2 execution runner `1.1.0` 固定 `page_lifetime=collector-terminal`，�
 
 completed job 绑定 project/Preview v2/execution bundle/artifact set 四段内部地址，并以完整 `job_id` 自动进入 v2 复核页。服务端从 job 解析 exact 地址，重验 current P10.1/CaptureFraming，再准备 v2 candidate、图像和 append-only history。每个 case 必须由人选择 `approve`、`reject` 或 `unobservable`；系统绝不自动批准。全部批准只得到 v2 sampled visual head，不证明连续时间、完整接缝、runtime 等价或发布安全。现有 `BodySwayReviewAdmission v1` 只消费冻结 v1 review；v2 head 仍需要独立 P10.4a v2 admission/consumer 适配。
 
-v2 时间轴使用 exact URL 页面级图片池：当前位置优先、最多两张并发，当前组加载后只预取下一组，复访不重复赋值 `img.src`。覆盖数只接纳已加载并显示的组。服务端另有 candidate-snapshot 粒度、双条目/256 MiB 上限的进程内 single-flight LRU，只供图片 GET；每次命中前仍重验 completed job 与 current P10.1/CaptureFraming/Preview，candidate/history/decision/PUT 不使用该缓存，HTTP 仍为 `no-store`。
+v2 时间轴使用 exact URL 页面级图片池：当前位置优先、最多两张并发，当前组加载后只预取下一组，复访不重复赋值 `img.src`。覆盖数只接纳已加载并显示的组。服务端另有 candidate-snapshot 粒度、双条目/256 MiB 上限的进程内 single-flight LRU，只供图片 GET；并以 completed job 为键保存一个可删除的非权威 Preview mount snapshot，加速 candidate/history/image 的跨重启 GET。snapshot v3 显式绑定由 292 个静态依赖模块生成的 Preview compiler 摘要；mount 命中仍重验 exact execution、所选项目的逐字节 source/算法 seal、P3/P5/P9 内容地址、P10.1/CaptureFraming heads 和 Preview/artifact seals。compiler、来源或字节任一漂移都会失效，无关项目变化不再使当前 mount 失效；decision PUT 强制完整重编、零 mount cache I/O 并继续 head CAS。缓存从不保存或推断人工 decision/revision，HTTP 仍为 `no-store`。
 
 旧 v1 页面、CLI、浏览器 driver、capture store 与 review namespace 保持冻结，继续用于历史证据和回归，不与 v2 execution/job/history 混用。
 

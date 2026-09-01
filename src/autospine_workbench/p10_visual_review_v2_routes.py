@@ -198,7 +198,7 @@ def dispatch_p10_visual_review_v2_put(
         if payload.get("candidate_sha256") != candidate_address:
             raise _InvalidSubmission
         context = resolve_p10_visual_review_v2_context(
-            manager, store, parts[4],
+            manager, store, parts[4], allow_acceleration=False,
         )
         result = BodySwayVisualReviewApplicationV2(store.state_root).submit(
             context.address, context.preview, payload,

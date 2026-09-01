@@ -18,7 +18,7 @@ from .body_sway_runtime_capture_v2_profile import (
 )
 from .body_sway_runtime_execution import BodySwayRuntimeExecution
 from .body_sway_runtime_execution_bundle import (
-    build_body_sway_runtime_execution_bundle,
+    body_sway_runtime_execution_bundle_sha256,
     replay_body_sway_runtime_execution,
 )
 from .body_sway_runtime_execution_profile import (
@@ -102,22 +102,25 @@ class VerifiedBodySwayRuntimeExecutionReader:
             execution = replay_body_sway_runtime_execution(
                 execution_bytes, payload_bytes, capture_items,
             )
-            built = build_body_sway_runtime_execution_bundle(execution)
             actual = (
                 (MANIFEST_NAME, execution_bytes),
                 (PAYLOAD_NAME, payload_bytes),
             ) + capture_items
-            if built.file_items != actual or (
-                built.project_id,
-                built.temporary_preview_v2_sha256,
-                built.bundle_sha256,
-                built.artifact_set_sha256,
+            actual_bundle_sha = body_sway_runtime_execution_bundle_sha256(
+                actual,
+            )
+            if (
+                execution.document["project_id"],
+                execution.document["source"]
+                ["temporary_preview_v2_sha256"],
+                actual_bundle_sha,
+                execution.artifact_set_sha256,
             ) != (project, preview, bundle_sha, artifact_sha):
                 raise VerifiedBodySwayRuntimeExecutionReaderError(
                     "Runtime execution bytes differ from their exact address"
                 )
             return VerifiedBodySwayRuntimeExecution(
-                directory, execution, built.bundle_sha256,
+                directory, execution, actual_bundle_sha,
             )
         except VerifiedBodySwayRuntimeExecutionReaderError:
             raise

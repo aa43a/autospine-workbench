@@ -35,8 +35,16 @@ from autospine_workbench.p10_preview_v2_commands import (  # noqa: E402
 from autospine_workbench.body_sway_visual_review_application_models_v2 import (  # noqa: E402
     BodySwayVisualReviewImageV2,
 )
+from autospine_workbench.body_sway_visual_review_address_v2 import (  # noqa: E402
+    ExactVisualReviewAddressV2,
+)
 from autospine_workbench.p10_visual_review_v2_http_security import (  # noqa: E402
     INTENT,
+)
+from autospine_workbench.p10_visual_review_v2_context import (  # noqa: E402
+    P10VisualReviewV2Context,
+    P10VisualReviewV2JobIncomplete,
+    P10VisualReviewV2SourceChanged,
 )
 from autospine_workbench.server import create_server  # noqa: E402
 from tests.test_project_store import StoreFixture  # noqa: E402
@@ -85,6 +93,33 @@ class P10VisualReviewV2HttpTests(unittest.TestCase):
             capture_framing_revision=1, case_count=3,
             document={"source": {"current_p10_1_head": self.p10}},
         )
+        self.address = ExactVisualReviewAddressV2(
+            self.addresses["project"], self.addresses["preview"],
+            self.addresses["execution_bundle"], self.addresses["artifact"],
+        )
+        self.mount = SimpleNamespace(result=self.preview)
+        self.context = P10VisualReviewV2Context(
+            self.job_id, SHA("5"), self.address, self.mount,
+        )
+        self.resolve_acceleration = []
+
+        def resolve_context(manager, _store, job_id, *,
+                            allow_acceleration=True):
+            self.resolve_acceleration.append(allow_acceleration)
+            snapshot = manager.get(job_id)
+            if snapshot.get("status") != "completed" \
+                    or snapshot.get("terminal") is not True:
+                raise P10VisualReviewV2JobIncomplete(
+                    "Runtime capture job has not completed"
+                )
+            if self.preview.temporary_preview_v2_sha256 \
+                    != self.address.temporary_preview_v2_sha256:
+                raise P10VisualReviewV2SourceChanged(
+                    "Current source differs from the completed job"
+                )
+            return self.context
+
+        self.resolve_context = Mock(side_effect=resolve_context)
         self.candidate_sha = SHA("9")
         self.png_sha = hashlib.sha256(b"PNG").hexdigest()
         self.decision_sha = SHA("a")
@@ -135,9 +170,9 @@ class P10VisualReviewV2HttpTests(unittest.TestCase):
             patch("autospine_workbench.server.P10CaptureJobManager",
                   return_value=self.manager),
             patch(
-                "autospine_workbench.p10_visual_review_v2_context."
-                "compile_body_sway_preview_v2_for_package",
-                return_value=self.preview,
+                "autospine_workbench.p10_visual_review_v2_routes."
+                "resolve_p10_visual_review_v2_context",
+                self.resolve_context,
             ),
             patch(
                 "autospine_workbench.p10_visual_review_v2_routes."
@@ -242,6 +277,10 @@ class P10VisualReviewV2HttpTests(unittest.TestCase):
         self.assertEqual(200, status)
         self.assertTrue(retried["reused"])
         self.assertEqual(7, self.manager.get.call_count)
+        self.assertEqual(
+            [True, True, True, True, True, False, False],
+            self.resolve_acceleration,
+        )
 
     def test_cache_hit_still_rejects_current_source_drift(self):
         image = (

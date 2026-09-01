@@ -10,7 +10,7 @@ from importlib import import_module
 from pathlib import Path
 import re
 from threading import Event, RLock
-from types import CodeType, FunctionType
+from types import FunctionType
 from typing import Any
 
 from .resolved_project import canonical_sha256
@@ -183,7 +183,7 @@ def clear_current_project_chain_cache() -> None:
 
 
 def current_manifest_algorithm_runtime_sha256() -> str:
-    """Bind source bytes plus live callables, including in-process patches."""
+    """Bind source plus ordinary live callable rebinding, path-independently."""
 
     modules = []
     for short_name in _ALGORITHM_MODULES:
@@ -218,11 +218,10 @@ def _callable_identity(name: str, value: Any, owner: str) -> dict[str, Any]:
         "type": f"{type(value).__module__}.{type(value).__qualname__}",
         "module": str(getattr(value, "__module__", "")),
         "qualname": str(getattr(value, "__qualname__", "")),
-        "process_object_id": id(value),
     }
-    code = getattr(value, "__code__", None)
-    if code is not None:
-        row["code_sha256"] = _code_sha256(code)
+    source = _source_locator(value, owner)
+    if source is not None:
+        row["source"] = source
     if isinstance(value, type) and value.__module__ == owner:
         methods = []
         for method_name, raw in sorted(vars(value).items()):
@@ -231,34 +230,28 @@ def _callable_identity(name: str, value: Any, owner: str) -> dict[str, Any]:
                 if isinstance(raw, (classmethod, staticmethod))
                 else raw
             )
-            if isinstance(target, FunctionType):
+            if isinstance(target, FunctionType) \
+                    and target.__module__ == owner:
                 methods.append(_callable_identity(method_name, target, owner))
         row["methods"] = methods
     return row
 
 
-def _code_sha256(code: CodeType) -> str:
-    """Fingerprint stable code fields without CPython's adaptive state."""
+def _source_locator(value: Any, owner: str) -> dict[str, Any] | None:
+    """Describe live code without binding the digest to CPython bytecode."""
 
-    def constant(value: Any) -> Any:
-        if isinstance(value, CodeType):
-            return {"nested_code_sha256": _code_sha256(value)}
-        if isinstance(value, bytes):
-            return {"bytes": value.hex()}
-        if value is None or type(value) in {bool, int, float, str}:
-            return value
-        if isinstance(value, tuple):
-            return [constant(item) for item in value]
-        return {"type": f"{type(value).__module__}.{type(value).__qualname__}"}
-
-    return canonical_sha256({
-        "bytecode": code.co_code.hex(),
-        "constants": [constant(value) for value in code.co_consts],
-        "names": list(code.co_names),
-        "variables": list(code.co_varnames),
-        "freevars": list(code.co_freevars),
-        "cellvars": list(code.co_cellvars),
-    })
+    code = getattr(value, "__code__", None)
+    if code is None:
+        return None
+    try:
+        module = import_module(owner)
+        owner_path = Path(str(module.__file__ or "")).resolve(strict=True)
+        code_path = Path(code.co_filename).resolve(strict=True)
+    except (OSError, RuntimeError, TypeError, ValueError):
+        return {"kind": "external"}
+    if owner_path != code_path:
+        return {"kind": "external"}
+    return {"kind": "owner", "first_line": code.co_firstlineno}
 
 
 def _simple_value(value: Any) -> Any | None:

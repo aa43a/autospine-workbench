@@ -246,7 +246,13 @@ case 都必须进入完整人工 decision，系统不自动提交或批准。页
 P10.3c v2 的展示性能加固已经交付：完整 exact URL 在单页只创建一个图片节点，拖动有防抖，
 当前帧优先且最多两张并发，只有限预取下一组；只有真实加载并显示的组才计入覆盖。服务端图片 GET
 使用有界 candidate-snapshot single-flight LRU，命中前仍重验 current context；所有权威读取与 PUT
-绕过缓存，HTTP `no-store` 和 source-drift 409 语义不变。
+绕过该图片缓存，HTTP `no-store` 和 source-drift 409 语义不变。跨重启冷启动还新增 completed-job
+持久 mount snapshot：新 job 完成时预写，旧 job 首次读取时回填；snapshot v3 显式绑定由 292 个
+静态依赖模块生成的 Preview compiler 摘要。GET 只在 exact execution、所选项目的逐字节 source/算法
+seal、P3/P5/P9 内容地址、P10.1/CaptureFraming 和 Preview/artifact 全部一致时复用；无关项目与其他
+adoption 不再触发该 mount 的完整重放。PUT 禁用快路、零 mount cache I/O，并在完整重编后执行 CAS；
+缓存不保存 decision、history 或 revision。真实 43-case job 完整回填约 `74.61 s`；随后新进程 context
+为 `3.59–3.78 s`，完整 candidate 准备为 `6.00–6.15 s`，且缓存文件未重写。
 
 旧 execution v2 驱动继承了冻结 v1 的 `--dump-dom` 与 `--virtual-time-budget`，会和异步
 collector-terminal 生命周期竞争；另一个失败窗口发生在 exact 截图已提交后，主动 teardown 与

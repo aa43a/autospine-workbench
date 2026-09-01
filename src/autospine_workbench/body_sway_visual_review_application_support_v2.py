@@ -48,6 +48,28 @@ def visual_review_revision_conflict_v2(submission, history):
     )
 
 
+def load_previous_visual_review_decision_v2(
+    store, submission, candidate, execution, preview, history,
+):
+    """Load only the exact predecessor named by the submitted CAS base."""
+
+    base, previous_sha = (
+        submission.base_revision, submission.previous_decision_sha256,
+    )
+    if base == 0:
+        return None
+    if base > history.current_revision \
+            or history.rows[base - 1].decision_sha256 != previous_sha:
+        raise visual_review_revision_conflict_v2(submission, history)
+    previous = store.load_decision(
+        candidate.document["project_id"], candidate.sha256, previous_sha,
+        candidates=candidate, execution=execution, preview=preview,
+    )
+    if previous.document["review"]["revision"] != base:
+        raise visual_review_revision_conflict_v2(submission, history)
+    return previous
+
+
 def submitted_visual_review_result_v2(
     address, candidate, document, digest, reused,
 ) -> SubmittedBodySwayVisualReviewV2:
