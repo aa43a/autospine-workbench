@@ -142,6 +142,7 @@ class WorkbenchResponseMixin:
             "document-viewer.html",
             "idle-behavior-review.html",
             "motion-instance-v3-v2.html",
+            "spine42-v3-v2.html",
             "motion-policy-review.html",
             "seam-anchor-review.html",
             "workflow-hub.html",

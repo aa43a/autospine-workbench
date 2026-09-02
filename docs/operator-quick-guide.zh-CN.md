@@ -308,8 +308,8 @@ workspace/overrides/<project-id>/
 - 在 P10.4b v2 页面用同一 `job_id` 自动运行九档 coupled-gain 与相邻时间段结构证明；`indeterminate` 按完成结果显示，只有 100% 点具备 sampled visual 覆盖，safe range 和 release 继续 blocked；
 - 从 P9 package 自动进入 Seam Anchor 页面，以叠加图、确定性建议草稿和一次最终确认完成 P10.5b，并在 ready 时继续 P10.5c exact publication/readback；
 - 在 P9 页面完成一次明确 human adoption 后，由本机编译 decision/reviewed policy、原子发布 MotionInstance v2 六文件 bundle，并立即 exact verify；CLI 仍可独立复验，review input 下载仅作备份；
-- 通过离线命令生成和验证版本中立的 Layer Manifest、RigIR、mesh、IK、MotionIR、P10.6a v1/v2 admission 与 P10.6b v1/v2 MotionInstance v3；P10.6b v2 只需项目和 P10.5d 双 SHA，自动读取 exact bundle/P9 并生成 admission，不选择文件。冻结 P10.7a v1 可生成五文件 adapter，v2 source adapter/automatic UI 是下一开发项。
-- 在操作者提供并确认有权使用官方 Spine Player 4.2.119 时，捕获 P10.7a 的固定 sampled raster 证据，复验不可变 capture，并编译逐 case、逐 setup attachment 的人工决定。
+- 通过离线命令生成和验证版本中立的 Layer Manifest、RigIR、mesh、IK、MotionIR、P10.6a/P10.6b v1/v2 与 P10.7a v1/v2；P10.7a v2 还可从 completed P10.6b 页面自动携带四个任务 ID，生成并 exact-readback 五文件 adapter，无需选择项目、文件或填写 SHA。
+- 在操作者提供并确认有权使用官方 Spine Player 4.2.119 时，用冻结 P10.7b v1 捕获 P10.7a v1 的固定 sampled raster 证据；该入口不能消费 P10.7a v2，v2 仍需下一项 runtime-source bridge。
 - 从 strict canonical 示例 Manifest 只读审计两份真实样本的 P3→P10.7b 前置；审计不会自动执行阶段、代替人审或授予发布权。
 - 使用独立 P10.7c 命令，把精确 capture 中唯一的 opaque setup 帧与既有 P6 approved golden 做零写入 RGBA 对照；该入口已交付，但真实样本仍需先补齐外部前置。
 
@@ -323,7 +323,7 @@ workspace/overrides/<project-id>/
 - 在未提供并确认授权的官方 Spine Runtime、job 未完成或尚未逐 case 人审时，把 v2 合同/测试结果声称为真实 Runtime 已执行、视觉已批准或 runtime 等价；
 - 自动授予商业使用、发布许可或生成 Spine Editor 工程。
 
-固定 Spine 4.2 profile 的冻结 v1 adapter 和验证链已经存在，但 P10.6b v2 仍需版本匹配的 P10.7a v2 source adapter。每个新 rig/clip 仍需分别完成 attachment 边界视觉回归、官方 Runtime 证据和许可审查。
+P10.7a v2 source adapter、自动页面与验证链已经存在，但它只说明 adapter 发出。每个新 rig/clip 仍需分别完成 attachment 边界视觉回归、官方 Runtime 证据和许可审查；不要把 v2 地址交给冻结 P10.7b v1。
 
 ### P3 Mesh 入口
 
@@ -338,7 +338,7 @@ python -B -m autospine_workbench verify-mesh-bundle --help
 
 ## 10. 当前阶段与下一开发入口
 
-**P9-real-kimodo-policy-adoption** 对当前 `wave-left-v1` 的 A/B 历史链已关闭；P10.2 至 P10.5d v2 自动入口、P10.6a v2 admission 和 P10.6b v2 MotionInstance bundle 机制均已交付。项目 A 的下一步仍是在当前 P10.4b run 完成并重启服务后真实执行 P10.5d–P10.6b v2；机制测试不是 A 的真实凭据。下一开发项是 P10.7a v2 source adapter/automatic UI；release/raster/Runtime/完整边界/overlap 仍 blocked。项目 B revision 16 必须完成自己的 P9/P10，并解决四条 `unobservable` 静态关系。对新的 Kimodo 输入，仍应先运行零写入准入审计：
+**当前阶段是 P10.7a-v2-automatic-entry。** P10.5d、P10.6a/P10.6b v2 与 P10.7a v2 的版本隔离机制和自动入口均已交付；机制测试不表示项目 A 已生成真实 P10.5d–P10.7a v2 凭据。下一开发项是 P10.7b v2 runtime-source bridge，且官方 Runtime 仍需操作者授权；release/raster/Runtime/完整边界/overlap 均 blocked。项目 B revision 16 必须完成自己的 P9/P10，并解决四条 `unobservable` 静态关系。对新的 Kimodo 输入，仍应先运行零写入准入审计：
 
 ```powershell
 python -B -m autospine_workbench audit-kimodo-pilot-intake `
@@ -383,7 +383,7 @@ python -B -m autospine_workbench compare-body-sway-spine42-v3-setup-golden --hel
 
 该命令需要每个项目真实的 P10.7a 与 P10.7b capture 精确地址，并同时锁定既有 P6 export/runtime golden 合同。当前 A/B 的 P9 已通过，A 也已有静态 P10.5c，但 A 的动作域、B 的完整静态 seam 和两项目官方 capture 都尚未关闭；不要用全零请求模板、P7/P8/P5 地址或 fixture 声称真实比较通过。准备 canonical 请求和读取报告见[对照 P10.7c Spine 4.2 v3 Setup Golden](how-to-compare-spine42-v3-setup-golden.md)。
 
-P0 Resolved Project v1、P10.6b v1/v2 MotionInstance v3 与冻结 P10.7a v1 Spine adapter bundle 均已完成。普通图层/关节复核不需要运行这些命令。新的 v2 链可先按
+P0 Resolved Project v1、P10.6b v1/v2 MotionInstance v3 与 P10.7a v1/v2 Spine adapter bundle 机制均已完成。普通图层/关节复核不需要运行这些命令。新的 v2 链可先按
 [编译 P10.6a v2 动作消费准入](how-to-compile-body-sway-motion-consumer-admission-v2.md)
 把认证的 P10.5d v2 bundle 与其精确 P9 MotionInstance v2 bundle 自动闭合。只从 P10.5d 回执复制两个完整 SHA，不选择 JSON 文件或填写 P9 SHA：
 
@@ -412,19 +412,38 @@ python -B -m autospine_workbench compile-body-sway-motion-instance-v3 --help
 python -B -m autospine_workbench verify-body-sway-motion-instance-v3 --help
 ```
 
-下一开发项是 P10.7a v2 source adapter 与自动化 UI。当前仅对已经得到冻结 P10.6b v1
-MotionInstance v3 双 SHA 的历史链，才可按
-[编译并复验 P10.7a Spine 4.2 v3](how-to-compile-spine42-v3.md)生成并复验五文件 adapter bundle：
+普通操作者在 P10.6b v2 页面完成后点击“继续生成 Spine 4.2 v3 Adapter”。
+[P10.7a v2 自动页面](http://127.0.0.1:8765/spine42-v3-v2.html)会携带四个任务 ID，自动校验、
+执行并精确读回固定五文件；不要单独打开无参数 URL。失败时只有点击“确认并创建新 attempt”
+才会重试，旧回执不被覆盖。成功后看见“Spine adapter 已发出”即可停止，不要继续旧 Runtime 入口。
+
+以下 v2 CLI 只供专业地址编译与历史复验：
+
+```powershell
+python -B -m autospine_workbench compile-body-sway-spine42-v3-v2 --help
+python -B -m autospine_workbench verify-body-sway-spine42-v3-v2 --help
+```
+
+compile 只填写项目和 P10.6b v2 MotionInstance v3/bundle 双 SHA；verify 只填写项目和
+skeleton/bundle 双 SHA，均不选择文件。五文件、exact readback、错误处理和权限边界见
+[自动生成并复验 P10.7a v2 Spine 4.2 v3 Adapter](how-to-compile-spine42-v3-v2.md)。
+
+冻结 v1 历史链仍按
+[编译并复验 P10.7a Spine 4.2 v3](how-to-compile-spine42-v3.md)使用自己的命令：
 
 ```powershell
 python -B -m autospine_workbench compile-body-sway-spine42-v3 --help
 python -B -m autospine_workbench verify-body-sway-spine42-v3 --help
 ```
 
-P10.7a 的发布前 head observation 仍不是永久审批权，成功结果也只声明 adapter 已发出。
+P10.7a v1/v2 的发布前 head observation 都不是永久审批权。v2 十项 authority 中只有
+`spine_adapter_emitted=true`；五文件 exact readback 不证明 overlap、动态接缝、完整边界、
+官方 Runtime、Runtime 等价、raster 视觉、永久 head、可发布 timeline 或 release。
 
-P10.7b 的捕获、精确复验、raster 候选与人工 decision 基础设施已经可用。capture 需要外部
-官方 Runtime 与显式许可确认；另外三个入口可从功能入口中心直接复制帮助命令：
+冻结 P10.7b v1 的捕获、精确复验、raster 候选与人工 decision 基础设施已经可用，但只消费
+P10.7a v1。它不能接收 P10.7a v2 skeleton/bundle SHA。下一开发项是 P10.7b v2
+runtime-source bridge；新 bridge 仍需要外部官方 Runtime 与显式许可确认，且不会由 P10.7a
+页面自动运行。下列命令只用于冻结 v1：
 
 ```powershell
 python -B -m autospine_workbench capture-body-sway-spine42-v3-runtime --help
@@ -433,7 +452,7 @@ python -B -m autospine_workbench prepare-body-sway-spine42-v3-raster-review --he
 python -B -m autospine_workbench submit-body-sway-spine42-v3-raster-review --help
 ```
 
-完整流程见[捕获并复核 P10.7b Spine 4.2 v3 Raster 证据](how-to-capture-spine42-v3-runtime.md)。
+冻结 v1 流程见[捕获并复核 P10.7b Spine 4.2 v3 Raster 证据](how-to-capture-spine42-v3-runtime.md)。
 目前仍需对两份真实 See-through 样本分别生成 P10.7a 输入、运行官方 Runtime capture，并逐
 case、逐 attachment 完成人工决定。fixture 或单个样本不能替代这项验收；通过 sampled
 decision 也不会证明连续时间安全，不会授予永久 head、可发布 timeline 或 release authority。

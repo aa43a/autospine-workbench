@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0b0e14">
+  <title>P10.7a v2 Spine 4.2 v3 Adapter — AutoSpine</title>
+  <link rel="stylesheet" href="./body-sway-review.css">
+  <link rel="stylesheet" href="./motion-instance-v3-v2.css">
+</head>
+<body>
+  <a class="skip-link" href="#spineMain">跳到 Spine adapter 生成结果</a>
+  <header class="review-topbar">
+    <div>
+      <p class="eyebrow">P10.7a v2 · AUTOMATIC SPINE ADAPTER</p>
+      <h1>生成 Spine 4.2 v3 Adapter</h1>
+    </div>
+    <nav class="review-nav" aria-label="工作台导航">
+      <a id="returnToMotionTop" class="button secondary"
+        href="./motion-instance-v3-v2.html">MotionInstance v3</a>
+      <a class="button secondary" href="./workflow-hub.html">功能入口中心</a>
+      <a class="button secondary" href="./index.html">绑定工作台</a>
+    </nav>
+  </header>
+
+  <main id="spineMain">
+    <section class="panel motion-entry" aria-labelledby="spineEntryHeading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">EXACT AUTOMATIC ENTRY</p>
+          <h2 id="spineEntryHeading">自动闭合已完成的 MotionInstance</h2>
+        </div>
+        <span id="spineBadge" class="gate-badge">等待任务</span>
+      </div>
+      <p class="lede">
+        页面从上一步自动读取唯一角色、动作与不可变证据。无需选择项目、文件或填写技术摘要；
+        来源就绪后会自动生成五文件 Spine adapter bundle。
+      </p>
+      <p id="spineStatus" class="status-line" role="status" aria-live="polite">
+        正在读取精确来源…
+      </p>
+      <div class="motion-progress">
+        <progress id="spineProgress" max="1" value="0"
+          aria-labelledby="spineProgressText"></progress>
+        <strong id="spineProgressText">自动校验来源…</strong>
+      </div>
+      <dl class="motion-attempt" aria-label="不可变生成尝试回执">
+        <div><dt>Attempt</dt><dd id="spineAttempt">—</dd></div>
+        <div><dt>状态</dt><dd id="spineAttemptState">等待创建</dd></div>
+        <div><dt>失败码</dt><dd id="spineAttemptCode">无失败码</dd></div>
+      </dl>
+    </section>
+
+    <section id="spineResult" class="motion-result" hidden>
+      <section class="panel emitted-panel" aria-labelledby="spineResultHeading">
+        <div class="emitted-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false">
+            <path d="M5 12.5 9.2 17 19 7"></path>
+          </svg>
+        </div>
+        <div>
+          <p class="eyebrow">IMMUTABLE OUTPUT</p>
+          <h2 id="spineResultHeading" tabindex="-1">Spine adapter 已发出</h2>
+          <p class="lede">
+            五文件 bundle 已按内容地址保存并完成精确读回。adapter 发出不代表官方 Runtime、
+            Raster 视觉质量或发布门禁已经通过。
+          </p>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="spineFactsHeading">
+        <p class="eyebrow">PLAIN-LANGUAGE RECEIPT</p>
+        <h2 id="spineFactsHeading">本次自动生成</h2>
+        <dl id="spineFacts" class="motion-facts"></dl>
+        <h3>已密封文件</h3>
+        <ol id="spineInventory" class="motion-inventory"></ol>
+      </section>
+
+      <section class="panel" aria-labelledby="spineScopeHeading">
+        <p class="eyebrow">CAPABILITY BOUNDARY</p>
+        <h2 id="spineScopeHeading">已完成与仍阻塞</h2>
+        <ul id="spineScopes" class="motion-scopes"></ul>
+      </section>
+
+      <section class="panel motion-release" aria-labelledby="spineReleaseHeading">
+        <p class="eyebrow">NEXT GATE</p>
+        <h2 id="spineReleaseHeading">P10.7b v2 Runtime source bridge 尚未进入</h2>
+        <p class="lede">
+          系统不会把 v2 bundle 交给旧版采集入口，也不会自动运行外部或授权 Runtime。
+          待 v2 bridge 与采集边界显式升级并测试后，才会开放专业入口。
+        </p>
+        <ul id="spineReleaseReasons" class="reason-list"></ul>
+      </section>
+    </section>
+
+    <section id="spineFailure" class="panel motion-failure" hidden
+      aria-labelledby="spineFailureHeading">
+      <p class="eyebrow">IMMUTABLE SAFE RECOVERY</p>
+      <h2 id="spineFailureHeading">没有生成 Spine adapter</h2>
+      <p id="spineFailureMessage" class="lede"></p>
+      <div class="motion-actions">
+        <button id="retrySpineBtn" class="button primary" type="button">
+          确认并创建新 attempt
+        </button>
+        <a id="returnToMotionLink" class="button secondary"
+          href="./motion-instance-v3-v2.html">返回 MotionInstance v3</a>
+        <a class="button secondary" href="./workflow-hub.html">返回功能入口中心</a>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="./modules/spine42-v3-v2-app.js"></script>
+</body>
+</html>

@@ -41,15 +41,15 @@ class WorkflowHubCatalogTests(unittest.TestCase):
             entry["command"] for entry in self.entries
             if entry["kind"] == "cli"
         }
-        self.assertEqual(74, len(commands))
+        self.assertEqual(76, len(commands))
         self.assertEqual(commands, catalog_commands)
 
     def test_entries_have_unique_ids_and_supported_taxonomy(self) -> None:
         ids = [entry["id"] for entry in self.entries]
         self.assertEqual(len(ids), len(set(ids)))
-        self.assertEqual(104, len(ids))
+        self.assertEqual(107, len(ids))
         self.assertEqual(
-            {"cli": 74, "page": 12, "planned": 18},
+            {"cli": 76, "page": 13, "planned": 18},
             {
                 kind: sum(entry["kind"] == kind for entry in self.entries)
                 for kind in ("cli", "page", "planned")
@@ -86,6 +86,7 @@ class WorkflowHubCatalogTests(unittest.TestCase):
             "./body-sway-safety-analysis-v2.html",
             "./body-sway-dynamic-seam-v2.html",
             "./motion-instance-v3-v2.html",
+            "./spine42-v3-v2.html",
             "./idle-behavior-review.html",
             "./motion-policy-review.html",
             "./seam-anchor-review.html",
@@ -96,9 +97,9 @@ class WorkflowHubCatalogTests(unittest.TestCase):
         for href in pages:
             self.assertTrue((ROOT / "web" / href.removeprefix("./")).is_file())
 
-    def test_current_stage_names_the_v2_motion_instance_automatic_entry(self) -> None:
+    def test_current_stage_names_the_v2_spine_adapter_automatic_entry(self) -> None:
         self.assertEqual(
-            "P10.6b-v2-automatic-entry",
+            "P10.7a-v2-automatic-entry",
             self.catalog["current_stage"],
         )
         entry = next(
@@ -162,6 +163,27 @@ class WorkflowHubCatalogTests(unittest.TestCase):
         )
         self.assertIn("MotionInstance v3/bundle 双 SHA", verifier["summary"])
         self.assertIn("无需选择文件", verifier["summary"])
+        spine_page = next(
+            entry for entry in self.entries
+            if entry["id"] == "page-spine42-v3-v2"
+        )
+        self.assertEqual("./spine42-v3-v2.html", spine_page["href"])
+        self.assertIn("motion_run_id", spine_page["summary"])
+        self.assertIn("无需选择项目、文件或填写 SHA", spine_page["summary"])
+        self.assertIn("只授予 spine_adapter_emitted", spine_page["summary"])
+        self.assertIn("P10.7b v1 不消费", spine_page["summary"])
+        spine_compile = next(
+            entry for entry in self.entries
+            if entry["id"] == "cli-compile-body-sway-spine42-v3-v2"
+        )
+        self.assertIn("MotionInstance v3/bundle 双 SHA", spine_compile["summary"])
+        self.assertIn("不选择文件", spine_compile["summary"])
+        spine_verify = next(
+            entry for entry in self.entries
+            if entry["id"] == "cli-verify-body-sway-spine42-v3-v2"
+        )
+        self.assertIn("skeleton/bundle 双 SHA", spine_verify["summary"])
+        self.assertIn("不选择文件或读取 current heads", spine_verify["summary"])
 
     def test_motion_policy_page_describes_python_preflight_without_authority(self) -> None:
         entry = next(

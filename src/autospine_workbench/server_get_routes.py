@@ -36,6 +36,11 @@ from .p10_motion_instance_v3_v2_routes import (
     p10_motion_instance_v3_v2_allow_methods,
     send_p10_motion_instance_v3_v2_method_not_allowed,
 )
+from .p10_spine42_v3_v2_routes import (
+    dispatch_p10_spine42_v3_v2_get,
+    p10_spine42_v3_v2_allow_methods,
+    send_p10_spine42_v3_v2_method_not_allowed,
+)
 from .p10_visual_review_v2_routes import dispatch_p10_visual_review_v2_get
 from .project_routes import dispatch_project_get
 from .seam_anchor_review_routes import (
@@ -49,10 +54,18 @@ def dispatch_workbench_api_get(
     safety_analysis_v2_manager,
     dynamic_seam_v2_manager,
     motion_instance_v3_v2_manager,
+    spine42_v3_v2_manager,
     visual_review_v2_image_sessions, handler,
 ) -> bool:
     """Dispatch one API read while preserving route-family method policy."""
 
+    if p10_spine42_v3_v2_allow_methods(parts) == "POST, OPTIONS":
+        send_p10_spine42_v3_v2_method_not_allowed(parts, handler)
+        return True
+    if dispatch_p10_spine42_v3_v2_get(
+        parts, spine42_v3_v2_manager, handler,
+    ):
+        return True
     if p10_motion_instance_v3_v2_allow_methods(parts) == "POST, OPTIONS":
         send_p10_motion_instance_v3_v2_method_not_allowed(parts, handler)
         return True

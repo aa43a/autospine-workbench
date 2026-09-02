@@ -13,6 +13,7 @@ from .p10_motion_instance_v3_manager_v2 import (
 from .p10_safety_analysis_manager_v2 import (
     P10SafetyAnalysisManagerV2Error,
 )
+from .p10_spine42_v3_manager_v2 import P10Spine42V3ManagerV2Error
 
 
 Factory = Callable[..., Any]
@@ -24,9 +25,11 @@ class WorkbenchManagerSet:
     safety_analysis_v2: Any
     dynamic_seam_v2: Any
     motion_instance_v3_v2: Any
+    spine42_v3_v2: Any
 
     def close_after_bind_failure(self) -> None:
         _close_in_order(
+            self.spine42_v3_v2,
             self.motion_instance_v3_v2,
             self.dynamic_seam_v2,
             self.safety_analysis_v2,
@@ -40,6 +43,7 @@ def start_workbench_managers(
     safety_factory: Factory,
     dynamic_seam_factory: Factory,
     motion_instance_factory: Factory,
+    spine42_factory: Factory,
 ) -> WorkbenchManagerSet:
     """Start managers in dependency order and close predecessors on failure."""
 
@@ -70,11 +74,19 @@ def start_workbench_managers(
         raise OSError(
             "P10.6b v2 MotionInstance manager could not start."
         ) from exc
+    try:
+        spine42 = spine42_factory(store)
+    except P10Spine42V3ManagerV2Error as exc:
+        _close_in_order(motion_instance, dynamic_seam, safety, capture)
+        raise OSError(
+            "P10.7a v2 Spine adapter manager could not start."
+        ) from exc
     return WorkbenchManagerSet(
         capture=capture,
         safety_analysis_v2=safety,
         dynamic_seam_v2=dynamic_seam,
         motion_instance_v3_v2=motion_instance,
+        spine42_v3_v2=spine42,
     )
 
 

@@ -87,9 +87,9 @@ exact Layer Manifest + exact P3 static bundle
                                         ↓
         P10.6b version-matched MotionInstance v3 bundle
                                        ↓
-             P10.7a Spine 4.2 v3 bundle
+        P10.7a version-matched Spine 4.2 v3 bundle
                                        ↓
-       [external] P10.7b Runtime/raster gate
+ P10.7b v2 runtime-source bridge → [external] Runtime/raster gate
                                        ↓
        exact-address, zero-write readiness v1 audit
                 (frozen; checkpoint 8 remains missing)
@@ -137,6 +137,7 @@ web    → HTTP contracts only
 - P10.6a v2 source 显式绑定 P10.5d source/probe/bundle、P9、Manifest/P3/target/timing 与 Preview v2。pure core 只构造 unit-gain、setup-local、版本中立 motion domain；detached validator 由两份 exact bundle 重编，seal 前后重新观察 visual-v2 与 seam-v1 current heads。
 - P10.6a v1/v2 都不发出 MotionInstance v3、adapter 或 Spine timeline。其内部与 CLI 外层 head observation scope 都固定为 `compile_time`；完整 attachment overlap/边界、raster/视觉、runtime、publishable timeline 和 release authority 保持 blocked。冻结 P10.6b v1 只消费 v1 wrapper；已交付 P10.6b v2 只凭项目与 P10.5d probe/bundle 双 SHA 自动生成、复验 v2 admission 和 P9，不选择文件。
 - P10.6b v2 prepared pipeline 在同一 reader-issued P10.5d/P9 上生成 core、seal admission、detached replay 并编译 payload；ordinary direct construction 与 `dataclasses.replace` 不能发放 prepared provenance。payload 继续是 MotionInstance format v3，只有 admission/source、bundle address domain 和 run contract 升级到 v2。固定 inventory 为 `body-sway-motion-consumer-admission-v2.json`、`motion-instance-v3.json`、`run-manifest-v2.json`；v1/v2 reader 互不接受对方地址。
+- P10.7a v2 只消费 reader-issued P10.6b v2 地址，以独立 source contract、adapter profile、skeleton hash、run/report 合同和 `spine42-v3-v2` filesystem namespace 隔离冻结 v1。固定五文件 exact reader 会重建 `skeleton.json`、`skeleton.atlas`、`skeleton.png`、`run-manifest.json` 与 `export-report.json`；compile 观察 current heads，历史 verify 不观察或授予 current authority。
 - Kimodo 的 raw NPZ、source sidecar 与 map 是三个独立输入。sidecar 解释数组/FPS/producer，map 决定投影/角色/contact；两者都不得根据文件名、数组数量或相邻目录隐式发现。
 - 所有同卷目录发布统一经 `atomic_staging.create_same_parent_staging` 创建 staging。POSIX 保留 owner-only `mkdtemp`；Windows 不传 `0o700`，以不可预测名称和原子 `mkdir()` 继承 publication parent 的 DACL，再由同卷 rename 发布。这样不会把 Python 3.14 `mkdtemp` 的 protected creator-only DACL 带到最终 bundle；碰撞、失败清理、并发收敛、固定 inventory 与发布后 exact readback 语义保持不变。历史受限 ACL 只允许通过另行授权、精确地址、前后字节/哈希不变的窄范围迁移处理，禁止对整个 state tree 递归重置权限。
 
@@ -554,14 +555,31 @@ attachment overlap/完整边界、raster/视觉、Runtime、永久 head、Spine 
 独立 `spine42-v3/<skeleton-sha>/<bundle-sha>` 地址空间；store 和公开命令均执行 current-head
 门禁，发布后 exact reader 会从完整上游逐字节重建。旧 P6 profile/hash 不变，未知能力 fail
 loud。run 只开放 adapter emitted，官方 Runtime/raster、永久 head、publishable timeline 和
-release authority 均保持 blocked。它不能静默读取 P10.6b v2 source contract；下一项是
-P10.7a v2 source adapter 与面向普通操作者的自动化 UI。
+release authority 均保持 blocked。它不能静默读取 P10.6b v2 source contract。
 
-P10.7b 用固定官方 Runtime/浏览器身份、case plan、完整 setup attachment isolate 与 sampled
+P10.7a v2 已用新的 source contract 显式绑定 P10.6b v2 的 MotionInstance、bundle、admission、
+P10.5d/P9、目标 profile、base retarget、P3 与 RigIR 身份。Spine skeleton 内容继续由同一受限
+adapter shape 生成，但 skeleton hash、run/report format v2、bundle identity 和
+`spine42-v3-v2/<skeleton-sha>/<bundle-sha>` 地址空间均独立。固定 inventory 为
+`skeleton.json`、`skeleton.atlas`、`skeleton.png`、`run-manifest.json` 和
+`export-report.json`；发布后 exact readback 与历史重放会逐字节重建全部五项。普通页面只从
+completed P10.6b URL 接受 `job_id+safety_run_id+dynamic_run_id+motion_run_id`，自动执行
+inspect/start/poll/result，不接收项目、文件或 SHA。append-only failure attempt 只有在确认后才会
+重试。专业 compile 只收项目与 MIv3/bundle 双 SHA，verify 只收项目与 skeleton/bundle 双 SHA。
+完整入口见[自动生成并复验 P10.7a v2 Spine 4.2 v3 Adapter](how-to-compile-spine42-v3-v2.md)。
+
+v2 run 的十项 authority 中只有 `spine_adapter_emitted=true`；attachment overlap、dynamic seam
+safety、完整边界、官方 Runtime、Runtime 等价、raster 视觉、永久 head、publishable timeline
+和 release authority 都固定 false/blocked。当前 P10.7b capture/reader 属于冻结 v1，不能消费
+上述 v2 地址。下一边界是 P10.7b v2 runtime-source bridge；它必须保持官方 Runtime 的外部授权
+要求，P10.7a 页面不会自动运行它。
+
+P10.7b v1 用固定官方 Runtime/浏览器身份、case plan、完整 setup attachment isolate 与 sampled
 raster 指标形成不可变 capture；candidate 和完整 human decision 保持分离。其后的 readiness
 v1 不是新的发布编译阶段：strict canonical request 只声明 Manifest/P3 与可选 P9、P10.5c、
 P10.6b、P10.7a、capture 和 decision 精确地址，reader 按声明调用现有只读 pure replay
-compiler/validator 重建并验证 exact artifacts，再输出八个固定 checkpoint。v1 Schema、哈希和
+compiler/validator 重建并验证 exact artifacts，再输出八个固定 checkpoint。这条冻结链只接受
+P10.7a v1，不能把 P10.7a v2 skeleton/bundle SHA 送入。v1 Schema、哈希和
 checkpoint 语义已经冻结，第八项仍固定为 missing；P10.7c 不反向扩写它。`null` 地址只产生
 未声明原因；尤其 A 的空 P10.5c 地址不能被解释为 review head 为空。B 的四条不可观测关系则
 来自精确 P3 candidate 的 replay evidence。

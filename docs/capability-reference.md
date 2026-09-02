@@ -300,24 +300,37 @@ server/job/UI 自动入口已接入，普通用户可从 P10.4b 完成态一键�
 
 ### P10.7a：Spine 4.2 v3 Adapter Bundle
 
+普通操作入口是[P10.7a v2 自动生成页面](http://127.0.0.1:8765/spine42-v3-v2.html)。它只从
+completed P10.6b v2 页面进入，自动携带 `job_id`、`safety_run_id`、`dynamic_run_id` 与
+`motion_run_id`，自动 inspect/start/poll/result；无需选择项目、文件或填写 SHA。失败回执
+append-only，确认重试才会创建新 attempt。
+
 | 命令 | 功能 |
 | --- | --- |
 | `compile-body-sway-spine42-v3` | 冻结 v1 source adapter：从 v1-source MIv3 双 SHA 重放 P9/P5/P3，在 current-head 门禁下发布五文件 Spine 4.2 v3 bundle，并按地址读回 |
 | `verify-body-sway-spine42-v3` | 按 skeleton/bundle 双 SHA 重建完整上游和五文件历史产物，不读取 current heads |
+| `compile-body-sway-spine42-v3-v2` | v2 source adapter：只凭项目与 P10.6b v2 MIv3/bundle 双 SHA重放独立来源合同，在 current-head 门禁下发布五文件 bundle 并 exact-readback；不选择文件 |
+| `verify-body-sway-spine42-v3-v2` | 只凭项目与 skeleton/bundle 双 SHA从 `spine42-v3-v2` 历史地址重建完整上游、run/report 和五文件；不选择文件或读取 current heads |
 
-操作说明：[编译并复验冻结 P10.7a Spine 4.2 v3](how-to-compile-spine42-v3.md)。run 只授予 `spine_adapter_emitted`；官方 Runtime、raster、永久 head、publishable timeline 和 release authority 仍为 false/blocked。该入口不会静默接受 P10.6b v2 bundle；下一项是 P10.7a v2 source adapter/automatic UI，之后 P10.7b 才能从对应 v2 adapter 地址开始。
+操作说明：[冻结 v1](how-to-compile-spine42-v3.md)、[P10.7a v2 自动入口与专业 CLI](how-to-compile-spine42-v3-v2.md)。v2 使用独立 source contract、adapter profile、skeleton hash、run/report 合同和 `spine42-v3-v2/<skeleton-sha>/<bundle-sha>` 地址域；五文件固定为 `skeleton.json`、`skeleton.atlas`、`skeleton.png`、`run-manifest.json`、`export-report.json`，compile 发布后 exact-readback，历史 verify 从上游逐字节重建。两版地址不能交叉读取。
 
-### P10.7b：官方 Runtime 与 Sampled Raster 证据
+v2 run 十项 authority 中只有 `spine_adapter_emitted=true`。attachment overlap、dynamic seam safety、完整边界、官方 Runtime、Runtime 等价、raster 视觉、永久 head、publishable timeline 与 release authority 均为 false/blocked。机制交付不表示真实样本 A 已生成这份凭据。
+
+### P10.7b v1：官方 Runtime 与 Sampled Raster 证据
 
 | 命令 | 状态 | 功能 |
 | --- | --- | --- |
-| `capture-body-sway-spine42-v3-runtime` | `external_required` | 用操作者提供并确认有权使用的官方 Spine Player 4.2.119 与本机 Chrome，捕获固定 case 的 composite 和全部 setup attachment isolate，计算 sampled raster 指标并发布不可变 evidence |
-| `verify-body-sway-spine42-v3-runtime` | `available` | 按 P10.7a/capture 双 SHA 复验目录库存、PNG、metrics、manifest 与精确 P10.7a 来源 |
+| `capture-body-sway-spine42-v3-runtime` | `external_required` | 冻结 v1：用操作者提供并确认有权使用的官方 Spine Player 4.2.119 与本机 Chrome，捕获固定 case 的 composite 和全部 setup attachment isolate，计算 sampled raster 指标并发布不可变 evidence |
+| `verify-body-sway-spine42-v3-runtime` | `available` | 按 P10.7a v1/capture 双 SHA 复验目录库存、PNG、metrics、manifest 与精确 v1 来源 |
 | `prepare-body-sway-spine42-v3-raster-review` | `available` | 从精确 capture 只读编译逐 case、逐 attachment 的 candidate，不作人工批准声明 |
 | `submit-body-sway-spine42-v3-raster-review` | `available` | 将覆盖全部 candidate 行的显式人工输入编译为 path-free decision；不发布 revision 或 release authority |
 | `audit-body-sway-spine42-v3-readiness` | `available` | 用只读 pure replay compiler/validator 复验 strict canonical 请求中的精确地址并报告八个 checkpoint；不扫描 latest/current review head，也不运行外部阶段、Runtime、发布或写入 |
 
 capture manifest 会记录 runtime JS/CSS、`package.json`、`LICENSE`、浏览器、capture plan、P10.7a 来源与 PNG 摘要。`LICENSE` 文件存在不等于已经取得授权，许可确认仍由操作者负责。
+
+这些现有命令和 reader 只消费 P10.7a v1，不能接受 P10.7a v2 skeleton/bundle SHA。下一项是
+P10.7b v2 runtime-source bridge：显式升级 source reader 后，仍须由操作者授权官方 Runtime，
+不得由 P10.7a v2 自动页面直接触发外部采集。
 
 指标只以 `alpha >= 1` 的二值掩码比较捕获计划内 transparent composite 与 attachment isolate union，并检查 missing/extra/xor、边界、裁切和非空 isolate。人工 decision 只覆盖同一组 sampled case 与 setup attachment inventory。两者都不证明未采样时间、连续 runtime raster safety、永久 current-head authority、publishable timeline 或 release authority；release gate 始终 blocked。
 

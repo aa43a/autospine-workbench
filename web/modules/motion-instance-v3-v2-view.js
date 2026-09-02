@@ -7,6 +7,7 @@ const IDS = [
   "motionScopes", "motionReleaseReasons", "motionTechnical",
   "motionFailure", "motionFailureHeading", "motionFailureMessage",
   "retryMotionBtn", "returnToSeamLink", "returnToSeamTop",
+  "continueSpineLink",
 ];
 
 const FILE_LABELS = Object.freeze({

@@ -59,7 +59,7 @@ from .p10_safety_analysis_v2_cli import (
     add_p10_safety_analysis_v2_subcommands,
     dispatch_p10_safety_analysis_v2_command,
 )
-from .p10_spine42_v3_cli import (
+from .p10_spine42_v3_stage_cli import (
     add_p10_spine42_v3_subcommands,
     dispatch_p10_spine42_v3_command,
 )

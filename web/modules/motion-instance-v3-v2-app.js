@@ -10,6 +10,7 @@ import {
   renderMotionInstanceV3V2Run,
 } from "./motion-instance-v3-v2-view.js";
 import { requireReviewJobId } from "./body-sway-review-v2-contract.js";
+import { spine42V3V2Href } from "./spine42-v3-v2-contract.js";
 
 const elements = motionInstanceV3V2Elements(document);
 let ids = null;
@@ -68,6 +69,10 @@ async function generate(startNew) {
     });
     if (token !== generation) return;
     if (outcome.kind === "completed") {
+      elements.continueSpineLink.href = spine42V3V2Href(
+        ids.jobId, ids.safetyRunId, ids.dynamicRunId,
+        outcome.result.run.runId,
+      );
       renderMotionInstanceV3V2Result(elements, outcome.result);
     } else {
       renderMotionInstanceV3V2Failure(
