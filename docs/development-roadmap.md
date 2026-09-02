@@ -1,6 +1,6 @@
 # AutoSpine Workbench 后续开发路线
 
-本文是 Explanation 与交付计划，面向维护者和需要评估可行性的项目负责人。P10.3、P10.4a/b v2、P10.5d v2、P10.6a/P10.6b v2，以及 P10.7a v2 Spine adapter 的版本隔离合同与自动入口均已交付。P10.7a v2 从 completed P10.6b 自动携带四个任务 ID，以独立 source contract、skeleton hash、run/report 和地址 namespace 生成并 exact-readback 固定五文件；普通页面没有项目、文件或 SHA 输入。成功只授予 `spine_adapter_emitted`，不表示真实样本 A 已形成该凭据。下一开发项是 P10.7b v2 runtime-source bridge；官方 Runtime 授权、raster、视觉、完整边界、overlap 与 release 仍 blocked。样本 B revision 16 必须沿自己的 current chain 继续；v1 合同保持冻结。
+本文是 Explanation 与交付计划，面向维护者和需要评估可行性的项目负责人。P10.3、P10.4a/b v2、P10.5d v2、P10.6a/P10.6b v2、P10.7a v2 Spine adapter 自动入口，以及 P10.7b v2 只读 runtime-source bridge 均已交付。bridge 从精确 P10.7a v2 skeleton/bundle 双 SHA生成版本隔离的 blocked source admission 与 capture plan，但没有 CLI/UI、session、runner、evidence、raster 或 Runtime 执行。下一切片是 v2 sessions/runner，再接 evidence/store 与自动授权入口；官方 Runtime 授权、视觉、完整边界、overlap 与 release 仍 blocked。机制测试不表示真实样本 A 已形成相应凭据。样本 B revision 16 必须沿自己的 current chain 继续；v1 合同与输出哈希保持冻结。
 
 P9 页面现已增加 pending draft 自动发现与一键晋级入口。它会自动选择唯一 current 草案，显示角色与 setup 遮挡关系，并在一次明确确认后生成正式 Depth policy、Depth candidates 和新的 exact review package。草案晋级不等于最终 P9 adoption；候选仍须复核，并再次明确提交最终 human adoption。旧 P9 以及依赖旧 P3/P9 的 P10/P10.5 决定只保留历史证据。canvas-only 的新链不会放宽 v1，而是通过已经交付的 CaptureFraming decision、Preview v2、official Runtime execution v2 与 P10.3c v2 review 承接 setup、base、combined 完整包络。
 
@@ -28,8 +28,10 @@ P10.1、P10.2 或 P10.5 数字只代表历史固定链；A revision 6 current P1
 | 已交付 | P10.4b 证明 worker 进程隔离 | evidence schema/hash 与 strict revalidation 保持不变；CPU 密集区间证明已移出 HTTP 进程，盒级心跳、进程树终止和父端结果复验均已实现 |
 | P0 | B revision 16 的 seam 能力重验 | 历史链 P9/seam 可精确复验，但四条下肢不可观测不能外推到 r16；须按新 Manifest/P3/candidate 重验后，才能选择上游修复或版本化 partial 合同 |
 | P0 | P10.7c setup golden 独立回归 | 零写入入口已交付；真实执行仍依赖 exact P10.7a/capture 与批准 P6 基线，readiness v1 保持冻结且第八项仍 missing |
-| P0 | P10.7b v2 runtime-source bridge | P10.7a v2 已形成独立地址链；冻结 P10.7b v1 reader 不消费它，须显式升级 source contract，同时保留官方 Runtime 授权与外部执行边界 |
-| P0 | P10.7b 两份真实样本验收 | v1 Runtime/capture/metrics/review 基础设施已存在，但不能替代 v2 bridge，也不能替代 A/B 各自真实 P10.5d–P10.7a v2 凭据、官方 Runtime 和人工决定 |
+| 已交付 | P10.7b v2 只读 runtime-source bridge | 从精确 P10.7a v2 双 SHA生成版本隔离的 blocked plan/admission；不提供 CLI/UI、session、runner、evidence 或 Runtime 权限，冻结 v1 输出哈希不变 |
+| P0 | P10.7b v2 sessions/runner | 在只读 bridge 后增加可恢复 session 与受控 runner；仍不得绕过官方 Runtime 授权，也不得直接授予 evidence/raster/release |
+| P0 | P10.7b v2 evidence/store 与自动授权入口 | runner 稳定后再封存 evidence、exact reader/store 与非专业授权入口；失败、重试和外部许可必须显式且可审计 |
+| P0 | P10.7b 两份真实样本验收 | v1 Runtime/capture/metrics/review 基础设施已存在，但不能替代 v2 sessions/evidence 链，也不能替代 A/B 各自真实 P10.5d–P10.7a v2 凭据、官方 Runtime 和人工决定 |
 | P1 | Revision 历史浏览/恢复 UI | 历史已不可变保存，但操作者尚不能便捷查看或安全恢复 |
 | P1 | 主工作台 Spine 导出编排入口 | 离线 P6 已完成，主项目能力仍明确为 `export_spine=false` |
 | P1 | Attachment switch 基础合同 | 眨眼和口型的共同前置能力 |
@@ -52,7 +54,11 @@ P10.6b v1/v2 MotionInstance v3（均已完成，来源合同隔离）
         ↓
 P10.7a v1 Spine 4.2 adapter（已完成并冻结）/ v2 source adapter + automatic UI（已交付）
         ↓
-P10.7b v2 runtime-source bridge（下一开发项；官方 Runtime 需授权）
+P10.7b v2 read-only runtime-source bridge（已交付；不运行 Runtime）
+        ↓
+P10.7b v2 sessions/runner（下一切片；官方 Runtime 需授权）
+        ↓
+P10.7b v2 evidence/store + automatic authorization entry
         ↓
 P10.7b v1 capture/metrics/review 基础设施（已完成；不消费 v2）
         ↓
@@ -329,8 +335,9 @@ fail closed。命令零写入，成功输出 path-free admission 和 compile-tim
 版本隔离的 P10.6b v2 admission/source/bundle/run/reader 已交付。setup-local track payload
 语义未改变，因此输出仍使用 MotionInstance v3；冻结 P10.6b v1 不会静默接收 v2 admission，
 也没有仅为来源版本变化创建 MotionInstance v4。真实 A 仍需先完成当前 P10.4b run 并实际执行
-P10.5d–P10.7a v2，测试 fixture 不能作为这条真实凭据。P10.7a v2 source adapter 与自动 UI
-已交付；下一开发项是 P10.7b v2 runtime-source bridge。
+P10.5d–P10.7a v2，测试 fixture 不能作为这条真实凭据。P10.7a v2 source adapter、自动 UI 与
+P10.7b v2 只读 runtime-source bridge 已交付；下一切片是 v2 sessions/runner，再接
+evidence/store 与自动授权入口。
 
 ## 已完成横向前置：Resolved Project v1
 
@@ -486,11 +493,26 @@ P10.7a v2 已交付独立 source contract、adapter profile、skeleton hash、ru
 `spine_adapter_emitted=true`；attachment overlap、dynamic seam safety、完整边界、官方 Runtime、
 Runtime 等价、raster、永久 head、publishable timeline 和 release authority 均为 false/blocked。
 
-机制通过不等于真实 A 已完成 P10.7a v2。下一项是 P10.7b v2 runtime-source bridge：冻结
-P10.7b v1 capture/reader 不能消费 v2 skeleton/bundle SHA。新 bridge 必须显式版本化 source reader，
-并继续要求操作者授权官方 Spine Runtime；P10.7a v2 页面不得自动运行外部采集。
+机制通过不等于真实 A 已完成 P10.7a v2。冻结 P10.7b v1 capture/reader 不能消费 v2
+skeleton/bundle SHA，P10.7a v2 页面也不得自动运行外部采集。
 
-## P10.7b v1：Raster 基础设施已交付，v2 Bridge 与真实双样本验收待完成
+## 已完成：P10.7b v2 只读 Runtime Source Bridge
+
+这一切片只提供版本隔离的 Python bridge。它按项目、P10.7a v2 skeleton SHA 与 bundle SHA
+调用 exact reader 历史重放固定五文件，不读取 current heads，再确定性生成
+`official-runtime-capture-plan-v2.json` 与 `official-runtime-source-admission-v2.json`。
+source contract、runtime profile、plan 和 admission 使用独立 v2 哈希域；v1 来源、跨版本重封装
+或任一上游篡改均 fail closed。
+
+admission 只开放 `p10_7a_v2_exact_replayed` 与 `bounded_capture_plan_emitted`。官方 Runtime、
+Runtime 等价、raster 指标/视觉、人审、永久 head、可发布 timeline 与 release authority 全部
+false，gate 固定 blocked。当前没有 store、CLI、UI、session、runner、capture evidence 或 raster
+结果，也没有运行官方 Runtime。冻结 v1 reader、合同和输出哈希保持不变。
+
+下一切片是 v2 sessions/runner；稳定后再接 evidence/store 与自动授权入口。只有在操作者明确
+授权官方 Runtime 后，后续 runner 才能进入外部执行，且一次执行仍不能自动获得视觉或发布权。
+
+## P10.7b v1：Raster 基础设施已交付，v2 真实双样本验收待完成
 
 **当前优先级：P0。基础设施可用；真实资产验收仍需要外部授权环境。**
 
@@ -567,9 +589,10 @@ See-through 分层，并让新的 Manifest/P3/candidate 内容地址失效旧决
 4. B 在 Motion Policy 页面完成 r16 P9 adoption，再重建 P10.0/P10.1/P10.2；针对 2 可审 + 4 `unobservable` 的 current seam candidate 先修复上游或批准独立 partial 合同。
 5. 在精确 P9/P10.5d v2 地址上运行已交付的 P10.6a/P10.6b v2；每次只使用实际生成的双 SHA，不能把 v2 admission 或 bundle 交给冻结 v1 consumer。
 6. 从 P10.6b v2 成功页进入已交付的 P10.7a v2 自动页面，生成并 exact-readback 版本匹配的五文件 adapter；只记录实际回执，不把机制测试当作 A/B 凭据。
-7. 开发 P10.7b v2 runtime-source bridge，让新 reader 显式消费 P10.7a v2 地址；冻结 v1 入口继续拒绝 v2。
-8. 经操作者确认官方 Runtime 授权后，用 v2 bridge 执行 capture、精确复验和逐 case/attachment 人工决定。
-9. 使用已交付的 `compare-body-sway-spine42-v3-setup-golden` 独立比较 setup case 与既有 P6 approved golden。readiness v1 已冻结且不会消费这份报告；即使前八项通过，它的第八项仍保持 missing，只会给出 `ready_for_p6_setup_comparison`。
+7. 用已交付的 P10.7b v2 只读 bridge，从同一 P10.7a v2 双 SHA重放出 blocked source admission 与 capture plan；它没有可操作入口，不能执行 Runtime。
+8. 开发 v2 sessions/runner，再接 evidence/store 与自动授权入口；冻结 v1 入口继续拒绝 v2。
+9. 经操作者确认官方 Runtime 授权后，用完整 v2 链执行 capture、精确复验和逐 case/attachment 人工决定。
+10. 使用已交付的 `compare-body-sway-spine42-v3-setup-golden` 独立比较 setup case 与既有 P6 approved golden。readiness v1 已冻结且不会消费这份报告；即使前述检查通过，它的第八项仍保持 missing，只会给出 `ready_for_p6_setup_comparison`。
 
 进入真实验收的条件：请求中每条依赖均由 exact reader 复验，A 的 seam 决定来自真实人审，B
 满足明确选择的完整或新 partial 合同，官方 capture 与 raster decision 均与同一 P10.7a 地址
@@ -591,7 +614,7 @@ readiness v1 的 Schema、哈希和八项 checkpoint 已冻结；第八项仍固
 `p6_setup_golden_comparison_not_declared`。P10.7c 使用独立合同，避免让旧请求或报告静默获得新含义。
 当前只能确认机制与既有 P6 批准基线可被严格验证，不能声称真实 A/B 通过：共享的
 `wave-left-v1` 历史链已到达 P7/P8、两个目标 P5 与各自 exact replay 通过的 P9；A r6 已完成
-current P9/P10 与 P10.5c 静态集；P10.5d v2、P10.6a/P10.6b v2 和 P10.7a v2 自动机制已交付，但仍缺真实 P10.5d–P10.7a v2 凭据、P10.7b v2 runtime-source bridge 及其后续真实 capture；B r16 仍停在
+current P9/P10 与 P10.5c 静态集；P10.5d v2、P10.6a/P10.6b v2、P10.7a v2 自动机制和 P10.7b v2 只读 runtime-source bridge 已交付，但仍缺真实 P10.5d–P10.7a v2 凭据、v2 sessions/runner、evidence/store、自动授权入口及其后续真实 capture；B r16 仍停在
 新 P9 草案及 2 可审 + 4 `unobservable` 静态关系。只有这些前置关闭后，
 才能生成真实 canonical 请求并执行两项目对照。当前 stdout
 报告仍是临时、不可寻址工件；进入 readiness v2 前还要交付封存 request/report、批准合同和批准

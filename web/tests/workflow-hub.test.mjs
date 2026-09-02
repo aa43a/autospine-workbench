@@ -50,8 +50,8 @@ const EXPECTED_COMMANDS = [
 
 test("catalog is valid and matches all 76 CLI entry points", () => {
   assert.equal(validateCatalog(catalog), catalog);
-  assert.equal(catalog.catalog_version, "1.5.0");
-  assert.equal(catalog.current_stage, "P10.7a-v2-automatic-entry");
+  assert.equal(catalog.catalog_version, "1.5.1");
+  assert.equal(catalog.current_stage, "P10.7b-v2-runtime-source-bridge");
   const commands = catalog.entries.filter(({ kind }) => kind === "cli").map(({ command }) => command);
   assert.deepEqual(new Set(commands), new Set(EXPECTED_COMMANDS));
   assert.equal(commands.length, EXPECTED_COMMANDS.length);
@@ -115,6 +115,12 @@ test("catalog exposes all pages, all stage groups, and explicit delivery states"
   assert.match(spinePage.summary, /无需选择项目、文件或填写 SHA/);
   assert.match(spinePage.summary, /只授予 spine_adapter_emitted/);
   assert.match(spinePage.summary, /P10\.7b v1 不消费/);
+  const nextSlice = catalog.entries.find(({ id }) => (
+    id === "planned-real-sample-spine42-v3-raster-acceptance"
+  ));
+  assert.match(nextSlice.summary, /只读 runtime-source bridge 已交付/);
+  assert.match(nextSlice.summary, /v2 sessions\/runner/);
+  assert.match(nextSlice.summary, /当前没有 v2 CLI\/UI/);
 });
 
 test("search and filters compose without mutating the catalog", () => {

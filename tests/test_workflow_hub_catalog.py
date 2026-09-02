@@ -97,9 +97,9 @@ class WorkflowHubCatalogTests(unittest.TestCase):
         for href in pages:
             self.assertTrue((ROOT / "web" / href.removeprefix("./")).is_file())
 
-    def test_current_stage_names_the_v2_spine_adapter_automatic_entry(self) -> None:
+    def test_current_stage_names_the_v2_runtime_source_bridge(self) -> None:
         self.assertEqual(
-            "P10.7a-v2-automatic-entry",
+            "P10.7b-v2-runtime-source-bridge",
             self.catalog["current_stage"],
         )
         entry = next(
@@ -184,6 +184,14 @@ class WorkflowHubCatalogTests(unittest.TestCase):
         )
         self.assertIn("skeleton/bundle 双 SHA", spine_verify["summary"])
         self.assertIn("不选择文件或读取 current heads", spine_verify["summary"])
+        next_slice = next(
+            entry for entry in self.entries
+            if entry["id"]
+            == "planned-real-sample-spine42-v3-raster-acceptance"
+        )
+        self.assertIn("只读 runtime-source bridge 已交付", next_slice["summary"])
+        self.assertIn("v2 sessions/runner", next_slice["summary"])
+        self.assertIn("当前没有 v2 CLI/UI", next_slice["summary"])
 
     def test_motion_policy_page_describes_python_preflight_without_authority(self) -> None:
         entry = next(

@@ -89,7 +89,11 @@ exact Layer Manifest + exact P3 static bundle
                                        ↓
         P10.7a version-matched Spine 4.2 v3 bundle
                                        ↓
- P10.7b v2 runtime-source bridge → [external] Runtime/raster gate
+ P10.7b v2 read-only runtime-source bridge（已交付）
+                                       ↓
+       v2 sessions/runner → evidence/store → automatic authorization
+                                       ↓
+                    [external] Runtime/raster gate
                                        ↓
        exact-address, zero-write readiness v1 audit
                 (frozen; checkpoint 8 remains missing)
@@ -570,9 +574,19 @@ inspect/start/poll/result，不接收项目、文件或 SHA。append-only failur
 
 v2 run 的十项 authority 中只有 `spine_adapter_emitted=true`；attachment overlap、dynamic seam
 safety、完整边界、官方 Runtime、Runtime 等价、raster 视觉、永久 head、publishable timeline
-和 release authority 都固定 false/blocked。当前 P10.7b capture/reader 属于冻结 v1，不能消费
-上述 v2 地址。下一边界是 P10.7b v2 runtime-source bridge；它必须保持官方 Runtime 的外部授权
-要求，P10.7a 页面不会自动运行它。
+和 release authority 都固定 false/blocked。P10.7b v2 只读 runtime-source bridge 现已接通上述
+版本隔离地址：公开 Python bridge 只接收项目与 P10.7a v2 skeleton/bundle 双 SHA，经 exact
+reader 历史重放五文件 bundle，不观察 current heads，再确定性生成
+`official-runtime-capture-plan-v2.json` 和 `official-runtime-source-admission-v2.json`。source
+contract、runtime profile、plan 与 admission 各有独立 v2 哈希域；v1 source 不会被强制转换为
+v2，跨版本、篡改或重封装输入均 fail closed。
+
+该 admission 只把 `p10_7a_v2_exact_replayed` 与 `bounded_capture_plan_emitted` 设为 true；
+官方 Runtime、runtime 等价、raster 指标/视觉、人审、永久 head、可发布 timeline 与 release
+authority 全部为 false，`release_gate` 固定 blocked。bridge 只在内存中形成计划与准入，没有
+store、CLI、UI、session、runner、capture evidence 或 raster 输出，也不会由 P10.7a 页面自动
+运行官方 Runtime。冻结 P10.7b v1 的 reader、合同与输出哈希保持不变。下一切片是 v2
+sessions/runner，再接 evidence/store 与自动授权入口；实际 Runtime 仍是操作者明确授权后的外部边界。
 
 P10.7b v1 用固定官方 Runtime/浏览器身份、case plan、完整 setup attachment isolate 与 sampled
 raster 指标形成不可变 capture；candidate 和完整 human decision 保持分离。其后的 readiness

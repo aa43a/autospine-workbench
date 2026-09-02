@@ -59,8 +59,10 @@ spine_adapter_emitted = true
 - 可发布 Spine timeline 或 release authority。
 
 因此 `release_gate` 固定为 `blocked`。现有 P10.7b v1 capture/reader 只接受冻结
-P10.7a v1 地址，不能消费这里的 v2 skeleton/bundle SHA。下一开发项是 P10.7b v2
-runtime-source bridge；它仍须由操作者明确授权官方 Runtime，且不会由本页面自动运行。
+P10.7a v1 地址，不能消费这里的 v2 skeleton/bundle SHA。P10.7b v2 已交付只读
+runtime-source bridge，可从精确 v2 双 SHA生成版本隔离的 blocked plan/admission；它没有
+CLI/UI、session、runner、evidence 或 raster，也不会由本页面运行官方 Runtime。下一切片是
+v2 sessions/runner，再接 evidence/store 与自动授权入口；外部 Runtime 始终需要操作者明确授权。
 
 ## 专业 CLI：编译
 
