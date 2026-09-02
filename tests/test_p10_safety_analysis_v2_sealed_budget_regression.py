@@ -23,6 +23,7 @@ from autospine_workbench.body_sway_continuous_interval import (  # noqa: E402
     EXCLUSIONS, SCOPE,
 )
 from autospine_workbench.body_sway_continuous_proof_v2 import (  # noqa: E402
+    BodySwayContinuousProofV2Error,
     compile_body_sway_continuous_preview_proof_v2,
 )
 from autospine_workbench.body_sway_continuous_proof_validation_v2 import (  # noqa: E402
@@ -127,6 +128,25 @@ class P10SafetyAnalysisV2SealedBudgetRegressionTests(unittest.TestCase):
         self.assertEqual(("continuous_validation", 0, 2), rows[0])
         self.assertIn(("continuous_validation", 1, 2), rows)
         self.assertEqual(("continuous_validation", 2, 2), rows[-1])
+
+    def test_progress_observation_does_not_change_proof_bytes(self):
+        self.assertEqual(self.document, _compile_tiny_budget_document())
+
+    def test_progress_observer_fault_cannot_become_interval_evidence(self):
+        def faulty(stage, current, _total):
+            if stage == "continuous_boxes" and current == 1:
+                raise ValueError("observer failed")
+
+        with self.assertRaises(BodySwayContinuousProofV2Error):
+            _compile_tiny_budget_document(faulty)
+
+    def test_validation_progress_fault_cannot_publish_a_document(self):
+        def faulty(stage, current, _total):
+            if stage == "continuous_validation" and current == 1:
+                raise RuntimeError("validation observer failed")
+
+        with self.assertRaises(BodySwayContinuousProofV2Error):
+            _compile_tiny_budget_document(faulty)
 
     def test_canonical_list_fields_do_not_reject_evaluated_segments(self):
         evaluated = [

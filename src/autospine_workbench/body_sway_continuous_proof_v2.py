@@ -53,6 +53,10 @@ class BodySwayContinuousProofV2Error(ValueError):
     """Raised when a complete exact v2 source cannot form a safe result."""
 
 
+class _ProgressCallbackError(RuntimeError):
+    """Keep observer faults outside the geometric evidence domain."""
+
+
 @dataclass(frozen=True, slots=True)
 class BodySwayContinuousPreviewProofV2:
     _canonical_json: str = field(repr=False)
@@ -103,7 +107,9 @@ def compile_body_sway_continuous_preview_proof_v2(
         )
         validation_progress = None if on_progress is None else (
             lambda _stage, _current, _total:
-                on_progress("continuous_validation", _current, _total)
+                _forward_progress(
+                    on_progress, "continuous_validation", _current, _total,
+                )
         )
         require_body_sway_continuous_preview_proof_v2(
             document, on_progress=validation_progress,
@@ -173,7 +179,9 @@ def _analyze(source, *, on_progress):
     values = continuous_proof_budget_v2()
     segments, used = [], 0
     if on_progress is not None:
-        on_progress("continuous_boxes", 0, values["max_total_boxes"])
+        _forward_progress(
+            on_progress, "continuous_boxes", 0, values["max_total_boxes"],
+        )
     for left, right in zip(samples, samples[1:]):
         remaining = values["max_total_boxes"] - used
         if remaining <= 0:
@@ -188,7 +196,8 @@ def _analyze(source, *, on_progress):
             )
             box_progress = None if on_progress is None else (
                 lambda current, _total, offset=used:
-                    on_progress(
+                    _forward_progress(
+                        on_progress,
                         "continuous_boxes",
                         min(values["max_total_boxes"], offset + current),
                         values["max_total_boxes"],
@@ -203,7 +212,8 @@ def _analyze(source, *, on_progress):
             used = values["max_total_boxes"]
         segments.append(row)
     if on_progress is not None:
-        on_progress(
+        _forward_progress(
+            on_progress,
             "continuous_boxes", values["max_total_boxes"],
             values["max_total_boxes"],
         )
@@ -233,6 +243,8 @@ def _prove_segment(context, left, right, budget, *, on_progress=None):
             proof, context=context, left_tick=left.tick,
             right_tick=right.tick, budget=budget,
         )
+    except _ProgressCallbackError:
+        raise
     except (
         ArithmeticError, BodySwayContinuousBackendValidationError,
         BodySwayContinuousIntervalError, OverflowError, RuntimeError,
@@ -243,6 +255,15 @@ def _prove_segment(context, left, right, budget, *, on_progress=None):
         )
     row["segment_evidence_sha256"] = continuous_segment_sha256_v2(row)
     return row
+
+
+def _forward_progress(callback, stage, current, total):
+    try:
+        callback(stage, current, total)
+    except Exception as exc:
+        raise _ProgressCallbackError(
+            "Continuous proof v2 progress observer failed"
+        ) from exc
 
 
 def _v2_indeterminate(context, left, right, reason):

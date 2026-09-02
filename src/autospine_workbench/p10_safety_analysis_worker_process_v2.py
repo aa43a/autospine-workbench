@@ -216,7 +216,7 @@ def _pump(stream, channel, limit, messages):
     total = 0
     try:
         while True:
-            chunk = getattr(stream, "read1", stream.read)(4096)
+            chunk = (getattr(stream, "read1", None) or stream.read)(4096)
             if not chunk:
                 messages.put(("eof", channel, None))
                 return

@@ -286,6 +286,21 @@ class P10SafetyAnalysisWorkerProcessV2Tests(unittest.TestCase):
         self.assertEqual(("data", "stdout", b"progress\n"), messages.get())
         self.assertEqual(("eof", "stdout", None), messages.get())
 
+    def test_output_pump_falls_back_to_plain_read(self):
+        class Stream:
+            def __init__(self):
+                self.values = iter((b"result\n", b""))
+
+            def read(self, size):
+                self.assert_size = size
+                return next(self.values)
+
+        stream, messages = Stream(), process.Queue()
+        process._pump(stream, "stdout", 64, messages)
+        self.assertEqual(4096, stream.assert_size)
+        self.assertEqual(("data", "stdout", b"result\n"), messages.get())
+        self.assertEqual(("eof", "stdout", None), messages.get())
+
     def test_worker_environment_does_not_inherit_python_injection(self):
         inherited = {
             "PYTHONPATH": "E:/untrusted", "PYTHONHOME": "E:/wrong",
