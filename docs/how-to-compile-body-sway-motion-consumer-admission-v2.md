@@ -118,15 +118,18 @@ setup-local timeline compilation 可以进入下一阶段。它明确不代表�
 - current-head 观察具有永久效力；
 - timeline 可发布或拥有 release authority。
 
-release gate 因 overlap、完整边界/raster、MotionInstance v3、Spine adapter、Runtime
-和发布凭据缺失而保持 `blocked`。
+这份 admission 本身不授予 release authority。即使后续 P10.6b v2 已能生成
+MotionInstance v3，overlap、完整边界、raster、版本匹配的 Spine adapter、官方 Runtime
+和发布凭据仍保持 `blocked`。
 
 ## 下一步
 
-保留完整成功 stdout 和 admission SHA 供审计。现有 P10.6b v1 compiler 只消费冻结的
-P10.6a v1 wrapper，不能直接接收 v2 admission。下一开发项应增加版本隔离的 P10.6b v2
-bundle/run/reader；其输出 payload 仍可保持 MotionInstance v3，因为 setup-local track
-语义没有变化，不需要仅为来源升级而创建 MotionInstance v4。
+保留完整成功 stdout 和 admission SHA 供审计。冻结的 P10.6b v1 compiler 仍只消费
+P10.6a v1 wrapper，不能直接接收 v2 admission；版本隔离的 P10.6b v2
+bundle/run/reader 已交付，并继续输出 `format_version = 3` 的 MotionInstance payload。
+下一步按[编译并复验 P10.6b v2 MotionInstance v3](how-to-compile-motion-instance-v3-v2.md)
+使用项目 ID 与 P10.5d probe/bundle 双 SHA 完成编译，再进入 P10.7a v2 source adapter
+与自动化 UI。不会仅为来源合同升级而创建 MotionInstance v4。
 
 真实 A 只有在当前 P10.4b 完成、真实 P10.5d v2 bundle 生成且本命令实际成功后，才具备
 这条后续链的输入。P10.6a v2 的单元测试或 fixture 不能代替这份真实凭据。

@@ -283,7 +283,7 @@ server/job/UI 自动入口已接入，普通用户可从 P10.4b 完成态一键�
 
 操作说明：[冻结 v1 准入](how-to-compile-body-sway-motion-consumer-admission.md)、[P10.6a v2 自动精确地址准入](how-to-compile-body-sway-motion-consumer-admission-v2.md)。两版使用独立 format/profile/hash domain，不能互换。v2 自动闭合 P10.5d v2/P9、Manifest/P3/target/timing/Preview v2，并在 pure core 前后复查 current visual-v2/seam-v1 heads；成功只产生 path-free、compile-time admission。
 
-准入本身不包含 MotionInstance v3、Spine timeline、runtime 等价或发布权。现有 P10.6b 命令的来源合同仍是冻结 v1；v2 admission 需要后续 P10.6b v2 bundle/run/reader，不能直接交给 v1 consumer。MotionInstance payload 的 setup-local track 语义没有变化，因此不需要仅为来源升级创建 v4。
+准入本身不包含 MotionInstance v3、Spine timeline、runtime 等价或发布权。冻结 P10.6b v1 仍只接受 v1 wrapper；P10.6a v2 由独立 P10.6b v2 compile/verify 入口消费。MotionInstance payload 的 setup-local track 语义没有变化，因此来源升级没有创建 v4。
 
 ### P10.6b：MotionInstance v3
 
@@ -291,17 +291,19 @@ server/job/UI 自动入口已接入，普通用户可从 P10.4b 完成态一键�
 | --- | --- |
 | `compile-body-sway-motion-instance-v3` | v1 来源链：命令/store 双重查 current heads，把完整 P10.6a v1 成功 wrapper 原子发布为三文件 v3 bundle，并按地址读回；不能消费 v2 admission |
 | `verify-body-sway-motion-instance-v3` | 按精确 v3/bundle 双 SHA 重编历史 bundle，不声明 current-head authority |
+| `compile-body-sway-motion-instance-v3-v2` | v2 来源链：只凭项目与 P10.5d probe/bundle 双 SHA自动读取 exact bundle/P9，生成并复验 P10.6a v2 admission，再发布 source-contract v2 三文件 bundle；不选择文件 |
+| `verify-body-sway-motion-instance-v3-v2` | 只凭项目与 MIv3/bundle 双 SHA历史重放 v2 admission/source/run；不选择文件或读取 current heads |
 
-操作说明：[编译并复验 P10.6b MotionInstance v3](how-to-compile-motion-instance-v3.md)。admission 上限为 64 MiB；run 只授予 MotionInstance v3 emitted，release gate 仍 blocked。输出是版本中立 setup-local timeline；P10.7a 会显式消费它。
+操作说明：[冻结 v1 MotionInstance v3](how-to-compile-motion-instance-v3.md)、[P10.6b v2 MotionInstance v3](how-to-compile-motion-instance-v3-v2.md)。两条来源链的 payload 都是 `format_version=3`，但 admission、source、bundle 地址域、filesystem namespace 和 run contract 版本隔离，不能交叉验证。run 只授予 MotionInstance v3 emitted；attachment overlap/完整边界、dynamic seam safety、raster/视觉、官方 Runtime、永久 head、Spine adapter、publishable timeline 和 release authority 均保持 false/blocked。
 
 ### P10.7a：Spine 4.2 v3 Adapter Bundle
 
 | 命令 | 功能 |
 | --- | --- |
-| `compile-body-sway-spine42-v3` | 从精确 MIv3 双 SHA 重放 P9/P5/P3，在 current-head 门禁下发布五文件 Spine 4.2 v3 bundle，并按地址读回 |
+| `compile-body-sway-spine42-v3` | 冻结 v1 source adapter：从 v1-source MIv3 双 SHA 重放 P9/P5/P3，在 current-head 门禁下发布五文件 Spine 4.2 v3 bundle，并按地址读回 |
 | `verify-body-sway-spine42-v3` | 按 skeleton/bundle 双 SHA 重建完整上游和五文件历史产物，不读取 current heads |
 
-操作说明：[编译并复验 P10.7a Spine 4.2 v3](how-to-compile-spine42-v3.md)。run 只授予 `spine_adapter_emitted`；官方 Runtime、raster、永久 head、publishable timeline 和 release authority 仍为 false/blocked。P10.7b 必须从这个精确地址开始。
+操作说明：[编译并复验冻结 P10.7a Spine 4.2 v3](how-to-compile-spine42-v3.md)。run 只授予 `spine_adapter_emitted`；官方 Runtime、raster、永久 head、publishable timeline 和 release authority 仍为 false/blocked。该入口不会静默接受 P10.6b v2 bundle；下一项是 P10.7a v2 source adapter/automatic UI，之后 P10.7b 才能从对应 v2 adapter 地址开始。
 
 ### P10.7b：官方 Runtime 与 Sampled Raster 证据
 

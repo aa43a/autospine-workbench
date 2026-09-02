@@ -37,7 +37,7 @@ from .p10_motion_consumer_admission_stage_cli import (
     add_p10_motion_consumer_admission_subcommands,
     dispatch_p10_motion_consumer_admission_command,
 )
-from .p10_motion_instance_v3_cli import (
+from .p10_motion_instance_v3_stage_cli import (
     add_p10_motion_instance_v3_subcommands,
     dispatch_p10_motion_instance_v3_command,
 )

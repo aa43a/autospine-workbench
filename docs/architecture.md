@@ -135,7 +135,8 @@ web    → HTTP contracts only
 - P10.5d analyzer 对六关系全部 reviewed pairs 覆盖相邻 tick 与统一 gain，只认证 `4 px²` reviewed-anchor point proximity 工程代理。region–region、region–mesh、mesh–region 有固定投影；mesh–mesh、预算耗尽、非有限包络、backend 自相矛盾和任何 head 漂移都 fail closed。attachment 边界、raster/视觉、runtime、timeline 和发布明确排除。
 - P10.6a v1 已冻结，只接受 v1 probe 文件。P10.6a v2 使用独立 format/profile/hash domain，公开输入只有项目与 P10.5d v2 probe/bundle 双 SHA；exact reader 读取固定三文件 inventory，并从其 source closure 自动取得 P9 双地址和完整复验数据，不扫描 `latest` 或要求选择文件。
 - P10.6a v2 source 显式绑定 P10.5d source/probe/bundle、P9、Manifest/P3/target/timing 与 Preview v2。pure core 只构造 unit-gain、setup-local、版本中立 motion domain；detached validator 由两份 exact bundle 重编，seal 前后重新观察 visual-v2 与 seam-v1 current heads。
-- P10.6a v1/v2 都不发出 MotionInstance v3、adapter 或 Spine timeline。其内部与 CLI 外层 head observation scope 都固定为 `compile_time`；完整 attachment overlap/边界、raster/视觉、runtime、publishable timeline 和 release authority 保持 blocked。现有 P10.6b v1 只消费 v1 admission；v2 必须进入版本隔离的 P10.6b v2，不能静默复用旧来源合同。
+- P10.6a v1/v2 都不发出 MotionInstance v3、adapter 或 Spine timeline。其内部与 CLI 外层 head observation scope 都固定为 `compile_time`；完整 attachment overlap/边界、raster/视觉、runtime、publishable timeline 和 release authority 保持 blocked。冻结 P10.6b v1 只消费 v1 wrapper；已交付 P10.6b v2 只凭项目与 P10.5d probe/bundle 双 SHA 自动生成、复验 v2 admission 和 P9，不选择文件。
+- P10.6b v2 prepared pipeline 在同一 reader-issued P10.5d/P9 上生成 core、seal admission、detached replay 并编译 payload；ordinary direct construction 与 `dataclasses.replace` 不能发放 prepared provenance。payload 继续是 MotionInstance format v3，只有 admission/source、bundle address domain 和 run contract 升级到 v2。固定 inventory 为 `body-sway-motion-consumer-admission-v2.json`、`motion-instance-v3.json`、`run-manifest-v2.json`；v1/v2 reader 互不接受对方地址。
 - Kimodo 的 raw NPZ、source sidecar 与 map 是三个独立输入。sidecar 解释数组/FPS/producer，map 决定投影/角色/contact；两者都不得根据文件名、数组数量或相邻目录隐式发现。
 - 所有同卷目录发布统一经 `atomic_staging.create_same_parent_staging` 创建 staging。POSIX 保留 owner-only `mkdtemp`；Windows 不传 `0o700`，以不可预测名称和原子 `mkdir()` 继承 publication parent 的 DACL，再由同卷 rename 发布。这样不会把 Python 3.14 `mkdtemp` 的 protected creator-only DACL 带到最终 bundle；碰撞、失败清理、并发收敛、固定 inventory 与发布后 exact readback 语义保持不变。历史受限 ACL 只允许通过另行授权、精确地址、前后字节/哈希不变的窄范围迁移处理，禁止对整个 state tree 递归重置权限。
 
@@ -533,24 +534,28 @@ monkeypatch 的密码学沙箱。发放 receipt 保存在 reader 类型闭包中
 语义重放与 P9 重放。后续轻量 byte/address 复查只用于避免在同一次已验证调用链内重复执行耗时
 区间证明，不能单独把任意内存对象提升为可信凭据。
 
-版本升级只改变来源合同，不改变 setup-local track payload 语义，因此后续无需仅为此创建
-MotionInstance v4；但 P10.6b 的 admission source/bundle/run/reader 必须增加 v2 地址空间，不能让
-已冻结的 v1 consumer 静默接受 v2 admission。
+版本升级只改变来源合同，不改变 setup-local track payload 语义，因此没有创建 MotionInstance v4。
+P10.6b v2 已用独立 admission source、bundle/run 地址域、filesystem namespace 和 exact reader
+关闭这项版本边界，冻结 v1 consumer 不会静默接受 v2 admission 或 bundle。
 
-P10.6b 已在实际消费时重新检查 visual/seam current head，并把上述 motion domain 编译为
-可严格重放的 MotionInstance v3/timeline bundle。固定库存为 admission、v3 与 run；发布使用
+P10.6b v1/v2 都在实际消费时重新检查 visual/seam current head，并把上述 motion domain 编译为
+可严格重放的 MotionInstance v3/timeline bundle。固定库存均为 admission、v3 与 run；发布使用
 v3/bundle 双 SHA，无 `latest`。MIv2 root translation、markers 与 stepped draw order 原样保留，
-rotation overlay 只允许躯干四骨。历史 reader 不观察 current head，因此只证明当时发布的字节
-可重放。store 在创建 publication parent 前独立执行 before → contract → after 门禁，公开命令
-发布后再按精确地址读回；run 的 authority 只开放 MotionInstance v3 emitted，release gate 固定
-blocked。admission 独立上限为 64 MiB。
+rotation overlay 只允许躯干四骨。v2 compile 的公开输入只有项目与 P10.5d probe/bundle 双 SHA；
+verify 的公开输入只有项目与 MIv3/bundle 双 SHA。历史 reader 不观察 current head，因此只证明
+当时发布的字节可重放。store 在创建 publication parent 前独立执行 before → contract → after
+门禁，公开命令发布后再按精确地址读回；run 的 authority 只开放 MotionInstance v3 emitted，
+attachment overlap/完整边界、raster/视觉、Runtime、永久 head、Spine adapter、publishable timeline
+和 release authority 均固定 false/blocked。v2 操作入口见
+[编译并复验 P10.6b v2 MotionInstance v3](how-to-compile-motion-instance-v3-v2.md)。
 
-P10.7a 以 project 与 MIv3 双 SHA 作为公开输入，严格重放 MIv3→P9→P5/P3→RigIR/源 PNG，
+冻结 P10.7a v1 以 project 与 v1-source MIv3 双 SHA 作为公开输入，严格重放 MIv3→P9→P5/P3→RigIR/源 PNG，
 再用独立 adapter profile `3.0.0` 生成固定 Spine 4.2 JSON、atlas 与 PNG。五文件 bundle 使用
 独立 `spine42-v3/<skeleton-sha>/<bundle-sha>` 地址空间；store 和公开命令均执行 current-head
 门禁，发布后 exact reader 会从完整上游逐字节重建。旧 P6 profile/hash 不变，未知能力 fail
 loud。run 只开放 adapter emitted，官方 Runtime/raster、永久 head、publishable timeline 和
-release authority 均保持 blocked。
+release authority 均保持 blocked。它不能静默读取 P10.6b v2 source contract；下一项是
+P10.7a v2 source adapter 与面向普通操作者的自动化 UI。
 
 P10.7b 用固定官方 Runtime/浏览器身份、case plan、完整 setup attachment isolate 与 sampled
 raster 指标形成不可变 capture；candidate 和完整 human decision 保持分离。其后的 readiness

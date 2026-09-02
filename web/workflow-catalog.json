@@ -1,6 +1,6 @@
 {
-  "catalog_version": "1.3.0",
-  "current_stage": "P10.6a-v2-motion-consumer-admission",
+  "catalog_version": "1.4.0",
+  "current_stage": "P10.6b-v2",
   "stages": [
     {"id":"P0","label":"合同、服务与基础验证"},
     {"id":"P1","label":"图层复核与四肢候选"},
@@ -90,6 +90,8 @@
     {"id":"cli-compile-body-sway-motion-consumer-admission-v2","stage":"P10","title":"编译 P10.6a v2 动作消费准入","summary":"只需项目和 P10.5d v2 probe/bundle 双 SHA；本机按精确地址读取三文件 bundle，并从 source closure 自动重放 P9，无需选择文件。结果是零写入、compile-time admission，不是 MotionInstance v3、Runtime 或发布许可。","kind":"cli","status":"available","command":"compile-body-sway-motion-consumer-admission-v2","doc":"docs/how-to-compile-body-sway-motion-consumer-admission-v2.md"},
     {"id":"cli-compile-body-sway-motion-instance-v3","stage":"P10","title":"编译 Body-sway MotionInstance v3（v1 来源链）","summary":"重查 visual/seam current heads，将冻结 P10.6a v1 准入原子发布为严格三文件 v3 bundle；不能消费 P10.6a v2。","kind":"cli","status":"available","command":"compile-body-sway-motion-instance-v3","doc":"docs/how-to-compile-motion-instance-v3.md"},
     {"id":"cli-verify-body-sway-motion-instance-v3","stage":"P10","title":"验证 Body-sway MotionInstance v3","summary":"按精确 v3/bundle 双 SHA 历史重放，不声明 current-head authority。","kind":"cli","status":"available","command":"verify-body-sway-motion-instance-v3","doc":"docs/how-to-compile-motion-instance-v3.md"},
+    {"id":"cli-compile-body-sway-motion-instance-v3-v2","stage":"P10","title":"编译 P10.6b v2 MotionInstance v3","summary":"只需项目与 P10.5d v2 probe/bundle 双 SHA；自动读取 exact bundle、P9并生成 P10.6a v2 admission，无需选择文件，再发布 source-contract v2 的三文件 bundle。payload 仍是 MotionInstance v3，release、raster、Runtime 和完整边界保持 blocked。","kind":"cli","status":"available","command":"compile-body-sway-motion-instance-v3-v2","doc":"docs/how-to-compile-motion-instance-v3-v2.md"},
+    {"id":"cli-verify-body-sway-motion-instance-v3-v2","stage":"P10","title":"复验 P10.6b v2 MotionInstance v3","summary":"只需项目与 MotionInstance v3/bundle 双 SHA，按精确地址历史重放 P10.5d v2、P9、admission、payload 与 run；无需选择文件，也不声明 current-head 或发布权。","kind":"cli","status":"available","command":"verify-body-sway-motion-instance-v3-v2","doc":"docs/how-to-compile-motion-instance-v3-v2.md"},
     {"id":"cli-compile-body-sway-spine42-v3","stage":"P10","title":"编译 Body-sway Spine 4.2 v3","summary":"重放 MIv3→P9→P5/P3，在 current-head 门禁下发布五文件 Spine adapter bundle。","kind":"cli","status":"available","command":"compile-body-sway-spine42-v3","doc":"docs/how-to-compile-spine42-v3.md"},
     {"id":"cli-verify-body-sway-spine42-v3","stage":"P10","title":"验证 Body-sway Spine 4.2 v3","summary":"按 skeleton/bundle 双 SHA 重建全部上游和五文件历史产物，不读取 current heads。","kind":"cli","status":"available","command":"verify-body-sway-spine42-v3","doc":"docs/how-to-compile-spine42-v3.md"},
     {"id":"planned-seethrough-ingest","stage":"P0","title":"See-through 推理与 PSD 入库","summary":"自动运行多 seed 分层、质量筛选、PSD 清理并转为 Layer Manifest 输入。","kind":"planned","status":"external_required","doc":"docs/development-roadmap.md"},

@@ -308,7 +308,7 @@ workspace/overrides/<project-id>/
 - 在 P10.4b v2 页面用同一 `job_id` 自动运行九档 coupled-gain 与相邻时间段结构证明；`indeterminate` 按完成结果显示，只有 100% 点具备 sampled visual 覆盖，safe range 和 release 继续 blocked；
 - 从 P9 package 自动进入 Seam Anchor 页面，以叠加图、确定性建议草稿和一次最终确认完成 P10.5b，并在 ready 时继续 P10.5c exact publication/readback；
 - 在 P9 页面完成一次明确 human adoption 后，由本机编译 decision/reviewed policy、原子发布 MotionInstance v2 六文件 bundle，并立即 exact verify；CLI 仍可独立复验，review input 下载仅作备份；
-- 通过离线命令生成和验证版本中立的 Layer Manifest、RigIR、mesh、IK、MotionIR、P10.6a v1/v2 admission、MotionInstance v3 及 P10.7a Spine 4.2 v3 五文件 adapter 工件；P10.6a v2 只需 P10.5d 双 SHA，会自动读取 exact bundle 和 P9，不选择文件。
+- 通过离线命令生成和验证版本中立的 Layer Manifest、RigIR、mesh、IK、MotionIR、P10.6a v1/v2 admission 与 P10.6b v1/v2 MotionInstance v3；P10.6b v2 只需项目和 P10.5d 双 SHA，自动读取 exact bundle/P9 并生成 admission，不选择文件。冻结 P10.7a v1 可生成五文件 adapter，v2 source adapter/automatic UI 是下一开发项。
 - 在操作者提供并确认有权使用官方 Spine Player 4.2.119 时，捕获 P10.7a 的固定 sampled raster 证据，复验不可变 capture，并编译逐 case、逐 setup attachment 的人工决定。
 - 从 strict canonical 示例 Manifest 只读审计两份真实样本的 P3→P10.7b 前置；审计不会自动执行阶段、代替人审或授予发布权。
 - 使用独立 P10.7c 命令，把精确 capture 中唯一的 opaque setup 帧与既有 P6 approved golden 做零写入 RGBA 对照；该入口已交付，但真实样本仍需先补齐外部前置。
@@ -323,7 +323,7 @@ workspace/overrides/<project-id>/
 - 在未提供并确认授权的官方 Spine Runtime、job 未完成或尚未逐 case 人审时，把 v2 合同/测试结果声称为真实 Runtime 已执行、视觉已批准或 runtime 等价；
 - 自动授予商业使用、发布许可或生成 Spine Editor 工程。
 
-固定 Spine 4.2 profile 的 adapter 和验证链已经存在，但每个新 rig/clip 仍需分别完成 attachment 边界视觉回归、官方 Runtime 证据和许可审查。
+固定 Spine 4.2 profile 的冻结 v1 adapter 和验证链已经存在，但 P10.6b v2 仍需版本匹配的 P10.7a v2 source adapter。每个新 rig/clip 仍需分别完成 attachment 边界视觉回归、官方 Runtime 证据和许可审查。
 
 ### P3 Mesh 入口
 
@@ -338,7 +338,7 @@ python -B -m autospine_workbench verify-mesh-bundle --help
 
 ## 10. 当前阶段与下一开发入口
 
-**P9-real-kimodo-policy-adoption** 对当前 `wave-left-v1` 的 A/B 历史链已关闭；P10.2 至 P10.5d v2 自动入口和 P10.6a v2 零写入 admission 机制均已交付。项目 A 的下一步仍是在当前 P10.4b run 完成并重启服务后真实执行 P10.5d v2，再运行 P10.6a v2；机制测试不是 A 的真实凭据。release/raster/runtime/overlap 仍 blocked。项目 B revision 16 必须完成自己的 P9/P10，并解决四条 `unobservable` 静态关系。对新的 Kimodo 输入，仍应先运行零写入准入审计：
+**P9-real-kimodo-policy-adoption** 对当前 `wave-left-v1` 的 A/B 历史链已关闭；P10.2 至 P10.5d v2 自动入口、P10.6a v2 admission 和 P10.6b v2 MotionInstance bundle 机制均已交付。项目 A 的下一步仍是在当前 P10.4b run 完成并重启服务后真实执行 P10.5d–P10.6b v2；机制测试不是 A 的真实凭据。下一开发项是 P10.7a v2 source adapter/automatic UI；release/raster/Runtime/完整边界/overlap 仍 blocked。项目 B revision 16 必须完成自己的 P9/P10，并解决四条 `unobservable` 静态关系。对新的 Kimodo 输入，仍应先运行零写入准入审计：
 
 ```powershell
 python -B -m autospine_workbench audit-kimodo-pilot-intake `
@@ -383,7 +383,7 @@ python -B -m autospine_workbench compare-body-sway-spine42-v3-setup-golden --hel
 
 该命令需要每个项目真实的 P10.7a 与 P10.7b capture 精确地址，并同时锁定既有 P6 export/runtime golden 合同。当前 A/B 的 P9 已通过，A 也已有静态 P10.5c，但 A 的动作域、B 的完整静态 seam 和两项目官方 capture 都尚未关闭；不要用全零请求模板、P7/P8/P5 地址或 fixture 声称真实比较通过。准备 canonical 请求和读取报告见[对照 P10.7c Spine 4.2 v3 Setup Golden](how-to-compare-spine42-v3-setup-golden.md)。
 
-P0 Resolved Project v1、冻结 P10.6b v1 MotionInstance v3 与 P10.7a Spine adapter bundle 均已完成。普通图层/关节复核不需要运行这些命令。新的 v2 链按
+P0 Resolved Project v1、P10.6b v1/v2 MotionInstance v3 与冻结 P10.7a v1 Spine adapter bundle 均已完成。普通图层/关节复核不需要运行这些命令。新的 v2 链可先按
 [编译 P10.6a v2 动作消费准入](how-to-compile-body-sway-motion-consumer-admission-v2.md)
 把认证的 P10.5d v2 bundle 与其精确 P9 MotionInstance v2 bundle 自动闭合。只从 P10.5d 回执复制两个完整 SHA，不选择 JSON 文件或填写 P9 SHA：
 
@@ -392,16 +392,26 @@ python -B -m autospine_workbench compile-body-sway-motion-consumer-admission-v2 
 ```
 
 旧命令 `compile-body-sway-motion-consumer-admission` 已冻结，只用于 P10.5d v1 历史链。
-现有[编译并复验 P10.6b MotionInstance v3](how-to-compile-motion-instance-v3.md)也只消费
-P10.6a v1 成功输出；不要把 v2 admission 交给它。下一开发项是 P10.6b v2 bundle/run/reader，
-payload 仍可保持 MotionInstance v3。冻结 v1 的专业命令为：
+冻结[编译并复验 P10.6b MotionInstance v3](how-to-compile-motion-instance-v3.md)也只消费
+P10.6a v1 成功输出；不要把 v2 admission 交给它。P10.6b v2 已提供无需保存 admission 文件的
+自动入口，payload 仍保持 MotionInstance v3，但 bundle/run/source contract 为 v2：
+
+```powershell
+python -B -m autospine_workbench compile-body-sway-motion-instance-v3-v2 --help
+python -B -m autospine_workbench verify-body-sway-motion-instance-v3-v2 --help
+```
+
+compile 只填写项目和 P10.5d probe/bundle 双 SHA；verify 只填写项目和 MIv3/bundle 双 SHA。
+完整步骤见[编译并复验 P10.6b v2 MotionInstance v3](how-to-compile-motion-instance-v3-v2.md)。
+冻结 v1 的专业命令为：
 
 ```powershell
 python -B -m autospine_workbench compile-body-sway-motion-instance-v3 --help
 python -B -m autospine_workbench verify-body-sway-motion-instance-v3 --help
 ```
 
-仅对已经得到冻结 P10.6b v1 MotionInstance v3 双 SHA 的历史链，才可按
+下一开发项是 P10.7a v2 source adapter 与自动化 UI。当前仅对已经得到冻结 P10.6b v1
+MotionInstance v3 双 SHA 的历史链，才可按
 [编译并复验 P10.7a Spine 4.2 v3](how-to-compile-spine42-v3.md)生成并复验五文件 adapter bundle：
 
 ```powershell

@@ -22,6 +22,7 @@ from .body_sway_motion_consumer_profile_v2 import (
     body_sway_motion_domain_sha256_v2,
 )
 from .body_sway_motion_consumer_source_v2 import (
+    AdmittedBodySwayMotionConsumerSourceV2,
     BodySwayMotionConsumerSourceV2Error,
     admit_body_sway_motion_consumer_source_v2,
 )
@@ -80,6 +81,28 @@ def compile_body_sway_motion_consumer_admission_core_v2(
         admitted = admit_body_sway_motion_consumer_source_v2(
             dynamic_seam_bundle, reviewed_bundle,
         )
+        return _compile_admitted_body_sway_motion_consumer_core_v2(admitted)
+    except BodySwayMotionConsumerAdmissionV2Error:
+        raise
+    except (
+        AttributeError, BodySwayMotionConsumerSourceV2Error, KeyError,
+        OverflowError, RecursionError, TypeError, UnicodeError, ValueError,
+    ) as exc:
+        raise BodySwayMotionConsumerAdmissionV2Error(
+            f"Motion consumer v2 core compilation failed: {exc}"
+        ) from exc
+
+
+def _compile_admitted_body_sway_motion_consumer_core_v2(
+    admitted: AdmittedBodySwayMotionConsumerSourceV2,
+) -> BodySwayMotionConsumerAdmissionCoreV2:
+    """Build the unchanged core bytes from one already-admitted source."""
+
+    try:
+        if type(admitted) is not AdmittedBodySwayMotionConsumerSourceV2:
+            raise BodySwayMotionConsumerAdmissionV2Error(
+                "Motion consumer v2 core requires an admitted source"
+            )
         motion_domain = _build_motion_domain(
             admitted.motion_instance_v2,
             admitted.preview_projection_v2,

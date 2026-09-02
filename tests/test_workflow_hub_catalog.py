@@ -41,15 +41,15 @@ class WorkflowHubCatalogTests(unittest.TestCase):
             entry["command"] for entry in self.entries
             if entry["kind"] == "cli"
         }
-        self.assertEqual(72, len(commands))
+        self.assertEqual(74, len(commands))
         self.assertEqual(commands, catalog_commands)
 
     def test_entries_have_unique_ids_and_supported_taxonomy(self) -> None:
         ids = [entry["id"] for entry in self.entries]
         self.assertEqual(len(ids), len(set(ids)))
-        self.assertEqual(101, len(ids))
+        self.assertEqual(103, len(ids))
         self.assertEqual(
-            {"cli": 72, "page": 11, "planned": 18},
+            {"cli": 74, "page": 11, "planned": 18},
             {
                 kind: sum(entry["kind"] == kind for entry in self.entries)
                 for kind in ("cli", "page", "planned")
@@ -95,9 +95,9 @@ class WorkflowHubCatalogTests(unittest.TestCase):
         for href in pages:
             self.assertTrue((ROOT / "web" / href.removeprefix("./")).is_file())
 
-    def test_current_stage_names_the_v2_motion_consumer_admission(self) -> None:
+    def test_current_stage_names_the_v2_motion_instance_bundle(self) -> None:
         self.assertEqual(
-            "P10.6a-v2-motion-consumer-admission",
+            "P10.6b-v2",
             self.catalog["current_stage"],
         )
         entry = next(
@@ -138,6 +138,21 @@ class WorkflowHubCatalogTests(unittest.TestCase):
         )
         self.assertIn("无需选择文件", consumer["summary"])
         self.assertIn("不是 MotionInstance v3", consumer["summary"])
+        compiler = next(
+            entry for entry in self.entries
+            if entry["id"]
+            == "cli-compile-body-sway-motion-instance-v3-v2"
+        )
+        self.assertIn("P10.5d v2 probe/bundle 双 SHA", compiler["summary"])
+        self.assertIn("无需选择文件", compiler["summary"])
+        self.assertIn("MotionInstance v3", compiler["summary"])
+        verifier = next(
+            entry for entry in self.entries
+            if entry["id"]
+            == "cli-verify-body-sway-motion-instance-v3-v2"
+        )
+        self.assertIn("MotionInstance v3/bundle 双 SHA", verifier["summary"])
+        self.assertIn("无需选择文件", verifier["summary"])
 
     def test_motion_policy_page_describes_python_preflight_without_authority(self) -> None:
         entry = next(
