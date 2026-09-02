@@ -316,7 +316,7 @@ append-only，确认重试才会创建新 attempt。
 
 v2 run 十项 authority 中只有 `spine_adapter_emitted=true`。attachment overlap、dynamic seam safety、完整边界、官方 Runtime、Runtime 等价、raster 视觉、永久 head、publishable timeline 与 release authority 均为 false/blocked。机制交付不表示真实样本 A 已生成这份凭据。
 
-### P10.7b v2：Runtime Source、严格 Session 与内存 Harness
+### P10.7b v2：Runtime Source、严格 Session 与 Real Browser Runner
 
 这一阶段仍是 Python 内部能力，没有 CLI、页面或自动入口。`VerifiedSpine42V3RuntimeSourceBridgeV2`
 只接收项目、P10.7a v2 skeleton SHA 与 bundle SHA；它通过 v2 exact reader 历史重放固定五文件，
@@ -336,9 +336,16 @@ JS/CSS 字节身份、adapter 三资产和预期 observables 逐项闭合。boun
 路径、方法、content type 与所有版本绑定。内存 harness 已用模拟 PNG 验证完整 HTTP/collector
 闭环，且保持冻结 v1 session/输出哈希不变。
 
-这里尚无真实 browser runner、持久化 evidence/store、CLI/UI、raster 指标或发布权，也没有运行
-官方 Runtime；v1/v2 地址不能交叉读取。下一切片是真实 browser runner，其后才接 evidence/store
-与自动授权入口，实际 Runtime 执行仍需操作者明确授权。
+`run_spine42_v3_runtime_capture_v2` 是新增的内部 Windows real browser runner。它要求
+`license_acknowledged is True` 先于任何 I/O，对精确 P10.7a v2 bundle 只读一次，锁定
+Spine Player 4.2.119 runtime 包和 browser executable，并为每个 artifact 在全新的临时 profile
+中通过独立 loopback URL 采集。执行期间会持续校验 collector 完成前缀、server 健康、
+browser 身份和结束时 Runtime 包身份；任一偏差都 fail closed。
+
+runner 只返回内存 run，尚无 P10.7b v2 evidence/bundle store/exact reader、CLI/UI、raster
+metrics、人工复核或发布权。runner 机制测试使用 mock browser/runtime 边界，没有真正启动经授权的
+官方 Runtime；v1/v2 地址不能交叉读取。下一切片是 evidence/bundle/store/exact reader，其后才接
+自动授权入口，实际 Runtime 执行仍需操作者明确授权。
 
 ### P10.7b v1：官方 Runtime 与 Sampled Raster 证据
 
@@ -353,9 +360,9 @@ JS/CSS 字节身份、adapter 三资产和预期 observables 逐项闭合。boun
 capture manifest 会记录 runtime JS/CSS、`package.json`、`LICENSE`、浏览器、capture plan、P10.7a 来源与 PNG 摘要。`LICENSE` 文件存在不等于已经取得授权，许可确认仍由操作者负责。
 
 这些现有命令和 reader 只消费 P10.7a v1，不能接受 P10.7a v2 skeleton/bundle SHA。上面的
-P10.7b v2 source/session/harness 也没有把 v2 SHA 交给冻结入口，内存闭环不是 Runtime evidence。
-在真实 browser runner、evidence/store 与自动授权入口完成前，不得由 P10.7a v2 自动页面触发
-外部采集；之后的官方 Runtime 执行仍须操作者明确授权。
+P10.7b v2 source/session/runner 也没有把 v2 SHA 交给冻结入口，内存 run 不是可寻址 Runtime
+evidence。在 v2 evidence/bundle/store/exact reader 与自动授权入口完成前，不得由
+P10.7a v2 自动页面触发外部采集；之后的官方 Runtime 执行仍须操作者明确授权。
 
 指标只以 `alpha >= 1` 的二值掩码比较捕获计划内 transparent composite 与 attachment isolate union，并检查 missing/extra/xor、边界、裁切和非空 isolate。人工 decision 只覆盖同一组 sampled case 与 setup attachment inventory。两者都不证明未采样时间、连续 runtime raster safety、永久 current-head authority、publishable timeline 或 release authority；release gate 始终 blocked。
 

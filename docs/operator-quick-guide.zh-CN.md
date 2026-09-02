@@ -309,7 +309,7 @@ workspace/overrides/<project-id>/
 - 从 P9 package 自动进入 Seam Anchor 页面，以叠加图、确定性建议草稿和一次最终确认完成 P10.5b，并在 ready 时继续 P10.5c exact publication/readback；
 - 在 P9 页面完成一次明确 human adoption 后，由本机编译 decision/reviewed policy、原子发布 MotionInstance v2 六文件 bundle，并立即 exact verify；CLI 仍可独立复验，review input 下载仅作备份；
 - 通过离线命令生成和验证版本中立的 Layer Manifest、RigIR、mesh、IK、MotionIR、P10.6a/P10.6b v1/v2 与 P10.7a v1/v2；P10.7a v2 还可从 completed P10.6b 页面自动携带四个任务 ID，生成并 exact-readback 五文件 adapter，无需选择项目、文件或填写 SHA。
-- 在操作者提供并确认有权使用官方 Spine Player 4.2.119 时，用冻结 P10.7b v1 捕获 P10.7a v1 的固定 sampled raster 证据；该入口不能消费 P10.7a v2。P10.7b v2 已有严格 session、collector、loopback server 与内存 harness，但还没有真实 browser runner、CLI、页面或 Runtime 执行入口。
+- 在操作者提供并确认有权使用官方 Spine Player 4.2.119 时，用冻结 P10.7b v1 捕获 P10.7a v1 的固定 sampled raster 证据；该入口不能消费 P10.7a v2。P10.7b v2 已有严格 session、collector、loopback server 与 Windows real browser runner：只有显式许可真值与 Windows 才能对精确 P10.7a v2 执行一次读取和逐 artifact 隔离采集；结果仍只在内存中，没有 v2 evidence/store、CLI、页面、raster 或发布权。
 - 从 strict canonical 示例 Manifest 只读审计两份真实样本的 P3→P10.7b 前置；审计不会自动执行阶段、代替人审或授予发布权。
 - 使用独立 P10.7c 命令，把精确 capture 中唯一的 opaque setup 帧与既有 P6 approved golden 做零写入 RGBA 对照；该入口已交付，但真实样本仍需先补齐外部前置。
 
@@ -323,7 +323,12 @@ workspace/overrides/<project-id>/
 - 在未提供并确认授权的官方 Spine Runtime、job 未完成或尚未逐 case 人审时，把 v2 合同/测试结果声称为真实 Runtime 已执行、视觉已批准或 runtime 等价；
 - 自动授予商业使用、发布许可或生成 Spine Editor 工程。
 
-P10.7a v2 source adapter、自动页面与验证链已经存在，但它只说明 adapter 发出。P10.7b v2 的 source/session/内存 harness 也不改变这一点：它只闭合版本隔离的 plan、admission 和 artifact sessions，不创建持久化 evidence 或 raster。每个新 rig/clip 仍需分别完成 attachment 边界视觉回归、官方 Runtime 证据和许可审查；不要把 v2 地址交给冻结 P10.7b v1，其输出哈希保持不变。
+P10.7a v2 source adapter、自动页面与验证链已经存在，但它只说明 adapter 发出。P10.7b v2 的
+source/session/real browser runner 也不改变这一点：runner 要求显式许可真值和 Windows，对精确
+P10.7a v2 只读一次，锁定固定 Spine Player 4.2.119 Runtime/浏览器 lease，并为每个 artifact
+使用全新 profile 和 loopback capture；它只返回内存 reports/PNG bytes，不创建持久化 evidence、
+raster 指标或人工决定。每个新 rig/clip 仍需分别完成 attachment 边界视觉回归、官方 Runtime
+证据和许可审查；不要把 v2 地址交给冻结 P10.7b v1，其输出哈希保持不变。
 
 ### P3 Mesh 入口
 
@@ -338,7 +343,15 @@ python -B -m autospine_workbench verify-mesh-bundle --help
 
 ## 10. 当前阶段与下一开发入口
 
-**当前阶段是 P10.7b-v2-runtime-session-harness。** P10.5d、P10.6a/P10.6b v2、P10.7a v2 自动入口，以及 P10.7b v2 source bridge、严格 session、collector、loopback server 与内存 harness 均已交付；机制测试不表示项目 A 已生成真实 P10.5d–P10.7a v2 凭据。当前仍没有真实 browser runner、evidence/store、CLI/UI 或 raster，也没有运行官方 Runtime。下一切片是真实 browser runner，再接 evidence/store 与自动授权入口；官方 Runtime 仍需操作者授权，release/raster/Runtime/完整边界/overlap 均 blocked。项目 B revision 16 必须完成自己的 P9/P10，并解决四条 `unobservable` 静态关系。对新的 Kimodo 输入，仍应先运行零写入准入审计：
+**当前阶段是 P10.7b-v2-runtime-runner。** P10.5d、P10.6a/P10.6b v2、P10.7a v2 自动入口，
+以及 P10.7b v2 source bridge、严格 session、collector、loopback server 与 Windows real browser
+runner 均已交付。runner 只有在 `license_acknowledged=true` 且 Windows 环境下才会运行；它对
+精确 P10.7a v2 只读一次，固定 Spine Player 4.2.119 Runtime/浏览器 lease，并逐 artifact 使用
+全新 profile。当前结果仅在内存中，尚无 v2 evidence/bundle store/exact reader、CLI/UI、raster
+metrics、人工复核或发布权；机制测试也没有真正启动经授权的官方 Runtime。下一切片是
+evidence/bundle/store/exact reader，再接自动授权入口。项目 A 仍没有真实 P10.5d–P10.7a v2
+凭据，项目 B revision 16 必须完成自己的 P9/P10 并解决四条 `unobservable` 静态关系；
+release/raster/Runtime 等价/完整边界/overlap 均 blocked。对新的 Kimodo 输入，仍应先运行零写入准入审计：
 
 ```powershell
 python -B -m autospine_workbench audit-kimodo-pilot-intake `
@@ -442,11 +455,13 @@ P10.7a v1/v2 的发布前 head observation 都不是永久审批权。v2 十项 
 
 冻结 P10.7b v1 的捕获、精确复验、raster 候选与人工 decision 基础设施已经可用，但只消费
 P10.7a v1。它不能接收 P10.7a v2 skeleton/bundle SHA。P10.7b v2 已能从精确 v2 双 SHA生成
-blocked plan/admission，并以严格 session、bounded collector 和 loopback server 完成全内存 capture
-harness；这只是模拟 PNG 的传输与合同测试，不是官方 Runtime evidence。目前仍没有真实 browser
-runner、持久化 evidence/store、CLI、页面、raster 或发布权。不要把 v2 内部对象交给下列冻结
-v1 命令；v1 输出哈希保持不变。下一切片是真实 browser runner，再接 evidence/store 与自动授权
-入口，官方 Runtime 仍需明确许可。
+blocked plan/admission，并以严格 session、bounded collector、loopback server 和 Windows real
+browser runner 完成逐 artifact 内存采集。runner 要求显式许可真值，对 P10.7a v2 只读一次，
+锁定固定 Spine Player 4.2.119 Runtime/浏览器 lease，并为每个 artifact 使用全新 profile；当前
+没有持久化 evidence/bundle store/exact reader、CLI、页面、raster metrics、人工复核或发布权。
+机制测试没有真正启动经授权的官方 Runtime。不要把 v2 内部对象交给下列冻结 v1 命令；v1
+输出哈希保持不变。下一切片是 evidence/bundle/store/exact reader，再接自动授权入口；官方
+Runtime 始终需要明确许可。
 下列命令只用于冻结 v1：
 
 ```powershell

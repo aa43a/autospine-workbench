@@ -89,9 +89,9 @@ exact Layer Manifest + exact P3 static bundle
                                        ↓
         P10.7a version-matched Spine 4.2 v3 bundle
                                        ↓
- P10.7b v2 runtime source + strict sessions + loopback harness（已交付）
+ P10.7b v2 runtime source + sessions + real browser runner（已交付）
                                        ↓
-        real browser runner → evidence/store → automatic authorization
+       evidence/bundle/store/reader → automatic authorization
                                        ↓
                     [external] Runtime/raster gate
                                        ↓
@@ -585,18 +585,25 @@ v2，跨版本、篡改或重封装输入均 fail closed。
 官方 Runtime、runtime 等价、raster 指标/视觉、人审、永久 head、可发布 timeline 与 release
 authority 全部为 false，`release_gate` 固定 blocked。
 
-在 bridge 之后，P10.7b v2 已新增严格 session set、bounded in-memory collector 与 loopback-only
-HTTP server。每个 session 都按 capture-plan artifact 顺序绑定同一 admission、plan、Runtime
-JS/CSS 字节身份、P10.7a v2 skeleton/atlas/texture 与预期 attachment observables；跨版本对象、
-runtime/asset/plan/admission 篡改或 collector/session 串线均 fail closed。collector 对每个 artifact
-只接受一次 capture/error 终态，限制单项与总 PNG 字节，并只在全部 artifact 终态时形成内存
-snapshot。server 复用 transport-only core，限制 loopback 地址，校验 Host、Origin、路径、方法、
-内容类型和 session 身份。内存 harness 以模拟 PNG 完成 session → HTTP → collector 闭环，并证明
-冻结 v1 session 字节与哈希不变。
+在 bridge 之后，P10.7b v2 已新增严格 session set、bounded in-memory collector、loopback-only
+HTTP server 与 Windows real browser runner。每个 session 都按 capture-plan artifact 顺序绑定同一
+admission、plan、Runtime JS/CSS 字节身份、P10.7a v2 skeleton/atlas/texture 与预期
+attachment observables；跨版本对象、runtime/asset/plan/admission 篡改或 collector/session 串线
+均 fail closed。collector 对每个 artifact 只接受一次 capture/error 终态，限制单项与总 PNG
+字节，并只在全部 artifact 终态时形成内存 snapshot。server 复用 transport-only core，限制
+loopback 地址，校验 Host、Origin、路径、方法、内容类型和 session 身份。
 
-这仍不是实际 browser runner，也没有持久化 evidence/store、CLI/UI、raster 指标或发布权；测试
-没有运行官方 Runtime，P10.7a 页面也不会自动启动它。下一切片是真实 browser runner，再接
-evidence/store 与自动授权入口；实际 Runtime 始终是操作者明确授权后的外部边界。
+real runner 的信任顺序是固定的：`license_acknowledged` 必须严格为 `true`，并在任何
+I/O 之前确认 Windows；随后只读一次精确 P10.7a v2 bundle，锁定 Spine Player 4.2.119
+Runtime 包和 browser executable lease，为每个 artifact 创建全新的临时 browser profile，经本次
+loopback server 捕获，并在执行期间反复检查 browser 身份、结束前重读 Runtime 包。任何顺序、
+身份、lease 健康度或完整性偏差都不会产生部分成功。
+
+runner 当前只返回进程内存中的 reports 和 PNG bytes；尚无 P10.7b v2
+evidence/bundle store/exact reader、CLI/UI、raster metrics、人工复核或发布权。内存 harness 与 runner
+机制测试使用模拟边界，没有真正启动经授权的官方 Runtime；P10.7a 页面也不会自动启动它。
+下一切片是 evidence/bundle/store/exact reader，其后才是自动授权入口。实际 Runtime 执行始终是
+操作者明确授权后的外部边界；冻结 v1 字节与哈希保持不变。
 
 P10.7b v1 用固定官方 Runtime/浏览器身份、case plan、完整 setup attachment isolate 与 sampled
 raster 指标形成不可变 capture；candidate 和完整 human decision 保持分离。其后的 readiness

@@ -97,9 +97,9 @@ class WorkflowHubCatalogTests(unittest.TestCase):
         for href in pages:
             self.assertTrue((ROOT / "web" / href.removeprefix("./")).is_file())
 
-    def test_current_stage_names_the_v2_runtime_session_harness(self) -> None:
+    def test_current_stage_names_the_v2_runtime_runner(self) -> None:
         self.assertEqual(
-            "P10.7b-v2-runtime-session-harness",
+            "P10.7b-v2-runtime-runner",
             self.catalog["current_stage"],
         )
         entry = next(
@@ -189,10 +189,11 @@ class WorkflowHubCatalogTests(unittest.TestCase):
             if entry["id"]
             == "planned-real-sample-spine42-v3-raster-acceptance"
         )
-        self.assertIn("loopback server 与内存 capture harness 已交付", next_slice["summary"])
-        self.assertIn("真实 browser runner", next_slice["summary"])
-        self.assertIn("evidence/store", next_slice["summary"])
+        self.assertIn("Windows real browser runner 已交付", next_slice["summary"])
+        self.assertIn("显式 license 真值", next_slice["summary"])
+        self.assertIn("evidence/bundle/store/exact reader", next_slice["summary"])
         self.assertIn("当前没有 v2 CLI/UI", next_slice["summary"])
+        self.assertIn("没有真正启动经授权的官方 Runtime", next_slice["summary"])
 
     def test_motion_policy_page_describes_python_preflight_without_authority(self) -> None:
         entry = next(
