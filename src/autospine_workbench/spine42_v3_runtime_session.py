@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-import hashlib
 import json
+from types import MappingProxyType
 from typing import Any
 
 from .spine42_runtime_inputs import Spine42RuntimePackage
@@ -24,6 +24,12 @@ from .spine42_v3_runtime_plan import (
     canonical_spine42_v3_runtime_plan_bytes,
     spine42_v3_runtime_plan_sha256,
 )
+from .spine42_v3_runtime_session_core import (
+    build_session_projection, build_session_set_value,
+    bundle_asset_identities, canonical_json, copy_json, require_artifact_ids,
+    require_capture_profile, require_harness_snapshot,
+    require_runtime_snapshot, runtime_inventory, sha256_bytes,
+)
 
 
 SESSION_SET_FORMAT = "autospine-spine42-v3-runtime-session-set"
@@ -42,6 +48,31 @@ class Spine42V3RuntimeSessions:
     """Frozen complete artifact inventory with detached JSON access."""
 
     _canonical_json: str = field(repr=False)
+    _plan_bytes: bytes = field(init=False, repr=False, compare=False)
+    _artifact_ids: tuple[str, ...] = field(
+        init=False, repr=False, compare=False,
+    )
+    _session_items: tuple[tuple[str, bytes], ...] = field(
+        init=False, repr=False, compare=False,
+    )
+    _session_index: Any = field(init=False, repr=False, compare=False)
+    _sha256: str = field(init=False, repr=False, compare=False)
+
+    def __post_init__(self) -> None:
+        artifact_ids, plan, items, _admission = build_session_projection(
+            self._canonical_json, session_format=SESSION_FORMAT,
+            format_version=FORMAT_VERSION,
+            error_type=Spine42V3RuntimeSessionError,
+        )
+        object.__setattr__(self, "_artifact_ids", artifact_ids)
+        object.__setattr__(self, "_plan_bytes", plan)
+        object.__setattr__(self, "_session_items", items)
+        object.__setattr__(
+            self, "_session_index", MappingProxyType(dict(items)),
+        )
+        object.__setattr__(
+            self, "_sha256", sha256_bytes(self.canonical_bytes),
+        )
 
     @property
     def document(self) -> dict[str, Any]:
@@ -53,45 +84,28 @@ class Spine42V3RuntimeSessions:
 
     @property
     def sha256(self) -> str:
-        return hashlib.sha256(self.canonical_bytes).hexdigest()
+        return self._sha256
 
     @property
     def plan(self) -> dict[str, Any]:
-        return self.document["plan"]
+        return json.loads(self._plan_bytes)
 
     @property
     def artifact_ids(self) -> tuple[str, ...]:
-        return tuple(self.document["artifact_ids"])
+        return self._artifact_ids
+
+    @property
+    def session_bytes(self) -> dict[str, bytes]:
+        """Return detached immutable byte values in exact artifact order."""
+
+        return dict(self._session_items)
 
     def session(self, artifact_id: str) -> dict[str, Any]:
-        document = self.document
-        artifact = next((row for row in document["plan"]["artifacts"]
-                         if row["artifact_id"] == artifact_id), None)
-        if artifact is None:
+        if type(artifact_id) is not str or artifact_id not in self._session_index:
             raise Spine42V3RuntimeSessionError(
                 "Artifact is absent from the exact runtime plan"
             )
-        case = next((row for row in document["plan"]["cases"]
-                     if row["case_id"] == artifact["case_id"]), None)
-        if case is None:
-            raise Spine42V3RuntimeSessionError(
-                "Artifact case is absent from the exact runtime plan"
-            )
-        return _copy({
-            "format": SESSION_FORMAT,
-            "format_version": FORMAT_VERSION,
-            "session_set_sha256": self.sha256,
-            "plan_sha256": document["plan_sha256"],
-            "source": document["source"],
-            "runtime": document["runtime"],
-            "assets": document["assets"],
-            "capture": document["plan"]["capture"],
-            "case": case,
-            "artifact": artifact,
-            "expected_observables": _artifact_observables(
-                document["runtime_inventory"], artifact
-            ),
-        })
+        return json.loads(self._session_index[artifact_id])
 
 
 def build_spine42_v3_runtime_sessions(
@@ -118,40 +132,21 @@ def build_spine42_v3_runtime_sessions(
         _require_runtime(runtime, expected_plan)
         _require_harness(expected_plan)
         _require_capture_profile(expected_plan)
-        raw = bundle.document_bytes
-        assets = {
-            "skeleton_sha256": _sha(raw["skeleton.json"]),
-            "atlas_sha256": _sha(raw["skeleton.atlas"]),
-            "texture_sha256": _sha(raw["skeleton.png"]),
-        }
-        if tuple(assets.values()) != (
-            bundle.skeleton_json_sha256, bundle.atlas_sha256,
-            bundle.png_sha256,
-        ):
-            raise Spine42V3RuntimeSessionError(
-                "Bundle asset bytes differ from their verified identities"
-            )
-        artifacts = expected_plan["artifacts"]
-        artifact_ids = [row["artifact_id"] for row in artifacts]
-        if len(artifact_ids) != len(set(artifact_ids)) or not artifact_ids:
-            raise Spine42V3RuntimeSessionError(
-                "Runtime plan artifact inventory is empty or duplicated"
-            )
-        value = {
-            "format": SESSION_SET_FORMAT,
-            "format_version": FORMAT_VERSION,
-            "source": expected_plan["source"],
-            "runtime": expected_plan["runtime"],
-            "assets": assets,
-            "plan_sha256": spine42_v3_runtime_plan_sha256(expected_plan),
-            "plan": expected_plan,
-            "artifact_ids": artifact_ids,
-            "runtime_inventory": _runtime_inventory(bundle),
-            "summary": {
-                "case_count": len(expected_plan["cases"]),
-                "artifact_count": len(artifact_ids),
-            },
-        }
+        assets = bundle_asset_identities(
+            bundle, error_type=Spine42V3RuntimeSessionError,
+        )
+        artifact_ids = require_artifact_ids(
+            expected_plan, error_type=Spine42V3RuntimeSessionError,
+        )
+        value = build_session_set_value(
+            session_set_format=SESSION_SET_FORMAT,
+            format_version=FORMAT_VERSION,
+            source=expected_plan["source"],
+            runtime=expected_plan["runtime"], assets=assets,
+            plan_sha256=spine42_v3_runtime_plan_sha256(expected_plan),
+            plan=expected_plan, artifact_ids=artifact_ids,
+            runtime_inventory=runtime_inventory(bundle.skeleton_json),
+        )
         return Spine42V3RuntimeSessions(_canonical(value))
     except Spine42V3RuntimeSessionError:
         raise
@@ -186,93 +181,48 @@ def require_exact_spine42_v3_runtime_sessions(
 
 
 def _require_runtime(runtime, plan) -> None:
-    js, css = runtime.javascript_bytes, runtime.stylesheet_bytes
-    if type(js) is not bytes or not 0 < len(js) <= MAX_RUNTIME_JAVASCRIPT_BYTES \
-            or type(css) is not bytes \
-            or not 0 < len(css) <= MAX_RUNTIME_STYLESHEET_BYTES:
-        raise Spine42V3RuntimeSessionError(
-            "Official runtime byte snapshots are invalid"
-        )
-    expected = (
-        SPINE_PLAYER_JAVASCRIPT_SHA256,
-        SPINE_PLAYER_STYLESHEET_SHA256,
+    require_runtime_snapshot(
+        runtime, plan,
+        expected_javascript_sha256=SPINE_PLAYER_JAVASCRIPT_SHA256,
+        expected_stylesheet_sha256=SPINE_PLAYER_STYLESHEET_SHA256,
+        max_javascript_bytes=MAX_RUNTIME_JAVASCRIPT_BYTES,
+        max_stylesheet_bytes=MAX_RUNTIME_STYLESHEET_BYTES,
+        error_type=Spine42V3RuntimeSessionError,
     )
-    actual = runtime.javascript_sha256, runtime.stylesheet_sha256
-    content = _sha(js), _sha(css)
-    declared = (
-        plan["runtime"]["javascript_sha256"],
-        plan["runtime"]["stylesheet_sha256"],
-    )
-    if actual != expected or content != expected or declared != expected:
-        raise Spine42V3RuntimeSessionError(
-            "Official runtime bytes differ from the pinned capture profile"
-        )
 
 
 def _require_capture_profile(plan) -> None:
-    capture = plan["capture"]
-    if capture["viewport"] != {"width": 640, "height": 640} \
-            or capture["device_pixel_ratio"] != 1 \
-            or capture["preserve_drawing_buffer"] is not True:
-        raise Spine42V3RuntimeSessionError(
-            "Runtime plan does not use the fixed 640x640 DPR1 profile"
-        )
+    require_capture_profile(plan, error_type=Spine42V3RuntimeSessionError)
 
 
 def _require_harness(plan) -> None:
-    expected = CAPTURE_JS_SHA256, CAPTURE_CSS_SHA256
-    actual = _sha(CAPTURE_JS), _sha(CAPTURE_CSS)
-    declared = (
-        plan["harness"]["javascript_sha256"],
-        plan["harness"]["stylesheet_sha256"],
+    require_harness_snapshot(
+        plan, CAPTURE_JS, CAPTURE_CSS,
+        javascript_sha256=CAPTURE_JS_SHA256,
+        stylesheet_sha256=CAPTURE_CSS_SHA256,
+        error_type=Spine42V3RuntimeSessionError,
     )
-    if actual != expected or declared != expected:
-        raise Spine42V3RuntimeSessionError(
-            "Runtime capture harness differs from the pinned profile"
-        )
 
 
 def _runtime_inventory(bundle) -> dict[str, Any]:
-    skeleton = bundle.skeleton_json
-    slots = skeleton["slots"]
-    return {
-        "clip_ids": list(skeleton["animations"]),
-        "slot_ids": [row["name"] for row in slots],
-        "attachments": [
-            {"slot_id": row["name"], "attachment_id": row["attachment"]}
-            for row in slots if row.get("attachment") is not None
-        ],
-    }
+    return runtime_inventory(bundle.skeleton_json)
 
 
 def _artifact_observables(inventory, artifact) -> dict[str, Any]:
-    slots = inventory["slot_ids"]
-    isolated = artifact["kind"] == "attachment_isolate"
-    visible = [artifact["slot_id"]] if isolated else list(slots)
-    return {
-        "official_runtime_loaded": True,
-        **inventory,
-        "isolation": {
-            "artifact_kind": artifact["kind"],
-            "visible_slot_ids": visible,
-            "hidden_slot_ids": [slot for slot in slots if slot not in visible],
-        },
-    }
+    from .spine42_v3_runtime_session_core import artifact_observables
+    return artifact_observables(inventory, artifact)
 
 
 def _sha(value: bytes) -> str:
-    return hashlib.sha256(value).hexdigest()
+    return sha256_bytes(value)
 
 
 def _copy(value: Any) -> dict[str, Any]:
-    return json.loads(_canonical(value))
+    return copy_json(value)
 
 
 def _canonical(value: Any) -> str:
-    return json.dumps(
-        value, ensure_ascii=False, allow_nan=False,
-        sort_keys=True, separators=(",", ":"),
-    )
+    return canonical_json(value)
 
 
 __all__ = [

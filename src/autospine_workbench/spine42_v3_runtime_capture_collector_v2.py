@@ -1,4 +1,4 @@
-"""Bounded fail-closed collector for frozen P10.7b v1 sessions."""
+"""Bounded fail-closed collector for version-isolated P10.7b v2 sessions."""
 
 from __future__ import annotations
 
@@ -10,17 +10,15 @@ from .spine42_v3_runtime_capture_core import (
     MAX_CAPTURE_BYTES, MAX_CAPTURE_TOTAL_BYTES,
     MAX_RUNTIME_ERROR_CHARACTERS, RuntimeCaptureCollectorCore,
 )
-from .spine42_v3_runtime_session import Spine42V3RuntimeSessions
+from .spine42_v3_runtime_session_v2 import Spine42V3RuntimeSessionsV2
 
 
-class Spine42V3RuntimeCaptureCollectorError(ValueError):
-    """Raised for missing, duplicated, malformed, or unbounded evidence."""
+class Spine42V3RuntimeCaptureCollectorV2Error(ValueError):
+    """Raised for invalid or incomplete v2 runtime raster evidence."""
 
 
 @dataclass(frozen=True, slots=True)
-class Spine42V3RuntimeCaptureSnapshot:
-    """Complete ordered reports and immutable captured PNG byte snapshots."""
-
+class Spine42V3RuntimeCaptureSnapshotV2:
     _reports_json: str = field(repr=False)
     _capture_items: tuple[tuple[str, bytes], ...] = field(repr=False)
 
@@ -33,19 +31,18 @@ class Spine42V3RuntimeCaptureSnapshot:
         return dict(self._capture_items)
 
 
-class Spine42V3RuntimeCaptureCollector:
-    """Frozen v1 wrapper around the version-neutral collector core."""
+class Spine42V3RuntimeCaptureCollectorV2:
+    """Accept exactly one result for every artifact in a v2 session set."""
 
-    def __init__(self, sessions: Spine42V3RuntimeSessions) -> None:
-        if type(sessions) is not Spine42V3RuntimeSessions:
-            raise Spine42V3RuntimeCaptureCollectorError(
-                "Collector requires a frozen runtime session set"
+    def __init__(self, sessions: Spine42V3RuntimeSessionsV2) -> None:
+        if type(sessions) is not Spine42V3RuntimeSessionsV2:
+            raise Spine42V3RuntimeCaptureCollectorV2Error(
+                "Collector v2 requires a frozen runtime session set v2"
             )
         self._core = RuntimeCaptureCollectorCore(
-            sessions, error_type=Spine42V3RuntimeCaptureCollectorError,
-            snapshot_factory=Spine42V3RuntimeCaptureSnapshot,
+            sessions, error_type=Spine42V3RuntimeCaptureCollectorV2Error,
+            snapshot_factory=Spine42V3RuntimeCaptureSnapshotV2,
         )
-        self._captures = self._core._captures
 
     @property
     def artifact_ids(self) -> tuple[str, ...]:
@@ -74,13 +71,13 @@ class Spine42V3RuntimeCaptureCollector:
     def status(self) -> dict[str, Any]:
         return self._core.status()
 
-    def snapshot(self) -> Spine42V3RuntimeCaptureSnapshot:
+    def snapshot(self) -> Spine42V3RuntimeCaptureSnapshotV2:
         return self._core.snapshot()
 
 
 __all__ = [
     "MAX_CAPTURE_BYTES", "MAX_CAPTURE_TOTAL_BYTES",
-    "MAX_RUNTIME_ERROR_CHARACTERS", "Spine42V3RuntimeCaptureCollector",
-    "Spine42V3RuntimeCaptureCollectorError",
-    "Spine42V3RuntimeCaptureSnapshot",
+    "MAX_RUNTIME_ERROR_CHARACTERS", "Spine42V3RuntimeCaptureCollectorV2",
+    "Spine42V3RuntimeCaptureCollectorV2Error",
+    "Spine42V3RuntimeCaptureSnapshotV2",
 ]

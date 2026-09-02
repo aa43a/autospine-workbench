@@ -316,9 +316,9 @@ append-only，确认重试才会创建新 attempt。
 
 v2 run 十项 authority 中只有 `spine_adapter_emitted=true`。attachment overlap、dynamic seam safety、完整边界、官方 Runtime、Runtime 等价、raster 视觉、永久 head、publishable timeline 与 release authority 均为 false/blocked。机制交付不表示真实样本 A 已生成这份凭据。
 
-### P10.7b v2：只读 Runtime Source Bridge
+### P10.7b v2：Runtime Source、严格 Session 与内存 Harness
 
-这一切片是 Python 内部只读能力，没有 CLI、页面或自动入口。`VerifiedSpine42V3RuntimeSourceBridgeV2`
+这一阶段仍是 Python 内部能力，没有 CLI、页面或自动入口。`VerifiedSpine42V3RuntimeSourceBridgeV2`
 只接收项目、P10.7a v2 skeleton SHA 与 bundle SHA；它通过 v2 exact reader 历史重放固定五文件，
 不读取 current heads，再以独立 v2 source/profile/plan/admission 哈希域生成：
 
@@ -328,10 +328,17 @@ v2 run 十项 authority 中只有 `spine_adapter_emitted=true`。attachment over
 source admission 只确认 `p10_7a_v2_exact_replayed=true` 与
 `bounded_capture_plan_emitted=true`。官方 Runtime loaded/equivalence、raster 指标与视觉、人审、
 永久 current-head authority、可发布 Spine timeline 和 release authority 全部为 false，
-`release_gate` 固定为 `blocked`。它没有持久化 store、session、runner、capture evidence 或 raster
-产物，也不会启动官方 Runtime。冻结 P10.7b v1 reader、合同和输出哈希保持不变；v1/v2 地址
-不能交叉读取。下一切片是 v2 sessions/runner，其后才接 evidence/store 与自动授权入口，实际
-Runtime 执行仍需操作者明确授权。
+`release_gate` 固定为 `blocked`。
+
+已新增的 strict v2 session set 按 plan 中的固定 artifact 顺序，把 source admission、Runtime
+JS/CSS 字节身份、adapter 三资产和预期 observables 逐项闭合。bounded collector 对每个 artifact
+只接收一次 capture/error 终态并限制单项/总 PNG 大小；loopback-only server 校验 Host、Origin、
+路径、方法、content type 与所有版本绑定。内存 harness 已用模拟 PNG 验证完整 HTTP/collector
+闭环，且保持冻结 v1 session/输出哈希不变。
+
+这里尚无真实 browser runner、持久化 evidence/store、CLI/UI、raster 指标或发布权，也没有运行
+官方 Runtime；v1/v2 地址不能交叉读取。下一切片是真实 browser runner，其后才接 evidence/store
+与自动授权入口，实际 Runtime 执行仍需操作者明确授权。
 
 ### P10.7b v1：官方 Runtime 与 Sampled Raster 证据
 
@@ -346,8 +353,8 @@ Runtime 执行仍需操作者明确授权。
 capture manifest 会记录 runtime JS/CSS、`package.json`、`LICENSE`、浏览器、capture plan、P10.7a 来源与 PNG 摘要。`LICENSE` 文件存在不等于已经取得授权，许可确认仍由操作者负责。
 
 这些现有命令和 reader 只消费 P10.7a v1，不能接受 P10.7a v2 skeleton/bundle SHA。上面的
-P10.7b v2 bridge 也没有把 v2 SHA 交给冻结入口：它只形成版本隔离的 blocked plan/admission。
-在 v2 sessions/runner、evidence/store 与自动授权入口完成前，不得由 P10.7a v2 自动页面触发
+P10.7b v2 source/session/harness 也没有把 v2 SHA 交给冻结入口，内存闭环不是 Runtime evidence。
+在真实 browser runner、evidence/store 与自动授权入口完成前，不得由 P10.7a v2 自动页面触发
 外部采集；之后的官方 Runtime 执行仍须操作者明确授权。
 
 指标只以 `alpha >= 1` 的二值掩码比较捕获计划内 transparent composite 与 attachment isolate union，并检查 missing/extra/xor、边界、裁切和非空 isolate。人工 decision 只覆盖同一组 sampled case 与 setup attachment inventory。两者都不证明未采样时间、连续 runtime raster safety、永久 current-head authority、publishable timeline 或 release authority；release gate 始终 blocked。
