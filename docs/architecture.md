@@ -81,11 +81,11 @@ exact Layer Manifest + exact P3 static bundle
                                       ↓
           P10.5b decision → P10.5c reviewed set
                                       ↓
-                 P10.5d dynamic seam probe
-                                      ↓
-            P10.6a motion-consumer admission
+            P10.5d v1/v2 dynamic seam evidence
                                        ↓
-             P10.6b MotionInstance v3 bundle
+          P10.6a version-isolated consumer admission
+                                        ↓
+        P10.6b version-matched MotionInstance v3 bundle
                                        ↓
              P10.7a Spine 4.2 v3 bundle
                                        ↓
@@ -133,8 +133,9 @@ web    → HTTP contracts only
 - 冻结 P10.5d v1 command 继续只接受 v1 proof。P10.5d v2 已交付 path-free source、analyzer/compiler/validator、CLI/store/exact reader，以及 exact `job_id+safety_run_id` 自动闭合 current P10.5c 的 server/job/UI 入口。自动任务使用独立 BelowNormal worker 与 append-only attempts；父进程独占最终 exact readback/current-head recheck 和完成态写入。真实 A 尚待当前 P10.4b run 完成并重启服务后执行。
 - P10.5d v2 compile 在分析前、发布前、发布后共三次观察 current visual/seam heads，并要求三份 canonical observation 精确一致。只有通过这三次门禁才发布固定 `body-sway-dynamic-seam-source-v2.json`、`body-sway-dynamic-seam-probe-v2.json`、`bundle-manifest.json` inventory，随后按 probe/bundle 双 SHA exact-readback。历史 verify 只重放这三份 exact bytes 和语义 validator；manifest 的 authority scope 固定为 `historical_exact_bytes_only`，不读取或授予 current-head authority。
 - P10.5d analyzer 对六关系全部 reviewed pairs 覆盖相邻 tick 与统一 gain，只认证 `4 px²` reviewed-anchor point proximity 工程代理。region–region、region–mesh、mesh–region 有固定投影；mesh–mesh、预算耗尽、非有限包络、backend 自相矛盾和任何 head 漂移都 fail closed。attachment 边界、raster/视觉、runtime、timeline 和发布明确排除。
-- P10.6a consumer admission 内嵌并完整重放 P10.5d probe，从其 source closure 读取精确 P9 双地址并复验 reviewed-motion bundle；pure core 只构造 unit-gain、setup-local、版本中立 motion domain，seal 前后重新观察视觉与接缝 current head。
-- P10.6a 不发出 MotionInstance v3、adapter 或 Spine timeline。其内部与 CLI 外层 head observation scope 都固定为 `compile_time`；完整 attachment 边界、raster/视觉、runtime、publishable timeline 和 release authority 保持 blocked。
+- P10.6a v1 已冻结，只接受 v1 probe 文件。P10.6a v2 使用独立 format/profile/hash domain，公开输入只有项目与 P10.5d v2 probe/bundle 双 SHA；exact reader 读取固定三文件 inventory，并从其 source closure 自动取得 P9 双地址和完整复验数据，不扫描 `latest` 或要求选择文件。
+- P10.6a v2 source 显式绑定 P10.5d source/probe/bundle、P9、Manifest/P3/target/timing 与 Preview v2。pure core 只构造 unit-gain、setup-local、版本中立 motion domain；detached validator 由两份 exact bundle 重编，seal 前后重新观察 visual-v2 与 seam-v1 current heads。
+- P10.6a v1/v2 都不发出 MotionInstance v3、adapter 或 Spine timeline。其内部与 CLI 外层 head observation scope 都固定为 `compile_time`；完整 attachment overlap/边界、raster/视觉、runtime、publishable timeline 和 release authority 保持 blocked。现有 P10.6b v1 只消费 v1 admission；v2 必须进入版本隔离的 P10.6b v2，不能静默复用旧来源合同。
 - Kimodo 的 raw NPZ、source sidecar 与 map 是三个独立输入。sidecar 解释数组/FPS/producer，map 决定投影/角色/contact；两者都不得根据文件名、数组数量或相邻目录隐式发现。
 - 所有同卷目录发布统一经 `atomic_staging.create_same_parent_staging` 创建 staging。POSIX 保留 owner-only `mkdtemp`；Windows 不传 `0o700`，以不可预测名称和原子 `mkdir()` 继承 publication parent 的 DACL，再由同卷 rename 发布。这样不会把 Python 3.14 `mkdtemp` 的 protected creator-only DACL 带到最终 bundle；碰撞、失败清理、并发收敛、固定 inventory 与发布后 exact readback 语义保持不变。历史受限 ACL 只允许通过另行授权、精确地址、前后字节/哈希不变的窄范围迁移处理，禁止对整个 state tree 递归重置权限。
 
@@ -490,7 +491,7 @@ head observation 的 scope 都固定为 `compile_time`，保存 stdout 或重复
 获得永久 authority。操作、退出码与真实 A/B test-only/blocked 边界见
 [探测 P10.5d body-sway 动态接缝锚点](how-to-probe-body-sway-dynamic-seams.md)。
 
-P10.6a 在不改变 P9、P10.4b2、P10.5c 或 P10.5d hash 语义的前提下建立消费入口：
+冻结 P10.6a v1 在不改变 P9、P10.4b2、P10.5c 或 P10.5d v1 hash 语义的前提下建立消费入口：
 
 ```text
 certified BodySwayDynamicSeamProbe v1（完整内嵌）
@@ -518,6 +519,23 @@ validator 仍从内嵌 probe 和外部精确 P9 bundle 重编 pure core，不能
 可以开始工作。它不含 MotionInstance v3、adapter 或 Spine export；before/after observation
 及 CLI 的外层 observation 都只在 `compile_time` 有效。操作入口见
 [编译 P10.6a body-sway 动作消费准入](how-to-compile-body-sway-motion-consumer-admission.md)。
+
+P10.6a v2 保持这项窄语义，但把上游明确升级为 P10.5d v2 固定三文件 bundle，并使用独立
+format/profile/hash domain。CLI 不再读取操作者选择的 probe 文件；它只接收项目与 probe/bundle
+双 SHA，由 exact reader 复验 source/probe/manifest 后，从 source closure 自动读取 P9。v2 source
+还固定 P10.4b v2 continuous proof、P10.5c v1 ReviewedSet、Manifest/P3、target profile、Preview v2
+和 timing。detached replay 必须从 P10.5d v2 与 P9 两份 exact bundle 重编同一 core。操作入口见
+[编译 P10.6a v2 动作消费准入](how-to-compile-body-sway-motion-consumer-admission-v2.md)。
+
+P10.5d v2 reader-issued 对象是进程内 provenance 约定，不是对同进程恶意 Python 反射或
+monkeypatch 的密码学沙箱。发放 receipt 保存在 reader 类型闭包中，不作为模块 API 暴露；真正的
+数据完整性边界仍是公开 CLI 强制执行的 exact filesystem address、固定 inventory、完整 probe
+语义重放与 P9 重放。后续轻量 byte/address 复查只用于避免在同一次已验证调用链内重复执行耗时
+区间证明，不能单独把任意内存对象提升为可信凭据。
+
+版本升级只改变来源合同，不改变 setup-local track payload 语义，因此后续无需仅为此创建
+MotionInstance v4；但 P10.6b 的 admission source/bundle/run/reader 必须增加 v2 地址空间，不能让
+已冻结的 v1 consumer 静默接受 v2 admission。
 
 P10.6b 已在实际消费时重新检查 visual/seam current head，并把上述 motion domain 编译为
 可严格重放的 MotionInstance v3/timeline bundle。固定库存为 admission、v3 与 run；发布使用

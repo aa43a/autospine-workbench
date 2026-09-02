@@ -278,15 +278,18 @@ server/job/UI 自动入口已接入，普通用户可从 P10.4b 完成态一键�
 
 | 命令 | 功能 |
 | --- | --- |
-| `compile-body-sway-motion-consumer-admission` | 重放认证 P10.5d/P9 链并产生零写入 setup-local timeline 消费准入 |
+| `compile-body-sway-motion-consumer-admission` | 冻结 v1：读取 P10.5d v1 probe 文件，重放 P9 并产生零写入 setup-local timeline 消费准入 |
+| `compile-body-sway-motion-consumer-admission-v2` | 只凭项目与 P10.5d v2 probe/bundle 双 SHA exact-read 固定三文件 bundle，并从 source closure 自动重放 P9；不选择文件、不写 state |
 
-操作说明：[编译 P10.6a 准入](how-to-compile-body-sway-motion-consumer-admission.md)。准入本身不包含 MotionInstance v3、Spine timeline、runtime 等价或发布权；它是 P10.6b compile 命令的严格输入。
+操作说明：[冻结 v1 准入](how-to-compile-body-sway-motion-consumer-admission.md)、[P10.6a v2 自动精确地址准入](how-to-compile-body-sway-motion-consumer-admission-v2.md)。两版使用独立 format/profile/hash domain，不能互换。v2 自动闭合 P10.5d v2/P9、Manifest/P3/target/timing/Preview v2，并在 pure core 前后复查 current visual-v2/seam-v1 heads；成功只产生 path-free、compile-time admission。
+
+准入本身不包含 MotionInstance v3、Spine timeline、runtime 等价或发布权。现有 P10.6b 命令的来源合同仍是冻结 v1；v2 admission 需要后续 P10.6b v2 bundle/run/reader，不能直接交给 v1 consumer。MotionInstance payload 的 setup-local track 语义没有变化，因此不需要仅为来源升级创建 v4。
 
 ### P10.6b：MotionInstance v3
 
 | 命令 | 功能 |
 | --- | --- |
-| `compile-body-sway-motion-instance-v3` | 命令/store 双重查 current heads，把完整 P10.6a 成功 wrapper 原子发布为三文件 v3 bundle，并按地址读回 |
+| `compile-body-sway-motion-instance-v3` | v1 来源链：命令/store 双重查 current heads，把完整 P10.6a v1 成功 wrapper 原子发布为三文件 v3 bundle，并按地址读回；不能消费 v2 admission |
 | `verify-body-sway-motion-instance-v3` | 按精确 v3/bundle 双 SHA 重编历史 bundle，不声明 current-head authority |
 
 操作说明：[编译并复验 P10.6b MotionInstance v3](how-to-compile-motion-instance-v3.md)。admission 上限为 64 MiB；run 只授予 MotionInstance v3 emitted，release gate 仍 blocked。输出是版本中立 setup-local timeline；P10.7a 会显式消费它。

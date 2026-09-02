@@ -41,15 +41,15 @@ class WorkflowHubCatalogTests(unittest.TestCase):
             entry["command"] for entry in self.entries
             if entry["kind"] == "cli"
         }
-        self.assertEqual(71, len(commands))
+        self.assertEqual(72, len(commands))
         self.assertEqual(commands, catalog_commands)
 
     def test_entries_have_unique_ids_and_supported_taxonomy(self) -> None:
         ids = [entry["id"] for entry in self.entries]
         self.assertEqual(len(ids), len(set(ids)))
-        self.assertEqual(100, len(ids))
+        self.assertEqual(101, len(ids))
         self.assertEqual(
-            {"cli": 71, "page": 11, "planned": 18},
+            {"cli": 72, "page": 11, "planned": 18},
             {
                 kind: sum(entry["kind"] == kind for entry in self.entries)
                 for kind in ("cli", "page", "planned")
@@ -95,9 +95,9 @@ class WorkflowHubCatalogTests(unittest.TestCase):
         for href in pages:
             self.assertTrue((ROOT / "web" / href.removeprefix("./")).is_file())
 
-    def test_current_stage_names_the_v2_dynamic_seam_integration(self) -> None:
+    def test_current_stage_names_the_v2_motion_consumer_admission(self) -> None:
         self.assertEqual(
-            "P10.5d-v2-dynamic-seam-integration",
+            "P10.6a-v2-motion-consumer-admission",
             self.catalog["current_stage"],
         )
         entry = next(
@@ -127,6 +127,17 @@ class WorkflowHubCatalogTests(unittest.TestCase):
         self.assertEqual("./body-sway-dynamic-seam-v2.html", seam["href"])
         self.assertIn("safety_run_id", seam["summary"])
         self.assertIn("无需选择项目、文件或填写 SHA", seam["summary"])
+        consumer = next(
+            entry for entry in self.entries
+            if entry["id"]
+            == "cli-compile-body-sway-motion-consumer-admission-v2"
+        )
+        self.assertEqual(
+            "compile-body-sway-motion-consumer-admission-v2",
+            consumer["command"],
+        )
+        self.assertIn("无需选择文件", consumer["summary"])
+        self.assertIn("不是 MotionInstance v3", consumer["summary"])
 
     def test_motion_policy_page_describes_python_preflight_without_authority(self) -> None:
         entry = next(

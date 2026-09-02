@@ -54,8 +54,8 @@ P10.2 的自由缩放/平移和 `DynamicViewportFit v1` 仍是零权威诊断；
 - 在 P10.5b 页面从 P9 `package_id` 自动闭合精确来源、绑定 current head，并用 `setup_canvas`、attachment `canvas_offset_xy` 与 `anchor_points` 合成父子 alpha、contact bbox 和编号锚点连线；原始 SHA、contact 数字、locator 表和单层图默认收进技术详情。
 - 使用确定性的 advisory assist 形成可撤销草稿：唯一候选与不可观测关系自动填入，多候选只标出建议重点查看项，点击候选才形成 `accept` 草稿；建议、高亮和自动草稿都不是批准。一次最终确认才写 P10.5b revision；package 模式下若六关系 ready，会继续发布 P10.5c 并从精确上游读回复验。
 - 把完整 P10.4b2 proof 与精确 P10.5c bundle 接入双层 current-head 检查，在全部相邻 tick 和统一 gain 上证明 reviewed-anchor point 的 `4 px²` 工程距离代理；attachment 边界、raster/视觉、runtime 与发布仍保持阻塞。
-- 把认证的 P10.5d probe 与其内嵌精确 P9 bundle 重新闭合为 P10.6a 版本中立 setup-local timeline 消费准入，并在纯编译前后重查视觉与接缝 current head；它不发出 MotionInstance v3 或 Spine timeline。
-- 将完整 P10.6a 成功 wrapper 编译为 MotionInstance v3：只允许躯干四骨 rotation 覆盖，逐值保留 MIv2 root/marker/draw-order，并在发布前重查 current heads；三文件 bundle 可按 v3/bundle 双 SHA 历史复验，但不授予永久审批或 Spine 发布权。
+- 把认证的 P10.5d probe 与其内嵌精确 P9 bundle 重新闭合为 P10.6a 版本中立 setup-local timeline 消费准入，并在纯编译前后重查视觉与接缝 current head；冻结 v1 仍按文件读取，v2 只凭 P10.5d probe/bundle 双 SHA 自动读取 exact bundle 和 P9，不要求选择文件。两者都不发出 MotionInstance v3 或 Spine timeline。
+- 将冻结 P10.6a v1 成功 wrapper 编译为 MotionInstance v3：只允许躯干四骨 rotation 覆盖，逐值保留 MIv2 root/marker/draw-order，并在发布前重查 current heads；三文件 bundle 可按 v3/bundle 双 SHA 历史复验，但不接受 v2 admission，也不授予永久审批或 Spine 发布权。
 - 从精确 MotionInstance v3 双 SHA 重放 P9/P5/P3 和源 PNG，用独立 Spine 4.2 adapter v3 发布 JSON/atlas/PNG/run/report 五文件 bundle；compile/store 重查 current heads，历史 verify 不读取 current heads，且 run 只授予 adapter emitted。
 - 用操作者明确确认有权使用的官方 Spine Player 4.2.119，对精确 P10.7a bundle 执行固定 case、完整 setup attachment isolate 的捕获和 sampled raster 指标；证据可按双 SHA 复验，并可编译逐 case、逐 attachment 的人工决定，但不会授予连续时间、永久 head、发布或 release authority。
 - 用 strict canonical 请求只读审计两份真实样本从精确 Manifest/P3 到 P10.7b 的八个 checkpoint；readiness v1 已冻结，第八项仍固定为 missing。审计不扫描 `latest` 或 current review head，不自动运行外部阶段、官方 Runtime、发布或写入，也不代替人审。
@@ -224,7 +224,7 @@ JSON Schema 位于：
 - `schemas/idle-behavior-candidates-v1.schema.json`、`schemas/idle-behavior-decision-v1.schema.json`、`schemas/body-sway-probe-report-v1.schema.json` 与 `schemas/body-sway-canvas-adjustment-candidates-v1.schema.json`：P10.0–P10.2a idle 候选、人工参数决定、只读采样结构诊断与零权威离散 gain 修正候选；
 - `schemas/body-sway-runtime-capture-v1.schema.json`、`schemas/body-sway-visual-review-*.schema.json`、`schemas/body-sway-review-admission-v1.schema.json`、`schemas/body-sway-review-admission-v2.schema.json`、`schemas/body-sway-amplitude-envelope-candidate-v1.schema.json`、`schemas/body-sway-continuous-preview-proof-v1.schema.json`、`schemas/body-sway-amplitude-envelope-candidate-v2.schema.json` 与 `schemas/body-sway-continuous-preview-proof-v2.schema.json`：P10.3 runtime 证据、sampled visual revision、冻结 v1/P10.4a v2 当前审批头准入，以及互不混用的 v1/v2 幅度候选和连续证明；
 - `schemas/seam-anchor-candidates-v1.schema.json`、`schemas/seam-anchor-review-decision-v1.schema.json`、`schemas/reviewed-seam-anchor-set-v1.schema.json` 与 `schemas/body-sway-dynamic-seam-probe-v1.schema.json`：P10.5a 六条静态接缝候选、P10.5b 候选/P3 绑定的人工 revision、P10.5c 固定六关系的已复核静态锚点集，以及 P10.5d 动态 reviewed-anchor proximity 工程代理；
-- `schemas/body-sway-motion-consumer-admission-v1.schema.json`：P10.6a 完整 P10.5d/P9 source closure、unit-gain setup-local motion domain 与 compile-time 双 head seal；
+- `schemas/body-sway-motion-consumer-admission-v1.schema.json` 与 `schemas/body-sway-motion-consumer-admission-v2.schema.json`：互不混用的 P10.6a v1/v2 source closure、unit-gain setup-local motion domain 与 compile-time 双 head seal；v2 固定绑定 P10.5d v2 三文件 bundle 和其中的 exact P9 地址；
 - `schemas/motion-instance-v3.schema.json` 与 `schemas/motion-instance-v3-bundle-run-v1.schema.json`：P10.6b setup-local timeline、三文件 bundle provenance、能力边界与固定 blocked release gate；
 - `schemas/spine42-v3-export-run-v1.schema.json` 与 `schemas/spine42-v3-export-report-v1.schema.json`：P10.7a 五文件 adapter bundle 的精确 P3/MIv3 来源、输出身份、能力边界与固定 blocked release gate；
 - `schemas/spine42-v3-readiness-request-v1.schema.json` 与 `schemas/spine42-v3-readiness-report-v1.schema.json`：冻结的 P10.7b-readiness exact-address 预检合同；其第八项保持 `p6_setup_golden_comparison_not_declared`；
@@ -454,7 +454,9 @@ P10.5d v2 已交付 `compile-body-sway-dynamic-seam-probe-v2`、`verify-body-swa
 
 P10.6a 用 `compile-body-sway-motion-consumer-admission` 读取一个完整 canonical P10.5d probe 文件及其显式 SHA，从 probe source closure 中按精确 P9 MotionInstance v2/bundle 地址复验 reviewed-motion bundle，并在 pure core 编译前后重查视觉与接缝 current head。输出内嵌完整 probe、unit-gain setup-local rotation timeline domain 和 MIv2 原有 root/marker/draw-order channels；命令零写入，head scope 仅为 `compile_time`，不发出 MotionInstance v3、Spine adapter 或发布 timeline。操作与边界见 [编译 P10.6a body-sway 动作消费准入](docs/how-to-compile-body-sway-motion-consumer-admission.md)。
 
-P10.6b 用 `compile-body-sway-motion-instance-v3` 严格读取 P10.6a 的完整成功 stdout 与显式 admission SHA，按内嵌地址复验 P9，在纯编译前后重新观察 visual/seam current heads，然后原子发布 `admission + MotionInstance v3 + run` 三文件 bundle。`verify-body-sway-motion-instance-v3` 只按精确 v3/bundle 双 SHA 历史重放，不读取 current head。source `sampled-linear` 被明确编译为 target `linear`；MIv2 基础 channels 不变，rotation 只允许覆盖躯干四骨。完整命令、错误与权限边界见 [编译并复验 P10.6b MotionInstance v3](docs/how-to-compile-motion-instance-v3.md)。
+P10.6a v2 已交付 `compile-body-sway-motion-consumer-admission-v2`。公开输入只有项目 ID 与 P10.5d v2 probe/bundle 双 SHA；命令按精确地址读取固定三文件 bundle，从内嵌 source closure 自动重放 P9，并在 pure core 前后复查同一 visual-v2/seam-v1 current heads。它不接收文件路径、不扫描 `latest`、全程零写入；成功只产生 path-free、compile-time admission。冻结 v1 命令继续只接受 v1 probe，现有 P10.6b v1 也不会静默消费 v2 admission。操作见 [编译 P10.6a v2 动作消费准入](docs/how-to-compile-body-sway-motion-consumer-admission-v2.md)。
+
+P10.6b v1 用 `compile-body-sway-motion-instance-v3` 严格读取 P10.6a v1 的完整成功 stdout 与显式 admission SHA，按内嵌地址复验 P9，在纯编译前后重新观察 visual/seam current heads，然后原子发布 `admission + MotionInstance v3 + run` 三文件 bundle。`verify-body-sway-motion-instance-v3` 只按精确 v3/bundle 双 SHA 历史重放，不读取 current head。source `sampled-linear` 被明确编译为 target `linear`；MIv2 基础 channels 不变，rotation 只允许覆盖躯干四骨。该冻结入口不能消费 P10.6a v2；完整命令、错误与权限边界见 [编译并复验 P10.6b MotionInstance v3](docs/how-to-compile-motion-instance-v3.md)。
 
 P10.7a 用 `compile-body-sway-spine42-v3` 从精确 MIv3 双 SHA 完整重放 P9/P5/P3、RigIR 与源 PNG，并以独立 adapter profile 生成和原子发布 `skeleton.json/.atlas/.png/run/report` 五文件 bundle。`verify-body-sway-spine42-v3` 只按 skeleton/bundle 双 SHA 历史重放，不读取 current head。未知 timeline/attachment/constraint 会 fail loud；成功只声明 adapter emitted，不声明官方 Runtime、raster、永久 head、publishable timeline 或 release authority。操作见 [编译并复验 P10.7a Spine 4.2 v3](docs/how-to-compile-spine42-v3.md)。
 
@@ -666,6 +668,8 @@ P10.5d 已增加 `BodySwayDynamicSeamProbe v1`：它完整重放 P10.4b2 与 P10
 
 P10.6a 已增加 `BodySwayMotionConsumerAdmission v1`：只有认证的 P10.5d probe 可以进入，source 内嵌其完整 canonical 文档，并重新绑定/复验精确 P9 MotionInstance v2 六文件 bundle。pure core 选定 reviewed unit gain，把 sampled-linear rotation keys 与 MIv2 原有 root translation、markers、stepped draw order 组织为版本中立 setup-local motion domain；seal 在前后两次 current-head observation 完全一致后才开放 `setup_local_timeline_compilation_admitted`。所有 observation scope 仅为 `compile_time`；该 admission 本身不发出 MotionInstance v3、Spine adapter 或发布权。
 
+P10.6a v2 在独立 format/profile/hash domain 中重建相同窄能力，并把上游改为精确 P10.5d v2 bundle。public CLI 只收项目和 probe/bundle 双 SHA；reader 复验固定三文件 inventory 后，从 source closure 自动读取精确 P9。source 继续绑定 Manifest/P3/target/timing/Preview v2，detached validator 从两份 exact bundle 重编 core；任一跨线、篡改或 head 漂移均 fail closed。v2 不改变 MotionInstance payload 语义，也不授予 overlap、完整边界、raster/视觉、Runtime、timeline 或 release authority。
+
 P10.6b 已增加严格 `MotionInstance v3` Schema、pure compiler、三文件内容寻址 bundle、原子 store、exact reader，以及 compile/verify CLI。compile 不直接信任历史 admission 的 head 结论；公开命令和 store 自身都在待发布值构造前后重新观察 current heads，任何 identity/bytes 漂移均零发布，成功写入后还会按精确地址重新读取并逐字节验证。admission 上限固定为 64 MiB。run manifest 只授予 `motion_instance_v3_emitted`，其余 Spine adapter、完整 attachment 边界、raster/视觉、官方 runtime、永久 head authority、publishable Spine timeline 与 release authority 均为 false/blocked；历史 verify 也明确不观察 current heads。
 
 P10.7a 已增加独立 Spine 4.2 adapter v3 capability、MIv3→P9→P5/P3 完整精确重放、五文件内容寻址 bundle、current-head 门禁、原子 store、exact reader 与 compile/verify CLI。旧 P6 profile、adapter 和 golden 哈希不变；未知 timeline、attachment、constraint 或 interpolation 会 fail loud。run 唯一授予 `spine_adapter_emitted`，官方 Runtime、完整 attachment raster、永久 current-head authority、publishable timeline 与 release authority 仍为 false/blocked。
@@ -698,7 +702,7 @@ P10.7c 已增加 strict canonical setup-regression request/report、冻结 compa
 - 把 P10.5b 的 advisory highlight、自动填充草稿、自动 current-head 基线或页面显示 6/6 当成人工 revision 或 P10.5c 凭据；
 - 把 P10.5c 的静态 ReviewedSeamAnchorSet、历史 bundle 可复验或 compile-time current-head 观察当成永久审批权、动态 seam 证明、runtime/视觉质量或发布许可；
 - 把 P10.5d 的 `4 px²` reviewed-anchor point 代理、`compiled` 命令状态或保存的 stdout 当成完整 attachment 边界连续、raster/视觉接缝通过、runtime 等价、永久 current-head authority 或发布许可；
-- 把 P10.6a 的 setup-local timeline compilation admission 当成 MotionInstance v3/Spine adapter 已发出、完整边界或 raster 视觉通过、runtime 等价、永久 head authority、publishable timeline 或 release authority；
+- 把 P10.6a v1/v2 的 setup-local timeline compilation admission 当成 MotionInstance v3/Spine adapter 已发出、完整边界或 raster 视觉通过、runtime 等价、永久 head authority、publishable timeline 或 release authority；
 - 把 P10.6b 的 MotionInstance v3、历史 bundle 可重放或发布前 head 双观察当成 Spine adapter 已编译、官方 runtime/raster 通过、永久 head authority、publishable Spine timeline 或 release authority；
 - 把 P10.7a adapter、P10.7b sampled capture/指标或一次人工 decision 当成连续时间 raster 安全、永久审批、可发布 timeline 或 release authority；
 - 把冻结的 P10.7b-readiness v1 报告当成外部阶段执行记录、current review head 发现、人工决定、P10.7c setup golden 对照或发布授权；
@@ -709,7 +713,7 @@ P10.7c 已增加 strict canonical setup-regression request/report、冻结 compa
 - 代替输入素材、训练数据或模型权重的许可证与商业使用审查；
 - 多用户权限、远程协作或生产部署。
 
-这些边界并非都应一次性并入当前阶段。历史 `wave-left-v1` 的六输入审计、P7/P8、A/B 旧 P5、P9 发布与 exact verify 都已完成；P10.2/P10.2a、动态视口和 region 换绑候选也已交付。A 已确认动作证据换绑并保存 override revision 6，current P9/P10.2、CaptureFraming、P10.3c v2 和 P10.5b/P10.5c 静态接缝均已闭合；B revision 16 必须沿自己的 current chain 继续。P10.4a/P10.4b v2 与 P10.5d v2 核心、CLI/store、server/job/UI 自动入口均已交付。下一项是在当前 P10.4b run 完成并重启服务后对 A 执行真实 P10.5d v2；冻结 v1 不接受 v2 proof，overlap/raster/Runtime/release 仍 blocked。随后才进入 P10.6/P10.7、comparison bundle/readiness v2，最后是 attachment switch → blink/mouth。完整计划见[后续开发路线](docs/development-roadmap.md)。
+这些边界并非都应一次性并入当前阶段。历史 `wave-left-v1` 的六输入审计、P7/P8、A/B 旧 P5、P9 发布与 exact verify 都已完成；P10.2/P10.2a、动态视口和 region 换绑候选也已交付。A 已确认动作证据换绑并保存 override revision 6，current P9/P10.2、CaptureFraming、P10.3c v2 和 P10.5b/P10.5c 静态接缝均已闭合；B revision 16 必须沿自己的 current chain 继续。P10.4a/P10.4b v2、P10.5d v2 自动入口与 P10.6a v2 零写入 admission 已交付。真实 A 仍须先等当前 P10.4b run 完成并执行真实 P10.5d v2，之后才能产生真实 P10.6a v2 凭据；冻结 v1 不接受 v2 proof。下一开发项是版本隔离的 P10.6b v2 bundle/run/reader，随后才进入 P10.7、comparison bundle/readiness v2，最后是 attachment switch → blink/mouth。overlap/raster/Runtime/release 仍 blocked。完整计划见[后续开发路线](docs/development-roadmap.md)。
 
 项目中显示的骨架来自 bbox/语义启发式，`requires_review=true`。只有在语义、左右、pivot、层级、合成回归和动作探针均通过后，才能把人工确认结果交给后续 RigIR/导出阶段。
 

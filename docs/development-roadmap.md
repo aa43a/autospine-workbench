@@ -45,9 +45,9 @@ P10.1、P10.2 或 P10.5 数字只代表历史固定链；A revision 6 current P1
 ```text
 Resolved Project v1 Schema + semantic validator（已完成）
         │
-P10.6a（已完成）
+P10.6a v1（已完成并冻结）/ v2 admission（已交付）
         ↓
-P10.6b MotionInstance v3（已完成）
+P10.6b v1 MotionInstance v3（已完成）/ v2 consumer（下一开发项）
         ↓
 P10.7a Spine 4.2 adapter + immutable bundle（已完成）
         ↓
@@ -310,6 +310,24 @@ server/job/UI 自动入口也已交付：exact job/run 自动解析 current P10.
 仍待当前 P10.4b run 完成并重启服务后执行。runtime、raster、overlap、未采样视觉与 release
 authority 仍保持 blocked。
 
+## 已完成：P10.6a v2 动作消费准入
+
+冻结 P10.6a v1 继续只接受 P10.5d v1 probe 文件。新命令
+`compile-body-sway-motion-consumer-admission-v2` 使用独立 format/profile/hash domain，公开
+输入只有项目与 P10.5d v2 probe/bundle 双 SHA；它按精确地址读取固定三文件 bundle，并从
+source closure 自动重放 P9，不要求操作者选择文件或填写 P9 SHA。
+
+v2 编译固定执行 `P10.5d exact read → P9 exact read → before current heads → pure core →
+after current heads → seal → detached replay`，任一来源篡改、跨项目/动作串线或 head 漂移都
+fail closed。命令零写入，成功输出 path-free admission 和 compile-time observation；它不
+生成 MotionInstance v3、Spine adapter、Runtime 或发布权。操作入口见
+[编译 P10.6a v2 动作消费准入](how-to-compile-body-sway-motion-consumer-admission-v2.md)。
+
+下一开发项是版本隔离的 P10.6b v2 admission/bundle/run/reader。setup-local track payload
+语义未改变，因此输出仍可使用 MotionInstance v3；不能为了省事让冻结 P10.6b v1 静默接收
+v2 admission，也无需仅为来源版本变化创建 MotionInstance v4。真实 A 仍需先完成当前
+P10.4b run 和真实 P10.5d v2，测试 fixture 不能作为这条真实凭据。
+
 ## 已完成横向前置：Resolved Project v1
 
 P0 已在正式冻结点交付独立 `schemas/resolved-project-v1.schema.json` 与无第三方依赖的严格
@@ -359,9 +377,10 @@ v1 的字段、哈希算法和语义现已冻结。未来只要 resolved 生成�
 
 主要风险：把本地 HTTP 变成任意命令执行入口、长任务阻塞 server、参数或路径注入、旧 bundle 被误选，以及把 Spine Runtime/Editor 许可误当成代码已解决的问题。
 
-## 已完成：P10.6b MotionInstance v3 与 timeline compiler
+## 已完成：P10.6b v1 MotionInstance v3 与 timeline compiler
 
-P10.6b 已交付，不再是规划项。操作入口见
+P10.6b v1 已交付，不再是规划项。它只消费冻结 P10.6a v1；P10.6a v2 的下游仍需
+独立 P10.6b v2 来源合同、bundle/run/reader。操作入口见
 [编译并复验 P10.6b MotionInstance v3](how-to-compile-motion-instance-v3.md)。
 
 依赖：
@@ -487,7 +506,7 @@ See-through 分层，并让新的 Manifest/P3/candidate 内容地址失效旧决
 2. A 从 runner 1.1.0 的 completed job、P10.3c v2 revision 1 和 P10.4a v2 继续生成并留档同一 job 的 P10.4b v2 amplitude/continuous 结果；六次失败 job 只保留为不可变历史。
 3. 当前 P10.4b run 完成并重启服务后，从完成页一键进入 P10.5d v2，对 A 执行真实验证；冻结 v1 compiler 继续拒绝 v2。
 4. B 在 Motion Policy 页面完成 r16 P9 adoption，再重建 P10.0/P10.1/P10.2；针对 2 可审 + 4 `unobservable` 的 current seam candidate 先修复上游或批准独立 partial 合同。
-5. 在精确 P9/P10.5d 地址上依次完成 P10.6–P10.7a；每次只把实际生成的双 SHA 回填请求。
+5. 在精确 P9/P10.5d v2 地址上运行已交付的 P10.6a v2；随后开发并执行版本隔离的 P10.6b v2，再进入 P10.7a。每次只使用实际生成的双 SHA，不能把 v2 admission 交给冻结 v1 consumer。
 6. 使用现有且已获授权的官方 Runtime 执行 P10.7b capture、精确复验和逐 case/attachment 人工决定。
 7. 使用已交付的 `compare-body-sway-spine42-v3-setup-golden` 独立比较 setup case 与既有 P6 approved golden。readiness v1 已冻结且不会消费这份报告；即使前七项通过，它的第八项仍保持 missing，只会给出 `ready_for_p6_setup_comparison`。
 
@@ -511,7 +530,7 @@ readiness v1 的 Schema、哈希和八项 checkpoint 已冻结；第八项仍固
 `p6_setup_golden_comparison_not_declared`。P10.7c 使用独立合同，避免让旧请求或报告静默获得新含义。
 当前只能确认机制与既有 P6 批准基线可被严格验证，不能声称真实 A/B 通过：共享的
 `wave-left-v1` 历史链已到达 P7/P8、两个目标 P5 与各自 exact replay 通过的 P9；A r6 已完成
-current P9/P10 与 P10.5c 静态集，但仍缺 P10.5d v2 server/job/UI 自动入口、真实 probe 及其后续真实 P10.7a/capture；B r16 仍停在
+current P9/P10 与 P10.5c 静态集；P10.5d v2 自动入口与 P10.6a v2 admission 机制已交付，但仍缺真实 P10.5d/P10.6a v2 凭据、P10.6b v2 及其后续真实 P10.7a/capture；B r16 仍停在
 新 P9 草案及 2 可审 + 4 `unobservable` 静态关系。只有这些前置关闭后，
 才能生成真实 canonical 请求并执行两项目对照。当前 stdout
 报告仍是临时、不可寻址工件；进入 readiness v2 前还要交付封存 request/report、批准合同和批准
