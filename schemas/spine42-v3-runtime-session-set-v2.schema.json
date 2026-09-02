@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/spine42-v3-runtime-session-set-v2.schema.json",
+  "type": "object", "additionalProperties": false,
+  "required": ["artifact_ids", "assets", "format", "format_version", "plan", "plan_sha256", "runtime", "runtime_inventory", "source", "source_admission", "source_admission_sha256", "summary"],
+  "properties": {
+    "artifact_ids": {"type": "array", "minItems": 4, "maxItems": 1870, "uniqueItems": true, "items": {"$ref": "#/$defs/token"}},
+    "assets": {"$ref": "#/$defs/assets"},
+    "format": {"const": "autospine-spine42-v3-runtime-session-set"},
+    "format_version": {"const": 2},
+    "plan": {"$ref": "spine42-v3-runtime-plan-v2.schema.json"},
+    "plan_sha256": {"$ref": "#/$defs/sha256"},
+    "runtime": {"$ref": "spine42-v3-runtime-plan-v2.schema.json#/$defs/runtime"},
+    "runtime_inventory": {"$ref": "#/$defs/inventory"},
+    "source": {"$ref": "spine42-v3-runtime-plan-v2.schema.json#/$defs/source"},
+    "source_admission": {"$ref": "spine42-v3-runtime-source-admission-v2.schema.json"},
+    "source_admission_sha256": {"$ref": "#/$defs/sha256"},
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": ["artifact_count", "case_count"],
+      "properties": {
+        "artifact_count": {"type": "integer", "minimum": 4, "maximum": 1870},
+        "case_count": {"type": "integer", "minimum": 2, "maximum": 55}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "token": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,191}$"},
+    "assets": {
+      "type": "object", "additionalProperties": false,
+      "required": ["skeleton_sha256", "atlas_sha256", "texture_sha256"],
+      "properties": {"skeleton_sha256": {"$ref": "#/$defs/sha256"}, "atlas_sha256": {"$ref": "#/$defs/sha256"}, "texture_sha256": {"$ref": "#/$defs/sha256"}}
+    },
+    "attachment": {
+      "type": "object", "additionalProperties": false,
+      "required": ["slot_id", "attachment_id"],
+      "properties": {"slot_id": {"$ref": "#/$defs/token"}, "attachment_id": {"$ref": "#/$defs/token"}}
+    },
+    "inventory": {
+      "type": "object", "additionalProperties": false,
+      "required": ["clip_ids", "slot_ids", "attachments"],
+      "properties": {
+        "clip_ids": {"type": "array", "items": {"$ref": "#/$defs/token"}, "uniqueItems": true},
+        "slot_ids": {"type": "array", "items": {"$ref": "#/$defs/token"}, "uniqueItems": true},
+        "attachments": {"type": "array", "items": {"$ref": "#/$defs/attachment"}, "uniqueItems": true}
+      }
+    }
+  }
+}

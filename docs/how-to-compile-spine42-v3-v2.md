@@ -63,10 +63,12 @@ P10.7a v1 地址，不能消费这里的 v2 skeleton/bundle SHA。P10.7b v2 已�
 runtime-source bridge、严格 session、bounded collector、loopback server 与 Windows real browser
 runner。runner 只有在 `license_acknowledged is True` 且 Windows 环境下才会执行；它对精确 v2
 双 SHA只读一次，锁定 Spine Player 4.2.119 Runtime/浏览器 lease，并为每个 artifact 建立全新
-profile 与 loopback capture。当前输出仍只在进程内存中，没有 evidence/bundle store/exact reader、
-CLI/UI、raster metrics、人工复核或发布权，本页面也不会运行官方 Runtime。机制测试使用替身，
-没有真正启动经授权的官方 Runtime。下一切片是 evidence/bundle/store/exact reader，再接自动
-授权入口；外部 Runtime 始终需要操作者明确授权。
+profile 与 loopback capture。runner-issued 结果现可封存为 `captured_unreviewed` evidence/bundle：
+固定五份 canonical JSON 后接声明的 PNG captures，使用独立 `spine42-v3-runtime-v2` namespace
+与 v2 hash domain 原子发布，并由 project、skeleton、P10.7a bundle、capture bundle 四段地址
+exact reader 完整重放。当前仍没有 P10.7b v2 CLI/UI、raster metrics、人工复核、自动授权或发布权，
+本页面也不会运行官方 Runtime。机制测试使用替身，没有真正启动经授权的官方 Runtime。下一切片
+是自动授权入口；外部 Runtime 始终需要操作者明确授权。
 
 ## 专业 CLI：编译
 

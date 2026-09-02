@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/spine42-v3-runtime-reports-v2.schema.json",
+  "type": "array", "minItems": 4, "maxItems": 1870,
+  "items": {
+    "type": "object", "additionalProperties": false,
+    "required": ["artifact", "assets", "capture", "case", "image", "observables", "plan_sha256", "runtime", "session_set_sha256", "source", "source_admission_sha256", "status"],
+    "properties": {
+      "artifact": {"$ref": "spine42-v3-runtime-plan-v2.schema.json#/$defs/artifact"},
+      "assets": {"$ref": "spine42-v3-runtime-session-set-v2.schema.json#/$defs/assets"},
+      "capture": {"$ref": "spine42-v3-runtime-plan-v2.schema.json#/$defs/capture"},
+      "case": {"$ref": "spine42-v3-runtime-plan-v2.schema.json#/$defs/case"},
+      "image": {"$ref": "#/$defs/image"},
+      "observables": {"$ref": "#/$defs/observables"},
+      "plan_sha256": {"$ref": "#/$defs/sha256"},
+      "runtime": {"$ref": "spine42-v3-runtime-plan-v2.schema.json#/$defs/runtime"},
+      "session_set_sha256": {"$ref": "#/$defs/sha256"},
+      "source": {"$ref": "spine42-v3-runtime-plan-v2.schema.json#/$defs/source"},
+      "source_admission_sha256": {"$ref": "#/$defs/sha256"},
+      "status": {"const": "captured"}
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "token": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,191}$"},
+    "image": {
+      "type": "object", "additionalProperties": false,
+      "required": ["path", "png_sha256", "width", "height", "size_bytes"],
+      "properties": {"path": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,191}\\.png$"}, "png_sha256": {"$ref": "#/$defs/sha256"}, "width": {"const": 640}, "height": {"const": 640}, "size_bytes": {"type": "integer", "minimum": 1, "maximum": 4194304}}
+    },
+    "attachment": {
+      "type": "object", "additionalProperties": false,
+      "required": ["slot_id", "attachment_id"],
+      "properties": {"slot_id": {"$ref": "#/$defs/token"}, "attachment_id": {"$ref": "#/$defs/token"}}
+    },
+    "observables": {
+      "type": "object", "additionalProperties": false,
+      "required": ["official_runtime_loaded", "clip_ids", "slot_ids", "attachments", "isolation"],
+      "properties": {
+        "official_runtime_loaded": {"const": true},
+        "clip_ids": {"type": "array", "items": {"$ref": "#/$defs/token"}, "uniqueItems": true},
+        "slot_ids": {"type": "array", "items": {"$ref": "#/$defs/token"}, "uniqueItems": true},
+        "attachments": {"type": "array", "items": {"$ref": "#/$defs/attachment"}, "uniqueItems": true},
+        "isolation": {
+          "type": "object", "additionalProperties": false,
+          "required": ["artifact_kind", "visible_slot_ids", "hidden_slot_ids"],
+          "properties": {"artifact_kind": {"enum": ["opaque_composite", "transparent_composite", "attachment_isolate"]}, "visible_slot_ids": {"type": "array", "items": {"$ref": "#/$defs/token"}, "uniqueItems": true}, "hidden_slot_ids": {"type": "array", "items": {"$ref": "#/$defs/token"}, "uniqueItems": true}}
+        }
+      }
+    }
+  }
+}

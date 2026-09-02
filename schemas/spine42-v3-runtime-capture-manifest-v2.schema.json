@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/spine42-v3-runtime-capture-manifest-v2.schema.json",
+  "title": "AutoSpine Spine 4.2 v3 runtime capture manifest v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "format_version", "project_id", "clip_id", "source", "runtime", "browser", "documents", "artifacts", "authority", "status", "release_gate"],
+  "properties": {
+    "format": {"const": "autospine-spine42-v3-runtime-capture"},
+    "format_version": {"const": 2},
+    "project_id": {"$ref": "#/$defs/token"},
+    "clip_id": {"$ref": "#/$defs/token"},
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": ["skeleton_json_sha256", "spine42_v3_bundle_sha256", "run_document_sha256", "source_admission_sha256", "capture_plan_sha256", "runtime_session_set_sha256", "runtime_reports_sha256"],
+      "properties": {
+        "skeleton_json_sha256": {"$ref": "#/$defs/sha256"},
+        "spine42_v3_bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "run_document_sha256": {"$ref": "#/$defs/sha256"},
+        "source_admission_sha256": {"$ref": "#/$defs/sha256"},
+        "capture_plan_sha256": {"$ref": "#/$defs/sha256"},
+        "runtime_session_set_sha256": {"$ref": "#/$defs/sha256"},
+        "runtime_reports_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "runtime": {
+      "type": "object", "additionalProperties": false,
+      "required": ["package", "version", "npm_integrity", "javascript_sha256", "stylesheet_sha256", "package_json_sha256", "license_sha256", "license_acknowledged", "license_file_presence_is_authorization"],
+      "properties": {
+        "package": {"const": "@esotericsoftware/spine-player"},
+        "version": {"const": "4.2.119"},
+        "npm_integrity": {"type": "string", "minLength": 1, "maxLength": 256},
+        "javascript_sha256": {"$ref": "#/$defs/sha256"},
+        "stylesheet_sha256": {"$ref": "#/$defs/sha256"},
+        "package_json_sha256": {"$ref": "#/$defs/sha256"},
+        "license_sha256": {"$ref": "#/$defs/sha256"},
+        "license_acknowledged": {"const": true},
+        "license_file_presence_is_authorization": {"const": false}
+      }
+    },
+    "browser": {
+      "type": "object", "additionalProperties": false,
+      "required": ["family", "reported_version", "version_output_sha256", "executable_sha256", "size_bytes"],
+      "properties": {
+        "family": {"type": "string", "minLength": 1, "maxLength": 32},
+        "reported_version": {"type": "string", "minLength": 1, "maxLength": 128},
+        "version_output_sha256": {"$ref": "#/$defs/sha256"},
+        "executable_sha256": {"$ref": "#/$defs/sha256"},
+        "size_bytes": {"type": "integer", "minimum": 1, "maximum": 536870912}
+      }
+    },
+    "documents": {
+      "type": "array", "minItems": 4, "maxItems": 4,
+      "prefixItems": [
+        {"$ref": "#/$defs/planDocument"},
+        {"$ref": "#/$defs/admissionDocument"},
+        {"$ref": "#/$defs/sessionDocument"},
+        {"$ref": "#/$defs/reportDocument"}
+      ],
+      "items": false
+    },
+    "artifacts": {
+      "type": "array", "minItems": 4, "maxItems": 1870,
+      "items": {"$ref": "#/$defs/artifact"}
+    },
+    "authority": {
+      "type": "object", "additionalProperties": false,
+      "required": ["official_runtime_loaded", "runtime_capture_completed", "isolated_attachment_raster_captured", "human_visual_reviewed", "attachment_area_overlap_assessed", "dynamic_seam_safety", "full_attachment_boundary_continuity", "raster_metrics_computed", "raster_visual_quality_approved", "runtime_equivalence", "publishable_spine_timeline", "persistent_current_head_authority", "release_authority"],
+      "properties": {
+        "official_runtime_loaded": {"const": true},
+        "runtime_capture_completed": {"const": true},
+        "isolated_attachment_raster_captured": {"const": true},
+        "human_visual_reviewed": {"const": false},
+        "attachment_area_overlap_assessed": {"const": false},
+        "dynamic_seam_safety": {"const": false},
+        "full_attachment_boundary_continuity": {"const": false},
+        "raster_metrics_computed": {"const": false},
+        "raster_visual_quality_approved": {"const": false},
+        "runtime_equivalence": {"const": false},
+        "publishable_spine_timeline": {"const": false},
+        "persistent_current_head_authority": {"const": false},
+        "release_authority": {"const": false}
+      }
+    },
+    "status": {"const": "captured_unreviewed"},
+    "release_gate": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "reason_codes"],
+      "properties": {
+        "status": {"const": "blocked"},
+        "reason_codes": {
+          "const": ["human_visual_review_missing", "attachment_area_overlap_unassessed", "dynamic_seam_safety_unproven", "full_attachment_boundary_continuity_unproven", "raster_metrics_missing", "raster_visual_quality_unapproved", "runtime_equivalence_unproven", "publishable_timeline_not_granted", "persistent_current_head_authority_not_granted", "release_authority_not_granted"]
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "token": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "documentBase": {
+      "type": "object", "additionalProperties": false,
+      "required": ["name", "sha256", "size_bytes"],
+      "properties": {"name": {"type": "string"}, "sha256": {"$ref": "#/$defs/sha256"}, "size_bytes": {"type": "integer", "minimum": 1, "maximum": 33554432}}
+    },
+    "planDocument": {"allOf": [{"$ref": "#/$defs/documentBase"}, {"properties": {"name": {"const": "official-runtime-capture-plan-v2.json"}}}]},
+    "admissionDocument": {"allOf": [{"$ref": "#/$defs/documentBase"}, {"properties": {"name": {"const": "official-runtime-source-admission-v2.json"}}}]},
+    "sessionDocument": {"allOf": [{"$ref": "#/$defs/documentBase"}, {"properties": {"name": {"const": "runtime-session-set-v2.json"}}}]},
+    "reportDocument": {"allOf": [{"$ref": "#/$defs/documentBase"}, {"properties": {"name": {"const": "runtime-reports-v2.json"}}}]},
+    "artifact": {
+      "type": "object", "additionalProperties": false,
+      "required": ["artifact_id", "logical_path", "stored_path", "kind", "case_id", "sha256", "size_bytes"],
+      "properties": {
+        "artifact_id": {"$ref": "#/$defs/token"},
+        "logical_path": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,191}\\.png$"},
+        "stored_path": {"type": "string", "pattern": "^captures/[A-Za-z0-9][A-Za-z0-9._-]{0,191}\\.png$"},
+        "kind": {"enum": ["opaque_composite", "transparent_composite", "attachment_isolate"]},
+        "case_id": {"$ref": "#/$defs/token"},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "size_bytes": {"type": "integer", "minimum": 1, "maximum": 4194304}
+      }
+    }
+  }
+}

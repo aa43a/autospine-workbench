@@ -97,9 +97,9 @@ class WorkflowHubCatalogTests(unittest.TestCase):
         for href in pages:
             self.assertTrue((ROOT / "web" / href.removeprefix("./")).is_file())
 
-    def test_current_stage_names_the_v2_runtime_runner(self) -> None:
+    def test_current_stage_names_the_v2_runtime_evidence_store(self) -> None:
         self.assertEqual(
-            "P10.7b-v2-runtime-runner",
+            "P10.7b-v2-runtime-evidence-store",
             self.catalog["current_stage"],
         )
         entry = next(
@@ -189,9 +189,10 @@ class WorkflowHubCatalogTests(unittest.TestCase):
             if entry["id"]
             == "planned-real-sample-spine42-v3-raster-acceptance"
         )
-        self.assertIn("Windows real browser runner 已交付", next_slice["summary"])
-        self.assertIn("显式 license 真值", next_slice["summary"])
-        self.assertIn("evidence/bundle/store/exact reader", next_slice["summary"])
+        self.assertIn("captured_unreviewed evidence 已交付", next_slice["summary"])
+        self.assertIn("固定五份 JSON", next_slice["summary"])
+        self.assertIn("四段地址 exact reader", next_slice["summary"])
+        self.assertIn("下一切片是自动授权入口", next_slice["summary"])
         self.assertIn("当前没有 v2 CLI/UI", next_slice["summary"])
         self.assertIn("没有真正启动经授权的官方 Runtime", next_slice["summary"])
 

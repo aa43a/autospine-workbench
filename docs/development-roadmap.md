@@ -1,6 +1,6 @@
 # AutoSpine Workbench 后续开发路线
 
-本文是 Explanation 与交付计划，面向维护者和需要评估可行性的项目负责人。P10.3、P10.4a/b v2、P10.5d v2、P10.6a/P10.6b v2、P10.7a v2 Spine adapter 自动入口，以及 P10.7b v2 source bridge、严格 session、bounded collector、loopback server、内存 harness 和 Windows real browser runner 均已交付。runner 要求显式许可真值与 Windows，对精确 P10.7a v2 只读一次，持有固定 Spine Player 4.2.119 Runtime/浏览器 lease，并逐 artifact 使用全新 profile 经 loopback 采集。它现在只返回内存 run，没有 P10.7b v2 evidence/bundle store/exact reader、CLI/UI、raster metrics、人工复核或发布权。下一切片是 evidence/bundle/store/exact reader，再接自动授权入口；官方 Runtime 授权、视觉、完整边界、overlap 与 release 仍 blocked。机制测试没有真正启动经授权的官方 Runtime，也不表示真实样本 A 已形成相应凭据。样本 B revision 16 必须沿自己的 current chain 继续；v1 合同与输出哈希保持冻结。
+本文是 Explanation 与交付计划，面向维护者和需要评估可行性的项目负责人。P10.3、P10.4a/b v2、P10.5d v2、P10.6a/P10.6b v2、P10.7a v2 Spine adapter 自动入口，以及 P10.7b v2 source bridge、严格 session、bounded collector、loopback server、Windows real browser runner 和 runtime evidence store/exact reader 均已交付。runner 要求显式许可真值与 Windows，对精确 P10.7a v2 只读一次，持有固定 Spine Player 4.2.119 Runtime/浏览器 lease，并逐 artifact 使用全新 profile 经 loopback 采集；runner-issued 结果可原子封存为 `captured_unreviewed`，以独立 namespace/hash domain 保存固定五份 JSON 与声明的 PNG captures，并由四段显式地址完整回读。当前仍没有 P10.7b v2 CLI/UI、raster metrics、人工复核、自动授权或发布权。下一切片是自动授权入口；官方 Runtime 授权、视觉、完整边界、overlap 与 release 仍 blocked。机制测试没有真正启动经授权的官方 Runtime，也不表示真实样本 A 已形成相应凭据。样本 B revision 16 必须沿自己的 current chain 继续；v1 合同与输出哈希保持冻结。
 
 P9 页面现已增加 pending draft 自动发现与一键晋级入口。它会自动选择唯一 current 草案，显示角色与 setup 遮挡关系，并在一次明确确认后生成正式 Depth policy、Depth candidates 和新的 exact review package。草案晋级不等于最终 P9 adoption；候选仍须复核，并再次明确提交最终 human adoption。旧 P9 以及依赖旧 P3/P9 的 P10/P10.5 决定只保留历史证据。canvas-only 的新链不会放宽 v1，而是通过已经交付的 CaptureFraming decision、Preview v2、official Runtime execution v2 与 P10.3c v2 review 承接 setup、base、combined 完整包络。
 
@@ -29,7 +29,7 @@ P10.1、P10.2 或 P10.5 数字只代表历史固定链；A revision 6 current P1
 | P0 | B revision 16 的 seam 能力重验 | 历史链 P9/seam 可精确复验，但四条下肢不可观测不能外推到 r16；须按新 Manifest/P3/candidate 重验后，才能选择上游修复或版本化 partial 合同 |
 | P0 | P10.7c setup golden 独立回归 | 零写入入口已交付；真实执行仍依赖 exact P10.7a/capture 与批准 P6 基线，readiness v1 保持冻结且第八项仍 missing |
 | 已交付 | P10.7b v2 source/session/real browser runner | 从精确 P10.7a v2 双 SHA生成 blocked plan/admission，以严格 session、bounded collector、loopback server 和 Windows runner 完成受控逐 artifact 内存采集；冻结 v1 输出哈希不变 |
-| P0 | P10.7b v2 evidence/bundle/store/exact reader | 把内存 run 封存为固定 inventory 与内容地址，并可从完整精确上游重放；不得在封存前开放 raster/release claim |
+| 已交付 | P10.7b v2 evidence/bundle/store/exact reader | 把 runner-issued 结果封存为 captured-unreviewed 固定五份 JSON + PNG inventory，在独立 namespace/domain 原子发布并按四段地址完整重放；不开放 metrics/review/release claim |
 | P0 | P10.7b v2 自动授权入口 | evidence reader 稳定后再接非专业入口；许可、本次执行确认、失败和重试必须显式且可审计 |
 | P0 | P10.7b 两份真实样本验收 | v1 Runtime/capture/metrics/review 基础设施已存在，但不能替代 v2 sessions/evidence 链，也不能替代 A/B 各自真实 P10.5d–P10.7a v2 凭据、官方 Runtime 和人工决定 |
 | P1 | Revision 历史浏览/恢复 UI | 历史已不可变保存，但操作者尚不能便捷查看或安全恢复 |
@@ -54,11 +54,9 @@ P10.6b v1/v2 MotionInstance v3（均已完成，来源合同隔离）
         ↓
 P10.7a v1 Spine 4.2 adapter（已完成并冻结）/ v2 source adapter + automatic UI（已交付）
         ↓
-P10.7b v2 source + strict sessions + real browser runner（已交付；内存 run）
+P10.7b v2 source + sessions + runner + evidence store（已交付）
         ↓
-P10.7b v2 evidence/bundle/store/exact reader（下一切片）
-        ↓
-P10.7b v2 automatic authorization entry（官方 Runtime 需授权）
+P10.7b v2 automatic authorization entry（下一切片；官方 Runtime 需授权）
         ↓
 P10.7b v1 capture/metrics/review 基础设施（已完成；不消费 v2）
         ↓
@@ -336,8 +334,8 @@ fail closed。命令零写入，成功输出 path-free admission 和 compile-tim
 语义未改变，因此输出仍使用 MotionInstance v3；冻结 P10.6b v1 不会静默接收 v2 admission，
 也没有仅为来源版本变化创建 MotionInstance v4。真实 A 仍需先完成当前 P10.4b run 并实际执行
 P10.5d–P10.7a v2，测试 fixture 不能作为这条真实凭据。P10.7a v2 source adapter、自动 UI 与
-P10.7b v2 source bridge、严格 session、collector、loopback server 与 Windows real browser runner
-已交付；runner 仍只返回内存结果。下一切片是 evidence/bundle/store/exact reader，再接自动授权入口。
+P10.7b v2 source bridge、严格 session、collector、loopback server、Windows real browser runner
+与 captured-unreviewed evidence/bundle/store/exact reader 已交付。下一切片是自动授权入口。
 
 ## 已完成横向前置：Resolved Project v1
 
@@ -496,7 +494,7 @@ Runtime 等价、raster、永久 head、publishable timeline 和 release authori
 机制通过不等于真实 A 已完成 P10.7a v2。冻结 P10.7b v1 capture/reader 不能消费 v2
 skeleton/bundle SHA，P10.7a v2 页面也不得自动运行外部采集。
 
-## 已完成：P10.7b v2 Runtime Session 与 Real Browser Runner
+## 已完成：P10.7b v2 Runtime Evidence Store
 
 source bridge 按项目、P10.7a v2 skeleton SHA 与 bundle SHA
 调用 exact reader 历史重放固定五文件，不读取 current heads，再确定性生成
@@ -515,13 +513,20 @@ capture/error 终态，并限制单 PNG、总字节和错误文本；loopback-on
 锁定 Spine Player 4.2.119 Runtime 与浏览器 executable lease，并为每个 artifact 建立全新浏览器
 profile 和 loopback capture URL。Runtime/浏览器身份漂移、跨版本、篡改或交叉接线均 fail closed。
 
-runner 仍只返回进程内 reports/PNG bytes。当前没有 P10.7b v2 evidence/bundle store/exact reader、
-CLI/UI、raster metrics、人工复核或发布权；官方 Runtime、Runtime 等价、视觉、永久 head、可发布
-timeline 与 release authority 全部 false，gate 固定 blocked。机制测试使用模拟/替身边界，没有
-真正启动经授权的官方 Runtime。冻结 v1 reader、session、合同和输出哈希保持不变。
+runner-issued 结果现可生成 `captured_unreviewed` evidence。固定前缀 inventory 为 manifest、plan、
+admission、session set、runtime reports 五份 canonical JSON，再按 capture plan 顺序附带 PNG；
+manifest 只声明 official Runtime loaded、capture completed 与 isolated attachment raster captured，
+不声明 metrics、人工视觉、Runtime 等价或 release。
 
-下一切片是 evidence/bundle/store/exact reader；稳定后再接自动授权入口。外部执行始终要求操作者
-明确许可，一次内存运行也不会自动获得视觉或发布权。
+bundle 使用独立 `spine42-v3-runtime-v2` namespace 与 v2 address domain。atomic store 在写入前后
+完整 replay，并使并发相同发布收敛到同一不可变地址；exact reader 只接受 project、skeleton SHA、
+P10.7a v2 bundle SHA、capture bundle SHA 四段地址，单次读取上游和每个声明文件，拒绝缺失、额外、
+错大小写、alias、篡改和跨线输入，也不观察 current heads。
+
+当前没有 P10.7b v2 CLI/UI、raster metrics、人工复核、自动授权或发布权；官方 Runtime 等价、
+视觉、永久 head、可发布 timeline 与 release authority 仍为 false，gate 固定 blocked。机制测试
+使用模拟/替身边界，没有真正启动经授权的官方 Runtime。冻结 v1 reader、session、合同和输出哈希
+保持不变。下一切片是自动授权入口；外部执行始终要求操作者明确许可。
 
 ## P10.7b v1：Raster 基础设施已交付，v2 真实双样本验收待完成
 
@@ -600,9 +605,9 @@ See-through 分层，并让新的 Manifest/P3/candidate 内容地址失效旧决
 4. B 在 Motion Policy 页面完成 r16 P9 adoption，再重建 P10.0/P10.1/P10.2；针对 2 可审 + 4 `unobservable` 的 current seam candidate 先修复上游或批准独立 partial 合同。
 5. 在精确 P9/P10.5d v2 地址上运行已交付的 P10.6a/P10.6b v2；每次只使用实际生成的双 SHA，不能把 v2 admission 或 bundle 交给冻结 v1 consumer。
 6. 从 P10.6b v2 成功页进入已交付的 P10.7a v2 自动页面，生成并 exact-readback 版本匹配的五文件 adapter；只记录实际回执，不把机制测试当作 A/B 凭据。
-7. 用已交付的 P10.7b v2 source/session/real browser runner，从同一 P10.7a v2 双 SHA重放 blocked admission/plan 并构造固定 artifact sessions；只有显式许可真值与 Windows 才能执行，结果仍只在内存中。
-8. 开发 evidence/bundle/store/exact reader，再接自动授权入口；冻结 v1 入口继续拒绝 v2。
-9. 经操作者确认官方 Runtime 授权后，用完整 v2 持久化链执行 capture、精确复验和逐 case/attachment 人工决定。
+7. 用已交付的 P10.7b v2 source/session/real browser runner，从同一 P10.7a v2 双 SHA重放 blocked admission/plan 并构造固定 artifact sessions；只有显式许可真值与 Windows 才能执行。
+8. 用已交付的 evidence/bundle/store/exact reader 把 runner-issued 结果原子封存为 captured-unreviewed 四段地址；这仍不是 metrics、人审或 release。
+9. 开发自动授权入口；经操作者确认官方 Runtime 授权后，用完整 v2 持久化链执行 capture、精确复验和后续逐 case/attachment 人工决定。
 10. 使用已交付的 `compare-body-sway-spine42-v3-setup-golden` 独立比较 setup case 与既有 P6 approved golden。readiness v1 已冻结且不会消费这份报告；即使前述检查通过，它的第八项仍保持 missing，只会给出 `ready_for_p6_setup_comparison`。
 
 进入真实验收的条件：请求中每条依赖均由 exact reader 复验，A 的 seam 决定来自真实人审，B
@@ -626,8 +631,8 @@ readiness v1 的 Schema、哈希和八项 checkpoint 已冻结；第八项仍固
 当前只能确认机制与既有 P6 批准基线可被严格验证，不能声称真实 A/B 通过：共享的
 `wave-left-v1` 历史链已到达 P7/P8、两个目标 P5 与各自 exact replay 通过的 P9；A r6 已完成
 current P9/P10 与 P10.5c 静态集；P10.5d v2、P10.6a/P10.6b v2、P10.7a v2 自动机制和
-P10.7b v2 source/session/real browser runner 已交付，但仍缺真实 P10.5d–P10.7a v2 凭据、
-P10.7b v2 evidence/bundle store/exact reader、自动授权入口及其后续真实 capture；B r16 仍停在
+P10.7b v2 source/session/real browser runner/evidence store/exact reader 已交付，但仍缺真实
+P10.5d–P10.7a v2 凭据、自动授权入口及其后续真实 capture/metrics/review；B r16 仍停在
 新 P9 草案及 2 可审 + 4 `unobservable` 静态关系。只有这些前置关闭后，
 才能生成真实 canonical 请求并执行两项目对照。当前 stdout
 报告仍是临时、不可寻址工件；进入 readiness v2 前还要交付封存 request/report、批准合同和批准

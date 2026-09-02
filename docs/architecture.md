@@ -89,9 +89,9 @@ exact Layer Manifest + exact P3 static bundle
                                        ↓
         P10.7a version-matched Spine 4.2 v3 bundle
                                        ↓
- P10.7b v2 runtime source + sessions + real browser runner（已交付）
+ P10.7b v2 runtime source + runner + evidence store（已交付）
                                        ↓
-       evidence/bundle/store/reader → automatic authorization
+                  automatic authorization（下一切片）
                                        ↓
                     [external] Runtime/raster gate
                                        ↓
@@ -599,11 +599,21 @@ Runtime 包和 browser executable lease，为每个 artifact 创建全新的临�
 loopback server 捕获，并在执行期间反复检查 browser 身份、结束前重读 Runtime 包。任何顺序、
 身份、lease 健康度或完整性偏差都不会产生部分成功。
 
-runner 当前只返回进程内存中的 reports 和 PNG bytes；尚无 P10.7b v2
-evidence/bundle store/exact reader、CLI/UI、raster metrics、人工复核或发布权。内存 harness 与 runner
-机制测试使用模拟边界，没有真正启动经授权的官方 Runtime；P10.7a 页面也不会自动启动它。
-下一切片是 evidence/bundle/store/exact reader，其后才是自动授权入口。实际 Runtime 执行始终是
-操作者明确授权后的外部边界；冻结 v1 字节与哈希保持不变。
+runner-issued 结果现可封装为 path-free `captured_unreviewed` evidence。其固定前缀库存为
+`capture-manifest-v2.json`、capture plan、source admission、runtime session set 与 runtime reports
+五份 canonical JSON，后接 plan 声明顺序中的 PNG captures。manifest 只授予 official runtime
+loaded、capture completed 和 isolated attachment raster captured；metrics、人工视觉和 release
+仍为 false/blocked。
+
+bundle 使用独立 `autospine.spine42-v3-runtime-bundle/v2` 哈希域与
+`spine42-v3-runtime-v2` namespace。原子 store 在完整 detached replay 后发布，并在落盘后重新
+校验；exact reader 只接受项目、P10.7a v2 skeleton SHA、P10.7a v2 bundle SHA、capture bundle SHA
+四段地址，单次读取上游与每个声明文件，不观察 current heads。缺失、额外、错大小写、alias、
+篡改或跨地址内容均 fail closed。
+
+当前仍无 P10.7b v2 CLI/UI、raster metrics、人工复核、自动授权或发布权。机制测试使用模拟边界，
+没有真正启动经授权的官方 Runtime；P10.7a 页面也不会自动启动它。下一切片是自动授权入口，
+实际 Runtime 执行始终是操作者明确授权后的外部边界；冻结 v1 字节与哈希保持不变。
 
 P10.7b v1 用固定官方 Runtime/浏览器身份、case plan、完整 setup attachment isolate 与 sampled
 raster 指标形成不可变 capture；candidate 和完整 human decision 保持分离。其后的 readiness
