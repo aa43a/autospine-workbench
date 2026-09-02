@@ -37,14 +37,14 @@ from .split_preview_routes import dispatch_split_preview_get
 
 def dispatch_workbench_api_get(
     parts, store, replay_cache, capture_manager,
-    visual_review_v2_image_cache, handler,
+    visual_review_v2_image_sessions, handler,
 ) -> bool:
     """Dispatch one API read while preserving route-family method policy."""
 
     if dispatch_p10_visual_review_v2_get(
         parts, capture_manager, store,
         handler._send_visual_json, handler._send_visual_bytes,
-        visual_review_v2_image_cache,
+        visual_review_v2_image_sessions, handler.path,
     ):
         return True
     if dispatch_p10_runtime_capture_get(

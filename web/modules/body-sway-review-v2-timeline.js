@@ -50,6 +50,7 @@ export function createBodySwayReviewTimeline({
     visited = new Set();
     setActiveCase(groups[0]);
     renderAll();
+    imagePool.preload(candidate.cases);
   }
 
   function navigate(value, shouldAnnounce = true) {

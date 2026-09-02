@@ -51,8 +51,8 @@ export function createBodySwayReviewV2Api(jobId, fetchImpl = globalThis.fetch) {
       },
       body: JSON.stringify(payload),
     }),
-    imageUrl: (digest, caseId, pngSha256) => paths.image(
-      digest, caseId, pngSha256,
+    imageUrl: (digest, caseId, pngSha256, imageSession = null) => paths.image(
+      digest, caseId, pngSha256, imageSession,
     ),
   });
 }

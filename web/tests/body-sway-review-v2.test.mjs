@@ -37,6 +37,14 @@ function candidateEnvelope() {
       case_count: cases.length,
     },
     candidate_sha256: SHA("f"),
+    image_session: {
+      format_version: 1, token: "s".repeat(43),
+      expires_in_seconds: 120, authority: "read_only_snapshot",
+    },
+    history: {
+      job_id: job.job_id, candidate_sha256: SHA("f"),
+      current_revision: 0, head_decision_sha256: null, items: [],
+    },
     candidate: {
       format: "autospine-body-sway-visual-review-candidates",
       format_version: 2, project_id: job.addresses.project,
@@ -59,11 +67,15 @@ test("job-centric paths expose no four-address query or manual entry", () => {
   assert.equal(paths.candidate(),
     `/api/p10/runtime-capture/jobs/${job.job_id}/visual-review-v2/candidate`);
   assert.doesNotMatch(paths.candidate(), /project_id|bundle_sha256|artifact_set/);
+  assert.match(paths.image(SHA("f"), "case-1", SHA("1"), "s".repeat(43)),
+    /\?session=s{43}$/);
 });
 
 test("candidate must cross-bind the completed job and remain path-free", () => {
   const normalized = normalizeReviewCandidateV2(candidateEnvelope(), job);
   assert.equal(normalized.candidate.cases.length, 3);
+  assert.equal(normalized.imageSession.token, "s".repeat(43));
+  assert.equal(normalized.history.currentRevision, 0);
   const crossWired = candidateEnvelope();
   crossWired.candidate.source.runtime_execution_bundle_sha256 = SHA("9");
   assert.throws(() => normalizeReviewCandidateV2(crossWired, job), /不一致/);

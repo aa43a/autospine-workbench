@@ -52,6 +52,8 @@ P10_TEST_PREFIXES = (
     "test_spine42_contract_v3",
     "test_spine42_json_adapter_v3",
     "test_p10_spine42_v3",
+    "test_p10_visual_review_v2",
+    "p10_visual_review_v2",
 )
 
 

@@ -27,6 +27,7 @@ let job = null;
 let busy = false;
 let generation = 0;
 let pendingSubmission = null;
+let imageSessionToken = null;
 
 const timeline = createBodySwayReviewTimeline({
   elements,
@@ -34,6 +35,7 @@ const timeline = createBodySwayReviewTimeline({
   setState: (next) => { state = next; },
   imageUrl: (row) => api.imageUrl(
     state.candidateSha256, row.case_id, row.image.png_sha256,
+    imageSessionToken,
   ),
   onChange: syncControls,
   onAnnounce: (value) => announce(elements, value),
@@ -81,6 +83,7 @@ async function boot() {
     job = normalizeCompletedReviewJob(await api.job(), jobId);
     const envelope = normalizeReviewCandidateV2(await api.candidate(), job);
     if (token !== generation) return;
+    imageSessionToken = envelope.imageSession.token;
     state = {
       ...createReviewState(), candidate: envelope.candidate,
       candidateSha256: envelope.candidateSha256,
@@ -92,7 +95,7 @@ async function boot() {
     setStatus(elements.entryStatus,
       `已自动加载 ${envelope.job.case_count} 个官方采样帧；通过草稿尚未形成批准。`,
       "success");
-    await loadHistory(token);
+    await loadHistory(token, envelope.history);
   } catch (error) {
     if (token === generation) {
       elements.entryBadge.textContent = "无法进入";
@@ -104,14 +107,15 @@ async function boot() {
   }
 }
 
-async function loadHistory(token = generation) {
-  const value = await api.history(state.candidateSha256);
+async function loadHistory(token = generation, supplied = null) {
+  const value = supplied || normalizeReviewHistoryV2(
+    await api.history(state.candidateSha256),
+    job.job_id, state.candidateSha256,
+  );
   if (token !== generation) return;
   state = {
     ...state,
-    history: normalizeReviewHistoryV2(
-      value, job.job_id, state.candidateSha256,
-    ),
+    history: value,
     selectedDecision: null,
     baseline: null,
     stale: false,

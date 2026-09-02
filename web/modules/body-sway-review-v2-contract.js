@@ -7,6 +7,7 @@ import {
 import { normalizeRuntimeCaptureJob } from "./p10-runtime-capture-contract.js";
 
 const TOKEN = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
+const IMAGE_SESSION = /^[A-Za-z0-9_-]{43}$/;
 
 export function requireReviewJobId(value) {
   return requireSha256(value, "capture job ID");
@@ -41,10 +42,15 @@ export function reviewV2Paths(rawJobId) {
       )}`;
     },
     submit: (digest) => `${candidate(digest)}/decisions`,
-    image: (digest, caseId, pngSha256) => {
+    image: (digest, caseId, pngSha256, imageSession = null) => {
       if (!TOKEN.test(String(caseId ?? ""))) throw new Error("case ID 无效");
-      return `${candidate(digest)}/cases/${encodeURIComponent(caseId)}/image/${
+      const path = `${candidate(digest)}/cases/${encodeURIComponent(caseId)}/image/${
         requireSha256(pngSha256, "PNG SHA-256")}`;
+      if (imageSession === null) return path;
+      if (!IMAGE_SESSION.test(String(imageSession ?? ""))) {
+        throw new Error("图片读取会话无效");
+      }
+      return `${path}?session=${encodeURIComponent(imageSession)}`;
     },
   });
 }
@@ -64,6 +70,7 @@ export function normalizeReviewCandidateV2(payload, job) {
   const candidateSha256 = requireSha256(
     payload.candidate_sha256, "candidate SHA-256",
   );
+  const imageSession = normalizeImageSession(payload.image_session);
   const candidate = payload.candidate;
   if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)
       || candidate.format_version !== 2
@@ -99,7 +106,26 @@ export function normalizeReviewCandidateV2(payload, job) {
     requireSha256(row.image.png_sha256, "PNG SHA-256");
   }
   rejectPaths(payload);
-  return { candidateSha256, candidate, job: summary };
+  return {
+    candidateSha256, candidate, job: summary, imageSession,
+    history: normalizeReviewHistoryV2(
+      payload.history, job.job_id, candidateSha256,
+    ),
+  };
+}
+
+function normalizeImageSession(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)
+      || value.format_version !== 1
+      || !IMAGE_SESSION.test(String(value.token ?? ""))
+      || !Number.isInteger(value.expires_in_seconds)
+      || value.expires_in_seconds < 1 || value.expires_in_seconds > 600
+      || value.authority !== "read_only_snapshot") {
+    throw new Error("图片读取会话无效");
+  }
+  return Object.freeze({
+    token: value.token, expiresInSeconds: value.expires_in_seconds,
+  });
 }
 
 export function normalizeReviewHistoryV2(payload, jobId, candidateSha256) {

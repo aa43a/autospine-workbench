@@ -70,7 +70,7 @@ P10.3 v2 execution runner `1.1.0` 固定 `page_lifetime=collector-terminal`，�
 
 completed job 绑定 project/Preview v2/execution bundle/artifact set 四段内部地址，并以完整 `job_id` 自动进入 v2 复核页。服务端从 job 解析 exact 地址，重验 current P10.1/CaptureFraming，再准备 v2 candidate、图像和 append-only history。每个 case 必须由人选择 `approve`、`reject` 或 `unobservable`；系统绝不自动批准。全部批准只得到 v2 sampled visual head，不证明连续时间、完整接缝、runtime 等价或发布安全。现有 `BodySwayReviewAdmission v1` 只消费冻结 v1 review；v2 head 仍需要独立 P10.4a v2 admission/consumer 适配。
 
-v2 时间轴使用 exact URL 页面级图片池：当前位置优先、最多两张并发，当前组加载后只预取下一组，复访不重复赋值 `img.src`。覆盖数只接纳已加载并显示的组。服务端另有 candidate-snapshot 粒度、双条目/256 MiB 上限的进程内 single-flight LRU，只供图片 GET；并以 completed job 为键保存一个可删除的非权威 Preview mount snapshot，加速 candidate/history/image 的跨重启 GET。snapshot v3 显式绑定由 292 个静态依赖模块生成的 Preview compiler 摘要；mount 命中仍重验 exact execution、所选项目的逐字节 source/算法 seal、P3/P5/P9 内容地址、P10.1/CaptureFraming heads 和 Preview/artifact seals。compiler、来源或字节任一漂移都会失效，无关项目变化不再使当前 mount 失效；decision PUT 强制完整重编、零 mount cache I/O 并继续 head CAS。缓存从不保存或推断人工 decision/revision，HTTP 仍为 `no-store`。
+v2 时间轴使用 exact URL 页面级图片池：当前位置优先、最多两张并发，并在后台预载全部 43 帧；复访不重复赋值 `img.src`，覆盖数只接纳已加载并显示的组。candidate 完整 current/PNG 校验后同时返回当时的 history，以及 120 秒固定到期、进程内、只读的图片会话。会话与 job/candidate/case/PNG 交叉绑定，只能读取签发时已经验证的内容寻址像素；过期、淘汰或错误绑定直接失败，不写磁盘、不读取 decision、不授予 authority。无会话 exact URL 仍执行逐请求 current 校验。服务端另有 candidate-snapshot 粒度、双条目/256 MiB 上限的 single-flight LRU，并以 completed job 为键保存可删除的非权威 Preview mount snapshot。snapshot v3 显式绑定由 292 个静态依赖模块生成的 Preview compiler 摘要；mount 命中仍重验 exact execution、所选项目逐字节 source/算法 seal、P3/P5/P9 内容地址、P10.1/CaptureFraming heads 和 Preview/artifact seals。decision PUT 禁用持久 mount 与图片 session，实时复验 authority/current heads 并继续 head CAS；只有通过各自 current validator 的键控进程内派生缓存可复用。会话期间发生的来源漂移会在 PUT 以 409 零写入拒绝。缓存从不保存或推断人工 decision/revision，HTTP 仍为 `no-store`。真实 43 帧测试中，含 current/history/PNG 预热的 candidate 为 `6.15 s`，之后单张读取 P50 `6.7 ms`、P95 `11.4 ms`。
 
 旧 v1 页面、CLI、浏览器 driver、capture store 与 review namespace 保持冻结，继续用于历史证据和回归，不与 v2 execution/job/history 混用。
 
@@ -330,8 +330,8 @@ P9、Idle 与 Seam 自动页面使用下列 package 资源；preflight 与 GET �
 | `GET /api/p10/runtime-capture/packages/{package_id}` | 零写入准备 package-centric Preview v2 与固定 Runtime/Chrome 环境状态 | 自动闭合 current P10.1/CaptureFraming；响应不授予许可或执行 authority |
 | `POST /api/p10/runtime-capture/jobs` | 在许可勾选和本次运行二次确认后创建 official Runtime capture job | 要求 `X-Autospine-Intent: p10-official-runtime-capture-v2`；request 绑定 current 身份；append-only，失败/服务中断不自动重试；无用户 cancel API |
 | `GET /api/p10/runtime-capture/jobs/{job_id}` | 按完整 job ID 读取异步进度、事件、终态和 completed execution 地址 | path-free、零写入；失败事件保留精确安全 `failure_code`；刷新只查询，不重新提交或自动恢复执行 |
-| `GET /api/p10/runtime-capture/jobs/{job_id}/visual-review-v2/candidate` | 从 completed job 解析 exact execution，重验 current source 并准备 v2 candidate | job 未完成、source 已变化或 execution 读回失败时 fail closed |
-| `GET .../visual-review-v2/candidates/{candidate}/cases/{case}/image/{png}` | 读取 v2 candidate 绑定的权威 PNG | 完整 SHA，响应 ETag 绑定 PNG SHA；零写入 |
+| `GET /api/p10/runtime-capture/jobs/{job_id}/visual-review-v2/candidate` | 从 completed job 解析 exact execution，重验 current source，预热全部 PNG，并返回 v2 candidate、current history 与短期只读图片会话 | job 未完成、source 已变化、PNG 不完整或 execution 读回失败时 fail closed |
+| `GET .../visual-review-v2/candidates/{candidate}/cases/{case}/image/{png}` | 无会话时严格重验 current；短期会话只读取已预热的 candidate 精确 PNG | 完整 SHA，响应 ETag 绑定 PNG SHA；会话过期/交叉绑定直接失败；零写入 |
 | `GET .../visual-review-v2/candidates/{candidate}/history` | 读取 v2 连续 revision 与 current head | 不自动选择或生成任何人工决定 |
 | `GET .../visual-review-v2/candidates/{candidate}/history/{revision}/{decision}` | 读取一个精确 v2 decision | exact revision/decision 双地址；零写入 |
 | `PUT .../visual-review-v2/candidates/{candidate}/decisions` | 追加覆盖全部 case 的 v2 人工 decision | 独立 v2 intent、candidate 绑定和 head CAS；绝不自动批准 |

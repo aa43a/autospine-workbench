@@ -48,9 +48,17 @@ from .p10_visual_review_v2_http_security import (
 )
 from .p10_visual_review_v2_image_cache import (
     P10VisualReviewV2ImageCacheError,
-    P10VisualReviewV2ImageCacheKey,
     P10VisualReviewV2ImageCacheNotFound,
-    P10VisualReviewV2ImageReplayCache,
+)
+from .p10_visual_review_v2_image_session import (
+    P10VisualReviewV2ImageSessionError,
+    P10VisualReviewV2ImageSessionNotFound,
+    P10VisualReviewV2ImageSessionStore,
+)
+from .p10_visual_review_v2_read_acceleration import (
+    exact_image_for_request, image_tail, leased_image_for_request,
+    open_image_session, read_route_shape, review_revision,
+    send_review_image,
 )
 from .p10_visual_review_v2_http_responses import (
     internal_error as _internal_error,
@@ -81,7 +89,7 @@ def p10_visual_review_v2_allow_methods(parts: list[str]) -> str | None:
     if len(tail) == 3 and tail[0] == "candidates" \
             and tail[2] == "decisions":
         return "PUT, OPTIONS"
-    if _get_shape(tail):
+    if read_route_shape(tail):
         return "GET, HEAD, OPTIONS"
     return "OPTIONS"
 
@@ -89,15 +97,26 @@ def p10_visual_review_v2_allow_methods(parts: list[str]) -> str | None:
 def dispatch_p10_visual_review_v2_get(
     parts: list[str], manager: P10CaptureJobManager, store: ProjectStore,
     send_json: SendJson, send_bytes: SendBytes,
-    image_cache: P10VisualReviewV2ImageReplayCache,
+    image_sessions: P10VisualReviewV2ImageSessionStore,
+    request_target: str,
 ) -> bool:
     if not is_p10_visual_review_v2_path(parts):
         return False
     tail = parts[6:]
-    if not _get_shape(tail):
+    if not read_route_shape(tail):
         _not_found(send_json)
         return True
     try:
+        if not image_sessions.owns_state_root(store.state_root):
+            raise P10VisualReviewV2ImageSessionError(
+                "Visual review image session belongs to another store"
+            )
+        leased = leased_image_for_request(
+            image_sessions, request_target, parts[4], tail,
+        )
+        if leased is not None:
+            send_review_image(send_bytes, leased)
+            return True
         context = resolve_p10_visual_review_v2_context(
             manager, store, parts[4],
         )
@@ -106,29 +125,19 @@ def dispatch_p10_visual_review_v2_get(
             prepared = service.prepare(context.address, context.preview)
             value = candidate_response(prepared)
             value["job"] = context.public_job()
+            value["history"] = history_response(prepared)
+            value["history"]["job_id"] = context.job_id
+            value["image_session"] = open_image_session(
+                image_sessions, context, service,
+                prepared.candidate_sha256,
+            )
             send_json(HTTPStatus.OK, value)
             return True
-        if len(tail) == 6 and tail[0] == "candidates" \
-                and tail[2] == "cases" and tail[4] == "image":
-            if not image_cache.owns_state_root(store.state_root):
-                raise P10VisualReviewV2ImageCacheError(
-                    "Visual review v2 image cache belongs to another store"
-                )
-            key = P10VisualReviewV2ImageCacheKey(
-                context.job_id, context.package_id,
-                context.address, tail[1],
+        if image_tail(tail):
+            image = exact_image_for_request(
+                image_sessions, context, service, tail,
             )
-            image = image_cache.image(
-                key, case_id=tail[3], png_sha256=tail[5],
-                loader=lambda: service.prepare_image_snapshot(
-                    context.address, context.preview,
-                    candidate_sha256=tail[1],
-                ),
-            )
-            send_bytes(
-                HTTPStatus.OK, image.png_bytes, "image/png",
-                {"ETag": f'"{image.png_sha256}"'},
-            )
+            send_review_image(send_bytes, image)
             return True
         if len(tail) == 3 and tail[0] == "candidates" \
                 and tail[2] == "history":
@@ -142,7 +151,9 @@ def dispatch_p10_visual_review_v2_get(
             value["job_id"] = context.job_id
             send_json(HTTPStatus.OK, value)
             return True
-        revision = _revision(tail[3])
+        revision = review_revision(tail[3], MAX_VISUAL_REVIEW_REVISIONS)
+        if revision is None:
+            raise _NotFound
         exact = service.exact_decision(
             context.address, context.preview,
             candidate_sha256=tail[1], revision=revision,
@@ -151,7 +162,10 @@ def dispatch_p10_visual_review_v2_get(
         value = exact_decision_response(exact)
         value["job_id"] = context.job_id
         send_json(HTTPStatus.OK, value)
-    except (_NotFound, P10VisualReviewV2ImageCacheNotFound):
+    except (
+        _NotFound, P10VisualReviewV2ImageCacheNotFound,
+        P10VisualReviewV2ImageSessionNotFound,
+    ):
         _not_found(send_json)
     except (P10VisualReviewV2JobNotFound,
             BodySwayVisualReviewApplicationV2NotFound):
@@ -171,7 +185,8 @@ def dispatch_p10_visual_review_v2_get(
             _invalid_address(send_json)
         else:
             _internal_error(send_json)
-    except P10VisualReviewV2ImageCacheError:
+    except (P10VisualReviewV2ImageCacheError,
+            P10VisualReviewV2ImageSessionError):
         _internal_error(send_json)
     return True
 
@@ -260,27 +275,6 @@ def send_p10_visual_review_v2_method_not_allowed(parts, handler) -> None:
         "application/json; charset=utf-8",
         extra_headers={"Allow": methods}, visual_review=True,
     )
-
-
-def _get_shape(tail):
-    return tail == ["candidate"] \
-        or len(tail) == 3 and tail[0] == "candidates" \
-            and tail[2] == "history" \
-        or len(tail) == 5 and tail[0] == "candidates" \
-            and tail[2] == "history" \
-        or len(tail) == 6 and tail[0] == "candidates" \
-            and tail[2] == "cases" and tail[4] == "image"
-
-
-def _revision(value):
-    if not value.isascii() or not value.isdecimal() \
-            or value.startswith("0") \
-            or len(value) > len(str(MAX_VISUAL_REVIEW_REVISIONS)):
-        raise _NotFound
-    revision = int(value)
-    if not 1 <= revision <= MAX_VISUAL_REVIEW_REVISIONS:
-        raise _NotFound
-    return revision
 
 
 class _NotFound(Exception):

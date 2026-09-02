@@ -15,6 +15,7 @@ from .body_sway_visual_review_routes import (
 from .contracts import ContractValidationError
 from .http_security import host_header_is_local as _host_header_is_local
 from .http_json_request import HttpJsonRequestError, read_json_object_request
+from .http_log_redaction import redact_http_log_arguments
 from .http_static_response import serve_static_response
 from .http_workbench_response import WorkbenchResponseMixin
 from . import motion_policy_mutation_routes as policy_mutation
@@ -53,6 +54,9 @@ from .p10_visual_review_v2_routes import (
 from .p10_visual_review_v2_image_cache import (
     P10VisualReviewV2ImageReplayCache,
 )
+from .p10_visual_review_v2_image_session import (
+    P10VisualReviewV2ImageSessionStore,
+)
 from .seam_anchor_review_routes import (
     dispatch_seam_anchor_review_post,
     is_seam_anchor_review_path,
@@ -69,7 +73,7 @@ def _handler_factory(
     store: ProjectStore, web_root: Path | None,
     replay_cache: SeamAnchorReviewReplayCache,
     capture_manager: P10CaptureJobManager,
-    visual_review_v2_image_cache: P10VisualReviewV2ImageReplayCache,
+    visual_review_v2_image_sessions: P10VisualReviewV2ImageSessionStore,
 ) -> type[BaseHTTPRequestHandler]:
     class WorkbenchHandler(WorkbenchResponseMixin, BaseHTTPRequestHandler):
         server_version = "AutoSpineWorkbench/0.1"
@@ -82,12 +86,14 @@ def _handler_factory(
 
         def log_message(self, format_string: str, *args: Any) -> None:
             # Keep the standard useful request log, but never include request bodies.
-            super().log_message(format_string, *args)
+            super().log_message(
+                format_string, *redact_http_log_arguments(args),
+            )
 
         def _dispatch_api_get(self, parts: list[str]) -> bool:
             return dispatch_workbench_api_get(
                 parts, store, replay_cache, capture_manager,
-                visual_review_v2_image_cache, self,
+                visual_review_v2_image_sessions, self,
             )
 
         def _serve_static(self, parts: list[str]) -> bool:
@@ -293,9 +299,12 @@ def create_server(
     visual_review_v2_image_cache = P10VisualReviewV2ImageReplayCache(
         store.state_root,
     )
+    visual_review_v2_image_sessions = P10VisualReviewV2ImageSessionStore(
+        store.state_root, image_cache=visual_review_v2_image_cache,
+    )
     handler = _handler_factory(
         store, resolved_web_root, replay_cache, capture_manager,
-        visual_review_v2_image_cache,
+        visual_review_v2_image_sessions,
     )
     try:
         server = WorkbenchThreadingHTTPServer((host, port), handler)
@@ -308,5 +317,8 @@ def create_server(
     server.p10_capture_job_manager = capture_manager  # type: ignore[attr-defined]
     server.p10_visual_review_v2_image_cache = (  # type: ignore[attr-defined]
         visual_review_v2_image_cache
+    )
+    server.p10_visual_review_v2_image_sessions = (  # type: ignore[attr-defined]
+        visual_review_v2_image_sessions
     )
     return server

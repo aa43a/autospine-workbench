@@ -38,22 +38,25 @@ from autospine_workbench.body_sway_visual_review_application_models_v2 import ( 
 from autospine_workbench.body_sway_visual_review_address_v2 import (  # noqa: E402
     ExactVisualReviewAddressV2,
 )
-from autospine_workbench.p10_visual_review_v2_http_security import (  # noqa: E402
-    INTENT,
-)
 from autospine_workbench.p10_visual_review_v2_context import (  # noqa: E402
     P10VisualReviewV2Context,
     P10VisualReviewV2JobIncomplete,
     P10VisualReviewV2SourceChanged,
 )
 from autospine_workbench.server import create_server  # noqa: E402
+from tests.p10_visual_review_v2_http_session_cases import (  # noqa: E402
+    P10VisualReviewV2ImageSessionHttpCases,
+)
 from tests.test_project_store import StoreFixture  # noqa: E402
 
 
 SHA = lambda value: value * 64
 
 
-class P10VisualReviewV2HttpTests(unittest.TestCase):
+class P10VisualReviewV2HttpTests(
+    P10VisualReviewV2ImageSessionHttpCases,
+    unittest.TestCase,
+):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
         self.fixture = StoreFixture(Path(self.temporary.name))
@@ -227,19 +230,15 @@ class P10VisualReviewV2HttpTests(unittest.TestCase):
         )
         return status, response_headers, json.loads(raw.decode("utf-8"))
 
-    def mutation_headers(self, intent=INTENT):
-        return {
-            "Origin": f"http://{self.host}:{self.port}",
-            "Sec-Fetch-Site": "same-origin",
-            "X-Autospine-Intent": intent,
-        }
-
     def test_candidate_history_image_decision_and_submit_recheck_job(self):
         status, _, candidate = self.json_request(
             "GET", f"{self.base}/candidate",
         )
         self.assertEqual(200, status)
         self.assertEqual(self.job_id, candidate["job"]["job_id"])
+        self.assertEqual(self.job_id, candidate["history"]["job_id"])
+        self.assertEqual("read_only_snapshot",
+                         candidate["image_session"]["authority"])
         self.assertNotIn("path", json.dumps(candidate).lower())
 
         paths = (
@@ -251,7 +250,8 @@ class P10VisualReviewV2HttpTests(unittest.TestCase):
             self.assertEqual(200, status)
         image = (
             f"{self.base}/candidates/{self.candidate_sha}/cases/case-1/"
-            f"image/{self.png_sha}"
+            f"image/{self.png_sha}?session="
+            f"{candidate['image_session']['token']}"
         )
         status, headers, raw = self.request("GET", image)
         self.assertEqual((200, b"PNG"), (status, raw))
@@ -276,9 +276,9 @@ class P10VisualReviewV2HttpTests(unittest.TestCase):
         )
         self.assertEqual(200, status)
         self.assertTrue(retried["reused"])
-        self.assertEqual(7, self.manager.get.call_count)
+        self.assertEqual(5, self.manager.get.call_count)
         self.assertEqual(
-            [True, True, True, True, True, False, False],
+            [True, True, True, False, False],
             self.resolve_acceleration,
         )
 

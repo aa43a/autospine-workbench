@@ -124,6 +124,19 @@ class P10VisualReviewV2ImageReplayCache:
         _verify_image(matches[0], key.candidate_sha256)
         return matches[0]
 
+    def snapshot(
+        self, key: P10VisualReviewV2ImageCacheKey, *,
+        loader: Callable[[], tuple[BodySwayVisualReviewImageV2, ...]],
+    ) -> tuple[BodySwayVisualReviewImageV2, ...]:
+        """Admit and return one fully verified immutable image snapshot."""
+
+        if type(key) is not P10VisualReviewV2ImageCacheKey \
+                or not callable(loader):
+            raise P10VisualReviewV2ImageCacheError(
+                "Visual review v2 image cache request is invalid"
+            )
+        return self._get_or_load(key, loader)
+
     def _get_or_load(self, key, loader):
         with self._lock:
             cached = self._values.pop(key, None)

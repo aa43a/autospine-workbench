@@ -243,16 +243,21 @@ case 都必须进入完整人工 decision，系统不自动提交或批准。页
 六次失败 job 仍不可变且没有部分 execution，runner 1.1.0 的后续 job 已完成 43/43 official Runtime
 采样，但 sampled visual 尚未通过。
 
-P10.3c v2 的展示性能加固已经交付：完整 exact URL 在单页只创建一个图片节点，拖动有防抖，
-当前帧优先且最多两张并发，只有限预取下一组；只有真实加载并显示的组才计入覆盖。服务端图片 GET
-使用有界 candidate-snapshot single-flight LRU，命中前仍重验 current context；所有权威读取与 PUT
-绕过该图片缓存，HTTP `no-store` 和 source-drift 409 语义不变。跨重启冷启动还新增 completed-job
+P10.3c v2 的展示性能加固已经交付：candidate 完整校验后预热全部 PNG，并签发 120 秒、固定到期、
+进程内且零权威的图片读取会话；响应同时携带该次 current history。页面按完整 exact URL 创建唯一
+图片节点，当前位置优先、最多两张并发，并在后台预载全部 43 帧；只有真实加载并显示的组才计入
+覆盖。会话 GET 只做 job/candidate/case/PNG 精确匹配，过期、淘汰或交叉绑定失败不会回退昂贵路径；
+无会话 URL 保留逐请求 current 校验供审计兼容。会话期内源漂移不会替换已经验证的旧像素，但 PUT
+从不读取会话或持久 mount，会实时复验 authority/current heads 并以 409/CAS 零写入拒绝旧来源；通过
+current validator 的键控进程内派生缓存仍可复用。HTTP 继续 `no-store`。跨重启冷启动还新增 completed-job
 持久 mount snapshot：新 job 完成时预写，旧 job 首次读取时回填；snapshot v3 显式绑定由 292 个
 静态依赖模块生成的 Preview compiler 摘要。GET 只在 exact execution、所选项目的逐字节 source/算法
 seal、P3/P5/P9 内容地址、P10.1/CaptureFraming 和 Preview/artifact 全部一致时复用；无关项目与其他
-adoption 不再触发该 mount 的完整重放。PUT 禁用快路、零 mount cache I/O，并在完整重编后执行 CAS；
-缓存不保存 decision、history 或 revision。真实 43-case job 完整回填约 `74.61 s`；随后新进程 context
-为 `3.59–3.78 s`，完整 candidate 准备为 `6.00–6.15 s`，且缓存文件未重写。
+adoption 不再触发该 mount 的完整重放。PUT 禁用持久 mount/图片会话，并在实时 current 校验后执行 CAS；
+缓存不保存 decision、history 或 revision。真实 43-case job 完整回填约 `74.61 s`；持久 mount 下旧 candidate
+准备为 `6.00–6.15 s`。加入 history 合并与全帧预热后，本次新进程真实 candidate 为 `6.15 s`；随后
+43 张、共 13,139,764 bytes 的会话图片顺序读取合计 `334.1 ms`，P50 `6.7 ms`、P95 `11.4 ms`、
+最大 `23.4 ms`。这是服务端/HTTP 实测；浏览器仍需完成本地 PNG decode 与 paint。
 
 旧 execution v2 驱动继承了冻结 v1 的 `--dump-dom` 与 `--virtual-time-budget`，会和异步
 collector-terminal 生命周期竞争；另一个失败窗口发生在 exact 截图已提交后，主动 teardown 与

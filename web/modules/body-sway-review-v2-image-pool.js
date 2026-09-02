@@ -20,7 +20,8 @@ export function createTimelineImagePool({ doc, imageUrl, maxConcurrent = 2 }) {
     requireRows(rows);
     const sources = new Set(rows.map((row) => imageUrl(row)));
     for (const [source, entry] of entries) {
-      if (entry.state === "queued" && !sources.has(source)) {
+      if (entry.state === "queued" && !entry.persistent
+          && !sources.has(source)) {
         entries.delete(source);
         entry.state = "superseded";
         entry.image.dataset.loadState = "superseded";
@@ -37,6 +38,15 @@ export function createTimelineImagePool({ doc, imageUrl, maxConcurrent = 2 }) {
   function prime(rows) {
     requireRows(rows);
     for (const row of rows) entryFor(row, PRIORITY_PREFETCH);
+    pump();
+  }
+
+  function preload(rows) {
+    requirePreloadRows(rows);
+    for (const row of rows) {
+      const entry = entryFor(row, PRIORITY_BACKGROUND);
+      entry.persistent = true;
+    }
     pump();
   }
 
@@ -97,6 +107,7 @@ export function createTimelineImagePool({ doc, imageUrl, maxConcurrent = 2 }) {
     const entry = {
       identity, source, image, ready, settle, attempt,
       priority, sequence: sequence += 1, state: "queued",
+      persistent: false,
     };
     image.addEventListener("load", () => finishLoaded(entry), { once: true });
     image.addEventListener("error", () => finish(entry, "error"), { once: true });
@@ -136,7 +147,7 @@ export function createTimelineImagePool({ doc, imageUrl, maxConcurrent = 2 }) {
     pump();
   }
 
-  return Object.freeze({ dispose, focus, prime, stats, waitFor });
+  return Object.freeze({ dispose, focus, preload, prime, stats, waitFor });
 }
 
 export async function waitForVisibleTimelineGroup(
@@ -180,6 +191,13 @@ function requireRows(rows) {
   if (!Array.isArray(rows) || !rows.length || rows.length > 2) {
     throw new TypeError("timeline image group is invalid");
   }
+}
+
+function requirePreloadRows(rows) {
+  if (!Array.isArray(rows) || rows.length < 3 || rows.length > 55) {
+    throw new TypeError("timeline image preload is invalid");
+  }
+  requireRows(rows.slice(0, 2));
 }
 
 function animationLabel(row) {

@@ -62,6 +62,31 @@ test("current pair is bounded to two requests and adjacent work stays queued", (
   assert.deepEqual(pool.stats(), { entries: 4, active: 2, queued: 1 });
 });
 
+test("full preload survives timeline focus changes and prevents click-time requests", async () => {
+  const doc = fakeDocument();
+  const pool = createTimelineImagePool({
+    doc, imageUrl: (item) => `/candidate-a/${item.case_id}/${item.image.png_sha256}`,
+  });
+  const rows = [
+    row("setup", "1", null), row("base-0", "2"),
+    row("sway-0", "3", "p10.body-sway"), row("base-1", "4"),
+    row("sway-1", "5", "p10.body-sway"),
+  ];
+  pool.focus([rows[0]]);
+  pool.preload(rows);
+  pool.focus(rows.slice(3));
+  assert.deepEqual(pool.stats(), { entries: 5, active: 2, queued: 3 });
+  while (pool.stats().active) {
+    doc.images.find((image) => image.dataset.loadState === "loading").fire("load");
+  }
+  assert.deepEqual(await pool.waitFor(rows.slice(3)), ["loaded", "loaded"]);
+  const assignments = doc.images.map((image) => image.assignments);
+  pool.focus(rows.slice(1, 3));
+  pool.focus(rows.slice(3));
+  assert.deepEqual(doc.images.map((image) => image.assignments), assignments);
+  assert.deepEqual(pool.stats(), { entries: 5, active: 0, queued: 0 });
+});
+
 test("a failed image gets one controlled revisit retry and never loops", async () => {
   const doc = fakeDocument();
   const pool = createTimelineImagePool({
