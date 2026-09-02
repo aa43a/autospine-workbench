@@ -1,11 +1,12 @@
 # AutoSpine Workbench 后续开发路线
 
-本文是 Explanation 与交付计划，面向维护者和需要评估可行性的项目负责人。已交付 P10.3 package-centric Preview v2、固定官方 Runtime/Chrome 环境校验、显式许可与单次运行确认、append-only 异步 job、official Runtime execution v2 封存、P10.3c v2 review 和 P10.4a v2 admission。样本 A 已明确确认 `layer-007-handwear-l: forearm.left → upper-arm.left`、保存 override revision 6，并接受 CaptureFraming revision 1；六次旧 official Runtime job 的失败任务不可变且没有发布部分证据，runner 1.1.0 的后续 job 已完成 43/43，P10.3c v2 revision 1 已全部通过。P10.4a v2 只开放后续安全分析，release 仍 blocked。样本 B revision 16 必须沿自己的 current chain 继续。v1 capture/review 与 P10.4a/b1/b2 保持冻结。
+本文是 Explanation 与交付计划，面向维护者和需要评估可行性的项目负责人。P10.3、P10.4a/b v2 与 P10.5d v2 自动动态接缝入口均已交付。P10.5d v2 包含 path-free source/analyzer/validator、CLI/store/exact reader、exact `job_id+safety_run_id` 自动闭合 current P10.5c、独立 BelowNormal worker、append-only attempts、父端 exact readback/current-head recheck 和普通页面。样本 A 已闭合 current P9/P10、CaptureFraming、43/43 execution、P10.3c v2 revision 1 与 P10.5c，但仍须等待当前 P10.4b run 完成并重启服务后真实执行 P10.5d v2。release、raster、Runtime、视觉与 overlap 仍 blocked。样本 B revision 16 必须沿自己的 current chain 继续；v1 合同保持冻结。
 
 P9 页面现已增加 pending draft 自动发现与一键晋级入口。它会自动选择唯一 current 草案，显示角色与 setup 遮挡关系，并在一次明确确认后生成正式 Depth policy、Depth candidates 和新的 exact review package。草案晋级不等于最终 P9 adoption；候选仍须复核，并再次明确提交最终 human adoption。旧 P9 以及依赖旧 P3/P9 的 P10/P10.5 决定只保留历史证据。canvas-only 的新链不会放宽 v1，而是通过已经交付的 CaptureFraming decision、Preview v2、official Runtime execution v2 与 P10.3c v2 review 承接 setup、base、combined 完整包络。
 
-B 的 `ankle.left=unobservable` 仍要求左腿 foot-lock 保持阻塞。下文涉及 A/B 旧 P9、P10.1、
-P10.2 或 P10.5 数字时，均应理解为历史固定链证据，而不是 revision 6/16 新链结论。
+B 的 `ankle.left=unobservable` 仍要求左腿 foot-lock 保持阻塞。下文标记为“旧链”的 A/B P9、
+P10.1、P10.2 或 P10.5 数字只代表历史固定链；A revision 6 current P10.5c 地址以
+[pilot handoff](pilots/kimodo-wave-left-v1.md) 的独立表格为准，不能与旧链互换。
 
 ## 规划原则
 
@@ -22,10 +23,9 @@ P10.2 或 P10.5 数字时，均应理解为历史固定链证据，而不是 rev
 
 | 优先级 | 能力 | 原因 |
 | --- | --- | --- |
-| P0 | A revision 6 与 B revision 16 的新 P9 人工采用 | 两份 current draft 已生成；普通页面可在一次前后关系确认后自动生成正式 policy/Depth candidates/exact package，但随后仍须完成独立最终 P9 adoption；旧 P9 不得复用，B 左腿 foot-lock 保持 blocked |
-| P0 | A/B 新链的 P10.0/P10.1 重建与 P10.2 重跑 | A 的 r2/report `4406289e…` 与 B 的 `8/8 = 334/334`、`0/8 = 333/334` 都是旧链证据；新 P9 adoption 后须重编 candidate、显式提交新 P10.1，再以新 P10.2/P10.2a 判断参数或上游修复 |
-| P0 | P10.4b v2 幅度与连续安全分析 | P10.3c v2 revision 1 与 P10.4a v2 admission 已交付；下一门必须消费 v2 admission 并使用独立 v2 合同，不得复用冻结 v1 amplitude/continuous-proof identity |
-| P0 | A/B 新链的 P10.5d 动态接缝验证 | 只有 P10.4b2 与同一新 Manifest/P3 上重建的 P10.5c 双 SHA 都闭合后，才在精确动作域上运行动态接缝代理 |
+| P0 | A revision 6 的 P10.5d v2 真实执行 | 自动入口已交付；等待当前 P10.4b run 完成并重启服务后，从完成页一键进入，不得把 v2 proof 填入冻结 v1 命令 |
+| P0 | B revision 16 的 P9/P10 与静态接缝修复 | B current draft 尚待晋级和最终 adoption；当前 candidate 只有 2 条关系可复核、4 条 `unobservable`，须修复素材/语义或另立 partial 合同，不能生成冒充完整六关系的 P10.5c |
+| 已交付 | P10.4b 证明 worker 进程隔离 | evidence schema/hash 与 strict revalidation 保持不变；CPU 密集区间证明已移出 HTTP 进程，盒级心跳、进程树终止和父端结果复验均已实现 |
 | P0 | B revision 16 的 seam 能力重验 | 历史链 P9/seam 可精确复验，但四条下肢不可观测不能外推到 r16；须按新 Manifest/P3/candidate 重验后，才能选择上游修复或版本化 partial 合同 |
 | P0 | P10.7c setup golden 独立回归 | 零写入入口已交付；真实执行仍依赖 exact P10.7a/capture 与批准 P6 基线，readiness v1 保持冻结且第八项仍 missing |
 | P0 | P10.7b 两份真实样本验收 | Runtime/capture/metrics/review 基础设施已存在，但真实链尚未到达 P10.7a；仍需先关闭各自 seam 门禁，再做官方 Runtime 和人工决定 |
@@ -63,11 +63,11 @@ A/B 旧 P5 重定向 + P9 package/preflight/安全 Foot 辅助采用（历史链
         ↓
 P9 异常复核 + 一次 human adoption → 本地发布/exact verify（旧链已完成）
         ↓
-绑定 revision 改变 → 新 Manifest/P2–P5 → 独立 P9 draft（A r6/B r16 已到此）
+绑定 revision 改变 → 新 Manifest/P2–P5 → 独立 P9 draft（A r6 已走完；B r16 到此）
         ↓
 P9 页面自动发现草案 → 显式确认前后关系 → 正式 policy/Depth candidates/exact package
         ↓
-候选复核 → 再次显式确认最终 P9 adoption（A r6/B r16 当前待完成）
+候选复核 → 再次显式确认最终 P9 adoption（A r6 已完成；B r16 当前待完成）
         ↓
 按新 P9 地址重建 P10.0 候选 → P10.1 显式人工确认
         ↓
@@ -80,9 +80,9 @@ only-canvas reject → P10.2b CaptureFraming 人工决定 → package-centric Pr
         ↓
 P10.4a v2 admission/consumer（已完成）
         ↓
-设计 P10.4b v2 离散幅度包络与连续证明（当前下一门）；不得复用 v1 admission
+P10.4b v2 离散幅度包络与连续证明（已完成）；独立于 v1 identity
         ↓
-P10.5b/P10.5c 按新 P3 重建 → P10.5d 动态接缝验证
+A r6 P10.5b/P10.5c 已按新 P3 闭合 → 集成并真实执行同版 P10.5d v2 动态接缝验证
         ↓
 B 上游修复或 partial 合同（现有完整合同 fail closed）
         ↓
@@ -112,11 +112,12 @@ Revision 历史 UI（独立 authoring 可用性轨）
 - 一次最终确认才提交 P10.5b。ready 时继续 package-bound P10.5c publication 与 exact
   readback；P10.5b 已提交而 P10.5c 失败时，只能重试 publication，不重复写人工 revision。
 
-这里的“已完成”包括 A 旧链的真实静态凭据：P10.5b revision 2 已由操作者以 `6/6 accept`、`24`
-个 anchor pairs 确认并明确取代 revision 1；对应 P10.5c bundle 已发布并通过 exact replay。
-A revision 6 已改变 Manifest/P3，因此该 set 只保留历史复验价值，不能与 r6 新动作域直接组合
-进入 P10.5d。B 历史链的四条下肢关系不可观测也不能授权或阻塞 revision 16。A/B 都必须在新
-P9 后按各自新 Manifest/P3/candidate 重建 P10.5b/P10.5c。
+这里的“已完成”同时包括 A 的两条彼此隔离的真实静态链：旧链 P10.5b revision 2 与 P10.5c
+bundle 继续只供历史复验；revision 6 current 链另有 candidate `ea1c0211…`、decision
+`9db91b9a…`、review revision 1、set `00de666e…` 和 bundle `e23e3792…`，已按 Manifest
+`81bc00cb…` 与 P3 `309e4ef1…`/`92b398a8…` 精确复验。A 不再需要重复人工复核静态接缝。
+B revision 16 的 current candidate 只有两条关系可复核、四条 `unobservable`；完整 P10.5c
+仍被素材/语义与 P9/P10 上游阻塞。
 
 ## 当前入口：P10.0–P10.2a 身体摆动设置与结构诊断
 
@@ -148,9 +149,10 @@ Project 匹配，历史不匹配项不得进入推荐，也不得携带旧 P10.0
 统一显示项目、动作、决定类型和后果的二次确认弹窗；取消、Esc 与遮罩点击都在 mutation 前返回，
 不会写 revision。只有操作者点击“确认并提交”才通过独立 intent 和实时 current-head CAS 追加
 candidate-bound P10.1 revision。A 的旧 r2/report 产生了换绑建议；操作者已经采用建议并保存
-revision 6，因此旧 head 不再匹配 current Resolved/Manifest。B 的 r2 与 sampled canvas
-containment 拒绝也属于 revision 16 之前的历史链。A r6/B r16 都必须在新 P9 最终 adoption 后生成
-新的 P10.0 candidate 和 P10.1 revision。新的 `adjust` 成功也只进入 `pending_probe`，下一项仍是
+revision 6，因此旧 head 不再匹配 current Resolved/Manifest。A r6 已生成并采用新的 P10.0/P10.1，
+随后完成 P10.2–P10.4 与 current P10.5c 静态集。B 的 r2 与 sampled canvas containment 拒绝属于
+revision 16 之前的历史链，仍必须在新 P9 adoption 后生成新的 P10.0 candidate 和 P10.1 revision。
+新的 `adjust` 成功也只进入 `pending_probe`，下一项仍是
 七项 sampled 结构诊断。
 
 P10.2 的 `GET /api/idle-behavior/structural-probes` 会实时分类所有 current P10.1 heads，仅在
@@ -271,8 +273,42 @@ stdout reader 关闭相互竞争。新的 v2 runner `1.1.0` 固定 `page_lifetim
 captures，按 `history A → exact v2 decision → history B` 观察 current approved head，并输出
 path-free、compile-time-only admission。任何 source/head 漂移、未完成 job、reject/unobservable
 或 exact replay 失败都 fail closed。冻结 `BodySwayReviewAdmission v1`、P10.4b1 和 P10.4b2
-仍只消费 v1 visual review。当前下一门是独立 P10.4b v2 幅度候选与连续证明；
-之后才能连接同版 seam consumer，release authority 始终保持 blocked。
+仍只消费 v1 visual review。P10.4b v2 已沿独立合同接收该 admission；
+之后仍须连接同版 seam consumer，release authority 始终保持 blocked。
+
+## 已完成：P10.4b v2 幅度与连续结构分析
+
+P10.4b v2 以 completed `job_id` 为唯一专业/普通入口，并在编译前后重新确认 P10.4a v2
+admission 仍为 current。`BodySwayAmplitudeEnvelopeCandidate v2` 沿 coupled-gain 射线生成
+`0/8…8/8` 九个结构点；`BodySwayContinuousPreviewProof v2` 对 Preview v2 的每一对相邻
+tick 与统一 `λ∈[0,1]` 作有界区间细分。两份文档使用独立 Schema、profile 与自哈希，不能与
+冻结 v1 工件互换。
+
+普通页面只接收 `job_id`，自动创建或恢复 append-only 异步 run，并把结果分成离散结构点、
+连续相邻段、仅覆盖 `8/8` 的视觉审批和明确不可用的可发布安全范围四条轨道。
+`indeterminate` 是预算内没有形成完整证明的合法完成结果；它不会被错误显示为执行失败。
+
+CPU 密集编译现在运行在独立低优先级 worker 子进程中。子进程经有界 canonical JSONL 协议
+报告固定阶段和 `continuous_boxes` 盒级心跳，只能写入 run 绑定的 staged 工件；父进程是
+append-only 事件日志和 `completed` 状态的唯一写入者，并在完成前独立重读、校验两份 staged
+文档。取消或服务关闭会终止该 worker 的进程树，不会留下可被误认作完成的部分结果。页面/API
+查询不再与区间证明争用同一 Python 进程；失败 attempt 保留不可变 receipt，操作者二次确认后
+才能创建新 attempt。
+
+sealed replay 已增加两项回归门禁：JSON round-trip 后的 `reason_codes/scope/exclusions`
+按合同数组语义比较，避免 tuple/list 表示差异造成假失败；全局盒预算按实际剩余量逐段递减，
+禁止在预算耗尽前伪造 global fallback。manager 也会区分来源变化、来源不可用、无效请求、
+分析校验失败、分析失败和 worker 进程失败，不再把所有命令错误误标为 `source_changed`。
+
+P10.5d v2 已建立独立、path-free 的 source closure，精确绑定 P10.4b v2 proof、current
+P10.5c v1 双 SHA、Manifest/P3/RigIR 和 current-head 观察。纯函数 analyzer/compiler、probe
+Schema、full-replay validator、CLI 和内容寻址 store/exact reader 已交付。compile 在分析前、
+发布前、发布后共三次复核 current heads，再发布固定 `source/probe/bundle-manifest` 三文件
+inventory 并 exact-readback；verify 只复验历史 exact bytes，不授予 current authority。尚待
+server/job/UI 自动入口也已交付：exact job/run 自动解析 current P10.5c，独立 BelowNormal worker
+执行，append-only attempts 保留失败回执，父进程完成 exact readback/current-head recheck。真实 A
+仍待当前 P10.4b run 完成并重启服务后执行。runtime、raster、overlap、未采样视觉与 release
+authority 仍保持 blocked。
 
 ## 已完成横向前置：Resolved Project v1
 
@@ -434,13 +470,12 @@ Runtime、capture、发布或写入，不代替人工决定，也不授予 publi
 
 | 项目 | 最早共同动作 blocker | 接缝 blocker | Runtime 状态 |
 | --- | --- | --- | --- |
-| `seethrough_output` | 历史 P9 exact reader 已通过；换绑已确认并形成 r6，current P9/P10 已重建 | 旧 P10.5b r2/P10.5c 可复验，但不匹配 r6 Manifest/P3 | CaptureFraming revision 1 已接受；runner 1.1.0 已完成 43/43，P10.3c v2 revision 1 已通过，P10.4a v2 已交付 |
+| `seethrough_output` | 换绑已确认并形成 r6，current P9/P10 已重建 | P10.5c 已精确复验；P10.5d v2 自动入口已交付，等待当前 P10.4b run 完成并重启服务后真实执行 | CaptureFraming、43/43 Runtime、P10.3c v2 已通过；真实 P10.4b run 正在留档 |
 | `seethrough_output_5` | 历史 P9 exact reader 已通过；r16 新 P9 draft 尚待晋级和最终 adoption | 历史 P3 candidate 的四条腿/脚不可观测结论不能替代 r16 新链复验 | 官方 Runtime 包与 P6 baseline 可用，但 r16 须重建 P10.0/P10.1、重跑 P10.2 后再判断更早 blocker |
 
-A 的旧 seam checkpoint 可表述为 `reviewed_seam_anchor_set_address_not_declared`，但不能把旧 P10.5c
-双 SHA 写成 r6 current 地址。冻结请求未提供地址只说明请求未声明；另一方面，历史工件存在也不
-赋予新绑定链 authority。A r6 必须按新 Manifest/P3/candidate 建立新的 P10.5b/P10.5c 后，才能把
-新双 SHA 写入后续 canonical 请求。冻结请求中的 P9 `null` 同理不代表历史工件为空。
+A 的冻结 baseline checkpoint 可表述为 `reviewed_seam_anchor_set_address_not_declared`，因为该请求
+没有声明 current 地址；这不代表工件不存在。A r6 current P10.5c 双 SHA 已闭合，应由未来明确
+支持该版本链的请求填写 `00de666e…`/`e23e3792…`，不得换成旧链双 SHA，也不得反向改写冻结请求。
 
 项目 B 不得把 `unobservable` 自动改成 accept。进入完整 P10.5c 前必须修复上游腿/脚语义或
 See-through 分层，并让新的 Manifest/P3/candidate 内容地址失效旧决定；若产品确实接受缺腿脚
@@ -448,10 +483,10 @@ See-through 分层，并让新的 Manifest/P3/candidate 内容地址失效旧决
 
 最短后续顺序：
 
-1. 从 [pilot handoff](pilots/kimodo-wave-left-v1.md) 读取 A/B 旧 P9 双 SHA 与 A 旧静态 seam 双 SHA；全部只供历史复验，不得写成 r6/r16 current 地址。
-2. 在 Motion Policy 页面分别选择 A r6/B r16 current draft，明确确认 setup 前后关系并生成正式 policy、Depth candidates 与 exact package；随后完成独立的最终 P9 adoption。B 左腿 foot-lock 保持 reject/unobservable。
-3. A 已从 runner 1.1.0 的 completed job 提交 P10.3c v2 revision 1，并由 P10.4a v2 准入后续安全分析；六次失败 job 只保留为不可变历史。B 先按新 P9 地址重建 P10.0/P10.1、重跑 P10.2/P10.2a。
-4. 实现独立 P10.4b v2 幅度/连续证明；不要把 v2 admission 传给冻结 v1 compiler。随后在同一新 Manifest/P3 上重建 P10.5b/P10.5c/P10.5d。
+1. 从 [pilot handoff](pilots/kimodo-wave-left-v1.md) 读取 A r6 current P9/P10.5c 与旧链地址；两条链必须按各自身份精确读取，不能互换。
+2. A 从 runner 1.1.0 的 completed job、P10.3c v2 revision 1 和 P10.4a v2 继续生成并留档同一 job 的 P10.4b v2 amplitude/continuous 结果；六次失败 job 只保留为不可变历史。
+3. 当前 P10.4b run 完成并重启服务后，从完成页一键进入 P10.5d v2，对 A 执行真实验证；冻结 v1 compiler 继续拒绝 v2。
+4. B 在 Motion Policy 页面完成 r16 P9 adoption，再重建 P10.0/P10.1/P10.2；针对 2 可审 + 4 `unobservable` 的 current seam candidate 先修复上游或批准独立 partial 合同。
 5. 在精确 P9/P10.5d 地址上依次完成 P10.6–P10.7a；每次只把实际生成的双 SHA 回填请求。
 6. 使用现有且已获授权的官方 Runtime 执行 P10.7b capture、精确复验和逐 case/attachment 人工决定。
 7. 使用已交付的 `compare-body-sway-spine42-v3-setup-golden` 独立比较 setup case 与既有 P6 approved golden。readiness v1 已冻结且不会消费这份报告；即使前七项通过，它的第八项仍保持 missing，只会给出 `ready_for_p6_setup_comparison`。
@@ -475,9 +510,9 @@ golden 合同和精确 P10.7a/P10.7b 地址。它以冻结 comparison profile �
 readiness v1 的 Schema、哈希和八项 checkpoint 已冻结；第八项仍固定为
 `p6_setup_golden_comparison_not_declared`。P10.7c 使用独立合同，避免让旧请求或报告静默获得新含义。
 当前只能确认机制与既有 P6 批准基线可被严格验证，不能声称真实 A/B 通过：共享的
-`wave-left-v1` 历史链已到达 P7/P8、两个目标 P5 与各自 exact replay 通过的 P9；A r6/B r16 已
-分别重建到 P5 并准备 P9 草案，但尚未完成新 P9/P10/seam。A 的旧 P10.5b/P10.5c 与 B 的历史
-腿/脚不可观测结论都不能作为新链 authority；真实 P10.7a/capture 也尚未交付。只有这些前置关闭后，
+`wave-left-v1` 历史链已到达 P7/P8、两个目标 P5 与各自 exact replay 通过的 P9；A r6 已完成
+current P9/P10 与 P10.5c 静态集，但仍缺 P10.5d v2 server/job/UI 自动入口、真实 probe 及其后续真实 P10.7a/capture；B r16 仍停在
+新 P9 草案及 2 可审 + 4 `unobservable` 静态关系。只有这些前置关闭后，
 才能生成真实 canonical 请求并执行两项目对照。当前 stdout
 报告仍是临时、不可寻址工件；进入 readiness v2 前还要交付封存 request/report、批准合同和批准
 PNG 的 immutable comparison bundle，并由 reader 重放实际 capture。
@@ -629,7 +664,7 @@ P5 v2 mesh regression；v1/v2 双读与能力矩阵；极值姿势、热图、�
 
 ## 真实 Kimodo/P9 质量门禁
 
-**当前状态：`wave-left-v1` 的旧链已完成 intake、P7/P8、两个目标 P5、A/B human adoption、P9 发布与 exact verify；A 旧 P10.5b r2/P10.5c 也已闭合。A 随后明确确认 `layer-007-handwear-l: forearm.left → upper-arm.left` 并保存 revision 6，完成 current P9、P10.1 与 canvas-only P10.2 重建，并接受 CaptureFraming revision 1；六次失败 P10.3 job 无部分证据，runner 1.1.0 的后续 job 已完成 43/43，P10.3c v2 revision 1 已全部通过，P10.4a v2 已准入后续安全分析。B revision 16 仍须沿自己的 current chain 完成 P9/P10 重建。旧 P9/P10/seam 只保留历史复验价值。**
+**当前状态：A 已闭合 current P9/P10、CaptureFraming、43/43 Runtime、P10.3c v2 与 P10.5c。P10.5d v2 自动入口已交付；A 的下一步是等待当前 P10.4b run 完成、重启服务并真实执行，不是重做静态复核。B revision 16 仍须完成自己的 current chain 并解决四条 `unobservable`。**
 
 样本 B revision 16 的新链仍有独立限制：`layer-008-hand-r` 保留
 `body.arm.upper → upper-arm.left`，但在 leg-only P3 v1 中为
@@ -648,9 +683,9 @@ B 必须先重建 P10.0/P10.1、重跑 P10.2/P10.2a；canvas、seam 与 Runtime 
 
 草案晋级仍不是最终 P9 adoption。它不生成 candidate decision、reviewed policy、MotionInstance v2 或六文件 reviewed-motion bundle；页面必须继续处理完整 Foot/Depth candidate inventory，再执行最终 P9 human adoption。A r6 的 current draft ID、P3–P5 与 proposal/Foot SHA，以及 B r16 的对应地址，都集中记录在 [pilot handoff](pilots/kimodo-wave-left-v1.md)。
 
-最终 human adoption 使用独立 `POST /api/motion-policy/review-packages/{package_id}/adoptions` 写边界和 `X-Autospine-Intent: motion-policy-adoption-v1`。服务端重新加载 exact package，只接受严格 review input；写入前用当前 Resolved + Manifest 双 SHA 的两次快照确认 package 仍为 current，随后才原子发布并 exact verify P9。A r6 已走完并接受 CaptureFraming revision 1；六次 P10.3 v2 job 失败且无部分 evidence，runner 1.1.0 的后续 job 已 completed，P10.3c v2 revision 1 已通过，P10.4a v2 已交付。B r16 仍须走完 P9，再重建 P10.0/P10.1、重跑 P10.2/P10.2a 和 seam。若新 P10.2 是 `manual_visual_required`，可进入冻结 P10.3 v1；若唯一拒绝项是 `sampled_canvas_containment`，必须先完成 CaptureFraming decision，再进入 package-centric P10.3 v2。任何其他结构拒绝都继续 fail closed。
+最终 human adoption 使用独立 `POST /api/motion-policy/review-packages/{package_id}/adoptions` 写边界和 `X-Autospine-Intent: motion-policy-adoption-v1`。服务端重新加载 exact package，只接受严格 review input；写入前用当前 Resolved + Manifest 双 SHA 的两次快照确认 package 仍为 current，随后才原子发布并 exact verify P9。A r6 已走完 P9/P10、CaptureFraming、P10.3c v2 与 current P10.5b/P10.5c；P10.4a/P10.4b v2 能力已交付。B r16 仍须走完 P9，再重建 P10.0/P10.1、重跑 P10.2/P10.2a 和 seam。若新 P10.2 是 `manual_visual_required`，可进入冻结 P10.3 v1；若唯一拒绝项是 `sampled_canvas_containment`，必须先完成 CaptureFraming decision，再进入 package-centric P10.3 v2。任何其他结构拒绝都继续 fail closed。
 
-历史实物状态：真实运行的 `wave-left-v1` 已有 recorded 六输入、intake 报告、通过 exact reader 的 P7/P8 bundle、绑定到 A/B 历史版本的 P5 bundle、正式 depth policy、各自的 foot/depth candidates，以及分别 exact replay 通过的 P9 reviewed-motion bundle；collapsed sample 为零。两份历史 depth report 各有 120 个 sample、0 个 event；历史 A/B 的 P9 双 SHA 见 [pilot handoff](pilots/kimodo-wave-left-v1.md)。这不认证 checkpoint 或批准作品质量，也不授权 A revision 6 或 B revision 16。新链的 P9、P10 和 seam 都须按新地址重新建立；若新证据仍显示腿脚不可观测，才在该新链上选择上游修复或版本化 partial 合同。
+历史实物状态：真实运行的 `wave-left-v1` 已有 recorded 六输入、intake 报告、通过 exact reader 的 P7/P8 bundle、绑定到 A/B 历史版本的 P5 bundle、正式 depth policy、各自的 foot/depth candidates，以及分别 exact replay 通过的 P9 reviewed-motion bundle；collapsed sample 为零。两份历史 depth report 各有 120 个 sample、0 个 event；历史 A/B 的 P9 双 SHA 见 [pilot handoff](pilots/kimodo-wave-left-v1.md)。A revision 6 的 current P9/P10/P10.5c 另有独立精确地址，也记录在同一 handoff；它们不认证 checkpoint、动态 seam 或作品质量。B revision 16 若继续显示腿脚不可观测，才在该新链上选择上游修复或版本化 partial 合同。
 
 工程加固待办（P2，不阻塞当前人工门禁）：把 Foot FK/最小二乘校验的相对容差改为由 9 位量化误差、浮点 ULP 和明确坐标上限共同定义，并加入高尺度回归；为出现事件的 Depth pair 增加 window sample/score/state 图形化轨道；补齐快捷键的 modifier、IME composition 和 `defaultPrevented` 防护；让 TRACE/CONNECT 等未实现 HTTP 方法统一返回带 `Allow` 的 405。生产模块继续保持 300 行上限，接近上限时必须先拆分。
 

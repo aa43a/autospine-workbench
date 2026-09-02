@@ -14,103 +14,12 @@ from .projected_motion_commands import (
     probe_projected_scale,
     verify_projected_motion_bundle,
 )
-from .p9_readonly_cli import (
-    add_p9_readonly_subcommands,
-    dispatch_p9_readonly_command,
+from .projection_stage_extension_cli import (
+    add_projection_stage_extension_subcommands,
+    dispatch_projection_stage_extension_command,
 )
-from .p9_review_draft_cli import (
-    add_p9_review_draft_subcommand,
-    dispatch_p9_review_draft_command,
-)
-from .p9_policy_cli import (
-    add_p9_policy_subcommands,
-    dispatch_p9_policy_command,
-)
-from .p9_bundle_cli import (
-    add_p9_bundle_subcommands,
-    dispatch_p9_bundle_command,
-)
-from .p9_v2_cli import add_p9_v2_subcommands, dispatch_p9_v2_command
-from .p10_candidate_cli import (
-    add_p10_candidate_subcommands,
-    dispatch_p10_candidate_command,
-)
-from .p10_decision_cli import (
-    add_p10_decision_subcommands,
-    dispatch_p10_decision_command,
-)
-from .p10_probe_cli import (
-    add_p10_probe_subcommands,
-    dispatch_p10_probe_command,
-)
-from .p10_preview_cli import (
-    add_p10_preview_subcommands,
-    dispatch_p10_preview_command,
-)
-from .p10_runtime_capture_cli import (
-    add_p10_runtime_capture_subcommands,
-    dispatch_p10_runtime_capture_command,
-)
-from .p10_visual_review_cli import (
-    add_p10_visual_review_subcommands,
-    dispatch_p10_visual_review_command,
-)
-from .p10_review_admission_cli import (
-    add_p10_review_admission_subcommands,
-    dispatch_p10_review_admission_command,
-)
-from .p10_review_admission_v2_cli import (
-    add_p10_review_admission_v2_subcommands,
-    dispatch_p10_review_admission_v2_command,
-)
-from .p10_amplitude_envelope_cli import (
-    add_p10_amplitude_envelope_subcommands,
-    dispatch_p10_amplitude_envelope_command,
-)
-from .p10_continuous_proof_cli import (
-    add_p10_continuous_proof_subcommands,
-    dispatch_p10_continuous_proof_command,
-)
-from .p10_dynamic_seam_cli import (
-    add_p10_dynamic_seam_subcommands,
-    dispatch_p10_dynamic_seam_command,
-)
-from .p10_motion_consumer_admission_cli import (
-    add_p10_motion_consumer_admission_subcommands,
-    dispatch_p10_motion_consumer_admission_command,
-)
-from .p10_motion_instance_v3_cli import (
-    add_p10_motion_instance_v3_subcommands,
-    dispatch_p10_motion_instance_v3_command,
-)
-from .p10_spine42_v3_cli import (
-    add_p10_spine42_v3_subcommands,
-    dispatch_p10_spine42_v3_command,
-)
-from .p10_spine42_v3_raster_review_cli import (
-    add_p10_spine42_v3_raster_review_subcommands,
-    dispatch_p10_spine42_v3_raster_review_command,
-)
-from .p10_spine42_v3_readiness_cli import (
-    add_p10_spine42_v3_readiness_subcommands,
-    dispatch_p10_spine42_v3_readiness_command,
-)
-from .p10_spine42_v3_setup_regression_cli import (
-    add_p10_spine42_v3_setup_regression_subcommands,
-    dispatch_p10_spine42_v3_setup_regression_command,
-)
-from .p10_spine42_v3_runtime_cli import (
-    add_p10_spine42_v3_runtime_subcommands,
-    dispatch_p10_spine42_v3_runtime_command,
-)
-from .seam_anchor_candidate_cli import (
-    add_seam_anchor_candidate_subcommands,
-    dispatch_seam_anchor_candidate_command,
-)
-from .seam_anchor_review_cli import (
-    add_seam_anchor_review_subcommands,
-    dispatch_seam_anchor_review_command,
-)
+from .seam_anchor_candidate_cli import dispatch_seam_anchor_candidate_command
+from .seam_anchor_review_cli import dispatch_seam_anchor_review_command
 
 
 def add_projection_stage_subcommands(subparsers: Any, state_root: Path) -> None:
@@ -143,31 +52,7 @@ def add_projection_stage_subcommands(subparsers: Any, state_root: Path) -> None:
     probe_parser.add_argument("--motion-instance-sha256", required=True)
     probe_parser.add_argument("--motion-retarget-bundle-sha256", required=True)
     _state_root(probe_parser, state_root)
-    add_p9_readonly_subcommands(subparsers, state_root)
-    add_p9_review_draft_subcommand(subparsers, state_root)
-    add_p9_policy_subcommands(subparsers, state_root)
-    add_p9_v2_subcommands(subparsers, state_root)
-    add_p9_bundle_subcommands(subparsers, state_root)
-    add_p10_candidate_subcommands(subparsers, state_root)
-    add_p10_decision_subcommands(subparsers)
-    add_p10_probe_subcommands(subparsers, state_root)
-    add_p10_preview_subcommands(subparsers, state_root)
-    add_p10_runtime_capture_subcommands(subparsers, state_root)
-    add_p10_visual_review_subcommands(subparsers, state_root)
-    add_p10_review_admission_subcommands(subparsers, state_root)
-    add_p10_review_admission_v2_subcommands(subparsers, state_root)
-    add_p10_amplitude_envelope_subcommands(subparsers, state_root)
-    add_p10_continuous_proof_subcommands(subparsers, state_root)
-    add_p10_dynamic_seam_subcommands(subparsers, state_root)
-    add_p10_motion_consumer_admission_subcommands(subparsers, state_root)
-    add_p10_motion_instance_v3_subcommands(subparsers, state_root)
-    add_p10_spine42_v3_subcommands(subparsers, state_root)
-    add_p10_spine42_v3_runtime_subcommands(subparsers, state_root)
-    add_p10_spine42_v3_raster_review_subcommands(subparsers, state_root)
-    add_p10_spine42_v3_readiness_subcommands(subparsers, state_root)
-    add_p10_spine42_v3_setup_regression_subcommands(subparsers, state_root)
-    add_seam_anchor_candidate_subcommands(subparsers, state_root)
-    add_seam_anchor_review_subcommands(subparsers, state_root)
+    add_projection_stage_extension_subcommands(subparsers, state_root)
 
 
 def dispatch_projection_stage_command(args: argparse.Namespace) -> int | None:
@@ -200,73 +85,7 @@ def dispatch_projection_stage_command(args: argparse.Namespace) -> int | None:
                 ),
             )
         else:
-            status = dispatch_p9_review_draft_command(args)
-            if status is not None:
-                return status
-            status = dispatch_p9_readonly_command(args)
-            if status is not None:
-                return status
-            status = dispatch_p9_policy_command(args)
-            if status is not None:
-                return status
-            status = dispatch_p9_v2_command(args)
-            if status is not None:
-                return status
-            status = dispatch_p9_bundle_command(args)
-            if status is not None:
-                return status
-            status = dispatch_p10_candidate_command(args)
-            if status is not None:
-                return status
-            status = dispatch_p10_decision_command(args)
-            if status is not None:
-                return status
-            status = dispatch_p10_probe_command(args)
-            if status is not None:
-                return status
-            status = dispatch_p10_preview_command(args)
-            if status is not None:
-                return status
-            status = dispatch_p10_runtime_capture_command(args)
-            if status is not None:
-                return status
-            status = dispatch_p10_visual_review_command(args)
-            if status is not None:
-                return status
-            status = dispatch_p10_review_admission_command(args)
-            if status is not None:
-                return status
-            status = dispatch_p10_review_admission_v2_command(args)
-            if status is not None:
-                return status
-            status = dispatch_p10_amplitude_envelope_command(args)
-            if status is not None:
-                return status
-            status = dispatch_p10_continuous_proof_command(args)
-            if status is not None:
-                return status
-            status = dispatch_p10_dynamic_seam_command(args)
-            if status is not None:
-                return status
-            status = dispatch_p10_motion_consumer_admission_command(args)
-            if status is not None:
-                return status
-            status = dispatch_p10_motion_instance_v3_command(args)
-            if status is not None:
-                return status
-            status = dispatch_p10_spine42_v3_command(args)
-            if status is not None:
-                return status
-            status = dispatch_p10_spine42_v3_runtime_command(args)
-            if status is not None:
-                return status
-            status = dispatch_p10_spine42_v3_raster_review_command(args)
-            if status is not None:
-                return status
-            status = dispatch_p10_spine42_v3_readiness_command(args)
-            if status is not None:
-                return status
-            status = dispatch_p10_spine42_v3_setup_regression_command(args)
+            status = dispatch_projection_stage_extension_command(args)
             if status is not None:
                 return status
             status = dispatch_seam_anchor_candidate_command(args)

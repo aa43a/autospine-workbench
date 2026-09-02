@@ -1,5 +1,7 @@
 "use strict";
 
+import { safetyAnalysisV2Href } from "./body-sway-safety-analysis-v2-contract.js";
+
 const REASON_LABELS = Object.freeze({
   continuous_time_safety_unproven: "连续时间安全尚未证明",
   preview_only_timeline: "当前仍是预览动作时间线",
@@ -20,6 +22,7 @@ export function admissionV2Elements(document) {
     technical: document.querySelector("#technicalDocument"),
     retry: document.querySelector("#retryAdmissionBtn"),
     reviewLink: document.querySelector("#returnToReviewLink"),
+    safetyLink: document.querySelector("#safetyAnalysisLink"),
   });
 }
 
@@ -29,6 +32,7 @@ export function renderLoading(elements) {
   setStatus(elements.status, "正在重放 completed execution 与当前人工复核头…");
   elements.result.hidden = true;
   elements.failure.hidden = true;
+  elements.safetyLink.hidden = true;
 }
 
 export function renderMissingJob(elements) {
@@ -40,6 +44,7 @@ export function renderMissingJob(elements) {
   elements.failure.hidden = false;
   elements.retry.hidden = true;
   elements.reviewLink.hidden = true;
+  elements.safetyLink.hidden = true;
 }
 
 export function renderFailure(elements, message, jobId = null) {
@@ -49,6 +54,7 @@ export function renderFailure(elements, message, jobId = null) {
   elements.result.hidden = true;
   elements.failure.hidden = false;
   elements.retry.hidden = false;
+  elements.safetyLink.hidden = true;
   if (jobId) {
     elements.reviewLink.href = `./body-sway-review-v2.html?job_id=${encodeURIComponent(jobId)}`;
     elements.reviewLink.hidden = false;
@@ -67,6 +73,8 @@ export function renderAdmission(elements, value) {
   renderBlockers(elements.blockers, value.releaseReasons);
   elements.digest.textContent = value.admissionSha256;
   elements.technical.textContent = JSON.stringify(value.document, null, 2);
+  elements.safetyLink.href = safetyAnalysisV2Href(value.jobId);
+  elements.safetyLink.hidden = false;
 }
 
 function renderFacts(container, value) {

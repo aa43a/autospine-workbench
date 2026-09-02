@@ -1,0 +1,237 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/body-sway-continuous-preview-proof-v2.schema.json",
+  "title": "AutoSpine BodySwayContinuousPreviewProof v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "project_id", "clip_id", "source",
+    "problem", "segments", "analyzer", "claims", "status",
+    "release_gate", "summary"
+  ],
+  "properties": {
+    "format": {"const": "autospine-body-sway-continuous-preview-proof"},
+    "format_version": {"type": "integer", "const": 2},
+    "project_id": {"$ref": "#/$defs/id"},
+    "clip_id": {"$ref": "#/$defs/id"},
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "source_set_sha256", "amplitude_envelope_candidate_v2_sha256",
+        "amplitude_envelope_candidate_v2", "rig_ir_sha256", "rig_ir",
+        "target_profile_sha256", "target_profile",
+        "motion_instance_v2_sha256", "motion_instance_v2",
+        "temporary_preview_v2_sha256", "temporary_preview_v2",
+        "preview_projection_v2_sha256", "preview_projection_v2",
+        "reviewed_world_viewport"
+      ],
+      "properties": {
+        "source_set_sha256": {"$ref": "#/$defs/sha"},
+        "amplitude_envelope_candidate_v2_sha256": {"$ref": "#/$defs/sha"},
+        "amplitude_envelope_candidate_v2": {"$ref": "body-sway-amplitude-envelope-candidate-v2.schema.json"},
+        "rig_ir_sha256": {"$ref": "#/$defs/sha"},
+        "rig_ir": {"$ref": "rig-ir-v1.schema.json"},
+        "target_profile_sha256": {"$ref": "#/$defs/sha"},
+        "target_profile": {"$ref": "motion-target-profile-v1.schema.json"},
+        "motion_instance_v2_sha256": {"$ref": "#/$defs/sha"},
+        "motion_instance_v2": {"$ref": "motion-instance-v2.schema.json"},
+        "temporary_preview_v2_sha256": {"$ref": "#/$defs/sha"},
+        "temporary_preview_v2": {"$ref": "temporary-body-sway-preview-v2.schema.json"},
+        "preview_projection_v2_sha256": {"$ref": "#/$defs/sha"},
+        "preview_projection_v2": {"$ref": "#/$defs/projection"},
+        "reviewed_world_viewport": {"$ref": "#/$defs/viewport"}
+      }
+    },
+    "problem": {"$ref": "#/$defs/problem"},
+    "segments": {"type": "array", "minItems": 1, "maxItems": 4095, "items": {"$ref": "#/$defs/segment"}},
+    "analyzer": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "version", "canonicalization", "config"],
+      "properties": {
+        "id": {"const": "body-sway-continuous-preview-proof-analyzer-v2"},
+        "version": {"const": "2.0.0"},
+        "canonicalization": {"const": "canonical-json-utf8-sort-keys-no-nonfinite"},
+        "config": {
+          "type": "object", "additionalProperties": false,
+          "required": ["gain_domain", "interpolation", "budget", "mesh_thresholds", "backend", "scope", "exclusions", "viewport_semantics"],
+          "properties": {
+            "gain_domain": {"$ref": "#/$defs/gainDomain"},
+            "interpolation": {"$ref": "#/$defs/interpolation"},
+            "budget": {"$ref": "#/$defs/budget"},
+            "mesh_thresholds": {"$ref": "#/$defs/thresholds"},
+            "backend": {"$ref": "#/$defs/backend"},
+            "scope": {"$ref": "#/$defs/scope"},
+            "exclusions": {"$ref": "#/$defs/exclusions"},
+            "viewport_semantics": {"const": "reviewed-world-viewport-v2"}
+          }
+        }
+      }
+    },
+    "claims": {
+      "type": "object", "additionalProperties": false,
+      "required": ["continuous_preview_model_structural_safety", "uniform_gain_zero_to_reviewed_structurally_certified", "official_runtime_continuous_equivalence", "visual_gain_range", "reviewed_seam_anchors", "motion_instance_v3", "publishable_timeline", "release_authority"],
+      "properties": {
+        "continuous_preview_model_structural_safety": {"type": "boolean"},
+        "uniform_gain_zero_to_reviewed_structurally_certified": {"type": "boolean"},
+        "official_runtime_continuous_equivalence": {"const": false},
+        "visual_gain_range": {"const": false}, "reviewed_seam_anchors": {"const": false},
+        "motion_instance_v3": {"const": false}, "publishable_timeline": {"const": false},
+        "release_authority": {"const": false}
+      }
+    },
+    "status": {"enum": ["continuous_preview_model_structural_certified", "indeterminate"]},
+    "release_gate": {"oneOf": [{"$ref": "#/$defs/certifiedGate"}, {"$ref": "#/$defs/indeterminateGate"}]},
+    "summary": {"$ref": "#/$defs/summary"}
+  },
+  "$defs": {
+    "id": {"type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "viewport": {"$ref": "body-sway-amplitude-envelope-candidate-v2.schema.json#/$defs/viewport"},
+    "gainDomain": {"const": {"kind": "coupled-four-bone-uniform-gain", "minimum": {"numerator": 0, "denominator": 1}, "maximum": {"numerator": 1, "denominator": 1}, "closure": "closed"}},
+    "interpolation": {"const": {"rotation": "sampled-linear-between-adjacent-preview-v2-ticks", "root_translation": "sampled-linear-between-adjacent-preview-v2-ticks", "segment_coverage": "every-adjacent-preview-v2-tick-pair"}},
+    "budget": {"const": {"max_depth": 14, "max_boxes_per_segment": 32768, "max_total_boxes": 32768}},
+    "thresholds": {"const": {"min_signed_area_ratio": 0.02, "max_signed_area_ratio": 20.0, "max_edge_stretch_ratio": 3.0}},
+    "backend": {"const": {"interval_arithmetic": "binary64-directed-basic-ops-rational-trig-q9-q4096-v1", "trigonometry": "rational-taylor-enclosure-v1", "numeric_enclosure": "q9-per-layer-plus-q4096-half-step-v1", "method": "adaptive-interval-box-subdivision-no-point-sampling"}},
+    "scope": {"const": ["sampled_linear_segment_fk", "continuous_canvas_containment", "continuous_mesh_deformation", "shared_index_internal_continuity"]},
+    "exclusions": {"const": ["upstream_preview_key_adjacency_binding", "platform_libm_equivalence", "inter_attachment_seams", "raster_visual_quality", "runtime_equivalence", "publishable_timeline", "release_authority"]},
+    "projection": {
+      "type": "object", "additionalProperties": false,
+      "required": ["domain", "compiler", "semantics", "project_id", "clip_id", "source", "capture_framing", "legacy_projection_sha256", "timing", "selection", "probe_tick_schedule_sha256", "probe_sample_stream_sha256", "base_animation_sha256", "setup_sha256", "sample_ticks", "rotation_tracks", "summary"],
+      "properties": {
+        "domain": {"const": "autospine-body-sway-preview-projection/v2"},
+        "compiler": {"const": {"id":"temporary-body-sway-spine42-preview-compiler-v2","version":"2.0.0","numeric_precision_decimals":9,"projection_digest_domain":"autospine-body-sway-preview-projection/v2","rotation_timeline_digest_domain":"autospine-body-sway-preview-rotation-timeline/v2","base_animation_digest_domain":"autospine-body-sway-preview-base-animation/v2","setup_digest_domain":"autospine-body-sway-preview-setup/v2","skeleton_hash_digest_domain":"autospine-body-sway-preview-skeleton/v2","capture_plan_digest_domain":"autospine-body-sway-preview-capture-plan/v2","capture":{"viewport":{"width":640,"height":640},"device_pixel_ratio":1},"limits":{"max_preview_sample_count":4096,"max_rotation_track_count":17,"max_rotation_key_count":69632}}},
+        "semantics": {"const": {"mode":"capture-framed-temporary-runtime-preview-v2","runtime_timeline_emitted":true,"runtime_timeline_scope":"ephemeral-preview-only","motion_instance_v3_emitted":false,"version_neutral_motion_contract_emitted":false,"capture_framing_human_review_required":true,"capture_framing_changes_rig_geometry":false,"publishable":false,"release_authority":false,"safe_range_claimed":false,"continuous_time_safety_claimed":false,"visual_quality_claimed":false,"raster_truth_claimed":false,"inter_attachment_seam_safety_claimed":false,"official_runtime_execution_claimed":false,"human_visual_review_claimed":false,"content_digests_are_compiler_seals":true,"standalone_upstream_authenticity_claimed":false,"detached_validation_scope":"structure-and-internal-consistency","detached_currentness_claimed":false,"upstream_replay_requires_exact_inputs_v2":true}},
+        "project_id": {"$ref": "#/$defs/id"}, "clip_id": {"$ref": "#/$defs/id"},
+        "source": {
+          "type": "object", "additionalProperties": false,
+          "required": ["body_sway_probe_report_sha256", "base_motion_instance_v2_sha256", "capture_framing_candidate_sha256", "capture_framing_decision_sha256"],
+          "properties": {"body_sway_probe_report_sha256": {"$ref": "#/$defs/sha"}, "base_motion_instance_v2_sha256": {"$ref": "#/$defs/sha"}, "capture_framing_candidate_sha256": {"$ref": "#/$defs/sha"}, "capture_framing_decision_sha256": {"$ref": "#/$defs/sha"}}
+        },
+        "capture_framing": {
+          "type": "object", "additionalProperties": false,
+          "required": ["revision", "world_viewport", "coordinate_space"],
+          "properties": {"revision": {"type": "integer", "minimum": 1, "maximum": 64}, "world_viewport": {"$ref": "#/$defs/viewport"}, "coordinate_space": {"const": "spine-world-bottom-left-y-up"}}
+        },
+        "legacy_projection_sha256": {"$ref": "#/$defs/sha"},
+        "timing": {"$ref": "body-sway-amplitude-envelope-candidate-v2.schema.json#/$defs/timing"},
+        "selection": {"$ref": "body-sway-amplitude-envelope-candidate-v2.schema.json#/$defs/selection"},
+        "probe_tick_schedule_sha256": {"$ref": "#/$defs/sha"},
+        "probe_sample_stream_sha256": {"$ref": "#/$defs/sha"},
+        "base_animation_sha256": {"$ref": "#/$defs/sha"}, "setup_sha256": {"$ref": "#/$defs/sha"},
+        "sample_ticks": {"type": "array", "minItems": 2, "maxItems": 4096, "items": {"type": "integer", "minimum": 0}},
+        "rotation_tracks": {"type": "array", "minItems": 1, "maxItems": 17, "items": {"$ref": "#/$defs/rotationTrack"}},
+        "summary": {
+          "type": "object", "additionalProperties": false,
+          "required": ["sample_count", "rotation_track_count", "rotation_key_count"],
+          "properties": {"sample_count": {"type": "integer", "minimum": 2, "maximum": 4096}, "rotation_track_count": {"type": "integer", "minimum": 1, "maximum": 17}, "rotation_key_count": {"type": "integer", "minimum": 2, "maximum": 69632}}
+        }
+      }
+    },
+    "rotationTrack": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bone_id", "property", "keys"],
+      "properties": {"bone_id": {"$ref": "#/$defs/id"}, "property": {"const": "rotation"}, "keys": {"type": "array", "minItems": 2, "maxItems": 4096, "items": {"$ref": "#/$defs/rotationKey"}}}
+    },
+    "rotationKey": {
+      "type": "object", "additionalProperties": false,
+      "required": ["tick", "value"],
+      "properties": {"tick": {"type": "integer", "minimum": 0}, "value": {"type": "number", "minimum": -1000000000, "maximum": 1000000000}}
+    },
+    "problem": {
+      "type": "object", "additionalProperties": false,
+      "required": ["source_set_sha256", "gain_domain", "time_domain", "interpolation", "budget", "mesh_thresholds", "backend", "scope", "exclusions", "viewport_semantics", "problem_sha256"],
+      "properties": {
+        "source_set_sha256": {"$ref": "#/$defs/sha"}, "gain_domain": {"$ref": "#/$defs/gainDomain"},
+        "time_domain": {
+          "type": "object", "additionalProperties": false,
+          "required": ["sample_ticks", "sample_count", "segment_count", "adjacent_tick_pairs_sha256"],
+          "properties": {"sample_ticks": {"type": "array", "minItems": 2, "maxItems": 4096, "items": {"type": "integer", "minimum": 0}}, "sample_count": {"type": "integer", "minimum": 2, "maximum": 4096}, "segment_count": {"type": "integer", "minimum": 1, "maximum": 4095}, "adjacent_tick_pairs_sha256": {"$ref": "#/$defs/sha"}}
+        },
+        "interpolation": {"$ref": "#/$defs/interpolation"}, "budget": {"$ref": "#/$defs/budget"},
+        "mesh_thresholds": {"$ref": "#/$defs/thresholds"}, "backend": {"$ref": "#/$defs/backend"},
+        "scope": {"$ref": "#/$defs/scope"}, "exclusions": {"$ref": "#/$defs/exclusions"},
+        "viewport_semantics": {"const": "reviewed-world-viewport-v2"}, "problem_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "certifiedGate": {"const": {"status": "blocked", "reason_codes": ["motion_instance_v3_not_emitted", "preview_model_only", "publishable_timeline_not_emitted", "reviewed_seam_anchors_missing", "runtime_continuous_equivalence_unproven", "visual_gain_range_unreviewed"]}},
+    "indeterminateGate": {"const": {"status": "blocked", "reason_codes": ["continuous_preview_model_safety_unproven", "motion_instance_v3_not_emitted", "preview_model_only", "publishable_timeline_not_emitted", "reviewed_seam_anchors_missing", "runtime_continuous_equivalence_unproven", "unit_gain_interval_unproven", "visual_gain_range_unreviewed"]}},
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": ["segment_count", "certified_segment_count", "indeterminate_segment_count", "evaluated_box_count", "certified_terminal_box_count", "indeterminate_terminal_box_count", "maximum_depth_reached"],
+      "properties": {"segment_count": {"type": "integer", "minimum": 1, "maximum": 4095}, "certified_segment_count": {"type": "integer", "minimum": 0, "maximum": 4095}, "indeterminate_segment_count": {"type": "integer", "minimum": 0, "maximum": 4095}, "evaluated_box_count": {"type": "integer", "minimum": 0, "maximum": 32768}, "certified_terminal_box_count": {"type": "integer", "minimum": 0, "maximum": 32768}, "indeterminate_terminal_box_count": {"type": "integer", "minimum": 0, "maximum": 4095}, "maximum_depth_reached": {"type": "integer", "minimum": 0, "maximum": 14}}
+    },
+    "segment": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "left_tick", "right_tick", "status", "reason_codes", "bounds",
+        "evaluated_box_count", "certified_terminal_box_count", "indeterminate_terminal_box_count",
+        "maximum_depth_reached", "attachment_count", "vertex_count", "triangle_count", "edge_count",
+        "time_model", "gain_model", "rounding_profile", "proof_method", "numeric_enclosure_profile",
+        "scope", "exclusions", "segment_evidence_sha256"
+      ],
+      "properties": {
+        "left_tick": {"type": "integer", "minimum": 0},
+        "right_tick": {"type": "integer", "minimum": 1},
+        "status": {"enum": ["continuous_structural_certified", "indeterminate"]},
+        "reason_codes": {"type": "array", "maxItems": 12, "uniqueItems": true, "items": {"enum": ["absolute_triangle_area_unproven", "canvas_containment_unproven", "empty_attachment_geometry", "global_subdivision_box_budget_exhausted", "interval_backend_error", "maximum_area_ratio_unproven", "maximum_edge_stretch_unproven", "minimum_area_ratio_unproven", "non_finite_interval_bound", "parameter_resolution_exhausted", "subdivision_box_budget_exhausted", "subdivision_depth_exhausted"]}},
+        "bounds": {
+          "type": "object", "additionalProperties": false,
+          "required": ["canvas_margin_lower_px", "min_signed_area_ratio_lower", "max_signed_area_ratio_upper", "max_edge_stretch_squared_ratio_upper"],
+          "properties": {
+            "canvas_margin_lower_px": {"type": ["number", "null"]},
+            "min_signed_area_ratio_lower": {"type": ["number", "null"]},
+            "max_signed_area_ratio_upper": {"type": ["number", "null"]},
+            "max_edge_stretch_squared_ratio_upper": {"type": ["number", "null"]}
+          }
+        },
+        "evaluated_box_count": {"type": "integer", "minimum": 0, "maximum": 32768},
+        "certified_terminal_box_count": {"type": "integer", "minimum": 0, "maximum": 32768},
+        "indeterminate_terminal_box_count": {"type": "integer", "minimum": 0, "maximum": 32768},
+        "maximum_depth_reached": {"type": "integer", "minimum": 0, "maximum": 14},
+        "attachment_count": {"type": "integer", "minimum": 1},
+        "vertex_count": {"type": "integer", "minimum": 1},
+        "triangle_count": {"type": "integer", "minimum": 0},
+        "edge_count": {"type": "integer", "minimum": 0},
+        "time_model": {"const": "sampled-linear-over-supplied-endpoint-segment"},
+        "gain_model": {"const": "coupled-four-bone-lambda-in-closed-unit-interval"},
+        "rounding_profile": {"const": "binary64-directed-basic-ops-rational-trig-q9-q4096-v1"},
+        "proof_method": {"const": "adaptive-interval-box-subdivision-no-point-sampling"},
+        "numeric_enclosure_profile": {"const": "q9-per-layer-plus-q4096-half-step-v1"},
+        "scope": {"$ref": "#/$defs/scope"}, "exclusions": {"$ref": "#/$defs/exclusions"},
+        "segment_evidence_sha256": {"$ref": "#/$defs/sha"}
+      },
+      "allOf": [{
+        "if": {"properties": {"status": {"const": "continuous_structural_certified"}}},
+        "then": {"properties": {"reason_codes": {"maxItems": 0}}},
+        "else": {"properties": {"reason_codes": {"minItems": 1}}}
+      }]
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "continuous_preview_model_structural_certified"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "claims": {"properties": {
+            "continuous_preview_model_structural_safety": {"const": true},
+            "uniform_gain_zero_to_reviewed_structurally_certified": {"const": true}
+          }},
+          "release_gate": {"$ref": "#/$defs/certifiedGate"},
+          "segments": {"items": {"properties": {"status": {"const": "continuous_structural_certified"}}, "required": ["status"]}},
+          "summary": {"properties": {"indeterminate_segment_count": {"const": 0}}}
+        }
+      },
+      "else": {
+        "properties": {
+          "claims": {"properties": {
+            "continuous_preview_model_structural_safety": {"const": false},
+            "uniform_gain_zero_to_reviewed_structurally_certified": {"const": false}
+          }},
+          "release_gate": {"$ref": "#/$defs/indeterminateGate"},
+          "segments": {"contains": {"properties": {"status": {"const": "indeterminate"}}, "required": ["status"]}, "minContains": 1},
+          "summary": {"properties": {"indeterminate_segment_count": {"minimum": 1}}}
+        }
+      }
+    }
+  ]
+}

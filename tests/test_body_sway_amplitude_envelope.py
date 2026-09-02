@@ -58,6 +58,11 @@ from tests.p10_review_admission_helpers import (  # noqa: E402
 )
 
 
+P104B1_CANONICAL_SHA256 = (
+    "637efc59b73bdb21fd1c9a49ec1271a763d4c0444b311c6ff777a3564b5cc929"
+)
+
+
 class BodySwayAmplitudeEnvelopeTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -81,6 +86,7 @@ class BodySwayAmplitudeEnvelopeTests(unittest.TestCase):
             self.candidate.sha256,
             body_sway_amplitude_envelope_candidate_sha256(document),
         )
+        self.assertEqual(P104B1_CANONICAL_SHA256, self.candidate.sha256)
         self.assertEqual(list(range(9)), [
             row["gain"]["numerator"] for row in document["probes"]
         ])

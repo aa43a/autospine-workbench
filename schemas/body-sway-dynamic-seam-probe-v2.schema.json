@@ -1,0 +1,275 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/body-sway-dynamic-seam-probe-v2.schema.json",
+  "title": "AutoSpine BodySwayDynamicSeamProbe v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "project_id", "clip_id", "source",
+    "problem", "segments", "analyzer", "claims", "status",
+    "release_gate", "summary"
+  ],
+  "properties": {
+    "format": {"const": "autospine-body-sway-dynamic-seam-probe"},
+    "format_version": {"type": "integer", "const": 2},
+    "project_id": {"$ref": "#/$defs/id"},
+    "clip_id": {"$ref": "#/$defs/id"},
+    "source": {"$ref": "body-sway-dynamic-seam-source-v2.schema.json"},
+    "problem": {"$ref": "#/$defs/problem"},
+    "segments": {
+      "type": "array", "minItems": 1, "maxItems": 4095,
+      "items": {"$ref": "#/$defs/segment"}
+    },
+    "analyzer": {"$ref": "#/$defs/analyzer"},
+    "claims": {"$ref": "#/$defs/claims"},
+    "status": {
+      "enum": [
+        "continuous_preview_v2_reviewed_anchor_residual_certified",
+        "indeterminate"
+      ]
+    },
+    "release_gate": {"$ref": "#/$defs/releaseGate"},
+    "summary": {"$ref": "#/$defs/summary"}
+  },
+  "allOf": [{
+    "if": {
+      "properties": {
+        "status": {
+          "const": "continuous_preview_v2_reviewed_anchor_residual_certified"
+        }
+      },
+      "required": ["status"]
+    },
+    "then": {
+      "properties": {
+        "segments": {
+          "items": {
+            "properties": {
+              "status": {"const": "continuous_anchor_residual_proxy_certified"}
+            }
+          }
+        },
+        "claims": {
+          "properties": {
+            "continuous_preview_v2_anchor_residual_within_engineering_tolerance": {"const": true},
+            "structural_gap_proxy_within_engineering_tolerance": {"const": true}
+          }
+        }
+      }
+    },
+    "else": {
+      "properties": {
+        "claims": {
+          "properties": {
+            "continuous_preview_v2_anchor_residual_within_engineering_tolerance": {"const": false},
+            "structural_gap_proxy_within_engineering_tolerance": {"const": false}
+          }
+        }
+      }
+    }
+  }],
+  "$defs": {
+    "id": {
+      "type": "string", "minLength": 1, "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "nullableNumber": {"type": ["number", "null"], "minimum": 0},
+    "nullableBool": {"type": ["boolean", "null"]},
+    "problem": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "source_set_sha256", "gain_domain", "time_domain", "interpolation",
+        "reviewed_anchor_inventory", "threshold", "budget", "backend",
+        "evidence_model", "scope", "exclusions", "problem_sha256"
+      ],
+      "properties": {
+        "source_set_sha256": {"$ref": "#/$defs/sha"},
+        "gain_domain": {"type": "object"},
+        "time_domain": {"type": "object"},
+        "interpolation": {"type": "object"},
+        "reviewed_anchor_inventory": {"$ref": "#/$defs/inventory"},
+        "threshold": {"type": "object"},
+        "budget": {"type": "object"},
+        "backend": {"type": "object"},
+        "evidence_model": {"$ref": "#/$defs/evidenceModel"},
+        "scope": {"type": "array", "items": {"type": "string"}},
+        "exclusions": {"type": "array", "items": {"type": "string"}},
+        "problem_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "inventory": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "relationship_ids", "relationship_count", "anchor_pair_count",
+        "reviewed_seam_anchor_set_v1_sha256",
+        "reviewed_anchor_inventory_sha256"
+      ],
+      "properties": {
+        "relationship_ids": {"type": "array", "minItems": 6, "maxItems": 6, "items": {"$ref": "#/$defs/id"}},
+        "relationship_count": {"type": "integer", "const": 6},
+        "anchor_pair_count": {"type": "integer", "minimum": 6, "maximum": 96},
+        "reviewed_seam_anchor_set_v1_sha256": {"$ref": "#/$defs/sha"},
+        "reviewed_anchor_inventory_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "evidenceModel": {
+      "const": {
+        "anchor_residual": "reviewed-anchor-squared-distance-upper-bound",
+        "gap_proxy": "anchor-residual-upper-bound-not-raster-gap",
+        "overlap": "explicit-not-evaluated-by-anchor-locator-proof"
+      }
+    },
+    "segment": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "left_tick", "right_tick", "status", "reason_codes",
+        "relationships", "max_squared_anchor_residual_upper_px2",
+        "threshold_squared_px2", "evaluated_box_count",
+        "certified_terminal_box_count", "indeterminate_terminal_box_count",
+        "maximum_depth_reached", "relationship_count", "pair_count",
+        "backend", "segment_evidence_sha256"
+      ],
+      "properties": {
+        "left_tick": {"type": "integer", "minimum": 0},
+        "right_tick": {"type": "integer", "minimum": 1},
+        "status": {"enum": ["continuous_anchor_residual_proxy_certified", "indeterminate"]},
+        "reason_codes": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+        "relationships": {"type": "array", "minItems": 6, "maxItems": 6, "items": {"$ref": "#/$defs/relationship"}},
+        "max_squared_anchor_residual_upper_px2": {"$ref": "#/$defs/nullableNumber"},
+        "threshold_squared_px2": {"type": "number", "const": 4.0},
+        "evaluated_box_count": {"type": "integer", "minimum": 0, "maximum": 32768},
+        "certified_terminal_box_count": {"type": "integer", "minimum": 0},
+        "indeterminate_terminal_box_count": {"type": "integer", "minimum": 0},
+        "maximum_depth_reached": {"type": "integer", "minimum": 0, "maximum": 14},
+        "relationship_count": {"type": "integer", "const": 6},
+        "pair_count": {"type": "integer", "minimum": 6, "maximum": 96},
+        "backend": {"type": "object"},
+        "segment_evidence_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "relationship": {
+      "type": "object", "additionalProperties": false,
+      "required": ["relationship_id", "status", "pairs", "anchor_residual", "gap_proxy", "overlap"],
+      "properties": {
+        "relationship_id": {"$ref": "#/$defs/id"},
+        "status": {"enum": ["finite_upper_bound", "indeterminate"]},
+        "pairs": {"type": "array", "minItems": 1, "maxItems": 16, "items": {"$ref": "#/$defs/pair"}},
+        "anchor_residual": {"$ref": "#/$defs/anchorResidual"},
+        "gap_proxy": {"$ref": "#/$defs/gapProxy"},
+        "overlap": {"$ref": "#/$defs/overlap"}
+      }
+    },
+    "pair": {
+      "type": "object", "additionalProperties": false,
+      "required": ["pair_id", "max_squared_anchor_residual_upper_px2"],
+      "properties": {
+        "pair_id": {"$ref": "#/$defs/id"},
+        "max_squared_anchor_residual_upper_px2": {"$ref": "#/$defs/nullableNumber"}
+      }
+    },
+    "anchorResidual": {
+      "type": "object", "additionalProperties": false,
+      "required": ["model", "max_squared_upper_px2", "within_engineering_tolerance"],
+      "properties": {
+        "model": {"const": "reviewed-anchor-squared-distance-upper-bound"},
+        "max_squared_upper_px2": {"$ref": "#/$defs/nullableNumber"},
+        "within_engineering_tolerance": {"$ref": "#/$defs/nullableBool"}
+      }
+    },
+    "gapProxy": {
+      "type": "object", "additionalProperties": false,
+      "required": ["model", "max_squared_upper_px2", "within_engineering_tolerance", "raster_gap_claimed"],
+      "properties": {
+        "model": {"const": "anchor-residual-upper-bound-not-raster-gap"},
+        "max_squared_upper_px2": {"$ref": "#/$defs/nullableNumber"},
+        "within_engineering_tolerance": {"$ref": "#/$defs/nullableBool"},
+        "raster_gap_claimed": {"const": false}
+      }
+    },
+    "overlap": {
+      "const": {
+        "model": "explicit-not-evaluated-by-anchor-locator-proof",
+        "status": "not_evaluated",
+        "reason_code": "attachment_area_overlap_not_modeled",
+        "raster_overlap_claimed": false
+      }
+    },
+    "analyzer": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "version", "canonicalization", "config"],
+      "properties": {
+        "id": {"const": "body-sway-dynamic-seam-structural-analyzer-v2"},
+        "version": {"const": "2.0.0"},
+        "canonicalization": {"const": "canonical-json-utf8-sort-keys-no-nonfinite"},
+        "config": {"type": "object"}
+      }
+    },
+    "claims": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "reviewed_seam_anchor_set_v1_bound",
+        "continuous_preview_v2_anchor_residual_within_engineering_tolerance",
+        "structural_gap_proxy_within_engineering_tolerance",
+        "attachment_area_overlap_assessed", "dynamic_seam_safety",
+        "official_runtime_equivalence", "raster_gap_safety",
+        "raster_overlap_safety", "visual_seam_quality",
+        "publishable_timeline", "release_authority"
+      ],
+      "properties": {
+        "reviewed_seam_anchor_set_v1_bound": {"const": true},
+        "continuous_preview_v2_anchor_residual_within_engineering_tolerance": {"type": "boolean"},
+        "structural_gap_proxy_within_engineering_tolerance": {"type": "boolean"},
+        "attachment_area_overlap_assessed": {"const": false},
+        "dynamic_seam_safety": {"const": false},
+        "official_runtime_equivalence": {"const": false},
+        "raster_gap_safety": {"const": false},
+        "raster_overlap_safety": {"const": false},
+        "visual_seam_quality": {"const": false},
+        "publishable_timeline": {"const": false},
+        "release_authority": {"const": false}
+      }
+    },
+    "releaseGate": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "reason_codes"],
+      "properties": {
+        "status": {"const": "blocked"},
+        "reason_codes": {"type": "array", "minItems": 8, "uniqueItems": true, "items": {"type": "string"}}
+      }
+    },
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "segment_count", "certified_segment_count", "indeterminate_segment_count",
+        "evaluated_box_count", "certified_terminal_box_count",
+        "indeterminate_terminal_box_count", "maximum_depth_reached",
+        "relationship_count", "anchor_pair_count", "segment_relationship_count",
+        "finite_anchor_residual_relationship_count",
+        "overlap_not_evaluated_relationship_count",
+        "max_squared_anchor_residual_upper_px2", "threshold_squared_px2",
+        "upstream_continuous_preview_model_status",
+        "all_anchor_residual_segments_certified", "reason_codes"
+      ],
+      "properties": {
+        "segment_count": {"type": "integer", "minimum": 1, "maximum": 4095},
+        "certified_segment_count": {"type": "integer", "minimum": 0},
+        "indeterminate_segment_count": {"type": "integer", "minimum": 0},
+        "evaluated_box_count": {"type": "integer", "minimum": 0, "maximum": 32768},
+        "certified_terminal_box_count": {"type": "integer", "minimum": 0},
+        "indeterminate_terminal_box_count": {"type": "integer", "minimum": 0},
+        "maximum_depth_reached": {"type": "integer", "minimum": 0, "maximum": 14},
+        "relationship_count": {"type": "integer", "const": 6},
+        "anchor_pair_count": {"type": "integer", "minimum": 6, "maximum": 96},
+        "segment_relationship_count": {"type": "integer", "minimum": 6},
+        "finite_anchor_residual_relationship_count": {"type": "integer", "minimum": 0},
+        "overlap_not_evaluated_relationship_count": {"type": "integer", "minimum": 6},
+        "max_squared_anchor_residual_upper_px2": {"$ref": "#/$defs/nullableNumber"},
+        "threshold_squared_px2": {"type": "number", "const": 4.0},
+        "upstream_continuous_preview_model_status": {"enum": ["continuous_preview_model_structural_certified", "indeterminate"]},
+        "all_anchor_residual_segments_certified": {"type": "boolean"},
+        "reason_codes": {"type": "array", "uniqueItems": true, "items": {"type": "string"}}
+      }
+    }
+  }
+}

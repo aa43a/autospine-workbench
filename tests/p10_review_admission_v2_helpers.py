@@ -36,7 +36,7 @@ from autospine_workbench.p10_visual_review_v2_verified_mount import (
 from autospine_workbench.project_store import ProjectStore
 from tests.body_sway_visual_review_v2_helpers import (
     BodySwayVisualReviewV2Fixture,
-    build_visual_review_v2_inputs,
+    build_visual_review_v2_bundle,
     fake_runtime_profile_v2,
     review_rows_v2,
 )
@@ -59,9 +59,12 @@ class P10ReviewAdmissionV2Fixture:
 
     def __init__(self, root: Path) -> None:
         self.root = Path(root)
-        preview, execution = build_visual_review_v2_inputs(
+        built = build_visual_review_v2_bundle(
             self.root / "evidence",
         )
+        preview, execution = built.preview, built.execution
+        self.preview_inputs = built.preview_inputs
+        self.mesh_bundle = built.mesh_bundle
         visual = BodySwayVisualReviewV2Fixture(
             self.root / "published", preview, execution,
         )
@@ -76,6 +79,7 @@ class P10ReviewAdmissionV2Fixture:
         result = preview_v2_command_result(
             self.store, PACKAGE_ID, preview,
         )
+        self.preview_result = result
         self.mount = VerifiedP10VisualReviewV2Mount(
             SimpleNamespace(result=result), visual.verified,
         )

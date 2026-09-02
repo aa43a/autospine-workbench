@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0b0e14">
+  <title>P10.4b v2 身体摆动安全分析 — AutoSpine</title>
+  <link rel="stylesheet" href="./body-sway-review.css">
+  <link rel="stylesheet" href="./body-sway-safety-analysis-v2.css">
+</head>
+<body>
+  <a class="skip-link" href="#safetyMain">跳到安全分析结果</a>
+  <header class="review-topbar">
+    <div>
+      <p class="eyebrow">P10.4b v2 · AUTOMATIC STRUCTURAL ANALYSIS</p>
+      <h1>身体摆动幅度与连续结构分析</h1>
+    </div>
+    <nav class="review-nav" aria-label="工作台导航">
+      <a class="button secondary" href="./body-sway-review-admission-v2.html">P10.4a 准入</a>
+      <a class="button secondary" href="./workflow-hub.html">功能入口中心</a>
+      <a class="button secondary" href="./index.html">绑定工作台</a>
+    </nav>
+  </header>
+
+  <main id="safetyMain">
+    <section class="panel analysis-entry" aria-labelledby="entryHeading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">JOB-ONLY AUTOMATIC ENTRY</p>
+          <h2 id="entryHeading">从已准入的复核任务自动分析</h2>
+        </div>
+        <span id="analysisBadge" class="gate-badge">等待任务</span>
+      </div>
+      <p class="lede">
+        系统只读取 URL 中的 job_id，自动重放 P10.4a v2，并在后台计算九档幅度和连续区间。
+        无需选择项目、文件、SHA，也无需再次人工批准。
+      </p>
+      <p id="analysisStatus" class="status-line" role="status" aria-live="polite">
+        正在读取任务…
+      </p>
+      <div class="progress-block">
+        <progress id="analysisProgress" max="1" value="0"
+          aria-labelledby="analysisProgressText"></progress>
+        <strong id="analysisProgressText">自动校验来源…</strong>
+      </div>
+    </section>
+
+    <section id="analysisResult" hidden>
+      <section class="panel result-summary" aria-labelledby="resultHeading">
+        <p class="eyebrow">STRUCTURAL RESULT</p>
+        <h2 id="resultHeading" tabindex="-1">结构分析结果</h2>
+        <p class="lede">
+          这里证明的是当前预览模型的结构行为，不等于 Spine Runtime 视觉通过，也不提供发布许可。
+        </p>
+        <dl id="analysisFacts" class="analysis-facts"></dl>
+      </section>
+
+      <section class="rail-grid" aria-label="四条证据范围轨道">
+        <article class="panel evidence-card">
+          <header>
+            <p class="rail-index">1 / 4</p>
+            <h2>九档离散结构点</h2>
+          </header>
+          <p>从 0% 到当前复核幅度的九个确定性采样点；每个点都显示结构结论。</p>
+          <ol id="amplitudeRail" class="evidence-rail amplitude-rail" aria-label="九档幅度结构点"></ol>
+        </article>
+
+        <article class="panel evidence-card">
+          <header>
+            <p class="rail-index">2 / 4</p>
+            <h2>相邻时间连续区间</h2>
+          </header>
+          <p>对预览时间线上相邻 tick 的区间证明；“尚不能证明”是有效结果，不是执行失败。</p>
+          <ol id="continuousRail" class="evidence-rail continuous-rail"
+            aria-label="相邻时间连续区间"></ol>
+        </article>
+
+        <article class="panel evidence-card">
+          <header>
+            <p class="rail-index">3 / 4</p>
+            <h2>人工视觉证据</h2>
+          </header>
+          <p>现有人工复核只覆盖当前 100% 幅度的官方 Runtime 采样，不外推到其它幅度。</p>
+          <ol id="visualEvidenceRail" class="evidence-rail single-rail"
+            aria-label="仅 100% 幅度人工视觉证据"></ol>
+        </article>
+
+        <article class="panel evidence-card blocked-card">
+          <header>
+            <p class="rail-index">4 / 4</p>
+            <h2>可发布安全范围</h2>
+          </header>
+          <p>当前不可用。结构分析不会替代幅度范围视觉复核、接缝、Runtime 等价性或发布门禁。</p>
+          <ol id="publishableRail" class="evidence-rail single-rail"
+            aria-label="可发布安全范围不可用"></ol>
+        </article>
+      </section>
+
+      <section class="result-detail-grid">
+        <section class="panel release-panel" aria-labelledby="releaseHeading">
+          <p class="eyebrow">RELEASE GATE</p>
+          <h2 id="releaseHeading">发布仍然阻塞</h2>
+          <p class="lede">P10.4b v2 只增加结构证据，不会生成可发布动画。</p>
+          <ul id="releaseReasons" class="reason-list"></ul>
+        </section>
+
+        <details class="panel technical-panel">
+          <summary>技术详情：内容地址回执</summary>
+          <dl class="digest-list">
+            <div><dt>幅度结果 SHA-256</dt><dd><code id="amplitudeDigest"></code></dd></div>
+            <div><dt>连续证明结果 SHA-256</dt><dd><code id="continuousDigest"></code></dd></div>
+          </dl>
+          <p>这里只显示无本机路径的技术回执；完整 canonical 文档仅由专业 CLI 在本机输出。</p>
+          <pre id="technicalReceipts" class="technical-document"></pre>
+        </details>
+      </section>
+
+      <section class="panel next-step-panel" aria-labelledby="nextStepHeading">
+        <div>
+          <p class="eyebrow">NEXT AUTOMATIC STEP</p>
+          <h2 id="nextStepHeading">进入 P10.5d v2 动态接缝分析</h2>
+          <p class="lede">
+            完成本次密封结果后，系统会自动携带 exact job_id 与 safety_run_id；无需复制地址或填写 SHA。
+          </p>
+        </div>
+        <a id="dynamicSeamLink" class="button primary" aria-disabled="true">
+          等待 P10.4b v2 完成
+        </a>
+      </section>
+    </section>
+
+    <section id="analysisFailure" class="panel failure-panel" hidden
+      aria-labelledby="failureHeading">
+      <p class="eyebrow">SAFE RECOVERY</p>
+      <h2 id="failureHeading">没有生成安全分析结论</h2>
+      <p id="failureMessage" class="lede"></p>
+      <div class="failure-actions">
+        <button id="retryAnalysisBtn" class="button primary" type="button">安全地重新排队</button>
+        <a id="returnToAdmissionLink" class="button secondary"
+          href="./body-sway-review-admission-v2.html">返回 P10.4a 准入</a>
+        <a class="button secondary" href="./workflow-hub.html">返回功能入口中心</a>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="./modules/body-sway-safety-analysis-v2-app.js"></script>
+</body>
+</html>

@@ -1,7 +1,8 @@
 # 编译 body-sway 幅度包络候选
 
 > **冻结 v1 历史入口。** 本命令只接受 `BodySwayReviewAdmission v1`，不能消费
-> P10.4a v2 admission。当前 v2 链必须等待独立的 P10.4b v2 合同和入口。
+> P10.4a v2 admission。当前 v2 链请使用独立的 job-only
+> `compile-body-sway-safety-analysis-v2`，不要把 v2 地址手工填入本命令。
 
 本步骤是 P10.4b1。它从一个仍为当前 head 的 `sampled_visual_approved`
 复核结果，生成九个只读、可重放的离散结构候选。输出不是安全证书，不会发布
@@ -9,8 +10,8 @@ MotionInstance v3，也不会修改 state tree。
 
 ## 前置条件
 
-先完成 P10.4a，并保留当时使用的三份显式 JSON 输入、十三项 SHA 地址和
-visual revision。若复核历史后来追加了 revision，旧批准结果会被拒绝；不要把旧
+先完成冻结 v1 P10.4a，并保留当时使用的三份显式 JSON 输入、十二项 SHA 地址和
+一个 visual revision。若复核历史后来追加了 revision，旧批准结果会被拒绝；不要把旧
 admission 当成永久 authority。
 
 真实 runtime capture 仍必须来自操作者已授权的固定 Spine 4.2.119 runtime。

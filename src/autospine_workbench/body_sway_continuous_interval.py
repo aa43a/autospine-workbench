@@ -8,6 +8,7 @@ segment ``indeterminate``.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from typing import Any
 
@@ -28,6 +29,7 @@ from .idle_behavior_inventory import BODY_BONE_IDS
 
 DEFAULT_MAX_DEPTH = 14
 DEFAULT_MAX_BOXES = 32_768
+PROGRESS_BOX_STRIDE = 256
 MAX_ALLOWED_DEPTH = 20
 MAX_ALLOWED_BOXES = 262_144
 SCOPE = (
@@ -116,6 +118,7 @@ def prove_body_sway_sampled_linear_segment(
     right: BodySwayPoseSample,
     *,
     budget: BodySwayIntervalProofBudget | None = None,
+    on_progress: Callable[[int, int], None] | None = None,
 ) -> BodySwayContinuousIntervalProof:
     """Prove one segment; upstream must separately bind key adjacency."""
 
@@ -126,7 +129,13 @@ def prove_body_sway_sampled_linear_segment(
             raise BodySwayContinuousIntervalError(
                 "Continuous interval proof budget must be exact"
             )
-        return _prove(context, left, right, admitted, limits)
+        if on_progress is not None and not callable(on_progress):
+            raise BodySwayContinuousIntervalError(
+                "Continuous interval proof progress callback is invalid"
+            )
+        return _prove(
+            context, left, right, admitted, limits, on_progress,
+        )
     except BodySwayContinuousIntervalError:
         raise
     except BodySwayProbeGeometryError as exc:
@@ -165,7 +174,7 @@ def _admit(context, left, right):
     }
 
 
-def _prove(context, left, right, admitted, limits):
+def _prove(context, left, right, admitted, limits, on_progress):
     pending = [_Box(
         OutwardInterval(0.0, 1.0), OutwardInterval(0.0, 1.0), 0,
     )]
@@ -185,6 +194,10 @@ def _prove(context, left, right, admitted, limits):
             time_fraction=box.time_fraction, gain=box.gain,
         )
         evaluated += 1
+        if on_progress is not None and (
+            evaluated == 1 or evaluated % PROGRESS_BOX_STRIDE == 0
+        ):
+            on_progress(evaluated, limits.max_boxes)
         maximum_depth = max(maximum_depth, box.depth)
         if assessment.status == "certified":
             certified += 1
@@ -203,6 +216,9 @@ def _prove(context, left, right, admitted, limits):
         "continuous_structural_certified"
         if indeterminate == 0 else "indeterminate"
     )
+    if on_progress is not None and evaluated != 1 \
+            and evaluated % PROGRESS_BOX_STRIDE:
+        on_progress(evaluated, limits.max_boxes)
     first = terminal[0]
     return BodySwayContinuousIntervalProof(
         left_tick=left.tick, right_tick=right.tick, status=status,

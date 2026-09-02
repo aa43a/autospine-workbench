@@ -28,8 +28,11 @@ const EXPECTED_COMMANDS = [
   "capture-body-sway-runtime", "prepare-body-sway-visual-review",
   "submit-body-sway-visual-review", "compile-body-sway-review-admission",
   "compile-body-sway-review-admission-v2", "verify-body-sway-review-admission-v2",
+  "compile-body-sway-safety-analysis-v2",
   "compile-body-sway-amplitude-envelope", "compile-body-sway-continuous-proof",
-  "compile-body-sway-dynamic-seam-probe", "compile-body-sway-motion-consumer-admission",
+  "compile-body-sway-dynamic-seam-probe",
+  "compile-body-sway-dynamic-seam-probe-v2", "verify-body-sway-dynamic-seam-bundle-v2",
+  "compile-body-sway-motion-consumer-admission",
   "compile-body-sway-motion-instance-v3", "verify-body-sway-motion-instance-v3",
   "compile-body-sway-spine42-v3", "verify-body-sway-spine42-v3",
   "capture-body-sway-spine42-v3-runtime", "verify-body-sway-spine42-v3-runtime",
@@ -42,10 +45,10 @@ const EXPECTED_COMMANDS = [
   "compile-reviewed-seam-anchor-set", "verify-reviewed-seam-anchor-set",
 ];
 
-test("catalog is valid and matches all 68 CLI entry points", () => {
+test("catalog is valid and matches all 71 CLI entry points", () => {
   assert.equal(validateCatalog(catalog), catalog);
-  assert.equal(catalog.catalog_version, "1.1.0");
-  assert.equal(catalog.current_stage, "P10.4a-v2-review-admission");
+  assert.equal(catalog.catalog_version, "1.3.0");
+  assert.equal(catalog.current_stage, "P10.5d-v2-dynamic-seam-integration");
   const commands = catalog.entries.filter(({ kind }) => kind === "cli").map(({ command }) => command);
   assert.deepEqual(new Set(commands), new Set(EXPECTED_COMMANDS));
   assert.equal(commands.length, EXPECTED_COMMANDS.length);
@@ -54,9 +57,10 @@ test("catalog is valid and matches all 68 CLI entry points", () => {
 test("catalog exposes all pages, all stage groups, and explicit delivery states", () => {
   const pages = catalog.entries.filter(({ kind }) => kind === "page");
   assert.deepEqual(pages.map(({ href }) => href).sort(), [
+    "./body-sway-dynamic-seam-v2.html",
     "./body-sway-probe.html", "./body-sway-review-admission-v2.html",
     "./body-sway-review-v2.html", "./body-sway-review.html",
-    "./body-sway-runtime-capture.html",
+    "./body-sway-runtime-capture.html", "./body-sway-safety-analysis-v2.html",
     "./idle-behavior-review.html",
     "./index.html", "./motion-policy-review.html", "./seam-anchor-review.html",
   ]);
@@ -66,7 +70,7 @@ test("catalog exposes all pages, all stage groups, and explicit delivery states"
   assert.ok(catalog.entries.some(({ status }) => status === "available"));
   assert.ok(catalog.entries.some(({ status }) => status === "external_required"));
   assert.ok(catalog.entries.some(({ status }) => status === "planned"));
-  assert.equal(catalog.entries.length, 95);
+  assert.equal(catalog.entries.length, 100);
   assert.equal(catalog.entries.filter(({ kind }) => kind === "planned").length, 18);
   assert.equal(
     catalog.entries.find(({ command }) => command === "capture-body-sway-spine42-v3-runtime").status,
@@ -150,7 +154,9 @@ test("document viewer admits only repository docs Markdown paths", () => {
 test("static page and renderer preserve the accessibility and safe-DOM contract", async () => {
   const [
     html, css, view, app, viewerHtml, viewerCss, viewer,
-    mainHtml, bodySwayHtml, bodySwayV2Html, admissionV2Html, bodySwayProbeHtml, runtimeCaptureHtml,
+    mainHtml, bodySwayHtml, bodySwayV2Html, admissionV2Html, safetyV2Html,
+    dynamicSeamV2Html,
+    bodySwayProbeHtml, runtimeCaptureHtml,
     idleBehaviorHtml, seamHtml, motionPolicyHtml,
   ] = await Promise.all([
     readFile(new URL("workflow-hub.html", webRoot), "utf8"),
@@ -164,6 +170,8 @@ test("static page and renderer preserve the accessibility and safe-DOM contract"
     readFile(new URL("body-sway-review.html", webRoot), "utf8"),
     readFile(new URL("body-sway-review-v2.html", webRoot), "utf8"),
     readFile(new URL("body-sway-review-admission-v2.html", webRoot), "utf8"),
+    readFile(new URL("body-sway-safety-analysis-v2.html", webRoot), "utf8"),
+    readFile(new URL("body-sway-dynamic-seam-v2.html", webRoot), "utf8"),
     readFile(new URL("body-sway-probe.html", webRoot), "utf8"),
     readFile(new URL("body-sway-runtime-capture.html", webRoot), "utf8"),
     readFile(new URL("idle-behavior-review.html", webRoot), "utf8"),
@@ -191,7 +199,9 @@ test("static page and renderer preserve the accessibility and safe-DOM contract"
   assert.match(viewerCss, /@media \(max-width:\s*520px\)/);
   assert.match(viewerCss, /@media \(prefers-reduced-motion:\s*reduce\)/);
   for (const taskPage of [
-    mainHtml, bodySwayHtml, bodySwayV2Html, admissionV2Html, bodySwayProbeHtml, runtimeCaptureHtml,
+    mainHtml, bodySwayHtml, bodySwayV2Html, admissionV2Html, safetyV2Html,
+    dynamicSeamV2Html,
+    bodySwayProbeHtml, runtimeCaptureHtml,
     idleBehaviorHtml, seamHtml, motionPolicyHtml,
   ]) {
     assert.match(taskPage, /href="\.\/workflow-hub\.html"/);

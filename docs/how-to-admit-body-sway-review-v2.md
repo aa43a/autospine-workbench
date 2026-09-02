@@ -48,6 +48,9 @@ JSON 收在“技术详情”中，仅供审计，不需要复制到下一页面
 - 该 decision 在本次编译前后仍是 current head；
 - 后续 P10.4b v2 可以把这份 admission 作为严格输入。
 
+成功结果现在会显示“继续 P10.4b v2 自动安全分析”。该链接只携带同一个 `job_id`；
+P10.4b 会自行重新编译并消费 current admission，不要求下载或上传本页 JSON。
+
 页面同时必须显示“这还不是可发布动画”。当前真实阻塞至少包括：
 
 - 连续时间安全尚未证明；
@@ -71,11 +74,13 @@ release gate。
 可以点击“重新校验”处理短暂读取问题。若来源或 head 已变化，请返回原 P10.3c 页面核对；需要修复
 绑定、动作、取景或素材时，应生成新的 Preview v2 和 execution，不覆盖旧 job 或旧 revision。
 
-## 5. 下一门禁
+## 5. 继续 P10.4b v2
 
-当前下一工程项是独立的 P10.4b v2 幅度候选与连续证明。它不能复用冻结 v1 的
+P10.4b v2 已使用独立合同、异步入口和 job-only CLI 交付。它不能复用冻结 v1 的
 `BodySwayReviewAdmission v1`、`compile-body-sway-amplitude-envelope` 或
-`compile-body-sway-continuous-proof` 语义。P10.4b v2 入口交付前，P10.4a 页面只报告已准入和明确
-blocker，不自动跳转到旧链。
+`compile-body-sway-continuous-proof` 语义。进入后会分别显示九档离散结构点、相邻连续区间、
+仅 100% gain 的人工视觉范围，以及明确不可用的发布安全范围。
+
+具体操作见[自动分析 P10.4b v2 身体摆动结构安全](how-to-analyze-body-sway-safety-v2.md)。
 
 冻结 v1 的专业 CLI 仍可用于历史复验，见[冻结 v1 视觉复核准入](how-to-admit-body-sway-review.md)。

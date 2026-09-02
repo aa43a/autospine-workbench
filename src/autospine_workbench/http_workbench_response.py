@@ -138,6 +138,7 @@ class WorkbenchResponseMixin:
             "body-sway-review.html",
             "body-sway-review-v2.html",
             "body-sway-runtime-capture.html",
+            "body-sway-safety-analysis-v2.html",
             "document-viewer.html",
             "idle-behavior-review.html",
             "motion-policy-review.html",

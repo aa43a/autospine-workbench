@@ -25,6 +25,13 @@ from .p10_runtime_capture_routes import (
     is_p10_runtime_capture_path,
     p10_runtime_capture_allow_methods,
 )
+from .p10_safety_analysis_v2_routes import (
+    is_p10_safety_analysis_v2_path,
+    p10_safety_analysis_v2_allow_methods,
+)
+from .p10_dynamic_seam_v2_routes import (
+    is_p10_dynamic_seam_v2_path, p10_dynamic_seam_v2_allow_methods,
+)
 from .p10_visual_review_v2_routes import (
     is_p10_visual_review_v2_path,
     p10_visual_review_v2_allow_methods,
@@ -45,6 +52,8 @@ def send_workbench_options(parts: list[str], handler) -> None:
     policy_package = is_motion_policy_review_package_path(parts)
     policy_draft = is_motion_policy_review_draft_get_path(parts)
     runtime_capture = is_p10_runtime_capture_path(parts)
+    safety_analysis_v2 = is_p10_safety_analysis_v2_path(parts)
+    dynamic_seam_v2 = is_p10_dynamic_seam_v2_path(parts)
     visual_review_v2 = is_p10_visual_review_v2_path(parts)
     seam_methods = seam_anchor_review_resource_methods(parts) \
         if seam_review else None
@@ -56,13 +65,16 @@ def send_workbench_options(parts: list[str], handler) -> None:
         return
     local_review = body_review or seam_review or policy_preflight \
         or adoption or policy_package or policy_draft or runtime_capture \
-        or visual_review_v2
+        or safety_analysis_v2 or dynamic_seam_v2 or visual_review_v2
     methods = _methods(
         parts, handler, body_review=body_review,
         seam_review=seam_review, seam_methods=seam_methods,
         policy_preflight=policy_preflight, adoption=adoption,
         policy_package=policy_package, policy_draft=policy_draft,
-        runtime_capture=runtime_capture, visual_review_v2=visual_review_v2,
+        runtime_capture=runtime_capture,
+        safety_analysis_v2=safety_analysis_v2,
+        dynamic_seam_v2=dynamic_seam_v2,
+        visual_review_v2=visual_review_v2,
     )
     handler.send_response(HTTPStatus.NO_CONTENT)
     handler._common_headers(visual_review=local_review)
@@ -80,8 +92,12 @@ def send_workbench_options(parts: list[str], handler) -> None:
 def _methods(
     parts, handler, *, body_review, seam_review, seam_methods,
     policy_preflight, adoption, policy_package, policy_draft, runtime_capture,
-    visual_review_v2,
+    safety_analysis_v2, dynamic_seam_v2, visual_review_v2,
 ):
+    if dynamic_seam_v2:
+        return p10_dynamic_seam_v2_allow_methods(parts) or "OPTIONS"
+    if safety_analysis_v2:
+        return p10_safety_analysis_v2_allow_methods(parts) or "OPTIONS"
     if visual_review_v2:
         return p10_visual_review_v2_allow_methods(parts) or "OPTIONS"
     if runtime_capture:

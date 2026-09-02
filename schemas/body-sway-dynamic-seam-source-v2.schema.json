@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/body-sway-dynamic-seam-source-v2.schema.json",
+  "title": "AutoSpine BodySwayDynamicSeamProbe v2 Source Closure",
+  "description": "Path-free canonical P10.5d v2 inputs. Execution and job IDs are intentionally outside this document.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format", "format_version", "project_id", "clip_id",
+    "source_set_sha256", "layer_manifest_sha256", "p3_rig_sha256",
+    "p3_bundle_sha256",
+    "body_sway_continuous_preview_proof_v2_sha256",
+    "body_sway_continuous_preview_proof_v2",
+    "seam_anchor_candidates_v1_sha256", "seam_anchor_candidates_v1",
+    "seam_anchor_review_decision_v1_sha256",
+    "seam_anchor_review_decision_v1", "review_revision",
+    "reviewed_seam_anchor_set_v1_sha256",
+    "reviewed_seam_anchor_set_v1_bundle_sha256",
+    "reviewed_seam_anchor_set_v1"
+  ],
+  "properties": {
+    "format": {"const": "autospine-body-sway-dynamic-seam-source"},
+    "format_version": {"type": "integer", "const": 2},
+    "project_id": {"$ref": "#/$defs/id"},
+    "clip_id": {"$ref": "#/$defs/id"},
+    "source_set_sha256": {"$ref": "#/$defs/sha"},
+    "layer_manifest_sha256": {"$ref": "#/$defs/sha"},
+    "p3_rig_sha256": {"$ref": "#/$defs/sha"},
+    "p3_bundle_sha256": {"$ref": "#/$defs/sha"},
+    "body_sway_continuous_preview_proof_v2_sha256": {
+      "$ref": "#/$defs/sha"
+    },
+    "body_sway_continuous_preview_proof_v2": {
+      "$ref": "body-sway-continuous-preview-proof-v2.schema.json"
+    },
+    "seam_anchor_candidates_v1_sha256": {"$ref": "#/$defs/sha"},
+    "seam_anchor_candidates_v1": {
+      "$ref": "seam-anchor-candidates-v1.schema.json"
+    },
+    "seam_anchor_review_decision_v1_sha256": {"$ref": "#/$defs/sha"},
+    "seam_anchor_review_decision_v1": {
+      "$ref": "seam-anchor-review-decision-v1.schema.json"
+    },
+    "review_revision": {"type": "integer", "minimum": 1, "maximum": 64},
+    "reviewed_seam_anchor_set_v1_sha256": {"$ref": "#/$defs/sha"},
+    "reviewed_seam_anchor_set_v1_bundle_sha256": {"$ref": "#/$defs/sha"},
+    "reviewed_seam_anchor_set_v1": {
+      "$ref": "reviewed-seam-anchor-set-v1.schema.json"
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

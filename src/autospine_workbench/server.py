@@ -48,6 +48,22 @@ from .p10_runtime_capture_routes import (
     is_p10_runtime_capture_path,
     send_p10_runtime_capture_method_not_allowed,
 )
+from .p10_safety_analysis_manager_v2 import (
+    P10SafetyAnalysisManagerV2, P10SafetyAnalysisManagerV2Error,
+)
+from .p10_dynamic_seam_manager_v2 import (
+    P10DynamicSeamManagerV2, P10DynamicSeamManagerV2Error,
+)
+from .p10_dynamic_seam_v2_routes import (
+    dispatch_p10_dynamic_seam_v2_post,
+    is_p10_dynamic_seam_v2_path,
+    send_p10_dynamic_seam_v2_method_not_allowed,
+)
+from .p10_safety_analysis_v2_routes import (
+    dispatch_p10_safety_analysis_v2_post,
+    is_p10_safety_analysis_v2_path,
+    send_p10_safety_analysis_v2_method_not_allowed,
+)
 from .p10_visual_review_v2_routes import (
     dispatch_p10_visual_review_v2_put,
 )
@@ -73,6 +89,8 @@ def _handler_factory(
     store: ProjectStore, web_root: Path | None,
     replay_cache: SeamAnchorReviewReplayCache,
     capture_manager: P10CaptureJobManager,
+    safety_analysis_v2_manager: P10SafetyAnalysisManagerV2,
+    dynamic_seam_v2_manager: P10DynamicSeamManagerV2,
     visual_review_v2_image_sessions: P10VisualReviewV2ImageSessionStore,
 ) -> type[BaseHTTPRequestHandler]:
     class WorkbenchHandler(WorkbenchResponseMixin, BaseHTTPRequestHandler):
@@ -93,6 +111,8 @@ def _handler_factory(
         def _dispatch_api_get(self, parts: list[str]) -> bool:
             return dispatch_workbench_api_get(
                 parts, store, replay_cache, capture_manager,
+                safety_analysis_v2_manager,
+                dynamic_seam_v2_manager,
                 visual_review_v2_image_sessions, self,
             )
 
@@ -170,6 +190,14 @@ def _handler_factory(
                 if is_motion_policy_review_draft_get_path(parts):
                     send_motion_policy_review_draft_method_not_allowed(self)
                     return
+                if is_p10_dynamic_seam_v2_path(parts):
+                    send_p10_dynamic_seam_v2_method_not_allowed(parts, self)
+                    return
+                if is_p10_safety_analysis_v2_path(parts):
+                    send_p10_safety_analysis_v2_method_not_allowed(
+                        parts, self,
+                    )
+                    return
                 if dispatch_p10_visual_review_v2_put(
                     parts, capture_manager, store, self,
                     self._send_visual_json,
@@ -236,6 +264,16 @@ def _handler_factory(
                 parts, self, store, self._send_visual_json,
             ):
                 return
+            if dispatch_p10_safety_analysis_v2_post(
+                parts, self, safety_analysis_v2_manager,
+                self._send_visual_json,
+            ):
+                return
+            if dispatch_p10_dynamic_seam_v2_post(
+                parts, self, dynamic_seam_v2_manager,
+                self._send_visual_json,
+            ):
+                return
             if dispatch_p10_runtime_capture_post(
                 parts, self, capture_manager, self._send_visual_json,
             ):
@@ -296,6 +334,19 @@ def create_server(
         capture_manager = P10CaptureJobManager(store)
     except P10CaptureJobManagerError as exc:
         raise OSError("P10 Runtime capture manager could not start.") from exc
+    try:
+        safety_analysis_v2_manager = P10SafetyAnalysisManagerV2(
+            capture_manager, store,
+        )
+    except P10SafetyAnalysisManagerV2Error as exc:
+        capture_manager.close()
+        raise OSError("P10.4b v2 safety manager could not start.") from exc
+    try:
+        dynamic_seam_v2_manager = P10DynamicSeamManagerV2(store)
+    except P10DynamicSeamManagerV2Error as exc:
+        safety_analysis_v2_manager.close()
+        capture_manager.close()
+        raise OSError("P10.5d v2 dynamic seam manager could not start.") from exc
     visual_review_v2_image_cache = P10VisualReviewV2ImageReplayCache(
         store.state_root,
     )
@@ -304,17 +355,27 @@ def create_server(
     )
     handler = _handler_factory(
         store, resolved_web_root, replay_cache, capture_manager,
+        safety_analysis_v2_manager,
+        dynamic_seam_v2_manager,
         visual_review_v2_image_sessions,
     )
     try:
         server = WorkbenchThreadingHTTPServer((host, port), handler)
     except (OSError, socket.error) as exc:
+        dynamic_seam_v2_manager.close()
+        safety_analysis_v2_manager.close()
         capture_manager.close()
         raise OSError(f"Could not bind AutoSpine workbench to {host}:{port}") from exc
     server.project_store = store  # type: ignore[attr-defined]
     server.web_root = resolved_web_root  # type: ignore[attr-defined]
     server.seam_anchor_review_replay_cache = replay_cache  # type: ignore[attr-defined]
     server.p10_capture_job_manager = capture_manager  # type: ignore[attr-defined]
+    server.p10_safety_analysis_v2_manager = (  # type: ignore[attr-defined]
+        safety_analysis_v2_manager
+    )
+    server.p10_dynamic_seam_v2_manager = (  # type: ignore[attr-defined]
+        dynamic_seam_v2_manager
+    )
     server.p10_visual_review_v2_image_cache = (  # type: ignore[attr-defined]
         visual_review_v2_image_cache
     )

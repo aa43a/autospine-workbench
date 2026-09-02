@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
+from dataclasses import dataclass
 from dataclasses import replace
 from pathlib import Path
 from unittest.mock import patch
@@ -64,7 +65,15 @@ def fake_runtime_profile_v2():
         yield
 
 
-def build_visual_review_v2_inputs(root: Path):
+@dataclass(frozen=True)
+class BodySwayVisualReviewV2Build:
+    preview: object
+    execution: object
+    preview_inputs: object
+    mesh_bundle: object
+
+
+def build_visual_review_v2_bundle(root: Path):
     preview_fixture = PreviewV2Fixture(root / "preview")
     inputs = preview_fixture.admit()
     images = _source_images(preview_fixture.fixture.mesh.rig)
@@ -102,7 +111,14 @@ def build_visual_review_v2_inputs(root: Path):
             preview, runtime, sessions, snapshot, browser, capture,
             license_acknowledged=True,
         )
-    return preview, execution
+    return BodySwayVisualReviewV2Build(
+        preview, execution, inputs, preview_fixture.fixture.mesh,
+    )
+
+
+def build_visual_review_v2_inputs(root: Path):
+    bundle = build_visual_review_v2_bundle(root)
+    return bundle.preview, bundle.execution
 
 
 class BodySwayVisualReviewV2Fixture:

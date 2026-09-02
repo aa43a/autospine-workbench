@@ -6,10 +6,12 @@ P10.5b 本身只记录静态 locator 选择；从 P9 package 进入且结果 rea
 最终确认后继续 P10.5c，发布并精确读回 `ReviewedSeamAnchorSet`。两阶段都不证明动作中的
 动态接缝、视觉质量、runtime 等价或发布安全。
 
-样本 A 已完成这套流程：P10.5b revision 2 由操作者确认，并以 `6/6 accept`、`24` 个 anchor
-pairs 取代 revision 1；对应 P10.5c 静态 set 已发布并通过 exact replay。除非候选或上游发生
-版本化变化，不要再次提交同一组六项决定；当前应转到
-[身体摆动设置](http://127.0.0.1:8765/idle-behavior-review.html?project_id=seethrough_output)，先关闭 P10.0/P10.1 与后续动作域。该项目入口会自动定位当前 P9 package；只有同一项目存在多个当前动作版本时才要求选择。
+样本 A 有两条必须隔离的已存历史。旧链 P10.5b revision 2/P10.5c 只供精确历史复验；
+override revision 6 current 链另有 P10.5b review revision 1、`6/6 accept`、`24` 个 anchor pairs，
+以及 set `00de666e…`/bundle `e23e3792…`，已由 exact reader 验证。除非 current candidate 或上游
+内容地址变化，不要再次提交这六项决定。A 当前应进入待开发的 P10.5d v2，把 current 静态集与
+P10.4b v2 proof 组合；冻结 P10.5d v1 不接受该 proof。样本 B revision 16 只有两条关系可复核、
+四条 `unobservable`，必须先修复素材/语义或另立 partial 合同，不能自动发布完整六关系 P10.5c。
 
 ## 前置条件
 

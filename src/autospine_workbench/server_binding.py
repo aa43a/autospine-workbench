@@ -23,12 +23,24 @@ class WorkbenchThreadingHTTPServer(ThreadingHTTPServer):
         super().server_bind()
 
     def server_close(self) -> None:
-        manager = getattr(self, "p10_capture_job_manager", None)
+        seam_manager = getattr(self, "p10_dynamic_seam_v2_manager", None)
+        safety_manager = getattr(
+            self, "p10_safety_analysis_v2_manager", None,
+        )
+        capture_manager = getattr(self, "p10_capture_job_manager", None)
         try:
-            if manager is not None:
-                manager.close()
+            if seam_manager is not None:
+                seam_manager.close()
         finally:
-            super().server_close()
+            try:
+                if safety_manager is not None:
+                    safety_manager.close()
+            finally:
+                try:
+                    if capture_manager is not None:
+                        capture_manager.close()
+                finally:
+                    super().server_close()
 
 
 def validate_server_configuration(

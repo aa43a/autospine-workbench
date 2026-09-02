@@ -65,6 +65,7 @@ class PreparedBodySwayGeometryContext:
 
     bones: tuple[Mapping[str, Any], ...]
     bone_ids: frozenset[str]
+    canvas_origin: Point
     canvas_size: Point
     skinning_rig: PreparedSkinningRig
     attachments: tuple[PreparedAttachment, ...]
@@ -124,9 +125,44 @@ def _prepare_body_sway_geometry_context(
         attachments.append(prepared)
     return PreparedBodySwayGeometryContext(
         bones=bones, bone_ids=bone_ids,
+        canvas_origin=(0.0, 0.0),
         canvas_size=admitted.canvas_size,
         skinning_rig=skinning_rig,
         attachments=tuple(attachments),
+    )
+
+
+def prepare_body_sway_geometry_context_for_viewport(
+    rig: Mapping[str, Any],
+    target_profile: Mapping[str, Any],
+    world_viewport: Mapping[str, Any],
+) -> PreparedBodySwayGeometryContext:
+    """Retain exact geometry while replacing only the reviewed view bounds."""
+
+    context = prepare_body_sway_geometry_context(rig, target_profile)
+    fields = {"x", "y", "width", "height"}
+    if not isinstance(world_viewport, Mapping) \
+            or set(world_viewport) != fields:
+        raise BodySwayProbeGeometryError(
+            "Body-sway world viewport fields are invalid"
+        )
+    x, y = point(
+        (world_viewport["x"], world_viewport["y"]),
+        "world viewport origin",
+    )
+    width, height = point(
+        (world_viewport["width"], world_viewport["height"]),
+        "world viewport size",
+    )
+    if width <= 0.0 or height <= 0.0:
+        raise BodySwayProbeGeometryError(
+            "Body-sway world viewport size must be positive"
+        )
+    return PreparedBodySwayGeometryContext(
+        bones=context.bones, bone_ids=context.bone_ids,
+        canvas_origin=(x, y), canvas_size=(width, height),
+        skinning_rig=context.skinning_rig,
+        attachments=context.attachments,
     )
 
 

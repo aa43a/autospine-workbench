@@ -70,7 +70,9 @@ exact Layer Manifest + exact P3/P5/P9 reviewed chain
                      P10.3c v2 human case decisions
                                       ↓ completed job_id
                  P10.4a v2 compile-time admission
-                                      ↓ next: P10.4b v2 safety analysis
+                                      ↓ job-only replay
+                 P10.4b v2 amplitude + continuous proof
+                                      ↓ next: current-chain seam
                            blocked release
 
 exact Layer Manifest + exact P3 static bundle
@@ -119,13 +121,17 @@ web    → HTTP contracts only
 - capture job request 和事件链 append-only 保存。状态查询可跨页面刷新恢复；失败和进程/服务中断都不会自动重试，当前没有用户主动取消 API。execution v2 runner `1.1.0` 只有在 exact session 与环境 snapshot 一致时才捕获，以 `page_lifetime=collector-terminal` 等待 exact callback 提交；它不使用冻结 v1 的 `--dump-dom`/`--virtual-time-budget`。collector 同时校验 v1 或 v2 session 而不改变冻结 v1 字节。成功结果以 project/Preview v2/execution bundle/artifact set 四段地址发布，partial output 不进入正式 execution；失败事件保存 path-free 精确 failure code。
 - P10.3c v2 HTTP/UI 以 completed `job_id` 为外部地址。服务端从不可变 job 解析内部四段地址，重放 execution 并双检查 current P10.1/CaptureFraming；candidate、history、decision 与 store 使用独立 v2 namespace。读取零写入，只有覆盖完整 cases、通过 head CAS 的人工提交才追加 revision；系统不自动生成或批准视觉决定。v1 capture/review namespace 与 CLI 冻结且不与 v2 混用。
 - P10.4a v2 以同一 completed `job_id` 为唯一外部输入。读取路由重放 official Runtime execution，再对 current P10.3c v2 history 做编译前后双快照，并精确读回当前 `sampled_visual_approved` decision。只有 exact job、execution、candidate、revision 和 decision 在同一编译窗口内保持一致，才返回 `admitted_for_safety_analysis`。admission 是 path-free 的 canonical 投影，其 head observation 仅在 compile time 有效，不声称永久 current-head authority，也不写入新的人工决定。
+- P10.4b v2 继续只接受同一 completed `job_id`，在编译前后重放 P10.4a v2 current admission，并生成两个独立、可寻址的 canonical 文档。amplitude 文档覆盖 `0/8…8/8` 九个 coupled-gain 结构点；continuous 文档覆盖 Preview v2 的每一对相邻 tick 与统一 `λ∈[0,1]`。入口读取不做精确重放，只快速恢复 active run 或返回 ready；terminal/no run 的新访问会在独立、低优先级 worker 子进程中重新编译 current admission，绝不把历史 completed run 静默当作当前结果。CPU 子进程通过有界 canonical JSONL 只报告固定阶段、单调进度与终态，`continuous_boxes` 为长区间证明提供盒级心跳；HTTP 服务进程因此可以继续处理页面轮询和其它 API。
+- P10.4b v2 的父进程是 append-only run 事件日志和完成态的唯一写入者。子进程不得追加事件或发布 `completed`，只可在 active run 下写入严格绑定 request/admission/head 的 staged amplitude/continuous 工件；父进程从磁盘独立读取、重算内容地址和合同绑定，并与子进程回传文档逐字比较后，才能追加 `sealing → completed`。取消、进程异常或服务关闭会终止所拥有的 worker 进程树；staged 工件没有事件链 authority，不能作为部分成功复用。失败状态按来源变化、来源不可用、输入无效、分析校验、分析执行和 worker 进程故障分别归类，旧 failure receipt 保持不可变；新 attempt 需要页面二次确认。
+- P10.4b v2 异步 run 不接收客户端路径、文件或 SHA。HTTP 结果只投影九档/连续段摘要与 `{format, format_version, sha256, size_bytes}` 技术回执，不传输可能含逻辑资源字段的完整 canonical 文档；普通页面把 `indeterminate` 作为合法完成态显示。sealed replay 把 JSON 数组字段规范为同一合同表示，并按逐段实际剩余量校验共享盒预算；tuple/list 载体差异或提前 global fallback 都不能伪造失败或通过。
 - P9/P10 current-chain inventory 的项目 ID 使用轻量 audit discovery，不触发 override/Resolved 构建。双快照中的 Layer Manifest 派生可复用 8 项进程内 LRU/single-flight 缓存；key 包含 exact Resolved SHA、全部源 raster 内容 SHA 及 15 个相关模块的源码/live callable 算法身份，warm hit 前仍执行 `get_project` 并逐字节重算素材 SHA，compile 后再次核对相同 key。失败、输入漂移和算法变化均不驻留或命中。缓存不落盘、不参与 package/current 判定本身，也没有绕过 before/after 比较；Resolved/override 目前故意不缓存。
-- 冻结 v1 的 P10.4a admission、P10.4b1 amplitude-envelope 与 P10.4b2 continuous-proof 仍只能消费 v1 visual-review head。新 P10.4a v2 admission 已建立独立合同和 namespace，仅把 approved v2 sampled still 开放给后续安全分析。下一边界是独立 P10.4b v2 幅度/连续安全链；不得把 v2 admission 静默传入冻结 v1 编译器或下游 seam consumer。
+- 冻结 v1 的 P10.4a admission、P10.4b1 amplitude-envelope 与 P10.4b2 continuous-proof 仍只能消费 v1 visual-review head。新 P10.4a/P10.4b v2 已建立独立合同、算法 profile、哈希域和 namespace；不得把 v2 admission 静默传入冻结 v1 编译器，也不得把 v1 proof 冒充 current v2 动作域。下一边界是把 current-chain seam 凭据显式连接到 v2 proof，而不是修改任一既有 identity。
 - P10.5a seam candidate command 只读取精确 Layer Manifest/P3 静态地址，固定输出六条左右关系和可回看的 attachment-local locator。candidate generator 内嵌从实际行为常量重建的 canonical algorithm profile；candidate、human decision、reviewed set 和动态 probe 是四个独立合同，任何一层都不能改写上一层 evidence hash。
 - P10.5b candidate HTTP projection 把 `setup_canvas` 与每个 option/role 的 exact image、`canvas_offset_xy`、同序 `anchor_points` 分开返回；浏览器只用这些字段合成 SVG alpha、contact bbox 和编号锚点，不从 raster 反推 locator。SHA、数值、locator 与单层图默认折叠只影响展示，不改变 canonical evidence。
 - P10.5b advisory assist 是独立、确定性、candidate-SHA 绑定的只读合同。`single_option` 和 `blocked_unobservable` 可形成可撤销草稿；`compare_options` 只给 `highlight_option_id`，明确不构成批准。自动草稿、current-head 基线和 option 点击都只修改浏览器 state；只有最终显式确认才进入 decision CAS。
 - P10.5b/P10.5c 把人工 revision 与静态 ReviewedSet 分离；package 模式在 ready decision 后通过独立 `POST .../{package_id}/seam-publications` 重放 package/current head，发布 P10.5c 并 exact readback。decision 已提交而 publication 失败时，控制器锁定 decision identity，只允许重试 publication。历史 bundle 可以精确复验，但只有 current ready head 能进入后续编译。P10.5d 不从 candidate 重新选 locator，也不把历史可读性升级为 current authority。
-- P10.5d command 从完整 P10.4b2 proof 和精确 P10.5c 双 SHA 建立 source closure，在 pure analyzer 外执行 before/after current-head observation；每个 observation 内部又分别双快照视觉与接缝历史。全部 observation 只在 compile time 有效，consumer 必须重新检查。
+- 冻结 P10.5d v1 command 继续只接受 v1 proof。P10.5d v2 已交付 path-free source、analyzer/compiler/validator、CLI/store/exact reader，以及 exact `job_id+safety_run_id` 自动闭合 current P10.5c 的 server/job/UI 入口。自动任务使用独立 BelowNormal worker 与 append-only attempts；父进程独占最终 exact readback/current-head recheck 和完成态写入。真实 A 尚待当前 P10.4b run 完成并重启服务后执行。
+- P10.5d v2 compile 在分析前、发布前、发布后共三次观察 current visual/seam heads，并要求三份 canonical observation 精确一致。只有通过这三次门禁才发布固定 `body-sway-dynamic-seam-source-v2.json`、`body-sway-dynamic-seam-probe-v2.json`、`bundle-manifest.json` inventory，随后按 probe/bundle 双 SHA exact-readback。历史 verify 只重放这三份 exact bytes 和语义 validator；manifest 的 authority scope 固定为 `historical_exact_bytes_only`，不读取或授予 current-head authority。
 - P10.5d analyzer 对六关系全部 reviewed pairs 覆盖相邻 tick 与统一 gain，只认证 `4 px²` reviewed-anchor point proximity 工程代理。region–region、region–mesh、mesh–region 有固定投影；mesh–mesh、预算耗尽、非有限包络、backend 自相矛盾和任何 head 漂移都 fail closed。attachment 边界、raster/视觉、runtime、timeline 和发布明确排除。
 - P10.6a consumer admission 内嵌并完整重放 P10.5d probe，从其 source closure 读取精确 P9 双地址并复验 reviewed-motion bundle；pure core 只构造 unit-gain、setup-local、版本中立 motion domain，seal 前后重新观察视觉与接缝 current head。
 - P10.6a 不发出 MotionInstance v3、adapter 或 Spine timeline。其内部与 CLI 外层 head observation scope 都固定为 `compile_time`；完整 attachment 边界、raster/视觉、runtime、publishable timeline 和 release authority 保持 blocked。
@@ -201,7 +207,7 @@ producer provenance 的 `recorded` 与 `unavailable` 是不同的显式状态。
 
 完整 NPZ 只把 `smooth_root_pos` 当有限数证据、把 `global_root_heading` 当单位方向证据，当前不用它们改写 MotionIR。contact 采用半开 `annotation_only` marker，不等于 foot lock。
 
-正式测试证明确定性合成 NPZ 的 root、代表性肢体旋转和 contact 可通过三个 rig 的 P5/P6 结构门禁；M1.0 另证明同一六输入可得到确定性 path-free intake report，且其 P7 preview 身份可与后续正式编译对齐。真实运行的 `wave-left-v1` 已通过 intake，并完成 P7/P8、A/B P5 与各自 P9 reviewed-motion bundle 的 exact replay；身份集中记录在 [pilot handoff](pilots/kimodo-wave-left-v1.md)。A 另有已确认并 exact replay 的 P10.5c 静态接缝集，但这仍未证明 checkpoint authenticity、广泛动作质量、目标角色动态遮挡/接缝效果或该 clip 的官方 Spine Player 截图。关闭真实资产门禁还需要 A 的 P10.0–P10.4 动作域与 P10.5d、B 的上游修复或版本化 partial seam 合同、干净 state 重编译、目标角色视觉对照与固定 runtime golden。
+正式测试证明确定性合成 NPZ 的 root、代表性肢体旋转和 contact 可通过三个 rig 的 P5/P6 结构门禁；M1.0 另证明同一六输入可得到确定性 path-free intake report，且其 P7 preview 身份可与后续正式编译对齐。真实运行的 `wave-left-v1` 已通过 intake，并完成 P7/P8、A/B P5 与各自 P9 reviewed-motion bundle 的 exact replay；身份集中记录在 [pilot handoff](pilots/kimodo-wave-left-v1.md)。A revision 6 另有 current P10.5c set `00de666e…`/bundle `e23e3792…`。P10.5d v2 自动入口已交付，但 A 仍待当前 P10.4b run 完成并重启服务后真实执行；在此之前不能声称动态遮挡/接缝、official Runtime 或视觉通过。
 
 P8 相机感知投影门禁已经完成：
 
@@ -359,7 +365,7 @@ sampled_visual_approved current head
           release gate always blocked
 ```
 
-该图不能用于 v2 head。v2 链使用新的 P10.4a admission：
+该图不能用于 v2 head。v2 链使用新的 P10.4a admission 与 P10.4b v2 双证明：
 
 ```text
 completed official Runtime job + current approved P10.3c v2 head
@@ -368,14 +374,18 @@ completed official Runtime job + current approved P10.3c v2 head
                                   ↓
                   admitted_for_safety_analysis
                                   ↓
-              next: independent P10.4b v2 consumer
+          nine coupled-gain structural points (v2)
+                                  ↓
+       every adjacent Preview v2 tick × λ∈[0,1]
+                                  ↓ bounded interval subdivision
+        certified preview structure | indeterminate
                                   ↓
                        release gate blocked
 ```
 
-v2 admission 不改写决定、不声称永久 head authority，也不能静默落入 v1 admission。当 v2 current head 或 execution 源发生变化时，consumer 必须重新编译 admission，不能继续信任旧文档。
+v2 admission 不改写决定、不声称永久 head authority，也不能静默落入 v1 admission。当 v2 current head 或 execution 源发生变化时，consumer 必须重新编译 admission，不能继续信任旧文档。amplitude 与 continuous proof 使用独立自哈希和 profile identity；只有 `8/8` 点继承官方 sampled visual 审批，其余八点和全部区间都没有新增人工视觉覆盖。全段结构认证也不产生可发布安全范围。
 
-连续证明内嵌并重算 candidate、RigIR、target profile、MotionInstance v2、temporary preview manifest 与 preview projection。固定后端包围数学三角函数、Q9 图层与 Q4096 顶点量化误差，并检查 FK、画布、mesh area/edge 与共享索引内部连续性；它不把 point samples 当作区间证明。输入和结果都有显式 byte/box/depth 上限，任何未证明状态都不能升级为通过。操作入口见[编译 body-sway 连续预览模型证明](how-to-compile-body-sway-continuous-proof.md)。
+连续证明内嵌并重算 candidate、RigIR、target profile、MotionInstance v2、temporary preview manifest 与 preview projection。固定后端包围数学三角函数、Q9 图层与 Q4096 顶点量化误差，并检查 FK、画布、mesh area/edge 与共享索引内部连续性；它不把 point samples 当作区间证明。输入和结果都有显式 byte/box/depth 上限，任何未证明状态都不能升级为通过。v2 操作入口见[分析 P10.4b v2 身体摆动安全性](how-to-analyze-body-sway-safety-v2.md)；[冻结 v1 连续证明](how-to-compile-body-sway-continuous-proof.md)仅用于历史链。
 
 该结论只适用于固定 preview 数学模型，不代表目标平台 `libm`、官方 Spine runtime 或 raster truth；attachment 间 seam 仍缺少 reviewed anchors。静态 seam candidate、人工 decision 和 reviewed anchor set 应作为独立上游合同，之后才能在相同动作域上追加 seam 证明，不能修改本阶段既有 hash 语义。
 
@@ -543,7 +553,7 @@ sample 冒充 replay。命令不启动 Runtime、不扫描 mutable head、不写
 临时 stdout 只授予 bounded setup-frame equivalence，release gate 固定 blocked；readiness v2
 之前还必须把 request/report、批准合同与批准 PNG 封存成可寻址、可重放的 immutable comparison
 bundle。共享的 `wave-left-v1` 已到达 P7/P8、真实 A/B 各自的 P5、正式 depth policy、
-depth candidates 与各自 exact replay 通过的历史 P9 reviewed-motion bundle。A revision 6 current chain 已重建到 P10.2 并接受 CaptureFraming revision 1；六次失败 P10.3 v2 job 没有部分证据，runner 1.1.0 的后续 job 已完成 43/43，对应 P10.3c v2 revision 1 已全部通过，P10.4a v2 已可将该 current head 准入后续安全分析。A 的旧 P10.5b/P10.5c 静态接缝凭据仍可 exact replay，但不能授权 revision 6 current chain。B revision 16 必须沿自己的 current chain 重建；旧链四条下肢关系不可观测的结论不能直接外推。操作入口见
+depth candidates 与各自 exact replay 通过的历史 P9 reviewed-motion bundle。A revision 6 current chain 已重建到 P10.2，接受 CaptureFraming revision 1，完成 43/43 execution 与 P10.3c v2 revision 1，并闭合 current P10.5b/P10.5c 静态集；P10.4a v2 可将该 current visual head 准入后续安全分析。旧静态地址仍只供历史复验，current set/bundle 为 `00de666e…`/`e23e3792…`。B revision 16 必须沿自己的 current chain 重建；当前四条下肢关系 `unobservable` 不能自动降级完整合同。操作入口见
 [P10.7c Setup Golden How-to](how-to-compare-spine42-v3-setup-golden.md)、
 [就绪状态审计 How-to](how-to-audit-spine42-v3-readiness.md)和[后续开发路线](development-roadmap.md)。
 

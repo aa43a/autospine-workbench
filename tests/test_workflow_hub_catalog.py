@@ -41,15 +41,15 @@ class WorkflowHubCatalogTests(unittest.TestCase):
             entry["command"] for entry in self.entries
             if entry["kind"] == "cli"
         }
-        self.assertEqual(68, len(commands))
+        self.assertEqual(71, len(commands))
         self.assertEqual(commands, catalog_commands)
 
     def test_entries_have_unique_ids_and_supported_taxonomy(self) -> None:
         ids = [entry["id"] for entry in self.entries]
         self.assertEqual(len(ids), len(set(ids)))
-        self.assertEqual(95, len(ids))
+        self.assertEqual(100, len(ids))
         self.assertEqual(
-            {"cli": 68, "page": 9, "planned": 18},
+            {"cli": 71, "page": 11, "planned": 18},
             {
                 kind: sum(entry["kind"] == kind for entry in self.entries)
                 for kind in ("cli", "page", "planned")
@@ -83,6 +83,8 @@ class WorkflowHubCatalogTests(unittest.TestCase):
             "./body-sway-review.html",
             "./body-sway-review-v2.html",
             "./body-sway-runtime-capture.html",
+            "./body-sway-safety-analysis-v2.html",
+            "./body-sway-dynamic-seam-v2.html",
             "./idle-behavior-review.html",
             "./motion-policy-review.html",
             "./seam-anchor-review.html",
@@ -93,9 +95,9 @@ class WorkflowHubCatalogTests(unittest.TestCase):
         for href in pages:
             self.assertTrue((ROOT / "web" / href.removeprefix("./")).is_file())
 
-    def test_current_stage_names_the_v2_review_admission_workflow(self) -> None:
+    def test_current_stage_names_the_v2_dynamic_seam_integration(self) -> None:
         self.assertEqual(
-            "P10.4a-v2-review-admission",
+            "P10.5d-v2-dynamic-seam-integration",
             self.catalog["current_stage"],
         )
         entry = next(
@@ -111,6 +113,20 @@ class WorkflowHubCatalogTests(unittest.TestCase):
         self.assertEqual("./body-sway-review-admission-v2.html", admission["href"])
         self.assertIn("无需选择文件或填写 SHA", admission["summary"])
         self.assertIn("发布门禁仍阻塞", admission["summary"])
+        safety = next(
+            entry for entry in self.entries
+            if entry["id"] == "page-body-sway-safety-analysis-v2"
+        )
+        self.assertEqual("./body-sway-safety-analysis-v2.html", safety["href"])
+        self.assertIn("九档离散结构点", safety["summary"])
+        self.assertIn("安全范围明确不可用", safety["summary"])
+        seam = next(
+            entry for entry in self.entries
+            if entry["id"] == "page-body-sway-dynamic-seam-v2"
+        )
+        self.assertEqual("./body-sway-dynamic-seam-v2.html", seam["href"])
+        self.assertIn("safety_run_id", seam["summary"])
+        self.assertIn("无需选择项目、文件或填写 SHA", seam["summary"])
 
     def test_motion_policy_page_describes_python_preflight_without_authority(self) -> None:
         entry = next(

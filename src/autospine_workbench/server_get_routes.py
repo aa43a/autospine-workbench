@@ -27,6 +27,10 @@ from .p10_runtime_capture_routes import (
     is_p10_runtime_capture_path,
     send_p10_runtime_capture_method_not_allowed,
 )
+from .p10_safety_analysis_v2_routes import (
+    dispatch_p10_safety_analysis_v2_get,
+)
+from .p10_dynamic_seam_v2_routes import dispatch_p10_dynamic_seam_v2_get
 from .p10_visual_review_v2_routes import dispatch_p10_visual_review_v2_get
 from .project_routes import dispatch_project_get
 from .seam_anchor_review_routes import (
@@ -37,10 +41,20 @@ from .split_preview_routes import dispatch_split_preview_get
 
 def dispatch_workbench_api_get(
     parts, store, replay_cache, capture_manager,
+    safety_analysis_v2_manager,
+    dynamic_seam_v2_manager,
     visual_review_v2_image_sessions, handler,
 ) -> bool:
     """Dispatch one API read while preserving route-family method policy."""
 
+    if dispatch_p10_dynamic_seam_v2_get(
+        parts, dynamic_seam_v2_manager, handler,
+    ):
+        return True
+    if dispatch_p10_safety_analysis_v2_get(
+        parts, safety_analysis_v2_manager, handler,
+    ):
+        return True
     if dispatch_p10_visual_review_v2_get(
         parts, capture_manager, store,
         handler._send_visual_json, handler._send_visual_bytes,

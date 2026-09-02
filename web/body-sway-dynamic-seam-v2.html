@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0b0e14">
+  <title>P10.5d v2 动态接缝分析 — AutoSpine</title>
+  <link rel="stylesheet" href="./body-sway-review.css">
+  <link rel="stylesheet" href="./body-sway-dynamic-seam-v2.css">
+</head>
+<body>
+  <a class="skip-link" href="#dynamicSeamMain">跳到动态接缝结果</a>
+  <header class="review-topbar">
+    <div>
+      <p class="eyebrow">P10.5d v2 · AUTOMATIC DYNAMIC SEAM EVIDENCE</p>
+      <h1>身体摆动动态接缝分析</h1>
+    </div>
+    <nav class="review-nav" aria-label="工作台导航">
+      <a class="button secondary" href="./body-sway-safety-analysis-v2.html">P10.4b 安全分析</a>
+      <a class="button secondary" href="./workflow-hub.html">功能入口中心</a>
+      <a class="button secondary" href="./index.html">绑定工作台</a>
+    </nav>
+  </header>
+
+  <main id="dynamicSeamMain">
+    <section class="panel seam-entry" aria-labelledby="entryHeading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">EXACT AUTOMATIC ENTRY</p>
+          <h2 id="entryHeading">自动闭合安全证明与静态接缝集</h2>
+        </div>
+        <span id="seamBadge" class="gate-badge">等待任务</span>
+      </div>
+      <p class="lede">
+        页面只读取上一步携带的 exact job_id 与 safety_run_id，服务端自动找到同一角色当前
+        P10.5c 接缝集。无需选择项目、文件或填写 SHA。
+      </p>
+      <p id="seamStatus" class="status-line" role="status" aria-live="polite">
+        正在读取精确来源…
+      </p>
+      <div class="progress-block">
+        <progress id="seamProgress" max="1" value="0"
+          aria-labelledby="seamProgressText"></progress>
+        <strong id="seamProgressText">自动校验来源…</strong>
+      </div>
+      <dl class="attempt-strip" aria-label="不可变分析尝试回执">
+        <div><dt>Attempt</dt><dd id="attemptNumber">—</dd></div>
+        <div><dt>状态</dt><dd id="attemptState">等待创建</dd></div>
+        <div><dt>失败码</dt><dd id="attemptCode">无失败码</dd></div>
+      </dl>
+    </section>
+
+    <section id="seamResult" class="result-stack" hidden>
+      <section class="panel result-summary" aria-labelledby="resultHeading">
+        <p class="eyebrow">BOUNDED STRUCTURAL RESULT</p>
+        <h2 id="resultHeading" tabindex="-1">逐关系工程代理证据</h2>
+        <p class="lede">
+          锚点残差与 gap proxy 用于结构筛查；gap proxy 不是像素裂缝，Overlap 也没有在本阶段评估。
+        </p>
+        <dl id="resultFacts" class="result-facts"></dl>
+      </section>
+
+      <section class="panel relationship-panel" aria-labelledby="relationshipHeading">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">PER-RELATIONSHIP EVIDENCE</p>
+            <h2 id="relationshipHeading">每条接缝关系</h2>
+          </div>
+          <span class="scope-note">有限、有界、非 Raster</span>
+        </div>
+        <div id="relationshipGrid" class="relationship-grid"></div>
+      </section>
+
+      <section class="panel scope-panel" aria-labelledby="scopeHeading">
+        <p class="eyebrow">WHAT THIS RESULT DOES — AND DOES NOT — PROVE</p>
+        <h2 id="scopeHeading">证据范围</h2>
+        <ul id="scopeGrid" class="scope-grid"></ul>
+      </section>
+
+      <section class="detail-grid">
+        <section class="panel release-panel" aria-labelledby="releaseHeading">
+          <p class="eyebrow">RELEASE GATE</p>
+          <h2 id="releaseHeading">发布仍然阻塞</h2>
+          <p class="lede">
+            Overlap、Raster、官方 Runtime、视觉质量、可发布 timeline 与发布权仍未证明。
+          </p>
+          <ul id="releaseReasons" class="reason-list"></ul>
+        </section>
+        <details class="panel technical-panel">
+          <summary>技术详情：不可变内容地址回执</summary>
+          <p>这些地址由本地服务自动生成和校验；普通操作无需复制或填写。</p>
+          <pre id="technicalReceipts"></pre>
+        </details>
+      </section>
+    </section>
+
+    <section id="seamFailure" class="panel failure-panel" hidden
+      aria-labelledby="failureHeading">
+      <p class="eyebrow">IMMUTABLE SAFE RECOVERY</p>
+      <h2 id="failureHeading">没有生成动态接缝结论</h2>
+      <p id="failureMessage" class="lede"></p>
+      <div class="failure-actions">
+        <button id="retrySeamBtn" class="button primary" type="button">确认并创建新 attempt</button>
+        <a id="returnToSafetyLink" class="button secondary"
+          href="./body-sway-safety-analysis-v2.html">返回 P10.4b 安全分析</a>
+        <a class="button secondary" href="./workflow-hub.html">返回功能入口中心</a>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="./modules/body-sway-dynamic-seam-v2-app.js"></script>
+</body>
+</html>

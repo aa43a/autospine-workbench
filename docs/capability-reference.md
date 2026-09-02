@@ -1,6 +1,6 @@
 # AutoSpine Workbench 功能与入口参考
 
-本文是面向操作者和开发者的 Reference。它回答“功能是否已经实现、从哪里进入、会得到什么”，不替代具体操作步骤。P10.3 已交付 package-centric Preview v2、固定本地 Spine Player 4.2.119/Chrome 校验、显式许可/本次运行确认、append-only 异步 job、official Runtime execution v2 内容寻址封存及 job-centric P10.3c v2 复核合同。样本 A 已确认 `layer-007-handwear-l: forearm.left → upper-arm.left`、保存 override revision 6，并接受 CaptureFraming revision 1；六次失败 execution 作为不可变历史保留且没有部分证据，runner `1.1.0` 的后续 job 已完成 43/43，P10.3c v2 revision 1 已批准全部 43 帧。P10.4a v2 已可从同一 `job_id` 自动编译安全分析准入；release gate 仍然 blocked。样本 B revision 16 必须沿自己的 current chain 重建；旧链结论不能外推。P10.3/P10.4a v1 保持冻结。计划项见[开发路线](development-roadmap.md)。
+本文是面向操作者和开发者的 Reference。P10.3、P10.4a/b v2 和 P10.5d v2 自动入口均已交付。P10.5d 页面从 P10.4b 完成态携带 exact `job_id+safety_run_id`，自动闭合 current P10.5c，以 BelowNormal worker 和 append-only attempts 执行，再由父进程 exact readback/current-head recheck。CLI/store 与历史 verify 仍可用于显式地址复验。真实 A 尚待当前 P10.4b run 完成并重启服务后执行；release、raster、Runtime、视觉与 overlap 仍 blocked。v1 合同保持冻结。计划项见[开发路线](development-roadmap.md)。
 
 ## 统一入口
 
@@ -13,6 +13,8 @@
 - [P10.3 官方 Runtime 自动采集](http://127.0.0.1:8765/body-sway-runtime-capture.html)：按 package 自动准备 Preview v2、校验固定环境、显式确认后创建异步 official Runtime job；
 - [P10.3c v2 时间轴视觉复核台](http://127.0.0.1:8765/body-sway-review-v2.html)：由 completed job 的完整 `job_id` 进入，以 setup + 21 组 A/B 时间点复核 43 个不可变 case；默认通过仅为本地草稿，最终保存完整人工 sampled still 决定；
 - [P10.4a v2 复核准入](http://127.0.0.1:8765/body-sway-review-admission-v2.html)：由 P10.3c 成功回执携带同一 `job_id` 进入，自动重放 current approved head 并显示是否可进入后续安全分析；
+- [P10.4b v2 自动安全分析](http://127.0.0.1:8765/body-sway-safety-analysis-v2.html)：由 P10.4a 成功结果携带同一 `job_id` 进入，在独立低优先级子进程中自动运行九档离散结构探针与相邻连续区间证明；长计算显示盒级心跳，失败后需二次确认才创建新尝试；
+- [P10.5d v2 动态接缝自动分析](http://127.0.0.1:8765/body-sway-dynamic-seam-v2.html)：由 P10.4b 完成态携带 exact job/run 进入，自动选择 current P10.5c；失败新 attempt 需二次确认；
 - [P10.3c v1 视觉复核台](http://127.0.0.1:8765/body-sway-review.html)：冻结的历史/回归入口，不用于新 v2 job；
 - [接缝自动复核与静态锚点生成](http://127.0.0.1:8765/seam-anchor-review.html)：P10.5b 自动看图复核；ready 时由同一次最终确认继续 P10.5c 发布与精确读回；
 - [Motion Policy 自动工作流](http://127.0.0.1:8765/motion-policy-review.html)：P9 项目/package 自动加载、安全 Foot 辅助采用、异常处理，以及一次人工确认后的本地编译、发布和精确复验。
@@ -61,7 +63,7 @@ derived cache 是进程内有界性能优化，保存可重建的 report/adjustm
 
 同一次详情编译还会返回 P10.2a `BodySwayCanvasAdjustmentCandidates v1`。它把已复核的四骨幅度统一乘以离散 gain `0/8…8/8`，分别复跑 sampled canvas 与 sampled geometry，结果只用于零权威诊断。`0/8` 只回答“去掉 body-sway 后基础动作是否仍越界”，永远不能成为新的 body-sway 参数。只有**非零** gain 的两类检查都通过时，系统才产生可带回 P10.1 的 `unvalidated_draft`；它不会自动保存、批准或改写 current head。操作者必须在 P10.1 明确确认一个新 revision，再回到 P10.2 重跑完整报告。
 
-截至本次真实状态复核，`seethrough_output` 的换绑已经在 override revision 6 生效，P9/P10 已按新链重建；当前 P10.2 只保留旧素材框 containment 拒绝，完整动作包络由动态视口覆盖，CaptureFraming 已接受 revision 1。样本 A 的六次失败 official Runtime job 作为不可变历史保留且未发布部分证据；runner 1.1.0 的后续 job 已完成 43/43，P10.3c history 当前为全部通过的 revision 1，并可由 P10.4a v2 准入后续安全分析。`seethrough_output_5` 的历史 P9/P10 数字仍只约束旧 exact 链，不能跨 revision 复用。
+截至本次真实状态复核，`seethrough_output` 已闭合到 current P10.5c 静态集。P10.5d v2 自动入口也已交付，但真实 A 尚待当前 P10.4b run 完成并重启服务后执行；动态/视觉接缝证据和 release 仍缺失。`seethrough_output_5` revision 16 的 current seam candidate 还有四条 `unobservable`。
 
 ### P10.3 official Runtime 采集与 P10.3c v2 复核
 
@@ -69,7 +71,7 @@ derived cache 是进程内有界性能优化，保存可重建的 report/adjustm
 
 P10.3 v2 execution runner `1.1.0` 固定 `page_lifetime=collector-terminal`，不再携带冻结 v1 驱动的 `--dump-dom` 或 `--virtual-time-budget`。它只在 exact 截图已经提交且 runner 主动 teardown 的条件下容忍 stdout reader 关闭异常；提交前读取失败、输出超限、reader 未退出或 pipe 无法关闭继续 fail closed。新失败事件保存 path-free 精确 `failure_code`，不公开异常文本、路径或命令行。六次历史失败 job 不会被升级或改写；后续 43/43 completed job 已覆盖真实 runner 1.1.0 路径。
 
-completed job 绑定 project/Preview v2/execution bundle/artifact set 四段内部地址，并以完整 `job_id` 自动进入 v2 复核页。服务端从 job 解析 exact 地址，重验 current P10.1/CaptureFraming，再准备 v2 candidate、图像和 append-only history。每个 case 必须由人选择 `approve`、`reject` 或 `unobservable`；系统绝不自动批准。全部批准只得到 v2 sampled visual head，不证明连续时间、完整接缝、runtime 等价或发布安全。P10.4a v2 已以独立合同消费该 head，只授予 `admitted_for_safety_analysis`；冻结 `BodySwayReviewAdmission v1` 仍不能读取或替代 v2 head。
+completed job 绑定 project/Preview v2/execution bundle/artifact set 四段内部地址，并以完整 `job_id` 自动进入 v2 复核页。服务端从 job 解析 exact 地址，重验 current P10.1/CaptureFraming，再准备 v2 candidate、图像和 append-only history。每个 case 必须由人选择 `approve`、`reject` 或 `unobservable`；系统绝不自动批准。全部批准只得到 v2 sampled visual head，不证明连续时间、完整接缝、runtime 等价或发布安全。P10.4a v2 已以独立合同消费该 head，只授予 `admitted_for_safety_analysis`；P10.4b v2 再以 job-only consumer 生成九档离散结构点和相邻时间段连续证明。CPU 工作由独立低优先级子进程执行，父进程仍独占 append-only event/completed 写入并独立复验 staged 文档；`continuous_boxes` 盒级心跳允许页面/API 在长证明期间持续查询。只有 `8/8` 继承 sampled visual 审批，其他幅度和全部区间仍无人工视觉覆盖；冻结 v1 合同不能读取或替代 v2 head。
 
 v2 时间轴使用 exact URL 页面级图片池：当前位置优先、最多两张并发，并在后台预载全部 43 帧；复访不重复赋值 `img.src`，覆盖数只接纳已加载并显示的组。candidate 完整 current/PNG 校验后同时返回当时的 history，以及 120 秒固定到期、进程内、只读的图片会话。会话与 job/candidate/case/PNG 交叉绑定，只能读取签发时已经验证的内容寻址像素；过期、淘汰或错误绑定直接失败，不写磁盘、不读取 decision、不授予 authority。无会话 exact URL 仍执行逐请求 current 校验。服务端另有 candidate-snapshot 粒度、双条目/256 MiB 上限的 single-flight LRU，并以 completed job 为键保存可删除的非权威 Preview mount snapshot。snapshot v3 显式绑定由 292 个静态依赖模块生成的 Preview compiler 摘要；mount 命中仍重验 exact execution、所选项目逐字节 source/算法 seal、P3/P5/P9 内容地址、P10.1/CaptureFraming heads 和 Preview/artifact seals。decision PUT 禁用持久 mount 与图片 session，实时复验 authority/current heads 并继续 head CAS；只有通过各自 current validator 的键控进程内派生缓存可复用。会话期间发生的来源漂移会在 PUT 以 409 零写入拒绝。缓存从不保存或推断人工 decision/revision，HTTP 仍为 `no-store`。真实 43 帧测试中，含 current/history/PNG 预热的 candidate 为 `6.15 s`，之后单张读取 P50 `6.7 ms`、P95 `11.4 ms`。
 
@@ -242,10 +244,11 @@ P3 profile-v1 只接受精确 `body.leg → thigh/calf` hinge。`body.arm.upper/
 | `compile-body-sway-review-admission` | 冻结 v1：准入 v1 当前 approved visual head；不能消费 v2 head |
 | `compile-body-sway-review-admission-v2` | 从 completed job 自动重放 current approved P10.3c v2 head，编译 compile-time 安全分析准入 |
 | `verify-body-sway-review-admission-v2` | 按显式 canonical admission 复验 exact job/execution/decision 仍为 current；不声称永久 head authority |
+| `compile-body-sway-safety-analysis-v2` | 只凭 completed `job_id` 重放 P10.4a v2，并编译九档幅度候选与全部相邻 Preview v2 区间证明；默认输出 path-free 摘要，`--documents` 输出 canonical 文档 |
 | `compile-body-sway-amplitude-envelope` | 冻结 v1：沿统一 gain 生成九档 sampled 候选 |
 | `compile-body-sway-continuous-proof` | 冻结 v1：对 sampled-linear preview 的单位 gain 区间作有界证明 |
 
-普通 v2 流程使用页面，新 v2 CLI 保留给精确重放和审计。操作说明：[Idle/body-sway](how-to-review-idle-behaviors.md)、[P10.3 Runtime 采集](how-to-capture-body-sway-runtime.md)、[P10.3c v2 视觉复核](how-to-review-body-sway-runtime.md)、[P10.4a v2 自动准入](how-to-admit-body-sway-review-v2.md)、[连续证明（当前仅 v1 链）](how-to-compile-body-sway-continuous-proof.md)。
+普通 v2 流程使用页面，新 v2 CLI 保留给精确重放和审计。操作说明：[Idle/body-sway](how-to-review-idle-behaviors.md)、[P10.3 Runtime 采集](how-to-capture-body-sway-runtime.md)、[P10.3c v2 视觉复核](how-to-review-body-sway-runtime.md)、[P10.4a v2 自动准入](how-to-admit-body-sway-review-v2.md)、[P10.4b v2 自动安全分析](how-to-analyze-body-sway-safety-v2.md)、[冻结 v1 连续证明](how-to-compile-body-sway-continuous-proof.md)。
 
 普通操作者优先使用[身体摆动设置](http://127.0.0.1:8765/idle-behavior-review.html)。页面自动选择无歧义项目、以 `project_id` 限定 list/detail 范围，并由服务端 exact replay 上游而隐藏文件/SHA 输入；P9 exact-chain cache 按 key single-flight 且命中仍做全字节 seal 重验，stored split revalidation 与 P10.2 derived cache 也只复用完整内容/身份 key 对应的可重建结果。history/head/CAS 与前后双快照继续实时读取，所有缓存均不落盘或授予 authority。CLI 保留给历史复验和专业排障。页面准备出的候选是 `unvalidated_draft`，必须由操作者在显示项目、动作、决定和后果的二次确认弹窗中提交才形成 P10.1 revision；所有取消路径零写入，且 P10.1 通过并不代替后续 P10.2、P10.3、P10.4a、P10.4b1 或 P10.4b2。
 
@@ -259,8 +262,17 @@ P3 profile-v1 只接受精确 `body.leg → thigh/calf` hinge。`body.arm.upper/
 | `compile-reviewed-seam-anchor-set` | 将 current ready head 发布为 reviewed seam set bundle |
 | `verify-reviewed-seam-anchor-set` | 只读复验一个精确历史 seam set bundle |
 | `compile-body-sway-dynamic-seam-probe` | 覆盖全部相邻 tick 和统一 gain 的 reviewed-anchor 点距代理 |
+| `compile-body-sway-dynamic-seam-probe-v2` | 从显式 P10.4b v2 run/proof SHA 与 P10.5c v1 双 SHA 编译、三次复核 current heads，并发布固定三文件 bundle |
+| `verify-body-sway-dynamic-seam-bundle-v2` | 按 probe/bundle 双 SHA 复验历史 exact bytes；不检查或授予 current authority |
 
-操作说明：[接缝候选](how-to-compile-seam-anchor-candidates.md)、[人工复核](how-to-review-seam-anchors.md)、[Reviewed Set](how-to-compile-reviewed-seam-anchor-set.md)、[动态探针](how-to-probe-body-sway-dynamic-seams.md)。
+操作说明：[接缝候选](how-to-compile-seam-anchor-candidates.md)、[人工复核](how-to-review-seam-anchors.md)、[Reviewed Set](how-to-compile-reviewed-seam-anchor-set.md)、[冻结 v1 动态探针](how-to-probe-body-sway-dynamic-seams.md)、[P10.5d v2 编译与复验](how-to-compile-body-sway-dynamic-seam-v2.md)。
+
+表中 `compile-body-sway-dynamic-seam-probe` 是冻结 P10.5d v1 入口，只接受 v1 proof。两个 v2
+命令已交付独立 path-free source closure、probe schema、pure analyzer/compiler/full-replay
+validator 和内容寻址 store/exact reader。compile 发布 `source/probe/bundle-manifest` 固定三文件
+inventory，并在分析前、发布前、发布后共三次复核 current heads；verify 只复验历史 exact bytes。
+server/job/UI 自动入口已接入，普通用户可从 P10.4b 完成态一键进入；真实样本 A 尚无 v2
+动态 probe 回执，必须等待当前 P10.4b run 完成并重启服务后执行。
 
 ### P10.6a：动作消费者准入
 
@@ -304,7 +316,7 @@ capture manifest 会记录 runtime JS/CSS、`package.json`、`LICENSE`、浏览�
 
 操作说明：[捕获并复核 P10.7b Spine 4.2 v3 Raster 证据](how-to-capture-spine42-v3-runtime.md)、[审计两份真实样本的 Spine 4.2 v3 就绪状态](how-to-audit-spine42-v3-readiness.md)。公开结构见 [request Schema](../schemas/spine42-v3-readiness-request-v1.schema.json) 与 [report Schema](../schemas/spine42-v3-readiness-report-v1.schema.json)；Schema 不替代 canonical/self-hash/dependency 的 Python 语义 validator。readiness v1 已冻结，第八项仍固定为 `p6_setup_golden_comparison_not_declared`。新增 P10.7c 不修改该合同；有效审计只说明本次显式地址的 preflight 结果，不等于 setup golden 对照或发布权。
 
-冻结的示例请求仍没有声明两项目的 P9 exact 地址，所以直接运行示例仍会报告 `exact_reviewed_motion_address_not_declared`；这不代表历史工件不存在。A 与 B 历史链的 P9 双 SHA 已通过独立 exact reader，见 [pilot handoff](pilots/kimodo-wave-left-v1.md)。A revision 6 已完成 current P9/P10.2 重建并接受 CaptureFraming revision 1；B revision 16 仍不能把历史 P9 或旧 P3 seam 结论写成当前链。A 的真实旧 P10.5c 静态接缝集仍可 exact replay，但冻结请求中的 `null` 不能替代 current-chain 声明。A 的六次失败 Runtime job 没有部分证据，runner 1.1.0 的后续 job 已完成 43/43，且 P10.3c v2 revision 1 已全部通过；P10.4a v2 只为后续安全分析准入该 current head，不能替代新链 seam/连续时间/发布验收。
+冻结的示例请求仍没有声明两项目的 P9 exact 地址，所以直接运行示例仍会报告 `exact_reviewed_motion_address_not_declared`；这不代表工件不存在。A 与 B 历史链的 P9 双 SHA 已通过独立 exact reader，见 [pilot handoff](pilots/kimodo-wave-left-v1.md)。A revision 6 已完成 current P9/P10、CaptureFraming、43/43 execution、P10.3c v2 revision 1 与 P10.5c 静态集；冻结请求中的 `null` 不能替代这些 current 地址。B revision 16 仍不能把历史 P9 或旧 P3 seam 结论写成当前链。P10.4a v2 和静态 P10.5c 都不能替代 P10.5d v2、连续视觉或发布验收。
 
 ### P10.7c：P6 Setup Golden 独立回归
 
@@ -339,6 +351,10 @@ P9、Idle 与 Seam 自动页面使用下列 package 资源；preflight 与 GET �
 | `GET .../visual-review-v2/candidates/{candidate}/history/{revision}/{decision}` | 读取一个精确 v2 decision | exact revision/decision 双地址；零写入 |
 | `PUT .../visual-review-v2/candidates/{candidate}/decisions` | 追加覆盖全部 case 的 v2 人工 decision | 独立 v2 intent、candidate 绑定和 head CAS；绝不自动批准 |
 | `GET /api/p10/runtime-capture/jobs/{job_id}/visual-review-v2/admission` | 重放 completed execution 与 current approved P10.3c v2 head，返回 canonical P10.4a v2 admission | 只接受完整 `job_id`；双快照观察只在 compile time 有效；零写入、path-free、`no-store`，release gate 固定 blocked |
+| `GET /api/p10/runtime-capture/jobs/{job_id}/visual-review-v2/safety-analysis-v2` | 快速获取 P10.4b v2 ready 或 active 入口状态 | 只恢复仍在执行的 run；terminal/no run 返回 ready，后续独立 worker 子进程重新编译 current admission，不复用历史完成结果；不猜 latest |
+| `POST .../safety-analysis-v2/runs` | 创建或恢复当前 job 的异步 combined analysis run | body 固定为空对象；要求 `X-Autospine-Intent: p10-body-sway-safety-analysis-v2`；exact replay 在低优先级子进程中执行，完整 proof 可能需较长时间；父进程独占事件/完成态写入，不写人工决定 |
+| `GET .../safety-analysis-v2/runs/{run_id}` | 查询 run 阶段、盒级心跳、进度和失败分类 | append-only 状态；`continuous_boxes` 表示首次细分，`continuous_validation` 显示第二遍精确重算的真实盒级进度；`failed_retryable` 与 `failed_terminal` 明确分离；旧 receipt 不可变，新尝试需二次确认 |
+| `GET .../safety-analysis-v2/runs/{run_id}/result` | 读取 amplitude/continuous 公共投影、claims、release gate 与两份内容地址回执 | HTTP 不返回可能含逻辑资源字段的完整 canonical 文档；`indeterminate` 是合法 completed proof，safe range 固定不可用 |
 | `GET /api/motion-policy/review-packages/{package_id}/seam-review-entry` | 零写入重放 exact package 与 Foot/Depth 共享 P3 来源，复验 P3 bundle，重新准备 P10.5b candidate | 不接受客户端 Manifest/P3 SHA；响应 path-free，只返回 exact 地址、candidate SHA、可观测性摘要与 blocker |
 | `POST /api/motion-policy/review-packages/{package_id}/seam-publications` | 从已提交的 current ready P10.5b decision 编译、发布并 exact-readback P10.5c | 独立 intent；只接受 package/candidate/revision/decision 身份，不接受路径或客户端上游地址；响应 path-free |
 | `POST /api/motion-policy/preflight` | 从原始 JSON 文本运行 inner strict decoder；`policy_identity` 返回 Python canonical SHA，`candidate_inventory` 解包受支持 envelope 后重算 policy/foot/depth 三 SHA、完整 standalone 合同、交叉绑定、四项计数及候选 ID 清单 SHA | loopback + exact same-origin、JSON、`X-Autospine-Intent: motion-policy-preflight-v1`；外层 48 MiB、内层 policy/foot/depth 1/16/16 MiB；不读路径、不写 state、不批准或发布 |
@@ -368,7 +384,7 @@ Preflight POST 只用于承载有界完整 JSON 文档，不代表 mutation。P9
 - resolved snapshot 已确定性生成并被下游寻址，现有独立 v1 JSON Schema、严格语义 validator、派生 QA 校验及 r5/r7 历史哈希回归；它仍没有独立 CLI/UI，外部 candidate/split artifact 字节重放继续由各自 binder 负责。
 - override history 已 append-only 保存，但主工作台尚无历史浏览/恢复 UI；安全恢复必须追加新 revision，不能改写历史。
 - P7 real-pilot intake 审计已经可用：它把真实 NPZ、recorded sidecar、map、camera 与两份 provenance 原件闭合为零写入 path-free 报告。`wave-left-v1` 已通过该审计并完成 P7/P8、历史 A/B P5 exact replay、正式 depth policy/depth candidates 和各自历史 P9 exact replay，身份集中记录在 [pilot handoff](pilots/kimodo-wave-left-v1.md)。Preflight 或辅助草稿本身仍不认证 checkpoint 或批准动作质量；B revision 16 的 current P9 必须在新链上重新 human adopt 并 exact verify。
-- P10 body-sway 已完成普通用户 P10.0/P10.1 review、P10.2 current-head 结构探针、P10.2a 离散 gain、P10.2b CaptureFraming，以及 package-centric Preview v2、exact session/runner、official Runtime execution store、异步 job、P10.3c v2 review 和 P10.4a v2 admission 合同。A revision 6 current chain 的 CaptureFraming 已接受 revision 1；runner 1.1.0 已完成 43/43，P10.3c v2 revision 1 已全部通过。P10.4a v2 现在只授予后续安全分析准入；P10.4b v2 、新链 seam/continuous proof 和 release authority 仍未交付。冻结 P10.4a/b1/b2 v1 始终不能消费 v2 head。B revision 16 仍须沿自己的链重建。
+- P10 body-sway 已交付到 P10.5d v2 自动入口，包括 CLI/store、BelowNormal worker、append-only attempts、父端 exact readback/current-head recheck 和页面。A revision 6 仍须等待当前 P10.4b run 完成并重启服务后真实执行；runtime/raster/overlap、可发布 safe range 和 release authority 仍缺失。冻结 v1 始终不能消费 v2 head。B revision 16 仍须沿自己的链重建。
 - `blink`、口型和头发目前只存在 idle candidate 类型或规划入口，没有可靠素材生成、绑定与 runtime 交付。
 - See-through/pose 推理、真实 Kimodo checkpoint authenticity/动作质量验收、实时追踪、自由形变、runtime IK、生产部署仍未实现。
 

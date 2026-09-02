@@ -83,7 +83,9 @@ def assess_body_sway_interval_box(
         vertices = skin_body_sway_interval_binding(pose, attachment.binding)
         vertex_count += len(vertices)
         for vertex in vertices:
-            margin = _canvas_margin(vertex, context.canvas_size)
+            margin = _canvas_margin(
+                vertex, context.canvas_origin, context.canvas_size,
+            )
             canvas_margin = min(canvas_margin, margin)
             if margin < 0.0:
                 reasons.add("canvas_containment_unproven")
@@ -150,12 +152,23 @@ def assess_body_sway_interval_box(
         edge_count=edge_count,
     )
 
-def _canvas_margin(vertex, canvas) -> float:
+def _canvas_margin(vertex, origin, canvas) -> float:
     x, y = vertex
+    # Keep the frozen v1 arithmetic byte-for-byte unchanged.  The reviewed
+    # viewport path uses the translated form below, while the legacy canvas
+    # still starts at the exact origin and therefore retains its old sequence
+    # of directed operations.
+    if origin == (0.0, 0.0):
+        return min(
+            x.lower, y.lower,
+            round_down(canvas[0] - x.upper),
+            round_down(canvas[1] - y.upper),
+        )
+    left, top = origin
+    right, bottom = left + canvas[0], top + canvas[1]
     return min(
-        x.lower, y.lower,
-        round_down(canvas[0] - x.upper),
-        round_down(canvas[1] - y.upper),
+        round_down(x.lower - left), round_down(y.lower - top),
+        round_down(right - x.upper), round_down(bottom - y.upper),
     )
 
 

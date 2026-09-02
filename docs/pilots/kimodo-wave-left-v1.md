@@ -1,8 +1,8 @@
 # Kimodo `wave-left-v1` Pilot Handoff
 
 本文是当前真实运行 pilot 的唯一身份记录，面向需要沿 exact 链继续 P9、seam 与 P10 的维护者。它固定
-`wave-left-v1` 的六输入准入、P7/P8、两个目标的历史 P5/P9、样本 A 的历史 P10.5b/P10.5c，以及
-随后形成的 A revision 6、B revision 16 新链草案，避免 README、路线图和操作手册重复抄写 SHA 后发生漂移。
+`wave-left-v1` 的六输入准入、P7/P8、两个目标的历史 P5/P9、样本 A 的历史与 revision 6 current
+P10.5b/P10.5c，以及 B revision 16 的阻塞状态，避免 README、路线图和操作手册重复抄写 SHA 后发生漂移。
 
 ## 已闭合的证据
 
@@ -165,6 +165,36 @@ exact replay。A revision 6 已改变 Manifest/P3/P5 身份，所以该静态 se
 连续 raster 安全或发布权；`dynamic_seam_safety_unproven`、`runtime_equivalence_unproven` 与
 `visual_seam_quality_unproven` 仍使 release gate 保持 blocked。
 
+## 样本 A revision 6 current 静态接缝凭据
+
+2026-09-02 重新核对内容寻址存储后，确认 A revision 6 的 current Manifest/P3 已经完成独立的
+P10.5b/P10.5c；它不是上节旧 revision 2 的迁移或别名。精确身份如下：
+
+| 地址 | SHA-256 / revision |
+| --- | --- |
+| P9 review package | `3767c3d7562983a81fc26d7cb965a827d549b55671ed5aee7783d0fbf40eb0be` |
+| Layer Manifest | `81bc00cbd0199bbdc77914c8a226cd14ffaf2dd4d287448f9b69fdddaa417641` |
+| P3 rig | `309e4ef123a45c0d86b22e0b3655dec94edbb23fc112d177a0721d75477a7ac3` |
+| P3 bundle | `92b398a89e12956ee37aa8f55abe9fb7d138898f7d19620cf6e53c753a75bd3b` |
+| P10.5b candidate | `ea1c0211c46b28ec6f609e8b79452881aec028add152ca7eacaa46f5bf40693e` |
+| P10.5b decision | `9db91b9ae425d0cdae3dcefc77c9bce8c01c84e5a08b38ec4e77b0e924c74d78` |
+| P10.5b review revision | `1`；`6/6 accept`；`24` anchor pairs |
+| P10.5c reviewed set | `00de666e1449ebd5b0a32560c736b68fa070a8499f1b59eb3da3989465090133` |
+| P10.5c bundle | `e23e3792ee9a68998bbc1bfd4ac7f2206c74d95545836321d57b12cae68713a0` |
+
+以下命令已经退出 `0`，返回 `status=verified` 与
+`artifact_status=reviewed_static_anchor_set_compiled`：
+
+```powershell
+python -B -m autospine_workbench verify-reviewed-seam-anchor-set seethrough_output `
+  --reviewed-set-sha256 00de666e1449ebd5b0a32560c736b68fa070a8499f1b59eb3da3989465090133 `
+  --bundle-sha256 e23e3792ee9a68998bbc1bfd4ac7f2206c74d95545836321d57b12cae68713a0 `
+  --state-root workspace
+```
+
+这只关闭 current setup 静态锚点集；冻结 P10.5d v1 仍只消费 P10.4b v1 proof。A 的下一开发门是
+新增 P10.5d v2，把 P10.4b v2 与上述 P10.5c v1 静态集显式组合，而不是再次要求人工复核六条关系。
+
 ## P10.1 current heads 与 P10.2 结构诊断
 
 2026-08-31 的 current-head 双快照读取与零写入 P10.2 编译结果如下。P10.2 report 没有发布到
@@ -193,8 +223,8 @@ mutable alias；SHA 是相同 exact 输入与固定算法重新编译所得的 c
 extent 改善约 `31.81%`。操作者已经完成这次确认并保存 revision 6；随后新
 Manifest/P2–P5、P9、P10.1 与 P10.2 已按 current 身份重建，CaptureFraming 已接受 revision 1。
 旧 P10 没有迁移到新链；当前 canvas-only P10.2 通过 package-centric P10.3 v2 承接，不能仅凭
-dynamic fit 进入官方 Runtime。runner 1.1.0 的后续 execution 已完成 43/43，P10.3c 仍无人工视觉
-revision。B 表中结果仍是 revision 16 之前的历史链证据。
+dynamic fit 进入官方 Runtime。runner 1.1.0 的后续 execution 已完成 43/43，P10.3c v2 revision 1
+已经批准全部 43 个 case。B 表中结果仍是 revision 16 之前的历史链证据。
 
 本轮读取性能优化不改变上述证据边界：stored split revalidation 缓存绑定
 source/preview/manifest 全字节、Resolved/decision 与 runtime，P9 exact replay 按 key
@@ -206,8 +236,8 @@ single-flight，list/detail 可按 `project_id` 限定范围；前后双快照�
 
 这份 handoff 只允许声明：该组 recorded 输入已经闭合、P7 结构编译与 exact replay 通过、
 显式相机的 P8 投影与 exact replay 通过、A/B 的历史 P5/P9 已从精确上游重放通过；A revision 6
-已完成 current P9/P10 重建并接受 CaptureFraming revision 1，B revision 16 已重建到 P5 并准备
-pending P9 草案；样本 A 旧链的 P10.5b/P10.5c 静态接缝身份仍可精确复验。
+已完成 current P9/P10、CaptureFraming 和 P10.5b/P10.5c 静态接缝闭合，B revision 16 已重建到 P5
+并准备 pending P9 草案；样本 A 的旧链与 current 链静态地址都能分别精确复验，但不得交叉组合。
 它不授予或证明：
 
 - 外部 checkpoint authenticity、模型或素材许可；
@@ -226,6 +256,7 @@ readiness 请求。任何输入、map、camera、compiler 或算法 profile 变�
 2. 从 Setup 拖动到时间轴末端，比较 21 组 base/body-sway；页面默认通过仅为本地草稿，操作者只剔除异常或标记无法判断，核对 current head 和最终声明后提交首个 revision。任何结果都不解除 release gate。
 3. 为 v2 head 新增独立 P10.4a v2 admission/consumer。现有 P10.4a/b1/b2 只消费冻结 v1 visual review，不能接收 v2 head；完成 v2 admission 后才继续 v2 幅度与连续证明。
 4. 样本 B 在 [Motion Policy 自动工作流](http://127.0.0.1:8765/motion-policy-review.html) 选择 revision 16 current 草案，生成正式 policy/Depth candidates/exact package，再完成独立 P9 human adoption；左腿 foot-lock 保持拒绝或不可观测。
-5. B 按新 P9 地址重建 P10.0/P10.1、重跑 P10.2；两个项目都按新 Manifest/P3 重建静态 seam candidate。旧 P10 与 A 旧 P10.5c 只供历史复验。
-6. 只有 v2 admission、相应动作域和新链 P10.5c 闭合后，才能组合新的 P10.5d；取景决定、completed execution 和 sampled still approval 都不单独授予动态 seam 或 release authority。
-7. 为 readiness 生成新的 strict canonical 请求，只写入实际最终采用并 exact verify 的 P9/P10 双 SHA；之后继续 P10.6–P10.7a、官方 Runtime capture、sampled raster 人审与独立 P10.7c setup golden 对照。
+5. A 直接使用本页 revision 6 current P10.5c 双 SHA 进入新的 P10.5d v2；不要重复提交六条静态关系，也不要把 v2 proof 交给冻结 P10.5d v1。
+6. B 按新 P9 地址重建 P10.0/P10.1、重跑 P10.2，并先解决四条下肢关系 `unobservable` 的素材/语义问题；在完整六关系合同闭合前不生成正式 P10.5c。
+7. 只有 v2 admission、相应动作域和同一 Manifest/P3 的 P10.5c 闭合后，才能组合 P10.5d v2；取景决定、completed execution 和 sampled still approval 都不单独授予动态 seam 或 release authority。
+8. 为 readiness 生成新的 strict canonical 请求，只写入实际最终采用并 exact verify 的 P9/P10 双 SHA；之后继续 P10.6–P10.7a、官方 Runtime capture、sampled raster 人审与独立 P10.7c setup golden 对照。

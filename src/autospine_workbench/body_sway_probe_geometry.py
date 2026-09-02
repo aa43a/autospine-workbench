@@ -133,7 +133,8 @@ def evaluate_prepared_body_sway_geometry_sample(
             elif type(attachment) is PreparedBodySwayRegion:
                 topology, assessment = "not_applicable", None
             outside = _outside(
-                attachment.attachment_id, posed, context.canvas_size
+                attachment.attachment_id, posed,
+                context.canvas_origin, context.canvas_size,
             )
             failures.extend(outside)
             results.append(BodySwayAttachmentGeometry(
@@ -196,13 +197,15 @@ def _world_geometry(bones, rotations, translation):
     )
 
 
-def _outside(identifier, vertices, canvas):
+def _outside(identifier, vertices, origin, canvas):
     failures = []
+    left, top = origin
+    right, bottom = left + canvas[0], top + canvas[1]
     for index, position in enumerate(vertices):
         x, y = position
         sides = tuple(name for name, failed in (
-            ("left", x < 0.0), ("right", x > canvas[0]),
-            ("top", y < 0.0), ("bottom", y > canvas[1]),
+            ("left", x < left), ("right", x > right),
+            ("top", y < top), ("bottom", y > bottom),
         ) if failed)
         if sides:
             failures.append(

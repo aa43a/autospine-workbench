@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import {
@@ -7,6 +8,7 @@ import {
 import {
   normalizeReviewAdmissionV2, reviewAdmissionV2Href, reviewAdmissionV2Path,
 } from "../modules/body-sway-review-admission-v2-contract.js";
+import { safetyAnalysisV2Href } from "../modules/body-sway-safety-analysis-v2-contract.js";
 import {
   renderReviewAdmissionHandoff,
 } from "../modules/body-sway-review-v2-handoff.js";
@@ -62,6 +64,10 @@ test("job-only P10.4a v2 paths never require file or SHA input", () => {
   assert.equal(
     reviewAdmissionV2Href(JOB),
     `./body-sway-review-admission-v2.html?job_id=${JOB}`,
+  );
+  assert.equal(
+    safetyAnalysisV2Href(JOB),
+    `./body-sway-safety-analysis-v2.html?job_id=${JOB}`,
   );
   assert.throws(() => reviewAdmissionV2Path("latest"), /capture job ID/i);
 });
@@ -129,4 +135,16 @@ test("P10.3c handoff appears only for an approved submitted or current head", ()
     status: "sampled_visual_rejected", revision: 2,
   });
   assert.equal(nodes.get("#reviewAdmissionHandoff").hidden, true);
+});
+
+test("P10.4a exposes the job-only P10.4b handoff only from its success renderer", async () => {
+  const root = new URL("../", import.meta.url);
+  const [html, view] = await Promise.all([
+    readFile(new URL("body-sway-review-admission-v2.html", root), "utf8"),
+    readFile(new URL("modules/body-sway-review-admission-v2-view.js", root), "utf8"),
+  ]);
+  assert.match(html, /id="safetyAnalysisLink"[^>]*[\s\S]*?hidden/);
+  assert.match(view, /elements\.safetyLink\.href = safetyAnalysisV2Href\(value\.jobId\)/);
+  assert.match(view, /elements\.safetyLink\.hidden = false/);
+  assert.match(view, /renderLoading[\s\S]*?elements\.safetyLink\.hidden = true/);
 });
