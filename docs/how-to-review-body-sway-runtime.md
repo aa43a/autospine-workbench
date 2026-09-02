@@ -10,8 +10,8 @@
 
 当前样本 A 已由 runner 1.1.0 完成一次 43/43 的真实 Runtime 采集，job
 `d7150fa1f63999d669ebb8ae58aec64e4a2afbe392d8ac9555beb0810fb8fb13` 可进入本页；它的
-v2 review history 仍为 revision 0，尚无人工视觉决定。页面生成的默认通过草稿只在浏览器内存中，
-不会自动写入 revision，也不代表批准。
+v2 review history 已有全部 43 帧通过的 revision 1。页面生成的默认通过草稿仍只在浏览器内存中，
+不会自动写入新 revision，也不代表新的批准。
 
 ## 1. 从完成的 job 进入
 
@@ -116,6 +116,6 @@ v2 使用独立 namespace，并以四段地址读取 authoritative execution：
 - 解除发布门禁；
 - 自动生成 MotionInstance v3 或最终 Spine 动画。
 
-若采样通过，后续必须先实现独立的 P10.4a v2 admission/consumer 适配，才能进入 v2 幅度与连续安全工作。现有 `BodySwayReviewAdmission v1` 只消费冻结 v1 visual review，不能读取或替代 v2 head。若采样失败，回到绑定、动作参数、framing 或资产修正相应来源后，创建新的 Preview v2 和 execution，不要覆盖旧证据。
+若采样通过，提交成功区会显示携带当前 `job_id` 的“继续 P10.4a v2 准入”入口。打开后页面会自动复验 completed execution 与 current approved head，不要填写 SHA 或重选文件。成功只表示可进入后续安全分析，release 仍 blocked。详细步骤见[进入 P10.4a v2 安全分析准入](how-to-admit-body-sway-review-v2.md)。冻结 `BodySwayReviewAdmission v1` 只消费 v1 visual review，不能读取或替代 v2 head。若采样失败，回到绑定、动作参数、framing 或资产修正相应来源后，创建新的 Preview v2 和 execution，不要覆盖旧证据。
 
 开发者修改 v2 复核合同时，应运行对应的 v2 candidate/history/decision/store 与 HTTP/UI 定向测试，并保留冻结 v1 回归。真实 Runtime 测试仍必须由有授权的操作者显式启动；测试通过本身不代表样本已被人工批准。

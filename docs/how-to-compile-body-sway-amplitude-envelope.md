@@ -1,5 +1,8 @@
 # 编译 body-sway 幅度包络候选
 
+> **冻结 v1 历史入口。** 本命令只接受 `BodySwayReviewAdmission v1`，不能消费
+> P10.4a v2 admission。当前 v2 链必须等待独立的 P10.4b v2 合同和入口。
+
 本步骤是 P10.4b1。它从一个仍为当前 head 的 `sampled_visual_approved`
 复核结果，生成九个只读、可重放的离散结构候选。输出不是安全证书，不会发布
 MotionInstance v3，也不会修改 state tree。

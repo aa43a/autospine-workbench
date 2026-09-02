@@ -247,6 +247,16 @@ dialog::backdrop { background: rgb(0 0 0 / 70%); }
 .confirm-attestation span { color: var(--text); font-size: 0.9rem; }
 .dialog-actions { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem; }
 
+.review-admission-handoff {
+  margin-block-start: 1rem;
+  padding: 0.85rem;
+  border: 1px solid var(--accent);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--accent-dark) 70%, var(--panel));
+}
+
+.review-admission-handoff .button { margin-block-start: 0.75rem; }
+
 @media (max-width: 800px) {
   .frame-compare { grid-template-columns: minmax(0, 1fr); }
   .timeline-meta { display: grid; }

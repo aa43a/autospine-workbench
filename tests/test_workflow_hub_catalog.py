@@ -41,15 +41,15 @@ class WorkflowHubCatalogTests(unittest.TestCase):
             entry["command"] for entry in self.entries
             if entry["kind"] == "cli"
         }
-        self.assertEqual(66, len(commands))
+        self.assertEqual(68, len(commands))
         self.assertEqual(commands, catalog_commands)
 
     def test_entries_have_unique_ids_and_supported_taxonomy(self) -> None:
         ids = [entry["id"] for entry in self.entries]
         self.assertEqual(len(ids), len(set(ids)))
-        self.assertEqual(92, len(ids))
+        self.assertEqual(95, len(ids))
         self.assertEqual(
-            {"cli": 66, "page": 8, "planned": 18},
+            {"cli": 68, "page": 9, "planned": 18},
             {
                 kind: sum(entry["kind"] == kind for entry in self.entries)
                 for kind in ("cli", "page", "planned")
@@ -79,6 +79,7 @@ class WorkflowHubCatalogTests(unittest.TestCase):
         expected = {
             "./index.html",
             "./body-sway-probe.html",
+            "./body-sway-review-admission-v2.html",
             "./body-sway-review.html",
             "./body-sway-review-v2.html",
             "./body-sway-runtime-capture.html",
@@ -92,9 +93,9 @@ class WorkflowHubCatalogTests(unittest.TestCase):
         for href in pages:
             self.assertTrue((ROOT / "web" / href.removeprefix("./")).is_file())
 
-    def test_current_stage_names_the_job_visual_review_workflow(self) -> None:
+    def test_current_stage_names_the_v2_review_admission_workflow(self) -> None:
         self.assertEqual(
-            "P10.3c-job-visual-review-v2",
+            "P10.4a-v2-review-admission",
             self.catalog["current_stage"],
         )
         entry = next(
@@ -103,7 +104,13 @@ class WorkflowHubCatalogTests(unittest.TestCase):
         )
         self.assertEqual("./body-sway-review-v2.html", entry["href"])
         self.assertIn("不显示或填写 SHA", entry["summary"])
-        self.assertIn("不默认批准", entry["summary"])
+        admission = next(
+            entry for entry in self.entries
+            if entry["id"] == "page-body-sway-review-admission-v2"
+        )
+        self.assertEqual("./body-sway-review-admission-v2.html", admission["href"])
+        self.assertIn("无需选择文件或填写 SHA", admission["summary"])
+        self.assertIn("发布门禁仍阻塞", admission["summary"])
 
     def test_motion_policy_page_describes_python_preflight_without_authority(self) -> None:
         entry = next(

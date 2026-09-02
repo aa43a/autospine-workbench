@@ -20,14 +20,17 @@ for candidate in (ROOT, SRC):
     if str(candidate) not in sys.path:
         sys.path.insert(0, str(candidate))
 
-from autospine_workbench.body_sway_visual_review_errors_v2 import (  # noqa: E402
-    BodySwayVisualReviewRevisionV2Conflict,
-)
 from autospine_workbench.body_sway_visual_review_application_v2 import (  # noqa: E402
     BodySwayVisualReviewApplicationV2Error,
 )
 from autospine_workbench.p10_capture_job_contract import (  # noqa: E402
-    P10CaptureJobRequest,
+    P10CaptureJobEvent, P10CaptureJobRequest,
+)
+from autospine_workbench.p10_capture_job_store import (  # noqa: E402
+    P10CaptureJobSnapshot,
+)
+from autospine_workbench.p10_completed_job_snapshot import (  # noqa: E402
+    verified_completed_p10_capture_job,
 )
 from autospine_workbench.p10_preview_v2_commands import (  # noqa: E402
     P10PreviewV2CommandError,
@@ -47,6 +50,12 @@ from autospine_workbench.server import create_server  # noqa: E402
 from tests.p10_visual_review_v2_http_session_cases import (  # noqa: E402
     P10VisualReviewV2ImageSessionHttpCases,
 )
+from tests.p10_visual_review_v2_http_route_cases import (  # noqa: E402
+    P10VisualReviewV2RouteHttpCases,
+)
+from tests.p10_review_admission_v2_http_cases import (  # noqa: E402
+    P10ReviewAdmissionV2HttpCases,
+)
 from tests.test_project_store import StoreFixture  # noqa: E402
 
 
@@ -54,7 +63,8 @@ SHA = lambda value: value * 64
 
 
 class P10VisualReviewV2HttpTests(
-    P10VisualReviewV2ImageSessionHttpCases,
+    P10VisualReviewV2ImageSessionHttpCases, P10VisualReviewV2RouteHttpCases,
+    P10ReviewAdmissionV2HttpCases,
     unittest.TestCase,
 ):
     def setUp(self):
@@ -80,11 +90,7 @@ class P10VisualReviewV2HttpTests(
             "project": "fixture-project", "preview": SHA("6"),
             "execution_bundle": SHA("7"), "artifact": SHA("8"),
         }
-        self.snapshot = {
-            "job_id": self.job_id, "request": request.public_document(),
-            "status": "completed", "terminal": True, "retryable": False,
-            "addresses": self.addresses,
-        }
+        self.snapshot = _completed_snapshot(request, self.addresses)
         self.manager = Mock()
         self.manager.get.return_value = self.snapshot
         self.manager.close = Mock()
@@ -101,8 +107,13 @@ class P10VisualReviewV2HttpTests(
             self.addresses["execution_bundle"], self.addresses["artifact"],
         )
         self.mount = SimpleNamespace(result=self.preview)
+        completed_job = verified_completed_p10_capture_job(
+            self.snapshot, self.job_id,
+        )
         self.context = P10VisualReviewV2Context(
             self.job_id, SHA("5"), self.address, self.mount,
+            completed_job.terminal_event_sha256,
+            completed_job.terminal_sequence, completed_job,
         )
         self.resolve_acceleration = []
 
@@ -183,6 +194,7 @@ class P10VisualReviewV2HttpTests(
                 return_value=self.service,
             ),
         ]
+        self.configure_review_admission_v2_http()
         for value in self.patches:
             value.start()
         self.server = create_server(
@@ -295,52 +307,6 @@ class P10VisualReviewV2HttpTests(
         self.assertEqual("visual_review_v2_source_changed", value["error"])
         self.service.prepare_image_snapshot.assert_called_once()
 
-    def test_wrong_intent_is_zero_replay_and_v1_intent_is_rejected(self):
-        endpoint = f"{self.base}/candidates/{self.candidate_sha}/decisions"
-        for intent in ("body-sway-visual-review",
-                       "p10-official-runtime-capture-v2"):
-            with self.subTest(intent=intent):
-                status, _, value = self.json_request(
-                    "PUT", endpoint,
-                    {"candidate_sha256": self.candidate_sha},
-                    self.mutation_headers(intent),
-                )
-                self.assertEqual(403, status)
-                self.assertEqual("forbidden_intent", value["error"])
-        self.manager.get.assert_not_called()
-        self.service.submit.assert_not_called()
-
-    def test_incomplete_or_changed_source_returns_actionable_409(self):
-        self.manager.get.return_value = {
-            **self.snapshot, "status": "capturing",
-            "terminal": False, "addresses": None,
-        }
-        status, _, value = self.json_request("GET", f"{self.base}/candidate")
-        self.assertEqual(409, status)
-        self.assertEqual("runtime_capture_job_not_completed", value["error"])
-
-        self.manager.get.return_value = self.snapshot
-        self.preview.temporary_preview_v2_sha256 = SHA("0")
-        status, _, value = self.json_request("GET", f"{self.base}/candidate")
-        self.assertEqual(409, status)
-        self.assertEqual("visual_review_v2_source_changed", value["error"])
-
-    def test_revision_conflict_is_409_and_does_not_leak_private_error(self):
-        private = r"C:\Users\private\decision.json"
-        self.service.submit.side_effect = BodySwayVisualReviewRevisionV2Conflict(
-            private, requested_revision=1, current_revision=2,
-            requested_head=None, current_head=self.decision_sha,
-        )
-        endpoint = f"{self.base}/candidates/{self.candidate_sha}/decisions"
-        status, _, value = self.json_request(
-            "PUT", endpoint, {"candidate_sha256": self.candidate_sha},
-            self.mutation_headers(),
-        )
-        self.assertEqual(409, status)
-        self.assertEqual("body_sway_visual_review_v2_revision_conflict",
-                         value["error"])
-        self.assertNotIn(private, json.dumps(value))
-
     def test_mount_time_head_drift_is_409_and_zero_write(self):
         before = _tree(self.fixture.state)
 
@@ -362,24 +328,23 @@ class P10VisualReviewV2HttpTests(
         self.assertEqual("visual_review_v2_source_changed", value["error"])
         self.assertEqual(before, _tree(self.fixture.state))
 
-    def test_options_wrong_methods_and_page_csp_are_version_aware(self):
-        endpoint = f"{self.base}/candidates/{self.candidate_sha}/decisions"
-        status, headers, raw = self.request(
-            "OPTIONS", endpoint, headers=self.mutation_headers(),
+def _completed_snapshot(request, addresses):
+    rows = (
+        ("queued", {}), ("exact_replay", {}),
+        ("preview_compiled", {}), ("runtime_verified", {}),
+        ("capturing", {"current": 1, "total": 1}),
+        ("sealing", {}), ("completed", {"addresses": addresses}),
+    )
+    events = []
+    previous = None
+    for sequence, (status, payload) in enumerate(rows, 1):
+        event = P10CaptureJobEvent.build(
+            request.job_id, sequence, status,
+            previous.event_sha if previous else None, **payload,
         )
-        self.assertEqual((204, b""), (status, raw))
-        self.assertEqual("PUT, OPTIONS", headers["allow"])
-        for method in ("POST", "PATCH", "DELETE"):
-            with self.subTest(method=method):
-                status, headers, value = self.json_request(method, endpoint, {})
-                self.assertEqual(405, status)
-                self.assertEqual("PUT, OPTIONS", headers["allow"])
-                self.assertEqual("method_not_allowed", value["error"])
-
-        status, headers, raw = self.request("GET", "/body-sway-review-v2.html")
-        self.assertEqual(200, status)
-        self.assertTrue(raw)
-        self.assertIn("default-src 'self'", headers["content-security-policy"])
+        events.append(event)
+        previous = event
+    return P10CaptureJobSnapshot(request, tuple(events)).public_document()
 
 
 def _tree(root):

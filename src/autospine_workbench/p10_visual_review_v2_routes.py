@@ -69,6 +69,7 @@ from .p10_visual_review_v2_http_responses import (
     source_changed as _source_changed,
 )
 from .project_store import ProjectStore
+from . import p10_review_admission_v2_http as admission_v2
 
 
 SendJson = Callable[[int, Any], None]
@@ -116,6 +117,11 @@ def dispatch_p10_visual_review_v2_get(
         )
         if leased is not None:
             send_review_image(send_bytes, leased)
+            return True
+        if tail == ["admission"]:
+            admission_v2.send_body_sway_review_admission_v2(
+                manager, store, parts[4], send_json,
+            )
             return True
         context = resolve_p10_visual_review_v2_context(
             manager, store, parts[4],

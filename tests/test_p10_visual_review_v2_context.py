@@ -16,7 +16,10 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from autospine_workbench.p10_capture_job_contract import (  # noqa: E402
-    P10CaptureJobRequest,
+    P10CaptureJobEvent, P10CaptureJobRequest,
+)
+from autospine_workbench.p10_capture_job_store import (  # noqa: E402
+    P10CaptureJobSnapshot,
 )
 from autospine_workbench.p10_visual_review_v2_context import (  # noqa: E402
     P10VisualReviewV2JobIncomplete, P10VisualReviewV2JobNotFound,
@@ -55,12 +58,7 @@ class P10VisualReviewV2ContextTests(unittest.TestCase):
             "project": "sample-a", "preview": SHA("6"),
             "execution_bundle": SHA("7"), "artifact": SHA("8"),
         }
-        self.snapshot = {
-            "job_id": self.request.job_id,
-            "request": self.request.public_document(),
-            "status": "completed", "terminal": True, "retryable": False,
-            "addresses": self.addresses,
-        }
+        self.snapshot = _completed_snapshot(self.request, self.addresses)
         self.manager = Mock(spec_set=["get"])
         self.manager.get.return_value = self.snapshot
         self.store = SimpleNamespace(
@@ -147,6 +145,13 @@ class P10VisualReviewV2ContextTests(unittest.TestCase):
         rig.cache.save.assert_not_called()
         rig.token_builder.assert_called_once_with(self.record, self.execution)
         self.assertIs(context.preview, self.verified)
+        self.assertEqual(
+            context.job_head_event_sha256,
+            self.snapshot["head_event_sha"],
+        )
+        self.assertEqual(
+            context.job_event_count, self.snapshot["event_count"],
+        )
         self.assertEqual(tuple(self.addresses.values()), (
             context.address.project_id,
             context.address.temporary_preview_v2_sha256,
@@ -282,6 +287,36 @@ class P10VisualReviewV2ContextTests(unittest.TestCase):
                 rig.reader_type.assert_not_called()
                 rig.cache_type.assert_not_called()
                 rig.compiler.assert_not_called()
+
+    def test_tampered_completed_event_chain_is_rejected_before_replay(self):
+        changed = dict(self.snapshot)
+        changed["head_event_sha"] = SHA("e")
+        self.manager.get.return_value = changed
+        with self.harness(cache_record=self.record) as rig, \
+                self.assertRaises(P10VisualReviewV2JobNotFound):
+            self.resolve()
+        rig.reader_type.assert_not_called()
+        rig.cache_type.assert_not_called()
+        rig.compiler.assert_not_called()
+
+
+def _completed_snapshot(request, addresses):
+    rows = (
+        ("queued", {}), ("exact_replay", {}),
+        ("preview_compiled", {}), ("runtime_verified", {}),
+        ("capturing", {"current": 1, "total": 1}),
+        ("sealing", {}), ("completed", {"addresses": addresses}),
+    )
+    events = []
+    previous = None
+    for sequence, (status, payload) in enumerate(rows, 1):
+        event = P10CaptureJobEvent.build(
+            request.job_id, sequence, status,
+            previous.event_sha if previous else None, **payload,
+        )
+        events.append(event)
+        previous = event
+    return P10CaptureJobSnapshot(request, tuple(events)).public_document()
 
 
 if __name__ == "__main__":

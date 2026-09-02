@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from .body_sway_runtime_execution_reader import (
@@ -19,6 +19,10 @@ from .p10_capture_job_manager import (
     P10CaptureJobManager, P10CaptureJobManagerError,
 )
 from .p10_capture_job_store import P10CaptureJobStoreError
+from .p10_completed_job_snapshot import (
+    P10CompletedJobSnapshotError, VerifiedCompletedP10CaptureJob,
+    verified_completed_p10_capture_job,
+)
 from .p10_preview_v2_result import P10PreviewV2CommandError
 from .p10_preview_v2_service import (
     compile_cached_body_sway_preview_v2_record,
@@ -61,6 +65,9 @@ class P10VisualReviewV2Context:
     package_id: str
     address: ExactVisualReviewAddressV2
     preview: VerifiedP10VisualReviewV2Mount
+    job_head_event_sha256: str
+    job_event_count: int
+    _completed_job: VerifiedCompletedP10CaptureJob = field(repr=False)
 
     def public_job(self) -> dict[str, Any]:
         return {
@@ -101,15 +108,15 @@ def resolve_p10_visual_review_v2_context(
             "Runtime capture job has not completed"
         )
     try:
-        addresses = snapshot["addresses"]
-        if type(addresses) is not dict or set(addresses) != {
-            "project", "preview", "execution_bundle", "artifact",
-        }:
-            raise ValueError("address fields differ")
-        address = ExactVisualReviewAddressV2(
-            addresses["project"], addresses["preview"],
-            addresses["execution_bundle"], addresses["artifact"],
+        completed_job = verified_completed_p10_capture_job(
+            snapshot, expected_job,
         )
+    except P10CompletedJobSnapshotError as exc:
+        raise P10VisualReviewV2JobNotFound(
+            "Runtime capture job snapshot is invalid"
+        ) from exc
+    try:
+        address = completed_job.address
         if type(allow_acceleration) is not bool:
             raise ValueError("acceleration policy is invalid")
         execution = VerifiedBodySwayRuntimeExecutionReader(
@@ -142,7 +149,9 @@ def resolve_p10_visual_review_v2_context(
             "Current P10.1 or capture framing differs from the completed job"
         ) from exc
     return P10VisualReviewV2Context(
-        expected_job, request.document["package_id"], address, preview,
+        completed_job.job_id, completed_job.package_id, address, preview,
+        completed_job.terminal_event_sha256,
+        completed_job.terminal_sequence, completed_job,
     )
 
 

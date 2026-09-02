@@ -1,8 +1,11 @@
-# 准入已批准的 body-sway 视觉复核头
+# 准入已批准的 body-sway 视觉复核头（冻结 v1）
 
-本文说明如何把 P10.3c 的当前 `sampled_visual_approved` revision 编译为
+本文只说明冻结 P10.3c v1 链：如何把当前 `sampled_visual_approved` revision 编译为
 `BodySwayReviewAdmission v1`。该文档是进入后续安全范围与连续时间分析的只读交接合同，
 不是 MotionInstance v3、Spine timeline 或发布许可证。
+
+它不能消费 completed v2 job 或 P10.3c v2 head。普通 v2 流程请使用
+[P10.4a v2 自动准入页面](how-to-admit-body-sway-review-v2.md)，不要把 v2 地址手工填入本命令。
 
 ## 前置条件
 

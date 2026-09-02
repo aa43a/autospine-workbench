@@ -25,7 +25,7 @@ def image_tail(tail: list[str]) -> bool:
 
 
 def read_route_shape(tail: list[str]) -> bool:
-    return tail == ["candidate"] \
+    return tail in (["candidate"], ["admission"]) \
         or len(tail) == 3 and tail[0] == "candidates" \
             and tail[2] == "history" \
         or len(tail) == 5 and tail[0] == "candidates" \

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0b0e14">
+  <title>P10.4a v2 视觉复核准入 — AutoSpine</title>
+  <link rel="stylesheet" href="./body-sway-review.css">
+  <link rel="stylesheet" href="./body-sway-review-admission-v2.css">
+</head>
+<body>
+  <a class="skip-link" href="#admissionMain">跳到准入结果</a>
+  <header class="review-topbar">
+    <div>
+      <p class="eyebrow">P10.4a v2 · AUTOMATIC READ-ONLY ADMISSION</p>
+      <h1>视觉复核自动准入检查</h1>
+    </div>
+    <nav class="review-nav" aria-label="工作台导航">
+      <a class="button secondary" href="./body-sway-runtime-capture.html">Runtime 采集</a>
+      <a class="button secondary" href="./workflow-hub.html">功能入口中心</a>
+      <a class="button secondary" href="./index.html">绑定工作台</a>
+    </nav>
+  </header>
+
+  <main id="admissionMain">
+    <section class="panel admission-entry" aria-labelledby="entryHeading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">AUTOMATIC ENTRY</p>
+          <h2 id="entryHeading">从当前已批准复核自动准入</h2>
+        </div>
+        <span id="admissionBadge" class="gate-badge">等待任务</span>
+      </div>
+      <p class="lede">
+        页面只读取 URL 中的完整 job_id，并由本地服务重放 completed execution、当前 P10.3c v2
+        决定和前后两次 history。无需选择文件、填写 SHA 或再次批准。
+      </p>
+      <p id="admissionStatus" class="status-line" role="status" aria-live="polite">
+        正在读取任务…
+      </p>
+    </section>
+
+    <section id="admissionResult" class="result-layout" hidden>
+      <section class="panel result-panel" aria-labelledby="resultHeading">
+        <p class="eyebrow">COMPILE-TIME ADMISSION</p>
+        <h2 id="resultHeading">当前视觉复核头已准入</h2>
+        <dl id="admissionFacts" class="admission-facts"></dl>
+        <h3>本次准入确认</h3>
+        <ul id="admissionClaims" class="claim-list"></ul>
+      </section>
+
+      <aside class="panel blocker-panel" aria-labelledby="blockerHeading">
+        <p class="eyebrow">RELEASE STILL BLOCKED</p>
+        <h2 id="blockerHeading">这还不是可发布动画</h2>
+        <p class="lede">P10.4a 只确认当前 sampled visual head 可供后续分析使用。</p>
+        <ul id="releaseBlockers" class="blocker-list"></ul>
+        <p class="next-note">
+          下一项是独立的 P10.4b v2 幅度与连续证明；在该入口交付前，不会自动进入旧 v1 链。
+        </p>
+      </aside>
+
+      <details class="panel technical-panel">
+        <summary>技术详情：canonical admission</summary>
+        <p>Admission SHA-256</p>
+        <code id="admissionDigest" class="digest"></code>
+        <pre id="technicalDocument" class="technical-document"></pre>
+      </details>
+    </section>
+
+    <section id="admissionFailure" class="panel failure-panel" hidden
+      aria-labelledby="failureHeading">
+      <p class="eyebrow">SAFE RECOVERY</p>
+      <h2 id="failureHeading">没有生成准入结论</h2>
+      <p class="lede">
+        系统不会扫描目录或猜测 latest。请从原视觉复核任务重新进入，或返回采集页检查当前来源。
+      </p>
+      <div class="failure-actions">
+        <button id="retryAdmissionBtn" class="button primary" type="button">重新校验</button>
+        <a id="returnToReviewLink" class="button secondary" href="./body-sway-review-v2.html">
+          返回视觉复核
+        </a>
+        <a class="button secondary" href="./body-sway-runtime-capture.html">返回 Runtime 采集</a>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="./modules/body-sway-review-admission-v2-app.js"></script>
+</body>
+</html>

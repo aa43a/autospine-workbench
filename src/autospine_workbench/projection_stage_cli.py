@@ -59,6 +59,10 @@ from .p10_review_admission_cli import (
     add_p10_review_admission_subcommands,
     dispatch_p10_review_admission_command,
 )
+from .p10_review_admission_v2_cli import (
+    add_p10_review_admission_v2_subcommands,
+    dispatch_p10_review_admission_v2_command,
+)
 from .p10_amplitude_envelope_cli import (
     add_p10_amplitude_envelope_subcommands,
     dispatch_p10_amplitude_envelope_command,
@@ -151,6 +155,7 @@ def add_projection_stage_subcommands(subparsers: Any, state_root: Path) -> None:
     add_p10_runtime_capture_subcommands(subparsers, state_root)
     add_p10_visual_review_subcommands(subparsers, state_root)
     add_p10_review_admission_subcommands(subparsers, state_root)
+    add_p10_review_admission_v2_subcommands(subparsers, state_root)
     add_p10_amplitude_envelope_subcommands(subparsers, state_root)
     add_p10_continuous_proof_subcommands(subparsers, state_root)
     add_p10_dynamic_seam_subcommands(subparsers, state_root)
@@ -229,6 +234,9 @@ def dispatch_projection_stage_command(args: argparse.Namespace) -> int | None:
             if status is not None:
                 return status
             status = dispatch_p10_review_admission_command(args)
+            if status is not None:
+                return status
+            status = dispatch_p10_review_admission_v2_command(args)
             if status is not None:
                 return status
             status = dispatch_p10_amplitude_envelope_command(args)

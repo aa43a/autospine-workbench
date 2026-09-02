@@ -14,6 +14,7 @@ import {
 } from "./body-sway-review-state.js";
 import { createDefaultApproveDraft } from "./body-sway-review-v2-timeline-model.js";
 import { createBodySwayReviewTimeline } from "./body-sway-review-v2-timeline.js";
+import { renderReviewAdmissionHandoff } from "./body-sway-review-v2-handoff.js";
 import {
   announce, renderBaseline, renderCandidate, renderDecisionSummary,
   renderHistory, renderJobFacts, reviewV2Elements, setLocked, setStatus,
@@ -121,6 +122,7 @@ async function loadHistory(token = generation, supplied = null) {
     stale: false,
   };
   renderHistory(elements, state.history);
+  renderReviewAdmissionHandoff(document, job.job_id, value.items.at(-1));
   elements.decisionSummary.textContent = "—";
   setStatus(elements.historySelectionStatus, "尚未选择历史 revision。");
   setStatus(elements.baselineStatus, "尚未选择提交基线。");
@@ -235,6 +237,7 @@ async function submitConfirmedReview() {
       baseline: null, stale: false,
     };
     setStatus(elements.submitStatus, `提交成功：revision ${result.revision}。`, "success");
+    renderReviewAdmissionHandoff(document, job.job_id, result);
     announce(elements, `视觉复核 revision ${result.revision} 已提交`);
     await loadHistory(token);
   } catch (error) {

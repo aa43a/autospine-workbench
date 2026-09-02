@@ -1,5 +1,8 @@
 # 编译 body-sway 连续预览模型证明
 
+> **冻结 v1 历史入口。** 本命令只重放 v1 amplitude candidate，不能消费
+> P10.4a v2 admission。当前 v2 链必须等待独立的 P10.4b v2 合同和入口。
+
 本步骤是 P10.4b2。它重放 P10.4b1 的精确输入，在已复核四骨幅度向量的
 统一 gain 射线 `λ∈[0,1]` 上，对临时 preview 的每一对相邻 sampled-linear key
 做保守区间分析。它可以证明固定预览数学模型的结构性质，但不会生成
