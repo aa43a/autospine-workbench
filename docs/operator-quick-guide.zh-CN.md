@@ -393,8 +393,10 @@ python -B -m autospine_workbench compile-body-sway-motion-consumer-admission-v2 
 
 旧命令 `compile-body-sway-motion-consumer-admission` 已冻结，只用于 P10.5d v1 历史链。
 冻结[编译并复验 P10.6b MotionInstance v3](how-to-compile-motion-instance-v3.md)也只消费
-P10.6a v1 成功输出；不要把 v2 admission 交给它。P10.6b v2 已提供无需保存 admission 文件的
-自动入口，payload 仍保持 MotionInstance v3，但 bundle/run/source contract 为 v2：
+P10.6a v1 成功输出；不要把 v2 admission 交给它。普通操作者应在 certified 的 P10.5d v2
+完成页点击“继续生成 MotionInstance v3”。[自动页面](http://127.0.0.1:8765/motion-instance-v3-v2.html)
+会携带精确任务地址、生成并读回三文件 bundle；无需选择项目、文件或填写 SHA。失败重试会先
+要求确认并保留旧 attempt。以下命令只供专业地址编译与复验：
 
 ```powershell
 python -B -m autospine_workbench compile-body-sway-motion-instance-v3-v2 --help

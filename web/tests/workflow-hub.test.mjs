@@ -33,7 +33,9 @@ const EXPECTED_COMMANDS = [
   "compile-body-sway-dynamic-seam-probe",
   "compile-body-sway-dynamic-seam-probe-v2", "verify-body-sway-dynamic-seam-bundle-v2",
   "compile-body-sway-motion-consumer-admission",
+  "compile-body-sway-motion-consumer-admission-v2",
   "compile-body-sway-motion-instance-v3", "verify-body-sway-motion-instance-v3",
+  "compile-body-sway-motion-instance-v3-v2", "verify-body-sway-motion-instance-v3-v2",
   "compile-body-sway-spine42-v3", "verify-body-sway-spine42-v3",
   "capture-body-sway-spine42-v3-runtime", "verify-body-sway-spine42-v3-runtime",
   "prepare-body-sway-spine42-v3-raster-review",
@@ -45,10 +47,10 @@ const EXPECTED_COMMANDS = [
   "compile-reviewed-seam-anchor-set", "verify-reviewed-seam-anchor-set",
 ];
 
-test("catalog is valid and matches all 71 CLI entry points", () => {
+test("catalog is valid and matches all 74 CLI entry points", () => {
   assert.equal(validateCatalog(catalog), catalog);
-  assert.equal(catalog.catalog_version, "1.3.0");
-  assert.equal(catalog.current_stage, "P10.5d-v2-dynamic-seam-integration");
+  assert.equal(catalog.catalog_version, "1.4.1");
+  assert.equal(catalog.current_stage, "P10.6b-v2-automatic-entry");
   const commands = catalog.entries.filter(({ kind }) => kind === "cli").map(({ command }) => command);
   assert.deepEqual(new Set(commands), new Set(EXPECTED_COMMANDS));
   assert.equal(commands.length, EXPECTED_COMMANDS.length);
@@ -62,7 +64,8 @@ test("catalog exposes all pages, all stage groups, and explicit delivery states"
     "./body-sway-review-v2.html", "./body-sway-review.html",
     "./body-sway-runtime-capture.html", "./body-sway-safety-analysis-v2.html",
     "./idle-behavior-review.html",
-    "./index.html", "./motion-policy-review.html", "./seam-anchor-review.html",
+    "./index.html", "./motion-instance-v3-v2.html",
+    "./motion-policy-review.html", "./seam-anchor-review.html",
   ]);
   assert.deepEqual(catalog.stages.map(({ id }) => id), [
     "P0", "P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P9", "P10",
@@ -70,7 +73,8 @@ test("catalog exposes all pages, all stage groups, and explicit delivery states"
   assert.ok(catalog.entries.some(({ status }) => status === "available"));
   assert.ok(catalog.entries.some(({ status }) => status === "external_required"));
   assert.ok(catalog.entries.some(({ status }) => status === "planned"));
-  assert.equal(catalog.entries.length, 100);
+  assert.equal(catalog.entries.length, 104);
+  assert.equal(pages.length, 12);
   assert.equal(catalog.entries.filter(({ kind }) => kind === "planned").length, 18);
   assert.equal(
     catalog.entries.find(({ command }) => command === "capture-body-sway-spine42-v3-runtime").status,
@@ -155,7 +159,7 @@ test("static page and renderer preserve the accessibility and safe-DOM contract"
   const [
     html, css, view, app, viewerHtml, viewerCss, viewer,
     mainHtml, bodySwayHtml, bodySwayV2Html, admissionV2Html, safetyV2Html,
-    dynamicSeamV2Html,
+    dynamicSeamV2Html, motionInstanceV3V2Html,
     bodySwayProbeHtml, runtimeCaptureHtml,
     idleBehaviorHtml, seamHtml, motionPolicyHtml,
   ] = await Promise.all([
@@ -172,6 +176,7 @@ test("static page and renderer preserve the accessibility and safe-DOM contract"
     readFile(new URL("body-sway-review-admission-v2.html", webRoot), "utf8"),
     readFile(new URL("body-sway-safety-analysis-v2.html", webRoot), "utf8"),
     readFile(new URL("body-sway-dynamic-seam-v2.html", webRoot), "utf8"),
+    readFile(new URL("motion-instance-v3-v2.html", webRoot), "utf8"),
     readFile(new URL("body-sway-probe.html", webRoot), "utf8"),
     readFile(new URL("body-sway-runtime-capture.html", webRoot), "utf8"),
     readFile(new URL("idle-behavior-review.html", webRoot), "utf8"),
@@ -200,7 +205,7 @@ test("static page and renderer preserve the accessibility and safe-DOM contract"
   assert.match(viewerCss, /@media \(prefers-reduced-motion:\s*reduce\)/);
   for (const taskPage of [
     mainHtml, bodySwayHtml, bodySwayV2Html, admissionV2Html, safetyV2Html,
-    dynamicSeamV2Html,
+    dynamicSeamV2Html, motionInstanceV3V2Html,
     bodySwayProbeHtml, runtimeCaptureHtml,
     idleBehaviorHtml, seamHtml, motionPolicyHtml,
   ]) {

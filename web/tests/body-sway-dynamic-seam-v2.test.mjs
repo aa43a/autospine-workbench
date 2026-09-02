@@ -233,6 +233,18 @@ test("renderer shows six relationship cards and six explicit evidence scopes", (
   assert.equal(elements.attemptNumber.textContent, "#1");
   assert.match(elements.technicalReceipts.textContent, /bundle_sha256/);
   assert.doesNotMatch(elements.technicalReceipts.textContent, /path/i);
+  assert.equal(elements.motionHandoff.hidden, false);
+
+  const unresolved = resultFixture();
+  unresolved.probe.status = "indeterminate";
+  unresolved.probe.summary.certified_segment_count = 4;
+  unresolved.probe.summary.indeterminate_segment_count = 1;
+  unresolved.claims.continuous_preview_v2_anchor_residual_within_engineering_tolerance = false;
+  unresolved.claims.structural_gap_proxy_within_engineering_tolerance = false;
+  renderDynamicSeamResult(
+    elements, normalizeDynamicSeamResult(unresolved, JOB, SAFETY, RUN),
+  );
+  assert.equal(elements.motionHandoff.hidden, true);
 });
 
 test("only retryable failures expose retry, and app requires confirmation", async () => {
@@ -313,6 +325,7 @@ function fakeElements(doc) {
     "resultHeading", "resultFacts", "relationshipGrid", "scopeGrid",
     "releaseReasons", "technicalReceipts", "seamFailure", "failureHeading",
     "failureMessage", "retrySeamBtn", "returnToSafetyLink",
+    "continueMotionLink", "motionHandoff",
   ];
   return Object.fromEntries(ids.map((id) => [id, new FakeElement(doc)]));
 }

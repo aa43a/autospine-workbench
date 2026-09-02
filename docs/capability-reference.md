@@ -287,6 +287,8 @@ server/job/UI 自动入口已接入，普通用户可从 P10.4b 完成态一键�
 
 ### P10.6b：MotionInstance v3
 
+普通操作入口是[P10.6b v2 自动生成页面](http://127.0.0.1:8765/motion-instance-v3-v2.html)。它只从 certified 的 P10.5d v2 完成页进入，自动携带三个精确任务 ID，生成并读回固定三文件 bundle；不选择项目、文件或填写 SHA。页面成功不解除 Spine adapter、Runtime、Raster 或发布门禁。
+
 | 命令 | 功能 |
 | --- | --- |
 | `compile-body-sway-motion-instance-v3` | v1 来源链：命令/store 双重查 current heads，把完整 P10.6a v1 成功 wrapper 原子发布为三文件 v3 bundle，并按地址读回；不能消费 v2 admission |

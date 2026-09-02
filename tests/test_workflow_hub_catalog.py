@@ -47,9 +47,9 @@ class WorkflowHubCatalogTests(unittest.TestCase):
     def test_entries_have_unique_ids_and_supported_taxonomy(self) -> None:
         ids = [entry["id"] for entry in self.entries]
         self.assertEqual(len(ids), len(set(ids)))
-        self.assertEqual(103, len(ids))
+        self.assertEqual(104, len(ids))
         self.assertEqual(
-            {"cli": 74, "page": 11, "planned": 18},
+            {"cli": 74, "page": 12, "planned": 18},
             {
                 kind: sum(entry["kind"] == kind for entry in self.entries)
                 for kind in ("cli", "page", "planned")
@@ -85,6 +85,7 @@ class WorkflowHubCatalogTests(unittest.TestCase):
             "./body-sway-runtime-capture.html",
             "./body-sway-safety-analysis-v2.html",
             "./body-sway-dynamic-seam-v2.html",
+            "./motion-instance-v3-v2.html",
             "./idle-behavior-review.html",
             "./motion-policy-review.html",
             "./seam-anchor-review.html",
@@ -95,9 +96,9 @@ class WorkflowHubCatalogTests(unittest.TestCase):
         for href in pages:
             self.assertTrue((ROOT / "web" / href.removeprefix("./")).is_file())
 
-    def test_current_stage_names_the_v2_motion_instance_bundle(self) -> None:
+    def test_current_stage_names_the_v2_motion_instance_automatic_entry(self) -> None:
         self.assertEqual(
-            "P10.6b-v2",
+            "P10.6b-v2-automatic-entry",
             self.catalog["current_stage"],
         )
         entry = next(
@@ -127,6 +128,14 @@ class WorkflowHubCatalogTests(unittest.TestCase):
         self.assertEqual("./body-sway-dynamic-seam-v2.html", seam["href"])
         self.assertIn("safety_run_id", seam["summary"])
         self.assertIn("无需选择项目、文件或填写 SHA", seam["summary"])
+        motion_page = next(
+            entry for entry in self.entries
+            if entry["id"] == "page-motion-instance-v3-v2"
+        )
+        self.assertEqual("./motion-instance-v3-v2.html", motion_page["href"])
+        self.assertIn("certified 的 P10.5d v2 完成页", motion_page["summary"])
+        self.assertIn("无需选择项目、文件或填写 SHA", motion_page["summary"])
+        self.assertIn("Spine adapter、Runtime、Raster 与发布权仍阻塞", motion_page["summary"])
         consumer = next(
             entry for entry in self.entries
             if entry["id"]

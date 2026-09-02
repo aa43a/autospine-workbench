@@ -9,29 +9,13 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
 
-from .body_sway_visual_review_routes import (
-    dispatch_body_sway_visual_review_put,
-)
 from .contracts import ContractValidationError
 from .http_security import host_header_is_local as _host_header_is_local
 from .http_json_request import HttpJsonRequestError, read_json_object_request
 from .http_log_redaction import redact_http_log_arguments
 from .http_static_response import serve_static_response
 from .http_workbench_response import WorkbenchResponseMixin
-from . import motion_policy_mutation_routes as policy_mutation
-from .motion_policy_preflight_routes import (
-    dispatch_motion_policy_preflight_post, is_motion_policy_preflight_path,
-    send_motion_policy_preflight_method_not_allowed,
-)
 from . import state_root_preflight
-from .motion_policy_review_package_routes import (
-    is_motion_policy_review_package_path,
-    send_motion_policy_review_package_method_not_allowed,
-)
-from .motion_policy_review_draft_routes import (
-    is_motion_policy_review_draft_get_path,
-    send_motion_policy_review_draft_method_not_allowed,
-)
 from .project_store import (
     AssetNotFoundError,
     ProjectNotFoundError,
@@ -39,33 +23,11 @@ from .project_store import (
     ProjectStoreError,
     RevisionConflictError,
 )
-from .p10_capture_job_manager import (
-    P10CaptureJobManager,
-    P10CaptureJobManagerError,
-)
-from .p10_runtime_capture_routes import (
-    dispatch_p10_runtime_capture_post,
-    is_p10_runtime_capture_path,
-    send_p10_runtime_capture_method_not_allowed,
-)
-from .p10_safety_analysis_manager_v2 import (
-    P10SafetyAnalysisManagerV2, P10SafetyAnalysisManagerV2Error,
-)
-from .p10_dynamic_seam_manager_v2 import (
-    P10DynamicSeamManagerV2, P10DynamicSeamManagerV2Error,
-)
-from .p10_dynamic_seam_v2_routes import (
-    dispatch_p10_dynamic_seam_v2_post,
-    is_p10_dynamic_seam_v2_path,
-    send_p10_dynamic_seam_v2_method_not_allowed,
-)
-from .p10_safety_analysis_v2_routes import (
-    dispatch_p10_safety_analysis_v2_post,
-    is_p10_safety_analysis_v2_path,
-    send_p10_safety_analysis_v2_method_not_allowed,
-)
-from .p10_visual_review_v2_routes import (
-    dispatch_p10_visual_review_v2_put,
+from .p10_capture_job_manager import P10CaptureJobManager
+from .p10_safety_analysis_manager_v2 import P10SafetyAnalysisManagerV2
+from .p10_dynamic_seam_manager_v2 import P10DynamicSeamManagerV2
+from .p10_motion_instance_v3_manager_v2 import (
+    P10MotionInstanceV3ManagerV2,
 )
 from .p10_visual_review_v2_image_cache import (
     P10VisualReviewV2ImageReplayCache,
@@ -73,14 +35,14 @@ from .p10_visual_review_v2_image_cache import (
 from .p10_visual_review_v2_image_session import (
     P10VisualReviewV2ImageSessionStore,
 )
-from .seam_anchor_review_routes import (
-    dispatch_seam_anchor_review_post,
-    is_seam_anchor_review_path,
-)
 from .seam_anchor_review_replay_cache import SeamAnchorReviewReplayCache
 from .server_binding import WorkbenchThreadingHTTPServer, validate_server_configuration
 from .server_get_routes import dispatch_workbench_api_get
+from .server_manager_lifecycle import start_workbench_managers
 from .server_method_routes import send_workbench_route_method_not_allowed
+from .server_write_routes import (
+    dispatch_workbench_api_post, dispatch_workbench_api_put,
+)
 from .workbench_options import send_workbench_options
 
 
@@ -91,6 +53,7 @@ def _handler_factory(
     capture_manager: P10CaptureJobManager,
     safety_analysis_v2_manager: P10SafetyAnalysisManagerV2,
     dynamic_seam_v2_manager: P10DynamicSeamManagerV2,
+    motion_instance_v3_v2_manager: P10MotionInstanceV3ManagerV2,
     visual_review_v2_image_sessions: P10VisualReviewV2ImageSessionStore,
 ) -> type[BaseHTTPRequestHandler]:
     class WorkbenchHandler(WorkbenchResponseMixin, BaseHTTPRequestHandler):
@@ -113,6 +76,7 @@ def _handler_factory(
                 parts, store, replay_cache, capture_manager,
                 safety_analysis_v2_manager,
                 dynamic_seam_v2_manager,
+                motion_instance_v3_v2_manager,
                 visual_review_v2_image_sessions, self,
             )
 
@@ -178,43 +142,9 @@ def _handler_factory(
                 return
             try:
                 parts = self._path_parts()
-                if policy_mutation.is_motion_policy_mutation_path(parts):
-                    policy_mutation.send_motion_policy_mutation_method_not_allowed(parts, self)
-                    return
-                if is_motion_policy_preflight_path(parts):
-                    send_motion_policy_preflight_method_not_allowed(self)
-                    return
-                if is_motion_policy_review_package_path(parts):
-                    send_motion_policy_review_package_method_not_allowed(self)
-                    return
-                if is_motion_policy_review_draft_get_path(parts):
-                    send_motion_policy_review_draft_method_not_allowed(self)
-                    return
-                if is_p10_dynamic_seam_v2_path(parts):
-                    send_p10_dynamic_seam_v2_method_not_allowed(parts, self)
-                    return
-                if is_p10_safety_analysis_v2_path(parts):
-                    send_p10_safety_analysis_v2_method_not_allowed(
-                        parts, self,
-                    )
-                    return
-                if dispatch_p10_visual_review_v2_put(
-                    parts, capture_manager, store, self,
-                    self._send_visual_json,
+                if dispatch_workbench_api_put(
+                    parts, store, capture_manager, self,
                 ):
-                    return
-                if is_p10_runtime_capture_path(parts):
-                    send_p10_runtime_capture_method_not_allowed(parts, self)
-                    return
-                if dispatch_body_sway_visual_review_put(
-                    parts, store, self, self._send_visual_json,
-                ):
-                    return
-                if is_seam_anchor_review_path(parts):
-                    self._send_seam_anchor_review_method_not_allowed(parts)
-                    return
-                if self._mesh_bundle_path(parts):
-                    self._send_method_not_allowed(read_only=True)
                     return
                 if not (
                     len(parts) == 4
@@ -260,30 +190,10 @@ def _handler_factory(
                     HTTPStatus.BAD_REQUEST, "invalid_path", str(exc)
                 )
                 return
-            if policy_mutation.dispatch_motion_policy_mutation_post(
-                parts, self, store, self._send_visual_json,
-            ):
-                return
-            if dispatch_p10_safety_analysis_v2_post(
-                parts, self, safety_analysis_v2_manager,
-                self._send_visual_json,
-            ):
-                return
-            if dispatch_p10_dynamic_seam_v2_post(
-                parts, self, dynamic_seam_v2_manager,
-                self._send_visual_json,
-            ):
-                return
-            if dispatch_p10_runtime_capture_post(
-                parts, self, capture_manager, self._send_visual_json,
-            ):
-                return
-            if dispatch_motion_policy_preflight_post(
-                parts, self, self._send_visual_json,
-            ):
-                return
-            if dispatch_seam_anchor_review_post(
-                parts, store, self, self._send_visual_json, replay_cache,
+            if dispatch_workbench_api_post(
+                parts, store, replay_cache, capture_manager,
+                safety_analysis_v2_manager, dynamic_seam_v2_manager,
+                motion_instance_v3_v2_manager, self,
             ):
                 return
             self._send_route_method_not_allowed(parts)
@@ -330,23 +240,14 @@ def create_server(
             "and stored decision inputs."
         ) from exc
     replay_cache = SeamAnchorReviewReplayCache(store.state_root)
-    try:
-        capture_manager = P10CaptureJobManager(store)
-    except P10CaptureJobManagerError as exc:
-        raise OSError("P10 Runtime capture manager could not start.") from exc
-    try:
-        safety_analysis_v2_manager = P10SafetyAnalysisManagerV2(
-            capture_manager, store,
-        )
-    except P10SafetyAnalysisManagerV2Error as exc:
-        capture_manager.close()
-        raise OSError("P10.4b v2 safety manager could not start.") from exc
-    try:
-        dynamic_seam_v2_manager = P10DynamicSeamManagerV2(store)
-    except P10DynamicSeamManagerV2Error as exc:
-        safety_analysis_v2_manager.close()
-        capture_manager.close()
-        raise OSError("P10.5d v2 dynamic seam manager could not start.") from exc
+    managers = start_workbench_managers(
+        store, P10CaptureJobManager, P10SafetyAnalysisManagerV2,
+        P10DynamicSeamManagerV2, P10MotionInstanceV3ManagerV2,
+    )
+    capture_manager = managers.capture
+    safety_analysis_v2_manager = managers.safety_analysis_v2
+    dynamic_seam_v2_manager = managers.dynamic_seam_v2
+    motion_instance_v3_v2_manager = managers.motion_instance_v3_v2
     visual_review_v2_image_cache = P10VisualReviewV2ImageReplayCache(
         store.state_root,
     )
@@ -357,14 +258,13 @@ def create_server(
         store, resolved_web_root, replay_cache, capture_manager,
         safety_analysis_v2_manager,
         dynamic_seam_v2_manager,
+        motion_instance_v3_v2_manager,
         visual_review_v2_image_sessions,
     )
     try:
         server = WorkbenchThreadingHTTPServer((host, port), handler)
     except (OSError, socket.error) as exc:
-        dynamic_seam_v2_manager.close()
-        safety_analysis_v2_manager.close()
-        capture_manager.close()
+        managers.close_after_bind_failure()
         raise OSError(f"Could not bind AutoSpine workbench to {host}:{port}") from exc
     server.project_store = store  # type: ignore[attr-defined]
     server.web_root = resolved_web_root  # type: ignore[attr-defined]
@@ -375,6 +275,9 @@ def create_server(
     )
     server.p10_dynamic_seam_v2_manager = (  # type: ignore[attr-defined]
         dynamic_seam_v2_manager
+    )
+    server.p10_motion_instance_v3_v2_manager = (  # type: ignore[attr-defined]
+        motion_instance_v3_v2_manager
     )
     server.p10_visual_review_v2_image_cache = (  # type: ignore[attr-defined]
         visual_review_v2_image_cache

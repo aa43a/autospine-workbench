@@ -135,6 +135,19 @@ progress::-moz-progress-bar { background: var(--accent); }
 .failure-panel { margin-block-start: 1rem; border-color: #78454a; }
 .failure-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
 
+.seam-next {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: clamp(1rem, 2.4vw, 1.5rem);
+  border-color: #326b62;
+  background: linear-gradient(135deg, #10251f, #111822 70%);
+}
+.seam-next h2 { margin-block: 0.15rem 0.35rem; }
+.seam-next p { margin: 0; color: var(--muted); }
+.seam-next-button { min-height: 48px; flex: 0 0 auto; }
+
 @media (max-width: 1000px) {
   .scope-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
@@ -143,6 +156,7 @@ progress::-moz-progress-bar { background: var(--accent); }
   .review-topbar { align-items: flex-start; flex-direction: column; }
   .detail-grid { grid-template-columns: minmax(0, 1fr); }
   .result-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .seam-next { align-items: stretch; flex-direction: column; }
 }
 
 @media (max-width: 520px) {
@@ -151,6 +165,7 @@ progress::-moz-progress-bar { background: var(--accent); }
   .progress-block strong { text-align: start; }
   .relationship-card dl div { grid-template-columns: minmax(0, 1fr); }
   .failure-actions .button { width: 100%; }
+  .seam-next-button { width: 100%; }
 }
 
 @media (max-width: 420px) {

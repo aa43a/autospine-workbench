@@ -2,6 +2,7 @@
 
 import { createBodySwayDynamicSeamV2Api } from "./body-sway-dynamic-seam-v2-api.js";
 import { dynamicSeamV2Href } from "./body-sway-dynamic-seam-v2-contract.js";
+import { motionInstanceV3V2Href } from "./motion-instance-v3-v2-contract.js";
 import { runDynamicSeamV2 } from "./body-sway-dynamic-seam-v2-state.js";
 import { requireReviewJobId } from "./body-sway-review-v2-contract.js";
 import {
@@ -57,7 +58,12 @@ async function runAnalysis(startNew) {
       },
     });
     if (token !== generation) return;
-    if (outcome.kind === "completed") renderDynamicSeamResult(elements, outcome.result);
+    if (outcome.kind === "completed") {
+      elements.continueMotionLink.href = motionInstanceV3V2Href(
+        jobId, safetyRunId, outcome.result.run.runId,
+      );
+      renderDynamicSeamResult(elements, outcome.result);
+    }
     else renderDynamicSeamFailure(
       elements, outcome.state.run, outcome.state.run.failureCode || "dynamic_seam_failed",
     );

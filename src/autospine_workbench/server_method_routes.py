@@ -28,6 +28,10 @@ from .p10_dynamic_seam_v2_routes import (
     is_p10_dynamic_seam_v2_path,
     send_p10_dynamic_seam_v2_method_not_allowed,
 )
+from .p10_motion_instance_v3_v2_routes import (
+    is_p10_motion_instance_v3_v2_path,
+    send_p10_motion_instance_v3_v2_method_not_allowed,
+)
 from .p10_visual_review_v2_routes import (
     is_p10_visual_review_v2_path,
     send_p10_visual_review_v2_method_not_allowed,
@@ -46,6 +50,8 @@ def send_workbench_route_method_not_allowed(parts, handler) -> None:
         send_motion_policy_review_package_method_not_allowed(handler)
     elif is_motion_policy_review_draft_get_path(parts):
         send_motion_policy_review_draft_method_not_allowed(handler)
+    elif is_p10_motion_instance_v3_v2_path(parts):
+        send_p10_motion_instance_v3_v2_method_not_allowed(parts, handler)
     elif is_p10_dynamic_seam_v2_path(parts):
         send_p10_dynamic_seam_v2_method_not_allowed(parts, handler)
     elif is_p10_safety_analysis_v2_path(parts):

@@ -32,6 +32,10 @@ from .p10_safety_analysis_v2_routes import (
 from .p10_dynamic_seam_v2_routes import (
     is_p10_dynamic_seam_v2_path, p10_dynamic_seam_v2_allow_methods,
 )
+from .p10_motion_instance_v3_v2_routes import (
+    is_p10_motion_instance_v3_v2_path,
+    p10_motion_instance_v3_v2_allow_methods,
+)
 from .p10_visual_review_v2_routes import (
     is_p10_visual_review_v2_path,
     p10_visual_review_v2_allow_methods,
@@ -54,6 +58,7 @@ def send_workbench_options(parts: list[str], handler) -> None:
     runtime_capture = is_p10_runtime_capture_path(parts)
     safety_analysis_v2 = is_p10_safety_analysis_v2_path(parts)
     dynamic_seam_v2 = is_p10_dynamic_seam_v2_path(parts)
+    motion_instance_v3_v2 = is_p10_motion_instance_v3_v2_path(parts)
     visual_review_v2 = is_p10_visual_review_v2_path(parts)
     seam_methods = seam_anchor_review_resource_methods(parts) \
         if seam_review else None
@@ -65,7 +70,8 @@ def send_workbench_options(parts: list[str], handler) -> None:
         return
     local_review = body_review or seam_review or policy_preflight \
         or adoption or policy_package or policy_draft or runtime_capture \
-        or safety_analysis_v2 or dynamic_seam_v2 or visual_review_v2
+        or safety_analysis_v2 or dynamic_seam_v2 or visual_review_v2 \
+        or motion_instance_v3_v2
     methods = _methods(
         parts, handler, body_review=body_review,
         seam_review=seam_review, seam_methods=seam_methods,
@@ -74,6 +80,7 @@ def send_workbench_options(parts: list[str], handler) -> None:
         runtime_capture=runtime_capture,
         safety_analysis_v2=safety_analysis_v2,
         dynamic_seam_v2=dynamic_seam_v2,
+        motion_instance_v3_v2=motion_instance_v3_v2,
         visual_review_v2=visual_review_v2,
     )
     handler.send_response(HTTPStatus.NO_CONTENT)
@@ -92,8 +99,11 @@ def send_workbench_options(parts: list[str], handler) -> None:
 def _methods(
     parts, handler, *, body_review, seam_review, seam_methods,
     policy_preflight, adoption, policy_package, policy_draft, runtime_capture,
-    safety_analysis_v2, dynamic_seam_v2, visual_review_v2,
+    safety_analysis_v2, dynamic_seam_v2, motion_instance_v3_v2,
+    visual_review_v2,
 ):
+    if motion_instance_v3_v2:
+        return p10_motion_instance_v3_v2_allow_methods(parts) or "OPTIONS"
     if dynamic_seam_v2:
         return p10_dynamic_seam_v2_allow_methods(parts) or "OPTIONS"
     if safety_analysis_v2:

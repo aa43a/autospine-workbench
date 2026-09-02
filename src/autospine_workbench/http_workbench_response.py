@@ -141,6 +141,7 @@ class WorkbenchResponseMixin:
             "body-sway-safety-analysis-v2.html",
             "document-viewer.html",
             "idle-behavior-review.html",
+            "motion-instance-v3-v2.html",
             "motion-policy-review.html",
             "seam-anchor-review.html",
             "workflow-hub.html",

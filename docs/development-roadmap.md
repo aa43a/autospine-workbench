@@ -1,6 +1,6 @@
 # AutoSpine Workbench 后续开发路线
 
-本文是 Explanation 与交付计划，面向维护者和需要评估可行性的项目负责人。P10.3、P10.4a/b v2、P10.5d v2 自动动态接缝入口、P10.6a v2 admission 与版本隔离的 P10.6b v2 MotionInstance bundle 均已交付。P10.6b v2 的 compile 只需项目与 P10.5d 双 SHA，verify 只需项目与 MIv3/bundle 双 SHA；payload 保持 format v3，source/bundle/run 使用 v2 合同。样本 A 已闭合 current P9/P10、CaptureFraming、43/43 execution、P10.3c v2 revision 1 与 P10.5c，但仍须等待当前 P10.4b run 完成并重启服务后真实执行 P10.5d–P10.6b v2。release、raster、Runtime、视觉、完整边界与 overlap 仍 blocked。样本 B revision 16 必须沿自己的 current chain 继续；v1 合同保持冻结。
+本文是 Explanation 与交付计划，面向维护者和需要评估可行性的项目负责人。P10.3、P10.4a/b v2、P10.5d v2 自动动态接缝入口、P10.6a v2 admission，以及版本隔离的 P10.6b v2 MotionInstance bundle 与自动入口均已交付。P10.6b v2 的 compile 只需项目与 P10.5d 双 SHA，verify 只需项目与 MIv3/bundle 双 SHA；普通页面则从 certified 的 P10.5d 完成态自动携带精确任务地址。payload 保持 format v3，source/bundle/run 使用 v2 合同。样本 A 已闭合 current P9/P10、CaptureFraming、43/43 execution、P10.3c v2 revision 1 与 P10.5c，但仍须等待当前 P10.4b run 完成并重启服务后真实执行 P10.5d–P10.6b v2。release、raster、Runtime、视觉、完整边界与 overlap 仍 blocked。样本 B revision 16 必须沿自己的 current chain 继续；v1 合同保持冻结。
 
 P9 页面现已增加 pending draft 自动发现与一键晋级入口。它会自动选择唯一 current 草案，显示角色与 setup 遮挡关系，并在一次明确确认后生成正式 Depth policy、Depth candidates 和新的 exact review package。草案晋级不等于最终 P9 adoption；候选仍须复核，并再次明确提交最终 human adoption。旧 P9 以及依赖旧 P3/P9 的 P10/P10.5 决定只保留历史证据。canvas-only 的新链不会放宽 v1，而是通过已经交付的 CaptureFraming decision、Preview v2、official Runtime execution v2 与 P10.3c v2 review 承接 setup、base、combined 完整包络。
 
@@ -382,7 +382,8 @@ v1 的字段、哈希算法和语义现已冻结。未来只要 resolved 生成�
 ## 已完成：P10.6b v2 MotionInstance v3 来源合同与 Bundle
 
 P10.6b v2 已交付独立 core、prepared pipeline、bundle/run/filesystem namespace、store、exact
-reader 和 compile/verify CLI。操作入口见
+reader、compile/verify CLI 和从 certified P10.5d 完成态进入的自动页面。普通页面无需项目、文件
+或 SHA 输入；专业操作入口见
 [编译并复验 P10.6b v2 MotionInstance v3](how-to-compile-motion-instance-v3-v2.md)。
 
 公开 compile 输入只有项目与 P10.5d v2 probe/bundle 双 SHA；命令自动读取 exact P10.5d、从

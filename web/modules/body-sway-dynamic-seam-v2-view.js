@@ -5,7 +5,8 @@ const IDS = [
   "attemptNumber", "attemptState", "attemptCode", "seamResult",
   "resultHeading", "resultFacts", "relationshipGrid", "scopeGrid",
   "releaseReasons", "technicalReceipts", "seamFailure", "failureHeading",
-  "failureMessage", "retrySeamBtn", "returnToSafetyLink",
+  "failureMessage", "retrySeamBtn", "returnToSafetyLink", "continueMotionLink",
+  "motionHandoff",
 ];
 
 const RELATIONSHIP_LABELS = Object.freeze({
@@ -39,6 +40,7 @@ export function renderDynamicSeamLoading(elements) {
   elements.seamResult.hidden = true;
   elements.seamFailure.hidden = true;
   elements.retrySeamBtn.hidden = true;
+  elements.motionHandoff.hidden = true;
 }
 
 export function renderDynamicSeamRun(elements, state) {
@@ -81,6 +83,7 @@ export function renderDynamicSeamFailure(elements, run, message) {
     ? "不会使用部分结果。点击重试后仍需确认，系统会创建新的 attempt，不覆盖本次记录。"
     : "该失败需要修复来源或算法后再进入；系统没有猜测结果，也没有解除发布门禁。";
   elements.retrySeamBtn.hidden = !retryable;
+  elements.motionHandoff.hidden = true;
 }
 
 export function renderDynamicSeamResult(elements, value) {
@@ -98,6 +101,7 @@ export function renderDynamicSeamResult(elements, value) {
   elements.seamProgressText.textContent = "结果已精确读回并密封";
   elements.seamFailure.hidden = true;
   elements.seamResult.hidden = false;
+  elements.motionHandoff.hidden = !certified;
   elements.resultHeading.textContent = certified
     ? "逐关系工程代理证据已生成" : "逐关系结果含未定证据";
   renderFacts(elements.resultFacts, value);

@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0b0e14">
+  <title>P10.6b v2 MotionInstance v3 — AutoSpine</title>
+  <link rel="stylesheet" href="./body-sway-review.css">
+  <link rel="stylesheet" href="./motion-instance-v3-v2.css">
+</head>
+<body>
+  <a class="skip-link" href="#motionMain">跳到 MotionInstance 生成结果</a>
+  <header class="review-topbar">
+    <div>
+      <p class="eyebrow">P10.6b v2 · AUTOMATIC MOTION MATERIALIZATION</p>
+      <h1>生成 MotionInstance v3</h1>
+    </div>
+    <nav class="review-nav" aria-label="工作台导航">
+      <a id="returnToSeamTop" class="button secondary"
+        href="./body-sway-dynamic-seam-v2.html">动态接缝分析</a>
+      <a class="button secondary" href="./workflow-hub.html">功能入口中心</a>
+      <a class="button secondary" href="./index.html">绑定工作台</a>
+    </nav>
+  </header>
+
+  <main id="motionMain">
+    <section class="panel motion-entry" aria-labelledby="motionEntryHeading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">EXACT AUTOMATIC ENTRY</p>
+          <h2 id="motionEntryHeading">自动闭合已完成的动态接缝证据</h2>
+        </div>
+        <span id="motionBadge" class="gate-badge">等待任务</span>
+      </div>
+      <p class="lede">
+        页面从上一步自动读取唯一角色、动作与不可变证据。无需选择项目、文件或填写 SHA；
+        来源就绪后会自动生成 setup-local MotionInstance v3。
+      </p>
+      <p id="motionStatus" class="status-line" role="status" aria-live="polite">
+        正在读取精确来源…
+      </p>
+      <div class="motion-progress">
+        <progress id="motionProgress" max="1" value="0"
+          aria-labelledby="motionProgressText"></progress>
+        <strong id="motionProgressText">自动校验来源…</strong>
+      </div>
+      <dl class="motion-attempt" aria-label="不可变生成尝试回执">
+        <div><dt>Attempt</dt><dd id="motionAttempt">—</dd></div>
+        <div><dt>状态</dt><dd id="motionAttemptState">等待创建</dd></div>
+        <div><dt>失败码</dt><dd id="motionAttemptCode">无失败码</dd></div>
+      </dl>
+    </section>
+
+    <section id="motionResult" class="motion-result" hidden>
+      <section class="panel emitted-panel" aria-labelledby="motionResultHeading">
+        <div class="emitted-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false">
+            <path d="M5 12.5 9.2 17 19 7"></path>
+          </svg>
+        </div>
+        <div>
+          <p class="eyebrow">IMMUTABLE OUTPUT</p>
+          <h2 id="motionResultHeading" tabindex="-1">MotionInstance v3 已发出</h2>
+          <p class="lede">
+            三文件 bundle 已按内容地址保存并完成精确读回；原始 MotionInstance v3 payload
+            仍保持版本中立的 setup-local 时间线语义。
+          </p>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="motionFactsHeading">
+        <p class="eyebrow">PLAIN-LANGUAGE RECEIPT</p>
+        <h2 id="motionFactsHeading">本次自动生成</h2>
+        <dl id="motionFacts" class="motion-facts"></dl>
+        <h3>已密封文件</h3>
+        <ol id="motionInventory" class="motion-inventory"></ol>
+      </section>
+
+      <section class="panel" aria-labelledby="motionScopeHeading">
+        <p class="eyebrow">CAPABILITY BOUNDARY</p>
+        <h2 id="motionScopeHeading">现在能做什么</h2>
+        <ul id="motionScopes" class="motion-scopes"></ul>
+      </section>
+
+      <section class="motion-detail-grid">
+        <section class="panel motion-release" aria-labelledby="motionReleaseHeading">
+          <p class="eyebrow">NEXT GATE</p>
+          <h2 id="motionReleaseHeading">仍不能直接发布到 Spine</h2>
+          <p class="lede">
+            Spine adapter、官方 Runtime、Raster 视觉质量与最终发布权仍然阻塞，
+            MotionInstance 发出不等于这些阶段已经通过。
+          </p>
+          <ul id="motionReleaseReasons" class="reason-list"></ul>
+        </section>
+        <details class="panel motion-technical">
+          <summary>技术详情：内容地址</summary>
+          <p>这些 SHA 由本地服务自动维护，普通操作无需复制或填写。</p>
+          <pre id="motionTechnical"></pre>
+        </details>
+      </section>
+    </section>
+
+    <section id="motionFailure" class="panel motion-failure" hidden
+      aria-labelledby="motionFailureHeading">
+      <p class="eyebrow">IMMUTABLE SAFE RECOVERY</p>
+      <h2 id="motionFailureHeading">没有生成 MotionInstance v3</h2>
+      <p id="motionFailureMessage" class="lede"></p>
+      <div class="motion-actions">
+        <button id="retryMotionBtn" class="button primary" type="button">
+          确认并创建新 attempt
+        </button>
+        <a id="returnToSeamLink" class="button secondary"
+          href="./body-sway-dynamic-seam-v2.html">返回动态接缝分析</a>
+        <a class="button secondary" href="./workflow-hub.html">返回功能入口中心</a>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="./modules/motion-instance-v3-v2-app.js"></script>
+</body>
+</html>
