@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[多骨绑定v2](docs/how-to-layer-binding-v2.md)支持刚性单骨与整臂/整腿三骨链，双侧图层可选两条骨链。
+名称侧别只是建议，草稿保存完整选项；网格、权重和动态QA按后续步骤接入，旧v1保持兼容。
+
 [绑定复核草稿](docs/how-to-region-binding-drafts.md)支持逐层选择候选骨骼、记录拆层/语义问题或排除，
 整份保存、恢复与撤销；CLI可核验来源并封存。初始记录全部待处理，不自动批准。
 

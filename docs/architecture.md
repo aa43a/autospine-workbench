@@ -1,5 +1,9 @@
 # AutoSpine Workbench 架构与质量门禁
 
+`asset/joints/layer_binding.py` 为独立v2候选，复用v1刚性计算而不修改旧合同。
+`benchmark/layer_binding_{draft,cli,controls,view}.py` 分别负责草稿、源闭包、编辑及骨链叠图。
+选项mode区分rigid/mesh_chain，草稿只保存option_id；多骨选项不包含伪造的setup权重。
+
 `benchmark/region_binding_draft.py` 验证独立草稿合同，controls模块提供内嵌浏览器编辑和恢复校验。
 region binding CLI新增草稿读写，保持原候选文档内容不变；真实源重放仍在写入前执行。
 

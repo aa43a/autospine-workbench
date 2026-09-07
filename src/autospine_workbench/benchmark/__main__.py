@@ -78,10 +78,15 @@ def parser():
     register_assisted_skeleton_parser(sub)
     from .region_binding_cli import register_parser as register_binding_parser
     register_binding_parser(sub)
+    from .layer_binding_cli import register_parser as register_layer_binding_parser
+    register_layer_binding_parser(sub)
     return result
 
 
 def _execute(args):
+    if args.command == 'build-layer-bindings':
+        from .layer_binding_cli import execute
+        return execute(args)
     if args.command == 'build-region-bindings':
         from .region_binding_cli import execute
         return execute(args)

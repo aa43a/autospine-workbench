@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+`build-layer-bindings` 为新的单骨/多骨入口，支持整臂、整腿和双侧骨链候选及草稿。
+旧region入口不变；多骨选项暂不生成加权Mesh。见[多骨绑定v2](how-to-layer-binding-v2.md)。
+
 绑定页面已支持逐层编辑、下载、恢复和撤销；`build-region-bindings --draft --draft-output`
 可封存并恢复来源绑定的草稿。拆层/语义问题只是记录，正式处理与绑定采用尚待接入。
 

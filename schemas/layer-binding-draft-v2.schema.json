@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "autospine.layer-binding-draft/v2",
+  "$comment": "Semantic validation additionally requires exact source identity, complete ordered layer records, a known selectable option, and notes without control characters except CR/LF/TAB. This draft carries no weights or production authority.",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "authority", "production_authorized", "source_bindings_sha256", "records"],
+  "properties": {
+    "schema": {"const": "autospine.layer-binding-draft/v2"},
+    "authority": {"const": "none"},
+    "production_authorized": {"const": false},
+    "source_bindings_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}(?![\\s\\S])"},
+    "records": {
+      "type": "array", "minItems": 1, "maxItems": 256,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["layer_id", "action", "option_id", "notes"],
+        "properties": {
+          "layer_id": {"type": "string", "minLength": 1, "maxLength": 200},
+          "action": {"enum": ["pending", "bind", "requires_split", "exclude", "semantic_review"]},
+          "option_id": {"type": ["string", "null"], "minLength": 1, "maxLength": 200},
+          "notes": {"type": "string", "maxLength": 2000}
+        },
+        "allOf": [
+          {"if": {"properties": {"action": {"const": "bind"}}},
+           "then": {"properties": {"option_id": {"type": "string"}}},
+           "else": {"properties": {"option_id": {"type": "null"}}}},
+          {"if": {"properties": {"action": {"enum": ["requires_split", "exclude", "semantic_review"]}}},
+           "then": {"properties": {"notes": {"pattern": "\\S"}}}}
+        ]
+      }
+    }
+  }
+}
