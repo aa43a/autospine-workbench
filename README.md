@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[肘部三方案对照](docs/how-to-elbow-comparison.md)已接通辅助骨与 corrective 局部偏移实验；
+改善了面积收缩，但仍未达到实验阈值，尚未采用或导出。
+
 [肘部面积检查](docs/how-to-mesh-area-screen.md)已接通逐度扫描与空间定位；
 零翻转仍可能严重收缩，四张手臂当前均未通过实验面积阈值。
 

@@ -88,10 +88,15 @@ def parser():
     register_refinement_parser(sub)
     from .mesh_area_cli import register_parser as register_area_parser
     register_area_parser(sub)
+    from .elbow_comparison_cli import register_parser as register_elbow_parser
+    register_elbow_parser(sub)
     return result
 
 
 def _execute(args):
+    if args.command == 'compare-elbow-deformation':
+        from .elbow_comparison_cli import execute
+        return execute(args)
     if args.command == 'screen-mesh-area':
         from .mesh_area_cli import execute
         return execute(args)

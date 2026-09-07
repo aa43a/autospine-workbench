@@ -1,0 +1,274 @@
+{
+  "authority": "none",
+  "production_authorized": false,
+  "test_count": 32,
+  "validation": [
+    "Exact CLI source replay",
+    "Schema",
+    "Deterministic recalculation",
+    "CAS readback",
+    "Chrome Alice layout"
+  ],
+  "limitations": [
+    "No full Python/Web suite",
+    "No Spine Runtime",
+    "No seam/texture/independent wrist QA"
+  ],
+  "records": [
+    {
+      "character": "alice",
+      "report_sha256": "7b0344cc38ddc1de4f8d78690996770f79336cd4e77714e960323761a4d59f16",
+      "source_mesh_sha256": "b22423a7e3c6cf284b8c2ea824134655bde70fdefe45f47f6092da69119724b6",
+      "compared_layers": [
+        {
+          "layer_id": "layer-003",
+          "methods": [
+            {
+              "inverted_triangle_samples": 0,
+              "max_area_ratio": 1.3636407209105879,
+              "max_compressed_setup_area_fraction": 0.05139920045688178,
+              "max_edge_stretch": 1.4145624634455067,
+              "min_area_ratio": 0.16291359688258752,
+              "mode": "lbs",
+              "reason_codes": [
+                "mesh_area_compression"
+              ],
+              "setup_max_error": 8.038873388460929e-14,
+              "status": "blocked",
+              "worst": {
+                "angle_degrees": 90,
+                "triangle_index": 146
+              }
+            },
+            {
+              "inverted_triangle_samples": 0,
+              "max_area_ratio": 1.5011045346058265,
+              "max_compressed_setup_area_fraction": 0.03340948029697316,
+              "max_edge_stretch": 1.5102733773342722,
+              "min_area_ratio": 0.3099127470509169,
+              "mode": "half_angle_auxiliary",
+              "reason_codes": [
+                "mesh_area_compression"
+              ],
+              "setup_max_error": 0.0,
+              "status": "blocked",
+              "worst": {
+                "angle_degrees": 90,
+                "triangle_index": 162
+              }
+            },
+            {
+              "inverted_triangle_samples": 0,
+              "max_area_ratio": 1.889909869025003,
+              "max_compressed_setup_area_fraction": 0.020559680182752713,
+              "max_edge_stretch": 1.669090417975845,
+              "min_area_ratio": 0.337000025186009,
+              "mode": "rotation_corrective",
+              "reason_codes": [
+                "mesh_area_compression"
+              ],
+              "setup_max_error": 0.0,
+              "status": "blocked",
+              "worst": {
+                "angle_degrees": 90,
+                "triangle_index": 146
+              }
+            }
+          ],
+          "reason_codes": [],
+          "status": "compared"
+        },
+        {
+          "layer_id": "layer-004",
+          "methods": [
+            {
+              "inverted_triangle_samples": 0,
+              "max_area_ratio": 1.378272555021546,
+              "max_compressed_setup_area_fraction": 0.0472027972027972,
+              "max_edge_stretch": 1.405280126305386,
+              "min_area_ratio": 0.22949853812096216,
+              "mode": "lbs",
+              "reason_codes": [
+                "mesh_area_compression"
+              ],
+              "setup_max_error": 1.2710574864626038e-13,
+              "status": "blocked",
+              "worst": {
+                "angle_degrees": 90,
+                "triangle_index": 178
+              }
+            },
+            {
+              "inverted_triangle_samples": 0,
+              "max_area_ratio": 1.4942074627258415,
+              "max_compressed_setup_area_fraction": 0.02097902097902098,
+              "max_edge_stretch": 1.4997762222141,
+              "min_area_ratio": 0.3771116741868061,
+              "mode": "half_angle_auxiliary",
+              "reason_codes": [
+                "mesh_area_compression"
+              ],
+              "setup_max_error": 0.0,
+              "status": "blocked",
+              "worst": {
+                "angle_degrees": 90,
+                "triangle_index": 178
+              }
+            },
+            {
+              "inverted_triangle_samples": 0,
+              "max_area_ratio": 1.6466303045242887,
+              "max_compressed_setup_area_fraction": 0.005244755244755245,
+              "max_edge_stretch": 1.5657488980441467,
+              "min_area_ratio": 0.408307144740553,
+              "mode": "rotation_corrective",
+              "reason_codes": [
+                "mesh_area_compression"
+              ],
+              "setup_max_error": 0.0,
+              "status": "blocked",
+              "worst": {
+                "angle_degrees": 90,
+                "triangle_index": 178
+              }
+            }
+          ],
+          "reason_codes": [],
+          "status": "compared"
+        }
+      ],
+      "not_evaluated_count": 21
+    },
+    {
+      "character": "lingxian",
+      "report_sha256": "fd8b1223111557a64eaa54b191c0bd4e8ad32c30179710ccf459c59aaeaedbc5",
+      "source_mesh_sha256": "6e409938b6470fd6d2207a7be8fe071cf13f72bf97658cd0182b901bf13c3ff6",
+      "compared_layers": [
+        {
+          "layer_id": "layer-001",
+          "methods": [
+            {
+              "inverted_triangle_samples": 0,
+              "max_area_ratio": 1.3297730511158699,
+              "max_compressed_setup_area_fraction": 0.047363909129875696,
+              "max_edge_stretch": 1.3909185583936894,
+              "min_area_ratio": 0.12691644629437263,
+              "mode": "lbs",
+              "reason_codes": [
+                "mesh_area_compression"
+              ],
+              "setup_max_error": 8.038873388460929e-14,
+              "status": "blocked",
+              "worst": {
+                "angle_degrees": -90,
+                "triangle_index": 192
+              }
+            },
+            {
+              "inverted_triangle_samples": 0,
+              "max_area_ratio": 1.4230269515509812,
+              "max_compressed_setup_area_fraction": 0.025075010715816547,
+              "max_edge_stretch": 1.4878550049953154,
+              "min_area_ratio": 0.274875898060031,
+              "mode": "half_angle_auxiliary",
+              "reason_codes": [
+                "mesh_area_compression"
+              ],
+              "setup_max_error": 0.0,
+              "status": "blocked",
+              "worst": {
+                "angle_degrees": -90,
+                "triangle_index": 192
+              }
+            },
+            {
+              "inverted_triangle_samples": 0,
+              "max_area_ratio": 1.7965166174196956,
+              "max_compressed_setup_area_fraction": 0.01393056150878697,
+              "max_edge_stretch": 1.6209098332066363,
+              "min_area_ratio": 0.24213562722726634,
+              "mode": "rotation_corrective",
+              "reason_codes": [
+                "mesh_area_compression"
+              ],
+              "setup_max_error": 0.0,
+              "status": "blocked",
+              "worst": {
+                "angle_degrees": -90,
+                "triangle_index": 192
+              }
+            }
+          ],
+          "reason_codes": [],
+          "status": "compared"
+        },
+        {
+          "layer_id": "layer-002",
+          "methods": [
+            {
+              "inverted_triangle_samples": 0,
+              "max_area_ratio": 1.407285663644986,
+              "max_compressed_setup_area_fraction": 0.05467020805666224,
+              "max_edge_stretch": 1.4104156942099126,
+              "min_area_ratio": 0.12355859051766199,
+              "mode": "lbs",
+              "reason_codes": [
+                "mesh_area_compression"
+              ],
+              "setup_max_error": 1.2710574864626038e-13,
+              "status": "blocked",
+              "worst": {
+                "angle_degrees": 90,
+                "triangle_index": 172
+              }
+            },
+            {
+              "inverted_triangle_samples": 0,
+              "max_area_ratio": 1.4856567057478596,
+              "max_compressed_setup_area_fraction": 0.03740593182824258,
+              "max_edge_stretch": 1.5056685587705851,
+              "min_area_ratio": 0.24240726163970613,
+              "mode": "half_angle_auxiliary",
+              "reason_codes": [
+                "mesh_area_compression"
+              ],
+              "setup_max_error": 0.0,
+              "status": "blocked",
+              "worst": {
+                "angle_degrees": 90,
+                "triangle_index": 172
+              }
+            },
+            {
+              "inverted_triangle_samples": 0,
+              "max_area_ratio": 1.9555025907769943,
+              "max_compressed_setup_area_fraction": 0.02014165559982293,
+              "max_edge_stretch": 1.6531507409225659,
+              "min_area_ratio": 0.19171083680448342,
+              "mode": "rotation_corrective",
+              "reason_codes": [
+                "mesh_area_compression"
+              ],
+              "setup_max_error": 0.0,
+              "status": "blocked",
+              "worst": {
+                "angle_degrees": 90,
+                "triangle_index": 172
+              }
+            }
+          ],
+          "reason_codes": [],
+          "status": "compared"
+        }
+      ],
+      "not_evaluated_count": 19
+    },
+    {
+      "character": "crino",
+      "report_sha256": "efe5c3d1f5db5a8fbdf867b31baea56a60630ae9b7bd3ba1483d89d068e8b66d",
+      "source_mesh_sha256": "97f0d6f3b2e61afc7acb1b11ea4449ad306ca6bcdb3a87a1d6b1ed158a7763da",
+      "compared_layers": [],
+      "not_evaluated_count": 18
+    }
+  ]
+}

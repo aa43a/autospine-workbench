@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "profile", "source_mesh_sha256", "source_skeleton_sha256", "authority", "production_authorized", "threshold_status", "probe_range", "selected_method", "seam_status", "runtime_status", "layers"],
+  "properties": {
+    "schema": {"const": "autospine.elbow-comparison/v1"},
+    "profile": {"const": "elbow-alternatives-v1"},
+    "source_mesh_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "source_skeleton_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "authority": {"const": "none"},
+    "production_authorized": {"const": false},
+    "threshold_status": {"const": "experimental_uncalibrated"},
+    "probe_range": {"const": [-90,90,1]},
+    "selected_method": {"type": "null"},
+    "seam_status": {"const": "not_evaluated"},
+    "runtime_status": {"const": "not_evaluated"},
+    "layers": {"type": "array", "maxItems": 4096, "items": {
+      "type": "object", "additionalProperties": false,
+      "required": ["layer_id", "status", "reason_codes", "methods"],
+      "properties": {
+        "layer_id": {"type": "string", "minLength": 1},
+        "status": {"enum": ["compared", "not_evaluated"]},
+        "reason_codes": {"type": "array", "items": {"const": "weighted_mesh_required"}},
+        "methods": {"type": "array", "maxItems": 3, "items": {"$ref": "#/$defs/method"}}
+      },
+      "if": {"properties": {"status": {"const": "compared"}}},
+      "then": {"properties": {"methods": {"minItems": 3}, "reason_codes": {"maxItems": 0}}},
+      "else": {"properties": {"methods": {"maxItems": 0}, "reason_codes": {"const": ["weighted_mesh_required"]}}}
+    }}
+  },
+  "$defs": {"method": {
+    "type": "object", "additionalProperties": false,
+    "required": ["mode", "status", "reason_codes", "min_area_ratio", "max_area_ratio", "max_edge_stretch", "inverted_triangle_samples", "max_compressed_setup_area_fraction", "setup_max_error", "worst"],
+    "properties": {
+      "mode": {"enum": ["lbs", "half_angle_auxiliary", "rotation_corrective"]},
+      "status": {"enum": ["passed", "blocked"]},
+      "reason_codes": {"type": "array", "uniqueItems": true, "items": {"enum": ["mesh_area_compression", "mesh_area_expansion", "mesh_triangle_inversion", "mesh_edge_stretch", "mesh_setup_mismatch"]}},
+      "min_area_ratio": {"type": "number"},
+      "max_area_ratio": {"type": "number"},
+      "max_edge_stretch": {"type": "number", "minimum": 0},
+      "inverted_triangle_samples": {"type": "integer", "minimum": 0},
+      "max_compressed_setup_area_fraction": {"type": "number", "minimum": 0, "maximum": 1},
+      "setup_max_error": {"type": "number", "minimum": 0},
+      "worst": {"type": "object", "additionalProperties": false, "required": ["angle_degrees", "triangle_index"], "properties": {
+        "angle_degrees": {"type": "integer", "minimum": -90, "maximum": 90},
+        "triangle_index": {"type": "integer", "minimum": 0}
+      }}
+    }
+  }}
+}

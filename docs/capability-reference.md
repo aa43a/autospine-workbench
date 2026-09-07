@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+`compare-elbow-deformation` 比较原 LBS、半角辅助骨与旋转修正，输出独立报告和同角度线框。
+候选尚未通过全部面积 QA，不接正式导出；见[实验说明](how-to-elbow-comparison.md)。
+
 `refine-mesh-weights --mesh` 接收原实验网格，保持拓扑并重算关节平面权重，输出独立QA结果。
 不放宽旧阈值、不删除失败三角形；尚无正式Runtime或接缝通过声明。
 
