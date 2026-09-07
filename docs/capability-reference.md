@@ -1,5 +1,9 @@
 # AutoSpine Workbench 功能与入口参考
 
+[真实 DWPose CPU Runner](how-to-real-pose.md)可按Benchmark角色自动解析身份和合成图，
+在隔离环境输出原始133点/完整SimCC及规范12点观测；`build-r2a --pose-comparison-html`
+生成只读对照。没有遮挡判定或人工GT，默认仍阻塞融合和自动采用。
+
 [图层语义复核](how-to-benchmark-semantics.md)已支持开发集逐层图片、19项词汇的明确名称建议、
 空层/隐藏层提示，以及语义、左右、纳入/排除草稿下载和恢复；不自动采用、不写关节真值。
 现支持显式语义接受/拒绝记录；[关节点录入](how-to-benchmark-joints.md)提供17个固定关节的

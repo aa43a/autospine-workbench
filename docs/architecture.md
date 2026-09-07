@@ -1,5 +1,11 @@
 # AutoSpine Workbench 架构与质量门禁
 
+真实 Pose 入口独立位于 `runners/pose`：固定模型profile、惰性加载ONNX的producer、
+数值codec、WholeBody→COCO适配和原始张量exact reader分别成小模块。
+CLI在隔离venv执行，按Benchmark解析真实ID；推理张量、规范观测和优化候选分别寻址。
+原始非概率分数保留，区间编码策略显式记录；未知visibility不升级为可见。
+详见 [R2-B 输入与边界](how-to-real-pose.md)。
+
 PSD 局部语义候选在 `benchmark/semantic_candidates.py` 中按固定名称规则纯生成，
 `semantic_cli.py` 核验真实 audit/图层文件并封存输入闭包，`semantic_draft.py` 与
 `semantic_view.py` 分别约束未批准标注和离线显示，不修改旧 Layer Manifest 语义。

@@ -22,8 +22,8 @@ character ID、PSD 合成 PNG 的 SHA 和完整画布。原 PNG 的检测不能�
 `runners.pose.ModelRunner` 通过 `produce(PoseRunnerRequest) -> Path` 接入独立生产器。
 请求包含原图路径、SHA、画布和项目身份，进入生产器前核验真实PNG字节与尺寸。
 当前CLI已接 `CanonicalPoseFileImporter`，只导入已有标准观测，不冒充模型推断。
-模型生产器可以在独立环境生成同一合同文件；ONNX/MMPose/MediaPipe具体Runner和权重
-仍待接入，核心环境不增加这些依赖。
+模型生产器可以在独立环境生成同一合同文件；现已增加 [DWPose ONNX Runner](how-to-real-pose.md)，
+MMPose/MediaPipe具体Runner仍待接入，核心环境不增加这些依赖。
 
 ## 算法边界
 

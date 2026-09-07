@@ -1,0 +1,5 @@
+# Install only in the dedicated Pose Runner environment.
+numpy==2.4.6
+onnxruntime==1.27.0
+opencv-python-headless==4.13.0.92
+Pillow==12.3.0

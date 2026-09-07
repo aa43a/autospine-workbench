@@ -15,6 +15,7 @@ def register_parser(sub):
         cmd.add_argument('--' + name, required=True, type=Path)
     cmd.add_argument('--character', required=True)
     cmd.add_argument('--pose-observations', type=Path)
+    cmd.add_argument('--pose-comparison-html', type=Path)
     cmd.add_argument('--output', type=Path)
 
 
@@ -71,4 +72,10 @@ def execute(args):
         digest = publish_report(args.state_root, manifest['dataset_id'], kind, doc)
     read_r2a(args.state_root, manifest, digest, workspace=args.workspace)
     export_html(args.html, html)
+    comparison = getattr(args, 'pose_comparison_html', None)
+    if comparison is not None:
+        if pose is None:
+            raise ValueError('pose_observations_required')
+        from .real_pose_view import render_real_pose
+        export_html(comparison, render_real_pose(candidate, pose, optimized, composite))
     return report, 'r2a-runs', manifest['dataset_id'], 0 if skeleton['status'] == 'candidate_requires_review' else 2

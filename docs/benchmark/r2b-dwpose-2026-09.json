@@ -1,0 +1,91 @@
+{
+  "schema": "autospine.local-r2b-inspection/v1",
+  "authority": "none",
+  "model_profile": {
+    "alpha_background": "white",
+    "canonical_score_mapping": "positive-simcc-s-over-one-plus-s-v1",
+    "id": "dwpose-wholebody-fullcanvas-v1",
+    "input_size_wh": [
+      288,
+      384
+    ],
+    "model_revision": "1a7144101628d69ee7a3768d1ee3a094070dc388",
+    "model_sha256": "724f4ff2439ed61afb86fb8a1951ec39c6220682803b4a8bd4f598cd913b1843",
+    "network_color": "BGR",
+    "padding": 1.25,
+    "provider": "CPUExecutionProvider",
+    "score_calibrated": false,
+    "simcc_split_ratio": 2,
+    "subject_policy": "assumed_single_full_canvas_not_person_detection",
+    "threads": 1,
+    "upstream_commit": "3dca5db79d9f9ffdd378753ddf6ec66535aace88",
+    "visibility": "unknown"
+  },
+  "environment": {
+    "numpy": "2.4.6",
+    "onnxruntime": "1.27.0",
+    "opencv": "4.13.0",
+    "python": "3.14.3"
+  },
+  "real_inference": true,
+  "gt_evaluation_complete": false,
+  "characters": [
+    {
+      "source_name": "alice.psd",
+      "character_id": "character-f83a6fabd05091f0",
+      "source_sha256": "d1f62ea4ea466f07f02e820502561949e35c8b60a6ca1d8511f3bd0fe33782df",
+      "raw_sha256": "948d36950a3621d3dd7d0efe9127e93a844783ba27fd28509a6588d712a50702",
+      "pose_sha256": "f21b87d1427304ec563624bfcfa02bdf338742dbc3c6f37408f19644fe902abf",
+      "r2a_sha256": "60bd1e6fed52bbd609a1123116ab7fc85a5aefc789f0028b666244c5c3d7e0de",
+      "raw_keypoints": 133,
+      "canonical_limb_joints": 12,
+      "raw_limb_score_range": [
+        0.44608834385871887,
+        1.0284303426742554
+      ],
+      "skeleton_status": "blocked",
+      "bone_count": 0,
+      "manual_gt_count": 0,
+      "median_error_character_height_ratio": null,
+      "accuracy_evaluated": false
+    },
+    {
+      "source_name": "lingxian.psd",
+      "character_id": "character-1635e2f149a0cfb6",
+      "source_sha256": "774f6fdae3a49d12054a237408c74f40f05f7d73201fb547efdeaedcc078ff02",
+      "raw_sha256": "011ebfa36a8eb1292c6ffee09a7a8878a32dba0744d1dfa816640afbfa281705",
+      "pose_sha256": "47fa8abd26878b7243923891369128de681c5e8656a6dfadfbd2c6ec2f8c176c",
+      "r2a_sha256": "5c95a07c63a33bf175f93ca094276c357f418b63f119bf00d009175f27016c56",
+      "raw_keypoints": 133,
+      "canonical_limb_joints": 12,
+      "raw_limb_score_range": [
+        0.5160048007965088,
+        0.9268521070480347
+      ],
+      "skeleton_status": "blocked",
+      "bone_count": 0,
+      "manual_gt_count": 0,
+      "median_error_character_height_ratio": null,
+      "accuracy_evaluated": false
+    },
+    {
+      "source_name": "crino.psd",
+      "character_id": "character-2c3669d4fb0f569d",
+      "source_sha256": "2400d26e7246b927be402b772596d8a64939ba215dd3daf4a551fd051750419e",
+      "raw_sha256": "0472e44a1e27aa6d5627add347e744449f89159ee393ea65ce847dd79305f446",
+      "pose_sha256": "e448139e835a517555a661c419bc80a20b90ab1291e9c81984b0f375d566b502",
+      "r2a_sha256": "828e0bb132d27b06da82c039b5b9aec547232b4511173aa4bb2d617cdfc2d21a",
+      "raw_keypoints": 133,
+      "canonical_limb_joints": 12,
+      "raw_limb_score_range": [
+        0.21180813014507294,
+        0.7942671179771423
+      ],
+      "skeleton_status": "blocked",
+      "bone_count": 0,
+      "manual_gt_count": 0,
+      "median_error_character_height_ratio": null,
+      "accuracy_evaluated": false
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "autospine.dwpose-raw/v1",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "authority", "project_id", "source", "profile", "transform", "decoded", "simcc", "tensor_sha256", "environment", "implementation_sha256"],
+  "properties": {
+    "schema": {"const": "autospine.dwpose-raw/v1"},
+    "authority": {"const": "none"},
+    "project_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "source": {
+      "type": "object", "additionalProperties": false, "required": ["image_kind", "image_sha256", "canvas_size"],
+      "properties": {
+        "image_kind": {"const": "composite"}, "image_sha256": {"$ref": "#/$defs/sha"},
+        "canvas_size": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "integer", "minimum": 1, "maximum": 4096}}
+      }
+    },
+    "profile": {"type": "object"},
+    "transform": {"type": "object"},
+    "decoded": {
+      "type": "object", "additionalProperties": false,
+      "required": ["keypoints133", "scores133", "valid133", "score_kind", "coordinate_system", "keypoint_order"],
+      "properties": {
+        "keypoints133": {"type": "array", "minItems": 133, "maxItems": 133, "items": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number"}}},
+        "scores133": {"type": "array", "minItems": 133, "maxItems": 133, "items": {"type": "number"}},
+        "valid133": {"type": "array", "minItems": 133, "maxItems": 133, "items": {"type": "boolean"}},
+        "score_kind": {"const": "raw_simcc_minimum"}, "coordinate_system": {"const": "source_canvas_xy"}, "keypoint_order": {"const": "coco_wholebody_133"}
+      }
+    },
+    "simcc": {"type": "array", "minItems": 2, "maxItems": 2, "prefixItems": [{"$ref": "#/$defs/x"}, {"$ref": "#/$defs/y"}]},
+    "tensor_sha256": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"$ref": "#/$defs/sha"}},
+    "environment": {"type": "object", "additionalProperties": false, "required": ["python", "numpy", "opencv", "onnxruntime"], "properties": {"python": {"type": "string"}, "numpy": {"type": "string"}, "opencv": {"type": "string"}, "onnxruntime": {"type": "string"}}},
+    "implementation_sha256": {"type": "object", "additionalProperties": false, "required": ["dwpose.py", "dwpose_codec.py", "dwpose_adapter.py", "dwpose_profile.py"], "properties": {"dwpose.py": {"$ref": "#/$defs/sha"}, "dwpose_codec.py": {"$ref": "#/$defs/sha"}, "dwpose_adapter.py": {"$ref": "#/$defs/sha"}, "dwpose_profile.py": {"$ref": "#/$defs/sha"}}}
+  },
+  "$defs": {
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "x": {"type": "array", "minItems": 1, "maxItems": 1, "items": {"type": "array", "minItems": 133, "maxItems": 133, "items": {"type": "array", "minItems": 576, "maxItems": 576, "items": {"type": "number"}}}},
+    "y": {"type": "array", "minItems": 1, "maxItems": 1, "items": {"type": "array", "minItems": 133, "maxItems": 133, "items": {"type": "array", "minItems": 768, "maxItems": 768, "items": {"type": "number"}}}}
+  }
+}

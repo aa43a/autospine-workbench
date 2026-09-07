@@ -1,5 +1,9 @@
 # AutoSpine Workbench
 
+[R2-B 真实 Pose 入口](docs/how-to-real-pose.md)已在独立环境运行 DWPose ONNX，三个开发
+角色各保留133点与完整SimCC张量，自动绑定Benchmark身份并生成只读对照页。
+模型可见性/镜像未复核、人工GT仍为空，因此不自动采用或宣称精度验收完成。
+
 [R2-A 技术链](docs/how-to-r2a.md)已接通规范 Pose 文件导入、双侧接触匹配、受约束关节优化与
 20 骨候选骨架，一条 CLI 可生成可视报告并精确回读。已用 synthetic fixtures 验证；
 真实模型推理、三角色 GT 精度与生产自动采用仍待 R2-B/C，不将候选视为生产批准。
