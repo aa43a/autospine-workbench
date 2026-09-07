@@ -1,0 +1,177 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "autospine.joint-optimization/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "authority",
+    "diagnostic_only",
+    "candidate_sha256",
+    "pose_sha256",
+    "match_sha256",
+    "algorithm_profile",
+    "status",
+    "reason_codes",
+    "accepted_step",
+    "constraints",
+    "joints"
+  ],
+  "properties": {
+    "schema": {
+      "const": "autospine.joint-optimization/v1"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "diagnostic_only": {
+      "const": true
+    },
+    "candidate_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "pose_sha256": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "match_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "algorithm_profile": {
+      "const": "pose-contact-bounded-blend-v1"
+    },
+    "status": {
+      "enum": [
+        "candidate_requires_review",
+        "blocked"
+      ]
+    },
+    "reason_codes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "accepted_step": {
+      "enum": [
+        null,
+        1,
+        0.5,
+        0.25,
+        0.125,
+        0.0625,
+        0.03125,
+        0.015625,
+        0.0078125,
+        0
+      ]
+    },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "min_detector_score",
+        "min_bone_length_px",
+        "max_displacement_px",
+        "contact_weight",
+        "bone_length_ratio",
+        "step_schedule"
+      ],
+      "properties": {
+        "min_detector_score": {
+          "const": 0.5
+        },
+        "min_bone_length_px": {
+          "type": "number",
+          "minimum": 1
+        },
+        "max_displacement_px": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "contact_weight": {
+          "const": 0.35
+        },
+        "bone_length_ratio": {
+          "const": [
+            0.75,
+            1.25
+          ]
+        },
+        "step_schedule": {
+          "const": [
+            1,
+            0.5,
+            0.25,
+            0.125,
+            0.0625,
+            0.03125,
+            0.015625,
+            0.0078125,
+            0
+          ]
+        }
+      }
+    },
+    "joints": {
+      "type": "array",
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "joint_id",
+          "position",
+          "source",
+          "displacement_px"
+        ],
+        "properties": {
+          "joint_id": {
+            "enum": [
+              "shoulder.left",
+              "shoulder.right",
+              "elbow.left",
+              "elbow.right",
+              "wrist.left",
+              "wrist.right",
+              "hip.left",
+              "hip.right",
+              "knee.left",
+              "knee.right",
+              "ankle.left",
+              "ankle.right"
+            ]
+          },
+          "position": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          "source": {
+            "enum": [
+              "pose",
+              "pose_contact"
+            ]
+          },
+          "displacement_px": {
+            "type": "number",
+            "minimum": 0
+          }
+        }
+      }
+    }
+  }
+}

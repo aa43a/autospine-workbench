@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "autospine.benchmark-r2a/v1",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "authority", "diagnostic_only", "candidate_sha256", "match_sha256", "optimization_sha256", "skeleton_sha256", "status", "bone_count", "reason_codes", "production_authorized", "accuracy_evaluated", "runtime_verified"],
+  "properties": {
+    "schema": {"const": "autospine.benchmark-r2a/v1"},
+    "authority": {"const": "none"}, "diagnostic_only": {"const": true},
+    "candidate_sha256": {"$ref": "#/$defs/sha"}, "match_sha256": {"$ref": "#/$defs/sha"},
+    "optimization_sha256": {"$ref": "#/$defs/sha"}, "skeleton_sha256": {"$ref": "#/$defs/sha"},
+    "status": {"enum": ["blocked", "candidate_requires_review"]},
+    "bone_count": {"enum": [0, 20]}, "reason_codes": {"type": "array", "items": {"type": "string"}},
+    "production_authorized": {"const": false}, "accuracy_evaluated": {"const": false}, "runtime_verified": {"const": false}
+  },
+  "$defs": {"sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"}},
+  "allOf": [{"if": {"properties": {"status": {"const": "blocked"}}}, "then": {"properties": {"bone_count": {"const": 0}}}, "else": {"properties": {"bone_count": {"const": 20}}}}]
+}

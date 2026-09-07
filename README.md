@@ -1,5 +1,9 @@
 # AutoSpine Workbench
 
+[R2-A 技术链](docs/how-to-r2a.md)已接通规范 Pose 文件导入、双侧接触匹配、受约束关节优化与
+20 骨候选骨架，一条 CLI 可生成可视报告并精确回读。已用 synthetic fixtures 验证；
+真实模型推理、三角色 GT 精度与生产自动采用仍待 R2-B/C，不将候选视为生产批准。
+
 开发集新入口：[PNG / PSD 坐标复核](docs/how-to-benchmark-mapping.md)，生成离线叠加页，
 调整并保存映射候选草稿，无需填写 SHA。支持对应锚点录入、草稿恢复及 CLI 拟合/残差诊断。
 映射检查完成后可下载复核请求，显式记录接受/拒绝，并由接受决定准备待标注模板。

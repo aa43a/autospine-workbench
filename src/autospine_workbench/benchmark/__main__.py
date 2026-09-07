@@ -64,10 +64,24 @@ def parser():
     from .contact_screen_cli import register_parser as register_screen_parser
 
     register_screen_parser(sub)
+    from .pose_contact_cli import register_parser as register_pose_parser
+
+    register_pose_parser(sub)
+    from .r2a_cli import register_parser as register_r2a_parser
+
+    register_r2a_parser(sub)
     return result
 
 
 def _execute(args):
+    if args.command == "build-r2a":
+        from .r2a_cli import execute
+
+        return execute(args)
+    if args.command == "match-pose-contacts":
+        from .pose_contact_cli import execute
+
+        return execute(args)
     if args.command == "screen-contacts":
         from .contact_screen_cli import execute
 

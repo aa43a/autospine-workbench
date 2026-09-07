@@ -1,0 +1,175 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "autospine.benchmark-pose-contact-match/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "authority",
+    "diagnostic_only",
+    "candidate_sha256",
+    "probe_sha256",
+    "screen_sha256",
+    "pose_sha256",
+    "algorithm_profile",
+    "thresholds",
+    "records",
+    "summary"
+  ],
+  "properties": {
+    "schema": {
+      "const": "autospine.benchmark-pose-contact-match/v1"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "diagnostic_only": {
+      "const": true
+    },
+    "candidate_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "probe_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "screen_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "pose_sha256": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "algorithm_profile": {
+      "const": "pose-contact-bilateral-match-v1"
+    },
+    "thresholds": {
+      "const": {
+        "min_detector_score": 0.5,
+        "max_distance_diagonal_ratio": 0.08,
+        "min_assignment_margin_diagonal_ratio": 0.015
+      }
+    },
+    "records": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "joint_id",
+          "relation",
+          "status",
+          "contact_id",
+          "position",
+          "anchor_xy",
+          "distance_px",
+          "reason_codes"
+        ],
+        "properties": {
+          "joint_id": {
+            "enum": [
+              "shoulder.left",
+              "shoulder.right",
+              "hip.left",
+              "hip.right",
+              "ankle.left",
+              "ankle.right"
+            ]
+          },
+          "relation": {
+            "enum": [
+              "torso_arm",
+              "pelvis_leg",
+              "leg_foot"
+            ]
+          },
+          "status": {
+            "enum": [
+              "blocked",
+              "candidate_requires_review"
+            ]
+          },
+          "contact_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "position": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          "anchor_xy": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          "distance_px": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "reason_codes": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total",
+        "blocked",
+        "candidate_requires_review"
+      ],
+      "properties": {
+        "total": {
+          "const": 6
+        },
+        "blocked": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 6
+        },
+        "candidate_requires_review": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 6
+        }
+      }
+    }
+  }
+}
