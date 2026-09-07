@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Experimental dense elbow mesh area report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "authority", "production_authorized", "profile", "source_mesh_sha256", "source_skeleton_sha256", "probe_range", "area_ratio_bounds", "threshold_status", "seam_status", "runtime_status", "layers"],
+  "properties": {
+    "schema": {"const": "autospine.mesh-area-report/v1"},
+    "authority": {"const": "none"},
+    "production_authorized": {"const": false},
+    "profile": {"const": "elbow-area-screen-v1"},
+    "source_mesh_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "source_skeleton_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "probe_range": {"const": [-90, 90, 1]},
+    "area_ratio_bounds": {"const": [0.5, 2.0]},
+    "threshold_status": {"const": "experimental_uncalibrated"},
+    "seam_status": {"const": "not_evaluated"},
+    "runtime_status": {"const": "not_evaluated"},
+    "layers": {"type": "array", "maxItems": 4096, "items": {
+      "type": "object", "additionalProperties": false,
+      "required": ["layer_id", "status", "reason_codes"],
+      "properties": {
+        "layer_id": {"type": "string", "minLength": 1},
+        "status": {"enum": ["passed", "blocked", "not_evaluated"]},
+        "reason_codes": {"type": "array", "uniqueItems": true, "items": {"enum": ["weighted_mesh_required", "mesh_basic_qa_failed", "mesh_triangle_inversion", "mesh_area_compression", "mesh_area_expansion"]}},
+        "min_area_ratio": {"type": "number"},
+        "max_area_ratio": {"type": "number"},
+        "inverted_triangle_samples": {"type": "integer", "minimum": 0},
+        "max_compressed_setup_area_fraction": {"type": "number", "minimum": 0, "maximum": 1},
+        "worst": {"type": "object", "additionalProperties": false, "required": ["angle_degrees", "triangle_index"], "properties": {
+          "angle_degrees": {"type": "integer", "minimum": -90, "maximum": 90},
+          "triangle_index": {"type": "integer", "minimum": 0}
+        }}
+      },
+      "if": {"properties": {"status": {"const": "not_evaluated"}}},
+      "then": {"maxProperties": 3},
+      "else": {"required": ["min_area_ratio", "max_area_ratio", "inverted_triangle_samples", "max_compressed_setup_area_fraction", "worst"]}
+    }}
+  }
+}

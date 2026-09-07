@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[肘部面积检查](docs/how-to-mesh-area-screen.md)已接通逐度扫描与空间定位；
+零翻转仍可能严重收缩，四张手臂当前均未通过实验面积阈值。
+
 [关节平面权重改进](docs/how-to-joint-plane-refinement.md)为旧网格生成独立新权重profile，
 沿骨段纵向平滑过渡并锁定远端刚性区域，保持旧拓扑/UV和旧QA阈值不变。
 

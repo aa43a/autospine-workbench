@@ -86,10 +86,15 @@ def parser():
     register_mesh_parser(sub)
     from .mesh_refinement_cli import register_parser as register_refinement_parser
     register_refinement_parser(sub)
+    from .mesh_area_cli import register_parser as register_area_parser
+    register_area_parser(sub)
     return result
 
 
 def _execute(args):
+    if args.command == 'screen-mesh-area':
+        from .mesh_area_cli import execute
+        return execute(args)
     if args.command == 'refine-mesh-weights':
         from .mesh_refinement_cli import execute
         return execute(args)

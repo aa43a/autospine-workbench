@@ -1,0 +1,557 @@
+{
+  "authority": "none",
+  "production_authorized": false,
+  "test_count": 27,
+  "validation": "Exact CLI source replay, schema, deterministic recalculation, CAS readback; Chrome Alice layout",
+  "limitations": [
+    "No full Python/Web suite",
+    "No Spine Runtime",
+    "No seam or independent wrist QA"
+  ],
+  "records": [
+    {
+      "character": "alice",
+      "report_sha256": "b95e1430579943f846c54c59eb918215d105dcb52b5c192c0ca64938338ef27c",
+      "report": {
+        "area_ratio_bounds": [
+          0.5,
+          2.0
+        ],
+        "authority": "none",
+        "layers": [
+          {
+            "layer_id": "layer-000",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-001",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-002",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "inverted_triangle_samples": 0,
+            "layer_id": "layer-003",
+            "max_area_ratio": 1.3636407209105879,
+            "max_compressed_setup_area_fraction": 0.05139920045688178,
+            "min_area_ratio": 0.16291359688258752,
+            "reason_codes": [
+              "mesh_area_compression"
+            ],
+            "status": "blocked",
+            "worst": {
+              "angle_degrees": 90,
+              "triangle_index": 146
+            }
+          },
+          {
+            "inverted_triangle_samples": 0,
+            "layer_id": "layer-004",
+            "max_area_ratio": 1.378272555021546,
+            "max_compressed_setup_area_fraction": 0.0472027972027972,
+            "min_area_ratio": 0.22949853812096216,
+            "reason_codes": [
+              "mesh_area_compression"
+            ],
+            "status": "blocked",
+            "worst": {
+              "angle_degrees": 90,
+              "triangle_index": 178
+            }
+          },
+          {
+            "layer_id": "layer-005",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-006",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-007",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-008",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-009",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-010",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-011",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-012",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-013",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-014",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-015",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-016",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-017",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-018",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-019",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-020",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-021",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-022",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          }
+        ],
+        "probe_range": [
+          -90,
+          90,
+          1
+        ],
+        "production_authorized": false,
+        "profile": "elbow-area-screen-v1",
+        "runtime_status": "not_evaluated",
+        "schema": "autospine.mesh-area-report/v1",
+        "seam_status": "not_evaluated",
+        "source_mesh_sha256": "b22423a7e3c6cf284b8c2ea824134655bde70fdefe45f47f6092da69119724b6",
+        "source_skeleton_sha256": "8c64b71c953e40e9d997da8b61035ccd2b2952b3638df6b6dac5be6a64d6ec10",
+        "threshold_status": "experimental_uncalibrated"
+      }
+    },
+    {
+      "character": "lingxian",
+      "report_sha256": "3cd583a85ac6bb08704498084ff00e4ca9c7a0af55b02533b9807b771b517186",
+      "report": {
+        "area_ratio_bounds": [
+          0.5,
+          2.0
+        ],
+        "authority": "none",
+        "layers": [
+          {
+            "layer_id": "layer-000",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "inverted_triangle_samples": 0,
+            "layer_id": "layer-001",
+            "max_area_ratio": 1.3297730511158699,
+            "max_compressed_setup_area_fraction": 0.047363909129875696,
+            "min_area_ratio": 0.12691644629437263,
+            "reason_codes": [
+              "mesh_area_compression"
+            ],
+            "status": "blocked",
+            "worst": {
+              "angle_degrees": -90,
+              "triangle_index": 192
+            }
+          },
+          {
+            "inverted_triangle_samples": 0,
+            "layer_id": "layer-002",
+            "max_area_ratio": 1.407285663644986,
+            "max_compressed_setup_area_fraction": 0.05467020805666224,
+            "min_area_ratio": 0.12355859051766199,
+            "reason_codes": [
+              "mesh_area_compression"
+            ],
+            "status": "blocked",
+            "worst": {
+              "angle_degrees": 90,
+              "triangle_index": 172
+            }
+          },
+          {
+            "layer_id": "layer-003",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-004",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-005",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-006",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-007",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-008",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-009",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-010",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-011",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-012",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-013",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-014",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-015",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-016",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-017",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-018",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-019",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-020",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          }
+        ],
+        "probe_range": [
+          -90,
+          90,
+          1
+        ],
+        "production_authorized": false,
+        "profile": "elbow-area-screen-v1",
+        "runtime_status": "not_evaluated",
+        "schema": "autospine.mesh-area-report/v1",
+        "seam_status": "not_evaluated",
+        "source_mesh_sha256": "6e409938b6470fd6d2207a7be8fe071cf13f72bf97658cd0182b901bf13c3ff6",
+        "source_skeleton_sha256": "895eb588e07a7c3dffffb5b914b14794037e68a2922c9868c505bff52d6ff9c8",
+        "threshold_status": "experimental_uncalibrated"
+      }
+    },
+    {
+      "character": "crino",
+      "report_sha256": "6b833c378621f61eb390c7beb1e263a0cfa73670fadf6d0d4a5432d51ef186f3",
+      "report": {
+        "area_ratio_bounds": [
+          0.5,
+          2.0
+        ],
+        "authority": "none",
+        "layers": [
+          {
+            "layer_id": "layer-000",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-001",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-002",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-003",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-004",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-005",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-006",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-007",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-008",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-009",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-010",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-011",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-012",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-013",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-014",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-015",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-016",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          },
+          {
+            "layer_id": "layer-017",
+            "reason_codes": [
+              "weighted_mesh_required"
+            ],
+            "status": "not_evaluated"
+          }
+        ],
+        "probe_range": [
+          -90,
+          90,
+          1
+        ],
+        "production_authorized": false,
+        "profile": "elbow-area-screen-v1",
+        "runtime_status": "not_evaluated",
+        "schema": "autospine.mesh-area-report/v1",
+        "seam_status": "not_evaluated",
+        "source_mesh_sha256": "97f0d6f3b2e61afc7acb1b11ea4449ad306ca6bcdb3a87a1d6b1ed158a7763da",
+        "source_skeleton_sha256": "f026ecafeed17fa81819f43214ad04776ceab18648c5222f03c1d34733e1d0ec",
+        "threshold_status": "experimental_uncalibrated"
+      }
+    }
+  ]
+}
