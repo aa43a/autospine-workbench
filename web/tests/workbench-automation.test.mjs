@@ -25,10 +25,10 @@ function deferred() {
   const promise = new Promise((done) => { resolve = done; });
   return { promise, resolve };
 }
-function harness(handler = null) {
+function harness(handler = null, clock = () => 0) {
   const context = { projectId: "sample", resolvedSha: SHA, dirty: false, saving: false,
     loading: false, layerIds: ["layer-1"], jointIds: ["ankle.left"] };
-  const requests = [], models = [], selected = [], timers = new Map();
+  const requests = [], models = [], selected = [], timers = new Map(), delays = [];
   let sequence = 0;
   const controller = createWorkbenchAutomation(null, {
     context: () => context,
@@ -38,10 +38,11 @@ function harness(handler = null) {
     },
     selectLayer: (id) => selected.push(["layer", id]), selectJoint: (id) => selected.push(["joint", id]),
   }, { view: { render: (model) => models.push(model) },
-    schedule: (callback) => { const id = ++sequence; timers.set(id, callback); return id; },
+    now: clock,
+    schedule: (callback, delay) => { const id = ++sequence; timers.set(id, callback); delays.push(delay); return id; },
     unschedule: (id) => timers.delete(id),
   });
-  return { controller, context, requests, selected, timers, model: () => models.at(-1),
+  return { controller, context, requests, selected, timers, delays, model: () => models.at(-1),
     poll: async () => { const [id, callback] = timers.entries().next().value; timers.delete(id); callback(); await tick(); } };
 }
 
@@ -59,7 +60,30 @@ test("preview binds saved project automatically, polls asynchronously and expose
   await h.poll();
   assert.equal(h.model().downloadUrl, `/api/projects/sample/automation/jobs/${JOB}/download`);
   assert.equal(h.model().active, false);
+  assert.equal(h.timers.size, 0);
   h.controller.dispose();
+});
+
+test("long builds explain polling, back off and stop for every terminal status", async () => {
+  for (const terminal of ["succeeded", "needs_review", "blocked", "failed", "canceled"]) {
+    let elapsed = 0, status = "pending";
+    const h = harness((url, options, context) => url.endsWith("/preview") || url.includes("/jobs/")
+      ? job(context, status) : overview(context), () => elapsed);
+    h.controller.sync(); await tick(); await h.controller.start();
+    assert.match(h.model().message, /正在排队.*0 秒/);
+    assert.equal(h.delays.at(-1), 1200);
+    elapsed = 12000; status = "running"; await h.poll();
+    assert.equal(h.delays.at(-1), 2500);
+    elapsed = 45000; await h.poll();
+    assert.equal(h.delays.at(-1), 5000);
+    assert.match(h.model().message, /45 秒.*状态查询不会重复构建/);
+    assert.equal(h.requests.filter((row) => row.options.method === "POST").length, 1);
+    status = terminal; await h.poll();
+    assert.equal(h.model().active, false);
+    assert.equal(h.timers.size, 0);
+    assert.equal(h.controller.canDownload(), terminal === "succeeded");
+    h.controller.dispose();
+  }
 });
 
 test("unsaved, saving and loading states block both button actions and download click guard", async () => {

@@ -4,12 +4,14 @@ import { ACTIVE_JOBS, DEFAULT_TARGET_VERSION, TARGET_VERSIONS, automationEndpoin
 import { AUTOMATION_STATUS, automationReason, createAutomationView } from "./workbench-automation-view.js";
 
 export function createWorkbenchAutomation(document, hooks, options = {}) {
-  const schedule = options.schedule || ((callback) => setTimeout(callback, 1200));
+  const schedule = options.schedule || ((callback, delay) => setTimeout(callback, delay));
+  const now = options.now || (() => performance.now());
   const unschedule = options.unschedule || clearTimeout;
   let identity = null, projectId = null, generation = 0, timer = null, requestVersion = 0;
   let overview = null, job = null, fetching = false, submitting = false, canceling = false;
   let error = null, waitingForReview = false, intent = false;
   let targetVersion = DEFAULT_TARGET_VERSION;
+  let startedAt = null;
   const view = options.view || createAutomationView(document, {
     start, refresh, cancel, canDownload, locate, setTarget,
     canLocate: (item) => Boolean(reviewTarget(item, hooks.context())),
@@ -37,6 +39,13 @@ export function createWorkbenchAutomation(document, hooks, options = {}) {
     if (error) return error;
     if (submitting) return "正在提交构建请求…";
     if (job?.cancel_requested && active()) return "已请求取消，正在等待构建停止…";
+    if (active()) {
+      const seconds = Math.max(0, Math.floor((now() - startedAt) / 1000));
+      const state = job.status === "pending" ? "正在排队" : "正在构建并校验预览";
+      return `${state}，已等待 ${seconds} 秒。${seconds >= 30
+        ? "大图处理可能需要几分钟；状态查询不会重复构建，完成后会自动停止查询。"
+        : "完成后会自动显示下载入口。"}`;
+    }
     if (job) {
       const state = job.run?.status || job.status;
       const reason = job.reason_code || job.run?.steps?.find((row) => row.reason_code)?.reason_code;
@@ -62,6 +71,7 @@ export function createWorkbenchAutomation(document, hooks, options = {}) {
       const resume = sameProject && intent && (waitingForReview || job?.status === "needs_review" || job?.run?.status === "needs_review");
       generation += 1; stopTimer(); identity = next; projectId = value.projectId;
       overview = null; job = null; error = null; fetching = false; submitting = false; canceling = false;
+      startedAt = null;
       waitingForReview = Boolean(resume); intent = Boolean(resume);
       if (identity) void refresh();
     }
@@ -104,12 +114,13 @@ export function createWorkbenchAutomation(document, hooks, options = {}) {
     if (job.status === "canceled") { intent = false; waitingForReview = false; }
     render();
     if (active()) queuePoll();
+    else stopTimer();
   }
   async function start() {
     sync();
     if (!identity || !overview || !editable() || fetching || submitting || active()) return;
     const token = generation, saved = { ...context() }, serial = ++requestVersion;
-    submitting = true; error = null; intent = true; render();
+    submitting = true; error = null; intent = true; startedAt = now(); render();
     try {
       const payload = await hooks.apiRequest(`${automationEndpoint(saved.projectId)}/preview`, {
         method: "POST", headers: { "X-Autospine-Intent": "pipeline-preview" },
@@ -125,7 +136,9 @@ export function createWorkbenchAutomation(document, hooks, options = {}) {
   function queuePoll() {
     stopTimer();
     const token = generation, id = job.job_id;
-    timer = schedule(() => { timer = null; void poll(token, id); });
+    const elapsed = Math.max(0, now() - startedAt);
+    const delay = elapsed >= 30000 ? 5000 : elapsed >= 10000 ? 2500 : 1200;
+    timer = schedule(() => { timer = null; void poll(token, id); }, delay);
   }
   async function poll(token, id) {
     if (!current(token) || job?.job_id !== id) return;
