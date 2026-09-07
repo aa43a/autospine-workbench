@@ -49,10 +49,17 @@ def parser():
     from .mapping_decision_cli import register_parsers
 
     register_parsers(sub)
+    from .semantic_cli import register_parser as register_semantic_parser
+
+    register_semantic_parser(sub)
     return result
 
 
 def _execute(args):
+    if args.command == "semantic-review":
+        from .semantic_cli import execute
+
+        return execute(args)
     if args.command in {"record-mapping-review", "annotation-template"}:
         from .mapping_decision_cli import execute
 

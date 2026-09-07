@@ -62,6 +62,24 @@ composite、embedded composite、contact sheet和62张逐层PNG。没有注册�
 
 ## 下一步
 
+图层语义接续切片已为3个开发PSD核验62张逐层PNG，输出19项词汇范围内的名称建议：
+
+| 开发样本 | 图层 | 明确名称建议 | 空层 |
+| --- | ---: | ---: | ---: |
+| [爱丽丝候选](semantic-alice-candidates-v1.json) | 23 | 5 | 0 |
+| [铃仙候选](semantic-lingxian-candidates-v1.json) | 21 | 5 | 0 |
+| [琪露诺候选](semantic-crino-candidates-v1.json) | 18 | 5 | 1 |
+
+15项仅是名称建议，不是正确率或自动采用覆盖率。真实标注均保持语义空值、左右unknown、
+纳入undecided；未读取holdout，未提交人工语义决定或关节真值。琪露诺headwear虽有
+非零bbox，但审计alpha_nonzero=0，因此保留空层复核，不自动排除。
+
+最新页面为 `../tmp/benchmark-semantics/{alice,lingxian,crino}-review-v1.html`，
+相对仓库根目录。候选经真实源文件核验、Schema验证、CAS精确重放后封存；
+琪露诺离屏Chrome显示检查见同目录 `crino-review-v1.png`。
+本轮112项Benchmark回归通过（19.923秒），维护性3项通过；完善Schema字符串边界
+和中文说明后10项CLI/UI复测通过（2.234秒）。[入口说明](../how-to-benchmark-semantics.md)。
+
 显式映射复核接续切片：新版页面末尾可填写接受/拒绝请求，默认未选择任何结果或
 检查项；CLI 重新核验源文件、要求显式人工确认后才保存决定。只有 exact accepted
 决定可以生成空的 pending 标注模板。拒绝、缺确认、过期请求和篡改决定均已测试。

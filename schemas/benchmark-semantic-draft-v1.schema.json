@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "candidate_sha256", "authority", "records"],
+  "properties": {
+    "schema": {"const": "autospine.benchmark-semantic-draft/v1"},
+    "candidate_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}(?![\\s\\S])"},
+    "authority": {"const": "none"},
+    "records": {"type": "array", "maxItems": 256, "items": {
+      "type": "object", "additionalProperties": false,
+      "required": ["layer_id", "semantic", "side", "disposition", "notes"],
+      "properties": {
+        "layer_id": {"type": "string", "pattern": "^layer-[0-9]{3}(?![\\s\\S])"},
+        "semantic": {"enum": [null, "body.face", "body.neck", "body.torso", "body.arm.upper", "body.arm.lower", "body.hand", "body.leg.upper", "body.leg.lower", "body.foot", "wear.top", "wear.sleeve", "wear.skirt", "wear.pants", "wear.shoe", "hair.front", "hair.side", "hair.back", "accessory.ribbon", "accessory.weapon"]},
+        "side": {"enum": ["unknown", "left", "right", "bilateral"]},
+        "disposition": {"enum": ["undecided", "include", "exclude"]},
+        "notes": {"type": "string", "maxLength": 1000, "description": "Semantic validation additionally rejects Unicode category C characters."}
+      }
+    }}
+  }
+}

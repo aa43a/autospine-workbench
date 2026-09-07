@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Conservative development layer semantic suggestions",
+  "$comment": "Semantic validator recomputes exact aliases and source/audit bindings. File bytes are verified separately by the loader. No canonical side, calibrated confidence or approval is inferred.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "dataset_id", "character_id", "benchmark_manifest_sha256", "evidence_sha256", "audit_snapshot_sha256", "audit_envelope_sha256", "source_png_sha256", "source_psd_sha256", "composite_sha256", "canvas", "algorithm_profile", "authority", "coordinate_system", "review_required", "layers"],
+  "properties": {
+    "schema": {"const": "autospine.benchmark-semantic-candidates/v1"},
+    "dataset_id": {"type": "string", "minLength": 1},
+    "character_id": {"type": "string", "pattern": "^character-[0-9a-f]{16}(?![\\s\\S])"},
+    "benchmark_manifest_sha256": {"$ref": "#/$defs/sha"},
+    "evidence_sha256": {"$ref": "#/$defs/sha"},
+    "audit_snapshot_sha256": {"$ref": "#/$defs/sha"},
+    "audit_envelope_sha256": {"$ref": "#/$defs/sha"},
+    "source_png_sha256": {"$ref": "#/$defs/sha"},
+    "source_psd_sha256": {"$ref": "#/$defs/sha"},
+    "composite_sha256": {"$ref": "#/$defs/sha"},
+    "canvas": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "integer", "minimum": 1}},
+    "algorithm_profile": {"const": "exact-layer-name-v1"},
+    "authority": {"const": "none"},
+    "coordinate_system": {"const": "psd_canvas"},
+    "review_required": {"const": true},
+    "layers": {"type": "array", "minItems": 1, "maxItems": 256, "items": {"$ref": "#/$defs/layer"}}
+  },
+  "$defs": {
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}(?![\\s\\S])"},
+    "file": {
+      "type": "object", "additionalProperties": false, "required": ["path", "sha256", "byte_size"],
+      "properties": {"path": {"type": "string", "minLength": 1}, "sha256": {"$ref": "#/$defs/sha"}, "byte_size": {"type": "integer", "minimum": 1}}
+    },
+    "layer": {
+      "type": "object", "additionalProperties": false,
+      "required": ["layer_id", "index", "traversal_index", "name", "bbox", "image", "image_sha256", "semantic", "raw_name_side", "canonical_side", "observed", "confidence", "review_required", "reason_codes"],
+      "properties": {
+        "layer_id": {"type": "string", "pattern": "^layer-[0-9]{3}(?![\\s\\S])"},
+        "index": {"type": "integer", "minimum": 0, "maximum": 255},
+        "traversal_index": {"type": "integer", "minimum": 0},
+        "name": {"type": "string", "minLength": 1, "maxLength": 1000},
+        "bbox": {"type": "array", "minItems": 4, "maxItems": 4, "items": {"type": "integer"}},
+        "image": {"$ref": "#/$defs/file"},
+        "image_sha256": {"$ref": "#/$defs/sha"},
+        "semantic": {"enum": [null, "body.face", "body.neck", "body.torso", "body.arm.upper", "body.arm.lower", "body.hand", "body.leg.upper", "body.leg.lower", "body.foot", "wear.top", "wear.sleeve", "wear.skirt", "wear.pants", "wear.shoe", "hair.front", "hair.side", "hair.back", "accessory.ribbon", "accessory.weapon"]},
+        "raw_name_side": {"enum": [null, "l", "r"]},
+        "canonical_side": {"const": "unknown"},
+        "observed": {
+          "type": "object", "additionalProperties": false, "required": ["empty", "visible", "alpha_nonzero"],
+          "properties": {"empty": {"type": "boolean"}, "visible": {"type": "boolean"}, "alpha_nonzero": {"type": "integer", "minimum": 0}}
+        },
+        "confidence": {"type": "null"}, "review_required": {"const": true},
+        "reason_codes": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["exact_name_alias", "ambiguous_layer_name", "unmapped_layer_name", "canonical_side_requires_review", "empty_layer_review_required", "hidden_layer_review_required", "layer_outside_canvas"]}}
+      }
+    }
+  }
+}
