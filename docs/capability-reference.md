@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+`analyze-chain-coverage --bindings --draft` 分析多骨候选图层的alpha连通域和骨段覆盖，
+可展示已封存的选择。报告不自动采用、不生成权重，见[操作说明](how-to-chain-coverage.md)。
+
 `build-layer-bindings` 为新的单骨/多骨入口，支持整臂、整腿和双侧骨链候选及草稿。
 旧region入口不变；多骨选项暂不生成加权Mesh。见[多骨绑定v2](how-to-layer-binding-v2.md)。
 

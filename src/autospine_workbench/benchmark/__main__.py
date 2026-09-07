@@ -80,10 +80,15 @@ def parser():
     register_binding_parser(sub)
     from .layer_binding_cli import register_parser as register_layer_binding_parser
     register_layer_binding_parser(sub)
+    from .chain_coverage_cli import register_parser as register_coverage_parser
+    register_coverage_parser(sub)
     return result
 
 
 def _execute(args):
+    if args.command == 'analyze-chain-coverage':
+        from .chain_coverage_cli import execute
+        return execute(args)
     if args.command == 'build-layer-bindings':
         from .layer_binding_cli import execute
         return execute(args)

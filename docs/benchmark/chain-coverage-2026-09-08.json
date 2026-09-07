@@ -1,0 +1,156 @@
+{
+  "profile": "alpha-chain-coverage-v1",
+  "weights_generated": false,
+  "characters": [
+    {
+      "character": "alice",
+      "artifact_sha256": "e6a006712b97b84112204abc93141c2a16c93410bf4bbe9a92220064135756bb",
+      "layers": [
+        {
+          "layer_id": "layer-001",
+          "component_count": 2,
+          "alpha_pixel_count": 31219,
+          "selected_option": null,
+          "selected_bones": null
+        },
+        {
+          "layer_id": "layer-003",
+          "component_count": 1,
+          "alpha_pixel_count": 12028,
+          "selected_option": "mesh_chain:r:arm",
+          "selected_bones": [
+            {
+              "bone_id": "upperarm_r",
+              "coverage_ratio": 0.7142857142857143,
+              "covered_samples": 15,
+              "sample_count": 21
+            },
+            {
+              "bone_id": "forearm_r",
+              "coverage_ratio": 1.0,
+              "covered_samples": 21,
+              "sample_count": 21
+            },
+            {
+              "bone_id": "hand_r",
+              "coverage_ratio": 1.0,
+              "covered_samples": 21,
+              "sample_count": 21
+            }
+          ]
+        },
+        {
+          "layer_id": "layer-004",
+          "component_count": 1,
+          "alpha_pixel_count": 11975,
+          "selected_option": "mesh_chain:l:arm",
+          "selected_bones": [
+            {
+              "bone_id": "upperarm_l",
+              "coverage_ratio": 0.7142857142857143,
+              "covered_samples": 15,
+              "sample_count": 21
+            },
+            {
+              "bone_id": "forearm_l",
+              "coverage_ratio": 1.0,
+              "covered_samples": 21,
+              "sample_count": 21
+            },
+            {
+              "bone_id": "hand_l",
+              "coverage_ratio": 1.0,
+              "covered_samples": 21,
+              "sample_count": 21
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "character": "lingxian",
+      "artifact_sha256": "6ad99bca388b637ccb6c3cbdb419b88a0486d8e7063034e06c091417225f50fd",
+      "layers": [
+        {
+          "layer_id": "layer-001",
+          "component_count": 4,
+          "alpha_pixel_count": 22097,
+          "selected_option": "mesh_chain:r:arm",
+          "selected_bones": [
+            {
+              "bone_id": "upperarm_r",
+              "coverage_ratio": 1.0,
+              "covered_samples": 21,
+              "sample_count": 21
+            },
+            {
+              "bone_id": "forearm_r",
+              "coverage_ratio": 1.0,
+              "covered_samples": 21,
+              "sample_count": 21
+            },
+            {
+              "bone_id": "hand_r",
+              "coverage_ratio": 1.0,
+              "covered_samples": 21,
+              "sample_count": 21
+            }
+          ]
+        },
+        {
+          "layer_id": "layer-002",
+          "component_count": 1,
+          "alpha_pixel_count": 21709,
+          "selected_option": "mesh_chain:l:arm",
+          "selected_bones": [
+            {
+              "bone_id": "upperarm_l",
+              "coverage_ratio": 1.0,
+              "covered_samples": 21,
+              "sample_count": 21
+            },
+            {
+              "bone_id": "forearm_l",
+              "coverage_ratio": 1.0,
+              "covered_samples": 21,
+              "sample_count": 21
+            },
+            {
+              "bone_id": "hand_l",
+              "coverage_ratio": 1.0,
+              "covered_samples": 21,
+              "sample_count": 21
+            }
+          ]
+        },
+        {
+          "layer_id": "layer-003",
+          "component_count": 5,
+          "alpha_pixel_count": 76625,
+          "selected_option": null,
+          "selected_bones": null
+        }
+      ]
+    },
+    {
+      "character": "crino",
+      "artifact_sha256": "d4d6d965d074e6901509c3e475c7a457098a68e40e76299dee112dfbce273fa6",
+      "layers": [
+        {
+          "layer_id": "layer-004",
+          "component_count": 3,
+          "alpha_pixel_count": 50194,
+          "selected_option": null,
+          "selected_bones": null
+        },
+        {
+          "layer_id": "layer-005",
+          "component_count": 3,
+          "alpha_pixel_count": 85701,
+          "selected_option": null,
+          "selected_bones": null
+        }
+      ]
+    }
+  ]
+}

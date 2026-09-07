@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[Alpha骨链覆盖分析](docs/how-to-chain-coverage.md)已接通：4连通域、PSD坐标质心和逐骨21点覆盖诊断。
+用户指令确认的19项默认选择已封存；无默认建议项保持待处理，覆盖报告不改写选择。
+
 [多骨绑定v2](docs/how-to-layer-binding-v2.md)支持刚性单骨与整臂/整腿三骨链，双侧图层可选两条骨链。
 名称侧别只是建议，草稿保存完整选项；网格、权重和动态QA按后续步骤接入，旧v1保持兼容。
 

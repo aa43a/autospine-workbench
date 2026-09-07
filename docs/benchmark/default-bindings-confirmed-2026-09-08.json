@@ -1,0 +1,28 @@
+{
+  "user_instruction": "按默认绑定关系确认 然后继续下一项",
+  "scope": "existing suggested_option_id only",
+  "production_authorized": false,
+  "characters": [
+    {
+      "character": "alice",
+      "source_bindings_sha256": "09a8ebea7ada165230ddfbfe7a24fe9ca220b495aac7c2067ac0b36947cab229",
+      "draft_sha256": "771d3fce9853cae2efc8825597390cca34327f644284128e99ac199bb93ead84",
+      "selected": 7,
+      "pending": 16
+    },
+    {
+      "character": "lingxian",
+      "source_bindings_sha256": "016705d29e2be0b078bca429981e5d1dd233f7ab40ca59bd900356a0ef2164da",
+      "draft_sha256": "b949297682819422503f3fd306269dbb871445871764e6e1eee88fa14de7250e",
+      "selected": 7,
+      "pending": 14
+    },
+    {
+      "character": "crino",
+      "source_bindings_sha256": "5bf985d64860028407bf93f68cc4043d93a68606d6fcae2cf36f95baa0c58b0d",
+      "draft_sha256": "82a30460087015eb902c120b846546a27fbd2cda02ae7e11e667903adbeef361",
+      "selected": 5,
+      "pending": 13
+    }
+  ]
+}

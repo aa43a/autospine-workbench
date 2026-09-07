@@ -1,5 +1,8 @@
 # AutoSpine Workbench 架构与质量门禁
 
+`asset/joints/chain_coverage.py` 独立实现4连通RLE/并查集及骨段alpha采样，
+不改既有8连通AlphaGeometry；CLI重放v2绑定源，view标识草稿选择但不改变测量身份。
+
 `asset/joints/layer_binding.py` 为独立v2候选，复用v1刚性计算而不修改旧合同。
 `benchmark/layer_binding_{draft,cli,controls,view}.py` 分别负责草稿、源闭包、编辑及骨链叠图。
 选项mode区分rigid/mesh_chain，草稿只保存option_id；多骨选项不包含伪造的setup权重。
