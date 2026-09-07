@@ -1,0 +1,410 @@
+{
+  "schema": "autospine.local-assisted-annotation-intake/v1",
+  "authority": "none",
+  "date": "2026-09-08",
+  "measurement_kind": "correction_distance_not_independent_accuracy",
+  "characters": [
+    {
+      "character": "alice",
+      "input_file_sha256": "c9bfab70b82dc793fba987502538992eff773c3969c916110d88cf1dcc9e5f3c",
+      "artifact_sha256": "04b498a6d1b22d1e078ed9790834ffbd88d67ffe1680c1203494fcd12118e305",
+      "source_pose_sha256": "f21b87d1427304ec563624bfcfa02bdf338742dbc3c6f37408f19644fe902abf",
+      "reviewed_count": 17,
+      "observed_count": 17,
+      "changed_count": 11,
+      "unchanged_count": 6,
+      "changes": [
+        {
+          "joint_id": "pelvis",
+          "before": [
+            497.5,
+            542.0
+          ],
+          "after": [
+            491.387,
+            523.034
+          ],
+          "correction_distance_px": 19.926814221043973
+        },
+        {
+          "joint_id": "chest",
+          "before": [
+            496.5,
+            306.48
+          ],
+          "after": [
+            488.669,
+            282.437
+          ],
+          "correction_distance_px": 25.286170330835006
+        },
+        {
+          "joint_id": "neck",
+          "before": [
+            494.5,
+            153.5
+          ],
+          "after": [
+            495.465,
+            180.49
+          ],
+          "correction_distance_px": 27.007245787010575
+        },
+        {
+          "joint_id": "shoulder.left",
+          "before": [
+            574.222222,
+            229.777778
+          ],
+          "after": [
+            548.478,
+            223.987
+          ],
+          "correction_distance_px": 26.387460587001737
+        },
+        {
+          "joint_id": "shoulder.right",
+          "before": [
+            400.888889,
+            227.555556
+          ],
+          "after": [
+            432.938,
+            225.347
+          ],
+          "correction_distance_px": 32.125118451072765
+        },
+        {
+          "joint_id": "elbow.left",
+          "before": [
+            623.111111,
+            356.444444
+          ],
+          "after": [
+            620.521,
+            363.995
+          ],
+          "correction_distance_px": 7.982453939826895
+        },
+        {
+          "joint_id": "elbow.right",
+          "before": [
+            360.888889,
+            345.333333
+          ],
+          "after": [
+            369.05,
+            353.121
+          ],
+          "correction_distance_px": 11.280580218109797
+        },
+        {
+          "joint_id": "wrist.left",
+          "before": [
+            618.666667,
+            332.0
+          ],
+          "after": [
+            685.768,
+            461.865
+          ],
+          "correction_distance_px": 146.17628780132878
+        },
+        {
+          "joint_id": "wrist.right",
+          "before": [
+            398.666667,
+            369.777778
+          ],
+          "after": [
+            314.678,
+            441.476
+          ],
+          "correction_distance_px": 110.42975696069504
+        },
+        {
+          "joint_id": "hip.left",
+          "before": [
+            554.222222,
+            489.777778
+          ],
+          "after": [
+            559.353,
+            479.536
+          ],
+          "correction_distance_px": 11.455081819287361
+        },
+        {
+          "joint_id": "hip.right",
+          "before": [
+            429.777778,
+            500.888889
+          ],
+          "after": [
+            438.375,
+            484.973
+          ],
+          "correction_distance_px": 18.089437492017396
+        }
+      ],
+      "independent_annotation": false,
+      "notes_contain_replacement_character": false
+    },
+    {
+      "character": "lingxian",
+      "input_file_sha256": "c6da96c1e0feef99e93ca3e60399e3f29445ebcc1818d840005930a8ab44d63a",
+      "artifact_sha256": "d87d1cacb27fbc15f1772d3d4f69a347b1df8e9ff254adc8d42802efabd1561f",
+      "source_pose_sha256": "47fa8abd26878b7243923891369128de681c5e8656a6dfadfbd2c6ec2f8c176c",
+      "reviewed_count": 17,
+      "observed_count": 17,
+      "changed_count": 10,
+      "unchanged_count": 7,
+      "changes": [
+        {
+          "joint_id": "pelvis",
+          "before": [
+            633.5,
+            625.5
+          ],
+          "after": [
+            632.242,
+            615.152
+          ],
+          "correction_distance_px": 10.424186682902373
+        },
+        {
+          "joint_id": "chest",
+          "before": [
+            634.0,
+            388.28
+          ],
+          "after": [
+            640,
+            434.788
+          ],
+          "correction_distance_px": 46.89343305837187
+        },
+        {
+          "joint_id": "shoulder.left",
+          "before": [
+            734.444444,
+            320.555556
+          ],
+          "after": [
+            725.333,
+            357.212
+          ],
+          "correction_distance_px": 37.77185855223793
+        },
+        {
+          "joint_id": "shoulder.right",
+          "before": [
+            531.666667,
+            317.777778
+          ],
+          "after": [
+            548.848,
+            339.758
+          ],
+          "correction_distance_px": 27.898536929849413
+        },
+        {
+          "joint_id": "elbow.left",
+          "before": [
+            826.111111,
+            459.444444
+          ],
+          "after": [
+            793.212,
+            477.455
+          ],
+          "correction_distance_px": 37.50642121050023
+        },
+        {
+          "joint_id": "elbow.right",
+          "before": [
+            451.111111,
+            453.888889
+          ],
+          "after": [
+            477.091,
+            483.273
+          ],
+          "correction_distance_px": 39.222195396390596
+        },
+        {
+          "joint_id": "wrist.left",
+          "before": [
+            895.555556,
+            601.111111
+          ],
+          "after": [
+            870.788,
+            620.97
+          ],
+          "correction_distance_px": 31.74598088778258
+        },
+        {
+          "joint_id": "wrist.right",
+          "before": [
+            373.333333,
+            601.111111
+          ],
+          "after": [
+            407.273,
+            619.03
+          ],
+          "correction_distance_px": 38.37952030790914
+        },
+        {
+          "joint_id": "hip.left",
+          "before": [
+            712.222222,
+            626.111111
+          ],
+          "after": [
+            715.636,
+            628.727
+          ],
+          "correction_distance_px": 4.300785450775761
+        },
+        {
+          "joint_id": "hip.right",
+          "before": [
+            551.111111,
+            628.888889
+          ],
+          "after": [
+            564.364,
+            632.606
+          ],
+          "correction_distance_px": 13.76430096418419
+        }
+      ],
+      "independent_annotation": false,
+      "notes_contain_replacement_character": false
+    },
+    {
+      "character": "crino",
+      "input_file_sha256": "08441e75a43e07873061d10f3cd1b65f97472047219c81298a1e8361725aa24e",
+      "artifact_sha256": "f0eee4013379d570160b07fc69445b062a50c7015bdc4e2034437e88c94d8c7e",
+      "source_pose_sha256": "e448139e835a517555a661c419bc80a20b90ab1291e9c81984b0f375d566b502",
+      "reviewed_count": 17,
+      "observed_count": 17,
+      "changed_count": 9,
+      "unchanged_count": 8,
+      "changes": [
+        {
+          "joint_id": "neck",
+          "before": [
+            652.0,
+            284.5
+          ],
+          "after": [
+            655.515,
+            322.303
+          ],
+          "correction_distance_px": 37.96606424163558
+        },
+        {
+          "joint_id": "shoulder.left",
+          "before": [
+            748.333333,
+            340.0
+          ],
+          "after": [
+            742.788,
+            366.909
+          ],
+          "correction_distance_px": 27.474442652779853
+        },
+        {
+          "joint_id": "shoulder.right",
+          "before": [
+            506.666667,
+            348.333333
+          ],
+          "after": [
+            562.424,
+            372.727
+          ],
+          "correction_distance_px": 60.85993076712931
+        },
+        {
+          "joint_id": "elbow.left",
+          "before": [
+            817.777778,
+            442.777778
+          ],
+          "after": [
+            810.667,
+            494.909
+          ],
+          "correction_distance_px": 52.613947494733424
+        },
+        {
+          "joint_id": "elbow.right",
+          "before": [
+            409.444444,
+            440.0
+          ],
+          "after": [
+            473.212,
+            520.121
+          ],
+          "correction_distance_px": 102.39958905783331
+        },
+        {
+          "joint_id": "wrist.left",
+          "before": [
+            884.444444,
+            415.0
+          ],
+          "after": [
+            917.333,
+            630.667
+          ],
+          "correction_distance_px": 218.1602897063651
+        },
+        {
+          "joint_id": "wrist.right",
+          "before": [
+            362.222222,
+            384.444444
+          ],
+          "after": [
+            374.303,
+            640.364
+          ],
+          "correction_distance_px": 256.2045361431418
+        },
+        {
+          "joint_id": "hip.left",
+          "before": [
+            723.333333,
+            631.666667
+          ],
+          "after": [
+            700.121,
+            677.212
+          ],
+          "correction_distance_px": 51.11936777175343
+        },
+        {
+          "joint_id": "hip.right",
+          "before": [
+            551.111111,
+            637.222222
+          ],
+          "after": [
+            595.394,
+            667.515
+          ],
+          "correction_distance_px": 53.65283456764983
+        }
+      ],
+      "independent_annotation": false,
+      "notes_contain_replacement_character": false
+    }
+  ]
+}
