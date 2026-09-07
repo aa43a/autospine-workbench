@@ -1,5 +1,9 @@
 # AutoSpine Workbench 架构与质量门禁
 
+Benchmark 映射候选在独立 `benchmark/mapping.py` 中计算和验证；文件核验、CLI 与
+离线页面分别位于 `mapping_cli.py`、`mapping_view.py`。它绑定原图、PSD、冻结数据集和
+合成证据，复用不可变报告 store。坐标草稿无批准权，不进入旧 Resolved/P9/P10 身份闭包。
+
 2026-09 自动化转向见 [当前状态](current-state-2026-09.md)。[Pipeline Profile v1](adr-pipeline-profiles-v1.md) 已接入独立的 [PipelineRun region 预览执行器](adr/pipeline-run-v1.md)；其运行记录、预览输出和历史认证内容地址保持独立。
 
 本文约束的是持续开发方式，不是一次性重写计划。任何新功能都先进入版本中立合同和可复现工件，再接 UI 或特定 Spine 版本适配器。

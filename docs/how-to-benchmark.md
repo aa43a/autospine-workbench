@@ -64,7 +64,8 @@ python -m autospine_workbench.benchmark metrics --manifest ../tmp/benchmark/froz
 因此报告保持 authority=none，不是质量认证。重建验证可使用 `validate_metrics`。
 
 现阶段 manifest 固定为 pending 标注：complexity、rights、关节和语义留空，
-不允许将自动候选写成 ground truth。正式映射/坐标变换和人工标注决定入口是后续切片。
+不允许将自动候选写成 ground truth。现可使用[坐标复核页](how-to-benchmark-mapping.md)
+调整 PNG↔PSD 候选并保存无权威草稿；正式人工标注决定仍待开发。
 
 ## 工程边界
 

@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+开发集新入口：[PNG / PSD 坐标复核](docs/how-to-benchmark-mapping.md)，生成离线叠加页，
+调整并保存映射候选草稿，无需填写 SHA。
+
 首批 Benchmark 已冻结3开发/4可见/3holdout、其余10 reserve；支持源身份验证、
 输入alpha检查和诚实的空评测报告。见[实际划分](docs/benchmark/first-batch-2026-09.md)
 及[Benchmark CLI](docs/how-to-benchmark.md)。人工映射、坐标变换与关节标注仍待完成。

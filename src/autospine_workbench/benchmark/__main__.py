@@ -43,10 +43,17 @@ def parser():
             cmd.add_argument("--observations", required=True, type=Path)
         cmd.add_argument("--output", type=Path)
     intake.add_argument("--output", type=Path)
+    from .mapping_cli import register_parser
+
+    register_parser(sub)
     return result
 
 
 def _execute(args):
+    if args.command == "mapping-review":
+        from .mapping_cli import execute
+
+        return execute(args)
     if args.command == "intake":
         manifest = import_inventory(read_input(args.inventory), dataset_id=args.dataset_id)
         checked = verify_sources(manifest, args.workspace)

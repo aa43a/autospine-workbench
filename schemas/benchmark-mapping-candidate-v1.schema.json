@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Benchmark PNG to PSD mapping candidate v1",
+  "$comment": "Semantic validation additionally requires exact frozen-manifest/source binding, an explicitly selected split, finite forward/inverse canvas transforms, and exact canvas fit for canvas_fit_hypothesis. No annotation authority is granted.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema","dataset_sha256","character_id","dataset_split","png_source","psd_source","source_to_psd_transform","basis","confidence","review_required","authority","evidence"],
+  "properties": {
+    "schema": {"const":"autospine.benchmark-mapping-candidate/v1"},
+    "dataset_sha256": {"$ref":"#/$defs/sha"},
+    "character_id": {"type":"string","pattern":"^character-[0-9a-f]{16}(?![\\s\\S])"},
+    "dataset_split": {"enum":["development","visible","holdout","reserve"]},
+    "png_source": {"allOf":[{"$ref":"#/$defs/asset"},{"properties":{"path":{"pattern":"\\.png(?![\\s\\S])"}}}]},
+    "psd_source": {"allOf":[{"$ref":"#/$defs/asset"},{"properties":{"path":{"pattern":"\\.psd(?![\\s\\S])"}}}]},
+    "source_to_psd_transform": {
+      "type":"object","additionalProperties":false,
+      "required":["scale","translation","coordinate_system"],
+      "properties": {
+        "scale":{"type":"array","minItems":2,"maxItems":2,"items":{"type":"number","not":{"const":0}}},
+        "translation":{"$ref":"#/$defs/pair"},
+        "coordinate_system":{"const":"pixel_top_left_y_down"}
+      }
+    },
+    "basis": {"enum":["canvas_fit_hypothesis","explicit_transform_draft"]},
+    "confidence": {"type":"null"},
+    "review_required": {"const":true},
+    "authority": {"const":"none"},
+    "evidence": {"oneOf":[{"type":"null"},{
+      "type":"object","additionalProperties":false,
+      "required":["audit_evidence_sha256","composite_sha256"],
+      "properties":{"audit_evidence_sha256":{"$ref":"#/$defs/sha"},"composite_sha256":{"$ref":"#/$defs/sha"}}
+    }]}
+  },
+  "$defs": {
+    "sha":{"type":"string","pattern":"^[0-9a-f]{64}(?![\\s\\S])"},
+    "pair":{"type":"array","minItems":2,"maxItems":2,"items":{"type":"number"}},
+    "asset": {
+      "type":"object","additionalProperties":false,
+      "required":["path","sha256","byte_size","canvas"],
+      "properties": {
+        "path":{"type":"string","minLength":1,"maxLength":1024},
+        "sha256":{"$ref":"#/$defs/sha"},
+        "byte_size":{"type":"integer","minimum":1,"maximum":1099511627776},
+        "canvas":{"type":"array","minItems":2,"maxItems":2,"items":{"type":"integer","minimum":1,"maximum":100000}}
+      }
+    }
+  }
+}

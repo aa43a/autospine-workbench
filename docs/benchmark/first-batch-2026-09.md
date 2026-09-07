@@ -62,6 +62,25 @@ composite、embedded composite、contact sheet和62张逐层PNG。没有注册�
 
 ## 下一步
 
+2026-09-07 接续切片已交付[开发集坐标复核页](../how-to-benchmark-mapping.md)：
+原 PNG 与 PSD 合成图可并排/叠加查看，支持缩放、平移、镜像、草稿下载与重载。
+三个初始候选均经 Schema、语义 validator 和不可变 store 精确读回复验：
+
+- [爱丽丝候选](mapping-alice-candidate-v1.json)
+- [铃仙候选](mapping-lingxian-candidate-v1.json)
+- [琪露诺候选](mapping-crino-candidate-v1.json)
+
+本地生成页为 `../tmp/benchmark-mapping/{alice,lingxian,crino}-review.html`
+（路径相对仓库根目录）。仅读取所选 development 的 PNG、PSD 和合成 PNG，未打开
+holdout。爱丽丝经真实 Chrome 离屏显示检查，原图/PSD 角色尺寸与位置差异在叠加页
+清晰可见，证明默认 canvas-fit 假设不能直接当真实对齐。截图保存在同目录
+`alice-final.png`；这不是正式人工批准、Spine Runtime 或标注准确性 golden。
+
+本轮 Benchmark/映射/交互/维护性合计60项通过（13.041秒）。独立审查发现
+畸形 audit.characters 会产生未捕获异常，修复后7项CLI复测通过（1.269秒），其中
+新增1项畸形输入回归。Node 交互测试执行了镜像、数值拒绝、下载与重置逻辑。
+没有重跑旧内核全量，也没有改变上一切片固定基线的统计范围。
+
 先处理开发集的PNG↔PSD候选对应、缩放/裁切/补边/镜像和坐标系，再准备可人工复核
 的关节/语义真值与真实候选观测。自动采用先记录建议并核对正确性，满足高精度条件后
 才启用可撤销决定；本切片未增加policy_auto生产写入，也未宣布自动绑骨MVP完成。
