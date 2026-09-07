@@ -1,6 +1,7 @@
 """Central OPTIONS policy for the loopback workbench API."""
 
 from __future__ import annotations
+from .automation.web_routes import dispatch_automation
 
 from http import HTTPStatus
 
@@ -55,6 +56,8 @@ from .seam_anchor_review_routes import (
 
 def send_workbench_options(parts: list[str], handler) -> None:
     """Send the exact method policy for one already validated local path."""
+    if dispatch_automation(parts, handler, "OPTIONS"):
+        return
 
     body_review = is_body_sway_visual_review_path(parts)
     seam_review = is_seam_anchor_review_path(parts)

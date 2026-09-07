@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from .contracts import ContractValidationError
+from .automation.web_jobs import PipelineWebJobs
 from .http_security import host_header_is_local as _host_header_is_local
 from .http_json_request import HttpJsonRequestError, read_json_object_request
 from .http_log_redaction import redact_http_log_arguments
@@ -283,6 +284,7 @@ def create_server(
         managers.close_after_bind_failure()
         raise OSError(f"Could not bind AutoSpine workbench to {host}:{port}") from exc
     bindings = {
+        "automation_manager": PipelineWebJobs(store),
         "project_store": store, "web_root": resolved_web_root,
         "seam_anchor_review_replay_cache": replay_cache,
         "p10_capture_job_manager": capture_manager,

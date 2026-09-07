@@ -1,6 +1,7 @@
 """Central method-not-allowed routing for versioned workbench families."""
 
 from __future__ import annotations
+from .automation.web_routes import dispatch_automation
 
 from .body_sway_visual_review_routes import is_body_sway_visual_review_path
 from . import motion_policy_mutation_routes as policy_mutation
@@ -48,6 +49,8 @@ from .seam_anchor_review_routes import is_seam_anchor_review_path
 
 
 def send_workbench_route_method_not_allowed(parts, handler) -> None:
+    if dispatch_automation(parts, handler, handler.command):
+        return
     if policy_mutation.is_motion_policy_mutation_path(parts):
         policy_mutation.send_motion_policy_mutation_method_not_allowed(
             parts, handler,

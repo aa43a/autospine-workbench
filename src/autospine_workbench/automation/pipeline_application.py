@@ -28,11 +28,18 @@ class PipelineApplication:
         with observe_project(self.projects, project_id) as snapshot:
             return resolve_capabilities(snapshot, profile)
 
-    def preview(self, project_id, profile="production_review", *, resume=False):
+    def preview(self, project_id, profile="production_review", *, resume=False,
+                expected_resolved_sha256=None, cancel_requested=lambda: False):
         with observe_project(self.projects, project_id) as snapshot:
+            if expected_resolved_sha256 is not None and snapshot.source_addresses[
+                "resolved_project_sha256"
+            ] != expected_resolved_sha256:
+                raise PipelineRunError("project_changed_during_snapshot")
             initial = create_run(project_id, profile, snapshot.source_addresses)
             with execution_lease(self.state_root, initial["run_id"]):
                 run = self.runs.create(project_id, profile, snapshot.source_addresses)
+                if cancel_requested() and run["status"] not in {"succeeded", "canceled"}:
+                    return self._append(run, "cancel")
                 if run["status"] == "succeeded":
                     self._verify_completed(snapshot, run)
                     snapshot.assert_current()
@@ -47,6 +54,8 @@ class PipelineApplication:
                     self._verify_completed(snapshot, run)
                     capabilities = resolve_capabilities(snapshot, profile)
                     while run["status"] == "pending":
+                        if cancel_requested():
+                            return self._append(run, "cancel")
                         index = next(i for i, row in enumerate(run["steps"]) if row["status"] != "succeeded")
                         reason, review = _gate(capabilities, profile, index)
                         if reason:
@@ -54,6 +63,8 @@ class PipelineApplication:
                         snapshot.assert_current()
                         run = self._append(run, "start")
                         outputs = self._execute_step(index, snapshot, run)
+                        if cancel_requested():
+                            return self._append(run, "cancel")
                         snapshot.assert_current()
                         run = self._append(run, "succeed", outputs=outputs)
                     return run

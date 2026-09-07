@@ -1,6 +1,7 @@
 """Write-route composition kept outside the bounded HTTP server shell."""
 
 from __future__ import annotations
+from .automation.web_routes import dispatch_automation
 
 from .body_sway_visual_review_routes import (
     dispatch_body_sway_visual_review_put,
@@ -62,6 +63,8 @@ def dispatch_workbench_api_put(
     parts, store, capture_manager, handler,
 ) -> bool:
     """Dispatch PUT-only families and their exact method policies."""
+    if dispatch_automation(parts, handler, "PUT"):
+        return True
 
     if policy_mutation.is_motion_policy_mutation_path(parts):
         policy_mutation.send_motion_policy_mutation_method_not_allowed(
@@ -120,6 +123,8 @@ def dispatch_workbench_api_post(
     spine42_v3_runtime_v2_manager, handler,
 ) -> bool:
     """Dispatch mutation families in most-specific-first order."""
+    if dispatch_automation(parts, handler, "POST"):
+        return True
 
     if dispatch_p10_spine42_v3_runtime_v2_post(
         parts, handler, spine42_v3_runtime_v2_manager,

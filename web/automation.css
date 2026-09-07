@@ -1,0 +1,17 @@
+.automation-panel { border-bottom: 1px solid var(--border, #303744); }
+.automation-panel h3 { margin: 0 0 8px; font-size: 14px; }
+.automation-panel h4 { margin: 16px 0 8px; font-size: 12px; }
+.automation-description, .automation-detail { color: var(--text-muted, #a6afbc); font-size: 11px; line-height: 1.5; }
+.automation-actions { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+.automation-actions .button { min-height: 44px; padding: 6px 9px; font-size: 11px; }
+.automation-status { font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.automation-steps { padding-left: 20px; font-size: 11px; line-height: 1.8; }
+.automation-queue { list-style: none; margin: 0; padding: 0; max-height: 320px; overflow-y: auto; }
+.automation-review-item { padding: 10px 0; border-top: 1px solid var(--border, #303744); font-size: 11px; overflow-wrap: anywhere; }
+.automation-review-item strong { display: block; line-height: 1.5; }
+.automation-review-item p { margin: 6px 0; }
+.automation-risk { display: inline-block; margin-top: 4px; color: #f3cc88; }
+.automation-evidence { display: inline-block; margin: 6px 8px; color: #9cc3ff; }
+.automation-panel [hidden] { display: none !important; }
+.automation-panel a.button { white-space: normal; line-height: 1.5; font-size: 11px; }
+.automation-panel button:focus-visible, .automation-panel a:focus-visible { outline: 2px solid #8db7ff; outline-offset: 3px; }

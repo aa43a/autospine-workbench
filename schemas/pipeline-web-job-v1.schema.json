@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Asynchronous setup-region web job receipt",
+  "$comment": "Embedded run identity, profile/source binding, ZIP SHA and durable journal are revalidated by the semantic reader.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "job_id", "project_id", "status", "authority"],
+  "properties": {
+    "schema": {"const": "autospine.pipeline-web-job/v1"},
+    "job_id": {"type": "string", "pattern": "^job-[0-9a-f]{32}$"},
+    "project_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "status": {"enum": ["pending", "running", "needs_review", "succeeded", "blocked", "failed", "canceled"]},
+    "authority": {"const": "none"},
+    "cancel_requested": {"type": "boolean"},
+    "reason_code": {"type": "string", "pattern": "^[a-z][a-z0-9_]{0,79}$"},
+    "run": {"type": "object"},
+    "zip_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "succeeded"}}},
+      "then": {"required": ["run", "zip_sha256"]},
+      "else": {"not": {"required": ["zip_sha256"]}}
+    }
+  ]
+}

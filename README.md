@@ -1,6 +1,6 @@
 # AutoSpine Workbench
 
-开发方向已切换为受限输入自动生产流。PipelineRun、能力解析和[按项目生成 Spine region 预览的 CLI](docs/how-to-build-region-spine-preview.md)已交付：无需填写 SHA，支持幂等、恢复、取消和 ZIP 下载。主工作台按钮与统一异常队列待接入。见 [真实状态](docs/current-state-2026-09.md)、[新路线](docs/automation-roadmap-2026-09.md) 与 [三种运行模式](docs/adr-pipeline-profiles-v1.md)；旧精确链继续保留。
+开发方向已切换为受限输入自动生产流。主工作台现提供[构建 Spine region 预览](docs/how-to-build-region-spine-preview.md)：无需填写 SHA，支持异步构建、异常定位、复核保存后续跑、取消和 ZIP 下载。PipelineRun CLI 仍可独立使用。首版队列覆盖 setup region 的结构复核；通用 Mesh、动作和 Runtime 队列仍待扩展。见 [真实状态](docs/current-state-2026-09.md)、[新路线](docs/automation-roadmap-2026-09.md) 与 [三种运行模式](docs/adr-pipeline-profiles-v1.md)；旧精确链继续保留。
 
 AutoSpine Workbench 是一个本地人工复核与离线编译工作流，用于查看 See-through PSD 审计结果、校正图层语义和 setup 可见性、调整启发式关节，并保存带 revision 的 override。它不会修改 PSD、审计 JSON 或 PNG；主 authoring 页面写入 `workspace/overrides`，P10 人工复核使用各自独立的 revision namespace，离线 publish/compile 命令按阶段写入内容寻址的 analysis、motion、build 或 runtime 工件。
 

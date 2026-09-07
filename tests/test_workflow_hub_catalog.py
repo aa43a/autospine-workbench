@@ -97,9 +97,9 @@ class WorkflowHubCatalogTests(unittest.TestCase):
         for href in pages:
             self.assertTrue((ROOT / "web" / href.removeprefix("./")).is_file())
 
-    def test_current_stage_names_the_v2_runtime_evidence_store(self) -> None:
+    def test_current_stage_names_product_preview_and_preserves_exact_entries(self) -> None:
         self.assertEqual(
-            "P10.7b-v2-runtime-evidence-store",
+            "AS-005-region-preview-workbench",
             self.catalog["current_stage"],
         )
         entry = next(

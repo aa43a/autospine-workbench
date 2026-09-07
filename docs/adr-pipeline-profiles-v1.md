@@ -31,5 +31,5 @@ python -m autospine_workbench.automation.pipeline_profile certification_exact
 未知模式返回退出码 2 与 `reason_code=unsupported_pipeline_profile`。
 
 [PipelineRun v1](adr/pipeline-run-v1.md) 已引用本合同以及旧内容地址，状态持久化
-与工件存储分离，支持幂等、取消、恢复和 current 漂移检测。统一 Review Queue 待接入。
+与工件存储分离，支持幂等、取消、恢复和 current 漂移检测。setup-region Review Queue 已接入主工作台。
 通用 pipeline 状态不复用 Runtime 的单次执行授权。

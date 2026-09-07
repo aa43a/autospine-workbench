@@ -1,5 +1,7 @@
 # PipelineRun / region 预览切片验证（2026-09-07）
 
+历史检查点：`dd1136e`。下述范围为当次 CLI 切片，后续 UI 进展见 current-state。
+
 范围：AS-003、AS-004 与 AS-005 的 CLI 基础。普通用户不需要输入 SHA；主工作台
 按钮、统一 Review Queue、自动采用与后台自动续跑不在本次已交付范围。
 

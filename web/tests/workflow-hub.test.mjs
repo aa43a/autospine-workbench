@@ -50,8 +50,8 @@ const EXPECTED_COMMANDS = [
 
 test("catalog is valid and matches all 76 CLI entry points", () => {
   assert.equal(validateCatalog(catalog), catalog);
-  assert.equal(catalog.catalog_version, "1.5.4");
-  assert.equal(catalog.current_stage, "P10.7b-v2-runtime-evidence-store");
+  assert.equal(catalog.catalog_version, "1.6.0");
+  assert.equal(catalog.current_stage, "AS-005-region-preview-workbench");
   const commands = catalog.entries.filter(({ kind }) => kind === "cli").map(({ command }) => command);
   assert.deepEqual(new Set(commands), new Set(EXPECTED_COMMANDS));
   assert.equal(commands.length, EXPECTED_COMMANDS.length);

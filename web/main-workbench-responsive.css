@@ -1,4 +1,23 @@
+@import url("./automation.css");
+
 @media (max-width: 760px) {
+  html,
+  body,
+  .app-shell {
+    height: auto;
+  }
+
+  /* Pan margins depend on viewport size; they must not size the viewport. */
+  .canvas-panel {
+    flex: 0 0 auto;
+    height: clamp(360px, 62dvh, 720px);
+    min-height: 0;
+  }
+
+  .canvas-viewport {
+    contain: size;
+  }
+
   .topbar {
     grid-template-columns: auto minmax(0, 1fr);
   }
@@ -8,6 +27,13 @@
     max-width: 100%;
     flex-wrap: wrap;
     gap: 6px;
+  }
+
+  .automation-actions .button,
+  .automation-panel a.button,
+  .automation-review-item .text-button,
+  .automation-evidence {
+    min-height: 44px;
   }
 }
 

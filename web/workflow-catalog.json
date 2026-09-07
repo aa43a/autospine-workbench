@@ -1,6 +1,6 @@
 {
-  "catalog_version": "1.5.4",
-  "current_stage": "P10.7b-v2-runtime-evidence-store",
+  "catalog_version": "1.6.0",
+  "current_stage": "AS-005-region-preview-workbench",
   "stages": [
     {"id":"P0","label":"合同、服务与基础验证"},
     {"id":"P1","label":"图层复核与四肢候选"},
@@ -17,7 +17,7 @@
   "entries": [
     {"id":"cli-serve","stage":"P0","title":"启动本地工作台","summary":"运行仅监听 loopback 的 Web 工作台和 HTTP API。","kind":"cli","status":"available","command":"serve","doc":"docs/operator-quick-guide.zh-CN.md"},
     {"id":"cli-validate-rig","stage":"P0","title":"验证 RigIR","summary":"检查交叉引用、拓扑和有限数等语义不变量。","kind":"cli","status":"available","command":"validate-rig","doc":"docs/architecture.md"},
-    {"id":"page-main-workbench","stage":"P1","title":"绑定复核工作台","summary":"复核图层语义、左右、拆分、关节候选、Pivot、目标骨和 QA。","kind":"page","status":"available","href":"./index.html","doc":"docs/operator-quick-guide.zh-CN.md"},
+    {"id":"page-main-workbench","stage":"P1","title":"绑定复核工作台","summary":"复核图层、关节、Pivot 与绑定；通过异常队列定位问题，无需 SHA 异步构建 Spine 静态预览并下载 ZIP。","kind":"page","status":"available","href":"./index.html","doc":"docs/how-to-build-region-spine-preview.md"},
     {"id":"cli-analyze-joints","stage":"P1","title":"发布关节候选分析","summary":"从 bbox、pose-alpha 或 pose-geometry 发布固定地址候选。","kind":"cli","status":"available","command":"analyze-joints","doc":"docs/how-to-run-pose-alpha.md"},
     {"id":"cli-import-pose","stage":"P1","title":"导入 COCO17 姿态","summary":"以显式左右、视角和镜像声明生成 canonical pose observations。","kind":"cli","status":"available","command":"import-pose","doc":"docs/how-to-import-and-evaluate-pose.md"},
     {"id":"cli-evaluate-pose","stage":"P1","title":"评估姿态候选","summary":"将姿态观测与人工复核的四肢关节进行诊断比较。","kind":"cli","status":"available","command":"evaluate-pose","doc":"docs/how-to-import-and-evaluate-pose.md"},

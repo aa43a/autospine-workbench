@@ -40,7 +40,8 @@ current resolved 与源文件身份。能力查询不发布工件。能力报告
 
 production_review 在结构复核未完成时暂停；draft_auto 可保留诊断 rig，但仍不能把
 manual-required QA 改成 passed。certification_exact 引导用户使用旧精确认证入口。
-首版没有自动决定、Review Queue、后台调度或 UI 按钮。
+原 CLI 切片不含自动决定或 UI。后续主工作台切片在 façade 外新增 Web job 单线程
+调度与 setup-region Review Queue；仍没有自动决定，也不使用 Runtime 执行许可。
 
 ## 验证与后续
 
@@ -48,5 +49,5 @@ manual-required QA 改成 passed。certification_exact 引导用户使用旧精�
 取消优先、工件篡改、无 SHA CLI 和不覆盖下载。固定 RGBA fixture 的源像素计数与
 setup RGBA hash 提供数值检查；不新增或冒充官方 Runtime 视觉 golden。
 
-下一切片在这一 façade 上接入主工作台 Build Spine Preview 和统一 Review Queue。
+主工作台 Build Spine Preview 和 setup-region Review Queue 已通过独立 Web job façade 接入。
 自动采用、通用 Mesh/Weight、AnimationIR 按产品路线继续；旧精确证据仍原位保留。

@@ -26,7 +26,8 @@ manager、readback、HTTP routes/security、server 接线与配套测试。这�
 | BVH、Kimodo NPZ、MotionIR、投影、P9 | 已有版本化离线链，真实历史身份见 pilot |
 | Spine 4.2 JSON/Atlas/PNG 与 Runtime | 已有适配/采集机制；每份证据按 exact 身份读取 |
 | guarded v2 Runtime authorization | 已提交；不能外推为真实 Runtime 或发布已通过 |
-| 主工作台一键 region Spine | 尚未实现，仍是 P1 主线 |
+| 主工作台一键 region Spine | 已实现异步构建、取消、ZIP 下载及复核后续跑 |
+| 统一 Review Queue v1 | 当前覆盖 setup-region 门禁；不写决定，不替代未来 Mesh/Runtime 队列 |
 | 三种 Pipeline Profile | 合同、Schema、validator 已接入独立 region 预览执行器 |
 | PipelineRun / Capability / region preview CLI | 已实现；setup ZIP、幂等、恢复、取消、零发布权 |
 | 通用分段臂腿 Mesh、袖子权重 | 尚未实现，不修改 leg-only v1 语义 |
@@ -50,14 +51,18 @@ B 的四条不可观测下肢接缝与 ankle.left 阻塞不得因为历史 P9 �
 历史 P3–P6/seam 重放 13/13 通过，但 A/B current 身份的完整封存仍未完成。
 
 新执行顺序见 [自动化路线](automation-roadmap-2026-09.md)。AS-003/004 的 PipelineRun
-与能力解析已实现；AS-005 已有[无 SHA 项目级 CLI](how-to-build-region-spine-preview.md)，
+与能力解析已实现；AS-005 已有[主工作台和无 SHA CLI](how-to-build-region-spine-preview.md)，
 可自动构建 reviewed region 的 setup 预览并下载 ZIP，支持恢复、取消和精确读回。
-下一切片接入主工作台按钮与 AS-006 统一异常队列；R1 尚未整体验收。
+AS-006 已有 setup-region 复核队列与保存后续跑；下一步为自动采用策略与指标，R1 尚未整体验收。
 这不是新增 P10.8/P10.9 阶段，也不改变尚待完成的认证冻结要求。
 
-本切片 [验证记录](pipeline-slice-validation-2026-09.md)：新增功能/质量 60 项、历史
+前一 CLI 切片 [验证记录](pipeline-slice-validation-2026-09.md)：新增功能/质量 60 项、历史
 重放与 A/B 边界 13 项通过。真实 A/B 无 SHA setup ZIP 均生成成功，重复运行逐字节
-一致。主工作台集成、动态 Mesh 验收和官方 Runtime 新采集仍未因此完成。
+一致。本轮接入主工作台；动态 Mesh 验收和官方 Runtime 新采集仍未完成。
+
+本轮 [主工作台验证](workbench-pipeline-validation-2026-09.md) 包含 100 项 Python
+聚合检查、下载补强后 17 项复验、400 项 Web 测试，以及真实 Chrome 桌面/手机
+点击与下载检查。移动画布高度反馈和下载证据读回漏洞均已修正。
 
 本机未发现 `gh`，当前工具也无 GitHub 写入连接器；未创建远端 Issues、Milestones
 或 Labels。本地 backlog、GitHub capability Issue 模板与 [标注流程](benchmark-annotation-2026-09.md) 已保存。

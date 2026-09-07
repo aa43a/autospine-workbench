@@ -23,6 +23,14 @@ class WorkbenchThreadingHTTPServer(ThreadingHTTPServer):
         super().server_bind()
 
     def server_close(self) -> None:
+        automation = getattr(self, "automation_manager", None)
+        try:
+            if automation is not None:
+                automation.close()
+        finally:
+            self._close_certification_managers()
+
+    def _close_certification_managers(self) -> None:
         runtime_manager = getattr(
             self, "p10_spine42_v3_runtime_v2_manager", None,
         )

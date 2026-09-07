@@ -34,6 +34,8 @@ import { confidenceLevel, formatConfidence, normalizeWorkflow, setConfidenceBadg
 import { createWorkbenchViewportPan } from "./modules/workbench-viewport-pan.js";
 import { createRegionRebindHandoffController } from "./modules/workbench-rebind-handoff.js";
 import { adoptionDraft, submitRegionRebindAdoption } from "./modules/workbench-rebind-adoption-api.js";
+import { createWorkbenchAutomation } from "./modules/workbench-automation-controller.js";
+import { renderWorkbenchStatusbar } from "./modules/workbench-statusbar.js";
 
 const state = {
   projects: [],
@@ -70,6 +72,12 @@ const state = {
 
 const dom = collectRequiredElements();
 const workbenchViewport = createWorkbenchViewportPan(dom.canvasViewport);
+const automation = createWorkbenchAutomation(document, {
+  apiRequest, selectLayer, selectJoint,
+  context: () => ({ projectId: state.selectedProjectId, resolvedSha: state.project?.resolved?.sha256,
+    dirty: state.dirty, saving: state.saving, loading: state.loading,
+    layerIds: getLayers().map((row) => row.id), jointIds: getJoints().map((row) => row.id) }),
+});
 const rebindHandoff = createRegionRebindHandoffController(document, {
   apiRequest, layers: getLayers, effectiveLayer, selectLayer,
   selectedLayer: getSelectedLayer, isDirty: () => state.dirty,
@@ -113,12 +121,14 @@ function hideAlert() {
 
 function setLoading(loading) {
   state.loading = loading;
+  automation.sync();
   dom.canvasLoading.hidden = !loading;
   dom.projectSelect.disabled = loading || state.projects.length === 0;
   dom.refreshProjectsBtn.disabled = loading;
 }
 
 function setSaveState(kind, text) {
+  automation.sync();
   dom.saveIndicator.dataset.state = kind;
   dom.saveIndicatorText.textContent = text;
 }
@@ -816,24 +826,8 @@ function fitCanvas() {
 }
 
 function updateStatusbar() {
-  if (!state.project) {
-    dom.canvasStatus.textContent = "画布 —";
-    dom.selectionStatus.textContent = "未选择对象";
-    dom.overrideStatus.textContent = "0 项校正";
-    return;
-  }
-  const { width, height } = getCanvasSize();
-  dom.canvasStatus.textContent = `${width}×${height} · ${Math.round(state.zoom * 100)}%`;
-  const layer = getSelectedLayer();
-  const joint = getSelectedJoint();
-  dom.selectionStatus.textContent = state.editMode === "joints" && joint
-    ? `关节 ${joint.id} · ${joint.x.toFixed(1)}, ${joint.y.toFixed(1)}`
-    : layer ? `图层 ${layer.name || layer.id}` : "未选择对象";
-  const jointCount = Object.keys(state.jointOverrides).length;
-  const decisionCount = Object.keys(state.jointDecisions).length;
-  const splitDecisionCount = Object.keys(state.splitDecisions).length;
-  const layerCount = Object.keys(state.layerOverrides).length;
-  dom.overrideStatus.textContent = `${jointCount + decisionCount + splitDecisionCount + layerCount} 项校正 · r${state.baseRevision ?? "—"}`;
+  automation.sync();
+  renderWorkbenchStatusbar(dom, state, getCanvasSize(), getSelectedLayer(), getSelectedJoint());
 }
 
 async function saveOverrides(adoption = null) {
@@ -915,6 +909,7 @@ async function saveOverrides(adoption = null) {
     return false;
   } finally {
     state.saving = false;
+    automation.sync();
     if (state.dirty) dom.saveBtn.disabled = false;
   }
 }

@@ -1,6 +1,7 @@
 """Read-route composition kept outside the bounded HTTP server shell."""
 
 from __future__ import annotations
+from .automation.web_routes import dispatch_automation
 
 from .analysis_routes import dispatch_analysis_artifact_get
 from .body_sway_visual_review_routes import (
@@ -62,6 +63,8 @@ def dispatch_workbench_api_get(
     visual_review_v2_image_sessions, handler,
 ) -> bool:
     """Dispatch one API read while preserving route-family method policy."""
+    if dispatch_automation(parts, handler, handler.command):
+        return True
 
     if dispatch_p10_spine42_v3_runtime_v2_get(
         parts, spine42_v3_runtime_v2_manager, handler,

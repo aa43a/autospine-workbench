@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Setup-region preview review exceptions v1",
+  "$comment": "Content hashes, sorted unique stable item identities, and evidence route project binding require validate_review_queue.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema","scope","authority","project_id","profile","source_addresses","status","items","queue_sha256"],
+  "properties": {
+    "schema": {"const":"autospine.review-queue/v1"},
+    "scope": {"const":"setup_region_preview"},
+    "authority": {"const":"none"},
+    "project_id": {"$ref":"#/$defs/id"},
+    "profile": {"enum":["draft_auto","production_review","certification_exact"]},
+    "source_addresses": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resolved_project_sha256","layer_manifest_sha256","input_identity_sha256"],
+      "properties": {"resolved_project_sha256":{"$ref":"#/$defs/sha"},"layer_manifest_sha256":{"$ref":"#/$defs/sha"},"input_identity_sha256":{"$ref":"#/$defs/sha"}}
+    },
+    "status": {"enum":["clear","needs_review","blocked"]},
+    "items": {"type":"array","maxItems":65536,"uniqueItems":true,"items":{"$ref":"#/$defs/item"}},
+    "queue_sha256": {"$ref":"#/$defs/sha"}
+  },
+  "allOf": [
+    {"if":{"properties":{"status":{"const":"clear"}}},"then":{"properties":{"items":{"items":{"properties":{"blocking":{"const":false}}}}}}},
+    {"if":{"properties":{"status":{"const":"needs_review"}}},"then":{"properties":{"items":{"contains":{"properties":{"blocking":{"const":true}}},"not":{"contains":{"properties":{"reason_code":{"enum":["region_geometry_unsupported","certification_exact_entry_required"]}}}}}}}},
+    {"if":{"properties":{"status":{"const":"blocked"}}},"then":{"properties":{"items":{"contains":{"properties":{"reason_code":{"enum":["region_geometry_unsupported","certification_exact_entry_required"]}}}}}}}
+  ],
+  "$defs": {
+    "sha": {"type":"string","pattern":"^[0-9a-f]{64}(?![\\s\\S])"},
+    "id": {"type":"string","pattern":"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}(?![\\s\\S])"},
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind","url"],
+      "oneOf": [
+        {"properties":{"kind":{"const":"composite_image"},"url":{"type":"string","pattern":"^/api/projects/[A-Za-z0-9][A-Za-z0-9._-]{0,127}/composite(?![\\s\\S])"}}},
+        {"properties":{"kind":{"const":"layer_image"},"url":{"type":"string","pattern":"^/api/projects/[A-Za-z0-9][A-Za-z0-9._-]{0,127}/layers/[A-Za-z0-9][A-Za-z0-9._-]{0,127}/image(?![\\s\\S])"}}}
+      ],
+      "properties": {"kind":{},"url":{}}
+    },
+    "item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id","type","entity_id","risk","blocking","reason_code","suggestion","evidence","rollback","invalidation"],
+      "properties": {
+        "id": {"type":"string","pattern":"^review-[0-9a-f]{64}(?![\\s\\S])"},
+        "type": {"enum":["rig","joint","semantic","pivot","binding","split"]},
+        "entity_id": {"$ref":"#/$defs/id"},
+        "risk": {"enum":["high","medium","low"]},
+        "blocking": {"type":"boolean"},
+        "reason_code": {
+          "enum": [
+            "semantic_review_required",
+            "pivot_review_required",
+            "binding_review_required",
+            "layer_review_required",
+            "joint_review_required",
+            "joint_candidate_rejected",
+            "joint_unobservable",
+            "split_review_required",
+            "split_candidate_rejected",
+            "split_decision_stale",
+            "project_review_required",
+            "region_geometry_unsupported",
+            "certification_exact_entry_required"
+          ]
+        },
+        "suggestion": {"type":"string"},
+        "evidence": {"type":"array","maxItems":1,"items":{"$ref":"#/$defs/evidence"}},
+        "rollback": {"const":"Restore the previous reviewed values in a new authoring revision."},
+        "invalidation": {"const":["layer_manifest","region_rig","spine_preview"]}
+      },
+      "oneOf": [
+        {"properties":{"reason_code":{"const":"semantic_review_required"},"type":{"const":"semantic"},"risk":{"const":"medium"},"blocking":{"const":true},"suggestion":{"const":"Confirm the layer role and character side."}}},
+        {"properties":{"reason_code":{"const":"pivot_review_required"},"type":{"const":"pivot"},"risk":{"const":"medium"},"blocking":{"const":true},"suggestion":{"const":"Inspect the layer and confirm its pivot position."}}},
+        {"properties":{"reason_code":{"const":"binding_review_required"},"type":{"const":"binding"},"risk":{"const":"high"},"blocking":{"const":true},"suggestion":{"const":"Choose and review a supported skeleton bone."}}},
+        {"properties":{"reason_code":{"const":"layer_review_required"},"type":{"const":"rig"},"risk":{"const":"medium"},"blocking":{"const":true},"suggestion":{"const":"Review the layer disposition and QA flags."}}},
+        {"properties":{"reason_code":{"const":"joint_review_required"},"type":{"const":"joint"},"risk":{"const":"high"},"blocking":{"const":true},"suggestion":{"const":"Inspect the joint evidence and confirm its position."}}},
+        {"properties":{"reason_code":{"const":"joint_candidate_rejected"},"type":{"const":"joint"},"risk":{"const":"high"},"blocking":{"const":true},"suggestion":{"const":"Select another candidate or place the joint manually."}}},
+        {"properties":{"reason_code":{"const":"joint_unobservable"},"type":{"const":"joint"},"risk":{"const":"low"},"blocking":{"const":false},"suggestion":{"const":"This joint was marked unobservable; revisit it if better evidence becomes available."}}},
+        {"properties":{"reason_code":{"const":"split_review_required"},"type":{"const":"split"},"risk":{"const":"high"},"blocking":{"const":true},"suggestion":{"const":"Inspect the split children and accept or revise the split."}}},
+        {"properties":{"reason_code":{"const":"split_candidate_rejected"},"type":{"const":"split"},"risk":{"const":"high"},"blocking":{"const":true},"suggestion":{"const":"Revise the rejected split before requesting a preview."}}},
+        {"properties":{"reason_code":{"const":"split_decision_stale"},"type":{"const":"split"},"risk":{"const":"high"},"blocking":{"const":true},"suggestion":{"const":"Rebuild split evidence and review it against the current source."}}},
+        {"properties":{"reason_code":{"const":"project_review_required"},"type":{"const":"rig"},"risk":{"const":"high"},"blocking":{"const":true},"suggestion":{"const":"Complete the remaining project review before requesting a preview."}}},
+        {"properties":{"reason_code":{"const":"region_geometry_unsupported"},"type":{"const":"rig"},"risk":{"const":"high"},"blocking":{"const":true},"suggestion":{"const":"Correct the unsupported region geometry or layer configuration."}}},
+        {"properties":{"reason_code":{"const":"certification_exact_entry_required"},"type":{"const":"rig"},"risk":{"const":"high"},"blocking":{"const":true},"suggestion":{"const":"Use the existing exact certification workflow."}}}
+      ]
+    }
+  }
+}
