@@ -31,9 +31,9 @@ Runner 与 Attachment 可提前推进，但不能挤占 Mesh/Weight 的主链资
 | AS-000 | 状态、roadmap、guarded authorization 对齐 | 本轮落实 |
 | AS-001 | certification-core 基线冻结 | 工作区基线运行；冻结 tag 尚待验收 |
 | AS-002 | pipeline-profile-v1 | 合同、Schema、validator、CLI 与反例测试已实现 |
-| AS-003 | PipelineRun 状态机 | 待开发 |
-| AS-004 | Project Capability Resolver | 待开发 |
-| AS-005 | Build Spine Preview | 待开发 |
+| AS-003 | PipelineRun 状态机 | v1 CLI、状态机、不可变 journal、CAS、取消与恢复已实现 |
+| AS-004 | Project Capability Resolver | setup-region 范围已实现，读取 current 且检测输入漂移 |
+| AS-005 | Build Spine Preview | 无 SHA CLI + setup ZIP 已实现；主工作台按钮待接入 |
 | AS-006 | Review Queue | 待开发 |
 | AS-007 | policy_auto | 待开发；不借用 human decision |
 | AS-008 | 自动化指标报告 | 待开发 |
@@ -43,6 +43,9 @@ Runner 与 Attachment 可提前推进，但不能挤占 Mesh/Weight 的主链资
 后续依序建立 AS-150–153、AS-200–206、AS-260–263、AS-300–305、
 AS-400–403、AS-500–505、AS-700，内容以本次用户详细计划为准。
 当前环境没有 `gh` 或 GitHub 写入连接器；本表是本地 backlog，不能视为已创建远端 Issues。
+
+本切片操作见 [项目级 region 预览](how-to-build-region-spine-preview.md)。R1 尚未整体完成：
+接下来接入主工作台按钮、统一 Review Queue 和复核后的后台续跑。
 
 ## 验收与约束
 

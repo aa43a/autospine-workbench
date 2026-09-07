@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PipelineRun v1 immutable orchestration snapshot",
+  "$comment": "SHA content equality, request-derived run_id, resolve outputs matching sources, and journal transition replay require the semantic validator/reader.",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "project_id", "profile", "operation", "engine", "source_addresses", "run_id", "revision", "previous_sha256", "authority", "status", "action", "steps", "state_sha256"],
+  "properties": {
+    "schema": {"const": "autospine.pipeline-run/v1"},
+    "project_id": {"$ref": "#/$defs/project_id"},
+    "profile": {"enum": ["draft_auto", "production_review", "certification_exact"]},
+    "operation": {"const": "region-spine-preview"},
+    "engine": {"const": "region-spine-preview-v1"},
+    "source_addresses": {"$ref": "#/$defs/sources"},
+    "run_id": {"type": "string", "pattern": "^run-[0-9a-f]{64}(?![\\s\\S])"},
+    "revision": {"type": "integer", "minimum": 0, "maximum": 1024},
+    "previous_sha256": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha"}]},
+    "authority": {"const": "none"},
+    "status": {"$ref": "#/$defs/status"},
+    "action": {"enum": ["create", "start", "succeed", "block", "review", "fail", "cancel", "resume"]},
+    "state_sha256": {"$ref": "#/$defs/sha"},
+    "steps": {
+      "type": "array", "minItems": 3, "maxItems": 3,
+      "prefixItems": [
+        {"allOf": [{"$ref": "#/$defs/step"}, {"properties": {"id": {"const": "resolve-project"}}}, {"if": {"properties": {"status": {"const": "succeeded"}}}, "then": {"properties": {"outputs": {"$ref": "#/$defs/sources"}}}}]},
+        {"allOf": [{"$ref": "#/$defs/step"}, {"properties": {"id": {"const": "build-region-rig"}}}, {"if": {"properties": {"status": {"const": "succeeded"}}}, "then": {"properties": {"outputs": {"$ref": "#/$defs/rig_outputs"}}}}]},
+        {"allOf": [{"$ref": "#/$defs/step"}, {"properties": {"id": {"const": "compile-spine-preview"}}}, {"if": {"properties": {"status": {"const": "succeeded"}}}, "then": {"properties": {"outputs": {"$ref": "#/$defs/preview_outputs"}}}}]}
+      ],
+      "allOf": [
+        {"if": {"prefixItems": [{"properties": {"status": {"not": {"const": "succeeded"}}}}]}, "then": {"prefixItems": [{}, {"properties": {"status": {"const": "pending"}}}, {"properties": {"status": {"const": "pending"}}}]}},
+        {"if": {"prefixItems": [{}, {"properties": {"status": {"not": {"const": "succeeded"}}}}]}, "then": {"prefixItems": [{}, {}, {"properties": {"status": {"const": "pending"}}}]}}
+      ]
+    }
+  },
+  "allOf": [
+    {"if": {"properties": {"revision": {"const": 0}}}, "then": {"properties": {"previous_sha256": {"type": "null"}, "action": {"const": "create"}, "steps": {"items": {"properties": {"status": {"const": "pending"}}}}}}, "else": {"properties": {"previous_sha256": {"$ref": "#/$defs/sha"}, "action": {"not": {"const": "create"}}}}},
+    {"if": {"properties": {"status": {"const": "succeeded"}}}, "then": {"properties": {"steps": {"items": {"properties": {"status": {"const": "succeeded"}}}}}}},
+    {"if": {"properties": {"status": {"const": "pending"}}}, "then": {"properties": {"steps": {"items": {"properties": {"status": {"enum": ["pending", "succeeded"]}}}, "contains": {"properties": {"status": {"const": "pending"}}}}}}},
+    {"if": {"properties": {"status": {"const": "running"}}}, "then": {"properties": {"steps": {"contains": {"properties": {"status": {"const": "running"}}}}}}},
+    {"if": {"properties": {"status": {"const": "blocked"}}}, "then": {"properties": {"steps": {"contains": {"properties": {"status": {"const": "blocked"}}}}}}},
+    {"if": {"properties": {"status": {"const": "failed"}}}, "then": {"properties": {"steps": {"contains": {"properties": {"status": {"const": "failed"}}}}}}},
+    {"if": {"properties": {"status": {"const": "needs_review"}}}, "then": {"properties": {"steps": {"contains": {"properties": {"status": {"const": "needs_review"}}}}}}},
+    {"if": {"properties": {"status": {"const": "canceled"}}}, "then": {"properties": {"steps": {"contains": {"properties": {"status": {"const": "canceled"}}}}}}}
+  ],
+  "$defs": {
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}(?![\\s\\S])"},
+    "project_id": {
+      "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}(?![\\s\\S])",
+      "not": {"anyOf": [{"pattern": "\\.$"}, {"pattern": "^([Cc][Oo][Nn]|[Pp][Rr][Nn]|[Aa][Uu][Xx]|[Nn][Uu][Ll]|[Cc][Oo][Mm][1-9]|[Ll][Pp][Tt][1-9])(\\.|$)"}]}
+    },
+    "status": {"enum": ["pending", "running", "needs_review", "succeeded", "blocked", "failed", "canceled"]},
+    "sources": {
+      "type": "object", "additionalProperties": false,
+      "required": ["resolved_project_sha256", "layer_manifest_sha256", "input_identity_sha256"],
+      "properties": {"resolved_project_sha256": {"$ref": "#/$defs/sha"}, "layer_manifest_sha256": {"$ref": "#/$defs/sha"}, "input_identity_sha256": {"$ref": "#/$defs/sha"}}
+    },
+    "rig_outputs": {
+      "type": "object", "additionalProperties": false,
+      "required": ["rig_sha256", "rig_bundle_sha256"],
+      "properties": {"rig_sha256": {"$ref": "#/$defs/sha"}, "rig_bundle_sha256": {"$ref": "#/$defs/sha"}}
+    },
+    "preview_outputs": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bundle_sha256", "skeleton_json_sha256", "atlas_sha256", "png_sha256", "qa_sha256"],
+      "properties": {"bundle_sha256": {"$ref": "#/$defs/sha"}, "skeleton_json_sha256": {"$ref": "#/$defs/sha"}, "atlas_sha256": {"$ref": "#/$defs/sha"}, "png_sha256": {"$ref": "#/$defs/sha"}, "qa_sha256": {"$ref": "#/$defs/sha"}}
+    },
+    "step": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "status", "outputs", "reason_code"],
+      "properties": {"id": {"type": "string"}, "status": {"$ref": "#/$defs/status"}, "outputs": {"type": "object"}, "reason_code": {}},
+      "allOf": [
+        {"if": {"properties": {"status": {"not": {"const": "succeeded"}}}}, "then": {"properties": {"outputs": {"maxProperties": 0}}}},
+        {"if": {"properties": {"status": {"enum": ["blocked", "failed", "needs_review", "canceled"]}}}, "then": {"properties": {"reason_code": {"type": "string", "pattern": "^[a-z][a-z0-9_]{0,79}(?![\\s\\S])"}}}, "else": {"properties": {"reason_code": {"type": "null"}}}}
+      ]
+    }
+  }
+}

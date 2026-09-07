@@ -1,6 +1,6 @@
 # AutoSpine Workbench 架构与质量门禁
 
-2026-09 自动化转向与已提交/工作区边界见 [当前状态](current-state-2026-09.md)。新增 [Pipeline Profile v1](adr-pipeline-profiles-v1.md) 只声明策略，尚未接入执行器；历史内容地址保持独立。
+2026-09 自动化转向见 [当前状态](current-state-2026-09.md)。[Pipeline Profile v1](adr-pipeline-profiles-v1.md) 已接入独立的 [PipelineRun region 预览执行器](adr/pipeline-run-v1.md)；其运行记录、预览输出和历史认证内容地址保持独立。
 
 本文约束的是持续开发方式，不是一次性重写计划。任何新功能都先进入版本中立合同和可复现工件，再接 UI 或特定 Spine 版本适配器。
 

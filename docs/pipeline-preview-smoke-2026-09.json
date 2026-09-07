@@ -1,0 +1,127 @@
+{
+  "authority": "none",
+  "date": "2026-09-07",
+  "samples": [
+    {
+      "completed_steps_reexecuted": false,
+      "project_id": "seethrough_output",
+      "repeat_bytes_identical": true,
+      "run": {
+        "action": "succeed",
+        "authority": "none",
+        "engine": "region-spine-preview-v1",
+        "operation": "region-spine-preview",
+        "previous_sha256": "ea1223bed2d126eb0358f14b9822bdb0f59e44045a12300f4e4676bfcf522cde",
+        "profile": "production_review",
+        "project_id": "seethrough_output",
+        "revision": 6,
+        "run_id": "run-83b525bd0e806e7c3adf22140613dee01a0f33930fc4bdf32bdd04bbdfe4f8a5",
+        "schema": "autospine.pipeline-run/v1",
+        "source_addresses": {
+          "input_identity_sha256": "7ede1bccc005651d90d90553810e03579aaf8e72847054ef1db7e90ba28be074",
+          "layer_manifest_sha256": "81bc00cbd0199bbdc77914c8a226cd14ffaf2dd4d287448f9b69fdddaa417641",
+          "resolved_project_sha256": "12b6ec647e6f0e551d7c1bbcf21639fab888768910816d0d67c8f96fc3cf247b"
+        },
+        "state_sha256": "5f1958741db5c7c2bd1541e447a2e37f2df17c71919fc655e37c694a374c225e",
+        "status": "succeeded",
+        "steps": [
+          {
+            "id": "resolve-project",
+            "outputs": {
+              "input_identity_sha256": "7ede1bccc005651d90d90553810e03579aaf8e72847054ef1db7e90ba28be074",
+              "layer_manifest_sha256": "81bc00cbd0199bbdc77914c8a226cd14ffaf2dd4d287448f9b69fdddaa417641",
+              "resolved_project_sha256": "12b6ec647e6f0e551d7c1bbcf21639fab888768910816d0d67c8f96fc3cf247b"
+            },
+            "reason_code": null,
+            "status": "succeeded"
+          },
+          {
+            "id": "build-region-rig",
+            "outputs": {
+              "rig_bundle_sha256": "d428aee54a18761e687f3bacc4701b057704978db72a3f1b8a9ac9261a1f09ae",
+              "rig_sha256": "f5a909bdbbec6ea612ba50ad978c98a085a732cfa59194a324a13d43d08a4124"
+            },
+            "reason_code": null,
+            "status": "succeeded"
+          },
+          {
+            "id": "compile-spine-preview",
+            "outputs": {
+              "atlas_sha256": "cd49ed5ea0b03f9049c328f8b0c4a1deb32f334a314bb402dee907b40c857e30",
+              "bundle_sha256": "85e4ea357f8c15c19e16971135644fde9cfd0df67a45b3d2c4dcf87f2ed98e2f",
+              "png_sha256": "2af68619585ef34db11374c3506266629c9824e2126f07da0698d28110459b4d",
+              "qa_sha256": "1907b5d55b9e0d1fe71784ec7dfe1cfb6b4cdfc9adfaf810f5ede0dd840484d1",
+              "skeleton_json_sha256": "40861605331e2a7de37f995ce043e8366e458d89d500c99078c8b27248ed74c1"
+            },
+            "reason_code": null,
+            "status": "succeeded"
+          }
+        ]
+      },
+      "runtime_status": "not_run",
+      "zip_bytes": 5739767,
+      "zip_sha256": "5ef78300316dfeb4a9548ed28a7a06aa80013145fae4ccd9f2aee701db992af0"
+    },
+    {
+      "completed_steps_reexecuted": false,
+      "project_id": "seethrough_output_5",
+      "repeat_bytes_identical": true,
+      "run": {
+        "action": "succeed",
+        "authority": "none",
+        "engine": "region-spine-preview-v1",
+        "operation": "region-spine-preview",
+        "previous_sha256": "eb6c4fd5cf3d7fbdc6ce4444445340fe7d461e9dea8004abecf9fc54be006d4c",
+        "profile": "production_review",
+        "project_id": "seethrough_output_5",
+        "revision": 6,
+        "run_id": "run-99e923c1bd91991ec71ea4bc3c2e45c4bf0fb27cb4609a4d798739feede7474f",
+        "schema": "autospine.pipeline-run/v1",
+        "source_addresses": {
+          "input_identity_sha256": "7732a92909b0ee8fe2f9b68ec4c0aacdad5b828ae189e5edf12e26aa43804bb0",
+          "layer_manifest_sha256": "947a8e3f1723d535a0f61d3dd67191252b53c4a2d9d6823e941e54d33bee5d88",
+          "resolved_project_sha256": "f306613c1f5a344e529ccf4cb00369c8eacabe06fb1f1653a7222fc377ec7f0d"
+        },
+        "state_sha256": "c1c7bb95ef4aac92431f619af4e085f453077fb972d68d77a6f3fa1de52a66d9",
+        "status": "succeeded",
+        "steps": [
+          {
+            "id": "resolve-project",
+            "outputs": {
+              "input_identity_sha256": "7732a92909b0ee8fe2f9b68ec4c0aacdad5b828ae189e5edf12e26aa43804bb0",
+              "layer_manifest_sha256": "947a8e3f1723d535a0f61d3dd67191252b53c4a2d9d6823e941e54d33bee5d88",
+              "resolved_project_sha256": "f306613c1f5a344e529ccf4cb00369c8eacabe06fb1f1653a7222fc377ec7f0d"
+            },
+            "reason_code": null,
+            "status": "succeeded"
+          },
+          {
+            "id": "build-region-rig",
+            "outputs": {
+              "rig_bundle_sha256": "77c6d0f8f1a0bcc3e87913529bea117b2fcac30069344ae7e1fe33d43b6233f6",
+              "rig_sha256": "d12837b4d8a8d71fe5ef8b9b66030268bd2809302e9f800f8344e0422825269c"
+            },
+            "reason_code": null,
+            "status": "succeeded"
+          },
+          {
+            "id": "compile-spine-preview",
+            "outputs": {
+              "atlas_sha256": "2bd867f21635b1149a64c62800ec7976f5ee3076c7fab94793b9cfff16e7bac9",
+              "bundle_sha256": "81bce7f3e197a26aaff77e3a0016f5d1066193368d60accae938550c328ca03b",
+              "png_sha256": "6b510df1fca75647fe532a59ec550f59131cf9784fafe99b705ffd61a250488b",
+              "qa_sha256": "263125c2f76b934b1d931353ff4a801d42e702e6030bcde9f0534a412eb0b11b",
+              "skeleton_json_sha256": "ae347ddbb85939497a2e6a8b7b94e103e5b339d250f4d59feeafa199e2e745d8"
+            },
+            "reason_code": null,
+            "status": "succeeded"
+          }
+        ]
+      },
+      "runtime_status": "not_run",
+      "zip_bytes": 15333744,
+      "zip_sha256": "02662d57a88dc8641fd1694882fa2370df9e867d3bab0fbfe27200b2f259996e"
+    }
+  ],
+  "schema": "autospine.pipeline-smoke-report/v1"
+}

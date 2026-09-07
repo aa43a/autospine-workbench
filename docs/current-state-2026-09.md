@@ -1,10 +1,10 @@
 # 当前状态：2026-09-07
 
 基准提交：`4254151283d82b515934faf14d6d935e1e9a695a`，提交日期 2026-09-03。
-开发 checkpoint 已提交为 `b0f2f76`；不是稳定认证标签。
+开发 checkpoint 已提交为 `b0f2f76`，后续基线修复与素材盘点提交为 `7993b2a`；不是稳定认证标签。
 本次接续读取了“为我解读这篇论文 (2)”的最新工作记录，并以本地 Git 为准核对。
 
-## 已提交内核与未提交工作
+## 已提交内核与前序修复
 
 `4254151` 已交付 guarded v2 runtime authorization：preflight、单次内存执行许可
 与 manager owner lease。把“自动授权入口”继续描述成下一切片已经过时。
@@ -12,7 +12,7 @@
 
 接续时工作区已有 15 个已跟踪文件修改和 10 个新文件，涉及 Runtime execution、
 manager、readback、HTTP routes/security、server 接线与配套测试。这些属于前序
-未提交工作，不是本轮新产品能力，也尚未被稳定 tag 覆盖。
+接续时的未提交工作，现已纳入上述 checkpoint；不是本轮新产品能力，也尚未被稳定 tag 覆盖。
 
 本轮发现其中 reader 314 行、runner 312 行、runner test 421 行超过原有门禁。
 仅提取纯 inventory/run-state 校验和测试辅助类；reader/runner 的发行闭包与
@@ -27,7 +27,8 @@ manager、readback、HTTP routes/security、server 接线与配套测试。这�
 | Spine 4.2 JSON/Atlas/PNG 与 Runtime | 已有适配/采集机制；每份证据按 exact 身份读取 |
 | guarded v2 Runtime authorization | 已提交；不能外推为真实 Runtime 或发布已通过 |
 | 主工作台一键 region Spine | 尚未实现，仍是 P1 主线 |
-| 三种 Pipeline Profile | 本轮实现声明合同、Schema、validator、开发 CLI；尚未接执行器 |
+| 三种 Pipeline Profile | 合同、Schema、validator 已接入独立 region 预览执行器 |
+| PipelineRun / Capability / region preview CLI | 已实现；setup ZIP、幂等、恢复、取消、零发布权 |
 | 通用分段臂腿 Mesh、袖子权重 | 尚未实现，不修改 leg-only v1 语义 |
 | 20 角色 Benchmark | 标注流程已准备，20 PNG + 12 PSD 字节盘点完成，待图层审计与 split 标注 |
 
@@ -48,9 +49,15 @@ B 的四条不可观测下肢接缝与 ankle.left 阻塞不得因为历史 P9 �
 `certification-core-2026-09` 尚未创建：此次仅作 checkpoint commit，执行链不能直接视为认证冻结点；
 历史 P3–P6/seam 重放 13/13 通过，但 A/B current 身份的完整封存仍未完成。
 
-新执行顺序见 [自动化路线](automation-roadmap-2026-09.md)。下一开发切片为
-AS-003/004 的 PipelineRun 与能力解析，随后接 AS-005 一键 region 预览与 AS-006
-异常队列。这不是新增 P10.8/P10.9 阶段。
+新执行顺序见 [自动化路线](automation-roadmap-2026-09.md)。AS-003/004 的 PipelineRun
+与能力解析已实现；AS-005 已有[无 SHA 项目级 CLI](how-to-build-region-spine-preview.md)，
+可自动构建 reviewed region 的 setup 预览并下载 ZIP，支持恢复、取消和精确读回。
+下一切片接入主工作台按钮与 AS-006 统一异常队列；R1 尚未整体验收。
+这不是新增 P10.8/P10.9 阶段，也不改变尚待完成的认证冻结要求。
+
+本切片 [验证记录](pipeline-slice-validation-2026-09.md)：新增功能/质量 60 项、历史
+重放与 A/B 边界 13 项通过。真实 A/B 无 SHA setup ZIP 均生成成功，重复运行逐字节
+一致。主工作台集成、动态 Mesh 验收和官方 Runtime 新采集仍未因此完成。
 
 本机未发现 `gh`，当前工具也无 GitHub 写入连接器；未创建远端 Issues、Milestones
 或 Labels。本地 backlog、GitHub capability Issue 模板与 [标注流程](benchmark-annotation-2026-09.md) 已保存。

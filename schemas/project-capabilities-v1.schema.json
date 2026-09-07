@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AutoSpine setup-region operation capabilities v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "project_id", "profile", "operation", "authority", "source_addresses", "can_build_region_rig", "can_build_mesh_rig", "can_apply_motion", "can_export_spine", "can_build_spine_preview", "blocking_items", "warning_items"],
+  "properties": {
+    "schema": {"const": "autospine.project-capabilities/v1"},
+    "project_id": {"$ref": "#/$defs/id"},
+    "profile": {"enum": ["draft_auto", "production_review", "certification_exact"]},
+    "operation": {"const": "setup_region_preview"},
+    "authority": {"const": "none"},
+    "source_addresses": {
+      "type": "object", "additionalProperties": false,
+      "required": ["resolved_project_sha256", "layer_manifest_sha256", "input_identity_sha256"],
+      "properties": {
+        "resolved_project_sha256": {"$ref": "#/$defs/sha"},
+        "layer_manifest_sha256": {"$ref": "#/$defs/sha"},
+        "input_identity_sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "can_build_region_rig": {"type": "boolean"},
+    "can_build_mesh_rig": {"type": "boolean", "const": false},
+    "can_apply_motion": {"type": "boolean", "const": false},
+    "can_export_spine": {"type": "boolean", "const": false},
+    "can_build_spine_preview": {"type": "boolean"},
+    "blocking_items": {"type": "array", "items": {"$ref": "#/$defs/item"}},
+    "warning_items": {"type": "array", "items": {"$ref": "#/$defs/item"}}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"can_build_spine_preview": {"const": true}}},
+      "then": {"properties": {"can_build_region_rig": {"const": true}, "blocking_items": {"maxItems": 0}}}
+    },
+    {
+      "if": {"properties": {"profile": {"const": "certification_exact"}}},
+      "then": {"properties": {"can_build_region_rig": {"const": false}}}
+    }
+  ],
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "item": {
+      "type": "object", "additionalProperties": false,
+      "required": ["type", "id", "reason_code"],
+      "properties": {
+        "type": {"enum": ["operation", "geometry", "profile", "review"]},
+        "id": {"$ref": "#/$defs/id"},
+        "reason_code": {"enum": ["project_review_required", "spine_preview_review_required", "region_geometry_unsupported", "certification_exact_entry_required", "operation_not_supported", "preview_has_no_release_authority"]}
+      }
+    }
+  }
+}

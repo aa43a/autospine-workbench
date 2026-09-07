@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "autospine.region-preview-qa/v1",
+  "title": "Reviewed P2 region preview structural QA v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "status", "source_sha256", "authority", "runtime_status", "setup_rgba_sha256", "metrics", "checks"],
+  "properties": {
+    "schema": {"const": "autospine.region-preview-qa/v1"},
+    "status": {"const": "passed"},
+    "source_sha256": {"$ref": "#/$defs/sha256"},
+    "setup_rgba_sha256": {"$ref": "#/$defs/sha256"},
+    "authority": {"const": "none"},
+    "runtime_status": {"const": "not_run"},
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bones", "slots", "attachments", "animations"],
+      "properties": {
+        "bones": {"type": "integer", "minimum": 1, "maximum": 4096},
+        "slots": {"type": "integer", "minimum": 1, "maximum": 4096},
+        "attachments": {"type": "integer", "minimum": 1, "maximum": 16384},
+        "animations": {"const": 0}
+      }
+    },
+    "checks": {"const": ["p2_exact_bundle", "p2_setup_reconstruction", "spine_cross_file"]}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

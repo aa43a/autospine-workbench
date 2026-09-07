@@ -1,6 +1,6 @@
 # AutoSpine Workbench 功能与入口参考
 
-2026-09 自动化转向与已提交/工作区边界见 [当前状态](current-state-2026-09.md)。新增 [Pipeline Profile v1](adr-pipeline-profiles-v1.md) 只声明策略，尚未接入执行器；历史内容地址保持独立。
+2026-09 自动化转向见 [当前状态](current-state-2026-09.md)。[Pipeline Profile v1](adr-pipeline-profiles-v1.md) 已接入项目级 region 预览 CLI：`python -m autospine_workbench.automation preview <project-id> --output preview.zip`，自动解析地址并生成 setup JSON/Atlas/PNG/QA。支持能力查询、幂等、显式恢复和取消；没有动画或发布权。主工作台按钮及统一 Review Queue 待接入。详见[操作说明](how-to-build-region-spine-preview.md)。
 
 本文是面向操作者和开发者的 Reference。P10.3、P10.4a/b v2 和 P10.5d v2 自动入口均已交付。P10.5d 页面从 P10.4b 完成态携带 exact `job_id+safety_run_id`，自动闭合 current P10.5c，以 BelowNormal worker 和 append-only attempts 执行，再由父进程 exact readback/current-head recheck。CLI/store 与历史 verify 仍可用于显式地址复验。真实 A 尚待当前 P10.4b run 完成并重启服务后执行；release、raster、Runtime、视觉与 overlap 仍 blocked。v1 合同保持冻结。计划项见[开发路线](development-roadmap.md)。
 
