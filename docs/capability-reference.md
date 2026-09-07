@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+`bake-elbow-preview` 输出两秒30FPS局部偏移关键帧与120Hz采样QA，以及原纹理播放页。
+仅已选手臂实验动画，接缝和官方Runtime仍未评估，见[操作说明](how-to-elbow-bake.md)。
+
 `correct-elbow-preview` 生成受位移预算约束的肘部面积修正与逐度 QA；
 仅实验数值预览，尚无时间轴/纹理/接缝或 Runtime 通过声明。
 

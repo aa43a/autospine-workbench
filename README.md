@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[Corrective 烘焙与纹理预览](docs/how-to-elbow-bake.md)已接通：30FPS关键帧、120Hz插值QA，
+支持播放/暂停与拖帧；尚未接官方 Spine Runtime 或完整角色接缝验证。
+
 [肘部局部约束修正](docs/how-to-elbow-constraints.md)已接通：固定刚性端部、限制修正量，
 独立检查面积、边长与翻转；通过只表示实验逐度数值 QA，不是正式动画或 Runtime 通过。
 

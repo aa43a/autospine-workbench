@@ -22,3 +22,6 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+"autospine_workbench.benchmark" = ["elbow_bake_player.js", "elbow_bake_webgl.js"]

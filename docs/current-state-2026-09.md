@@ -1,5 +1,8 @@
 # 当前状态：2026-09-08
 
+新增[corrective动画烘焙](how-to-elbow-bake.md)：四臂120Hz采样QA通过，最大插值误差约0.13px，
+提供原纹理WebGL播放页。独立工件不改旧Mesh；尚未编译Spine deform时间轴或验证跨图层接缝。
+
 新增[肘部局部约束](how-to-elbow-constraints.md)，辅助骨结果上施加固定迭代面积/边长投影，
 保留刚性端部与位移预算；修正可转换为原 LBS 局部偏移，尚未 Bake 时间轴或正式导出。
 

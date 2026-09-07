@@ -1,0 +1,99 @@
+{
+  "authority": "none",
+  "production_authorized": false,
+  "python_tests": 43,
+  "js_tests": 1,
+  "validation": [
+    "Exact source CLI replay",
+    "Schema",
+    "Numeric recalculation",
+    "CAS readback",
+    "Chrome textured frame"
+  ],
+  "limitations": [
+    "No full Python/Web suite",
+    "No official Runtime",
+    "No inter-layer seam or continuous time guarantee"
+  ],
+  "records": [
+    {
+      "character": "alice",
+      "bake_sha256": "d4207acd6c02aaef9a4335dd29c3b80c0052bce8b57f7bc90c20263890327ada",
+      "source_mesh_sha256": "b22423a7e3c6cf284b8c2ea824134655bde70fdefe45f47f6092da69119724b6",
+      "layers": [
+        {
+          "layer_id": "layer-003",
+          "qa": {
+            "inverted_triangle_samples": 0,
+            "loop_max_error": 0.0,
+            "max_area_ratio": 1.5011045346058056,
+            "max_edge_stretch": 1.5102733773342796,
+            "max_interpolation_error_px": 0.07114815813421513,
+            "min_area_ratio": 0.549269702020136,
+            "setup_max_error": 5.684341886080802e-14
+          },
+          "reason_codes": [],
+          "status": "passed"
+        },
+        {
+          "layer_id": "layer-004",
+          "qa": {
+            "inverted_triangle_samples": 0,
+            "loop_max_error": 0.0,
+            "max_area_ratio": 1.4942074627258415,
+            "max_edge_stretch": 1.4997762222141,
+            "max_interpolation_error_px": 0.0720853887284167,
+            "min_area_ratio": 0.5498123530804433,
+            "setup_max_error": 0.0
+          },
+          "reason_codes": [],
+          "status": "passed"
+        }
+      ],
+      "not_evaluated_count": 21
+    },
+    {
+      "character": "lingxian",
+      "bake_sha256": "950bc2595bafecd88f62ddc5671169601939eb2b2ebe67feb9a7696b36328997",
+      "source_mesh_sha256": "6e409938b6470fd6d2207a7be8fe071cf13f72bf97658cd0182b901bf13c3ff6",
+      "layers": [
+        {
+          "layer_id": "layer-001",
+          "qa": {
+            "inverted_triangle_samples": 0,
+            "loop_max_error": 0.0,
+            "max_area_ratio": 1.4230269515509812,
+            "max_edge_stretch": 1.4878550049953154,
+            "max_interpolation_error_px": 0.099879209891247,
+            "min_area_ratio": 0.5493673970968995,
+            "setup_max_error": 0.0
+          },
+          "reason_codes": [],
+          "status": "passed"
+        },
+        {
+          "layer_id": "layer-002",
+          "qa": {
+            "inverted_triangle_samples": 0,
+            "loop_max_error": 0.0,
+            "max_area_ratio": 1.4856567057478713,
+            "max_edge_stretch": 1.5056685587705851,
+            "max_interpolation_error_px": 0.1297012109775784,
+            "min_area_ratio": 0.5493256047494981,
+            "setup_max_error": 0.0
+          },
+          "reason_codes": [],
+          "status": "passed"
+        }
+      ],
+      "not_evaluated_count": 19
+    },
+    {
+      "character": "crino",
+      "bake_sha256": "04c20a7dcd82ff992d161481b6f6ee081ec24c1879f9b33ff48a6a7c33f969fa",
+      "source_mesh_sha256": "97f0d6f3b2e61afc7acb1b11ea4449ad306ca6bcdb3a87a1d6b1ed158a7763da",
+      "layers": [],
+      "not_evaluated_count": 18
+    }
+  ]
+}
