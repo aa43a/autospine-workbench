@@ -11,7 +11,7 @@ from weakref import WeakKeyDictionary
 
 from .manifest_artifacts import LayerManifestError, require_safe_token, require_sha256
 from .motion_instance_v3_staging_cleanup import is_alias
-from .safe_input_files import SafeInputFileError, read_real_file, strict_json_object
+from .safe_input_files import SafeInputFileError, read_real_file
 from .spine42_v3_bundle_files import (
     Spine42V3BundleFilesError, existing_exact_child, require_real_directory)
 from .spine42_v3_bundle_reader_v2 import (
@@ -21,9 +21,9 @@ from .spine42_v3_runtime_bundle_v2 import (
     NAMESPACE, Spine42V3RuntimeBundleV2, Spine42V3RuntimeBundleV2Error,
     replay_spine42_v3_runtime_bundle_v2)
 from .spine42_v3_runtime_capture_core import MAX_CAPTURE_BYTES, MAX_CAPTURE_TOTAL_BYTES
-from .spine42_v3_runtime_evidence_contract_v2 import FIXED_NAMES, MANIFEST_NAME, safe_png
+from .spine42_v3_runtime_evidence_contract_v2 import FIXED_NAMES, MANIFEST_NAME
 from .spine42_v3_runtime_evidence_v2 import MAX_JSON_BYTES
-from .spine42_v3_runtime_profile import MAX_CAPTURE_ARTIFACTS
+from .spine42_v3_runtime_inventory_v2 import declared_artifacts
 
 class Spine42V3RuntimeReaderV2Error(RuntimeError):
     """Raised when an exact v2 runtime address is not trustworthy."""
@@ -31,39 +31,101 @@ class Spine42V3RuntimeReaderV2Error(RuntimeError):
 class Spine42V3RuntimeV2NotFound(Spine42V3RuntimeReaderV2Error):
     """Raised only when a valid explicit address component is absent."""
 
-_READER_RECEIPT = object()
-@dataclass(frozen=True, slots=True, eq=False, weakref_slot=True)
-class VerifiedSpine42V3RuntimeEvidenceV2:
-    path: Path
-    bundle: Spine42V3RuntimeBundleV2
-    _receipt: InitVar[object] = None
-    def __post_init__(self, _receipt: object) -> None:
-        if _receipt is not _READER_RECEIPT:
+def _runtime_reader_capability():
+    receipt, issued, lock = object(), WeakKeyDictionary(), threading.Lock()
+
+    @dataclass(frozen=True, slots=True, eq=False, weakref_slot=True)
+    class VerifiedSpine42V3RuntimeEvidenceV2:
+        path: Path
+        bundle: Spine42V3RuntimeBundleV2
+        _receipt: InitVar[object] = None
+
+        def __post_init__(self, _receipt: object) -> None:
+            if _receipt is not receipt:
+                raise Spine42V3RuntimeReaderV2Error(
+                    "Verified runtime evidence v2 is reader-issued only"
+                )
+
+    def issue(path, bundle):
+        value = VerifiedSpine42V3RuntimeEvidenceV2(path, bundle, receipt)
+        with lock:
+            issued[value] = (path, bundle, _bundle_state(bundle))
+        return value
+
+    def require(value):
+        if type(value) is not VerifiedSpine42V3RuntimeEvidenceV2:
             raise Spine42V3RuntimeReaderV2Error(
-                "Verified runtime evidence v2 is reader-issued only")
+                "Runtime v2 is not reader-issued"
+            )
+        with lock:
+            recorded = issued.get(value)
+        if recorded is None:
+            raise Spine42V3RuntimeReaderV2Error(
+                "Runtime v2 is not reader-issued"
+            )
+        path, bundle, state = recorded
+        if value.path != path or value.bundle is not bundle \
+                or _bundle_state(value.bundle) != state:
+            raise Spine42V3RuntimeReaderV2Error(
+                "Issued runtime v2 changed"
+            )
+        _require_address(path, bundle)
+        return path, bundle
 
-_ISSUED_READS = WeakKeyDictionary()
-_ISSUED_READS_LOCK = threading.Lock()
+    @dataclass(frozen=True, slots=True)
+    class VerifiedSpine42V3RuntimeReaderV2:
+        """Load one four-part address without observing mutable heads."""
 
-def _issue(path, bundle):
-    value = VerifiedSpine42V3RuntimeEvidenceV2(path, bundle, _READER_RECEIPT)
-    with _ISSUED_READS_LOCK:
-        _ISSUED_READS[value] = (path, bundle, _bundle_state(bundle))
-    return value
+        state_root: Path
 
-def _require_issued_spine42_v3_runtime_reader_v2(value):
-    if type(value) is not VerifiedSpine42V3RuntimeEvidenceV2:
-        raise Spine42V3RuntimeReaderV2Error("Runtime v2 is not reader-issued")
-    with _ISSUED_READS_LOCK:
-        issued = _ISSUED_READS.get(value)
-    if issued is None:
-        raise Spine42V3RuntimeReaderV2Error("Runtime v2 is not reader-issued")
-    path, bundle, state = issued
-    if value.path != path or value.bundle is not bundle \
-            or _bundle_state(value.bundle) != state:
-        raise Spine42V3RuntimeReaderV2Error("Issued runtime v2 changed")
-    _require_address(path, bundle)
-    return path, bundle
+        def __post_init__(self) -> None:
+            object.__setattr__(self, "state_root", Path(self.state_root))
+
+        def load(
+            self, project_id: str, skeleton_json_sha256: str,
+            spine42_v3_bundle_sha256: str, capture_bundle_sha256: str,
+        ) -> VerifiedSpine42V3RuntimeEvidenceV2:
+            """Read the upstream, then every declared runtime file once."""
+            try:
+                address = _address(
+                    project_id, skeleton_json_sha256,
+                    spine42_v3_bundle_sha256, capture_bundle_sha256,
+                )
+                project, skeleton, upstream_sha, _capture_sha = address
+                upstream = VerifiedSpine42V3BundleReaderV2(
+                    self.state_root
+                ).load(project, skeleton, upstream_sha)
+                directory = _exact_bundle_path(self.state_root, *address)
+                bundle = _snapshot_spine42_v3_runtime_bundle_v2(
+                    directory, upstream, require_address=True,
+                )
+                actual = (
+                    bundle.project_id, bundle.skeleton_json_sha256,
+                    bundle.spine42_v3_bundle_sha256, bundle.bundle_sha256,
+                )
+                if actual != address:
+                    raise Spine42V3RuntimeReaderV2Error(
+                        "Runtime evidence v2 differs from its explicit address"
+                    )
+                return issue(directory, bundle)
+            except Spine42V3RuntimeReaderV2Error:
+                raise
+            except _FAILURES as exc:
+                raise Spine42V3RuntimeReaderV2Error(
+                    "Verified runtime evidence v2 load failed"
+                ) from exc
+
+    def snapshot(directory, upstream):
+        """Issue only after replaying a strict content-addressed directory."""
+        root = Path(os.path.abspath(os.fspath(Path(directory))))
+        bundle = _snapshot_spine42_v3_runtime_bundle_v2(
+            root, upstream, require_address=True,
+        )
+        return issue(root, bundle)
+
+    return VerifiedSpine42V3RuntimeEvidenceV2, \
+        VerifiedSpine42V3RuntimeReaderV2, snapshot, require
+
 
 def _bundle_state(bundle):
     fields = (
@@ -75,51 +137,13 @@ def _bundle_state(bundle):
                   for name, raw in bundle.file_items)
     return tuple((type(value), value) for value in fields) + items
 
-@dataclass(frozen=True, slots=True)
-class VerifiedSpine42V3RuntimeReaderV2:
-    """Load one four-part address without observing mutable heads."""
-    state_root: Path
-    def __post_init__(self) -> None:
-        object.__setattr__(self, "state_root", Path(self.state_root))
-    def load(
-        self, project_id: str, skeleton_json_sha256: str,
-        spine42_v3_bundle_sha256: str, capture_bundle_sha256: str,
-    ) -> VerifiedSpine42V3RuntimeEvidenceV2:
-        """Read the upstream once, then every declared runtime file once."""
-        try:
-            address = _address(
-                project_id, skeleton_json_sha256,
-                spine42_v3_bundle_sha256, capture_bundle_sha256,
-            )
-            project, skeleton, upstream_sha, capture_sha = address
-            upstream = VerifiedSpine42V3BundleReaderV2(
-                self.state_root
-            ).load(project, skeleton, upstream_sha)
-            directory = _exact_bundle_path(self.state_root, *address)
-            bundle = _snapshot_spine42_v3_runtime_bundle_v2(
-                directory, upstream, require_address=True)
-            actual = (
-                bundle.project_id, bundle.skeleton_json_sha256,
-                bundle.spine42_v3_bundle_sha256, bundle.bundle_sha256,
-            )
-            if actual != address:
-                raise Spine42V3RuntimeReaderV2Error(
-                    "Runtime evidence v2 differs from its explicit address")
-            return _issue(directory, bundle)
-        except Spine42V3RuntimeReaderV2Error:
-            raise
-        except _FAILURES as exc:
-            raise Spine42V3RuntimeReaderV2Error(
-                "Verified runtime evidence v2 load failed") from exc
 
-def snapshot_spine42_v3_runtime_directory_v2(
-    directory: Path, upstream: VerifiedSpine42V3BundleV2,
-) -> VerifiedSpine42V3RuntimeEvidenceV2:
-    """Issue a receipt only for a strict content-addressed directory."""
-    root = Path(os.path.abspath(os.fspath(Path(directory))))
-    bundle = _snapshot_spine42_v3_runtime_bundle_v2(
-        root, upstream, require_address=True)
-    return _issue(root, bundle)
+(
+    VerifiedSpine42V3RuntimeEvidenceV2,
+    VerifiedSpine42V3RuntimeReaderV2,
+    snapshot_spine42_v3_runtime_directory_v2,
+    _require_issued_spine42_v3_runtime_reader_v2,
+) = _runtime_reader_capability()
 
 def _snapshot_spine42_v3_runtime_bundle_v2(
     directory: Path, upstream: VerifiedSpine42V3BundleV2, *,
@@ -201,34 +225,8 @@ def _exact_bundle_path(root, project, skeleton, upstream, capture):
             "Exact runtime evidence v2 address cannot be resolved") from exc
 
 def _declared_artifacts(raw):
-    try:
-        rows = strict_json_object(raw, MANIFEST_NAME)["artifacts"]
-        fields = {
-            "artifact_id", "logical_path", "stored_path", "kind",
-            "case_id", "sha256", "size_bytes",
-        }
-        if type(rows) is not list or not 1 <= len(rows) <= MAX_CAPTURE_ARTIFACTS:
-            raise Spine42V3RuntimeReaderV2Error(
-                "Declared runtime capture v2 count is invalid")
-        for row in rows:
-            logical = row.get("logical_path") if type(row) is dict else None
-            if type(row) is not dict or set(row) != fields \
-                    or not safe_png(logical) \
-                    or row.get("stored_path") != f"captures/{logical}" \
-                    or type(row.get("artifact_id")) is not str:
-                raise Spine42V3RuntimeReaderV2Error(
-                    "Declared runtime capture v2 path is unsafe")
-        for field in ("artifact_id", "logical_path", "stored_path"):
-            values = [row[field].casefold() for row in rows]
-            if len(values) != len(set(values)):
-                raise Spine42V3RuntimeReaderV2Error(
-                    "Declared runtime captures v2 contain an alias")
-        return rows
-    except Spine42V3RuntimeReaderV2Error:
-        raise
-    except (KeyError, SafeInputFileError, TypeError, ValueError) as exc:
-        raise Spine42V3RuntimeReaderV2Error(
-            "Declared runtime capture v2 inventory is malformed") from exc
+    return declared_artifacts(raw, Spine42V3RuntimeReaderV2Error)
+
 
 def _inventory(directory, names, root_inventory):
     try:

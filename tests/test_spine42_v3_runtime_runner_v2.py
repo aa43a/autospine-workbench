@@ -24,7 +24,6 @@ from autospine_workbench.browser_version_identity import (  # noqa: E402
 )
 from autospine_workbench.body_sway_capture_server_lease import (  # noqa: E402
     BodySwayCaptureServerLeaseError,
-    BodySwayCaptureServerLease as RealServerLease,
 )
 from autospine_workbench.spine42_v3_bundle_reader_v2 import (  # noqa: E402
     VerifiedSpine42V3BundleV2,
@@ -45,6 +44,11 @@ from autospine_workbench.spine42_v3_runtime_source_bridge_v2 import (  # noqa: E
 from tests.test_spine42_v3_runtime_capture_harness import _png  # noqa: E402
 from tests.test_spine42_v3_runtime_capture_harness_v2 import (  # noqa: E402
     V2HarnessFixture, _fake_runtime_profile_v2,
+)
+
+
+from tests.spine42_v3_runtime_runner_v2_support import (
+    _BrowserLease, _ServerLease, _capture, _assert_path_free,
 )
 
 
@@ -136,6 +140,7 @@ class Spine42V3RuntimeRunnerV2Tests(unittest.TestCase):
         for forbidden in (
             "compute_spine42_v3_raster_metrics",
             "Spine42V3RuntimeStore", "build_spine42_v3_runtime_evidence",
+            "_result", "_ISSUED_RUN_INPUTS",
         ):
             self.assertNotIn(forbidden, vars(subject))
         object.__setattr__(result, "artifact_count", result.artifact_count + 1)
@@ -218,6 +223,30 @@ class Spine42V3RuntimeRunnerV2Tests(unittest.TestCase):
             ):
                 self._run()
 
+    def test_authorized_environment_drift_precedes_server_and_headless(self):
+        capture = Mock()
+        changed_runtime = replace(self.runtime, license_sha256="d" * 64)
+        with self._boundaries(capture) as mocks, _fake_runtime_profile_v2():
+            mocks["runtime"].side_effect = [changed_runtime]
+            with self.assertRaisesRegex(
+                Spine42V3RuntimeRunnerV2Error, "authorized snapshot",
+            ):
+                self._run()
+        mocks["lease_factory"].assert_not_called()
+        mocks["driver"].assert_not_called()
+        self.assertEqual([], mocks["server_leases"])
+
+        changed_browser = replace(self.browser, executable_sha256="d" * 64)
+        with self._boundaries(capture) as mocks, _fake_runtime_profile_v2():
+            mocks["lease"].browser = changed_browser
+            with self.assertRaisesRegex(
+                Spine42V3RuntimeRunnerV2Error, "authorized snapshot",
+            ):
+                self._run()
+        mocks["driver"].assert_not_called()
+        self.assertEqual([], mocks["server_leases"])
+        self.assertTrue(mocks["lease"].closed)
+
     def test_unhealthy_server_mid_capture_fails_and_closes_leases(self):
         capture = lambda _b, _u, _p, collector, artifact: _capture(
             collector, artifact, self.png,
@@ -252,8 +281,8 @@ class Spine42V3RuntimeRunnerV2Tests(unittest.TestCase):
             self.fixture.source_fixture.state_root, bundle.project_id,
             skeleton_json_sha256=bundle.skeleton_json_sha256,
             spine42_v3_bundle_sha256=bundle.bundle_sha256,
-            runtime_root=self.root / "runtime",
-            browser_executable=self.root / "chrome.exe",
+            expected_runtime=self.runtime,
+            expected_browser=self.browser,
             license_acknowledged=license_acknowledged,
         )
 
@@ -329,67 +358,6 @@ class Spine42V3RuntimeRunnerV2Tests(unittest.TestCase):
                     item.stop()
 
         return Boundaries()
-
-
-class _BrowserLease:
-    def __init__(self, browser):
-        self.browser = browser
-        self.active = False
-        self.closed = False
-
-    def __enter__(self):
-        self.active = True
-        return self.browser
-
-    def __exit__(self, kind, value, traceback):
-        self.active = False
-        self.closed = True
-
-
-class _ServerLease:
-    def __init__(self, server, *, fail_at=None):
-        self.delegate = RealServerLease(server)
-        self.health_checks = 0
-        self.closed = False
-        self.fail_at = fail_at
-
-    def __enter__(self):
-        self.delegate.__enter__()
-        return self
-
-    def require_healthy(self):
-        self.health_checks += 1
-        if self.health_checks == self.fail_at:
-            raise BodySwayCaptureServerLeaseError("injected unhealthy")
-        self.delegate.require_healthy()
-
-    def __exit__(self, kind, value, traceback):
-        try:
-            return self.delegate.__exit__(kind, value, traceback)
-        finally:
-            self.closed = True
-
-
-def _capture(collector, artifact_id, png):
-    observed = collector.session(artifact_id)["expected_observables"]
-    collector.record_capture(
-        artifact_id, png, device_pixel_ratio=1,
-        observed_inventory=observed,
-    )
-
-
-def _assert_path_free(test, value, forbidden):
-    if isinstance(value, Path):
-        test.fail(f"Path leaked into detached result: {value}")
-    if isinstance(value, str):
-        test.assertNotIn(forbidden, value)
-    elif isinstance(value, dict):
-        for key, item in value.items():
-            _assert_path_free(test, key, forbidden)
-            _assert_path_free(test, item, forbidden)
-    elif isinstance(value, (list, tuple)):
-        for item in value:
-            _assert_path_free(test, item, forbidden)
 
 
 if __name__ == "__main__":

@@ -192,7 +192,8 @@ class WorkflowHubCatalogTests(unittest.TestCase):
         self.assertIn("captured_unreviewed evidence 已交付", next_slice["summary"])
         self.assertIn("固定五份 JSON", next_slice["summary"])
         self.assertIn("四段地址 exact reader", next_slice["summary"])
-        self.assertIn("下一切片是自动授权入口", next_slice["summary"])
+        self.assertIn("guarded v2 runtime authorization 已于 4254151 交付", next_slice["summary"])
+        self.assertIn("PipelineRun 与一键 Spine", next_slice["summary"])
         self.assertIn("当前没有 v2 CLI/UI", next_slice["summary"])
         self.assertIn("没有真正启动经授权的官方 Runtime", next_slice["summary"])
 

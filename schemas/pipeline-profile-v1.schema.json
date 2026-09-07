@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "autospine.pipeline-profile/v1",
+  "title": "Pipeline Profile v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "profile", "review_mode", "export_mode", "auto_adoption", "artifact_identity", "authority"],
+  "properties": {
+    "schema": {"const": "autospine.pipeline-profile/v1"},
+    "profile": {"enum": ["draft_auto", "production_review", "certification_exact"]},
+    "review_mode": {"type": "string"},
+    "export_mode": {"type": "string"},
+    "auto_adoption": {"type": "string"},
+    "artifact_identity": {"const": "existing_content_addresses"},
+    "authority": {"const": "none"}
+  },
+  "oneOf": [
+    {"properties": {"profile": {"const": "draft_auto"}, "review_mode": {"const": "candidate_preview"}, "export_mode": {"const": "preview_only"}, "auto_adoption": {"const": "none"}}},
+    {"properties": {"profile": {"const": "production_review"}, "review_mode": {"const": "exception_review"}, "export_mode": {"const": "qa_gated"}, "auto_adoption": {"const": "versioned_policy"}}},
+    {"properties": {"profile": {"const": "certification_exact"}, "review_mode": {"const": "exact_replay"}, "export_mode": {"const": "existing_exact_gates"}, "auto_adoption": {"const": "none"}}}
+  ]
+}

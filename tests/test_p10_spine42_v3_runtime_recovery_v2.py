@@ -69,7 +69,7 @@ class P10Spine42V3RuntimeRecoveryV2Tests(unittest.TestCase):
     def setUp(self):
         self.store = P10Spine42V3RuntimeJobStoreV2(self.state_root)
 
-    def _request(self, *, clip_id=None):
+    def _request(self, *, clip_id=None, runtime=None, browser=None):
         type(self).sequence += 1
         number = type(self).sequence
         payload = {
@@ -86,11 +86,12 @@ class P10Spine42V3RuntimeRecoveryV2Tests(unittest.TestCase):
             clip_id=clip_id or bundle.clip_id,
             skeleton_json_sha256=bundle.skeleton_json_sha256,
             spine42_v3_bundle_sha256=bundle.spine42_v3_bundle_sha256,
-            runtime=_runtime(), browser=_browser(),
+            runtime=runtime or self.fixture.runtime,
+            browser=browser or self.fixture.browser,
         )
 
-    def _reach(self, stage, *, address=None, clip_id=None):
-        row = self.store.create(self._request(clip_id=clip_id))
+    def _reach(self, stage, *, address=None, clip_id=None, request=None):
+        row = self.store.create(request or self._request(clip_id=clip_id))
         for current_stage in (
             "exact_source_readback", "runtime_reverified",
         ):
@@ -207,6 +208,18 @@ class P10Spine42V3RuntimeRecoveryV2Tests(unittest.TestCase):
         self.assertEqual("capture_readback_mismatch",
                          final.head["failure_code"])
         self.assertEqual("failed_terminal", result.items[0].outcome)
+
+    def test_reader_issued_runtime_or_browser_mismatch_is_terminal(self):
+        for environment in ({"runtime": _runtime()}, {"browser": _browser()}):
+            with self.subTest(field=next(iter(environment))):
+                request = self._request(**environment)
+                row = self._reach("publishing", request=request)
+                result = self._recover()
+                final = self.store.load(row.job_id)
+                self.assertEqual("failed_terminal", final.status)
+                self.assertEqual(
+                    "capture_readback_mismatch", final.head["failure_code"])
+                self.assertEqual("failed_terminal", result.items[-1].outcome)
 
     def test_reader_issued_evidence_must_match_all_four_address_parts(self):
         wrong = dict(self.address)

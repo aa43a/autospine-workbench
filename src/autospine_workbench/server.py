@@ -30,6 +30,8 @@ from .p10_motion_instance_v3_manager_v2 import (
     P10MotionInstanceV3ManagerV2,
 )
 from .p10_spine42_v3_manager_v2 import P10Spine42V3ManagerV2
+from .p10_spine42_v3_runtime_execution_v2 import execute_p10_spine42_v3_runtime_job_v2
+from .p10_spine42_v3_runtime_manager_v2 import P10Spine42V3RuntimeManagerV2
 from .p10_visual_review_v2_image_cache import (
     P10VisualReviewV2ImageReplayCache,
 )
@@ -56,6 +58,7 @@ def _handler_factory(
     dynamic_seam_v2_manager: P10DynamicSeamManagerV2,
     motion_instance_v3_v2_manager: P10MotionInstanceV3ManagerV2,
     spine42_v3_v2_manager: P10Spine42V3ManagerV2,
+    spine42_v3_runtime_v2_manager: P10Spine42V3RuntimeManagerV2,
     visual_review_v2_image_sessions: P10VisualReviewV2ImageSessionStore,
 ) -> type[BaseHTTPRequestHandler]:
     class WorkbenchHandler(WorkbenchResponseMixin, BaseHTTPRequestHandler):
@@ -80,6 +83,7 @@ def _handler_factory(
                 dynamic_seam_v2_manager,
                 motion_instance_v3_v2_manager,
                 spine42_v3_v2_manager,
+                spine42_v3_runtime_v2_manager,
                 visual_review_v2_image_sessions, self,
             )
 
@@ -196,7 +200,8 @@ def _handler_factory(
             if dispatch_workbench_api_post(
                 parts, store, replay_cache, capture_manager,
                 safety_analysis_v2_manager, dynamic_seam_v2_manager,
-                motion_instance_v3_v2_manager, spine42_v3_v2_manager, self,
+                motion_instance_v3_v2_manager, spine42_v3_v2_manager,
+                spine42_v3_runtime_v2_manager, self,
             ):
                 return
             self._send_route_method_not_allowed(parts)
@@ -247,12 +252,16 @@ def create_server(
         store, P10CaptureJobManager, P10SafetyAnalysisManagerV2,
         P10DynamicSeamManagerV2, P10MotionInstanceV3ManagerV2,
         P10Spine42V3ManagerV2,
+        lambda current: P10Spine42V3RuntimeManagerV2(
+            current, execution=execute_p10_spine42_v3_runtime_job_v2,
+        ),
     )
     capture_manager = managers.capture
     safety_analysis_v2_manager = managers.safety_analysis_v2
     dynamic_seam_v2_manager = managers.dynamic_seam_v2
     motion_instance_v3_v2_manager = managers.motion_instance_v3_v2
     spine42_v3_v2_manager = managers.spine42_v3_v2
+    spine42_v3_runtime_v2_manager = managers.spine42_v3_runtime_v2
     visual_review_v2_image_cache = P10VisualReviewV2ImageReplayCache(
         store.state_root,
     )
@@ -265,6 +274,7 @@ def create_server(
         dynamic_seam_v2_manager,
         motion_instance_v3_v2_manager,
         spine42_v3_v2_manager,
+        spine42_v3_runtime_v2_manager,
         visual_review_v2_image_sessions,
     )
     try:
@@ -272,26 +282,18 @@ def create_server(
     except (OSError, socket.error) as exc:
         managers.close_after_bind_failure()
         raise OSError(f"Could not bind AutoSpine workbench to {host}:{port}") from exc
-    server.project_store = store  # type: ignore[attr-defined]
-    server.web_root = resolved_web_root  # type: ignore[attr-defined]
-    server.seam_anchor_review_replay_cache = replay_cache  # type: ignore[attr-defined]
-    server.p10_capture_job_manager = capture_manager  # type: ignore[attr-defined]
-    server.p10_safety_analysis_v2_manager = (  # type: ignore[attr-defined]
-        safety_analysis_v2_manager
-    )
-    server.p10_dynamic_seam_v2_manager = (  # type: ignore[attr-defined]
-        dynamic_seam_v2_manager
-    )
-    server.p10_motion_instance_v3_v2_manager = (  # type: ignore[attr-defined]
-        motion_instance_v3_v2_manager
-    )
-    server.p10_spine42_v3_v2_manager = (  # type: ignore[attr-defined]
-        spine42_v3_v2_manager
-    )
-    server.p10_visual_review_v2_image_cache = (  # type: ignore[attr-defined]
-        visual_review_v2_image_cache
-    )
-    server.p10_visual_review_v2_image_sessions = (  # type: ignore[attr-defined]
-        visual_review_v2_image_sessions
-    )
+    bindings = {
+        "project_store": store, "web_root": resolved_web_root,
+        "seam_anchor_review_replay_cache": replay_cache,
+        "p10_capture_job_manager": capture_manager,
+        "p10_safety_analysis_v2_manager": safety_analysis_v2_manager,
+        "p10_dynamic_seam_v2_manager": dynamic_seam_v2_manager,
+        "p10_motion_instance_v3_v2_manager": motion_instance_v3_v2_manager,
+        "p10_spine42_v3_v2_manager": spine42_v3_v2_manager,
+        "p10_spine42_v3_runtime_v2_manager": spine42_v3_runtime_v2_manager,
+        "p10_visual_review_v2_image_cache": visual_review_v2_image_cache,
+        "p10_visual_review_v2_image_sessions": visual_review_v2_image_sessions,
+    }
+    for name, value in bindings.items():
+        setattr(server, name, value)
     return server

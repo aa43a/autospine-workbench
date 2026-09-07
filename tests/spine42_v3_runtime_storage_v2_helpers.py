@@ -14,13 +14,12 @@ from autospine_workbench.browser_version_identity import (
 from autospine_workbench.spine42_v3_runtime_bundle_v2 import (
     build_spine42_v3_runtime_bundle_v2,
 )
-from autospine_workbench.spine42_v3_runtime_capture_collector_v2 import (
-    Spine42V3RuntimeCaptureCollectorV2,
-)
 from autospine_workbench.spine42_v3_runtime_evidence_v2 import (
     build_spine42_v3_runtime_evidence_v2,
 )
-from autospine_workbench.spine42_v3_runtime_runner_v2 import _result
+from tests.spine42_v3_runtime_issued_run_v2_helpers import (
+    issued_runtime_run_v2,
+)
 from tests.test_spine42_v3_runtime_capture_harness import _png
 from tests.test_spine42_v3_runtime_capture_harness_v2 import (
     V2HarnessFixture, _fake_runtime_profile_v2,
@@ -42,18 +41,11 @@ class RuntimeStorageV2Fixture:
             browser_version_identity_sha256("chromium", version),
             "c" * 64, 4096,
         )
-        collector = Spine42V3RuntimeCaptureCollectorV2(self.harness.sessions)
+        self.runtime, self.browser = runtime, browser
         png = _png()
-        for artifact_id in collector.artifact_ids:
-            observed = collector.session(artifact_id)["expected_observables"]
-            collector.record_capture(
-                artifact_id, png, device_pixel_ratio=1,
-                observed_inventory=observed,
-            )
         with _fake_runtime_profile_v2():
-            run = _result(
-                self.upstream, self.harness.source, runtime, browser,
-                self.harness.sessions, collector.snapshot(),
+            run = issued_runtime_run_v2(
+                self.harness, runtime, browser, png,
             )
             self.evidence = build_spine42_v3_runtime_evidence_v2(run)
             self.bundle = build_spine42_v3_runtime_bundle_v2(self.evidence)

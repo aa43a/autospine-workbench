@@ -121,7 +121,7 @@ test("catalog exposes all pages, all stage groups, and explicit delivery states"
   assert.match(nextSlice.summary, /captured_unreviewed evidence 已交付/);
   assert.match(nextSlice.summary, /固定五份 JSON/);
   assert.match(nextSlice.summary, /四段地址 exact reader/);
-  assert.match(nextSlice.summary, /下一切片是自动授权入口/);
+  assert.match(nextSlice.summary, /guarded v2 runtime authorization 已于 4254151 交付/);
   assert.match(nextSlice.summary, /当前没有 v2 CLI\/UI/);
   assert.match(nextSlice.summary, /没有真正启动经授权的官方 Runtime/);
 });

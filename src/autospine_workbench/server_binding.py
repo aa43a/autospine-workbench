@@ -23,6 +23,9 @@ class WorkbenchThreadingHTTPServer(ThreadingHTTPServer):
         super().server_bind()
 
     def server_close(self) -> None:
+        runtime_manager = getattr(
+            self, "p10_spine42_v3_runtime_v2_manager", None,
+        )
         spine_manager = getattr(self, "p10_spine42_v3_v2_manager", None)
         motion_manager = getattr(
             self, "p10_motion_instance_v3_v2_manager", None,
@@ -33,26 +36,30 @@ class WorkbenchThreadingHTTPServer(ThreadingHTTPServer):
         )
         capture_manager = getattr(self, "p10_capture_job_manager", None)
         try:
-            if spine_manager is not None:
-                spine_manager.close()
+            if runtime_manager is not None:
+                runtime_manager.close()
         finally:
             try:
-                if motion_manager is not None:
-                    motion_manager.close()
+                if spine_manager is not None:
+                    spine_manager.close()
             finally:
                 try:
-                    if seam_manager is not None:
-                        seam_manager.close()
+                    if motion_manager is not None:
+                        motion_manager.close()
                 finally:
                     try:
-                        if safety_manager is not None:
-                            safety_manager.close()
+                        if seam_manager is not None:
+                            seam_manager.close()
                     finally:
                         try:
-                            if capture_manager is not None:
-                                capture_manager.close()
+                            if safety_manager is not None:
+                                safety_manager.close()
                         finally:
-                            super().server_close()
+                            try:
+                                if capture_manager is not None:
+                                    capture_manager.close()
+                            finally:
+                                super().server_close()
 
 
 def validate_server_configuration(

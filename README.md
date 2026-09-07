@@ -1,5 +1,7 @@
 # AutoSpine Workbench
 
+开发方向已切换为受限输入自动生产流：先冻结可信内核，再实现 PipelineRun、一键 Spine 与异常复核，随后推进通用 Mesh/Weight。见 [真实状态](docs/current-state-2026-09.md)、[新路线](docs/automation-roadmap-2026-09.md) 与 [三种运行模式](docs/adr-pipeline-profiles-v1.md)。一键预览尚未交付，旧精确链继续保留。
+
 AutoSpine Workbench 是一个本地人工复核与离线编译工作流，用于查看 See-through PSD 审计结果、校正图层语义和 setup 可见性、调整启发式关节，并保存带 revision 的 override。它不会修改 PSD、审计 JSON 或 PNG；主 authoring 页面写入 `workspace/overrides`，P10 人工复核使用各自独立的 revision namespace，离线 publish/compile 命令按阶段写入内容寻址的 analysis、motion、build 或 runtime 工件。
 
 **P9-real-kimodo-policy-adoption** 对真实 `wave-left-v1` 的 A/B 历史精确链已经关闭；双 SHA 见 [pilot handoff](docs/pilots/kimodo-wave-left-v1.md)。此后两个项目的绑定身份都发生了变化。样本 A 已由操作者确认 `layer-007-handwear-l: forearm.left → upper-arm.left` 并保存 override revision 6；新 Resolved/Manifest/P2–P5、P9、P10.1、P10.2 以及 P10.5b/P10.5c 静态接缝集均已按当前身份重建并精确复验。当前 P10.2 唯一结构拒绝项是旧素材框 containment，完整动作包络已经由动态视口覆盖。样本 B revision 16 仍须按它自己的 current chain 完成相同重建；旧 P9/P10/P3 证据不会跨链继承 authority。

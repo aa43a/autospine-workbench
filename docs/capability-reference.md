@@ -1,5 +1,7 @@
 # AutoSpine Workbench 功能与入口参考
 
+2026-09 自动化转向与已提交/工作区边界见 [当前状态](current-state-2026-09.md)。新增 [Pipeline Profile v1](adr-pipeline-profiles-v1.md) 只声明策略，尚未接入执行器；历史内容地址保持独立。
+
 本文是面向操作者和开发者的 Reference。P10.3、P10.4a/b v2 和 P10.5d v2 自动入口均已交付。P10.5d 页面从 P10.4b 完成态携带 exact `job_id+safety_run_id`，自动闭合 current P10.5c，以 BelowNormal worker 和 append-only attempts 执行，再由父进程 exact readback/current-head recheck。CLI/store 与历史 verify 仍可用于显式地址复验。真实 A 尚待当前 P10.4b run 完成并重启服务后执行；release、raster、Runtime、视觉与 overlap 仍 blocked。v1 合同保持冻结。计划项见[开发路线](development-roadmap.md)。
 
 ## 统一入口
@@ -354,9 +356,8 @@ domain 原子发布；并发相同发布收敛为复用，不覆盖既有内容�
 完整重放固定 JSON 与全部 PNG，不扫描 mutable heads。任一 inventory、大小写、alias、字节或
 上游身份偏差都会 fail closed。
 
-当前仍无 P10.7b v2 CLI/UI、raster metrics、人工复核、自动授权或发布权。机制测试使用 mock
-browser/runtime 边界，没有真正启动经授权的官方 Runtime；v1/v2 地址不能交叉读取。下一切片
-是自动授权入口，实际 Runtime 执行仍需操作者明确授权。
+当前仍无 P10.7b v2 完整 CLI/UI、raster metrics、人工复核或发布权；guarded 授权内核已交付，执行/API 为接续工作区改动。机制测试使用 mock
+browser/runtime 边界，没有真正启动经授权的官方 Runtime；v1/v2 地址不能交叉读取。guarded v2 runtime authorization 已于 4254151 交付；后续优先推进 PipelineRun 与一键 Spine，实际 Runtime 执行仍需操作者明确授权。
 
 ### P10.7b v1：官方 Runtime 与 Sampled Raster 证据
 

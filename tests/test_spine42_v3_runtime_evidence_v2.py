@@ -27,16 +27,16 @@ from autospine_workbench.spine42_v3_runtime_bundle_v2 import (  # noqa: E402
     replay_spine42_v3_runtime_bundle_v2,
     spine42_v3_runtime_bundle_sha256_v2,
 )
-from autospine_workbench.spine42_v3_runtime_capture_collector_v2 import (  # noqa: E402
-    Spine42V3RuntimeCaptureCollectorV2,
-)
 from autospine_workbench.spine42_v3_runtime_evidence_v2 import (  # noqa: E402
     AUTHORITY, FIXED_NAMES, MANIFEST_NAME, RELEASE_GATE,
     Spine42V3RuntimeEvidenceV2Error, build_spine42_v3_runtime_evidence_v2,
     replay_spine42_v3_runtime_evidence_v2,
 )
 from autospine_workbench.spine42_v3_runtime_runner_v2 import (  # noqa: E402
-    Spine42V3RuntimeRunV2, _result,
+    Spine42V3RuntimeRunV2,
+)
+from tests.spine42_v3_runtime_issued_run_v2_helpers import (  # noqa: E402
+    issued_runtime_run_v2,
 )
 from tests.test_spine42_v3_runtime_capture_harness import _png  # noqa: E402
 from tests.test_spine42_v3_runtime_capture_harness_v2 import (  # noqa: E402
@@ -59,19 +59,10 @@ class Spine42V3RuntimeEvidenceV2Tests(unittest.TestCase):
             browser_version_identity_sha256("chromium", version),
             "c" * 64, 4096,
         )
-        collector = Spine42V3RuntimeCaptureCollectorV2(cls.fixture.sessions)
         png = _png()
-        for artifact_id in collector.artifact_ids:
-            collector.record_capture(
-                artifact_id, png, device_pixel_ratio=1,
-                observed_inventory=collector.session(
-                    artifact_id
-                )["expected_observables"],
-            )
         with _fake_runtime_profile_v2():
-            cls.captured_run = _result(
-                cls.fixture.bundle, cls.fixture.source, runtime, browser,
-                cls.fixture.sessions, collector.snapshot(),
+            cls.captured_run = issued_runtime_run_v2(
+                cls.fixture, runtime, browser, png,
             )
         with _fake_runtime_profile_v2():
             cls.evidence = build_spine42_v3_runtime_evidence_v2(

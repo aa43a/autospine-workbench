@@ -3,23 +3,22 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from pathlib import Path
-
 from .p10_spine42_v3_runtime_job_store_v2 import (
     P10Spine42V3RuntimeJobConflictV2,
     P10Spine42V3RuntimeJobStoreV2,
     P10Spine42V3RuntimeJobStoreV2Error,
 )
+from .p10_spine42_v3_runtime_readback_v2 import (
+    require_p10_spine42_v3_runtime_readback_v2,
+)
 from .spine42_v3_runtime_reader_v2 import (
     Spine42V3RuntimeReaderV2Error,
     Spine42V3RuntimeV2NotFound,
     VerifiedSpine42V3RuntimeReaderV2,
-    _require_issued_spine42_v3_runtime_reader_v2,
 )
 
 
 RECOVERY_FORMAT = "autospine-p10-spine42-v3-runtime-recovery-v2"
-_RUNTIME_NAMESPACE = "spine42-v3-runtime-v2"
 
 
 class P10Spine42V3RuntimeRecoveryV2Error(RuntimeError):
@@ -100,7 +99,9 @@ def _recover_one(store, reader, job_id):
     }:
         return _item("already_settled", snapshot)
     try:
-        address = _readback(reader, snapshot, store.state_root)
+        address = require_p10_spine42_v3_runtime_readback_v2(
+            reader, snapshot, store.state_root,
+        )
     except Spine42V3RuntimeV2NotFound:
         return _settle_failure(
             store, snapshot, "failed_retryable",
@@ -128,50 +129,6 @@ def _recover_one(store, reader, job_id):
         return _item("completed", snapshot)
     except P10Spine42V3RuntimeJobConflictV2:
         return _item("conflict_reloaded", store.load(job_id))
-
-
-def _readback(reader, snapshot, state_root):
-    source = snapshot.request.document["source"]
-    address = snapshot.head["capture_address"]
-    evidence = reader.load(
-        address["project_id"], address["skeleton_json_sha256"],
-        address["spine42_v3_bundle_sha256"],
-        address["capture_bundle_sha256"],
-    )
-    path, bundle = _require_issued_spine42_v3_runtime_reader_v2(
-        evidence
-    )
-    actual_address = {
-        "project_id": bundle.project_id,
-        "skeleton_json_sha256": bundle.skeleton_json_sha256,
-        "spine42_v3_bundle_sha256": bundle.spine42_v3_bundle_sha256,
-        "capture_bundle_sha256": bundle.bundle_sha256,
-    }
-    actual_source = {
-        "project_id": bundle.project_id,
-        "clip_id": bundle.clip_id,
-        "skeleton_json_sha256": bundle.skeleton_json_sha256,
-        "spine42_v3_bundle_sha256": bundle.spine42_v3_bundle_sha256,
-    }
-    if actual_address != address or actual_source != source \
-            or not _is_local_address(path, state_root, address):
-        raise Spine42V3RuntimeReaderV2Error(
-            "Runtime recovery exact source differs")
-    return dict(address)
-
-
-def _is_local_address(path, state_root, address):
-    try:
-        root = Path(state_root).resolve(strict=True)
-        expected = root.joinpath(
-            "builds", address["project_id"], _RUNTIME_NAMESPACE,
-            address["skeleton_json_sha256"],
-            address["spine42_v3_bundle_sha256"],
-            address["capture_bundle_sha256"],
-        )
-        return Path(path).resolve(strict=True) == expected.resolve(strict=True)
-    except (OSError, RuntimeError, TypeError, ValueError):
-        return False
 
 
 def _settle_failure(store, snapshot, status, code, resume_mode):

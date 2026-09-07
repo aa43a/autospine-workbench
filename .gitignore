@@ -3,6 +3,7 @@ __pycache__/
 .pytest_cache/
 .coverage
 .venv/
+baseline-*-2026-09.log
 dist/
 build/
 workspace/overrides/*.tmp

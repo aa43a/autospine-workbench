@@ -1,5 +1,7 @@
 # AutoSpine Workbench 架构与质量门禁
 
+2026-09 自动化转向与已提交/工作区边界见 [当前状态](current-state-2026-09.md)。新增 [Pipeline Profile v1](adr-pipeline-profiles-v1.md) 只声明策略，尚未接入执行器；历史内容地址保持独立。
+
 本文约束的是持续开发方式，不是一次性重写计划。任何新功能都先进入版本中立合同和可复现工件，再接 UI 或特定 Spine 版本适配器。
 
 ## 不变量
@@ -91,7 +93,7 @@ exact Layer Manifest + exact P3 static bundle
                                        ↓
  P10.7b v2 runtime source + runner + evidence store（已交付）
                                        ↓
-                  automatic authorization（下一切片）
+                  guarded automatic authorization（4254151 已交付）
                                        ↓
                     [external] Runtime/raster gate
                                        ↓
@@ -611,8 +613,8 @@ bundle 使用独立 `autospine.spine42-v3-runtime-bundle/v2` 哈希域与
 四段地址，单次读取上游与每个声明文件，不观察 current heads。缺失、额外、错大小写、alias、
 篡改或跨地址内容均 fail closed。
 
-当前仍无 P10.7b v2 CLI/UI、raster metrics、人工复核、自动授权或发布权。机制测试使用模拟边界，
-没有真正启动经授权的官方 Runtime；P10.7a 页面也不会自动启动它。下一切片是自动授权入口，
+当前仍无 P10.7b v2 完整 CLI/UI、raster metrics、人工复核或发布权；guarded 授权内核已交付，执行/API 为接续工作区改动。机制测试使用模拟边界，
+没有真正启动经授权的官方 Runtime；P10.7a 页面也不会自动启动它。guarded v2 runtime authorization 已于 4254151 交付；后续优先推进 PipelineRun 与一键 Spine，
 实际 Runtime 执行始终是操作者明确授权后的外部边界；冻结 v1 字节与哈希保持不变。
 
 P10.7b v1 用固定官方 Runtime/浏览器身份、case plan、完整 setup attachment isolate 与 sampled

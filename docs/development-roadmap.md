@@ -1,6 +1,6 @@
 # AutoSpine Workbench 后续开发路线
 
-本文是 Explanation 与交付计划，面向维护者和需要评估可行性的项目负责人。P10.3、P10.4a/b v2、P10.5d v2、P10.6a/P10.6b v2、P10.7a v2 Spine adapter 自动入口，以及 P10.7b v2 source bridge、严格 session、bounded collector、loopback server、Windows real browser runner 和 runtime evidence store/exact reader 均已交付。runner 要求显式许可真值与 Windows，对精确 P10.7a v2 只读一次，持有固定 Spine Player 4.2.119 Runtime/浏览器 lease，并逐 artifact 使用全新 profile 经 loopback 采集；runner-issued 结果可原子封存为 `captured_unreviewed`，以独立 namespace/hash domain 保存固定五份 JSON 与声明的 PNG captures，并由四段显式地址完整回读。当前仍没有 P10.7b v2 CLI/UI、raster metrics、人工复核、自动授权或发布权。下一切片是自动授权入口；官方 Runtime 授权、视觉、完整边界、overlap 与 release 仍 blocked。机制测试没有真正启动经授权的官方 Runtime，也不表示真实样本 A 已形成相应凭据。样本 B revision 16 必须沿自己的 current chain 继续；v1 合同与输出哈希保持冻结。
+本文是 Explanation 与交付计划，面向维护者和需要评估可行性的项目负责人。P10.3、P10.4a/b v2、P10.5d v2、P10.6a/P10.6b v2、P10.7a v2 Spine adapter 自动入口，以及 P10.7b v2 source bridge、严格 session、bounded collector、loopback server、Windows real browser runner 和 runtime evidence store/exact reader 均已交付。runner 要求显式许可真值与 Windows，对精确 P10.7a v2 只读一次，持有固定 Spine Player 4.2.119 Runtime/浏览器 lease，并逐 artifact 使用全新 profile 经 loopback 采集；runner-issued 结果可原子封存为 `captured_unreviewed`，以独立 namespace/hash domain 保存固定五份 JSON 与声明的 PNG captures，并由四段显式地址完整回读。当前仍没有 P10.7b v2 完整 CLI/UI、raster metrics、人工复核或发布权；guarded 授权内核已交付，执行/API 为接续工作区改动。guarded v2 runtime authorization 已于 4254151 交付；后续优先推进 PipelineRun 与一键 Spine；官方 Runtime 授权、视觉、完整边界、overlap 与 release 仍 blocked。机制测试没有真正启动经授权的官方 Runtime，也不表示真实样本 A 已形成相应凭据。样本 B revision 16 必须沿自己的 current chain 继续；v1 合同与输出哈希保持冻结。
 
 P9 页面现已增加 pending draft 自动发现与一键晋级入口。它会自动选择唯一 current 草案，显示角色与 setup 遮挡关系，并在一次明确确认后生成正式 Depth policy、Depth candidates 和新的 exact review package。草案晋级不等于最终 P9 adoption；候选仍须复核，并再次明确提交最终 human adoption。旧 P9 以及依赖旧 P3/P9 的 P10/P10.5 决定只保留历史证据。canvas-only 的新链不会放宽 v1，而是通过已经交付的 CaptureFraming decision、Preview v2、official Runtime execution v2 与 P10.3c v2 review 承接 setup、base、combined 完整包络。
 
@@ -19,92 +19,12 @@ P10.1、P10.2 或 P10.5 数字只代表历史固定链；A revision 6 current P1
 5. 新生产文件默认不超过 300 行，400 行是硬上限；优先拆成 pure core、I/O、validation、CLI/UI adapter。
 6. 外部模型、Spine Runtime 和素材许可由操作者提供并确认；仓库不隐式下载或再分发。
 
-## 建议优先级
+## 当前执行优先级
 
-| 优先级 | 能力 | 原因 |
-| --- | --- | --- |
-| P0 | A revision 6 的 P10.5d v2 真实执行 | 自动入口已交付；等待当前 P10.4b run 完成并重启服务后，从完成页一键进入，不得把 v2 proof 填入冻结 v1 命令 |
-| P0 | B revision 16 的 P9/P10 与静态接缝修复 | B current draft 尚待晋级和最终 adoption；当前 candidate 只有 2 条关系可复核、4 条 `unobservable`，须修复素材/语义或另立 partial 合同，不能生成冒充完整六关系的 P10.5c |
-| 已交付 | P10.4b 证明 worker 进程隔离 | evidence schema/hash 与 strict revalidation 保持不变；CPU 密集区间证明已移出 HTTP 进程，盒级心跳、进程树终止和父端结果复验均已实现 |
-| P0 | B revision 16 的 seam 能力重验 | 历史链 P9/seam 可精确复验，但四条下肢不可观测不能外推到 r16；须按新 Manifest/P3/candidate 重验后，才能选择上游修复或版本化 partial 合同 |
-| P0 | P10.7c setup golden 独立回归 | 零写入入口已交付；真实执行仍依赖 exact P10.7a/capture 与批准 P6 基线，readiness v1 保持冻结且第八项仍 missing |
-| 已交付 | P10.7b v2 source/session/real browser runner | 从精确 P10.7a v2 双 SHA生成 blocked plan/admission，以严格 session、bounded collector、loopback server 和 Windows runner 完成受控逐 artifact 内存采集；冻结 v1 输出哈希不变 |
-| 已交付 | P10.7b v2 evidence/bundle/store/exact reader | 把 runner-issued 结果封存为 captured-unreviewed 固定五份 JSON + PNG inventory，在独立 namespace/domain 原子发布并按四段地址完整重放；不开放 metrics/review/release claim |
-| P0 | P10.7b v2 自动授权入口 | evidence reader 稳定后再接非专业入口；许可、本次执行确认、失败和重试必须显式且可审计 |
-| P0 | P10.7b 两份真实样本验收 | v1 Runtime/capture/metrics/review 基础设施已存在，但不能替代 v2 sessions/evidence 链，也不能替代 A/B 各自真实 P10.5d–P10.7a v2 凭据、官方 Runtime 和人工决定 |
-| P1 | Revision 历史浏览/恢复 UI | 历史已不可变保存，但操作者尚不能便捷查看或安全恢复 |
-| P1 | 主工作台 Spine 导出编排入口 | 离线 P6 已完成，主项目能力仍明确为 `export_spine=false` |
-| P1 | Attachment switch 基础合同 | 眨眼和口型的共同前置能力 |
-| P1 | 自动眨眼、口型候选与人工复核 | 价值高、动作域相对局部，适合在离散切换合同上先落地 |
-| P1 | 扩展真实 Kimodo 动作质量样本集 | 单一 `wave-left-v1` 关闭了结构链，但尚未覆盖快慢动作、交叉肢体、转身、接触和官方 Runtime 视觉质量 |
-| P2 | P3/P5 v2 分段四肢网格、头发弹簧、自由形变、多骨权重、runtime IK | 手臂与分段腿不能静默扩写 leg-only v1；需要新的连续变形、约束和视觉安全合同 |
-| P2 | See-through/pose 离线 runner | 可提高自动化，但依赖模型、显存、许可证和确定性封存策略 |
-| P2 | Spine Editor 工程与更多版本 adapter | 必须按版本、格式和许可证隔离，不能扩展现有 4.2 声明来冒充兼容 |
-| P3 | 实时面部与身体追踪 | 依赖稳定 rig 控制通道、校准和降级策略 |
-| 横向门禁 | 生产化 | 安全、备份、迁移、资源预算和可观测性应随各阶段逐步引入 |
-
-关键路径建议：
-
-```text
-Resolved Project v1 Schema + semantic validator（已完成）
-        │
-P10.6a v1（已完成并冻结）/ v2 admission（已交付）
-        ↓
-P10.6b v1/v2 MotionInstance v3（均已完成，来源合同隔离）
-        ↓
-P10.7a v1 Spine 4.2 adapter（已完成并冻结）/ v2 source adapter + automatic UI（已交付）
-        ↓
-P10.7b v2 source + sessions + runner + evidence store（已交付）
-        ↓
-P10.7b v2 automatic authorization entry（下一切片；官方 Runtime 需授权）
-        ↓
-P10.7b v1 capture/metrics/review 基础设施（已完成；不消费 v2）
-        ↓
-P10.7b-readiness 显式 Manifest 审计（已完成入口）
-        ↓
-P10.7c 独立 setup golden 比较机制（已完成入口；真实执行在 capture 后）
-        ↓
-真实 `wave-left-v1` 六输入审计 + P7/P8（已完成）
-        ↓
-A/B 旧 P5 重定向 + P9 package/preflight/安全 Foot 辅助采用（历史链已完成）
-        ↓
-P9 异常复核 + 一次 human adoption → 本地发布/exact verify（旧链已完成）
-        ↓
-绑定 revision 改变 → 新 Manifest/P2–P5 → 独立 P9 draft（A r6 已走完；B r16 到此）
-        ↓
-P9 页面自动发现草案 → 显式确认前后关系 → 正式 policy/Depth candidates/exact package
-        ↓
-候选复核 → 再次显式确认最终 P9 adoption（A r6 已完成；B r16 当前待完成）
-        ↓
-按新 P9 地址重建 P10.0 候选 → P10.1 显式人工确认
-        ↓
-P10.2 current-head 自动结构探针 + P10.2a `0/8…8/8` 诊断 + 动态视口/region 换绑候选
-        ↓
-manual_visual_required → 冻结 P10.3 v1
-only-canvas reject → P10.2b CaptureFraming 人工决定 → package-centric Preview v2
-        ↓
-显式许可/本次运行确认 → 异步 official Runtime execution → P10.3c v2 逐 case 人审（A 已完成）
-        ↓
-P10.4a v2 admission/consumer（已完成）
-        ↓
-P10.4b v2 离散幅度包络与连续证明（已完成）；独立于 v1 identity
-        ↓
-A r6 P10.5b/P10.5c 已按新 P3 闭合 → 集成并真实执行同版 P10.5d v2 动态接缝验证
-        ↓
-B 上游修复或 partial 合同（现有完整合同 fail closed）
-        ↓
-两份真实 See-through 样本官方 Runtime + 人工验收（需要外部授权环境）
-        ↓
-attachment switch ──→ blink / mouth
-        │
-        ├────────────→ deform / runtime IK
-        └────────────→ live tracking control channels
-
-真实 Kimodo/P9 ──────┘（可与 attachment switch 并行）
-See-through/pose runner（独立输入质量轨，可并行）
-Revision 历史 UI（独立 authoring 可用性轨）
-主工作台 Spine 导出编排（P6 已完成，UI 仍待接入）
-```
+执行顺序以 [2026-09 自动化产品路线](automation-roadmap-2026-09.md) 为准：
+冻结可信链 → PipelineRun/一键 Spine → Review Queue → 自动语义/关节 →
+Mesh/Weight v2 → AnimationIR → 表情与次级运动 → Runner/Beta → Blender/生产化。
+下文保留旧阶段的技术说明与历史验收记录；其中旧 P0/P1 标签不再代表产品排期。
 
 ## 已完成入口：P10.5b 自动复核与 P10.5c 发布
 
@@ -335,7 +255,7 @@ fail closed。命令零写入，成功输出 path-free admission 和 compile-tim
 也没有仅为来源版本变化创建 MotionInstance v4。真实 A 仍需先完成当前 P10.4b run 并实际执行
 P10.5d–P10.7a v2，测试 fixture 不能作为这条真实凭据。P10.7a v2 source adapter、自动 UI 与
 P10.7b v2 source bridge、严格 session、collector、loopback server、Windows real browser runner
-与 captured-unreviewed evidence/bundle/store/exact reader 已交付。下一切片是自动授权入口。
+与 captured-unreviewed evidence/bundle/store/exact reader 已交付。guarded v2 runtime authorization 已于 4254151 交付；后续优先推进 PipelineRun 与一键 Spine。
 
 ## 已完成横向前置：Resolved Project v1
 
@@ -523,14 +443,14 @@ bundle 使用独立 `spine42-v3-runtime-v2` namespace 与 v2 address domain。at
 P10.7a v2 bundle SHA、capture bundle SHA 四段地址，单次读取上游和每个声明文件，拒绝缺失、额外、
 错大小写、alias、篡改和跨线输入，也不观察 current heads。
 
-当前没有 P10.7b v2 CLI/UI、raster metrics、人工复核、自动授权或发布权；官方 Runtime 等价、
+当前没有 P10.7b v2 完整 CLI/UI、raster metrics、人工复核或发布权；guarded 授权内核已交付，执行/API 为接续工作区改动；官方 Runtime 等价、
 视觉、永久 head、可发布 timeline 与 release authority 仍为 false，gate 固定 blocked。机制测试
 使用模拟/替身边界，没有真正启动经授权的官方 Runtime。冻结 v1 reader、session、合同和输出哈希
-保持不变。下一切片是自动授权入口；外部执行始终要求操作者明确许可。
+保持不变。guarded v2 runtime authorization 已于 4254151 交付；后续优先推进 PipelineRun 与一键 Spine；外部执行始终要求操作者明确许可。
 
 ## P10.7b v1：Raster 基础设施已交付，v2 真实双样本验收待完成
 
-**当前优先级：P0。基础设施可用；真实资产验收仍需要外部授权环境。**
+**历史优先级：P0；现归入 Certification Core 维护。基础设施可用；真实资产验收仍需要外部授权环境。**
 
 依赖：冻结 P10.7a v1 五文件 bundle，以及操作者提供并明确确认有权使用的
 `@esotericsoftware/spine-player@4.2.119`。仓库不会从 CDN 回退、捆绑 runtime，或把包内
@@ -570,7 +490,7 @@ publish/release authority 固定为 false/blocked。
 
 ## P10.7b-readiness：真实样本精确地址审计
 
-**当前优先级：P0。审计入口已交付；报告显示真实链仍被更早前置阻塞。**
+**历史优先级：P0；现归入 Certification Core 维护。审计入口已交付；报告显示真实链仍被更早前置阻塞。**
 
 `audit-body-sway-spine42-v3-readiness --manifest ... --state-root .\workspace
 [--document-only]` 接受一个 strict canonical 单行请求。请求必须显式固定每个项目的 Layer

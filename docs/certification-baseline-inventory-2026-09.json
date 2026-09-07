@@ -1,0 +1,182 @@
+{
+  "schema": "autospine.certification-baseline-inventory/v1",
+  "commit": "4254151283d82b515934faf14d6d935e1e9a695a",
+  "status": "inventory_only",
+  "authority": "none",
+  "scope": "tracked_goldens_and_pilot_identity_record",
+  "files": [
+    {
+      "path": "docs/pilots/kimodo-wave-left-v1.md",
+      "size_bytes": 22516,
+      "sha256": "d699235d923b3e69679c7c9ba3566819802ac69ec094ea9b7108c75de46b85fa",
+      "committed_sha256": "d699235d923b3e69679c7c9ba3566819802ac69ec094ea9b7108c75de46b85fa",
+      "matches_committed_bytes": true
+    },
+    {
+      "path": "tests/goldens/p10-seam-anchors/README.md",
+      "size_bytes": 679,
+      "sha256": "55e228a2a519928754ddbf6cfae648cf03a8f300eddf20967012d772efb0aa09",
+      "committed_sha256": "55e228a2a519928754ddbf6cfae648cf03a8f300eddf20967012d772efb0aa09",
+      "matches_committed_bytes": true
+    },
+    {
+      "path": "tests/goldens/p10-seam-anchors/real-samples.approved.json",
+      "size_bytes": 5721,
+      "sha256": "72e3b3ba8f10380452a93f5ffa5f12c3fa3dbe8b3138e33a3aa5d2e6fb153e58",
+      "committed_sha256": "72e3b3ba8f10380452a93f5ffa5f12c3fa3dbe8b3138e33a3aa5d2e6fb153e58",
+      "matches_committed_bytes": true
+    },
+    {
+      "path": "tests/goldens/p2-setup/README.md",
+      "size_bytes": 616,
+      "sha256": "8006dbdccca4ef0de5e7f8aadd78673d5c8649b6c5fc6f304a9e6f6ceb8dbd65",
+      "committed_sha256": "8006dbdccca4ef0de5e7f8aadd78673d5c8649b6c5fc6f304a9e6f6ceb8dbd65",
+      "matches_committed_bytes": true
+    },
+    {
+      "path": "tests/goldens/p2-setup/seethrough_output.approved.json",
+      "size_bytes": 885,
+      "sha256": "f623d4552213775a17311be5a3e6f3809cee322bfbbfe134c2a2b94ef5608de3",
+      "committed_sha256": "f623d4552213775a17311be5a3e6f3809cee322bfbbfe134c2a2b94ef5608de3",
+      "matches_committed_bytes": true
+    },
+    {
+      "path": "tests/goldens/p2-setup/seethrough_output.approved.png",
+      "size_bytes": 4195716,
+      "sha256": "50b5478d6ae48477aec6fea797940781522e0d9575396ba77b7604b9d9de00ad",
+      "committed_sha256": "50b5478d6ae48477aec6fea797940781522e0d9575396ba77b7604b9d9de00ad",
+      "matches_committed_bytes": true
+    },
+    {
+      "path": "tests/goldens/p2-setup/seethrough_output_5.approved.json",
+      "size_bytes": 889,
+      "sha256": "ec6d1721874d6c96b0942a3f2e023c6df08b25fbbc177485dc31491ccdf106b5",
+      "committed_sha256": "ec6d1721874d6c96b0942a3f2e023c6df08b25fbbc177485dc31491ccdf106b5",
+      "matches_committed_bytes": true
+    },
+    {
+      "path": "tests/goldens/p2-setup/seethrough_output_5.approved.png",
+      "size_bytes": 8642523,
+      "sha256": "c416c18c2abd5c09349e897a2e5d1b37d387e65c1de1a9c811f02f3442ad21cd",
+      "committed_sha256": "c416c18c2abd5c09349e897a2e5d1b37d387e65c1de1a9c811f02f3442ad21cd",
+      "matches_committed_bytes": true
+    },
+    {
+      "path": "tests/goldens/p3-mesh/README.md",
+      "size_bytes": 730,
+      "sha256": "5914af99cced391b689decf8c95f687c117f20bc68a1c18528c48688350aba01",
+      "committed_sha256": "5914af99cced391b689decf8c95f687c117f20bc68a1c18528c48688350aba01",
+      "matches_committed_bytes": true
+    },
+    {
+      "path": "tests/goldens/p3-mesh/seethrough_output.approved.json",
+      "size_bytes": 4429,
+      "sha256": "e8bc59b659633cd38dfc7f0aa290139cf130e436aa47f93883a94bfd6177d39f",
+      "committed_sha256": "e8bc59b659633cd38dfc7f0aa290139cf130e436aa47f93883a94bfd6177d39f",
+      "matches_committed_bytes": true
+    },
+    {
+      "path": "tests/goldens/p3-mesh/seethrough_output_5.approved.json",
+      "size_bytes": 1105,
+      "sha256": "dbd55603d835ab69c0367a9917b080e12e47c0a50c6a9aee82cf4d72c800449e",
+      "committed_sha256": "dbd55603d835ab69c0367a9917b080e12e47c0a50c6a9aee82cf4d72c800449e",
+      "matches_committed_bytes": true
+    },
+    {
+      "path": "tests/goldens/p4-ik/README.md",
+      "size_bytes": 966,
+      "sha256": "f8b39452207e369d37c04d550a324dff997cd26540328f5ba47c930f4208ebfd",
+      "committed_sha256": "f8b39452207e369d37c04d550a324dff997cd26540328f5ba47c930f4208ebfd",
+      "matches_committed_bytes": true
+    },
+    {
+      "path": "tests/goldens/p4-ik/seethrough_output.approved.json",
+      "size_bytes": 2004,
+      "sha256": "33737c864c007b6801afdb691db3dfb1f77c2ce9ecef4d4633f6a8d84423b83c",
+      "committed_sha256": "33737c864c007b6801afdb691db3dfb1f77c2ce9ecef4d4633f6a8d84423b83c",
+      "matches_committed_bytes": true
+    },
+    {
+      "path": "tests/goldens/p4-ik/seethrough_output_5.approved.json",
+      "size_bytes": 2006,
+      "sha256": "4797f5e4413a76a9e483881c0cb16054a144cc5180de32f3b1ad39e6c2fca4ba",
+      "committed_sha256": "4797f5e4413a76a9e483881c0cb16054a144cc5180de32f3b1ad39e6c2fca4ba",
+      "matches_committed_bytes": true
+    },
+    {
+      "path": "tests/goldens/p5-motion/README.md",
+      "size_bytes": 772,
+      "sha256": "53594bd7bd1d253af102f1482938b876121b100d7ad3e9a8a3c8d516dc0ed211",
+      "committed_sha256": "53594bd7bd1d253af102f1482938b876121b100d7ad3e9a8a3c8d516dc0ed211",
+      "matches_committed_bytes": true
+    },
+    {
+      "path": "tests/goldens/p5-motion/real-samples.approved.json",
+      "size_bytes": 6897,
+      "sha256": "71cc9881da225ca0e4f3a211f5f56902a3174a3e9cb6140cdaff2762ff73c5e1",
+      "committed_sha256": "71cc9881da225ca0e4f3a211f5f56902a3174a3e9cb6140cdaff2762ff73c5e1",
+      "matches_committed_bytes": true
+    },
+    {
+      "path": "tests/goldens/p6-spine42/a.idle.t1000.approved.png",
+      "size_bytes": 373436,
+      "sha256": "497d22abea4a46b645e928511b84143d259b7e193bb73e94035e75ea217aa80d",
+      "committed_sha256": "497d22abea4a46b645e928511b84143d259b7e193bb73e94035e75ea217aa80d",
+      "matches_committed_bytes": true
+    },
+    {
+      "path": "tests/goldens/p6-spine42/a.setup.approved.png",
+      "size_bytes": 372790,
+      "sha256": "c4bf1d667096c6410719548240a050b94c64346b11549ec350ca47756cf01eab",
+      "committed_sha256": "c4bf1d667096c6410719548240a050b94c64346b11549ec350ca47756cf01eab",
+      "matches_committed_bytes": true
+    },
+    {
+      "path": "tests/goldens/p6-spine42/a.wave-left.t0600.approved.png",
+      "size_bytes": 382206,
+      "sha256": "042661a625cfa7a2a129d6f775626d52b9090c45779e4d450cd3aa1aeef700c9",
+      "committed_sha256": "042661a625cfa7a2a129d6f775626d52b9090c45779e4d450cd3aa1aeef700c9",
+      "matches_committed_bytes": true
+    },
+    {
+      "path": "tests/goldens/p6-spine42/b.idle.t1000.approved.png",
+      "size_bytes": 409349,
+      "sha256": "3e6531036cb44de3ef149c8f3185967c0f04a748e4502e31e4ee1892b8c1354b",
+      "committed_sha256": "3e6531036cb44de3ef149c8f3185967c0f04a748e4502e31e4ee1892b8c1354b",
+      "matches_committed_bytes": true
+    },
+    {
+      "path": "tests/goldens/p6-spine42/b.setup.approved.png",
+      "size_bytes": 409116,
+      "sha256": "d4ca9e6b852cccf09166d733c55e9148071e3d454e477e6ba9cd89aa4c746af9",
+      "committed_sha256": "d4ca9e6b852cccf09166d733c55e9148071e3d454e477e6ba9cd89aa4c746af9",
+      "matches_committed_bytes": true
+    },
+    {
+      "path": "tests/goldens/p6-spine42/b.wave-left.t0600.approved.png",
+      "size_bytes": 421530,
+      "sha256": "07d336b4403594f62747e9d0982cefb3014fc6636b066b6aad02eb4c760cebf5",
+      "committed_sha256": "07d336b4403594f62747e9d0982cefb3014fc6636b066b6aad02eb4c760cebf5",
+      "matches_committed_bytes": true
+    },
+    {
+      "path": "tests/goldens/p6-spine42/real-exports.approved.json",
+      "size_bytes": 11208,
+      "sha256": "9dfee739ab25af26d8e77878bafd785c806d7a1d8dc0deb6f55662a6ecd4be22",
+      "committed_sha256": "9dfee739ab25af26d8e77878bafd785c806d7a1d8dc0deb6f55662a6ecd4be22",
+      "matches_committed_bytes": true
+    },
+    {
+      "path": "tests/goldens/p6-spine42/runtime.approved.json",
+      "size_bytes": 4661,
+      "sha256": "e8d5045f66041542b6d10dc63a9b357751b16bb1e30a3174d30b65a9670b53bf",
+      "committed_sha256": "e8d5045f66041542b6d10dc63a9b357751b16bb1e30a3174d30b65a9670b53bf",
+      "matches_committed_bytes": true
+    }
+  ],
+  "limitations": [
+    "Not a replay of local A/B current artifacts",
+    "Not a new official Runtime capture or release approval",
+    "Dirty runtime execution work is not certified by this inventory"
+  ]
+}
