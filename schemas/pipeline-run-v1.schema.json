@@ -9,7 +9,7 @@
     "project_id": {"$ref": "#/$defs/project_id"},
     "profile": {"enum": ["draft_auto", "production_review", "certification_exact"]},
     "operation": {"const": "region-spine-preview"},
-    "engine": {"const": "region-spine-preview-v1"},
+    "engine": {"enum": ["region-spine-preview-v1", "region-spine-preview-spine43-4.3.26-v1"]},
     "source_addresses": {"$ref": "#/$defs/sources"},
     "run_id": {"type": "string", "pattern": "^run-[0-9a-f]{64}(?![\\s\\S])"},
     "revision": {"type": "integer", "minimum": 0, "maximum": 1024},

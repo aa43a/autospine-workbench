@@ -33,7 +33,8 @@ class PipelineApplicationTests(unittest.TestCase):
 
     def pending_run(self):
         with observe_project(self.store, self.project_id) as snapshot:
-            return self.app.runs.create(self.project_id, "production_review", snapshot.source_addresses)
+            return self.app.runs.create(self.project_id, "production_review", snapshot.source_addresses,
+                                        target_version="4.3.26")
 
     def test_ready_project_builds_exact_preview_and_reuses_without_execution(self):
         first = self.app.preview(self.project_id)
@@ -44,6 +45,7 @@ class PipelineApplicationTests(unittest.TestCase):
             self.assertEqual(self.app.preview(self.project_id), first)
         preview = verify_region_preview(
             self.store.state_root, self.project_id, first["steps"][2]["outputs"]["bundle_sha256"],
+            target_version="4.3.26",
         )
         self.assertEqual(json.loads(preview.files["qa.json"])["runtime_status"], "not_run")
         self.assertNotIn(str(self.store.state_root), json.dumps(first))
@@ -78,6 +80,7 @@ class PipelineApplicationTests(unittest.TestCase):
         self.assertEqual(run["status"], "succeeded", run)
         bundle = verify_region_preview(
             self.store.state_root, self.project_id, run["steps"][2]["outputs"]["bundle_sha256"],
+            target_version="4.3.26",
         )
         (bundle.path / "skeleton.png").write_bytes(b"corrupted")
         with self.assertRaises(PipelineRunError) as caught:

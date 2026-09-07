@@ -91,6 +91,7 @@ class PipelineWebHttpTests(unittest.TestCase):
         completed = self.terminal(self.submit())
         self.assertEqual(completed["status"], "succeeded", completed)
         self.assertEqual(completed["authority"], "none")
+        self.assertEqual(completed["target_version"], "4.3.26")
         job_id = completed["job_id"]
         status, headers, raw = self.request("GET", f"/jobs/{job_id}/download")
         self.assertEqual(status, 200)
@@ -100,6 +101,7 @@ class PipelineWebHttpTests(unittest.TestCase):
                 "skeleton.json", "skeleton.atlas", "skeleton.png", "qa.json", "source.json",
             })
             self.assertTrue(archive.read("skeleton.png").startswith(b"\x89PNG"))
+            self.assertEqual(json.loads(archive.read("skeleton.json"))["skeleton"]["spine"], "4.3.26")
             qa = json.loads(archive.read("qa.json"))
             self.assertEqual(qa["runtime_status"], "not_run")
             self.assertEqual(qa["authority"], "none")
@@ -128,10 +130,22 @@ class PipelineWebHttpTests(unittest.TestCase):
             (b"[]", {"Content-Type": "application/json"}, 400),
             ({**self.request_body, "unexpected": True}, {}, 400),
             ({**self.request_body, "resume": "yes"}, {}, 400),
+            ({**self.request_body, "target_version": "4.4"}, {}, 400),
+            ({**self.request_body, "target_version": None}, {}, 400),
         ):
             with self.subTest(expected=expected, body=str(body)[:50]):
                 self.assertEqual(self.request("POST", "/preview", body, headers)[0], expected)
         self.assertFalse(self.manager.root.exists())
+
+    def test_explicit_legacy_target_uses_its_own_run_and_download(self):
+        completed = self.terminal(self.submit(target_version="4.2"))
+        self.assertEqual(completed["status"], "succeeded", completed)
+        self.assertEqual(completed["target_version"], "4.2")
+        self.assertEqual(completed["run"]["engine"], "region-spine-preview-v1")
+        status, _, raw = self.request("GET", f"/jobs/{completed['job_id']}/download")
+        self.assertEqual(status, 200)
+        with ZipFile(BytesIO(raw)) as archive:
+            self.assertEqual(json.loads(archive.read("skeleton.json"))["skeleton"]["spine"], "4.2")
 
     def test_methods_and_unknown_routes_are_bounded(self):
         for suffix, allow, denied in (
@@ -199,7 +213,8 @@ class PipelineWebHttpTests(unittest.TestCase):
     def test_resume_continues_interrupted_run_and_stale_project_is_rejected(self):
         app = self.manager.application
         with observe_project(app.projects, "fixture-project") as snapshot:
-            run = app.runs.create("fixture-project", "production_review", snapshot.source_addresses)
+            run = app.runs.create("fixture-project", "production_review", snapshot.source_addresses,
+                                  target_version="4.3.26")
         run = app.runs.append(run["run_id"], run["state_sha256"], "start")
         pending = self.terminal(self.submit(resume=False))
         self.assertEqual(pending["status"], "blocked", pending)

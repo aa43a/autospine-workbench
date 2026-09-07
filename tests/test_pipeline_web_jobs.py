@@ -31,8 +31,8 @@ class PipelineWebJobTests(unittest.TestCase):
         self.project = "fixture-project"
         self.sha = self.store.get_project(self.project)["resolved"]["sha256"]
 
-    def submit(self, sha=None):
-        return self.manager.submit(self.project, "production_review", sha or self.sha)
+    def submit(self, sha=None, **kwargs):
+        return self.manager.submit(self.project, "production_review", sha or self.sha, **kwargs)
 
     def wait(self, job):
         end = time.monotonic() + 15
@@ -47,6 +47,7 @@ class PipelineWebJobTests(unittest.TestCase):
         job = self.submit()
         result = self.wait(job)
         self.assertEqual(result["status"], "succeeded", result)
+        self.assertEqual(result["target_version"], "4.3.26")
         import jsonschema
         schema = json.loads((Path(__file__).resolve().parents[1] /
                              "schemas/pipeline-web-job-v1.schema.json").read_text())
@@ -79,6 +80,10 @@ class PipelineWebJobTests(unittest.TestCase):
                 job = self.submit()
                 self.assertTrue(entered.wait(5))
                 self.assertEqual(self.submit()["job_id"], job["job_id"])
+                legacy = self.submit(target_version="4.2")
+                self.assertNotEqual(legacy["job_id"], job["job_id"])
+                self.assertEqual(legacy["target_version"], "4.2")
+                self.manager.cancel(self.project, legacy["job_id"])
                 cancel = self.manager.cancel(self.project, job["job_id"])
                 self.assertTrue(cancel["cancel_requested"])
             finally:
@@ -102,6 +107,7 @@ class PipelineWebJobTests(unittest.TestCase):
         result = self.manager.get(self.project, job_id)
         self.assertEqual(result["status"], "blocked")
         self.assertEqual(result["reason_code"], "pipeline_interrupted")
+        self.assertEqual(result["target_version"], "4.2")
         self.assertFalse(self.manager._active)
 
     def test_cross_project_and_corrupted_zip_fail_closed(self):
@@ -123,7 +129,8 @@ class PipelineWebJobTests(unittest.TestCase):
         qa = json.loads(files["qa.json"])
         qa["runtime_status"] = "passed"
         files["qa.json"] = canonical_bytes(qa)
-        digest = publish_preview(self.store.state_root, self.project, files)
+        digest = publish_preview(self.store.state_root, self.project, files,
+                                 target_version=result["target_version"])
         forged = deepcopy(result)
         outputs = forged["run"]["steps"][2]["outputs"]
         outputs.update(bundle_sha256=digest, qa_sha256=hashlib.sha256(files["qa.json"]).hexdigest())
@@ -144,6 +151,42 @@ class PipelineWebJobTests(unittest.TestCase):
         with self.assertRaises(PipelineRunError) as caught:
             download_job(self.manager, self.project, job["job_id"])
         self.assertEqual(caught.exception.reason_code, "pipeline_artifact_invalid")
+
+    def test_legacy_receipts_survive_restart_and_cannot_be_relabeled_as_new_target(self):
+        legacy = self.wait(self.submit(target_version="4.2"))
+        self.assertEqual(legacy["status"], "succeeded", legacy)
+        path = self.manager._path(legacy["job_id"])
+        request = json.loads((path / "request.json").read_text())
+        request.pop("target_version")
+        legacy.pop("target_version")
+        (path / "request.json").write_bytes(canonical_bytes(request))
+        (path / "result.json").write_bytes(canonical_bytes(legacy))
+        restarted = PipelineWebJobs(self.store)
+        self.addCleanup(restarted.close)
+        self.assertEqual(restarted.get(self.project, legacy["job_id"]), legacy)
+        raw = download_job(restarted, self.project, legacy["job_id"])
+        with ZipFile(BytesIO(raw)) as archive:
+            self.assertEqual(json.loads(archive.read("skeleton.json"))["skeleton"]["spine"], "4.2")
+        request["target_version"] = legacy["target_version"] = "4.3.26"
+        (path / "request.json").write_bytes(canonical_bytes(request))
+        (path / "result.json").write_bytes(canonical_bytes(legacy))
+        with self.assertRaises(PipelineRunError):
+            restarted.get(self.project, legacy["job_id"])
+        with self.assertRaises(PipelineRunError):
+            download_job(restarted, self.project, legacy["job_id"])
+
+    def test_receipt_target_must_match_request_even_without_a_run(self):
+        job_id = "job-" + "c" * 32
+        path = self.manager._path(job_id, create=True)
+        request = {"project_id": self.project, "profile": "production_review",
+                   "expected_resolved_sha256": self.sha, "resume": True, "target_version": "4.3.26"}
+        result = {"schema": "autospine.pipeline-web-job/v1", "job_id": job_id,
+                  "project_id": self.project, "authority": "none", "status": "failed",
+                  "reason_code": "pipeline_step_failed", "target_version": "4.2"}
+        publish_document(path / "request.json", request, staging=path / "staging")
+        publish_document(path / "result.json", result, staging=path / "staging")
+        with self.assertRaises(PipelineRunError):
+            self.manager.get(self.project, job_id)
 
 
 if __name__ == "__main__":

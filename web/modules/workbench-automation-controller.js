@@ -1,6 +1,6 @@
 "use strict";
 
-import { ACTIVE_JOBS, automationEndpoint, jobEndpoint, projectIdentity, readJob, readOverview, reviewTarget } from "./workbench-automation-contract.js";
+import { ACTIVE_JOBS, DEFAULT_TARGET_VERSION, TARGET_VERSIONS, automationEndpoint, jobEndpoint, projectIdentity, readJob, readOverview, reviewTarget } from "./workbench-automation-contract.js";
 import { AUTOMATION_STATUS, automationReason, createAutomationView } from "./workbench-automation-view.js";
 
 export function createWorkbenchAutomation(document, hooks, options = {}) {
@@ -9,18 +9,23 @@ export function createWorkbenchAutomation(document, hooks, options = {}) {
   let identity = null, projectId = null, generation = 0, timer = null, requestVersion = 0;
   let overview = null, job = null, fetching = false, submitting = false, canceling = false;
   let error = null, waitingForReview = false, intent = false;
+  let targetVersion = DEFAULT_TARGET_VERSION;
   const view = options.view || createAutomationView(document, {
-    start, refresh, cancel, canDownload, locate,
+    start, refresh, cancel, canDownload, locate, setTarget,
     canLocate: (item) => Boolean(reviewTarget(item, hooks.context())),
   });
 
   function context() { return hooks.context(); }
+  function selectedIdentity(value = context()) {
+    const project = projectIdentity(value);
+    return project ? `${project}:${targetVersion}` : null;
+  }
   function editable(value = context()) { return !value.dirty && !value.saving && !value.loading; }
-  function current(token) { return token === generation && identity === projectIdentity(context()); }
+  function current(token) { return token === generation && identity === selectedIdentity(); }
   function active() { return job && ACTIVE_JOBS.has(job.status); }
   function canDownload() {
-    return editable() && !submitting && !error && identity === projectIdentity(context()) && job?.status === "succeeded"
-      && job?.run?.status === "succeeded";
+    return editable() && !submitting && !error && identity === selectedIdentity() && job?.status === "succeeded"
+      && job?.run?.status === "succeeded" && (job.target_version ?? "4.2") === targetVersion;
   }
   function stopTimer() { if (timer !== null) unschedule(timer); timer = null; }
   function message() {
@@ -46,12 +51,12 @@ export function createWorkbenchAutomation(document, hooks, options = {}) {
       hasProject: Boolean(identity), canStart: Boolean(identity && overview && editable() && !fetching && !submitting && !active()),
       fetching, active: Boolean(active() || submitting), canCancel: Boolean(active()), canceling: canceling || Boolean(job?.cancel_requested),
       downloadUrl: canDownload() ? `${jobEndpoint(projectId, job.job_id)}/download` : null,
-      message: message(), items: overview?.items || [], steps: job?.run?.steps || [],
+      targetVersion, message: message(), items: overview?.items || [], steps: job?.run?.steps || [],
     });
   }
   function sync() {
     const value = context();
-    const next = projectIdentity(value);
+    const next = selectedIdentity(value);
     if (next !== identity) {
       const sameProject = projectId === value.projectId;
       const resume = sameProject && intent && (waitingForReview || job?.status === "needs_review" || job?.run?.status === "needs_review");
@@ -62,6 +67,12 @@ export function createWorkbenchAutomation(document, hooks, options = {}) {
     }
     render();
     maybeResume();
+  }
+  function setTarget(value) {
+    if (!TARGET_VERSIONS.includes(value)) throw new Error("target_version_unsupported");
+    if (value === targetVersion) return;
+    targetVersion = value; intent = false; waitingForReview = false;
+    sync();
   }
   async function refresh() {
     if (!identity || fetching) return;
@@ -88,7 +99,7 @@ export function createWorkbenchAutomation(document, hooks, options = {}) {
   function applyJob(payload, expectedId) {
     if (payload?.run?.source_addresses?.resolved_project_sha256
       && payload.run.source_addresses.resolved_project_sha256 !== context().resolvedSha) throw new Error("project_snapshot_stale");
-    job = readJob(payload, projectId, expectedId);
+    job = readJob(payload, projectId, expectedId, targetVersion);
     if (job.status === "needs_review" || job.run?.status === "needs_review") waitingForReview = intent;
     if (job.status === "canceled") { intent = false; waitingForReview = false; }
     render();
@@ -102,7 +113,7 @@ export function createWorkbenchAutomation(document, hooks, options = {}) {
     try {
       const payload = await hooks.apiRequest(`${automationEndpoint(saved.projectId)}/preview`, {
         method: "POST", headers: { "X-Autospine-Intent": "pipeline-preview" },
-        body: JSON.stringify({ profile: "production_review", expected_resolved_sha256: saved.resolvedSha, resume: true }),
+        body: JSON.stringify({ profile: "production_review", expected_resolved_sha256: saved.resolvedSha, resume: true, target_version: targetVersion }),
       });
       if (current(token) && serial === requestVersion) applyJob(payload);
     } catch (failure) {
@@ -152,5 +163,5 @@ export function createWorkbenchAutomation(document, hooks, options = {}) {
     inspector?.querySelector?.("input:not([disabled]), select:not([disabled]), button:not([disabled])")?.focus?.({ preventScroll: true });
   }
   function dispose() { generation += 1; stopTimer(); }
-  return { sync, refresh: async () => { await refresh(); if (active()) queuePoll(); }, start, cancel, locate, canDownload, dispose };
+  return { sync, refresh: async () => { await refresh(); if (active()) queuePoll(); }, start, cancel, locate, canDownload, setTarget, dispose };
 }

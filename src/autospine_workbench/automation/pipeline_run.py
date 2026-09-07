@@ -4,6 +4,7 @@ from copy import deepcopy
 
 from ..resolved_project import canonical_sha256
 from .pipeline_profile import build_pipeline_profile
+from .target_version import LEGACY_TARGET_VERSION, engine_for_target
 
 SCHEMA = "autospine.pipeline-run/v1"
 OPERATION = "region-spine-preview"
@@ -24,10 +25,10 @@ class PipelineRunError(RuntimeError):
         super().__init__(reason_code)
 
 
-def request_identity(project_id, profile, source_addresses):
+def request_identity(project_id, profile, source_addresses, *, target_version=LEGACY_TARGET_VERSION):
     return {
         "project_id": project_id, "profile": profile,
-        "operation": OPERATION, "engine": ENGINE,
+        "operation": OPERATION, "engine": engine_for_target(target_version),
         "source_addresses": deepcopy(source_addresses),
     }
 
@@ -39,11 +40,11 @@ def seal(document):
     return result
 
 
-def create_run(project_id, profile, source_addresses):
+def create_run(project_id, profile, source_addresses, *, target_version=LEGACY_TARGET_VERSION):
     from .pipeline_run_validation import validate_run
 
     build_pipeline_profile(profile)
-    identity = request_identity(project_id, profile, source_addresses)
+    identity = request_identity(project_id, profile, source_addresses, target_version=target_version)
     document = seal({
         "schema": SCHEMA, **identity,
         "run_id": "run-" + canonical_sha256(identity),

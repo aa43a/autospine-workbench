@@ -50,3 +50,18 @@ test("extracted workbench statusbar preserves selection and override counts", ()
   renderWorkbenchStatusbar(dom, { ...state, project: null }, {}, null, null);
   assert.equal(dom.selectionStatus.textContent, "未选择对象");
 });
+
+test("version selector defaults to 4.3.26, remains labeled and updates the preview description", () => {
+  const doc = fakeDocument(), versions = [];
+  const view = createAutomationView(doc, { setTarget: (version) => versions.push(version) });
+  const all = descendants(doc.mount);
+  const select = all.find((node) => node.id === "automationTargetVersion");
+  assert.equal(select.value, "4.3.26");
+  assert.deepEqual(select.children.map((node) => node.value), ["4.3.26", "4.2"]);
+  assert.ok(all.some((node) => node.tagName === "label" && node.attributes.for === select.id));
+  select.value = "4.2"; select.dispatchEvent(new Event("change"));
+  assert.deepEqual(versions, ["4.2"]);
+  view.render({ targetVersion: "4.2", hasProject: true, canStart: true, fetching: false,
+    active: false, canCancel: false, downloadUrl: null, message: "已就绪", items: [], steps: [] });
+  assert.ok(all.some((node) => node.textContent === "从已保存的图层构建 Spine 4.2 静态预览。"));
+});

@@ -13,7 +13,7 @@ function overview(context, ready = true, items = []) {
 }
 function job(context, status, extras = {}) {
   return { schema: "autospine.pipeline-web-job/v1", project_id: context.projectId,
-    authority: "none", job_id: JOB, status,
+    authority: "none", job_id: JOB, status, target_version: "4.3.26",
     ...(!["pending", "running"].includes(status) ? { run: {
       project_id: context.projectId, authority: "none", status,
       source_addresses: { resolved_project_sha256: context.resolvedSha },
@@ -53,7 +53,7 @@ test("preview binds saved project automatically, polls asynchronously and expose
   await h.controller.start();
   const request = h.requests.find((row) => row.options.method === "POST");
   assert.equal(request.options.headers["X-Autospine-Intent"], "pipeline-preview");
-  assert.deepEqual(JSON.parse(request.options.body), { profile: "production_review", expected_resolved_sha256: SHA, resume: true });
+  assert.deepEqual(JSON.parse(request.options.body), { profile: "production_review", expected_resolved_sha256: SHA, resume: true, target_version: "4.3.26" });
   assert.equal(h.model().active, true);
   assert.deepEqual(h.model().steps, []);
   await h.poll();
@@ -159,4 +159,59 @@ test("overview rejects stale identity, crosswired sources and untrusted evidence
   assert.throws(() => readOverview(unsafe, context));
   assert.throws(() => readJob(job(context, "succeeded"), "other"));
   assert.throws(() => readJob(job(context, "succeeded", { authority: "release" }), "sample"));
+});
+
+test("default target is 4.3.26 and selecting 4.2 clears the previous downloadable job without editing the project", async () => {
+  const h = harness((url, options, context) => url.endsWith("/preview")
+    ? job(context, "succeeded", { target_version: JSON.parse(options.body).target_version }) : overview(context));
+  h.controller.sync(); await tick();
+  assert.equal(h.model().targetVersion, "4.3.26");
+  await h.controller.start(); assert.equal(h.controller.canDownload(), true);
+  const savedContext = { ...h.context };
+  h.controller.setTarget("4.2");
+  assert.equal(h.model().targetVersion, "4.2");
+  assert.equal(h.model().downloadUrl, null);
+  assert.deepEqual(h.model().steps, []);
+  assert.deepEqual(h.context, savedContext);
+  await tick();
+  assert.equal(h.requests.filter((row) => row.options.method === "POST").length, 1);
+  await h.controller.start();
+  const requests = h.requests.filter((row) => row.options.method === "POST");
+  assert.equal(JSON.parse(requests[1].options.body).target_version, "4.2");
+  assert.equal(h.controller.canDownload(), true);
+  assert.throws(() => h.controller.setTarget("4.4"));
+});
+
+test("switching targets ignores an in-flight job reply and stops polling the old target", async () => {
+  const pending = deferred();
+  const h = harness((url, options, context) => url.endsWith("/preview") ? pending.promise : overview(context));
+  h.controller.sync(); await tick();
+  const start = h.controller.start();
+  h.controller.setTarget("4.2"); await tick();
+  pending.resolve(job(h.context, "succeeded")); await start;
+  assert.equal(h.model().downloadUrl, null);
+  assert.deepEqual(h.model().steps, []);
+  const active = harness((url, options, context) => url.endsWith("/preview") ? job(context, "running") : overview(context));
+  active.controller.sync(); await tick(); await active.controller.start();
+  assert.equal(active.timers.size, 1);
+  active.controller.setTarget("4.2");
+  assert.equal(active.timers.size, 0);
+  assert.equal(active.model().active, false);
+  assert.equal(active.model().canCancel, false);
+});
+
+test("legacy jobs without a target can download only with 4.2 selected, and mismatched explicit versions are rejected", async () => {
+  const h = harness((url, options, context) => {
+    if (!url.endsWith("/preview")) return overview(context);
+    const result = job(context, "succeeded"); delete result.target_version; return result;
+  });
+  h.controller.sync(); await tick(); await h.controller.start();
+  assert.equal(h.controller.canDownload(), false);
+  assert.equal(h.model().downloadUrl, null);
+  h.controller.setTarget("4.2"); await tick(); await h.controller.start();
+  assert.equal(h.controller.canDownload(), true);
+  const context = { projectId: "sample", resolvedSha: SHA };
+  assert.throws(() => readJob(job(context, "succeeded"), "sample", null, "4.2"));
+  assert.throws(() => readJob(job(context, "succeeded", { target_version: null }), "sample"));
+  assert.throws(() => readJob(job(context, "succeeded", { target_version: "4.4" }), "sample"));
 });

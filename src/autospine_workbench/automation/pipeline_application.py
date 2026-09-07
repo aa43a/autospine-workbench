@@ -16,6 +16,7 @@ from .pipeline_run import OUTPUTS, PipelineRunError, create_run
 from .pipeline_run_store import PipelineConflict, PipelineRunStore
 from .project_snapshot import observe_project
 from .region_preview import build_region_preview, verify_region_preview
+from .target_version import DEFAULT_TARGET_VERSION, require_target_version, target_from_run
 
 
 class PipelineApplication:
@@ -29,15 +30,17 @@ class PipelineApplication:
             return resolve_capabilities(snapshot, profile)
 
     def preview(self, project_id, profile="production_review", *, resume=False,
-                expected_resolved_sha256=None, cancel_requested=lambda: False):
+                expected_resolved_sha256=None, cancel_requested=lambda: False,
+                target_version=DEFAULT_TARGET_VERSION):
+        require_target_version(target_version)
         with observe_project(self.projects, project_id) as snapshot:
             if expected_resolved_sha256 is not None and snapshot.source_addresses[
                 "resolved_project_sha256"
             ] != expected_resolved_sha256:
                 raise PipelineRunError("project_changed_during_snapshot")
-            initial = create_run(project_id, profile, snapshot.source_addresses)
+            initial = create_run(project_id, profile, snapshot.source_addresses, target_version=target_version)
             with execution_lease(self.state_root, initial["run_id"]):
-                run = self.runs.create(project_id, profile, snapshot.source_addresses)
+                run = self.runs.create(project_id, profile, snapshot.source_addresses, target_version=target_version)
                 if cancel_requested() and run["status"] not in {"succeeded", "canceled"}:
                     return self._append(run, "cancel")
                 if run["status"] == "succeeded":
@@ -110,6 +113,7 @@ class PipelineApplication:
             self.state_root, snapshot.project_id,
             snapshot.source_addresses["layer_manifest_sha256"],
             rig["rig_sha256"], rig["rig_bundle_sha256"],
+            target_version=target_from_run(run),
         )
         return {key: addresses[key] for key in OUTPUTS[2]}
 
@@ -163,6 +167,7 @@ class PipelineApplication:
                 verified = verify_region_preview(
                     self.state_root, snapshot.project_id, outputs["bundle_sha256"],
                     expected_source_addresses={"layer_manifest_sha256": manifest.sha256, **address},
+                    target_version=target_from_run(run),
                 )
                 if any(verified.addresses[key] != value for key, value in outputs.items()):
                     raise PipelineRunError("pipeline_artifact_invalid")

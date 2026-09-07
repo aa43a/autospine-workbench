@@ -17,7 +17,7 @@ from ..spine42_export_validation import validate_spine42_export
 from ..spine42_json_adapter import build_spine42_json
 from .region_preview_store import (
     RegionPreviewBundle, RegionPreviewError, preview_path, publish_preview,
-    read_preview, require_sources, safe_path,
+    read_preview, require_sources, safe_path, preview_schema,
 )
 
 
@@ -36,18 +36,18 @@ def _boundary(function):
 @_boundary
 def build_region_preview(
     state_root: Path, project_id: str, manifest_bundle_sha: str,
-    rig_sha: str, rig_bundle_sha: str,
+    rig_sha: str, rig_bundle_sha: str, *, target_version="4.2",
 ) -> dict[str, Any]:
     """Compile and read back an immutable preview from exact reviewed P2 inputs."""
     sources = require_sources({
         "layer_manifest_sha256": manifest_bundle_sha,
         "rig_sha256": rig_sha, "rig_bundle_sha256": rig_bundle_sha,
     })
-    files = _compile(state_root, project_id, sources)
-    published = publish_preview(state_root, project_id, files)
+    files = _compile(state_root, project_id, sources, target_version=target_version)
+    published = publish_preview(state_root, project_id, files, target_version=target_version)
     return verify_region_preview(
         state_root, project_id, published,
-        expected_source_addresses=sources,
+        expected_source_addresses=sources, target_version=target_version,
     ).addresses
 
 
@@ -55,25 +55,26 @@ def build_region_preview(
 def verify_region_preview(
     state_root: Path, project_id: str, bundle_sha256: str, *,
     expected_source_addresses: Mapping[str, str] | None = None,
+    target_version="4.2",
 ) -> RegionPreviewBundle:
     """Verify exact files and rebuild from verified immutable P2 sources."""
-    bundle = read_preview(state_root, project_id, bundle_sha256)
+    bundle = read_preview(state_root, project_id, bundle_sha256, target_version=target_version)
     sources = bundle.addresses["source_addresses"]
     if expected_source_addresses is not None and sources != require_sources(
         expected_source_addresses
     ):
         raise RegionPreviewError("Preview source addresses differ from request")
-    rebuilt = _compile(state_root, project_id, sources)
+    rebuilt = _compile(state_root, project_id, sources, target_version=target_version)
     if bundle.files != rebuilt:
         raise RegionPreviewError("Preview differs from exact P2 rebuild")
     return bundle
 
 
 def _compile(
-    state_root: Path, project_id: str, sources: Mapping[str, str],
+    state_root: Path, project_id: str, sources: Mapping[str, str], *, target_version="4.2",
 ) -> dict[str, bytes]:
     # Validate the project token and every existing state ancestor before reading.
-    preview_path(state_root, project_id, "0" * 64)
+    preview_path(state_root, project_id, "0" * 64, target_version=target_version)
     rig_path = Path(state_root) / "builds" / project_id / "rig-ir" / (
         sources["rig_sha256"]
     ) / sources["rig_bundle_sha256"]
@@ -111,14 +112,15 @@ def _compile(
         name: hashlib.sha256(data).hexdigest() for name, data in sources_by_id.items()
     }
     atlas = build_spine42_atlas(sources_by_id, page_name="skeleton.png")
-    skeleton = build_spine42_json(rig)
-    export = validate_spine42_export(
+    build_json, validate_export, target_profile = _adapter(target_version)
+    skeleton = build_json(rig)
+    export = validate_export(
         skeleton, atlas.atlas_bytes, atlas.png_bytes, source_hashes,
         expected_skeleton_hash=skeleton["skeleton"]["hash"], clip_id=None,
     )
     source = {
-        "schema": "autospine.region-preview-source/v1", "project_id": project_id,
-        "source_addresses": dict(sources), "adapter": spine42_target_profile(),
+        "schema": preview_schema("source", target_version), "project_id": project_id,
+        "source_addresses": dict(sources), "adapter": target_profile(),
         "profile": "reviewed-region-setup-v1", "authority": "none",
     }
     qa = {
@@ -135,3 +137,13 @@ def _compile(
         "source.json": canonical_spine42_json(source),
         "qa.json": canonical_spine42_json(qa),
     }
+
+
+def _adapter(target_version):
+    if target_version == "4.2":
+        return build_spine42_json, validate_spine42_export, spine42_target_profile
+    from ..targets.spine43.contract import spine43_target_profile
+    from ..targets.spine43.json_adapter import build_spine43_json
+    from ..targets.spine43.validation import validate_spine43_export
+
+    return build_spine43_json, validate_spine43_export, spine43_target_profile

@@ -4,6 +4,8 @@ const ID = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
 const SHA = /^[0-9a-f]{64}$/;
 const JOB = /^job-[0-9a-f]{32}$/;
 export const ACTIVE_JOBS = new Set(["pending", "running"]);
+export const TARGET_VERSIONS = ["4.3.26", "4.2"];
+export const DEFAULT_TARGET_VERSION = "4.3.26";
 const STATUSES = new Set(["pending", "running", "needs_review", "succeeded", "blocked", "failed", "canceled"]);
 
 export function projectIdentity(context) {
@@ -55,10 +57,13 @@ export function readOverview(payload, context) {
   return { capabilities, items: queue.items };
 }
 
-export function readJob(payload, projectId, expectedJobId = null) {
+export function readJob(payload, projectId, expectedJobId = null, expectedTarget = null) {
   if (payload?.schema !== "autospine.pipeline-web-job/v1" || payload.project_id !== projectId
     || payload.authority !== "none" || !JOB.test(payload.job_id || "") || !STATUSES.has(payload.status)
     || expectedJobId && payload.job_id !== expectedJobId) throw new Error("invalid_job");
+  const target = Object.hasOwn(payload, "target_version") ? payload.target_version : "4.2";
+  if (!TARGET_VERSIONS.includes(target) || expectedTarget && target !== expectedTarget
+    || payload.run?.target_version && payload.run.target_version !== target) throw new Error("target_version_mismatch");
   if (payload.run && (payload.run.project_id !== projectId || payload.run.authority !== "none"
     || !STATUSES.has(payload.run.status))) throw new Error("invalid_run");
   return payload;

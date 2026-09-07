@@ -6,9 +6,10 @@ from ..manifest_artifacts import LayerManifestError, require_safe_token
 from ..resolved_project import canonical_sha256
 from .pipeline_profile import PROFILE_NAMES
 from .pipeline_run import (
-    ENGINE, OPERATION, OUTPUTS, SCHEMA, SOURCES, STATUSES, STEPS,
+    OPERATION, OUTPUTS, SCHEMA, SOURCES, STATUSES, STEPS,
     PipelineRunError, request_identity,
 )
+from .target_version import target_from_run
 
 SHA = re.compile(r"[0-9a-f]{64}\Z")
 REASON = re.compile(r"[a-z][a-z0-9_]{0,79}\Z")
@@ -53,13 +54,14 @@ def _validate(value):
     if type(value) is not dict or set(value) != KEYS:
         raise PipelineRunError("pipeline_run_invalid")
     if value["schema"] != SCHEMA or value["authority"] != "none" \
-            or value["operation"] != OPERATION or value["engine"] != ENGINE:
+            or value["operation"] != OPERATION:
         raise PipelineRunError("pipeline_run_invalid")
     require_safe_token(value["project_id"], "pipeline project")
     if value["profile"] not in PROFILE_NAMES:
         raise PipelineRunError("unsupported_pipeline_profile")
     address_map(value["source_addresses"], SOURCES)
-    identity = request_identity(value["project_id"], value["profile"], value["source_addresses"])
+    identity = request_identity(value["project_id"], value["profile"], value["source_addresses"],
+                                target_version=target_from_run(value))
     if value["run_id"] != "run-" + canonical_sha256(identity):
         raise PipelineRunError("pipeline_run_id_invalid")
     revision = value["revision"]

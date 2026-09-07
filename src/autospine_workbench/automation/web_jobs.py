@@ -15,7 +15,8 @@ from .pipeline_run import PipelineRunError
 from .pipeline_run_validation import require_sha
 from .preview_download import export_preview
 from .storage_io import directory, publish_document, read_document
-from .web_job_contract import validate_job
+from .web_job_contract import validate_job, validate_request
+from .target_version import DEFAULT_TARGET_VERSION, require_target_version
 
 SCHEMA = "autospine.pipeline-web-job/v1"
 
@@ -32,14 +33,17 @@ class PipelineWebJobs:
             raise PipelineRunError("pipeline_job_id_invalid")
         return directory(self.root / job_id, create=create)
 
-    def submit(self, project_id, profile, expected_resolved_sha256, *, resume=True):
+    def submit(self, project_id, profile, expected_resolved_sha256, *, resume=True,
+               target_version=DEFAULT_TARGET_VERSION):
         require_safe_token(project_id, "project")
         build_pipeline_profile(profile)
         require_sha(expected_resolved_sha256)
         if type(resume) is not bool:
             raise PipelineRunError("pipeline_request_invalid")
+        target_version = require_target_version(target_version)
         request = {"project_id": project_id, "profile": profile,
-                   "expected_resolved_sha256": expected_resolved_sha256, "resume": resume}
+                   "expected_resolved_sha256": expected_resolved_sha256, "resume": resume,
+                   "target_version": target_version}
         with self._lock:
             if self._closed:
                 raise PipelineRunError("pipeline_manager_closed")
@@ -51,7 +55,7 @@ class PipelineWebJobs:
             job_id = "job-" + uuid4().hex
             path = self._path(job_id, create=True)
             publish_document(path / "request.json", request, staging=path / "staging")
-            response = _response(job_id, project_id, "pending")
+            response = _response(job_id, project_id, "pending", target_version=target_version)
             self._active[job_id] = {"request": request, "response": response, "cancel": Event()}
             self._pool.submit(self._execute, job_id)
             return deepcopy(response)
@@ -65,10 +69,12 @@ class PipelineWebJobs:
                 return deepcopy(active["response"])
             path = self._path(job_id)
             request = read_document(path / "request.json")
+            target_version = validate_request(request)
             if request.get("project_id") != project_id:
                 raise PipelineRunError("pipeline_job_not_found")
             if not (path / "result.json").exists():
-                return _response(job_id, project_id, "blocked", reason_code="pipeline_interrupted")
+                return _response(job_id, project_id, "blocked", reason_code="pipeline_interrupted",
+                                 target_version=target_version)
             result = read_document(path / "result.json")
             validate_job(result, job_id, request)
             if result["status"] == "succeeded" and self.application.runs.load(
@@ -92,20 +98,24 @@ class PipelineWebJobs:
             active = self._active[job_id]
             active["response"]["status"] = "running"
         request, canceled = active["request"], active["cancel"].is_set
+        target_version = validate_request(request)
+        def response(status, **fields):
+            return _response(job_id, request["project_id"], status,
+                             target_version=target_version, **fields)
         path = self._path(job_id)
         try:
             if canceled():
-                result = _response(job_id, request["project_id"], "canceled")
+                result = response("canceled")
             else:
                 run = self.application.preview(
                     request["project_id"], request["profile"], resume=request["resume"],
                     expected_resolved_sha256=request["expected_resolved_sha256"],
                     cancel_requested=canceled,
+                    target_version=target_version,
                 )
-                result = _response(job_id, request["project_id"], run["status"], run=run)
+                result = response(run["status"], run=run)
                 if run["status"] in {"pending", "running"}:
-                    result = _response(job_id, request["project_id"], "blocked",
-                                       reason_code="pipeline_resume_required")
+                    result = response("blocked", reason_code="pipeline_resume_required")
                 if run["status"] == "succeeded":
                     export_preview(self.application.state_root, run, path / "preview.zip")
                     result["zip_sha256"] = hashlib.sha256((path / "preview.zip").read_bytes()).hexdigest()
@@ -113,11 +123,11 @@ class PipelineWebJobs:
             reason = getattr(exc, "reason_code", "pipeline_step_failed")
             if not isinstance(reason, str) or not re.fullmatch(r"[a-z][a-z0-9_]{0,79}", reason):
                 reason = "pipeline_step_failed"
-            result = _response(job_id, request["project_id"], "failed", reason_code=reason)
+            result = response("failed", reason_code=reason)
         with self._lock:
             # Late cancellation wins the UI job, even if pure compilation just completed.
             if canceled():
-                result = _response(job_id, request["project_id"], "canceled")
+                result = response("canceled")
             try:
                 publish_document(path / "result.json", result, staging=path / "staging")
             finally:
@@ -131,6 +141,6 @@ class PipelineWebJobs:
         self._pool.shutdown(wait=True)
 
 
-def _response(job_id, project_id, status, **fields):
+def _response(job_id, project_id, status, *, target_version="4.2", **fields):
     return {"schema": SCHEMA, "job_id": job_id, "project_id": project_id,
-            "status": status, "authority": "none", **fields}
+            "status": status, "authority": "none", "target_version": target_version, **fields}

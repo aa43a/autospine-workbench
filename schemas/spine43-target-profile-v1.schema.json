@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Spine 4.3.26 adapter target profile v1",
+  "type": "object",
+  "const": {
+    "adapter": {
+      "id": "autospine-spine43-json-adapter",
+      "version": "1.0.0"
+    },
+    "skeleton_format": "json",
+    "spine_major_minor": "4.3",
+    "skeleton_json_version": "4.3.26",
+    "runtime": {
+      "package": "@esotericsoftware/spine-player",
+      "version": "4.3.13"
+    },
+    "supported_subset": "reviewed_region_weighted_mesh_p5_bone_motion",
+    "constraints": "unsupported",
+    "runtime_verification": "not_run"
+  }
+}

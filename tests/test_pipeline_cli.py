@@ -35,7 +35,7 @@ class PipelineCliTests(unittest.TestCase):
             self.assertEqual(set(archive.namelist()), {
                 "skeleton.json", "skeleton.atlas", "skeleton.png", "source.json", "qa.json",
             })
-            self.assertEqual(json.loads(archive.read("skeleton.json"))["skeleton"]["spine"], "4.2")
+            self.assertEqual(json.loads(archive.read("skeleton.json"))["skeleton"]["spine"], "4.3.26")
             self.assertEqual(json.loads(archive.read("qa.json"))["runtime_status"], "not_run")
         self.assertEqual(self.invoke("preview", "fixture-project", "--output", str(target)), (0, run))
         self.assertEqual(target.read_bytes(), previous)
@@ -59,6 +59,7 @@ class PipelineCliTests(unittest.TestCase):
         for args, reason in [
             (("preview", "missing-project"), "project_not_found"),
             (("preview", "fixture-project", "--profile", "invented"), "unsupported_pipeline_profile"),
+            (("preview", "fixture-project", "--target-version", "4.3"), "unsupported_target_version"),
             (("status", "../outside"), "pipeline_run_id_invalid"),
         ]:
             with self.subTest(args=args):

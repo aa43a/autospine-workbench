@@ -4,6 +4,22 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs/promises");
 const path = require("node:path");
 
+function spineVersionFromStoredZip(raw) {
+  let offset = 0;
+  while (offset + 30 <= raw.length && raw.readUInt32LE(offset) === 0x04034b50) {
+    assert.equal(raw.readUInt16LE(offset + 8), 0, "preview entries must be stored");
+    assert.equal(raw.readUInt16LE(offset + 6) & 8, 0, "unexpected ZIP data descriptor");
+    const size = raw.readUInt32LE(offset + 18);
+    const nameLength = raw.readUInt16LE(offset + 26), extraLength = raw.readUInt16LE(offset + 28);
+    const name = raw.subarray(offset + 30, offset + 30 + nameLength).toString("utf8");
+    const start = offset + 30 + nameLength + extraLength;
+    assert.ok(start + size <= raw.length, "truncated ZIP entry");
+    if (name === "skeleton.json") return JSON.parse(raw.subarray(start, start + size)).skeleton.spine;
+    offset = start + size;
+  }
+  throw new Error("preview ZIP has no skeleton.json");
+}
+
 async function main() {
   const base = new URL(process.argv[2]);
   assert.equal(base.protocol, "http:");
@@ -18,17 +34,25 @@ async function main() {
     await page.goto(base.href);
     const panel = page.locator(".automation-panel");
     const build = panel.getByRole("button", { name: "构建 Spine 预览", exact: true });
-    await page.waitForFunction(() => {
-      const button = document.querySelector(".automation-actions button");
-      return button && !button.disabled;
-    });
-    await build.click();
-    await page.waitForFunction(() => document.querySelector(".automation-status")?.textContent.includes("预览已就绪"),
-      null, { timeout: 45000 });
-    const download = page.waitForEvent("download");
-    await panel.getByRole("link", { name: "下载 JSON / Atlas / PNG / QA" }).click();
-    const completed = await download;
-    await completed.saveAs(path.join(output, "browser-preview.zip"));
+    const target = panel.getByLabel("Spine 版本", { exact: true });
+    assert.equal(await target.inputValue(), "4.3.26");
+    async function buildAndDownload(version, filename) {
+      assert.equal(await target.inputValue(), version);
+      await page.waitForFunction(() => {
+        const button = document.querySelector(".automation-actions button");
+        return button && !button.disabled;
+      });
+      await build.click();
+      await page.waitForFunction(() => document.querySelector(".automation-status")?.textContent.includes("预览已就绪"),
+        null, { timeout: 45000 });
+      const download = page.waitForEvent("download");
+      await panel.getByRole("link", { name: "下载 JSON / Atlas / PNG / QA" }).click();
+      await (await download).saveAs(path.join(output, filename));
+      const raw = await fs.readFile(path.join(output, filename));
+      assert.equal(spineVersionFromStoredZip(raw), version);
+      return { version, filename, bytes: raw.length };
+    }
+    const targets = [await buildAndDownload("4.3.26", "browser-preview.zip")];
     const desktopOverflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth);
     await page.screenshot({ path: path.join(output, "desktop.png"), fullPage: true });
     await page.setViewportSize({ width: 390, height: 844 });
@@ -41,6 +65,9 @@ async function main() {
       `unbounded mobile layout: ${JSON.stringify(mobileBounds)}`);
     await page.screenshot({ path: path.join(output, "mobile.png"), fullPage: true });
     const mobileOverflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth);
+    await target.selectOption("4.2");
+    assert.equal(await panel.getByRole("link", { name: "下载 JSON / Atlas / PNG / QA" }).count(), 0);
+    targets.push(await buildAndDownload("4.2", "browser-preview-4.2.zip"));
     await page.locator("#overrideNotes").fill("Unsaved browser smoke edit; never submitted.");
     assert.equal(await build.isDisabled(), true);
     assert.equal(await panel.getByRole("link", { name: "下载 JSON / Atlas / PNG / QA" }).count(), 0);
@@ -48,7 +75,7 @@ async function main() {
     assert.equal(desktopOverflow, false);
     assert.equal(mobileOverflow, false);
     console.log(JSON.stringify({ pageErrors: errors, desktopOverflow, mobileOverflow,
-      dirtyBuildDisabled: true, downloadedBytes: (await fs.stat(path.join(output, "browser-preview.zip"))).size }));
+      dirtyBuildDisabled: true, targets, downloadedBytes: targets[0].bytes }));
   } finally {
     await browser.close();
   }

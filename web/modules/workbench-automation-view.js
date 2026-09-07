@@ -1,5 +1,7 @@
 "use strict";
 
+import { DEFAULT_TARGET_VERSION, TARGET_VERSIONS } from "./workbench-automation-contract.js";
+
 export const AUTOMATION_STATUS = {
   pending: "等待开始", running: "正在构建", needs_review: "需要复核", succeeded: "预览已就绪",
   blocked: "暂时无法构建", failed: "构建失败", canceled: "已取消",
@@ -45,7 +47,18 @@ export function createAutomationView(document, callbacks) {
   section.setAttribute("aria-labelledby", "automationHeading");
   const heading = node(document, "h3", "Spine 预览与异常复核");
   heading.id = "automationHeading";
-  const description = node(document, "p", "从已保存的图层构建 Spine 4.2 静态预览。", "automation-description");
+  const description = node(document, "p", `从已保存的图层构建 Spine ${DEFAULT_TARGET_VERSION} 静态预览。`, "automation-description");
+  const targetRow = node(document, "div", "", "automation-target");
+  const targetLabel = node(document, "label", "Spine 版本");
+  targetLabel.setAttribute("for", "automationTargetVersion");
+  const targetSelect = node(document, "select");
+  targetSelect.id = "automationTargetVersion";
+  for (const version of TARGET_VERSIONS) {
+    const option = node(document, "option", version === DEFAULT_TARGET_VERSION ? `${version}（默认）` : version);
+    option.value = version; targetSelect.append(option);
+  }
+  targetSelect.value = DEFAULT_TARGET_VERSION;
+  targetRow.append(targetLabel, targetSelect);
   const actions = node(document, "div", "", "automation-actions");
   const build = node(document, "button", "构建 Spine 预览", "button button-primary");
   const refresh = node(document, "button", "刷新", "button button-secondary");
@@ -61,14 +74,17 @@ export function createAutomationView(document, callbacks) {
   const queue = node(document, "ul", "", "automation-queue");
   const note = node(document, "p", "静态预览不包含动作，也未执行官方 Runtime 验证。", "automation-description");
   actions.append(build, refresh, cancel);
-  section.append(heading, description, actions, status, steps, download, queueHeading, queue, note);
+  section.append(heading, description, targetRow, actions, status, steps, download, queueHeading, queue, note);
   mount?.append(section);
   build.addEventListener("click", () => callbacks.start());
   refresh.addEventListener("click", () => callbacks.refresh());
   cancel.addEventListener("click", () => callbacks.cancel());
+  targetSelect.addEventListener("change", () => callbacks.setTarget(targetSelect.value));
   download.addEventListener("click", (event) => { if (!callbacks.canDownload()) event.preventDefault(); });
 
   function render(model) {
+    targetSelect.value = model.targetVersion || DEFAULT_TARGET_VERSION;
+    description.textContent = `从已保存的图层构建 Spine ${targetSelect.value} 静态预览。`;
     build.disabled = !model.canStart;
     refresh.disabled = !model.hasProject || model.fetching;
     cancel.hidden = !model.canCancel;

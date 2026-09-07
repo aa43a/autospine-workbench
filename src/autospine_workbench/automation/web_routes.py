@@ -35,7 +35,8 @@ def dispatch_automation(parts, handler, method):
             _require_mutation(handler.headers)
             body = read_json_object_request(handler, maximum_bytes=2048)
             if tail == ["preview"]:
-                if set(body) != {"profile", "expected_resolved_sha256", "resume"}:
+                required = {"profile", "expected_resolved_sha256", "resume"}
+                if not required <= body.keys() or body.keys() - required - {"target_version"}:
                     raise PipelineRunError("pipeline_request_invalid")
                 result = manager.submit(project_id, **body)
             else:

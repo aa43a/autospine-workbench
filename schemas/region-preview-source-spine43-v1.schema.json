@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "autospine.region-preview-source/spine43-v1",
+  "title": "Reviewed P2 Spine 4.3.26 region preview source",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "project_id",
+    "source_addresses",
+    "adapter",
+    "profile",
+    "authority"
+  ],
+  "properties": {
+    "schema": {
+      "const": "autospine.region-preview-source/spine43-v1"
+    },
+    "project_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "profile": {
+      "const": "reviewed-region-setup-v1"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "source_addresses": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "layer_manifest_sha256",
+        "rig_sha256",
+        "rig_bundle_sha256"
+      ],
+      "properties": {
+        "layer_manifest_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "rig_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "rig_bundle_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "adapter": {
+      "const": {
+        "adapter": {
+          "id": "autospine-spine43-json-adapter",
+          "version": "1.0.0"
+        },
+        "skeleton_format": "json",
+        "spine_major_minor": "4.3",
+        "skeleton_json_version": "4.3.26",
+        "runtime": {
+          "package": "@esotericsoftware/spine-player",
+          "version": "4.3.13"
+        },
+        "supported_subset": "reviewed_region_weighted_mesh_p5_bone_motion",
+        "constraints": "unsupported",
+        "runtime_verification": "not_run"
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}

@@ -12,6 +12,13 @@ from typing import Any, Mapping
 
 from ..manifest_artifacts import require_safe_token, require_sha256
 from ..resolved_project import canonical_sha256
+from .target_version import require_target_version
+
+
+def preview_schema(kind, target_version="4.2"):
+    require_target_version(target_version)
+    suffix = "v1" if target_version == "4.2" else "spine43-v1"
+    return f"autospine.region-preview-{kind}/{suffix}"
 
 
 FILES = frozenset({"skeleton.json", "skeleton.atlas", "skeleton.png", "source.json", "qa.json"})
@@ -52,30 +59,32 @@ def safe_path(path: Path) -> None:
             raise RegionPreviewError("Preview path contains a filesystem alias")
 
 
-def preview_path(state_root: Path, project_id: str, digest: str) -> Path:
+def preview_path(state_root: Path, project_id: str, digest: str, *, target_version="4.2") -> Path:
     require_safe_token(project_id, "Project id")
     require_sha256(digest, "Preview bundle")
-    path = Path(state_root) / "builds" / project_id / "region-previews" / digest
+    require_target_version(target_version)
+    namespace = "region-previews" if target_version == "4.2" else "region-previews-spine43"
+    path = Path(state_root) / "builds" / project_id / namespace / digest
     safe_path(path)
     return path
 
 
-def _digest(files: Mapping[str, bytes]) -> str:
+def _digest(files: Mapping[str, bytes], *, target_version="4.2") -> str:
     if set(files) != FILES or any(type(value) is not bytes for value in files.values()):
         raise RegionPreviewError("Preview inventory is invalid")
     return canonical_sha256({
-        "schema": "autospine.region-preview-bundle/v1",
+        "schema": preview_schema("bundle", target_version),
         "files": {name: hashlib.sha256(data).hexdigest() for name, data in files.items()},
     })
 
 
-def publish_preview(state_root: Path, project_id: str, files: Mapping[str, bytes]) -> str:
-    digest = _digest(files)
-    target = preview_path(state_root, project_id, digest)
+def publish_preview(state_root: Path, project_id: str, files: Mapping[str, bytes], *, target_version="4.2") -> str:
+    digest = _digest(files, target_version=target_version)
+    target = preview_path(state_root, project_id, digest, target_version=target_version)
     target.parent.mkdir(parents=True, exist_ok=True)
     safe_path(target)
     if target.exists():
-        if read_preview(state_root, project_id, digest).files != dict(files):
+        if read_preview(state_root, project_id, digest, target_version=target_version).files != dict(files):
             raise RegionPreviewError("Existing preview does not match compilation")
         return digest
     with tempfile.TemporaryDirectory(prefix=".region-preview-", dir=target.parent) as temporary:
@@ -90,13 +99,13 @@ def publish_preview(state_root: Path, project_id: str, files: Mapping[str, bytes
         except OSError:
             if not target.exists():
                 raise
-            if read_preview(state_root, project_id, digest).files != dict(files):
+            if read_preview(state_root, project_id, digest, target_version=target_version).files != dict(files):
                 raise RegionPreviewError("Concurrent preview publication differs")
     return digest
 
 
-def read_preview(state_root: Path, project_id: str, digest: str) -> RegionPreviewBundle:
-    path = preview_path(state_root, project_id, digest)
+def read_preview(state_root: Path, project_id: str, digest: str, *, target_version="4.2") -> RegionPreviewBundle:
+    path = preview_path(state_root, project_id, digest, target_version=target_version)
     if not path.is_dir() or {item.name for item in path.iterdir()} != FILES:
         raise RegionPreviewError("Preview directory inventory differs")
     files: dict[str, bytes] = {}
@@ -114,10 +123,10 @@ def read_preview(state_root: Path, project_id: str, digest: str) -> RegionPrevie
         ):
             raise RegionPreviewError("Preview file changed or exceeds size limit")
         files[name] = data
-    if _digest(files) != digest:
+    if _digest(files, target_version=target_version) != digest:
         raise RegionPreviewError("Preview content does not match its address")
     source = json.loads(files["source.json"])
-    if source.get("schema") != "autospine.region-preview-source/v1" \
+    if source.get("schema") != preview_schema("source", target_version) \
             or source.get("project_id") != project_id or source.get("authority") != "none":
         raise RegionPreviewError("Preview source identity is invalid")
     sources = require_sources(source.get("source_addresses"))

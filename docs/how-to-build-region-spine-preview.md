@@ -1,13 +1,14 @@
 # 按项目生成 Spine region 预览
 
 本入口适用于已经导入工作台的 See-Through audit。它自动读取当前项目，构建缺失的
-Layer Manifest、P2 region rig 和 Spine 4.2 setup 预览，无需手工填写内容 SHA。
+Layer Manifest、P2 region rig 和 Spine 4.3.26 setup 预览，无需手工填写内容 SHA。
 可从主工作台或独立 CLI 使用。页面不会替你提交人工复核决定。
 
 ## 在主工作台构建
 
 启动更新后的服务，选择已有项目，在右侧“Spine 预览与异常复核”中点击
 “构建 Spine 预览”。未保存校正、保存中或项目加载中会禁用构建和下载。
+目标版本默认 4.3.26，可切换到 4.2；切换后需重新构建，旧版本下载不会混入当前任务。
 
 请求提交后立即显示等待/构建状态，完成后点击“下载 JSON / Atlas / PNG / QA”。
 后台仅使用一个工作线程，最多接收 8 个活跃请求；同一活跃请求会复用。
@@ -33,13 +34,15 @@ Layer Manifest、P2 region rig 和 Spine 4.2 setup 预览，无需手工填写�
 $env:PYTHONPATH = (Resolve-Path .\src).Path
 python -m autospine_workbench.automation capabilities <project-id>
 python -m autospine_workbench.automation preview <project-id> --output preview.zip
+python -m autospine_workbench.automation preview <project-id> --target-version 4.2 --output preview-42.zip
 ```
 
 默认使用仓库上级 workspace 和仓库内 `workspace` 状态目录。使用自定义目录时，
 把 `--workspace`、`--state-root` 放在子命令之前。这些是部署选项，回执不会显示本地路径。
 
 成功生成的 ZIP 包含 `skeleton.json`、`skeleton.atlas`、`skeleton.png`、`source.json`
-和 `qa.json`。可解压检查或交给支持 Spine 4.2 的预览工具。当前只有 setup，没有动画。
+和 `qa.json`。使用与所选版本匹配的 Spine 工具打开。当前只有 setup，没有动画。
+4.3.26 的格式和文件验证已接入，官方 Runtime 验证仍为 `not_run`。
 已有同内容 ZIP 可重复使用；同名不同内容文件会返回 `pipeline_output_exists`，不会覆盖。
 
 默认 `production_review` 要求项目通过现有人工复核。未完成时返回 `needs_review`，

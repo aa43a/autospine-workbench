@@ -12,6 +12,7 @@ from .pipeline_run import PipelineRunError
 from .pipeline_run_validation import validate_run
 from .region_preview import verify_region_preview
 from .storage_io import directory
+from .target_version import target_from_run
 
 
 def export_preview(state_root, run, destination):
@@ -24,7 +25,7 @@ def export_preview(state_root, run, destination):
                **run["steps"][1]["outputs"]}
     try:
         bundle = verify_region_preview(state_root, run["project_id"], outputs["bundle_sha256"],
-                                       expected_source_addresses=sources)
+                                       expected_source_addresses=sources, target_version=target_from_run(run))
         if any(bundle.addresses[key] != value for key, value in outputs.items()):
             raise PipelineRunError("pipeline_artifact_invalid")
     except (OSError, RuntimeError, ValueError, TypeError) as exc:

@@ -11,6 +11,7 @@
     "project_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
     "status": {"enum": ["pending", "running", "needs_review", "succeeded", "blocked", "failed", "canceled"]},
     "authority": {"const": "none"},
+    "target_version": {"enum": ["4.2", "4.3.26"]},
     "cancel_requested": {"type": "boolean"},
     "reason_code": {"type": "string", "pattern": "^[a-z][a-z0-9_]{0,79}$"},
     "run": {"type": "object"},

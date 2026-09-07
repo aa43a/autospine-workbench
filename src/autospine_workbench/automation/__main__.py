@@ -8,6 +8,7 @@ import re
 from ..project_store import ProjectStore
 from .pipeline_application import PipelineApplication
 from .preview_download import export_preview
+from .target_version import DEFAULT_TARGET_VERSION
 
 
 def parser():
@@ -21,6 +22,8 @@ def parser():
         command.add_argument("project_id")
         command.add_argument("--profile", default="production_review")
         if name == "preview":
+            command.add_argument("--target-version", default=DEFAULT_TARGET_VERSION,
+                                 help="Spine JSON target: 4.3.26 (default) or 4.2.")
             command.add_argument("--resume", action="store_true")
             command.add_argument("--output", type=Path, help="Save JSON/Atlas/PNG/QA as a ZIP archive.")
     for name in ("status", "cancel"):
@@ -37,7 +40,8 @@ def main(argv=None):
         if args.command == "capabilities":
             document = application.capabilities(args.project_id, args.profile)
         elif args.command == "preview":
-            document = application.preview(args.project_id, args.profile, resume=args.resume)
+            document = application.preview(args.project_id, args.profile, resume=args.resume,
+                                           target_version=args.target_version)
             if args.output is not None and document["status"] == "succeeded":
                 export_preview(application.state_root, document, args.output)
         else:
