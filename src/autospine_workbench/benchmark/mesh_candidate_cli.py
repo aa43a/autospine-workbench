@@ -25,6 +25,9 @@ def inputs(state,manifest,digest,workspace):
 def read_mesh_candidate(state,manifest,digest,*,workspace):
     from ..asset.joints.mesh_candidate import validate_mesh_candidate
     doc=read_mesh_report(state,manifest['dataset_id'],digest)
+    if doc.get('schema')=='autospine.weighted-mesh-refinement/v1':
+        from .mesh_refinement_cli import read_refinement
+        return read_refinement(state,manifest,digest,workspace=workspace)
     candidate,assisted,skeleton,bindings,draft,_,images=inputs(state,manifest,doc['source_draft_sha256'],workspace)
     return validate_mesh_candidate(candidate,assisted,skeleton,bindings,draft,images,doc)
 

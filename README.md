@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[关节平面权重改进](docs/how-to-joint-plane-refinement.md)为旧网格生成独立新权重profile，
+沿骨段纵向平滑过渡并锁定远端刚性区域，保持旧拓扑/UV和旧QA阈值不变。
+
 [三骨加权网格实验入口](docs/how-to-weighted-mesh.md)已接通：alpha网格、三骨归一化权重、局部坐标LBS
 和固定角度翻转/拉伸QA。失败网格保留诊断并阻塞；尚未接正式Spine导出。
 

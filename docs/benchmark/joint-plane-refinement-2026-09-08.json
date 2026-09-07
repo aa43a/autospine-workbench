@@ -1,0 +1,63 @@
+{
+  "profile": "joint-plane-three-bone-v2",
+  "scan_degrees": [
+    -90,
+    90
+  ],
+  "step_degrees": 1,
+  "production_authorized": false,
+  "characters": [
+    {
+      "character": "alice",
+      "source_mesh_sha256": "ab864c766cd1b55be892d658da67ebaeadcb4e88f82e61de54ecb838e3f976c1",
+      "artifact_sha256": "b22423a7e3c6cf284b8c2ea824134655bde70fdefe45f47f6092da69119724b6",
+      "layers": [
+        {
+          "layer_id": "layer-003",
+          "passed": true,
+          "dense_angle_count": 181,
+          "dense_inversions": 0,
+          "min_area_ratio": 0.16291359688258752,
+          "max_edge_stretch": 1.4145624634455067
+        },
+        {
+          "layer_id": "layer-004",
+          "passed": true,
+          "dense_angle_count": 181,
+          "dense_inversions": 0,
+          "min_area_ratio": 0.22949853812096216,
+          "max_edge_stretch": 1.405280126305386
+        }
+      ]
+    },
+    {
+      "character": "lingxian",
+      "source_mesh_sha256": "654da49563e596bee5bf99c7dc5af9b80ec09d73dfd020965b0fcd9685756696",
+      "artifact_sha256": "6e409938b6470fd6d2207a7be8fe071cf13f72bf97658cd0182b901bf13c3ff6",
+      "layers": [
+        {
+          "layer_id": "layer-001",
+          "passed": true,
+          "dense_angle_count": 181,
+          "dense_inversions": 0,
+          "min_area_ratio": 0.12691644629437263,
+          "max_edge_stretch": 1.3909185583936894
+        },
+        {
+          "layer_id": "layer-002",
+          "passed": true,
+          "dense_angle_count": 181,
+          "dense_inversions": 0,
+          "min_area_ratio": 0.12355859051766199,
+          "max_edge_stretch": 1.4104156942099126
+        }
+      ]
+    },
+    {
+      "character": "crino",
+      "source_mesh_sha256": "4c6fa0886157fd2c4b51825a1cee15b4b532c0dcec557df1413a489939d949fa",
+      "artifact_sha256": "97f0d6f3b2e61afc7acb1b11ea4449ad306ca6bcdb3a87a1d6b1ed158a7763da",
+      "layers": []
+    }
+  ]
+}

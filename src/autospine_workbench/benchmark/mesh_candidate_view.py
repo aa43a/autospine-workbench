@@ -4,6 +4,7 @@ from .semantic_view import _image_url
 
 
 def render_mesh_candidate(candidate,report,composite,images):
+    weight_label='关节平面平滑权重' if report['profile']=='joint-plane-three-bone-v2' else '三骨距离权重'
     w,h=candidate['canvas']; source=_image_url(composite,candidate['composite_sha256'])
     layers={r['layer_id']:r for r in candidate['layers']};cards=[];counts={};issues=[]
     for row in report['layers']:
@@ -34,6 +35,6 @@ def render_mesh_candidate(candidate,report,composite,images):
 body{{max-width:1400px;margin:24px auto;padding:0 20px;font:16px/1.6 system-ui;color:#234;background:#f5f7fa}}
 .notice{{padding:16px;background:#fff0cc}}main{{display:grid;grid-template-columns:repeat(auto-fit,minmax(390px,1fr));gap:20px}}
 article{{background:white;border:1px solid #ccd;padding:16px}}svg,table{{width:100%}}td,th{{text-align:left;border-bottom:1px solid #ddd}}
-</style><h1>三骨加权网格诊断</h1><p class="notice">实验profile：alpha规则网格、三骨距离权重、局部坐标LBS。
+</style><h1>三骨加权网格诊断</h1><p class="notice">实验profile：alpha规则网格、{weight_label}、局部坐标LBS。
 尚未加入关节加密、接缝补偿或正式Spine导出。弯曲测试失败会阻塞，setup可重建不等于动画质量合格。</p>
 <p>{escape(str(counts))}</p><main>{''.join(cards)}</main><details><summary>未生成网格的图层</summary><ul>{''.join(issues)}</ul></details></html>'''

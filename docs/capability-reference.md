@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+`refine-mesh-weights --mesh` 接收原实验网格，保持拓扑并重算关节平面权重，输出独立QA结果。
+不放宽旧阈值、不删除失败三角形；尚无正式Runtime或接缝通过声明。
+
 `build-weighted-mesh --draft` 编译已选单侧三骨链的实验网格与权重，输出setup叠图和弯曲QA。
 只有逐层QA通过才为待复核候选；双侧和未选项不生成网格，尚无正式目标导出。
 

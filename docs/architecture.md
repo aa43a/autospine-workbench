@@ -1,5 +1,8 @@
 # AutoSpine Workbench 架构与质量门禁
 
+`joint_plane_weights.py`、`mesh_refinement.py` 新增独立权重过渡与来源绑定结果，
+`mesh_refinement_cli/view` 负责精确回放和变形网格对照。原距离权重和网格编译器不变。
+
 `asset/joints/mesh_candidate.py` 组合既有alpha grid与新 `mesh_weights.py` 三骨LBS实验算法。
 CLI/view/store分模块，mesh_storage限定16MiB并重用安全路径验证，旧128KiB报告读写不变。
 QA失败保留候选几何且status blocked，不写生产RigIR。

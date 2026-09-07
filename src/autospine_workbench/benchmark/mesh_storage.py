@@ -12,6 +12,7 @@ from .artifacts import _folder
 
 MAX_BYTES=16*1024*1024
 KIND='weighted-mesh-candidates'
+SCHEMAS=('autospine.weighted-mesh-candidates/v1','autospine.weighted-mesh-refinement/v1')
 
 
 def _read(path):
@@ -21,7 +22,7 @@ def _read(path):
         raise ValueError('mesh_storage_invalid')
     raw=read_real_file(exact,MAX_BYTES,'mesh document')
     doc=strict_json_object(raw,'mesh document')
-    if canonical_bytes(doc)!=raw or doc.get('schema')!='autospine.weighted-mesh-candidates/v1' or doc.get('authority')!='none' or doc.get('production_authorized') is not False:
+    if canonical_bytes(doc)!=raw or doc.get('schema') not in SCHEMAS or doc.get('authority')!='none' or doc.get('production_authorized') is not False:
         raise ValueError('mesh_storage_invalid')
     return doc
 
@@ -29,7 +30,7 @@ def _read(path):
 def _publish(path,doc):
     raw=canonical_bytes(doc)
     if len(raw)>MAX_BYTES:raise ValueError('mesh_document_too_large')
-    if doc.get('schema')!='autospine.weighted-mesh-candidates/v1' or doc.get('authority')!='none' or doc.get('production_authorized') is not False:
+    if doc.get('schema') not in SCHEMAS or doc.get('authority')!='none' or doc.get('production_authorized') is not False:
         raise ValueError('mesh_storage_invalid')
     folder=directory(path.parent,create=True)
     staging=directory(folder/'.mesh-staging',create=True)
