@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "autospine.benchmark-observations/v1",
+  "title": "Explicit benchmark observations v1",
+  "$comment": "The semantic validator binds source hashes to the manifest, rejects duplicate characters, nonfinite values and requires correct <= checked <= adopted.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "dataset_sha256", "code_commit", "profile", "target_version", "authority", "records"],
+  "properties": {
+    "schema": {"const": "autospine.benchmark-observations/v1"},
+    "dataset_sha256": {"$ref": "#/$defs/sha256"},
+    "code_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "profile": {"enum": ["draft_auto", "production_review", "certification_exact"]},
+    "target_version": {"enum": ["4.2", "4.3.26"]},
+    "authority": {"const": "none"},
+    "records": {"type": "array", "items": {"$ref": "#/$defs/record"}}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "audit": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["adopted", "checked", "correct"],
+      "properties": {
+        "adopted": {"type": "integer", "minimum": 0},
+        "checked": {"type": "integer", "minimum": 0},
+        "correct": {"type": "integer", "minimum": 0}
+      }
+    },
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["character_id", "source_sha256", "status", "reason_code", "review_seconds", "auto_adoption_audit"],
+      "properties": {
+        "character_id": {"type": "string", "pattern": "^character-[0-9a-f]{16}$"},
+        "source_sha256": {"$ref": "#/$defs/sha256"},
+        "status": {"enum": ["succeeded", "blocked", "failed", "not_run"]},
+        "reason_code": {"type": ["string", "null"], "pattern": "^[a-z][a-z0-9_]{0,79}$"},
+        "review_seconds": {"type": ["number", "null"], "minimum": 0},
+        "auto_adoption_audit": {"$ref": "#/$defs/audit"}
+      },
+      "allOf": [
+        {"if": {"properties": {"status": {"enum": ["blocked", "failed"]}}},
+         "then": {"properties": {"reason_code": {"type": "string"}}},
+         "else": {"properties": {"reason_code": {"const": null}}}},
+        {"if": {"properties": {"status": {"const": "not_run"}}},
+         "then": {"properties": {"review_seconds": {"const": null}, "auto_adoption_audit": {"const": null}}}}
+      ]
+    }
+  }
+}

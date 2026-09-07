@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PNG alpha-only input quality machine observation v1",
+  "$comment": "alpha >= 8 and >= 32; bbox [left, top, right_exclusive, bottom_exclusive]. Semantic validator enforces canvas area, nested bboxes, finite scalar relationships, derived edges, ratios and issue rules.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema": {"const":"autospine.benchmark-input-quality/v1"},
+    "analysis_profile": {"const":"alpha-input-quality-v1"},
+    "source_sha256": {"type":"string","pattern":"^[0-9a-f]{64}(?![\\s\\S])"},
+    "canvas": {"type":"array","minItems":2,"maxItems":2,"items":{"type":"integer","minimum":1,"maximum":33554432}},
+    "alpha": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["present","min","max","transparent_pixel_ratio","nonzero_pixel_ratio","bbox_threshold_8","bbox_threshold_32"],
+      "properties": {
+        "present": {"type":"boolean"},
+        "min": {"oneOf":[{"type":"null"},{"type":"integer","minimum":0,"maximum":255}]},
+        "max": {"oneOf":[{"type":"null"},{"type":"integer","minimum":0,"maximum":255}]},
+        "transparent_pixel_ratio": {"oneOf":[{"type":"null"},{"type":"number","minimum":0,"maximum":1}]},
+        "nonzero_pixel_ratio": {"oneOf":[{"type":"null"},{"type":"number","minimum":0,"maximum":1}]},
+        "bbox_threshold_8": {"oneOf":[{"type":"null"},{"type":"array","minItems":4,"maxItems":4,"items":{"type":"integer","minimum":0}}]},
+        "bbox_threshold_32": {"oneOf":[{"type":"null"},{"type":"array","minItems":4,"maxItems":4,"items":{"type":"integer","minimum":0}}]}
+      },
+      "allOf": [
+        {
+          "if": {"properties":{"present":{"const":false}}},
+          "then": {"properties":{"min":{"type":"null"},"max":{"type":"null"},"transparent_pixel_ratio":{"type":"null"},"nonzero_pixel_ratio":{"type":"null"},"bbox_threshold_8":{"type":"null"},"bbox_threshold_32":{"type":"null"}}},
+          "else": {"properties":{"min":{"type":"integer"},"max":{"type":"integer"},"transparent_pixel_ratio":{"type":"number"},"nonzero_pixel_ratio":{"type":"number"}}}
+        }
+      ]
+    },
+    "edge_contacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["threshold_8","threshold_32"],
+      "properties": {
+        "threshold_8": {"type":"array","maxItems":4,"uniqueItems":true,"items":{"enum":["left","top","right","bottom"]}},
+        "threshold_32": {"type":"array","maxItems":4,"uniqueItems":true,"items":{"enum":["left","top","right","bottom"]}}
+      }
+    },
+    "canvas_aspect_ratio": {"type":"number","exclusiveMinimum":0},
+    "bbox_area_ratio": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["threshold_8","threshold_32"],
+      "properties": {"threshold_8":{"oneOf":[{"type":"null"},{"type":"number","minimum":0,"maximum":1}]},"threshold_32":{"oneOf":[{"type":"null"},{"type":"number","minimum":0,"maximum":1}]}}
+    },
+    "quality": {"enum":["ok","warning","blocked"]},
+    "issues": {
+      "type": "array",
+      "maxItems": 9,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["reason_code","severity"],
+        "properties": {"reason_code":{"type":"string"},"severity":{"type":"string"}},
+        "oneOf": [
+          {"properties":{"reason_code":{"const":"empty_alpha_image"},"severity":{"const":"blocked"}}},
+          {
+            "properties": {
+              "reason_code": {"enum":["alpha_channel_missing","low_alpha_only","faint_alpha_content","alpha_content_touches_canvas","low_alpha_content_touches_canvas","landscape_canvas","small_alpha_bbox","large_alpha_bbox"]},
+              "severity": {"const":"warning"}
+            }
+          }
+        ]
+      }
+    },
+    "authority": {"const":"none"},
+    "observability": {"const":"limited_to_alpha_geometry"},
+    "limitations": {"const":["human_body_cropping_not_assessed","character_count_not_assessed","perspective_not_assessed"]}
+  },
+  "required": ["schema","analysis_profile","source_sha256","canvas","alpha","edge_contacts","canvas_aspect_ratio","bbox_area_ratio","quality","issues","authority","observability","limitations"],
+  "allOf": [
+    {
+      "if": {"properties":{"quality":{"const":"blocked"}}},
+      "then": {"properties":{"issues":{"contains":{"properties":{"reason_code":{"const":"empty_alpha_image"}}}},"alpha":{"properties":{"present":{"const":true},"max":{"const":0}}}}}
+    },
+    {"if":{"properties":{"quality":{"const":"ok"}}},"then":{"properties":{"issues":{"maxItems":0}}}},
+    {"if":{"properties":{"quality":{"const":"warning"}}},"then":{"properties":{"issues":{"minItems":1,"items":{"properties":{"severity":{"const":"warning"}}}}}}}
+  ]
+}

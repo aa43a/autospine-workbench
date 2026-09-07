@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "autospine.benchmark-metrics/v1",
+  "title": "Benchmark metrics with complete denominators v1",
+  "$comment": "Only explicit observations count. Empty audit samples yield null accuracy. Coverage remains null because eligible decision counts are not recorded. Percentiles interpolate sorted values at (n-1)*q.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "authority", "dataset_id", "dataset_sha256", "observations_sha256", "code_commit", "profile", "target_version", "readiness", "overall", "primary", "reserve", "by_split"],
+  "properties": {
+    "schema": {"const": "autospine.benchmark-metrics/v1"},
+    "authority": {"const": "none"},
+    "dataset_id": {"type": "string", "minLength": 1},
+    "dataset_sha256": {"$ref": "#/$defs/sha256"},
+    "observations_sha256": {"$ref": "#/$defs/sha256"},
+    "code_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "profile": {"enum": ["draft_auto", "production_review", "certification_exact"]},
+    "target_version": {"enum": ["4.2", "4.3.26"]},
+    "readiness": {"enum": ["ready", "not_ready"]},
+    "overall": {"$ref": "#/$defs/aggregate"},
+    "primary": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/aggregate"}]},
+    "reserve": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/aggregate"}]},
+    "by_split": {
+      "type": "object", "additionalProperties": false,
+      "required": ["development", "visible", "holdout", "reserve", "unassigned"],
+      "properties": {
+        "development": {"$ref": "#/$defs/aggregate"}, "visible": {"$ref": "#/$defs/aggregate"},
+        "holdout": {"$ref": "#/$defs/aggregate"}, "reserve": {"$ref": "#/$defs/aggregate"},
+        "unassigned": {"$ref": "#/$defs/aggregate"}
+      }
+    }
+  },
+  "allOf": [
+    {"if": {"properties": {"readiness": {"const": "ready"}}},
+     "then": {"properties": {"primary": {"type": "object"}, "reserve": {"type": "object"}}},
+     "else": {"properties": {"primary": {"const": null}, "reserve": {"const": null},
+       "overall": {"properties": {"completion_rate": {"const": null}}}}}}
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "count": {"type": "integer", "minimum": 0},
+    "nullable_count": {"type": ["integer", "null"], "minimum": 0},
+    "rate": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+    "seconds": {"type": ["number", "null"], "minimum": 0},
+    "aggregate": {
+      "type": "object", "additionalProperties": false,
+      "required": ["total_characters", "recorded_characters", "missing_observations", "status_counts", "failure_reasons", "completion_rate", "review_seconds", "auto_adoption"],
+      "properties": {
+        "total_characters": {"$ref": "#/$defs/count"},
+        "recorded_characters": {"$ref": "#/$defs/count"},
+        "missing_observations": {"$ref": "#/$defs/count"},
+        "status_counts": {
+          "type": "object", "additionalProperties": false,
+          "required": ["succeeded", "blocked", "failed", "not_run"],
+          "properties": {"succeeded": {"$ref": "#/$defs/count"}, "blocked": {"$ref": "#/$defs/count"},
+            "failed": {"$ref": "#/$defs/count"}, "not_run": {"$ref": "#/$defs/count"}}
+        },
+        "failure_reasons": {"type": "object", "propertyNames": {"pattern": "^[a-z][a-z0-9_]{0,79}$"},
+          "additionalProperties": {"type": "integer", "minimum": 1}},
+        "completion_rate": {"$ref": "#/$defs/rate"},
+        "review_seconds": {
+          "type": "object", "additionalProperties": false, "required": ["count", "p50", "p90"],
+          "properties": {"count": {"$ref": "#/$defs/count"}, "p50": {"$ref": "#/$defs/seconds"}, "p90": {"$ref": "#/$defs/seconds"}}
+        },
+        "auto_adoption": {
+          "type": "object", "additionalProperties": false, "required": ["adopted", "checked", "correct", "accuracy", "coverage"],
+          "properties": {"adopted": {"$ref": "#/$defs/nullable_count"}, "checked": {"$ref": "#/$defs/nullable_count"},
+            "correct": {"$ref": "#/$defs/nullable_count"}, "accuracy": {"$ref": "#/$defs/rate"}, "coverage": {"const": null}}
+        }
+      }
+    }
+  }
+}

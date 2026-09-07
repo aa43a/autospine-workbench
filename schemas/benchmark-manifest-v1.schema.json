@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "20-character benchmark pending intake v1",
+  "$comment": "Semantic validation additionally enforces identity-derived character IDs, canonical ordering, cross-record unique asset identities, candidate PNG mapping equality and exactly 12 PSD assets.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema","dataset_id","source_inventory_sha256","authority","split_status","characters"],
+  "properties": {
+    "schema": {"const":"autospine.benchmark-manifest/v1"},
+    "dataset_id": {"type":"string","pattern":"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}(?![\\s\\S])","not":{"anyOf":[{"pattern":"\\.$"},{"pattern":"^([Cc][Oo][Nn]|[Pp][Rr][Nn]|[Aa][Uu][Xx]|[Nn][Uu][Ll]|[Cc][Oo][Mm][1-9]|[Ll][Pp][Tt][1-9])(\\.|$)"}]}},
+    "source_inventory_sha256": {"$ref":"#/$defs/sha"},
+    "authority": {"const":"none"},
+    "split_status": {"enum":["unassigned","frozen"]},
+    "characters": {"type":"array","minItems":20,"maxItems":20,"items":{"$ref":"#/$defs/character"}}
+  },
+  "allOf": [
+    {
+      "if": {"properties":{"split_status":{"const":"unassigned"}}},
+      "then": {"properties":{"characters":{"items":{"properties":{"dataset_split":{"const":"unassigned"}}}}}},
+      "else": {
+        "properties": {
+          "characters": {
+            "allOf": [
+              {"contains":{"properties":{"dataset_split":{"const":"development"}}},"minContains":3,"maxContains":3},
+              {"contains":{"properties":{"dataset_split":{"const":"visible"}}},"minContains":4,"maxContains":4},
+              {"contains":{"properties":{"dataset_split":{"const":"holdout"}}},"minContains":3,"maxContains":3},
+              {"contains":{"properties":{"dataset_split":{"const":"reserve"}}},"minContains":10,"maxContains":10}
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sha": {"type":"string","pattern":"^[0-9a-f]{64}(?![\\s\\S])"},
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path","sha256","byte_size","canvas"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "pattern": "^(?!/)(?!.*[\\\\\\u0000-\\u001f:<>\"|?*])(?!.*(?:^|/)(?:\\.{1,2}|[^/]*[. ])(?:/|$))(?!.*//)(?!.*(?:^|/)(?:[Cc][Oo][Nn]|[Pp][Rr][Nn]|[Aa][Uu][Xx]|[Nn][Uu][Ll]|[Cc][Oo][Mm][1-9]|[Ll][Pp][Tt][1-9])(?:\\.|/|$)).+"
+        },
+        "sha256": {"$ref":"#/$defs/sha"},
+        "byte_size": {"type":"integer","minimum":1,"maximum":1099511627776},
+        "canvas": {"type":"array","minItems":2,"maxItems":2,"items":{"type":"integer","minimum":1,"maximum":100000}}
+      }
+    },
+    "mapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status","png_path","basis","requires_visual_review"],
+      "properties": {
+        "status": {"const":"candidate"},
+        "png_path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "pattern": "^(?!/)(?!.*[\\\\\\u0000-\\u001f:<>\"|?*])(?!.*(?:^|/)(?:\\.{1,2}|[^/]*[. ])(?:/|$))(?!.*//)(?!.*(?:^|/)(?:[Cc][Oo][Nn]|[Pp][Rr][Nn]|[Aa][Uu][Xx]|[Nn][Uu][Ll]|[Cc][Oo][Mm][1-9]|[Ll][Pp][Tt][1-9])(?:\\.|/|$)).+\\.png(?![\\s\\S])"
+        },
+        "basis": {"const":"filename_transliteration_only"},
+        "requires_visual_review": {"type":"boolean","const":true}
+      }
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source","mapping","variant_review_required","dataset_split"],
+      "properties": {
+        "source": {"allOf":[{"$ref":"#/$defs/asset"},{"properties":{"path":{"pattern":"\\.psd(?![\\s\\S])"}}}]},
+        "mapping": {"$ref":"#/$defs/mapping"},
+        "variant_review_required": {"type":"boolean"},
+        "dataset_split": {"enum":["unassigned","development","visible","holdout","reserve"]}
+      }
+    },
+    "character": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id","source","psd_candidates","dataset_split","annotation_status","complexity","complexity_tags","expected_core_layers","reviewed_joints","supported_motion_set","rights"],
+      "properties": {
+        "id": {"type":"string","pattern":"^character-[0-9a-f]{16}(?![\\s\\S])"},
+        "source": {"allOf":[{"$ref":"#/$defs/asset"},{"properties":{"path":{"pattern":"\\.png(?![\\s\\S])"}}}]},
+        "psd_candidates": {"type":"array","maxItems":12,"items":{"$ref":"#/$defs/candidate"}},
+        "dataset_split": {"enum":["unassigned","development","visible","holdout","reserve"]},
+        "annotation_status": {"const":"pending"},
+        "complexity": {"type":"null"},
+        "complexity_tags": {"const":[]},
+        "expected_core_layers": {"const":[]},
+        "reviewed_joints": {"const":{}},
+        "supported_motion_set": {"const":[]},
+        "rights": {"type":"null"}
+      },
+      "allOf": [
+        {"if":{"properties":{"dataset_split":{"const":"unassigned"}}},"then":{"properties":{"psd_candidates":{"items":{"properties":{"dataset_split":{"const":"unassigned"}}}}}}},
+        {"if":{"properties":{"dataset_split":{"const":"development"}}},"then":{"properties":{"psd_candidates":{"items":{"properties":{"dataset_split":{"const":"development"}}}}}}},
+        {"if":{"properties":{"dataset_split":{"const":"visible"}}},"then":{"properties":{"psd_candidates":{"items":{"properties":{"dataset_split":{"const":"visible"}}}}}}},
+        {"if":{"properties":{"dataset_split":{"const":"holdout"}}},"then":{"properties":{"psd_candidates":{"items":{"properties":{"dataset_split":{"const":"holdout"}}}}}}},
+        {"if":{"properties":{"dataset_split":{"const":"reserve"}}},"then":{"properties":{"psd_candidates":{"items":{"properties":{"dataset_split":{"const":"reserve"}}}}}}}
+      ]
+    }
+  }
+}
