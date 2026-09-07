@@ -17,7 +17,7 @@ P0 表格里的重复 AS 编号冲突，例如 AS-002 统一表示 Pipeline Prof
 | 3 | P2 / R2 自动 region rig | 语义、左右、contact、关节约束与骨架；只复核异常 |
 | 4 | P3 / R3 通用变形 | 分段臂腿优先，再整肢、袖子；独立 P3/P5 v2 与接缝 QA |
 | 5 | P4 / R4 多动作 | AnimationIR、组合、投影迟滞、出平面阻塞与 8 类动作 |
-| 6 | P1-B 表情 | AttachmentSet、离散切换、anchor、Spine 4.2 与 Runtime probes |
+| 6 | P1-B 表情 | AttachmentSet、离散切换、anchor、Spine 4.3.26 与 Runtime probes；4.2 历史兼容 |
 | 7 | P5 次级运动 | 先头发飘带，再宽袖裙子，固定步长离线 Bake |
 | 8 | P2-B / P6 / R5 端到端 | 隔离 Runner、恢复、多 seed、20 角色验证 |
 | 9 | P7 / R6 Blender | 同一 Rig/Animation 输出 armature、UV mesh、Action/NLA |
@@ -32,24 +32,27 @@ Runner 与 Attachment 可提前推进，但不能挤占 Mesh/Weight 的主链资
 
 | Issue | 工作 | 当前状态 |
 | --- | --- | --- |
-| AS-000 | 状态、roadmap、guarded authorization 对齐 | 本轮落实 |
-| AS-001 | certification-core 基线冻结 | 工作区基线运行；冻结 tag 尚待验收 |
+| AS-000 | 状态、roadmap、guarded authorization 对齐 | 已清理 README/旧路线的过期“下一自动授权”描述 |
+| AS-001 | certification-core 基线冻结 | 独立固定 2cb411f checkout 全量基线；tag 仍须 A/B current 封存 |
 | AS-002 | pipeline-profile-v1 | 合同、Schema、validator、CLI 与反例测试已实现 |
 | AS-003 | PipelineRun 状态机 | v1 CLI、状态机、不可变 journal、CAS、取消与恢复已实现 |
 | AS-004 | Project Capability Resolver | setup-region 范围已实现，读取 current 且检测输入漂移 |
 | AS-005 | Build Spine Preview | 无 SHA CLI + 主工作台异步 setup ZIP、取消和复核后续跑已实现 |
 | AS-006 | Review Queue | setup-region 队列已实现；Mesh/Attachment/Runtime 等随能力扩展 |
 | AS-007 | policy_auto | 待开发；不借用 human decision |
-| AS-008 | 自动化指标报告 | 待开发 |
-| AS-009 | 20 角色 manifest | 20 PNG + 12 PSD 只读盘点完成；正式标注待录入 |
-| AS-010 | 首批 10 角色标注流程 | 3 开发 / 4 可见测试 / 3 holdout |
+| AS-008 | 自动化指标报告 | 观测合同、完整分母、分组统计及CLI已实现；真实采用覆盖率/关节误差待接入 |
+| AS-009 | 20 角色 manifest | 正式待标注manifest、Schema、严格validator、不可变store/reader及32源文件验证已实现 |
+| AS-010 | 首批 10 角色标注流程 | 3/4/3/10 工程划分已冻结；正式映射、坐标变换和人工标注决定入口待开发 |
+| AS-200 | 输入质量检查 | alpha/画布几何前置检查已实现；尚不判断人数、人体裁切、姿态或透视 |
 
 后续依序建立 AS-150–153、AS-200–206、AS-260–263、AS-300–305、
 AS-400–403、AS-500–505、AS-700，内容以本次用户详细计划为准。
 当前环境没有 `gh` 或 GitHub 写入连接器；本表是本地 backlog，不能视为已创建远端 Issues。
 
-本切片操作见 [项目级 region 预览](how-to-build-region-spine-preview.md)。下一步推进
-AS-007 自动采用策略和 AS-008 指标；R1 的广泛素材、官方 Runtime 视觉与生产验收仍待完成。
+本切片操作见 [Benchmark CLI](how-to-benchmark.md)；真实划分见
+[首批基准记录](benchmark/first-batch-2026-09.md)。下一步先闭合开发集 PNG↔PSD
+映射/坐标变换复核与真实候选观测，再实现 AS-007 最小自动采用闭环；不以空Schema
+或零抽查报告宣称达到98%准确率。R1 的广泛素材、官方 Runtime 视觉与生产验收仍待完成。
 
 ## 验收与约束
 
@@ -58,7 +61,7 @@ AS-007 自动采用策略和 AS-008 指标；R1 的广泛素材、官方 Runtime
 覆盖率不足进入复核，不能降低阈值静默采用。
 
 P3 必须至少覆盖三分段臂、三分段腿、两袖子候选，setup 精确重建、
-安全角零翻转、接缝裂缝可检出、Spine 4.2 fixed-tick 验证。
+安全角零翻转、接缝裂缝可检出、Spine 4.3.26 fixed-tick 验证；保留4.2历史回归。
 Beta 目标：端到端 ≥70%、无需改代码 ≥80%、无结构修改 ≥50%、
 复核 P50 ≤15 分钟/P90 ≤35 分钟，错误静默导出为零。
 

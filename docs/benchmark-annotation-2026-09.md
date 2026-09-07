@@ -1,11 +1,15 @@
 # 20 角色 Benchmark 标注流程
 
+2026-09-07 补充：正式待标注 manifest、3/4/3/10 冻结划分、源验证、指标和输入
+检查入口已落地，见 [操作指南](how-to-benchmark.md) 与
+[实际首批划分](benchmark/first-batch-2026-09.md)。下文空标注仍表示未完成人工复核。
+
 已收到上级目录的 12 个新增 PSD（alice、bayunlan、crino、flandre、huiye、
 lingxian、lumia、meihong、sakuya、uuz、yaomeng、yaomeng1）。尚未完成逐层审计；
 yaomeng/yaomeng1 是否是同角色变体待标注，12 文件不等于 12 独立角色。不得生成虚构来源 SHA、
 占位“已审核关节”或使用示意图宣称真实角色验收通过。
 
-已核对 `../png` 下有 20 张原始 PNG；下一步记录真实字节身份并建立 PSD 对应关系。
+已核对 `../png` 下有 20 张原始 PNG并记录真实字节身份；PSD 对应仍是文件名候选。
 
 首批冻结 10 个：3 个开发 fixture、4 个可见测试、3 个 holdout；第二批 10 个
 待首批算法稳定后加入。split 在开始调参前记录，holdout 不用于逐图调参。
@@ -43,5 +47,6 @@ joint_unobservable、layer_requires_split、mesh_topology_failure、weight_failu
 seam_failure、motion_out_of_plane、draw_order_ambiguous、attachment_missing、
 secondary_motion_unstable、runtime_export_failure。
 
-数据集 Schema/validator 和度量工具属于 AS-009/AS-008 后续实现；本文件仅提供
-标注流程与输入模板，不宣称已建成或验证了 20 角色数据集。
+数据集 Schema/validator 和基础度量工具已在 AS-009/AS-008 实现；当前 manifest
+仅支持 pending 标注，真实映射/坐标变换和人工标注决定是后续工作。
+已建立数据集身份和划分，不宣称20角色已完成标注或绑骨验证。

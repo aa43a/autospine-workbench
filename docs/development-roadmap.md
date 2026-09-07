@@ -1,6 +1,8 @@
 # AutoSpine Workbench 后续开发路线
 
-本文是 Explanation 与交付计划，面向维护者和需要评估可行性的项目负责人。P10.3、P10.4a/b v2、P10.5d v2、P10.6a/P10.6b v2、P10.7a v2 Spine adapter 自动入口，以及 P10.7b v2 source bridge、严格 session、bounded collector、loopback server、Windows real browser runner 和 runtime evidence store/exact reader 均已交付。runner 要求显式许可真值与 Windows，对精确 P10.7a v2 只读一次，持有固定 Spine Player 4.2.119 Runtime/浏览器 lease，并逐 artifact 使用全新 profile 经 loopback 采集；runner-issued 结果可原子封存为 `captured_unreviewed`，以独立 namespace/hash domain 保存固定五份 JSON 与声明的 PNG captures，并由四段显式地址完整回读。当前仍没有 P10.7b v2 完整 CLI/UI、raster metrics、人工复核或发布权；guarded 授权内核已交付，执行/API 为接续工作区改动。guarded v2 runtime authorization 已于 4254151 交付；后续优先推进 PipelineRun 与一键 Spine；官方 Runtime 授权、视觉、完整边界、overlap 与 release 仍 blocked。机制测试没有真正启动经授权的官方 Runtime，也不表示真实样本 A 已形成相应凭据。样本 B revision 16 必须沿自己的 current chain 继续；v1 合同与输出哈希保持冻结。
+本文面向维护者与评估可行性的项目负责人。当前执行顺序以 [2026-09 自动化产品路线](automation-roadmap-2026-09.md) 为准：保留可信认证内核，优先完成普通用户的一键生产流，再推进自动语义/关节、通用 Mesh/Weight 与动作质量。项目级 PipelineRun、主工作台异步 region 预览、结构异常队列与 ZIP 下载已交付；预览默认目标为 Spine 4.3.26，可显式选择 4.2。范围与限制见 [操作说明](how-to-build-region-spine-preview.md)。
+
+guarded v2 Runtime 授权已于 `4254151` 提交，后续 manager、执行与 HTTP API 也已纳入开发 checkpoint，不能再视为“下一切片”。已有 P9/P10 精确链继续原位保留，其历史 4.2 地址与 v1 合同保持冻结。机制交付不代表样本 A/B current 已封存，也不代表官方 Runtime、raster、人工视觉、完整边界、overlap 或 release 已通过。B 的不可观测状态继续 fail closed；详见 [当前状态](current-state-2026-09.md) 和 [独立 checkout 基线](baseline-frozen-checkout-2026-09.md)。
 
 P9 页面现已增加 pending draft 自动发现与一键晋级入口。它会自动选择唯一 current 草案，显示角色与 setup 遮挡关系，并在一次明确确认后生成正式 Depth policy、Depth candidates 和新的 exact review package。草案晋级不等于最终 P9 adoption；候选仍须复核，并再次明确提交最终 human adoption。旧 P9 以及依赖旧 P3/P9 的 P10/P10.5 决定只保留历史证据。canvas-only 的新链不会放宽 v1，而是通过已经交付的 CaptureFraming decision、Preview v2、official Runtime execution v2 与 P10.3c v2 review 承接 setup、base、combined 完整包络。
 

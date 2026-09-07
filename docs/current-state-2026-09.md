@@ -1,5 +1,14 @@
 # 当前状态：2026-09-07
 
+Benchmark 接续切片：20 PNG/12 PSD 已转为正式待标注 manifest 并完成真实源验证；
+首批3开发/4可见/3holdout、其余10 reserve已冻结。基础指标CLI、不可变报告和
+alpha输入检查已实现；开发集3张原图仅完成机器alpha检查，未获得人工语义/关节真值。
+开发集3个PSD已完成固定脚本隔离审计（62图层），琪露诺有1空层，映射与坐标变换
+仍待复核；未注册为主工作台项目或修改历史A/B状态。
+见 [首批记录](benchmark/first-batch-2026-09.md) 与 [CLI](how-to-benchmark.md)。
+独立固定提交的全量验证见 [静止checkout基线](baseline-frozen-checkout-2026-09.md)，
+与活跃工作树定向测试分开记录，尚不替代A/B current链封存或认证tag。
+
 新增独立 Spine 4.3.26 Adapter，主工作台和 automation CLI 的新预览默认使用该版本，
 可显式选择 4.2。两个目标独立绑定 PipelineRun engine 和预览存储地址；历史 4.2
 认证入口保持原合同。当前产品入口仍限 reviewed region setup，4.3 Runtime 未执行。
@@ -36,7 +45,9 @@ manager、readback、HTTP routes/security、server 接线与配套测试。这�
 | 三种 Pipeline Profile | 合同、Schema、validator 已接入独立 region 预览执行器 |
 | PipelineRun / Capability / region preview CLI | 已实现；setup ZIP、幂等、恢复、取消、零发布权 |
 | 通用分段臂腿 Mesh、袖子权重 | 尚未实现，不修改 leg-only v1 语义 |
-| 20 角色 Benchmark | 标注流程已准备，20 PNG + 12 PSD 字节盘点完成，待图层审计与 split 标注 |
+| 20 角色 Benchmark | 待标注合同、store/reader、32源验证与3/4/3/10划分已冻结；映射/坐标变换/人工标注待完成 |
+| 自动化指标 | 基础观察统计CLI已实现，初始全not_run；无抽查准确率/覆盖率不填造 |
+| 输入质量前置检查 | 可选Pillow进行alpha/画布几何分析，只确定空图阻塞；不推断人体裁切或人数 |
 
 ## A/B 历史保护
 
