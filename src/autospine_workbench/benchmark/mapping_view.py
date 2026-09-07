@@ -6,6 +6,7 @@ import json
 import re
 
 from .mapping_anchor_view import ANCHOR_SCRIPT, render_anchor_controls
+from .mapping_review_view import REVIEW_SCRIPT, render_review_controls
 
 
 def render_mapping_review(candidate, png_bytes, composite_bytes, *, calibration=None):
@@ -34,6 +35,8 @@ def render_mapping_review(candidate, png_bytes, composite_bytes, *, calibration=
         "__CANDIDATE_JSON__": serialized,
         "__ANCHOR_CONTROLS__": render_anchor_controls(candidate),
         "__ANCHOR_SCRIPT__": ANCHOR_SCRIPT,
+        "__REVIEW_CONTROLS__": render_review_controls(candidate),
+        "__REVIEW_SCRIPT__": REVIEW_SCRIPT,
         "__CALIBRATION_SUMMARY__": "",
     }
     if calibration is not None:
@@ -86,6 +89,7 @@ __CALIBRATION_SUMMARY__
 <p id="status" role="status" aria-live="polite"></p>
 <div class="controls"><button id="reset" type="button">重置为初始候选</button><button id="download" type="button" class="primary">下载变换草稿 JSON</button></div>
 <p>下载后由命令行重新验证候选与源文件身份。文件仍需复核，本页不会写入项目。</p>
+__REVIEW_CONTROLS__
 <script id="candidate-data" type="application/json">__CANDIDATE_JSON__</script>
 <script>
 'use strict';
@@ -140,4 +144,5 @@ download.addEventListener('click',() => {
 });
 reset();
 __ANCHOR_SCRIPT__
+__REVIEW_SCRIPT__
 </script></body></html>'''

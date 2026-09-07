@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Pending benchmark annotation template",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "authority", "dataset_sha256", "character_id", "mapping_decision_sha256", "source_candidate_sha256", "annotation_status", "coordinate_system", "layer_semantics", "joint_observations", "rights"],
+  "properties": {
+    "schema": {"const": "autospine.benchmark-annotation-template/v1"},
+    "authority": {"const": "none"},
+    "dataset_sha256": {"$ref": "#/$defs/digest"},
+    "mapping_decision_sha256": {"$ref": "#/$defs/digest"},
+    "source_candidate_sha256": {"$ref": "#/$defs/digest"},
+    "character_id": {"type": "string", "pattern": "^character-[0-9a-f]{16}$"},
+    "annotation_status": {"const": "pending"},
+    "coordinate_system": {"const": "pixel_top_left_y_down"},
+    "layer_semantics": {"type": "array", "maxItems": 0},
+    "joint_observations": {"type": "array", "maxItems": 0},
+    "rights": {"type": "null"}
+  },
+  "$defs": {"digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

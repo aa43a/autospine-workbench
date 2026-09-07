@@ -2,6 +2,7 @@
 
 开发集新入口：[PNG / PSD 坐标复核](docs/how-to-benchmark-mapping.md)，生成离线叠加页，
 调整并保存映射候选草稿，无需填写 SHA。支持对应锚点录入、草稿恢复及 CLI 拟合/残差诊断。
+映射检查完成后可下载复核请求，显式记录接受/拒绝，并由接受决定准备待标注模板。
 
 首批 Benchmark 已冻结3开发/4可见/3holdout、其余10 reserve；支持源身份验证、
 输入alpha检查和诚实的空评测报告。见[实际划分](docs/benchmark/first-batch-2026-09.md)

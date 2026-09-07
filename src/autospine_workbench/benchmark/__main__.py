@@ -46,10 +46,17 @@ def parser():
     from .mapping_cli import register_parser
 
     register_parser(sub)
+    from .mapping_decision_cli import register_parsers
+
+    register_parsers(sub)
     return result
 
 
 def _execute(args):
+    if args.command in {"record-mapping-review", "annotation-template"}:
+        from .mapping_decision_cli import execute
+
+        return execute(args)
     if args.command == "mapping-review":
         from .mapping_cli import execute
 

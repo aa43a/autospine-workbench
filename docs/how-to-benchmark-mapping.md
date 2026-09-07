@@ -44,7 +44,7 @@ CLI 重读所选 PNG、PSD 与合成 PNG，核对大小、哈希和画布。候�
 
 本页导出的是 `authority=none`、`review_required=true` 的候选，不是人工批准。
 本切片不写主工作台 override，不填 Benchmark ground truth，不产生 policy_auto 决定，
-也不更改历史 Spine 导出。正式人工映射决定和语义/关节标注仍是后续工作。
+也不更改历史 Spine 导出。正式映射决定使用下述独立入口；语义/关节真值标注仍待开发。
 
 ## 用对应锚点校准
 
@@ -72,3 +72,38 @@ python -m autospine_workbench.benchmark mapping-review --manifest docs/benchmark
 输入候选、锚点和校准报告分别内容寻址保存。`read_mapping_calibration` 会读取原
 候选与锚点，绑定原 manifest，重算整个报告，拒绝改过残差后重新计算哈希的伪报告。
 修改输入源或候选后应重新录点/显式准备新草稿；不会静默继承旧候选的锚点身份。
+
+## 明确记录映射复核
+
+新版页面末尾提供“接受此映射／拒绝此映射”。默认不选任何结果，也不勾选检查项。
+接受前须填写复核人、说明，并检查同一角色与素材、坐标/轮廓对齐和镜像方向。
+拒绝也必须填写原因。如果手动修改了变换，先下载变换草稿、重新生成新候选的页面，
+再检查新候选；不能把修改后的画面用于批准旧候选。
+
+“下载复核请求”只导出请求，不会记录决定。操作者完成实际复核后，使用与页面一致的
+候选文件显式记录（下面以拟合候选为例）：
+
+```powershell
+python -m autospine_workbench.benchmark record-mapping-review --manifest docs/benchmark/manifest-frozen-v1.json --evidence docs/benchmark/development-audit-2026-09.json --workspace .. --character alice.psd --candidate ../tmp/benchmark-mapping/alice-fitted.json --request mapping-review-request.json --confirm-human-review --output ../tmp/benchmark-mapping/alice-decision.json
+```
+
+命令重新验证源 PNG、PSD、合成图和候选身份。没有显式确认参数、接受时检查项不全、
+请求绑定旧变换或源文件变化均拒绝记录。决定及其原始候选、请求内容寻址保存，重试
+同一请求不会生成另一份决定。`read_mapping_decision` 读取完整输入闭包并重算验证。
+
+`reviewer` 是本地操作者填写的声明，不是登录身份认证或数字签名。决定只作用于
+Benchmark 映射复核，保持 `authority=none`，不产生 Rig、主工作台 override 或发布权。
+接受/拒绝是独立不可变记录；本版没有自动选取 latest，也没有撤销/覆盖旧决定的语义。
+下游必须明确选择一份精确决定，不能把后来的拒绝当作已撤销所有历史接受。
+
+## 准备待标注模板
+
+只有精确读回的 accepted 映射决定可以进入以下入口：
+
+```powershell
+python -m autospine_workbench.benchmark annotation-template --manifest docs/benchmark/manifest-frozen-v1.json --decision ../tmp/benchmark-mapping/alice-decision.json --output ../tmp/benchmark-mapping/alice-annotations-pending.json
+```
+
+拒绝记录、未记录的请求、换过内容的决定均不能代替接受决定。模板绑定数据集、
+角色、映射候选和决定，语义、关节、rights 保持空；本版模板只表示标注准备条件，
+不是可直接提交的完整真值表单。后续将实现实际语义/关节标注及其复核。

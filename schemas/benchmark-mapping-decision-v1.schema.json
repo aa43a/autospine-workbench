@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Explicit benchmark mapping decision v1",
+  "$comment": "Semantic validation recompiles this record from its exact frozen manifest, candidate and human review request. Reviewer identity is a declaration, not authentication. No production or release authority; no implicit latest record or supersession.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "dataset_sha256", "character_id", "dataset_split", "source_candidate_sha256", "source_request_sha256", "action", "mapping_status", "reviewer", "reason", "checks", "decision_source", "scope", "authority"],
+  "properties": {
+    "schema": {"const": "autospine.benchmark-mapping-decision/v1"},
+    "dataset_sha256": {"$ref": "#/$defs/sha"},
+    "character_id": {"type": "string", "pattern": "^character-[0-9a-f]{16}(?![\\s\\S])"},
+    "dataset_split": {"enum": ["development", "visible", "holdout", "reserve"]},
+    "source_candidate_sha256": {"$ref": "#/$defs/sha"},
+    "source_request_sha256": {"$ref": "#/$defs/sha"},
+    "action": {"enum": ["accept", "reject"]},
+    "mapping_status": {"enum": ["reviewed_accepted", "reviewed_rejected"]},
+    "reviewer": {"type": "string", "minLength": 1, "maxLength": 128, "pattern": "\\S"},
+    "reason": {"type": "string", "minLength": 1, "maxLength": 2000, "pattern": "\\S"},
+    "checks": {"$ref": "#/$defs/checks"},
+    "decision_source": {"const": "human_explicit"},
+    "scope": {"const": "benchmark_mapping_only"},
+    "authority": {"const": "none"}
+  },
+  "allOf": [{
+    "if": {"properties": {"action": {"const": "accept"}}},
+    "then": {"properties": {
+      "mapping_status": {"const": "reviewed_accepted"},
+      "checks": {"properties": {"same_character": {"const": true}, "coordinate_alignment": {"const": true}, "mirror_checked": {"const": true}}}
+    }},
+    "else": {"properties": {"mapping_status": {"const": "reviewed_rejected"}}}
+  }],
+  "$defs": {
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}(?![\\s\\S])"},
+    "checks": {
+      "type": "object", "additionalProperties": false,
+      "required": ["same_character", "coordinate_alignment", "mirror_checked"],
+      "properties": {"same_character": {"type": "boolean"}, "coordinate_alignment": {"type": "boolean"}, "mirror_checked": {"type": "boolean"}}
+    }
+  }
+}

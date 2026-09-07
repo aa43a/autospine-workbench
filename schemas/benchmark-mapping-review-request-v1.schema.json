@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Explicit benchmark mapping review request v1",
+  "$comment": "A request is an untrusted human declaration, not a recorded decision or authenticated identity. Semantic validation rejects Unicode category C characters in reviewer/reason and requires exact candidate binding. Recording requires explicit submission and source-byte verification.",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "candidate_sha256", "reviewer", "action", "reason", "checks", "authority"],
+  "properties": {
+    "schema": {"const": "autospine.benchmark-mapping-review-request/v1"},
+    "candidate_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}(?![\\s\\S])"},
+    "reviewer": {"type": "string", "minLength": 1, "maxLength": 128, "pattern": "\\S"},
+    "action": {"enum": ["accept", "reject"]},
+    "reason": {"type": "string", "minLength": 1, "maxLength": 2000, "pattern": "\\S"},
+    "checks": {
+      "type": "object", "additionalProperties": false,
+      "required": ["same_character", "coordinate_alignment", "mirror_checked"],
+      "properties": {"same_character": {"type": "boolean"}, "coordinate_alignment": {"type": "boolean"}, "mirror_checked": {"type": "boolean"}}
+    },
+    "authority": {"const": "none"}
+  },
+  "allOf": [{
+    "if": {"properties": {"action": {"const": "accept"}}},
+    "then": {"properties": {"checks": {"properties": {
+      "same_character": {"const": true}, "coordinate_alignment": {"const": true}, "mirror_checked": {"const": true}
+    }}}}
+  }]
+}

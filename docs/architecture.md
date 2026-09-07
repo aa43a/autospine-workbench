@@ -7,6 +7,10 @@ Benchmark 映射候选在独立 `benchmark/mapping.py` 中计算和验证；文�
 锚点输入与校准报告使用独立合同。`mapping_anchors.py` 负责纯拟合和重算验证，
 `mapping_calibration_store.py` 重放其原始候选/锚点闭包，页面录点和误差展示各自分模块。
 
+映射复核请求与决定独立于原候选。`mapping_decision.py` 纯编译显式请求，
+CLI 先验证源文件并要求操作者确认，store reader 重放候选/请求后才能生成 pending 标注模板。
+没有隐式 current 或撤销推断，不跨越 Benchmark 进入历史生产授权域。
+
 2026-09 自动化转向见 [当前状态](current-state-2026-09.md)。[Pipeline Profile v1](adr-pipeline-profiles-v1.md) 已接入独立的 [PipelineRun region 预览执行器](adr/pipeline-run-v1.md)；其运行记录、预览输出和历史认证内容地址保持独立。
 
 本文约束的是持续开发方式，不是一次性重写计划。任何新功能都先进入版本中立合同和可复现工件，再接 UI 或特定 Spine 版本适配器。
