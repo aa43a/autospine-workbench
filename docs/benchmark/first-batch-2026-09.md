@@ -139,3 +139,17 @@ Chrome 离屏检查图片与初始状态；截图为 `../tmp/benchmark-joints/cr
 完整 Benchmark 回归128项通过（23.951秒），最终巨大整数边界及维护性7项复测通过。
 新源码均低于300行。旧可信内核全量与官方 Runtime 本切片未重跑。下一步接入自动
 关节候选对照和误差统计，真实精度需待人工标注与复核后计算。
+
+2026-09-07 接续对照切片：已复用未修改的历史 `_layers` / `_skeleton` /
+`AuditBBoxHeuristicProvider` 输出17点基线，并与关节草稿进行逐点对照。三个开发
+样本生成 `../tmp/benchmark-joints/{alice,lingxian,crino}-comparison-v1.html`，同目录
+保存 `*-baseline-v1.json`、`*-comparison-v1.json`。51个人工点仍未标注，三份报告
+可比较数均0，中位误差均null，未把猜点或缺失值充当真值。
+
+琪露诺页面经 Chrome 离屏检查，旧算法部分肩/手点明显落在错误部位，此项仅为
+视觉诊断，不能量化真实关节精度；保留该基线用于后续Contact候选改进对照。
+截图为 `crino-comparison-qa.png`，不是Spine Runtime证据。旧可信内核和4.2/4.3.26
+Adapter均未修改；没有进行holdout调参或写入生产决定。
+
+完整Benchmark回归142项通过（37.754秒），维护性检查通过，新源码均低于300行。
+下一主线是Contact Geometry及关节候选质量，草稿正式复核后才计算验收精度。

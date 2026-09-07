@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "autospine.benchmark-joint-baseline/v1",
+  "title": "Unapproved legacy audit bbox baseline",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "authority", "candidate_sha256", "algorithm_profile", "canvas", "coordinate_system", "reason_codes", "records"],
+  "properties": {
+    "schema": {"const": "autospine.benchmark-joint-baseline/v1"},
+    "authority": {"const": "none"},
+    "candidate_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "algorithm_profile": {"const": "legacy-audit-bbox-v1"},
+    "canvas": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "integer", "minimum": 1}},
+    "coordinate_system": {"const": "psd_canvas"},
+    "reason_codes": {"const": ["baseline_requires_review", "character_sides_unreviewed"]},
+    "records": {
+      "type": "array", "minItems": 17, "maxItems": 17,
+      "description": "Canonical order and exact values are verified by deterministic replay.",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["joint_id", "position", "method", "score_kind", "heuristic_score", "source", "reason_codes"],
+        "properties": {
+          "joint_id": {"enum": ["root", "pelvis", "chest", "neck", "head", "shoulder.left", "shoulder.right", "elbow.left", "elbow.right", "wrist.left", "wrist.right", "hip.left", "hip.right", "knee.left", "knee.right", "ankle.left", "ankle.right"]},
+          "position": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number", "minimum": 0}},
+          "method": {"const": "audit_bbox_heuristic"},
+          "score_kind": {"const": "heuristic"},
+          "heuristic_score": {"type": "number", "minimum": 0, "maximum": 1},
+          "source": {"enum": ["character-bounds", "layer", "fallback", "derived"]},
+          "reason_codes": {"const": ["baseline_requires_review"]}
+        }
+      }
+    }
+  }
+}

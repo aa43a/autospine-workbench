@@ -1,0 +1,222 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "autospine.benchmark-joint-comparison/v1"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "diagnostic_only": {
+      "const": true
+    },
+    "reference_kind": {
+      "const": "unreviewed_joint_draft"
+    },
+    "profile": {
+      "const": "draft-joint-distance-v1"
+    },
+    "character_height_px": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 1,
+      "maximum": 65536
+    },
+    "records": {
+      "type": "array",
+      "minItems": 17,
+      "maxItems": 17,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "joint_id": {
+            "enum": [
+              "root",
+              "pelvis",
+              "chest",
+              "neck",
+              "head",
+              "shoulder.left",
+              "shoulder.right",
+              "elbow.left",
+              "elbow.right",
+              "wrist.left",
+              "wrist.right",
+              "hip.left",
+              "hip.right",
+              "knee.left",
+              "knee.right",
+              "ankle.left",
+              "ankle.right"
+            ]
+          },
+          "reference_status": {
+            "enum": [
+              "observed",
+              "unmarked",
+              "unobservable"
+            ]
+          },
+          "candidate_position": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 65536
+            }
+          },
+          "reference_position": {
+            "anyOf": [
+              {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 65536
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "distance_px": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "distance_height_ratio": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          }
+        },
+        "required": [
+          "joint_id",
+          "reference_status",
+          "candidate_position",
+          "reference_position",
+          "distance_px",
+          "distance_height_ratio"
+        ]
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "compared": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 17
+        },
+        "median_distance_px": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "median_distance_height_ratio": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "observed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 17
+        },
+        "unmarked": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 17
+        },
+        "unobservable": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 17
+        },
+        "core": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "compared": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 17
+            },
+            "median_distance_px": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "median_distance_height_ratio": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            }
+          },
+          "required": [
+            "compared",
+            "median_distance_px",
+            "median_distance_height_ratio"
+          ]
+        }
+      },
+      "required": [
+        "compared",
+        "median_distance_px",
+        "median_distance_height_ratio",
+        "observed",
+        "unmarked",
+        "unobservable",
+        "core"
+      ]
+    },
+    "source_candidate_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "source_baseline_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "source_draft_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "required": [
+    "schema",
+    "authority",
+    "diagnostic_only",
+    "reference_kind",
+    "profile",
+    "character_height_px",
+    "records",
+    "summary",
+    "source_candidate_sha256",
+    "source_baseline_sha256",
+    "source_draft_sha256"
+  ]
+}

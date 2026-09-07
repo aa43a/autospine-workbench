@@ -55,10 +55,17 @@ def parser():
     from .annotation_cli import register_parsers as register_annotation_parsers
 
     register_annotation_parsers(sub)
+    from .joint_comparison_cli import register_parser as register_comparison_parser
+
+    register_comparison_parser(sub)
     return result
 
 
 def _execute(args):
+    if args.command == "compare-joints":
+        from .joint_comparison_cli import execute
+
+        return execute(args)
     if args.command in {"joint-review", "record-semantic-review"}:
         from .annotation_cli import execute
 
