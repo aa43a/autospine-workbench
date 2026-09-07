@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+绑定页面已支持逐层编辑、下载、恢复和撤销；`build-region-bindings --draft --draft-output`
+可封存并恢复来源绑定的草稿。拆层/语义问题只是记录，正式处理与绑定采用尚待接入。
+
 `build-region-bindings --skeleton` 读取已封存骨架文件并生成图层绑定候选，逐层显示图片、骨段选项和原因。
 左右未确认时不自动选择；未知/隐藏/空/越界层阻塞。局部变换可还原原图层位置，仍无生产绑定权威。
 见[操作说明](how-to-region-bindings.md)。

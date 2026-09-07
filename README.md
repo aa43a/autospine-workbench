@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[绑定复核草稿](docs/how-to-region-binding-drafts.md)支持逐层选择候选骨骼、记录拆层/语义问题或排除，
+整份保存、恢复与撤销；CLI可核验来源并封存。初始记录全部待处理，不自动批准。
+
 [图层绑定候选](docs/how-to-region-bindings.md)现可从辅助骨架生成逐层选项与位置叠图，
 验证局部变换的四角重建。三角色62层中15层有建议，47层仍需补充语义或处理结构问题。
 

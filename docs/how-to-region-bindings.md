@@ -13,7 +13,7 @@ python -m autospine_workbench.benchmark build-region-bindings `
 
 替换 `crino` 为 `alice` 或 `lingxian` 可查看另两个开发角色。
 草稿更新后先重建并封存骨架，再使用新的输出文件名；同一输入幂等。
-页面为只读候选列表，绿色线是骨段选项，淡色人物是位置参照。
+旧v1页面为只读列表，新 `*-review-v2.html` 支持编辑草稿；绿色线是骨段选项，淡色人物是位置参照。
 页面按源图层记录顺序排列，不把该顺序当成正式Spine绘制顺序。
 
 `conservative-region-binding-v1` 使用现有名称语义建议：脸和头发建议head，颈部建议neck，
@@ -41,5 +41,6 @@ python -m autospine_workbench.benchmark build-region-bindings `
 骨架有效时返回0、整体状态needs_review，即使部分或全部层阻塞也不是构建完成声明。
 本切片未运行全量Python/Web回归或官方Runtime，未改旧Spine适配器及历史工件。
 
-下一步接入可保存/恢复的绑定复核草稿、语义及拆层异常处理，再接正式决定与完整region预览。
+复核草稿现已接通，操作见[保存与恢复绑定草稿](how-to-region-binding-drafts.md)。
+下一步根据复核结果处理语义及拆层异常，再接正式决定与完整region预览。
 当前不写入采用决定、生产RigIR或Spine导出；不使用模型辅助标注宣称独立GT精度达标。

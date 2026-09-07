@@ -1,5 +1,8 @@
 # AutoSpine Workbench 架构与质量门禁
 
+`benchmark/region_binding_draft.py` 验证独立草稿合同，controls模块提供内嵌浏览器编辑和恢复校验。
+region binding CLI新增草稿读写，保持原候选文档内容不变；真实源重放仍在写入前执行。
+
 `asset/joints/region_binding.py` 生成独立保守region绑定选项，单语义建议与成对骨选项都保持待复核。
 `benchmark/region_binding_cli.py` 重放骨架及全部上游源；view只呈现图层位置与选项。
 新profile不改旧RigIR，source traversal仅用于列表顺序，不作为Spine draw order。
