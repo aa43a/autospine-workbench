@@ -18,6 +18,7 @@ def register_parsers(sub):
         cmd.add_argument("--output", type=Path)
         if name == "joint-review":
             cmd.add_argument("--html", required=True, type=Path)
+            cmd.add_argument("--pose-observations", type=Path)
         else:
             cmd.add_argument("--candidate", required=True, type=Path)
             cmd.add_argument("--request", required=True, type=Path)
@@ -50,6 +51,9 @@ def execute(args):
     candidate, audit, composite, _ = load_semantic_inputs(manifest, evidence, args.workspace, args.character)
     dataset = manifest["dataset_id"]
     if args.command == "joint-review":
+        if args.pose_observations is not None:
+            from .assisted_joint_cli import execute_assisted
+            return execute_assisted(args, manifest, evidence, candidate, audit, composite)
         from .joint_draft import build_joint_draft, validate_joint_draft
         from .joint_view import render_joint_review
 

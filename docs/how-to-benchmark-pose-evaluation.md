@@ -6,6 +6,30 @@
 
 ## 人工标注入口
 
+### 一次加载自动点，直接拖动修正
+
+新版页面为 `../tmp/r2b-gt/{alice,lingxian,crino}-assisted-v1.html`。
+一次显示17个建议点：可用Pose四肢点覆盖旧基线，其余中轴点来自旧基线。
+金色表示未复核自动建议，红色是当前选择，蓝色是已修改或确认。
+直接在画布点击点并拖动，松开即保留修改；不需要逐点选择下拉框或提交。
+支持一次撤销整次拖动、不可观测、清除、批量确认全部有坐标的点，最后点击“保存全部标注”。
+下载的 `assisted-joint-draft.json` 可在同来源页面恢复；未复核点也可先保存后继续。
+
+```powershell
+python -m autospine_workbench.benchmark joint-review --manifest docs/benchmark/manifest-frozen-v1.json --evidence docs/benchmark/development-audit-2026-09.json --workspace .. --character alice.psd --pose-observations ../tmp/r2b/alice-pose-v4.json --html ../tmp/r2b-gt/alice-assisted-v1.html --output ../tmp/r2b-gt/alice-assisted-v1.json
+```
+
+CLI恢复时增加 `--draft path/to/assisted-joint-draft.json` 并选新HTML输出名。
+模型辅助草稿封存原Pose、基线和候选身份，`reviewed_joint_ids` 初始为空，
+`annotation_mode=model_assisted`、`independent_annotation=false` 永久保留。
+批量确认只表示本份辅助草稿中的复核状态，不产生生产批准或独立GT。
+既有 `record-joint-reference` 会拒绝整个辅助草稿，不能把它直接用于独立精度验收。
+
+本次13项测试通过，包括实际JavaScript的缩放坐标拖动、撤销、拖动取消、批量确认和导出，
+以及CLI恢复、身份篡改、源图变化与文件预算检查；Chrome已渲染检查Alice页面。
+
+### 独立 GT 入口
+
 已在工作区生成 `../tmp/r2b-gt/{alice,lingxian,crino}-annotation-v1.html`。
 页面没有模型点或bbox建议。选择关节后点击图像，左右以角色自身为准；不能从图像判断的
 点填写原因并标记不可观测，不根据模型预测代填。下载草稿可恢复继续标注。

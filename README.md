@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[关节标注页](docs/how-to-benchmark-pose-evaluation.md)现支持一次加载全部自动建议，
+画布点选拖动、撤销、批量确认、整份保存与恢复。带模型建议的结果保存为模型辅助标注。
+
 R2-B 新增[独立关节参考与误差评估](docs/how-to-benchmark-pose-evaluation.md)：显式记录
 Benchmark参考，按共同GT点比较旧bbox／Pose／优化结果。三角色已生成空白标注页，
 没有真实参考时误差保持未评估，不把草稿自动当作GT。

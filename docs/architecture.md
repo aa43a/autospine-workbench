@@ -1,5 +1,8 @@
 # AutoSpine Workbench 架构与质量门禁
 
+`assisted_joint_draft.py` 与 `assisted_joint_cli.py` 单独保存模型辅助标注和源闭包，
+复用 `joint_view.py` 的画布拖动及批量编辑。普通草稿v1不增加字段，辅助envelope不能静默降级成独立GT。
+
 R2-B Reference的纯合同与CLI位于 `joint_reference*.py`，保留显式独立标注声明、
 原草稿和请求，scope仅benchmark。`pose_accuracy.py` 只做共同参考点数值分析；
 `pose_accuracy_cli.py` 重放完整源闭包，`pose_accuracy_view.py` 只读呈现缺GT与覆盖率。

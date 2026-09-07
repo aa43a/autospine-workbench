@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+`joint-review --pose-observations` 一次加载全部关节建议并支持直接拖动、批量确认、撤销和恢复。
+模型辅助草稿绑定原Pose/基线，独立GT入口拒绝此类型；省略Pose参数仍可独立标注。
+
 `record-joint-reference` 显式记录独立 Benchmark 标注，`evaluate-pose-benchmark` 读取
 精确R2-A与参考闭包并比较三方法误差；无GT不计算误差，不同方法只比较共同参考点。
 见 [操作说明](how-to-benchmark-pose-evaluation.md)。
