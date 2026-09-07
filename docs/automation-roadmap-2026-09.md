@@ -37,7 +37,7 @@ Runner 与 Attachment 可提前推进，但不能挤占 Mesh/Weight 的主链资
 | AS-006 | Review Queue | 待开发 |
 | AS-007 | policy_auto | 待开发；不借用 human decision |
 | AS-008 | 自动化指标报告 | 待开发 |
-| AS-009 | 20 角色 manifest | 待真实资产与标注录入 |
+| AS-009 | 20 角色 manifest | 20 PNG + 12 PSD 只读盘点完成；正式标注待录入 |
 | AS-010 | 首批 10 角色标注流程 | 3 开发 / 4 可见测试 / 3 holdout |
 
 后续依序建立 AS-150–153、AS-200–206、AS-260–263、AS-300–305、

@@ -206,18 +206,18 @@ class Spine42V3RuntimeReaderV2Tests(unittest.TestCase):
 
     def test_receipt_copies_forgery_and_mutation_are_rejected(self):
         loaded = self._load_with_upstream(self.fixture.state_root)
-        clones = (copy.copy(loaded), copy.deepcopy(loaded))
-        for clone in clones:
-            with self.subTest(kind=type(clone).__name__), self.assertRaises(
-                Spine42V3RuntimeReaderV2Error,
-            ):
-                subject._require_issued_spine42_v3_runtime_reader_v2(clone)
-        restored = pickle.loads(pickle.dumps(loaded))
+        for operation in (copy.copy, copy.deepcopy, pickle.dumps):
+            with self.subTest(operation=operation.__name__), \
+                    self.assertRaisesRegex(TypeError, "cannot be serialized"):
+                operation(loaded)
+        self.assertNotIn("_READER_RECEIPT", vars(subject))
         with self.assertRaises(Spine42V3RuntimeReaderV2Error):
-            subject._require_issued_spine42_v3_runtime_reader_v2(restored)
-        forged = VerifiedSpine42V3RuntimeEvidenceV2(
-            loaded.path, loaded.bundle, subject._READER_RECEIPT,
-        )
+            VerifiedSpine42V3RuntimeEvidenceV2(
+                loaded.path, loaded.bundle, object(),
+            )
+        forged = object.__new__(VerifiedSpine42V3RuntimeEvidenceV2)
+        object.__setattr__(forged, "path", loaded.path)
+        object.__setattr__(forged, "bundle", loaded.bundle)
         with self.assertRaises(Spine42V3RuntimeReaderV2Error):
             subject._require_issued_spine42_v3_runtime_reader_v2(forged)
 

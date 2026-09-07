@@ -1,6 +1,7 @@
 # 当前状态：2026-09-07
 
 基准提交：`4254151283d82b515934faf14d6d935e1e9a695a`，提交日期 2026-09-03。
+开发 checkpoint 已提交为 `b0f2f76`；不是稳定认证标签。
 本次接续读取了“为我解读这篇论文 (2)”的最新工作记录，并以本地 Git 为准核对。
 
 ## 已提交内核与未提交工作
@@ -28,7 +29,7 @@ manager、readback、HTTP routes/security、server 接线与配套测试。这�
 | 主工作台一键 region Spine | 尚未实现，仍是 P1 主线 |
 | 三种 Pipeline Profile | 本轮实现声明合同、Schema、validator、开发 CLI；尚未接执行器 |
 | 通用分段臂腿 Mesh、袖子权重 | 尚未实现，不修改 leg-only v1 语义 |
-| 20 角色 Benchmark | 标注流程已准备，已定位 12 个新增 PSD，待审计与 split 标注 |
+| 20 角色 Benchmark | 标注流程已准备，20 PNG + 12 PSD 字节盘点完成，待图层审计与 split 标注 |
 
 ## A/B 历史保护
 
@@ -45,11 +46,13 @@ B 的四条不可观测下肢接缝与 ankle.left 阻塞不得因为历史 P9 �
 
 测试及冻结结论见 [基线报告](baseline-tests-2026-09.md)。稳定版本标签
 `certification-core-2026-09` 尚未创建：此次仅作 checkpoint commit，执行链不能直接视为认证冻结点；
-完整 A/B 工件清单与当前身份重放也尚未完成。
+历史 P3–P6/seam 重放 13/13 通过，但 A/B current 身份的完整封存仍未完成。
 
 新执行顺序见 [自动化路线](automation-roadmap-2026-09.md)。下一开发切片为
 AS-003/004 的 PipelineRun 与能力解析，随后接 AS-005 一键 region 预览与 AS-006
 异常队列。这不是新增 P10.8/P10.9 阶段。
 
 本机未发现 `gh`，当前工具也无 GitHub 写入连接器；未创建远端 Issues、Milestones
-或 Labels。本地 backlog 与 [标注流程](benchmark-annotation-2026-09.md) 已保存。
+或 Labels。本地 backlog、GitHub capability Issue 模板与 [标注流程](benchmark-annotation-2026-09.md) 已保存。
+[素材盘点与 Alice 隔离审计](benchmark/intake-2026-09.md) 记录 20 PNG / 12 PSD，
+不将文件名映射、画布变换或图层语义声明为已批准。

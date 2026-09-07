@@ -32,6 +32,7 @@ from autospine_workbench.motion_policy_preflight import (
 from autospine_workbench.server import create_server
 from tests.motion_policy_decision_helpers import MotionPolicyDecisionFixture
 from tests.test_project_store import StoreFixture
+from tests.filesystem_snapshot import snapshot_file
 
 
 class MotionPolicyFixtureMixin:
@@ -173,6 +174,6 @@ def tree_snapshot(*roots: Path):
             rows.append((
                 relative,
                 path.is_dir(),
-                b"" if path.is_dir() else path.read_bytes(),
+                b"" if path.is_dir() else snapshot_file(root, path),
             ))
     return tuple(rows)

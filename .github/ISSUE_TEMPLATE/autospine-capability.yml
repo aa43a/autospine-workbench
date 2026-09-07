@@ -1,0 +1,48 @@
+name: AutoSpine capability
+description: Track a product capability with explicit evidence and maintainability gates.
+title: "AS-XXX "
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: User outcome
+      description: Describe the input, ordinary user action, and observable result.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope and dependencies
+      description: Name the product milestone, supported inputs, and prerequisite issues.
+    validations:
+      required: true
+  - type: textarea
+    id: contracts
+    attributes:
+      label: Contracts and evidence
+      description: Specify the profile/IR, Schema, validator, pure core, exact reader/store, entry point, and fixtures. Explain any non-applicable item.
+    validations:
+      required: true
+  - type: textarea
+    id: failure
+    attributes:
+      label: Failure and recovery
+      description: List reason codes, review conditions, invalidated outputs, rollback, and restart behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance evidence
+      description: Define measurable checks, dataset split, numerical tolerances and visual/Runtime requirements. Separate mocks from real evidence.
+    validations:
+      required: true
+  - type: checkboxes
+    id: boundaries
+    attributes:
+      label: Delivery gates
+      options:
+        - label: Preserve frozen v1 addresses and golden files.
+        - label: Keep candidate, policy_auto, human decision, and release authority distinct.
+        - label: Respect file-size budgets and legacy ratchets.
+        - label: Update workflow entry, capability reference and operator documentation.

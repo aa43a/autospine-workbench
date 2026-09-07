@@ -46,6 +46,9 @@ def _runtime_reader_capability():
                     "Verified runtime evidence v2 is reader-issued only"
                 )
 
+        def __reduce_ex__(self, _protocol):
+            raise TypeError("Verified runtime evidence v2 cannot be serialized")
+
     def issue(path, bundle):
         value = VerifiedSpine42V3RuntimeEvidenceV2(path, bundle, receipt)
         with lock:

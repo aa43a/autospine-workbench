@@ -43,6 +43,12 @@ class SeamAnchorReviewReplayCacheHttpTests(unittest.TestCase):
         image_url = envelope["attachment_images"][0]["url"]
 
         store = self.fixture.server.project_store
+        # A cold server must acquire the state root's exclusive manager lease.
+        # Stop the fixture server before testing a fresh replay cache.
+        self.fixture.server.shutdown()
+        self.fixture.server.server_close()
+        self.fixture.thread.join(timeout=5)
+        self.assertFalse(self.fixture.thread.is_alive())
         server = create_server(
             "127.0.0.1", 0, store.workspace_root,
             web_root=ROOT / "web", state_root=self.fixture.state,

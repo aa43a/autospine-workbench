@@ -20,6 +20,7 @@ from tests.body_sway_visual_review_helpers import (
     review_rows,
 )
 from tests.test_project_store import StoreFixture
+from tests.filesystem_snapshot import snapshot_file
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -128,10 +129,10 @@ class VisualReviewHttpFixture:
         }
 
 
-def complete_tree(root: Path) -> tuple[tuple[str, str, bytes], ...]:
+def complete_tree(root: Path) -> tuple:
     rows = []
     for path in sorted(root.rglob("*")):
         relative = path.relative_to(root).as_posix()
         rows.append((relative, "directory", b"")) if path.is_dir() \
-            else rows.append((relative, "file", path.read_bytes()))
+            else rows.append((relative, "file", snapshot_file(root, path)))
     return tuple(rows)

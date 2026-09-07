@@ -57,6 +57,7 @@ from tests.p10_review_admission_v2_http_cases import (  # noqa: E402
     P10ReviewAdmissionV2HttpCases,
 )
 from tests.test_project_store import StoreFixture  # noqa: E402
+from tests.filesystem_snapshot import snapshot_file  # noqa: E402
 
 
 SHA = lambda value: value * 64
@@ -350,7 +351,7 @@ def _completed_snapshot(request, addresses):
 def _tree(root):
     return tuple(
         (path.relative_to(root).as_posix(), path.is_dir(),
-         b"" if path.is_dir() else path.read_bytes())
+         b"" if path.is_dir() else snapshot_file(root, path))
         for path in sorted(root.rglob("*"))
     )
 

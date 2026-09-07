@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from types import SimpleNamespace
+from tests.filesystem_snapshot import snapshot_file
 
 from autospine_workbench.motion_policy_decision import (
     build_motion_policy_decision,
@@ -71,9 +72,9 @@ class P9V2Fixture:
         return self.p5.project_id
 
 
-def tree(root: Path) -> dict[str, bytes]:
+def tree(root: Path) -> dict:
     return {
-        path.relative_to(root).as_posix(): path.read_bytes()
+        path.relative_to(root).as_posix(): snapshot_file(root, path)
         for path in root.rglob("*")
         if path.is_file()
     }
