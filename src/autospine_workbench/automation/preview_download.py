@@ -15,7 +15,7 @@ from .storage_io import directory
 from .target_version import target_from_run
 
 
-def export_preview(state_root, run, destination):
+def export_preview(state_root, run, destination, *, editor_import=True):
     """Never replace an existing different file or trust a journal as evidence."""
     validate_run(run)
     if run["status"] != "succeeded":
@@ -30,14 +30,7 @@ def export_preview(state_root, run, destination):
             raise PipelineRunError("pipeline_artifact_invalid")
     except (OSError, RuntimeError, ValueError, TypeError) as exc:
         raise PipelineRunError("pipeline_artifact_invalid") from exc
-    buffer = BytesIO()
-    with ZipFile(buffer, "w", compression=ZIP_STORED) as archive:
-        for name, content in sorted(bundle.files.items()):
-            info = ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0))
-            info.create_system = 3
-            info.external_attr = 0o100644 << 16
-            archive.writestr(info, content)
-    data = buffer.getvalue()
+    data = preview_zip(state_root, run["project_id"], bundle, editor_import=editor_import)
     destination = Path(os.path.abspath(os.fspath(destination)))
     if destination.suffix.lower() != ".zip":
         raise PipelineRunError("pipeline_output_requires_zip")
@@ -69,3 +62,20 @@ def export_preview(state_root, run, destination):
 def _same_file(path, data):
     if read_real_file(path, len(data) + 1, "preview export") != data:
         raise PipelineRunError("pipeline_output_exists")
+
+
+def preview_zip(state_root, project_id, bundle, *, editor_import=True):
+    """Package editor conveniences separately from the immutable runtime files."""
+    files = bundle.files
+    if editor_import:
+        from .editor_import import build_editor_files
+
+        files.update(build_editor_files(state_root, project_id, bundle))
+    buffer = BytesIO()
+    with ZipFile(buffer, "w", compression=ZIP_STORED) as archive:
+        for name, content in sorted(files.items()):
+            info = ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0))
+            info.create_system = 3
+            info.external_attr = 0o100644 << 16
+            archive.writestr(info, content)
+    return buffer.getvalue()

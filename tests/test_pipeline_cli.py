@@ -32,11 +32,17 @@ class PipelineCliTests(unittest.TestCase):
         self.assertEqual(status, 0, run)
         previous = target.read_bytes()
         with ZipFile(target) as archive:
-            self.assertEqual(set(archive.namelist()), {
+            self.assertEqual({name for name in archive.namelist() if not name.startswith("editor/")}, {
                 "skeleton.json", "skeleton.atlas", "skeleton.png", "source.json", "qa.json",
             })
             self.assertEqual(json.loads(archive.read("skeleton.json"))["skeleton"]["spine"], "4.3.26")
             self.assertEqual(json.loads(archive.read("qa.json"))["runtime_status"], "not_run")
+            editor = json.loads(archive.read("editor/skeleton.json"))
+            self.assertEqual(editor["skeleton"]["images"], "./images/")
+            for skin in editor["skins"]:
+                for attachments in skin["attachments"].values():
+                    for attachment in attachments.values():
+                        self.assertTrue(archive.read(f"editor/images/{attachment['path']}.png").startswith(b"\x89PNG"))
         self.assertEqual(self.invoke("preview", "fixture-project", "--output", str(target)), (0, run))
         self.assertEqual(target.read_bytes(), previous)
         self.assertEqual(self.invoke("status", run["run_id"]), (0, run))

@@ -10,6 +10,7 @@ from .pipeline_run import PipelineRunError
 from .region_preview import verify_region_preview
 from .region_preview_store import FILES, LIMITS, _digest
 from .target_version import require_target_version, target_from_run
+from .preview_download import preview_zip
 
 
 def download_job(manager, project_id, job_id):
@@ -49,4 +50,4 @@ def download_job(manager, project_id, job_id):
             raise PipelineRunError("pipeline_artifact_invalid")
     except (OSError, RuntimeError, ValueError, TypeError) as exc:
         raise PipelineRunError("pipeline_artifact_invalid") from exc
-    return raw
+    return preview_zip(manager.application.state_root, project_id, verified)

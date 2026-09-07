@@ -66,6 +66,7 @@ export function createAutomationView(document, callbacks) {
   for (const button of [build, refresh, cancel]) button.type = "button";
   const download = node(document, "a", "下载 JSON / Atlas / PNG / QA", "button button-secondary");
   download.setAttribute("download", "");
+  const importHelp = node(document, "p", "完整解压后，在 Spine 中导入 editor/skeleton.json；独立图片位于 editor/images。", "automation-description");
   const status = node(document, "p", "请选择项目。", "automation-status");
   status.setAttribute("role", "status");
   status.setAttribute("aria-live", "polite");
@@ -74,7 +75,7 @@ export function createAutomationView(document, callbacks) {
   const queue = node(document, "ul", "", "automation-queue");
   const note = node(document, "p", "静态预览不包含动作，也未执行官方 Runtime 验证。", "automation-description");
   actions.append(build, refresh, cancel);
-  section.append(heading, description, targetRow, actions, status, steps, download, queueHeading, queue, note);
+  section.append(heading, description, targetRow, actions, status, steps, download, importHelp, queueHeading, queue, note);
   mount?.append(section);
   build.addEventListener("click", () => callbacks.start());
   refresh.addEventListener("click", () => callbacks.refresh());
@@ -90,6 +91,7 @@ export function createAutomationView(document, callbacks) {
     cancel.hidden = !model.canCancel;
     cancel.disabled = model.canceling;
     download.hidden = !model.downloadUrl;
+    importHelp.hidden = !model.downloadUrl;
     if (model.downloadUrl) download.setAttribute("href", model.downloadUrl);
     else download.removeAttribute("href");
     status.textContent = model.message;

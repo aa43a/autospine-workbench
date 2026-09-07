@@ -97,10 +97,16 @@ class PipelineWebHttpTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(headers["Content-Type"], "application/zip")
         with ZipFile(BytesIO(raw)) as archive:
-            self.assertEqual(set(archive.namelist()), {
+            self.assertEqual({name for name in archive.namelist() if not name.startswith("editor/")}, {
                 "skeleton.json", "skeleton.atlas", "skeleton.png", "qa.json", "source.json",
             })
             self.assertTrue(archive.read("skeleton.png").startswith(b"\x89PNG"))
+            editor = json.loads(archive.read("editor/skeleton.json"))
+            self.assertEqual(editor["skeleton"]["images"], "./images/")
+            for skin in editor["skins"]:
+                for attachments in skin["attachments"].values():
+                    for attachment in attachments.values():
+                        self.assertTrue(archive.read(f"editor/images/{attachment['path']}.png").startswith(b"\x89PNG"))
             self.assertEqual(json.loads(archive.read("skeleton.json"))["skeleton"]["spine"], "4.3.26")
             qa = json.loads(archive.read("qa.json"))
             self.assertEqual(qa["runtime_status"], "not_run")

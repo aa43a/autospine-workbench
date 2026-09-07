@@ -1,5 +1,13 @@
 # Spine 4.3.26 适配（2026-09-07）
 
+编辑器导入修正：默认下载现附 `editor/skeleton.json`（相对图片目录 `./images/`）
+和逐附件原始 PNG。完整解压后导入这份 JSON；根目录 JSON/Atlas/PNG 继续用于 Runtime。
+原包只有图集，编辑器导入会显示 MISSING，参见
+[官方导入指南](https://us.esotericsoftware.com/blog/Importing-skeleton-data)。
+编辑器文件是从精确预览及已验证 P2 原图派生的下载内容；不改变运行时工件、历史
+source/bundle 地址或旧任务回执。回执 `zip_sha256` 仍指封存的五文件 Runtime ZIP，
+下载接口验证它后附加编辑器资源，因此最终下载字节与该封存 ZIP 不同。
+
 主工作台与 `python -m autospine_workbench.automation preview` 默认目标为 4.3.26。
 UI 版本选择器和 CLI `--target-version 4.2` 保留原输出。命名为 compile-spine42
 的历史认证命令继续使用 4.2，不把历史证据重新标记为 4.3。

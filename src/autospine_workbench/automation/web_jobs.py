@@ -117,7 +117,7 @@ class PipelineWebJobs:
                 if run["status"] in {"pending", "running"}:
                     result = response("blocked", reason_code="pipeline_resume_required")
                 if run["status"] == "succeeded":
-                    export_preview(self.application.state_root, run, path / "preview.zip")
+                    export_preview(self.application.state_root, run, path / "preview.zip", editor_import=False)
                     result["zip_sha256"] = hashlib.sha256((path / "preview.zip").read_bytes()).hexdigest()
         except (OSError, RuntimeError, ValueError, TypeError, KeyError) as exc:
             reason = getattr(exc, "reason_code", "pipeline_step_failed")

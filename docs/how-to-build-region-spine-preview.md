@@ -44,7 +44,11 @@ python -m autospine_workbench.automation preview <project-id> --target-version 4
 把 `--workspace`、`--state-root` 放在子命令之前。这些是部署选项，回执不会显示本地路径。
 
 成功生成的 ZIP 包含 `skeleton.json`、`skeleton.atlas`、`skeleton.png`、`source.json`
-和 `qa.json`。使用与所选版本匹配的 Spine 工具打开。当前只有 setup，没有动画。
+和 `qa.json`，这些根目录文件用于 Runtime。另附 `editor/skeleton.json` 和
+`editor/images/*.png` 供编辑器导入。完整解压 ZIP，在对应版本 Spine 中选择
+“导入数据”并打开 **`editor/skeleton.json`**。如图片目录未自动定位，在层级树
+“图片”节点设置为解压后的 `editor/images` 目录。不要直接把图集 PNG 当作每个附件图片。
+当前只有 setup，没有动画。
 4.3.26 的格式和文件验证已接入，官方 Runtime 验证仍为 `not_run`。
 已有同内容 ZIP 可重复使用；同名不同内容文件会返回 `pipeline_output_exists`，不会覆盖。
 
