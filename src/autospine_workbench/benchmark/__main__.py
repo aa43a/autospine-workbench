@@ -90,10 +90,15 @@ def parser():
     register_area_parser(sub)
     from .elbow_comparison_cli import register_parser as register_elbow_parser
     register_elbow_parser(sub)
+    from .elbow_constraint_cli import register_parser as register_constraint_parser
+    register_constraint_parser(sub)
     return result
 
 
 def _execute(args):
+    if args.command == 'correct-elbow-preview':
+        from .elbow_constraint_cli import execute
+        return execute(args)
     if args.command == 'compare-elbow-deformation':
         from .elbow_comparison_cli import execute
         return execute(args)

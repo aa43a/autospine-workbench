@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[肘部局部约束修正](docs/how-to-elbow-constraints.md)已接通：固定刚性端部、限制修正量，
+独立检查面积、边长与翻转；通过只表示实验逐度数值 QA，不是正式动画或 Runtime 通过。
+
 [肘部三方案对照](docs/how-to-elbow-comparison.md)已接通辅助骨与 corrective 局部偏移实验；
 改善了面积收缩，但仍未达到实验阈值，尚未采用或导出。
 

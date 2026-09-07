@@ -1,0 +1,110 @@
+{
+  "authority": "none",
+  "production_authorized": false,
+  "test_count": 37,
+  "validation": [
+    "Exact CLI source replay",
+    "Schema",
+    "Numeric recomputation",
+    "CAS readback",
+    "Chrome Alice layout"
+  ],
+  "limitations": [
+    "No full Python/Web suite",
+    "No Runtime",
+    "No seam/texture/continuous-angle guarantee"
+  ],
+  "records": [
+    {
+      "character": "alice",
+      "report_sha256": "37b5774d147dcec7d9d99c813020af7e7bc8753fa89d6eb29a8ad7653907e56c",
+      "source_mesh_sha256": "b22423a7e3c6cf284b8c2ea824134655bde70fdefe45f47f6092da69119724b6",
+      "evaluated_layers": [
+        {
+          "correction_budget_px": 10.374449580098217,
+          "inverted_triangle_samples": 0,
+          "layer_id": "layer-003",
+          "locked_max_error": 0.0,
+          "max_area_ratio": 1.5011045346058265,
+          "max_correction_px": 1.561066503443044,
+          "max_edge_stretch": 1.5102733773342722,
+          "min_area_ratio": 0.5499999999999894,
+          "reason_codes": [],
+          "setup_max_error": 0.0,
+          "status": "passed",
+          "worst": {
+            "angle_degrees": 81,
+            "triangle_index": 96
+          }
+        },
+        {
+          "correction_budget_px": 11.762528601027931,
+          "inverted_triangle_samples": 0,
+          "layer_id": "layer-004",
+          "locked_max_error": 0.0,
+          "max_area_ratio": 1.4942074627258415,
+          "max_correction_px": 1.1642446430342646,
+          "max_edge_stretch": 1.4997762222141,
+          "min_area_ratio": 0.5499999999999697,
+          "reason_codes": [],
+          "setup_max_error": 0.0,
+          "status": "passed",
+          "worst": {
+            "angle_degrees": -90,
+            "triangle_index": 153
+          }
+        }
+      ],
+      "not_evaluated_count": 21
+    },
+    {
+      "character": "lingxian",
+      "report_sha256": "ebac769eb58af60ce117a5402bfa79149dffcdeee4173fb0be3edadbe1324089",
+      "source_mesh_sha256": "6e409938b6470fd6d2207a7be8fe071cf13f72bf97658cd0182b901bf13c3ff6",
+      "evaluated_layers": [
+        {
+          "correction_budget_px": 15.265816772449481,
+          "inverted_triangle_samples": 0,
+          "layer_id": "layer-001",
+          "locked_max_error": 0.0,
+          "max_area_ratio": 1.4230269515509812,
+          "max_correction_px": 2.6858395307556004,
+          "max_edge_stretch": 1.4878550049953154,
+          "min_area_ratio": 0.5499999999702371,
+          "reason_codes": [],
+          "setup_max_error": 0.0,
+          "status": "passed",
+          "worst": {
+            "angle_degrees": -90,
+            "triangle_index": 193
+          }
+        },
+        {
+          "correction_budget_px": 13.807946150677154,
+          "inverted_triangle_samples": 0,
+          "layer_id": "layer-002",
+          "locked_max_error": 0.0,
+          "max_area_ratio": 1.4856567057478596,
+          "max_correction_px": 2.9119602213511016,
+          "max_edge_stretch": 1.5056685587705851,
+          "min_area_ratio": 0.5499999999999897,
+          "reason_codes": [],
+          "setup_max_error": 0.0,
+          "status": "passed",
+          "worst": {
+            "angle_degrees": -83,
+            "triangle_index": 147
+          }
+        }
+      ],
+      "not_evaluated_count": 19
+    },
+    {
+      "character": "crino",
+      "report_sha256": "60a50b576faebd36dcdbcf3ae7bf7818c8199bfc098abc66bd4943701fd15bb9",
+      "source_mesh_sha256": "97f0d6f3b2e61afc7acb1b11ea4449ad306ca6bcdb3a87a1d6b1ed158a7763da",
+      "evaluated_layers": [],
+      "not_evaluated_count": 18
+    }
+  ]
+}

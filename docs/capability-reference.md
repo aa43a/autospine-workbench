@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+`correct-elbow-preview` 生成受位移预算约束的肘部面积修正与逐度 QA；
+仅实验数值预览，尚无时间轴/纹理/接缝或 Runtime 通过声明。
+
 `compare-elbow-deformation` 比较原 LBS、半角辅助骨与旋转修正，输出独立报告和同角度线框。
 候选尚未通过全部面积 QA，不接正式导出；见[实验说明](how-to-elbow-comparison.md)。
 

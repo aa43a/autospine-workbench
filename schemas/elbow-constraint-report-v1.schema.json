@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Bounded elbow area and edge constraint report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "authority",
+    "production_authorized",
+    "profile",
+    "source_mesh_sha256",
+    "source_skeleton_sha256",
+    "probe_range",
+    "threshold_status",
+    "seam_status",
+    "runtime_status",
+    "layers",
+    "iterations",
+    "solver_area_bounds",
+    "solver_edge_limit"
+  ],
+  "properties": {
+    "schema": {
+      "const": "autospine.elbow-constraint-report/v1"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "production_authorized": {
+      "const": false
+    },
+    "profile": {
+      "const": "bounded-area-edge-projection-v1"
+    },
+    "source_mesh_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "source_skeleton_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "probe_range": {
+      "const": [
+        -90,
+        90,
+        1
+      ]
+    },
+    "threshold_status": {
+      "const": "experimental_uncalibrated"
+    },
+    "seam_status": {
+      "const": "not_evaluated"
+    },
+    "runtime_status": {
+      "const": "not_evaluated"
+    },
+    "layers": {
+      "type": "array",
+      "maxItems": 4096,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "layer_id",
+          "status",
+          "reason_codes"
+        ],
+        "properties": {
+          "layer_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "enum": [
+              "passed",
+              "blocked",
+              "not_evaluated"
+            ]
+          },
+          "reason_codes": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "weighted_mesh_required",
+                "mesh_area_compression",
+                "mesh_area_expansion",
+                "mesh_edge_stretch",
+                "mesh_triangle_inversion",
+                "mesh_setup_mismatch",
+                "mesh_locked_vertex_moved",
+                "mesh_correction_budget_exceeded"
+              ]
+            }
+          },
+          "min_area_ratio": {
+            "type": "number"
+          },
+          "max_area_ratio": {
+            "type": "number"
+          },
+          "inverted_triangle_samples": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "worst": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "angle_degrees",
+              "triangle_index"
+            ],
+            "properties": {
+              "angle_degrees": {
+                "type": "integer",
+                "minimum": -90,
+                "maximum": 90
+              },
+              "triangle_index": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          "max_edge_stretch": {
+            "type": "number",
+            "minimum": 0
+          },
+          "setup_max_error": {
+            "type": "number",
+            "minimum": 0
+          },
+          "locked_max_error": {
+            "type": "number",
+            "minimum": 0
+          },
+          "max_correction_px": {
+            "type": "number",
+            "minimum": 0
+          },
+          "correction_budget_px": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "if": {
+          "properties": {
+            "status": {
+              "const": "not_evaluated"
+            }
+          }
+        },
+        "then": {
+          "maxProperties": 3
+        },
+        "else": {
+          "required": [
+            "min_area_ratio",
+            "max_area_ratio",
+            "inverted_triangle_samples",
+            "worst",
+            "max_edge_stretch",
+            "setup_max_error",
+            "locked_max_error",
+            "max_correction_px",
+            "correction_budget_px"
+          ]
+        }
+      }
+    },
+    "iterations": {
+      "const": 48
+    },
+    "solver_area_bounds": {
+      "const": [
+        0.55,
+        1.9
+      ]
+    },
+    "solver_edge_limit": {
+      "const": 1.9
+    }
+  }
+}
