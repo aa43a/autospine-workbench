@@ -70,10 +70,20 @@ def parser():
     from .r2a_cli import register_parser as register_r2a_parser
 
     register_r2a_parser(sub)
+    from .joint_reference_cli import register_parser as register_reference_parser
+    from .pose_accuracy_cli import register_parser as register_accuracy_parser
+    register_reference_parser(sub)
+    register_accuracy_parser(sub)
     return result
 
 
 def _execute(args):
+    if args.command in ('record-joint-reference', 'evaluate-pose-benchmark'):
+        if args.command == 'record-joint-reference':
+            from .joint_reference_cli import execute
+        else:
+            from .pose_accuracy_cli import execute
+        return execute(args)
     if args.command == "build-r2a":
         from .r2a_cli import execute
 

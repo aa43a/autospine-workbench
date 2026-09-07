@@ -1,5 +1,9 @@
 # 当前状态：2026-09-07
 
+R2-B 评估链已接通：独立标注Reference、显式记录CLI、三方法共同GT点对照、源闭包
+精确重放及只读评估页。三个真实开发角色尚无正式Reference，误差全部null；不改变
+镜像/可见性阻塞。见 [独立标注与评估](how-to-benchmark-pose-evaluation.md)。
+
 R2-B 首个真实模型入口已交付：固定 DWPose ONNX + 隔离CPU环境，Alice/铃仙/琪露诺
 三角色真实推理、完整SimCC存储、COCO17适配和只读对照已运行。原始分数可大于1，
 规范分数显式编码；visibility和默认镜像保持unknown，融合仍阻塞。无人工GT，误差为null。

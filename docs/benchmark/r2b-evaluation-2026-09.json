@@ -1,0 +1,41 @@
+{
+  "authority": "none",
+  "characters": [
+    {
+      "source_name": "alice.psd",
+      "evaluation_sha256": "e89293a66eca0f56abd1aa3fdc0b71e328d5c94a56f08bb25f5f6f7df10dc6b1",
+      "run_sha256": "60bd1e6fed52bbd609a1123116ab7fc85a5aefc789f0028b666244c5c3d7e0de",
+      "reference_sha256": null,
+      "reference_counts": {
+        "observed": 0,
+        "unmarked": 12,
+        "unobservable": 0
+      },
+      "accuracy_evaluated": false
+    },
+    {
+      "source_name": "lingxian.psd",
+      "evaluation_sha256": "df936bc68457ac9247e1308ec410e93f1f47b0558d346baed448920ef2463648",
+      "run_sha256": "5c95a07c63a33bf175f93ca094276c357f418b63f119bf00d009175f27016c56",
+      "reference_sha256": null,
+      "reference_counts": {
+        "observed": 0,
+        "unmarked": 12,
+        "unobservable": 0
+      },
+      "accuracy_evaluated": false
+    },
+    {
+      "source_name": "crino.psd",
+      "evaluation_sha256": "ba36b4e40edfe186922fc9b5995b59212488b079a008a348ba63518215e5eb71",
+      "run_sha256": "828e0bb132d27b06da82c039b5b9aec547232b4511173aa4bb2d617cdfc2d21a",
+      "reference_sha256": null,
+      "reference_counts": {
+        "observed": 0,
+        "unmarked": 12,
+        "unobservable": 0
+      },
+      "accuracy_evaluated": false
+    }
+  ]
+}

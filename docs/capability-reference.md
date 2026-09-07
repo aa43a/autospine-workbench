@@ -1,5 +1,9 @@
 # AutoSpine Workbench 功能与入口参考
 
+`record-joint-reference` 显式记录独立 Benchmark 标注，`evaluate-pose-benchmark` 读取
+精确R2-A与参考闭包并比较三方法误差；无GT不计算误差，不同方法只比较共同参考点。
+见 [操作说明](how-to-benchmark-pose-evaluation.md)。
+
 [真实 DWPose CPU Runner](how-to-real-pose.md)可按Benchmark角色自动解析身份和合成图，
 在隔离环境输出原始133点/完整SimCC及规范12点观测；`build-r2a --pose-comparison-html`
 生成只读对照。没有遮挡判定或人工GT，默认仍阻塞融合和自动采用。

@@ -1,5 +1,10 @@
 # AutoSpine Workbench 架构与质量门禁
 
+R2-B Reference的纯合同与CLI位于 `joint_reference*.py`，保留显式独立标注声明、
+原草稿和请求，scope仅benchmark。`pose_accuracy.py` 只做共同参考点数值分析；
+`pose_accuracy_cli.py` 重放完整源闭包，`pose_accuracy_view.py` 只读呈现缺GT与覆盖率。
+旧草稿、生产权威和候选来源不改变。
+
 真实 Pose 入口独立位于 `runners/pose`：固定模型profile、惰性加载ONNX的producer、
 数值codec、WholeBody→COCO适配和原始张量exact reader分别成小模块。
 CLI在隔离venv执行，按Benchmark解析真实ID；推理张量、规范观测和优化候选分别寻址。

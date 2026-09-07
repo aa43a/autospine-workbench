@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "autospine.benchmark-joint-reference-request/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "candidate_sha256",
+    "draft_sha256",
+    "reviewer",
+    "decision",
+    "independent_annotation",
+    "authority"
+  ],
+  "properties": {
+    "schema": {
+      "const": "autospine.benchmark-joint-reference-request/v1"
+    },
+    "candidate_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "draft_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "reviewer": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120,
+      "pattern": "^\\S(?:[\\s\\S]*\\S)?$"
+    },
+    "decision": {
+      "const": "accept"
+    },
+    "independent_annotation": {
+      "const": true
+    },
+    "authority": {
+      "const": "none"
+    }
+  }
+}

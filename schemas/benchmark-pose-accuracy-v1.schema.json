@@ -1,0 +1,364 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "point": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 4096
+      }
+    },
+    "error": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "position",
+        "distance_px",
+        "distance_height_ratio"
+      ],
+      "properties": {
+        "position": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/point"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "distance_px": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "distance_height_ratio": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        }
+      }
+    },
+    "core": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "compared",
+        "median_distance_px",
+        "median_distance_height_ratio"
+      ],
+      "properties": {
+        "compared": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 12
+        },
+        "median_distance_px": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "median_distance_height_ratio": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        }
+      }
+    },
+    "methodSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "compared": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 12
+        },
+        "median_distance_px": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "median_distance_height_ratio": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "available": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 12
+        },
+        "coverage": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "reference_coverage": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "core": {
+          "$ref": "#/$defs/core"
+        }
+      },
+      "required": [
+        "compared",
+        "median_distance_px",
+        "median_distance_height_ratio",
+        "available",
+        "coverage",
+        "reference_coverage",
+        "core"
+      ]
+    },
+    "comparison": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "compared",
+        "first_median_distance_px",
+        "second_median_distance_px",
+        "median_delta_px",
+        "median_delta_height_ratio"
+      ],
+      "properties": {
+        "compared": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 12
+        },
+        "first_median_distance_px": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "second_median_distance_px": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "median_delta_px": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "median_delta_height_ratio": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      }
+    },
+    "row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "joint_id",
+        "reference_status",
+        "reference_position",
+        "methods"
+      ],
+      "properties": {
+        "joint_id": {
+          "type": "string"
+        },
+        "reference_status": {
+          "enum": [
+            "observed",
+            "unmarked",
+            "unobservable"
+          ]
+        },
+        "reference_position": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/point"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "methods": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "baseline",
+            "pose",
+            "optimized"
+          ],
+          "properties": {
+            "baseline": {
+              "$ref": "#/$defs/error"
+            },
+            "pose": {
+              "$ref": "#/$defs/error"
+            },
+            "optimized": {
+              "$ref": "#/$defs/error"
+            }
+          }
+        }
+      }
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "authority",
+    "accuracy_evaluated",
+    "reference_kind",
+    "character_height_px",
+    "records",
+    "summary",
+    "candidate_sha256",
+    "baseline_sha256",
+    "pose_sha256",
+    "optimization_sha256",
+    "reference_sha256"
+  ],
+  "properties": {
+    "schema": {
+      "const": "autospine.benchmark-pose-accuracy/v1"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "accuracy_evaluated": {
+      "type": "boolean"
+    },
+    "reference_kind": {
+      "enum": [
+        "none",
+        "formal_benchmark_joint_reference"
+      ]
+    },
+    "character_height_px": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 4096
+    },
+    "records": {
+      "type": "array",
+      "minItems": 12,
+      "maxItems": 12,
+      "items": {
+        "$ref": "#/$defs/row"
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reference_counts",
+        "baseline",
+        "pose",
+        "optimized",
+        "comparisons"
+      ],
+      "properties": {
+        "reference_counts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "observed",
+            "unmarked",
+            "unobservable"
+          ],
+          "properties": {
+            "observed": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 12
+            },
+            "unmarked": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 12
+            },
+            "unobservable": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 12
+            }
+          }
+        },
+        "baseline": {
+          "$ref": "#/$defs/methodSummary"
+        },
+        "pose": {
+          "$ref": "#/$defs/methodSummary"
+        },
+        "optimized": {
+          "$ref": "#/$defs/methodSummary"
+        },
+        "comparisons": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "baseline_vs_pose",
+            "pose_vs_optimized"
+          ],
+          "properties": {
+            "baseline_vs_pose": {
+              "$ref": "#/$defs/comparison"
+            },
+            "pose_vs_optimized": {
+              "$ref": "#/$defs/comparison"
+            }
+          }
+        }
+      }
+    },
+    "candidate_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "baseline_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "pose_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "optimization_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "reference_sha256": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}

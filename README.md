@@ -1,5 +1,9 @@
 # AutoSpine Workbench
 
+R2-B 新增[独立关节参考与误差评估](docs/how-to-benchmark-pose-evaluation.md)：显式记录
+Benchmark参考，按共同GT点比较旧bbox／Pose／优化结果。三角色已生成空白标注页，
+没有真实参考时误差保持未评估，不把草稿自动当作GT。
+
 [R2-B 真实 Pose 入口](docs/how-to-real-pose.md)已在独立环境运行 DWPose ONNX，三个开发
 角色各保留133点与完整SimCC张量，自动绑定Benchmark身份并生成只读对照页。
 模型可见性/镜像未复核、人工GT仍为空，因此不自动采用或宣称精度验收完成。

@@ -1,0 +1,167 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "autospine.benchmark-joint-reference/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "authority",
+    "scope",
+    "source_candidate_sha256",
+    "source_draft_sha256",
+    "source_request_sha256",
+    "records",
+    "reviewer",
+    "independent_annotation"
+  ],
+  "properties": {
+    "schema": {
+      "const": "autospine.benchmark-joint-reference/v1"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "scope": {
+      "const": "benchmark_only"
+    },
+    "source_candidate_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "source_draft_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "source_request_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "records": {
+      "type": "array",
+      "minItems": 17,
+      "maxItems": 17,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "joint_id",
+          "status",
+          "position",
+          "notes"
+        ],
+        "properties": {
+          "joint_id": {
+            "enum": [
+              "root",
+              "pelvis",
+              "chest",
+              "neck",
+              "head",
+              "shoulder.left",
+              "shoulder.right",
+              "elbow.left",
+              "elbow.right",
+              "wrist.left",
+              "wrist.right",
+              "hip.left",
+              "hip.right",
+              "knee.left",
+              "knee.right",
+              "ankle.left",
+              "ankle.right"
+            ]
+          },
+          "status": {
+            "enum": [
+              "unmarked",
+              "observed",
+              "unobservable"
+            ]
+          },
+          "position": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              }
+            ]
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 1000
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "status": {
+                  "const": "observed"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "position": {
+                  "type": "array"
+                }
+              }
+            },
+            "else": {
+              "properties": {
+                "position": {
+                  "type": "null"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "status": {
+                  "const": "unobservable"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "notes": {
+                  "minLength": 1,
+                  "pattern": "\\S"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "contains": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "const": "observed"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      }
+    },
+    "reviewer": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120,
+      "pattern": "^\\S(?:[\\s\\S]*\\S)?$"
+    },
+    "independent_annotation": {
+      "const": true
+    }
+  }
+}

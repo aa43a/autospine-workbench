@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "authority", "run_sha256", "reference_sha256", "analysis"],
+  "properties": {
+    "schema": {"const": "autospine.benchmark-pose-evaluation/v1"},
+    "authority": {"const": "none"},
+    "run_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "reference_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+    "analysis": {"$ref": "benchmark-pose-accuracy-v1.schema.json"}
+  }
+}
