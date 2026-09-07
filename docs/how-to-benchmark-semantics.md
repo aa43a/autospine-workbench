@@ -34,6 +34,24 @@ python -m autospine_workbench.benchmark semantic-review --manifest docs/benchmar
 分别按内容寻址保存。`read_semantic_candidate` 重读完整闭包并重新计算建议，防止
 改过建议后重新计算哈希冒充原算法输出。标注草稿不参与算法候选身份。
 
-此入口的纳入/排除只属于待复核标注，不会删除图层或自动批准其语义。正式语义复核、
-关节标注、左右/pose/contact融合及 policy_auto 是后续工作。PNG 坐标关节进入 PSD
+此入口的纳入/排除只属于待复核标注，不会删除图层或自动批准其语义。正式语义复核见下文，
+[关节点录入](how-to-benchmark-joints.md)使用独立草稿；左右/pose/contact融合及 policy_auto 待实现。PNG 坐标关节进入 PSD
 时仍需单独验证对应映射；当前 PSD 局部语义候选没有绕过这条边界。
+
+## 显式采用语义草稿
+
+页面提供接受/拒绝的复核请求，默认不选择、不勾选。接受要求所有层明确纳入或排除；
+纳入层有语义，成对肢体有明确侧别；空层不能纳入，每个排除项需要备注说明。
+操作者须填写复核人、原因并检查图层身份、语义、左右侧。修改草稿后先下载并用
+`--draft` 重建页面，再复核新版本，防止请求引用旧草稿。
+
+实际检查完成后下载请求，使用对应候选和草稿显式记录：
+
+```powershell
+python -m autospine_workbench.benchmark record-semantic-review --manifest docs/benchmark/manifest-frozen-v1.json --evidence docs/benchmark/development-audit-2026-09.json --workspace .. --character crino.psd --candidate ../tmp/benchmark-semantics/crino-candidates-v1.json --draft ../tmp/benchmark-semantics/crino-edited.json --request semantic-review-request.json --confirm-human-review --output ../tmp/benchmark-semantics/crino-decision.json
+```
+
+请求下载本身不是已记录决定。CLI 再次核验实际输入文件，保存候选、草稿、请求及决定，
+`read_semantic_decision` 沿完整闭包重算。决定仅作用于 Benchmark 语义，仍不产生
+Rig、主工作台 override 或发布权。复核人是本地填写的声明，不是身份认证。
+没有隐式 latest 或撤销语义；后续消费必须明确指定一份精确决定。

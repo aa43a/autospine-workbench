@@ -125,3 +125,17 @@ holdout。爱丽丝经真实 Chrome 离屏显示检查，原图/PSD 角色尺寸
 先处理开发集的PNG↔PSD候选对应、缩放/裁切/补边/镜像和坐标系，再准备可人工复核
 的关节/语义真值与真实候选观测。自动采用先记录建议并核对正确性，满足高精度条件后
 才启用可撤销决定；本切片未增加policy_auto生产写入，也未宣布自动绑骨MVP完成。
+
+2026-09-07 关节录入与语义采用切片：新增 PSD 画布 17 关节草稿、离线录点/撤销/
+不可观测原因/恢复，以及绑定候选和草稿的显式语义复核请求与决定。决定仅用于
+Benchmark 语义，不授予生产权限。CLI 重验素材和审计闭包；改过的草稿须重新复核。
+
+三个 development 样本生成 `../tmp/benchmark-joints/{alice,lingxian,crino}-v1.html`
+和 `../tmp/benchmark-semantics/{alice,lingxian,crino}-adoption-v1.html`。共51个关节
+仍未标注，未生成任何真实接受决定。关节草稿通过 Schema 校验，琪露诺页面经真实
+Chrome 离屏检查图片与初始状态；截图为 `../tmp/benchmark-joints/crino-qa.png`，
+不作为 Runtime 或关节准确性证据。原语义候选身份不变，holdout 未打开。
+
+完整 Benchmark 回归128项通过（23.951秒），最终巨大整数边界及维护性7项复测通过。
+新源码均低于300行。旧可信内核全量与官方 Runtime 本切片未重跑。下一步接入自动
+关节候选对照和误差统计，真实精度需待人工标注与复核后计算。

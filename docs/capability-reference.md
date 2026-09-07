@@ -2,6 +2,8 @@
 
 [图层语义复核](how-to-benchmark-semantics.md)已支持开发集逐层图片、19项词汇的明确名称建议、
 空层/隐藏层提示，以及语义、左右、纳入/排除草稿下载和恢复；不自动采用、不写关节真值。
+现支持显式语义接受/拒绝记录；[关节点录入](how-to-benchmark-joints.md)提供17个固定关节的
+未标注、已录点、不可观测状态和草稿恢复，仍不生成已批准骨架。
 
 开发集[PNG / PSD 坐标复核](how-to-benchmark-mapping.md)：Benchmark CLI 生成离线叠加页，
 支持缩放/平移/镜像草稿下载与精确身份重载；独立的显式映射复核记录入口保持 Benchmark 范围，不生成 Rig。

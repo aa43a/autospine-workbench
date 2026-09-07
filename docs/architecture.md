@@ -4,6 +4,10 @@ PSD 局部语义候选在 `benchmark/semantic_candidates.py` 中按固定名称�
 `semantic_cli.py` 核验真实 audit/图层文件并封存输入闭包，`semantic_draft.py` 与
 `semantic_view.py` 分别约束未批准标注和离线显示，不修改旧 Layer Manifest 语义。
 
+`annotation_cli.py` 复用语义输入闭包，分别存储 joint-drafts 和 semantic-decisions。
+关节草稿与语义决定各自绑定原候选；语义决定还绑定明确的草稿和人工请求，
+不将未标注、不可观测或未决定项转换为生产许可。
+
 Benchmark 映射候选在独立 `benchmark/mapping.py` 中计算和验证；文件核验、CLI 与
 离线页面分别位于 `mapping_cli.py`、`mapping_view.py`。它绑定原图、PSD、冻结数据集和
 合成证据，复用不可变报告 store。坐标草稿无批准权，不进入旧 Resolved/P9/P10 身份闭包。

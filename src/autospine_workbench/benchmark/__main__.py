@@ -52,10 +52,17 @@ def parser():
     from .semantic_cli import register_parser as register_semantic_parser
 
     register_semantic_parser(sub)
+    from .annotation_cli import register_parsers as register_annotation_parsers
+
+    register_annotation_parsers(sub)
     return result
 
 
 def _execute(args):
+    if args.command in {"joint-review", "record-semantic-review"}:
+        from .annotation_cli import execute
+
+        return execute(args)
     if args.command == "semantic-review":
         from .semantic_cli import execute
 

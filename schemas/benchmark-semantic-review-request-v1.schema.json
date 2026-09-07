@@ -1,0 +1,67 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "autospine.benchmark-semantic-review-request/v1"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "candidate_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "draft_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "reviewer": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "action": {
+      "enum": [
+        "accept",
+        "reject"
+      ]
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000
+    },
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "layer_identity",
+        "semantics_checked",
+        "sides_checked"
+      ],
+      "properties": {
+        "layer_identity": {
+          "type": "boolean"
+        },
+        "semantics_checked": {
+          "type": "boolean"
+        },
+        "sides_checked": {
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  "required": [
+    "schema",
+    "authority",
+    "candidate_sha256",
+    "draft_sha256",
+    "reviewer",
+    "action",
+    "reason",
+    "checks"
+  ],
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

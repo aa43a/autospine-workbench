@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "autospine.benchmark-joint-draft/v1",
+  "title": "Unapproved PSD canvas joint observations",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "candidate_sha256", "authority", "records"],
+  "properties": {
+    "schema": {"const": "autospine.benchmark-joint-draft/v1"},
+    "candidate_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "authority": {"const": "none"},
+    "records": {
+      "type": "array", "minItems": 17, "maxItems": 17,
+      "description": "Canonical order, uniqueness and canvas bounds are checked by the semantic validator.",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["joint_id", "status", "position", "notes"],
+        "properties": {
+          "joint_id": {"enum": ["root", "pelvis", "chest", "neck", "head", "shoulder.left", "shoulder.right", "elbow.left", "elbow.right", "wrist.left", "wrist.right", "hip.left", "hip.right", "knee.left", "knee.right", "ankle.left", "ankle.right"]},
+          "status": {"enum": ["unmarked", "observed", "unobservable"]},
+          "position": {"oneOf": [{"type": "null"}, {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number", "minimum": 0}}]},
+          "notes": {"type": "string", "maxLength": 1000}
+        },
+        "allOf": [
+          {"if": {"properties": {"status": {"const": "observed"}}}, "then": {"properties": {"position": {"type": "array"}}}, "else": {"properties": {"position": {"type": "null"}}}},
+          {"if": {"properties": {"status": {"const": "unobservable"}}}, "then": {"properties": {"notes": {"minLength": 1, "pattern": "\\S"}}}}
+        ]
+      }
+    }
+  }
+}

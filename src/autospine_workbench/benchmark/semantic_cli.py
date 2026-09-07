@@ -48,6 +48,14 @@ def read_semantic_candidate(state_root, manifest, digest):
     return validate_semantic_candidates(manifest, evidence, candidate, audit)
 
 
+def publish_semantic_candidate(state_root, manifest, evidence, candidate, audit):
+    snapshot = {"schema": "autospine.benchmark-audit-snapshot/v1", "authority": "none", "payload": audit}
+    for kind, value in (("semantic-evidence", evidence), ("semantic-audits", snapshot),
+                        ("semantic-candidates", candidate)):
+        publish_report(state_root, manifest["dataset_id"], kind, value)
+    return read_semantic_candidate(state_root, manifest, canonical_sha256(candidate))
+
+
 def execute(args):
     from .semantic_draft import build_semantic_draft, validate_semantic_draft
     from .semantic_view import render_semantic_review
@@ -56,11 +64,8 @@ def execute(args):
     manifest, evidence = read_input(args.manifest), read_input(args.evidence)
     candidate, audit, composite, images = load_semantic_inputs(manifest, evidence, args.workspace, args.character)
     draft = validate_semantic_draft(candidate, read_input(args.draft)) if args.draft else build_semantic_draft(candidate)
-    snapshot = {"schema": "autospine.benchmark-audit-snapshot/v1", "authority": "none", "payload": audit}
-    for kind, value in (("semantic-evidence", evidence), ("semantic-audits", snapshot),
-                        ("semantic-candidates", candidate), ("semantic-drafts", draft)):
-        publish_report(args.state_root, manifest["dataset_id"], kind, value)
-    read_semantic_candidate(args.state_root, manifest, canonical_sha256(candidate))
+    publish_semantic_candidate(args.state_root, manifest, evidence, candidate, audit)
+    publish_report(args.state_root, manifest["dataset_id"], "semantic-drafts", draft)
     if args.draft_output:
         export_document(args.draft_output, draft)
     export_html(args.html, render_semantic_review(candidate, composite, images, draft=draft))

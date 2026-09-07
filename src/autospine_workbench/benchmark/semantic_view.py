@@ -8,6 +8,8 @@ import re
 from ..resolved_project import canonical_sha256
 from .semantic_draft import build_semantic_draft, validate_semantic_draft
 from .semantic_candidates import VOCABULARY
+from .semantic_decision import PAIRED_SEMANTICS
+from .semantic_review_view import render_semantic_review_controls, REVIEW_SCRIPT
 
 _LABELS = dict(zip(VOCABULARY, (
     "面部", "颈部", "躯干", "上臂", "前臂", "手", "大腿", "小腿", "脚",
@@ -62,14 +64,18 @@ def render_semantic_review(candidate, composite_bytes, layer_images, *, draft=No
 <label>备注（最多 1000 字，无控制字符）<input id="notes-{index}" maxlength="1000" type="text"></label>
 </article>''')
     data = {"candidate_sha256": canonical_sha256(candidate), "layer_ids": [layer["layer_id"] for layer in layers],
-            "vocabulary": list(VOCABULARY), "draft": initial}
+            "vocabulary": list(VOCABULARY), "draft": initial,
+            "empty_layer_ids": [row["layer_id"] for row in layers if row["observed"]["empty"]],
+            "paired_semantics": sorted(PAIRED_SEMANTICS)}
     serialized = json.dumps(data, ensure_ascii=False, allow_nan=False, separators=(",", ":"))
     for raw, encoded in (("&", "\\u0026"), ("<", "\\u003c"), (">", "\\u003e"),
                          ("\u2028", "\\u2028"), ("\u2029", "\\u2029")):
         serialized = serialized.replace(raw, encoded)
     replacements = {"__DATA__": serialized, "__CARDS__": ''.join(cards),
                     "__COMPOSITE__": _image_url(composite_bytes, candidate["composite_sha256"]),
-                    "__CANVAS__": escape(str(candidate["canvas"])), "__SCRIPT__": _SCRIPT}
+                    "__CANVAS__": escape(str(candidate["canvas"])),
+                    "__REVIEW__": render_semantic_review_controls(initial),
+                    "__SCRIPT__": _SCRIPT.replace("/* REVIEW */", REVIEW_SCRIPT)}
     return re.sub('|'.join(replacements), lambda match: replacements[match[0]], _PAGE)
 
 
@@ -100,7 +106,7 @@ button{background:#185acb;color:white;cursor:pointer}button:disabled{opacity:.5;
 <img id="composite" class="checker" alt="PSD 合成图" src="__COMPOSITE__">
 <div class="toolbar"><button id="download" type="button">下载语义草稿</button>
 <label>恢复同一候选的草稿<input id="restore" type="file" accept="application/json,.json"></label></div>
-<p id="status" role="status" aria-live="polite"></p><div class="cards">__CARDS__</div>
+<p id="status" role="status" aria-live="polite"></p><div class="cards">__CARDS__</div>__REVIEW__
 <script id="semantic-data" type="application/json">__DATA__</script><script>__SCRIPT__</script></body></html>'''
 
 
@@ -162,9 +168,11 @@ get('restore').addEventListener('change', async () => {
   try {
     if (file.size > 2 * 1024 * 1024) throw Error('草稿文件过大');
     const value = JSON.parse(await file.text()); apply(value);
+    if (get('restore').dispatchEvent) get('restore').dispatchEvent(new Event('semantic-restored'));
     status.textContent = '已恢复同一候选的草稿；所有选择仍待正式复核。';
   } catch (error) {status.textContent = `恢复失败：${error.message}；当前选择未改变。`;}
   finally {get('restore').value = '';}
 });
 apply(data.draft);
+/* REVIEW */
 })();'''

@@ -1,0 +1,87 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "autospine.benchmark-semantic-decision/v1"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "reviewer": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "action": {
+      "enum": [
+        "accept",
+        "reject"
+      ]
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000
+    },
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "layer_identity",
+        "semantics_checked",
+        "sides_checked"
+      ],
+      "properties": {
+        "layer_identity": {
+          "type": "boolean"
+        },
+        "semantics_checked": {
+          "type": "boolean"
+        },
+        "sides_checked": {
+          "type": "boolean"
+        }
+      }
+    },
+    "source_candidate_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "source_draft_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "source_request_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "semantic_status": {
+      "enum": [
+        "reviewed_accepted",
+        "reviewed_rejected"
+      ]
+    },
+    "decision_source": {
+      "const": "human_explicit"
+    },
+    "scope": {
+      "const": "benchmark_semantics_only"
+    }
+  },
+  "required": [
+    "schema",
+    "authority",
+    "reviewer",
+    "action",
+    "reason",
+    "checks",
+    "source_candidate_sha256",
+    "source_draft_sha256",
+    "source_request_sha256",
+    "semantic_status",
+    "decision_source",
+    "scope"
+  ],
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}
