@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[三骨加权网格实验入口](docs/how-to-weighted-mesh.md)已接通：alpha网格、三骨归一化权重、局部坐标LBS
+和固定角度翻转/拉伸QA。失败网格保留诊断并阻塞；尚未接正式Spine导出。
+
 [Alpha骨链覆盖分析](docs/how-to-chain-coverage.md)已接通：4连通域、PSD坐标质心和逐骨21点覆盖诊断。
 用户指令确认的19项默认选择已封存；无默认建议项保持待处理，覆盖报告不改写选择。
 

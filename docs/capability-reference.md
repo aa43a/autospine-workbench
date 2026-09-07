@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+`build-weighted-mesh --draft` 编译已选单侧三骨链的实验网格与权重，输出setup叠图和弯曲QA。
+只有逐层QA通过才为待复核候选；双侧和未选项不生成网格，尚无正式目标导出。
+
 `analyze-chain-coverage --bindings --draft` 分析多骨候选图层的alpha连通域和骨段覆盖，
 可展示已封存的选择。报告不自动采用、不生成权重，见[操作说明](how-to-chain-coverage.md)。
 

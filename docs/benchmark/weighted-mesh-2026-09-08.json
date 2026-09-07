@@ -1,0 +1,218 @@
+{
+  "profile": "alpha-grid-three-bone-v1",
+  "production_authorized": false,
+  "characters": [
+    {
+      "character": "alice",
+      "artifact_sha256": "ab864c766cd1b55be892d658da67ebaeadcb4e88f82e61de54ecb838e3f976c1",
+      "generated": [
+        {
+          "layer_id": "layer-003",
+          "status": "blocked",
+          "vertex_count": 251,
+          "triangle_count": 394,
+          "qa": {
+            "passed": false,
+            "probes": [
+              {
+                "id": "setup",
+                "inverted_triangle_count": 0,
+                "max_edge_stretch": 1.0000000000000189
+              },
+              {
+                "id": "elbow_+30",
+                "inverted_triangle_count": 0,
+                "max_edge_stretch": 1.2952539274807653
+              },
+              {
+                "id": "elbow_-30",
+                "inverted_triangle_count": 0,
+                "max_edge_stretch": 1.3057000760416182
+              },
+              {
+                "id": "elbow_+60",
+                "inverted_triangle_count": 0,
+                "max_edge_stretch": 1.5232135700261094
+              },
+              {
+                "id": "elbow_-60",
+                "inverted_triangle_count": 0,
+                "max_edge_stretch": 1.5382335961752807
+              },
+              {
+                "id": "elbow_+90",
+                "inverted_triangle_count": 2,
+                "max_edge_stretch": 1.6599198834527296
+              },
+              {
+                "id": "elbow_-90",
+                "inverted_triangle_count": 0,
+                "max_edge_stretch": 1.6836339330950088
+              }
+            ],
+            "setup_max_error": 1.2710574864626038e-13,
+            "weight_sum_max_error": 2.220446049250313e-16
+          }
+        },
+        {
+          "layer_id": "layer-004",
+          "status": "candidate_requires_review",
+          "vertex_count": 247,
+          "triangle_count": 384,
+          "qa": {
+            "passed": true,
+            "probes": [
+              {
+                "id": "setup",
+                "inverted_triangle_count": 0,
+                "max_edge_stretch": 1.000000000000038
+              },
+              {
+                "id": "elbow_+30",
+                "inverted_triangle_count": 0,
+                "max_edge_stretch": 1.3017160094218303
+              },
+              {
+                "id": "elbow_-30",
+                "inverted_triangle_count": 0,
+                "max_edge_stretch": 1.286689972444563
+              },
+              {
+                "id": "elbow_+60",
+                "inverted_triangle_count": 0,
+                "max_edge_stretch": 1.5300732297212842
+              },
+              {
+                "id": "elbow_-60",
+                "inverted_triangle_count": 0,
+                "max_edge_stretch": 1.4984905837854325
+              },
+              {
+                "id": "elbow_+90",
+                "inverted_triangle_count": 0,
+                "max_edge_stretch": 1.667705291203219
+              },
+              {
+                "id": "elbow_-90",
+                "inverted_triangle_count": 0,
+                "max_edge_stretch": 1.6160584197113839
+              }
+            ],
+            "setup_max_error": 1.6077746776921858e-13,
+            "weight_sum_max_error": 2.220446049250313e-16
+          }
+        }
+      ],
+      "no_mesh_count": 21
+    },
+    {
+      "character": "lingxian",
+      "artifact_sha256": "654da49563e596bee5bf99c7dc5af9b80ec09d73dfd020965b0fcd9685756696",
+      "generated": [
+        {
+          "layer_id": "layer-001",
+          "status": "candidate_requires_review",
+          "vertex_count": 234,
+          "triangle_count": 362,
+          "qa": {
+            "passed": true,
+            "probes": [
+              {
+                "id": "setup",
+                "inverted_triangle_count": 0,
+                "max_edge_stretch": 1.0000000000000175
+              },
+              {
+                "id": "elbow_+30",
+                "inverted_triangle_count": 0,
+                "max_edge_stretch": 1.2823104223256125
+              },
+              {
+                "id": "elbow_-30",
+                "inverted_triangle_count": 0,
+                "max_edge_stretch": 1.277221685355861
+              },
+              {
+                "id": "elbow_+60",
+                "inverted_triangle_count": 0,
+                "max_edge_stretch": 1.5025674895992005
+              },
+              {
+                "id": "elbow_-60",
+                "inverted_triangle_count": 0,
+                "max_edge_stretch": 1.4838986141299757
+              },
+              {
+                "id": "elbow_+90",
+                "inverted_triangle_count": 0,
+                "max_edge_stretch": 1.6357903369457432
+              },
+              {
+                "id": "elbow_-90",
+                "inverted_triangle_count": 0,
+                "max_edge_stretch": 1.5997098927149518
+              }
+            ],
+            "setup_max_error": 1.6077746776921858e-13,
+            "weight_sum_max_error": 2.220446049250313e-16
+          }
+        },
+        {
+          "layer_id": "layer-002",
+          "status": "candidate_requires_review",
+          "vertex_count": 228,
+          "triangle_count": 350,
+          "qa": {
+            "passed": true,
+            "probes": [
+              {
+                "id": "setup",
+                "inverted_triangle_count": 0,
+                "max_edge_stretch": 1.0000000000000175
+              },
+              {
+                "id": "elbow_+30",
+                "inverted_triangle_count": 0,
+                "max_edge_stretch": 1.2625391267307877
+              },
+              {
+                "id": "elbow_-30",
+                "inverted_triangle_count": 0,
+                "max_edge_stretch": 1.2690754855966624
+              },
+              {
+                "id": "elbow_+60",
+                "inverted_triangle_count": 0,
+                "max_edge_stretch": 1.4708738921065012
+              },
+              {
+                "id": "elbow_-60",
+                "inverted_triangle_count": 0,
+                "max_edge_stretch": 1.4564092156261974
+              },
+              {
+                "id": "elbow_+90",
+                "inverted_triangle_count": 0,
+                "max_edge_stretch": 1.598689214239486
+              },
+              {
+                "id": "elbow_-90",
+                "inverted_triangle_count": 0,
+                "max_edge_stretch": 1.5694258663222083
+              }
+            ],
+            "setup_max_error": 2.5421149729252077e-13,
+            "weight_sum_max_error": 2.220446049250313e-16
+          }
+        }
+      ],
+      "no_mesh_count": 19
+    },
+    {
+      "character": "crino",
+      "artifact_sha256": "4c6fa0886157fd2c4b51825a1cee15b4b532c0dcec557df1413a489939d949fa",
+      "generated": [],
+      "no_mesh_count": 18
+    }
+  ]
+}

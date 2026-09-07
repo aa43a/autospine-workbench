@@ -82,10 +82,15 @@ def parser():
     register_layer_binding_parser(sub)
     from .chain_coverage_cli import register_parser as register_coverage_parser
     register_coverage_parser(sub)
+    from .mesh_candidate_cli import register_parser as register_mesh_parser
+    register_mesh_parser(sub)
     return result
 
 
 def _execute(args):
+    if args.command == 'build-weighted-mesh':
+        from .mesh_candidate_cli import execute
+        return execute(args)
     if args.command == 'analyze-chain-coverage':
         from .chain_coverage_cli import execute
         return execute(args)
@@ -181,10 +186,17 @@ def main(argv=None):
     args = parser().parse_args(argv)
     try:
         document, kind, dataset_id, code = _execute(args)
-        digest = BenchmarkManifestStore(args.state_root).publish(document) if kind == "manifests" \
-            else publish_report(args.state_root, dataset_id, kind, document)
+        if kind == 'weighted-mesh-candidates':
+            from .mesh_storage import publish_mesh_report,export_mesh
+            digest = publish_mesh_report(args.state_root,dataset_id,document)
+        else:
+            digest = BenchmarkManifestStore(args.state_root).publish(document) if kind == "manifests" \
+                else publish_report(args.state_root, dataset_id, kind, document)
         if args.output is not None:
-            export_document(args.output, document)
+            if kind == 'weighted-mesh-candidates':
+                export_mesh(args.output,document)
+            else:
+                export_document(args.output, document)
             print(json.dumps({"status": "written", "artifact_sha256": digest,
                               "authority": "none", "kind": kind}, sort_keys=True))
         else:

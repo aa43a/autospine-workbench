@@ -1,5 +1,9 @@
 # AutoSpine Workbench 架构与质量门禁
 
+`asset/joints/mesh_candidate.py` 组合既有alpha grid与新 `mesh_weights.py` 三骨LBS实验算法。
+CLI/view/store分模块，mesh_storage限定16MiB并重用安全路径验证，旧128KiB报告读写不变。
+QA失败保留候选几何且status blocked，不写生产RigIR。
+
 `asset/joints/chain_coverage.py` 独立实现4连通RLE/并查集及骨段alpha采样，
 不改既有8连通AlphaGeometry；CLI重放v2绑定源，view标识草稿选择但不改变测量身份。
 
