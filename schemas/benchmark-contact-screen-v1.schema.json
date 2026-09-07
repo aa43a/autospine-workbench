@@ -1,0 +1,187 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "autospine.benchmark-contact-screen/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "authority",
+    "diagnostic_only",
+    "candidate_sha256",
+    "probe_sha256",
+    "algorithm_profile",
+    "thresholds",
+    "reason_codes",
+    "relations",
+    "summary"
+  ],
+  "properties": {
+    "schema": {
+      "const": "autospine.benchmark-contact-screen/v1"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "diagnostic_only": {
+      "const": true
+    },
+    "candidate_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "probe_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "algorithm_profile": {
+      "const": "clothing-contact-screen-v1"
+    },
+    "thresholds": {
+      "const": {
+        "pelvis_leg": {
+          "warn_overlap_ratio": 0.1,
+          "warn_child_height_ratio": 0.2,
+          "reject_overlap_ratio": 0.25,
+          "reject_child_height_ratio": 0.35
+        }
+      }
+    },
+    "reason_codes": {
+      "const": [
+        "semantic_roles_unreviewed",
+        "character_sides_unreviewed",
+        "joint_assignment_blocked",
+        "heuristic_clothing_proxy_not_anatomy"
+      ]
+    },
+    "relations": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "relation",
+          "role_status",
+          "reason_codes",
+          "pairs"
+        ],
+        "properties": {
+          "relation": {
+            "enum": [
+              "torso_arm",
+              "pelvis_leg",
+              "leg_foot"
+            ]
+          },
+          "role_status": {
+            "const": "unreviewed_clothing_proxy"
+          },
+          "reason_codes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "pairs": {
+            "type": "array",
+            "maxItems": 64,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "layer_ids",
+                "reason_codes",
+                "contacts"
+              ],
+              "properties": {
+                "layer_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "minItems": 2,
+                  "maxItems": 2
+                },
+                "reason_codes": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "contacts": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "contact_id",
+                      "geometry_status",
+                      "reason_codes",
+                      "child_height_ratio",
+                      "joint_id"
+                    ],
+                    "properties": {
+                      "contact_id": {
+                        "type": "string"
+                      },
+                      "geometry_status": {
+                        "enum": [
+                          "rejected_deep_overlap",
+                          "review_required",
+                          "local_contact_candidate"
+                        ]
+                      },
+                      "reason_codes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "child_height_ratio": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "joint_id": {
+                        "type": "null"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total",
+        "rejected_deep_overlap",
+        "review_required",
+        "local_contact_candidate"
+      ],
+      "properties": {
+        "total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "rejected_deep_overlap": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "review_required": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "local_contact_candidate": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

@@ -61,10 +61,17 @@ def parser():
     from .contact_probe_cli import register_parser as register_contact_parser
 
     register_contact_parser(sub)
+    from .contact_screen_cli import register_parser as register_screen_parser
+
+    register_screen_parser(sub)
     return result
 
 
 def _execute(args):
+    if args.command == "screen-contacts":
+        from .contact_screen_cli import execute
+
+        return execute(args)
     if args.command == "probe-contacts":
         from .contact_probe_cli import execute
 
