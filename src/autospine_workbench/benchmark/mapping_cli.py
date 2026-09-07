@@ -10,7 +10,7 @@ from ..automation.storage_io import directory
 from ..resolved_project import canonical_sha256
 from ..safe_input_files import read_real_file
 from ..spine42_v3_bundle_files import existing_exact_child
-from .artifacts import read_input
+from .artifacts import export_document, publish_report, read_input
 from .source_files import MAX_SOURCE_BYTES
 from .validation import validate_benchmark_manifest
 
@@ -23,12 +23,20 @@ def register_parser(sub):
     cmd.add_argument("--character", required=True, help="Character id, PNG name, or PSD filename")
     cmd.add_argument("--html", required=True, type=Path)
     cmd.add_argument("--draft", type=Path)
+    cmd.add_argument("--anchors", type=Path, help="Load a source-bound anchor draft downloaded from the page")
+    cmd.add_argument("--calibration-output", type=Path)
     cmd.add_argument("--output", type=Path)
 
 
 def prepare_review(manifest, evidence, workspace, selector, draft=None):
-    from .mapping import build_mapping_candidate, validate_mapping_candidate
     from .mapping_view import render_mapping_review
+
+    candidate, png, composite = load_review_inputs(manifest, evidence, workspace, selector, draft)
+    return candidate, render_mapping_review(candidate, png, composite)
+
+
+def load_review_inputs(manifest, evidence, workspace, selector, draft=None):
+    from .mapping import build_mapping_candidate, validate_mapping_candidate
 
     validate_benchmark_manifest(manifest)
     if manifest["split_status"] != "frozen":
@@ -69,7 +77,7 @@ def prepare_review(manifest, evidence, workspace, selector, draft=None):
                if key not in {"source_to_psd_transform", "basis"}):
             raise ValueError("benchmark_mapping_draft_mismatch")
         candidate = draft
-    return candidate, render_mapping_review(candidate, png, composite)
+    return candidate, png, composite
 
 
 def _read_asset(workspace, asset):
@@ -119,8 +127,35 @@ def export_html(path, html):
 
 
 def execute(args):
+    from .mapping import validate_mapping_candidate
+    from .mapping_view import render_mapping_review
+
+    if args.calibration_output and not args.anchors:
+        raise ValueError("benchmark_mapping_anchors_required")
     manifest = read_input(args.manifest)
-    candidate, html = prepare_review(manifest, read_input(args.evidence), args.workspace, args.character,
-                                     read_input(args.draft) if args.draft else None)
+    candidate, png, composite = load_review_inputs(
+        manifest, read_input(args.evidence), args.workspace, args.character,
+        read_input(args.draft) if args.draft else None)
+    report = None
+    if args.anchors:
+        from .mapping_anchors import fit_mapping_anchors
+
+        anchors = read_input(args.anchors)
+        report = fit_mapping_anchors(candidate, anchors)
+        if report["fitted_candidate"] is not None:
+            validate_mapping_candidate(manifest, report["fitted_candidate"])
+        for kind, value in (("mapping-candidates", candidate), ("mapping-anchors", anchors),
+                            ("mapping-calibrations", report)):
+            publish_report(args.state_root, manifest["dataset_id"], kind, value)
+        from .mapping_calibration_store import read_mapping_calibration
+
+        read_mapping_calibration(args.state_root, manifest, canonical_sha256(report))
+        if args.calibration_output:
+            export_document(args.calibration_output, report)
+        if report["fitted_candidate"] is not None:
+            candidate = report["fitted_candidate"]
+    html = render_mapping_review(candidate, png, composite, calibration=report)
     export_html(args.html, html)
+    if report is not None and report["status"] == "blocked":
+        return report, "mapping-calibrations", manifest["dataset_id"], 2
     return candidate, "mapping-candidates", manifest["dataset_id"], 0

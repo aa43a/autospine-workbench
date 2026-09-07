@@ -5,8 +5,10 @@ from html import escape
 import json
 import re
 
+from .mapping_anchor_view import ANCHOR_SCRIPT, render_anchor_controls
 
-def render_mapping_review(candidate, png_bytes, composite_bytes):
+
+def render_mapping_review(candidate, png_bytes, composite_bytes, *, calibration=None):
     """Render already validated candidate evidence without reading files or approving it."""
     if candidate.get("authority") != "none" or candidate.get("review_required") is not True:
         raise ValueError("benchmark_mapping_review_authority_invalid")
@@ -30,7 +32,13 @@ def render_mapping_review(candidate, png_bytes, composite_bytes):
         "__PSD_NAME__": escape(candidate["psd_source"]["path"], quote=True),
         "__PNG_DATA__": png_url, "__COMPOSITE_DATA__": composite_url,
         "__CANDIDATE_JSON__": serialized,
+        "__ANCHOR_CONTROLS__": render_anchor_controls(candidate),
+        "__ANCHOR_SCRIPT__": ANCHOR_SCRIPT,
+        "__CALIBRATION_SUMMARY__": "",
     }
+    if calibration is not None:
+        from .mapping_calibration_view import render_calibration_summary
+        replacements["__CALIBRATION_SUMMARY__"] = render_calibration_summary(calibration)
     return re.sub("|".join(replacements), lambda match: replacements[match[0]], _PAGE)
 
 
@@ -62,6 +70,8 @@ button{cursor:pointer;background:#fff}button.primary{background:#185acb;color:wh
 <figure><figcaption>原始 PNG：__SOURCE_NAME__</figcaption><img id="source" class="checker" alt="原始 PNG" src="__PNG_DATA__"></figure>
 <figure><figcaption>PSD 合成图：__PSD_NAME__</figcaption><img id="composite" class="checker" alt="PSD 合成图" src="__COMPOSITE_DATA__"></figure>
 </div>
+__ANCHOR_CONTROLS__
+__CALIBRATION_SUMMARY__
 <h2>在 PSD 画布上对齐</h2>
 <p>坐标原点在左上角，X 向右、Y 向下，单位为像素。原 PNG 映射为 x′ = scaleX × x + translateX，y′ = scaleY × y + translateY。负缩放表示镜像；缩放不可为零。</p>
 <p>画布尺寸比例只是初始假设；请对照轮廓检查裁切、留白与形变。叠加透明度仅影响显示，不写入候选。</p>
@@ -129,4 +139,5 @@ download.addEventListener('click',() => {
   document.body.appendChild(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url),1000);
 });
 reset();
+__ANCHOR_SCRIPT__
 </script></body></html>'''

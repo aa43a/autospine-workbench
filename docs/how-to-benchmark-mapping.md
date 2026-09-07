@@ -44,4 +44,31 @@ CLI 重读所选 PNG、PSD 与合成 PNG，核对大小、哈希和画布。候�
 
 本页导出的是 `authority=none`、`review_required=true` 的候选，不是人工批准。
 本切片不写主工作台 override，不填 Benchmark ground truth，不产生 policy_auto 决定，
-也不更改历史 Spine 导出。正式人工映射决定、锚点残差和语义/关节标注是后续工作。
+也不更改历史 Spine 导出。正式人工映射决定和语义/关节标注仍是后续工作。
+
+## 用对应锚点校准
+
+在新版页面中，先点击原 PNG 的某个位置，再点击 PSD 合成图中的相同部位，形成一对。
+至少需要2对，建议3对以上且分布在角色上下左右。图片框因等比显示而产生的留白不能
+选点；原图画布内的透明区域仍属于有效像素坐标，操作者应选实际对应部位。
+可以撤销或清空，也可下载、重新载入绑定同一候选的锚点草稿。
+
+下载锚点后执行（`--draft` 应为生成录点页面时的候选，不是另一个调整版本）：
+
+```powershell
+python -m autospine_workbench.benchmark mapping-review --manifest docs/benchmark/manifest-frozen-v1.json --evidence docs/benchmark/development-audit-2026-09.json --workspace .. --character alice.psd --draft ../tmp/benchmark-mapping/alice.json --anchors mapping-anchors-draft.json --html ../tmp/benchmark-mapping/alice-calibrated.html --output ../tmp/benchmark-mapping/alice-fitted.json --calibration-output ../tmp/benchmark-mapping/alice-calibration.json
+```
+
+校准按 X/Y 分别最小二乘拟合缩放和平移，支持镜像。输出逐点 ΔX/ΔY、距离、
+均方根误差及最大残差占 PSD 高度的比例。两对点通常能被精确拟合，但缺乏冗余验证，
+因此会提示增加对应点，不能把零残差当作对应准确性的证据。
+页面误差对应生成页面时的拟合，不会随手动修改变换而更新；调整后应重新校准。
+
+任一轴点分布跨度不足1像素、变换退化，或最大残差超过 PSD 高度3%时返回 blocked，
+命令退出码为2，页面保留原变换并显示诊断；`--output` 此时输出阻塞报告而非拟合候选。
+其余结果为 needs_review，并输出新的无权威候选。1像素/3%是固定 `axis_ols_v1`
+诊断参数，尚未经10角色标注集校准；不等同于关节误差或自动采用准确率门槛。
+
+输入候选、锚点和校准报告分别内容寻址保存。`read_mapping_calibration` 会读取原
+候选与锚点，绑定原 manifest，重算整个报告，拒绝改过残差后重新计算哈希的伪报告。
+修改输入源或候选后应重新录点/显式准备新草稿；不会静默继承旧候选的锚点身份。

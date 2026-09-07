@@ -2,6 +2,8 @@
 
 开发集[PNG / PSD 坐标复核](how-to-benchmark-mapping.md)：Benchmark CLI 生成离线叠加页，
 支持缩放/平移/镜像草稿下载与精确身份重载。只产生候选，不写人工决定或 Rig。
+现可点击对应锚点、下载/恢复草稿，并通过 CLI 拟合变换、查看逐点残差；
+退化或高残差拟合会阻塞，原变换继续显示。
 
 2026-09 自动化转向见 [当前状态](current-state-2026-09.md)。主工作台右侧“Spine 预览与异常复核”已支持异步构建、结构异常定位、保存复核后续跑、取消与 ZIP 下载。仍可运行 `python -m autospine_workbench.automation preview <project-id> --output preview.zip`。两种入口均自动解析地址，输出静态 setup JSON/Atlas/PNG/QA，没有动画或发布权；队列当前限定 setup-region。详见[操作说明](how-to-build-region-spine-preview.md)。
 

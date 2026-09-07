@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Replayed axis OLS calibration diagnostic; never mapping approval",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "authority", "candidate_sha256", "anchors_sha256", "algorithm_profile",
+               "status", "reason_codes", "transform", "residuals", "rmse_px", "max_residual_px",
+               "max_residual_relative_height", "fitted_candidate"],
+  "properties": {
+    "schema": {"const": "autospine.benchmark-mapping-calibration/v1"},
+    "authority": {"const": "none"},
+    "candidate_sha256": {"$ref": "#/$defs/digest"},
+    "anchors_sha256": {"$ref": "#/$defs/digest"},
+    "algorithm_profile": {"const": {"id": "axis_ols_v1", "min_axis_span_px": 1.0, "max_residual_relative_height": 0.03}},
+    "status": {"enum": ["needs_review", "blocked"]},
+    "reason_codes": {"type": "array", "uniqueItems": true, "items": {"enum": [
+      "underconstrained_validation", "anchor_span_insufficient", "anchor_transform_singular",
+      "anchor_numeric_failure", "anchor_residual_high"]}},
+    "transform": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/transform"}]},
+    "residuals": {"type": "array", "maxItems": 32, "items": {
+      "type": "object", "additionalProperties": false, "required": ["id", "delta", "distance_px"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$"},
+        "delta": {"$ref": "#/$defs/pair"}, "distance_px": {"type": "number", "minimum": 0}
+      }
+    }},
+    "rmse_px": {"$ref": "#/$defs/nullableMetric"},
+    "max_residual_px": {"$ref": "#/$defs/nullableMetric"},
+    "max_residual_relative_height": {"$ref": "#/$defs/nullableMetric"},
+    "fitted_candidate": {"oneOf": [{"type": "null"}, {"$ref": "benchmark-mapping-candidate-v1.schema.json"}]}
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "pair": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number"}},
+    "nullableMetric": {"type": ["number", "null"], "minimum": 0},
+    "transform": {
+      "type": "object", "additionalProperties": false,
+      "required": ["scale", "translation", "coordinate_system"],
+      "properties": {
+        "scale": {"$ref": "#/$defs/pair"}, "translation": {"$ref": "#/$defs/pair"},
+        "coordinate_system": {"const": "pixel_top_left_y_down"}
+      }
+    }
+  }
+}

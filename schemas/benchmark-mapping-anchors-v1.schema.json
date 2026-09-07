@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Non-authoritative PNG to PSD corresponding anchor draft",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "authority", "candidate_sha256", "anchors"],
+  "properties": {
+    "schema": {"const": "autospine.benchmark-mapping-anchors/v1"},
+    "authority": {"const": "none"},
+    "candidate_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "anchors": {
+      "type": "array", "minItems": 2, "maxItems": 32,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "png", "psd"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$"},
+          "png": {"$ref": "#/$defs/point"},
+          "psd": {"$ref": "#/$defs/point"}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "point": {"type": "array", "minItems": 2, "maxItems": 2,
+              "items": {"type": "number", "minimum": 0, "maximum": 100000}}
+  }
+}
