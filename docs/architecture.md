@@ -1,5 +1,9 @@
 # AutoSpine Workbench 架构与质量门禁
 
+`asset/joints/region_binding.py` 生成独立保守region绑定选项，单语义建议与成对骨选项都保持待复核。
+`benchmark/region_binding_cli.py` 重放骨架及全部上游源；view只呈现图层位置与选项。
+新profile不改旧RigIR，source traversal仅用于列表顺序，不作为Spine draw order。
+
 `asset/joints/reviewed_skeleton.py` 从辅助复核坐标构建独立 `assisted-canonical-v1` 候选。
 `benchmark/assisted_skeleton_cli.py` 重放标注、Pose、基线和素材闭包，view模块只读叠图。
 不伪造 JointOptimization 输入或修改旧骨架编译器；中央点原样保留，末端延伸显式追踪。

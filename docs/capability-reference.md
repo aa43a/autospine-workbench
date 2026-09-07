@@ -1,5 +1,9 @@
 # AutoSpine Workbench 功能与入口参考
 
+`build-region-bindings --skeleton` 读取已封存骨架文件并生成图层绑定候选，逐层显示图片、骨段选项和原因。
+左右未确认时不自动选择；未知/隐藏/空/越界层阻塞。局部变换可还原原图层位置，仍无生产绑定权威。
+见[操作说明](how-to-region-bindings.md)。
+
 `build-assisted-skeleton --draft` 接收已封存的辅助复核文件，无需手填地址，输出20骨候选和离线叠图。
 17点未全复核、缺位置、骨长/边界/中央顺序异常均明确阻塞；当前不输出图层绑定或生产RigIR。
 见[辅助骨架操作说明](how-to-assisted-skeleton.md)。

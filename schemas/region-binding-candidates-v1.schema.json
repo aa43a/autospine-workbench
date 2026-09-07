@@ -1,0 +1,146 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "autospine.region-binding-candidates/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "candidate_sha256",
+    "source_skeleton_sha256",
+    "profile",
+    "authority",
+    "production_authorized",
+    "status",
+    "canvas",
+    "bindings"
+  ],
+  "properties": {
+    "schema": {
+      "const": "autospine.region-binding-candidates/v1"
+    },
+    "candidate_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "source_skeleton_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "profile": {
+      "const": "conservative-region-binding-v1"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "production_authorized": {
+      "const": false
+    },
+    "status": {
+      "enum": [
+        "needs_review",
+        "blocked"
+      ]
+    },
+    "canvas": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 4096
+      }
+    },
+    "bindings": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "layer_id",
+          "image_sha256",
+          "bbox",
+          "bone_options",
+          "suggested_bone_id",
+          "status",
+          "reason_codes"
+        ],
+        "properties": {
+          "layer_id": {
+            "type": "string"
+          },
+          "image_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "bbox": {
+            "type": "array",
+            "minItems": 4,
+            "maxItems": 4,
+            "items": {
+              "type": "integer"
+            }
+          },
+          "bone_options": {
+            "type": "array",
+            "maxItems": 2,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "bone_id",
+                "setup_local"
+              ],
+              "properties": {
+                "bone_id": {
+                  "type": "string"
+                },
+                "setup_local": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "x",
+                    "y",
+                    "rotation_degrees"
+                  ],
+                  "properties": {
+                    "x": {
+                      "type": "number"
+                    },
+                    "y": {
+                      "type": "number"
+                    },
+                    "rotation_degrees": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "suggested_bone_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "enum": [
+              "needs_review",
+              "blocked"
+            ]
+          },
+          "reason_codes": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

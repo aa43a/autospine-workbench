@@ -76,10 +76,15 @@ def parser():
     register_accuracy_parser(sub)
     from .assisted_skeleton_cli import register_parser as register_assisted_skeleton_parser
     register_assisted_skeleton_parser(sub)
+    from .region_binding_cli import register_parser as register_binding_parser
+    register_binding_parser(sub)
     return result
 
 
 def _execute(args):
+    if args.command == 'build-region-bindings':
+        from .region_binding_cli import execute
+        return execute(args)
     if args.command == 'build-assisted-skeleton':
         from .assisted_skeleton_cli import execute
         return execute(args)

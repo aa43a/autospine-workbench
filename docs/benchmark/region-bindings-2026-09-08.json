@@ -1,0 +1,52 @@
+{
+  "date": "2026-09-08",
+  "profile": "conservative-region-binding-v1",
+  "authority": "none",
+  "production_authorized": false,
+  "characters": [
+    {
+      "character": "alice",
+      "artifact_sha256": "2d461e75fd2791c4ee8b99474e04b2838f997f82733877826bcf3024eb2f674e",
+      "source_skeleton_sha256": "8c64b71c953e40e9d997da8b61035ccd2b2952b3638df6b6dac5be6a64d6ec10",
+      "layer_count": 23,
+      "with_options": 5,
+      "blocked": 18,
+      "max_setup_corner_error_px": 1.1368683772161603e-13,
+      "reason_counts": {
+        "semantic_roles_unreviewed": 5,
+        "region_binding_requires_review": 5,
+        "semantic_binding_unsupported": 18
+      }
+    },
+    {
+      "character": "lingxian",
+      "artifact_sha256": "313ac3b654f489372819b784e58a1536e32af7326c6930baec34cdc78a259388",
+      "source_skeleton_sha256": "895eb588e07a7c3dffffb5b914b14794037e68a2922c9868c505bff52d6ff9c8",
+      "layer_count": 21,
+      "with_options": 5,
+      "blocked": 16,
+      "max_setup_corner_error_px": 1.4210854715202004e-14,
+      "reason_counts": {
+        "semantic_roles_unreviewed": 5,
+        "region_binding_requires_review": 5,
+        "semantic_binding_unsupported": 16
+      }
+    },
+    {
+      "character": "crino",
+      "artifact_sha256": "d451e05a41c62637d00cb4522cb2bdb9794c316a4668599df2d5091fa44cc1d9",
+      "source_skeleton_sha256": "f026ecafeed17fa81819f43214ad04776ceab18648c5222f03c1d34733e1d0ec",
+      "layer_count": 18,
+      "with_options": 5,
+      "blocked": 13,
+      "max_setup_corner_error_px": 1.1368683772161603e-13,
+      "reason_counts": {
+        "semantic_binding_unsupported": 13,
+        "semantic_roles_unreviewed": 5,
+        "region_binding_requires_review": 5,
+        "empty_layer": 1,
+        "hidden_layer": 1
+      }
+    }
+  ]
+}
