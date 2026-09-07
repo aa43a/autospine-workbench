@@ -1,0 +1,250 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "autospine.benchmark-contact-probe/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "authority",
+    "candidate_sha256",
+    "algorithm_profile",
+    "coordinate_system",
+    "canvas",
+    "alpha_threshold_exclusive",
+    "max_gap_px",
+    "relations"
+  ],
+  "properties": {
+    "schema": {
+      "const": "autospine.benchmark-contact-probe/v1"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "candidate_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "algorithm_profile": {
+      "const": "raw-layer-contact-probe-v1"
+    },
+    "coordinate_system": {
+      "const": "psd_canvas"
+    },
+    "canvas": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 4096
+      }
+    },
+    "alpha_threshold_exclusive": {
+      "const": 8
+    },
+    "max_gap_px": {
+      "const": 8
+    },
+    "relations": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "relation",
+          "pairs",
+          "reason_codes"
+        ],
+        "properties": {
+          "relation": {
+            "enum": [
+              "torso_arm",
+              "pelvis_leg",
+              "leg_foot"
+            ]
+          },
+          "pairs": {
+            "type": "array",
+            "maxItems": 64,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "layer_ids",
+                "contacts",
+                "qa_flags",
+                "min_lobe_area"
+              ],
+              "properties": {
+                "layer_ids": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "contacts": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "contact_id",
+                      "joint_id",
+                      "relation",
+                      "layer_ids",
+                      "mode",
+                      "area",
+                      "bbox_xywh",
+                      "centroid_xy",
+                      "variance_xy",
+                      "representative_xy",
+                      "error_radius_px",
+                      "overlap_ratios",
+                      "gap_distance_px",
+                      "endpoints_xy",
+                      "flags"
+                    ],
+                    "properties": {
+                      "contact_id": {
+                        "type": "string"
+                      },
+                      "joint_id": {
+                        "type": "null"
+                      },
+                      "relation": {
+                        "enum": [
+                          "torso_arm",
+                          "pelvis_leg",
+                          "leg_foot"
+                        ]
+                      },
+                      "layer_ids": {
+                        "type": "array",
+                        "minItems": 2,
+                        "maxItems": 2,
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "mode": {
+                        "enum": [
+                          "overlap",
+                          "gap"
+                        ]
+                      },
+                      "area": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "bbox_xywh": {
+                        "type": "array",
+                        "minItems": 4,
+                        "maxItems": 4,
+                        "items": {
+                          "type": "integer"
+                        }
+                      },
+                      "centroid_xy": {
+                        "type": "array",
+                        "minItems": 2,
+                        "maxItems": 2,
+                        "items": {
+                          "type": "number"
+                        }
+                      },
+                      "variance_xy": {
+                        "type": "array",
+                        "minItems": 2,
+                        "maxItems": 2,
+                        "items": {
+                          "type": "number"
+                        }
+                      },
+                      "representative_xy": {
+                        "type": "array",
+                        "minItems": 2,
+                        "maxItems": 2,
+                        "items": {
+                          "type": "number"
+                        }
+                      },
+                      "error_radius_px": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "overlap_ratios": {
+                        "type": "array",
+                        "minItems": 2,
+                        "maxItems": 2,
+                        "items": {
+                          "type": "number"
+                        }
+                      },
+                      "gap_distance_px": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 8
+                      },
+                      "endpoints_xy": {
+                        "type": "array",
+                        "minItems": 2,
+                        "maxItems": 2,
+                        "items": {
+                          "type": "array",
+                          "minItems": 2,
+                          "maxItems": 2,
+                          "items": {
+                            "type": "number"
+                          }
+                        }
+                      },
+                      "flags": {
+                        "const": [
+                          "semantic_roles_unreviewed",
+                          "character_sides_unreviewed",
+                          "joint_assignment_blocked"
+                        ]
+                      }
+                    }
+                  }
+                },
+                "qa_flags": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "min_lobe_area": {
+                  "type": "integer",
+                  "minimum": 16
+                }
+              }
+            }
+          },
+          "reason_codes": {
+            "type": "array",
+            "minItems": 3,
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "semantic_roles_unreviewed",
+                "character_sides_unreviewed",
+                "joint_assignment_blocked",
+                "missing_reference_layer",
+                "missing_child_layer",
+                "empty_layer_skipped",
+                "layer_outside_canvas_skipped"
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

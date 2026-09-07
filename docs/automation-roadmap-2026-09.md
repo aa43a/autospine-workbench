@@ -23,6 +23,10 @@ P0 表格里的重复 AS 编号冲突，例如 AS-002 统一表示 Pipeline Prof
 | 9 | P7 / R6 Blender | 同一 Rig/Animation 输出 armature、UV mesh、Action/NLA |
 | 10 | P8 生产化 | 安装、恢复、性能、文档与跨目标回归 |
 
+R2 当前增量：开发集原名衣物配对的 alpha 接触诊断已接入，三个样本共20个几何接触区；
+仍未获得身体语义、左右或关节分配权。后续优先接触角色、深重叠/多区域歧义与姿态融合，
+不把诊断页或Schema数量计作自动region rig完成。
+
 Runner 与 Attachment 可提前推进，但不能挤占 Mesh/Weight 的主链资源。
 28 周是两工程师加半名技术美术/测试的并行排期，不是当前执行完成承诺；
 无法充分并行时 Blender 延后至 32–36 周。受限输入保持单角色、全身、正面或

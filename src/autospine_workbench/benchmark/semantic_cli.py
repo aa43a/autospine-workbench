@@ -18,7 +18,7 @@ def register_parser(sub):
     cmd.add_argument("--output", type=Path)
 
 
-def load_semantic_inputs(manifest, evidence, workspace, selector):
+def load_semantic_inputs(manifest, evidence, workspace, selector, *, max_layer_bytes=None):
     from .semantic_candidates import build_semantic_candidates
 
     mapping, _, composite = load_review_inputs(manifest, evidence, workspace, selector)
@@ -26,6 +26,11 @@ def load_semantic_inputs(manifest, evidence, workspace, selector):
                   and row["source_psd"] == mapping["psd_source"])
     audit = strict_json_object(_read_asset(workspace, record["outputs"]["audit"]), "semantic audit")
     candidate = build_semantic_candidates(manifest, evidence, mapping["character_id"], audit)
+    if max_layer_bytes is not None:
+        if type(max_layer_bytes) is not int or max_layer_bytes <= 0:
+            raise ValueError("benchmark_semantic_layer_budget_invalid")
+        if sum(row["image"]["byte_size"] for row in candidate["layers"]) > max_layer_bytes:
+            raise ValueError("benchmark_semantic_layer_budget_exceeded")
     images = {}
     for row in candidate["layers"]:
         raw = _read_asset(workspace, row["image"])

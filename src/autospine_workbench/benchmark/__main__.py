@@ -58,10 +58,17 @@ def parser():
     from .joint_comparison_cli import register_parser as register_comparison_parser
 
     register_comparison_parser(sub)
+    from .contact_probe_cli import register_parser as register_contact_parser
+
+    register_contact_parser(sub)
     return result
 
 
 def _execute(args):
+    if args.command == "probe-contacts":
+        from .contact_probe_cli import execute
+
+        return execute(args)
     if args.command == "compare-joints":
         from .joint_comparison_cli import execute
 
