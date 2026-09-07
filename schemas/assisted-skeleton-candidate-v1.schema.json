@@ -1,0 +1,206 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "autospine.assisted-skeleton-candidate/v1"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "diagnostic_only": {
+      "const": true
+    },
+    "status": {
+      "enum": [
+        "candidate_requires_review",
+        "blocked"
+      ]
+    },
+    "candidate_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "profile": {
+      "const": "assisted-canonical-v1"
+    },
+    "coordinate_system": {
+      "const": "psd_canvas"
+    },
+    "canvas": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 4096
+      }
+    },
+    "bones": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "parent_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "head_xy": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 65536
+            }
+          },
+          "tail_xy": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 65536
+            }
+          },
+          "world_rotation_degrees": {
+            "type": "number"
+          },
+          "length": {
+            "type": "number",
+            "minimum": 1
+          },
+          "setup_local": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "x",
+              "y",
+              "rotation_degrees"
+            ],
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "rotation_degrees": {
+                "type": "number"
+              }
+            }
+          },
+          "provenance": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "source_joint_ids",
+              "reason_codes"
+            ],
+            "properties": {
+              "kind": {
+                "enum": [
+                  "assisted_review",
+                  "derived",
+                  "fallback"
+                ]
+              },
+              "source_joint_ids": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "reason_codes": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        },
+        "required": [
+          "id",
+          "parent_id",
+          "head_xy",
+          "tail_xy",
+          "world_rotation_degrees",
+          "length",
+          "setup_local",
+          "provenance"
+        ]
+      }
+    },
+    "reason_codes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "source_assisted_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "production_authorized": {
+      "const": false
+    }
+  },
+  "required": [
+    "schema",
+    "authority",
+    "diagnostic_only",
+    "status",
+    "candidate_sha256",
+    "source_assisted_sha256",
+    "profile",
+    "coordinate_system",
+    "canvas",
+    "bones",
+    "reason_codes",
+    "production_authorized"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "blocked"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "bones": {
+            "maxItems": 0
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "bones": {
+            "minItems": 20,
+            "maxItems": 20
+          }
+        }
+      }
+    }
+  ],
+  "$id": "autospine.assisted-skeleton-candidate/v1"
+}

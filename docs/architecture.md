@@ -1,5 +1,9 @@
 # AutoSpine Workbench 架构与质量门禁
 
+`asset/joints/reviewed_skeleton.py` 从辅助复核坐标构建独立 `assisted-canonical-v1` 候选。
+`benchmark/assisted_skeleton_cli.py` 重放标注、Pose、基线和素材闭包，view模块只读叠图。
+不伪造 JointOptimization 输入或修改旧骨架编译器；中央点原样保留，末端延伸显式追踪。
+
 `assisted_joint_draft.py` 与 `assisted_joint_cli.py` 单独保存模型辅助标注和源闭包，
 复用 `joint_view.py` 的画布拖动及批量编辑。普通草稿v1不增加字段，辅助envelope不能静默降级成独立GT。
 

@@ -1,0 +1,36 @@
+{
+  "date": "2026-09-08",
+  "profile": "assisted-canonical-v1",
+  "authority": "none",
+  "independent_gt": false,
+  "production_authorized": false,
+  "characters": [
+    {
+      "character": "alice",
+      "artifact_sha256": "8c64b71c953e40e9d997da8b61035ccd2b2952b3638df6b6dac5be6a64d6ec10",
+      "source_assisted_sha256": "04b498a6d1b22d1e078ed9790834ffbd88d67ffe1680c1203494fcd12118e305",
+      "status": "candidate_requires_review",
+      "bone_count": 20,
+      "preserved_joint_count": 17,
+      "max_fk_coordinate_error_px": 1.1368683772161603e-13
+    },
+    {
+      "character": "lingxian",
+      "artifact_sha256": "895eb588e07a7c3dffffb5b914b14794037e68a2922c9868c505bff52d6ff9c8",
+      "source_assisted_sha256": "d87d1cacb27fbc15f1772d3d4f69a347b1df8e9ff254adc8d42802efabd1561f",
+      "status": "candidate_requires_review",
+      "bone_count": 20,
+      "preserved_joint_count": 17,
+      "max_fk_coordinate_error_px": 5.684341886080802e-14
+    },
+    {
+      "character": "crino",
+      "artifact_sha256": "f026ecafeed17fa81819f43214ad04776ceab18648c5222f03c1d34733e1d0ec",
+      "source_assisted_sha256": "f0eee4013379d570160b07fc69445b062a50c7015bdc4e2034437e88c94d8c7e",
+      "status": "candidate_requires_review",
+      "bone_count": 20,
+      "preserved_joint_count": 17,
+      "max_fk_coordinate_error_px": 1.1368683772161603e-13
+    }
+  ]
+}

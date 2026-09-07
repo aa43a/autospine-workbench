@@ -1,5 +1,9 @@
 # AutoSpine Workbench 功能与入口参考
 
+`build-assisted-skeleton --draft` 接收已封存的辅助复核文件，无需手填地址，输出20骨候选和离线叠图。
+17点未全复核、缺位置、骨长/边界/中央顺序异常均明确阻塞；当前不输出图层绑定或生产RigIR。
+见[辅助骨架操作说明](how-to-assisted-skeleton.md)。
+
 `joint-review --pose-observations` 一次加载全部关节建议并支持直接拖动、批量确认、撤销和恢复。
 模型辅助草稿绑定原Pose/基线，独立GT入口拒绝此类型；省略Pose参数仍可独立标注。
 
