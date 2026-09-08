@@ -13,7 +13,7 @@
   const animation=json.animations[animationName];
   const seam=animationName==='seam-translation-inspection';
   const remapped=animationName==='remapped-seam-inspection';
-  const alphaSeam=animationName==='alpha-seam-inspection'||animationName==='continuous-anchor-inspection'||animationName==='seam-shape-inspection'||remapped;
+  const alphaSeam=['alpha-seam-inspection','continuous-anchor-inspection','seam-shape-inspection','seam-increment-inspection'].includes(animationName)||remapped;
   const continuous=animationName==='continuous-corrective-inspection'||seam||alphaSeam;
   const duration=Math.max(...Object.values(animation.bones).flatMap(b=>b.rotate.map(k=>k.time)));
   document.querySelector('#time').max=duration;

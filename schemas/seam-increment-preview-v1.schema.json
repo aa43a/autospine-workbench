@@ -1,0 +1,245 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "authority",
+    "production_authorized",
+    "target",
+    "source_atlas_sha256",
+    "source_skeleton_sha256",
+    "regions",
+    "residuals",
+    "scope",
+    "full_character_status",
+    "runtime_status",
+    "seam_status",
+    "files",
+    "zip_sha256",
+    "source_original_atlas_sha256",
+    "source_width_sha256",
+    "width_factor",
+    "results",
+    "source_combined_sha256",
+    "bake_fps",
+    "continuous_motion_status",
+    "bake_qa",
+    "source_continuous_sha256",
+    "source_alpha_sha256",
+    "status",
+    "source_parameters_sha256",
+    "source_remap_sha256",
+    "common_frame_comparison",
+    "schema",
+    "profile",
+    "animation",
+    "source_anchor_sha256",
+    "shape_qa"
+  ],
+  "properties": {
+    "authority": {
+      "$ref": "continuous-anchor-preview-v1.schema.json#/properties/authority"
+    },
+    "production_authorized": {
+      "$ref": "continuous-anchor-preview-v1.schema.json#/properties/production_authorized"
+    },
+    "target": {
+      "$ref": "continuous-anchor-preview-v1.schema.json#/properties/target"
+    },
+    "source_atlas_sha256": {
+      "$ref": "continuous-anchor-preview-v1.schema.json#/properties/source_atlas_sha256"
+    },
+    "source_skeleton_sha256": {
+      "$ref": "continuous-anchor-preview-v1.schema.json#/properties/source_skeleton_sha256"
+    },
+    "regions": {
+      "$ref": "continuous-anchor-preview-v1.schema.json#/properties/regions"
+    },
+    "residuals": {
+      "$ref": "continuous-anchor-preview-v1.schema.json#/properties/residuals"
+    },
+    "scope": {
+      "$ref": "continuous-anchor-preview-v1.schema.json#/properties/scope"
+    },
+    "full_character_status": {
+      "$ref": "continuous-anchor-preview-v1.schema.json#/properties/full_character_status"
+    },
+    "runtime_status": {
+      "$ref": "continuous-anchor-preview-v1.schema.json#/properties/runtime_status"
+    },
+    "seam_status": {
+      "$ref": "continuous-anchor-preview-v1.schema.json#/properties/seam_status"
+    },
+    "files": {
+      "$ref": "continuous-anchor-preview-v1.schema.json#/properties/files"
+    },
+    "zip_sha256": {
+      "$ref": "continuous-anchor-preview-v1.schema.json#/properties/zip_sha256"
+    },
+    "source_original_atlas_sha256": {
+      "$ref": "continuous-anchor-preview-v1.schema.json#/properties/source_original_atlas_sha256"
+    },
+    "source_width_sha256": {
+      "$ref": "continuous-anchor-preview-v1.schema.json#/properties/source_width_sha256"
+    },
+    "width_factor": {
+      "$ref": "continuous-anchor-preview-v1.schema.json#/properties/width_factor"
+    },
+    "results": {
+      "$ref": "continuous-anchor-preview-v1.schema.json#/properties/results"
+    },
+    "source_combined_sha256": {
+      "$ref": "continuous-anchor-preview-v1.schema.json#/properties/source_combined_sha256"
+    },
+    "bake_fps": {
+      "$ref": "continuous-anchor-preview-v1.schema.json#/properties/bake_fps"
+    },
+    "continuous_motion_status": {
+      "$ref": "continuous-anchor-preview-v1.schema.json#/properties/continuous_motion_status"
+    },
+    "bake_qa": {
+      "$ref": "continuous-anchor-preview-v1.schema.json#/properties/bake_qa"
+    },
+    "source_continuous_sha256": {
+      "$ref": "continuous-anchor-preview-v1.schema.json#/properties/source_continuous_sha256"
+    },
+    "source_alpha_sha256": {
+      "$ref": "continuous-anchor-preview-v1.schema.json#/properties/source_alpha_sha256"
+    },
+    "status": {
+      "$ref": "continuous-anchor-preview-v1.schema.json#/properties/status"
+    },
+    "source_parameters_sha256": {
+      "$ref": "continuous-anchor-preview-v1.schema.json#/properties/source_parameters_sha256"
+    },
+    "source_remap_sha256": {
+      "$ref": "continuous-anchor-preview-v1.schema.json#/properties/source_remap_sha256"
+    },
+    "common_frame_comparison": {
+      "$ref": "continuous-anchor-preview-v1.schema.json#/properties/common_frame_comparison"
+    },
+    "schema": {
+      "const": "autospine.seam-increment-preview/v1"
+    },
+    "profile": {
+      "const": "fixed-deform-increment2-v1"
+    },
+    "animation": {
+      "const": "seam_increment_inspection"
+    },
+    "source_anchor_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "shape_qa": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "geometry",
+        "after",
+        "authority",
+        "status",
+        "solver_frames"
+      ],
+      "properties": {
+        "profile": {
+          "const": "fixed-deform-increment2-v1"
+        },
+        "geometry": {
+          "$ref": "alpha-seam-preview-v1.schema.json#/properties/alpha_seam_qa/properties/geometry"
+        },
+        "after": {
+          "$ref": "alpha-seam-preview-v1.schema.json#/properties/alpha_seam_qa/properties/after"
+        },
+        "authority": {
+          "const": "none"
+        },
+        "status": {
+          "enum": [
+            "candidate_noop",
+            "candidate_requires_review",
+            "blocked"
+          ]
+        },
+        "solver_frames": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "driver",
+              "follower",
+              "frames"
+            ],
+            "properties": {
+              "driver": {
+                "type": "string"
+              },
+              "follower": {
+                "type": "string"
+              },
+              "frames": {
+                "type": "array",
+                "minItems": 61,
+                "maxItems": 61,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "time",
+                    "status",
+                    "scale",
+                    "backtracks"
+                  ],
+                  "properties": {
+                    "time": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 2
+                    },
+                    "status": {
+                      "enum": [
+                        "endpoint_zero",
+                        "candidate",
+                        "retained_baseline"
+                      ]
+                    },
+                    "scale": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    "backtracks": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 13
+                    },
+                    "residual_before": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "residual_after": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "proposal_backtracks": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 13
+                    },
+                    "max_increment_px": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 2.00000001
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

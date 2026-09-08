@@ -1,0 +1,233 @@
+{
+  "date": "2026-09-08",
+  "authority": "none",
+  "production_authorized": false,
+  "adoption": "not_adopted_unclassified_raster_gaps",
+  "tests_passed": 60,
+  "source_replay": "all_three_passed",
+  "reader_replay": "alice_passed",
+  "schema_files_zip_checks": "all_three_passed",
+  "browser_views": "all_three_passed",
+  "full_suite": "not_run",
+  "numpy_version": "2.4.6",
+  "python_version": "3.14.3 (tags/v3.14.3:323c59a, Feb  3 2026, 16:04:56) [MSC v.1944 64 bit (AMD64)]",
+  "runtime_package": "@esotericsoftware/spine-webgl",
+  "runtime_version": "4.3.13",
+  "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+  "runtime_report_sha256": "058b52a11cd40e79bc4367ecd73fb61ab6baf2617d3437a54dc00a9c8f62ecfa",
+  "runtime_frames": 363,
+  "runtime_passed": true,
+  "records": [
+    {
+      "character": "alice",
+      "artifact_sha256": "8735f4acb24dbc556fa742c836b7cbe99bdb21a6a3faa3cd2509ec4fd253d145",
+      "source_anchor_sha256": "7afb2aaf21791a0e104bfe9fc52ae7dea08eebbc4f0485550ca613be18397af4",
+      "zip_sha256": "1fba3406f711e29422a69c65494332bca1627d9a05f65948eac609d371aae5c4",
+      "geometry": {
+        "layer-001-l": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.1861672144298558,
+          "max_edge_stretch": 1.2578051700385797,
+          "max_frame_displacement_px": 6.599759908041288,
+          "min_area_ratio": 0.5683308551382462,
+          "passed": true
+        },
+        "layer-001-r": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.2297199313528235,
+          "max_edge_stretch": 1.3009367151546158,
+          "max_frame_displacement_px": 6.60496579312744,
+          "min_area_ratio": 0.6381180902723413,
+          "passed": true
+        },
+        "layer-002-l": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.6634158187120067,
+          "max_edge_stretch": 1.3233456911232653,
+          "max_frame_displacement_px": 9.032251392542662,
+          "min_area_ratio": 0.5323487502748804,
+          "passed": true
+        },
+        "layer-002-r": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.5519552332747382,
+          "max_edge_stretch": 1.3142501372310624,
+          "max_frame_displacement_px": 8.987368295925702,
+          "min_area_ratio": 0.5103475448581358,
+          "passed": true
+        }
+      },
+      "retained_baseline_frames": 0,
+      "max_increment_px": 2.0000000000000004,
+      "original_seams": [
+        {
+          "driver": "layer-001-l",
+          "follower": "layer-002-l",
+          "max_distance_growth_px": 1.1019006993621405,
+          "status": "candidate_requires_review"
+        },
+        {
+          "driver": "layer-001-r",
+          "follower": "layer-002-r",
+          "max_distance_growth_px": 1.7278839885859627,
+          "status": "candidate_requires_review"
+        }
+      ],
+      "common_frame": [
+        {
+          "driver": "layer-001-l",
+          "follower": "layer-002-l",
+          "max_gap_pixels": [
+            4,
+            2
+          ],
+          "frames_with_new_gap": 6
+        },
+        {
+          "driver": "layer-001-r",
+          "follower": "layer-002-r",
+          "max_gap_pixels": [
+            3,
+            1
+          ],
+          "frames_with_new_gap": 0
+        }
+      ],
+      "raster_screenshot_sha256": "e8a244d358ee8d6d7ca9f371b079119ecd0ada9592ab4f47909b262d70f25277"
+    },
+    {
+      "character": "lingxian",
+      "artifact_sha256": "69b7511277e6dc906fcaf27679c1ba0def6f2a82714d02c790b181d06d1dd787",
+      "source_anchor_sha256": "b48832dee2ad3ec93785cdf0ecd573bc31757e5ff368e0dca56e4ed29baf065b",
+      "zip_sha256": "abbb7fbfa065ff74c803036cdec6495379e9de318d84c670ca3ba72793319830",
+      "geometry": {
+        "layer-003-l": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.2634319616216791,
+          "max_edge_stretch": 1.3369758390849302,
+          "max_frame_displacement_px": 9.395779459219256,
+          "min_area_ratio": 0.6463143528705625,
+          "passed": true
+        },
+        "layer-003-r": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.1664948968445046,
+          "max_edge_stretch": 1.2470347574124239,
+          "max_frame_displacement_px": 9.542601270218313,
+          "min_area_ratio": 0.5820481271748058,
+          "passed": true
+        }
+      },
+      "retained_baseline_frames": 0,
+      "max_increment_px": 0,
+      "original_seams": [],
+      "common_frame": [],
+      "raster_screenshot_sha256": "327670c8c85185938825dbc4f368ca999ecbd440e3e3c955e51578b5a12b99b0"
+    },
+    {
+      "character": "crino",
+      "artifact_sha256": "11fad8902fa08197e27a3c925f512244c8da554c1494a51232ff0a2d1594e99b",
+      "source_anchor_sha256": "2b7494c762641210625f193936bc40ea7e67f0d9a6797554aa4032ba57af0f5d",
+      "zip_sha256": "21d610af4a30bb9579872f30a9bd5b6c3df220c7db2d250460acf26450da6c12",
+      "geometry": {
+        "layer-004-l": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.4257555114977394,
+          "max_edge_stretch": 1.3233700518784033,
+          "max_frame_displacement_px": 8.371151055016261,
+          "min_area_ratio": 0.5501331173187808,
+          "passed": true
+        },
+        "layer-004-r": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.2628062179286146,
+          "max_edge_stretch": 1.2405004035243028,
+          "max_frame_displacement_px": 7.923021572556827,
+          "min_area_ratio": 0.5627159837207865,
+          "passed": true
+        },
+        "layer-005-l": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.2702172823925402,
+          "max_edge_stretch": 1.362668200483568,
+          "max_frame_displacement_px": 9.77212082627153,
+          "min_area_ratio": 0.5499999999999989,
+          "passed": true
+        },
+        "layer-005-r": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.2779505672490232,
+          "max_edge_stretch": 1.3628969821854764,
+          "max_frame_displacement_px": 9.612031306147648,
+          "min_area_ratio": 0.5808497964347196,
+          "passed": true
+        },
+        "layer-006-l": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.4091262992163693,
+          "max_edge_stretch": 1.3008882888224902,
+          "max_frame_displacement_px": 12.0299996164325,
+          "min_area_ratio": 0.6243656241837126,
+          "passed": true
+        },
+        "layer-006-r": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.2691599492740662,
+          "max_edge_stretch": 1.288109842445771,
+          "max_frame_displacement_px": 11.90005283337595,
+          "min_area_ratio": 0.6308234741975414,
+          "passed": true
+        }
+      },
+      "retained_baseline_frames": 0,
+      "max_increment_px": 1.9407935627635626,
+      "original_seams": [
+        {
+          "driver": "layer-005-l",
+          "follower": "layer-006-l",
+          "max_distance_growth_px": 0.2789498452246333,
+          "status": "candidate_requires_review"
+        },
+        {
+          "driver": "layer-005-r",
+          "follower": "layer-006-r",
+          "max_distance_growth_px": 0.4027757448689626,
+          "status": "candidate_requires_review"
+        }
+      ],
+      "common_frame": [
+        {
+          "driver": "layer-005-l",
+          "follower": "layer-006-l",
+          "max_gap_pixels": [
+            6,
+            5
+          ],
+          "frames_with_new_gap": 42
+        },
+        {
+          "driver": "layer-005-r",
+          "follower": "layer-006-r",
+          "max_gap_pixels": [
+            10,
+            17
+          ],
+          "frames_with_new_gap": 36
+        }
+      ],
+      "raster_screenshot_sha256": "dcf7616ba4cccd7a029bb9f5f78621f730757dea0018e08d2d0a4b5e5186ed66"
+    }
+  ]
+}

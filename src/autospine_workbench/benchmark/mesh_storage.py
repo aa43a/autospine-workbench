@@ -31,6 +31,7 @@ SCHEMAS += ('autospine.seam-arc-pairs/v1',)
 SCHEMAS += ('autospine.continuous-seam-parameters/v1',)
 SCHEMAS += ('autospine.continuous-anchor-preview/v1',)
 SCHEMAS += ('autospine.seam-shape-preview/v1',)
+SCHEMAS += ('autospine.seam-increment-preview/v1',)
 
 
 def _read(path):

@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+`python -m autospine_workbench.benchmark.seam_increment_cli` 在固定原 deform 上求至多 2 px 增量，检查固定 setup 几何和锚点残差。
+零增量保留原动画；栅格空白仍待分类，见[说明](how-to-seam-increment.md)。
+
 `python -m autospine_workbench.benchmark.seam_shape_cli` 运行局部位移／切向位移最小二乘和帧内面积回退，输出新动画与同帧对照。
 当前固定参数实测退化，保留为负向实验，见[说明](how-to-seam-shape.md)。
 
