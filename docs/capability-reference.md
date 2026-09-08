@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+`python -m autospine_workbench.benchmark.continuous_corrective_cli` 输出 30 FPS 连续诊断包及 60 FPS 几何／接缝邻近报告。
+支持精确来源重放；接缝覆盖与完整角色不作通过声明，见[说明](how-to-continuous-corrective.md)。
+
 `python -m autospine_workbench.benchmark.combined_corrective_cli` 生成主关节与远端 corrective 的离散 Spine 4.3.26 诊断包。
 固定 factor 4 候选权重、46 个 stepped key，精确来源重放及明确的区域几何状态，见[组合诊断](how-to-combined-corrective.md)。
 

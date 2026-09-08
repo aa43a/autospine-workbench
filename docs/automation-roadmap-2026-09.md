@@ -1,5 +1,8 @@
 # AutoSpine 自动化产品路线（2026-09）
 
+2026-09-08 [连续 Bake 与接缝诊断](how-to-continuous-corrective.md)已完成受限动作的采样验证。
+四处腿鞋邻近关系明显分离，下一主线是 alpha/contact 接缝约束候选与动态栅格 QA；不扩大生产范围。
+
 2026-09-08 [主关节与远端 corrective 离散组合](how-to-combined-corrective.md)已完成：5/8 区域通过几何 QA，3 处保留阻塞；Runtime 273 帧通过。
 当前下一项为连续 bake 与动态接缝；不将离散姿态通过扩展为连续动作或完整角色通过。
 

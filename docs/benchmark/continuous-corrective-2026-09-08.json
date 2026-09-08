@@ -1,0 +1,242 @@
+{
+  "runtime_package": "@esotericsoftware/spine-webgl",
+  "runtime_version": "4.3.13",
+  "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+  "browser": "152.0.7977.76",
+  "authority": "none",
+  "production_authorized": false,
+  "date": "2026-09-08",
+  "target": "4.3.26",
+  "runtime_report_sha256": "2384607e4fbe2fec8409a77779255304dbf559ee0a2e15b0304668553ef77a70",
+  "tests_passed": 20,
+  "schema_zip_checks": "all_three_passed",
+  "source_chain_replay": "all_three_passed",
+  "reader_replay": "alice_passed",
+  "stepped_runtime_regression_frames": 273,
+  "continuous_time_proof": "not_claimed",
+  "full_suite": "not_run",
+  "records": [
+    {
+      "character": "alice",
+      "artifact_sha256": "9a647bdbb1b3ed3442569bdc80093563b0840fd9c2aab854f8404f12134a3fff",
+      "zip_sha256": "90d085ebb025ea32cb9fe7d7b4a59a58b04be9b113142b60f0ed57a9e9e23ed8",
+      "runtime_passed": true,
+      "frames": 121,
+      "max_motion_error_px": 9.02034273622121e-05,
+      "max_channel_error": 1,
+      "bake_qa": {
+        "fps": 60,
+        "regions": {
+          "layer-001-l": {
+            "inversions": 0,
+            "loop_error_px": 0.0,
+            "max_area_ratio": 1.1861672144298558,
+            "max_edge_stretch": 1.2578051700385797,
+            "max_frame_displacement_px": 6.599759908041288,
+            "min_area_ratio": 0.5683308551382462,
+            "passed": true
+          },
+          "layer-001-r": {
+            "inversions": 0,
+            "loop_error_px": 0.0,
+            "max_area_ratio": 1.2297199313528235,
+            "max_edge_stretch": 1.3009367151546158,
+            "max_frame_displacement_px": 6.60496579312744,
+            "min_area_ratio": 0.6381180902723413,
+            "passed": true
+          },
+          "layer-002-l": {
+            "inversions": 0,
+            "loop_error_px": 0.0,
+            "max_area_ratio": 1.0000000000000293,
+            "max_edge_stretch": 1.0000000000000226,
+            "max_frame_displacement_px": 9.032251392542662,
+            "min_area_ratio": 0.999999999999969,
+            "passed": true
+          },
+          "layer-002-r": {
+            "inversions": 0,
+            "loop_error_px": 0.0,
+            "max_area_ratio": 1.0000000000000222,
+            "max_edge_stretch": 1.000000000000018,
+            "max_frame_displacement_px": 8.987368295925702,
+            "min_area_ratio": 0.999999999999981,
+            "passed": true
+          }
+        },
+        "sample_count": 121,
+        "seam_coverage": "unproven",
+        "seam_proxy": [
+          {
+            "max_distance_growth_px": 10.128219165764044,
+            "pair_count": 16,
+            "regions": [
+              "layer-001-l",
+              "layer-002-l"
+            ],
+            "status": "blocked"
+          },
+          {
+            "max_distance_growth_px": 13.753874255969802,
+            "pair_count": 16,
+            "regions": [
+              "layer-001-r",
+              "layer-002-r"
+            ],
+            "status": "blocked"
+          }
+        ],
+        "unpaired_regions": []
+      },
+      "screenshots": {
+        "setup": "0d1616caf5afad4c4c219850154c9420bc4cd0f54bcbeb5c9468de3d186626b9",
+        "bend": "82739a4dccdfa90955148637893db6ea3bd4a3984851cd2789e90ac83b97448f"
+      }
+    },
+    {
+      "character": "lingxian",
+      "artifact_sha256": "3bf6c742b09e3f1d709ceaee7e4fe37515dbcaa165c1a9ab5e09e802af84d24f",
+      "zip_sha256": "cfe0b666e5c73f614de0acfb854eee7e0e69032f90439470ef02bca94a77a2a4",
+      "runtime_passed": true,
+      "frames": 121,
+      "max_motion_error_px": 0.00011553926378837787,
+      "max_channel_error": 1,
+      "bake_qa": {
+        "fps": 60,
+        "regions": {
+          "layer-003-l": {
+            "inversions": 0,
+            "loop_error_px": 0.0,
+            "max_area_ratio": 1.2634319616216791,
+            "max_edge_stretch": 1.3369758390849302,
+            "max_frame_displacement_px": 9.395779459219256,
+            "min_area_ratio": 0.6463143528705625,
+            "passed": true
+          },
+          "layer-003-r": {
+            "inversions": 0,
+            "loop_error_px": 0.0,
+            "max_area_ratio": 1.1664948968445046,
+            "max_edge_stretch": 1.2470347574124239,
+            "max_frame_displacement_px": 9.542601270218313,
+            "min_area_ratio": 0.5820481271748058,
+            "passed": true
+          }
+        },
+        "sample_count": 121,
+        "seam_coverage": "unproven",
+        "seam_proxy": [],
+        "unpaired_regions": [
+          "layer-003-l",
+          "layer-003-r"
+        ]
+      },
+      "screenshots": {
+        "setup": "04ef7fff0124050dda7ab5d9a9677bf0cfc58de1657a009318642eeac44f39cf",
+        "bend": "a95170e9053e3d30f3ef9e4488e9a5cf4d50aa9eea59630b295fd327fa7753af"
+      }
+    },
+    {
+      "character": "crino",
+      "artifact_sha256": "a6480894b54d792ecfb9b92851c036d86760333948070366a9ffefdbab77ca5a",
+      "zip_sha256": "1fba1edc2118b89a00d4cced7e48625860af926a372eec04055e35470553dd35",
+      "runtime_passed": true,
+      "frames": 121,
+      "max_motion_error_px": 0.00011305503312541987,
+      "max_channel_error": 1,
+      "bake_qa": {
+        "fps": 60,
+        "regions": {
+          "layer-004-l": {
+            "inversions": 0,
+            "loop_error_px": 0.0,
+            "max_area_ratio": 1.4257555114977394,
+            "max_edge_stretch": 1.3233700518784033,
+            "max_frame_displacement_px": 8.371151055016261,
+            "min_area_ratio": 0.5501331173187808,
+            "passed": true
+          },
+          "layer-004-r": {
+            "inversions": 0,
+            "loop_error_px": 0.0,
+            "max_area_ratio": 1.2628062179286146,
+            "max_edge_stretch": 1.2405004035243028,
+            "max_frame_displacement_px": 7.923021572556827,
+            "min_area_ratio": 0.5627159837207865,
+            "passed": true
+          },
+          "layer-005-l": {
+            "inversions": 0,
+            "loop_error_px": 0.0,
+            "max_area_ratio": 1.2702172823925402,
+            "max_edge_stretch": 1.362668200483568,
+            "max_frame_displacement_px": 9.77212082627153,
+            "min_area_ratio": 0.5499999999999989,
+            "passed": true
+          },
+          "layer-005-r": {
+            "inversions": 0,
+            "loop_error_px": 0.0,
+            "max_area_ratio": 1.2779505672490232,
+            "max_edge_stretch": 1.3628969821854764,
+            "max_frame_displacement_px": 9.612031306147648,
+            "min_area_ratio": 0.5808497964347196,
+            "passed": true
+          },
+          "layer-006-l": {
+            "inversions": 0,
+            "loop_error_px": 0.0,
+            "max_area_ratio": 1.0000000000000426,
+            "max_edge_stretch": 1.0000000000000353,
+            "max_frame_displacement_px": 12.0299996164325,
+            "min_area_ratio": 0.9999999999999543,
+            "passed": true
+          },
+          "layer-006-r": {
+            "inversions": 0,
+            "loop_error_px": 0.0,
+            "max_area_ratio": 1.0000000000000402,
+            "max_edge_stretch": 1.000000000000038,
+            "max_frame_displacement_px": 11.90005283337595,
+            "min_area_ratio": 0.9999999999999637,
+            "passed": true
+          }
+        },
+        "sample_count": 121,
+        "seam_coverage": "unproven",
+        "seam_proxy": [
+          {
+            "max_distance_growth_px": 8.538276678555471,
+            "pair_count": 10,
+            "regions": [
+              "layer-005-l",
+              "layer-006-l"
+            ],
+            "status": "blocked"
+          },
+          {
+            "max_distance_growth_px": 7.840645416298308,
+            "pair_count": 9,
+            "regions": [
+              "layer-005-r",
+              "layer-006-r"
+            ],
+            "status": "blocked"
+          }
+        ],
+        "unpaired_regions": [
+          "layer-004-l",
+          "layer-004-r"
+        ]
+      },
+      "screenshots": {
+        "setup": "9bf4d0c165b140fd5cff7a5ae6684c0fc47e7e8b33f1db5a6b481f948d0c9a1a",
+        "bend": "573a909826cb57801c4d51d29c322d8544392f973c39facd098a50976fdf17f0"
+      }
+    }
+  ],
+  "harness_sha256": {
+    "tools/ownership-runtime.js": "4b23b91d82bd6163c25b9ac950ae1d6756887180657e156cce7f71fe207328e5",
+    "tools/verify-ownership-runtime.mjs": "48f334eb52a7e1b870b58a3a00481462f6048eb13ea383ff34ffff459fcb91b0"
+  }
+}

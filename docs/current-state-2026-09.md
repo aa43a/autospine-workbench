@@ -1,7 +1,12 @@
 # 当前状态：2026-09-08
 
+最新：[连续 corrective Bake 与接缝诊断](how-to-continuous-corrective.md)完成 30 FPS、2 秒的受限候选动作。
+12 个区域在 121 个时刻的几何检查通过；官方 Runtime 三角色共 363 帧通过。四处腿鞋邻近关系超出 2 px 增距阈值，其余无对应点的区域不计接缝通过。
+下一步建立 alpha/contact 接缝对应与共同运动约束；不能用窄范围采样通过清除来源宽角度 blocked 状态。
+校正上一切片名称：琪露诺 layer-004 的骨链为 upperarm/forearm/hand；layer-005 才是 thigh/calf/foot。
+
 最新：[主关节与远端 corrective 组合](how-to-combined-corrective.md)完成 46 key 的离散诊断导出；
-5/8 个三骨区域通过，铃仙右腿和琪露诺双腿保持 blocked。官方 Runtime 273 帧、旧路径 363 帧通过，Alice 精确重放一致。
+5/8 个三骨区域通过，铃仙右腿和琪露诺双手臂（layer-004）保持 blocked。官方 Runtime 273 帧、旧路径 363 帧通过，Alice 精确重放一致。
 下一步为连续动作 bake 和动态跨层接缝 QA，未授予生产权。
 
 已完成[Spine分区诊断播放](how-to-ownership-spine43.md)：4.3.26数据与官方4.3.13 Runtime分开记录，

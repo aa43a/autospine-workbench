@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[连续 corrective Bake](docs/how-to-continuous-corrective.md)已生成 30 FPS 受限动作，12 个区域的 60 FPS 几何采样通过；
+Alice／琪露诺四处腿鞋邻近关系增距 7.84–13.75 px，接缝保持阻塞。完整角色尚未验收。
+
 [组合 corrective 诊断](docs/how-to-combined-corrective.md)已接入主关节与远端的 stepped deform：
 5/8 个三骨区域通过全部离散姿态几何检查，三处仍阻塞；官方 Runtime 273 帧通过。连续动作和动态接缝尚待验证。
 

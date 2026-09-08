@@ -11,9 +11,18 @@
   const json=await fetchJSON('skeleton.json'),manifest=await fetchJSON('preview-manifest.json');
   const animationName=Object.keys(json.animations).find(n=>n!=='setup'),combined=animationName==='combined-pose-inspection';
   const animation=json.animations[animationName];
+  const continuous=animationName==='continuous-corrective-inspection';
   const duration=Math.max(...Object.values(animation.bones).flatMap(b=>b.rotate.map(k=>k.time)));
   document.querySelector('#time').max=duration;
   if(combined)document.querySelector('aside').textContent='主关节与远端corrective的离散组合姿态；每0.5秒切换，使用stepped key，不代表连续动作或生产QA通过。残余仍未绑定。';
+  if(continuous)document.querySelector('aside').textContent='30 FPS corrective候选动画，60 FPS采样验证；接缝仅为顶点邻近诊断，完整角色与生产QA尚未通过。残余仍未绑定。';
+  if(continuous){
+    const summary=document.createElement('p'),qa=manifest.bake_qa;
+    summary.textContent='采样网格通过 '+Object.values(qa.regions).filter(r=>r.passed).length+'/'+Object.keys(qa.regions).length+
+      '；接缝诊断：'+(qa.seam_proxy.map(s=>s.regions.join(' ↔ ')+' 增距 '+s.max_distance_growth_px.toFixed(2)+' px（'+s.status+'）').join('；')||'无邻近对应点')+
+      '。未覆盖区域：'+(qa.unpaired_regions.join('、')||'无；边界覆盖仍待验证');
+    document.querySelector('aside').after(summary);
+  }
   const text=await (await fetch(base+'skeleton.atlas')).text();
   async function loadAtlas(text,padded=false){
     const atlas=new spine.TextureAtlas(text);
@@ -53,7 +62,7 @@
     });
   }
   const bounds=[];
-  const boundsTimes=combined?animation.bones[Object.keys(animation.bones)[0]].rotate.map(k=>k.time):[0];
+  const boundsTimes=combined||continuous?animation.bones[Object.keys(animation.bones)[0]].rotate.map(k=>k.time):[0];
   for(const time of boundsTimes){pose(shared,time);bounds.push(...vertices(shared).flatMap(r=>r.values));}
   pose(shared,0);
   const xs=bounds.filter((_,i)=>i%2===0),ys=bounds.filter((_,i)=>i%2===1);
@@ -81,7 +90,10 @@
     for(const [id,slot] of Object.entries(attachments)){
       const data=slot[id].vertices,values=[];let i=0,offset=0;
       const deformKeys=animation.attachments?.default?.[id]?.[id]?.deform;let deform=[];
-      if(deformKeys){let k=0;while(k+1<deformKeys.length&&deformKeys[k+1].time<=time)k++;deform=deformKeys[k].vertices;}
+      if(deformKeys){let k=0;while(k+1<deformKeys.length&&deformKeys[k+1].time<=time)k++;
+        const a=deformKeys[k],b=deformKeys[Math.min(k+1,deformKeys.length-1)];
+        const f=a.curve==='stepped'||a.time===b.time?0:(time-a.time)/(b.time-a.time);
+        deform=a.vertices.map((v,i)=>v+f*(b.vertices[i]-v));}
       while(i<data.length){const count=data[i++];let x=0,y=0;
         for(let j=0;j<count;j++){const [index,lx,ly,w]=data.slice(i,i+4);i+=4;const f=frames.get(json.bones[index].name),p=rotate(lx+(deform[offset++]||0),ly+(deform[offset++]||0),f.a);x+=(f.x+p[0])*w;y+=(f.y+p[1])*w;}
         values.push(x,y);
