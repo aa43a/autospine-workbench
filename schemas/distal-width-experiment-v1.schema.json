@@ -1,0 +1,257 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "profile",
+    "authority",
+    "production_authorized",
+    "source_mesh_sha256",
+    "source_skeleton_sha256",
+    "selected_method",
+    "parameters",
+    "layers"
+  ],
+  "properties": {
+    "schema": {
+      "const": "autospine.distal-width-experiment/v1"
+    },
+    "profile": {
+      "const": "alpha-transverse-distal-width-v1"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "production_authorized": {
+      "const": false
+    },
+    "source_mesh_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "source_skeleton_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "selected_method": {
+      "type": "null"
+    },
+    "parameters": {
+      "const": {
+        "factors": [
+          1,
+          2,
+          4
+        ],
+        "alpha_threshold": 8,
+        "slab": "shorter_distal_length",
+        "cap_fraction": 0.45
+      }
+    },
+    "layers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "layer_id",
+          "evidence",
+          "baseline_corrective_qa",
+          "trials"
+        ],
+        "properties": {
+          "layer_id": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "alpha_samples",
+              "transverse_radius_px",
+              "original_halfwidth_px"
+            ],
+            "properties": {
+              "alpha_samples": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "transverse_radius_px": {
+                "type": "number"
+              },
+              "original_halfwidth_px": {
+                "type": "number"
+              }
+            }
+          },
+          "baseline_corrective_qa": {
+            "type": "array",
+            "minItems": 9,
+            "maxItems": 9,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "passed",
+                "inversions",
+                "min_area_ratio",
+                "max_area_ratio",
+                "max_edge_stretch",
+                "projection_displacement_px",
+                "fixed_vertex_error",
+                "offset_reconstruction_error"
+              ],
+              "properties": {
+                "passed": {
+                  "type": "boolean"
+                },
+                "inversions": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "min_area_ratio": {
+                  "type": "number"
+                },
+                "max_area_ratio": {
+                  "type": "number"
+                },
+                "max_edge_stretch": {
+                  "type": "number"
+                },
+                "projection_displacement_px": {
+                  "type": "number"
+                },
+                "fixed_vertex_error": {
+                  "type": "number"
+                },
+                "offset_reconstruction_error": {
+                  "type": "number"
+                }
+              }
+            }
+          },
+          "trials": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "policy",
+                "weights",
+                "lbs_qa",
+                "corrective_qa",
+                "status"
+              ],
+              "properties": {
+                "policy": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "factor",
+                    "halfwidth_px",
+                    "cap_px",
+                    "capped"
+                  ],
+                  "properties": {
+                    "factor": {
+                      "enum": [
+                        1,
+                        2,
+                        4
+                      ]
+                    },
+                    "halfwidth_px": {
+                      "type": "number"
+                    },
+                    "cap_px": {
+                      "type": "number"
+                    },
+                    "capped": {
+                      "type": "boolean"
+                    }
+                  }
+                },
+                "weights": {
+                  "$ref": "partition-mesh-v1.schema.json#/properties/layers/items/properties/weights"
+                },
+                "lbs_qa": {
+                  "$ref": "partition-mesh-v1.schema.json#/properties/layers/items/properties/qa"
+                },
+                "corrective_qa": {
+                  "type": "array",
+                  "minItems": 9,
+                  "maxItems": 9,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "passed",
+                      "inversions",
+                      "min_area_ratio",
+                      "max_area_ratio",
+                      "max_edge_stretch",
+                      "projection_displacement_px",
+                      "fixed_vertex_error",
+                      "offset_reconstruction_error",
+                      "angle"
+                    ],
+                    "properties": {
+                      "passed": {
+                        "type": "boolean"
+                      },
+                      "inversions": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "min_area_ratio": {
+                        "type": "number"
+                      },
+                      "max_area_ratio": {
+                        "type": "number"
+                      },
+                      "max_edge_stretch": {
+                        "type": "number"
+                      },
+                      "projection_displacement_px": {
+                        "type": "number"
+                      },
+                      "fixed_vertex_error": {
+                        "type": "number"
+                      },
+                      "offset_reconstruction_error": {
+                        "type": "number"
+                      },
+                      "angle": {
+                        "enum": [
+                          -90,
+                          -60,
+                          -30,
+                          -15,
+                          0,
+                          15,
+                          30,
+                          60,
+                          90
+                        ]
+                      }
+                    }
+                  }
+                },
+                "status": {
+                  "enum": [
+                    "blocked",
+                    "candidate_requires_review"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/distal-width-experiment-v1.schema.json"
+}

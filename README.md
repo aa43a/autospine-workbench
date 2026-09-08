@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[横向宽度权重试验](docs/how-to-distal-width.md)：系数4下五处通过9个远端corrective探针，
+三处仍阻塞，全链与组合动作尚未通过，未自动采用。
+
 [踝／腕网格加密实验](docs/how-to-distal-grid.md)完成三个角色对照：完整alpha覆盖，混合顶点增至53–76个，
 但八处仍阻塞且最差面积比退化。未采用；下一步验证图层横向宽度与权重过渡的关系。
 

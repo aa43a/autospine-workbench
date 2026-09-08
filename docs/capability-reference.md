@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+`python -m autospine_workbench.benchmark.distal_width_cli` 测量alpha横向宽度并比较三个远端权重策略。
+只提供实验对照与精确回放；远端探针通过不表示全链通过，见[说明](how-to-distal-width.md)。
+
 `python -m autospine_workbench.benchmark.distal_grid_cli` 提供独立关节加密实验、精确回放与同预算对照。
 八处远端QA仍阻塞，未成为默认网格，见[说明](how-to-distal-grid.md)。
 

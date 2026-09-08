@@ -1,5 +1,8 @@
 # AutoSpine Workbench 架构与质量门禁
 
+`asset/joints/distal_width.py` 测量局部alpha横向支撑并重新分配远端权重；独立CLI保存全部预设策略，
+通过精确来源重建验证结果。顶点、骨架与旧profile不变，不写批准决定，见[工作流](how-to-distal-width.md)。
+
 `asset/joints/distal_grid.py` 是独立的远端横纵支撑线实验，复用主组件、alpha覆盖与拓扑门禁。
 `benchmark/distal_grid_cli.py` 通过精确来源闭包重建旧网格，再生成加密网格和同预算corrective对照；
 报告使用现有16MiB存储，CLI独立运行以避免继续扩大主入口。旧profile与已批准绑定不变，
