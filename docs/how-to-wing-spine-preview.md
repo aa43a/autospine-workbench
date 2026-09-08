@@ -22,4 +22,4 @@ node tools/verify-ownership-runtime.mjs ../tmp/r2b-wing-spine-v2 ../tmp/spine43-
 
 数值测试覆盖 setup 坐标、父子支点、循环、输入不变、未选项不生成局部骨骼、来源篡改拒绝、报告重放和 schema。Runtime 独立加载官方解析器及渲染器，比较原图参考与 Atlas 的 UV、运动和逐帧像素。
 
-这些验证不判定原始素材重影是否正确。下一项应处理源层投影重叠和低 alpha 残余的动态归属，再整合完整角色。
+这些验证不判定原始素材重影是否正确。后续已新增 [低 alpha 边缘归属候选与上衣拆分清单](how-to-wing-edge-preview.md)，源层重影仍待语义拆分，再整合完整角色。

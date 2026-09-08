@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Reversible wing faint-edge ownership preview",
+  "type": "object",
+  "required": ["schema", "profile", "source_preview_sha256", "source_draft_sha256", "edge_ownership", "review_queue", "rig_and_motion_unchanged", "target_texture_unchanged", "status", "authority", "production_authorized", "files"],
+  "properties": {
+    "schema": {"const": "autospine.wing-edge-preview/v1"},
+    "profile": {"const": "wing-faint-edge-unique-owner-2px-v1"},
+    "source_preview_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source_draft_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "status": {"const": "needs_review"},
+    "authority": {"const": "none"},
+    "production_authorized": {"const": false},
+    "rig_and_motion_unchanged": {"const": true},
+    "target_texture_unchanged": {"const": true},
+    "edge_ownership": {
+      "type": "object",
+      "required": ["profile", "radius_px", "alpha_range", "recursive_growth", "counts", "changes_file", "changes_sha256", "setup_visible_rgba_exact", "authority", "production_authorized"],
+      "properties": {
+        "profile": {"const": "wing-faint-edge-unique-owner-2px-v1"},
+        "radius_px": {"const": 2}, "alpha_range": {"const": [1, 7]},
+        "recursive_growth": {"const": false}, "setup_visible_rgba_exact": {"const": true},
+        "counts": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+        "changes_file": {"const": "edge-ownership.json"},
+        "changes_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "authority": {"const": "none"}, "production_authorized": {"const": false}
+      }
+    },
+    "review_queue": {"type": "array", "items": {
+      "type": "object", "required": ["component", "reason_code", "automatic_removal", "status"],
+      "properties": {"automatic_removal": {"const": false}, "status": {"const": "needs_review"}, "reason_code": {"const": "source_layer_requires_semantic_split"}}
+    }},
+    "files": {"type": "object", "additionalProperties": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+  }
+}
