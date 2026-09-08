@@ -1,5 +1,8 @@
 # 当前状态：2026-09-08
 
+两侧已选手臂Mesh已合入同骨架组合，11附件通过官方Runtime 121帧，14个包缺项仍待处理。
+[全量复核页](how-to-integrated-limbs.md)保留23条记录与7个既有选择；腿鞋整层pending不被分区候选改写。
+
 [混合候选Adapter](how-to-mixed-character.md)已消费5个历史刚性选择，9附件通过官方Runtime 121帧。
 16层仍缺项（2个已选手臂Mesh未整合、14层pending）；完整角色与生产授权未通过。
 

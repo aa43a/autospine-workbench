@@ -1,0 +1,33 @@
+{
+  "date": "2026-09-08",
+  "authority": "none",
+  "production_authorized": false,
+  "artifact_sha256": "b5b92e6639bc76ac1ba61fcac69dc9e58bdee6a99cc1b22e44b896a7a5193cd1",
+  "source_base_sha256": "1d1ba1e7d499f12a3f5a536600b7ea9ebebd4ecba68243f25486623b20cd506f",
+  "source_donor_sha256": "3022c434059771839bdcbb82100ad5e4cdf74d1ec59ad4f551ad4a9d14677f0a",
+  "integrated_arms": [
+    "layer-003",
+    "layer-004"
+  ],
+  "attachment_count": 11,
+  "excluded_layers": 14,
+  "runtime_version": "4.3.13",
+  "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+  "runtime_report_sha256": "cb3172e02ccd98e44b468624bd0e421cafe0bbbb246aef59ae565c93f23c17c8",
+  "runtime_frames": 121,
+  "runtime_passed": true,
+  "max_motion_error_px": 9.02034273622121e-05,
+  "schema": "passed",
+  "files": "verified",
+  "zip_replay": "byte_identical",
+  "old_attachment_poses_121_ticks": "unchanged",
+  "review_records": "unchanged",
+  "review_browser": {
+    "missing_layers": 14,
+    "whole_layer_pending": 16,
+    "total_records": 23,
+    "errors": []
+  },
+  "python_tests": 13,
+  "full_suite_run": false
+}

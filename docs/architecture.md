@@ -1,5 +1,8 @@
 # AutoSpine Workbench 架构与质量门禁
 
+`targets/spine43/merge_limb_tracks.py`纯合并显式附件与轨道；benchmark集成CLI精确重放历史Bake、
+按ownership显式归属排列slots并检查原有121帧坐标不变。新包独立身份，不覆盖旧候选或复核决定。
+
 `targets/spine43/mixed_character.py`纯组合已选刚性四边形与既有分区；benchmark CLI负责精确来源、
 2px透明padding纹理页、同骨架setup重建、内容寻址和确定性ZIP。缺项与原接缝证据不因组合自动通过。
 

@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+- [已选四肢动作合并](how-to-integrated-limbs.md)：同骨架、同片长、无共享轨道冲突，原有附件逐帧位置不变；
+  带独立包和全量复核入口，肩部与全角色QA不自动通过。
+
 - [混合候选Adapter](how-to-mixed-character.md)：同骨架下消费已有刚性选择，和不变分区候选同包；
   单骨四边形表达刚性附件，显式缺项报告，官方Runtime按新包重新验证。
 

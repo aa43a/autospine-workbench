@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[手臂Mesh已接入组合包](docs/how-to-integrated-limbs.md)：11附件完成官方Runtime 121帧验证，原有附件逐帧坐标保持不变。
+14个包缺项已列出并链接全量复核页；现有选择保留，未新增批准。
+
 [刚性绑定与四肢候选同包](docs/how-to-mixed-character.md)：Alice 5个已选刚性层 + 4个腿鞋分区完成官方Runtime 121帧验证。
 仍缺16层及570残余像素，完整动画继续阻塞；未新增选择或采用权。
 

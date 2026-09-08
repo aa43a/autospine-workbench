@@ -1,0 +1,14 @@
+{
+  "type":"object","additionalProperties":false,
+  "required":["profile","authority","production_authorized","status","full_character_animation","draw_order","rigid_layers","residual_visible_pixels","source_base_sha256","source_donor_sha256","integrated_arms","excluded_layers","geometry","files"],
+  "properties":{
+    "profile":{"const":"selected-elbow-and-leg-candidate-union-v1"},
+    "authority":{"const":"none"},"production_authorized":{"const":false},"status":{"const":"needs_review"},
+    "full_character_animation":{"const":"blocked"},"draw_order":{"const":"source_order_unreviewed"},
+    "source_base_sha256":{"$ref":"#/$defs/sha"},"source_donor_sha256":{"$ref":"#/$defs/sha"},
+    "rigid_layers":{"type":"array","items":{"type":"string"}},"integrated_arms":{"type":"array","minItems":1,"uniqueItems":true,"items":{"type":"string"}},
+    "residual_visible_pixels":{"type":"integer","minimum":0},"excluded_layers":{"type":"array","items":{"type":"object"}},
+    "geometry":{"type":"object"},"files":{"type":"object","additionalProperties":{"$ref":"#/$defs/sha"}}
+  },
+  "$defs":{"sha":{"type":"string","pattern":"^[a-f0-9]{64}$"}}
+}
