@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+- [残余源纹理定位](how-to-residual-source-locations.md)：官方Runtime实际顶点反算峰值帧差异，输出双线性采样邻域、原画布窗口和局部对照；
+  不把低alpha显示贡献当成关节错位或删除授权。
+
 - [四肢残余显隐复核](how-to-limb-residual-review.md)：官方Runtime同帧比较完整／临时隐藏／仅残余，支持逐帧拖动与背景切换；
   输出具体附件、峰值帧和显示贡献，不修改资产，也不自动判定裂缝或批准删除。
 

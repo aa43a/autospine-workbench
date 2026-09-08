@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "type": "object",
+  "required": ["schema", "source_capture_sha256", "source_preview_sha256", "rows", "target_count", "mapped_count", "cluster_count", "display_group_radius_px", "interpretation", "authority", "production_authorized", "files"],
+  "properties": {
+    "schema": {"const": "autospine.residual-source-locations/v1"},
+    "source_capture_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source_preview_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "target_count": {"type": "integer", "minimum": 0}, "mapped_count": {"type": "integer", "minimum": 0},
+    "cluster_count": {"type": "integer", "minimum": 0}, "display_group_radius_px": {"const": 4},
+    "rows": {"type": "array", "items": {"type": "object", "required": ["id", "tick", "points", "sampled_max_alpha", "sampled_alpha8_texels"],
+      "properties": {"sampled_max_alpha": {"type": "integer", "minimum": 0, "maximum": 255}, "sampled_alpha8_texels": {"type": "integer", "minimum": 0}}}},
+    "interpretation": {"const": "bilinear_sampling_neighborhood_not_pixel_deletion_or_ownership"},
+    "authority": {"const": "none"}, "production_authorized": {"const": false}, "files": {"type": "object"}
+  }
+}

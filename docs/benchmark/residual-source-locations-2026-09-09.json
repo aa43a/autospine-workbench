@@ -1,0 +1,17 @@
+{
+  "slice": "residual-source-locations-v1",
+  "source_preview_sha256": "d4edd539649de66ba75f314c58b05b3bbf2748d01ce5d291727c357a15e67acb",
+  "attachment_frame_pairs": 6,
+  "target_samples": 235,
+  "mapped_samples": 235,
+  "display_clusters": 46,
+  "maximum_sampled_source_alpha": {"handwear": 4, "legwear": 5, "footwear": 6},
+  "sampled_alpha8_texels": 0,
+  "tests_passed": 8,
+  "browser_cards": 46,
+  "broken_images": 0,
+  "output": "../tmp/r2b-residual-locations/review-v2",
+  "scope": "Selected peak-frame bilinear sampling neighborhoods only; not all residual pixels",
+  "authority": "none",
+  "production_authorized": false
+}

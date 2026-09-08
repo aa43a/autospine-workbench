@@ -37,6 +37,22 @@ window.installLocalFramebuffer=async({canvas,gl,renderer,shared,pose})=>{
       ctx.putImageData(image,0,0);return out.toDataURL('image/png');
     }
     window.residualReview={groups,modes,render(time,mode){return png(draw(time,mode));},
+      locate(time,id){
+        const group=groups.find(g=>g.id===id);if(!group)throw Error('residual_group_missing');
+        const full=draw(time,'full'),fullImage=png(full),without=draw(time,'without:'+id),withoutImage=png(without);
+        const targets=[];
+        for(let i=0;i<full.length;i+=4){
+          const delta=Math.max(...[0,1,2,3].map(c=>Math.abs(full[i+c]-without[i+c])));
+          const exposed=full[i+3]>=8&&without[i+3]<8;
+          if(delta>1||exposed)targets.push({pixel:[(i/4)%canvas.width,Math.floor(i/4/canvas.width)],delta,exposed});
+        }
+        draw(time,'full');
+        const slot=shared.skeleton.slots.find(s=>s.data.name===group.residual[0]),attachment=slot.appliedPose.attachment;
+        const vertices=new Float32Array(attachment.worldVerticesLength);
+        attachment.computeWorldVertices(shared.skeleton,slot,0,attachment.worldVerticesLength,vertices,0,2);
+        return {id,time,targets,world_vertices:Array.from(vertices),uvs:Array.from(attachment.regionUVs),
+          triangles:Array.from(attachment.triangles),full_image:fullImage,without_image:withoutImage};
+      },
       measure(time){
         const full=draw(time,'full');
         try{return {time,groups:groups.map(g=>({id:g.id,...limbResidualMetrics(full,draw(time,'without:'+g.id),canvas.width,canvas.height)}))};}
