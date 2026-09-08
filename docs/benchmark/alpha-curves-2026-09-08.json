@@ -1,0 +1,127 @@
+{
+  "date": "2026-09-08",
+  "authority": "none",
+  "production_authorized": false,
+  "tests_passed": 34,
+  "source_replay": "all_three_passed",
+  "schema_semantic_validation": "all_three_passed",
+  "browser_views": "all_three_loaded_without_page_errors",
+  "runtime": "not_run_animation_unchanged",
+  "full_suite": "not_run",
+  "records": [
+    {
+      "character": "alice",
+      "artifact_sha256": "4c89c51528e08a2aaadcca2703e66498da98460dcff74f957b9f85d6cbc30dd2",
+      "source_remap_sha256": "29f9a05f4e23090efe954c04b500ce0e2e1dc638f9181acf9ee3e1399015e750",
+      "attachments": [
+        {
+          "attachment": "layer-001-l",
+          "edges": 880,
+          "paths": {
+            "closed_contour": 1
+          },
+          "anchors": {
+            "candidate_anchor": 13,
+            "ambiguous_projection": 3
+          }
+        },
+        {
+          "attachment": "layer-001-r",
+          "edges": 872,
+          "paths": {
+            "closed_contour": 1
+          },
+          "anchors": {
+            "candidate_anchor": 15,
+            "ambiguous_projection": 2
+          }
+        },
+        {
+          "attachment": "layer-002-l",
+          "edges": 496,
+          "paths": {
+            "closed_contour": 2
+          },
+          "anchors": {
+            "ambiguous_projection": 4,
+            "candidate_anchor": 3
+          }
+        },
+        {
+          "attachment": "layer-002-r",
+          "edges": 484,
+          "paths": {
+            "closed_contour": 2
+          },
+          "anchors": {
+            "ambiguous_projection": 2,
+            "candidate_anchor": 3
+          }
+        }
+      ],
+      "screenshot_sha256": "e07d75c2f0639859d8fcac32f8d0a27f84b77b81d7d08c852ea088e4cda89cd1"
+    },
+    {
+      "character": "lingxian",
+      "artifact_sha256": "d174924eeb3f356b2065da820e6f3087bcebcc2da2c3851e92d8233a2bd3d43b",
+      "source_remap_sha256": "33c239f68c22a6b9e36f3d1e02fc939e03e986e063b95010bd24b234895bc21e",
+      "attachments": [],
+      "screenshot_sha256": "bb220f7288c1c02e9bef264f98923767dcb055f4cfdb64885fd5feb4c6c4dc66"
+    },
+    {
+      "character": "crino",
+      "artifact_sha256": "818aa86a0382a1426eb36865ea6d2f6e0cb3c8f28ba7ef8e210e28f2fde82c9a",
+      "source_remap_sha256": "95e25057bbb57d907f6519fc50f89e13fc17482251076c885b2db87675f52f17",
+      "attachments": [
+        {
+          "attachment": "layer-005-l",
+          "edges": 1524,
+          "paths": {
+            "closed_contour": 1
+          },
+          "anchors": {
+            "candidate_anchor": 19,
+            "ambiguous_projection": 5
+          }
+        },
+        {
+          "attachment": "layer-005-r",
+          "edges": 1554,
+          "paths": {
+            "closed_contour": 2
+          },
+          "anchors": {
+            "candidate_anchor": 40,
+            "ambiguous_projection": 8
+          }
+        },
+        {
+          "attachment": "layer-006-l",
+          "edges": 508,
+          "paths": {
+            "closed_contour": 3
+          },
+          "anchors": {
+            "ambiguous_projection": 7,
+            "candidate_anchor": 6
+          }
+        },
+        {
+          "attachment": "layer-006-r",
+          "edges": 530,
+          "paths": {
+            "ambiguous_corner": 4,
+            "closed_contour": 3
+          },
+          "anchors": {
+            "ambiguous_projection": 4,
+            "candidate_anchor": 26
+          }
+        }
+      ],
+      "screenshot_sha256": "542c776ecfd7f68c6094b219c2accac84a9c561b3cc97f8a93218093728f6bde"
+    }
+  ],
+  "reader_replay": "alice_passed",
+  "exhaustive_trace_masks": 512
+}

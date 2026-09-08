@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Directed alpha curve anchor candidates v1",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "source_remap_sha256", "curves", "authority", "production_authorized", "status"],
+  "properties": {
+    "schema": {"const": "autospine.alpha-curve-anchors/v1"},
+    "source_remap_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "authority": {"const": "none"}, "production_authorized": {"const": false},
+    "status": {"const": "needs_review"},
+    "curves": {
+      "type": "object", "additionalProperties": false,
+      "required": ["profile", "attachments", "authority", "geometry", "shape_solver"],
+      "properties": {
+        "profile": {"const": "alpha8-directed-cell-edge-v1"},
+        "authority": {"const": "none"},
+        "geometry": {"const": "thresholded_pixel_cell_boundary"},
+        "shape_solver": {"const": "not_run"},
+        "attachments": {"type": "array", "items": {"$ref": "#/$defs/attachment"}}
+      }
+    }
+  },
+  "$defs": {
+    "point": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number"}},
+    "index": {"type": "integer", "minimum": 0},
+    "embedding": {
+      "type": ["object", "null"], "additionalProperties": false,
+      "required": ["triangle", "barycentric"],
+      "properties": {
+        "triangle": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"$ref": "#/$defs/index"}},
+        "barycentric": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "number"}}
+      }
+    },
+    "option": {
+      "type": "object", "additionalProperties": false,
+      "required": ["curve", "edge", "t", "u", "pixel_xy", "embedding"],
+      "properties": {
+        "curve": {"$ref": "#/$defs/index"}, "edge": {"$ref": "#/$defs/index"},
+        "t": {"const": 0.5}, "u": {"type": "number", "minimum": 0, "maximum": 1},
+        "pixel_xy": {"$ref": "#/$defs/point"}, "embedding": {"$ref": "#/$defs/embedding"}
+      }
+    },
+    "anchor": {
+      "type": "object", "additionalProperties": false,
+      "required": ["source_sample", "status", "options"],
+      "properties": {
+        "source_sample": {"$ref": "#/$defs/index"},
+        "status": {"enum": ["missing_edge", "ambiguous_projection", "unmapped_mesh", "candidate_anchor"]},
+        "options": {"type": "array", "items": {"$ref": "#/$defs/option"}}
+      }
+    },
+    "curve": {
+      "type": "object", "additionalProperties": false,
+      "required": ["points", "edge_pixels", "closed", "status"],
+      "properties": {
+        "points": {"type": "array", "minItems": 2, "items": {"$ref": "#/$defs/point"}},
+        "edge_pixels": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/point"}},
+        "closed": {"type": "boolean"}, "status": {"enum": ["closed_contour", "ambiguous_corner"]}
+      }
+    },
+    "attachment": {
+      "type": "object", "additionalProperties": false,
+      "required": ["attachment", "size", "curves", "anchors", "boundary_edges", "status"],
+      "properties": {
+        "attachment": {"type": "string", "minLength": 1},
+        "size": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "integer", "minimum": 1}},
+        "curves": {"type": "array", "items": {"$ref": "#/$defs/curve"}},
+        "anchors": {"type": "array", "items": {"$ref": "#/$defs/anchor"}},
+        "boundary_edges": {"$ref": "#/$defs/index"}, "status": {"const": "needs_review"}
+      }
+    }
+  }
+}

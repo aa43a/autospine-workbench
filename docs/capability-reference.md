@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+`python -m autospine_workbench.benchmark.alpha_curve_cli` 追踪完整 alpha 单元边缘并将原接缝样本投影为曲线锚点候选。
+保留尖角多解与 Mesh 外状态，输出内容寻址报告和叠加复核页，见[说明](how-to-alpha-curves.md)。
+
 `python -m autospine_workbench.benchmark.same_frame_cli` 在同帧、同 ROI 与共同走廊中比较 alpha 局部过渡／重配候选。
 输出差分热图、空白与重叠统计和边界片段就绪性，见[说明](how-to-same-frame.md)。
 
