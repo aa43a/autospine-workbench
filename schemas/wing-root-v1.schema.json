@@ -1,0 +1,276 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "profile",
+    "source_search_sha256",
+    "character_id",
+    "parameters",
+    "rows",
+    "authority",
+    "production_authorized",
+    "status"
+  ],
+  "properties": {
+    "schema": {
+      "const": "autospine.wing-root/v1"
+    },
+    "profile": {
+      "const": "wing-component-inward-root-v1"
+    },
+    "source_search_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "character_id": {
+      "type": "string"
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "inward_band_height",
+        "minimum_component_pixels",
+        "root_limit_per_component",
+        "spacing_height",
+        "corridor_samples",
+        "component_limit"
+      ],
+      "properties": {
+        "inward_band_height": {
+          "const": 0.01
+        },
+        "minimum_component_pixels": {
+          "const": 16
+        },
+        "root_limit_per_component": {
+          "const": 3
+        },
+        "spacing_height": {
+          "const": 0.01
+        },
+        "corridor_samples": {
+          "const": 33
+        },
+        "component_limit": {
+          "const": 4096
+        }
+      }
+    },
+    "rows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "layer_id",
+          "name",
+          "target_layer_id",
+          "bone_id",
+          "anchor_xy",
+          "previous_points",
+          "components",
+          "selected_root",
+          "draw_order_reviewed",
+          "occlusion_verified"
+        ],
+        "properties": {
+          "layer_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "target_layer_id": {
+            "type": "string"
+          },
+          "bone_id": {
+            "type": "string"
+          },
+          "anchor_xy": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "number"
+            }
+          },
+          "previous_points": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number"
+              }
+            }
+          },
+          "components": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "component_id",
+                "area_pixels",
+                "centroid_xy",
+                "projected_target_coverage",
+                "roots",
+                "reason_code"
+              ],
+              "properties": {
+                "component_id": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "area_pixels": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "centroid_xy": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "number"
+                  }
+                },
+                "projected_target_coverage": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "roots": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "source_xy",
+                      "anchor_distance_px",
+                      "target_opaque_at_root",
+                      "target_corridor_samples",
+                      "local_evidence"
+                    ],
+                    "properties": {
+                      "source_xy": {
+                        "type": "array",
+                        "minItems": 2,
+                        "maxItems": 2,
+                        "items": {
+                          "type": "number"
+                        }
+                      },
+                      "anchor_distance_px": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "target_opaque_at_root": {
+                        "type": "boolean"
+                      },
+                      "target_corridor_samples": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 33
+                      },
+                      "local_evidence": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "status",
+                          "roi",
+                          "boundary_point",
+                          "overlap_pixels",
+                          "boundary_near_target_pixels",
+                          "boundary_pair_pixels"
+                        ],
+                        "properties": {
+                          "status": {
+                            "enum": [
+                              "boundary_pair_support",
+                              "boundary_over_target_interior",
+                              "overlap_only",
+                              "no_local_support",
+                              "no_source_boundary"
+                            ]
+                          },
+                          "roi": {
+                            "anyOf": [
+                              {
+                                "type": "array",
+                                "minItems": 4,
+                                "maxItems": 4,
+                                "items": {
+                                  "type": "number"
+                                }
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "boundary_point": {
+                            "anyOf": [
+                              {
+                                "type": "array",
+                                "minItems": 2,
+                                "maxItems": 2,
+                                "items": {
+                                  "type": "number"
+                                }
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "overlap_pixels": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "boundary_near_target_pixels": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "boundary_pair_pixels": {
+                            "type": "integer",
+                            "minimum": 0
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "maxItems": 3
+                },
+                "reason_code": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "selected_root": {
+            "type": "null"
+          },
+          "draw_order_reviewed": {
+            "const": false
+          },
+          "occlusion_verified": {
+            "const": false
+          }
+        }
+      }
+    },
+    "authority": {
+      "const": "none"
+    },
+    "production_authorized": {
+      "const": false
+    },
+    "status": {
+      "const": "needs_review"
+    }
+  }
+}

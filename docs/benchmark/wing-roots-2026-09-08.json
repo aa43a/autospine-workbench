@@ -1,0 +1,30 @@
+{
+  "profile": "wing-component-inward-root-v1",
+  "roots_sha256": "a51043ac4d10e62638a8a3e153695b0406cd5d45c66634d2859f4410535d8938",
+  "source_search_sha256": "e20d58ebc88240eb31eb48aa26d5204b12277d6bd58b4c4ac4a031679b9968c0",
+  "major_components": 4,
+  "retained_without_roots": 28,
+  "root_candidates": 8,
+  "targeted_tests": 13,
+  "schema_validated": true,
+  "source_replay": true,
+  "browser": {
+    "components": 32,
+    "roots": 8,
+    "errors": []
+  },
+  "projection_similarity": {
+    "overlap_pixels": 17378,
+    "rgb_exact_pixels": 0,
+    "rgba_exact_pixels": 0,
+    "rgb_mae": 81.29288,
+    "alpha_mae": 124.925135,
+    "source_image_sha256": "d215cfe806574511a8070f2daea70b8c38d28dd6a08238f92ae89bd7bf790cbf",
+    "target_image_sha256": "4bd6a2104bdc3f216c3e8fb5e4f85278fe9d7199b47b6eb5888b055aa7918e46",
+    "occlusion_verified": false
+  },
+  "authority": "none",
+  "production_authorized": false,
+  "runtime_rerun": false,
+  "occlusion_verified": false
+}
