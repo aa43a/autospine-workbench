@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+`python -m autospine_workbench.benchmark.seam_arc_cli` 选择有限间隔支持的局部曲线弧段，计算固定源序下的双向单调配对候选。
+保留全部原对应、多对一和阻塞原因，输出叠加复核页，见[说明](how-to-seam-arcs.md)。
+
 `python -m autospine_workbench.benchmark.alpha_curve_cli` 追踪完整 alpha 单元边缘并将原接缝样本投影为曲线锚点候选。
 保留尖角多解与 Mesh 外状态，输出内容寻址报告和叠加复核页，见[说明](how-to-alpha-curves.md)。
 

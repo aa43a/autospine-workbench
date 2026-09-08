@@ -1,0 +1,77 @@
+{
+  "date": "2026-09-08",
+  "authority": "none",
+  "production_authorized": false,
+  "tests_passed": 42,
+  "source_replay": "all_three_passed",
+  "schema_semantic_checks": "all_three_passed",
+  "browser_views": "all_three_loaded_without_page_errors",
+  "runtime": "not_run_animation_unchanged",
+  "full_suite": "not_run",
+  "correspondence_basis": "frozen_original_alpha_qa_pairs_not_remap_replacements",
+  "records": [
+    {
+      "character": "alice",
+      "artifact_sha256": "04c0755a999fdd8bb2e8df0add317374929603e6624218ce34f6402e1a07a8b6",
+      "source_curves_sha256": "4c89c51528e08a2aaadcca2703e66498da98460dcff74f957b9f85d6cbc30dd2",
+      "relations": [
+        {
+          "driver": "layer-001-l",
+          "follower": "layer-002-l",
+          "source_pair_count": 16,
+          "ungrouped_pairs": 0,
+          "group_reasons": {
+            "nonmonotone_correspondence": 2
+          }
+        },
+        {
+          "driver": "layer-001-r",
+          "follower": "layer-002-r",
+          "source_pair_count": 17,
+          "ungrouped_pairs": 0,
+          "group_reasons": {
+            "nonmonotone_correspondence": 1,
+            "many_to_one_requires_review": 1
+          }
+        }
+      ],
+      "screenshot_sha256": "26bb35992bd8d9923cbaeed3b5ff964d14bea9a5611b578b6306f041d00dec5e"
+    },
+    {
+      "character": "lingxian",
+      "artifact_sha256": "b895731d37dbf2b0c635b2423df3475020bc89af187f03bb51ec3837dac7f744",
+      "source_curves_sha256": "d174924eeb3f356b2065da820e6f3087bcebcc2da2c3851e92d8233a2bd3d43b",
+      "relations": [],
+      "screenshot_sha256": "96d9073e486fb70c4d500fbf60ae2180c9bff86caef472941feb1a22b38116d6"
+    },
+    {
+      "character": "crino",
+      "artifact_sha256": "00198dc0a34bce976958b75fca955f299d655282b93bd7893e351001b746f914",
+      "source_curves_sha256": "818aa86a0382a1426eb36865ea6d2f6e0cb3c8f28ba7ef8e210e28f2fde82c9a",
+      "relations": [
+        {
+          "driver": "layer-005-l",
+          "follower": "layer-006-l",
+          "source_pair_count": 24,
+          "ungrouped_pairs": 1,
+          "group_reasons": {
+            "insufficient_arc_pairs": 1,
+            "many_to_one_requires_review": 2
+          }
+        },
+        {
+          "driver": "layer-005-r",
+          "follower": "layer-006-r",
+          "source_pair_count": 48,
+          "ungrouped_pairs": 0,
+          "group_reasons": {
+            "many_to_one_requires_review": 3,
+            "insufficient_arc_pairs": 1
+          }
+        }
+      ],
+      "screenshot_sha256": "6600e305215d39e7a55075db0b910188f072a95524b220d692fb5c5e20e6c69d"
+    }
+  ],
+  "reader_replay": "alice_passed"
+}

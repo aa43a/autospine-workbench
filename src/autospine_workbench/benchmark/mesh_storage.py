@@ -27,6 +27,7 @@ SCHEMAS += ('autospine.seam-raster-diagnostic/v1',)
 SCHEMAS += ('autospine.seam-remap-preview/v1',)
 SCHEMAS += ('autospine.same-frame-seam/v1',)
 SCHEMAS += ('autospine.alpha-curve-anchors/v1',)
+SCHEMAS += ('autospine.seam-arc-pairs/v1',)
 
 
 def _read(path):
