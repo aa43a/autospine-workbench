@@ -14,6 +14,7 @@
   const wing=animationName==='wing-root-inspection';
   if(wing)document.querySelector('aside').textContent='已选翼根的胸骨跟随与局部转动诊断；上衣翼片重影、残余边缘和层序尚未解决。Runtime数值通过不代表生产视觉验收通过。';
   if(wing&&manifest.edge_ownership)document.querySelector('aside').textContent='翼片边缘归属候选：'+manifest.edge_ownership.counts.transferred+' 个低alpha像素跟随唯一邻近翼片，setup不变。上衣重影与未归属残余仍待复核，没有生产授权。';
+  if(wing&&manifest.split_counts)document.querySelector('aside').textContent='上传遮罩拆分候选：移除 '+manifest.split_counts.removed_visible_pixels+' 个可见像素，其中 '+manifest.split_counts.removed_outside_hint_pixels+' 个在原重叠提示之外。请检查实际服装移除位置；未宣称重影已修复，没有生产授权。';
   const seam=animationName==='seam-translation-inspection';
   const remapped=animationName==='remapped-seam-inspection';
   const alphaSeam=['alpha-seam-inspection','continuous-anchor-inspection','seam-shape-inspection','seam-increment-inspection'].includes(animationName)||remapped;

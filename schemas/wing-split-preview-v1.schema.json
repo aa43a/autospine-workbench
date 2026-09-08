@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["schema", "profile", "source_edge_preview_sha256", "source_split_draft_sha256", "split_counts", "source_reconstruction_exact", "split_review_status", "ghosting_resolved", "authority", "production_authorized", "files"],
+  "properties": {
+    "schema": {"const": "autospine.wing-split-preview/v1"},
+    "profile": {"const": "explicit-tristate-source-split-v1"},
+    "source_edge_preview_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source_split_draft_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "split_counts": {"type": "object", "required": ["removed_visible_pixels", "kept_visible_pixels", "removed_outside_hint_pixels", "removed_inside_hint_pixels"], "additionalProperties": {"type": "integer", "minimum": 0}},
+    "source_reconstruction_exact": {"const": true},
+    "split_review_status": {"const": "needs_review"},
+    "ghosting_resolved": {"const": false},
+    "authority": {"const": "none"}, "production_authorized": {"const": false},
+    "files": {"type": "object", "additionalProperties": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+  }
+}
