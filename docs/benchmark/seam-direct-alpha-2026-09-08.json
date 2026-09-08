@@ -1,0 +1,70 @@
+{
+  "date": "2026-09-08",
+  "authority": "none",
+  "production_authorized": false,
+  "tests_passed": 43,
+  "schema_and_numeric_invariants": "all_three_passed",
+  "native_center_replay": "all_318_passed",
+  "exact_reader": "alice_passed",
+  "historical_isoline_identity": "all_three_unchanged",
+  "browser_images": "all_three_passed",
+  "runtime": "not_rerun_unchanged_animation",
+  "full_suite": "not_run",
+  "records": [
+    {
+      "character": "alice",
+      "artifact_sha256": "b6b05d23c9e08ac64505e73173ef89c737f81a28b8c073e3e05d325ae9a0af95",
+      "page_sha256": "a4eab3af255f652061dca8328efd5a56288f66ff82d3f1040403b2a8fa402c66",
+      "screenshot_sha256": "12d1899d4dfe8944607af607ecc2376e4ce0289e6cd098c41801bf6b442d2e3b",
+      "relations": [
+        {
+          "driver": "layer-001-l",
+          "samples": 7,
+          "both_mesh_covered": 7,
+          "center_union_at_least8": 3,
+          "min_patch16_union_gap_fraction": 0.1171875,
+          "max_8_16_fraction_change": 0.01953125
+        },
+        {
+          "driver": "layer-001-r",
+          "samples": 0,
+          "both_mesh_covered": 0,
+          "center_union_at_least8": 0,
+          "min_patch16_union_gap_fraction": null,
+          "max_8_16_fraction_change": null
+        }
+      ]
+    },
+    {
+      "character": "lingxian",
+      "artifact_sha256": "2de7813df9794ba84642eec0e90b1befd0a1780def9a82da2d8979c1c17c51fb",
+      "page_sha256": "e14a3f871fed49dc4e393883e5aaaf0b2644498a6aa6843baf4bbfe146c9a5a1",
+      "screenshot_sha256": "595d6aa661493bba74906b320b96c4f432106ad971f7faeea2b0757f058453ef",
+      "relations": []
+    },
+    {
+      "character": "crino",
+      "artifact_sha256": "2641a6c5131ca76207f1169d8c7459202e3795c4e2146193f12a28073898c7c1",
+      "page_sha256": "104916e6b3f2c92a69f1d732b18156e598c56457cdec00c690468b6c71679adb",
+      "screenshot_sha256": "5138ddaa15a6b4701d7df964715b795e5f04d953c23b281180a2ce8f07ebf518",
+      "relations": [
+        {
+          "driver": "layer-005-l",
+          "samples": 99,
+          "both_mesh_covered": 66,
+          "center_union_at_least8": 4,
+          "min_patch16_union_gap_fraction": 0.203125,
+          "max_8_16_fraction_change": 0.0390625
+        },
+        {
+          "driver": "layer-005-r",
+          "samples": 212,
+          "both_mesh_covered": 182,
+          "center_union_at_least8": 14,
+          "min_patch16_union_gap_fraction": 0.015625,
+          "max_8_16_fraction_change": 0.0625
+        }
+      ]
+    }
+  ]
+}

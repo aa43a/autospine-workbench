@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[直接 UV alpha 核查](docs/how-to-seam-direct-alpha.md)在全部 318 个像素单元内检测到低合成 alpha 子采样点。
+Alice 七点均有双 Mesh 覆盖，且三个中心叠加后不再低于 alpha8；原逐附件阈值不能直接作为合成门禁。下一步核对 Runtime 局部合成，候选未采用。
+
 [亚像素 alpha 等值轮廓](docs/how-to-seam-gap-isoline.md)使 Alice 七点均呈相向边界；4／8 倍细分分类一致，最大距离变化约 0.01662px。
 这是 CPU 样本场近似，候选仍未采用；下一步校准直接 alpha／Runtime 局部可见性。
 

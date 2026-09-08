@@ -1,0 +1,228 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "profile",
+    "source_isoline_sha256",
+    "authority",
+    "production_authorized",
+    "status",
+    "runtime_raster_status",
+    "relations"
+  ],
+  "properties": {
+    "schema": {
+      "const": "autospine.seam-direct-alpha/v1"
+    },
+    "profile": {
+      "const": "direct-uv-bilinear-cell8-16-v1"
+    },
+    "source_isoline_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "production_authorized": {
+      "const": false
+    },
+    "status": {
+      "const": "needs_review"
+    },
+    "runtime_raster_status": {
+      "const": "not_evaluated"
+    },
+    "relations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "driver",
+          "follower",
+          "samples"
+        ],
+        "properties": {
+          "driver": {
+            "type": "string"
+          },
+          "follower": {
+            "type": "string"
+          },
+          "samples": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "track_id",
+                "frame",
+                "world_point",
+                "center_alpha",
+                "center_mesh_covered",
+                "baseline_center_alpha",
+                "patch8",
+                "patch16",
+                "union_gap_fraction_change"
+              ],
+              "properties": {
+                "track_id": {
+                  "type": "string"
+                },
+                "frame": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 60
+                },
+                "world_point": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 2,
+                  "maxItems": 2
+                },
+                "center_alpha": {
+                  "type": "array",
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 255.00000001
+                  },
+                  "minItems": 2,
+                  "maxItems": 2
+                },
+                "center_mesh_covered": {
+                  "type": "array",
+                  "items": {
+                    "type": "boolean"
+                  },
+                  "minItems": 2,
+                  "maxItems": 2
+                },
+                "baseline_center_alpha": {
+                  "type": "array",
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 255.00000001
+                  },
+                  "minItems": 2,
+                  "maxItems": 2
+                },
+                "patch8": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "resolution",
+                    "sample_count",
+                    "both_below8",
+                    "union_below8",
+                    "mean_union_alpha",
+                    "min_union_alpha",
+                    "max_union_alpha"
+                  ],
+                  "properties": {
+                    "resolution": {
+                      "enum": [
+                        8,
+                        16
+                      ]
+                    },
+                    "sample_count": {
+                      "enum": [
+                        64,
+                        256
+                      ]
+                    },
+                    "both_below8": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "union_below8": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "mean_union_alpha": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 255.00000001
+                    },
+                    "min_union_alpha": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 255.00000001
+                    },
+                    "max_union_alpha": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 255.00000001
+                    }
+                  }
+                },
+                "patch16": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "resolution",
+                    "sample_count",
+                    "both_below8",
+                    "union_below8",
+                    "mean_union_alpha",
+                    "min_union_alpha",
+                    "max_union_alpha"
+                  ],
+                  "properties": {
+                    "resolution": {
+                      "enum": [
+                        8,
+                        16
+                      ]
+                    },
+                    "sample_count": {
+                      "enum": [
+                        64,
+                        256
+                      ]
+                    },
+                    "both_below8": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "union_below8": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "mean_union_alpha": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 255.00000001
+                    },
+                    "min_union_alpha": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 255.00000001
+                    },
+                    "max_union_alpha": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 255.00000001
+                    }
+                  }
+                },
+                "union_gap_fraction_change": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}
