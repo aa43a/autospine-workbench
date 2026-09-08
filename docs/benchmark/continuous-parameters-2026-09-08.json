@@ -1,0 +1,47 @@
+{
+  "date": "2026-09-08",
+  "authority": "none",
+  "production_authorized": false,
+  "tests_passed": 48,
+  "source_replay": "all_three_passed",
+  "schema_semantic_checks": "all_three_passed",
+  "browser_views": "all_three_loaded_without_page_errors",
+  "runtime": "not_run_animation_unchanged",
+  "full_suite": "not_run",
+  "records": [
+    {
+      "character": "alice",
+      "artifact_sha256": "bbe8ae8779536318ade72bc98acdc449480fdd568094c85dc8b8424e841fec9f",
+      "source_arcs_sha256": "04c0755a999fdd8bb2e8df0add317374929603e6624218ce34f6402e1a07a8b6",
+      "candidate_groups": 4,
+      "candidate_pairs": 33,
+      "blocked_groups": 0,
+      "ungrouped_pairs": 0,
+      "max_world_shift_px": 1.0295630140986802,
+      "screenshot_sha256": "836d82ee081c4e4c0b2da127364689e40b5711b9c7d9f9f63c0bd5e86a0f0ee9"
+    },
+    {
+      "character": "lingxian",
+      "artifact_sha256": "fdb243c41b3f5184a832842fcc9b43a2e72150208d611ab6b079028de44a17be",
+      "source_arcs_sha256": "b895731d37dbf2b0c635b2423df3475020bc89af187f03bb51ec3837dac7f744",
+      "candidate_groups": 0,
+      "candidate_pairs": 0,
+      "blocked_groups": 0,
+      "ungrouped_pairs": 0,
+      "max_world_shift_px": null,
+      "screenshot_sha256": "2e81388f7a1745db603b8c5105acef90e29058b2128cab54b7c2e83d65dd2567"
+    },
+    {
+      "character": "crino",
+      "artifact_sha256": "8c812d6fcbcacbcb0e6b6d97aaca82891bb6e0c297e56b5bad97509319c5c211",
+      "source_arcs_sha256": "00198dc0a34bce976958b75fca955f299d655282b93bd7893e351001b746f914",
+      "candidate_groups": 5,
+      "candidate_pairs": 67,
+      "blocked_groups": 2,
+      "ungrouped_pairs": 1,
+      "max_world_shift_px": 0.707106781186628,
+      "screenshot_sha256": "f1c08cd57545b61250e3e0fd21b68b4ae7880ebf99aaf0af1da8e3e2a3f74ddb"
+    }
+  ],
+  "reader_replay": "alice_passed"
+}

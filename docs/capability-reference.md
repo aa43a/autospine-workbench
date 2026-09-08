@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+`python -m autospine_workbench.benchmark.continuous_parameter_cli` 使用有界保序回归求目标弧段上的严格单调连续参数。
+同时检查 Mesh 嵌入和世界位移预算，输出参数对照页；尚未 Bake，见[说明](how-to-continuous-parameters.md)。
+
 `python -m autospine_workbench.benchmark.seam_arc_cli` 选择有限间隔支持的局部曲线弧段，计算固定源序下的双向单调配对候选。
 保留全部原对应、多对一和阻塞原因，输出叠加复核页，见[说明](how-to-seam-arcs.md)。
 
