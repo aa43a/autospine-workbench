@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[官方 Runtime 局部合成](docs/how-to-seam-local-runtime.md)已捕获 Alice 七点的 224 组 framebuffer 对照：增量后七点 alpha 均下降，四点低于 8。
+共享／独立纹理目标 RGBA 一致；候选未采用，下一步评估逐关系稳定准入与回退。
+
 [直接 UV alpha 核查](docs/how-to-seam-direct-alpha.md)在全部 318 个像素单元内检测到低合成 alpha 子采样点。
 Alice 七点均有双 Mesh 覆盖，且三个中心叠加后不再低于 alpha8；原逐附件阈值不能直接作为合成门禁。下一步核对 Runtime 局部合成，候选未采用。
 

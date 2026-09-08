@@ -1,0 +1,87 @@
+{
+  "date": "2026-09-08",
+  "authority": "none",
+  "production_authorized": false,
+  "status": "not_adopted_runtime_alpha_regression",
+  "runtime_version": "4.3.13",
+  "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+  "browser": "152.0.7977.76",
+  "report_sha256": "29605cb2aa9b0632889fadfb179b7de1f265f1e88156fee7249217ba14c1bc2a",
+  "capture_count": 224,
+  "png_inventory": "all_224_passed",
+  "shared_reference_target_rgba": "identical",
+  "native_cpu_union_error": "at_most_one_alpha_unit",
+  "regression_frames": 242,
+  "samples": [
+    {
+      "frame": 34,
+      "point": [
+        440.5,
+        -847.5
+      ],
+      "before_alpha": 30,
+      "after_alpha": 9,
+      "cpu_union_alpha": 8.97946817667269
+    },
+    {
+      "frame": 36,
+      "point": [
+        448.5,
+        -853.5
+      ],
+      "before_alpha": 30,
+      "after_alpha": 6,
+      "cpu_union_alpha": 5.592407335715949
+    },
+    {
+      "frame": 37,
+      "point": [
+        452.5,
+        -857.5
+      ],
+      "before_alpha": 40,
+      "after_alpha": 10,
+      "cpu_union_alpha": 10.07611494064383
+    },
+    {
+      "frame": 38,
+      "point": [
+        458.5,
+        -861.5
+      ],
+      "before_alpha": 27,
+      "after_alpha": 3,
+      "cpu_union_alpha": 2.7202710160231236
+    },
+    {
+      "frame": 52,
+      "point": [
+        580.5,
+        -904.5
+      ],
+      "before_alpha": 24,
+      "after_alpha": 1,
+      "cpu_union_alpha": 1.0731663914891438
+    },
+    {
+      "frame": 52,
+      "point": [
+        580.5,
+        -905.5
+      ],
+      "before_alpha": 64,
+      "after_alpha": 11,
+      "cpu_union_alpha": 10.473367337685172
+    },
+    {
+      "frame": 58,
+      "point": [
+        613.5,
+        -904.5
+      ],
+      "before_alpha": 13,
+      "after_alpha": 7,
+      "cpu_union_alpha": 6.76828133813824
+    }
+  ]
+}

@@ -170,5 +170,6 @@
   document.querySelector('#play').onclick=()=>{playing=!playing;};
   function animate(now){if(playing){t=(t+(now-last)/1000)%duration;draw(shared,t);document.querySelector('#time').value=t;document.querySelector('#stamp').textContent=t.toFixed(2)+'s';}last=now;requestAnimationFrame(animate);}
   draw(shared,0);requestAnimationFrame(animate);status.textContent=`${name} · Spine Runtime 已载入 · ${manifest.regions.length} 个候选附件 · ${animationName}`;
+  if(window.installLocalFramebuffer)window.installLocalFramebuffer({canvas,gl,renderer,shared,isolated,pose});
   window.ready=true;
 })().catch(error=>{document.querySelector('#status').textContent=error.stack;window.failure=String(error.stack);});
