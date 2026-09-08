@@ -1,0 +1,14 @@
+{
+ "slice":"stable-wing-back-setup-order-v1",
+ "source_split_preview_sha256":"ccfe55c56417e2cee4da5a8feb86aca69c842e5459a8e997f4ba81f1e17034bb",
+ "preview_sha256":"bb40583bf1bfc702a539cc8518905f8a77d4314ef52b43bea27f11373bce17dd",
+ "after":["wing-residual","wing-c0","wing-c1","wing-c2","wing-c3","topwear"],
+ "textures_unchanged":true,"rig_and_motion_unchanged":true,
+ "targeted_tests_passed":5,"runtime_frames":121,"runtime_numeric_passed":true,
+ "export_version":"4.3.26","runtime_version":"4.3.13",
+ "comparison_changed_pixels":[7303,4111,7303,4068,7303],
+ "comparison_max_channel_delta":131,"comparison_alpha8_loss_pixels":[0,0,0,0,0],
+ "visual_observation":"Static wing contours remain in topwear and obscure moving wings even after back-order correction.",
+ "scope":"wing_and_topwear_subset_only","output":"../tmp/r2b-wing-back-order",
+ "authority":"none","production_authorized":false
+}

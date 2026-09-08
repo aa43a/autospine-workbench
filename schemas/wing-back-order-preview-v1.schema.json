@@ -1,0 +1,12 @@
+{
+ "$schema":"https://json-schema.org/draft/2020-12/schema",
+ "type":"object",
+ "required":["schema","profile","source_split_preview_sha256","slot_order_change","textures_unchanged","rig_and_motion_unchanged","draw_order_scope","authority","production_authorized","files"],
+ "properties":{
+  "schema":{"const":"autospine.wing-back-order-preview/v1"},"profile":{"const":"stable-wing-back-setup-order-v1"},
+  "source_split_preview_sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"},
+  "slot_order_change":{"type":"object","required":["before","after"],"properties":{"before":{"type":"array","items":{"type":"string"}},"after":{"type":"array","items":{"type":"string"}}}},
+  "textures_unchanged":{"const":true},"rig_and_motion_unchanged":{"const":true},"draw_order_scope":{"const":"wing_and_topwear_subset_only"},
+  "authority":{"const":"none"},"production_authorized":{"const":false},"files":{"type":"object"}
+ }
+}
