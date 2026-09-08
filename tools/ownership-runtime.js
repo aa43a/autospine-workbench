@@ -20,6 +20,7 @@
   if(wing&&manifest.color_ownership)document.querySelector('aside').textContent='颜色归属候选：'+manifest.color_ownership.counts.transferred+' 个保存像素转入封闭翼片；根部、动作与后置层序不变。未归属像素另存，颜色与轮廓配准仍需复核。';
   if(wing&&manifest.pendant_candidates)document.querySelector('aside').textContent='挂坠挂接候选：'+manifest.mounted_pendants.length+' 个独立子骨骼，顶部附近挂接主翼，局部±6°仅用于诊断。原附件动作保持不变；残余另存，不是物理或生产验收。';
   if(wing&&manifest.context_layers)document.querySelector('aside').textContent='完整角色上下文：'+manifest.context_layers.length+' 个源图层，'+manifest.context_layer_count+' 层仅作刚性身体参照。主翼和挂坠位于所有身体图层后方；原翼片动作不变，身体绑定尚未批准。';
+  if(animationName==='wing-limb-inspection')document.querySelector('aside').textContent='标准骨架合并候选：双臂、腿鞋原动作保留，翼片与挂坠局部运动并行。旧整身摆动移除；四肢残余仅作刚性参照，肩部、袖口、裙摆接缝仍待复核。';
   const seam=animationName==='seam-translation-inspection';
   const remapped=animationName==='remapped-seam-inspection';
   const alphaSeam=['alpha-seam-inspection','continuous-anchor-inspection','seam-shape-inspection','seam-increment-inspection'].includes(animationName)||remapped;

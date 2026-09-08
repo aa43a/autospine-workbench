@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "type": "object",
+  "required": ["schema", "profile", "source_context_sha256", "source_limb_sha256", "source_ownership_sha256", "source_skeleton_sha256", "limb_motion_unchanged", "wing_local_motion_max_error_px", "omitted_diagnostic_track", "limb_residual_context_pixels", "context_layers", "regions", "geometry", "full_character_animation", "authority", "production_authorized", "files"],
+  "properties": {
+    "schema": {"const": "autospine.wing-limb-preview/v1"},
+    "profile": {"const": "canonical-wing-and-limb-union-v1"},
+    "source_context_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source_limb_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source_ownership_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source_skeleton_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "limb_motion_unchanged": {"const": true},
+    "wing_local_motion_max_error_px": {"type": "number", "minimum": 0, "maximum": 0.0000001},
+    "omitted_diagnostic_track": {"const": "old_chest_sway"},
+    "limb_residual_context_pixels": {"type": "integer", "minimum": 0},
+    "full_character_animation": {"const": false},
+    "authority": {"const": "none"}, "production_authorized": {"const": false},
+    "context_layers": {"type": "array"}, "regions": {"type": "array"}, "files": {"type": "object"}
+  }
+}

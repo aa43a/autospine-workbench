@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[翼片与四肢标准骨架合并](docs/how-to-wing-limb-preview.md)：琪露诺32附件完成官方Runtime 121帧检查，
+旧四肢动作保持一致；翼片局部动作重挂标准骨架，袖口、裙摆及残余仍待复核。
+
 [主翼与挂坠的完整角色上下文](docs/how-to-wing-character-preview.md)：琪露诺18源层、26附件通过官方Runtime 121帧检查；
 16层仅作刚性身体参照，独立四肢动作尚未合入，没有新增绑定批准。
 
