@@ -1,0 +1,220 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "profile",
+    "character_id",
+    "source_candidate_sha256",
+    "source_skeleton_sha256",
+    "source_bindings_sha256",
+    "source_draft_sha256",
+    "scope",
+    "layers",
+    "status",
+    "authority",
+    "production_authorized"
+  ],
+  "properties": {
+    "schema": {
+      "const": "autospine.rig-plan/v1"
+    },
+    "profile": {
+      "const": "semantic-alpha-bone-strategy-v1"
+    },
+    "character_id": {
+      "type": "string"
+    },
+    "source_candidate_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "source_skeleton_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "source_bindings_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "source_draft_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "scope": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "layers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "layer_id",
+          "name",
+          "semantic",
+          "image_sha256",
+          "existing_action",
+          "evidence",
+          "strategy",
+          "reason_codes",
+          "preview",
+          "capability",
+          "next_action",
+          "confidence",
+          "status"
+        ],
+        "properties": {
+          "layer_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "semantic": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "image_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "existing_action": {
+            "enum": [
+              "pending",
+              "bind",
+              "requires_split",
+              "exclude",
+              "semantic_review"
+            ]
+          },
+          "evidence": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "alpha_threshold",
+              "connectivity",
+              "component_count",
+              "largest_component_areas",
+              "bone_alpha_samples"
+            ],
+            "properties": {
+              "alpha_threshold": {
+                "const": 8
+              },
+              "connectivity": {
+                "const": 4
+              },
+              "component_count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "largest_component_areas": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "bone_alpha_samples": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "bone_id",
+                    "opaque_samples",
+                    "samples"
+                  ],
+                  "properties": {
+                    "bone_id": {
+                      "type": "string"
+                    },
+                    "opaque_samples": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 21
+                    },
+                    "samples": {
+                      "const": 21
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "strategy": {
+            "enum": [
+              "rigid",
+              "weighted_mesh",
+              "partition_mesh",
+              "facial",
+              "secondary_motion",
+              "semantic_review"
+            ]
+          },
+          "reason_codes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "preview": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "rigid_option_ids",
+              "status"
+            ],
+            "properties": {
+              "rigid_option_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "status": {
+                "enum": [
+                  "review_required",
+                  "blocked"
+                ]
+              }
+            }
+          },
+          "capability": {
+            "enum": [
+              "candidate_path_only",
+              "not_implemented_by_planner"
+            ]
+          },
+          "next_action": {
+            "type": "string"
+          },
+          "confidence": {
+            "type": "null"
+          },
+          "status": {
+            "const": "needs_review"
+          }
+        }
+      }
+    },
+    "status": {
+      "const": "needs_review"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "production_authorized": {
+      "const": false
+    }
+  }
+}
