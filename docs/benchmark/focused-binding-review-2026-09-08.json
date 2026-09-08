@@ -1,0 +1,31 @@
+{
+  "focus_layers": [
+    "layer-005",
+    "layer-008",
+    "layer-009",
+    "layer-010",
+    "layer-011",
+    "layer-012",
+    "layer-014",
+    "layer-015",
+    "layer-016",
+    "layer-017",
+    "layer-018",
+    "layer-019",
+    "layer-020",
+    "layer-022"
+  ],
+  "focused": 14,
+  "whole_layer_pending": 16,
+  "total_records": 23,
+  "full_draft_roundtrip": true,
+  "undo": true,
+  "errors": [],
+  "source_integrated_sha256": "b5b92e6639bc76ac1ba61fcac69dc9e58bdee6a99cc1b22e44b896a7a5193cd1",
+  "draft_sha256": "1a214b1efe4a1e53a6f5e356d2174e8d898fcb2213e0933693d425fc50c21e1c",
+  "draft_unchanged": true,
+  "authority": "none",
+  "production_authorized": false,
+  "targeted_tests": 11,
+  "runtime_rerun": false
+}

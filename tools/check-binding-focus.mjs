@@ -1,0 +1,43 @@
+import {createRequire} from 'node:module';
+import {pathToFileURL} from 'node:url';
+import fs from 'node:fs/promises';
+import assert from 'node:assert/strict';
+import path from 'node:path';
+const [html, draftFile, dependencies, chrome, output]=process.argv.slice(2);
+if(!output)throw Error('usage: html draft dependencies chrome output');
+const require=createRequire(path.resolve(dependencies,'package.json'));
+const {chromium}=require('playwright-core');
+const expected=JSON.parse(await fs.readFile(draftFile,'utf8'));
+const browser=await chromium.launch({executablePath:chrome,headless:true});
+try {
+ const page=await browser.newPage(), errors=[];
+ page.on('pageerror',e=>errors.push(String(e)));
+ await page.goto(pathToFileURL(path.resolve(html)).href);
+ const state=await page.locator('#state').textContent();
+ const {focus_layers:focus}=JSON.parse(state);
+ assert.ok(focus.length);
+ const pending=expected.records.filter(r=>r.action==='pending').length;
+ assert.equal(await page.locator('fieldset[data-layer]').count(),expected.records.length);
+ assert.equal(await page.locator('article:visible').count(),focus.length);
+ await page.locator('#focus-only').uncheck();
+ assert.equal(await page.locator('article:visible').count(),pending);
+ await page.locator('#pending-only').uncheck();
+ assert.equal(await page.locator('article:visible').count(),expected.records.length);
+ await page.locator('#focus-only').check();
+ await page.locator('#pending-only').check();
+ const field=page.locator(`fieldset[data-layer="${focus[0]}"]`);
+ await field.locator('[data-notes]').fill('UI regression only');
+ await field.locator('[data-notes]').blur();
+ await page.locator('#undo').click();
+ assert.equal(await field.locator('[data-notes]').inputValue(),expected.records.find(r=>r.layer_id===focus[0]).notes);
+ await page.locator('#load').setInputFiles(path.resolve(draftFile));
+ await page.waitForFunction(()=>document.getElementById('load').value==='');
+ const downloaded=page.waitForEvent('download');
+ await page.locator('#save').click();
+ const download=await downloaded;
+ const saved=JSON.parse(await fs.readFile(await download.path(),'utf8'));
+ assert.deepEqual(saved,expected);
+ assert.deepEqual(errors,[]);
+ await fs.writeFile(output,JSON.stringify({focus_layers:focus,focused:focus.length,whole_layer_pending:pending,
+  total_records:saved.records.length,full_draft_roundtrip:true,undo:true,errors},null,2));
+} finally {await browser.close();}

@@ -6,7 +6,7 @@ from .region_binding_view import REASONS
 from .layer_binding_controls import controls, panel, SCRIPT, option_label
 
 
-def render_layer_bindings(candidate, assisted, skeleton, document, composite, images, draft):
+def render_layer_bindings(candidate, assisted, skeleton, document, composite, images, draft, *, focus_layers=None):
     from ..asset.joints.layer_binding import validate_layer_bindings
     from .layer_binding_draft import validate_layer_binding_draft
     validate_layer_bindings(candidate, assisted, skeleton, document)
@@ -48,5 +48,5 @@ h2{{font-size:20px}}small{{color:#667}}label{{display:block;margin:8px 0}}
 select,textarea{{width:100%;padding:8px;box-sizing:border-box}}button{{padding:10px}}fieldset{{border:1px solid #ccd}}</style>
 <h1>单骨与多骨链绑定复核</h1><p class="notice">同一图层可以选择多骨 Mesh 骨链。不同颜色表示链中不同骨段；
 本页确定影响骨骼集合，不授予生产权；名称建议需对照图像核对。补全草稿保留内容未变的既有选择，新增候选仍待处理。</p>
-{panel(document,draft)}<p>共{len(document['bindings'])}层，其中{mesh}层具有多骨链选项。选择选项后突出显示对应骨链。</p>
+{panel(document,draft,focus_layers)}<p>共{len(document['bindings'])}层，其中{mesh}层具有多骨链选项。选择选项后突出显示对应骨链。</p>
 <main>{''.join(cards)}</main><script>{SCRIPT}</script></html>'''

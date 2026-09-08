@@ -37,6 +37,22 @@ class LayerBindingCliTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             read_layer_binding_draft(f.f.state,f.f.manifest,canonical_sha256(draft),workspace=f.f.root)
 
+    def test_focus_is_display_metadata_and_rejects_unknown_layers(self):
+        from autospine_workbench.benchmark.layer_binding_controls import panel
+        doc = build_layer_bindings(*fixture())
+        draft = build_layer_binding_draft(doc)
+        before = canonical_sha256(draft)
+        layer = doc['bindings'][0]['layer_id']
+        html = panel(doc, draft, [layer])
+        state = json.loads(html.split('id="state">')[1].split('</script>')[0])
+        self.assertEqual(state['draft'], draft)
+        self.assertEqual(state['focus_layers'], [layer])
+        self.assertEqual(canonical_sha256(draft), before)
+        self.assertNotIn('id="focus-only"', panel(doc, draft))
+        for scope in ([], [layer, layer], ['unknown'], [None]):
+            with self.assertRaises(ValueError):
+                panel(doc, draft, scope)
+
     def test_browser_chain_selection_validation(self):
         node=shutil.which('node')
         if not node:self.skipTest('node unavailable')

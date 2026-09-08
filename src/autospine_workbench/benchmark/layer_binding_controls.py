@@ -24,12 +24,20 @@ def controls(row, record):
 <label>备注<textarea data-notes maxlength="2000">{escape(record['notes'])}</textarea></label></fieldset>'''
 
 
-def panel(bindings, draft):
-    data = json.dumps({'bindings': bindings, 'draft': draft}, ensure_ascii=True).replace('<','\\u003c')
+def panel(bindings, draft, focus_layers=None):
+    if focus_layers is not None:
+        known = {row['layer_id'] for row in bindings['bindings']}
+        if (not focus_layers or any(not isinstance(x, str) for x in focus_layers)
+                or len(set(focus_layers)) != len(focus_layers) or not set(focus_layers) <= known):
+            raise ValueError('focus_layers must contain unique known layer IDs')
+    focus = ('<label><input id="focus-only" type="checkbox" checked>仅显示本次缺失图层</label>'
+             '<p>此范围仅筛选显示；其他图层及分区候选的原有决定保留在完整草稿中。</p>'
+             if focus_layers is not None else '')
+    data = json.dumps({'bindings': bindings, 'draft': draft, 'focus_layers': focus_layers}, ensure_ascii=True).replace('<','\\u003c')
     return ('<section class="notice"><button id="save">保存整份草稿</button> '
             '<button id="undo">撤销上一步</button><label>恢复 v2 草稿 <input id="load" type="file" accept=".json"></label>'
             '<label><input id="pending-only" type="checkbox" checked>仅显示待处理图层</label>'
-            '<p id="status" role="status"></p></section>'
+            f'{focus}<p id="status" role="status"></p></section>'
             f'<script type="application/json" id="state">{data}</script>')
 
 
@@ -57,24 +65,30 @@ function validateLayerDraft(bindings, base, doc) {
   return structuredClone(doc);
 }
 if (typeof document !== 'undefined') {
-  const {bindings,draft:base}=JSON.parse(document.getElementById('state').textContent);
+  const {bindings,draft:base,focus_layers}=JSON.parse(document.getElementById('state').textContent);
+  const focus=new Set(focus_layers||[]), focusControl=document.getElementById('focus-only');
   let current=structuredClone(base), history=[];
   const fields=[...document.querySelectorAll('fieldset[data-layer]')], status=document.getElementById('status');
   function show() {
     fields.forEach((f,i)=>{
       const r=current.records[i]; f.querySelector('[data-action]').value=r.action;
       const complete=bindingRecordComplete(r);
-      f.closest('article').hidden=document.getElementById('pending-only').checked && complete;
+      f.closest('article').hidden=(focusControl?.checked && !focus.has(r.layer_id)) ||
+        (document.getElementById('pending-only').checked && complete);
       const select=f.querySelector('[data-option]'); select.value=r.option_id||''; select.disabled=r.action!=='bind';
       f.querySelector('[data-notes]').value=r.notes;
       f.closest('article').querySelectorAll('[data-chain]').forEach(g=>{
         g.style.opacity=(!r.option_id || g.dataset.chain===r.option_id)?'1':'.12';
       });
     });
-    status.textContent=`${current.records.filter(r=>r.action==='pending').length}/${current.records.length} 层尚未处理；选择骨链后仍需生成网格与权重。`;
+    const pending=records=>records.filter(r=>!bindingRecordComplete(r)).length;
+    const scoped=current.records.filter(r=>focus.has(r.layer_id));
+    status.textContent=(focusControl?`本次范围 ${pending(scoped)}/${scoped.length} 层待处理；`:'')+
+      `完整草稿 ${pending(current.records)}/${current.records.length} 层待处理；保存始终包含全部图层。`;
   }
   const remember=()=>{history.push(structuredClone(current)); if(history.length>100)history.shift();};
   document.getElementById('pending-only').onchange=show;
+  if(focusControl)focusControl.onchange=show;
   fields.forEach((f,i)=>f.addEventListener('change',()=>{
     remember(); const r=current.records[i]; r.action=f.querySelector('[data-action]').value;
     r.option_id=r.action==='bind'?(f.querySelector('[data-option]').value||null):null;
