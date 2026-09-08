@@ -1,0 +1,60 @@
+{
+  "date": "2026-09-08",
+  "authority": "none",
+  "production_authorized": false,
+  "tests_passed": 21,
+  "schema_and_content_addresses": "all_three_passed",
+  "common_frame_replay": "all_four_relations_61_frames_passed",
+  "runtime": "not_rerun_unchanged_animation",
+  "records": [
+    {
+      "character": "alice",
+      "artifact_sha256": "fbe7134daf20c70f88607b606ed5954c158ec94171cc0e87208e4c06ed7ee272",
+      "relations": [
+        {
+          "driver": "layer-001-l",
+          "follower": "layer-002-l",
+          "new_gap_pixels": 7,
+          "opposed_attachment_support": 7,
+          "single_attachment_support": 0,
+          "uncertain": 0
+        },
+        {
+          "driver": "layer-001-r",
+          "follower": "layer-002-r",
+          "new_gap_pixels": 0,
+          "opposed_attachment_support": 0,
+          "single_attachment_support": 0,
+          "uncertain": 0
+        }
+      ]
+    },
+    {
+      "character": "lingxian",
+      "artifact_sha256": "fa35b4977d5c3cd6b6603bb72cab2883d900dba059c80a1ce382395710bcca26",
+      "relations": []
+    },
+    {
+      "character": "crino",
+      "artifact_sha256": "09053af8f48369087e9190e906bd88eb5b303d9593c89a81ef3cb7346d5d4d98",
+      "relations": [
+        {
+          "driver": "layer-005-l",
+          "follower": "layer-006-l",
+          "new_gap_pixels": 99,
+          "opposed_attachment_support": 38,
+          "single_attachment_support": 52,
+          "uncertain": 9
+        },
+        {
+          "driver": "layer-005-r",
+          "follower": "layer-006-r",
+          "new_gap_pixels": 212,
+          "opposed_attachment_support": 21,
+          "single_attachment_support": 191,
+          "uncertain": 0
+        }
+      ]
+    }
+  ]
+}

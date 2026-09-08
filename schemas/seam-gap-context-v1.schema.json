@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Non-authoritative seam gap support context",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "profile", "source_before_sha256", "source_after_sha256", "authority", "production_authorized", "status", "coverage", "runtime_raster_status", "relations"],
+  "properties": {
+    "schema": {"const": "autospine.seam-gap-context/v1"},
+    "profile": {"const": "alpha8-opposite-rays4-v1"},
+    "source_before_sha256": {"$ref": "#/$defs/hash"},
+    "source_after_sha256": {"$ref": "#/$defs/hash"},
+    "authority": {"const": "none"},
+    "production_authorized": {"const": false},
+    "status": {"const": "needs_review"},
+    "coverage": {"const": "new_gap_pixel_samples_only"},
+    "runtime_raster_status": {"const": "not_evaluated"},
+    "relations": {"type": "array", "items": {
+      "type": "object", "additionalProperties": false,
+      "required": ["driver", "follower", "frames", "totals"],
+      "properties": {
+        "driver": {"type": "string", "minLength": 1},
+        "follower": {"type": "string", "minLength": 1},
+        "frames": {"type": "array", "minItems": 61, "maxItems": 61, "items": {"$ref": "#/$defs/frame"}},
+        "totals": {"$ref": "#/$defs/counts"}
+      }
+    }}
+  },
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "count": {"type": "integer", "minimum": 0},
+    "counts": {
+      "type": "object", "additionalProperties": false,
+      "required": ["new_gap_pixels", "opposed_attachment_support", "single_attachment_support", "uncertain"],
+      "properties": {
+        "new_gap_pixels": {"$ref": "#/$defs/count"},
+        "opposed_attachment_support": {"$ref": "#/$defs/count"},
+        "single_attachment_support": {"$ref": "#/$defs/count"},
+        "uncertain": {"$ref": "#/$defs/count"}
+      }
+    },
+    "frame": {
+      "type": "object", "additionalProperties": false,
+      "required": ["time", "new_gap_pixels", "opposed_attachment_support", "single_attachment_support", "uncertain"],
+      "properties": {
+        "time": {"type": "number", "minimum": 0, "maximum": 2},
+        "new_gap_pixels": {"$ref": "#/$defs/count"},
+        "opposed_attachment_support": {"$ref": "#/$defs/count"},
+        "single_attachment_support": {"$ref": "#/$defs/count"},
+        "uncertain": {"$ref": "#/$defs/count"}
+      }
+    }
+  }
+}
