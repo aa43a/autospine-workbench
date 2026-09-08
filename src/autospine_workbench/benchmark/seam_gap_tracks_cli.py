@@ -11,7 +11,7 @@ from .seam_gap_context_cli import analyze
 from .seam_gap_tracks_view import render
 
 
-def compile_report(before, after, before_dir, after_dir):
+def compile_report(before, after, before_dir, after_dir, *, visual_sink=None):
     import numpy as np
     from PIL import Image
     observations = {}; visuals = {}
@@ -37,6 +37,8 @@ def compile_report(before, after, before_dir, after_dir):
                   source_after_sha256=canonical_sha256(after), authority='none', production_authorized=False,
                   status='needs_review', coordinate_system='world_xy_y_up_pixel_centers', fps=30, sample_count=61,
                   coverage='new_gap_pixel_samples_only', runtime_raster_status='not_evaluated', relations=rows)
+    if visual_sink is not None:
+        visual_sink.extend(visuals.values())
     return report, render(report, list(visuals.values()))
 
 

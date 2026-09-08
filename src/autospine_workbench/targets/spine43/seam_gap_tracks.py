@@ -24,7 +24,7 @@ def components(labels, rect, tick):
     return result
 
 
-def associate(frames):
+def associate(frames, *, distance_fn=None):
     """Only mutual unique neighbors within 3 world pixels extend a track.
 
     Splits/merges are candidate graph events, not asserted physical identities.
@@ -37,8 +37,9 @@ def associate(frames):
         edges = []
         for a in previous:
             for b in current:
-                distance = min(math.dist(p, q) for p in a['pixels_world'] for q in b['pixels_world'])
-                if distance <= 3:
+                distance = (distance_fn(a, b) if distance_fn is not None else
+                            min(math.dist(p, q) for p in a['pixels_world'] for q in b['pixels_world']))
+                if distance is not None and distance <= 3:
                     edges.append((a['id'], b['id'], distance))
         outgoing = {a['id']: [e for e in edges if e[0] == a['id']] for a in previous}
         incoming = {b['id']: [e for e in edges if e[1] == b['id']] for b in current}

@@ -1,0 +1,69 @@
+{
+  "date": "2026-09-08",
+  "authority": "none",
+  "production_authorized": false,
+  "tests_passed": 30,
+  "schema_checks": "all_three_passed",
+  "exact_replay": "all_three_passed",
+  "historical_track_identity": "all_three_unchanged",
+  "browser_controls": "all_three_passed",
+  "runtime": "not_rerun_unchanged_animation",
+  "full_suite": "not_run",
+  "records": [
+    {
+      "character": "alice",
+      "artifact_sha256": "1830e7c2fad83189c4136259b93cdac3d66840cbc76d96120aa739cb5d7a19e9",
+      "page_sha256": "15f5eafa9c9d340f49ede74d37b10490ea3a7710d3f61d4ef4f6d69aacef3ac7",
+      "screenshot_sha256": "a0f46e56bcc68c592f803dd7adcff20f5f625487657bdeb2e957d4b2c595e886",
+      "relations": [
+        {
+          "driver": "layer-001-l",
+          "pixel_samples": 7,
+          "baseline_tracks": 6,
+          "tracks": 4,
+          "events": 0,
+          "max_observed_frames": 3
+        },
+        {
+          "driver": "layer-001-r",
+          "pixel_samples": 0,
+          "baseline_tracks": 0,
+          "tracks": 0,
+          "events": 0,
+          "max_observed_frames": 0
+        }
+      ]
+    },
+    {
+      "character": "lingxian",
+      "artifact_sha256": "36b7ae3f05145ba5eccf4f826497fa6990f799bcc25121b3dbc8bb938b9e0565",
+      "page_sha256": "48b6fff5fc5201a2a963587a933d6b9660684187cd85d6686188be545ec51ac5",
+      "screenshot_sha256": "b672f8a6be989fb790ea287e29c77c636198224370d7978df781228c3a1136be",
+      "relations": []
+    },
+    {
+      "character": "crino",
+      "artifact_sha256": "f8f4c25d7daec3ca27c5f20cac53d079fd3ef70ad89543c6d26ffeb0521725bd",
+      "page_sha256": "250c18ad8be92d16bc3a1f964da54e36f6384cabbc07b41137ad67b48f33eb38",
+      "screenshot_sha256": "c2f2be4063c0f5ec15bbb3b1a975ee2fd210a63f5bd421cc3e52d411ba7c53b4",
+      "relations": [
+        {
+          "driver": "layer-005-l",
+          "pixel_samples": 99,
+          "baseline_tracks": 70,
+          "tracks": 22,
+          "events": 3,
+          "max_observed_frames": 20
+        },
+        {
+          "driver": "layer-005-r",
+          "pixel_samples": 212,
+          "baseline_tracks": 107,
+          "tracks": 56,
+          "events": 18,
+          "max_observed_frames": 13
+        }
+      ]
+    }
+  ]
+}
