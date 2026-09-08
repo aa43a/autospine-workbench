@@ -1,0 +1,15 @@
+{
+ "slice":"explicit-projection-mask-on-back-order-v1",
+ "preview_sha256":"ab01fe44a3ffc3c2b403614084ebdadd56c1402fbb1509accbe7d4b1e896f9e3",
+ "source_projection_draft_sha256":"447784c04e3215ef748911ce3630689a5fc29c41bd1e39973472decb7d82aa81",
+ "group_choices":"all_uncertain","local_remove_strokes":3,"removed_visible_pixels":70245,
+ "prior_split_preserved":true,"back_order_preserved":true,"reconstruction_exact":true,
+ "targeted_tests_passed":6,"runtime_version":"4.3.13","export_version":"4.3.26",
+ "runtime_numeric_frames":121,"runtime_numeric_passed":true,"runtime_reference_max_channel_error":0,
+ "visual_status":"blocked","reason_code":"wing_color_missing_after_parent_cleanup",
+ "visual_observation":"The exported independent wing component is mainly an outline. Removing colored wings from topwear leaves outline-only moving wings.",
+ "comparison_changed_pixels":[24501,24523,24501,24507,24501],
+ "comparison_alpha8_loss_pixels":[17747,20629,17747,20642,17747],
+ "next_action":"Recover colored wing ownership from saved removed pixels and validate transfer/alignment; do not keep erasing colors.",
+ "output":"../tmp/r2b-wing-cleaned","authority":"none","production_authorized":false
+}

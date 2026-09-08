@@ -16,6 +16,7 @@
   if(wing&&manifest.edge_ownership)document.querySelector('aside').textContent='翼片边缘归属候选：'+manifest.edge_ownership.counts.transferred+' 个低alpha像素跟随唯一邻近翼片，setup不变。上衣重影与未归属残余仍待复核，没有生产授权。';
   if(wing&&manifest.split_counts)document.querySelector('aside').textContent='上传遮罩拆分候选：移除 '+manifest.split_counts.removed_visible_pixels+' 个可见像素，其中 '+manifest.split_counts.removed_outside_hint_pixels+' 个在原重叠提示之外。请检查实际服装移除位置；未宣称重影已修复，没有生产授权。';
   if(wing&&manifest.slot_order_change)document.querySelector('aside').textContent='层序对照：翼片与残余在上衣后方；纹理、根部及动作不变，保留原11笔清理。上衣自身翼片像素仍在，本页仅为局部包。';
+  if(wing&&manifest.projection_apply)document.querySelector('aside').textContent='按上传主翼清理草稿移除 '+manifest.projection_apply.removed_visible_pixels+' 个可见像素，保留翼片后置层序、原清理、骨骼与动作。请检查源层残留及服装边界，本页仍为局部候选。';
   const seam=animationName==='seam-translation-inspection';
   const remapped=animationName==='remapped-seam-inspection';
   const alphaSeam=['alpha-seam-inspection','continuous-anchor-inspection','seam-shape-inspection','seam-increment-inspection'].includes(animationName)||remapped;

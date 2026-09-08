@@ -1,0 +1,14 @@
+{
+ "$schema":"https://json-schema.org/draft/2020-12/schema","type":"object",
+ "required":["schema","profile","source_back_order_sha256","source_projection_candidate_sha256","source_projection_draft_sha256","projection_apply","authority","production_authorized","files"],
+ "properties":{
+  "schema":{"const":"autospine.wing-projection-applied/v1"},"profile":{"const":"explicit-projection-mask-on-back-order-v1"},
+  "source_back_order_sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"},
+  "source_projection_candidate_sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"},
+  "source_projection_draft_sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"},
+  "projection_apply":{"type":"object","required":["removed_visible_pixels","local_strokes","choices","reconstruction_exact","prior_split_preserved","back_order_preserved"],"properties":{
+   "removed_visible_pixels":{"type":"integer","minimum":0},"local_strokes":{"type":"integer","minimum":0},
+   "choices":{"type":"array"},"reconstruction_exact":{"const":true},"prior_split_preserved":{"const":true},"back_order_preserved":{"const":true}
+  }},"authority":{"const":"none"},"production_authorized":{"const":false},"files":{"type":"object"}
+ }
+}
