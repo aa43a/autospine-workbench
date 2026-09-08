@@ -1,0 +1,318 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "profile",
+    "authority",
+    "production_authorized",
+    "source_partitions_sha256",
+    "source_skeleton_sha256",
+    "layers",
+    "files",
+    "runtime_status",
+    "seam_status",
+    "zip_sha256"
+  ],
+  "properties": {
+    "schema": {
+      "const": "autospine.ownership-atlas/v1"
+    },
+    "profile": {
+      "const": "isolated-ownership-tiles-linear-v1"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "production_authorized": {
+      "const": false
+    },
+    "source_partitions_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "source_skeleton_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "layers": {
+      "type": "array",
+      "maxItems": 128,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "layer_id",
+          "page_ref",
+          "page_size",
+          "tiles",
+          "partitions",
+          "residual",
+          "sampler",
+          "qa",
+          "target_gate"
+        ],
+        "properties": {
+          "layer_id": {
+            "type": "string"
+          },
+          "page_ref": {
+            "type": "string"
+          },
+          "page_size": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 4096
+            }
+          },
+          "tiles": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "owner_code",
+                "rect",
+                "gutter_px"
+              ],
+              "properties": {
+                "owner_code": {
+                  "enum": [
+                    1,
+                    2,
+                    3
+                  ]
+                },
+                "rect": {
+                  "type": "array",
+                  "minItems": 4,
+                  "maxItems": 4,
+                  "items": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                },
+                "gutter_px": {
+                  "const": 2
+                }
+              }
+            }
+          },
+          "partitions": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "owner_code",
+                "texture_ref",
+                "source_region_mesh_sha256",
+                "bone_ids",
+                "geometry",
+                "weight_support",
+                "qa",
+                "status",
+                "review_status",
+                "uv_space",
+                "tile_owner_code"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "owner_code": {
+                  "enum": [
+                    1,
+                    2
+                  ]
+                },
+                "texture_ref": {
+                  "type": "string"
+                },
+                "source_region_mesh_sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "bone_ids": {
+                  "$ref": "partition-mesh-v1.schema.json#/properties/layers/items/properties/bone_ids"
+                },
+                "geometry": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "vertices_xy",
+                    "uvs",
+                    "triangles",
+                    "weights",
+                    "source_uvs"
+                  ],
+                  "properties": {
+                    "vertices_xy": {
+                      "$ref": "partition-mesh-v1.schema.json#/properties/layers/items/properties/vertices_xy"
+                    },
+                    "uvs": {
+                      "$ref": "partition-mesh-v1.schema.json#/properties/layers/items/properties/uvs"
+                    },
+                    "triangles": {
+                      "$ref": "partition-mesh-v1.schema.json#/properties/layers/items/properties/triangles"
+                    },
+                    "weights": {
+                      "$ref": "partition-mesh-v1.schema.json#/properties/layers/items/properties/weights"
+                    },
+                    "source_uvs": {
+                      "$ref": "partition-mesh-v1.schema.json#/properties/layers/items/properties/uvs"
+                    }
+                  }
+                },
+                "weight_support": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "rigid_vertex_counts",
+                    "transition_vertex_count",
+                    "confidence"
+                  ],
+                  "properties": {
+                    "rigid_vertex_counts": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "integer",
+                        "minimum": 0
+                      }
+                    },
+                    "transition_vertex_count": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "confidence": {
+                      "const": "uncalibrated"
+                    }
+                  }
+                },
+                "qa": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "source_uv_max_error_px",
+                    "deformation",
+                    "coverage"
+                  ],
+                  "properties": {
+                    "source_uv_max_error_px": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1e-07
+                    },
+                    "deformation": {
+                      "$ref": "partition-mesh-v1.schema.json#/properties/layers/items/properties/qa"
+                    },
+                    "coverage": {
+                      "$ref": "partition-mesh-v1.schema.json#/properties/layers/items/properties/raster_qa"
+                    }
+                  }
+                },
+                "status": {
+                  "enum": [
+                    "blocked",
+                    "candidate_requires_review"
+                  ]
+                },
+                "review_status": {
+                  "const": "pending"
+                },
+                "uv_space": {
+                  "const": "normalized_page"
+                },
+                "tile_owner_code": {
+                  "enum": [
+                    1,
+                    2
+                  ]
+                }
+              }
+            }
+          },
+          "residual": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "owner_code",
+              "status",
+              "visible_pixels",
+              "bone_ids",
+              "confidence"
+            ],
+            "properties": {
+              "owner_code": {
+                "const": 3
+              },
+              "status": {
+                "const": "preserved_unbound"
+              },
+              "visible_pixels": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "bone_ids": {
+                "const": []
+              },
+              "confidence": {
+                "const": "unresolved"
+              }
+            }
+          },
+          "sampler": {
+            "const": {
+              "filter": "linear",
+              "mipmaps": false,
+              "wrap": "clamp_to_edge"
+            }
+          },
+          "qa": {
+            "const": {
+              "rgba_reconstruction_exact": true,
+              "tiles_exact": true,
+              "transparent_gutters_exact": true,
+              "foreign_owner_texels": 0,
+              "uv_domain_contained": true
+            }
+          },
+          "target_gate": {
+            "const": {
+              "status": "blocked",
+              "reason_code": "ownership_atlas_adapter_not_integrated"
+            }
+          }
+        }
+      }
+    },
+    "files": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      }
+    },
+    "runtime_status": {
+      "const": "not_evaluated"
+    },
+    "seam_status": {
+      "const": "not_evaluated"
+    },
+    "zip_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/ownership-atlas-v1.schema.json"
+}

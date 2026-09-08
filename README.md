@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[分区采样隔离](docs/how-to-ownership-atlas.md)已把ownership编译为6张共享纹理页，左右区和残余各自隔离。
+像素重建与固定UV线性采样检查通过；Spine Adapter接入和原变形QA仍待完成。
+
 [共享源纹理分区v2](docs/how-to-shared-partitions.md)已连接6个源图层、12个运动区的ownership、骨链与权重。
 残余原样保留，RGBA／UV检查通过；共享纹理边界采样尚未编译到Spine，目标导出仍阻塞。
 

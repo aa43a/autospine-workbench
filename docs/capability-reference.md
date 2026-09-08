@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+`python -m autospine_workbench.benchmark.ownership_atlas_cli` 编译分区采样隔离纹理页、映射UV并精确回放。
+只支持固定UV、linear无mipmap采样合同，目标Adapter未接入，见[说明](how-to-ownership-atlas.md)。
+
 `python -m autospine_workbench.benchmark.shared_partition_cli` 输出共享源纹理分区v2、确定性ZIP及区域权重复核页。
 当前仅为版本中立实验包，目标采样隔离未完成，见[说明](how-to-shared-partitions.md)。
 

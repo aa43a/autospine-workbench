@@ -1,0 +1,127 @@
+{
+  "date": "2026-09-08",
+  "authority": "none",
+  "production_authorized": false,
+  "profile": "isolated-ownership-tiles-linear-v1",
+  "tests_passed": 18,
+  "schema_zip_and_geometry_checks": "all_three_passed",
+  "exact_source_replay": "alice_passed",
+  "visual": "alice_chrome_screenshot",
+  "runtime": "not_run",
+  "full_python_web_suite": "not_run",
+  "sampling_scope": "linear_level_zero_no_mipmaps_fixed_uv",
+  "target_gate": "ownership_atlas_adapter_not_integrated",
+  "records": [
+    {
+      "character": "alice",
+      "artifact_sha256": "74425c43845dfcba2120e6ce2205491c557660f545496b31cbd367379eb5d34e",
+      "zip_sha256": "06f1cd83c099f377cf255c16d12ae3cd7ce6a96f963a77ec32c7493ca80bcb8b",
+      "pages": [
+        {
+          "layer_id": "layer-001",
+          "size": [
+            735,
+            343
+          ],
+          "qa": {
+            "foreign_owner_texels": 0,
+            "rgba_reconstruction_exact": true,
+            "tiles_exact": true,
+            "transparent_gutters_exact": true,
+            "uv_domain_contained": true
+          },
+          "residual_visible_pixels": 103
+        },
+        {
+          "layer_id": "layer-002",
+          "size": [
+            288,
+            387
+          ],
+          "qa": {
+            "foreign_owner_texels": 0,
+            "rgba_reconstruction_exact": true,
+            "tiles_exact": true,
+            "transparent_gutters_exact": true,
+            "uv_domain_contained": true
+          },
+          "residual_visible_pixels": 467
+        }
+      ]
+    },
+    {
+      "character": "lingxian",
+      "artifact_sha256": "94437724739a62d02dd2fb192af627708510cb2d59079d542e6de70ff39b38b5",
+      "zip_sha256": "289a9cd9bb1584cf1376027f12cbd7e7067aafe20cb37a74b9b7b31e66a7a3ad",
+      "pages": [
+        {
+          "layer_id": "layer-003",
+          "size": [
+            897,
+            595
+          ],
+          "qa": {
+            "foreign_owner_texels": 0,
+            "rgba_reconstruction_exact": true,
+            "tiles_exact": true,
+            "transparent_gutters_exact": true,
+            "uv_domain_contained": true
+          },
+          "residual_visible_pixels": 30893
+        }
+      ]
+    },
+    {
+      "character": "crino",
+      "artifact_sha256": "3d1bdafa4e1d850ebcc204911313057bb407dbbcb9d44a66eec87775645146c9",
+      "zip_sha256": "48d3531ad573a29873289024c7ee0e256ccfd72b0693c9043bf94a0949dc86c1",
+      "pages": [
+        {
+          "layer_id": "layer-004",
+          "size": [
+            730,
+            1167
+          ],
+          "qa": {
+            "foreign_owner_texels": 0,
+            "rgba_reconstruction_exact": true,
+            "tiles_exact": true,
+            "transparent_gutters_exact": true,
+            "uv_domain_contained": true
+          },
+          "residual_visible_pixels": 8188
+        },
+        {
+          "layer_id": "layer-005",
+          "size": [
+            1053,
+            596
+          ],
+          "qa": {
+            "foreign_owner_texels": 0,
+            "rgba_reconstruction_exact": true,
+            "tiles_exact": true,
+            "transparent_gutters_exact": true,
+            "uv_domain_contained": true
+          },
+          "residual_visible_pixels": 3709
+        },
+        {
+          "layer_id": "layer-006",
+          "size": [
+            385,
+            426
+          ],
+          "qa": {
+            "foreign_owner_texels": 0,
+            "rgba_reconstruction_exact": true,
+            "tiles_exact": true,
+            "transparent_gutters_exact": true,
+            "uv_domain_contained": true
+          },
+          "residual_visible_pixels": 464
+        }
+      ]
+    }
+  ]
+}

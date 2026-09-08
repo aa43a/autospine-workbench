@@ -1,5 +1,8 @@
 # 当前状态：2026-09-08
 
+新增[ownership纹理页](how-to-ownership-atlas.md)：把左右／残余打包为单页独立区域，
+不改变网格和权重。源v2继续保留，下一步接入Spine region UV转换与固定帧采样检查。
+
 按残余复核说明补齐[共享源纹理分区v2](how-to-shared-partitions.md)：统一源PNG、ownership、区域网格与混合权重，
 未改变残余或批准绑定。下一步处理共享纹理的边界采样隔离，再连接多关节动作QA。
 

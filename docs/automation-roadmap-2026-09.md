@@ -1,5 +1,8 @@
 # AutoSpine 自动化产品路线（2026-09）
 
+2026-09-08 共享纹理页采样隔离已实现，源分区身份不变；下一步接入Spine Adapter的区域UV转换和采样验证。
+该进展不替代残余复核、变形、动态接缝与Runtime验收，见[范围](how-to-ownership-atlas.md)。
+
 2026-09-08 按用户残余复核说明补齐共享纹理partition v2与现有多区域权重的连接。
 下一步优先验证ownership边界与共享纹理采样隔离，再接入多关节动作；残余不强制归属。
 这不代表通用Mesh、动态接缝或R3已通过，见[当前范围](how-to-shared-partitions.md)。

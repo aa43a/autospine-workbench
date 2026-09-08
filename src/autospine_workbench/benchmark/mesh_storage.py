@@ -17,6 +17,7 @@ SCHEMAS=('autospine.weighted-mesh-candidates/v1','autospine.weighted-mesh-refine
 SCHEMAS += (DISTAL_GRID_SCHEMA,)
 SCHEMAS += ('autospine.distal-width-experiment/v1',)
 SCHEMAS += ('autospine.layer-partitions/v2',)
+SCHEMAS += ('autospine.ownership-atlas/v1',)
 
 
 def _read(path):

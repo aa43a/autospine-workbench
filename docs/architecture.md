@@ -1,5 +1,9 @@
 # AutoSpine Workbench 架构与质量门禁
 
+`ownership_atlas.py`把ownership像素编译到隔离纹理区域并映射整页UV，CLI负责来源精确重建与确定性ZIP。
+源分区、geometry和weights不变；页面UV与Spine附件region UV必须显式转换，不允许直接混用。
+当前采样证据仅覆盖linear无mipmap，详见[工作流](how-to-ownership-atlas.md)。
+
 `shared_partitions.py`提供源纹理、ownership和区域权重的纯组合校验，
 `shared_partition_cli/view`提供精确重建、确定性包和复核页。旧分区、骨架与权重身份不变。
 共享源图UV不自带遮罩能力，目标Adapter必须先证明采样隔离，详见[工作流](how-to-shared-partitions.md)。
