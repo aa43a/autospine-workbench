@@ -1,0 +1,80 @@
+{
+  "date": "2026-09-08",
+  "authority": "none",
+  "production_authorized": false,
+  "target": "4.3.26",
+  "runtime_package": "@esotericsoftware/spine-webgl",
+  "runtime_version": "4.3.13",
+  "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+  "browser": "152.0.7977.76",
+  "render_backend": "Chrome SwiftShader WebGL",
+  "runtime_report_sha256": "4598e254901b8a0bc7a12f11bcf1df1076dc8c94aafd19fd05c72a0b90d77cf2",
+  "tests_passed": 24,
+  "schema_zip_checks": "all_three_passed",
+  "exact_source_replay": "alice_passed",
+  "live_player_controls": "alice_play_pause_seek_passed",
+  "full_suite": "not_run",
+  "editor_import": "not_automated",
+  "scope": "unreviewed_region_sampling_inspection",
+  "records": [
+    {
+      "character": "alice",
+      "target_receipt_sha256": "2568421f96e56d222dc634a4fdbb28e9e2f666fcccdd0d174b98f7d8f52af452",
+      "zip_sha256": "7f7afa9fe1890222f9bb5ec774f5aaaf8568151ff4850901171b7dae62da7122",
+      "region_count": 4,
+      "runtime_passed": true,
+      "max_uv_error": 2.8846562805107112e-08,
+      "max_setup_error_px": 6.103515625e-05,
+      "max_motion_error_px": 6.734342150593875e-05,
+      "max_channel_error": 1,
+      "fixed_frames": 121,
+      "outside_viewport_coordinates": 0,
+      "bundle_manifest_sha256": "d5b514880ad0f4884b027209151d53d5b382f237ed6f659efc803a5e70a0a0b8",
+      "screenshots": {
+        "setup": "95cd1de8319249e6d59345a23295c1c42a4cfda822b34ed796a44216a70aa843",
+        "bend": "6691b2d5326ccc376750b10892160e1dc683b865def69aa58bc3620d6b4b93e2"
+      }
+    },
+    {
+      "character": "lingxian",
+      "target_receipt_sha256": "91aa70647ea3b12366f3f4c5b825baf84d95f63e134232a06359a3a70b4763c3",
+      "zip_sha256": "07bfeb8f39c04572fb82f6e331d7e6cadee67476cf273e57f9426539dbbda7ac",
+      "region_count": 2,
+      "runtime_passed": true,
+      "max_uv_error": 2.8950827513085642e-08,
+      "max_setup_error_px": 6.103515625e-05,
+      "max_motion_error_px": 9.947746616489894e-05,
+      "max_channel_error": 1,
+      "fixed_frames": 121,
+      "outside_viewport_coordinates": 0,
+      "bundle_manifest_sha256": "c444bbedc3d74ebc958077b6cd5c92317a452da465d655050424ff58d5157d27",
+      "screenshots": {
+        "setup": "1076e05b2ed2b1022730401f59319843c3eb354ddc91804a9e8bb50e5bf44291",
+        "bend": "9303563f0295da6eb1eca5e6ea5275f55bcc42efec374c3afa1de5e2acee73e8"
+      }
+    },
+    {
+      "character": "crino",
+      "target_receipt_sha256": "fb16d8019447f7f8073a1f42ffc56754699e459c9d5c52ee887f08cb407b3488",
+      "zip_sha256": "05bfe8864f9138af73cd1b327297b0461675683824be7b9ab4b57ad094d62916",
+      "region_count": 6,
+      "runtime_passed": true,
+      "max_uv_error": 2.8641192972855833e-08,
+      "max_setup_error_px": 6.103515625e-05,
+      "max_motion_error_px": 9.108665403800842e-05,
+      "max_channel_error": 1,
+      "fixed_frames": 121,
+      "outside_viewport_coordinates": 0,
+      "bundle_manifest_sha256": "4037631cfab65440f6e380324a38a96c1cb6608a7c63f13a7159abcdb1cbaa1f",
+      "screenshots": {
+        "setup": "e80fe5ac030ccf7e437fed1197e8033d52aec5cfae5918d688c09c1da86990dd",
+        "bend": "0a1549a86779a6eef698fe3137e16f4572bfafae1294b2d4a9fe19ad8132a608"
+      }
+    }
+  ],
+  "harness_sha256": {
+    "ownership-runtime.html": "e649293fe32ab81785f65d0611af5f61acd1ceab78ab80dd1a7a65ad0bf3cff6",
+    "ownership-runtime.js": "6a15c75febbe224cc1bc8182313e0c10203104f03b8de5f7b4a92d48688ba010",
+    "verify-ownership-runtime.mjs": "48f334eb52a7e1b870b58a3a00481462f6048eb13ea383ff34ffff459fcb91b0"
+  }
+}

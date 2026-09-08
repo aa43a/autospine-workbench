@@ -1,5 +1,9 @@
 # AutoSpine Workbench 架构与质量门禁
 
+`targets/spine43/ownership_preview.py`提供隔离纹理页的独立诊断Adapter：整页UV→region UV、加权坐标反射、Editor图片。
+对应CLI精确回放来源；`tools/ownership-runtime*`加载外部官方Runtime，固定时刻对照单纹理与共享页。
+测试证据独立保存，不改写旧导出回执的Runtime状态；诊断profile不扩展正式生产准入。
+
 `ownership_atlas.py`把ownership像素编译到隔离纹理区域并映射整页UV，CLI负责来源精确重建与确定性ZIP。
 源分区、geometry和weights不变；页面UV与Spine附件region UV必须显式转换，不允许直接混用。
 当前采样证据仅覆盖linear无mipmap，详见[工作流](how-to-ownership-atlas.md)。

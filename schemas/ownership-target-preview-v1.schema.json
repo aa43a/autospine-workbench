@@ -1,0 +1,156 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "profile",
+    "authority",
+    "production_authorized",
+    "target",
+    "source_atlas_sha256",
+    "source_skeleton_sha256",
+    "regions",
+    "residuals",
+    "scope",
+    "animation",
+    "full_character_status",
+    "runtime_status",
+    "seam_status",
+    "files",
+    "zip_sha256"
+  ],
+  "properties": {
+    "schema": {
+      "const": "autospine.ownership-target-preview/v1"
+    },
+    "profile": {
+      "const": "spine43-isolated-region-inspection-v1"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "production_authorized": {
+      "const": false
+    },
+    "target": {
+      "const": "4.3.26"
+    },
+    "source_atlas_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "source_skeleton_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "regions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "source_uv_max_error",
+          "source_mesh_status",
+          "review_status",
+          "expected_page_uvs",
+          "setup_vertices_xy"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "source_uv_max_error": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1e-09
+          },
+          "source_mesh_status": {
+            "enum": [
+              "blocked",
+              "candidate_requires_review"
+            ]
+          },
+          "review_status": {
+            "const": "pending"
+          },
+          "expected_page_uvs": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number"
+              }
+            }
+          },
+          "setup_vertices_xy": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      }
+    },
+    "residuals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "layer_id",
+          "visible_pixels",
+          "status"
+        ],
+        "properties": {
+          "layer_id": {
+            "type": "string"
+          },
+          "visible_pixels": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "status": {
+            "const": "excluded_unbound"
+          }
+        }
+      }
+    },
+    "scope": {
+      "const": "unreviewed_region_sampling_inspection"
+    },
+    "animation": {
+      "const": "raw_lbs_distal_inspection"
+    },
+    "full_character_status": {
+      "const": "blocked"
+    },
+    "runtime_status": {
+      "const": "not_evaluated"
+    },
+    "seam_status": {
+      "const": "not_evaluated"
+    },
+    "files": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      }
+    },
+    "zip_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "autospine.ownership-target-preview/v1"
+}

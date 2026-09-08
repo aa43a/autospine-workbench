@@ -1,5 +1,8 @@
 # 当前状态：2026-09-08
 
+已完成[Spine分区诊断播放](how-to-ownership-spine43.md)：4.3.26数据与官方4.3.13 Runtime分开记录，
+三个角色UV、独立FK、363个固定时刻的像素对照通过。下一步接入corrective和主关节组合，不将诊断通过当生产批准。
+
 新增[ownership纹理页](how-to-ownership-atlas.md)：把左右／残余打包为单页独立区域，
 不改变网格和权重。源v2继续保留，下一步接入Spine region UV转换与固定帧采样检查。
 

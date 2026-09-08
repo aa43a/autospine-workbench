@@ -1,5 +1,8 @@
 # AutoSpine 自动化产品路线（2026-09）
 
+2026-09-08 分区Spine Adapter与官方Runtime诊断播放已通过编码／纹理采样对照。
+下一步连接corrective与主关节组合、跨区接缝和完整角色；不新增P10纵向认证阶段，见[证据范围](how-to-ownership-spine43.md)。
+
 2026-09-08 共享纹理页采样隔离已实现，源分区身份不变；下一步接入Spine Adapter的区域UV转换和采样验证。
 该进展不替代残余复核、变形、动态接缝与Runtime验收，见[范围](how-to-ownership-atlas.md)。
 

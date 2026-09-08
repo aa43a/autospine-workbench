@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[Spine分区诊断播放](docs/how-to-ownership-spine43.md)已接通4.3.26区域UV与Editor图片导出；
+官方4.3 Runtime验证三个角色363个固定时刻通过。仅证明编码／采样一致，原变形与完整角色门禁继续保留。
+
 [分区采样隔离](docs/how-to-ownership-atlas.md)已把ownership编译为6张共享纹理页，左右区和残余各自隔离。
 像素重建与固定UV线性采样检查通过；Spine Adapter接入和原变形QA仍待完成。
 

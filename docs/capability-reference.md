@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+`python -m autospine_workbench.benchmark.ownership_target_cli` 导出Spine4.3.26分区诊断包及Editor图片。
+`tools/verify-ownership-runtime.mjs`提供外部官方Runtime固定时刻验证和可选本地播放服务，见[说明](how-to-ownership-spine43.md)。
+
 `python -m autospine_workbench.benchmark.ownership_atlas_cli` 编译分区采样隔离纹理页、映射UV并精确回放。
 只支持固定UV、linear无mipmap采样合同，目标Adapter未接入，见[说明](how-to-ownership-atlas.md)。
 
