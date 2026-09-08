@@ -1,0 +1,254 @@
+{
+  "date": "2026-09-08",
+  "authority": "none",
+  "production_authorized": false,
+  "tests_passed": 26,
+  "full_suite": "not_run",
+  "source_chain_replay": "all_three_passed",
+  "reader_replay": "alice_passed",
+  "schema_and_heatmap_hash_checks": "all_three_passed",
+  "browser_views": "all_three_loaded_without_page_errors",
+  "runtime_raster_status": "not_evaluated",
+  "records": [
+    {
+      "character": "alice",
+      "artifact_sha256": "dfdbf9a1635ac05ff03e0cf048c9ad3dc440e143f8ef77232788d9ea247ff6d6",
+      "source_remap_sha256": "29f9a05f4e23090efe954c04b500ce0e2e1dc638f9181acf9ee3e1399015e750",
+      "raster_relations": [
+        {
+          "driver": "layer-001-l",
+          "follower": "layer-002-l",
+          "frames_with_new_gap": 0,
+          "heatmap_prefix": "layer-001-l--layer-002-l",
+          "max_gap_pixels": [
+            4,
+            4
+          ],
+          "max_new_gap_pixels": 0,
+          "selected_time": 0.4666666666666667
+        },
+        {
+          "driver": "layer-001-r",
+          "follower": "layer-002-r",
+          "frames_with_new_gap": 0,
+          "heatmap_prefix": "layer-001-r--layer-002-r",
+          "max_gap_pixels": [
+            3,
+            2
+          ],
+          "max_new_gap_pixels": 0,
+          "selected_time": 0.7
+        }
+      ],
+      "segments": [
+        {
+          "driver": "layer-001-l",
+          "driver_components": [
+            {
+              "status": "open_chain_candidate",
+              "sample_count": 8
+            },
+            {
+              "status": "open_chain_candidate",
+              "sample_count": 8
+            }
+          ],
+          "follower": "layer-002-l",
+          "follower_components": [
+            {
+              "status": "open_chain_candidate",
+              "sample_count": 3
+            },
+            {
+              "status": "fragment",
+              "sample_count": 1
+            },
+            {
+              "status": "open_chain_candidate",
+              "sample_count": 3
+            }
+          ],
+          "status": "requires_segment_correspondence_review"
+        },
+        {
+          "driver": "layer-001-r",
+          "driver_components": [
+            {
+              "status": "open_chain_candidate",
+              "sample_count": 9
+            },
+            {
+              "status": "open_chain_candidate",
+              "sample_count": 8
+            }
+          ],
+          "follower": "layer-002-r",
+          "follower_components": [
+            {
+              "status": "fragment",
+              "sample_count": 1
+            },
+            {
+              "status": "fragment",
+              "sample_count": 2
+            },
+            {
+              "status": "fragment",
+              "sample_count": 2
+            }
+          ],
+          "status": "requires_segment_correspondence_review"
+        }
+      ],
+      "screenshot_sha256": "eacab62103a738889332443aa8b7e67ffb1bee02b4946899ff74aeee353229ea"
+    },
+    {
+      "character": "lingxian",
+      "artifact_sha256": "7eed98334ee5289388c44776e32e1f18698265e59353bbc234b841f26341eadf",
+      "source_remap_sha256": "33c239f68c22a6b9e36f3d1e02fc939e03e986e063b95010bd24b234895bc21e",
+      "raster_relations": [],
+      "segments": [],
+      "screenshot_sha256": "09eebe34861417b8eaff020026478e4ce735c61008f7386f39aad8bd1e36d648"
+    },
+    {
+      "character": "crino",
+      "artifact_sha256": "6343ac2c9a1b175a0b620aad848ea0de465974da6e787bebe9939a27280f1014",
+      "source_remap_sha256": "95e25057bbb57d907f6519fc50f89e13fc17482251076c885b2db87675f52f17",
+      "raster_relations": [
+        {
+          "driver": "layer-005-l",
+          "follower": "layer-006-l",
+          "frames_with_new_gap": 0,
+          "heatmap_prefix": "layer-005-l--layer-006-l",
+          "max_gap_pixels": [
+            3,
+            3
+          ],
+          "max_new_gap_pixels": 0,
+          "selected_time": 0.6
+        },
+        {
+          "driver": "layer-005-r",
+          "follower": "layer-006-r",
+          "frames_with_new_gap": 0,
+          "heatmap_prefix": "layer-005-r--layer-006-r",
+          "max_gap_pixels": [
+            2,
+            2
+          ],
+          "max_new_gap_pixels": 0,
+          "selected_time": 0.7666666666666667
+        }
+      ],
+      "segments": [
+        {
+          "driver": "layer-005-l",
+          "driver_components": [
+            {
+              "status": "open_chain_candidate",
+              "sample_count": 12
+            },
+            {
+              "status": "open_chain_candidate",
+              "sample_count": 10
+            },
+            {
+              "status": "fragment",
+              "sample_count": 2
+            }
+          ],
+          "follower": "layer-006-l",
+          "follower_components": [
+            {
+              "status": "fragment",
+              "sample_count": 2
+            },
+            {
+              "status": "open_chain_candidate",
+              "sample_count": 3
+            },
+            {
+              "status": "open_chain_candidate",
+              "sample_count": 4
+            },
+            {
+              "status": "fragment",
+              "sample_count": 1
+            },
+            {
+              "status": "fragment",
+              "sample_count": 1
+            },
+            {
+              "status": "fragment",
+              "sample_count": 2
+            }
+          ],
+          "status": "requires_segment_correspondence_review"
+        },
+        {
+          "driver": "layer-005-r",
+          "driver_components": [
+            {
+              "status": "open_chain_candidate",
+              "sample_count": 8
+            },
+            {
+              "status": "open_chain_candidate",
+              "sample_count": 21
+            },
+            {
+              "status": "fragment",
+              "sample_count": 2
+            },
+            {
+              "status": "open_chain_candidate",
+              "sample_count": 17
+            }
+          ],
+          "follower": "layer-006-r",
+          "follower_components": [
+            {
+              "status": "fragment",
+              "sample_count": 2
+            },
+            {
+              "status": "fragment",
+              "sample_count": 1
+            },
+            {
+              "status": "fragment",
+              "sample_count": 2
+            },
+            {
+              "status": "fragment",
+              "sample_count": 2
+            },
+            {
+              "status": "open_chain_candidate",
+              "sample_count": 8
+            },
+            {
+              "status": "fragment",
+              "sample_count": 2
+            },
+            {
+              "status": "open_chain_candidate",
+              "sample_count": 11
+            },
+            {
+              "status": "fragment",
+              "sample_count": 1
+            },
+            {
+              "status": "fragment",
+              "sample_count": 1
+            }
+          ],
+          "status": "requires_segment_correspondence_review"
+        }
+      ],
+      "screenshot_sha256": "02544e26d261076b9dfd284a22f643902cc593e3f20f2f1e7ed89eae866e21c3"
+    }
+  ]
+}

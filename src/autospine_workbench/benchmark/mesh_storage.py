@@ -25,6 +25,7 @@ SCHEMAS += ('autospine.seam-translation-preview/v1',)
 SCHEMAS += ('autospine.alpha-seam-preview/v1',)
 SCHEMAS += ('autospine.seam-raster-diagnostic/v1',)
 SCHEMAS += ('autospine.seam-remap-preview/v1',)
+SCHEMAS += ('autospine.same-frame-seam/v1',)
 
 
 def _read(path):

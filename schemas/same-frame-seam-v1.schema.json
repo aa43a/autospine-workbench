@@ -1,0 +1,274 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "profile",
+    "source_remap_sha256",
+    "source_alpha_sha256",
+    "raster",
+    "segments",
+    "authority",
+    "production_authorized",
+    "status",
+    "files"
+  ],
+  "properties": {
+    "schema": { "const": "autospine.same-frame-seam/v1" },
+    "profile": { "const": "common-corridor-segment-readiness-v1" },
+    "source_remap_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "source_alpha_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "raster": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "fps",
+        "sample_count",
+        "relations",
+        "authority",
+        "coverage",
+        "runtime_raster_status"
+      ],
+      "properties": {
+        "profile": { "const": "same-frame-union-corridor-alpha8-v1" },
+        "fps": { "const": 30 },
+        "sample_count": { "const": 61 },
+        "relations": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/relation" }
+        },
+        "authority": { "const": "none" },
+        "coverage": { "const": "candidate_corridors_only" },
+        "runtime_raster_status": { "const": "not_evaluated" }
+      }
+    },
+    "segments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "driver",
+          "follower",
+          "driver_components",
+          "follower_components",
+          "status"
+        ],
+        "properties": {
+          "driver": { "type": "string" },
+          "follower": { "type": "string" },
+          "driver_components": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/component" }
+          },
+          "follower_components": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/component" }
+          },
+          "status": { "const": "requires_segment_correspondence_review" }
+        }
+      }
+    },
+    "authority": { "const": "none" },
+    "production_authorized": { "const": false },
+    "status": { "const": "needs_review" },
+    "files": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      }
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "frame": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "time",
+        "rect",
+        "corridor_pixels",
+        "gap_pixels",
+        "overlap_pixels",
+        "fixed_gap_pixels",
+        "new_gap_pixels",
+        "added_overlap_pixels",
+        "lost_overlap_pixels",
+        "mean_union_alpha_change"
+      ],
+      "properties": {
+        "time": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 2
+        },
+        "rect": {
+          "type": "array",
+          "items": { "type": "integer" },
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "corridor_pixels": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "gap_pixels": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "overlap_pixels": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "fixed_gap_pixels": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "new_gap_pixels": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "added_overlap_pixels": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "lost_overlap_pixels": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "mean_union_alpha_change": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "relation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "driver",
+        "follower",
+        "frames",
+        "heatmap_prefix",
+        "selected_time",
+        "max_gap_pixels",
+        "frames_with_new_gap",
+        "max_new_gap_pixels"
+      ],
+      "properties": {
+        "driver": { "type": "string" },
+        "follower": { "type": "string" },
+        "frames": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/frame" },
+          "minItems": 61,
+          "maxItems": 61
+        },
+        "heatmap_prefix": { "type": "string" },
+        "selected_time": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 2
+        },
+        "max_gap_pixels": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "frames_with_new_gap": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 61
+        },
+        "max_new_gap_pixels": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "component": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sample_indices",
+        "status"
+      ],
+      "properties": {
+        "sample_indices": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "minItems": 1
+        },
+        "status": {
+          "enum": [
+            "fragment",
+            "branched_pixel_neighborhood",
+            "closed_or_ambiguous",
+            "open_chain_candidate"
+          ]
+        },
+        "ordered_samples": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "setup_length_px": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "u": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": { "const": "open_chain_candidate" }
+            }
+          },
+          "then": {
+            "required": [
+              "ordered_samples",
+              "setup_length_px",
+              "u"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

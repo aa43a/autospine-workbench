@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+`python -m autospine_workbench.benchmark.same_frame_cli` 在同帧、同 ROI 与共同走廊中比较 alpha 局部过渡／重配候选。
+输出差分热图、空白与重叠统计和边界片段就绪性，见[说明](how-to-same-frame.md)。
+
 `python -m autospine_workbench.benchmark.seam_remap_cli` 对实际目标分歧超过 2 px 的小组生成完整局部一对一重配候选。
 保留全部源点，使用原对应验算并精确重放来源，见[说明](how-to-seam-remap.md)。
 
