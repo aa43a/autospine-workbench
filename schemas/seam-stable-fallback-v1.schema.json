@@ -1,0 +1,85 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "profile",
+    "source_reference_sha256",
+    "source_candidate_sha256",
+    "followers",
+    "authority",
+    "production_authorized",
+    "status",
+    "geometry",
+    "alpha",
+    "comparison",
+    "files"
+  ],
+  "properties": {
+    "schema": {
+      "const": "autospine.seam-stable-fallback/v1"
+    },
+    "profile": {
+      "const": "explicit-whole-attachment-track-v1"
+    },
+    "source_reference_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "source_candidate_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "followers": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "authority": {
+      "const": "none"
+    },
+    "production_authorized": {
+      "const": false
+    },
+    "status": {
+      "const": "needs_review"
+    },
+    "geometry": {
+      "type": "object",
+      "required": [
+        "regions",
+        "fps",
+        "sample_count"
+      ]
+    },
+    "alpha": {
+      "type": "object",
+      "required": [
+        "boundaries",
+        "relations",
+        "sample_count"
+      ]
+    },
+    "comparison": {
+      "type": "object",
+      "required": [
+        "relations",
+        "profile",
+        "sample_count"
+      ]
+    },
+    "files": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[a-f0-9]{64}$"
+      }
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

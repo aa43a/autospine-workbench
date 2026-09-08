@@ -1,0 +1,65 @@
+{
+  "date": "2026-09-08",
+  "artifact_sha256": "ffeba51258fee821bbd111a34f50e9e60023d7adb789cea16581cd655894b617",
+  "authority": "none",
+  "production_authorized": false,
+  "tests_passed": 45,
+  "schema": "passed",
+  "exact_reader": "passed",
+  "zip_sha256": "a00583ee09ad0a7e163509cb3b85d82619fc4626ec1bbaf64b3d5102c3c4a2bd",
+  "zip_replay": "byte_identical",
+  "all_file_hashes": "passed",
+  "runtime_report_sha256": "238d90d0951532693625e4e59bfcc04edde5f5475ff2cd02dd9806a88e2391c6",
+  "runtime_version": "4.3.13",
+  "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+  "runtime_captures": 224,
+  "runtime_regression_frames": 242,
+  "target_rgba_before_after": "all_conditions_identical",
+  "full_suite": "not_run",
+  "geometry": {
+    "layer-001-l": {
+      "passed": true,
+      "min_area_ratio": 0.5683308551382462,
+      "max_area_ratio": 1.1861672144298558,
+      "inversions": 0,
+      "max_edge_stretch": 1.2578051700385797,
+      "loop_error_px": 0.0,
+      "max_frame_displacement_px": 6.599759908041288
+    },
+    "layer-001-r": {
+      "passed": true,
+      "min_area_ratio": 0.6381180902723413,
+      "max_area_ratio": 1.2297199313528235,
+      "inversions": 0,
+      "max_edge_stretch": 1.3009367151546158,
+      "loop_error_px": 0.0,
+      "max_frame_displacement_px": 6.60496579312744
+    },
+    "layer-002-l": {
+      "passed": true,
+      "min_area_ratio": 0.6788835142015246,
+      "max_area_ratio": 1.3087002335944333,
+      "inversions": 0,
+      "max_edge_stretch": 1.1992527790394107,
+      "loop_error_px": 0.0,
+      "max_frame_displacement_px": 9.032251392542662
+    },
+    "layer-002-r": {
+      "passed": true,
+      "min_area_ratio": 0.5103475448581358,
+      "max_area_ratio": 1.5519552332747382,
+      "inversions": 0,
+      "max_edge_stretch": 1.3142501372310624,
+      "loop_error_px": 0.0,
+      "max_frame_displacement_px": 8.987368295925702
+    }
+  },
+  "growth": [
+    1.9689602888385598,
+    1.7278839885859627
+  ],
+  "new_gap_frames": [
+    0,
+    0
+  ]
+}

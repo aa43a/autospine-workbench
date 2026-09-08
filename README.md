@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[Alice 整段回退候选](docs/how-to-seam-stable-fallback.md)恢复左侧原轨道、保留右侧增量：两处边界增距仍<2px，七点Runtime目标RGBA恢复到原动画。
+相对原动画无新增空白帧；原有空白仍保留，完整接缝未验收，候选尚无采用权。
+
 [官方 Runtime 局部合成](docs/how-to-seam-local-runtime.md)已捕获 Alice 七点的 224 组 framebuffer 对照：增量后七点 alpha 均下降，四点低于 8。
 共享／独立纹理目标 RGBA 一致；候选未采用，下一步评估逐关系稳定准入与回退。
 
