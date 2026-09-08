@@ -94,10 +94,15 @@ def parser():
     register_constraint_parser(sub)
     from .elbow_bake_cli import register_parser as register_bake_parser
     register_bake_parser(sub)
+    from .elbow_target_cli import register_parser as register_target_parser
+    register_target_parser(sub)
     return result
 
 
 def _execute(args):
+    if args.command == 'export-elbow-spine43':
+        from .elbow_target_cli import execute
+        return execute(args)
     if args.command == 'bake-elbow-preview':
         from .elbow_bake_cli import execute
         return execute(args)

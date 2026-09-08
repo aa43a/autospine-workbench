@@ -1,0 +1,38 @@
+{
+  "authority": "none",
+  "production_authorized": false,
+  "python_tests": 32,
+  "validation": [
+    "Exact CLI source replay",
+    "ZIP file hashes",
+    "Scope Schema",
+    "CAS receipt readback",
+    "Independent JSON FK/deform reconstruction at 241 samples"
+  ],
+  "runtime_status": "not_evaluated",
+  "seam_status": "not_evaluated",
+  "records": [
+    {
+      "character": "alice",
+      "receipt_sha256": "d0d2239b59e3c3fe2efd6c453a236c96128279c7f552c14818b59f170faad943",
+      "zip_sha256": "b57694fd52118e5d67f821e6ab17bc62b47563650f950a406dfb78a90034f079",
+      "included_layers": [
+        "layer-003",
+        "layer-004"
+      ],
+      "excluded_layer_count": 21,
+      "target_numeric_reconstruction_error_px": 2.5421149729252077e-13
+    },
+    {
+      "character": "lingxian",
+      "receipt_sha256": "b204c7a6047695a6efad63db2c8fe8e2fb99cd50f543ebb10f8eb1cb17c37641",
+      "zip_sha256": "35e6c3cab1b063e309859b1f9d33c1e0dfe350518d8b9eca356354a122427c88",
+      "included_layers": [
+        "layer-001",
+        "layer-002"
+      ],
+      "excluded_layer_count": 19,
+      "target_numeric_reconstruction_error_px": 3.2155493553843715e-13
+    }
+  ]
+}

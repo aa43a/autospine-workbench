@@ -1,5 +1,8 @@
 # 当前状态：2026-09-08
 
+新增[4.3.26手臂诊断ZIP](how-to-elbow-spine43.md)：使用附件时间轴编码逐影响骨 deform，
+附原图与排除图层清单；完整角色状态仍阻塞，官方Runtime未评估，旧正式Adapter不扩权。
+
 新增[corrective动画烘焙](how-to-elbow-bake.md)：四臂120Hz采样QA通过，最大插值误差约0.13px，
 提供原纹理WebGL播放页。独立工件不改旧Mesh；尚未编译Spine deform时间轴或验证跨图层接缝。
 

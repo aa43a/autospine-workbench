@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+`export-elbow-spine43` 将已通过 Bake 的 Mesh 输出为4.3.26手臂诊断ZIP。
+包含JSON、Atlas、PNG与范围回执；不包含未确认绑定，不声明完整角色或Runtime通过。
+
 `bake-elbow-preview` 输出两秒30FPS局部偏移关键帧与120Hz采样QA，以及原纹理播放页。
 仅已选手臂实验动画，接缝和官方Runtime仍未评估，见[操作说明](how-to-elbow-bake.md)。
 

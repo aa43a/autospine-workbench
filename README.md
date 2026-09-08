@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[Spine 4.3.26 手臂诊断包](docs/how-to-elbow-spine43.md)已接通 JSON/Atlas/原 PNG 与 deform 时间轴编码。
+仅输出已通过 Bake 的 Mesh，完整角色接缝和官方 Runtime 仍未验证。
+
 [Corrective 烘焙与纹理预览](docs/how-to-elbow-bake.md)已接通：30FPS关键帧、120Hz插值QA，
 支持播放/暂停与拖帧；尚未接官方 Spine Runtime 或完整角色接缝验证。
 

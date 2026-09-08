@@ -1,0 +1,16 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "type":"object","additionalProperties":false,
+  "required":["schema","authority","production_authorized","target","scope","source_bake_sha256","skeleton_json_sha256","included_layers","excluded_layers","full_character_status","seam_status","reason_codes","runtime_status"],
+  "properties":{
+    "schema":{"const":"autospine.elbow-target-preview/v1"},"authority":{"const":"none"},
+    "production_authorized":{"const":false},"target":{"const":"4.3.26"},"scope":{"const":"selected_mesh_layers_only"},
+    "source_bake_sha256":{"$ref":"#/$defs/sha"},"skeleton_json_sha256":{"$ref":"#/$defs/sha"},
+    "included_layers":{"type":"array","minItems":1,"uniqueItems":true,"items":{"type":"string"}},
+    "excluded_layers":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["layer_id","reason_code"],"properties":{"layer_id":{"type":"string"},"reason_code":{"const":"mesh_bake_not_passed"}}}},
+    "full_character_status":{"const":"blocked"},"seam_status":{"const":"not_evaluated"},"runtime_status":{"const":"not_evaluated"},
+    "reason_codes":{"const":["remaining_layer_bindings_required","cross_layer_seam_review_required"]},
+    "files":{"type":"object","additionalProperties":{"$ref":"#/$defs/sha"}},"zip_sha256":{"$ref":"#/$defs/sha"}
+  },
+  "$defs":{"sha":{"type":"string","pattern":"^[a-f0-9]{64}$"}}
+}
