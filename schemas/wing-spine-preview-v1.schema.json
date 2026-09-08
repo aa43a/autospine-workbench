@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Selected wing hinge diagnostic Spine preview",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "profile", "source_roots_sha256", "source_draft_sha256", "selected_roots", "regions", "geometry", "status", "authority", "production_authorized", "full_character_animation", "limitations", "files"],
+  "properties": {
+    "schema": {"const": "autospine.wing-spine-preview/v1"},
+    "profile": {"const": "selected-wing-hinges-v1"},
+    "source_roots_sha256": {"$ref": "#/$defs/digest"},
+    "source_draft_sha256": {"$ref": "#/$defs/digest"},
+    "selected_roots": {"type": "array", "items": {
+      "type": "object", "additionalProperties": false,
+      "required": ["component_id", "root_index", "source_xy"],
+      "properties": {
+        "component_id": {"type": "integer", "minimum": 0},
+        "root_index": {"type": "integer", "minimum": 0},
+        "source_xy": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number"}}
+      }
+    }},
+    "regions": {"type": "array", "minItems": 2, "items": {"type": "object"}},
+    "geometry": {"type": "object"},
+    "status": {"const": "needs_review"},
+    "authority": {"const": "none"},
+    "production_authorized": {"const": false},
+    "full_character_animation": {"const": false},
+    "limitations": {"type": "array", "minItems": 4, "uniqueItems": true, "items": {"type": "string"}},
+    "files": {"type": "object", "additionalProperties": {"$ref": "#/$defs/digest"}}
+  },
+  "$defs": {"digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

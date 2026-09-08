@@ -45,4 +45,4 @@ JSON Schema位于schemas/wing-root-draft-v1.schema.json。
 node tools/check-wing-review.mjs ../tmp/r2b-wing-review/crino ../tmp/spine43-verification 'C:/Program Files/Google/Chrome/Application/chrome.exe' review-v2.html
 ```
 
-下一步消费用户保存的根部选择，并处理源层重叠与残余边缘归属，再接入Spine候选导出和动态QA。
+后续已接入用户草稿的 Spine 局部诊断导出，见 [翼根 Spine 预览](how-to-wing-spine-preview.md)。源层重叠与残余边缘归属仍待处理。

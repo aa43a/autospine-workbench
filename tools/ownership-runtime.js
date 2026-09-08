@@ -11,6 +11,8 @@
   const json=await fetchJSON('skeleton.json'),manifest=await fetchJSON('preview-manifest.json');
   const animationName=Object.keys(json.animations).find(n=>n!=='setup'),combined=animationName==='combined-pose-inspection';
   const animation=json.animations[animationName];
+  const wing=animationName==='wing-root-inspection';
+  if(wing)document.querySelector('aside').textContent='已选翼根的胸骨跟随与局部转动诊断；上衣翼片重影、残余边缘和层序尚未解决。Runtime数值通过不代表生产视觉验收通过。';
   const seam=animationName==='seam-translation-inspection';
   const remapped=animationName==='remapped-seam-inspection';
   const alphaSeam=['alpha-seam-inspection','continuous-anchor-inspection','seam-shape-inspection','seam-increment-inspection'].includes(animationName)||remapped;
@@ -78,7 +80,7 @@
     });
   }
   const bounds=[];
-  const boundsTimes=combined||continuous?animation.bones[Object.keys(animation.bones)[0]].rotate.map(k=>k.time):[0];
+  const boundsTimes=combined||continuous||wing?animation.bones[Object.keys(animation.bones)[0]].rotate.map(k=>k.time):[0];
   for(const time of boundsTimes){pose(shared,time);bounds.push(...vertices(shared).flatMap(r=>r.values));}
   pose(shared,0);
   const xs=bounds.filter((_,i)=>i%2===0),ys=bounds.filter((_,i)=>i%2===1);
