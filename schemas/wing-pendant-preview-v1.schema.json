@@ -1,0 +1,12 @@
+{
+ "$schema":"https://json-schema.org/draft/2020-12/schema","type":"object",
+ "required":["schema","profile","source_color_preview_sha256","pendant_candidates","mounted_pendants","existing_attachment_motion_unchanged","pendant_motion","authority","production_authorized","files"],
+ "properties":{
+  "schema":{"const":"autospine.wing-pendant-preview/v1"},"profile":{"const":"residual-crystal-unique-tip-v1"},
+  "source_color_preview_sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"},
+  "pendant_candidates":{"type":"object","required":["profile","rows","residual_visible_pixels","donor_reconstruction_exact"],"properties":{"profile":{"const":"residual-crystal-unique-tip-v1"},"rows":{"type":"array"},"residual_visible_pixels":{"type":"integer","minimum":0},"donor_reconstruction_exact":{"const":true}}},
+  "mounted_pendants":{"type":"array","uniqueItems":true,"items":{"type":"string"}},
+  "existing_attachment_motion_unchanged":{"const":true},"pendant_motion":{"const":"diagnostic_local_plus_minus_6deg_not_physics"},
+  "authority":{"const":"none"},"production_authorized":{"const":false},"files":{"type":"object"}
+ }
+}

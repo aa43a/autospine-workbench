@@ -1,0 +1,23 @@
+{
+  "slice": "residual-crystal-unique-tip-v1",
+  "source_color_preview_sha256": "eb77af7517f1fd84de9b997669e21a6443aee9bd12011e2b8363d3684d86a5ba",
+  "preview_sha256": "756791fb5aa3e120549316db285a885536e55c2e4949b484315d4ada861365b9",
+  "mounted_pendants": 4,
+  "extracted_visible_pixels": 13275,
+  "residual_visible_pixels": 1383,
+  "mount_distance_px": [1, 1, 1, 1],
+  "donor_reconstruction_exact": true,
+  "existing_attachment_motion_unchanged": true,
+  "existing_attachment_comparison_frames": 121,
+  "pendant_motion": "diagnostic_local_plus_minus_6deg_not_physics",
+  "targeted_tests_passed": 9,
+  "runtime_numeric_frames": 121,
+  "runtime_numeric_passed": true,
+  "runtime_version": "4.3.13",
+  "export_version": "4.3.26",
+  "runtime_reference_max_channel_error": 0,
+  "output": "../tmp/r2b-wing-pendants",
+  "status": "needs_review",
+  "authority": "none",
+  "production_authorized": false
+}

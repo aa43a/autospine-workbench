@@ -18,6 +18,7 @@
   if(wing&&manifest.slot_order_change)document.querySelector('aside').textContent='层序对照：翼片与残余在上衣后方；纹理、根部及动作不变，保留原11笔清理。上衣自身翼片像素仍在，本页仅为局部包。';
   if(wing&&manifest.projection_apply)document.querySelector('aside').textContent='按上传主翼清理草稿移除 '+manifest.projection_apply.removed_visible_pixels+' 个可见像素，保留翼片后置层序、原清理、骨骼与动作。请检查源层残留及服装边界，本页仍为局部候选。';
   if(wing&&manifest.color_ownership)document.querySelector('aside').textContent='颜色归属候选：'+manifest.color_ownership.counts.transferred+' 个保存像素转入封闭翼片；根部、动作与后置层序不变。未归属像素另存，颜色与轮廓配准仍需复核。';
+  if(wing&&manifest.pendant_candidates)document.querySelector('aside').textContent='挂坠挂接候选：'+manifest.mounted_pendants.length+' 个独立子骨骼，顶部附近挂接主翼，局部±6°仅用于诊断。原附件动作保持不变；残余另存，不是物理或生产验收。';
   const seam=animationName==='seam-translation-inspection';
   const remapped=animationName==='remapped-seam-inspection';
   const alphaSeam=['alpha-seam-inspection','continuous-anchor-inspection','seam-shape-inspection','seam-increment-inspection'].includes(animationName)||remapped;
