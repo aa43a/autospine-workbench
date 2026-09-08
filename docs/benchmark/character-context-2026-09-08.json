@@ -1,0 +1,20 @@
+{
+  "date": "2026-09-08",
+  "authority": "none",
+  "production_authorized": false,
+  "artifact_sha256": "d669471ae576d3079e4567b7e19b1e754633b045694156b6abef8441a2605ccb",
+  "source_atlas_sha256": "74425c43845dfcba2120e6ce2205491c557660f545496b31cbd367379eb5d34e",
+  "source_animation_sha256": "ffeba51258fee821bbd111a34f50e9e60023d7adb789cea16581cd655894b617",
+  "source_layer_count": 23,
+  "animated_partition_count": 4,
+  "fixed_source_layer_count": 21,
+  "residual_visible_pixels": 570,
+  "source_and_atlas_exact_replay": "passed",
+  "candidate_files_and_setup_identity": "passed",
+  "schema": "passed",
+  "python_tests": 9,
+  "diagnostic_browser_frames": 61,
+  "new_official_runtime_frames": 0,
+  "full_suite_run": false,
+  "screenshot_sha256": "f7021d3b8dc74c0ac9ad8d50ccf4040fff3917334d5352e8f901f05830958fe8"
+}

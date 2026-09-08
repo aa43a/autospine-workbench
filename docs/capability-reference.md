@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+- [整角色上下文预览](how-to-character-context.md)：精确来源和骨架校验，源顺序静态层与动画分区合成，
+  提供逐层缺项清单；诊断WebGL/Canvas2D，不冒充完整绑定或官方Runtime。
+
 - [Runtime局部空间复核](how-to-seam-roi-context.md)：复用已验证PNG分析alpha8的4／8邻接与裁剪边缘连接，
   提供原图对照和数值标记，不授予裂缝分类或自动修复权。
 

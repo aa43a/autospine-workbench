@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[整角色上下文预览](docs/how-to-character-context.md)已加入：Alice原23层中，4个腿鞋分区播放候选，21层静态显示。
+570个残余像素仍未绑定；该诊断页不是完整角色动画或官方Runtime验收。
+
 [右侧局部空间复核](docs/how-to-seam-roi-context.md)：183个ROI已定位，4邻接的6个局部封闭疑点在8邻接下均触达裁剪边缘。
 未确认封闭孔洞，也未排除开放细缝；候选和权重不变，继续完整角色视觉回归。
 

@@ -1,5 +1,8 @@
 # AutoSpine Workbench 架构与质量门禁
 
+`benchmark/character_context_*`独立处理原图上下文和候选分区的显示：atlas显式映射替换源层、
+同骨架setup校验、源顺序叠加。复用现有WebGL网格绘制器，静态层不获得动画绑定权。
+
 `targets/spine43/seam_roi_context.py`仅分析原／候选alpha栅格，benchmark CLI负责PNG身份、坐标方向、精确回放和SVG标记。
 4／8邻接敏感性与全角色拓扑分开；不把局部裁剪边缘连通直接解释为外轮廓或生产通过。
 

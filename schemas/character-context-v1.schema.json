@@ -1,0 +1,14 @@
+{
+  "type":"object","additionalProperties":false,
+  "required":["profile","authority","production_authorized","status","full_character_animation","draw_order","renderer","source_candidate_sha256","source_atlas_sha256","source_animation_sha256","layers","animated_partition_count","fixed_source_layer_count","residual_visible_pixels"],
+  "properties":{
+    "profile":{"const":"source-order-static-context-with-candidate-partitions-v1"},
+    "authority":{"const":"none"},"production_authorized":{"const":false},"status":{"const":"needs_review"},
+    "full_character_animation":{"const":"blocked"},"draw_order":{"const":"source_order_unreviewed"},
+    "renderer":{"const":"diagnostic_webgl_mesh_canvas2d_composite"},
+    "source_candidate_sha256":{"$ref":"#/$defs/sha"},"source_atlas_sha256":{"$ref":"#/$defs/sha"},"source_animation_sha256":{"$ref":"#/$defs/sha"},
+    "layers":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["layer_id","name","status"],"properties":{"layer_id":{"type":"string"},"name":{"type":"string"},"status":{"enum":["animated_partition_subset","fixed_source_context_only"]}}}},
+    "animated_partition_count":{"type":"integer","minimum":1},"fixed_source_layer_count":{"type":"integer","minimum":0},"residual_visible_pixels":{"type":"integer","minimum":0}
+  },
+  "$defs":{"sha":{"type":"string","pattern":"^[a-f0-9]{64}$"}}
+}
