@@ -1,0 +1,114 @@
+{
+  "date": "2026-09-08",
+  "authority": "none",
+  "records": [
+    {
+      "character_id": "alice",
+      "artifact_sha256": "c8f671387012bf610b058e0a54c2f8134f96ec32a7a8eb6778059394f306032e",
+      "layers": [
+        {
+          "layer_id": "layer-001",
+          "name": "legwear",
+          "reason_code": "component_split_review_required",
+          "component_count": 2,
+          "omitted_alpha_pixel_count": 0
+        },
+        {
+          "layer_id": "layer-002",
+          "name": "footwear",
+          "reason_code": "component_split_review_required",
+          "component_count": 4,
+          "omitted_alpha_pixel_count": 4
+        },
+        {
+          "layer_id": "layer-005",
+          "name": "bottomwear",
+          "reason_code": "garment_semantics_review_required",
+          "component_count": 5,
+          "omitted_alpha_pixel_count": 4
+        },
+        {
+          "layer_id": "layer-008",
+          "name": "objects",
+          "reason_code": "semantic_ambiguous",
+          "component_count": 5,
+          "omitted_alpha_pixel_count": 10
+        }
+      ]
+    },
+    {
+      "character_id": "lingxian",
+      "artifact_sha256": "a0ba4f548f31984b9a65b437ac775712fa4b1a89fc4ebafaf76673258e5026a4",
+      "layers": [
+        {
+          "layer_id": "layer-003",
+          "name": "legwear",
+          "reason_code": "component_split_review_required",
+          "component_count": 5,
+          "omitted_alpha_pixel_count": 3
+        },
+        {
+          "layer_id": "layer-005",
+          "name": "bottomwear",
+          "reason_code": "garment_semantics_review_required",
+          "component_count": 1,
+          "omitted_alpha_pixel_count": 0
+        }
+      ]
+    },
+    {
+      "character_id": "crino",
+      "artifact_sha256": "9f0905cbd192c423c45c91cab4354aeff58d7568ad7faf603ba23d5033a24252",
+      "layers": [
+        {
+          "layer_id": "layer-000",
+          "name": "wings",
+          "reason_code": "semantic_ambiguous",
+          "component_count": 32,
+          "omitted_alpha_pixel_count": 45
+        },
+        {
+          "layer_id": "layer-002",
+          "name": "headwear",
+          "reason_code": "empty_layer",
+          "component_count": 0,
+          "omitted_alpha_pixel_count": 0
+        },
+        {
+          "layer_id": "layer-004",
+          "name": "handwear",
+          "reason_code": "component_split_review_required",
+          "component_count": 3,
+          "omitted_alpha_pixel_count": 1
+        },
+        {
+          "layer_id": "layer-005",
+          "name": "legwear",
+          "reason_code": "component_split_review_required",
+          "component_count": 3,
+          "omitted_alpha_pixel_count": 1
+        },
+        {
+          "layer_id": "layer-006",
+          "name": "footwear",
+          "reason_code": "component_split_review_required",
+          "component_count": 9,
+          "omitted_alpha_pixel_count": 19
+        },
+        {
+          "layer_id": "layer-008",
+          "name": "bottomwear",
+          "reason_code": "garment_semantics_review_required",
+          "component_count": 2,
+          "omitted_alpha_pixel_count": 1
+        }
+      ]
+    }
+  ],
+  "source_replay": "passed",
+  "schema_validation": "passed",
+  "tests": "17 related tests passed",
+  "visual_check": "Alice Chrome screenshot inspected",
+  "full_suite": "not_run",
+  "official_runtime": "not_run"
+}

@@ -1,0 +1,213 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "autospine.structure-candidates/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "profile",
+    "authority",
+    "production_authorized",
+    "parameters",
+    "source_bindings_sha256",
+    "source_draft_sha256",
+    "skeleton_height_px",
+    "layers"
+  ],
+  "properties": {
+    "schema": {
+      "const": "autospine.structure-candidates/v1"
+    },
+    "profile": {
+      "const": "alpha-component-structure-v1"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "production_authorized": {
+      "const": false
+    },
+    "parameters": {
+      "const": {
+        "alpha_threshold": 8,
+        "connectivity": 4,
+        "minimum_area_ratio": 0.01,
+        "minimum_area_px": 8,
+        "maximum_components": 32,
+        "side_margin_height": 0.01,
+        "maximum_distance_height": 0.15
+      }
+    },
+    "source_bindings_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "source_draft_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "skeleton_height_px": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "layers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "layer_id",
+          "name",
+          "status",
+          "reason_code",
+          "proposal",
+          "components",
+          "alpha_pixel_count",
+          "component_count",
+          "omitted_alpha_pixel_count"
+        ],
+        "properties": {
+          "layer_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "blocked",
+              "needs_review"
+            ]
+          },
+          "reason_code": {
+            "type": "string"
+          },
+          "proposal": {
+            "anyOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "kind",
+                  "bone_ids",
+                  "secondary_motion"
+                ],
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "rigid_setup_only",
+                      "component_partition"
+                    ]
+                  },
+                  "bone_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 0,
+                    "maxItems": 1
+                  },
+                  "secondary_motion": {
+                    "const": "not_supported"
+                  }
+                }
+              }
+            ]
+          },
+          "components": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "area",
+                "bbox",
+                "centroid"
+              ],
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "area": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "bbox": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 4,
+                  "maxItems": 4
+                },
+                "centroid": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 2,
+                  "maxItems": 2
+                },
+                "side": {
+                  "enum": [
+                    "l",
+                    "r",
+                    null
+                  ]
+                },
+                "distance_px": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "l",
+                    "r"
+                  ],
+                  "properties": {
+                    "l": {
+                      "type": "number"
+                    },
+                    "r": {
+                      "type": "number"
+                    }
+                  }
+                },
+                "margin_height": {
+                  "type": "number"
+                },
+                "bone_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "minItems": 0,
+                  "maxItems": 3
+                }
+              }
+            },
+            "minItems": 0,
+            "maxItems": 32
+          },
+          "alpha_pixel_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "component_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "omitted_alpha_pixel_count": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "minItems": 0,
+      "maxItems": 256
+    }
+  }
+}

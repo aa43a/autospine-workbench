@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[剩余图层结构候选](docs/how-to-layer-structure.md)已接通：按 alpha 连通域与骨架位置提出双侧分区，
+裙装提供刚性 setup 候选；模糊侧别和未知物件保持阻塞，尚未生成分区 PNG 或权重。
+
 [头部部件绑定补全](docs/how-to-binding-completion.md)新增31项可复核候选，保留既有19项绑定；
 三个角色提供集中复核页，新增建议仍待确认，裙装和双侧肢体等结构问题继续保留。
 

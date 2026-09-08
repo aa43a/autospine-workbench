@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+`propose-layer-structure` 对剩余结构层生成组件分区或刚性服装候选，提供来源重放和图层叠图。
+不生成分区纹理、双侧 Mesh 或正式采用，见[说明](how-to-layer-structure.md)。
+
 `compose-character-preview` 组合已确认刚性层与已通过Bake的Mesh，生成同场景播放页、4.3.26诊断ZIP和肩部接触候选。
 不自动绑定剩余层，接缝与Draw Order仍待复核，见[说明](how-to-character-preview.md)。
 

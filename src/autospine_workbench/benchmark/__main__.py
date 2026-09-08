@@ -100,10 +100,15 @@ def parser():
     register_character_parser(sub)
     from .binding_completion_cli import register_parser as register_completion_parser
     register_completion_parser(sub)
+    from .structure_cli import register_parser as register_structure_parser
+    register_structure_parser(sub)
     return result
 
 
 def _execute(args):
+    if args.command == 'propose-layer-structure':
+        from .structure_cli import execute
+        return execute(args)
     if args.command == 'complete-layer-bindings':
         from .binding_completion_cli import execute
         return execute(args)
