@@ -1,0 +1,183 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "profile",
+    "source_mount_sha256",
+    "character_id",
+    "parameters",
+    "rows",
+    "authority",
+    "production_authorized",
+    "status"
+  ],
+  "properties": {
+    "schema": {
+      "const": "autospine.mount-contact/v1"
+    },
+    "profile": {
+      "const": "mount-local-boundary-v1"
+    },
+    "source_mount_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "character_id": {
+      "type": "string"
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "alpha_threshold",
+        "roi_radius_px",
+        "proximity_chebyshev_px"
+      ],
+      "properties": {
+        "alpha_threshold": {
+          "const": 8
+        },
+        "roi_radius_px": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "proximity_chebyshev_px": {
+          "const": 3
+        }
+      }
+    },
+    "rows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "layer_id",
+          "name",
+          "bone_id",
+          "anchor_xy",
+          "relations",
+          "reason_code",
+          "selected_target",
+          "status"
+        ],
+        "properties": {
+          "layer_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "bone_id": {
+            "type": "string"
+          },
+          "anchor_xy": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "number"
+            }
+          },
+          "relations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "target_layer_id",
+                "target_image_sha256",
+                "status",
+                "roi",
+                "boundary_point",
+                "overlap_pixels",
+                "boundary_near_target_pixels",
+                "boundary_pair_pixels"
+              ],
+              "properties": {
+                "target_layer_id": {
+                  "type": "string"
+                },
+                "target_image_sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "status": {
+                  "enum": [
+                    "boundary_pair_support",
+                    "boundary_over_target_interior",
+                    "overlap_only",
+                    "no_local_support",
+                    "no_source_boundary"
+                  ]
+                },
+                "roi": {
+                  "anyOf": [
+                    {
+                      "type": "array",
+                      "minItems": 4,
+                      "maxItems": 4,
+                      "items": {
+                        "type": "number"
+                      }
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "boundary_point": {
+                  "anyOf": [
+                    {
+                      "type": "array",
+                      "minItems": 2,
+                      "maxItems": 2,
+                      "items": {
+                        "type": "number"
+                      }
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "overlap_pixels": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "boundary_near_target_pixels": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "boundary_pair_pixels": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "reason_code": {
+            "type": "string"
+          },
+          "selected_target": {
+            "type": "null"
+          },
+          "status": {
+            "const": "needs_review"
+          }
+        }
+      }
+    },
+    "authority": {
+      "const": "none"
+    },
+    "production_authorized": {
+      "const": false
+    },
+    "status": {
+      "const": "needs_review"
+    }
+  }
+}

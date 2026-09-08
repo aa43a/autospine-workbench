@@ -1,0 +1,56 @@
+{
+  "profile": "mount-local-boundary-v1",
+  "characters": [
+    {
+      "character": "alice",
+      "contact_sha256": "74a66c6f9545a4e22f73371a45dfee4e5bf9407d0dbf83c07e60099f604ae6b3",
+      "source_mount_sha256": "32fb4c1c52f4a4d3bb284debf4fb5547d90796a2eb71b8b180c0e8a014bf6bb0",
+      "counts": {
+        "no_local_support": 5,
+        "boundary_pair_support": 1
+      },
+      "missing_counterpart_rows": 1
+    },
+    {
+      "character": "lingxian",
+      "contact_sha256": "156cb3fdd8a5b78dbc2933841ffb929ffd18e563a42a2ebc79bb8742718493af",
+      "source_mount_sha256": "c70a0f4513c597bddf57343481dc9dbc5e60a369592465616104c3879fc22761",
+      "counts": {
+        "boundary_over_target_interior": 1
+      },
+      "missing_counterpart_rows": 0
+    },
+    {
+      "character": "crino",
+      "contact_sha256": "ba3101092b1498c6be7b00aa3b89405986c3d7a2c9961dbd2560492a6da58bac",
+      "source_mount_sha256": "3c723f838cd3cb055e6d16f2fcaf6405f081a6a7017920a426ff93dc81f273db",
+      "counts": {
+        "boundary_pair_support": 2
+      },
+      "missing_counterpart_rows": 1
+    }
+  ],
+  "targeted_tests": 11,
+  "schema_validated": true,
+  "source_replay": true,
+  "browser": {
+    "results": [
+      {
+        "name": "alice",
+        "cards": 7
+      },
+      {
+        "name": "lingxian",
+        "cards": 1
+      },
+      {
+        "name": "crino",
+        "cards": 3
+      }
+    ],
+    "errors": []
+  },
+  "authority": "none",
+  "production_authorized": false,
+  "runtime_rerun": false
+}
