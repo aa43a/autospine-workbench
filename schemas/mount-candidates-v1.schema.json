@@ -1,0 +1,248 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "profile",
+    "source_plan_sha256",
+    "character_id",
+    "character_height_px",
+    "parameters",
+    "layers",
+    "status",
+    "authority",
+    "production_authorized"
+  ],
+  "properties": {
+    "schema": {
+      "const": "autospine.mount-candidates/v1"
+    },
+    "profile": {
+      "const": "garment-prop-wing-mount-v1"
+    },
+    "source_plan_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "character_id": {
+      "type": "string"
+    },
+    "character_height_px": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "alpha_threshold",
+        "nearby_height_ratio"
+      ],
+      "properties": {
+        "alpha_threshold": {
+          "const": 8
+        },
+        "nearby_height_ratio": {
+          "const": 0.05
+        }
+      }
+    },
+    "layers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "layer_id",
+          "name",
+          "category",
+          "image_sha256",
+          "semantic_hypotheses",
+          "mount_options",
+          "missing_bones",
+          "alpha_evidence",
+          "reason_codes",
+          "confidence",
+          "selected_option",
+          "status"
+        ],
+        "properties": {
+          "layer_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "enum": [
+              "garment",
+              "prop",
+              "wing",
+              "conflict"
+            ]
+          },
+          "image_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "semantic_hypotheses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "mount_options": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "bone_id",
+                "endpoint",
+                "anchor_xy",
+                "nearest_alpha_xy",
+                "distance_px",
+                "normalized_distance",
+                "nearby"
+              ],
+              "properties": {
+                "bone_id": {
+                  "type": "string"
+                },
+                "endpoint": {
+                  "const": "head_xy"
+                },
+                "anchor_xy": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "number"
+                  }
+                },
+                "nearest_alpha_xy": {
+                  "anyOf": [
+                    {
+                      "type": "array",
+                      "minItems": 2,
+                      "maxItems": 2,
+                      "items": {
+                        "type": "number"
+                      }
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "distance_px": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": 0
+                },
+                "normalized_distance": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": 0
+                },
+                "nearby": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "missing_bones": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "alpha_evidence": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "alpha_threshold",
+              "connectivity",
+              "component_count",
+              "largest_component_areas",
+              "bone_alpha_samples"
+            ],
+            "properties": {
+              "alpha_threshold": {
+                "const": 8
+              },
+              "connectivity": {
+                "const": 4
+              },
+              "component_count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "largest_component_areas": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "bone_alpha_samples": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "bone_id",
+                    "opaque_samples",
+                    "samples"
+                  ],
+                  "properties": {
+                    "bone_id": {
+                      "type": "string"
+                    },
+                    "opaque_samples": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 21
+                    },
+                    "samples": {
+                      "const": 21
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "reason_codes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "confidence": {
+            "type": "null"
+          },
+          "selected_option": {
+            "type": "null"
+          },
+          "status": {
+            "const": "needs_review"
+          }
+        }
+      }
+    },
+    "status": {
+      "const": "needs_review"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "production_authorized": {
+      "const": false
+    }
+  }
+}

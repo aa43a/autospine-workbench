@@ -1,0 +1,248 @@
+{
+  "profile": "garment-prop-wing-mount-v1",
+  "characters": [
+    {
+      "character": "alice",
+      "candidate_sha256": "32fb4c1c52f4a4d3bb284debf4fb5547d90796a2eb71b8b180c0e8a014bf6bb0",
+      "source_plan_sha256": "a2386dd5b91abb648c106370d657223da857db773b24930fc0f894a733db5269",
+      "layers": [
+        {
+          "layer_id": "layer-005",
+          "name": "bottomwear",
+          "category": "garment",
+          "mount_options": [
+            {
+              "anchor_xy": [
+                491.387,
+                523.034
+              ],
+              "bone_id": "pelvis",
+              "distance_px": 0.479505,
+              "endpoint": "head_xy",
+              "nearby": true,
+              "nearest_alpha_xy": [
+                491.5,
+                523.5
+              ],
+              "normalized_distance": 0.00047195
+            }
+          ],
+          "reason_codes": [
+            "name_semantic_hypotheses_unreviewed",
+            "proximity_is_not_attachment_proof",
+            "skirt_vs_pants_requires_visual_review"
+          ]
+        },
+        {
+          "layer_id": "layer-008",
+          "name": "objects",
+          "category": "prop",
+          "mount_options": [
+            {
+              "anchor_xy": [
+                685.768,
+                461.865
+              ],
+              "bone_id": "hand_l",
+              "distance_px": 235.268857,
+              "endpoint": "head_xy",
+              "nearby": false,
+              "nearest_alpha_xy": [
+                450.5,
+                462.5
+              ],
+              "normalized_distance": 0.23156384
+            },
+            {
+              "anchor_xy": [
+                314.678,
+                441.476
+              ],
+              "bone_id": "hand_r",
+              "distance_px": 37.822008,
+              "endpoint": "head_xy",
+              "nearby": true,
+              "nearest_alpha_xy": [
+                352.5,
+                441.5
+              ],
+              "normalized_distance": 0.03722639
+            },
+            {
+              "anchor_xy": [
+                488.669,
+                282.437
+              ],
+              "bone_id": "chest",
+              "distance_px": 71.302346,
+              "endpoint": "head_xy",
+              "nearby": false,
+              "nearest_alpha_xy": [
+                459.5,
+                347.5
+              ],
+              "normalized_distance": 0.07017947
+            },
+            {
+              "anchor_xy": [
+                491.387,
+                523.034
+              ],
+              "bone_id": "pelvis",
+              "distance_px": 70.631437,
+              "endpoint": "head_xy",
+              "nearby": false,
+              "nearest_alpha_xy": [
+                446.5,
+                468.5
+              ],
+              "normalized_distance": 0.06951913
+            }
+          ],
+          "reason_codes": [
+            "name_semantic_hypotheses_unreviewed",
+            "proximity_is_not_attachment_proof",
+            "held_vs_attached_requires_contact_review"
+          ]
+        }
+      ]
+    },
+    {
+      "character": "lingxian",
+      "candidate_sha256": "c70a0f4513c597bddf57343481dc9dbc5e60a369592465616104c3879fc22761",
+      "source_plan_sha256": "512aaa86a5fe9dc949ef5fbb1865f92efb000b84b30228245ae4116041753b75",
+      "layers": [
+        {
+          "layer_id": "layer-005",
+          "name": "bottomwear",
+          "category": "garment",
+          "mount_options": [
+            {
+              "anchor_xy": [
+                632.242,
+                615.152
+              ],
+              "bone_id": "pelvis",
+              "distance_px": 0.433207,
+              "endpoint": "head_xy",
+              "nearby": true,
+              "nearest_alpha_xy": [
+                632.5,
+                615.5
+              ],
+              "normalized_distance": 0.00038202
+            }
+          ],
+          "reason_codes": [
+            "name_semantic_hypotheses_unreviewed",
+            "proximity_is_not_attachment_proof",
+            "skirt_vs_pants_requires_visual_review"
+          ]
+        }
+      ]
+    },
+    {
+      "character": "crino",
+      "candidate_sha256": "3c723f838cd3cb055e6d16f2fcaf6405f081a6a7017920a426ff93dc81f273db",
+      "source_plan_sha256": "a18964a09b4c9a7ce228457ce21565d7995a7117fa4602649431110c37e04866",
+      "layers": [
+        {
+          "layer_id": "layer-000",
+          "name": "wings",
+          "category": "wing",
+          "mount_options": [
+            {
+              "anchor_xy": [
+                649.5,
+                411.68
+              ],
+              "bone_id": "chest",
+              "distance_px": 74.561601,
+              "endpoint": "head_xy",
+              "nearby": false,
+              "nearest_alpha_xy": [
+                722.5,
+                396.5
+              ],
+              "normalized_distance": 0.05866373
+            },
+            {
+              "anchor_xy": [
+                646.75,
+                547.09
+              ],
+              "bone_id": "spine",
+              "distance_px": 159.886868,
+              "endpoint": "head_xy",
+              "nearby": false,
+              "nearest_alpha_xy": [
+                554.5,
+                416.5
+              ],
+              "normalized_distance": 0.12579612
+            }
+          ],
+          "reason_codes": [
+            "name_semantic_hypotheses_unreviewed",
+            "proximity_is_not_attachment_proof",
+            "wing_root_may_be_occluded",
+            "no_nearby_mount_anchor"
+          ]
+        },
+        {
+          "layer_id": "layer-008",
+          "name": "bottomwear",
+          "category": "garment",
+          "mount_options": [
+            {
+              "anchor_xy": [
+                644.0,
+                682.5
+              ],
+              "bone_id": "pelvis",
+              "distance_px": 0.5,
+              "endpoint": "head_xy",
+              "nearby": true,
+              "nearest_alpha_xy": [
+                643.5,
+                682.5
+              ],
+              "normalized_distance": 0.00039339
+            }
+          ],
+          "reason_codes": [
+            "name_semantic_hypotheses_unreviewed",
+            "proximity_is_not_attachment_proof",
+            "skirt_vs_pants_requires_visual_review"
+          ]
+        }
+      ]
+    }
+  ],
+  "source_replay": true,
+  "schema_validated": true,
+  "targeted_tests": 9,
+  "browser": {
+    "results": [
+      {
+        "name": "alice",
+        "layers": 2,
+        "options": 5
+      },
+      {
+        "name": "lingxian",
+        "layers": 1,
+        "options": 1
+      },
+      {
+        "name": "crino",
+        "layers": 2,
+        "options": 3
+      }
+    ],
+    "errors": []
+  },
+  "runtime_rerun": false,
+  "authority": "none",
+  "production_authorized": false
+}
