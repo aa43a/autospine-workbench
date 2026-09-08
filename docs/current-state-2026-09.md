@@ -1,5 +1,8 @@
 # 当前状态：2026-09-08
 
+新增[全alpha覆盖修复](how-to-partition-coverage.md)：可见主组件判断与全部alpha覆盖分离，
+原权重和残余保留。踝/腕前移过渡试验不稳定，作为未采用的独立对照保存。
+
 新增[分区Mesh/Weight实验](how-to-partition-mesh.md)：12个区域独立侧别权重与逐关节QA。
 远端踝/腕旋转和alpha覆盖仍失败，残余保留且未绑定；不声明完整角色或R3通过。
 

@@ -45,6 +45,9 @@ def compile_report(state,manifest,digest,workspace):
 
 def read_partition_mesh(state,manifest,digest,*,workspace):
     doc=read_mesh_report(state,manifest['dataset_id'],digest)
+    if doc.get('profile') in ('partition-full-alpha-v2','partition-full-alpha-supported-v2'):
+        from .partition_coverage_cli import read_coverage
+        return read_coverage(state,manifest,digest,workspace=workspace)
     expected,_=compile_report(state,manifest,doc['source_partitions_sha256'],workspace)
     if canonical_sha256(doc)!=canonical_sha256(expected):raise ValueError('partition_mesh_mismatch')
     return doc

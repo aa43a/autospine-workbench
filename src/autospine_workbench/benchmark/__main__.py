@@ -108,10 +108,15 @@ def parser():
     register_residual_parser(sub)
     from .partition_mesh_cli import register_parser as register_partition_mesh_parser
     register_partition_mesh_parser(sub)
+    from .partition_coverage_cli import register_parser as register_coverage_v2_parser
+    register_coverage_v2_parser(sub)
     return result
 
 
 def _execute(args):
+    if args.command == 'improve-partition-coverage':
+        from .partition_coverage_cli import execute
+        return execute(args)
     if args.command == 'build-partition-mesh':
         from .partition_mesh_cli import execute
         return execute(args)

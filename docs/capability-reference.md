@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+`improve-partition-coverage` 修复分区网格对低alpha像素的漏覆盖，并输出未采用的远端权重对照。
+默认保留可见主组件门槛，历史profile可重放，见[说明](how-to-partition-coverage.md)。
+
 `build-partition-mesh` 对精确分区建立左右独立网格、单骨/三骨权重，验证逐关节变形与alpha覆盖。
 失败候选保留并阻塞，见[说明](how-to-partition-mesh.md)。
 

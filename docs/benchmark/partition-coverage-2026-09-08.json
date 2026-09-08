@@ -1,0 +1,183 @@
+{
+  "date": "2026-09-08",
+  "authority": "none",
+  "records": [
+    {
+      "character_id": "alice",
+      "old_sha256": "830a5e2e54b4387108e00f8e03a09a85c8d68389f514e7b2cede87ac99c36ac0",
+      "new_sha256": "37b6613dd8bd0668634ab63a9359ec57390f12827592850f2bcbd9a8d866f239",
+      "layers": [
+        {
+          "layer_id": "layer-001-l",
+          "old_uncovered": 0,
+          "new_uncovered": 0,
+          "status": "blocked",
+          "setup_error": 1.6077746776921858e-13,
+          "weight_sum_error": 0.0
+        },
+        {
+          "layer_id": "layer-001-r",
+          "old_uncovered": 1,
+          "new_uncovered": 0,
+          "status": "blocked",
+          "setup_error": 1.1368683772161603e-13,
+          "weight_sum_error": 0.0
+        },
+        {
+          "layer_id": "layer-002-l",
+          "old_uncovered": 13,
+          "new_uncovered": 0,
+          "status": "candidate_requires_review",
+          "setup_error": 0.0,
+          "weight_sum_error": 0.0
+        },
+        {
+          "layer_id": "layer-002-r",
+          "old_uncovered": 1,
+          "new_uncovered": 0,
+          "status": "candidate_requires_review",
+          "setup_error": 0.0,
+          "weight_sum_error": 0.0
+        }
+      ],
+      "distal_trials": [
+        {
+          "layer_id": "layer-001-l",
+          "passed": false,
+          "adopted": false,
+          "inversion_samples": 11
+        },
+        {
+          "layer_id": "layer-001-r",
+          "passed": false,
+          "adopted": false,
+          "inversion_samples": 4
+        }
+      ]
+    },
+    {
+      "character_id": "lingxian",
+      "old_sha256": "ff7f42f31bbe34aa91ce292cdc63c7e1b1b85d2a21392272db1efa31d893048c",
+      "new_sha256": "25aa8859c73d169776ecc2d59cf73f3a4e9922d91be61fc4bf89ef9a721a26b2",
+      "layers": [
+        {
+          "layer_id": "layer-003-l",
+          "old_uncovered": 7,
+          "new_uncovered": 0,
+          "status": "blocked",
+          "setup_error": 1.1368683772161603e-13,
+          "weight_sum_error": 0.0
+        },
+        {
+          "layer_id": "layer-003-r",
+          "old_uncovered": 0,
+          "new_uncovered": 0,
+          "status": "blocked",
+          "setup_error": 1.6077746776921858e-13,
+          "weight_sum_error": 0.0
+        }
+      ],
+      "distal_trials": [
+        {
+          "layer_id": "layer-003-l",
+          "passed": false,
+          "adopted": false,
+          "inversion_samples": 5
+        },
+        {
+          "layer_id": "layer-003-r",
+          "passed": false,
+          "adopted": false,
+          "inversion_samples": 8
+        }
+      ]
+    },
+    {
+      "character_id": "crino",
+      "old_sha256": "58028eca21926acef1920d0b62866e98f44795e375339c10a08aa082c2bbc958",
+      "new_sha256": "f2e68bde4ae95d5b634106eb40ddcf33dcc0299e6fb3b64cff57dc238a28708b",
+      "layers": [
+        {
+          "layer_id": "layer-004-l",
+          "old_uncovered": 0,
+          "new_uncovered": 0,
+          "status": "blocked",
+          "setup_error": 1.1368683772161603e-13,
+          "weight_sum_error": 0.0
+        },
+        {
+          "layer_id": "layer-004-r",
+          "old_uncovered": 0,
+          "new_uncovered": 0,
+          "status": "blocked",
+          "setup_error": 8.038873388460929e-14,
+          "weight_sum_error": 0.0
+        },
+        {
+          "layer_id": "layer-005-l",
+          "old_uncovered": 6,
+          "new_uncovered": 0,
+          "status": "blocked",
+          "setup_error": 1.6077746776921858e-13,
+          "weight_sum_error": 0.0
+        },
+        {
+          "layer_id": "layer-005-r",
+          "old_uncovered": 1,
+          "new_uncovered": 0,
+          "status": "blocked",
+          "setup_error": 1.6077746776921858e-13,
+          "weight_sum_error": 0.0
+        },
+        {
+          "layer_id": "layer-006-l",
+          "old_uncovered": 1,
+          "new_uncovered": 0,
+          "status": "candidate_requires_review",
+          "setup_error": 0.0,
+          "weight_sum_error": 0.0
+        },
+        {
+          "layer_id": "layer-006-r",
+          "old_uncovered": 35,
+          "new_uncovered": 0,
+          "status": "candidate_requires_review",
+          "setup_error": 0.0,
+          "weight_sum_error": 0.0
+        }
+      ],
+      "distal_trials": [
+        {
+          "layer_id": "layer-004-l",
+          "passed": false,
+          "adopted": false,
+          "inversion_samples": 10
+        },
+        {
+          "layer_id": "layer-004-r",
+          "passed": false,
+          "adopted": false,
+          "inversion_samples": 6
+        },
+        {
+          "layer_id": "layer-005-l",
+          "passed": false,
+          "adopted": false,
+          "inversion_samples": 8
+        },
+        {
+          "layer_id": "layer-005-r",
+          "passed": false,
+          "adopted": false,
+          "inversion_samples": 6
+        }
+      ]
+    }
+  ],
+  "tests": "12 related tests passed",
+  "schema": "passed all three",
+  "source_images_and_residuals": "unchanged",
+  "visual": "Alice early v2 and Crino final supported coverage screenshots inspected",
+  "full_suite": "not_run",
+  "official_runtime": "not_run"
+}
