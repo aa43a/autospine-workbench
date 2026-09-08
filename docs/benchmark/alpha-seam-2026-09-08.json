@@ -1,0 +1,316 @@
+{
+  "runtime_package": "@esotericsoftware/spine-webgl",
+  "runtime_version": "4.3.13",
+  "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+  "browser": "152.0.7977.76",
+  "authority": "none",
+  "production_authorized": false,
+  "date": "2026-09-08",
+  "target": "4.3.26",
+  "runtime_report_sha256": "efce9da623bf70baccf8ed4eb1924cd23cc42dd3234d636f10e422f71b117dc7",
+  "tests_passed": 24,
+  "schema_zip_checks": "all_three_passed",
+  "source_chain_replay": "all_three_passed",
+  "reader_replay": "alice_passed",
+  "continuous_runtime_regression_frames": 363,
+  "full_suite": "not_run",
+  "dynamic_alpha_raster_qa": "not_evaluated",
+  "records": [
+    {
+      "character": "alice",
+      "artifact_sha256": "9bb53b7a1c8bcf5e6bf3f3608dbeb5cfe28f9bd111ebf4275ae0246e4c80213c",
+      "zip_sha256": "2880d8e3593d46301aa8cc0a38500912089276cd477a807e80127ae0616aed76",
+      "status": "blocked",
+      "runtime_passed": true,
+      "runtime_frames": 121,
+      "max_motion_error_px": 9.02034273622121e-05,
+      "max_channel_error": 1,
+      "boundaries": {
+        "layer-001-l": {
+          "mapped_pixels": 740,
+          "unmapped_pixels": 0
+        },
+        "layer-001-r": {
+          "mapped_pixels": 741,
+          "unmapped_pixels": 0
+        },
+        "layer-002-l": {
+          "mapped_pixels": 369,
+          "unmapped_pixels": 0
+        },
+        "layer-002-r": {
+          "mapped_pixels": 358,
+          "unmapped_pixels": 0
+        }
+      },
+      "before_relations": [
+        {
+          "driver": "layer-001-l",
+          "follower": "layer-002-l",
+          "max_distance_growth_px": 7.559884642042499,
+          "max_distance_px": 10.082672307323298,
+          "review_status": "pending",
+          "status": "blocked",
+          "pair_count": 16
+        },
+        {
+          "driver": "layer-001-r",
+          "follower": "layer-002-r",
+          "max_distance_growth_px": 9.078788352547049,
+          "max_distance_px": 11.633446784447827,
+          "review_status": "pending",
+          "status": "blocked",
+          "pair_count": 17
+        }
+      ],
+      "after_relations": [
+        {
+          "driver": "layer-001-l",
+          "follower": "layer-002-l",
+          "max_distance_growth_px": 2.0046907765764588,
+          "max_distance_px": 4.645742918218125,
+          "review_status": "pending",
+          "status": "blocked",
+          "pair_count": 16
+        },
+        {
+          "driver": "layer-001-r",
+          "follower": "layer-002-r",
+          "max_distance_growth_px": 2.3904464958815588,
+          "max_distance_px": 5.672521594837571,
+          "review_status": "pending",
+          "status": "blocked",
+          "pair_count": 17
+        }
+      ],
+      "geometry": {
+        "layer-001-l": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.1861672144298558,
+          "max_edge_stretch": 1.2578051700385797,
+          "max_frame_displacement_px": 6.599759908041288,
+          "min_area_ratio": 0.5683308551382462,
+          "passed": true
+        },
+        "layer-001-r": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.2297199313528235,
+          "max_edge_stretch": 1.3009367151546158,
+          "max_frame_displacement_px": 6.60496579312744,
+          "min_area_ratio": 0.6381180902723413,
+          "passed": true
+        },
+        "layer-002-l": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.3138379613694686,
+          "max_edge_stretch": 1.19999143987853,
+          "max_frame_displacement_px": 9.032251392542662,
+          "min_area_ratio": 0.6780792123153783,
+          "passed": true
+        },
+        "layer-002-r": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.3403235894273087,
+          "max_edge_stretch": 1.1896051886364405,
+          "max_frame_displacement_px": 8.987368295925702,
+          "min_area_ratio": 0.6186362896706294,
+          "passed": true
+        }
+      },
+      "screenshots": {
+        "setup": "e830231ffd23f2e9a647687124d2f4f51479cebbdb2f1b3c7f05002e06dd24ff",
+        "bend": "3e86e1025217d0e9f7b4c21effd2f1273663532e169cdea26c4a0c048eb679db"
+      }
+    },
+    {
+      "character": "lingxian",
+      "artifact_sha256": "ff061a1a17f0dca76e48dc8cc40e6fbe8921375d9ea62834facf8992accf5f11",
+      "zip_sha256": "6169534730a7deafe9b750bbb9a2ad20470c472e847252836c1c69120fc4920c",
+      "status": "candidate_noop",
+      "runtime_passed": true,
+      "runtime_frames": 121,
+      "max_motion_error_px": 0.00011553926378837787,
+      "max_channel_error": 1,
+      "boundaries": {
+        "layer-003-l": {
+          "mapped_pixels": 1271,
+          "unmapped_pixels": 0
+        },
+        "layer-003-r": {
+          "mapped_pixels": 1268,
+          "unmapped_pixels": 0
+        }
+      },
+      "before_relations": [],
+      "after_relations": [],
+      "geometry": {
+        "layer-003-l": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.2634319616216791,
+          "max_edge_stretch": 1.3369758390849302,
+          "max_frame_displacement_px": 9.395779459219256,
+          "min_area_ratio": 0.6463143528705625,
+          "passed": true
+        },
+        "layer-003-r": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.1664948968445046,
+          "max_edge_stretch": 1.2470347574124239,
+          "max_frame_displacement_px": 9.542601270218313,
+          "min_area_ratio": 0.5820481271748058,
+          "passed": true
+        }
+      },
+      "screenshots": {
+        "setup": "82e38959b47ac6944b2676da64a1d673e91db8e5bbef500fa12d18602b681251",
+        "bend": "0c68c014cf4727b6378409c90523e592c63f3fc27138d482986df3f082618ba5"
+      }
+    },
+    {
+      "character": "crino",
+      "artifact_sha256": "e7826b147f828d2dfde28331e29de77bae39b7060c2faf634b13b6bbd324cde2",
+      "zip_sha256": "c3aed0cafe9fee324c7de406ca0a0b070618199eec4c50ed0e0bee916a4cc6cb",
+      "status": "blocked",
+      "runtime_passed": true,
+      "runtime_frames": 121,
+      "max_motion_error_px": 0.00011305503312541987,
+      "max_channel_error": 1,
+      "boundaries": {
+        "layer-004-l": {
+          "mapped_pixels": 1085,
+          "unmapped_pixels": 0
+        },
+        "layer-004-r": {
+          "mapped_pixels": 1077,
+          "unmapped_pixels": 0
+        },
+        "layer-005-l": {
+          "mapped_pixels": 1257,
+          "unmapped_pixels": 0
+        },
+        "layer-005-r": {
+          "mapped_pixels": 1273,
+          "unmapped_pixels": 0
+        },
+        "layer-006-l": {
+          "mapped_pixels": 384,
+          "unmapped_pixels": 0
+        },
+        "layer-006-r": {
+          "mapped_pixels": 396,
+          "unmapped_pixels": 0
+        }
+      },
+      "before_relations": [
+        {
+          "driver": "layer-005-l",
+          "follower": "layer-006-l",
+          "max_distance_growth_px": 6.654276185575171,
+          "max_distance_px": 10.469310381075106,
+          "review_status": "pending",
+          "status": "blocked",
+          "pair_count": 24
+        },
+        {
+          "driver": "layer-005-r",
+          "follower": "layer-006-r",
+          "max_distance_growth_px": 7.015727078869119,
+          "max_distance_px": 10.507795769920099,
+          "review_status": "pending",
+          "status": "blocked",
+          "pair_count": 48
+        }
+      ],
+      "after_relations": [
+        {
+          "driver": "layer-005-l",
+          "follower": "layer-006-l",
+          "max_distance_growth_px": 2.1426363209460924,
+          "max_distance_px": 5.943052379352245,
+          "review_status": "pending",
+          "status": "blocked",
+          "pair_count": 24
+        },
+        {
+          "driver": "layer-005-r",
+          "follower": "layer-006-r",
+          "max_distance_growth_px": 1.6849646699151815,
+          "max_distance_px": 5.546465290758336,
+          "review_status": "pending",
+          "status": "candidate_requires_review",
+          "pair_count": 48
+        }
+      ],
+      "geometry": {
+        "layer-004-l": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.4257555114977394,
+          "max_edge_stretch": 1.3233700518784033,
+          "max_frame_displacement_px": 8.371151055016261,
+          "min_area_ratio": 0.5501331173187808,
+          "passed": true
+        },
+        "layer-004-r": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.2628062179286146,
+          "max_edge_stretch": 1.2405004035243028,
+          "max_frame_displacement_px": 7.923021572556827,
+          "min_area_ratio": 0.5627159837207865,
+          "passed": true
+        },
+        "layer-005-l": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.2702172823925402,
+          "max_edge_stretch": 1.362668200483568,
+          "max_frame_displacement_px": 9.77212082627153,
+          "min_area_ratio": 0.5499999999999989,
+          "passed": true
+        },
+        "layer-005-r": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.2779505672490232,
+          "max_edge_stretch": 1.3628969821854764,
+          "max_frame_displacement_px": 9.612031306147648,
+          "min_area_ratio": 0.5808497964347196,
+          "passed": true
+        },
+        "layer-006-l": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.2232573535578324,
+          "max_edge_stretch": 1.1944312430601076,
+          "max_frame_displacement_px": 12.0299996164325,
+          "min_area_ratio": 0.7578747345214689,
+          "passed": true
+        },
+        "layer-006-r": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.1890147378377334,
+          "max_edge_stretch": 1.1878288624754527,
+          "max_frame_displacement_px": 11.90005283337595,
+          "min_area_ratio": 0.7782512485963606,
+          "passed": true
+        }
+      },
+      "screenshots": {
+        "setup": "a906f433158c5ac8204e67a1b8df94940584340d62a16dcca93f309bb561695f",
+        "bend": "f63363a4c8b80aa0e1211bf72bdba499857ab3acc0c3a6d6a5d88ca76f5f25d7"
+      }
+    }
+  ],
+  "harness_sha256": {
+    "tools/ownership-runtime.js": "f6854db2b3d136e369f7d78df2033c9053f55a1a1b2ff26e074e441282f4eb04",
+    "tools/verify-ownership-runtime.mjs": "48f334eb52a7e1b870b58a3a00481462f6048eb13ea383ff34ffff459fcb91b0"
+  }
+}

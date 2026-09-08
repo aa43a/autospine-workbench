@@ -12,12 +12,18 @@
   const animationName=Object.keys(json.animations).find(n=>n!=='setup'),combined=animationName==='combined-pose-inspection';
   const animation=json.animations[animationName];
   const seam=animationName==='seam-translation-inspection';
-  const continuous=animationName==='continuous-corrective-inspection'||seam;
+  const alphaSeam=animationName==='alpha-seam-inspection';
+  const continuous=animationName==='continuous-corrective-inspection'||seam||alphaSeam;
   const duration=Math.max(...Object.values(animation.bones).flatMap(b=>b.rotate.map(k=>k.time)));
   document.querySelector('#time').max=duration;
   if(combined)document.querySelector('aside').textContent='主关节与远端corrective的离散组合姿态；每0.5秒切换，使用stepped key，不代表连续动作或生产QA通过。残余仍未绑定。';
   if(continuous)document.querySelector('aside').textContent='30 FPS corrective候选动画，60 FPS采样验证；接缝仅为顶点邻近诊断，完整角色与生产QA尚未通过。残余仍未绑定。';
   if(seam)document.querySelector('aside').textContent='接缝平移约束实验，尚未采用；整只鞋保持刚性。约束失败仍为blocked，不能将可播放当作接缝通过。';
+  if(alphaSeam){
+    document.querySelector('aside').textContent='Alpha边界局部过渡候选：30 FPS bake / 60 FPS采样；接触对应尚待复核，完整角色与生产QA未通过。';
+    const p=document.createElement('p');p.textContent='Alpha边界增距：'+(manifest.alpha_seam_qa.after.relations.map(r=>r.driver+' ↔ '+r.follower+' '+r.max_distance_growth_px.toFixed(3)+' px（'+r.status+'）').join('；')||'无对应关系');
+    document.querySelector('aside').after(p);
+  }
   if(continuous){
     const summary=document.createElement('p'),qa=manifest.bake_qa;
     summary.textContent='采样网格通过 '+Object.values(qa.regions).filter(r=>r.passed).length+'/'+Object.keys(qa.regions).length+
@@ -72,9 +78,30 @@
   renderer.camera.setViewport((right-left)*1.5,(top-bottom)*1.5);
   renderer.resize(spine.ResizeMode.Fit);
   renderer.camera.position.x=(left+right)/2;renderer.camera.position.y=(bottom+top)/2;renderer.camera.update();
+  let contactOverlay=null,showContacts=null;
+  if(alphaSeam){
+    const wrapper=document.createElement('div');wrapper.style.position='relative';canvas.before(wrapper);wrapper.append(canvas);
+    const overlay=document.createElement('canvas');overlay.width=canvas.width;overlay.height=canvas.height;
+    Object.assign(overlay.style,{position:'absolute',left:'0',top:'0',pointerEvents:'none',background:'transparent'});
+    wrapper.append(overlay);contactOverlay=overlay.getContext('2d');
+    const label=document.createElement('label');showContacts=document.createElement('input');showContacts.type='checkbox';showContacts.checked=true;
+    label.append(showContacts,document.createTextNode('显示 alpha 边界对应（候选）'));wrapper.before(label);
+    showContacts.onchange=()=>window.renderAt(Number(document.querySelector('#time').value));
+  }
+  function drawContacts(item){
+    if(!contactOverlay)return;const c=contactOverlay;c.clearRect(0,0,canvas.width,canvas.height);if(!showContacts.checked)return;
+    const mesh=new Map(vertices(item).map(r=>[r.id,r.values])),qa=manifest.alpha_seam_qa.after;
+    const point=(name,index)=>{const s=qa.boundaries[name].samples[index],v=mesh.get(name);let x=0,y=0;
+      s.triangle.forEach((i,k)=>{x+=v[i*2]*s.barycentric[k];y+=v[i*2+1]*s.barycentric[k];});
+      return [(x-renderer.camera.position.x)/renderer.camera.viewportWidth*canvas.width+canvas.width/2,canvas.height/2-(y-renderer.camera.position.y)/renderer.camera.viewportHeight*canvas.height];};
+    c.strokeStyle='#e84c19';c.fillStyle='#007eaa';c.lineWidth=1;
+    for(const r of qa.relations)for(const pair of r.pairs){const a=point(r.driver,pair.driver_sample),b=point(r.follower,pair.follower_sample);
+      c.beginPath();c.moveTo(...a);c.lineTo(...b);c.stroke();c.beginPath();c.arc(...a,1.5,0,Math.PI*2);c.fill();}
+  }
   function draw(item,time){
     pose(item,time);gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);
     renderer.begin();renderer.drawSkeleton(item.skeleton);renderer.end();
+    drawContacts(item);
     const pixels=new Uint8Array(canvas.width*canvas.height*4);gl.readPixels(0,0,canvas.width,canvas.height,gl.RGBA,gl.UNSIGNED_BYTE,pixels);
     if(gl.getError()!==gl.NO_ERROR)throw new Error('webgl_error');return pixels;
   }

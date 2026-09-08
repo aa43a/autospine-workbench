@@ -1,0 +1,365 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "authority",
+    "production_authorized",
+    "target",
+    "source_atlas_sha256",
+    "source_skeleton_sha256",
+    "regions",
+    "residuals",
+    "scope",
+    "full_character_status",
+    "runtime_status",
+    "seam_status",
+    "files",
+    "zip_sha256",
+    "source_original_atlas_sha256",
+    "source_width_sha256",
+    "width_factor",
+    "results",
+    "source_combined_sha256",
+    "bake_fps",
+    "continuous_motion_status",
+    "bake_qa",
+    "schema",
+    "profile",
+    "animation",
+    "source_continuous_sha256",
+    "alpha_seam_qa"
+  ],
+  "properties": {
+    "authority": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/authority"
+    },
+    "production_authorized": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/production_authorized"
+    },
+    "target": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/target"
+    },
+    "source_atlas_sha256": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/source_atlas_sha256"
+    },
+    "source_skeleton_sha256": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/source_skeleton_sha256"
+    },
+    "regions": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/regions"
+    },
+    "residuals": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/residuals"
+    },
+    "scope": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/scope"
+    },
+    "full_character_status": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/full_character_status"
+    },
+    "runtime_status": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/runtime_status"
+    },
+    "seam_status": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/seam_status"
+    },
+    "files": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/files"
+    },
+    "zip_sha256": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/zip_sha256"
+    },
+    "source_original_atlas_sha256": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/source_original_atlas_sha256"
+    },
+    "source_width_sha256": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/source_width_sha256"
+    },
+    "width_factor": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/width_factor"
+    },
+    "results": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/results"
+    },
+    "source_combined_sha256": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/source_combined_sha256"
+    },
+    "bake_fps": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/bake_fps"
+    },
+    "continuous_motion_status": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/continuous_motion_status"
+    },
+    "bake_qa": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/bake_qa"
+    },
+    "schema": {
+      "const": "autospine.alpha-seam-preview/v1"
+    },
+    "profile": {
+      "const": "alpha-barycentric-smoothed-projection-v1"
+    },
+    "animation": {
+      "const": "alpha_seam_inspection"
+    },
+    "source_continuous_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "alpha_seam_qa": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "before",
+        "after",
+        "geometry",
+        "constraints",
+        "status",
+        "authority",
+        "profile",
+        "displacement_limit_px",
+        "support_radius_px"
+      ],
+      "properties": {
+        "before": {
+          "$ref": "#/$defs/boundaryReport"
+        },
+        "after": {
+          "$ref": "#/$defs/boundaryReport"
+        },
+        "geometry": {
+          "$ref": "#/properties/bake_qa"
+        },
+        "constraints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "driver",
+              "follower",
+              "max_displacement_px",
+              "review_status"
+            ],
+            "properties": {
+              "driver": {
+                "type": "string"
+              },
+              "follower": {
+                "type": "string"
+              },
+              "max_displacement_px": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 12.00000001
+              },
+              "review_status": {
+                "const": "pending"
+              }
+            }
+          }
+        },
+        "status": {
+          "enum": [
+            "blocked",
+            "candidate_noop",
+            "candidate_requires_review"
+          ]
+        },
+        "authority": {
+          "const": "none"
+        },
+        "profile": {
+          "const": "alpha-barycentric-smoothed-projection-v1"
+        },
+        "displacement_limit_px": {
+          "const": 12
+        },
+        "support_radius_px": {
+          "const": 48
+        }
+      }
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "sample": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "triangle",
+        "barycentric",
+        "pixel_xy"
+      ],
+      "properties": {
+        "triangle": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "barycentric": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "pixel_xy": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "minItems": 2,
+          "maxItems": 2
+        }
+      }
+    },
+    "relation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "driver",
+        "follower",
+        "pairs",
+        "review_status",
+        "max_distance_px",
+        "max_distance_growth_px",
+        "status"
+      ],
+      "properties": {
+        "driver": {
+          "type": "string"
+        },
+        "follower": {
+          "type": "string"
+        },
+        "pairs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "driver_sample",
+              "follower_sample",
+              "setup_distance_px"
+            ],
+            "properties": {
+              "driver_sample": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "follower_sample": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "setup_distance_px": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 4
+              }
+            }
+          }
+        },
+        "review_status": {
+          "const": "pending"
+        },
+        "max_distance_px": {
+          "type": "number",
+          "minimum": 0
+        },
+        "max_distance_growth_px": {
+          "type": "number",
+          "minimum": 0
+        },
+        "status": {
+          "enum": [
+            "blocked",
+            "candidate_requires_review"
+          ]
+        }
+      }
+    },
+    "boundaryReport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "boundaries",
+        "relations",
+        "fps",
+        "sample_count",
+        "authority",
+        "contact_correspondence",
+        "unpaired_regions"
+      ],
+      "properties": {
+        "profile": {
+          "const": "alpha8-pixel-center-barycentric-v1"
+        },
+        "boundaries": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "samples",
+              "unmapped_pixels",
+              "size"
+            ],
+            "properties": {
+              "samples": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/sample"
+                }
+              },
+              "unmapped_pixels": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "size": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "minItems": 2,
+                "maxItems": 2
+              }
+            }
+          }
+        },
+        "relations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/relation"
+          }
+        },
+        "fps": {
+          "const": 60
+        },
+        "sample_count": {
+          "const": 121
+        },
+        "authority": {
+          "const": "none"
+        },
+        "contact_correspondence": {
+          "const": "candidate_only"
+        },
+        "unpaired_regions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+`python -m autospine_workbench.benchmark.alpha_seam_cli` 提取 alpha 像素边界并生成局部过渡候选、前后报告和 Spine 诊断包。
+播放可叠加边界对应点，支持源链精确重放，见[说明](how-to-alpha-seam.md)。
+
 `python -m autospine_workbench.benchmark.seam_translation_cli` 生成 alpha 支持的接缝对应及有界刚性平移实验。
 保留原连续来源、前后 QA 和 pending 候选；无候选为 candidate_noop，见[说明](how-to-seam-translation.md)。
 
