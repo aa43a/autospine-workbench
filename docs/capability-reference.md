@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+`python -m autospine_workbench.benchmark.combined_corrective_cli` 生成主关节与远端 corrective 的离散 Spine 4.3.26 诊断包。
+固定 factor 4 候选权重、46 个 stepped key，精确来源重放及明确的区域几何状态，见[组合诊断](how-to-combined-corrective.md)。
+
 `python -m autospine_workbench.benchmark.ownership_target_cli` 导出Spine4.3.26分区诊断包及Editor图片。
 `tools/verify-ownership-runtime.mjs`提供外部官方Runtime固定时刻验证和可选本地播放服务，见[说明](how-to-ownership-spine43.md)。
 

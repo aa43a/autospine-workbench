@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[组合 corrective 诊断](docs/how-to-combined-corrective.md)已接入主关节与远端的 stepped deform：
+5/8 个三骨区域通过全部离散姿态几何检查，三处仍阻塞；官方 Runtime 273 帧通过。连续动作和动态接缝尚待验证。
+
 [Spine分区诊断播放](docs/how-to-ownership-spine43.md)已接通4.3.26区域UV与Editor图片导出；
 官方4.3 Runtime验证三个角色363个固定时刻通过。仅证明编码／采样一致，原变形与完整角色门禁继续保留。
 

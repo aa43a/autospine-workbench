@@ -1,0 +1,101 @@
+{
+  "runtime_package": "@esotericsoftware/spine-webgl",
+  "runtime_version": "4.3.13",
+  "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+  "browser": "152.0.7977.76",
+  "authority": "none",
+  "production_authorized": false,
+  "date": "2026-09-08",
+  "runtime_report_sha256": "57bc8ba36cd16cacd24ff26e7de65b5142e5d65eb2e8ac36fa246acd1cd07b77",
+  "target": "4.3.26",
+  "tests_passed": 14,
+  "schema_zip_checks": "all_three_passed",
+  "exact_replay": "alice_passed",
+  "old_raw_lbs_regression_frames": 363,
+  "continuous_motion": "not_evaluated",
+  "dynamic_seams": "not_evaluated",
+  "full_suite": "not_run",
+  "records": [
+    {
+      "character": "alice",
+      "artifact_sha256": "b7fc4872db76895b29ebbda9baee4100cc18f20f0068bb8988264134000a4252",
+      "zip_sha256": "91e59d4b625940151c2b18b906080968fc5902e512d7db961e573099859f2fa7",
+      "runtime_passed": true,
+      "frames": 91,
+      "max_motion_error_px": 7.221886949082545e-05,
+      "max_channel_error": 1,
+      "geometry": [
+        {
+          "region": "layer-001-l",
+          "status": "candidate_requires_review",
+          "failed_poses": 0,
+          "min_area_ratio": 0.5499999999997852
+        },
+        {
+          "region": "layer-001-r",
+          "status": "candidate_requires_review",
+          "failed_poses": 0,
+          "min_area_ratio": 0.5499999999999902
+        }
+      ]
+    },
+    {
+      "character": "lingxian",
+      "artifact_sha256": "eec8fc5303b94d8e0357dc17e095efd9ccd18389fc769e71082a0248404bae42",
+      "zip_sha256": "4c6626bb65ab7112364b6bed1b3d09e4a6587592aecdd706831c8da293056296",
+      "runtime_passed": true,
+      "frames": 91,
+      "max_motion_error_px": 0.00010744923065431067,
+      "max_channel_error": 1,
+      "geometry": [
+        {
+          "region": "layer-003-l",
+          "status": "candidate_requires_review",
+          "failed_poses": 0,
+          "min_area_ratio": 0.5499999999999851
+        },
+        {
+          "region": "layer-003-r",
+          "status": "blocked",
+          "failed_poses": 5,
+          "min_area_ratio": 0.49157062867533863
+        }
+      ]
+    },
+    {
+      "character": "crino",
+      "artifact_sha256": "24debfd975382fb9c666130635b93249114764295fa2cc85e3dc5879e58eba60",
+      "zip_sha256": "938b541f296a37f37ec4447eacd05a0c07583b674c17ae67d18a61febe944d5d",
+      "runtime_passed": true,
+      "frames": 91,
+      "max_motion_error_px": 0.00010248749163110915,
+      "max_channel_error": 1,
+      "geometry": [
+        {
+          "region": "layer-004-l",
+          "status": "blocked",
+          "failed_poses": 10,
+          "min_area_ratio": 0.36691796298548623
+        },
+        {
+          "region": "layer-004-r",
+          "status": "blocked",
+          "failed_poses": 10,
+          "min_area_ratio": 0.4579805487523061
+        },
+        {
+          "region": "layer-005-l",
+          "status": "candidate_requires_review",
+          "failed_poses": 0,
+          "min_area_ratio": 0.5499866968077404
+        },
+        {
+          "region": "layer-005-r",
+          "status": "candidate_requires_review",
+          "failed_poses": 0,
+          "min_area_ratio": 0.5499999999999947
+        }
+      ]
+    }
+  ]
+}

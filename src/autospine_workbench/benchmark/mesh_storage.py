@@ -19,6 +19,7 @@ SCHEMAS += ('autospine.distal-width-experiment/v1',)
 SCHEMAS += ('autospine.layer-partitions/v2',)
 SCHEMAS += ('autospine.ownership-atlas/v1',)
 SCHEMAS += ('autospine.ownership-target-preview/v1',)
+SCHEMAS += ('autospine.combined-corrective-preview/v1',)
 
 
 def _read(path):

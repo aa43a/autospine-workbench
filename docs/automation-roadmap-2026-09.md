@@ -1,5 +1,8 @@
 # AutoSpine 自动化产品路线（2026-09）
 
+2026-09-08 [主关节与远端 corrective 离散组合](how-to-combined-corrective.md)已完成：5/8 区域通过几何 QA，3 处保留阻塞；Runtime 273 帧通过。
+当前下一项为连续 bake 与动态接缝；不将离散姿态通过扩展为连续动作或完整角色通过。
+
 2026-09-08 分区Spine Adapter与官方Runtime诊断播放已通过编码／纹理采样对照。
 下一步连接corrective与主关节组合、跨区接缝和完整角色；不新增P10纵向认证阶段，见[证据范围](how-to-ownership-spine43.md)。
 

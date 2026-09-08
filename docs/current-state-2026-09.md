@@ -1,7 +1,11 @@
 # 当前状态：2026-09-08
 
+最新：[主关节与远端 corrective 组合](how-to-combined-corrective.md)完成 46 key 的离散诊断导出；
+5/8 个三骨区域通过，铃仙右腿和琪露诺双腿保持 blocked。官方 Runtime 273 帧、旧路径 363 帧通过，Alice 精确重放一致。
+下一步为连续动作 bake 和动态跨层接缝 QA，未授予生产权。
+
 已完成[Spine分区诊断播放](how-to-ownership-spine43.md)：4.3.26数据与官方4.3.13 Runtime分开记录，
-三个角色UV、独立FK、363个固定时刻的像素对照通过。下一步接入corrective和主关节组合，不将诊断通过当生产批准。
+三个角色UV、独立FK、363个固定时刻的像素对照通过。后续组合诊断见上，不将诊断通过当生产批准。
 
 新增[ownership纹理页](how-to-ownership-atlas.md)：把左右／残余打包为单页独立区域，
 不改变网格和权重。源v2继续保留，下一步接入Spine region UV转换与固定帧采样检查。
