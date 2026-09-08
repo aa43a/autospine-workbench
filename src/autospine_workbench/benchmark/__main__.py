@@ -102,10 +102,15 @@ def parser():
     register_completion_parser(sub)
     from .structure_cli import register_parser as register_structure_parser
     register_structure_parser(sub)
+    from .partition_cli import register_parser as register_partition_parser
+    register_partition_parser(sub)
     return result
 
 
 def _execute(args):
+    if args.command == 'partition-layer-candidates':
+        from .partition_cli import execute
+        return execute(args)
     if args.command == 'propose-layer-structure':
         from .structure_cli import execute
         return execute(args)

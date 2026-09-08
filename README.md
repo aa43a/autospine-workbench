@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[无损组件分区](docs/how-to-layer-partitions.md)已接通：六个真实候选图层输出左右/残余 PNG 与 ownership 掩码，
+RGBA 重建通过；残余与绑定仍待复核，尚未生成分区权重。
+
 [剩余图层结构候选](docs/how-to-layer-structure.md)已接通：按 alpha 连通域与骨架位置提出双侧分区，
 裙装提供刚性 setup 候选；模糊侧别和未知物件保持阻塞，尚未生成分区 PNG 或权重。
 

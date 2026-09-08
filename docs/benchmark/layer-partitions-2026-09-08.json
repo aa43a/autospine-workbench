@@ -1,0 +1,144 @@
+{
+  "date": "2026-09-08",
+  "authority": "none",
+  "records": [
+    {
+      "character_id": "alice",
+      "artifact_sha256": "eb10e3a199617456cc8818b7a23bd4b7b557f425949b78f1ed25313f0242c149",
+      "layers": [
+        {
+          "layer_id": "layer-001",
+          "visible_pixels": {
+            "1": 15729,
+            "2": 15810,
+            "3": 103
+          },
+          "low_alpha_pixels": {
+            "1": 159,
+            "2": 161,
+            "3": 103
+          },
+          "alpha_mass": {
+            "1": 3765794,
+            "2": 3782081,
+            "3": 117
+          },
+          "rgba_and_ownership_verified": true
+        },
+        {
+          "layer_id": "layer-002",
+          "visible_pixels": {
+            "1": 7712,
+            "2": 7666,
+            "3": 467
+          },
+          "low_alpha_pixels": {
+            "1": 146,
+            "2": 129,
+            "3": 467
+          },
+          "alpha_mass": {
+            "1": 1798080,
+            "2": 1790035,
+            "3": 860
+          },
+          "rgba_and_ownership_verified": true
+        }
+      ]
+    },
+    {
+      "character_id": "lingxian",
+      "artifact_sha256": "0c6636f71433c8f85805819d78c47b86b4ad801ea07cb8919f3bf9ed8a744444",
+      "layers": [
+        {
+          "layer_id": "layer-003",
+          "visible_pixels": {
+            "1": 38639,
+            "2": 38638,
+            "3": 30893
+          },
+          "low_alpha_pixels": {
+            "1": 324,
+            "2": 328,
+            "3": 30893
+          },
+          "alpha_mass": {
+            "1": 9397443,
+            "2": 9397563,
+            "3": 41741
+          },
+          "rgba_and_ownership_verified": true
+        }
+      ]
+    },
+    {
+      "character_id": "crino",
+      "artifact_sha256": "565c7e12528af0abb4c8d7365e0eb0d17f26cd5c1900d13b5db0fd0b465429f6",
+      "layers": [
+        {
+          "layer_id": "layer-004",
+          "visible_pixels": {
+            "1": 25301,
+            "2": 25770,
+            "3": 8188
+          },
+          "low_alpha_pixels": {
+            "1": 355,
+            "2": 522,
+            "3": 8188
+          },
+          "alpha_mass": {
+            "1": 5979663,
+            "2": 6016203,
+            "3": 9380
+          },
+          "rgba_and_ownership_verified": true
+        },
+        {
+          "layer_id": "layer-005",
+          "visible_pixels": {
+            "1": 43024,
+            "2": 43834,
+            "3": 3709
+          },
+          "low_alpha_pixels": {
+            "1": 574,
+            "2": 583,
+            "3": 3709
+          },
+          "alpha_mass": {
+            "1": 10349304,
+            "2": 10530091,
+            "3": 4055
+          },
+          "rgba_and_ownership_verified": true
+        },
+        {
+          "layer_id": "layer-006",
+          "visible_pixels": {
+            "1": 11166,
+            "2": 11367,
+            "3": 464
+          },
+          "low_alpha_pixels": {
+            "1": 177,
+            "2": 344,
+            "3": 464
+          },
+          "alpha_mass": {
+            "1": 2660313,
+            "2": 2677589,
+            "3": 899
+          },
+          "rgba_and_ownership_verified": true
+        }
+      ]
+    }
+  ],
+  "tests": "16 related tests passed",
+  "independent_zip_rgba_and_ownership": "passed_all_six_layers",
+  "schema": "passed_all_three",
+  "visual": "Alice v1 screenshot inspected; v2 adds diagnostic residual highlight",
+  "full_suite": "not_run",
+  "official_runtime": "not_run"
+}

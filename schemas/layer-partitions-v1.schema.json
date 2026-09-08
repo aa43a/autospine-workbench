@@ -1,0 +1,204 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "autospine.layer-partitions/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "profile",
+    "authority",
+    "production_authorized",
+    "source_structure_sha256",
+    "parameters",
+    "layers",
+    "files",
+    "zip_sha256"
+  ],
+  "properties": {
+    "schema": {
+      "const": "autospine.layer-partitions/v1"
+    },
+    "profile": {
+      "const": "component-ownership-lossless-v1"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "production_authorized": {
+      "const": false
+    },
+    "source_structure_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "parameters": {
+      "const": {
+        "alpha_threshold": 8,
+        "satellite_margin_px": 1,
+        "low_alpha_distance": "four_connected",
+        "ties": "residual",
+        "transparent_rgb": "residual",
+        "ownership_codes": {
+          "left": 1,
+          "right": 2,
+          "residual": 3
+        }
+      }
+    },
+    "layers": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "layer_id",
+          "bbox",
+          "source_image_sha256",
+          "qa",
+          "status",
+          "reason_code"
+        ],
+        "properties": {
+          "layer_id": {
+            "type": "string"
+          },
+          "bbox": {
+            "type": "array",
+            "minItems": 4,
+            "maxItems": 4,
+            "items": {
+              "type": "number"
+            }
+          },
+          "source_image_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "qa": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "rgba_reconstruction_exact",
+              "source_rgba_sha256",
+              "reconstructed_rgba_sha256",
+              "visible_pixel_counts",
+              "low_alpha_pixel_counts",
+              "satellite_components"
+            ],
+            "properties": {
+              "rgba_reconstruction_exact": {
+                "const": true
+              },
+              "source_rgba_sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "reconstructed_rgba_sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "visible_pixel_counts": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "1",
+                  "2",
+                  "3"
+                ],
+                "properties": {
+                  "1": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "2": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "3": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              },
+              "low_alpha_pixel_counts": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "1",
+                  "2",
+                  "3"
+                ],
+                "properties": {
+                  "1": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "2": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "3": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              },
+              "satellite_components": {
+                "type": "array",
+                "maxItems": 4096,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "component_id",
+                    "area",
+                    "owner",
+                    "distance_margin_px"
+                  ],
+                  "properties": {
+                    "component_id": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "area": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "owner": {
+                      "enum": [
+                        1,
+                        2,
+                        3
+                      ]
+                    },
+                    "distance_margin_px": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "status": {
+            "const": "needs_review"
+          },
+          "reason_code": {
+            "const": "partition_assignment_review_required"
+          }
+        }
+      }
+    },
+    "files": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      }
+    },
+    "zip_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}

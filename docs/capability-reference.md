@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+`partition-layer-candidates` 导出左右/残余PNG、ownership掩码和可重放ZIP回执。
+逐字节RGBA重建不表示侧别、权重或Runtime通过，见[说明](how-to-layer-partitions.md)。
+
 `propose-layer-structure` 对剩余结构层生成组件分区或刚性服装候选，提供来源重放和图层叠图。
 不生成分区纹理、双侧 Mesh 或正式采用，见[说明](how-to-layer-structure.md)。
 
