@@ -1,0 +1,277 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "authority",
+    "production_authorized",
+    "target",
+    "source_atlas_sha256",
+    "source_skeleton_sha256",
+    "regions",
+    "residuals",
+    "scope",
+    "full_character_status",
+    "runtime_status",
+    "seam_status",
+    "files",
+    "zip_sha256",
+    "source_original_atlas_sha256",
+    "source_width_sha256",
+    "width_factor",
+    "results",
+    "source_combined_sha256",
+    "bake_fps",
+    "continuous_motion_status",
+    "bake_qa",
+    "source_continuous_sha256",
+    "schema",
+    "profile",
+    "source_alpha_sha256",
+    "animation",
+    "alpha_seam_qa",
+    "raster_comparison"
+  ],
+  "properties": {
+    "authority": {
+      "$ref": "alpha-seam-preview-v1.schema.json#/properties/authority"
+    },
+    "production_authorized": {
+      "$ref": "alpha-seam-preview-v1.schema.json#/properties/production_authorized"
+    },
+    "target": {
+      "$ref": "alpha-seam-preview-v1.schema.json#/properties/target"
+    },
+    "source_atlas_sha256": {
+      "$ref": "alpha-seam-preview-v1.schema.json#/properties/source_atlas_sha256"
+    },
+    "source_skeleton_sha256": {
+      "$ref": "alpha-seam-preview-v1.schema.json#/properties/source_skeleton_sha256"
+    },
+    "regions": {
+      "$ref": "alpha-seam-preview-v1.schema.json#/properties/regions"
+    },
+    "residuals": {
+      "$ref": "alpha-seam-preview-v1.schema.json#/properties/residuals"
+    },
+    "scope": {
+      "$ref": "alpha-seam-preview-v1.schema.json#/properties/scope"
+    },
+    "full_character_status": {
+      "$ref": "alpha-seam-preview-v1.schema.json#/properties/full_character_status"
+    },
+    "runtime_status": {
+      "$ref": "alpha-seam-preview-v1.schema.json#/properties/runtime_status"
+    },
+    "seam_status": {
+      "$ref": "alpha-seam-preview-v1.schema.json#/properties/seam_status"
+    },
+    "files": {
+      "$ref": "alpha-seam-preview-v1.schema.json#/properties/files"
+    },
+    "zip_sha256": {
+      "$ref": "alpha-seam-preview-v1.schema.json#/properties/zip_sha256"
+    },
+    "source_original_atlas_sha256": {
+      "$ref": "alpha-seam-preview-v1.schema.json#/properties/source_original_atlas_sha256"
+    },
+    "source_width_sha256": {
+      "$ref": "alpha-seam-preview-v1.schema.json#/properties/source_width_sha256"
+    },
+    "width_factor": {
+      "$ref": "alpha-seam-preview-v1.schema.json#/properties/width_factor"
+    },
+    "results": {
+      "$ref": "alpha-seam-preview-v1.schema.json#/properties/results"
+    },
+    "source_combined_sha256": {
+      "$ref": "alpha-seam-preview-v1.schema.json#/properties/source_combined_sha256"
+    },
+    "bake_fps": {
+      "$ref": "alpha-seam-preview-v1.schema.json#/properties/bake_fps"
+    },
+    "continuous_motion_status": {
+      "$ref": "alpha-seam-preview-v1.schema.json#/properties/continuous_motion_status"
+    },
+    "bake_qa": {
+      "$ref": "alpha-seam-preview-v1.schema.json#/properties/bake_qa"
+    },
+    "source_continuous_sha256": {
+      "$ref": "alpha-seam-preview-v1.schema.json#/properties/source_continuous_sha256"
+    },
+    "schema": {
+      "const": "autospine.seam-remap-preview/v1"
+    },
+    "profile": {
+      "const": "alpha-local-conflict-remap-v1"
+    },
+    "source_alpha_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "animation": {
+      "const": "remapped_seam_inspection"
+    },
+    "alpha_seam_qa": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "before",
+        "after",
+        "geometry",
+        "constraints",
+        "status",
+        "authority",
+        "displacement_limit_px",
+        "support_radius_px",
+        "profile",
+        "remapping"
+      ],
+      "properties": {
+        "before": {
+          "$ref": "alpha-seam-preview-v1.schema.json#/properties/alpha_seam_qa/properties/before"
+        },
+        "after": {
+          "$ref": "alpha-seam-preview-v1.schema.json#/properties/alpha_seam_qa/properties/after"
+        },
+        "geometry": {
+          "$ref": "alpha-seam-preview-v1.schema.json#/properties/alpha_seam_qa/properties/geometry"
+        },
+        "constraints": {
+          "$ref": "alpha-seam-preview-v1.schema.json#/properties/alpha_seam_qa/properties/constraints"
+        },
+        "status": {
+          "$ref": "alpha-seam-preview-v1.schema.json#/properties/alpha_seam_qa/properties/status"
+        },
+        "authority": {
+          "$ref": "alpha-seam-preview-v1.schema.json#/properties/alpha_seam_qa/properties/authority"
+        },
+        "displacement_limit_px": {
+          "$ref": "alpha-seam-preview-v1.schema.json#/properties/alpha_seam_qa/properties/displacement_limit_px"
+        },
+        "support_radius_px": {
+          "$ref": "alpha-seam-preview-v1.schema.json#/properties/alpha_seam_qa/properties/support_radius_px"
+        },
+        "profile": {
+          "const": "alpha-local-conflict-remap-v1"
+        },
+        "remapping": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "profile",
+            "changes",
+            "after_conflicts",
+            "removed_driver_pairs",
+            "authority"
+          ],
+          "properties": {
+            "profile": {
+              "const": "conflict2-local8-injective-v1"
+            },
+            "changes": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "driver",
+                  "follower",
+                  "source_follower_sample",
+                  "driver_samples",
+                  "source_target_spread_px",
+                  "status",
+                  "replacements"
+                ],
+                "properties": {
+                  "driver": {
+                    "type": "string"
+                  },
+                  "follower": {
+                    "type": "string"
+                  },
+                  "source_follower_sample": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "driver_samples": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  },
+                  "source_target_spread_px": {
+                    "type": "number",
+                    "exclusiveMinimum": 2
+                  },
+                  "status": {
+                    "enum": [
+                      "blocked_no_complete_assignment",
+                      "candidate_requires_review"
+                    ]
+                  },
+                  "replacements": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "driver_sample",
+                        "follower_sample",
+                        "setup_distance_px"
+                      ],
+                      "properties": {
+                        "driver_sample": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "follower_sample": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "setup_distance_px": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 4
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "after_conflicts": {
+              "type": "array",
+              "items": {
+                "$ref": "seam-raster-diagnostic-v1.schema.json#/$defs/conflict"
+              }
+            },
+            "removed_driver_pairs": {
+              "const": 0
+            },
+            "authority": {
+              "const": "none"
+            }
+          }
+        }
+      }
+    },
+    "raster_comparison": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "before",
+        "after"
+      ],
+      "properties": {
+        "before": {
+          "$ref": "seam-raster-diagnostic-v1.schema.json#/$defs/raster"
+        },
+        "after": {
+          "$ref": "seam-raster-diagnostic-v1.schema.json#/$defs/raster"
+        }
+      }
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

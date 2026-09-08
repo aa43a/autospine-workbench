@@ -1,0 +1,196 @@
+{
+  "runtime_package": "@esotericsoftware/spine-webgl",
+  "runtime_version": "4.3.13",
+  "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+  "browser": "152.0.7977.76",
+  "authority": "none",
+  "production_authorized": false,
+  "date": "2026-09-08",
+  "target": "4.3.26",
+  "runtime_report_sha256": "b4f31158a262bb32d083a41cdddb790adfcd378a05b925a9b632af27eacaa17a",
+  "tests_passed": 20,
+  "schema_zip_checks": "all_three_passed",
+  "old_alpha_address_replay": "all_three_passed",
+  "reader_replay": "alice_passed",
+  "old_alpha_runtime_regression_frames": 363,
+  "full_suite": "not_run",
+  "production_seam_qa": "not_passed",
+  "records": [
+    {
+      "character": "alice",
+      "artifact_sha256": "29f9a05f4e23090efe954c04b500ce0e2e1dc638f9181acf9ee3e1399015e750",
+      "zip_sha256": "0ee26c74eb04911f371e01ee109594e9a672395e5a4e17cef2989cd5694f86f7",
+      "runtime_passed": true,
+      "runtime_frames": 121,
+      "max_motion_error_px": 9.02034273622121e-05,
+      "max_channel_error": 1,
+      "changes": [
+        {
+          "driver": "layer-001-r",
+          "driver_samples": [
+            628,
+            630,
+            632,
+            634,
+            636,
+            638
+          ],
+          "follower": "layer-002-r",
+          "replacements": [
+            {
+              "driver_sample": 628,
+              "follower_sample": 57,
+              "setup_distance_px": 3.605551275463942
+            },
+            {
+              "driver_sample": 630,
+              "follower_sample": 66,
+              "setup_distance_px": 3.6055512754640366
+            },
+            {
+              "driver_sample": 632,
+              "follower_sample": 67,
+              "setup_distance_px": 2.2360679774998404
+            },
+            {
+              "driver_sample": 634,
+              "follower_sample": 68,
+              "setup_distance_px": 1.0000000000000568
+            },
+            {
+              "driver_sample": 636,
+              "follower_sample": 71,
+              "setup_distance_px": 2.236067977499688
+            },
+            {
+              "driver_sample": 638,
+              "follower_sample": 69,
+              "setup_distance_px": 1.9999999999998863
+            }
+          ],
+          "source_follower_sample": 69,
+          "source_target_spread_px": 2.5472910029325058,
+          "status": "candidate_requires_review"
+        }
+      ],
+      "remaining_target_spread_px": [
+        1.0121707626127048,
+        1.523815589763293
+      ],
+      "boundary_results": [
+        {
+          "driver": "layer-001-l",
+          "follower": "layer-002-l",
+          "max_distance_growth_px": 2.0046907765764588,
+          "max_distance_px": 4.645742918218125,
+          "review_status": "pending",
+          "status": "blocked"
+        },
+        {
+          "driver": "layer-001-r",
+          "follower": "layer-002-r",
+          "max_distance_growth_px": 1.924910084234774,
+          "max_distance_px": 5.074650058604256,
+          "review_status": "pending",
+          "status": "candidate_requires_review"
+        }
+      ],
+      "geometry_passed": 4,
+      "raster": [
+        {
+          "follower": "layer-002-l",
+          "before_max_gap_pixels": 4,
+          "after_max_gap_pixels": 4,
+          "before_max_overlap_pixels": 19,
+          "after_max_overlap_pixels": 19
+        },
+        {
+          "follower": "layer-002-r",
+          "before_max_gap_pixels": 2,
+          "after_max_gap_pixels": 1,
+          "before_max_overlap_pixels": 20,
+          "after_max_overlap_pixels": 20
+        }
+      ],
+      "screenshots": {
+        "setup": "59db9b7dd1a71201ee78497cb338768dd2ea572b323a8c535b32725e78b498b7",
+        "bend": "41b0c57fb28fa7b34f0c72447b81845bfec78483734109f822a4ffa80a2aa4d0"
+      }
+    },
+    {
+      "character": "lingxian",
+      "artifact_sha256": "33c239f68c22a6b9e36f3d1e02fc939e03e986e063b95010bd24b234895bc21e",
+      "zip_sha256": "2071b73187ad46da56fbf08b09781a38bc050898e66e66b87c2eea3966eed08a",
+      "runtime_passed": true,
+      "runtime_frames": 121,
+      "max_motion_error_px": 0.00011553926378837787,
+      "max_channel_error": 1,
+      "changes": [],
+      "remaining_target_spread_px": [],
+      "boundary_results": [],
+      "geometry_passed": 2,
+      "raster": [],
+      "screenshots": {
+        "setup": "bda4d355c66b4d8f86ed4c4407fcc5bdc77d54dc816b0dc6323c4f42fdadc3ee",
+        "bend": "92d3accaebe3288817b74729c8b32c2ebbe8bd9e31509f4b295abb4a4bb51d39"
+      }
+    },
+    {
+      "character": "crino",
+      "artifact_sha256": "95e25057bbb57d907f6519fc50f89e13fc17482251076c885b2db87675f52f17",
+      "zip_sha256": "63d5b004a1eba74674ed6a8a1e2621dc1baca12b30eb5029905fffa04e4a4a9c",
+      "runtime_passed": true,
+      "runtime_frames": 121,
+      "max_motion_error_px": 0.00011305503312541987,
+      "max_channel_error": 1,
+      "changes": [],
+      "remaining_target_spread_px": [
+        1.092437692210446,
+        0.97863281594086
+      ],
+      "boundary_results": [
+        {
+          "driver": "layer-005-l",
+          "follower": "layer-006-l",
+          "max_distance_growth_px": 2.1426363209460924,
+          "max_distance_px": 5.943052379352245,
+          "review_status": "pending",
+          "status": "blocked"
+        },
+        {
+          "driver": "layer-005-r",
+          "follower": "layer-006-r",
+          "max_distance_growth_px": 1.6849646699151815,
+          "max_distance_px": 5.546465290758336,
+          "review_status": "pending",
+          "status": "candidate_requires_review"
+        }
+      ],
+      "geometry_passed": 6,
+      "raster": [
+        {
+          "follower": "layer-006-l",
+          "before_max_gap_pixels": 3,
+          "after_max_gap_pixels": 3,
+          "before_max_overlap_pixels": 28,
+          "after_max_overlap_pixels": 28
+        },
+        {
+          "follower": "layer-006-r",
+          "before_max_gap_pixels": 2,
+          "after_max_gap_pixels": 2,
+          "before_max_overlap_pixels": 57,
+          "after_max_overlap_pixels": 57
+        }
+      ],
+      "screenshots": {
+        "setup": "9f800d809d3affc07ca4493a2fef849f463b9c7ca3c4a4c1c9116424dcc336ce",
+        "bend": "1d50d1b67bb9f0f7c7b684adf8b541b9793217e57b597e02be90b02f5773b272"
+      }
+    }
+  ],
+  "harness_sha256": {
+    "tools/ownership-runtime.js": "6cee1564a47c561a15781fd1ee7e5bdb1f248cfe5ea872718861f7a2524e1e5a",
+    "tools/verify-ownership-runtime.mjs": "48f334eb52a7e1b870b58a3a00481462f6048eb13ea383ff34ffff459fcb91b0"
+  }
+}

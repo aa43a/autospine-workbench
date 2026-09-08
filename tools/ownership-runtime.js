@@ -12,7 +12,8 @@
   const animationName=Object.keys(json.animations).find(n=>n!=='setup'),combined=animationName==='combined-pose-inspection';
   const animation=json.animations[animationName];
   const seam=animationName==='seam-translation-inspection';
-  const alphaSeam=animationName==='alpha-seam-inspection';
+  const remapped=animationName==='remapped-seam-inspection';
+  const alphaSeam=animationName==='alpha-seam-inspection'||remapped;
   const continuous=animationName==='continuous-corrective-inspection'||seam||alphaSeam;
   const duration=Math.max(...Object.values(animation.bones).flatMap(b=>b.rotate.map(k=>k.time)));
   document.querySelector('#time').max=duration;
@@ -22,6 +23,13 @@
   if(alphaSeam){
     document.querySelector('aside').textContent='Alpha边界局部过渡候选：30 FPS bake / 60 FPS采样；接触对应尚待复核，完整角色与生产QA未通过。';
     const p=document.createElement('p');p.textContent='Alpha边界增距：'+(manifest.alpha_seam_qa.after.relations.map(r=>r.driver+' ↔ '+r.follower+' '+r.max_distance_growth_px.toFixed(3)+' px（'+r.status+'）').join('；')||'无对应关系');
+    document.querySelector('aside').after(p);
+  }
+  if(remapped)document.querySelector('aside').textContent='局部冲突重配候选；只处理目标分歧超过2px的组，保留所有源边界点。叠加与验算仍用原对应，尚未采用或通过完整接缝验收。';
+  if(remapped){
+    const p=document.createElement('p'),r=manifest.raster_comparison;
+    p.textContent='触发冲突组 '+manifest.alpha_seam_qa.remapping.changes.length+'；CPU走廊空白像素峰值（原局部过渡 → 重配）：'+
+      (r.after.relations.map((a,i)=>a.follower+' '+r.before.relations[i].max_gap_pixels+' → '+a.max_gap_pixels).join('；')||'无对应');
     document.querySelector('aside').after(p);
   }
   if(continuous){

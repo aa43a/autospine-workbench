@@ -39,7 +39,12 @@ def solve(vertices,anchors,deltas,triangles):
 
 def bake(source,files):
     if set(source['animations'])!={'continuous-corrective-inspection'}:raise ValueError('alpha_seam_source_invalid')
-    baseline=analyze(source,files);doc=deepcopy(source);animation=next(iter(doc['animations'].values()));setup=world(source,0)
+    return bake_from_report(source,files,analyze(source,files))
+
+
+def bake_from_report(source,files,baseline):
+    """Shared solver; callers retain their own correspondence evidence."""
+    doc=deepcopy(source);animation=next(iter(doc['animations'].values()));setup=world(source,0)
     records=[]
     for relation in baseline['relations']:
         driver,follower=relation['driver'],relation['follower']

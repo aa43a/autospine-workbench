@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+`python -m autospine_workbench.benchmark.seam_remap_cli` 对实际目标分歧超过 2 px 的小组生成完整局部一对一重配候选。
+保留全部源点，使用原对应验算并精确重放来源，见[说明](how-to-seam-remap.md)。
+
 `python -m autospine_workbench.benchmark.seam_raster_cli` 比较原连续／alpha 过渡候选的原生像素走廊覆盖，并审计多对一对应。
 输出 JSON、前后热图和本地复核页；属于独立 CPU 诊断，见[说明](how-to-seam-raster.md)。
 
