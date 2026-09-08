@@ -1,5 +1,9 @@
 # 当前状态：2026-09-08
 
+新增[头部绑定补全](how-to-binding-completion.md)：独立profile保留19项既有选择，
+为三个开发角色新增31项头部刚性候选；新增项仍pending，另外12项结构问题未解决。
+未更新旧Mesh/Bake/组合包，完整角色尚未完成。
+
 新增[已确认图层组合](how-to-character-preview.md)：Alice/铃仙各7层，未选16/14层保留；
 四组肩部alpha重叠锚点为候选，分离量接近零不表示接缝通过。输出独立组合ZIP和播放页。
 

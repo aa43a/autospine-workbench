@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[头部部件绑定补全](docs/how-to-binding-completion.md)新增31项可复核候选，保留既有19项绑定；
+三个角色提供集中复核页，新增建议仍待确认，裙装和双侧肢体等结构问题继续保留。
+
 [已确认图层组合预览](docs/how-to-character-preview.md)已接通：刚性层与手臂动画同场景播放，
 附肩部接触候选与范围清单；未确认图层、Draw Order 和正式接缝仍待处理。
 

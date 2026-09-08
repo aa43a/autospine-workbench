@@ -13,7 +13,8 @@ def render_layer_bindings(candidate, assisted, skeleton, document, composite, im
     validate_layer_binding_draft(document, draft)
     w,h=candidate['canvas']; source=_image_url(composite,candidate['composite_sha256'])
     bones={b['id']:b for b in skeleton['bones']}; cards=[]
-    reasons={**REASONS,'name_side_unreviewed':'名称左右侧尚待核对',
+    reasons={**REASONS,'head_detail_name_candidate':'头部部件名称候选',
+             'visual_parent_review_required':'需对照图像确认跟随头骨', 'name_side_unreviewed':'名称左右侧尚待核对',
              'bilateral_coverage_requires_review':'可选择双侧两条骨链，需核对是否包含两侧肢体',
              'mesh_weights_required':'需要生成网格和顶点权重','coverage_review_required':'需核对图层覆盖的骨段'}
     for layer,row,record in zip(candidate['layers'],document['bindings'],draft['records']):
@@ -46,6 +47,6 @@ svg{{width:100%;background:repeating-conic-gradient(#eee 0% 25%,white 0% 50%) 0/
 h2{{font-size:20px}}small{{color:#667}}label{{display:block;margin:8px 0}}
 select,textarea{{width:100%;padding:8px;box-sizing:border-box}}button{{padding:10px}}fieldset{{border:1px solid #ccd}}</style>
 <h1>单骨与多骨链绑定复核</h1><p class="notice">同一图层可以选择多骨 Mesh 骨链。不同颜色表示链中不同骨段；
-当前仅确定影响骨骼集合，尚未生成网格或权重。名称侧别是建议，需对照图像核对；所有草稿初始待处理。</p>
+本页确定影响骨骼集合，不授予生产权；名称建议需对照图像核对。补全草稿保留内容未变的既有选择，新增候选仍待处理。</p>
 {panel(document,draft)}<p>共{len(document['bindings'])}层，其中{mesh}层具有多骨链选项。选择选项后突出显示对应骨链。</p>
 <main>{''.join(cards)}</main><script>{SCRIPT}</script></html>'''

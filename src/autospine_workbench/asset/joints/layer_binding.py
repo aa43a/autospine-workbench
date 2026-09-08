@@ -59,6 +59,9 @@ def build_layer_bindings(candidate, assisted, skeleton):
 
 
 def validate_layer_bindings(candidate, assisted, skeleton, document):
+    if type(document) is dict and document.get('profile') == 'rigid-name-completion-v3':
+        from .binding_completion import validate_completion
+        return validate_completion(candidate, assisted, skeleton, document)
     expected = build_layer_bindings(candidate, assisted, skeleton)
     if type(document) is not dict or canonical_sha256(document) != canonical_sha256(expected):
         raise ValueError('layer_binding_mismatch')

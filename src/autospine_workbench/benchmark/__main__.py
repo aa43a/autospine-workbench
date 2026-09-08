@@ -98,10 +98,15 @@ def parser():
     register_target_parser(sub)
     from .character_preview_cli import register_parser as register_character_parser
     register_character_parser(sub)
+    from .binding_completion_cli import register_parser as register_completion_parser
+    register_completion_parser(sub)
     return result
 
 
 def _execute(args):
+    if args.command == 'complete-layer-bindings':
+        from .binding_completion_cli import execute
+        return execute(args)
     if args.command == 'compose-character-preview':
         from .character_preview_cli import execute
         return execute(args)

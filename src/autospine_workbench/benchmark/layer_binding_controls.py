@@ -28,11 +28,15 @@ def panel(bindings, draft):
     data = json.dumps({'bindings': bindings, 'draft': draft}, ensure_ascii=True).replace('<','\\u003c')
     return ('<section class="notice"><button id="save">保存整份草稿</button> '
             '<button id="undo">撤销上一步</button><label>恢复 v2 草稿 <input id="load" type="file" accept=".json"></label>'
+            '<label><input id="pending-only" type="checkbox" checked>仅显示待处理图层</label>'
             '<p id="status" role="status"></p></section>'
             f'<script type="application/json" id="state">{data}</script>')
 
 
 SCRIPT = r'''
+function bindingRecordComplete(r) {
+  return r.action==='bind'?Boolean(r.option_id):r.action!=='pending'&&Boolean(r.notes.trim());
+}
 function validateLayerDraft(bindings, base, doc) {
   const keys = (o,k) => o && typeof o === 'object' && !Array.isArray(o) &&
     JSON.stringify(Object.keys(o).sort()) === JSON.stringify(k.slice().sort());
@@ -59,6 +63,8 @@ if (typeof document !== 'undefined') {
   function show() {
     fields.forEach((f,i)=>{
       const r=current.records[i]; f.querySelector('[data-action]').value=r.action;
+      const complete=bindingRecordComplete(r);
+      f.closest('article').hidden=document.getElementById('pending-only').checked && complete;
       const select=f.querySelector('[data-option]'); select.value=r.option_id||''; select.disabled=r.action!=='bind';
       f.querySelector('[data-notes]').value=r.notes;
       f.closest('article').querySelectorAll('[data-chain]').forEach(g=>{
@@ -68,6 +74,7 @@ if (typeof document !== 'undefined') {
     status.textContent=`${current.records.filter(r=>r.action==='pending').length}/${current.records.length} 层尚未处理；选择骨链后仍需生成网格与权重。`;
   }
   const remember=()=>{history.push(structuredClone(current)); if(history.length>100)history.shift();};
+  document.getElementById('pending-only').onchange=show;
   fields.forEach((f,i)=>f.addEventListener('change',()=>{
     remember(); const r=current.records[i]; r.action=f.querySelector('[data-action]').value;
     r.option_id=r.action==='bind'?(f.querySelector('[data-option]').value||null):null;

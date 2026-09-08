@@ -1,0 +1,41 @@
+{
+  "date": "2026-09-08",
+  "profile": "rigid-name-completion-v3",
+  "authority": "none",
+  "records": [
+    {
+      "character_id": "alice",
+      "bindings_sha256": "ce6bed2ea9da6b1186fd6b8a86307db621fc23c1e12ee17c16848fee5c58bf56",
+      "draft_sha256": "1a214b1efe4a1e53a6f5e356d2174e8d898fcb2213e0933693d425fc50c21e1c",
+      "total_layers": 23,
+      "inherited_bindings": 7,
+      "new_head_candidates": 12,
+      "other_pending": 4
+    },
+    {
+      "character_id": "lingxian",
+      "bindings_sha256": "c46a02a25edc95acb9ddf501e6a2c43a1e8f37dd01a028f057e80cf8c3ba12be",
+      "draft_sha256": "db8b65f64a1183a0291da6f1bacc5a06e7146768acbaf3e81d820fc1b3d52a0b",
+      "total_layers": 21,
+      "inherited_bindings": 7,
+      "new_head_candidates": 12,
+      "other_pending": 2
+    },
+    {
+      "character_id": "crino",
+      "bindings_sha256": "238a9dc2fd8aa4c1093d61772342281f00d5a2788d3821f2142d6814e39e4478",
+      "draft_sha256": "204be3d14de04f68a5463043db26339de69ce73c7f01f10495003b3d89ffade7",
+      "total_layers": 18,
+      "inherited_bindings": 5,
+      "new_head_candidates": 7,
+      "other_pending": 6
+    }
+  ],
+  "source_replay": "passed_for_all_three_cli_runs",
+  "schema": "passed",
+  "draft_records_identical_to_old": true,
+  "tests": "29 related tests passed; browser filtering helper additionally tested",
+  "visual": "Alice Chrome screenshot inspected",
+  "official_runtime": "not_run",
+  "full_suite": "not_run"
+}

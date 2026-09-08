@@ -43,6 +43,11 @@ class LayerBindingCliTests(unittest.TestCase):
         doc=build_layer_bindings(*fixture());base=build_layer_binding_draft(doc)
         program=SCRIPT+'\nconst bindings='+json.dumps(doc)+';const base='+json.dumps(base)+r''';
 const assert=require('node:assert/strict');
+assert.equal(bindingRecordComplete({action:'bind',option_id:null,notes:''}),false);
+assert.equal(bindingRecordComplete({action:'bind',option_id:'rigid:head',notes:''}),true);
+assert.equal(bindingRecordComplete({action:'requires_split',option_id:null,notes:''}),false);
+assert.equal(bindingRecordComplete({action:'requires_split',option_id:null,notes:'split'}),true);
+assert.equal(bindingRecordComplete({action:'pending',option_id:null,notes:'later'}),false);
 const d=structuredClone(base);
 const i=bindings.bindings.findIndex(r=>r.options.some(o=>o.mode==='mesh_chain'));
 assert.ok(i>=0);
