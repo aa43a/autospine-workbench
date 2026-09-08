@@ -1,0 +1,16 @@
+{
+  "slice": "wing-split-draft-v1",
+  "profile": "integer-disc-tristate-v1",
+  "character": "crino",
+  "source_preview_sha256": "0c0504cde9afb929041e5f64c4d9f1e18988a188a1e8a1f1d0ee7e968e1879c5",
+  "initial_draft_sha256": "25f00be6d1d945366d6ec8d0c40b08872ebc8488b2bed55f1cdfba57ee48892b",
+  "delivered_strokes": 0,
+  "targeted_tests_passed": 8,
+  "browser_checks": ["drag_paint", "keep", "erase", "undo_redo", "reset_undo", "zoom", "download", "restore", "wrong_source_rejected"],
+  "python_javascript_mask_parity": true,
+  "source_images_changed": false,
+  "new_official_runtime_run": false,
+  "output": "../tmp/r2b-wing-split/crino/review-v3.html",
+  "authority": "none",
+  "production_authorized": false
+}

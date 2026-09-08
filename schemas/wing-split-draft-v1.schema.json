@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "source_preview_sha256", "target_image_sha256", "canvas", "profile", "strokes", "authority", "production_authorized"],
+  "properties": {
+    "schema": {"const": "autospine.wing-split-draft/v1"},
+    "source_preview_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "target_image_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "canvas": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "integer", "minimum": 1}},
+    "profile": {"const": "integer-disc-tristate-v1"},
+    "authority": {"const": "none"}, "production_authorized": {"const": false},
+    "strokes": {"type": "array", "maxItems": 500, "items": {
+      "type": "object", "additionalProperties": false, "required": ["mode", "radius", "points"],
+      "properties": {
+        "mode": {"enum": ["remove", "keep", "erase"]},
+        "radius": {"type": "integer", "minimum": 1, "maximum": 64},
+        "points": {"type": "array", "minItems": 1, "maxItems": 4096, "items": {
+          "type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "integer", "minimum": 0}
+        }}
+      }
+    }}
+  }
+}

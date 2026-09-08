@@ -37,4 +37,4 @@ node tools/compare-wing-edge-runtime.mjs 'http://127.0.0.1:7226/?character=crino
 
 上衣与四翼片共 17,354 个 alpha>=8 重叠像素，RGBA 完全一致数为 0。报告为每翼片保留重叠 bbox、数量和色差，并以 `source_layer_requires_semantic_split` 进入复核清单。这个清单只说明需要语义拆分，不是删除区域的遮罩；扩大 bbox 删除上衣会损害真实服装。
 
-下一项应生成可编辑的上衣/翼片语义拆分遮罩及保留区，避免继续通过调骨骼来掩盖重影。边缘候选仍为 `needs_review`，没有生产授权。
+后续已新增 [上衣／翼片拆分遮罩编辑页](how-to-wing-split-review.md)，用于明确源层移除与保留区。边缘候选仍为 `needs_review`，没有生产授权。
