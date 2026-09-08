@@ -1,0 +1,244 @@
+{
+  "date": "2026-09-08",
+  "authority": "none",
+  "records": [
+    {
+      "character_id": "alice",
+      "report_sha256": "31ce109e8e45312c47ce26b231149ca123148ea79c1e8735a9f3c80829959a97",
+      "draft_sha256": "e10ee9777a33694324d8823f3365f3535f0fed667c347addeaa6a1a1090d15d1",
+      "layers": [
+        {
+          "layer_id": "layer-001",
+          "proposal_qa": {
+            "after": {
+              "alpha_mass_ratio": 1.0863816495830944e-05,
+              "alpha_sum": 82,
+              "visible_pixels": 82
+            },
+            "before": {
+              "alpha_mass_ratio": 1.5500811341612446e-05,
+              "alpha_sum": 117,
+              "visible_pixels": 103
+            },
+            "moved_pixels": 21,
+            "rgba_reconstruction_exact": true,
+            "source_rgba_sha256": "a45fa18cd4b4d95490b613b60377241376ce77cd153d338c1c01b7b78760c3e1"
+          },
+          "selected_policy": "pending",
+          "selected_qa": {
+            "after": {
+              "alpha_mass_ratio": 1.5500811341612446e-05,
+              "alpha_sum": 117,
+              "visible_pixels": 103
+            },
+            "before": {
+              "alpha_mass_ratio": 1.5500811341612446e-05,
+              "alpha_sum": 117,
+              "visible_pixels": 103
+            },
+            "moved_pixels": 0,
+            "rgba_reconstruction_exact": true,
+            "source_rgba_sha256": "a45fa18cd4b4d95490b613b60377241376ce77cd153d338c1c01b7b78760c3e1"
+          },
+          "status": "needs_review"
+        },
+        {
+          "layer_id": "layer-002",
+          "proposal_qa": {
+            "after": {
+              "alpha_mass_ratio": 0.00016049150523478152,
+              "alpha_sum": 576,
+              "visible_pixels": 324
+            },
+            "before": {
+              "alpha_mass_ratio": 0.00023962273351026407,
+              "alpha_sum": 860,
+              "visible_pixels": 467
+            },
+            "moved_pixels": 143,
+            "rgba_reconstruction_exact": true,
+            "source_rgba_sha256": "a6097b2b4e90886cd2883e6d80550fba7b399bfe24e16d297ba35a83e55fe765"
+          },
+          "selected_policy": "pending",
+          "selected_qa": {
+            "after": {
+              "alpha_mass_ratio": 0.00023962273351026407,
+              "alpha_sum": 860,
+              "visible_pixels": 467
+            },
+            "before": {
+              "alpha_mass_ratio": 0.00023962273351026407,
+              "alpha_sum": 860,
+              "visible_pixels": 467
+            },
+            "moved_pixels": 0,
+            "rgba_reconstruction_exact": true,
+            "source_rgba_sha256": "a6097b2b4e90886cd2883e6d80550fba7b399bfe24e16d297ba35a83e55fe765"
+          },
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "character_id": "lingxian",
+      "report_sha256": "1f7f8d79fb34b174a6e8cf1c7c39822318a7599d979afcf15aae5b01ab33908f",
+      "draft_sha256": "8d2c69dd7ae5ededb884ac9e4d894edc09bc0e420a4031c6ff99019cd93190db",
+      "layers": [
+        {
+          "layer_id": "layer-003",
+          "proposal_qa": {
+            "after": {
+              "alpha_mass_ratio": 0.002204149155902556,
+              "alpha_sum": 41519,
+              "visible_pixels": 30802
+            },
+            "before": {
+              "alpha_mass_ratio": 0.002215934630326563,
+              "alpha_sum": 41741,
+              "visible_pixels": 30893
+            },
+            "moved_pixels": 91,
+            "rgba_reconstruction_exact": true,
+            "source_rgba_sha256": "312620248d98c824246bc07df9b8ffcfbc50fd33da36e567ed76ebebc0dd9caa"
+          },
+          "selected_policy": "pending",
+          "selected_qa": {
+            "after": {
+              "alpha_mass_ratio": 0.002215934630326563,
+              "alpha_sum": 41741,
+              "visible_pixels": 30893
+            },
+            "before": {
+              "alpha_mass_ratio": 0.002215934630326563,
+              "alpha_sum": 41741,
+              "visible_pixels": 30893
+            },
+            "moved_pixels": 0,
+            "rgba_reconstruction_exact": true,
+            "source_rgba_sha256": "312620248d98c824246bc07df9b8ffcfbc50fd33da36e567ed76ebebc0dd9caa"
+          },
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "character_id": "crino",
+      "report_sha256": "a7e57f6a826bf532caa71dcf426edffb6394fb57fbdf4e87c95b9853ca6044e9",
+      "draft_sha256": "c652840bbb479312b1f243568557998fdd30e071b6d43d22445a575c8accdf98",
+      "layers": [
+        {
+          "layer_id": "layer-004",
+          "proposal_qa": {
+            "after": {
+              "alpha_mass_ratio": 0.0007590015231674552,
+              "alpha_sum": 9112,
+              "visible_pixels": 8032
+            },
+            "before": {
+              "alpha_mass_ratio": 0.0007813250973782628,
+              "alpha_sum": 9380,
+              "visible_pixels": 8188
+            },
+            "moved_pixels": 156,
+            "rgba_reconstruction_exact": true,
+            "source_rgba_sha256": "27c532e6eedc783641a1f6a916d54bce1ae52351821cd12e0a88933178b8623b"
+          },
+          "selected_policy": "pending",
+          "selected_qa": {
+            "after": {
+              "alpha_mass_ratio": 0.0007813250973782628,
+              "alpha_sum": 9380,
+              "visible_pixels": 8188
+            },
+            "before": {
+              "alpha_mass_ratio": 0.0007813250973782628,
+              "alpha_sum": 9380,
+              "visible_pixels": 8188
+            },
+            "moved_pixels": 0,
+            "rgba_reconstruction_exact": true,
+            "source_rgba_sha256": "27c532e6eedc783641a1f6a916d54bce1ae52351821cd12e0a88933178b8623b"
+          },
+          "status": "needs_review"
+        },
+        {
+          "layer_id": "layer-005",
+          "proposal_qa": {
+            "after": {
+              "alpha_mass_ratio": 0.00018215381079275694,
+              "alpha_sum": 3804,
+              "visible_pixels": 3582
+            },
+            "before": {
+              "alpha_mass_ratio": 0.00019417289767734738,
+              "alpha_sum": 4055,
+              "visible_pixels": 3709
+            },
+            "moved_pixels": 127,
+            "rgba_reconstruction_exact": true,
+            "source_rgba_sha256": "8b94e30a47b8078411a72fee91becbbaabea8c8bee0d07ac63607af93d3cf4a3"
+          },
+          "selected_policy": "pending",
+          "selected_qa": {
+            "after": {
+              "alpha_mass_ratio": 0.00019417289767734738,
+              "alpha_sum": 4055,
+              "visible_pixels": 3709
+            },
+            "before": {
+              "alpha_mass_ratio": 0.00019417289767734738,
+              "alpha_sum": 4055,
+              "visible_pixels": 3709
+            },
+            "moved_pixels": 0,
+            "rgba_reconstruction_exact": true,
+            "source_rgba_sha256": "8b94e30a47b8078411a72fee91becbbaabea8c8bee0d07ac63607af93d3cf4a3"
+          },
+          "status": "needs_review"
+        },
+        {
+          "layer_id": "layer-006",
+          "proposal_qa": {
+            "after": {
+              "alpha_mass_ratio": 0.00010208284594237545,
+              "alpha_sum": 545,
+              "visible_pixels": 329
+            },
+            "before": {
+              "alpha_mass_ratio": 0.00016838986881136795,
+              "alpha_sum": 899,
+              "visible_pixels": 464
+            },
+            "moved_pixels": 135,
+            "rgba_reconstruction_exact": true,
+            "source_rgba_sha256": "01de9ba5748e78d67fde48c0278e9942195e848d0883a28ad0d08cb1128aecc9"
+          },
+          "selected_policy": "pending",
+          "selected_qa": {
+            "after": {
+              "alpha_mass_ratio": 0.00016838986881136795,
+              "alpha_sum": 899,
+              "visible_pixels": 464
+            },
+            "before": {
+              "alpha_mass_ratio": 0.00016838986881136795,
+              "alpha_sum": 899,
+              "visible_pixels": 464
+            },
+            "moved_pixels": 0,
+            "rgba_reconstruction_exact": true,
+            "source_rgba_sha256": "01de9ba5748e78d67fde48c0278e9942195e848d0883a28ad0d08cb1128aecc9"
+          },
+          "status": "needs_review"
+        }
+      ]
+    }
+  ],
+  "tests": "17 related tests passed",
+  "schemas": "passed",
+  "source_replay": "all three generation inputs verified",
+  "all_real_drafts_pending": true,
+  "visual": "Lingxian Chrome screenshot inspected",
+  "full_suite": "not_run",
+  "official_runtime": "not_run"
+}

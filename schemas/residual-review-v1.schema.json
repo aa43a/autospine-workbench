@@ -1,0 +1,211 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "autospine.residual-review/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "profile",
+    "authority",
+    "production_authorized",
+    "source_partitions_sha256",
+    "source_draft_sha256",
+    "layers"
+  ],
+  "properties": {
+    "schema": {
+      "const": "autospine.residual-review/v1"
+    },
+    "profile": {
+      "const": "bounded-nearest-low-alpha-4px-v1"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "production_authorized": {
+      "const": false
+    },
+    "source_partitions_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "source_draft_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "layers": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "layer_id",
+          "selected_policy",
+          "proposal_qa",
+          "selected_qa",
+          "status"
+        ],
+        "properties": {
+          "layer_id": {
+            "type": "string"
+          },
+          "selected_policy": {
+            "enum": [
+              "pending",
+              "retain",
+              "nearest_4px"
+            ]
+          },
+          "proposal_qa": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "before",
+              "after",
+              "moved_pixels",
+              "rgba_reconstruction_exact",
+              "source_rgba_sha256"
+            ],
+            "properties": {
+              "before": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "visible_pixels",
+                  "alpha_sum",
+                  "alpha_mass_ratio"
+                ],
+                "properties": {
+                  "visible_pixels": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "alpha_sum": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "alpha_mass_ratio": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                }
+              },
+              "after": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "visible_pixels",
+                  "alpha_sum",
+                  "alpha_mass_ratio"
+                ],
+                "properties": {
+                  "visible_pixels": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "alpha_sum": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "alpha_mass_ratio": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                }
+              },
+              "moved_pixels": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "rgba_reconstruction_exact": {
+                "const": true
+              },
+              "source_rgba_sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            }
+          },
+          "selected_qa": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "before",
+              "after",
+              "moved_pixels",
+              "rgba_reconstruction_exact",
+              "source_rgba_sha256"
+            ],
+            "properties": {
+              "before": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "visible_pixels",
+                  "alpha_sum",
+                  "alpha_mass_ratio"
+                ],
+                "properties": {
+                  "visible_pixels": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "alpha_sum": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "alpha_mass_ratio": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                }
+              },
+              "after": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "visible_pixels",
+                  "alpha_sum",
+                  "alpha_mass_ratio"
+                ],
+                "properties": {
+                  "visible_pixels": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "alpha_sum": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "alpha_mass_ratio": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                }
+              },
+              "moved_pixels": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "rgba_reconstruction_exact": {
+                "const": true
+              },
+              "source_rgba_sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            }
+          },
+          "status": {
+            "const": "needs_review"
+          }
+        }
+      }
+    }
+  }
+}

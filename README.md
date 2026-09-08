@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[残余归属复核](docs/how-to-residual-review.md)提供4px规则试算、alpha贡献对照和可撤销草稿；
+六层试算补全673个低alpha像素，默认待复核，旧分区与绑定不变。
+
 [无损组件分区](docs/how-to-layer-partitions.md)已接通：六个真实候选图层输出左右/残余 PNG 与 ownership 掩码，
 RGBA 重建通过；残余与绑定仍待复核，尚未生成分区权重。
 

@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+`review-partition-residuals` 生成残余规则对照、可撤销草稿及精确来源回放报告。
+新草稿默认pending，试算不改变已保存分区，见[说明](how-to-residual-review.md)。
+
 `partition-layer-candidates` 导出左右/残余PNG、ownership掩码和可重放ZIP回执。
 逐字节RGBA重建不表示侧别、权重或Runtime通过，见[说明](how-to-layer-partitions.md)。
 

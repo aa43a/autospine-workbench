@@ -1,5 +1,8 @@
 # 当前状态：2026-09-08
 
+新增[残余复核](how-to-residual-review.md)：保留/4px邻近试算、alpha总量占比、整份草稿保存恢复，
+六项默认pending；本轮没有正式采用分区或权重。
+
 新增[无损分区](how-to-layer-partitions.md)：三个角色六层的RGBA与ownership验证通过，
 低alpha平局/孤立像素保留残余；不改旧绑定和Mesh，残余复核及分区权重尚待接入。
 

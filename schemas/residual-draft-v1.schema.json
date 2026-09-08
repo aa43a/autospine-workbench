@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "autospine.residual-draft/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "authority",
+    "production_authorized",
+    "source_partitions_sha256",
+    "records"
+  ],
+  "properties": {
+    "schema": {
+      "const": "autospine.residual-draft/v1"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "production_authorized": {
+      "const": false
+    },
+    "source_partitions_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "records": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "layer_id",
+          "policy",
+          "notes"
+        ],
+        "properties": {
+          "layer_id": {
+            "type": "string"
+          },
+          "policy": {
+            "enum": [
+              "pending",
+              "retain",
+              "nearest_4px"
+            ]
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 2000
+          }
+        }
+      }
+    }
+  }
+}
