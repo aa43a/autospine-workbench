@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[琪露诺双侧回退验证](docs/how-to-crino-stable-fallback.md)完成：六区域几何通过，边界增距仍<2px，622组Runtime原／回退局部图完全一致。
+保守组合收敛为Alice左回退、右保留增量，琪露诺双侧回退；候选未自动采用，原有空白与未评估项仍保留。
+
 [逐关系准入报告](docs/how-to-seam-admission.md)已整合几何、边界及Runtime合成证据。琪露诺全部311个已记录点均有合成alpha下降，左右增量继续复核。
 Alice左回退仅在当前采样范围内无新增退化，右侧无目标样本仍为未评估；没有自动采用权。
 
