@@ -1,0 +1,145 @@
+{
+  "date": "2026-09-08",
+  "authority": "none",
+  "records": [
+    {
+      "character_id": "alice",
+      "artifact_sha256": "696cf7d86d0e7595d6916f22605ceb12d41420f537ae9494c59a9a82a67eede9",
+      "layers": [
+        {
+          "layer_id": "layer-001-l",
+          "status": "blocked",
+          "free_vertices": 6,
+          "projection_budget_px": 1.203061759979515,
+          "min_area_ratio": -0.8797110750951,
+          "inversion_samples": 10,
+          "offset_reconstruction_error": 1.6077746776921858e-13,
+          "fixed_vertex_error": 0.0,
+          "max_projection_displacement": 1.203061759979573,
+          "max_delta_from_original_lbs": 2.3373884761105397
+        },
+        {
+          "layer_id": "layer-001-r",
+          "status": "blocked",
+          "free_vertices": 5,
+          "projection_budget_px": 1.2030617599795108,
+          "min_area_ratio": -1.7737688289926634,
+          "inversion_samples": 8,
+          "offset_reconstruction_error": 1.2710574864626038e-13,
+          "fixed_vertex_error": 0.0,
+          "max_projection_displacement": 1.203061759979548,
+          "max_delta_from_original_lbs": 2.3614152402912927
+        }
+      ]
+    },
+    {
+      "character_id": "lingxian",
+      "artifact_sha256": "5b435740ab672e561bef04209f708fc968b7477c734b7f588dbdec49adf36f94",
+      "layers": [
+        {
+          "layer_id": "layer-003-l",
+          "status": "blocked",
+          "free_vertices": 2,
+          "projection_budget_px": 0.9026538519831475,
+          "min_area_ratio": -1.3040935263157902,
+          "inversion_samples": 4,
+          "offset_reconstruction_error": 2.5421149729252077e-13,
+          "fixed_vertex_error": 0.0,
+          "max_projection_displacement": 0.902653851983171,
+          "max_delta_from_original_lbs": 2.93063707134005
+        },
+        {
+          "layer_id": "layer-003-r",
+          "status": "blocked",
+          "free_vertices": 3,
+          "projection_budget_px": 0.9026538519831505,
+          "min_area_ratio": -1.0735423146733634,
+          "inversion_samples": 5,
+          "offset_reconstruction_error": 2.5421149729252077e-13,
+          "fixed_vertex_error": 0.0,
+          "max_projection_displacement": 0.9026538519832584,
+          "max_delta_from_original_lbs": 3.076807039026929
+        }
+      ]
+    },
+    {
+      "character_id": "crino",
+      "artifact_sha256": "ef579f23996b6fe89869b27b0ec45a82c83e099ac33bcfd5c83d145ae91b7a4d",
+      "layers": [
+        {
+          "layer_id": "layer-004-l",
+          "status": "blocked",
+          "free_vertices": 3,
+          "projection_budget_px": 1.3543792157294776,
+          "min_area_ratio": -1.133305007303109,
+          "inversion_samples": 8,
+          "offset_reconstruction_error": 2.2737367544323206e-13,
+          "fixed_vertex_error": 0.0,
+          "max_projection_displacement": 1.3543792157295313,
+          "max_delta_from_original_lbs": 4.320337019651273
+        },
+        {
+          "layer_id": "layer-004-r",
+          "status": "blocked",
+          "free_vertices": 3,
+          "projection_budget_px": 1.354379215729477,
+          "min_area_ratio": -1.1414300326230435,
+          "inversion_samples": 2,
+          "offset_reconstruction_error": 1.2710574864626038e-13,
+          "fixed_vertex_error": 0.0,
+          "max_projection_displacement": 1.3543792157295227,
+          "max_delta_from_original_lbs": 4.476007598153559
+        },
+        {
+          "layer_id": "layer-005-l",
+          "status": "blocked",
+          "free_vertices": 4,
+          "projection_budget_px": 1.3543792157294696,
+          "min_area_ratio": -1.0343520910033883,
+          "inversion_samples": 8,
+          "offset_reconstruction_error": 4.547473508864641e-13,
+          "fixed_vertex_error": 0.0,
+          "max_projection_displacement": 1.3543792157295829,
+          "max_delta_from_original_lbs": 3.035395830765217
+        },
+        {
+          "layer_id": "layer-005-r",
+          "status": "blocked",
+          "free_vertices": 3,
+          "projection_budget_px": 1.3543792157294692,
+          "min_area_ratio": -0.9871774741478687,
+          "inversion_samples": 6,
+          "offset_reconstruction_error": 2.5421149729252077e-13,
+          "fixed_vertex_error": 0.0,
+          "max_projection_displacement": 1.3543792157295742,
+          "max_delta_from_original_lbs": 2.665166431308144
+        }
+      ]
+    }
+  ],
+  "tests": "16 related tests passed",
+  "schema": "all three passed",
+  "visual": "Alice Chrome screenshot and angle-control Node check passed",
+  "full_suite": "not_run",
+  "official_runtime": "not_run",
+  "exploratory_support_ring": {
+    "character": "alice",
+    "radius_fractions_of_shorter_distal_bone": [
+      0.5,
+      1.0,
+      1.5
+    ],
+    "left_inversion_samples": [
+      10,
+      10,
+      8
+    ],
+    "right_inversion_samples": [
+      8,
+      8,
+      8
+    ],
+    "all_failed": true,
+    "adopted": false
+  }
+}

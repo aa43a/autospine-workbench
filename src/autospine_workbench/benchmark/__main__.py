@@ -110,10 +110,15 @@ def parser():
     register_partition_mesh_parser(sub)
     from .partition_coverage_cli import register_parser as register_coverage_v2_parser
     register_coverage_v2_parser(sub)
+    from .distal_corrective_cli import register_parser as register_distal_parser
+    register_distal_parser(sub)
     return result
 
 
 def _execute(args):
+    if args.command == 'correct-distal-preview':
+        from .distal_corrective_cli import execute
+        return execute(args)
     if args.command == 'improve-partition-coverage':
         from .partition_coverage_cli import execute
         return execute(args)

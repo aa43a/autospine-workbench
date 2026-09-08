@@ -1,0 +1,247 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "autospine.distal-corrective/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "profile",
+    "authority",
+    "production_authorized",
+    "source_mesh_sha256",
+    "source_skeleton_sha256",
+    "selected_method",
+    "parameters",
+    "layers",
+    "combined_motion_status",
+    "runtime_status",
+    "seam_status"
+  ],
+  "properties": {
+    "schema": {
+      "const": "autospine.distal-corrective/v1"
+    },
+    "profile": {
+      "const": "distal-half-angle-projection-48-v1"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "production_authorized": {
+      "const": false
+    },
+    "source_mesh_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "source_skeleton_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "selected_method": {
+      "type": "null"
+    },
+    "parameters": {
+      "const": {
+        "iterations": 48,
+        "area_targets": [
+          0.55,
+          1.9
+        ],
+        "edge_target": 1.9,
+        "angles": [
+          -90,
+          -60,
+          -30,
+          -15,
+          0,
+          15,
+          30,
+          60,
+          90
+        ],
+        "budget_fraction": 0.1,
+        "budget_reference": "shorter_distal_segment",
+        "fixed_vertices": "zero_or_unit_distal_weight"
+      }
+    },
+    "layers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "layer_id",
+          "joint_id",
+          "triangles",
+          "projection_budget_px",
+          "free_vertex_count",
+          "status",
+          "samples"
+        ],
+        "properties": {
+          "layer_id": {
+            "type": "string"
+          },
+          "joint_id": {
+            "type": "string"
+          },
+          "triangles": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "minItems": 1,
+            "maxItems": 8192
+          },
+          "projection_budget_px": {
+            "type": "number"
+          },
+          "free_vertex_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "status": {
+            "enum": [
+              "blocked",
+              "candidate_requires_review"
+            ]
+          },
+          "samples": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "angle",
+                "positions",
+                "baseline_positions",
+                "offsets",
+                "qa"
+              ],
+              "properties": {
+                "angle": {
+                  "enum": [
+                    -90,
+                    -60,
+                    -30,
+                    -15,
+                    0,
+                    15,
+                    30,
+                    60,
+                    90
+                  ]
+                },
+                "positions": {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 2,
+                    "maxItems": 2
+                  },
+                  "minItems": 3,
+                  "maxItems": 4096
+                },
+                "baseline_positions": {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 2,
+                    "maxItems": 2
+                  },
+                  "minItems": 3,
+                  "maxItems": 4096
+                },
+                "offsets": {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    },
+                    "minItems": 3,
+                    "maxItems": 3
+                  },
+                  "minItems": 3,
+                  "maxItems": 4096
+                },
+                "qa": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "passed",
+                    "inversions",
+                    "min_area_ratio",
+                    "max_area_ratio",
+                    "max_edge_stretch",
+                    "projection_displacement_px",
+                    "fixed_vertex_error",
+                    "offset_reconstruction_error"
+                  ],
+                  "properties": {
+                    "passed": {
+                      "type": "boolean"
+                    },
+                    "inversions": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "min_area_ratio": {
+                      "type": "number"
+                    },
+                    "max_area_ratio": {
+                      "type": "number"
+                    },
+                    "max_edge_stretch": {
+                      "type": "number"
+                    },
+                    "projection_displacement_px": {
+                      "type": "number"
+                    },
+                    "fixed_vertex_error": {
+                      "type": "number"
+                    },
+                    "offset_reconstruction_error": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            },
+            "minItems": 9,
+            "maxItems": 9
+          }
+        }
+      },
+      "minItems": 0,
+      "maxItems": 256
+    },
+    "combined_motion_status": {
+      "const": "not_evaluated"
+    },
+    "runtime_status": {
+      "const": "not_evaluated"
+    },
+    "seam_status": {
+      "const": "not_evaluated"
+    }
+  }
+}

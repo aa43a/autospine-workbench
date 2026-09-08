@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+`correct-distal-preview` 生成踝/腕有界corrective样本、局部偏移与交互线框对照。
+当前结果阻塞，未Bake到目标动画，见[说明](how-to-distal-corrective.md)。
+
 `improve-partition-coverage` 修复分区网格对低alpha像素的漏覆盖，并输出未采用的远端权重对照。
 默认保留可见主组件门槛，历史profile可重放，见[说明](how-to-partition-coverage.md)。
 

@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[踝／腕 corrective 试算](docs/how-to-distal-corrective.md)已接通有界投影、逐骨局部偏移与角度线框对照。
+八个区域仍阻塞；当前只有2–6个可移动顶点，下一步优先验证局部支撑密度。
+
 [分区全alpha覆盖修复](docs/how-to-partition-coverage.md)已接通，保留可见主组件检查并补齐透明边缘所在单元。
 踝/腕前移权重试验单独保存且未采用；变形QA和R3验收仍继续推进。
 
