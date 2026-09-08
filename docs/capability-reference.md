@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+`python -m autospine_workbench.benchmark.seam_raster_cli` 比较原连续／alpha 过渡候选的原生像素走廊覆盖，并审计多对一对应。
+输出 JSON、前后热图和本地复核页；属于独立 CPU 诊断，见[说明](how-to-seam-raster.md)。
+
 `python -m autospine_workbench.benchmark.alpha_seam_cli` 提取 alpha 像素边界并生成局部过渡候选、前后报告和 Spine 诊断包。
 播放可叠加边界对应点，支持源链精确重放，见[说明](how-to-alpha-seam.md)。
 

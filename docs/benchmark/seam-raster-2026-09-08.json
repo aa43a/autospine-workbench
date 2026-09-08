@@ -1,0 +1,214 @@
+{
+  "date": "2026-09-08",
+  "authority": "none",
+  "production_authorized": false,
+  "profile": "alpha-corridor-comparison-v1",
+  "tests_passed": 15,
+  "source_chain_replay": "all_three_passed",
+  "reader_replay": "alice_passed",
+  "schema_heatmap_checks": "all_three_passed",
+  "browser_views": "all_three_passed",
+  "numpy": "2.4.6",
+  "pillow": "12.3.0",
+  "runtime_raster_status": "not_evaluated",
+  "full_suite": "not_run",
+  "records": [
+    {
+      "character": "alice",
+      "artifact_sha256": "31d27e2a3a60b29730b7d0588756f860d3633cc6428ea40114a5426ccfa7579d",
+      "source_alpha_sha256": "9bb53b7a1c8bcf5e6bf3f3608dbeb5cfe28f9bd111ebf4275ae0246e4c80213c",
+      "before": [
+        {
+          "driver": "layer-001-l",
+          "follower": "layer-002-l",
+          "heatmap": "layer-001-l--layer-002-l.png",
+          "max_gap_pixels": 15,
+          "max_overlap_pixels": 37,
+          "setup_gap_pixels": 0,
+          "status": "candidate_requires_review",
+          "worst_rect": [
+            498,
+            883,
+            34,
+            37
+          ],
+          "worst_time": 0.4666666666666667
+        },
+        {
+          "driver": "layer-001-r",
+          "follower": "layer-002-r",
+          "heatmap": "layer-001-r--layer-002-r.png",
+          "max_gap_pixels": 15,
+          "max_overlap_pixels": 54,
+          "setup_gap_pixels": 0,
+          "status": "candidate_requires_review",
+          "worst_rect": [
+            329,
+            879,
+            40,
+            32
+          ],
+          "worst_time": 0.36666666666666664
+        }
+      ],
+      "after": [
+        {
+          "driver": "layer-001-l",
+          "follower": "layer-002-l",
+          "heatmap": "layer-001-l--layer-002-l.png",
+          "max_gap_pixels": 4,
+          "max_overlap_pixels": 19,
+          "setup_gap_pixels": 0,
+          "status": "candidate_requires_review",
+          "worst_rect": [
+            498,
+            883,
+            34,
+            32
+          ],
+          "worst_time": 0.4666666666666667
+        },
+        {
+          "driver": "layer-001-r",
+          "follower": "layer-002-r",
+          "heatmap": "layer-001-r--layer-002-r.png",
+          "max_gap_pixels": 2,
+          "max_overlap_pixels": 20,
+          "setup_gap_pixels": 0,
+          "status": "candidate_requires_review",
+          "worst_rect": [
+            337,
+            883,
+            38,
+            26
+          ],
+          "worst_time": 0.3333333333333333
+        }
+      ],
+      "conflicts": [
+        {
+          "decision": "retain_all_pending",
+          "driver": "layer-001-l",
+          "follower": "layer-002-l",
+          "max_target_spread_px": 1.0121707626127048,
+          "pair_count": 16,
+          "reciprocal_pair_count": 4,
+          "unique_follower_count": 7
+        },
+        {
+          "decision": "retain_all_pending",
+          "driver": "layer-001-r",
+          "follower": "layer-002-r",
+          "max_target_spread_px": 2.5472910029325058,
+          "pair_count": 17,
+          "reciprocal_pair_count": 4,
+          "unique_follower_count": 5
+        }
+      ],
+      "screenshot_sha256": "4ba730a16ddeebd6e58adeb27b2122f919958de63a5939adb92a633261aad0b8"
+    },
+    {
+      "character": "lingxian",
+      "artifact_sha256": "6ef0d373cfbd45c3a35ebbf7270db464c31f4a691d476afc880a472a3474359a",
+      "source_alpha_sha256": "ff061a1a17f0dca76e48dc8cc40e6fbe8921375d9ea62834facf8992accf5f11",
+      "before": [],
+      "after": [],
+      "conflicts": [],
+      "screenshot_sha256": "48f00a241b18ce4fb65098172dfe2cfe0e498002aae5263ecb77e35ff82a9069"
+    },
+    {
+      "character": "crino",
+      "artifact_sha256": "6b968fec033ef239643e2b103b050f2dc7c36c536847cb7aa89f362421f9fc04",
+      "source_alpha_sha256": "e7826b147f828d2dfde28331e29de77bae39b7060c2faf634b13b6bbd324cde2",
+      "before": [
+        {
+          "driver": "layer-005-l",
+          "follower": "layer-006-l",
+          "heatmap": "layer-005-l--layer-006-l.png",
+          "max_gap_pixels": 3,
+          "max_overlap_pixels": 35,
+          "setup_gap_pixels": 0,
+          "status": "candidate_requires_review",
+          "worst_rect": [
+            577,
+            1090,
+            53,
+            62
+          ],
+          "worst_time": 0.6
+        },
+        {
+          "driver": "layer-005-r",
+          "follower": "layer-006-r",
+          "heatmap": "layer-005-r--layer-006-r.png",
+          "max_gap_pixels": 3,
+          "max_overlap_pixels": 67,
+          "setup_gap_pixels": 0,
+          "status": "candidate_requires_review",
+          "worst_rect": [
+            473,
+            1141,
+            78,
+            56
+          ],
+          "worst_time": 1.9333333333333333
+        }
+      ],
+      "after": [
+        {
+          "driver": "layer-005-l",
+          "follower": "layer-006-l",
+          "heatmap": "layer-005-l--layer-006-l.png",
+          "max_gap_pixels": 3,
+          "max_overlap_pixels": 28,
+          "setup_gap_pixels": 0,
+          "status": "candidate_requires_review",
+          "worst_rect": [
+            576,
+            1095,
+            54,
+            56
+          ],
+          "worst_time": 0.6
+        },
+        {
+          "driver": "layer-005-r",
+          "follower": "layer-006-r",
+          "heatmap": "layer-005-r--layer-006-r.png",
+          "max_gap_pixels": 2,
+          "max_overlap_pixels": 57,
+          "setup_gap_pixels": 0,
+          "status": "candidate_requires_review",
+          "worst_rect": [
+            274,
+            980,
+            54,
+            84
+          ],
+          "worst_time": 0.7666666666666667
+        }
+      ],
+      "conflicts": [
+        {
+          "decision": "retain_all_pending",
+          "driver": "layer-005-l",
+          "follower": "layer-006-l",
+          "max_target_spread_px": 1.092437692210446,
+          "pair_count": 24,
+          "reciprocal_pair_count": 6,
+          "unique_follower_count": 13
+        },
+        {
+          "decision": "retain_all_pending",
+          "driver": "layer-005-r",
+          "follower": "layer-006-r",
+          "max_target_spread_px": 0.97863281594086,
+          "pair_count": 48,
+          "reciprocal_pair_count": 22,
+          "unique_follower_count": 30
+        }
+      ],
+      "screenshot_sha256": "be38fdb2c7f4fef77454d1da4c9f5e8c6d2bc1b5ad64f47bff10dbfe6857f95c"
+    }
+  ]
+}

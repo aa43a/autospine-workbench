@@ -1,0 +1,224 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "profile",
+    "source_alpha_sha256",
+    "source_continuous_sha256",
+    "before",
+    "after",
+    "conflicts",
+    "authority",
+    "production_authorized",
+    "status",
+    "runtime_raster_status",
+    "files"
+  ],
+  "properties": {
+    "schema": { "const": "autospine.seam-raster-diagnostic/v1" },
+    "profile": { "const": "alpha-corridor-comparison-v1" },
+    "source_alpha_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "source_continuous_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "before": { "$ref": "#/$defs/raster" },
+    "after": { "$ref": "#/$defs/raster" },
+    "conflicts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/conflict" }
+    },
+    "authority": { "const": "none" },
+    "production_authorized": { "const": false },
+    "status": { "const": "needs_review" },
+    "runtime_raster_status": { "const": "not_evaluated" },
+    "files": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      }
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "frame": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "time",
+        "corridor_pixels",
+        "gap_pixels",
+        "overlap_pixels",
+        "roi_overlap_pixels"
+      ],
+      "properties": {
+        "time": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 2
+        },
+        "corridor_pixels": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "gap_pixels": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "overlap_pixels": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "roi_overlap_pixels": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "relation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "driver",
+        "follower",
+        "frames",
+        "max_gap_pixels",
+        "setup_gap_pixels",
+        "max_overlap_pixels",
+        "worst_time",
+        "worst_rect",
+        "heatmap",
+        "status"
+      ],
+      "properties": {
+        "driver": { "type": "string" },
+        "follower": { "type": "string" },
+        "frames": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/frame" },
+          "minItems": 61,
+          "maxItems": 61
+        },
+        "max_gap_pixels": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "setup_gap_pixels": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_overlap_pixels": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "worst_time": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 2
+        },
+        "worst_rect": {
+          "type": "array",
+          "items": { "type": "integer" },
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "heatmap": { "type": "string" },
+        "status": { "const": "candidate_requires_review" }
+      }
+    },
+    "raster": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "fps",
+        "sample_count",
+        "relations",
+        "authority",
+        "coverage",
+        "production_authorized"
+      ],
+      "properties": {
+        "profile": { "const": "native-alpha8-bilinear-corridor-v1" },
+        "fps": { "const": 30 },
+        "sample_count": { "const": 61 },
+        "relations": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/relation" }
+        },
+        "authority": { "const": "none" },
+        "coverage": { "const": "candidate_corridors_only" },
+        "production_authorized": { "const": false }
+      }
+    },
+    "conflict": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "driver",
+        "follower",
+        "pair_count",
+        "reciprocal_pair_count",
+        "unique_follower_count",
+        "many_to_one",
+        "max_target_spread_px",
+        "decision"
+      ],
+      "properties": {
+        "driver": { "type": "string" },
+        "follower": { "type": "string" },
+        "pair_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "reciprocal_pair_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unique_follower_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "many_to_one": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "follower_sample",
+              "driver_samples",
+              "max_target_spread_px"
+            ],
+            "properties": {
+              "follower_sample": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "driver_samples": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "max_target_spread_px": {
+                "type": "number",
+                "minimum": 0
+              }
+            }
+          }
+        },
+        "max_target_spread_px": {
+          "type": "number",
+          "minimum": 0
+        },
+        "decision": { "const": "retain_all_pending" }
+      }
+    }
+  }
+}

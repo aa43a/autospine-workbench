@@ -23,6 +23,7 @@ SCHEMAS += ('autospine.combined-corrective-preview/v1',)
 SCHEMAS += ('autospine.continuous-corrective-preview/v1',)
 SCHEMAS += ('autospine.seam-translation-preview/v1',)
 SCHEMAS += ('autospine.alpha-seam-preview/v1',)
+SCHEMAS += ('autospine.seam-raster-diagnostic/v1',)
 
 
 def _read(path):
