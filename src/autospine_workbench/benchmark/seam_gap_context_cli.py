@@ -21,7 +21,7 @@ def load(report, directory, name):
     return raw
 
 
-def analyze(before_report, after_report, before_dir, after_dir):
+def analyze(before_report, after_report, before_dir, after_dir, *, observe=None):
     if before_report['schema'] != 'autospine.continuous-anchor-preview/v1' or after_report['schema'] != 'autospine.seam-increment-preview/v1':
         raise ValueError('gap_context_source_schema')
     if canonical_sha256(before_report) != after_report['source_anchor_sha256']:
@@ -58,9 +58,11 @@ def analyze(before_report, after_report, before_dir, after_dir):
                 pairs = [(position(bounds[a]['samples'][p['driver_sample']], pose[a]), position(bounds[b]['samples'][p['follower_sample']], pose[b])) for p in relation['pairs']]
                 current = corridor(pairs, metrics['rect']); scan = current if scan is None else scan | current
             added = scan & (occupied[0][0] | occupied[0][1]) & ~(occupied[1][0] | occupied[1][1])
-            counts, _ = classify(*occupied[1], added)
+            counts, labels = classify(*occupied[1], added)
             if sum(counts.values()) != metrics['new_gap_pixels']:
                 raise ValueError('gap_context_count_mismatch')
+            if observe is not None:
+                observe(a, b, tick, metrics['rect'], labels.copy(), [m.copy() for m in occupied[1]])
             frames.append(dict(time=tick / 30, new_gap_pixels=metrics['new_gap_pixels'], **counts))
         records.append(dict(driver=a, follower=b, frames=frames,
                             totals={key: sum(f[key] for f in frames) for key in frames[0] if key != 'time'}))

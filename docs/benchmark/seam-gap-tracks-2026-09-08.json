@@ -1,0 +1,65 @@
+{
+  "date": "2026-09-08",
+  "authority": "none",
+  "production_authorized": false,
+  "tests_passed": 26,
+  "schema_checks": "all_three_passed",
+  "exact_track_replay": "all_three_passed",
+  "historical_context_identity": "all_three_unchanged",
+  "browser_controls": "all_three_passed",
+  "runtime": "not_rerun_unchanged_animation",
+  "full_suite": "not_run",
+  "records": [
+    {
+      "character": "alice",
+      "artifact_sha256": "21288b6bfbf0a68f641d1c0244f1e784eb85f7b41102f208af62aa6964c0e519",
+      "page_sha256": "8c701c8dc2ffd52b8b1b80e32e6ecc4155fd2f4fee7c4a47cd6ee1103a45fe12",
+      "screenshot_sha256": "a1686ddca67f07962c75513b83fc61655217e5df14309acc023bdb5dada9e65e",
+      "relations": [
+        {
+          "driver": "layer-001-l",
+          "pixel_samples": 7,
+          "tracks": 6,
+          "association_events": 0,
+          "max_observed_frames": 1
+        },
+        {
+          "driver": "layer-001-r",
+          "pixel_samples": 0,
+          "tracks": 0,
+          "association_events": 0,
+          "max_observed_frames": 0
+        }
+      ]
+    },
+    {
+      "character": "lingxian",
+      "artifact_sha256": "fb8a0aac3f02552465eacd59b898dee01e16a020a30294f00bc0bddadc1baf45",
+      "page_sha256": "41edac8964aaa5c4adee5db63d609d0dbf7e0467c3c07c39032bcb2e115fd3a1",
+      "screenshot_sha256": "7e06a4b37c39ae9bda9bc639a40544d455a2efac14749cfc26bf432f9f81ce05",
+      "relations": []
+    },
+    {
+      "character": "crino",
+      "artifact_sha256": "f3c3ae16552c875d988f441b09e4bec186c89e919aa57cd894120328ea43ed0b",
+      "page_sha256": "ea625e052b8bcf34727da3bfb5aee63c5ce36c7ba1fdcdc0c7b91e80963de1eb",
+      "screenshot_sha256": "a2e3075843cb59d6f48da0450f8d1dbefda2acefb93409445283276a1f65a2c8",
+      "relations": [
+        {
+          "driver": "layer-005-l",
+          "pixel_samples": 99,
+          "tracks": 70,
+          "association_events": 0,
+          "max_observed_frames": 1
+        },
+        {
+          "driver": "layer-005-r",
+          "pixel_samples": 212,
+          "tracks": 107,
+          "association_events": 0,
+          "max_observed_frames": 1
+        }
+      ]
+    }
+  ]
+}

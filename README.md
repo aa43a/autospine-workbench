@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[新增空白跨帧轨迹](docs/how-to-seam-gap-tracks.md)已加入连通区域、世界坐标、保守关联和帧滑块复核页。
+Alice 左侧 7 个样本形成 6 条候选轨迹；部分连续帧位移超过 3px，不能据此认定短暂噪声。下一步验证运动补偿关联，候选仍未采用。
+
 [固定 deform 有界增量](docs/how-to-seam-increment.md)使四处原对应增距均低于 2 px，12 个区域无翻转；Alice 右侧空白峰值 3 → 1，且无新增空白帧。
 新增[空白局部支撑分类](docs/how-to-seam-gap-context.md)：Alice 左侧 7 个跨帧新增像素样本均有相对附件支撑；琪露诺 311 个中 243 个仅有单附件支撑。标签尚不证明裂缝或外轮廓变化，候选未采用；下一步定位并校准这些证据。
 
