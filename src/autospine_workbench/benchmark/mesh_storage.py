@@ -12,7 +12,7 @@ from .artifacts import _folder
 
 MAX_BYTES=16*1024*1024
 KIND='weighted-mesh-candidates'
-SCHEMAS=('autospine.weighted-mesh-candidates/v1','autospine.weighted-mesh-refinement/v1','autospine.elbow-bake/v1')
+SCHEMAS=('autospine.weighted-mesh-candidates/v1','autospine.weighted-mesh-refinement/v1','autospine.elbow-bake/v1','autospine.partition-mesh/v1')
 
 
 def _read(path):

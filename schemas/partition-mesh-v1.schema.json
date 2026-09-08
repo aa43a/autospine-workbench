@@ -1,0 +1,308 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "autospine.partition-mesh/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "profile",
+    "authority",
+    "production_authorized",
+    "source_partitions_sha256",
+    "source_skeleton_sha256",
+    "residual_policy",
+    "residuals",
+    "layers",
+    "seam_status",
+    "runtime_status"
+  ],
+  "properties": {
+    "schema": {
+      "const": "autospine.partition-mesh/v1"
+    },
+    "profile": {
+      "const": "partition-joint-plane-grid-v1"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "production_authorized": {
+      "const": false
+    },
+    "source_partitions_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "source_skeleton_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "residual_policy": {
+      "const": "retain_original"
+    },
+    "residuals": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "layer_id",
+          "file",
+          "sha256",
+          "status"
+        ],
+        "properties": {
+          "layer_id": {
+            "type": "string"
+          },
+          "file": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "status": {
+            "const": "preserved_unbound"
+          }
+        }
+      }
+    },
+    "layers": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 512,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "layer_id",
+          "source_layer_id",
+          "side",
+          "image_sha256",
+          "bone_ids",
+          "status",
+          "reason_codes",
+          "vertices_xy",
+          "uvs",
+          "triangles",
+          "weights",
+          "qa",
+          "raster_qa"
+        ],
+        "properties": {
+          "layer_id": {
+            "type": "string"
+          },
+          "source_layer_id": {
+            "type": "string"
+          },
+          "side": {
+            "enum": [
+              "l",
+              "r"
+            ]
+          },
+          "image_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "bone_ids": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 3,
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "enum": [
+              "blocked",
+              "candidate_requires_review"
+            ]
+          },
+          "reason_codes": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 10,
+            "items": {
+              "type": "string"
+            }
+          },
+          "vertices_xy": {
+            "type": "array",
+            "minItems": 0,
+            "maxItems": 4096,
+            "items": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number"
+              }
+            }
+          },
+          "uvs": {
+            "type": "array",
+            "minItems": 0,
+            "maxItems": 4096,
+            "items": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number"
+              }
+            }
+          },
+          "triangles": {
+            "type": "array",
+            "minItems": 0,
+            "maxItems": 8192,
+            "items": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          "weights": {
+            "type": "array",
+            "minItems": 0,
+            "maxItems": 4096,
+            "items": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 3,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "bone_id",
+                  "weight",
+                  "local_xy"
+                ],
+                "properties": {
+                  "bone_id": {
+                    "type": "string"
+                  },
+                  "weight": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "local_xy": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 2,
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "qa": {
+            "anyOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "passed",
+                  "setup_max_error",
+                  "weight_sum_max_error",
+                  "probes"
+                ],
+                "properties": {
+                  "passed": {
+                    "type": "boolean"
+                  },
+                  "setup_max_error": {
+                    "type": "number"
+                  },
+                  "weight_sum_max_error": {
+                    "type": "number"
+                  },
+                  "probes": {
+                    "type": "array",
+                    "minItems": 9,
+                    "maxItems": 27,
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "id",
+                        "inversions",
+                        "min_area_ratio",
+                        "max_area_ratio",
+                        "max_edge_stretch"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "inversions": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "min_area_ratio": {
+                          "type": "number"
+                        },
+                        "max_area_ratio": {
+                          "type": "number"
+                        },
+                        "max_edge_stretch": {
+                          "type": "number"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          "raster_qa": {
+            "anyOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "uncovered_alpha_pixels",
+                  "uncovered_alpha_sum"
+                ],
+                "properties": {
+                  "uncovered_alpha_pixels": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "uncovered_alpha_sum": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "seam_status": {
+      "const": "not_evaluated"
+    },
+    "runtime_status": {
+      "const": "not_evaluated"
+    }
+  }
+}

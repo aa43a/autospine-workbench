@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+`build-partition-mesh` 对精确分区建立左右独立网格、单骨/三骨权重，验证逐关节变形与alpha覆盖。
+失败候选保留并阻塞，见[说明](how-to-partition-mesh.md)。
+
 `review-partition-residuals` 生成残余规则对照、可撤销草稿及精确来源回放报告。
 新草稿默认pending，试算不改变已保存分区，见[说明](how-to-residual-review.md)。
 

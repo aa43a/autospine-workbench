@@ -106,10 +106,15 @@ def parser():
     register_partition_parser(sub)
     from .residual_cli import register_parser as register_residual_parser
     register_residual_parser(sub)
+    from .partition_mesh_cli import register_parser as register_partition_mesh_parser
+    register_partition_mesh_parser(sub)
     return result
 
 
 def _execute(args):
+    if args.command == 'build-partition-mesh':
+        from .partition_mesh_cli import execute
+        return execute(args)
     if args.command == 'review-partition-residuals':
         from .residual_cli import execute
         return execute(args)

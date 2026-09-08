@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[分区多区域权重实验](docs/how-to-partition-mesh.md)已生成12个左右独立区域网格，setup数值重建通过；
+远端关节翻转与alpha覆盖缺口已定位，当前12个区域均阻塞，尚未通过R3验收。
+
 [残余归属复核](docs/how-to-residual-review.md)提供4px规则试算、alpha贡献对照和可撤销草稿；
 六层试算补全673个低alpha像素，默认待复核，旧分区与绑定不变。
 

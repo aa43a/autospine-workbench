@@ -1,0 +1,2090 @@
+{
+  "date": "2026-09-08",
+  "authority": "none",
+  "records": [
+    {
+      "character_id": "alice",
+      "artifact_sha256": "830a5e2e54b4387108e00f8e03a09a85c8d68389f514e7b2cede87ac99c36ac0",
+      "regions": [
+        {
+          "layer_id": "layer-001-l",
+          "status": "blocked",
+          "reason_codes": [
+            "experimental_partition_mesh",
+            "binding_not_adopted",
+            "partition_deformation_qa_failed"
+          ],
+          "bone_ids": [
+            "thigh_l",
+            "calf_l",
+            "foot_l"
+          ],
+          "qa": {
+            "passed": false,
+            "probes": [
+              {
+                "id": "thigh_l_-90",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000207,
+                "max_edge_stretch": 1.0000000000000207,
+                "min_area_ratio": 0.9999999999999793
+              },
+              {
+                "id": "thigh_l_-60",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000313,
+                "max_edge_stretch": 1.0000000000000193,
+                "min_area_ratio": 0.9999999999999748
+              },
+              {
+                "id": "thigh_l_-30",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000222,
+                "max_edge_stretch": 1.0000000000000209,
+                "min_area_ratio": 0.9999999999999711
+              },
+              {
+                "id": "thigh_l_-15",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000404,
+                "max_edge_stretch": 1.0000000000000278,
+                "min_area_ratio": 0.9999999999999751
+              },
+              {
+                "id": "thigh_l_+0",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000207,
+                "max_edge_stretch": 1.0000000000000207,
+                "min_area_ratio": 0.9999999999999793
+              },
+              {
+                "id": "thigh_l_+15",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000258,
+                "max_edge_stretch": 1.0000000000000204,
+                "min_area_ratio": 0.9999999999999751
+              },
+              {
+                "id": "thigh_l_+30",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000215,
+                "max_edge_stretch": 1.000000000000013,
+                "min_area_ratio": 0.9999999999999796
+              },
+              {
+                "id": "thigh_l_+60",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000017,
+                "max_edge_stretch": 1.000000000000013,
+                "min_area_ratio": 0.9999999999999799
+              },
+              {
+                "id": "thigh_l_+90",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000155,
+                "max_edge_stretch": 1.0000000000000113,
+                "min_area_ratio": 0.9999999999999845
+              },
+              {
+                "id": "calf_l_-90",
+                "inversions": 0,
+                "max_area_ratio": 1.310197898777185,
+                "max_edge_stretch": 1.4264927262297589,
+                "min_area_ratio": 0.28892650805674513
+              },
+              {
+                "id": "calf_l_-60",
+                "inversions": 0,
+                "max_area_ratio": 1.241903046316584,
+                "max_edge_stretch": 1.3183366077700542,
+                "min_area_ratio": 0.5624827021707348
+              },
+              {
+                "id": "calf_l_-30",
+                "inversions": 0,
+                "max_area_ratio": 1.1292731350396237,
+                "max_edge_stretch": 1.1674448508329263,
+                "min_area_ratio": 0.8227536641796794
+              },
+              {
+                "id": "calf_l_-15",
+                "inversions": 0,
+                "max_area_ratio": 1.0707704231394737,
+                "max_edge_stretch": 1.08326449447325,
+                "min_area_ratio": 0.9254335183485303
+              },
+              {
+                "id": "calf_l_+0",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000207,
+                "max_edge_stretch": 1.0000000000000207,
+                "min_area_ratio": 0.9999999999999793
+              },
+              {
+                "id": "calf_l_+15",
+                "inversions": 0,
+                "max_area_ratio": 1.0517547165826304,
+                "max_edge_stretch": 1.0648427725238858,
+                "min_area_ratio": 0.8990693047726361
+              },
+              {
+                "id": "calf_l_+30",
+                "inversions": 0,
+                "max_area_ratio": 1.0954161171478685,
+                "max_edge_stretch": 1.1284346480239742,
+                "min_area_ratio": 0.7717712549931833
+              },
+              {
+                "id": "calf_l_+60",
+                "inversions": 0,
+                "max_area_ratio": 1.1766324239755936,
+                "max_edge_stretch": 1.2509723534887598,
+                "min_area_ratio": 0.47397939305307996
+              },
+              {
+                "id": "calf_l_+90",
+                "inversions": 0,
+                "max_area_ratio": 1.2707795486351645,
+                "max_edge_stretch": 1.3579540567480732,
+                "min_area_ratio": 0.18641750309915436
+              },
+              {
+                "id": "foot_l_-90",
+                "inversions": 3,
+                "max_area_ratio": 2.408072765936258,
+                "max_edge_stretch": 3.1839304827684547,
+                "min_area_ratio": -0.800212777267637
+              },
+              {
+                "id": "foot_l_-60",
+                "inversions": 3,
+                "max_area_ratio": 2.345214435423254,
+                "max_edge_stretch": 2.6167679685078755,
+                "min_area_ratio": -0.46566025443038744
+              },
+              {
+                "id": "foot_l_-30",
+                "inversions": 0,
+                "max_area_ratio": 1.829824032713576,
+                "max_edge_stretch": 1.8716167346278931,
+                "min_area_ratio": 0.19326335426691102
+              },
+              {
+                "id": "foot_l_-15",
+                "inversions": 0,
+                "max_area_ratio": 1.4416714779289705,
+                "max_edge_stretch": 1.4479405196545272,
+                "min_area_ratio": 0.5914010153608601
+              },
+              {
+                "id": "foot_l_+0",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000207,
+                "max_edge_stretch": 1.0000000000000207,
+                "min_area_ratio": 0.9999999999999793
+              },
+              {
+                "id": "foot_l_+15",
+                "inversions": 0,
+                "max_area_ratio": 1.3912149626229011,
+                "max_edge_stretch": 1.3962671339608295,
+                "min_area_ratio": 0.5349087802509582
+              },
+              {
+                "id": "foot_l_+30",
+                "inversions": 0,
+                "max_area_ratio": 1.7383852500401185,
+                "max_edge_stretch": 1.7702849115590948,
+                "min_area_ratio": 0.0780930167081088
+              },
+              {
+                "id": "foot_l_+60",
+                "inversions": 1,
+                "max_area_ratio": 2.2105693729359466,
+                "max_edge_stretch": 2.4235535431451156,
+                "min_area_ratio": -0.6888726854924604
+              },
+              {
+                "id": "foot_l_+90",
+                "inversions": 3,
+                "max_area_ratio": 2.2900310142787665,
+                "max_edge_stretch": 2.912903721339978,
+                "min_area_ratio": -1.0953892660746711
+              }
+            ],
+            "setup_max_error": 1.6077746776921858e-13,
+            "weight_sum_max_error": 0.0
+          },
+          "raster_qa": {
+            "uncovered_alpha_pixels": 0,
+            "uncovered_alpha_sum": 0
+          }
+        },
+        {
+          "layer_id": "layer-001-r",
+          "status": "blocked",
+          "reason_codes": [
+            "experimental_partition_mesh",
+            "binding_not_adopted",
+            "partition_deformation_qa_failed",
+            "partition_raster_support_incomplete"
+          ],
+          "bone_ids": [
+            "thigh_r",
+            "calf_r",
+            "foot_r"
+          ],
+          "qa": {
+            "passed": false,
+            "probes": [
+              {
+                "id": "thigh_r_-90",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000258,
+                "max_edge_stretch": 1.0000000000000155,
+                "min_area_ratio": 0.9999999999999793
+              },
+              {
+                "id": "thigh_r_-60",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000313,
+                "max_edge_stretch": 1.0000000000000193,
+                "min_area_ratio": 0.9999999999999659
+              },
+              {
+                "id": "thigh_r_-30",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000026,
+                "max_edge_stretch": 1.0000000000000158,
+                "min_area_ratio": 0.99999999999998
+              },
+              {
+                "id": "thigh_r_-15",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000175,
+                "max_edge_stretch": 1.0000000000000164,
+                "min_area_ratio": 0.9999999999999777
+              },
+              {
+                "id": "thigh_r_+0",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000155,
+                "max_edge_stretch": 1.0000000000000104,
+                "min_area_ratio": 0.9999999999999845
+              },
+              {
+                "id": "thigh_r_+15",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000019,
+                "max_edge_stretch": 1.000000000000015,
+                "min_area_ratio": 0.9999999999999815
+              },
+              {
+                "id": "thigh_r_+30",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000017,
+                "max_edge_stretch": 1.000000000000013,
+                "min_area_ratio": 0.9999999999999806
+              },
+              {
+                "id": "thigh_r_+60",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000017,
+                "max_edge_stretch": 1.0000000000000104,
+                "min_area_ratio": 0.99999999999998
+              },
+              {
+                "id": "thigh_r_+90",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000155,
+                "max_edge_stretch": 1.0000000000000104,
+                "min_area_ratio": 0.9999999999999845
+              },
+              {
+                "id": "calf_r_-90",
+                "inversions": 0,
+                "max_area_ratio": 1.2680770732778954,
+                "max_edge_stretch": 1.3416691959178544,
+                "min_area_ratio": 0.22060286030795392
+              },
+              {
+                "id": "calf_r_-60",
+                "inversions": 0,
+                "max_area_ratio": 1.1715330828775168,
+                "max_edge_stretch": 1.2321663799065006,
+                "min_area_ratio": 0.5067820504710344
+              },
+              {
+                "id": "calf_r_-30",
+                "inversions": 0,
+                "max_area_ratio": 1.083919326278603,
+                "max_edge_stretch": 1.115075196133513,
+                "min_area_ratio": 0.7920612032352445
+              },
+              {
+                "id": "calf_r_-15",
+                "inversions": 0,
+                "max_area_ratio": 1.0505071831409507,
+                "max_edge_stretch": 1.0610283684488693,
+                "min_area_ratio": 0.9098802959037167
+              },
+              {
+                "id": "calf_r_+0",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000155,
+                "max_edge_stretch": 1.0000000000000104,
+                "min_area_ratio": 0.9999999999999845
+              },
+              {
+                "id": "calf_r_+15",
+                "inversions": 0,
+                "max_area_ratio": 1.0637473387770076,
+                "max_edge_stretch": 1.0745474299287867,
+                "min_area_ratio": 0.9175736606589905
+              },
+              {
+                "id": "calf_r_+30",
+                "inversions": 0,
+                "max_area_ratio": 1.1188957953433718,
+                "max_edge_stretch": 1.150033940086853,
+                "min_area_ratio": 0.8088453839280344
+              },
+              {
+                "id": "calf_r_+60",
+                "inversions": 0,
+                "max_area_ratio": 1.2132964083542515,
+                "max_edge_stretch": 1.2854379645322926,
+                "min_area_ratio": 0.543409105807906
+              },
+              {
+                "id": "calf_r_+90",
+                "inversions": 0,
+                "max_area_ratio": 1.3039259308962787,
+                "max_edge_stretch": 1.39653263331382,
+                "min_area_ratio": 0.274814602003822
+              },
+              {
+                "id": "foot_r_-90",
+                "inversions": 1,
+                "max_area_ratio": 2.220559917981759,
+                "max_edge_stretch": 3.636427201732076,
+                "min_area_ratio": -0.7567562899623113
+              },
+              {
+                "id": "foot_r_-60",
+                "inversions": 1,
+                "max_area_ratio": 2.3585702335135763,
+                "max_edge_stretch": 2.9355626604687957,
+                "min_area_ratio": -0.32936327846771
+              },
+              {
+                "id": "foot_r_-30",
+                "inversions": 0,
+                "max_area_ratio": 1.911814296691216,
+                "max_edge_stretch": 2.0355291659291677,
+                "min_area_ratio": 0.3136541519165877
+              },
+              {
+                "id": "foot_r_-15",
+                "inversions": 0,
+                "max_area_ratio": 1.5010505801309617,
+                "max_edge_stretch": 1.5300480629473727,
+                "min_area_ratio": 0.663228611532055
+              },
+              {
+                "id": "foot_r_+0",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000155,
+                "max_edge_stretch": 1.0000000000000104,
+                "min_area_ratio": 0.9999999999999845
+              },
+              {
+                "id": "foot_r_+15",
+                "inversions": 0,
+                "max_area_ratio": 1.3010179037373832,
+                "max_edge_stretch": 1.3109957776121421,
+                "min_area_ratio": 0.4428083253090443
+              },
+              {
+                "id": "foot_r_+30",
+                "inversions": 1,
+                "max_area_ratio": 1.5457684500601012,
+                "max_edge_stretch": 1.603227806843134,
+                "min_area_ratio": -0.13255275211450385
+              },
+              {
+                "id": "foot_r_+60",
+                "inversions": 3,
+                "max_area_ratio": 1.8047212866489133,
+                "max_edge_stretch": 2.1059689684551337,
+                "min_area_ratio": -1.1823773643375775
+              },
+              {
+                "id": "foot_r_+90",
+                "inversions": 3,
+                "max_area_ratio": 1.7074723063246944,
+                "max_edge_stretch": 2.46873149018295,
+                "min_area_ratio": -1.8681741796297517
+              }
+            ],
+            "setup_max_error": 1.1368683772161603e-13,
+            "weight_sum_max_error": 0.0
+          },
+          "raster_qa": {
+            "uncovered_alpha_pixels": 1,
+            "uncovered_alpha_sum": 1
+          }
+        },
+        {
+          "layer_id": "layer-002-l",
+          "status": "blocked",
+          "reason_codes": [
+            "experimental_partition_mesh",
+            "binding_not_adopted",
+            "partition_raster_support_incomplete"
+          ],
+          "bone_ids": [
+            "foot_l"
+          ],
+          "qa": {
+            "passed": true,
+            "probes": [
+              {
+                "id": "foot_l_-90",
+                "inversions": 0,
+                "max_area_ratio": 1.0,
+                "max_edge_stretch": 1.0,
+                "min_area_ratio": 1.0
+              },
+              {
+                "id": "foot_l_-60",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000017,
+                "max_edge_stretch": 1.0000000000000118,
+                "min_area_ratio": 0.9999999999999828
+              },
+              {
+                "id": "foot_l_-30",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000173,
+                "max_edge_stretch": 1.0000000000000118,
+                "min_area_ratio": 0.9999999999999891
+              },
+              {
+                "id": "foot_l_-15",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000127,
+                "max_edge_stretch": 1.000000000000013,
+                "min_area_ratio": 0.999999999999978
+              },
+              {
+                "id": "foot_l_+0",
+                "inversions": 0,
+                "max_area_ratio": 1.0,
+                "max_edge_stretch": 1.0,
+                "min_area_ratio": 1.0
+              },
+              {
+                "id": "foot_l_+15",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000113,
+                "max_edge_stretch": 1.0000000000000118,
+                "min_area_ratio": 0.999999999999987
+              },
+              {
+                "id": "foot_l_+30",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000011,
+                "max_edge_stretch": 1.0000000000000056,
+                "min_area_ratio": 0.9999999999999891
+              },
+              {
+                "id": "foot_l_+60",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000173,
+                "max_edge_stretch": 1.0000000000000118,
+                "min_area_ratio": 0.9999999999999828
+              },
+              {
+                "id": "foot_l_+90",
+                "inversions": 0,
+                "max_area_ratio": 1.0,
+                "max_edge_stretch": 1.0,
+                "min_area_ratio": 1.0
+              }
+            ],
+            "setup_max_error": 0.0,
+            "weight_sum_max_error": 0.0
+          },
+          "raster_qa": {
+            "uncovered_alpha_pixels": 13,
+            "uncovered_alpha_sum": 41
+          }
+        },
+        {
+          "layer_id": "layer-002-r",
+          "status": "blocked",
+          "reason_codes": [
+            "experimental_partition_mesh",
+            "binding_not_adopted",
+            "partition_raster_support_incomplete"
+          ],
+          "bone_ids": [
+            "foot_r"
+          ],
+          "qa": {
+            "passed": true,
+            "probes": [
+              {
+                "id": "foot_r_-90",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000127,
+                "max_edge_stretch": 1.0000000000000127,
+                "min_area_ratio": 0.9999999999999873
+              },
+              {
+                "id": "foot_r_-60",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000075,
+                "max_edge_stretch": 1.0000000000000056,
+                "min_area_ratio": 0.9999999999999906
+              },
+              {
+                "id": "foot_r_-30",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000015,
+                "max_edge_stretch": 1.0000000000000087,
+                "min_area_ratio": 0.9999999999999851
+              },
+              {
+                "id": "foot_r_-15",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000162,
+                "max_edge_stretch": 1.0000000000000133,
+                "min_area_ratio": 0.999999999999987
+              },
+              {
+                "id": "foot_r_+0",
+                "inversions": 0,
+                "max_area_ratio": 1.0,
+                "max_edge_stretch": 1.0,
+                "min_area_ratio": 1.0
+              },
+              {
+                "id": "foot_r_+15",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000014,
+                "max_edge_stretch": 1.0000000000000113,
+                "min_area_ratio": 0.99999999999998
+              },
+              {
+                "id": "foot_r_+30",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000011,
+                "max_edge_stretch": 1.0000000000000087,
+                "min_area_ratio": 0.9999999999999836
+              },
+              {
+                "id": "foot_r_+60",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000147,
+                "max_edge_stretch": 1.000000000000009,
+                "min_area_ratio": 0.9999999999999946
+              },
+              {
+                "id": "foot_r_+90",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000127,
+                "max_edge_stretch": 1.0000000000000127,
+                "min_area_ratio": 0.9999999999999873
+              }
+            ],
+            "setup_max_error": 0.0,
+            "weight_sum_max_error": 0.0
+          },
+          "raster_qa": {
+            "uncovered_alpha_pixels": 1,
+            "uncovered_alpha_sum": 2
+          }
+        }
+      ]
+    },
+    {
+      "character_id": "lingxian",
+      "artifact_sha256": "ff7f42f31bbe34aa91ce292cdc63c7e1b1b85d2a21392272db1efa31d893048c",
+      "regions": [
+        {
+          "layer_id": "layer-003-l",
+          "status": "blocked",
+          "reason_codes": [
+            "experimental_partition_mesh",
+            "binding_not_adopted",
+            "partition_deformation_qa_failed",
+            "partition_raster_support_incomplete"
+          ],
+          "bone_ids": [
+            "thigh_l",
+            "calf_l",
+            "foot_l"
+          ],
+          "qa": {
+            "passed": false,
+            "probes": [
+              {
+                "id": "thigh_l_-90",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000012,
+                "max_edge_stretch": 1.000000000000012,
+                "min_area_ratio": 0.999999999999982
+              },
+              {
+                "id": "thigh_l_-60",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000129,
+                "max_edge_stretch": 1.0000000000000095,
+                "min_area_ratio": 0.9999999999999828
+              },
+              {
+                "id": "thigh_l_-30",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000133,
+                "max_edge_stretch": 1.0000000000000095,
+                "min_area_ratio": 0.9999999999999828
+              },
+              {
+                "id": "thigh_l_-15",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000333,
+                "max_edge_stretch": 1.0000000000000304,
+                "min_area_ratio": 0.999999999999903
+              },
+              {
+                "id": "thigh_l_+0",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000006,
+                "max_edge_stretch": 1.000000000000006,
+                "min_area_ratio": 0.999999999999994
+              },
+              {
+                "id": "thigh_l_+15",
+                "inversions": 0,
+                "max_area_ratio": 1.00000000000003,
+                "max_edge_stretch": 1.0000000000000304,
+                "min_area_ratio": 0.9999999999999233
+              },
+              {
+                "id": "thigh_l_+30",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000144,
+                "max_edge_stretch": 1.0000000000000124,
+                "min_area_ratio": 0.9999999999999828
+              },
+              {
+                "id": "thigh_l_+60",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000147,
+                "max_edge_stretch": 1.000000000000011,
+                "min_area_ratio": 0.999999999999983
+              },
+              {
+                "id": "thigh_l_+90",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000012,
+                "max_edge_stretch": 1.000000000000012,
+                "min_area_ratio": 0.999999999999988
+              },
+              {
+                "id": "calf_l_-90",
+                "inversions": 0,
+                "max_area_ratio": 1.278678076981438,
+                "max_edge_stretch": 1.38798328368053,
+                "min_area_ratio": 0.1666958173205107
+              },
+              {
+                "id": "calf_l_-60",
+                "inversions": 0,
+                "max_area_ratio": 1.213108548090853,
+                "max_edge_stretch": 1.2755071478465652,
+                "min_area_ratio": 0.4585033462865673
+              },
+              {
+                "id": "calf_l_-30",
+                "inversions": 0,
+                "max_area_ratio": 1.111105292437846,
+                "max_edge_stretch": 1.1348113621251035,
+                "min_area_ratio": 0.763513846227092
+              },
+              {
+                "id": "calf_l_-15",
+                "inversions": 0,
+                "max_area_ratio": 1.0547912669245043,
+                "max_edge_stretch": 1.0639855193907042,
+                "min_area_ratio": 0.8949494885445418
+              },
+              {
+                "id": "calf_l_+0",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000006,
+                "max_edge_stretch": 1.000000000000006,
+                "min_area_ratio": 0.999999999999994
+              },
+              {
+                "id": "calf_l_+15",
+                "inversions": 0,
+                "max_area_ratio": 1.0764391174704953,
+                "max_edge_stretch": 1.0874417031980828,
+                "min_area_ratio": 0.9201416743412427
+              },
+              {
+                "id": "calf_l_+30",
+                "inversions": 0,
+                "max_area_ratio": 1.137766210692211,
+                "max_edge_stretch": 1.1704881504734184,
+                "min_area_ratio": 0.8124973016171508
+              },
+              {
+                "id": "calf_l_+60",
+                "inversions": 0,
+                "max_area_ratio": 1.2304110869889522,
+                "max_edge_stretch": 1.3082534960839878,
+                "min_area_ratio": 0.5445872109030891
+              },
+              {
+                "id": "calf_l_+90",
+                "inversions": 0,
+                "max_area_ratio": 1.3312171254360632,
+                "max_edge_stretch": 1.4214760488102254,
+                "min_area_ratio": 0.26805602030877845
+              },
+              {
+                "id": "foot_l_-90",
+                "inversions": 3,
+                "max_area_ratio": 1.7640775039757213,
+                "max_edge_stretch": 1.862008314845717,
+                "min_area_ratio": -1.3040935263157902
+              },
+              {
+                "id": "foot_l_-60",
+                "inversions": 1,
+                "max_area_ratio": 1.6309332476960132,
+                "max_edge_stretch": 1.6526725246380807,
+                "min_area_ratio": -0.6786096183210311
+              },
+              {
+                "id": "foot_l_-30",
+                "inversions": 0,
+                "max_area_ratio": 1.3512614707806974,
+                "max_edge_stretch": 1.352151753179369,
+                "min_area_ratio": 0.16474714500581622
+              },
+              {
+                "id": "foot_l_-15",
+                "inversions": 0,
+                "max_area_ratio": 1.1788601158820524,
+                "max_edge_stretch": 1.178860955951154,
+                "min_area_ratio": 0.5981727374755308
+              },
+              {
+                "id": "foot_l_+0",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000006,
+                "max_edge_stretch": 1.000000000000006,
+                "min_area_ratio": 0.999999999999994
+              },
+              {
+                "id": "foot_l_+15",
+                "inversions": 0,
+                "max_area_ratio": 1.3428450686891247,
+                "max_edge_stretch": 1.3703197194530496,
+                "min_area_ratio": 0.8268701444515726
+              },
+              {
+                "id": "foot_l_+30",
+                "inversions": 0,
+                "max_area_ratio": 1.6033436186900334,
+                "max_edge_stretch": 1.7210290174062806,
+                "min_area_ratio": 0.6712690627818033
+              },
+              {
+                "id": "foot_l_+60",
+                "inversions": 0,
+                "max_area_ratio": 1.813112565689455,
+                "max_edge_stretch": 2.3334245420817674,
+                "min_area_ratio": 0.45315184828081456
+              },
+              {
+                "id": "foot_l_+90",
+                "inversions": 0,
+                "max_area_ratio": 1.777777736842106,
+                "max_edge_stretch": 2.789890457800533,
+                "min_area_ratio": 0.0321832103009346
+              }
+            ],
+            "setup_max_error": 1.1368683772161603e-13,
+            "weight_sum_max_error": 0.0
+          },
+          "raster_qa": {
+            "uncovered_alpha_pixels": 7,
+            "uncovered_alpha_sum": 21
+          }
+        },
+        {
+          "layer_id": "layer-003-r",
+          "status": "blocked",
+          "reason_codes": [
+            "experimental_partition_mesh",
+            "binding_not_adopted",
+            "partition_deformation_qa_failed"
+          ],
+          "bone_ids": [
+            "thigh_r",
+            "calf_r",
+            "foot_r"
+          ],
+          "qa": {
+            "passed": false,
+            "probes": [
+              {
+                "id": "thigh_r_-90",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000006,
+                "max_edge_stretch": 1.000000000000006,
+                "min_area_ratio": 0.999999999999994
+              },
+              {
+                "id": "thigh_r_-60",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000147,
+                "max_edge_stretch": 1.0000000000000095,
+                "min_area_ratio": 0.9999999999999828
+              },
+              {
+                "id": "thigh_r_-30",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000147,
+                "max_edge_stretch": 1.0000000000000124,
+                "min_area_ratio": 0.9999999999999828
+              },
+              {
+                "id": "thigh_r_-15",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000333,
+                "max_edge_stretch": 1.0000000000000304,
+                "min_area_ratio": 0.999999999999985
+              },
+              {
+                "id": "thigh_r_+0",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000012,
+                "max_edge_stretch": 1.000000000000006,
+                "min_area_ratio": 0.999999999999988
+              },
+              {
+                "id": "thigh_r_+15",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000302,
+                "max_edge_stretch": 1.0000000000000304,
+                "min_area_ratio": 0.9999999999999101
+              },
+              {
+                "id": "thigh_r_+30",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000016,
+                "max_edge_stretch": 1.0000000000000102,
+                "min_area_ratio": 0.9999999999999828
+              },
+              {
+                "id": "thigh_r_+60",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000098,
+                "max_edge_stretch": 1.0000000000000095,
+                "min_area_ratio": 0.9999999999999887
+              },
+              {
+                "id": "thigh_r_+90",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000149,
+                "max_edge_stretch": 1.000000000000012,
+                "min_area_ratio": 0.999999999999991
+              },
+              {
+                "id": "calf_r_-90",
+                "inversions": 0,
+                "max_area_ratio": 1.3093458625326482,
+                "max_edge_stretch": 1.4040129170824704,
+                "min_area_ratio": 0.2465763080328169
+              },
+              {
+                "id": "calf_r_-60",
+                "inversions": 0,
+                "max_area_ratio": 1.2058722251584908,
+                "max_edge_stretch": 1.2956335409281812,
+                "min_area_ratio": 0.521060699566878
+              },
+              {
+                "id": "calf_r_-30",
+                "inversions": 0,
+                "max_area_ratio": 1.1265597968644634,
+                "max_edge_stretch": 1.164570326575766,
+                "min_area_ratio": 0.7968329106399149
+              },
+              {
+                "id": "calf_r_-15",
+                "inversions": 0,
+                "max_area_ratio": 1.07508122019579,
+                "max_edge_stretch": 1.0875704810582227,
+                "min_area_ratio": 0.9115585803799402
+              },
+              {
+                "id": "calf_r_+0",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000012,
+                "max_edge_stretch": 1.000000000000006,
+                "min_area_ratio": 0.999999999999988
+              },
+              {
+                "id": "calf_r_+15",
+                "inversions": 0,
+                "max_area_ratio": 1.0561300329093564,
+                "max_edge_stretch": 1.0672997985292845,
+                "min_area_ratio": 0.9004728787727854
+              },
+              {
+                "id": "calf_r_+30",
+                "inversions": 0,
+                "max_area_ratio": 1.0871273336405944,
+                "max_edge_stretch": 1.1238859212121937,
+                "min_area_ratio": 0.7832824653494138
+              },
+              {
+                "id": "calf_r_+60",
+                "inversions": 0,
+                "max_area_ratio": 1.1797819610710842,
+                "max_edge_stretch": 1.2431132336322324,
+                "min_area_ratio": 0.5118742330480338
+              },
+              {
+                "id": "calf_r_+90",
+                "inversions": 0,
+                "max_area_ratio": 1.2674011001780192,
+                "max_edge_stretch": 1.3383875554842295,
+                "min_area_ratio": 0.22196411985808143
+              },
+              {
+                "id": "foot_r_-90",
+                "inversions": 3,
+                "max_area_ratio": 1.321959995147616,
+                "max_edge_stretch": 2.4898343069017783,
+                "min_area_ratio": -0.7765254026203822
+              },
+              {
+                "id": "foot_r_-60",
+                "inversions": 2,
+                "max_area_ratio": 1.6056091095615663,
+                "max_edge_stretch": 2.119992026908815,
+                "min_area_ratio": -0.3745572410924652
+              },
+              {
+                "id": "foot_r_-30",
+                "inversions": 0,
+                "max_area_ratio": 1.487763572335215,
+                "max_edge_stretch": 1.609751380911596,
+                "min_area_ratio": 0.1869733543363308
+              },
+              {
+                "id": "foot_r_-15",
+                "inversions": 0,
+                "max_area_ratio": 1.2839792015047335,
+                "max_edge_stretch": 1.3139776795376392,
+                "min_area_ratio": 0.5747168313366944
+              },
+              {
+                "id": "foot_r_+0",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000012,
+                "max_edge_stretch": 1.000000000000006,
+                "min_area_ratio": 0.999999999999988
+              },
+              {
+                "id": "foot_r_+15",
+                "inversions": 0,
+                "max_area_ratio": 1.4338405151955058,
+                "max_edge_stretch": 1.4340422506071084,
+                "min_area_ratio": 0.6551786811057436
+              },
+              {
+                "id": "foot_r_+30",
+                "inversions": 0,
+                "max_area_ratio": 1.8466728627679578,
+                "max_edge_stretch": 1.8535544676966833,
+                "min_area_ratio": 0.2730142478604467
+              },
+              {
+                "id": "foot_r_+60",
+                "inversions": 1,
+                "max_area_ratio": 2.5001266328082004,
+                "max_edge_stretch": 2.6020421587746103,
+                "min_area_ratio": -0.49839843888872154
+              },
+              {
+                "id": "foot_r_+90",
+                "inversions": 1,
+                "max_area_ratio": 2.7852689001473734,
+                "max_edge_stretch": 3.1798235896261287,
+                "min_area_ratio": -1.107538653801929
+              }
+            ],
+            "setup_max_error": 1.6077746776921858e-13,
+            "weight_sum_max_error": 0.0
+          },
+          "raster_qa": {
+            "uncovered_alpha_pixels": 0,
+            "uncovered_alpha_sum": 0
+          }
+        }
+      ]
+    },
+    {
+      "character_id": "crino",
+      "artifact_sha256": "58028eca21926acef1920d0b62866e98f44795e375339c10a08aa082c2bbc958",
+      "regions": [
+        {
+          "layer_id": "layer-004-l",
+          "status": "blocked",
+          "reason_codes": [
+            "experimental_partition_mesh",
+            "binding_not_adopted",
+            "partition_deformation_qa_failed"
+          ],
+          "bone_ids": [
+            "upperarm_l",
+            "forearm_l",
+            "hand_l"
+          ],
+          "qa": {
+            "passed": false,
+            "probes": [
+              {
+                "id": "upperarm_l_-90",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000133,
+                "max_edge_stretch": 1.0000000000000133,
+                "min_area_ratio": 0.9999999999999867
+              },
+              {
+                "id": "upperarm_l_-60",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000107,
+                "max_edge_stretch": 1.0000000000000058,
+                "min_area_ratio": 0.9999999999999837
+              },
+              {
+                "id": "upperarm_l_-30",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000006,
+                "max_edge_stretch": 1.0000000000000062,
+                "min_area_ratio": 0.9999999999999922
+              },
+              {
+                "id": "upperarm_l_-15",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000118,
+                "max_edge_stretch": 1.000000000000009,
+                "min_area_ratio": 0.9999999999999922
+              },
+              {
+                "id": "upperarm_l_+0",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000073,
+                "max_edge_stretch": 1.0000000000000049,
+                "min_area_ratio": 0.999999999999995
+              },
+              {
+                "id": "upperarm_l_+15",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000009,
+                "max_edge_stretch": 1.0000000000000064,
+                "min_area_ratio": 0.9999999999999897
+              },
+              {
+                "id": "upperarm_l_+30",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000082,
+                "max_edge_stretch": 1.0000000000000049,
+                "min_area_ratio": 0.9999999999999906
+              },
+              {
+                "id": "upperarm_l_+60",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000009,
+                "max_edge_stretch": 1.0000000000000073,
+                "min_area_ratio": 0.9999999999999915
+              },
+              {
+                "id": "upperarm_l_+90",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000075,
+                "max_edge_stretch": 1.0000000000000049,
+                "min_area_ratio": 0.9999999999999925
+              },
+              {
+                "id": "forearm_l_-90",
+                "inversions": 0,
+                "max_area_ratio": 1.3036033257890356,
+                "max_edge_stretch": 1.3359243515260233,
+                "min_area_ratio": 0.20911058519668332
+              },
+              {
+                "id": "forearm_l_-60",
+                "inversions": 0,
+                "max_area_ratio": 1.2342963547279693,
+                "max_edge_stretch": 1.2434520985527369,
+                "min_area_ratio": 0.5031610690108473
+              },
+              {
+                "id": "forearm_l_-30",
+                "inversions": 0,
+                "max_area_ratio": 1.1594236007939458,
+                "max_edge_stretch": 1.1443494942519776,
+                "min_area_ratio": 0.7740143664813206
+              },
+              {
+                "id": "forearm_l_-15",
+                "inversions": 0,
+                "max_area_ratio": 1.0952661712052512,
+                "max_edge_stretch": 1.0804519805609831,
+                "min_area_ratio": 0.8858795398158043
+              },
+              {
+                "id": "forearm_l_+0",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000073,
+                "max_edge_stretch": 1.0000000000000049,
+                "min_area_ratio": 0.999999999999995
+              },
+              {
+                "id": "forearm_l_+15",
+                "inversions": 0,
+                "max_area_ratio": 1.1085986262653558,
+                "max_edge_stretch": 1.0878886903379765,
+                "min_area_ratio": 0.8801173193110368
+              },
+              {
+                "id": "forearm_l_+30",
+                "inversions": 0,
+                "max_area_ratio": 1.2042746016995955,
+                "max_edge_stretch": 1.1672597076971678,
+                "min_area_ratio": 0.7437879357118026
+              },
+              {
+                "id": "forearm_l_+60",
+                "inversions": 0,
+                "max_area_ratio": 1.3335784059036153,
+                "max_edge_stretch": 1.2881393660428688,
+                "min_area_ratio": 0.4594392236464834
+              },
+              {
+                "id": "forearm_l_+90",
+                "inversions": 0,
+                "max_area_ratio": 1.3911063046244807,
+                "max_edge_stretch": 1.4161475445222687,
+                "min_area_ratio": 0.22314487157077417
+              },
+              {
+                "id": "hand_l_-90",
+                "inversions": 2,
+                "max_area_ratio": 3.2028695652173886,
+                "max_edge_stretch": 3.2970971812044336,
+                "min_area_ratio": -0.7971304347826091
+              },
+              {
+                "id": "hand_l_-60",
+                "inversions": 2,
+                "max_area_ratio": 2.647815225570918,
+                "max_edge_stretch": 2.651072574841653,
+                "min_area_ratio": -0.07305961077822053
+              },
+              {
+                "id": "hand_l_-30",
+                "inversions": 0,
+                "max_area_ratio": 1.841509003477773,
+                "max_edge_stretch": 1.8480270574784257,
+                "min_area_ratio": 0.3257355571475184
+              },
+              {
+                "id": "hand_l_-15",
+                "inversions": 0,
+                "max_area_ratio": 1.4105464241185008,
+                "max_edge_stretch": 1.4167963789131075,
+                "min_area_ratio": 0.6384942975861538
+              },
+              {
+                "id": "hand_l_+0",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000073,
+                "max_edge_stretch": 1.0000000000000049,
+                "min_area_ratio": 0.999999999999995
+              },
+              {
+                "id": "hand_l_+15",
+                "inversions": 0,
+                "max_area_ratio": 1.3856166481859864,
+                "max_edge_stretch": 1.2737212591914169,
+                "min_area_ratio": 0.6378477914659025
+              },
+              {
+                "id": "hand_l_+30",
+                "inversions": 0,
+                "max_area_ratio": 1.769065104831875,
+                "max_edge_stretch": 1.5315080482439538,
+                "min_area_ratio": 0.3487698730429894
+              },
+              {
+                "id": "hand_l_+60",
+                "inversions": 2,
+                "max_area_ratio": 2.4268604978764783,
+                "max_edge_stretch": 1.9732051477790682,
+                "min_area_ratio": -0.36028509672455766
+              },
+              {
+                "id": "hand_l_+90",
+                "inversions": 2,
+                "max_area_ratio": 2.7971304347826003,
+                "max_edge_stretch": 2.2867605489571505,
+                "min_area_ratio": -1.20286956521739
+              }
+            ],
+            "setup_max_error": 1.1368683772161603e-13,
+            "weight_sum_max_error": 0.0
+          },
+          "raster_qa": {
+            "uncovered_alpha_pixels": 0,
+            "uncovered_alpha_sum": 0
+          }
+        },
+        {
+          "layer_id": "layer-004-r",
+          "status": "blocked",
+          "reason_codes": [
+            "experimental_partition_mesh",
+            "binding_not_adopted",
+            "partition_deformation_qa_failed"
+          ],
+          "bone_ids": [
+            "upperarm_r",
+            "forearm_r",
+            "hand_r"
+          ],
+          "qa": {
+            "passed": false,
+            "probes": [
+              {
+                "id": "upperarm_r_-90",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000073,
+                "max_edge_stretch": 1.0000000000000049,
+                "min_area_ratio": 0.999999999999995
+              },
+              {
+                "id": "upperarm_r_-60",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000082,
+                "max_edge_stretch": 1.0000000000000049,
+                "min_area_ratio": 0.9999999999999883
+              },
+              {
+                "id": "upperarm_r_-30",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000007,
+                "max_edge_stretch": 1.0000000000000049,
+                "min_area_ratio": 0.9999999999999938
+              },
+              {
+                "id": "upperarm_r_-15",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000067,
+                "max_edge_stretch": 1.0000000000000064,
+                "min_area_ratio": 0.9999999999999886
+              },
+              {
+                "id": "upperarm_r_+0",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000005,
+                "max_edge_stretch": 1.0000000000000024,
+                "min_area_ratio": 0.999999999999995
+              },
+              {
+                "id": "upperarm_r_+15",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000078,
+                "max_edge_stretch": 1.0000000000000064,
+                "min_area_ratio": 0.999999999999994
+              },
+              {
+                "id": "upperarm_r_+30",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000047,
+                "max_edge_stretch": 1.0000000000000042,
+                "min_area_ratio": 0.9999999999999927
+              },
+              {
+                "id": "upperarm_r_+60",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000047,
+                "max_edge_stretch": 1.0000000000000042,
+                "min_area_ratio": 0.999999999999994
+              },
+              {
+                "id": "upperarm_r_+90",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000005,
+                "max_edge_stretch": 1.0000000000000024,
+                "min_area_ratio": 0.999999999999995
+              },
+              {
+                "id": "forearm_r_-90",
+                "inversions": 0,
+                "max_area_ratio": 1.3986153839292175,
+                "max_edge_stretch": 1.4595721559690396,
+                "min_area_ratio": 0.28163813399855825
+              },
+              {
+                "id": "forearm_r_-60",
+                "inversions": 0,
+                "max_area_ratio": 1.3657560343379374,
+                "max_edge_stretch": 1.3408991345648678,
+                "min_area_ratio": 0.5085265359916165
+              },
+              {
+                "id": "forearm_r_-30",
+                "inversions": 0,
+                "max_area_ratio": 1.2363793869007578,
+                "max_edge_stretch": 1.1882603050145766,
+                "min_area_ratio": 0.7714652280581397
+              },
+              {
+                "id": "forearm_r_-15",
+                "inversions": 0,
+                "max_area_ratio": 1.1357111960037256,
+                "max_edge_stretch": 1.1000675618699833,
+                "min_area_ratio": 0.894292892962771
+              },
+              {
+                "id": "forearm_r_+0",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000005,
+                "max_edge_stretch": 1.0000000000000024,
+                "min_area_ratio": 0.999999999999995
+              },
+              {
+                "id": "forearm_r_+15",
+                "inversions": 0,
+                "max_area_ratio": 1.0813827845144632,
+                "max_edge_stretch": 1.0702373824011087,
+                "min_area_ratio": 0.8384942926238713
+              },
+              {
+                "id": "forearm_r_+30",
+                "inversions": 0,
+                "max_area_ratio": 1.1328951442329425,
+                "max_edge_stretch": 1.1247989820115427,
+                "min_area_ratio": 0.6622004209322184
+              },
+              {
+                "id": "forearm_r_+60",
+                "inversions": 0,
+                "max_area_ratio": 1.1554468470291686,
+                "max_edge_stretch": 1.1980770361743833,
+                "min_area_ratio": 0.3134937741121993
+              },
+              {
+                "id": "forearm_r_+90",
+                "inversions": 0,
+                "max_area_ratio": 1.2166078846635315,
+                "max_edge_stretch": 1.2659460046860225,
+                "min_area_ratio": 0.04731572395072537
+              },
+              {
+                "id": "hand_r_-90",
+                "inversions": 1,
+                "max_area_ratio": 1.8430058813803993,
+                "max_edge_stretch": 1.8452295178171605,
+                "min_area_ratio": -1.2594244735980156
+              },
+              {
+                "id": "hand_r_-60",
+                "inversions": 1,
+                "max_area_ratio": 1.5923575379476815,
+                "max_edge_stretch": 1.59503767392085,
+                "min_area_ratio": -0.6276994418663121
+              },
+              {
+                "id": "hand_r_-30",
+                "inversions": 0,
+                "max_area_ratio": 1.283795969822766,
+                "max_edge_stretch": 1.2899228450200162,
+                "min_area_ratio": 0.19930731340284374
+              },
+              {
+                "id": "hand_r_-15",
+                "inversions": 0,
+                "max_area_ratio": 1.1336319131251003,
+                "max_edge_stretch": 1.1365554953200512,
+                "min_area_ratio": 0.6172406593964959
+              },
+              {
+                "id": "hand_r_+0",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000005,
+                "max_edge_stretch": 1.0000000000000024,
+                "min_area_ratio": 0.999999999999995
+              },
+              {
+                "id": "hand_r_+15",
+                "inversions": 0,
+                "max_area_ratio": 1.3215009186909572,
+                "max_edge_stretch": 1.299274472455286,
+                "min_area_ratio": 0.8809191804589213
+              },
+              {
+                "id": "hand_r_+30",
+                "inversions": 0,
+                "max_area_ratio": 1.5598336591659487,
+                "max_edge_stretch": 1.5967796152059828,
+                "min_area_ratio": 0.7471063918892228
+              },
+              {
+                "id": "hand_r_+60",
+                "inversions": 0,
+                "max_area_ratio": 1.728801314031409,
+                "max_edge_stretch": 2.1332212335291287,
+                "min_area_ratio": 0.44079008844236905
+              },
+              {
+                "id": "hand_r_+90",
+                "inversions": 0,
+                "max_area_ratio": 1.4616282179281936,
+                "max_edge_stretch": 2.5429581427616768,
+                "min_area_ratio": 0.15699411861960322
+              }
+            ],
+            "setup_max_error": 8.038873388460929e-14,
+            "weight_sum_max_error": 0.0
+          },
+          "raster_qa": {
+            "uncovered_alpha_pixels": 0,
+            "uncovered_alpha_sum": 0
+          }
+        },
+        {
+          "layer_id": "layer-005-l",
+          "status": "blocked",
+          "reason_codes": [
+            "experimental_partition_mesh",
+            "binding_not_adopted",
+            "partition_deformation_qa_failed",
+            "partition_raster_support_incomplete"
+          ],
+          "bone_ids": [
+            "thigh_l",
+            "calf_l",
+            "foot_l"
+          ],
+          "qa": {
+            "passed": false,
+            "probes": [
+              {
+                "id": "thigh_l_-90",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000018,
+                "max_edge_stretch": 1.000000000000012,
+                "min_area_ratio": 0.9999999999999772
+              },
+              {
+                "id": "thigh_l_-60",
+                "inversions": 0,
+                "max_area_ratio": 1.00000000000004,
+                "max_edge_stretch": 1.0000000000000353,
+                "min_area_ratio": 0.9999999999999798
+              },
+              {
+                "id": "thigh_l_-30",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000209,
+                "max_edge_stretch": 1.0000000000000164,
+                "min_area_ratio": 0.9999999999999499
+              },
+              {
+                "id": "thigh_l_-15",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000033,
+                "max_edge_stretch": 1.0000000000000304,
+                "min_area_ratio": 0.99999999999996
+              },
+              {
+                "id": "thigh_l_+0",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000018,
+                "max_edge_stretch": 1.000000000000012,
+                "min_area_ratio": 0.999999999999982
+              },
+              {
+                "id": "thigh_l_+15",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000333,
+                "max_edge_stretch": 1.0000000000000304,
+                "min_area_ratio": 0.9999999999999503
+              },
+              {
+                "id": "thigh_l_+30",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000198,
+                "max_edge_stretch": 1.0000000000000164,
+                "min_area_ratio": 0.9999999999999828
+              },
+              {
+                "id": "thigh_l_+60",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000198,
+                "max_edge_stretch": 1.0000000000000164,
+                "min_area_ratio": 0.9999999999999901
+              },
+              {
+                "id": "thigh_l_+90",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000012,
+                "max_edge_stretch": 1.000000000000006,
+                "min_area_ratio": 0.999999999999982
+              },
+              {
+                "id": "calf_l_-90",
+                "inversions": 0,
+                "max_area_ratio": 1.279644244354017,
+                "max_edge_stretch": 1.3714011487726494,
+                "min_area_ratio": 0.1849857472475012
+              },
+              {
+                "id": "calf_l_-60",
+                "inversions": 0,
+                "max_area_ratio": 1.2157443216915278,
+                "max_edge_stretch": 1.2828316682834742,
+                "min_area_ratio": 0.4770699384948336
+              },
+              {
+                "id": "calf_l_-30",
+                "inversions": 0,
+                "max_area_ratio": 1.1315119365931972,
+                "max_edge_stretch": 1.1672608393197528,
+                "min_area_ratio": 0.7553423881726674
+              },
+              {
+                "id": "calf_l_-15",
+                "inversions": 0,
+                "max_area_ratio": 1.0850061877341264,
+                "max_edge_stretch": 1.0920308033586,
+                "min_area_ratio": 0.8864119644721147
+              },
+              {
+                "id": "calf_l_+0",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000018,
+                "max_edge_stretch": 1.000000000000012,
+                "min_area_ratio": 0.999999999999982
+              },
+              {
+                "id": "calf_l_+15",
+                "inversions": 0,
+                "max_area_ratio": 1.0883656578482208,
+                "max_edge_stretch": 1.1000017879619879,
+                "min_area_ratio": 0.880560566891815
+              },
+              {
+                "id": "calf_l_+30",
+                "inversions": 0,
+                "max_area_ratio": 1.1454869644655807,
+                "max_edge_stretch": 1.1869962215486132,
+                "min_area_ratio": 0.7342814110502148
+              },
+              {
+                "id": "calf_l_+60",
+                "inversions": 0,
+                "max_area_ratio": 1.2752974341620773,
+                "max_edge_stretch": 1.3197914475102115,
+                "min_area_ratio": 0.4022283955934759
+              },
+              {
+                "id": "calf_l_+90",
+                "inversions": 0,
+                "max_area_ratio": 1.3882801051887612,
+                "max_edge_stretch": 1.4094202684787922,
+                "min_area_ratio": 0.09281429096577645
+              },
+              {
+                "id": "foot_l_-90",
+                "inversions": 3,
+                "max_area_ratio": 1.9835307467943006,
+                "max_edge_stretch": 2.368269264211645,
+                "min_area_ratio": -1.0670116867876052
+              },
+              {
+                "id": "foot_l_-60",
+                "inversions": 3,
+                "max_area_ratio": 1.9572786026553486,
+                "max_edge_stretch": 2.0389366743968904,
+                "min_area_ratio": -0.6004511839599083
+              },
+              {
+                "id": "foot_l_-30",
+                "inversions": 0,
+                "max_area_ratio": 1.5972813639255592,
+                "max_edge_stretch": 1.5717384442516498,
+                "min_area_ratio": 0.15612760332367762
+              },
+              {
+                "id": "foot_l_-15",
+                "inversions": 0,
+                "max_area_ratio": 1.3193448271079335,
+                "max_edge_stretch": 1.2964330131305226,
+                "min_area_ratio": 0.5814556774159799
+              },
+              {
+                "id": "foot_l_+0",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000018,
+                "max_edge_stretch": 1.000000000000012,
+                "min_area_ratio": 0.999999999999982
+              },
+              {
+                "id": "foot_l_+15",
+                "inversions": 0,
+                "max_area_ratio": 1.3832374671688157,
+                "max_edge_stretch": 1.3958030151629972,
+                "min_area_ratio": 0.6610097048268838
+              },
+              {
+                "id": "foot_l_+30",
+                "inversions": 0,
+                "max_area_ratio": 1.7270675780455447,
+                "max_edge_stretch": 1.7677324131034684,
+                "min_area_ratio": 0.3254755699966743
+              },
+              {
+                "id": "foot_l_+60",
+                "inversions": 1,
+                "max_area_ratio": 2.213747876844127,
+                "max_edge_stretch": 2.4150166196408485,
+                "min_area_ratio": -0.24555364978995736
+              },
+              {
+                "id": "foot_l_+90",
+                "inversions": 1,
+                "max_area_ratio": 2.3296353033603707,
+                "max_edge_stretch": 2.897728279880401,
+                "min_area_ratio": -0.5600808410634837
+              }
+            ],
+            "setup_max_error": 1.6077746776921858e-13,
+            "weight_sum_max_error": 0.0
+          },
+          "raster_qa": {
+            "uncovered_alpha_pixels": 6,
+            "uncovered_alpha_sum": 13
+          }
+        },
+        {
+          "layer_id": "layer-005-r",
+          "status": "blocked",
+          "reason_codes": [
+            "experimental_partition_mesh",
+            "binding_not_adopted",
+            "partition_deformation_qa_failed",
+            "partition_raster_support_incomplete"
+          ],
+          "bone_ids": [
+            "thigh_r",
+            "calf_r",
+            "foot_r"
+          ],
+          "qa": {
+            "passed": false,
+            "probes": [
+              {
+                "id": "thigh_r_-90",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000012,
+                "max_edge_stretch": 1.000000000000012,
+                "min_area_ratio": 0.999999999999976
+              },
+              {
+                "id": "thigh_r_-60",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000209,
+                "max_edge_stretch": 1.0000000000000215,
+                "min_area_ratio": 0.9999999999999586
+              },
+              {
+                "id": "thigh_r_-30",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000209,
+                "max_edge_stretch": 1.0000000000000164,
+                "min_area_ratio": 0.9999999999999871
+              },
+              {
+                "id": "thigh_r_-15",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000275,
+                "max_edge_stretch": 1.0000000000000304,
+                "min_area_ratio": 0.9999999999999512
+              },
+              {
+                "id": "thigh_r_+0",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000012,
+                "max_edge_stretch": 1.000000000000006,
+                "min_area_ratio": 0.999999999999988
+              },
+              {
+                "id": "thigh_r_+15",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000284,
+                "max_edge_stretch": 1.0000000000000255,
+                "min_area_ratio": 0.9999999999999492
+              },
+              {
+                "id": "thigh_r_+30",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000182,
+                "max_edge_stretch": 1.0000000000000164,
+                "min_area_ratio": 0.999999999999986
+              },
+              {
+                "id": "thigh_r_+60",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000115,
+                "max_edge_stretch": 1.0000000000000073,
+                "min_area_ratio": 0.9999999999999901
+              },
+              {
+                "id": "thigh_r_+90",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000006,
+                "max_edge_stretch": 1.000000000000006,
+                "min_area_ratio": 0.999999999999994
+              },
+              {
+                "id": "calf_r_-90",
+                "inversions": 0,
+                "max_area_ratio": 1.3281248608691574,
+                "max_edge_stretch": 1.363300621349508,
+                "min_area_ratio": 0.049371736196266613
+              },
+              {
+                "id": "calf_r_-60",
+                "inversions": 0,
+                "max_area_ratio": 1.2246991771724243,
+                "max_edge_stretch": 1.2653876187660322,
+                "min_area_ratio": 0.36620414319451117
+              },
+              {
+                "id": "calf_r_-30",
+                "inversions": 0,
+                "max_area_ratio": 1.1045971424810874,
+                "max_edge_stretch": 1.1456780202578292,
+                "min_area_ratio": 0.714158237302167
+              },
+              {
+                "id": "calf_r_-15",
+                "inversions": 0,
+                "max_area_ratio": 1.0692010824417642,
+                "max_edge_stretch": 1.0801422738705917,
+                "min_area_ratio": 0.8702980650069961
+              },
+              {
+                "id": "calf_r_+0",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000012,
+                "max_edge_stretch": 1.000000000000006,
+                "min_area_ratio": 0.999999999999988
+              },
+              {
+                "id": "calf_r_+15",
+                "inversions": 0,
+                "max_area_ratio": 1.0944250697539883,
+                "max_edge_stretch": 1.1030830661108535,
+                "min_area_ratio": 0.9015808941785312
+              },
+              {
+                "id": "calf_r_+30",
+                "inversions": 0,
+                "max_area_ratio": 1.1497599186803416,
+                "max_edge_stretch": 1.1882351658766297,
+                "min_area_ratio": 0.7806508643938104
+              },
+              {
+                "id": "calf_r_+60",
+                "inversions": 0,
+                "max_area_ratio": 1.2283542735685626,
+                "max_edge_stretch": 1.3130175244821012,
+                "min_area_ratio": 0.5051952190231573
+              },
+              {
+                "id": "calf_r_+90",
+                "inversions": 0,
+                "max_area_ratio": 1.3075473257124433,
+                "max_edge_stretch": 1.4033979355329764,
+                "min_area_ratio": 0.24744118161572806
+              },
+              {
+                "id": "foot_r_-90",
+                "inversions": 1,
+                "max_area_ratio": 2.1961322637227494,
+                "max_edge_stretch": 2.832184904274431,
+                "min_area_ratio": -0.6198830526315796
+              },
+              {
+                "id": "foot_r_-60",
+                "inversions": 1,
+                "max_area_ratio": 2.1699482979448526,
+                "max_edge_stretch": 2.367812587239585,
+                "min_area_ratio": -0.24874391525065104
+              },
+              {
+                "id": "foot_r_-30",
+                "inversions": 0,
+                "max_area_ratio": 1.7321335031361484,
+                "max_edge_stretch": 1.7425764757722544,
+                "min_area_ratio": 0.3441744331724013
+              },
+              {
+                "id": "foot_r_-15",
+                "inversions": 0,
+                "max_area_ratio": 1.3919011078356267,
+                "max_edge_stretch": 1.3828025486040894,
+                "min_area_ratio": 0.6753728346734353
+              },
+              {
+                "id": "foot_r_+0",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000012,
+                "max_edge_stretch": 1.000000000000006,
+                "min_area_ratio": 0.999999999999988
+              },
+              {
+                "id": "foot_r_+15",
+                "inversions": 0,
+                "max_area_ratio": 1.2959331243068324,
+                "max_edge_stretch": 1.3045652041620657,
+                "min_area_ratio": 0.5831375924810694
+              },
+              {
+                "id": "foot_r_+30",
+                "inversions": 0,
+                "max_area_ratio": 1.5430048542250272,
+                "max_edge_stretch": 1.587012362729998,
+                "min_area_ratio": 0.16972236945352823
+              },
+              {
+                "id": "foot_r_+60",
+                "inversions": 1,
+                "max_area_ratio": 1.8276912836717047,
+                "max_edge_stretch": 2.066364504230605,
+                "min_area_ratio": -0.536227167904714
+              },
+              {
+                "id": "foot_r_+90",
+                "inversions": 3,
+                "max_area_ratio": 1.7777777894736637,
+                "max_edge_stretch": 2.405101863320746,
+                "min_area_ratio": -0.9286900036424675
+              }
+            ],
+            "setup_max_error": 1.6077746776921858e-13,
+            "weight_sum_max_error": 0.0
+          },
+          "raster_qa": {
+            "uncovered_alpha_pixels": 1,
+            "uncovered_alpha_sum": 1
+          }
+        },
+        {
+          "layer_id": "layer-006-l",
+          "status": "blocked",
+          "reason_codes": [
+            "experimental_partition_mesh",
+            "binding_not_adopted",
+            "partition_raster_support_incomplete"
+          ],
+          "bone_ids": [
+            "foot_l"
+          ],
+          "qa": {
+            "passed": true,
+            "probes": [
+              {
+                "id": "foot_l_-90",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000189,
+                "max_edge_stretch": 1.0000000000000189,
+                "min_area_ratio": 0.9999999999999747
+              },
+              {
+                "id": "foot_l_-60",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000013,
+                "max_edge_stretch": 1.0000000000000082,
+                "min_area_ratio": 0.999999999999987
+              },
+              {
+                "id": "foot_l_-30",
+                "inversions": 0,
+                "max_area_ratio": 1.0,
+                "max_edge_stretch": 1.0000000000000004,
+                "min_area_ratio": 0.9999999999999836
+              },
+              {
+                "id": "foot_l_-15",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000286,
+                "max_edge_stretch": 1.0000000000000255,
+                "min_area_ratio": 0.9999999999999822
+              },
+              {
+                "id": "foot_l_+0",
+                "inversions": 0,
+                "max_area_ratio": 1.0,
+                "max_edge_stretch": 1.0,
+                "min_area_ratio": 1.0
+              },
+              {
+                "id": "foot_l_+15",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000329,
+                "max_edge_stretch": 1.0000000000000255,
+                "min_area_ratio": 0.9999999999999822
+              },
+              {
+                "id": "foot_l_+30",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000167,
+                "max_edge_stretch": 1.0000000000000164,
+                "min_area_ratio": 0.9999999999999944
+              },
+              {
+                "id": "foot_l_+60",
+                "inversions": 0,
+                "max_area_ratio": 1.000000000000021,
+                "max_edge_stretch": 1.0000000000000164,
+                "min_area_ratio": 0.9999999999999789
+              },
+              {
+                "id": "foot_l_+90",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000189,
+                "max_edge_stretch": 1.0000000000000189,
+                "min_area_ratio": 0.999999999999981
+              }
+            ],
+            "setup_max_error": 0.0,
+            "weight_sum_max_error": 0.0
+          },
+          "raster_qa": {
+            "uncovered_alpha_pixels": 1,
+            "uncovered_alpha_sum": 1
+          }
+        },
+        {
+          "layer_id": "layer-006-r",
+          "status": "blocked",
+          "reason_codes": [
+            "experimental_partition_mesh",
+            "binding_not_adopted",
+            "partition_raster_support_incomplete"
+          ],
+          "bone_ids": [
+            "foot_r"
+          ],
+          "qa": {
+            "passed": true,
+            "probes": [
+              {
+                "id": "foot_r_-90",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000189,
+                "max_edge_stretch": 1.0000000000000189,
+                "min_area_ratio": 0.999999999999981
+              },
+              {
+                "id": "foot_r_-60",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000064,
+                "max_edge_stretch": 1.0000000000000047,
+                "min_area_ratio": 0.9999999999999836
+              },
+              {
+                "id": "foot_r_-30",
+                "inversions": 0,
+                "max_area_ratio": 1.0,
+                "max_edge_stretch": 1.0000000000000004,
+                "min_area_ratio": 0.9999999999999836
+              },
+              {
+                "id": "foot_r_-15",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000284,
+                "max_edge_stretch": 1.0000000000000255,
+                "min_area_ratio": 0.9999999999999822
+              },
+              {
+                "id": "foot_r_+0",
+                "inversions": 0,
+                "max_area_ratio": 1.0,
+                "max_edge_stretch": 1.0,
+                "min_area_ratio": 1.0
+              },
+              {
+                "id": "foot_r_+15",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000147,
+                "max_edge_stretch": 1.0000000000000087,
+                "min_area_ratio": 0.9999999999999822
+              },
+              {
+                "id": "foot_r_+30",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000213,
+                "max_edge_stretch": 1.000000000000021,
+                "min_area_ratio": 0.9999999999999934
+              },
+              {
+                "id": "foot_r_+60",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000107,
+                "max_edge_stretch": 1.0000000000000082,
+                "min_area_ratio": 0.9999999999999934
+              },
+              {
+                "id": "foot_r_+90",
+                "inversions": 0,
+                "max_area_ratio": 1.0000000000000189,
+                "max_edge_stretch": 1.0000000000000189,
+                "min_area_ratio": 0.999999999999981
+              }
+            ],
+            "setup_max_error": 0.0,
+            "weight_sum_max_error": 0.0
+          },
+          "raster_qa": {
+            "uncovered_alpha_pixels": 35,
+            "uncovered_alpha_sum": 93
+          }
+        }
+      ]
+    }
+  ],
+  "tests": "11 related tests passed",
+  "schemas": "passed all three",
+  "side_influence_check": "passed all twelve",
+  "visual": "Alice Chrome screenshot inspected",
+  "full_suite": "not_run",
+  "official_runtime": "not_run"
+}

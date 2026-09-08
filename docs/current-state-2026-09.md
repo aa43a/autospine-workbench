@@ -1,5 +1,8 @@
 # 当前状态：2026-09-08
 
+新增[分区Mesh/Weight实验](how-to-partition-mesh.md)：12个区域独立侧别权重与逐关节QA。
+远端踝/腕旋转和alpha覆盖仍失败，残余保留且未绑定；不声明完整角色或R3通过。
+
 新增[残余复核](how-to-residual-review.md)：保留/4px邻近试算、alpha总量占比、整份草稿保存恢复，
 六项默认pending；本轮没有正式采用分区或权重。
 
