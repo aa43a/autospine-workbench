@@ -1,7 +1,7 @@
 "use strict";
 // Rasterize shared triangle edges once; canvas clip antialiasing leaves false seam lines.
 function textureRenderer(canvas,image){
-  const gl=canvas.getContext("webgl",{alpha:true,antialias:false,premultipliedAlpha:false});
+  const gl=canvas.getContext("webgl",{alpha:true,antialias:false,premultipliedAlpha:true});
   if(!gl)throw new Error("WebGL unavailable");
   function shader(type,source){const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error("Shader failed");return s;}
   const program=gl.createProgram();

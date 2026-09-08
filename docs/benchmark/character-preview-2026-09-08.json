@@ -1,0 +1,84 @@
+{
+  "authority": "none",
+  "production_authorized": false,
+  "python_tests": 37,
+  "validation": [
+    "Exact source CLI replay",
+    "Receipt Schema and CAS",
+    "ZIP file hashes",
+    "Independent rigid setup FK",
+    "Chrome combined scene"
+  ],
+  "runtime_status": "not_evaluated",
+  "seam_certified": false,
+  "records": [
+    {
+      "character": "alice",
+      "receipt_sha256": "3022c434059771839bdcbb82100ad5e4cdf74d1ec59ad4f551ad4a9d14677f0a",
+      "zip_sha256": "adcbf8cae873d2cce9ca0077174cec74fdef48c0fcd90b0d9835b61f51ca0141",
+      "included_layers": [
+        "layer-000",
+        "layer-003",
+        "layer-004",
+        "layer-006",
+        "layer-007",
+        "layer-013",
+        "layer-021"
+      ],
+      "excluded_count": 16,
+      "rigid_setup_center_error_px": 2.842170943040401e-14,
+      "contacts": [
+        {
+          "arm_layer": "layer-003",
+          "max_anchor_gap_px": 0.0,
+          "overlap_pixel_count": 5,
+          "reason_code": "sampled_alpha_overlap_only",
+          "status": "candidate_requires_review",
+          "torso_layer": "layer-006"
+        },
+        {
+          "arm_layer": "layer-004",
+          "max_anchor_gap_px": 5.684341886080802e-14,
+          "overlap_pixel_count": 26,
+          "reason_code": "sampled_alpha_overlap_only",
+          "status": "candidate_requires_review",
+          "torso_layer": "layer-006"
+        }
+      ]
+    },
+    {
+      "character": "lingxian",
+      "receipt_sha256": "d899735fe09ce46c2564ebcc54c26b3d392cc5a5bf43a48506df740c02569610",
+      "zip_sha256": "072e20661633e33d9d5faf79198010739787e0512ffe386726dc8afa318c4a8c",
+      "included_layers": [
+        "layer-000",
+        "layer-001",
+        "layer-002",
+        "layer-004",
+        "layer-006",
+        "layer-011",
+        "layer-020"
+      ],
+      "excluded_count": 14,
+      "rigid_setup_center_error_px": 0,
+      "contacts": [
+        {
+          "arm_layer": "layer-001",
+          "max_anchor_gap_px": 5.684341886080802e-14,
+          "overlap_pixel_count": 1584,
+          "reason_code": "sampled_alpha_overlap_only",
+          "status": "candidate_requires_review",
+          "torso_layer": "layer-006"
+        },
+        {
+          "arm_layer": "layer-002",
+          "max_anchor_gap_px": 1.2710574864626038e-13,
+          "overlap_pixel_count": 1182,
+          "reason_code": "sampled_alpha_overlap_only",
+          "status": "candidate_requires_review",
+          "torso_layer": "layer-006"
+        }
+      ]
+    }
+  ]
+}

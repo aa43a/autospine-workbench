@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[已确认图层组合预览](docs/how-to-character-preview.md)已接通：刚性层与手臂动画同场景播放，
+附肩部接触候选与范围清单；未确认图层、Draw Order 和正式接缝仍待处理。
+
 [Spine 4.3.26 手臂诊断包](docs/how-to-elbow-spine43.md)已接通 JSON/Atlas/原 PNG 与 deform 时间轴编码。
 仅输出已通过 Bake 的 Mesh，完整角色接缝和官方 Runtime 仍未验证。
 

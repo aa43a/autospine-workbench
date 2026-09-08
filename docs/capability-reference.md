@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+`compose-character-preview` 组合已确认刚性层与已通过Bake的Mesh，生成同场景播放页、4.3.26诊断ZIP和肩部接触候选。
+不自动绑定剩余层，接缝与Draw Order仍待复核，见[说明](how-to-character-preview.md)。
+
 `export-elbow-spine43` 将已通过 Bake 的 Mesh 输出为4.3.26手臂诊断ZIP。
 包含JSON、Atlas、PNG与范围回执；不包含未确认绑定，不声明完整角色或Runtime通过。
 

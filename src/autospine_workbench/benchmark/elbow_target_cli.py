@@ -46,6 +46,10 @@ def export(path,data):
 
 def build_archive(mesh,skeleton,bake,candidate,images):
     doc,scope=build_preview(mesh,skeleton,bake,candidate)
+    return archive_document(doc,scope,candidate,images)
+
+
+def archive_document(doc,scope,candidate,images):
     files={'skeleton.json':json.dumps(doc,sort_keys=True,separators=(',',':'),allow_nan=False).encode()}
     originals={r['layer_id']:r for r in candidate['layers']};pages=[]
     for name in scope['included_layers']:

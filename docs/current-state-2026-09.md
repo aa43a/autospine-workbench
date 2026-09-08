@@ -1,5 +1,8 @@
 # 当前状态：2026-09-08
 
+新增[已确认图层组合](how-to-character-preview.md)：Alice/铃仙各7层，未选16/14层保留；
+四组肩部alpha重叠锚点为候选，分离量接近零不表示接缝通过。输出独立组合ZIP和播放页。
+
 新增[4.3.26手臂诊断ZIP](how-to-elbow-spine43.md)：使用附件时间轴编码逐影响骨 deform，
 附原图与排除图层清单；完整角色状态仍阻塞，官方Runtime未评估，旧正式Adapter不扩权。
 
