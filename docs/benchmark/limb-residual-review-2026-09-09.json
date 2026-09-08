@@ -1,0 +1,19 @@
+{
+  "slice": "limb-residual-visibility-v1",
+  "source_preview_sha256": "d4edd539649de66ba75f314c58b05b3bbf2748d01ce5d291727c357a15e67acb",
+  "runtime_version": "4.3.13",
+  "frames": 121,
+  "paired_comparisons": 363,
+  "peak_changed_pixels": {"handwear": 62, "legwear": 21, "footwear": 50},
+  "peak_ticks": {"handwear": 90, "legwear": 15, "footwear": 20},
+  "peak_any_channel_changed_pixels": {"handwear": 699, "legwear": 597, "footwear": 103},
+  "peak_exposed_by_hiding": {"handwear": 3, "legwear": 3, "footwear": 2},
+  "metric_tests_passed": 4,
+  "source_files_unchanged": true,
+  "same_frame_restore_passed": true,
+  "native_png_rgba_exact": true,
+  "output": "../tmp/r2b-limb-residual-review-v2",
+  "interpretation": "visibility contribution only, not defect classification or deletion approval",
+  "authority": "none",
+  "production_authorized": false
+}

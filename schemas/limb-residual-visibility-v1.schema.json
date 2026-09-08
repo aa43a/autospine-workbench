@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "type": "object",
+  "required": ["schema", "source_preview_sha256", "runtime_package", "runtime_version", "runtime_sha256", "tool_hashes", "camera", "frames", "summary", "shots", "checks", "source_files_unchanged", "interpretation", "authority", "production_authorized", "files"],
+  "properties": {
+    "schema": {"const": "autospine.limb-residual-visibility/v1"},
+    "source_preview_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "runtime_package": {"const": "@esotericsoftware/spine-webgl"},
+    "runtime_version": {"const": "4.3.13"},
+    "frames": {"type": "array", "minItems": 121, "maxItems": 121},
+    "summary": {"type": "array", "minItems": 1},
+    "shots": {"type": "array", "minItems": 15},
+    "checks": {"type": "object", "required": ["unknown_mode_rejected", "restored_same_frame"],
+      "properties": {"unknown_mode_rejected": {"const": true}, "restored_same_frame": {"const": true}}},
+    "source_files_unchanged": {"const": true},
+    "interpretation": {"const": "visibility_contribution_only_not_crack_or_ownership_adoption"},
+    "authority": {"const": "none"}, "production_authorized": {"const": false}, "files": {"type": "object"}
+  }
+}
