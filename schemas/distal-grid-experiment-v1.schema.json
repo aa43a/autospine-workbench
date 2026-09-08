@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine.local/schemas/distal-grid-experiment-v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "profile",
+    "authority",
+    "production_authorized",
+    "source_mesh_sha256",
+    "selected_method",
+    "mesh",
+    "corrective",
+    "parameters",
+    "comparisons"
+  ],
+  "properties": {
+    "schema": {
+      "const": "autospine.distal-grid-experiment/v1"
+    },
+    "profile": {
+      "const": "partition-distal-axis-support-v1"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "production_authorized": {
+      "const": false
+    },
+    "source_mesh_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "selected_method": {
+      "type": "null"
+    },
+    "mesh": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "profile",
+        "authority",
+        "production_authorized",
+        "source_partitions_sha256",
+        "source_skeleton_sha256",
+        "residual_policy",
+        "residuals",
+        "layers",
+        "seam_status",
+        "runtime_status",
+        "source_mesh_sha256"
+      ],
+      "properties": {
+        "schema": {
+          "$ref": "partition-mesh-v1.schema.json#/properties/schema"
+        },
+        "profile": {
+          "const": "partition-distal-axis-support-v1"
+        },
+        "authority": {
+          "$ref": "partition-mesh-v1.schema.json#/properties/authority"
+        },
+        "production_authorized": {
+          "$ref": "partition-mesh-v1.schema.json#/properties/production_authorized"
+        },
+        "source_partitions_sha256": {
+          "$ref": "partition-mesh-v1.schema.json#/properties/source_partitions_sha256"
+        },
+        "source_skeleton_sha256": {
+          "$ref": "partition-mesh-v1.schema.json#/properties/source_skeleton_sha256"
+        },
+        "residual_policy": {
+          "$ref": "partition-mesh-v1.schema.json#/properties/residual_policy"
+        },
+        "residuals": {
+          "$ref": "partition-mesh-v1.schema.json#/properties/residuals"
+        },
+        "layers": {
+          "$ref": "partition-mesh-v1.schema.json#/properties/layers"
+        },
+        "seam_status": {
+          "$ref": "partition-mesh-v1.schema.json#/properties/seam_status"
+        },
+        "runtime_status": {
+          "$ref": "partition-mesh-v1.schema.json#/properties/runtime_status"
+        },
+        "source_mesh_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "corrective": {
+      "$ref": "distal-corrective-v1.schema.json"
+    },
+    "parameters": {
+      "const": {
+        "spacing": "max(1,floor(shorter_distal_length/4))",
+        "radius": "shorter_distal_length",
+        "conformity": "shared_axis_strips",
+        "alpha_threshold": 1,
+        "eligibility_threshold": 8
+      }
+    },
+    "comparisons": {
+      "type": "array",
+      "maxItems": 128,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "layer_id",
+          "before_free_vertices",
+          "after_free_vertices",
+          "before_min_area",
+          "after_min_area",
+          "before_failed_angles",
+          "after_failed_angles"
+        ],
+        "properties": {
+          "layer_id": {
+            "type": "string"
+          },
+          "before_free_vertices": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "after_free_vertices": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "before_min_area": {
+            "type": "number"
+          },
+          "after_min_area": {
+            "type": "number"
+          },
+          "before_failed_angles": {
+            "type": "array",
+            "uniqueItems": true,
+            "maxItems": 9,
+            "items": {
+              "enum": [
+                -90,
+                -60,
+                -30,
+                -15,
+                0,
+                15,
+                30,
+                60,
+                90
+              ]
+            }
+          },
+          "after_failed_angles": {
+            "type": "array",
+            "uniqueItems": true,
+            "maxItems": 9,
+            "items": {
+              "enum": [
+                -90,
+                -60,
+                -30,
+                -15,
+                0,
+                15,
+                30,
+                60,
+                90
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

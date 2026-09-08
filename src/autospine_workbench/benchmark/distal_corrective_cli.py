@@ -15,7 +15,7 @@ def register_parser(sub):
 
 
 def analyze(mesh,skeleton):
-    if mesh.get('profile')!='partition-full-alpha-supported-v2' or mesh['source_skeleton_sha256']!=canonical_sha256(skeleton):
+    if mesh.get('profile') not in ('partition-full-alpha-supported-v2','partition-distal-axis-support-v1') or mesh['source_skeleton_sha256']!=canonical_sha256(skeleton):
         raise ValueError('distal_corrective_source_mismatch')
     bones={b['id']:b for b in skeleton['bones']};layers=[]
     for row in mesh['layers']:

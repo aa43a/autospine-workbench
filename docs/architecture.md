@@ -1,5 +1,10 @@
 # AutoSpine Workbench 架构与质量门禁
 
+`asset/joints/distal_grid.py` 是独立的远端横纵支撑线实验，复用主组件、alpha覆盖与拓扑门禁。
+`benchmark/distal_grid_cli.py` 通过精确来源闭包重建旧网格，再生成加密网格和同预算corrective对照；
+报告使用现有16MiB存储，CLI独立运行以避免继续扩大主入口。旧profile与已批准绑定不变，
+失败实验不进入RigIR或目标Adapter，详见[工作流](how-to-distal-grid.md)。
+
 `joint_plane_weights.py`、`mesh_refinement.py` 新增独立权重过渡与来源绑定结果，
 `mesh_refinement_cli/view` 负责精确回放和变形网格对照。原距离权重和网格编译器不变。
 

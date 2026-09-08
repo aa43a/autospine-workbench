@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+`python -m autospine_workbench.benchmark.distal_grid_cli` 提供独立关节加密实验、精确回放与同预算对照。
+八处远端QA仍阻塞，未成为默认网格，见[说明](how-to-distal-grid.md)。
+
 `correct-distal-preview` 生成踝/腕有界corrective样本、局部偏移与交互线框对照。
 当前结果阻塞，未Bake到目标动画，见[说明](how-to-distal-corrective.md)。
 

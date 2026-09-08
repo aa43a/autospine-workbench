@@ -1,0 +1,380 @@
+{
+  "date": "2026-09-08",
+  "authority": "none",
+  "production_authorized": false,
+  "adopted": false,
+  "profile": "partition-distal-axis-support-v1",
+  "result": "all_eight_distal_regions_blocked",
+  "tests": {
+    "targeted_passed": 24,
+    "historical_corrective_identity": "all_three_unchanged",
+    "rigid_shoe_regions": "all_four_unchanged",
+    "schema_real_reports": 3,
+    "exact_source_replay": [
+      "alice"
+    ],
+    "visual": "Alice Chrome screenshot and angle control regression",
+    "full_python_web_suite": "not_run",
+    "official_runtime": "not_run"
+  },
+  "records": [
+    {
+      "character": "alice",
+      "artifact_sha256": "cc6a84ac85f099ffeb581878b47201fc528a5b7c633baf88913ad106b33b9646",
+      "comparisons": [
+        {
+          "after_failed_angles": [
+            -90,
+            -60,
+            -30,
+            60,
+            90
+          ],
+          "after_free_vertices": 53,
+          "after_min_area": -2.2245953943623076,
+          "before_failed_angles": [
+            -90,
+            -60,
+            -30,
+            30,
+            60,
+            90
+          ],
+          "before_free_vertices": 6,
+          "before_min_area": -0.8797110750951,
+          "layer_id": "layer-001-l"
+        },
+        {
+          "after_failed_angles": [
+            -90,
+            -60,
+            -30,
+            30,
+            60,
+            90
+          ],
+          "after_free_vertices": 56,
+          "after_min_area": -2.492925695214671,
+          "before_failed_angles": [
+            -90,
+            -60,
+            30,
+            60,
+            90
+          ],
+          "before_free_vertices": 5,
+          "before_min_area": -1.7737688289926634,
+          "layer_id": "layer-001-r"
+        }
+      ],
+      "diagnostics": [
+        {
+          "layer_id": "layer-001-l",
+          "half_angle_base_min_area": -2.753177589480564,
+          "worst_corrected_triangle": {
+            "angle": -90,
+            "ratio": -2.2245953943623076,
+            "setup_area_px2": 1.5,
+            "distal_weights": [
+              0.5143997395607474,
+              0.525193166121147,
+              0.8605266684879997
+            ]
+          },
+          "projection_budget_px": 1.203061759979515,
+          "offset_reconstruction_max_error": 2.2737367544323206e-13
+        },
+        {
+          "layer_id": "layer-001-r",
+          "half_angle_base_min_area": -2.8246700246089174,
+          "worst_corrected_triangle": {
+            "angle": 90,
+            "ratio": -2.492925695214671,
+            "setup_area_px2": 16.5,
+            "distal_weights": [
+              0.28332952812108625,
+              0.5625098450116082,
+              0.6480195893324066
+            ]
+          },
+          "projection_budget_px": 1.2030617599795108,
+          "offset_reconstruction_max_error": 2.3437142008433856e-13
+        }
+      ],
+      "uncovered_alpha_pixels": 0,
+      "vertex_counts": {
+        "layer-001-l": 535,
+        "layer-001-r": 587,
+        "layer-002-l": 145,
+        "layer-002-r": 142
+      }
+    },
+    {
+      "character": "lingxian",
+      "artifact_sha256": "21d9f71f353f4dc0f0fd3aac73d659769c6ebb595ef9a48d3467b0f0cc328799",
+      "comparisons": [
+        {
+          "after_failed_angles": [
+            -90,
+            -60,
+            -30,
+            -15,
+            30,
+            60,
+            90
+          ],
+          "after_free_vertices": 62,
+          "after_min_area": -3.847546599706841,
+          "before_failed_angles": [
+            -90,
+            -60,
+            -30,
+            60,
+            90
+          ],
+          "before_free_vertices": 2,
+          "before_min_area": -1.3040935263157902,
+          "layer_id": "layer-003-l"
+        },
+        {
+          "after_failed_angles": [
+            -90,
+            -60,
+            -30,
+            -15,
+            15,
+            30,
+            60,
+            90
+          ],
+          "after_free_vertices": 69,
+          "after_min_area": -4.745012516810635,
+          "before_failed_angles": [
+            -90,
+            -60,
+            -30,
+            30,
+            60,
+            90
+          ],
+          "before_free_vertices": 3,
+          "before_min_area": -1.0735423146733634,
+          "layer_id": "layer-003-r"
+        }
+      ],
+      "diagnostics": [
+        {
+          "layer_id": "layer-003-l",
+          "half_angle_base_min_area": -4.613300839209732,
+          "worst_corrected_triangle": {
+            "angle": -90,
+            "ratio": -3.847546599706841,
+            "setup_area_px2": 10.0,
+            "distal_weights": [
+              0.11336461095054434,
+              0.33138569124413597,
+              0.6542503647327029
+            ]
+          },
+          "projection_budget_px": 0.9026538519831475,
+          "offset_reconstruction_max_error": 2.5421149729252077e-13
+        },
+        {
+          "layer_id": "layer-003-r",
+          "half_angle_base_min_area": -5.595203219469374,
+          "worst_corrected_triangle": {
+            "angle": -90,
+            "ratio": -4.745012516810635,
+            "setup_area_px2": 19.0,
+            "distal_weights": [
+              0.3174670392378427,
+              0.639688272263954,
+              0.9909644663513921
+            ]
+          },
+          "projection_budget_px": 0.9026538519831505,
+          "offset_reconstruction_max_error": 4.687428401686771e-13
+        }
+      ],
+      "uncovered_alpha_pixels": 0,
+      "vertex_counts": {
+        "layer-003-l": 548,
+        "layer-003-r": 561
+      }
+    },
+    {
+      "character": "crino",
+      "artifact_sha256": "1d531d3c61fea15e2cb486b0a78bb2a0f38d08730f9ff588e0c7c32b9986da90",
+      "comparisons": [
+        {
+          "after_failed_angles": [
+            -90,
+            -60,
+            -30,
+            60,
+            90
+          ],
+          "after_free_vertices": 76,
+          "after_min_area": -2.448155482113117,
+          "before_failed_angles": [
+            -90,
+            -60,
+            -30,
+            30,
+            60,
+            90
+          ],
+          "before_free_vertices": 3,
+          "before_min_area": -1.133305007303109,
+          "layer_id": "layer-004-l"
+        },
+        {
+          "after_failed_angles": [
+            -90,
+            -60,
+            -30,
+            30,
+            60,
+            90
+          ],
+          "after_free_vertices": 75,
+          "after_min_area": -2.247682115820557,
+          "before_failed_angles": [
+            -90,
+            -60,
+            -30,
+            60,
+            90
+          ],
+          "before_free_vertices": 3,
+          "before_min_area": -1.1414300326230435,
+          "layer_id": "layer-004-r"
+        },
+        {
+          "after_failed_angles": [
+            -90,
+            -60,
+            -30,
+            15,
+            30,
+            60,
+            90
+          ],
+          "after_free_vertices": 72,
+          "after_min_area": -3.27659572365774,
+          "before_failed_angles": [
+            -90,
+            -60,
+            -30,
+            30,
+            60,
+            90
+          ],
+          "before_free_vertices": 4,
+          "before_min_area": -1.0343520910033883,
+          "layer_id": "layer-005-l"
+        },
+        {
+          "after_failed_angles": [
+            -90,
+            -60,
+            -30,
+            15,
+            30,
+            60,
+            90
+          ],
+          "after_free_vertices": 64,
+          "after_min_area": -3.0238565796355727,
+          "before_failed_angles": [
+            -90,
+            -60,
+            -30,
+            30,
+            60,
+            90
+          ],
+          "before_free_vertices": 3,
+          "before_min_area": -0.9871774741478687,
+          "layer_id": "layer-005-r"
+        }
+      ],
+      "diagnostics": [
+        {
+          "layer_id": "layer-004-l",
+          "half_angle_base_min_area": -1.8684195790029532,
+          "worst_corrected_triangle": {
+            "angle": -90,
+            "ratio": -2.448155482113117,
+            "setup_area_px2": 1.5,
+            "distal_weights": [
+              0.1965796721133019,
+              0.4379237299156053,
+              0.37067787001141805
+            ]
+          },
+          "projection_budget_px": 1.3543792157294776,
+          "offset_reconstruction_max_error": 2.2737367544323206e-13
+        },
+        {
+          "layer_id": "layer-004-r",
+          "half_angle_base_min_area": -2.373881764422997,
+          "worst_corrected_triangle": {
+            "angle": 90,
+            "ratio": -2.247682115820557,
+            "setup_area_px2": 6.0,
+            "distal_weights": [
+              0.5287897911405106,
+              0.14272367234625194,
+              0.2842340635414728
+            ]
+          },
+          "projection_budget_px": 1.354379215729477,
+          "offset_reconstruction_max_error": 1.2710574864626038e-13
+        },
+        {
+          "layer_id": "layer-005-l",
+          "half_angle_base_min_area": -3.4885497115411352,
+          "worst_corrected_triangle": {
+            "angle": -90,
+            "ratio": -3.27659572365774,
+            "setup_area_px2": 7.5,
+            "distal_weights": [
+              0.34993481463916115,
+              0.6706707569431957,
+              0.5660955934117291
+            ]
+          },
+          "projection_budget_px": 1.3543792157294696,
+          "offset_reconstruction_max_error": 4.687428401686771e-13
+        },
+        {
+          "layer_id": "layer-005-r",
+          "half_angle_base_min_area": -3.647096018815885,
+          "worst_corrected_triangle": {
+            "angle": 90,
+            "ratio": -3.0238565796355727,
+            "setup_area_px2": 28.5,
+            "distal_weights": [
+              0.47070766355568106,
+              0.5115404351522211,
+              0.7838452060208552
+            ]
+          },
+          "projection_budget_px": 1.3543792157294692,
+          "offset_reconstruction_max_error": 4.547473508864641e-13
+        }
+      ],
+      "uncovered_alpha_pixels": 0,
+      "vertex_counts": {
+        "layer-004-l": 313,
+        "layer-004-r": 321,
+        "layer-005-l": 529,
+        "layer-005-r": 551,
+        "layer-006-l": 118,
+        "layer-006-r": 117
+      }
+    }
+  ],
+  "next_experiment": "alpha_transverse_width_conditioned_weight_transition"
+}
