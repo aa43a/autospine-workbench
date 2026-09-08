@@ -1,0 +1,11 @@
+{
+  "type":"object","additionalProperties":false,
+  "required":["profile","authority","production_authorized","status","character","source_comparison_sha256","scope","rows"],
+  "properties":{
+    "profile":{"const":"runtime-alpha8-4-8connected-roi-context-v1"},
+    "authority":{"const":"none"},"production_authorized":{"const":false},"status":{"const":"needs_review"},
+    "character":{"type":"string"},"source_comparison_sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},
+    "scope":{"const":"overlapping_32px_native_all_candidate_regions_crops"},
+    "rows":{"type":"array","minItems":61,"maxItems":183,"items":{"type":"object"}}
+  }
+}

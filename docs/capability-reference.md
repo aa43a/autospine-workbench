@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+- [Runtime局部空间复核](how-to-seam-roi-context.md)：复用已验证PNG分析alpha8的4／8邻接与裁剪边缘连接，
+  提供原图对照和数值标记，不授予裂缝分类或自动修复权。
+
 - [独立边界Runtime采样](how-to-seam-boundary-probes.md)：由reference选择代表性对应，精确回放坐标与截图身份，
   独立于疑似裂缝点；集合页面展示补充证据，不自动晋级候选。
 

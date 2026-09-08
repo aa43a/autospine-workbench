@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[右侧局部空间复核](docs/how-to-seam-roi-context.md)：183个ROI已定位，4邻接的6个局部封闭疑点在8邻接下均触达裁剪边缘。
+未确认封闭孔洞，也未排除开放细缝；候选和权重不变，继续完整角色视觉回归。
+
 [Alice右侧独立边界采样](docs/how-to-seam-boundary-probes.md)完成：183个目标、732次Runtime捕获。
 58个目标合成alpha下降，未新增低于8的中心点；统一入口已显示独立证据，候选仍待复核。
 

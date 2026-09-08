@@ -1,0 +1,23 @@
+{
+  "date": "2026-09-08",
+  "authority": "none",
+  "production_authorized": false,
+  "artifact_sha256": "c37790a2f8c777eddf557162cb780e0a64844b929285f933186aef37ba4b2e22",
+  "source_comparison_sha256": "045455284b7a53226316a33694d34cacef73feb240a6f292fa54361a86b73df9",
+  "roi_count": 183,
+  "rois_with_new_low_alpha": 87,
+  "enclosed_roi_4": 6,
+  "enclosed_roi_8": 0,
+  "python_tests": 15,
+  "schema": "passed",
+  "exact_reader": "passed",
+  "tamper": "rejected",
+  "browser": {
+    "details": 183,
+    "images": 2,
+    "errors": []
+  },
+  "screenshot_sha256": "9471cb59a02d922f7ce4fdaa0aaa993305f7a0ecd96162a548dab2047ce21ead",
+  "new_runtime_frames": 0,
+  "full_suite_run": false
+}

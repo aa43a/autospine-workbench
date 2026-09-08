@@ -1,5 +1,8 @@
 # 当前状态：2026-09-08
 
+右侧Runtime ROI空间复核已完成：87/183个ROI有新增低alpha像素，局部封闭疑点4邻接为6、8邻接为0。
+第55帧最大中心下降211→116，更符合边缘变化但不排除开放细缝。候选不改动，详见[复核说明](how-to-seam-roi-context.md)。
+
 Alice右侧已补[独立边界采样](how-to-seam-boundary-probes.md)：183目标中58处合成alpha下降，最大95，新增低于8为0。
 新的独立对照为review_runtime_alpha_loss；历史疑似点not_evaluated不改写。候选、权重与采用权均未改变。
 
