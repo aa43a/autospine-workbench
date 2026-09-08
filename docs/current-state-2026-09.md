@@ -1,5 +1,9 @@
 # 当前状态：2026-09-08
 
+最新：[alpha 支持的接缝平移约束](how-to-seam-translation.md)完成四处候选、30 FPS bake 与 60 FPS 前后对照。
+12 个区域网格采样继续通过；四处腿鞋仍超限（4.38–11.53 px），Alice 左侧略退化。铃仙无候选，保持 candidate_noop。
+官方 Runtime 三角色 363 帧通过只证明编码一致。约束未采用；下一主线是真实 alpha 接触轮廓与局部共同边界过渡。
+
 最新：[连续 corrective Bake 与接缝诊断](how-to-continuous-corrective.md)完成 30 FPS、2 秒的受限候选动作。
 12 个区域在 121 个时刻的几何检查通过；官方 Runtime 三角色共 363 帧通过。四处腿鞋邻近关系超出 2 px 增距阈值，其余无对应点的区域不计接缝通过。
 下一步建立 alpha/contact 接缝对应与共同运动约束；不能用窄范围采样通过清除来源宽角度 blocked 状态。

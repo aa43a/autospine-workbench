@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+`python -m autospine_workbench.benchmark.seam_translation_cli` 生成 alpha 支持的接缝对应及有界刚性平移实验。
+保留原连续来源、前后 QA 和 pending 候选；无候选为 candidate_noop，见[说明](how-to-seam-translation.md)。
+
 `python -m autospine_workbench.benchmark.continuous_corrective_cli` 输出 30 FPS 连续诊断包及 60 FPS 几何／接缝邻近报告。
 支持精确来源重放；接缝覆盖与完整角色不作通过声明，见[说明](how-to-continuous-corrective.md)。
 

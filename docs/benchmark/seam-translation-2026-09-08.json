@@ -1,0 +1,199 @@
+{
+  "runtime_package": "@esotericsoftware/spine-webgl",
+  "runtime_version": "4.3.13",
+  "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+  "browser": "152.0.7977.76",
+  "authority": "none",
+  "production_authorized": false,
+  "date": "2026-09-08",
+  "target": "4.3.26",
+  "runtime_report_sha256": "9610adc6e93383ec213ff87945cb91f45620733330609806e8a25163130620fd",
+  "tests_passed": 18,
+  "schema_zip_checks": "all_three_passed",
+  "source_chain_replay": "all_three_passed",
+  "reader_replay": "alice_passed",
+  "continuous_runtime_regression_frames": 363,
+  "full_suite": "not_run",
+  "records": [
+    {
+      "character": "alice",
+      "artifact_sha256": "1a122e15c10c819ee36486c9c33fb18de6603631ea9841bc3b50a91b80ea8bff",
+      "zip_sha256": "93d9512197ffd4bd8e3353f533c52d78c75db38353f7da5c82a4898748128d1e",
+      "status": "blocked",
+      "runtime_passed": true,
+      "runtime_frames": 121,
+      "max_motion_error_px": 9.02034273622121e-05,
+      "max_channel_error": 1,
+      "geometry_passed": 4,
+      "before_seams": [
+        {
+          "max_distance_growth_px": 10.128219165764044,
+          "pair_count": 16,
+          "regions": [
+            "layer-001-l",
+            "layer-002-l"
+          ],
+          "status": "blocked"
+        },
+        {
+          "max_distance_growth_px": 13.753874255969802,
+          "pair_count": 16,
+          "regions": [
+            "layer-001-r",
+            "layer-002-r"
+          ],
+          "status": "blocked"
+        }
+      ],
+      "after_seams": [
+        {
+          "max_distance_growth_px": 11.012140078736246,
+          "pair_count": 16,
+          "regions": [
+            "layer-001-l",
+            "layer-002-l"
+          ],
+          "status": "blocked"
+        },
+        {
+          "max_distance_growth_px": 11.529408567129583,
+          "pair_count": 16,
+          "regions": [
+            "layer-001-r",
+            "layer-002-r"
+          ],
+          "status": "blocked"
+        }
+      ],
+      "alpha_supported_candidates": [
+        {
+          "after_supported_growth_px": 5.901162735703055,
+          "before_supported_growth_px": 6.363403599142702,
+          "bone_index": 12,
+          "capped_keys": 0,
+          "driver": "layer-001-l",
+          "follower": "layer-002-l",
+          "max_translation_px": 2.0731049090763607,
+          "review_status": "pending",
+          "pair_count": 9
+        },
+        {
+          "after_supported_growth_px": 5.656675217474675,
+          "before_supported_growth_px": 8.134232055986672,
+          "bone_index": 19,
+          "capped_keys": 0,
+          "driver": "layer-001-r",
+          "follower": "layer-002-r",
+          "max_translation_px": 2.9504481496095956,
+          "review_status": "pending",
+          "pair_count": 7
+        }
+      ],
+      "screenshots": {
+        "setup": "a0c1ca12e530d816557bb6ec2e4cf001ef7dae02e438eaf1a4acd05d4da44dbc",
+        "bend": "fc9be9d108e9153bcfc4c9510dc32cb6913c5a5ac9d2d13b58eff9635e5b34dd"
+      }
+    },
+    {
+      "character": "lingxian",
+      "artifact_sha256": "538125f6acf5fdf70c07ac98369cd08ca85668d0a0fcec2865edec64d9d2f0a7",
+      "zip_sha256": "971a8cb077cc0e59d4ef12e6765ff1384e5d71cc76d8f746cc25ab495c6dac74",
+      "status": "candidate_noop",
+      "runtime_passed": true,
+      "runtime_frames": 121,
+      "max_motion_error_px": 0.00011553926378837787,
+      "max_channel_error": 1,
+      "geometry_passed": 2,
+      "before_seams": [],
+      "after_seams": [],
+      "alpha_supported_candidates": [],
+      "screenshots": {
+        "setup": "59e7b83a8f41aca41f8e7cc2ce8502abef19c7c2435c787b5a1bf06efa512563",
+        "bend": "dfc4ca3a501bc2b9bd63c12c2603afd8d046953704062218fb997647ba3dc0b1"
+      }
+    },
+    {
+      "character": "crino",
+      "artifact_sha256": "3c3fa79269fe7c956f5bc5af4e33a888d388ced128c626999f002bdb0fb2774c",
+      "zip_sha256": "9b53b3fdf691922565305ce958b96e4b5dfe34e83268f214276bc1ea44fe9b0b",
+      "status": "blocked",
+      "runtime_passed": true,
+      "runtime_frames": 121,
+      "max_motion_error_px": 0.00011305503312541987,
+      "max_channel_error": 1,
+      "geometry_passed": 6,
+      "before_seams": [
+        {
+          "max_distance_growth_px": 8.538276678555471,
+          "pair_count": 10,
+          "regions": [
+            "layer-005-l",
+            "layer-006-l"
+          ],
+          "status": "blocked"
+        },
+        {
+          "max_distance_growth_px": 7.840645416298308,
+          "pair_count": 9,
+          "regions": [
+            "layer-005-r",
+            "layer-006-r"
+          ],
+          "status": "blocked"
+        }
+      ],
+      "after_seams": [
+        {
+          "max_distance_growth_px": 7.7767990331295085,
+          "pair_count": 10,
+          "regions": [
+            "layer-005-l",
+            "layer-006-l"
+          ],
+          "status": "blocked"
+        },
+        {
+          "max_distance_growth_px": 4.38308218174692,
+          "pair_count": 9,
+          "regions": [
+            "layer-005-r",
+            "layer-006-r"
+          ],
+          "status": "blocked"
+        }
+      ],
+      "alpha_supported_candidates": [
+        {
+          "after_supported_growth_px": 6.004744137546172,
+          "before_supported_growth_px": 7.299797370292502,
+          "bone_index": 12,
+          "capped_keys": 0,
+          "driver": "layer-005-l",
+          "follower": "layer-006-l",
+          "max_translation_px": 4.167216980354985,
+          "review_status": "pending",
+          "pair_count": 7
+        },
+        {
+          "after_supported_growth_px": 4.38308218174692,
+          "before_supported_growth_px": 6.020387076748738,
+          "bone_index": 19,
+          "capped_keys": 0,
+          "driver": "layer-005-r",
+          "follower": "layer-006-r",
+          "max_translation_px": 4.250501298028787,
+          "review_status": "pending",
+          "pair_count": 7
+        }
+      ],
+      "screenshots": {
+        "setup": "e7399b1b1befb37195db90eaf5bde23048bcd00882d14ae36fba3d8eb1cd2293",
+        "bend": "92d247af5e3bf016483a78fa5f24dbea6f530df8949e6e9864c1acabc68cbdd5"
+      }
+    }
+  ],
+  "harness_sha256": {
+    "tools/ownership-runtime.js": "efe51275a149973c3757f449c642e4753fc5b872ae20ac934368d25fb6a745c3",
+    "tools/verify-ownership-runtime.mjs": "48f334eb52a7e1b870b58a3a00481462f6048eb13ea383ff34ffff459fcb91b0"
+  }
+}

@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[接缝平移约束实验](docs/how-to-seam-translation.md)已加入 alpha 支持的对应候选与前后对照。
+四处腿鞋仍超限；整只鞋平移未解决非一致的边界运动，结果未采用，下一步验证真实接触轮廓与局部过渡。
+
 [连续 corrective Bake](docs/how-to-continuous-corrective.md)已生成 30 FPS 受限动作，12 个区域的 60 FPS 几何采样通过；
 Alice／琪露诺四处腿鞋邻近关系增距 7.84–13.75 px，接缝保持阻塞。完整角色尚未验收。
 

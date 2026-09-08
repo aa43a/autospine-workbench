@@ -11,11 +11,13 @@
   const json=await fetchJSON('skeleton.json'),manifest=await fetchJSON('preview-manifest.json');
   const animationName=Object.keys(json.animations).find(n=>n!=='setup'),combined=animationName==='combined-pose-inspection';
   const animation=json.animations[animationName];
-  const continuous=animationName==='continuous-corrective-inspection';
+  const seam=animationName==='seam-translation-inspection';
+  const continuous=animationName==='continuous-corrective-inspection'||seam;
   const duration=Math.max(...Object.values(animation.bones).flatMap(b=>b.rotate.map(k=>k.time)));
   document.querySelector('#time').max=duration;
   if(combined)document.querySelector('aside').textContent='主关节与远端corrective的离散组合姿态；每0.5秒切换，使用stepped key，不代表连续动作或生产QA通过。残余仍未绑定。';
   if(continuous)document.querySelector('aside').textContent='30 FPS corrective候选动画，60 FPS采样验证；接缝仅为顶点邻近诊断，完整角色与生产QA尚未通过。残余仍未绑定。';
+  if(seam)document.querySelector('aside').textContent='接缝平移约束实验，尚未采用；整只鞋保持刚性。约束失败仍为blocked，不能将可播放当作接缝通过。';
   if(continuous){
     const summary=document.createElement('p'),qa=manifest.bake_qa;
     summary.textContent='采样网格通过 '+Object.values(qa.regions).filter(r=>r.passed).length+'/'+Object.keys(qa.regions).length+

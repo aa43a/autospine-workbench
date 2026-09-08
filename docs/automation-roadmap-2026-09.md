@@ -1,5 +1,8 @@
 # AutoSpine 自动化产品路线（2026-09）
 
+2026-09-08 [接缝平移约束实验](how-to-seam-translation.md)已验证且未采用：四处关系仍 blocked。
+下一步优先真实接触轮廓与局部边界约束，不扩大平移预算或放宽阈值，也不新增 P10 阶段。
+
 2026-09-08 [连续 Bake 与接缝诊断](how-to-continuous-corrective.md)已完成受限动作的采样验证。
 四处腿鞋邻近关系明显分离，下一主线是 alpha/contact 接缝约束候选与动态栅格 QA；不扩大生产范围。
 

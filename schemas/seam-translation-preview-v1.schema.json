@@ -1,0 +1,212 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "authority",
+    "production_authorized",
+    "target",
+    "source_atlas_sha256",
+    "source_skeleton_sha256",
+    "regions",
+    "residuals",
+    "scope",
+    "full_character_status",
+    "runtime_status",
+    "seam_status",
+    "files",
+    "zip_sha256",
+    "source_original_atlas_sha256",
+    "source_width_sha256",
+    "width_factor",
+    "results",
+    "source_combined_sha256",
+    "bake_fps",
+    "continuous_motion_status",
+    "bake_qa",
+    "schema",
+    "profile",
+    "animation",
+    "source_continuous_sha256",
+    "seam_constraint_qa"
+  ],
+  "properties": {
+    "authority": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/authority"
+    },
+    "production_authorized": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/production_authorized"
+    },
+    "target": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/target"
+    },
+    "source_atlas_sha256": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/source_atlas_sha256"
+    },
+    "source_skeleton_sha256": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/source_skeleton_sha256"
+    },
+    "regions": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/regions"
+    },
+    "residuals": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/residuals"
+    },
+    "scope": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/scope"
+    },
+    "full_character_status": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/full_character_status"
+    },
+    "runtime_status": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/runtime_status"
+    },
+    "seam_status": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/seam_status"
+    },
+    "files": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/files"
+    },
+    "zip_sha256": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/zip_sha256"
+    },
+    "source_original_atlas_sha256": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/source_original_atlas_sha256"
+    },
+    "source_width_sha256": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/source_width_sha256"
+    },
+    "width_factor": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/width_factor"
+    },
+    "results": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/results"
+    },
+    "source_combined_sha256": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/source_combined_sha256"
+    },
+    "bake_fps": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/bake_fps"
+    },
+    "continuous_motion_status": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/continuous_motion_status"
+    },
+    "bake_qa": {
+      "$ref": "continuous-corrective-preview-v1.schema.json#/properties/bake_qa"
+    },
+    "schema": {
+      "const": "autospine.seam-translation-preview/v1"
+    },
+    "profile": {
+      "const": "alpha-supported-rigid-translation-v1"
+    },
+    "animation": {
+      "const": "seam_translation_inspection"
+    },
+    "source_continuous_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "seam_constraint_qa": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidates",
+        "before",
+        "after",
+        "status",
+        "authority",
+        "alpha_contact_coverage",
+        "translation_limit_px"
+      ],
+      "properties": {
+        "candidates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "driver",
+              "follower",
+              "bone_index",
+              "pairs",
+              "max_translation_px",
+              "capped_keys",
+              "review_status",
+              "before_supported_growth_px",
+              "after_supported_growth_px"
+            ],
+            "properties": {
+              "driver": {
+                "type": "string"
+              },
+              "follower": {
+                "type": "string"
+              },
+              "bone_index": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "pairs": {
+                "type": "array",
+                "minItems": 3,
+                "items": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              },
+              "max_translation_px": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 16.00000001
+              },
+              "capped_keys": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 61
+              },
+              "review_status": {
+                "const": "pending"
+              },
+              "before_supported_growth_px": {
+                "type": "number",
+                "minimum": 0
+              },
+              "after_supported_growth_px": {
+                "type": "number",
+                "minimum": 0
+              }
+            }
+          }
+        },
+        "before": {
+          "$ref": "#/properties/bake_qa"
+        },
+        "after": {
+          "$ref": "#/properties/bake_qa"
+        },
+        "status": {
+          "enum": [
+            "blocked",
+            "candidate_requires_review",
+            "candidate_noop"
+          ]
+        },
+        "authority": {
+          "const": "none"
+        },
+        "alpha_contact_coverage": {
+          "const": "unproven"
+        },
+        "translation_limit_px": {
+          "const": 16
+        }
+      }
+    }
+  }
+}
