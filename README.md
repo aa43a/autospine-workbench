@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[刚性绑定与四肢候选同包](docs/how-to-mixed-character.md)：Alice 5个已选刚性层 + 4个腿鞋分区完成官方Runtime 121帧验证。
+仍缺16层及570残余像素，完整动画继续阻塞；未新增选择或采用权。
+
 [整角色上下文预览](docs/how-to-character-context.md)已加入：Alice原23层中，4个腿鞋分区播放候选，21层静态显示。
 570个残余像素仍未绑定；该诊断页不是完整角色动画或官方Runtime验收。
 

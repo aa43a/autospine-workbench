@@ -1,0 +1,94 @@
+{
+  "date": "2026-09-08",
+  "authority": "none",
+  "production_authorized": false,
+  "artifact_sha256": "1d1ba1e7d499f12a3f5a536600b7ea9ebebd4ecba68243f25486623b20cd506f",
+  "rigid_layers": [
+    "layer-000",
+    "layer-006",
+    "layer-007",
+    "layer-013",
+    "layer-021"
+  ],
+  "excluded_layers": [
+    {
+      "layer_id": "layer-003",
+      "reason_code": "selected_mesh_candidate_not_integrated"
+    },
+    {
+      "layer_id": "layer-004",
+      "reason_code": "selected_mesh_candidate_not_integrated"
+    },
+    {
+      "layer_id": "layer-005",
+      "reason_code": "binding_pending"
+    },
+    {
+      "layer_id": "layer-008",
+      "reason_code": "binding_pending"
+    },
+    {
+      "layer_id": "layer-009",
+      "reason_code": "binding_pending"
+    },
+    {
+      "layer_id": "layer-010",
+      "reason_code": "binding_pending"
+    },
+    {
+      "layer_id": "layer-011",
+      "reason_code": "binding_pending"
+    },
+    {
+      "layer_id": "layer-012",
+      "reason_code": "binding_pending"
+    },
+    {
+      "layer_id": "layer-014",
+      "reason_code": "binding_pending"
+    },
+    {
+      "layer_id": "layer-015",
+      "reason_code": "binding_pending"
+    },
+    {
+      "layer_id": "layer-016",
+      "reason_code": "binding_pending"
+    },
+    {
+      "layer_id": "layer-017",
+      "reason_code": "binding_pending"
+    },
+    {
+      "layer_id": "layer-018",
+      "reason_code": "binding_pending"
+    },
+    {
+      "layer_id": "layer-019",
+      "reason_code": "binding_pending"
+    },
+    {
+      "layer_id": "layer-020",
+      "reason_code": "binding_pending"
+    },
+    {
+      "layer_id": "layer-022",
+      "reason_code": "binding_pending"
+    }
+  ],
+  "residual_visible_pixels": 570,
+  "runtime_version": "4.3.13",
+  "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+  "runtime_report_sha256": "ea60f3dade29bfde5d5aa4878000f90731faf412b885aa68bc428a36eba07cc3",
+  "runtime_frames": 121,
+  "runtime_passed": true,
+  "max_setup_error_px": 6.103515625e-05,
+  "max_motion_error_px": 9.02034273622121e-05,
+  "max_page_uv_error": 2.9140048596332235e-08,
+  "schema": "passed",
+  "files": "verified",
+  "zip_replay": "byte_identical",
+  "original_mesh_and_tracks": "unchanged",
+  "python_tests": 12,
+  "full_suite_run": false
+}

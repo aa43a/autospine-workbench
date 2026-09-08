@@ -1,0 +1,15 @@
+{
+  "type":"object","additionalProperties":false,
+  "required":["profile","authority","production_authorized","status","full_character_animation","draw_order","source_candidate_sha256","source_draft_sha256","source_atlas_sha256","rigid_layers","excluded_layers","residual_visible_pixels","geometry","files"],
+  "properties":{
+    "profile":{"const":"selected-rigid-quads-with-partition-candidates-v1"},
+    "authority":{"const":"none"},"production_authorized":{"const":false},"status":{"const":"needs_review"},
+    "full_character_animation":{"const":"blocked"},"draw_order":{"const":"source_order_unreviewed"},
+    "source_candidate_sha256":{"$ref":"#/$defs/sha"},"source_draft_sha256":{"$ref":"#/$defs/sha"},"source_atlas_sha256":{"$ref":"#/$defs/sha"},
+    "rigid_layers":{"type":"array","uniqueItems":true,"items":{"type":"string"}},
+    "excluded_layers":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["layer_id","reason_code"],"properties":{"layer_id":{"type":"string"},"reason_code":{"type":"string"}}}},
+    "residual_visible_pixels":{"type":"integer","minimum":0},"geometry":{"type":"object"},
+    "files":{"type":"object","additionalProperties":{"$ref":"#/$defs/sha"}}
+  },
+  "$defs":{"sha":{"type":"string","pattern":"^[a-f0-9]{64}$"}}
+}

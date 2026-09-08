@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+- [混合候选Adapter](how-to-mixed-character.md)：同骨架下消费已有刚性选择，和不变分区候选同包；
+  单骨四边形表达刚性附件，显式缺项报告，官方Runtime按新包重新验证。
+
 - [整角色上下文预览](how-to-character-context.md)：精确来源和骨架校验，源顺序静态层与动画分区合成，
   提供逐层缺项清单；诊断WebGL/Canvas2D，不冒充完整绑定或官方Runtime。
 

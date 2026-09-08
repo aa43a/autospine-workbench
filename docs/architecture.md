@@ -1,5 +1,8 @@
 # AutoSpine Workbench 架构与质量门禁
 
+`targets/spine43/mixed_character.py`纯组合已选刚性四边形与既有分区；benchmark CLI负责精确来源、
+2px透明padding纹理页、同骨架setup重建、内容寻址和确定性ZIP。缺项与原接缝证据不因组合自动通过。
+
 `benchmark/character_context_*`独立处理原图上下文和候选分区的显示：atlas显式映射替换源层、
 同骨架setup校验、源顺序叠加。复用现有WebGL网格绘制器，静态层不获得动画绑定权。
 

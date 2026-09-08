@@ -4,14 +4,16 @@ import path from 'node:path';
 import http from 'node:http';
 import crypto from 'node:crypto';
 import {pathToFileURL} from 'node:url';
-const [root,dependencies,chrome]=process.argv.slice(2);
+const [root,dependencies,chrome,character]=process.argv.slice(2);
+if(character&&!['alice','lingxian','crino'].includes(character))throw new Error('character_invalid');
+const characters=character?[character]:['alice','lingxian','crino'];
 if(!root||!dependencies||!chrome)throw new Error('usage: root dependencies chrome');
 const {chromium}=await import(pathToFileURL(path.join(dependencies,'node_modules/playwright-core/index.mjs')));
 const runtime=path.join(dependencies,'node_modules/@esotericsoftware/spine-webgl/dist/iife/spine-webgl.js');
 const runtimePackage=JSON.parse(await fs.readFile(path.join(dependencies,'node_modules/@esotericsoftware/spine-webgl/package.json')));
 if(runtimePackage.name!=='@esotericsoftware/spine-webgl'||runtimePackage.version!=='4.3.13')throw new Error('runtime_version_mismatch');
 const files=new Map([['/runtime.js',runtime],['/ownership-runtime.js',new URL('./ownership-runtime.js',import.meta.url)],['/',new URL('./ownership-runtime.html',import.meta.url)]]);
-for(const name of ['alice','lingxian','crino']){
+for(const name of characters){
   const folder=path.resolve(root,name),manifest=JSON.parse(await fs.readFile(path.join(folder,'preview-manifest.json')));
   for(const [file,digest] of Object.entries(manifest.files)){
     const resolved=path.resolve(folder,file);if(!resolved.startsWith(folder+path.sep))throw new Error('file_escape');
@@ -31,7 +33,7 @@ console.log('Preview URL: '+url+'/?character=alice');
 const browser=await chromium.launch({executablePath:chrome,headless:true,args:['--enable-webgl','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
 const results=[];
 try{
-  for(const name of ['alice','lingxian','crino']){
+  for(const name of characters){
     const page=await browser.newPage({viewport:{width:1100,height:1100}});const errors=[];page.on('pageerror',e=>errors.push(String(e)));
     await page.goto(url+'/?character='+name);await page.waitForFunction(()=>window.ready||window.failure,{},{timeout:60000});
     const failure=await page.evaluate(()=>window.failure);if(failure)throw new Error(failure);
@@ -47,4 +49,4 @@ try{
   const report={runtime_package:'@esotericsoftware/spine-webgl',runtime_version:'4.3.13',runtime_sha256:crypto.createHash('sha256').update(await fs.readFile(runtime)).digest('hex'),browser:await browser.version(),authority:'none',production_authorized:false,results};
   await fs.writeFile(path.join(root,'official-runtime-report.json'),JSON.stringify(report,null,2));
   if(results.some(r=>!r.passed))process.exitCode=1;
-}finally{await browser.close();if(process.env.KEEP_PREVIEW!=='1'||results.length!==3||results.some(r=>!r.passed))server.close();}
+}finally{await browser.close();if(process.env.KEEP_PREVIEW!=='1'||results.length!==characters.length||results.some(r=>!r.passed))server.close();}
