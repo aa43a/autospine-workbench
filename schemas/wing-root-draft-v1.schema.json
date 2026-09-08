@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "source_roots_sha256",
+    "records",
+    "authority",
+    "production_authorized"
+  ],
+  "properties": {
+    "schema": {
+      "const": "autospine.wing-root-draft/v1"
+    },
+    "source_roots_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "relation_index",
+          "component_id",
+          "root_index"
+        ],
+        "properties": {
+          "relation_index": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "component_id": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "root_index": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "authority": {
+      "const": "none"
+    },
+    "production_authorized": {
+      "const": false
+    }
+  }
+}

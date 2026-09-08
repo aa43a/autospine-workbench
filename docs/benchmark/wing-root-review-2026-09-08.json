@@ -1,0 +1,32 @@
+{
+  "draft_sha256": "ba608f0c5b7b9658585ad65262e888691c21d9a648569a4fa4c3e26040ff4d89",
+  "source_roots_sha256": "a51043ac4d10e62638a8a3e153695b0406cd5d45c66634d2859f4410535d8938",
+  "default_unselected": true,
+  "records": 32,
+  "targeted_tests": 12,
+  "schema_validated": true,
+  "source_replay": true,
+  "browser": {
+    "records": 32,
+    "selectable_components": 4,
+    "pivot_error": 1.1718571004216928e-13,
+    "full_draft_download": true,
+    "undo": true,
+    "restore": true,
+    "wrong_source_rejected": true,
+    "errors": []
+  },
+  "visuals": {
+    "setup.png": "ae76141d63292b8f626f1ff461831d08b6f7fff95f053fde4d891c1ea9935a4d",
+    "motion-test.png": "40350a3bd8c4fdd139e490ac65af29eaea14e177288d4962528c21f7ceb86875"
+  },
+  "authority": "none",
+  "production_authorized": false,
+  "runtime_kind": "svg_geometry_preview",
+  "official_runtime_rerun": false,
+  "limitations": [
+    "low_alpha_and_small_components_follow_parent_only",
+    "target_layer_contains_overlapping_wing_projection",
+    "single_mount_relation_preview"
+  ]
+}
