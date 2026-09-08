@@ -1,0 +1,125 @@
+{
+  "date": "2026-09-08",
+  "authority": "none",
+  "production_authorized": false,
+  "tests_passed": 50,
+  "schema_and_exact_readers": "three_passed",
+  "browser_pages": "three_passed",
+  "crino_runtime_report_sha256": "fbfc9b27799455291287f296b6f6a2d87150f5c6ce0d816a3951ccb80a438bf2",
+  "runtime_version": "4.3.13",
+  "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+  "crino_scope": {
+    "scales": [
+      1
+    ],
+    "atlases": [
+      "shared"
+    ],
+    "modes": [
+      "pair",
+      "all"
+    ]
+  },
+  "crino_capture_count": 1244,
+  "crino_regression_frames": 242,
+  "all_capture_files": "verified",
+  "full_suite": "not_run",
+  "records": [
+    {
+      "case": "alice-increment",
+      "artifact_sha256": "ab2a72e83c58e5eb8e3c574c4f4a62500b4f780f14927f6bd1bfc705bf4f5e88",
+      "relations": [
+        {
+          "driver": "layer-001-l",
+          "follower": "layer-002-l",
+          "status": "review_runtime_alpha_loss",
+          "sample_count": 7,
+          "geometry_passed": true,
+          "max_distance_growth_px": 1.1019006993621405,
+          "max_all_alpha_loss": 53,
+          "pair_alpha_loss": 7,
+          "all_alpha_loss": 7,
+          "new_all_alpha_below8": 4
+        },
+        {
+          "driver": "layer-001-r",
+          "follower": "layer-002-r",
+          "status": "not_evaluated",
+          "sample_count": 0,
+          "geometry_passed": true,
+          "max_distance_growth_px": 1.7278839885859627,
+          "max_all_alpha_loss": 0,
+          "pair_alpha_loss": 0,
+          "all_alpha_loss": 0,
+          "new_all_alpha_below8": 0
+        }
+      ],
+      "page_sha256": "35cdbfc584bd89ecd6f00a93d39c38e3cc10fed9f44295cf5456d9f275848b1b",
+      "screenshot_sha256": "6648bcc7b549ef3f8eabdc10df533ddb8eafd315075594c3332b2d8a3fa529f2"
+    },
+    {
+      "case": "alice-fallback",
+      "artifact_sha256": "fe36ad955a12248f55559ae098f7c0a650b08b9b90b30dd5ec3b79f1d5f56723",
+      "relations": [
+        {
+          "driver": "layer-001-l",
+          "follower": "layer-002-l",
+          "status": "sampled_no_new_regression",
+          "sample_count": 7,
+          "geometry_passed": true,
+          "max_distance_growth_px": 1.9689602888385598,
+          "max_all_alpha_loss": 0,
+          "pair_alpha_loss": 0,
+          "all_alpha_loss": 0,
+          "new_all_alpha_below8": 0
+        },
+        {
+          "driver": "layer-001-r",
+          "follower": "layer-002-r",
+          "status": "not_evaluated",
+          "sample_count": 0,
+          "geometry_passed": true,
+          "max_distance_growth_px": 1.7278839885859627,
+          "max_all_alpha_loss": 0,
+          "pair_alpha_loss": 0,
+          "all_alpha_loss": 0,
+          "new_all_alpha_below8": 0
+        }
+      ],
+      "page_sha256": "71cf45f431539e52b427a4d11b38952fa2af3ec60b1154caa6f153644f68e460",
+      "screenshot_sha256": "a2122973380c88a334267b97f32595f7e7bd760e3ae63d8284f62fb3e4e88172"
+    },
+    {
+      "case": "crino-increment",
+      "artifact_sha256": "d8eb6b40ec62fec85d244f5968a4f88999042a3342a75abf7bafab7afe1f29d6",
+      "relations": [
+        {
+          "driver": "layer-005-l",
+          "follower": "layer-006-l",
+          "status": "review_runtime_alpha_loss",
+          "sample_count": 99,
+          "geometry_passed": true,
+          "max_distance_growth_px": 0.2789498452246333,
+          "max_all_alpha_loss": 135,
+          "pair_alpha_loss": 99,
+          "all_alpha_loss": 99,
+          "new_all_alpha_below8": 93
+        },
+        {
+          "driver": "layer-005-r",
+          "follower": "layer-006-r",
+          "status": "review_runtime_alpha_loss",
+          "sample_count": 212,
+          "geometry_passed": true,
+          "max_distance_growth_px": 0.4027757448689626,
+          "max_all_alpha_loss": 157,
+          "pair_alpha_loss": 212,
+          "all_alpha_loss": 212,
+          "new_all_alpha_below8": 191
+        }
+      ],
+      "page_sha256": "d3a9792693c44fd5a878ce94ad098823882e53fb46f0a2a59fe692d9612c1321",
+      "screenshot_sha256": "1247cd7a549f5e47787b8571ce1cb593e600fcd379c292a0774bfc441977073a"
+    }
+  ]
+}

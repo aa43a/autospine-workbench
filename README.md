@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[逐关系准入报告](docs/how-to-seam-admission.md)已整合几何、边界及Runtime合成证据。琪露诺全部311个已记录点均有合成alpha下降，左右增量继续复核。
+Alice左回退仅在当前采样范围内无新增退化，右侧无目标样本仍为未评估；没有自动采用权。
+
 [Alice 整段回退候选](docs/how-to-seam-stable-fallback.md)恢复左侧原轨道、保留右侧增量：两处边界增距仍<2px，七点Runtime目标RGBA恢复到原动画。
 相对原动画无新增空白帧；原有空白仍保留，完整接缝未验收，候选尚无采用权。
 

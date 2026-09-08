@@ -1,0 +1,113 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "profile",
+    "authority",
+    "production_authorized",
+    "status",
+    "coverage",
+    "relations",
+    "source_direct_sha256",
+    "source_runtime_bytes_sha256",
+    "source_candidate_sha256"
+  ],
+  "properties": {
+    "schema": {
+      "const": "autospine.seam-admission/v1"
+    },
+    "profile": {
+      "const": "geometry-distance-native-alpha-loss1-v1"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "production_authorized": {
+      "const": false
+    },
+    "status": {
+      "const": "needs_review"
+    },
+    "coverage": {
+      "const": "recorded_points_native_density_only"
+    },
+    "relations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "driver",
+          "follower",
+          "status",
+          "sample_count",
+          "geometry_passed",
+          "max_distance_growth_px",
+          "max_all_alpha_loss",
+          "pair_alpha_loss",
+          "all_alpha_loss",
+          "new_all_alpha_below8"
+        ],
+        "properties": {
+          "driver": {
+            "type": "string"
+          },
+          "follower": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "blocked_geometry",
+              "blocked_boundary_distance",
+              "not_evaluated",
+              "review_runtime_alpha_loss",
+              "review_pair_alpha_loss",
+              "sampled_no_new_regression"
+            ]
+          },
+          "sample_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "geometry_passed": {
+            "type": "boolean"
+          },
+          "max_distance_growth_px": {
+            "type": "number",
+            "minimum": 0
+          },
+          "max_all_alpha_loss": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "pair_alpha_loss": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "all_alpha_loss": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "new_all_alpha_below8": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "source_direct_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "source_runtime_bytes_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "source_candidate_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}
