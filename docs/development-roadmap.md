@@ -1,5 +1,9 @@
 # AutoSpine Workbench 后续开发路线
 
+2026-09-08：已整合[保守候选预览入口](how-to-seam-candidate-hub.md)，不再要求操作者在多个临时播放页切换。
+下一切片补Alice右侧独立代表性Runtime采样，随后补原有空白、颜色／重叠与完整角色覆盖。
+不得将零疑似点视为准入通过，或继续以新纵向证据阶段替代生产能力。
+
 本文面向维护者与评估可行性的项目负责人。当前执行顺序以 [2026-09 自动化产品路线](automation-roadmap-2026-09.md) 为准：保留可信认证内核，优先完成普通用户的一键生产流，再推进自动语义/关节、通用 Mesh/Weight 与动作质量。项目级 PipelineRun、主工作台异步 region 预览、结构异常队列与 ZIP 下载已交付；预览默认目标为 Spine 4.3.26，可显式选择 4.2。范围与限制见 [操作说明](how-to-build-region-spine-preview.md)。
 
 guarded v2 Runtime 授权已于 `4254151` 提交，后续 manager、执行与 HTTP API 也已纳入开发 checkpoint，不能再视为“下一切片”。已有 P9/P10 精确链继续原位保留，其历史 4.2 地址与 v1 合同保持冻结。机制交付不代表样本 A/B current 已封存，也不代表官方 Runtime、raster、人工视觉、完整边界、overlap 或 release 已通过。B 的不可观测状态继续 fail closed；详见 [当前状态](current-state-2026-09.md) 和 [独立 checkout 基线](baseline-frozen-checkout-2026-09.md)。

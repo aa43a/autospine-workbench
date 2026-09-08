@@ -1,5 +1,9 @@
 # AutoSpine Workbench 架构与质量门禁
 
+`benchmark/seam_candidate_hub*`以逐关系exact reader校验已有候选集合，将文件字节冻结到只读HTTP白名单，
+复用外部官方Runtime播放器并确定性重建下载ZIP；UI独立模块不扩展历史播放器或生产授权。
+启动配置不是资产身份，候选身份及未评估覆盖仍来自原报告，见[入口说明](how-to-seam-candidate-hub.md)。
+
 `targets/spine43/ownership_preview.py`提供隔离纹理页的独立诊断Adapter：整页UV→region UV、加权坐标反射、Editor图片。
 对应CLI精确回放来源；`tools/ownership-runtime*`加载外部官方Runtime，固定时刻对照单纹理与共享页。
 测试证据独立保存，不改写旧导出回执的Runtime状态；诊断profile不扩展正式生产准入。

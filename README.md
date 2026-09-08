@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[保守候选统一预览](docs/how-to-seam-candidate-hub.md)：同页切换Alice／琪露诺、播放并下载已校验候选包。
+两角色官方Runtime共242帧回归通过；Alice右侧局部目标仍未评估，原有空白保留，候选未采用。
+
 [琪露诺双侧回退验证](docs/how-to-crino-stable-fallback.md)完成：六区域几何通过，边界增距仍<2px，622组Runtime原／回退局部图完全一致。
 保守组合收敛为Alice左回退、右保留增量，琪露诺双侧回退；候选未自动采用，原有空白与未评估项仍保留。
 

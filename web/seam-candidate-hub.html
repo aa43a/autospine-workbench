@@ -1,0 +1,19 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>保守候选预览</title>
+<style>
+body{max-width:1200px;margin:24px auto;padding:0 20px;background:#f3f5f8;color:#243449;font:16px/1.6 system-ui}
+aside{padding:16px;background:#fff0cc;border-radius:8px}select,a{padding:8px;margin-right:16px}
+table{border-collapse:collapse;width:100%;background:white;margin:16px 0}td,th{padding:10px;border-bottom:1px solid #ddd;text-align:left}
+iframe{width:100%;height:850px;border:1px solid #ccd4df;background:white}details{margin:16px 0}pre{white-space:pre-wrap;overflow-wrap:anywhere}
+</style>
+<h1>保守候选预览</h1>
+<aside>待复核 · 尚未正式采用。仅展示已有候选区域，原有空白、残余区域和完整角色仍待验证。</aside>
+<p id="version"></p><label>角色 <select id="character" aria-label="角色"></select></label>
+<a id="download">下载 Spine 预览包</a><a id="report">查看采样报告</a>
+<p id="error" role="alert"></p>
+<table><thead><tr><th>关系</th><th>轨道来源</th><th>边界增距</th><th>Runtime 目标数</th><th>当前覆盖</th></tr></thead><tbody id="rows"></tbody></table>
+<p>待办：Alice 右侧补充独立接缝采样；原有空白、颜色／重叠及完整角色回归。没有目标样本的区域不会被记为通过。</p>
+<iframe id="player" title="官方 Runtime 候选播放"></iframe>
+<details><summary>技术身份</summary><pre id="identity"></pre></details>
+<script type="module" src="/seam-candidate-hub.js"></script></html>

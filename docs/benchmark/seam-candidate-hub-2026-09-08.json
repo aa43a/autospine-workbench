@@ -1,0 +1,95 @@
+{
+  "date": "2026-09-08",
+  "authority": "none",
+  "production_authorized": false,
+  "status": "needs_review",
+  "scope": "existing_candidate_regions_only",
+  "collection_sha256": "ef78824153c5cc296eb03a96673c3ddfc7dbc57a6b4fdde31efbeb77f2377087",
+  "runtime_version": "4.3.13",
+  "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+  "export_target": "4.3.26",
+  "characters": [
+    {
+      "character": "alice",
+      "status": "needs_review",
+      "authority": "none",
+      "production_authorized": false,
+      "candidate_sha256": "ffeba51258fee821bbd111a34f50e9e60023d7adb789cea16581cd655894b617",
+      "relations": [
+        {
+          "driver": "layer-001-l",
+          "follower": "layer-002-l",
+          "status": "sampled_no_new_regression",
+          "sample_count": 7,
+          "geometry_passed": true,
+          "max_distance_growth_px": 1.9689602888385598,
+          "max_all_alpha_loss": 0,
+          "pair_alpha_loss": 0,
+          "all_alpha_loss": 0,
+          "new_all_alpha_below8": 0,
+          "track": "reference"
+        },
+        {
+          "driver": "layer-001-r",
+          "follower": "layer-002-r",
+          "status": "not_evaluated",
+          "sample_count": 0,
+          "geometry_passed": true,
+          "max_distance_growth_px": 1.7278839885859627,
+          "max_all_alpha_loss": 0,
+          "pair_alpha_loss": 0,
+          "all_alpha_loss": 0,
+          "new_all_alpha_below8": 0,
+          "track": "increment"
+        }
+      ],
+      "zip_sha256": "a00583ee09ad0a7e163509cb3b85d82619fc4626ec1bbaf64b3d5102c3c4a2bd"
+    },
+    {
+      "character": "crino",
+      "status": "needs_review",
+      "authority": "none",
+      "production_authorized": false,
+      "candidate_sha256": "ea482f812a1c6650170baadb4260b4165357e2890a4b9c6ef81dd1855c97939b",
+      "relations": [
+        {
+          "driver": "layer-005-l",
+          "follower": "layer-006-l",
+          "status": "sampled_no_new_regression",
+          "sample_count": 99,
+          "geometry_passed": true,
+          "max_distance_growth_px": 1.9527746726071271,
+          "max_all_alpha_loss": 0,
+          "pair_alpha_loss": 0,
+          "all_alpha_loss": 0,
+          "new_all_alpha_below8": 0,
+          "track": "reference"
+        },
+        {
+          "driver": "layer-005-r",
+          "follower": "layer-006-r",
+          "status": "sampled_no_new_regression",
+          "sample_count": 212,
+          "geometry_passed": true,
+          "max_distance_growth_px": 1.6988976834173228,
+          "max_all_alpha_loss": 0,
+          "pair_alpha_loss": 0,
+          "all_alpha_loss": 0,
+          "new_all_alpha_below8": 0,
+          "track": "reference"
+        }
+      ],
+      "zip_sha256": "c8f93e5b862339367d6b170a95293757ff6befae8d231f7f49c0357be59aef70"
+    }
+  ],
+  "python_targeted_tests": 14,
+  "runtime_regression_frames": 242,
+  "new_local_probe_targets": 0,
+  "full_suite_run": false,
+  "browser": "152.0.7977.76",
+  "browser_report_sha256": "c7f2a6139931f0dc5ae643d8a3e48553945a1442b61e3959a02946b3b52d7e60",
+  "screenshots": {
+    "alice": "d293d43b26a38a67be0cf4d1f16bfba6b4cb9eb3903d67f92671d86e6bf8819a",
+    "crino": "8a36b22f761cc1868779ab555df63f507ec936e8c6ef3f4309cbef475f6432d3"
+  }
+}

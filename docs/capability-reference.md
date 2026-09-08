@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+- [保守候选集合预览](how-to-seam-candidate-hub.md)：只读本机入口，校验既有证据后切换角色、播放及下载。
+  仅已有候选区域；未评估关系仍明确显示，尚未接入生产自动采用或完整角色门禁。
+
 `python -m autospine_workbench.benchmark.seam_increment_cli` 在固定原 deform 上求至多 2 px 增量，检查固定 setup 几何和锚点残差。
 零增量保留原动画；栅格空白仍待分类，见[说明](how-to-seam-increment.md)。
 
