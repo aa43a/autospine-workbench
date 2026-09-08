@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "profile",
+    "scope_policy",
+    "characters",
+    "total_layers",
+    "accuracy",
+    "authority",
+    "production_authorized",
+    "status"
+  ],
+  "properties": {
+    "schema": {
+      "const": "autospine.rig-plan-cohort/v1"
+    },
+    "profile": {
+      "const": "semantic-alpha-bone-strategy-v1"
+    },
+    "scope_policy": {
+      "const": "all_source_layers"
+    },
+    "characters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "label",
+          "character_id",
+          "plan_sha256",
+          "source_draft_sha256",
+          "total_layers",
+          "strategies",
+          "pending_strategies",
+          "existing_actions",
+          "reason_counts",
+          "review_items"
+        ],
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "character_id": {
+            "type": "string"
+          },
+          "plan_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "source_draft_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "total_layers": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "strategies": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "pending_strategies": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "existing_actions": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "reason_counts": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "review_items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "layer_id",
+                "name",
+                "reason_codes"
+              ],
+              "properties": {
+                "layer_id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "reason_codes": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "total_layers": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "accuracy": {
+      "type": "null"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "production_authorized": {
+      "const": false
+    },
+    "status": {
+      "const": "needs_review"
+    }
+  }
+}

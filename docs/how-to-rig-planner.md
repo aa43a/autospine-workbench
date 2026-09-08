@@ -37,3 +37,36 @@ bottomwear与objects均有5个连通域，保留语义复核；没有按数量�
 未改动原draft、Mesh或Spine输出，也未重跑Runtime。
 此结果仅是Alice开发集结果，不代表分类准确率；下一步在铃仙、琪露诺运行同一规则，
 再根据明确语义补服装与物件的候选路线。表情和次级运动仍按原里程碑开发。
+
+
+## 三角色全量比较
+
+同一 semantic-alpha-bone-strategy-v1 已分析 Alice 23层、铃仙21层、琪露诺18层，共62层。
+使用 r2b-completion 中各角色 *-draft-v1.json 作为输入，CLI 不传 focus-layer。
+报告位于 ../tmp/r2b-rig-planner-cohort/<角色>/plan.json，review.html 展示源图证据。
+
+| 角色 | 刚性 | Mesh | 分区Mesh | 次级需求 | 面部需求 | 语义复核 |
+|---|---:|---:|---:|---:|---:|---:|
+| Alice | 6 | 2 | 1 | 2 | 9 | 3 |
+| 铃仙 | 6 | 2 | 1 | 2 | 9 | 1 |
+| 琪露诺 | 5 | 0 | 2 | 2 | 5 | 4 |
+
+统计是策略分布，不能用于声称正确率。已有bind记录分别7/7/5条，仍保持原状。
+已选刚性头发仍可被标记未来次级运动需求，两者不冲突。
+鞋层整层没有绑定选项时仍进入复核，不否定已有独立分区动画。
+琪露诺头饰没有alpha>=8的像素；规划器不自动删除或采用该层。
+本次没有针对角色名加规则，没有改权重或重跑Runtime。
+
+汇总入口：python -m autospine_workbench.benchmark.rig_planner_cohort_cli，
+参数 --manifest、--workspace、--output、--html，以及每角色一个 --plan。
+汇总必须覆盖全部源层，拒绝不同profile、重复角色和局部范围。
+read_cohort 通过每个plan地址重放源闭包后重算统计，拒绝修改统计或引用。
+最终导航页：../tmp/r2b-rig-planner-cohort/summary.html。
+
+浏览器回归：
+```powershell
+node tools/check-rig-planner-cohort.mjs ../tmp/r2b-rig-planner-cohort ../tmp/spine43-verification 'C:/Program Files/Google/Chrome/Application/chrome.exe'
+```
+
+下一步优先补服装、手持物和翅膀的语义候选及挂接关系证据。
+需要把名称歧义消解后再规划运动，不根据连通域数自动拆图；独立人标尚未建立，准确率保持null。

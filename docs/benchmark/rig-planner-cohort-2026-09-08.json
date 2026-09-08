@@ -1,0 +1,198 @@
+{
+  "cohort_sha256": "76361c51f4993d79838aef16a4f44a1201e965b3df38da65598aa0ab395ab64b",
+  "profile": "semantic-alpha-bone-strategy-v1",
+  "scope_policy": "all_source_layers",
+  "characters": [
+    {
+      "character_id": "character-f83a6fabd05091f0",
+      "existing_actions": {
+        "bind": 7,
+        "pending": 16
+      },
+      "label": "alice",
+      "pending_strategies": {
+        "facial": 9,
+        "partition_mesh": 1,
+        "rigid": 3,
+        "semantic_review": 3
+      },
+      "plan_sha256": "a2386dd5b91abb648c106370d657223da857db773b24930fc0f894a733db5269",
+      "reason_counts": {
+        "ambiguous_object_or_garment": 2,
+        "disconnected_alpha_does_not_authorize_split": 8,
+        "existing_mesh_chain_options_require_coverage_review": 3,
+        "existing_rigid_option_requires_visual_review": 6,
+        "facial_name_or_semantic_cue": 9,
+        "no_supported_binding_option": 1,
+        "secondary_name_or_semantic_cue": 2,
+        "semantic_and_options_are_candidates": 23
+      },
+      "review_items": [
+        {
+          "layer_id": "layer-002",
+          "name": "footwear",
+          "reason_codes": [
+            "semantic_and_options_are_candidates",
+            "no_supported_binding_option",
+            "disconnected_alpha_does_not_authorize_split"
+          ]
+        },
+        {
+          "layer_id": "layer-005",
+          "name": "bottomwear",
+          "reason_codes": [
+            "semantic_and_options_are_candidates",
+            "ambiguous_object_or_garment",
+            "disconnected_alpha_does_not_authorize_split"
+          ]
+        },
+        {
+          "layer_id": "layer-008",
+          "name": "objects",
+          "reason_codes": [
+            "semantic_and_options_are_candidates",
+            "ambiguous_object_or_garment",
+            "disconnected_alpha_does_not_authorize_split"
+          ]
+        }
+      ],
+      "source_draft_sha256": "1a214b1efe4a1e53a6f5e356d2174e8d898fcb2213e0933693d425fc50c21e1c",
+      "strategies": {
+        "facial": 9,
+        "partition_mesh": 1,
+        "rigid": 6,
+        "secondary_motion": 2,
+        "semantic_review": 3,
+        "weighted_mesh": 2
+      },
+      "total_layers": 23
+    },
+    {
+      "character_id": "character-1635e2f149a0cfb6",
+      "existing_actions": {
+        "bind": 7,
+        "pending": 14
+      },
+      "label": "lingxian",
+      "pending_strategies": {
+        "facial": 9,
+        "partition_mesh": 1,
+        "rigid": 3,
+        "semantic_review": 1
+      },
+      "plan_sha256": "512aaa86a5fe9dc949ef5fbb1865f92efb000b84b30228245ae4116041753b75",
+      "reason_counts": {
+        "ambiguous_object_or_garment": 1,
+        "disconnected_alpha_does_not_authorize_split": 5,
+        "existing_mesh_chain_options_require_coverage_review": 3,
+        "existing_rigid_option_requires_visual_review": 6,
+        "facial_name_or_semantic_cue": 9,
+        "secondary_name_or_semantic_cue": 2,
+        "semantic_and_options_are_candidates": 21
+      },
+      "review_items": [
+        {
+          "layer_id": "layer-005",
+          "name": "bottomwear",
+          "reason_codes": [
+            "semantic_and_options_are_candidates",
+            "ambiguous_object_or_garment"
+          ]
+        }
+      ],
+      "source_draft_sha256": "db8b65f64a1183a0291da6f1bacc5a06e7146768acbaf3e81d820fc1b3d52a0b",
+      "strategies": {
+        "facial": 9,
+        "partition_mesh": 1,
+        "rigid": 6,
+        "secondary_motion": 2,
+        "semantic_review": 1,
+        "weighted_mesh": 2
+      },
+      "total_layers": 21
+    },
+    {
+      "character_id": "character-2c3669d4fb0f569d",
+      "existing_actions": {
+        "bind": 5,
+        "pending": 13
+      },
+      "label": "crino",
+      "pending_strategies": {
+        "facial": 5,
+        "partition_mesh": 2,
+        "rigid": 2,
+        "semantic_review": 4
+      },
+      "plan_sha256": "a18964a09b4c9a7ce228457ce21565d7995a7117fa4602649431110c37e04866",
+      "reason_counts": {
+        "ambiguous_object_or_garment": 1,
+        "disconnected_alpha_does_not_authorize_split": 13,
+        "existing_mesh_chain_options_require_coverage_review": 2,
+        "existing_rigid_option_requires_visual_review": 5,
+        "facial_name_or_semantic_cue": 5,
+        "no_opaque_alpha_support": 1,
+        "no_supported_binding_option": 2,
+        "secondary_name_or_semantic_cue": 2,
+        "semantic_and_options_are_candidates": 18
+      },
+      "review_items": [
+        {
+          "layer_id": "layer-000",
+          "name": "wings",
+          "reason_codes": [
+            "semantic_and_options_are_candidates",
+            "no_supported_binding_option",
+            "disconnected_alpha_does_not_authorize_split"
+          ]
+        },
+        {
+          "layer_id": "layer-002",
+          "name": "headwear",
+          "reason_codes": [
+            "semantic_and_options_are_candidates",
+            "no_opaque_alpha_support"
+          ]
+        },
+        {
+          "layer_id": "layer-006",
+          "name": "footwear",
+          "reason_codes": [
+            "semantic_and_options_are_candidates",
+            "no_supported_binding_option",
+            "disconnected_alpha_does_not_authorize_split"
+          ]
+        },
+        {
+          "layer_id": "layer-008",
+          "name": "bottomwear",
+          "reason_codes": [
+            "semantic_and_options_are_candidates",
+            "ambiguous_object_or_garment",
+            "disconnected_alpha_does_not_authorize_split"
+          ]
+        }
+      ],
+      "source_draft_sha256": "204be3d14de04f68a5463043db26339de69ce73c7f01f10495003b3d89ffade7",
+      "strategies": {
+        "facial": 5,
+        "partition_mesh": 2,
+        "rigid": 5,
+        "secondary_motion": 2,
+        "semantic_review": 4
+      },
+      "total_layers": 18
+    }
+  ],
+  "total_layers": 62,
+  "targeted_tests": 8,
+  "accuracy": null,
+  "authority": "none",
+  "production_authorized": false,
+  "runtime_rerun": false,
+  "rules_changed": false,
+  "browser_cards": 62,
+  "browser_errors": [],
+  "schema_validated": true,
+  "cohort_source_replay": true
+}
