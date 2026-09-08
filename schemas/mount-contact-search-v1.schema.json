@@ -1,0 +1,226 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "profile",
+    "source_contact_sha256",
+    "character_id",
+    "parameters",
+    "rows",
+    "authority",
+    "production_authorized",
+    "status"
+  ],
+  "properties": {
+    "schema": {
+      "const": "autospine.mount-contact-search/v1"
+    },
+    "profile": {
+      "const": "upper-edge-hand-window-wing-root-v1"
+    },
+    "source_contact_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "character_id": {
+      "type": "string"
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "garment_upper_fraction",
+        "hand_radius_height",
+        "wing_radius_height",
+        "candidate_limit",
+        "spacing_height",
+        "max_pair_evaluations"
+      ],
+      "properties": {
+        "garment_upper_fraction": {
+          "const": 0.25
+        },
+        "hand_radius_height": {
+          "const": 0.08
+        },
+        "wing_radius_height": {
+          "const": 0.2
+        },
+        "candidate_limit": {
+          "const": 3
+        },
+        "spacing_height": {
+          "const": 0.015
+        },
+        "max_pair_evaluations": {
+          "const": 50000000
+        }
+      }
+    },
+    "rows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "layer_id",
+          "name",
+          "target_layer_id",
+          "bone_id",
+          "baseline_status",
+          "policy",
+          "reason_code",
+          "candidates",
+          "selected_candidate",
+          "status"
+        ],
+        "properties": {
+          "layer_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "target_layer_id": {
+            "type": "string"
+          },
+          "bone_id": {
+            "type": "string"
+          },
+          "baseline_status": {
+            "type": "string"
+          },
+          "policy": {
+            "enum": [
+              "source_upper_quarter",
+              "hand_reference_window",
+              "torso_root_window",
+              "unsupported_relation"
+            ]
+          },
+          "reason_code": {
+            "type": "string"
+          },
+          "candidates": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "source_xy",
+                "target_xy",
+                "distance_px",
+                "local_evidence"
+              ],
+              "properties": {
+                "source_xy": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "number"
+                  }
+                },
+                "target_xy": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "number"
+                  }
+                },
+                "distance_px": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "local_evidence": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "status",
+                    "roi",
+                    "boundary_point",
+                    "overlap_pixels",
+                    "boundary_near_target_pixels",
+                    "boundary_pair_pixels"
+                  ],
+                  "properties": {
+                    "status": {
+                      "enum": [
+                        "boundary_pair_support",
+                        "boundary_over_target_interior",
+                        "overlap_only",
+                        "no_local_support",
+                        "no_source_boundary"
+                      ]
+                    },
+                    "roi": {
+                      "anyOf": [
+                        {
+                          "type": "array",
+                          "minItems": 4,
+                          "maxItems": 4,
+                          "items": {
+                            "type": "number"
+                          }
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "boundary_point": {
+                      "anyOf": [
+                        {
+                          "type": "array",
+                          "minItems": 2,
+                          "maxItems": 2,
+                          "items": {
+                            "type": "number"
+                          }
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "overlap_pixels": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "boundary_near_target_pixels": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "boundary_pair_pixels": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                }
+              }
+            },
+            "maxItems": 3
+          },
+          "selected_candidate": {
+            "type": "null"
+          },
+          "status": {
+            "const": "needs_review"
+          }
+        }
+      }
+    },
+    "authority": {
+      "const": "none"
+    },
+    "production_authorized": {
+      "const": false
+    },
+    "status": {
+      "const": "needs_review"
+    }
+  }
+}

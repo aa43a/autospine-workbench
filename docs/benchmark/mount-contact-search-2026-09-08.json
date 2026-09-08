@@ -1,0 +1,145 @@
+{
+  "profile": "upper-edge-hand-window-wing-root-v1",
+  "characters": [
+    {
+      "character": "alice",
+      "search_sha256": "6e69dbdbc23cdf71d922bc5738ca9643e77bbb547c1ce9643ce825f0e06b45d5",
+      "source_contact_sha256": "74a66c6f9545a4e22f73371a45dfee4e5bf9407d0dbf83c07e60099f604ae6b3",
+      "relations": [
+        {
+          "layer_id": "layer-005",
+          "target_layer_id": "layer-006",
+          "bone_id": "pelvis",
+          "policy": "source_upper_quarter",
+          "reason_code": "geometry_candidates_require_semantic_review",
+          "distances_px": [
+            0.0,
+            0.0,
+            3.605551
+          ]
+        },
+        {
+          "layer_id": "layer-008",
+          "target_layer_id": "layer-003",
+          "bone_id": "hand_l",
+          "policy": "hand_reference_window",
+          "reason_code": "no_boundary_in_search_window",
+          "distances_px": []
+        },
+        {
+          "layer_id": "layer-008",
+          "target_layer_id": "layer-004",
+          "bone_id": "hand_l",
+          "policy": "hand_reference_window",
+          "reason_code": "no_boundary_in_search_window",
+          "distances_px": []
+        },
+        {
+          "layer_id": "layer-008",
+          "target_layer_id": "layer-003",
+          "bone_id": "hand_r",
+          "policy": "hand_reference_window",
+          "reason_code": "geometry_candidates_require_semantic_review",
+          "distances_px": [
+            15.811388,
+            19.0,
+            21.931712
+          ]
+        },
+        {
+          "layer_id": "layer-008",
+          "target_layer_id": "layer-004",
+          "bone_id": "hand_r",
+          "policy": "hand_reference_window",
+          "reason_code": "no_boundary_in_search_window",
+          "distances_px": []
+        },
+        {
+          "layer_id": "layer-008",
+          "target_layer_id": "layer-006",
+          "bone_id": "chest",
+          "policy": "unsupported_relation",
+          "reason_code": "requires_other_attachment_evidence",
+          "distances_px": []
+        }
+      ]
+    },
+    {
+      "character": "lingxian",
+      "search_sha256": "fe68378365e02715de97b46e7041fdb69c6f92af60098d6c3083713ee1e8ad4b",
+      "source_contact_sha256": "156cb3fdd8a5b78dbc2933841ffb929ffd18e563a42a2ebc79bb8742718493af",
+      "relations": [
+        {
+          "layer_id": "layer-005",
+          "target_layer_id": "layer-006",
+          "bone_id": "pelvis",
+          "policy": "source_upper_quarter",
+          "reason_code": "geometry_candidates_require_semantic_review",
+          "distances_px": [
+            0.0,
+            1.0,
+            7.211103
+          ]
+        }
+      ]
+    },
+    {
+      "character": "crino",
+      "search_sha256": "e20d58ebc88240eb31eb48aa26d5204b12277d6bd58b4c4ac4a031679b9968c0",
+      "source_contact_sha256": "ba3101092b1498c6be7b00aa3b89405986c3d7a2c9961dbd2560492a6da58bac",
+      "relations": [
+        {
+          "layer_id": "layer-000",
+          "target_layer_id": "layer-003",
+          "bone_id": "chest",
+          "policy": "torso_root_window",
+          "reason_code": "geometry_candidates_require_semantic_review",
+          "distances_px": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "layer_id": "layer-008",
+          "target_layer_id": "layer-003",
+          "bone_id": "pelvis",
+          "policy": "source_upper_quarter",
+          "reason_code": "geometry_candidates_require_semantic_review",
+          "distances_px": [
+            12.041595,
+            12.727922,
+            16.124515
+          ]
+        }
+      ]
+    }
+  ],
+  "targeted_tests": 12,
+  "schema_validated": true,
+  "source_replay": true,
+  "browser": {
+    "results": [
+      {
+        "name": "alice",
+        "candidates": 6
+      },
+      {
+        "name": "lingxian",
+        "candidates": 3
+      },
+      {
+        "name": "crino",
+        "candidates": 6
+      }
+    ],
+    "errors": []
+  },
+  "authority": "none",
+  "production_authorized": false,
+  "runtime_rerun": false,
+  "visual_limitations": [
+    "wing_zero_distance_candidates_on_outer_contour_not_verified_roots",
+    "hand_reference_window_not_grasp_detection"
+  ]
+}
