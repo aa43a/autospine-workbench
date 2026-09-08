@@ -1,0 +1,64 @@
+{
+  "date": "2026-09-08",
+  "authority": "none",
+  "production_authorized": false,
+  "tests_passed": 35,
+  "schema_checks": "all_three_passed",
+  "exact_replay": "all_three_passed",
+  "historical_transport_identity": "all_three_unchanged",
+  "browser_controls": "all_three_passed",
+  "runtime": "not_rerun_unchanged_animation",
+  "full_suite": "not_run",
+  "records": [
+    {
+      "character": "alice",
+      "artifact_sha256": "dd5a833dd784bc1958b48e6fdb47ef5c27314becbcfb6f0c34c7c47b6368c182",
+      "page_sha256": "18409d5022e47751f8648f1eed0db1319e2d32cea8f4dae4ffd715b27a97f89e",
+      "screenshot_sha256": "cf2a53daa69c54ced2266b8701feb61b82d61f0cd486521b44a5dc9fae0b7f50",
+      "relations": [
+        {
+          "driver": "layer-001-l",
+          "counts": {
+            "ambiguous_boundary_ties": 6,
+            "opposed_facing_boundaries": 1
+          }
+        },
+        {
+          "driver": "layer-001-r",
+          "counts": {}
+        }
+      ]
+    },
+    {
+      "character": "lingxian",
+      "artifact_sha256": "cd3613667f6896f5298e6be8a98ee770df79a9003cf0e95576466b2857822fc3",
+      "page_sha256": "8ca6000ffe0732dc22d9eef89511c8e3991dad0de4d3c6159bba0bcc823a5b52",
+      "screenshot_sha256": "a5f3f3c37d33a2e3da2d871bebbcd887a3beed9208f30a4394e8e06c95fd75d5",
+      "relations": []
+    },
+    {
+      "character": "crino",
+      "artifact_sha256": "ab03782802c6b3747cd3630ae831531c4a3aff1ca6b95af7d033aafce51465df",
+      "page_sha256": "8e4f9dbd2e29ec195ee14a0c850438c2483661324ba034b69327beb432243f8a",
+      "screenshot_sha256": "f6e274d900f4872c1dea6a89b971c17bb1b06ce9279762283ab98ed822e5fa01",
+      "relations": [
+        {
+          "driver": "layer-005-l",
+          "counts": {
+            "no_opposed_nearest_boundaries": 41,
+            "insufficient_boundary_evidence": 40,
+            "ambiguous_boundary_ties": 18
+          }
+        },
+        {
+          "driver": "layer-005-r",
+          "counts": {
+            "ambiguous_boundary_ties": 17,
+            "no_opposed_nearest_boundaries": 149,
+            "insufficient_boundary_evidence": 46
+          }
+        }
+      ]
+    }
+  ]
+}

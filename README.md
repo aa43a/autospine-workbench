@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[动态 alpha 边界证据](docs/how-to-seam-gap-boundary.md)已加入逐像素边缘距离、法向和 ROI 连通性。
+Alice 左侧 1 个样本为相向边缘、6 个存在并列歧义；第 37 帧局部封闭，仍未确认裂缝或采用候选。下一步验证亚像素等值轮廓。
+
 [附件运动补偿轨迹](docs/how-to-seam-gap-transport.md)将 Alice 左侧 6 条关联候选收敛为 4 条，第 36–38 帧连成三帧轨迹。
 琪露诺左／右最长观测为 20／13 帧；这不证明真实裂缝，下一步补充 alpha 边界拓扑证据，候选未采用。
 
