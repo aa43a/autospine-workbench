@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[主翼与挂坠的完整角色上下文](docs/how-to-wing-character-preview.md)：琪露诺18源层、26附件通过官方Runtime 121帧检查；
+16层仅作刚性身体参照，独立四肢动作尚未合入，没有新增绑定批准。
+
 [手臂Mesh已接入组合包](docs/how-to-integrated-limbs.md)：11附件完成官方Runtime 121帧验证，原有附件逐帧坐标保持不变。
 14个包缺项已列出并链接全量复核页；现有选择保留，未新增批准。
 

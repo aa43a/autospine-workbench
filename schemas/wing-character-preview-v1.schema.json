@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["schema", "profile", "source_pendant_sha256", "source_candidate_sha256", "context_layers", "context_layer_count", "body_motion", "draw_order", "existing_attachment_motion_unchanged", "full_character_animation", "authority", "production_authorized", "files"],
+  "properties": {
+    "schema": {"const": "autospine.wing-character-preview/v1"},
+    "profile": {"const": "wing-candidates-with-rigid-source-context-v1"},
+    "source_pendant_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source_candidate_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "context_layers": {"type": "array", "minItems": 2, "items": {
+      "type": "object", "required": ["layer_id", "name", "representation", "attachments"],
+      "properties": {"representation": {"enum": ["wing_candidate_parts", "cleaned_topwear_and_transferred_candidates", "rigid_context_only"]}}
+    }},
+    "context_layer_count": {"type": "integer", "minimum": 0},
+    "body_motion": {"const": "rigid_chest_context_not_reviewed_body_binding"},
+    "draw_order": {"const": "all_wing_candidates_behind_source_order_body_context"},
+    "existing_attachment_motion_unchanged": {"const": true},
+    "full_character_animation": {"const": false},
+    "authority": {"const": "none"},
+    "production_authorized": {"const": false},
+    "files": {"type": "object"}
+  }
+}
