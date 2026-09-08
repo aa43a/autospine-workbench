@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+`python -m autospine_workbench.benchmark.seam_shape_cli` 运行局部位移／切向位移最小二乘和帧内面积回退，输出新动画与同帧对照。
+当前固定参数实测退化，保留为负向实验，见[说明](how-to-seam-shape.md)。
+
 `python -m autospine_workbench.benchmark.continuous_anchor_cli` 将连续目标锚点接入原局部位移求解器，输出新 Spine 诊断包及同帧栅格对照。
 保留原对应验算、几何门禁和回放；当前有动态退化，见[说明](how-to-continuous-anchor-bake.md)。
 

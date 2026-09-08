@@ -1,0 +1,233 @@
+{
+  "date": "2026-09-08",
+  "authority": "none",
+  "production_authorized": false,
+  "adoption": "not_adopted_all_seams_regressed",
+  "tests_passed": 55,
+  "source_replay": "all_three_passed",
+  "schema_files_zip_checks": "all_three_passed",
+  "browser_views": "all_three_passed",
+  "full_suite": "not_run",
+  "runtime_package": "@esotericsoftware/spine-webgl",
+  "runtime_version": "4.3.13",
+  "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+  "runtime_report_sha256": "0253f27f555a969ccc8bacb2009137d6e6399ecbc5b8f8b365f5cb61f80c98d2",
+  "runtime_frames": 363,
+  "runtime_passed": true,
+  "records": [
+    {
+      "character": "alice",
+      "artifact_sha256": "202605bf6083009e3f3b6f9a69bed85589ca345a44248eeae91e6b889aa65311",
+      "source_anchor_sha256": "7afb2aaf21791a0e104bfe9fc52ae7dea08eebbc4f0485550ca613be18397af4",
+      "zip_sha256": "a1c7c6b0bf94db62d829a164bc0f03243cfd51a8474e4e1c10dc7ceab9aad055",
+      "geometry": {
+        "layer-001-l": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.1861672144298558,
+          "max_edge_stretch": 1.2578051700385797,
+          "max_frame_displacement_px": 6.599759908041288,
+          "min_area_ratio": 0.5683308551382462,
+          "passed": true
+        },
+        "layer-001-r": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.2297199313528235,
+          "max_edge_stretch": 1.3009367151546158,
+          "max_frame_displacement_px": 6.60496579312744,
+          "min_area_ratio": 0.6381180902723413,
+          "passed": true
+        },
+        "layer-002-l": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.891161226778349,
+          "max_edge_stretch": 1.4600937883996716,
+          "max_frame_displacement_px": 9.032251392542662,
+          "min_area_ratio": 0.5007063532557722,
+          "passed": true
+        },
+        "layer-002-r": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.585915663938442,
+          "max_edge_stretch": 1.3701053921883277,
+          "max_frame_displacement_px": 8.987368295925702,
+          "min_area_ratio": 0.5045536908187225,
+          "passed": true
+        }
+      },
+      "max_backtracks": 2,
+      "blocked_solver_frames": 0,
+      "original_seams": [
+        {
+          "driver": "layer-001-l",
+          "follower": "layer-002-l",
+          "max_distance_growth_px": 4.372145506287582,
+          "status": "blocked"
+        },
+        {
+          "driver": "layer-001-r",
+          "follower": "layer-002-r",
+          "max_distance_growth_px": 6.877909080159807,
+          "status": "blocked"
+        }
+      ],
+      "common_frame": [
+        {
+          "driver": "layer-001-l",
+          "follower": "layer-002-l",
+          "max_gap_pixels": [
+            4,
+            8
+          ],
+          "frames_with_new_gap": 22
+        },
+        {
+          "driver": "layer-001-r",
+          "follower": "layer-002-r",
+          "max_gap_pixels": [
+            8,
+            9
+          ],
+          "frames_with_new_gap": 30
+        }
+      ],
+      "raster_screenshot_sha256": "acdab18f9a75f4644c10a1500ee80c531f1e73840ba25172c3f7329c63220ed4"
+    },
+    {
+      "character": "lingxian",
+      "artifact_sha256": "c8737f94b1f3b2a450f42a727b3262009a2409b7ff47278c41fabbf5a1b4f295",
+      "source_anchor_sha256": "b48832dee2ad3ec93785cdf0ecd573bc31757e5ff368e0dca56e4ed29baf065b",
+      "zip_sha256": "503cd242ec5b945de7f068f6274b1364ff17fe7b510c5c14c4de7bfa33fbdf3f",
+      "geometry": {
+        "layer-003-l": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.2634319616216791,
+          "max_edge_stretch": 1.3369758390849302,
+          "max_frame_displacement_px": 9.395779459219256,
+          "min_area_ratio": 0.6463143528705625,
+          "passed": true
+        },
+        "layer-003-r": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.1664948968445046,
+          "max_edge_stretch": 1.2470347574124239,
+          "max_frame_displacement_px": 9.542601270218313,
+          "min_area_ratio": 0.5820481271748058,
+          "passed": true
+        }
+      },
+      "max_backtracks": 0,
+      "blocked_solver_frames": 0,
+      "original_seams": [],
+      "common_frame": [],
+      "raster_screenshot_sha256": "eb1054e97e4a7cfd03929e709d7afdd2c9f65980e7c8596d9ca2bebfa25fc7f1"
+    },
+    {
+      "character": "crino",
+      "artifact_sha256": "cad7b9d54ab84b480180742996a708128028e2fa32b9e98a9f5b65e474e19024",
+      "source_anchor_sha256": "2b7494c762641210625f193936bc40ea7e67f0d9a6797554aa4032ba57af0f5d",
+      "zip_sha256": "289266c0ad27998f3f69cc7fe2438913df7f3f57d9628d021b5097c9e2ba63af",
+      "geometry": {
+        "layer-004-l": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.4257555114977394,
+          "max_edge_stretch": 1.3233700518784033,
+          "max_frame_displacement_px": 8.371151055016261,
+          "min_area_ratio": 0.5501331173187808,
+          "passed": true
+        },
+        "layer-004-r": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.2628062179286146,
+          "max_edge_stretch": 1.2405004035243028,
+          "max_frame_displacement_px": 7.923021572556827,
+          "min_area_ratio": 0.5627159837207865,
+          "passed": true
+        },
+        "layer-005-l": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.2702172823925402,
+          "max_edge_stretch": 1.362668200483568,
+          "max_frame_displacement_px": 9.77212082627153,
+          "min_area_ratio": 0.5499999999999989,
+          "passed": true
+        },
+        "layer-005-r": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.2779505672490232,
+          "max_edge_stretch": 1.3628969821854764,
+          "max_frame_displacement_px": 9.612031306147648,
+          "min_area_ratio": 0.5808497964347196,
+          "passed": true
+        },
+        "layer-006-l": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.516563689960032,
+          "max_edge_stretch": 1.407961803456149,
+          "max_frame_displacement_px": 12.0299996164325,
+          "min_area_ratio": 0.5153557796793328,
+          "passed": true
+        },
+        "layer-006-r": {
+          "inversions": 0,
+          "loop_error_px": 0.0,
+          "max_area_ratio": 1.4936716892591209,
+          "max_edge_stretch": 1.442804017992218,
+          "max_frame_displacement_px": 11.90005283337595,
+          "min_area_ratio": 0.525472818961727,
+          "passed": true
+        }
+      },
+      "max_backtracks": 1,
+      "blocked_solver_frames": 0,
+      "original_seams": [
+        {
+          "driver": "layer-005-l",
+          "follower": "layer-006-l",
+          "max_distance_growth_px": 3.3540313968631823,
+          "status": "blocked"
+        },
+        {
+          "driver": "layer-005-r",
+          "follower": "layer-006-r",
+          "max_distance_growth_px": 3.780724467618918,
+          "status": "blocked"
+        }
+      ],
+      "common_frame": [
+        {
+          "driver": "layer-005-l",
+          "follower": "layer-006-l",
+          "max_gap_pixels": [
+            5,
+            8
+          ],
+          "frames_with_new_gap": 36
+        },
+        {
+          "driver": "layer-005-r",
+          "follower": "layer-006-r",
+          "max_gap_pixels": [
+            5,
+            34
+          ],
+          "frames_with_new_gap": 37
+        }
+      ],
+      "raster_screenshot_sha256": "a1e6c80a00a9e847bf116dd6b9f4a2c87c7e75177c409cc84acb335c86b82e7a"
+    }
+  ],
+  "reader_replay": "alice_passed",
+  "numpy_version": "2.4.6",
+  "python_version": "3.14.3 (tags/v3.14.3:323c59a, Feb  3 2026, 16:04:56) [MSC v.1944 64 bit (AMD64)]"
+}

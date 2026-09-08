@@ -13,7 +13,7 @@
   const animation=json.animations[animationName];
   const seam=animationName==='seam-translation-inspection';
   const remapped=animationName==='remapped-seam-inspection';
-  const alphaSeam=animationName==='alpha-seam-inspection'||animationName==='continuous-anchor-inspection'||remapped;
+  const alphaSeam=animationName==='alpha-seam-inspection'||animationName==='continuous-anchor-inspection'||animationName==='seam-shape-inspection'||remapped;
   const continuous=animationName==='continuous-corrective-inspection'||seam||alphaSeam;
   const duration=Math.max(...Object.values(animation.bones).flatMap(b=>b.rotate.map(k=>k.time)));
   document.querySelector('#time').max=duration;
@@ -22,7 +22,7 @@
   if(seam)document.querySelector('aside').textContent='接缝平移约束实验，尚未采用；整只鞋保持刚性。约束失败仍为blocked，不能将可播放当作接缝通过。';
   if(alphaSeam){
     document.querySelector('aside').textContent='Alpha边界局部过渡候选：30 FPS bake / 60 FPS采样；接触对应尚待复核，完整角色与生产QA未通过。';
-    const p=document.createElement('p');p.textContent='Alpha边界增距：'+(manifest.alpha_seam_qa.after.relations.map(r=>r.driver+' ↔ '+r.follower+' '+r.max_distance_growth_px.toFixed(3)+' px（'+r.status+'）').join('；')||'无对应关系');
+    const p=document.createElement('p');p.textContent='Alpha边界增距：'+((manifest.shape_qa||manifest.alpha_seam_qa).after.relations.map(r=>r.driver+' ↔ '+r.follower+' '+r.max_distance_growth_px.toFixed(3)+' px（'+r.status+'）').join('；')||'无对应关系');
     document.querySelector('aside').after(p);
   }
   if(remapped)document.querySelector('aside').textContent='局部冲突重配候选；只处理目标分歧超过2px的组，保留所有源边界点。叠加与验算仍用原对应，尚未采用或通过完整接缝验收。';
@@ -98,7 +98,7 @@
   }
   function drawContacts(item){
     if(!contactOverlay)return;const c=contactOverlay;c.clearRect(0,0,canvas.width,canvas.height);if(!showContacts.checked)return;
-    const mesh=new Map(vertices(item).map(r=>[r.id,r.values])),qa=manifest.alpha_seam_qa.after;
+    const mesh=new Map(vertices(item).map(r=>[r.id,r.values])),qa=(manifest.shape_qa||manifest.alpha_seam_qa).after;
     const point=(name,index)=>{const s=qa.boundaries[name].samples[index],v=mesh.get(name);let x=0,y=0;
       s.triangle.forEach((i,k)=>{x+=v[i*2]*s.barycentric[k];y+=v[i*2+1]*s.barycentric[k];});
       return [(x-renderer.camera.position.x)/renderer.camera.viewportWidth*canvas.width+canvas.width/2,canvas.height/2-(y-renderer.camera.position.y)/renderer.camera.viewportHeight*canvas.height];};
