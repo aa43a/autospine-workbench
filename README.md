@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[亚像素 alpha 等值轮廓](docs/how-to-seam-gap-isoline.md)使 Alice 七点均呈相向边界；4／8 倍细分分类一致，最大距离变化约 0.01662px。
+这是 CPU 样本场近似，候选仍未采用；下一步校准直接 alpha／Runtime 局部可见性。
+
 [动态 alpha 边界证据](docs/how-to-seam-gap-boundary.md)已加入逐像素边缘距离、法向和 ROI 连通性。
 Alice 左侧 1 个样本为相向边缘、6 个存在并列歧义；第 37 帧局部封闭，仍未确认裂缝或采用候选。下一步验证亚像素等值轮廓。
 

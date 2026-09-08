@@ -1,0 +1,258 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "profile",
+    "source_transport_sha256",
+    "authority",
+    "production_authorized",
+    "status",
+    "runtime_raster_status",
+    "relations",
+    "source_boundary_sha256"
+  ],
+  "properties": {
+    "schema": {
+      "const": "autospine.seam-gap-isoline/v1"
+    },
+    "profile": {
+      "const": "cpu-sample-bilinear-alpha8-subdivide4-v1"
+    },
+    "source_transport_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "production_authorized": {
+      "const": false
+    },
+    "status": {
+      "const": "needs_review"
+    },
+    "runtime_raster_status": {
+      "const": "not_evaluated"
+    },
+    "relations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "driver",
+          "follower",
+          "tracks"
+        ],
+        "properties": {
+          "driver": {
+            "type": "string"
+          },
+          "follower": {
+            "type": "string"
+          },
+          "tracks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "start_frame",
+                "end_frame",
+                "samples",
+                "counts"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "start_frame": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 60
+                },
+                "end_frame": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 60
+                },
+                "samples": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "world_point",
+                      "driver_nearest",
+                      "follower_nearest",
+                      "evidence",
+                      "frame",
+                      "component_id",
+                      "roi_connectivity",
+                      "unresolved_cells_within4"
+                    ],
+                    "properties": {
+                      "world_point": {
+                        "type": "array",
+                        "items": {
+                          "type": "number"
+                        },
+                        "minItems": 2,
+                        "maxItems": 2
+                      },
+                      "driver_nearest": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "point",
+                            "normal",
+                            "distance",
+                            "facing"
+                          ],
+                          "properties": {
+                            "point": {
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              },
+                              "minItems": 2,
+                              "maxItems": 2
+                            },
+                            "normal": {
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              },
+                              "minItems": 2,
+                              "maxItems": 2
+                            },
+                            "distance": {
+                              "type": "number",
+                              "minimum": 0
+                            },
+                            "facing": {
+                              "type": "number",
+                              "minimum": -1.000000001,
+                              "maximum": 1.000000001
+                            }
+                          }
+                        }
+                      },
+                      "follower_nearest": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "point",
+                            "normal",
+                            "distance",
+                            "facing"
+                          ],
+                          "properties": {
+                            "point": {
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              },
+                              "minItems": 2,
+                              "maxItems": 2
+                            },
+                            "normal": {
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              },
+                              "minItems": 2,
+                              "maxItems": 2
+                            },
+                            "distance": {
+                              "type": "number",
+                              "minimum": 0
+                            },
+                            "facing": {
+                              "type": "number",
+                              "minimum": -1.000000001,
+                              "maximum": 1.000000001
+                            }
+                          }
+                        }
+                      },
+                      "evidence": {
+                        "enum": [
+                          "opposed_facing_boundaries",
+                          "ambiguous_boundary_ties",
+                          "no_opposed_nearest_boundaries",
+                          "insufficient_boundary_evidence",
+                          "unresolved_isoline_neighborhood"
+                        ]
+                      },
+                      "frame": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 60
+                      },
+                      "component_id": {
+                        "type": "string"
+                      },
+                      "roi_connectivity": {
+                        "enum": [
+                          "reaches_roi_edge",
+                          "enclosed_in_roi"
+                        ]
+                      },
+                      "unresolved_cells_within4": {
+                        "type": "array",
+                        "items": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "minItems": 2,
+                        "maxItems": 2
+                      }
+                    }
+                  }
+                },
+                "counts": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "opposed_facing_boundaries": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "ambiguous_boundary_ties": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "no_opposed_nearest_boundaries": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "insufficient_boundary_evidence": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "unresolved_isoline_neighborhood": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "source_boundary_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

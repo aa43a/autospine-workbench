@@ -1,0 +1,134 @@
+{
+  "date": "2026-09-08",
+  "authority": "none",
+  "production_authorized": false,
+  "tests_passed": 39,
+  "schema_checks": "all_three_passed",
+  "cli_repeat": "all_three_same_addresses",
+  "exact_reader": "alice_passed",
+  "historical_boundary_identity": "all_three_unchanged",
+  "browser_controls": "all_three_passed",
+  "runtime": "not_rerun_unchanged_animation",
+  "full_suite": "not_run",
+  "alice_refinement": [
+    {
+      "frame": 34,
+      "point": [
+        440.5,
+        -847.5
+      ],
+      "coarse": "opposed_facing_boundaries",
+      "fine": "opposed_facing_boundaries",
+      "max_distance_change_px": 0.01661616830725604
+    },
+    {
+      "frame": 36,
+      "point": [
+        448.5,
+        -853.5
+      ],
+      "coarse": "opposed_facing_boundaries",
+      "fine": "opposed_facing_boundaries",
+      "max_distance_change_px": 6.757934892007156e-06
+    },
+    {
+      "frame": 37,
+      "point": [
+        452.5,
+        -857.5
+      ],
+      "coarse": "opposed_facing_boundaries",
+      "fine": "opposed_facing_boundaries",
+      "max_distance_change_px": 0.0011122534057763644
+    },
+    {
+      "frame": 38,
+      "point": [
+        458.5,
+        -861.5
+      ],
+      "coarse": "opposed_facing_boundaries",
+      "fine": "opposed_facing_boundaries",
+      "max_distance_change_px": 0.0018802053078834091
+    },
+    {
+      "frame": 52,
+      "point": [
+        580.5,
+        -904.5
+      ],
+      "coarse": "opposed_facing_boundaries",
+      "fine": "opposed_facing_boundaries",
+      "max_distance_change_px": 0.0034256836887884
+    },
+    {
+      "frame": 52,
+      "point": [
+        580.5,
+        -905.5
+      ],
+      "coarse": "opposed_facing_boundaries",
+      "fine": "opposed_facing_boundaries",
+      "max_distance_change_px": 1.3555335544576663e-05
+    },
+    {
+      "frame": 58,
+      "point": [
+        613.5,
+        -904.5
+      ],
+      "coarse": "opposed_facing_boundaries",
+      "fine": "opposed_facing_boundaries",
+      "max_distance_change_px": 0.001961224135821338
+    }
+  ],
+  "records": [
+    {
+      "character": "alice",
+      "artifact_sha256": "b0ce1d3aa005ccd1dcc9e1e76ec40893632eddba1721a628c3bc061cf80081fa",
+      "page_sha256": "f90fd9c9538221804865bb15a6a91691a01d18c1c0caa8bdd56a956401635b47",
+      "screenshot_sha256": "337e09b9e99f5e8fc37aa50cf3b959514beda9b6f9a3086bf6a7d73cb908c037",
+      "relations": [
+        {
+          "driver": "layer-001-l",
+          "counts": {
+            "opposed_facing_boundaries": 7
+          }
+        },
+        {
+          "driver": "layer-001-r",
+          "counts": {}
+        }
+      ]
+    },
+    {
+      "character": "lingxian",
+      "artifact_sha256": "90e5f947f8b91ba3e808e822c425660fc118983c65d3ba4bdb453cbafbc29982",
+      "page_sha256": "a61889e8b9301e119f9a067360114e500c7bfc97425e3dfa0cbaeaab91eb8bcd",
+      "screenshot_sha256": "478401a208696d5ae03a9875feb84fa20fbc0952682dfb9e4494d31775539952",
+      "relations": []
+    },
+    {
+      "character": "crino",
+      "artifact_sha256": "2b1f1bcf9c2ace0ab31af860e2d2ee332acabe01bbc51ed3a1ad62d75d47cc48",
+      "page_sha256": "51485800fce44350fc145526dfd0ac4a37e750585133d80f701e8881d05a6589",
+      "screenshot_sha256": "833cd77c33aa7a9338327c1a6ae78a94e5c3570b86a3214afe27a5ddabf7f354",
+      "relations": [
+        {
+          "driver": "layer-005-l",
+          "counts": {
+            "no_opposed_nearest_boundaries": 58,
+            "insufficient_boundary_evidence": 41
+          }
+        },
+        {
+          "driver": "layer-005-r",
+          "counts": {
+            "no_opposed_nearest_boundaries": 152,
+            "insufficient_boundary_evidence": 60
+          }
+        }
+      ]
+    }
+  ]
+}
