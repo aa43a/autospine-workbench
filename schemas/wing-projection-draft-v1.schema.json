@@ -1,0 +1,13 @@
+{
+ "$schema":"https://json-schema.org/draft/2020-12/schema",
+ "type":"object","additionalProperties":false,
+ "required":["schema","source_candidate_sha256","source_split_draft_sha256","choices","local_strokes","authority","production_authorized"],
+ "properties":{
+  "schema":{"const":"autospine.wing-projection-draft/v1"},
+  "source_candidate_sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"},
+  "source_split_draft_sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"},
+  "authority":{"const":"none"},"production_authorized":{"const":false},
+  "choices":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["id","action"],"properties":{"id":{"type":"string"},"action":{"enum":["remove","keep","uncertain"]}}}},
+  "local_strokes":{"$ref":"wing-split-draft-v1.schema.json#/properties/strokes"}
+ }
+}

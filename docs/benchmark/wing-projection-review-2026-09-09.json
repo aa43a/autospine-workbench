@@ -1,0 +1,16 @@
+{
+ "slice":"exact-alpha-backprojection-v1",
+ "source_preview_sha256":"ccfe55c56417e2cee4da5a8feb86aca69c842e5459a8e997f4ba81f1e17034bb",
+ "source_split_draft_sha256":"e69455c98059a9977e067a43882e2f763075609317ac8fb2acd228bd8f514477",
+ "candidate_sha256":"5de20bb2396825a34e2f66181a30a7f25a84b1f66af303dd8a85c14c9adb27c9",
+ "group_pixel_counts":[5627,4905,4046,2983],
+ "delivered_actions":"uncertain",
+ "delivered_local_strokes":0,
+ "prior_11_strokes_preserved":true,
+ "targeted_tests_passed":7,
+ "browser_checks_passed":true,
+ "new_runtime_run":false,
+ "output":"../tmp/r2b-wing-projection/crino/review.html",
+ "authority":"none",
+ "production_authorized":false
+}

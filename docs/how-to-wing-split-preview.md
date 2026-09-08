@@ -22,4 +22,4 @@ node tools/verify-ownership-runtime.mjs ../tmp/r2b-wing-split-applied ../tmp/spi
 
 7 项针对性测试通过。官方 Runtime 121 帧通过，与候选原图参考的最大通道差为 0。前后 5 个同帧对照中，约 2,200 个 framebuffer 像素改变，最大通道差 255；这是显式移除素材带来的变化，不能套用上一步仅低 alpha 边缘迁移的容差。
 
-`review.html` 并排显示原图、实际移除图和剩余图。`edit-draft.html` 已载入用户的 11 笔，支持继续调整后另存。若目标仍是消除主翼重影，下一步需要明确主翼投影区域的处理，当前不会擅自扩张用户遮罩。
+`review.html` 并排显示原图、实际移除图和剩余图。`edit-draft.html` 已载入用户的 11 笔，支持继续调整后另存。后续已新增 [主翼投影分组复核](how-to-wing-projection-review.md)，在保留现有清理结果的前提下生成四组待复核候选；不擅自扩张用户遮罩。
