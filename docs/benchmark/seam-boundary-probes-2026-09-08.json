@@ -1,0 +1,37 @@
+{
+  "date": "2026-09-08",
+  "authority": "none",
+  "production_authorized": false,
+  "status": "needs_review",
+  "probe_sha256": "06bfcb17ec150d34a64bcc8c300ba57a5975ea291ac31f03924a0b874a720dc7",
+  "comparison_sha256": "045455284b7a53226316a33694d34cacef73feb240a6f292fa54361a86b73df9",
+  "source_candidate_sha256": "ffeba51258fee821bbd111a34f50e9e60023d7adb789cea16581cd655894b617",
+  "runtime_report_bytes_sha256": "c780b67bd4cc8c9fe1197f6d0d5a020fd093cc93d2a9e677a8f9d59b3ece9ff4",
+  "runtime_version": "4.3.13",
+  "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+  "export_target": "4.3.26",
+  "capture_count": 732,
+  "runtime_regression_frames": 242,
+  "hub_regression_frames": 242,
+  "python_tests": 15,
+  "schemas": "passed",
+  "exact_reader": "passed",
+  "tampered_comparison": "rejected",
+  "relations": [
+    {
+      "driver": "layer-001-r",
+      "follower": "layer-002-r",
+      "status": "review_runtime_alpha_loss",
+      "sample_count": 183,
+      "geometry_passed": true,
+      "max_distance_growth_px": 1.7278839885859627,
+      "max_all_alpha_loss": 95,
+      "pair_alpha_loss": 58,
+      "all_alpha_loss": 58,
+      "new_all_alpha_below8": 0
+    }
+  ],
+  "baseline_below8": 0,
+  "candidate_below8": 0,
+  "full_suite_run": false
+}

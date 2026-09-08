@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+- [独立边界Runtime采样](how-to-seam-boundary-probes.md)：由reference选择代表性对应，精确回放坐标与截图身份，
+  独立于疑似裂缝点；集合页面展示补充证据，不自动晋级候选。
+
 - [保守候选集合预览](how-to-seam-candidate-hub.md)：只读本机入口，校验既有证据后切换角色、播放及下载。
   仅已有候选区域；未评估关系仍明确显示，尚未接入生产自动采用或完整角色门禁。
 

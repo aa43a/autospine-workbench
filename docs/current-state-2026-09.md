@@ -1,5 +1,8 @@
 # 当前状态：2026-09-08
 
+Alice右侧已补[独立边界采样](how-to-seam-boundary-probes.md)：183目标中58处合成alpha下降，最大95，新增低于8为0。
+新的独立对照为review_runtime_alpha_loss；历史疑似点not_evaluated不改写。候选、权重与采用权均未改变。
+
 保守候选已接入[统一播放／下载入口](how-to-seam-candidate-hub.md)，Alice／琪露诺沿用固定组合。
 14项针对性测试、两角色242帧官方Runtime页面回归通过；Alice右侧局部采样仍未评估，候选未采用。
 

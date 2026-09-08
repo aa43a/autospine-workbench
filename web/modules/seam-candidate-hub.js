@@ -13,10 +13,14 @@ try {
     const item = index.characters.find(c => c.character === select.value);
     const rows = document.querySelector('#rows'); rows.replaceChildren();
     for (const relation of item.relations) {
+      const independent = (item.independent_boundary || []).find(r => r.driver === relation.driver && r.follower === relation.follower);
+      const evidence = independent || relation;
       const row = document.createElement('tr');
       for (const value of [relation.driver + ' → ' + relation.follower,
         relation.track === 'reference' ? '原轨道整段回退' : '保留有界增量',
-        relation.max_distance_growth_px.toFixed(3) + ' px', relation.sample_count, labels[relation.status] || '待复核']) {
+        relation.max_distance_growth_px.toFixed(3) + ' px',
+        (independent ? '独立边界：' : '既有疑似点：') + evidence.sample_count,
+        (labels[evidence.status] || '待复核') + (independent ? `（${evidence.all_alpha_loss} 个目标下降）` : '')]) {
         const cell = document.createElement('td'); cell.textContent = value; row.append(cell);
       }
       rows.append(row);
@@ -24,6 +28,8 @@ try {
     document.querySelector('#download').href = `/${item.character}/preview.zip`;
     document.querySelector('#download').download = `${item.character}-candidate.zip`;
     document.querySelector('#report').href = `/${item.character}/admission.json`;
+    document.querySelector('#independent').hidden = !item.independent_boundary;
+    document.querySelector('#independent').href = `/${item.character}/boundary-comparison.json`;
     document.querySelector('#identity').textContent = JSON.stringify(item, null, 2);
     document.querySelector('#player').src = `/player.html?character=${item.character}`;
   }

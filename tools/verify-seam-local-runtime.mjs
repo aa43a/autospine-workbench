@@ -14,7 +14,8 @@ const pkg=JSON.parse(await fs.readFile(path.join(dependencies,'node_modules/@eso
 if(pkg.version!=='4.3.13')throw Error('runtime_version');
 const {chromium}=await import(pathToFileURL(path.join(dependencies,'node_modules/playwright-core/index.mjs')));
 const directRaw=await fs.readFile(directPath),direct=JSON.parse(directRaw);
-if(direct.schema!=='autospine.seam-direct-alpha/v1')throw Error('direct_schema');
+const boundaryProbe=direct.schema==='autospine.seam-boundary-probes/v1';
+if(!boundaryProbe&&direct.schema!=='autospine.seam-direct-alpha/v1')throw Error('direct_schema');
 const points=direct.relations.flatMap(r=>r.samples.map(s=>({time:s.frame/30,frame:s.frame,point:s.world_point,names:[r.driver,r.follower]})));
 if(!points.length||points.length>400)throw Error('capture_scope_size');
 const files=new Map(),manifests={};
@@ -27,6 +28,7 @@ for(const [variant,root] of [['before',beforeRoot],['after',afterRoot]]){
  }
  files.set('/'+variant+'/'+character+'/preview-manifest.json',raw);
 }
+if(boundaryProbe&&direct.reference_manifest_sha256!==manifests.before)throw Error('probe_reference_identity');
 let harness=await fs.readFile(new URL('./ownership-runtime.js',import.meta.url),'utf8');
 const original="const base='/'+name+'/';";if(!harness.includes(original))throw Error('harness_base_changed');
 harness=harness.replace(original,"const base='/'+new URLSearchParams(location.search).get('variant')+'/'+name+'/';");
@@ -61,6 +63,10 @@ try{
   runtime_package:pkg.name,runtime_version:pkg.version,runtime_sha256:hash(await fs.readFile(runtime)),export_target:'4.3.26',browser:await browser.version(),
   harness_sha256:hash(harness),hook_sha256:hash(hook),direct_report_sha256:hash(directRaw),bundle_manifest_sha256:manifests,
   scope:'all_recorded_points_existing_candidate_regions_only',regression,captures};
+ if(boundaryProbe){
+  report.schema='autospine.seam-local-runtime/v3';report.probe_report_sha256=report.direct_report_sha256;
+  delete report.direct_report_sha256;report.scope='reference_boundary_representative_points_only';
+ }
  await fs.writeFile(path.join(out,'report.json'),JSON.stringify(report,null,2));
  let view='<!doctype html><meta charset="utf-8"><style>body{font:16px system-ui;margin:30px}img{width:256px;image-rendering:pixelated;background:repeating-conic-gradient(#ccc 0% 25%,white 0% 50%) 0/16px 16px}figure{display:inline-block}</style><h1>官方 Runtime 同帧局部合成</h1><p>左原动画，右增量候选；共享 Atlas，4 倍像素密度，双附件合成。只覆盖已有候选区域，不是完整角色或生产验收。</p>';
  const viewScale=Math.max(...matrix.scales);view=view.replace('4 倍像素密度',viewScale+' 倍像素密度');

@@ -12,6 +12,9 @@ def evaluate(direct, runtime, geometry, alpha):
     if runtime['schema']=='autospine.seam-local-runtime/v1':
         matrix={'scales':[1,4],'atlases':['shared','reference'],'modes':['driver','follower','pair','all']}
     elif runtime['schema']=='autospine.seam-local-runtime/v2':matrix=runtime['capture_matrix']
+    elif runtime['schema']=='autospine.seam-local-runtime/v3':
+        if direct.get('schema')!='autospine.seam-boundary-probes/v1':raise ValueError('admission_probe_schema')
+        matrix=runtime['capture_matrix']
     else:raise ValueError('admission_runtime_schema')
     if not all(matrix.get(k) for k in ('scales','atlases','modes')) or 1 not in matrix['scales'] or 'shared' not in matrix['atlases'] or not {'pair','all'}.issubset(matrix['modes']):
         raise ValueError('admission_capture_scope')
@@ -45,5 +48,8 @@ def evaluate(direct, runtime, geometry, alpha):
                 'review_runtime_alpha_loss' if counts['all_alpha_loss'] else 'review_pair_alpha_loss' if counts['pair_alpha_loss'] else 'sampled_no_new_regression')
         rows.append(dict(driver=names[0],follower=names[1],status=status,sample_count=len(r['samples']),geometry_passed=shape,
                          max_distance_growth_px=growth,max_all_alpha_loss=loss,**counts))
-    return dict(schema='autospine.seam-admission/v1',profile='geometry-distance-native-alpha-loss1-v1',authority='none',production_authorized=False,
+    result=dict(schema='autospine.seam-admission/v1',profile='geometry-distance-native-alpha-loss1-v1',authority='none',production_authorized=False,
                 status='needs_review',coverage='recorded_points_native_density_only',relations=rows)
+    if runtime['schema']=='autospine.seam-local-runtime/v3':
+        result.update(schema='autospine.seam-boundary-comparison/v1',coverage='reference_boundary_representative_points_only')
+    return result

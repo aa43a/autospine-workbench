@@ -1,0 +1,15 @@
+{
+  "type":"object","additionalProperties":false,
+  "required":["schema","profile","authority","production_authorized","status","coverage","relations","source_probe_sha256","source_runtime_bytes_sha256","source_candidate_sha256","samples","baseline_below8","candidate_below8"],
+  "properties":{
+    "schema":{"const":"autospine.seam-boundary-comparison/v1"},
+    "profile":{"const":"geometry-distance-native-alpha-loss1-v1"},
+    "authority":{"const":"none"},"production_authorized":{"const":false},"status":{"const":"needs_review"},
+    "coverage":{"const":"reference_boundary_representative_points_only"},
+    "source_probe_sha256":{"$ref":"#/$defs/sha"},"source_runtime_bytes_sha256":{"$ref":"#/$defs/sha"},"source_candidate_sha256":{"$ref":"#/$defs/sha"},
+    "relations":{"type":"array","minItems":1,"maxItems":1,"items":{"type":"object"}},
+    "samples":{"type":"array","minItems":61,"maxItems":183,"items":{"type":"object"}},
+    "baseline_below8":{"type":"integer","minimum":0},"candidate_below8":{"type":"integer","minimum":0}
+  },
+  "$defs":{"sha":{"type":"string","pattern":"^[a-f0-9]{64}$"}}
+}

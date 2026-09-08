@@ -1,0 +1,27 @@
+{
+  "type":"object", "additionalProperties":false,
+  "required":["schema","profile","authority","production_authorized","status","fps","duration","selection_basis","relations","source_reference_sha256","reference_manifest_sha256"],
+  "properties":{
+    "schema":{"const":"autospine.seam-boundary-probes/v1"},
+    "profile":{"const":"reference-setup-x-y-extrema-median-30fps-v1"},
+    "authority":{"const":"none"},"production_authorized":{"const":false},"status":{"const":"needs_review"},
+    "fps":{"const":30},"duration":{"const":2},"selection_basis":{"const":"reference_only_not_gap_detection"},
+    "source_reference_sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},
+    "reference_manifest_sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},
+    "relations":{"type":"array","minItems":1,"maxItems":1,"items":{
+      "type":"object","additionalProperties":false,"required":["driver","follower","selected_pair_indices","samples"],
+      "properties":{
+        "driver":{"type":"string"},"follower":{"type":"string"},
+        "selected_pair_indices":{"type":"array","minItems":1,"maxItems":3,"uniqueItems":true,"items":{"type":"integer","minimum":0}},
+        "samples":{"type":"array","minItems":61,"maxItems":183,"items":{
+          "type":"object","additionalProperties":false,"required":["frame","pair_index","reference_midpoint","world_point"],
+          "properties":{
+            "frame":{"type":"integer","minimum":0,"maximum":60},"pair_index":{"type":"integer","minimum":0},
+            "reference_midpoint":{"$ref":"#/$defs/point"},"world_point":{"$ref":"#/$defs/point"}
+          }
+        }}
+      }
+    }}
+  },
+  "$defs":{"point":{"type":"array","minItems":2,"maxItems":2,"items":{"type":"number"}}}
+}

@@ -59,6 +59,18 @@ def load_collection(config_path, runtime_path):
             raise ValueError('hub_runtime_identity')
         read_admission(admission, *(paths[k] for k in ('direct', 'runtime', 'candidate', 'manifest')))
         summary = summarize(entry['character'], candidate, admission)
+        if 'boundary_comparison' in entry:
+            from .seam_boundary_comparison import read_comparison
+            supplement = entry['boundary_comparison']
+            saved = json.loads((config_path.parent / supplement['report']).read_bytes())
+            sources = [(config_path.parent / supplement[k]).resolve() for k in
+                       ('reference', 'reference_manifest', 'probe', 'runtime', 'candidate', 'manifest')]
+            read_comparison(saved, *sources)
+            if saved['source_candidate_sha256'] != summary['candidate_sha256']:
+                raise ValueError('hub_supplement_candidate')
+            summary['independent_boundary'] = saved['relations']
+            summary['independent_boundary_sha256'] = canonical_sha256(saved)
+            files['/' + entry['character'] + '/boundary-comparison.json'] = json.dumps(saved).encode()
         data = bundle_bytes(paths['manifest'].parent, candidate['files'])
         # Rebuilt from verified bytes; never trust a mutable sibling preview.zip.
         base = '/' + entry['character'] + '/'

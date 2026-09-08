@@ -29,7 +29,7 @@ try {
         qa.max_motion_error_px > .001 || qa.max_page_uv_error > 1e-6 || qa.max_setup_error_px > .001 ||
         qa.outside_viewport_coordinates !== 0 || !qa.animation_changed) throw Error('runtime_regression');
     const rows = await page.locator('#rows').innerText();
-    if (item.character === 'alice' && !rows.includes('未评估：缺少目标样本')) throw Error('coverage_inflated');
+    if (item.character === 'alice' && !rows.includes(item.independent_boundary ? '独立边界：183' : '未评估：缺少目标样本')) throw Error('coverage_inflated');
     if (await page.locator('#rows tr').count() !== item.relations.length) throw Error('missing_relation');
     const href = await page.locator('#download').getAttribute('href');
     const response = await page.request.get(new URL(href, receipt.url).href), zip = await response.body();

@@ -1,5 +1,8 @@
 # AutoSpine Workbench 架构与质量门禁
 
+`benchmark/seam_boundary_probes/comparison`负责reference独立采样及Runtime对照精确reader，
+复用数值归约核心但用独立来源、schema和coverage；集合入口只在候选身份匹配后展示补充结果。
+
 `benchmark/seam_candidate_hub*`以逐关系exact reader校验已有候选集合，将文件字节冻结到只读HTTP白名单，
 复用外部官方Runtime播放器并确定性重建下载ZIP；UI独立模块不扩展历史播放器或生产授权。
 启动配置不是资产身份，候选身份及未评估覆盖仍来自原报告，见[入口说明](how-to-seam-candidate-hub.md)。

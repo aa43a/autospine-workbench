@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[Alice右侧独立边界采样](docs/how-to-seam-boundary-probes.md)完成：183个目标、732次Runtime捕获。
+58个目标合成alpha下降，未新增低于8的中心点；统一入口已显示独立证据，候选仍待复核。
+
 [保守候选统一预览](docs/how-to-seam-candidate-hub.md)：同页切换Alice／琪露诺、播放并下载已校验候选包。
 两角色官方Runtime共242帧回归通过；Alice右侧局部目标仍未评估，原有空白保留，候选未采用。
 
