@@ -1,0 +1,15 @@
+{
+ "$schema":"https://json-schema.org/draft/2020-12/schema","type":"object",
+ "required":["schema","profile","source_cleaned_preview_sha256","donor_sha256","color_ownership","topwear_unchanged","bone_motion_order_unchanged","color_transfer_status","authority","production_authorized","files"],
+ "properties":{
+  "schema":{"const":"autospine.wing-color-preview/v1"},"profile":{"const":"unique-closed-alpha-color-transfer-v1"},
+  "source_cleaned_preview_sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"},"donor_sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"},
+  "topwear_unchanged":{"const":true},"bone_motion_order_unchanged":{"const":true},"color_transfer_status":{"const":"needs_review"},
+  "authority":{"const":"none"},"production_authorized":{"const":false},"files":{"type":"object"},
+  "color_ownership":{"type":"object","required":["profile","alpha_threshold","min_interior_pixels","connectivity","dilation_px","warp","composition","counts","components","donor_reconstruction_exact","authority","production_authorized"],"properties":{
+   "profile":{"const":"unique-closed-alpha-color-transfer-v1"},"alpha_threshold":{"const":8},"min_interior_pixels":{"const":16},"connectivity":{"const":4},"dilation_px":{"const":0},"warp":{"const":false},
+   "composition":{"const":"donor_over_original_outline"},"donor_reconstruction_exact":{"const":true},"authority":{"const":"none"},"production_authorized":{"const":false},
+   "counts":{"type":"object","required":["transferred","ambiguous","outside_closed_envelopes"],"additionalProperties":{"type":"integer","minimum":0}},"components":{"type":"object"}
+  }}
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "slice":"unique-closed-alpha-color-transfer-v1",
+ "source_cleaned_preview_sha256":"ab01fe44a3ffc3c2b403614084ebdadd56c1402fbb1509accbe7d4b1e896f9e3",
+ "preview_sha256":"eb77af7517f1fd84de9b997669e21a6443aee9bd12011e2b8363d3684d86a5ba",
+ "transferred_pixels":55587,"ambiguous_pixels":0,"unassigned_pixels":14658,
+ "per_wing_transferred_pixels":[21758,21735,5956,6138],
+ "donor_reconstruction_exact":true,"topwear_unchanged":true,"bone_motion_order_unchanged":true,
+ "targeted_tests_passed":7,"runtime_numeric_frames":121,"runtime_numeric_passed":true,
+ "runtime_version":"4.3.13","export_version":"4.3.26","runtime_reference_max_channel_error":0,
+ "comparison_alpha8_gain_pixels":[12984,12951,12984,12969,12984],
+ "comparison_alpha8_loss_pixels":[0,0,0,0,0],
+ "visual_observation":"Colored main wings restored in both inspected bend directions; the previous obvious static main-wing duplicate is not seen. Hanging crystals and boundary residual remain unassigned.",
+ "status":"needs_review","output":"../tmp/r2b-wing-color","authority":"none","production_authorized":false
+}
