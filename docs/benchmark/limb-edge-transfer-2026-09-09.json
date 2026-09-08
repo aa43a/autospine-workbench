@@ -1,0 +1,22 @@
+{
+  "slice": "sample-scoped-unique-limb-edge-2px-v1",
+  "source_union_sha256": "d4edd539649de66ba75f314c58b05b3bbf2748d01ce5d291727c357a15e67acb",
+  "candidate_sha256": "363accf4f4c4d7b93e00066b9a187611aa9aed8d7c48411bf76376d9f915778d",
+  "transferred_pixels": {"handwear": 5, "legwear": 0, "footwear": 5},
+  "skeleton_json_byte_identical": true,
+  "tests_passed": 12,
+  "runtime_frames": 121,
+  "runtime_structural_passed": true,
+  "runtime_version": "4.3.13",
+  "export_version": "4.3.26",
+  "comparison_frames": 121,
+  "comparison_max_channel_delta": 5,
+  "alpha8_loss_ticks": [30, 116],
+  "alpha8_loss_max_pixels": 1,
+  "alpha8_gain_max_pixels": 0,
+  "candidate_adopted": false,
+  "reason": "alpha8_loss_requires_review_not_automatic_crack_classification",
+  "output": "../tmp/r2b-limb-edge",
+  "authority": "none",
+  "production_authorized": false
+}

@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+- [局部低alpha归属候选](how-to-limb-edge-transfer.md)：限定源采样邻域、唯一2px支撑及既有网格覆盖，保持骨架和动画字节不变；
+  琪露诺10像素候选的同帧比较出现2帧alpha阈值下降，尚未采用。
+
 - [残余源纹理定位](how-to-residual-source-locations.md)：官方Runtime实际顶点反算峰值帧差异，输出双线性采样邻域、原画布窗口和局部对照；
   不把低alpha显示贡献当成关节错位或删除授权。
 

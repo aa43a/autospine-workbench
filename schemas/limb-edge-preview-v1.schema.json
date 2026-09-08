@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "type": "object",
+  "required": ["schema", "profile", "source_union_sha256", "source_locations_sha256", "edge_transfers", "transferred_pixels", "skeleton_animation_unchanged", "candidate_status", "authority", "production_authorized", "files"],
+  "properties": {
+    "schema": {"const": "autospine.limb-edge-preview/v1"},
+    "profile": {"const": "sample-scoped-unique-limb-edge-2px-v1"},
+    "source_union_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source_locations_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "edge_transfers": {"type": "array"}, "transferred_pixels": {"type": "integer", "minimum": 0},
+    "candidate_status": {"enum": ["needs_review", "reviewed_noop"]},
+    "skeleton_animation_unchanged": {"const": true},
+    "authority": {"const": "none"}, "production_authorized": {"const": false}, "files": {"type": "object"}
+  }
+}
