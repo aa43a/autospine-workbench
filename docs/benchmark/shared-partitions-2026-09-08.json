@@ -1,0 +1,45 @@
+{
+  "date": "2026-09-08",
+  "authority": "none",
+  "production_authorized": false,
+  "profile": "shared-source-regional-weights-v1",
+  "tests_passed": 24,
+  "schema_and_zip_checks": "all_three_passed",
+  "exact_source_replay": "alice_passed",
+  "visual": "alice_chrome_screenshot",
+  "runtime": "not_run",
+  "full_python_web_suite": "not_run",
+  "target_gate": "shared_texture_ownership_not_compiled",
+  "records": [
+    {
+      "character": "alice",
+      "artifact_sha256": "007633e85265149b8f82ce7b25965d3c503c0259733a2548ea3c9c6abf68175f",
+      "zip_sha256": "3f34b26a062210d64f3c61c140f48a98310cd66ad53d0044abe62190f8b00d4f",
+      "source_layers": 2,
+      "region_count": 4,
+      "residual_visible_pixels": 570,
+      "rgba_reconstruction_exact": true,
+      "source_uv_max_error_px": 0.0
+    },
+    {
+      "character": "lingxian",
+      "artifact_sha256": "65c361860b63842eef7e820a6de6050610715f4df102680ee928589f521449a5",
+      "zip_sha256": "5dd6ddeac955f815673ee9636fb7f7d69ce4707eb7c76f786a90df5e06e12020",
+      "source_layers": 1,
+      "region_count": 2,
+      "residual_visible_pixels": 30893,
+      "rgba_reconstruction_exact": true,
+      "source_uv_max_error_px": 0.0
+    },
+    {
+      "character": "crino",
+      "artifact_sha256": "3c1ca2fed93ab5fa052ee0a535713c1342283f602ad96301155097d172db8c0f",
+      "zip_sha256": "6803cf17777143e241984f678b3dfeaa333aaa3ca43615796432cd001eede03d",
+      "source_layers": 3,
+      "region_count": 6,
+      "residual_visible_pixels": 12361,
+      "rgba_reconstruction_exact": true,
+      "source_uv_max_error_px": 0.0
+    }
+  ]
+}

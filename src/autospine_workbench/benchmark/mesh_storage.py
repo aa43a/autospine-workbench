@@ -16,6 +16,7 @@ DISTAL_GRID_SCHEMA='autospine.distal-grid-experiment/v1'
 SCHEMAS=('autospine.weighted-mesh-candidates/v1','autospine.weighted-mesh-refinement/v1','autospine.elbow-bake/v1','autospine.partition-mesh/v1','autospine.distal-corrective/v1')
 SCHEMAS += (DISTAL_GRID_SCHEMA,)
 SCHEMAS += ('autospine.distal-width-experiment/v1',)
+SCHEMAS += ('autospine.layer-partitions/v2',)
 
 
 def _read(path):

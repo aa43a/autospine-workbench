@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[共享源纹理分区v2](docs/how-to-shared-partitions.md)已连接6个源图层、12个运动区的ownership、骨链与权重。
+残余原样保留，RGBA／UV检查通过；共享纹理边界采样尚未编译到Spine，目标导出仍阻塞。
+
 [横向宽度权重试验](docs/how-to-distal-width.md)：系数4下五处通过9个远端corrective探针，
 三处仍阻塞，全链与组合动作尚未通过，未自动采用。
 

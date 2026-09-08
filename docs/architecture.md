@@ -1,5 +1,9 @@
 # AutoSpine Workbench 架构与质量门禁
 
+`shared_partitions.py`提供源纹理、ownership和区域权重的纯组合校验，
+`shared_partition_cli/view`提供精确重建、确定性包和复核页。旧分区、骨架与权重身份不变。
+共享源图UV不自带遮罩能力，目标Adapter必须先证明采样隔离，详见[工作流](how-to-shared-partitions.md)。
+
 `asset/joints/distal_width.py` 测量局部alpha横向支撑并重新分配远端权重；独立CLI保存全部预设策略，
 通过精确来源重建验证结果。顶点、骨架与旧profile不变，不写批准决定，见[工作流](how-to-distal-width.md)。
 
