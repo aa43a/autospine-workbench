@@ -1,0 +1,222 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "authority",
+    "production_authorized",
+    "target",
+    "source_atlas_sha256",
+    "source_skeleton_sha256",
+    "regions",
+    "residuals",
+    "scope",
+    "full_character_status",
+    "runtime_status",
+    "seam_status",
+    "files",
+    "zip_sha256",
+    "source_original_atlas_sha256",
+    "source_width_sha256",
+    "width_factor",
+    "results",
+    "source_combined_sha256",
+    "bake_fps",
+    "continuous_motion_status",
+    "bake_qa",
+    "source_continuous_sha256",
+    "source_alpha_sha256",
+    "schema",
+    "profile",
+    "animation",
+    "status",
+    "source_parameters_sha256",
+    "source_remap_sha256",
+    "common_frame_comparison",
+    "alpha_seam_qa"
+  ],
+  "properties": {
+    "authority": {
+      "$ref": "seam-remap-preview-v1.schema.json#/properties/authority"
+    },
+    "production_authorized": {
+      "$ref": "seam-remap-preview-v1.schema.json#/properties/production_authorized"
+    },
+    "target": {
+      "$ref": "seam-remap-preview-v1.schema.json#/properties/target"
+    },
+    "source_atlas_sha256": {
+      "$ref": "seam-remap-preview-v1.schema.json#/properties/source_atlas_sha256"
+    },
+    "source_skeleton_sha256": {
+      "$ref": "seam-remap-preview-v1.schema.json#/properties/source_skeleton_sha256"
+    },
+    "regions": {
+      "$ref": "seam-remap-preview-v1.schema.json#/properties/regions"
+    },
+    "residuals": {
+      "$ref": "seam-remap-preview-v1.schema.json#/properties/residuals"
+    },
+    "scope": {
+      "$ref": "seam-remap-preview-v1.schema.json#/properties/scope"
+    },
+    "full_character_status": {
+      "$ref": "seam-remap-preview-v1.schema.json#/properties/full_character_status"
+    },
+    "runtime_status": {
+      "$ref": "seam-remap-preview-v1.schema.json#/properties/runtime_status"
+    },
+    "seam_status": {
+      "$ref": "seam-remap-preview-v1.schema.json#/properties/seam_status"
+    },
+    "files": {
+      "$ref": "seam-remap-preview-v1.schema.json#/properties/files"
+    },
+    "zip_sha256": {
+      "$ref": "seam-remap-preview-v1.schema.json#/properties/zip_sha256"
+    },
+    "source_original_atlas_sha256": {
+      "$ref": "seam-remap-preview-v1.schema.json#/properties/source_original_atlas_sha256"
+    },
+    "source_width_sha256": {
+      "$ref": "seam-remap-preview-v1.schema.json#/properties/source_width_sha256"
+    },
+    "width_factor": {
+      "$ref": "seam-remap-preview-v1.schema.json#/properties/width_factor"
+    },
+    "results": {
+      "$ref": "seam-remap-preview-v1.schema.json#/properties/results"
+    },
+    "source_combined_sha256": {
+      "$ref": "seam-remap-preview-v1.schema.json#/properties/source_combined_sha256"
+    },
+    "bake_fps": {
+      "$ref": "seam-remap-preview-v1.schema.json#/properties/bake_fps"
+    },
+    "continuous_motion_status": {
+      "$ref": "seam-remap-preview-v1.schema.json#/properties/continuous_motion_status"
+    },
+    "bake_qa": {
+      "$ref": "seam-remap-preview-v1.schema.json#/properties/bake_qa"
+    },
+    "source_continuous_sha256": {
+      "$ref": "seam-remap-preview-v1.schema.json#/properties/source_continuous_sha256"
+    },
+    "source_alpha_sha256": {
+      "$ref": "seam-remap-preview-v1.schema.json#/properties/source_alpha_sha256"
+    },
+    "schema": {
+      "const": "autospine.continuous-anchor-preview/v1"
+    },
+    "profile": {
+      "const": "continuous-anchor-frozen-local-solver-v1"
+    },
+    "animation": {
+      "const": "continuous_anchor_inspection"
+    },
+    "status": {
+      "enum": [
+        "blocked",
+        "needs_review"
+      ]
+    },
+    "source_parameters_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "source_remap_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "common_frame_comparison": {
+      "$ref": "same-frame-seam-v1.schema.json#/properties/raster"
+    },
+    "alpha_seam_qa": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "after",
+        "geometry",
+        "constraints",
+        "status",
+        "authority",
+        "displacement_limit_px",
+        "support_radius_px",
+        "before",
+        "profile",
+        "replacement_count",
+        "source_pair_count",
+        "tangent_solver",
+        "area_protection",
+        "replacements"
+      ],
+      "properties": {
+        "after": {
+          "$ref": "alpha-seam-preview-v1.schema.json#/properties/alpha_seam_qa/properties/after"
+        },
+        "geometry": {
+          "$ref": "alpha-seam-preview-v1.schema.json#/properties/alpha_seam_qa/properties/geometry"
+        },
+        "constraints": {
+          "$ref": "alpha-seam-preview-v1.schema.json#/properties/alpha_seam_qa/properties/constraints"
+        },
+        "status": {
+          "$ref": "alpha-seam-preview-v1.schema.json#/properties/alpha_seam_qa/properties/status"
+        },
+        "authority": {
+          "$ref": "alpha-seam-preview-v1.schema.json#/properties/alpha_seam_qa/properties/authority"
+        },
+        "displacement_limit_px": {
+          "$ref": "alpha-seam-preview-v1.schema.json#/properties/alpha_seam_qa/properties/displacement_limit_px"
+        },
+        "support_radius_px": {
+          "$ref": "alpha-seam-preview-v1.schema.json#/properties/alpha_seam_qa/properties/support_radius_px"
+        },
+        "before": {
+          "type": "object"
+        },
+        "profile": {
+          "const": "continuous-anchor-frozen-local-solver-v1"
+        },
+        "replacement_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "source_pair_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "tangent_solver": {
+          "const": "not_run"
+        },
+        "area_protection": {
+          "const": "post_bake_geometry_gate"
+        },
+        "replacements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "driver",
+              "follower",
+              "pair"
+            ],
+            "properties": {
+              "driver": {
+                "type": "string"
+              },
+              "follower": {
+                "type": "string"
+              },
+              "pair": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

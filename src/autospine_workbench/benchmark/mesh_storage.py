@@ -29,6 +29,7 @@ SCHEMAS += ('autospine.same-frame-seam/v1',)
 SCHEMAS += ('autospine.alpha-curve-anchors/v1',)
 SCHEMAS += ('autospine.seam-arc-pairs/v1',)
 SCHEMAS += ('autospine.continuous-seam-parameters/v1',)
+SCHEMAS += ('autospine.continuous-anchor-preview/v1',)
 
 
 def _read(path):

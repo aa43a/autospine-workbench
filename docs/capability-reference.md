@@ -1,5 +1,8 @@
 # AutoSpine Workbench 功能与入口参考
 
+`python -m autospine_workbench.benchmark.continuous_anchor_cli` 将连续目标锚点接入原局部位移求解器，输出新 Spine 诊断包及同帧栅格对照。
+保留原对应验算、几何门禁和回放；当前有动态退化，见[说明](how-to-continuous-anchor-bake.md)。
+
 `python -m autospine_workbench.benchmark.continuous_parameter_cli` 使用有界保序回归求目标弧段上的严格单调连续参数。
 同时检查 Mesh 嵌入和世界位移预算，输出参数对照页；尚未 Bake，见[说明](how-to-continuous-parameters.md)。
 

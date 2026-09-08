@@ -1,7 +1,7 @@
 # AutoSpine Workbench
 
-[有界连续接缝参数](docs/how-to-continuous-parameters.md)已为 9 组、100 条对应生成严格单调目标参数，最大 setup 世界位移 1.030 px。
-另 5 条原对应仍受样本不足或分组限制。下一步接入局部形状约束与 Bake；动画未变，候选未采用，完整接缝未验收。
+[连续锚点局部 Bake](docs/how-to-continuous-anchor-bake.md)已生成新动画：12 个区域无翻转，三处原对应增距低于 2 px。
+Alice 右侧退化至 2.339 px，空白峰值 2 → 3；候选未采用。下一步针对动态栅格退化加入局部形状约束，完整接缝未验收。
 
 [接缝平移约束实验](docs/how-to-seam-translation.md)已加入 alpha 支持的对应候选与前后对照。
 四处腿鞋仍超限；整只鞋平移未解决非一致的边界运动，结果未采用，下一步验证真实接触轮廓与局部过渡。
