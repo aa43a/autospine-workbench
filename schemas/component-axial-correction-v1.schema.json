@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "profile", "project_id", "source_sha256", "skeleton_sha256", "records", "rows", "evidence", "authority", "production_authorized", "runtime_status", "continuous_time_proven"],
+  "properties": {
+    "schema": {"const": "autospine.component-axial-correction/v1"},
+    "profile": {"const": "distal-axial-band-budget15-dense129-v1"},
+    "project_id": {"type": "string"},
+    "source_sha256": {"$ref": "#/$defs/sha"}, "skeleton_sha256": {"$ref": "#/$defs/sha"},
+    "records": {"type": "array", "items": {"$ref": "component-mesh-candidates-v1.schema.json#/$defs/record"}},
+    "rows": {"type": "array", "items": {"type": "object"}},
+    "evidence": {"type": "array", "items": {"type": "object", "additionalProperties": false,
+      "required": ["layer_id", "component_id", "bone_id", "before", "after", "trials"],
+      "properties": {"layer_id": {"type": "string"}, "component_id": {"type": "string"}, "bone_id": {"type": "string"},
+        "before": {"type": "array", "minItems": 129, "maxItems": 129, "items": {"type": "object"}},
+        "after": {"type": "array", "minItems": 129, "maxItems": 129, "items": {"type": "object"}},
+        "trials": {"type": "array", "minItems": 9, "maxItems": 9, "items": {"type": "object"}}}}},
+    "authority": {"const": "none"}, "production_authorized": {"const": false},
+    "runtime_status": {"const": "not_evaluated"}, "continuous_time_proven": {"const": false}
+  },
+  "$defs": {"sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

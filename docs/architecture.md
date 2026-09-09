@@ -1,5 +1,7 @@
 # AutoSpine Workbench 架构与质量门禁
 
+袖子不能仅按整层三骨链建模：[通用袖子方案](sleeve-rigging-plan.md)定义袖段/袖口/手/垂布的不同驱动。当前新增的`component_axial_solver.py`与`component_axial_correction.py`只提供独立局部几何实验及129点逐关键姿态门禁，历史圆形solver、权重、UV和拓扑不变；`component-axial-correction/v1`引用精确回退候选与骨架，不授予服装语义或生产权。
+
 `asset/planning/component_distal_guard.py` 是独立的整区域候选组合核心：校验新旧权重、修正、骨架的内容地址和区域/轨道/几何清单，重算129点FK，不信任旧QA统计。每个区域只能选择完整的新权重+新修正或旧权重+旧修正，不能逐帧切权重。`component-distal-guard/v1` 经16MiB内容寻址store读回；不进入生产授权，不修改历史profile。
 
 中央布局由独立 `workbench-layout.js` 管理，仅重新挂载已有表单与队列，保留控制器、草稿和 API 身份。

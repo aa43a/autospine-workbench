@@ -1,5 +1,7 @@
 # 查看实际像素分区候选
 
+宽袖后续采用[通用袖子处理方案](sleeve-rigging-plan.md)：先区分袖布和手，袖口保持接触，宽袖垂布另建辅助链。现可从逐区域回退结果运行`tools/build-axial-correction.py`生成轴向带局部修正与拖动播放；这不等于完成自动袖子分区或布料动画。
+
 ## 末端权重整区域回退（2026-09-09）
 
 已有新旧对照后，使用 `tools/build-distal-guard.py --comparison <对照内容地址> --output <目录>` 生成可拖动的组合候选。
