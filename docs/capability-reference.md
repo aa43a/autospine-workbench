@@ -1,5 +1,7 @@
 # AutoSpine Workbench 功能与入口参考
 
+- 区域归属报告支持单图层大画布、逐区建议、批量预填和下一项导航；语义/骨段采样建议仅填入未处理草稿，保留残余与歧义，见[分区复核说明](how-to-component-partitions.md)。
+
 - [实际像素分区候选](how-to-component-partitions.md)：免填 SHA 的 CLI、共享原纹理、四连通像素游程与低 alpha 残余可视化；归属未确定，不自动绑定。
 
 - [服装与分区语义衔接](milestone-r3a-garment-readiness.md)：当前已保存的显式语义可进入前置检查；显式同步时相关绑定退回复核，原始名称候选及历史规划保持不变。

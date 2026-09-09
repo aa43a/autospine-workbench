@@ -23,13 +23,44 @@ export function validateComponentDraft(value, template) {
   return clone;
 }
 
-export function mountComponentOwnership(document, template) {
+export function prefillComponentSuggestions(draft, template, suggestions, only = null) {
+  const next = validateComponentDraft(draft, template);
+  if (!suggestions || suggestions.authority !== 'none' || suggestions.production_authorized !== false
+    || suggestions.profile !== 'semantic-component-bone-samples-v1' || stable(suggestions.sources) !== stable(template.sources)) throw Error('建议来源不匹配');
+  const seen = new Set();
+  for (const advice of suggestions.records) {
+    const key = `${advice.layer_id}:${advice.component_id}`;
+    if (seen.has(key)) throw Error('重复的区域建议'); seen.add(key);
+    const row = next.records.find(r => r.layer_id === advice.layer_id && r.component_id === advice.component_id);
+    if (!row) throw Error('未知区域建议');
+    if (row.status === 'pending' && advice.status === 'suggested' && (!only || key === only)) Object.assign(row, advice.proposal);
+  }
+  return validateComponentDraft(next, template);
+}
+
+export function mountComponentOwnership(document, template, suggestions = null) {
   let draft = structuredClone(template), saved = structuredClone(template);
   const views = [];
   const make = (tag, text = '') => { const el = document.createElement(tag); el.textContent = text; return el; };
   const toolbar = make('section'), download = make('button', '下载全部归属草稿'), upload = make('input'), undo = make('button', '撤销至上次载入草稿'), notice = make('p');
   upload.type = 'file'; upload.accept = '.json'; upload.setAttribute('aria-label', '载入归属草稿'); notice.setAttribute('role', 'status');
-  toolbar.append(download, upload, undo, notice); document.querySelector('main').before(toolbar);
+  const layerPick = make('select'), nextRegion = make('button', '下一个未处理区域'), batch = make('button', '一键预填可靠建议');
+  layerPick.setAttribute('aria-label', '选择待复核图层'); toolbar.className = 'ownership-toolbar';
+  const sections = [...document.querySelectorAll('section[data-layer]')];
+  for (const section of sections) { const option = make('option', section.querySelector('h2').textContent); option.value = section.dataset.layer; layerPick.append(option); }
+  const regionPicks = new Map(); let activeKey = '';
+  const focusLayer = () => { for (const section of sections) section.hidden = section.dataset.layer !== layerPick.value; };
+  layerPick.onchange = () => { focusLayer(); regionPicks.get(layerPick.value)?.dispatchEvent(new Event('change')); };
+  batch.disabled = !suggestions?.records.some(r => r.status === 'suggested');
+  batch.onclick = () => { try { draft = prefillComponentSuggestions(draft, template, suggestions); refresh(); } catch(e) { notice.textContent = e.message; } };
+  nextRegion.onclick = () => {
+    const start = draft.records.findIndex(r => `${r.layer_id}:${r.component_id}` === activeKey);
+    const order = [...draft.records.slice(start+1), ...draft.records.slice(0,start+1)];
+    const next = order.find(r => r.status === 'pending' && r.component_id !== 'low-alpha-residual');
+    if (!next) { notice.textContent = '普通区域均已填写；低透明度残余仍保留未归属。'; return; }
+    layerPick.value = next.layer_id; focusLayer(); const control = regionPicks.get(next.layer_id); control.value = next.component_id; control.dispatchEvent(new Event('change'));
+  };
+  toolbar.append(layerPick, batch, nextRegion, download, upload, undo, notice); document.querySelector('main').before(toolbar);
   function refresh() {
     notice.textContent = `已指定 ${draft.records.filter(r => r.status === 'assigned').length}/${draft.records.length} 个区域；草稿不代表批准或 Mesh 验收。`;
     views.forEach(fn => fn());
@@ -61,10 +92,21 @@ export function mountComponentOwnership(document, template) {
     } }
     options(pick, draft.records.filter(r => r.layer_id === layer).map(r => r.component_id)); options(role, ROLES); options(side, SIDES); options(bones, template.sources.bone_ids);
     const apply = make('button', '将当前选择写入草稿'), clear = make('button', '保留未归属'), message = make('p');
-    section.append(make('h3', '区域归属草稿'), pick, role, side, make('p', '骨骼最多 4 根；Ctrl/Command 多选。黄色残余在本版保留未归属。'), bones, apply, clear, message);
+    const editor = make('div'), layout = make('div'); layout.className = 'ownership-layout';
+    const svg = section.querySelector('svg'); svg.before(layout); layout.append(svg, editor);
+    const one = make('button', '使用当前区域建议'), adviceText = make('p');
+    const manual = make('details'); manual.append(make('summary', '手动调整语义与骨骼'), role, side, make('p', '骨骼最多 4 根；Ctrl/Command 多选。'), bones, apply);
+    editor.append(make('h3', '点击图上区域开始'), pick, adviceText, one, manual, clear, message);
+    regionPicks.set(layer, pick);
     const row = () => draft.records.find(r => r.layer_id === layer && r.component_id === pick.value);
     function show() {
       const current = row(); role.value = current.semantic; side.value = current.side;
+      if (layer === layerPick.value) activeKey = `${layer}:${pick.value}`;
+      const advice = suggestions?.records.find(r => r.layer_id === layer && r.component_id === pick.value);
+      one.disabled = current.status !== 'pending' || advice?.status !== 'suggested';
+      adviceText.textContent = advice?.status === 'suggested'
+        ? `建议：${LABELS[advice.proposal.semantic]} · ${LABELS[advice.proposal.side]} · ${advice.proposal.bone_ids.join(' → ')}。依据：语义提示与唯一区域骨段覆盖。`
+        : '无可靠自动建议：请检查语义与几何，或保留未归属。';
       for (const option of bones.options) option.selected = current.bone_ids.includes(option.value);
       apply.disabled = current.component_id === 'low-alpha-residual';
       message.textContent = current.status === 'assigned' ? '已写入草稿，尚未采用' : '未归属';
@@ -74,7 +116,12 @@ export function mountComponentOwnership(document, template) {
       }
     }
     pick.onchange = show;
-    for (const path of section.querySelectorAll('path[data-component]')) path.onclick = () => { pick.value = path.dataset.component; show(); };
+    one.onclick = () => { try { draft = prefillComponentSuggestions(draft, template, suggestions, `${layer}:${pick.value}`); refresh(); } catch(e) { message.textContent = e.message; } };
+    for (const path of section.querySelectorAll('path[data-component]')) {
+      path.setAttribute('role','button'); path.setAttribute('tabindex','0'); path.setAttribute('aria-label',path.dataset.component);
+      path.onclick = () => { pick.value = path.dataset.component; show(); };
+      path.onkeydown = event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); path.onclick(); } };
+    }
     apply.onclick = () => {
       const next = structuredClone(draft), target = next.records.find(r => r.layer_id === layer && r.component_id === pick.value);
       Object.assign(target, { status: 'assigned', semantic: role.value, side: side.value, bone_ids: [...bones.selectedOptions].map(o => o.value) });
@@ -84,4 +131,5 @@ export function mountComponentOwnership(document, template) {
     views.push(show);
   }
   refresh();
+  focusLayer(); regionPicks.get(layerPick.value)?.dispatchEvent(new Event('change'));
 }

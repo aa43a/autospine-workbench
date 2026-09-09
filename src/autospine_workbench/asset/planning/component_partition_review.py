@@ -5,7 +5,7 @@ from pathlib import Path
 from html import escape
 
 
-def render(project, entries, draft=None):
+def render(project, entries, draft=None, suggestions=None):
     sections = []
     for layer, raw, candidate, digest in entries:
         w = layer['bbox'][2]-layer['bbox'][0]; h = layer['bbox'][3]-layer['bbox'][1]
@@ -27,11 +27,13 @@ def render(project, entries, draft=None):
     if draft:
         code = (Path(__file__).resolve().parents[4] / 'web/modules/component-ownership-review.js').read_text('utf-8').replace('export function ', 'function ')
         payload = json.dumps(draft, ensure_ascii=True).replace('<', '\\u003c')
-        script = f'<script>(()=>{{{code}\nmountComponentOwnership(document,{payload});}})();</script>'
+        advice = json.dumps(suggestions, ensure_ascii=True).replace('<', '\\u003c')
+        script = f'<script>(()=>{{{code}\nmountComponentOwnership(document,{payload},{advice});}})();</script>'
     return f'''<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{escape(project)} 像素分区候选</title><style>
 body{{margin:24px;background:#101821;color:#e7eff7;font:16px system-ui}}a{{color:#7dd3fc}}
 main{{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}}
 section{{background:#1e2a38;padding:18px;border-radius:10px;min-width:0}}svg{{display:block;width:100%;height:420px;margin:12px 0;background:#303946}}path{{shape-rendering:crispEdges}}details{{overflow-wrap:anywhere}}
 button,select,input{{font:inherit;margin:6px 4px 6px 0;max-width:100%}}select{{display:block;width:100%;padding:8px}}button{{padding:8px 12px;cursor:pointer}}
+main{{display:block}}.ownership-toolbar{{position:sticky;top:0;z-index:5;margin-bottom:20px}}.ownership-layout{{display:grid;grid-template-columns:minmax(0,2fr) minmax(260px,1fr);gap:24px}}.ownership-layout svg{{height:65vh}}section[hidden]{{display:none}}button:disabled{{cursor:default;opacity:.5}}@media(max-width:760px){{.ownership-layout{{display:block}}.ownership-toolbar{{position:static}}}}
 </style><h1>{escape(project)} · 实际像素分区候选</h1><p>按 alpha≥8 的四连通区域分区；0&lt;alpha&lt;8 保留为未归属残余。连通不等于语义或骨骼归属。</p><main>{''.join(sections)}</main>{script}</html>'''

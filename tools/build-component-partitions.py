@@ -12,6 +12,7 @@ from autospine_workbench.asset.planning.component_partition_review import render
 from autospine_workbench.manifest_artifacts import require_safe_token
 from autospine_workbench.asset.planning.component_ownership import template, validate as validate_draft
 from autospine_workbench.benchmark.artifacts import read_input
+from autospine_workbench.asset.planning.component_suggestions import build as suggest
 
 
 def main():
@@ -55,11 +56,15 @@ def main():
                 entries.append((layer, raw, candidate, digest))
             source.assert_current()
             draft = template(project, entries, source.source_addresses, plan['plan_sha256'], [b['id'] for b in source.skeleton['bones']])
+            suggestions = suggest(entries, source.skeleton, source.bindings, draft['sources'])
+            suggestion_sha = publish_report(args.state_root, 'project-component-partitions', 'ownership-suggestions-v1', suggestions)
+            export_document(output / f'{suggestion_sha}.json', suggestions)
+            print(f"{project}: {sum(r['status'] == 'suggested' for r in suggestions['records'])} suggested regions")
             if args.draft:
                 draft = validate_draft(read_input(args.draft), draft)
                 publish_report(args.state_root, 'project-component-partitions', 'ownership-drafts-v1', draft)
             source.assert_current()
-        (output / 'index.html').write_text(render(project, entries, draft), encoding='utf-8')
+        (output / 'index.html').write_text(render(project, entries, draft, suggestions), encoding='utf-8')
         count = sum(len(row[2]['components']) for row in entries)
         residual = sum(row[2]['residual']['pixel_count'] for row in entries)
         print(f'{project}: {len(entries)} layers, {count} components, {residual} low-alpha residual pixels')
