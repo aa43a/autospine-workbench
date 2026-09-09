@@ -3,6 +3,7 @@
 import { animatedEndpoint, animatedReason } from "./workbench-animated-contract.js";
 import { projectIdentity } from "./workbench-automation-contract.js";
 import { createAnimatedExpand } from "./workbench-animated-expand.js";
+import { inspectJointDraft, confirmedJointIds } from "./workbench-joint-preflight.js";
 
 const STATES = { observed: "可观测", unobservable: "不可观测", unmarked: "尚未标注" };
 const clone = (value) => JSON.parse(JSON.stringify(value));
@@ -33,7 +34,10 @@ export function createAnimatedJoints(document, hooks) {
   const note = make("p", "模型辅助标注；不作为独立人工真值。拖动点或明确确认当前点才记为已复核。修改关节后，受影响的绑定需要重新确认。");
   const status = make("p"), canvas = make("canvas"), selected = make("select"), state = make("select"), notes = make("input");
   const confirm = make("button", "确认当前关节"), save = make("button", "保存关节复核并重建"), undo = make("button", "撤销关节修改");
-  for (const button of [load, confirm, save, undo]) { button.type = "button"; button.className = "button button-secondary"; }
+  const check = make("button", "自动检查关节点"), batch = make("button", "我已检查：一键确认有效点并重建");
+  const findings = make("p"); findings.setAttribute("role", "status");
+  const batchNote = make("p", "先查看全部点，再一键确认并保存。仅确认结构检查通过的可观测点；不可观测与异常点仍需逐项处理。自动检查不验证位置是否符合人体，也不批准图层绑定。");
+  for (const button of [load, confirm, save, undo, check, batch]) { button.type = "button"; button.className = "button button-secondary"; }
   selected.setAttribute("aria-label", "当前关节"); state.setAttribute("aria-label", "关节可观测状态"); notes.setAttribute("aria-label", "关节复核说明");
   for (const control of [selected, state, notes]) control.setAttribute("style", "display:block;width:100%;margin:6px 0");
   notes.placeholder = "不可观测时填写原因"; notes.maxLength = 1000;
@@ -41,7 +45,7 @@ export function createAnimatedJoints(document, hooks) {
   canvas.style.width = "100%"; canvas.style.background = "#333"; canvas.style.touchAction = "none";
   canvas.style.display = "block"; canvas.style.margin = "0 auto";
   for (const [value, text] of Object.entries(STATES)) { const option = make("option", text); option.value = value; state.append(option); }
-  element.append(heading, note, load, status, canvas, selected, state, notes, confirm, save, undo);
+  element.append(heading, note, load, status, canvas, batchNote, check, findings, batch, selected, state, notes, confirm, save, undo);
   const expanded = createAnimatedExpand(document, element, "放大关节复核"); element.append(expanded.button);
   let identity = null, generation = 0, currentInput = null, source = null, records = [], reviewed = [], image = null;
   let canEdit = false, busy = false, dirty = false, selectedId = null, dragging = null, didMove = false;
@@ -51,9 +55,25 @@ export function createAnimatedJoints(document, hooks) {
     load.disabled = !canEdit || busy || dirty; save.disabled = undo.disabled = !canEdit || busy || !dirty;
     selected.disabled = state.disabled = notes.disabled = confirm.disabled = !canEdit || busy || !source;
     canvas.hidden = selected.hidden = state.hidden = notes.hidden = confirm.hidden = !source;
+    check.hidden = batch.hidden = batchNote.hidden = findings.hidden = !source;
+    check.disabled = batch.disabled = !canEdit || busy || !source;
     expanded.button.hidden = !source;
   }
-  function changed() { dirty = true; hooks.changed(true); draw(); controls(); }
+  function changed() { findings.textContent = ""; dirty = true; hooks.changed(true); draw(); controls(); }
+  function inspect() {
+    const assessment = inspectJointDraft(records, source.canvas);
+    findings.textContent = `已复核 ${reviewed.length}/${records.length}；可批量确认 ${assessment.eligible.length} 点。`
+      + (assessment.issues.length ? assessment.issues.map((item) => `${item.joint_id}：${item.reason}`).join("；") : "结构检查通过，仍需目视确认位置。");
+    return assessment;
+  }
+  check.addEventListener("click", () => { if (canEdit && !busy && source) inspect(); });
+  batch.addEventListener("click", async () => {
+    if (!canEdit || busy || !source) return;
+    const assessment = inspect();
+    if (!assessment.eligible.length) return;
+    reviewed = confirmedJointIds(reviewed, assessment); changed(); inspect();
+    await saveJoints();
+  });
   function select(id) {
     selectedId = id; selected.value = id;
     const value = row(); state.value = value?.status || "unmarked"; notes.value = value?.notes || ""; draw();
@@ -131,7 +151,7 @@ export function createAnimatedJoints(document, hooks) {
   const release = (event) => { if (dragging && canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId); dragging = null; if (didMove) draw(); };
   canvas.addEventListener("pointerup", release); canvas.addEventListener("pointercancel", release);
   undo.addEventListener("click", () => { if (canEdit && source) { setSource(source); hooks.changed(false); status.textContent = "已撤销未保存关节修改。"; } });
-  save.addEventListener("click", async () => {
+  async function saveJoints() {
     if (!canEdit || busy || !source || !dirty) return;
     if (records.some((r) => r.status === "observed" && !r.position || r.status === "unobservable" && !r.notes.trim())) {
       status.textContent = "可观测关节需要位置；不可观测关节需要填写原因。"; return;
@@ -148,13 +168,15 @@ export function createAnimatedJoints(document, hooks) {
       await hooks.saved(response);
     } catch (failure) { if (current(token)) status.textContent = animatedReason(failure.payload?.reason_code || failure.message); }
     finally { if (current(token)) { busy = false; controls(); } }
-  });
+  }
+  save.addEventListener("click", saveJoints);
   function render(model) {
     const next = projectIdentity(hooks.context());
     if (identity !== next || currentInput !== model.reviewIdentity) {
       expanded.close();
       generation++; identity = next; currentInput = model.reviewIdentity; source = null; image = null; dirty = false; busy = false; dragging = null;
       records = []; reviewed = []; status.textContent = "";
+      findings.textContent = "";
     }
     canEdit = Boolean(model.hasProject && model.bindingReview && !model.sourceRebase && !model.rebasing
       && !model.active && !model.savingReview && !model.fetching && !model.bindingDirty && !hooks.context().dirty && !hooks.context().saving && !hooks.context().loading);

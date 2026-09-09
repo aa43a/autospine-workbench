@@ -22,7 +22,7 @@ const REASONS = {
   animated_rebase_joint_decision_unsupported: "已保存关节候选采用或拒绝决定；坐标同步不能代替该决定的复核。",
   animated_rebase_split_unsupported: "图层切分发生变化，需要重新生成分区与绑定来源。",
   animated_rebase_layer_override_unsupported: "图层属性已变化，需要重新复核语义、结构或绑定来源。",
-  animated_rebase_joint_override_removed: "此前已同步的关节校正已被移除，需要明确新的关节来源，不能沿用旧位置。",
+  animated_rebase_joint_override_removed: "此前已同步的关节校正已被移除。请在主画布的关节模式重新定位该点，点击顶部“保存校正”，再点击“同步已保存校正并重建”。这会明确提供新位置，解除当前同步阻塞。",
 };
 export function rebaseItemDescription(item) {
   if (typeof item === "string") return REASONS[item] || animatedReason(item);
