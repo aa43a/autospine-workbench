@@ -1,5 +1,7 @@
 # AutoSpine Workbench 功能与入口参考
 
+- 区域归属草稿可生成[权重采样复核](how-to-component-partitions.md)：检查语义、侧别、连续骨链，源纹理叠加采样权重。Lumia 5 个区域、180 点数值检查通过；尚无该分区的三角网格或 Runtime 验收。
+
 - 区域归属报告支持单图层大画布、逐区建议、批量预填和下一项导航；语义/骨段采样建议仅填入未处理草稿，保留残余与歧义，见[分区复核说明](how-to-component-partitions.md)。
 
 - [实际像素分区候选](how-to-component-partitions.md)：免填 SHA 的 CLI、共享原纹理、四连通像素游程与低 alpha 残余可视化；归属未确定，不自动绑定。

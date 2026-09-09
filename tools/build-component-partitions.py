@@ -14,6 +14,8 @@ from autospine_workbench.asset.planning.component_ownership import template, val
 from autospine_workbench.benchmark.artifacts import read_input
 from autospine_workbench.asset.planning.component_suggestions import build as suggest
 from autospine_workbench.safe_input_files import read_real_file
+from autospine_workbench.asset.planning.component_weight_samples import build as sample_weights, validate as validate_weights
+from autospine_workbench.asset.planning.component_weight_review import render as render_weights
 
 
 def main():
@@ -64,6 +66,13 @@ def main():
             if args.draft:
                 draft = validate_draft(read_input(args.draft), draft)
                 publish_report(args.state_root, 'project-component-partitions', 'ownership-drafts-v1', draft)
+                weights = sample_weights(entries, source.skeleton, draft, source.source_addresses, plan['plan_sha256'])
+                weight_sha = publish_report(args.state_root, 'project-component-partitions', 'weight-samples-v1', weights)
+                checked = read_report(args.state_root, 'project-component-partitions', 'weight-samples-v1', weight_sha)
+                validate_weights(checked, entries, source.skeleton, draft, source.source_addresses, plan['plan_sha256'])
+                export_document(output / f'{weight_sha}.json', checked)
+                (output / 'weights.html').write_text(render_weights(checked, entries, source.skeleton), encoding='utf-8')
+                print(f"{project}: {sum(r['status'] == 'sampled_candidate' for r in weights['records'])} weight sample candidates")
             source.assert_current()
             scene = dict(canvas=source.candidate['canvas'], bones=source.skeleton['bones'],
                          composite=read_real_file(Path(store.resolve_asset(project,'composite')),64 << 20,'composite'))
