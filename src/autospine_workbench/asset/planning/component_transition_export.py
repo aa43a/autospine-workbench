@@ -6,7 +6,7 @@ from ...benchmark.mesh_storage import publish_mesh_report, read_mesh_report, exp
 from ...resolved_project import canonical_sha256
 
 
-def export(state, output, baseline, source, entries, correction=False):
+def export(state, output, baseline, source, entries, correction=False, parent_distal=False):
     document = build(baseline, source.skeleton, entries)
     source.assert_current()
     digest = publish_mesh_report(state, 'project-component-partitions', document)
@@ -28,5 +28,8 @@ def export(state, output, baseline, source, entries, correction=False):
     (output / 'transitions.html').write_text(page, encoding='utf-8')
     print(f"{document['project_id']}: {sum(c['selected_factor'] is not None for c in checked['comparisons'])} improved transition experiments")
     if correction:
+        if parent_distal:
+            from .component_parent_distal import export as export_distal
+            checked=export_distal(state,output,checked,entries,source)
         from .component_correction_export import export as export_correction
         export_correction(state,output,checked,source)

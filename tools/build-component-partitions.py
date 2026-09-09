@@ -28,6 +28,7 @@ def main():
     parser.add_argument('--mesh', action='store_true', help='Build isolated component mesh diagnostics from --draft')
     parser.add_argument('--weight-transition', action='store_true', help='Compare bounded local weight transitions with --mesh')
     parser.add_argument('--local-correction', action='store_true', help='Probe local pose corrections with --weight-transition')
+    parser.add_argument('--parent-distal', action='store_true', help='Compare parent-capped distal weights with --local-correction')
     parser.add_argument('projects', nargs='+')
     args = parser.parse_args()
     if args.draft and args.suggested_draft:
@@ -38,6 +39,8 @@ def main():
         parser.error('--weight-transition requires --mesh')
     if args.local_correction and not args.weight_transition:
         parser.error('--local-correction requires --weight-transition')
+    if args.parent_distal and not args.local_correction:
+        parser.error('--parent-distal requires --local-correction')
     if args.draft and len(args.projects) != 1:
         parser.error('--draft requires exactly one project')
     store = ProjectStore(args.workspace, args.state_root)
@@ -94,7 +97,7 @@ def main():
                 print(f"{project}: {sum(r['status'] == 'sampled_candidate' for r in weights['records'])} weight sample candidates")
                 if args.mesh:
                     from autospine_workbench.asset.planning.component_mesh_export import export
-                    export(args.state_root, output, entries, source, draft, plan['plan_sha256'], args.weight_transition, args.local_correction)
+                    export(args.state_root, output, entries, source, draft, plan['plan_sha256'], args.weight_transition, args.local_correction, args.parent_distal)
             source.assert_current()
             scene = dict(canvas=source.candidate['canvas'], bones=source.skeleton['bones'],
                          composite=read_real_file(Path(store.resolve_asset(project,'composite')),64 << 20,'composite'))

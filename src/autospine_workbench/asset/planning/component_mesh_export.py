@@ -4,7 +4,7 @@ from .component_mesh_review import render
 from ...benchmark.mesh_storage import publish_mesh_report, read_mesh_report, export_mesh
 
 
-def export(state, output, entries, source, draft, plan_sha, transition=False, correction=False):
+def export(state, output, entries, source, draft, plan_sha, transition=False, correction=False, parent_distal=False):
     document = build(entries, source.skeleton, draft, source.source_addresses, plan_sha)
     source.assert_current()
     digest = publish_mesh_report(state, 'project-component-partitions', document)
@@ -18,4 +18,4 @@ def export(state, output, entries, source, draft, plan_sha, transition=False, co
     print(f"{draft['project_id']}: {count} meshes; {passed} pass numeric gates; seams/runtime not evaluated")
     if transition:
         from .component_transition_export import export as export_transition
-        export_transition(state, output, checked, source, entries, correction)
+        export_transition(state, output, checked, source, entries, correction, parent_distal)

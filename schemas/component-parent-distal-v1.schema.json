@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "profile", "project_id", "source_sha256", "skeleton_sha256", "records", "evidence", "authority", "production_authorized", "runtime_status"],
+  "properties": {
+    "schema": {"const": "autospine.component-parent-distal/v1"}, "profile": {"const": "alpha-parent-capped-distal-factor2-v1"},
+    "project_id": {"type": "string"}, "source_sha256": {"$ref": "#/$defs/sha"}, "skeleton_sha256": {"$ref": "#/$defs/sha"},
+    "records": {"type": "array", "items": {"$ref": "component-mesh-candidates-v1.schema.json#/$defs/record"}},
+    "evidence": {"type": "array", "items": {
+      "type": "object", "additionalProperties": false, "required": ["layer_id", "component_id", "measurement", "parameters", "before_qa", "trial_qa"],
+      "properties": {"layer_id": {"type": "string"}, "component_id": {"type": "string"}, "measurement": {"type": "object"}, "parameters": {"type": "object"}, "before_qa": {"type": "object"}, "trial_qa": {"type": "object"}}
+    }},
+    "authority": {"const": "none"}, "production_authorized": {"const": false}, "runtime_status": {"const": "not_evaluated"}
+  },
+  "$defs": {"sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

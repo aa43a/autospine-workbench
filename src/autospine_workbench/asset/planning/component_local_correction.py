@@ -6,7 +6,7 @@ from ...resolved_project import canonical_sha256
 
 
 def build(source, skeleton):
-    if (source['schema'] != 'autospine.component-weight-transition/v1'
+    if (source['schema'] not in ('autospine.component-weight-transition/v1','autospine.component-parent-distal/v1')
             or source['skeleton_sha256'] != canonical_sha256(skeleton)
             or source['authority'] != 'none' or source['production_authorized'] is not False):
         raise ValueError('component_correction_source_mismatch')
