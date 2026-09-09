@@ -1,5 +1,7 @@
 # AutoSpine Workbench 架构与质量门禁
 
+`asset/planning/component_distal_guard.py` 是独立的整区域候选组合核心：校验新旧权重、修正、骨架的内容地址和区域/轨道/几何清单，重算129点FK，不信任旧QA统计。每个区域只能选择完整的新权重+新修正或旧权重+旧修正，不能逐帧切权重。`component-distal-guard/v1` 经16MiB内容寻址store读回；不进入生产授权，不修改历史profile。
+
 中央布局由独立 `workbench-layout.js` 管理，仅重新挂载已有表单与队列，保留控制器、草稿和 API 身份。
 规划响应的 `rig-plan-readiness/v1` 是独立 profile 的来源绑定诊断，不修改历史 RigPlan 工件或绑定决定。
 

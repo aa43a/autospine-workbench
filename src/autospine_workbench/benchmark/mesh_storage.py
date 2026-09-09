@@ -40,6 +40,7 @@ SCHEMAS += ('autospine.component-fk-qa/v1',)
 SCHEMAS += ('autospine.component-collar/v1',)
 SCHEMAS += ('autospine.component-collar-keys/v1',)
 SCHEMAS += ('autospine.component-parent-distal/v1',)
+SCHEMAS += ('autospine.component-distal-guard/v1',)
 
 
 def _read(path):
