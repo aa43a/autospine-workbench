@@ -3,8 +3,13 @@
 import { ACTIVE_JOBS, DEFAULT_TARGET_VERSION, TARGET_VERSIONS, automationEndpoint, jobEndpoint, projectIdentity, readJob, readOverview, reviewTarget } from "./workbench-automation-contract.js";
 import { AUTOMATION_STATUS, automationReason, createAutomationView } from "./workbench-automation-view.js";
 import { createWorkbenchAnimated } from "./workbench-animated-controller.js";
+import { workbenchLayout } from "./workbench-layout.js";
 
 export function createWorkbenchAutomation(document, hooks, options = {}) {
+  const layout = workbenchLayout(document), originalHooks = hooks;
+  hooks = { ...hooks,
+    selectLayer: (...args) => { layout?.show("asset"); originalHooks.selectLayer(...args); },
+    selectJoint: (...args) => { layout?.show("asset"); originalHooks.selectJoint(...args); } };
   const schedule = options.schedule || ((callback, delay) => setTimeout(callback, delay));
   const now = options.now || (() => performance.now());
   const unschedule = options.unschedule || clearTimeout;

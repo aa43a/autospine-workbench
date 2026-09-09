@@ -57,6 +57,7 @@ class ProjectRigPlanTests(unittest.TestCase):
         import jsonschema
         schema = json.loads(Path('schemas/project-rig-plan-status-v1.schema.json').read_text('utf-8'))
         schema['properties']['plan'] = json.loads(Path('schemas/rig-plan-v1.schema.json').read_text('utf-8'))
+        schema['properties']['readiness'] = json.loads(Path('schemas/rig-plan-readiness-v1.schema.json').read_text('utf-8'))
         jsonschema.validate(result, schema)
 
     def test_new_saved_decision_gets_a_new_plan_without_reusing_old_status(self):

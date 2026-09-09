@@ -1,6 +1,7 @@
 "use strict";
 
 import { DEFAULT_TARGET_VERSION, TARGET_VERSIONS } from "./workbench-automation-contract.js";
+import { workbenchLayout } from "./workbench-layout.js";
 
 export const AUTOMATION_STATUS = {
   pending: "等待开始", running: "正在构建", needs_review: "需要复核", succeeded: "预览已就绪",
@@ -76,7 +77,9 @@ export function createAutomationView(document, callbacks) {
   const note = node(document, "p", "静态预览不包含动作，也未执行官方 Runtime 验证。", "automation-description");
   actions.append(build, refresh, cancel);
   section.append(heading, description, targetRow, actions, status, steps, download, importHelp, queueHeading, queue, note);
-  mount?.append(section);
+  const layout = workbenchLayout(document);
+  if (layout) { layout.mount("export", section); layout.mountIssues("static", queueHeading, queue); }
+  else mount?.append(section);
   build.addEventListener("click", () => callbacks.start());
   refresh.addEventListener("click", () => callbacks.refresh());
   cancel.addEventListener("click", () => callbacks.cancel());

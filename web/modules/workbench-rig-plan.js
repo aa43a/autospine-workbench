@@ -3,6 +3,7 @@
 import { projectIdentity } from "./workbench-automation-contract.js";
 import { animatedEndpoint } from "./workbench-animated-contract.js";
 import { createRigPlanView, RIG_STRATEGIES } from "./workbench-rig-plan-view.js";
+import { readRigReadiness } from "./workbench-rig-readiness.js";
 const SHA = /^[a-f0-9]{64}$/;
 const FAILURES = {
   project_rig_plan_dependency_missing: "缺少图像分析依赖，请安装项目的可选分析环境后重试。",
@@ -15,7 +16,7 @@ export function readRigPlan(value, context, input) {
     || value.input_identity_sha256 !== input || !SHA.test(input) || value.authority !== "none"
     || !["missing", "ready"].includes(value.status)) throw new Error("规划来源已变化，请刷新后重新分析。");
   if (value.status === "missing") {
-    if (value.plan || value.plan_sha256 || value.visual) throw new Error("规划响应不完整。");
+    if (value.plan || value.plan_sha256 || value.visual || value.readiness) throw new Error("规划响应不完整。");
     return value;
   }
   const plan = value.plan;
@@ -36,6 +37,7 @@ export function readRigPlan(value, context, input) {
       || v.layers.some((row, i) => row.layer_id !== plan.scope[i] || !Array.isArray(row.bbox) || row.bbox.length !== 4
         || row.bbox.some(n => !Number.isFinite(n)) || row.bbox[0] > row.bbox[2] || row.bbox[1] > row.bbox[3])) throw new Error("规划可视化来源无效。");
   }
+  readRigReadiness(value.readiness, plan, input, value.plan_sha256);
   return value;
 }
 export function createWorkbenchRigPlan(document, hooks, options = {}) {
@@ -49,6 +51,7 @@ export function createWorkbenchRigPlan(document, hooks, options = {}) {
     const show = Boolean(identity && input);
     view.render({ visible: show, busy, canAnalyze: show && editable() && !busy, canLocate: editable() && !busy,
       autoEnabled, visual: editable() && !busy ? result?.visual || null : null,
+      readiness: editable() && !busy ? result?.readiness || null : null,
       layers: editable() && !busy ? result?.plan?.layers || [] : [],
       message: error || (busy ? "正在分析全角色图层，请稍候…" : !editable() ? "请先完成当前操作并保存或撤销编辑，再查看规划。"
         : result?.status === "ready" ? `已分析 ${result.plan.layers.length} 个源图层；规划未改变任何绑定决定。`

@@ -1,5 +1,7 @@
 # AutoSpine Workbench 功能与入口参考
 
+- [中央工作区与异常队列](how-to-workspace-layout.md)：保留未保存草稿，规划列出服装与分区前置缺项；检查结果不代表 Mesh 或 Runtime 通过。
+
 - [主工作台可变形动画候选](how-to-build-animated-spine-preview.md)：已登记来源免填 SHA 构建 Spine 4.3.26，
   同页十七点拖动复核、绑定修改、候选重建和下载。主画布保存关节后可显式同步到动画来源；当前覆盖三个已登记开发样本的受限屈伸候选，缺来源或不支持的结构变更明确阻塞。
   页面 CPU 播放不代替官方 Runtime；新三包另行完成固定帧检查，未宣称接缝、残余与整角色生产通过。

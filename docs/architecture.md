@@ -1,5 +1,8 @@
 # AutoSpine Workbench 架构与质量门禁
 
+中央布局由独立 `workbench-layout.js` 管理，仅重新挂载已有表单与队列，保留控制器、草稿和 API 身份。
+规划响应的 `rig-plan-readiness/v1` 是独立 profile 的来源绑定诊断，不修改历史 RigPlan 工件或绑定决定。
+
 ## 主工作台动画候选编排
 
 `automation/animated_inputs.py` 登记精确来源与作者 checkpoint，`animated_input_index.py` 提供快速可调度状态，

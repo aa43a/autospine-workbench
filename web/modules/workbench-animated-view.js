@@ -5,6 +5,7 @@ import { animatedReason } from "./workbench-animated-contract.js";
 import { createAnimatedBindings } from "./workbench-animated-bindings.js";
 import { createAnimatedPlayer } from "./workbench-animated-player.js";
 import { createAnimatedRebase } from "./workbench-animated-rebase.js";
+import { workbenchLayout } from "./workbench-layout.js";
 
 const STEPS = {
   "resolve-project": "解析当前项目", "resolve-source": "解析已验证源", "build-skeleton": "生成骨架候选",
@@ -20,7 +21,7 @@ export function createAnimatedView(document, callbacks) {
   const section = node(document, "section"), heading = node(document, "h3", "可变形动画候选预览");
   section.className = "automation-panel inspector-section";
   heading.id = "animatedPreviewHeading"; heading.tabIndex = -1; section.setAttribute("aria-labelledby", heading.id);
-  const description = node(document, "p", "使用本区“构建动画候选”生成 Spine 4.3.26 动作预览；上方静态预览不包含动作。待复核内容保留在队列中。");
+  const description = node(document, "p", "构建 Spine 4.3.26 动画候选并播放；待处理问题集中在底部异常队列。");
   const label = node(document, "label", "预览动作"), select = node(document, "select");
   label.setAttribute("for", "animatedPreviewClip"); select.id = "animatedPreviewClip";
   const actions = node(document, "div"); actions.className = "automation-actions";
@@ -36,13 +37,18 @@ export function createAnimatedView(document, callbacks) {
   const player = createAnimatedPlayer(document);
   const rebase = createAnimatedRebase(document, callbacks.rebase);
   section.append(heading, description, label, select, actions, status, rebase.element, reviewNotice, summary, steps, download, player.element, queueTitle, queue, bindings.element, note);
-  const mount = document.getElementById("automationMount"); mount?.append(section);
+  const layout = workbenchLayout(document), mount = document.getElementById("automationMount");
+  if (layout) {
+    layout.mount("animation", section); layout.mount("bindings", bindings.element);
+    layout.mount("preparation", rebase.element); layout.mountIssues("animated", queueTitle, queue);
+    bindings.element.open = true;
+  } else mount?.append(section);
   const navigation = node(document, "nav"), staticLink = node(document, "button", "静态预览"), animatedLink = node(document, "button", "动画候选");
   navigation.className = "automation-actions"; navigation.setAttribute("aria-label", "选择预览类型");
   for (const button of [staticLink, animatedLink]) { button.type = "button"; button.className = "button button-secondary"; }
   animatedLink.addEventListener("click", () => { section.scrollIntoView({ block: "start", behavior: "smooth" }); heading.focus({ preventScroll: true }); });
   staticLink.addEventListener("click", () => document.getElementById("automationHeading")?.scrollIntoView({ block: "start", behavior: "smooth" }));
-  navigation.append(staticLink, animatedLink); mount?.prepend(navigation);
+  navigation.append(staticLink, animatedLink); if (!layout) mount?.prepend(navigation);
   build.addEventListener("click", callbacks.start); refresh.addEventListener("click", callbacks.refresh); cancel.addEventListener("click", callbacks.cancel);
   select.addEventListener("change", () => callbacks.setClip(select.value));
   download.addEventListener("click", (event) => { if (!callbacks.canDownload()) event.preventDefault(); });
@@ -76,6 +82,8 @@ export function createAnimatedView(document, callbacks) {
     if (model.downloadUrl) download.setAttribute("href", model.downloadUrl); else download.removeAttribute("href");
     rebase.render(model); bindings.render(model); void player.load(model.playbackUrl);
   }
-  return { render, resetReview: bindings.reset, focusBinding: bindings.focusLayer, mountJoint: (element) => section.append(element),
-    mountPreparation: (element) => section.insertBefore(element, reviewNotice), dispose: player.dispose };
+  return { render, resetReview: bindings.reset, focusBinding: (id) => { layout?.showBinding("bindings"); return bindings.focusLayer(id); },
+    mountJoint: (element) => layout ? layout.mount("joints", element) : section.append(element),
+    mountPlan: (element) => { if (layout) { layout.mount("plan", element); element.open = true; } else section.append(element); },
+    mountPreparation: (element) => layout ? layout.mount("preparation", element) : section.insertBefore(element, reviewNotice), dispose: player.dispose };
 }

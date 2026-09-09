@@ -12,7 +12,7 @@ class Element extends EventTarget {
 }
 function fakeDocument() {
   const mount = new Element("div");
-  return { mount, createElement: (tag) => new Element(tag), getElementById: () => mount };
+  return { mount, createElement: (tag) => new Element(tag), getElementById: (id) => id === "automationMount" ? mount : null };
 }
 function descendants(node) { return [node, ...node.children.flatMap(descendants)]; }
 

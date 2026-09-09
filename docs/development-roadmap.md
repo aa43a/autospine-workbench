@@ -1,5 +1,7 @@
 # AutoSpine Workbench 后续开发路线
 
+2026-09-09：已完成[中央布局收敛](how-to-workspace-layout.md)，继续主线的[服装与分区前置检查](milestone-r3a-garment-readiness.md)。四角色 21 层仍缺明确候选语义；下一步接入语义/拆分复核来源与实际分区候选。R3-A 完整 Mesh 验收仍未完成。
+
 2026-09-09：[主工作台动画候选](how-to-build-animated-spine-preview.md)已连接登记来源、网格、有限动作、十七点/绑定复核与下载。
 当前已扩展到三个开发样本和四个可见测试项目，候选无生产权；分类与批量绑定预填入口已接入，下一主线是首批十角色的可测量自动化与通用 Mesh 验证，
 详见[自动化产品路线](automation-roadmap-2026-09.md)。下文旧“下一切片”描述为历史记录，不代表当前优先级。

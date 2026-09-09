@@ -11,6 +11,7 @@
     "authority": {"const": "none"},
     "plan_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "plan": {"$ref": "rig-plan-v1.schema.json"},
+    "readiness": {"$ref": "rig-plan-readiness-v1.schema.json"},
     "visual": {
       "type": "object", "additionalProperties": false,
       "required": ["canvas", "composite_url", "layers"],
@@ -29,5 +30,5 @@
   },
   "if": {"properties": {"status": {"const": "ready"}}},
   "then": {"required": ["plan_sha256", "plan"]},
-  "else": {"not": {"anyOf": [{"required": ["plan_sha256"]}, {"required": ["plan"]}, {"required": ["visual"]}]}}
+  "else": {"not": {"anyOf": [{"required": ["plan_sha256"]}, {"required": ["plan"]}, {"required": ["visual"]}, {"required": ["readiness"]}]}}
 }

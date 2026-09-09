@@ -1,5 +1,7 @@
 # AutoSpine Workbench
 
+[按步骤使用工作台](docs/how-to-workspace-layout.md)：中央规划/复核/预览，底部异常队列，右栏编辑选中对象；服装与分区附带来源绑定的前置检查。
+
 [跨角色动画批量验收](docs/how-to-animated-cohort.md)：四个可见测试角色完成 8 组候选编译，30° 官方 Runtime 共 244 帧技术检查通过。
 提供免填 SHA 的批量构建与异常汇总；完整绑定、宽袖裙装和动态接缝仍待复核。
 

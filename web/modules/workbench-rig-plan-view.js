@@ -2,6 +2,7 @@
 
 import { createRigPlanVisual } from "./workbench-rig-plan-visual.js";
 import { createAnimatedExpand } from "./workbench-animated-expand.js";
+import { READINESS_REASONS } from "./workbench-rig-readiness.js";
 
 export const RIG_STRATEGIES = { rigid: "单骨刚性", weighted_mesh: "跨骨骼加权 Mesh", partition_mesh: "分区后 Mesh", facial: "眼口细节", secondary_motion: "次级运动", semantic_review: "语义与拆分复核" };
 const REASONS = {
@@ -46,6 +47,11 @@ export function createRigPlanView(document, callbacks) {
         node("p", `骨骼可见像素采样：${row.evidence.bone_alpha_samples.map((s) => `${s.bone_id} ${s.opaque_samples}/${s.samples}`).join("、") || "无"}`),
         node("p", row.reason_codes.map((code) => REASONS[code] || `待检查原因：${code}`).join("；")),
         node("p", NEXT[row.next_action] || "检查当前图层证据后决定处理方式。"), locate);
+      const readiness = model.readiness?.layers.find(item => item.layer_id === row.layer_id);
+      if (readiness) {
+        const title = readiness.status === "blocked" ? "进入 Mesh 前需处理" : "骨链选项待检查";
+        item.append(node("p", `${title}：${readiness.reason_codes.map(code => READINESS_REASONS[code]).join(" ")}`));
+      }
       return item;
     }));
   }
