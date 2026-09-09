@@ -1,0 +1,176 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "profile",
+    "layer_id",
+    "image_sha256",
+    "bbox",
+    "run_coordinates",
+    "alpha_threshold",
+    "connectivity",
+    "components",
+    "residual",
+    "visible_pixel_count",
+    "visible_coverage_exact",
+    "status",
+    "reason_code",
+    "authority",
+    "production_authorized"
+  ],
+  "properties": {
+    "schema": {
+      "const": "autospine.component-partition-candidate/v1"
+    },
+    "profile": {
+      "const": "unowned-alpha-components-v1"
+    },
+    "layer_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "image_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "bbox": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "integer"
+      }
+    },
+    "run_coordinates": {
+      "const": "layer_local_half_open"
+    },
+    "alpha_threshold": {
+      "const": 8
+    },
+    "connectivity": {
+      "const": 4
+    },
+    "components": {
+      "type": "array",
+      "maxItems": 4096,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "owner",
+          "bone_ids",
+          "pixel_count",
+          "runs",
+          "bbox"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "owner": {
+            "type": "null"
+          },
+          "bone_ids": {
+            "type": "array",
+            "maxItems": 0
+          },
+          "pixel_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "runs": {
+            "type": "array",
+            "maxItems": 131072,
+            "items": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          "bbox": {
+            "type": "array",
+            "minItems": 4,
+            "maxItems": 4,
+            "items": {
+              "type": "integer"
+            }
+          }
+        }
+      }
+    },
+    "residual": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "owner",
+        "bone_ids",
+        "pixel_count",
+        "runs"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "owner": {
+          "type": "null"
+        },
+        "bone_ids": {
+          "type": "array",
+          "maxItems": 0
+        },
+        "pixel_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "runs": {
+          "type": "array",
+          "maxItems": 131072,
+          "items": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "items": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    },
+    "visible_pixel_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "visible_coverage_exact": {
+      "const": true
+    },
+    "status": {
+      "enum": [
+        "needs_review",
+        "blocked"
+      ]
+    },
+    "reason_code": {
+      "enum": [
+        "pixel_ownership_review_required",
+        "opaque_component_missing"
+      ]
+    },
+    "authority": {
+      "const": "none"
+    },
+    "production_authorized": {
+      "const": false
+    }
+  }
+}
