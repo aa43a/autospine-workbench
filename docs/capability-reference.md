@@ -1,5 +1,7 @@
 # AutoSpine Workbench 功能与入口参考
 
+- `--weight-transition` 提供[局部权重过渡对照](how-to-component-partitions.md)：相同网格试验双关节 alpha 支撑宽度，保留全部参数与失败姿态，拒绝增加翻转总数或新增原通过姿态失败的方案。Lumia 三组局部改进，四肢仍阻塞。
+
 - 归属草稿可通过 `--mesh` 生成[区域网格与逐骨弯曲诊断](how-to-component-partitions.md)。Lumia 六区域 setup 全覆盖，双鞋通过数值门槛，四肢仍阻塞；共享纹理隔离、接缝和 Runtime 待验证。
 
 - 区域归属草稿可生成[权重采样复核](how-to-component-partitions.md)：检查语义、侧别、连续骨链，源纹理叠加采样权重。Lumia 5 个区域、180 点数值检查通过；尚无该分区的三角网格或 Runtime 验收。

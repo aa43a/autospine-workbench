@@ -25,10 +25,13 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--draft', type=Path, help='Validate and archive one supplied draft; never apply bindings')
     parser.add_argument('--mesh', action='store_true', help='Build isolated component mesh diagnostics from --draft')
+    parser.add_argument('--weight-transition', action='store_true', help='Compare bounded local weight transitions with --mesh')
     parser.add_argument('projects', nargs='+')
     args = parser.parse_args()
     if args.mesh and not args.draft:
         parser.error('--mesh requires --draft')
+    if args.weight_transition and not args.mesh:
+        parser.error('--weight-transition requires --mesh')
     if args.draft and len(args.projects) != 1:
         parser.error('--draft requires exactly one project')
     store = ProjectStore(args.workspace, args.state_root)
@@ -78,7 +81,7 @@ def main():
                 print(f"{project}: {sum(r['status'] == 'sampled_candidate' for r in weights['records'])} weight sample candidates")
                 if args.mesh:
                     from autospine_workbench.asset.planning.component_mesh_export import export
-                    export(args.state_root, output, entries, source, draft, plan['plan_sha256'])
+                    export(args.state_root, output, entries, source, draft, plan['plan_sha256'], args.weight_transition)
             source.assert_current()
             scene = dict(canvas=source.candidate['canvas'], bones=source.skeleton['bones'],
                          composite=read_real_file(Path(store.resolve_asset(project,'composite')),64 << 20,'composite'))

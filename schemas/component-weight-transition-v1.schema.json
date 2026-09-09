@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "profile", "project_id", "source_mesh_sha256", "skeleton_sha256", "records", "comparisons", "factors", "authority", "production_authorized", "seam_status", "runtime_status"],
+  "properties": {
+    "schema": {"const": "autospine.component-weight-transition/v1"},
+    "profile": {"const": "component-alpha-width-both-joints-v1"},
+    "project_id": {"type": "string"},
+    "source_mesh_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "skeleton_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "records": {"type": "array", "items": {"$ref": "component-mesh-candidates-v1.schema.json#/$defs/record"}},
+    "comparisons": {"type": "array", "items": {"type": "object", "additionalProperties": false,
+      "required": ["layer_id", "component_id", "baseline_qa", "evidence", "trials", "selected_factor", "selected_qa"],
+      "properties": {
+        "layer_id": {"type": "string"}, "component_id": {"type": "string"},
+        "baseline_qa": {"type": "object"}, "selected_qa": {"type": "object"},
+        "evidence": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "object"}},
+        "trials": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "object"}},
+        "selected_factor": {"enum": [null, 1, 2, 4]}
+      }
+    }},
+    "factors": {"const": [1, 2, 4]},
+    "authority": {"const": "none"}, "production_authorized": {"const": false},
+    "seam_status": {"const": "not_evaluated"}, "runtime_status": {"const": "not_evaluated"}
+  }
+}
