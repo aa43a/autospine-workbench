@@ -31,8 +31,11 @@ class AnimatedApplication:
                   "can_build": False, "reason_code": None, "review_items": []}
         try:
             info = inspect_registration(self.projects, project_id)
+            names = {row["layer_id"]: row.get("name", "") for row in info["candidate"]["layers"]}
+            review_bindings = [dict(row, name=names.get(row["layer_id"], ""))
+                               for row in info["bindings"]["bindings"]]
             result.update(can_build=True, input_identity_sha256=info["source_addresses"]["input_identity_sha256"],
-                          binding_review={"bindings": info["bindings"]["bindings"], "records": info["draft"]["records"]},
+                          binding_review={"bindings": review_bindings, "records": info["draft"]["records"]},
                           verification="registration_only")
             result["review_items"] = [{"id": r["layer_id"] + ":binding", "layer_id": r["layer_id"],
                                            "type": "binding", "reason_code": "binding_selection_required"}
