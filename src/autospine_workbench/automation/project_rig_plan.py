@@ -4,6 +4,7 @@ Plans are read-only candidate reports. They never mutate a binding draft or
 register new inputs, and cached plans are exposed only for the exact source.
 """
 from pathlib import Path
+from urllib.parse import quote
 
 from ..benchmark.artifacts import publish_report, read_report
 from ..manifest_artifacts import require_safe_token, require_sha256
@@ -81,7 +82,11 @@ def read_plan(store, project_id):
         dataset = _registrations(store, project_id)[-1][1]['manifest']['dataset_id']
         plan = read_report(store.state_root, dataset, 'rig-plans-v1', pointer['plan_sha256'])
         validate_sources(plan, info)
-        result.update(status='ready', plan_sha256=pointer['plan_sha256'], plan=plan)
+        result.update(status='ready', plan_sha256=pointer['plan_sha256'], plan=plan,
+                      visual={'canvas': info['candidate']['canvas'],
+                              'composite_url': f'/api/projects/{quote(project_id, safe="")}/composite?source={identity}',
+                              'layers': [{'layer_id': row['layer_id'], 'bbox': row['bbox']}
+                                         for row in info['candidate']['layers']]})
     assert_registered_current(store, project_id, addresses)
     return result
 

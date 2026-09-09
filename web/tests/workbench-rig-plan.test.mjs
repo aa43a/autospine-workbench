@@ -11,11 +11,11 @@ const layer = (strategy = "secondary_motion", id = "sleeve") => ({ layer_id: id,
 const response = (status = "ready", input = INPUT) => ({ schema: "autospine.project-rig-plan-status/v1", project_id: "alice",
   input_identity_sha256: input, authority: "none", status, ...(status === "ready" ? { plan_sha256: SHA,
     plan: { schema: "autospine.rig-plan/v1", authority: "none", production_authorized: false, status: "needs_review", scope: ["sleeve"], layers: [layer()] } } : {}) });
-function harness(handler) {
+function harness(handler, autoAnalyze = false) {
   const context = { projectId: "alice", resolvedSha: SHA }, requests = [], locks = []; let latest;
   const ui = createWorkbenchRigPlan(null, { context: () => context, busyChanged: (value) => locks.push(value),
     apiRequest: async (url, options) => { requests.push({ url, options }); return handler ? handler(options) : response(options.method ? "ready" : "missing"); } },
-  { view: { render: (model) => { latest = model; } } });
+  { autoAnalyze, view: { render: (model) => { latest = model; } } });
   const sync = (extra = {}) => ui.sync({ inputIdentitySha: INPUT, preparationEditable: true, ...extra });
   return { ui, sync, context, requests, locks, model: () => latest };
 }
@@ -26,6 +26,40 @@ test("planning reads once, requires explicit analysis, and never calls a decisio
   assert.deepEqual(JSON.parse(h.requests[1].options.body), { expected_resolved_sha256: SHA, expected_input_sha256: INPUT });
   assert.deepEqual(h.locks, [true, false]); assert.equal(h.model().layers.length, 1);
   assert.ok(h.requests.every((r) => r.url.endsWith("/animated/rig-plan")));
+});
+
+test("automatic mode builds missing plans once and never posts decisions", async () => {
+  const h = harness(undefined, true); h.sync(); await tick();
+  assert.equal(h.requests.length, 2);
+  assert.equal(h.requests[1].options.method, 'POST');
+  h.sync(); h.sync(); await tick(); assert.equal(h.requests.length, 2);
+  assert.equal(h.model().layers.length, 1);
+  assert.ok(h.requests.every(r => r.url.endsWith('/rig-plan')));
+});
+
+test("auto analysis waits for saved idle input, supports opt-out and does not retry failures", async () => {
+  const h = harness(options => {
+    if (options.method) throw Error('analysis failed');
+    return response('missing');
+  }, true);
+  h.context.dirty = true; h.sync(); await tick(); assert.equal(h.requests.length, 0);
+  h.ui.setAuto(false); h.context.dirty = false; h.sync(); await tick();
+  assert.equal(h.requests.length, 1);
+  h.ui.setAuto(true); await tick(); assert.equal(h.requests.length, 2);
+  h.sync(); h.sync(); await tick(); assert.equal(h.requests.length, 2);
+  assert.match(h.model().message, /analysis failed/);
+});
+
+test("visual sources must match the project and full layer inventory", () => {
+  const value = response(); value.visual = { canvas: [100, 100],
+    composite_url: `/api/projects/alice/composite?source=${INPUT}`,
+    layers: [{ layer_id: 'sleeve', bbox: [1, 2, 30, 40] }] };
+  assert.equal(readRigPlan(value, { projectId: 'alice' }, INPUT), value);
+  for (const change of [v => { v.composite_url = 'https://example.com/image'; },
+    v => { v.layers = []; }, v => { v.layers[0].bbox = [3, 0, 1, 5]; }]) {
+    const bad = structuredClone(value); change(bad.visual);
+    assert.throws(() => readRigPlan(bad, { projectId: 'alice' }, INPUT));
+  }
 });
 test("unsaved changes and active work hide plans and prevent analysis", async () => {
   const h = harness(() => response()); h.sync(); await tick(); assert.equal(h.model().layers.length, 1);

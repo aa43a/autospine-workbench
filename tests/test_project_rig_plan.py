@@ -19,6 +19,7 @@ class ProjectRigPlanTests(unittest.TestCase):
         self.addCleanup(temp.cleanup)
         self.store = SimpleNamespace(state_root=Path(temp.name))
         candidate, skeleton, bindings, draft, images = fixture()
+        candidate['canvas'] = [4, 4]
         self.addresses = dict(input_identity_sha256='a' * 64, resolved_project_sha256='b' * 64,
                               semantic_candidate_sha256=canonical_sha256(candidate),
                               skeleton_candidate_sha256=canonical_sha256(skeleton),
