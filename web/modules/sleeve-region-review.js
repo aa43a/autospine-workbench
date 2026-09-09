@@ -1,3 +1,5 @@
+import {brushHitsTriangle, brushStrokePoints} from './sleeve-brush.js';
+
 export function sleeveImageFrame(box) {
   if (!Array.isArray(box) || box.length !== 4 || !box.every(Number.isFinite) || box[2] <= box[0] || box[3] <= box[1])
     throw Error('图层边界无效');
@@ -13,6 +15,20 @@ export function mountSleeveReview(root, candidate, initial, images, bones) {
   const colors = ['#aaa', '#40d9aa', '#ffe45a', '#f58faa', '#9f91ff'];
   const select = root.querySelector('#region'), role = root.querySelector('#role');
   const svg = root.querySelector('svg'), message = root.querySelector('#message');
+  const brush = root.querySelector('#brush'), brushValue = root.querySelector('#brush-value');
+  let cursor, lastPoint=null, lastEvent=null, polygons=[];
+  function setBrush(value) {
+    brush.value=String(Math.max(4,Math.min(120,Number(value))));
+    brushValue.textContent=`${brush.value} px`;
+    if (lastEvent) locate(lastEvent);
+  }
+  brush.oninput=() => setBrush(brush.value);
+  root.querySelector('#brush-smaller').onclick=() => setBrush(Number(brush.value)-4);
+  root.querySelector('#brush-larger').onclick=() => setBrush(Number(brush.value)+4);
+  root.addEventListener('keydown', e => {
+    if (/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) return;
+    if (e.key==='[' || e.key===']') {setBrush(Number(brush.value)+(e.key==='[' ? -4 : 4));e.preventDefault();}
+  });
   candidate.records.forEach((r, i) => select.add(new Option(`${r.layer_id} / ${r.component_id}`, i)));
   roles.forEach((r, i) => role.add(new Option(labels[i], r)));
   function remember() { history.push(copy(draft)); if (history.length > 30) history.shift(); }
@@ -26,6 +42,7 @@ export function mountSleeveReview(root, candidate, initial, images, bones) {
     message.textContent = `草稿：${items.filter(a => a.role !== 'unknown').length}/${items.length} 个三角形已填写；自动建议不等于人工确认。`;
   }
   function render() {
+    painting=false;lastPoint=null;lastEvent=null;polygons=[];
     svg.replaceChildren(); const r = candidate.records[active];
     if (!r) { message.textContent = '没有支持的手臂区域'; return; }
     const image = images[r.layer_id], frame = sleeveImageFrame(image.bbox);
@@ -36,7 +53,7 @@ export function mountSleeveReview(root, candidate, initial, images, bones) {
       const n = node('polygon', {points: t.map(v => r.vertices_xy[v].join(',')).join(' '),
         fill: colors[roles.indexOf(assignment.role)], 'fill-opacity': '.35', stroke: '#ddd', 'stroke-width': '.5', 'data-triangle': i});
       const title = node('title', {}); title.textContent = `#${i} ${labels[roles.indexOf(assignment.role)]} · ${assignment.origin}`;
-      n.append(title); svg.append(n);
+      n.append(title); svg.append(n);polygons.push(n);
     });
     for (const b of bones) {
       const g = node('g', {'pointer-events': 'none', opacity: r.bone_ids.includes(b.id) ? '1' : '.25'});
@@ -47,20 +64,34 @@ export function mountSleeveReview(root, candidate, initial, images, bones) {
       }
       svg.append(g);
     }
-    status();
+    cursor=node('circle', {fill:'none',stroke:'#fff','stroke-width':'1.5','vector-effect':'non-scaling-stroke','pointer-events':'none',visibility:'hidden'});
+    svg.append(cursor);status();
+  }
+  function locate(event) {
+    if (!cursor || !svg.getScreenCTM()) return null;
+    lastEvent=event;
+    const inverse=svg.getScreenCTM().inverse(),p=new DOMPoint(event.clientX,event.clientY).matrixTransform(inverse);
+    const radius=Number(brush.value)/2*Math.hypot(inverse.a,inverse.b);
+    cursor.setAttribute('cx',p.x);cursor.setAttribute('cy',p.y);cursor.setAttribute('r',radius);cursor.setAttribute('visibility','visible');
+    return {point:[p.x,p.y],radius};
   }
   function paint(event) {
-    const n = document.elementFromPoint(event.clientX, event.clientY);
-    if (!n || !svg.contains(n) || !n.hasAttribute('data-triangle')) return;
-    const i = Number(n.getAttribute('data-triangle'));
-    draft.records[active].assignments[i] = {triangle_id:i, role:role.value, origin:'manual_edit'};
-    n.setAttribute('fill', colors[roles.indexOf(role.value)]); status();
+    const position=locate(event),r=candidate.records[active];if (!position || !r) return;
+    const samples=brushStrokePoints(lastPoint,position.point,position.radius);lastPoint=position.point;
+    r.triangles.forEach((t,i) => {
+      if (!samples.some(p => brushHitsTriangle(p,position.radius,t.map(v => r.vertices_xy[v])))) return;
+      draft.records[active].assignments[i]={triangle_id:i,role:role.value,origin:'manual_edit'};
+      polygons[i].setAttribute('fill',colors[roles.indexOf(role.value)]);
+      polygons[i].querySelector('title').textContent=`#${i} ${labels[roles.indexOf(role.value)]} · manual_edit`;
+    });status();
   }
-  svg.addEventListener('pointerdown', e => { if (e.button !== 0) return; remember(); painting=true; paint(e); e.preventDefault(); });
-  svg.addEventListener('pointermove', e => { if (painting) paint(e); });
-  window.addEventListener('pointerup', () => {painting=false;});
-  window.addEventListener('blur', () => {painting=false;});
-  svg.addEventListener('pointercancel', () => {painting=false;});
+  svg.addEventListener('pointerdown', e => { if (e.button !== 0) return; remember();lastPoint=null; painting=true; paint(e); e.preventDefault(); });
+  svg.addEventListener('pointermove', e => { if (painting) paint(e); else locate(e); });
+  function endStroke() {painting=false;lastPoint=null;}
+  svg.addEventListener('pointerleave', () => {lastPoint=null;lastEvent=null;if(cursor)cursor.setAttribute('visibility','hidden');});
+  window.addEventListener('pointerup', endStroke);
+  window.addEventListener('blur', endStroke);
+  svg.addEventListener('pointercancel', endStroke);
   select.onchange = () => {active=Number(select.value); render();};
   root.querySelector('#suggest').onclick = () => {
     remember(); candidate.records[active].suggestions.forEach((s,i) => {
@@ -92,5 +123,5 @@ export function mountSleeveReview(root, candidate, initial, images, bones) {
     } catch (error) {message.textContent=`载入失败：${error.message}`;}
     e.target.value='';
   };
-  render();
+  setBrush(brush.value);render();
 }
