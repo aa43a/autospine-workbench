@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[跨角色动画批量验收](docs/how-to-animated-cohort.md)：四个可见测试角色完成 8 组候选编译，30° 官方 Runtime 共 244 帧技术检查通过。
+提供免填 SHA 的批量构建与异常汇总；完整绑定、宽袖裙装和动态接缝仍待复核。
+
 [新项目准备动画来源](docs/how-to-prepare-animation-inputs.md)：未登记的初始 audit 项目可在主工作台一键运行隔离 DWPose，自动加载全部 17 点复核。
 露米娅、辉夜、幽幽子、妖梦已完成真实来源准备，均为 0 点已复核；原始 PNG 自动分层、自动采用精度和十角色完整动画验收尚未完成。
 

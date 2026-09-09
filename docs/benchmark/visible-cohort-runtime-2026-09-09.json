@@ -1,0 +1,66 @@
+{
+  "schema": "autospine.development-validation/v1",
+  "scope": "visible-cohort-30-degree-runtime",
+  "date": "2026-09-09",
+  "authority": "none",
+  "production_authorized": false,
+  "cohort_report_sha256": "bf15287904c5f32e59f78062266e8f97c9ebf566979cd9d40e0b3504688810b5",
+  "projects": [
+    {
+      "project_id": "lumia",
+      "run_id": "run-224537dcbe98a2a08feca9263e845882e579332ea6dd9e62f530cb45330797cd",
+      "report_sha256": "e51279cae66d3d9426706b8fe9be2f121b74bcc213876f627f0883f880fcce5f",
+      "runtime_version": "4.3.13",
+      "export_version": "4.3.26",
+      "passed": true,
+      "frames": 61,
+      "mesh_layers": 6,
+      "context_layers": 20,
+      "max_motion_error_px": 9.707187496132974e-05,
+      "max_setup_error_px": 6.103515625e-05,
+      "page_errors": []
+    },
+    {
+      "project_id": "huiye",
+      "run_id": "run-0226f7a7745d94a54a3bea565595c5fd344bfcb0e4df1ae314e94718e43cdce7",
+      "report_sha256": "ca18ed7e417ccc9042f20c926c51a3ba4f6d882c51e86d33c432b8e2850f2cf2",
+      "runtime_version": "4.3.13",
+      "export_version": "4.3.26",
+      "passed": true,
+      "frames": 61,
+      "mesh_layers": 4,
+      "context_layers": 19,
+      "max_motion_error_px": 0.00011672656250993896,
+      "max_setup_error_px": 6.103515625e-05,
+      "page_errors": []
+    },
+    {
+      "project_id": "uuz",
+      "run_id": "run-ad9cd9de1249ed9aaf7800f2c6754e5a19ce0b8c2f464196483921c30f34e7e4",
+      "report_sha256": "0bea45b16b5dff2625b12fe3a7dd00a6e367962e32aae25458379b0eed199d96",
+      "runtime_version": "4.3.13",
+      "export_version": "4.3.26",
+      "passed": true,
+      "frames": 61,
+      "mesh_layers": 6,
+      "context_layers": 21,
+      "max_motion_error_px": 0.00010614062489366916,
+      "max_setup_error_px": 6.103515625e-05,
+      "page_errors": []
+    },
+    {
+      "project_id": "yaomeng",
+      "run_id": "run-e846f97993ea8047d230a5430848234369f1c9dd6deb4a355c67182c71399b11",
+      "report_sha256": "0826e60bae8185710a1e403fc7f3f12b0e86eb2ebd36c696fb7f5ab52b5d7485",
+      "runtime_version": "4.3.13",
+      "export_version": "4.3.26",
+      "passed": true,
+      "frames": 61,
+      "mesh_layers": 6,
+      "context_layers": 22,
+      "max_motion_error_px": 0.0001091562498913845,
+      "max_setup_error_px": 6.103515625e-05,
+      "page_errors": []
+    }
+  ]
+}

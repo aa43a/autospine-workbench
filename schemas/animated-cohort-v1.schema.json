@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Animated cohort diagnostic snapshot",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "authority", "production_authorized", "runtime_status", "independent_gt", "annotation_time_status", "rows", "summary"],
+  "properties": {
+    "schema": {"const": "autospine.animated-cohort/v1"},
+    "authority": {"const": "none"}, "production_authorized": {"const": false},
+    "runtime_status": {"const": "not_evaluated"}, "independent_gt": {"const": false},
+    "annotation_time_status": {"const": "not_measured"},
+    "summary": {"type": "object", "required": ["projects", "cases", "previews", "unavailable", "reasons"]},
+    "rows": {"type": "array", "maxItems": 40, "items": {
+      "type": "object", "required": ["project_id", "clip", "expected_resolved_sha256", "status", "preview_available", "summary", "review_items", "reason_code"],
+      "properties": {
+        "project_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+        "clip": {"enum": ["limb-flex-15", "limb-flex-30"]},
+        "expected_resolved_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "status": {"enum": ["needs_review", "blocked", "failed", "canceled"]},
+        "preview_available": {"type": "boolean"}, "summary": {"type": "object"},
+        "review_items": {"type": "array"}, "reason_code": {"type": ["string", "null"]}
+      }
+    }}
+  }
+}
