@@ -52,6 +52,9 @@ def _checkpoint(store, project_id):
 
 
 def _replay(store, registration):
+    if registration.get('source_kind') == 'project_audit':
+        from .input_preparation_sources_publish import replay_project_source
+        return replay_project_source(store, registration)
     return replay_inputs(store.state_root, registration['manifest'],
                          registration['source_draft_sha256'], store.workspace_root)
 

@@ -28,6 +28,7 @@ class PipelineWebJobs:
         self._pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="region-preview")
         self._lock, self._active, self._closed = RLock(), {}, False
         self._animated = None
+        self._preparation = None
 
     def _path(self, job_id, *, create=False):
         if type(job_id) is not str or not re.fullmatch(r"job-[0-9a-f]{32}", job_id):
@@ -142,6 +143,8 @@ class PipelineWebJobs:
         self._pool.shutdown(wait=True)
         if self._animated is not None:
             self._animated.close()
+        if self._preparation is not None:
+            self._preparation.close()
 
 
 def _response(job_id, project_id, status, *, target_version="4.2", **fields):

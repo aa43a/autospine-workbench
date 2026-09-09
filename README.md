@@ -1,5 +1,8 @@
 # AutoSpine Workbench
 
+[新项目准备动画来源](docs/how-to-prepare-animation-inputs.md)：未登记的初始 audit 项目可在主工作台一键运行隔离 DWPose，自动加载全部 17 点复核。
+露米娅、辉夜、幽幽子、妖梦已完成真实来源准备，均为 0 点已复核；原始 PNG 自动分层、自动采用精度和十角色完整动画验收尚未完成。
+
 [主工作台可变形动画候选](docs/how-to-build-animated-spine-preview.md)：已登记 audit 可免填 SHA 构建 Spine 4.3.26 候选，
 在同页播放、拖动十七点复核、修改绑定、恢复构建及下载。几何变化使旧 bind 退回 pending，需要重新检查。
 当前三个开发样本已经登记；15°/30°屈伸是受限候选，CPU 播放器不代替官方 Runtime，也不授予生产权。

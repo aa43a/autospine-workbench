@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine-workbench.local/schemas/input-preparation-job-v1.schema.json",
+  "title": "Durable asynchronous project preparation job, never a reviewed rig",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "job_id", "project_id", "expected_resolved_sha256", "status", "authority", "source_registered", "reason_code", "progress"],
+  "properties": {
+    "schema": {"const": "autospine.input-preparation-job/v1"},
+    "job_id": {"type": "string", "pattern": "^job-[0-9a-f]{32}$"},
+    "project_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "expected_resolved_sha256": {"$ref": "#/$defs/sha"},
+    "status": {"$ref": "#/$defs/status"}, "authority": {"const": "none"},
+    "source_registered": {"type": "boolean"}, "reason_code": {"$ref": "#/$defs/reason"},
+    "cancel_requested": {"type": "boolean"},
+    "progress": {"type": "array", "maxItems": 3, "items": {
+      "type": "object", "additionalProperties": false, "required": ["id", "status"],
+      "properties": {"id": {"enum": ["prepare-source", "run-pose", "register-review"]}, "status": {"$ref": "#/$defs/status"}}
+    }},
+    "result": {"$ref": "#/$defs/result"}
+  },
+  "$defs": {
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "reason": {"type": ["string", "null"], "pattern": "^[a-z][a-z0-9_]{0,79}$"},
+    "status": {"enum": ["pending", "running", "needs_review", "succeeded", "blocked", "failed", "canceled"]},
+    "result": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "source_registered", "authority"],
+      "properties": {
+        "status": {"enum": ["needs_review", "succeeded", "blocked", "failed", "canceled"]},
+        "source_registered": {"type": "boolean"}, "authority": {"const": "none"},
+        "production_authorized": {"const": false}, "reason_code": {"$ref": "#/$defs/reason"},
+        "registration_sha256": {"$ref": "#/$defs/sha"}, "input_identity_sha256": {"$ref": "#/$defs/sha"},
+        "reviewed_joint_count": {"const": 0}, "skeleton_status": {"type": "string", "minLength": 1},
+        "reason_codes": {"type": "array", "items": {"type": "string", "minLength": 1}}
+      }
+    }
+  },
+  "allOf": [
+    {"if": {"properties": {"status": {"enum": ["pending", "running"]}}}, "then": {"properties": {"source_registered": {"const": false}}, "not": {"required": ["result"]}}},
+    {"if": {"properties": {"source_registered": {"const": true}}}, "then": {"required": ["result"], "properties": {"status": {"enum": ["needs_review", "succeeded"]}, "result": {"properties": {"source_registered": {"const": true}}, "required": ["input_identity_sha256"]}}}}
+  ]
+}

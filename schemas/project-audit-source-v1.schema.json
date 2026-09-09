@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine-workbench.local/schemas/project-audit-source-v1.schema.json",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "authority", "scope", "dataset_id", "project_id", "audit_sha256", "source_bundle_sha256", "source_image_kind", "original_png_mapping", "original_psd_bytes"],
+  "properties": {
+    "schema": {"const": "autospine.project-audit-source/v1"},
+    "authority": {"const": "none"}, "scope": {"const": "project_input"},
+    "dataset_id": {"type": "string", "pattern": "^project-audit-[0-9a-f]{24}$"},
+    "project_id": {"$ref": "animated-input-registration-v1.schema.json#/properties/project_id"},
+    "audit_sha256": {"$ref": "animated-input-registration-v1.schema.json#/$defs/sha"},
+    "source_bundle_sha256": {"$ref": "animated-input-registration-v1.schema.json#/$defs/sha"},
+    "source_image_kind": {"const": "audit_composite"},
+    "original_png_mapping": {"const": "not_asserted"},
+    "original_psd_bytes": {"const": "not_asserted"}
+  }
+}

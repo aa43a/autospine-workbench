@@ -6,6 +6,7 @@ import { animatedEndpoint, animatedJobEndpoint, animatedLayerTarget, animatedRea
 import { createAnimatedView } from "./workbench-animated-view.js";
 import { createAnimatedJoints } from "./workbench-animated-joints.js";
 import { readAnimatedRebase } from "./workbench-animated-rebase.js";
+import { createAnimatedPreparation } from "./workbench-animated-preparation.js";
 
 export function createWorkbenchAnimated(document, hooks, options = {}) {
   const schedule = options.schedule || setTimeout, unschedule = options.unschedule || clearTimeout;
@@ -19,6 +20,8 @@ export function createWorkbenchAnimated(document, hooks, options = {}) {
   const joints = document ? createAnimatedJoints(document, { ...hooks,
     changed: (dirty) => { jointDirty = dirty; render(); }, saved: jointsSaved }) : null;
   if (joints) view.mountJoint(joints.element);
+  const preparation = document ? createAnimatedPreparation(document, { ...hooks, completed: prepared }) : null;
+  if (preparation) view.mountPreparation(preparation.element);
   const context = () => hooks.context();
   const current = (token) => token === generation && identity === projectIdentity(context());
   const editable = () => !context().dirty && !context().saving && !context().loading;
@@ -50,12 +53,14 @@ export function createWorkbenchAnimated(document, hooks, options = {}) {
     active: active() || submitting || rebasing, fetching, canceling: canceling || Boolean(job?.cancel_requested),
     canCancel: active(), canReview: Boolean(overview?.binding_review && editable() && !active() && !submitting && !savingReview && !jointDirty && !rebasing),
     sourceRebase: overview?.source_rebase || null, rebasing,
+    sourceMissing: overview?.reason_code === "animated_source_missing",
+    preparationEditable: editable() && !fetching && !submitting && !active() && !savingReview && !bindingDirty && !jointDirty && !rebasing,
     canRebase: Boolean(overview?.source_rebase?.status === "ready" && editable() && !active() && !fetching && !submitting && !savingReview && !bindingDirty && !jointDirty && !rebasing),
     savingReview, bindingDirty, message: message(), reviewNotice, clips: overview?.clips || [], clip,
     bindingReview: overview?.binding_review || null, reviewIdentity: overview ? `${identity}:${overview.input_identity_sha256}` : null,
     items: job?.run?.review_items || overview?.review_items || [], steps: job?.run?.steps || job?.progress || [], summary: job?.run?.summary,
     downloadUrl: base ? `${base}/download` : null, playbackUrl: base ? `${base}/files/playback.json` : null };
-    view.render(model); joints?.render(model);
+    view.render(model); joints?.render(model); preparation?.sync(model);
   }
   function sync() {
     const next = projectIdentity(context());
@@ -196,6 +201,13 @@ export function createWorkbenchAnimated(document, hooks, options = {}) {
       if (current(token)) await start();
     }
   }
-  function dispose() { generation++; stop(); view.dispose?.(); joints?.dispose(); }
+  async function prepared() {
+    const token = generation;
+    serial++; stop(); job = null; overview = null; intent = waiting = false;
+    reviewNotice = "真实姿态来源已准备。全部关节点已加载；模型辅助点仍待人工复核，不会自动确认或开始构建。";
+    await refresh();
+    if (current(token) && joints) { joints.element.open = true; await joints.reload(); }
+  }
+  function dispose() { generation++; stop(); view.dispose?.(); joints?.dispose(); preparation?.dispose(); }
   return { sync, start, refresh, cancel, setClip, saveReview, rebase, canDownload, dispose };
 }

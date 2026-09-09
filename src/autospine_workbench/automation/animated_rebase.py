@@ -129,7 +129,8 @@ def rebase_inputs(store, project_id, expected_resolved_sha256, expected_registra
                          authoring_overrides_sha256=canonical_sha256(project['overrides']),
                          joint_overrides=deepcopy(current), imported_joint_ids=plan['changed_joint_ids'],
                          ignored_joint_ids=plan['ignored_joint_ids'])
-            after = dict(before, schema='autospine.animated-input-registration/v2', checkpoint=checkpoint,
+            after = dict(before, schema=('autospine.animated-input-registration/v3' if before.get('source_kind') == 'project_audit'
+                                         else 'autospine.animated-input-registration/v2'), checkpoint=checkpoint,
                          source_draft_sha256=canonical_sha256(draft), revision=before['revision'] + 1,
                          previous_sha256=digest, authoring_rebase=proof)
             if _checkpoint(store, project_id)[1] != checkpoint or _registrations(store, project_id)[-1][0] != digest:

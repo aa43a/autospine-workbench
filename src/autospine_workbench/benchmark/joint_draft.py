@@ -21,7 +21,8 @@ def build_joint_draft(candidate):
 
 def validate_joint_draft(candidate, draft):
     """Caller validates candidate source closure; bounds use its PSD canvas."""
-    if type(candidate) is not dict or candidate.get("schema") != "autospine.benchmark-semantic-candidates/v1" \
+    if type(candidate) is not dict or candidate.get("schema") not in (
+            "autospine.benchmark-semantic-candidates/v1", "autospine.project-semantic-candidates/v1") \
             or candidate.get("authority") != "none" or candidate.get("coordinate_system", "psd_canvas") != "psd_canvas":
         raise ValueError("benchmark_joint_candidate_invalid")
     canvas = candidate.get("canvas")

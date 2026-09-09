@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine-workbench.local/schemas/project-semantic-candidates-v1.schema.json",
+  "description": "Project audit name suggestions. benchmark_manifest_sha256 is a compatibility address field pointing to project-audit-source, not a benchmark split or approved PNG/PSD mapping.",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "authority", "source_kind", "dataset_id", "character_id", "benchmark_manifest_sha256", "audit_snapshot_sha256", "audit_envelope_sha256", "source_psd_sha256", "composite_sha256", "canvas", "coordinate_system", "algorithm_profile", "review_required", "layers"],
+  "properties": {
+    "schema": {"const": "autospine.project-semantic-candidates/v1"},
+    "authority": {"const": "none"}, "source_kind": {"const": "project_audit"},
+    "dataset_id": {"type": "string"}, "character_id": {"type": "string"},
+    "benchmark_manifest_sha256": {"$ref": "animated-input-registration-v1.schema.json#/$defs/sha"},
+    "audit_snapshot_sha256": {"$ref": "animated-input-registration-v1.schema.json#/$defs/sha"},
+    "audit_envelope_sha256": {"$ref": "animated-input-registration-v1.schema.json#/$defs/sha"},
+    "source_psd_sha256": {"$ref": "animated-input-registration-v1.schema.json#/$defs/sha"},
+    "composite_sha256": {"$ref": "animated-input-registration-v1.schema.json#/$defs/sha"},
+    "canvas": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "integer", "minimum": 1, "maximum": 4096}},
+    "coordinate_system": {"const": "psd_canvas"}, "algorithm_profile": {"const": "exact-layer-name-v1"},
+    "review_required": {"const": true},
+    "layers": {"type": "array", "minItems": 1, "maxItems": 256, "items": {"type": "object",
+      "required": ["layer_id", "image_sha256", "bbox", "canonical_side", "review_required"],
+      "properties": {"canonical_side": {"const": "unknown"}, "review_required": {"const": true},
+        "image_sha256": {"$ref": "animated-input-registration-v1.schema.json#/$defs/sha"}}}}
+  }
+}

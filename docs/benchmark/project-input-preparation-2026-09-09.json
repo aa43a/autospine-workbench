@@ -1,0 +1,81 @@
+{
+  "schema": "autospine.development-validation/v1",
+  "date": "2026-09-09",
+  "scope": "project-audit-input-preparation",
+  "authority": "none",
+  "production_authorized": false,
+  "model": "dwpose-wholebody-fullcanvas-v1",
+  "projects": [
+    {
+      "project_id": "lumia",
+      "layers": 22,
+      "canvas": [
+        1280,
+        1280
+      ],
+      "joint_count": 17,
+      "reviewed_joint_count": 0,
+      "job_id": "job-8f19779c9b9546ea853db299fa478c1d",
+      "status": "needs_review",
+      "registration_sha256": "920cb45f349a68c74914df1d8cdf165d61854bdb2b4ca9a53a7cae9b8b32f95e",
+      "input_identity_sha256": "a2089cb3ea4db805bc98a1d75999a707ce549be6a0e49c9af10e36e0a0f3618e",
+      "resolved_project_sha256": "9f863e41585688e2f2f8e0bbed8cc29d214e2e4acc15d490cc5bce3f92f9ecea"
+    },
+    {
+      "project_id": "huiye",
+      "layers": 21,
+      "canvas": [
+        1280,
+        1280
+      ],
+      "joint_count": 17,
+      "reviewed_joint_count": 0,
+      "job_id": "job-216bac23aa29402994140448daf57eff",
+      "status": "needs_review",
+      "registration_sha256": "94d417ae4e78227c62df00e9d29c9f658d18c64e5ba1f7905b6e330ecdd68e61",
+      "input_identity_sha256": "d9e31459313f2d5be12e84193eaa389cf0f381089619f9335583cec1e88ece8e",
+      "resolved_project_sha256": "eb4b91e5f49c909274534901273ccbaab2784b1c771f9ffb0c86e22a3474069e"
+    },
+    {
+      "project_id": "uuz",
+      "layers": 23,
+      "canvas": [
+        1280,
+        1280
+      ],
+      "joint_count": 17,
+      "reviewed_joint_count": 0,
+      "job_id": "job-ff3fda4032f44ad3a6be916c5e1adf66",
+      "status": "needs_review",
+      "registration_sha256": "d8771738e266e8b023134118ce35a53b614df81d49a7ef3a9786720d1d763a14",
+      "input_identity_sha256": "e55eef2473253bd3cf0f04ae2d52be12843ae9d735b744a49a4f16b3778ca9dc",
+      "resolved_project_sha256": "7cc458c21c948e35d4f2f7a406d0f87f0d3062eac58cec86be3924a1247352ec"
+    },
+    {
+      "project_id": "yaomeng",
+      "layers": 24,
+      "canvas": [
+        1280,
+        1280
+      ],
+      "joint_count": 17,
+      "reviewed_joint_count": 0,
+      "job_id": "job-e362ec19326c4c12b3a34598927ec706",
+      "status": "needs_review",
+      "registration_sha256": "0ff0b84b95e2b731bf57e9dac2ae6d269569d7b238f311f4c380b946923eae8d",
+      "input_identity_sha256": "548f0ccb3433b81f3192889870db8144e658b51a63c7505165812939a0c6ca81",
+      "resolved_project_sha256": "a171b08833538145a68c87f31564c22e7ffed323428e65f9c1b15662fa91a007"
+    }
+  ],
+  "benchmark_split_changed": false,
+  "independent_gt_claimed": false,
+  "new_runtime_validation": "not_run",
+  "browser": {
+    "project_id": "lumia",
+    "automatic_joint_review_posts": 0,
+    "automatic_binding_review_posts": 0,
+    "automatic_preview_posts": 0,
+    "terminal_poll_stopped": true,
+    "errors": 0
+  }
+}

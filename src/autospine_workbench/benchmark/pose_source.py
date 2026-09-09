@@ -15,7 +15,8 @@ KIND = "benchmark-pose-observations"
 
 
 def _context(candidate):
-    if type(candidate) is not dict or candidate.get("schema") != "autospine.benchmark-semantic-candidates/v1" \
+    if type(candidate) is not dict or candidate.get("schema") not in (
+            "autospine.benchmark-semantic-candidates/v1", "autospine.project-semantic-candidates/v1") \
             or candidate.get("authority") != "none":
         raise ValueError("benchmark_pose_candidate_invalid")
     project_id = candidate.get("character_id")

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine-workbench.local/schemas/input-preparation-overview-v1.schema.json",
+  "title": "Source preparation readiness, without local runner paths or adoption authority",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "project_id", "resolved_project_sha256", "status", "can_prepare", "source_registered", "reason_code", "authority"],
+  "properties": {
+    "schema": {"const": "autospine.input-preparation-overview/v1"},
+    "project_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "resolved_project_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "status": {"enum": ["ready", "already_prepared", "runner_unavailable", "unsupported"]},
+    "can_prepare": {"type": "boolean"}, "source_registered": {"type": "boolean"},
+    "reason_code": {"type": ["string", "null"], "pattern": "^[a-z][a-z0-9_]{0,79}$"},
+    "authority": {"const": "none"}
+  },
+  "allOf": [
+    {"if": {"properties": {"status": {"const": "ready"}}}, "then": {"properties": {"can_prepare": {"const": true}, "source_registered": {"const": false}, "reason_code": {"const": null}}}, "else": {"properties": {"can_prepare": {"const": false}}}},
+    {"if": {"properties": {"status": {"const": "already_prepared"}}}, "then": {"properties": {"source_registered": {"const": true}, "reason_code": {"const": null}}}, "else": {"properties": {"source_registered": {"const": false}}}}
+  ]
+}
