@@ -76,6 +76,6 @@ export function createAnimatedView(document, callbacks) {
     if (model.downloadUrl) download.setAttribute("href", model.downloadUrl); else download.removeAttribute("href");
     rebase.render(model); bindings.render(model); void player.load(model.playbackUrl);
   }
-  return { render, resetReview: bindings.reset, mountJoint: (element) => section.append(element),
+  return { render, resetReview: bindings.reset, focusBinding: bindings.focusLayer, mountJoint: (element) => section.append(element),
     mountPreparation: (element) => section.insertBefore(element, reviewNotice), dispose: player.dispose };
 }

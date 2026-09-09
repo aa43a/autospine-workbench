@@ -1,0 +1,74 @@
+"use strict";
+
+import { projectIdentity } from "./workbench-automation-contract.js";
+import { animatedEndpoint } from "./workbench-animated-contract.js";
+import { createRigPlanView, RIG_STRATEGIES } from "./workbench-rig-plan-view.js";
+const SHA = /^[a-f0-9]{64}$/;
+const FAILURES = {
+  project_rig_plan_dependency_missing: "缺少图像分析依赖，请安装项目的可选分析环境后重试。",
+  project_rig_plan_analysis_failed: "图层图像或骨骼证据无法完成分析，请检查输入素材。",
+  animated_review_conflict: "来源已变化，请刷新后重新分析。",
+  animated_source_stale: "请先同步已保存校正，再分析当前来源。",
+};
+export function readRigPlan(value, context, input) {
+  if (value?.schema !== "autospine.project-rig-plan-status/v1" || value.project_id !== context.projectId
+    || value.input_identity_sha256 !== input || !SHA.test(input) || value.authority !== "none"
+    || !["missing", "ready"].includes(value.status)) throw new Error("规划来源已变化，请刷新后重新分析。");
+  if (value.status === "missing") {
+    if (value.plan || value.plan_sha256) throw new Error("规划响应不完整。");
+    return value;
+  }
+  const plan = value.plan;
+  if (!SHA.test(value.plan_sha256) || plan?.schema !== "autospine.rig-plan/v1" || plan.authority !== "none"
+    || plan.production_authorized !== false || plan.status !== "needs_review" || !Array.isArray(plan.layers)
+    || !Array.isArray(plan.scope) || plan.scope.length !== plan.layers.length
+    || new Set(plan.scope).size !== plan.scope.length
+    || plan.layers.some((r, i) => r.layer_id !== plan.scope[i] || typeof r.name !== "string" || !Object.hasOwn(RIG_STRATEGIES, r.strategy)
+      || !Number.isInteger(r.evidence?.component_count) || r.evidence.component_count < 0 || !Array.isArray(r.evidence.bone_alpha_samples)
+      || r.evidence.bone_alpha_samples.some((s) => typeof s.bone_id !== "string" || !Number.isInteger(s.samples) || s.samples < 1
+        || !Number.isInteger(s.opaque_samples) || s.opaque_samples < 0 || s.opaque_samples > s.samples)
+      || !Array.isArray(r.reason_codes) || r.reason_codes.some((s) => typeof s !== "string") || typeof r.next_action !== "string")) throw new Error("规划响应不完整。");
+  return value;
+}
+export function createWorkbenchRigPlan(document, hooks, options = {}) {
+  let identity = null, input = null, generation = 0, model = {}, result = null, busy = false, error = "", loaded = false;
+  const view = options.view || createRigPlanView(document, { analyze, locate: hooks.locate });
+  const context = () => hooks.context();
+  const editable = () => model.preparationEditable && !context().dirty && !context().saving && !context().loading;
+  const current = (token) => token === generation && identity === projectIdentity(context());
+  function render() {
+    const show = Boolean(identity && input);
+    view.render({ visible: show, busy, canAnalyze: show && editable() && !busy, canLocate: editable() && !busy,
+      layers: editable() && !busy ? result?.plan?.layers || [] : [],
+      message: error || (busy ? "正在分析全角色图层，请稍候…" : !editable() ? "请先完成当前操作并保存或撤销编辑，再查看规划。"
+        : result?.status === "ready" ? `已分析 ${result.plan.layers.length} 个源图层；规划未改变任何绑定决定。`
+        : "尚未生成当前来源的规划。点击分析可检查全角色图层。") });
+  }
+  function sync(value) {
+    model = value;
+    const next = projectIdentity(context()), nextInput = SHA.test(value.inputIdentitySha || "") ? value.inputIdentitySha : null;
+    if (next !== identity || nextInput !== input) {
+      generation++; identity = next; input = nextInput;
+      result = null; busy = false; loaded = false; error = "";
+    }
+    render();
+    if (identity && input && editable() && !loaded && !busy) void request(false);
+  }
+  async function request(create) {
+    if (!identity || !input || !editable() || busy) return;
+    const token = generation, saved = { ...context() }, source = input;
+    busy = true; loaded = true; error = ""; render();
+    if (create) hooks.busyChanged?.(true);
+    try {
+      const options = create ? { method: "POST", headers: { "X-Autospine-Intent": "pipeline-preview" },
+        body: JSON.stringify({ expected_resolved_sha256: saved.resolvedSha, expected_input_sha256: source }) } : { cache: "no-store" };
+      const value = await hooks.apiRequest(`${animatedEndpoint(saved.projectId)}/rig-plan`, options);
+      if (current(token)) result = readRigPlan(value, saved, source);
+    } catch (failure) { if (current(token)) { result = null; error = FAILURES[failure.payload?.reason_code] || failure.message || "规划分析失败，请重试。"; } }
+    finally {
+      if (current(token)) { busy = false; if (create) hooks.busyChanged?.(false); render(); }
+    }
+  }
+  async function analyze() { await request(true); }
+  return { element: view.element, sync, analyze, dispose() { generation++; } };
+}

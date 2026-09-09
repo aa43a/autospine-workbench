@@ -7,6 +7,8 @@ class Element extends EventTarget {
   append(...nodes) { this.children.push(...nodes); }
   replaceChildren(...nodes) { this.children = nodes; }
   setAttribute(name, value) { this.attributes[name] = value; }
+  focus() { this.focused = true; }
+  scrollIntoView() { this.scrolled = true; }
 }
 const descendants = (node) => [node, ...node.children.flatMap(descendants)];
 function harness() {
@@ -46,6 +48,29 @@ test("project switch clears local changes and read-only state blocks save", () =
   h.view.render({ bindingReview: h.bindingReview, reviewIdentity: "second", canReview: false });
   assert.equal(h.find("sleeve 处理方式").value, "pending");
   h.find("保存绑定复核并重建").dispatchEvent(new Event("click")); assert.equal(h.saves.length, 0);
+});
+
+test("planner navigation opens and focuses a different category without losing unsaved records", () => {
+  const h = harness();
+  h.bindingReview.bindings.push({ layer_id: "face", suggested_option_id: "rigid:head",
+    options: [{ id: "rigid:head", mode: "rigid", bone_ids: ["head"] }] });
+  h.bindingReview.records.push({ layer_id: "face", action: "pending", option_id: null, notes: "keep" });
+  h.view.render({ bindingReview: h.bindingReview, reviewIdentity: "navigation", canReview: true });
+  h.change("sleeve 绑定方案", "three-bones"); h.change("sleeve 复核说明", "local choice", "input");
+  h.view.element.open = false;
+  const notifications = h.dirty.length;
+  assert.equal(h.view.focusLayer("face"), true);
+  assert.equal(h.view.element.open, true);
+  assert.equal(h.find("face 处理方式").focused, true);
+  assert.equal(h.find("sleeve 处理方式"), undefined);
+  assert.equal(h.dirty.length, notifications); assert.equal(h.saves.length, 0);
+  assert.equal(h.view.focusLayer("missing"), false);
+  assert.equal(h.view.focusLayer("sleeve"), true);
+  assert.equal(h.find("sleeve 绑定方案").value, "three-bones");
+  assert.equal(h.find("sleeve 复核说明").value, "local choice");
+  h.find("保存绑定复核并重建").dispatchEvent(new Event("click"));
+  assert.equal(h.saves[0].length, 3);
+  assert.deepEqual(h.saves[0][2], h.bindingReview.records[2]);
 });
 
 test("filtered batch stays local, preserves hidden records, and can be undone", () => {

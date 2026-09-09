@@ -26,7 +26,7 @@ export function createAnimatedBindings(document, callbacks) {
   const notice = document.createElement("p"); notice.setAttribute("role", "status");
   actions.append(save, undo); section.append(heading, description, complete, filter, counts, batch, rows, notice, actions);
   let identity = null, original = [], records = [], bindings = [], canReview = false, dirty = false;
-  let controls = [];
+  let controls = [], targets = new Map();
   const changed = () => { dirty = JSON.stringify(records) !== JSON.stringify(original); callbacks.changed(dirty); update(); };
   function update() {
     for (const control of controls) control.disabled = !canReview;
@@ -39,7 +39,7 @@ export function createAnimatedBindings(document, callbacks) {
     counts.textContent = `全部 ${records.length} 层 · 待复核 ${records.filter((r) => r.action === "pending").length} 层 · ${dirty ? "有未保存修改" : "与已保存记录一致"}`;
   }
   function makeRows() {
-    controls = []; rows.replaceChildren();
+    controls = []; targets = new Map(); rows.replaceChildren();
     const selected = filter.value || "all"; filter.replaceChildren();
     for (const [id, label] of Object.entries(BINDING_GROUPS)) {
       const item = document.createElement("option"); item.value = id;
@@ -77,6 +77,7 @@ export function createAnimatedBindings(document, callbacks) {
       const locate = document.createElement("button"); locate.type = "button"; locate.textContent = "查看图层";
       locate.addEventListener("click", () => callbacks.locate({ layer_id: binding.layer_id }));
       row.append(title, action, option, notes, locate); rows.append(row); controls.push(action, option, notes, locate);
+      targets.set(binding.layer_id, { row, action });
     }
     update();
   }
@@ -111,5 +112,15 @@ export function createAnimatedBindings(document, callbacks) {
     }
     update();
   }
-  return { element: section, render, reset: () => { identity = null; } };
+  function focusLayer(layerId) {
+    const binding = bindings.find((row) => row.layer_id === layerId);
+    if (section.hidden || !binding || !records.some((row) => row.layer_id === layerId)) return false;
+    section.open = true;
+    filter.value = bindingGroup(binding); makeRows();
+    const target = targets.get(layerId);
+    target.row.scrollIntoView?.({ block: "center", behavior: "smooth" });
+    target.action.focus?.({ preventScroll: true });
+    return true;
+  }
+  return { element: section, render, focusLayer, reset: () => { identity = null; } };
 }

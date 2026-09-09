@@ -63,6 +63,14 @@ class AnimatedApplication:
         from .animated_joint_review import get_joint_review
         return get_joint_review(self.projects, project_id)
 
+    def rig_plan(self, project_id):
+        from .project_rig_plan import read_plan
+        return read_plan(self.projects, project_id)
+
+    def prepare_rig_plan(self, project_id, expected_resolved_sha256, expected_input_sha256):
+        from .project_rig_plan import prepare_plan
+        return prepare_plan(self.projects, project_id, expected_resolved_sha256, expected_input_sha256)
+
     def complete_bindings(self, project_id, expected_resolved_sha256, expected_input_sha256):
         from .animated_binding_completion import complete_bindings
         result = complete_bindings(self.projects, project_id, expected_resolved_sha256, expected_input_sha256)

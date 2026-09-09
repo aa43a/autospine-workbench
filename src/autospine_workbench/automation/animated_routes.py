@@ -21,7 +21,7 @@ def dispatch_animated(tail, handler, method, project_id):
         return dispatch_preparation(tail[1:], handler, method, project_id)
     from .web_routes import _error, _require_mutation
     allowed = None
-    if tail == ["joints"]:
+    if tail in (["joints"], ["rig-plan"]):
         allowed = "GET, HEAD, POST, OPTIONS"
     elif not tail or (len(tail) == 2 and tail[0] == "jobs"):
         allowed = "GET, HEAD, OPTIONS"
@@ -45,6 +45,10 @@ def dispatch_animated(tail, handler, method, project_id):
                 if set(body) != {"expected_resolved_sha256", "clip", "resume"}:
                     raise PipelineRunError("pipeline_request_invalid")
                 result = manager_for(handler.server).submit(project_id, **body)
+            elif tail == ["rig-plan"]:
+                if set(body) != {"expected_resolved_sha256", "expected_input_sha256"}:
+                    raise PipelineRunError("pipeline_request_invalid")
+                result = manager_for(handler.server).application.prepare_rig_plan(project_id, **body)
             elif tail == ["complete-bindings"]:
                 if set(body) != {"expected_resolved_sha256", "expected_input_sha256"}:
                     raise PipelineRunError("pipeline_request_invalid")
@@ -69,7 +73,9 @@ def dispatch_animated(tail, handler, method, project_id):
             handler._send_visual_json(202, result)
         else:
             manager = manager_for(handler.server)
-            if tail == ["joints"]:
+            if tail == ["rig-plan"]:
+                handler._send_visual_json(200, manager.application.rig_plan(project_id))
+            elif tail == ["joints"]:
                 handler._send_visual_json(200, manager.application.joints(project_id))
             elif not tail:
                 handler._send_visual_json(200, manager.application.overview(project_id))

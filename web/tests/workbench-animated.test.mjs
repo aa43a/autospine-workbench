@@ -15,13 +15,13 @@ const result = (ctx, status, preview = false) => ({ schema: "autospine.animated-
     run_id: "run-test", status, preview_available: preview, project_id: ctx.projectId,
     source_addresses: { resolved_project_sha256: ctx.resolvedSha }, steps: [], review_items: [] } } : {}) });
 function harness(handler) {
-  const context = { projectId: "sample", resolvedSha: SHA, layerIds: [] }, models = [], calls = [], timers = new Map();
+  const context = { projectId: "sample", resolvedSha: SHA, layerIds: [] }, models = [], calls = [], timers = new Map(), selected = [], focused = [];
   let count = 0, clock = 0;
-  const controller = createWorkbenchAnimated(null, { context: () => context,
+  const controller = createWorkbenchAnimated(null, { context: () => context, selectLayer: id => selected.push(id),
     apiRequest: async (url, options = {}) => { calls.push({ url, options }); return handler(url, options, context); },
-  }, { view: { render: (model) => models.push(model) }, now: () => clock,
+  }, { view: { render: (model) => models.push(model), focusBinding: id => focused.push(id) }, now: () => clock,
     schedule: (fn, delay) => { const id = ++count; timers.set(id, { fn, delay }); return id; }, unschedule: (id) => timers.delete(id) });
-  return { controller, context, calls, timers, model: () => models.at(-1), time: (v) => { clock = v; },
+  return { controller, context, calls, timers, selected, focused, model: () => models.at(-1), time: (v) => { clock = v; },
     poll: async () => { const [id, { fn }] = timers.entries().next().value; timers.delete(id); fn(); await tick(); } };
 }
 test("animated candidate with needs_review downloads without automatic adoption and stops polling", async () => {
@@ -35,6 +35,17 @@ test("animated candidate with needs_review downloads without automatic adoption 
   assert.equal(post.length, 1);
   assert.deepEqual(JSON.parse(post[0].options.body), { expected_resolved_sha256: SHA, clip: "wave", resume: true });
   assert.equal(post[0].options.headers["X-Autospine-Intent"], "pipeline-preview");
+});
+
+test("planner navigation maps the canvas layer but preserves the binding record id", () => {
+  const h = harness(() => overview({ projectId: 'sample', resolvedSha: SHA }));
+  h.context.layerIds = ['layer-001-legwear'];
+  h.controller.locate({ type: 'binding', layer_id: 'layer-001' });
+  assert.deepEqual(h.selected, ['layer-001-legwear']);
+  assert.deepEqual(h.focused, ['layer-001']);
+  h.controller.locate({ layer_id: 'layer-001' });
+  assert.equal(h.focused.length, 1);
+  assert.equal(h.calls.length, 0);
 });
 
 test("completion posts exact source only and does not save decisions or build automatically", async () => {

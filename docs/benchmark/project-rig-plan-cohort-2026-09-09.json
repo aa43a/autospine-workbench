@@ -1,0 +1,74 @@
+{
+  "schema": "autospine.project-rig-plan-cohort/v1",
+  "authority": "none",
+  "production_authorized": false,
+  "cases": [
+    {
+      "project_id": "lumia",
+      "input_identity_sha256": "e7772bf025b2f9e46d563770a62132a490f7c41111289232e13b0060fba8c357",
+      "plan_sha256": "66139bf49ca215b6a7c4f55ee8dd6987b23715cb63669cbd2840bc8270994f99",
+      "layer_count": 22,
+      "strategy_counts": {
+        "secondary_motion": 2,
+        "partition_mesh": 1,
+        "semantic_review": 2,
+        "weighted_mesh": 2,
+        "rigid": 6,
+        "facial": 9
+      },
+      "full_coverage": true,
+      "saved_decisions_unchanged": true,
+      "cached_read_matches": true
+    },
+    {
+      "project_id": "huiye",
+      "input_identity_sha256": "656223367e161a9ce1bfb934b633205f57fc9c877bcab4e4ca7a5c0ff12bc9ef",
+      "plan_sha256": "75c26bd7aa1f02ae4c771371cb0683030971af54dea25b6db39802996194433b",
+      "layer_count": 21,
+      "strategy_counts": {
+        "secondary_motion": 2,
+        "semantic_review": 2,
+        "weighted_mesh": 2,
+        "rigid": 6,
+        "facial": 9
+      },
+      "full_coverage": true,
+      "saved_decisions_unchanged": true,
+      "cached_read_matches": true
+    },
+    {
+      "project_id": "uuz",
+      "input_identity_sha256": "3054e29cb9b3fff5f40ca8225ccdab5e5b25e36b261d8ab7f3d0e88c8baba163",
+      "plan_sha256": "b2e39dc65bf2ef6c8c4e2d983176399d952470e217eae4dbec100f9925f293cf",
+      "layer_count": 23,
+      "strategy_counts": {
+        "secondary_motion": 2,
+        "semantic_review": 3,
+        "partition_mesh": 1,
+        "weighted_mesh": 2,
+        "rigid": 5,
+        "facial": 10
+      },
+      "full_coverage": true,
+      "saved_decisions_unchanged": true,
+      "cached_read_matches": true
+    },
+    {
+      "project_id": "yaomeng",
+      "input_identity_sha256": "ad721579c43df4c1ef2d44eff692505a9781a61ec87b73c9bf1000343fd2e59c",
+      "plan_sha256": "2c3008c19dc508b48d4aae265036c3e6dc5b5cc66373ab926811ebce0f02e2ef",
+      "layer_count": 24,
+      "strategy_counts": {
+        "secondary_motion": 2,
+        "semantic_review": 3,
+        "weighted_mesh": 2,
+        "partition_mesh": 1,
+        "rigid": 7,
+        "facial": 9
+      },
+      "full_coverage": true,
+      "saved_decisions_unchanged": true,
+      "cached_read_matches": true
+    }
+  ]
+}

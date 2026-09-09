@@ -21,6 +21,8 @@ class AnimatedWebHttpTests(unittest.TestCase):
         self.application.overview = Mock(return_value={"authority": "none", "review_items": []})
         self.application.review = Mock(return_value={"authority": "none", "review_items": []})
         self.application.complete_bindings = Mock(return_value={"authority": "none"})
+        self.application.rig_plan = Mock(return_value={"authority": "none", "status": "missing"})
+        self.application.prepare_rig_plan = Mock(return_value={"authority": "none", "status": "ready"})
         self.application.rebase = Mock(return_value={"authority": "none", "joint_review_result": {"changed": True}})
         self.manager._animated = AnimatedWebJobs(self.fixture.fixture.store(), application=self.application)
         self.request_body = {"expected_resolved_sha256": self.request_body["expected_resolved_sha256"],
@@ -74,6 +76,16 @@ class AnimatedWebHttpTests(unittest.TestCase):
         self.application.complete_bindings.assert_not_called()
         self.assertEqual(self.request("POST", "/complete-bindings", body)[0], 202)
         self.application.complete_bindings.assert_called_once_with("fixture-project", **body)
+
+    def test_rig_plan_get_is_readonly_and_post_checks_intent_and_shape(self):
+        body = {"expected_resolved_sha256": "a" * 64, "expected_input_sha256": "b" * 64}
+        self.assertEqual(self.request("GET", "/rig-plan")[0], 200)
+        self.application.prepare_rig_plan.assert_not_called()
+        self.assertEqual(self.request("POST", "/rig-plan", {**body, "approve": True})[0], 400)
+        self.assertEqual(self.request("POST", "/rig-plan", body, {"X-Autospine-Intent": None})[0], 403)
+        self.application.prepare_rig_plan.assert_not_called()
+        self.assertEqual(self.request("POST", "/rig-plan", body)[0], 202)
+        self.application.prepare_rig_plan.assert_called_once_with("fixture-project", **body)
 
 
 if __name__ == "__main__":

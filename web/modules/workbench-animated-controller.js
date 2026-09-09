@@ -7,6 +7,7 @@ import { createAnimatedView } from "./workbench-animated-view.js";
 import { createAnimatedJoints } from "./workbench-animated-joints.js";
 import { readAnimatedRebase } from "./workbench-animated-rebase.js";
 import { createAnimatedPreparation } from "./workbench-animated-preparation.js";
+import { createWorkbenchRigPlan } from "./workbench-rig-plan.js";
 
 export function createWorkbenchAnimated(document, hooks, options = {}) {
   const schedule = options.schedule || setTimeout, unschedule = options.unschedule || clearTimeout;
@@ -14,7 +15,7 @@ export function createWorkbenchAnimated(document, hooks, options = {}) {
   let identity = null, projectId = null, generation = 0, serial = 0, timer = null, started = 0;
   let overview = null, job = null, clip = null, fetching = false, submitting = false, canceling = false;
   let error = null, intent = false, waiting = false, savingReview = false, bindingDirty = false, jointDirty = false;
-  let reviewNotice = "", rebasing = false;
+  let reviewNotice = "", rebasing = false, planning = false;
   const view = options.view || createAnimatedView(document, { start, refresh, cancel, setClip, canDownload,
     saveReview, completeBindings, rebase, bindingChanged: (dirty) => { bindingDirty = dirty; render(); }, locate });
   const joints = document ? createAnimatedJoints(document, { ...hooks,
@@ -22,9 +23,12 @@ export function createWorkbenchAnimated(document, hooks, options = {}) {
   if (joints) view.mountJoint(joints.element);
   const preparation = document ? createAnimatedPreparation(document, { ...hooks, completed: prepared }) : null;
   if (preparation) view.mountPreparation(preparation.element);
+  const rigPlan = document ? createWorkbenchRigPlan(document, { ...hooks, locate,
+    busyChanged: (busy) => { planning = busy; render(); } }) : null;
+  if (rigPlan) view.mountJoint(rigPlan.element);
   const context = () => hooks.context();
   const current = (token) => token === generation && identity === projectIdentity(context());
-  const editable = () => !context().dirty && !context().saving && !context().loading;
+  const editable = () => !context().dirty && !context().saving && !context().loading && !planning;
   const active = () => ACTIVE_JOBS.has(job?.status);
   function stop() { if (timer !== null) unschedule(timer); timer = null; }
   function canDownload() {
@@ -34,6 +38,7 @@ export function createWorkbenchAnimated(document, hooks, options = {}) {
   }
   function message() {
     if (!identity) return "请选择可用项目。";
+    if (planning) return "正在分析全角色绑定规划…";
     if (!editable()) return "请等待项目加载并保存未提交的校正。";
     if (error) return error;
     if (rebasing) return "正在将已保存校正同步到动画来源…";
@@ -50,7 +55,7 @@ export function createWorkbenchAnimated(document, hooks, options = {}) {
     const base = canDownload() ? animatedJobEndpoint(projectId, job.job_id) : null;
     const model = { hasProject: Boolean(identity), canStart: Boolean(overview?.can_build && editable()
       && !fetching && !submitting && !active() && !savingReview && !bindingDirty && !jointDirty && !rebasing),
-    active: active() || submitting || rebasing, fetching, canceling: canceling || Boolean(job?.cancel_requested),
+    active: active() || submitting || rebasing || planning, fetching, canceling: canceling || Boolean(job?.cancel_requested),
     canCancel: active(), canReview: Boolean(overview?.binding_review && editable() && !active() && !submitting && !savingReview && !jointDirty && !rebasing),
     sourceRebase: overview?.source_rebase || null, rebasing,
     sourceMissing: overview?.reason_code === "animated_source_missing",
@@ -58,16 +63,17 @@ export function createWorkbenchAnimated(document, hooks, options = {}) {
     canRebase: Boolean(overview?.source_rebase?.status === "ready" && editable() && !active() && !fetching && !submitting && !savingReview && !bindingDirty && !jointDirty && !rebasing),
     savingReview, bindingDirty, message: message(), reviewNotice, clips: overview?.clips || [], clip,
     bindingReview: overview?.binding_review || null, reviewIdentity: overview ? `${identity}:${overview.input_identity_sha256}` : null,
+    inputIdentitySha: overview?.input_identity_sha256 || null,
     items: job?.run?.review_items || overview?.review_items || [], steps: job?.run?.steps || job?.progress || [], summary: job?.run?.summary,
     downloadUrl: base ? `${base}/download` : null, playbackUrl: base ? `${base}/files/playback.json` : null };
-    view.render(model); joints?.render(model); preparation?.sync(model);
+    view.render(model); joints?.render(model); preparation?.sync(model); rigPlan?.sync(model);
   }
   function sync() {
     const next = projectIdentity(context());
     if (next !== identity) {
       const resume = projectId === context().projectId && intent && waiting;
       generation++; serial++; stop(); identity = next; projectId = context().projectId;
-      overview = null; job = null; error = null; reviewNotice = ""; fetching = submitting = canceling = savingReview = bindingDirty = jointDirty = rebasing = false;
+      overview = null; job = null; error = null; reviewNotice = ""; fetching = submitting = canceling = savingReview = bindingDirty = jointDirty = rebasing = planning = false;
       intent = waiting = Boolean(resume);
       if (identity) void refresh();
     }
@@ -79,7 +85,7 @@ export function createWorkbenchAnimated(document, hooks, options = {}) {
     }
   }
   async function refresh() {
-    if (!identity || fetching || rebasing) return;
+    if (!identity || fetching || rebasing || planning) return;
     const token = generation, saved = { ...context() };
     fetching = true; error = null; render();
     try {
@@ -184,7 +190,7 @@ export function createWorkbenchAnimated(document, hooks, options = {}) {
   function locate(item) {
     const id = item.layer_id || item.entity_id;
     const layer = animatedLayerTarget(id, context());
-    if (layer) hooks.selectLayer(layer);
+    if (layer) { hooks.selectLayer(layer); if (item.type === "binding") view.focusBinding?.(id); }
     else if (item.type === "joint" && context().jointIds?.includes(item.entity_id)) hooks.selectJoint(item.entity_id);
   }
   async function jointsSaved(response) {
@@ -224,6 +230,6 @@ export function createWorkbenchAnimated(document, hooks, options = {}) {
     await refresh();
     if (current(token) && joints) { joints.element.open = true; await joints.reload(); }
   }
-  function dispose() { generation++; stop(); view.dispose?.(); joints?.dispose(); preparation?.dispose(); }
-  return { sync, start, refresh, cancel, setClip, saveReview, completeBindings, rebase, canDownload, dispose };
+  function dispose() { generation++; stop(); view.dispose?.(); joints?.dispose(); preparation?.dispose(); rigPlan?.dispose(); }
+  return { sync, start, refresh, cancel, setClip, saveReview, completeBindings, rebase, locate, canDownload, dispose };
 }
