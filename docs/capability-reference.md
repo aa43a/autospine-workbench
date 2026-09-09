@@ -1,5 +1,7 @@
 # AutoSpine Workbench 功能与入口参考
 
+- [FK 时间轴对照](how-to-component-partitions.md)按骨骼角度计算后插值画布修正偏移；Lumia396点中与旧顶点线性预览存在1处判定差异，仍有118个失败采样。尚未转换为Spine deform或通过Runtime。
+
 - [区域网格时间轴](how-to-component-partitions.md)支持播放、拖动、调速、Setup及同时间原／修正切换；Lumia 396个插值采样点未见新增失败，原有超限仍保留。这是线性顶点诊断，尚无连续时间或Runtime通过证据。
 
 - `--local-correction` 提供[异常三角形局部姿态修正](how-to-component-partitions.md)：绑定与拓扑不变，限定混合权重邻域及位移预算。Lumia 27 个姿态局部改善，四肢仍阻塞；尚未验证连续动画、接缝或 Runtime。

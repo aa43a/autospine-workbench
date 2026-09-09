@@ -7,7 +7,7 @@ from .component_weight_review import LABELS
 
 
 
-def render(document, skeleton, pose_overrides=None):
+def render(document, skeleton, pose_overrides=None, fk=False):
     sections, payload = [], []
     for row in document['records']:
         mesh = row['mesh']; number = len(payload)
@@ -22,6 +22,9 @@ def render(document, skeleton, pose_overrides=None):
         x, y = min(p[0] for p in points)-10, min(p[1] for p in points)-10
         w, h = max(p[0] for p in points)-x+10, max(p[1] for p in points)-y+10
         payload.append(dict(tracks=animation, triangles=mesh['triangles'], setup=mesh['vertices_xy']))
+        if fk:
+            bones={b['id']:b for b in skeleton['bones']}
+            payload[-1].update(bones=[bones[b] for b in mesh['bone_ids']],weights=mesh['weights'])
         options = ''.join(f'<option value="{i}" {"selected" if i == min(1,len(animation)-1) else ""}>{escape(t["bone_id"])}</option>' for i,t in enumerate(animation))
         comparison = '<label>对照 <select data-variant><option value="original">原结果</option><option value="corrected" selected>局部修正</option></select></label>' if corrected else ''
         sections.append(f'<section data-mesh="{number}"><h2>{escape(row["layer_id"])} / {escape(row["component_id"])}</h2>'

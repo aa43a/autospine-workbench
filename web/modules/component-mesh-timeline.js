@@ -11,13 +11,34 @@ export function advanceMeshClock(position, direction, seconds, maximum = 8) {
   return {position: phase <= maximum ? phase : 2 * maximum - phase, direction: phase < maximum ? 1 : -1};
 }
 
+export function sampleFKTrack(model, track, position, corrected) {
+  const t=Math.max(0,Math.min(8,position)), index=Math.min(7,Math.floor(t)), fraction=t-index;
+  const angle=track.angles[index]+(track.angles[index+1]-track.angles[index])*fraction;
+  const joint=model.bones.findIndex(b=>b.id===track.bone_id), pivot=model.bones[joint].head_xy;
+  const rotate=(p,degrees)=>{const a=degrees*Math.PI/180;return [p[0]*Math.cos(a)-p[1]*Math.sin(a),p[0]*Math.sin(a)+p[1]*Math.cos(a)];};
+  const frames=new Map(model.bones.map((bone,i)=>{
+    const delta=rotate(bone.head_xy.map((v,k)=>v-pivot[k]),angle);
+    return [bone.id,{head:i>=joint?delta.map((v,k)=>v+pivot[k]):bone.head_xy,angle:bone.world_rotation_degrees+(i>=joint?angle:0)}];
+  }));
+  const points=model.weights.map(row=>row.reduce((point,w)=>{
+    const frame=frames.get(w.bone_id), p=rotate(w.local_xy,frame.angle);
+    return point.map((v,k)=>v+w.weight*(frame.head[k]+p[k]));
+  },[0,0]));
+  if(corrected) points.forEach((p,i)=>p.forEach((_,k)=>{
+    const a=track.corrected[index][i][k]-track.original[index][i][k];
+    const b=track.corrected[index+1][i][k]-track.original[index+1][i][k];
+    p[k]+=a+(b-a)*fraction;
+  }));
+  return points;
+}
+
 export function mountMeshTimeline(document, data, clock = globalThis) {
   const toolbar = document.createElement('section');
   toolbar.className = 'mesh-timeline';
   toolbar.innerHTML = '<button type="button" data-play>播放</button> <button type="button" data-reset>回到 Setup</button> '
     + '<label>速度 <select data-speed><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select></label>'
     + '<label>时间轴 <input data-time aria-label="网格预览时间轴" type="range" min="0" max="8" step="0.01" value="4"></label> <output data-time-label></output>'
-    + '<p>每段 1 秒，端点往返播放；线性插值顶点用于诊断，不等同骨骼 FK 或 Spine 动画。</p>';
+    + `<p>每段 1 秒，端点往返播放；${data.some(m=>m.bones)?'逐帧骨骼 FK + 画布空间修正偏移插值，尚非 Spine Runtime。':'线性插值顶点用于诊断，不等同骨骼 FK 或 Spine 动画。'}</p>`;
   document.querySelector('main').before(toolbar);
   const slider = toolbar.querySelector('[data-time]'), play = toolbar.querySelector('[data-play]');
   let position = 4, direction = 1, playing = false, previous = null, request = null;
@@ -31,7 +52,7 @@ export function mountMeshTimeline(document, data, clock = globalThis) {
     const edges = [...new Set(model.triangles.flatMap(t => t.map((a,i) => [a,t[(i+1)%3]].sort((a,b)=>a-b).join(','))))].map(e=>e.split(',').map(Number));
     const draw = () => {
       const track = model.tracks[Number(joint.value)], frames = variant?.value === 'corrected' ? track.corrected : track.original;
-      const points = sampleMeshTrack(frames, position);
+      const points = model.bones ? sampleFKTrack(model,track,position,variant?.value==='corrected') : sampleMeshTrack(frames, position);
       let inversions = 0, minimum = Infinity, maximum = -Infinity, stretch = 0;
       model.triangles.forEach((t, i) => {
         const ratio = area(points,t)/area(model.setup,t); minimum=Math.min(minimum,ratio); maximum=Math.max(maximum,ratio);
