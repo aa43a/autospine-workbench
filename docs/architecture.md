@@ -9,7 +9,7 @@
 `animated_store.py` 隔离大体积文件和小型任务日志；`animated_run.py` 的独立身份不改变历史 region PipelineRun。
 Application、jobs、routes 和 Web 小模块提供异步构建、取消、复核续跑及可验证下载。
 
-作者编辑或源图像变化使登记失效，当前无自动重基。几何变化后的旧 bind 只作为迁移建议，不能批准新骨架。
+作者编辑或源图像变化使登记失效。主页面提供显式“同步已保存校正并重建”：将已保存的同名关节增量迁移到辅助标注，新 v2 登记保存作者修订和前序来源，v1 历史不变；不支持的图层编辑仍阻塞。几何变化后的旧 bind 只作为迁移建议，不能批准新骨架。
 新包保留 `authority:none`、`production_authorized:false`；CPU 诊断播放和另行运行的官方 Runtime 证据分开记录。
 普通操作见[动画候选指南](how-to-build-animated-spine-preview.md)。新增模块优先不超过 300 行、硬上限 400 行；历史单体 ratchet 不扩大。
 

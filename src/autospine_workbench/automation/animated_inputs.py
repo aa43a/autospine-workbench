@@ -106,6 +106,7 @@ def register_inputs(store, project_id, manifest, draft_sha256):
 
 
 def _registrations(store, project_id):
+    from .animated_registration import validate_entry
     path = Path(store.state_root) / 'animation-inputs' / project_id
     require_safe_token(project_id, 'Project id')
     if not path.exists():
@@ -113,17 +114,9 @@ def _registrations(store, project_id):
     result = []
     for path in sorted(_folder(store, project_id).glob('*.json')):
         doc = read_document(path)
-        if (path.name != f'{len(result):06d}.json' or
-            set(doc) != {'schema', 'authority', 'production_authorized', 'project_id',
-                         'manifest', 'source_draft_sha256', 'checkpoint', 'revision', 'previous_sha256'} or
-            doc['schema'] != 'autospine.animated-input-registration/v1' or
-            doc['authority'] != 'none' or doc['production_authorized'] is not False or
-            doc['project_id'] != project_id or type(doc['revision']) is not int or
-            doc['revision'] != len(result) or
-            doc['previous_sha256'] != (result[-1][0] if result else None)):
+        if path.name != f'{len(result):06d}.json':
             raise AnimatedSourceError('animated_source_invalid')
-        if result and any(doc[key] != result[0][1][key] for key in ('manifest', 'checkpoint')):
-            raise AnimatedSourceError('animated_source_invalid')
+        validate_entry(doc, project_id, len(result), result[-1] if result else None)
         result.append((canonical_sha256(doc), doc))
         if len(result) > 256:
             raise AnimatedSourceError('animated_source_invalid')

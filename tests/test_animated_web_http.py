@@ -20,6 +20,7 @@ class AnimatedWebHttpTests(unittest.TestCase):
         self.application = ApplicationDouble()
         self.application.overview = Mock(return_value={"authority": "none", "review_items": []})
         self.application.review = Mock(return_value={"authority": "none", "review_items": []})
+        self.application.rebase = Mock(return_value={"authority": "none", "joint_review_result": {"changed": True}})
         self.manager._animated = AnimatedWebJobs(self.fixture.fixture.store(), application=self.application)
         self.request_body = {"expected_resolved_sha256": self.request_body["expected_resolved_sha256"],
                              "clip": "limb_diagnostic", "resume": True}
@@ -53,6 +54,16 @@ class AnimatedWebHttpTests(unittest.TestCase):
         self.assertEqual(self.request("POST", "/review", body, {"X-Autospine-Intent": None})[0], 403)
         self.assertEqual(self.request("GET", "/preview")[0], 405)
         self.assertEqual(self.request("OPTIONS", "/preview")[0], 204)
+
+    def test_rebase_requires_explicit_exact_selection_and_post(self):
+        body = {"expected_resolved_sha256": "a" * 64, "expected_registration_sha256": "b" * 64}
+        self.assertEqual(self.request("GET", "/rebase")[0], 405)
+        self.assertEqual(self.request("POST", "/rebase", {**body, "approve_all": True})[0], 400)
+        self.application.rebase.assert_not_called()
+        status, response = self.document("POST", "/rebase", body)
+        self.assertEqual(status, 202)
+        self.assertFalse(response.get("production_authorized", False))
+        self.application.rebase.assert_called_once_with("fixture-project", **body)
 
 
 if __name__ == "__main__":

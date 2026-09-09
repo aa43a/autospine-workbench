@@ -22,7 +22,7 @@ def dispatch_animated(tail, handler, method, project_id):
         allowed = "GET, HEAD, POST, OPTIONS"
     elif not tail or (len(tail) == 2 and tail[0] == "jobs"):
         allowed = "GET, HEAD, OPTIONS"
-    elif tail in (["preview"], ["review"]) or (len(tail) == 3 and tail[0] == "jobs" and tail[2] == "cancel"):
+    elif tail in (["preview"], ["review"], ["rebase"]) or (len(tail) == 3 and tail[0] == "jobs" and tail[2] == "cancel"):
         allowed = "POST, OPTIONS"
     elif len(tail) == 3 and tail[0] == "jobs" and tail[2] == "download" \
             or len(tail) >= 4 and tail[0] == "jobs" and tail[2] == "files":
@@ -42,6 +42,10 @@ def dispatch_animated(tail, handler, method, project_id):
                 if set(body) != {"expected_resolved_sha256", "clip", "resume"}:
                     raise PipelineRunError("pipeline_request_invalid")
                 result = manager_for(handler.server).submit(project_id, **body)
+            elif tail == ["rebase"]:
+                if set(body) != {"expected_resolved_sha256", "expected_registration_sha256"}:
+                    raise PipelineRunError("pipeline_request_invalid")
+                result = manager_for(handler.server).application.rebase(project_id, **body)
             elif tail == ["joints"]:
                 if set(body) != {"expected_resolved_sha256", "expected_input_sha256", "records", "reviewed_joint_ids"}:
                     raise PipelineRunError("pipeline_request_invalid")

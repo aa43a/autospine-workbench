@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine-workbench.local/schemas/animated-input-registration-v2.schema.json",
+  "title": "Explicit authoring rebase registration; never production authorization",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "authority", "production_authorized", "project_id", "manifest", "source_draft_sha256", "checkpoint", "revision", "previous_sha256", "authoring_rebase"],
+  "properties": {
+    "schema": {"const": "autospine.animated-input-registration/v2"},
+    "authority": {"const": "none"},
+    "production_authorized": {"const": false},
+    "project_id": {"$ref": "animated-input-registration-v1.schema.json#/properties/project_id"},
+    "manifest": {"$ref": "benchmark-manifest-v1.schema.json"},
+    "source_draft_sha256": {"$ref": "animated-input-registration-v1.schema.json#/$defs/sha"},
+    "checkpoint": {"$ref": "animated-input-registration-v1.schema.json#/properties/checkpoint"},
+    "revision": {"type": "integer", "minimum": 1, "maximum": 255},
+    "previous_sha256": {"$ref": "animated-input-registration-v1.schema.json#/$defs/sha"},
+    "authoring_rebase": {"$ref": "animated-authoring-rebase-v1.schema.json"}
+  }
+}

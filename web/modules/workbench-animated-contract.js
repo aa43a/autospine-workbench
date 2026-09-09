@@ -64,7 +64,11 @@ export function readAnimatedJob(value, context, expectedId = null) {
 const REASONS = {
   animated_source_missing: "尚无可用的骨架与绑定源，请先完成关节和结构准备。",
   animated_source_ambiguous: "存在多个可用绑定源，需要明确当前采用的项目来源。",
-  animated_source_stale: "骨架或绑定来源已过期，请刷新并重新生成。",
+  animated_source_stale: "主项目已有新校正，请在本区同步已保存校正，再构建动画候选。",
+  animated_rebase_conflict: "同步期间项目来源已变化，请刷新后检查新的同步内容。",
+  animated_review_conflict: "复核来源已变化，请刷新后检查当前校正，再重新提交。",
+  animated_rebase_invalid: "无法验证当前校正与动画来源，请刷新并检查来源一致性。",
+  animated_rebase_unsupported: "当前校正包含暂不支持同步的内容，请检查下方说明。",
   animated_source_mismatch: "已注册来源与当前项目图层不匹配，请重新检查项目来源。",
   animated_clip_unsupported: "当前结构不支持所选动作，请选择其他白名单动作。",
   animated_no_eligible_mesh: "尚无满足条件的加权网格，请复核图层绑定。",

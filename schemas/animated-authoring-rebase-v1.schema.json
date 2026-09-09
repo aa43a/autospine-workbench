@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine-workbench.local/schemas/animated-authoring-rebase-v1.schema.json",
+  "title": "Explicit saved authoring correction provenance",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "authority", "annotation_mode", "independent_annotation", "previous_registration_sha256", "source_checkpoint", "target_checkpoint", "authoring_revision", "authoring_overrides_sha256", "joint_overrides", "imported_joint_ids", "ignored_joint_ids"],
+  "properties": {
+    "schema": {"const": "autospine.animated-authoring-rebase/v1"},
+    "authority": {"const": "none"},
+    "annotation_mode": {"const": "model_assisted"},
+    "independent_annotation": {"const": false},
+    "previous_registration_sha256": {"$ref": "animated-input-registration-v1.schema.json#/$defs/sha"},
+    "source_checkpoint": {"$ref": "animated-input-registration-v1.schema.json#/properties/checkpoint"},
+    "target_checkpoint": {"$ref": "animated-input-registration-v1.schema.json#/properties/checkpoint"},
+    "authoring_revision": {"type": "integer", "minimum": 0},
+    "authoring_overrides_sha256": {"$ref": "animated-input-registration-v1.schema.json#/$defs/sha"},
+    "joint_overrides": {"type": "object", "additionalProperties": {
+      "type": "object", "required": ["x", "y"],
+      "properties": {"x": {"type": "number"}, "y": {"type": "number"}}
+    }},
+    "imported_joint_ids": {"type": "array", "uniqueItems": true, "maxItems": 17,
+      "items": {"enum": ["root", "pelvis", "chest", "neck", "head", "shoulder.left", "shoulder.right", "elbow.left", "elbow.right", "wrist.left", "wrist.right", "hip.left", "hip.right", "knee.left", "knee.right", "ankle.left", "ankle.right"]}},
+    "ignored_joint_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+  }
+}

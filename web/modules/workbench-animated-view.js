@@ -4,6 +4,7 @@ import { AUTOMATION_STATUS } from "./workbench-automation-view.js";
 import { animatedReason } from "./workbench-animated-contract.js";
 import { createAnimatedBindings } from "./workbench-animated-bindings.js";
 import { createAnimatedPlayer } from "./workbench-animated-player.js";
+import { createAnimatedRebase } from "./workbench-animated-rebase.js";
 
 const STEPS = {
   "resolve-project": "解析当前项目", "resolve-source": "解析已验证源", "build-skeleton": "生成骨架候选",
@@ -18,8 +19,8 @@ function node(document, tag, text = "") {
 export function createAnimatedView(document, callbacks) {
   const section = node(document, "section"), heading = node(document, "h3", "可变形动画候选预览");
   section.className = "automation-panel inspector-section";
-  heading.id = "animatedPreviewHeading"; section.setAttribute("aria-labelledby", heading.id);
-  const description = node(document, "p", "使用当前项目生成 Spine 4.3.26 动画候选；待复核图层和质量问题会保留在队列中。");
+  heading.id = "animatedPreviewHeading"; heading.tabIndex = -1; section.setAttribute("aria-labelledby", heading.id);
+  const description = node(document, "p", "使用本区“构建动画候选”生成 Spine 4.3.26 动作预览；上方静态预览不包含动作。待复核内容保留在队列中。");
   const label = node(document, "label", "预览动作"), select = node(document, "select");
   label.setAttribute("for", "animatedPreviewClip"); select.id = "animatedPreviewClip";
   const actions = node(document, "div"); actions.className = "automation-actions";
@@ -33,8 +34,15 @@ export function createAnimatedView(document, callbacks) {
   const note = node(document, "p", "可下载候选不代表已采用或已获发布授权。修改复核后会重新构建相关下游。");
   const bindings = createAnimatedBindings(document, { save: callbacks.saveReview, changed: callbacks.bindingChanged, locate: callbacks.locate });
   const player = createAnimatedPlayer(document);
-  section.append(heading, description, label, select, actions, status, reviewNotice, summary, steps, download, player.element, queueTitle, queue, bindings.element, note);
-  document.getElementById("automationMount")?.append(section);
+  const rebase = createAnimatedRebase(document, callbacks.rebase);
+  section.append(heading, description, label, select, actions, status, rebase.element, reviewNotice, summary, steps, download, player.element, queueTitle, queue, bindings.element, note);
+  const mount = document.getElementById("automationMount"); mount?.append(section);
+  const navigation = node(document, "nav"), staticLink = node(document, "button", "静态预览"), animatedLink = node(document, "button", "动画候选");
+  navigation.className = "automation-actions"; navigation.setAttribute("aria-label", "选择预览类型");
+  for (const button of [staticLink, animatedLink]) { button.type = "button"; button.className = "button button-secondary"; }
+  animatedLink.addEventListener("click", () => { section.scrollIntoView({ block: "start", behavior: "smooth" }); heading.focus({ preventScroll: true }); });
+  staticLink.addEventListener("click", () => document.getElementById("automationHeading")?.scrollIntoView({ block: "start", behavior: "smooth" }));
+  navigation.append(staticLink, animatedLink); mount?.prepend(navigation);
   build.addEventListener("click", callbacks.start); refresh.addEventListener("click", callbacks.refresh); cancel.addEventListener("click", callbacks.cancel);
   select.addEventListener("change", () => callbacks.setClip(select.value));
   download.addEventListener("click", (event) => { if (!callbacks.canDownload()) event.preventDefault(); });
@@ -48,7 +56,7 @@ export function createAnimatedView(document, callbacks) {
       }));
     }
     select.value = model.clip || ""; select.disabled = model.active || model.savingReview || !model.clips.length;
-    build.disabled = !model.canStart; refresh.disabled = !model.hasProject || model.fetching || model.savingReview;
+    build.disabled = !model.canStart; refresh.disabled = !model.hasProject || model.fetching || model.savingReview || model.rebasing;
     cancel.hidden = !model.canCancel; cancel.disabled = model.canceling;
     status.textContent = model.message; section.setAttribute("aria-busy", String(model.active || model.fetching || model.savingReview));
     reviewNotice.textContent = model.reviewNotice || "";
@@ -66,7 +74,7 @@ export function createAnimatedView(document, callbacks) {
     }));
     download.hidden = !model.downloadUrl;
     if (model.downloadUrl) download.setAttribute("href", model.downloadUrl); else download.removeAttribute("href");
-    bindings.render(model); void player.load(model.playbackUrl);
+    rebase.render(model); bindings.render(model); void player.load(model.playbackUrl);
   }
   return { render, resetReview: bindings.reset, mountJoint: (element) => section.append(element), dispose: player.dispose };
 }

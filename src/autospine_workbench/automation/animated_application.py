@@ -39,7 +39,16 @@ class AnimatedApplication:
                                       for r in info["draft"]["records"] if r["action"] == "pending"]
         except AnimatedSourceError as exc:
             result["reason_code"] = exc.reason_code
+            if exc.reason_code == "animated_source_stale":
+                from .animated_rebase import preview_rebase
+                result["source_rebase"] = preview_rebase(self.projects, project_id)
         return result
+
+    def rebase(self, project_id, expected_resolved_sha256, expected_registration_sha256):
+        from .animated_rebase import rebase_inputs
+        result = rebase_inputs(self.projects, project_id, expected_resolved_sha256,
+                               expected_registration_sha256)
+        return {**self.overview(project_id), "joint_review_result": result}
 
     def review(self, project_id, expected_resolved_sha256, expected_input_sha256, records):
         if _read(self.projects, project_id)[2].resolved_project_sha256 != expected_resolved_sha256:

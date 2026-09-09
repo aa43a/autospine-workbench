@@ -5,6 +5,7 @@ import { AUTOMATION_STATUS } from "./workbench-automation-view.js";
 import { animatedEndpoint, animatedJobEndpoint, animatedLayerTarget, animatedReason, readAnimatedJob, readAnimatedOverview } from "./workbench-animated-contract.js";
 import { createAnimatedView } from "./workbench-animated-view.js";
 import { createAnimatedJoints } from "./workbench-animated-joints.js";
+import { readAnimatedRebase } from "./workbench-animated-rebase.js";
 
 export function createWorkbenchAnimated(document, hooks, options = {}) {
   const schedule = options.schedule || setTimeout, unschedule = options.unschedule || clearTimeout;
@@ -12,9 +13,9 @@ export function createWorkbenchAnimated(document, hooks, options = {}) {
   let identity = null, projectId = null, generation = 0, serial = 0, timer = null, started = 0;
   let overview = null, job = null, clip = null, fetching = false, submitting = false, canceling = false;
   let error = null, intent = false, waiting = false, savingReview = false, bindingDirty = false, jointDirty = false;
-  let reviewNotice = "";
+  let reviewNotice = "", rebasing = false;
   const view = options.view || createAnimatedView(document, { start, refresh, cancel, setClip, canDownload,
-    saveReview, bindingChanged: (dirty) => { bindingDirty = dirty; render(); }, locate });
+    saveReview, rebase, bindingChanged: (dirty) => { bindingDirty = dirty; render(); }, locate });
   const joints = document ? createAnimatedJoints(document, { ...hooks,
     changed: (dirty) => { jointDirty = dirty; render(); }, saved: jointsSaved }) : null;
   if (joints) view.mountJoint(joints.element);
@@ -25,13 +26,14 @@ export function createWorkbenchAnimated(document, hooks, options = {}) {
   function stop() { if (timer !== null) unschedule(timer); timer = null; }
   function canDownload() {
     return Boolean(identity && identity === projectIdentity(context()) && editable() && !error
-      && !bindingDirty && !jointDirty && !fetching && !submitting && !savingReview && job?.run?.preview_available
+      && !bindingDirty && !jointDirty && !fetching && !submitting && !savingReview && !rebasing && job?.run?.preview_available
       && ["succeeded", "needs_review"].includes(job.status) && ["succeeded", "needs_review"].includes(job.run.status));
   }
   function message() {
     if (!identity) return "请选择可用项目。";
     if (!editable()) return "请等待项目加载并保存未提交的校正。";
     if (error) return error;
+    if (rebasing) return "正在将已保存校正同步到动画来源…";
     if (savingReview) return "正在保存绑定复核…";
     if (jointDirty) return "关节修改尚未保存；请保存关节复核，或撤销本次修改。";
     if (bindingDirty) return "绑定选择尚未保存；请保存复核，或撤销本次修改。";
@@ -44,9 +46,11 @@ export function createWorkbenchAnimated(document, hooks, options = {}) {
   function render() {
     const base = canDownload() ? animatedJobEndpoint(projectId, job.job_id) : null;
     const model = { hasProject: Boolean(identity), canStart: Boolean(overview?.can_build && editable()
-      && !fetching && !submitting && !active() && !savingReview && !bindingDirty && !jointDirty),
-    active: active() || submitting, fetching, canceling: canceling || Boolean(job?.cancel_requested),
-    canCancel: active(), canReview: Boolean(overview?.binding_review && editable() && !active() && !submitting && !savingReview && !jointDirty),
+      && !fetching && !submitting && !active() && !savingReview && !bindingDirty && !jointDirty && !rebasing),
+    active: active() || submitting || rebasing, fetching, canceling: canceling || Boolean(job?.cancel_requested),
+    canCancel: active(), canReview: Boolean(overview?.binding_review && editable() && !active() && !submitting && !savingReview && !jointDirty && !rebasing),
+    sourceRebase: overview?.source_rebase || null, rebasing,
+    canRebase: Boolean(overview?.source_rebase?.status === "ready" && editable() && !active() && !fetching && !submitting && !savingReview && !bindingDirty && !jointDirty && !rebasing),
     savingReview, bindingDirty, message: message(), reviewNotice, clips: overview?.clips || [], clip,
     bindingReview: overview?.binding_review || null, reviewIdentity: overview ? `${identity}:${overview.input_identity_sha256}` : null,
     items: job?.run?.review_items || overview?.review_items || [], steps: job?.run?.steps || job?.progress || [], summary: job?.run?.summary,
@@ -58,7 +62,7 @@ export function createWorkbenchAnimated(document, hooks, options = {}) {
     if (next !== identity) {
       const resume = projectId === context().projectId && intent && waiting;
       generation++; serial++; stop(); identity = next; projectId = context().projectId;
-      overview = null; job = null; error = null; reviewNotice = ""; fetching = submitting = canceling = savingReview = bindingDirty = jointDirty = false;
+      overview = null; job = null; error = null; reviewNotice = ""; fetching = submitting = canceling = savingReview = bindingDirty = jointDirty = rebasing = false;
       intent = waiting = Boolean(resume);
       if (identity) void refresh();
     }
@@ -70,13 +74,14 @@ export function createWorkbenchAnimated(document, hooks, options = {}) {
     }
   }
   async function refresh() {
-    if (!identity || fetching) return;
+    if (!identity || fetching || rebasing) return;
     const token = generation, saved = { ...context() };
     fetching = true; error = null; render();
     try {
       const value = await hooks.apiRequest(animatedEndpoint(projectId), { cache: "no-store" });
       if (!current(token)) return;
       const updated = readAnimatedOverview(value, saved);
+      readAnimatedRebase(updated.source_rebase, saved);
       if (overview && updated.input_identity_sha256 !== overview.input_identity_sha256) {
         serial++; stop(); job = null; bindingDirty = jointDirty = false;
       }
@@ -96,7 +101,7 @@ export function createWorkbenchAnimated(document, hooks, options = {}) {
   }
   async function start() {
     sync();
-    if (!overview?.can_build || !clip || !editable() || fetching || submitting || active() || bindingDirty || jointDirty || savingReview) return;
+    if (!overview?.can_build || !clip || !editable() || fetching || submitting || active() || bindingDirty || jointDirty || savingReview || rebasing) return;
     const token = generation, request = ++serial, saved = { ...context() };
     submitting = true; error = null; intent = true; started = now(); stop(); render();
     try {
@@ -138,7 +143,7 @@ export function createWorkbenchAnimated(document, hooks, options = {}) {
     serial++; stop(); clip = value; job = null; error = null; intent = waiting = false; render();
   }
   async function saveReview(records) {
-    if (!overview?.binding_review || !editable() || active() || submitting || savingReview || jointDirty) return;
+    if (!overview?.binding_review || !editable() || active() || submitting || savingReview || jointDirty || rebasing) return;
     const token = generation, saved = { ...context() };
     savingReview = true; error = null; render();
     let succeeded = false;
@@ -168,6 +173,29 @@ export function createWorkbenchAnimated(document, hooks, options = {}) {
       : "关节复核已保存，将基于当前骨架重新构建动画候选。";
     view.resetReview?.(); await refresh(); await start();
   }
+  async function rebase() {
+    const source = overview?.source_rebase;
+    if (source?.status !== "ready" || !editable() || fetching || active() || submitting || savingReview || bindingDirty || jointDirty || rebasing) return;
+    const token = generation, saved = { ...context() }, registration = source.expected_registration_sha256;
+    serial++; stop(); rebasing = true; error = null; intent = waiting = false; render();
+    let succeeded = false;
+    try {
+      await hooks.apiRequest(`${animatedEndpoint(saved.projectId)}/rebase`, {
+        method: "POST", headers: { "X-Autospine-Intent": "pipeline-preview" },
+        body: JSON.stringify({ expected_resolved_sha256: saved.resolvedSha, expected_registration_sha256: registration }),
+      });
+      if (!current(token)) return;
+      overview = null; job = null; bindingDirty = jointDirty = false; view.resetReview?.();
+      reviewNotice = "已保存校正已同步到动画链，主项目记录保持不变；受影响绑定需要重新复核。接下来使用本区动画候选入口。";
+      succeeded = true;
+    } catch (failure) { if (current(token)) error = animatedReason(failure.payload?.reason_code || failure.message); }
+    finally { if (current(token)) { rebasing = false; render(); } }
+    if (succeeded && current(token)) {
+      await refresh();
+      if (current(token)) await joints?.reload();
+      if (current(token)) await start();
+    }
+  }
   function dispose() { generation++; stop(); view.dispose?.(); joints?.dispose(); }
-  return { sync, start, refresh, cancel, setClip, saveReview, canDownload, dispose };
+  return { sync, start, refresh, cancel, setClip, saveReview, rebase, canDownload, dispose };
 }

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine-workbench.local/schemas/animated-source-rebase-request-v1.schema.json",
+  "title": "Explicit synchronization of saved authoring edits to animated sources",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["expected_resolved_sha256", "expected_registration_sha256"],
+  "properties": {
+    "expected_resolved_sha256": {"$ref": "#/$defs/sha"},
+    "expected_registration_sha256": {"$ref": "#/$defs/sha"}
+  },
+  "$defs": {"sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

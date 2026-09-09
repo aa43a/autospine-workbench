@@ -156,8 +156,9 @@ export function createAnimatedJoints(document, hooks) {
       generation++; identity = next; currentInput = model.reviewIdentity; source = null; image = null; dirty = false; busy = false; dragging = null;
       records = []; reviewed = []; status.textContent = "";
     }
-    canEdit = Boolean(model.hasProject && !model.active && !model.savingReview && !model.fetching && !model.bindingDirty && !hooks.context().dirty && !hooks.context().saving && !hooks.context().loading);
+    canEdit = Boolean(model.hasProject && model.bindingReview && !model.sourceRebase && !model.rebasing
+      && !model.active && !model.savingReview && !model.fetching && !model.bindingDirty && !hooks.context().dirty && !hooks.context().saving && !hooks.context().loading);
     controls();
   }
-  return { element, render, dispose: () => { generation++; expanded.dispose(); } };
+  return { element, render, reload: fetchJoints, dispose: () => { generation++; expanded.dispose(); } };
 }

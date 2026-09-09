@@ -16,6 +16,8 @@ from autospine_workbench.automation.animated_motion import build_motion
 from autospine_workbench.automation.animated_package import package_preview
 from autospine_workbench.automation.animated_run import create_run
 from autospine_workbench.automation.animated_store import AnimatedStore
+from autospine_workbench.automation.animated_registration import validate_entry
+from autospine_workbench.automation.animated_inputs import AnimatedSourceError
 from autospine_workbench.automation.storage_io import canonical_bytes
 from tests.test_animated_application import source_fixture
 
@@ -23,7 +25,8 @@ ROOT = Path(__file__).resolve().parents[1]
 NAMES = ('workbench-animated-definitions-v1', 'animated-pipeline-run-v1',
          'workbench-preview-motion-v1', 'workbench-animated-preview-v1', 'workbench-sampled-playback-v1',
          'animated-input-registration-v1', 'animated-joint-review-request-v1',
-         'benchmark-manifest-v1', 'benchmark-joint-draft-v1')
+         'benchmark-manifest-v1', 'benchmark-joint-draft-v1', 'animated-source-rebase-request-v1',
+         'animated-input-registration-v2', 'animated-authoring-rebase-v1')
 
 
 @unittest.skipIf(Draft202012Validator is None, 'jsonschema is optional')
@@ -122,6 +125,29 @@ class AnimatedContractSchemaTests(unittest.TestCase):
                             source_draft_sha256='a' * 64, checkpoint=self.run_document['source_addresses'],
                             revision=0, previous_sha256=None)
         self.validator('animated-input-registration-v1').validate(registration)
+        proof = dict(schema='autospine.animated-authoring-rebase/v1', authority='none',
+                     annotation_mode='model_assisted', independent_annotation=False,
+                     previous_registration_sha256='b' * 64, source_checkpoint=registration['checkpoint'],
+                     target_checkpoint=registration['checkpoint'], authoring_revision=2,
+                     authoring_overrides_sha256='c' * 64,
+                     joint_overrides={'elbow.left': {'x': 10, 'y': 20}, 'eye.left': {'x': 30, 'y': 40}},
+                     imported_joint_ids=['elbow.left'], ignored_joint_ids=['eye.left'])
+        rebased = dict(registration, schema='autospine.animated-input-registration/v2',
+                       revision=1, previous_sha256='b' * 64, authoring_rebase=proof)
+        self.validator('animated-input-registration-v2').validate(rebased)
+        validate_entry(rebased, 'fixture', 1, ('b' * 64, registration))
+        for mutate in (lambda r: r.update(schema='autospine.animated-input-registration/v1'),
+                       lambda r: r['authoring_rebase'].update(previous_registration_sha256='d' * 64),
+                       lambda r: r['authoring_rebase']['joint_overrides']['elbow.left'].update(x=float('nan')),
+                       lambda r: r['authoring_rebase']['ignored_joint_ids'].append('elbow.left')):
+            bad = deepcopy(rebased)
+            mutate(bad)
+            with self.assertRaises(AnimatedSourceError):
+                validate_entry(bad, 'fixture', 1, ('b' * 64, registration))
+        for mutate in (lambda r: r.pop('authoring_rebase'),
+                       lambda r: r['authoring_rebase'].update(independent_annotation=True),
+                       lambda r: r['authoring_rebase']['imported_joint_ids'].append('eye.left')):
+            self.rejects('animated-input-registration-v2', rebased, mutate)
         request = dict(expected_resolved_sha256='a' * 64, expected_input_sha256='b' * 64,
                        records=self.assisted['draft']['records'],
                        reviewed_joint_ids=self.assisted['reviewed_joint_ids'])
@@ -130,6 +156,14 @@ class AnimatedContractSchemaTests(unittest.TestCase):
                      lambda r: r.update(independent_annotation=True))
         self.rejects('animated-joint-review-request-v1', request,
                      lambda r: r['reviewed_joint_ids'].append('invented'))
+
+    def test_source_rebase_requires_two_exact_inputs_without_approval(self):
+        request = dict(expected_resolved_sha256='a' * 64, expected_registration_sha256='b' * 64)
+        self.validator('animated-source-rebase-request-v1').validate(request)
+        for mutate in (lambda r: r.pop('expected_registration_sha256'),
+                       lambda r: r.update(expected_resolved_sha256='current'),
+                       lambda r: r.update(approved=True)):
+            self.rejects('animated-source-rebase-request-v1', request, mutate)
 
 
 if __name__ == '__main__':
