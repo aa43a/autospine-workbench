@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "profile", "source_sha256", "skeleton_sha256", "project_id", "iterations", "rows", "authority", "production_authorized", "seam_status", "runtime_status", "temporal_status"],
+  "properties": {
+    "schema": {"const": "autospine.component-local-correction/v1"},
+    "profile": {"const": "component-local-area-ring-v1"},
+    "source_sha256": {"$ref": "#/$defs/sha"}, "skeleton_sha256": {"$ref": "#/$defs/sha"},
+    "project_id": {"type": "string"}, "iterations": {"const": 48},
+    "authority": {"const": "none"}, "production_authorized": {"const": false},
+    "seam_status": {"const": "not_evaluated"}, "runtime_status": {"const": "not_evaluated"},
+    "temporal_status": {"const": "independent_probe_poses_only"},
+    "rows": {"type": "array", "items": {
+      "type": "object", "additionalProperties": false, "required": ["layer_id", "component_id", "poses"],
+      "properties": {"layer_id": {"type": "string"}, "component_id": {"type": "string"}, "poses": {"type": "array", "minItems": 27, "maxItems": 27, "items": {"$ref": "#/$defs/pose"}}}
+    }}
+  },
+  "$defs": {
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "qa": {"type": "object", "required": ["inversions", "min_area_ratio", "max_area_ratio", "max_edge_stretch", "bad_triangles"]},
+    "pose": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "points", "trial_qa", "before_qa", "selected_qa", "selected", "free_vertices", "max_trial_offset", "budget_px"],
+      "properties": {
+        "id": {"type": "string"}, "selected": {"type": "boolean"},
+        "points": {"type": "array", "minItems": 3, "maxItems": 4096, "items": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number"}}},
+        "trial_qa": {"$ref": "#/$defs/qa"}, "before_qa": {"$ref": "#/$defs/qa"}, "selected_qa": {"$ref": "#/$defs/qa"},
+        "free_vertices": {"type": "array", "uniqueItems": true, "items": {"type": "integer", "minimum": 0}},
+        "max_trial_offset": {"type": "number", "minimum": 0}, "budget_px": {"type": "number", "exclusiveMinimum": 0}
+      }
+    }
+  }
+}

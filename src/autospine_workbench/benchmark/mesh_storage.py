@@ -34,6 +34,7 @@ SCHEMAS += ('autospine.seam-shape-preview/v1',)
 SCHEMAS += ('autospine.seam-increment-preview/v1',)
 SCHEMAS += ('autospine.component-mesh-candidates/v1',)
 SCHEMAS += ('autospine.component-weight-transition/v1',)
+SCHEMAS += ('autospine.component-local-correction/v1',)
 
 
 def _read(path):

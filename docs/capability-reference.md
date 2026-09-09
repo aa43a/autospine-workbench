@@ -1,5 +1,7 @@
 # AutoSpine Workbench 功能与入口参考
 
+- `--local-correction` 提供[异常三角形局部姿态修正](how-to-component-partitions.md)：绑定与拓扑不变，限定混合权重邻域及位移预算。Lumia 27 个姿态局部改善，四肢仍阻塞；尚未验证连续动画、接缝或 Runtime。
+
 - `--weight-transition` 提供[局部权重过渡对照](how-to-component-partitions.md)：相同网格试验双关节 alpha 支撑宽度，保留全部参数与失败姿态，拒绝增加翻转总数或新增原通过姿态失败的方案。Lumia 三组局部改进，四肢仍阻塞。
 
 - 归属草稿可通过 `--mesh` 生成[区域网格与逐骨弯曲诊断](how-to-component-partitions.md)。Lumia 六区域 setup 全覆盖，双鞋通过数值门槛，四肢仍阻塞；共享纹理隔离、接缝和 Runtime 待验证。

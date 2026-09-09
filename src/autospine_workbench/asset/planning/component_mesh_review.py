@@ -24,7 +24,7 @@ def _poses(mesh, skeleton):
     return result
 
 
-def render(document, skeleton):
+def render(document, skeleton, pose_overrides=None):
     sections, payload = [], []
     for row in document['records']:
         mesh = row['mesh']; number = len(payload)
@@ -34,6 +34,9 @@ def render(document, skeleton):
                             f'<p>{escape(reason)}</p></section>')
             continue
         poses = _poses(mesh, skeleton)
+        if pose_overrides and (row['layer_id'],row['component_id']) in pose_overrides:
+            corrected = pose_overrides[row['layer_id'],row['component_id']]
+            poses = [dict(id='原 '+p['id'],points=p['points'],qa=p['qa']) for p in poses] + corrected
         points = [p for pose in poses for p in pose['points']]
         x, y = min(p[0] for p in points)-10, min(p[1] for p in points)-10
         w, h = max(p[0] for p in points)-x+10, max(p[1] for p in points)-y+10
