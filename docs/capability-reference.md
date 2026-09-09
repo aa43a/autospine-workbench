@@ -1,5 +1,7 @@
 # AutoSpine Workbench 功能与入口参考
 
+- 归属草稿可通过 `--mesh` 生成[区域网格与逐骨弯曲诊断](how-to-component-partitions.md)。Lumia 六区域 setup 全覆盖，双鞋通过数值门槛，四肢仍阻塞；共享纹理隔离、接缝和 Runtime 待验证。
+
 - 区域归属草稿可生成[权重采样复核](how-to-component-partitions.md)：检查语义、侧别、连续骨链，源纹理叠加采样权重。Lumia 5 个区域、180 点数值检查通过；尚无该分区的三角网格或 Runtime 验收。
 
 - 区域归属报告支持单图层大画布、逐区建议、批量预填和下一项导航；语义/骨段采样建议仅填入未处理草稿，保留残余与歧义，见[分区复核说明](how-to-component-partitions.md)。
