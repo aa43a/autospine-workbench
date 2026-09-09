@@ -33,6 +33,7 @@ class ProjectRigPlanTests(unittest.TestCase):
         def load(*_):
             yield self.source
         for name, value in [('inspect_registration', lambda *_: deepcopy(self.info)),
+                            ('saved_semantics', lambda *_: None),
                             ('assert_registered_current', lambda *_: None),
                             ('load_inputs', load),
                             ('_registrations', lambda *_: [('0' * 64, {'manifest': {'dataset_id': 'test'}})])]:

@@ -15,3 +15,12 @@ test('readiness stays source-bound and cannot omit unresolved garments', () => {
   }
   assert.equal(readRigReadiness(undefined, plan, 'a', 'b'), null);
 });
+
+test('v2 keeps saved semantic provenance and rejects invented authority', () => {
+  const value = make(); value.schema = 'autospine.rig-plan-readiness/v2'; value.profile = 'garment-partition-readiness-v2';
+  value.resolved_project_sha256 = 'a'.repeat(64);
+  value.layers[0].semantic_evidence = { layer_id: 'skirt', authoring_layer_id: 'skirt', source: 'saved_override', role: 'wear.skirt' };
+  assert.equal(readRigReadiness(value, plan, 'a', 'b'), value);
+  value.layers[0].semantic_evidence.source = 'policy_auto';
+  assert.throws(() => readRigReadiness(value, plan, 'a', 'b'));
+});

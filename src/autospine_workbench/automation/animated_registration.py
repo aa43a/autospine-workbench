@@ -50,8 +50,14 @@ def validate_entry(doc, project_id, revision, previous):
             'previous_registration_sha256', 'source_checkpoint', 'target_checkpoint',
             'authoring_revision', 'authoring_overrides_sha256', 'joint_overrides',
             'imported_joint_ids', 'ignored_joint_ids'}
+    semantic_version = isinstance(proof, dict) and proof.get('schema') == 'autospine.animated-authoring-rebase/v2'
+    if semantic_version:
+        keys.add('semantic_roles')
+        roles = proof.get('semantic_roles')
+        if not isinstance(roles, dict) or any(not isinstance(k, str) or not k or not isinstance(v, str) or not v.strip() for k, v in roles.items()):
+            raise AnimatedSourceError('animated_source_invalid')
     if (not previous or type(proof) is not dict or set(proof) != keys or
-        proof['schema'] != 'autospine.animated-authoring-rebase/v1' or proof['authority'] != 'none' or
+        proof['schema'] != ('autospine.animated-authoring-rebase/v2' if semantic_version else 'autospine.animated-authoring-rebase/v1') or proof['authority'] != 'none' or
         proof['annotation_mode'] != 'model_assisted' or proof['independent_annotation'] is not False or
         proof['target_checkpoint'] != doc['checkpoint'] or
         type(proof['authoring_revision']) is not int or proof['authoring_revision'] < 0 or

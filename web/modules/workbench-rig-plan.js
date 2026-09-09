@@ -38,6 +38,7 @@ export function readRigPlan(value, context, input) {
         || row.bbox.some(n => !Number.isFinite(n)) || row.bbox[0] > row.bbox[2] || row.bbox[1] > row.bbox[3])) throw new Error("规划可视化来源无效。");
   }
   readRigReadiness(value.readiness, plan, input, value.plan_sha256);
+  if (value.readiness?.schema === 'autospine.rig-plan-readiness/v2' && value.readiness.resolved_project_sha256 !== context.resolvedSha) throw Error('已保存语义来源已变化。');
   return value;
 }
 export function createWorkbenchRigPlan(document, hooks, options = {}) {

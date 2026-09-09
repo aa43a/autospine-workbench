@@ -46,6 +46,22 @@ class AnimatedRebaseTests(unittest.TestCase):
         return rebase_inputs(self.store, 'fixture', plan['expected_resolved_sha256'],
                              plan['expected_registration_sha256'])
 
+    def test_semantic_override_sync_and_removal_keep_candidates_immutable(self):
+        candidate = deepcopy(self.original['candidate'])
+        layer_id = next(r['layer_id'] for r in self.original['draft']['records'] if r['action'] == 'bind')
+        self.author(layer_overrides={layer_id: {'canonical_role': 'wear.sleeve'}})
+        self.assertEqual(preview_rebase(self.store, 'fixture')['status'], 'ready')
+        result = self.synchronize()
+        self.assertTrue(result['binding_review_required'])
+        registration = inputs._registrations(self.store, 'fixture')[-1][1]
+        self.assertEqual(registration['authoring_rebase']['semantic_roles'], {layer_id: 'wear.sleeve'})
+        after = inspect_registration(self.store, 'fixture')['draft']['records']
+        self.assertEqual(next(r for r in after if r['layer_id'] == layer_id)['action'], 'pending')
+        self.assertEqual(inspect_registration(self.store, 'fixture')['candidate'], candidate)
+        self.author(layer_overrides={})
+        self.synchronize()
+        self.assertEqual(inputs._registrations(self.store, 'fixture')[-1][1]['authoring_rebase']['semantic_roles'], {})
+
     def test_rebase_preserves_completion_profile(self):
         from autospine_workbench.automation.animated_binding_completion import complete_bindings
         key = self.original['source_addresses']['input_identity_sha256']

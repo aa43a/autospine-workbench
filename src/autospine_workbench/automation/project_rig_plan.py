@@ -6,6 +6,10 @@ register new inputs, and cached plans are exposed only for the exact source.
 from pathlib import Path
 from urllib.parse import quote
 from ..asset.planning.rig_readiness import build as build_readiness
+from ..asset.planning.rig_readiness_v2 import build as build_readiness_v2
+from .planning_semantics import collect
+from .animated_inputs import _checkpoint
+
 
 from ..benchmark.artifacts import publish_report, read_report
 from ..manifest_artifacts import require_safe_token, require_sha256
@@ -20,6 +24,13 @@ KINDS = {'rigid', 'weighted_mesh', 'partition_mesh', 'facial',
          'secondary_motion', 'semantic_review'}
 # The stored v1 contract is readable without optional image-analysis dependencies.
 PROFILE = 'semantic-alpha-bone-strategy-v1'
+
+
+def saved_semantics(store, project_id, info):
+    project, checkpoint = _checkpoint(store, project_id)
+    if checkpoint['resolved_project_sha256'] != info['source_addresses']['resolved_project_sha256']:
+        raise AnimatedSourceError('animated_source_stale')
+    return collect(project, info['candidate'], checkpoint['resolved_project_sha256'])
 
 
 def build(*args):
@@ -83,8 +94,11 @@ def read_plan(store, project_id):
         dataset = _registrations(store, project_id)[-1][1]['manifest']['dataset_id']
         plan = read_report(store.state_root, dataset, 'rig-plans-v1', pointer['plan_sha256'])
         validate_sources(plan, info)
+        semantics = saved_semantics(store, project_id, info)
+        readiness = (build_readiness_v2(plan, info['bindings'], identity, pointer['plan_sha256'], semantics)
+                     if semantics else build_readiness(plan, info['bindings'], identity, pointer['plan_sha256']))
         result.update(status='ready', plan_sha256=pointer['plan_sha256'], plan=plan,
-                      readiness=build_readiness(plan, info['bindings'], identity, pointer['plan_sha256']),
+                      readiness=readiness,
                       visual={'canvas': info['candidate']['canvas'],
                               'composite_url': f'/api/projects/{quote(project_id, safe="")}/composite?source={identity}',
                               'layers': [{'layer_id': row['layer_id'], 'bbox': row['bbox']}

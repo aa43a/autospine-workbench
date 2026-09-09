@@ -1,5 +1,7 @@
 # AutoSpine Workbench 功能与入口参考
 
+- [服装与分区语义衔接](milestone-r3a-garment-readiness.md)：当前已保存的显式语义可进入前置检查；显式同步时相关绑定退回复核，原始名称候选及历史规划保持不变。
+
 - [中央工作区与异常队列](how-to-workspace-layout.md)：保留未保存草稿，规划列出服装与分区前置缺项；检查结果不代表 Mesh 或 Runtime 通过。
 
 - [主工作台可变形动画候选](how-to-build-animated-spine-preview.md)：已登记来源免填 SHA 构建 Spine 4.3.26，

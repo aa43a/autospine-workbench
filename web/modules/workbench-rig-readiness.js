@@ -14,7 +14,8 @@ const ACTIONS = new Set(["review_semantics_and_split_need", "review_partition_ow
 export function readRigReadiness(value, plan, input, planSha) {
   if (value === undefined) return null;
   const rows = plan.layers.filter(row => TYPES.has(row.strategy));
-  if (!value || value.schema !== "autospine.rig-plan-readiness/v1" || value.profile !== "garment-partition-readiness-v1"
+  const version = value?.schema === "autospine.rig-plan-readiness/v2" ? 2 : 1;
+  if (!value || value.schema !== `autospine.rig-plan-readiness/v${version}` || value.profile !== `garment-partition-readiness-v${version}`
     || value.input_identity_sha256 !== input || value.source_plan_sha256 !== planSha
     || value.authority !== "none" || value.production_authorized !== false || !Array.isArray(value.layers)
     || value.layers.length !== rows.length || value.layers.some((row, i) => row.layer_id !== rows[i].layer_id
@@ -23,5 +24,11 @@ export function readRigReadiness(value, plan, input, planSha) {
       || row.reason_codes.some(code => !Object.hasOwn(READINESS_REASONS, code))
       || !Array.isArray(row.mesh_option_ids) || new Set(row.mesh_option_ids).size !== row.mesh_option_ids.length
       || row.mesh_option_ids.some(id => typeof id !== "string" || !id))) throw Error("服装与分区检查来源无效。");
+  if (version === 2 && (!/^[a-f0-9]{64}$/.test(value.resolved_project_sha256 || '') || value.layers.some(row => {
+    const e = row.semantic_evidence;
+    return !e || e.layer_id !== row.layer_id || typeof e.authoring_layer_id !== 'string'
+      || !['saved_override', 'not_authored'].includes(e.source)
+      || (e.source === 'saved_override' ? typeof e.role !== 'string' || !e.role || e.role === 'unknown' : e.role !== null);
+  }))) throw Error('已保存语义来源无效。');
   return value;
 }

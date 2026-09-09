@@ -46,7 +46,7 @@ def _unsupported(store, project_id, project, candidate, registration):
     layers = {row['id']: row for row in base['layers']}
     for layer, changes in overrides.get('layer_overrides', {}).items():
         for field, value in changes.items():
-            if field == 'notes' or value == layers.get(layer, {}).get(field):
+            if field in ('notes', 'canonical_role') or value == layers.get(layer, {}).get(field):
                 continue
             reason = 'animated_rebase_split_unsupported' if field == 'split_spec' else \
                      'animated_rebase_layer_override_unsupported'
@@ -118,6 +118,13 @@ def rebase_inputs(store, project_id, expected_resolved_sha256, expected_registra
             bindings = rebuild_from_draft(store, before, original_draft, candidate, edited, skeleton)
             geometry_changed = (skeleton['bones'] != old_skeleton['bones'] or skeleton['status'] != old_skeleton['status'])
             draft, migrations = _binding_draft(bindings, original_draft, geometry_changed)
+            roles = {key: value['canonical_role'] for key, value in project['overrides']['layer_overrides'].items() if 'canonical_role' in value}
+            old_roles = before.get('authoring_rebase', {}).get('semantic_roles', {})
+            changed_roles = {key for key in set(roles) | set(old_roles) if roles.get(key) != old_roles.get(key)}
+            for row in draft['records']:
+                if row['action'] == 'bind' and any(key == row['layer_id'] or key.startswith(row['layer_id'] + '-') for key in changed_roles):
+                    migrations.append(dict(layer_id=row['layer_id'], previous_option_id=row['option_id'], reason_code='semantic_changed_binding_review_required'))
+                    row.update(action='pending', option_id=None)
             dataset = before['manifest']['dataset_id']
             for kind, doc in [('assisted-joint-drafts', edited), ('assisted-skeleton-candidates', skeleton),
                               ('layer-binding-candidates-v2', bindings), ('layer-binding-drafts-v2', draft)]:
@@ -129,6 +136,8 @@ def rebase_inputs(store, project_id, expected_resolved_sha256, expected_registra
                          authoring_overrides_sha256=canonical_sha256(project['overrides']),
                          joint_overrides=deepcopy(current), imported_joint_ids=plan['changed_joint_ids'],
                          ignored_joint_ids=plan['ignored_joint_ids'])
+            if roles or old_roles:
+                proof.update(schema='autospine.animated-authoring-rebase/v2', semantic_roles=roles)
             after = dict(before, schema=('autospine.animated-input-registration/v3' if before.get('source_kind') == 'project_audit'
                                          else 'autospine.animated-input-registration/v2'), checkpoint=checkpoint,
                          source_draft_sha256=canonical_sha256(draft), revision=before['revision'] + 1,

@@ -49,6 +49,13 @@ export function createRigPlanView(document, callbacks) {
         node("p", NEXT[row.next_action] || "检查当前图层证据后决定处理方式。"), locate);
       const readiness = model.readiness?.layers.find(item => item.layer_id === row.layer_id);
       if (readiness) {
+        const source = readiness.semantic_evidence;
+        if (source) {
+          item.append(node('p', source.source === 'saved_override' ? `已保存语义：${source.role}；用于前置检查，未改写原候选。` : '尚无显式保存的语义校正。'));
+          const edit = node('button', '定位语义校正'); edit.type = 'button'; edit.disabled = !model.canLocate;
+          edit.addEventListener('click', () => { if (model.canLocate) navigate({ type: 'layer', layer_id: row.layer_id }); });
+          item.append(edit);
+        }
         const title = readiness.status === "blocked" ? "进入 Mesh 前需处理" : "骨链选项待检查";
         item.append(node("p", `${title}：${readiness.reason_codes.map(code => READINESS_REASONS[code]).join(" ")}`));
       }
