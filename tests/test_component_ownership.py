@@ -38,3 +38,13 @@ class ComponentOwnershipTests(unittest.TestCase):
         self.assertIn('mountComponentOwnership(document,', html)
         self.assertIn('data-component="component-0000"', html)
         self.assertNotIn('export function', html)
+
+    def test_full_canvas_bones_preserve_local_pixel_coordinates(self):
+        scene = dict(canvas=[100,200],composite=self.entries[0][1],bones=[
+            dict(id='arm_l',head_xy=[15,25],tail_xy=[18,35])])
+        html = render('test',self.entries,self.expected,scene=scene)
+        self.assertIn('viewBox="0 0 100 200"',html)
+        self.assertIn('transform="translate(10 20)"',html)
+        self.assertIn('data-bone="arm_l"',html)
+        self.assertIn('x1="15" y1="25" x2="18" y2="35"',html)
+        self.assertNotIn('import { mountComponentBones',html)

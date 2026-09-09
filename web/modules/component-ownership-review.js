@@ -1,3 +1,4 @@
+import { mountComponentBones, toggleComponentBone } from "./component-bone-overlay.js";
 const ROLES = ['unknown', 'body.arm', 'body.leg', 'body.foot', 'wear.sleeve', 'wear.skirt', 'wear.pants', 'accessory.object'];
 const SIDES = ['unknown', 'left', 'right', 'center', 'bilateral'];
 const LABELS = { unknown:'未确定', left:'角色左侧', right:'角色右侧', center:'中心', bilateral:'双侧',
@@ -93,12 +94,21 @@ export function mountComponentOwnership(document, template, suggestions = null) 
     options(pick, draft.records.filter(r => r.layer_id === layer).map(r => r.component_id)); options(role, ROLES); options(side, SIDES); options(bones, template.sources.bone_ids);
     const apply = make('button', '将当前选择写入草稿'), clear = make('button', '保留未归属'), message = make('p');
     const editor = make('div'), layout = make('div'); layout.className = 'ownership-layout';
-    const svg = section.querySelector('svg'); svg.before(layout); layout.append(svg, editor);
+    const svg = section.querySelector('svg'), canvasPane = make('div'); svg.before(layout); layout.append(canvasPane, editor); canvasPane.append(svg);
     const one = make('button', '使用当前区域建议'), adviceText = make('p');
-    const manual = make('details'); manual.append(make('summary', '手动调整语义与骨骼'), role, side, make('p', '骨骼最多 4 根；Ctrl/Command 多选。'), bones, apply);
-    editor.append(make('h3', '点击图上区域开始'), pick, adviceText, one, manual, clear, message);
+    const manual = make('details'); manual.append(make('summary', '列表选择骨骼'), make('p', '骨骼最多 4 根；Ctrl/Command 多选。'), bones);
+    editor.append(make('h3', '选区域 → 点选骨骼'), pick, adviceText, one, make('p','语义与侧别'), role, side, manual, apply, clear, message);
     regionPicks.set(layer, pick);
     const row = () => draft.records.find(r => r.layer_id === layer && r.component_id === pick.value);
+    const bonePicker = mountComponentBones(document, svg, id => {
+      if (row().component_id === 'low-alpha-residual') return;
+      try {
+        const ids = toggleComponentBone([...bones.selectedOptions].map(o => o.value), id, template.sources.bone_ids);
+        for (const option of bones.options) option.selected = ids.includes(option.value);
+        bonePicker.render(ids); message.textContent = '骨骼已点选，请点击“将当前选择写入草稿”。';
+      } catch(e) { message.textContent = e.message; }
+    });
+    bones.onchange = () => bonePicker?.render([...bones.selectedOptions].map(o => o.value));
     function show() {
       const current = row(); role.value = current.semantic; side.value = current.side;
       if (layer === layerPick.value) activeKey = `${layer}:${pick.value}`;
@@ -108,18 +118,20 @@ export function mountComponentOwnership(document, template, suggestions = null) 
         ? `建议：${LABELS[advice.proposal.semantic]} · ${LABELS[advice.proposal.side]} · ${advice.proposal.bone_ids.join(' → ')}。依据：语义提示与唯一区域骨段覆盖。`
         : '无可靠自动建议：请检查语义与几何，或保留未归属。';
       for (const option of bones.options) option.selected = current.bone_ids.includes(option.value);
+      bonePicker?.render(current.bone_ids, current.component_id === 'low-alpha-residual');
       apply.disabled = current.component_id === 'low-alpha-residual';
       message.textContent = current.status === 'assigned' ? '已写入草稿，尚未采用' : '未归属';
       for (const path of section.querySelectorAll('path[data-component]')) {
         path.setAttribute('stroke', path.dataset.component === pick.value ? '#fff' : 'none');
-        path.setAttribute('stroke-width', '.6');
+        path.setAttribute('stroke-width', '2'); path.setAttribute('vector-effect','non-scaling-stroke');
+        path.setAttribute('fill-opacity', path.dataset.component === pick.value ? '1' : '.35');
       }
     }
     pick.onchange = show;
     one.onclick = () => { try { draft = prefillComponentSuggestions(draft, template, suggestions, `${layer}:${pick.value}`); refresh(); } catch(e) { message.textContent = e.message; } };
     for (const path of section.querySelectorAll('path[data-component]')) {
       path.setAttribute('role','button'); path.setAttribute('tabindex','0'); path.setAttribute('aria-label',path.dataset.component);
-      path.onclick = () => { pick.value = path.dataset.component; show(); };
+      path.onclick = () => { pick.value = path.dataset.component; show(); if (pick.value !== 'low-alpha-residual') bonePicker?.setMode('bone'); };
       path.onkeydown = event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); path.onclick(); } };
     }
     apply.onclick = () => {

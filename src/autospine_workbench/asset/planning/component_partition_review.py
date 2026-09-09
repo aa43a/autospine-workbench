@@ -3,9 +3,10 @@ import base64
 import json
 from pathlib import Path
 from html import escape
+from .component_scene import render_scene
 
 
-def render(project, entries, draft=None, suggestions=None):
+def render(project, entries, draft=None, suggestions=None, scene=None):
     sections = []
     for layer, raw, candidate, digest in entries:
         w = layer['bbox'][2]-layer['bbox'][0]; h = layer['bbox'][3]-layer['bbox'][1]
@@ -19,13 +20,14 @@ def render(project, entries, draft=None, suggestions=None):
         sections.append(f'''<section data-layer="{escape(layer['layer_id'], quote=True)}"><h2>{escape(layer['name'])}</h2>
 <p>{len(candidate['components'])} 个连通区域 · 低 alpha 残余 {candidate['residual']['pixel_count']} px · 可见像素 {candidate['visible_pixel_count']} px</p>
 <label><input type="checkbox" checked onchange="this.closest('section').querySelector('g').style.display=this.checked?'':'none'">显示像素分区（悬停查看区域）</label>
-<svg viewBox="0 0 {w} {h}" role="img" aria-label="{escape(layer['name'], quote=True)} 像素分区">
-<image href="data:image/png;base64,{image}" width="{w}" height="{h}"/><g opacity=".55">{''.join(shapes)}</g></svg>
+{render_scene(layer, image, ''.join(shapes), scene)}
 <p>状态：归属待复核。黄色为低 alpha 残余；未修改原纹理，未指定骨骼或左右。</p>
 <details><summary>来源与候选</summary><p>{escape(layer['layer_id'])} · {digest}</p><a href="{digest}.json">候选 JSON</a></details></section>''')
     script = ''
     if draft:
-        code = (Path(__file__).resolve().parents[4] / 'web/modules/component-ownership-review.js').read_text('utf-8').replace('export function ', 'function ')
+        root = Path(__file__).resolve().parents[4] / 'web/modules'
+        code = (root / 'component-bone-overlay.js').read_text('utf-8') + '\n' + (root / 'component-ownership-review.js').read_text('utf-8').replace('import { mountComponentBones, toggleComponentBone } from "./component-bone-overlay.js";', '')
+        code = code.replace('export function ', 'function ')
         payload = json.dumps(draft, ensure_ascii=True).replace('<', '\\u003c')
         advice = json.dumps(suggestions, ensure_ascii=True).replace('<', '\\u003c')
         script = f'<script>(()=>{{{code}\nmountComponentOwnership(document,{payload},{advice});}})();</script>'

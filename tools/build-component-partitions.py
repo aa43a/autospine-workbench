@@ -13,6 +13,7 @@ from autospine_workbench.manifest_artifacts import require_safe_token
 from autospine_workbench.asset.planning.component_ownership import template, validate as validate_draft
 from autospine_workbench.benchmark.artifacts import read_input
 from autospine_workbench.asset.planning.component_suggestions import build as suggest
+from autospine_workbench.safe_input_files import read_real_file
 
 
 def main():
@@ -64,7 +65,10 @@ def main():
                 draft = validate_draft(read_input(args.draft), draft)
                 publish_report(args.state_root, 'project-component-partitions', 'ownership-drafts-v1', draft)
             source.assert_current()
-        (output / 'index.html').write_text(render(project, entries, draft, suggestions), encoding='utf-8')
+            scene = dict(canvas=source.candidate['canvas'], bones=source.skeleton['bones'],
+                         composite=read_real_file(Path(store.resolve_asset(project,'composite')),64 << 20,'composite'))
+            source.assert_current()
+        (output / 'index.html').write_text(render(project, entries, draft, suggestions, scene), encoding='utf-8')
         count = sum(len(row[2]['components']) for row in entries)
         residual = sum(row[2]['residual']['pixel_count'] for row in entries)
         print(f'{project}: {len(entries)} layers, {count} components, {residual} low-alpha residual pixels')
