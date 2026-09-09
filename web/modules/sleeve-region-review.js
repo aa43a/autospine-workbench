@@ -1,3 +1,10 @@
+export function sleeveImageFrame(box) {
+  if (!Array.isArray(box) || box.length !== 4 || !box.every(Number.isFinite) || box[2] <= box[0] || box[3] <= box[1])
+    throw Error('图层边界无效');
+  const [x,y,right,bottom] = box, width = right-x, height = bottom-y;
+  return {x,y,width,height,viewBox:`${x-10} ${y-10} ${width+20} ${height+20}`};
+}
+
 export function mountSleeveReview(root, candidate, initial, images, bones) {
   const copy = x => JSON.parse(JSON.stringify(x));
   let draft = copy(initial), history = [], active = 0, painting = false;
@@ -21,9 +28,9 @@ export function mountSleeveReview(root, candidate, initial, images, bones) {
   function render() {
     svg.replaceChildren(); const r = candidate.records[active];
     if (!r) { message.textContent = '没有支持的手臂区域'; return; }
-    const image = images[r.layer_id], box = image.bbox;
-    svg.setAttribute('viewBox', `${box[0]-10} ${box[1]-10} ${box[2]+20} ${box[3]+20}`);
-    svg.append(node('image', {href: image.url, x: box[0], y: box[1], width: box[2], height: box[3]}));
+    const image = images[r.layer_id], frame = sleeveImageFrame(image.bbox);
+    svg.setAttribute('viewBox', frame.viewBox);
+    svg.append(node('image', {href:image.url, x:frame.x, y:frame.y, width:frame.width, height:frame.height}));
     r.triangles.forEach((t, i) => {
       const assignment = draft.records[active].assignments[i];
       const n = node('polygon', {points: t.map(v => r.vertices_xy[v].join(',')).join(' '),
