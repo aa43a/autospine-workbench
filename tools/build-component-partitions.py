@@ -10,6 +10,8 @@ from autospine_workbench.benchmark.artifacts import publish_report, read_report,
 from autospine_workbench.asset.planning.component_partitions import build, validate
 from autospine_workbench.asset.planning.component_partition_review import render
 from autospine_workbench.manifest_artifacts import require_safe_token
+from autospine_workbench.asset.planning.component_ownership import template, validate as validate_draft
+from autospine_workbench.benchmark.artifacts import read_input
 
 
 def main():
@@ -17,8 +19,11 @@ def main():
     parser.add_argument('--workspace', type=Path, default=Path('..'))
     parser.add_argument('--state-root', type=Path, default=Path('workspace'))
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--draft', type=Path, help='Validate and archive one supplied draft; never apply bindings')
     parser.add_argument('projects', nargs='+')
     args = parser.parse_args()
+    if args.draft and len(args.projects) != 1:
+        parser.error('--draft requires exactly one project')
     store = ProjectStore(args.workspace, args.state_root)
     links = []
     for project in args.projects:
@@ -49,7 +54,12 @@ def main():
                 export_document(output / f'{digest}.json', checked)
                 entries.append((layer, raw, candidate, digest))
             source.assert_current()
-        (output / 'index.html').write_text(render(project, entries), encoding='utf-8')
+            draft = template(project, entries, source.source_addresses, plan['plan_sha256'], [b['id'] for b in source.skeleton['bones']])
+            if args.draft:
+                draft = validate_draft(read_input(args.draft), draft)
+                publish_report(args.state_root, 'project-component-partitions', 'ownership-drafts-v1', draft)
+            source.assert_current()
+        (output / 'index.html').write_text(render(project, entries, draft), encoding='utf-8')
         count = sum(len(row[2]['components']) for row in entries)
         residual = sum(row[2]['residual']['pixel_count'] for row in entries)
         print(f'{project}: {len(entries)} layers, {count} components, {residual} low-alpha residual pixels')

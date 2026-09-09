@@ -31,3 +31,21 @@ python tools/build-component-partitions.py --output ../tmp/r3a-component-partiti
 这些结果不表示残余像素有错，更不构成 Mesh、接缝或官方 Runtime 验收。
 
 下一步：明确区域语义及归属，保留多物件/遮挡异常，再形成能被编译器消费的分区决定。
+
+## 区域归属草稿
+
+新版报告支持点击区域或通过下拉框选择，填写语义、角色侧别及当前骨架中的 1–4 根骨骼。
+点击「将当前选择写入草稿」后，可下载全部区域草稿；没有点击写入的表单选择不会导出。
+「保留未归属」清除当前区域填写，「撤销至上次载入草稿」恢复最近一次载入内容（初始为空草稿）。
+关闭页面前请下载草稿；页面不自动保存。载入 JSON 时会核对项目、输入、规划、全部候选及区域集合。
+黄色低 alpha 残余本版不能指定归属。骨骼集合只记录复核意图，不表示已有权重或合法连续骨链。
+
+在仓库中验证并封存下载的草稿：
+
+```powershell
+python tools/build-component-partitions.py --output ../tmp/r3a-component-ownership --draft C:/path/component-ownership-draft-lumia.json lumia
+```
+
+工具会重读当前来源，拒绝过期/跨项目草稿，并以内容地址保存到 `ownership-drafts-v1`；不会写入正式绑定。
+2026-09-09 已生成四角色空草稿页面，85 个连通区域和 21 个低 alpha 残余记录均待复核。
+9 项 Python/质量检查和 462 项 Web 回归通过。本轮未通过浏览器渲染检查，不宣称页面截图验收；未替用户提交区域归属。

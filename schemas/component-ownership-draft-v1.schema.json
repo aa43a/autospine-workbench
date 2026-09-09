@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "project_id",
+    "authority",
+    "production_authorized",
+    "sources",
+    "records"
+  ],
+  "properties": {
+    "schema": {
+      "const": "autospine.component-ownership-draft/v1"
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "authority": {
+      "const": "none"
+    },
+    "production_authorized": {
+      "const": false
+    },
+    "sources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "addresses",
+        "plan_sha256",
+        "candidates",
+        "bone_ids"
+      ],
+      "properties": {
+        "addresses": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "minProperties": 1
+        },
+        "plan_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "layer_id",
+              "candidate_sha256"
+            ],
+            "properties": {
+              "layer_id": {
+                "type": "string"
+              },
+              "candidate_sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            }
+          }
+        },
+        "bone_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "layer_id",
+          "component_id",
+          "status",
+          "semantic",
+          "side",
+          "bone_ids"
+        ],
+        "properties": {
+          "layer_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "component_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "assigned"
+            ]
+          },
+          "semantic": {
+            "enum": [
+              "unknown",
+              "body.arm",
+              "body.leg",
+              "body.foot",
+              "wear.sleeve",
+              "wear.skirt",
+              "wear.pants",
+              "accessory.object"
+            ]
+          },
+          "side": {
+            "enum": [
+              "unknown",
+              "left",
+              "right",
+              "center",
+              "bilateral"
+            ]
+          },
+          "bone_ids": {
+            "type": "array",
+            "maxItems": 4,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    }
+  }
+}
