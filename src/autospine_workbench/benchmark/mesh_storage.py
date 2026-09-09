@@ -38,6 +38,7 @@ SCHEMAS += ('autospine.component-local-correction/v1',)
 SCHEMAS += ('autospine.component-temporal-qa/v1',)
 SCHEMAS += ('autospine.component-fk-qa/v1',)
 SCHEMAS += ('autospine.component-collar/v1',)
+SCHEMAS += ('autospine.component-collar-keys/v1',)
 
 
 def _read(path):

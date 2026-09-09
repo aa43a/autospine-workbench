@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "profile", "source_sha256", "collar_sha256", "skeleton_sha256", "project_id", "rows", "comparisons", "authority", "production_authorized", "runtime_status", "continuous_time_proven"],
+  "properties": {
+    "schema": {"const": "autospine.component-collar-keys/v1"}, "profile": {"const": "near-setup-first-key-regression-v1"},
+    "source_sha256": {"$ref": "#/$defs/sha"}, "collar_sha256": {"$ref": "#/$defs/sha"}, "skeleton_sha256": {"$ref": "#/$defs/sha"},
+    "project_id": {"type": "string"}, "authority": {"const": "none"}, "production_authorized": {"const": false},
+    "runtime_status": {"const": "not_evaluated"}, "continuous_time_proven": {"const": false},
+    "rows": {"$ref": "component-collar-v1.schema.json#/properties/rows"},
+    "comparisons": {"type": "array", "items": {
+      "type": "object", "additionalProperties": false, "required": ["layer_id", "component_id", "bone_id", "before", "after", "trials"],
+      "properties": {
+        "layer_id": {"type": "string"}, "component_id": {"type": "string"}, "bone_id": {"type": "string"},
+        "before": {"type": "array", "minItems": 33, "maxItems": 33}, "after": {"type": "array", "minItems": 33, "maxItems": 33},
+        "trials": {"type": "array", "maxItems": 9, "items": {
+          "type": "object", "additionalProperties": false,
+          "required": ["key_id", "selected", "score_before", "score_trial", "new_failure_times", "new_inversion_times", "evidence"],
+          "properties": {"key_id": {"type": "string"}, "selected": {"type": "boolean"}, "score_before": {"type": "array"}, "score_trial": {"type": "array"}, "new_failure_times": {"type": "array"}, "new_inversion_times": {"type": "array"}, "evidence": {"type": "object"}}
+        }}
+      }
+    }}
+  },
+  "$defs": {"sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

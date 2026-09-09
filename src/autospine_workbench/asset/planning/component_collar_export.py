@@ -26,3 +26,5 @@ def export(state,output,document,correction,source):
     overrides={(r['layer_id'],r['component_id']):r['poses'] for r in checked['rows']}
     (output/'collar.html').write_text(render(document,source.skeleton,overrides,fk=True).replace('<main>',table+'<main>'),encoding='utf-8')
     print(f"Collar: {sum(c['selected'] for c in checked['comparisons'])} improved tracks")
+    from .component_collar_keys_export import export as export_keys
+    export_keys(state,output,document,checked,source)

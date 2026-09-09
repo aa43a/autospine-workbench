@@ -1,5 +1,7 @@
 # AutoSpine Workbench 功能与入口参考
 
+- [逐关键姿态回归与跨角色验证](how-to-component-partitions.md)：Lumia失败63→49；固定方法在辉夜、幽幽子、妖梦的未批准建议候选上均有数值收益。配套变换/比例测试和来源摘要，未宣称通用性或生产验收已达标。
+
 - [关节邻域局部修正](how-to-component-partitions.md)允许有限刚性顶点参与、按原FK限制位移并检查整轨道回归。Lumia失败采样118→63、翻转总数127→22；左踝回归方案未采用，仍未通过完整变形门禁。
 
 - [FK 时间轴对照](how-to-component-partitions.md)按骨骼角度计算后插值画布修正偏移；Lumia396点中与旧顶点线性预览存在1处判定差异，仍有118个失败采样。尚未转换为Spine deform或通过Runtime。

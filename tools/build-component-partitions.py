@@ -24,13 +24,16 @@ def main():
     parser.add_argument('--state-root', type=Path, default=Path('workspace'))
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--draft', type=Path, help='Validate and archive one supplied draft; never apply bindings')
+    parser.add_argument('--suggested-draft', action='store_true', help='Use unapproved suggestions for cohort experiments, never human decisions')
     parser.add_argument('--mesh', action='store_true', help='Build isolated component mesh diagnostics from --draft')
     parser.add_argument('--weight-transition', action='store_true', help='Compare bounded local weight transitions with --mesh')
     parser.add_argument('--local-correction', action='store_true', help='Probe local pose corrections with --weight-transition')
     parser.add_argument('projects', nargs='+')
     args = parser.parse_args()
-    if args.mesh and not args.draft:
-        parser.error('--mesh requires --draft')
+    if args.draft and args.suggested_draft:
+        parser.error('--draft and --suggested-draft are mutually exclusive')
+    if args.mesh and not (args.draft or args.suggested_draft):
+        parser.error('--mesh requires --draft or --suggested-draft')
     if args.weight_transition and not args.mesh:
         parser.error('--weight-transition requires --mesh')
     if args.local_correction and not args.weight_transition:
@@ -72,9 +75,16 @@ def main():
             suggestion_sha = publish_report(args.state_root, 'project-component-partitions', 'ownership-suggestions-v1', suggestions)
             export_document(output / f'{suggestion_sha}.json', suggestions)
             print(f"{project}: {sum(r['status'] == 'suggested' for r in suggestions['records'])} suggested regions")
-            if args.draft:
-                draft = validate_draft(read_input(args.draft), draft)
-                publish_report(args.state_root, 'project-component-partitions', 'ownership-drafts-v1', draft)
+            if args.draft or args.suggested_draft:
+                if args.draft:
+                    draft = validate_draft(read_input(args.draft), draft)
+                else:
+                    from autospine_workbench.asset.planning.component_candidate_draft import prefill
+                    draft = prefill(draft,suggestions)
+                draft_sha = publish_report(args.state_root, 'project-component-partitions', 'ownership-drafts-v1', draft)
+                if args.suggested_draft:
+                    export_document(output/'draft-origin.json',dict(authority='none',production_authorized=False,
+                        origin='automatic_suggestion_experiment',human_reviewed=False,suggestions_sha256=suggestion_sha,draft_sha256=draft_sha))
                 weights = sample_weights(entries, source.skeleton, draft, source.source_addresses, plan['plan_sha256'])
                 weight_sha = publish_report(args.state_root, 'project-component-partitions', 'weight-samples-v1', weights)
                 checked = read_report(args.state_root, 'project-component-partitions', 'weight-samples-v1', weight_sha)
