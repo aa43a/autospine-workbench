@@ -1,0 +1,11 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema","type":"object","additionalProperties":false,
+  "required":["schema","project_id","candidate_sha256","authority","production_authorized","records"],
+  "properties":{"schema":{"const":"autospine.sleeve-region-draft/v1"},"project_id":{"type":"string"},
+    "candidate_sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},"authority":{"const":"none"},"production_authorized":{"const":false},
+    "records":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["layer_id","component_id","assignments"],
+      "properties":{"layer_id":{"type":"string"},"component_id":{"type":"string"},"assignments":{"type":"array","items":{
+        "type":"object","additionalProperties":false,"required":["triangle_id","role","origin"],"properties":{
+          "triangle_id":{"type":"integer","minimum":0},"role":{"enum":["unknown","sleeve","cuff","hand","hanging_cloth"]},
+          "origin":{"enum":["pending","geometry_prefill","manual_edit"]}}}}}}}
+}}

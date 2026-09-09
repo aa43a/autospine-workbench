@@ -1,0 +1,17 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema", "type":"object", "additionalProperties":false,
+  "required":["schema","profile","project_id","source_sha256","skeleton_sha256","records","authority","production_authorized","semantic_confirmed"],
+  "properties":{
+    "schema":{"const":"autospine.sleeve-regions/v1"},"profile":{"const":"wrist-band12-triangle-suggestions-v1"},
+    "project_id":{"type":"string"},"source_sha256":{"$ref":"#/$defs/sha"},"skeleton_sha256":{"$ref":"#/$defs/sha"},
+    "authority":{"const":"none"},"production_authorized":{"const":false},"semantic_confirmed":{"const":false},
+    "records":{"type":"array","items":{"type":"object","additionalProperties":false,
+      "required":["layer_id","component_id","source_image_sha256","bone_ids","vertices_xy","triangles","suggestions"],
+      "properties":{"layer_id":{"type":"string"},"component_id":{"type":"string"},"source_image_sha256":{"$ref":"#/$defs/sha"},
+        "bone_ids":{"type":"array","minItems":3,"maxItems":3,"items":{"type":"string"}},
+        "vertices_xy":{"type":"array","items":{"type":"array","minItems":2,"maxItems":2,"items":{"type":"number"}}},
+        "triangles":{"type":"array","items":{"type":"array","minItems":3,"maxItems":3,"items":{"type":"integer","minimum":0}}},
+        "suggestions":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["triangle_id","suggested_role","reason_code"],
+          "properties":{"triangle_id":{"type":"integer","minimum":0},"suggested_role":{"enum":["unknown","sleeve","cuff","hand","hanging_cloth"]},"reason_code":{"type":"string"}}}}}}
+  }},"$defs":{"sha":{"type":"string","pattern":"^[a-f0-9]{64}$"}}
+}
