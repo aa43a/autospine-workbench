@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "profile", "source_sha256", "correction_sha256", "skeleton_sha256", "project_id", "rows", "authority", "production_authorized", "continuous_time_proven", "runtime_status"],
+  "properties": {
+    "schema": {"const": "autospine.component-temporal-qa/v1"},
+    "profile": {"const": "linear-vertex-quarter-second-v1"},
+    "source_sha256": {"$ref": "#/$defs/sha"}, "correction_sha256": {"$ref": "#/$defs/sha"}, "skeleton_sha256": {"$ref": "#/$defs/sha"},
+    "project_id": {"type": "string"}, "authority": {"const": "none"}, "production_authorized": {"const": false},
+    "continuous_time_proven": {"const": false}, "runtime_status": {"const": "not_evaluated"},
+    "rows": {"type": "array", "items": {
+      "type": "object", "additionalProperties": false,
+      "required": ["layer_id", "component_id", "bone_id", "ticks", "new_failure_count", "interior_failure_times", "max_velocity_jump_before", "max_velocity_jump_after"],
+      "properties": {
+        "layer_id": {"type": "string"}, "component_id": {"type": "string"}, "bone_id": {"type": "string"},
+        "ticks": {"type": "array", "minItems": 33, "maxItems": 33, "items": {
+          "type": "object", "additionalProperties": false, "required": ["time", "before", "after", "new_failure"],
+          "properties": {"time": {"type": "number", "minimum": 0, "maximum": 8}, "before": {"type": "object"}, "after": {"type": "object"}, "new_failure": {"type": "boolean"}}
+        }},
+        "new_failure_count": {"type": "integer", "minimum": 0, "maximum": 33},
+        "interior_failure_times": {"type": "array", "items": {"type": "number", "minimum": 0, "maximum": 8}},
+        "max_velocity_jump_before": {"type": "number", "minimum": 0}, "max_velocity_jump_after": {"type": "number", "minimum": 0}
+      }
+    }}
+  },
+  "$defs": {"sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

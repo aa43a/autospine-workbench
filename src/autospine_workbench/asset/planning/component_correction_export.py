@@ -23,9 +23,11 @@ def export(state, output, source_document, source):
         after = sum(p['selected_qa']['inversions'] for p in row['poses'])
         rows.append(f'<tr><td>{escape(row["layer_id"])} / {escape(row["component_id"])}</td><td>{chosen}</td><td>{before} → {after}</td></tr>')
     table = '<h2>局部 corrective 试验</h2><p>只移动异常三角形附近的混合权重顶点；最大位移为最短骨长的 10%。绑定权重、UV、网格拓扑均保持不变。</p>'
-    table += '<p>下拉框切换「原」与「试验」姿态。逐姿态修正尚无连续时间插值验证，不能直接当作已完成动画。</p>'
+    table += '<p>拖动时间轴或播放，在同一时刻切换原结果／局部修正。逐姿态插值是诊断，不是已完成的 Spine 动画。</p>'
     table += '<table border="1" cellpadding="8"><tr><th>区域</th><th>改善姿态数</th><th>翻转总数</th></tr>'+''.join(rows)+'</table>'
     table += f'<p><a href="{digest}.json">完整局部顶点与诊断</a> · <a href="transitions.html">权重对照</a></p>'
+    from .component_temporal_export import export as export_temporal
+    table += export_temporal(state,output,source_document,checked,source)
     page = render(source_document,source.skeleton,overrides).replace('<main>',table+'<main>')
     (output/'corrections.html').write_text(page,encoding='utf-8')
     print(f"{document['project_id']}: {sum(p['selected'] for r in checked['rows'] for p in r['poses'])} improved local pose candidates")
