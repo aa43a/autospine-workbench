@@ -36,6 +36,20 @@ test("animated candidate with needs_review downloads without automatic adoption 
   assert.deepEqual(JSON.parse(post[0].options.body), { expected_resolved_sha256: SHA, clip: "wave", resume: true });
   assert.equal(post[0].options.headers["X-Autospine-Intent"], "pipeline-preview");
 });
+
+test("completion posts exact source only and does not save decisions or build automatically", async () => {
+  const h = harness((url, opts, ctx) => ({ ...overview(ctx),
+    ...(url.endsWith('/complete-bindings') ? { input_identity_sha256: '2'.repeat(64), binding_completion_result: { added_options: 12 } } : {}) }));
+  h.controller.sync(); await tick();
+  h.context.dirty = true; await h.controller.completeBindings();
+  assert.equal(h.calls.filter(c => c.options.method === 'POST').length, 0);
+  h.context.dirty = false; await h.controller.completeBindings();
+  const posts = h.calls.filter(c => c.options.method === 'POST');
+  assert.equal(posts.length, 1); assert.match(posts[0].url, /complete-bindings$/);
+  assert.deepEqual(JSON.parse(posts[0].options.body), { expected_resolved_sha256: SHA, expected_input_sha256: SHA });
+  assert.match(h.model().reviewNotice, /新增 12/);
+  assert.equal(h.model().downloadUrl, null);
+});
 test("polling backs off and every terminal state stops; only usable candidates download", async () => {
   for (const status of ["succeeded", "needs_review", "blocked", "failed", "canceled"]) {
     let next = "running";

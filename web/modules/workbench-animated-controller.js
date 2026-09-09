@@ -16,7 +16,7 @@ export function createWorkbenchAnimated(document, hooks, options = {}) {
   let error = null, intent = false, waiting = false, savingReview = false, bindingDirty = false, jointDirty = false;
   let reviewNotice = "", rebasing = false;
   const view = options.view || createAnimatedView(document, { start, refresh, cancel, setClip, canDownload,
-    saveReview, rebase, bindingChanged: (dirty) => { bindingDirty = dirty; render(); }, locate });
+    saveReview, completeBindings, rebase, bindingChanged: (dirty) => { bindingDirty = dirty; render(); }, locate });
   const joints = document ? createAnimatedJoints(document, { ...hooks,
     changed: (dirty) => { jointDirty = dirty; render(); }, saved: jointsSaved }) : null;
   if (joints) view.mountJoint(joints.element);
@@ -165,6 +165,22 @@ export function createWorkbenchAnimated(document, hooks, options = {}) {
     finally { if (current(token)) { savingReview = false; render(); } }
     if (succeeded && current(token)) { await refresh(); if (current(token)) await start(); }
   }
+  async function completeBindings() {
+    if (!overview?.binding_review || !editable() || fetching || active() || submitting || savingReview || bindingDirty || jointDirty || rebasing) return;
+    const token = generation, saved = { ...context() };
+    savingReview = true; error = null; render();
+    try {
+      const value = await hooks.apiRequest(`${animatedEndpoint(projectId)}/complete-bindings`, {
+        method: "POST", headers: { "X-Autospine-Intent": "pipeline-preview" },
+        body: JSON.stringify({ expected_resolved_sha256: saved.resolvedSha, expected_input_sha256: overview.input_identity_sha256 }),
+      });
+      if (!current(token)) return;
+      overview = readAnimatedOverview(value, saved); job = null; intent = waiting = false;
+      serial++; stop(); view.resetReview?.();
+      reviewNotice = `眼口候选已准备，新增 ${value.binding_completion_result?.added_options || 0} 个选项。尚未选择绑定，请在眼口分类中检查后保存。`;
+    } catch (failure) { if (current(token)) error = animatedReason(failure.payload?.reason_code || failure.message); }
+    finally { if (current(token)) { savingReview = false; render(); } }
+  }
   function locate(item) {
     const id = item.layer_id || item.entity_id;
     const layer = animatedLayerTarget(id, context());
@@ -209,5 +225,5 @@ export function createWorkbenchAnimated(document, hooks, options = {}) {
     if (current(token) && joints) { joints.element.open = true; await joints.reload(); }
   }
   function dispose() { generation++; stop(); view.dispose?.(); joints?.dispose(); preparation?.dispose(); }
-  return { sync, start, refresh, cancel, setClip, saveReview, rebase, canDownload, dispose };
+  return { sync, start, refresh, cancel, setClip, saveReview, completeBindings, rebase, canDownload, dispose };
 }

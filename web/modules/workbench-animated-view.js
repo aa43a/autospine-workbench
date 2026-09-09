@@ -32,7 +32,7 @@ export function createAnimatedView(document, callbacks) {
   status.setAttribute("role", "status"); status.setAttribute("aria-live", "polite"); queue.className = "automation-queue";
   const download = node(document, "a", "下载动画候选 / QA"); download.setAttribute("download", ""); download.className = "button button-secondary";
   const note = node(document, "p", "可下载候选不代表已采用或已获发布授权。修改复核后会重新构建相关下游。");
-  const bindings = createAnimatedBindings(document, { save: callbacks.saveReview, changed: callbacks.bindingChanged, locate: callbacks.locate });
+  const bindings = createAnimatedBindings(document, { save: callbacks.saveReview, complete: callbacks.completeBindings, changed: callbacks.bindingChanged, locate: callbacks.locate });
   const player = createAnimatedPlayer(document);
   const rebase = createAnimatedRebase(document, callbacks.rebase);
   section.append(heading, description, label, select, actions, status, rebase.element, reviewNotice, summary, steps, download, player.element, queueTitle, queue, bindings.element, note);

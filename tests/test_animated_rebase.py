@@ -46,6 +46,15 @@ class AnimatedRebaseTests(unittest.TestCase):
         return rebase_inputs(self.store, 'fixture', plan['expected_resolved_sha256'],
                              plan['expected_registration_sha256'])
 
+    def test_rebase_preserves_completion_profile(self):
+        from autospine_workbench.automation.animated_binding_completion import complete_bindings
+        key = self.original['source_addresses']['input_identity_sha256']
+        complete_bindings(self.store, 'fixture', 'a' * 64, key)
+        self.author(notes='Updated author notes')
+        self.synchronize()
+        with inputs.load_inputs(self.store, 'fixture') as source:
+            self.assertEqual(source.bindings['profile'], 'rigid-name-completion-v3')
+
     def test_imports_only_authored_canonical_joint_and_keeps_eye_overrides(self):
         before = get_joint_review(self.store, 'fixture')
         elbow = next(r for r in before['records'] if r['joint_id'] == 'elbow.left')['position']

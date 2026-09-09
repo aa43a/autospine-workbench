@@ -20,6 +20,7 @@ class AnimatedWebHttpTests(unittest.TestCase):
         self.application = ApplicationDouble()
         self.application.overview = Mock(return_value={"authority": "none", "review_items": []})
         self.application.review = Mock(return_value={"authority": "none", "review_items": []})
+        self.application.complete_bindings = Mock(return_value={"authority": "none"})
         self.application.rebase = Mock(return_value={"authority": "none", "joint_review_result": {"changed": True}})
         self.manager._animated = AnimatedWebJobs(self.fixture.fixture.store(), application=self.application)
         self.request_body = {"expected_resolved_sha256": self.request_body["expected_resolved_sha256"],
@@ -64,6 +65,15 @@ class AnimatedWebHttpTests(unittest.TestCase):
         self.assertEqual(status, 202)
         self.assertFalse(response.get("production_authorized", False))
         self.application.rebase.assert_called_once_with("fixture-project", **body)
+
+    def test_completion_is_explicit_candidate_only_post(self):
+        body = {"expected_resolved_sha256": "a" * 64, "expected_input_sha256": "b" * 64}
+        self.assertEqual(self.request("GET", "/complete-bindings")[0], 405)
+        self.assertEqual(self.request("POST", "/complete-bindings", {**body, "approve": True})[0], 400)
+        self.assertEqual(self.request("POST", "/complete-bindings", body, {"X-Autospine-Intent": None})[0], 403)
+        self.application.complete_bindings.assert_not_called()
+        self.assertEqual(self.request("POST", "/complete-bindings", body)[0], 202)
+        self.application.complete_bindings.assert_called_once_with("fixture-project", **body)
 
 
 if __name__ == "__main__":

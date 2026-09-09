@@ -23,8 +23,18 @@ export function bindingGroup(binding) {
   return "unresolved";
 }
 
-export function prefillRigidBindings(bindings, records) {
-  const eligible = new Map(bindings.filter((row) => bindingGroup(row) === "rigid")
+export function eligibleBinding(row, group = "rigid") {
+  if (group === "rigid") return bindingGroup(row) === "rigid";
+  return group === "facial" && bindingGroup(row) === "facial"
+    && row.reason_codes?.includes("head_detail_name_candidate")
+    && row.reason_codes?.includes("visual_parent_review_required")
+    && row.options?.length === 1 && row.options[0].mode === "rigid"
+    && row.options[0].bone_ids?.length === 1 && row.options[0].bone_ids[0] === "head"
+    && row.options[0].id === row.suggested_option_id;
+}
+
+export function prefillRigidBindings(bindings, records, group = "rigid") {
+  const eligible = new Map(bindings.filter((row) => eligibleBinding(row, group))
     .map((row) => [row.layer_id, row.suggested_option_id]));
   return records.map((row) => row.action === "pending" && eligible.has(row.layer_id)
     ? { ...row, action: "bind", option_id: eligible.get(row.layer_id) } : { ...row });

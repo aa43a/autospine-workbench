@@ -6,7 +6,6 @@ geometry invalidates existing binding selections, even when bone names survive.
 from copy import deepcopy
 from urllib.parse import quote
 
-from ..asset.joints.layer_binding import build_layer_bindings
 from ..asset.joints.reviewed_skeleton import build_reviewed_skeleton
 from ..benchmark.artifacts import read_report, publish_report
 from ..benchmark.assisted_joint_draft import validate_assisted_joint_draft
@@ -103,7 +102,8 @@ def save_joint_review(store, project_id, expected_input_sha256, records, reviewe
             if before['revision'] >= 255:
                 raise AnimatedSourceError('animated_review_history_limit')
             skeleton = build_reviewed_skeleton(candidate, edited)
-            bindings = build_layer_bindings(candidate, edited, skeleton)
+            from .animated_binding_completion import rebuild_bindings
+            bindings = rebuild_bindings(candidate, edited, skeleton, index['bindings'])
             geometry_changed = (skeleton['bones'] != old_skeleton['bones'] or
                                 skeleton['status'] != old_skeleton['status'])
             draft, migrations = _binding_draft(bindings, index['draft'], geometry_changed)

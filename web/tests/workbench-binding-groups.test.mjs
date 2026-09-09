@@ -18,6 +18,15 @@ test("complex parts are not bulk rigid choices even when a rigid preview exists"
   assert.equal(bindingGroup({ ...rigid("layer-010"), name: "face" }), "rigid");
 });
 
+test("facial batch requires completion evidence and never changes other categories", () => {
+  const binding = { ...rigid("layer-007"), name: "eyewhite-l",
+    reason_codes: ["head_detail_name_candidate", "visual_parent_review_required"] };
+  const records = [{ layer_id: "layer-007", action: "pending", notes: "inspect" }];
+  assert.equal(prefillRigidBindings([binding], records)[0].action, "pending");
+  assert.equal(prefillRigidBindings([binding], records, "facial")[0].option_id, "rigid:head");
+  assert.equal(prefillRigidBindings([{ ...binding, reason_codes: [] }], records, "facial")[0].action, "pending");
+});
+
 test("batch uses only an existing unambiguous suggested option and preserves all decisions and notes", () => {
   const bindings = [rigid("face"), rigid("neck"), rigid("topwear"), rigid("hair")];
   const records = [

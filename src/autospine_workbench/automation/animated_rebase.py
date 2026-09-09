@@ -5,7 +5,6 @@ layer changes and noncanonical joints are never silently substituted.
 """
 from copy import deepcopy
 
-from ..asset.joints.layer_binding import build_layer_bindings
 from ..asset.joints.reviewed_skeleton import build_reviewed_skeleton
 from ..benchmark.artifacts import read_report, publish_report
 from ..benchmark.joint_draft import JOINTS
@@ -115,7 +114,8 @@ def rebase_inputs(store, project_id, expected_resolved_sha256, expected_registra
                         reviewed.append(joint)
             edited = _validate_edit(store, before, candidate, original, records, reviewed)
             skeleton = build_reviewed_skeleton(candidate, edited)
-            bindings = build_layer_bindings(candidate, edited, skeleton)
+            from .animated_binding_completion import rebuild_from_draft
+            bindings = rebuild_from_draft(store, before, original_draft, candidate, edited, skeleton)
             geometry_changed = (skeleton['bones'] != old_skeleton['bones'] or skeleton['status'] != old_skeleton['status'])
             draft, migrations = _binding_draft(bindings, original_draft, geometry_changed)
             dataset = before['manifest']['dataset_id']

@@ -63,6 +63,11 @@ class AnimatedApplication:
         from .animated_joint_review import get_joint_review
         return get_joint_review(self.projects, project_id)
 
+    def complete_bindings(self, project_id, expected_resolved_sha256, expected_input_sha256):
+        from .animated_binding_completion import complete_bindings
+        result = complete_bindings(self.projects, project_id, expected_resolved_sha256, expected_input_sha256)
+        return {**self.overview(project_id), 'binding_completion_result': result}
+
     def review_joints(self, project_id, expected_resolved_sha256, expected_input_sha256,
                       records, reviewed_joint_ids):
         from .animated_joint_review import save_joint_review
