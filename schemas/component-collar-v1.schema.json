@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "profile", "source_sha256", "correction_sha256", "skeleton_sha256", "project_id", "rows", "comparisons", "authority", "production_authorized", "runtime_status", "continuous_time_proven"],
+  "properties": {
+    "schema": {"const": "autospine.component-collar/v1"}, "profile": {"const": "joint-local-rigid-collar-v1"},
+    "source_sha256": {"$ref": "#/$defs/sha"}, "correction_sha256": {"$ref": "#/$defs/sha"}, "skeleton_sha256": {"$ref": "#/$defs/sha"},
+    "project_id": {"type": "string"}, "authority": {"const": "none"}, "production_authorized": {"const": false},
+    "runtime_status": {"const": "not_evaluated"}, "continuous_time_proven": {"const": false},
+    "rows": {"type": "array", "items": {
+      "type": "object", "additionalProperties": false, "required": ["layer_id", "component_id", "poses"],
+      "properties": {"layer_id": {"type": "string"}, "component_id": {"type": "string"},
+        "poses": {"type": "array", "minItems": 27, "maxItems": 27, "items": {
+          "type": "object", "additionalProperties": false, "required": ["id", "points", "selected_qa"],
+          "properties": {"id": {"type": "string"}, "points": {"type": "array", "minItems": 3, "maxItems": 4096, "items": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number"}}}, "selected_qa": {"type": "object"}}
+        }}
+      }
+    }},
+    "comparisons": {"type": "array", "items": {
+      "type": "object", "additionalProperties": false,
+      "required": ["layer_id", "component_id", "bone_id", "selected", "before", "trial", "score_before", "score_after", "evidence"],
+      "properties": {
+        "layer_id": {"type": "string"}, "component_id": {"type": "string"}, "bone_id": {"type": "string"}, "selected": {"type": "boolean"},
+        "before": {"type": "array", "minItems": 33, "maxItems": 33}, "trial": {"type": "array", "minItems": 33, "maxItems": 33},
+        "score_before": {"$ref": "#/$defs/score"}, "score_after": {"$ref": "#/$defs/score"}, "evidence": {"type": "array", "minItems": 9, "maxItems": 9}
+      }
+    }}
+  },
+  "$defs": {"sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "score": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "integer", "minimum": 0}}}
+}

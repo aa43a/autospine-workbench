@@ -1,5 +1,7 @@
 # AutoSpine Workbench 功能与入口参考
 
+- [关节邻域局部修正](how-to-component-partitions.md)允许有限刚性顶点参与、按原FK限制位移并检查整轨道回归。Lumia失败采样118→63、翻转总数127→22；左踝回归方案未采用，仍未通过完整变形门禁。
+
 - [FK 时间轴对照](how-to-component-partitions.md)按骨骼角度计算后插值画布修正偏移；Lumia396点中与旧顶点线性预览存在1处判定差异，仍有118个失败采样。尚未转换为Spine deform或通过Runtime。
 
 - [区域网格时间轴](how-to-component-partitions.md)支持播放、拖动、调速、Setup及同时间原／修正切换；Lumia 396个插值采样点未见新增失败，原有超限仍保留。这是线性顶点诊断，尚无连续时间或Runtime通过证据。

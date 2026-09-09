@@ -32,4 +32,6 @@ def export(state, output, source_document, source):
     (output/'corrections.html').write_text(page,encoding='utf-8')
     from .component_fk_export import export as export_fk
     export_fk(state,output,source_document,checked,source)
+    from .component_collar_export import export as export_collar
+    export_collar(state,output,source_document,checked,source)
     print(f"{document['project_id']}: {sum(p['selected'] for r in checked['rows'] for p in r['poses'])} improved local pose candidates")
