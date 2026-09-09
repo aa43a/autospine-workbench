@@ -22,12 +22,14 @@ const REASONS = {
   animated_rebase_joint_decision_unsupported: "已保存关节候选采用或拒绝决定；坐标同步不能代替该决定的复核。",
   animated_rebase_split_unsupported: "图层切分发生变化，需要重新生成分区与绑定来源。",
   animated_rebase_layer_override_unsupported: "图层属性已变化，需要重新复核语义、结构或绑定来源。",
-  animated_rebase_joint_override_removed: "此前已同步的关节校正已被移除。请在主画布的关节模式重新定位该点，点击顶部“保存校正”，再点击“同步已保存校正并重建”。这会明确提供新位置，解除当前同步阻塞。",
+  animated_rebase_joint_override_removed: "此前已同步的关节校正已被移除。请选择该关节，核对 X/Y 后点击“确认当前关节坐标”，再点顶部“保存校正”。即使坐标未变化也需要明确确认；图层的“确认语义、Pivot 与目标骨”不能代替此操作。",
 };
 export function rebaseItemDescription(item) {
   if (typeof item === "string") return REASONS[item] || animatedReason(item);
   const entity = item?.joint_id || item?.layer_id || item?.entity_id || item?.id || "当前项目";
   const field = FIELDS[item?.field] || item?.field;
+  if (item?.reason_code === "animated_rebase_layer_override_unsupported" && item.field === "candidate_bone")
+    return `${entity}：图层目标骨修改暂不支持同步。若为误改，选中该图层，点击“撤销本图层目标骨校正”并保存；如需保留该换绑，本次动画同步仍需等待绑定迁移支持。`;
   if (REASONS[item?.reason_code]) return `${entity}${field ? ` · ${field}` : ""}：${REASONS[item.reason_code]}`;
   return field ? `${entity}：${field} 的已保存修改暂不支持同步，请复核此项；现有校正仍保留。`
     : `${entity}：${animatedReason(item?.reason_code)}`;

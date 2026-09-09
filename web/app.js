@@ -36,7 +36,7 @@ import { createRegionRebindHandoffController } from "./modules/workbench-rebind-
 import { adoptionDraft, submitRegionRebindAdoption } from "./modules/workbench-rebind-adoption-api.js";
 import { createWorkbenchAutomation } from "./modules/workbench-automation-controller.js";
 import { renderWorkbenchStatusbar } from "./modules/workbench-statusbar.js";
-
+import { installAuthoringRecoveryControls } from "./modules/authoring-recovery-controls.js";
 const state = {
   projects: [],
   project: null,
@@ -1144,8 +1144,7 @@ function bindEvents() {
     const layer = getSelectedLayer();
     if (layer) setLayerVisibility(String(layer.id), event.target.checked);
   });
-  dom.jointXInput.addEventListener("change", updateJointFromInputs);
-  dom.jointYInput.addEventListener("change", updateJointFromInputs);
+  installAuthoringRecoveryControls(document, dom, { confirmJoint: updateJointFromInputs, busy: () => state.saving || state.loading, layer: getSelectedLayer, overrides: () => state.layerOverrides, allowReset: () => !rebindHandoff.blockGeneralMutation("撤销目标骨校正"), changed: () => { markDirty("本图层目标骨校正已撤销，请保存校正后同步动画来源"); renderLayerInspector(); renderLayerList(); renderQa(); } });
   dom.resetJointBtn.addEventListener("click", resetSelectedJoint);
   dom.overrideNotes.addEventListener("input", (event) => {
     state.notes = event.target.value;
