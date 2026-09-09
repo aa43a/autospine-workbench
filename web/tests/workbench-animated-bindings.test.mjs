@@ -1,0 +1,49 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { createAnimatedBindings } from "../modules/workbench-animated-bindings.js";
+
+class Element extends EventTarget {
+  constructor(tag) { super(); this.tagName = tag; this.children = []; this.attributes = {}; }
+  append(...nodes) { this.children.push(...nodes); }
+  replaceChildren(...nodes) { this.children = nodes; }
+  setAttribute(name, value) { this.attributes[name] = value; }
+}
+const descendants = (node) => [node, ...node.children.flatMap(descendants)];
+function harness() {
+  const saves = [], dirty = [], doc = { createElement: (tag) => new Element(tag) };
+  const view = createAnimatedBindings(doc, { save: (rows) => saves.push(rows), changed: (value) => dirty.push(value), locate() {} });
+  const bindingReview = { bindings: [{ layer_id: "sleeve", suggested_option_id: "three-bones",
+    options: [{ id: "three-bones", mode: "weighted_mesh", bone_ids: ["upperarm", "forearm", "hand"] }] }],
+    records: [{ layer_id: "sleeve", action: "pending", option_id: null, notes: "" },
+      { layer_id: "other", action: "pending", option_id: null, notes: "preserved" }] };
+  view.render({ bindingReview, reviewIdentity: "first", canReview: true });
+  const find = (label) => descendants(view.element).find((node) => node.attributes["aria-label"] === label || node.textContent === label);
+  const change = (label, value, event = "change") => { const node = find(label); node.value = value; node.dispatchEvent(new Event(event)); };
+  return { view, bindingReview, saves, dirty, find, change };
+}
+test("suggested binding stays pending until explicit selection and save; all records survive", () => {
+  const h = harness();
+  assert.equal(h.find("sleeve 处理方式").value, "pending"); assert.equal(h.find("sleeve 绑定方案").value, "");
+  h.find("保存绑定复核并重建").dispatchEvent(new Event("click")); assert.equal(h.saves.length, 0);
+  h.change("sleeve 绑定方案", "three-bones");
+  assert.equal(h.find("sleeve 处理方式").value, "bind"); assert.equal(h.saves.length, 0);
+  h.view.render({ bindingReview: h.bindingReview, reviewIdentity: "first", canReview: true });
+  assert.equal(h.find("sleeve 绑定方案").value, "three-bones");
+  h.find("保存绑定复核并重建").dispatchEvent(new Event("click"));
+  assert.equal(h.saves[0][0].action, "bind"); assert.deepEqual(h.saves[0][1], h.bindingReview.records[1]);
+  assert.equal(h.bindingReview.records[0].action, "pending");
+});
+test("split requires notes; undo restores saved decisions without API requests", () => {
+  const h = harness(); h.change("sleeve 处理方式", "requires_split");
+  h.find("保存绑定复核并重建").dispatchEvent(new Event("click")); assert.equal(h.saves.length, 0);
+  h.change("sleeve 复核说明", "包含左右两侧", "input");
+  h.find("保存绑定复核并重建").dispatchEvent(new Event("click")); assert.equal(h.saves[0][0].notes, "包含左右两侧");
+  h.find("撤销未保存修改").dispatchEvent(new Event("click"));
+  assert.equal(h.find("sleeve 处理方式").value, "pending"); assert.equal(h.dirty.at(-1), false);
+});
+test("project switch clears local changes and read-only state blocks save", () => {
+  const h = harness(); h.change("sleeve 绑定方案", "three-bones");
+  h.view.render({ bindingReview: h.bindingReview, reviewIdentity: "second", canReview: false });
+  assert.equal(h.find("sleeve 处理方式").value, "pending");
+  h.find("保存绑定复核并重建").dispatchEvent(new Event("click")); assert.equal(h.saves.length, 0);
+});

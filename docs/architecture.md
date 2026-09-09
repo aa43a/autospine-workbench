@@ -1,5 +1,20 @@
 # AutoSpine Workbench 架构与质量门禁
 
+## 主工作台动画候选编排
+
+`automation/animated_inputs.py` 登记精确来源与作者 checkpoint，`animated_input_index.py` 提供快速可调度状态，
+`animated_joint_review.py` 保存明确的辅助关节复核并重建骨架/绑定候选。快速索引不代表 QA 通过；新构建仍完整重放来源。
+`animated_compile.py`、`animated_partitions.py`、`animated_motion.py` 与 `targets/spine43/workbench_preview.py` 分别负责
+网格候选、区域扩展、15°/30°有限动作和目标编码。`animated_package.py` 保存纹理、QA 与 CPU 采样，
+`animated_store.py` 隔离大体积文件和小型任务日志；`animated_run.py` 的独立身份不改变历史 region PipelineRun。
+Application、jobs、routes 和 Web 小模块提供异步构建、取消、复核续跑及可验证下载。
+
+作者编辑或源图像变化使登记失效，当前无自动重基。几何变化后的旧 bind 只作为迁移建议，不能批准新骨架。
+新包保留 `authority:none`、`production_authorized:false`；CPU 诊断播放和另行运行的官方 Runtime 证据分开记录。
+普通操作见[动画候选指南](how-to-build-animated-spine-preview.md)。新增模块优先不超过 300 行、硬上限 400 行；历史单体 ratchet 不扩大。
+
+## 已有独立编译与诊断模块
+
 `targets/spine43/merge_limb_tracks.py`纯合并显式附件与轨道；benchmark集成CLI精确重放历史Bake、
 按ownership显式归属排列slots并检查原有121帧坐标不变。新包独立身份，不覆盖旧候选或复核决定。
 

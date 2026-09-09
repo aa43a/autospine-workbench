@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine-workbench.local/schemas/animated-joint-review-request-v1.schema.json",
+  "title": "Explicit project animation joint review submission",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["expected_resolved_sha256", "expected_input_sha256", "records", "reviewed_joint_ids"],
+  "properties": {
+    "expected_resolved_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "expected_input_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "records": {"$ref": "benchmark-joint-draft-v1.schema.json#/properties/records"},
+    "reviewed_joint_ids": {
+      "type": "array", "maxItems": 17, "uniqueItems": true,
+      "items": {"$ref": "benchmark-joint-draft-v1.schema.json#/properties/records/items/properties/joint_id"}
+    }
+  }
+}

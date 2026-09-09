@@ -50,8 +50,8 @@ const EXPECTED_COMMANDS = [
 
 test("catalog is valid and matches all 76 CLI entry points", () => {
   assert.equal(validateCatalog(catalog), catalog);
-  assert.equal(catalog.catalog_version, "1.6.0");
-  assert.equal(catalog.current_stage, "AS-005-region-preview-workbench");
+  assert.equal(catalog.catalog_version, "1.7.0");
+  assert.equal(catalog.current_stage, "workbench-animated-preview-v1");
   const commands = catalog.entries.filter(({ kind }) => kind === "cli").map(({ command }) => command);
   assert.deepEqual(new Set(commands), new Set(EXPECTED_COMMANDS));
   assert.equal(commands.length, EXPECTED_COMMANDS.length);
@@ -146,7 +146,7 @@ test("Chinese search, grouping, statistics, and help command are deterministic",
   assert.ok(matches.length >= 4);
   const groups = groupEntries(matches, catalog.stages);
   assert.ok(groups.every((group) => group.entries.length > 0));
-  assert.deepEqual(groups.map(({ stage }) => stage), ["P7", "P10"]);
+  assert.deepEqual(groups.map(({ stage }) => stage), ["P6", "P7", "P10"]);
   const stats = catalogStats(catalog.entries);
   assert.equal(stats.total, catalog.entries.length);
   assert.equal(stats.available + stats.external + stats.planned, stats.total);

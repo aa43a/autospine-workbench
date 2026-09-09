@@ -14,6 +14,9 @@ def dispatch_automation(parts, handler, method):
     if len(parts) < 4 or parts[:2] != ["api", "projects"] or parts[3] != "automation":
         return False
     tail = parts[4:]
+    if tail[:1] == ["animated"]:
+        from .animated_routes import dispatch_animated
+        return dispatch_animated(tail[1:], handler, method, parts[2])
     allowed = None
     if not tail or (len(tail) == 2 and tail[0] == "jobs"):
         allowed = "GET, HEAD, OPTIONS"

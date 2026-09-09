@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine-workbench.local/schemas/workbench-animated-definitions-v1.schema.json",
+  "$defs": {
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "point": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number"}},
+    "clip": {"enum": ["limb-flex-15", "limb-flex-30"]},
+    "status": {"enum": ["pending", "running", "needs_review", "succeeded", "blocked", "failed", "canceled"]},
+    "addresses": {
+      "type": "object", "required": ["resolved_project_sha256", "input_identity_sha256"],
+      "propertyNames": {"pattern": "^[a-z][a-z0-9_]*_sha256$"},
+      "additionalProperties": {"$ref": "#/$defs/sha"}
+    },
+    "review": {
+      "type": "object", "additionalProperties": false, "required": ["id", "type", "reason_code"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1}, "layer_id": {"type": ["string", "null"]},
+        "type": {"enum": ["binding", "joint", "mesh", "seam", "runtime", "partition"]},
+        "risk": {"const": "review"}, "reason_code": {"type": "string", "minLength": 1},
+        "authority": {"const": "none"}
+      }
+    },
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": ["mesh_layers", "context_layers", "visible_layers", "bone_count", "rejected_mesh_layers", "partition_source_layers", "preview_hypothesis_layers"],
+      "properties": {
+        "mesh_layers": {"type": "integer", "minimum": 0}, "context_layers": {"type": "integer", "minimum": 0},
+        "visible_layers": {"type": "integer", "minimum": 0}, "bone_count": {"type": "integer", "minimum": 0},
+        "partition_source_layers": {"type": "integer", "minimum": 0},
+        "rejected_mesh_layers": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+        "preview_hypothesis_layers": {"type": "array", "uniqueItems": true, "items": {"type": "string"}}
+      }
+    },
+    "region": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "setup_vertices_xy", "expected_page_uvs", "source_mesh_status", "review_status"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "setup_vertices_xy": {"type": "array", "minItems": 3, "items": {"$ref": "#/$defs/point"}},
+        "expected_page_uvs": {"type": "array", "minItems": 3, "items": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number", "minimum": 0, "maximum": 1}}},
+        "source_mesh_status": {"enum": ["candidate", "rigid_context"]}, "review_status": {"const": "needs_review"}
+      }
+    },
+    "geometry": {
+      "type": "object", "additionalProperties": false,
+      "required": ["fps", "sample_count", "regions", "seam_proxy", "seam_coverage", "unpaired_regions"],
+      "properties": {
+        "fps": {"const": 60}, "sample_count": {"const": 121}, "seam_coverage": {"const": "unproven"},
+        "unpaired_regions": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+        "regions": {"type": "object", "additionalProperties": {"$ref": "#/$defs/metrics"}},
+        "seam_proxy": {"type": "array", "items": {
+          "type": "object", "additionalProperties": false,
+          "required": ["regions", "pair_count", "max_distance_growth_px", "status"],
+          "properties": {
+            "regions": {"type": "array", "minItems": 2, "maxItems": 2, "uniqueItems": true, "items": {"type": "string"}},
+            "pair_count": {"type": "integer", "minimum": 1}, "max_distance_growth_px": {"type": "number"},
+            "status": {"enum": ["blocked", "proxy_within_tolerance"]}
+          }
+        }}
+      }
+    },
+    "metrics": {
+      "type": "object", "additionalProperties": false,
+      "required": ["passed", "min_area_ratio", "max_area_ratio", "inversions", "max_edge_stretch", "loop_error_px", "max_frame_displacement_px"],
+      "properties": {
+        "passed": {"type": "boolean"}, "min_area_ratio": {"type": "number"}, "max_area_ratio": {"type": "number"},
+        "inversions": {"type": "integer", "minimum": 0}, "max_edge_stretch": {"type": "number", "minimum": 0},
+        "loop_error_px": {"type": "number", "minimum": 0}, "max_frame_displacement_px": {"type": "number", "minimum": 0}
+      }
+    },
+    "stage": {
+      "type": "object", "additionalProperties": false,
+      "required": ["run_id", "source_addresses", "clip", "engine_sha256", "target_version"],
+      "properties": {
+        "run_id": {"type": "string", "pattern": "^run-[0-9a-f]{64}$"},
+        "source_addresses": {"$ref": "#/$defs/addresses"}, "clip": {"$ref": "#/$defs/clip"},
+        "engine_sha256": {"$ref": "#/$defs/sha"}, "target_version": {"const": "4.3.26"}
+      }
+    }
+  }
+}

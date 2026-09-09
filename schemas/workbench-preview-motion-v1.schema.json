@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autospine-workbench.local/schemas/workbench-preview-motion-v1.schema.json",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "profile", "authority", "clip", "fps", "duration", "scope", "production_authorized", "bones"],
+  "properties": {
+    "schema": {"const": "autospine.workbench-preview-motion/v1"}, "profile": {"const": "workbench-limb-preview-v1"},
+    "authority": {"const": "none"}, "production_authorized": {"const": false},
+    "clip": {"enum": ["limb-flex-15", "limb-flex-30"]}, "fps": {"const": 30}, "duration": {"const": 2},
+    "scope": {"const": "limited_limb_rotation_preview"},
+    "bones": {
+      "type": "object", "propertyNames": {"enum": ["forearm_l", "forearm_r", "calf_l", "calf_r"]},
+      "additionalProperties": {
+        "type": "object", "additionalProperties": false, "required": ["rotation"],
+        "properties": {"rotation": {
+          "type": "array", "minItems": 61, "maxItems": 61,
+          "items": {"type": "object", "additionalProperties": false, "required": ["time", "degrees"],
+            "properties": {"time": {"type": "number", "minimum": 0, "maximum": 2}, "degrees": {"type": "number", "minimum": -30, "maximum": 30}}}
+        }}
+      }
+    }
+  },
+  "allOf": [{
+    "if": {"properties": {"clip": {"const": "limb-flex-15"}}},
+    "then": {"properties": {"bones": {"additionalProperties": {
+      "properties": {"rotation": {"items": {"properties": {"degrees": {"minimum": -15, "maximum": 15}}}}}
+    }}}}
+  }]
+}

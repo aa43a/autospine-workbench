@@ -1,0 +1,129 @@
+{
+  "schema": "autospine.workbench-milestone-observation/v1",
+  "date": "2026-09-09",
+  "scope": "registered development audits; limb-flex-15 candidate playback only",
+  "authority": "none",
+  "production_authorized": false,
+  "evidence": [
+    {
+      "project_id": "alice",
+      "job_id": "job-aa6c7e7bb57948f9ae40848b321aee84",
+      "run_id": "run-fdc0ffe09e323fae26bbfbc7ee564ab0356ce0249f114240d0010798bf7efcf3",
+      "bundle_manifest_sha256": "467548b510d76f97e6bb76161819380bdc3c5f700a87332a7e4e8489dfecd01b",
+      "source_addresses": {
+        "animated_registration_sha256": "a4e82926cd63118ecd924d6adf4290735368b4fcf1f8076728827b0beee0c26f",
+        "benchmark_manifest_sha256": "ab91a9b8a7a6f0a07a933800e5627c18004c70e3f9aa8c35daf1203c9edb4b1c",
+        "input_identity_sha256": "9c9687c9223e29fda04d5a5152272624be24a8cef1386debc67e44566811d2a1",
+        "layer_binding_draft_sha256": "771d3fce9853cae2efc8825597390cca34327f644284128e99ac199bb93ead84",
+        "layer_bindings_sha256": "09a8ebea7ada165230ddfbfe7a24fe9ca220b495aac7c2067ac0b36947cab229",
+        "resolved_project_sha256": "b0b475cfca066d48b7e47d28ea1a6f0cf703d0324f23cb8f99b6ce3928cf4870",
+        "semantic_candidate_sha256": "f978384243b8f6d39c54df278ebb316b94ed0c62a1ff0263bbc77ecab352451f",
+        "skeleton_candidate_sha256": "8c64b71c953e40e9d997da8b61035ccd2b2952b3638df6b6dac5be6a64d6ec10"
+      },
+      "runtime_version": "4.3.13",
+      "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+      "harness_sha256": "6ce7cd975d18eccfda50a9fbb8a0df2de831e596fd7fc0a3241397f66afb552e",
+      "tool_sha256": "b74d844bb0b8ab2a163f01defec255bf6fa996258f8bc12cefe6d2e5c60f2975",
+      "browser": "152.0.7977.84",
+      "files": {
+        "setup.png": "32b9c65459804034fed9863e3b266a6c0bef5aa69ff311ce8e187235e22e3547",
+        "bend.png": "4e712ce2f7771ba6a5003ee5f8933476afef3c19ed15186643ca675a0abceeae"
+      },
+      "report_sha256": "6e17fc57cabbd7410e6c8aca018729f6b59cdc129e34bb0377b59d811ed8fbf4",
+      "frames": 61,
+      "metrics": {
+        "export_version": "4.3.26",
+        "animation": "limb-flex-15",
+        "max_page_uv_error": 2.969315637812997e-08,
+        "max_setup_error_px": 6.103515625e-05,
+        "max_motion_error_px": 6.801640620324179e-05,
+        "outside_viewport_coordinates": 0,
+        "animation_changed": true,
+        "geometry_changed": true,
+        "passed": true
+      }
+    },
+    {
+      "project_id": "lingxian",
+      "job_id": "job-b9b6211c7eaf45b7b6474b8bf199116c",
+      "run_id": "run-0ee46c5e18cf7750060c1a45064832ef35f41045c3c2da3d6832b4ac69298b87",
+      "bundle_manifest_sha256": "6840ca0ca76f9b6bf16b60097add0e12e9e9776bf06b9597e25d1836f68d248e",
+      "source_addresses": {
+        "animated_registration_sha256": "52da760729beb1da706e2106f90a4562b90af8161a240c33fdb6e1e388219285",
+        "benchmark_manifest_sha256": "ab91a9b8a7a6f0a07a933800e5627c18004c70e3f9aa8c35daf1203c9edb4b1c",
+        "input_identity_sha256": "50985dc5e0e3042e7e76b35f9104ba086ec36f96ac708070328dadacfa7fde56",
+        "layer_binding_draft_sha256": "b949297682819422503f3fd306269dbb871445871764e6e1eee88fa14de7250e",
+        "layer_bindings_sha256": "016705d29e2be0b078bca429981e5d1dd233f7ab40ca59bd900356a0ef2164da",
+        "resolved_project_sha256": "253a67e4ee39d3faf633dc56e2073da924aeb9015e5714d6f7d3c678b8a7e9bd",
+        "semantic_candidate_sha256": "1d81b699821c535740c3c8090332b3f6cf8d71546e59aa135c73a783173389ca",
+        "skeleton_candidate_sha256": "895eb588e07a7c3dffffb5b914b14794037e68a2922c9868c505bff52d6ff9c8"
+      },
+      "runtime_version": "4.3.13",
+      "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+      "harness_sha256": "6ce7cd975d18eccfda50a9fbb8a0df2de831e596fd7fc0a3241397f66afb552e",
+      "tool_sha256": "b74d844bb0b8ab2a163f01defec255bf6fa996258f8bc12cefe6d2e5c60f2975",
+      "browser": "152.0.7977.84",
+      "files": {
+        "setup.png": "66597bf8dce28fa3c7e7f915b64d2de5abcd1ad43befdb493f38f21015c39aa5",
+        "bend.png": "04594d490c61f1f95d438462d497054ac5281bd86bde9e387309c8e1db3c5444"
+      },
+      "report_sha256": "9f1fa9f5a697cdc69f795077f08c6ba2b2e64349d88d57318a32738a64c2b3b5",
+      "frames": 61,
+      "metrics": {
+        "export_version": "4.3.26",
+        "animation": "limb-flex-15",
+        "max_page_uv_error": 2.9297198333999575e-08,
+        "max_setup_error_px": 6.103515625e-05,
+        "max_motion_error_px": 9.689218745734252e-05,
+        "outside_viewport_coordinates": 0,
+        "animation_changed": true,
+        "geometry_changed": true,
+        "passed": true
+      }
+    },
+    {
+      "project_id": "crino",
+      "job_id": "job-af72ddb8c3f24bc59a94aa317f03bdb5",
+      "run_id": "run-6e50be9bc546983fac7deb2d340cbb789299cddc13766d2b691be3f300b8de56",
+      "bundle_manifest_sha256": "03dbba5dee0f38404db284d9258de717ced850fc8037e53cce5a02635454ba6c",
+      "source_addresses": {
+        "animated_registration_sha256": "ab809840740d789b9eca98d48529c652f2f06b16d5fd87d495df67b7fd5cad42",
+        "benchmark_manifest_sha256": "ab91a9b8a7a6f0a07a933800e5627c18004c70e3f9aa8c35daf1203c9edb4b1c",
+        "input_identity_sha256": "46fcbd3515306ef3d228e34949615bdaee5c55b612bc1d2a41c0634a2791da90",
+        "layer_binding_draft_sha256": "82a30460087015eb902c120b846546a27fbd2cda02ae7e11e667903adbeef361",
+        "layer_bindings_sha256": "5bf985d64860028407bf93f68cc4043d93a68606d6fcae2cf36f95baa0c58b0d",
+        "resolved_project_sha256": "d0bfd44c239d3db27462260a0c7ba38447e7fcbea7d5442d806566b04e04c020",
+        "semantic_candidate_sha256": "e0c2c3f07dcfc0bdf3083065d5089c593f021f8c3feed4a44b679e0363daa276",
+        "skeleton_candidate_sha256": "f026ecafeed17fa81819f43214ad04776ceab18648c5222f03c1d34733e1d0ec"
+      },
+      "runtime_version": "4.3.13",
+      "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+      "harness_sha256": "6ce7cd975d18eccfda50a9fbb8a0df2de831e596fd7fc0a3241397f66afb552e",
+      "tool_sha256": "b74d844bb0b8ab2a163f01defec255bf6fa996258f8bc12cefe6d2e5c60f2975",
+      "browser": "152.0.7977.84",
+      "files": {
+        "setup.png": "553f2c9a3bfc864f43b0ae18ecccb214be1258cc12684d406aceaed21a4fd2e1",
+        "bend.png": "da37a4f915c7b00f493fd87aa05320231adbadc3ed10f00ab7b2ccfd56ef1616"
+      },
+      "report_sha256": "f379496125fee7425a71f91435039170bfc831c6ff1722163a71263559d17c73",
+      "frames": 61,
+      "metrics": {
+        "export_version": "4.3.26",
+        "animation": "limb-flex-15",
+        "max_page_uv_error": 2.8868346491073282e-08,
+        "max_setup_error_px": 6.103515625e-05,
+        "max_motion_error_px": 9.303749993705424e-05,
+        "outside_viewport_coordinates": 0,
+        "animation_changed": true,
+        "geometry_changed": true,
+        "passed": true
+      }
+    }
+  ],
+  "limitations": [
+    "Independent official Runtime reports do not mutate online QA runtime_status:not_run.",
+    "No full-character seam, occlusion or residual approval.",
+    "Lingxian setup retains a gray collar part and shoeless appearance for source/context review.",
+    "Unregistered PNG intake, ten-character calibration and automatic source rebase remain outside this milestone."
+  ]
+}

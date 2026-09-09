@@ -99,7 +99,7 @@ class WorkflowHubCatalogTests(unittest.TestCase):
 
     def test_current_stage_names_product_preview_and_preserves_exact_entries(self) -> None:
         self.assertEqual(
-            "AS-005-region-preview-workbench",
+            "workbench-animated-preview-v1",
             self.catalog["current_stage"],
         )
         entry = next(
