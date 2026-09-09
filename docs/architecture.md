@@ -1,5 +1,7 @@
 # AutoSpine Workbench 架构与质量门禁
 
+`sleeve_boundary.py`仅生成固定64轮邻接图手骨保留系数；调用者`sleeve_weights.py`在独立可选profile下以129点/轨道比较内部权重候选与平滑候选。手与unknown固定、服装内部和混合边界分别处理，整区域回退。未修改既有默认profile输出，也不授予发布权。
+
 `asset/planning/sleeve_regions.py`生成腕带几何提示与初始unknown三角归属，严格验证返回草稿的来源、清单、类别和预填来源；`sleeve_region_review.py`校验源PNG后嵌入独立`sleeve-region-review.js`编辑器。候选/草稿分别寻址，不修改旧Mesh合同或权重。像素归属与服装语义仍须单独验证。
 
 袖子不能仅按整层三骨链建模：[通用袖子方案](sleeve-rigging-plan.md)定义袖段/袖口/手/垂布的不同驱动。当前新增的`component_axial_solver.py`与`component_axial_correction.py`只提供独立局部几何实验及129点逐关键姿态门禁，历史圆形solver、权重、UV和拓扑不变；`component-axial-correction/v1`引用精确回退候选与骨架，不授予服装语义或生产权。
