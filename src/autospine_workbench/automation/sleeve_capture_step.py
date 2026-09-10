@@ -38,7 +38,9 @@ def checked_summary(path,root,project,record,expected,repo):
     result=summarize(doc,evidence('contacts',doc['contact_sha256']))
     overlap=doc['overlap'];rows=overlap_summaries(overlap,evidence('overlap',overlap['source_sha256']))
     if overlap['hook_sha256']!=hashlib.sha256((repo/'tools/sleeve-overlap-framebuffer.js').read_bytes()).hexdigest():raise ValueError('sleeve_capture_code')
-    for image in doc['captures']+[i for c in overlap['captures'] for i in c['images']]:
+    images=doc['captures']+[i for c in overlap['captures'] for i in c['images']]
+    images += [c['context'] for c in overlap['captures'] if c.get('context')]
+    for image in images:
         file=path.parent/image['file']
         if file.resolve().parent!=path.parent.resolve() or hashlib.sha256(file.read_bytes()).hexdigest()!=image['sha256']:
             raise ValueError('sleeve_capture_image')

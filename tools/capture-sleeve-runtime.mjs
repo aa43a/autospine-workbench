@@ -101,6 +101,10 @@ try{
                 const raw=Buffer.from(url.split(',')[1],'base64'),file=`overlap-${track.animation}-${phase}-${mode}.png`;
                 await publish(path.join(destination,file),raw);images.push({mode,file,sha256:hash(raw)});
               }
+              const contextRaw=Buffer.from(result.context_image.split(',')[1],'base64'),contextFile=`overlap-${track.animation}-${phase}-context.png`;
+              await publish(path.join(destination,contextFile),contextRaw);
+              delete result.context_image;
+              result.context={file:contextFile,sha256:hash(contextRaw)};
               result.images=images;overlapCaptures.push({phase,software_peak:peak,...result});
             }
           }

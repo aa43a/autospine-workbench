@@ -40,7 +40,8 @@ def main():
             if len(match)!=1 or match[0]['asset_sha256']!=doc['asset_sha256']:raise ValueError('overlap_assets')
             results=overlap_summaries(doc['overlap'],match[0])
             extra=[i for c in doc['overlap']['captures'] for i in c['images']]
-            overlap_html=overlap_render(doc['overlap'],results,lambda f:(path.parent/f).relative_to(args.input).as_posix())
+            extra += [c['context'] for c in doc['overlap']['captures'] if c.get('context')]
+            overlap_html=overlap_render(doc['overlap'],results,lambda f:(path.parent/f).relative_to(args.input).as_posix(),doc['info'])
         for c in doc['captures']+extra:
             image=path.parent/c['file']
             if image.resolve().parent!=path.parent.resolve() or hashlib.sha256(image.read_bytes()).hexdigest()!=c['sha256']:

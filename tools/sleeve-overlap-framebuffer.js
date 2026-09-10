@@ -1,7 +1,7 @@
 /* Same-pose triangle isolation uses the official renderer, preserving full-mesh order. */
 window.installSleeveOverlap=({canvas,gl,skeleton,renderer,left,bottom})=>{
   window.captureOverlap=(animation,index,pair)=>{
-    const pose=window.captureFrame(animation,index),slot=skeleton.slots[0],a=slot.appliedPose.attachment;
+    const pose=window.captureFrame(animation,index),context_image=window.framePNG(),slot=skeleton.slots[0],a=slot.appliedPose.attachment;
     const original=a.triangles;
     if(!Array.isArray(pair)||pair.length!==2||pair[0]===pair[1]||pair.some(i=>!Number.isInteger(i)||i<0||3*i+2>=original.length))throw Error('overlap_pair');
     const vertices=new Float32Array(a.worldVerticesLength);
@@ -45,7 +45,7 @@ window.installSleeveOverlap=({canvas,gl,skeleton,renderer,left,bottom})=>{
         dual.push({world_xy:[left+x0+i%width+.5,bottom+y0+Math.floor(i/width)+.5],first_alpha:aa,second_alpha:ab,
           composite_rgba:Array.from(images.full.raw.slice(off,off+4)),alpha_increase:alphaIncrease,max_premultiplied_channel_change:change});
       }
-      return {animation,index,time:pose.time,pair,roi:{x:left+x0,y:bottom+y0,width,height},
+      return {animation,index,time:pose.time,pair,context_image,roi:{x:left+x0,y:bottom+y0,width,height},
         dual_alpha8_pixels:dual.length,max_alpha_increase:maxAlphaIncrease,max_full_channel_change:maxFullChange,
         dual_samples:dual,images:Object.fromEntries(Object.entries(images).map(([k,v])=>[k,v.png]))};
     }finally{a.triangles=original;window.captureFrame(animation,index);}
