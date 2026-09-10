@@ -145,6 +145,17 @@ class SleeveWebJobs:
             self._assert_current(read_document(root/'request.json'))
             return self._download_candidate(job,root,index)
 
+    def review_file(self,project,job_id,parts):
+        from .sleeve_review_files import read
+        with self._lock:
+            job=self._raw_get(project,job_id);job_root=self._path(job_id)
+            if sleeve_visibility.read(job_root)['withdrawn']:raise PipelineRunError('sleeve_candidate_withdrawn')
+            self._assert_current(read_document(job_root/'request.json'))
+            if job['status'] not in ('needs_review','blocked'):raise PipelineRunError('pipeline_preview_not_ready')
+            root=directory(Path(read_document(job_root/'result-location.json')['directory'])).resolve()
+            if (self.output/project).resolve() not in root.parents:raise PipelineRunError('pipeline_request_invalid')
+            return read(root,project,job['result'],parts)
+
     def _download_candidate(self,job,job_root,index):
         if job['status']!='needs_review':raise PipelineRunError('pipeline_preview_not_ready')
         records=job['result']['records']

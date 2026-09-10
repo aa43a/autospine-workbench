@@ -62,7 +62,16 @@ export function createWorkbenchSleeves(document, hooks, options = {}) {
   const stop = () => { if (timer !== null) unschedule(timer); timer = null; };
   function render() {
     const safe = editable && !context().dirty && !context().saving && !context().loading;
+    const reviews = [];
+    if (safe && !error && !job?.candidate_withdrawn && job?.result) {
+      const completed = new Set((job.result.steps || []).filter(s => s.status === 'succeeded').map(s => s.id));
+      const stage = ['repair', 'cuff', 'boundary'].find(s => completed.has(s));
+      const base = `${endpoint()}/jobs/${job.job_id}/view`;
+      if (stage) reviews.push({ label: '打开修正时间轴', url: `${base}/${stage}/${encodeURIComponent(context().projectId)}/index.html` });
+      if (completed.has('framebuffer')) reviews.push({ label: '查看官方捕获与重叠', url: `${base}/framebuffer/index.html` });
+    }
     view.render({ canStart: Boolean(identity && safe && overview?.can_build && !busy && !ACTIVE.has(job?.status)),
+      reviews,
       canRefresh: Boolean(identity && !busy), active: busy || ACTIVE.has(job?.status),
       withdrawn: Boolean(job?.candidate_withdrawn),
       canVisibility: Boolean(identity && safe && !busy && job?.status === 'needs_review'
@@ -130,11 +139,11 @@ export function createWorkbenchSleeves(document, hooks, options = {}) {
 function createView(document, callbacks) {
   const node = (tag, text = '') => { const el = document.createElement(tag); el.textContent = text; return el; };
   const element = node('section'), title = node('h3', '袖装候选'), build = node('button', '重建袖装候选'), refresh = node('button', '刷新状态');
-  const status = node('p'), rows = node('ul'); status.setAttribute('role', 'status');
+  const status = node('p'), reviews = node('nav'), rows = node('ul'); status.setAttribute('role', 'status');
   const withdraw = node('button', '撤回当前候选'), restore = node('button', '恢复当前候选');
   withdraw.type = restore.type = 'button'; withdraw.addEventListener('click', callbacks.withdraw); restore.addEventListener('click', callbacks.restore);
   build.type = refresh.type = 'button'; build.addEventListener('click', callbacks.start); refresh.addEventListener('click', callbacks.refresh);
-  element.append(title, node('p', '按已保存的手、袖布、袖口和垂布归属重建。重复构建会校验并复用已完成步骤。'), build, refresh, withdraw, restore, status, rows,
+  element.append(title, node('p', '按已保存的手、袖布、袖口和垂布归属重建。重复构建会校验并复用已完成步骤。'), build, refresh, withdraw, restore, status, reviews, rows,
     node('p', '支持动作范围：前臂 ±30° / 手 ±30° / 垂布 ±10°，包含单轴及组合测试；不代表任意三轴组合均已验证。'),
     node('p', 'Spine 4.3.26 候选；官方核心数值验证不包含 GPU 渲染与透明接缝检查，也不代表正式采用。'));
   return { element, render(model) {
@@ -142,6 +151,7 @@ function createView(document, callbacks) {
     withdraw.hidden = model.withdrawn || !model.canVisibility; restore.hidden = !model.withdrawn;
     withdraw.disabled = restore.disabled = !model.canVisibility;
     element.setAttribute('aria-busy', String(model.active));
+    reviews.replaceChildren(...model.reviews.map(r => { const a = node('a', r.label); a.href = r.url; a.target = '_blank'; a.rel = 'noopener'; a.setAttribute('style', 'margin-right:1em'); return a; }));
     rows.replaceChildren(...model.rows.map(r => {
       const row = node('li', `${r.layer_id} · ${r.status === 'candidate_exported' ? '候选已导出' : '候选已阻塞'} · ${r.runtime_status === 'passed' || r.runtime_status === 'core_passed' ? '核心数值验证通过' : '核心验证未通过或未执行'}`);
       row.append(node('p', sleeveReasonMessage(r.reason_code)));

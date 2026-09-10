@@ -35,3 +35,8 @@ remain `needs_review`; this external observation does not rewrite their authorit
 Follow-up remains: freeze the current policy and test an additional reviewed sleeve
 case without tuning against it before expanding generality claims. Full-character
 motion/occlusion integration is not established by isolated sleeve capture.
+
+Main workbench review links are now verified end-to-end; see
+`r3s-workbench-review-entry.md`. The attempted Yaomeng sample was rejected by
+the user as sleeveless and retained only as a negative applicability observation.
+It does not satisfy the additional sleeve validation requirement.

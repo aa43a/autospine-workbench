@@ -18,6 +18,8 @@ def dispatch_sleeves(tail,handler,method,project):
     if len(tail)==2 and tail[0]=='jobs':allowed='GET, HEAD, OPTIONS'
     visibility=len(tail)==3 and tail[0]=='jobs' and tail[2] in ('withdraw','restore')
     if visibility:allowed='POST, OPTIONS'
+    review=len(tail)>=5 and tail[0]=='jobs' and tail[2]=='view'
+    if review:allowed='GET, HEAD, OPTIONS'
     if len(tail)==4 and tail[0]=='jobs' and tail[2]=='download' and tail[3].isascii() and tail[3].isdigit():
         allowed='GET, HEAD, OPTIONS'
     if allowed is None:
@@ -38,6 +40,9 @@ def dispatch_sleeves(tail,handler,method,project):
             manager=manager_for(handler.server)
             if not tail:handler._send_visual_json(200,manager.overview(project))
             elif len(tail)==2:handler._send_visual_json(200,manager.get(project,tail[1]))
+            elif review:
+                raw,mime=manager.review_file(project,tail[1],tail[3:])
+                handler._send_bytes(200,raw,mime,visual_review=True)
             else:
                 raw=manager.download(project,tail[1],int(tail[3]))
                 handler._send_bytes(200,raw,'application/zip',visual_review=True,

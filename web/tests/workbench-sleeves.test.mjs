@@ -30,7 +30,8 @@ test('sleeve panel shows scope and actionable reasons without changing download 
     {layer_id:'left', status:'blocked', download:null, reason_code:'motion_envelope_geometry_failure'},
     {layer_id:'right', status:'candidate_exported', download:'candidate.zip', reason_code:'sleeve_occlusion_review_required'},
   ];
-  let state={...job('needs_review'),result:{project_id:'huiye',authority:'none',production_authorized:false,records}};
+  let state={...job('needs_review'),result:{project_id:'huiye',authority:'none',production_authorized:false,records,
+    steps:[{id:'cuff',status:'succeeded'},{id:'repair',status:'succeeded'},{id:'framebuffer',status:'succeeded'}]}};
   const ui = createWorkbenchSleeves(doc, {context: () => ({projectId:'huiye', resolvedSha:'a'.repeat(64)}),
     apiRequest: async (url,options) => {
       if (!options.method) return {project_id:'huiye',authority:'none',can_build:true,job:state};
@@ -46,12 +47,14 @@ test('sleeve panel shows scope and actionable reasons without changing download 
   assert.match(text, /复核手与垂布/);
   assert.doesNotMatch(text, /区域检查未通过/);
   assert.deepEqual(nodes.filter(n => n.tagName === 'a').map(n => n.href),
-    [`/api/projects/huiye/automation/sleeves/jobs/job-${'a'.repeat(32)}/download/1`]);
+    [`/api/projects/huiye/automation/sleeves/jobs/job-${'a'.repeat(32)}/view/repair/huiye/index.html`,
+      `/api/projects/huiye/automation/sleeves/jobs/job-${'a'.repeat(32)}/view/framebuffer/index.html`,
+      `/api/projects/huiye/automation/sleeves/jobs/job-${'a'.repeat(32)}/download/1`]);
   nodes.find(n => n.textContent === '撤回当前候选').dispatchEvent(new Event('click'));await tick();
   assert.equal(descend(ui.element).filter(n => n.tagName === 'a').length,0);
   const restore=nodes.find(n => n.textContent === '恢复当前候选');assert.equal(restore.hidden,false);
   restore.dispatchEvent(new Event('click'));await tick();
-  assert.equal(descend(ui.element).filter(n => n.tagName === 'a').length,1);
+  assert.equal(descend(ui.element).filter(n => n.tagName === 'a').length,3);
   ui.dispose();
 });
 
