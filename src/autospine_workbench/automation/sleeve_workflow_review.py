@@ -13,12 +13,17 @@ def render(report):
         if row.get('software_overlap'):
             o=row['software_overlap'];action+=f'<p>软件重叠检查 {o["frames"]} 帧；新增双覆盖 {o["affected_frames"]} 帧；单对峰值 {o["peak_excess_pair_pixels"]} 像素。仅诊断，GPU未验证。</p>'
         else:action+='<p>软件重叠尚未检查；GPU未验证。</p>'
+        if row.get('official_framebuffer'):
+            f=row['official_framebuffer'];action+=f'<p>官方WebGL（SwiftShader）{f["frames"]}帧；袖口空白失败 {f["failed_samples"]}；新增双覆盖峰值组 {f["overlap_affected_peaks"]}/{f["overlap_peak_pairs"]}，最大 {f["overlap_peak_pixels"]} 像素。遮挡待复核。</p>'
         rows.append(f'<tr><td>{label}</td><td>{escape(row["status"])}</td><td>{escape(row["reason_code"])}</td><td>{action}</td></tr>')
     stages=' → '.join(escape(s['id'])+('（复用）' if s['cached'] else '✓') for s in report['steps'])
     project=escape(report['project_id'])
     timeline='cuff' if any(s['id']=='cuff' for s in report['steps']) else 'boundary'
     runtime_note=('已导出区域官方核心数值验证通过；GPU与alpha接缝仍未验证。' if report['runtime_status']=='core_passed'
         else '官方核心未完成或未通过；GPU与alpha接缝仍未验证。')
+    if report.get('framebuffer_review'):
+        runtime_note='官方WebGL捕获已执行，逐袖结果见上表；未证明全域遮挡与完整角色通过。'
+        runtime_note+=f'<a href="{escape(report["framebuffer_review"],quote=True)}">查看帧缓冲及重叠六视图</a>。'
     return f'''<!doctype html><meta charset="utf-8"><title>袖装重建 · {project}</title>
 <style>body{{font:17px system-ui;background:#152332;color:#eef;margin:32px;max-width:1200px}}a{{color:#6dd8ff}}td,th{{padding:14px;text-align:left;border-bottom:1px solid #456}}table{{width:100%}}p{{line-height:1.8}}</style>
 <h1>{project} · 袖装候选重建</h1><p>{stages}</p>

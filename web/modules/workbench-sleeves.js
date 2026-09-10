@@ -15,6 +15,13 @@ export function overlapMessage(value) {
   return `软件重叠：检查 ${value.frames} 帧，新增双覆盖 ${value.affected_frames} 帧，单对峰值 ${value.peak_excess_pair_pixels} 像素；仅诊断，GPU 未验证。`;
 }
 
+export function framebufferMessage(value) {
+  if (!value) return '官方帧缓冲尚未捕获。';
+  const overlap = value.overlap_peak_pairs ? `重叠峰值 ${value.overlap_affected_peaks}/${value.overlap_peak_pairs} 组出现新增双覆盖，峰值 ${value.overlap_peak_pixels} 像素`
+    : '软件诊断未给出重叠峰值，尚未完成全域遮挡验收';
+  return `官方 WebGL（SwiftShader）：${value.frames} 帧，袖口空白失败 ${value.failed_samples}；${overlap}。遮挡仍需复核。`;
+}
+
 export function readSleeveJob(value, project) {
   if (value?.schema !== 'autospine.sleeve-web-job/v1' || value.project_id !== project || value.authority !== 'none'
     || !/^job-[a-f0-9]{32}$/.test(value.job_id) || !['pending', 'running', 'needs_review', 'failed'].includes(value.status)) throw Error('袖装任务响应无效。');
@@ -92,7 +99,9 @@ function createView(document, callbacks) {
     element.setAttribute('aria-busy', String(model.active));
     rows.replaceChildren(...model.rows.map(r => {
       const row = node('li', `${r.layer_id} · ${r.status === 'candidate_exported' ? '候选已导出' : '局部变形未通过，已阻塞'} · ${r.runtime_status === 'passed' || r.runtime_status === 'core_passed' ? '核心数值验证通过' : '核心验证未通过或未执行'}`);
-      row.append(node('p', contactMessage(r.software_contact)), node('p', overlapMessage(r.software_overlap)));
+      if (r.official_framebuffer) row.append(node('p', framebufferMessage(r.official_framebuffer)));
+      else row.append(node('p', contactMessage(r.software_contact)), node('p', overlapMessage(r.software_overlap)),
+        node('p', framebufferMessage(null)));
       if (r.url) { const a = node('a', ' 下载候选 ZIP'); a.href = r.url; row.append(a); }
       return row;
     }));

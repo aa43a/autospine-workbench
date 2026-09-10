@@ -1,6 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createWorkbenchSleeves, readSleeveJob, contactMessage, overlapMessage } from '../modules/workbench-sleeves.js';
+import { createWorkbenchSleeves, readSleeveJob, contactMessage, overlapMessage, framebufferMessage } from '../modules/workbench-sleeves.js';
+
+test('official capture preserves backend and unresolved overlap', () => {
+  assert.match(framebufferMessage(null), /尚未捕获/);
+  const text = framebufferMessage({frames:1799, failed_samples:0, overlap_affected_peaks:2, overlap_peak_pairs:2, overlap_peak_pixels:5});
+  assert.match(text, /SwiftShader/);
+  assert.match(text, /2\/2/);
+  assert.match(text, /遮挡仍需复核/);
+  assert.match(framebufferMessage({frames:1799, failed_samples:0, overlap_peak_pairs:0}), /尚未完成全域遮挡验收/);
+});
 
 test('overlap remains diagnostic including zero findings and old reports', () => {
   assert.match(overlapMessage(null), /尚未检查/);

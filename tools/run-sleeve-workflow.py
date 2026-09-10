@@ -22,8 +22,15 @@ def main():
     p.add_argument('--output',type=Path,default=repo.parent/'tmp/r3s-workflow')
     p.add_argument('--state-root',type=Path,default=repo/'workspace');p.add_argument('--workspace',type=Path,default=repo.parent)
     p.add_argument('--runtime-core',type=Path,help='Installed official spine-core package; no downloads')
+    p.add_argument('--capture-dependencies',type=Path,help='Existing official WebGL and Playwright installation')
+    p.add_argument('--capture-browser',type=Path,help='Existing browser executable for isolated sleeve capture')
     a=p.parse_args();store=ProjectStore(a.workspace.resolve(),a.state_root.resolve());engine=code_identity(repo)
     runtime=None
+    capture=None
+    if bool(a.capture_dependencies)!=bool(a.capture_browser):raise ValueError('sleeve_capture_environment_incomplete')
+    if a.capture_dependencies:
+        from autospine_workbench.automation.sleeve_capture_environment import identity as capture_identity
+        capture=capture_identity(a.capture_dependencies,a.capture_browser)
     if a.runtime_core:
         from autospine_workbench.automation.sleeve_runtime_step import identity
         runtime=identity(a.runtime_core.resolve())
@@ -31,8 +38,8 @@ def main():
         require_safe_token(project,'project');draft=read_input(a.draft_root/project/'draft.json')
         if draft['project_id']!=project:raise ValueError('sleeve_workflow_project_mismatch')
         with load_inputs(store,project) as inputs:
-            signature=canonical_sha256(dict(profile='retained-sleeve-chain-v6',project_id=project,draft_sha256=canonical_sha256(draft),
-                skeleton_sha256=canonical_sha256(inputs.skeleton),source_addresses=inputs.source_addresses,engine=engine,runtime=runtime))
+            signature=canonical_sha256(dict(profile='retained-sleeve-chain-v7',project_id=project,draft_sha256=canonical_sha256(draft),
+                skeleton_sha256=canonical_sha256(inputs.skeleton),source_addresses=inputs.source_addresses,engine=engine,runtime=runtime,capture=capture))
             run_id='run-'+signature;root=directory(a.output.resolve()/project/run_id,create=True)
             with execution_lease(store.state_root,run_id):
                 snapshot=root/'inputs';export(snapshot/project/'draft.json',canonical_bytes(draft))
@@ -44,6 +51,9 @@ def main():
                 if runtime:
                     from autospine_workbench.automation.sleeve_runtime_step import run as verify_runtime
                     report=verify_runtime(repo,root,project,a.runtime_core.resolve(),runtime,report,assert_snapshot)
+                if capture:
+                    from autospine_workbench.automation.sleeve_capture_step import run as capture_frames
+                    report=capture_frames(repo,root,project,a.capture_dependencies.resolve(),a.capture_browser.resolve(),capture,report,assert_snapshot)
                 export(root/(canonical_sha256(report)+'.json'),canonical_bytes(report))
                 # View is derived, not an identity/authority document.
                 (root/'index.html').write_text(render(report),encoding='utf-8')

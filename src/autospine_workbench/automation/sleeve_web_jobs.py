@@ -75,6 +75,8 @@ class SleeveWebJobs:
                 '--output',str(self.output),'--state-root',str(self.projects.state_root),'--workspace',str(self.projects.workspace_root)]
             core=self.projects.workspace_root/'tmp/spine43-verification/node_modules/@esotericsoftware/spine-core'
             if core.is_dir():command+=['--runtime-core',str(core)]
+            from .sleeve_capture_environment import discover
+            command+=discover(self.projects.workspace_root)
             env=dict(os.environ);env['PYTHONPATH']=str(self.repo/'src');final=None
             with (root/'execution.log').open('w',encoding='utf-8') as log:
                 with subprocess.Popen(command,cwd=self.repo,env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,encoding='utf-8',errors='replace') as process:
