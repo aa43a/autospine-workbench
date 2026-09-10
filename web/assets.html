@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>资产中心 · AutoSpine</title>
+  <link rel="stylesheet" href="asset-center.css">
+</head>
+<body>
+  <header><a href="/">AutoSpine 工作台</a><span>项目与素材</span></header>
+  <main>
+    <section class="heading"><div><h1>资产中心</h1><p>查找角色、打开工作台，或整理暂时不用的项目。</p></div><button id="refresh" type="button">刷新资产</button></section>
+    <section id="asset-import" class="import-panel" aria-label="新增 PSD 项目"></section>
+    <section class="toolbar" aria-label="筛选资产">
+      <label>搜索角色<input id="search" type="search" placeholder="项目名称或 ID" autocomplete="off"></label>
+      <nav id="filters" aria-label="项目状态"></nav>
+    </section>
+    <p id="status" role="status" aria-live="polite"></p>
+    <p id="error" role="alert" hidden></p>
+    <section id="projects" class="projects" aria-label="项目列表"></section>
+    <p class="footnote">归档保留全部项目数据。删除会移入回收站，可随时恢复；不会删除源 PSD。</p>
+  </main>
+  <script type="module" src="modules/asset-center.js"></script>
+</body>
+</html>

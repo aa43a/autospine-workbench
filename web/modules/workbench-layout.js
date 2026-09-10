@@ -14,6 +14,7 @@ export function workbenchLayout(document) {
   nav.setAttribute("aria-label", "工作区步骤");
   const pages = {}, buttons = {}, slots = {};
   canvas.before(center); center.append(nav);
+  const library = node("a", "资产中心", "button button-secondary"); library.href = "/assets.html"; nav.append(library);
   for (const [id, label] of Object.entries(STEPS)) {
     const button = node("button", label, "button button-secondary"); button.type = "button";
     const page = node("section", "", "workbench-page"); page.id = `workbench-${id}`;

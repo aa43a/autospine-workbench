@@ -29,6 +29,7 @@ class PipelineWebJobs:
         self._lock, self._active, self._closed = RLock(), {}, False
         self._animated = None
         self._preparation = None
+        self._imports = None
         self._sleeves = None
 
     def _path(self, job_id, *, create=False):
@@ -148,6 +149,8 @@ class PipelineWebJobs:
             self._preparation.close()
         if self._sleeves is not None:
             self._sleeves.close()
+        if self._imports is not None:
+            self._imports.close()
 
 
 def _response(job_id, project_id, status, *, target_version="4.2", **fields):

@@ -35,6 +35,10 @@ def dispatch_project_get(
         return True
     if parts == ["api", "projects"]:
         projects = store.list_projects()
+        from .automation.asset_library import AssetLibrary
+        library = AssetLibrary(store)
+        projects = [{**p, 'name': library.metadata(p['id'])['name'] or p['name']}
+                    for p in projects if library.metadata(p['id'])['lifecycle'] == 'active']
         send_json(
             HTTPStatus.OK,
             {

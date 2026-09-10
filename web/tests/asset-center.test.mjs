@@ -1,0 +1,18 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { filterAssets, assetMutation } from '../modules/asset-center.js';
+
+test('asset filtering keeps archived and trashed projects separate while searching names and IDs', () => {
+  const rows = [{ id: 'alice', name: '爱丽丝', lifecycle: 'active' }, { id: 'ALICE-2', name: '归档', lifecycle: 'archived' },
+    { id: 'other', name: 'Alice', lifecycle: 'trashed' }];
+  assert.deepEqual(filterAssets(rows, 'active', '爱丽'), [rows[0]]);
+  assert.deepEqual(filterAssets(rows, 'archived', ' alice '), [rows[1]]);
+  assert.deepEqual(filterAssets(rows, 'active', '归档'), []);
+});
+test('asset mutations preserve optimistic revision and distinguish trash from physical deletion', () => {
+  assert.deepEqual(assetMutation({ revision: 7 }, 'trash'), { action: 'trash', expected_revision: 7 });
+  assert.deepEqual(assetMutation({ revision: 8 }, 'rename', ' 灵梦 '), { action: 'rename', expected_revision: 8, name: '灵梦' });
+  assert.throws(() => assetMutation({ revision: -1 }, 'restore'));
+  assert.throws(() => assetMutation({ revision: 0 }, 'delete'));
+  assert.throws(() => assetMutation({ revision: 0 }, 'rename', '  '));
+});

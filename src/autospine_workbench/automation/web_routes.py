@@ -11,6 +11,12 @@ from .web_download import download_job
 
 
 def dispatch_automation(parts, handler, method):
+    from .psd_import_routes import dispatch_imports
+    if dispatch_imports(parts, handler, method):
+        return True
+    from .asset_routes import dispatch_assets
+    if dispatch_assets(parts, handler, method):
+        return True
     if len(parts) < 4 or parts[:2] != ["api", "projects"] or parts[3] != "automation":
         return False
     tail = parts[4:]
