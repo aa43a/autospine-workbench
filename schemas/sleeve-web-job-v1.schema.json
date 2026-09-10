@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "autospine.sleeve-web-job/v1",
+  "type": "object",
+  "required": ["schema", "job_id", "project_id", "status", "authority"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {"const": "autospine.sleeve-web-job/v1"},
+    "job_id": {"type": "string", "pattern": "^job-[a-f0-9]{32}$"},
+    "project_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "status": {"enum": ["pending", "running", "needs_review", "failed"]},
+    "step": {"type": ["string", "null"]},
+    "authority": {"const": "none"},
+    "reason_code": {"type": "string"},
+    "result": {"$ref": "sleeve-workflow-v1.schema.json"}
+  }
+}
