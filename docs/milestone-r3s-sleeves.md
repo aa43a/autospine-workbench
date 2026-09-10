@@ -294,3 +294,13 @@ python tools/build-sleeve-helpers.py --motion-envelope --connection-domain --bou
 
 收据保存于`tmp/r3s-overlap-full/{huiye,uuz}/<sha>.json`，包括源报告、资产和分析代码身份。
 7项数值/反例测试通过，覆盖相交面积、绕序、共有边、相似变换、非有限输入、透明纹理及小面积可见重叠漏检。
+
+## 精确时刻原生复现
+
+为两处左袖的`combined_mp/combined_pm`峰值生成4份固定姿态检查副本。
+源报告、诊断与资产身份均验证后写入独立目录；CPU比较原时刻与副本0/0.5/1秒逐顶点误差均为0。
+只支持当前线性rotate/deform，拒绝未知轨道、曲线和越界时刻，原候选不变。
+
+幽幽子左袖`combined_pm`的0.4765625秒副本已在Spine Trial 4.3.26导入，
+进入`inspection`动画并查看首尾，纹理正常显示、姿态保持。缺少hull/internal edges的提示仍存在。
+本轮未获得像素级帧缓冲对照，不据此排除前述5像素重叠风险；其余3份固定姿态的原生局部检查待完成。

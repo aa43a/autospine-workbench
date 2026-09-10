@@ -108,3 +108,14 @@ python tools/check-sleeve-overlap.py --input ../tmp/r3s-edge-spine --output ../t
 同时检查所有相交对包围盒内的原生像素中心，记录两片纹理alpha均至少为8的新增覆盖。
 结果定位到动作、时刻及三角形编号；最大面积对与最大可见覆盖对分别记录，避免透明边缘掩盖小面积问题。
 这是一份内容寻址诊断收据，不是采用决定。亚像素、GPU边界填充规则、混合与过滤仍需单独验证。
+
+为报告中的可见覆盖峰值生成精确姿态副本：
+
+```powershell
+python tools/prepare-sleeve-overlap-editor.py --input ../tmp/r3s-edge-spine --diagnostics ../tmp/r3s-overlap-full --output ../tmp/r3s-overlap-editor huiye uuz
+```
+
+导入输出的`editor.json`，切到动画模式的`inspection`。该动画持续保持原报告的精确时刻，
+无需拖动到小数帧。副本保留原骨架/权重/图片，只替换为该时刻的恒定旋转与deform轨；
+来源收据记录原动作、时刻、诊断摘要和CPU姿态误差。未知轨道、曲线或超出关键帧范围明确拒绝。
+副本的编辑器帧0不是源动画setup，不能把它当作原资产的setup验收。
