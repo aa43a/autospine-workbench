@@ -20,6 +20,7 @@ def main():
     p.add_argument('--connection-domain',action='store_true',help='Allow role-bounded garment connection support')
     p.add_argument('--baseline-envelope',type=Path)
     p.add_argument('--boundary-budget',action='store_true',help='Use explicit bounded area-feasibility budget policy')
+    p.add_argument('--edge-budget',action='store_true',help='Include edge-length displacement lower bounds in the same capped budget')
     p.add_argument('--support-mesh',action='store_true',help='Refine garment interfaces without changing affine source deformation')
     p.add_argument('--joint-solver',action='store_true',help='Use optional NumPy/SciPy joint constraint candidate')
     p.add_argument('--rigid-hand',action='store_true',help='Test explicit hand ownership with rigid hand-boundary weights')
@@ -32,6 +33,7 @@ def main():
     if a.connection_domain and not a.motion_envelope:p.error('connection-domain requires motion-envelope')
     if a.connection_domain and not a.baseline_envelope:p.error('connection-domain requires baseline-envelope')
     if a.boundary_budget and not a.connection_domain:p.error('boundary-budget requires connection-domain')
+    if a.edge_budget and (not a.boundary_budget or a.support_mesh):p.error('edge-budget requires boundary-budget and original mesh')
     if a.support_mesh and not a.boundary_budget:p.error('support-mesh requires boundary-budget')
     if a.joint_solver and not a.boundary_budget:p.error('joint-solver requires boundary-budget')
     if a.uncuffed_interface and not a.cuff_harmonic:p.error('uncuffed-interface requires cuff-harmonic')
@@ -68,6 +70,8 @@ def main():
                     amended,domains=prepare_support(source,garment,draft)
                 if a.joint_solver:
                     for domain in domains.values():domain['solver_profile']='joint-area-edge-sparse200-v1'
+                if a.edge_budget:
+                    for domain in domains.values():domain['budget_policy']='area-edge-displacement-bound-cap50-v1'
                 doc=envelope_build(amended,inputs.skeleton,domains)
                 if a.boundary_budget:doc['profile']='garment-connection-bound50-sine129-v1'
                 if a.support_mesh:
@@ -84,6 +88,7 @@ def main():
                     from autospine_workbench.resolved_project import canonical_sha256
                     profile='garment-hand-interface-harmonic-sine129-v1' if a.uncuffed_interface else 'garment-cuff-harmonic-boundary-sine129-v1'
                     doc.update(source_sha256=canonical_sha256(source),profile=profile+('-joint200' if a.joint_solver else ''))
+                if a.edge_budget:doc['profile']+='-edge-budget-v1'
                 if a.connection_domain:
                     from autospine_workbench.asset.planning.sleeve_connection_domain import retain
                     prior=(a.baseline_envelope/project/'index.html').read_text(encoding='utf-8')

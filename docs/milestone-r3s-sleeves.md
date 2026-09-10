@@ -207,6 +207,26 @@ R3-S仍未完成：两个左袖的局部变形，以及GPU/alpha接缝验收仍�
 本轮完整入口验证：两角色各10步执行完成，两个右袖官方核心数值检查与候选ZIP校验通过；
 新版袖口结果用于后续导出门禁。相关28项测试通过，新增模块保持300行以下。
 
+## 边长必要位移预算：四袖几何通过
+
+原预算仅由面积约束推导。幽幽子左袖极值姿态的自由顶点132与固定顶点133之间，
+回到QA边长上限至少需要31.712px位移，但当帧只分配25.839px；增加求解迭代或关键帧不能消除该矛盾。
+新`area-edge-displacement-bound-cap50-v1`按三角不等式补充必要位移：
+`max(0,当前边长 - 1.9 × setup边长) / 可移动端点数`。
+最终预算仍受前臂长度50%硬上限约束，沿用10%余量，固定端点不移动；面积和边长QA门槛不变。
+该下界不等于解的存在性证明，最终仍以实际重建和密集采样为准。
+
+四袖7轨×129点全部通过，无三角形翻转；Spine 4.3.26转换后7轨×257点加密检查同样全部通过。
+默认工作流升级为`retained-sleeve-chain-v3`，在原`cuff`步骤启用此预算，不增加新的操作阶段。
+面积保持但边长过度伸展的合成fixture能复现旧预算失败、新预算修复，且固定端点不变；
+另覆盖双自由端点、固定边失败、预算硬上限及相似变换不变性。
+
+`tmp/r3s-edge-visual/{huiye,uuz}.png`是软件栅格setup/极值对照，不是GPU或官方渲染验收。
+四袖可导出仍不代表正式采用；GPU与透明袖口连接检查继续待完成。
+
+官方核心Runtime复核：4袖×7轨×257帧，共7196帧数值验证通过；两角色各10步完整流程完成，
+再次运行20个检查点全部校验后复用，四个ZIP均通过完整性检查。相关29项测试通过。
+
 ```powershell
 python tools/build-sleeve-helpers.py --motion-envelope --connection-domain --boundary-budget --cuff-harmonic --baseline-envelope ../tmp/r3s-boundary-budget --input ../tmp/r3s-cloth-anchors --output ../tmp/r3s-cuff-harmonic-replay huiye uuz
 ```

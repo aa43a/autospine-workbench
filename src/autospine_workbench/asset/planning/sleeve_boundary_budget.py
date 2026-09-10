@@ -3,7 +3,7 @@ import math
 from ..joints.mesh_weights import _area
 
 
-def estimate(setup,triangles,points,free,base_budget):
+def estimate(setup,triangles,points,free,base_budget,include_edges=False):
     if not math.isfinite(base_budget) or base_budget<=0:raise ValueError('boundary_budget_invalid')
     free=set(free);requirements=[];fixed_failures=[]
     for index,t in enumerate(triangles):
@@ -20,8 +20,21 @@ def estimate(setup,triangles,points,free,base_budget):
         required=abs(target-ratio)/gradient
         requirements.append(dict(triangle=index,vertex=moving[0],required_px=required))
     lower=max((r['required_px'] for r in requirements),default=0.)
+    edge_requirements=[];fixed_edges=[]
+    if include_edges:
+        edges=sorted({tuple(sorted((a,b))) for t in triangles for a,b in zip(t,t[1:]+t[:1])})
+        for a,b in edges:
+            excess=math.dist(points[a],points[b])-1.9*math.dist(setup[a],setup[b])
+            if excess<=0:continue
+            count=int(a in free)+int(b in free)
+            if not count:fixed_edges.append([a,b]);continue
+            # Triangle inequality: each free endpoint must have this much available budget.
+            edge_requirements.append(dict(edge=[a,b],free_endpoints=count,required_px=excess/count))
+        lower=max(lower,max((r['required_px'] for r in edge_requirements),default=0.))
     # base = 15% forearm; hard cap = 50% forearm. Geometry gates are unchanged.
     cap=base_budget*(.5/.15);budget=min(cap,max(base_budget,lower*1.1))
-    return budget,dict(profile='one-free-area-bound-cap50-v1',base_budget_px=base_budget,cap_px=cap,
+    evidence=dict(profile='area-edge-displacement-bound-cap50-v1' if include_edges else 'one-free-area-bound-cap50-v1',base_budget_px=base_budget,cap_px=cap,
         required_lower_bound_px=lower,budget_px=budget,cap_exceeded=lower>cap,
         fixed_triangle_failures=fixed_failures,requirements=requirements)
+    if include_edges:evidence.update(edge_requirements=edge_requirements,fixed_edge_failures=fixed_edges)
+    return budget,evidence

@@ -32,9 +32,10 @@ def track(row,chain,name,amplitudes):
     for tick in range(0,129,4):
         base=_deform(weights,frames(chain,dict(zip(drivers,angles(amplitudes,tick)))))
         active_budget=budget
-        if domain and domain.get('budget_policy')=='one-free-area-bound-cap50-v1':
+        if domain and domain.get('budget_policy') in ('one-free-area-bound-cap50-v1','area-edge-displacement-bound-cap50-v1'):
             from .sleeve_boundary_budget import estimate
-            active_budget,evidence=estimate(setup,tri,base,set(free)-set(anchors),budget)
+            active_budget,evidence=estimate(setup,tri,base,set(free)-set(anchors),budget,
+                include_edges=domain['budget_policy']=='area-edge-displacement-bound-cap50-v1')
             if 'support_mesh' in row:
                 coarse=row['support_mesh']['coarse_constraints'];count=len(coarse['vertices_xy'])
                 inherited,coarse_evidence=estimate(coarse['vertices_xy'],coarse['triangles'],base[:count],coarse['free_vertices'],budget)
