@@ -13,6 +13,7 @@ const REASONS = { sleeve_draft_missing: '尚未保存袖装区域标注。', sle
 
 const REGION_REASONS = {
   ordinary_sleeve_region_unavailable: '此残余区域尚无可用网格，已保留在复核队列。',
+  residual_stays_unassigned: '源图残余像素仍未分配，保留待复核；不能据此判断为宽袖或已完成绑定。',
   ownership_review_required: '仍有不确定归属，请在标注页复核后保存。',
   cloth_helper_unobservable: '缺少可观测的垂布结构，不能建立垂布辅助骨。普通袖应使用三骨动作分支。',
   motion_envelope_geometry_failure: '受限动作中存在网格几何失败，已阻塞下载。请复核袖口与手、垂布的归属和连接处变形；修正后重新构建。',

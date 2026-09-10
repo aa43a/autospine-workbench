@@ -15,7 +15,6 @@ class SleeveExportDispatchTests(unittest.TestCase):
     def test_ordinary_rows_have_exact_stored_motion_and_preserve_residual(self):
         garment,draft,skeleton=fixture()
         garment['records'].append(dict(layer_id='arm',component_id='residual',mesh=None))
-        draft['records'].append(dict(layer_id='arm',component_id='residual',assignments=[]))
         garment['draft_sha256']=canonical_sha256(draft)
         old=dict(records=[],project_id='fresh')
         original=deepcopy((old,garment,draft,skeleton))

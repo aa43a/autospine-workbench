@@ -12,6 +12,9 @@ def prepare(source, garment, draft, skeleton, state_root):
                 if not any(item['role'] == 'hanging_cloth' for item in row['assignments'])}
     if not ordinary:
         return source['records'], None, {}, {}
+    labeled={(row['layer_id'],row['component_id']) for row in draft['records']}
+    ordinary.update((row['layer_id'],row['component_id']) for row in garment['records']
+                    if (row['layer_id'],row['component_id']) not in labeled)
     report = build(garment, draft, skeleton)
     validate(report, skeleton, source=garment, draft=draft)
     digest = publish_mesh_report(state_root, 'project-component-partitions', report)
