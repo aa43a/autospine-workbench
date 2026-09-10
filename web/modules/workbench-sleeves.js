@@ -10,6 +10,11 @@ export function contactMessage(value) {
   return `软件接缝：采样 ${value.tested_samples}，空白失败 ${value.failed_samples}，源图不可观测界面 ${value.unobservable_interfaces}；GPU 未验证。`;
 }
 
+export function overlapMessage(value) {
+  if (!value) return '软件重叠尚未检查；GPU 未验证。';
+  return `软件重叠：检查 ${value.frames} 帧，新增双覆盖 ${value.affected_frames} 帧，单对峰值 ${value.peak_excess_pair_pixels} 像素；仅诊断，GPU 未验证。`;
+}
+
 export function readSleeveJob(value, project) {
   if (value?.schema !== 'autospine.sleeve-web-job/v1' || value.project_id !== project || value.authority !== 'none'
     || !/^job-[a-f0-9]{32}$/.test(value.job_id) || !['pending', 'running', 'needs_review', 'failed'].includes(value.status)) throw Error('袖装任务响应无效。');
@@ -87,7 +92,7 @@ function createView(document, callbacks) {
     element.setAttribute('aria-busy', String(model.active));
     rows.replaceChildren(...model.rows.map(r => {
       const row = node('li', `${r.layer_id} · ${r.status === 'candidate_exported' ? '候选已导出' : '局部变形未通过，已阻塞'} · ${r.runtime_status === 'passed' || r.runtime_status === 'core_passed' ? '核心数值验证通过' : '核心验证未通过或未执行'}`);
-      row.append(node('p', contactMessage(r.software_contact)));
+      row.append(node('p', contactMessage(r.software_contact)), node('p', overlapMessage(r.software_overlap)));
       if (r.url) { const a = node('a', ' 下载候选 ZIP'); a.href = r.url; row.append(a); }
       return row;
     }));

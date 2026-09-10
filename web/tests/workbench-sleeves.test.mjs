@@ -1,6 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createWorkbenchSleeves, readSleeveJob, contactMessage } from '../modules/workbench-sleeves.js';
+import { createWorkbenchSleeves, readSleeveJob, contactMessage, overlapMessage } from '../modules/workbench-sleeves.js';
+
+test('overlap remains diagnostic including zero findings and old reports', () => {
+  assert.match(overlapMessage(null), /尚未检查/);
+  for (const count of [0, 46]) {
+    const text = overlapMessage({frames:1799, affected_frames:count, peak_excess_pair_pixels:5});
+    assert.ok(text.includes(`新增双覆盖 ${count} 帧`));
+    assert.match(text, /仅诊断，GPU 未验证/);
+  }
+});
 const tick = () => new Promise(resolve => setImmediate(resolve));
 test('contact display preserves missing evidence and distinguishes GPU', () => {
   assert.match(contactMessage(null), /尚未检查/);

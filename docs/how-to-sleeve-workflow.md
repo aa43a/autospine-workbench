@@ -100,6 +100,12 @@ python tools/prepare-sleeve-editor.py --input ../tmp/r3s-edge-spine --output ../
 
 ## 检查动作新增重叠
 
+一键重建 v5 在接缝检查后自动运行重叠诊断，主工作台及结果页显示受影响帧数与单对新增覆盖峰值。
+旧结果未包含该步骤时显示“尚未检查”，不会推定通过。诊断按导出资产摘要绑定；GPU 状态仍为未验证。
+2026-09-10 两角色完整11步重跑及全部缓存复用通过，结果位于 `tmp/r3s-overlap-workflow`。
+四袖共7196帧；辉夜左袖4帧新增双覆盖、单对峰值1像素，幽幽子左袖46帧、峰值5像素；
+两处右袖未检出新增双覆盖。以上是软件原生像素中心诊断，全部保留待复核及GPU未验证状态。
+
 ```powershell
 python tools/check-sleeve-overlap.py --input ../tmp/r3s-edge-spine --output ../tmp/r3s-overlap-full huiye uuz
 ```

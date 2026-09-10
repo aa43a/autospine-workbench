@@ -10,6 +10,9 @@ def render(report):
         if row.get('runtime_report'):action+=f' · <a href="{escape(row["runtime_report"],quote=True)}">官方核心报告</a>（{escape(row["runtime_status"])}）'
         if row.get('software_contact'):
             c=row['software_contact'];action+=f'<p>软件接缝采样 {c["tested_samples"]}；空白失败 {c["failed_samples"]}；源图不可观测界面 {c["unobservable_interfaces"]}。GPU未验证。</p>'
+        if row.get('software_overlap'):
+            o=row['software_overlap'];action+=f'<p>软件重叠检查 {o["frames"]} 帧；新增双覆盖 {o["affected_frames"]} 帧；单对峰值 {o["peak_excess_pair_pixels"]} 像素。仅诊断，GPU未验证。</p>'
+        else:action+='<p>软件重叠尚未检查；GPU未验证。</p>'
         rows.append(f'<tr><td>{label}</td><td>{escape(row["status"])}</td><td>{escape(row["reason_code"])}</td><td>{action}</td></tr>')
     stages=' → '.join(escape(s['id'])+('（复用）' if s['cached'] else '✓') for s in report['steps'])
     project=escape(report['project_id'])

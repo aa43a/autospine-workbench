@@ -52,12 +52,14 @@ def steps(repo,draft_root,root,project,state,workspace):
     add('spine','export-sleeve-spine.py','cuff')
     result.append(('contacts',root/'contacts',[sys.executable,str(repo/'tools/check-sleeve-contacts.py'),
         '--input',str(root/'spine'),'--output',str(root/'contacts'),'--state-root',str(state),project]))
+    result.append(('overlap',root/'overlap',[sys.executable,str(repo/'tools/check-sleeve-overlap.py'),
+        '--input',str(root/'spine'),'--output',str(root/'overlap'),project]))
     return result
 
 
 def code_identity(repo):
     paths=list((repo/'src'/'autospine_workbench').rglob('*.py'))
-    paths += [repo/'tools'/name for name in ('build-sleeve-weights.py','build-sleeve-helpers.py','export-sleeve-spine.py','run-sleeve-workflow.py','verify-sleeve-core.mjs','check-sleeve-contacts.py')]
+    paths += [repo/'tools'/name for name in ('build-sleeve-weights.py','build-sleeve-helpers.py','export-sleeve-spine.py','run-sleeve-workflow.py','verify-sleeve-core.mjs','check-sleeve-contacts.py','check-sleeve-overlap.py')]
     return canonical_sha256({p.relative_to(repo).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(paths)})
 
 
@@ -84,12 +86,17 @@ def summarize(root,project,run_id,progress):
     if any(s['id']=='contacts' for s in progress):
         from .sleeve_contact_step import summaries
         contact_rows=summaries(root,project,report)
+    overlap_rows={}
+    if any(s['id']=='overlap' for s in progress):
+        from .sleeve_overlap_step import summaries as overlap_summaries
+        overlap_rows=overlap_summaries(root,project,report)
     for row in report['records']:
         records.append(dict(layer_id=row['layer_id'],component_id=row['component_id'],status=row['status'],
             reason_code=row['reason_code'],download=(f"spine/{project}/{row['layer_id']}-{row['component_id']}/candidate.zip"
             if row['status']=='candidate_exported' else None)))
         key=row['layer_id'],row['component_id']
         if key in contact_rows:records[-1]['software_contact']=contact_rows[key]
+        if key in overlap_rows:records[-1]['software_overlap']=overlap_rows[key]
     return dict(schema='autospine.sleeve-workflow/v1',run_id=run_id,project_id=project,status='needs_review',
         steps=progress,records=records,runtime_status='not_evaluated',alpha_contact_status='not_evaluated',
         authority='none',production_authorized=False)

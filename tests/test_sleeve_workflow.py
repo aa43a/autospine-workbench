@@ -28,7 +28,7 @@ class SleeveWorkflowTests(unittest.TestCase):
 
     def test_plan_has_retained_chain_and_no_experimental_weight_changes(self):
         plan=steps(Path('/repo'),Path('/drafts'),Path('/run'),'fixture',Path('/state'),Path('/workspace'))
-        self.assertEqual([p[0] for p in plan],['weights','root','interface','anchors','motion','connection','boundary','cuff','spine','contacts'])
+        self.assertEqual([p[0] for p in plan],['weights','root','interface','anchors','motion','connection','boundary','cuff','spine','contacts','overlap'])
         self.assertIn('--boundary-budget',plan[7][2])
         self.assertIn('--cuff-harmonic',plan[7][2])
         self.assertIn('--edge-budget',plan[7][2])
