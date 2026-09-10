@@ -72,7 +72,7 @@ def main():
             views.append(f'<p>固定端点边长检查：{escape(proof["status"])}；{proof["tested_poses"]}个记录姿态，峰值{proof["peak_ratio"]:.3f}倍，上限{proof["limit"]}倍。无反例不代表网格可解。</p>')
             if worst:views.append(f'<p>最大冲突：{escape(worst["track"])}，采样序号{worst["sample_index"]}，顶点{worst["vertices"]}；原边长{worst["rest_length"]:.3f}，变形后{worst["posed_length"]:.3f}。保持当前拓扑时，必须允许改变端点运动才可能消除此边超限；不自动改变未知归属。</p>')
             views.append(f'<p>紫色：固定顶点面积失败 {sorted(fixed_bad)}。记录姿态最小面积比 {area_proof["min_ratio"]:.3f}，门槛0.5；只移动周围顶点无法改变这些三角形。此诊断不替代归属复核，也不自动改动保护顶点。</p>')
-            for index in sorted(fixed_bad):
+            for index in sorted(fixed_bad|set(diagnosis['unknown_triangles'])):
                 points=[row['setup_vertices'][v] for v in row['triangles'][index]]
                 left=min(p[0] for p in points)-10;top=min(p[1] for p in points)-10
                 width=max(p[0] for p in points)-left+10;height=max(p[1] for p in points)-top+10

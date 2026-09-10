@@ -93,3 +93,46 @@ All 14 retained gates and immutable bind data were verified; free/protected sets
 disjoint (32 protected vertices right, 35 left). Regressing trials remain rejected.
 Two exact-source domain tests, three connection-domain tests and three quality tests pass.
 Review: `tmp/r3s-reviewed-274-domain/bayunlan/index.html`. Both sleeves remain blocked.
+
+## Subsequent right and left boundary confirmations
+
+The user explicitly classified right 418/420, then left 382/383 as drape.
+Scoped receipts are in `tmp/r3s-reviewed-right-boundary` and
+`tmp/r3s-reviewed-left-boundary`; earlier 321/274 decisions and cuff 276 are preserved.
+Latest draft: `e8be2af7c40f153e4b485f2ee6d8319cd3068409925362ab9141aae72406117b`.
+All 946 assignments remain; only right 255 and left 253/319 remain unknown.
+
+The full ordinary workflow completed under `tmp/r3s-reviewed-boundaries-workflow`,
+run `run-c9b75513c68ec4413538e947ec0c43b6d2b40f4e8da72dcfe2e16384c3382a1b`.
+Envelope: `63ccec31d648db6e544be91f9f2162e0c9b0a1a5d7e42e39d7acf6e26587aced`.
+Failed samples in forearm/hand/cloth/pp/pm/mp/mm order:
+right 0/0/0/0/38/38/0; left 0/21/0/1/29/29/5.
+Both sleeves remain geometry-blocked; completed export/check stages do not imply
+that blocked sleeves were exported or rendered by official Runtime.
+
+The retained solver now permits an explicit finite 1–3 pass experiment (default 1).
+Rejected intermediate keys can seed a later solve, but only a nonregressing improvement
+can replace the retained track. No ownership, bind data, QA threshold or motion range
+is relaxed. Tests cover rejected-seed isolation, early exit and the hard iteration bound.
+
+Latest bounded correction result:
+`2693b99fffc26f85080046889f3db66e750005b63dc00054cd774effc12d6956`.
+Right retained failures: 0/0/0/0/29/29/0. Left: 0/0/0/0/0/0/0.
+All 14 nonregression gates and unchanged bind fields were read back and verified.
+This is an explicit solver experiment, not yet the ordinary workflow default.
+
+Left passed all 1,799 Spine 4.3.26 target samples and official spine-core 4.3.13
+samples (maximum error 0.000083571 px). Official spine-webgl 4.3.13 with ANGLE
+SwiftShader captured 1,799 frames and 206,885 contact probes, zero failed probes.
+Capture receipt: `3a815808364f3cbe51e0552422b4ba7ab30793cb5ff99a99ee0f5f87c0b33ff7`.
+Capture/image/source hashes were checked by `review-sleeve-framebuffer.py`.
+Review: `tmp/r3s-reviewed-boundaries-runtime/index.html`.
+The overlap hook had no software-visible peak captures; this is not a complete
+occlusion pass or human visual approval. Candidate authority remains none.
+
+Right failures now involve four hanging-cloth triangles. Remaining unknown 255
+has no adjacent failed triangle in the recorded diagnosis, and no fixed edge/area
+counterexample was found. Do not request further ownership changes without new
+evidence: the next work is local deformation analysis. Diagnostic receipt
+`1b37a1cd5d671def0d1b311778c05232f0c919882b690a9c830b6413feb35a7f` is in
+`tmp/r3s-reviewed-boundaries-constraints/bayunlan`.

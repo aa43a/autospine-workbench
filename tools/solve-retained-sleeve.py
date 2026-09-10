@@ -37,6 +37,34 @@ def reviewed_domains(state,source):
     return result
 
 
+def solve_track(candidate,chain,old,*,smooth,blend,passes):
+    if passes not in (1,2,3):raise ValueError('retained_solver_passes')
+    retained=old;seed_track=old;rounds=[]
+    for index in range(passes):
+        seeds=None
+        if smooth and seed_track['correction_selected']:
+            keys=seed_track['trial_keys'];seeds=deepcopy(keys)
+            for i in range(1,32):
+                seeds[i]=[[.25*keys[i-1][v][k]+.5*keys[i][v][k]+.25*keys[i+1][v][k]
+                    for k in (0,1)] for v in range(len(candidate['setup_vertices']))]
+        trial=track(candidate,chain,old['bone_id'],old['amplitudes'],key_seeds=seeds)
+        # Rejected intermediate keys may seed the next solve, never the output.
+        seed_track=dict(trial,correction_selected=True)
+        reasons,gain=gate(retained['qa'],trial['qa']);selected=not reasons and gain
+        attempts=[]
+        if blend and not selected:
+            blended,attempts=backtrack(candidate,chain,retained,trial)
+            if blended is not retained:trial=blended;reasons=[];selected=True
+        rounds.append(dict(round=index+1,selected=selected,reason_codes=reasons,
+            baseline_failed_ticks=retained['failed_ticks'],trial_failed_ticks=trial['failed_ticks'],
+            solver_trial_failed_ticks=seed_track['trial_failed_ticks'],solver_gate_reasons=seed_track['reason_codes'],backtrack_attempts=attempts))
+        if selected:retained=trial
+        print(candidate['layer_id'],old['bone_id'],'round',index+1,old['failed_ticks'],retained['failed_ticks'],selected,flush=True)
+        if retained['failed_ticks']==0:break
+    return retained,dict(track=old['bone_id'],selected=retained is not old,
+        baseline_failed_ticks=old['failed_ticks'],retained_failed_ticks=retained['failed_ticks'],rounds=rounds)
+
+
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--source',required=True)
     p.add_argument('--output',type=Path,required=True)
@@ -44,6 +72,7 @@ def main():
     p.add_argument('--smooth-seed',action='store_true',help='Project neighboring corrective-key averages within the same displacement budget')
     p.add_argument('--blend-backtrack',action='store_true',help='Try three bounded blends when the full correction regresses')
     p.add_argument('--reviewed-domain',action='store_true',help='Rebuild garment freedom from the exact source-linked reviewed draft')
+    p.add_argument('--trial-passes',type=int,choices=(1,2,3),default=1,help='Bounded internal iterations; intermediate failures are not retained')
     p.add_argument('--state-root',type=Path,default=Path('workspace'));p.add_argument('--workspace',type=Path,default=Path('..'))
     a=p.parse_args();source=read_mesh_report(a.state_root,'project-component-partitions',a.source)
     if source['schema']!='autospine.sleeve-motion-envelope/v1' or source['authority']!='none' or source['production_authorized'] is not False:raise ValueError('retained_solver_source')
@@ -53,6 +82,7 @@ def main():
     if a.blend_backtrack:result['profile']+='-backtrack-v1'
     domains=reviewed_domains(a.state_root,source) if a.reviewed_domain else None
     if domains is not None:result['profile']+='-reviewed-domain-v1'
+    result['profile']+=f'-trial-passes{a.trial_passes}-v1'
     import numpy,scipy,platform
     result['solver_environment']=dict(numpy=numpy.__version__,scipy=scipy.__version__,python=platform.python_version())
     with load_inputs(ProjectStore(a.workspace,a.state_root),source['project_id']) as inputs:
@@ -69,24 +99,8 @@ def main():
             if a.edge_budget:candidate['correction_domain']['budget_policy']='area-edge-displacement-bound-cap50-v1'
             evidence=[];tracks=[]
             for old in row['tracks']:
-                seeds=None
-                if a.smooth_seed and old['correction_selected']:
-                    keys=old['trial_keys'];seeds=deepcopy(keys)
-                    for i in range(1,32):
-                        seeds[i]=[[.25*keys[i-1][v][k]+.5*keys[i][v][k]+.25*keys[i+1][v][k]
-                            for k in (0,1)] for v in range(len(row['setup_vertices']))]
-                trial=track(candidate,chain,old['bone_id'],old['amplitudes'],key_seeds=seeds)
-                reasons,gain=gate(old['qa'],trial['qa']);selected=not reasons and gain
-                attempts=[]
-                if a.blend_backtrack and not selected:
-                    blended,attempts=backtrack(candidate,chain,old,trial)
-                    if blended is not old:
-                        trial=blended;reasons=[];selected=True
-                tracks.append(trial if selected else old)
-                evidence.append(dict(track=old['bone_id'],selected=selected,reason_codes=reasons,
-                    baseline_failed_ticks=old['failed_ticks'],trial_failed_ticks=trial['failed_ticks'],
-                    solver_trial_failed_ticks=trial['trial_failed_ticks'],solver_gate_reasons=trial['reason_codes'],backtrack_attempts=attempts))
-                print(row['layer_id'],old['bone_id'],old['failed_ticks'],trial['failed_ticks'],selected,flush=True)
+                chosen,receipt=solve_track(candidate,chain,old,smooth=a.smooth_seed,blend=a.blend_backtrack,passes=a.trial_passes)
+                tracks.append(chosen);evidence.append(receipt)
             row['tracks']=tracks;row['retained_solver_trial']=evidence
             row['retained_solver_domain']=deepcopy(candidate['correction_domain'])
             passed=all(t['failed_ticks']==0 for t in tracks)
