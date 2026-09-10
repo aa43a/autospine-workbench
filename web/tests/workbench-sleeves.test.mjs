@@ -1,6 +1,50 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createWorkbenchSleeves, readSleeveJob, contactMessage, overlapMessage, framebufferMessage } from '../modules/workbench-sleeves.js';
+import { createWorkbenchSleeves, readSleeveJob, contactMessage, overlapMessage, framebufferMessage, sleeveReasonMessage } from '../modules/workbench-sleeves.js';
+
+test('quality reasons distinguish geometry, interpolation, evidence and visual review', () => {
+  const cases = [
+    ['motion_envelope_geometry_failure', /网格几何失败.*复核袖口/],
+    ['target_interpolation_geometry_failure', /关键帧之间的插值.*修正过渡/],
+    ['official_core_numeric_failure', /核心数值验证未通过.*修复后重新构建/],
+    ['official_framebuffer_contact_failure', /接触采样空白.*裂缝/],
+    ['runtime_and_alpha_contact_required', /尚缺官方 Runtime.*配置/],
+    ['official_core_required', /检查官方验证环境/],
+    ['official_framebuffer_required', /尚缺帧缓冲.*检查官方捕获环境/],
+    ['sleeve_occlusion_review_required', /复核手与垂布.*不代表完整视觉验收通过/],
+  ];
+  for (const [reason, expected] of cases) assert.match(sleeveReasonMessage(reason), expected);
+  assert.match(sleeveReasonMessage('future_quality_failure'), /future_quality_failure.*反馈排查.*不能据此判断通过/);
+  assert.match(sleeveReasonMessage(null), /未提供具体原因.*刷新/);
+});
+
+test('sleeve panel shows scope and actionable reasons without changing download eligibility', async () => {
+  class Element extends EventTarget {
+    constructor(tag) { super(); this.tagName = tag; this.children = []; }
+    append(...nodes) { this.children.push(...nodes); }
+    replaceChildren(...nodes) { this.children = nodes; }
+    setAttribute() {}
+  }
+  const doc = {createElement: tag => new Element(tag)};
+  const records = [
+    {layer_id:'left', status:'blocked', download:null, reason_code:'motion_envelope_geometry_failure'},
+    {layer_id:'right', status:'candidate_exported', download:'candidate.zip', reason_code:'sleeve_occlusion_review_required'},
+  ];
+  const ui = createWorkbenchSleeves(doc, {context: () => ({projectId:'huiye', resolvedSha:'a'.repeat(64)}),
+    apiRequest: async () => ({project_id:'huiye',authority:'none',can_build:true,job:{...job('needs_review'),
+      result:{project_id:'huiye',authority:'none',production_authorized:false,records}}})});
+  ui.sync({preparationEditable:true}); await tick();
+  const descend = node => [node, ...node.children.flatMap(descend)];
+  const nodes = descend(ui.element), text = nodes.map(n => n.textContent || '').join('\n');
+  assert.match(text, /前臂 ±30° \/ 手 ±30° \/ 垂布 ±10°/);
+  assert.match(text, /不代表任意三轴组合均已验证/);
+  assert.match(text, /网格几何失败.*修正后重新构建/);
+  assert.match(text, /复核手与垂布/);
+  assert.doesNotMatch(text, /区域检查未通过/);
+  assert.deepEqual(nodes.filter(n => n.tagName === 'a').map(n => n.href),
+    [`/api/projects/huiye/automation/sleeves/jobs/job-${'a'.repeat(32)}/download/1`]);
+  ui.dispose();
+});
 
 test('official capture preserves backend and unresolved overlap', () => {
   assert.match(framebufferMessage(null), /尚未捕获/);

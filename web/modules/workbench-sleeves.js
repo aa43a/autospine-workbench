@@ -5,6 +5,23 @@ const REASONS = { sleeve_draft_missing: '尚未保存袖装区域标注。', sle
   project_snapshot_stale: '项目已变化，请保存校正后重新构建。', sleeve_job_interrupted: '上次任务已中断，重新构建将校验并复用完成的步骤。',
   sleeve_cached_output_changed: '缓存文件已变化，已阻止下载。', sleeve_workflow_failed: '构建失败，可重新构建以续跑。' };
 
+const REGION_REASONS = {
+  motion_envelope_geometry_failure: '受限动作中存在网格几何失败，已阻塞下载。请复核袖口与手、垂布的归属和连接处变形；修正后重新构建。',
+  target_interpolation_geometry_failure: 'Spine 动画关键帧之间的插值未通过几何检查，已阻塞下载。需修正过渡变形并重新构建。',
+  official_core_numeric_failure: '官方核心数值验证未通过，已阻塞下载。需检查导出动画与源网格的差异，修复后重新构建。',
+  official_framebuffer_contact_failure: '官方帧缓冲检测到袖口接触采样空白，已阻塞下载。请复核接触处裂缝并修正后重新构建。',
+  runtime_and_alpha_contact_required: '候选尚缺官方 Runtime 与袖口接触证据。请配置受支持的官方验证环境后重新构建。',
+  official_core_required: '官方核心数值验证尚未通过。请检查官方验证环境并重新构建；帧缓冲结果不能替代核心验证。',
+  official_framebuffer_required: '官方核心数值已通过，尚缺帧缓冲接触证据。请检查官方捕获环境并重新构建。',
+  sleeve_occlusion_review_required: '请复核手与垂布的接触、重叠是否合理；已选袖口采样通过仍不代表完整视觉验收通过。',
+};
+
+export function sleeveReasonMessage(reason) {
+  return REGION_REASONS[reason] || REASONS[reason]
+    || (reason ? `尚未识别此检查原因（${reason}）。请保留原因并反馈排查，不能据此判断通过。`
+      : '结果未提供具体原因，请刷新状态；仍缺失时反馈排查。');
+}
+
 export function contactMessage(value) {
   if (!value) return '软件接缝尚未检查；GPU 未验证。';
   return `软件接缝：采样 ${value.tested_samples}，空白失败 ${value.failed_samples}，源图不可观测界面 ${value.unobservable_interfaces}；GPU 未验证。`;
@@ -42,7 +59,7 @@ export function createWorkbenchSleeves(document, hooks, options = {}) {
     const safe = editable && !context().dirty && !context().saving && !context().loading;
     view.render({ canStart: Boolean(identity && safe && overview?.can_build && !busy && !ACTIVE.has(job?.status)),
       canRefresh: Boolean(identity && !busy), active: busy || ACTIVE.has(job?.status),
-      message: error || (!safe ? '请先保存校正并等待当前操作完成。' : job?.reason_code ? REASONS[job.reason_code] || job.reason_code
+      message: error || (!safe ? '请先保存校正并等待当前操作完成。' : job?.reason_code ? sleeveReasonMessage(job.reason_code)
         : ACTIVE.has(job?.status) ? `袖装候选正在构建 · ${job.step || '等待执行'}`
           : job?.status === 'blocked' ? '所有区域均被质量检查阻塞，请查看逐袖原因。'
           : job?.status === 'needs_review' ? '构建完成，请逐袖检查结果。' : overview?.can_build ? '可从已保存的区域标注重建袖装候选。' : '当前项目尚无已保存的袖装区域标注。'),
@@ -94,14 +111,14 @@ function createView(document, callbacks) {
   const status = node('p'), rows = node('ul'); status.setAttribute('role', 'status');
   build.type = refresh.type = 'button'; build.addEventListener('click', callbacks.start); refresh.addEventListener('click', callbacks.refresh);
   element.append(title, node('p', '按已保存的手、袖布、袖口和垂布归属重建。重复构建会校验并复用已完成步骤。'), build, refresh, status, rows,
+    node('p', '支持动作范围：前臂 ±30° / 手 ±30° / 垂布 ±10°，包含单轴及组合测试；不代表任意三轴组合均已验证。'),
     node('p', 'Spine 4.3.26 候选；官方核心数值验证不包含 GPU 渲染与透明接缝检查，也不代表正式采用。'));
   return { element, render(model) {
     build.disabled = !model.canStart; refresh.disabled = !model.canRefresh; status.textContent = model.message;
     element.setAttribute('aria-busy', String(model.active));
     rows.replaceChildren(...model.rows.map(r => {
-      const failure = r.reason_code === 'official_framebuffer_contact_failure' ? '官方接触检查未通过，已阻塞'
-        : r.reason_code === 'official_core_numeric_failure' ? '官方核心数值未通过，已阻塞' : '区域检查未通过，已阻塞';
-      const row = node('li', `${r.layer_id} · ${r.status === 'candidate_exported' ? '候选已导出' : failure} · ${r.runtime_status === 'passed' || r.runtime_status === 'core_passed' ? '核心数值验证通过' : '核心验证未通过或未执行'}`);
+      const row = node('li', `${r.layer_id} · ${r.status === 'candidate_exported' ? '候选已导出' : '候选已阻塞'} · ${r.runtime_status === 'passed' || r.runtime_status === 'core_passed' ? '核心数值验证通过' : '核心验证未通过或未执行'}`);
+      row.append(node('p', sleeveReasonMessage(r.reason_code)));
       if (r.official_framebuffer) row.append(node('p', framebufferMessage(r.official_framebuffer)));
       else row.append(node('p', contactMessage(r.software_contact)), node('p', overlapMessage(r.software_overlap)),
         node('p', framebufferMessage(null)));
