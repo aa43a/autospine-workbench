@@ -1,5 +1,7 @@
 # AutoSpine Workbench 架构与质量门禁
 
+R3-S官方帧缓冲捕获使用独立 `capture-sleeve-runtime.mjs` / `sleeve-framebuffer.js`，由外置spine-webgl执行解析、FK和渲染。报告严格区分探针覆盖、自重叠与发布权，Python复核器核对来源及图像摘要；不修改历史候选。
+
 `cloth_interface_root.py`消费exact helper、服装权重、候选和草稿，提取cloth↔sleeve/cuff共享边；连通性与边长根部测量分离，多段交界不采用统一根部。单段试验只重算helper本地坐标和FK，权重数值/网格不变，以129点全轨回归决定候选保留。新`sleeve-interface-root/v1`单独寻址。
 
 `cloth_root_transition.py`使用三角邻接Dijkstra距离生成helper保留比例，并将根部剩余权重给forearm。独立helper profile重跑完整分支FK门禁，失败则同时回退权重/轨道并重算setup与隔离误差；旧helper profile输出保持不变。

@@ -98,7 +98,22 @@ python tools/prepare-sleeve-editor.py --input ../tmp/r3s-edge-spine --output ../
 幽幽子两袖随后也完成相同动画的第0、32、96帧抽查及播放，检查副本图片自动显示；
 同样出现可选mesh信息提示。四袖均已完成原生编辑器抽查，完整GPU视觉门禁仍待完成；候选未采用。
 
-## 检查动作新增重叠
+## 官方 WebGL 帧缓冲捕获
+
+使用已安装的外置官方包，不捆绑Runtime或浏览器：
+
+```powershell
+node tools/capture-sleeve-runtime.mjs ../tmp/r3s-edge-spine ../tmp/r3s-contact-length-v2 ../tmp/r3s-official-framebuffer ../tmp/spine43-verification "C:/Program Files/Google/Chrome/Application/chrome.exe" huiye uuz
+python tools/review-sleeve-framebuffer.py --input ../tmp/r3s-official-framebuffer --contacts ../tmp/r3s-contact-length-v2
+```
+
+四袖7196帧通过官方世界坐标对照并读取实际WebGL帧缓冲，1153159个袖口探针alpha<8失败0。
+每轨保存5张透明PNG，共140张；复核页为输出根目录的 `index.html`。
+报告记录源导出、接缝报告、参考姿态、Runtime、浏览器、脚本及图片摘要。
+目标为4.3.26，官方包为4.3.13，后端为ANGLE SwiftShader软件图形设备；不声明硬件GPU验证。
+该结果仅覆盖孤立袖装的已选袖口探针，自重叠、完整角色及独立样本尚待验收，候选未正式采用。
+
+## 软件重叠诊断
 
 一键重建从 v5 起在接缝检查后自动运行重叠诊断，主工作台及结果页显示受影响帧数与单对新增覆盖峰值。
 旧结果未包含该步骤时显示“尚未检查”，不会推定通过。诊断按导出资产摘要绑定；GPU 状态仍为未验证。
