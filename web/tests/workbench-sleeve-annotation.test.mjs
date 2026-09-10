@@ -33,3 +33,36 @@ test('annotation preparation preserves current source and refuses unsaved edits'
   assert.match(requests[1][0], /annotation\/prepare$/); assert.deepEqual(JSON.parse(requests[1][1].body), { expected_resolved_sha256: c.resolvedSha });
   assert.match(annotationReason('animated_source_missing'), /来源准备.*关节复核/);
 });
+
+test('returning from editor refreshes saved status once, preserves dirty edits and removes listeners', async () => {
+  const focusTarget = new EventTarget(), visibilityTarget = new EventTarget();
+  const c = context(); let pending, calls = 0, notified = 0, model;
+  const ui = createWorkbenchSleeveAnnotation(null, { context: () => c,
+    apiRequest: async () => { calls++; if (calls === 1) return response(); return new Promise(resolve => { pending = resolve; }); },
+    onRefresh: () => { notified++; } },
+    { focusTarget, visibilityTarget, view: { element: {}, render: value => { model = value; } } });
+  ui.sync({ preparationEditable: true }); await tick();
+  focusTarget.dispatchEvent(new Event('focus'));
+  visibilityTarget.dispatchEvent(new Event('visibilitychange'));
+  assert.equal(calls, 2);
+  pending({ ...response(), revision: 2, can_build: true }); await tick();
+  assert.equal(notified, 1); assert.match(model.message, /草稿已保存/);
+  c.dirty = true; focusTarget.dispatchEvent(new Event('focus')); assert.equal(calls, 2);
+  c.dirty = false; visibilityTarget.visibilityState = 'hidden';
+  focusTarget.dispatchEvent(new Event('focus')); assert.equal(calls, 2);
+  visibilityTarget.visibilityState = 'visible'; ui.dispose();
+  focusTarget.dispatchEvent(new Event('focus')); assert.equal(calls, 2);
+});
+
+test('late editor-refresh response cannot update another project or refresh its jobs', async () => {
+  const c = context(), focusTarget = new EventTarget(); let resolveOld, notified = 0, calls = 0;
+  const ui = createWorkbenchSleeveAnnotation(null, { context: () => c,
+    apiRequest: async () => { calls++; if (calls === 2) return new Promise(resolve => { resolveOld = resolve; });
+      return { ...response(), project_id: c.projectId, review_url: `/api/projects/${c.projectId}/automation/sleeves/annotation/view` }; },
+    onRefresh: () => { notified++; } }, { focusTarget, view: { element: {}, render() {} } });
+  ui.sync({ preparationEditable: true }); await tick();
+  focusTarget.dispatchEvent(new Event('focus'));
+  c.projectId = 'other'; ui.sync({ preparationEditable: true }); await tick();
+  resolveOld({ ...response(), can_build: true }); await tick();
+  assert.equal(notified, 0); ui.dispose();
+});

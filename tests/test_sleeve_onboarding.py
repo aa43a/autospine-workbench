@@ -102,6 +102,20 @@ class SleeveOnboardingTests(unittest.TestCase):
         self.assertTrue(saved['can_build'])
         self.assertNotIn('migration', saved)
 
+    def test_repeated_source_change_keeps_verified_transfer_without_claiming_save(self):
+        self.prepare()
+        body = self.save_body()
+        body['draft']['records'][0]['assignments'][0].update(role='cuff', origin='manual_edit')
+        self.service.save('fresh', body)
+        self.sha = 'd'*64
+        first = self.prepare()
+        self.sha = 'e'*64
+        second = self.prepare()
+        self.assertEqual(second['revision'], first['revision'] + 1)
+        self.assertEqual(second['migration']['manual_count'], 1)
+        self.assertFalse(second['can_build'])
+        self.assertEqual(self.service.read_current('fresh')[3]['records'][0]['assignments'][0]['role'], 'cuff')
+
     def test_registration_change_blocks_save_and_saved_source_read(self):
         self.prepare(); self.service.save('fresh', self.save_body())
         body = self.save_body()

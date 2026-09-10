@@ -87,7 +87,9 @@ class SleeveOnboarding:
                 source, candidate, draft, auxiliary = build_inputs(inputs, project)
                 previous = self._latest(project)
                 extra = {}
-                if previous and previous['saved']:
+                if previous and (previous['saved'] or previous.get('transfer_sha256')):
+                    if previous.get('transfer_sha256'):
+                        self._transfer(previous)
                     from .sleeve_annotation_transfer import transfer
                     read = lambda key: read_mesh_report(self.projects.state_root, KIND, previous[key])
                     draft, receipt = transfer(read('candidate_sha256'), read('draft_sha256'), candidate)

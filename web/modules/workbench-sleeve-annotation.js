@@ -37,6 +37,13 @@ export function createWorkbenchSleeveAnnotation(document, hooks, options = {}) {
   const context = () => hooks.context();
   const safe = () => enabled && !context().dirty && !context().saving && !context().loading;
   const current = token => token === generation && identity === projectIdentity(context());
+  const focusTarget = options.focusTarget || document?.defaultView;
+  const visibilityTarget = options.visibilityTarget || document;
+  const resume = () => {
+    if (identity && safe() && !busy && visibilityTarget?.visibilityState !== 'hidden') void refresh();
+  };
+  focusTarget?.addEventListener('focus', resume);
+  visibilityTarget?.addEventListener('visibilitychange', resume);
   function render() {
     view.render({ busy, canPrepare: Boolean(identity && safe() && !busy), canRefresh: Boolean(identity && !busy),
       reviewUrl: safe() && !error && value?.status === 'ready' ? value.review_url : null,
@@ -57,11 +64,14 @@ export function createWorkbenchSleeveAnnotation(document, hooks, options = {}) {
         method: 'POST', headers: { 'X-Autospine-Intent': 'pipeline-preview' },
         body: JSON.stringify({ expected_resolved_sha256: saved.resolvedSha }),
       } : { cache: 'no-store' });
-      if (current(token)) value = readSleeveAnnotation(result, saved);
+      if (current(token)) { value = readSleeveAnnotation(result, saved); return true; }
     } catch (failure) { if (current(token)) error = annotationReason(failure.payload?.reason_code); }
     finally { if (current(token)) { busy = false; render(); } }
   }
-  async function refresh() { await request(); hooks.onRefresh?.(); }
+  async function refresh() {
+    const token = generation;
+    if (await request() && current(token)) await hooks.onRefresh?.();
+  }
   function prepare() { return request(true); }
   function sync(model) {
     enabled = Boolean(model.preparationEditable);
@@ -69,7 +79,11 @@ export function createWorkbenchSleeveAnnotation(document, hooks, options = {}) {
     if (next !== identity) { generation++; identity = next; value = null; busy = false; error = ''; if (identity) void request(); }
     render();
   }
-  return { element: view.element, sync, prepare, refresh, dispose() { generation++; identity = null; } };
+  return { element: view.element, sync, prepare, refresh, dispose() {
+    generation++; identity = null;
+    focusTarget?.removeEventListener('focus', resume);
+    visibilityTarget?.removeEventListener('visibilitychange', resume);
+  } };
 }
 
 function createView(document, callbacks) {
