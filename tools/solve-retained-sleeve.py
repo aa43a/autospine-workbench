@@ -10,6 +10,31 @@ from autospine_workbench.asset.planning.component_distal_guard import gate
 from autospine_workbench.asset.planning.sleeve_helper_review import render
 from autospine_workbench.resolved_project import canonical_sha256
 from autospine_workbench.asset.planning.sleeve_corrective_backtrack import backtrack
+from autospine_workbench.asset.planning.sleeve_connection_domain import domain
+from autospine_workbench.asset.planning.sleeve_regions import validate
+
+
+def reviewed_domains(state,source):
+    ancestor=source
+    for _ in range(32):
+        if 'draft_sha256' in ancestor:break
+        ancestor=read_mesh_report(state,'project-component-partitions',ancestor['source_sha256'])
+    else:raise ValueError('retained_solver_draft_ancestry')
+    draft=read_mesh_report(state,'project-component-partitions',ancestor['draft_sha256'])
+    candidate=read_mesh_report(state,'project-component-partitions',draft['candidate_sha256'])
+    validate(draft,candidate)
+    if draft['project_id']!=source['project_id'] or candidate['skeleton_sha256']!=source['skeleton_sha256']:
+        raise ValueError('retained_solver_draft_identity')
+    meshes={(r['layer_id'],r['component_id']):r for r in candidate['records']}
+    labels={(r['layer_id'],r['component_id']):r for r in draft['records']}
+    result={}
+    for row in source['records']:
+        if 'helper' not in row:continue
+        key=row['layer_id'],row['component_id'];mesh=meshes[key]
+        if mesh['triangles']!=row['triangles'] or mesh['vertices_xy']!=row['setup_vertices']:
+            raise ValueError('retained_solver_draft_geometry')
+        result[key]=domain(row['triangles'],labels[key]['assignments'])
+    return result
 
 
 def main():
@@ -18,6 +43,7 @@ def main():
     p.add_argument('--edge-budget',action='store_true',help='Use existing area/edge lower bounds with unchanged cap')
     p.add_argument('--smooth-seed',action='store_true',help='Project neighboring corrective-key averages within the same displacement budget')
     p.add_argument('--blend-backtrack',action='store_true',help='Try three bounded blends when the full correction regresses')
+    p.add_argument('--reviewed-domain',action='store_true',help='Rebuild garment freedom from the exact source-linked reviewed draft')
     p.add_argument('--state-root',type=Path,default=Path('workspace'));p.add_argument('--workspace',type=Path,default=Path('..'))
     a=p.parse_args();source=read_mesh_report(a.state_root,'project-component-partitions',a.source)
     if source['schema']!='autospine.sleeve-motion-envelope/v1' or source['authority']!='none' or source['production_authorized'] is not False:raise ValueError('retained_solver_source')
@@ -25,6 +51,8 @@ def main():
     if a.edge_budget:result['profile']='retained-weights-edge-budget-joint200-v1'
     if a.smooth_seed:result['profile']+='-neighbor-seed-v1'
     if a.blend_backtrack:result['profile']+='-backtrack-v1'
+    domains=reviewed_domains(a.state_root,source) if a.reviewed_domain else None
+    if domains is not None:result['profile']+='-reviewed-domain-v1'
     import numpy,scipy,platform
     result['solver_environment']=dict(numpy=numpy.__version__,scipy=scipy.__version__,python=platform.python_version())
     with load_inputs(ProjectStore(a.workspace,a.state_root),source['project_id']) as inputs:
@@ -35,6 +63,7 @@ def main():
             parent=bones[row['helper']['parent_id']];hand=bones[row['tracks'][0]['drivers'][1]]
             chain=[bones[parent['parent_id']],parent,hand,row['helper']]
             candidate=deepcopy(row)
+            if domains is not None:candidate['correction_domain']=deepcopy(domains[row['layer_id'],row['component_id']])
             candidate.setdefault('correction_domain',dict(anchors=sorted({v for e in row['interface_root']['edges'] for v in e}),free_vertices=row['cloth_vertices']))
             candidate['correction_domain']['solver_profile']='joint-area-edge-sparse200-v1'
             if a.edge_budget:candidate['correction_domain']['budget_policy']='area-edge-displacement-bound-cap50-v1'
@@ -59,6 +88,7 @@ def main():
                     solver_trial_failed_ticks=trial['trial_failed_ticks'],solver_gate_reasons=trial['reason_codes'],backtrack_attempts=attempts))
                 print(row['layer_id'],old['bone_id'],old['failed_ticks'],trial['failed_ticks'],selected,flush=True)
             row['tracks']=tracks;row['retained_solver_trial']=evidence
+            row['retained_solver_domain']=deepcopy(candidate['correction_domain'])
             passed=all(t['failed_ticks']==0 for t in tracks)
             row['motion_envelope']['geometry_pass']=passed
             row['reason_codes']=[r for r in row['reason_codes'] if r!='motion_envelope_geometry_failure']

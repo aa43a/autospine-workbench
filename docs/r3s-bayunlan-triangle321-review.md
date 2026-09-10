@@ -60,3 +60,36 @@ and separate texture-aligned closeups for 274 and 276. Human classification of 2
 requested; 321 remains the only newly confirmed assignment. No additional draft change
 has been made. Five fixed-constraint tests and two image-coordinate tests pass, including
 a counterexample where every edge length passes while the fixed triangle collapses.
+
+## Subsequent scoped review: triangle 274
+
+The user then explicitly classified left triangle 274 as drape ("垂布"). Only that
+assignment was changed to `hanging_cloth/manual_edit`; triangle 276 stays `cuff`,
+and the prior triangle 321 decision is retained. Revised draft:
+`309b0157c0535860deba001add8a30651e419654d508aa881b949d0edbf9dc09`.
+Prior draft, revised draft and decision receipt are in `tmp/r3s-reviewed-274`.
+Validation confirms a single changed assignment and the unchanged 946-triangle inventory.
+Remaining unknown triangles are right 255/418/420 and left 253/319/382/383.
+These have not been implicitly reclassified. The normal one-click input now references
+the new draft, and a fresh full workflow was started under `tmp/r3s-reviewed-274-workflow`.
+
+That workflow completed with a correctly blocked result, run
+`run-ea0963d0bbc92242054a2290e5af56986c86de2edca16cd5540b4c2e48752b09`.
+Envelope `6b284a9b6078432a1fc1ad4075eb22a995b338def0a9e172671ee1c428d86eee`
+has no protected-edge or protected-triangle counterexample. A separate 513-point check
+per motion confirms zero fixed-triangle failures; minima are right 0.7292083995324811,
+left 0.501103924883485. This is not a full free-mesh pass.
+
+The correction trial `5ad19329cea8d1c2ade731019fd32be62156e07fe0bd3a5a006b5952eba0d78a`
+improves several motions but retains a narrow left correction domain after stage fallback.
+The new opt-in `--reviewed-domain` follows the exact artifact ancestry to the sealed draft,
+validates skeleton and geometry, and reconstructs the existing garment connection domain.
+It never uses an unrelated latest draft, and keeps hand/unknown vertices protected.
+The attempted domain is recorded separately from retained mixed-track data.
+
+Result `152c2e629ea8a664adf3d23f12291bfee584627d8f70912233a8c7d68dcd98cc`:
+right failed counts 0/2/0/0/102/94/0; left 0/94/0/88/94/96/72.
+All 14 retained gates and immutable bind data were verified; free/protected sets are
+disjoint (32 protected vertices right, 35 left). Regressing trials remain rejected.
+Two exact-source domain tests, three connection-domain tests and three quality tests pass.
+Review: `tmp/r3s-reviewed-274-domain/bayunlan/index.html`. Both sleeves remain blocked.
