@@ -13,6 +13,7 @@ dependencies = []
 [project.optional-dependencies]
 test = ["jsonschema>=4.23,<5"]
 analysis = ["numpy>=2,<3", "Pillow>=11,<13"]
+cloth-solver = ["numpy==2.4.6", "scipy==1.18.0"]
 
 [project.scripts]
 autospine-workbench = "autospine_workbench.__main__:main"

@@ -28,7 +28,7 @@ def track(row,chain,name,amplitudes):
     domain=row.get('correction_domain');free=row['cloth_vertices']
     if domain:anchors=domain['anchors'];free=domain['free_vertices']
     budget=.15*math.dist(chain[1]['head_xy'],chain[1]['tail_xy'])
-    keys=[];budget_evidence=[]
+    keys=[];budget_evidence=[];solver_evidence=[]
     for tick in range(0,129,4):
         base=_deform(weights,frames(chain,dict(zip(drivers,angles(amplitudes,tick)))))
         active_budget=budget
@@ -40,7 +40,10 @@ def track(row,chain,name,amplitudes):
                 inherited,coarse_evidence=estimate(coarse['vertices_xy'],coarse['triangles'],base[:count],coarse['free_vertices'],budget)
                 active_budget=max(active_budget,inherited);evidence.update(budget_px=active_budget,coarse_evidence=coarse_evidence)
             budget_evidence.append(evidence)
-        corrected,_=solve(setup,tri,base,free,anchors,active_budget)
+        if domain and domain.get('solver_profile')=='joint-area-edge-sparse200-v1':
+            from .cloth_joint_solver import solve as solve_joint
+            corrected,solver_info=solve_joint(setup,tri,base,free,anchors,active_budget);solver_evidence.append(solver_info)
+        else:corrected,_=solve(setup,tri,base,free,anchors,active_budget)
         keys.append([[b[k]-a[k] for k in (0,1)] for a,b in zip(base,corrected)])
     before=[];after=[];samples=[];raw_samples=[];anchor_error=0.
     for tick in range(129):
@@ -66,6 +69,7 @@ def track(row,chain,name,amplitudes):
         trial_qa=after,trial_keys=keys,anchor_displacement=anchor_error,
         loop_error=max(math.dist(a,b) for a,b in zip(samples[0]['points'],samples[-1]['points'])))
     if budget_evidence:result['budget_evidence']=budget_evidence
+    if solver_evidence:result['solver_evidence']=solver_evidence
     return result
 
 

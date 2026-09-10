@@ -146,3 +146,20 @@ python tools/build-sleeve-helpers.py --motion-envelope --connection-domain --bou
 ```
 
 下一步应求解邻接三角形的联合约束；当前逐三角形投影可能在修好一处时破坏邻域，不能靠继续加密网格或增加迭代次数证明收敛。
+
+## 联合约束和手部刚性对照
+
+可选 `cloth-solver` 环境增加 NumPy 2.4.6 / SciPy 1.18.0（本地Python3.14验证），不改变核心依赖。
+`cloth_joint_solver.py` 同时最小化面积/边长超限与位移预算违反，固定手和未知顶点，最后再次限制位移并执行原几何门禁。
+优化器状态不是通过依据。联合约束在细分网格上仍失败，四袖均保留旧记录。
+
+另一条独立试验按hand三角形归属将其共享边界改为手骨刚性驱动，保持setup重建并排除unknown顶点。
+辉夜左袖单手轨失败数变为27（旧11），其他姿态也回归，故同样不保留。该试验不修改用户的归属标注。
+
+```powershell
+python tools/build-sleeve-helpers.py --motion-envelope --connection-domain --boundary-budget --support-mesh --joint-solver --baseline-envelope ../tmp/r3s-boundary-budget --input ../tmp/r3s-cloth-anchors --output ../tmp/r3s-joint-solver huiye uuz
+python tools/build-sleeve-helpers.py --motion-envelope --connection-domain --boundary-budget --rigid-hand --baseline-envelope ../tmp/r3s-boundary-budget --input ../tmp/r3s-cloth-anchors --output ../tmp/r3s-rigid-hand huiye uuz
+```
+
+当前保留基线仍是两个右袖通过、两个左袖阻塞。下一步应实现袖口位置约束与旋转继承分离，
+并将已具备的生成、回退与导出串成可恢复入口；不能把这些负向试验算作里程碑验收通过。
