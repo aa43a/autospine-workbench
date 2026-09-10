@@ -113,6 +113,18 @@ python tools/review-sleeve-framebuffer.py --input ../tmp/r3s-official-framebuffe
 目标为4.3.26，官方包为4.3.13，后端为ANGLE SwiftShader软件图形设备；不声明硬件GPU验证。
 该结果仅覆盖孤立袖装的已选袖口探针，自重叠、完整角色及独立样本尚待验收，候选未正式采用。
 
+针对软件重叠报告中的可见峰值追加同帧三角形隔离：
+
+```powershell
+node tools/capture-sleeve-runtime.mjs ../tmp/r3s-edge-spine ../tmp/r3s-contact-length-v2 ../tmp/r3s-overlap-framebuffer ../tmp/spine43-verification "C:/Program Files/Google/Chrome/Application/chrome.exe" huiye uuz --overlap ../tmp/r3s-overlap-full
+python tools/review-sleeve-framebuffer.py --input ../tmp/r3s-overlap-framebuffer --contacts ../tmp/r3s-contact-length-v2 --overlap ../tmp/r3s-overlap-full
+```
+
+每个峰值及其setup分别保存完整网格、两片单独、两片按原顺序合成、完整网格分别移除一片六视图。
+纹理和姿态保持一致，移除只是诊断视图，捕获结束恢复原三角形。RGBA差值取原始预乘帧缓冲，PNG转换为直通alpha。
+本次4个峰值×2时刻×6视图共48张局部PNG；辉夜左实际双覆盖0/1像素，幽幽子左5/5像素。
+无峰值的区域不据此宣称无全域重叠；移除三角形引起的通道差异也不是视觉损伤评分。
+
 ## 软件重叠诊断
 
 一键重建从 v5 起在接缝检查后自动运行重叠诊断，主工作台及结果页显示受影响帧数与单对新增覆盖峰值。

@@ -1,6 +1,6 @@
 # AutoSpine Workbench 功能与入口参考
 
-- [袖装官方WebGL捕获](how-to-sleeve-workflow.md)：四袖7196帧、1153159个袖口探针无空白失败，140张PNG；ANGLE SwiftShader后端，自重叠未验收。
+- [袖装官方WebGL捕获](how-to-sleeve-workflow.md)：四袖7196帧、1153159个袖口探针无空白失败；可追加软件峰值同帧六视图，已确认两处左袖手↔垂布双覆盖，仍需遮挡验收。
 
 - [袖布交界根部候选](sleeve-rigging-plan.md)：按明确语义共享边测根部，Setup显示交界；两处试验回归拒绝、两处多段交界阻塞，旧helper结果不变。
 

@@ -57,5 +57,7 @@
     return {animation,index,time:frame.time,max_error_px:error,visible_pixels:visible,tested_samples:probes.length,
       min_alpha:minimum,failed_samples:failures.length,failures};
   };
-  window.framePNG=()=>canvas.toDataURL('image/png');window.ready=true;
+  window.framePNG=()=>canvas.toDataURL('image/png');
+  if(window.installSleeveOverlap)window.installSleeveOverlap({canvas,gl,skeleton,renderer,left,bottom});
+  window.ready=true;
 })().catch(e=>{window.failure=String(e.stack||e);});
