@@ -111,7 +111,8 @@ python tools/prepare-sleeve-editor.py --input ../tmp/r3s-edge-spine --output ../
 四袖在 `tmp/r3s-contact-length-v2` 完成1153159次检查，空白失败0、无有效探针的界面0。
 辉夜原两条漏采界面分别找到1个和6个有效探针，源图邻域最低alpha分别为243和255。
 这是固定三点漏掉短接触段，不是降低阈值或扩大网格；不保证透明边段或任意亚像素位置通过。
-本次已独立重跑新接缝阶段并验证工作流汇总的来源校验，v5完整重建证据仍单独保留。
+随后v6两角色全部12步（含已安装官方核心）及缓存复用通过，输出在 `tmp/r3s-final-v6`；
+官方核心7196帧通过，最大误差0.000139886px。v5历史证据单独保留，GPU验收仍未完成。
 
 ```powershell
 python tools/check-sleeve-overlap.py --input ../tmp/r3s-edge-spine --output ../tmp/r3s-overlap-full huiye uuz
