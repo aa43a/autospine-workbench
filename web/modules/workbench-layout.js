@@ -1,7 +1,7 @@
 "use strict";
 
 const layouts = new WeakMap();
-const STEPS = { asset: "素材检查", binding: "绑定规划与复核", animation: "动画预览", export: "导出", reports: "报告与证据" };
+const STEPS = { asset: "素材检查", binding: "绑定规划与复核", sleeves: "袖装修复", animation: "动画预览", export: "导出", reports: "报告与证据" };
 // Reparent existing controls: switching workspaces never rebuilds or saves a draft.
 export function workbenchLayout(document) {
   if (!document?.getElementById("workspace")) return null;

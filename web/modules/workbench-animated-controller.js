@@ -28,7 +28,7 @@ export function createWorkbenchAnimated(document, hooks, options = {}) {
     busyChanged: (busy) => { planning = busy; render(); } }) : null;
   if (rigPlan) (view.mountPlan || view.mountJoint)(rigPlan.element);
   const sleeves = document ? createWorkbenchSleeves(document, hooks) : null;
-  if (sleeves) (view.mountPlan || view.mountJoint)(sleeves.element);
+  if (sleeves) (view.mountSleeves || view.mountPlan || view.mountJoint)(sleeves.element);
   const context = () => hooks.context();
   const current = (token) => token === generation && identity === projectIdentity(context());
   const editable = () => !context().dirty && !context().saving && !context().loading && !planning;

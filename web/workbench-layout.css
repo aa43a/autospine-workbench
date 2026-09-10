@@ -1,3 +1,4 @@
+@import url('./sleeve-dashboard.css');
 .workbench-center { display:flex; flex-direction:column; min-width:0; min-height:0; overflow:hidden; }
 #workflowNav[hidden] { display:none; }
 .workbench-step-nav { display:flex; flex-wrap:wrap; gap:6px; padding:10px; border-bottom:1px solid var(--border); background:var(--bg-panel); }

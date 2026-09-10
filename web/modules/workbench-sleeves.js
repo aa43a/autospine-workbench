@@ -1,4 +1,5 @@
 import { automationEndpoint, projectIdentity } from './workbench-automation-contract.js';
+import { sleeveProgress } from './sleeve-progress.js';
 
 const ACTIVE = new Set(['pending', 'running']);
 const REASONS = { sleeve_draft_missing: '尚未保存袖装区域标注。', sleeve_draft_changed: '袖装标注已变化，请重新构建。',
@@ -71,14 +72,14 @@ export function createWorkbenchSleeves(document, hooks, options = {}) {
       if (completed.has('framebuffer')) reviews.push({ label: '查看官方捕获与重叠', url: `${base}/framebuffer/index.html` });
     }
     view.render({ canStart: Boolean(identity && safe && overview?.can_build && !busy && !ACTIVE.has(job?.status)),
-      reviews,
+      reviews, progress: sleeveProgress(job),
       canRefresh: Boolean(identity && !busy), active: busy || ACTIVE.has(job?.status),
       withdrawn: Boolean(job?.candidate_withdrawn),
       canVisibility: Boolean(identity && safe && !busy && job?.status === 'needs_review'
         && (job.candidate_withdrawn || job.result?.records.some(r => r.status === 'candidate_exported' && r.download))),
       message: error || (!safe ? '请先保存校正并等待当前操作完成。' : job?.reason_code ? sleeveReasonMessage(job.reason_code)
         : job?.candidate_withdrawn ? '当前候选已撤回。恢复会重新校验来源与候选文件；标注和正式项目保持不变。'
-        : ACTIVE.has(job?.status) ? `袖装候选正在构建 · ${job.step || '等待执行'}`
+        : ACTIVE.has(job?.status) ? `${sleeveProgress(job).label}。自动刷新中；修正阶段可能包含多轮求解，可切换页面等待。`
           : job?.status === 'blocked' ? '所有区域均被质量检查阻塞，请查看逐袖原因。'
           : job?.status === 'needs_review' ? '构建完成，请逐袖检查结果。' : overview?.can_build ? '可从已保存的区域标注重建袖装候选。' : '当前项目尚无已保存的袖装区域标注。'),
       rows: (safe && !error && !job?.candidate_withdrawn ? job?.result?.records || [] : []).map((r, index) => ({ ...r,
@@ -139,14 +140,23 @@ export function createWorkbenchSleeves(document, hooks, options = {}) {
 function createView(document, callbacks) {
   const node = (tag, text = '') => { const el = document.createElement(tag); el.textContent = text; return el; };
   const element = node('section'), title = node('h3', '袖装候选'), build = node('button', '重建袖装候选'), refresh = node('button', '刷新状态');
+  element.className = 'sleeve-dashboard';
+  title.textContent = '袖装修复与验证';
+  const headline = node('h2'), progress = node('progress'), stages = node('ol'), tally = node('p');
+  stages.className = 'sleeve-stages'; progress.setAttribute('aria-label','已完成的构建阶段');
   const status = node('p'), reviews = node('nav'), rows = node('ul'); status.setAttribute('role', 'status');
   const withdraw = node('button', '撤回当前候选'), restore = node('button', '恢复当前候选');
   withdraw.type = restore.type = 'button'; withdraw.addEventListener('click', callbacks.withdraw); restore.addEventListener('click', callbacks.restore);
   build.type = refresh.type = 'button'; build.addEventListener('click', callbacks.start); refresh.addEventListener('click', callbacks.refresh);
-  element.append(title, node('p', '按已保存的手、袖布、袖口和垂布归属重建。自动按失败归属尝试有界修复，保留通过区域；修复后继续验证接缝与官方 Runtime。重复构建会校验并复用已完成步骤。'), build, refresh, withdraw, restore, status, reviews, rows,
+  element.append(title, headline, progress, tally, build, refresh, withdraw, restore, status, reviews, stages, rows,
     node('p', '支持动作范围：前臂 ±30° / 手 ±30° / 垂布 ±10°，包含单轴及组合测试；不代表任意三轴组合均已验证。'),
     node('p', 'Spine 4.3.26 候选；官方核心数值验证不包含 GPU 渲染与透明接缝检查，也不代表正式采用。'));
   return { element, render(model) {
+    const p = model.progress;
+    headline.textContent = p.label; progress.max = p.total; progress.value = p.count;
+    tally.textContent = `已完成 ${p.count} / ${p.total} 个阶段 · 阶段数不代表耗时比例`;
+    stages.replaceChildren(...p.stages.map(s => { const li = node('li', `${s.state === 'done' ? '✓' : s.state === 'current' ? '●' : '○'} ${s.name}`); li.setAttribute('data-state', s.state); return li; }));
+    build.textContent = model.active ? '构建进行中…' : model.rows.length ? '重新构建袖装' : '一键构建袖装';
     build.disabled = !model.canStart; refresh.disabled = !model.canRefresh; status.textContent = model.message;
     withdraw.hidden = model.withdrawn || !model.canVisibility; restore.hidden = !model.withdrawn;
     withdraw.disabled = restore.disabled = !model.canVisibility;
