@@ -1,4 +1,4 @@
-"""Publish a zero-reviewed assisted source after a real source-bound pose run."""
+"""Publish source-bound pose evidence, retaining explicitly saved joint edits."""
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -60,6 +60,10 @@ def publish_prepared_source(store, project_id, context, pose_path):
             pose = ingest_pose(store.state_root, candidate, path)
         baseline = build_joint_baseline(candidate, audit)
         assisted = build_assisted_joint_draft(candidate, baseline, pose)
+        from .input_preparation_authoring import require_supported, import_joints
+        project,_=inputs._checkpoint(store,project_id)
+        require_supported(store,project_id,project)
+        assisted,imported,ignored=import_joints(candidate,baseline,pose,assisted,project)
         skeleton = build_reviewed_skeleton(candidate, assisted)
         bindings = build_layer_bindings(candidate, assisted, skeleton)
         draft = build_layer_binding_draft(bindings)
@@ -82,5 +86,6 @@ def publish_prepared_source(store, project_id, context, pose_path):
         digest = inputs._registrations(store, project_id)[-1][0]
         return dict(registration_sha256=digest, input_identity_sha256=canonical_sha256(
             {'project_checkpoint': context.checkpoint, 'registration_sha256': digest}),
-                    reviewed_joint_count=0, source_registered=True, skeleton_status=skeleton['status'],
+                    reviewed_joint_count=len(imported), imported_joint_ids=imported, ignored_joint_ids=ignored,
+                    source_registered=True, skeleton_status=skeleton['status'],
                     reason_codes=skeleton['reason_codes'], authority='none', production_authorized=False)

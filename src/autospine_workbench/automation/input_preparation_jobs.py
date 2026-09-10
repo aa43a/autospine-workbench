@@ -33,6 +33,19 @@ def validate_result(result):
         result.get('production_authorized', False) is not False or
         result['source_registered'] and result['status'] not in {'needs_review', 'succeeded'}):
         raise PipelineRunError('preparation_result_invalid')
+    count = result.get('reviewed_joint_count', 0)
+    if type(count) is not int or not 0 <= count <= 17:
+        raise PipelineRunError('preparation_result_invalid')
+    from ..benchmark.joint_draft import JOINTS
+    for key in ('imported_joint_ids', 'ignored_joint_ids'):
+        ids = result.get(key, [])
+        if (type(ids) is not list or any(type(v) is not str or not v for v in ids)
+                or len(set(ids)) != len(ids)):
+            raise PipelineRunError('preparation_result_invalid')
+        if key == 'imported_joint_ids' and (set(ids)-set(JOINTS) or key in result and len(ids) != count):
+            raise PipelineRunError('preparation_result_invalid')
+        if key == 'ignored_joint_ids' and set(ids).intersection(JOINTS):
+            raise PipelineRunError('preparation_result_invalid')
     if result.get('reason_code') is not None and (
         type(result['reason_code']) is not str or not re.fullmatch(r'[a-z][a-z0-9_]{0,79}', result['reason_code'])):
         raise PipelineRunError('preparation_result_invalid')

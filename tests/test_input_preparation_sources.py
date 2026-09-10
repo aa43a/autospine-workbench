@@ -87,11 +87,34 @@ class ProjectInputPreparationTests(unittest.TestCase):
             forged = dict(value, authority='approved')
             self.assertTrue(list(validator.iter_errors(forged)))
 
+    def test_initial_saved_coordinates_survive_preparation_without_changing_raw_pose(self):
+        self.project['overrides'].update(revision=2, joint_overrides={
+            'neck': {'x': 45, 'y': 31}, 'eye.left': {'x': 42, 'y': 22}})
+        original = deepcopy(self.project)
+        source = self.prepare()
+        pose = self.pose(source)
+        original_pose = deepcopy(pose)
+        result = publish_prepared_source(self.store, 'new-project', source, pose)
+        self.assertEqual(result['imported_joint_ids'], ['neck'])
+        self.assertEqual(result['ignored_joint_ids'], ['eye.left'])
+        self.assertEqual(result['reviewed_joint_count'], 1)
+        self.assertEqual(self.project, original)
+        self.assertEqual(pose, original_pose)
+        self.check_schemas(source)
+        with inputs.load_inputs(self.store, 'new-project') as current:
+            self.assertEqual(current.assisted['reviewed_joint_ids'], ['neck'])
+            neck = next(r for r in current.assisted['draft']['records'] if r['joint_id'] == 'neck')
+            self.assertEqual(neck['position'], [45, 31])
+            self.assertEqual(current.skeleton['status'], 'blocked')
+            self.assertTrue(all(r['action'] == 'pending' for r in current.draft['records']))
+
     def test_pose_identity_stale_current_and_authoring_edits_fail_without_registration(self):
         self.project['overrides']['revision'] = 1
+        self.project['overrides']['split_decisions'] = {'layer-000': {}}
         with self.assertRaisesRegex(inputs.AnimatedSourceError, 'authoring_edits_unsupported'):
             self.prepare()
         self.project['overrides']['revision'] = 0
+        self.project['overrides'].pop('split_decisions')
         source = self.prepare()
         pose = self.pose(source)
         pose['source']['image_sha256'] = 'f' * 64

@@ -2,8 +2,10 @@
 
 import { projectIdentity, ACTIVE_JOBS } from "./workbench-automation-contract.js";
 import { animatedEndpoint } from "./workbench-animated-contract.js";
-import { createPreparationView, preparationReason } from "./workbench-animated-preparation-view.js";
+import { createPreparationView, preparationReason, preparationSuccess } from "./workbench-animated-preparation-view.js";
 const STATES = new Set(["pending", "running", "needs_review", "succeeded", "blocked", "failed", "canceled"]);
+const jointIds = value => Array.isArray(value) && value.every(id => typeof id === 'string' && id.length > 0)
+  && new Set(value).size === value.length;
 export function readPreparation(value, context, jobId = null) {
   const job = value?.schema === "autospine.input-preparation-job/v1";
   if ((!job && value?.schema !== "autospine.input-preparation-overview/v1") || value.authority !== "none"
@@ -13,6 +15,15 @@ export function readPreparation(value, context, jobId = null) {
     if (!/^job-[a-f0-9]{32}$/.test(value.job_id) || (jobId && jobId !== value.job_id) || !STATES.has(value.status)
       || !Array.isArray(value.progress) || value.progress.some((step) => typeof step.id !== "string" || !STATES.has(step.status))) throw new Error("invalid_preparation_job");
   } else if (!["ready", "runner_unavailable", "unsupported", "already_prepared"].includes(value.status) || typeof value.can_prepare !== "boolean") throw new Error("invalid_preparation_capability");
+  if ((value.authored_joint_count !== undefined && (!Number.isSafeInteger(value.authored_joint_count) || value.authored_joint_count < 0))
+    || (value.ignored_joint_ids !== undefined && !jointIds(value.ignored_joint_ids))
+    || (value.unsupported_items !== undefined && !Array.isArray(value.unsupported_items))) throw new Error('invalid_preparation_migration');
+  const result = value.result;
+  if (result && ['imported_joint_ids', 'ignored_joint_ids'].some(key => result[key] !== undefined)
+    && (!jointIds(result.imported_joint_ids) || !jointIds(result.ignored_joint_ids)
+      || !Number.isSafeInteger(result.reviewed_joint_count) || result.reviewed_joint_count < 0 || result.reviewed_joint_count > 17
+      || result.reviewed_joint_count !== result.imported_joint_ids.length
+      || result.imported_joint_ids.some(id => result.ignored_joint_ids.includes(id)))) throw new Error('invalid_preparation_migration');
   return value;
 }
 export function createAnimatedPreparation(document, hooks, options = {}) {
@@ -29,10 +40,11 @@ export function createAnimatedPreparation(document, hooks, options = {}) {
   function stop() { if (timer !== null) unschedule(timer); timer = null; }
   function render() {
     let message = error || (fetching ? "正在检查来源准备条件…" : submitting ? "正在提交来源准备…" : active() ? "正在准备来源；进度查询不会重复运行模型。"
-      : job?.source_registered ? "来源已准备，请在下方画布复核全部关节点。" : job?.status === "canceled" ? "来源准备已取消。"
-      : job ? preparationReason(job.reason_code) : capability?.status === "ready" ? "可以准备来源。模型检测不会代替人工确认。"
+      : job?.source_registered ? preparationSuccess(job.result) : job?.status === "canceled" ? "来源准备已取消。"
+      : job ? preparationReason(job.reason_code) : capability?.status === "ready"
+        ? `可以准备来源。${capability.authored_joint_count ? `将保留 ${capability.authored_joint_count} 个已保存关节校正。` : ''}模型检测不会代替人工确认。`
       : preparationReason(capability?.reason_code || capability?.status));
-    view.render({ visible, busy: busy(), canStart: visible && editable() && capability?.can_prepare && capability.status === "ready" && !busy(),
+    view.render({ visible, busy: busy(), canStart: visible && !job?.source_registered && editable() && capability?.can_prepare && capability.status === "ready" && !busy(),
       canCancel: active(), canceling: canceling || job?.cancel_requested, message, progress: job?.progress || [] });
   }
   function sync(model) {
@@ -41,7 +53,7 @@ export function createAnimatedPreparation(document, hooks, options = {}) {
       generation++; serial++; stop(); identity = next; capability = job = delivered = null;
       fetching = submitting = canceling = false; error = ""; polls = 0;
     }
-    visible = Boolean(identity && model.sourceMissing); enabled = Boolean(model.preparationEditable);
+    visible = Boolean(identity && (model.sourceMissing || job?.source_registered)); enabled = Boolean(model.preparationEditable);
     if (!visible) { stop(); render(); return; }
     render(); if (!capability && !fetching && !error && editable()) void refresh();
   }
@@ -69,7 +81,7 @@ export function createAnimatedPreparation(document, hooks, options = {}) {
     render();
   }
   async function start() {
-    if (!visible || !editable() || busy() || !capability?.can_prepare || capability.status !== "ready") return;
+    if (!visible || job?.source_registered || !editable() || busy() || !capability?.can_prepare || capability.status !== "ready") return;
     const token = generation, request = ++serial, saved = { ...context() }; submitting = true; error = ""; polls = 0; render();
     try {
       const value = await hooks.apiRequest(endpoint(), { method: "POST", headers: { "X-Autospine-Intent": "pipeline-preview" },

@@ -30,7 +30,10 @@ class InputPreparationApplication:
         else:
             value.update(status='already_prepared', source_registered=True)
             return value
-        if project['overrides']['revision'] != 0:
+        from .input_preparation_authoring import inspect
+        authored=inspect(self.store,project_id,project)
+        value.update(authored)
+        if authored['unsupported_items']:
             value['reason_code'] = 'input_preparation_authoring_edits_unsupported'
             return value
         runner = self.config.public_status()

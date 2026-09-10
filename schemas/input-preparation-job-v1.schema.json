@@ -30,7 +30,10 @@
         "source_registered": {"type": "boolean"}, "authority": {"const": "none"},
         "production_authorized": {"const": false}, "reason_code": {"$ref": "#/$defs/reason"},
         "registration_sha256": {"$ref": "#/$defs/sha"}, "input_identity_sha256": {"$ref": "#/$defs/sha"},
-        "reviewed_joint_count": {"const": 0}, "skeleton_status": {"type": "string", "minLength": 1},
+        "reviewed_joint_count": {"type": "integer", "minimum": 0, "maximum": 17},
+        "imported_joint_ids": {"type": "array", "uniqueItems": true, "maxItems": 17, "items": {"type": "string", "minLength": 1}},
+        "ignored_joint_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "skeleton_status": {"type": "string", "minLength": 1},
         "reason_codes": {"type": "array", "items": {"type": "string", "minLength": 1}}
       }
     }

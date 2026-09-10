@@ -105,6 +105,7 @@ class InputPreparationApplicationTests(unittest.TestCase):
         self.config.public_status.return_value = {'status':'missing', 'reason_code':'pose_runner_not_configured'}
         self.assertEqual(self.app.overview('project')['status'], 'runner_unavailable')
         self.project['overrides']['revision'] = 1
+        self.project['overrides']['split_decisions'] = {'layer-000': {}}
         self.assertEqual(self.app.overview('project')['reason_code'], 'input_preparation_authoring_edits_unsupported')
         self.inspect.side_effect = None
         self.inspect.return_value = {}

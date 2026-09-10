@@ -94,8 +94,8 @@ def prepare_source(store, project_id, expected_resolved_sha256):
                 raise
         else:
             raise inputs.AnimatedSourceError('input_preparation_already_registered')
-        if project['overrides']['revision'] != 0:
-            raise inputs.AnimatedSourceError('input_preparation_authoring_edits_unsupported')
+        from .input_preparation_authoring import require_supported
+        require_supported(store,project_id,project)
         audit = deepcopy(store._record(project_id).audit)
         files = {'audit.json': canonical_bytes(audit)}
         files['composite.png'] = read_real_file(Path(store.resolve_asset(project_id, 'composite')), 64 << 20, 'source composite')

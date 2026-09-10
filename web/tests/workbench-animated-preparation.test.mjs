@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createAnimatedPreparation, readPreparation } from "../modules/workbench-animated-preparation.js";
+import { preparationReason } from "../modules/workbench-animated-preparation-view.js";
 
 const SHA = "1".repeat(64), ID = `job-${"a".repeat(32)}`;
 const tick = () => new Promise((resolve) => setImmediate(resolve));
@@ -67,4 +68,26 @@ test("malformed and stale job identities fail closed", () => {
   assert.throws(() => readPreparation({ ...value, job_id: "../../private" }, h.context));
   assert.throws(() => readPreparation({ ...value, progress: [{ id: "run-pose", status: "approved" }] }, h.context));
   assert.throws(() => readPreparation({ ...value, authority: "production" }, h.context));
+});
+test('saved joints migrate with separate model evidence and completion stays visible without another inference', async () => {
+  const h = harness({ request: async (url, _request, job) => url.includes('/jobs/') ? {
+    ...job('needs_review', true), result: { imported_joint_ids: ['neck', 'wrist.left'], ignored_joint_ids: ['eye.left'], reviewed_joint_count: 2 },
+  } : null });
+  h.sync(); await tick(); await h.ui.start(); await h.ui.refresh();
+  h.sync(false);
+  assert.equal(h.model().visible, true); assert.equal(h.model().canStart, false);
+  assert.match(h.model().message, /已迁入 2 个.*模型原始观测与人工校正分开/);
+  assert.match(h.model().message, /eye.left 保留在主项目中，未迁入/);
+  const before = h.requests.length; await h.ui.start(); assert.equal(h.requests.length, before);
+});
+test('unsupported structure remains blocked and invalid migration counts fail closed', async () => {
+  const h = harness({ capability: { status: 'unsupported', can_prepare: false, reason_code: 'input_preparation_authoring_edits_unsupported' } });
+  h.sync(); await tick(); await h.ui.start(); assert.equal(h.requests.length, 1); assert.equal(h.model().canStart, false);
+  assert.match(preparationReason('input_preparation_authoring_edits_unsupported'), /结构或图层校正/);
+  assert.match(h.model().message, /无需撤销关节校正/);
+  for (const result of [
+    { imported_joint_ids: ['neck', 'neck'], ignored_joint_ids: [], reviewed_joint_count: 2 },
+    { imported_joint_ids: ['neck'], ignored_joint_ids: ['neck'], reviewed_joint_count: 1 },
+    { imported_joint_ids: [], ignored_joint_ids: [], reviewed_joint_count: -1 },
+  ]) assert.throws(() => readPreparation({ ...h.job('needs_review', true), result }, h.context), /migration/);
 });

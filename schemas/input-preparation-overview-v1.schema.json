@@ -11,7 +11,13 @@
     "status": {"enum": ["ready", "already_prepared", "runner_unavailable", "unsupported"]},
     "can_prepare": {"type": "boolean"}, "source_registered": {"type": "boolean"},
     "reason_code": {"type": ["string", "null"], "pattern": "^[a-z][a-z0-9_]{0,79}$"},
-    "authority": {"const": "none"}
+    "authority": {"const": "none"},
+    "authored_joint_count": {"type": "integer", "minimum": 0, "maximum": 17},
+    "ignored_joint_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "unsupported_items": {"type": "array", "items": {
+      "type": "object", "additionalProperties": false, "required": ["id", "field", "reason_code"],
+      "properties": {"id": {"type": "string"}, "field": {"type": "string"}, "reason_code": {"type": "string"}}
+    }}
   },
   "allOf": [
     {"if": {"properties": {"status": {"const": "ready"}}}, "then": {"properties": {"can_prepare": {"const": true}, "source_registered": {"const": false}, "reason_code": {"const": null}}}, "else": {"properties": {"can_prepare": {"const": false}}}},
