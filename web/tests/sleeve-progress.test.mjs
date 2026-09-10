@@ -1,6 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { sleeveProgress } from '../modules/sleeve-progress.js';
+test('stale source is distinguished from an absent task or geometry failure',()=>{
+ for(const reason_code of ['project_snapshot_stale','sleeve_draft_changed','sleeve_annotation_required','sleeve_source_check_failed']) {
+  const p=sleeveProgress({status:'blocked',reason_code});
+  assert.match(p.label,/已有任务需要更新来源/);
+  assert.equal(p.count,0);
+  assert.ok(p.stages.every(s=>s.state==='pending'));
+ }
+});
 test('ordinary plan excludes cloth steps from in-progress counts',()=>{
  const p=sleeveProgress({status:'running',step:'spine: running',stage_ids:['weights','spine','contacts','overlap','runtime']});
  assert.equal(p.total,5);assert.equal(p.count,1);assert.equal(p.stages.length,5);

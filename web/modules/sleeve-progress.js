@@ -16,7 +16,10 @@ export function sleeveProgress(job) {
   const count = completed ? completed.filter(s => s.status === 'succeeded').length
     : index < 0 ? 0 : index + (match[2] === 'running' ? 0 : 1);
   const total = completed?.length || stages.length;
-  const label = !job ? '尚未构建' : job.status === 'pending' ? '已排队，等待开始'
+  const sourceIssue = ['project_snapshot_stale', 'sleeve_draft_changed', 'sleeve_annotation_required',
+    'sleeve_annotation_source_changed', 'sleeve_source_check_failed'].includes(job?.reason_code);
+  const label = !job ? '尚未构建' : sourceIssue ? '已有任务需要更新来源'
+    : job.status === 'pending' ? '已排队，等待开始'
     : job.status === 'failed' ? '构建失败，需要处理'
     : job.status === 'blocked' ? '质量检查未通过'
     : terminal ? '构建完成，等待视觉复核'

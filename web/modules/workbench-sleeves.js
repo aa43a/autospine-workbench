@@ -6,6 +6,9 @@ import { createWorkbenchSleeveAnnotation } from './workbench-sleeve-annotation.j
 const ACTIVE = new Set(['pending', 'running']);
 const REASONS = { sleeve_draft_missing: '尚未保存袖装区域标注。', sleeve_draft_changed: '袖装标注已变化，请重新构建。',
   project_snapshot_stale: '项目已变化，请保存校正后重新构建。', sleeve_job_interrupted: '上次任务已中断，重新构建将校验并复用完成的步骤。',
+  sleeve_annotation_required: '已有任务的标注来源已变化或新版尚未保存。请打开标注画布复核并保存，再重新构建。',
+  sleeve_annotation_source_changed: '已有任务的骨架或标注来源已变化，请重新准备标注、保存后构建。',
+  sleeve_source_check_failed: '已有任务的来源暂时无法校验，已停止展示旧结果。请刷新或检查来源状态。',
   sleeve_cached_output_changed: '缓存文件已变化，已阻止下载。', sleeve_workflow_failed: '构建失败，可重新构建以续跑。',
   sleeve_candidate_withdrawn: '候选已撤回，请恢复后再下载。',
   sleeve_visibility_conflict: '候选展示状态已在其他窗口变化，请刷新后再操作。',

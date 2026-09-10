@@ -50,7 +50,26 @@ class SleeveWebTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError,'snapshot_stale'):self.manager.download('huiye',job_id,0)
         self.sha='a'*64;(self.manager.drafts/'huiye/draft.json').write_text('{"changed":true}')
         with self.assertRaisesRegex(RuntimeError,'draft_changed'):self.manager.download('huiye',job_id,0)
-        self.assertIsNone(self.manager.overview('huiye')['job'])
+        stale = self.manager.overview('huiye')['job']
+        self.assertEqual(stale['job_id'], job_id)
+        self.assertEqual(stale['reason_code'], 'sleeve_draft_changed')
+        self.assertNotIn('result', stale)
+
+    def test_stale_task_stays_visible_after_restart_without_exposing_old_outputs(self):
+        job_id, path = self.candidate()
+        original = (self.manager._path(job_id)/'result.json').read_bytes()
+        self.manager._jobs.clear(); self.sha='b'*64
+        overview = self.manager.overview('huiye')
+        self.assertTrue(overview['can_build'])
+        self.assertEqual(overview['job']['status'], 'blocked')
+        self.assertEqual(overview['job']['reason_code'], 'project_snapshot_stale')
+        self.assertNotIn('result', overview['job'])
+        self.assertNotIn('step', overview['job'])
+        self.assertEqual((self.manager._path(job_id)/'result.json').read_bytes(), original)
+        with self.assertRaisesRegex(RuntimeError, 'snapshot_stale'):
+            self.manager.download('huiye', job_id, 0)
+        self.sha='a'*64
+        self.assertEqual(self.manager.overview('huiye')['job']['status'], 'needs_review')
 
     def test_routes_require_mutation_headers_and_never_accept_paths(self):
         from email.message import Message

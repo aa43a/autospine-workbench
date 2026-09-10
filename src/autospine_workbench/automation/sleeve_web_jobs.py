@@ -37,7 +37,14 @@ class SleeveWebJobs:
                 request=read_document(path)
                 if request['project_id']==project:
                     try:self._assert_current(request)
-                    except (RuntimeError,ValueError,OSError):break
+                    except (RuntimeError,ValueError,OSError) as exc:
+                        reason = getattr(exc, 'reason_code', None)
+                        allowed = {'project_snapshot_stale', 'sleeve_draft_changed',
+                                   'sleeve_annotation_required', 'sleeve_annotation_source_changed'}
+                        latest = dict(schema='autospine.sleeve-web-job/v1',
+                            job_id=path.parent.name, project_id=project, status='blocked',
+                            authority='none', reason_code=reason if reason in allowed else 'sleeve_source_check_failed')
+                        break
                     latest=self.get(project,path.parent.name);break
         from .sleeve_draft_source import available
         return dict(project_id=project,can_build=available(self.projects,self.drafts,project),authority='none',job=latest)
