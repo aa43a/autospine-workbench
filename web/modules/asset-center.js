@@ -1,5 +1,6 @@
 import { createAssetImport } from './asset-import.js';
 import { sleeveProgress } from './sleeve-progress.js';
+import { assetProgressPanel } from './asset-progress.js';
 
 const LABELS = { active: '进行中', archived: '已归档', trashed: '回收站' };
 
@@ -94,6 +95,7 @@ export function createAssetCenter(document, request = fetch) {
     else actions.append(button('恢复项目', () => mutate(p, 'restore')));
     if (p.lifecycle !== 'trashed') actions.append(button('移入回收站', () => mutate(p, 'trash')));
     info.append(actions);
+    if (p.lifecycle !== 'trashed') info.append(assetProgressPanel(document, p.id, request));
     if (p.lifecycle !== 'trashed') {
       const details = node('details'), summary = node('summary', '重命名'), form = node('form');
       const label = node('label', '项目名称'), input = node('input'); input.value = p.name; input.required = true; input.maxLength = 120;
