@@ -3,7 +3,7 @@ import argparse
 from pathlib import Path
 from autospine_workbench.project_store import ProjectStore
 from autospine_workbench.automation.animated_inputs import load_inputs
-from autospine_workbench.asset.planning.ordinary_sleeve_repair import build
+from autospine_workbench.asset.planning.ordinary_sleeve_repair import build, PROFILE, PROFILES
 from autospine_workbench.asset.planning.ordinary_sleeve_repair_review import render
 from autospine_workbench.benchmark.mesh_storage import read_mesh_report, publish_mesh_report, export_mesh
 from autospine_workbench.manifest_artifacts import require_safe_token
@@ -14,6 +14,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('project')
     parser.add_argument('--source', required=True, help='Content address of sleeve-weights/v1')
+    parser.add_argument('--profile', choices=PROFILES, default=PROFILE)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--state-root', type=Path, default=Path('workspace'))
     parser.add_argument('--workspace', type=Path, default=Path('..'))
@@ -25,7 +26,7 @@ def main():
         raise ValueError('ordinary_sleeve_repair_project_mismatch')
     store = ProjectStore(args.workspace.resolve(), args.state_root.resolve())
     with load_inputs(store, args.project) as inputs:
-        report = build(source, read(source['draft_sha256']), inputs.skeleton)
+        report = build(source, read(source['draft_sha256']), inputs.skeleton, profile=args.profile)
         inputs.assert_current()
         # Build already replays every trial. Verify immutable readback here;
         # independent consumers use the full-closure replay validator.

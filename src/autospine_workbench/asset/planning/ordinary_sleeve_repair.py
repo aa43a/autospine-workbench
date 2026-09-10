@@ -13,6 +13,8 @@ from ...resolved_project import canonical_sha256
 
 SCHEMA = 'autospine.ordinary-sleeve-repair/v1'
 PROFILE = 'cuff-graph64-hand-boundary-three-trials-four-track129-v1'
+HARMONIC_PROFILE = 'cuff-absolute-harmonic128-single-trial-four-track129-v1'
+PROFILES = (PROFILE, HARMONIC_PROFILE)
 
 
 def _roles(mesh, assignments):
@@ -53,7 +55,9 @@ def _protected(before, trial, roles):
     return sorted(set(reasons))
 
 
-def build(source, draft, skeleton):
+def build(source, draft, skeleton, *, profile=PROFILE):
+    if profile not in PROFILES:
+        raise ValueError('ordinary_sleeve_repair_profile_invalid')
     baseline = envelope(source, draft, skeleton)
     sources = inventory(source['records']); labels = inventory(draft['records'])
     bones = {b['id']: b for b in skeleton['bones']}; records = []
@@ -70,11 +74,17 @@ def build(source, draft, skeleton):
         chain = [bones[b] for b in mesh['bone_ids']]; roles = _roles(mesh, assignments)
         counts = Counter(assignments[i]['role'] for t in original['tracks'] for q in t['qa'] for i in q['bad_triangles'])
         record['failure_role_counts'] = dict(counts)
-        graph, _ = cuff_transition(mesh, assignments)
-        rigid = _rigid(mesh, assignments, chain)
-        combined, _ = cuff_transition(rigid, assignments)
+        if profile == HARMONIC_PROFILE:
+            from .ordinary_cuff_transition import reweight
+            harmonic, _ = reweight(mesh, assignments)
+            candidates = [('cuff_absolute_harmonic', harmonic)]
+        else:
+            graph, _ = cuff_transition(mesh, assignments)
+            rigid = _rigid(mesh, assignments, chain)
+            combined, _ = cuff_transition(rigid, assignments)
+            candidates = [('cuff_graph', graph), ('hand_shared_boundary', rigid), ('hand_boundary_cuff_graph', combined)]
         best = _score(original['tracks'])
-        for name, trial in [('cuff_graph', graph), ('hand_shared_boundary', rigid), ('hand_boundary_cuff_graph', combined)]:
+        for name, trial in candidates:
             changed = [i for i, (a, b) in enumerate(zip(mesh['weights'], trial['weights'])) if a != b]
             evidence = dict(id=name, changed_vertices=changed, selected=False, reason_codes=[])
             record['trials'].append(evidence)
@@ -105,7 +115,7 @@ def build(source, draft, skeleton):
             row['motion_envelope']['geometry_pass'] = not failed
             record.update(selected=True, selected_trial=name, selected_row=row)
         record['reason_codes'] = ['bounded_candidate_improvement'] if record['selected'] else ['keep_original_weights']
-    return dict(schema=SCHEMA, profile=PROFILE, project_id=source['project_id'],
+    return dict(schema=SCHEMA, profile=profile, project_id=source['project_id'],
                 source_sha256=canonical_sha256(source), draft_sha256=canonical_sha256(draft),
                 skeleton_sha256=canonical_sha256(skeleton), baseline_sha256=canonical_sha256(baseline),
                 records=records, authority='none', production_authorized=False,

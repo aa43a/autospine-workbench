@@ -21,7 +21,7 @@
       "const": "autospine.ordinary-sleeve-repair/v1"
     },
     "profile": {
-      "const": "cuff-graph64-hand-boundary-three-trials-four-track129-v1"
+      "enum": ["cuff-graph64-hand-boundary-three-trials-four-track129-v1", "cuff-absolute-harmonic128-single-trial-four-track129-v1"]
     },
     "project_id": {
       "type": "string",
@@ -62,6 +62,17 @@
       }
     }
   },
+  "allOf": [{
+    "if": {"properties": {"profile": {"const": "cuff-absolute-harmonic128-single-trial-four-track129-v1"}}},
+    "then": {"properties": {"records": {"items": {"properties": {
+      "selected_trial": {"enum": [null, "cuff_absolute_harmonic"]},
+      "trials": {"maxItems": 1, "items": {"properties": {"id": {"const": "cuff_absolute_harmonic"}}}}
+    }}}}},
+    "else": {"properties": {"records": {"items": {"properties": {
+      "selected_trial": {"enum": [null, "cuff_graph", "hand_shared_boundary", "hand_boundary_cuff_graph"]},
+      "trials": {"items": {"properties": {"id": {"enum": ["cuff_graph", "hand_shared_boundary", "hand_boundary_cuff_graph"]}}}}
+    }}}}}
+  }],
   "$defs": {
     "row": {
       "oneOf": [
@@ -96,7 +107,7 @@
           "enum": [
             "cuff_graph",
             "hand_shared_boundary",
-            "hand_boundary_cuff_graph"
+            "hand_boundary_cuff_graph", "cuff_absolute_harmonic"
           ]
         },
         "changed_vertices": {
@@ -210,7 +221,7 @@
             null,
             "cuff_graph",
             "hand_shared_boundary",
-            "hand_boundary_cuff_graph"
+            "hand_boundary_cuff_graph", "cuff_absolute_harmonic"
           ]
         },
         "before": {

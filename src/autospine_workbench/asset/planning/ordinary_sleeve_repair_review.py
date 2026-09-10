@@ -1,12 +1,12 @@
 """Paired repair diagnostic timelines, without recasting repaired rows as source."""
 from html import escape
 import json
-from .ordinary_sleeve_repair import SCHEMA, PROFILE
+from .ordinary_sleeve_repair import SCHEMA, PROFILES
 from .ordinary_sleeve_review import STYLE, SCRIPT, REASONS
 
 
 def render(document):
-    if (document.get('schema') != SCHEMA or document.get('profile') != PROFILE
+    if (document.get('schema') != SCHEMA or document.get('profile') not in PROFILES
             or document.get('authority') != 'none' or document.get('production_authorized') is not False
             or document.get('global_replacement_authorized') is not False):
         raise ValueError('ordinary_sleeve_repair_review_source_invalid')
