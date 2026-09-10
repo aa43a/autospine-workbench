@@ -3,8 +3,9 @@ import math
 from ..joints.mesh_weights import _area
 
 
-def estimate(setup,triangles,points,free,base_budget,include_edges=False):
+def estimate(setup,triangles,points,free,base_budget,include_edges=False,*,headroom=0.):
     if not math.isfinite(base_budget) or base_budget<=0:raise ValueError('boundary_budget_invalid')
+    if not math.isfinite(headroom) or not 0<=headroom<=1:raise ValueError('boundary_budget_headroom')
     free=set(free);requirements=[];fixed_failures=[]
     for index,t in enumerate(triangles):
         rest=_area(setup,t)
@@ -33,8 +34,12 @@ def estimate(setup,triangles,points,free,base_budget,include_edges=False):
         lower=max(lower,max((r['required_px'] for r in edge_requirements),default=0.))
     # base = 15% forearm; hard cap = 50% forearm. Geometry gates are unchanged.
     cap=base_budget*(.5/.15);budget=min(cap,max(base_budget,lower*1.1))
+    estimated=budget
+    budget+=headroom*(cap-budget)
     evidence=dict(profile='area-edge-displacement-bound-cap50-v1' if include_edges else 'one-free-area-bound-cap50-v1',base_budget_px=base_budget,cap_px=cap,
         required_lower_bound_px=lower,budget_px=budget,cap_exceeded=lower>cap,
         fixed_triangle_failures=fixed_failures,requirements=requirements)
     if include_edges:evidence.update(edge_requirements=edge_requirements,fixed_edge_failures=fixed_edges)
+    if headroom:evidence.update(headroom_fraction=headroom,estimated_budget_px=estimated,
+        allocation_policy='explicit-headroom-within-existing-cap-v1')
     return budget,evidence

@@ -73,8 +73,11 @@ def main():
     p.add_argument('--blend-backtrack',action='store_true',help='Try three bounded blends when the full correction regresses')
     p.add_argument('--reviewed-domain',action='store_true',help='Rebuild garment freedom from the exact source-linked reviewed draft')
     p.add_argument('--trial-passes',type=int,choices=(1,2,3),default=1,help='Bounded internal iterations; intermediate failures are not retained')
+    p.add_argument('--budget-headroom',type=float,choices=(0.,.5,1.),default=0.,help='Explicit fraction of remaining existing cap; requires --edge-budget')
     p.add_argument('--state-root',type=Path,default=Path('workspace'));p.add_argument('--workspace',type=Path,default=Path('..'))
-    a=p.parse_args();source=read_mesh_report(a.state_root,'project-component-partitions',a.source)
+    a=p.parse_args()
+    if a.budget_headroom and not a.edge_budget:p.error('--budget-headroom requires --edge-budget')
+    source=read_mesh_report(a.state_root,'project-component-partitions',a.source)
     if source['schema']!='autospine.sleeve-motion-envelope/v1' or source['authority']!='none' or source['production_authorized'] is not False:raise ValueError('retained_solver_source')
     result=deepcopy(source);result.update(source_sha256=a.source,baseline_sha256=a.source,profile='retained-weights-joint200-v1')
     if a.edge_budget:result['profile']='retained-weights-edge-budget-joint200-v1'
@@ -83,6 +86,7 @@ def main():
     domains=reviewed_domains(a.state_root,source) if a.reviewed_domain else None
     if domains is not None:result['profile']+='-reviewed-domain-v1'
     result['profile']+=f'-trial-passes{a.trial_passes}-v1'
+    if a.budget_headroom:result['profile']+=f'-budget-headroom{a.budget_headroom:g}-v1'
     import numpy,scipy,platform
     result['solver_environment']=dict(numpy=numpy.__version__,scipy=scipy.__version__,python=platform.python_version())
     with load_inputs(ProjectStore(a.workspace,a.state_root),source['project_id']) as inputs:
@@ -97,6 +101,7 @@ def main():
             candidate.setdefault('correction_domain',dict(anchors=sorted({v for e in row['interface_root']['edges'] for v in e}),free_vertices=row['cloth_vertices']))
             candidate['correction_domain']['solver_profile']='joint-area-edge-sparse200-v1'
             if a.edge_budget:candidate['correction_domain']['budget_policy']='area-edge-displacement-bound-cap50-v1'
+            if a.budget_headroom:candidate['correction_domain']['budget_headroom']=a.budget_headroom
             evidence=[];tracks=[]
             for old in row['tracks']:
                 chosen,receipt=solve_track(candidate,chain,old,smooth=a.smooth_seed,blend=a.blend_backtrack,passes=a.trial_passes)

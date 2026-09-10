@@ -49,7 +49,8 @@ def steps(repo,draft_root,root,project,state,workspace):
     add('connection','build-sleeve-helpers.py','anchors',['--motion-envelope','--connection-domain','--baseline-envelope',str(root/'motion')])
     add('boundary','build-sleeve-helpers.py','anchors',['--motion-envelope','--connection-domain','--boundary-budget','--baseline-envelope',str(root/'connection')])
     add('cuff','build-sleeve-helpers.py','anchors',['--motion-envelope','--connection-domain','--boundary-budget','--cuff-harmonic','--edge-budget','--baseline-envelope',str(root/'boundary')])
-    add('spine','export-sleeve-spine.py','cuff')
+    add('repair','repair-sleeve-candidate.py','cuff')
+    add('spine','export-sleeve-spine.py','repair')
     result.append(('contacts',root/'contacts',[sys.executable,str(repo/'tools/check-sleeve-contacts.py'),
         '--input',str(root/'spine'),'--output',str(root/'contacts'),'--state-root',str(state),project]))
     result.append(('overlap',root/'overlap',[sys.executable,str(repo/'tools/check-sleeve-overlap.py'),
@@ -61,6 +62,7 @@ def code_identity(repo):
     paths=list((repo/'src'/'autospine_workbench').rglob('*.py'))
     paths += [repo/'tools'/name for name in ('build-sleeve-weights.py','build-sleeve-helpers.py','export-sleeve-spine.py','run-sleeve-workflow.py','verify-sleeve-core.mjs','check-sleeve-contacts.py','check-sleeve-overlap.py')]
     paths += [repo/'tools'/name for name in ('capture-sleeve-runtime.mjs','sleeve-framebuffer.js','sleeve-overlap-framebuffer.js','review-sleeve-framebuffer.py')]
+    paths += [repo/'tools'/name for name in ('repair-sleeve-candidate.py','solve-retained-sleeve.py')]
     return canonical_sha256({p.relative_to(repo).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(paths)})
 
 

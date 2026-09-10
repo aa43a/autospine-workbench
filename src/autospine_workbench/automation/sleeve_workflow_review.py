@@ -18,7 +18,8 @@ def render(report):
         rows.append(f'<tr><td>{label}</td><td>{escape(row["status"])}</td><td>{escape(row["reason_code"])}</td><td>{action}</td></tr>')
     stages=' → '.join(escape(s['id'])+('（复用）' if s['cached'] else '✓') for s in report['steps'])
     project=escape(report['project_id'])
-    timeline='cuff' if any(s['id']=='cuff' for s in report['steps']) else 'boundary'
+    completed={s['id'] for s in report['steps'] if s['status']=='succeeded'}
+    timeline=next((name for name in ('repair','cuff','boundary') if name in completed),'boundary')
     runtime_note=('已导出区域官方核心数值验证通过；GPU与alpha接缝仍未验证。' if report['runtime_status']=='core_passed'
         else '官方核心未完成或未通过；GPU与alpha接缝仍未验证。')
     if report.get('framebuffer_review'):

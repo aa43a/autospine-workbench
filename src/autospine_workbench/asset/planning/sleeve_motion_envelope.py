@@ -38,7 +38,8 @@ def track(row,chain,name,amplitudes,*,key_seeds=None):
         if domain and domain.get('budget_policy') in ('one-free-area-bound-cap50-v1','area-edge-displacement-bound-cap50-v1'):
             from .sleeve_boundary_budget import estimate
             active_budget,evidence=estimate(setup,tri,base,set(free)-set(anchors),budget,
-                include_edges=domain['budget_policy']=='area-edge-displacement-bound-cap50-v1')
+                include_edges=domain['budget_policy']=='area-edge-displacement-bound-cap50-v1',
+                headroom=domain.get('budget_headroom',0.))
             if 'support_mesh' in row:
                 coarse=row['support_mesh']['coarse_constraints'];count=len(coarse['vertices_xy'])
                 inherited,coarse_evidence=estimate(coarse['vertices_xy'],coarse['triangles'],base[:count],coarse['free_vertices'],budget)

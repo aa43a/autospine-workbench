@@ -28,10 +28,11 @@ class SleeveWorkflowTests(unittest.TestCase):
 
     def test_plan_has_retained_chain_and_no_experimental_weight_changes(self):
         plan=steps(Path('/repo'),Path('/drafts'),Path('/run'),'fixture',Path('/state'),Path('/workspace'))
-        self.assertEqual([p[0] for p in plan],['weights','root','interface','anchors','motion','connection','boundary','cuff','spine','contacts','overlap'])
+        self.assertEqual([p[0] for p in plan],['weights','root','interface','anchors','motion','connection','boundary','cuff','repair','spine','contacts','overlap'])
         self.assertIn('--boundary-budget',plan[7][2])
         self.assertIn('--cuff-harmonic',plan[7][2])
         self.assertIn('--edge-budget',plan[7][2])
         self.assertEqual(plan[8][2][plan[8][2].index('--input')+1],str(Path('/run/cuff')))
-        self.assertEqual(plan[9][2][plan[9][2].index('--input')+1],str(Path('/run/spine')))
+        self.assertEqual(plan[9][2][plan[9][2].index('--input')+1],str(Path('/run/repair')))
+        self.assertEqual(plan[10][2][plan[10][2].index('--input')+1],str(Path('/run/spine')))
         self.assertTrue(all('--rigid-hand' not in p[2] and '--joint-solver' not in p[2] for p in plan))
