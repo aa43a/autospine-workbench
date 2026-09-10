@@ -4,6 +4,14 @@ import { assetProgressPanel } from './asset-progress.js';
 
 const LABELS = { active: '进行中', archived: '已归档', trashed: '回收站' };
 
+export function assetSourceMessage(source) {
+  if (source?.kind === 'uploaded_psd' && Array.isArray(source.file_names) && source.file_names.length
+    && source.file_names.every(name => typeof name === 'string' && /\.psd$/i.test(name) && !/[\\/:\x00-\x1f]/.test(name)))
+    return `PSD 来源：${source.file_names.join('、')}`;
+  if (source?.kind === 'audit') return '来源：已有 audit，未登记上传 PSD 文件名。';
+  return '来源文件名暂不可核实。';
+}
+
 export function assetTaskMessage(task) {
   if (!task || !['pending', 'running'].includes(task.status)) return null;
   const kinds = { sleeves: '袖装修复', preparation: '来源准备', animation: '动画候选', preview: 'Spine 预览' };
@@ -82,6 +90,7 @@ export function createAssetCenter(document, request = fetch) {
     const imageBox = node('div', '', 'thumbnail'); imageBox.append(img);
     img.addEventListener('error', () => imageBox.replaceChildren(node('span', '缩略图暂不可用')));
     const info = node('div', '', 'card-info'); info.append(node('span', LABELS[p.lifecycle], 'badge'), node('h2', p.name), node('p', p.id, 'project-id'));
+    info.append(node('p', assetSourceMessage(p.source)));
     if (Number.isInteger(p.layer_count)) info.append(node('p', `${p.layer_count} 个源图层`));
     const taskMessage = assetTaskMessage(p.current_task);
     if (taskMessage) info.append(node('p', taskMessage, 'task-status'));

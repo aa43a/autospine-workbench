@@ -31,12 +31,15 @@ class AssetLibrary:
             return value
 
     def list(self):
+        from .asset_source import upload_sources
         result = []
-        for project in self.projects.list_projects():
+        projects = self.projects.list_projects()
+        sources = upload_sources(self.projects.state_root, [project['id'] for project in projects])
+        for project in projects:
             meta = self.metadata(project['id'])
             result.append({**project, 'project_revision': project['revision'],
                            'revision': meta['revision'], 'lifecycle': meta['lifecycle'],
-                           'name': meta['name'] or project['name']})
+                           'name': meta['name'] or project['name'], 'source': sources[project['id']]})
         return result
 
     def change(self, project, body):
