@@ -1,5 +1,7 @@
 # AutoSpine Workbench 架构与质量门禁
 
+实时袖装标注分为 `sleeve-live-model.js`（纯草稿权重与FK）、`sleeve-live-panel.js`（时间轴与Canvas）和既有区域编辑器。Python页面生成器传入已解析源网格；涂改仅更新内存草稿。正式求解、内容寻址和Runtime捕获继续走独立可恢复工作流，避免把浏览器试算赋予采用权或数值认证含义。
+
 R3-S官方帧缓冲捕获使用独立 `capture-sleeve-runtime.mjs` / `sleeve-framebuffer.js`，由外置spine-webgl执行解析、FK和渲染。报告严格区分探针覆盖、自重叠与发布权，Python复核器核对来源及图像摘要；不修改历史候选。
 
 v7由 `sleeve_capture_environment.py` 发现并固定现有运行环境，由 `sleeve_capture_step.py` 编排可恢复捕获与精确摘要。普通任务自动使用已安装环境；缺失环境不下载、不假通过，帧缓冲探针失败明确阻塞下载。

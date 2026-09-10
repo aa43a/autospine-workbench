@@ -22,7 +22,9 @@ before reuse, including exported ZIP and capture bytes. This verifies recovery
 and idempotent reuse of these concrete current delivery runs.
 
 The user supplied Lingmeng PSD for the additional fixed-policy validation.
-Audit and real Pose preparation are complete; joint review is pending. See
+Joint and region review are now complete. The frozen policy passes its right sleeve
+but blocks its left sleeve; the subsequent hand-rigidity experiment is separate
+and does not turn the frozen-policy result into a pass. See
 [source identities and frozen scope](r3s-lingmeng-validation.md).
 
 | Requirement | Inspected evidence | Result |
@@ -61,3 +63,23 @@ Main workbench review links are now verified end-to-end; see
 `r3s-workbench-review-entry.md`. The attempted Yaomeng sample was rejected by
 the user as sleeveless and retained only as a negative applicability observation.
 It does not satisfy the additional sleeve validation requirement.
+
+## Recheck after live annotation delivery — 2026-09-11
+
+At commit `63ac73c`, all 28 stage receipts of the two original delivery runs were
+checked against their complete current file inventories and SHA-256 values,
+including candidate ZIPs and captures. The Runtime receipt root is
+`runtime/<project>`; other stage inventories use the stage root. No mismatch remained.
+This is a historical delivery integrity check, not a claim that these runs carry
+the new live-renderer compiler identity.
+
+All 103 `test_sleeve_*.py` tests passed, covering workflow recovery, candidate
+export status, blocked downloads, source checks and review routes. The four
+original candidates retain their historical hashes. The live editor adds draft
+FK feedback only and does not modify those candidates or the official captures.
+
+The remaining generality work is the independent sleeve result: preserve the
+Lingmeng frozen-policy failure, evaluate the hand constraint hypothesis across
+the other characters, and obtain review of the new candidate without weakening
+geometry or Runtime gates. This is distinct from the original four-sleeve
+restricted-motion delivery.

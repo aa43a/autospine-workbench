@@ -1,5 +1,7 @@
 # AutoSpine Workbench 功能与入口参考
 
+当前袖装状态（2026-09-11）：原辉夜/幽幽子四袖完成多连接点结构、受限动作、14阶段重建与官方捕获，历史输出库存已重新校验。独立灵梦固定策略仍为左袖阻塞、右袖通过，不能宣称任意袖装通用通过。见 [验收核对](r3s-acceptance-audit-2026-09-10.md) 和 [实时调整标注](sleeve-live-annotation.md)。以下逐切片条目保留历史时点结论，不作为当前完成状态。
+
 - [袖装官方WebGL捕获](how-to-sleeve-workflow.md)：四袖7196帧、1153159个袖口探针无空白失败；可追加软件峰值同帧六视图，已确认两处左袖手↔垂布双覆盖，仍需遮挡验收。
 
 - 袖装一键流程v7自动发现既有官方捕获环境，输出统一的逐袖帧缓冲摘要；数值、接缝和重叠状态分别保留，捕获完成不会生成正式采用决定。
@@ -674,4 +676,4 @@ Preflight POST 只用于承载有界完整 JSON 文档，不代表 mutation。P9
 - See-through/pose 推理、真实 Kimodo checkpoint authenticity/动作质量验收、实时追踪、自由形变、runtime IK、生产部署仍未实现。
 
 不要把结构验证、fixture、sampled screenshot/指标、anchor-point 距离、loader replay 或一次人工 decision 写成连续 raster 安全、真实双样本验收或发布通过。
-- [R3-S 受限袖装里程碑](milestone-r3s-sleeves.md)：多连接点修正及前臂±30°/手±30°/垂布±10°组合轨已实现；辉夜右7轨采样几何通过，其余3袖仍有失败。alpha接缝、Spine deform和官方Runtime未完成。
+- [R3-S 受限袖装里程碑](milestone-r3s-sleeves.md)：原四袖前臂±30°/手±30°/垂布±10°及声明组合轨已通过密集几何、Spine deform导出和官方Runtime采样；自动修正、下载与失败阻塞可从普通入口执行。独立泛化和完整角色遮挡仍未完成。
