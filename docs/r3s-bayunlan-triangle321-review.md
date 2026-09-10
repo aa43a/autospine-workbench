@@ -43,3 +43,20 @@ All 14 retained gates, unchanged binding data, exact fallback on rejection, setu
 poses and candidate authority were verified. Five backtrack/helper tests and three
 source-quality tests passed. Both sleeves remain blocked; no new Runtime frames were
 captured. Review: `tmp/r3s-reviewed-321-backtrack/bayunlan/index.html`.
+
+## Fixed-area obstruction after the edge obstruction was removed
+
+`777e492651078aec797001eaf512c6f714459170c6f207999ad1279d83748199`
+adds an independent fixed-triangle area check to the same exact candidate and draft.
+The protected vertices of left triangles 274 (`unknown`) and 276 (`cuff`) produce
+minimum recorded area ratios 0.26304512914204314 and 0.09869252362715505. Both are below
+the actual QA minimum 0.5, not merely the solver's tighter internal target 0.55.
+All three vertices are protected, so changing neighboring free vertices cannot repair
+these ratios. This does not authorize changing hand/unknown ownership or weights.
+Right-sleeve protected triangles have no such counterexample (minimum 0.7292083995324811).
+
+The report at `tmp/r3s-fixed-areas/bayunlan/index.html` includes purple failure overlays
+and separate texture-aligned closeups for 274 and 276. Human classification of 274 was
+requested; 321 remains the only newly confirmed assignment. No additional draft change
+has been made. Five fixed-constraint tests and two image-coordinate tests pass, including
+a counterexample where every edge length passes while the fixed triangle collapses.

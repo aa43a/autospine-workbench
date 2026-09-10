@@ -1,5 +1,6 @@
 """Necessary edge feasibility with protected endpoints at recorded poses."""
 import math
+from ..joints.mesh_weights import _area
 
 
 def inspect(points, triangles, protected, tracks, limit=2.):
@@ -35,3 +36,24 @@ def inspect(points, triangles, protected, tracks, limit=2.):
         status='infeasible_with_fixed_endpoints' if witnesses else 'no_fixed_edge_counterexample',
         scope='recorded_poses_fixed_endpoints_only_not_full_mesh_feasibility',
         authority='none',production_authorized=False)
+
+
+def inspect_areas(points,triangles,protected,tracks):
+    """An unmovable triangle cannot be repaired by moving its neighbors."""
+    checked=inspect(points,triangles,protected,tracks)
+    pins=set(protected);fixed={i:t for i,t in enumerate(triangles) if set(t)<=pins}
+    areas={i:_area(points,t) for i,t in fixed.items()}
+    if any(abs(a)<=1e-12 for a in areas.values()):raise ValueError('sleeve_fixed_area_degenerate')
+    witnesses=[];minimum=1.;maximum=1.
+    for track in tracks:
+        for index,sample in enumerate(track['samples']):
+            for i,t in fixed.items():
+                ratio=_area(sample['points'],t)/areas[i]
+                minimum=min(minimum,ratio);maximum=max(maximum,ratio)
+                if ratio<.5 or ratio>2:
+                    witnesses.append(dict(track=track['bone_id'],sample_index=index,triangle=i,
+                        vertices=list(t),ratio=ratio,angles=sample.get('angles')))
+    return dict(profile='protected-triangle-area-feasibility-v1',min_ratio=minimum,max_ratio=maximum,
+        tested_triangles=len(fixed),tested_poses=checked['tested_poses'],witnesses=witnesses,
+        limits=[.5,2.],status='infeasible_with_fixed_vertices' if witnesses else 'no_fixed_area_counterexample',
+        scope='recorded_poses_fixed_vertices_only_not_full_mesh_feasibility',authority='none',production_authorized=False)

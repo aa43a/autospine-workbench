@@ -5,7 +5,7 @@ from html import escape
 from pathlib import Path
 from math import isfinite
 from autospine_workbench.asset.planning.sleeve_unknown_coupling import analyze
-from autospine_workbench.asset.planning.sleeve_fixed_edges import inspect
+from autospine_workbench.asset.planning.sleeve_fixed_edges import inspect,inspect_areas
 from autospine_workbench.asset.planning.sleeve_connection_domain import domain
 from autospine_workbench.asset.planning.sleeve_regions import validate
 from autospine_workbench.benchmark.artifacts import read_input,publish_report,read_report,export_document
@@ -53,18 +53,32 @@ def main():
             diagnosis=analyze(row['triangles'],labels[key]['assignments'],row['weights'],mesh['bone_ids'][2],bad)
             protected=domain(row['triangles'],labels[key]['assignments'])['protected_vertices']
             diagnosis['fixed_edge_feasibility']=inspect(row['setup_vertices'],row['triangles'],protected,row['tracks'])
+            area_proof=inspect_areas(row['setup_vertices'],row['triangles'],protected,row['tracks'])
+            diagnosis['fixed_area_feasibility']=area_proof
+            fixed_bad={w['triangle'] for w in area_proof['witnesses']}
             records.append(dict(layer_id=key[0],component_id=key[1],**diagnosis))
             layer=next(l for l in inputs.candidate['layers'] if l['layer_id']==key[0]);x,y,w,h=image_frame(layer['bbox'])
             image=base64.b64encode(inputs.images[key[0]]).decode()
             shapes=[]
-            for i in sorted(bad|set(diagnosis['unknown_triangles'])):
+            for i in sorted(bad|set(diagnosis['unknown_triangles'])|fixed_bad):
                 pts=' '.join(','.join(map(str,row['setup_vertices'][v])) for v in row['triangles'][i])
-                color='#ffb000' if i in diagnosis['unknown_triangles'] else '#ff4455'
+                color='#d892ff' if i in fixed_bad else '#ffb000' if i in diagnosis['unknown_triangles'] else '#ff4455'
                 shapes.append(f'<polygon points="{pts}" fill="{color}" fill-opacity=".4" stroke="{color}" stroke-width="1"><title>triangle {i}</title></polygon>')
+                if i in fixed_bad or i in diagnosis['unknown_triangles']:
+                    cx,cy=[sum(row['setup_vertices'][v][k] for v in row['triangles'][i])/3 for k in (0,1)]
+                    shapes.append(f'<text x="{cx}" y="{cy}" fill="white" stroke="#152332" stroke-width=".5" paint-order="stroke" font-size="5" text-anchor="middle">{i}</text>')
             views.append(f'<h2>{escape(key[0])}</h2><p>橙色：与手驱动耦合的不确定三角形 {diagnosis["unknown_triangles"]}；红色：动作中失败的三角形投影到setup。共享顶点影响是诊断证据，不是因果证明。</p><svg viewBox="{x} {y} {w} {h}" style="height:75vh;max-width:100%"><image href="data:image/png;base64,{image}" x="{x}" y="{y}" width="{w}" height="{h}"/>'+''.join(shapes)+'</svg>')
             proof=diagnosis['fixed_edge_feasibility'];worst=max(proof['witnesses'],key=lambda r:r['ratio'],default=None)
             views.append(f'<p>固定端点边长检查：{escape(proof["status"])}；{proof["tested_poses"]}个记录姿态，峰值{proof["peak_ratio"]:.3f}倍，上限{proof["limit"]}倍。无反例不代表网格可解。</p>')
             if worst:views.append(f'<p>最大冲突：{escape(worst["track"])}，采样序号{worst["sample_index"]}，顶点{worst["vertices"]}；原边长{worst["rest_length"]:.3f}，变形后{worst["posed_length"]:.3f}。保持当前拓扑时，必须允许改变端点运动才可能消除此边超限；不自动改变未知归属。</p>')
+            views.append(f'<p>紫色：固定顶点面积失败 {sorted(fixed_bad)}。记录姿态最小面积比 {area_proof["min_ratio"]:.3f}，门槛0.5；只移动周围顶点无法改变这些三角形。此诊断不替代归属复核，也不自动改动保护顶点。</p>')
+            for index in sorted(fixed_bad):
+                points=[row['setup_vertices'][v] for v in row['triangles'][index]]
+                left=min(p[0] for p in points)-10;top=min(p[1] for p in points)-10
+                width=max(p[0] for p in points)-left+10;height=max(p[1] for p in points)-top+10
+                pts=' '.join(','.join(map(str,p)) for p in points)
+                role=next(a['role'] for a in labels[key]['assignments'] if a['triangle_id']==index)
+                views.append(f'<h3>三角形 {index} · 当前归属 {escape(role)}</h3><svg viewBox="{left} {top} {width} {height}" style="height:300px;max-width:100%"><image href="data:image/png;base64,{image}" x="{x}" y="{y}" width="{w}" height="{h}"/><polygon points="{pts}" fill="#d892ff" fill-opacity=".3" stroke="#d892ff" stroke-width=".6"/></svg>')
         inputs.assert_current()
     report=dict(schema='autospine.sleeve-unknown-coupling/v1',authority='none',production_authorized=False,
         project_id=source['project_id'],source_sha256=canonical_sha256(source),draft_sha256=canonical_sha256(draft),records=records)
