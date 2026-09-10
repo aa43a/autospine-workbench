@@ -670,3 +670,4 @@ Preflight POST 只用于承载有界完整 JSON 文档，不代表 mutation。P9
 - See-through/pose 推理、真实 Kimodo checkpoint authenticity/动作质量验收、实时追踪、自由形变、runtime IK、生产部署仍未实现。
 
 不要把结构验证、fixture、sampled screenshot/指标、anchor-point 距离、loader replay 或一次人工 decision 写成连续 raster 安全、真实双样本验收或发布通过。
+- [R3-S 受限袖装里程碑](milestone-r3s-sleeves.md)：多连接点修正及前臂±30°/手±30°/垂布±10°组合轨已实现；辉夜右7轨采样几何通过，其余3袖仍有失败。alpha接缝、Spine deform和官方Runtime未完成。

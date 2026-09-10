@@ -15,6 +15,7 @@ const ns='http://www.w3.org/2000/svg';let running=false,last=0;
 function node(tag,attrs={}){const n=document.createElementNS(ns,tag);for(const [k,v] of Object.entries(attrs))n.setAttribute(k,v);return n;}
 const views=rows.map(r=>{const s=document.createElement('section'),h=document.createElement('h2'),select=document.createElement('select'),qa=document.createElement('p'),svg=node('svg');
 h.textContent=r.layer_id+' / '+r.component_id;
+if(r.motion_envelope){const n=document.createElement('p');n.textContent=`受限动作：前臂±30° / 手±30° / 垂布±10° · ${r.motion_envelope.geometry_pass?'采样几何通过':'几何未通过'}；alpha接触与Runtime尚未验证`;s.append(n);}
 if(r.anchor_correction){const a=r.anchor_correction,n=document.createElement('p');n.textContent=`多连接点约束：${a.selected?'保留候选':'回退'} · ${a.reason_codes.join(', ')}；${(a.baseline_failed_ticks||[]).join('/')} → ${(a.trial_failed_ticks||[]).join('/')}`;s.append(n);}
 if(r.root_transition){const note=document.createElement('p');note.textContent=`根部过渡：${r.root_transition.selected?'保留候选':'回退'}；${r.root_transition.reason_codes.join(', ')}；试验失败 ${r.root_transition.baseline_failed_ticks.join('/')} → ${r.root_transition.trial_failed_ticks.join('/')}`;s.append(note);}
 if(r.interface_root){const note=document.createElement('p'),a=r.interface_root;note.textContent=`交界根部：${a.selected?'保留候选':'保留旧根部'} · ${a.connected_components}段交界 · ${(a.reason_codes||[a.reason_code]).join(', ')}；${(a.baseline_failed_ticks||[]).join('/')} → ${(a.trial_failed_ticks||[]).join('/')}`;s.append(note);}
@@ -27,7 +28,7 @@ svg.setAttribute('viewBox',`${x} ${y} ${Math.max(...xs)-x+10} ${Math.max(...ys)-
 const bad=new Set(track.qa[tick*4].bad_triangles);r.triangles.forEach((t,i)=>svg.append(node('polygon',{points:t.map(v=>frame.points[v].join(',')).join(' '),fill:bad.has(i)?'#e44a':'#55ccbb33',stroke:'#aaa','stroke-width':'.5'})));
 for(const b of frame.bones){svg.append(node('line',{x1:b.head_xy[0],y1:b.head_xy[1],x2:b.tail_xy[0],y2:b.tail_xy[1],stroke:b.id===r.helper.id?'#fc5':'#5bf','stroke-width':'3'}));}
 if(tick===16&&r.interface_root){for(const [a,b] of r.interface_root.edges){const p=r.setup_vertices[a],q=r.setup_vertices[b];svg.append(node('line',{x1:p[0],y1:p[1],x2:q[0],y2:q[1],stroke:'#ff79cb','stroke-width':'3'}));}const p=r.interface_root.root_xy;if(p)svg.append(node('circle',{cx:p[0],cy:p[1],r:5,fill:'#ff79cb'}));}
-qa.textContent=`角度 ${frame.angle.toFixed(2)}° · 翻转 ${track.qa[tick*4].inversions} · setup误差 ${r.setup_error.toExponential(2)} px`;}}
+qa.textContent=`角度 ${frame.angles?frame.angles.map(a=>a.toFixed(2)).join(' / '):frame.angle.toFixed(2)}° · 翻转 ${track.qa[tick*4].inversions} · setup误差 ${r.setup_error.toExponential(2)} px`+(r.motion_envelope?` · 本轨修正${track.correction_selected?'保留':'未采用'} · 原始/试验失败 ${track.baseline_failed_ticks}/${track.trial_failed_ticks} · ${track.reason_codes.join(', ')}`:'');}}
 slider.oninput=()=>{running=false;document.querySelector('#play').textContent='播放';draw();};document.querySelector('#setup').onclick=()=>{slider.value='16';slider.oninput();};
 document.querySelector('#play').onclick=()=>{running=!running;document.querySelector('#play').textContent=running?'暂停':'播放';};
 document.addEventListener('visibilitychange',()=>{if(document.hidden){running=false;document.querySelector('#play').textContent='播放';}});

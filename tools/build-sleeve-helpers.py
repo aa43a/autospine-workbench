@@ -16,17 +16,21 @@ def main():
     p.add_argument('--input',type=Path,required=True);p.add_argument('--output',type=Path,required=True)
     p.add_argument('--root-transition',action='store_true')
     p.add_argument('--multi-anchor',action='store_true',help='Test cloth-only corrective keys with fixed interface vertices')
+    p.add_argument('--motion-envelope',action='store_true',help='Validate fixed R3-S individual and combined motion range')
     p.add_argument('--interface-root',action='store_true',help='Read helper input and test semantic attachment roots')
     p.add_argument('--state-root',type=Path,default=Path('workspace'));p.add_argument('--workspace',type=Path,default=Path('..'))
     p.add_argument('projects',nargs='+');a=p.parse_args();store=ProjectStore(a.workspace,a.state_root);links=[]
-    if sum([a.root_transition,a.interface_root,a.multi_anchor])>1:p.error('root modes are mutually exclusive')
+    if sum([a.root_transition,a.interface_root,a.multi_anchor,a.motion_envelope])>1:p.error('root modes are mutually exclusive')
     for project in a.projects:
         require_safe_token(project,'Project')
         page=(a.input/project/'index.html').read_text(encoding='utf-8');sha=re.search(r'href="([a-f0-9]{64})\.json"',page).group(1)
         source=read_mesh_report(a.state_root,'project-component-partitions',sha)
         if source['project_id']!=project:raise ValueError('cloth_project_mismatch')
         with load_inputs(store,project) as inputs:
-            if a.multi_anchor:
+            if a.motion_envelope:
+                from autospine_workbench.asset.planning.sleeve_motion_envelope import build as envelope_build
+                doc=envelope_build(source,inputs.skeleton)
+            elif a.multi_anchor:
                 from autospine_workbench.asset.planning.cloth_anchor_correction import build as anchor_build
                 doc=anchor_build(source,inputs.skeleton)
             elif a.interface_root:
