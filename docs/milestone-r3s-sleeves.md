@@ -62,3 +62,23 @@ python tools/build-sleeve-helpers.py --multi-anchor --input ../tmp/r3a-cloth-int
 以上为按无回归门禁选择后的失败采样数，分母 129。全部仍阻塞正式采用；辉夜右仅采样几何通过。
 命令：`python tools/build-sleeve-helpers.py --motion-envelope --input ../tmp/r3s-cloth-anchors --output ../tmp/r3s-motion-envelope huiye uuz`。
 下一步用失败三角形与 sleeve/cuff/hand/hanging_cloth 归属对应定位连接邻域，修正其结构自由度，同时为已通过几何的轨道接入目标 deform 转换。
+
+## Spine deform 与官方核心验证
+
+新增 `targets/spine43/sleeve_deform.py`，将画布修正位移逆旋转到每个骨骼影响的局部坐标，
+并转换 Y 方向；129 个骨骼旋转/deform 键，257 点独立目标格式插值检查。
+已导出辉夜右袖的 JSON / Atlas / 原分区精确纹理 / ZIP，其他三袖返回结构化阻塞原因。
+输出拒绝覆盖已有不同字节；不是整角色包，不产生发布权。
+
+辉夜右7轨目标格式几何检查通过，关键帧还原最大误差约 6.64e-13px。
+目标线性插值与原正弦轨在中点存在最大约 0.120px 的差异，目标网格在257点仍通过。
+官方外置 `@esotericsoftware/spine-core 4.3.13` 共验证1799帧，与独立目标求值参考最大误差约0.000119px。
+这仅是官方核心骨骼/加权顶点验证，未启动GPU或验证纹理采样；alpha接缝及Framebuffer仍未通过验收。
+
+```powershell
+python tools/export-sleeve-spine.py --input ../tmp/r3s-motion-envelope --output ../tmp/r3s-spine huiye uuz
+node tools/verify-sleeve-core.mjs ../tmp/r3s-spine/huiye/layer-002-component-0000 ../tmp/spine43-verification/node_modules/@esotericsoftware/spine-core
+```
+
+其余失败三角形按已保存归属定位：辉夜左17个（15垂布、2袖口），幽幽子右2个（垂布），幽幽子左3个（2垂布、1袖口）。
+下一步针对这些连接邻域增加局部结构支撑，继续保留手与未知区，避免全局调权重。
