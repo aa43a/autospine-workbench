@@ -15,6 +15,7 @@ const ns='http://www.w3.org/2000/svg';let running=false,last=0;
 function node(tag,attrs={}){const n=document.createElementNS(ns,tag);for(const [k,v] of Object.entries(attrs))n.setAttribute(k,v);return n;}
 const views=rows.map(r=>{const s=document.createElement('section'),h=document.createElement('h2'),select=document.createElement('select'),qa=document.createElement('p'),svg=node('svg');
 h.textContent=r.layer_id+' / '+r.component_id;
+if(r.anchor_correction){const a=r.anchor_correction,n=document.createElement('p');n.textContent=`多连接点约束：${a.selected?'保留候选':'回退'} · ${a.reason_codes.join(', ')}；${(a.baseline_failed_ticks||[]).join('/')} → ${(a.trial_failed_ticks||[]).join('/')}`;s.append(n);}
 if(r.root_transition){const note=document.createElement('p');note.textContent=`根部过渡：${r.root_transition.selected?'保留候选':'回退'}；${r.root_transition.reason_codes.join(', ')}；试验失败 ${r.root_transition.baseline_failed_ticks.join('/')} → ${r.root_transition.trial_failed_ticks.join('/')}`;s.append(note);}
 if(r.interface_root){const note=document.createElement('p'),a=r.interface_root;note.textContent=`交界根部：${a.selected?'保留候选':'保留旧根部'} · ${a.connected_components}段交界 · ${(a.reason_codes||[a.reason_code]).join(', ')}；${(a.baseline_failed_ticks||[]).join('/')} → ${(a.trial_failed_ticks||[]).join('/')}`;s.append(note);}
 r.tracks.forEach((t,i)=>select.add(new Option(t.bone_id+' · '+t.failed_ticks+'/129 失败',i)));select.value='2';select.onchange=draw;
