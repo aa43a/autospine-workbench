@@ -97,3 +97,14 @@ python tools/prepare-sleeve-editor.py --input ../tmp/r3s-edge-spine --output ../
 导入时编辑器提示缺少可选hull/internal edges信息并重新计算hull，仍需补齐编辑体验验证。
 幽幽子两袖随后也完成相同动画的第0、32、96帧抽查及播放，检查副本图片自动显示；
 同样出现可选mesh信息提示。四袖均已完成原生编辑器抽查，完整GPU视觉门禁仍待完成；候选未采用。
+
+## 检查动作新增重叠
+
+```powershell
+python tools/check-sleeve-overlap.py --input ../tmp/r3s-edge-spine --output ../tmp/r3s-overlap-full huiye uuz
+```
+
+命令校验导出报告与全部资产摘要，对7轨各257个姿态执行三角形相交检查，逐对扣除setup已有相交面积。
+同时检查所有相交对包围盒内的原生像素中心，记录两片纹理alpha均至少为8的新增覆盖。
+结果定位到动作、时刻及三角形编号；最大面积对与最大可见覆盖对分别记录，避免透明边缘掩盖小面积问题。
+这是一份内容寻址诊断收据，不是采用决定。亚像素、GPU边界填充规则、混合与过滤仍需单独验证。
