@@ -170,3 +170,6 @@ python tools/build-sleeve-helpers.py --motion-envelope --connection-domain --bou
 自动解析地址、保存草稿快照和步骤收据、校验缓存并支持中断恢复。
 结果页集中呈现每个区域的阻塞原因、时间轴与Spine候选下载；不把步骤完成状态提升为正式采用。
 目前是CLI与派生结果页，主工作台按钮、Runtime自动编排和GPU/alpha验收仍未实现。
+
+后续已接入可选的官方核心Runtime自动编排：`--runtime-core`绑定外置4.3.13包的精确文件，
+作为独立可恢复步骤验证新导出候选，并在结果页显示报告。主工作台按钮与GPU/alpha接缝仍待实现。

@@ -54,7 +54,7 @@ def steps(repo,draft_root,root,project,state,workspace):
 
 def code_identity(repo):
     paths=list((repo/'src'/'autospine_workbench').rglob('*.py'))
-    paths += [repo/'tools'/name for name in ('build-sleeve-weights.py','build-sleeve-helpers.py','export-sleeve-spine.py','run-sleeve-workflow.py')]
+    paths += [repo/'tools'/name for name in ('build-sleeve-weights.py','build-sleeve-helpers.py','export-sleeve-spine.py','run-sleeve-workflow.py','verify-sleeve-core.mjs')]
     return canonical_sha256({p.relative_to(repo).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(paths)})
 
 

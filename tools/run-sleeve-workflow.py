@@ -21,13 +21,18 @@ def main():
     p.add_argument('projects',nargs='+');p.add_argument('--draft-root',type=Path,default=repo.parent/'tmp/r3a-sleeve-reviewed-v2')
     p.add_argument('--output',type=Path,default=repo.parent/'tmp/r3s-workflow')
     p.add_argument('--state-root',type=Path,default=repo/'workspace');p.add_argument('--workspace',type=Path,default=repo.parent)
+    p.add_argument('--runtime-core',type=Path,help='Installed official spine-core package; no downloads')
     a=p.parse_args();store=ProjectStore(a.workspace.resolve(),a.state_root.resolve());engine=code_identity(repo)
+    runtime=None
+    if a.runtime_core:
+        from autospine_workbench.automation.sleeve_runtime_step import identity
+        runtime=identity(a.runtime_core.resolve())
     for project in a.projects:
         require_safe_token(project,'project');draft=read_input(a.draft_root/project/'draft.json')
         if draft['project_id']!=project:raise ValueError('sleeve_workflow_project_mismatch')
         with load_inputs(store,project) as inputs:
             signature=canonical_sha256(dict(profile='retained-sleeve-chain-v1',project_id=project,draft_sha256=canonical_sha256(draft),
-                skeleton_sha256=canonical_sha256(inputs.skeleton),source_addresses=inputs.source_addresses,engine=engine))
+                skeleton_sha256=canonical_sha256(inputs.skeleton),source_addresses=inputs.source_addresses,engine=engine,runtime=runtime))
             run_id='run-'+signature;root=directory(a.output.resolve()/project/run_id,create=True)
             with execution_lease(store.state_root,run_id):
                 snapshot=root/'inputs';export(snapshot/project/'draft.json',canonical_bytes(draft))
@@ -36,6 +41,9 @@ def main():
                     if code_identity(repo)!=engine:raise ValueError('sleeve_workflow_engine_changed')
                 progress=execute_steps(repo,root,steps(repo,snapshot,root,project,a.state_root.resolve(),a.workspace.resolve()),signature,assert_snapshot)
                 report=summarize(root,project,run_id,progress)
+                if runtime:
+                    from autospine_workbench.automation.sleeve_runtime_step import run as verify_runtime
+                    report=verify_runtime(repo,root,project,a.runtime_core.resolve(),runtime,report,assert_snapshot)
                 export(root/(canonical_sha256(report)+'.json'),canonical_bytes(report))
                 # View is derived, not an identity/authority document.
                 (root/'index.html').write_text(render(report),encoding='utf-8')

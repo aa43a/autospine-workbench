@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import {pathToFileURL} from 'node:url';
-const [folder,coreRoot]=process.argv.slice(2);
+const [folder,coreRoot,reportPath]=process.argv.slice(2);
 if(!folder||!coreRoot)throw new Error('usage: folder official-core-package');
 const pkg=JSON.parse(await fs.readFile(path.join(coreRoot,'package.json')));
 if(pkg.name!=='@esotericsoftware/spine-core'||pkg.version!=='4.3.13')throw new Error('runtime_version_mismatch');
@@ -45,5 +45,5 @@ const report={runtime_package:pkg.name,runtime_version:pkg.version,runtime_files
  skeleton_sha256:digest(raw),atlas_sha256:digest(atlasRaw),reference_sha256:digest(referenceRaw),
  results,passed:results.every(r=>r.passed),scope:'official_core_vertices_only',framebuffer_status:'not_evaluated',
  authority:'none',production_authorized:false};
-await fs.writeFile(path.join(folder,'official-core-report.json'),JSON.stringify(report,null,2));
+await fs.writeFile(reportPath||path.join(folder,'official-core-report.json'),JSON.stringify(report,null,2));
 console.log(JSON.stringify({passed:report.passed,results}));if(!report.passed)process.exitCode=1;

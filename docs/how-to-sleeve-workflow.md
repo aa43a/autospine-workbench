@@ -26,10 +26,27 @@ python tools/run-sleeve-workflow.py huiye uuz
 
 步骤 `succeeded` 表示该编译步骤完成，不表示候选获得生产授权。
 目前结果仍为 `needs_review`：只导出通过数值门禁的区域，其余返回明确阻塞原因。
-本入口尚未自动执行官方Runtime、GPU和alpha接缝检查；已有独立Runtime报告不会被挪用成新运行的证据。
+可选择自动执行外置官方核心Runtime；GPU和alpha接缝检查仍未自动执行。已有独立Runtime报告不会被挪用成新运行的证据。
 主工作台按钮接入仍待完成，目前提供的是统一CLI入口和结果页。
 
 试验性的网格细分、联合优化和手部刚性权重不在默认链路中。
 
 已实际验证辉夜、幽幽子各8步完整重建；重复相同命令时16步均校验并复用缓存，约7秒完成。
 两位角色各导出一个右袖候选，左袖继续阻塞；该结果不代表四袖里程碑完成。
+
+## 自动官方核心验证
+
+已有官方 `@esotericsoftware/spine-core 4.3.13` 安装目录时：
+
+```powershell
+python tools/run-sleeve-workflow.py huiye uuz --runtime-core ../tmp/spine43-verification/node_modules/@esotericsoftware/spine-core
+```
+
+该选项不下载或捆绑Runtime。工作流将安装文件摘要纳入运行身份，导出后逐个验证可用候选，并校验
+报告的骨架、Atlas、数值参考、Runtime文件、动画清单、帧数和误差判定。
+验证结果与导出包分开保存，因此重复执行不会破坏导出步骤的缓存。报告损坏或来源不匹配会阻止复用。
+
+`core_passed` 仅表示已导出区域的官方核心顶点验证通过，不覆盖仍阻塞的区域，也不代表GPU渲染或alpha接缝通过。
+发生真实核心数值失败时，结果页移除该候选下载入口并显示 `official_core_numeric_failure`。
+
+已验证两角色九步流程：两个右袖共3598帧官方核心核验通过，两个左袖继续阻塞；重复运行18个检查点全部校验后复用，约7秒完成。

@@ -6,6 +6,6 @@
     "project_id":{"type":"string"},"status":{"const":"needs_review"},
     "steps":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["id","status","cached"],"properties":{"id":{"type":"string"},"status":{"const":"succeeded"},"cached":{"type":"boolean"}}}},
     "records":{"type":"array","items":{"type":"object","required":["layer_id","component_id","status","reason_code","download"]}},
-    "runtime_status":{"const":"not_evaluated"},"alpha_contact_status":{"const":"not_evaluated"},"authority":{"const":"none"},"production_authorized":{"const":false}
+    "runtime_status":{"enum":["not_evaluated","core_passed","core_incomplete"]},"alpha_contact_status":{"const":"not_evaluated"},"authority":{"const":"none"},"production_authorized":{"const":false}
   }
 }
