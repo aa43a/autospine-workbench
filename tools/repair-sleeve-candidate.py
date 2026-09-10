@@ -23,6 +23,7 @@ def main():
     p.add_argument('--output', type=Path, required=True)
     p.add_argument('--state-root', type=Path, default=Path('workspace'))
     p.add_argument('--workspace', type=Path, default=Path('..'))
+    p.add_argument('--retained-only', action='store_true', help='Internal bounded branch: do not recursively try hand weights')
     p.add_argument('projects', nargs='+')
     args = p.parse_args()
     repo = Path(__file__).resolve().parents[1]
@@ -59,6 +60,10 @@ def main():
             if updated['source_sha256'] != sha or updated['project_id'] != project:
                 raise ValueError('sleeve_repair_result')
             sha, source = addresses[0], updated
+        if not args.retained_only and needs_repair(source):
+            from autospine_workbench.automation.sleeve_hand_fallback import run
+            source = run(source, project, args.state_root, args.workspace, args.output / project)
+            sha = canonical_sha256(source)
         if canonical_sha256(source) != sha:
             raise ValueError('sleeve_repair_identity')
         output = args.output / project

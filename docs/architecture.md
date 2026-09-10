@@ -1,5 +1,7 @@
 # AutoSpine Workbench 架构与质量门禁
 
+袖装修正内置 `conditional-hand-repair-v1`：纯归属触发/非回归选择与外层有界编排分离，共用既有可恢复阶段。选中区域绑定baseline/trial内容地址，其他区域保持原记录；后续接触与Runtime门禁仍独立执行。
+
 实时袖装标注分为 `sleeve-live-model.js`（纯草稿权重与FK）、`sleeve-live-panel.js`（时间轴与Canvas）和既有区域编辑器。Python页面生成器传入已解析源网格；涂改仅更新内存草稿。正式求解、内容寻址和Runtime捕获继续走独立可恢复工作流，避免把浏览器试算赋予采用权或数值认证含义。
 
 R3-S官方帧缓冲捕获使用独立 `capture-sleeve-runtime.mjs` / `sleeve-framebuffer.js`，由外置spine-webgl执行解析、FK和渲染。报告严格区分探针覆盖、自重叠与发布权，Python复核器核对来源及图像摘要；不修改历史候选。

@@ -1,7 +1,7 @@
 {
   "$schema":"https://json-schema.org/draft/2020-12/schema","type":"object","additionalProperties":false,
   "required":["schema","profile","project_id","source_sha256","skeleton_sha256","records","authority","production_authorized","runtime_status"],
-  "properties":{"schema":{"const":"autospine.sleeve-motion-envelope/v1"},"profile":{"enum":["forearm30-hand30-cloth10-sine129-v1","garment-connection-ring1-sine129-v1","garment-connection-bound50-sine129-v1","garment-affine-support-sine129-v1","garment-affine-support-coarse-budget-sine129-v1","garment-support-joint200-sine129-v1","garment-rigid-hand-boundary-sine129-v1"]},
+  "properties":{"schema":{"const":"autospine.sleeve-motion-envelope/v1"},"profile":{"enum":["forearm30-hand30-cloth10-sine129-v1","garment-connection-ring1-sine129-v1","garment-connection-bound50-sine129-v1","garment-affine-support-sine129-v1","garment-affine-support-coarse-budget-sine129-v1","garment-support-joint200-sine129-v1","garment-rigid-hand-boundary-sine129-v1","conditional-hand-repair-v1"]},
     "project_id":{"type":"string"},"source_sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},"skeleton_sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},
     "baseline_sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},
     "solver_environment":{"type":"object","additionalProperties":false,"required":["numpy","scipy","python"],"properties":{"numpy":{"type":"string"},"scipy":{"type":"string"},"python":{"type":"string"}}},

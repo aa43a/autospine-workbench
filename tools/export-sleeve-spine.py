@@ -28,7 +28,7 @@ def main():
         sha=re.search(r'href="([a-f0-9]{64})\.json"',page).group(1)
         read=lambda s:read_mesh_report(a.state_root,'project-component-partitions',s)
         source=read(sha);garment=source
-        for _ in range(8):
+        for _ in range(16):
             if garment['schema']=='autospine.sleeve-weights/v1':break
             garment=read(garment['source_sha256'])
         if garment['schema']!='autospine.sleeve-weights/v1' or source['project_id']!=project:raise ValueError('sleeve_export_source')

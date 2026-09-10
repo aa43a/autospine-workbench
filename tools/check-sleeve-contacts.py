@@ -31,7 +31,7 @@ def main():
         if (reports[0].stem!=canonical_sha256(source) or source['schema']!='autospine.sleeve-export-report/v1'
                 or source['project_id']!=project or source['authority']!='none' or source['production_authorized'] is not False):raise ValueError('sleeve_contact_source')
         envelope=read_mesh_report(args.state_root,'project-component-partitions',source['source_sha256']);garment=envelope
-        for _ in range(8):
+        for _ in range(16):
             if garment['schema']=='autospine.sleeve-weights/v1':break
             garment=read_mesh_report(args.state_root,'project-component-partitions',garment['source_sha256'])
         if garment['schema']!='autospine.sleeve-weights/v1':raise ValueError('sleeve_contact_lineage')

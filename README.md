@@ -1,5 +1,7 @@
 # AutoSpine Workbench
 
+[袖装条件修复](docs/how-to-conditional-sleeve-repair.md)：工作台“重建袖装候选”按手部归属相关失败尝试有界分支，逐袖全通过、无回归后再导出并执行官方验证；已通过区域保留。
+
 [袖装当前验收](docs/r3s-acceptance-audit-2026-09-10.md)：辉夜/幽幽子四袖完成受限动作重建、Spine 4.3.26 候选及官方捕获；独立灵梦固定策略仍部分阻塞。[实时标注](docs/sleeve-live-annotation.md) 支持涂改后立即查看时间轴 FK 试算，最终验证仍走袖装重建流程。
 
 [按步骤使用工作台](docs/how-to-workspace-layout.md)：中央规划/复核/预览，底部异常队列，右栏编辑选中对象；服装与分区附带来源绑定的前置检查。

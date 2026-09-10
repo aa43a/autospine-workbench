@@ -143,7 +143,7 @@ function createView(document, callbacks) {
   const withdraw = node('button', '撤回当前候选'), restore = node('button', '恢复当前候选');
   withdraw.type = restore.type = 'button'; withdraw.addEventListener('click', callbacks.withdraw); restore.addEventListener('click', callbacks.restore);
   build.type = refresh.type = 'button'; build.addEventListener('click', callbacks.start); refresh.addEventListener('click', callbacks.refresh);
-  element.append(title, node('p', '按已保存的手、袖布、袖口和垂布归属重建。重复构建会校验并复用已完成步骤。'), build, refresh, withdraw, restore, status, reviews, rows,
+  element.append(title, node('p', '按已保存的手、袖布、袖口和垂布归属重建。自动按失败归属尝试有界修复，保留通过区域；修复后继续验证接缝与官方 Runtime。重复构建会校验并复用已完成步骤。'), build, refresh, withdraw, restore, status, reviews, rows,
     node('p', '支持动作范围：前臂 ±30° / 手 ±30° / 垂布 ±10°，包含单轴及组合测试；不代表任意三轴组合均已验证。'),
     node('p', 'Spine 4.3.26 候选；官方核心数值验证不包含 GPU 渲染与透明接缝检查，也不代表正式采用。'));
   return { element, render(model) {
