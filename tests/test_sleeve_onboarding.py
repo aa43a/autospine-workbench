@@ -83,10 +83,19 @@ class SleeveOnboardingTests(unittest.TestCase):
         self.prepare(); self.service.save('fresh', self.save_body())
         body = self.save_body()
         self.input.source_addresses['input_identity_sha256'] = 'e'*64
+        status = self.service.status('fresh')
+        self.assertEqual(status['status'], 'stale')
+        self.assertFalse(status['can_build'])
+        self.assertIsNone(status['review_url'])
         with self.assertRaises(PipelineRunError):
             self.service.save('fresh', body)
         with self.assertRaises(PipelineRunError):
             self.service.read_current('fresh', require_saved=True)
+        # Preparing again must replace the stale mesh source, not return the old page.
+        prepared = self.prepare()
+        self.assertEqual(prepared['revision'], 3)
+        self.assertFalse(prepared['can_build'])
+        self.assertEqual(self.service.read_current('fresh')[0]['input_addresses'], self.input.source_addresses)
 
     def test_missing_closure_is_not_accepted_as_valid_current_source(self):
         self.prepare()

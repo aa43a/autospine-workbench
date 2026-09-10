@@ -35,8 +35,10 @@ export function progressRows(results) {
     if (job.status === 'failed') return { label, text: `任务失败：${job.reason_code || '原因待检查'}；进入袖装修复重试。` };
     const blocked = (job.result?.records || []).filter(row => row.status === 'blocked');
     const reasons = [...new Set(blocked.map(row => row.reason_code).filter(Boolean))];
-    const detail = reasons.map(reason => reason === 'motion_envelope_geometry_failure'
-      ? '动作范围内变形检查未通过（motion_envelope_geometry_failure）' : reason).join('、');
+    const explanations = { motion_envelope_geometry_failure: '动作范围内变形检查未通过',
+      cloth_helper_unobservable: '未找到垂布辅助骨；普通袖需使用独立分支',
+      motion_envelope_not_evaluated: '尚无动作检查证据' };
+    const detail = reasons.map(reason => explanations[reason] ? `${explanations[reason]}（${reason}）` : reason).join('、');
     if (job.status === 'blocked') return { label, text: `候选被阻塞（${blocked.length} 个区域）：${detail || '请查看 QA'}。` };
     if (job.status === 'needs_review') return { label, text: `候选检查完成，仍待复核${blocked.length ? `；${blocked.length} 个区域被阻塞` : ''}。不代表视觉验收或正式采用。` };
     return { label, text: '进入工作台检查任务结果；不能据此判断已通过验收。' };

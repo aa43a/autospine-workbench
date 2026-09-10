@@ -1,7 +1,7 @@
 """Project-owned sleeve annotation state and exact candidate snapshots."""
 import json
 from .storage_io import directory, publish_document, read_document, canonical_bytes
-from .animated_inputs import load_inputs
+from .animated_inputs import AnimatedSourceError, load_inputs
 from .pipeline_run import PipelineRunError
 from ..project_authoring_transaction import project_authoring_transaction
 from ..benchmark.mesh_storage import publish_mesh_report, read_mesh_report
@@ -36,6 +36,13 @@ class SleeveOnboarding:
             sha = self.projects.get_project(project)['resolved']['sha256']
             value = self._latest(project)
             stale = bool(value and value['source_sha256'] != sha)
+            if value and not stale:
+                try:
+                    with load_inputs(self.projects, project) as inputs:
+                        stale = inputs.source_addresses != value['input_addresses']
+                        inputs.assert_current()
+                except AnimatedSourceError:
+                    stale = True
             return dict(project_id=project, source_sha256=sha, revision=value['revision'] if value else 0,
                         status='stale' if stale else 'ready' if value else 'needs_preparation',
                         can_build=bool(value and not stale and value['saved']), authority='none',

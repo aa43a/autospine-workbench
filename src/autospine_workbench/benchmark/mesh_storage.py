@@ -50,6 +50,7 @@ SCHEMAS += ('autospine.sleeve-helper/v1',)
 SCHEMAS += ('autospine.sleeve-interface-root/v1',)
 SCHEMAS += ('autospine.cloth-anchor-correction/v1',)
 SCHEMAS += ('autospine.sleeve-motion-envelope/v1',)
+SCHEMAS += ('autospine.ordinary-sleeve-motion/v1',)
 
 
 def _read(path):

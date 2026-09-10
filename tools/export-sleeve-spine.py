@@ -15,6 +15,7 @@ from autospine_workbench.targets.spine43.continuous_pose import world
 from autospine_workbench.benchmark.elbow_target_cli import archive,export
 from autospine_workbench.resolved_project import canonical_sha256
 from autospine_workbench.manifest_artifacts import require_safe_token
+from autospine_workbench.automation.sleeve_admission_reason import blocking_reason
 
 
 def main():
@@ -37,8 +38,9 @@ def main():
             layers={r['layer_id']:r for r in inputs.candidate['layers']}
             for row in source['records']:
                 result=dict(layer_id=row['layer_id'],component_id=row['component_id'],status='blocked');results.append(result)
-                if 'tracks' not in row or any(t['failed_ticks'] for t in row['tracks']):
-                    result['reason_code']='motion_envelope_geometry_failure';continue
+                reason=blocking_reason(row)
+                if reason:
+                    result['reason_code']=reason;continue
                 saved=meshes[row['layer_id'],row['component_id']];layer=layers[row['layer_id']];raw=inputs.images[row['layer_id']]
                 parts=partition(layer,raw);region=next(r for r in parts['components']+[parts['residual']] if r['id']==row['component_id'])
                 image=isolated_png(raw,region)
