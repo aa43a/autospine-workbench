@@ -13,6 +13,12 @@ Both exported candidates and passed official core and framebuffer contact checks
 Web regression: 482 passed. Full Python regression remains running at this update;
 no full-suite success is claimed yet.
 
+A second invocation with the same source and Runtime configuration completed for
+both delivery runs. All compiler/capture stages reused their verified caches;
+the run IDs remained unchanged. The workflow checkpoint checks output inventories
+before reuse, including exported ZIP and capture bytes. This verifies recovery
+and idempotent reuse of these concrete current delivery runs.
+
 The user supplied Lingmeng PSD for the additional fixed-policy validation.
 Audit and real Pose preparation are complete; joint review is pending. See
 [source identities and frozen scope](r3s-lingmeng-validation.md).
