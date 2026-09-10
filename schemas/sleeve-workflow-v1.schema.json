@@ -1,0 +1,11 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema","type":"object","additionalProperties":false,
+  "required":["schema","run_id","project_id","status","steps","records","runtime_status","alpha_contact_status","authority","production_authorized"],
+  "properties":{
+    "schema":{"const":"autospine.sleeve-workflow/v1"},"run_id":{"type":"string","pattern":"^run-[a-f0-9]{64}$"},
+    "project_id":{"type":"string"},"status":{"const":"needs_review"},
+    "steps":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["id","status","cached"],"properties":{"id":{"type":"string"},"status":{"const":"succeeded"},"cached":{"type":"boolean"}}}},
+    "records":{"type":"array","items":{"type":"object","required":["layer_id","component_id","status","reason_code","download"]}},
+    "runtime_status":{"const":"not_evaluated"},"alpha_contact_status":{"const":"not_evaluated"},"authority":{"const":"none"},"production_authorized":{"const":false}
+  }
+}
