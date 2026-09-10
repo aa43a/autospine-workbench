@@ -15,15 +15,23 @@ def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--input',type=Path,required=True);p.add_argument('--output',type=Path,required=True)
     p.add_argument('--root-transition',action='store_true')
+    p.add_argument('--interface-root',action='store_true',help='Read helper input and test semantic attachment roots')
     p.add_argument('--state-root',type=Path,default=Path('workspace'));p.add_argument('--workspace',type=Path,default=Path('..'))
     p.add_argument('projects',nargs='+');a=p.parse_args();store=ProjectStore(a.workspace,a.state_root);links=[]
+    if a.root_transition and a.interface_root:p.error('root modes are mutually exclusive')
     for project in a.projects:
         require_safe_token(project,'Project')
         page=(a.input/project/'index.html').read_text(encoding='utf-8');sha=re.search(r'href="([a-f0-9]{64})\.json"',page).group(1)
         source=read_mesh_report(a.state_root,'project-component-partitions',sha)
         if source['project_id']!=project:raise ValueError('cloth_project_mismatch')
         with load_inputs(store,project) as inputs:
-            doc=build(source,inputs.skeleton,a.root_transition);inputs.assert_current()
+            if a.interface_root:
+                from autospine_workbench.asset.planning.cloth_interface_root import build as interface_build
+                def read(digest):return read_mesh_report(a.state_root,'project-component-partitions',digest)
+                garment=read(source['source_sha256']);candidate=read(garment['candidate_sha256']);draft=read(garment['draft_sha256'])
+                doc=interface_build(source,garment,candidate,draft,inputs.skeleton)
+            else:doc=build(source,inputs.skeleton,a.root_transition)
+            inputs.assert_current()
             digest=publish_mesh_report(a.state_root,'project-component-partitions',doc)
             checked=read_mesh_report(a.state_root,'project-component-partitions',digest)
             if checked!=doc:raise ValueError('cloth_helper_readback')

@@ -16,6 +16,7 @@ function node(tag,attrs={}){const n=document.createElementNS(ns,tag);for(const [
 const views=rows.map(r=>{const s=document.createElement('section'),h=document.createElement('h2'),select=document.createElement('select'),qa=document.createElement('p'),svg=node('svg');
 h.textContent=r.layer_id+' / '+r.component_id;
 if(r.root_transition){const note=document.createElement('p');note.textContent=`根部过渡：${r.root_transition.selected?'保留候选':'回退'}；${r.root_transition.reason_codes.join(', ')}；试验失败 ${r.root_transition.baseline_failed_ticks.join('/')} → ${r.root_transition.trial_failed_ticks.join('/')}`;s.append(note);}
+if(r.interface_root){const note=document.createElement('p'),a=r.interface_root;note.textContent=`交界根部：${a.selected?'保留候选':'保留旧根部'} · ${a.connected_components}段交界 · ${(a.reason_codes||[a.reason_code]).join(', ')}；${(a.baseline_failed_ticks||[]).join('/')} → ${(a.trial_failed_ticks||[]).join('/')}`;s.append(note);}
 r.tracks.forEach((t,i)=>select.add(new Option(t.bone_id+' · '+t.failed_ticks+'/129 失败',i)));select.value='2';select.onchange=draw;
 s.append(h,select,qa,svg);main.append(s);return {r,select,qa,svg};});
 function draw(){const tick=Number(slider.value);document.querySelector('#tick').textContent='样本 '+tick+'/32';for(const {r,select,qa,svg} of views){
@@ -24,6 +25,7 @@ const all=track.samples.flatMap(s=>s.points);const xs=all.map(p=>p[0]),ys=all.ma
 svg.setAttribute('viewBox',`${x} ${y} ${Math.max(...xs)-x+10} ${Math.max(...ys)-y+10}`);
 const bad=new Set(track.qa[tick*4].bad_triangles);r.triangles.forEach((t,i)=>svg.append(node('polygon',{points:t.map(v=>frame.points[v].join(',')).join(' '),fill:bad.has(i)?'#e44a':'#55ccbb33',stroke:'#aaa','stroke-width':'.5'})));
 for(const b of frame.bones){svg.append(node('line',{x1:b.head_xy[0],y1:b.head_xy[1],x2:b.tail_xy[0],y2:b.tail_xy[1],stroke:b.id===r.helper.id?'#fc5':'#5bf','stroke-width':'3'}));}
+if(tick===16&&r.interface_root){for(const [a,b] of r.interface_root.edges){const p=r.setup_vertices[a],q=r.setup_vertices[b];svg.append(node('line',{x1:p[0],y1:p[1],x2:q[0],y2:q[1],stroke:'#ff79cb','stroke-width':'3'}));}const p=r.interface_root.root_xy;if(p)svg.append(node('circle',{cx:p[0],cy:p[1],r:5,fill:'#ff79cb'}));}
 qa.textContent=`角度 ${frame.angle.toFixed(2)}° · 翻转 ${track.qa[tick*4].inversions} · setup误差 ${r.setup_error.toExponential(2)} px`;}}
 slider.oninput=()=>{running=false;document.querySelector('#play').textContent='播放';draw();};document.querySelector('#setup').onclick=()=>{slider.value='16';slider.oninput();};
 document.querySelector('#play').onclick=()=>{running=!running;document.querySelector('#play').textContent=running?'暂停':'播放';};

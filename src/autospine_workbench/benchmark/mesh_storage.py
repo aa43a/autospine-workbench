@@ -45,6 +45,7 @@ SCHEMAS += ('autospine.component-axial-correction/v1',)
 SCHEMAS += ('autospine.sleeve-regions/v1','autospine.sleeve-region-draft/v1')
 SCHEMAS += ('autospine.sleeve-weights/v1',)
 SCHEMAS += ('autospine.sleeve-helper/v1',)
+SCHEMAS += ('autospine.sleeve-interface-root/v1',)
 
 
 def _read(path):

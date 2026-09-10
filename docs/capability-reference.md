@@ -1,5 +1,7 @@
 # AutoSpine Workbench 功能与入口参考
 
+- [袖布交界根部候选](sleeve-rigging-plan.md)：按明确语义共享边测根部，Setup显示交界；两处试验回归拒绝、两处多段交界阻塞，旧helper结果不变。
+
 - [垂布根部距离过渡](sleeve-rigging-plan.md)：沿网格最短路径建立固定前臂比例过渡；辉夜左侧helper失败76→49且逐点无回归，其余3处回退。仍未实现完整袖口约束或Runtime验收。
 
 - [垂布辅助骨与分支FK](sleeve-rigging-plan.md)：四处生成前臂子骨候选，手旋转不再驱动垂布内部；前臂±30°采样通过，辅助骨±15°仍有失败，袖口边界和真实根部尚待复核。可拖动固定样本播放，不是Spine Runtime。

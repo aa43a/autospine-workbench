@@ -1,5 +1,7 @@
 # AutoSpine Workbench 架构与质量门禁
 
+`cloth_interface_root.py`消费exact helper、服装权重、候选和草稿，提取cloth↔sleeve/cuff共享边；连通性与边长根部测量分离，多段交界不采用统一根部。单段试验只重算helper本地坐标和FK，权重数值/网格不变，以129点全轨回归决定候选保留。新`sleeve-interface-root/v1`单独寻址。
+
 `cloth_root_transition.py`使用三角邻接Dijkstra距离生成helper保留比例，并将根部剩余权重给forearm。独立helper profile重跑完整分支FK门禁，失败则同时回退权重/轨道并重算setup与隔离误差；旧helper profile输出保持不变。
 
 `sleeve_helpers.py`使用parent驱动的分支FK构造`sleeve-helper/v1`，避免串行链求值错误地让手骨驱动其同级服装骨。独立保存候选helper与重新计算的local权重，不修改正式骨架。均匀角度129点QA、33点固定预览和手旋转隔离误差分别记录，尚无正式Runtime或物理Bake。
