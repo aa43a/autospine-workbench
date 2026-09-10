@@ -95,7 +95,7 @@ class SleeveWebJobs:
             directory(result_path.parent)
             reports=[read_document(p) for p in result_path.parent.glob('*.json')]
             reports=[r for r in reports if r.get('schema')=='autospine.sleeve-workflow/v1' and r.get('project_id')==project
-                and r.get('status')=='needs_review' and r.get('authority')=='none' and r.get('production_authorized') is False]
+                and r.get('status') in ('needs_review','blocked') and r.get('authority')=='none' and r.get('production_authorized') is False]
             report=next((r for r in reports if r.get('schema')=='autospine.sleeve-workflow/v1' and all(s['cached'] for s in r['steps'])),reports[0])
             publish_document(root/'result-location.json',dict(directory=str(result_path.parent)),staging=root/'.staging')
             with self._lock:self._jobs[job_id].update(status=report['status'],result=report)

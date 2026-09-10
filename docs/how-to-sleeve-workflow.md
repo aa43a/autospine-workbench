@@ -14,6 +14,13 @@ python tools/run-sleeve-workflow.py huiye uuz
 未通过比较的袖子保留原候选，不会扩大到未知区域或改变已保存标注。
 输出末尾给出每个角色的统一结果页，包含时间轴检查链接、通过区域下载和未通过区域原因。
 
+最终状态按实际完成的证据汇总：官方核心通过但未捕获时提示
+`official_framebuffer_required`；核心和接触采样均通过后提示
+`sleeve_occlusion_review_required`，仍为候选。`alpha_contact_status` 的
+`sampled_contacts_passed` 仅表示所有区域的已选探针通过，不代表连续接缝或遮挡全域通过。
+部分区域缺少捕获时为 `partially_evaluated`；接触采样失败为 `sampled_contacts_failed`。
+明确失败的区域禁用下载；全部区域失败时整个运行显示 `blocked`，保留各区域原因。
+
 默认草稿目录为工作区 `tmp/r3a-sleeve-reviewed-v2`。其他目录使用 `--draft-root`，其中每个项目包含 `draft.json`。
 草稿必须引用已有且匹配当前骨架的工件；该入口不代替首次Pose、人工归属或分区准备。
 默认结果位于工作区 `tmp/r3s-workflow`；可使用 `--output` 指定新的结果目录。

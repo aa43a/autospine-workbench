@@ -9,9 +9,9 @@ def render(report):
         action=f'<a href="{escape(row["download"],quote=True)}">下载 Spine 候选</a>' if row['download'] else '需继续处理'
         if row.get('runtime_report'):action+=f' · <a href="{escape(row["runtime_report"],quote=True)}">官方核心报告</a>（{escape(row["runtime_status"])}）'
         if row.get('software_contact'):
-            c=row['software_contact'];action+=f'<p>软件接缝采样 {c["tested_samples"]}；空白失败 {c["failed_samples"]}；源图不可观测界面 {c["unobservable_interfaces"]}。GPU未验证。</p>'
+            c=row['software_contact'];action+=f'<p>软件接缝采样 {c["tested_samples"]}；空白失败 {c["failed_samples"]}；源图不可观测界面 {c["unobservable_interfaces"]}。此项为软件证据。</p>'
         if row.get('software_overlap'):
-            o=row['software_overlap'];action+=f'<p>软件重叠检查 {o["frames"]} 帧；新增双覆盖 {o["affected_frames"]} 帧；单对峰值 {o["peak_excess_pair_pixels"]} 像素。仅诊断，GPU未验证。</p>'
+            o=row['software_overlap'];action+=f'<p>软件重叠检查 {o["frames"]} 帧；新增双覆盖 {o["affected_frames"]} 帧；单对峰值 {o["peak_excess_pair_pixels"]} 像素。仅诊断。</p>'
         else:action+='<p>软件重叠尚未检查；GPU未验证。</p>'
         if row.get('official_framebuffer'):
             f=row['official_framebuffer'];action+=f'<p>官方WebGL（SwiftShader）{f["frames"]}帧；袖口空白失败 {f["failed_samples"]}；新增双覆盖峰值组 {f["overlap_affected_peaks"]}/{f["overlap_peak_pairs"]}，最大 {f["overlap_peak_pixels"]} 像素。遮挡待复核。</p>'

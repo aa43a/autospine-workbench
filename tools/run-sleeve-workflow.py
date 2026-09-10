@@ -9,6 +9,7 @@ from autospine_workbench.automation.animated_inputs import load_inputs
 from autospine_workbench.automation.pipeline_lease import execution_lease
 from autospine_workbench.automation.sleeve_workflow import steps,code_identity,execute_steps,summarize
 from autospine_workbench.automation.sleeve_workflow_review import render
+from autospine_workbench.automation.sleeve_final_status import finalize
 from autospine_workbench.automation.storage_io import directory,canonical_bytes
 from autospine_workbench.benchmark.artifacts import read_input
 from autospine_workbench.benchmark.elbow_target_cli import export
@@ -54,6 +55,7 @@ def main():
                 if capture:
                     from autospine_workbench.automation.sleeve_capture_step import run as capture_frames
                     report=capture_frames(repo,root,project,a.capture_dependencies.resolve(),a.capture_browser.resolve(),capture,report,assert_snapshot)
+                report=finalize(report)
                 export(root/(canonical_sha256(report)+'.json'),canonical_bytes(report))
                 # View is derived, not an identity/authority document.
                 (root/'index.html').write_text(render(report),encoding='utf-8')

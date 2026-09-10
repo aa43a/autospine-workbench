@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from autospine_workbench.automation.sleeve_web_jobs import SleeveWebJobs
 from autospine_workbench.automation.sleeve_routes import dispatch_sleeves
 from autospine_workbench.automation.storage_io import publish_document
@@ -62,3 +62,21 @@ class SleeveWebTests(unittest.TestCase):
         with patch('autospine_workbench.automation.sleeve_routes.read_json_object_request',return_value={'path':'arbitrary'}):
             dispatch_sleeves([],handler,'POST','huiye')
         self.assertEqual(replies[-1][1]['reason_code'],'pipeline_request_invalid')
+
+    def test_all_regions_blocked_is_a_quality_result_not_execution_failure(self):
+        job=self.submit();job_id=job['job_id'];root=self.manager._path(job_id)
+        run=self.manager.output/'huiye/run-blocked';run.mkdir(parents=True)
+        report=dict(schema='autospine.sleeve-workflow/v1',project_id='huiye',status='blocked',
+            authority='none',production_authorized=False,steps=[dict(cached=False)],
+            records=[dict(status='blocked',download=None,reason_code='official_framebuffer_contact_failure')])
+        publish_document(run/'report.json',report,staging=run/'.staging')
+        process=MagicMock();process.__enter__.return_value=process;process.wait.return_value=0
+        process.stdout=[json.dumps(dict(project_id='huiye',review=str(run/'index.html')))+'\n']
+        request=json.loads((root/'request.json').read_bytes())
+        with patch('autospine_workbench.automation.sleeve_web_jobs.subprocess.Popen',return_value=process):
+            self.manager._execute(job_id,request)
+        result=self.manager.get('huiye',job_id)
+        self.assertEqual(result['status'],'blocked')
+        self.assertEqual(result['result'],report)
+        with self.assertRaisesRegex(RuntimeError,'preview_not_ready'):
+            self.manager.download('huiye',job_id,0)

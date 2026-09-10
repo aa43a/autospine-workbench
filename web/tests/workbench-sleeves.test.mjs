@@ -26,6 +26,15 @@ test('contact display preserves missing evidence and distinguishes GPU', () => {
   assert.match(value, /不可观测界面 1/);assert.match(value, /GPU 未验证/);
 });
 const job = status => ({ schema: 'autospine.sleeve-web-job/v1', project_id: 'huiye', authority: 'none', job_id: `job-${'a'.repeat(32)}`, status });
+test('quality blocked is a terminal result with reasons and no download', async () => {
+  const blocked = {...job('blocked'), result: {project_id:'huiye',authority:'none',production_authorized:false,
+    records:[{layer_id:'left',status:'blocked',download:null,reason_code:'official_framebuffer_contact_failure'}]}};
+  assert.equal(readSleeveJob(blocked,'huiye').status,'blocked');
+  const h=harness(async () => ({project_id:'huiye',authority:'none',can_build:true,job:blocked}));
+  h.ui.sync({preparationEditable:true});await tick();
+  assert.match(h.model().message,/所有区域均被质量检查阻塞/);
+  assert.equal(h.model().rows[0].url,null);assert.equal(h.timers.size,0);h.ui.dispose();
+});
 function harness(handler) {
   const context = { projectId: 'huiye', resolvedSha: 'a'.repeat(64) }, requests = [], timers = new Map(); let model, serial = 0;
   const ui = createWorkbenchSleeves(null, { context: () => context, apiRequest: async (url, options) => {

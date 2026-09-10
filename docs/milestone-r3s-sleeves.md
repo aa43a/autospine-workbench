@@ -4,6 +4,14 @@
 
 ## 当前验收状态（2026-09-10）
 
+最终状态汇总已接入一键CLI：运行完成后清除过期的Runtime/alpha待测原因，
+四袖均为 `sampled_contacts_passed` 与 `sleeve_occlusion_review_required`，仍不产生采用权。
+明确失败区域禁用下载，全部阻塞作为质量终态传至后台及UI，不再误报执行错误。
+18项Python回归、478项Web测试通过；两角色13步完整重跑通过，结果保存在
+`tmp/r3s-final-gates/huiye/run-ac54754d49c455f2629e3e902c4175058ed2ffcecb3649ce3f96f72e78eda4b8/`
+与 `tmp/r3s-final-gates/uuz/run-2ecc1a1c97db5e8e94eebf62b9cefc16a22bfbe088f07434c809054e0cdec9fc/`。
+后台终态兼容补丁在完整计算后完成并单独回归，未改写这些运行的算法身份。
+
 同帧复核已补充完整袖子上下文、检查框与实际双覆盖像素标记，输出为
 `tmp/r3s-contact-review/index.html`；重跑7196帧、1153159接触采样仍无失败。
 隔离视图折叠，局部重叠是否合理仍待视觉判断，不自动采用。

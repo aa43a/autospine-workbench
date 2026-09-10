@@ -24,7 +24,7 @@ export function framebufferMessage(value) {
 
 export function readSleeveJob(value, project) {
   if (value?.schema !== 'autospine.sleeve-web-job/v1' || value.project_id !== project || value.authority !== 'none'
-    || !/^job-[a-f0-9]{32}$/.test(value.job_id) || !['pending', 'running', 'needs_review', 'failed'].includes(value.status)) throw Error('袖装任务响应无效。');
+    || !/^job-[a-f0-9]{32}$/.test(value.job_id) || !['pending', 'running', 'needs_review', 'blocked', 'failed'].includes(value.status)) throw Error('袖装任务响应无效。');
   if (value.result && (value.result.project_id !== project || value.result.authority !== 'none'
     || value.result.production_authorized !== false || !Array.isArray(value.result.records))) throw Error('袖装结果响应无效。');
   return value;
@@ -44,6 +44,7 @@ export function createWorkbenchSleeves(document, hooks, options = {}) {
       canRefresh: Boolean(identity && !busy), active: busy || ACTIVE.has(job?.status),
       message: error || (!safe ? '请先保存校正并等待当前操作完成。' : job?.reason_code ? REASONS[job.reason_code] || job.reason_code
         : ACTIVE.has(job?.status) ? `袖装候选正在构建 · ${job.step || '等待执行'}`
+          : job?.status === 'blocked' ? '所有区域均被质量检查阻塞，请查看逐袖原因。'
           : job?.status === 'needs_review' ? '构建完成，请逐袖检查结果。' : overview?.can_build ? '可从已保存的区域标注重建袖装候选。' : '当前项目尚无已保存的袖装区域标注。'),
       rows: (safe && !error ? job?.result?.records || [] : []).map((r, index) => ({ ...r,
         url: r.status === 'candidate_exported' && r.download ? `${endpoint()}/jobs/${job.job_id}/download/${index}` : null })) });
@@ -98,7 +99,9 @@ function createView(document, callbacks) {
     build.disabled = !model.canStart; refresh.disabled = !model.canRefresh; status.textContent = model.message;
     element.setAttribute('aria-busy', String(model.active));
     rows.replaceChildren(...model.rows.map(r => {
-      const row = node('li', `${r.layer_id} · ${r.status === 'candidate_exported' ? '候选已导出' : '局部变形未通过，已阻塞'} · ${r.runtime_status === 'passed' || r.runtime_status === 'core_passed' ? '核心数值验证通过' : '核心验证未通过或未执行'}`);
+      const failure = r.reason_code === 'official_framebuffer_contact_failure' ? '官方接触检查未通过，已阻塞'
+        : r.reason_code === 'official_core_numeric_failure' ? '官方核心数值未通过，已阻塞' : '区域检查未通过，已阻塞';
+      const row = node('li', `${r.layer_id} · ${r.status === 'candidate_exported' ? '候选已导出' : failure} · ${r.runtime_status === 'passed' || r.runtime_status === 'core_passed' ? '核心数值验证通过' : '核心验证未通过或未执行'}`);
       if (r.official_framebuffer) row.append(node('p', framebufferMessage(r.official_framebuffer)));
       else row.append(node('p', contactMessage(r.software_contact)), node('p', overlapMessage(r.software_overlap)),
         node('p', framebufferMessage(null)));
