@@ -34,7 +34,12 @@ def track(row,chain,name,amplitudes):
         active_budget=budget
         if domain and domain.get('budget_policy')=='one-free-area-bound-cap50-v1':
             from .sleeve_boundary_budget import estimate
-            active_budget,evidence=estimate(setup,tri,base,set(free)-set(anchors),budget);budget_evidence.append(evidence)
+            active_budget,evidence=estimate(setup,tri,base,set(free)-set(anchors),budget)
+            if 'support_mesh' in row:
+                coarse=row['support_mesh']['coarse_constraints'];count=len(coarse['vertices_xy'])
+                inherited,coarse_evidence=estimate(coarse['vertices_xy'],coarse['triangles'],base[:count],coarse['free_vertices'],budget)
+                active_budget=max(active_budget,inherited);evidence.update(budget_px=active_budget,coarse_evidence=coarse_evidence)
+            budget_evidence.append(evidence)
         corrected,_=solve(setup,tri,base,free,anchors,active_budget)
         keys.append([[b[k]-a[k] for k in (0,1)] for a,b in zip(base,corrected)])
     before=[];after=[];samples=[];raw_samples=[];anchor_error=0.

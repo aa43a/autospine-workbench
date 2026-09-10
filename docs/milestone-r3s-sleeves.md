@@ -126,3 +126,23 @@ python tools/build-sleeve-helpers.py --motion-envelope --connection-domain --bas
 python tools/build-sleeve-helpers.py --motion-envelope --connection-domain --boundary-budget --baseline-envelope ../tmp/r3s-connection-domain --input ../tmp/r3s-cloth-anchors --output ../tmp/r3s-boundary-budget huiye uuz
 python tools/export-sleeve-spine.py --input ../tmp/r3s-boundary-budget --output ../tmp/r3s-spine-boundary huiye uuz
 ```
+
+## 共享支撑网格试验
+
+剩余辉夜左袖面积异常集中于袖口三角形144：三个旧顶点均受手部保护，但其中两边连接袖口内部。
+幽幽子左袖剩余异常为边长伸长超限，不能只按面积坏三角形定位。
+
+新增 `sleeve_support_mesh.py`：服装交界共享边只创建一个中点，相邻三角形同步细分，不产生T形接缝；
+新UV和影响坐标按原顶点仿射插值，任意原始骨骼姿态下保持细分前的LBS表面。
+新手部/未知区域顶点继续固定，服装支撑点才参与求解。原始粗网格的预算下界仍保留，不能因细分而丢失。
+
+本次试验没有通过整袖门禁，全部保留旧候选：细分后的辉夜左7轨失败数为0/21/0/6/56/56/6，
+幽幽子左为0/24/0/0/45/49/0；幽幽子右也出现回归。
+拓扑变化后不以坏三角形计数下降作为收益，只有全部轨道采样通过才允许替换旧网格。
+两个右袖已通过的基线、导出和核心Runtime证据未修改。
+
+```powershell
+python tools/build-sleeve-helpers.py --motion-envelope --connection-domain --boundary-budget --support-mesh --baseline-envelope ../tmp/r3s-boundary-budget --input ../tmp/r3s-cloth-anchors --output ../tmp/r3s-support-budget-v2 huiye uuz
+```
+
+下一步应求解邻接三角形的联合约束；当前逐三角形投影可能在修好一处时破坏邻域，不能靠继续加密网格或增加迭代次数证明收敛。

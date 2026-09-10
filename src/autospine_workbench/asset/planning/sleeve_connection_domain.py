@@ -54,6 +54,10 @@ def retain(trial,baseline):
         for a,b in zip(before['tracks'],row['tracks']):
             if a['bone_id']!=b['bone_id'] or a['amplitudes']!=b['amplitudes']:raise ValueError('sleeve_connection_track_identity')
             rejected,improved=gate(a['qa'],b['qa']);reasons.extend(rejected);gain|=improved
+        if 'support_mesh' in row:
+            # Triangle counts differ: require every refined sample to pass rather than compare counts.
+            reasons=['support_mesh_requires_full_geometry_pass'] if any(t['failed_ticks'] for t in row['tracks']) else []
+            gain=any(t['failed_ticks'] for t in before['tracks']) and not reasons
         selected=not reasons and gain;chosen=deepcopy(row if selected else before)
         chosen['connection_trial']=dict(selected=selected,reason_codes=sorted(set(reasons)) or ['sampled_improvement' if selected else 'no_sampled_gain'],
             baseline_failed_ticks=[t['failed_ticks'] for t in before['tracks']],trial_failed_ticks=[t['failed_ticks'] for t in row['tracks']],

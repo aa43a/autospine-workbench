@@ -20,6 +20,7 @@ def main():
     p.add_argument('--connection-domain',action='store_true',help='Allow role-bounded garment connection support')
     p.add_argument('--baseline-envelope',type=Path)
     p.add_argument('--boundary-budget',action='store_true',help='Use explicit bounded area-feasibility budget policy')
+    p.add_argument('--support-mesh',action='store_true',help='Refine garment interfaces without changing affine source deformation')
     p.add_argument('--interface-root',action='store_true',help='Read helper input and test semantic attachment roots')
     p.add_argument('--state-root',type=Path,default=Path('workspace'));p.add_argument('--workspace',type=Path,default=Path('..'))
     p.add_argument('projects',nargs='+');a=p.parse_args();store=ProjectStore(a.workspace,a.state_root);links=[]
@@ -27,6 +28,7 @@ def main():
     if a.connection_domain and not a.motion_envelope:p.error('connection-domain requires motion-envelope')
     if a.connection_domain and not a.baseline_envelope:p.error('connection-domain requires baseline-envelope')
     if a.boundary_budget and not a.connection_domain:p.error('boundary-budget requires connection-domain')
+    if a.support_mesh and not a.boundary_budget:p.error('support-mesh requires boundary-budget')
     for project in a.projects:
         require_safe_token(project,'Project')
         page=(a.input/project/'index.html').read_text(encoding='utf-8');sha=re.search(r'href="([a-f0-9]{64})\.json"',page).group(1)
@@ -46,8 +48,15 @@ def main():
                     domains=prepare(source,garment,draft)
                     if a.boundary_budget:
                         for domain in domains.values():domain['budget_policy']='one-free-area-bound-cap50-v1'
-                doc=envelope_build(source,inputs.skeleton,domains)
+                amended=source
+                if a.support_mesh:
+                    from autospine_workbench.asset.planning.sleeve_support_mesh import prepare_support
+                    amended,domains=prepare_support(source,garment,draft)
+                doc=envelope_build(amended,inputs.skeleton,domains)
                 if a.boundary_budget:doc['profile']='garment-connection-bound50-sine129-v1'
+                if a.support_mesh:
+                    from autospine_workbench.resolved_project import canonical_sha256
+                    doc.update(source_sha256=canonical_sha256(source),profile='garment-affine-support-coarse-budget-sine129-v1')
                 if a.connection_domain:
                     from autospine_workbench.asset.planning.sleeve_connection_domain import retain
                     prior=(a.baseline_envelope/project/'index.html').read_text(encoding='utf-8')
