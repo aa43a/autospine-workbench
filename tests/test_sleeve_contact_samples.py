@@ -36,3 +36,21 @@ class SleeveContactTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'inventory'):probes(attachment,[],alpha)
         attachment['triangles'] += [1,3,2]
         with self.assertRaisesRegex(ValueError,'nonmanifold'):probes(attachment,roles+[dict(role='hand')],alpha)
+
+    def test_length_sampling_finds_short_opaque_contact_without_relaxing_margin(self):
+        attachment,_,roles,_=self.fixture()
+        alpha=np.zeros((64,64));alpha[5:12,52:59]=255
+        self.assertEqual(probes(attachment,roles,alpha)[0]['samples'],[])
+        samples=probes(attachment,roles,alpha,profile='source-length-v2')[0]['samples']
+        self.assertGreater(len(samples),0)
+        self.assertTrue(all(s['source_min_alpha']==255 for s in samples))
+        enlarged=np.repeat(np.repeat(alpha,2,axis=0),2,axis=1)
+        self.assertGreater(len(probes(attachment,roles,enlarged,profile='source-length-v2')[0]['samples']),len(samples))
+        alpha[:]=0;alpha[8,55]=255
+        self.assertEqual(probes(attachment,roles,alpha,profile='source-length-v2')[0]['samples'],[])
+
+    def test_length_sampling_keeps_transparent_interfaces_unobservable(self):
+        attachment,points,roles,alpha=self.fixture();alpha[:]=0
+        interfaces=probes(attachment,roles,alpha,profile='source-length-v2')
+        self.assertEqual(interfaces[0]['observability'],'source_alpha_unobservable')
+        with self.assertRaisesRegex(ValueError,'probe_profile'):probes(attachment,roles,alpha,profile='unknown')

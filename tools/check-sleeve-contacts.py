@@ -56,7 +56,8 @@ def main():
                 pose_doc=dict(doc,animations={animation:doc['animations'][animation]})
                 animations[animation]=[dict(time=i/128,points=world(pose_doc,i/128)[name]) for i in range(257)]
             attachment=doc['skins'][0]['attachments'][name][name];alpha=texture(files['images/'+name+'.png'])
-            result=analyze(attachment,alpha,probes(attachment,labels[row['layer_id'],row['component_id']],alpha),animations)
+            result=analyze(attachment,alpha,probes(attachment,labels[row['layer_id'],row['component_id']],alpha,profile='source-length-v2'),animations)
+            result['probe_profile']='source-length-v2'
             result.update(layer_id=row['layer_id'],component_id=row['component_id'],asset_sha256=row['files'],pose_sha256=canonical_sha256(animations))
             rows.append(result);print(project,name,result['status'],result['tested_samples'],result['failed_samples'],flush=True)
         result=dict(schema='autospine.sleeve-contact-coverage/v1',project_id=project,source_sha256=canonical_sha256(source),draft_sha256=garment['draft_sha256'],

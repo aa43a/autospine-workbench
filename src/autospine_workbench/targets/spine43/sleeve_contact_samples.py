@@ -3,8 +3,9 @@ from collections import defaultdict
 import math
 
 
-def probes(attachment,assignments,alpha):
+def probes(attachment,assignments,alpha,*,profile='three-point-v1'):
     import numpy as np
+    if profile not in ('three-point-v1','source-length-v2'):raise ValueError('sleeve_contact_probe_profile')
     flat=attachment['triangles'];triangles=[flat[i:i+3] for i in range(0,len(flat),3)]
     if len(triangles)!=len(assignments):raise ValueError('sleeve_contact_assignment_inventory')
     uvs=np.asarray(attachment['uvs'],dtype=float).reshape(-1,2);height,width=alpha.shape
@@ -17,7 +18,13 @@ def probes(attachment,assignments,alpha):
         if 'cuff' not in roles or not roles&{'hand','sleeve','hanging_cloth'}:continue
         if len(incident)!=2:raise ValueError('sleeve_contact_nonmanifold')
         samples=[]
-        for u in (.25,.5,.75):
+        parameters=(.25,.5,.75)
+        if profile=='source-length-v2':
+            length=float(np.linalg.norm((uvs[edge[1]]-uvs[edge[0]])*[width,height]))
+            if not math.isfinite(length) or length>100000:raise ValueError('sleeve_contact_edge_length')
+            count=max(1,math.ceil(length))
+            parameters=tuple((i+.5)/count for i in range(count))
+        for u in parameters:
             uv=uvs[edge[0]]*(1-u)+uvs[edge[1]]*u;x,y=math.floor(uv[0]*width),math.floor(uv[1]*height)
             # Require a fully opaque source margin; transparent exterior is not a seam crack.
             visible=1<=x<width-1 and 1<=y<height-1 and float(np.min(alpha[y-1:y+2,x-1:x+2]))>=224
