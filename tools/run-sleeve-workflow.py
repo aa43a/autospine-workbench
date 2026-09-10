@@ -31,7 +31,7 @@ def main():
         require_safe_token(project,'project');draft=read_input(a.draft_root/project/'draft.json')
         if draft['project_id']!=project:raise ValueError('sleeve_workflow_project_mismatch')
         with load_inputs(store,project) as inputs:
-            signature=canonical_sha256(dict(profile='retained-sleeve-chain-v1',project_id=project,draft_sha256=canonical_sha256(draft),
+            signature=canonical_sha256(dict(profile='retained-sleeve-chain-v2',project_id=project,draft_sha256=canonical_sha256(draft),
                 skeleton_sha256=canonical_sha256(inputs.skeleton),source_addresses=inputs.source_addresses,engine=engine,runtime=runtime))
             run_id='run-'+signature;root=directory(a.output.resolve()/project/run_id,create=True)
             with execution_lease(store.state_root,run_id):

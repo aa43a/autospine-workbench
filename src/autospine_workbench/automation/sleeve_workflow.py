@@ -48,7 +48,8 @@ def steps(repo,draft_root,root,project,state,workspace):
     add('motion','build-sleeve-helpers.py','anchors',['--motion-envelope'])
     add('connection','build-sleeve-helpers.py','anchors',['--motion-envelope','--connection-domain','--baseline-envelope',str(root/'motion')])
     add('boundary','build-sleeve-helpers.py','anchors',['--motion-envelope','--connection-domain','--boundary-budget','--baseline-envelope',str(root/'connection')])
-    add('spine','export-sleeve-spine.py','boundary')
+    add('cuff','build-sleeve-helpers.py','anchors',['--motion-envelope','--connection-domain','--boundary-budget','--cuff-harmonic','--baseline-envelope',str(root/'boundary')])
+    add('spine','export-sleeve-spine.py','cuff')
     return result
 
 

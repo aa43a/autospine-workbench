@@ -23,6 +23,8 @@ def main():
     p.add_argument('--support-mesh',action='store_true',help='Refine garment interfaces without changing affine source deformation')
     p.add_argument('--joint-solver',action='store_true',help='Use optional NumPy/SciPy joint constraint candidate')
     p.add_argument('--rigid-hand',action='store_true',help='Test explicit hand ownership with rigid hand-boundary weights')
+    p.add_argument('--cuff-harmonic',action='store_true',help='Diffuse weights on semantic cuff/hand shared boundaries')
+    p.add_argument('--uncuffed-interface',action='store_true',help='Experimental extension to hand/cloth interfaces without cuff labels')
     p.add_argument('--interface-root',action='store_true',help='Read helper input and test semantic attachment roots')
     p.add_argument('--state-root',type=Path,default=Path('workspace'));p.add_argument('--workspace',type=Path,default=Path('..'))
     p.add_argument('projects',nargs='+');a=p.parse_args();store=ProjectStore(a.workspace,a.state_root);links=[]
@@ -31,8 +33,10 @@ def main():
     if a.connection_domain and not a.baseline_envelope:p.error('connection-domain requires baseline-envelope')
     if a.boundary_budget and not a.connection_domain:p.error('boundary-budget requires connection-domain')
     if a.support_mesh and not a.boundary_budget:p.error('support-mesh requires boundary-budget')
-    if a.joint_solver and not a.support_mesh:p.error('joint-solver requires support-mesh')
+    if a.joint_solver and not a.boundary_budget:p.error('joint-solver requires boundary-budget')
+    if a.uncuffed_interface and not a.cuff_harmonic:p.error('uncuffed-interface requires cuff-harmonic')
     if a.rigid_hand and (not a.boundary_budget or a.support_mesh):p.error('rigid-hand requires boundary-budget and original mesh')
+    if a.cuff_harmonic and (not a.boundary_budget or a.support_mesh or a.rigid_hand):p.error('cuff-harmonic requires boundary-budget and original mesh')
     for project in a.projects:
         require_safe_token(project,'Project')
         page=(a.input/project/'index.html').read_text(encoding='utf-8');sha=re.search(r'href="([a-f0-9]{64})\.json"',page).group(1)
@@ -53,6 +57,9 @@ def main():
                     if a.boundary_budget:
                         for domain in domains.values():domain['budget_policy']='one-free-area-bound-cap50-v1'
                 amended=source
+                if a.cuff_harmonic:
+                    from autospine_workbench.asset.planning.sleeve_cuff_harmonic import build as cuff_build
+                    amended,domains=cuff_build(source,garment,draft,inputs.skeleton,a.uncuffed_interface)
                 if a.rigid_hand:
                     from autospine_workbench.asset.planning.sleeve_hand_rigidity import build as rigid_build
                     amended,domains=rigid_build(source,garment,draft,inputs.skeleton)
@@ -68,11 +75,15 @@ def main():
                     doc.update(source_sha256=canonical_sha256(source),profile='garment-affine-support-coarse-budget-sine129-v1')
                 if a.joint_solver:
                     import numpy,scipy,platform
-                    doc.update(profile='garment-support-joint200-sine129-v1',solver_environment=dict(
+                    doc.update(profile='garment-support-joint200-sine129-v1' if a.support_mesh else 'garment-original-joint200-sine129-v1',solver_environment=dict(
                         numpy=numpy.__version__,scipy=scipy.__version__,python=platform.python_version()))
                 if a.rigid_hand:
                     from autospine_workbench.resolved_project import canonical_sha256
                     doc.update(source_sha256=canonical_sha256(source),profile='garment-rigid-hand-boundary-sine129-v1')
+                if a.cuff_harmonic:
+                    from autospine_workbench.resolved_project import canonical_sha256
+                    profile='garment-hand-interface-harmonic-sine129-v1' if a.uncuffed_interface else 'garment-cuff-harmonic-boundary-sine129-v1'
+                    doc.update(source_sha256=canonical_sha256(source),profile=profile+('-joint200' if a.joint_solver else ''))
                 if a.connection_domain:
                     from autospine_workbench.asset.planning.sleeve_connection_domain import retain
                     prior=(a.baseline_envelope/project/'index.html').read_text(encoding='utf-8')
