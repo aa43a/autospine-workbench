@@ -6,13 +6,18 @@ from ..project_authoring_transaction import project_authoring_transaction
 CHOICES = ('ordinary', 'sleeves', 'undecided')
 
 
-def suggest(project):
+def suggest(project, geometry=None):
     layers = [l for l in project['resolved']['layers'] if not l.get('empty') and l.get('disposition') != 'exclude']
     explicit = [l for l in layers if 'sleeve' in (l.get('canonical_role', '') + ' ' + l.get('name', '')).lower() or '袖' in l.get('name', '')]
     valid = [l for l in explicit if l.get('bbox', {}).get('width', 0) > 0 and l.get('bbox', {}).get('height', 0) > 0]
     if valid:
         return 'sleeves', ['检测到袖装名称或语义，且有有效图层范围：' + '、'.join(l['name'] for l in valid),
                            '这是初步路线建议；手、袖口与垂布仍需在区域标注中区分。']
+    from .project_route_evidence import supported_broad_rows
+    broad=supported_broad_rows(geometry)
+    if broad:
+        return 'sleeves', ['透明轮廓在已校正手臂骨段外形成较宽区域：'+ '、'.join(r['layer_id'] for r in broad),
+                           '建议进入袖装检查；这也可能是饰物或混合部件，需确认语义。几何建议不改变已保存选择。']
     arm = [l for l in layers if l.get('canonical_role') in ('body.hand', 'body.arm', 'wear.top') or 'handwear' in l.get('name', '').lower()]
     if arm:
         return 'undecided', ['当前手臂相关图层尚不能可靠区分裸臂、手套和袖布。',
@@ -47,12 +52,14 @@ class ProjectRoute:
             sha = source['resolved']['sha256']
             saved = self._saved(project)
             stale = bool(saved and saved['source_sha256'] != sha)
-            recommendation, reasons = suggest(source)
+            from .project_route_evidence import collect
+            geometry=collect(self.projects,project,source)
+            recommendation, reasons = suggest(source,geometry)
             if stale:
                 reasons.insert(0, '项目来源已变化，请重新确认处理路线。')
             return dict(project_id=project, source_sha256=sha, revision=saved['revision'] if saved else 0,
                         choice=saved['choice'] if saved and not stale else 'undecided', stale=stale,
-                        recommendation=recommendation, reasons=reasons, authority='none')
+                        recommendation=recommendation, reasons=reasons, geometry=geometry, authority='none')
 
     def save(self, project, body):
         if (set(body) != {'choice', 'expected_resolved_sha256', 'expected_revision'}

@@ -1,4 +1,5 @@
 import { automationEndpoint, projectIdentity } from './workbench-automation-contract.js';
+import { readRouteGeometry, createRouteGeometryView } from './route-geometry-view.js';
 
 const CHOICES = { ordinary: '普通绑定', sleeves: '袖装处理', undecided: '稍后决定' };
 export function readProjectRoute(value, context) {
@@ -7,6 +8,7 @@ export function readProjectRoute(value, context) {
     || !Object.hasOwn(CHOICES, value.choice) || !Object.hasOwn(CHOICES, value.recommendation)
     || typeof value.stale !== 'boolean' || !Array.isArray(value.reasons)
     || value.reasons.some(reason => typeof reason !== 'string')) throw Error('处理路线响应无效，请刷新。');
+  readRouteGeometry(value.geometry,context);
   return value;
 }
 
@@ -19,6 +21,7 @@ export function createWorkbenchRoute(document, hooks, options = {}) {
   function render() {
     view.render({ choice: value?.choice || 'undecided', recommendation: value?.recommendation || 'undecided',
       reasons: value?.reasons || [], stale: value?.stale || false, loaded: Boolean(value),
+      geometry: value?.geometry || null,
       enabled: Boolean(identity && editable() && value && !busy && !error), canRefresh: Boolean(identity && !busy),
       message: error || (busy ? '正在读取或保存处理路线…' : !editable() ? '请先保存校正并等待当前操作完成。'
         : value?.stale ? '项目来源已变化。原选择需要重新确认，建议已根据当前项目重新计算。'
@@ -63,10 +66,12 @@ function createView(document, callbacks) {
     controls.append(button); buttons[id] = button;
   }
   const refresh = node('button', '刷新路线'); refresh.type = 'button'; refresh.addEventListener('click', callbacks.refresh); controls.append(refresh);
-  element.append(title, summary, reasons, controls, status);
+  const geometry=createRouteGeometryView(document);
+  element.append(title, summary, reasons, geometry.element, controls, status);
   return { element, render(model) {
     summary.textContent = model.loaded ? `自动建议：${CHOICES[model.recommendation]} · 已保存选择：${CHOICES[model.choice]}${model.stale ? '（需要重新确认）' : ''}` : '正在检查角色适用的处理路线。';
     reasons.textContent = model.reasons.join('；'); status.textContent = model.message; refresh.disabled = !model.canRefresh;
+    geometry.render(model.geometry);
     for (const [id, button] of Object.entries(buttons)) { button.disabled = !model.enabled; button.setAttribute('aria-pressed', String(model.loaded && !model.stale && model.choice === id)); }
   } };
 }
