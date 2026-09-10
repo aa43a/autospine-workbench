@@ -252,9 +252,23 @@ python tools/check-sleeve-contacts.py --input ../tmp/r3s-edge-spine --output ../
 摘要验证器核对导出身份、区域清单、7轨×257帧、计数和状态，拒绝伪造通过或将软件结论冒充GPU证据。
 两角色完整后台流程已完成，四候选下载校验通过，辉夜的两个不可观测界面仍保留。
 
-原生渲染环境检查发现已安装Spine Trial，但Computer Use启动请求返回`Computer Use app approval timed out`；
-未获得应用控制权限，原生播放/截图未执行。该限制与浏览器访问限制分别记录，当前不能宣称R3-S全部完成。
+首次原生渲染环境检查的Computer Use启动请求曾返回`Computer Use app approval timed out`。
+用户打开Spine Trial后，原生应用检查已可执行；浏览器访问限制仍独立保留。
 
 ```powershell
 python tools/build-sleeve-helpers.py --motion-envelope --connection-domain --boundary-budget --cuff-harmonic --baseline-envelope ../tmp/r3s-boundary-budget --input ../tmp/r3s-cloth-anchors --output ../tmp/r3s-cuff-harmonic-replay huiye uuz
 ```
+
+## 原生编辑器抽查（2026-09-10）
+
+在Spine Trial 4.3.26中逐个导入辉夜、幽幽子四袖，观察`combined_pm`的0、32、96帧并启动播放。
+四袖纹理可见，所观察姿态中袖口与手保持视觉连接。辉夜右袖首次使用原候选并手动设置图片目录；
+其余三袖使用`prepare-sleeve-editor.py`生成的检查副本，导入后纹理自动显示。
+副本只修改图片路径，保留来源收据；未更改原始候选或转移其数值验证结论。
+
+四次导入均提示缺少可选hull/internal edges信息，编辑器重新计算hull；此兼容性提示尚未修复。
+观察证据为本次原生应用工具截图，未生成可供自动验收消费的逐帧缓冲工件。
+这次抽查不覆盖全部7轨、过滤/混合条件或像素级裂缝与过度重叠，不能标记GPU门禁通过。
+
+下一验收工作仍包括完整帧缓冲连接/重叠测量、辉夜两条源图不可观测界面的复核，
+以及独立袖装样本验证。四袖保持候选状态，R3-S尚未全部完成。
