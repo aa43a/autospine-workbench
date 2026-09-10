@@ -3,6 +3,7 @@ import argparse
 import base64
 from html import escape
 from pathlib import Path
+from math import isfinite
 from autospine_workbench.asset.planning.sleeve_unknown_coupling import analyze
 from autospine_workbench.asset.planning.sleeve_fixed_edges import inspect
 from autospine_workbench.asset.planning.sleeve_connection_domain import domain
@@ -13,6 +14,15 @@ from autospine_workbench.automation.animated_inputs import load_inputs
 from autospine_workbench.project_store import ProjectStore
 from autospine_workbench.resolved_project import canonical_sha256
 from autospine_workbench.safe_input_files import read_real_file,strict_json_object
+
+
+def image_frame(box):
+    """Layer bounds are canvas-space xyxy, not xywh."""
+    if len(box)!=4 or not all(isinstance(v,(int,float)) and isfinite(v) for v in box):
+        raise ValueError('sleeve_image_bounds')
+    x,y,right,bottom=box
+    if right<=x or bottom<=y:raise ValueError('sleeve_image_bounds')
+    return x,y,right-x,bottom-y
 
 
 def main():
@@ -44,7 +54,7 @@ def main():
             protected=domain(row['triangles'],labels[key]['assignments'])['protected_vertices']
             diagnosis['fixed_edge_feasibility']=inspect(row['setup_vertices'],row['triangles'],protected,row['tracks'])
             records.append(dict(layer_id=key[0],component_id=key[1],**diagnosis))
-            layer=next(l for l in inputs.candidate['layers'] if l['layer_id']==key[0]);x,y,w,h=layer['bbox']
+            layer=next(l for l in inputs.candidate['layers'] if l['layer_id']==key[0]);x,y,w,h=image_frame(layer['bbox'])
             image=base64.b64encode(inputs.images[key[0]]).decode()
             shapes=[]
             for i in sorted(bad|set(diagnosis['unknown_triangles'])):
