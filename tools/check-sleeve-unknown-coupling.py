@@ -4,6 +4,8 @@ import base64
 from html import escape
 from pathlib import Path
 from autospine_workbench.asset.planning.sleeve_unknown_coupling import analyze
+from autospine_workbench.asset.planning.sleeve_fixed_edges import inspect
+from autospine_workbench.asset.planning.sleeve_connection_domain import domain
 from autospine_workbench.asset.planning.sleeve_regions import validate
 from autospine_workbench.benchmark.artifacts import read_input,publish_report,read_report,export_document
 from autospine_workbench.benchmark.mesh_storage import read_mesh_report
@@ -39,6 +41,8 @@ def main():
             if row['triangles']!=mesh['triangles'] or row['setup_vertices']!=mesh['vertices_xy']:raise ValueError('sleeve_coupling_geometry')
             bad={i for t in row['tracks'] for q in t['qa'] for i in q['bad_triangles']}
             diagnosis=analyze(row['triangles'],labels[key]['assignments'],row['weights'],mesh['bone_ids'][2],bad)
+            protected=domain(row['triangles'],labels[key]['assignments'])['protected_vertices']
+            diagnosis['fixed_edge_feasibility']=inspect(row['setup_vertices'],row['triangles'],protected,row['tracks'])
             records.append(dict(layer_id=key[0],component_id=key[1],**diagnosis))
             layer=next(l for l in inputs.candidate['layers'] if l['layer_id']==key[0]);x,y,w,h=layer['bbox']
             image=base64.b64encode(inputs.images[key[0]]).decode()
@@ -48,6 +52,9 @@ def main():
                 color='#ffb000' if i in diagnosis['unknown_triangles'] else '#ff4455'
                 shapes.append(f'<polygon points="{pts}" fill="{color}" fill-opacity=".4" stroke="{color}" stroke-width="1"><title>triangle {i}</title></polygon>')
             views.append(f'<h2>{escape(key[0])}</h2><p>橙色：与手驱动耦合的不确定三角形 {diagnosis["unknown_triangles"]}；红色：动作中失败的三角形投影到setup。共享顶点影响是诊断证据，不是因果证明。</p><svg viewBox="{x} {y} {w} {h}" style="height:75vh;max-width:100%"><image href="data:image/png;base64,{image}" x="{x}" y="{y}" width="{w}" height="{h}"/>'+''.join(shapes)+'</svg>')
+            proof=diagnosis['fixed_edge_feasibility'];worst=max(proof['witnesses'],key=lambda r:r['ratio'],default=None)
+            views.append(f'<p>固定端点边长检查：{escape(proof["status"])}；{proof["tested_poses"]}个记录姿态，峰值{proof["peak_ratio"]:.3f}倍，上限{proof["limit"]}倍。无反例不代表网格可解。</p>')
+            if worst:views.append(f'<p>最大冲突：{escape(worst["track"])}，采样序号{worst["sample_index"]}，顶点{worst["vertices"]}；原边长{worst["rest_length"]:.3f}，变形后{worst["posed_length"]:.3f}。保持当前拓扑时，必须允许改变端点运动才可能消除此边超限；不自动改变未知归属。</p>')
         inputs.assert_current()
     report=dict(schema='autospine.sleeve-unknown-coupling/v1',authority='none',production_authorized=False,
         project_id=source['project_id'],source_sha256=canonical_sha256(source),draft_sha256=canonical_sha256(draft),records=records)
