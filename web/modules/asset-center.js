@@ -1,4 +1,15 @@
+import { createAssetImport } from './asset-import.js';
+import { sleeveProgress } from './sleeve-progress.js';
+
 const LABELS = { active: '进行中', archived: '已归档', trashed: '回收站' };
+
+export function assetTaskMessage(task) {
+  if (!task || !['pending', 'running'].includes(task.status)) return null;
+  const kinds = { sleeves: '袖装修复', preparation: '来源准备', animation: '动画候选', preview: 'Spine 预览' };
+  const kind = kinds[task.kind] || '项目任务';
+  if (task.status === 'pending') return `${kind} · 已排队`;
+  return `${kind} · ${task.kind === 'sleeves' ? sleeveProgress(task).label : '正在处理'}`;
+}
 
 export function filterAssets(projects, lifecycle, query) {
   const needle = query.trim().toLocaleLowerCase();
@@ -71,6 +82,8 @@ export function createAssetCenter(document, request = fetch) {
     img.addEventListener('error', () => imageBox.replaceChildren(node('span', '缩略图暂不可用')));
     const info = node('div', '', 'card-info'); info.append(node('span', LABELS[p.lifecycle], 'badge'), node('h2', p.name), node('p', p.id, 'project-id'));
     if (Number.isInteger(p.layer_count)) info.append(node('p', `${p.layer_count} 个源图层`));
+    const taskMessage = assetTaskMessage(p.current_task);
+    if (taskMessage) info.append(node('p', taskMessage, 'task-status'));
     info.append(node('p', p.workflow_status === 'needs_review' ? '项目仍有待复核内容，请进入工作台查看。'
       : p.workflow_status === 'ready' ? '素材状态就绪；动画和导出结果请进入工作台检查。' : '进入工作台查看当前处理阶段。'));
     const actions = node('div', '', 'actions');
@@ -109,4 +122,3 @@ export function createAssetCenter(document, request = fetch) {
 }
 
 if (typeof document !== 'undefined' && document.getElementById('projects')) createAssetCenter(document);
-import { createAssetImport } from './asset-import.js';

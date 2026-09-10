@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "project_id", "revision", "lifecycle", "name", "authority"],
+  "properties": {
+    "schema": {"const": "autospine.asset-library-entry/v1"},
+    "project_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "revision": {"type": "integer", "minimum": 1},
+    "lifecycle": {"enum": ["active", "archived", "trashed"]},
+    "name": {"oneOf": [{"type": "null"}, {"type": "string", "minLength": 1, "maxLength": 120, "pattern": "^(?!.*[\\u0000-\\u001f])(?=.*\\S).+$"}]},
+    "restore_lifecycle": {"enum": ["active", "archived"]},
+    "authority": {"const": "none"}
+  },
+  "allOf": [{
+    "if": {"properties": {"lifecycle": {"const": "trashed"}}},
+    "then": {"required": ["restore_lifecycle"]},
+    "else": {"not": {"required": ["restore_lifecycle"]}}
+  }]
+}

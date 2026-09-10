@@ -17,6 +17,21 @@ def require_idle(owner, project):
                 raise PipelineRunError('asset_job_running')
 
 
+def active_tasks(owner):
+    result = {}
+    for kind, manager in [('preview', owner), ('animation', getattr(owner, '_animated', None)),
+                          ('preparation', getattr(owner, '_preparation', None)), ('sleeves', getattr(owner, '_sleeves', None))]:
+        if manager is None:
+            continue
+        with manager._lock:
+            values = [item['response'] for item in getattr(manager, '_active', {}).values()]
+            values += list(getattr(manager, '_jobs', {}).values())
+            for value in values:
+                if value.get('status') in ('pending', 'running'):
+                    result[value['project_id']] = dict(kind=kind, status=value['status'], step=value.get('step'))
+    return result
+
+
 def dispatch_assets(parts, handler, method):
     from .web_routes import _error, _require_mutation
     if parts[:2] != ['api', 'asset-library']:
@@ -38,7 +53,9 @@ def dispatch_assets(parts, handler, method):
                 require_idle(handler.server.automation_manager, parts[2])
             result = library.change(parts[2], body)
         else:
-            result = dict(schema='autospine.asset-library/v1', projects=library.list(), authority='none')
+            tasks = active_tasks(handler.server.automation_manager)
+            result = dict(schema='autospine.asset-library/v1',
+                          projects=[dict(p, current_task=tasks.get(p['id'])) for p in library.list()], authority='none')
         handler._send_visual_json(200, result)
     except HttpJsonRequestError as exc:
         _error(handler, exc.status, exc.code)

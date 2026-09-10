@@ -20,6 +20,9 @@ def dispatch_automation(parts, handler, method):
     if len(parts) < 4 or parts[:2] != ["api", "projects"] or parts[3] != "automation":
         return False
     tail = parts[4:]
+    if tail == ['route']:
+        from .project_route_routes import dispatch_route
+        return dispatch_route(handler, method, parts[2])
     if tail[:1] == ["sleeves"]:
         from .sleeve_routes import dispatch_sleeves
         return dispatch_sleeves(tail[1:], handler, method, parts[2])

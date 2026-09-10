@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "project_id", "source_sha256", "revision", "choice", "authority"],
+  "properties": {
+    "schema": {"const": "autospine.project-route-choice/v1"},
+    "project_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "source_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "revision": {"type": "integer", "minimum": 1},
+    "choice": {"enum": ["ordinary", "sleeves", "undecided"]},
+    "authority": {"const": "none"}
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Source-bound raw component mesh annotation; no historical corrective implied.",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "profile", "project_id", "source_sha256", "skeleton_sha256", "records", "authority", "production_authorized", "semantic_confirmed"],
+  "properties": {
+    "schema": {"const": "autospine.sleeve-regions/v2"},
+    "profile": {"const": "component-mesh-wrist-band12-v1"},
+    "project_id": {"type": "string"},
+    "source_sha256": {"$ref": "sleeve-regions-v1.schema.json#/$defs/sha"},
+    "skeleton_sha256": {"$ref": "sleeve-regions-v1.schema.json#/$defs/sha"},
+    "records": {"$ref": "sleeve-regions-v1.schema.json#/properties/records"},
+    "authority": {"const": "none"},
+    "production_authorized": {"const": false},
+    "semantic_confirmed": {"const": false}
+  }
+}

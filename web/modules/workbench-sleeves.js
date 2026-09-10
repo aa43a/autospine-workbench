@@ -1,5 +1,7 @@
 import { automationEndpoint, projectIdentity } from './workbench-automation-contract.js';
 import { sleeveProgress } from './sleeve-progress.js';
+import { createWorkbenchRoute } from './workbench-route.js';
+import { createWorkbenchSleeveAnnotation } from './workbench-sleeve-annotation.js';
 
 const ACTIVE = new Set(['pending', 'running']);
 const REASONS = { sleeve_draft_missing: '尚未保存袖装区域标注。', sleeve_draft_changed: '袖装标注已变化，请重新构建。',
@@ -57,6 +59,10 @@ export function createWorkbenchSleeves(document, hooks, options = {}) {
   let identity = null, generation = 0, timer = null, overview = null, job = null, busy = false, error = '', editable = false, polls = 0;
   const schedule = options.schedule || setTimeout, unschedule = options.unschedule || clearTimeout;
   const view = options.view || createView(document, { start, refresh, withdraw: () => visibility('withdraw'), restore: () => visibility('restore') });
+  const route = document?.getElementById && !options.view ? createWorkbenchRoute(document, hooks) : null;
+  const annotation = route ? createWorkbenchSleeveAnnotation(document, { ...hooks, onRefresh: refresh }) : null;
+  if (annotation) view.element.prepend(annotation.element);
+  if (route) view.element.prepend(route.element);
   const context = () => hooks.context();
   const current = token => token === generation && identity === projectIdentity(context());
   const endpoint = () => `${automationEndpoint(context().projectId)}/sleeves`;
@@ -125,6 +131,8 @@ export function createWorkbenchSleeves(document, hooks, options = {}) {
     stop(); return request(false, false, action);
   }
   function sync(model) {
+    route?.sync(model);
+    annotation?.sync(model);
     editable = model.preparationEditable;
     const next = projectIdentity(context());
     if (next !== identity) {
@@ -134,7 +142,7 @@ export function createWorkbenchSleeves(document, hooks, options = {}) {
     render();
   }
   return { element: view.element, sync, start, refresh, withdraw: () => visibility('withdraw'), restore: () => visibility('restore'),
-    dispose() { generation++; stop(); identity = null; } };
+    dispose() { generation++; stop(); identity = null; route?.dispose(); annotation?.dispose(); } };
 }
 
 function createView(document, callbacks) {

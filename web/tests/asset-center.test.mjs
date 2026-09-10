@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { filterAssets, assetMutation } from '../modules/asset-center.js';
+import { filterAssets, assetMutation, assetTaskMessage } from '../modules/asset-center.js';
 
 test('asset filtering keeps archived and trashed projects separate while searching names and IDs', () => {
   const rows = [{ id: 'alice', name: '爱丽丝', lifecycle: 'active' }, { id: 'ALICE-2', name: '归档', lifecycle: 'archived' },
@@ -15,4 +15,12 @@ test('asset mutations preserve optimistic revision and distinguish trash from ph
   assert.throws(() => assetMutation({ revision: -1 }, 'restore'));
   assert.throws(() => assetMutation({ revision: 0 }, 'delete'));
   assert.throws(() => assetMutation({ revision: 0 }, 'rename', '  '));
+});
+test('active asset task has stage context without reporting stale completion or invented percentages', () => {
+  assert.equal(assetTaskMessage({ kind: 'sleeves', status: 'running', step: 'repair: running' }), '袖装修复 · 正在自动修正与分支比较');
+  assert.equal(assetTaskMessage({ kind: 'preparation', status: 'pending' }), '来源准备 · 已排队');
+  assert.equal(assetTaskMessage({ kind: 'animation', status: 'running' }), '动画候选 · 正在处理');
+  assert.equal(assetTaskMessage({ kind: 'sleeves', status: 'succeeded' }), null);
+  assert.equal(assetTaskMessage(null), null);
+  assert.doesNotMatch(assetTaskMessage({ kind: 'preview', status: 'running' }), /%/);
 });

@@ -39,10 +39,12 @@ class SleeveWebJobs:
                     try:self._assert_current(request)
                     except (RuntimeError,ValueError,OSError):break
                     latest=self.get(project,path.parent.name);break
-        return dict(project_id=project,can_build=(self.drafts/project/'draft.json').is_file(),authority='none',job=latest)
+        from .sleeve_draft_source import available
+        return dict(project_id=project,can_build=available(self.projects,self.drafts,project),authority='none',job=latest)
 
     def _draft_sha(self,project):
-        return sha256(read_real_file(self.drafts/project/'draft.json',16<<20,'sleeve draft')).hexdigest()
+        from .sleeve_draft_source import read
+        return sha256(read(self.projects,self.drafts,project)).hexdigest()
 
     def _assert_current(self,request):
         project=request['project_id']
@@ -72,7 +74,13 @@ class SleeveWebJobs:
         with self._lock:self._jobs[job_id]['status']='running'
         try:
             self._assert_current(request)
-            command=[sys.executable,'-u',str(self.repo/'tools/run-sleeve-workflow.py'),project,'--draft-root',str(self.drafts),
+            from .sleeve_draft_source import read
+            from ..benchmark.elbow_target_cli import export
+            snapshot = root/'annotation-inputs'
+            raw = read(self.projects,self.drafts,project)
+            if sha256(raw).hexdigest()!=request['draft_sha256']:raise PipelineRunError('sleeve_draft_changed')
+            export(snapshot/project/'draft.json',raw)
+            command=[sys.executable,'-u',str(self.repo/'tools/run-sleeve-workflow.py'),project,'--draft-root',str(snapshot),
                 '--output',str(self.output),'--state-root',str(self.projects.state_root),'--workspace',str(self.projects.workspace_root)]
             core=self.projects.workspace_root/'tmp/spine43-verification/node_modules/@esotericsoftware/spine-core'
             if core.is_dir():command+=['--runtime-core',str(core)]

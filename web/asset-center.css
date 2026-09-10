@@ -24,6 +24,7 @@ button:disabled, input:disabled { opacity: .55; cursor: wait; }
 details { margin-top: 20px; color: #a7bacb; } summary { cursor: pointer; } form { display: grid; gap: 10px; margin-top: 12px; }
 #error { padding: 16px; border: 1px solid #dc8c6e; color: #ffd8c6; border-radius: 8px; }.empty { padding: 36px; grid-column: 1 / -1; border: 1px dashed #3a5368; }
 .footnote { margin-top: 32px; font-size: 13px; }
+.task-status { border-left: 3px solid #5ad9f8; padding: 10px 12px; background: #16374a; color: #a7ecff; font-weight: 600; }
 .import-panel { margin: 24px 0; padding: 20px; border: 1px dashed #456a83; border-radius: 12px; background: #122331; }
 .import-panel.dragging { border-color: #7de4ff; background: #183a4d; }
 .import-panel h2 { margin-top: 0; }.import-panel input { max-width: 100%; }.import-panel progress { width: 100%; margin-top: 16px; accent-color: #58d2f7; }

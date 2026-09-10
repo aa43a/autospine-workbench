@@ -8,7 +8,23 @@ export function sleeveImageFrame(box) {
   return {x,y,width,height,viewBox:`${x-10} ${y-10} ${width+20} ${height+20}`};
 }
 
-export function mountSleeveReview(root, candidate, initial, images, bones, meshes=null) {
+export function createSleeveDraftSave(button, message, getDraft, onSave) {
+  let saving = false;
+  button.textContent = '保存到项目';
+  return async () => {
+    if (saving) return;
+    const snapshot = JSON.parse(JSON.stringify(getDraft())), identity = JSON.stringify(snapshot);
+    saving = true; button.disabled = true; button.textContent = '正在保存…'; message.textContent = '正在保存本次标注快照…';
+    try {
+      await onSave(snapshot);
+      message.textContent = JSON.stringify(getDraft()) === identity ? '标注已保存到项目。可以返回工作台继续构建袖装候选。'
+        : '本次快照已保存；保存期间又有修改，请再次保存最新标注。';
+    } catch (error) { message.textContent = `保存失败：${error.message || '请重试'}。当前标注仍保留在画布中。`; }
+    finally { saving = false; button.disabled = false; button.textContent = '保存到项目'; }
+  };
+}
+
+export function mountSleeveReview(root, candidate, initial, images, bones, meshes=null, options={}) {
   const copy = x => JSON.parse(JSON.stringify(x));
   let draft = copy(initial), history = [], active = 0, painting = false;
   const roles = ['unknown', 'sleeve', 'cuff', 'hand', 'hanging_cloth'];
@@ -104,7 +120,8 @@ export function mountSleeveReview(root, candidate, initial, images, bones, meshe
   };
   root.querySelector('#undo').onclick = () => { if (history.length) {draft=history.pop(); render();} };
   root.querySelector('#reset').onclick = () => {remember(); draft=copy(initial); render();};
-  root.querySelector('#save').onclick = () => {
+  const save = root.querySelector('#save');
+  save.onclick = options.onSave ? createSleeveDraftSave(save, message, () => draft, options.onSave) : () => {
     const url=URL.createObjectURL(new Blob([JSON.stringify(draft,null,2)],{type:'application/json'}));
     const a=document.createElement('a');a.href=url;a.download=`sleeve-region-draft-${candidate.project_id}.json`;a.click();
     setTimeout(() => URL.revokeObjectURL(url),1000);
@@ -127,4 +144,5 @@ export function mountSleeveReview(root, candidate, initial, images, bones, meshe
     e.target.value='';
   };
   setBrush(brush.value);render();
+  return { getDraft: () => copy(draft) };
 }

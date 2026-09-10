@@ -14,6 +14,9 @@ def manager_for(server):
 
 def dispatch_sleeves(tail,handler,method,project):
     from .web_routes import _error,_require_mutation
+    if tail[:1] == ['annotation']:
+        from .sleeve_annotation_routes import dispatch_annotation
+        return dispatch_annotation(tail[1:], handler, method, project)
     allowed='GET, HEAD, POST, OPTIONS' if not tail else None
     if len(tail)==2 and tail[0]=='jobs':allowed='GET, HEAD, OPTIONS'
     visibility=len(tail)==3 and tail[0]=='jobs' and tail[2] in ('withdraw','restore')

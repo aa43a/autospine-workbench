@@ -11,3 +11,5 @@
 .sleeve-stages li { padding:8px; border-radius:5px; color:#8397a7; background:#162430; }
 .sleeve-stages [data-state=done] { color:#92d6bc; }
 .sleeve-stages [data-state=current] { background:#174763; color:#fff; outline:1px solid #52bdec; }
+.project-route { border: 1px solid #3d6377; border-radius: 8px; padding: 16px; margin-bottom: 24px; background: #132c3b; }
+.project-route h3 { margin-top: 0; }.project-route button { margin: 0 8px 8px 0; }.project-route button[aria-pressed="true"] { border-color: #69dcff; background: #195471; }

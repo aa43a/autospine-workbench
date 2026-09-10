@@ -8,13 +8,18 @@ ROLES = ('unknown', 'sleeve', 'cuff', 'hand', 'hanging_cloth')
 
 
 def build(source, skeleton):
-    if (source['schema'] != 'autospine.component-axial-correction/v1' or source.get('authority') != 'none'
+    raw_mesh = source.get('schema') == 'autospine.component-mesh-candidates/v1'
+    if (source['schema'] not in ('autospine.component-axial-correction/v1', 'autospine.component-mesh-candidates/v1') or source.get('authority') != 'none'
             or source.get('production_authorized') is not False or source['skeleton_sha256'] != canonical_sha256(skeleton)):
         raise ValueError('sleeve_region_source_mismatch')
+    if raw_mesh:
+        from .sleeve_mesh_source import validate
+        validate(source, skeleton)
     bones = {b['id']: b for b in skeleton['bones']}; records = []
     for row in source['records']:
         mesh = row['mesh']
         if not mesh or len(mesh['bone_ids']) != 3: continue
+        if raw_mesh and not mesh['triangles']: continue
         ids = mesh['bone_ids']; side = ids[0][-1]
         # Supported canonical arm topology, independent of project or layer names.
         if ids != [f'upperarm_{side}', f'forearm_{side}', f'hand_{side}']: continue
@@ -38,7 +43,8 @@ def build(source, skeleton):
                             source_image_sha256=row['source_image_sha256'], bone_ids=ids,
                             vertices_xy=deepcopy(mesh['vertices_xy']), triangles=deepcopy(mesh['triangles']),
                             suggestions=assignments))
-    return dict(schema='autospine.sleeve-regions/v1', profile='wrist-band12-triangle-suggestions-v1',
+    return dict(schema='autospine.sleeve-regions/v2' if raw_mesh else 'autospine.sleeve-regions/v1',
+                profile='component-mesh-wrist-band12-v1' if raw_mesh else 'wrist-band12-triangle-suggestions-v1',
                 project_id=source['project_id'], source_sha256=canonical_sha256(source),
                 skeleton_sha256=canonical_sha256(skeleton), records=records,
                 authority='none', production_authorized=False, semantic_confirmed=False)

@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "project_id", "revision", "source_sha256", "input_addresses", "mesh_sha256", "candidate_sha256", "draft_sha256", "closure_sha256", "saved", "authority"],
+  "properties": {
+    "schema": {"const": "autospine.sleeve-onboarding/v1"},
+    "project_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "revision": {"type": "integer", "minimum": 1},
+    "source_sha256": {"$ref": "#/$defs/sha"},
+    "mesh_sha256": {"$ref": "#/$defs/sha"},
+    "candidate_sha256": {"$ref": "#/$defs/sha"},
+    "draft_sha256": {"$ref": "#/$defs/sha"},
+    "closure_sha256": {"$ref": "#/$defs/sha"},
+    "saved": {"type": "boolean"},
+    "authority": {"const": "none"},
+    "input_addresses": {
+      "type": "object", "additionalProperties": false,
+      "required": ["resolved_project_sha256", "input_identity_sha256", "animated_registration_sha256", "benchmark_manifest_sha256", "semantic_candidate_sha256", "skeleton_candidate_sha256", "layer_bindings_sha256", "layer_binding_draft_sha256"],
+      "properties": {
+        "resolved_project_sha256": {"$ref": "#/$defs/sha"},
+        "input_identity_sha256": {"$ref": "#/$defs/sha"},
+        "animated_registration_sha256": {"$ref": "#/$defs/sha"},
+        "benchmark_manifest_sha256": {"$ref": "#/$defs/sha"},
+        "semantic_candidate_sha256": {"$ref": "#/$defs/sha"},
+        "skeleton_candidate_sha256": {"$ref": "#/$defs/sha"},
+        "layer_bindings_sha256": {"$ref": "#/$defs/sha"},
+        "layer_binding_draft_sha256": {"$ref": "#/$defs/sha"}
+      }
+    }
+  },
+  "$defs": {"sha": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}
+}
