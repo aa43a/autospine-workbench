@@ -20,3 +20,14 @@ class JointSolverTests(unittest.TestCase):
         p=[[0.,0.],[2.,0.],[0.,2.]]
         result,e=solve(p,[[0,1,2]],p,[2],[0,1],1.)
         self.assertEqual(result,p);self.assertEqual(e['solver_status'],'projection_sufficient')
+
+    def test_seed_does_not_move_fixed_vertices_or_expand_budget(self):
+        p=[[0.,0.],[2.,0.],[0.,2.]]
+        args=(p,[[0,1,2]],p,[1,2],[0,1],.2)
+        seed=[[99.,99.],[99.,99.],[99.,99.]]
+        result,e=solve(*args,seed=seed)
+        self.assertEqual(result[:2],p[:2])
+        self.assertLessEqual(math.dist(result[2],p[2]),.2+1e-9)
+        self.assertEqual(result,solve(*args,seed=seed)[0])
+        with self.assertRaisesRegex(ValueError,'seed'):
+            solve(*args,seed=[[0.,float('nan')]]*3)

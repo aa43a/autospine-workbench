@@ -4,12 +4,12 @@ from .component_local_solver import metrics
 from .component_temporal_qa import passed
 
 
-def solve(setup,triangles,points,cloth_vertices,anchors,budget):
+def solve(setup,triangles,points,cloth_vertices,anchors,budget,*,seed=None):
     import numpy as np
     import scipy
     from scipy.optimize import least_squares
     from scipy.sparse import lil_matrix
-    initial,evidence=project(setup,triangles,points,cloth_vertices,anchors,budget)
+    initial,evidence=project(setup,triangles,points,cloth_vertices,anchors,budget,seed=seed)
     evidence.update(profile='joint-area-edge-sparse200-v1',numpy_version=np.__version__,scipy_version=scipy.__version__)
     free=sorted(set(cloth_vertices)-set(anchors))
     if not free or passed(evidence['qa']):

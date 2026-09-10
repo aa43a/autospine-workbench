@@ -21,7 +21,7 @@ def angles(amplitudes,tick):
     return [amplitude*phase for amplitude in amplitudes]
 
 
-def track(row,chain,name,amplitudes):
+def track(row,chain,name,amplitudes,*,key_seeds=None):
     drivers=[chain[1]['id'],chain[2]['id'],chain[3]['id']]
     setup=row['setup_vertices'];tri=row['triangles'];weights=row['weights']
     anchors=sorted({v for e in row['interface_root']['edges'] for v in e})
@@ -29,6 +29,9 @@ def track(row,chain,name,amplitudes):
     if domain:anchors=domain['anchors'];free=domain['free_vertices']
     budget=.15*math.dist(chain[1]['head_xy'],chain[1]['tail_xy'])
     keys=[];budget_evidence=[];solver_evidence=[]
+    if key_seeds is not None and (len(key_seeds)!=33 or any(len(key)!=len(setup)
+            or any(len(p)!=2 or any(not math.isfinite(v) for v in p) for p in key) for key in key_seeds)):
+        raise ValueError('sleeve_key_seeds')
     for tick in range(0,129,4):
         base=_deform(weights,frames(chain,dict(zip(drivers,angles(amplitudes,tick)))))
         active_budget=budget
@@ -43,7 +46,8 @@ def track(row,chain,name,amplitudes):
             budget_evidence.append(evidence)
         if domain and domain.get('solver_profile')=='joint-area-edge-sparse200-v1':
             from .cloth_joint_solver import solve as solve_joint
-            corrected,solver_info=solve_joint(setup,tri,base,free,anchors,active_budget);solver_evidence.append(solver_info)
+            seed=None if key_seeds is None or tick in (0,64,128) else [[p[k]+d[k] for k in (0,1)] for p,d in zip(base,key_seeds[tick//4])]
+            corrected,solver_info=solve_joint(setup,tri,base,free,anchors,active_budget,seed=seed);solver_evidence.append(solver_info)
         else:corrected,_=solve(setup,tri,base,free,anchors,active_budget)
         keys.append([[b[k]-a[k] for k in (0,1)] for a,b in zip(base,corrected)])
     before=[];after=[];samples=[];raw_samples=[];anchor_error=0.

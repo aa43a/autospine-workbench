@@ -4,7 +4,7 @@ from .component_local_solver import metrics
 from ..joints.mesh_weights import _area
 
 
-def solve(setup,triangles,points,cloth_vertices,anchors,budget):
+def solve(setup,triangles,points,cloth_vertices,anchors,budget,*,seed=None):
     if not math.isfinite(budget) or budget<=0 or len(setup)!=len(points):raise ValueError('cloth_anchor_input')
     indices=set(range(len(points)));free=set(cloth_vertices)-set(anchors)
     if (not points or not set(cloth_vertices)<=indices or not set(anchors)<=indices
@@ -12,6 +12,12 @@ def solve(setup,triangles,points,cloth_vertices,anchors,budget):
             or any(len(t)!=3 or len(set(t))!=3 or not set(t)<=indices for t in triangles)):
         raise ValueError('cloth_anchor_input')
     moved=[p[:] for p in points];areas=[_area(setup,t) for t in triangles]
+    if seed is not None:
+        if len(seed)!=len(points) or any(len(p)!=2 or any(not math.isfinite(v) for v in p) for p in seed):
+            raise ValueError('cloth_anchor_seed')
+        for i in free:
+            distance=math.dist(points[i],seed[i]);scale=min(1.,budget/distance) if distance else 1.
+            moved[i]=[points[i][k]+(seed[i][k]-points[i][k])*scale for k in (0,1)]
     if any(abs(a)<1e-9 for a in areas):raise ValueError('cloth_anchor_degenerate')
     edges=sorted({tuple(sorted((a,b))) for t in triangles for a,b in zip(t,t[1:]+t[:1])})
     for _ in range(48):

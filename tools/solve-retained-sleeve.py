@@ -15,11 +15,13 @@ def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--source',required=True)
     p.add_argument('--output',type=Path,required=True)
     p.add_argument('--edge-budget',action='store_true',help='Use existing area/edge lower bounds with unchanged cap')
+    p.add_argument('--smooth-seed',action='store_true',help='Project neighboring corrective-key averages within the same displacement budget')
     p.add_argument('--state-root',type=Path,default=Path('workspace'));p.add_argument('--workspace',type=Path,default=Path('..'))
     a=p.parse_args();source=read_mesh_report(a.state_root,'project-component-partitions',a.source)
     if source['schema']!='autospine.sleeve-motion-envelope/v1' or source['authority']!='none' or source['production_authorized'] is not False:raise ValueError('retained_solver_source')
     result=deepcopy(source);result.update(source_sha256=a.source,baseline_sha256=a.source,profile='retained-weights-joint200-v1')
     if a.edge_budget:result['profile']='retained-weights-edge-budget-joint200-v1'
+    if a.smooth_seed:result['profile']+='-neighbor-seed-v1'
     import numpy,scipy,platform
     result['solver_environment']=dict(numpy=numpy.__version__,scipy=scipy.__version__,python=platform.python_version())
     with load_inputs(ProjectStore(a.workspace,a.state_root),source['project_id']) as inputs:
@@ -35,7 +37,13 @@ def main():
             if a.edge_budget:candidate['correction_domain']['budget_policy']='area-edge-displacement-bound-cap50-v1'
             evidence=[];tracks=[]
             for old in row['tracks']:
-                trial=track(candidate,chain,old['bone_id'],old['amplitudes'])
+                seeds=None
+                if a.smooth_seed and old['correction_selected']:
+                    keys=old['trial_keys'];seeds=deepcopy(keys)
+                    for i in range(1,32):
+                        seeds[i]=[[.25*keys[i-1][v][k]+.5*keys[i][v][k]+.25*keys[i+1][v][k]
+                            for k in (0,1)] for v in range(len(row['setup_vertices']))]
+                trial=track(candidate,chain,old['bone_id'],old['amplitudes'],key_seeds=seeds)
                 reasons,gain=gate(old['qa'],trial['qa']);selected=not reasons and gain
                 tracks.append(trial if selected else old)
                 evidence.append(dict(track=old['bone_id'],selected=selected,reason_codes=reasons,
