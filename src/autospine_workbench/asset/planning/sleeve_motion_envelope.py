@@ -28,10 +28,14 @@ def track(row,chain,name,amplitudes):
     domain=row.get('correction_domain');free=row['cloth_vertices']
     if domain:anchors=domain['anchors'];free=domain['free_vertices']
     budget=.15*math.dist(chain[1]['head_xy'],chain[1]['tail_xy'])
-    keys=[]
+    keys=[];budget_evidence=[]
     for tick in range(0,129,4):
         base=_deform(weights,frames(chain,dict(zip(drivers,angles(amplitudes,tick)))))
-        corrected,_=solve(setup,tri,base,free,anchors,budget)
+        active_budget=budget
+        if domain and domain.get('budget_policy')=='one-free-area-bound-cap50-v1':
+            from .sleeve_boundary_budget import estimate
+            active_budget,evidence=estimate(setup,tri,base,set(free)-set(anchors),budget);budget_evidence.append(evidence)
+        corrected,_=solve(setup,tri,base,free,anchors,active_budget)
         keys.append([[b[k]-a[k] for k in (0,1)] for a,b in zip(base,corrected)])
     before=[];after=[];samples=[];raw_samples=[];anchor_error=0.
     for tick in range(129):
@@ -49,13 +53,15 @@ def track(row,chain,name,amplitudes):
             samples.append(dict(sample,points=points));raw_samples.append(dict(sample,points=base))
     reasons,gain=gate(before,after);selected=not reasons and gain
     qa=after if selected else before
-    return dict(bone_id=name,angle_range=[-max(map(abs,amplitudes)),max(map(abs,amplitudes))],
+    result=dict(bone_id=name,angle_range=[-max(map(abs,amplitudes)),max(map(abs,amplitudes))],
         drivers=drivers,amplitudes=list(amplitudes),qa=qa,samples=samples if selected else raw_samples,
         failed_ticks=sum(not passed(q) for q in qa),correction_selected=selected,
         reason_codes=reasons or ['sampled_improvement' if selected else 'no_sampled_gain'],
         baseline_failed_ticks=sum(not passed(q) for q in before),trial_failed_ticks=sum(not passed(q) for q in after),
         trial_qa=after,trial_keys=keys,anchor_displacement=anchor_error,
         loop_error=max(math.dist(a,b) for a,b in zip(samples[0]['points'],samples[-1]['points'])))
+    if budget_evidence:result['budget_evidence']=budget_evidence
+    return result
 
 
 def build(source,skeleton,domains=None):

@@ -103,3 +103,26 @@ node tools/verify-sleeve-core.mjs ../tmp/r3s-spine/huiye/layer-002-component-000
 ```powershell
 python tools/build-sleeve-helpers.py --motion-envelope --connection-domain --baseline-envelope ../tmp/r3s-motion-envelope --input ../tmp/r3s-cloth-anchors --output ../tmp/r3s-connection-domain huiye uuz
 ```
+
+## 固定边界可行位移下界
+
+诊断将48次迭代提高到256次，剩余失败无改善且位移达到预算上限；该试验没有改变生产求解器。
+新增 `one-free-area-bound-cap50-v1`：对恰有一个可移动顶点的三角形，面积对该点位置是线性的，
+据此计算恢复目标面积所需位移的准确下界。候选预算取基础15%前臂长度与下界×1.1的较大值，
+硬上限为50%前臂长度。新profile显式改变修正预算，旧profile及历史hash不变；动作范围与QA门槛不变。
+多自由顶点的可行性不由该下界证明，最终仍依赖完整几何检查。
+
+| 袖子 | 前臂 | 手 | 垂布 | 组合 ++ | 组合 +- | 组合 -+ | 组合 -- |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 辉夜右 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| 辉夜左 | 0 | 11 | 0 | 11 | 24 | 22 | 11 |
+| 幽幽子右 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| 幽幽子左 | 0 | 0 | 0 | 0 | 19 | 19 | 0 |
+
+每格为129采样中的失败数。幽幽子右新候选通过Spine目标257点几何检查及外置官方core的1799帧数值验证，
+最大顶点误差约0.0001125px；仍没有GPU或alpha接缝通过声明。辉夜左与幽幽子左继续阻塞。
+
+```powershell
+python tools/build-sleeve-helpers.py --motion-envelope --connection-domain --boundary-budget --baseline-envelope ../tmp/r3s-connection-domain --input ../tmp/r3s-cloth-anchors --output ../tmp/r3s-boundary-budget huiye uuz
+python tools/export-sleeve-spine.py --input ../tmp/r3s-boundary-budget --output ../tmp/r3s-spine-boundary huiye uuz
+```

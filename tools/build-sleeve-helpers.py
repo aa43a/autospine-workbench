@@ -19,12 +19,14 @@ def main():
     p.add_argument('--motion-envelope',action='store_true',help='Validate fixed R3-S individual and combined motion range')
     p.add_argument('--connection-domain',action='store_true',help='Allow role-bounded garment connection support')
     p.add_argument('--baseline-envelope',type=Path)
+    p.add_argument('--boundary-budget',action='store_true',help='Use explicit bounded area-feasibility budget policy')
     p.add_argument('--interface-root',action='store_true',help='Read helper input and test semantic attachment roots')
     p.add_argument('--state-root',type=Path,default=Path('workspace'));p.add_argument('--workspace',type=Path,default=Path('..'))
     p.add_argument('projects',nargs='+');a=p.parse_args();store=ProjectStore(a.workspace,a.state_root);links=[]
     if sum([a.root_transition,a.interface_root,a.multi_anchor,a.motion_envelope])>1:p.error('root modes are mutually exclusive')
     if a.connection_domain and not a.motion_envelope:p.error('connection-domain requires motion-envelope')
     if a.connection_domain and not a.baseline_envelope:p.error('connection-domain requires baseline-envelope')
+    if a.boundary_budget and not a.connection_domain:p.error('boundary-budget requires connection-domain')
     for project in a.projects:
         require_safe_token(project,'Project')
         page=(a.input/project/'index.html').read_text(encoding='utf-8');sha=re.search(r'href="([a-f0-9]{64})\.json"',page).group(1)
@@ -42,7 +44,10 @@ def main():
                         garment=read_mesh_report(a.state_root,'project-component-partitions',garment['source_sha256'])
                     draft=read_mesh_report(a.state_root,'project-component-partitions',garment['draft_sha256'])
                     domains=prepare(source,garment,draft)
+                    if a.boundary_budget:
+                        for domain in domains.values():domain['budget_policy']='one-free-area-bound-cap50-v1'
                 doc=envelope_build(source,inputs.skeleton,domains)
+                if a.boundary_budget:doc['profile']='garment-connection-bound50-sine129-v1'
                 if a.connection_domain:
                     from autospine_workbench.asset.planning.sleeve_connection_domain import retain
                     prior=(a.baseline_envelope/project/'index.html').read_text(encoding='utf-8')

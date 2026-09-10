@@ -15,6 +15,7 @@ const ns='http://www.w3.org/2000/svg';let running=false,last=0;
 function node(tag,attrs={}){const n=document.createElementNS(ns,tag);for(const [k,v] of Object.entries(attrs))n.setAttribute(k,v);return n;}
 const views=rows.map(r=>{const s=document.createElement('section'),h=document.createElement('h2'),select=document.createElement('select'),qa=document.createElement('p'),svg=node('svg');
 h.textContent=r.layer_id+' / '+r.component_id;
+const budgets=(r.tracks||[]).flatMap(t=>t.budget_evidence||[]);if(budgets.length){const n=document.createElement('p');n.textContent=`边界预算候选：基础 ${budgets[0].base_budget_px.toFixed(2)} px，实际峰值 ${Math.max(...budgets.map(b=>b.budget_px)).toFixed(2)} px，上限 ${budgets[0].cap_px.toFixed(2)} px；几何门槛未变。`;s.append(n);}
 if(r.connection_trial){const a=r.connection_trial,n=document.createElement('p');n.textContent=`连接带自由度：${a.selected?'保留':'回退'} · ${a.reason_codes.join(', ')} · ${a.baseline_failed_ticks.join('/')} → ${a.trial_failed_ticks.join('/')}`;s.append(n);}
 if(r.motion_envelope){const n=document.createElement('p');n.textContent=`受限动作：前臂±30° / 手±30° / 垂布±10° · ${r.motion_envelope.geometry_pass?'采样几何通过':'几何未通过'}；alpha接触与Runtime尚未验证`;s.append(n);}
 if(r.anchor_correction){const a=r.anchor_correction,n=document.createElement('p');n.textContent=`多连接点约束：${a.selected?'保留候选':'回退'} · ${a.reason_codes.join(', ')}；${(a.baseline_failed_ticks||[]).join('/')} → ${(a.trial_failed_ticks||[]).join('/')}`;s.append(n);}
