@@ -39,7 +39,7 @@ def main():
                 if checked!=doc:raise ValueError('sleeve_readback_mismatch')
                 export_mesh(output/f'{digest}.json',checked)
             export_mesh(output/'draft.json',draft)
-            (output/'index.html').write_text(render(candidate,draft,inputs),encoding='utf-8')
+            (output/'index.html').write_text(render(candidate,draft,inputs,source),encoding='utf-8')
             count=sum(len(r['triangles']) for r in candidate['records'])
             links.append(f'<li><a href="{escape(project)}/index.html">{escape(project)} · {count}三角形</a></li>')
             print(project,count,flush=True)

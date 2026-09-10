@@ -1,4 +1,5 @@
 import {brushHitsTriangle, brushStrokePoints} from './sleeve-brush.js';
+import {mountSleeveLive} from './sleeve-live-panel.js';
 
 export function sleeveImageFrame(box) {
   if (!Array.isArray(box) || box.length !== 4 || !box.every(Number.isFinite) || box[2] <= box[0] || box[3] <= box[1])
@@ -7,7 +8,7 @@ export function sleeveImageFrame(box) {
   return {x,y,width,height,viewBox:`${x-10} ${y-10} ${width+20} ${height+20}`};
 }
 
-export function mountSleeveReview(root, candidate, initial, images, bones) {
+export function mountSleeveReview(root, candidate, initial, images, bones, meshes=null) {
   const copy = x => JSON.parse(JSON.stringify(x));
   let draft = copy(initial), history = [], active = 0, painting = false;
   const roles = ['unknown', 'sleeve', 'cuff', 'hand', 'hanging_cloth'];
@@ -16,6 +17,7 @@ export function mountSleeveReview(root, candidate, initial, images, bones) {
   const select = root.querySelector('#region'), role = root.querySelector('#role');
   const svg = root.querySelector('svg'), message = root.querySelector('#message');
   const brush = root.querySelector('#brush'), brushValue = root.querySelector('#brush-value');
+  const live=mountSleeveLive(root,candidate,images,bones,meshes);
   let cursor, lastPoint=null, lastEvent=null, polygons=[];
   function setBrush(value) {
     brush.value=String(Math.max(4,Math.min(120,Number(value))));
@@ -40,6 +42,7 @@ export function mountSleeveReview(root, candidate, initial, images, bones) {
   function status() {
     const items = draft.records.flatMap(r => r.assignments);
     message.textContent = `草稿：${items.filter(a => a.role !== 'unknown').length}/${items.length} 个三角形已填写；自动建议不等于人工确认。`;
+    live.update(active,draft,initial);
   }
   function render() {
     painting=false;lastPoint=null;lastEvent=null;polygons=[];
