@@ -12,6 +12,9 @@ const REASONS = { sleeve_draft_missing: '尚未保存袖装区域标注。', sle
   pipeline_preview_not_ready: '当前候选尚不可用，请查看检查结果或重新构建。' };
 
 const REGION_REASONS = {
+  ordinary_sleeve_region_unavailable: '此残余区域尚无可用网格，已保留在复核队列。',
+  ownership_review_required: '仍有不确定归属，请在标注页复核后保存。',
+  cloth_helper_unobservable: '缺少可观测的垂布结构，不能建立垂布辅助骨。普通袖应使用三骨动作分支。',
   motion_envelope_geometry_failure: '受限动作中存在网格几何失败，已阻塞下载。请复核袖口与手、垂布的归属和连接处变形；修正后重新构建。',
   target_interpolation_geometry_failure: 'Spine 动画关键帧之间的插值未通过几何检查，已阻塞下载。需修正过渡变形并重新构建。',
   official_core_numeric_failure: '官方核心数值验证未通过，已阻塞下载。需检查导出动画与源网格的差异，修复后重新构建。',
@@ -74,6 +77,8 @@ export function createWorkbenchSleeves(document, hooks, options = {}) {
       const completed = new Set((job.result.steps || []).filter(s => s.status === 'succeeded').map(s => s.id));
       const stage = ['repair', 'cuff', 'boundary'].find(s => completed.has(s));
       const base = `${endpoint()}/jobs/${job.job_id}/view`;
+      if (completed.has('spine') && job.result.records.some(r => r.motion_profile === 'ordinary-forearm30-hand30-sine129-v1'))
+        reviews.push({ label: '普通袖四轨诊断时间轴', url: `${base}/spine/${encodeURIComponent(context().projectId)}/ordinary/index.html` });
       if (stage) reviews.push({ label: '打开修正时间轴', url: `${base}/${stage}/${encodeURIComponent(context().projectId)}/index.html` });
       if (completed.has('framebuffer')) reviews.push({ label: '查看官方捕获与重叠', url: `${base}/framebuffer/index.html` });
     }
@@ -157,7 +162,7 @@ function createView(document, callbacks) {
   withdraw.type = restore.type = 'button'; withdraw.addEventListener('click', callbacks.withdraw); restore.addEventListener('click', callbacks.restore);
   build.type = refresh.type = 'button'; build.addEventListener('click', callbacks.start); refresh.addEventListener('click', callbacks.refresh);
   element.append(title, headline, progress, tally, build, refresh, withdraw, restore, status, reviews, stages, rows,
-    node('p', '支持动作范围：前臂 ±30° / 手 ±30° / 垂布 ±10°，包含单轴及组合测试；不代表任意三轴组合均已验证。'),
+    node('p', '普通袖：前臂 ±30° / 手 ±30°，四轨测试；宽袖：前臂 ±30° / 手 ±30° / 垂布 ±10°，七轨测试。按已保存归属选择分支，不代表任意组合均已验证。'),
     node('p', 'Spine 4.3.26 候选；官方核心数值验证不包含 GPU 渲染与透明接缝检查，也不代表正式采用。'));
   return { element, render(model) {
     const p = model.progress;
@@ -173,6 +178,7 @@ function createView(document, callbacks) {
     rows.replaceChildren(...model.rows.map(r => {
       const row = node('li', `${r.layer_id} · ${r.status === 'candidate_exported' ? '候选已导出' : '候选已阻塞'} · ${r.runtime_status === 'passed' || r.runtime_status === 'core_passed' ? '核心数值验证通过' : '核心验证未通过或未执行'}`);
       row.append(node('p', sleeveReasonMessage(r.reason_code)));
+      if (r.motion_profile) row.append(node('p', r.motion_profile === 'ordinary-forearm30-hand30-sine129-v1' ? '普通袖 · 三骨四轨' : '宽袖 · 辅助骨七轨'));
       if (r.official_framebuffer) row.append(node('p', framebufferMessage(r.official_framebuffer)));
       else row.append(node('p', contactMessage(r.software_contact)), node('p', overlapMessage(r.software_overlap)),
         node('p', framebufferMessage(null)));

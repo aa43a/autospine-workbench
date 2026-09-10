@@ -12,6 +12,15 @@ if(!chrome||!projects.length)throw Error('usage: exportRoot contactRoot output d
 const hash=b=>crypto.createHash('sha256').update(b).digest('hex');
 const canonical=v=>v===null||typeof v!=='object'?JSON.stringify(v):Array.isArray(v)?'['+v.map(canonical).join(',')+']':
   '{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+canonical(v[k])).join(',')+'}';
+const profiles={
+  'wide-sleeve-seven-v1':['cloth','combined_mm','combined_mp','combined_pm','combined_pp','forearm','hand'],
+  'ordinary-forearm30-hand30-sine129-v1':['combined_opposed','combined_same','forearm','hand']
+};
+function inventory(source,row){
+  if(source.schema==='autospine.sleeve-export-report/v1')return {names:profiles['wide-sleeve-seven-v1'],meta:{}};
+  if(source.schema!=='autospine.sleeve-export-report/v2'||!Object.hasOwn(profiles,row.motion_profile)||!(/^[a-f0-9]{64}$/).test(row.motion_source_sha256||''))throw Error('motion_profile');
+  return {names:profiles[row.motion_profile],meta:{motion_profile:row.motion_profile,motion_source_sha256:row.motion_source_sha256}};
+}
 const token=s=>{if(!/^[a-zA-Z0-9_-]+$/.test(s))throw Error('unsafe_token');return s;};
 async function report(folder){
   const names=(await fs.readdir(folder)).filter(n=>/^[a-f0-9]{64}\.json$/.test(n));
@@ -47,13 +56,17 @@ try{
     token(project);const source=await report(path.join(input,project)),contact=await report(path.join(contacts,project));
     const overlap=overlapRoot?await report(path.join(overlapRoot,project)):null;
     if(overlap&&(overlap.doc.purpose!=='sleeve_overlap_diagnostic'||overlap.doc.project_id!==project||overlap.doc.source_report_sha256!==source.sha))throw Error('overlap_source');
-    if(source.doc.schema!=='autospine.sleeve-export-report/v1'||source.doc.project_id!==project||
-      contact.doc.schema!=='autospine.sleeve-contact-coverage/v1'||contact.doc.project_id!==project||contact.doc.source_sha256!==source.sha)throw Error('contact_source');
+    const version=source.doc.schema==='autospine.sleeve-export-report/v1'?'v1':source.doc.schema==='autospine.sleeve-export-report/v2'?'v2':null;
+    if(!version||source.doc.project_id!==project||
+      contact.doc.schema!==`autospine.sleeve-contact-coverage/${version}`||contact.doc.project_id!==project||contact.doc.source_sha256!==source.sha)throw Error('contact_source');
+    if(version==='v2'&&overlap&&overlap.doc.schema!=='autospine.sleeve-overlap/v2')throw Error('overlap_schema');
     for(const row of source.doc.records){
       if(row.status!=='candidate_exported')continue;
       const name=token(row.layer_id+'-'+row.component_id),folder=path.resolve(input,project,name);
       const matches=contact.doc.records.filter(r=>r.layer_id===row.layer_id&&r.component_id===row.component_id);
       if(matches.length!==1||canonical(matches[0].asset_sha256)!==canonical(row.files))throw Error('contact_inventory');
+      const {names,meta}=inventory(source.doc,row);
+      for(const [key,value]of Object.entries(meta))if(matches[0][key]!==value)throw Error('contact_motion_source');
       files.clear();
       for(const [filename,digest] of Object.entries(row.files)){
         const file=path.resolve(folder,filename);
@@ -62,8 +75,9 @@ try{
       }
       const refRaw=await fs.readFile(path.join(folder,'numeric-reference.json')),ref=JSON.parse(refRaw);
       if(ref.skeleton_sha256!==row.files['skeleton.json'])throw Error('reference_source');
-      const names=['cloth','combined_mm','combined_mp','combined_pm','combined_pp','forearm','hand'];
+      if(version==='v2'&&JSON.parse(files.get('/skeleton.json')).skeleton.hash!==meta.motion_source_sha256)throw Error('motion_source');
       if(canonical(Object.keys(ref.animations).sort())!==canonical(names)||Object.values(ref.animations).some(f=>f.length!==257))throw Error('motion_inventory');
+      if(canonical(matches[0].tracks.map(t=>t.animation).sort())!==canonical(names)||matches[0].tracks.some(t=>t.frames!==257))throw Error('contact_motion_inventory');
       files.set('/numeric-reference.json',refRaw);files.set('/contact.json',Buffer.from(JSON.stringify(matches[0])));
       files.set('/runtime.js',runtime);files.set('/harness.js',harness);
       if(overlapHook)files.set('/overlap.js',overlapHook);
@@ -90,6 +104,8 @@ try{
         if(overlap){
           const regions=overlap.doc.records.filter(r=>r.layer_id===row.layer_id&&r.component_id===row.component_id);
           if(regions.length!==1||canonical(regions[0].asset_sha256)!==canonical(row.files))throw Error('overlap_inventory');
+          for(const[key,value]of Object.entries(meta))if(regions[0][key]!==value)throw Error('overlap_motion_source');
+          if(canonical(regions[0].tracks.map(t=>t.animation).sort())!==canonical(names))throw Error('overlap_motion_inventory');
           for(const track of regions[0].tracks){
             const peak=track.visible_peak;if(!peak)continue;
             const index=Math.round(peak.time*128);
@@ -110,7 +126,7 @@ try{
           }
         }
         if(errors.length)throw Error(errors.join('\n'));
-        const receipt={schema:'autospine.sleeve-framebuffer/v1',project_id:project,layer_id:row.layer_id,component_id:row.component_id,
+        const receipt={schema:`autospine.sleeve-framebuffer/${version}`,project_id:project,layer_id:row.layer_id,component_id:row.component_id,...meta,
           source_sha256:source.sha,contact_sha256:contact.sha,asset_sha256:row.files,reference_sha256:hash(refRaw),
           runtime_package:pkg.name,runtime_version:pkg.version,runtime_sha256:hash(runtime),harness_sha256:hash(harness),tool_sha256:hash(tool),
           export_target:'4.3.26',browser:await browser.version(),render_backend:'ANGLE SwiftShader WebGL',info,frames,captures,

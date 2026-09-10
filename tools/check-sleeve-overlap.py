@@ -11,7 +11,7 @@ from autospine_workbench.safe_input_files import read_real_file, strict_json_obj
 from autospine_workbench.targets.spine43.continuous_pose import world
 from autospine_workbench.targets.spine43.sleeve_overlap import analyze, peak_visibility
 from autospine_workbench.targets.spine43.seam_raster import texture
-from autospine_workbench.asset.planning.sleeve_motion_envelope import MOTIONS
+from autospine_workbench.automation.sleeve_motion_inventory import motion_names, metadata, evidence_schema
 
 
 def main():
@@ -24,7 +24,7 @@ def main():
     paths = [Path(__file__).resolve()] + [repo/'src/autospine_workbench'/p for p in (
         'targets/spine43/sleeve_overlap.py', 'targets/spine43/continuous_pose.py',
         'targets/spine43/sleeve_contact_samples.py', 'targets/spine43/seam_raster.py',
-        'asset/planning/sleeve_motion_envelope.py')]
+        'asset/planning/sleeve_motion_envelope.py', 'automation/sleeve_motion_inventory.py')]
     identity = lambda: {p.relative_to(repo).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}
     engine = identity()
     for project in args.projects:
@@ -37,7 +37,7 @@ def main():
         if len(reports) != 1:
             raise ValueError('sleeve_overlap_report_inventory')
         report = strict_json_object(read_real_file(reports[0], 32 << 20, 'export'), 'export')
-        if (reports[0].stem != canonical_sha256(report) or report['schema'] != 'autospine.sleeve-export-report/v1'
+        if (reports[0].stem != canonical_sha256(report) or report['schema'] not in ('autospine.sleeve-export-report/v1', 'autospine.sleeve-export-report/v2')
                 or report['project_id'] != project or report['authority'] != 'none'
                 or report['production_authorized'] is not False):
             raise ValueError('sleeve_overlap_source')
@@ -60,7 +60,9 @@ def main():
             if set(assets) != {'skeleton.json', 'skeleton.atlas', 'images/'+name+'.png'}:
                 raise ValueError('sleeve_overlap_asset_inventory')
             doc = strict_json_object(assets['skeleton.json'], 'skeleton')
-            if set(doc['animations']) != {n for n, _ in MOTIONS}:
+            if report['schema'].endswith('/v2') and doc.get('skeleton',{}).get('hash')!=row.get('motion_source_sha256'):
+                raise ValueError('sleeve_overlap_motion_source')
+            if set(doc['animations']) != set(motion_names(report, row)):
                 raise ValueError('sleeve_overlap_motion_inventory')
             attachment = doc['skins'][0]['attachments'][name][name]
             flat = attachment['triangles']
@@ -78,11 +80,13 @@ def main():
                 peak['software_texture_probe'] = peak_visibility(attachment, points, alpha, peak['triangles'])
             result.update(layer_id=row['layer_id'], component_id=row['component_id'],
                           asset_sha256=row['files'], pose_sha256=canonical_sha256(animations))
+            result.update(metadata(report,row))
             records.append(result)
             print(project, name, 'peak new pair area', max(t['peak']['excess_area_px2'] for t in result['tracks']), flush=True)
         receipt = dict(purpose='sleeve_overlap_diagnostic', project_id=project,
                        source_report_sha256=canonical_sha256(report), records=records, algorithm_files=engine,
                        authority='none', production_authorized=False, framebuffer_status='not_evaluated')
+        if report['schema'].endswith('/v2'): receipt['schema']=evidence_schema(report,'sleeve-overlap')
         if identity() != engine:
             raise ValueError('sleeve_overlap_code_changed')
         export(destination/(canonical_sha256(receipt)+'.json'), canonical_bytes(receipt))

@@ -16,6 +16,9 @@ from autospine_workbench.benchmark.elbow_target_cli import archive,export
 from autospine_workbench.resolved_project import canonical_sha256
 from autospine_workbench.manifest_artifacts import require_safe_token
 from autospine_workbench.automation.sleeve_admission_reason import blocking_reason
+from autospine_workbench.automation.sleeve_export_dispatch import prepare as dispatch_targets
+from autospine_workbench.targets.spine43.ordinary_sleeve import compile_region as compile_ordinary
+from autospine_workbench.asset.planning.ordinary_sleeve_review import render as ordinary_review
 
 
 def main():
@@ -36,8 +39,15 @@ def main():
         meshes={(r['layer_id'],r['component_id']):r for r in garment['records']};results=[]
         with load_inputs(store,project) as inputs:
             layers={r['layer_id']:r for r in inputs.candidate['layers']}
-            for row in source['records']:
-                result=dict(layer_id=row['layer_id'],component_id=row['component_id'],status='blocked');results.append(result)
+            rows,report_schema,selections,metadata=dispatch_targets(source,garment,read(garment['draft_sha256']),inputs.skeleton,a.state_root)
+            if selections:
+                diagnostic=next(iter(selections.values()))
+                export(a.output/project/'ordinary/index.html',ordinary_review(diagnostic).encode('utf-8'))
+            for row in rows:
+                key=row['layer_id'],row['component_id']
+                result=dict(layer_id=key[0],component_id=key[1],status='blocked',**metadata.get(key,{}));results.append(result)
+                if key in selections and row['status']!='candidate_requires_review':
+                    result['reason_code']=row['reason_codes'][0];continue
                 reason=blocking_reason(row)
                 if reason:
                     result['reason_code']=reason;continue
@@ -45,7 +55,8 @@ def main():
                 parts=partition(layer,raw);region=next(r for r in parts['components']+[parts['residual']] if r['id']==row['component_id'])
                 image=isolated_png(raw,region)
                 if hashlib.sha256(image).hexdigest()!=saved['isolated_image_sha256']:raise ValueError('sleeve_export_texture_mismatch')
-                doc,qa=compile_region(source,row,saved['mesh'],inputs.skeleton);result['target_qa']=qa
+                compiler=compile_ordinary if key in selections else compile_region
+                doc,qa=compiler(selections.get(key,source),row,saved['mesh'],inputs.skeleton);result['target_qa']=qa
                 if not qa['passed']:result['reason_code']='target_interpolation_geometry_failure';continue
                 name=row['layer_id']+'-'+row['component_id'];w=layer['bbox'][2]-layer['bbox'][0];h=layer['bbox'][3]-layer['bbox'][1]
                 doc['skins'][0]['attachments'][name][name].update(width=w,height=h)
@@ -62,7 +73,7 @@ def main():
                     reference[animation]=[dict(time=i/128,points=world(probe,i/128)[name]) for i in range(257)]
                 export(out/'numeric-reference.json',encode(dict(skeleton_sha256=hashlib.sha256(files['skeleton.json']).hexdigest(),animations=reference)))
             inputs.assert_current()
-        report=dict(schema='autospine.sleeve-export-report/v1',source_sha256=sha,project_id=project,records=results,authority='none',production_authorized=False)
+        report=dict(schema=report_schema or 'autospine.sleeve-export-report/v1',source_sha256=sha,project_id=project,records=results,authority='none',production_authorized=False)
         export(a.output/project/(canonical_sha256(report)+'.json'),encode(report))
         print(json.dumps(report),flush=True)
 

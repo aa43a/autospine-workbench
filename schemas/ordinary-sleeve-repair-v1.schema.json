@@ -1,0 +1,276 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "profile",
+    "project_id",
+    "source_sha256",
+    "draft_sha256",
+    "skeleton_sha256",
+    "baseline_sha256",
+    "records",
+    "authority",
+    "production_authorized",
+    "runtime_status",
+    "global_replacement_authorized"
+  ],
+  "properties": {
+    "schema": {
+      "const": "autospine.ordinary-sleeve-repair/v1"
+    },
+    "profile": {
+      "const": "cuff-graph64-hand-boundary-three-trials-four-track129-v1"
+    },
+    "project_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "source_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "draft_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "skeleton_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "baseline_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "production_authorized": {
+      "const": false
+    },
+    "runtime_status": {
+      "const": "not_evaluated"
+    },
+    "global_replacement_authorized": {
+      "const": false
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/record"
+      }
+    }
+  },
+  "$defs": {
+    "row": {
+      "oneOf": [
+        {
+          "$ref": "ordinary-sleeve-motion-v1.schema.json#/$defs/unavailable"
+        },
+        {
+          "$ref": "ordinary-sleeve-motion-v1.schema.json#/$defs/region"
+        }
+      ]
+    },
+    "reasons": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "trial": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "changed_vertices",
+        "selected",
+        "reason_codes"
+      ],
+      "properties": {
+        "id": {
+          "enum": [
+            "cuff_graph",
+            "hand_shared_boundary",
+            "hand_boundary_cuff_graph"
+          ]
+        },
+        "changed_vertices": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "selected": {
+          "type": "boolean"
+        },
+        "reason_codes": {
+          "$ref": "#/$defs/reasons"
+        },
+        "tracks": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {
+            "$ref": "ordinary-sleeve-motion-v1.schema.json#/$defs/track"
+          }
+        },
+        "setup_error": {
+          "type": "number",
+          "minimum": 0
+        },
+        "weight_sum_error": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "changed_vertices": {
+                "maxItems": 0
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "selected": {
+                "const": false
+              },
+              "reason_codes": {
+                "const": [
+                  "no_weight_change"
+                ]
+              }
+            },
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "tracks"
+                  ]
+                },
+                {
+                  "required": [
+                    "setup_error"
+                  ]
+                },
+                {
+                  "required": [
+                    "weight_sum_error"
+                  ]
+                }
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "tracks",
+              "setup_error",
+              "weight_sum_error"
+            ]
+          }
+        }
+      ]
+    },
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "layer_id",
+        "component_id",
+        "selected",
+        "selected_trial",
+        "before",
+        "trials",
+        "selected_row",
+        "reason_codes"
+      ],
+      "properties": {
+        "layer_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "component_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "selected": {
+          "type": "boolean"
+        },
+        "selected_trial": {
+          "enum": [
+            null,
+            "cuff_graph",
+            "hand_shared_boundary",
+            "hand_boundary_cuff_graph"
+          ]
+        },
+        "before": {
+          "$ref": "#/$defs/row"
+        },
+        "selected_row": {
+          "$ref": "#/$defs/row"
+        },
+        "trials": {
+          "type": "array",
+          "maxItems": 3,
+          "items": {
+            "$ref": "#/$defs/trial"
+          }
+        },
+        "reason_codes": {
+          "$ref": "#/$defs/reasons"
+        },
+        "failure_role_counts": {
+          "type": "object",
+          "propertyNames": {
+            "enum": [
+              "sleeve",
+              "cuff",
+              "hand",
+              "unknown",
+              "hanging_cloth"
+            ]
+          },
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "selected": {
+                "const": false
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "selected_trial": {
+                "const": null
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "selected_trial": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

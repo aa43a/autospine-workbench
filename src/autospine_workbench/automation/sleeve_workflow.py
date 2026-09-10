@@ -33,7 +33,7 @@ def checkpoint(root,step,signature,output,execute):
     return dict(id=step,status='succeeded',cached=False)
 
 
-def steps(repo,draft_root,root,project,state,workspace):
+def steps(repo,draft_root,root,project,state,workspace,*,ordinary_only=False):
     shared=['--state-root',str(state),'--workspace',str(workspace)]
     result=[]
     def add(name,script,input_name,flags=()):
@@ -51,6 +51,9 @@ def steps(repo,draft_root,root,project,state,workspace):
     add('cuff','build-sleeve-helpers.py','anchors',['--motion-envelope','--connection-domain','--boundary-budget','--cuff-harmonic','--edge-budget','--baseline-envelope',str(root/'boundary')])
     add('repair','repair-sleeve-candidate.py','cuff')
     add('spine','export-sleeve-spine.py','repair')
+    if ordinary_only:
+        result=result[:1]
+        add('spine','export-sleeve-spine.py','weights')
     result.append(('contacts',root/'contacts',[sys.executable,str(repo/'tools/check-sleeve-contacts.py'),
         '--input',str(root/'spine'),'--output',str(root/'contacts'),'--state-root',str(state),project]))
     result.append(('overlap',root/'overlap',[sys.executable,str(repo/'tools/check-sleeve-overlap.py'),
@@ -98,6 +101,9 @@ def summarize(root,project,run_id,progress):
             reason_code=row['reason_code'],download=(f"spine/{project}/{row['layer_id']}-{row['component_id']}/candidate.zip"
             if row['status']=='candidate_exported' else None)))
         key=row['layer_id'],row['component_id']
+        if report['schema']=='autospine.sleeve-export-report/v2':
+            from .sleeve_motion_inventory import metadata
+            records[-1].update(metadata(report,row))
         if key in contact_rows:records[-1]['software_contact']=contact_rows[key]
         if key in overlap_rows:records[-1]['software_overlap']=overlap_rows[key]
     return dict(schema='autospine.sleeve-workflow/v1',run_id=run_id,project_id=project,status='needs_review',

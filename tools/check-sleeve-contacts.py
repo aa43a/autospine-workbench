@@ -12,7 +12,7 @@ from autospine_workbench.manifest_artifacts import require_safe_token
 from autospine_workbench.targets.spine43.seam_raster import texture
 from autospine_workbench.targets.spine43.sleeve_contact_samples import probes,analyze
 from autospine_workbench.targets.spine43.continuous_pose import world
-from autospine_workbench.asset.planning.sleeve_motion_envelope import MOTIONS
+from autospine_workbench.automation.sleeve_motion_inventory import motion_names, metadata, evidence_schema
 
 
 def main():
@@ -22,13 +22,14 @@ def main():
     repo=Path(__file__).resolve().parents[1]
     algorithms=[Path(__file__).resolve()]+[repo/'src/autospine_workbench/targets/spine43'/name for name in ('sleeve_contact_samples.py','continuous_pose.py','seam_raster.py')]
     algorithms.append(repo/'src/autospine_workbench/asset/planning/sleeve_motion_envelope.py')
+    algorithms.append(repo/'src/autospine_workbench/automation/sleeve_motion_inventory.py')
     identity=lambda:{path.relative_to(repo).as_posix():hashlib.sha256(path.read_bytes()).hexdigest() for path in algorithms}
     engine=identity()
     for project in args.projects:
         require_safe_token(project,'project');root=args.input/project;reports=list(root.glob('*.json'))
         if len(reports)!=1:raise ValueError('sleeve_contact_export_inventory')
         source=read(reports[0])
-        if (reports[0].stem!=canonical_sha256(source) or source['schema']!='autospine.sleeve-export-report/v1'
+        if (reports[0].stem!=canonical_sha256(source) or source['schema'] not in ('autospine.sleeve-export-report/v1','autospine.sleeve-export-report/v2')
                 or source['project_id']!=project or source['authority']!='none' or source['production_authorized'] is not False):raise ValueError('sleeve_contact_source')
         envelope=read_mesh_report(args.state_root,'project-component-partitions',source['source_sha256']);garment=envelope
         for _ in range(16):
@@ -50,7 +51,9 @@ def main():
                 if hashlib.sha256(raw).hexdigest()!=digest:raise ValueError('sleeve_contact_asset_changed')
                 files[filename]=raw
             doc=strict_json_object(files['skeleton.json'],'skeleton')
-            if set(doc['animations'])!={name for name,_ in MOTIONS}:raise ValueError('sleeve_contact_motion_inventory')
+            if source['schema'].endswith('/v2') and doc.get('skeleton',{}).get('hash')!=row.get('motion_source_sha256'):
+                raise ValueError('sleeve_contact_motion_source')
+            if set(doc['animations'])!=set(motion_names(source,row)):raise ValueError('sleeve_contact_motion_inventory')
             animations={}
             for animation in doc['animations']:
                 pose_doc=dict(doc,animations={animation:doc['animations'][animation]})
@@ -58,9 +61,10 @@ def main():
             attachment=doc['skins'][0]['attachments'][name][name];alpha=texture(files['images/'+name+'.png'])
             result=analyze(attachment,alpha,probes(attachment,labels[row['layer_id'],row['component_id']],alpha,profile='source-length-v2'),animations)
             result['probe_profile']='source-length-v2'
+            result.update(metadata(source,row))
             result.update(layer_id=row['layer_id'],component_id=row['component_id'],asset_sha256=row['files'],pose_sha256=canonical_sha256(animations))
             rows.append(result);print(project,name,result['status'],result['tested_samples'],result['failed_samples'],flush=True)
-        result=dict(schema='autospine.sleeve-contact-coverage/v1',project_id=project,source_sha256=canonical_sha256(source),draft_sha256=garment['draft_sha256'],
+        result=dict(schema=evidence_schema(source,'sleeve-contact-coverage'),project_id=project,source_sha256=canonical_sha256(source),draft_sha256=garment['draft_sha256'],
             records=rows,algorithm_files=engine,authority='none',production_authorized=False,framebuffer_status='not_evaluated')
         if identity()!=engine:raise ValueError('sleeve_contact_code_changed')
         export(args.output/project/(canonical_sha256(result)+'.json'),canonical_bytes(result))

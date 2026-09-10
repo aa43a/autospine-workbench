@@ -47,7 +47,12 @@ def main():
                 def assert_snapshot():
                     inputs.assert_current()
                     if code_identity(repo)!=engine:raise ValueError('sleeve_workflow_engine_changed')
-                progress=execute_steps(repo,root,steps(repo,snapshot,root,project,a.state_root.resolve(),a.workspace.resolve()),signature,assert_snapshot)
+                ordinary_only=bool(draft['records']) and all(item['role']!='hanging_cloth'
+                    for row in draft['records'] for item in row['assignments'])
+                plan=steps(repo,snapshot,root,project,a.state_root.resolve(),a.workspace.resolve(),ordinary_only=ordinary_only)
+                stage_ids=[item[0] for item in plan]+(['runtime'] if runtime else [])+(['framebuffer'] if capture else [])
+                print(json.dumps(dict(event='stage_plan',project_id=project,stage_ids=stage_ids)),flush=True)
+                progress=execute_steps(repo,root,plan,signature,assert_snapshot)
                 report=summarize(root,project,run_id,progress)
                 if runtime:
                     from autospine_workbench.automation.sleeve_runtime_step import run as verify_runtime

@@ -2,7 +2,7 @@
 import math
 from .storage_io import read_document
 from ..resolved_project import canonical_sha256
-from ..asset.planning.sleeve_motion_envelope import MOTIONS
+from .sleeve_motion_inventory import checked_names,evidence_schema
 
 
 def _candidate(value):
@@ -47,6 +47,8 @@ def summaries(root, project, export):
             or not _candidate(doc)):
         raise ValueError('sleeve_overlap_report_source')
     expected = {(r['layer_id'], r['component_id']): r for r in export['records'] if r['status'] == 'candidate_exported'}
+    if export['schema'].endswith('/v2') and doc.get('schema')!=evidence_schema(export,'sleeve-overlap'):
+        raise ValueError('sleeve_overlap_report_schema')
     rows = {}
     for row in doc['records']:
         key = row['layer_id'], row['component_id']
@@ -57,7 +59,8 @@ def summaries(root, project, export):
                 or row.get('texture_visibility') != 'native_centers_all_intersecting_pairs'):
             raise ValueError('sleeve_overlap_status')
         tracks = row['tracks']
-        if len(tracks) != len(MOTIONS) or {t['animation'] for t in tracks} != {n for n, _ in MOTIONS}:
+        names=checked_names(export,expected[key],row)
+        if len(tracks) != len(names) or {t['animation'] for t in tracks} != set(names):
             raise ValueError('sleeve_overlap_motion_inventory')
         peaks = [_track(t) for t in tracks]
         rows[key] = dict(status='diagnostic_only', frames=sum(t['frames'] for t in tracks),

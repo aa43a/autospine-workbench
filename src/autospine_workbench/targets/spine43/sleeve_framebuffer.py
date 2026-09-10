@@ -1,10 +1,10 @@
 """Validate the scope of official WebGL sleeve contact capture receipts."""
 import math
-from ...asset.planning.sleeve_motion_envelope import MOTIONS
+from ...automation.sleeve_motion_inventory import PROFILES,WIDE,explicit_names
 
 
 def summarize(doc, contact):
-    if (doc.get('schema') != 'autospine.sleeve-framebuffer/v1' or doc.get('authority') != 'none'
+    if (doc.get('schema') not in ('autospine.sleeve-framebuffer/v1','autospine.sleeve-framebuffer/v2') or doc.get('authority') != 'none'
             or doc.get('production_authorized') is not False or doc.get('status') != 'needs_review'
             or doc.get('scope') != 'isolated_sleeve_native_pixel_contact_probes'
             or doc.get('runtime_package') != '@esotericsoftware/spine-webgl'
@@ -13,7 +13,11 @@ def summarize(doc, contact):
     probes = sum(len(r['samples']) for r in contact['interfaces'])
     if probes <= 0 or doc['info']['probe_count'] != probes:
         raise ValueError('sleeve_framebuffer_probes')
-    names = {n for n, _ in MOTIONS}
+    names = set(PROFILES[WIDE])
+    if doc['schema'].endswith('/v2'):
+        names=set(explicit_names(doc))
+        if any(contact.get(k)!=doc[k] for k in ('motion_profile','motion_source_sha256')):
+            raise ValueError('sleeve_framebuffer_motion_source')
     expected = {(n, i) for n in names for i in range(257)}
     actual = set(); count = failed = 0; minimum = 255; error = 0.
     for frame in doc['frames']:

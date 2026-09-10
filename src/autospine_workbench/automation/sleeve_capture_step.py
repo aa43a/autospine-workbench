@@ -9,6 +9,7 @@ from .storage_io import read_document
 from ..resolved_project import canonical_sha256
 from ..targets.spine43.sleeve_framebuffer import summarize
 from ..targets.spine43.sleeve_overlap_framebuffer import summaries as overlap_summaries
+from .sleeve_motion_inventory import checked_names,evidence_schema
 
 
 def checked_summary(path,root,project,record,expected,repo):
@@ -22,6 +23,8 @@ def checked_summary(path,root,project,record,expected,repo):
     if doc['source_sha256']!=sha:raise ValueError('sleeve_capture_source')
     regions=[r for r in source['records'] if (r['layer_id'],r['component_id'])==(record['layer_id'],record['component_id'])]
     if len(regions)!=1 or doc['asset_sha256']!=regions[0]['files']:raise ValueError('sleeve_capture_assets')
+    if doc.get('schema')!=evidence_schema(source,'sleeve-framebuffer'):raise ValueError('sleeve_capture_schema')
+    checked_names(source,regions[0],doc)
     bundle=root/'spine'/project/(record['layer_id']+'-'+record['component_id'])
     if doc['reference_sha256']!=hashlib.sha256((bundle/'numeric-reference.json').read_bytes()).hexdigest():raise ValueError('sleeve_capture_reference')
     for key,filename in [('harness_sha256','sleeve-framebuffer.js'),('tool_sha256','capture-sleeve-runtime.mjs')]:
@@ -34,6 +37,7 @@ def checked_summary(path,root,project,record,expected,repo):
         if canonical_sha256(value)!=digest:raise ValueError('sleeve_capture_evidence')
         match=[r for r in value['records'] if (r['layer_id'],r['component_id'])==(record['layer_id'],record['component_id'])]
         if len(match)!=1 or match[0]['asset_sha256']!=doc['asset_sha256']:raise ValueError('sleeve_capture_evidence')
+        checked_names(source,regions[0],match[0])
         return match[0]
     result=summarize(doc,evidence('contacts',doc['contact_sha256']))
     overlap=doc['overlap'];rows=overlap_summaries(overlap,evidence('overlap',overlap['source_sha256']))

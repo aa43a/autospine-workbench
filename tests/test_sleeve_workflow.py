@@ -5,6 +5,11 @@ from autospine_workbench.automation.sleeve_workflow import checkpoint,steps
 
 
 class SleeveWorkflowTests(unittest.TestCase):
+    def test_ordinary_plan_skips_inapplicable_cloth_helper_stages(self):
+        plan=steps(Path('/repo'),Path('/drafts'),Path('/run'),'fixture',Path('/state'),Path('/workspace'),ordinary_only=True)
+        self.assertEqual([p[0] for p in plan],['weights','spine','contacts','overlap'])
+        self.assertEqual(plan[1][2][plan[1][2].index('--input')+1],str(Path('/run/weights')))
+
     def test_resume_verifies_bytes_and_rejects_tampering(self):
         with tempfile.TemporaryDirectory() as folder:
             root=Path(folder);out=root/'outputs';calls=[]

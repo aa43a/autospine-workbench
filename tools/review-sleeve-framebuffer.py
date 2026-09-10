@@ -50,7 +50,8 @@ def main():
         href=escape(path.relative_to(args.input).as_posix(),quote=True)
         examples=[]
         for c in doc['captures']:
-            if c['animation']=='combined_pm' and c['index'] in (0,64,192):
+            example='combined_same' if doc.get('motion_profile')=='ordinary-forearm30-hand30-sine129-v1' else 'combined_pm'
+            if c['animation']==example and c['index'] in (0,64,192):
                 src=escape((path.parent/c['file']).relative_to(args.input).as_posix(),quote=True)
                 examples.append(f'<figure><img src="{src}"><figcaption>{c["animation"]} · {c["index"]}/128 秒</figcaption></figure>')
         rows.append(f'<section><h2>{label}</h2><p>{summary["frames"]} 帧；{summary["tested_samples"]} 探针；空白失败 {summary["failed_samples"]}；最低 alpha {summary["min_alpha"]}。</p><a href="{href}">精确报告</a><div>{"".join(examples)}</div>{overlap_html}</section>')

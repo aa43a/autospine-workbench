@@ -10,6 +10,28 @@ from autospine_workbench.automation.storage_io import publish_document
 
 
 class SleeveReviewFileTests(unittest.TestCase):
+    def test_ordinary_spine_timeline_is_exact_path_and_receipt_bound(self):
+        from autospine_workbench.automation.sleeve_review_files import read
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder); page=root/'spine/fixture/ordinary/index.html'
+            page.parent.mkdir(parents=True); page.write_bytes(b'<h1>Ordinary timeline</h1>')
+            (root/'receipts').mkdir()
+            publish_document(root/'receipts/spine.json', dict(files={
+                'fixture/ordinary/index.html':hashlib.sha256(page.read_bytes()).hexdigest(),
+                'fixture/skeleton.json':hashlib.sha256(b'{}').hexdigest()}), staging=root/'.staging')
+            report=dict(steps=[dict(id='spine',status='succeeded')])
+            parts=['spine','fixture','ordinary','index.html']
+            self.assertEqual(read(root,'fixture',report,parts),
+                             (b'<h1>Ordinary timeline</h1>','text/html; charset=utf-8'))
+            for invalid in (['spine','other','ordinary','index.html'], ['spine','fixture','skeleton.json'],
+                            ['spine','fixture','ordinary','other.html'], ['spine','fixture','..','index.html'],
+                            ['spine','fixture','ordinary','index.html','extra']):
+                with self.subTest(parts=invalid),self.assertRaises(RuntimeError):read(root,'fixture',report,invalid)
+            with self.assertRaisesRegex(RuntimeError,'not_ready'):
+                read(root,'fixture',dict(steps=[dict(id='spine',status='running')]),parts)
+            page.write_bytes(b'tampered')
+            with self.assertRaisesRegex(RuntimeError,'cached_output_changed'):read(root,'fixture',report,parts)
+
     def test_byte_checked_review_is_project_scoped_and_withdrawable(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)

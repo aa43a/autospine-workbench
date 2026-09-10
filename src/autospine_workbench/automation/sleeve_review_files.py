@@ -7,7 +7,7 @@ from .pipeline_run import PipelineRunError
 from .storage_io import directory, read_document
 from ..safe_input_files import read_real_file
 
-STAGES = {'repair', 'cuff', 'boundary', 'framebuffer'}
+STAGES = {'repair', 'cuff', 'boundary', 'framebuffer', 'spine'}
 TYPES = {'.html': 'text/html; charset=utf-8', '.json': 'application/json', '.png': 'image/png'}
 
 
@@ -16,6 +16,8 @@ def read(root, project, report, parts):
             or any(not re.fullmatch(r'[a-zA-Z0-9_-]+(?:\.(?:html|json|png))?', p) for p in parts[1:])):
         raise PipelineRunError('pipeline_request_invalid')
     stage = parts[0]
+    if stage == 'spine' and parts != ['spine', project, 'ordinary', 'index.html']:
+        raise PipelineRunError('pipeline_request_invalid')
     if not any(s['id'] == stage and s['status'] == 'succeeded' for s in report['steps']):
         raise PipelineRunError('pipeline_preview_not_ready')
     relative = Path(*parts[1:])

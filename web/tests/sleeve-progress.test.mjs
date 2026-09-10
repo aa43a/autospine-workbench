@@ -1,6 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { sleeveProgress } from '../modules/sleeve-progress.js';
+test('ordinary plan excludes cloth steps from in-progress counts',()=>{
+ const p=sleeveProgress({status:'running',step:'spine: running',stage_ids:['weights','spine','contacts','overlap','runtime']});
+ assert.equal(p.total,5);assert.equal(p.count,1);assert.equal(p.stages.length,5);
+ assert.equal(p.stages[1].state,'current');assert.match(p.label,/导出/);
+ assert.ok(!p.stages.some(s=>s.name.includes('根部')));
+});
 test('running repair shows eight completed stages, not a completion claim',()=>{
  const p=sleeveProgress({status:'running',step:'repair: running'});
  assert.equal(p.count,8);assert.equal(p.stages[8].state,'current');assert.match(p.label,/自动修正/);

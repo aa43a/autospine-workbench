@@ -42,7 +42,8 @@ test('sleeve panel shows scope and actionable reasons without changing download 
   const descend = node => [node, ...node.children.flatMap(descend)];
   const nodes = descend(ui.element), text = nodes.map(n => n.textContent || '').join('\n');
   assert.match(text, /前臂 ±30° \/ 手 ±30° \/ 垂布 ±10°/);
-  assert.match(text, /不代表任意三轴组合均已验证/);
+  assert.match(text, /普通袖.*四轨测试.*宽袖.*七轨测试/);
+  assert.match(text, /不代表任意组合均已验证/);
   assert.match(text, /网格几何失败.*修正后重新构建/);
   assert.match(text, /复核手与垂布/);
   assert.doesNotMatch(text, /区域检查未通过/);
@@ -82,6 +83,17 @@ test('contact display preserves missing evidence and distinguishes GPU', () => {
   assert.match(value, /不可观测界面 1/);assert.match(value, /GPU 未验证/);
 });
 const job = status => ({ schema: 'autospine.sleeve-web-job/v1', project_id: 'huiye', authority: 'none', job_id: `job-${'a'.repeat(32)}`, status });
+test('ordinary blocked sleeve exposes diagnostic timeline without download', async () => {
+  const value = {...job('blocked'), result: {project_id:'huiye', authority:'none', production_authorized:false,
+    steps:[{id:'spine',status:'succeeded'}], records:[{layer_id:'arm',status:'blocked',download:null,
+      motion_profile:'ordinary-forearm30-hand30-sine129-v1',reason_code:'motion_envelope_geometry_failure'}]}};
+  const h=harness(async () => ({project_id:'huiye',authority:'none',can_build:true,job:value}));
+  h.ui.sync({preparationEditable:true});await tick();
+  assert.equal(h.model().rows[0].url,null);
+  assert.equal(h.model().reviews[0].label,'普通袖四轨诊断时间轴');
+  assert.match(h.model().reviews[0].url,/\/view\/spine\/huiye\/ordinary\/index.html$/);
+  h.ui.dispose();
+});
 test('quality blocked is a terminal result with reasons and no download', async () => {
   const blocked = {...job('blocked'), result: {project_id:'huiye',authority:'none',production_authorized:false,
     records:[{layer_id:'left',status:'blocked',download:null,reason_code:'official_framebuffer_contact_failure'}]}};

@@ -94,7 +94,10 @@ class SleeveWebJobs:
                         if re.fullmatch(r'[a-z]+: (running|succeeded|cached)\n',line):
                             with self._lock:self._jobs[job_id]['step']=line.strip()
                         if line.startswith('{'):
-                            try:final=json.loads(line)
+                            try:
+                                final=json.loads(line)
+                                if final.get('event')=='stage_plan' and final.get('project_id')==project:
+                                    with self._lock:self._jobs[job_id]['stage_ids']=final['stage_ids']
                             except ValueError:pass
                     if process.wait()!=0:raise ValueError('sleeve_workflow_failed')
             self._assert_current(request)

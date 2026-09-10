@@ -10,7 +10,7 @@ from autospine_workbench.asset.planning.sleeve_motion_envelope import MOTIONS
 
 class OverlapStepTests(unittest.TestCase):
     def fixture(self):
-        export = dict(records=[dict(layer_id='sleeve', component_id='part', status='candidate_exported', files={'image':'a'*64})])
+        export = dict(schema='autospine.sleeve-export-report/v1',records=[dict(layer_id='sleeve', component_id='part', status='candidate_exported', files={'image':'a'*64})])
         row = dict(layer_id='sleeve', component_id='part', asset_sha256={'image':'a'*64}, authority='none',
             production_authorized=False, framebuffer_status='not_evaluated', status='diagnostic_only',
             profile='pairwise-triangle-overlap-v2', texture_visibility='native_centers_all_intersecting_pairs',
@@ -31,6 +31,17 @@ class OverlapStepTests(unittest.TestCase):
         self.assertEqual(row['status'], 'diagnostic_only')
         self.assertEqual(row['framebuffer_status'], 'not_evaluated')
         self.assertEqual(row['frames'], 1799)
+
+    def test_v2_ordinary_overlap_keeps_four_exact_tracks(self):
+        from autospine_workbench.automation.sleeve_motion_inventory import ORDINARY,PROFILES
+        export,doc=self.fixture();meta=dict(motion_profile=ORDINARY,motion_source_sha256='b'*64)
+        export['schema']='autospine.sleeve-export-report/v2';export['records'][0].update(meta)
+        doc.update(schema='autospine.sleeve-overlap/v2',source_report_sha256=canonical_sha256(export))
+        track=doc['records'][0]['tracks'][0]
+        doc['records'][0].update(meta,tracks=[dict(track,animation=name) for name in PROFILES[ORDINARY]])
+        self.assertEqual(self.read(export,doc)['frames'],1028)
+        changed=deepcopy(doc);changed['records'][0]['tracks'].pop()
+        with self.assertRaisesRegex(ValueError,'motion_inventory'):self.read(export,changed)
 
     def test_visible_peak_and_frame_count_are_preserved(self):
         export, doc=self.fixture(); track=doc['records'][0]['tracks'][0]
