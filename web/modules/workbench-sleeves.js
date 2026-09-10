@@ -3,7 +3,10 @@ import { automationEndpoint, projectIdentity } from './workbench-automation-cont
 const ACTIVE = new Set(['pending', 'running']);
 const REASONS = { sleeve_draft_missing: '尚未保存袖装区域标注。', sleeve_draft_changed: '袖装标注已变化，请重新构建。',
   project_snapshot_stale: '项目已变化，请保存校正后重新构建。', sleeve_job_interrupted: '上次任务已中断，重新构建将校验并复用完成的步骤。',
-  sleeve_cached_output_changed: '缓存文件已变化，已阻止下载。', sleeve_workflow_failed: '构建失败，可重新构建以续跑。' };
+  sleeve_cached_output_changed: '缓存文件已变化，已阻止下载。', sleeve_workflow_failed: '构建失败，可重新构建以续跑。',
+  sleeve_candidate_withdrawn: '候选已撤回，请恢复后再下载。',
+  sleeve_visibility_conflict: '候选展示状态已在其他窗口变化，请刷新后再操作。',
+  pipeline_preview_not_ready: '当前候选尚不可用，请查看检查结果或重新构建。' };
 
 const REGION_REASONS = {
   motion_envelope_geometry_failure: '受限动作中存在网格几何失败，已阻塞下载。请复核袖口与手、垂布的归属和连接处变形；修正后重新构建。',
@@ -42,6 +45,8 @@ export function framebufferMessage(value) {
 export function readSleeveJob(value, project) {
   if (value?.schema !== 'autospine.sleeve-web-job/v1' || value.project_id !== project || value.authority !== 'none'
     || !/^job-[a-f0-9]{32}$/.test(value.job_id) || !['pending', 'running', 'needs_review', 'blocked', 'failed'].includes(value.status)) throw Error('袖装任务响应无效。');
+  if ((value.candidate_withdrawn !== undefined && typeof value.candidate_withdrawn !== 'boolean')
+    || (value.visibility_revision !== undefined && (!Number.isSafeInteger(value.visibility_revision) || value.visibility_revision < 0))) throw Error('袖装展示状态无效。');
   if (value.result && (value.result.project_id !== project || value.result.authority !== 'none'
     || value.result.production_authorized !== false || !Array.isArray(value.result.records))) throw Error('袖装结果响应无效。');
   return value;
@@ -50,7 +55,7 @@ export function readSleeveJob(value, project) {
 export function createWorkbenchSleeves(document, hooks, options = {}) {
   let identity = null, generation = 0, timer = null, overview = null, job = null, busy = false, error = '', editable = false, polls = 0;
   const schedule = options.schedule || setTimeout, unschedule = options.unschedule || clearTimeout;
-  const view = options.view || createView(document, { start, refresh });
+  const view = options.view || createView(document, { start, refresh, withdraw: () => visibility('withdraw'), restore: () => visibility('restore') });
   const context = () => hooks.context();
   const current = token => token === generation && identity === projectIdentity(context());
   const endpoint = () => `${automationEndpoint(context().projectId)}/sleeves`;
@@ -59,11 +64,15 @@ export function createWorkbenchSleeves(document, hooks, options = {}) {
     const safe = editable && !context().dirty && !context().saving && !context().loading;
     view.render({ canStart: Boolean(identity && safe && overview?.can_build && !busy && !ACTIVE.has(job?.status)),
       canRefresh: Boolean(identity && !busy), active: busy || ACTIVE.has(job?.status),
+      withdrawn: Boolean(job?.candidate_withdrawn),
+      canVisibility: Boolean(identity && safe && !busy && job?.status === 'needs_review'
+        && (job.candidate_withdrawn || job.result?.records.some(r => r.status === 'candidate_exported' && r.download))),
       message: error || (!safe ? '请先保存校正并等待当前操作完成。' : job?.reason_code ? sleeveReasonMessage(job.reason_code)
+        : job?.candidate_withdrawn ? '当前候选已撤回。恢复会重新校验来源与候选文件；标注和正式项目保持不变。'
         : ACTIVE.has(job?.status) ? `袖装候选正在构建 · ${job.step || '等待执行'}`
           : job?.status === 'blocked' ? '所有区域均被质量检查阻塞，请查看逐袖原因。'
           : job?.status === 'needs_review' ? '构建完成，请逐袖检查结果。' : overview?.can_build ? '可从已保存的区域标注重建袖装候选。' : '当前项目尚无已保存的袖装区域标注。'),
-      rows: (safe && !error ? job?.result?.records || [] : []).map((r, index) => ({ ...r,
+      rows: (safe && !error && !job?.candidate_withdrawn ? job?.result?.records || [] : []).map((r, index) => ({ ...r,
         url: r.status === 'candidate_exported' && r.download ? `${endpoint()}/jobs/${job.job_id}/download/${index}` : null })) });
   }
   function queue(token) {
@@ -72,15 +81,21 @@ export function createWorkbenchSleeves(document, hooks, options = {}) {
     if (++polls > 3600) { error = '状态查询已暂停；点击刷新继续查看，后台任务仍在执行。'; render(); return; }
     timer = schedule(() => { timer = null; void request(false, true); }, 2000);
   }
-  async function request(create = false, poll = false) {
+  async function request(create = false, poll = false, action = null) {
     if (!identity || busy) return;
-    const token = generation, saved = { ...context() }, base = endpoint(); busy = true; error = ''; render();
+    const token = generation, saved = { ...context() }, base = endpoint(), jobId = job?.job_id; busy = true; error = ''; render();
     try {
-      const url = poll ? `${base}/jobs/${job.job_id}` : base;
-      const value = await hooks.apiRequest(url, create ? { method: 'POST', headers: { 'X-Autospine-Intent': 'pipeline-preview' },
-        body: JSON.stringify({ expected_resolved_sha256: saved.resolvedSha }) } : { cache: 'no-store' });
+      const url = action ? `${base}/jobs/${jobId}/${action}` : poll ? `${base}/jobs/${jobId}` : base;
+      const body = { expected_resolved_sha256: saved.resolvedSha };
+      if (action) body.expected_visibility_revision = job.visibility_revision ?? 0;
+      const value = await hooks.apiRequest(url, create || action ? { method: 'POST', headers: { 'X-Autospine-Intent': 'pipeline-preview' },
+        body: JSON.stringify(body) } : { cache: 'no-store' });
       if (!current(token)) return;
-      if (create || poll) job = readSleeveJob(value, saved.projectId);
+      if (create || poll || action) {
+        const next = readSleeveJob(value, saved.projectId);
+        if ((poll || action) && next.job_id !== jobId) throw Error('袖装任务不匹配。');
+        job = next;
+      }
       else {
         if (value.project_id !== saved.projectId || value.authority !== 'none' || typeof value.can_build !== 'boolean') throw Error('袖装能力响应无效。');
         overview = value; job = value.job ? readSleeveJob(value.job, saved.projectId) : null;
@@ -93,6 +108,12 @@ export function createWorkbenchSleeves(document, hooks, options = {}) {
     polls = 0; stop(); return request(true);
   }
   function refresh() { polls = 0; stop(); return request(); }
+  function visibility(action) {
+    if (!editable || context().dirty || context().saving || context().loading || busy || job?.status !== 'needs_review') return;
+    if (action === 'withdraw' && (job.candidate_withdrawn || !job.result?.records.some(r => r.status === 'candidate_exported' && r.download))) return;
+    if (action === 'restore' && !job.candidate_withdrawn) return;
+    stop(); return request(false, false, action);
+  }
   function sync(model) {
     editable = model.preparationEditable;
     const next = projectIdentity(context());
@@ -102,19 +123,24 @@ export function createWorkbenchSleeves(document, hooks, options = {}) {
     }
     render();
   }
-  return { element: view.element, sync, start, refresh, dispose() { generation++; stop(); identity = null; } };
+  return { element: view.element, sync, start, refresh, withdraw: () => visibility('withdraw'), restore: () => visibility('restore'),
+    dispose() { generation++; stop(); identity = null; } };
 }
 
 function createView(document, callbacks) {
   const node = (tag, text = '') => { const el = document.createElement(tag); el.textContent = text; return el; };
   const element = node('section'), title = node('h3', '袖装候选'), build = node('button', '重建袖装候选'), refresh = node('button', '刷新状态');
   const status = node('p'), rows = node('ul'); status.setAttribute('role', 'status');
+  const withdraw = node('button', '撤回当前候选'), restore = node('button', '恢复当前候选');
+  withdraw.type = restore.type = 'button'; withdraw.addEventListener('click', callbacks.withdraw); restore.addEventListener('click', callbacks.restore);
   build.type = refresh.type = 'button'; build.addEventListener('click', callbacks.start); refresh.addEventListener('click', callbacks.refresh);
-  element.append(title, node('p', '按已保存的手、袖布、袖口和垂布归属重建。重复构建会校验并复用已完成步骤。'), build, refresh, status, rows,
+  element.append(title, node('p', '按已保存的手、袖布、袖口和垂布归属重建。重复构建会校验并复用已完成步骤。'), build, refresh, withdraw, restore, status, rows,
     node('p', '支持动作范围：前臂 ±30° / 手 ±30° / 垂布 ±10°，包含单轴及组合测试；不代表任意三轴组合均已验证。'),
     node('p', 'Spine 4.3.26 候选；官方核心数值验证不包含 GPU 渲染与透明接缝检查，也不代表正式采用。'));
   return { element, render(model) {
     build.disabled = !model.canStart; refresh.disabled = !model.canRefresh; status.textContent = model.message;
+    withdraw.hidden = model.withdrawn || !model.canVisibility; restore.hidden = !model.withdrawn;
+    withdraw.disabled = restore.disabled = !model.canVisibility;
     element.setAttribute('aria-busy', String(model.active));
     rows.replaceChildren(...model.rows.map(r => {
       const row = node('li', `${r.layer_id} · ${r.status === 'candidate_exported' ? '候选已导出' : '候选已阻塞'} · ${r.runtime_status === 'passed' || r.runtime_status === 'core_passed' ? '核心数值验证通过' : '核心验证未通过或未执行'}`);

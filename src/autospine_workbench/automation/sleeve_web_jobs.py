@@ -15,6 +15,7 @@ from .pipeline_run_validation import require_sha
 from .storage_io import directory,publish_document,read_document
 from ..manifest_artifacts import require_safe_token
 from ..safe_input_files import read_real_file
+from . import sleeve_visibility
 
 
 class SleeveWebJobs:
@@ -57,14 +58,14 @@ class SleeveWebJobs:
         with self._lock:
             if self._closed:raise PipelineRunError('pipeline_manager_closed')
             for job in self._jobs.values():
-                if job['project_id']==project and job['status'] in ('pending','running'):return deepcopy(job)
+                if job['project_id']==project and job['status'] in ('pending','running'):return self.get(project,job['job_id'])
             if sum(j['status'] in ('pending','running') for j in self._jobs.values())>=4:raise PipelineRunError('pipeline_queue_full')
             job_id='job-'+uuid4().hex;root=self._path(job_id)
             job=dict(schema='autospine.sleeve-web-job/v1',job_id=job_id,project_id=project,status='pending',step=None,authority='none')
             request=dict(project_id=project,expected_resolved_sha256=expected_resolved_sha256,draft_sha256=self._draft_sha(project))
             publish_document(root/'request.json',request,staging=root/'.staging');self._jobs[job_id]=job
             self._pool.submit(self._execute,job_id,request)
-            return deepcopy(job)
+            return sleeve_visibility.view(deepcopy(job),root)
 
     def _execute(self,job_id,request):
         project=request['project_id'];root=self._path(job_id)
@@ -105,7 +106,7 @@ class SleeveWebJobs:
         finally:
             with self._lock:publish_document(root/'result.json',self._jobs[job_id],staging=root/'.staging')
 
-    def get(self,project,job_id):
+    def _raw_get(self,project,job_id):
         root=self._path(job_id);request=read_document(root/'request.json')
         if request['project_id']!=project:raise PipelineRunError('pipeline_job_not_found')
         with self._lock:
@@ -113,13 +114,43 @@ class SleeveWebJobs:
         if (root/'result.json').exists():return read_document(root/'result.json')
         return dict(schema='autospine.sleeve-web-job/v1',job_id=job_id,project_id=project,status='failed',authority='none',reason_code='sleeve_job_interrupted')
 
+    def get(self,project,job_id):
+        with self._lock:
+            return sleeve_visibility.view(self._raw_get(project,job_id),self._path(job_id))
+
+    def set_visibility(self,project,job_id,expected_resolved_sha256,expected_visibility_revision,*,withdrawn):
+        require_sha(expected_resolved_sha256)
+        if type(expected_visibility_revision) is not int or not 0<=expected_visibility_revision<10000000:
+            raise PipelineRunError('pipeline_request_invalid')
+        with self._lock:
+            job=self._raw_get(project,job_id);root=self._path(job_id)
+            request=read_document(root/'request.json')
+            if request['expected_resolved_sha256']!=expected_resolved_sha256:
+                raise PipelineRunError('project_snapshot_stale')
+            self._assert_current(request)
+            records=job.get('result',{}).get('records',[])
+            candidates=[i for i,r in enumerate(records) if r.get('status')=='candidate_exported' and r.get('download')]
+            if job['status']!='needs_review' or not candidates:
+                raise PipelineRunError('pipeline_preview_not_ready')
+            if not withdrawn:
+                for index in candidates:self._download_candidate(job,root,index)
+                self._assert_current(request)
+            sleeve_visibility.write(root,expected_visibility_revision,withdrawn)
+            return self.get(project,job_id)
+
     def download(self,project,job_id,index):
-        job=self.get(project,job_id)
+        with self._lock:
+            job=self._raw_get(project,job_id);root=self._path(job_id)
+            if sleeve_visibility.read(root)['withdrawn']:raise PipelineRunError('sleeve_candidate_withdrawn')
+            self._assert_current(read_document(root/'request.json'))
+            return self._download_candidate(job,root,index)
+
+    def _download_candidate(self,job,job_root,index):
         if job['status']!='needs_review':raise PipelineRunError('pipeline_preview_not_ready')
-        self._assert_current(read_document(self._path(job_id)/'request.json'))
         records=job['result']['records']
-        if not 0<=index<len(records) or not records[index]['download']:raise PipelineRunError('pipeline_preview_not_ready')
-        root=directory(Path(read_document(self._path(job_id)/'result-location.json')['directory'])).resolve()
+        if not 0<=index<len(records) or records[index].get('status')!='candidate_exported' or not records[index]['download']:
+            raise PipelineRunError('pipeline_preview_not_ready')
+        root=directory(Path(read_document(job_root/'result-location.json')['directory'])).resolve()
         path=root/records[index]['download']
         if root not in path.resolve().parents:raise PipelineRunError('pipeline_request_invalid')
         directory(path.parent);raw=read_real_file(path,32<<20,'sleeve preview')

@@ -30,9 +30,13 @@ test('sleeve panel shows scope and actionable reasons without changing download 
     {layer_id:'left', status:'blocked', download:null, reason_code:'motion_envelope_geometry_failure'},
     {layer_id:'right', status:'candidate_exported', download:'candidate.zip', reason_code:'sleeve_occlusion_review_required'},
   ];
+  let state={...job('needs_review'),result:{project_id:'huiye',authority:'none',production_authorized:false,records}};
   const ui = createWorkbenchSleeves(doc, {context: () => ({projectId:'huiye', resolvedSha:'a'.repeat(64)}),
-    apiRequest: async () => ({project_id:'huiye',authority:'none',can_build:true,job:{...job('needs_review'),
-      result:{project_id:'huiye',authority:'none',production_authorized:false,records}}})});
+    apiRequest: async (url,options) => {
+      if (!options.method) return {project_id:'huiye',authority:'none',can_build:true,job:state};
+      state={...state,candidate_withdrawn:url.endsWith('/withdraw'),visibility_revision:(state.visibility_revision || 0)+1};
+      return state;
+    }});
   ui.sync({preparationEditable:true}); await tick();
   const descend = node => [node, ...node.children.flatMap(descend)];
   const nodes = descend(ui.element), text = nodes.map(n => n.textContent || '').join('\n');
@@ -43,6 +47,11 @@ test('sleeve panel shows scope and actionable reasons without changing download 
   assert.doesNotMatch(text, /区域检查未通过/);
   assert.deepEqual(nodes.filter(n => n.tagName === 'a').map(n => n.href),
     [`/api/projects/huiye/automation/sleeves/jobs/job-${'a'.repeat(32)}/download/1`]);
+  nodes.find(n => n.textContent === '撤回当前候选').dispatchEvent(new Event('click'));await tick();
+  assert.equal(descend(ui.element).filter(n => n.tagName === 'a').length,0);
+  const restore=nodes.find(n => n.textContent === '恢复当前候选');assert.equal(restore.hidden,false);
+  restore.dispatchEvent(new Event('click'));await tick();
+  assert.equal(descend(ui.element).filter(n => n.tagName === 'a').length,1);
   ui.dispose();
 });
 
@@ -109,4 +118,42 @@ test('project changes discard late responses and dispose removes polls', async (
 test('cross-project and authority-bearing replies fail closed', () => {
   assert.throws(()=>readSleeveJob(job('running'),'uuz'));
   assert.throws(()=>readSleeveJob({...job('running'),authority:'approved'},'huiye'));
+  assert.throws(()=>readSleeveJob({...job('needs_review'),candidate_withdrawn:'true'},'huiye'));
+  assert.throws(()=>readSleeveJob({...job('needs_review'),visibility_revision:-1},'huiye'));
+});
+
+test('withdraw hides candidate and restores only after server validates the exact job and revision', async () => {
+  const result={project_id:'huiye',authority:'none',production_authorized:false,
+    records:[{layer_id:'right',status:'candidate_exported',download:'candidate.zip'}]};
+  let state={...job('needs_review'),candidate_withdrawn:false,visibility_revision:0,result};
+  let failRestore=false;
+  const h=harness(async (url,opts) => {
+    if (!opts.method) return {project_id:'huiye',authority:'none',can_build:true,job:state};
+    if (failRestore) throw {payload:{reason_code:'project_snapshot_stale'}};
+    const body=JSON.parse(opts.body);assert.equal(body.expected_visibility_revision,state.visibility_revision);
+    assert.equal(body.expected_resolved_sha256,'a'.repeat(64));
+    assert.equal(opts.headers['X-Autospine-Intent'],'pipeline-preview');
+    state={...state,candidate_withdrawn:url.endsWith('/withdraw'),visibility_revision:state.visibility_revision+1};
+    if (state.candidate_withdrawn) delete state.result; else state.result=result;
+    return state;
+  });
+  h.ui.sync({preparationEditable:true});await tick();assert.equal(h.model().canVisibility,true);
+  await h.ui.withdraw();assert.equal(h.model().rows.length,0);assert.equal(h.model().withdrawn,true);
+  assert.match(h.requests.at(-1).url,/\/jobs\/job-[a-f0-9]{32}\/withdraw$/);
+  await h.ui.withdraw();assert.equal(h.requests.length,2);
+  failRestore=true;await h.ui.restore();assert.equal(h.model().withdrawn,true);assert.equal(h.model().rows.length,0);
+  assert.match(h.model().message,/项目已变化/);
+  failRestore=false;await h.ui.restore();assert.equal(h.model().withdrawn,false);
+  assert.match(h.model().rows[0].url,/\/download\/0$/);assert.equal(h.timers.size,0);
+  h.context.dirty=true;h.ui.sync({preparationEditable:true});await h.ui.withdraw();assert.equal(h.requests.length,4);
+  h.ui.dispose();
+});
+
+test('restore rejects mismatched job responses without exposing a candidate', async () => {
+  const hidden={...job('needs_review'),candidate_withdrawn:true,visibility_revision:1};
+  const h=harness(async (url,opts) => opts.method ? {...hidden,job_id:`job-${'b'.repeat(32)}`,candidate_withdrawn:false}
+    : {project_id:'huiye',authority:'none',can_build:true,job:hidden});
+  h.ui.sync({preparationEditable:true});await tick();await h.ui.restore();
+  assert.equal(h.model().withdrawn,true);assert.equal(h.model().rows.length,0);
+  assert.match(h.model().message,/请求失败/);h.ui.dispose();
 });

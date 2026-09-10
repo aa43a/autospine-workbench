@@ -16,6 +16,8 @@ def dispatch_sleeves(tail,handler,method,project):
     from .web_routes import _error,_require_mutation
     allowed='GET, HEAD, POST, OPTIONS' if not tail else None
     if len(tail)==2 and tail[0]=='jobs':allowed='GET, HEAD, OPTIONS'
+    visibility=len(tail)==3 and tail[0]=='jobs' and tail[2] in ('withdraw','restore')
+    if visibility:allowed='POST, OPTIONS'
     if len(tail)==4 and tail[0]=='jobs' and tail[2]=='download' and tail[3].isascii() and tail[3].isdigit():
         allowed='GET, HEAD, OPTIONS'
     if allowed is None:
@@ -26,8 +28,12 @@ def dispatch_sleeves(tail,handler,method,project):
         if method=='POST':
             _require_mutation(handler.headers)
             body=read_json_object_request(handler,maximum_bytes=2048)
-            if set(body)!={'expected_resolved_sha256'}:raise PipelineRunError('pipeline_request_invalid')
-            handler._send_visual_json(202,manager_for(handler.server).submit(project,**body))
+            if visibility:
+                if set(body)!={'expected_resolved_sha256','expected_visibility_revision'}:raise PipelineRunError('pipeline_request_invalid')
+                handler._send_visual_json(200,manager_for(handler.server).set_visibility(project,tail[1],**body,withdrawn=tail[2]=='withdraw'))
+            else:
+                if set(body)!={'expected_resolved_sha256'}:raise PipelineRunError('pipeline_request_invalid')
+                handler._send_visual_json(202,manager_for(handler.server).submit(project,**body))
         else:
             manager=manager_for(handler.server)
             if not tail:handler._send_visual_json(200,manager.overview(project))
