@@ -1,8 +1,9 @@
 {
   "$schema":"https://json-schema.org/draft/2020-12/schema","type":"object","additionalProperties":false,
   "required":["schema","profile","project_id","source_sha256","skeleton_sha256","records","authority","production_authorized","runtime_status"],
-  "properties":{"schema":{"const":"autospine.sleeve-motion-envelope/v1"},"profile":{"const":"forearm30-hand30-cloth10-sine129-v1"},
+  "properties":{"schema":{"const":"autospine.sleeve-motion-envelope/v1"},"profile":{"enum":["forearm30-hand30-cloth10-sine129-v1","garment-connection-ring1-sine129-v1"]},
     "project_id":{"type":"string"},"source_sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},"skeleton_sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},
+    "baseline_sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},
     "records":{"type":"array","items":{"type":"object","required":["layer_id","component_id","status","reason_codes"]}},
     "authority":{"const":"none"},"production_authorized":{"const":false},"runtime_status":{"const":"not_evaluated"}}
 }

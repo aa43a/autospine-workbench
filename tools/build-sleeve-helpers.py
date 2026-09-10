@@ -17,10 +17,14 @@ def main():
     p.add_argument('--root-transition',action='store_true')
     p.add_argument('--multi-anchor',action='store_true',help='Test cloth-only corrective keys with fixed interface vertices')
     p.add_argument('--motion-envelope',action='store_true',help='Validate fixed R3-S individual and combined motion range')
+    p.add_argument('--connection-domain',action='store_true',help='Allow role-bounded garment connection support')
+    p.add_argument('--baseline-envelope',type=Path)
     p.add_argument('--interface-root',action='store_true',help='Read helper input and test semantic attachment roots')
     p.add_argument('--state-root',type=Path,default=Path('workspace'));p.add_argument('--workspace',type=Path,default=Path('..'))
     p.add_argument('projects',nargs='+');a=p.parse_args();store=ProjectStore(a.workspace,a.state_root);links=[]
     if sum([a.root_transition,a.interface_root,a.multi_anchor,a.motion_envelope])>1:p.error('root modes are mutually exclusive')
+    if a.connection_domain and not a.motion_envelope:p.error('connection-domain requires motion-envelope')
+    if a.connection_domain and not a.baseline_envelope:p.error('connection-domain requires baseline-envelope')
     for project in a.projects:
         require_safe_token(project,'Project')
         page=(a.input/project/'index.html').read_text(encoding='utf-8');sha=re.search(r'href="([a-f0-9]{64})\.json"',page).group(1)
@@ -29,7 +33,21 @@ def main():
         with load_inputs(store,project) as inputs:
             if a.motion_envelope:
                 from autospine_workbench.asset.planning.sleeve_motion_envelope import build as envelope_build
-                doc=envelope_build(source,inputs.skeleton)
+                domains=None
+                if a.connection_domain:
+                    from autospine_workbench.asset.planning.sleeve_connection_domain import prepare
+                    garment=source
+                    for _ in range(8):
+                        if garment['schema']=='autospine.sleeve-weights/v1':break
+                        garment=read_mesh_report(a.state_root,'project-component-partitions',garment['source_sha256'])
+                    draft=read_mesh_report(a.state_root,'project-component-partitions',garment['draft_sha256'])
+                    domains=prepare(source,garment,draft)
+                doc=envelope_build(source,inputs.skeleton,domains)
+                if a.connection_domain:
+                    from autospine_workbench.asset.planning.sleeve_connection_domain import retain
+                    prior=(a.baseline_envelope/project/'index.html').read_text(encoding='utf-8')
+                    prior_sha=re.search(r'href="([a-f0-9]{64})\.json"',prior).group(1)
+                    doc=retain(doc,read_mesh_report(a.state_root,'project-component-partitions',prior_sha))
             elif a.multi_anchor:
                 from autospine_workbench.asset.planning.cloth_anchor_correction import build as anchor_build
                 doc=anchor_build(source,inputs.skeleton)

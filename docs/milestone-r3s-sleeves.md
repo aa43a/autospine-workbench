@@ -82,3 +82,24 @@ node tools/verify-sleeve-core.mjs ../tmp/r3s-spine/huiye/layer-002-component-000
 
 其余失败三角形按已保存归属定位：辉夜左17个（15垂布、2袖口），幽幽子右2个（垂布），幽幽子左3个（2垂布、1袖口）。
 下一步针对这些连接邻域增加局部结构支撑，继续保留手与未知区，避免全局调权重。
+
+## 服装连接带自由度
+
+`garment-connection-ring1-sine129-v1` 允许仅被 sleeve/cuff/hanging_cloth 三角形引用的连接带顶点参与有界修正。
+接触 hand、unknown 或其他角色的顶点固定；连接带使用一个拓扑邻接环，不按角色名或像素坐标分支。
+拓扑、UV、纹理、基础权重均未变化。共享边顶点一起移动，不把同一条边复制或断开。
+候选除原始FK门禁外，还逐轨对上一版已保留修正运行无回归检查，未取得收益则保留旧记录。
+
+| 袖子 | 前臂 | 手 | 垂布 | 组合 ++ | 组合 +- | 组合 -+ | 组合 -- |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 辉夜右 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| 辉夜左 | 0 | 29 | 0 | 11 | 58 | 56 | 11 |
+| 幽幽子右 | 0 | 0 | 0 | 0 | 23 | 23 | 0 |
+| 幽幽子左 | 0 | 21 | 0 | 0 | 58 | 58 | 0 |
+
+每格分母129。辉夜左、幽幽子左保留新自由度；其余保留旧候选。
+本版未新增可正式采用袖子，未复用旧Runtime报告作为新资产验证。
+
+```powershell
+python tools/build-sleeve-helpers.py --motion-envelope --connection-domain --baseline-envelope ../tmp/r3s-motion-envelope --input ../tmp/r3s-cloth-anchors --output ../tmp/r3s-connection-domain huiye uuz
+```

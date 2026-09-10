@@ -25,11 +25,13 @@ def track(row,chain,name,amplitudes):
     drivers=[chain[1]['id'],chain[2]['id'],chain[3]['id']]
     setup=row['setup_vertices'];tri=row['triangles'];weights=row['weights']
     anchors=sorted({v for e in row['interface_root']['edges'] for v in e})
+    domain=row.get('correction_domain');free=row['cloth_vertices']
+    if domain:anchors=domain['anchors'];free=domain['free_vertices']
     budget=.15*math.dist(chain[1]['head_xy'],chain[1]['tail_xy'])
     keys=[]
     for tick in range(0,129,4):
         base=_deform(weights,frames(chain,dict(zip(drivers,angles(amplitudes,tick)))))
-        corrected,_=solve(setup,tri,base,row['cloth_vertices'],anchors,budget)
+        corrected,_=solve(setup,tri,base,free,anchors,budget)
         keys.append([[b[k]-a[k] for k in (0,1)] for a,b in zip(base,corrected)])
     before=[];after=[];samples=[];raw_samples=[];anchor_error=0.
     for tick in range(129):
@@ -56,7 +58,7 @@ def track(row,chain,name,amplitudes):
         loop_error=max(math.dist(a,b) for a,b in zip(samples[0]['points'],samples[-1]['points'])))
 
 
-def build(source,skeleton):
+def build(source,skeleton,domains=None):
     if (source.get('schema')!='autospine.cloth-anchor-correction/v1'
             or source.get('skeleton_sha256')!=canonical_sha256(skeleton)
             or source.get('authority')!='none' or source.get('production_authorized') is not False):
@@ -65,6 +67,7 @@ def build(source,skeleton):
     for original in source['records']:
         row=deepcopy(original)
         if 'helper' not in row:rows.append(row);continue
+        if domains is not None:row['correction_domain']=deepcopy(domains[row['layer_id'],row['component_id']])
         if not row['interface_root']['edges']:
             row.pop('tracks',None);row['status']='blocked';row['reason_codes']=['missing_interface'];rows.append(row);continue
         parent=bones[row['helper']['parent_id']]
@@ -81,6 +84,6 @@ def build(source,skeleton):
             row['reason_codes'].append('loop_or_anchor_failure')
         if not row['motion_envelope']['geometry_pass']:row['reason_codes'].append('motion_envelope_geometry_failure')
         rows.append(row)
-    return dict(schema='autospine.sleeve-motion-envelope/v1',profile='forearm30-hand30-cloth10-sine129-v1',
+    return dict(schema='autospine.sleeve-motion-envelope/v1',profile='garment-connection-ring1-sine129-v1' if domains is not None else 'forearm30-hand30-cloth10-sine129-v1',
         project_id=source['project_id'],source_sha256=canonical_sha256(source),skeleton_sha256=canonical_sha256(skeleton),
         records=rows,authority='none',production_authorized=False,runtime_status='not_evaluated')
