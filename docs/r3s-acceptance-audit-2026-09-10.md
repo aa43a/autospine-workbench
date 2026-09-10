@@ -83,3 +83,23 @@ Lingmeng frozen-policy failure, evaluate the hand constraint hypothesis across
 the other characters, and obtain review of the new candidate without weakening
 geometry or Runtime gates. This is distinct from the original four-sleeve
 restricted-motion delivery.
+
+## Original four-sleeve goal completion check
+
+The current production `passed` predicate was applied to all 3,612 recorded dense
+geometry samples (903 per sleeve): all pass. Setup maximum is 2.543e-13 px,
+weight error is zero, every track has zero fixed-anchor displacement and zero
+loop error. All four exports declare 4.3.26. The seven synchronized tracks retain
+forearm±30°, hand±30°, cloth±10°; this does not claim arbitrary combinations.
+
+Both projects were then rebuilt through the live ordinary HTTP entry, without
+client paths or artifact addresses: Huiye `job-3b31c97889fa4e5bab2667b51fabae4f`,
+Uuz `job-f825e0c1b92c4757950e2aa76a5f5298`. Both finished 14 stages with sampled
+contacts passed. All four candidate downloads and both scoped correction and
+framebuffer pages returned HTTP 200. The historical receipt verification,
+workflow recovery and fail-closed tests above remain applicable.
+
+This completes the stated original four-sleeve restricted-motion candidate
+delivery goal. Independent Lingmeng generality, full-character integration,
+unseen visual frames and publication remain outside that completion claim and
+are still tracked separately; no candidate adoption state was rewritten.
