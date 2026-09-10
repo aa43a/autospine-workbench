@@ -8,7 +8,19 @@ export function readSleeveAnnotation(value, context) {
     || !['ready', 'stale', 'needs_preparation'].includes(value.status)
     || (value.candidate_sha256 != null && !/^[a-f0-9]{64}$/.test(value.candidate_sha256))
     || (value.review_url != null && value.review_url !== review)) throw Error('袖装标注响应无效，请刷新。');
+  if (value.migration !== undefined) {
+    const migration = value.migration;
+    if (!migration || migration.authority !== 'none' || migration.requires_save !== true
+      || ['manual_count', 'geometry_count', 'pending_count'].some(key => !Number.isSafeInteger(migration[key]) || migration[key] < 0))
+      throw Error('袖装标注迁移摘要无效，请刷新。');
+  }
   return value;
+}
+
+export function annotationMigrationText(migration) {
+  if (!migration) return '';
+  return `已保留人工标注 ${migration.manual_count} 个；几何预填 ${migration.geometry_count} 个；待处理 ${migration.pending_count} 个三角形。`
+    + '仅保留源纹理和三角形几何完全一致的归属。新版本尚未保存，请打开画布复核并再次保存；保留记录不代表自动采用。';
 }
 
 export function annotationReason(reason) {
@@ -29,7 +41,9 @@ export function createWorkbenchSleeveAnnotation(document, hooks, options = {}) {
     view.render({ busy, canPrepare: Boolean(identity && safe() && !busy), canRefresh: Boolean(identity && !busy),
       reviewUrl: safe() && !error && value?.status === 'ready' ? value.review_url : null,
       prepared: Boolean(value?.candidate_sha256),
+      migrationMessage: safe() && !error && !busy && value?.status === 'ready' ? annotationMigrationText(value.migration) : '',
       message: error || (busy ? '正在准备或读取袖装标注…' : !safe() ? '请先保存校正并等待当前操作完成。'
+        : value?.migration ? '新标注版本已准备，请复核保留的归属并再次保存到项目。'
         : value?.can_build ? '区域草稿已保存，可以继续构建候选；未确定的归属仍需复核。'
           : value?.status === 'ready' ? '标注页面已准备。打开画布划分手、袖布、袖口和垂布，保存到项目后再构建。'
             : value?.status === 'stale' ? '标注来源已变化，请重新准备标注并复核。'
@@ -61,14 +75,15 @@ export function createWorkbenchSleeveAnnotation(document, hooks, options = {}) {
 function createView(document, callbacks) {
   const node = (tag, text = '') => { const el = document.createElement(tag); el.textContent = text; return el; };
   const element = node('section'); element.className = 'project-route'; element.setAttribute('aria-label', '袖装区域标注');
-  const title = node('h3', '袖装区域标注'), status = node('p'); status.setAttribute('role', 'status');
+  const title = node('h3', '袖装区域标注'), status = node('p'), migration = node('p'); status.setAttribute('role', 'status');
   const prepare = node('button', '创建袖装标注'), refresh = node('button', '刷新标注与构建状态');
   const preparation = node('button', '前往来源准备'), joints = node('button', '前往关节复核'), link = node('a', '打开标注画布');
   link.target = '_blank'; link.rel = 'noopener'; link.className = 'button button-secondary';
   for (const [button, handler] of [[prepare, callbacks.prepare], [refresh, callbacks.refresh], [preparation, callbacks.preparation], [joints, callbacks.joints]]) { button.type = 'button'; button.addEventListener('click', handler); }
-  element.append(title, status, preparation, joints, prepare, refresh, link);
+  element.append(title, status, migration, preparation, joints, prepare, refresh, link);
   return { element, render(model) {
     status.textContent = model.message; prepare.disabled = !model.canPrepare; refresh.disabled = !model.canRefresh;
+    migration.textContent = model.migrationMessage; migration.hidden = !model.migrationMessage;
     prepare.textContent = model.busy ? '处理中…' : model.prepared ? '重新准备标注' : '创建袖装标注';
     link.hidden = !model.reviewUrl; if (model.reviewUrl) link.href = model.reviewUrl; else link.removeAttribute('href');
   } };

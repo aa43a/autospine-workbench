@@ -11,6 +11,7 @@
     "candidate_sha256": {"$ref": "#/$defs/sha"},
     "draft_sha256": {"$ref": "#/$defs/sha"},
     "closure_sha256": {"$ref": "#/$defs/sha"},
+    "transfer_sha256": {"$ref": "#/$defs/sha"},
     "saved": {"type": "boolean"},
     "authority": {"const": "none"},
     "input_addresses": {

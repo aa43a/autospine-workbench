@@ -43,11 +43,28 @@ class SleeveOnboarding:
                         inputs.assert_current()
                 except AnimatedSourceError:
                     stale = True
-            return dict(project_id=project, source_sha256=sha, revision=value['revision'] if value else 0,
+            result = dict(project_id=project, source_sha256=sha, revision=value['revision'] if value else 0,
                         status='stale' if stale else 'ready' if value else 'needs_preparation',
                         can_build=bool(value and not stale and value['saved']), authority='none',
                         candidate_sha256=value['candidate_sha256'] if value and not stale else None,
                         review_url=f'/api/projects/{project}/automation/sleeves/annotation/view' if value and not stale else None)
+            if value and not stale and value.get('transfer_sha256'):
+                from .sleeve_annotation_transfer import summary
+                receipt = self._transfer(value)
+                if not value['saved']:
+                    result['migration'] = summary(receipt)
+            return result
+
+    def _transfer(self, value):
+        from .sleeve_annotation_transfer import check
+        read = lambda sha: read_mesh_report(self.projects.state_root, KIND, sha)
+        receipt = read(value['transfer_sha256'])
+        candidate = read(value['candidate_sha256'])
+        transferred = check(receipt, read(receipt['previous_candidate_sha256']),
+                            read(receipt['previous_draft_sha256']), candidate)
+        if not value['saved'] and canonical_sha256(transferred) != value['draft_sha256']:
+            raise PipelineRunError('sleeve_onboarding_invalid')
+        return receipt
 
     def _append(self, project, value):
         previous = self._latest(project)
@@ -68,6 +85,13 @@ class SleeveOnboarding:
                 return status
             with load_inputs(self.projects, project) as inputs:
                 source, candidate, draft, auxiliary = build_inputs(inputs, project)
+                previous = self._latest(project)
+                extra = {}
+                if previous and previous['saved']:
+                    from .sleeve_annotation_transfer import transfer
+                    read = lambda key: read_mesh_report(self.projects.state_root, KIND, previous[key])
+                    draft, receipt = transfer(read('candidate_sha256'), read('draft_sha256'), candidate)
+                    extra['transfer_sha256'] = publish_mesh_report(self.projects.state_root, KIND, receipt)
                 # Auxiliary provenance is stored as a complete replayable bundle.
                 closure = dict(schema='autospine.sleeve-onboarding-closure/v1', documents=auxiliary,
                                source_sha256=canonical_sha256(source), authority='none', production_authorized=False)
@@ -75,7 +99,7 @@ class SleeveOnboarding:
                 inputs.assert_current()
                 self._append(project, dict(source_sha256=expected_resolved_sha256,
                     input_addresses=inputs.source_addresses, mesh_sha256=hashes[0], candidate_sha256=hashes[1],
-                    draft_sha256=hashes[2], closure_sha256=hashes[3], saved=False))
+                    draft_sha256=hashes[2], closure_sha256=hashes[3], saved=False, **extra))
             return self.status(project)
 
     def read_current(self, project, require_saved=False):

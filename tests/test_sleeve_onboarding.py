@@ -79,6 +79,29 @@ class SleeveOnboardingTests(unittest.TestCase):
         with self.assertRaises(PipelineRunError):
             self.service.page('fresh')
 
+    def test_saved_labels_transfer_exactly_but_require_new_explicit_save(self):
+        self.prepare()
+        body = self.save_body()
+        body['draft']['records'][0]['assignments'][0].update(role='hand', origin='manual_edit')
+        self.service.save('fresh', body)
+        original = self.service.read_current('fresh')
+        self.sha = 'd'*64
+        status = self.prepare()
+        self.assertEqual(status['migration']['manual_count'], 1)
+        self.assertFalse(status['can_build'])
+        current = self.service.read_current('fresh')
+        self.assertEqual(current[3]['records'][0]['assignments'][0]['role'], 'hand')
+        self.assertEqual(read_mesh_report(self.root, KIND, original[0]['draft_sha256']), original[3])
+        self.assertEqual(SleeveOnboarding(self.projects).status('fresh'), status)
+        import json
+        import jsonschema
+        schema = json.loads((Path(__file__).parents[1]/'schemas/sleeve-annotation-transfer-v1.schema.json').read_text())
+        receipt = read_mesh_report(self.root, KIND, current[0]['transfer_sha256'])
+        jsonschema.validate(receipt, schema)
+        saved = self.service.save('fresh', self.save_body())
+        self.assertTrue(saved['can_build'])
+        self.assertNotIn('migration', saved)
+
     def test_registration_change_blocks_save_and_saved_source_read(self):
         self.prepare(); self.service.save('fresh', self.save_body())
         body = self.save_body()
@@ -104,7 +127,7 @@ class SleeveOnboardingTests(unittest.TestCase):
         self.assertEqual(len(files), 1)
         files[0].unlink()
         with self.assertRaises((PipelineRunError, ValueError)):
-            self.service.read_current('fresh')
+                self.service.read_current('fresh')
 
     def test_page_has_optional_explicit_save_bridge_and_current_revision(self):
         self.prepare()

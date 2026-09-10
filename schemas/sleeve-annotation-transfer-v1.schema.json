@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "profile", "authority", "requires_save", "previous_candidate_sha256", "previous_draft_sha256", "candidate_sha256", "draft_sha256", "manual_count", "geometry_count", "pending_count"],
+  "properties": {
+    "schema": {"const": "autospine.sleeve-annotation-transfer/v1"},
+    "profile": {"const": "exact-source-triangle-v1"},
+    "authority": {"const": "none"}, "production_authorized": {"const": false}, "requires_save": {"const": true},
+    "previous_candidate_sha256": {"$ref": "#/$defs/sha"},
+    "previous_draft_sha256": {"$ref": "#/$defs/sha"},
+    "candidate_sha256": {"$ref": "#/$defs/sha"},
+    "draft_sha256": {"$ref": "#/$defs/sha"},
+    "manual_count": {"type": "integer", "minimum": 0},
+    "geometry_count": {"type": "integer", "minimum": 0},
+    "pending_count": {"type": "integer", "minimum": 0}
+  },
+  "$defs": {"sha": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}
+}
