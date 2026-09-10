@@ -1,5 +1,9 @@
 # AutoSpine Workbench 架构与质量门禁
 
+`cloth_root_transition.py`使用三角邻接Dijkstra距离生成helper保留比例，并将根部剩余权重给forearm。独立helper profile重跑完整分支FK门禁，失败则同时回退权重/轨道并重算setup与隔离误差；旧helper profile输出保持不变。
+
+`sleeve_helpers.py`使用parent驱动的分支FK构造`sleeve-helper/v1`，避免串行链求值错误地让手骨驱动其同级服装骨。独立保存候选helper与重新计算的local权重，不修改正式骨架。均匀角度129点QA、33点固定预览和手旋转隔离误差分别记录，尚无正式Runtime或物理Bake。
+
 `sleeve_boundary.py`仅生成固定64轮邻接图手骨保留系数；调用者`sleeve_weights.py`在独立可选profile下以129点/轨道比较内部权重候选与平滑候选。手与unknown固定、服装内部和混合边界分别处理，整区域回退。未修改既有默认profile输出，也不授予发布权。
 
 `asset/planning/sleeve_regions.py`生成腕带几何提示与初始unknown三角归属，严格验证返回草稿的来源、清单、类别和预填来源；`sleeve_region_review.py`校验源PNG后嵌入独立`sleeve-region-review.js`编辑器。候选/草稿分别寻址，不修改旧Mesh合同或权重。像素归属与服装语义仍须单独验证。

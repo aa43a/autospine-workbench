@@ -1,0 +1,12 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema","type":"object","additionalProperties":false,
+  "required":["schema","profile","project_id","source_sha256","skeleton_sha256","records","authority","production_authorized","runtime_status"],
+  "properties":{"schema":{"const":"autospine.sleeve-helper/v1"},"profile":{"enum":["forearm-child-cloth-helper-v1","forearm-child-geodesic-root-v1"]},
+    "project_id":{"type":"string"},"source_sha256":{"$ref":"#/$defs/sha"},"skeleton_sha256":{"$ref":"#/$defs/sha"},
+    "records":{"type":"array","items":{"type":"object","required":["layer_id","component_id","status","reason_codes"],
+      "properties":{"status":{"const":"blocked"},"layer_id":{"type":"string"},"component_id":{"type":"string"},
+        "reason_codes":{"type":"array","items":{"type":"string"}},"setup_error":{"type":"number","minimum":0},
+        "weight_sum_error":{"type":"number","minimum":0},"hand_isolation_max_error":{"type":"number","minimum":0}}}},
+    "authority":{"const":"none"},"production_authorized":{"const":false},"runtime_status":{"const":"not_evaluated"}},
+  "$defs":{"sha":{"type":"string","pattern":"^[a-f0-9]{64}$"}}
+}
