@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "project_id", "source_sha256", "draft_sha256", "algorithm_files", "records", "authority", "production_authorized", "framebuffer_status"],
+  "properties": {
+    "schema": {"const": "autospine.sleeve-contact-coverage/v1"},
+    "project_id": {"type": "string"},
+    "source_sha256": {"$ref": "#/$defs/sha"},
+    "draft_sha256": {"$ref": "#/$defs/sha"},
+    "algorithm_files": {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "#/$defs/sha"}},
+    "authority": {"const": "none"},
+    "production_authorized": {"const": false},
+    "framebuffer_status": {"const": "not_evaluated"},
+    "records": {"type": "array", "items": {
+      "type": "object",
+      "required": ["layer_id", "component_id", "status", "tested_samples", "failed_samples", "unobservable_interfaces", "interfaces", "tracks", "asset_sha256", "pose_sha256", "authority", "production_authorized", "framebuffer_status"],
+      "properties": {
+        "status": {"enum": ["cpu_coverage_passed", "needs_review"]},
+        "tested_samples": {"type": "integer", "minimum": 0},
+        "failed_samples": {"type": "integer", "minimum": 0},
+        "unobservable_interfaces": {"type": "integer", "minimum": 0},
+        "pose_sha256": {"$ref": "#/$defs/sha"},
+        "authority": {"const": "none"},
+        "production_authorized": {"const": false},
+        "framebuffer_status": {"const": "not_evaluated"}
+      }
+    }}
+  },
+  "$defs": {"sha": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}
+}

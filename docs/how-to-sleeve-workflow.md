@@ -66,3 +66,15 @@ python tools/run-sleeve-workflow.py huiye uuz --runtime-core ../tmp/spine43-veri
 
 当前入口只提供候选，官方核心数值检查不等同于 GPU/透明接缝验收；任何未通过几何检查的区域仍阻塞。
 该入口位于绑定规划页面，未增加右侧属性栏操作。更新服务代码后需重启工作台服务并刷新页面。
+
+## 独立袖口 alpha 诊断
+
+在候选导出目录上运行（需要可选NumPy/Pillow分析依赖）：
+
+```powershell
+python tools/check-sleeve-contacts.py --input ../tmp/r3s-edge-spine --output ../tmp/r3s-contact-verified huiye uuz
+```
+
+输入应是包含各项目导出报告、骨架、图集和图片的目录。报告列出每条语义袖口边界的可观测性、
+有效采样数及失败坐标；源图透明边缘不会被当作已通过。该命令不会修改候选或自动采用结果，
+`cpu_coverage_passed`只表示所选软件探测点通过，不是官方GPU验收。

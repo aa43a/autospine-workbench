@@ -227,6 +227,24 @@ R3-S仍未完成：两个左袖的局部变形，以及GPU/alpha接缝验收仍�
 官方核心Runtime复核：4袖×7轨×257帧，共7196帧数值验证通过；两角色各10步完整流程完成，
 再次运行20个检查点全部校验后复用，四个ZIP均通过完整性检查。相关29项测试通过。
 
+## 袖口软件 alpha 接缝检查
+
+新增 `tools/check-sleeve-contacts.py`。从导出报告回溯精确袖装标注，定位cuff与hand/sleeve/hanging_cloth共享边，
+筛选源纹理中具备3×3不透明余量的探测点；按已导出Spine动画重算7轨×257姿态，
+在原生像素中心执行双线性alpha采样与三角形覆盖检查。无可观测样本的界面保留复核状态，不静默计为通过。
+工件记录导出、标注、纹理、骨架、姿态及分析代码身份；不依赖可被替换的预生成姿态JSON。
+
+四袖有效采样共127729次，alpha<8失败为0。辉夜右/左各有1条界面缺少不透明源图余量，
+保持`needs_review`；幽幽子两袖的所选界面均有可观测点，状态`cpu_coverage_passed`。
+该检查是软件保守覆盖测量，未验证GPU混合、过滤与帧缓冲；所有工件仍为authority:none。
+
+```powershell
+python tools/check-sleeve-contacts.py --input ../tmp/r3s-edge-spine --output ../tmp/r3s-contact-verified huiye uuz
+```
+
+输出合同：`schemas/sleeve-contact-coverage-v1.schema.json`。当前GPU验证仍受浏览器访问策略限制，
+不得通过更换启动方式或本地转发绕过；软件结果不能填补这一证据缺口。
+
 ```powershell
 python tools/build-sleeve-helpers.py --motion-envelope --connection-domain --boundary-budget --cuff-harmonic --baseline-envelope ../tmp/r3s-boundary-budget --input ../tmp/r3s-cloth-anchors --output ../tmp/r3s-cuff-harmonic-replay huiye uuz
 ```
