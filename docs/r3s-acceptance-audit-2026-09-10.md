@@ -10,8 +10,10 @@ Uuz `run-c86ec5a7472f0acaaf0b9f2cb4161a819cd2a680e92815ca7ec3e75bff8abc30`.
 Both exported candidates and passed official core and framebuffer contact checks:
 7,196 frames, 1,153,159 contact probes, zero failed probes. Terminal state remains
 `needs_review`; this does not broaden the previously scoped human observation.
-Web regression: 482 passed. Full Python regression remains running at this update;
-no full-suite success is claimed yet.
+Web regression: 482 passed. Full Python regression completed on 2026-09-11:
+4,225 tests in 2,970.960 seconds, OK with 14 skipped (4,211 passed).
+Log: workspace `tmp/r3s-final-python-tests.log`. Skips are not successful Runtime
+evidence; the explicit official Runtime delivery runs above supply that evidence.
 
 A second invocation with the same source and Runtime configuration completed for
 both delivery runs. All compiler/capture stages reused their verified caches;
