@@ -4,6 +4,19 @@ The four original sleeves now have candidate export and sampled Runtime evidence
 the additional Bayunlan pair also passes the ordinary repair/export workflow.
 This is not authorization to publish, nor a claim about arbitrary motions.
 
+Latest-code delivery rerun (14 stages each) completed under
+`tmp/r3s-delivery-audit`: Huiye `run-f09c82466326c4a75b969e8b2376663f426826c9d54143c5b7dac7490c717387`,
+Uuz `run-c86ec5a7472f0acaaf0b9f2cb4161a819cd2a680e92815ca7ec3e75bff8abc30`.
+Both exported candidates and passed official core and framebuffer contact checks:
+7,196 frames, 1,153,159 contact probes, zero failed probes. Terminal state remains
+`needs_review`; this does not broaden the previously scoped human observation.
+Web regression: 482 passed. Full Python regression remains running at this update;
+no full-suite success is claimed yet.
+
+The user supplied Lingmeng PSD for the additional fixed-policy validation.
+Audit and real Pose preparation are complete; joint review is pending. See
+[source identities and frozen scope](r3s-lingmeng-validation.md).
+
 | Requirement | Inspected evidence | Result |
 |---|---|---|
 | Reviewed sleeve/hand/cuff/drape source | Source-linked original drafts; Bayunlan six explicit edits, three unknowns retained | Preserved |
