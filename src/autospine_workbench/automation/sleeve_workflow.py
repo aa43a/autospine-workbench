@@ -50,12 +50,14 @@ def steps(repo,draft_root,root,project,state,workspace):
     add('boundary','build-sleeve-helpers.py','anchors',['--motion-envelope','--connection-domain','--boundary-budget','--baseline-envelope',str(root/'connection')])
     add('cuff','build-sleeve-helpers.py','anchors',['--motion-envelope','--connection-domain','--boundary-budget','--cuff-harmonic','--edge-budget','--baseline-envelope',str(root/'boundary')])
     add('spine','export-sleeve-spine.py','cuff')
+    result.append(('contacts',root/'contacts',[sys.executable,str(repo/'tools/check-sleeve-contacts.py'),
+        '--input',str(root/'spine'),'--output',str(root/'contacts'),'--state-root',str(state),project]))
     return result
 
 
 def code_identity(repo):
     paths=list((repo/'src'/'autospine_workbench').rglob('*.py'))
-    paths += [repo/'tools'/name for name in ('build-sleeve-weights.py','build-sleeve-helpers.py','export-sleeve-spine.py','run-sleeve-workflow.py','verify-sleeve-core.mjs')]
+    paths += [repo/'tools'/name for name in ('build-sleeve-weights.py','build-sleeve-helpers.py','export-sleeve-spine.py','run-sleeve-workflow.py','verify-sleeve-core.mjs','check-sleeve-contacts.py')]
     return canonical_sha256({p.relative_to(repo).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(paths)})
 
 
@@ -78,10 +80,16 @@ def summarize(root,project,run_id,progress):
     reports=list((root/'spine'/project).glob('*.json'))
     if len(reports)!=1:raise ValueError('sleeve_export_report_ambiguous')
     report=json.loads(reports[0].read_bytes());records=[]
+    contact_rows={}
+    if any(s['id']=='contacts' for s in progress):
+        from .sleeve_contact_step import summaries
+        contact_rows=summaries(root,project,report)
     for row in report['records']:
         records.append(dict(layer_id=row['layer_id'],component_id=row['component_id'],status=row['status'],
             reason_code=row['reason_code'],download=(f"spine/{project}/{row['layer_id']}-{row['component_id']}/candidate.zip"
             if row['status']=='candidate_exported' else None)))
+        key=row['layer_id'],row['component_id']
+        if key in contact_rows:records[-1]['software_contact']=contact_rows[key]
     return dict(schema='autospine.sleeve-workflow/v1',run_id=run_id,project_id=project,status='needs_review',
         steps=progress,records=records,runtime_status='not_evaluated',alpha_contact_status='not_evaluated',
         authority='none',production_authorized=False)

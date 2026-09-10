@@ -5,6 +5,11 @@ const REASONS = { sleeve_draft_missing: '尚未保存袖装区域标注。', sle
   project_snapshot_stale: '项目已变化，请保存校正后重新构建。', sleeve_job_interrupted: '上次任务已中断，重新构建将校验并复用完成的步骤。',
   sleeve_cached_output_changed: '缓存文件已变化，已阻止下载。', sleeve_workflow_failed: '构建失败，可重新构建以续跑。' };
 
+export function contactMessage(value) {
+  if (!value) return '软件接缝尚未检查；GPU 未验证。';
+  return `软件接缝：采样 ${value.tested_samples}，空白失败 ${value.failed_samples}，源图不可观测界面 ${value.unobservable_interfaces}；GPU 未验证。`;
+}
+
 export function readSleeveJob(value, project) {
   if (value?.schema !== 'autospine.sleeve-web-job/v1' || value.project_id !== project || value.authority !== 'none'
     || !/^job-[a-f0-9]{32}$/.test(value.job_id) || !['pending', 'running', 'needs_review', 'failed'].includes(value.status)) throw Error('袖装任务响应无效。');
@@ -82,6 +87,7 @@ function createView(document, callbacks) {
     element.setAttribute('aria-busy', String(model.active));
     rows.replaceChildren(...model.rows.map(r => {
       const row = node('li', `${r.layer_id} · ${r.status === 'candidate_exported' ? '候选已导出' : '局部变形未通过，已阻塞'} · ${r.runtime_status === 'passed' || r.runtime_status === 'core_passed' ? '核心数值验证通过' : '核心验证未通过或未执行'}`);
+      row.append(node('p', contactMessage(r.software_contact)));
       if (r.url) { const a = node('a', ' 下载候选 ZIP'); a.href = r.url; row.append(a); }
       return row;
     }));

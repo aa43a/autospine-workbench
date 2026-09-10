@@ -1,7 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createWorkbenchSleeves, readSleeveJob } from '../modules/workbench-sleeves.js';
+import { createWorkbenchSleeves, readSleeveJob, contactMessage } from '../modules/workbench-sleeves.js';
 const tick = () => new Promise(resolve => setImmediate(resolve));
+test('contact display preserves missing evidence and distinguishes GPU', () => {
+  assert.match(contactMessage(null), /尚未检查/);
+  const value = contactMessage({tested_samples:100, failed_samples:0, unobservable_interfaces:1});
+  assert.match(value, /不可观测界面 1/);assert.match(value, /GPU 未验证/);
+});
 const job = status => ({ schema: 'autospine.sleeve-web-job/v1', project_id: 'huiye', authority: 'none', job_id: `job-${'a'.repeat(32)}`, status });
 function harness(handler) {
   const context = { projectId: 'huiye', resolvedSha: 'a'.repeat(64) }, requests = [], timers = new Map(); let model, serial = 0;

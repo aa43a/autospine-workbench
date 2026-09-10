@@ -245,6 +245,16 @@ python tools/check-sleeve-contacts.py --input ../tmp/r3s-edge-spine --output ../
 输出合同：`schemas/sleeve-contact-coverage-v1.schema.json`。当前GPU验证仍受浏览器访问策略限制，
 不得通过更换启动方式或本地转发绕过；软件结果不能填补这一证据缺口。
 
+## 接缝诊断进入一键流程
+
+`retained-sleeve-chain-v4`在导出后自动执行软件接缝诊断，再执行可选官方核心验证，共11步。
+工作台与统一结果页逐袖显示有效采样、空白失败、不可观测界面数，并明确标注GPU未验证。
+摘要验证器核对导出身份、区域清单、7轨×257帧、计数和状态，拒绝伪造通过或将软件结论冒充GPU证据。
+两角色完整后台流程已完成，四候选下载校验通过，辉夜的两个不可观测界面仍保留。
+
+原生渲染环境检查发现已安装Spine Trial，但Computer Use启动请求返回`Computer Use app approval timed out`；
+未获得应用控制权限，原生播放/截图未执行。该限制与浏览器访问限制分别记录，当前不能宣称R3-S全部完成。
+
 ```powershell
 python tools/build-sleeve-helpers.py --motion-envelope --connection-domain --boundary-budget --cuff-harmonic --baseline-envelope ../tmp/r3s-boundary-budget --input ../tmp/r3s-cloth-anchors --output ../tmp/r3s-cuff-harmonic-replay huiye uuz
 ```
