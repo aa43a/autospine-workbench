@@ -31,3 +31,11 @@ test('source identity change discards old policy and undo',async()=>{
  const f=fixture(async()=>({...response(),active_decision_sha256:'c'.repeat(64)}));await f.view.request();assert.equal(f.buttons[2].disabled,false);
  f.model.inputIdentitySha='d'.repeat(64);f.view.sync(f.model);assert.equal(f.buttons[2].disabled,true);
 });
+test('undo submits the selected older batch rather than the latest batch',async()=>{
+ let body;
+ const newer='c'.repeat(64),older='d'.repeat(64);
+ const f=fixture(async(url,init)=>{if(init.method==='POST')body=JSON.parse(init.body);return {...response(),active_decision_sha256:newer,
+  reversible_decisions:[{decision_sha256:newer,can_undo:true,layer_names:['shoe']},{decision_sha256:older,can_undo:true,layer_names:['eye']}]};});
+ await f.view.request();f.buttons[3].value=older;await f.view.request('undo');
+ assert.equal(body.decision_sha256,older);
+});

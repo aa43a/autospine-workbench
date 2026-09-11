@@ -66,10 +66,9 @@ def read_decision(store,project_id,digest):
 def undo(store,project_id,digest,expected_input):
     with project_authoring_transaction(store.state_root,project_id):
         doc,history = read_decision(store,project_id,digest)
-        # Do not overwrite even a newer edit with identical-looking layer values.
-        if history[-1][0]!=doc['after_registration_sha256']:
+        from .binding_undo import plan_undo
+        plan=plan_undo(store,doc,history)
+        if not plan['can_undo']:
             raise AnimatedSourceError('animated_review_conflict')
-        dataset = history[-1][1]['manifest']['dataset_id']
-        previous = read_report(store.state_root,dataset,'layer-binding-drafts-v2',doc['before_draft_sha256'])
-        save_binding_review(store,project_id,expected_input,previous['records'])
+        save_binding_review(store,project_id,expected_input,plan['records'])
         return {'changed':True,'reverted_decision_sha256':digest,'authority':'none'}

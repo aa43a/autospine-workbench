@@ -5,24 +5,28 @@ from ..manifest_artifacts import require_sha256
 from .animated_inputs import load_inputs, _registrations, AnimatedSourceError
 from .foot_contact_policy import propose
 from .simple_binding_adoption import apply, undo, read_decision, KIND
+from .binding_undo import plan_undo
 
 
 def overview(store, project):
     with load_inputs(store,project) as source:
         result=propose(source)
         names={r['layer_id']:r['name'] for r in source.candidate['layers']}
-        current=source.source_addresses['animated_registration_sha256']
-    result.update(schema='autospine.binding-policy-overview/v1',project_id=project,active_decision_sha256=None)
+    result.update(schema='autospine.binding-policy-overview/v1',project_id=project,active_decision_sha256=None,reversible_decisions=[])
     for row in result['rows']:row['name']=names[row['layer_id']]
     _,entry=_registrations(store,project)[-1]
     try:folder=_folder(store.state_root,entry['manifest']['dataset_id'],KIND)
     except ValueError:return result
     for path in sorted(folder.glob('*.json')):
-        try:doc,_=read_decision(store,project,path.stem)
+        try:doc,history=read_decision(store,project,path.stem)
         except ValueError:continue
-        if doc['after_registration_sha256']==current:
-            result['active_decision_sha256']=path.stem
-            break
+        plan=plan_undo(store,doc,history)
+        revision=next(i for i,(digest,_) in enumerate(history) if digest==doc['after_registration_sha256'])
+        result['reversible_decisions'].append(dict(decision_sha256=path.stem,revision=revision,
+            policy_id=doc['proposal'].get('policy_id'),layer_names=[names.get(key,key) for key in doc['changed_layer_ids']],
+            can_undo=plan['can_undo'],reason_code=plan['reason_code']))
+    result['reversible_decisions'].sort(key=lambda row:row['revision'],reverse=True)
+    result['active_decision_sha256']=next((row['decision_sha256'] for row in result['reversible_decisions'] if row['can_undo']),None)
     return result
 
 
