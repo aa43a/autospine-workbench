@@ -131,8 +131,39 @@ class SleeveOnboardingTests(unittest.TestCase):
         # Preparing again must replace the stale mesh source, not return the old page.
         prepared = self.prepare()
         self.assertEqual(prepared['revision'], 3)
-        self.assertFalse(prepared['can_build'])
+        self.assertTrue(prepared['can_build'])
+        self.assertTrue(prepared['saved_labels_reused'])
         self.assertEqual(self.service.read_current('fresh')[0]['input_addresses'], self.input.source_addresses)
+
+    def test_identical_surface_preserves_labels_and_replays_after_restart(self):
+        self.prepare()
+        body = self.save_body()
+        body['draft']['records'][0]['assignments'][0].update(role='hand', origin='manual_edit')
+        self.service.save('fresh', body)
+        original = deepcopy(body['draft']['records'])
+        for sha in ('e'*64, 'f'*64):
+            self.input.source_addresses['input_identity_sha256'] = sha
+            status = self.prepare()
+            self.assertTrue(status['can_build'])
+            self.assertEqual(self.service.read_current('fresh', True)[3]['records'], original)
+            self.assertEqual(SleeveOnboarding(self.projects).status('fresh'), status)
+        value = self.service.read_current('fresh')[0]
+        receipt = read_mesh_report(self.root, KIND, value['saved_reuse_sha256'])
+        import json
+        import jsonschema
+        schema = json.loads((Path(__file__).parents[1]/'schemas/sleeve-saved-reuse-v1.schema.json').read_text())
+        jsonschema.validate(receipt, schema)
+        self.assertFalse(receipt['motion_review_reused'])
+        # Further explicit editing is not mistaken for a stale copied draft.
+        body = self.save_body()
+        body['draft']['records'][0]['assignments'][0].update(role='cuff', origin='manual_edit')
+        self.assertTrue(self.service.save('fresh', body)['can_build'])
+
+    def test_changed_skeleton_does_not_retain_saved_state(self):
+        self.prepare(); self.service.save('fresh', self.save_body())
+        self.input.source_addresses['input_identity_sha256'] = 'e'*64
+        self.input.skeleton['bones'][0]['head_xy'][0] += 1
+        self.assertFalse(self.prepare()['can_build'])
 
     def test_missing_closure_is_not_accepted_as_valid_current_source(self):
         self.prepare()

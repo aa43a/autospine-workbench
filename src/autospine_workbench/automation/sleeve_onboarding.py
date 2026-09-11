@@ -53,7 +53,29 @@ class SleeveOnboarding:
                 receipt = self._transfer(value)
                 if not value['saved']:
                     result['migration'] = summary(receipt)
+            if value and not stale and value.get('saved_reuse_sha256'):
+                self._saved_reuse(value)
+                result['saved_labels_reused'] = True
             return result
+
+    def _saved_reuse(self, value):
+        from .sleeve_saved_reuse import reuse
+        read = lambda sha: read_mesh_report(self.projects.state_root, KIND, sha)
+        receipt = read(value['saved_reuse_sha256'])
+        revision = receipt.get('previous_revision')
+        if type(revision) is not int or not 0 < revision < value['revision']:
+            raise PipelineRunError('sleeve_onboarding_invalid')
+        previous = read_document(self.root/value['project_id']/f'revision-{revision:012d}.json')
+        if previous.get('saved_reuse_sha256'):
+            self._saved_reuse(previous)
+        result = reuse(previous, read(previous['candidate_sha256']),
+                       read(previous['draft_sha256']), read(value['candidate_sha256']), value['source_sha256'])
+        if result is None or result[1] != receipt:
+            raise PipelineRunError('sleeve_onboarding_invalid')
+        # A later explicit save may change labels; the preserved revision itself
+        # must still contain exactly the copied draft.
+        if value.get('saved_reuse_revision') == value['revision'] and canonical_sha256(result[0]) != value['draft_sha256']:
+            raise PipelineRunError('sleeve_onboarding_invalid')
 
     def _transfer(self, value):
         from .sleeve_annotation_transfer import check
@@ -87,13 +109,24 @@ class SleeveOnboarding:
                 source, candidate, draft, auxiliary = build_inputs(inputs, project)
                 previous = self._latest(project)
                 extra = {}
+                saved = False
                 if previous and (previous['saved'] or previous.get('transfer_sha256')):
+                    if previous.get('saved_reuse_sha256'):
+                        self._saved_reuse(previous)
                     if previous.get('transfer_sha256'):
                         self._transfer(previous)
                     from .sleeve_annotation_transfer import transfer
                     read = lambda key: read_mesh_report(self.projects.state_root, KIND, previous[key])
                     draft, receipt = transfer(read('candidate_sha256'), read('draft_sha256'), candidate)
                     extra['transfer_sha256'] = publish_mesh_report(self.projects.state_root, KIND, receipt)
+                    from .sleeve_saved_reuse import reuse
+                    retained = reuse(previous, read('candidate_sha256'), read('draft_sha256'),
+                                     candidate, expected_resolved_sha256)
+                    if retained:
+                        draft, receipt = retained
+                        saved = True
+                        extra = dict(saved_reuse_sha256=publish_mesh_report(self.projects.state_root, KIND, receipt),
+                                     saved_reuse_revision=previous['revision'] + 1)
                 # Auxiliary provenance is stored as a complete replayable bundle.
                 closure = dict(schema='autospine.sleeve-onboarding-closure/v1', documents=auxiliary,
                                source_sha256=canonical_sha256(source), authority='none', production_authorized=False)
@@ -101,7 +134,7 @@ class SleeveOnboarding:
                 inputs.assert_current()
                 self._append(project, dict(source_sha256=expected_resolved_sha256,
                     input_addresses=inputs.source_addresses, mesh_sha256=hashes[0], candidate_sha256=hashes[1],
-                    draft_sha256=hashes[2], closure_sha256=hashes[3], saved=False, **extra))
+                    draft_sha256=hashes[2], closure_sha256=hashes[3], saved=saved, **extra))
             return self.status(project)
 
     def read_current(self, project, require_saved=False):

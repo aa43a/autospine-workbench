@@ -14,6 +14,8 @@ export function readSleeveAnnotation(value, context) {
       || ['manual_count', 'geometry_count', 'pending_count'].some(key => !Number.isSafeInteger(migration[key]) || migration[key] < 0))
       throw Error('袖装标注迁移摘要无效，请刷新。');
   }
+  if (value.saved_labels_reused !== undefined && (value.saved_labels_reused !== true
+    || !value.can_build || value.status !== 'ready' || value.migration)) throw Error('袖装标注保留状态无效，请刷新。');
   return value;
 }
 
@@ -51,6 +53,7 @@ export function createWorkbenchSleeveAnnotation(document, hooks, options = {}) {
       migrationMessage: safe() && !error && !busy && value?.status === 'ready' ? annotationMigrationText(value.migration) : '',
       message: error || (busy ? '正在准备或读取袖装标注…' : !safe() ? '请先保存校正并等待当前操作完成。'
         : value?.migration ? '新标注版本已准备，请复核保留的归属并再次保存到项目。'
+        : value?.saved_labels_reused ? '标注面完全一致，已保留保存的归属，无需重复标注；请重新构建候选验证动作。'
         : value?.can_build ? '区域草稿已保存，可以继续构建候选；未确定的归属仍需复核。'
           : value?.status === 'ready' ? '标注页面已准备。打开画布划分手、袖布、袖口和垂布，保存到项目后再构建。'
             : value?.status === 'stale' ? '标注来源已变化，请重新准备标注并复核。'

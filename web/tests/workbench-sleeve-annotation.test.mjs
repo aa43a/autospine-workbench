@@ -5,6 +5,16 @@ const context = () => ({ projectId: 'alice', resolvedSha: 'a'.repeat(64) });
 const response = () => ({ project_id: 'alice', source_sha256: 'a'.repeat(64), revision: 0, status: 'ready', can_build: false,
   candidate_sha256: 'b'.repeat(64), review_url: '/api/projects/alice/automation/sleeves/annotation/view', authority: 'none' });
 const tick = () => new Promise(resolve => setImmediate(resolve));
+test('identical saved labels explain reuse without claiming motion acceptance', async () => {
+  let model;
+  const value = { ...response(), saved_labels_reused: true, can_build: true };
+  const ui = createWorkbenchSleeveAnnotation(null, { context, apiRequest: async () => value },
+    { view: { element: {}, render: value => { model = value; } } });
+  ui.sync({ preparationEditable: true }); await tick();
+  assert.match(model.message, /无需重复标注.*重新构建候选验证动作/);
+  assert.throws(() => readSleeveAnnotation({ ...value, can_build: false }, context()));
+  assert.throws(() => readSleeveAnnotation({ ...value, saved_labels_reused: 'true' }, context()));
+});
 test('annotation rejects external and cross-project review URLs', () => {
   readSleeveAnnotation(response(), context());
   for (const review_url of ['https://example.com', '/api/projects/other/automation/sleeves/annotation/view', '//evil/review'])
