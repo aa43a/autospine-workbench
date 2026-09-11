@@ -84,3 +84,16 @@ coverage：`8be8b294ef375f2e4a7af2672859232f487efeb78ae1d88b6605d3eeb63da2c5`。
 
 小恶魔工作台真实任务 `job-007e1c1da3ab4f02bda85e9415f4c681` 已完成候选构建，
 刷新后恢复26源层账本与下载入口。20项相关Python/质量测试、527项Web测试通过。
+
+## C1 第四个交付：统一包官方 WebGL 捕获
+
+`tools/capture-character-runtime.mjs BUNDLE OUTPUT DEPS CHROME` 校验整个库存和参考来源，
+通过已有隔离官方 WebGL 4.3.13 / SwiftShader 加载统一4.3.26候选。
+对每帧全部附件核对位置、实际读取framebuffer，检查非空与画布边缘裁切，并保存抽样PNG。
+报告记录runtime、工具、harness、浏览器与输入身份；不改写原候选或局部证据。
+
+小恶魔同一库存实测516帧、32附件，最大位置误差0.000117371px，无空帧或画布裁切。
+报告与20张抽样图：`tmp/character-webgl-xiaoemo/index.html`。
+这项通过仅覆盖报告声明的数值和渲染检查；**不等于接触/遮挡/完整动作通过**。
+截图发现腿间和轮廓附近杂点、部分姿态手部被裙摆遮挡。后续先做源图/setup合成对照，
+区分源像素与渲染问题，再处理当前绘制顺序；不得为通过QA静默删除源像素。
