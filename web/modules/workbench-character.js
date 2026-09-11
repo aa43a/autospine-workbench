@@ -42,6 +42,8 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
     summary.textContent=`全部图层状态 · ${layers.length}`;detail.hidden=!layers.length;
     list.replaceChildren(...layers.map(layer=>{const row=node("li"),b=node("button",`${layer.name} · ${STATES[layer.state]||layer.state}`);b.type="button";
       b.addEventListener("click",()=>hooks.locate?.({layer_id:layer.layer_id,type:"binding"}));row.append(b);
+      if(layer.binding_decision){const p=layer.binding_decision,labels={policy_auto:"自动策略采用",explicit_selection:"显式选择",legacy_selection:"历史选择（来源未细分）",pending:"待复核"};
+        row.append(node("p",`绑定来源：${labels[p.decision_source]||"未知"}${p.evidence_current===false?" · 证据来源已变化，需重新检查":""}`));}
       const reasons={residual_binding_required:"残余区域尚未绑定",mesh_review_required:"网格候选待复核",
         binding_selection_required:"需要选择绑定",static_reference_not_bound:"仅静态参考，尚未完成绑定"};
       if(layer.reason_codes?.length)row.append(node("p",layer.reason_codes.map(r=>reasons[r]||r).join("；")));

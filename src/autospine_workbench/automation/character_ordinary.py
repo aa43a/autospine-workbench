@@ -36,6 +36,8 @@ def build_ordinary(application, sleeves, project, *, progress, cancel_requested)
     coverage=read_job_coverage(manager,project,'exact-run')['document']
     sources=dict(addresses,base_bundle_sha256=run['steps'][2]['outputs']['bundle_sha256'],route_choice_sha256=route)
     files=build_package(base,coverage,sources,checkpoint=lambda:check('compose'))
+    from .binding_provenance import attach_provenance
+    files=attach_provenance(files,application.projects,project,addresses)
     assert_registered_current(application.projects,project,addresses)
     if route_source(application.projects,sleeves,project,resolved)!=route:
         raise PipelineRunError('character_route_changed')

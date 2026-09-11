@@ -50,3 +50,12 @@ test('verified report links track current job and hide on unsaved edits',async()
   f.context.dirty=true;f.view.sync();assert.equal(runtime.hidden,true);assert.equal(setup.attrs.href,undefined);
   f.view.dispose();
 });
+
+test('character ledger distinguishes automatic binding and stale evidence',async()=>{
+  const current=job();current.layers=[{layer_id:'face-detail',name:'mouth',state:'rigid_reviewed',
+    binding_decision:{decision_source:'policy_auto',evidence_current:false}}];
+  const f=fixture(async()=>overview(current));f.view.sync();await flush();
+  const row=f.details.children[1].children[0];
+  assert.match(row.children[1].textContent,/自动策略采用/);
+  assert.match(row.children[1].textContent,/证据来源已变化/);f.view.dispose();
+});

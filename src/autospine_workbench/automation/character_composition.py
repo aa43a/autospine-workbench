@@ -64,6 +64,8 @@ def build_character(application, sleeves, project_id, sleeve_job_id, *, progress
     manager = SimpleNamespace(application=application, files=lambda *_: base, get=lambda *_: {'run':run})
     coverage = read_job_coverage(manager, project_id, 'exact-run')['document']
     files = compose_package(base, components, info['candidate'], skeleton, addresses, coverage, checkpoint=lambda: check('compose'))
+    from .binding_provenance import attach_provenance
+    files = attach_provenance(files,application.projects,project_id,info['source_addresses'])
     assert_registered_current(application.projects, project_id, info['source_addresses'])
     sleeves._assert_current(request)
     if sleeves.get(project_id, sleeve_job_id) != job:
