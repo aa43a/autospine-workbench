@@ -1,6 +1,6 @@
 """Validate the scope of official WebGL sleeve contact capture receipts."""
 import math
-from ...automation.sleeve_motion_inventory import PROFILES,WIDE,explicit_names
+from ...automation.sleeve_motion_inventory import PROFILES,WIDE,explicit_names,explicit_frame_count
 
 
 def summarize(doc, contact):
@@ -18,11 +18,13 @@ def summarize(doc, contact):
         names=set(explicit_names(doc))
         if any(contact.get(k)!=doc[k] for k in ('motion_profile','motion_source_sha256')):
             raise ValueError('sleeve_framebuffer_motion_source')
-    expected = {(n, i) for n in names for i in range(257)}
+    count_frames=explicit_frame_count(doc) if doc['schema'].endswith('/v2') else 257
+    rate=(count_frames-1)/2
+    expected = {(n, i) for n in names for i in range(count_frames)}
     actual = set(); count = failed = 0; minimum = 255; error = 0.
     for frame in doc['frames']:
         key = frame['animation'], frame['index']
-        if key not in expected or key in actual or frame['time'] != frame['index']/128:
+        if key not in expected or key in actual or frame['time'] != frame['index']/rate:
             raise ValueError('sleeve_framebuffer_frames')
         actual.add(key)
         for field in ('tested_samples', 'failed_samples', 'visible_pixels', 'min_alpha'):
@@ -38,7 +40,7 @@ def summarize(doc, contact):
         count += probes; failed += frame['failed_samples']; minimum = min(minimum, frame['min_alpha']); error = max(error, value)
     if actual != expected: raise ValueError('sleeve_framebuffer_frames')
     captures = {(c['animation'], c['index']) for c in doc['captures']}
-    if not {(n, i) for n in names for i in (0, 64, 128, 192, 256)} <= captures:
+    if not {(n, i) for n in names for i in range(0,count_frames,(count_frames-1)//4)} <= captures:
         raise ValueError('sleeve_framebuffer_captures')
     return dict(frames=len(actual), tested_samples=count, failed_samples=failed, min_alpha=minimum,
         max_error_px=error, status='sampled_contacts_passed' if not failed else 'needs_review',

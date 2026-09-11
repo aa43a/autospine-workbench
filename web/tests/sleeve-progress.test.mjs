@@ -28,3 +28,14 @@ test('terminal progress uses actual stage inventory and keeps review state',()=>
  const p=sleeveProgress({status:'needs_review',result:{steps:[{id:'weights',status:'succeeded'}]}});
  assert.equal(p.total,1);assert.equal(p.count,1);assert.match(p.label,/复核/);
 });
+
+test('ordinary correction stages preserve graph order and parse hyphenated progress',()=>{
+ const stage_ids=['weights','ordinary-repair','ordinary-deform','ordinary-interpolation','spine','contacts','overlap','runtime','framebuffer'];
+ const p=sleeveProgress({status:'running',step:'ordinary-deform: running',stage_ids});
+ assert.equal(p.total,9);assert.equal(p.count,2);
+ assert.equal(p.stages[2].state,'current');assert.match(p.label,/修正普通袖局部变形/);
+ assert.match(p.stages[3].name,/帧间过渡/);
+ assert.ok(!p.stages.some(s=>s.name.includes('驱动根部')));
+ const done=sleeveProgress({status:'blocked',result:{steps:stage_ids.map(id=>({id,status:'succeeded'}))}});
+ assert.equal(done.count,9);assert.match(done.label,/未通过/);
+});

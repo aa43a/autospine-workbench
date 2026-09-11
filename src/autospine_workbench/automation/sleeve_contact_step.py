@@ -1,7 +1,7 @@
 """Source-bound software contact summaries; never promote them to GPU evidence."""
 from .storage_io import read_document
 from ..resolved_project import canonical_sha256
-from .sleeve_motion_inventory import checked_names,evidence_schema
+from .sleeve_motion_inventory import checked_names,evidence_schema,frame_count
 
 
 def summaries(root,project,export):
@@ -23,7 +23,7 @@ def summaries(root,project,export):
         count,failed,missing=(row[k] for k in ('tested_samples','failed_samples','unobservable_interfaces'))
         names=checked_names(export,expected[key],row)
         if (len(row['tracks'])!=len(names) or {t['animation'] for t in row['tracks']}!=set(names)
-                or any(t['frames']!=257 for t in row['tracks'])):raise ValueError('sleeve_contact_motion_inventory')
+                or any(t['frames']!=frame_count(export,expected[key]) for t in row['tracks'])):raise ValueError('sleeve_contact_motion_inventory')
         if any(type(v) is not int or v<0 for v in (count,failed,missing)) or failed>count:raise ValueError('sleeve_contact_counts')
         eligible=sum(len(r['samples']) for r in row['interfaces'])
         if (count!=eligible*sum(t['frames'] for t in row['tracks']) or failed!=sum(t['failed_samples'] for t in row['tracks'])

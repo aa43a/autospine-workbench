@@ -1,12 +1,20 @@
 """Compact workflow result; cached computation never implies visual approval."""
 from html import escape
 
+STAGES = {'weights':'生成服装权重', 'ordinary-repair':'调整普通袖权重',
+          'ordinary-deform':'修正普通袖局部变形', 'ordinary-interpolation':'检查普通袖帧间过渡',
+          'root':'建立驱动根部', 'interface':'分析连接边界', 'anchors':'建立连接点',
+          'motion':'检查动作范围', 'connection':'求解袖口连接', 'boundary':'检查变形预算',
+          'cuff':'平滑袖口权重', 'repair':'自动修正与分支比较', 'spine':'导出 Spine 候选',
+          'contacts':'检查纹理接缝', 'overlap':'检查重叠', 'runtime':'官方核心验证', 'framebuffer':'官方画面捕获'}
+
 
 def render(report):
     rows=[]
     for row in report['records']:
         label=escape(row['layer_id']+' / '+row['component_id'])
         if row.get('motion_profile')=='ordinary-forearm30-hand30-sine129-v1':label+=' · 普通袖四轨'
+        if row.get('motion_profile')=='ordinary-deform-local129-quarter513-v1':label+=' · 普通袖四轨局部修正（每轨 513 点检查）'
         action=f'<a href="{escape(row["download"],quote=True)}">下载 Spine 候选</a>' if row['download'] else '需继续处理'
         if row.get('runtime_report'):action+=f' · <a href="{escape(row["runtime_report"],quote=True)}">官方核心报告</a>（{escape(row["runtime_status"])}）'
         if row.get('software_contact'):
@@ -17,12 +25,17 @@ def render(report):
         if row.get('official_framebuffer'):
             f=row['official_framebuffer'];action+=f'<p>官方WebGL（SwiftShader）{f["frames"]}帧；袖口空白失败 {f["failed_samples"]}；新增双覆盖峰值组 {f["overlap_affected_peaks"]}/{f["overlap_peak_pairs"]}，最大 {f["overlap_peak_pixels"]} 像素。遮挡待复核。</p>'
         rows.append(f'<tr><td>{label}</td><td>{escape(row["status"])}</td><td>{escape(row["reason_code"])}</td><td>{action}</td></tr>')
-    stages=' → '.join(escape(s['id'])+('（复用）' if s['cached'] else '✓') for s in report['steps'])
+    stages=' → '.join(escape(STAGES.get(s['id'],s['id']))+
+        (('（复用）' if s.get('cached') else '✓') if s['status']=='succeeded' else f'（{escape(s["status"])}）') for s in report['steps'])
     project=escape(report['project_id'])
     ordinary=any(r.get('motion_profile')=='ordinary-forearm30-hand30-sine129-v1' for r in report['records'])
     ordinary_link=(f'<p><a href="spine/{project}/ordinary/index.html">普通袖四轨诊断时间轴</a></p>' if ordinary else '')
     completed={s['id'] for s in report['steps'] if s['status']=='succeeded'}
-    timeline=next((name for name in ('repair','cuff','boundary') if name in completed),'boundary')
+    timeline=next((name for name in ('repair','cuff','boundary') if name in completed),None)
+    timeline_link=(f'<p><a href="{timeline}/{project}/index.html">拖动时间轴查看通过/失败轨道</a></p>' if timeline else '')
+    comparison=f'ordinary-deform/{report["project_id"]}/index.html'
+    if report.get('ordinary_review')==comparison and 'ordinary-deform' in completed:
+        ordinary_link+=f'<p><a href="{escape(comparison,quote=True)}">普通袖修正前后同步对比</a> · 仍是候选，需检查逐区域结果。</p>'
     runtime_note=('已导出区域官方核心数值验证通过；GPU与alpha接缝仍未验证。' if report['runtime_status']=='core_passed'
         else '官方核心未完成或未通过；GPU与alpha接缝仍未验证。')
     if report.get('framebuffer_review'):
@@ -33,6 +46,6 @@ def render(report):
 <h1>{project} · 袖装候选重建</h1><p>{stages}</p>
 <p>普通袖采用前臂 ±30° / 手 ±30° 四轨；宽袖采用前臂 ±30° / 手 ±30° / 垂布 ±10° 七轨。已完成计算不等于通过质量检查。</p>
 <table><thead><tr><th>区域</th><th>状态</th><th>原因</th><th>操作</th></tr></thead><tbody>{''.join(rows)}</tbody></table>
-<p><a href="{timeline}/{project}/index.html">拖动时间轴查看通过/失败轨道</a></p>
+{timeline_link}
 {ordinary_link}
 <p>{runtime_note}不得将可下载候选视为发布授权。相同输入再次运行会校验并复用已完成步骤。</p>'''

@@ -5,12 +5,15 @@ const STAGES = [
   ['spine','导出 Spine 候选'],['contacts','检查纹理接缝'],['overlap','检查重叠'],
   ['runtime','官方核心验证'],['framebuffer','官方画面捕获']
 ];
+const NAMES = new Map([...STAGES,
+  ['ordinary-repair', '调整普通袖权重'], ['ordinary-deform', '修正普通袖局部变形'],
+  ['ordinary-interpolation', '检查普通袖帧间过渡']]);
 
 export function sleeveProgress(job) {
   const completed = job?.result?.steps;
   const ids = completed?.map(s => s.id) || job?.stage_ids;
-  const stages = Array.isArray(ids) && ids.length ? STAGES.filter(([id]) => ids.includes(id)) : STAGES;
-  const match = /^(\w+):\s*(running|succeeded|cached)$/.exec(job?.step || '');
+  const stages = Array.isArray(ids) && ids.length ? ids.map(id => [id, NAMES.get(id) || `处理阶段 ${id}`]) : STAGES;
+  const match = /^([\w-]+):\s*(running|succeeded|cached)$/.exec(job?.step || '');
   const index = stages.findIndex(([id]) => id === match?.[1]);
   const terminal = job && !['pending','running'].includes(job.status);
   const count = completed ? completed.filter(s => s.status === 'succeeded').length
@@ -21,6 +24,7 @@ export function sleeveProgress(job) {
   const label = !job ? '尚未构建' : sourceIssue ? '已有任务需要更新来源'
     : job.status === 'pending' ? '已排队，等待开始'
     : job.status === 'failed' ? '构建失败，需要处理'
+    : job.status === 'canceled' ? '构建已取消，可重新构建'
     : job.status === 'blocked' ? '质量检查未通过'
     : terminal ? '构建完成，等待视觉复核'
     : index < 0 ? '正在准备' : `正在${stages[index][1]}`;

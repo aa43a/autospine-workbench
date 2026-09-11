@@ -2,7 +2,7 @@
 import math
 from .storage_io import read_document
 from ..resolved_project import canonical_sha256
-from .sleeve_motion_inventory import checked_names,evidence_schema
+from .sleeve_motion_inventory import checked_names,evidence_schema,frame_count
 
 
 def _candidate(value):
@@ -14,10 +14,10 @@ def _count(value):
     return type(value) is int and value >= 0
 
 
-def _track(track):
+def _track(track, expected_frames=257):
     counts = [track.get(k) for k in ('frames', 'frames_with_increased_overlap',
               'tested_pair_frames', 'frames_with_increased_dual_alpha8')]
-    if (not all(_count(v) for v in counts) or counts[0] != 257
+    if (not all(_count(v) for v in counts) or counts[0] != expected_frames
             or max(counts[1], counts[3]) > counts[0] or counts[3] > counts[2]):
         raise ValueError('sleeve_overlap_counts')
     peak = track.get('visible_peak')
@@ -62,7 +62,7 @@ def summaries(root, project, export):
         names=checked_names(export,expected[key],row)
         if len(tracks) != len(names) or {t['animation'] for t in tracks} != set(names):
             raise ValueError('sleeve_overlap_motion_inventory')
-        peaks = [_track(t) for t in tracks]
+        peaks = [_track(t,frame_count(export,expected[key])) for t in tracks]
         rows[key] = dict(status='diagnostic_only', frames=sum(t['frames'] for t in tracks),
             tested_pair_frames=sum(t['tested_pair_frames'] for t in tracks),
             affected_frames=sum(t['frames_with_increased_dual_alpha8'] for t in tracks),

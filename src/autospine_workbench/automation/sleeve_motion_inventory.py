@@ -3,10 +3,22 @@ import re
 
 WIDE = 'wide-sleeve-seven-v1'
 ORDINARY = 'ordinary-forearm30-hand30-sine129-v1'
+DEFORM = 'ordinary-deform-local129-quarter513-v1'
 PROFILES = {
     WIDE: ('cloth', 'combined_mm', 'combined_mp', 'combined_pm', 'combined_pp', 'forearm', 'hand'),
     ORDINARY: ('combined_opposed', 'combined_same', 'forearm', 'hand'),
+    DEFORM: ('combined_opposed', 'combined_same', 'forearm', 'hand'),
 }
+
+
+def frame_count(export, row):
+    motion_names(export, row)
+    return 513 if export.get('schema').endswith('/v2') and row.get('motion_profile') == DEFORM else 257
+
+
+def explicit_frame_count(row):
+    explicit_names(row)
+    return 513 if row['motion_profile'] == DEFORM else 257
 
 
 def motion_names(export, row):

@@ -25,6 +25,9 @@ def checkpoint(root,step,signature,output,execute):
         saved=read_document(receipt)
         if saved['signature']!=signature or saved['files']!=inventory(output):raise ValueError('sleeve_cached_output_changed')
         return dict(id=step,status='succeeded',cached=True)
+    if output.exists():
+        from .sleeve_interrupted_output import preserve_partial
+        preserve_partial(root,step,output)
     execute()
     files=inventory(output)
     if not files:raise ValueError('sleeve_step_outputs_missing')
@@ -53,7 +56,10 @@ def steps(repo,draft_root,root,project,state,workspace,*,ordinary_only=False):
     add('spine','export-sleeve-spine.py','repair')
     if ordinary_only:
         result=result[:1]
-        add('spine','export-sleeve-spine.py','weights')
+        add('ordinary-repair','build-ordinary-sleeve-stage.py','weights',['--stage','repair'])
+        add('ordinary-deform','build-ordinary-sleeve-stage.py','ordinary-repair',['--stage','deform'])
+        add('ordinary-interpolation','build-ordinary-sleeve-stage.py','ordinary-deform',['--stage','interpolation'])
+        add('spine','export-ordinary-sleeve-workflow.py','ordinary-interpolation')
     result.append(('contacts',root/'contacts',[sys.executable,str(repo/'tools/check-sleeve-contacts.py'),
         '--input',str(root/'spine'),'--output',str(root/'contacts'),'--state-root',str(state),project]))
     result.append(('overlap',root/'overlap',[sys.executable,str(repo/'tools/check-sleeve-overlap.py'),
@@ -66,6 +72,7 @@ def code_identity(repo):
     paths += [repo/'tools'/name for name in ('build-sleeve-weights.py','build-sleeve-helpers.py','export-sleeve-spine.py','run-sleeve-workflow.py','verify-sleeve-core.mjs','check-sleeve-contacts.py','check-sleeve-overlap.py')]
     paths += [repo/'tools'/name for name in ('capture-sleeve-runtime.mjs','sleeve-framebuffer.js','sleeve-overlap-framebuffer.js','review-sleeve-framebuffer.py')]
     paths += [repo/'tools'/name for name in ('repair-sleeve-candidate.py','solve-retained-sleeve.py')]
+    paths += [repo/'tools'/name for name in ('build-ordinary-sleeve-stage.py','export-ordinary-sleeve-workflow.py')]
     return canonical_sha256({p.relative_to(repo).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(paths)})
 
 
@@ -106,6 +113,9 @@ def summarize(root,project,run_id,progress):
             records[-1].update(metadata(report,row))
         if key in contact_rows:records[-1]['software_contact']=contact_rows[key]
         if key in overlap_rows:records[-1]['software_overlap']=overlap_rows[key]
-    return dict(schema='autospine.sleeve-workflow/v1',run_id=run_id,project_id=project,status='needs_review',
+    result=dict(schema='autospine.sleeve-workflow/v1',run_id=run_id,project_id=project,status='needs_review',
         steps=progress,records=records,runtime_status='not_evaluated',alpha_contact_status='not_evaluated',
         authority='none',production_authorized=False)
+    if any(s['id']=='ordinary-deform' for s in progress):
+        result['ordinary_review']=f'ordinary-deform/{project}/index.html'
+    return result

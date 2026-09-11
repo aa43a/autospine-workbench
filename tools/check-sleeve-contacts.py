@@ -12,7 +12,7 @@ from autospine_workbench.manifest_artifacts import require_safe_token
 from autospine_workbench.targets.spine43.seam_raster import texture
 from autospine_workbench.targets.spine43.sleeve_contact_samples import probes,analyze
 from autospine_workbench.targets.spine43.continuous_pose import world
-from autospine_workbench.automation.sleeve_motion_inventory import motion_names, metadata, evidence_schema
+from autospine_workbench.automation.sleeve_motion_inventory import motion_names, metadata, evidence_schema, frame_count
 
 
 def main():
@@ -55,9 +55,10 @@ def main():
                 raise ValueError('sleeve_contact_motion_source')
             if set(doc['animations'])!=set(motion_names(source,row)):raise ValueError('sleeve_contact_motion_inventory')
             animations={}
+            count=frame_count(source,row); rate=(count-1)/2
             for animation in doc['animations']:
                 pose_doc=dict(doc,animations={animation:doc['animations'][animation]})
-                animations[animation]=[dict(time=i/128,points=world(pose_doc,i/128)[name]) for i in range(257)]
+                animations[animation]=[dict(time=i/rate,points=world(pose_doc,i/rate)[name]) for i in range(count)]
             attachment=doc['skins'][0]['attachments'][name][name];alpha=texture(files['images/'+name+'.png'])
             result=analyze(attachment,alpha,probes(attachment,labels[row['layer_id'],row['component_id']],alpha,profile='source-length-v2'),animations)
             result['probe_profile']='source-length-v2'

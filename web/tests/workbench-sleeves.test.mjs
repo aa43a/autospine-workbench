@@ -1,6 +1,34 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createWorkbenchSleeves, readSleeveJob, contactMessage, overlapMessage, framebufferMessage, sleeveReasonMessage } from '../modules/workbench-sleeves.js';
+import { createWorkbenchSleeves, readSleeveJob, contactMessage, overlapMessage, framebufferMessage, sleeveReasonMessage, sleeveMotionMessage } from '../modules/workbench-sleeves.js';
+
+test('corrected ordinary profile remains four-track and unknown profiles are not wide sleeves',()=>{
+ assert.match(sleeveMotionMessage('ordinary-deform-local129-quarter513-v1'),/普通袖.*三骨四轨.*513/);
+ assert.match(sleeveMotionMessage('wide-sleeve-seven-v1'),/宽袖.*七轨/);
+ assert.match(sleeveMotionMessage('future'),/尚未识别/);
+});
+
+test('ordinary comparison link requires exact project path and completed stage',async()=>{
+ for(const [ordinary_review,finished,visible] of [
+  ['ordinary-deform/huiye/index.html',true,true],
+  ['ordinary-deform/uuz/index.html',true,false],
+  ['https://example.com/index.html',true,false],
+  ['ordinary-deform/huiye/index.html',false,false],
+  [undefined,true,false],
+ ]) {
+  const value={...job('blocked'),result:{project_id:'huiye',authority:'none',production_authorized:false,
+   ordinary_review,records:[],steps:[{id:'ordinary-deform',status:finished?'succeeded':'running'}]}};
+  const h=harness(async()=>({project_id:'huiye',authority:'none',can_build:true,job:value}));
+  h.ui.sync({preparationEditable:true});await tick();
+  assert.equal(h.model().reviews.length,visible?1:0);
+  if(visible) {
+   assert.match(h.model().reviews[0].label,/同步对比/);
+   assert.match(h.model().reviews[0].url,/\/view\/ordinary-deform\/huiye\/index.html$/);
+   h.context.dirty=true;h.ui.sync({preparationEditable:true});assert.equal(h.model().reviews.length,0);
+  }
+  h.ui.dispose();
+ }
+});
 
 test('quality reasons distinguish geometry, interpolation, evidence and visual review', () => {
   const cases = [
@@ -83,6 +111,16 @@ test('contact display preserves missing evidence and distinguishes GPU', () => {
   assert.match(value, /不可观测界面 1/);assert.match(value, /GPU 未验证/);
 });
 const job = status => ({ schema: 'autospine.sleeve-web-job/v1', project_id: 'huiye', authority: 'none', job_id: `job-${'a'.repeat(32)}`, status });
+test('cancel stops polling on terminal response and allows later rebuilding',async()=>{
+ const h=harness(async(url,options)=>options.method?{...job('canceled'),reason_code:'sleeve_job_canceled'}
+  :{project_id:'huiye',authority:'none',can_build:true,job:job('running')});
+ h.ui.sync({preparationEditable:true});await tick();assert.equal(h.model().canCancel,true);
+ await h.ui.cancel();assert.match(h.requests.at(-1).url,/\/cancel$/);
+ assert.equal(h.requests.at(-1).options.body,'{}');assert.equal(h.timers.size,0);
+ assert.equal(h.model().canCancel,false);assert.equal(h.model().canStart,true);
+ assert.match(h.model().progress.label,/已取消/);assert.match(h.model().message,/检查点保留/);
+ assert.equal(h.model().reviews.length,0);await h.ui.cancel();assert.equal(h.requests.length,2);h.ui.dispose();
+});
 test('ordinary blocked sleeve exposes diagnostic timeline without download', async () => {
   const value = {...job('blocked'), result: {project_id:'huiye', authority:'none', production_authorized:false,
     steps:[{id:'spine',status:'succeeded'}], records:[{layer_id:'arm',status:'blocked',download:null,
@@ -110,6 +148,39 @@ function harness(handler) {
   } }, { view: { render: value => {model = value;} }, schedule: fn => {timers.set(++serial, fn);return serial;}, unschedule: id => timers.delete(id) });
   return {ui, context, requests, timers, model: () => model};
 }
+
+test('rebuild submission clears old progress and links before POST returns',async()=>{
+ let finish;
+ const old={...job('blocked'),result:{project_id:'huiye',authority:'none',production_authorized:false,
+  ordinary_review:'ordinary-deform/huiye/index.html',
+  steps:['weights','ordinary-deform','spine','contacts','overlap'].map(id=>({id,status:'succeeded'})),
+  records:[{layer_id:'left',status:'blocked',download:null,reason_code:'motion_envelope_geometry_failure'}]}};
+ const h=harness(async(url,options)=>options.method?new Promise(resolve=>{finish=resolve;})
+  :{project_id:'huiye',authority:'none',can_build:true,job:old});
+ h.ui.sync({preparationEditable:true});await tick();
+ assert.equal(h.model().progress.count,5);assert.equal(h.model().reviews.length,1);
+ const pending=h.ui.start();
+ assert.equal(h.model().submitting,true);assert.match(h.model().progress.label,/正在提交/);
+ assert.match(h.model().message,/读取当前来源/);assert.equal(h.model().progress.count,0);
+ assert.deepEqual(h.model().progress.stages,[]);assert.deepEqual(h.model().reviews,[]);assert.deepEqual(h.model().rows,[]);
+ assert.equal(h.model().canCancel,false);assert.equal(h.model().canVisibility,false);
+ finish({...job('pending'),job_id:'job-'+'b'.repeat(32)});await pending;
+ assert.equal(h.model().submitting,false);assert.match(h.model().progress.label,/已排队/);
+ assert.equal(h.model().rows.length,0);h.ui.dispose();
+});
+
+test('failed new submission does not restore old candidate or completion count',async()=>{
+ const h=harness(async(url,options)=>{
+  if(options.method)throw new Error('offline');
+  return {project_id:'huiye',authority:'none',can_build:true,job:{...job('needs_review'),
+   result:{project_id:'huiye',authority:'none',production_authorized:false,
+    steps:[{id:'spine',status:'succeeded'}],records:[{status:'candidate_exported',download:'candidate.zip'}]}}};
+ });
+ h.ui.sync({preparationEditable:true});await tick();assert.equal(h.model().rows.length,1);
+ await h.ui.start();assert.equal(h.model().submitting,false);assert.equal(h.model().progress.count,0);
+ assert.equal(h.model().rows.length,0);assert.equal(h.model().reviews.length,0);
+ assert.match(h.model().message,/请求失败/);h.ui.dispose();
+});
 test('explicit build, terminal polling stop, and unsaved download suppression', async () => {
   const h = harness(async (url, opts) => opts.method ? job('running') : url.includes('/jobs/') ? {
     ...job('needs_review'), result: { project_id: 'huiye', authority: 'none', production_authorized: false,

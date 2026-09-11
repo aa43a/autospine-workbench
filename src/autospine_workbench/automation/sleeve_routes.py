@@ -20,7 +20,8 @@ def dispatch_sleeves(tail,handler,method,project):
     allowed='GET, HEAD, POST, OPTIONS' if not tail else None
     if len(tail)==2 and tail[0]=='jobs':allowed='GET, HEAD, OPTIONS'
     visibility=len(tail)==3 and tail[0]=='jobs' and tail[2] in ('withdraw','restore')
-    if visibility:allowed='POST, OPTIONS'
+    cancel=len(tail)==3 and tail[0]=='jobs' and tail[2]=='cancel'
+    if visibility or cancel:allowed='POST, OPTIONS'
     review=len(tail)>=5 and tail[0]=='jobs' and tail[2]=='view'
     if review:allowed='GET, HEAD, OPTIONS'
     if len(tail)==4 and tail[0]=='jobs' and tail[2]=='download' and tail[3].isascii() and tail[3].isdigit():
@@ -33,7 +34,10 @@ def dispatch_sleeves(tail,handler,method,project):
         if method=='POST':
             _require_mutation(handler.headers)
             body=read_json_object_request(handler,maximum_bytes=2048)
-            if visibility:
+            if cancel:
+                if body:raise PipelineRunError('pipeline_request_invalid')
+                handler._send_visual_json(200,manager_for(handler.server).cancel(project,tail[1]))
+            elif visibility:
                 if set(body)!={'expected_resolved_sha256','expected_visibility_revision'}:raise PipelineRunError('pipeline_request_invalid')
                 handler._send_visual_json(200,manager_for(handler.server).set_visibility(project,tail[1],**body,withdrawn=tail[2]=='withdraw'))
             else:

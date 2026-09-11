@@ -6,6 +6,7 @@ import re
 from pathlib import Path
 from html import escape
 from autospine_workbench.targets.spine43.sleeve_framebuffer import summarize
+from autospine_workbench.automation.sleeve_motion_inventory import explicit_frame_count
 from autospine_workbench.targets.spine43.sleeve_overlap_framebuffer import summaries as overlap_summaries,render as overlap_render
 
 
@@ -50,10 +51,11 @@ def main():
         href=escape(path.relative_to(args.input).as_posix(),quote=True)
         examples=[]
         for c in doc['captures']:
-            example='combined_same' if doc.get('motion_profile')=='ordinary-forearm30-hand30-sine129-v1' else 'combined_pm'
-            if c['animation']==example and c['index'] in (0,64,192):
+            example='combined_same' if doc.get('motion_profile') in ('ordinary-forearm30-hand30-sine129-v1','ordinary-deform-local129-quarter513-v1') else 'combined_pm'
+            rate=(explicit_frame_count(doc)-1)//2 if doc['schema'].endswith('/v2') else 128
+            if c['animation']==example and c['index'] in (0,rate//2,rate*3//2):
                 src=escape((path.parent/c['file']).relative_to(args.input).as_posix(),quote=True)
-                examples.append(f'<figure><img src="{src}"><figcaption>{c["animation"]} · {c["index"]}/128 秒</figcaption></figure>')
+                examples.append(f'<figure><img src="{src}"><figcaption>{c["animation"]} · {c["index"]}/{rate} 秒</figcaption></figure>')
         rows.append(f'<section><h2>{label}</h2><p>{summary["frames"]} 帧；{summary["tested_samples"]} 探针；空白失败 {summary["failed_samples"]}；最低 alpha {summary["min_alpha"]}。</p><a href="{href}">精确报告</a><div>{"".join(examples)}</div>{overlap_html}</section>')
     if not rows:raise ValueError('capture_missing')
     html=f'''<!doctype html><meta charset="utf-8"><title>四袖官方 Runtime 捕获</title>

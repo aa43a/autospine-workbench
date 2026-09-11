@@ -1,6 +1,7 @@
 """Same-frame isolated triangle evidence is diagnostic, never automatic admission."""
 from html import escape
 import math
+from ...automation.sleeve_motion_inventory import explicit_frame_count
 
 MODES={'full','first','second','pair','without_first','without_second'}
 
@@ -9,13 +10,16 @@ def summaries(capture, source):
     if capture.get('scope')!='software_visible_peak_pairs_setup_and_same_frame' or capture.get('status')!='needs_review':
         raise ValueError('overlap_capture_scope')
     expected={t['animation']:t['visible_peak'] for t in source['tracks'] if t['visible_peak'] is not None}
+    frame_count=explicit_frame_count(source) if 'motion_profile' in source else 257
+    rate=(frame_count-1)/2
     selected={}
     for item in capture['captures']:
         name,phase=item['animation'],item['phase'];key=name,phase
         if name not in expected or phase not in ('setup','peak') or key in selected:raise ValueError('overlap_capture_inventory')
         peak=expected[name]
         if (item['pair']!=peak['triangles'] or item['software_peak']!=peak
-                or item['time']!=(0 if phase=='setup' else peak['time']) or item['index']/128!=item['time']):
+                or item['time']!=(0 if phase=='setup' else peak['time']) or type(item['index']) is not int
+                or not 0<=item['index']<frame_count or item['index']/rate!=item['time']):
             raise ValueError('overlap_capture_source')
         images=item['images']
         if len(images)!=6 or {i['mode'] for i in images}!=MODES:raise ValueError('overlap_capture_images')

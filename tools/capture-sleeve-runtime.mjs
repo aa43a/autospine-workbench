@@ -14,12 +14,13 @@ const canonical=v=>v===null||typeof v!=='object'?JSON.stringify(v):Array.isArray
   '{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+canonical(v[k])).join(',')+'}';
 const profiles={
   'wide-sleeve-seven-v1':['cloth','combined_mm','combined_mp','combined_pm','combined_pp','forearm','hand'],
-  'ordinary-forearm30-hand30-sine129-v1':['combined_opposed','combined_same','forearm','hand']
+  'ordinary-forearm30-hand30-sine129-v1':['combined_opposed','combined_same','forearm','hand'],
+  'ordinary-deform-local129-quarter513-v1':['combined_opposed','combined_same','forearm','hand']
 };
 function inventory(source,row){
-  if(source.schema==='autospine.sleeve-export-report/v1')return {names:profiles['wide-sleeve-seven-v1'],meta:{}};
+  if(source.schema==='autospine.sleeve-export-report/v1')return {names:profiles['wide-sleeve-seven-v1'],count:257,meta:{}};
   if(source.schema!=='autospine.sleeve-export-report/v2'||!Object.hasOwn(profiles,row.motion_profile)||!(/^[a-f0-9]{64}$/).test(row.motion_source_sha256||''))throw Error('motion_profile');
-  return {names:profiles[row.motion_profile],meta:{motion_profile:row.motion_profile,motion_source_sha256:row.motion_source_sha256}};
+  return {names:profiles[row.motion_profile],count:row.motion_profile==='ordinary-deform-local129-quarter513-v1'?513:257,meta:{motion_profile:row.motion_profile,motion_source_sha256:row.motion_source_sha256}};
 }
 const token=s=>{if(!/^[a-zA-Z0-9_-]+$/.test(s))throw Error('unsafe_token');return s;};
 async function report(folder){
@@ -65,7 +66,7 @@ try{
       const name=token(row.layer_id+'-'+row.component_id),folder=path.resolve(input,project,name);
       const matches=contact.doc.records.filter(r=>r.layer_id===row.layer_id&&r.component_id===row.component_id);
       if(matches.length!==1||canonical(matches[0].asset_sha256)!==canonical(row.files))throw Error('contact_inventory');
-      const {names,meta}=inventory(source.doc,row);
+      const {names,meta,count}=inventory(source.doc,row),rate=(count-1)/2;
       for(const [key,value]of Object.entries(meta))if(matches[0][key]!==value)throw Error('contact_motion_source');
       files.clear();
       for(const [filename,digest] of Object.entries(row.files)){
@@ -76,8 +77,8 @@ try{
       const refRaw=await fs.readFile(path.join(folder,'numeric-reference.json')),ref=JSON.parse(refRaw);
       if(ref.skeleton_sha256!==row.files['skeleton.json'])throw Error('reference_source');
       if(version==='v2'&&JSON.parse(files.get('/skeleton.json')).skeleton.hash!==meta.motion_source_sha256)throw Error('motion_source');
-      if(canonical(Object.keys(ref.animations).sort())!==canonical(names)||Object.values(ref.animations).some(f=>f.length!==257))throw Error('motion_inventory');
-      if(canonical(matches[0].tracks.map(t=>t.animation).sort())!==canonical(names)||matches[0].tracks.some(t=>t.frames!==257))throw Error('contact_motion_inventory');
+      if(canonical(Object.keys(ref.animations).sort())!==canonical(names)||Object.values(ref.animations).some(f=>f.length!==count||f.some((frame,i)=>frame.time!==i/rate)))throw Error('motion_inventory');
+      if(canonical(matches[0].tracks.map(t=>t.animation).sort())!==canonical(names)||matches[0].tracks.some(t=>t.frames!==count))throw Error('contact_motion_inventory');
       files.set('/numeric-reference.json',refRaw);files.set('/contact.json',Buffer.from(JSON.stringify(matches[0])));
       files.set('/runtime.js',runtime);files.set('/harness.js',harness);
       if(overlapHook)files.set('/overlap.js',overlapHook);
@@ -91,25 +92,25 @@ try{
         const info=await page.evaluate(()=>window.captureInfo),frames=[],captures=[];
         const destination=path.resolve(output,project,name);
         for(const animation of names){
-          for(let i=0;i<257;i++){
+          for(let i=0;i<count;i++){
             const result=await page.evaluate(([a,i])=>window.captureFrame(a,i),[animation,i]);frames.push(result);
-            if([0,64,128,192,256].includes(i)||(result.failed_samples&&captures.length<80)){
+            if(i%((count-1)/4)===0||(result.failed_samples&&captures.length<80)){
               const raw=Buffer.from((await page.evaluate(()=>window.framePNG())).split(',')[1],'base64'),file=`${animation}-${i}.png`;
               await publish(path.join(destination,file),raw);captures.push({animation,index:i,file,sha256:hash(raw)});
             }
           }
-          console.log(project,name,animation,'257 frames');
+          console.log(project,name,animation,`${count} frames`);
         }
         const overlapCaptures=[];
         if(overlap){
           const regions=overlap.doc.records.filter(r=>r.layer_id===row.layer_id&&r.component_id===row.component_id);
           if(regions.length!==1||canonical(regions[0].asset_sha256)!==canonical(row.files))throw Error('overlap_inventory');
           for(const[key,value]of Object.entries(meta))if(regions[0][key]!==value)throw Error('overlap_motion_source');
-          if(canonical(regions[0].tracks.map(t=>t.animation).sort())!==canonical(names))throw Error('overlap_motion_inventory');
+          if(canonical(regions[0].tracks.map(t=>t.animation).sort())!==canonical(names)||regions[0].tracks.some(t=>t.frames!==count))throw Error('overlap_motion_inventory');
           for(const track of regions[0].tracks){
             const peak=track.visible_peak;if(!peak)continue;
-            const index=Math.round(peak.time*128);
-            if(index/128!==peak.time)throw Error('overlap_time');
+            const index=Math.round(peak.time*rate);
+            if(index/rate!==peak.time||index<0||index>=count)throw Error('overlap_time');
             for(const [phase,tick] of [['setup',0],['peak',index]]){
               const result=await page.evaluate(([animation,i,pair])=>window.captureOverlap(animation,i,pair),[track.animation,tick,peak.triangles]);
               const images=[];

@@ -11,7 +11,7 @@ from autospine_workbench.safe_input_files import read_real_file, strict_json_obj
 from autospine_workbench.targets.spine43.continuous_pose import world
 from autospine_workbench.targets.spine43.sleeve_overlap import analyze, peak_visibility
 from autospine_workbench.targets.spine43.seam_raster import texture
-from autospine_workbench.automation.sleeve_motion_inventory import motion_names, metadata, evidence_schema
+from autospine_workbench.automation.sleeve_motion_inventory import motion_names, metadata, evidence_schema, frame_count
 
 
 def main():
@@ -71,7 +71,8 @@ def main():
             animations = {}
             for animation, keys in doc['animations'].items():
                 single = dict(doc, animations={animation: keys})
-                animations[animation] = [dict(time=i/128, points=world(single, i/128)[name]) for i in range(257)]
+                count=frame_count(report,row); rate=(count-1)/2
+                animations[animation] = [dict(time=i/rate, points=world(single, i/rate)[name]) for i in range(count)]
             alpha = texture(assets['images/'+name+'.png'])
             result = analyze(triangles, setup, animations, attachment, alpha)
             for track in result['tracks']:

@@ -16,6 +16,7 @@ from .storage_io import directory,publish_document,read_document
 from ..manifest_artifacts import require_safe_token
 from ..safe_input_files import read_real_file
 from . import sleeve_visibility
+from .sleeve_process_tree import SleeveProcessTree
 
 
 class SleeveWebJobs:
@@ -23,7 +24,7 @@ class SleeveWebJobs:
         self.projects=projects;self.repo=Path(__file__).resolve().parents[3]
         self.root=Path(projects.state_root)/'jobs/sleeve-web-v1'
         self.output=projects.workspace_root/'tmp/r3s-web';self.drafts=projects.workspace_root/'tmp/r3a-sleeve-reviewed-v2'
-        self._lock=RLock();self._jobs={};self._closed=False;self._pool=ThreadPoolExecutor(max_workers=1,thread_name_prefix='sleeve-workflow')
+        self._lock=RLock();self._jobs={};self._processes={};self._closed=False;self._pool=ThreadPoolExecutor(max_workers=1,thread_name_prefix='sleeve-workflow')
 
     def _path(self,job):
         if not re.fullmatch(r'job-[a-f0-9]{32}',job):raise PipelineRunError('pipeline_job_id_invalid')
@@ -78,7 +79,9 @@ class SleeveWebJobs:
 
     def _execute(self,job_id,request):
         project=request['project_id'];root=self._path(job_id)
-        with self._lock:self._jobs[job_id]['status']='running'
+        with self._lock:
+            if self._jobs[job_id]['status']=='canceled':return
+            self._jobs[job_id]['status']='running'
         try:
             self._assert_current(request)
             from .sleeve_draft_source import read
@@ -95,10 +98,15 @@ class SleeveWebJobs:
             command+=discover(self.projects.workspace_root)
             env=dict(os.environ);env['PYTHONPATH']=str(self.repo/'src');final=None
             with (root/'execution.log').open('w',encoding='utf-8') as log:
-                with subprocess.Popen(command,cwd=self.repo,env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,encoding='utf-8',errors='replace') as process:
+                with SleeveProcessTree(command,cwd=self.repo,env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,encoding='utf-8',errors='replace') as tree:
+                    process=tree.process
+                    with self._lock:
+                        self._processes[job_id]=tree
+                        if self._jobs[job_id].get('cancel_requested'):tree.terminate()
+                        else:tree.release()
                     for line in process.stdout:
                         log.write(line);log.flush()
-                        if re.fullmatch(r'[a-z]+: (running|succeeded|cached)\n',line):
+                        if re.fullmatch(r'[a-z]+(?:-[a-z]+)*: (running|succeeded|cached)\n',line):
                             with self._lock:self._jobs[job_id]['step']=line.strip()
                         if line.startswith('{'):
                             try:
@@ -117,12 +125,29 @@ class SleeveWebJobs:
                 and r.get('status') in ('needs_review','blocked') and r.get('authority')=='none' and r.get('production_authorized') is False]
             report=next((r for r in reports if r.get('schema')=='autospine.sleeve-workflow/v1' and all(s['cached'] for s in r['steps'])),reports[0])
             publish_document(root/'result-location.json',dict(directory=str(result_path.parent)),staging=root/'.staging')
-            with self._lock:self._jobs[job_id].update(status=report['status'],result=report)
+            with self._lock:
+                if not self._jobs[job_id].get('cancel_requested'):self._jobs[job_id].update(status=report['status'],result=report)
         except (OSError,RuntimeError,ValueError,KeyError,IndexError,TypeError) as exc:
             reason=getattr(exc,'reason_code',None) or (str(exc) if re.fullmatch(r'[a-z_]{1,80}',str(exc)) else 'sleeve_workflow_failed')
             with self._lock:self._jobs[job_id].update(status='failed',reason_code=reason)
         finally:
-            with self._lock:publish_document(root/'result.json',self._jobs[job_id],staging=root/'.staging')
+            with self._lock:
+                self._processes.pop(job_id,None)
+                if self._jobs[job_id].get('cancel_requested'):
+                    self._jobs[job_id].update(status='canceled',reason_code='sleeve_job_canceled')
+                    self._jobs[job_id].pop('result',None)
+                publish_document(root/'result.json',self._jobs[job_id],staging=root/'.staging')
+
+    def cancel(self,project,job_id):
+        with self._lock:
+            job=self._raw_get(project,job_id)
+            if job['status'] not in ('pending','running'):return sleeve_visibility.view(job,self._path(job_id))
+            current=self._jobs[job_id];current['cancel_requested']=True
+            if current['status']=='pending':
+                current.update(status='canceled',reason_code='sleeve_job_canceled')
+                root=self._path(job_id);publish_document(root/'result.json',current,staging=root/'.staging')
+            if job_id in self._processes:self._processes[job_id].terminate()
+            return sleeve_visibility.view(deepcopy(current),self._path(job_id))
 
     def _raw_get(self,project,job_id):
         root=self._path(job_id);request=read_document(root/'request.json')
@@ -189,5 +214,8 @@ class SleeveWebJobs:
         return raw
 
     def close(self):
-        with self._lock:self._closed=True
+        with self._lock:
+            self._closed=True
+            for job in list(self._jobs.values()):
+                if job['status'] in ('pending','running'):self.cancel(job['project_id'],job['job_id'])
         self._pool.shutdown(wait=True)

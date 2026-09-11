@@ -5,6 +5,10 @@
   if (!gl) throw Error('webgl_unavailable');
   const get = async name => { const r=await fetch('/'+name); if(!r.ok)throw Error('asset_missing');return r.json(); };
   const doc=await get('skeleton.json'), reference=await get('numeric-reference.json'), contact=await get('contact.json');
+  const profile=contact.motion_profile;
+  if(profile&&!['wide-sleeve-seven-v1','ordinary-forearm30-hand30-sine129-v1','ordinary-deform-local129-quarter513-v1'].includes(profile))throw Error('motion_profile');
+  const frameCount=profile==='ordinary-deform-local129-quarter513-v1'?513:257,rate=(frameCount-1)/2;
+  if(Object.values(reference.animations).some(frames=>frames.length!==frameCount||frames.some((f,i)=>f.time!==i/rate)))throw Error('motion_frame_inventory');
   const atlas=new spine.TextureAtlas(await (await fetch('/skeleton.atlas')).text());
   await Promise.all(atlas.pages.map(async page => {
     const image=new Image();image.src='/'+page.name;await image.decode();

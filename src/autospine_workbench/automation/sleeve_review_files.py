@@ -7,7 +7,7 @@ from .pipeline_run import PipelineRunError
 from .storage_io import directory, read_document
 from ..safe_input_files import read_real_file
 
-STAGES = {'repair', 'cuff', 'boundary', 'framebuffer', 'spine'}
+STAGES = {'repair', 'cuff', 'boundary', 'framebuffer', 'spine', 'ordinary-deform'}
 TYPES = {'.html': 'text/html; charset=utf-8', '.json': 'application/json', '.png': 'image/png'}
 
 
@@ -17,6 +17,8 @@ def read(root, project, report, parts):
         raise PipelineRunError('pipeline_request_invalid')
     stage = parts[0]
     if stage == 'spine' and parts != ['spine', project, 'ordinary', 'index.html']:
+        raise PipelineRunError('pipeline_request_invalid')
+    if stage == 'ordinary-deform' and parts != ['ordinary-deform', project, 'index.html']:
         raise PipelineRunError('pipeline_request_invalid')
     if not any(s['id'] == stage and s['status'] == 'succeeded' for s in report['steps']):
         raise PipelineRunError('pipeline_preview_not_ready')

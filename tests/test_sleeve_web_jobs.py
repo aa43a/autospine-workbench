@@ -26,6 +26,60 @@ class SleeveWebTests(unittest.TestCase):
         with patch.object(self.manager._pool,'submit'):
             return self.manager.submit('huiye',self.sha)
 
+    def test_pending_cancel_is_persistent_idempotent_and_skips_execution(self):
+        job=self.submit();job_id=job['job_id'];root=self.manager._path(job_id)
+        with self.assertRaisesRegex(RuntimeError,'not_found'):self.manager.cancel('uuz',job_id)
+        canceled=self.manager.cancel('huiye',job_id)
+        self.assertEqual(canceled['status'],'canceled')
+        self.assertEqual(self.manager.cancel('huiye',job_id),canceled)
+        with patch('autospine_workbench.automation.sleeve_web_jobs.SleeveProcessTree') as launch:
+            self.manager._execute(job_id,json.loads((root/'request.json').read_bytes()))
+            launch.assert_not_called()
+        self.manager._jobs.clear()
+        self.assertEqual(self.manager.get('huiye',job_id)['status'],'canceled')
+        self.assertNotEqual(self.submit()['job_id'],job_id)
+
+    def test_running_cancel_targets_only_owned_tree(self):
+        job_id=self.submit()['job_id'];other_id=self.submit()['job_id']
+        # Same-project active submissions are intentionally deduplicated.
+        self.assertEqual(job_id,other_id)
+        owned=MagicMock();unrelated=MagicMock()
+        self.manager._processes={job_id:owned,'unrelated':unrelated}
+        self.manager._jobs[job_id]['status']='running'
+        self.sha='b'*64  # Stale source does not prevent stopping own computation.
+        response=self.manager.cancel('huiye',job_id)
+        self.assertTrue(response['cancel_requested']);self.assertEqual(response['status'],'running')
+        owned.terminate.assert_called_once();unrelated.terminate.assert_not_called()
+        self.manager._jobs[job_id]['status']='canceled'
+
+    def test_running_worker_persists_cancel_instead_of_process_failure(self):
+        job_id=self.submit()['job_id'];root=self.manager._path(job_id)
+        request=json.loads((root/'request.json').read_bytes())
+        tree=MagicMock();tree.__enter__.return_value=tree;tree.process.wait.return_value=125
+        def output():
+            yield 'ordinary-deform: running\n'
+            self.manager.cancel('huiye',job_id)
+            self.assertEqual(self.manager._jobs[job_id]['status'],'running')
+        tree.process.stdout=output()
+        with patch('autospine_workbench.automation.sleeve_web_jobs.SleeveProcessTree',return_value=tree):
+            self.manager._execute(job_id,request)
+        value=self.manager.get('huiye',job_id)
+        self.assertEqual(value['status'],'canceled');self.assertNotIn('result',value)
+        self.assertEqual(value['reason_code'],'sleeve_job_canceled')
+        self.assertNotIn(job_id,self.manager._processes)
+        tree.release.assert_called_once();tree.terminate.assert_called_once()
+
+    def test_cancel_api_requires_intent_and_empty_body(self):
+        from email.message import Message
+        replies=[];headers=Message();headers['Host']='localhost:8918'
+        handler=SimpleNamespace(headers=headers,_send_visual_json=lambda status,payload:replies.append((status,payload)))
+        tail=['jobs','job-'+'a'*32,'cancel']
+        dispatch_sleeves(tail,handler,'POST','huiye');self.assertEqual(replies[-1][0],403)
+        headers['Origin']='http://localhost:8918';headers['X-Autospine-Intent']='pipeline-preview'
+        with patch('autospine_workbench.automation.sleeve_routes.read_json_object_request',return_value={'pid':123}):
+            dispatch_sleeves(tail,handler,'POST','huiye')
+        self.assertEqual(replies[-1][1]['reason_code'],'pipeline_request_invalid')
+
     def test_queue_deduplicates_and_restart_is_interrupted(self):
         first=self.submit();self.assertEqual(first,self.submit())
         self.assertEqual(self.manager.overview('huiye')['job'],first)
@@ -90,9 +144,19 @@ class SleeveWebTests(unittest.TestCase):
             records=[dict(status='blocked',download=None,reason_code='official_framebuffer_contact_failure')])
         publish_document(run/'report.json',report,staging=run/'.staging')
         process=MagicMock();process.__enter__.return_value=process;process.wait.return_value=0
-        process.stdout=[json.dumps(dict(project_id='huiye',review=str(run/'index.html')))+'\n']
+        def progress():
+            for stage in ('weights','ordinary-repair','ordinary-deform','ordinary-interpolation'):
+                for status in ('running','succeeded','cached'):
+                    line=f'{stage}: {status}'
+                    yield line+'\n'
+                    self.assertEqual(self.manager._jobs[job_id]['step'],line)
+            yield '../ordinary-deform: running\n'
+            self.assertEqual(self.manager._jobs[job_id]['step'],'ordinary-interpolation: cached')
+            yield json.dumps(dict(project_id='huiye',review=str(run/'index.html')))+'\n'
+        process.stdout=progress()
         request=json.loads((root/'request.json').read_bytes())
-        with patch('autospine_workbench.automation.sleeve_web_jobs.subprocess.Popen',return_value=process):
+        tree=MagicMock();tree.__enter__.return_value=tree;tree.process=process
+        with patch('autospine_workbench.automation.sleeve_web_jobs.SleeveProcessTree',return_value=tree):
             self.manager._execute(job_id,request)
         result=self.manager.get('huiye',job_id)
         self.assertEqual(result['status'],'blocked')
