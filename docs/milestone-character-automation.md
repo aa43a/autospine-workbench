@@ -54,3 +54,21 @@ PNG 自动分层、表情/次级运动和 Blender 保留后续计划，不插入
 run：`run-2775af93b5ee01364623e52f77eb1fe906be584eb1ca577d83541cbf43d8abe2`。
 coverage：`8be8b294ef375f2e4a7af2672859232f487efeb78ae1d88b6605d3eeb63da2c5`。
 库存：`8323ded9f878e57dadaf6e3d2f8a1935e8a64d7e96091c9699340eb4e93d364d`。
+
+## C1 第二个交付：袖装与整角色合并核心
+
+`tools/build-character-sleeves.py PROJECT --sleeve-job JOB` 读取当前来源和明确选择的袖装任务。
+采用任务原有下载校验、撤销检查、源版本检查和独立内容寻址库存。
+合并模块放在 `targets/character43`，不扩大历史 `targets/spine43` 身份扫描范围。
+
+显式匹配骨架 setup；新增 helper 骨骼重排加权顶点索引；动作同名且共享骨通道一致才组合。
+保留原 deform，移除不兼容的旧预览动作。原袖层由分区替代，RGBA 子集逐像素检查，
+剩余像素独立静态保留；重复归属、非源像素、未知图层和动作冲突拒绝合并。
+全源层账本随新候选封存，不将旧 QA 或局部 Runtime 报告提升成整角色通过。
+
+小恶魔真实合并库存：`a913e6f34639e0c87fde0ca55c352a54905e35ad0bca58187d157b0feb7db3b3`。
+26源层、32附件；四轨每轨129点与原袖装位置差为0，其他附件setup位置差为0。
+左右分别保留452/283个低透明度残余像素，状态仍为部分处理。
+官方 `@esotericsoftware/spine-core 4.3.13` 验证该4.3.26目标：516帧、708984顶点探针，
+最大误差0.000117371px，数值通过。报告 `tmp/character-composition-xiaoemo-core.json`。
+完整角色WebGL、遮挡/接触及工作台可恢复构建仍待接入，C1尚未完成。
