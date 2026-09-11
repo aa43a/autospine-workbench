@@ -1,0 +1,21 @@
+{
+ "$schema":"https://json-schema.org/draft/2020-12/schema",
+ "type":"object","additionalProperties":false,
+ "required":["schema","profile","authority","production_authorized","skeleton_sha256","scope","limits","contact_status","passed","records"],
+ "properties":{
+  "schema":{"const":"autospine.character-deformation-qa/v1"},"profile":{"const":"character-sampled-deformation-v1"},
+  "authority":{"const":"none"},"production_authorized":{"const":false},
+  "skeleton_sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},"scope":{"const":"sampled_geometry_only"},
+  "limits":{"const":{"min_area_ratio":0.5,"max_area_ratio":2,"max_edge_stretch":2}},
+  "contact_status":{"const":"not_evaluated"},"passed":{"type":"boolean"},
+  "records":{"type":"array","items":{"type":"object","additionalProperties":false,
+   "required":["animation","slot","passed","sample_count","min_area_ratio","max_area_ratio","max_edge_stretch","inversion_samples","failing_frame_count","first_failure"],
+   "properties":{"animation":{"type":"string"},"slot":{"type":"string"},"passed":{"type":"boolean"},
+    "sample_count":{"type":"integer","minimum":1},"min_area_ratio":{"type":"number"},"max_area_ratio":{"type":"number"},
+    "max_edge_stretch":{"type":"number"},"inversion_samples":{"type":"integer","minimum":0},"failing_frame_count":{"type":"integer","minimum":0},
+    "first_failure":{"anyOf":[{"type":"null"},{"type":"object","additionalProperties":false,
+     "required":["frame","time","inversions","min_area_ratio","max_area_ratio","max_edge_stretch"],
+     "properties":{"frame":{"type":"integer","minimum":0},"time":{"type":"number","minimum":0},"inversions":{"type":"integer","minimum":0},
+      "min_area_ratio":{"type":"number"},"max_area_ratio":{"type":"number"},"max_edge_stretch":{"type":"number"}}}]}}}}
+ }
+}

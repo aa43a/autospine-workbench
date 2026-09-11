@@ -28,7 +28,11 @@ def capture(projects, store, digest, root, *, progress, cancel_requested):
     dependencies, browser = options[1], options[3]
     repo = Path(__file__).resolve().parents[3]
     output = directory(root/'runtime',create=True)
-    store.read(digest)  # Content inventory must pass before an external process runs.
+    candidate=store.read(digest)  # Content inventory must pass before an external process runs.
+    from ..targets.character43.deformation_qa import inspect
+    from .storage_io import canonical_bytes
+    geometry=inspect(candidate)
+    (output/'deformation.json').write_bytes(canonical_bytes(geometry))
     progress('runtime')
     commands = [
         ['node',str(repo/'tools/capture-character-runtime.mjs'),str(store.root/digest),str(output),dependencies,browser],
@@ -50,4 +54,6 @@ def capture(projects, store, digest, root, *, progress, cancel_requested):
             name=review_name(path.relative_to(output).as_posix())
             files[name]=sha256(path.read_bytes()).hexdigest()
     return dict(status='needs_review',scope=report['scope'],frames=len(report['results']),
-                slots=report['info']['slots'],files=files,contact_status='not_evaluated')
+                slots=report['info']['slots'],files=files,contact_status='not_evaluated',
+                geometry_status='passed' if geometry['passed'] else 'needs_changes',
+                geometry_failed_records=sum(not r['passed'] for r in geometry['records']))
