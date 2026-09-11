@@ -4,7 +4,7 @@ import { projectIdentity } from "./workbench-automation-contract.js";
 const REASONS={existing_review_preserved:"保留已有复核",policy_capability_unsupported:"当前策略不支持此部件",side_name_required:"左右侧需要复核",
   ankle_on_foreground:"踝点未落在鞋的可见区域",one_connected_region:"包含多个连通区域",nonempty:"可见像素不足",
   compact_height:"部件纵向跨度过大",compact_width:"部件横向跨度过大",no_calf_span:"区域跨入小腿",separated_sides:"左右证据不足",
-  shared_foot_ownership_required:"多层共享脚部，需要归属复核"};
+  shared_foot_ownership_required:"多层共享脚部，需要归属复核",visible_face_containment:"可见像素位于已确认面部",small_head_feature:"属于局部头部细节"};
 
 export function createBindingPolicy(document,hooks){
   const node=(tag,text="")=>{const e=document.createElement(tag);e.textContent=text;return e;};
@@ -13,7 +13,7 @@ export function createBindingPolicy(document,hooks){
   for(const b of [check,apply,undo]){b.type="button";b.className="button button-secondary";actions.append(b);}
   actions.className="automation-actions";status.setAttribute("role","status");status.setAttribute("aria-live","polite");
   detail.append(node("summary","剩余异常与采用依据"),list);
-  element.append(node("h3","自动绑定与异常复核"),node("p","当前支持紧凑鞋类。仅采用证据检查全部通过的项，保留人工记录；准确率尚待固定角色集校准。"),actions,status,detail);
+  element.append(node("h3","自动绑定与异常复核"),node("p","检查紧凑鞋类及已确认面部中的眼口细节。仅采用证据检查全部通过的项，保留人工记录；准确率尚待固定角色集校准。"),actions,status,detail);
   let identity=null,generation=0,model={},report=null,busy=false,error="";
   const context=()=>hooks.context();
   const editable=()=>model.canReview&&!model.bindingDirty&&!model.fetching&&!context().dirty;
