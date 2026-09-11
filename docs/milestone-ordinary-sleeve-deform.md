@@ -39,3 +39,18 @@ D1 已交付：合同、Schema、完整来源validator、纯核心、内容寻�
 左袖修正相邻增量峰值约0.176px；右袖约0.506px，二阶差分峰值约0.539px。
 差分是诊断值，不据此判断视觉连续通过。37项相关测试及实际工件Schema检查通过。
 当前未执行新工件的浏览器、目标或Runtime验收。未经D2–D5验证的工件不能进入正式目标包。
+
+### D2 加密插值检查
+
+新增独立 `ordinary-deform-interpolation/v1`，每轨513时刻检查解析FK与画布世界偏移线性插值，
+不修改D1。报告保存失败采样索引、关键帧间失败、相对同权重无deform FK新增失败，
+并包含循环接缝的归一二阶差分；这些不构成任意连续时间或最终Spine插值证明。
+Schema、完整来源重放、store/reader、CLI和报告已接通，18项相关测试通过。
+真实反例测试证明：129个整数key均通过时，两个key之间仍可能发生三角形坍缩。
+
+芙兰工件 `cae15f31302f590d40e02602fe9e7b249f7f483ef40e84fce243da254eba77a8`，
+输出 `../tmp/ordinary-deform-interpolation/flandre/index.html`。
+左袖四轨失败0/0/0/0；右袖0/65/65/65，其中后三轨各48个失败位于key之间。
+所有轨道相对同权重未修正FK的“新增中间失败”均为0；两条无网格残余继续阻塞。
+报告保持 temporal_quality_status=needs_review、target_interpolation_status/runtime_status=not_evaluated。
+D2的时间变化视觉门槛及D3局部deform编码/目标插值仍待验证，不能直接采用左袖。

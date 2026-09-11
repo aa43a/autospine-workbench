@@ -54,6 +54,7 @@ SCHEMAS += ('autospine.sleeve-motion-envelope/v1',)
 SCHEMAS += ('autospine.ordinary-sleeve-motion/v1',)
 SCHEMAS += ('autospine.ordinary-sleeve-repair/v1',)
 SCHEMAS += ('autospine.ordinary-sleeve-deform/v1',)
+SCHEMAS += ('autospine.ordinary-deform-interpolation/v1',)
 
 
 def _read(path):
