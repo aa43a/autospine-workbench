@@ -160,3 +160,21 @@ repair在来源复核门禁处保留阻塞，不把未知归属改成袖布或�
 最终无可导出区域、alpha_contact_status=not_evaluated、runtime_status=core_incomplete。
 运行阶段回执成功仅证明生成了阻塞报告，不能作为实际Runtime播放证据。
 需定位剩余unknown的可见性与归属，不能要求用户为了验收强行猜测全部未知区域。
+
+### 小恶魔r3独立验证
+
+用户更新保存r3，草稿 `2b6eecda6b8254a05cce9376566f39ab00fa7a741349055656ca5ba89942ef85`。
+layer-003为sleeve332/cuff52/hand84，layer-004为299/68/101；unknown为0。
+未修改策略/参数运行任务 `job-b782443a7eb54fa9acb31c2dc76b2fcc`，
+run `run-8bdcbd497dea90e0941bdeee12d17055268b7f460dd4f47ba370b8966502d6e0`。
+两侧主要区域四轨129tick及每轨513加密时刻几何失败均0，Spine目标采样均通过。
+D1地址 `ff2097e9d0a194560cf01c12844cec3887f0a3d5ff534bfe0d8326682f3272e8`。
+
+官方核心及ANGLE SwiftShader WebGL：每侧2052帧，接触采样379620/385776，失败均0；
+最小alpha248/217，最大数值误差0.00009064/0.00012030px。
+捕获回执分别为 `97469223794f3f4c6dbf5613648357fbfde0ce74254eeb20dab2cb7168ffa57a`
+和 `435681c49fbc849d05e46cfc02563f95930267070ab3310b1a65d1706edbe0d9`。
+两侧combined_same-128实际截图已查看，纹理可见且未出现明显断裂；这不替代全轨人工视觉复核。
+重叠tested_pair_frames=0，不能将0峰值宣称全域遮挡通过。
+九阶段执行结束为needs_review；两条低alpha残余仍blocked，候选不产生发布权。
+普通袖独立数值/运行时验证已有正向证据，仍待用户对袖口连接与动作观感确认。
