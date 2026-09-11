@@ -1,5 +1,7 @@
 # AutoSpine Workbench 架构与质量门禁
 
+`automation/character_coverage.py` 纯分析源层与预览区域的显式归属；reader 校验当前注册、原预览库存和 mesh 阶段身份，独立封存 `character-coverage-v1`。覆盖报告不加入旧编译器身份闭包，不修改原预览库存；GET `animated/jobs/{job}/coverage` 提供同源入口，前端按项目切换丢弃晚到响应。后续整角色合并须显式接入袖装来源，不通过附件数推断绑定完成。
+
 袖装修正内置 `conditional-hand-repair-v1`：纯归属触发/非回归选择与外层有界编排分离，共用既有可恢复阶段。选中区域绑定baseline/trial内容地址，其他区域保持原记录；后续接触与Runtime门禁仍独立执行。
 
 实时袖装标注分为 `sleeve-live-model.js`（纯草稿权重与FK）、`sleeve-live-panel.js`（时间轴与Canvas）和既有区域编辑器。Python页面生成器传入已解析源网格；涂改仅更新内存草稿。正式求解、内容寻址和Runtime捕获继续走独立可恢复工作流，避免把浏览器试算赋予采用权或数值认证含义。

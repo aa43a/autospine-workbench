@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Character source coverage v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "authority", "production_authorized", "full_character_animation", "preview_bundle_sha256", "source_addresses", "layers", "summary", "project_reason_codes"],
+  "properties": {
+    "schema": {"const": "autospine.character-coverage/v1"},
+    "authority": {"const": "none"},
+    "production_authorized": {"const": false},
+    "full_character_animation": {"const": false},
+    "preview_bundle_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "source_addresses": {"type": "object", "additionalProperties": {"type": "string"}},
+    "project_reason_codes": {"$ref": "#/$defs/strings"},
+    "layers": {"type": "array", "items": {
+      "type": "object", "additionalProperties": false,
+      "required": ["layer_id", "name", "state", "regions", "missing_region_ids", "reason_codes"],
+      "properties": {
+        "layer_id": {"type": "string", "minLength": 1}, "name": {"type": "string"},
+        "state": {"enum": ["weighted_candidate", "rigid_reviewed", "static_reference", "missing", "excluded", "not_visible", "partial"]},
+        "missing_region_ids": {"$ref": "#/$defs/strings"}, "reason_codes": {"$ref": "#/$defs/strings"},
+        "regions": {"type": "array", "items": {
+          "type": "object", "additionalProperties": false, "required": ["region_id", "state"],
+          "properties": {"region_id": {"type": "string", "minLength": 1}, "state": {"enum": ["weighted_candidate", "rigid_reviewed", "static_reference"]}}
+        }}
+      }
+    }},
+    "summary": {"type": "object", "additionalProperties": false,
+      "required": ["source_layers", "output_regions", "states"],
+      "properties": {
+        "source_layers": {"type": "integer", "minimum": 0}, "output_regions": {"type": "integer", "minimum": 0},
+        "states": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}}
+      }
+    }
+  },
+  "$defs": {"strings": {"type": "array", "uniqueItems": true, "items": {"type": "string"}}}
+}

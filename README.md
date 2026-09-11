@@ -1,5 +1,7 @@
 # AutoSpine Workbench
 
+[整角色自动化里程碑](docs/milestone-character-automation.md)：按整角色闭环 → 仅异常复核 → 三角色/十角色多动作验收推进。动画候选新增“整角色逐层处理状态”，区分加权候选、刚性跟随、静态参考和部分处理；静态参考不计作完成绑定。已验证袖装并入统一包仍在开发。
+
 [袖装条件修复](docs/how-to-conditional-sleeve-repair.md)：工作台“重建袖装候选”按手部归属相关失败尝试有界分支，逐袖全通过、无回归后再导出并执行官方验证；已通过区域保留。
 
 [袖装当前验收](docs/r3s-acceptance-audit-2026-09-10.md)：辉夜/幽幽子四袖完成受限动作重建、Spine 4.3.26 候选及官方捕获；独立灵梦固定策略仍部分阻塞。[实时标注](docs/sleeve-live-annotation.md) 支持涂改后立即查看时间轴 FK 试算，最终验证仍走袖装重建流程。

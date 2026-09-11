@@ -6,6 +6,7 @@ import { createAnimatedBindings } from "./workbench-animated-bindings.js";
 import { createAnimatedPlayer } from "./workbench-animated-player.js";
 import { createAnimatedRebase } from "./workbench-animated-rebase.js";
 import { workbenchLayout } from "./workbench-layout.js";
+import { createCharacterCoverage } from "./workbench-character-coverage.js";
 
 const STEPS = {
   "resolve-project": "解析当前项目", "resolve-source": "解析已验证源", "build-skeleton": "生成骨架候选",
@@ -35,8 +36,10 @@ export function createAnimatedView(document, callbacks) {
   const note = node(document, "p", "可下载候选不代表已采用或已获发布授权。修改复核后会重新构建相关下游。");
   const bindings = createAnimatedBindings(document, { save: callbacks.saveReview, complete: callbacks.completeBindings, changed: callbacks.bindingChanged, locate: callbacks.locate });
   const player = createAnimatedPlayer(document);
+  const coverage = createCharacterCoverage(document, callbacks.locate);
   const rebase = createAnimatedRebase(document, callbacks.rebase);
   section.append(heading, description, label, select, actions, status, rebase.element, reviewNotice, summary, steps, download, player.element, queueTitle, queue, bindings.element, note);
+  section.insertBefore(coverage.element, player.element);
   const layout = workbenchLayout(document), mount = document.getElementById("automationMount");
   if (layout) {
     layout.mount("animation", section); layout.mount("bindings", bindings.element);
@@ -81,10 +84,11 @@ export function createAnimatedView(document, callbacks) {
     download.hidden = !model.downloadUrl;
     if (model.downloadUrl) download.setAttribute("href", model.downloadUrl); else download.removeAttribute("href");
     rebase.render(model); bindings.render(model); void player.load(model.playbackUrl);
+    void coverage.load(model.downloadUrl);
   }
   return { render, resetReview: bindings.reset, focusBinding: (id) => { layout?.showBinding("bindings"); return bindings.focusLayer(id); },
     mountJoint: (element) => layout ? layout.mount("joints", element) : section.append(element),
     mountPlan: (element) => { if (layout) { layout.mount("plan", element); element.open = true; } else section.append(element); },
     mountSleeves: (element) => layout ? layout.mount("sleeves", element) : section.prepend(element),
-    mountPreparation: (element) => layout ? layout.mount("preparation", element) : section.insertBefore(element, reviewNotice), dispose: player.dispose };
+    mountPreparation: (element) => layout ? layout.mount("preparation", element) : section.insertBefore(element, reviewNotice), dispose: () => { coverage.dispose(); player.dispose(); } };
 }

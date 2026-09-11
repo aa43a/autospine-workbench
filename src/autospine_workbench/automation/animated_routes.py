@@ -27,7 +27,7 @@ def dispatch_animated(tail, handler, method, project_id):
         allowed = "GET, HEAD, OPTIONS"
     elif tail in (["preview"], ["review"], ["rebase"], ["complete-bindings"]) or (len(tail) == 3 and tail[0] == "jobs" and tail[2] == "cancel"):
         allowed = "POST, OPTIONS"
-    elif len(tail) == 3 and tail[0] == "jobs" and tail[2] == "download" \
+    elif len(tail) == 3 and tail[0] == "jobs" and tail[2] in {"download", "coverage"} \
             or len(tail) >= 4 and tail[0] == "jobs" and tail[2] == "files":
         allowed = "GET, HEAD, OPTIONS"
     if allowed is None:
@@ -81,6 +81,9 @@ def dispatch_animated(tail, handler, method, project_id):
                 handler._send_visual_json(200, manager.application.overview(project_id))
             elif len(tail) == 2:
                 handler._send_visual_json(200, manager.get(project_id, tail[1]))
+            elif tail[2] == "coverage":
+                from .character_coverage_reader import read_job_coverage
+                handler._send_visual_json(200, read_job_coverage(manager, project_id, tail[1]))
             elif tail[2] == "download":
                 raw = manager.download(project_id, tail[1])
                 handler._send_bytes(200, raw, "application/zip", visual_review=True,
