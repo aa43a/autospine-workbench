@@ -14,6 +14,9 @@ from .storage_io import read_document
 
 
 def build_character(application, sleeves, project_id, sleeve_job_id, *, progress=lambda value: None, cancel_requested=lambda: False):
+    if sleeve_job_id is None:
+        from .character_ordinary import build_ordinary
+        return build_ordinary(application,sleeves,project_id,progress=progress,cancel_requested=cancel_requested)
     def check(stage):
         if cancel_requested():
             raise PipelineRunError('character_build_canceled')

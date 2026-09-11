@@ -97,3 +97,16 @@ class CharacterJobsTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError,'artifact_invalid'):manager.review_file('sample',job['job_id'],['index.html'])
         self.info['source_addresses']['input_identity_sha256']='c'*64
         with self.assertRaisesRegex(RuntimeError,'preview_not_ready'):manager.review_file('sample',job['job_id'],['index.html'])
+
+    def test_ordinary_request_binds_route_revision_and_invalidates_after_change(self):
+        with patch('autospine_workbench.automation.character_jobs.route_source',return_value='d'*64) as route:
+            def build(*_,**kwargs):
+                sources=dict(self.info['source_addresses'],route_choice_sha256='d'*64)
+                digest=self.app.store.publish({'character-manifest.json':json.dumps({'source_addresses':sources}).encode()})
+                return {'artifact_sha256':digest,'manifest':{'layers':[],'animations':['limb-flex-15']}}
+            manager=self.manager(build);job=manager.submit('sample','a'*64,'b'*64,None)
+            self.assertEqual(self.terminal(manager,job)['status'],'needs_review')
+            self.assertTrue(manager.download('sample',job['job_id']).startswith(b'PK'))
+            route.return_value='e'*64
+            self.assertEqual(manager.get('sample',job['job_id'])['status'],'blocked')
+            with self.assertRaises(RuntimeError):manager.download('sample',job['job_id'])

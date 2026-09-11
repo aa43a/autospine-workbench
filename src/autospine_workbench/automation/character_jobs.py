@@ -15,6 +15,7 @@ from .animated_application import AnimatedApplication
 from .animated_input_index import inspect_registration
 from .character_composition import build_character
 from .character_capture import capture, review_name
+from .character_ordinary import route_source
 from .pipeline_run import PipelineRunError
 from .pipeline_run_validation import require_sha
 from .storage_io import directory, publish_document, read_document
@@ -42,6 +43,10 @@ class CharacterJobs:
         if info['source_addresses']['resolved_project_sha256'] != request['expected_resolved_sha256'] \
                 or info['source_addresses']['input_identity_sha256'] != request['expected_input_sha256']:
             raise PipelineRunError('project_snapshot_stale')
+        if request['sleeve_job_id'] is None:
+            digest=route_source(self.projects,self.sleeves,request['project_id'],request['expected_resolved_sha256'])
+            if digest!=request.get('route_choice_sha256'): raise PipelineRunError('character_route_changed')
+            return info
         job = self.sleeves.get(request['project_id'], request['sleeve_job_id'])
         if job['status'] != 'needs_review' or job.get('candidate_withdrawn'):
             raise PipelineRunError('character_sleeve_unavailable')
@@ -62,6 +67,9 @@ class CharacterJobs:
             if sleeve and sleeve['status'] == 'needs_review' and not sleeve.get('candidate_withdrawn'):
                 result.update(sleeve_job_id=sleeve['job_id'], can_build=any(
                     r['status']=='candidate_exported' for r in sleeve.get('result', {}).get('records', [])))
+            elif sleeve is None:
+                route_source(self.projects,self.sleeves,project,result['expected_resolved_sha256'])
+                result.update(can_build=True,mode='ordinary')
             if not result['can_build']: result['reason_code']='character_sleeve_unavailable'
         except (ValueError, RuntimeError) as exc:
             result['reason_code']=getattr(exc, 'reason_code', 'character_source_unavailable')
@@ -75,6 +83,8 @@ class CharacterJobs:
         require_safe_token(project, 'project'); require_sha(expected_resolved_sha256); require_sha(expected_input_sha256)
         request=dict(project_id=project, expected_resolved_sha256=expected_resolved_sha256,
                      expected_input_sha256=expected_input_sha256, sleeve_job_id=sleeve_job_id)
+        if sleeve_job_id is None:
+            request['route_choice_sha256']=route_source(self.projects,self.sleeves,project,expected_resolved_sha256)
         self._current(request)
         with self._lock:
             if self._closed: raise PipelineRunError('pipeline_manager_closed')
@@ -119,7 +129,8 @@ class CharacterJobs:
         manifest=json.loads(files['character-manifest.json']); sources=manifest['source_addresses']
         if sources['resolved_project_sha256']!=request['expected_resolved_sha256'] \
                 or sources['input_identity_sha256']!=request['expected_input_sha256'] \
-                or sources['sleeve_job_sha256']!=canonical_sha256(self.sleeves.get(project,request['sleeve_job_id'])):
+                or (request['sleeve_job_id'] is not None and sources.get('sleeve_job_sha256')!=canonical_sha256(self.sleeves.get(project,request['sleeve_job_id']))) \
+                or (request['sleeve_job_id'] is None and sources.get('route_choice_sha256')!=request['route_choice_sha256']):
             raise PipelineRunError('character_artifact_source_mismatch')
         output=BytesIO()
         with ZipFile(output,'w',compression=ZIP_STORED) as archive:

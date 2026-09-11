@@ -1,4 +1,4 @@
-"""Build a unified current character candidate from one explicit sleeve job."""
+"""Build a current character candidate from an explicit sleeve job or saved ordinary route."""
 import argparse
 import json
 from pathlib import Path
@@ -11,7 +11,7 @@ from autospine_workbench.automation.character_composition import build_character
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('project'); parser.add_argument('--sleeve-job', required=True)
+    parser.add_argument('project'); parser.add_argument('--sleeve-job')
     parser.add_argument('--workspace', type=Path, default=Path('..'))
     parser.add_argument('--state-root', type=Path, default=Path('workspace'))
     args = parser.parse_args()
