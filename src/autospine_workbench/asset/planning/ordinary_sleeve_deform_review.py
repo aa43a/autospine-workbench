@@ -42,13 +42,15 @@ def render(document, *, repair, source, draft, skeleton):
             index = len(payload)
             payload.append(dict(available=bool(tracks), triangles=row.get('triangles', []), tracks=tracks))
             name = escape(f"{row['layer_id']} / {row['component_id']} · {title}")
-            status = '离散姿态仍有失败或来源未就绪' if row['status'] == 'blocked' else '离散采样通过，连续时间与 Runtime 未验证'
+            failures = sum(t['failed_ticks'] for t in tracks)
+            status = (f'本侧离散检查：{failures} 个失败姿态' if tracks else '来源未就绪，无可用轨道')
             diagnostics = ''.join(f'<p>{escape(t["bone_id"])}：相邻修正增量 {t["max_adjacent_delta_px"]:.4f}px；'
                                   f'二阶差分 {t["max_second_difference_px"]:.4f}px</p>' for t in row['tracks']) if corrected else ''
             cards.append(f'<section class="card" data-row="{index}"><h2>{name}</h2><p>{status}</p>'
-                         f'<p>{escape("；".join(row["reason_codes"]))}</p>{diagnostics}'
-                         + ('<label>测试轨道 <select aria-label="测试轨道"></select></label>'
-                            '<p class="qa"></p><svg role="img" aria-label="普通袖修正对比"></svg>'
+                         '<details><summary>诊断与来源限制</summary>'
+                         f'<p>{escape("；".join(row["reason_codes"]))}</p>{diagnostics}</details>'
+                         + ('<div class="comparison-viewport"><label>测试轨道 <select aria-label="测试轨道"></select></label>'
+                            '<p class="qa"></p><svg role="img" aria-label="普通袖修正对比"></svg></div>'
                             if tracks else '<p>无可用轨道，保留阻塞区域。</p>') + '</section>')
     encoded = json.dumps(payload, ensure_ascii=False, allow_nan=False, separators=(',', ':')).replace('<', '\\u003c')
     sync = """
@@ -67,9 +69,12 @@ document.querySelectorAll('.card select').forEach(s=>s.addEventListener('change'
 """
     return ('<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
             '<title>普通袖离散修正对比</title><style>' + STYLE
-            + 'main{grid-template-columns:repeat(2,minmax(0,1fr))}@media(max-width:700px){main{grid-template-columns:1fr}}</style>'
+            + 'main{grid-template-columns:repeat(2,minmax(0,1fr))}.card{display:flex;flex-direction:column}'
+            '.comparison-viewport{margin-top:auto;padding-top:16px}.card details{margin-bottom:12px}'
+            '@media(max-width:700px){main{grid-template-columns:1fr}}</style>'
             '<header><h1>普通袖离散修正对比</h1><p>129 tick 检查，时间轴展示33个采样姿态。只显示几何，不绘制纹理。</p>'
-            '<p>修正增量和二阶差分是诊断值，不是连续性通过证明；尚未验证目标插值、接缝或官方Runtime。</p>'
+            '<p>本页仅展示离散几何诊断，不汇总后续验收。目标插值、接缝和官方 Runtime 的最新结果请查看工作台任务报告。</p>'
+            '<p>两侧同步切换轨道与时间，并使用相同画布尺度；修正增量和二阶差分不是连续性通过证明。</p>'
             f'<details><summary>修正来源</summary><p>{escape(document["profile"])}</p><p>{escape(document["repair_sha256"])}</p></details>'
             '<div class="controls"><button id="play">播放</button><button id="setup">初始姿态</button>'
             '<label>时间轴 <input id="time" type="range" min="0" max="32" value="0" step="1"></label><output id="clock"></output></div></header>'
