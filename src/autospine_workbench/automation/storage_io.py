@@ -3,7 +3,7 @@
 import json
 import os
 from pathlib import Path
-import tempfile
+from ..staging_file import create_staging_file
 
 from ..safe_input_files import read_real_file, strict_json_object
 from ..spine42_v3_bundle_files import existing_exact_child, require_real_directory
@@ -67,7 +67,10 @@ def publish_document(path, value, *, staging):
         raise PipelineRunError("pipeline_document_too_large")
     directory(path.parent)
     directory(staging, create=True)
-    descriptor, name = tempfile.mkstemp(prefix="pending-", dir=staging)
+    try:
+        descriptor, name = create_staging_file(staging)
+    except OSError as exc:
+        raise PipelineRunError("pipeline_storage_invalid") from exc
     temporary = Path(name)
     try:
         with os.fdopen(descriptor, "wb") as handle:

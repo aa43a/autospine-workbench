@@ -1,7 +1,7 @@
 """Bounded 16 MiB immutable mesh documents, without enlarging legacy journals."""
 import os
 from pathlib import Path
-import tempfile
+from ..staging_file import create_staging_file
 
 from ..automation.storage_io import canonical_bytes,directory
 from ..manifest_artifacts import require_safe_token,require_sha256
@@ -77,7 +77,7 @@ def _publish(path,doc):
         raise ValueError('mesh_storage_invalid')
     folder=directory(path.parent,create=True)
     staging=directory(folder/'.mesh-staging',create=True)
-    descriptor,name=tempfile.mkstemp(prefix='pending-',dir=staging)
+    descriptor,name=create_staging_file(staging)
     temporary=Path(name)
     try:
         with os.fdopen(descriptor,'wb') as stream:
