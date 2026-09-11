@@ -3,7 +3,7 @@ from ..http_json_request import read_json_object_request, HttpJsonRequestError
 from ..benchmark.artifacts import _folder
 from ..manifest_artifacts import require_sha256
 from .animated_inputs import load_inputs, _registrations, AnimatedSourceError
-from .head_binding_policy import propose
+from .foot_contact_policy import propose
 from .simple_binding_adoption import apply, undo, read_decision, KIND
 
 
