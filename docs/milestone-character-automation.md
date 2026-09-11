@@ -304,7 +304,10 @@ tools/assess-character-cohort.py读取工作台真实候选和精确Runtime文�
 
 小恶魔真实项目从已保存版本复用到 revision 4，candidate
 1c9143aa44323f68131c5a25e5e18b6a578d2b58e1c62673c6fb1640b61d4b19；
-新袖装任务 job-b1947eff9ed04184a809a15a571d378e 已提交，不能在任务完成前宣称其通过。
+新袖装任务 job-b1947eff9ed04184a809a15a571d378e 已完成重建、接触、重叠及framebuffer检查。
+随后整角色任务 job-0cd4c8213f6e4dbebad8ad3408bd68f3 完成32附件516帧官方及几何验证，
+最大顶点误差0.000117371px，库存241db06dd6d605741c8f87d808fdc6a4c20757cb97690df46af04421107428c7。
+这些是新候选的机器验证，未复用旧袖装视觉接受结论。
 37项后端/质量测试、537项Web测试通过。
 辉夜13项自动绑定后的整角色任务 job-1a1df10b5fb442c59e0eca27e5920fce 已完成903帧官方及几何验证，
 库存2f414414e2dc9dcd8596886d357fd4b28f4276f9958c48a4200c64d7679d20ba。
