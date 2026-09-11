@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "profile", "project_id", "repair_sha256", "source_sha256", "draft_sha256", "skeleton_sha256", "delta_space", "records", "authority", "production_authorized", "continuous_interpolation_status", "runtime_status"],
+  "properties": {
+    "schema": {"const": "autospine.ordinary-sleeve-deform/v1"},
+    "profile": {"const": "ordinary-world-delta129-budget-half-median-edge-projection48-v1"},
+    "project_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "repair_sha256": {"$ref": "#/$defs/sha"}, "source_sha256": {"$ref": "#/$defs/sha"},
+    "draft_sha256": {"$ref": "#/$defs/sha"}, "skeleton_sha256": {"$ref": "#/$defs/sha"},
+    "delta_space": {"const": "canvas-world-xy-top-left-y-down"},
+    "authority": {"const": "none"}, "production_authorized": {"const": false},
+    "continuous_interpolation_status": {"const": "not_evaluated"}, "runtime_status": {"const": "not_evaluated"},
+    "records": {"type": "array", "items": {"oneOf": [{"$ref": "#/$defs/region"}, {"$ref": "#/$defs/unavailable"}]}}
+  },
+  "$defs": {
+    "sha": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "point": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number"}},
+    "nonnegative": {"type": "number", "minimum": 0},
+    "reasons": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "unavailable": {
+      "type": "object", "additionalProperties": false,
+      "required": ["layer_id", "component_id", "status", "reason_codes", "tracks"],
+      "properties": {"layer_id": {"type": "string"}, "component_id": {"type": "string"}, "status": {"const": "blocked"}, "reason_codes": {"$ref": "#/$defs/reasons"}, "tracks": {"const": []}}
+    },
+    "region": {
+      "type": "object", "additionalProperties": false,
+      "required": ["layer_id", "component_id", "status", "reason_codes", "bone_ids", "setup_vertices", "triangles", "weights", "budget_px", "tracks"],
+      "properties": {
+        "layer_id": {"type": "string"}, "component_id": {"type": "string"},
+        "status": {"enum": ["blocked", "candidate_requires_review"]}, "reason_codes": {"$ref": "#/$defs/reasons"},
+        "bone_ids": {"type": "array", "minItems": 3, "maxItems": 3, "uniqueItems": true, "items": {"type": "string"}},
+        "setup_vertices": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/point"}},
+        "triangles": {"type": "array", "minItems": 1, "items": {"type": "array", "minItems": 3, "maxItems": 3, "uniqueItems": true, "items": {"type": "integer", "minimum": 0}}},
+        "weights": {"type": "array", "minItems": 1, "items": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "object", "additionalProperties": false, "required": ["bone_id", "weight", "local_xy"], "properties": {"bone_id": {"type": "string"}, "weight": {"type": "number", "minimum": 0, "maximum": 1}, "local_xy": {"$ref": "#/$defs/point"}}}}},
+        "budget_px": {"type": "number", "exclusiveMinimum": 0},
+        "tracks": {"type": "array", "minItems": 4, "maxItems": 4, "items": {"$ref": "#/$defs/track"}}
+      }
+    },
+    "key": {
+      "type": "object", "additionalProperties": false, "required": ["tick", "time", "offsets"],
+      "properties": {
+        "tick": {"type": "integer", "minimum": 0, "maximum": 128}, "time": {"type": "number", "minimum": 0, "maximum": 2},
+        "offsets": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["vertex_id", "delta_xy"], "properties": {"vertex_id": {"type": "integer", "minimum": 0}, "delta_xy": {"$ref": "#/$defs/point"}}}}
+      }
+    },
+    "track": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bone_id", "drivers", "amplitudes", "keys", "before_qa", "qa", "failed_ticks", "corrected_ticks", "max_offset_px", "max_adjacent_delta_px", "max_second_difference_px", "loop_error", "setup_error", "setup_exact", "loop_exact", "previously_passed_preserved", "protected_vertices_preserved"],
+      "properties": {
+        "bone_id": {"enum": ["forearm", "hand", "combined_same", "combined_opposed"]},
+        "drivers": {"type": "array", "minItems": 2, "maxItems": 2, "uniqueItems": true, "items": {"type": "string"}}, "amplitudes": {"$ref": "#/$defs/point"},
+        "keys": {"type": "array", "minItems": 129, "maxItems": 129, "items": {"$ref": "#/$defs/key"}},
+        "before_qa": {"$ref": "#/$defs/qa_list"}, "qa": {"$ref": "#/$defs/qa_list"},
+        "failed_ticks": {"type": "integer", "minimum": 0, "maximum": 129}, "corrected_ticks": {"type": "integer", "minimum": 0, "maximum": 129},
+        "max_offset_px": {"$ref": "#/$defs/nonnegative"}, "max_adjacent_delta_px": {"$ref": "#/$defs/nonnegative"}, "max_second_difference_px": {"$ref": "#/$defs/nonnegative"},
+        "loop_error": {"$ref": "#/$defs/nonnegative"}, "setup_error": {"$ref": "#/$defs/nonnegative"},
+        "setup_exact": {"type": "boolean"}, "loop_exact": {"type": "boolean"}, "previously_passed_preserved": {"type": "boolean"}, "protected_vertices_preserved": {"type": "boolean"}
+      }
+    },
+    "qa_list": {"type": "array", "minItems": 129, "maxItems": 129, "items": {"$ref": "ordinary-sleeve-motion-v1.schema.json#/$defs/qa"}}
+  }
+}
