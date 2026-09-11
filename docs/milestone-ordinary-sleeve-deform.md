@@ -150,3 +150,13 @@ Windows写权限拒绝与access(W_OK)结果不一致时，标准临时文件实�
 候选 `4b2cc28d2cb84bb9c6f25fabc0e1bb4dbe5b1c83098c8ab307bc899dcfcc8a84`。
 工作台annotation/view返回200并提供保存桥接。尚待用户确认/保存具体归属，
 不得将入口准备成功或视觉选样当作独立算法验证通过。
+
+小恶魔r2已由用户保存，草稿地址 `901048fc45623f69817e7fd3d1093adb2af7ccf2cbca80cc9d35c8945efb9740`。
+layer-003归属为sleeve332/cuff34/hand41/unknown61；layer-004为308/41/35/84。
+按既有策略执行任务 `job-60cef3d477614241843b4c4206e1e54e`，
+run `run-19f72682ffc107924ff0a875a67b88b9ec004212425ca669e8898e8d7045a60f`。
+两侧均存在ownership_review_required，未修正权重另记录partition_deformation_qa_failed；
+repair在来源复核门禁处保留阻塞，不把未知归属改成袖布或垂布。
+最终无可导出区域、alpha_contact_status=not_evaluated、runtime_status=core_incomplete。
+运行阶段回执成功仅证明生成了阻塞报告，不能作为实际Runtime播放证据。
+需定位剩余unknown的可见性与归属，不能要求用户为了验收强行猜测全部未知区域。
