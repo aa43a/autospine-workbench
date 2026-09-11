@@ -21,6 +21,7 @@ def dispatch_character(tail,handler,method,project):
     if len(tail)==2 and tail[0]=='jobs': allowed='GET, HEAD, OPTIONS'
     if len(tail)==3 and tail[0]=='jobs' and tail[2]=='download': allowed='GET, HEAD, OPTIONS'
     if len(tail)==3 and tail[0]=='jobs' and tail[2]=='cancel': allowed='POST, OPTIONS'
+    if len(tail)>=4 and tail[0]=='jobs' and tail[2]=='view': allowed='GET, HEAD, OPTIONS'
     if allowed is None:
         _error(handler,404,'pipeline_route_not_found'); return True
     if method=='OPTIONS' or method not in allowed.split(', '):
@@ -41,6 +42,9 @@ def dispatch_character(tail,handler,method,project):
             handler._send_visual_json(202,value)
         elif not tail: handler._send_visual_json(200,manager.overview(project))
         elif len(tail)==2: handler._send_visual_json(200,manager.get(project,tail[1]))
+        elif tail[2]=='view':
+            raw,mime=manager.review_file(project,tail[1],tail[3:])
+            handler._send_bytes(200,raw,mime,visual_review=True)
         else:
             handler._send_bytes(200,manager.download(project,tail[1]),'application/zip',visual_review=True,
                                extra_headers={'Content-Disposition':'attachment; filename="character-spine-candidate.zip"'})

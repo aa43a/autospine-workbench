@@ -14,6 +14,7 @@ from ..resolved_project import canonical_sha256
 from .animated_application import AnimatedApplication
 from .animated_input_index import inspect_registration
 from .character_composition import build_character
+from .character_capture import capture, review_name
 from .pipeline_run import PipelineRunError
 from .pipeline_run_validation import require_sha
 from .storage_io import directory, publish_document, read_document
@@ -23,9 +24,10 @@ ACTIVE = {'pending', 'running'}
 
 
 class CharacterJobs:
-    def __init__(self, projects, sleeves, *, application=None, builder=build_character):
+    def __init__(self, projects, sleeves, *, application=None, builder=build_character, capturer=capture):
         self.projects = projects; self.sleeves = sleeves
         self.application = application or AnimatedApplication(projects); self.builder = builder
+        self.capturer = capturer
         self.root = Path(projects.state_root) / 'jobs/character-web-v1'
         self._lock = RLock(); self._active = {}; self._closed = False
         self._pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix='character-build')
@@ -125,6 +127,22 @@ class CharacterJobs:
         self._current(request)
         return output.getvalue()
 
+    def review_file(self, project, job, parts):
+        from hashlib import sha256
+        result=self.get(project,job)
+        if result['status']!='needs_review': raise PipelineRunError('pipeline_preview_not_ready')
+        name=review_name('/'.join(parts))
+        expected=result.get('runtime',{}).get('files',{}).get(name)
+        if not expected: raise PipelineRunError('pipeline_artifact_not_found')
+        path=self._path(job)/'runtime'/name
+        if path.is_symlink() or not path.resolve().is_relative_to((self._path(job)/'runtime').resolve()):
+            raise PipelineRunError('pipeline_artifact_invalid')
+        raw=path.read_bytes()
+        if sha256(raw).hexdigest()!=expected: raise PipelineRunError('pipeline_artifact_invalid')
+        mime={'.html':'text/html; charset=utf-8','.json':'application/json','.png':'image/png'}.get(path.suffix)
+        if not mime: raise PipelineRunError('pipeline_artifact_not_found')
+        return raw,mime
+
     def _execute(self, job):
         with self._lock:
             active=self._active[job]; active['response']['status']='running'
@@ -136,8 +154,11 @@ class CharacterJobs:
             result=self.builder(self.application,self.sleeves,request['project_id'],request['sleeve_job_id'],
                                 progress=progress,cancel_requested=active['cancel'].is_set)
             self._current(request)
+            runtime=self.capturer(self.projects,self.application.store,result['artifact_sha256'],self._path(job),
+                                  progress=progress,cancel_requested=active['cancel'].is_set)
+            self._current(request)
             response.update(status='needs_review',stage='review',artifact_sha256=result['artifact_sha256'],
-                            layers=result['manifest']['layers'],animations=result['manifest']['animations'])
+                            layers=result['manifest']['layers'],animations=result['manifest']['animations'],runtime=runtime)
         except Exception as exc:
             reason=getattr(exc,'reason_code',str(exc))
             if not re.fullmatch(r'[a-z][a-z0-9_]{0,99}',reason): reason='character_build_failed'

@@ -41,3 +41,12 @@ test('late response from previous project cannot restore its download',async()=>
   assert.equal(f.download.hidden,true);assert.equal(f.timers.size,0);
   assert.equal(f.details.hidden,true);assert.equal(f.build.disabled,true);f.view.dispose();
 });
+
+test('verified report links track current job and hide on unsaved edits',async()=>{
+  const current=job();current.runtime={files:{'index.html':'a','setup/index.html':'b'}};
+  const f=fixture(async()=>overview(current));f.view.sync();await flush();
+  const [runtime,setup]=f.view.element.children.slice(-2);
+  assert.equal(runtime.hidden,false);assert.match(setup.attrs.href,/\/view\/setup\/index.html$/);
+  f.context.dirty=true;f.view.sync();assert.equal(runtime.hidden,true);assert.equal(setup.attrs.href,undefined);
+  f.view.dispose();
+});

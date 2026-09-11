@@ -33,7 +33,8 @@ class CharacterJobsTests(unittest.TestCase):
         return {'artifact_sha256':digest,'manifest':{'layers':[],'animations':['flex']}}
 
     def manager(self,builder=None):
-        manager=CharacterJobs(self.projects,self.sleeves,application=self.app,builder=builder or self.builder)
+        manager=CharacterJobs(self.projects,self.sleeves,application=self.app,builder=builder or self.builder,
+                              capturer=lambda *_,**kw: {'status':'unavailable'})
         self.addCleanup(manager.close);return manager
 
     def submit(self,manager):return manager.submit('sample','a'*64,'b'*64,'sleeve-job')
@@ -81,3 +82,18 @@ class CharacterJobsTests(unittest.TestCase):
         result['artifact_sha256']=wrong;path.write_bytes(canonical_bytes(result))
         with self.assertRaisesRegex(RuntimeError,'artifact_source'):manager.download('sample',job['job_id'])
         path.unlink();self.assertEqual(manager.get('sample',job['job_id'])['reason_code'],'character_build_interrupted')
+
+    def test_runtime_review_is_inventory_bound_and_invalidated(self):
+        from hashlib import sha256
+        manager=self.manager()
+        def capture(*args,**kwargs):
+            root=args[3]/'runtime';root.mkdir();raw=b'<p>bounded candidate</p>'
+            (root/'index.html').write_bytes(raw)
+            return {'status':'needs_review','files':{'index.html':sha256(raw).hexdigest()}}
+        manager.capturer=capture;job=self.submit(manager);self.terminal(manager,job)
+        self.assertEqual(manager.review_file('sample',job['job_id'],['index.html'])[0],b'<p>bounded candidate</p>')
+        with self.assertRaises(RuntimeError):manager.review_file('sample',job['job_id'],['capture-0.log'])
+        (manager._path(job['job_id'])/'runtime/index.html').write_bytes(b'tampered')
+        with self.assertRaisesRegex(RuntimeError,'artifact_invalid'):manager.review_file('sample',job['job_id'],['index.html'])
+        self.info['source_addresses']['input_identity_sha256']='c'*64
+        with self.assertRaisesRegex(RuntimeError,'preview_not_ready'):manager.review_file('sample',job['job_id'],['index.html'])
