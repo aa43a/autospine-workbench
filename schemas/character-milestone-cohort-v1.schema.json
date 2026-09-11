@@ -1,0 +1,13 @@
+{
+ "$schema":"https://json-schema.org/draft/2020-12/schema","type":"object","additionalProperties":false,
+ "required":["schema","cohort_id","purpose","required_animations","characters","first_ten_manifest","authority"],
+ "properties":{
+  "schema":{"const":"autospine.character-milestone-cohort/v1"},"cohort_id":{"type":"string","minLength":1},
+  "purpose":{"const":"development_integration_not_independent_holdout"},"authority":{"const":"none"},
+  "first_ten_manifest":{"type":"string"},"required_animations":{"const":["idle","wave-left","walk"]},
+  "characters":{"type":"array","minItems":3,"maxItems":3,"items":{"type":"object","additionalProperties":false,
+   "required":["name","project_id","structure","original_split"],"properties":{"name":{"type":"string"},"project_id":{"type":"string"},
+    "structure":{"enum":["ordinary_limbs","ordinary_sleeve_repair","wide_sleeve_repair"]},
+    "original_split":{"enum":["development","visible","reserve"]}}}}
+ }
+}

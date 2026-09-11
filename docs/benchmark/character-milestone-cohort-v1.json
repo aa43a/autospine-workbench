@@ -1,0 +1,13 @@
+{
+  "schema": "autospine.character-milestone-cohort/v1",
+  "cohort_id": "whole-character-development-three-v1",
+  "purpose": "development_integration_not_independent_holdout",
+  "required_animations": ["idle", "wave-left", "walk"],
+  "characters": [
+    {"name": "红美铃", "project_id": "imported-885b4d3d22ee151a0364ac499a419b8bd0e59699a7b27ee4f65f007eee551590", "structure": "ordinary_limbs", "original_split": "reserve"},
+    {"name": "小恶魔", "project_id": "imported-2c2b45ec951d8e890be5d01751dc0ababbd451a96c45c75bd333b92f0fcda17a", "structure": "ordinary_sleeve_repair", "original_split": "reserve"},
+    {"name": "辉夜", "project_id": "huiye", "structure": "wide_sleeve_repair", "original_split": "visible"}
+  ],
+  "first_ten_manifest": "docs/benchmark/manifest-frozen-v1.json",
+  "authority": "none"
+}

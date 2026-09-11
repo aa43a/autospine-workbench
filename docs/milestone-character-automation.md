@@ -271,3 +271,14 @@ Schema为character-visual-review-v1；12项后端/质量与536项Web测试通过
 合计515帧官方捕获通过，最大顶点误差0.000133748px。wave第128帧已检查。
 库存5ea2b18b154fcf244d62063da87c2eb3d8d07fec1198bc9a3540aeaa63293a04。
 整角色接触/遮挡未据此自动批准；固定三角色、walk及十角色验收仍未完成。
+
+## 固定三结构开发验证组
+
+名单封存在docs/benchmark/character-milestone-cohort-v1.json：红美铃（普通肢体）、小恶魔（普通袖修复）、
+辉夜（宽袖修复）。这是开发整合组，不宣称独立holdout；原manifest-frozen-v1及十角色分组不变。
+tools/assess-character-cohort.py读取工作台真实候选和精确Runtime文件，固定三角色分母。
+完成要求包含idle/wave-left/walk、图层绑定、几何、Runtime和独立整角色视觉反馈；缺失项保留原因。
+复核耗时和错误自动采用率缺乏真实事件/独立标签时保持null，不编造百分比。
+辉夜任务job-7cab29708cc54fc996dea4d0968174a1：21层25附件、7条袖装诊断动作903帧官方及几何通过；
+库存55fa2406b33976f3de708ff17841519a0609baf8c7f43658353c0a4fba763420。
+这些诊断动作不替代目标idle/wave/walk，尚不计入完成角色数。
