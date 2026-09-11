@@ -233,3 +233,16 @@ Schema为character-visual-review-v1；12项后端/质量与536项Web测试通过
 新工作台捕获将deformation.json纳入Runtime文件库存，显示通过或超限数量；旧捕获显示未执行。
 红美铃现有27项、小恶魔4轨共128项动作/附件检查均通过。此处仍是现有诊断动作，
 不是idle、wave、walk通过率。14项后端/质量、536项Web测试通过。
+
+## 普通整角色接入冻结MotionIR idle
+
+普通路线新包profile为ordinary-motionir-idle-v1，复用motion_builtin中的原始idle，
+保留原limb-flex-15、骨架、权重与图层归属。附带原始MotionIR及摘要，参考长度沿用两腿最大运动链长度均值。
+转换setup-local旋转与根部平移坐标，独立计算129个固定时间样本交由官方Runtime逐顶点核对。
+旧ordinary-limb-flex-preserved-v1构造器及历史文件不改写。袖装包暂不自动加入该动作，
+因为其动作相关deform尚未完成此动作适配；wave和walk仍未交付。静态参考仍不计完成绑定。
+13项相关后端/工程质量测试和536项Web测试通过。
+红美铃任务job-938b0839681c4b72889e659563101fcc完成idle和limb-flex-15共258帧官方验证，
+最大顶点误差0.000119399px，采样几何通过；idle第64帧已检查。
+库存49d0d820072311d4226f0ed3b6251657060b185db3072a8a46e179d194d300c8。
+此结果不证明动态接触或所有源层完成绑定。

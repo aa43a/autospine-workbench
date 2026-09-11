@@ -36,6 +36,8 @@ def build_ordinary(application, sleeves, project, *, progress, cancel_requested)
     coverage=read_job_coverage(manager,project,'exact-run')['document']
     sources=dict(addresses,base_bundle_sha256=run['steps'][2]['outputs']['bundle_sha256'],route_choice_sha256=route)
     files=build_package(base,coverage,sources,checkpoint=lambda:check('compose'))
+    from ..targets.character43.idle_package import append_idle
+    files=append_idle(files,checkpoint=lambda:check('compose'))
     from .binding_provenance import attach_provenance
     files=attach_provenance(files,application.projects,project,addresses)
     assert_registered_current(application.projects,project,addresses)
