@@ -16,6 +16,9 @@ def manager_for(server):
 
 
 def dispatch_animated(tail, handler, method, project_id):
+    if tail[:1] == ['binding-policy']:
+        from .simple_binding_routes import dispatch
+        return dispatch(tail[1:], handler, method, project_id)
     if tail[:1] == ['preparation']:
         from .input_preparation_routes import dispatch_preparation
         return dispatch_preparation(tail[1:], handler, method, project_id)

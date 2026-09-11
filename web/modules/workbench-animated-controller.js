@@ -10,6 +10,7 @@ import { createAnimatedPreparation } from "./workbench-animated-preparation.js";
 import { createWorkbenchRigPlan } from "./workbench-rig-plan.js";
 import { createWorkbenchSleeves } from "./workbench-sleeves.js";
 import { createWorkbenchCharacter } from "./workbench-character.js";
+import { createBindingPolicy } from "./workbench-binding-policy.js";
 
 export function createWorkbenchAnimated(document, hooks, options = {}) {
   const schedule = options.schedule || setTimeout, unschedule = options.unschedule || clearTimeout;
@@ -17,7 +18,7 @@ export function createWorkbenchAnimated(document, hooks, options = {}) {
   let identity = null, projectId = null, generation = 0, serial = 0, timer = null, started = 0;
   let overview = null, job = null, clip = null, fetching = false, submitting = false, canceling = false;
   let error = null, intent = false, waiting = false, savingReview = false, bindingDirty = false, jointDirty = false;
-  let reviewNotice = "", rebasing = false, planning = false;
+  let reviewNotice = "", rebasing = false, planning = false, policyBusy = false;
   const view = options.view || createAnimatedView(document, { start, refresh, cancel, setClip, canDownload,
     saveReview, completeBindings, rebase, bindingChanged: (dirty) => { bindingDirty = dirty; render(); }, locate });
   const joints = document ? createAnimatedJoints(document, { ...hooks,
@@ -32,9 +33,12 @@ export function createWorkbenchAnimated(document, hooks, options = {}) {
   if (sleeves) (view.mountSleeves || view.mountPlan || view.mountJoint)(sleeves.element);
   const character = document ? createWorkbenchCharacter(document, { ...hooks, locate }) : null;
   if (character) view.mountCharacter(character.element);
+  const policy = document ? createBindingPolicy(document, { ...hooks, locate, saved: refresh,
+    busyChanged: (busy) => { policyBusy = busy; render(); } }) : null;
+  if (policy) view.mountPolicy?.(policy.element);
   const context = () => hooks.context();
   const current = (token) => token === generation && identity === projectIdentity(context());
-  const editable = () => !context().dirty && !context().saving && !context().loading && !planning;
+  const editable = () => !context().dirty && !context().saving && !context().loading && !planning && !policyBusy;
   const active = () => ACTIVE_JOBS.has(job?.status);
   function stop() { if (timer !== null) unschedule(timer); timer = null; }
   function canDownload() {
@@ -44,6 +48,7 @@ export function createWorkbenchAnimated(document, hooks, options = {}) {
   }
   function message() {
     if (!identity) return "请选择可用项目。";
+    if (policyBusy) return "正在处理自动绑定证据与决定…";
     if (planning) return "正在分析全角色绑定规划…";
     if (!editable()) return "请等待项目加载并保存未提交的校正。";
     if (error) return error;
@@ -72,13 +77,14 @@ export function createWorkbenchAnimated(document, hooks, options = {}) {
     inputIdentitySha: overview?.input_identity_sha256 || null,
     items: job?.run?.review_items || overview?.review_items || [], steps: job?.run?.steps || job?.progress || [], summary: job?.run?.summary,
     downloadUrl: base ? `${base}/download` : null, playbackUrl: base ? `${base}/files/playback.json` : null };
-    view.render(model); joints?.render(model); preparation?.sync(model); rigPlan?.sync(model); sleeves?.sync(model); character?.sync(model);
+    view.render(model); joints?.render(model); preparation?.sync(model); rigPlan?.sync(model); sleeves?.sync(model); character?.sync(model); policy?.sync(model);
   }
   function sync() {
     const next = projectIdentity(context());
     if (next !== identity) {
       const resume = projectId === context().projectId && intent && waiting;
       generation++; serial++; stop(); identity = next; projectId = context().projectId;
+      policyBusy = false;
       overview = null; job = null; error = null; reviewNotice = ""; fetching = submitting = canceling = savingReview = bindingDirty = jointDirty = rebasing = planning = false;
       intent = waiting = Boolean(resume);
       if (identity) void refresh();
@@ -236,6 +242,6 @@ export function createWorkbenchAnimated(document, hooks, options = {}) {
     await refresh();
     if (current(token) && joints) { joints.element.open = true; await joints.reload(); }
   }
-  function dispose() { generation++; stop(); view.dispose?.(); joints?.dispose(); preparation?.dispose(); rigPlan?.dispose(); sleeves?.dispose(); character?.dispose(); }
+  function dispose() { generation++; stop(); view.dispose?.(); joints?.dispose(); preparation?.dispose(); rigPlan?.dispose(); sleeves?.dispose(); character?.dispose(); policy?.dispose(); }
   return { sync, start, refresh, cancel, setClip, saveReview, completeBindings, rebase, locate, canDownload, dispose };
 }
