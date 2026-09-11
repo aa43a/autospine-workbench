@@ -246,3 +246,14 @@ Schema为character-visual-review-v1；12项后端/质量与536项Web测试通过
 最大顶点误差0.000119399px，采样几何通过；idle第64帧已检查。
 库存49d0d820072311d4226f0ed3b6251657060b185db3072a8a46e179d194d300c8。
 此结果不证明动态接触或所有源层完成绑定。
+
+## MotionIR wave可达性与整角色几何接入
+
+新增canonical-arm-motionir-wave-v1，复用冻结wave.left与已有两骨IK解算器，
+由pelvis/chest/双肩建立角色方向，保持setup肘弯曲分支并核对每个IK关键点端点。
+拒绝非轴向骨链、歧义弯曲、不可达目标及旋转分支跳变，不钳制目标来伪造成功。
+新普通包ordinary-motionir-wave-gated-v1仅在全部附件采样几何通过时加入wave-left。
+失败时保留原可播放动作，并在工作台及motion_readiness中显示阻塞和具体附件。
+原始MotionIR、IK证据和wave-deformation报告随库存保存；袖装动作适配仍未完成。
+红美铃目标全部可达，但layer-006有21帧面积比超限，最小0.3794（门槛0.5），
+首个失败0.328125秒；翻转0、最大边长伸展1.3579。wave仍blocked，不能计作动作验收通过。

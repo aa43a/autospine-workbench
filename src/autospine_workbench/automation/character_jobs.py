@@ -169,7 +169,8 @@ class CharacterJobs:
                                   progress=progress,cancel_requested=active['cancel'].is_set)
             self._current(request)
             response.update(status='needs_review',stage='review',artifact_sha256=result['artifact_sha256'],
-                            layers=result['manifest']['layers'],animations=result['manifest']['animations'],runtime=runtime)
+                            layers=result['manifest']['layers'],animations=result['manifest']['animations'],runtime=runtime,
+                            motion_readiness=result['manifest'].get('motion_readiness',[]))
         except Exception as exc:
             reason=getattr(exc,'reason_code',str(exc))
             if not re.fullmatch(r'[a-z][a-z0-9_]{0,99}',reason): reason='character_build_failed'

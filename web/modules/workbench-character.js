@@ -35,6 +35,7 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
     const reason=job?.reason_code||overview?.reason_code;
     status.textContent=error||(busy&&operation==="build"?"正在提交整角色构建…":!job&&busy?"正在请求…":job?`${STAGES[job.stage]||job.status}${reason?" · "+(REASONS[reason]||reason):""}`:REASONS[reason]||"可以构建整角色候选。");
     if(!error&&job?.status==="needs_review")status.textContent+=job.runtime?.geometry_status==='passed'?" · 采样网格检查通过":job.runtime?.geometry_status==='needs_changes'?` · ${job.runtime.geometry_failed_records} 项动作/附件变形超限，需修正`:" · 整角色网格检查尚未执行";
+    if(!error&&job?.status==="needs_review")for(const motion of job.motion_readiness||[])if(motion.status==='blocked')status.textContent+=` · ${motion.clip} 未输出：${motion.reason_code}${motion.failing_slots.length?'（'+motion.failing_slots.join('、')+'）':''}`;
     download.hidden=job?.status!=="needs_review"||dirty||(busy&&operation==="build");
     if(!download.hidden)download.setAttribute("href",`${endpoint()}/jobs/${job.job_id}/download`);else download.removeAttribute("href");
     for(const [link,file]of [[runtime,"index.html"],[setup,"setup/index.html"]]){
