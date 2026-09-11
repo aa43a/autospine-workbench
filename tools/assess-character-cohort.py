@@ -22,6 +22,7 @@ def main():
     def get(path):return json.loads(raw(path))
     cohort=json.loads(args.cohort.read_bytes());observations={}
     validate_cohort(cohort)
+    args.output.parent.mkdir(parents=True,exist_ok=True)
     for character in cohort['characters']:
         project=character['project_id'];base='/api/projects/'+quote(project,safe='')+'/automation/character'
         overview=get(base);job=overview.get('job');item=dict(job=job,reason_code=overview.get('reason_code'))
@@ -43,7 +44,6 @@ def main():
                 item['visual_review']=visual['review']
         observations[project]=item
     result=summarize(cohort,observations);result['cohort_sha256']=sha256(args.cohort.read_bytes()).hexdigest()
-    args.output.parent.mkdir(parents=True,exist_ok=True)
     args.output.write_bytes(canonical_bytes(result))
     print(json.dumps(result['metrics'],ensure_ascii=False))
 
