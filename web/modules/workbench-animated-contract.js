@@ -62,7 +62,7 @@ export function readAnimatedJob(value, context, expectedId = null) {
 }
 
 const REASONS = {
-  animated_binding_completion_invalid: "眼口候选升级未完成；请检查是否已有受影响的复核决定或来源不完整，原记录保持不变。",
+  animated_binding_completion_invalid: "简单绑定候选升级未完成；请检查来源是否完整，原复核记录保持不变。",
   animated_binding_profile_unsupported: "当前绑定候选版本不支持此更新，请保留来源并检查版本。",
   animated_source_missing: "尚无可用的骨架与绑定源，请先完成关节和结构准备。",
   animated_source_ambiguous: "存在多个可用绑定源，需要明确当前采用的项目来源。",

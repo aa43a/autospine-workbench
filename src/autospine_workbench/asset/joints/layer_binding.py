@@ -59,6 +59,9 @@ def build_layer_bindings(candidate, assisted, skeleton):
 
 
 def validate_layer_bindings(candidate, assisted, skeleton, document):
+    if type(document) is dict and document.get('profile') == 'rigid-detail-completion-v4':
+        from .rigid_completion import validate_completion
+        return validate_completion(candidate, assisted, skeleton, document)
     if type(document) is dict and document.get('profile') == 'rigid-name-completion-v3':
         from .binding_completion import validate_completion
         return validate_completion(candidate, assisted, skeleton, document)

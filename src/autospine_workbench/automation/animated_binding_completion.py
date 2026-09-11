@@ -1,5 +1,5 @@
 """Explicit, reversible candidate-profile upgrade; never a binding decision."""
-from ..asset.joints.binding_completion import PROFILE, build_completion, inherit_unchanged
+from ..asset.joints.rigid_completion import PROFILE, build_completion, inherit_unchanged
 from ..asset.joints.layer_binding import build_layer_bindings
 from ..benchmark.artifacts import read_report, publish_report
 from ..project_authoring_transaction import project_authoring_transaction
@@ -13,6 +13,9 @@ def rebuild_bindings(candidate, assisted, skeleton, previous):
     """Preserve the exact supported profile when downstream geometry changes."""
     if previous['profile'] == PROFILE:
         return build_completion(candidate, assisted, skeleton)
+    if previous['profile'] == 'rigid-name-completion-v3':
+        from ..asset.joints.binding_completion import build_completion as previous_completion
+        return previous_completion(candidate,assisted,skeleton)
     if previous['profile'] == 'rigid-or-limb-chain-v2':
         return build_layer_bindings(candidate, assisted, skeleton)
     raise AnimatedSourceError('animated_binding_profile_unsupported')
