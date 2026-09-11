@@ -13,7 +13,12 @@ from .pipeline_run import PipelineRunError
 from .storage_io import read_document
 
 
-def build_character(application, sleeves, project_id, sleeve_job_id):
+def build_character(application, sleeves, project_id, sleeve_job_id, *, progress=lambda value: None, cancel_requested=lambda: False):
+    def check(stage):
+        if cancel_requested():
+            raise PipelineRunError('character_build_canceled')
+        progress(stage)
+    check('resolve')
     info = inspect_registration(application.projects, project_id)
     request = read_document(sleeves._path(sleeve_job_id) / 'request.json')
     if request['project_id'] != project_id:
@@ -37,7 +42,9 @@ def build_character(application, sleeves, project_id, sleeve_job_id):
         components.append(dict(source_layer_id=row['layer_id'], files=files))
     if not components:
         raise PipelineRunError('character_no_exportable_sleeves')
-    run = application.preview(project_id, info['source_addresses']['resolved_project_sha256'], 'limb-flex-15')
+    check('base-preview')
+    run = application.preview(project_id, info['source_addresses']['resolved_project_sha256'], 'limb-flex-15', cancel_requested=cancel_requested)
+    check('compose')
     base = application.verified_files(project_id, run)
     scope = json.loads(base['preview-manifest.json'])
     if scope['source_addresses'] != info['source_addresses']:
@@ -53,11 +60,12 @@ def build_character(application, sleeves, project_id, sleeve_job_id):
     from .character_coverage_reader import read_job_coverage
     manager = SimpleNamespace(application=application, files=lambda *_: base, get=lambda *_: {'run':run})
     coverage = read_job_coverage(manager, project_id, 'exact-run')['document']
-    files = compose_package(base, components, info['candidate'], skeleton, addresses, coverage)
+    files = compose_package(base, components, info['candidate'], skeleton, addresses, coverage, checkpoint=lambda: check('compose'))
     assert_registered_current(application.projects, project_id, info['source_addresses'])
     sleeves._assert_current(request)
     if sleeves.get(project_id, sleeve_job_id) != job:
         raise PipelineRunError('character_sleeve_job_changed')
+    check('publish')
     artifact = application.store.publish(files)
     verified = application.store.read(artifact)
     if verified != files:

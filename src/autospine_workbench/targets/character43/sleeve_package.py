@@ -34,7 +34,7 @@ def subtract_components(original, components):
     return png('RGBA', size, bytes(output)), residual, size
 
 
-def compose_package(base_files, components, candidate, skeleton, source_addresses, base_coverage):
+def compose_package(base_files, components, candidate, skeleton, source_addresses, base_coverage, *, checkpoint=lambda: None):
     """Components carry verified export files and explicit source-layer ownership."""
     base = json.loads(base_files['skeleton.json'])
     files = dict(base_files)
@@ -84,6 +84,8 @@ def compose_package(base_files, components, candidate, skeleton, source_addresse
         for donor in documents:
             value = deepcopy(donor); value['animations'] = {track: donor['animations'][track]}; isolated.append(value)
         for tick in range(129):
+            if tick % 16 == 0:
+                checkpoint()
             actual = world(whole, tick/64)
             reference[track].append(dict(time=tick/64, vertices=actual))
             if tick == 0:

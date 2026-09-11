@@ -90,5 +90,6 @@ export function createAnimatedView(document, callbacks) {
     mountJoint: (element) => layout ? layout.mount("joints", element) : section.append(element),
     mountPlan: (element) => { if (layout) { layout.mount("plan", element); element.open = true; } else section.append(element); },
     mountSleeves: (element) => layout ? layout.mount("sleeves", element) : section.prepend(element),
+    mountCharacter: (element) => section.prepend(element),
     mountPreparation: (element) => layout ? layout.mount("preparation", element) : section.insertBefore(element, reviewNotice), dispose: () => { coverage.dispose(); player.dispose(); } };
 }

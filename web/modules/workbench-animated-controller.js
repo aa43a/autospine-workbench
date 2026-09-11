@@ -9,6 +9,7 @@ import { readAnimatedRebase } from "./workbench-animated-rebase.js";
 import { createAnimatedPreparation } from "./workbench-animated-preparation.js";
 import { createWorkbenchRigPlan } from "./workbench-rig-plan.js";
 import { createWorkbenchSleeves } from "./workbench-sleeves.js";
+import { createWorkbenchCharacter } from "./workbench-character.js";
 
 export function createWorkbenchAnimated(document, hooks, options = {}) {
   const schedule = options.schedule || setTimeout, unschedule = options.unschedule || clearTimeout;
@@ -29,6 +30,8 @@ export function createWorkbenchAnimated(document, hooks, options = {}) {
   if (rigPlan) (view.mountPlan || view.mountJoint)(rigPlan.element);
   const sleeves = document ? createWorkbenchSleeves(document, hooks) : null;
   if (sleeves) (view.mountSleeves || view.mountPlan || view.mountJoint)(sleeves.element);
+  const character = document ? createWorkbenchCharacter(document, { ...hooks, locate }) : null;
+  if (character) view.mountCharacter(character.element);
   const context = () => hooks.context();
   const current = (token) => token === generation && identity === projectIdentity(context());
   const editable = () => !context().dirty && !context().saving && !context().loading && !planning;
@@ -69,7 +72,7 @@ export function createWorkbenchAnimated(document, hooks, options = {}) {
     inputIdentitySha: overview?.input_identity_sha256 || null,
     items: job?.run?.review_items || overview?.review_items || [], steps: job?.run?.steps || job?.progress || [], summary: job?.run?.summary,
     downloadUrl: base ? `${base}/download` : null, playbackUrl: base ? `${base}/files/playback.json` : null };
-    view.render(model); joints?.render(model); preparation?.sync(model); rigPlan?.sync(model); sleeves?.sync(model);
+    view.render(model); joints?.render(model); preparation?.sync(model); rigPlan?.sync(model); sleeves?.sync(model); character?.sync(model);
   }
   function sync() {
     const next = projectIdentity(context());
@@ -233,6 +236,6 @@ export function createWorkbenchAnimated(document, hooks, options = {}) {
     await refresh();
     if (current(token) && joints) { joints.element.open = true; await joints.reload(); }
   }
-  function dispose() { generation++; stop(); view.dispose?.(); joints?.dispose(); preparation?.dispose(); rigPlan?.dispose(); sleeves?.dispose(); }
+  function dispose() { generation++; stop(); view.dispose?.(); joints?.dispose(); preparation?.dispose(); rigPlan?.dispose(); sleeves?.dispose(); character?.dispose(); }
   return { sync, start, refresh, cancel, setClip, saveReview, completeBindings, rebase, locate, canDownload, dispose };
 }
