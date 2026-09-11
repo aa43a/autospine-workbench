@@ -29,6 +29,11 @@ def summarize(cohort,observations):
         layers=job.get('layers',[])
         unresolved=[r['layer_id'] for r in layers if r['state'] not in {'rigid_reviewed','weighted_candidate','excluded','not_visible'}
                     or r.get('binding_decision',{}).get('decision_source')=='pending']
+        stale_auto=[r['layer_id'] for r in layers
+                    if r.get('binding_decision',{}).get('decision_source')=='policy_auto'
+                    and r['binding_decision'].get('evidence_current') is not True]
+        unresolved=sorted(set(unresolved+stale_auto))
+        if stale_auto:reasons.append('automatic_binding_evidence_stale')
         if not layers:reasons.append('layer_inventory_missing')
         if unresolved:reasons.append('layer_binding_incomplete')
         review=observed.get('visual_review')
@@ -36,7 +41,7 @@ def summarize(cohort,observations):
         if not visual:reasons.append('whole_character_visual_review_required')
         rows.append(dict(project_id=character['project_id'],name=character['name'],job_id=job.get('job_id'),
                          artifact_sha256=job.get('artifact_sha256'),completed=not reasons,reason_codes=reasons,
-                         missing_animations=missing,unresolved_layers=unresolved,runtime_measured=runtime is not None,
+                         missing_animations=missing,unresolved_layers=unresolved,stale_auto_layers=stale_auto,runtime_measured=runtime is not None,
                          runtime_passed=runtime_passed,visual_accepted=visual))
     measured=[r for r in rows if r['runtime_measured']];passed=sum(r['completed'] for r in rows)
     return dict(schema='autospine.character-cohort-assessment/v1',cohort_id=cohort['cohort_id'],authority='none',

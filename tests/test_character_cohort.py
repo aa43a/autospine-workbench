@@ -34,3 +34,13 @@ class CohortTests(unittest.TestCase):
         self.assertEqual(summarize(c,o)['characters'][0]['missing_animations'],['idle','walk','wave-left'])
         o.pop('b')
         with self.assertRaisesRegex(ValueError,'inventory'):summarize(c,o)
+
+    def test_automatic_binding_requires_current_evidence_even_with_green_runtime(self):
+        c,o=self.fixture()
+        for value in (False, None, 'true', True):
+            o['a']=self.complete()
+            o['a']['job']['layers'][0]['binding_decision']=dict(decision_source='policy_auto', evidence_current=value)
+            row=summarize(c,o)['characters'][0]
+            self.assertEqual(row['completed'], value is True)
+            self.assertEqual(row['stale_auto_layers'], [] if value is True else ['arm'])
+            if value is not True:self.assertIn('automatic_binding_evidence_stale', row['reason_codes'])

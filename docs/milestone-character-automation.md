@@ -312,3 +312,14 @@ tools/assess-character-cohort.py读取工作台真实候选和精确Runtime文�
 辉夜13项自动绑定后的整角色任务 job-1a1df10b5fb442c59e0eca27e5920fce 已完成903帧官方及几何验证，
 库存2f414414e2dc9dcd8596886d357fd4b28f4276f9958c48a4200c64d7679d20ba。
 全角色视觉复核、未完成区域及目标多动作仍保留验收要求。
+
+## 小恶魔简单头部附件接入
+
+通过既有 complete-bindings 将候选升级到 rigid-detail-completion-v4，新增15个选项，原有选择与备注保留。
+现有证据策略采用10个眉、眼、鼻、口附件，决定
+e02d69685b54383f651f87321e40bd432da0e48e0855ff265ad9a68a544397b0。
+耳朵、头饰等未满足证据规则，仍待复核。袖装标注复用到revision 5，无需重复绘制；
+新袖装任务 job-ed36f3b0de5b448cb67adc013ded0ecc 进入重建，尚不能计作新Runtime通过。
+候选升级后旧头颈自动决定的证据已过期，保留原决定但需重新校验。
+固定角色验收新增 automatic_binding_evidence_stale，列出具体图层；旧Runtime通过不能绕过此门槛。
+7项验收与工程质量测试通过。
