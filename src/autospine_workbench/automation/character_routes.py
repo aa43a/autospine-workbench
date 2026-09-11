@@ -21,6 +21,7 @@ def dispatch_character(tail,handler,method,project):
     if len(tail)==2 and tail[0]=='jobs': allowed='GET, HEAD, OPTIONS'
     if len(tail)==3 and tail[0]=='jobs' and tail[2]=='download': allowed='GET, HEAD, OPTIONS'
     if len(tail)==3 and tail[0]=='jobs' and tail[2]=='cancel': allowed='POST, OPTIONS'
+    if len(tail)==3 and tail[0]=='jobs' and tail[2]=='visual-review': allowed='GET, HEAD, POST, OPTIONS'
     if len(tail)>=4 and tail[0]=='jobs' and tail[2]=='view': allowed='GET, HEAD, OPTIONS'
     if allowed is None:
         _error(handler,404,'pipeline_route_not_found'); return True
@@ -31,17 +32,23 @@ def dispatch_character(tail,handler,method,project):
         manager=manager_for(handler.server)
         if method=='POST':
             _require_mutation(handler.headers)
-            body=read_json_object_request(handler,maximum_bytes=2048)
+            body=read_json_object_request(handler,maximum_bytes=16384)
             if not tail:
                 if set(body)!={'expected_resolved_sha256','expected_input_sha256','sleeve_job_id'}:
                     raise PipelineRunError('pipeline_request_invalid')
                 value=manager.submit(project,**body)
+            elif tail[2]=='visual-review':
+                from .character_visual_review import save
+                value=save(manager,project,tail[1],body)
             else:
                 if body: raise PipelineRunError('pipeline_request_invalid')
                 value=manager.cancel(project,tail[1])
             handler._send_visual_json(202,value)
         elif not tail: handler._send_visual_json(200,manager.overview(project))
         elif len(tail)==2: handler._send_visual_json(200,manager.get(project,tail[1]))
+        elif tail[2]=='visual-review':
+            from .character_visual_review import overview
+            handler._send_visual_json(200,overview(manager,project,tail[1]))
         elif tail[2]=='view':
             raw,mime=manager.review_file(project,tail[1],tail[3:])
             handler._send_bytes(200,raw,mime,visual_review=True)
@@ -52,7 +59,7 @@ def dispatch_character(tail,handler,method,project):
     except (OSError,RuntimeError,ValueError,TypeError,KeyError) as exc:
         reason=getattr(exc,'reason_code','character_request_failed')
         status=403 if reason in {'forbidden_origin','forbidden_intent'} else 409 if reason in {
-            'project_snapshot_stale','pipeline_preview_not_ready','character_source_changed'} else 404 if reason in {
+            'project_snapshot_stale','pipeline_preview_not_ready','character_source_changed','character_review_conflict'} else 404 if reason in {
             'pipeline_job_not_found','project_not_found'} else 400
         _error(handler,status,reason)
     return True

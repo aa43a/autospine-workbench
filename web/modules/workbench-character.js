@@ -1,5 +1,6 @@
 "use strict";
 import { projectIdentity } from "./workbench-automation-contract.js";
+import { createCharacterReview } from "./workbench-character-review.js";
 const ACTIVE = new Set(["pending", "running"]);
 const STAGES = {resolve:"核对来源", "base-preview":"准备整角色基础", compose:"合并袖装与校验动作", publish:"封存候选", runtime:"官方 Runtime 渲染与 setup 对照", review:"等待整角色复核"};
 const STATES = {weighted_candidate:"加权候选",rigid_reviewed:"刚性跟随",static_reference:"静态参考",partial:"部分处理",missing:"未输出",excluded:"已排除",not_visible:"不可见"};
@@ -22,6 +23,7 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
   element.append(node("h3","整角色候选"),node("p","按当前路线构建整角色，并合并已有袖装修正；保留未处理图层与残余，生成 Runtime 与 setup 复核报告。"),actions,status,download,detail);
   const runtime=node("a","查看整角色 Runtime"),setup=node("a","查看源图 / setup 对照");
   for(const link of [runtime,setup]){link.className="button button-secondary";link.target="_blank";link.rel="noopener";element.append(link);}
+  const visualReview=createCharacterReview(document,hooks);element.append(visualReview.element);
   let identity=null,generation=0,overview=null,job=null,busy=false,error="",timer=null,polls=0,operation="";
   const schedule=options.setTimeout||setTimeout,clear=options.clearTimeout||clearTimeout;
   const context=()=>hooks.context(),endpoint=()=>`/api/projects/${encodeURIComponent(context().projectId)}/automation/character`;
@@ -39,6 +41,7 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
       if(link.hidden)link.removeAttribute("href");else link.setAttribute("href",`${endpoint()}/jobs/${job.job_id}/view/${file}`);
     }
     const layers=job?.status==="needs_review"?job.layers||[]:[];
+    visualReview.sync(job?.status==="needs_review"&&job.runtime?.files?.['report.json']?job:null,!dirty&&!busy&&!active);
     summary.textContent=`全部图层状态 · ${layers.length}`;detail.hidden=!layers.length;
     list.replaceChildren(...layers.map(layer=>{const row=node("li"),b=node("button",`${layer.name} · ${STATES[layer.state]||layer.state}`);b.type="button";
       b.addEventListener("click",()=>hooks.locate?.({layer_id:layer.layer_id,type:"binding"}));row.append(b);
@@ -68,5 +71,5 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
   }
   build.addEventListener("click",()=>void request("build"));refresh.addEventListener("click",()=>void request());cancel.addEventListener("click",()=>void request("cancel"));
   return {element,sync(){const next=projectIdentity(context());if(next!==identity){generation++;stop();identity=next;overview=job=null;busy=false;error="";polls=0;if(identity)void request();}render();},
-    dispose(){generation++;stop();},refresh:()=>request()};
+    dispose(){generation++;stop();visualReview.dispose();},refresh:()=>request()};
 }

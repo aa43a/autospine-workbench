@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "project_id", "job_id", "artifact_sha256", "runtime_sha256", "previous_sha256", "revision", "decision_source", "authority", "production_authorized", "aspects", "notes"],
+  "properties": {
+    "schema": {"const": "autospine.character-visual-review/v1"},
+    "project_id": {"type": "string"}, "job_id": {"type": "string"},
+    "artifact_sha256": {"$ref": "#/$defs/sha"}, "runtime_sha256": {"$ref": "#/$defs/sha"},
+    "previous_sha256": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/sha"}]},
+    "revision": {"type": "integer", "minimum": 0},
+    "decision_source": {"const": "human_review"}, "authority": {"const": "none"},
+    "production_authorized": {"const": false}, "notes": {"type": "string", "maxLength": 2000},
+    "aspects": {"type": "object", "additionalProperties": false,
+      "required": ["setup", "draw_order", "connections", "motion"],
+      "properties": {"setup": {"$ref": "#/$defs/verdict"}, "draw_order": {"$ref": "#/$defs/verdict"},
+        "connections": {"$ref": "#/$defs/verdict"}, "motion": {"$ref": "#/$defs/verdict"}}}
+  },
+  "$defs": {"sha": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "verdict": {"enum": ["acceptable", "needs_changes", "not_reviewed"]}}
+}
