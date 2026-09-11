@@ -54,3 +54,19 @@ Schema、完整来源重放、store/reader、CLI和报告已接通，18项相关
 所有轨道相对同权重未修正FK的“新增中间失败”均为0；两条无网格残余继续阻塞。
 报告保持 temporal_quality_status=needs_review、target_interpolation_status/runtime_status=not_evaluated。
 D2的时间变化视觉门槛及D3局部deform编码/目标插值仍待验证，不能直接采用左袖。
+
+### D3 目标格式与官方核心数值检查
+
+新增独立 `ordinary-deform-target/v1` 及 Spine 4.3.26 转换，不改变旧无deform目标输出。
+完整重放D1/D2来源，UV和隔离纹理身份取自原权重工件；保留零权重影响的局部偏移。
+每轨检查513时刻，分别报告关键帧、帧间整体保真和局部deform编码误差。
+固定保真门槛为中位边长1%；该工程门槛不替代视觉与接触验收。
+
+芙兰目标工件 `ed582b47771064bfda6a7ab60c55ab4169dad611a90bd65ac61e180a8ace7de9`，
+输出 `../tmp/ordinary-deform-target/flandre/index.html`，左袖候选包含JSON/Atlas/PNG及ZIP。
+左袖四轨513点均无几何失败；关键帧最大误差2.4e-13px，帧间最大误差0.0278px（门槛0.05px）。
+右袖及两条残余记录仍阻塞，没有候选包。
+
+现有官方 `@esotericsoftware/spine-core 4.3.13` 对该4.3.26导出执行四轨共2052帧数值检查，
+最大误差0.0000737px，低于0.001px容差；报告保存精确Runtime文件、骨架、Atlas和reference身份。
+这是官方核心顶点证据，不是GPU/透明接缝检查。D2视觉、D4编排、D5接触/捕获和独立样本仍待完成。
