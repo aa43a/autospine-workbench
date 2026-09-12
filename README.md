@@ -907,3 +907,5 @@ P10.7c 已增加 strict canonical setup-regression request/report、冻结 compa
 项目中显示的骨架来自 bbox/语义启发式，`requires_review=true`。只有在语义、左右、pivot、层级、合成回归和动作探针均通过后，才能把人工确认结果交给后续 RigIR/导出阶段。
 
 代码职责、依赖方向、文件长度预算和阶段完成门禁见 [docs/architecture.md](docs/architecture.md)。
+
+- 整角色候选支持[最终残余排除与撤销](docs/character-final-region-exclusion.md)，重建沿用已确认的确切动作与修复组合。

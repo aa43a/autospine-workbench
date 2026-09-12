@@ -3,6 +3,14 @@ import assert from 'node:assert/strict';
 import {createWorkbenchCharacter} from '../modules/workbench-character.js';
 
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
+test('final exclusions rebuild with the exact saved recipe including legacy skirt profile',async()=>{
+ const calls=[],recipe={skirt_profile:'fixed-waist-three-chain-v1',residual_texture_profile:'aligned-low-alpha-v1'};
+ const f=fixture(async(url,init)=>{calls.push(init);return init.method==='POST'?job('running'):{...overview(job()),final_region_exclusions:{active:true,review:{decisions:[{region_id:'r'}],build_options:recipe}}};});
+ f.view.sync();await flush();assert.equal(f.toggle.checked,true);assert.equal(f.toggle.disabled,true);
+ f.build.events.click();await flush();const sent=JSON.parse(calls.find(c=>c.method==='POST').body);
+ assert.equal(sent.skirt_profile,recipe.skirt_profile);assert.equal(sent.residual_texture_profile,recipe.residual_texture_profile);
+ f.view.dispose();
+});
 const descendants=n=>[n,...(n.children||[]).flatMap(descendants)];
 const job=(status='needs_review',extra={})=>({schema:'autospine.character-web-job/v1',project_id:'one',
  authority:'none',job_id:'job-'+'b'.repeat(32),status,stage:'review',layers:[],...extra});

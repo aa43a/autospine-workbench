@@ -1,0 +1,52 @@
+{
+  "schema": "autospine.character-final-workbench-evidence/v1",
+  "characters": [
+    {
+      "character": "xiaoemo",
+      "project_id": "imported-2c2b45ec951d8e890be5d01751dc0ababbd451a96c45c75bd333b92f0fcda17a",
+      "job_id": "job-b998eab8c496472f9fa62899417c3d95",
+      "artifact_sha256": "bd576c0199bec6a701313dc75c144d6d5f81c8596a87e25555e421b54ed01b4b",
+      "review_sha256": "5c194f13d0c3b9314089d72131b6d28a481d8b1541811303703dc25f226c8752",
+      "excluded_region_ids": [
+        "layer-002-residual",
+        "layer-003-unbound-residual",
+        "layer-004-unbound-residual"
+      ],
+      "exact_offline_replay": true,
+      "runtime_report_sha256": "50eca4e60e8e5329f82c64bb42efd5daa0bbab4c3747468c2f2e809959a28fbc",
+      "runtime_version": "4.3.13",
+      "runtime_passed": true,
+      "frames": 1675,
+      "all_runtime_files_verified": true,
+      "geometry_status": "passed",
+      "whole_character_visual_status": "not_reviewed",
+      "authority": "none",
+      "service_restart_recovery_verified": true
+    },
+    {
+      "character": "huiye",
+      "project_id": "huiye",
+      "job_id": "job-6f92bece413a4909a553a95bbfc307f4",
+      "artifact_sha256": "63caa7fe5f9f40a92ebcd57ef0b345d7dcd47e5ed3feae65a95fad18e770d51b",
+      "review_sha256": "a66ba52f31ed7915ded78d0b504727729a79a4781d569ebef0da9134182f14b0",
+      "excluded_region_ids": [
+        "layer-001-residual",
+        "layer-002-unbound-residual",
+        "layer-003-unbound-residual"
+      ],
+      "exact_offline_replay": true,
+      "runtime_report_sha256": "de32c4590e27c5ed1f17dc99c44e8714913379aa500145c3f37cb1a46a6440d0",
+      "runtime_version": "4.3.13",
+      "runtime_passed": true,
+      "frames": 2062,
+      "all_runtime_files_verified": true,
+      "geometry_status": "passed",
+      "whole_character_visual_status": "not_reviewed",
+      "authority": "none",
+      "service_restart_recovery_verified": true
+    }
+  ],
+  "scope": "six_explicitly_confirmed_final_static_residuals",
+  "authority": "none",
+  "production_authorized": false
+}

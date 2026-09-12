@@ -5,9 +5,11 @@ import { createWeightedReview } from "./workbench-character-weighted-review.js";
 import { createCharacterLedger } from "./workbench-character-ledger.js";
 import { createCharacterProgress } from "./workbench-character-progress.js";
 import { defaultCharacterMotion } from "./workbench-character-motion-choice.js";
+import { createFinalRegionReview } from "./workbench-final-regions.js";
 const ACTIVE = new Set(["pending", "running"]);
 const STAGES = {resolve:"核对来源", "base-preview":"准备整角色基础", compose:"合并袖装与校验动作", "skirt-trial":"正在生成裙装可变形候选", publish:"封存候选", runtime:"官方 Runtime 渲染与 setup 对照", review:"等待整角色复核"};
 const REASONS = {character_sleeve_unavailable:"尚无当前可用袖装候选，请先完成袖装构建。",
+  character_final_source_changed:"最终排除与本次构建来源不同，请恢复原动作/裙装/纹理选项，或撤销最终排除后重新复核。",
   character_skirt_layers_missing:"没有尚未处理的裙装图层，可关闭裙装选项后构建。",
   skirt_waist_contact_unobservable:"无法找到裙装与上衣的可靠连接，请复核分层与腰部位置。",
   skirt_reviewed_torso_missing:"请先完成上衣绑定复核，再生成裙装候选。",
@@ -32,6 +34,7 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
   const ledger=createCharacterLedger(document,{locate:hooks.locate,regionDecision:body=>regionDecision(body)}),detail=ledger.element;
   const weightedReview=createWeightedReview(document,{apiRequest:hooks.apiRequest,changed:()=>render()});
   const exclusions=node("div");
+  const finalRegions=createFinalRegionReview(document,body=>regionDecision(body,true));
   const textureLabel=node("label","归并低透明度残余（候选） "),textureToggle=node("input");
   textureToggle.type="checkbox";textureToggle.setAttribute("aria-label","归并低透明度残余（候选）");
   textureLabel.setAttribute("title","仅归并有完整网格覆盖且纹理对齐的低透明度像素；关闭后重建可恢复原纹理。不会自动通过复核。");
@@ -55,6 +58,7 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
   visualSection.append(progress.element);
   visualFold.append(node("summary","记录整角色视觉验收"),visualReview.element);visualSection.append(visualFold);element.append(visualSection,weightedReview.element,detail);
   actions.append(exclusions);
+  element.append(finalRegions.element);
   let identity=null,generation=0,overview=null,job=null,busy=false,error="",timer=null,polls=0,operation="";
   let motionChoice="",motionTouched=false;motionSelect.onchange=()=>{motionChoice=motionSelect.value;motionTouched=true;render();};
   const schedule=options.setTimeout||setTimeout,clear=options.clearTimeout||clearTimeout;
@@ -63,16 +67,18 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
   function stop(){if(timer!==null)clear(timer);timer=null;}
   function render(){
     const active=ACTIVE.has(job?.status),dirty=Boolean(context().dirty||context().saving||context().loading);
+    const finalRecipe=overview?.final_region_exclusions?.active?overview.final_region_exclusions.review.build_options:null;
+    if(finalRecipe){textureToggle.checked=Boolean(finalRecipe.residual_texture_profile);textureProfile.value=finalRecipe.residual_texture_profile||'aligned-low-alpha-v1';skirtToggle.checked=Boolean(finalRecipe.skirt_profile);motionChoice=finalRecipe.motion_choice_id||'';motionTouched=true;}
     build.disabled=!overview?.can_build||busy||active||dirty;refresh.disabled=!identity||busy;cancel.hidden=!active;cancel.disabled=busy||job?.cancel_requested;
-    textureToggle.disabled=busy||active||dirty;
-    skirtToggle.disabled=busy||active||dirty;
+    textureToggle.disabled=busy||active||dirty||Boolean(finalRecipe);
+    skirtToggle.disabled=busy||active||dirty||Boolean(finalRecipe);
     textureProfile.disabled=textureToggle.disabled||!textureToggle.checked;
     const available=overview?.motion_choices||[];
     if(motionChoice&&!available.some(r=>r.choice_id===motionChoice&&r.available))motionChoice="";
     if(!motionTouched)motionChoice=defaultCharacterMotion(available);
     const defaultMotion=node("option","保留原有动作");defaultMotion.value="";
     motionSelect.replaceChildren(defaultMotion,...available.map(r=>{const o=node("option",`原有动作 + ${r.animations.map(n=>({walk:"行走",idle:"待机","wave-left":"左手挥动"}[n]||n)).join("、")}${r.available?"（候选）":"（来源已变化）"}`);o.value=r.choice_id;o.disabled=!r.available;return o;}));
-    motionSelect.value=motionChoice;motionSelect.disabled=busy||active||dirty||!available.some(r=>r.available);
+    motionSelect.value=motionChoice;motionSelect.disabled=busy||active||dirty||Boolean(finalRecipe)||!available.some(r=>r.available);
     motionSelect.setAttribute("title",!motionTouched&&motionChoice?"已自动选择唯一有效的待机、左手挥动与行走组合；可手动更改。":"选择候选动作不会自动通过绑定或视觉复核。");
     const reason=job?.reason_code||overview?.reason_code;
     status.textContent=error||(busy&&operation==="build"?"正在提交整角色构建…":!job&&busy?"正在请求…":job?`${STAGES[job.stage]||job.status}${reason?" · "+(REASONS[reason]||reason):""}`:REASONS[reason]||"可以构建整角色候选。");
@@ -80,6 +86,7 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
     if(!error&&job?.texture_trial)status.textContent+=` · 当前候选归并 ${job.texture_trial.transferred_pixels} 个像素，仍需视觉复核`;
     if(!error&&job?.skirt_trial?.authority==="none")status.textContent+=job.skirt_trial.layer_ids?.length===0?" · 未生成裙装网格，请处理逐层待办":` · 裙装候选：${job.skirt_trial.geometry_passed?"采样网格检查通过":"网格检查未通过"}，腰部与裙摆待复核`;
     if(!error&&job?.skirt_trial?.blocked_layers?.length)status.textContent+=` · ${job.skirt_trial.blocked_layers.length} 个裙装图层暂未生成网格，保留原图并列入逐层待办`;
+    if(!error&&job?.final_region_exclusions)status.textContent+=` · 已应用 ${job.final_region_exclusions.excluded_region_ids.length} 处最终残余排除`;
     if(!error&&job?.status==="needs_review")status.textContent+=job.runtime?.geometry_status==='passed'?" · 采样网格检查通过":job.runtime?.geometry_status==='needs_changes'?` · ${job.runtime.geometry_failed_records} 项动作/附件变形超限，需修正`:" · 整角色网格检查尚未执行";
     if(!error&&job?.status==="needs_review"&&job.animations?.length)status.textContent+=` · 当前包动作：${job.animations.map(n=>({walk:"行走",idle:"待机","wave-left":"左手挥动",forearm:"前臂测试",hand:"手部测试",combined_same:"同向组合测试",combined_opposed:"反向组合测试"}[n]||n)).join("、")}`;
     if(!error&&job?.status==="needs_review")for(const motion of job.motion_readiness||[])if(motion.status==='blocked')status.textContent+=` · ${motion.clip} 未输出：${motion.reason_code}${motion.failing_slots.length?'（'+motion.failing_slots.join('、')+'）':''}`;
@@ -94,6 +101,7 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
     weightedReview.sync(job?.status==="needs_review"&&job.runtime?.files?.["report.json"]?job:null,!dirty&&!busy&&!active);
     progress.sync(job,weightedReview.confirmed(),visualReview.current(),dirty);
     ledger.sync({confirmedLayerIds:weightedReview.confirmed(),projectId:context().projectId,job,endpoint:endpoint(),disabled:busy||active||dirty});
+    finalRegions.sync(job?.status==='needs_review'?job:null,overview?.final_region_exclusions,busy||active||dirty);
     exclusions.replaceChildren(...(overview?.region_exclusions?.active||[]).map(entry=>{
       const row=node("p",`已排除区域：${entry.region_id} `),undo=node("button","撤销排除");undo.type="button";
       undo.className="button button-secondary";
@@ -101,12 +109,12 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
       row.append(undo);return row;
     }));
   }
-  async function regionDecision(body){
+  async function regionDecision(body,final=false){
     if(busy)return;
     const token=generation;busy=true;error="";render();
     try{
-      await hooks.apiRequest(`${endpoint()}/regions`,{method:"POST",headers:{"X-Autospine-Intent":"pipeline-preview"},
-        body:JSON.stringify({...body,expected_head_sha256:overview?.region_exclusions?.head_sha256??null})});
+      await hooks.apiRequest(`${endpoint()}/${final?'final-regions':'regions'}`,{method:"POST",headers:{"X-Autospine-Intent":"pipeline-preview"},
+        body:JSON.stringify({...body,expected_head_sha256:(final?overview?.final_region_exclusions:overview?.region_exclusions)?.head_sha256??null})});
     }catch(e){if(current(token))error="区域决定保存失败，请刷新后重试。";}
     finally{if(current(token)){busy=false;render();if(!error)await request();}}
   }
@@ -123,6 +131,7 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
         ...(motionChoice?{motion_choice_id:motionChoice}:{}),
         ...(textureToggle.checked?{residual_texture_profile:textureProfile.value}:{}),
         ...(skirtToggle.checked?{skirt_profile:"reviewed-torso-waist-v2"}:{})})};
+      if(action==='build'&&overview?.final_region_exclusions?.active){const payload=JSON.parse(init.body);delete payload.motion_choice_id;delete payload.residual_texture_profile;delete payload.skirt_profile;Object.assign(payload,overview.final_region_exclusions.review.build_options);init.body=JSON.stringify(payload);}
       const value=await hooks.apiRequest(url,init);if(!current(token))return;
       if(value.project_id!==project||value.authority!=="none")throw Error("响应来源不匹配");
       if(action==="refresh"){overview=value;job=value.job;polls=0;}

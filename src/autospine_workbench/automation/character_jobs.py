@@ -39,6 +39,9 @@ class CharacterJobs:
         return directory(self.root / job, create=create)
 
     def _current(self, request):
+        from .character_final_regions import overview as final_overview
+        if final_overview(self,request['project_id'])['head_sha256']!=request.get('final_region_decisions_sha256'):
+            raise PipelineRunError('character_final_decisions_changed')
         from .character_motion_catalog import validate as validate_motion
         validate_motion(self, request)
         from .character_region_decisions import overview as region_overview
@@ -67,6 +70,8 @@ class CharacterJobs:
         result = dict(project_id=project, authority='none', can_build=False, sleeve_job_id=None, job=None, reason_code=None)
         from .character_region_decisions import overview as region_overview
         result['region_exclusions'] = region_overview(self, project)
+        from .character_final_regions import overview as final_overview
+        result['final_region_exclusions'] = final_overview(self,project)
         try:
             info = inspect_registration(self.projects, project)
             from .character_motion_catalog import choices
@@ -99,6 +104,9 @@ class CharacterJobs:
                      expected_input_sha256=expected_input_sha256, sleeve_job_id=sleeve_job_id)
         from .character_region_decisions import overview as region_overview
         request['region_decisions_sha256'] = region_overview(self, project)['head_sha256']
+        from .character_final_regions import overview as final_overview
+        final_head=final_overview(self,project)['head_sha256']
+        if final_head is not None: request['final_region_decisions_sha256']=final_head
         if motion_choice_id is not None: request['motion_choice_id'] = motion_choice_id
         if residual_texture_profile is not None: request['residual_texture_profile'] = residual_texture_profile
         if skirt_profile is not None: request['skirt_profile'] = skirt_profile
@@ -202,6 +210,8 @@ class CharacterJobs:
             from .character_skirt_trial import apply_selected as apply_skirt
             if request.get('skirt_profile'): progress('skirt-trial')
             result=apply_skirt(self,request,result)
+            from .character_final_regions import apply_saved as apply_final
+            result=apply_final(self,request,result)
             self._current(request)
             runtime=self.capturer(self.projects,self.application.store,result['artifact_sha256'],self._path(job),
                                   progress=progress,cancel_requested=active['cancel'].is_set)
@@ -211,6 +221,7 @@ class CharacterJobs:
                             motion_readiness=result['manifest'].get('motion_readiness',[]))
             if 'texture_trial' in result: response['texture_trial']=result['texture_trial']
             if 'skirt_trial' in result: response['skirt_trial']=result['skirt_trial']
+            if 'final_region_exclusions' in result: response['final_region_exclusions']=result['final_region_exclusions']
         except Exception as exc:
             reason=getattr(exc,'reason_code',str(exc))
             if not re.fullmatch(r'[a-z][a-z0-9_]{0,99}',reason): reason='character_build_failed'
