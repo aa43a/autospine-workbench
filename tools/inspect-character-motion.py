@@ -22,6 +22,7 @@ def main():
     parser.add_argument('--publish', action='store_true', help='Publish an isolated diagnostic bundle for official capture')
     parser.add_argument('--samples', type=int, default=125)
     parser.add_argument('--foreshortening', action='store_true', help='Add source projected limb length candidates')
+    parser.add_argument('--repair-area', action='store_true', help='Try bounded mixed-weight affine deformation')
     args = parser.parse_args()
     if not 3 <= args.samples <= 1025:
         parser.error('samples must be 3..1025')
@@ -36,6 +37,10 @@ def main():
         document, lengths = add_lengths(document, 'walk', parse_bvh((motion_bundle.path/'source.bvh').read_bytes()),
                                         json.loads((motion_bundle.path/'map.json').read_bytes()))
         evidence['projected_lengths'] = lengths
+    if args.repair_area:
+        from autospine_workbench.targets.character43.affine_area_repair import repair
+        document, correction_area = repair(document, 'walk')
+        evidence['area_repair'] = correction_area
     args.output.mkdir(parents=True, exist_ok=True)
     if args.contact_root:
         from autospine_workbench.targets.character43.contact_root_candidate import build as correct_root
