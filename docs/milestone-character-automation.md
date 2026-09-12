@@ -574,3 +574,18 @@ b4c14b2286221d67f0662b03dceea1d6355b821447869d460ff920218ab2669c。
 官方 Runtime 1029 帧、31 附件及网格通过。15 项 Python、8 项前端测试通过。
 服务 v21，PID 4384。当前仍需开发缺失动作自动生成，并补齐袖装角色 idle/wave-left；
 本次五动作中的四个是结构测试，不计为 C3 所需全部动作完成。
+
+## 通用整角色待机候选
+
+新增 whole-character-builtin-idle-v1：沿用版本中立 idle MotionIR 和当前角色 rig/纹理，
+不依赖普通肢体 profile，因此可覆盖已有袖装角色。生成独立候选后使用精确组合器保留旧动画，
+不复制其他动作的 corrective deform。采样包含所有 authored key 时间，并检查循环首尾。
+小恶魔候选 6baa9bb65a73f90bbeea3d82b9f91e5fca9288a27bcd53759f651eb94dfd83f0，
+辉夜候选 1d4d76b3e7806c42805d909d536abe78fdeec15062d3a30c8a7ab94a34f1cb0c：
+各 129 帧几何和官方 Runtime 数值通过，31/25 附件，循环顶点误差为 0，
+Runtime 最大误差分别 0.000099314 / 0.000116652 px。复核页位于
+../tmp/character-builtin-idle/{xiaoemo,huiye}/runtime/timeline.html。
+两个候选已登记为工作台“原有动作 + 待机”选项；登记不替换当前任务或授予视觉通过。
+8 项针对性测试通过，覆盖旧动作/账本保留、确定性、关键时间与循环拒绝、文件长度。
+仍缺袖装 wave-left、一次选择多项新增动作及自动生成编排；待机 root 起伏不是脚底锁定，
+现有未绑定区域和整角色视觉问题仍需按原账本处理，不能据此宣称 C3 完成。
