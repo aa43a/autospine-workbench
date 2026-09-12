@@ -21,6 +21,7 @@ def main():
     parser.add_argument('--contact-root', action='store_true', help='Try bounded ankle-proxy root correction; not sole locking')
     parser.add_argument('--publish', action='store_true', help='Publish an isolated diagnostic bundle for official capture')
     parser.add_argument('--samples', type=int, default=125)
+    parser.add_argument('--foreshortening', action='store_true', help='Add source projected limb length candidates')
     args = parser.parse_args()
     if not 3 <= args.samples <= 1025:
         parser.error('samples must be 3..1025')
@@ -29,6 +30,12 @@ def main():
     motion = json.loads((motion_bundle.path/'motion.json').read_bytes())
     document, evidence = build(json.loads(files['skeleton.json']), motion, 'walk')
     document['animations'] = {'walk': document['animations']['walk']}
+    if args.foreshortening:
+        from autospine_workbench.bvh_parser import parse_bvh
+        from autospine_workbench.targets.character43.projected_lengths import build as add_lengths
+        document, lengths = add_lengths(document, 'walk', parse_bvh((motion_bundle.path/'source.bvh').read_bytes()),
+                                        json.loads((motion_bundle.path/'map.json').read_bytes()))
+        evidence['projected_lengths'] = lengths
     args.output.mkdir(parents=True, exist_ok=True)
     if args.contact_root:
         from autospine_workbench.targets.character43.contact_root_candidate import build as correct_root
