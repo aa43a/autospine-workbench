@@ -6,6 +6,7 @@ from ..resolved_project import canonical_sha256
 from ..targets.character43.region_exclusion import apply
 from .storage_io import directory, publish_document, read_document
 from .pipeline_run import PipelineRunError
+from .character_region_source import resolve
 
 
 def history(manager, project):
@@ -64,6 +65,16 @@ def save(manager, project, body):
                             layer_id=body['layer_id'], region_id=region,
                             image_sha256=sha256(files['images/'+item.get('path', region)+'.png']).hexdigest(), reversible=True)
             apply(files, decision)  # Validate concrete scope before recording authority.
+            try:
+                base_digest, base = resolve(manager.application.store, job['artifact_sha256'], files)
+                if base_digest != job['artifact_sha256']:
+                    decision.update(reviewed_bundle_sha256=job['artifact_sha256'],
+                                    reviewed_manifest_sha256=decision['manifest_sha256'],
+                                    source_bundle_sha256=base_digest,
+                                    manifest_sha256=sha256(base['character-manifest.json']).hexdigest())
+                    apply(base, decision)
+            except (ValueError, KeyError, IndexError):
+                raise PipelineRunError('character_region_source_changed') from None
             doc['decision'] = decision
         root = directory(manager.root/'region-decisions'/project, create=True)
         revision = len(history(manager, project))
