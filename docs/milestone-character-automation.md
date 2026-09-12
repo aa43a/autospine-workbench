@@ -388,3 +388,14 @@ BVH摘要0b2b537117889be0e253ca3a149673dc5d15ba7661da5850090bb5f05ecaeb23。
 
 小恶魔五层耳朵确认后的整角色任务job-d877a09d2c27457fb39ccdbaa2606c92已完成516帧官方及几何检查；
 库存9d04d2b972206eacb3e7585c298898ee53d2289e356db5acd67b1de66bf9cbf1。
+
+## 行走MotionIR与接触候选
+
+通过独立Mixamo命名映射入口接入现有BVH编译、存储与回读验证，历史编译器不变。
+根平移规范BVH逐53关节×32帧对照通过，最大误差5.52446e-7米。
+显式侧向投影、参考长度81厘米、floor=0/height=3cm/speed=10cm每秒/minimum_frames=3/gap=0，
+生成13条轨道及右/左/右三个接触注释区间；loop=false，不自动锁脚。
+MotionIR：220b818e89d7a4f31437673d354d4fa6e16d96ed2cbd4b5edf143710378a7b24；
+bundle：1500cc4740152ccea9f795e96cd7e11ff9e4c9c730d72edd6e0ec920ad8bdba8。
+10项映射、转换回归及质量检查通过。使用说明见how-to-import-mixamo-bvh.md。
+这仅完成真实动作来源接入；目标角色行走、足接触修正及服装多动作验收仍未完成。

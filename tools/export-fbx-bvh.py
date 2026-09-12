@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
 from autospine_workbench.bvh_parser import parse_bvh
 
 
-def export(source, output):
+def export(source, output, *, root_only=False):
     inspect = runpy.run_path(str(Path(__file__).with_name('inspect-fbx-motion.py')))['inspect']
     evidence = inspect(source)
     rig, = [o for o in bpy.data.objects if o.type == 'ARMATURE']
@@ -26,7 +26,7 @@ def export(source, output):
     output.parent.mkdir(parents=True, exist_ok=True)
     start, end = map(int, evidence['frame_range'])
     export_bvh.save(bpy.context, filepath=str(output), frame_start=start, frame_end=end,
-                    global_scale=1.0, rotate_mode='XYZ', root_transform_only=False,
+                    global_scale=1.0, rotate_mode='XYZ', root_transform_only=root_only,
                     sort_children_by_names=True)
     text = output.read_text(encoding='utf-8')
     text, count = re.subn(r'(?m)^Frame Time: .+$',
@@ -49,6 +49,7 @@ def export(source, output):
     text += '\n'.join(rows) + '\n'
     output.write_text(text, encoding='utf-8')
     evidence['bridge'] = {'profile': 'blender-bvh-local-v1',
+                          'root_translation_only': root_only,
                           'local_to_blender_world': object_matrix,
                           'bvh_sha256': hashlib.sha256(output.read_bytes()).hexdigest(),
                           'verification': 'required', 'rotation_order': 'XYZ'}
@@ -57,4 +58,10 @@ def export(source, output):
 
 
 if __name__ == '__main__':
-    export(*map(Path, sys.argv[sys.argv.index('--')+1:]))
+    import argparse
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('source', type=Path)
+    parser.add_argument('output', type=Path)
+    parser.add_argument('--root-only', action='store_true')
+    args = parser.parse_args(sys.argv[sys.argv.index('--')+1:])
+    export(args.source, args.output, root_only=args.root_only)
