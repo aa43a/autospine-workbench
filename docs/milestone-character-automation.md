@@ -548,3 +548,16 @@ UI 在静态区域列提供明确排除按钮，已排除项提供撤销。撤�
 c96c0879ac70ceeb09ea96b4784c3bf9dc9dc1d17cd94bfc94d8c72baa14c435，516 帧/31 附件及网格通过。
 layer-009 的两腿分区保留，region exclusion 独立登记，整层绑定 pending 没有伪改为人工完成。
 15 项 Python 核心/历史/任务/质量测试、7 项前端测试通过。服务已更新至 v20。
+
+## 同源整角色多动作合并
+
+新增 motion_composition 纯核心与 compose-character-motion.py：只接受同一源角色、完全相同
+的非动画 skeleton 内容及 PNG/atlas；拒绝同名动作覆盖。现有动画和参考帧、图层账本、
+排除决定保留，附加动作证据独立保存；合并包 Runtime 状态重置后重新捕获。
+从工作台当前小恶魔 c96c0879ac70ceeb09ea96b4784c3bf9dc9dc1d17cd94bfc94d8c72baa14c435
+生成行走 27f2fb499fbea4a8ddbdea940f847da2b6a203f94316a36997af7ea3c448763a，
+合并候选 b4c14b2286221d67f0662b03dceea1d6355b821447869d460ff920218ab2669c。
+官方 WebGL 1029 帧/31 附件通过，最大顶点误差 0.000128397px。9 项合并/排除/质量测试通过。
+实际动作是 combined_opposed、combined_same、forearm、hand、walk；前四项是既有袖装测试，
+不冒充 C3 所需 idle/wave-left。报告 ../tmp/character-motion-unified/xiaoemo/runtime/index.html。
+已确认残余未被重新引入；新组合尚未登记为工作台当前候选。后续接入动作选择与来源失效处理。
