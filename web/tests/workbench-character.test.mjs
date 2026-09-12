@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { createWorkbenchCharacter } from '../modules/workbench-character.js';
 
 const flush = () => new Promise(resolve => setImmediate(resolve));
+const descendants=node=>[node,...(node.children||[]).flatMap(descendants)];
 function fixture(api) {
   const document = {createElement(tag) {return {tag, children:[],events:{},attrs:{},
     append(...nodes){this.children.push(...nodes);},replaceChildren(...nodes){this.children=nodes;},
@@ -11,7 +12,8 @@ function fixture(api) {
   const context={projectId:'one',resolvedSha:'a'.repeat(64)}, timers=new Map();
   const view=createWorkbenchCharacter(document,{context:()=>context,apiRequest:api},{
     setTimeout(fn){const key=Symbol();timers.set(key,fn);return key;},clearTimeout(key){timers.delete(key);}});
-  const [,,actions,status,download,details]=view.element.children;
+  const [,,actions,status,download]=view.element.children;
+  const details=view.element.children.find(n=>n.tag==='details');
   return {view,context,timers,status,download,details,build:actions.children[0]};
 }
 const job=(status='needs_review')=>({schema:'autospine.character-web-job/v1',project_id:'one',authority:'none',
@@ -23,7 +25,7 @@ test('static region links require inventoried report and safe anchor',async()=>{
   current.runtime={files:{'static-regions/index.html':'a'},static_region_links:{source:[
     'static-regions/index.html#region-0','https://invalid/#region-1','static-regions/index.html#bad']}};
   const f=fixture(async()=>overview(current));f.view.sync();await flush();
-  const links=f.details.children[1].children[0].children.filter(n=>n.tag==='a');
+  const links=descendants(f.details.children[2].children[0]).filter(n=>n.tag==='a');
   assert.equal(links.length,1);assert.match(links[0].attrs.href,/\/view\/static-regions\/index.html#region-0$/);
   f.view.dispose();
 });
@@ -33,7 +35,7 @@ test('exclusion sends exact current region and revision then refreshes',async()=
   current.layers=[{layer_id:'source',name:'cloth',state:'partial',regions:[{region_id:'rest',state:'static_reference'}]}];
   const calls=[];const f=fixture(async(url,init)=>{calls.push([url,init]);return {...overview(current),region_exclusions:{head_sha256:null,active:[]}};});
   f.view.sync();await flush();
-  const button=f.details.children[1].children[0].children.find(n=>n.textContent==='排除静态区域 rest');
+  const button=descendants(f.details.children[2].children[0]).find(n=>n.textContent==='排除静态区域 rest');
   await button.onclick();await flush();
   const write=calls.find(([url])=>url.endsWith('/regions'));
   assert.deepEqual(JSON.parse(write[1].body),{action:'exclude',job_id:current.job_id,expected_artifact_sha256:current.artifact_sha256,
@@ -90,7 +92,26 @@ test('character ledger distinguishes automatic binding and stale evidence',async
   const current=job();current.layers=[{layer_id:'face-detail',name:'mouth',state:'rigid_reviewed',
     binding_decision:{decision_source:'policy_auto',evidence_current:false}}];
   const f=fixture(async()=>overview(current));f.view.sync();await flush();
-  const row=f.details.children[1].children[0];
+  const row=f.details.children[2].children[0];
   assert.match(row.children[1].textContent,/自动策略采用/);
   assert.match(row.children[1].textContent,/证据来源已变化/);f.view.dispose();
+});
+
+test('exception view separates output regions from pending layer decisions and retains full ledger',async()=>{
+  const current=job();current.layers=[
+    {layer_id:'head',name:'head',state:'rigid_reviewed',binding_decision:{decision_source:'explicit_selection'},regions:[{region_id:'head',state:'rigid_reviewed'}]},
+    {layer_id:'arms',name:'arms',state:'weighted_candidate',binding_decision:{decision_source:'pending'},regions:[{region_id:'left-arm',state:'weighted_candidate'},{region_id:'right-arm',state:'weighted_candidate'}]},
+    {layer_id:'shoe',name:'shoe',state:'partial',regions:[{region_id:'shoe-mesh',state:'weighted_candidate'},{region_id:'shoe-rest',state:'static_reference'}],excluded_regions:[{region_id:'removed'}]}
+  ];
+  const f=fixture(async()=>overview(current));f.view.sync();await flush();
+  const [summary,controls,list]=f.details.children,select=controls.children[0].children[0];
+  assert.equal(f.details.open,true);assert.match(summary.textContent,/待处理 2 \/ 全部 3/);
+  assert.equal(list.children.length,2);
+  assert.match(controls.children[1].textContent,/3 个加权区域、1 个刚性区域/);
+  assert.ok(list.children[0].children.some(n=>n.textContent?.includes('已有加权区域')));
+  assert.ok(descendants(list.children[0]).some(n=>n.textContent==='right-arm · 加权候选'));
+  assert.ok(descendants(list.children[1]).some(n=>n.textContent==='removed · 已按区域决定排除'));
+  select.value='all';select.onchange();assert.equal(list.children.length,3);
+  assert.equal(current.layers.length,3);assert.equal(current.layers[1].binding_decision.decision_source,'pending');
+  f.context.projectId=null;f.view.sync();assert.equal(select.value,'pending');f.view.dispose();
 });
