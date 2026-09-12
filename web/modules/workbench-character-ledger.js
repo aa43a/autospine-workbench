@@ -1,14 +1,18 @@
 "use strict";
 
 const STATES={weighted_candidate:"加权候选",rigid_reviewed:"刚性跟随",static_reference:"静态参考",partial:"部分处理",missing:"未输出",excluded:"已排除",not_visible:"不可见"};
-const READY=new Set(["weighted_candidate","rigid_reviewed","excluded","not_visible"]);
+const SELECTED=new Set(["explicit_selection","legacy_selection","policy_auto"]);
 const REASONS={residual_binding_required:"残余区域尚未绑定",mesh_review_required:"网格候选待复核",
   binding_selection_required:"需要选择绑定",static_reference_not_bound:"仅静态参考，尚未完成绑定"};
 
 export function needsBindingReview(layer,confirmed=[]){
-  const source=layer.binding_decision;
-  return !READY.has(layer.state)||(source?.decision_source==="pending"&&!confirmed.includes(layer.layer_id))||
-    (source?.decision_source==="policy_auto"&&source.evidence_current!==true);
+  const decision=layer.binding_decision||{},source=decision.decision_source,action=decision.action;
+  if(layer.state==="not_visible")return false;
+  if(source==="policy_auto"&&decision.evidence_current!==true)return true;
+  if(layer.state==="excluded")return action!=="exclude"||!SELECTED.has(source);
+  if(!["weighted_candidate","rigid_reviewed"].includes(layer.state))return true;
+  if(layer.state==="weighted_candidate"&&action==="pending"&&confirmed.includes(layer.layer_id))return false;
+  return action!=="bind"||typeof decision.option_id!=="string"||!decision.option_id||!SELECTED.has(source);
 }
 
 export function createCharacterLedger(document,hooks){
@@ -35,9 +39,9 @@ export function createCharacterLedger(document,hooks){
       const row=node("li"),button=node("button",`${layer.name} · ${STATES[layer.state]||layer.state}`);
       button.type="button";button.className="button button-secondary";button.addEventListener("click",()=>hooks.locate?.({layer_id:layer.layer_id,type:"binding"}));row.append(button);
       if(layer.binding_decision){
-        const p=layer.binding_decision,labels={policy_auto:"自动策略采用",explicit_selection:"显式选择",legacy_selection:"历史选择（来源未细分）",pending:"待复核"};
-        row.append(node("p",`整层绑定来源：${labels[p.decision_source]||"未知"}${p.decision_source==="policy_auto"&&p.evidence_current!==true?" · 证据来源已变化或未验证，需重新检查":""}`));
-        if(p.decision_source==="pending"&&(layer.regions||[]).some(r=>r.state==="weighted_candidate"))
+        const p=layer.binding_decision,labels={policy_auto:"自动策略采用",explicit_selection:"显式编辑",legacy_selection:"历史记录（来源未细分）",pending:"待复核"};
+        row.append(node("p",`整层绑定：${({pending:"待处理",bind:"已选择",requires_split:"需要拆分",semantic_review:"需要语义复核",exclude:"已排除"})[p.action]||"动作未记录"}；来源：${labels[p.decision_source]||"未知"}${p.decision_source==="policy_auto"&&p.evidence_current!==true?" · 证据来源已变化或未验证，需重新检查":""}`));
+        if(p.action==="pending"&&(layer.regions||[]).some(r=>r.state==="weighted_candidate"))
           row.append(node("p",(state.confirmedLayerIds||[]).includes(layer.layer_id)?"已按当前候选确认区域绑定；整层草稿保留。":"已有加权区域；整层绑定仍待复核。请检查现有分区，不要把整张图改绑到单根骨骼来清除待办。"));
       }
       const evidence=node("details");evidence.append(node("summary",`区域明细与处理 · ${(layer.regions||[]).length} 个输出区域`));row.append(evidence);

@@ -1,0 +1,196 @@
+[
+  {
+    "name": "pending edited",
+    "layer": {
+      "layer_id": "layer",
+      "state": "weighted_candidate",
+      "binding_decision": {
+        "decision_source": "explicit_selection",
+        "action": "pending",
+        "option_id": null
+      }
+    },
+    "confirmed": [],
+    "expected": true
+  },
+  {
+    "name": "requires_split edited",
+    "layer": {
+      "layer_id": "layer",
+      "state": "weighted_candidate",
+      "binding_decision": {
+        "decision_source": "explicit_selection",
+        "action": "requires_split",
+        "option_id": null
+      }
+    },
+    "confirmed": [],
+    "expected": true
+  },
+  {
+    "name": "semantic_review edited",
+    "layer": {
+      "layer_id": "layer",
+      "state": "weighted_candidate",
+      "binding_decision": {
+        "decision_source": "explicit_selection",
+        "action": "semantic_review",
+        "option_id": null
+      }
+    },
+    "confirmed": [],
+    "expected": true
+  },
+  {
+    "name": "missing action",
+    "layer": {
+      "layer_id": "layer",
+      "state": "weighted_candidate",
+      "binding_decision": {
+        "decision_source": "explicit_selection"
+      }
+    },
+    "confirmed": [],
+    "expected": true
+  },
+  {
+    "name": "bound",
+    "layer": {
+      "layer_id": "layer",
+      "state": "weighted_candidate",
+      "binding_decision": {
+        "decision_source": "explicit_selection",
+        "action": "bind",
+        "option_id": "mesh_chain:l:arm"
+      }
+    },
+    "confirmed": [],
+    "expected": false
+  },
+  {
+    "name": "missing option",
+    "layer": {
+      "layer_id": "layer",
+      "state": "rigid_reviewed",
+      "binding_decision": {
+        "decision_source": "explicit_selection",
+        "action": "bind"
+      }
+    },
+    "confirmed": [],
+    "expected": true
+  },
+  {
+    "name": "contradictory source",
+    "layer": {
+      "layer_id": "layer",
+      "state": "weighted_candidate",
+      "binding_decision": {
+        "decision_source": "pending",
+        "action": "bind",
+        "option_id": "mesh_chain:l:arm"
+      }
+    },
+    "confirmed": [],
+    "expected": true
+  },
+  {
+    "name": "stale automatic",
+    "layer": {
+      "layer_id": "layer",
+      "state": "rigid_reviewed",
+      "binding_decision": {
+        "decision_source": "policy_auto",
+        "action": "bind",
+        "option_id": "rigid:head",
+        "evidence_current": false
+      }
+    },
+    "confirmed": [],
+    "expected": true
+  },
+  {
+    "name": "explicit exclusion",
+    "layer": {
+      "layer_id": "layer",
+      "state": "excluded",
+      "binding_decision": {
+        "decision_source": "explicit_selection",
+        "action": "exclude"
+      }
+    },
+    "confirmed": [],
+    "expected": false
+  },
+  {
+    "name": "unreviewed exclusion",
+    "layer": {
+      "layer_id": "layer",
+      "state": "excluded",
+      "binding_decision": {
+        "decision_source": "pending",
+        "action": "pending"
+      }
+    },
+    "confirmed": [],
+    "expected": true
+  },
+  {
+    "name": "hidden",
+    "layer": {
+      "layer_id": "layer",
+      "state": "not_visible",
+      "binding_decision": {
+        "decision_source": "pending",
+        "action": "pending"
+      }
+    },
+    "confirmed": [],
+    "expected": false
+  },
+  {
+    "name": "region scoped",
+    "layer": {
+      "layer_id": "layer",
+      "state": "weighted_candidate",
+      "binding_decision": {
+        "decision_source": "explicit_selection",
+        "action": "pending"
+      }
+    },
+    "confirmed": [
+      "layer"
+    ],
+    "expected": false
+  },
+  {
+    "name": "split cannot be overridden",
+    "layer": {
+      "layer_id": "layer",
+      "state": "weighted_candidate",
+      "binding_decision": {
+        "decision_source": "explicit_selection",
+        "action": "requires_split"
+      }
+    },
+    "confirmed": [
+      "layer"
+    ],
+    "expected": true
+  },
+  {
+    "name": "static cannot be overridden",
+    "layer": {
+      "layer_id": "layer",
+      "state": "static_reference",
+      "binding_decision": {
+        "decision_source": "explicit_selection",
+        "action": "pending"
+      }
+    },
+    "confirmed": [
+      "layer"
+    ],
+    "expected": true
+  }
+]

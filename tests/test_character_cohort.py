@@ -11,7 +11,7 @@ class CohortTests(unittest.TestCase):
 
     def complete(self):
         return dict(job=dict(status='needs_review',animations=['idle','wave-left','walk'],runtime={'geometry_status':'passed'},
-                             layers=[dict(layer_id='arm',state='weighted_candidate',binding_decision={'decision_source':'explicit_selection'})]),
+                             layers=[dict(layer_id='arm',state='weighted_candidate',binding_decision={'decision_source':'explicit_selection','action':'bind','option_id':'mesh_chain:l:arm'})]),
                     verified_runtime={'passed':True},visual_review={'aspects':{k:'acceptable' for k in ['setup','draw_order','connections','motion']}})
 
     def test_missing_characters_stay_in_denominator_and_unknown_is_not_failure_rate_zero(self):
@@ -39,7 +39,7 @@ class CohortTests(unittest.TestCase):
         c,o=self.fixture()
         for value in (False, None, 'true', True):
             o['a']=self.complete()
-            o['a']['job']['layers'][0]['binding_decision']=dict(decision_source='policy_auto', evidence_current=value)
+            o['a']['job']['layers'][0]['binding_decision']=dict(decision_source='policy_auto', action='bind',option_id='mesh_chain:l:arm',evidence_current=value)
             row=summarize(c,o)['characters'][0]
             self.assertEqual(row['completed'], value is True)
             self.assertEqual(row['stale_auto_layers'], [] if value is True else ['arm'])

@@ -5,7 +5,7 @@ import {needsBindingReview} from '../modules/workbench-character-ledger.js';
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
 const all=n=>[n,...n.children.flatMap(all)];
 const document={createElement(tag){return {tag,children:[],append(...n){this.children.push(...n);},replaceChildren(...n){this.children=n;},setAttribute(){}};}};
-const job={project_id:'p',job_id:'j',artifact_sha256:'a',layers:[{layer_id:'arm',name:'手臂',state:'weighted_candidate',regions:[{region_id:'part',state:'weighted_candidate'}],binding_decision:{decision_source:'pending'}}]};
+const job={project_id:'p',job_id:'j',artifact_sha256:'a',layers:[{layer_id:'arm',name:'手臂',state:'weighted_candidate',regions:[{region_id:'part',state:'weighted_candidate'}],binding_decision:{decision_source:'pending',action:'pending'}}]};
 const response={project_id:'p',job_id:'j',artifact_sha256:'a',authority:'none',can_review:true,eligible_layer_ids:['arm'],review_sha256:null,review:null};
 
 test('loads once, sends exact confirmation, and supports revocation without rebinding',async()=>{

@@ -29,8 +29,8 @@ def summarize(cohort,observations):
         layers=job.get('layers',[])
         from .character_weighted_review import confirmed_layers
         region_confirmed=confirmed_layers(job,observed.get('weighted_review'))
-        unresolved=[r['layer_id'] for r in layers if r['state'] not in {'rigid_reviewed','weighted_candidate','excluded','not_visible'}
-                    or (r.get('binding_decision',{}).get('decision_source')=='pending' and r['layer_id'] not in region_confirmed)]
+        from .character_binding_status import needs_review
+        unresolved=[r['layer_id'] for r in layers if needs_review(r,region_confirmed)]
         stale_auto=[r['layer_id'] for r in layers
                     if r.get('binding_decision',{}).get('decision_source')=='policy_auto'
                     and r['binding_decision'].get('evidence_current') is not True]

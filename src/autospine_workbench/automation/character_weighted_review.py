@@ -13,7 +13,7 @@ def eligible(layer):
     return (layer.get('state') == 'weighted_candidate' and bool(regions)
             and all(row.get('state') == 'weighted_candidate' for row in regions)
             and not layer.get('missing_region_ids')
-            and layer.get('binding_decision', {}).get('decision_source') == 'pending'
+            and layer.get('binding_decision', {}).get('decision_source') in {'pending', 'explicit_selection', 'legacy_selection'}
             and layer.get('binding_decision', {}).get('action') == 'pending')
 
 
@@ -27,6 +27,7 @@ def confirmed_layers(job, value):
             or review.get('project_id') != job.get('project_id') or review.get('job_id') != job.get('job_id')
             or review.get('runtime_sha256') != canonical_sha256(job.get('runtime', {}))
             or review.get('layers_sha256') != canonical_sha256(job.get('layers', []))
+            or value.get('review_sha256') != canonical_sha256(review) or review.get('authority') != 'none'
             or review.get('decision_source') != 'human_review' or review.get('production_authorized') is not False):
         return set()
     allowed = {row['layer_id'] for row in job.get('layers', []) if eligible(row)}

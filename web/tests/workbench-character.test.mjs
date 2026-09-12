@@ -99,8 +99,8 @@ test('character ledger distinguishes automatic binding and stale evidence',async
 
 test('exception view separates output regions from pending layer decisions and retains full ledger',async()=>{
   const current=job();current.layers=[
-    {layer_id:'head',name:'head',state:'rigid_reviewed',binding_decision:{decision_source:'explicit_selection'},regions:[{region_id:'head',state:'rigid_reviewed'}]},
-    {layer_id:'arms',name:'arms',state:'weighted_candidate',binding_decision:{decision_source:'pending'},regions:[{region_id:'left-arm',state:'weighted_candidate'},{region_id:'right-arm',state:'weighted_candidate'}]},
+    {layer_id:'head',name:'head',state:'rigid_reviewed',binding_decision:{decision_source:'explicit_selection',action:'bind',option_id:'rigid:head'},regions:[{region_id:'head',state:'rigid_reviewed'}]},
+    {layer_id:'arms',name:'arms',state:'weighted_candidate',binding_decision:{decision_source:'pending',action:'pending'},regions:[{region_id:'left-arm',state:'weighted_candidate'},{region_id:'right-arm',state:'weighted_candidate'}]},
     {layer_id:'shoe',name:'shoe',state:'partial',regions:[{region_id:'shoe-mesh',state:'weighted_candidate'},{region_id:'shoe-rest',state:'static_reference'}],excluded_regions:[{region_id:'removed'}]}
   ];
   const f=fixture(async()=>overview(current));f.view.sync();await flush();

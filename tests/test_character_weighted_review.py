@@ -39,6 +39,7 @@ class WeightedReviewTests(unittest.TestCase):
         stale=deepcopy(self.result);stale['artifact_sha256']='c'*64
         self.assertEqual(confirmed_layers(stale,first),set())
         self.assertEqual(confirmed_layers(self.result,dict(first,can_review=False)),set())
+        self.assertEqual(confirmed_layers(self.result,dict(first,review_sha256='bad')),set())
 
     def test_partial_missing_and_static_cannot_be_confirmed(self):
         for change in [dict(state='partial'),dict(missing_region_ids=['missing']),
@@ -78,3 +79,12 @@ class WeightedReviewTests(unittest.TestCase):
         self.assertIn('whole_character_visual_review_required',row['reason_codes'])
         observations['a']['weighted_review']=None
         self.assertEqual(summarize(cohort,observations)['characters'][0]['unresolved_layers'],['arm'])
+
+    def test_pending_with_notes_lineage_can_be_reviewed_only_explicitly(self):
+        self.layer['binding_decision']['decision_source']='explicit_selection'
+        current=overview(self.manager,'p','j')
+        self.assertEqual(current['eligible_layer_ids'],['arm'])
+        self.assertEqual(confirmed_layers(self.result,current),set())
+        saved=save(self.manager,'p','j',self.body)
+        self.assertEqual(confirmed_layers(self.result,saved),{'arm'})
+        self.assertEqual(self.layer['binding_decision']['action'],'pending')
