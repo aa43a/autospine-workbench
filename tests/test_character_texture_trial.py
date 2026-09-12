@@ -22,12 +22,14 @@ class CharacterTextureTrialTests(CharacterJobsTests):
             manifest = json.loads(files['character-manifest.json'])
             manifest.update(layers=[], animations=['flex'])
             return {**files, 'character-manifest.json':json.dumps(manifest).encode(), 'trial.json':b'{}'}, {
-                'rows':[{'counts':{'transferred':3}}]}
+                'rows':[{'layer_id':'layer-001','region_id':'rest','counts':{'transferred':3,'outside_mesh':2}}]}
         with patch('autospine_workbench.targets.character43.residual_texture_transfer.build', side_effect=transform) as build:
             job = manager.submit('sample', 'a'*64, 'b'*64, 'sleeve-job', residual_texture_profile=PROFILE)
             trial = self.terminal(manager, job)
             self.assertEqual(trial['status'], 'needs_review', trial)
             self.assertEqual(trial['texture_trial']['transferred_pixels'], 3)
+            self.assertEqual(trial['texture_trial']['regions'][0]['remaining_pixels'], 2)
+            self.assertEqual(trial['texture_trial']['regions'][0]['blocking_counts'], {'outside_mesh':2})
             self.assertNotEqual(trial['artifact_sha256'], baseline['artifact_sha256'])
             self.assertEqual(captured[-1], trial['artifact_sha256'])
             self.assertEqual(trial['layers'], baseline['layers'])

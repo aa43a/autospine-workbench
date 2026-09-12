@@ -1,4 +1,5 @@
 "use strict";
+import { residualMessages } from "./workbench-texture-residuals.js";
 
 const STATES={weighted_candidate:"加权候选",rigid_reviewed:"刚性跟随",static_reference:"静态参考",partial:"部分处理",missing:"未输出",excluded:"已排除",not_visible:"不可见"};
 const SELECTED=new Set(["explicit_selection","legacy_selection","policy_auto"]);
@@ -45,6 +46,7 @@ export function createCharacterLedger(document,hooks){
           row.append(node("p",(state.confirmedLayerIds||[]).includes(layer.layer_id)?"已按当前候选确认区域绑定；整层草稿保留。":"已有加权区域；整层绑定仍待复核。请检查现有分区，不要把整张图改绑到单根骨骼来清除待办。"));
       }
       const evidence=node("details");evidence.append(node("summary",`区域明细与处理 · ${(layer.regions||[]).length} 个输出区域`));row.append(evidence);
+      for(const message of residualMessages(job,layer))row.append(node("p",message));
       if(layer.reason_codes?.length)evidence.append(node("p",layer.reason_codes.map(r=>REASONS[r]||r).join("；")));
       for(const region of layer.regions||[])evidence.append(node("p",`${region.region_id} · ${STATES[region.state]||region.state}`));
       for(const missing of layer.missing_region_ids||[])evidence.append(node("p",`${missing} · 未输出`));

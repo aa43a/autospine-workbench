@@ -128,6 +128,8 @@ class CharacterJobs:
             try: self._current(request)
             except (ValueError,RuntimeError,OSError):
                 return dict(schema=SCHEMA,job_id=job,project_id=project,status='blocked',authority='none',reason_code='character_source_changed')
+            from .character_texture_trial import enrich_existing
+            result=enrich_existing(self.application.store,result)
         return result
 
     def cancel(self, project, job):
