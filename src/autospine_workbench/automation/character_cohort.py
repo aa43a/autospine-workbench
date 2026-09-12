@@ -24,6 +24,9 @@ def summarize(cohort,observations):
         if not current:reasons.append(observed.get('reason_code') or job.get('reason_code') or 'character_candidate_missing')
         if missing:reasons.append('required_animations_missing')
         runtime=observed.get('verified_runtime');runtime_passed=runtime is not None and runtime.get('passed') is True
+        from .character_motion_metrics import motion_rows
+        motions=motion_rows(job,runtime,cohort['required_animations'])
+        if any(r['status']!='passed' for r in motions):reasons.append('required_motion_runtime_incomplete')
         if not runtime_passed:reasons.append('runtime_failed' if runtime is not None else 'runtime_unmeasured')
         if job.get('runtime',{}).get('geometry_status')!='passed':reasons.append('geometry_not_passed')
         layers=job.get('layers',[])
@@ -44,12 +47,15 @@ def summarize(cohort,observations):
         if not visual:reasons.append('whole_character_visual_review_required')
         rows.append(dict(project_id=character['project_id'],name=character['name'],job_id=job.get('job_id'),
                          artifact_sha256=job.get('artifact_sha256'),completed=not reasons,reason_codes=reasons,
+                         motions=motions,
                          missing_animations=missing,unresolved_layers=unresolved,region_confirmed_layers=sorted(region_confirmed),stale_auto_layers=stale_auto,runtime_measured=runtime is not None,
                          runtime_passed=runtime_passed,visual_accepted=visual,visual_review_session_minutes=minutes(review)))
     measured=[r for r in rows if r['runtime_measured']];passed=sum(r['completed'] for r in rows)
     return dict(schema='autospine.character-cohort-assessment/v1',cohort_id=cohort['cohort_id'],authority='none',
                 characters=rows,metrics=dict(completed_characters=passed,total_characters=len(rows),
                 completion_rate=passed/len(rows) if rows else None,runtime_measured_characters=len(measured),
+                required_motion_cases=len(rows)*len(cohort['required_animations']),
+                runtime_passed_motion_cases=sum(m['status']=='passed' for r in rows for m in r['motions']),
                 runtime_failure_rate=sum(not r['runtime_passed'] for r in measured)/len(measured) if measured else None,
                 human_review_minutes=None,incorrect_auto_adoption_rate=None),
                 unmeasured_reasons=dict(human_review_minutes='operation_timing_not_available',incorrect_auto_adoption_rate='independent_labels_not_available'))

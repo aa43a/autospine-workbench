@@ -13,7 +13,8 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--cohort',type=Path,default=Path('docs/benchmark/character-milestone-cohort-v1.json'))
     parser.add_argument('--base-url',default='http://127.0.0.1:8918')
-    parser.add_argument('--output',type=Path,required=True);args=parser.parse_args()
+    parser.add_argument('--output',type=Path,required=True)
+    parser.add_argument('--html',type=Path);args=parser.parse_args()
     url=urlsplit(args.base_url)
     if url.scheme!='http' or url.hostname not in ('127.0.0.1','localhost') or url.path or url.query or url.fragment or url.username:
         parser.error('base URL must be a local workbench origin')
@@ -46,6 +47,9 @@ def main():
         observations[project]=item
     result=summarize(cohort,observations);result['cohort_sha256']=sha256(args.cohort.read_bytes()).hexdigest()
     args.output.write_bytes(canonical_bytes(result))
+    if args.html:
+        from autospine_workbench.automation.character_cohort_report import render
+        args.html.parent.mkdir(parents=True,exist_ok=True);args.html.write_bytes(render(result))
     print(json.dumps(result['metrics'],ensure_ascii=False))
 
 
