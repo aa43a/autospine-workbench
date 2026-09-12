@@ -55,6 +55,28 @@ test('motion selector sends an available choice and clears on project change',as
   f.context.projectId=null;f.view.sync();assert.equal(select.value,'');f.view.dispose();
 });
 
+test('unique complete motion is default but explicit keep-original survives refresh',async()=>{
+ const choice='e'.repeat(64),calls=[];
+ const f=fixture(async(url,init)=>{calls.push([url,init]);return init.method==='POST'?job('running'):
+  {...overview(job()),motion_choices:[{choice_id:choice,animations:['idle','wave-left','walk'],available:true}]};});
+ f.view.sync();await flush();
+ const select=f.view.element.children[2].children.find(n=>n.tag==='label').children[0];
+ assert.equal(select.value,choice);
+ select.value='';select.onchange();await f.view.refresh();assert.equal(select.value,'');
+ f.build.events.click();await flush();
+ assert.equal('motion_choice_id' in JSON.parse(calls.find(([,init])=>init.method==='POST')[1].body),false);
+ f.view.dispose();
+});
+
+test('automatic complete motion is included in the build request',async()=>{
+ const choice='e'.repeat(64),calls=[];
+ const f=fixture(async(url,init)=>{calls.push([url,init]);return init.method==='POST'?job('running'):
+  {...overview(job()),motion_choices:[{choice_id:choice,animations:['idle','wave-left','walk'],available:true}]};});
+ f.view.sync();await flush();f.build.events.click();await flush();
+ assert.equal(JSON.parse(calls.find(([,init])=>init.method==='POST')[1].body).motion_choice_id,choice);
+ f.view.dispose();
+});
+
 test('restored terminal candidate stops polling and dirty edits suppress download',async()=>{
   const f=fixture(async()=>overview(job()));f.view.sync();await flush();
   assert.equal(f.download.hidden,false);assert.equal(f.timers.size,0);

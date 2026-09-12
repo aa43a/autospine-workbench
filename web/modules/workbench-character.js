@@ -4,6 +4,7 @@ import { createCharacterReview } from "./workbench-character-review.js";
 import { createWeightedReview } from "./workbench-character-weighted-review.js";
 import { createCharacterLedger } from "./workbench-character-ledger.js";
 import { createCharacterProgress } from "./workbench-character-progress.js";
+import { defaultCharacterMotion } from "./workbench-character-motion-choice.js";
 const ACTIVE = new Set(["pending", "running"]);
 const STAGES = {resolve:"核对来源", "base-preview":"准备整角色基础", compose:"合并袖装与校验动作", publish:"封存候选", runtime:"官方 Runtime 渲染与 setup 对照", review:"等待整角色复核"};
 const REASONS = {character_sleeve_unavailable:"尚无当前可用袖装候选，请先完成袖装构建。",
@@ -37,7 +38,7 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
   visualFold.append(node("summary","记录整角色视觉验收"),visualReview.element);visualSection.append(visualFold);element.append(visualSection,weightedReview.element,detail);
   actions.append(exclusions);
   let identity=null,generation=0,overview=null,job=null,busy=false,error="",timer=null,polls=0,operation="";
-  let motionChoice="";motionSelect.onchange=()=>{motionChoice=motionSelect.value;};
+  let motionChoice="",motionTouched=false;motionSelect.onchange=()=>{motionChoice=motionSelect.value;motionTouched=true;render();};
   const schedule=options.setTimeout||setTimeout,clear=options.clearTimeout||clearTimeout;
   const context=()=>hooks.context(),endpoint=()=>`/api/projects/${encodeURIComponent(context().projectId)}/automation/character`;
   const current=token=>token===generation&&identity===projectIdentity(context());
@@ -47,9 +48,11 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
     build.disabled=!overview?.can_build||busy||active||dirty;refresh.disabled=!identity||busy;cancel.hidden=!active;cancel.disabled=busy||job?.cancel_requested;
     const available=overview?.motion_choices||[];
     if(motionChoice&&!available.some(r=>r.choice_id===motionChoice&&r.available))motionChoice="";
+    if(!motionTouched)motionChoice=defaultCharacterMotion(available);
     const defaultMotion=node("option","保留原有动作");defaultMotion.value="";
     motionSelect.replaceChildren(defaultMotion,...available.map(r=>{const o=node("option",`原有动作 + ${r.animations.map(n=>({walk:"行走",idle:"待机","wave-left":"左手挥动"}[n]||n)).join("、")}${r.available?"（候选）":"（来源已变化）"}`);o.value=r.choice_id;o.disabled=!r.available;return o;}));
     motionSelect.value=motionChoice;motionSelect.disabled=busy||active||dirty||!available.some(r=>r.available);
+    motionSelect.setAttribute("title",!motionTouched&&motionChoice?"已自动选择唯一有效的待机、左手挥动与行走组合；可手动更改。":"选择候选动作不会自动通过绑定或视觉复核。");
     const reason=job?.reason_code||overview?.reason_code;
     status.textContent=error||(busy&&operation==="build"?"正在提交整角色构建…":!job&&busy?"正在请求…":job?`${STAGES[job.stage]||job.status}${reason?" · "+(REASONS[reason]||reason):""}`:REASONS[reason]||"可以构建整角色候选。");
     if(!error&&job?.status==="needs_review")status.textContent+=job.runtime?.geometry_status==='passed'?" · 采样网格检查通过":job.runtime?.geometry_status==='needs_changes'?` · ${job.runtime.geometry_failed_records} 项动作/附件变形超限，需修正`:" · 整角色网格检查尚未执行";
@@ -100,6 +103,6 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
     finally{if(current(token)){busy=false;render();if(!error)queue(token);}}
   }
   build.addEventListener("click",()=>void request("build"));refresh.addEventListener("click",()=>void request());cancel.addEventListener("click",()=>void request("cancel"));
-  return {element,sync(){const next=projectIdentity(context());if(next!==identity){generation++;stop();identity=next;overview=job=null;motionChoice="";busy=false;error="";polls=0;if(identity)void request();}render();},
+  return {element,sync(){const next=projectIdentity(context());if(next!==identity){generation++;stop();identity=next;overview=job=null;motionChoice="";motionTouched=false;busy=false;error="";polls=0;if(identity)void request();}render();},
     dispose(){generation++;stop();visualReview.dispose();weightedReview.dispose();},refresh:()=>request()};
 }
