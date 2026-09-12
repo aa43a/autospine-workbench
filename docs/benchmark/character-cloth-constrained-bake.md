@@ -38,3 +38,19 @@
 ```text
 python tools/build-character-cloth-wave.py --state-root workspace --wave c69947dcd79fd874a73f35a236d642f088e069837ccd7a57480e9c499e621b36 --helper cloth-layer-003-component-0000 --samples 65 --adaptive
 ```
+
+## 自适应结果与独立中点否决
+
+自适应产物为
+`f72d551425403f144cafa8d6e2d6c6261c82abd37355d33347a655e230fb9881`。
+三轮关键帧数 69 → 183 → 185；原 1029 检查时间点的失败数 114 → 2 → 0。
+该时间网格最小面积比 0.510088、无翻转。官方 Runtime 同网格 1029 帧、25 附件
+位置匹配，最大误差 0.000164815 px，报告在 ../tmp/cloth-shape-adaptive-runtime/report.json。
+
+但在每两个已验时间之间另取中点，独立 1029 点检查仍失败：9 个失败时刻，
+6 个翻转采样，最小面积比 -0.257557。详见 character-cloth-midpoint-check-v1.json。
+原产物的 geometry_passed 只描述其原时间网格，不能扩展成连续动画通过。
+独立证据否决采用；新产物为独立 trial schema，没有登记到工作台动作选择。
+
+后续必须在解算中加入相邻帧插值面积约束，处理局部解的时间连续性；
+仅增加单帧求解点不足以保证正确。袖口折角和独立视觉验收也仍未完成。
