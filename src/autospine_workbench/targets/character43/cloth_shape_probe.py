@@ -7,7 +7,7 @@ from .affine_pose import sample
 from .drape_direction import apply
 
 
-def probe(document, animation, helper, *, samples=33):
+def probe(document, animation, helper, *, samples=33, constrained=False, on_frame=None, extra_times=()):
     if type(samples) is not int or not 3 <= samples <= 513:
         raise ValueError('cloth_shape_probe_samples')
     held, _ = apply(document, animation, [helper])
@@ -25,14 +25,24 @@ def probe(document, animation, helper, *, samples=33):
     times = {k['time'] for tracks in document['animations'][animation]['bones'].values()
              for keys in tracks.values() for k in keys}
     duration = max(times); times = sorted(times | {duration*i/(samples-1) for i in range(samples)})
+    import math
+    if len(extra_times) > 1025 or any(type(t) not in (int, float) or not math.isfinite(t)
+                                    or not 0 <= t <= duration for t in extra_times):
+        raise ValueError('cloth_shape_probe_times')
+    times = sorted(set(times) | set(extra_times))
     setup = sample(document, animation, 0)[0][slot]; seed = None; rows = []
+    solver = solve
+    if constrained:
+        from ...asset.planning.cloth_shape_constraints import refine
+        solver = refine
     for time in times:
         fixed = sample(document, animation, time)[0][slot]
         target = sample(held, animation, time)[0][slot]
-        points, evidence = solve(setup, triangles, fixed, free, target, seed=seed)
+        points, evidence = solver(setup, triangles, fixed, free, target, seed=seed)
         seed = points
         if any(points[i] != p for i, p in enumerate(fixed) if i not in free):
             raise ValueError('cloth_shape_probe_fixed_changed')
+        if on_frame is not None: on_frame(time, points, fixed)
         rows.append(dict(time=time, before=metrics(setup, target, triangles),
                          after=metrics(setup, points, triangles), solver=evidence))
     return dict(schema='autospine.cloth-shape-probe/v1', authority='none', selected=False,
