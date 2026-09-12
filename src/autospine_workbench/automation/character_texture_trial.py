@@ -4,10 +4,11 @@ import json
 from .pipeline_run import PipelineRunError
 
 PROFILE = 'aligned-low-alpha-v1'
+UNION_PROFILE = 'aligned-low-alpha-union-v2'
 
 
 def validate(profile):
-    if profile is not None and profile != PROFILE:
+    if profile is not None and profile not in (PROFILE, UNION_PROFILE):
         raise PipelineRunError('character_texture_profile_invalid')
 
 
@@ -35,7 +36,8 @@ def apply_selected(manager, request, result):
         return result
     from ..targets.character43.residual_texture_transfer import build
     store = manager.application.store
-    files, report = build(store.read(result['artifact_sha256']))
+    source=store.read(result['artifact_sha256'])
+    files, report = build(source, coverage_profile='triangle-union-v2') if profile==UNION_PROFILE else build(source)
     manifest = json.loads(files['character-manifest.json'])
     return dict(artifact_sha256=store.publish(files), manifest=manifest,
                 texture_trial=dict(profile=profile, source_artifact_sha256=result['artifact_sha256'],

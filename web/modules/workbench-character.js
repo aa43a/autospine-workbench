@@ -32,6 +32,12 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
   textureToggle.type="checkbox";textureToggle.setAttribute("aria-label","归并低透明度残余（候选）");
   textureLabel.setAttribute("title","仅归并有完整网格覆盖且纹理对齐的低透明度像素；关闭后重建可恢复原纹理。不会自动通过复核。");
   textureLabel.append(textureToggle);
+  const textureProfile=node("select");textureProfile.setAttribute("aria-label","残余覆盖规则");
+  for(const [value,text]of [["aligned-low-alpha-v1","单三角形覆盖"],["aligned-low-alpha-union-v2","相邻三角形联合覆盖（候选）"]]){
+    const option=node("option",text);option.value=value;textureProfile.append(option);
+  }
+  textureProfile.value="aligned-low-alpha-v1";textureLabel.append(textureProfile);
+  textureToggle.onchange=()=>render();
   const motionLabel=node("label","整角色动作 "),motionSelect=node("select");motionSelect.setAttribute("aria-label","整角色动作");motionLabel.append(motionSelect);actions.append(motionLabel,textureLabel);
   element.append(node("h3","整角色候选"),node("p","按当前路线构建整角色，并合并已有袖装修正；保留未处理图层与残余，生成 Runtime 与 setup 复核报告。"),actions,status,download);
   const runtime=node("a","查看整角色 Runtime"),setup=node("a","查看源图 / setup 对照");
@@ -51,6 +57,7 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
     const active=ACTIVE.has(job?.status),dirty=Boolean(context().dirty||context().saving||context().loading);
     build.disabled=!overview?.can_build||busy||active||dirty;refresh.disabled=!identity||busy;cancel.hidden=!active;cancel.disabled=busy||job?.cancel_requested;
     textureToggle.disabled=busy||active||dirty;
+    textureProfile.disabled=textureToggle.disabled||!textureToggle.checked;
     const available=overview?.motion_choices||[];
     if(motionChoice&&!available.some(r=>r.choice_id===motionChoice&&r.available))motionChoice="";
     if(!motionTouched)motionChoice=defaultCharacterMotion(available);
@@ -102,7 +109,7 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
       if(action==="build"||action==="cancel")init={method:"POST",headers:{"X-Autospine-Intent":"pipeline-preview"},body:JSON.stringify(action==="cancel"?{}:{
         expected_resolved_sha256:overview.expected_resolved_sha256,expected_input_sha256:overview.expected_input_sha256,sleeve_job_id:overview.sleeve_job_id,
         ...(motionChoice?{motion_choice_id:motionChoice}:{}),
-        ...(textureToggle.checked?{residual_texture_profile:"aligned-low-alpha-v1"}:{})})};
+        ...(textureToggle.checked?{residual_texture_profile:textureProfile.value}:{})})};
       const value=await hooks.apiRequest(url,init);if(!current(token))return;
       if(value.project_id!==project||value.authority!=="none")throw Error("响应来源不匹配");
       if(action==="refresh"){overview=value;job=value.job;polls=0;}
@@ -111,6 +118,6 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
     finally{if(current(token)){busy=false;render();if(!error)queue(token);}}
   }
   build.addEventListener("click",()=>void request("build"));refresh.addEventListener("click",()=>void request());cancel.addEventListener("click",()=>void request("cancel"));
-  return {element,sync(){const next=projectIdentity(context());if(next!==identity){generation++;stop();identity=next;overview=job=null;motionChoice="";motionTouched=false;textureToggle.checked=false;busy=false;error="";polls=0;if(identity)void request();}render();},
+  return {element,sync(){const next=projectIdentity(context());if(next!==identity){generation++;stop();identity=next;overview=job=null;motionChoice="";motionTouched=false;textureToggle.checked=false;textureProfile.value="aligned-low-alpha-v1";busy=false;error="";polls=0;if(identity)void request();}render();},
     dispose(){generation++;stop();visualReview.dispose();weightedReview.dispose();},refresh:()=>request()};
 }

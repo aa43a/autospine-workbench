@@ -45,3 +45,11 @@ class TextureTransferTests(unittest.TestCase):
         self.assertNotIn('transferred',report['rows'][0]['counts'])
         files=self.fixture();files['editor/images/rest.png']=b'wrong'
         with self.assertRaisesRegex(ValueError,'editor_texture_mismatch'):build(files)
+
+    def test_union_transfers_shared_diagonal_texel_but_keeps_other_guards(self):
+        files=self.fixture();legacy,_=build(files)
+        result,report=build(files,coverage_profile='triangle-union-v2')
+        self.assertEqual(report['coverage_profile'],'triangle-union-v2')
+        self.assertEqual(report['rows'][0]['counts'],{'transferred':2,'target_alpha_collision':1,'non_edge_alpha_requires_review':1})
+        self.assertEqual(result['skeleton.json'],files['skeleton.json'])
+        self.assertEqual(build(files)[0],legacy)

@@ -32,6 +32,18 @@ test('texture trial is opt-in and resets across projects',async()=>{
  f.context.projectId=null;f.view.sync();assert.equal(toggle.checked,false);f.view.dispose();
 });
 
+test('union coverage is an explicit selectable request profile',async()=>{
+ const calls=[];const f=fixture(async(url,init)=>{calls.push([url,init]);return init.method==='POST'?job('running'):overview(job());});
+ f.view.sync();await flush();
+ const all=descendants(f.view.element),toggle=all.find(n=>n.attrs?.['aria-label']==='归并低透明度残余（候选）');
+ const profile=all.find(n=>n.attrs?.['aria-label']==='残余覆盖规则');
+ assert.equal(profile.disabled,true);toggle.checked=true;toggle.onchange();
+ assert.equal(profile.disabled,false);profile.value='aligned-low-alpha-union-v2';
+ f.build.events.click();await flush();
+ assert.equal(JSON.parse(calls.find(([,init])=>init.method==='POST')[1].body).residual_texture_profile,'aligned-low-alpha-union-v2');
+ f.view.dispose();
+});
+
 test('static region links require inventoried report and safe anchor',async()=>{
   const current=job();current.layers=[{layer_id:'source',name:'cloth',state:'partial'}];
   current.runtime={files:{'static-regions/index.html':'a'},static_region_links:{source:[

@@ -8,6 +8,7 @@ from autospine_workbench.targets.character43.residual_texture_transfer import bu
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--state-root',type=Path,default=Path('workspace'));p.add_argument('--bundle',required=True)
-    args=p.parse_args();store=AnimatedStore(args.state_root);files,report=build(store.read(args.bundle))
+    p.add_argument('--coverage-profile',choices=['single-triangle-v1','triangle-union-v2'],default='single-triangle-v1')
+    args=p.parse_args();store=AnimatedStore(args.state_root);files,report=build(store.read(args.bundle),coverage_profile=args.coverage_profile)
     print(json.dumps(dict(source_bundle=args.bundle,bundle_sha256=store.publish(files),
         rows=[dict(region=r['region_id'],counts=r['counts']) for r in report['rows']],selected=False)))

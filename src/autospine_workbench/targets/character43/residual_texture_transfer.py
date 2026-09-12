@@ -9,7 +9,9 @@ from .affine_pose import sample
 from .residual_mesh_support import inspect, inside
 
 
-def build(files):
+def build(files, *, coverage_profile='single-triangle-v1'):
+    if coverage_profile not in ('single-triangle-v1','triangle-union-v2'):
+        raise ValueError('residual_coverage_profile_invalid')
     from PIL import Image
     support=inspect(files);doc=json.loads(files['skeleton.json'])
     manifest=json.loads(files['character-manifest.json']);attachments=doc['skins'][0]['attachments']
@@ -41,7 +43,7 @@ def build(files):
                 # One triangle must contain the full texel; otherwise retain it.
                 corners=[point(x+dx,y+dy) for dx,dy in ((0,0),(1,0),(1,1),(0,1))]
                 if not aligned:reason='uv_alignment_required'
-                elif not any(all(inside(p,*t) for p in corners) for t in triangles):reason='full_pixel_coverage_required'
+                elif not full_coverage(corners,triangles,coverage_profile):reason='full_pixel_coverage_required'
                 elif destination.getpixel((x,y))[3]:reason='target_alpha_collision'
                 else:
                     color=rgba.getpixel((x,y));destination.putpixel((x,y),color)
@@ -62,6 +64,7 @@ def build(files):
                 source_skeleton_sha256=support['skeleton_sha256'],source_manifest_sha256=support['manifest_sha256'],
                 rows=rows,texture_changes=changes,skeleton_unchanged=True,atlas_layout_unchanged=True,
                 limitation='aligned_texels_preserved_filtering_draw_order_and_motion_require_runtime_validation')
+    if coverage_profile != 'single-triangle-v1':report['coverage_profile']=coverage_profile
     # The old inventory described different textures; this is a separate trial.
     trial=deepcopy(manifest);trial.update(schema='autospine.character-residual-transfer-trial/v1',
         source_manifest_sha256=support['manifest_sha256'],authority='none',production_authorized=False)
@@ -69,3 +72,10 @@ def build(files):
     trial['files']={name:sha256(raw).hexdigest() for name,raw in result.items()}
     result['character-manifest.json']=canonical_bytes(trial)
     return result,report
+
+
+def full_coverage(corners, triangles, profile):
+    if any(all(inside(p,*t) for p in corners) for t in triangles):return True
+    if profile=='single-triangle-v1':return False
+    from .texel_coverage import covered
+    return covered(corners,triangles)
