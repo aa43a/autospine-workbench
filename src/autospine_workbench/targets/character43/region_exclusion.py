@@ -2,6 +2,7 @@
 from hashlib import sha256
 import json
 from ...automation.storage_io import canonical_bytes
+from .numeric_reference import read as read_reference, write as write_reference
 
 
 def apply(files, decision):
@@ -14,7 +15,7 @@ def apply(files, decision):
     layers = [r for r in manifest['layers'] if r['layer_id'] == source]
     if len(layers) != 1 or not any(r['region_id'] == region and r['state'] == 'static_reference' for r in layers[0]['regions']):
         raise ValueError('character_region_exclusion_not_static')
-    doc = json.loads(files['skeleton.json']); reference = json.loads(files['numeric-reference.json'])
+    doc = json.loads(files['skeleton.json']); reference = read_reference(files)
     if reference['skeleton_sha256'] != sha256(files['skeleton.json']).hexdigest():
         raise ValueError('character_region_exclusion_reference')
     attachment = doc['skins'][0]['attachments'][region][region]
@@ -56,7 +57,7 @@ def apply(files, decision):
         del editor['skins'][0]['attachments'][region]
         result['editor/skeleton.json'] = canonical_bytes(editor)
     reference['skeleton_sha256'] = sha256(result['skeleton.json']).hexdigest()
-    result['numeric-reference.json'] = canonical_bytes(reference)
+    result = write_reference(result, reference)
     result['region-exclusion.json'] = canonical_bytes(decision)
     manifest['files'] = {n: sha256(raw).hexdigest() for n, raw in result.items()}
     result['character-manifest.json'] = canonical_bytes(manifest)

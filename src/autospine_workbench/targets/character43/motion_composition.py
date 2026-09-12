@@ -4,6 +4,7 @@ import json
 from ...automation.storage_io import canonical_bytes
 from ...manifest_artifacts import require_sha256
 from .deformation_qa import inspect
+from .numeric_reference import read as read_reference, write as write_reference
 
 
 def compose(base, motion, base_digest, motion_digest):
@@ -24,8 +25,8 @@ def compose(base, motion, base_digest, motion_digest):
     for source in (base, motion):
         if not inspect(source)['passed']:
             raise ValueError('character_motion_composition_geometry')
-    reference = json.loads(base['numeric-reference.json'])
-    added_reference = json.loads(motion['numeric-reference.json'])
+    reference = read_reference(base)
+    added_reference = read_reference(motion)
     original['animations'].update(added['animations'])
     result = dict(base); result['skeleton.json'] = canonical_bytes(original)
     if 'editor/skeleton.json' in base:
@@ -35,10 +36,13 @@ def compose(base, motion, base_digest, motion_digest):
         editor['animations'].update(added['animations']); result['editor/skeleton.json'] = canonical_bytes(editor)
     reference['animations'].update(added_reference['animations'])
     reference['skeleton_sha256'] = sha256(result['skeleton.json']).hexdigest()
-    result['numeric-reference.json'] = canonical_bytes(reference)
+    result = write_reference(result, reference)
     result['deformation.json'] = canonical_bytes(inspect(result))
     for name in ('motion-review.json', 'motion-ir.json', 'root-correction.json'):
         if name in motion: result['motion-candidates/'+motion_digest+'/'+name] = motion[name]
+    for name, raw in motion.items():
+        if name.startswith('motion-set-sources/') and name.endswith('.json'):
+            result['motion-candidates/'+motion_digest+'/'+name] = raw
     manifest.update(profile='exact-character-motion-composition-v1', animations=sorted(original['animations']),
                     status='needs_review', authority='none', production_authorized=False, full_character_animation=False,
                     qa=dict(runtime_status='not_run', full_character_contact_status='not_evaluated'))

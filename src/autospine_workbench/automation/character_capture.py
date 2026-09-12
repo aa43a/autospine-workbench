@@ -5,10 +5,18 @@ from pathlib import Path, PurePosixPath
 import re
 import subprocess
 import sys
+import math
 
 from .sleeve_capture_environment import discover
 from .storage_io import directory
 from .pipeline_run import PipelineRunError
+
+
+def runtime_timeout(frame_count):
+    """Bound work by verified reference frames; keep the historical small-run floor."""
+    if type(frame_count) is not int or frame_count < 1:
+        raise ValueError('character_runtime_frame_count')
+    return min(900, max(180, math.ceil(60 + frame_count*.2)))
 
 
 def review_name(name):
@@ -38,6 +46,7 @@ def capture(projects, store, digest, root, *, progress, cancel_requested):
     from ..targets.character43.deformation_qa import inspect
     from .storage_io import canonical_bytes
     geometry=inspect(candidate)
+    frame_count=sum({r['animation']:r['sample_count'] for r in geometry['records']}.values())
     (output/'deformation.json').write_bytes(canonical_bytes(geometry))
     progress('runtime')
     commands = [
@@ -47,8 +56,12 @@ def capture(projects, store, digest, root, *, progress, cancel_requested):
     for index, command in enumerate(commands):
         if cancel_requested(): raise ValueError('character_build_canceled')
         with (root/f'capture-{index}.log').open('wb') as log:
-            run = subprocess.run(command,cwd=repo,stdout=log,stderr=subprocess.STDOUT,timeout=180,
-                                 creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
+            try:
+                run = subprocess.run(command,cwd=repo,stdout=log,stderr=subprocess.STDOUT,
+                                     timeout=runtime_timeout(frame_count) if index==0 else 180,
+                                     creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
+            except subprocess.TimeoutExpired as exc:
+                raise ValueError('character_runtime_timeout') from exc
         if run.returncode: raise ValueError('character_runtime_capture_failed')
     if cancel_requested(): raise ValueError('character_build_canceled')
     report = json.loads((output/'report.json').read_bytes())

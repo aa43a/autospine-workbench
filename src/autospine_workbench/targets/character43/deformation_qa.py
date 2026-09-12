@@ -2,12 +2,13 @@
 import math
 from hashlib import sha256
 import json
+from .numeric_reference import read as read_reference
 
 PROFILE='character-sampled-deformation-v1'
 
 
 def inspect(files):
-    document=json.loads(files['skeleton.json']);reference=json.loads(files['numeric-reference.json'])
+    document=json.loads(files['skeleton.json']);reference=read_reference(files)
     if reference['skeleton_sha256']!=sha256(files['skeleton.json']).hexdigest():
         raise ValueError('character_reference_source_mismatch')
     if not reference['animations'] or set(reference['animations'])!=set(document['animations']):raise ValueError('character_animation_inventory')

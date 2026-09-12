@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { pathToFileURL } from 'node:url';
+import {readReference} from './character-reference.mjs';
 const [folder, coreRoot, output] = process.argv.slice(2);
 if (!folder || !coreRoot || !output) throw new Error('usage: bundle official-core output');
 const pkg = JSON.parse(await fs.readFile(path.join(coreRoot,'package.json')));
@@ -12,7 +13,7 @@ const hash = raw => crypto.createHash('sha256').update(raw).digest('hex');
 const raw = await fs.readFile(path.join(folder,'skeleton.json'));
 const atlasRaw = await fs.readFile(path.join(folder,'skeleton.atlas'));
 const referenceRaw = await fs.readFile(path.join(folder,'numeric-reference.json'));
-const reference = JSON.parse(referenceRaw);
+const reference = await readReference(referenceRaw,name=>fs.readFile(path.join(folder,name)));
 if(reference.skeleton_sha256 !== hash(raw)) throw new Error('reference_source_mismatch');
 const atlas = new spine.TextureAtlas(atlasRaw.toString());
 const data = new spine.SkeletonJson(new spine.AtlasAttachmentLoader(atlas)).readSkeletonData(JSON.parse(raw));
@@ -47,6 +48,7 @@ async function inventory(dir){for(const e of await fs.readdir(dir,{withFileTypes
 await inventory(path.join(coreRoot,'dist'));
 const report = {runtime_package:pkg.name,runtime_version:pkg.version,runtime_files:runtimeFiles,
   skeleton_sha256:hash(raw),atlas_sha256:hash(atlasRaw),reference_sha256:hash(referenceRaw),results,
+  reference_reader_sha256:hash(await fs.readFile(new URL('./character-reference.mjs',import.meta.url))),
   passed:results.every(r=>r.passed),scope:'official_core_all_attachment_vertices',framebuffer_status:'not_evaluated',authority:'none',production_authorized:false};
 await fs.writeFile(output,JSON.stringify(report,null,2));
 console.log(JSON.stringify({passed:report.passed,results}));if(!report.passed)process.exitCode=1;

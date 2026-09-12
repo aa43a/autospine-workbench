@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Lossless character numeric reference chunks v1",
+  "type": "object",
+  "required": ["schema", "skeleton_sha256", "chunks"],
+  "properties": {
+    "schema": {"const": "autospine.character-reference-chunks/v1"},
+    "skeleton_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "chunks": {
+      "type": "array", "minItems": 1, "maxItems": 1024,
+      "items": {
+        "type": "object",
+        "required": ["animation", "part", "file", "sha256"],
+        "properties": {
+          "animation": {"type": "string", "minLength": 1},
+          "part": {"type": "integer", "minimum": 0},
+          "file": {"type": "string", "pattern": "^numeric-reference/[a-f0-9]{64}\\.json$"},
+          "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+        }
+      }
+    }
+  }
+}

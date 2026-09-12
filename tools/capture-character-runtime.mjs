@@ -4,6 +4,7 @@ import path from 'node:path';
 import http from 'node:http';
 import crypto from 'node:crypto';
 import {pathToFileURL} from 'node:url';
+import {readReference} from './character-reference.mjs';
 const [folderArg,outputArg,dependencies,chrome,strideArg]=process.argv.slice(2);
 if(!chrome)throw Error('usage: bundle output dependencies chrome');
 const screenshotStride=strideArg===undefined?32:Number(strideArg);
@@ -22,7 +23,9 @@ for(const [name,sha]of Object.entries(inventory)){
   if(raw.length>64*1024*1024||size>256*1024*1024||hash(raw)!==sha)throw Error('asset_inventory');
   files.set('/'+name,raw);
 }
-const reference=JSON.parse(files.get('/numeric-reference.json')),manifest=JSON.parse(files.get('/character-manifest.json'));
+const reference=await readReference(files.get('/numeric-reference.json'),async name=>files.get('/'+name)),manifest=JSON.parse(files.get('/character-manifest.json'));
+// The browser consumes the losslessly reconstructed reference after inventory verification.
+files.set('/numeric-reference.json',Buffer.from(JSON.stringify(reference)));
 if(reference.skeleton_sha256!==inventory['skeleton.json']||manifest.authority!=='none'||manifest.production_authorized!==false)throw Error('reference_identity');
 const names=Object.keys(reference.animations).sort();
 if(!names.length||names.some(n=>!/^[a-zA-Z0-9_-]+$/.test(n)))throw Error('animation_name');
@@ -66,6 +69,7 @@ try{
   if(errors.length)throw Error(errors.join('\n'));
   const report={schema:'autospine.character-framebuffer/v1',bundle_sha256:digest,runtime_package:pkg.name,runtime_version:pkg.version,
     runtime_sha256:hash(runtime),harness_sha256:hash(harness),tool_sha256:hash(await fs.readFile(new URL(import.meta.url))),
+    reference_reader_sha256:hash(await fs.readFile(new URL('./character-reference.mjs',import.meta.url))),
     browser_sha256:hash(await fs.readFile(chrome)),profile:'official-webgl-swiftshader-native-v1',info,results,screenshots,screenshot_stride:screenshotStride,
     passed:true,scope:'all_attachment_vertices_and_nonempty_unclipped_framebuffer',
     contact_status:'not_evaluated',draw_order_visual_status:'needs_review',authority:'none',production_authorized:false};

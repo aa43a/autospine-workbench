@@ -6,6 +6,7 @@ from pathlib import Path
 
 from autospine_workbench.automation.animated_store import AnimatedStore
 from autospine_workbench.targets.character43.setup_raster import compare_setup
+from autospine_workbench.targets.character43.numeric_reference import read as read_reference
 
 
 def main():
@@ -16,7 +17,7 @@ def main():
     report_raw = (capture/'report.json').read_bytes(); capture_report = json.loads(report_raw)
     if capture_report['bundle_sha256'] != bundle.name:
         raise ValueError('character_capture_source_mismatch')
-    ref = json.loads(files['numeric-reference.json']); doc = json.loads(files['skeleton.json'])
+    ref = read_reference(files); doc = json.loads(files['skeleton.json'])
     if ref['skeleton_sha256'] != sha256(files['skeleton.json']).hexdigest():
         raise ValueError('character_reference_source_mismatch')
     shot = next(s for s in capture_report['screenshots'] if s['index']==0)
