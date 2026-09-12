@@ -5,9 +5,9 @@ const READY=new Set(["weighted_candidate","rigid_reviewed","excluded","not_visib
 const REASONS={residual_binding_required:"残余区域尚未绑定",mesh_review_required:"网格候选待复核",
   binding_selection_required:"需要选择绑定",static_reference_not_bound:"仅静态参考，尚未完成绑定"};
 
-export function needsBindingReview(layer){
+export function needsBindingReview(layer,confirmed=[]){
   const source=layer.binding_decision;
-  return !READY.has(layer.state)||source?.decision_source==="pending"||
+  return !READY.has(layer.state)||(source?.decision_source==="pending"&&!confirmed.includes(layer.layer_id))||
     (source?.decision_source==="policy_auto"&&source.evidence_current!==true);
 }
 
@@ -24,7 +24,7 @@ export function createCharacterLedger(document,hooks){
   function render(){
     const {job,endpoint,disabled}=state||{};
     const layers=job?.status==="needs_review"?job.layers||[]:[];
-    const pending=layers.filter(needsBindingReview);
+    const pending=layers.filter(layer=>needsBindingReview(layer,state.confirmedLayerIds||[]));
     const regions=layers.flatMap(l=>l.regions||[]);
     const number=s=>regions.filter(r=>r.state===s).length;
     element.hidden=!layers.length;
@@ -38,7 +38,7 @@ export function createCharacterLedger(document,hooks){
         const p=layer.binding_decision,labels={policy_auto:"自动策略采用",explicit_selection:"显式选择",legacy_selection:"历史选择（来源未细分）",pending:"待复核"};
         row.append(node("p",`整层绑定来源：${labels[p.decision_source]||"未知"}${p.decision_source==="policy_auto"&&p.evidence_current!==true?" · 证据来源已变化或未验证，需重新检查":""}`));
         if(p.decision_source==="pending"&&(layer.regions||[]).some(r=>r.state==="weighted_candidate"))
-          row.append(node("p","已有加权区域；整层绑定仍待复核。请检查现有分区，不要把整张图改绑到单根骨骼来清除待办。"));
+          row.append(node("p",(state.confirmedLayerIds||[]).includes(layer.layer_id)?"已按当前候选确认区域绑定；整层草稿保留。":"已有加权区域；整层绑定仍待复核。请检查现有分区，不要把整张图改绑到单根骨骼来清除待办。"));
       }
       const evidence=node("details");evidence.append(node("summary",`区域明细与处理 · ${(layer.regions||[]).length} 个输出区域`));row.append(evidence);
       if(layer.reason_codes?.length)evidence.append(node("p",layer.reason_codes.map(r=>REASONS[r]||r).join("；")));

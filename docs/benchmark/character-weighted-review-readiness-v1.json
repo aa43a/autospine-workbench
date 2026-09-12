@@ -1,0 +1,43 @@
+{
+  "authority": "none",
+  "projects": [
+    {
+      "project_id": "imported-885b4d3d22ee151a0364ac499a419b8bd0e59699a7b27ee4f65f007eee551590",
+      "job_id": "job-c8578d00d33241a9a9b9e6264f61ef1c",
+      "artifact_sha256": "9f8ded542a7f6480345356926da4f7ae875191da03e51874a06896db72ac2d80",
+      "authority": "none",
+      "can_review": true,
+      "reason_code": null,
+      "eligible_layer_ids": [
+        "layer-001",
+        "layer-006"
+      ],
+      "review_sha256": null,
+      "review": null
+    },
+    {
+      "project_id": "imported-2c2b45ec951d8e890be5d01751dc0ababbd451a96c45c75bd333b92f0fcda17a",
+      "job_id": "job-e4b1e6c9f4934c61bffc14784ac747f9",
+      "artifact_sha256": "5bbc60bfaebe82b524281b9a6debe263e88a96d0996ec26925e6eafafa551ec3",
+      "authority": "none",
+      "can_review": true,
+      "reason_code": null,
+      "eligible_layer_ids": [
+        "layer-009"
+      ],
+      "review_sha256": null,
+      "review": null
+    },
+    {
+      "project_id": "huiye",
+      "job_id": "job-5cde2e9243d54fc7b6074b490e3c044b",
+      "artifact_sha256": "023c43cc7442c7d7360447bae1226a6b763d65b0fdea5ead001da50ee54432a5",
+      "authority": "none",
+      "can_review": true,
+      "reason_code": null,
+      "eligible_layer_ids": [],
+      "review_sha256": null,
+      "review": null
+    }
+  ]
+}

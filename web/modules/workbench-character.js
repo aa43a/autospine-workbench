@@ -1,6 +1,7 @@
 "use strict";
 import { projectIdentity } from "./workbench-automation-contract.js";
 import { createCharacterReview } from "./workbench-character-review.js";
+import { createWeightedReview } from "./workbench-character-weighted-review.js";
 import { createCharacterLedger } from "./workbench-character-ledger.js";
 const ACTIVE = new Set(["pending", "running"]);
 const STAGES = {resolve:"核对来源", "base-preview":"准备整角色基础", compose:"合并袖装与校验动作", publish:"封存候选", runtime:"官方 Runtime 渲染与 setup 对照", review:"等待整角色复核"};
@@ -23,13 +24,14 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
   build.className="button button-primary";
   const download=node("a","下载整角色 Spine / 图层账本");download.className="button button-secondary";download.setAttribute("download","");
   const ledger=createCharacterLedger(document,{locate:hooks.locate,regionDecision:body=>regionDecision(body)}),detail=ledger.element;
+  const weightedReview=createWeightedReview(document,{apiRequest:hooks.apiRequest,changed:()=>render()});
   const exclusions=node("div");
   const motionLabel=node("label","整角色动作 "),motionSelect=node("select");motionSelect.setAttribute("aria-label","整角色动作");motionLabel.append(motionSelect);actions.append(motionLabel);
   element.append(node("h3","整角色候选"),node("p","按当前路线构建整角色，并合并已有袖装修正；保留未处理图层与残余，生成 Runtime 与 setup 复核报告。"),actions,status,download);
   const runtime=node("a","查看整角色 Runtime"),setup=node("a","查看源图 / setup 对照");
   for(const link of [runtime,setup]){link.className="button button-secondary";link.target="_blank";link.rel="noopener";element.append(link);}
   const visualReview=createCharacterReview(document,hooks),visualSection=node("section"),visualFold=node("details");
-  visualFold.append(node("summary","记录整角色视觉验收"),visualReview.element);visualSection.append(visualFold);element.append(visualSection,detail);
+  visualFold.append(node("summary","记录整角色视觉验收"),visualReview.element);visualSection.append(visualFold);element.append(visualSection,weightedReview.element,detail);
   actions.append(exclusions);
   let identity=null,generation=0,overview=null,job=null,busy=false,error="",timer=null,polls=0,operation="";
   let motionChoice="";motionSelect.onchange=()=>{motionChoice=motionSelect.value;};
@@ -57,7 +59,8 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
       if(link.hidden)link.removeAttribute("href");else link.setAttribute("href",`${endpoint()}/jobs/${job.job_id}/view/${file}`);
     }
     visualReview.sync(job?.status==="needs_review"&&job.runtime?.files?.['report.json']?job:null,!dirty&&!busy&&!active);
-    ledger.sync({projectId:context().projectId,job,endpoint:endpoint(),disabled:busy||active||dirty});
+    weightedReview.sync(job?.status==="needs_review"&&job.runtime?.files?.["report.json"]?job:null,!dirty&&!busy&&!active);
+    ledger.sync({confirmedLayerIds:weightedReview.confirmed(),projectId:context().projectId,job,endpoint:endpoint(),disabled:busy||active||dirty});
     exclusions.replaceChildren(...(overview?.region_exclusions?.active||[]).map(entry=>{
       const row=node("p",`已排除区域：${entry.region_id} `),undo=node("button","撤销排除");undo.type="button";
       undo.className="button button-secondary";
@@ -94,5 +97,5 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
   }
   build.addEventListener("click",()=>void request("build"));refresh.addEventListener("click",()=>void request());cancel.addEventListener("click",()=>void request("cancel"));
   return {element,sync(){const next=projectIdentity(context());if(next!==identity){generation++;stop();identity=next;overview=job=null;motionChoice="";busy=false;error="";polls=0;if(identity)void request();}render();},
-    dispose(){generation++;stop();visualReview.dispose();},refresh:()=>request()};
+    dispose(){generation++;stop();visualReview.dispose();weightedReview.dispose();},refresh:()=>request()};
 }

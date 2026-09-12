@@ -22,7 +22,7 @@ def dispatch_character(tail,handler,method,project):
     if len(tail)==2 and tail[0]=='jobs': allowed='GET, HEAD, OPTIONS'
     if len(tail)==3 and tail[0]=='jobs' and tail[2]=='download': allowed='GET, HEAD, OPTIONS'
     if len(tail)==3 and tail[0]=='jobs' and tail[2]=='cancel': allowed='POST, OPTIONS'
-    if len(tail)==3 and tail[0]=='jobs' and tail[2]=='visual-review': allowed='GET, HEAD, POST, OPTIONS'
+    if len(tail)==3 and tail[0]=='jobs' and tail[2] in {'visual-review','weighted-review'}: allowed='GET, HEAD, POST, OPTIONS'
     if len(tail)>=4 and tail[0]=='jobs' and tail[2]=='view': allowed='GET, HEAD, OPTIONS'
     if allowed is None:
         _error(handler,404,'pipeline_route_not_found'); return True
@@ -41,6 +41,9 @@ def dispatch_character(tail,handler,method,project):
                 if set(body)-{'motion_choice_id'}!={'expected_resolved_sha256','expected_input_sha256','sleeve_job_id'}:
                     raise PipelineRunError('pipeline_request_invalid')
                 value=manager.submit(project,**body)
+            elif tail[2]=='weighted-review':
+                from .character_weighted_review import save
+                value=save(manager,project,tail[1],body)
             elif tail[2]=='visual-review':
                 from .character_visual_review import save
                 value=save(manager,project,tail[1],body)
@@ -55,6 +58,9 @@ def dispatch_character(tail,handler,method,project):
         elif len(tail)==2: handler._send_visual_json(200,manager.get(project,tail[1]))
         elif tail[2]=='visual-review':
             from .character_visual_review import overview
+            handler._send_visual_json(200,overview(manager,project,tail[1]))
+        elif tail[2]=='weighted-review':
+            from .character_weighted_review import overview
             handler._send_visual_json(200,overview(manager,project,tail[1]))
         elif tail[2]=='view':
             raw,mime=manager.review_file(project,tail[1],tail[3:])

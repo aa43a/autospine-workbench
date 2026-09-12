@@ -42,6 +42,7 @@ def main():
                 if visual['project_id']!=project or visual['job_id']!=job['job_id'] or visual['artifact_sha256']!=job['artifact_sha256']:
                     raise ValueError('cohort_review_source')
                 item['visual_review']=visual['review']
+                item['weighted_review']=get(path+'/weighted-review')
         observations[project]=item
     result=summarize(cohort,observations);result['cohort_sha256']=sha256(args.cohort.read_bytes()).hexdigest()
     args.output.write_bytes(canonical_bytes(result))
