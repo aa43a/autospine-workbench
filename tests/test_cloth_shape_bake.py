@@ -1,10 +1,12 @@
 from copy import deepcopy
 import json
+import importlib.util
 import unittest
 from autospine_workbench.targets.character43.cloth_shape_bake import bake
 from autospine_workbench.targets.character43.affine_pose import sample
 
 
+@unittest.skipUnless(importlib.util.find_spec('numpy') and importlib.util.find_spec('scipy'), 'optional numerical solver')
 class ClothBakeTests(unittest.TestCase):
     def test_existing_deform_and_fixed_vertices_survive_bake(self):
         vertices = []
@@ -17,13 +19,14 @@ class ClothBakeTests(unittest.TestCase):
             animations={'wave-left': dict(bones={'forearm_l': {'rotate': [
                 dict(time=0, value=0), dict(time=1, value=20), dict(time=2, value=0)]}},
                 attachments={'default': {'fabric': {'fabric': {'deform': [
-                    dict(time=0, vertices=[0.]*8), dict(time=1, vertices=[.05, 0.]*4),
+                    dict(time=0, vertices=[0.]*8), dict(time=.5, vertices=[.09, 0.]*4),
+                    dict(time=.75, vertices=[-.025, 0.]*4), dict(time=1, vertices=[.05, 0.]*4),
                     dict(time=2, vertices=[0.]*8)]}}}})})
         original = deepcopy(doc)
         files = bake(doc, 'wave-left', 'cloth-fabric', samples=3)
         result = json.loads(files['skeleton.json'])
         self.assertEqual(doc, original)
-        for time in (0, .5, 1, 1.5, 2):
+        for time in (0, .25, .5, .625, .75, 1, 1.5, 2):
             before = sample(doc, 'wave-left', time)[0]['fabric']
             after = sample(result, 'wave-left', time)[0]['fabric']
             for a, b in zip(before[:2], after[:2]):

@@ -1,8 +1,10 @@
 from copy import deepcopy
+import importlib.util
 import unittest
 from autospine_workbench.asset.planning.cloth_shape_solver import solve
 
 
+@unittest.skipUnless(importlib.util.find_spec('numpy') and importlib.util.find_spec('scipy'), 'optional numerical solver')
 class ClothShapeTests(unittest.TestCase):
     def test_setup_fixed_boundary_and_determinism(self):
         points = [[0., 0.], [1., 0.], [1., 1.], [0., 1.]]
