@@ -42,10 +42,14 @@ def repair(document, name, *, samples=257):
         edges = sorted({tuple(sorted((t[i], t[(i+1)%3]))) for t in triangles for i in range(3)})
         context = dict(row={'triangles': triangles}, areas=areas, edges=edges,
                        lengths=[math.dist(base[a], base[b]) for a, b in edges], free=free, budget=budget)
-        keys = []; maximum = 0.
+        keys = []; maximum = 0.; unresolved = []
         for time, world, transform in zip(times, worlds, transforms):
             original = world[slot]
             corrected = project(context, original)
+            corrected_ratios = [area(corrected, t)/a for t, a in zip(triangles, areas)]
+            if min(corrected_ratios) < .5 or max(corrected_ratios) > 2:
+                unresolved.append(dict(time=time, min_area_ratio=min(corrected_ratios),
+                                       max_area_ratio=max(corrected_ratios)))
             offsets = []
             for vertex, (a, b, entries) in enumerate(zip(original, corrected, influences)):
                 distance = math.dist(a, b)
@@ -62,6 +66,8 @@ def repair(document, name, *, samples=257):
             keys.append(dict(time=time, vertices=offsets))
         result['animations'][name].setdefault('attachments', {}).setdefault('default', {})[slot] = {slot: {'deform': keys}}
         rows.append(dict(slot=slot, max_displacement_px=maximum, budget_px=budget,
-                         fixed_vertices=sum(not v for v in free), sample_count=len(times)))
+                         fixed_vertices=sum(not v for v in free), sample_count=len(times),
+                         unresolved_area_samples=unresolved,
+                         area_status='needs_review' if unresolved else 'sampled_pass'))
     return result, dict(profile='affine-mixed-area-budget10-v1', authority='none', selected=False,
                         records=rows, validation='dense_resampling_required')

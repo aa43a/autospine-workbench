@@ -42,3 +42,13 @@ class AffineRepairTests(unittest.TestCase):
         doc = fixture(); doc['animations']['walk']['attachments'] = {'default': {}}
         with self.assertRaisesRegex(ValueError, 'existing_deform'):
             repair(doc, 'walk')
+
+    def test_unconverged_projection_is_reported_without_approval(self):
+        with patch('autospine_workbench.targets.character43.affine_area_repair.project',
+                   side_effect=lambda context, points: points):
+            _, report = repair(fixture(), 'walk', samples=3)
+        row = report['records'][0]
+        self.assertEqual(row['area_status'], 'needs_review')
+        self.assertEqual(row['unresolved_area_samples'][0]['time'], 1)
+        self.assertAlmostEqual(row['unresolved_area_samples'][0]['min_area_ratio'], .4)
+        self.assertFalse(report['selected'])

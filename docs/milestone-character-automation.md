@@ -473,3 +473,17 @@ fe70164103067bb196574733200866a8ec21f5352a5d0af20af104ec5c841f84通过513姿态�
 真实浏览器验证图片加载、拖动到frame256、播放至512、不循环且无页面错误。
 独立行走视觉反馈已请求，尚未收到；不继承旧动作接受结论。
 页面../tmp/character-walk-combined/hongmeiling/runtime/timeline.html。
+
+## 固定三角色行走策略复用
+
+五层耳朵的 head 归属已用于当前角色来源。未改变头发、头饰或衣服决定。
+同一 frontal/area/root 策略应用于小恶魔和辉夜，无角色专属参数。
+小恶魔候选 23ddea3bfe7658f4181c2a61545e8448afc9df91b982a47af6466dbac522742c
+通过 513 姿态网格及官方 WebGL 513 帧/32 附件，最大顶点误差 0.00012840px。
+实际截图时间轴：../tmp/character-walk-cohort/xiaoemo/runtime/timeline.html。
+辉夜仍未通过：layer-002-component-0000 有 20 个验证帧低于 0.5 面积下限，
+最低 0.485926，无翻转。另一侧和其他附件通过；不将该候选计为动作成功。
+补充求解姿态诊断后确认该侧有 12 个求解姿态未收敛，首个 time=0.3，
+所以不能仅归因于帧间插值。新增报告字段不改变求解数值、预算和阈值。
+报告：../tmp/character-walk-cohort/huiye-diagnostics/motion-review.json。
+7 项相关测试通过。独立视觉接受、鞋底接触及工作台统一动作输出仍待完成。
