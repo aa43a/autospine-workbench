@@ -18,12 +18,26 @@ def main():
     parser.add_argument('--motion', required=True)
     parser.add_argument('--motion-bundle', required=True)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--contact-root', action='store_true', help='Try bounded ankle-proxy root correction; not sole locking')
     args = parser.parse_args()
     files = AnimatedStore(args.state_root).read(args.character)
     motion_bundle = VerifiedMotionBundleReader(args.state_root).load(args.motion, args.motion_bundle)
     motion = json.loads((motion_bundle.path/'motion.json').read_bytes())
     document, evidence = build(json.loads(files['skeleton.json']), motion, 'walk')
     document['animations'] = {'walk': document['animations']['walk']}
+    args.output.mkdir(parents=True, exist_ok=True)
+    if args.contact_root:
+        from autospine_workbench.targets.character43.contact_root_candidate import build as correct_root
+        intervals = [dict(limb=m['limb'], start=m['start_tick']/motion['ticks_per_second'],
+                          end=m['end_tick']/motion['ticks_per_second']) for m in motion['markers']
+                     if m['kind'] == 'contact' and m['limb'] in ('leg.left', 'leg.right')]
+        corrected, correction = correct_root(document, 'walk', intervals,
+                                             reference_length=evidence['reference_length_px'])
+        (args.output/'root-correction.json').write_bytes(canonical_bytes(correction))
+        if corrected is None:
+            raise ValueError('character_contact_root_candidate_blocked')
+        document = corrected
+        evidence['root_correction_profile'] = correction['profile']
     duration = motion['duration_ticks']/motion['ticks_per_second']
     times = [duration*i/124 for i in range(125)]
     frames = [dict(time=t, vertices=sample(document, 'walk', t)[0]) for t in times]
