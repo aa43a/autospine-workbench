@@ -1,0 +1,108 @@
+[
+  {
+    "character": "hongmeiling",
+    "job_id": "job-7d8ce666ea13487a953bdfa5258ea79a",
+    "project_id": "imported-885b4d3d22ee151a0364ac499a419b8bd0e59699a7b27ee4f65f007eee551590",
+    "review": {
+      "project_id": "imported-885b4d3d22ee151a0364ac499a419b8bd0e59699a7b27ee4f65f007eee551590",
+      "job_id": "job-7d8ce666ea13487a953bdfa5258ea79a",
+      "artifact_sha256": "fadde972f148b353592aaeebf75df151b9ef57032efaacde1773ea5a8754d28c",
+      "authority": "none",
+      "can_review": true,
+      "reason_code": null,
+      "eligible_layer_ids": [
+        "layer-001",
+        "layer-002",
+        "layer-005",
+        "layer-006"
+      ],
+      "review_sha256": "cfc9a5e2bcf3f05ef4149802bb541979bcfcff739115f1727b94c58e80f12e6a",
+      "review": {
+        "accepted_layer_ids": [
+          "layer-002",
+          "layer-005"
+        ],
+        "artifact_sha256": "fadde972f148b353592aaeebf75df151b9ef57032efaacde1773ea5a8754d28c",
+        "authority": "none",
+        "decision_source": "human_review",
+        "job_id": "job-7d8ce666ea13487a953bdfa5258ea79a",
+        "layers_sha256": "1aeeaf4cd2011ea081081c4e77061415edcd23f7bf9d115245d5d34f1002999a",
+        "previous_sha256": "c9e8d872f6949f5ee9611d4d52cf8f4eab456c918a5d8ff78e16d82a1ba06def",
+        "production_authorized": false,
+        "project_id": "imported-885b4d3d22ee151a0364ac499a419b8bd0e59699a7b27ee4f65f007eee551590",
+        "revision": 1,
+        "runtime_sha256": "c9e43bac654a9c287b39416d652e9576c3ae311ec0908ef1df9ac23cac70ca40",
+        "schema": "autospine.character-weighted-review/v1"
+      }
+    }
+  },
+  {
+    "character": "xiaoemo",
+    "job_id": "job-f494140ce9ac4de5a6039797c295f25a",
+    "project_id": "imported-2c2b45ec951d8e890be5d01751dc0ababbd451a96c45c75bd333b92f0fcda17a",
+    "review": {
+      "project_id": "imported-2c2b45ec951d8e890be5d01751dc0ababbd451a96c45c75bd333b92f0fcda17a",
+      "job_id": "job-f494140ce9ac4de5a6039797c295f25a",
+      "artifact_sha256": "4eb9afdc7811a425a3c963abc1c20a11100cd5fecf41ddba4be0bf5a3a1ea13c",
+      "authority": "none",
+      "can_review": true,
+      "reason_code": null,
+      "eligible_layer_ids": [
+        "layer-008",
+        "layer-009",
+        "layer-010"
+      ],
+      "review_sha256": "a627ab7ef8dee9619923bc61a988b084ef0aa83a025ef01ea57cb56a66aefcf5",
+      "review": {
+        "accepted_layer_ids": [
+          "layer-008",
+          "layer-010"
+        ],
+        "artifact_sha256": "4eb9afdc7811a425a3c963abc1c20a11100cd5fecf41ddba4be0bf5a3a1ea13c",
+        "authority": "none",
+        "decision_source": "human_review",
+        "job_id": "job-f494140ce9ac4de5a6039797c295f25a",
+        "layers_sha256": "568cb97f0ef30940b6b994785335a865b9da3b666da1e7fa70be66a1f3c3ee30",
+        "previous_sha256": "9eedc599feb4c6810035ec785bd9e8e9e1d75a61f9064dca031ef138a6b9939a",
+        "production_authorized": false,
+        "project_id": "imported-2c2b45ec951d8e890be5d01751dc0ababbd451a96c45c75bd333b92f0fcda17a",
+        "revision": 1,
+        "runtime_sha256": "b304767a952bb806348fcbf6504f928f1abb142912f510b6e118726c0e9cf9b3",
+        "schema": "autospine.character-weighted-review/v1"
+      }
+    }
+  },
+  {
+    "character": "huiye",
+    "job_id": "job-8d4c2c1d2a594004aae1d1034cefee1c",
+    "project_id": "huiye",
+    "review": {
+      "project_id": "huiye",
+      "job_id": "job-8d4c2c1d2a594004aae1d1034cefee1c",
+      "artifact_sha256": "289b6b4a68c2ccd43a735aee7bf0d7de6109d7174388ef94c1daaa4cb789a6f0",
+      "authority": "none",
+      "can_review": true,
+      "reason_code": null,
+      "eligible_layer_ids": [
+        "layer-004"
+      ],
+      "review_sha256": "ca5026e36fa19f9933a3eb4fc52004059658d2d6cd8f383889c68b01c4bce516",
+      "review": {
+        "accepted_layer_ids": [
+          "layer-004"
+        ],
+        "artifact_sha256": "289b6b4a68c2ccd43a735aee7bf0d7de6109d7174388ef94c1daaa4cb789a6f0",
+        "authority": "none",
+        "decision_source": "human_review",
+        "job_id": "job-8d4c2c1d2a594004aae1d1034cefee1c",
+        "layers_sha256": "943471239264cd92e9f64ec040d60b4c2b095a1e18179f168dc87149f009aab3",
+        "previous_sha256": null,
+        "production_authorized": false,
+        "project_id": "huiye",
+        "revision": 0,
+        "runtime_sha256": "46253faf6104d14ad8a6ef8f7f092b52ac03203c59b06ead278a85fafda3f2d0",
+        "schema": "autospine.character-weighted-review/v1"
+      }
+    }
+  }
+]
