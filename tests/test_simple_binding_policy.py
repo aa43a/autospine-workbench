@@ -79,3 +79,24 @@ class PolicyTransactionTests(unittest.TestCase):
         with self.assertRaisesRegex(AnimatedSourceError,'animated_review_conflict'):
             undo(self.store,'fixture',result['decision_sha256'],self.key())
         self.assertEqual(inspect_registration(self.store,'fixture')['draft']['records'],latest)
+
+    def test_undo_after_candidate_upgrade_keeps_new_source_and_unrelated_notes(self):
+        from autospine_workbench.automation.animated_binding_completion import complete_bindings
+        records=deepcopy(inspect_registration(self.store,'fixture')['draft']['records'])
+        records[0].update(action='pending',option_id=None)
+        save_binding_review(self.store,'fixture',self.key(),records)
+        def first_only(source):
+            result=self.proposal(source)
+            for row in result['rows'][1:]:row.update(status='preserved',option_id=None)
+            return result
+        with patch('autospine_workbench.automation.simple_binding_adoption.propose',first_only):
+            result=apply(self.store,'fixture',self.key())
+        complete_bindings(self.store,'fixture','a'*64,self.key())
+        current=inspect_registration(self.store,'fixture')
+        latest=deepcopy(current['draft']['records']);latest[-1]['notes']='keep after upgrade'
+        save_binding_review(self.store,'fixture',self.key(),latest)
+        undo(self.store,'fixture',result['decision_sha256'],self.key())
+        final=inspect_registration(self.store,'fixture')
+        self.assertEqual(final['draft']['source_bindings_sha256'],current['draft']['source_bindings_sha256'])
+        self.assertEqual(final['draft']['records'][0],records[0])
+        self.assertEqual(final['draft']['records'][-1],latest[-1])
