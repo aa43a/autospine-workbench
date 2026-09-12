@@ -3,10 +3,11 @@ from .cloth_shape_solver import solve
 from .component_local_solver import metrics
 
 
-def refine(setup, triangles, fixed_pose, free_vertices, target, *, seed=None, temporal=False, interval_maps=(), continuation=False, material=False):
+def refine(setup, triangles, fixed_pose, free_vertices, target, *, seed=None, temporal=False, interval_maps=(), continuation=False, material=False, material_subframes=False):
     import numpy as np
     from scipy.optimize import least_squares
     from scipy.sparse import lil_matrix
+    if material_subframes and not material: raise ValueError('cloth_material_subframes_requires_material')
     initial, evidence = solve(setup, triangles, fixed_pose, free_vertices, target, seed=seed)
     free = evidence['free_vertices']; rest = np.asarray(setup, dtype=float)
     fixed = np.asarray(fixed_pose, dtype=float); start = np.asarray(initial)
@@ -24,7 +25,7 @@ def refine(setup, triangles, fixed_pose, free_vertices, target, *, seed=None, te
         from .cloth_strain import prepare, stretches
         strain_context = prepare(setup, triangles)
         material_mask = np.asarray([any(v in lookup for v in t) for t in tri], dtype=float)
-        area_blocks += 2
+        area_blocks += 2+2*len(interval_maps) if material_subframes else 2
     sparsity = lil_matrix((area_blocks*nt+ne+2*n, 2*n), dtype=int)
     for i, t in enumerate(tri):
         for v in t:
@@ -54,6 +55,10 @@ def refine(setup, triangles, fixed_pose, free_vertices, target, *, seed=None, te
         if material:
             low, high = stretches(p, strain_context)
             residuals.extend((material_mask*np.maximum(.72-low, 0), material_mask*np.maximum(high-1.38, 0)))
+            if material_subframes:
+                for bias, transform in interval_maps:
+                    low, high = stretches(bias+np.einsum('nij,nj->ni', transform, p), strain_context)
+                    residuals.extend((material_mask*np.maximum(.72-low, 0), material_mask*np.maximum(high-1.38, 0)))
         return np.concatenate((*residuals, np.maximum(stretch-1.9, 0), .001*x))
     x0 = (np.asarray(seed)[free]-start[free]).ravel()/scale if continuation and seed is not None else np.zeros(2*n)
     fit = least_squares(residual, x0, jac_sparsity=sparsity.tocsr(),
@@ -80,4 +85,7 @@ def refine(setup, triangles, fixed_pose, free_vertices, target, *, seed=None, te
                         material_max_stretch=float(np.max(high[selected])),
                         material_trial_limits=dict(min_stretch=.7, max_stretch=1.4),
                         material_passed=bool(np.all(low[selected] >= .7) and np.all(high[selected] <= 1.4)))
+    if material_subframes:
+        evidence.update(profile='pinned-cloth-principal-stretch-subframes-v6',
+                        material_temporal_scope='exact_quarter_samples_requires_dense_check')
     return result.tolist(), evidence
