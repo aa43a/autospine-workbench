@@ -14,11 +14,17 @@ if __name__ == '__main__':
     parser.add_argument('--character', required=True)
     parser.add_argument('--helper', action='append', required=True)
     parser.add_argument('--samples', type=int, default=65)
+    parser.add_argument('--shape-trial', action='store_true', help='Try pinned cloth shape on one helper')
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
     files = AnimatedStore(args.state_root).read(args.character)
     document, _ = build_wave(json.loads(files['skeleton.json']))
-    report = sweep(document, 'wave-left', args.helper, samples=args.samples)
+    if args.shape_trial:
+        if len(args.helper) != 1: parser.error('shape trial requires exactly one helper')
+        from autospine_workbench.targets.character43.cloth_shape_probe import probe
+        report = probe(document, 'wave-left', args.helper[0], samples=args.samples)
+    else:
+        report = sweep(document, 'wave-left', args.helper, samples=args.samples)
     report['source_character_sha256'] = args.character
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_bytes(canonical_bytes(report))
