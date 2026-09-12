@@ -9,12 +9,16 @@ from .affine_pose import sample
 from .deformation_qa import inspect
 
 
-def generate(files, source_digest, *, repair=False):
+def generate(files, source_digest, *, repair=False, drape_helpers=()):
     require_sha256(source_digest, 'Character source')
     original = json.loads(files['skeleton.json'])
     if 'wave-left' in original['animations']:
         raise ValueError('character_wave_name_conflict')
     document, evidence = build_wave(original)
+    if drape_helpers:
+        from .drape_direction import apply
+        document, direction = apply(document, 'wave-left', drape_helpers)
+        evidence['drape_direction'] = direction
     motion = build_builtin_motion('wave.left')
     duration = motion.document['duration_ticks']/motion.document['ticks_per_second']
     # Twice the repair grid also checks interpolation between baked deform keys.
