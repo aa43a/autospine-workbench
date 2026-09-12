@@ -9,8 +9,10 @@ from .affine_pose import sample
 from .deformation_qa import inspect
 
 
-def generate(files, source_digest, *, repair=False, drape_helpers=()):
+def generate(files, source_digest, *, repair=False, drape_helpers=(), rotary_cloth=False):
     require_sha256(source_digest, 'Character source')
+    if rotary_cloth and (not drape_helpers or repair):
+        raise ValueError('character_wave_rotary_options')
     original = json.loads(files['skeleton.json'])
     if 'wave-left' in original['animations']:
         raise ValueError('character_wave_name_conflict')
@@ -19,6 +21,10 @@ def generate(files, source_digest, *, repair=False, drape_helpers=()):
         from .drape_direction import apply
         document, direction = apply(document, 'wave-left', drape_helpers)
         evidence['drape_direction'] = direction
+    if rotary_cloth:
+        from .cloth_rotary_transition import bake
+        document, transition = bake(document, 'wave-left', drape_helpers)
+        evidence['cloth_rotary_transition'] = transition
     motion = build_builtin_motion('wave.left')
     duration = motion.document['duration_ticks']/motion.document['ticks_per_second']
     # Twice the repair grid also checks interpolation between baked deform keys.
