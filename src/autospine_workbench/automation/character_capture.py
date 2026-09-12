@@ -69,8 +69,11 @@ def capture(projects, store, digest, root, *, progress, cancel_requested):
         raise ValueError('character_runtime_report_source')
     if 'skirt-trial.json' in candidate:
         from ..targets.character43.skirt_review import render
+        from ..targets.character43.skirt_motion_contact import analyze
         folder = directory(output/'skirt', create=True)
-        (folder/'index.html').write_bytes(render(candidate, report))
+        contact = analyze(candidate)
+        (folder/'contact.json').write_bytes(canonical_bytes(contact))
+        (folder/'index.html').write_bytes(render(candidate, report, contact=contact))
     files = {}
     for path in output.rglob('*'):
         if path.is_file():

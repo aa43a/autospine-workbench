@@ -6,7 +6,7 @@ import re
 from ...resolved_project import canonical_sha256
 
 
-def render(files, capture):
+def render(files, capture, *, contact=None):
     trial = json.loads(files['skirt-trial.json'])
     if capture.get('bundle_sha256') != canonical_sha256({n: sha256(raw).hexdigest() for n, raw in files.items()}):
         raise ValueError('skirt_review_capture_source')
@@ -23,6 +23,20 @@ def render(files, capture):
         frames.append(dict(shot, time=times[shot['animation'], shot['index']]))
     if not frames: raise ValueError('skirt_review_frames_missing')
     overlay = []; summaries = []
+    if contact is not None:
+        if contact.get('skeleton_sha256') != sha256(files['skeleton.json']).hexdigest() or contact.get('authority') != 'none':
+            raise ValueError('skirt_review_contact_source')
+        for row in contact['rows']:
+            peaks = [m['peak']['separation_px'] for m in row['motions'] if m['peak'] is not None]
+            detail = f'最大相对位移 {max(peaks):.3f} px' if peaks else '缺少可跟踪的共同接触点'
+            summaries.append(f'<li>{escape(row["layer_id"])}：腰部共同材料点，{detail}。'
+                             '这是连接风险线索，不等于已确认的透明裂缝。</li>')
+            for motion in row['motions']:
+                peak = motion['peak']
+                if peak is not None:
+                    summaries.append(f'<li>{escape(motion["animation"])}：第 {peak["index"]} 个数值样本，'
+                        f'{peak["time"]:.3f} 秒，{peak["separation_px"]:.3f} px；'
+                        '截图时间轴可能只包含附近采样帧。</li>')
     for failure in trial.get('blocked_layers', []):
         summaries.append(f'<li>{escape(failure["layer_id"])}：尚未生成裙装网格，原图保留；{escape(failure["reason_code"])}</li>')
     for row in trial['rows']:
@@ -48,7 +62,7 @@ img{{display:block;width:100%;background:repeating-conic-gradient(#35434e 0% 25%
 svg{{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}}#slider{{width:min(70vw,800px)}}a{{color:#7bd8ff}}</style>
 <h1>裙装骨链与整角色动作候选</h1><p>官方 Runtime 已捕获帧，可拖动时间轴。保留原纹理、绘制顺序与人工决定；没有自动采用。</p>
 <p>黄色虚线是腰部候选，蓝色是辅助骨链；黄色根点有上衣重叠，红色根点缺少该证据。叠加仅显示在 Setup 帧。</p>
-<ul>{''.join(summaries)}</ul><p>本版使用小幅确定性摆动测试，不代表布料物理；连接、裙摆形状与腿部遮挡仍待验收。</p>
+<ul>{''.join(summaries)}</ul>{'<p><a href="contact.json">查看逐动作腰部跟踪数据</a></p>' if contact is not None else ''}<p>本版使用小幅确定性摆动测试，不代表布料物理；连接、裙摆形状与腿部遮挡仍待验收。</p>
 <header><select id="motion" aria-label="动作"></select><button id="play">播放</button>
 <label><input type="checkbox" id="overlay" checked>显示 Setup 骨链</label><br>
 <input id="slider" type="range" min="0" value="0" aria-label="已捕获帧时间轴"><output id="position"></output></header>
