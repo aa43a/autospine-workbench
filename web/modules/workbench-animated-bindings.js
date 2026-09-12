@@ -15,7 +15,7 @@ export function createAnimatedBindings(document, callbacks) {
   batch.type = "button"; batch.textContent = "预填待复核的单骨刚性建议";
   batch.className = "button button-secondary";
   const complete = document.createElement("button"); complete.type = "button";
-  complete.textContent = "补齐眼口与鞋类绑定候选"; complete.className = "button button-secondary";
+  complete.textContent = "补齐简单部件绑定候选"; complete.className = "button button-secondary";
   complete.addEventListener("click", () => { if (!complete.disabled) callbacks.complete?.(); });
   const rows = document.createElement("div"), actions = document.createElement("div");
   actions.className = "automation-actions";

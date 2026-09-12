@@ -11,6 +11,8 @@ def _compatible_upgrade(store,dataset,before_sha,current_sha,selected):
         allowed={('rigid-or-limb-chain-v2','rigid-name-completion-v3'),
                  ('rigid-or-limb-chain-v2','rigid-detail-completion-v4'),
                  ('rigid-name-completion-v3','rigid-detail-completion-v4')}
+        allowed.update((profile, 'rigid-garment-completion-v5') for profile in (
+            'rigid-or-limb-chain-v2', 'rigid-name-completion-v3', 'rigid-detail-completion-v4'))
         if (before['profile'],current['profile']) not in allowed:return False
         # Candidate pixels, reviewed skeleton and all source metadata stay exact.
         strip=lambda value:{k:v for k,v in value.items() if k not in {'profile','bindings'}}

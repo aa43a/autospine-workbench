@@ -69,7 +69,7 @@ class AnimatedRebaseTests(unittest.TestCase):
         self.author(notes='Updated author notes')
         self.synchronize()
         with inputs.load_inputs(self.store, 'fixture') as source:
-            self.assertEqual(source.bindings['profile'], 'rigid-detail-completion-v4')
+            self.assertEqual(source.bindings['profile'], 'rigid-garment-completion-v5')
 
     def test_imports_only_authored_canonical_joint_and_keeps_eye_overrides(self):
         before = get_joint_review(self.store, 'fixture')

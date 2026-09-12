@@ -5,7 +5,7 @@ from tests.test_layer_binding import fixture
 from autospine_workbench.automation import animated_inputs as inputs
 from autospine_workbench.automation.animated_binding_completion import complete_bindings, rebuild_bindings
 from autospine_workbench.automation.animated_input_index import inspect_registration
-from autospine_workbench.asset.joints.rigid_completion import build_completion, PROFILE
+from autospine_workbench.asset.joints.garment_completion import build_completion, PROFILE
 
 
 class AnimatedCompletionTests(unittest.TestCase):

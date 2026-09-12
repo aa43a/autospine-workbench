@@ -195,7 +195,7 @@ export function createWorkbenchAnimated(document, hooks, options = {}) {
       if (!current(token)) return;
       overview = readAnimatedOverview(value, saved); job = null; intent = waiting = false;
       serial++; stop(); view.resetReview?.();
-      reviewNotice = `简单绑定候选已准备，新增 ${value.binding_completion_result?.added_options || 0} 个选项。保留原决定，眼口和鞋类新选项仍需检查后保存。`;
+      reviewNotice = `简单绑定候选已准备，新增 ${value.binding_completion_result?.added_options || 0} 个选项。保留原决定，眼口、鞋类和服装前后片新选项仍需检查后保存。`;
     } catch (failure) { if (current(token)) error = animatedReason(failure.payload?.reason_code || failure.message); }
     finally { if (current(token)) { savingReview = false; render(); } }
   }

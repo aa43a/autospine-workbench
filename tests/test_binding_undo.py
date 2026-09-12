@@ -53,3 +53,14 @@ class BindingUndoTests(unittest.TestCase):
             self.assertFalse(self.fixture(changes,{'same':base,'upgraded':bad})[0]['can_undo'])
         edited=changes+[lambda d:d['records'][0].update(notes='human'),lambda d:d['records'][0].update(notes='')]
         self.assertFalse(self.fixture(edited,{'same':base,'upgraded':upgraded})[0]['can_undo'])
+
+    def test_garment_upgrade_keeps_prior_batch_reversible(self):
+        base = dict(profile='rigid-detail-completion-v4', candidate_sha256='pixels',
+                    source_skeleton_sha256='bones', bindings=[dict(layer_id=k, options=[]) for k in ['head', 'shoe', 'human']])
+        upgraded = deepcopy(base)
+        upgraded['profile'] = 'rigid-garment-completion-v5'
+        upgraded['bindings'][2]['options'] = ['chest']
+        plan, _ = self.fixture([lambda d: d.update(source_bindings_sha256='upgraded')],
+                               {'same': base, 'upgraded': upgraded})
+        self.assertTrue(plan['can_undo'])
+        self.assertEqual(plan['records'][0]['action'], 'pending')

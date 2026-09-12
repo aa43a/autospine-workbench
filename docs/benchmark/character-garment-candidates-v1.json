@@ -1,0 +1,136 @@
+{
+  "authority": "none",
+  "profile": "rigid-garment-completion-v5",
+  "registration_changed": false,
+  "projects": [
+    {
+      "project_id": "imported-885b4d3d22ee151a0364ac499a419b8bd0e59699a7b27ee4f65f007eee551590",
+      "source_addresses": {
+        "resolved_project_sha256": "3654096eac18f799250f5ff6b68e4f967c1b172a1fa59a4a4968cd01441faaa5",
+        "input_identity_sha256": "b1a9533ffc9f23a679db40e8ca1559448377a6ff9915686e3aaefc86baeb988c",
+        "animated_registration_sha256": "8159274aa9bd7397eb004504cfe1cebf7a5a6a5cf95309a672f76b68697310bd",
+        "benchmark_manifest_sha256": "526dffed7bc94c4b1c04833a54056e33788c5622c3855733fe4b2eafccf0c993",
+        "semantic_candidate_sha256": "3187f2f7aae1e9a1e43a222492c4d729ca59ddc787021d04bfa27a60ba8500af",
+        "skeleton_candidate_sha256": "40c58c881019c35c397abc28da4516356ff3e62fd0ae49238f1a111952b5f614",
+        "layer_bindings_sha256": "5583b47ea48207da92d3a2b86cd2b25047523dddfac17d2a375cf77aad224bd7",
+        "layer_binding_draft_sha256": "0618890afc0aeafe0725a86d009cc70001d23899428f8c2f87cf157a344bfb88"
+      },
+      "candidate_sha256": "a30d67d1238ecb1df6fbd7fdc44585e2e9111c81f0ecb0838426510134e572ca",
+      "changes": [
+        {
+          "layer_id": "layer-011",
+          "options": [
+            {
+              "id": "rigid:chest",
+              "mode": "rigid",
+              "bone_ids": [
+                "chest"
+              ],
+              "setup_local": {
+                "x": 47.5539055505291,
+                "y": -3.3848308512181666,
+                "rotation_degrees": 94.16902890094771
+              }
+            }
+          ],
+          "reason_codes": [
+            "garment_name_candidate",
+            "visual_parent_review_required",
+            "attachment_extent_requires_review"
+          ]
+        }
+      ],
+      "decisions_unchanged": true
+    },
+    {
+      "project_id": "imported-2c2b45ec951d8e890be5d01751dc0ababbd451a96c45c75bd333b92f0fcda17a",
+      "source_addresses": {
+        "resolved_project_sha256": "78541dfcf904ce0ee28403d5a5208c9215aae67f9e778cd40b89df756f370233",
+        "input_identity_sha256": "f39cb046fab2975aa4f8676647fa99a8010e1a98a0f3d16fc9da7d59e0de40bc",
+        "animated_registration_sha256": "92119225509e368d3996cd027cc45ac43b4a3723f95f4de6107dcf9d671183d5",
+        "benchmark_manifest_sha256": "f1695db533a9c99a615ac7fd81ea11af6f34a9b38438bd4b89d23a46b43e4caf",
+        "semantic_candidate_sha256": "0a26e1167c3719f40717dbb1fb49b7dd789bb34955a840f4364c6566c8d8bba5",
+        "skeleton_candidate_sha256": "936eba94a1f86e2b756f75ef982805fbc3e0790e6268ad916b406c050f9a8185",
+        "layer_bindings_sha256": "bb6581d5c2884d8d9f080522bc0be9d1aa43bd7b4c88cf7c06ca9f0e5e09840e",
+        "layer_binding_draft_sha256": "e970b3584ae1671104d77c73ee6d11ed52b3a6b7ef4a5aa929e07e1fe8a66bf5"
+      },
+      "candidate_sha256": "dab69eadfed989628730ae02af8f8bdb6339322e6b35fc1ccaf05a2f1722f8f2",
+      "changes": [
+        {
+          "layer_id": "layer-007",
+          "options": [
+            {
+              "id": "rigid:chest",
+              "mode": "rigid",
+              "bone_ids": [
+                "chest"
+              ],
+              "setup_local": {
+                "x": 148.00632738151597,
+                "y": -4.0387359452562634,
+                "rotation_degrees": 90.96777688284322
+              }
+            }
+          ],
+          "reason_codes": [
+            "garment_name_candidate",
+            "visual_parent_review_required",
+            "attachment_extent_requires_review"
+          ]
+        }
+      ],
+      "decisions_unchanged": true
+    },
+    {
+      "project_id": "huiye",
+      "source_addresses": {
+        "resolved_project_sha256": "548c7388f2200626e0b9fa70dbec51e82a4bd18a08127ae56882b210584d24a7",
+        "input_identity_sha256": "e7542fb61270b0f8a0831b5adac93ca8b4a147a6d906bfd64c7d2e5092015b7d",
+        "animated_registration_sha256": "31de191f1d981b95ccb7a1bbe351fe7ccd4eddaf72861b9f4015e18e0539524e",
+        "benchmark_manifest_sha256": "de20664c64d2b9004d462b85c993fbcdef5cdee31070cdcd61df8e5844f84ba3",
+        "semantic_candidate_sha256": "406d3190fc673a8359752e62b8e6d344cc1589b655e125b4915139aa22c409ae",
+        "skeleton_candidate_sha256": "cbe23bbc8c383b446279248deb3fea3ca3e34536e736368df48310748000f277",
+        "layer_bindings_sha256": "2c3623ba33385dcfc5da4212f249ff1f5817fb805cf28d8893198563d2dae64d",
+        "layer_binding_draft_sha256": "9ee1ee3d2e7aff05b7624367e7007847d0424678c983f97bc5f203ca37d9642e"
+      },
+      "candidate_sha256": "d793c0bec85674c879906f3829573ab36836d815c840866b46f2bbd1e2f2b95d",
+      "changes": [
+        {
+          "layer_id": "layer-001",
+          "options": [
+            {
+              "id": "rigid:foot_l",
+              "mode": "rigid",
+              "bone_ids": [
+                "foot_l"
+              ],
+              "setup_local": {
+                "x": -8.33783980722204,
+                "y": 84.3531886021454,
+                "rotation_degrees": -86.58614473355543
+              }
+            },
+            {
+              "id": "rigid:foot_r",
+              "mode": "rigid",
+              "bone_ids": [
+                "foot_r"
+              ],
+              "setup_local": {
+                "x": -10.518877841807964,
+                "y": -75.1000213645051,
+                "rotation_degrees": -92.60097745428011
+              }
+            }
+          ],
+          "reason_codes": [
+            "footwear_name_candidate",
+            "character_side_requires_review",
+            "foot_attachment_extent_requires_review"
+          ]
+        }
+      ],
+      "decisions_unchanged": true
+    }
+  ]
+}
