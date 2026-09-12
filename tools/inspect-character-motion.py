@@ -23,7 +23,10 @@ def main():
     parser.add_argument('--samples', type=int, default=125)
     parser.add_argument('--foreshortening', action='store_true', help='Add source projected limb length candidates')
     parser.add_argument('--repair-area', action='store_true', help='Try bounded mixed-weight affine deformation')
+    parser.add_argument('--convergent-area', action='store_true', help='Use bounded v2 area solver (requires repair-area)')
     args = parser.parse_args()
+    if args.convergent_area and not args.repair_area:
+        parser.error('convergent-area requires repair-area')
     if not 3 <= args.samples <= 1025:
         parser.error('samples must be 3..1025')
     files = AnimatedStore(args.state_root).read(args.character)
@@ -39,7 +42,7 @@ def main():
         evidence['projected_lengths'] = lengths
     if args.repair_area:
         from autospine_workbench.targets.character43.affine_area_repair import repair
-        document, correction_area = repair(document, 'walk')
+        document, correction_area = repair(document, 'walk', convergent=args.convergent_area)
         evidence['area_repair'] = correction_area
     args.output.mkdir(parents=True, exist_ok=True)
     if args.contact_root:

@@ -6,7 +6,7 @@ from ..spine43.continuous_pose import area
 from .affine_pose import matrices, sample
 
 
-def repair(document, name, *, samples=257):
+def repair(document, name, *, samples=257, convergent=False):
     animation = document['animations'][name]
     if animation.get('attachments'):
         raise ValueError('character_affine_repair_existing_deform')
@@ -42,10 +42,15 @@ def repair(document, name, *, samples=257):
         edges = sorted({tuple(sorted((t[i], t[(i+1)%3]))) for t in triangles for i in range(3)})
         context = dict(row={'triangles': triangles}, areas=areas, edges=edges,
                        lengths=[math.dist(base[a], base[b]) for a, b in edges], free=free, budget=budget)
-        keys = []; maximum = 0.; unresolved = []
+        keys = []; maximum = 0.; unresolved = []; solver_rows = []
         for time, world, transform in zip(times, worlds, transforms):
             original = world[slot]
-            corrected = project(context, original)
+            if convergent:
+                from .area_projection import project as project_v2
+                corrected, solver = project_v2(context, original)
+                solver_rows.append(dict(time=time, **solver))
+            else:
+                corrected = project(context, original)
             corrected_ratios = [area(corrected, t)/a for t, a in zip(triangles, areas)]
             if min(corrected_ratios) < .5 or max(corrected_ratios) > 2:
                 unresolved.append(dict(time=time, min_area_ratio=min(corrected_ratios),
@@ -69,5 +74,8 @@ def repair(document, name, *, samples=257):
                          fixed_vertices=sum(not v for v in free), sample_count=len(times),
                          unresolved_area_samples=unresolved,
                          area_status='needs_review' if unresolved else 'sampled_pass'))
-    return result, dict(profile='affine-mixed-area-budget10-v1', authority='none', selected=False,
+        if convergent:
+            rows[-1]['solver_samples'] = solver_rows
+    profile = 'affine-mixed-area-budget10-v2' if convergent else 'affine-mixed-area-budget10-v1'
+    return result, dict(profile=profile, authority='none', selected=False,
                         records=rows, validation='dense_resampling_required')
