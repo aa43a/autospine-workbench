@@ -1,6 +1,6 @@
 # AutoSpine Workbench 功能与入口参考
 
-- [整角色袖装合并核心](milestone-character-automation.md)：命令行从当前角色与显式袖装任务生成统一包，保留原deform和残余；小恶魔全附件官方Core通过。工作台构建与完整角色WebGL验收尚未完成。
+- [整角色袖装合并与复核](milestone-character-automation.md)：工作台可构建统一候选，保留原 deform 和残余，提供 Runtime/setup 入口与“当前还差什么”概览；数值结果和四项人工视觉验收分别显示。完整角色闭环与多动作视觉验收仍未完成。
 
 - [整角色覆盖账本](milestone-character-automation.md)：动画候选页逐层定位，精确读回独立报告；源层与输出区域分别计数，分区残余保留部分处理。当前未将袖装局部候选合并计作整角色绑定完成。
 

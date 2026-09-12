@@ -3,6 +3,7 @@ import { projectIdentity } from "./workbench-automation-contract.js";
 import { createCharacterReview } from "./workbench-character-review.js";
 import { createWeightedReview } from "./workbench-character-weighted-review.js";
 import { createCharacterLedger } from "./workbench-character-ledger.js";
+import { createCharacterProgress } from "./workbench-character-progress.js";
 const ACTIVE = new Set(["pending", "running"]);
 const STAGES = {resolve:"核对来源", "base-preview":"准备整角色基础", compose:"合并袖装与校验动作", publish:"封存候选", runtime:"官方 Runtime 渲染与 setup 对照", review:"等待整角色复核"};
 const REASONS = {character_sleeve_unavailable:"尚无当前可用袖装候选，请先完成袖装构建。",
@@ -30,7 +31,9 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
   element.append(node("h3","整角色候选"),node("p","按当前路线构建整角色，并合并已有袖装修正；保留未处理图层与残余，生成 Runtime 与 setup 复核报告。"),actions,status,download);
   const runtime=node("a","查看整角色 Runtime"),setup=node("a","查看源图 / setup 对照");
   for(const link of [runtime,setup]){link.className="button button-secondary";link.target="_blank";link.rel="noopener";element.append(link);}
-  const visualReview=createCharacterReview(document,hooks),visualSection=node("section"),visualFold=node("details");
+  const visualReview=createCharacterReview(document,hooks,{changed:()=>render()}),visualSection=node("section"),visualFold=node("details");
+  const progress=createCharacterProgress(document,()=>{visualFold.open=true;void visualReview.request();visualFold.scrollIntoView?.({block:"nearest"});});
+  visualSection.append(progress.element);
   visualFold.append(node("summary","记录整角色视觉验收"),visualReview.element);visualSection.append(visualFold);element.append(visualSection,weightedReview.element,detail);
   actions.append(exclusions);
   let identity=null,generation=0,overview=null,job=null,busy=false,error="",timer=null,polls=0,operation="";
@@ -60,6 +63,7 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
     }
     visualReview.sync(job?.status==="needs_review"&&job.runtime?.files?.['report.json']?job:null,!dirty&&!busy&&!active);
     weightedReview.sync(job?.status==="needs_review"&&job.runtime?.files?.["report.json"]?job:null,!dirty&&!busy&&!active);
+    progress.sync(job,weightedReview.confirmed(),visualReview.current(),dirty);
     ledger.sync({confirmedLayerIds:weightedReview.confirmed(),projectId:context().projectId,job,endpoint:endpoint(),disabled:busy||active||dirty});
     exclusions.replaceChildren(...(overview?.region_exclusions?.active||[]).map(entry=>{
       const row=node("p",`已排除区域：${entry.region_id} `),undo=node("button","撤销排除");undo.type="button";

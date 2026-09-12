@@ -1,5 +1,5 @@
 "use strict";
-export function createCharacterReview(document,hooks){
+export function createCharacterReview(document,hooks,options={}){
  const node=(tag,text='')=>{const n=document.createElement(tag);n.textContent=text;return n;};
  const element=node('section'),status=node('p'),load=node('button','读取整角色复核'),save=node('button','保存整角色视觉复核');
  const fields={};let job=null,identity='',generation=0,report=null,busy=false,editable=false;
@@ -25,11 +25,11 @@ export function createCharacterReview(document,hooks){
    if(value.project_id!==selected.project_id||value.job_id!==selected.job_id||value.artifact_sha256!==selected.artifact_sha256||value.authority!=='none')throw Error('stale');
    report=value;for(const [k,f] of Object.entries(fields))f.value=value.review?.aspects[k]||'not_reviewed';notes.value=value.review?.notes||'';
    status.textContent=value.review?`已保存复核 r${value.review.revision} · 仅当前候选有效`:'尚无整角色视觉复核记录。';
-  }catch(e){if(token===generation)status.textContent='未保存：来源或记录可能已变化，请重新读取复核。';}
-  finally{if(token===generation){busy=false;render();}}
+  }catch(e){if(token===generation){report=null;status.textContent='未保存：来源或记录可能已变化，请重新读取复核。';}}
+  finally{if(token===generation){busy=false;render();options.changed?.();}}
  }
  load.addEventListener('click',()=>void request());save.addEventListener('click',()=>void request(true));
  return {element,sync(value,canEdit){const next=value?`${value.project_id}:${value.job_id}:${value.artifact_sha256}`:'';
   editable=canEdit;if(next!==identity){identity=next;generation++;job=value;report=null;busy=false;status.textContent='先读取复核，再记录你的观察。';}render();},
-  dispose(){generation++;},request};
+  dispose(){generation++;},current:()=>report,request};
 }
