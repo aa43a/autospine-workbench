@@ -8,6 +8,18 @@ const document={createElement(tag){return {tag,children:[],append(...n){this.chi
 const job={project_id:'p',job_id:'j',artifact_sha256:'a',layers:[{layer_id:'arm',name:'手臂',state:'weighted_candidate',regions:[{region_id:'part',state:'weighted_candidate'}],binding_decision:{decision_source:'pending',action:'pending'}}]};
 const response={project_id:'p',job_id:'j',artifact_sha256:'a',authority:'none',can_review:true,eligible_layer_ids:['arm'],review_sha256:null,review:null};
 
+test('inherited binding is visible, source-bound and independently revocable',async()=>{
+ let body;const view=createWeightedReview(document,{apiRequest:async(_url,init)=>{
+   if(init.method==='POST'){body=JSON.parse(init.body);return {...response,confirmed_layer_ids:[],review:{accepted_layer_ids:[],revoked_replayed_layer_ids:['arm']}};}
+   return {...response,confirmed_layer_ids:['arm'],replay_sha256:'proof',replayed_review:{accepted_layer_ids:['arm']}};
+ }});
+ view.sync(job,true);await flush();assert.deepEqual(view.confirmed(),['arm']);
+ assert.ok(all(view.element).some(n=>n.textContent.includes('沿用未变化区域的原确认')));
+ all(view.element).find(n=>n.textContent==='撤销区域确认').onclick();await flush();
+ assert.equal(body.expected_replay_sha256,'proof');assert.equal(body.action,'revoke');
+ assert.deepEqual(view.confirmed(),[]);view.dispose();
+});
+
 test('loads once, sends exact confirmation, and supports revocation without rebinding',async()=>{
  const calls=[];let saved=false;
  const view=createWeightedReview(document,{apiRequest:async(url,init)=>{calls.push([url,init]);if(init.method==='POST')saved=JSON.parse(init.body).action==='confirm';return {...response,review_sha256:'r',review:{accepted_layer_ids:saved?['arm']:[]}};}});
