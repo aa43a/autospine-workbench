@@ -28,6 +28,19 @@ test('static region links require inventoried report and safe anchor',async()=>{
   f.view.dispose();
 });
 
+test('exclusion sends exact current region and revision then refreshes',async()=>{
+  const current=job();current.artifact_sha256='c'.repeat(64);
+  current.layers=[{layer_id:'source',name:'cloth',state:'partial',regions:[{region_id:'rest',state:'static_reference'}]}];
+  const calls=[];const f=fixture(async(url,init)=>{calls.push([url,init]);return {...overview(current),region_exclusions:{head_sha256:null,active:[]}};});
+  f.view.sync();await flush();
+  const button=f.details.children[1].children[0].children.find(n=>n.textContent==='排除静态区域 rest');
+  await button.onclick();await flush();
+  const write=calls.find(([url])=>url.endsWith('/regions'));
+  assert.deepEqual(JSON.parse(write[1].body),{action:'exclude',job_id:current.job_id,expected_artifact_sha256:current.artifact_sha256,
+    layer_id:'source',region_id:'rest',expected_head_sha256:null});
+  assert.equal(calls.length,3);f.view.dispose();
+});
+
 test('restored terminal candidate stops polling and dirty edits suppress download',async()=>{
   const f=fixture(async()=>overview(job()));f.view.sync();await flush();
   assert.equal(f.download.hidden,false);assert.equal(f.timers.size,0);

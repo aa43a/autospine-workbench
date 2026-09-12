@@ -39,6 +39,9 @@ class CharacterJobs:
         return directory(self.root / job, create=create)
 
     def _current(self, request):
+        from .character_region_decisions import overview as region_overview
+        if region_overview(self, request['project_id'])['head_sha256'] != request.get('region_decisions_sha256'):
+            raise PipelineRunError('character_region_decisions_changed')
         info = inspect_registration(self.projects, request['project_id'])
         if info['source_addresses']['resolved_project_sha256'] != request['expected_resolved_sha256'] \
                 or info['source_addresses']['input_identity_sha256'] != request['expected_input_sha256']:
@@ -60,6 +63,8 @@ class CharacterJobs:
         require_safe_token(project, 'project'); self.projects.get_project(project)
         sleeve = self.sleeves.overview(project).get('job')
         result = dict(project_id=project, authority='none', can_build=False, sleeve_job_id=None, job=None, reason_code=None)
+        from .character_region_decisions import overview as region_overview
+        result['region_exclusions'] = region_overview(self, project)
         try:
             info = inspect_registration(self.projects, project)
             result.update(expected_resolved_sha256=info['source_addresses']['resolved_project_sha256'],
@@ -83,6 +88,8 @@ class CharacterJobs:
         require_safe_token(project, 'project'); require_sha(expected_resolved_sha256); require_sha(expected_input_sha256)
         request=dict(project_id=project, expected_resolved_sha256=expected_resolved_sha256,
                      expected_input_sha256=expected_input_sha256, sleeve_job_id=sleeve_job_id)
+        from .character_region_decisions import overview as region_overview
+        request['region_decisions_sha256'] = region_overview(self, project)['head_sha256']
         if sleeve_job_id is None:
             request['route_choice_sha256']=route_source(self.projects,self.sleeves,project,expected_resolved_sha256)
         self._current(request)
@@ -164,6 +171,8 @@ class CharacterJobs:
             self._current(request)
             result=self.builder(self.application,self.sleeves,request['project_id'],request['sleeve_job_id'],
                                 progress=progress,cancel_requested=active['cancel'].is_set)
+            from .character_region_decisions import apply_saved
+            result=apply_saved(self,request['project_id'],result,request.get('region_decisions_sha256'))
             self._current(request)
             runtime=self.capturer(self.projects,self.application.store,result['artifact_sha256'],self._path(job),
                                   progress=progress,cancel_requested=active['cancel'].is_set)

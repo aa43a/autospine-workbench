@@ -534,3 +534,17 @@ drawOrder 依赖才可执行。原包和纹理保留，剩余顶点参考不变�
 助手检查 setup 捕获确认腿间散点消失，未变更其他静态残余。独立 CLI 重放生成同一摘要。
 复核：../tmp/character-static-excluded/xiaoemo/runtime/index.html。
 通用排除核心与 CLI 已交付；当前工作台自动构建尚未消费该排除决定，接入与撤销入口待完成。
+
+## 工作台区域排除与撤销闭环
+
+新增项目级 append-only 区域决定历史，POST/GET character/regions；保存绑定精确任务、
+manifest 和区域纹理。任务携带决定 head，保存或撤销使旧任务不可继续下载；运行期间变化
+也会阻塞。构建后按有效决定生成新包，再执行独立 Runtime；来源不同不自动迁移授权。
+UI 在静态区域列提供明确排除按钮，已排除项提供撤销。撤销保留历史；后续决定依赖
+已撤销结果时明确 source_changed，不能静默迁移。未被修改的图层记录保持原复核状态。
+已将小恶魔既有确认写入工作台，决定 head：
+18f64dfe203b7d58d32e714a90b9a0e88f048f4a2184792d220193a6843e4f07。
+真实任务 job-7206a9a29886442faa59405dcef609eb 已完成，候选
+c96c0879ac70ceeb09ea96b4784c3bf9dc9dc1d17cd94bfc94d8c72baa14c435，516 帧/31 附件及网格通过。
+layer-009 的两腿分区保留，region exclusion 独立登记，整层绑定 pending 没有伪改为人工完成。
+15 项 Python 核心/历史/任务/质量测试、7 项前端测试通过。服务已更新至 v20。

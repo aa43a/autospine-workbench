@@ -18,6 +18,7 @@ def manager_for(server):
 def dispatch_character(tail,handler,method,project):
     from .web_routes import _error, _require_mutation
     allowed = 'GET, HEAD, POST, OPTIONS' if not tail else None
+    if tail == ['regions']: allowed='GET, HEAD, POST, OPTIONS'
     if len(tail)==2 and tail[0]=='jobs': allowed='GET, HEAD, OPTIONS'
     if len(tail)==3 and tail[0]=='jobs' and tail[2]=='download': allowed='GET, HEAD, OPTIONS'
     if len(tail)==3 and tail[0]=='jobs' and tail[2]=='cancel': allowed='POST, OPTIONS'
@@ -33,7 +34,10 @@ def dispatch_character(tail,handler,method,project):
         if method=='POST':
             _require_mutation(handler.headers)
             body=read_json_object_request(handler,maximum_bytes=16384)
-            if not tail:
+            if tail == ['regions']:
+                from .character_region_decisions import save
+                value=save(manager,project,body)
+            elif not tail:
                 if set(body)!={'expected_resolved_sha256','expected_input_sha256','sleeve_job_id'}:
                     raise PipelineRunError('pipeline_request_invalid')
                 value=manager.submit(project,**body)
@@ -44,6 +48,9 @@ def dispatch_character(tail,handler,method,project):
                 if body: raise PipelineRunError('pipeline_request_invalid')
                 value=manager.cancel(project,tail[1])
             handler._send_visual_json(202,value)
+        elif tail == ['regions']:
+            from .character_region_decisions import overview
+            handler._send_visual_json(200,overview(manager,project))
         elif not tail: handler._send_visual_json(200,manager.overview(project))
         elif len(tail)==2: handler._send_visual_json(200,manager.get(project,tail[1]))
         elif tail[2]=='visual-review':

@@ -684,3 +684,4 @@ Preflight POST 只用于承载有界完整 JSON 文档，不代表 mutation。P9
 不要把结构验证、fixture、sampled screenshot/指标、anchor-point 距离、loader replay 或一次人工 decision 写成连续 raster 安全、真实双样本验收或发布通过。
 - [R3-S 受限袖装里程碑](milestone-r3s-sleeves.md)：原四袖前臂±30°/手±30°/垂布±10°及声明组合轨已通过密集几何、Spine deform导出和官方Runtime采样；自动修正、下载与失败阻塞可从普通入口执行。独立泛化和完整角色遮挡仍未完成。
 - 整角色新捕获提供逐来源层的未绑定区域纹理定位，工作台图层账本可直接打开；显示像素数量和原图裁切，不自动删除残余或授予绑定权。历史捕获保持不变，详见[整角色里程碑](milestone-character-automation.md)。
+- 整角色静态区域可显式排除与撤销；项目决定历史绑定精确来源，重建自动消费，来源变化与并发决定冲突阻塞。排除不代表剩余区域绑定完成或生产授权。
