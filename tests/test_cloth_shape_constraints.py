@@ -39,3 +39,18 @@ class ClothConstraintTests(unittest.TestCase):
         self.assertEqual(result[:2], fixed[:2])
         self.assertGreater(metrics(p, result, tri)['max_edge_stretch'], 2)
         self.assertFalse(info['selected'])
+
+    def test_explicit_target_prior_is_opt_in_and_preserves_fixed_points(self):
+        import math
+        p=[[0.,0.],[1.,0.],[0.,1.]];target=[[0.,0.],[1.,0.],[.2,1.]]
+        baseline,legacy=refine(p,[[0,1,2]],p,[2],target)
+        unchanged,info=refine(p,[[0,1,2]],p,[2],target,target_prior=0.)
+        self.assertEqual((baseline,legacy),(unchanged,info))
+        changed,info=refine(p,[[0,1,2]],p,[2],target,target_prior=.1)
+        self.assertEqual(changed[:2],p[:2])
+        self.assertLess(math.dist(changed[2],target[2]),math.dist(baseline[2],target[2]))
+        self.assertEqual(info['profile'],'pinned-cloth-explicit-direction-target-v7')
+        self.assertFalse(info['selected'])
+        for bad in [True,-1,2,float('nan')]:
+            with self.assertRaisesRegex(ValueError,'target_prior_invalid'):
+                refine(p,[[0,1,2]],p,[2],target,target_prior=bad)

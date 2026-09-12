@@ -8,7 +8,7 @@ from .deformation_qa import inspect
 from .deform_sum import combine
 
 
-def bake(document, animation, helper, *, samples=65, extra_times=(), temporal=False, exact_temporal=False, continuation=False, material=False, material_subframes=False):
+def bake(document, animation, helper, *, samples=65, extra_times=(), temporal=False, exact_temporal=False, continuation=False, material=False, material_subframes=False, target_prior=0.):
     if set(document['animations']) != {animation}: raise ValueError('cloth_shape_bake_single_clip')
     result = deepcopy(document); slot = helper.removeprefix('cloth-')
     attachment = document['skins'][0]['attachments'][slot][slot]
@@ -30,7 +30,7 @@ def bake(document, animation, helper, *, samples=65, extra_times=(), temporal=Fa
         keys.append(dict(time=time, vertices=offsets))
     report = probe(document, animation, helper, samples=samples, constrained=True,
                    on_frame=capture, extra_times=extra_times, temporal=temporal, exact_temporal=exact_temporal,
-                   continuation=continuation, material=material, material_subframes=material_subframes)
+                   continuation=continuation, material=material, material_subframes=material_subframes, target_prior=target_prior)
     # Add piecewise-linear timelines on their UNION, rather than resampling away old keys.
     # A zero correction then preserves non-cloth deform at every time, not just solver ticks.
     if previous:

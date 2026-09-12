@@ -5,7 +5,7 @@ from ...automation.storage_io import canonical_bytes
 from .cloth_shape_bake import bake
 
 
-def build(document, animation, helper, *, samples=65, rounds=3, progress=None, temporal=False, exact_temporal=False, continuation=False, material=False, material_subframes=False):
+def build(document, animation, helper, *, samples=65, rounds=3, progress=None, temporal=False, exact_temporal=False, continuation=False, material=False, material_subframes=False, target_prior=0.):
     if type(rounds) is not int or not 1 <= rounds <= 4:
         raise ValueError('cloth_shape_adaptive_rounds')
     extra = set(); history = []; slot = helper.removeprefix('cloth-')
@@ -13,7 +13,7 @@ def build(document, animation, helper, *, samples=65, rounds=3, progress=None, t
     triangles = [flat[i:i+3] for i in range(0, len(flat), 3)]
     for step in range(rounds):
         files = bake(document, animation, helper, samples=samples, extra_times=sorted(extra), temporal=temporal,
-                     exact_temporal=exact_temporal, continuation=continuation, material=material, material_subframes=material_subframes)
+                     exact_temporal=exact_temporal, continuation=continuation, material=material, material_subframes=material_subframes, target_prior=target_prior)
         qa = json.loads(files['deformation.json']); report = json.loads(files['cloth-shape.json'])
         frames = json.loads(files['numeric-reference.json'])['animations'][animation]
         setup = frames[0]['vertices'][slot]

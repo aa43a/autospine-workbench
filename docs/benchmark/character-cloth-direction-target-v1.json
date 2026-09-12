@@ -1,0 +1,74 @@
+{
+  "authority": "none",
+  "selected": false,
+  "source": "c69947dcd79fd874a73f35a236d642f088e069837ccd7a57480e9c499e621b36",
+  "previous": "9872c5c5b9d319993e1445a7a1a4653cb69323814640a30bfb06c2c200e89cb5",
+  "time": 0.498046875,
+  "helper": "cloth-layer-003-component-0000",
+  "original_target_rms_error_px": 399.6728713289211,
+  "records": [
+    {
+      "target_prior": 0.0,
+      "target_rms_error_px": 398.5766913314921,
+      "min_stretch": 0.7191770734322002,
+      "max_stretch": 1.381406469031298,
+      "geometry": {
+        "inversions": 0,
+        "min_area_ratio": 0.5499590335317481,
+        "max_area_ratio": 1.470736948026092,
+        "max_edge_stretch": 1.3801332652597194,
+        "bad_triangles": []
+      },
+      "centroid_height_above_wrist_px": 26.467263337842304,
+      "material_passed": true
+    },
+    {
+      "target_prior": 0.01,
+      "target_rms_error_px": 346.7841613541358,
+      "min_stretch": 0.5648414407014899,
+      "max_stretch": 1.4582969412658935,
+      "geometry": {
+        "inversions": 0,
+        "min_area_ratio": 0.547010938398593,
+        "max_area_ratio": 1.3431331316815325,
+        "max_edge_stretch": 1.4575310935762722,
+        "bad_triangles": []
+      },
+      "centroid_height_above_wrist_px": -10.45856869881813,
+      "material_passed": false
+    },
+    {
+      "target_prior": 0.05,
+      "target_rms_error_px": 137.52767467816227,
+      "min_stretch": 0.03225885468658718,
+      "max_stretch": 2.2069565165776206,
+      "geometry": {
+        "inversions": 1,
+        "min_area_ratio": -0.047232375287750934,
+        "max_area_ratio": 1.901540400253572,
+        "max_edge_stretch": 1.9253253513670032,
+        "bad_triangles": [
+          159,
+          160,
+          161,
+          176,
+          177,
+          178,
+          179,
+          180,
+          194,
+          196,
+          197,
+          198
+        ]
+      },
+      "centroid_height_above_wrist_px": -163.56437821094465,
+      "material_passed": false
+    }
+  ],
+  "scope": "single_pose_target_tradeoff_not_animation_or_physics_validation",
+  "wrist_xy": [
+    824.7932654333165,
+    -20.22114716919935
+  ]
+}
