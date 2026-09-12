@@ -19,3 +19,9 @@
 
 目前只是确认开发方向，尚未确认具体腰部锚点、权重、裙摆运动或视觉效果。
 不将裙装临时刚性随 pelvis 当成可变形裙装里程碑完成。
+
+前片候选补全会改变整份绑定候选地址。已新增残余排除范围重放 v2：必须保持原
+resolved/semantic/skeleton 来源、该图层账本、完整骨架、slot、附件及纹理完全一致。
+仅允许其他图层候选变化；范围重放记录原确认，不产生新的人工确认。
+红美铃更新后包含 idle、wave-left、walk 的整角色包已通过 1,028 帧 Runtime，
+证据见 `benchmark/character-garment-hongmeiling-v1.json`。

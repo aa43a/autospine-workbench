@@ -60,3 +60,15 @@ class RegionReplayTests(unittest.TestCase):
     def test_invalid_original_review_cannot_be_carried_forward(self):
         with self.assertRaises(ValueError):apply_current(self.store,self.current,{**self.decision,'image_sha256':'c'*64})
         self.assertEqual(self.published,[])
+
+    def test_other_layer_candidate_profile_upgrade_preserves_exact_excluded_scope(self):
+        current=dict(self.current);manifest=json.loads(current['character-manifest.json'])
+        manifest['source_addresses']['layer_bindings_sha256']='c'*64
+        current['character-manifest.json']=raw(manifest)
+        result=apply_current(self.store,current,self.decision)
+        receipt=json.loads(result['region-exclusion.json'])
+        self.assertEqual(receipt['scope_replay']['profile'],'unchanged-region-binding-profile-update-v2')
+        self.assertFalse(receipt['scope_replay']['new_human_confirmation'])
+        manifest['layers'][0]['state']='changed'
+        current['character-manifest.json']=raw(manifest)
+        with self.assertRaisesRegex(ValueError,'layer_changed'):apply_current(self.store,current,self.decision)

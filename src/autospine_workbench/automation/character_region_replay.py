@@ -7,7 +7,7 @@ from ..targets.character43.region_exclusion import apply
 FIXED = {'resolved_project_sha256', 'benchmark_manifest_sha256', 'semantic_candidate_sha256',
          'skeleton_candidate_sha256', 'layer_bindings_sha256'}
 DERIVED = {'animated_registration_sha256', 'input_identity_sha256', 'layer_binding_draft_sha256',
-           'base_bundle_sha256', 'sleeve_job_sha256', 'sleeve_zip_inventory_sha256'}
+           'base_bundle_sha256', 'sleeve_job_sha256', 'sleeve_zip_inventory_sha256', 'layer_bindings_sha256'}
 
 
 def apply_current(store, files, decision):
@@ -42,9 +42,13 @@ def apply_current(store, files, decision):
     texture = 'images/' + attachment[region].get('path', region) + '.png'
     if original[texture] != files[texture]:
         raise ValueError('character_region_replay_texture_changed')
+    # A candidate-profile upgrade can add options to other layers. The excluded
+    # layer, full bones, slot, attachment and texture above must still be exact.
+    profile=('unchanged-region-binding-profile-update-v2' if old['layer_bindings_sha256']!=new['layer_bindings_sha256']
+             else 'unchanged-region-binding-update-v1')
     current = dict(decision, source_bundle_sha256=store.publish(files),
                    manifest_sha256=sha256(files['character-manifest.json']).hexdigest(),
-                   scope_replay=dict(profile='unchanged-region-binding-update-v1',
+                   scope_replay=dict(profile=profile,
                        original_decision_sha256=canonical_sha256(decision), original_decision=decision,
                        changed_source_fields=sorted(k for k in old if old[k] != new[k]),
                        authority='none', new_human_confirmation=False))
