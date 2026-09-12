@@ -29,6 +29,12 @@ def capture(projects, store, digest, root, *, progress, cancel_requested):
     repo = Path(__file__).resolve().parents[3]
     output = directory(root/'runtime',create=True)
     candidate=store.read(digest)  # Content inventory must pass before an external process runs.
+    from ..targets.character43.static_region_review import build as static_review
+    static_files, static_links = static_review(candidate)
+    for name, raw in static_files.items():
+        path = output/name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(raw)
     from ..targets.character43.deformation_qa import inspect
     from .storage_io import canonical_bytes
     geometry=inspect(candidate)
@@ -54,6 +60,6 @@ def capture(projects, store, digest, root, *, progress, cancel_requested):
             name=review_name(path.relative_to(output).as_posix())
             files[name]=sha256(path.read_bytes()).hexdigest()
     return dict(status='needs_review',scope=report['scope'],frames=len(report['results']),
-                slots=report['info']['slots'],files=files,contact_status='not_evaluated',
+                slots=report['info']['slots'],files=files,static_region_links=static_links,contact_status='not_evaluated',
                 geometry_status='passed' if geometry['passed'] else 'needs_changes',
                 geometry_failed_records=sum(not r['passed'] for r in geometry['records']))

@@ -52,6 +52,12 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
       const reasons={residual_binding_required:"残余区域尚未绑定",mesh_review_required:"网格候选待复核",
         binding_selection_required:"需要选择绑定",static_reference_not_bound:"仅静态参考，尚未完成绑定"};
       if(layer.reason_codes?.length)row.append(node("p",layer.reason_codes.map(r=>reasons[r]||r).join("；")));
+      for(const target of job?.runtime?.static_region_links?.[layer.layer_id]||[]){
+        const [file,anchor]=target.split("#");
+        if(file!=="static-regions/index.html"||!/^region-\d+$/.test(anchor)||!job.runtime.files?.[file])continue;
+        const link=node("a","查看未绑定区域像素");link.target="_blank";link.rel="noopener";
+        link.setAttribute("href",`${endpoint()}/jobs/${job.job_id}/view/${file}#${anchor}`);row.append(link);
+      }
       return row;}));
   }
   function queue(token){stop();if(current(token)&&ACTIVE.has(job?.status)&&++polls<=3600)timer=schedule(()=>{timer=null;void request("poll");},2000);}

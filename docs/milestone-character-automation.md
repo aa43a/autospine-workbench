@@ -512,3 +512,14 @@ fe70164103067bb196574733200866a8ec21f5352a5d0af20af104ec5c841f84通过513姿态�
 各自时间轴位于 ../tmp/character-walk-margin/<character>/runtime/timeline.html。
 小恶魔旧策略 frame0 已存在同样腿间白色散点，说明不是动作中途才新增；
 下一步需要按附件定位其来源，不能据此直接删除不确定残余。
+
+## 未绑定像素直接定位
+
+整角色捕获新增 static-regions 报告，按 character-manifest 中显式 static_reference 归属
+读取原附件纹理，保存原图摘要、可见像素数、alpha>=8 数量和裁切坐标。统计不代表删除建议。
+新构建的逐层列表提供“查看未绑定区域像素”；链接只指向该任务已登记摘要的报告。
+历史任务不被回写，新服务构建后才带此入口。原素材、绑定决定和候选身份不变。
+真实小恶魔当前整角色包定位出 layer-009-residual 的 5850 个可见像素，裁切图明确包含腿间散点。
+已请求仅该区域的排除复核，尚未采用。定位页面：
+../tmp/character-static-regions/xiaoemo/static-regions/index.html#region-8。
+6 项 Python 报告/质量测试、6 项前端测试及 13 项整角色编排回归通过。

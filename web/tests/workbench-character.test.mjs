@@ -18,6 +18,16 @@ const job=(status='needs_review')=>({schema:'autospine.character-web-job/v1',pro
   job_id:'job-'+ 'b'.repeat(32),status,stage:status==='running'?'compose':'review',layers:[]});
 const overview=value=>({project_id:'one',authority:'none',can_build:true,job:value});
 
+test('static region links require inventoried report and safe anchor',async()=>{
+  const current=job();current.layers=[{layer_id:'source',name:'cloth',state:'partial'}];
+  current.runtime={files:{'static-regions/index.html':'a'},static_region_links:{source:[
+    'static-regions/index.html#region-0','https://invalid/#region-1','static-regions/index.html#bad']}};
+  const f=fixture(async()=>overview(current));f.view.sync();await flush();
+  const links=f.details.children[1].children[0].children.filter(n=>n.tag==='a');
+  assert.equal(links.length,1);assert.match(links[0].attrs.href,/\/view\/static-regions\/index.html#region-0$/);
+  f.view.dispose();
+});
+
 test('restored terminal candidate stops polling and dirty edits suppress download',async()=>{
   const f=fixture(async()=>overview(job()));f.view.sync();await flush();
   assert.equal(f.download.hidden,false);assert.equal(f.timers.size,0);
