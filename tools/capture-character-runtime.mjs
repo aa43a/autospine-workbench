@@ -4,8 +4,10 @@ import path from 'node:path';
 import http from 'node:http';
 import crypto from 'node:crypto';
 import {pathToFileURL} from 'node:url';
-const [folderArg,outputArg,dependencies,chrome]=process.argv.slice(2);
+const [folderArg,outputArg,dependencies,chrome,strideArg]=process.argv.slice(2);
 if(!chrome)throw Error('usage: bundle output dependencies chrome');
+const screenshotStride=strideArg===undefined?32:Number(strideArg);
+if(!Number.isInteger(screenshotStride)||screenshotStride<1||screenshotStride>4096)throw Error('screenshot_stride');
 const folder=path.resolve(folderArg),output=path.resolve(outputArg);
 const hash=raw=>crypto.createHash('sha256').update(raw).digest('hex');
 const canonical=v=>v===null||typeof v!=='object'?JSON.stringify(v):Array.isArray(v)?'['+v.map(canonical).join(',')+']':
@@ -54,7 +56,7 @@ try{
     const frames=reference.animations[animation];if(!frames.length)throw Error('empty_track');
     for(let index=0;index<frames.length;index++){
       results.push(await page.evaluate(({animation,index})=>window.captureFrame(animation,index),{animation,index}));
-      if(index%32===0||index===frames.length-1){
+      if(index%screenshotStride===0||index===frames.length-1){
         const raw=Buffer.from((await page.evaluate(()=>window.framePNG())).split(',')[1],'base64');
         const name=`frames/${animation}-${index}.png`;await publish(name,raw);screenshots.push({animation,index,file:name,sha256:hash(raw)});
       }
@@ -64,7 +66,7 @@ try{
   if(errors.length)throw Error(errors.join('\n'));
   const report={schema:'autospine.character-framebuffer/v1',bundle_sha256:digest,runtime_package:pkg.name,runtime_version:pkg.version,
     runtime_sha256:hash(runtime),harness_sha256:hash(harness),tool_sha256:hash(await fs.readFile(new URL(import.meta.url))),
-    browser_sha256:hash(await fs.readFile(chrome)),profile:'official-webgl-swiftshader-native-v1',info,results,screenshots,
+    browser_sha256:hash(await fs.readFile(chrome)),profile:'official-webgl-swiftshader-native-v1',info,results,screenshots,screenshot_stride:screenshotStride,
     passed:true,scope:'all_attachment_vertices_and_nonempty_unclipped_framebuffer',
     contact_status:'not_evaluated',draw_order_visual_status:'needs_review',authority:'none',production_authorized:false};
   await publish('report.json',JSON.stringify(report,null,2));
