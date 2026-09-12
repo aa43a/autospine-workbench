@@ -19,7 +19,7 @@ class WeightedReviewTests(unittest.TestCase):
                          runtime=dict(geometry_status='passed',files={'report.json':'b'*64}),layers=[self.layer])
         self.runtime=dict(bundle_sha256='a'*64,passed=True)
         self.manager=SimpleNamespace(_lock=RLock(),_path=lambda _:root,get=Mock(side_effect=lambda *_:deepcopy(self.result)),
-            download=Mock(),review_file=Mock(side_effect=lambda *_:(json.dumps(self.runtime).encode(),'application/json')),
+            verified_files=Mock(),review_file=Mock(side_effect=lambda *_:(json.dumps(self.runtime).encode(),'application/json')),
             application=SimpleNamespace(store=SimpleNamespace(read=lambda _:{'character-manifest.json':json.dumps({'layers':self.result['layers']}).encode()})))
         self.body=dict(expected_artifact_sha256='a'*64,expected_review_sha256=None,layer_id='arm',action='confirm')
 

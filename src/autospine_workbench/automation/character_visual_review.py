@@ -13,7 +13,7 @@ def context(manager,project,job):
     result=manager.get(project,job)
     if result['status']!='needs_review': raise PipelineRunError('pipeline_preview_not_ready')
     # Validate the candidate inventory and the actual report, not just a displayed job ID.
-    manager.download(project,job)
+    manager.verified_files(project,job)
     manager.review_file(project,job,['report.json'])
     return result
 

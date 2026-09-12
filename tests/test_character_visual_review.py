@@ -9,11 +9,20 @@ from autospine_workbench.automation.character_visual_review import overview,save
 
 
 class VisualReviewTests(unittest.TestCase):
+    def test_review_validates_files_without_building_download(self):
+        self.manager.download=Mock(side_effect=AssertionError('review must not allocate zip'))
+        overview(self.manager,'p','j')
+        self.manager.verified_files.assert_called_once_with('p','j')
+        self.manager.download.assert_not_called()
+        self.manager.verified_files.side_effect=RuntimeError('source mismatch')
+        with self.assertRaisesRegex(RuntimeError,'source mismatch'):
+            save(self.manager,'p','j',self.body)
+
     def setUp(self):
         temp=TemporaryDirectory();self.addCleanup(temp.cleanup);root=Path(temp.name)
         self.result=dict(status='needs_review',artifact_sha256='a'*64,runtime={'files':{'report.json':'b'*64}})
         self.manager=SimpleNamespace(_lock=RLock(),_path=lambda _:root,get=Mock(side_effect=lambda *_:self.result),
-                                     download=Mock(),review_file=Mock())
+                                     verified_files=Mock(),review_file=Mock())
         self.body=dict(expected_artifact_sha256='a'*64,expected_review_sha256=None,
                        aspects=dict(setup='acceptable',draw_order='not_reviewed',connections='needs_changes',motion='acceptable'),notes='left wrist')
 

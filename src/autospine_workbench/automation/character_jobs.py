@@ -142,7 +142,8 @@ class CharacterJobs:
                 self._active[job]['cancel'].set(); self._active[job]['response']['cancel_requested']=True
         return self.get(project,job)
 
-    def download(self, project, job):
+    def verified_files(self, project, job):
+        """Validate exact sources without allocating an unused download archive."""
         result=self.get(project,job)
         if result['status']!='needs_review': raise PipelineRunError('pipeline_preview_not_ready')
         files=self.application.store.read(result['artifact_sha256'])
@@ -153,6 +154,12 @@ class CharacterJobs:
                 or (request['sleeve_job_id'] is not None and sources.get('sleeve_job_sha256')!=canonical_sha256(self.sleeves.get(project,request['sleeve_job_id']))) \
                 or (request['sleeve_job_id'] is None and sources.get('route_choice_sha256')!=request['route_choice_sha256']):
             raise PipelineRunError('character_artifact_source_mismatch')
+        self._current(request)
+        return files
+
+    def download(self, project, job):
+        files=self.verified_files(project,job)
+        request=read_document(self._path(job)/'request.json')
         output=BytesIO()
         with ZipFile(output,'w',compression=ZIP_STORED) as archive:
             for name,raw in sorted(files.items()): archive.writestr(ZipInfo(name,(1980,1,1,0,0,0)),raw)
