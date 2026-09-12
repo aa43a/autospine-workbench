@@ -3,6 +3,9 @@
   "type": "object", "additionalProperties": false,
   "required": ["schema", "project_id", "job_id", "artifact_sha256", "runtime_sha256", "previous_sha256", "revision", "decision_source", "authority", "production_authorized", "aspects", "notes"],
   "properties": {
+    "timing": {"type":"object","additionalProperties":false,"required":["method","seconds","scope"],"properties":{
+      "method":{"const":"operator_stopwatch_v1"},"scope":{"const":"whole_character_visual_review_session"},
+      "seconds":{"type":"number","minimum":0,"maximum":86400}}},
     "schema": {"const": "autospine.character-visual-review/v1"},
     "project_id": {"type": "string"}, "job_id": {"type": "string"},
     "artifact_sha256": {"$ref": "#/$defs/sha"}, "runtime_sha256": {"$ref": "#/$defs/sha"},

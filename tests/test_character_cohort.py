@@ -35,6 +35,14 @@ class CohortTests(unittest.TestCase):
         o.pop('b')
         with self.assertRaisesRegex(ValueError,'inventory'):summarize(c,o)
 
+    def test_visual_stopwatch_does_not_become_total_human_labor(self):
+        c,o=self.fixture();o['a']=self.complete()
+        o['a']['visual_review']['timing']=dict(method='operator_stopwatch_v1',scope='whole_character_visual_review_session',seconds=90)
+        result=summarize(c,o)
+        self.assertEqual(result['characters'][0]['visual_review_session_minutes'],1.5)
+        self.assertIsNone(result['characters'][1]['visual_review_session_minutes'])
+        self.assertIsNone(result['metrics']['human_review_minutes'])
+
     def test_automatic_binding_requires_current_evidence_even_with_green_runtime(self):
         c,o=self.fixture()
         for value in (False, None, 'true', True):

@@ -2,6 +2,7 @@
 from .storage_io import directory, publish_document, read_document
 from .pipeline_run import PipelineRunError
 from ..resolved_project import canonical_sha256
+from .character_review_timing import valid as valid_timing
 
 SCHEMA='autospine.character-visual-review/v1'
 ASPECTS={'setup','draw_order','connections','motion'}
@@ -44,7 +45,8 @@ def overview(manager,project,job):
 
 def save(manager,project,job,body):
     keys={'expected_artifact_sha256','expected_review_sha256','aspects','notes'}
-    if (set(body)!=keys or type(body['aspects']) is not dict or set(body['aspects'])!=ASPECTS
+    if (set(body) not in (keys,keys|{'timing'}) or ('timing' in body and not valid_timing(body['timing']))
+            or type(body['aspects']) is not dict or set(body['aspects'])!=ASPECTS
             or any(type(v) is not str or v not in VERDICTS for v in body['aspects'].values())
             or type(body['notes']) is not str or len(body['notes'])>2000):
         raise PipelineRunError('character_review_invalid')
@@ -58,6 +60,12 @@ def save(manager,project,job,body):
                  revision=0 if current['review'] is None else current['review']['revision']+1,
                  decision_source='human_review',authority='none',production_authorized=False,
                  aspects=body['aspects'],notes=body['notes'])
+        timing=body.get('timing',(current['review'] or {}).get('timing'))
+        if timing is not None:
+            old=(current['review'] or {}).get('timing')
+            if old and timing['seconds']<old['seconds']:
+                raise PipelineRunError('character_review_timing_regression')
+            doc['timing']=timing
         root=directory(manager._path(job)/'visual-review',create=True)
         if not publish_document(root/f"{doc['revision']:06d}.json",doc,staging=root/'staging'):
             raise PipelineRunError('character_review_conflict')

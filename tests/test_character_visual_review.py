@@ -42,3 +42,18 @@ class VisualReviewTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError,'source_mismatch'):overview(self.manager,'other','j')
         self.result['runtime']['files']['report.json']='c'*64
         with self.assertRaisesRegex(RuntimeError,'source_mismatch'):overview(self.manager,'p','j')
+
+    def test_optional_timing_is_preserved_and_cannot_regress(self):
+        timing=dict(method='operator_stopwatch_v1',scope='whole_character_visual_review_session',seconds=90.5)
+        self.body['timing']=timing
+        first=save(self.manager,'p','j',self.body)
+        self.assertEqual(first['review']['timing'],timing)
+        self.body['expected_review_sha256']=first['review_sha256'];self.body.pop('timing')
+        second=save(self.manager,'p','j',self.body)
+        self.assertEqual(second['review']['timing'],timing)
+        self.body['expected_review_sha256']=second['review_sha256']
+        self.body['timing']={**timing,'seconds':1}
+        with self.assertRaisesRegex(RuntimeError,'regression'):save(self.manager,'p','j',self.body)
+        for bad in (True,-1,float('nan'),86401):
+            self.body['timing']={**timing,'seconds':bad}
+            with self.assertRaisesRegex(RuntimeError,'invalid'):save(self.manager,'p','j',self.body)

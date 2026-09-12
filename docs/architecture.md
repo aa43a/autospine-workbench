@@ -1,5 +1,7 @@
 # AutoSpine Workbench 架构与质量门禁
 
+视觉复核的可选 `timing` 使用 `operator_stopwatch_v1`，仅记录操作员划定的会话累计时间。无计时的旧记录与旧请求保持原序列化；已有计时由旧请求继续保留。服务验证数值范围及单调性，按现有 revision CAS 封存，统计不跨修订重复相加。
+
 `workbench-character-progress.js` 只派生展示状态，不产生新权威；复用图层待办判定，视觉结果要求匹配项目、任务和候选身份。复核读取失败清空可用记录并禁用保存，避免旧记录继续显示为当前证据。
 
 整角色袖装合并器独立位于 `targets/character43`：场景/骨索引/轨道合并和像素/库存分开。`automation/character_composition.py` 解析当前来源及已选择袖装任务，通过既有校验后导出新包；剩余RGBA保留为静态残余，不改写旧源或复核标注。全附件官方Core检查使用 `tools/verify-character-core.mjs`，不代表GPU或接触通过。

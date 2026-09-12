@@ -39,12 +39,13 @@ def summarize(cohort,observations):
         if not layers:reasons.append('layer_inventory_missing')
         if unresolved:reasons.append('layer_binding_incomplete')
         review=observed.get('visual_review')
+        from .character_review_timing import minutes
         visual=bool(review and all(review.get('aspects',{}).get(k)=='acceptable' for k in ('setup','draw_order','connections','motion')))
         if not visual:reasons.append('whole_character_visual_review_required')
         rows.append(dict(project_id=character['project_id'],name=character['name'],job_id=job.get('job_id'),
                          artifact_sha256=job.get('artifact_sha256'),completed=not reasons,reason_codes=reasons,
                          missing_animations=missing,unresolved_layers=unresolved,region_confirmed_layers=sorted(region_confirmed),stale_auto_layers=stale_auto,runtime_measured=runtime is not None,
-                         runtime_passed=runtime_passed,visual_accepted=visual))
+                         runtime_passed=runtime_passed,visual_accepted=visual,visual_review_session_minutes=minutes(review)))
     measured=[r for r in rows if r['runtime_measured']];passed=sum(r['completed'] for r in rows)
     return dict(schema='autospine.character-cohort-assessment/v1',cohort_id=cohort['cohort_id'],authority='none',
                 characters=rows,metrics=dict(completed_characters=passed,total_characters=len(rows),
