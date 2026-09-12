@@ -1,5 +1,8 @@
 # AutoSpine Workbench 架构与质量门禁
 
+`asset/planning/component_mount.py` 是无图像库依赖的分区与父骨骼建议核心；Spine 4.3.26 图像切片、
+坐标转换和整角色合成位于独立 Adapter。确切决定绑定输入包与分区摘要，剩余附件运动不改写。
+
 `binding_continuity.py` 纯比较静态残余排除前后的完整骨骼、纹理、剩余附件与逐帧顶点。
 `character_weighted_replay.py` 解析唯一确切的历史人工记录并封存派生证据；不改写旧 v1 复核。
 加权复核 v2 分离当前显式接受与沿用否决，保存时比较原确认派生摘要，源撤销或新 QA 失败停止沿用。

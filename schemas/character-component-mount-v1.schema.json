@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "autospine.character-component-mount/v1"
+    },
+    "source_bundle_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "source_region_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "layer_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "profile": {
+      "const": "connected-alpha-parent-distance-v1"
+    },
+    "plan_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "parts": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 65,
+      "items": {
+        "type": "object",
+        "required": [
+          "component_id",
+          "bbox",
+          "proposed_parent",
+          "reason_code",
+          "region_id",
+          "visible_pixels"
+        ],
+        "properties": {
+          "component_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "region_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "proposed_parent": {
+            "type": "string",
+            "minLength": 1
+          },
+          "bbox": {
+            "type": "array",
+            "minItems": 4,
+            "maxItems": 4,
+            "items": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "visible_pixels": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      }
+    },
+    "visible_pixels": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "covered_pixels": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "geometry_passed": {
+      "type": "boolean"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "selected": {
+      "const": false
+    },
+    "production_authorized": {
+      "const": false
+    },
+    "parent_review_required": {
+      "type": "boolean"
+    },
+    "draw_order": {
+      "const": "replace_source_slot_in_place"
+    },
+    "motion": {
+      "const": "rigid_parent_follow_no_added_tracks"
+    },
+    "parent_decision_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  },
+  "required": [
+    "schema",
+    "source_bundle_sha256",
+    "source_region_id",
+    "layer_id",
+    "profile",
+    "plan_sha256",
+    "parts",
+    "visible_pixels",
+    "covered_pixels",
+    "geometry_passed",
+    "authority",
+    "selected",
+    "production_authorized",
+    "parent_review_required",
+    "draw_order",
+    "motion"
+  ]
+}

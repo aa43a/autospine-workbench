@@ -74,6 +74,10 @@ def capture(projects, store, digest, root, *, progress, cancel_requested):
         contact = analyze(candidate)
         (folder/'contact.json').write_bytes(canonical_bytes(contact))
         (folder/'index.html').write_bytes(render(candidate, report, contact=contact))
+    if 'component-mount.json' in candidate:
+        from ..targets.character43.component_mount_review import render as render_mount
+        folder=directory(output/'mount',create=True)
+        (folder/'index.html').write_bytes(render_mount(candidate,report))
     files = {}
     for path in output.rglob('*'):
         if path.is_file():
