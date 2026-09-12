@@ -46,8 +46,21 @@ def read_provenance(store,project,addresses):
         if record['action']=='pending' and not record['notes'].strip():row['decision_source']='pending'
         rows.append(row)
     assert_registered_current(store,project,addresses)
-    return {'schema':'autospine.binding-provenance/v1','authority':'none','production_authorized':False,
-            'source_addresses':deepcopy(addresses),'rows':rows}
+    document={'schema':'autospine.binding-provenance/v1','authority':'none','production_authorized':False,
+              'source_addresses':deepcopy(addresses),'rows':rows}
+    if any(r['decision_source']=='policy_auto' and r['evidence_current'] is not True for r in rows):
+        from .animated_inputs import load_inputs
+        from .binding_revalidation import revalidate
+        with load_inputs(store,project) as source:
+            if source.source_addresses!=addresses:raise ValueError('binding_provenance_source_changed')
+            validation=revalidate(source,rows)
+            source.assert_current()
+        passed={r['layer_id'] for r in validation['rows'] if r['passed']}
+        for row in rows:
+            if row['layer_id'] in passed:row['evidence_current']=True
+        document.update(schema='autospine.binding-provenance/v2',revalidation=validation)
+    assert_registered_current(store,project,addresses)
+    return document
 
 
 def attach_provenance(files,store,project,addresses):
