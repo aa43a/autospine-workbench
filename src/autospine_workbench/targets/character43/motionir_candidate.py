@@ -52,6 +52,7 @@ def build(document, motion, name):
     return result, dict(profile='canonical-motionir-setup-delta-v1', authority='none',
                         motion_sha256=motion_ir_sha256(motion), reference_length_px=length,
                         contact_mode='annotation_only', status='preview_only',
+                        projection_suitability='unverified',
                         limitation='projected_source_pose_is_not_target_pose_fit')
 
 

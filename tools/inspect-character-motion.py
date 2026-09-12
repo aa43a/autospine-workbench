@@ -19,7 +19,11 @@ def main():
     parser.add_argument('--motion-bundle', required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--contact-root', action='store_true', help='Try bounded ankle-proxy root correction; not sole locking')
+    parser.add_argument('--publish', action='store_true', help='Publish an isolated diagnostic bundle for official capture')
+    parser.add_argument('--samples', type=int, default=125)
     args = parser.parse_args()
+    if not 3 <= args.samples <= 1025:
+        parser.error('samples must be 3..1025')
     files = AnimatedStore(args.state_root).read(args.character)
     motion_bundle = VerifiedMotionBundleReader(args.state_root).load(args.motion, args.motion_bundle)
     motion = json.loads((motion_bundle.path/'motion.json').read_bytes())
@@ -39,7 +43,7 @@ def main():
         document = corrected
         evidence['root_correction_profile'] = correction['profile']
     duration = motion['duration_ticks']/motion['ticks_per_second']
-    times = [duration*i/124 for i in range(125)]
+    times = [duration*i/(args.samples-1) for i in range(args.samples)]
     frames = [dict(time=t, vertices=sample(document, 'walk', t)[0]) for t in times]
     raw = canonical_bytes(document)
     reference = canonical_bytes(dict(skeleton_sha256=sha256(raw).hexdigest(), animations={'walk': frames}))
@@ -65,6 +69,22 @@ def main():
                        ('deformation.json', canonical_bytes(qa))]:
         (args.output/name).write_bytes(data)
     print(json.dumps(evidence))
+    if args.publish:
+        # Keep texture bytes, not previous animation-specific reports or authority.
+        package = {n: data for n, data in files.items() if n.endswith('.png') or n == 'skeleton.atlas'}
+        package.update({'skeleton.json': raw, 'numeric-reference.json': reference,
+                        'motion-review.json': canonical_bytes(evidence),
+                        'deformation.json': canonical_bytes(qa), 'motion-ir.json': canonical_bytes(motion)})
+        if args.contact_root:
+            package['root-correction.json'] = canonical_bytes(correction)
+        manifest = dict(schema='autospine.character-motion-preview/v1', profile='isolated-motionir-preview-v1',
+                        authority='none', production_authorized=False, animations=['walk'],
+                        source_character_sha256=args.character, source_motion_bundle_sha256=args.motion_bundle,
+                        status='preview_only', files={n: sha256(data).hexdigest() for n, data in package.items()})
+        package['character-manifest.json'] = canonical_bytes(manifest)
+        digest = AnimatedStore(args.state_root).publish(package)
+        (args.output/'published.json').write_bytes(canonical_bytes(dict(bundle_sha256=digest)))
+        print(json.dumps(dict(bundle_sha256=digest)))
 
 
 if __name__ == '__main__':

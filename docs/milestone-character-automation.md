@@ -422,3 +422,16 @@ bundle为aff064be46be520444e2729dd6d31c9b7fcd85cd17eefdd45d77572aa1b7b554。
 0.00435/0.00687/0.00625px。指标仍是踝点代理，不冒充鞋底锁定、官方Runtime或视觉通过。
 工具inspect-character-motion.py增加--contact-root显式试算选项，原动画不覆盖，候选不采用。
 10项根修正、双支撑冲突、预算失败、释放及原数据保留测试和质量检查通过。
+
+## 官方行走捕获与投影问题
+
+inspect-character-motion.py新增显式--publish与--samples，生成只含当前动作证据的独立内容寻址诊断包，
+复制原纹理字节，但不复制旧动画QA/采用状态，不改变工作台当前角色版本。
+红美铃诊断包5837fabee01aa588ce1bfac5956e0d3d8b67066689ddc8e4c8a3b6facc89e4c6完成
+Spine WebGL4.3.13官方捕获：513帧、27附件，最大位置误差0.00030956px。
+本地报告../tmp/character-walk-runtime/hongmeiling/runtime/index.html。
+
+检查实际frame256画面发现：侧向来源角度直接加到正面资产使腿向两侧张开，未形成自然的前后迈步。
+这项助手视觉观察不是人工接受，也不是数值捕获失败。候选保持preview_only，
+projection_suitability=unverified；足踝漂移小和网格通过不能替代动作适配验收。
+下一步应处理目标视角的步幅与缩短投影，禁止把这个诊断动作计为固定角色walk成功。
