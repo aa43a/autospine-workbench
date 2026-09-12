@@ -3,7 +3,7 @@ from .cloth_shape_solver import solve
 from .component_local_solver import metrics
 
 
-def refine(setup, triangles, fixed_pose, free_vertices, target, *, seed=None, temporal=False, interval_maps=(), continuation=False):
+def refine(setup, triangles, fixed_pose, free_vertices, target, *, seed=None, temporal=False, interval_maps=(), continuation=False, material=False):
     import numpy as np
     from scipy.optimize import least_squares
     from scipy.sparse import lil_matrix
@@ -20,6 +20,11 @@ def refine(setup, triangles, fixed_pose, free_vertices, target, *, seed=None, te
     lookup = {v: i for i, v in enumerate(free)}
     previous = np.asarray(seed, dtype=float) if temporal and seed is not None else None
     area_blocks = 2+2*len(interval_maps) if interval_maps else (4 if previous is not None else 2)
+    if material:
+        from .cloth_strain import prepare, stretches
+        strain_context = prepare(setup, triangles)
+        material_mask = np.asarray([any(v in lookup for v in t) for t in tri], dtype=float)
+        area_blocks += 2
     sparsity = lil_matrix((area_blocks*nt+ne+2*n, 2*n), dtype=int)
     for i, t in enumerate(tri):
         for v in t:
@@ -46,6 +51,9 @@ def refine(setup, triangles, fixed_pose, free_vertices, target, *, seed=None, te
             from .cloth_interval_area import bounds
             low, high = bounds(areas(previous)/area, areas((previous+p)/2)/area, ratio)
             residuals.extend((np.maximum(.55-low, 0), np.maximum(high-1.9, 0)))
+        if material:
+            low, high = stretches(p, strain_context)
+            residuals.extend((material_mask*np.maximum(.72-low, 0), material_mask*np.maximum(high-1.38, 0)))
         return np.concatenate((*residuals, np.maximum(stretch-1.9, 0), .001*x))
     x0 = (np.asarray(seed)[free]-start[free]).ravel()/scale if continuation and seed is not None else np.zeros(2*n)
     fit = least_squares(residual, x0, jac_sparsity=sparsity.tocsr(),
@@ -65,4 +73,11 @@ def refine(setup, triangles, fixed_pose, free_vertices, target, *, seed=None, te
     if continuation:
         evidence.update(profile='pinned-arap-spine-subframes-continuation-v4',
                         continuation_seed='previous_world_pose' if seed is not None else 'setup')
+    if material:
+        low, high = stretches(result, strain_context); selected = material_mask > 0
+        evidence.update(profile='pinned-cloth-principal-stretch-trial-v5',
+                        material_min_stretch=float(np.min(low[selected])),
+                        material_max_stretch=float(np.max(high[selected])),
+                        material_trial_limits=dict(min_stretch=.7, max_stretch=1.4),
+                        material_passed=bool(np.all(low[selected] >= .7) and np.all(high[selected] <= 1.4)))
     return result.tolist(), evidence

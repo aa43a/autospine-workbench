@@ -16,12 +16,13 @@ if __name__ == '__main__':
     p.add_argument('--temporal', action='store_true')
     p.add_argument('--exact-temporal', action='store_true')
     p.add_argument('--continuation', action='store_true')
+    p.add_argument('--material', action='store_true')
     args = p.parse_args(); store = AnimatedStore(args.state_root); source = store.read(args.wave)
     builder = bake
     if args.adaptive:
         from autospine_workbench.targets.character43.cloth_shape_adaptive import build
         builder = build
-    options = dict(samples=args.samples, temporal=args.temporal, exact_temporal=args.exact_temporal, continuation=args.continuation)
+    options = dict(samples=args.samples, temporal=args.temporal, exact_temporal=args.exact_temporal, continuation=args.continuation, material=args.material)
     if args.adaptive: options['progress'] = lambda row: print(json.dumps(row), flush=True)
     result = builder(json.loads(source['skeleton.json']), 'wave-left', args.helper, **options)
     result.update({k: v for k, v in source.items() if k.endswith('.png') or k == 'skeleton.atlas'})

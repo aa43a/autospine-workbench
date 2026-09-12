@@ -7,11 +7,12 @@ from .affine_pose import sample
 from .drape_direction import apply
 
 
-def probe(document, animation, helper, *, samples=33, constrained=False, on_frame=None, extra_times=(), temporal=False, exact_temporal=False, continuation=False):
+def probe(document, animation, helper, *, samples=33, constrained=False, on_frame=None, extra_times=(), temporal=False, exact_temporal=False, continuation=False, material=False):
     if type(samples) is not int or not 3 <= samples <= 513:
         raise ValueError('cloth_shape_probe_samples')
     if (temporal or exact_temporal) and not constrained: raise ValueError('cloth_shape_probe_temporal_requires_constraints')
     if continuation and not exact_temporal: raise ValueError('cloth_shape_probe_continuation_requires_exact')
+    if material and not constrained: raise ValueError('cloth_shape_probe_material_requires_constraints')
     held, _ = apply(document, animation, [helper])
     slot = helper.removeprefix('cloth-')
     attachment = document['skins'][0]['attachments'][slot][slot]
@@ -44,6 +45,7 @@ def probe(document, animation, helper, *, samples=33, constrained=False, on_fram
         options = dict(seed=seed)
         if temporal: options['temporal'] = True
         if continuation: options['continuation'] = True
+        if material: options['material'] = True
         if exact_temporal and seed is not None:
             from .cloth_interval_map import build
             options['interval_maps'] = build(document, animation, slot, previous_time, time, seed)
