@@ -523,3 +523,14 @@ fe70164103067bb196574733200866a8ec21f5352a5d0af20af104ec5c841f84通过513姿态�
 已请求仅该区域的排除复核，尚未采用。定位页面：
 ../tmp/character-static-regions/xiaoemo/static-regions/index.html#region-8。
 6 项 Python 报告/质量测试、6 项前端测试及 13 项整角色编排回归通过。
+
+## 小恶魔已确认残余排除
+
+用户明确同意排除 layer-009-residual。决定绑定原整角色包、manifest 和该区域纹理摘要，
+保存于 docs/benchmark/xiaoemo-static-exclusion-v1.json；只允许 static_reference，无动画或
+drawOrder 依赖才可执行。原包和纹理保留，剩余顶点参考不变；不继承 Runtime/视觉通过。
+新候选 01aa9ff598e27b6ae8ab5d64640b9d451f7b2e1264a154ae2091449917a775a5
+通过 4 动作共 516 帧官方 WebGL、31 附件，最大误差 0.000117371px，124 条网格记录通过。
+助手检查 setup 捕获确认腿间散点消失，未变更其他静态残余。独立 CLI 重放生成同一摘要。
+复核：../tmp/character-static-excluded/xiaoemo/runtime/index.html。
+通用排除核心与 CLI 已交付；当前工作台自动构建尚未消费该排除决定，接入与撤销入口待完成。
