@@ -3,10 +3,11 @@ import json
 from .pipeline_run import PipelineRunError
 
 PROFILE = 'fixed-waist-three-chain-v1'
+TORSO_PROFILE = 'reviewed-torso-waist-v2'
 
 
 def validate(profile):
-    if profile is not None and profile != PROFILE:
+    if profile not in (None, PROFILE, TORSO_PROFILE):
         raise PipelineRunError('character_skirt_profile_invalid')
 
 
@@ -24,7 +25,8 @@ def apply_selected(manager, request, result):
                        and row['state'] == 'static_reference')
     if not layer_ids:
         raise PipelineRunError('character_skirt_layers_missing')
-    output, report = generate(files, result['artifact_sha256'], layer_ids)
+    options = {'waist_driver': 'reviewed-chest-v1'} if profile == TORSO_PROFILE else {}
+    output, report = generate(files, result['artifact_sha256'], layer_ids, **options)
     applied = dict(result, artifact_sha256=store.publish(output),
                 manifest=json.loads(output['character-manifest.json']),
                 skirt_trial=dict(profile=profile, layer_ids=[r['layer_id'] for r in report['rows']],

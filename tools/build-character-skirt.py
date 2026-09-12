@@ -14,10 +14,12 @@ def main():
     parser.add_argument('--character', required=True)
     parser.add_argument('--layer', action='append', required=True)
     parser.add_argument('--step', type=int, default=32)
+    parser.add_argument('--waist-driver', choices=['reviewed-chest-v1'])
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
     store = AnimatedStore(args.state_root)
-    files, report = generate(store.read(args.character), args.character, args.layer, step=args.step)
+    files, report = generate(store.read(args.character), args.character, args.layer, step=args.step,
+                             waist_driver=args.waist_driver)
     digest = store.publish(files)
     args.output.mkdir(parents=True, exist_ok=True)
     receipt = dict(bundle_sha256=digest, source_character_sha256=args.character,

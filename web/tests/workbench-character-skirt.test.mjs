@@ -35,7 +35,7 @@ test('checked skirt adds only its explicit profile and resets across project ide
  f.view.sync();await flush();f.toggle.checked=true;f.toggle.onchange();f.build.events.click();await flush();
  assert.deepEqual(JSON.parse(calls.find(init=>init.method==='POST').body),{
   expected_resolved_sha256:'a'.repeat(64),expected_input_sha256:'c'.repeat(64),sleeve_job_id:'sleeve-one',
-  skirt_profile:'fixed-waist-three-chain-v1'});
+  skirt_profile:'reviewed-torso-waist-v2'});
  assert.equal(f.toggle.disabled,true);f.context.projectId=null;f.view.sync();assert.equal(f.toggle.checked,false);f.view.dispose();
 });
 

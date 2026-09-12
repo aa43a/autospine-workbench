@@ -11,6 +11,7 @@ const REASONS = {character_sleeve_unavailable:"尚无当前可用袖装候选，
   character_skirt_layers_missing:"没有尚未处理的裙装图层，可关闭裙装选项后构建。",
   skirt_waist_contact_unobservable:"无法找到裙装与上衣的可靠连接，请复核分层与腰部位置。",
   skirt_reviewed_torso_missing:"请先完成上衣绑定复核，再生成裙装候选。",
+  skirt_torso_driver_unsupported:"上衣尚未统一随胸部运动，请复核上衣绑定；不会擅自更改原决定。",
   character_motion_source_changed:"动作候选与当前角色来源不一致，需要重新生成动作候选。",
   character_region_source_changed:"区域来源与已确认排除不一致。请撤销旧排除，重建后重新复核该区域。",
   character_region_decisions_changed:"区域决定已变化，请重新构建。",
@@ -121,7 +122,7 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
         expected_resolved_sha256:overview.expected_resolved_sha256,expected_input_sha256:overview.expected_input_sha256,sleeve_job_id:overview.sleeve_job_id,
         ...(motionChoice?{motion_choice_id:motionChoice}:{}),
         ...(textureToggle.checked?{residual_texture_profile:textureProfile.value}:{}),
-        ...(skirtToggle.checked?{skirt_profile:"fixed-waist-three-chain-v1"}:{})})};
+        ...(skirtToggle.checked?{skirt_profile:"reviewed-torso-waist-v2"}:{})})};
       const value=await hooks.apiRequest(url,init);if(!current(token))return;
       if(value.project_id!==project||value.authority!=="none")throw Error("响应来源不匹配");
       if(action==="refresh"){overview=value;job=value.job;polls=0;}

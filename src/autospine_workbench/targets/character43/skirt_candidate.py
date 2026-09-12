@@ -22,7 +22,9 @@ def inverse(matrix, point):
     return [(d*dx-b*dy)/determinant, (-c*dx+a*dy)/determinant]
 
 
-def generate(files, source_digest, layer_ids, *, step=32):
+def generate(files, source_digest, layer_ids, *, step=32, waist_driver=None):
+    if waist_driver not in (None, 'reviewed-chest-v1'):
+        raise ValueError('skirt_waist_driver_invalid')
     require_sha256(source_digest, 'Character source')
     inspect(files)  # Verify original source identity, finite samples, and complete slot inventory.
     document = json.loads(files['skeleton.json'])
@@ -51,6 +53,9 @@ def generate(files, source_digest, layer_ids, *, step=32):
                 torso.append((image.getchannel('A'), origin))
     if not torso:
         raise ValueError('skirt_reviewed_torso_missing')
+    if waist_driver is not None:
+        from .skirt_waist_driver import require_chest_torso
+        require_chest_torso(document, ledger)
     original = deepcopy(document); rows = []; helpers = []; blocked = []
     for layer_id in sorted(layer_ids):
         try:
@@ -74,7 +79,7 @@ def generate(files, source_digest, layer_ids, *, step=32):
                 0 <= wx-o[0] < im.width and 0 <= o[1]-wy < im.height
                 and im.getpixel((wx-o[0], o[1]-wy)) >= 8 for im, o in torso))
         to_world = lambda p: [origin[0]+p[0], origin[1]-p[1]]
-        names = {'pelvis': 'pelvis'}
+        names = {'pelvis': 'chest' if waist_driver else 'pelvis'}
         for chain in mesh['helper_chains']:
             parent = 'pelvis'
             for index, suffix in enumerate(('upper', 'lower')):
@@ -148,6 +153,9 @@ def generate(files, source_digest, layer_ids, *, step=32):
         motion_scope='procedural_2deg_idle_4deg_other_half_distal_not_physics',
         preserved=['source_rgba', 'atlas', 'draw_order', 'unselected_motion', 'human_decisions'])
     if blocked: report['blocked_layers'] = blocked
+    if waist_driver is not None:
+        report['waist_driver'] = waist_driver
+        report['waist_weight_mapping'] = 'neutral_pelvis_weight_to_reviewed_chest; helpers_remain_pelvis'
     output['skirt-trial.json'] = canonical_bytes(report)
     manifest.update(profile='whole-character-skirt-trial-v1', source_character_sha256=source_digest,
                     authority='none', production_authorized=False, full_character_animation=False,

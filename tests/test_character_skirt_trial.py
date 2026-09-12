@@ -11,6 +11,18 @@ from tests.test_character_skirt_candidate import fixture
 
 
 class SkirtTrialTests(unittest.TestCase):
+    def test_v2_selects_explicit_driver_without_changing_v1(self):
+        from autospine_workbench.automation.character_skirt_trial import TORSO_PROFILE
+        files = {'character-manifest.json': canonical_bytes({'layers': [
+            dict(layer_id='skirt', name='bottomwear', state='static_reference')]})}
+        store = SimpleNamespace(read=lambda _: files, publish=lambda _: 'b'*64)
+        manager = SimpleNamespace(application=SimpleNamespace(store=store))
+        report = dict(rows=[{'layer_id': 'skirt'}], geometry_passed=True, setup_error_px=0)
+        with patch('autospine_workbench.targets.character43.skirt_candidate.generate', return_value=(files, report)) as build:
+            for profile, options in [(PROFILE, {}), (TORSO_PROFILE, {'waist_driver': 'reviewed-chest-v1'})]:
+                apply_selected(manager, {'skirt_profile': profile}, {'artifact_sha256': 'a'*64})
+                self.assertEqual(build.call_args.kwargs, options)
+
     def test_unselected_path_is_identity(self):
         result = {'artifact_sha256': 'old', 'manifest': {}}
         self.assertIs(apply_selected(None, {}, result), result)
