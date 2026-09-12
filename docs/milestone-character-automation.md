@@ -561,3 +561,16 @@ layer-009 的两腿分区保留，region exclusion 独立登记，整层绑定 p
 实际动作是 combined_opposed、combined_same、forearm、hand、walk；前四项是既有袖装测试，
 不冒充 C3 所需 idle/wave-left。报告 ../tmp/character-motion-unified/xiaoemo/runtime/index.html。
 已确认残余未被重新引入；新组合尚未登记为工作台当前候选。后续接入动作选择与来源失效处理。
+
+## 工作台同源动作选择
+
+新增小型内容寻址 motion catalog，登记时检查完整 rig/纹理及几何；选择项绑定项目输入、
+区域决定 head 和精确源角色包。构建请求可选 motion_choice_id，默认请求保持原行为。
+逐层处理和排除后再合并选中动作，任何精确来源变化阻塞；不自动采用、不继承旧 Runtime。
+UI 提供“整角色动作”选择，并显示当前包实际动作清单。修改项目后清空选择，过期项禁用。
+小恶魔登记 choice 04ccd62c6fb3ffb9bf3c80b4369884466cf3e3c07c2651bffc6422104e3459a3；
+通过真实浏览器选择并提交任务 job-7b10d500bf004bb68dd427e6018adec4，已完成当前候选
+b4c14b2286221d67f0662b03dceea1d6355b821447869d460ff920218ab2669c。
+官方 Runtime 1029 帧、31 附件及网格通过。15 项 Python、8 项前端测试通过。
+服务 v21，PID 4384。当前仍需开发缺失动作自动生成，并补齐袖装角色 idle/wave-left；
+本次五动作中的四个是结构测试，不计为 C3 所需全部动作完成。

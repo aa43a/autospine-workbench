@@ -41,6 +41,18 @@ test('exclusion sends exact current region and revision then refreshes',async()=
   assert.equal(calls.length,3);f.view.dispose();
 });
 
+test('motion selector sends an available choice and clears on project change',async()=>{
+  const choice='e'.repeat(64),calls=[];
+  const f=fixture(async(url,init)=>{calls.push([url,init]);return init.method==='POST'?job('running'):
+    {...overview(job()),motion_choices:[{choice_id:choice,animations:['walk'],available:true}]};});
+  f.view.sync();await flush();
+  const select=f.view.element.children[2].children.find(n=>n.tag==='label').children[0];
+  assert.equal(select.disabled,false);select.value=choice;select.onchange();
+  f.build.events.click();await flush();
+  assert.equal(JSON.parse(calls.find(([,init])=>init.method==='POST')[1].body).motion_choice_id,choice);
+  f.context.projectId=null;f.view.sync();assert.equal(select.value,'');f.view.dispose();
+});
+
 test('restored terminal candidate stops polling and dirty edits suppress download',async()=>{
   const f=fixture(async()=>overview(job()));f.view.sync();await flush();
   assert.equal(f.download.hidden,false);assert.equal(f.timers.size,0);

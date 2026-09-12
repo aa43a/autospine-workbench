@@ -39,6 +39,8 @@ class CharacterJobs:
         return directory(self.root / job, create=create)
 
     def _current(self, request):
+        from .character_motion_catalog import validate as validate_motion
+        validate_motion(self, request)
         from .character_region_decisions import overview as region_overview
         if region_overview(self, request['project_id'])['head_sha256'] != request.get('region_decisions_sha256'):
             raise PipelineRunError('character_region_decisions_changed')
@@ -67,6 +69,8 @@ class CharacterJobs:
         result['region_exclusions'] = region_overview(self, project)
         try:
             info = inspect_registration(self.projects, project)
+            from .character_motion_catalog import choices
+            result['motion_choices'] = choices(self, project, info['source_addresses'])
             result.update(expected_resolved_sha256=info['source_addresses']['resolved_project_sha256'],
                           expected_input_sha256=info['source_addresses']['input_identity_sha256'])
             if sleeve and sleeve['status'] == 'needs_review' and not sleeve.get('candidate_withdrawn'):
@@ -84,12 +88,13 @@ class CharacterJobs:
                     result['job'] = self.get(project, file.parent.name); break
         return result
 
-    def submit(self, project, expected_resolved_sha256, expected_input_sha256, sleeve_job_id):
+    def submit(self, project, expected_resolved_sha256, expected_input_sha256, sleeve_job_id, motion_choice_id=None):
         require_safe_token(project, 'project'); require_sha(expected_resolved_sha256); require_sha(expected_input_sha256)
         request=dict(project_id=project, expected_resolved_sha256=expected_resolved_sha256,
                      expected_input_sha256=expected_input_sha256, sleeve_job_id=sleeve_job_id)
         from .character_region_decisions import overview as region_overview
         request['region_decisions_sha256'] = region_overview(self, project)['head_sha256']
+        if motion_choice_id is not None: request['motion_choice_id'] = motion_choice_id
         if sleeve_job_id is None:
             request['route_choice_sha256']=route_source(self.projects,self.sleeves,project,expected_resolved_sha256)
         self._current(request)
@@ -173,6 +178,8 @@ class CharacterJobs:
                                 progress=progress,cancel_requested=active['cancel'].is_set)
             from .character_region_decisions import apply_saved
             result=apply_saved(self,request['project_id'],result,request.get('region_decisions_sha256'))
+            from .character_motion_catalog import append_selected
+            result=append_selected(self,request,result)
             self._current(request)
             runtime=self.capturer(self.projects,self.application.store,result['artifact_sha256'],self._path(job),
                                   progress=progress,cancel_requested=active['cancel'].is_set)
