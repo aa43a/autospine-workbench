@@ -28,7 +28,8 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
   element.append(node("h3","整角色候选"),node("p","按当前路线构建整角色，并合并已有袖装修正；保留未处理图层与残余，生成 Runtime 与 setup 复核报告。"),actions,status,download);
   const runtime=node("a","查看整角色 Runtime"),setup=node("a","查看源图 / setup 对照");
   for(const link of [runtime,setup]){link.className="button button-secondary";link.target="_blank";link.rel="noopener";element.append(link);}
-  const visualReview=createCharacterReview(document,hooks);element.append(visualReview.element,detail);
+  const visualReview=createCharacterReview(document,hooks),visualSection=node("section"),visualFold=node("details");
+  visualFold.append(node("summary","记录整角色视觉验收"),visualReview.element);visualSection.append(visualFold);element.append(visualSection,detail);
   actions.append(exclusions);
   let identity=null,generation=0,overview=null,job=null,busy=false,error="",timer=null,polls=0,operation="";
   let motionChoice="";motionSelect.onchange=()=>{motionChoice=motionSelect.value;};
