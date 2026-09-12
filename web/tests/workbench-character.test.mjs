@@ -20,6 +20,18 @@ const job=(status='needs_review')=>({schema:'autospine.character-web-job/v1',pro
   job_id:'job-'+ 'b'.repeat(32),status,stage:status==='running'?'compose':'review',layers:[]});
 const overview=value=>({project_id:'one',authority:'none',can_build:true,job:value});
 
+test('texture trial is opt-in and resets across projects',async()=>{
+ const calls=[];
+ const f=fixture(async(url,init)=>{calls.push([url,init]);return init.method==='POST'?job('running'):overview(job());});
+ f.view.sync();await flush();
+ const toggle=descendants(f.view.element).find(n=>n.attrs?.['aria-label']==='归并低透明度残余（候选）');
+ assert.equal(toggle.checked,false);toggle.checked=true;
+ f.build.events.click();await flush();
+ assert.equal(JSON.parse(calls.find(([,init])=>init.method==='POST')[1].body).residual_texture_profile,'aligned-low-alpha-v1');
+ assert.equal(toggle.disabled,true);
+ f.context.projectId=null;f.view.sync();assert.equal(toggle.checked,false);f.view.dispose();
+});
+
 test('static region links require inventoried report and safe anchor',async()=>{
   const current=job();current.layers=[{layer_id:'source',name:'cloth',state:'partial'}];
   current.runtime={files:{'static-regions/index.html':'a'},static_region_links:{source:[

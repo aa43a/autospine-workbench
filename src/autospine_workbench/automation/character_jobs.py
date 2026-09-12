@@ -88,13 +88,17 @@ class CharacterJobs:
                     result['job'] = self.get(project, file.parent.name); break
         return result
 
-    def submit(self, project, expected_resolved_sha256, expected_input_sha256, sleeve_job_id, motion_choice_id=None):
+    def submit(self, project, expected_resolved_sha256, expected_input_sha256, sleeve_job_id, motion_choice_id=None,
+               residual_texture_profile=None):
+        from .character_texture_trial import validate
+        validate(residual_texture_profile)
         require_safe_token(project, 'project'); require_sha(expected_resolved_sha256); require_sha(expected_input_sha256)
         request=dict(project_id=project, expected_resolved_sha256=expected_resolved_sha256,
                      expected_input_sha256=expected_input_sha256, sleeve_job_id=sleeve_job_id)
         from .character_region_decisions import overview as region_overview
         request['region_decisions_sha256'] = region_overview(self, project)['head_sha256']
         if motion_choice_id is not None: request['motion_choice_id'] = motion_choice_id
+        if residual_texture_profile is not None: request['residual_texture_profile'] = residual_texture_profile
         if sleeve_job_id is None:
             request['route_choice_sha256']=route_source(self.projects,self.sleeves,project,expected_resolved_sha256)
         self._current(request)
@@ -180,6 +184,9 @@ class CharacterJobs:
             result=apply_saved(self,request['project_id'],result,request.get('region_decisions_sha256'))
             from .character_motion_catalog import append_selected
             result=append_selected(self,request,result)
+            from .character_texture_trial import apply_selected
+            if request.get('residual_texture_profile'): progress('texture-trial')
+            result=apply_selected(self,request,result)
             self._current(request)
             runtime=self.capturer(self.projects,self.application.store,result['artifact_sha256'],self._path(job),
                                   progress=progress,cancel_requested=active['cancel'].is_set)
@@ -187,6 +194,7 @@ class CharacterJobs:
             response.update(status='needs_review',stage='review',artifact_sha256=result['artifact_sha256'],
                             layers=result['manifest']['layers'],animations=result['manifest']['animations'],runtime=runtime,
                             motion_readiness=result['manifest'].get('motion_readiness',[]))
+            if 'texture_trial' in result: response['texture_trial']=result['texture_trial']
         except Exception as exc:
             reason=getattr(exc,'reason_code',str(exc))
             if not re.fullmatch(r'[a-z][a-z0-9_]{0,99}',reason): reason='character_build_failed'

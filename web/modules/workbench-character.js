@@ -28,7 +28,11 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
   const ledger=createCharacterLedger(document,{locate:hooks.locate,regionDecision:body=>regionDecision(body)}),detail=ledger.element;
   const weightedReview=createWeightedReview(document,{apiRequest:hooks.apiRequest,changed:()=>render()});
   const exclusions=node("div");
-  const motionLabel=node("label","整角色动作 "),motionSelect=node("select");motionSelect.setAttribute("aria-label","整角色动作");motionLabel.append(motionSelect);actions.append(motionLabel);
+  const textureLabel=node("label","归并低透明度残余（候选） "),textureToggle=node("input");
+  textureToggle.type="checkbox";textureToggle.setAttribute("aria-label","归并低透明度残余（候选）");
+  textureLabel.setAttribute("title","仅归并有完整网格覆盖且纹理对齐的低透明度像素；关闭后重建可恢复原纹理。不会自动通过复核。");
+  textureLabel.append(textureToggle);
+  const motionLabel=node("label","整角色动作 "),motionSelect=node("select");motionSelect.setAttribute("aria-label","整角色动作");motionLabel.append(motionSelect);actions.append(motionLabel,textureLabel);
   element.append(node("h3","整角色候选"),node("p","按当前路线构建整角色，并合并已有袖装修正；保留未处理图层与残余，生成 Runtime 与 setup 复核报告。"),actions,status,download);
   const runtime=node("a","查看整角色 Runtime"),setup=node("a","查看源图 / setup 对照");
   for(const link of [runtime,setup]){link.className="button button-secondary";link.target="_blank";link.rel="noopener";element.append(link);}
@@ -46,6 +50,7 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
   function render(){
     const active=ACTIVE.has(job?.status),dirty=Boolean(context().dirty||context().saving||context().loading);
     build.disabled=!overview?.can_build||busy||active||dirty;refresh.disabled=!identity||busy;cancel.hidden=!active;cancel.disabled=busy||job?.cancel_requested;
+    textureToggle.disabled=busy||active||dirty;
     const available=overview?.motion_choices||[];
     if(motionChoice&&!available.some(r=>r.choice_id===motionChoice&&r.available))motionChoice="";
     if(!motionTouched)motionChoice=defaultCharacterMotion(available);
@@ -55,6 +60,8 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
     motionSelect.setAttribute("title",!motionTouched&&motionChoice?"已自动选择唯一有效的待机、左手挥动与行走组合；可手动更改。":"选择候选动作不会自动通过绑定或视觉复核。");
     const reason=job?.reason_code||overview?.reason_code;
     status.textContent=error||(busy&&operation==="build"?"正在提交整角色构建…":!job&&busy?"正在请求…":job?`${STAGES[job.stage]||job.status}${reason?" · "+(REASONS[reason]||reason):""}`:REASONS[reason]||"可以构建整角色候选。");
+    if(!error&&job?.stage==="texture-trial")status.textContent="正在归并可安全转移的低透明度残余…";
+    if(!error&&job?.texture_trial)status.textContent+=` · 当前候选归并 ${job.texture_trial.transferred_pixels} 个像素，仍需视觉复核`;
     if(!error&&job?.status==="needs_review")status.textContent+=job.runtime?.geometry_status==='passed'?" · 采样网格检查通过":job.runtime?.geometry_status==='needs_changes'?` · ${job.runtime.geometry_failed_records} 项动作/附件变形超限，需修正`:" · 整角色网格检查尚未执行";
     if(!error&&job?.status==="needs_review"&&job.animations?.length)status.textContent+=` · 当前包动作：${job.animations.map(n=>({walk:"行走",idle:"待机","wave-left":"左手挥动",forearm:"前臂测试",hand:"手部测试",combined_same:"同向组合测试",combined_opposed:"反向组合测试"}[n]||n)).join("、")}`;
     if(!error&&job?.status==="needs_review")for(const motion of job.motion_readiness||[])if(motion.status==='blocked')status.textContent+=` · ${motion.clip} 未输出：${motion.reason_code}${motion.failing_slots.length?'（'+motion.failing_slots.join('、')+'）':''}`;
@@ -94,7 +101,8 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
       if(action==="poll"||action==="cancel")url+=`/jobs/${oldJob}${action==="cancel"?"/cancel":""}`;
       if(action==="build"||action==="cancel")init={method:"POST",headers:{"X-Autospine-Intent":"pipeline-preview"},body:JSON.stringify(action==="cancel"?{}:{
         expected_resolved_sha256:overview.expected_resolved_sha256,expected_input_sha256:overview.expected_input_sha256,sleeve_job_id:overview.sleeve_job_id,
-        ...(motionChoice?{motion_choice_id:motionChoice}:{})})};
+        ...(motionChoice?{motion_choice_id:motionChoice}:{}),
+        ...(textureToggle.checked?{residual_texture_profile:"aligned-low-alpha-v1"}:{})})};
       const value=await hooks.apiRequest(url,init);if(!current(token))return;
       if(value.project_id!==project||value.authority!=="none")throw Error("响应来源不匹配");
       if(action==="refresh"){overview=value;job=value.job;polls=0;}
@@ -103,6 +111,6 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
     finally{if(current(token)){busy=false;render();if(!error)queue(token);}}
   }
   build.addEventListener("click",()=>void request("build"));refresh.addEventListener("click",()=>void request());cancel.addEventListener("click",()=>void request("cancel"));
-  return {element,sync(){const next=projectIdentity(context());if(next!==identity){generation++;stop();identity=next;overview=job=null;motionChoice="";motionTouched=false;busy=false;error="";polls=0;if(identity)void request();}render();},
+  return {element,sync(){const next=projectIdentity(context());if(next!==identity){generation++;stop();identity=next;overview=job=null;motionChoice="";motionTouched=false;textureToggle.checked=false;busy=false;error="";polls=0;if(identity)void request();}render();},
     dispose(){generation++;stop();visualReview.dispose();weightedReview.dispose();},refresh:()=>request()};
 }
