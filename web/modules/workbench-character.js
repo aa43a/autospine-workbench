@@ -6,8 +6,11 @@ import { createCharacterLedger } from "./workbench-character-ledger.js";
 import { createCharacterProgress } from "./workbench-character-progress.js";
 import { defaultCharacterMotion } from "./workbench-character-motion-choice.js";
 const ACTIVE = new Set(["pending", "running"]);
-const STAGES = {resolve:"核对来源", "base-preview":"准备整角色基础", compose:"合并袖装与校验动作", publish:"封存候选", runtime:"官方 Runtime 渲染与 setup 对照", review:"等待整角色复核"};
+const STAGES = {resolve:"核对来源", "base-preview":"准备整角色基础", compose:"合并袖装与校验动作", "skirt-trial":"正在生成裙装可变形候选", publish:"封存候选", runtime:"官方 Runtime 渲染与 setup 对照", review:"等待整角色复核"};
 const REASONS = {character_sleeve_unavailable:"尚无当前可用袖装候选，请先完成袖装构建。",
+  character_skirt_layers_missing:"没有尚未处理的裙装图层，可关闭裙装选项后构建。",
+  skirt_waist_contact_unobservable:"无法找到裙装与上衣的可靠连接，请复核分层与腰部位置。",
+  skirt_reviewed_torso_missing:"请先完成上衣绑定复核，再生成裙装候选。",
   character_motion_source_changed:"动作候选与当前角色来源不一致，需要重新生成动作候选。",
   character_region_source_changed:"区域来源与已确认排除不一致。请撤销旧排除，重建后重新复核该区域。",
   character_region_decisions_changed:"区域决定已变化，请重新构建。",
@@ -39,6 +42,10 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
   textureProfile.value="aligned-low-alpha-v1";textureLabel.append(textureProfile);
   textureToggle.onchange=()=>render();
   const motionLabel=node("label","整角色动作 "),motionSelect=node("select");motionSelect.setAttribute("aria-label","整角色动作");motionLabel.append(motionSelect);actions.append(motionLabel,textureLabel);
+  const skirtLabel=node("label","生成裙装可变形候选 "),skirtToggle=node("input");
+  skirtToggle.type="checkbox";skirtToggle.checked=false;skirtToggle.setAttribute("aria-label","生成裙装可变形候选");
+  skirtLabel.append(skirtToggle,node("span","腰部与裙摆待复核，保留原纹理和原决定"));actions.append(skirtLabel);
+  skirtToggle.onchange=()=>render();
   element.append(node("h3","整角色候选"),node("p","按当前路线构建整角色，并合并已有袖装修正；保留未处理图层与残余，生成 Runtime 与 setup 复核报告。"),actions,status,download);
   const runtime=node("a","查看整角色 Runtime"),setup=node("a","查看源图 / setup 对照");
   for(const link of [runtime,setup]){link.className="button button-secondary";link.target="_blank";link.rel="noopener";element.append(link);}
@@ -57,6 +64,7 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
     const active=ACTIVE.has(job?.status),dirty=Boolean(context().dirty||context().saving||context().loading);
     build.disabled=!overview?.can_build||busy||active||dirty;refresh.disabled=!identity||busy;cancel.hidden=!active;cancel.disabled=busy||job?.cancel_requested;
     textureToggle.disabled=busy||active||dirty;
+    skirtToggle.disabled=busy||active||dirty;
     textureProfile.disabled=textureToggle.disabled||!textureToggle.checked;
     const available=overview?.motion_choices||[];
     if(motionChoice&&!available.some(r=>r.choice_id===motionChoice&&r.available))motionChoice="";
@@ -69,12 +77,15 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
     status.textContent=error||(busy&&operation==="build"?"正在提交整角色构建…":!job&&busy?"正在请求…":job?`${STAGES[job.stage]||job.status}${reason?" · "+(REASONS[reason]||reason):""}`:REASONS[reason]||"可以构建整角色候选。");
     if(!error&&job?.stage==="texture-trial")status.textContent="正在归并可安全转移的低透明度残余…";
     if(!error&&job?.texture_trial)status.textContent+=` · 当前候选归并 ${job.texture_trial.transferred_pixels} 个像素，仍需视觉复核`;
+    if(!error&&job?.skirt_trial?.authority==="none")status.textContent+=job.skirt_trial.layer_ids?.length===0?" · 未生成裙装网格，请处理逐层待办":` · 裙装候选：${job.skirt_trial.geometry_passed?"采样网格检查通过":"网格检查未通过"}，腰部与裙摆待复核`;
+    if(!error&&job?.skirt_trial?.blocked_layers?.length)status.textContent+=` · ${job.skirt_trial.blocked_layers.length} 个裙装图层暂未生成网格，保留原图并列入逐层待办`;
     if(!error&&job?.status==="needs_review")status.textContent+=job.runtime?.geometry_status==='passed'?" · 采样网格检查通过":job.runtime?.geometry_status==='needs_changes'?` · ${job.runtime.geometry_failed_records} 项动作/附件变形超限，需修正`:" · 整角色网格检查尚未执行";
     if(!error&&job?.status==="needs_review"&&job.animations?.length)status.textContent+=` · 当前包动作：${job.animations.map(n=>({walk:"行走",idle:"待机","wave-left":"左手挥动",forearm:"前臂测试",hand:"手部测试",combined_same:"同向组合测试",combined_opposed:"反向组合测试"}[n]||n)).join("、")}`;
     if(!error&&job?.status==="needs_review")for(const motion of job.motion_readiness||[])if(motion.status==='blocked')status.textContent+=` · ${motion.clip} 未输出：${motion.reason_code}${motion.failing_slots.length?'（'+motion.failing_slots.join('、')+'）':''}`;
     download.hidden=job?.status!=="needs_review"||dirty||(busy&&operation==="build");
     if(!download.hidden)download.setAttribute("href",`${endpoint()}/jobs/${job.job_id}/download`);else download.removeAttribute("href");
-    for(const [link,file]of [[runtime,"index.html"],[setup,"setup/index.html"]]){
+    runtime.textContent=job?.runtime?.files?.['skirt/index.html']?"查看裙装与整角色时间轴":"查看整角色 Runtime";
+    for(const [link,file]of [[runtime,job?.runtime?.files?.['skirt/index.html']?"skirt/index.html":"index.html"],[setup,"setup/index.html"]]){
       link.hidden=download.hidden||!job?.runtime?.files?.[file];
       if(link.hidden)link.removeAttribute("href");else link.setAttribute("href",`${endpoint()}/jobs/${job.job_id}/view/${file}`);
     }
@@ -109,7 +120,8 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
       if(action==="build"||action==="cancel")init={method:"POST",headers:{"X-Autospine-Intent":"pipeline-preview"},body:JSON.stringify(action==="cancel"?{}:{
         expected_resolved_sha256:overview.expected_resolved_sha256,expected_input_sha256:overview.expected_input_sha256,sleeve_job_id:overview.sleeve_job_id,
         ...(motionChoice?{motion_choice_id:motionChoice}:{}),
-        ...(textureToggle.checked?{residual_texture_profile:textureProfile.value}:{})})};
+        ...(textureToggle.checked?{residual_texture_profile:textureProfile.value}:{}),
+        ...(skirtToggle.checked?{skirt_profile:"fixed-waist-three-chain-v1"}:{})})};
       const value=await hooks.apiRequest(url,init);if(!current(token))return;
       if(value.project_id!==project||value.authority!=="none")throw Error("响应来源不匹配");
       if(action==="refresh"){overview=value;job=value.job;polls=0;}
@@ -118,6 +130,6 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
     finally{if(current(token)){busy=false;render();if(!error)queue(token);}}
   }
   build.addEventListener("click",()=>void request("build"));refresh.addEventListener("click",()=>void request());cancel.addEventListener("click",()=>void request("cancel"));
-  return {element,sync(){const next=projectIdentity(context());if(next!==identity){generation++;stop();identity=next;overview=job=null;motionChoice="";motionTouched=false;textureToggle.checked=false;textureProfile.value="aligned-low-alpha-v1";busy=false;error="";polls=0;if(identity)void request();}render();},
+  return {element,sync(){const next=projectIdentity(context());if(next!==identity){generation++;stop();identity=next;overview=job=null;motionChoice="";motionTouched=false;textureToggle.checked=false;skirtToggle.checked=false;textureProfile.value="aligned-low-alpha-v1";busy=false;error="";polls=0;if(identity)void request();}render();},
     dispose(){generation++;stop();visualReview.dispose();weightedReview.dispose();},refresh:()=>request()};
 }

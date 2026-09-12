@@ -38,7 +38,7 @@ def dispatch_character(tail,handler,method,project):
                 from .character_region_decisions import save
                 value=save(manager,project,body)
             elif not tail:
-                if set(body)-{'motion_choice_id','residual_texture_profile'}!={'expected_resolved_sha256','expected_input_sha256','sleeve_job_id'}:
+                if set(body)-{'motion_choice_id','residual_texture_profile','skirt_profile'}!={'expected_resolved_sha256','expected_input_sha256','sleeve_job_id'}:
                     raise PipelineRunError('pipeline_request_invalid')
                 value=manager.submit(project,**body)
             elif tail[2]=='weighted-review':

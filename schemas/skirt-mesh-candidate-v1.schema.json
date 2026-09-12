@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "autospine.skirt-mesh-candidate/v1",
+  "title": "Version-neutral fixed-waist skirt mesh candidate",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "authority", "profile", "vertices", "uvs", "triangles", "influences", "helper_chains", "coverage", "review_required", "review_reasons"],
+  "properties": {
+    "schema": {"const": "autospine.skirt-mesh-candidate/v1"},
+    "authority": {"const": "none"},
+    "profile": {"const": "fixed-waist-skirt-mesh-candidate-v1"},
+    "vertices": {"type": "array", "minItems": 3, "items": {"$ref": "#/$defs/point"}},
+    "uvs": {"type": "array", "minItems": 3, "items": {
+      "type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number", "minimum": 0, "maximum": 1}
+    }},
+    "triangles": {"type": "array", "minItems": 1, "items": {
+      "type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "integer", "minimum": 0}
+    }},
+    "influences": {"type": "array", "minItems": 3, "items": {
+      "type": "array", "minItems": 1, "maxItems": 4, "items": {
+        "type": "object", "additionalProperties": false, "required": ["bone", "weight"],
+        "properties": {
+          "bone": {"type": "string", "pattern": "^(pelvis|skirt_[0-2]_(upper|lower))$"},
+          "weight": {"type": "number", "exclusiveMinimum": 0, "maximum": 1}
+        }
+      }
+    }},
+    "helper_chains": {"type": "array", "minItems": 3, "maxItems": 3, "items": {
+      "type": "object", "additionalProperties": false, "required": ["id", "points"],
+      "properties": {
+        "id": {"enum": ["skirt_0", "skirt_1", "skirt_2"]},
+        "points": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"$ref": "#/$defs/point"}}
+      }
+    }},
+    "coverage": {
+      "type": "object", "additionalProperties": false,
+      "required": ["canvas_size", "alpha_bbox", "alpha_pixels", "covered_alpha_pixels", "retained_cells", "alpha_components", "method"],
+      "properties": {
+        "canvas_size": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "integer", "minimum": 1}},
+        "alpha_bbox": {"type": "array", "minItems": 4, "maxItems": 4, "items": {"type": "integer", "minimum": 0}},
+        "alpha_pixels": {"type": "integer", "minimum": 1},
+        "covered_alpha_pixels": {"type": "integer", "minimum": 1},
+        "retained_cells": {"type": "integer", "minimum": 1},
+        "alpha_components": {"type": "integer", "minimum": 1},
+        "method": {"const": "all_intersected_pixel_cells"}
+      }
+    },
+    "review_required": {"const": true},
+    "review_reasons": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {
+      "enum": ["candidate_unreviewed", "disconnected_alpha", "helper_root_over_alpha_gap"]
+    }}
+  },
+  "$defs": {
+    "point": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number"}}
+  }
+}

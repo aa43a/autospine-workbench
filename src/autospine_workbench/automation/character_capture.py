@@ -67,6 +67,10 @@ def capture(projects, store, digest, root, *, progress, cancel_requested):
     report = json.loads((output/'report.json').read_bytes())
     if report['bundle_sha256']!=digest or report.get('authority')!='none' or report.get('production_authorized') is not False:
         raise ValueError('character_runtime_report_source')
+    if 'skirt-trial.json' in candidate:
+        from ..targets.character43.skirt_review import render
+        folder = directory(output/'skirt', create=True)
+        (folder/'index.html').write_bytes(render(candidate, report))
     files = {}
     for path in output.rglob('*'):
         if path.is_file():
