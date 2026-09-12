@@ -361,3 +361,17 @@ job-6b331d1e422b4047bac7f4cde98a9ea5已完成516帧官方Runtime与网格检查�
 辉夜任务job-6311672d62db448291c8d50e89273a03已提交，尚未记录完成结果。
 小恶魔通过完全相同标注面检查复用到revision 6，无需重复绘制；新袖装任务
 job-11c7b3e9b7d54a48ae1f1d266aedd060构建中，完成后仍需重建整角色候选。
+
+后续结果：辉夜上述任务完成903帧官方数值及网格检查；小恶魔袖装任务完成framebuffer阶段，
+整角色job-d877a09d2c27457fb39ccdbaa2606c92已提交。独立视觉验收未继承。
+
+## 真实行走来源检查
+
+新增Blender独立检查工具tools/inspect-fbx-motion.py，保留源FBX全局设置、骨架拓扑和逐帧世界关节。
+本地动作库32/walking.fbx源SHA256为
+dd4661a0b2dbd312068f605e570f64530963652aa8d7609b9ce34848a7b09251。
+Blender5.2.1实际导入TimeMode=6、30FPS、帧1–32；Hips根骨沿Blender世界Y移动约-1.75701，
+FBX单位为厘米，经导入换算为米。尚未接入MotionIR、足接触或循环验收，不计作walk完成。
+两次独立导入输出逐字节一致，SHA256为
+a15df4215761858b15d04d866e4dd6e6d008b7fbe3db90b14f2c08a29ed9a6f1，源文件未修改。
+本地证据保存在../tmp/character-walk-source/；动作素材不进入仓库。
