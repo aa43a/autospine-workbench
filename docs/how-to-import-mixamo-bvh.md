@@ -12,10 +12,11 @@
    Y 向上、Z 向前、厘米单位素材：
 
 ```powershell
-python tools/prepare-mixamo-motion.py --bvh walking-root.bvh --map-output map.json --state-root workspace --clip-id walk.source.sagittal --reference-length 81 --screen-x +Z --screen-y +Y --depth +X
+python tools/prepare-mixamo-motion.py --bvh walking-root.bvh --map-output map.json --state-root workspace --clip-id walk.source.sagittal-down --reference-length 81 --screen-x +Z --screen-y=-Y --depth +X
 ```
 
 参考长度是根位移归一化的源单位尺度，必须按实际素材设置；81仅为当前样本的显式取值。
+MotionIR要求画面Y向下，因此本例将源向上的Y映射为-Y；不能仅按源轴名称照填。
 带 `mixamorig:` 命名空间的文件可使用 `--prefix mixamorig:`。缺少关节或父子关系不符会报错。
 输出复用既有 MotionIR 编译器、内容寻址 store 和回读验证，不改变旧算法身份。
 

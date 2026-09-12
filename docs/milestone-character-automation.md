@@ -399,3 +399,16 @@ MotionIR：220b818e89d7a4f31437673d354d4fa6e16d96ed2cbd4b5edf143710378a7b24；
 bundle：1500cc4740152ccea9f795e96cd7e11ff9e4c9c730d72edd6e0ec920ad8bdba8。
 10项映射、转换回归及质量检查通过。使用说明见how-to-import-mixamo-bvh.md。
 这仅完成真实动作来源接入；目标角色行走、足接触修正及服装多动作验收仍未完成。
+
+## 整角色行走角度迁移与接触漂移基线
+
+纠正来源投影的Y约定：MotionIR为向下Y，因此Y向上素材应显式使用screen_y=-Y。
+先前+Y映射仅保留为历史诊断，不用于目标动画。
+新MotionIR为0d01c67d13eaecd0a3c84600a8aa4ee4d04cb220a85827de957c022913d76666，
+bundle为aff064be46be520444e2729dd6d31c9b7fcd85cd17eefdd45d77572aa1b7b554。
+
+新增保留原绑定的MotionIR角度/根位移候选编译与完整附件采样工具，拒绝未知轨道、错误拓扑和同名覆盖。
+红美铃125个姿态通过网格检查，但三个接触注释区间踝点漂移分别37.56/59.00/35.46px。
+这些是踝点代理指标，不能冒充脚趾/鞋底锚点或证明足锁；候选保持preview_only，未采用或做Runtime验收。
+9项方向、归一化、保留旧动画、拓扑和工程质量测试通过。
+本地结果：../tmp/character-walk-target/hongmeiling/。
