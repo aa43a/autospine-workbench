@@ -77,7 +77,7 @@ test("filtered batch stays local, preserves hidden records, and can be undone", 
   const h = harness();
   h.bindingReview.bindings.push({ layer_id: "face", suggested_option_id: "rigid:head",
     options: [{ id: "rigid:head", mode: "rigid", bone_ids: ["head"] }] });
-  h.bindingReview.records.push({ layer_id: "face", action: "pending", option_id: null, notes: "keep notes" });
+  h.bindingReview.records.push({ layer_id: "face", action: "pending", option_id: null, notes: "" });
   h.view.render({ bindingReview: h.bindingReview, reviewIdentity: "batch", canReview: true });
   h.change("绑定复核分类", "rigid");
   assert.equal(h.find("sleeve 处理方式"), undefined);
@@ -87,11 +87,24 @@ test("filtered batch stays local, preserves hidden records, and can be undone", 
   h.find("保存绑定复核并重建").dispatchEvent(new Event("click"));
   assert.equal(h.saves[0].length, 3);
   assert.deepEqual(h.saves[0].slice(0, 2), h.bindingReview.records.slice(0, 2));
-  assert.equal(h.saves[0][2].notes, "keep notes");
+  assert.equal(h.saves[0][2].notes, "");
   h.find("撤销未保存修改").dispatchEvent(new Event("click"));
   assert.equal(h.find("face 处理方式").value, "pending");
   assert.equal(h.dirty.at(-1), false);
   h.view.render({ bindingReview: h.bindingReview, reviewIdentity: "readonly", canReview: false });
   h.find("预填待复核的单骨刚性建议").dispatchEvent(new Event("click"));
   assert.equal(h.find("face 处理方式").value, "pending");
+});
+
+test("batch is disabled for a pending binding with human review notes", () => {
+  const h=harness();
+  h.bindingReview.bindings=[{layer_id:"face",suggested_option_id:"rigid:head",options:[{id:"rigid:head",mode:"rigid",bone_ids:["head"]}]}];
+  h.bindingReview.records=[{layer_id:"face",action:"pending",option_id:null,notes:"保留，仍需检查"}];
+  h.view.render({bindingReview:h.bindingReview,reviewIdentity:"noted",canReview:true});
+  assert.equal(h.find("预填待复核的单骨刚性建议").disabled,true);
+  h.find("预填待复核的单骨刚性建议").dispatchEvent(new Event("click"));
+  assert.equal(h.find("face 处理方式").value,"pending");assert.equal(h.saves.length,0);
+  h.change("face 绑定方案","rigid:head");
+  h.find("保存绑定复核并重建").dispatchEvent(new Event("click"));
+  assert.equal(h.saves[0][0].notes,"保留，仍需检查");
 });

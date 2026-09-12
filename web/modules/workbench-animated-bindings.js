@@ -9,7 +9,7 @@ export function createAnimatedBindings(document, callbacks) {
   const section = document.createElement("details"), heading = document.createElement("summary");
   heading.textContent = "图层绑定复核";
   const description = document.createElement("p");
-  description.textContent = "按现有方案及图层名称提示分组，不代表几何或语义已通过。预填只修改本地草稿；检查后保存，未选择的图层保持待复核。";
+  description.textContent = "按现有方案及图层名称提示分组，不代表几何或语义已通过。预填只修改本地草稿；已有复核说明的待处理项会保留，请逐项查看后决定。";
   const filter = document.createElement("select"), batch = document.createElement("button"), counts = document.createElement("p");
   filter.setAttribute("aria-label", "绑定复核分类"); filter.value = "all";
   batch.type = "button"; batch.textContent = "预填待复核的单骨刚性建议";
@@ -35,7 +35,7 @@ export function createAnimatedBindings(document, callbacks) {
     batch.textContent = filter.value === "facial" ? "预填眼口静态头部绑定建议" : "预填待复核的单骨刚性建议";
     batch.disabled = !canReview || !["all", "rigid", "facial"].includes(filter.value)
       || !bindings.some((row) => eligibleBinding(row, filter.value === "facial" ? "facial" : "rigid")
-        && records.some((record) => record.layer_id === row.layer_id && record.action === "pending"));
+        && records.some((record) => record.layer_id === row.layer_id && record.action === "pending" && !String(record.notes || "").trim()));
     counts.textContent = `全部 ${records.length} 层 · 待复核 ${records.filter((r) => r.action === "pending").length} 层 · ${dirty ? "有未保存修改" : "与已保存记录一致"}`;
   }
   function makeRows() {

@@ -36,6 +36,6 @@ export function eligibleBinding(row, group = "rigid") {
 export function prefillRigidBindings(bindings, records, group = "rigid") {
   const eligible = new Map(bindings.filter((row) => eligibleBinding(row, group))
     .map((row) => [row.layer_id, row.suggested_option_id]));
-  return records.map((row) => row.action === "pending" && eligible.has(row.layer_id)
+  return records.map((row) => row.action === "pending" && !String(row.notes || "").trim() && eligible.has(row.layer_id)
     ? { ...row, action: "bind", option_id: eligible.get(row.layer_id) } : { ...row });
 }

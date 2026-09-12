@@ -89,9 +89,10 @@ def apply_saved(manager, project, result, expected_head):
         raise PipelineRunError('character_region_decisions_changed')
     if not current['active']: return result
     files = manager.application.store.read(result['artifact_sha256'])
+    from .character_region_replay import apply_current
     for row in current['active']:
         decision = {k: v for k, v in row.items() if k != 'decision_sha256'}
-        try: files = apply(files, decision)
+        try: files = apply_current(manager.application.store, files, decision)
         except (ValueError, KeyError): raise PipelineRunError('character_region_source_changed') from None
     digest = manager.application.store.publish(files)
     return dict(artifact_sha256=digest, manifest=json.loads(files['character-manifest.json']))
