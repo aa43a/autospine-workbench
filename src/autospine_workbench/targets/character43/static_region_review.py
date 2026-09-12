@@ -42,8 +42,9 @@ def build(files):
                              crop_bbox=list(bbox) if bbox else None, visible_pixels=sum(histogram[1:]),
                              alpha_at_least_8_pixels=sum(histogram[8:]), status='review_required'))
             cards.append(f'<section id="{anchor}"><h2>{escape(layer.get("name", layer["layer_id"]))}</h2>'
-                         f'<p>{escape(name)} · 未绑定静态区域 · 可见像素 {sum(histogram[1:])}</p>'
-                         f'<img src="{preview_name}" alt="未绑定区域纹理"><p>原纹理局部裁切，仅供归属定位；'
+                         f'<p>{escape(name)} · 未绑定静态区域 · 可见像素 {sum(histogram[1:])}，'
+                         f'其中 alpha ≥ 8：{sum(histogram[8:])}</p>'
+                         f'<div class="texture"><img src="{preview_name}" alt="未绑定区域纹理"></div><p>原纹理局部裁切，仅供归属定位；'
                          '不代表动画位置。请判断保留、绑定或修复；此页不会删除像素。</p></section>')
     report = dict(schema='autospine.static-region-review/v1', authority='none',
                   production_authorized=False, skeleton_sha256=sha256(files['skeleton.json']).hexdigest(),
@@ -51,7 +52,13 @@ def build(files):
     outputs['static-regions/report.json'] = canonical_bytes(report)
     page = '<!doctype html><meta charset="utf-8"><title>未绑定区域定位</title><style>' \
            'body{background:#172330;color:#eee;font:16px sans-serif;margin:24px}section{margin:24px 0;padding:16px;border:1px solid #567}' \
-           'img{max-width:90vw;max-height:65vh;background:repeating-conic-gradient(#354451 0 25%,#273440 0 50%) 0/24px 24px}' \
+           'img{display:block;max-width:90vw;max-height:65vh}.texture{display:inline-block;background:repeating-conic-gradient(#354451 0 25%,#273440 0 50%) 0/24px 24px}' \
+           'body.enhanced section img{filter:url(#alpha-diagnostic)}' \
            '</style><h1>未绑定区域定位</h1><p>来自当前整角色包的静态参考，尚未完成归属处理。</p>'
+    page += '<svg width="0" height="0" aria-hidden="true"><defs><filter id="alpha-diagnostic" color-interpolation-filters="sRGB">' \
+            '<feComponentTransfer><feFuncA type="linear" slope="32"/></feComponentTransfer></filter></defs></svg>' \
+            '<label><input id="enhance" type="checkbox">增强淡像素可见度（alpha ×32，仅诊断）</label>' \
+            '<p>增强显示不代表原图实际透明度，不改变纹理、归属或采用状态。</p>' \
+            '<script>document.getElementById("enhance").onchange=e=>document.body.classList.toggle("enhanced",e.target.checked);</script>'
     outputs['static-regions/index.html'] = (page+(''.join(cards) or '<p>没有未绑定静态区域。</p>')).encode()
     return outputs, links
