@@ -67,9 +67,11 @@ def validate(manager, request):
 def append_selected(manager, request, result):
     doc = validate(manager, request)
     if doc is None: return result
-    if doc['source_character_sha256'] != result['artifact_sha256']:
-        raise PipelineRunError('character_motion_source_changed')
     store = manager.application.store
-    files = compose(store.read(result['artifact_sha256']), store.read(doc['motion_candidate_sha256']),
+    if doc['source_character_sha256'] != result['artifact_sha256']:
+        from .character_motion_replay import replay
+        files = replay(store, doc['source_character_sha256'], result['artifact_sha256'], doc['motion_candidate_sha256'])
+    else:
+        files = compose(store.read(result['artifact_sha256']), store.read(doc['motion_candidate_sha256']),
                     result['artifact_sha256'], doc['motion_candidate_sha256'])
     return dict(artifact_sha256=store.publish(files), manifest=json.loads(files['character-manifest.json']))
