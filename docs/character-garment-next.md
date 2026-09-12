@@ -25,3 +25,8 @@ resolved/semantic/skeleton 来源、该图层账本、完整骨架、slot、附�
 仅允许其他图层候选变化；范围重放记录原确认，不产生新的人工确认。
 红美铃更新后包含 idle、wave-left、walk 的整角色包已通过 1,028 帧 Runtime，
 证据见 `benchmark/character-garment-hongmeiling-v1.json`。
+
+小恶魔更新后的完整动作组合已通过 1,675 帧官方 Runtime；前片仍为显式确认的
+chest 绑定，腿部残余排除范围及原确认保持一致。证据见
+`benchmark/character-garment-xiaoemo-motions-v1.json`。这恢复了三个固定角色的
+idle / wave-left / walk 技术检查范围，不构成整角色视觉验收。
