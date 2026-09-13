@@ -809,3 +809,6 @@ depth candidates 与各自 exact replay 通过的历史 P9 reviewed-motion bundl
 ### 分区绑定项目重放接口
 
 `character-component-mounts/v1` 保存来源绑定的单区域父骨骼映射与构建选项；追加历史支持撤销和重启读取。整角色任务在最终排除之后、官方捕获之前应用它，来源或决定改变会失效。当前完成服务接口、任务链和区域/骨骼画布选择。画布计划绑定确切来源，跨项目迟到响应不得写入；原确认通过 component-binding-continuity 与 character-binding-replay/v2 验证未变化范围；最多跨越一次最终排除与一次分区替换，不递归推断任意转换链。
+
+
+`weighted-binding-inventory/v1` 是确切角色包的只读投影，由版本适配层提取实际影响骨骼、顶点计数和权重范围，随绑定复核响应返回；不改变原包或人工决定。

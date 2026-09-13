@@ -1,0 +1,411 @@
+{
+  "authority": "none",
+  "cases": [
+    {
+      "project_id": "imported-885b4d3d22ee151a0364ac499a419b8bd0e59699a7b27ee4f65f007eee551590",
+      "name": "红美铃",
+      "job_id": "job-7d8ce666ea13487a953bdfa5258ea79a",
+      "artifact_sha256": "fadde972f148b353592aaeebf75df151b9ef57032efaacde1773ea5a8754d28c",
+      "layer_id": "layer-001",
+      "layer_name": "handwear-r",
+      "regions": [
+        {
+          "layer_id": "layer-001",
+          "region_id": "layer-001",
+          "vertex_count": 243,
+          "max_influences": 2,
+          "max_weight_sum_error": 0.0,
+          "influences": [
+            {
+              "bone": "upperarm_r",
+              "vertex_count": 144,
+              "min_weight": 0.0011142480927870402,
+              "max_weight": 1.0,
+              "mean_weight": 0.45826796522354146
+            },
+            {
+              "bone": "forearm_r",
+              "vertex_count": 103,
+              "min_weight": 4.331990228671608e-05,
+              "max_weight": 1.0,
+              "mean_weight": 0.25303149051023416
+            },
+            {
+              "bone": "hand_r",
+              "vertex_count": 75,
+              "min_weight": 0.020826882982545137,
+              "max_weight": 1.0,
+              "mean_weight": 0.28870054426622416
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "project_id": "imported-885b4d3d22ee151a0364ac499a419b8bd0e59699a7b27ee4f65f007eee551590",
+      "name": "红美铃",
+      "job_id": "job-7d8ce666ea13487a953bdfa5258ea79a",
+      "artifact_sha256": "fadde972f148b353592aaeebf75df151b9ef57032efaacde1773ea5a8754d28c",
+      "layer_id": "layer-006",
+      "layer_name": "handwear-l",
+      "regions": [
+        {
+          "layer_id": "layer-006",
+          "region_id": "layer-006",
+          "vertex_count": 234,
+          "max_influences": 2,
+          "max_weight_sum_error": 0.0,
+          "influences": [
+            {
+              "bone": "upperarm_l",
+              "vertex_count": 140,
+              "min_weight": 0.0001727974261123144,
+              "max_weight": 1.0,
+              "mean_weight": 0.47793374831913005
+            },
+            {
+              "bone": "forearm_l",
+              "vertex_count": 88,
+              "min_weight": 7.697967306820327e-05,
+              "max_weight": 1.0,
+              "mean_weight": 0.2328049477512673
+            },
+            {
+              "bone": "hand_l",
+              "vertex_count": 72,
+              "min_weight": 0.024553345162533956,
+              "max_weight": 1.0,
+              "mean_weight": 0.28926130392960253
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "project_id": "imported-2c2b45ec951d8e890be5d01751dc0ababbd451a96c45c75bd333b92f0fcda17a",
+      "name": "小恶魔",
+      "job_id": "job-6c882490006d4f0480f2a6efb7e93f07",
+      "artifact_sha256": "f7a702a130da08df9ec20e4c7d9bdd9b5e560ae19cab8697a6609bb60155adb1",
+      "layer_id": "layer-002",
+      "layer_name": "footwear",
+      "regions": [
+        {
+          "layer_id": "layer-002",
+          "region_id": "layer-002-l",
+          "vertex_count": 126,
+          "max_influences": 1,
+          "max_weight_sum_error": 0.0,
+          "influences": [
+            {
+              "bone": "foot_l",
+              "vertex_count": 126,
+              "min_weight": 1.0,
+              "max_weight": 1.0,
+              "mean_weight": 1.0
+            }
+          ]
+        },
+        {
+          "layer_id": "layer-002",
+          "region_id": "layer-002-r",
+          "vertex_count": 126,
+          "max_influences": 1,
+          "max_weight_sum_error": 0.0,
+          "influences": [
+            {
+              "bone": "foot_r",
+              "vertex_count": 126,
+              "min_weight": 1.0,
+              "max_weight": 1.0,
+              "mean_weight": 1.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "project_id": "imported-2c2b45ec951d8e890be5d01751dc0ababbd451a96c45c75bd333b92f0fcda17a",
+      "name": "小恶魔",
+      "job_id": "job-6c882490006d4f0480f2a6efb7e93f07",
+      "artifact_sha256": "f7a702a130da08df9ec20e4c7d9bdd9b5e560ae19cab8697a6609bb60155adb1",
+      "layer_id": "layer-003",
+      "layer_name": "handwear-r",
+      "regions": [
+        {
+          "layer_id": "layer-003",
+          "region_id": "layer-003-component-0000",
+          "vertex_count": 289,
+          "max_influences": 2,
+          "max_weight_sum_error": 0.0,
+          "influences": [
+            {
+              "bone": "upperarm_r",
+              "vertex_count": 158,
+              "min_weight": 1.0081384169913221e-05,
+              "max_weight": 1.0,
+              "mean_weight": 0.3876682057952087
+            },
+            {
+              "bone": "forearm_r",
+              "vertex_count": 159,
+              "min_weight": 7.977287430842053e-07,
+              "max_weight": 1.0,
+              "mean_weight": 0.34426213380876625
+            },
+            {
+              "bone": "hand_r",
+              "vertex_count": 90,
+              "min_weight": 0.25202598611633764,
+              "max_weight": 1.0,
+              "mean_weight": 0.26806966039602514
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "project_id": "imported-2c2b45ec951d8e890be5d01751dc0ababbd451a96c45c75bd333b92f0fcda17a",
+      "name": "小恶魔",
+      "job_id": "job-6c882490006d4f0480f2a6efb7e93f07",
+      "artifact_sha256": "f7a702a130da08df9ec20e4c7d9bdd9b5e560ae19cab8697a6609bb60155adb1",
+      "layer_id": "layer-004",
+      "layer_name": "handwear-l",
+      "regions": [
+        {
+          "layer_id": "layer-004",
+          "region_id": "layer-004-component-0000",
+          "vertex_count": 289,
+          "max_influences": 2,
+          "max_weight_sum_error": 0.0,
+          "influences": [
+            {
+              "bone": "upperarm_l",
+              "vertex_count": 125,
+              "min_weight": 0.0005179351374857699,
+              "max_weight": 1.0,
+              "mean_weight": 0.32908619580857673
+            },
+            {
+              "bone": "forearm_l",
+              "vertex_count": 157,
+              "min_weight": 3.354109646147399e-06,
+              "max_weight": 1.0,
+              "mean_weight": 0.34223532857768496
+            },
+            {
+              "bone": "hand_l",
+              "vertex_count": 110,
+              "min_weight": 0.11039219588975543,
+              "max_weight": 1.0,
+              "mean_weight": 0.3286784756137381
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "project_id": "imported-2c2b45ec951d8e890be5d01751dc0ababbd451a96c45c75bd333b92f0fcda17a",
+      "name": "小恶魔",
+      "job_id": "job-6c882490006d4f0480f2a6efb7e93f07",
+      "artifact_sha256": "f7a702a130da08df9ec20e4c7d9bdd9b5e560ae19cab8697a6609bb60155adb1",
+      "layer_id": "layer-009",
+      "layer_name": "legwear",
+      "regions": [
+        {
+          "layer_id": "layer-009",
+          "region_id": "layer-009-l",
+          "vertex_count": 226,
+          "max_influences": 2,
+          "max_weight_sum_error": 0.0,
+          "influences": [
+            {
+              "bone": "thigh_l",
+              "vertex_count": 172,
+              "min_weight": 1.5375682901330734e-05,
+              "max_weight": 1.0,
+              "mean_weight": 0.566614049894337
+            },
+            {
+              "bone": "calf_l",
+              "vertex_count": 142,
+              "min_weight": 0.0002705255064552495,
+              "max_weight": 1.0,
+              "mean_weight": 0.4333859501056628
+            }
+          ]
+        },
+        {
+          "layer_id": "layer-009",
+          "region_id": "layer-009-r",
+          "vertex_count": 214,
+          "max_influences": 2,
+          "max_weight_sum_error": 0.0,
+          "influences": [
+            {
+              "bone": "thigh_r",
+              "vertex_count": 161,
+              "min_weight": 0.0036975116493457305,
+              "max_weight": 1.0,
+              "mean_weight": 0.571760881787523
+            },
+            {
+              "bone": "calf_r",
+              "vertex_count": 134,
+              "min_weight": 1.4432862333237313e-06,
+              "max_weight": 1.0,
+              "mean_weight": 0.4273475143654038
+            },
+            {
+              "bone": "foot_r",
+              "vertex_count": 2,
+              "min_weight": 1.4063250975179093e-05,
+              "max_weight": 0.19078916002269528,
+              "mean_weight": 0.0008916038470732264
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "project_id": "huiye",
+      "name": "辉夜",
+      "job_id": "job-6f92bece413a4909a553a95bbfc307f4",
+      "artifact_sha256": "63caa7fe5f9f40a92ebcd57ef0b345d7dcd47e5ed3feae65a95fad18e770d51b",
+      "layer_id": "layer-001",
+      "layer_name": "footwear",
+      "regions": [
+        {
+          "layer_id": "layer-001",
+          "region_id": "layer-001-l",
+          "vertex_count": 264,
+          "max_influences": 1,
+          "max_weight_sum_error": 0.0,
+          "influences": [
+            {
+              "bone": "foot_l",
+              "vertex_count": 264,
+              "min_weight": 1.0,
+              "max_weight": 1.0,
+              "mean_weight": 1.0
+            }
+          ]
+        },
+        {
+          "layer_id": "layer-001",
+          "region_id": "layer-001-r",
+          "vertex_count": 265,
+          "max_influences": 1,
+          "max_weight_sum_error": 0.0,
+          "influences": [
+            {
+              "bone": "foot_r",
+              "vertex_count": 265,
+              "min_weight": 1.0,
+              "max_weight": 1.0,
+              "mean_weight": 1.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "project_id": "huiye",
+      "name": "辉夜",
+      "job_id": "job-6f92bece413a4909a553a95bbfc307f4",
+      "artifact_sha256": "63caa7fe5f9f40a92ebcd57ef0b345d7dcd47e5ed3feae65a95fad18e770d51b",
+      "layer_id": "layer-002",
+      "layer_name": "handwear-r",
+      "regions": [
+        {
+          "layer_id": "layer-002",
+          "region_id": "layer-002-component-0000",
+          "vertex_count": 226,
+          "max_influences": 2,
+          "max_weight_sum_error": 0.0,
+          "influences": [
+            {
+              "bone": "upperarm_r",
+              "vertex_count": 96,
+              "min_weight": 0.0002939114333645465,
+              "max_weight": 1.0,
+              "mean_weight": 0.22386066318231032
+            },
+            {
+              "bone": "forearm_r",
+              "vertex_count": 88,
+              "min_weight": 5.680407887418897e-05,
+              "max_weight": 1.0,
+              "mean_weight": 0.22509323030696757
+            },
+            {
+              "bone": "hand_r",
+              "vertex_count": 11,
+              "min_weight": 0.9742688219648039,
+              "max_weight": 1.0,
+              "mean_weight": 0.048520168929608275
+            },
+            {
+              "bone": "cloth-layer-002-component-0000",
+              "vertex_count": 114,
+              "min_weight": 0.7996047737562316,
+              "max_weight": 1.0,
+              "mean_weight": 0.502525937581114
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "project_id": "huiye",
+      "name": "辉夜",
+      "job_id": "job-6f92bece413a4909a553a95bbfc307f4",
+      "artifact_sha256": "63caa7fe5f9f40a92ebcd57ef0b345d7dcd47e5ed3feae65a95fad18e770d51b",
+      "layer_id": "layer-003",
+      "layer_name": "handwear-l",
+      "regions": [
+        {
+          "layer_id": "layer-003",
+          "region_id": "layer-003-component-0000",
+          "vertex_count": 227,
+          "max_influences": 3,
+          "max_weight_sum_error": 2.220446049250313e-16,
+          "influences": [
+            {
+              "bone": "upperarm_l",
+              "vertex_count": 86,
+              "min_weight": 1.4471105900693004e-05,
+              "max_weight": 1.0,
+              "mean_weight": 0.1935902675808457
+            },
+            {
+              "bone": "forearm_l",
+              "vertex_count": 86,
+              "min_weight": 2.6461941320367888e-05,
+              "max_weight": 1.0,
+              "mean_weight": 0.20111931476891884
+            },
+            {
+              "bone": "hand_l",
+              "vertex_count": 24,
+              "min_weight": 0.30980241679230064,
+              "max_weight": 1.0,
+              "mean_weight": 0.09382201692220862
+            },
+            {
+              "bone": "cloth-layer-003-component-0000",
+              "vertex_count": 123,
+              "min_weight": 0.0027529260827649327,
+              "max_weight": 1.0,
+              "mean_weight": 0.5114684007280269
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "schema": "autospine.character-limb-human-confirmation/v1",
+  "decision_source": "human_review",
+  "production_authorized": false,
+  "confirmation": "Nine layers accepted according to the displayed actual bone mapping, including the right leg foot influence.",
+  "whole_character_visual_review": "not_inferred"
+}

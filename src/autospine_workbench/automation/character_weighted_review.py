@@ -98,6 +98,9 @@ def overview(manager, project, job):
                 can_review=ready, reason_code=None if ready else 'character_weighted_qa_required',
                 eligible_layer_ids=[r['layer_id'] for r in result['layers'] if eligible(r)],
                 review_sha256=current[0] if current else None, review=current[1] if current else None)
+    if 'skeleton.json' in files:
+        from ..targets.character43.binding_inventory import inspect
+        value['binding_inventory']=inspect(json.loads(files['skeleton.json']),result['layers'])
     if ready and (not current or current[1]['schema']==OVERRIDE_SCHEMA):
         from .character_weighted_replay import derive
         proof=derive(manager,result,files)

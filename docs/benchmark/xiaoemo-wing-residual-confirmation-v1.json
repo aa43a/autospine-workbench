@@ -1,0 +1,10 @@
+{
+  "schema": "autospine.region-exclusion/v1",
+  "decision_source": "human_confirmation",
+  "source_bundle_sha256": "f7a702a130da08df9ec20e4c7d9bdd9b5e560ae19cab8697a6609bb60155adb1",
+  "manifest_sha256": "0aec13c1fbd091286c6331d308fd0d47be11b2e798dc577b40f744e12ec89a1e",
+  "layer_id": "layer-000",
+  "region_id": "layer-000-unbound-residual",
+  "image_sha256": "ab1a5c2491570e6343fe0930140e2390d8184cd17f7d8e293a42b4ad21fc62ea",
+  "reversible": true
+}
