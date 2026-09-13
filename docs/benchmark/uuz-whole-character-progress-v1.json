@@ -1,0 +1,245 @@
+{
+  "schema": "autospine.uuz-character-progress/v1",
+  "authority": "none",
+  "production_authorized": false,
+  "project_id": "uuz",
+  "job_id": "job-fc5db7ea6a9b48199685b39bbfed0b56",
+  "artifact_sha256": "f9c5e622d51aba98e18523f0e3d4f4407fa04bbde9d4f0d003ed869f5ab2397e",
+  "source_addresses": {
+    "animated_registration_sha256": "6970e4dc55988dda4eb581d65215754abda12c33c5a02273433a336e269f0c39",
+    "base_bundle_sha256": "92d108c4d2a5ad94d44803b35ef7f74e33a28be04dd763cf025aa42e0409a1a8",
+    "benchmark_manifest_sha256": "91e6102c4b3c78a96f341e314664cb0857b038f3614706e901fe0b07c9efbba3",
+    "input_identity_sha256": "8b399f0b9c5c7d78f60e6ce90a5b2f03d47d752caab2a9e1df2683e112ab3e38",
+    "layer_binding_draft_sha256": "c13ff4128c7ff3dd19c63c0925c6e95c863c1a62bc4226ba4e736dcd48ecf20d",
+    "layer_bindings_sha256": "cfd175b93fa70f2ef9e152c3956bbc67e769dd3b04b4f294214e3bc3204f6ee1",
+    "resolved_project_sha256": "1bff7cc91509153dbc28d3a52f415330c9aca680f45852cf26978e7fba6dbb3e",
+    "semantic_candidate_sha256": "63def694f15f4d927e31e10014d3a914c845ae10f598e088ec45b10a645f8082",
+    "skeleton_candidate_sha256": "4e0ec098ccc0868a52c436e9d470beb16b9b449c030d8cd171d5d79592e27b8c",
+    "sleeve_job_sha256": "aed3fc2cdbb09784346406a23d7be8b932b975143577390cf34bff824f2cef3a",
+    "sleeve_zip_inventory_sha256": "f57b00aec9ab9652d9b5f833a59cda7677207bfe7cfe2b431185c40e8d5b8bf4"
+  },
+  "confirmed_rigid_layers": {
+    "layer-000": "head",
+    "layer-022": "head",
+    "layer-010": "head",
+    "layer-011": "head",
+    "layer-007": "chest"
+  },
+  "skirt": {
+    "authority": "none",
+    "geometry_passed": true,
+    "layer_ids": [
+      "layer-006"
+    ],
+    "profile": "reviewed-torso-waist-v2",
+    "selected": false,
+    "setup_error_px": 1.6077746776921858e-13,
+    "source_artifact_sha256": "c45d775c66c40023c4ddaa8d26f6051ff6c182faa6f4d3b5f26275f12b8d0116"
+  },
+  "component_mounts": {
+    "allowed_parents": [
+      "calf_l",
+      "calf_r",
+      "chest",
+      "clavicle_l",
+      "clavicle_r",
+      "cloth-layer-004-component-0000",
+      "cloth-layer-005-component-0000",
+      "foot_l",
+      "foot_r",
+      "forearm_l",
+      "forearm_r",
+      "hand_l",
+      "hand_r",
+      "head",
+      "layer-006-skirt_0_lower",
+      "layer-006-skirt_0_upper",
+      "layer-006-skirt_1_lower",
+      "layer-006-skirt_1_upper",
+      "layer-006-skirt_2_lower",
+      "layer-006-skirt_2_upper",
+      "neck",
+      "pelvis",
+      "root",
+      "spine",
+      "thigh_l",
+      "thigh_r",
+      "upperarm_l",
+      "upperarm_r"
+    ],
+    "authority": "none",
+    "build_options": {
+      "motion_choice_id": "a35bb647404873cfa89aa57705622211d795d77d9a8ffc8ff8fd4ef05a5300b1",
+      "skirt_profile": "reviewed-torso-waist-v2"
+    },
+    "decision": {
+      "decision_source": "human_confirmation",
+      "parents": {
+        "component-0000": "root",
+        "component-0001": "root"
+      },
+      "plan_sha256": "5b1b832e30c867332b154b39a841885ebaf72ee567154edf0085c8d2bd9897b4",
+      "reversible": true,
+      "schema": "autospine.component-mount-decision/v1",
+      "source_bundle_sha256": "bdaec2345d1a5570ef05ac6aec0cd611617880edf614f2f3691b35465d58903f",
+      "source_region_id": "layer-001"
+    },
+    "previous_sha256": null,
+    "production_authorized": false,
+    "project_id": "uuz",
+    "revision": 0,
+    "schema": "autospine.character-component-mounts/v1"
+  },
+  "motion_comparison": {
+    "schema": "autospine.uuz-wave-comparison/v1",
+    "source_character_sha256": "07496a097686f646735ac31a6517258ce30ffdaf0d95d8773b1fcde26f756e89",
+    "authority": "none",
+    "production_authorized": false,
+    "records": [
+      {
+        "variant": "ordinary",
+        "bundle_sha256": "e732a953d2a5f7a4ab4fc353261ed706a5bd2d3de8429234d8f688ec40c11c08",
+        "geometry_passed": false,
+        "left_sleeve": [
+          {
+            "animation": "wave-left",
+            "failing_frame_count": 103,
+            "first_failure": {
+              "frame": 77,
+              "inversions": 0,
+              "max_area_ratio": 1.5889485887178754,
+              "max_edge_stretch": 1.5002823350697667,
+              "min_area_ratio": 0.4990343217417583,
+              "time": 0.30078125
+            },
+            "inversion_samples": 0,
+            "max_area_ratio": 1.753325475645943,
+            "max_edge_stretch": 1.629665656299547,
+            "min_area_ratio": 0.3397386372176436,
+            "passed": false,
+            "sample_count": 517,
+            "slot": "layer-005-component-0000"
+          }
+        ],
+        "bones_unchanged": true,
+        "skins_unchanged": true,
+        "textures_unchanged": true
+      },
+      {
+        "variant": "direction_rotary",
+        "bundle_sha256": "aa97c47a87e517840a0e666adcab231d362e74e1c36bb426bc9da8172d900368",
+        "geometry_passed": false,
+        "left_sleeve": [
+          {
+            "animation": "wave-left",
+            "failing_frame_count": 510,
+            "first_failure": {
+              "frame": 3,
+              "inversions": 0,
+              "max_area_ratio": 1.2614368487285301,
+              "max_edge_stretch": 1.2551392932931542,
+              "min_area_ratio": 0.41525502313505386,
+              "time": 0.01171875
+            },
+            "inversion_samples": 6752,
+            "max_area_ratio": 7.938675911178145,
+            "max_edge_stretch": 15.026400422864123,
+            "min_area_ratio": -9.58660052554464,
+            "passed": false,
+            "sample_count": 517,
+            "slot": "layer-005-component-0000"
+          }
+        ],
+        "bones_unchanged": true,
+        "skins_unchanged": true,
+        "textures_unchanged": true
+      },
+      {
+        "variant": "bounded_repair",
+        "bundle_sha256": "9601710dd7880974299d5bc2450339fd618a8ba597c1bf3371b3a18ea8c4fe00",
+        "geometry_passed": true,
+        "left_sleeve": [
+          {
+            "animation": "wave-left",
+            "failing_frame_count": 0,
+            "first_failure": null,
+            "inversion_samples": 0,
+            "max_area_ratio": 1.753325475645943,
+            "max_edge_stretch": 1.629665656299547,
+            "min_area_ratio": 0.5500000826556755,
+            "passed": true,
+            "sample_count": 517,
+            "slot": "layer-005-component-0000"
+          }
+        ],
+        "bones_unchanged": true,
+        "skins_unchanged": true,
+        "textures_unchanged": true,
+        "repair": {
+          "authority": "none",
+          "profile": "affine-mixed-area-budget10-v2",
+          "selected": true,
+          "validation": "dense_resampling_required",
+          "verification_samples": 517,
+          "records": [
+            {
+              "area_status": "sampled_pass",
+              "budget_px": 14.714358362497492,
+              "fixed_vertices": 181,
+              "max_displacement_px": 3.107359606194963,
+              "sample_count": 261,
+              "slot": "layer-005-component-0000"
+            }
+          ]
+        }
+      }
+    ],
+    "limitations": [
+      "sampled_geometry_only",
+      "runtime_and_visual_review_separate",
+      "direction_hold_failure_not_general_infeasibility"
+    ]
+  },
+  "runtime": {
+    "report_sha256": "17a664f0a001ffbdea9efd76afcc00ca2d3d670c820378a7e5909ae2f99fccba",
+    "package": "@esotericsoftware/spine-webgl",
+    "version": "4.3.13",
+    "passed": true,
+    "scope": "all_attachment_vertices_and_nonempty_unclipped_framebuffer",
+    "frames": 2062,
+    "slots": 31,
+    "animation_frames": {
+      "cloth": 129,
+      "combined_mm": 129,
+      "combined_mp": 129,
+      "combined_pm": 129,
+      "combined_pp": 129,
+      "forearm": 129,
+      "hand": 129,
+      "idle": 129,
+      "walk": 513,
+      "wave-left": 517
+    },
+    "max_error_px": 0.00020462403214963288,
+    "contact_status": "not_evaluated"
+  },
+  "source_layer_count": 23,
+  "remaining_static_regions": [
+    "layer-001-unbound-residual",
+    "layer-002-residual",
+    "layer-003-residual",
+    "layer-004-unbound-residual",
+    "layer-005-unbound-residual"
+  ],
+  "whole_character_complete": false,
+  "visual_review_status": "not_reviewed",
+  "tests": {
+    "passed": 13,
+    "suites": [
+      "test_character_wave",
+      "test_character_motion_set",
+      "test_character_cloth_rotary",
+      "test_quality"
+    ]
+  }
+}
