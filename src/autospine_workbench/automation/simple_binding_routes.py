@@ -63,10 +63,17 @@ def dispatch(tail,handler,method,project):
             else:operation=undo(store,project,body['decision_sha256'],body['expected_input_sha256'])
         result=overview(store,project)
         if operation is not None:result['operation']=operation
-        handler._send_visual_json(200,result)
-    except HttpJsonRequestError as exc:_error(handler,exc.status,exc.code)
+    except HttpJsonRequestError as exc:
+        _error(handler,exc.status,exc.code); return True
     except (ValueError,OSError,RuntimeError,TypeError,KeyError) as exc:
         reason=getattr(exc,'reason_code','binding_policy_request_failed')
         _error(handler,403 if reason in ('forbidden_origin','forbidden_intent') else
                409 if reason in ('animated_review_conflict','animated_source_stale') else 400,reason)
+        return True
+    # A disconnected client does not invalidate a committed authoring operation.
+    # Do not send a second (400) response after the success headers were written.
+    try:
+        handler._send_visual_json(200,result)
+    except ConnectionError:
+        pass
     return True
