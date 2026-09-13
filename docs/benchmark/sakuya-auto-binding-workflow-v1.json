@@ -1,0 +1,75 @@
+{
+  "schema": "autospine.binding-auto-workflow-evidence/v1",
+  "project_id": "imported-ac6ba48dc2d5052613d87ab2afc247e4ef5977d9431ef76544a457b3047a3457",
+  "authority": "none",
+  "production_authorized": false,
+  "human_confirmed_layers": [
+    "layer-005",
+    "layer-010"
+  ],
+  "auto_operation": {
+    "schema": "autospine.binding-auto-run/v1",
+    "authority": "none",
+    "production_authorized": false,
+    "changed": true,
+    "status": "succeeded",
+    "reason_code": "safe_bindings_exhausted",
+    "batches": [
+      {
+        "decision_sha256": "7991a87e23b4ce90fef44782574b9d0142bad27a26d04cb49c98a866849929a5",
+        "changed_layer_ids": [
+          "layer-009",
+          "layer-011",
+          "layer-012",
+          "layer-015",
+          "layer-016",
+          "layer-017",
+          "layer-018",
+          "layer-019",
+          "layer-020",
+          "layer-021"
+        ]
+      }
+    ],
+    "changed_layer_ids": [
+      "layer-009",
+      "layer-011",
+      "layer-012",
+      "layer-015",
+      "layer-016",
+      "layer-017",
+      "layer-018",
+      "layer-019",
+      "layer-020",
+      "layer-021"
+    ],
+    "rounds": 1
+  },
+  "auto_source_addresses": {
+    "resolved_project_sha256": "42bc70362da9973ababc11b99dd706d15fedae5b43116153f04b85776375edf4",
+    "input_identity_sha256": "6632fcb48141fd80c880a47467e3f3ca71a70c59f005baa0c1d4da09673a1a68",
+    "animated_registration_sha256": "3e24b49a3332918f5898a99313a99ba3ef5cc60e1bfe68f32819103b20a4858f",
+    "benchmark_manifest_sha256": "666e148075ca6fb8cb538ecc1767c86975440600e510cd5222cec6f2421531f8",
+    "semantic_candidate_sha256": "0c0ec9318a490f9a4dd468590418cf09cfb68df7c23b15f7228e2810af650da4",
+    "skeleton_candidate_sha256": "c8a1220dc4cba66dd0b024c99e97afe6af0ec7fe2695048d5acaaa88be90e2c8",
+    "layer_bindings_sha256": "185558df3d5acd2c2871a4036b139ca7d34c7bad5cac938a20adb65ea4f7b2c8",
+    "layer_binding_draft_sha256": "88fc613d08b47f8748cee796a42ae9f1c3a5e3af45b51454ea1f5a3c8586d2f1"
+  },
+  "deployed_noop": {
+    "schema": "autospine.binding-auto-workflow/v1",
+    "authority": "none",
+    "production_authorized": false,
+    "changed": false,
+    "status": "succeeded",
+    "reason_code": "safe_bindings_exhausted",
+    "batches": [],
+    "changed_layer_ids": [],
+    "rounds": 0,
+    "candidate_preparation": {
+      "changed": false,
+      "added_options": 0,
+      "authority": "none"
+    }
+  },
+  "independent_accuracy": null
+}

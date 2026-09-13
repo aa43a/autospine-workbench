@@ -51,3 +51,10 @@ test('failed mutation refreshes committed state without replaying the request',a
  await f.view.request('apply_all');assert.equal(f.saved,1);assert.equal(calls,1);
  assert.match(f.status.textContent,/核对已保存结果/);
 });
+
+test('primary button prepares missing candidates even with no eligible bindings',async()=>{
+ let body;const f=fixture(async(url,init)=>{body=JSON.parse(init.body);return {...response(),rows:[],operation:{schema:'autospine.binding-auto-workflow/v1',changed:true,rounds:0,changed_layer_ids:[],status:'succeeded',candidate_preparation:{changed:true}}};});
+ f.buttons[1].events.click();await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(body.action,'prepare_apply_all');assert.equal(f.saved,1);
+ assert.match(f.status.textContent,/已补齐绑定候选/);assert.match(f.status.textContent,/0 批、0 层/);
+});

@@ -48,14 +48,17 @@ def dispatch(tail,handler,method,project):
             body=read_json_object_request(handler,maximum_bytes=2048)
             keys={'action','expected_resolved_sha256','expected_input_sha256'}
             if body.get('action')=='undo':keys.add('decision_sha256')
-            if set(body)!=keys or body.get('action') not in ('apply','apply_all','undo'):
+            if set(body)!=keys or body.get('action') not in ('apply','apply_all','prepare_apply_all','undo'):
                 raise ValueError('invalid policy request')
             for key in keys-{'action'}:require_sha256(body[key],key)
             with load_inputs(store,project) as source:
                 if (source.source_addresses['resolved_project_sha256']!=body['expected_resolved_sha256'] or
                         source.source_addresses['input_identity_sha256']!=body['expected_input_sha256']):
                     raise AnimatedSourceError('animated_review_conflict')
-            if body['action']=='apply_all':operation=apply_all(store,project,body['expected_input_sha256'])
+            if body['action']=='prepare_apply_all':
+                from .binding_auto_workflow import prepare_and_apply
+                operation=prepare_and_apply(store,project,body['expected_resolved_sha256'],body['expected_input_sha256'])
+            elif body['action']=='apply_all':operation=apply_all(store,project,body['expected_input_sha256'])
             elif body['action']=='apply':operation=apply(store,project,body['expected_input_sha256'])
             else:operation=undo(store,project,body['decision_sha256'],body['expected_input_sha256'])
         result=overview(store,project)

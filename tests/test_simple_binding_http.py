@@ -21,6 +21,7 @@ class SimpleBindingHttpTests(unittest.TestCase):
              patch('autospine_workbench.automation.simple_binding_routes.load_inputs',source), \
              patch('autospine_workbench.automation.simple_binding_routes.apply',return_value={'changed':False}) as apply, \
              patch('autospine_workbench.automation.simple_binding_routes.apply_all',return_value={'changed':False}) as apply_all, \
+             patch('autospine_workbench.automation.binding_auto_workflow.prepare_and_apply',return_value={'changed':False}) as workflow, \
              patch('autospine_workbench.automation.simple_binding_routes.undo',return_value={'changed':True}) as undo:
             self.assertEqual(self.request('GET')[0],200)
             self.assertEqual(self.request('OPTIONS')[0],204)
@@ -37,6 +38,10 @@ class SimpleBindingHttpTests(unittest.TestCase):
             apply_all.assert_not_called()
             self.assertEqual(self.request('POST',body={**body,'action':'apply_all'})[0],200)
             apply_all.assert_called_once()
+            self.assertEqual(self.request('POST',body={**body,'action':'prepare_apply_all'},headers={'Origin':'http://evil.invalid'})[0],403)
+            workflow.assert_not_called()
+            self.assertEqual(self.request('POST',body={**body,'action':'prepare_apply_all'})[0],200)
+            workflow.assert_called_once()
             self.assertEqual(self.request('POST',body={**body,'action':'undo'})[0],400)
             self.assertEqual(self.request('POST',body={**body,'action':'undo','decision_sha256':'d'*64})[0],200)
             undo.assert_called_once()

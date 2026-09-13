@@ -31,7 +31,7 @@ export function createBindingPolicy(document,hooks){
     check.disabled=busy||!editable();apply.disabled=check.disabled;undo.disabled=check.disabled||!batch.value;batch.disabled=check.disabled||!choices.some(r=>r.can_undo);
     status.textContent=error||(busy?"正在核对当前来源与像素证据…":report?`可自动绑定 ${eligible.length} 层 · 需要复核 ${remaining.length} 层 · 已有记录保留 ${report.rows.filter(r=>r.status==="preserved").length} 层`:
       "先检查当前项目，查看可自动处理项及阻塞原因。");
-    if(report?.operation?.schema==="autospine.binding-auto-run/v1")status.textContent+=` · 本次 ${report.operation.rounds} 批、${report.operation.changed_layer_ids.length} 层${report.operation.status==="stopped"?"（已停止，可刷新核对已保存结果）":""}`;
+    if(["autospine.binding-auto-run/v1","autospine.binding-auto-workflow/v1"].includes(report?.operation?.schema))status.textContent+=` · 本次 ${report.operation.rounds} 批、${report.operation.changed_layer_ids.length} 层${report.operation.candidate_preparation?.changed?" · 已补齐绑定候选":""}${report.operation.status==="stopped"?"（已停止，可刷新核对已保存结果）":""}`;
     list.replaceChildren(...(report?.rows||[]).filter(r=>r.status!=="preserved").map(r=>{
       const row=node("li"),locate=node("button",`${r.name||r.layer_id} · ${r.status==="eligible"?"可自动绑定":"待复核"}`);locate.type="button";
       locate.addEventListener("click",()=>hooks.locate({layer_id:r.layer_id,type:"binding"}));row.append(locate);
@@ -58,7 +58,7 @@ export function createBindingPolicy(document,hooks){
     finally{if(token===generation){busy=false;hooks.busyChanged?.(false);render();}}
     if(changed&&token===generation)await hooks.saved();
   }
-  check.addEventListener("click",()=>void request());apply.addEventListener("click",()=>void request("apply_all"));undo.addEventListener("click",()=>void request("undo"));
+  check.addEventListener("click",()=>void request());apply.addEventListener("click",()=>void request("prepare_apply_all"));undo.addEventListener("click",()=>void request("undo"));
   return{element,sync(value){model=value;const next=`${projectIdentity(context())}:${value.inputIdentitySha||""}`;
     if(next!==identity){const wasBusy=busy;identity=next;generation++;busy=false;error="";if(report?.source_addresses?.input_identity_sha256!==value.inputIdentitySha)report=null;
       if(wasBusy)hooks.busyChanged?.(false);}render();},
