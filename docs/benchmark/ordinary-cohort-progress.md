@@ -1,5 +1,9 @@
 # 普通路线三角色推进
 
+2026-09-14：用户确认集中页 17 层方案。已保存 14 个刚性绑定（爱丽丝 5、铃仙 4、露米娅 5），其余记录逐项保持；三个 bottomwear 使用同一固定裙腰与独立三链策略生成加权候选。新候选各通过 1,028 帧官方验证、几何失败 0。确切来源与检查见 [裙装推进记录](ordinary-skirt-progress-v1.json)。
+
+实际挥手捕获帧发现爱丽丝肩端与上衣分离，仍需修正；三者均未保存整角色视觉接受。普通路线完成数不能由数值通过直接增加。以下为早期阶段记录，预览入口已更新至本次候选。
+
 2026-09-13 用户确认爱丽丝、铃仙、露米娅先走普通肢体绑定，异常服装单独处理。已将路线分别绑定到当前 resolved 来源；不把普通路线解释为无袖，也不替代原固定三角色名单。
 
 三名角色均已从工作台生成统一候选，保留原人工记录和未确认层。三份官方 @esotericsoftware/spine-webgl 4.3.13 报告各验证 1,028 帧：idle 129、wave-left 257、walk 513、limb-flex-15 129。Spine 输出默认仍为 4.3.26。首次记录见 [历史数值记录](ordinary-cohort-progress-v1.json)；铃仙、露米娅已按新头颈确认和自动细节绑定重建，[最新来源与报告](head-prerequisite-progress-v1.json)独立保存。
@@ -10,9 +14,9 @@
 
 ## 预览入口
 
-- [爱丽丝](http://127.0.0.1:8918/api/projects/alice/automation/character/jobs/job-92490c3934a840e09096a46a8a5217be/view/index.html)
-- [铃仙](http://127.0.0.1:8918/api/projects/lingxian/automation/character/jobs/job-7a972f3afeda450e902c892fcd55adfc/view/index.html)
-- [露米娅](http://127.0.0.1:8918/api/projects/lumia/automation/character/jobs/job-b9f65ed511414041aa3cfce9e7c5ebb4/view/index.html)
+- [爱丽丝](http://127.0.0.1:8918/api/projects/alice/automation/character/jobs/job-44f590f6f9be4bc38a77760484fbe195/view/skirt/index.html)
+- [铃仙](http://127.0.0.1:8918/api/projects/lingxian/automation/character/jobs/job-a13aeff0cd534e41a92973f002dca8e8/view/skirt/index.html)
+- [露米娅](http://127.0.0.1:8918/api/projects/lumia/automation/character/jobs/job-e7a10fcc7d964b51a72bd27c3dd1072a/view/skirt/index.html)
 
 ## 请求中断
 
