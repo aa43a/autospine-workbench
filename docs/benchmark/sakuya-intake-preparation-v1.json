@@ -1,0 +1,49 @@
+{
+  "schema": "autospine.cohort-intake-preparation-evidence/v1",
+  "project_id": "imported-ac6ba48dc2d5052613d87ab2afc247e4ef5977d9431ef76544a457b3047a3457",
+  "source_sha256": "ac6ba48dc2d5052613d87ab2afc247e4ef5977d9431ef76544a457b3047a3457",
+  "import_job_id": "import-9c966c126b1b4cc3895a347a98be50f9",
+  "preparation": {
+    "authority": "none",
+    "expected_resolved_sha256": "443869bb4939aba3615485df4996d81ab1d5a057c13d137088d79e46efe75cad",
+    "job_id": "job-81d8ed4e8c0740b9a74c28882737c152",
+    "progress": [
+      {
+        "id": "prepare-source",
+        "status": "succeeded"
+      },
+      {
+        "id": "run-pose",
+        "status": "succeeded"
+      },
+      {
+        "id": "register-review",
+        "status": "succeeded"
+      }
+    ],
+    "project_id": "imported-ac6ba48dc2d5052613d87ab2afc247e4ef5977d9431ef76544a457b3047a3457",
+    "reason_code": "joint_review_required",
+    "result": {
+      "authority": "none",
+      "ignored_joint_ids": [],
+      "imported_joint_ids": [],
+      "input_identity_sha256": "72f0b70e02fb528860d75a7cc1488d45c454747fc6cf3d202b135533f4b016d9",
+      "production_authorized": false,
+      "reason_code": "joint_review_required",
+      "reason_codes": [
+        "all_joint_reviews_required"
+      ],
+      "registration_sha256": "f89895e80bf9a7d45c4c5f13822bb5512950259803dee825f09c43949cc4414d",
+      "reviewed_joint_count": 0,
+      "skeleton_status": "blocked",
+      "source_registered": true,
+      "status": "needs_review"
+    },
+    "schema": "autospine.input-preparation-job/v1",
+    "source_registered": true,
+    "status": "needs_review"
+  },
+  "authority": "none",
+  "production_authorized": false,
+  "runtime_status": "not_run"
+}
