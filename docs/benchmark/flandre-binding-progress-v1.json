@@ -1,0 +1,186 @@
+{
+  "schema": "autospine.flandre-binding-progress/v1",
+  "authority": "none",
+  "production_authorized": false,
+  "project_id": "imported-3ac977caea4fa3acd2358eab227d156f935436efe12bc1a93e42f506c5e9ee31",
+  "job_id": "job-416c1d13a2034dd09c956ce19f858eaf",
+  "artifact_sha256": "f4fad381f8c96ff382817c995d81248293f337805134dfee24e3980c9a6ef562",
+  "confirmed_bindings": {
+    "layer-001": "rigid:head",
+    "layer-022": "rigid:head",
+    "layer-010": "rigid:head",
+    "layer-013": "rigid:head",
+    "layer-008": "rigid:chest"
+  },
+  "proposal": {
+    "schema": "autospine.character-binding-review-proposal/v1",
+    "authority": "none",
+    "production_authorized": false,
+    "project_id": "imported-3ac977caea4fa3acd2358eab227d156f935436efe12bc1a93e42f506c5e9ee31",
+    "source_addresses": {
+      "resolved_project_sha256": "8541cdea2728187965e0225a18b6bd7e48bd741dec4340455023f365d9da54b8",
+      "input_identity_sha256": "0091f06e04cc45c78ee8139e5da5434c1de2a61f9064188acc6b350a9df2d25d",
+      "animated_registration_sha256": "a54387850de4697fe1ceac2e1dc7c6c0ba828ec84ae22ed9e0d8618da37911da",
+      "benchmark_manifest_sha256": "e4fac6e4b299428b50c66e7155e6b9c8029d49972a652754c6a30781889dc14c",
+      "semantic_candidate_sha256": "0b822a447f29c550bb870140f57a2cfc4f1ea54ed08b72da594e9f21f12eb337",
+      "skeleton_candidate_sha256": "2498fb9e2fd13a4d715ad9897a957a680543e5b82cb5e2fc5612b3f3f4facc06",
+      "layer_bindings_sha256": "ad320c7a8c66925aa5b797d25a789063607a0a494dd9c9dcfe497fa95f728845",
+      "layer_binding_draft_sha256": "7f659479db1b3749f82f8056a9c808c72b8bcf21f74d5fba54c7766b1414b082"
+    },
+    "rows": [
+      {
+        "layer_id": "layer-001",
+        "layer_name": "back hair",
+        "image_sha256": "e3de01749ec5297a01c98fe1bc1ebee749369992ef594e7ef53ac9aa9eb131de",
+        "bbox": [
+          422,
+          204,
+          690,
+          351
+        ],
+        "option_id": "rigid:head",
+        "bone_ids": [
+          "head"
+        ],
+        "skirt_profile": null,
+        "status": "proposal_not_approved"
+      },
+      {
+        "layer_id": "layer-022",
+        "layer_name": "front hair",
+        "image_sha256": "4c5d2f097470f829a7308993743c015c569971035e8642e64af13e88019725e3",
+        "bbox": [
+          428,
+          201,
+          579,
+          315
+        ],
+        "option_id": "rigid:head",
+        "bone_ids": [
+          "head"
+        ],
+        "skirt_profile": null,
+        "status": "proposal_not_approved"
+      },
+      {
+        "layer_id": "layer-010",
+        "layer_name": "ears-r",
+        "image_sha256": "9e03bf9914e6858a78dd1474f7ef7833584caa538df4aee0bc38bb7c5f890b76",
+        "bbox": [
+          458,
+          280,
+          479,
+          304
+        ],
+        "option_id": "rigid:head",
+        "bone_ids": [
+          "head"
+        ],
+        "skirt_profile": null,
+        "status": "proposal_not_approved"
+      },
+      {
+        "layer_id": "layer-013",
+        "layer_name": "ears-l",
+        "image_sha256": "17d02bf61b1ab9f8371aa0ac12c22a795875c52d0dacbe019b82f4b300ccb4ae",
+        "bbox": [
+          531,
+          259,
+          547,
+          288
+        ],
+        "option_id": "rigid:head",
+        "bone_ids": [
+          "head"
+        ],
+        "skirt_profile": null,
+        "status": "proposal_not_approved"
+      },
+      {
+        "layer_id": "layer-008",
+        "layer_name": "topwear",
+        "image_sha256": "878de5f9e0c458648fc6adbe3fdf37a38bcf0e246fd076bd05f8747712242b17",
+        "bbox": [
+          463,
+          313,
+          562,
+          429
+        ],
+        "option_id": "rigid:chest",
+        "bone_ids": [
+          "chest"
+        ],
+        "skirt_profile": null,
+        "status": "proposal_not_approved"
+      },
+      {
+        "layer_id": "layer-002",
+        "layer_name": "bottomwear",
+        "image_sha256": "e04fbb25e99af7de1bd1289df6c01c2101720fe46b6cadd1a7ca04503ff1ea2b",
+        "bbox": [
+          232,
+          395,
+          802,
+          773
+        ],
+        "option_id": null,
+        "bone_ids": [],
+        "skirt_profile": "reviewed-torso-waist-v2",
+        "status": "proposal_not_approved"
+      }
+    ]
+  },
+  "annotation_reuse": {
+    "project_id": "imported-3ac977caea4fa3acd2358eab227d156f935436efe12bc1a93e42f506c5e9ee31",
+    "source_sha256": "8541cdea2728187965e0225a18b6bd7e48bd741dec4340455023f365d9da54b8",
+    "revision": 7,
+    "status": "ready",
+    "can_build": true,
+    "authority": "none",
+    "candidate_sha256": "dd8707fb8c3e9857729753227a3956f3ca452f8e2d702ed91bca7613fff87a66",
+    "review_url": "/api/projects/imported-3ac977caea4fa3acd2358eab227d156f935436efe12bc1a93e42f506c5e9ee31/automation/sleeves/annotation/view",
+    "saved_labels_reused": true
+  },
+  "skirt_trial": {
+    "authority": "none",
+    "geometry_passed": true,
+    "layer_ids": [
+      "layer-002"
+    ],
+    "profile": "reviewed-torso-waist-v2",
+    "selected": false,
+    "setup_error_px": 1.2710574864626038e-13,
+    "source_artifact_sha256": "79fa6e0a63f673828dcedd6bc49a0707a0eaba41a9f77d3ed226a8b8184e6605"
+  },
+  "runtime": {
+    "report_sha256": "a2de1bcb5fa67447e6337a913dee1ca970968f16ed6c49f430d6c1dee41225ee",
+    "passed": true,
+    "runtime_package": "@esotericsoftware/spine-webgl",
+    "runtime_version": "4.3.13",
+    "frames": 516,
+    "animation_frames": {
+      "combined_opposed": 129,
+      "combined_same": 129,
+      "forearm": 129,
+      "hand": 129
+    },
+    "scope": "all_attachment_vertices_and_nonempty_unclipped_framebuffer",
+    "contact_status": "not_evaluated"
+  },
+  "unresolved_layers": [
+    "layer-000",
+    "layer-002",
+    "layer-003",
+    "layer-004",
+    "layer-005",
+    "layer-009",
+    "layer-023"
+  ],
+  "missing_required_animations": [
+    "idle",
+    "walk",
+    "wave-left"
+  ],
+  "whole_character_complete": false,
+  "visual_review_status": "not_reviewed"
+}

@@ -31,3 +31,7 @@ Runtime 失败率只针对实际测量的角色；人工总耗时和错误自动
 这些是读取时点的当前候选状态，不是全部历史局部测试的累计通过率，也不是总体自动化成功率。
 
 后续幽幽子的确切归属、挥手策略对照及整角色验证见 [幽幽子推进记录](benchmark/uuz-whole-character-progress.md)。单角色新增动作不自动提高整角色完成数。
+
+爱丽丝、铃仙、露米娅的当前三动作候选和仍待复核范围见 [普通路线三角色推进](benchmark/ordinary-cohort-progress.md)。
+
+2026-09-13 后续读取：当前已测 7 名角色，18/30 必需动作技术检查通过，完整验收仍为 1/10。芙兰四种袖装测试不计入三种必需动作；见 [芙兰候选记录](benchmark/flandre-binding-progress.md) 与 [本轮统计](benchmark/first-ten-workflow-v2.json)。人工耗时和错误自动采用率仍未测量。
