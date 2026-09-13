@@ -22,7 +22,7 @@ def main():
             or origin.path or origin.query or origin.fragment or origin.username or origin.password):
         parser.error('base URL must be a local workbench origin')
     def raw(path):
-        with urlopen(args.base_url + path, timeout=180) as response:
+        with urlopen(args.base_url + path, timeout=300) as response:
             return response.read(32 << 20)
     def get(path):
         return json.loads(raw(path))

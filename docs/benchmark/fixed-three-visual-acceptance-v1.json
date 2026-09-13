@@ -1,0 +1,88 @@
+{
+  "schema": "autospine.benchmark-visual-acceptance-record/v1",
+  "authority": "none",
+  "production_authorized": false,
+  "user_statement": "整体可接受",
+  "scope": "fixed_three_whole_character_visual_review",
+  "cohort_sha256": "dedb6f22982f4e5bce18c7667b274c181a2529b0c84de8d2210ca4a06d1525c2",
+  "reviews": [
+    {
+      "project_id": "imported-885b4d3d22ee151a0364ac499a419b8bd0e59699a7b27ee4f65f007eee551590",
+      "job_id": "job-7d8ce666ea13487a953bdfa5258ea79a",
+      "authority": "none",
+      "artifact_sha256": "fadde972f148b353592aaeebf75df151b9ef57032efaacde1773ea5a8754d28c",
+      "review_sha256": "1ad00df31ddffc66c2d2223b76e931dc92c1981698539d216598e876f52b38de",
+      "review": {
+        "artifact_sha256": "fadde972f148b353592aaeebf75df151b9ef57032efaacde1773ea5a8754d28c",
+        "aspects": {
+          "connections": "acceptable",
+          "draw_order": "acceptable",
+          "motion": "acceptable",
+          "setup": "acceptable"
+        },
+        "authority": "none",
+        "decision_source": "human_review",
+        "job_id": "job-7d8ce666ea13487a953bdfa5258ea79a",
+        "notes": "用户在固定三角色整角色集中复核请求后明确回复：整体可接受。范围为该页红美铃、小恶魔、辉夜的当前候选；不涉及发布授权。",
+        "previous_sha256": null,
+        "production_authorized": false,
+        "project_id": "imported-885b4d3d22ee151a0364ac499a419b8bd0e59699a7b27ee4f65f007eee551590",
+        "revision": 0,
+        "runtime_sha256": "c9e43bac654a9c287b39416d652e9576c3ae311ec0908ef1df9ac23cac70ca40",
+        "schema": "autospine.character-visual-review/v1"
+      }
+    },
+    {
+      "project_id": "imported-2c2b45ec951d8e890be5d01751dc0ababbd451a96c45c75bd333b92f0fcda17a",
+      "job_id": "job-7fd52d9a1a074052bd22d34d10f36446",
+      "authority": "none",
+      "artifact_sha256": "29bc753e9d0b2a07ac0371894c1cab4fb784a6b5d7d0611b115765b28914870f",
+      "review_sha256": "05643498ca60f61a1b30d08b60198b7675a90e8b28a059ca71045372de4b9b72",
+      "review": {
+        "artifact_sha256": "29bc753e9d0b2a07ac0371894c1cab4fb784a6b5d7d0611b115765b28914870f",
+        "aspects": {
+          "connections": "acceptable",
+          "draw_order": "acceptable",
+          "motion": "acceptable",
+          "setup": "acceptable"
+        },
+        "authority": "none",
+        "decision_source": "human_review",
+        "job_id": "job-7fd52d9a1a074052bd22d34d10f36446",
+        "notes": "用户在固定三角色整角色集中复核请求后明确回复：整体可接受。范围为该页红美铃、小恶魔、辉夜的当前候选；不涉及发布授权。",
+        "previous_sha256": null,
+        "production_authorized": false,
+        "project_id": "imported-2c2b45ec951d8e890be5d01751dc0ababbd451a96c45c75bd333b92f0fcda17a",
+        "revision": 0,
+        "runtime_sha256": "6fd2e70094747ba2a76c8ceb7a02260c4b7283dd8eef91052548b70870163c35",
+        "schema": "autospine.character-visual-review/v1"
+      }
+    },
+    {
+      "project_id": "huiye",
+      "job_id": "job-6f92bece413a4909a553a95bbfc307f4",
+      "authority": "none",
+      "artifact_sha256": "63caa7fe5f9f40a92ebcd57ef0b345d7dcd47e5ed3feae65a95fad18e770d51b",
+      "review_sha256": "02381eb678be6d9a12bfffa5a29cd0b9e4d9dea78d0d7cb4a0acc99d4f1c783c",
+      "review": {
+        "artifact_sha256": "63caa7fe5f9f40a92ebcd57ef0b345d7dcd47e5ed3feae65a95fad18e770d51b",
+        "aspects": {
+          "connections": "acceptable",
+          "draw_order": "acceptable",
+          "motion": "acceptable",
+          "setup": "acceptable"
+        },
+        "authority": "none",
+        "decision_source": "human_review",
+        "job_id": "job-6f92bece413a4909a553a95bbfc307f4",
+        "notes": "用户在固定三角色整角色集中复核请求后明确回复：整体可接受。范围为该页红美铃、小恶魔、辉夜的当前候选；不涉及发布授权。",
+        "previous_sha256": null,
+        "production_authorized": false,
+        "project_id": "huiye",
+        "revision": 0,
+        "runtime_sha256": "9c1a43372dc1084276bbcfed9eedcae2957a27c3cbaca9cdac301e7977a09138",
+        "schema": "autospine.character-visual-review/v1"
+      }
+    }
+  ]
+}

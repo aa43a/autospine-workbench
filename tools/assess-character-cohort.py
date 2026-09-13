@@ -19,7 +19,7 @@ def main():
     if url.scheme!='http' or url.hostname not in ('127.0.0.1','localhost') or url.path or url.query or url.fragment or url.username:
         parser.error('base URL must be a local workbench origin')
     def raw(path):
-        with urlopen(args.base_url+path,timeout=120) as response:return response.read(32<<20)
+        with urlopen(args.base_url+path,timeout=300) as response:return response.read(32<<20)
     def get(path):return json.loads(raw(path))
     cohort=json.loads(args.cohort.read_bytes());observations={}
     validate_cohort(cohort)
