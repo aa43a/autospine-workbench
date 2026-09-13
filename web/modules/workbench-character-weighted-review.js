@@ -3,7 +3,7 @@
 export function createWeightedReview(document, hooks) {
   const node=(tag,text="")=>{const n=document.createElement(tag);n.textContent=text;return n;};
   const element=node("section"),status=node("p"),rows=node("div"),refresh=node("button","刷新区域确认");
-  element.append(node("h4","确认已有区域绑定"),node("p","确认当前加权区域的骨骼归属，保留整层草稿；不含残余区域，也不代替整角色视觉验收。仅明确排除静态残余、其余绑定和动作完全不变时，可沿用原确认并随时撤销。"),refresh,status,rows);
+  element.append(node("h4","确认已有区域绑定"),node("p","确认当前加权区域的骨骼归属，保留整层草稿；不含残余区域，也不代替整角色视觉验收。排除静态残余或分别绑定独立部件后，只有经精确核对未变化的区域可沿用原确认，并可随时撤销。"),refresh,status,rows);
   refresh.type="button";status.setAttribute("role","status");
   let job=null,key="",generation=0,busy=false,editable=false,report=null,attempted=false;
   const confirmed=()=>report?.can_review ? report.confirmed_layer_ids??report.review?.accepted_layer_ids??[] : [];

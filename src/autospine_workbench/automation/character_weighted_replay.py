@@ -14,12 +14,15 @@ SCHEMA='autospine.character-binding-replay/v1'
 def read_proof(manager,digest):
     require_sha(digest)
     proof=read_document(manager.root/'binding-replay-evidence'/(digest+'.json'))
-    if canonical_sha256(proof)!=digest or proof.get('schema')!=SCHEMA:
+    if canonical_sha256(proof)!=digest or proof.get('schema') not in {SCHEMA,'autospine.character-binding-replay/v2'}:
         raise PipelineRunError('character_binding_replay_digest_invalid')
     return proof
 
 
 def derive(manager, result, files):
+    if 'component-mount.json' in files:
+        from .character_component_replay import derive as component_replay
+        return component_replay(manager,result,files)
     if 'final-region-exclusion.json' not in files: return None
     from .character_weighted_review import history, confirmed_layers, eligible
     receipt=json.loads(files['final-region-exclusion.json'])
@@ -75,6 +78,8 @@ def confirmed(job,value):
         runtime_sha256=canonical_sha256(job.get('runtime',{})),layers_sha256=canonical_sha256(job.get('layers',[])),
         decision_source='verified_scope_replay',new_human_confirmation=False,
         whole_character_visual_replayed=False,authority='none',production_authorized=False)
+    if proof.get('schema')=='autospine.character-binding-replay/v2':
+        expected.update(schema='autospine.character-binding-replay/v2',profile='exact-component-binding-v1')
     if any(proof.get(k)!=v for k,v in expected.items()): return set()
     from .character_weighted_review import eligible
     allowed={l['layer_id'] for l in job.get('layers',[]) if eligible(l)}
