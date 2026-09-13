@@ -5,7 +5,7 @@ import http from 'node:http';
 import crypto from 'node:crypto';
 import {pathToFileURL} from 'node:url';
 import {readReference} from './character-reference.mjs';
-const [folderArg,outputArg,dependencies,chrome,strideArg]=process.argv.slice(2);
+const [folderArg,outputArg,dependencies,chrome,strideArg,probeTimesArg]=process.argv.slice(2);
 if(!chrome)throw Error('usage: bundle output dependencies chrome');
 const screenshotStride=strideArg===undefined?32:Number(strideArg);
 if(!Number.isInteger(screenshotStride)||screenshotStride<1||screenshotStride>4096)throw Error('screenshot_stride');
@@ -29,6 +29,12 @@ files.set('/numeric-reference.json',Buffer.from(JSON.stringify(reference)));
 if(reference.skeleton_sha256!==inventory['skeleton.json']||manifest.authority!=='none'||manifest.production_authorized!==false)throw Error('reference_identity');
 const names=Object.keys(reference.animations).sort();
 if(!names.length||names.some(n=>!/^[a-zA-Z0-9_-]+$/.test(n)))throw Error('animation_name');
+const probeTimes=probeTimesArg===undefined?{}:JSON.parse(probeTimesArg);
+if(!probeTimes||typeof probeTimes!=='object'||Array.isArray(probeTimes)||Object.keys(probeTimes).length>32)throw Error('probe_times');
+for(const [name,times]of Object.entries(probeTimes)){
+  if(!names.includes(name)||!Array.isArray(times)||times.length>64||times.some(t=>!Number.isFinite(t)||t<0||
+    !reference.animations[name].some(f=>Math.abs(f.time-t)<1e-10)))throw Error('probe_time_missing');
+}
 const packageRoot=path.resolve(dependencies,'node_modules/@esotericsoftware/spine-webgl');
 const pkg=JSON.parse(await fs.readFile(path.join(packageRoot,'package.json')));
 if(pkg.name!=='@esotericsoftware/spine-webgl'||pkg.version!=='4.3.13')throw Error('runtime_version');
@@ -59,7 +65,7 @@ try{
     const frames=reference.animations[animation];if(!frames.length)throw Error('empty_track');
     for(let index=0;index<frames.length;index++){
       results.push(await page.evaluate(({animation,index})=>window.captureFrame(animation,index),{animation,index}));
-      if(index%screenshotStride===0||index===frames.length-1){
+      if(index%screenshotStride===0||index===frames.length-1||(probeTimes[animation]??[]).some(t=>Math.abs(t-frames[index].time)<1e-10)){
         const raw=Buffer.from((await page.evaluate(()=>window.framePNG())).split(',')[1],'base64');
         const name=`frames/${animation}-${index}.png`;await publish(name,raw);screenshots.push({animation,index,file:name,sha256:hash(raw)});
       }
