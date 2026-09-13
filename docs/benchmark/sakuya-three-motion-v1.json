@@ -1,0 +1,26 @@
+{
+  "project_id": "imported-ac6ba48dc2d5052613d87ab2afc247e4ef5977d9431ef76544a457b3047a3457",
+  "job_id": "job-74835bd951e24148880f56a37c96732a",
+  "artifact_sha256": "d499e32598b06702c4e94ea002bd49982f392410e5933caa1236694f2f93f4d2",
+  "animations": [
+    "idle",
+    "limb-flex-15",
+    "walk",
+    "wave-left"
+  ],
+  "status": "needs_review",
+  "schema": "autospine.character-multi-motion-evidence/v1",
+  "authority": "none",
+  "production_authorized": false,
+  "runtime_passed": true,
+  "runtime_frames": 1028,
+  "runtime_report_sha256": "55ef08540a201caadfd2ba5a2bcaf33d9fe446ce58398f9be5286315b3a913d7",
+  "geometry_status": "passed",
+  "layer_states": {
+    "static_reference": 7,
+    "partial": 2,
+    "weighted_candidate": 2,
+    "rigid_reviewed": 12
+  },
+  "whole_character_complete": false
+}
