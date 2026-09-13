@@ -39,6 +39,9 @@ class CharacterJobs:
         return directory(self.root / job, create=create)
 
     def _current(self, request):
+        from .character_component_mounts import overview as mount_overview
+        if mount_overview(self,request['project_id'])['head_sha256'] != request.get('component_mounts_sha256'):
+            raise PipelineRunError('character_mount_decisions_changed')
         from .character_final_regions import overview as final_overview
         if final_overview(self,request['project_id'])['head_sha256']!=request.get('final_region_decisions_sha256'):
             raise PipelineRunError('character_final_decisions_changed')
@@ -72,6 +75,8 @@ class CharacterJobs:
         result['region_exclusions'] = region_overview(self, project)
         from .character_final_regions import overview as final_overview
         result['final_region_exclusions'] = final_overview(self,project)
+        from .character_component_mounts import overview as mount_overview
+        result['component_mounts'] = mount_overview(self,project)
         try:
             info = inspect_registration(self.projects, project)
             from .character_motion_catalog import choices
@@ -107,6 +112,9 @@ class CharacterJobs:
         from .character_final_regions import overview as final_overview
         final_head=final_overview(self,project)['head_sha256']
         if final_head is not None: request['final_region_decisions_sha256']=final_head
+        from .character_component_mounts import overview as mount_overview
+        mount_head=mount_overview(self,project)['head_sha256']
+        if mount_head is not None: request['component_mounts_sha256']=mount_head
         if motion_choice_id is not None: request['motion_choice_id'] = motion_choice_id
         if residual_texture_profile is not None: request['residual_texture_profile'] = residual_texture_profile
         if skirt_profile is not None: request['skirt_profile'] = skirt_profile
@@ -212,6 +220,8 @@ class CharacterJobs:
             result=apply_skirt(self,request,result)
             from .character_final_regions import apply_saved as apply_final
             result=apply_final(self,request,result)
+            from .character_component_mounts import apply_saved as apply_mounts
+            result=apply_mounts(self,request,result)
             self._current(request)
             runtime=self.capturer(self.projects,self.application.store,result['artifact_sha256'],self._path(job),
                                   progress=progress,cancel_requested=active['cancel'].is_set)
@@ -222,6 +232,7 @@ class CharacterJobs:
             if 'texture_trial' in result: response['texture_trial']=result['texture_trial']
             if 'skirt_trial' in result: response['skirt_trial']=result['skirt_trial']
             if 'final_region_exclusions' in result: response['final_region_exclusions']=result['final_region_exclusions']
+            if 'component_mounts' in result: response['component_mounts']=result['component_mounts']
         except Exception as exc:
             reason=getattr(exc,'reason_code',str(exc))
             if not re.fullmatch(r'[a-z][a-z0-9_]{0,99}',reason): reason='character_build_failed'

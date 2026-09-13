@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "autospine.character-component-mounts/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "project_id", "revision", "previous_sha256", "decision", "allowed_parents", "build_options", "authority", "production_authorized"],
+  "properties": {
+    "schema": {"const": "autospine.character-component-mounts/v1"},
+    "project_id": {"type": "string", "minLength": 1},
+    "revision": {"type": "integer", "minimum": 0},
+    "previous_sha256": {"oneOf": [{"type": "null"}, {"type": "string", "pattern": "^[a-f0-9]{64}$"}]},
+    "decision": {"oneOf": [{"type": "null"}, {"$ref": "component-mount-decision-v1.schema.json"}]},
+    "allowed_parents": {"type": "array", "maxItems": 64, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "build_options": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "motion_choice_id": {"type": "string"},
+        "residual_texture_profile": {"type": "string"},
+        "skirt_profile": {"type": "string"}
+      }
+    },
+    "authority": {"const": "none"},
+    "production_authorized": {"const": false}
+  },
+  "allOf": [{
+    "if": {"properties": {"decision": {"type": "null"}}},
+    "then": {"properties": {"allowed_parents": {"maxItems": 0}, "build_options": {"maxProperties": 0}}},
+    "else": {"properties": {"allowed_parents": {"minItems": 1}}}
+  }]
+}

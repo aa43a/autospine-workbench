@@ -58,6 +58,19 @@ class CharacterJobsTests(unittest.TestCase):
         self.assertEqual(resumed.get('sample',job['job_id'])['status'],'blocked')
         with self.assertRaises(RuntimeError):resumed.download('sample',job['job_id'])
 
+    def test_component_stage_follows_exclusions_and_precedes_capture(self):
+        stages=[]; manager=self.manager()
+        def stage(name):
+            def apply(*args): stages.append(name); return args[-1]
+            return apply
+        def capture(*args,**kwargs): stages.append('capture'); return {'status':'unavailable'}
+        manager.capturer=capture
+        with patch('autospine_workbench.automation.character_final_regions.apply_saved',side_effect=stage('final')), \
+                patch('autospine_workbench.automation.character_component_mounts.apply_saved',side_effect=stage('mount')):
+            result=self.terminal(manager,self.submit(manager))
+        self.assertEqual(result['status'],'needs_review')
+        self.assertEqual(stages,['final','mount','capture'])
+
     def test_cancel_and_duplicate_request_do_not_publish_download(self):
         started=Event();release=Event();self.addCleanup(release.set)
         def build(*args,**kwargs):

@@ -804,3 +804,8 @@ depth candidates 与各自 exact replay 通过的历史 P9 reviewed-motion bundl
 - visual：除锚点代理外，完整 attachment 边界在固定动作与极值帧通过 raster/人工回归。
 - runtime：目标 adapter 的能力矩阵明确，未支持特性 fail loud；产物不依赖伪造版本字段。
 - provenance：输入、analysis、override revision、manifest、RigIR 和 probe 报告均能由哈希串联。
+
+
+### 分区绑定项目重放接口
+
+`character-component-mounts/v1` 保存来源绑定的单区域父骨骼映射与构建选项；追加历史支持撤销和重启读取。整角色任务在最终排除之后、官方捕获之前应用它，来源或决定改变会失效。当前完成服务接口和任务链，可视化选择、真实项目应用及未变化复核范围复用仍待推进。

@@ -17,7 +17,17 @@ python tools/build-character-component-mount.py --state-root workspace --source 
 
 生成的 `component-mount.json` 记录像素覆盖、分区、父骨骼及是否已确认；`component-mount-decision.json`
 保留实际决定。省略决定时只生成未确认候选。官方捕获器遇到该候选会附加可拖动的捕获帧时间轴。
-目前生成入口仍为 CLI，后续需要接入工作台当前项目编排、保存与撤销，不能宣称当前项目已采用该包。
+生成入口为 CLI；项目服务已提供 `automation/character/component-mounts` 的 GET/POST 保存与撤销接口。
+可视化选择入口尚待接入，当前项目没有因此自动采用已有 CLI 包。
+
+保存请求使用 `action: replace`、`expected_head_sha256`、来源 `job_id`、完整 `decision`
+及计算计划时使用的 `allowed_parents`。服务验证确切来源和完整分区计划后，追加不可变历史。
+撤销使用 `action: revoke` 与当前 head；历史确认不删除。普通界面接入时应由服务解析这些身份。
+v1 每个项目保存一个源区域的完整映射；不是批量跨图层累积接口。
+
+构建顺序固定为动作、纹理、裙装、最终残余排除、分区绑定、官方捕获。任务快照包含分区决定版本；
+来源或决定改变时旧任务失效。保存的构建选项可用于界面重建；不同选项产生不同源身份时拒绝复用。
+撤销后重新构建恢复原来源。保存/重建不继承整角色视觉验收，也不自动继承不符合现有精确复用规则的确认。
 
 小恶魔本次四片翼已按用户确认分别随 head/chest，371 个零散像素单独保留。
 这项确认不包括拍翼运动、补画隐藏部件、删除残余或整角色视觉验收。
