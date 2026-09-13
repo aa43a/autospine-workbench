@@ -1,0 +1,146 @@
+{
+  "schema": "autospine.character-binding-review-receipt/v1",
+  "project_id": "imported-ac6ba48dc2d5052613d87ab2afc247e4ef5977d9431ef76544a457b3047a3457",
+  "proposal_source_addresses": {
+    "resolved_project_sha256": "42bc70362da9973ababc11b99dd706d15fedae5b43116153f04b85776375edf4",
+    "input_identity_sha256": "6632fcb48141fd80c880a47467e3f3ca71a70c59f005baa0c1d4da09673a1a68",
+    "animated_registration_sha256": "3e24b49a3332918f5898a99313a99ba3ef5cc60e1bfe68f32819103b20a4858f",
+    "benchmark_manifest_sha256": "666e148075ca6fb8cb538ecc1767c86975440600e510cd5222cec6f2421531f8",
+    "semantic_candidate_sha256": "0c0ec9318a490f9a4dd468590418cf09cfb68df7c23b15f7228e2810af650da4",
+    "skeleton_candidate_sha256": "c8a1220dc4cba66dd0b024c99e97afe6af0ec7fe2695048d5acaaa88be90e2c8",
+    "layer_bindings_sha256": "185558df3d5acd2c2871a4036b139ca7d34c7bad5cac938a20adb65ea4f7b2c8",
+    "layer_binding_draft_sha256": "88fc613d08b47f8748cee796a42ae9f1c3a5e3af45b51454ea1f5a3c8586d2f1"
+  },
+  "current_source_addresses": {
+    "resolved_project_sha256": "42bc70362da9973ababc11b99dd706d15fedae5b43116153f04b85776375edf4",
+    "input_identity_sha256": "7285705c62cd793b4b8e466cefc6726de5cd35999ee441944df6f74d4d8589b8",
+    "animated_registration_sha256": "a66c9a010cad10da4ab220dc7384807285995c62c0e62389e2c6611acced1599",
+    "benchmark_manifest_sha256": "666e148075ca6fb8cb538ecc1767c86975440600e510cd5222cec6f2421531f8",
+    "semantic_candidate_sha256": "0c0ec9318a490f9a4dd468590418cf09cfb68df7c23b15f7228e2810af650da4",
+    "skeleton_candidate_sha256": "c8a1220dc4cba66dd0b024c99e97afe6af0ec7fe2695048d5acaaa88be90e2c8",
+    "layer_bindings_sha256": "185558df3d5acd2c2871a4036b139ca7d34c7bad5cac938a20adb65ea4f7b2c8",
+    "layer_binding_draft_sha256": "e36dd009803adf7988d39dc39c8b1d55a87821d2f0166a2413199d6cfa9991e6"
+  },
+  "confirmed_layers": [
+    {
+      "layer_id": "layer-000",
+      "layer_name": "back hair",
+      "image_sha256": "2258e52911a91ee81de99a138661dc3ae542e7634ec0744b3e3aee2d0504ebfb",
+      "bbox": [
+        527,
+        10,
+        772,
+        560
+      ],
+      "option_id": "rigid:head",
+      "bone_ids": [
+        "head"
+      ],
+      "skirt_profile": null,
+      "status": "human_binding_confirmed"
+    },
+    {
+      "layer_id": "layer-022",
+      "layer_name": "front hair",
+      "image_sha256": "376441acc0ac9217a56d78f0d86e9bab5ef9864db0fe209a805855aa56602b2a",
+      "bbox": [
+        535,
+        33,
+        762,
+        281
+      ],
+      "option_id": "rigid:head",
+      "bone_ids": [
+        "head"
+      ],
+      "skirt_profile": null,
+      "status": "human_binding_confirmed"
+    },
+    {
+      "layer_id": "layer-008",
+      "layer_name": "headwear",
+      "image_sha256": "3cd49c67973a079fb71067cabca025d03dcfdd58310d8a1df610d0fe1b83c05a",
+      "bbox": [
+        547,
+        18,
+        748,
+        240
+      ],
+      "option_id": "rigid:head",
+      "bone_ids": [
+        "head"
+      ],
+      "skirt_profile": null,
+      "status": "human_binding_confirmed"
+    },
+    {
+      "layer_id": "layer-013",
+      "layer_name": "ears-l",
+      "image_sha256": "c551e3bead6e17471bcc19bc7a27361310a01373440a6cb2eaf21fc16c8d45bf",
+      "bbox": [
+        689,
+        141,
+        718,
+        176
+      ],
+      "option_id": "rigid:head",
+      "bone_ids": [
+        "head"
+      ],
+      "skirt_profile": null,
+      "status": "human_binding_confirmed"
+    },
+    {
+      "layer_id": "layer-014",
+      "layer_name": "ears-r",
+      "image_sha256": "8e07e70a63deff1ce89a71479e52caab9d2645c7d7e149e86c9cdcc73b372102",
+      "bbox": [
+        577,
+        136,
+        609,
+        177
+      ],
+      "option_id": "rigid:head",
+      "bone_ids": [
+        "head"
+      ],
+      "skirt_profile": null,
+      "status": "human_binding_confirmed"
+    },
+    {
+      "layer_id": "layer-007",
+      "layer_name": "topwear",
+      "image_sha256": "dc61467a34755cbd1985a948451f66e53b72ff9444b6165421a05fdc865d1504",
+      "bbox": [
+        529,
+        203,
+        768,
+        439
+      ],
+      "option_id": "rigid:chest",
+      "bone_ids": [
+        "chest"
+      ],
+      "skirt_profile": null,
+      "status": "human_binding_confirmed"
+    },
+    {
+      "layer_id": "layer-006",
+      "layer_name": "bottomwear",
+      "image_sha256": "8dcc76b981651a77541a1f67cb3e9f292abd6672d060ea21288ba0577046854a",
+      "bbox": [
+        394,
+        405,
+        901,
+        759
+      ],
+      "option_id": null,
+      "bone_ids": [],
+      "skirt_profile": "reviewed-torso-waist-v2",
+      "status": "candidate_direction_confirmed"
+    }
+  ],
+  "confirmation": "User confirmed seven-layer proposal; six rigid bindings and skirt candidate direction only",
+  "production_authorized": false,
+  "whole_character_visual_reviewed": false
+}

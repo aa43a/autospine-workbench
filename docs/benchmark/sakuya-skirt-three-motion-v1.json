@@ -1,0 +1,36 @@
+{
+  "schema": "autospine.character-multi-motion-evidence/v1",
+  "project_id": "imported-ac6ba48dc2d5052613d87ab2afc247e4ef5977d9431ef76544a457b3047a3457",
+  "job_id": "job-8b8f5d8e8d1a4afdb3428f14a8e93606",
+  "artifact_sha256": "c183dc961a2b8b308b41e28a453905e11316ca0a53bca67c25f625ccb06b5045",
+  "animations": [
+    "idle",
+    "limb-flex-15",
+    "walk",
+    "wave-left"
+  ],
+  "status": "needs_review",
+  "authority": "none",
+  "production_authorized": false,
+  "runtime_passed": true,
+  "runtime_frames": 1028,
+  "runtime_report_sha256": "854b173bb275f3daadd2186239b8e32828830df0d9978edabe8ad4a1fa5409fb",
+  "geometry_status": "passed",
+  "layer_states": {
+    "rigid_reviewed": 18,
+    "partial": 2,
+    "weighted_candidate": 3
+  },
+  "skirt_trial": {
+    "authority": "none",
+    "geometry_passed": true,
+    "layer_ids": [
+      "layer-006"
+    ],
+    "profile": "reviewed-torso-waist-v2",
+    "selected": false,
+    "setup_error_px": 1.6077746776921858e-13,
+    "source_artifact_sha256": "baa4e43853075c199a164810e4c4aff05201a5548806a02bd1e72db4aa6b94c6"
+  },
+  "whole_character_complete": false
+}

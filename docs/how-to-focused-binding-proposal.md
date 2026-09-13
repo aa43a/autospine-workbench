@@ -24,3 +24,10 @@ bottomwear / bottomwear-front 提出独立裙摆候选方向，不会创造一�
 2026-09-13 咲夜：七层方案位于工作区 `tmp/character-sakuya-binding-review/index.html`。
 前后发、头饰、双耳建议随 head，上衣随 chest，裙装建议使用独立裙摆链。
 这七层在生成页面时均未新增人工确认，不能计入整角色完成率。
+
+随后用户确认七层方案，六层刚性绑定已通过原复核接口保存，裙装方向进入构建。
+回执见 `benchmark/sakuya-focused-binding-receipt-v1.json`；新候选四动作共 1,028 帧
+官方 Runtime 技术验证通过，见 `benchmark/sakuya-skirt-three-motion-v1.json`。
+18 层刚性已复核、2 层部分覆盖、3 层加权候选；没有静态参考层，但仍未完成整角色验收。
+实际 walk 第 256 帧在头部外侧和腿间可见散点，需继续定位透明边缘和残余来源。
+技术通过不代表这些视觉问题可以忽略。
