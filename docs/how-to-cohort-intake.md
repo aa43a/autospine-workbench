@@ -7,6 +7,11 @@ $env:PYTHONPATH='src'
 python tools/assess-cohort-intake.py --output ../tmp/character-first-ten
 ```
 
+核验旧审计时增加 `--verify-workspace ..`：读取当前项目来源，核对本地审计文件的
+字节身份、审计声明的 PSD 身份和冻结候选 PSD 的实际字节。输出 v2 报告及
+`source-checks.json`、`project-documents.json`，不修改旧审计或人工决定。
+有证据的旧审计不再要求名称一致；任何来源变化都会保留未核验状态。
+
 打开输出目录中的 `index.html`，按“下一步”核对来源、选择 PSD 版本、恢复或导入项目。
 每个现有项目提供工作台链接。工具不导入素材、不提交复核、不运行构建。
 

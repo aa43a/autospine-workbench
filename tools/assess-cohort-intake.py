@@ -11,6 +11,7 @@ from autospine_workbench.automation.storage_io import canonical_bytes
 
 
 LABELS = dict(psd_variant_review_required='先核对 PSD 版本', project_selection_required='选择对应项目',
+              frozen_psd_bytes_changed='PSD 已变化；核对冻结版本与当前版本', frozen_psd_unavailable='冻结 PSD 无法读取；检查素材位置',
               source_matched_workflow_not_assessed='PSD 身份匹配；待检查完整工作流',
               asset_restore_required='在资产中心恢复项目', audit_source_verification_required='核对旧审计的 PSD 来源',
               psd_import_required='在资产中心导入 PSD')
@@ -21,6 +22,7 @@ def main():
     parser.add_argument('--manifest', type=Path, default=Path('docs/benchmark/manifest-frozen-v1.json'))
     parser.add_argument('--base-url', default='http://127.0.0.1:8918')
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--verify-workspace', type=Path, help='Verify current audit and frozen PSD bytes read-only')
     args = parser.parse_args()
     origin = urlsplit(args.base_url)
     if (origin.scheme != 'http' or origin.hostname not in ('localhost', '127.0.0.1')
@@ -29,11 +31,24 @@ def main():
     with urlopen(args.base_url + '/api/asset-library', timeout=120) as response:
         catalog = response.read(32 << 20)
     manifest = args.manifest.read_bytes()
-    report = assess(json.loads(manifest), json.loads(catalog))
+    checks = None
+    documents = {}
+    if args.verify_workspace:
+        from autospine_workbench.automation.cohort_sources import verify
+        for project in json.loads(catalog)['projects']:
+            with urlopen(args.base_url + '/api/projects/' + quote(project['id'], safe=''), timeout=120) as response:
+                documents[project['id']] = json.loads(response.read(32 << 20))
+        checks = verify(args.verify_workspace, json.loads(manifest), documents)
+    report = assess(json.loads(manifest), json.loads(catalog), checks)
     report.update(manifest_sha256=sha256(manifest).hexdigest(), catalog_sha256=sha256(catalog).hexdigest())
     args.output.mkdir(parents=True, exist_ok=True)
     (args.output / 'catalog.json').write_bytes(catalog)
     (args.output / 'manifest.json').write_bytes(manifest)
+    if checks is not None:
+        evidence = canonical_bytes(checks)
+        report['source_checks_sha256'] = sha256(evidence).hexdigest()
+        (args.output / 'source-checks.json').write_bytes(evidence)
+        (args.output / 'project-documents.json').write_bytes(canonical_bytes(documents))
     (args.output / 'report.json').write_bytes(canonical_bytes(report))
     cards = []
     for row in report['characters']:
