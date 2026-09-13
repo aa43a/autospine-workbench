@@ -1,0 +1,63 @@
+{
+  "schema": "autospine.character-binding-completion-evidence/v1",
+  "project_id": "imported-ac6ba48dc2d5052613d87ab2afc247e4ef5977d9431ef76544a457b3047a3457",
+  "job_id": "job-fe8f73946cb248b29e750ea7713f9af4",
+  "artifact_sha256": "caea46d2c623e004536c8cb24fbd3f2ea190abc4c24bb9f5bb7d0d069d875d47",
+  "authority": "none",
+  "production_authorized": false,
+  "excluded_region_ids": [
+    "layer-001-residual",
+    "layer-002-residual"
+  ],
+  "exclusion_review_sha256": "8632ec1110b8d99a8ebe6820df9b02697fb02fc0b0a30e6d6fa1e4681f0f7dd0",
+  "weighted_review_sha256": "b9432d7aa059aff27b05147f26d38585ed71559fd3f5ec4091a52af3baa6fe27",
+  "confirmed_weighted_layers": [
+    "layer-001",
+    "layer-002",
+    "layer-003",
+    "layer-004",
+    "layer-006"
+  ],
+  "unresolved_layers": [],
+  "source_layer_count": 23,
+  "runtime_frames": 1028,
+  "runtime_geometry_status": "passed",
+  "runtime_report_sha256": "83731510414aa37839ee20a464370c75d2c67bc2a0ee5ebfc6db38854918004e",
+  "mapping_preservation": {
+    "previous_artifact_sha256": "c183dc961a2b8b308b41e28a453905e11316ca0a53bca67c25f625ccb06b5045",
+    "current_artifact_sha256": "caea46d2c623e004536c8cb24fbd3f2ea190abc4c24bb9f5bb7d0d069d875d47",
+    "bones_unchanged": true,
+    "animations_unchanged": true,
+    "weighted_attachments_and_textures_unchanged": true,
+    "binding_inventory_unchanged": true,
+    "user_confirmation": "Five source layers effective regions confirmed 2026-09-13",
+    "production_authorized": false
+  },
+  "whole_character_complete": true,
+  "reason_codes": [],
+  "visual_review_sha256": "15711528dd3ef2de6c785569cce6ea46a5da95353f3719303fdf3aec5860711c",
+  "required_motion_results": [
+    {
+      "animation": "idle",
+      "status": "passed",
+      "sampled_frames": 129,
+      "duration_seconds": 2
+    },
+    {
+      "animation": "wave-left",
+      "status": "passed",
+      "sampled_frames": 257,
+      "duration_seconds": 2
+    },
+    {
+      "animation": "walk",
+      "status": "passed",
+      "sampled_frames": 513,
+      "duration_seconds": 1.033333
+    }
+  ],
+  "human_review_minutes": null,
+  "incorrect_auto_adoption_rate": null,
+  "independent_holdout": false,
+  "scope": "single_character_integration_not_fixed_three_or_first_ten_completion"
+}
