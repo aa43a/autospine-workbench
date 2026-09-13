@@ -1,7 +1,6 @@
 """Read current whole-character acceptance after a verified first-ten intake snapshot."""
 import argparse
 from hashlib import sha256
-from html import escape
 import json
 from pathlib import Path
 from urllib.parse import quote, urlsplit
@@ -9,16 +8,7 @@ from urllib.request import urlopen
 
 from autospine_workbench.automation.cohort_intake import assess
 from autospine_workbench.automation.cohort_workflow import selected_project, summarize
-
-LABELS = dict(character_candidate_missing='尚未构建整角色候选',
-    required_animations_missing='缺少必需动作', required_motion_runtime_incomplete='动作 Runtime 验证不完整',
-    runtime_unmeasured='Runtime 尚未测量', runtime_failed='Runtime 检查失败',
-    geometry_not_passed='几何检查尚未通过', layer_inventory_missing='尚无整角色图层库存',
-    layer_binding_incomplete='还有图层绑定待处理', automatic_binding_evidence_stale='自动绑定证据已过期',
-    whole_character_visual_review_required='等待整角色视觉复核',
-    psd_variant_review_required='需要选择 PSD 版本', character_route_confirmation_required='需要确认普通肢体或袖装路线',
-    character_source_unavailable='需要准备或复核动画来源', animated_source_missing='尚未准备动画来源',
-    character_sleeve_unavailable='袖装候选尚不可用')
+from autospine_workbench.automation.cohort_workflow_report import render
 
 
 def main():
@@ -92,24 +82,7 @@ def main():
     args.output.mkdir(parents=True, exist_ok=True)
     (args.output / 'observations.json').write_text(json.dumps(observations, sort_keys=True), encoding='utf-8')
     (args.output / 'report.json').write_text(json.dumps(result, indent=2), encoding='utf-8')
-    cards = []
-    for row in result['characters']:
-        status = '候选验收完成' if row['completed'] else '尚未完成'
-        link = args.base_url + '/?project=' + quote(row['project_id'], safe='') if row['project_id'] else None
-        title = escape(row['name'])
-        if link:
-            title = '<a href="' + escape(link, quote=True) + '">' + title + '</a>'
-        descriptions = [LABELS.get(code, '待处理：' + code) for code in row['reason_codes']]
-        next_step = escape(descriptions[0]) if descriptions else '当前候选已完成验收'
-        if len(descriptions) > 1:
-            next_step += '<details><summary>其他待验收项</summary>' + escape('；'.join(descriptions[1:])) + '</details>'
-        cards.append('<tr><td>' + title + '</td><td>' + status + '</td><td>' +
-                     next_step + '</td></tr>')
-    page = '<!doctype html><meta charset="utf-8"><title>首批十角色验收进度</title><style>'
-    page += 'body{background:#172330;color:#eee;font:16px system-ui;padding:24px}td,th{padding:12px;border:1px solid #567}a{color:#7de0ff}table{border-collapse:collapse}</style>'
-    page += '<h1>首批十角色验收进度</h1><p>完成 ' + str(result['metrics']['completed_characters']) + '/10。来源准备不计作验收完成。</p>'
-    page += '<p>人工总耗时与自动采用错误率尚未测量；这不是独立 holdout 准确率。</p><table><tr><th>角色</th><th>状态</th><th>剩余原因</th></tr>'
-    (args.output / 'index.html').write_text(page + ''.join(cards) + '</table>', encoding='utf-8')
+    (args.output / 'index.html').write_text(render(result, args.base_url), encoding='utf-8')
     print(json.dumps(result['metrics']))
 
 
