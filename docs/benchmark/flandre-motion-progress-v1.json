@@ -1,0 +1,100 @@
+{
+  "schema": "autospine.flandre-motion-progress/v1",
+  "authority": "none",
+  "production_authorized": false,
+  "job_id": "job-fd4f0d2de2c347358ac0a3b7e9d2c9e2",
+  "artifact_sha256": "909c174c163a06ef6dad4f9eb5ed2a1946f4378e21de80a6be098093cafd80ec",
+  "source_character_sha256": "79fa6e0a63f673828dcedd6bc49a0707a0eaba41a9f77d3ed226a8b8184e6605",
+  "motion_set": {
+    "bundle_sha256": "e6a7982709eec359890b4bd3b53f319f13c6af763c956f715bac4e05f170115e",
+    "animations": [
+      "idle",
+      "walk",
+      "wave-left"
+    ]
+  },
+  "runtime_report_sha256": "497bab268705c318f7d9c57be03ef0742921301ce76746d081e77e57cf6d44d2",
+  "runtime_version": "4.3.13",
+  "runtime_passed": true,
+  "runtime_scope": "all_attachment_vertices_and_nonempty_unclipped_framebuffer",
+  "animation_frames": {
+    "combined_opposed": 129,
+    "combined_same": 129,
+    "forearm": 129,
+    "hand": 129,
+    "idle": 129,
+    "walk": 513,
+    "wave-left": 517
+  },
+  "visual_review": "not_reviewed",
+  "wave_original_geometry_passed": false,
+  "wave_repaired_geometry_passed": true,
+  "unchanged": {
+    "bones": true,
+    "slots": true,
+    "skins": true,
+    "textures_and_atlas": true
+  },
+  "repair_profile": "affine-mixed-area-budget10-v2",
+  "repair_records": [
+    {
+      "area_status": "sampled_pass",
+      "budget_px": 6.623790455622821,
+      "fixed_vertices": 192,
+      "max_displacement_px": 1.7553536909368308,
+      "sample_count": 261,
+      "slot": "layer-005-component-0000",
+      "unresolved_area_samples": []
+    }
+  ],
+  "unresolved_layers": [
+    "layer-000",
+    "layer-002",
+    "layer-003",
+    "layer-004",
+    "layer-005",
+    "layer-009",
+    "layer-023"
+  ],
+  "wing_plan": {
+    "source_bundle_sha256": "909c174c163a06ef6dad4f9eb5ed2a1946f4378e21de80a6be098093cafd80ec",
+    "source_region_id": "layer-000",
+    "plan_sha256": "fa0ff2c8b8803475d084186b689fef3ac467538b9bfb428b3f70e08eeb20c2e5",
+    "residual_pixels": 1074
+  },
+  "wing_parts": [
+    {
+      "component_id": "component-0000",
+      "bbox": [
+        0,
+        0,
+        266,
+        254
+      ],
+      "proposed_parent": "layer-002-skirt_0_upper",
+      "visible_pixels": 19772
+    },
+    {
+      "component_id": "component-0001",
+      "bbox": [
+        331,
+        0,
+        605,
+        254
+      ],
+      "proposed_parent": "layer-002-skirt_2_upper",
+      "visible_pixels": 17685
+    }
+  ],
+  "wing_binding_status": "not_reviewed",
+  "visual_findings": [
+    {
+      "reason_code": "thigh_cut_edge_visible",
+      "frame": "wave-left-128",
+      "also_visible_in": "runtime/setup/source.png",
+      "scope": "assistant_spot_check_not_human_acceptance",
+      "status": "needs_investigation",
+      "note": "Straight upper-thigh edges are visible in both setup reference composite and the wave capture; do not attribute this to newly added motion without source/draw-order investigation."
+    }
+  ]
+}
