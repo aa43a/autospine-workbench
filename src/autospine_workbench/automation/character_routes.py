@@ -19,7 +19,7 @@ def dispatch_character(tail,handler,method,project):
     from .web_routes import _error, _require_mutation
     allowed = 'GET, HEAD, POST, OPTIONS' if not tail else None
     if tail == ['regions']: allowed='GET, HEAD, POST, OPTIONS'
-    if tail in (['final-regions'], ['component-mounts']): allowed='GET, HEAD, POST, OPTIONS'
+    if tail in (['final-regions'], ['post-component-regions'], ['component-mounts']): allowed='GET, HEAD, POST, OPTIONS'
     if tail == ['component-mount-plan']: allowed='POST, OPTIONS'
     if len(tail)==2 and tail[0]=='jobs': allowed='GET, HEAD, OPTIONS'
     if len(tail)==3 and tail[0]=='jobs' and tail[2]=='download': allowed='GET, HEAD, OPTIONS'
@@ -42,9 +42,9 @@ def dispatch_character(tail,handler,method,project):
             elif tail == ['component-mounts']:
                 from .character_component_mounts import save
                 value=save(manager,project,body)
-            elif tail == ['final-regions']:
+            elif tail in (['final-regions'],['post-component-regions']):
                 from .character_final_regions import save
-                value=save(manager,project,body)
+                value=save(manager,project,body,stage="after_components" if tail==["post-component-regions"] else "before_components")
             elif tail == ['regions']:
                 from .character_region_decisions import save
                 value=save(manager,project,body)
@@ -65,9 +65,9 @@ def dispatch_character(tail,handler,method,project):
         elif tail == ['component-mounts']:
             from .character_component_mounts import overview
             handler._send_visual_json(200,overview(manager,project))
-        elif tail == ['final-regions']:
+        elif tail in (['final-regions'],['post-component-regions']):
             from .character_final_regions import overview
-            handler._send_visual_json(200,overview(manager,project))
+            handler._send_visual_json(200,overview(manager,project,stage="after_components" if tail==["post-component-regions"] else "before_components"))
         elif tail == ['regions']:
             from .character_region_decisions import overview
             handler._send_visual_json(200,overview(manager,project))

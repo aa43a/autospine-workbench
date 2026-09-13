@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "autospine.character-final-regions/v2"
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "previous_sha256": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "source_bundle_sha256": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "decisions": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "schema": {
+            "const": "autospine.region-exclusion/v1"
+          },
+          "decision_source": {
+            "const": "human_confirmation"
+          },
+          "source_bundle_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "manifest_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "layer_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "region_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "image_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "reversible": {
+            "const": true
+          }
+        },
+        "required": [
+          "schema",
+          "decision_source",
+          "source_bundle_sha256",
+          "manifest_sha256",
+          "layer_id",
+          "region_id",
+          "image_sha256",
+          "reversible"
+        ]
+      }
+    },
+    "build_options": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "motion_choice_id": {
+          "type": "string"
+        },
+        "residual_texture_profile": {
+          "type": "string"
+        },
+        "skirt_profile": {
+          "type": "string"
+        }
+      }
+    },
+    "decision_source": {
+      "const": "human_confirmation"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "production_authorized": {
+      "const": false
+    }
+  },
+  "required": [
+    "schema",
+    "project_id",
+    "revision",
+    "previous_sha256",
+    "source_bundle_sha256",
+    "decisions",
+    "build_options",
+    "decision_source",
+    "authority",
+    "production_authorized"
+  ]
+}

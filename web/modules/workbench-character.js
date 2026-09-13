@@ -10,6 +10,7 @@ import { createComponentMounts } from "./workbench-component-mounts.js";
 const ACTIVE = new Set(["pending", "running"]);
 const STAGES = {resolve:"核对来源", "base-preview":"准备整角色基础", compose:"合并袖装与校验动作", "skirt-trial":"正在生成裙装可变形候选", publish:"封存候选", runtime:"官方 Runtime 渲染与 setup 对照", review:"等待整角色复核"};
 const REASONS = {character_sleeve_unavailable:"尚无当前可用袖装候选，请先完成袖装构建。",
+  character_post_component_stage_required:"这是拆分后产生的区域，请使用“拆分后残余排除”入口。",
   character_mount_source_changed:"分区绑定来源已变化，请恢复保存时的构建选项，或撤销分区绑定后重新检查。",
   character_mount_decisions_changed:"分区绑定已修改，请重新构建整角色候选。",
   character_final_source_changed:"最终排除与本次构建来源不同，请恢复原动作/裙装/纹理选项，或撤销最终排除后重新复核。",
@@ -38,6 +39,7 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
   const weightedReview=createWeightedReview(document,{apiRequest:hooks.apiRequest,changed:()=>render()});
   const exclusions=node("div");
   const finalRegions=createFinalRegionReview(document,body=>regionDecision(body,true));
+  const postRegions=createFinalRegionReview(document,body=>regionDecision(body,"post"),{afterComponents:true});
   const mounts=createComponentMounts(document,{apiRequest:hooks.apiRequest,save:body=>regionDecision(body,false,true)});
   const textureLabel=node("label","归并低透明度残余（候选） "),textureToggle=node("input");
   textureToggle.type="checkbox";textureToggle.setAttribute("aria-label","归并低透明度残余（候选）");
@@ -62,7 +64,7 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
   visualSection.append(progress.element);
   visualFold.append(node("summary","记录整角色视觉验收"),visualReview.element);visualSection.append(visualFold);element.append(visualSection,mounts.element,weightedReview.element,detail);
   actions.append(exclusions);
-  element.append(finalRegions.element);
+  element.append(finalRegions.element,postRegions.element);
   let identity=null,generation=0,overview=null,job=null,busy=false,error="",timer=null,polls=0,operation="";
   let motionChoice="",motionTouched=false;motionSelect.onchange=()=>{motionChoice=motionSelect.value;motionTouched=true;render();};
   const schedule=options.setTimeout||setTimeout,clear=options.clearTimeout||clearTimeout;
@@ -71,7 +73,7 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
   function stop(){if(timer!==null)clear(timer);timer=null;}
   function render(){
     const active=ACTIVE.has(job?.status),dirty=Boolean(context().dirty||context().saving||context().loading);
-    const finalRecipe=overview?.component_mounts?.active?overview.component_mounts.review.build_options:overview?.final_region_exclusions?.active?overview.final_region_exclusions.review.build_options:null;
+    const finalRecipe=overview?.post_component_regions?.active?overview.post_component_regions.review.build_options:overview?.component_mounts?.active?overview.component_mounts.review.build_options:overview?.final_region_exclusions?.active?overview.final_region_exclusions.review.build_options:null;
     if(finalRecipe){textureToggle.checked=Boolean(finalRecipe.residual_texture_profile);textureProfile.value=finalRecipe.residual_texture_profile||'aligned-low-alpha-v1';skirtToggle.checked=Boolean(finalRecipe.skirt_profile);motionChoice=finalRecipe.motion_choice_id||'';motionTouched=true;}
     build.disabled=!overview?.can_build||busy||active||dirty;refresh.disabled=!identity||busy;cancel.hidden=!active;cancel.disabled=busy||job?.cancel_requested;
     textureToggle.disabled=busy||active||dirty||Boolean(finalRecipe);
@@ -91,6 +93,7 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
     if(!error&&job?.skirt_trial?.authority==="none")status.textContent+=job.skirt_trial.layer_ids?.length===0?" · 未生成裙装网格，请处理逐层待办":` · 裙装候选：${job.skirt_trial.geometry_passed?"采样网格检查通过":"网格检查未通过"}，腰部与裙摆待复核`;
     if(!error&&job?.skirt_trial?.blocked_layers?.length)status.textContent+=` · ${job.skirt_trial.blocked_layers.length} 个裙装图层暂未生成网格，保留原图并列入逐层待办`;
     if(!error&&job?.final_region_exclusions)status.textContent+=` · 已应用 ${job.final_region_exclusions.excluded_region_ids.length} 处最终残余排除`;
+    if(!error&&job?.post_component_regions)status.textContent+=` · 已应用 ${job.post_component_regions.excluded_region_ids.length} 处拆分后排除`;
     if(!error&&job?.status==="needs_review")status.textContent+=job.runtime?.geometry_status==='passed'?" · 采样网格检查通过":job.runtime?.geometry_status==='needs_changes'?` · ${job.runtime.geometry_failed_records} 项动作/附件变形超限，需修正`:" · 整角色网格检查尚未执行";
     if(!error&&job?.status==="needs_review"&&job.animations?.length)status.textContent+=` · 当前包动作：${job.animations.map(n=>({walk:"行走",idle:"待机","wave-left":"左手挥动",forearm:"前臂测试",hand:"手部测试",combined_same:"同向组合测试",combined_opposed:"反向组合测试"}[n]||n)).join("、")}`;
     if(!error&&job?.status==="needs_review")for(const motion of job.motion_readiness||[])if(motion.status==='blocked')status.textContent+=` · ${motion.clip} 未输出：${motion.reason_code}${motion.failing_slots.length?'（'+motion.failing_slots.join('、')+'）':''}`;
@@ -105,6 +108,7 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
     weightedReview.sync(job?.status==="needs_review"&&job.runtime?.files?.["report.json"]?job:null,!dirty&&!busy&&!active);
     progress.sync(job,weightedReview.confirmed(),visualReview.current(),dirty);
     ledger.sync({confirmedLayerIds:weightedReview.confirmed(),projectId:context().projectId,job,endpoint:endpoint(),disabled:busy||active||dirty});
+    postRegions.sync(job?.status==='needs_review'?job:null,overview?.post_component_regions,busy||active||dirty);
     finalRegions.sync(job?.status==='needs_review'?job:null,overview?.final_region_exclusions,busy||active||dirty);
     mounts.sync(job,overview?.component_mounts,endpoint(),busy||active||dirty);
     exclusions.replaceChildren(...(overview?.region_exclusions?.active||[]).map(entry=>{
@@ -118,8 +122,8 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
     if(busy)return;
     const token=generation;busy=true;error="";render();
     try{
-      await hooks.apiRequest(`${endpoint()}/${mount?'component-mounts':final?'final-regions':'regions'}`,{method:"POST",headers:{"X-Autospine-Intent":"pipeline-preview"},
-        body:JSON.stringify({...body,expected_head_sha256:(mount?overview?.component_mounts:final?overview?.final_region_exclusions:overview?.region_exclusions)?.head_sha256??null})});
+      await hooks.apiRequest(`${endpoint()}/${mount?'component-mounts':final==='post'?'post-component-regions':final?'final-regions':'regions'}`,{method:"POST",headers:{"X-Autospine-Intent":"pipeline-preview"},
+        body:JSON.stringify({...body,expected_head_sha256:(mount?overview?.component_mounts:final==='post'?overview?.post_component_regions:final?overview?.final_region_exclusions:overview?.region_exclusions)?.head_sha256??null})});
     }catch(e){if(current(token))error="区域决定保存失败，请刷新后重试。";}
     finally{if(current(token)){busy=false;render();if(!error)await request();}}
   }
@@ -138,6 +142,7 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
         ...(skirtToggle.checked?{skirt_profile:"reviewed-torso-waist-v2"}:{})})};
       if(action==='build'&&overview?.final_region_exclusions?.active){const payload=JSON.parse(init.body);delete payload.motion_choice_id;delete payload.residual_texture_profile;delete payload.skirt_profile;Object.assign(payload,overview.final_region_exclusions.review.build_options);init.body=JSON.stringify(payload);}
       if(action==='build'&&overview?.component_mounts?.active){const payload=JSON.parse(init.body);delete payload.motion_choice_id;delete payload.residual_texture_profile;delete payload.skirt_profile;Object.assign(payload,overview.component_mounts.review.build_options);init.body=JSON.stringify(payload);}
+      if(action==='build'&&overview?.post_component_regions?.active){const payload=JSON.parse(init.body);delete payload.motion_choice_id;delete payload.residual_texture_profile;delete payload.skirt_profile;Object.assign(payload,overview.post_component_regions.review.build_options);init.body=JSON.stringify(payload);}
       const value=await hooks.apiRequest(url,init);if(!current(token))return;
       if(value.project_id!==project||value.authority!=="none")throw Error("响应来源不匹配");
       if(action==="refresh"){overview=value;job=value.job;polls=0;}

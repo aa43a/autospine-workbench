@@ -61,7 +61,7 @@ class CharacterJobsTests(unittest.TestCase):
     def test_component_stage_follows_exclusions_and_precedes_capture(self):
         stages=[]; manager=self.manager()
         def stage(name):
-            def apply(*args): stages.append(name); return args[-1]
+            def apply(*args,**kwargs): stages.append('post' if kwargs.get('stage')=='after_components' else name); return args[-1]
             return apply
         def capture(*args,**kwargs): stages.append('capture'); return {'status':'unavailable'}
         manager.capturer=capture
@@ -69,7 +69,7 @@ class CharacterJobsTests(unittest.TestCase):
                 patch('autospine_workbench.automation.character_component_mounts.apply_saved',side_effect=stage('mount')):
             result=self.terminal(manager,self.submit(manager))
         self.assertEqual(result['status'],'needs_review')
-        self.assertEqual(stages,['final','mount','capture'])
+        self.assertEqual(stages,['final','mount','post','capture'])
 
     def test_cancel_and_duplicate_request_do_not_publish_download(self):
         started=Event();release=Event();self.addCleanup(release.set)

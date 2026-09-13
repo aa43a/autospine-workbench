@@ -43,6 +43,8 @@ class CharacterJobs:
         if mount_overview(self,request['project_id'])['head_sha256'] != request.get('component_mounts_sha256'):
             raise PipelineRunError('character_mount_decisions_changed')
         from .character_final_regions import overview as final_overview
+        if final_overview(self,request['project_id'],stage='after_components')['head_sha256']!=request.get('post_component_regions_sha256'):
+            raise PipelineRunError('character_final_decisions_changed')
         if final_overview(self,request['project_id'])['head_sha256']!=request.get('final_region_decisions_sha256'):
             raise PipelineRunError('character_final_decisions_changed')
         from .character_motion_catalog import validate as validate_motion
@@ -75,6 +77,7 @@ class CharacterJobs:
         result['region_exclusions'] = region_overview(self, project)
         from .character_final_regions import overview as final_overview
         result['final_region_exclusions'] = final_overview(self,project)
+        result['post_component_regions'] = final_overview(self,project,stage='after_components')
         from .character_component_mounts import overview as mount_overview
         result['component_mounts'] = mount_overview(self,project)
         try:
@@ -110,6 +113,8 @@ class CharacterJobs:
         from .character_region_decisions import overview as region_overview
         request['region_decisions_sha256'] = region_overview(self, project)['head_sha256']
         from .character_final_regions import overview as final_overview
+        post_head=final_overview(self,project,stage='after_components')['head_sha256']
+        if post_head is not None: request['post_component_regions_sha256']=post_head
         final_head=final_overview(self,project)['head_sha256']
         if final_head is not None: request['final_region_decisions_sha256']=final_head
         from .character_component_mounts import overview as mount_overview
@@ -222,6 +227,7 @@ class CharacterJobs:
             result=apply_final(self,request,result)
             from .character_component_mounts import apply_saved as apply_mounts
             result=apply_mounts(self,request,result)
+            result=apply_final(self,request,result,stage="after_components")
             self._current(request)
             runtime=self.capturer(self.projects,self.application.store,result['artifact_sha256'],self._path(job),
                                   progress=progress,cancel_requested=active['cancel'].is_set)
@@ -233,6 +239,7 @@ class CharacterJobs:
             if 'skirt_trial' in result: response['skirt_trial']=result['skirt_trial']
             if 'final_region_exclusions' in result: response['final_region_exclusions']=result['final_region_exclusions']
             if 'component_mounts' in result: response['component_mounts']=result['component_mounts']
+            if 'post_component_regions' in result: response['post_component_regions']=result['post_component_regions']
         except Exception as exc:
             reason=getattr(exc,'reason_code',str(exc))
             if not re.fullmatch(r'[a-z][a-z0-9_]{0,99}',reason): reason='character_build_failed'

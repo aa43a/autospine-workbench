@@ -6,12 +6,12 @@ from ...resolved_project import canonical_sha256
 from .numeric_reference import read
 
 
-def unchanged_layers(source, target):
+def unchanged_layers(source, target, *, after_components=False):
     receipt=json.loads(target['final-region-exclusion.json'])
     source_sha=canonical_sha256({n:sha256(b).hexdigest() for n,b in source.items()})
-    if (receipt.get('schema')!='autospine.final-region-exclusion/v1'
+    if (receipt.get('schema')!=('autospine.final-region-exclusion/v2' if after_components else 'autospine.final-region-exclusion/v1')
             or receipt.get('source_bundle_sha256')!=source_sha
-            or receipt.get('execution_stage')!='after_motion_texture_skirt'
+            or receipt.get('execution_stage')!=('after_components' if after_components else 'after_motion_texture_skirt')
             or receipt.get('authority')!='none' or receipt.get('production_authorized') is not False):
         raise ValueError('character_binding_continuity_source')
     decisions=receipt['decisions']; removed={d['region_id'] for d in decisions}

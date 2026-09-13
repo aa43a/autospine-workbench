@@ -11,6 +11,11 @@ from .pipeline_run import PipelineRunError
 SCHEMA='autospine.character-final-regions/v1'
 
 
+def _stage(stage):
+    if stage not in ('before_components','after_components'): raise ValueError('character_final_stage_invalid')
+    return ('post-component-regions','autospine.character-final-regions/v2') if stage=='after_components' else ('final-region-decisions',SCHEMA)
+
+
 def _valid_scope(doc):
     decisions=doc.get('decisions'); options=doc.get('build_options')
     if type(decisions) is not list or len(decisions)>64 or type(options) is not dict:
@@ -35,15 +40,16 @@ def _valid_scope(doc):
     return True
 
 
-def overview(manager, project):
+def overview(manager, project, *, stage="before_components"):
     require_safe_token(project,'project')
-    root=manager.root/'final-region-decisions'/project
+    folder,schema=_stage(stage)
+    root=manager.root/folder/project
     entries=[]; previous=None
     if root.exists():
         directory(root)
         for path in sorted(root.glob('*.json')):
             doc=read_document(path)
-            if (path.name!=f'{len(entries):06d}.json' or doc.get('schema')!=SCHEMA
+            if (path.name!=f'{len(entries):06d}.json' or doc.get('schema')!=schema
                     or doc.get('project_id')!=project or doc.get('previous_sha256')!=previous
                     or doc.get('revision')!=len(entries) or doc.get('authority')!='none'
                     or doc.get('decision_source')!='human_confirmation'
@@ -55,14 +61,15 @@ def overview(manager, project):
                 review=current,active=bool(current and current['decisions']))
 
 
-def save(manager,project,body):
+def save(manager,project,body, *, stage="before_components"):
+    folder,schema=_stage(stage)
     keys={'expected_head_sha256','action'}
     if body.get('action')=='replace': keys|={'job_id','expected_artifact_sha256','regions'}
     elif body.get('action')!='revoke': raise PipelineRunError('character_final_review_invalid')
     if set(body)!=keys: raise PipelineRunError('character_final_review_invalid')
     with manager._lock:
         manager.projects.get_project(project)
-        current=overview(manager,project)
+        current=overview(manager,project,stage=stage)
         if body['expected_head_sha256']!=current['head_sha256']:
             raise PipelineRunError('character_final_review_conflict')
         decisions=[]; digest=None; options={}
@@ -76,6 +83,8 @@ def save(manager,project,body):
             if result['status']!='needs_review' or result.get('artifact_sha256')!=digest:
                 raise PipelineRunError('character_final_review_conflict')
             files=manager.verified_files(project,body['job_id'])
+            if stage=='before_components' and 'component-mount.json' in files:
+                raise PipelineRunError('character_post_component_stage_required')
             request=read_document(manager._path(body['job_id'])/'request.json')
             options={k:request[k] for k in ('motion_choice_id','residual_texture_profile','skirt_profile') if k in request}
             doc=json.loads(files['skeleton.json'])
@@ -84,31 +93,35 @@ def save(manager,project,body):
                 decisions.append(dict(schema='autospine.region-exclusion/v1',decision_source='human_confirmation',
                     source_bundle_sha256=digest,manifest_sha256=sha256(files['character-manifest.json']).hexdigest(),
                     **r,image_sha256=sha256(files['images/'+attachment.get('path',slot)+'.png']).hexdigest(),reversible=True))
-            apply_batch(files,decisions)
+            apply_batch(files,decisions,after_components=stage=="after_components")
         elif not current['active']:
             return current
-        doc=dict(schema=SCHEMA,project_id=project,revision=0 if current['review'] is None else current['review']['revision']+1,
+        doc=dict(schema=schema,project_id=project,revision=0 if current['review'] is None else current['review']['revision']+1,
             previous_sha256=current['head_sha256'],source_bundle_sha256=digest,decisions=decisions,build_options=options,
             decision_source='human_confirmation',authority='none',production_authorized=False)
-        root=directory(manager.root/'final-region-decisions'/project,create=True)
+        root=directory(manager.root/folder/project,create=True)
         if not publish_document(root/f'{doc["revision"]:06d}.json',doc,staging=root/'staging'):
             raise PipelineRunError('character_final_review_conflict')
-        return overview(manager,project)
+        return overview(manager,project,stage=stage)
 
 
-def apply_saved(manager,request,result):
-    current=overview(manager,request['project_id'])
-    if current['head_sha256']!=request.get('final_region_decisions_sha256'):
+def apply_saved(manager,request,result, *, stage="before_components"):
+    _stage(stage)
+    post=stage=="after_components"
+    current=overview(manager,request['project_id'],stage=stage)
+    if current['head_sha256']!=request.get('post_component_regions_sha256' if post else 'final_region_decisions_sha256'):
         raise PipelineRunError('character_final_decisions_changed')
     if not current['active']: return result
     review=current['review']
     if review['source_bundle_sha256']!=result['artifact_sha256']:
         raise PipelineRunError('character_final_source_changed')
     store=manager.application.store
-    output=apply_batch(store.read(result['artifact_sha256']),review['decisions'])
+    output=apply_batch(store.read(result['artifact_sha256']),review['decisions'],after_components=post)
     final=dict(result,artifact_sha256=store.publish(output),manifest=json.loads(output['character-manifest.json']),
         final_region_exclusions=dict(review_sha256=current['head_sha256'],
             excluded_region_ids=sorted(d['region_id'] for d in review['decisions']),authority='none'))
+    if post: final['post_component_regions']=final.pop('final_region_exclusions')
+    if post and 'final_region_exclusions' in result: final['final_region_exclusions']=result['final_region_exclusions']
     # Earlier transfer counters describe the pre-exclusion material inventory.
     if 'texture_trial' in final:
         final['texture_trial']={**final['texture_trial'],'scope':'before_final_region_exclusions'}

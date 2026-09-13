@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "autospine.final-region-exclusion/v2"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "production_authorized": {
+      "const": false
+    },
+    "source_bundle_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "decisions": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "schema": {
+            "const": "autospine.region-exclusion/v1"
+          },
+          "decision_source": {
+            "const": "human_confirmation"
+          },
+          "source_bundle_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "manifest_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "layer_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "region_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "image_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "reversible": {
+            "const": true
+          }
+        },
+        "required": [
+          "schema",
+          "decision_source",
+          "source_bundle_sha256",
+          "manifest_sha256",
+          "layer_id",
+          "region_id",
+          "image_sha256",
+          "reversible"
+        ]
+      }
+    },
+    "execution_stage": {
+      "const": "after_components"
+    },
+    "runtime_status": {
+      "const": "not_run"
+    }
+  },
+  "required": [
+    "schema",
+    "authority",
+    "production_authorized",
+    "source_bundle_sha256",
+    "decisions",
+    "execution_stage",
+    "runtime_status"
+  ]
+}

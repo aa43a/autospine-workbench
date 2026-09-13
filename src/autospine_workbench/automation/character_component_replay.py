@@ -11,14 +11,21 @@ SCHEMA='autospine.character-binding-replay/v2'
 PROFILE='exact-component-binding-v1'
 
 
-def derive(manager,result,files):
+def derive(manager,result,files, *, after_components=False):
     from .character_weighted_review import history,confirmed_layers,eligible
     from .character_weighted_replay import derive as exclusion_replay,read_proof
-    source_sha=json.loads(files['component-mount.json'])['source_bundle_sha256']
+    receipt='final-region-exclusion.json' if after_components else 'component-mount.json'
+    source_sha=json.loads(files[receipt])['source_bundle_sha256']
     source=manager.application.store.read(source_sha)
     # Deliberately bounded: no chain of component conversions, no arbitrary graph traversal.
-    if 'component-mount.json' in source:return None
-    unchanged=set(unchanged_layers(source,files));candidates=[]
+    if after_components:
+        if 'component-mount.json' not in source or 'final-region-exclusion.json' in source:return None
+        from ..targets.character43.binding_continuity import unchanged_layers as exclusion_layers
+        unchanged=set(exclusion_layers(source,files,after_components=True))
+    else:
+        if 'component-mount.json' in source:return None
+        unchanged=set(unchanged_layers(source,files))
+    candidates=[]
     folders=list(manager.root.glob('job-*'))
     if len(folders)>4096:raise PipelineRunError('character_binding_replay_resource_limit')
     for folder in folders:
@@ -46,7 +53,8 @@ def derive(manager,result,files):
     allowed={l['layer_id'] for l in result['layers'] if eligible(l)}
     retained=sorted(accepted & unchanged & allowed)
     if not retained:return None
-    proof=dict(schema=SCHEMA,profile=PROFILE,project_id=result['project_id'],job_id=result['job_id'],
+    proof=dict(schema='autospine.character-binding-replay/v3' if after_components else SCHEMA,
+        profile='exact-post-component-exclusion-binding-v1' if after_components else PROFILE,project_id=result['project_id'],job_id=result['job_id'],
         artifact_sha256=result['artifact_sha256'],runtime_sha256=canonical_sha256(result['runtime']),
         layers_sha256=canonical_sha256(result['layers']),source_job_id=old['job_id'],source_bundle_sha256=source_sha,
         source_review_sha256=value.get('review_sha256'),source_replay_sha256=value.get('replay_sha256'),

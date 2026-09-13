@@ -31,3 +31,14 @@ test('saved history remains visible without a current candidate and can be revok
   view.sync(null,{active:true,review:{decisions:[{}]}},false);
   all(view.element).find(n=>n.tag==='button').onclick();assert.deepEqual(calls,[{action:'revoke'}]);
 });
+
+test('post-component review is separate and only offered after a mount',()=>{
+  const calls=[],view=createFinalRegionReview(document,value=>calls.push(value),{afterComponents:true});
+  view.sync(job,null,false);assert.equal(view.element.hidden,true);
+  view.sync({...job,component_mounts:{parent_review_required:false}},null,false);
+  assert.equal(view.element.hidden,false);
+  assert.match(view.element.children[0].textContent,/拆分后/);
+  const check=all(view.element).find(n=>n.tag==='input');check.checked=true;check.onchange();
+  all(view.element).find(n=>n.tag==='button').onclick();
+  assert.equal(calls[0].expected_artifact_sha256,job.artifact_sha256);
+});

@@ -7,7 +7,8 @@ from .region_exclusion import apply
 from .deformation_qa import inspect
 
 
-def apply_batch(files, decisions):
+def apply_batch(files, decisions, *, after_components=False):
+    if after_components and 'component-mount.json' not in files: raise ValueError('character_post_component_source_required')
     if not decisions or len(decisions) > 64:
         raise ValueError('character_final_exclusion_scope')
     keys = [(d['layer_id'], d['region_id']) for d in decisions]
@@ -28,14 +29,23 @@ def apply_batch(files, decisions):
         output = apply(output, current)
     # Skirt geometry is untouched and remains available to the captured timeline.
     if 'skirt-trial.json' in files: output['skirt-trial.json'] = files['skirt-trial.json']
+    if after_components:
+        mount=json.loads(files['component-mount.json']);removed={d['region_id'] for d in decisions}
+        mount['excluded_pixels']=sum(r['visible_pixels'] for r in mount['parts'] if r['region_id'] in removed)
+        mount['covered_pixels']-=mount['excluded_pixels']
+        mount['parts']=[r for r in mount['parts'] if r['region_id'] not in removed]
+        mount['excluded_region_ids']=sorted(removed)
+        output['component-mount.json']=canonical_bytes(mount)
+        for name in ('component-mount.json','component-mount-decision.json','final-region-exclusion.json'):
+            if name in files: output['pre-exclusion-evidence/'+name]=files[name]
     # Preserve earlier evidence as provenance, not as a claim about the modified scene.
     for name in ('residual-transfer.json', 'deformation.json'):
         if name in files: output['pre-exclusion-evidence/'+name] = files[name]
     output['deformation.json'] = canonical_bytes(inspect(output))
-    receipt = dict(schema='autospine.final-region-exclusion/v1', authority='none',
+    receipt = dict(schema='autospine.final-region-exclusion/v2' if after_components else 'autospine.final-region-exclusion/v1', authority='none',
                    production_authorized=False, source_bundle_sha256=digest,
                    decisions=sorted(decisions, key=lambda d: (d['layer_id'], d['region_id'])),
-                   execution_stage='after_motion_texture_skirt', runtime_status='not_run')
+                   execution_stage='after_components' if after_components else 'after_motion_texture_skirt', runtime_status='not_run')
     output['final-region-exclusion.json'] = canonical_bytes(receipt)
     manifest = json.loads(output['character-manifest.json'])
     manifest['files'] = {n: sha256(b).hexdigest() for n, b in output.items() if n != 'character-manifest.json'}
