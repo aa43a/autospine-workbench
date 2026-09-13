@@ -18,7 +18,9 @@ python tools/build-character-component-mount.py --state-root workspace --source 
 生成的 `component-mount.json` 记录像素覆盖、分区、父骨骼及是否已确认；`component-mount-decision.json`
 保留实际决定。省略决定时只生成未确认候选。官方捕获器遇到该候选会附加可拖动的捕获帧时间轴。
 生成入口为 CLI；项目服务已提供 `automation/character/component-mounts` 的 GET/POST 保存与撤销接口。
-可视化选择入口尚待接入，当前项目没有因此自动采用已有 CLI 包。
+工作台“动画预览 → 整角色候选”的完成状态下方、逐层账本之前，提供“同层部件分别绑定”入口。选择源区域，点击“显示区域与骨架”；点选蓝色区域后点骨骼，或使用区域对应的下拉框。全部检查后保存，再构建整角色候选。
+
+点击“撤销分区绑定”并重建可恢复原来的源区域。零散像素数量单独显示，不会自动排除。已应用的分区候选提供专用捕获帧时间轴。保存界面不要求填写内容地址。
 
 保存请求使用 `action: replace`、`expected_head_sha256`、来源 `job_id`、完整 `decision`
 及计算计划时使用的 `allowed_parents`。服务验证确切来源和完整分区计划后，追加不可变历史。
@@ -34,3 +36,7 @@ v1 每个项目保存一个源区域的完整映射；不是批量跨图层累�
 
 本次 1,675 帧官方 WebGL 4.3.13 验证通过，setup 无新增或缺失可见像素，首帧截图与分区前逐字节一致。
 证据见 [小恶魔四翼整角色候选](benchmark/xiaoemo-component-mount-v1.json)。
+
+该映射现已保存到小恶魔工作台，重建结果与原候选逐字节一致，新的官方捕获通过 1,675 帧。
+见 [工作台应用证据](benchmark/xiaoemo-component-mount-workbench-v1.json)。未变化裙装绑定的原确认仍保存在历史中；
+跨分区转换的精确复用证明尚待接入，不应重新索取同一确认或声称它已复用。

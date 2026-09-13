@@ -20,6 +20,7 @@ def dispatch_character(tail,handler,method,project):
     allowed = 'GET, HEAD, POST, OPTIONS' if not tail else None
     if tail == ['regions']: allowed='GET, HEAD, POST, OPTIONS'
     if tail in (['final-regions'], ['component-mounts']): allowed='GET, HEAD, POST, OPTIONS'
+    if tail == ['component-mount-plan']: allowed='POST, OPTIONS'
     if len(tail)==2 and tail[0]=='jobs': allowed='GET, HEAD, OPTIONS'
     if len(tail)==3 and tail[0]=='jobs' and tail[2]=='download': allowed='GET, HEAD, OPTIONS'
     if len(tail)==3 and tail[0]=='jobs' and tail[2]=='cancel': allowed='POST, OPTIONS'
@@ -35,7 +36,10 @@ def dispatch_character(tail,handler,method,project):
         if method=='POST':
             _require_mutation(handler.headers)
             body=read_json_object_request(handler,maximum_bytes=16384)
-            if tail == ['component-mounts']:
+            if tail == ['component-mount-plan']:
+                from .character_component_plan import prepare
+                value=prepare(manager,project,body)
+            elif tail == ['component-mounts']:
                 from .character_component_mounts import save
                 value=save(manager,project,body)
             elif tail == ['final-regions']:

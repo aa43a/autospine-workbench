@@ -1,0 +1,20 @@
+{
+  "schema": "autospine.component-mount-workbench-evidence/v1",
+  "project_id": "imported-2c2b45ec951d8e890be5d01751dc0ababbd451a96c45c75bd333b92f0fcda17a",
+  "job_id": "job-6c882490006d4f0480f2a6efb7e93f07",
+  "artifact_sha256": "f7a702a130da08df9ec20e4c7d9bdd9b5e560ae19cab8697a6609bb60155adb1",
+  "source_bundle_sha256": "bd576c0199bec6a701313dc75c144d6d5f81c8596a87e25555e421b54ed01b4b",
+  "review_sha256": "ea75f046aae30008abace226907db4b0b389e4d318bb1abf4257148af61e2221",
+  "runtime_report_sha256": "f44110583b5bb8017e4068b5b5bf9f6ec7364221c2f4605af7dae690a9e322a1",
+  "runtime_passed": true,
+  "frames": 1675,
+  "geometry_status": "passed",
+  "runtime_inventory_verified": true,
+  "exact_previously_verified_candidate": true,
+  "workbench_applied": true,
+  "original_human_decision_preserved": true,
+  "unchanged_binding_scope_replay": "pending",
+  "whole_character_visual_review": "not_reviewed",
+  "authority": "none",
+  "production_authorized": false
+}
