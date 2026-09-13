@@ -9,7 +9,7 @@ from ...asset.planning.component_local_solver import metrics
 from .affine_pose import sample, matrices
 from .deform_addition import entries, value, local_delta, add
 from .numeric_reference import read
-from .shoulder_source import contexts
+from .shoulder_source import contexts, select_rows
 from .shoulder_boundary import prepare, solve
 from .shoulder_boundary_candidate import finalize
 from .skirt_candidate import inverse
@@ -38,6 +38,7 @@ def generate(files, source_digest, trial_files, trial_digest, *, progress=lambda
     if prior['profile'] != 'proximal-contact-pinned-shape-v1' or prior['source_character_sha256'] != source_digest:
         raise ValueError('shoulder_adaptive_trial_source_mismatch')
     original, rows = contexts(files); document = json.loads(trial_files['skeleton.json'])
+    rows = select_rows(rows, sorted({r['slot'] for r in prior['records']}))
     if any(original[key] != document[key] for key in ('bones', 'slots', 'skins')):
         raise ValueError('shoulder_adaptive_unexpected_bind_change')
     prepared = [(r, prepare(r['points'], r['triangles'], r['contact'], r['root'], r['distal']),

@@ -1,0 +1,72 @@
+{
+  "schema": "autospine.shoulder-temporal-progress/v1",
+  "authority": "none",
+  "selected": false,
+  "production_authorized": false,
+  "character": "lumia",
+  "source_character_sha256": "5f2793dba589d83b0ba1de7d1d62ff8fd37393302e8c36d63041a6344d4d2391",
+  "source_trial_sha256": "c5824526c726467cc151c817c019ddcc4b3afa40011a0e46e5f37ed55aa843b9",
+  "candidate_sha256": "cc437863f49de5bfa069c8b862b34ac849132e0c594868f91c9f0b20c24403d7",
+  "geometry_passed": true,
+  "temporal_history": [
+    {
+      "round": 1,
+      "failing_samples": 0,
+      "solved_keys": 39
+    }
+  ],
+  "rebuilt_clips": [
+    {
+      "animation": "wave-left",
+      "slot": "layer-004"
+    }
+  ],
+  "dense_boundary": [
+    {
+      "animation": "idle",
+      "frames": 257,
+      "max_pin_error_px": 2.3437142008433856e-13,
+      "original_pin_error_px": 2.3437142008433856e-13,
+      "max_displacement_budget_ratio": 2.8533183436695853e-14
+    },
+    {
+      "animation": "limb-flex-15",
+      "frames": 257,
+      "max_pin_error_px": 0.0,
+      "original_pin_error_px": 0.0,
+      "max_displacement_budget_ratio": 0.0011407671126010097
+    },
+    {
+      "animation": "walk",
+      "frames": 1085,
+      "max_pin_error_px": 0.38071783692723166,
+      "original_pin_error_px": 10.473479424133995,
+      "max_displacement_budget_ratio": 0.14147201673156276
+    },
+    {
+      "animation": "wave-left",
+      "frames": 525,
+      "max_pin_error_px": 0.18913672885314567,
+      "original_pin_error_px": 50.51636215211046,
+      "max_displacement_budget_ratio": 0.5339971769585802
+    }
+  ],
+  "unselected_error_px": 0.0,
+  "distal_fixed_error_px": 5.684341886080802e-14,
+  "runtime": {
+    "report_sha256": "64d550cf5218975d8669cb369f9a631316ed0904344ea3ad30fff3b35ccc1306",
+    "frames": 2124,
+    "max_error_px": 0.00013213563254110285,
+    "scope": "all_attachment_vertices_and_nonempty_unclipped_framebuffer"
+  },
+  "preserved": [
+    "bones",
+    "slots",
+    "skins",
+    "source_png",
+    "atlas",
+    "other_candidate_clips"
+  ],
+  "visual_status": "agent_observed_new_shoulder_contour_corner; human_acceptance_not_recorded",
+  "conclusion": "keep_original_workbench_candidate; do_not_apply_to_already_connected_regions"
+}

@@ -6,6 +6,15 @@ from .affine_pose import sample
 from .skirt_contact import source_image
 
 
+def select_rows(rows, slot_ids):
+    if slot_ids is None: return rows
+    if not isinstance(slot_ids, (list, tuple)) or not slot_ids or any(type(s) is not str for s in slot_ids):
+        raise ValueError('shoulder_region_selection_invalid')
+    if len(set(slot_ids)) != len(slot_ids) or set(slot_ids)-{r['slot'] for r in rows}:
+        raise ValueError('shoulder_region_selection_invalid')
+    return [r for r in rows if r['slot'] in slot_ids]
+
+
 def contexts(files):
     document = json.loads(files['skeleton.json'])
     manifest = json.loads(files['character-manifest.json'])

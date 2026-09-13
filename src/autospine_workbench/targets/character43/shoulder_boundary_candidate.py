@@ -8,15 +8,16 @@ from ...automation.storage_io import canonical_bytes
 from .affine_pose import sample, matrices
 from .deformation_qa import inspect
 from .numeric_reference import read, write
-from .shoulder_source import contexts
+from .shoulder_source import contexts, select_rows
 from .shoulder_boundary import prepare, solve
 from .skirt_candidate import inverse
 from .deform_addition import entries, local_delta, add
 
 
-def generate(files, source_digest, *, progress=lambda message: None):
+def generate(files, source_digest, *, slot_ids=None, progress=lambda message: None):
     inspect(files)
     original, rows = contexts(files); document = deepcopy(original)
+    rows = select_rows(rows, slot_ids)
     source_reference = read(files); records = []; prepared = []
     for row in rows:
         if not row['contact']: raise ValueError('shoulder_boundary_contact_missing')

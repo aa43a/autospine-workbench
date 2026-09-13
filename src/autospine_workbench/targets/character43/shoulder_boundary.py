@@ -32,7 +32,7 @@ def prepare(points, triangles, contact, root, distal):
                 proximal_projection_px=proximal, budget_px=length*.75)
 
 
-def solve(document, animation, time, points, triangles, world, context):
+def solve(document, animation, time, points, triangles, world, context, *, previous=None):
     setup_matrix = matrices(dict(document, animations={'setup': {}}), 'setup', 0)['chest']
     current = matrices(document, animation, time)['chest']
     a, b, c, d, x, y = current
@@ -40,7 +40,9 @@ def solve(document, animation, time, points, triangles, world, context):
     for vertex in context['pins']:
         u, v = inverse(setup_matrix, points[vertex])
         fixed[vertex] = [a*u+b*v+x, c*u+d*v+y]
-    corrected, evidence = refine(points, triangles, fixed, context['free'], world, seed=world)
+    corrected, evidence = refine(points, triangles, fixed, context['free'], world,
+                                 seed=world if previous is None else previous,
+                                 temporal=previous is not None, continuation=previous is not None)
     moved = max(math.dist(a, b) for a, b in zip(corrected, world, strict=True))
     quality = metrics(points, corrected, triangles)
     evidence.update(geometry=quality, displacement_from_original_px=moved,
