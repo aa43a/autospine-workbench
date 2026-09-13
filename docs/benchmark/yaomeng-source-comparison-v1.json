@@ -1,0 +1,599 @@
+{
+  "schema": "autospine.psd-version-comparison/v1",
+  "authority": "none",
+  "production_authorized": false,
+  "character_id": "character-677e29171939a236",
+  "selection_status": "pending",
+  "versions": [
+    {
+      "source": {
+        "byte_size": 3204828,
+        "canvas": [
+          1280,
+          1280
+        ],
+        "path": "yaomeng.psd",
+        "sha256": "4158dbf15da2dbd8a9e59f4386130b54265cee997ddeb39cb79ad87e353a33c7"
+      },
+      "layers": [
+        {
+          "index": 0,
+          "name": "back hair",
+          "visible": true,
+          "bbox": [
+            520,
+            18,
+            760,
+            240
+          ]
+        },
+        {
+          "index": 1,
+          "name": "objects",
+          "visible": true,
+          "bbox": [
+            516,
+            361,
+            1001,
+            680
+          ]
+        },
+        {
+          "index": 2,
+          "name": "handwear-l",
+          "visible": true,
+          "bbox": [
+            693,
+            258,
+            935,
+            669
+          ]
+        },
+        {
+          "index": 3,
+          "name": "handwear-r",
+          "visible": true,
+          "bbox": [
+            346,
+            257,
+            584,
+            669
+          ]
+        },
+        {
+          "index": 4,
+          "name": "legwear",
+          "visible": true,
+          "bbox": [
+            475,
+            649,
+            807,
+            1207
+          ]
+        },
+        {
+          "index": 5,
+          "name": "footwear",
+          "visible": true,
+          "bbox": [
+            453,
+            1148,
+            828,
+            1276
+          ]
+        },
+        {
+          "index": 6,
+          "name": "bottomwear",
+          "visible": true,
+          "bbox": [
+            382,
+            449,
+            898,
+            790
+          ]
+        },
+        {
+          "index": 7,
+          "name": "topwear",
+          "visible": true,
+          "bbox": [
+            551,
+            221,
+            728,
+            503
+          ]
+        },
+        {
+          "index": 8,
+          "name": "neck",
+          "visible": true,
+          "bbox": [
+            615,
+            173,
+            666,
+            252
+          ]
+        },
+        {
+          "index": 9,
+          "name": "eyebrow-l",
+          "visible": true,
+          "bbox": [
+            655,
+            118,
+            699,
+            125
+          ]
+        },
+        {
+          "index": 10,
+          "name": "eyebrow-r",
+          "visible": true,
+          "bbox": [
+            576,
+            118,
+            623,
+            128
+          ]
+        },
+        {
+          "index": 11,
+          "name": "ears-r",
+          "visible": true,
+          "bbox": [
+            558,
+            145,
+            593,
+            190
+          ]
+        },
+        {
+          "index": 12,
+          "name": "ears-l",
+          "visible": true,
+          "bbox": [
+            685,
+            144,
+            721,
+            190
+          ]
+        },
+        {
+          "index": 13,
+          "name": "face",
+          "visible": true,
+          "bbox": [
+            565,
+            67,
+            711,
+            228
+          ]
+        },
+        {
+          "index": 14,
+          "name": "nose",
+          "visible": true,
+          "bbox": [
+            635,
+            173,
+            640,
+            183
+          ]
+        },
+        {
+          "index": 15,
+          "name": "mouth",
+          "visible": true,
+          "bbox": [
+            628,
+            197,
+            650,
+            201
+          ]
+        },
+        {
+          "index": 16,
+          "name": "eyewhite-r",
+          "visible": true,
+          "bbox": [
+            582,
+            141,
+            619,
+            169
+          ]
+        },
+        {
+          "index": 17,
+          "name": "eyewhite-l",
+          "visible": true,
+          "bbox": [
+            658,
+            141,
+            696,
+            169
+          ]
+        },
+        {
+          "index": 18,
+          "name": "irides-r",
+          "visible": true,
+          "bbox": [
+            592,
+            140,
+            616,
+            169
+          ]
+        },
+        {
+          "index": 19,
+          "name": "irides-l",
+          "visible": true,
+          "bbox": [
+            661,
+            141,
+            685,
+            169
+          ]
+        },
+        {
+          "index": 20,
+          "name": "eyelash-l",
+          "visible": true,
+          "bbox": [
+            655,
+            135,
+            703,
+            162
+          ]
+        },
+        {
+          "index": 21,
+          "name": "eyelash-r",
+          "visible": true,
+          "bbox": [
+            574,
+            135,
+            622,
+            162
+          ]
+        },
+        {
+          "index": 22,
+          "name": "headwear",
+          "visible": true,
+          "bbox": [
+            528,
+            5,
+            712,
+            136
+          ]
+        },
+        {
+          "index": 23,
+          "name": "front hair",
+          "visible": true,
+          "bbox": [
+            550,
+            33,
+            726,
+            252
+          ]
+        }
+      ],
+      "duplicate_layer_names": [],
+      "preview_sha256": "d50911ecb956d18adcd032354a93571e337ccc1e998945b3559c40494e3ceff9"
+    },
+    {
+      "source": {
+        "byte_size": 3804192,
+        "canvas": [
+          1280,
+          1280
+        ],
+        "path": "yaomeng1.psd",
+        "sha256": "3ccbd2a85d2a5f423d33aa2c929ef4517a9afe2f6eabcaf9c02a9ca78f85a801"
+      },
+      "layers": [
+        {
+          "index": 0,
+          "name": "back hair",
+          "visible": true,
+          "bbox": [
+            504,
+            41,
+            754,
+            286
+          ]
+        },
+        {
+          "index": 1,
+          "name": "objects",
+          "visible": true,
+          "bbox": [
+            184,
+            257,
+            1105,
+            838
+          ]
+        },
+        {
+          "index": 2,
+          "name": "handwear-l",
+          "visible": true,
+          "bbox": [
+            649,
+            231,
+            804,
+            535
+          ]
+        },
+        {
+          "index": 3,
+          "name": "footwear",
+          "visible": true,
+          "bbox": [
+            512,
+            1113,
+            723,
+            1268
+          ]
+        },
+        {
+          "index": 4,
+          "name": "legwear",
+          "visible": true,
+          "bbox": [
+            505,
+            541,
+            784,
+            1185
+          ]
+        },
+        {
+          "index": 5,
+          "name": "neck",
+          "visible": true,
+          "bbox": [
+            584,
+            181,
+            641,
+            259
+          ]
+        },
+        {
+          "index": 6,
+          "name": "bottomwear",
+          "visible": true,
+          "bbox": [
+            508,
+            413,
+            826,
+            679
+          ]
+        },
+        {
+          "index": 7,
+          "name": "neckwear",
+          "visible": true,
+          "bbox": [
+            584,
+            238,
+            635,
+            259
+          ]
+        },
+        {
+          "index": 8,
+          "name": "topwear",
+          "visible": true,
+          "bbox": [
+            504,
+            247,
+            749,
+            469
+          ]
+        },
+        {
+          "index": 9,
+          "name": "handwear-r",
+          "visible": true,
+          "bbox": [
+            417,
+            266,
+            575,
+            684
+          ]
+        },
+        {
+          "index": 10,
+          "name": "eyebrow-l",
+          "visible": true,
+          "bbox": [
+            669,
+            162,
+            703,
+            183
+          ]
+        },
+        {
+          "index": 11,
+          "name": "eyebrow-r",
+          "visible": true,
+          "bbox": [
+            611,
+            149,
+            635,
+            154
+          ]
+        },
+        {
+          "index": 12,
+          "name": "ears-l",
+          "visible": true,
+          "bbox": [
+            664,
+            191,
+            700,
+            227
+          ]
+        },
+        {
+          "index": 13,
+          "name": "ears-r",
+          "visible": true,
+          "bbox": [
+            552,
+            152,
+            574,
+            196
+          ]
+        },
+        {
+          "index": 14,
+          "name": "face",
+          "visible": true,
+          "bbox": [
+            544,
+            42,
+            735,
+            250
+          ]
+        },
+        {
+          "index": 15,
+          "name": "nose",
+          "visible": true,
+          "bbox": [
+            643,
+            201,
+            650,
+            210
+          ]
+        },
+        {
+          "index": 16,
+          "name": "mouth",
+          "visible": true,
+          "bbox": [
+            625,
+            221,
+            640,
+            227
+          ]
+        },
+        {
+          "index": 17,
+          "name": "irides-l",
+          "visible": true,
+          "bbox": [
+            661,
+            182,
+            685,
+            203
+          ]
+        },
+        {
+          "index": 18,
+          "name": "eyewhite-r",
+          "visible": true,
+          "bbox": [
+            596,
+            166,
+            631,
+            188
+          ]
+        },
+        {
+          "index": 19,
+          "name": "eyewhite-l",
+          "visible": true,
+          "bbox": [
+            661,
+            183,
+            693,
+            204
+          ]
+        },
+        {
+          "index": 20,
+          "name": "irides-l",
+          "visible": true,
+          "bbox": [
+            665,
+            181,
+            690,
+            205
+          ]
+        },
+        {
+          "index": 21,
+          "name": "eyelash-l",
+          "visible": true,
+          "bbox": [
+            659,
+            177,
+            701,
+            205
+          ]
+        },
+        {
+          "index": 22,
+          "name": "irides-r",
+          "visible": true,
+          "bbox": [
+            601,
+            164,
+            626,
+            187
+          ]
+        },
+        {
+          "index": 23,
+          "name": "eyelash-r",
+          "visible": true,
+          "bbox": [
+            583,
+            157,
+            636,
+            189
+          ]
+        },
+        {
+          "index": 24,
+          "name": "front hair",
+          "visible": true,
+          "bbox": [
+            562,
+            50,
+            725,
+            298
+          ]
+        },
+        {
+          "index": 25,
+          "name": "headwear",
+          "visible": true,
+          "bbox": [
+            539,
+            59,
+            743,
+            285
+          ]
+        }
+      ],
+      "duplicate_layer_names": [
+        "irides-l"
+      ],
+      "preview_sha256": "90c24f637da631b5159113da407c7e32e17442dbb88a927c64403a2a4d0bd786"
+    }
+  ],
+  "existing_project": "yaomeng",
+  "existing_project_source_sha256": "4158dbf15da2dbd8a9e59f4386130b54265cee997ddeb39cb79ad87e353a33c7",
+  "observations": [
+    "yaomeng.psd: frontal standing pose; 24 layers; current project source",
+    "yaomeng1.psd: tilted pose, long sleeves; 26 layers; duplicate irides-l name"
+  ],
+  "recommended_source": "yaomeng.psd",
+  "recommendation_basis": "Matches existing project and restricted-input scope; recommendation is not a human selection."
+}
