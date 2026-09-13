@@ -1,0 +1,305 @@
+{
+  "schema": "autospine.head-prerequisite-progress/v1",
+  "authority": "none",
+  "production_authorized": false,
+  "manual_confirmed_layers": 4,
+  "automatic_adopted_layers": 20,
+  "policy_changed": false,
+  "characters": [
+    {
+      "project_id": "lumia",
+      "manual_scope": {
+        "layer-008": "rigid:neck",
+        "layer-011": "rigid:head"
+      },
+      "confirmed_proposal_sources": {
+        "resolved_project_sha256": "46f71d48c0eb01e5f799a99b53789e3e81e19142d74cd4b207cbf77d896b9584",
+        "input_identity_sha256": "b68664a767e2601faf22591a22d69d5cfbab850d9e908760571f427b79fc0b64",
+        "animated_registration_sha256": "604fad51f71f08751e7d9455f977226ff18322f2e70a6589f03692ed291ce7d2",
+        "benchmark_manifest_sha256": "ac82341cf2f35be8d0dae8fd002032eabdf672be35baf76d754426fde295606a",
+        "semantic_candidate_sha256": "2438d0c7ffd6c4943e877564c0705fda0734bfcf813323609e891a7852e3bf53",
+        "skeleton_candidate_sha256": "5c4d19099caea31b044c56fc1018ffb3c66a410c71c3f8b977d8b96de8a6b3b6",
+        "layer_bindings_sha256": "23267e080f4793cabecbb26155179b5fcd3bb0bc29d9e50fe3e24fd23cf2d8f2",
+        "layer_binding_draft_sha256": "fdf53ba3b3b6cf52117fc700909278e6a8b0f49dda979f88b2d0560574877513"
+      },
+      "after_manual_input_sha256": "a0cf7e8d6b3ec69fbdb49b7d3ca43af2d6e285f08e2565bf73317e893dd26c81",
+      "automatic_source_addresses": {
+        "resolved_project_sha256": "46f71d48c0eb01e5f799a99b53789e3e81e19142d74cd4b207cbf77d896b9584",
+        "input_identity_sha256": "2fef03c1057ca61773dc1799bb84b927a6cf420f43cbb701b90830281935deef",
+        "animated_registration_sha256": "96deab2c2544eadfc89ca6be66ea2ac6d54ad3575266429cdb6a8f3ca211009a",
+        "benchmark_manifest_sha256": "ac82341cf2f35be8d0dae8fd002032eabdf672be35baf76d754426fde295606a",
+        "semantic_candidate_sha256": "2438d0c7ffd6c4943e877564c0705fda0734bfcf813323609e891a7852e3bf53",
+        "skeleton_candidate_sha256": "5c4d19099caea31b044c56fc1018ffb3c66a410c71c3f8b977d8b96de8a6b3b6",
+        "layer_bindings_sha256": "23267e080f4793cabecbb26155179b5fcd3bb0bc29d9e50fe3e24fd23cf2d8f2",
+        "layer_binding_draft_sha256": "26fe0b2437be4ea96da73105f5dfb2b93f52b7d31579b553f216643c8019c18a"
+      },
+      "automatic_changed_layer_ids": [
+        "layer-010",
+        "layer-012",
+        "layer-013",
+        "layer-014",
+        "layer-015",
+        "layer-016",
+        "layer-017",
+        "layer-018",
+        "layer-019",
+        "layer-020"
+      ],
+      "reversible_decisions": [
+        {
+          "decision_sha256": "cd137f4c96a3ed5c086c2f0133e27376e3e0df56e53fb5fa114562584faed5fa",
+          "revision": 7,
+          "policy_id": "reviewed-head-anchor-binding-v4",
+          "layer_names": [
+            "eyebrow-l",
+            "nose",
+            "mouth",
+            "eyebrow-r",
+            "eyewhite-r",
+            "eyewhite-l",
+            "irides-l",
+            "irides-r",
+            "eyelash-l",
+            "eyelash-r"
+          ],
+          "can_undo": true,
+          "reason_code": null
+        }
+      ],
+      "automatic_accuracy": "unmeasured",
+      "remaining_policy_exceptions": [
+        {
+          "layer_id": "layer-000",
+          "name": "back hair",
+          "reason_codes": [
+            "policy_capability_unsupported"
+          ]
+        },
+        {
+          "layer_id": "layer-001",
+          "name": "legwear",
+          "reason_codes": [
+            "policy_capability_unsupported"
+          ]
+        },
+        {
+          "layer_id": "layer-002",
+          "name": "footwear",
+          "reason_codes": [
+            "side_name_required"
+          ]
+        },
+        {
+          "layer_id": "layer-003",
+          "name": "handwear-r",
+          "reason_codes": [
+            "policy_capability_unsupported"
+          ]
+        },
+        {
+          "layer_id": "layer-004",
+          "name": "handwear-l",
+          "reason_codes": [
+            "policy_capability_unsupported"
+          ]
+        },
+        {
+          "layer_id": "layer-005",
+          "name": "bottomwear",
+          "reason_codes": [
+            "policy_capability_unsupported"
+          ]
+        },
+        {
+          "layer_id": "layer-006",
+          "name": "topwear",
+          "reason_codes": [
+            "policy_capability_unsupported"
+          ]
+        },
+        {
+          "layer_id": "layer-007",
+          "name": "ears-r",
+          "reason_codes": [
+            "visible_face_containment"
+          ]
+        },
+        {
+          "layer_id": "layer-009",
+          "name": "ears-l",
+          "reason_codes": [
+            "visible_face_containment"
+          ]
+        },
+        {
+          "layer_id": "layer-021",
+          "name": "front hair",
+          "reason_codes": [
+            "policy_capability_unsupported"
+          ]
+        }
+      ],
+      "job_id": "job-b9f65ed511414041aa3cfce9e7c5ebb4",
+      "artifact_sha256": "19f246608ede213e89d28464785f5b864e7a03414bb6ca5d11dcca383e1d57ca",
+      "runtime_report_sha256": "db1f1e724be096262e69b69ef9100e7596fff3fff3e76df0c27ace5ed8249f8a",
+      "runtime_passed": true,
+      "runtime_version": "4.3.13",
+      "animation_frames": {
+        "idle": 129,
+        "limb-flex-15": 129,
+        "walk": 513,
+        "wave-left": 257
+      },
+      "visual_review": "not_reviewed",
+      "preservation_check": {
+        "current_sources_match_auto_result": true,
+        "all_nonautomatic_records_unchanged": true,
+        "unchanged_record_count": 12
+      }
+    },
+    {
+      "project_id": "lingxian",
+      "manual_scope": {
+        "layer-004": "rigid:neck",
+        "layer-011": "rigid:head"
+      },
+      "confirmed_proposal_sources": {
+        "resolved_project_sha256": "7adfe2302b53ca94e84828cac69b3c4be1ea3eb8c14072a522982fff52a3b565",
+        "input_identity_sha256": "50d65764ed75b7cdd5782faf200530c64ab79a3f2d83a21ce6611cfc8341559d",
+        "animated_registration_sha256": "4e69e64926264be122d9f50d9dfb0195fa386b61012f12cd30e4255091fa4416",
+        "benchmark_manifest_sha256": "ab91a9b8a7a6f0a07a933800e5627c18004c70e3f9aa8c35daf1203c9edb4b1c",
+        "semantic_candidate_sha256": "1d81b699821c535740c3c8090332b3f6cf8d71546e59aa135c73a783173389ca",
+        "skeleton_candidate_sha256": "9c2b729b43c01265b187c4d2c1a53293bf160ca621f7321c8386f4fc7515ddd0",
+        "layer_bindings_sha256": "b3fbe4fded1cf00411c116cbc363b0ff7e0b45a24c88eceaa3b551e5981d0776",
+        "layer_binding_draft_sha256": "8d3fcea394c754a3d42e63b7ae72052eb59786ab8a304b9423f72315e0559566"
+      },
+      "after_manual_input_sha256": "b6a6abdb93a1e3a090468f2bf24c04c4776320565df5c26e77f7c3084265a234",
+      "automatic_source_addresses": {
+        "resolved_project_sha256": "7adfe2302b53ca94e84828cac69b3c4be1ea3eb8c14072a522982fff52a3b565",
+        "input_identity_sha256": "988095e358423e827e736ce8e0c508c0235411d552e16aad580ac6af36d6b6de",
+        "animated_registration_sha256": "18749f03f9799a0651408d8b74f24500903e1f593d842f6f5f1c7d541ec3bffb",
+        "benchmark_manifest_sha256": "ab91a9b8a7a6f0a07a933800e5627c18004c70e3f9aa8c35daf1203c9edb4b1c",
+        "semantic_candidate_sha256": "1d81b699821c535740c3c8090332b3f6cf8d71546e59aa135c73a783173389ca",
+        "skeleton_candidate_sha256": "9c2b729b43c01265b187c4d2c1a53293bf160ca621f7321c8386f4fc7515ddd0",
+        "layer_bindings_sha256": "b3fbe4fded1cf00411c116cbc363b0ff7e0b45a24c88eceaa3b551e5981d0776",
+        "layer_binding_draft_sha256": "140bb5c9b574dd8f9abfb529620f7d6b1ad2883776ccfed401de657181c49dce"
+      },
+      "automatic_changed_layer_ids": [
+        "layer-007",
+        "layer-008",
+        "layer-009",
+        "layer-012",
+        "layer-013",
+        "layer-014",
+        "layer-015",
+        "layer-016",
+        "layer-017",
+        "layer-019"
+      ],
+      "reversible_decisions": [
+        {
+          "decision_sha256": "ceb0e7a1d68f97fc3aabfd707a52ade9bdd9c3cc0fa849803e2c9bce1a647bcb",
+          "revision": 4,
+          "policy_id": "reviewed-head-anchor-binding-v4",
+          "layer_names": [
+            "ears-r",
+            "eyebrow-l",
+            "eyebrow-r",
+            "nose",
+            "mouth",
+            "eyewhite-r",
+            "eyewhite-l",
+            "irides-r",
+            "irides-l",
+            "eyelash-l"
+          ],
+          "can_undo": true,
+          "reason_code": null
+        }
+      ],
+      "automatic_accuracy": "unmeasured",
+      "remaining_policy_exceptions": [
+        {
+          "layer_id": "layer-000",
+          "name": "back hair",
+          "reason_codes": [
+            "policy_capability_unsupported"
+          ]
+        },
+        {
+          "layer_id": "layer-001",
+          "name": "handwear-r",
+          "reason_codes": [
+            "policy_capability_unsupported"
+          ]
+        },
+        {
+          "layer_id": "layer-002",
+          "name": "handwear-l",
+          "reason_codes": [
+            "policy_capability_unsupported"
+          ]
+        },
+        {
+          "layer_id": "layer-003",
+          "name": "legwear",
+          "reason_codes": [
+            "policy_capability_unsupported"
+          ]
+        },
+        {
+          "layer_id": "layer-005",
+          "name": "bottomwear",
+          "reason_codes": [
+            "policy_capability_unsupported"
+          ]
+        },
+        {
+          "layer_id": "layer-006",
+          "name": "topwear",
+          "reason_codes": [
+            "policy_capability_unsupported"
+          ]
+        },
+        {
+          "layer_id": "layer-010",
+          "name": "ears-l",
+          "reason_codes": [
+            "visible_face_containment"
+          ]
+        },
+        {
+          "layer_id": "layer-018",
+          "name": "eyelash-r",
+          "reason_codes": [
+            "visible_face_containment"
+          ]
+        },
+        {
+          "layer_id": "layer-020",
+          "name": "front hair",
+          "reason_codes": [
+            "policy_capability_unsupported"
+          ]
+        }
+      ],
+      "job_id": "job-7a972f3afeda450e902c892fcd55adfc",
+      "artifact_sha256": "33f275b8ed727022fd300d2080100ca503847a3b0413d11f068672a1d61075be",
+      "runtime_report_sha256": "56932d05424f0af7f02d9dbb727df573cb586994e89129156fc3202eecd4430b",
+      "runtime_passed": true,
+      "runtime_version": "4.3.13",
+      "animation_frames": {
+        "idle": 129,
+        "limb-flex-15": 129,
+        "walk": 513,
+        "wave-left": 257
+      },
+      "visual_review": "not_reviewed",
+      "preservation_check": {
+        "current_sources_match_auto_result": true,
+        "all_nonautomatic_records_unchanged": true,
+        "unchanged_record_count": 11
+      }
+    }
+  ]
+}
