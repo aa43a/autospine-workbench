@@ -1,0 +1,108 @@
+{
+  "schema": "autospine.version-intake-evidence/v1",
+  "authority": "none",
+  "receipts": [
+    {
+      "character_id": "character-2c3669d4fb0f569d",
+      "source_sha256": "9457d50ec689ef628e347db4125bbc4926192f0dbdcbc361d17fd9f1b00ec2c0",
+      "import": {
+        "job_id": "import-13d9825cf6574e10b062296b5aefd79c",
+        "status": "succeeded",
+        "step": "complete",
+        "authority": "none",
+        "project_id": "imported-9457d50ec689ef628e347db4125bbc4926192f0dbdcbc361d17fd9f1b00ec2c0"
+      },
+      "preparation": {
+        "authority": "none",
+        "expected_resolved_sha256": "b59b5bf08fed8a4493e22f74389bd3ed85b34ad74d8d351f7f98cfef949fa3f3",
+        "job_id": "job-193cc9963edd4d5b97e87e3900ccc2fa",
+        "progress": [
+          {
+            "id": "prepare-source",
+            "status": "succeeded"
+          },
+          {
+            "id": "run-pose",
+            "status": "succeeded"
+          },
+          {
+            "id": "register-review",
+            "status": "succeeded"
+          }
+        ],
+        "project_id": "imported-9457d50ec689ef628e347db4125bbc4926192f0dbdcbc361d17fd9f1b00ec2c0",
+        "reason_code": "joint_review_required",
+        "result": {
+          "authority": "none",
+          "ignored_joint_ids": [],
+          "imported_joint_ids": [],
+          "input_identity_sha256": "5d9888bcf24ca25c674dabbf40f12e3e27177f7d6a2295fc424044c4da9de9ac",
+          "production_authorized": false,
+          "reason_code": "joint_review_required",
+          "reason_codes": [
+            "all_joint_reviews_required"
+          ],
+          "registration_sha256": "6c88b5ca5b4393a9f9dd0abbb807a06d90c7ac6260db4851fa4f517551ed45cb",
+          "reviewed_joint_count": 0,
+          "skeleton_status": "blocked",
+          "source_registered": true,
+          "status": "needs_review"
+        },
+        "schema": "autospine.input-preparation-job/v1",
+        "source_registered": true,
+        "status": "needs_review"
+      }
+    },
+    {
+      "character_id": "character-bdbf05538b91718e",
+      "source_sha256": "16453de50001de216808e2e6dc12ee1db4bbb2cb677de976b52916a2f0d64079",
+      "import": {
+        "job_id": "import-ed70aabaf930487ca909b8c3547010ec",
+        "status": "succeeded",
+        "step": "complete",
+        "authority": "none",
+        "project_id": "imported-16453de50001de216808e2e6dc12ee1db4bbb2cb677de976b52916a2f0d64079"
+      },
+      "preparation": {
+        "authority": "none",
+        "expected_resolved_sha256": "c37a9cdba313f988623dfc0b6f7e7129bc069c845b9d9f746d22ae45fadc0955",
+        "job_id": "job-588e38cdab1b43bcaadde3767ccfd644",
+        "progress": [
+          {
+            "id": "prepare-source",
+            "status": "succeeded"
+          },
+          {
+            "id": "run-pose",
+            "status": "succeeded"
+          },
+          {
+            "id": "register-review",
+            "status": "succeeded"
+          }
+        ],
+        "project_id": "imported-16453de50001de216808e2e6dc12ee1db4bbb2cb677de976b52916a2f0d64079",
+        "reason_code": "joint_review_required",
+        "result": {
+          "authority": "none",
+          "ignored_joint_ids": [],
+          "imported_joint_ids": [],
+          "input_identity_sha256": "3b458987786052ad0e11eec64fd954c98467aad6b551891aae83c229b488cf55",
+          "production_authorized": false,
+          "reason_code": "joint_review_required",
+          "reason_codes": [
+            "all_joint_reviews_required"
+          ],
+          "registration_sha256": "f14bcb10d335f28799c62b61f09607055da1016f7bc92ad9da3e02bac1f493b3",
+          "reviewed_joint_count": 0,
+          "skeleton_status": "blocked",
+          "source_registered": true,
+          "status": "needs_review"
+        },
+        "schema": "autospine.input-preparation-job/v1",
+        "source_registered": true,
+        "status": "needs_review"
+      }
+    }
+  ]
+}

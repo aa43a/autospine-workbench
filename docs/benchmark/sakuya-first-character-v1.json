@@ -1,0 +1,205 @@
+{
+  "project_id": "imported-ac6ba48dc2d5052613d87ab2afc247e4ef5977d9431ef76544a457b3047a3457",
+  "job_id": "job-5cf320166ffe431db5d8d4955588440a",
+  "artifact_sha256": "72f677ae1d75acff5156dd5fa31d27aa285354ebe36c9a1583b1a62a30b72f98",
+  "status": "needs_review",
+  "animations": [
+    "idle",
+    "limb-flex-15",
+    "wave-left"
+  ],
+  "schema": "autospine.character-intake-result/v1",
+  "authority": "none",
+  "production_authorized": false,
+  "runtime_report_sha256": "c2dd36e7ccd1f6c8996a2c5ec4a228b55231579d2b2de4489128ac250e1585ba",
+  "runtime_passed": true,
+  "runtime_frames": 515,
+  "geometry_status": "passed",
+  "layer_states": [
+    {
+      "id": "layer-000",
+      "state": "static_reference",
+      "reason_codes": [
+        "binding_selection_required",
+        "static_reference_not_bound"
+      ]
+    },
+    {
+      "id": "layer-001",
+      "state": "partial",
+      "reason_codes": [
+        "partition_assignment_review_required",
+        "residual_binding_required",
+        "static_reference_not_bound"
+      ]
+    },
+    {
+      "id": "layer-002",
+      "state": "partial",
+      "reason_codes": [
+        "partition_assignment_review_required",
+        "residual_binding_required",
+        "static_reference_not_bound"
+      ]
+    },
+    {
+      "id": "layer-003",
+      "state": "weighted_candidate",
+      "reason_codes": [
+        "mesh_review_required"
+      ]
+    },
+    {
+      "id": "layer-004",
+      "state": "weighted_candidate",
+      "reason_codes": [
+        "mesh_review_required"
+      ]
+    },
+    {
+      "id": "layer-005",
+      "state": "static_reference",
+      "reason_codes": [
+        "binding_selection_required",
+        "static_reference_not_bound"
+      ]
+    },
+    {
+      "id": "layer-006",
+      "state": "static_reference",
+      "reason_codes": [
+        "binding_selection_required",
+        "static_reference_not_bound"
+      ]
+    },
+    {
+      "id": "layer-007",
+      "state": "static_reference",
+      "reason_codes": [
+        "binding_selection_required",
+        "static_reference_not_bound"
+      ]
+    },
+    {
+      "id": "layer-008",
+      "state": "static_reference",
+      "reason_codes": [
+        "binding_selection_required",
+        "static_reference_not_bound"
+      ]
+    },
+    {
+      "id": "layer-009",
+      "state": "static_reference",
+      "reason_codes": [
+        "binding_selection_required",
+        "static_reference_not_bound"
+      ]
+    },
+    {
+      "id": "layer-010",
+      "state": "static_reference",
+      "reason_codes": [
+        "binding_selection_required",
+        "static_reference_not_bound"
+      ]
+    },
+    {
+      "id": "layer-011",
+      "state": "static_reference",
+      "reason_codes": [
+        "binding_selection_required",
+        "static_reference_not_bound"
+      ]
+    },
+    {
+      "id": "layer-012",
+      "state": "static_reference",
+      "reason_codes": [
+        "binding_selection_required",
+        "static_reference_not_bound"
+      ]
+    },
+    {
+      "id": "layer-013",
+      "state": "static_reference",
+      "reason_codes": [
+        "binding_selection_required",
+        "static_reference_not_bound"
+      ]
+    },
+    {
+      "id": "layer-014",
+      "state": "static_reference",
+      "reason_codes": [
+        "binding_selection_required",
+        "static_reference_not_bound"
+      ]
+    },
+    {
+      "id": "layer-015",
+      "state": "static_reference",
+      "reason_codes": [
+        "binding_selection_required",
+        "static_reference_not_bound"
+      ]
+    },
+    {
+      "id": "layer-016",
+      "state": "static_reference",
+      "reason_codes": [
+        "binding_selection_required",
+        "static_reference_not_bound"
+      ]
+    },
+    {
+      "id": "layer-017",
+      "state": "static_reference",
+      "reason_codes": [
+        "binding_selection_required",
+        "static_reference_not_bound"
+      ]
+    },
+    {
+      "id": "layer-018",
+      "state": "static_reference",
+      "reason_codes": [
+        "binding_selection_required",
+        "static_reference_not_bound"
+      ]
+    },
+    {
+      "id": "layer-019",
+      "state": "static_reference",
+      "reason_codes": [
+        "binding_selection_required",
+        "static_reference_not_bound"
+      ]
+    },
+    {
+      "id": "layer-020",
+      "state": "static_reference",
+      "reason_codes": [
+        "binding_selection_required",
+        "static_reference_not_bound"
+      ]
+    },
+    {
+      "id": "layer-021",
+      "state": "static_reference",
+      "reason_codes": [
+        "binding_selection_required",
+        "static_reference_not_bound"
+      ]
+    },
+    {
+      "id": "layer-022",
+      "state": "static_reference",
+      "reason_codes": [
+        "binding_selection_required",
+        "static_reference_not_bound"
+      ]
+    }
+  ],
+  "whole_character_complete": false
+}

@@ -12,6 +12,11 @@ python tools/assess-cohort-intake.py --output ../tmp/character-first-ten
 `source-checks.json`、`project-documents.json`，不修改旧审计或人工决定。
 有证据的旧审计不再要求名称一致；任何来源变化都会保留未核验状态。
 
+经操作者明确选择的新 PSD 版本，通过 `--source-versions docs/benchmark/first-ten-source-versions-v1.json`
+另建一次盘点。版本记录精确绑定原清单字节、角色及原候选；不能顺带更改分组或其他角色。
+报告同时保存原清单与 `selected-manifest.json`，并标注本次并非原冻结字节验收。
+新版本不继承关节真值、已支持动作或 PNG↔PSD 映射批准；仍需独立检查。
+
 打开输出目录中的 `index.html`，按“下一步”核对来源、选择 PSD 版本、恢复或导入项目。
 每个现有项目提供工作台链接。工具不导入素材、不提交复核、不运行构建。
 
