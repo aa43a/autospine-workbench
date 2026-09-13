@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Non-authoritative whole character slot order candidate",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "profile", "authority", "selected", "production_authorized", "source_bundle_sha256", "constraints", "before", "after", "changed", "runtime_status", "visual_status", "preserved"],
+  "properties": {
+    "schema": {"const": "autospine.character-order-candidate/v1"},
+    "profile": {"const": "stable-slot-precedence-v1"},
+    "authority": {"const": "none"},
+    "selected": {"const": false},
+    "production_authorized": {"const": false},
+    "source_bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "constraints": {"type": "array", "minItems": 1, "maxItems": 256, "uniqueItems": true, "items": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "string"}}},
+    "before": {"$ref": "#/$defs/order"},
+    "after": {"$ref": "#/$defs/order"},
+    "changed": {"type": "boolean"},
+    "runtime_status": {"const": "not_run"},
+    "visual_status": {"const": "needs_review"},
+    "preserved": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+  },
+  "$defs": {"order": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}}}
+}

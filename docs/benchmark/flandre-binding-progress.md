@@ -12,4 +12,6 @@
 
 [打开当前候选](http://127.0.0.1:8918/api/projects/imported-3ac977caea4fa3acd2358eab227d156f935436efe12bc1a93e42f506c5e9ee31/automation/character/jobs/job-fd4f0d2de2c347358ac0a3b7e9d2c9e2/view/index.html)。[本轮精确动作证据](flandre-motion-progress-v1.json)。[保留的六层确认与上一版本证据](flandre-binding-progress-v1.json)。
 
-下一步确认翼层绑定并检查裙腿遮挡。自动采用准确率及人工耗时仍未测量，候选不具有发布权。
+已生成独立的 stable-slot-precedence-v1 遮挡顺序候选：将两腿放在裙装后面，骨骼、附件、权重、UV、纹理和动作不变。该候选也通过 1,675 帧官方检查；挥手第 128 帧抽查中平直切边不再可见。它尚未被采用或替换工作台版本，完整对照和确切地址见 [遮挡验证记录](flandre-order-candidate-v1.json)。复核页 `tmp/character-flandre-order/comparison.html` 支持七动作、60 组同帧截图的拖动对照，不冒充连续播放全帧。
+
+下一步确认翼层绑定和裙腿遮挡，再接入统一输出。自动采用准确率及人工耗时仍未测量，候选不具有发布权。
