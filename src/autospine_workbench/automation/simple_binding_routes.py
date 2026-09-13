@@ -6,6 +6,7 @@ from .animated_inputs import load_inputs, _registrations, AnimatedSourceError
 from .head_anchor_policy import propose
 from .simple_binding_adoption import apply, undo, read_decision, KIND
 from .binding_undo import plan_undo
+from .binding_auto_run import apply_all
 
 
 def overview(store, project):
@@ -47,15 +48,16 @@ def dispatch(tail,handler,method,project):
             body=read_json_object_request(handler,maximum_bytes=2048)
             keys={'action','expected_resolved_sha256','expected_input_sha256'}
             if body.get('action')=='undo':keys.add('decision_sha256')
-            if set(body)!=keys or body.get('action') not in ('apply','undo'):
+            if set(body)!=keys or body.get('action') not in ('apply','apply_all','undo'):
                 raise ValueError('invalid policy request')
             for key in keys-{'action'}:require_sha256(body[key],key)
             with load_inputs(store,project) as source:
                 if (source.source_addresses['resolved_project_sha256']!=body['expected_resolved_sha256'] or
                         source.source_addresses['input_identity_sha256']!=body['expected_input_sha256']):
                     raise AnimatedSourceError('animated_review_conflict')
-            operation=apply(store,project,body['expected_input_sha256']) if body['action']=='apply' else \
-                undo(store,project,body['decision_sha256'],body['expected_input_sha256'])
+            if body['action']=='apply_all':operation=apply_all(store,project,body['expected_input_sha256'])
+            elif body['action']=='apply':operation=apply(store,project,body['expected_input_sha256'])
+            else:operation=undo(store,project,body['decision_sha256'],body['expected_input_sha256'])
         result=overview(store,project)
         if operation is not None:result['operation']=operation
         handler._send_visual_json(200,result)

@@ -100,3 +100,28 @@ class PolicyTransactionTests(unittest.TestCase):
         self.assertEqual(final['draft']['source_bindings_sha256'],current['draft']['source_bindings_sha256'])
         self.assertEqual(final['draft']['records'][0],records[0])
         self.assertEqual(final['draft']['records'][-1],latest[-1])
+
+    def test_continuous_run_keeps_individual_durable_undo_batches(self):
+        from autospine_workbench.automation.animated_inputs import load_inputs
+        from autospine_workbench.automation.binding_auto_run import apply_all
+        with load_inputs(self.store,'fixture') as source:
+            selected=[b['layer_id'] for b in source.bindings['bindings'] if b['options']][:2]
+        self.assertEqual(len(selected),2)
+        records=deepcopy(inspect_registration(self.store,'fixture')['draft']['records'])
+        for row in records:
+            if row['layer_id'] in selected:row.update(action='pending',option_id=None,notes='')
+        save_binding_review(self.store,'fixture',self.key(),records)
+        def staged(source):
+            report=self.proposal(source);used=False
+            for row in report['rows']:
+                eligible=row['status']=='eligible' and row['layer_id'] in selected and not used
+                row['status']='eligible' if eligible else 'preserved'
+                if eligible:used=True
+            return report
+        with patch('autospine_workbench.automation.binding_auto_run.propose',staged),patch('autospine_workbench.automation.simple_binding_adoption.propose',staged):
+            result=apply_all(self.store,'fixture',self.key())
+        self.assertEqual(result['rounds'],2)
+        for batch in reversed(result['batches']):
+            read_decision(self.store,'fixture',batch['decision_sha256'])
+            undo(self.store,'fixture',batch['decision_sha256'],self.key())
+        self.assertEqual(inspect_registration(self.store,'fixture')['draft']['records'],records)

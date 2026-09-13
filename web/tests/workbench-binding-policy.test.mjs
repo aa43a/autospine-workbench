@@ -14,7 +14,7 @@ const response=()=>({schema:'autospine.binding-policy-overview/v1',authority:'no
 test('explicit check exposes eligible count and apply refreshes parent',async()=>{
   let request;
   const f=fixture(async(url,init)=>{request=init;return{...response(),operation:{changed:init.method==='POST'}};});
-  assert.equal(f.buttons[1].disabled,true);await f.view.request();assert.equal(f.buttons[1].disabled,false);
+  assert.equal(f.buttons[1].disabled,false);await f.view.request();assert.equal(f.buttons[1].disabled,false);
   await f.view.request('apply');assert.equal(JSON.parse(request.body).expected_input_sha256,'b'.repeat(64));assert.equal(f.saved,1);
 });
 test('dirty edits and missing undo identity prevent mutation',async()=>{
@@ -25,7 +25,7 @@ test('dirty edits and missing undo identity prevent mutation',async()=>{
 test('late response cannot enter a different project',async()=>{
   let release;const f=fixture(()=>new Promise(r=>{release=r;}));const p=f.view.request();
   f.context.projectId='two';f.view.sync(f.model);release(response());await p;
-  assert.equal(f.buttons[1].disabled,true);assert.doesNotMatch(f.status.textContent,/可自动绑定 1/);
+  assert.equal(f.buttons[1].disabled,false);assert.doesNotMatch(f.status.textContent,/可自动绑定 1/);
 });
 test('source identity change discards old policy and undo',async()=>{
  const f=fixture(async()=>({...response(),active_decision_sha256:'c'.repeat(64)}));await f.view.request();assert.equal(f.buttons[2].disabled,false);
@@ -38,4 +38,16 @@ test('undo submits the selected older batch rather than the latest batch',async(
   reversible_decisions:[{decision_sha256:newer,can_undo:true,layer_names:['shoe']},{decision_sha256:older,can_undo:true,layer_names:['eye']}]};});
  await f.view.request();f.buttons[3].value=older;await f.view.request('undo');
  assert.equal(body.decision_sha256,older);
+});
+
+test('one-click automatic run needs no prior check and reports each saved batch',async()=>{
+ let body;const f=fixture(async(url,init)=>{body=JSON.parse(init.body);return {...response(),operation:{schema:'autospine.binding-auto-run/v1',changed:true,rounds:2,changed_layer_ids:['face','eye'],status:'succeeded'}};});
+ await f.view.request('apply_all');assert.equal(body.action,'apply_all');assert.equal(f.saved,1);
+ assert.match(f.status.textContent,/2 批、2 层/);
+});
+
+test('failed mutation refreshes committed state without replaying the request',async()=>{
+ let calls=0;const f=fixture(async()=>{calls++;throw Error('connection lost');});
+ await f.view.request('apply_all');assert.equal(f.saved,1);assert.equal(calls,1);
+ assert.match(f.status.textContent,/核对已保存结果/);
 });

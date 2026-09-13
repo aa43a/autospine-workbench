@@ -1,0 +1,33 @@
+{
+  "project_id": "imported-885b4d3d22ee151a0364ac499a419b8bd0e59699a7b27ee4f65f007eee551590",
+  "counts": {
+    "eligible": 0,
+    "preserved": 23,
+    "needs_review": 4
+  },
+  "source_addresses": {
+    "resolved_project_sha256": "3654096eac18f799250f5ff6b68e4f967c1b172a1fa59a4a4968cd01441faaa5",
+    "input_identity_sha256": "8bc127e5e7fd9e012e26a38fa950bccd346952c87c7211ec7d465d6c29b86b13",
+    "animated_registration_sha256": "f26ed25031206ccfc30991195410786f445295ffd179df8d43bd444b72abda38",
+    "benchmark_manifest_sha256": "526dffed7bc94c4b1c04833a54056e33788c5622c3855733fe4b2eafccf0c993",
+    "semantic_candidate_sha256": "3187f2f7aae1e9a1e43a222492c4d729ca59ddc787021d04bfa27a60ba8500af",
+    "skeleton_candidate_sha256": "40c58c881019c35c397abc28da4516356ff3e62fd0ae49238f1a111952b5f614",
+    "layer_bindings_sha256": "a30d67d1238ecb1df6fbd7fdc44585e2e9111c81f0ecb0838426510134e572ca",
+    "layer_binding_draft_sha256": "c54ccfcac11b5efb93cf1feeda9e0ef05f5b310fd37a237bce0e3b910fb8b543"
+  },
+  "operation": {
+    "schema": "autospine.binding-auto-run/v1",
+    "authority": "none",
+    "production_authorized": false,
+    "changed": false,
+    "status": "succeeded",
+    "reason_code": "safe_bindings_exhausted",
+    "batches": [],
+    "changed_layer_ids": [],
+    "rounds": 0
+  },
+  "schema": "autospine.binding-auto-smoke/v1",
+  "authority": "none",
+  "production_authorized": false,
+  "scope": "no-op on current Hongmeiling input; policy counts are not whole-character review counts"
+}
