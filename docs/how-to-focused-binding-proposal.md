@@ -29,5 +29,12 @@ bottomwear / bottomwear-front 提出独立裙摆候选方向，不会创造一�
 回执见 `benchmark/sakuya-focused-binding-receipt-v1.json`；新候选四动作共 1,028 帧
 官方 Runtime 技术验证通过，见 `benchmark/sakuya-skirt-three-motion-v1.json`。
 18 层刚性已复核、2 层部分覆盖、3 层加权候选；没有静态参考层，但仍未完成整角色验收。
-实际 walk 第 256 帧在头部外侧和腿间可见散点，需继续定位透明边缘和残余来源。
-技术通过不代表这些视觉问题可以忽略。
+对 walk 第 256 帧的初次透明 PNG 预览曾显示头部外侧和腿间明显散点。
+后续实际像素检查发现其中大量 alpha 仅 1/255 或 2/255；将同一捕获帧按真实透明度
+合成到不透明棋盘背景后，先前的大片白点不再出现。因此初次预览不能证明可见渲染故障。
+腿鞋残余归属仍待处理，但不应为透明 PNG 查看器的显示误差删除原素材。
+
+可使用 `tools/inspect-framebuffer-alpha.py --image CAPTURE.png --expected-sha256 SHA
+--output OUTPUT` 复查。SHA 应取自该任务的 Runtime 文件清单。
+工具输出四种不透明背景合成、完整 alpha 统计及原捕获摘要，不修改源 PNG。
+它是保存帧的诊断工具，不是新 Runtime 捕获，也不自动批准视觉结果。
