@@ -1,0 +1,123 @@
+{
+  "decision_source": "human_review",
+  "production_authorized": false,
+  "user_confirmation": "Nine layers accepted as shown in the review mapping",
+  "receipts": [
+    {
+      "project_id": "imported-885b4d3d22ee151a0364ac499a419b8bd0e59699a7b27ee4f65f007eee551590",
+      "job_id": "job-7d8ce666ea13487a953bdfa5258ea79a",
+      "layer_id": "layer-001",
+      "artifact_sha256": "fadde972f148b353592aaeebf75df151b9ef57032efaacde1773ea5a8754d28c",
+      "review_sha256": "845ee841ce19c7d0b458dd2128df3b09902243f55e076c536cf05fcdf8c80be1",
+      "confirmed_layer_ids": [
+        "layer-001",
+        "layer-002",
+        "layer-005"
+      ]
+    },
+    {
+      "project_id": "imported-885b4d3d22ee151a0364ac499a419b8bd0e59699a7b27ee4f65f007eee551590",
+      "job_id": "job-7d8ce666ea13487a953bdfa5258ea79a",
+      "layer_id": "layer-006",
+      "artifact_sha256": "fadde972f148b353592aaeebf75df151b9ef57032efaacde1773ea5a8754d28c",
+      "review_sha256": "24faf94dc6d02ef54a7785d5073a774e30d56c6e0598fef5aeb58640740b541a",
+      "confirmed_layer_ids": [
+        "layer-001",
+        "layer-002",
+        "layer-005",
+        "layer-006"
+      ]
+    },
+    {
+      "project_id": "imported-2c2b45ec951d8e890be5d01751dc0ababbd451a96c45c75bd333b92f0fcda17a",
+      "job_id": "job-6c882490006d4f0480f2a6efb7e93f07",
+      "layer_id": "layer-002",
+      "artifact_sha256": "f7a702a130da08df9ec20e4c7d9bdd9b5e560ae19cab8697a6609bb60155adb1",
+      "review_sha256": "7c49fee8d6cd3045fe83c822efff11c8bee11783aadb4d9678c01f25711b48cd",
+      "confirmed_layer_ids": [
+        "layer-002",
+        "layer-008",
+        "layer-010"
+      ]
+    },
+    {
+      "project_id": "imported-2c2b45ec951d8e890be5d01751dc0ababbd451a96c45c75bd333b92f0fcda17a",
+      "job_id": "job-6c882490006d4f0480f2a6efb7e93f07",
+      "layer_id": "layer-003",
+      "artifact_sha256": "f7a702a130da08df9ec20e4c7d9bdd9b5e560ae19cab8697a6609bb60155adb1",
+      "review_sha256": "fcd3b5f36935b777b5cd8fa6c8e77686decd9539e9a88c0a89ce468e9d55c161",
+      "confirmed_layer_ids": [
+        "layer-002",
+        "layer-003",
+        "layer-008",
+        "layer-010"
+      ]
+    },
+    {
+      "project_id": "imported-2c2b45ec951d8e890be5d01751dc0ababbd451a96c45c75bd333b92f0fcda17a",
+      "job_id": "job-6c882490006d4f0480f2a6efb7e93f07",
+      "layer_id": "layer-004",
+      "artifact_sha256": "f7a702a130da08df9ec20e4c7d9bdd9b5e560ae19cab8697a6609bb60155adb1",
+      "review_sha256": "992e481c59ac0699994f6b64944a60b5709c84bd03f0700fbee69c6fd46325fb",
+      "confirmed_layer_ids": [
+        "layer-002",
+        "layer-003",
+        "layer-004",
+        "layer-008",
+        "layer-010"
+      ]
+    },
+    {
+      "project_id": "imported-2c2b45ec951d8e890be5d01751dc0ababbd451a96c45c75bd333b92f0fcda17a",
+      "job_id": "job-6c882490006d4f0480f2a6efb7e93f07",
+      "layer_id": "layer-009",
+      "artifact_sha256": "f7a702a130da08df9ec20e4c7d9bdd9b5e560ae19cab8697a6609bb60155adb1",
+      "review_sha256": "38a6db23c9bfd6fe83a1d5949e46b92f4bdf9e1a2f451516f50078b191e6b472",
+      "confirmed_layer_ids": [
+        "layer-002",
+        "layer-003",
+        "layer-004",
+        "layer-008",
+        "layer-009",
+        "layer-010"
+      ]
+    },
+    {
+      "project_id": "huiye",
+      "job_id": "job-6f92bece413a4909a553a95bbfc307f4",
+      "layer_id": "layer-001",
+      "artifact_sha256": "63caa7fe5f9f40a92ebcd57ef0b345d7dcd47e5ed3feae65a95fad18e770d51b",
+      "review_sha256": "1b2cf66c3822f9979b191c79608481905207fd4bd80c2eb31002d71d1af6f9da",
+      "confirmed_layer_ids": [
+        "layer-001",
+        "layer-004"
+      ]
+    },
+    {
+      "project_id": "huiye",
+      "job_id": "job-6f92bece413a4909a553a95bbfc307f4",
+      "layer_id": "layer-002",
+      "artifact_sha256": "63caa7fe5f9f40a92ebcd57ef0b345d7dcd47e5ed3feae65a95fad18e770d51b",
+      "review_sha256": "245ea1052ef15b6f2da6bdc76c45c61ad7ed131582f9e479782c680ccb8d714b",
+      "confirmed_layer_ids": [
+        "layer-001",
+        "layer-002",
+        "layer-004"
+      ]
+    },
+    {
+      "project_id": "huiye",
+      "job_id": "job-6f92bece413a4909a553a95bbfc307f4",
+      "layer_id": "layer-003",
+      "artifact_sha256": "63caa7fe5f9f40a92ebcd57ef0b345d7dcd47e5ed3feae65a95fad18e770d51b",
+      "review_sha256": "b01b95840c0a9fa2d6b12b31de3a423af7abff6b8b43133c0f58698852adab0d",
+      "confirmed_layer_ids": [
+        "layer-001",
+        "layer-002",
+        "layer-003",
+        "layer-004"
+      ]
+    }
+  ],
+  "schema": "autospine.character-limb-applied-reviews/v1"
+}
