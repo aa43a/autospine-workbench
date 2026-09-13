@@ -39,6 +39,9 @@ class CharacterJobs:
         return directory(self.root / job, create=create)
 
     def _current(self, request):
+        from .character_order_review import overview as order_overview
+        if order_overview(self, request['project_id'])['head_sha256'] != request.get('order_decisions_sha256'):
+            raise PipelineRunError('character_order_decisions_changed')
         from .character_component_mounts import overview as mount_overview
         if mount_overview(self,request['project_id'])['head_sha256'] != request.get('component_mounts_sha256'):
             raise PipelineRunError('character_mount_decisions_changed')
@@ -80,6 +83,8 @@ class CharacterJobs:
         result['post_component_regions'] = final_overview(self,project,stage='after_components')
         from .character_component_mounts import overview as mount_overview
         result['component_mounts'] = mount_overview(self,project)
+        from .character_order_review import overview as order_overview
+        result['order_review'] = order_overview(self, project)
         try:
             info = inspect_registration(self.projects, project)
             from .character_motion_catalog import choices
@@ -120,6 +125,9 @@ class CharacterJobs:
         from .character_component_mounts import overview as mount_overview
         mount_head=mount_overview(self,project)['head_sha256']
         if mount_head is not None: request['component_mounts_sha256']=mount_head
+        from .character_order_review import overview as order_overview
+        order_head = order_overview(self, project)['head_sha256']
+        if order_head is not None: request['order_decisions_sha256'] = order_head
         if motion_choice_id is not None: request['motion_choice_id'] = motion_choice_id
         if residual_texture_profile is not None: request['residual_texture_profile'] = residual_texture_profile
         if skirt_profile is not None: request['skirt_profile'] = skirt_profile
@@ -228,6 +236,8 @@ class CharacterJobs:
             from .character_component_mounts import apply_saved as apply_mounts
             result=apply_mounts(self,request,result)
             result=apply_final(self,request,result,stage="after_components")
+            from .character_order_review import apply_saved as apply_order
+            result=apply_order(self,request,result)
             self._current(request)
             runtime=self.capturer(self.projects,self.application.store,result['artifact_sha256'],self._path(job),
                                   progress=progress,cancel_requested=active['cancel'].is_set)
@@ -240,6 +250,7 @@ class CharacterJobs:
             if 'final_region_exclusions' in result: response['final_region_exclusions']=result['final_region_exclusions']
             if 'component_mounts' in result: response['component_mounts']=result['component_mounts']
             if 'post_component_regions' in result: response['post_component_regions']=result['post_component_regions']
+            if 'order_review' in result: response['order_review']=result['order_review']
         except Exception as exc:
             reason=getattr(exc,'reason_code',str(exc))
             if not re.fullmatch(r'[a-z][a-z0-9_]{0,99}',reason): reason='character_build_failed'

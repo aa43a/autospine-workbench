@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "project_id", "revision", "previous_sha256", "source_bundle_sha256", "constraints", "build_options", "authority", "production_authorized", "decision_source", "reversible"],
+  "properties": {
+    "schema": {"const": "autospine.character-order-review/v1"},
+    "project_id": {"type": "string", "minLength": 1},
+    "revision": {"type": "integer", "minimum": 0},
+    "previous_sha256": {"anyOf": [{"$ref": "#/$defs/sha"}, {"type": "null"}]},
+    "source_bundle_sha256": {"anyOf": [{"$ref": "#/$defs/sha"}, {"type": "null"}]},
+    "constraints": {"type": "array", "maxItems": 256, "uniqueItems": true, "items": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "string", "minLength": 1}}},
+    "build_options": {"type": "object", "additionalProperties": false, "properties": {"motion_choice_id": {"type": "string"}, "skirt_profile": {"type": "string"}, "residual_texture_profile": {"type": "string"}}},
+    "authority": {"const": "none"},
+    "production_authorized": {"const": false},
+    "decision_source": {"const": "human_confirmation"},
+    "reversible": {"const": true}
+  },
+  "if": {"properties": {"constraints": {"maxItems": 0}}},
+  "then": {"properties": {"source_bundle_sha256": {"type": "null"}, "build_options": {"maxProperties": 0}}},
+  "else": {"properties": {"source_bundle_sha256": {"$ref": "#/$defs/sha"}}},
+  "$defs": {"sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

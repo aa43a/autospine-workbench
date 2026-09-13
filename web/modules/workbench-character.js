@@ -7,9 +7,12 @@ import { createCharacterProgress } from "./workbench-character-progress.js";
 import { defaultCharacterMotion } from "./workbench-character-motion-choice.js";
 import { createFinalRegionReview } from "./workbench-final-regions.js";
 import { createComponentMounts } from "./workbench-component-mounts.js";
+import { createCharacterOrder } from "./workbench-character-order.js";
 const ACTIVE = new Set(["pending", "running"]);
 const STAGES = {resolve:"核对来源", "base-preview":"准备整角色基础", compose:"合并袖装与校验动作", "skirt-trial":"正在生成裙装可变形候选", publish:"封存候选", runtime:"官方 Runtime 渲染与 setup 对照", review:"等待整角色复核"};
 const REASONS = {character_sleeve_unavailable:"尚无当前可用袖装候选，请先完成袖装构建。",
+  character_order_source_changed:"遮挡决定与本次角色来源不同，请撤销旧遮挡关系后重新复核。",
+  character_order_decisions_changed:"遮挡关系已修改，请重新构建整角色候选。",
   character_post_component_stage_required:"这是拆分后产生的区域，请使用“拆分后残余排除”入口。",
   character_mount_source_changed:"分区绑定来源已变化，请恢复保存时的构建选项，或撤销分区绑定后重新检查。",
   character_mount_decisions_changed:"分区绑定已修改，请重新构建整角色候选。",
@@ -41,6 +44,7 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
   const finalRegions=createFinalRegionReview(document,body=>regionDecision(body,true));
   const postRegions=createFinalRegionReview(document,body=>regionDecision(body,"post"),{afterComponents:true});
   const mounts=createComponentMounts(document,{apiRequest:hooks.apiRequest,save:body=>regionDecision(body,false,true)});
+  const orderReview=createCharacterOrder(document,body=>regionDecision(body,"order"));
   const textureLabel=node("label","归并低透明度残余（候选） "),textureToggle=node("input");
   textureToggle.type="checkbox";textureToggle.setAttribute("aria-label","归并低透明度残余（候选）");
   textureLabel.setAttribute("title","仅归并有完整网格覆盖且纹理对齐的低透明度像素；关闭后重建可恢复原纹理。不会自动通过复核。");
@@ -64,7 +68,7 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
   visualSection.append(progress.element);
   visualFold.append(node("summary","记录整角色视觉验收"),visualReview.element);visualSection.append(visualFold);element.append(visualSection,mounts.element,weightedReview.element,detail);
   actions.append(exclusions);
-  element.append(finalRegions.element,postRegions.element);
+  element.append(orderReview.element,finalRegions.element,postRegions.element);
   let identity=null,generation=0,overview=null,job=null,busy=false,error="",timer=null,polls=0,operation="";
   let motionChoice="",motionTouched=false;motionSelect.onchange=()=>{motionChoice=motionSelect.value;motionTouched=true;render();};
   const schedule=options.setTimeout||setTimeout,clear=options.clearTimeout||clearTimeout;
@@ -73,7 +77,7 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
   function stop(){if(timer!==null)clear(timer);timer=null;}
   function render(){
     const active=ACTIVE.has(job?.status),dirty=Boolean(context().dirty||context().saving||context().loading);
-    const finalRecipe=overview?.post_component_regions?.active?overview.post_component_regions.review.build_options:overview?.component_mounts?.active?overview.component_mounts.review.build_options:overview?.final_region_exclusions?.active?overview.final_region_exclusions.review.build_options:null;
+    const finalRecipe=overview?.order_review?.active?overview.order_review.review.build_options:overview?.post_component_regions?.active?overview.post_component_regions.review.build_options:overview?.component_mounts?.active?overview.component_mounts.review.build_options:overview?.final_region_exclusions?.active?overview.final_region_exclusions.review.build_options:null;
     if(finalRecipe){textureToggle.checked=Boolean(finalRecipe.residual_texture_profile);textureProfile.value=finalRecipe.residual_texture_profile||'aligned-low-alpha-v1';skirtToggle.checked=Boolean(finalRecipe.skirt_profile);motionChoice=finalRecipe.motion_choice_id||'';motionTouched=true;}
     build.disabled=!overview?.can_build||busy||active||dirty;refresh.disabled=!identity||busy;cancel.hidden=!active;cancel.disabled=busy||job?.cancel_requested;
     textureToggle.disabled=busy||active||dirty||Boolean(finalRecipe);
@@ -111,6 +115,7 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
     postRegions.sync(job?.status==='needs_review'?job:null,overview?.post_component_regions,busy||active||dirty);
     finalRegions.sync(job?.status==='needs_review'?job:null,overview?.final_region_exclusions,busy||active||dirty);
     mounts.sync(job,overview?.component_mounts,endpoint(),busy||active||dirty);
+    orderReview.sync(job?.status==='needs_review'?job:null,overview?.order_review,busy||active||dirty);
     exclusions.replaceChildren(...(overview?.region_exclusions?.active||[]).map(entry=>{
       const row=node("p",`已排除区域：${entry.region_id} `),undo=node("button","撤销排除");undo.type="button";
       undo.className="button button-secondary";
@@ -122,8 +127,8 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
     if(busy)return;
     const token=generation;busy=true;error="";render();
     try{
-      await hooks.apiRequest(`${endpoint()}/${mount?'component-mounts':final==='post'?'post-component-regions':final?'final-regions':'regions'}`,{method:"POST",headers:{"X-Autospine-Intent":"pipeline-preview"},
-        body:JSON.stringify({...body,expected_head_sha256:(mount?overview?.component_mounts:final==='post'?overview?.post_component_regions:final?overview?.final_region_exclusions:overview?.region_exclusions)?.head_sha256??null})});
+      await hooks.apiRequest(`${endpoint()}/${mount?'component-mounts':final==='order'?'order-review':final==='post'?'post-component-regions':final?'final-regions':'regions'}`,{method:"POST",headers:{"X-Autospine-Intent":"pipeline-preview"},
+        body:JSON.stringify({...body,expected_head_sha256:(mount?overview?.component_mounts:final==='order'?overview?.order_review:final==='post'?overview?.post_component_regions:final?overview?.final_region_exclusions:overview?.region_exclusions)?.head_sha256??null})});
     }catch(e){if(current(token))error="区域决定保存失败，请刷新后重试。";}
     finally{if(current(token)){busy=false;render();if(!error)await request();}}
   }

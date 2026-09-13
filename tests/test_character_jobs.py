@@ -66,10 +66,11 @@ class CharacterJobsTests(unittest.TestCase):
         def capture(*args,**kwargs): stages.append('capture'); return {'status':'unavailable'}
         manager.capturer=capture
         with patch('autospine_workbench.automation.character_final_regions.apply_saved',side_effect=stage('final')), \
-                patch('autospine_workbench.automation.character_component_mounts.apply_saved',side_effect=stage('mount')):
+                patch('autospine_workbench.automation.character_component_mounts.apply_saved',side_effect=stage('mount')), \
+                patch('autospine_workbench.automation.character_order_review.apply_saved',side_effect=stage('order')):
             result=self.terminal(manager,self.submit(manager))
         self.assertEqual(result['status'],'needs_review')
-        self.assertEqual(stages,['final','mount','post','capture'])
+        self.assertEqual(stages,['final','mount','post','order','capture'])
 
     def test_cancel_and_duplicate_request_do_not_publish_download(self):
         started=Event();release=Event();self.addCleanup(release.set)
