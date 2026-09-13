@@ -13,13 +13,14 @@ const REASONS={existing_review_preserved:"保留已有复核",policy_capability_
 export function createBindingPolicy(document,hooks){
   const node=(tag,text="")=>{const e=document.createElement(tag);e.textContent=text;return e;};
   const element=node("section"),status=node("p"),actions=node("div"),list=node("ul"),detail=node("details");
+  const focus=node('section');
   const check=node("button","检查可自动绑定项"),apply=node("button","一键处理所有安全绑定"),undo=node("button","撤销本次自动绑定");
   for(const b of [check,apply,undo]){b.type="button";b.className="button button-secondary";actions.append(b);}
   const batch=node("select");batch.setAttribute("aria-label","选择自动绑定撤销批次");actions.append(batch);
   undo.textContent="撤销所选自动绑定批次";
   actions.className="automation-actions";status.setAttribute("role","status");status.setAttribute("aria-live","polite");
   detail.append(node("summary","剩余异常与采用依据"),list);
-  element.append(node("h3","自动绑定与异常复核"),node("p","检查已复核头颈锚点、紧凑鞋类及已绑定面部中的眼口细节。仅采用证据检查全部通过的项，保留人工记录；会继续检查新解锁的安全项，直到没有可采用项；每批保留撤销。准确率尚待固定角色集校准。"),actions,status,detail);
+  element.append(node("h3","自动绑定与异常复核"),node("p","检查已复核头颈锚点、紧凑鞋类及已绑定面部中的眼口细节。仅采用证据检查全部通过的项，保留人工记录；会继续检查新解锁的安全项，直到没有可采用项；每批保留撤销。准确率尚待固定角色集校准。"),actions,status,focus,detail);
   let identity=null,generation=0,model={},report=null,busy=false,error="";
   const context=()=>hooks.context();
   const editable=()=>model.canReview&&!model.bindingDirty&&!model.fetching&&!context().dirty;
@@ -32,10 +33,17 @@ export function createBindingPolicy(document,hooks){
     status.textContent=error||(busy?"正在核对当前来源与像素证据…":report?`可自动绑定 ${eligible.length} 层 · 需要复核 ${remaining.length} 层 · 已有记录保留 ${report.rows.filter(r=>r.status==="preserved").length} 层`:
       "先检查当前项目，查看可自动处理项及阻塞原因。");
     if(["autospine.binding-auto-run/v1","autospine.binding-auto-workflow/v1"].includes(report?.operation?.schema))status.textContent+=` · 本次 ${report.operation.rounds} 批、${report.operation.changed_layer_ids.length} 层${report.operation.candidate_preparation?.changed?" · 已补齐绑定候选":""}${report.operation.status==="stopped"?"（已停止，可刷新核对已保存结果）":""}`;
+    const groups=(report?.review_focus||[]).filter(g=>g.reason_code==='head_details_require_face_binding');
+    const dependent=new Set(groups.flatMap(g=>g.dependent_layer_ids));
+    focus.replaceChildren();focus.hidden=!groups.length;
+    for(const group of groups){
+      focus.append(node('strong','优先处理头颈归属'),node('p',`${group.dependent_layer_ids.length} 个头部细节正在等待脸层绑定。先复核下列前置层，再运行安全绑定检查；仍会逐项检查像素证据，不保证自动通过。`));
+      for(const id of group.prerequisite_layer_ids){const button=node('button',`复核 ${report.rows.find(r=>r.layer_id===id)?.name||id}`);button.type='button';button.disabled=busy||!editable();button.addEventListener('click',()=>hooks.locate({layer_id:id,type:'binding'}));focus.append(button);}
+    }
     list.replaceChildren(...(report?.rows||[]).filter(r=>r.status!=="preserved").map(r=>{
       const row=node("li"),locate=node("button",`${r.name||r.layer_id} · ${r.status==="eligible"?"可自动绑定":"待复核"}`);locate.type="button";
       locate.addEventListener("click",()=>hooks.locate({layer_id:r.layer_id,type:"binding"}));row.append(locate);
-      row.append(node("p",r.reason_codes.length?r.reason_codes.map(x=>REASONS[x]||x).join("；"):`通过检查 · ${r.option_id}`));
+      row.append(node("p",dependent.has(r.layer_id)?'等待脸层绑定，完成后重新检查像素包含关系':r.reason_codes.length?r.reason_codes.map(x=>x==='face_above_neck'?'面部跨入颈点以下，需要复核头颈归属':REASONS[x]||x).join("；"):`通过检查 · ${r.option_id}`));
       if(Object.keys(r.checks).length)row.append(node("p",Object.entries(r.checks).map(([k,v])=>`${REASONS[k]||k}: ${v?"通过":"未通过"}`).join("；")));
       return row;
     }));detail.hidden=!report;

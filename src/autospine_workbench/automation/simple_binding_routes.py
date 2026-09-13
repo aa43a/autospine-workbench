@@ -12,6 +12,8 @@ from .binding_auto_run import apply_all
 def overview(store, project):
     with load_inputs(store,project) as source:
         result=propose(source)
+        from .binding_review_focus import explain
+        result['review_focus'] = explain(source, result)
         names={r['layer_id']:r['name'] for r in source.candidate['layers']}
     result.update(schema='autospine.binding-policy-overview/v1',project_id=project,active_decision_sha256=None,reversible_decisions=[])
     for row in result['rows']:row['name']=names[row['layer_id']]

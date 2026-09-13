@@ -11,6 +11,18 @@ function fixture(api){
 }
 const response=()=>({schema:'autospine.binding-policy-overview/v1',authority:'none',project_id:'one',
  source_addresses:{resolved_project_sha256:'a'.repeat(64),input_identity_sha256:'b'.repeat(64)},rows:[{layer_id:'shoe',status:'eligible',name:'shoe',option_id:'rigid:foot_l',reason_codes:[],checks:{}}]});
+test('prerequisite explanation does not imply dependent automatic adoption',async()=>{
+ const f=fixture(async()=>({...response(),rows:[{layer_id:'eye',name:'眼',status:'needs_review',reason_codes:['policy_capability_unsupported'],checks:{}},
+  {layer_id:'face',name:'脸',status:'needs_review',reason_codes:['face_above_neck'],checks:{}}],
+  review_focus:[{reason_code:'head_details_require_face_binding',prerequisite_layer_ids:['face'],dependent_layer_ids:['eye'],automatic_adoption_guaranteed:false}]}));
+ await f.view.request();
+ const text=n=>[n.textContent||'',...n.children.map(text)].join(' ');
+ assert.match(text(f.view.element),/先复核下列前置层/);assert.match(text(f.view.element),/不保证自动通过/);
+ assert.match(text(f.view.element),/等待脸层绑定/);assert.match(text(f.view.element),/面部跨入颈点以下/);
+ assert.doesNotMatch(text(f.view.element),/当前策略不支持此部件/);
+ f.model.inputIdentitySha='d'.repeat(64);f.view.sync(f.model);
+ assert.doesNotMatch(text(f.view.element),/等待脸层绑定/);
+});
 test('explicit check exposes eligible count and apply refreshes parent',async()=>{
   let request;
   const f=fixture(async(url,init)=>{request=init;return{...response(),operation:{changed:init.method==='POST'}};});
