@@ -43,3 +43,32 @@ test('partial regions cannot disappear from the exception list',()=>{
  assert.equal(needsBindingReview({...job.layers[0],state:'partial'},['arm']),true);
  assert.equal(needsBindingReview({...job.layers[0],binding_decision:{decision_source:'policy_auto',evidence_current:false}},['arm']),true);
 });
+
+test('batch defaults empty, submits selected IDs once, and clears across candidates',async()=>{
+ const posts=[];let selected=[];
+ const value={...job,layers:[...job.layers,{...job.layers[0],layer_id:'leg',name:'腿'}]};
+ const view=createWeightedReview(document,{apiRequest:async(_url,init)=>{
+  if(init.method==='POST'){const body=JSON.parse(init.body);posts.push(body);selected=body.layer_ids;}
+  return {...response,eligible_layer_ids:['arm','leg'],review:{accepted_layer_ids:selected}};
+ }});
+ view.sync(value,true);await flush();
+ const button=()=>all(view.element).find(n=>n.tag==='button'&&n.textContent.startsWith('确认勾选区域'));
+ assert.equal(button().disabled,true);
+ let boxes=all(view.element).filter(n=>n.type==='checkbox');assert.ok(boxes.every(n=>!n.checked));
+ boxes[0].checked=true;boxes[0].onchange();boxes=all(view.element).filter(n=>n.type==='checkbox');
+ boxes[1].checked=true;boxes[1].onchange();button().onclick();await flush();
+ assert.equal(posts.length,1);assert.deepEqual(posts[0].layer_ids,['arm','leg']);assert.equal(posts[0].layer_id,undefined);
+ assert.deepEqual(view.confirmed(),['arm','leg']);assert.equal(button().disabled,true);
+ boxes=all(view.element).filter(n=>n.type==='checkbox');boxes[0].checked=true;boxes[0].onchange();
+ view.sync(value,false);assert.equal(button().disabled,true);
+ view.sync(null,false);assert.equal(button().disabled,true);view.dispose();
+});
+
+test('select pending excludes accepted layers and does not submit a decision',async()=>{
+ const calls=[];const value={...job,layers:[...job.layers,{...job.layers[0],layer_id:'leg',name:'腿'}]};
+ const view=createWeightedReview(document,{apiRequest:async(_url,init)=>{calls.push(init);return {...response,eligible_layer_ids:['arm','leg'],review:{accepted_layer_ids:['arm']}};}});
+ view.sync(value,true);await flush();
+ all(view.element).find(n=>n.textContent==='勾选待确认').onclick();
+ assert.deepEqual(all(view.element).filter(n=>n.type==='checkbox').map(n=>n.checked),[false,true]);
+ assert.equal(calls.length,1);view.dispose();
+});

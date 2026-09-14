@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Exact-candidate weighted region review request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["expected_artifact_sha256", "expected_review_sha256", "action"],
+  "oneOf": [
+    {"required": ["layer_id"], "not": {"required": ["layer_ids"]}},
+    {"required": ["layer_ids"], "not": {"required": ["layer_id"]}}
+  ],
+  "properties": {
+    "expected_artifact_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "expected_review_sha256": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"},
+    "expected_replay_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "layer_id": {"type": "string", "minLength": 1},
+    "layer_ids": {"type": "array", "minItems": 1, "maxItems": 128, "uniqueItems": true,
+                  "items": {"type": "string", "minLength": 1}},
+    "action": {"enum": ["confirm", "revoke"]}
+  }
+}

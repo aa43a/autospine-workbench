@@ -112,10 +112,16 @@ def overview(manager, project, job):
 
 
 def save(manager, project, job, body):
-    keys={'expected_artifact_sha256', 'expected_review_sha256', 'layer_id', 'action'}
+    selection_key = 'layer_ids' if 'layer_ids' in body else 'layer_id'
+    keys={'expected_artifact_sha256', 'expected_review_sha256', selection_key, 'action'}
     if (set(body) not in (keys,keys|{'expected_replay_sha256'})
-            or body['action'] not in {'confirm', 'revoke'} or type(body['layer_id']) is not str):
+            or body['action'] not in {'confirm', 'revoke'}):
         raise PipelineRunError('character_review_invalid')
+    selected = body[selection_key] if selection_key == 'layer_ids' else [body[selection_key]]
+    if (type(selected) is not list or not 0 < len(selected) <= 128
+            or any(type(k) is not str for k in selected) or len(set(selected)) != len(selected)):
+        raise PipelineRunError('character_review_invalid')
+    selected = set(selected)
     with manager._lock:
         current = overview(manager, project, job)
         if (body['expected_artifact_sha256'] != current['artifact_sha256']
@@ -123,16 +129,16 @@ def save(manager, project, job, body):
             raise PipelineRunError('character_review_conflict')
         if body.get('expected_replay_sha256')!=current.get('replay_sha256'):
             raise PipelineRunError('character_review_conflict')
-        if not current['can_review'] or body['layer_id'] not in current['eligible_layer_ids']:
+        if not current['can_review'] or not selected <= set(current['eligible_layer_ids']):
             raise PipelineRunError('character_weighted_scope_invalid')
         accepted = set((current['review'] or {}).get('accepted_layer_ids', []))
         revoked=set((current['review'] or {}).get('revoked_replayed_layer_ids',[]))
         overrides=bool(current.get('replayed_review')) or (current['review'] or {}).get('schema')==OVERRIDE_SCHEMA
-        if body['action'] == 'confirm': accepted.add(body['layer_id'])
-        else: accepted.discard(body['layer_id'])
+        if body['action'] == 'confirm': accepted.update(selected)
+        else: accepted.difference_update(selected)
         if overrides:
-            if body['action']=='confirm': revoked.discard(body['layer_id'])
-            else: revoked.add(body['layer_id'])
+            if body['action']=='confirm': revoked.difference_update(selected)
+            else: revoked.update(selected)
         if current['review'] and sorted(accepted) == current['review']['accepted_layer_ids'] and sorted(revoked)==current['review'].get('revoked_replayed_layer_ids',[]): return current
         result = manager.get(project, job)
         doc = dict(schema=SCHEMA, project_id=project, job_id=job, artifact_sha256=current['artifact_sha256'],

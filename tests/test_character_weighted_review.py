@@ -41,6 +41,43 @@ class WeightedReviewTests(unittest.TestCase):
         self.assertEqual(confirmed_layers(self.result,dict(first,can_review=False)),set())
         self.assertEqual(confirmed_layers(self.result,dict(first,review_sha256='bad')),set())
 
+    def test_batch_is_one_revision_and_invalid_member_saves_nothing(self):
+        other=deepcopy(self.layer);other['layer_id']='leg'
+        self.result['layers'].append(other)
+        body={k:v for k,v in self.body.items() if k!='layer_id'}
+        for selected in ([],['arm','arm'],['arm','unknown'],['arm',1]):
+            with self.assertRaises(RuntimeError):
+                save(self.manager,'p','j',dict(body,layer_ids=selected))
+            self.assertIsNone(overview(self.manager,'p','j')['review'])
+        saved=save(self.manager,'p','j',dict(body,layer_ids=['leg','arm']))
+        self.assertEqual(saved['review']['accepted_layer_ids'],['arm','leg'])
+        self.assertEqual(saved['review']['revision'],0)
+        with self.assertRaisesRegex(RuntimeError,'conflict'):
+            save(self.manager,'p','j',dict(body,layer_ids=['arm','leg'],action='revoke'))
+        unchanged=overview(self.manager,'p','j')
+        self.assertEqual(unchanged['review_sha256'],saved['review_sha256'])
+        revoked=save(self.manager,'p','j',dict(body,layer_ids=['arm'],action='revoke',expected_review_sha256=saved['review_sha256']))
+        self.assertEqual(revoked['review']['accepted_layer_ids'],['leg'])
+        self.assertEqual(revoked['review']['revision'],1)
+
+    def test_batch_with_partial_layer_does_not_confirm_valid_peer(self):
+        partial=deepcopy(self.layer);partial.update(layer_id='partial',state='partial')
+        self.result['layers'].append(partial)
+        body={k:v for k,v in self.body.items() if k!='layer_id'}
+        with self.assertRaisesRegex(RuntimeError,'scope_invalid'):
+            save(self.manager,'p','j',dict(body,layer_ids=['arm','partial']))
+        self.assertIsNone(overview(self.manager,'p','j')['review'])
+
+    def test_request_schema_admits_single_or_explicit_batch_only(self):
+        from jsonschema import Draft202012Validator
+        schema=json.loads((Path(__file__).resolve().parents[1]/'schemas/character-weighted-review-request-v1.schema.json').read_bytes())
+        validator=Draft202012Validator(schema)
+        validator.validate(self.body)
+        batch={k:v for k,v in self.body.items() if k!='layer_id'}
+        validator.validate(dict(batch,layer_ids=['arm','leg']))
+        for bad in (dict(self.body,layer_ids=['arm']),dict(batch,layer_ids=[]),dict(batch,layer_ids=['arm','arm'])):
+            self.assertTrue(list(validator.iter_errors(bad)))
+
     def test_partial_missing_and_static_cannot_be_confirmed(self):
         for change in [dict(state='partial'),dict(missing_region_ids=['missing']),
                        dict(regions=[dict(region_id='residual',state='static_reference')]),dict(regions=[])]:
