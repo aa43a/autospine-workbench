@@ -1,11 +1,15 @@
 "use strict";
 import {needsBindingReview} from './workbench-character-ledger.js';
 
-export function characterProgress(job,confirmed=[],review=null,dirty=false){
+export function characterProgress(job,confirmed=[],review=null,dirty=false,audit=null){
  if(dirty)return ['校正尚未保存：当前候选状态不能代表最新修改。'];
  if(!job||job.status!=='needs_review')return ['整角色候选尚未准备完成。'];
- const layers=job.layers||[],pending=layers.filter(l=>needsBindingReview(l,confirmed)).length;
+ const layers=job.layers||[];
+ const auditExact=audit?.authority==='none'&&['project_id','job_id','artifact_sha256'].every(k=>audit[k]===job[k]);
+ const failedAudit=new Set(auditExact?Object.entries(audit.review?.reviews||{}).filter(([,v])=>v==='incorrect').map(([id])=>id):[]);
+ const pending=layers.filter(l=>needsBindingReview(l,confirmed)||failedAudit.has(l.layer_id)).length;
  const rows=[`绑定处理：${layers.length-pending} / ${layers.length} 层；${pending} 层待处理。`];
+ if(auditExact)rows.push(`自动绑定抽查：明确判断 ${audit.metrics.assessed_bindings} / ${audit.metrics.eligible_bindings} 项；${audit.metrics.incorrect} 项需修改。`);
  const geometry=job.runtime?.geometry_status;
  rows.push(geometry==='passed'?'采样网格：通过。':geometry==='needs_changes'?'采样网格：存在超限变形，需要修正。':'采样网格：尚无通过证据。');
  rows.push(job.runtime?.files?.['report.json']?'Runtime：已有报告，需结合实际播放与视觉复核。':'Runtime：尚无报告。');
@@ -27,8 +31,8 @@ export function createCharacterProgress(document,reviewAction){
  element.className='character-progress';element.setAttribute('aria-label','整角色完成情况');
  button.type='button';button.className='button button-secondary';button.addEventListener('click',reviewAction);
  element.append(node('h4','当前还差什么'),list,button);
- return {element,sync(job,confirmed,review,disabled){
-  list.replaceChildren(...characterProgress(job,confirmed,review,disabled).map(text=>node('li',text)));
+ return {element,sync(job,confirmed,review,disabled,audit=null){
+  list.replaceChildren(...characterProgress(job,confirmed,review,disabled,audit).map(text=>node('li',text)));
   button.disabled=disabled||job?.status!=='needs_review'||!job.runtime?.files?.['report.json'];
  }};
 }

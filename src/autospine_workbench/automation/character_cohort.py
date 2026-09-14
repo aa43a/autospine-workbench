@@ -20,7 +20,7 @@ def summarize(cohort,observations):
     rows=[assess_character(c,observations[c['project_id']],cohort['required_animations'])
           for c in characters]
     measured=[r for r in rows if r['runtime_measured']];passed=sum(r['completed'] for r in rows)
-    return dict(schema='autospine.character-cohort-assessment/v1',cohort_id=cohort['cohort_id'],authority='none',
+    result = dict(schema='autospine.character-cohort-assessment/v1',cohort_id=cohort['cohort_id'],authority='none',
                 characters=rows,metrics=dict(completed_characters=passed,total_characters=len(rows),
                 completion_rate=passed/len(rows) if rows else None,runtime_measured_characters=len(measured),
                 required_motion_cases=len(rows)*len(cohort['required_animations']),
@@ -28,3 +28,7 @@ def summarize(cohort,observations):
                 runtime_failure_rate=sum(not r['runtime_passed'] for r in measured)/len(measured) if measured else None,
                 human_review_minutes=None,incorrect_auto_adoption_rate=None),
                 unmeasured_reasons=dict(human_review_minutes='operation_timing_not_available',incorrect_auto_adoption_rate='independent_labels_not_available'))
+    if any('auto_binding_audit' in o for o in observations.values()):
+        from .character_auto_audit_metrics import summarize as audit_metrics
+        result['metrics']['auto_binding_audit'] = audit_metrics(observations)
+    return result

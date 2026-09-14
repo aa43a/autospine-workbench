@@ -44,6 +44,7 @@ def main():
                     raise ValueError('cohort_review_source')
                 item['visual_review']=visual['review']
                 item['weighted_review']=get(path+'/weighted-review')
+                item['auto_binding_audit']=get(path+'/auto-binding-audit')
         observations[project]=item
     result=summarize(cohort,observations);result['cohort_sha256']=sha256(args.cohort.read_bytes()).hexdigest()
     args.output.write_bytes(canonical_bytes(result))

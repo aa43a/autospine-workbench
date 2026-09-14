@@ -22,6 +22,11 @@ def assess_character(character, observed, required_animations):
                 if r.get('binding_decision',{}).get('decision_source')=='policy_auto'
                 and r['binding_decision'].get('evidence_current') is not True]
     unresolved=sorted(set(unresolved+stale_auto))
+    from .character_auto_audit import verified_reviews
+    audit = verified_reviews(job, observed.get('auto_binding_audit'))
+    incorrect = [key for key, verdict in audit.items() if verdict == 'incorrect']
+    if incorrect:
+        unresolved=sorted(set(unresolved+incorrect));reasons.append('automatic_binding_audit_needs_changes')
     if stale_auto:reasons.append('automatic_binding_evidence_stale')
     if not layers:reasons.append('layer_inventory_missing')
     if unresolved:reasons.append('layer_binding_incomplete')

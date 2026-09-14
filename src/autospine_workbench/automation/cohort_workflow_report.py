@@ -4,6 +4,7 @@ from urllib.parse import quote, urlsplit
 
 
 LABELS = dict(character_candidate_missing='尚未构建整角色候选',
+    automatic_binding_audit_needs_changes='自动绑定抽查发现需修改项',
     required_animations_missing='缺少必需动作', required_motion_runtime_incomplete='动作 Runtime 验证不完整',
     runtime_unmeasured='Runtime 尚未测量', runtime_failed='Runtime 检查失败',
     geometry_not_passed='几何检查尚未通过', layer_inventory_missing='尚无整角色图层库存',
@@ -62,6 +63,12 @@ def render(report, base_url):
                     ('完成' if row['completed'] else '未完成') + '<details><summary>全部原因</summary>' +
                     reason_html + '</details></td></tr>')
     metrics = report['metrics']
+    audit = metrics.get('auto_binding_audit'); audit_html = ''
+    if audit:
+        rate = '未测量' if audit['sampled_error_rate'] is None else f'{audit["sampled_error_rate"]*100:.1f}%'
+        audit_html = (f'<p>自动绑定抽查：明确判断 {audit["assessed_bindings"]}/{audit["eligible_bindings"]} 项，'
+                      f'需修改 {audit["incorrect"]} 项，无法判断 {audit["unobservable"]} 项；抽查错误率 {rate}。'
+                      '这是人工所选样本，不是全部输入的准确率。</p>')
     labels = {'idle': '待机', 'wave-left': '左手挥动', 'walk': '行走'}
     headers = ''.join('<th>' + escape(labels.get(a, a)) + '</th>' for a in report['required_animations'])
     return ('<!doctype html><html lang="zh-CN"><meta charset="utf-8">'
@@ -79,5 +86,5 @@ def render(report, base_url):
         '<p>先处理绑定和几何问题，再完成动作及整角色视觉验收。动作已验证不代表绑定或视觉已接受。</p>'
         '<div class="matrix"><table><thead><tr><th>角色 / 候选</th><th>图层绑定</th><th>几何</th>' +
         headers + '<th>人工视觉</th><th>整角色</th></tr></thead><tbody>' + ''.join(rows) +
-        '</tbody></table></div><p>人工总耗时：未测量。错误自动采用率：未测量。'
+        '</tbody></table></div>' + audit_html + '<p>人工总耗时：未测量。错误自动采用率：未测量。'
         '单次视觉计时不代表全部人工耗时；这些角色不作为独立 holdout 精度证明。</p></html>')

@@ -9,6 +9,7 @@ import { createFinalRegionReview } from "./workbench-final-regions.js";
 import { createComponentMounts } from "./workbench-component-mounts.js";
 import { createCharacterOrder } from "./workbench-character-order.js";
 import { createShoulderRepair, characterRecipe, applyCharacterRecipe } from "./workbench-character-shoulder.js";
+import { createAutoBindingAudit } from "./workbench-character-auto-audit.js";
 const ACTIVE = new Set(["pending", "running"]);
 const STAGES = {resolve:"核对来源", "base-preview":"准备整角色基础", compose:"合并袖装与校验动作", "skirt-trial":"正在生成裙装可变形候选", publish:"封存候选", runtime:"官方 Runtime 渲染与 setup 对照", review:"等待整角色复核"};
 const REASONS = {character_sleeve_unavailable:"尚无当前可用袖装候选，请先完成袖装构建。",
@@ -48,6 +49,7 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
   const mounts=createComponentMounts(document,{apiRequest:hooks.apiRequest,save:body=>regionDecision(body,false,true)});
   const orderReview=createCharacterOrder(document,body=>regionDecision(body,"order"));
   const shoulder=createShoulderRepair(document);
+  const autoAudit=createAutoBindingAudit(document,{...hooks,changed:()=>render()});
   const textureLabel=node("label","归并低透明度残余（候选） "),textureToggle=node("input");
   textureToggle.type="checkbox";textureToggle.setAttribute("aria-label","归并低透明度残余（候选）");
   textureLabel.setAttribute("title","仅归并有完整网格覆盖且纹理对齐的低透明度像素；关闭后重建可恢复原纹理。不会自动通过复核。");
@@ -72,7 +74,7 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
   visualSection.append(progress.element);
   visualFold.append(node("summary","记录整角色视觉验收"),visualReview.element);visualSection.append(visualFold);element.append(visualSection,mounts.element,weightedReview.element,detail);
   actions.append(exclusions);
-  element.append(orderReview.element,finalRegions.element,postRegions.element);
+  element.append(autoAudit.element,orderReview.element,finalRegions.element,postRegions.element);
   let identity=null,generation=0,overview=null,job=null,busy=false,error="",timer=null,polls=0,operation="";
   let motionChoice="",motionTouched=false;motionSelect.onchange=()=>{motionChoice=motionSelect.value;motionTouched=true;render();};
   const schedule=options.setTimeout||setTimeout,clear=options.clearTimeout||clearTimeout;
@@ -115,7 +117,8 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
     }
     visualReview.sync(job?.status==="needs_review"&&job.runtime?.files?.['report.json']?job:null,!dirty&&!busy&&!active);
     weightedReview.sync(job?.status==="needs_review"&&job.runtime?.files?.["report.json"]?job:null,!dirty&&!busy&&!active);
-    progress.sync(job,weightedReview.confirmed(),visualReview.current(),dirty);
+    autoAudit.sync(job?.status==="needs_review"&&job.runtime?.files?.["report.json"]?job:null,!dirty&&!busy&&!active);
+    progress.sync(job,weightedReview.confirmed(),visualReview.current(),dirty,autoAudit.current());
     ledger.sync({confirmedLayerIds:weightedReview.confirmed(),projectId:context().projectId,job,endpoint:endpoint(),disabled:busy||active||dirty});
     postRegions.sync(job?.status==='needs_review'?job:null,overview?.post_component_regions,busy||active||dirty);
     finalRegions.sync(job?.status==='needs_review'?job:null,overview?.final_region_exclusions,busy||active||dirty);
@@ -160,5 +163,5 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
   }
   build.addEventListener("click",()=>void request("build"));refresh.addEventListener("click",()=>void request());cancel.addEventListener("click",()=>void request("cancel"));
   return {element,sync(){const next=projectIdentity(context());if(next!==identity){generation++;stop();identity=next;overview=job=null;shoulder.reset();motionChoice="";motionTouched=false;textureToggle.checked=false;skirtToggle.checked=false;textureProfile.value="aligned-low-alpha-v1";busy=false;error="";polls=0;if(identity)void request();}render();},
-    dispose(){generation++;stop();visualReview.dispose();weightedReview.dispose();mounts.dispose();},refresh:()=>request()};
+    dispose(){generation++;stop();visualReview.dispose();weightedReview.dispose();autoAudit.dispose();mounts.dispose();},refresh:()=>request()};
 }

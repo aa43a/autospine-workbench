@@ -18,3 +18,10 @@ test('exact visual issues and region confirmation remain separate',()=>{
  assert.match(characterProgress(job,[],{...review,artifact_sha256:'other'})[3],/尚未读取/);
  assert.match(characterProgress(job,[],review,true)[0],/尚未保存/);
 });
+
+test('current incorrect auto audit remains a pending binding despite visual approval',()=>{
+ const auto={...job,layers:[{layer_id:'l',state:'rigid_reviewed',binding_decision:{action:'bind',option_id:'rigid:head',decision_source:'policy_auto',evidence_current:true}}]};
+ const audit={project_id:'p',job_id:'j',artifact_sha256:'a',authority:'none',review:{reviews:{l:'incorrect'}},metrics:{assessed_bindings:1,eligible_bindings:1,incorrect:1}};
+ assert.match(characterProgress(auto,[],null,false,audit)[0],/1 层待处理/);
+ assert.match(characterProgress(auto,[],null,false,{...audit,artifact_sha256:'other'})[0],/0 层待处理/);
+});

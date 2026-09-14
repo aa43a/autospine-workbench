@@ -34,7 +34,7 @@ def summarize(intake, observations):
         rows.append(row)
     measured = [r for r in rows if r['runtime_measured']]
     completed = sum(r['completed'] for r in rows)
-    return dict(schema='autospine.cohort-workflow/v1', authority='none', production_authorized=False,
+    result = dict(schema='autospine.cohort-workflow/v1', authority='none', production_authorized=False,
                 scope='first_ten_current_selected_versions_not_independent_holdout', characters=rows,
                 required_animations=REQUIRED, metrics=dict(total_characters=10,
                     completed_characters=completed, completion_rate=completed / 10,
@@ -44,3 +44,7 @@ def summarize(intake, observations):
                     human_review_minutes=None, incorrect_auto_adoption_rate=None),
                 unmeasured_reasons=dict(human_review_minutes='operation_timing_not_available',
                     incorrect_auto_adoption_rate='independent_labels_not_available'))
+    if any('auto_binding_audit' in o for o in observations.values()):
+        from .character_auto_audit_metrics import summarize as audit_metrics
+        result['metrics']['auto_binding_audit'] = audit_metrics(observations)
+    return result

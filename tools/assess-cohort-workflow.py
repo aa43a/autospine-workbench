@@ -74,6 +74,7 @@ def main():
                 if any(value.get(k) != job[k] for k in ('project_id', 'job_id', 'artifact_sha256')):
                     raise ValueError('review_source_mismatch')
             item.update(verified_runtime=report, visual_review=visual['review'], weighted_review=weighted)
+            item['auto_binding_audit'] = get(endpoint + '/auto-binding-audit')
         observations[project] = item
         print(project + ': observed', flush=True)
     result = summarize(intake, observations)
