@@ -33,6 +33,7 @@ def generate(files, source_digest, *, slot_ids=None, progress=lambda message: No
             old_keys = animation.get('attachments', {}).get('default', {}).get(slot, {}).get(slot, {}).get('deform', [])
             if old_keys and old_keys[0]['time'] != 0: raise ValueError('shoulder_deform_start_unsupported')
             for i in range(33):
+                progress(f'{name}: {slot} sample {i+1}/33')
                 time = duration*i/32; world = sample(original, name, time)[0][slot]
                 if max(math.dist(a, b) for a, b in zip(world, row['points'], strict=True)) < 1e-8:
                     corrected = world
@@ -66,7 +67,8 @@ def finalize(files, original, document, prepared, records, source_digest, *, pro
         times = sorted(key_times | {f['time'] for f in frames})
         times = sorted(set(times) | {(a+b)/2 for a, b in zip(times, times[1:])})
         reference['animations'][name] = []; max_pin = 0.; before_pin = 0.; max_move = 0.
-        for time in times:
+        for frame_index, time in enumerate(times):
+            if frame_index % 32 == 0: progress(f'{name}: validation {frame_index}/{len(times)}')
             before = sample(original, name, time)[0]; after = sample(document, name, time)[0]
             unselected_error = max(unselected_error, max(math.dist(a, b) for slot in before if slot not in selected
                 for a, b in zip(before[slot], after[slot], strict=True)))

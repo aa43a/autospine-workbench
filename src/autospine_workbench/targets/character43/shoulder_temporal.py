@@ -41,6 +41,7 @@ def generate(files, source_digest, trial_files, trial_digest, *, progress=lambda
             record['solver_failures'] = []; correction = []; previous = None
             progress(f'temporal round {iteration+1}: {name} {slot}, {len(key_times)} keys')
             for time in sorted(key_times):
+                progress(f'{name}: {slot} continue {time}')
                 world = sample(original, name, time)[0][slot]
                 if max(math.dist(a, b) for a, b in zip(world, row['points'], strict=True)) < 1e-8:
                     corrected = world

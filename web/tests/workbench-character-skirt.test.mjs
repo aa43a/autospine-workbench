@@ -3,6 +3,17 @@ import assert from 'node:assert/strict';
 import {createWorkbenchCharacter} from '../modules/workbench-character.js';
 
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
+test('whole build sends only the explicitly selected shoulder',async()=>{
+ const calls=[];
+ const f=fixture(async(url,init)=>{calls.push(init);return init.method==='POST'?job('running'):overview(job('needs_review',{
+   layers:[{name:'handwear-l',regions:[{region_id:'layer-004',state:'weighted_candidate'}]},
+    {name:'handwear-r',regions:[{region_id:'layer-003',state:'weighted_candidate'}]}]}));});
+ f.view.sync();await flush();
+ const left=descendants(f.view.element).find(n=>n.attrs['aria-label']==='修复左肩 · layer-004');
+ left.checked=true;left.onchange();f.build.events.click();await flush();
+ assert.deepEqual(JSON.parse(calls.find(c=>c.method==='POST').body).shoulder_regions,['layer-004']);
+ f.view.dispose();
+});
 test('final exclusions rebuild with the exact saved recipe including legacy skirt profile',async()=>{
  const calls=[],recipe={skirt_profile:'fixed-waist-three-chain-v1',residual_texture_profile:'aligned-low-alpha-v1'};
  const f=fixture(async(url,init)=>{calls.push(init);return init.method==='POST'?job('running'):{...overview(job()),final_region_exclusions:{active:true,review:{decisions:[{region_id:'r'}],build_options:recipe}}};});

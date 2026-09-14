@@ -107,7 +107,9 @@ class CharacterJobs:
         return result
 
     def submit(self, project, expected_resolved_sha256, expected_input_sha256, sleeve_job_id, motion_choice_id=None,
-               residual_texture_profile=None, skirt_profile=None):
+               residual_texture_profile=None, skirt_profile=None, shoulder_regions=None):
+        from .character_shoulder_trial import validate as validate_shoulder
+        validate_shoulder(shoulder_regions)
         from .character_texture_trial import validate
         validate(residual_texture_profile)
         from .character_skirt_trial import validate as validate_skirt
@@ -131,6 +133,7 @@ class CharacterJobs:
         if motion_choice_id is not None: request['motion_choice_id'] = motion_choice_id
         if residual_texture_profile is not None: request['residual_texture_profile'] = residual_texture_profile
         if skirt_profile is not None: request['skirt_profile'] = skirt_profile
+        if shoulder_regions is not None: request['shoulder_regions'] = sorted(shoulder_regions)
         if sleeve_job_id is None:
             request['route_choice_sha256']=route_source(self.projects,self.sleeves,project,expected_resolved_sha256)
         self._current(request)
@@ -231,6 +234,8 @@ class CharacterJobs:
             from .character_skirt_trial import apply_selected as apply_skirt
             if request.get('skirt_profile'): progress('skirt-trial')
             result=apply_skirt(self,request,result)
+            from .character_shoulder_trial import apply_selected as apply_shoulder
+            result=apply_shoulder(self,request,result,progress=progress,cancel_requested=active['cancel'].is_set)
             from .character_final_regions import apply_saved as apply_final
             result=apply_final(self,request,result)
             from .character_component_mounts import apply_saved as apply_mounts
@@ -247,6 +252,7 @@ class CharacterJobs:
                             motion_readiness=result['manifest'].get('motion_readiness',[]))
             if 'texture_trial' in result: response['texture_trial']=result['texture_trial']
             if 'skirt_trial' in result: response['skirt_trial']=result['skirt_trial']
+            if 'shoulder_trial' in result: response['shoulder_trial']=result['shoulder_trial']
             if 'final_region_exclusions' in result: response['final_region_exclusions']=result['final_region_exclusions']
             if 'component_mounts' in result: response['component_mounts']=result['component_mounts']
             if 'post_component_regions' in result: response['post_component_regions']=result['post_component_regions']

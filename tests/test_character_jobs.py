@@ -72,6 +72,25 @@ class CharacterJobsTests(unittest.TestCase):
         self.assertEqual(result['status'],'needs_review')
         self.assertEqual(stages,['final','mount','post','order','capture'])
 
+    def test_shoulder_recipe_is_durable_and_runs_before_final_decisions(self):
+        stages=[];manager=self.manager()
+        def repair(_manager,request,result,**kwargs):
+            self.assertEqual(request['shoulder_regions'],['layer-003','layer-004'])
+            stages.append('shoulder')
+            return dict(result,shoulder_trial={'status':'blocked','included_in_candidate':False})
+        def final(_manager,request,result,**kwargs):
+            stages.append('post' if kwargs else 'final');return result
+        with patch('autospine_workbench.automation.character_shoulder_trial.apply_selected',side_effect=repair), \
+                patch('autospine_workbench.automation.character_final_regions.apply_saved',side_effect=final):
+            job=manager.submit('sample','a'*64,'b'*64,'sleeve-job',shoulder_regions=['layer-004','layer-003'])
+            result=self.terminal(manager,job)
+        self.assertEqual(stages,['shoulder','final','post'])
+        self.assertEqual(result['status'],'needs_review')
+        self.assertFalse(result['shoulder_trial']['included_in_candidate'])
+        request=json.loads((manager._path(job['job_id'])/'request.json').read_text())
+        self.assertEqual(request['shoulder_regions'],['layer-003','layer-004'])
+        self.assertTrue(manager.download('sample',job['job_id']).startswith(b'PK'))
+
     def test_cancel_and_duplicate_request_do_not_publish_download(self):
         started=Event();release=Event();self.addCleanup(release.set)
         def build(*args,**kwargs):

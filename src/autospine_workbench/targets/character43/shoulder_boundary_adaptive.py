@@ -65,6 +65,7 @@ def generate(files, source_digest, trial_files, trial_digest, *, progress=lambda
                 if len(solved[key])+len(times) > 257: raise ValueError('shoulder_adaptive_sample_budget')
                 record = next(r for r in records if (r['animation'], r['slot']) == key)
                 for time in times:
+                    progress(f'{name}: {slot} refine {time}')
                     world = sample(original, name, time)[0][slot]
                     corrected, evidence = solve(original, name, time, row['points'], row['triangles'], world, context)
                     record['max_displacement_px'] = max(record['max_displacement_px'], evidence['displacement_from_original_px'])

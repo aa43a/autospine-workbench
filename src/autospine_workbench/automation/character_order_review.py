@@ -8,7 +8,7 @@ from .pipeline_run import PipelineRunError
 from .storage_io import directory, publish_document, read_document
 
 SCHEMA = 'autospine.character-order-review/v1'
-OPTIONS = ('motion_choice_id', 'residual_texture_profile', 'skirt_profile')
+from .character_build_options import OPTIONS, valid_options
 
 
 def overview(manager, project):
@@ -27,9 +27,7 @@ def overview(manager, project):
                      and doc['previous_sha256'] == previous and doc['authority'] == 'none'
                      and doc['production_authorized'] is False and doc['reversible'] is True
                      and doc['decision_source'] == 'human_confirmation'
-                     and type(doc['constraints']) is list and type(doc['build_options']) is dict
-                     and not set(doc['build_options']) - set(OPTIONS)
-                     and all(type(v) is str for v in doc['build_options'].values()))
+                     and type(doc['constraints']) is list and valid_options(doc['build_options']))
             if valid and doc['constraints']:
                 digest = doc['source_bundle_sha256']
                 valid = type(digest) is str and len(digest) == 64 and all(c in '0123456789abcdef' for c in digest)

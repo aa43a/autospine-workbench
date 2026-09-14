@@ -7,13 +7,13 @@ from .pipeline_run import PipelineRunError
 from .storage_io import directory, read_document, publish_document
 
 SCHEMA = 'autospine.character-component-mounts/v1'
-OPTIONS = {'motion_choice_id', 'residual_texture_profile', 'skirt_profile'}
+from .character_build_options import OPTIONS, valid_options
 
 
 def _valid(doc):
     decision = doc.get('decision'); parents = doc.get('allowed_parents')
     options = doc.get('build_options')
-    if type(options) is not dict or set(options)-OPTIONS or any(type(v) is not str for v in options.values()): return False
+    if not valid_options(options): return False
     if decision is None: return parents == [] and options == {}
     if type(parents) is not list or not 1 <= len(parents) <= 64 or any(type(p) is not str or not p for p in parents): return False
     if len(set(parents)) != len(parents) or type(decision) is not dict: return False

@@ -7,6 +7,7 @@ from ..manifest_artifacts import require_safe_token
 from ..targets.character43.final_region_exclusion import apply_batch
 from .storage_io import directory, read_document, publish_document
 from .pipeline_run import PipelineRunError
+from .character_build_options import OPTIONS, valid_options
 
 SCHEMA='autospine.character-final-regions/v1'
 
@@ -20,9 +21,7 @@ def _valid_scope(doc):
     decisions=doc.get('decisions'); options=doc.get('build_options')
     if type(decisions) is not list or len(decisions)>64 or type(options) is not dict:
         return False
-    if set(options)-{'motion_choice_id','residual_texture_profile','skirt_profile'}:
-        return False
-    if any(type(value) is not str for value in options.values()): return False
+    if not valid_options(options): return False
     if not decisions: return doc.get('source_bundle_sha256') is None and not options
     keys={'schema','decision_source','source_bundle_sha256','manifest_sha256','layer_id','region_id','image_sha256','reversible'}
     seen=set()
@@ -86,7 +85,7 @@ def save(manager,project,body, *, stage="before_components"):
             if stage=='before_components' and 'component-mount.json' in files:
                 raise PipelineRunError('character_post_component_stage_required')
             request=read_document(manager._path(body['job_id'])/'request.json')
-            options={k:request[k] for k in ('motion_choice_id','residual_texture_profile','skirt_profile') if k in request}
+            options={k:request[k] for k in OPTIONS if k in request}
             doc=json.loads(files['skeleton.json'])
             for r in regions:
                 slot=r['region_id']; attachment=doc['skins'][0]['attachments'][slot][slot]

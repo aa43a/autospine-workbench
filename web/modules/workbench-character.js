@@ -8,9 +8,11 @@ import { defaultCharacterMotion } from "./workbench-character-motion-choice.js";
 import { createFinalRegionReview } from "./workbench-final-regions.js";
 import { createComponentMounts } from "./workbench-component-mounts.js";
 import { createCharacterOrder } from "./workbench-character-order.js";
+import { createShoulderRepair, characterRecipe, applyCharacterRecipe } from "./workbench-character-shoulder.js";
 const ACTIVE = new Set(["pending", "running"]);
 const STAGES = {resolve:"核对来源", "base-preview":"准备整角色基础", compose:"合并袖装与校验动作", "skirt-trial":"正在生成裙装可变形候选", publish:"封存候选", runtime:"官方 Runtime 渲染与 setup 对照", review:"等待整角色复核"};
 const REASONS = {character_sleeve_unavailable:"尚无当前可用袖装候选，请先完成袖装构建。",
+  shoulder_region_selection_invalid:"所选肩部区域已失效，请刷新当前候选后重新选择。",
   character_order_source_changed:"遮挡决定与本次角色来源不同，请撤销旧遮挡关系后重新复核。",
   character_order_decisions_changed:"遮挡关系已修改，请重新构建整角色候选。",
   character_post_component_stage_required:"这是拆分后产生的区域，请使用“拆分后残余排除”入口。",
@@ -45,6 +47,7 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
   const postRegions=createFinalRegionReview(document,body=>regionDecision(body,"post"),{afterComponents:true});
   const mounts=createComponentMounts(document,{apiRequest:hooks.apiRequest,save:body=>regionDecision(body,false,true)});
   const orderReview=createCharacterOrder(document,body=>regionDecision(body,"order"));
+  const shoulder=createShoulderRepair(document);
   const textureLabel=node("label","归并低透明度残余（候选） "),textureToggle=node("input");
   textureToggle.type="checkbox";textureToggle.setAttribute("aria-label","归并低透明度残余（候选）");
   textureLabel.setAttribute("title","仅归并有完整网格覆盖且纹理对齐的低透明度像素；关闭后重建可恢复原纹理。不会自动通过复核。");
@@ -63,6 +66,7 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
   element.append(node("h3","整角色候选"),node("p","按当前路线构建整角色，并合并已有袖装修正；保留未处理图层与残余，生成 Runtime 与 setup 复核报告。"),actions,status,download);
   const runtime=node("a","查看整角色 Runtime"),setup=node("a","查看源图 / setup 对照");
   for(const link of [runtime,setup]){link.className="button button-secondary";link.target="_blank";link.rel="noopener";element.append(link);}
+  element.append(shoulder.element);
   const visualReview=createCharacterReview(document,hooks,{changed:()=>render()}),visualSection=node("section"),visualFold=node("details");
   const progress=createCharacterProgress(document,()=>{visualFold.open=true;void visualReview.request();visualFold.scrollIntoView?.({block:"nearest"});});
   visualSection.append(progress.element);
@@ -77,7 +81,8 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
   function stop(){if(timer!==null)clear(timer);timer=null;}
   function render(){
     const active=ACTIVE.has(job?.status),dirty=Boolean(context().dirty||context().saving||context().loading);
-    const finalRecipe=overview?.order_review?.active?overview.order_review.review.build_options:overview?.post_component_regions?.active?overview.post_component_regions.review.build_options:overview?.component_mounts?.active?overview.component_mounts.review.build_options:overview?.final_region_exclusions?.active?overview.final_region_exclusions.review.build_options:null;
+    const finalRecipe=characterRecipe(overview);
+    shoulder.sync(job,finalRecipe,busy||active||dirty);
     if(finalRecipe){textureToggle.checked=Boolean(finalRecipe.residual_texture_profile);textureProfile.value=finalRecipe.residual_texture_profile||'aligned-low-alpha-v1';skirtToggle.checked=Boolean(finalRecipe.skirt_profile);motionChoice=finalRecipe.motion_choice_id||'';motionTouched=true;}
     build.disabled=!overview?.can_build||busy||active||dirty;refresh.disabled=!identity||busy;cancel.hidden=!active;cancel.disabled=busy||job?.cancel_requested;
     textureToggle.disabled=busy||active||dirty||Boolean(finalRecipe);
@@ -144,10 +149,8 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
         expected_resolved_sha256:overview.expected_resolved_sha256,expected_input_sha256:overview.expected_input_sha256,sleeve_job_id:overview.sleeve_job_id,
         ...(motionChoice?{motion_choice_id:motionChoice}:{}),
         ...(textureToggle.checked?{residual_texture_profile:textureProfile.value}:{}),
-        ...(skirtToggle.checked?{skirt_profile:"reviewed-torso-waist-v2"}:{})})};
-      if(action==='build'&&overview?.final_region_exclusions?.active){const payload=JSON.parse(init.body);delete payload.motion_choice_id;delete payload.residual_texture_profile;delete payload.skirt_profile;Object.assign(payload,overview.final_region_exclusions.review.build_options);init.body=JSON.stringify(payload);}
-      if(action==='build'&&overview?.component_mounts?.active){const payload=JSON.parse(init.body);delete payload.motion_choice_id;delete payload.residual_texture_profile;delete payload.skirt_profile;Object.assign(payload,overview.component_mounts.review.build_options);init.body=JSON.stringify(payload);}
-      if(action==='build'&&overview?.post_component_regions?.active){const payload=JSON.parse(init.body);delete payload.motion_choice_id;delete payload.residual_texture_profile;delete payload.skirt_profile;Object.assign(payload,overview.post_component_regions.review.build_options);init.body=JSON.stringify(payload);}
+        ...(skirtToggle.checked?{skirt_profile:"reviewed-torso-waist-v2"}:{}),...shoulder.payload()})};
+      if(action==='build')init.body=JSON.stringify(applyCharacterRecipe(JSON.parse(init.body),overview));
       const value=await hooks.apiRequest(url,init);if(!current(token))return;
       if(value.project_id!==project||value.authority!=="none")throw Error("响应来源不匹配");
       if(action==="refresh"){overview=value;job=value.job;polls=0;}
@@ -156,6 +159,6 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
     finally{if(current(token)){busy=false;render();if(!error)queue(token);}}
   }
   build.addEventListener("click",()=>void request("build"));refresh.addEventListener("click",()=>void request());cancel.addEventListener("click",()=>void request("cancel"));
-  return {element,sync(){const next=projectIdentity(context());if(next!==identity){generation++;stop();identity=next;overview=job=null;motionChoice="";motionTouched=false;textureToggle.checked=false;skirtToggle.checked=false;textureProfile.value="aligned-low-alpha-v1";busy=false;error="";polls=0;if(identity)void request();}render();},
+  return {element,sync(){const next=projectIdentity(context());if(next!==identity){generation++;stop();identity=next;overview=job=null;shoulder.reset();motionChoice="";motionTouched=false;textureToggle.checked=false;skirtToggle.checked=false;textureProfile.value="aligned-low-alpha-v1";busy=false;error="";polls=0;if(identity)void request();}render();},
     dispose(){generation++;stop();visualReview.dispose();weightedReview.dispose();mounts.dispose();},refresh:()=>request()};
 }
