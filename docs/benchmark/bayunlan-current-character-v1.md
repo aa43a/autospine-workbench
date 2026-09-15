@@ -73,3 +73,15 @@ layer-004-unbound-residual（153 像素），合计 464 像素。
 `723635c25f83c84bc15a3fbf0092b4733fabcb9ee3319939baa6721121302089`，
 合计 4,527 个像素，原素材和有效区域不变，支持撤销。
 应用排除的重建任务：`job-3c6313cb9fb847aaacea6ea2616305d9`。
+
+该任务已完成，最终候选
+`2bc38367b8a08ba9ec3d465a67ca2374ed08f89ba694f5bdd81e8a6ab09c0d71`
+通过官方 Runtime 1,674 帧几何检查，失败记录 0。23 个源层中，17 层
+rigid_reviewed、6 层 weighted_candidate；不再有静态参考残余。
+这证明候选覆盖闭合，不代表六层权重归属和整体视觉已全部验收。
+
+新增通用工具 `tools/prepare-character-weighted-review.py`，从校验后的候选
+直接读取实际顶点影响骨骼并输出纹理对照页，不猜测语义或写入确认。
+本次输出 8 个有效区域，供五层剩余归属集中复核；头饰 head 映射已有
+单独用户确认。工具复用现有 binding inventory 检查，7 项相关及工程质量
+测试通过。
