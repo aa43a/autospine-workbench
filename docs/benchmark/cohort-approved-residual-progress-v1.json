@@ -1,0 +1,91 @@
+{
+  "schema": "autospine.cohort-approved-residual-progress/v1",
+  "authority": "none",
+  "production_authorized": false,
+  "approved_region_count": 12,
+  "records": [
+    {
+      "project_id": "alice",
+      "source_artifact_sha256": "3ae7a6de62494600b935e42d7904f5531f0e4e5c08019ff476d4866eb72d33e0",
+      "decision_head_sha256": "60d76f8900156877210afbd5523299898835eb22ee411c02190cb8771a319041",
+      "region_ids": [
+        "layer-001-residual",
+        "layer-002-residual"
+      ],
+      "build_options": {
+        "motion_choice_id": "b2d47e55c2aec2e0e1c040a9b512f2928b834e5aff942ad4b2023fce6f367bfe",
+        "skirt_profile": "reviewed-torso-waist-v2"
+      },
+      "job_id": "job-a2db93f931824108982191eb0e2b9dce",
+      "status": "needs_review",
+      "artifact_sha256": "74e0c3ef7fe2c7847e7909cc6eba5d7231d71ef04c259ca064e791d4cdc32a96",
+      "runtime_frames": 1028,
+      "geometry_status": "passed",
+      "textures_unchanged": true,
+      "removed_regions_exact": true,
+      "visual_acceptance": "not_recorded"
+    },
+    {
+      "project_id": "imported-3ac977caea4fa3acd2358eab227d156f935436efe12bc1a93e42f506c5e9ee31",
+      "source_artifact_sha256": "909c174c163a06ef6dad4f9eb5ed2a1946f4378e21de80a6be098093cafd80ec",
+      "decision_head_sha256": "1f8def7eb4addf832fa5a64eb9ad8f910919b5edef8201c8b075dc3c4232b688",
+      "region_ids": [
+        "layer-003-residual",
+        "layer-004-residual",
+        "layer-005-unbound-residual"
+      ],
+      "build_options": {
+        "motion_choice_id": "f10ab8087d7c1cd014b64c15ca45c9eb6c2aaed1eec389fbcc0645f9187e96e1",
+        "skirt_profile": "reviewed-torso-waist-v2"
+      },
+      "job_id": "job-05f99e1371ee4cf1a005b4795e320080",
+      "status": "running"
+    },
+    {
+      "project_id": "lingxian",
+      "source_artifact_sha256": "30da85bcebe159a2e4adbbcfdfea7549f1304ebc81507e725eade83e94074402",
+      "decision_head_sha256": "fa094100ae3ce829a16939b554403b6869ac064bb0b487fd9a9e04ee80f99b61",
+      "region_ids": [
+        "layer-003-residual"
+      ],
+      "build_options": {
+        "motion_choice_id": "6dc87f1c8351f42f80da99fd239fbbacf6cfe6f54f412d1c0afa36c66a955a1b",
+        "skirt_profile": "reviewed-torso-waist-v2"
+      },
+      "job_id": "job-4f642dd8c5d44d1a934ea4a0edde6f05",
+      "status": "pending"
+    },
+    {
+      "project_id": "lumia",
+      "source_artifact_sha256": "5f2793dba589d83b0ba1de7d1d62ff8fd37393302e8c36d63041a6344d4d2391",
+      "decision_head_sha256": "dfef3e70380e50f1fc7017e7c4f9577da7702df4de22d6f2b338fd9b0bc610a6",
+      "region_ids": [
+        "layer-001-residual",
+        "layer-002-residual"
+      ],
+      "build_options": {
+        "motion_choice_id": "ed149622ee37646f9d98a382603c5ca858015df84b40db2b1ce5d3b9ef26e7c3",
+        "skirt_profile": "reviewed-torso-waist-v2"
+      },
+      "job_id": "job-da9095a0d83a4bf3a1b795e5d0fc115d",
+      "status": "pending"
+    },
+    {
+      "project_id": "uuz",
+      "source_artifact_sha256": "f9c5e622d51aba98e18523f0e3d4f4407fa04bbde9d4f0d003ed869f5ab2397e",
+      "decision_head_sha256": "e456c5a3e2ba23b18ce1ec2d890ef21dc63ec4d777f94fb0a70f7d36e51d4c91",
+      "region_ids": [
+        "layer-001-unbound-residual",
+        "layer-002-residual",
+        "layer-003-residual",
+        "layer-005-unbound-residual"
+      ],
+      "build_options": {
+        "motion_choice_id": "a35bb647404873cfa89aa57705622211d795d77d9a8ffc8ff8fd4ef05a5300b1",
+        "skirt_profile": "reviewed-torso-waist-v2"
+      },
+      "job_id": "job-6b76a6d54370458b856b2ab61ca9e47a",
+      "status": "pending"
+    }
+  ]
+}
