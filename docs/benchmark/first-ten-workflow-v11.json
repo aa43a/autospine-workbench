@@ -1,0 +1,623 @@
+{
+  "schema": "autospine.cohort-workflow/v1",
+  "authority": "none",
+  "production_authorized": false,
+  "scope": "first_ten_current_selected_versions_not_independent_holdout",
+  "characters": [
+    {
+      "project_id": "lingxian",
+      "name": "\u94c3\u4ed9",
+      "job_id": "job-7d1ae9502d12430892cc74a7965e709e",
+      "artifact_sha256": "af783dde52973a1c98f42968b26ecb52d0a82f0a67429d1831e11e368a0b2ef8",
+      "completed": true,
+      "reason_codes": [],
+      "motions": [
+        {
+          "animation": "idle",
+          "status": "passed",
+          "sampled_frames": 129,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "wave-left",
+          "status": "passed",
+          "sampled_frames": 257,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "walk",
+          "status": "passed",
+          "sampled_frames": 513,
+          "duration_seconds": 1.033333
+        }
+      ],
+      "missing_animations": [],
+      "unresolved_layers": [],
+      "unresolved_layer_details": [],
+      "region_confirmed_layers": [
+        "layer-001",
+        "layer-002",
+        "layer-003",
+        "layer-005"
+      ],
+      "stale_auto_layers": [],
+      "runtime_measured": true,
+      "runtime_passed": true,
+      "visual_accepted": true,
+      "visual_review_session_minutes": null,
+      "character_id": "character-1635e2f149a0cfb6",
+      "dataset_split": "development",
+      "source_reason_code": "source_matched_workflow_not_assessed"
+    },
+    {
+      "project_id": "imported-9457d50ec689ef628e347db4125bbc4926192f0dbdcbc361d17fd9f1b00ec2c0",
+      "name": "\u742a\u9732\u8bfa",
+      "job_id": "job-594df2dee8f94b55a64c2a4db5fbaf78",
+      "artifact_sha256": "87930b138a5a00d556dfe799f27a89a6b623407e6a435fd8f1f720bb83310821",
+      "completed": false,
+      "reason_codes": [
+        "layer_binding_incomplete",
+        "whole_character_visual_review_required"
+      ],
+      "motions": [
+        {
+          "animation": "idle",
+          "status": "passed",
+          "sampled_frames": 129,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "wave-left",
+          "status": "passed",
+          "sampled_frames": 257,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "walk",
+          "status": "passed",
+          "sampled_frames": 513,
+          "duration_seconds": 1.033333
+        }
+      ],
+      "missing_animations": [],
+      "unresolved_layers": [
+        "layer-000",
+        "layer-002",
+        "layer-004"
+      ],
+      "unresolved_layer_details": [
+        {
+          "layer_id": "layer-000",
+          "name": "wings",
+          "state": "static_reference",
+          "reason_codes": [
+            "binding_selection_required",
+            "static_reference_not_bound"
+          ],
+          "region_ids": [
+            "layer-000"
+          ]
+        },
+        {
+          "layer_id": "layer-002",
+          "name": "topwear",
+          "state": "partial",
+          "reason_codes": [
+            "component_parent_review_required",
+            "skirt_motion_visual_review_required",
+            "skirt_waist_anchor_review_required"
+          ],
+          "region_ids": [
+            "layer-002-component-0000",
+            "layer-002-component-0001",
+            "layer-002-component-0002",
+            "layer-002-component-0003",
+            "layer-002-component-0004",
+            "layer-002-unbound-residual"
+          ]
+        },
+        {
+          "layer_id": "layer-004",
+          "name": "topwear-front",
+          "state": "partial",
+          "reason_codes": [
+            "component_parent_review_required",
+            "skirt_motion_visual_review_required",
+            "skirt_waist_anchor_review_required"
+          ],
+          "region_ids": [
+            "layer-004-component-0000",
+            "layer-004-unbound-residual"
+          ]
+        }
+      ],
+      "region_confirmed_layers": [
+        "layer-003",
+        "layer-005",
+        "layer-006"
+      ],
+      "stale_auto_layers": [],
+      "runtime_measured": true,
+      "runtime_passed": true,
+      "visual_accepted": false,
+      "visual_review_session_minutes": null,
+      "character_id": "character-2c3669d4fb0f569d",
+      "dataset_split": "development",
+      "source_reason_code": "source_matched_workflow_not_assessed"
+    },
+    {
+      "project_id": "huiye",
+      "name": "\u84ec\u83b1\u5c71\u8f89\u591c",
+      "job_id": "job-6f92bece413a4909a553a95bbfc307f4",
+      "artifact_sha256": "63caa7fe5f9f40a92ebcd57ef0b345d7dcd47e5ed3feae65a95fad18e770d51b",
+      "completed": true,
+      "reason_codes": [],
+      "motions": [
+        {
+          "animation": "idle",
+          "status": "passed",
+          "sampled_frames": 129,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "wave-left",
+          "status": "passed",
+          "sampled_frames": 517,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "walk",
+          "status": "passed",
+          "sampled_frames": 513,
+          "duration_seconds": 1.033333
+        }
+      ],
+      "missing_animations": [],
+      "unresolved_layers": [],
+      "unresolved_layer_details": [],
+      "region_confirmed_layers": [
+        "layer-001",
+        "layer-002",
+        "layer-003",
+        "layer-004"
+      ],
+      "stale_auto_layers": [],
+      "runtime_measured": true,
+      "runtime_passed": true,
+      "visual_accepted": true,
+      "visual_review_session_minutes": null,
+      "character_id": "character-2f44df7238b441b6",
+      "dataset_split": "visible",
+      "source_reason_code": "source_matched_workflow_not_assessed"
+    },
+    {
+      "project_id": "uuz",
+      "name": "\u897f\u884c\u5bfa\u5e7d\u5e7d\u5b50",
+      "job_id": "job-6b76a6d54370458b856b2ab61ca9e47a",
+      "artifact_sha256": "d3379cef30f7a812b931a55eb3ca899606aa0c5e820706822a06bb417355de81",
+      "completed": false,
+      "reason_codes": [
+        "layer_binding_incomplete",
+        "whole_character_visual_review_required"
+      ],
+      "motions": [
+        {
+          "animation": "idle",
+          "status": "passed",
+          "sampled_frames": 129,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "wave-left",
+          "status": "passed",
+          "sampled_frames": 517,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "walk",
+          "status": "passed",
+          "sampled_frames": 513,
+          "duration_seconds": 1.033333
+        }
+      ],
+      "missing_animations": [],
+      "unresolved_layers": [
+        "layer-004"
+      ],
+      "unresolved_layer_details": [
+        {
+          "layer_id": "layer-004",
+          "name": "handwear-r",
+          "state": "partial",
+          "reason_codes": [
+            "residual_binding_required"
+          ],
+          "region_ids": [
+            "layer-004-component-0000",
+            "layer-004-unbound-residual"
+          ]
+        }
+      ],
+      "region_confirmed_layers": [
+        "layer-001",
+        "layer-002",
+        "layer-003",
+        "layer-005",
+        "layer-006"
+      ],
+      "stale_auto_layers": [],
+      "runtime_measured": true,
+      "runtime_passed": true,
+      "visual_accepted": false,
+      "visual_review_session_minutes": null,
+      "character_id": "character-31874aaa32a9bbf8",
+      "dataset_split": "visible",
+      "source_reason_code": "source_matched_workflow_not_assessed"
+    },
+    {
+      "project_id": null,
+      "name": "\u9b42\u9b44\u5996\u68a6",
+      "job_id": null,
+      "artifact_sha256": null,
+      "completed": false,
+      "reason_codes": [
+        "psd_variant_review_required",
+        "required_animations_missing",
+        "required_motion_runtime_incomplete",
+        "runtime_unmeasured",
+        "geometry_not_passed",
+        "layer_inventory_missing",
+        "whole_character_visual_review_required"
+      ],
+      "motions": [
+        {
+          "animation": "idle",
+          "status": "missing",
+          "sampled_frames": 0,
+          "duration_seconds": null
+        },
+        {
+          "animation": "wave-left",
+          "status": "missing",
+          "sampled_frames": 0,
+          "duration_seconds": null
+        },
+        {
+          "animation": "walk",
+          "status": "missing",
+          "sampled_frames": 0,
+          "duration_seconds": null
+        }
+      ],
+      "missing_animations": [
+        "idle",
+        "walk",
+        "wave-left"
+      ],
+      "unresolved_layers": [],
+      "unresolved_layer_details": [],
+      "region_confirmed_layers": [],
+      "stale_auto_layers": [],
+      "runtime_measured": false,
+      "runtime_passed": false,
+      "visual_accepted": false,
+      "visual_review_session_minutes": null,
+      "character_id": "character-677e29171939a236",
+      "dataset_split": "visible",
+      "source_reason_code": "psd_variant_review_required"
+    },
+    {
+      "project_id": "lumia",
+      "name": "\u9732\u7c73\u5a05",
+      "job_id": "job-da9095a0d83a4bf3a1b795e5d0fc115d",
+      "artifact_sha256": "abb23e94fb8e8c80a392d5d7ae48f719dea64ff623878649de07dd8dadb06cb1",
+      "completed": true,
+      "reason_codes": [],
+      "motions": [
+        {
+          "animation": "idle",
+          "status": "passed",
+          "sampled_frames": 129,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "wave-left",
+          "status": "passed",
+          "sampled_frames": 257,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "walk",
+          "status": "passed",
+          "sampled_frames": 513,
+          "duration_seconds": 1.033333
+        }
+      ],
+      "missing_animations": [],
+      "unresolved_layers": [],
+      "unresolved_layer_details": [],
+      "region_confirmed_layers": [
+        "layer-001",
+        "layer-002",
+        "layer-003",
+        "layer-004",
+        "layer-005"
+      ],
+      "stale_auto_layers": [],
+      "runtime_measured": true,
+      "runtime_passed": true,
+      "visual_accepted": true,
+      "visual_review_session_minutes": null,
+      "character_id": "character-6c77f0930a13ebe9",
+      "dataset_split": "visible",
+      "source_reason_code": "source_matched_workflow_not_assessed"
+    },
+    {
+      "project_id": "imported-ac6ba48dc2d5052613d87ab2afc247e4ef5977d9431ef76544a457b3047a3457",
+      "name": "\u5341\u516d\u591c\u54b2\u591c",
+      "job_id": "job-fe8f73946cb248b29e750ea7713f9af4",
+      "artifact_sha256": "caea46d2c623e004536c8cb24fbd3f2ea190abc4c24bb9f5bb7d0d069d875d47",
+      "completed": true,
+      "reason_codes": [],
+      "motions": [
+        {
+          "animation": "idle",
+          "status": "passed",
+          "sampled_frames": 129,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "wave-left",
+          "status": "passed",
+          "sampled_frames": 257,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "walk",
+          "status": "passed",
+          "sampled_frames": 513,
+          "duration_seconds": 1.033333
+        }
+      ],
+      "missing_animations": [],
+      "unresolved_layers": [],
+      "unresolved_layer_details": [],
+      "region_confirmed_layers": [
+        "layer-001",
+        "layer-002",
+        "layer-003",
+        "layer-004",
+        "layer-006"
+      ],
+      "stale_auto_layers": [],
+      "runtime_measured": true,
+      "runtime_passed": true,
+      "visual_accepted": true,
+      "visual_review_session_minutes": null,
+      "character_id": "character-997aac4ca2302dd9",
+      "dataset_split": "holdout",
+      "source_reason_code": "source_matched_workflow_not_assessed"
+    },
+    {
+      "project_id": "imported-16453de50001de216808e2e6dc12ee1db4bbb2cb677de976b52916a2f0d64079",
+      "name": "\u516b\u4e91\u84dd",
+      "job_id": "job-3c6313cb9fb847aaacea6ea2616305d9",
+      "artifact_sha256": "2bc38367b8a08ba9ec3d465a67ca2374ed08f89ba694f5bdd81e8a6ab09c0d71",
+      "completed": true,
+      "reason_codes": [],
+      "motions": [
+        {
+          "animation": "idle",
+          "status": "passed",
+          "sampled_frames": 129,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "wave-left",
+          "status": "passed",
+          "sampled_frames": 517,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "walk",
+          "status": "passed",
+          "sampled_frames": 125,
+          "duration_seconds": 1.033333
+        }
+      ],
+      "missing_animations": [],
+      "unresolved_layers": [],
+      "unresolved_layer_details": [],
+      "region_confirmed_layers": [
+        "layer-001",
+        "layer-002",
+        "layer-003",
+        "layer-004",
+        "layer-006",
+        "layer-022"
+      ],
+      "stale_auto_layers": [],
+      "runtime_measured": true,
+      "runtime_passed": true,
+      "visual_accepted": true,
+      "visual_review_session_minutes": null,
+      "character_id": "character-bdbf05538b91718e",
+      "dataset_split": "holdout",
+      "source_reason_code": "source_matched_workflow_not_assessed"
+    },
+    {
+      "project_id": "imported-3ac977caea4fa3acd2358eab227d156f935436efe12bc1a93e42f506c5e9ee31",
+      "name": "\u8299\u5170\u6735\u9732",
+      "job_id": "job-e97c5008799a4e40a83dd9837b2614df",
+      "artifact_sha256": "b20ff271e37db859f0d1409dcb34f1c820f76e5bf013983e533002c528cf9483",
+      "completed": false,
+      "reason_codes": [
+        "layer_binding_incomplete",
+        "whole_character_visual_review_required"
+      ],
+      "motions": [
+        {
+          "animation": "idle",
+          "status": "passed",
+          "sampled_frames": 129,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "wave-left",
+          "status": "passed",
+          "sampled_frames": 517,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "walk",
+          "status": "passed",
+          "sampled_frames": 513,
+          "duration_seconds": 1.033333
+        }
+      ],
+      "missing_animations": [],
+      "unresolved_layers": [
+        "layer-000"
+      ],
+      "unresolved_layer_details": [
+        {
+          "layer_id": "layer-000",
+          "name": "wings",
+          "state": "static_reference",
+          "reason_codes": [
+            "binding_selection_required",
+            "static_reference_not_bound"
+          ],
+          "region_ids": [
+            "layer-000"
+          ]
+        }
+      ],
+      "region_confirmed_layers": [
+        "layer-002",
+        "layer-003",
+        "layer-004",
+        "layer-005",
+        "layer-009"
+      ],
+      "stale_auto_layers": [],
+      "runtime_measured": true,
+      "runtime_passed": true,
+      "visual_accepted": false,
+      "visual_review_session_minutes": null,
+      "character_id": "character-c631957bd1c41f53",
+      "dataset_split": "holdout",
+      "source_reason_code": "source_matched_workflow_not_assessed"
+    },
+    {
+      "project_id": "alice",
+      "name": "\u7231\u4e3d\u4e1d",
+      "job_id": "job-a2db93f931824108982191eb0e2b9dce",
+      "artifact_sha256": "74e0c3ef7fe2c7847e7909cc6eba5d7231d71ef04c259ca064e791d4cdc32a96",
+      "completed": false,
+      "reason_codes": [
+        "layer_binding_incomplete",
+        "whole_character_visual_review_required"
+      ],
+      "motions": [
+        {
+          "animation": "idle",
+          "status": "passed",
+          "sampled_frames": 129,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "wave-left",
+          "status": "passed",
+          "sampled_frames": 257,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "walk",
+          "status": "passed",
+          "sampled_frames": 513,
+          "duration_seconds": 1.033333
+        }
+      ],
+      "missing_animations": [],
+      "unresolved_layers": [
+        "layer-008",
+        "layer-022"
+      ],
+      "unresolved_layer_details": [
+        {
+          "layer_id": "layer-008",
+          "name": "objects",
+          "state": "static_reference",
+          "reason_codes": [
+            "binding_selection_required",
+            "static_reference_not_bound"
+          ],
+          "region_ids": [
+            "layer-008"
+          ]
+        },
+        {
+          "layer_id": "layer-022",
+          "name": "headwear",
+          "state": "static_reference",
+          "reason_codes": [
+            "binding_selection_required",
+            "static_reference_not_bound"
+          ],
+          "region_ids": [
+            "layer-022"
+          ]
+        }
+      ],
+      "region_confirmed_layers": [
+        "layer-001",
+        "layer-002",
+        "layer-003",
+        "layer-004",
+        "layer-005"
+      ],
+      "stale_auto_layers": [],
+      "runtime_measured": true,
+      "runtime_passed": true,
+      "visual_accepted": false,
+      "visual_review_session_minutes": null,
+      "character_id": "character-f83a6fabd05091f0",
+      "dataset_split": "development",
+      "source_reason_code": "source_matched_workflow_not_assessed"
+    }
+  ],
+  "required_animations": [
+    "idle",
+    "wave-left",
+    "walk"
+  ],
+  "metrics": {
+    "total_characters": 10,
+    "completed_characters": 5,
+    "completion_rate": 0.5,
+    "runtime_measured_characters": 9,
+    "required_motion_cases": 30,
+    "runtime_passed_motion_cases": 27,
+    "runtime_failure_rate": 0.0,
+    "human_review_minutes": null,
+    "incorrect_auto_adoption_rate": null,
+    "auto_binding_audit": {
+      "eligible_bindings": 102,
+      "assessed_bindings": 0,
+      "correct": 0,
+      "incorrect": 0,
+      "unobservable": 0,
+      "not_reviewed": 102,
+      "sampled_error_rate": null,
+      "projects_with_current_candidate": 9,
+      "sampling_scope": "human_selected_current_bindings_not_population_accuracy"
+    }
+  },
+  "unmeasured_reasons": {
+    "human_review_minutes": "operation_timing_not_available",
+    "incorrect_auto_adoption_rate": "independent_labels_not_available"
+  },
+  "intake_report_sha256": "f44e52e0b34c2d727d972f64645bec3a75aa8980563fc1ba3c9daef48afa55e7",
+  "observations_sha256": "0f914fe57e90d98c0cf43ed9fe31591196e4dc337efc7290095f2bf95cfd2ae0"
+}

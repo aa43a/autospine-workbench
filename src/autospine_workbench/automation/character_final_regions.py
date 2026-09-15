@@ -119,7 +119,12 @@ def apply_saved(manager,request,result, *, stage="before_components"):
         try:
             decisions=revalidate(store.read(review['source_bundle_sha256']),files,decisions)
         except (KeyError, ValueError, OSError) as exc:
-            raise PipelineRunError('character_final_source_changed') from exc
+            if str(exc) != 'character_region_revalidation_sources':
+                raise PipelineRunError('character_final_source_changed') from exc
+            try:
+                decisions=binding_edit_decisions(store,files,decisions)
+            except (KeyError, ValueError, OSError) as changed:
+                raise PipelineRunError('character_final_source_changed') from changed
     output=apply_batch(files,decisions,after_components=post)
     final=dict(result,artifact_sha256=store.publish(output),manifest=json.loads(output['character-manifest.json']),
         final_region_exclusions=dict(review_sha256=current['head_sha256'],
@@ -130,3 +135,19 @@ def apply_saved(manager,request,result, *, stage="before_components"):
     if 'texture_trial' in final:
         final['texture_trial']={**final['texture_trial'],'scope':'before_final_region_exclusions'}
     return final
+
+
+def binding_edit_decisions(store,files,decisions):
+    """Reuse the existing strict per-region binding-edit proof for a final batch."""
+    from .character_region_replay import apply_current
+    result=[]
+    for decision in decisions:
+        # Each proof is checked against the same unmodified full batch source.
+        inspected=apply_current(store,files,decision)
+        current=json.loads(inspected['region-exclusion.json'])
+        proof=current.get('scope_replay',{})
+        if (proof.get('profile') not in ('unchanged-region-binding-update-v1','unchanged-region-binding-profile-update-v2')
+                or proof.get('new_human_confirmation') is not False):
+            raise ValueError('character_final_not_binding_update')
+        result.append(current)
+    return result

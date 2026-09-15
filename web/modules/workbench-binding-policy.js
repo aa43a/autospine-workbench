@@ -2,6 +2,9 @@
 import { projectIdentity } from "./workbench-automation-contract.js";
 
 const REASONS={existing_review_preserved:"保留已有复核",policy_capability_unsupported:"当前策略不支持此部件",side_name_required:"左右侧需要复核",
+  visible_eye_references:"双眼参考像素充分",eye_face_support:"双眼位于已绑定面部",small_eye_reference:"眼区大小合理",
+  inside_eye_neighborhood:"睫毛位于同侧眼区",inside_face_bounds:"睫毛未越出面部范围",
+  distinct_eye_neighborhood:"两侧眼区明确分离",eyelash_eye_contact:"睫毛与同侧眼白接触",
   head_anchor_visible:"已复核头部锚点位于可见面部",neck_anchor_visible:"已复核颈点位于可见颈部",head_above_neck:"头颈上下关系一致",
   face_above_neck:"面部未跨入颈点以下",neck_below_head:"颈层位于头点以下",compact_face:"面部范围与头颈跨度一致",compact_neck:"颈层宽度合理",
   face_neck_contact:"面部与颈部有像素接触",visible_head_parts:"头颈可见像素充分",
