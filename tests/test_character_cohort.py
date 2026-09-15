@@ -53,4 +53,8 @@ class CohortTests(unittest.TestCase):
             row=summarize(c,o)['characters'][0]
             self.assertEqual(row['completed'], value is True)
             self.assertEqual(row['stale_auto_layers'], [] if value is True else ['arm'])
-            if value is not True:self.assertIn('automatic_binding_evidence_stale', row['reason_codes'])
+            if value is not True:
+                self.assertIn('automatic_binding_evidence_stale', row['reason_codes'])
+                self.assertIn('automatic_binding_evidence_stale', row['unresolved_layer_details'][0]['reason_codes'])
+            else:
+                self.assertEqual(row['unresolved_layer_details'], [])

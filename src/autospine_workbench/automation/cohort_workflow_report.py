@@ -39,8 +39,8 @@ def render(report, base_url):
         if 'layer_inventory_missing' in row['reason_codes']:
             binding = '尚无图层库存'
         elif pending:
-            binding = (f'<details><summary>待处理 {len(pending)} 层</summary><ul>' +
-                       ''.join('<li>' + escape(key) + '</li>' for key in pending) + '</ul></details>')
+            from .cohort_layer_details import render as render_layers
+            binding = render_layers(row)
         else:
             binding = '绑定完整'
         motions = {m['animation']: m for m in row['motions']}

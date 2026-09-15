@@ -34,8 +34,19 @@ def assess_character(character, observed, required_animations):
     from .character_review_timing import minutes
     visual=bool(review and all(review.get('aspects',{}).get(k)=='acceptable' for k in ('setup','draw_order','connections','motion')))
     if not visual:reasons.append('whole_character_visual_review_required')
+    details=[]
+    for layer in layers:
+        if layer['layer_id'] not in unresolved: continue
+        codes=list(layer.get('reason_codes', []))
+        if layer['layer_id'] in stale_auto: codes.append('automatic_binding_evidence_stale')
+        if layer['layer_id'] in incorrect: codes.append('automatic_binding_audit_needs_changes')
+        if not codes: codes.append('binding_selection_required')
+        details.append(dict(layer_id=layer['layer_id'], name=layer.get('name',layer['layer_id']),
+            state=layer.get('state'), reason_codes=sorted(set(codes)),
+            region_ids=[r['region_id'] for r in layer.get('regions',[])]))
     return dict(project_id=character['project_id'],name=character['name'],job_id=job.get('job_id'),
                      artifact_sha256=job.get('artifact_sha256'),completed=not reasons,reason_codes=reasons,
                      motions=motions,
-                     missing_animations=missing,unresolved_layers=unresolved,region_confirmed_layers=sorted(region_confirmed),stale_auto_layers=stale_auto,runtime_measured=runtime is not None,
+                     missing_animations=missing,unresolved_layers=unresolved,unresolved_layer_details=details,
+                     region_confirmed_layers=sorted(region_confirmed),stale_auto_layers=stale_auto,runtime_measured=runtime is not None,
                      runtime_passed=runtime_passed,visual_accepted=visual,visual_review_session_minutes=minutes(review))

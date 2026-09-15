@@ -45,3 +45,23 @@ class WorkflowReportTests(unittest.TestCase):
         for origin in ['https://example.com', 'http://localhost/?x="', 'http://user@localhost']:
             with self.subTest(origin=origin), self.assertRaises(ValueError):
                 render(report, origin)
+
+    def test_exception_details_preserve_names_reasons_and_escape_content(self):
+        intake, observations = workflow_fixtures.WorkflowTests().fixture()
+        observed = cohort_fixtures.CohortTests().complete()
+        layer = observed['job']['layers'][0]
+        layer.update(state='static_reference', name='<wing>',
+                     reason_codes=['static_reference_not_bound'],
+                     regions=[dict(region_id='<region>',state='static_reference')])
+        observations['0'] = observed
+        report = summarize(intake, observations)
+        details = report['characters'][0]['unresolved_layer_details']
+        self.assertEqual(details[0]['name'], '<wing>')
+        page = render(report, 'http://localhost:8918')
+        self.assertIn('&lt;wing&gt;',page)
+        self.assertIn('仅保留静态参考，尚未绑定',page)
+        self.assertIn('&lt;region&gt;',page)
+        self.assertNotIn('<wing>',page)
+        # Historical snapshots without the optional details remain readable.
+        report['characters'][0].pop('unresolved_layer_details')
+        self.assertIn(layer['layer_id'],render(report,'http://localhost:8918'))
