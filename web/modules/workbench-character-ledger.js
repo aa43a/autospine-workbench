@@ -23,7 +23,7 @@ export function createCharacterLedger(document,hooks){
   const element=node("details"),summary=node("summary"),controls=node("div"),list=node("ul");
   const label=node("label","显示范围 "),filter=node("select"),counts=node("p");
   filter.setAttribute("aria-label","整角色图层显示范围");
-  for(const [value,text]of [["pending","待处理图层"],["all","全部图层"]]){const o=node("option",text);o.value=value;filter.append(o);}
+  for(const [value,text]of [["pending","待处理图层"],["static","未绑定静态区域"],["all","全部图层"]]){const o=node("option",text);o.value=value;filter.append(o);}
   filter.value="pending";label.append(filter);controls.append(label,counts);
   list.className="automation-queue character-ledger-list";element.append(summary,controls,list);element.open=true;
   let state=null,identity=null;
@@ -37,7 +37,8 @@ export function createCharacterLedger(document,hooks){
     element.hidden=!layers.length;
     summary.textContent=`图层复核 · 待处理 ${pending.length} / 全部 ${layers.length}`;
     counts.textContent=`已输出 ${number("weighted_candidate")} 个加权区域、${number("rigid_reviewed")} 个刚性区域；${number("static_reference")} 个区域仍为静态参考。输出数量不代表视觉验收通过。`;
-    const shown=filter.value==="all"?layers:pending;
+    const shown=filter.value==="all"?layers:filter.value==="static"?
+      layers.filter(layer=>(layer.regions||[]).some(r=>r.state==="static_reference")):pending;
     list.replaceChildren(...shown.map(layer=>{
       const row=node("li"),button=node("button",`${layer.name} · ${STATES[layer.state]||layer.state}`);
       button.type="button";button.className="button button-secondary";button.addEventListener("click",()=>hooks.locate?.({layer_id:layer.layer_id,type:"binding"}));row.append(button);
@@ -48,6 +49,7 @@ export function createCharacterLedger(document,hooks){
           row.append(node("p",(state.confirmedLayerIds||[]).includes(layer.layer_id)?"已按当前候选确认区域绑定；整层草稿保留。":"已有加权区域；整层绑定仍待复核。请检查现有分区，不要把整张图改绑到单根骨骼来清除待办。"));
       }
       const evidence=node("details");evidence.append(node("summary",`区域明细与处理 · ${(layer.regions||[]).length} 个输出区域`));row.append(evidence);
+      evidence.open=filter.value==="static";
       for(const message of residualMessages(job,layer))row.append(node("p",message));
       if(layer.reason_codes?.length)evidence.append(node("p",layer.reason_codes.map(r=>REASONS[r]||r).join("；")));
       for(const region of layer.regions||[])evidence.append(node("p",`${region.region_id} · ${STATES[region.state]||region.state}`));
@@ -58,6 +60,16 @@ export function createCharacterLedger(document,hooks){
         if(file!=="static-regions/index.html"||!/^region-\d+$/.test(anchor)||!job.runtime.files?.[file])continue;
         const link=node("a","查看未绑定区域像素");link.target="_blank";link.rel="noopener";link.className="button button-secondary";
         link.setAttribute("href",`${endpoint}/jobs/${job.job_id}/view/${file}#${anchor}`);evidence.append(link);
+        const imageFile=`static-regions/${anchor}.png`;
+        if(job.runtime.files[imageFile]){
+          const figure=node("figure"),image=node("img");
+          image.setAttribute("src",`${endpoint}/jobs/${job.job_id}/view/${imageFile}`);
+          image.setAttribute("alt",`${layer.name} 未绑定静态区域，原透明度局部裁切`);
+          image.setAttribute("loading","lazy");
+          image.setAttribute("style","max-width:100%;max-height:220px;object-fit:contain;background:#354451");
+          figure.append(image,node("figcaption","原透明度局部裁切；淡像素可打开定位页增强查看。此图不表示动画位置，也不代表允许排除。"));
+          evidence.append(figure);
+        }
       }
       for(const region of layer.regions||[]){
         if(region.state!=="static_reference")continue;
@@ -68,7 +80,7 @@ export function createCharacterLedger(document,hooks){
       }
       return row;
     }));
-    if(layers.length&&!shown.length)list.append(node("li","没有待处理的图层绑定。仍需完成整角色动作与视觉验收。"));
+    if(layers.length&&!shown.length)list.append(node("li",filter.value==="static"?"没有未绑定静态区域。其他绑定与视觉验收仍分别检查。":"没有待处理的图层绑定。仍需完成整角色动作与视觉验收。"));
   }
   return {element,sync(value){
     if(value.projectId!==identity){identity=value.projectId;filter.value="pending";element.open=true;}
