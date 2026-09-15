@@ -5,6 +5,7 @@ import { createWeightedReview } from "./workbench-character-weighted-review.js";
 import { createCharacterLedger } from "./workbench-character-ledger.js";
 import { createCharacterProgress } from "./workbench-character-progress.js";
 import { defaultCharacterMotion } from "./workbench-character-motion-choice.js";
+import { canRebuildCharacterMotion } from "./workbench-character-rebuild.js";
 import { createFinalRegionReview } from "./workbench-final-regions.js";
 import { createComponentMounts } from "./workbench-component-mounts.js";
 import { createCharacterOrder } from "./workbench-character-order.js";
@@ -85,7 +86,8 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
     const active=ACTIVE.has(job?.status),dirty=Boolean(context().dirty||context().saving||context().loading);
     const finalRecipe=characterRecipe(overview);
     shoulder.sync(job,finalRecipe,busy||active||dirty);
-    if(finalRecipe){textureToggle.checked=Boolean(finalRecipe.residual_texture_profile);textureProfile.value=finalRecipe.residual_texture_profile||'aligned-low-alpha-v1';skirtToggle.checked=Boolean(finalRecipe.skirt_profile);motionChoice=finalRecipe.motion_choice_id||'';motionTouched=true;}
+    const rebuildMotion=canRebuildCharacterMotion(overview);
+    if(finalRecipe){textureToggle.checked=Boolean(finalRecipe.residual_texture_profile);textureProfile.value=finalRecipe.residual_texture_profile||'aligned-low-alpha-v1';skirtToggle.checked=Boolean(finalRecipe.skirt_profile);if(!rebuildMotion||!motionTouched)motionChoice=finalRecipe.motion_choice_id||'';motionTouched=true;}
     build.disabled=!overview?.can_build||busy||active||dirty;refresh.disabled=!identity||busy;cancel.hidden=!active;cancel.disabled=busy||job?.cancel_requested;
     textureToggle.disabled=busy||active||dirty||Boolean(finalRecipe);
     skirtToggle.disabled=busy||active||dirty||Boolean(finalRecipe);
@@ -94,9 +96,10 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
     if(motionChoice&&!available.some(r=>r.choice_id===motionChoice&&r.available))motionChoice="";
     if(!motionTouched)motionChoice=defaultCharacterMotion(available);
     const defaultMotion=node("option","保留原有动作");defaultMotion.value="";
-    motionSelect.replaceChildren(defaultMotion,...available.map(r=>{const o=node("option",`原有动作 + ${r.animations.map(n=>({walk:"行走",idle:"待机","wave-left":"左手挥动"}[n]||n)).join("、")}${r.available?"（候选）":"（来源已变化）"}`);o.value=r.choice_id;o.disabled=!r.available;return o;}));
-    motionSelect.value=motionChoice;motionSelect.disabled=busy||active||dirty||Boolean(finalRecipe)||!available.some(r=>r.available);
+    motionSelect.replaceChildren(defaultMotion,...available.map((r,i)=>{const o=node("option",`方案 ${i+1} · 原有动作 + ${r.animations.map(n=>({walk:"行走",idle:"待机","wave-left":"左手挥动"}[n]||n)).join("、")}${r.available?"（候选）":"（来源已变化）"}`);o.value=r.choice_id;o.disabled=!r.available;return o;}));
+    motionSelect.value=motionChoice;motionSelect.disabled=busy||active||dirty||(Boolean(finalRecipe)&&!rebuildMotion)||!available.some(r=>r.available);
     motionSelect.setAttribute("title",!motionTouched&&motionChoice?"已自动选择唯一有效的待机、左手挥动与行走组合；可手动更改。":"选择候选动作不会自动通过绑定或视觉复核。");
+    if(rebuildMotion)motionSelect.setAttribute("title","可选择重建后的动作。构建时会重新校验原残余排除范围；范围变化则停止，不改写原复核。");
     const reason=job?.reason_code||overview?.reason_code;
     status.textContent=error||(busy&&operation==="build"?"正在提交整角色构建…":!job&&busy?"正在请求…":job?`${STAGES[job.stage]||job.status}${reason?" · "+(REASONS[reason]||reason):""}`:REASONS[reason]||"可以构建整角色候选。");
     if(!error&&job?.stage==="texture-trial")status.textContent="正在归并可安全转移的低透明度残余…";

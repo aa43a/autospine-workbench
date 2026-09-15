@@ -75,7 +75,8 @@ class CharacterJobs:
     def overview(self, project):
         require_safe_token(project, 'project'); self.projects.get_project(project)
         sleeve = self.sleeves.overview(project).get('job')
-        result = dict(project_id=project, authority='none', can_build=False, sleeve_job_id=None, job=None, reason_code=None)
+        result = dict(project_id=project, authority='none', can_build=False, sleeve_job_id=None, job=None, reason_code=None,
+                      motion_rebuild_with_region_revalidation=True)
         from .character_region_decisions import overview as region_overview
         result['region_exclusions'] = region_overview(self, project)
         from .character_final_regions import overview as final_overview

@@ -1,0 +1,39 @@
+{
+  "schema": "autospine.benchmark-order-rebuild/v1",
+  "authority": "none",
+  "selected": false,
+  "source_bundle_sha256": "b20ff271e37db859f0d1409dcb34f1c820f76e5bf013983e533002c528cf9483",
+  "candidate_bundle_sha256": "4dac7dc20c1423ef6ddbed0ae803e0a4ab6bf55b8204d6e37058ec26952fc5dd",
+  "constraints": [
+    [
+      "layer-003-l",
+      "layer-002"
+    ],
+    [
+      "layer-003-r",
+      "layer-002"
+    ]
+  ],
+  "preserved": [
+    "bones",
+    "attachments",
+    "weights",
+    "textures",
+    "animation_tracks",
+    "reference_vertices"
+  ],
+  "runtime": {
+    "report_sha256": "04055035fa43d42910777b4a339f6cde86948d4cf6aaa00b337b6720afe1041e",
+    "passed": true,
+    "frames": 1675,
+    "version": "4.3.13",
+    "max_error_px": 9.847103570697683e-05
+  },
+  "comparisons": {
+    "combined_opposed": 5,
+    "idle": 5,
+    "walk": 17,
+    "wave-left": 18
+  },
+  "visual_status": "needs_review"
+}

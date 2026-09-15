@@ -1,4 +1,5 @@
 "use strict";
+import {canRebuildCharacterMotion} from "./workbench-character-rebuild.js";
 
 export const CHARACTER_OPTIONS=["motion_choice_id","residual_texture_profile","skirt_profile","shoulder_regions"];
 export function characterRecipe(overview){
@@ -8,7 +9,9 @@ export function characterRecipe(overview){
 }
 export function applyCharacterRecipe(payload,overview){
   const recipe=characterRecipe(overview);
+  const rebuild=canRebuildCharacterMotion(overview),motion=payload.motion_choice_id;
   if(recipe){for(const key of CHARACTER_OPTIONS)delete payload[key];Object.assign(payload,recipe);}
+  if(recipe&&rebuild){delete payload.motion_choice_id;if(motion)payload.motion_choice_id=motion;}
   return payload;
 }
 

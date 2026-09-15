@@ -50,3 +50,13 @@
 芙兰三处残余均通过，新候选为 `b20ff271e37db859f0d1409dcb34f1c820f76e5bf013983e533002c528cf9483`。官方 WebGL Runtime 4.3.13 对 Spine 4.3.26 候选验证 1,675 帧、25 个附件，最大误差 0.000098471 px，通过当前数值与非空画面检查。详细地址与报告摘要见 [重建证据](flandre-visibility-rebuild-v1.json)。复核页为 `tmp/character-visibility-upgrade/flandre/runtime/index.html`。
 
 已查看实际捕获：腿裙遮挡仍待处理，翼层仍未采用。contact_status 仍为 not_evaluated；本次不增加十角色完成数量，不声称整角色视觉通过。下一步在新来源上完成这些部件，再切换工作台候选和重新核对绑定范围。
+
+## 工作台重建已贯通，腿裙顺序单独待复核
+
+工作台现允许在仅有最终残余排除时选择重建动作，保留其他原选项；必须由后端声明支持原范围重新校验。已有部件映射、拆分后排除或绘制顺序决定时继续固定原方案。前端刷新保留用户选择，旧后端维持锁定。完整前端 592 项测试通过，相关 Python 与长度检查 18 项通过。
+
+真实工作台任务 `job-e97c5008799a4e40a83dd9837b2614df` 已返回 needs_review，工件与独立重建的 `b20ff271e37db859f0d1409dcb34f1c820f76e5bf013983e533002c528cf9483` 完全一致；官方 Runtime 1,675 帧、geometry_status=passed。layer-023 为 not_visible，三个残余排除保留原 review_sha256 `1f8def7eb4addf832fa5a64eb9ad8f910919b5edef8201c8b075dc3c4232b688`。新版已加载至 8918 服务。
+
+另外生成了仅把两腿置于裙装后的顺序候选 `4dac7dc20c1423ef6ddbed0ae803e0a4ab6bf55b8204d6e37058ec26952fc5dd`；骨骼、附件、权重、贴图、动画及参考顶点均未变，1,675 帧 Runtime 通过。四动作共有 45 个校验过来源与相机的同帧截图对照，见 [顺序证据](flandre-order-rebuild-v1.json)；复核入口 `tmp/character-visibility-upgrade/flandre/order/comparison/walk/index.html`。已查看截图，裙面不再被腿覆盖；等待用户确认，不写入绘制顺序决定。
+
+五层原绑定的实际附件与骨骼均未变，三个图层的账本仅 excluded_regions 记录不同；这还不是已完成的绑定沿用证明。下一步扩展有界的来源关系校验，保留原确认的撤销效力，不能要求用户重做已确认映射来代替校验实现。

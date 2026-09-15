@@ -20,6 +20,28 @@ const job=(status='needs_review')=>({schema:'autospine.character-web-job/v1',pro
   job_id:'job-'+ 'b'.repeat(32),status,stage:status==='running'?'compose':'review',layers:[]});
 const overview=value=>({project_id:'one',authority:'none',can_build:true,job:value});
 
+test('revalidated final exclusions allow a new motion without changing other saved options',async()=>{
+  const previous='a'.repeat(64),next='b'.repeat(64);
+  for(const lock of [null,'legacy','order_review','component_mounts','post_component_regions']){
+    const calls=[],recipe={motion_choice_id:previous,skirt_profile:'reviewed-torso-waist-v2'};
+    const data={...overview(job()),motion_rebuild_with_region_revalidation:lock!=='legacy',
+      final_region_exclusions:{active:true,review:{build_options:recipe,decisions:[]}},
+      motion_choices:[previous,next].map(choice_id=>({choice_id,available:true,animations:['walk']}))};
+    if(lock&&lock!=='legacy')data[lock]={active:true,review:{build_options:recipe,decisions:[],constraints:[],decision:{parents:{}}}};
+    const f=fixture(async(url,init)=>{calls.push([url,init]);return init.method==='POST'?job('running'):data;});
+    f.view.sync();await flush();
+    const select=descendants(f.view.element).find(n=>n.attrs?.['aria-label']==='整角色动作');
+    assert.equal(select.value,previous);assert.equal(select.disabled,lock!==null);
+    if(lock===null){select.value=next;select.onchange();await f.view.refresh();assert.equal(select.value,next);}
+    f.build.events.click();await flush();
+    const payload=JSON.parse(calls.find(([,init])=>init.method==='POST')[1].body);
+    assert.equal(payload.motion_choice_id,lock===null?next:previous);
+    assert.equal(payload.skirt_profile,recipe.skirt_profile);
+    assert.equal(recipe.motion_choice_id,previous);
+    f.view.dispose();
+  }
+});
+
 test('texture trial is opt-in and resets across projects',async()=>{
  const calls=[];
  const f=fixture(async(url,init)=>{calls.push([url,init]);return init.method==='POST'?job('running'):overview(job());});
