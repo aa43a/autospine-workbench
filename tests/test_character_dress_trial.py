@@ -40,6 +40,8 @@ class DressRecipeTests(unittest.TestCase):
         self.assertEqual(result['manifest']['layers'][1], json.loads(files['character-manifest.json'])['layers'][1])
         self.assertFalse(result['skirt_trial']['selected'])
         self.assertEqual(result['manifest']['layers'][0]['binding_decision'], {'action':'pending'})
+        partitions=json.loads(output['dress-partitions.json'])['partitions']
+        for part in partitions:self.assertIn(part['evidence']['source_bundle_sha256'],saved)
 
     def test_missing_support_keeps_source_topology_and_records_exception(self):
         files = source(); before = deepcopy(files)
@@ -57,7 +59,7 @@ class DressRecipeTests(unittest.TestCase):
         manager=SimpleNamespace(application=SimpleNamespace(store=store))
         request={'skirt_profile':PROFILE,'residual_auto_profile':'preserve'}
         with patch('autospine_workbench.automation.character_residual_defaults.apply',side_effect=lambda m,r,v:order.append(('residual',dict(r))) or v), \
-             patch('autospine_workbench.automation.character_dress_trial.prepare',side_effect=lambda f:order.append(('partition',None)) or (f,[],[])):
+             patch('autospine_workbench.automation.character_dress_trial.prepare',side_effect=lambda f,**kw:order.append(('partition',None)) or (f,[],[])):
             apply_selected(manager,request,{'artifact_sha256':'a'*64})
         self.assertEqual([r[0] for r in order],['residual','partition'])
         self.assertEqual(order[0][1],request)

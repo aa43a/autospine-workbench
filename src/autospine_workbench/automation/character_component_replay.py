@@ -15,7 +15,13 @@ def derive(manager,result,files, *, after_components=False):
     from .character_weighted_review import history,confirmed_layers,eligible
     from .character_weighted_replay import derive as exclusion_replay,read_proof
     receipt='final-region-exclusion.json' if after_components else 'component-mount.json'
-    source_sha=json.loads(files[receipt])['source_bundle_sha256']
+    report=json.loads(files[receipt])
+    # Source-preserving partitions are not reviewed rigid mount replacements.
+    # Their intermediate component source may never have had a workbench job;
+    # this bounded replay proof must not infer a human decision from it.
+    if not after_components and report.get('partition_only') is True:
+        return None
+    source_sha=report['source_bundle_sha256']
     source=manager.application.store.read(source_sha)
     # Deliberately bounded: no chain of component conversions, no arbitrary graph traversal.
     if after_components:

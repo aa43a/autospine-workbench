@@ -22,7 +22,7 @@ def seal(files, blocked=()):
     return dict(files, **{'character-manifest.json': canonical_bytes(manifest)})
 
 
-def prepare(files):
+def prepare(files, *, publish=None):
     """Select only a unique supported component per unreviewed garment layer."""
     files = dict(files)
     manifest = json.loads(files['character-manifest.json'])
@@ -61,6 +61,8 @@ def prepare(files):
             if not str(exc).startswith('component_mount_'): raise
             blocked.append(dict(layer_id=owner, source_region_id=slot, reason_code=str(exc)))
             continue
+        if publish is not None and publish(files) != evidence['source_bundle_sha256']:
+            raise PipelineRunError('character_dress_partition_source_mismatch')
         # Keep source evidence, but never obsolete numeric chunks. The new manifest
         # hashes every retained file; the unchanged source remains separately addressed.
         for name, raw in files.items():
@@ -82,7 +84,7 @@ def apply_selected(manager, request, result):
     result = residual_defaults(manager, request, result)
     store = manager.application.store
     source = result['artifact_sha256']
-    files, selected, blocked = prepare(store.read(source))
+    files, selected, blocked = prepare(store.read(source), publish=store.publish)
     partition_digest = store.publish(files)
     if selected:
         output, report = generate(files, partition_digest, selected,
