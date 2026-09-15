@@ -1,0 +1,103 @@
+{
+  "schema": "autospine.benchmark-safe-binding-progress/v1",
+  "project_id": "imported-16453de50001de216808e2e6dc12ee1db4bbb2cb677de976b52916a2f0d64079",
+  "authority": "none",
+  "production_authorized": false,
+  "policy_id": "reviewed-head-anchor-binding-v4",
+  "source_addresses": {
+    "resolved_project_sha256": "c37a9cdba313f988623dfc0b6f7e7129bc069c845b9d9f746d22ae45fadc0955",
+    "input_identity_sha256": "522b181123f81a93e00e879bf0b4b95b75255824b9e92ddc0d6a4b97be191bec",
+    "animated_registration_sha256": "f9004f4e49d2db483e7330fb2075d842e0c7d1734ba5ee84b5fccf2163dc2ce5",
+    "benchmark_manifest_sha256": "68e78a5507e674a658ea6eba8a8469dc37d9a7deead07340f419426f5e49d42c",
+    "semantic_candidate_sha256": "ba99f2a74867febbce378320cc3881244d8ec58ab2534bc1ca1b3ab819e4bf90",
+    "skeleton_candidate_sha256": "a6c9a4a9a6c060272ae901047f67201efd8532e394f8cb918a5d6d0d257fcc5e",
+    "layer_bindings_sha256": "6302eab82d1866a67f420af8789eb70b3e1c14a0dcd2e6c673c7510ded1b6057",
+    "layer_binding_draft_sha256": "d8687c4969f781078be9b05a04199955f1fdc80ec574f56d3035a0e39a6a95a8"
+  },
+  "operation": {
+    "schema": "autospine.binding-auto-workflow/v1",
+    "authority": "none",
+    "production_authorized": false,
+    "changed": true,
+    "status": "succeeded",
+    "reason_code": "safe_bindings_exhausted",
+    "batches": [
+      {
+        "decision_sha256": "94cba671eb56678fc028ac71edf8e20af2146c46019ace20e61d9f1fb0ddf369",
+        "changed_layer_ids": [
+          "layer-008",
+          "layer-012"
+        ]
+      },
+      {
+        "decision_sha256": "1b3992df845f3eeefd3db782eb8eeb6f94430945a0a125aea186741cf6c7f7a1",
+        "changed_layer_ids": [
+          "layer-005",
+          "layer-010",
+          "layer-013",
+          "layer-014",
+          "layer-015",
+          "layer-016",
+          "layer-017",
+          "layer-018",
+          "layer-019",
+          "layer-020"
+        ]
+      }
+    ],
+    "changed_layer_ids": [
+      "layer-005",
+      "layer-008",
+      "layer-010",
+      "layer-012",
+      "layer-013",
+      "layer-014",
+      "layer-015",
+      "layer-016",
+      "layer-017",
+      "layer-018",
+      "layer-019",
+      "layer-020"
+    ],
+    "rounds": 2,
+    "candidate_preparation": {
+      "changed": true,
+      "added_options": 14,
+      "authority": "none",
+      "bindings_sha256": "6302eab82d1866a67f420af8789eb70b3e1c14a0dcd2e6c673c7510ded1b6057"
+    }
+  },
+  "reversible_decisions": [
+    {
+      "decision_sha256": "1b3992df845f3eeefd3db782eb8eeb6f94430945a0a125aea186741cf6c7f7a1",
+      "revision": 4,
+      "policy_id": "reviewed-head-anchor-binding-v4",
+      "layer_names": [
+        "eyebrow-r",
+        "eyebrow-l",
+        "mouth",
+        "nose",
+        "eyelash-r",
+        "eyelash-l",
+        "eyewhite-r",
+        "eyewhite-l",
+        "irides-r",
+        "irides-l"
+      ],
+      "can_undo": true,
+      "reason_code": null
+    },
+    {
+      "decision_sha256": "94cba671eb56678fc028ac71edf8e20af2146c46019ace20e61d9f1fb0ddf369",
+      "revision": 3,
+      "policy_id": "reviewed-head-anchor-binding-v4",
+      "layer_names": [
+        "neck",
+        "face"
+      ],
+      "can_undo": true,
+      "reason_code": null
+    }
+  ],
+  "independent_accuracy_measured": false
+}
