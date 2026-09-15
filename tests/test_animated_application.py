@@ -124,6 +124,22 @@ class AnimatedApplicationTests(unittest.TestCase):
         with self.assertRaisesRegex(PipelineRunError, "project_snapshot_stale"):
             self.app.preview("project", "f"*64, "limb-flex-15")
 
+    def test_engine_upgrade_keeps_readable_snapshot_but_cannot_resume_old_identity(self):
+        from autospine_workbench.automation.animated_run import validate_run
+        run = self.preview()
+        original = self.app.verified_files('project', run)
+        with patch('autospine_workbench.automation.animated_run.engine_identity', return_value='f'*64):
+            with self.assertRaisesRegex(PipelineRunError, 'animated_run_invalid'):
+                validate_run(run)
+            self.assertEqual(self.app.verified_files('project', run), original)
+            self.assertEqual(self.app.verified_file('project', run, 'skeleton.json'), original['skeleton.json'])
+            changed = deepcopy(run); changed['engine_sha256'] = 'e'*64
+            with self.assertRaises(PipelineRunError):
+                self.app.verified_files('project', changed)
+            fresh = self.preview()
+            self.assertNotEqual(fresh['run_id'], run['run_id'])
+            self.assertEqual(self.app.verified_files('project', run), original)
+
     def test_other_clip_checkpoint_cannot_be_reused(self):
         from autospine_workbench.automation.animated_run import create_run
         from autospine_workbench.automation.storage_io import publish_document

@@ -33,9 +33,17 @@ def create_run(project_id, addresses, clip):
             "steps": [{"id": name, "status": "pending", "outputs": {}, "reason_code": None} for name in STEPS]}
 
 
-def validate_run(run):
+def validate_run(run, *, historical=False):
     try:
-        expected = create_run(run["project_id"], run["source_addresses"], run["clip"])
+        if historical:
+            from ..manifest_artifacts import require_sha256
+            require_sha256(run['engine_sha256'], 'Animated engine')
+            identity = {key: run[key] for key in ('project_id', 'source_addresses', 'clip', 'engine_sha256')}
+            identity.update(engine=ENGINE, target_version='4.3.26')
+            expected = dict(identity, schema='autospine.animated-pipeline-run/v1',
+                            run_id='run-'+canonical_sha256(identity), authority='none')
+        else:
+            expected = create_run(run["project_id"], run["source_addresses"], run["clip"])
         for key in ("schema", "engine", "engine_sha256", "run_id", "authority", "target_version"):
             if expected[key] != run[key]:
                 raise PipelineRunError("animated_run_invalid")

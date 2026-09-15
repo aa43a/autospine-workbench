@@ -164,9 +164,9 @@ class AnimatedApplication:
                 progress(deepcopy(run["steps"]))
                 return run
 
-    def _verify_saved(self, run, inputs):
-        validate_run(run)
-        expected = create_run(run["project_id"], inputs.source_addresses, run["clip"])
+    def _verify_saved(self, run, inputs, *, historical=False):
+        validate_run(run, historical=historical)
+        expected = run if historical else create_run(run["project_id"], inputs.source_addresses, run["clip"])
         path = self.store.run_path(expected["run_id"])
         if run["run_id"] != expected["run_id"] or read_document(path / "result.json") != run:
             raise PipelineRunError("animated_input_changed")
@@ -189,14 +189,14 @@ class AnimatedApplication:
             assert_registered_current(self.projects, project_id, run["source_addresses"])
         check()
         inputs = SimpleNamespace(source_addresses=run["source_addresses"], assert_current=check)
-        return self._verify_saved(run, inputs)
+        return self._verify_saved(run, inputs, historical=True)
 
     def verified_file(self, project_id, run, name):
         import hashlib
         if run.get("project_id") != project_id or not run.get("preview_available"):
             raise PipelineRunError("pipeline_preview_not_ready")
         assert_registered_current(self.projects, project_id, run["source_addresses"])
-        validate_run(run)
+        validate_run(run, historical=True)
         folder = self.store.run_path(run["run_id"])
         if read_document(folder / "result.json") != run:
             raise PipelineRunError("pipeline_artifact_invalid")
