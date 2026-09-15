@@ -1,0 +1,15 @@
+{
+  "schema": "autospine.benchmark-rebuilt-binding-replay/v1",
+  "project_id": "imported-3ac977caea4fa3acd2358eab227d156f935436efe12bc1a93e42f506c5e9ee31",
+  "job_id": "job-e97c5008799a4e40a83dd9837b2614df",
+  "artifact_sha256": "b20ff271e37db859f0d1409dcb34f1c820f76e5bf013983e533002c528cf9483",
+  "source_job_id": "job-05f99e1371ee4cf1a005b4795e320080",
+  "replay_sha256": "01b435d14f4277076a5993e2407fe889737d4a4d83454ddcf4345edef57e759b",
+  "confirmed_layer_ids": ["layer-002", "layer-003", "layer-004", "layer-005", "layer-009"],
+  "new_human_confirmation": false,
+  "whole_character_visual_replayed": false,
+  "authority": "none",
+  "production_authorized": false,
+  "live_request_seconds": {"before": 75.7933177, "after": 37.3437246, "samples_each": 1},
+  "timing_limit": "Single local requests, not a performance benchmark; response remains slow."
+}

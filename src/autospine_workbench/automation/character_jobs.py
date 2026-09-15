@@ -190,6 +190,10 @@ class CharacterJobs:
         self._current(request)
         return files
 
+    def review_context(self, project, job):
+        from .character_review_context import load
+        return load(self, project, job)
+
     def download(self, project, job):
         files=self.verified_files(project,job)
         request=read_document(self._path(job)/'request.json')

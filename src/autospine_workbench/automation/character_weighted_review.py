@@ -69,12 +69,16 @@ def history(manager, job):
 
 
 def overview(manager, project, job):
-    result = context(manager, project, job)
-    files = manager.application.store.read(result['artifact_sha256'])
+    if hasattr(manager, 'review_context'):
+        result, files, raw = manager.review_context(project, job)
+    else:
+        result = context(manager, project, job)
+        files = manager.application.store.read(result['artifact_sha256'])
+        raw, _ = manager.review_file(project, job, ['report.json'])
     manifest = json.loads(files['character-manifest.json'])
     if manifest['layers'] != result['layers']:
         raise PipelineRunError('character_review_source_mismatch')
-    raw, _ = manager.review_file(project, job, ['report.json']); runtime = json.loads(raw)
+    runtime = json.loads(raw)
     ready = (runtime.get('bundle_sha256') == result['artifact_sha256'] and runtime.get('passed') is True
              and result.get('runtime', {}).get('geometry_status') == 'passed')
     entries = history(manager, job); current = entries[-1] if entries else None
