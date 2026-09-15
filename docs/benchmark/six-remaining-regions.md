@@ -20,3 +20,11 @@
 `targets/spine43/workbench_preview.py` 和 `automation/character_coverage.py` 读取顶层 empty/visible，未读取上述 observed 标记。这解释了该源层仍被输出并进入待办。下一实现需同时处理编译可见性和覆盖账本，显式区分 observed 隐藏与用户覆盖；旧编译输出和内容地址必须保留，不能原地改写既有候选，也不能只放宽验收门禁。
 
 只读来源复核结果保存在 `tmp/character-six-remaining-review/empty-source.json`。本轮未删除空图、未扩展十二处排除授权，未增加整角色完成数量。
+
+## 可见性修复
+
+新动画预览记录 `observed-source-visibility-v1`。编译时规范化观察值，显式顶层 empty/visible 优先；隐藏/空层不进入网格输出、静态上下文或图片导出。覆盖账本按相同版本解释来源和分区，空层标为 not_visible。无此标记的旧清单继续采用原解释，旧工件不改写。引擎内容身份包含该实现，新预览不会复用旧运行身份。
+
+真实芙兰来源的纯编译验证中，layer-023 输出区域为空、不导出其图片，账本为 not_visible；输入语义候选摘要保持不变，setup 最大误差约 1.27e-13 px。验证记录位于 `tmp/character-six-remaining-review/visibility-verification.json`，未运行新的官方 Runtime，也未替换已有整角色候选。已有来源绑定的排除和采用仍须经过原校验，不能静默迁移到新编译结果。
+
+回归覆盖显式覆盖优先、非法标记拒绝、隐藏加权层同时从文档/图片/账本移除，以及无版本旧清单仍按旧规则解释。

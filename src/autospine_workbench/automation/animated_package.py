@@ -66,6 +66,8 @@ def package_preview(inputs, compiled):
              "source_addresses": deepcopy(inputs.source_addresses),
              "summary": compiled["summary"], "review_items": compiled["review_items"],
              "files": {name: hashlib.sha256(raw).hexdigest() for name, raw in sorted(files.items())}}
+    if 'visibility_profile' in compiled:
+        scope['visibility_profile'] = compiled['visibility_profile']
     files["preview-manifest.json"] = canonical_bytes(scope)
     return files
 

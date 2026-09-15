@@ -23,10 +23,12 @@ def _index(rows, key):
 
 def build_coverage(candidate, draft, bindings, expanded_layers, scope, bundle_sha256):
     """Account for all sources using explicit expansion provenance, never name suffixes."""
-    sources = _index(candidate["layers"], "layer_id")
+    from ..targets.spine43.source_visibility import normalize
+    profile = scope.get('visibility_profile')
+    sources = _index([normalize(r, profile) for r in candidate["layers"]], "layer_id")
     decisions = _index(draft["records"], "layer_id")
     options = _index(bindings["bindings"], "layer_id")
-    expanded = _index(expanded_layers, "layer_id")
+    expanded = _index([normalize(r, profile) for r in expanded_layers], "layer_id")
     regions = _index(scope["regions"], "id")
     if set(sources) != set(decisions) or set(sources) != set(options):
         raise ValueError("character_coverage_source_mismatch")

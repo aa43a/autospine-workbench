@@ -10,6 +10,7 @@ from ..targets.spine43.workbench_preview import build_document, inspect_document
 from .animated_motion import build_motion
 from .animated_partitions import build_partitions, expand_inputs
 from .pipeline_run import PipelineRunError
+from ..targets.spine43.source_visibility import PROFILE, normalize
 
 
 def review_item(layer, reason, kind="binding"):
@@ -43,6 +44,7 @@ def prepare_mesh(inputs):
 
 def compile_preview(inputs, mesh_stage, clip):
     expanded = expand_inputs(inputs, mesh_stage.get("partitions", []))
+    expanded.candidate['layers'] = [normalize(row, PROFILE) for row in expanded.candidate['layers']]
     source = deepcopy(expanded.candidate)
     originals = {r["layer_id"]: r for r in inputs.draft["records"]}
     # Explicit excludes affect this new preview only; historical files remain unchanged.
@@ -50,6 +52,8 @@ def compile_preview(inputs, mesh_stage, clip):
                         if originals[r.get("source_layer_id", r["layer_id"])]["action"] != "exclude"]
     meshes = {r["layer_id"]: r for r in mesh_stage["mesh"]["layers"] if r.get("weights")}
     meshes.update({r["layer_id"]: r for part in mesh_stage.get("partitions", []) for r in part["meshes"]})
+    visible = {r['layer_id'] for r in source['layers'] if not r['empty'] and r['visible']}
+    meshes = {name: row for name, row in meshes.items() if name in visible}
     allowed = {"forearm_l", "forearm_r", "calf_l", "calf_r"}
     meshes = {name: row for name, row in meshes.items()
               if len(row["weights"][0]) == 1 or row["weights"][0][1]["bone_id"] in allowed}
@@ -87,12 +91,15 @@ def compile_preview(inputs, mesh_stage, clip):
     items.append(review_item(None, "cross_layer_seam_review_required", "seam"))
     items.append(review_item(None, "runtime_visual_review_required", "runtime"))
     for part in mesh_stage.get("partitions", []):
+        if not any(r['layer_id'] in visible for r in part['layers']):
+            continue
         items.append(review_item(part["source_layer_id"], "partition_assignment_review_required", "partition"))
         if part["qa"]["visible_pixel_counts"]["3"]:
             items.append(review_item(part["source_layer_id"], "residual_binding_required", "partition"))
     if not meshes:
         items.append(review_item(None, "animated_no_eligible_mesh", "mesh"))
     return {"document": doc, "regions": regions, "motion": motion, "expanded_inputs": expanded,
+            "visibility_profile": PROFILE,
             "review_items": items,
             "summary": {"mesh_layers": len(meshes), "context_layers": len(context),
                         "visible_layers": len(regions), "bone_count": len(doc["bones"]),
