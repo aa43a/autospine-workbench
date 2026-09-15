@@ -39,7 +39,13 @@
         "skirt_profile": "reviewed-torso-waist-v2"
       },
       "job_id": "job-05f99e1371ee4cf1a005b4795e320080",
-      "status": "running"
+      "status": "needs_review",
+      "artifact_sha256": "09e52f88108a398754e0b55f9cd31a6c285b254b81421d6a2a8e281164cd97e3",
+      "runtime_frames": 1675,
+      "geometry_status": "passed",
+      "textures_unchanged": true,
+      "removed_regions_exact": true,
+      "visual_acceptance": "not_recorded"
     },
     {
       "project_id": "lingxian",
@@ -53,7 +59,13 @@
         "skirt_profile": "reviewed-torso-waist-v2"
       },
       "job_id": "job-4f642dd8c5d44d1a934ea4a0edde6f05",
-      "status": "pending"
+      "status": "needs_review",
+      "artifact_sha256": "ade6f3bc4e2a81b90934fd4da0bcf833e13cb2c8bf2dd63ee2553907afd3c9f4",
+      "runtime_frames": 1028,
+      "geometry_status": "passed",
+      "textures_unchanged": true,
+      "removed_regions_exact": true,
+      "visual_acceptance": "not_recorded"
     },
     {
       "project_id": "lumia",
@@ -68,7 +80,13 @@
         "skirt_profile": "reviewed-torso-waist-v2"
       },
       "job_id": "job-da9095a0d83a4bf3a1b795e5d0fc115d",
-      "status": "pending"
+      "status": "needs_review",
+      "artifact_sha256": "abb23e94fb8e8c80a392d5d7ae48f719dea64ff623878649de07dd8dadb06cb1",
+      "runtime_frames": 1028,
+      "geometry_status": "passed",
+      "textures_unchanged": true,
+      "removed_regions_exact": true,
+      "visual_acceptance": "not_recorded"
     },
     {
       "project_id": "uuz",
@@ -85,7 +103,7 @@
         "skirt_profile": "reviewed-torso-waist-v2"
       },
       "job_id": "job-6b76a6d54370458b856b2ab61ca9e47a",
-      "status": "pending"
+      "status": "running"
     }
   ]
 }
