@@ -48,3 +48,15 @@ class MotionCatalogTests(unittest.TestCase):
         doc = json.loads(path.read_bytes()); doc['animations'] = ['invented']; path.write_bytes(canonical_bytes(doc))
         with self.assertRaisesRegex(RuntimeError, 'catalog_invalid'):
             read(self.manager, 'project', choice)
+
+    def test_post_exclusion_base_is_not_an_available_upstream_motion(self):
+        choice=register(self.manager,'project','a'*64,'b'*64,self.sources)
+        # Simulate a historically registered post-exclusion package without changing its catalog bytes.
+        self.packages['a'*64]['final-region-exclusion.json']=b'{}'
+        value=choices(self.manager,'project',self.sources)[0]
+        self.assertFalse(value['available'])
+        self.assertEqual(value['reason_code'],'character_motion_base_stage_unsupported')
+        with self.assertRaisesRegex(RuntimeError,'base_stage_unsupported'):
+            register(self.manager,'project','a'*64,'b'*64,self.sources)
+        with self.assertRaisesRegex(RuntimeError,'base_stage_unsupported'):
+            append_selected(self.manager,dict(project_id='project',motion_choice_id=choice),{})

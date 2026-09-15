@@ -34,6 +34,8 @@ class ComponentCanvasTests(unittest.TestCase):
             from jsonschema import Draft202012Validator
             Draft202012Validator(json.loads((Path(__file__).parents[1]/'schemas/component-mount-canvas-v1.schema.json').read_bytes())).validate(plan)
             self.assertEqual(plan['residual_pixels'],1);self.assertEqual(len(plan['parts']),2)
+            self.assertTrue(plan['requires_parent_review'])
+            self.assertEqual(plan['review_reason_code'],'garment_component_ownership_required')
             for part in plan['parts']:
                 mask=Image.open(BytesIO(b64decode(part['mask'].split(',')[1])))
                 self.assertEqual(sum(v>0 for v in mask.getchannel('A').tobytes()),part['visible_pixels'])

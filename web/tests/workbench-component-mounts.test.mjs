@@ -25,6 +25,17 @@ test('a response from a previous project cannot become a saveable draft',async()
  all(f.view.element).find(n=>n.textContent==='显示区域与骨架').onclick();f.view.sync(null,null,'/two',false);resolve(plan);await flush();
  assert.equal(all(f.view.element).find(n=>n.textContent==='确认映射并保存').disabled,true);assert.equal(f.calls.length,0);
 });
+
+test('mixed garment distance suggestions are not saved as selected parents',async()=>{
+ const f=fixture(async()=>({...plan,requires_parent_review:true}));f.view.sync(job,null,'/one',false);
+ all(f.view.element).find(n=>n.textContent==='显示区域与骨架').onclick();await flush();
+ const save=all(f.view.element).find(n=>n.textContent==='确认映射并保存');
+ assert.equal(save.disabled,true);save.onclick();assert.equal(f.calls.length,0);
+ const select=all(f.view.element).find(n=>n.attrs['aria-label']==='part 的父骨骼');
+ assert.equal(select.value,'');assert.ok(select.children[0].textContent.includes('距离建议'));
+ select.value='chest';select.onchange();assert.equal(save.disabled,false);save.onclick();
+ assert.deepEqual(f.calls[0].decision.parents,{part:'chest'});
+});
 test('saved mapping can be revoked while source candidate is invalidated',()=>{
  const f=fixture();f.view.sync(null,{active:true,head_sha256:'h',review:{decision:{parents:{part:'head'}}}},'/one',false);
  assert.equal(f.view.element.hidden,false);all(f.view.element).find(n=>n.textContent==='撤销分区绑定').onclick();assert.deepEqual(f.calls,[{action:'revoke'}]);

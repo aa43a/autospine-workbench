@@ -15,6 +15,8 @@ def folder(manager, project, create=False):
 
 def register(manager, project, base_digest, motion_digest, sources):
     base = manager.application.store.read(base_digest); motion = manager.application.store.read(motion_digest)
+    if 'final-region-exclusion.json' in base:
+        raise PipelineRunError('character_motion_base_stage_unsupported')
     manifest = json.loads(base['character-manifest.json'])
     if any(manifest['source_addresses'][k] != sources[k] for k in ('resolved_project_sha256', 'input_identity_sha256')):
         raise PipelineRunError('character_motion_source_changed')
@@ -48,8 +50,10 @@ def choices(manager, project, sources):
         doc = read(manager, project, path.stem)
         valid = doc['region_decisions_sha256'] == head and all(doc[k] == sources[k]
                     for k in ('resolved_project_sha256', 'input_identity_sha256'))
+        wrong_stage=valid and 'final-region-exclusion.json' in manager.application.store.read(doc['source_character_sha256'])
         result.append(dict(choice_id=path.stem, animations=doc['animations'], available=valid,
                            reason_code=None if valid else 'character_motion_source_changed'))
+        if wrong_stage:result[-1].update(available=False,reason_code='character_motion_base_stage_unsupported')
     return result
 
 
@@ -57,6 +61,8 @@ def validate(manager, request):
     choice = request.get('motion_choice_id')
     if choice is None: return None
     doc = read(manager, request['project_id'], choice)
+    if 'final-region-exclusion.json' in manager.application.store.read(doc['source_character_sha256']):
+        raise PipelineRunError('character_motion_base_stage_unsupported')
     if doc['resolved_project_sha256'] != request['expected_resolved_sha256'] \
             or doc['input_identity_sha256'] != request['expected_input_sha256'] \
             or doc['region_decisions_sha256'] != request.get('region_decisions_sha256'):

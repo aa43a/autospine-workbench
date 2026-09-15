@@ -37,16 +37,17 @@ export function createComponentMounts(document, hooks) {
       pick.type='button';pick.disabled=disabled||busy;pick.setAttribute('aria-pressed',String(selected===part.component_id));
       pick.onclick=()=>{selected=part.component_id;draw();renderRows();};
       parent.setAttribute('aria-label',`${part.component_id} 的父骨骼`);
+      if(plan.requires_parent_review){const empty=node('option',`待选择（距离建议：${part.proposed_parent}）`);empty.value='';parent.append(empty);}
       for(const bone of plan.allowed_parents){const option=node('option',bone);option.value=bone;parent.append(option);}
       parent.value=choices[part.component_id];parent.disabled=disabled||busy;
-      parent.onchange=()=>{choices[part.component_id]=parent.value;selected=part.component_id;draw();renderRows();};
+      parent.onchange=()=>{choices[part.component_id]=parent.value;selected=part.component_id;draw();render();};
       row.append(pick,parent);rows.append(row);
     }
   }
   function render(){
     const active=Boolean(history?.active);
     load.disabled=disabled||busy||active||job?.status!=='needs_review'||!region.value;region.disabled=disabled||busy||active;
-    save.disabled=disabled||busy||active||!plan?.parts.length||!images;
+    save.disabled=disabled||busy||active||!plan?.parts.length||!images||plan.parts.some(p=>!plan.allowed_parents.includes(choices[p.component_id]));
     undo.hidden=!active;undo.disabled=disabled||busy;
     canvas.hidden=!plan||active;rows.hidden=!plan||active;
     timeline.hidden=disabled||!job?.runtime?.files?.['mount/index.html'];
@@ -65,8 +66,9 @@ export function createComponentMounts(document, hooks) {
       const source=await image(value.image),parts={};
       for(const part of value.parts)parts[part.component_id]=await image(part.mask);
       if(token!==epoch)return;
-      plan=value;images={source,parts};choices=Object.fromEntries(value.parts.map(p=>[p.component_id,p.proposed_parent]));selected=value.parts[0]?.component_id;
+      plan=value;images={source,parts};choices=Object.fromEntries(value.parts.map(p=>[p.component_id,value.requires_parent_review?'':p.proposed_parent]));selected=value.parts[0]?.component_id;
       status.textContent=`${value.parts.length} 个可绑定区域；${value.residual_pixels} 个零散像素独立保留。请检查每个区域的父骨骼。`;draw();
+      if(value.requires_parent_review)status.textContent+=' 衣层包含多个独立部件，距离建议未选用；请选择实际归属，裙摆不应仅因距离近而绑定腿骨。';
     }catch(e){if(token===epoch)status.textContent='当前区域无法准备分区绑定，请检查来源或刷新重试。';}
     finally{if(token===epoch){busy=false;render();}}
   }
@@ -75,7 +77,7 @@ export function createComponentMounts(document, hooks) {
     const box=canvas.getBoundingClientRect();
     const x=(event.clientX-box.left)*canvas.width/box.width/view.scale+view.left,y=(event.clientY-box.top)*canvas.height/box.height/view.scale+view.top;
     const nearest=plan.bones.map(b=>({b,d:Math.hypot(b.point[0]-x,b.point[1]-y)})).sort((a,b)=>a.d-b.d)[0];
-    if(selected&&nearest?.d<=9/view.scale){choices[selected]=nearest.b.name;draw();renderRows();return;}
+    if(selected&&nearest?.d<=9/view.scale){choices[selected]=nearest.b.name;draw();render();return;}
     for(const part of plan.parts){
       const [l,t,r,b]=part.bbox;if(x<l||x>=r||y<t||y>=b)continue;
       const mask=node('canvas');mask.width=r-l;mask.height=b-t;const ctx=mask.getContext('2d');ctx.drawImage(images.parts[part.component_id],0,0);

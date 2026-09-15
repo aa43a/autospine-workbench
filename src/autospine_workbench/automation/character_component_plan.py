@@ -27,6 +27,8 @@ def prepare(manager, project, body):
     if len(parents)>64: raise PipelineRunError('character_mount_parent_limit')
     anchors={name:[bones[name][0]-origin[0],origin[1]-bones[name][1]] for name in parents}
     plan=partition(image.getchannel('A').tobytes(),width,height,anchors)
+    owner=next(l for l in manifest['layers'] if any(r['region_id']==slot for r in l['regions']))
+    mixed_garment=owner.get('name','').strip().lower() in ('topwear','topwear-front','bottomwear','bottomwear-front') and len(plan['regions'])>1
     def png(value):
         buffer=BytesIO(); value.save(buffer,format='PNG')
         return 'data:image/png;base64,'+b64encode(buffer.getvalue()).decode('ascii')
@@ -40,5 +42,6 @@ def prepare(manager, project, body):
     return dict(schema='autospine.component-mount-canvas/v1',project_id=project,job_id=body['job_id'],
         source_bundle_sha256=result['artifact_sha256'],source_region_id=slot,plan_sha256=canonical_sha256(plan),
         authority='none',allowed_parents=parents,parts=parts,residual_pixels=len(plan['residual_pixels']),
+        requires_parent_review=mixed_garment,review_reason_code='garment_component_ownership_required' if mixed_garment else None,
         image=png(image),width=width,height=height,
         bones=[dict(name=b['name'],point=anchors[b['name']],parent=b.get('parent')) for b in doc['bones']])

@@ -3,6 +3,8 @@
   "type": "object", "additionalProperties": false,
   "required": ["schema","project_id","job_id","source_bundle_sha256","source_region_id","plan_sha256","authority","allowed_parents","parts","residual_pixels","image","width","height","bones"],
   "properties": {
+    "requires_parent_review": {"type": "boolean"},
+    "review_reason_code": {"enum": [null, "garment_component_ownership_required"]},
     "schema": {"const": "autospine.component-mount-canvas/v1"},
     "project_id": {"type":"string"}, "job_id": {"type":"string"},
     "source_bundle_sha256": {"type":"string","pattern":"^[a-f0-9]{64}$"},
