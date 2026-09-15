@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "autospine.dress-partitions/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "profile", "authority", "selected", "partitions", "blocked_layers"],
+  "properties": {
+    "schema": {"const": "autospine.dress-partitions/v1"},
+    "profile": {"const": "isolated-dress-chest-skirt-v1"},
+    "authority": {"const": "none"},
+    "selected": {"const": false},
+    "partitions": {"type": "array", "items": {
+      "type": "object", "additionalProperties": false,
+      "required": ["source_region_id", "selected_region_id", "evidence", "component_failures"],
+      "properties": {
+        "source_region_id": {"type": "string", "minLength": 1},
+        "selected_region_id": {"type": "string", "minLength": 1},
+        "evidence": {"type": "object", "required": ["partition_only", "motion", "parts"],
+          "properties": {"partition_only": {"const": true}, "motion": {"const": "original_parent_preserved"}, "parts": {"type": "array"}}},
+        "component_failures": {"type": "array", "items": {"$ref": "#/$defs/componentFailure"}}
+      }
+    }},
+    "blocked_layers": {"type": "array", "items": {
+      "type": "object", "additionalProperties": false,
+      "required": ["layer_id", "source_region_id", "reason_code"],
+      "properties": {
+        "layer_id": {"type": "string"}, "source_region_id": {"type": "string"}, "reason_code": {"type": "string"},
+        "component_failures": {"type": "array", "items": {"$ref": "#/$defs/componentFailure"}}
+      }
+    }}
+  },
+  "$defs": {"componentFailure": {"type": "object", "additionalProperties": false,
+    "required": ["region_id", "reason_code"], "properties": {"region_id": {"type": "string"}, "reason_code": {"type": "string"}}}}
+}

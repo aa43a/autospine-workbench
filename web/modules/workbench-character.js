@@ -22,6 +22,7 @@ const REASONS = {character_sleeve_unavailable:"尚无当前可用袖装候选，
   character_mount_decisions_changed:"分区绑定已修改，请重新构建整角色候选。",
   character_final_source_changed:"最终排除与本次构建来源不同，请恢复原动作/裙装/纹理选项，或撤销最终排除后重新复核。",
   character_skirt_layers_missing:"没有尚未处理的裙装图层，可关闭裙装选项后构建。",
+  character_dress_layers_missing:"没有尚未处理的上衣/连衣裙图层；已有绑定保留，请检查处理方式。",
   skirt_waist_contact_unobservable:"无法找到裙装与上衣的可靠连接，请复核分层与腰部位置。",
   skirt_reviewed_torso_missing:"请先完成上衣绑定复核，再生成裙装候选。",
   skirt_torso_driver_unsupported:"上衣尚未统一随胸部运动，请复核上衣绑定；不会擅自更改原决定。",
@@ -70,7 +71,12 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
   const skirtLabel=node("label","生成裙装可变形候选 "),skirtToggle=node("input");
   skirtToggle.type="checkbox";skirtToggle.checked=false;skirtToggle.setAttribute("aria-label","生成裙装可变形候选");
   skirtLabel.append(skirtToggle,node("span","腰部与裙摆待复核，保留原纹理和原决定"));actions.append(skirtLabel);
-  skirtToggle.onchange=()=>render();
+  let skirtTouched=false;
+  skirtToggle.onchange=()=>{skirtTouched=true;render();};
+  const skirtProfile=node("select");skirtProfile.setAttribute("aria-label","裙装处理方式");
+  for(const [value,text]of [["reviewed-torso-waist-v2","独立裙层"],["isolated-dress-chest-skirt-v1","连衣裙组件（自动寻找）"],["fixed-waist-three-chain-v1","历史固定腰部方案"]]){const o=node("option",text);o.value=value;skirtProfile.append(o);}
+  skirtProfile.value="reviewed-torso-waist-v2";skirtLabel.append(skirtProfile);
+  skirtProfile.onchange=()=>{skirtTouched=true;render();};
   element.append(node("h3","整角色候选"),node("p","按当前路线构建整角色，并合并已有袖装修正；保留未处理图层与残余，生成 Runtime 与 setup 复核报告。"),actions,status,download);
   const runtime=node("a","查看整角色 Runtime"),setup=node("a","查看源图 / setup 对照");
   for(const link of [runtime,setup]){link.className="button button-secondary";link.target="_blank";link.rel="noopener";element.append(link);}
@@ -90,6 +96,7 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
   function render(){
     const active=ACTIVE.has(job?.status),dirty=Boolean(context().dirty||context().saving||context().loading);
     const finalRecipe=characterRecipe(overview);
+    if(!skirtTouched&&!finalRecipe&&job?.skirt_trial?.profile){skirtToggle.checked=true;skirtProfile.value=job.skirt_trial.profile;}
     shoulder.sync(job,finalRecipe,busy||active||dirty);
     const rebuildMotion=canRebuildCharacterMotion(overview);
     if(finalRecipe){textureToggle.checked=Boolean(finalRecipe.residual_texture_profile);textureProfile.value=finalRecipe.residual_texture_profile||'aligned-low-alpha-v1';skirtToggle.checked=Boolean(finalRecipe.skirt_profile);if(!rebuildMotion||!motionTouched)motionChoice=finalRecipe.motion_choice_id||'';motionTouched=true;}
@@ -98,6 +105,8 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
     if(!residualTouched)residualToggle.checked=job?.residual_auto_profile!=='preserve';
     residualToggle.disabled=busy||active||dirty;
     skirtToggle.disabled=busy||active||dirty||Boolean(finalRecipe);
+    if(finalRecipe?.skirt_profile)skirtProfile.value=finalRecipe.skirt_profile;
+    skirtProfile.disabled=skirtToggle.disabled||!skirtToggle.checked;
     textureProfile.disabled=textureToggle.disabled||!textureToggle.checked;
     const available=overview?.motion_choices||[];
     if(motionChoice&&!available.some(r=>r.choice_id===motionChoice&&r.available))motionChoice="";
@@ -163,7 +172,7 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
         expected_resolved_sha256:overview.expected_resolved_sha256,expected_input_sha256:overview.expected_input_sha256,sleeve_job_id:overview.sleeve_job_id,
         ...(motionChoice?{motion_choice_id:motionChoice}:{}),
         ...(textureToggle.checked?{residual_texture_profile:textureProfile.value}:{}),
-        ...(skirtToggle.checked?{skirt_profile:"reviewed-torso-waist-v2"}:{}),residual_auto_profile:residualToggle.checked?'low-alpha-residual-v1':'preserve',...shoulder.payload()})};
+        ...(skirtToggle.checked?{skirt_profile:skirtProfile.value}:{}),residual_auto_profile:residualToggle.checked?'low-alpha-residual-v1':'preserve',...shoulder.payload()})};
       if(action==='build')init.body=JSON.stringify(applyCharacterRecipe(JSON.parse(init.body),overview));
       const value=await hooks.apiRequest(url,init);if(!current(token))return;
       if(value.project_id!==project||value.authority!=="none")throw Error("响应来源不匹配");
@@ -173,6 +182,6 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
     finally{if(current(token)){busy=false;render();if(!error)queue(token);}}
   }
   build.addEventListener("click",()=>void request("build"));refresh.addEventListener("click",()=>void request());cancel.addEventListener("click",()=>void request("cancel"));
-  return {element,sync(){const next=projectIdentity(context());if(next!==identity){generation++;stop();identity=next;overview=job=null;shoulder.reset();motionChoice="";motionTouched=false;residualTouched=false;textureToggle.checked=false;skirtToggle.checked=false;textureProfile.value="aligned-low-alpha-v1";busy=false;error="";polls=0;if(identity)void request();}render();},
+  return {element,sync(){const next=projectIdentity(context());if(next!==identity){generation++;stop();identity=next;overview=job=null;shoulder.reset();motionChoice="";motionTouched=false;residualTouched=false;textureToggle.checked=false;skirtTouched=false;skirtToggle.checked=false;skirtProfile.value="reviewed-torso-waist-v2";textureProfile.value="aligned-low-alpha-v1";busy=false;error="";polls=0;if(identity)void request();}render();},
     dispose(){generation++;stop();visualReview.dispose();weightedReview.dispose();autoAudit.dispose();mounts.dispose();},refresh:()=>request()};
 }

@@ -4,6 +4,9 @@ import { residualMessages } from "./workbench-texture-residuals.js";
 const STATES={weighted_candidate:"加权候选",rigid_reviewed:"刚性跟随",static_reference:"静态参考",partial:"部分处理",missing:"未输出",excluded:"已排除",not_visible:"不可见"};
 const SELECTED=new Set(["explicit_selection","legacy_selection","policy_auto"]);
 const REASONS={residual_binding_required:"残余区域尚未绑定",mesh_review_required:"网格候选待复核",
+  skirt_dress_component_not_found:"未找到同时覆盖胸部并延伸到髋部下方的连衣裙组件，原图保留",
+  skirt_dress_component_ambiguous:"多个组件符合连衣裙条件，需检查归属，原图保留",
+  component_parent_review_required:"其他独立部件仍保持原运动，归属待处理",
   skirt_waist_anchor_review_required:"裙装腰部固定位置待复核",skirt_motion_visual_review_required:"裙摆动作与腿部遮挡待复核",
   skirt_waist_contact_unobservable:"裙装与上衣接触不可观测，原图保留",skirt_waist_support_insufficient:"腰部有效支撑不足，原图保留",
   binding_selection_required:"需要选择绑定",static_reference_not_bound:"仅静态参考，尚未完成绑定"};

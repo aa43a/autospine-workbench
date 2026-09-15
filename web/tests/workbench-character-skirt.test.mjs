@@ -3,6 +3,23 @@ import assert from 'node:assert/strict';
 import {createWorkbenchCharacter} from '../modules/workbench-character.js';
 
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
+test('saved dress profile restores while explicit cancellation survives refresh',async()=>{
+ const f=fixture(async()=>overview(job('needs_review',{skirt_trial:{profile:'isolated-dress-chest-skirt-v1'}})));
+ f.view.sync();await flush();const select=f.all.find(n=>n.attrs['aria-label']==='裙装处理方式');
+ assert.equal(f.toggle.checked,true);assert.equal(select.value,'isolated-dress-chest-skirt-v1');
+ f.toggle.checked=false;f.toggle.onchange();await f.view.refresh();assert.equal(f.toggle.checked,false);
+ f.context.projectId=null;f.view.sync();assert.equal(select.value,'reviewed-torso-waist-v2');f.view.dispose();
+});
+test('dress selection uses the whole-character request and is locked while running',async()=>{
+ const calls=[];const f=fixture(async(url,init)=>{calls.push(init);return init.method==='POST'?job('running'):overview(job());});
+ f.view.sync();await flush();
+ const select=f.all.find(n=>n.attrs['aria-label']==='裙装处理方式');
+ assert.equal(select.disabled,true);f.toggle.checked=true;f.toggle.onchange();
+ assert.equal(select.disabled,false);select.value='isolated-dress-chest-skirt-v1';
+ f.build.events.click();await flush();
+ assert.equal(JSON.parse(calls.find(c=>c.method==='POST').body).skirt_profile,'isolated-dress-chest-skirt-v1');
+ assert.equal(select.disabled,true);f.view.dispose();
+});
 test('residual preservation survives refresh and restores the saved build choice',async()=>{
  const calls=[];const f=fixture(async(url,init)=>{calls.push(init);return init.method==='POST'?job('running',{residual_auto_profile:'preserve'}):overview(job('needs_review',{residual_auto_profile:'preserve'}));});
  f.view.sync();await flush();

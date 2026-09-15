@@ -1,13 +1,14 @@
 """Optional whole-character skirt candidate, never an implicit binding decision."""
 import json
 from .pipeline_run import PipelineRunError
+from .character_dress_trial import PROFILE as DRESS_PROFILE
 
 PROFILE = 'fixed-waist-three-chain-v1'
 TORSO_PROFILE = 'reviewed-torso-waist-v2'
 
 
 def validate(profile):
-    if profile not in (None, PROFILE, TORSO_PROFILE):
+    if profile not in (None, PROFILE, TORSO_PROFILE, DRESS_PROFILE):
         raise PipelineRunError('character_skirt_profile_invalid')
 
 
@@ -16,6 +17,9 @@ def apply_selected(manager, request, result):
     validate(profile)
     if profile is None:
         return result
+    if profile == DRESS_PROFILE:
+        from .character_dress_trial import apply_selected as apply_dress
+        return apply_dress(manager, request, result)
     from ..targets.character43.skirt_candidate import generate
     store = manager.application.store
     files = store.read(result['artifact_sha256'])
