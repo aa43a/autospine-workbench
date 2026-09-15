@@ -161,15 +161,22 @@ class SleeveOnboarding:
             raise PipelineRunError('sleeve_annotation_request_invalid')
         with project_authoring_transaction(self.projects.state_root, project):
             value, source, candidate, _ = self.read_current(project)
-            if type(body['expected_revision']) is not int or body['expected_revision'] != value['revision'] or body['expected_resolved_sha256'] != value['source_sha256']:
+            if type(body['expected_revision']) is not int or body['expected_resolved_sha256'] != value['source_sha256']:
                 raise PipelineRunError('sleeve_annotation_conflict')
-            draft = validate(body['draft'], candidate)
+            extra={}
+            if body['expected_revision'] != value['revision']:
+                from .sleeve_stale_save import recover
+                draft,receipt=recover(self.root,project,value,body,
+                    lambda sha:read_mesh_report(self.projects.state_root,KIND,sha))
+                extra['editor_save_recovery']=receipt
+            else:
+                draft = validate(body['draft'], candidate)
             with load_inputs(self.projects, project) as inputs:
                 if inputs.source_addresses != value['input_addresses']:
                     raise PipelineRunError('sleeve_annotation_source_changed')
                 inputs.assert_current()
                 digest = publish_mesh_report(self.projects.state_root, KIND, draft)
-                self._append(project, dict(value, draft_sha256=digest, saved=True))
+                self._append(project, dict(value, draft_sha256=digest, saved=True, **extra))
             return self.status(project)
 
     def page(self, project):
