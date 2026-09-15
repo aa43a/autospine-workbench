@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Isolated dress component trial report",
+  "type": "object",
+  "required": ["schema", "profile", "authority", "selected", "source_character_sha256", "rows", "geometry_passed", "setup_error_px", "waist_driver"],
+  "properties": {
+    "schema": {"const": "autospine.character-skirt-trial/v1"},
+    "profile": {"const": "isolated-dress-chest-skirt-v1"},
+    "authority": {"const": "none"},
+    "selected": {"const": false},
+    "waist_driver": {"const": "candidate-chest-v1"},
+    "source_character_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "geometry_passed": {"type": "boolean"},
+    "setup_error_px": {"type": "number", "minimum": 0},
+    "rows": {"type": "array", "items": {
+      "type": "object", "required": ["layer_id", "contact", "mesh", "origin", "source_image_sha256"],
+      "properties": {
+        "layer_id": {"type": "string", "minLength": 1},
+        "source_image_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "contact": {"type": "object", "required": ["profile", "waist_y", "authority", "status"], "properties": {
+          "profile": {"const": "isolated-dress-torso-width-v1"}, "waist_y": {"type": "integer", "minimum": 0},
+          "authority": {"const": "none"}, "status": {"const": "needs_review"}
+        }},
+        "mesh": {"type": "object"},
+        "origin": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number"}}
+      }
+    }}
+  }
+}

@@ -22,9 +22,11 @@ def inverse(matrix, point):
     return [(d*dx-b*dy)/determinant, (-c*dx+a*dy)/determinant]
 
 
-def generate(files, source_digest, layer_ids, *, step=32, waist_driver=None):
-    if waist_driver not in (None, 'reviewed-chest-v1'):
+def generate(files, source_digest, layer_ids, *, step=32, waist_driver=None, dress_components=False):
+    if waist_driver not in (None, 'reviewed-chest-v1', 'candidate-chest-v1'):
         raise ValueError('skirt_waist_driver_invalid')
+    if (waist_driver=='candidate-chest-v1') != dress_components:
+        raise ValueError('skirt_dress_profile_invalid')
     require_sha256(source_digest, 'Character source')
     inspect(files)  # Verify original source identity, finite samples, and complete slot inventory.
     document = json.loads(files['skeleton.json'])
@@ -34,7 +36,11 @@ def generate(files, source_digest, layer_ids, *, step=32, waist_driver=None):
     if not layer_ids or len(set(layer_ids)) != len(layer_ids):
         raise ValueError('skirt_layer_selection_invalid')
     ledger = {row['layer_id']: row for row in manifest['layers']}
-    if any(i not in ledger or ledger[i]['name'] not in ('bottomwear', 'bottomwear-front')
+    region_ledger={r['region_id']:l for l in ledger.values() for r in l['regions'] if r.get('state',l['state'])=='static_reference'}
+    if dress_components:
+        if any(i not in region_ledger or region_ledger[i]['name'] not in ('topwear','topwear-front') for i in layer_ids):
+            raise ValueError('skirt_dress_selection_unsupported')
+    elif any(i not in ledger or ledger[i]['name'] not in ('bottomwear', 'bottomwear-front')
            or ledger[i]['state'] != 'static_reference' for i in layer_ids):
         raise ValueError('skirt_layer_selection_unsupported')
     for animation in document['animations'].values():
@@ -45,15 +51,16 @@ def generate(files, source_digest, layer_ids, *, step=32, waist_driver=None):
     positions, pose = sample(setup, 'setup', 0)
     if not {'pelvis', 'thigh_l', 'thigh_r'} <= set(pose):
         raise ValueError('skirt_body_reference_missing')
+    if dress_components and 'chest' not in pose:raise ValueError('skirt_body_reference_missing')
     torso = []
     for row in ledger.values():
         if row['name'] in ('topwear', 'topwear-front') and row['state'] == 'rigid_reviewed':
             for region in row['regions']:
                 image, origin = source_image(files, document, positions, region['region_id'])
                 torso.append((image.getchannel('A'), origin))
-    if not torso:
+    if not torso and not dress_components:
         raise ValueError('skirt_reviewed_torso_missing')
-    if waist_driver is not None:
+    if waist_driver == 'reviewed-chest-v1':
         from .skirt_waist_driver import require_chest_torso
         require_chest_torso(document, ledger)
     original = deepcopy(document); rows = []; helpers = []; blocked = []
@@ -61,7 +68,14 @@ def generate(files, source_digest, layer_ids, *, step=32, waist_driver=None):
         try:
             image, origin = source_image(files, original, positions, layer_id)
             alpha = image.getchannel('A')
-            contact = propose(alpha, origin, torso, [pose['thigh_l'][:2], pose['thigh_r'][:2]])
+            if dress_components:
+                from .dress_waist import propose as dress_proposal
+                from ...asset.planning.component_mount import partition
+                parts=partition(alpha.tobytes(),image.width,image.height,{'chest':[pose['chest'][0]-origin[0],origin[1]-pose['chest'][1]]})
+                if len(parts['regions'])!=1:raise ValueError('skirt_dress_component_not_isolated')
+                contact=dress_proposal(alpha,origin,pose)
+            else:
+                contact = propose(alpha, origin, torso, [pose['thigh_l'][:2], pose['thigh_r'][:2]])
             raster = list(alpha.tobytes())
             mesh = build_skirt_mesh([raster[i:i+image.width] for i in range(0, len(raster), image.width)],
                                    contact['waist_y'], step)
@@ -77,7 +91,7 @@ def generate(files, source_digest, layer_ids, *, step=32, waist_driver=None):
             wx, wy = origin[0]+math.floor(x), origin[1]-math.floor(y)
             contact['root_torso_support'].append(any(
                 0 <= wx-o[0] < im.width and 0 <= o[1]-wy < im.height
-                and im.getpixel((wx-o[0], o[1]-wy)) >= 8 for im, o in torso))
+                and im.getpixel((wx-o[0], o[1]-wy)) >= 8 for im, o in ([(alpha,origin)] if dress_components else torso)))
         to_world = lambda p: [origin[0]+p[0], origin[1]-p[1]]
         names = {'pelvis': 'chest' if waist_driver else 'pelvis'}
         for chain in mesh['helper_chains']:
@@ -156,12 +170,20 @@ def generate(files, source_digest, layer_ids, *, step=32, waist_driver=None):
     if waist_driver is not None:
         report['waist_driver'] = waist_driver
         report['waist_weight_mapping'] = 'neutral_pelvis_weight_to_reviewed_chest; helpers_remain_pelvis'
+    if dress_components:
+        report.update(profile='isolated-dress-chest-skirt-v1',waist_weight_mapping='neutral_pelvis_weight_to_candidate_chest; helpers_remain_pelvis')
     output['skirt-trial.json'] = canonical_bytes(report)
     manifest.update(profile='whole-character-skirt-trial-v1', source_character_sha256=source_digest,
                     authority='none', production_authorized=False, full_character_animation=False,
                     status=report['status'], qa=dict(runtime_status='not_run', full_character_contact_status='not_evaluated'))
     for row in manifest['layers']:
-        if row['layer_id'] in selected_ids:
+        if dress_components:
+            for region in row['regions']:
+                if region['region_id'] in selected_ids:region['state']='weighted_candidate'
+            if any(r['region_id'] in selected_ids for r in row['regions']):
+                row['state']='weighted_candidate' if all(r['state']=='weighted_candidate' for r in row['regions']) and not row.get('missing_region_ids') else 'partial'
+                row['reason_codes']=sorted(set(row.get('reason_codes',[])+['skirt_waist_anchor_review_required','skirt_motion_visual_review_required']))
+        elif row['layer_id'] in selected_ids:
             row['state'] = 'weighted_candidate'
             row['regions'] = [dict(region_id=row['layer_id'], state='weighted_candidate')]
             row['reason_codes'] = ['skirt_waist_anchor_review_required', 'skirt_motion_visual_review_required']

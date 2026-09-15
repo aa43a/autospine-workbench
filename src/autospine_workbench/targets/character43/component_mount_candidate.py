@@ -13,7 +13,7 @@ from .numeric_reference import read,write
 from .deformation_qa import inspect
 
 
-def generate(files,slot,parents,decision=None):
+def generate(files,slot,parents,decision=None,*,partition_only=False):
     from PIL import Image
     inspect(files)
     source_sha=canonical_sha256({n:sha256(b).hexdigest() for n,b in files.items()})
@@ -27,6 +27,8 @@ def generate(files,slot,parents,decision=None):
     attachment=doc['skins'][0]['attachments'][slot][slot];data=attachment['vertices']
     if len(data)%5 or any(data[i]!=1 or data[i+4]!=1 or data[i+1]!=data[1] for i in range(0,len(data),5)):
         raise ValueError('component_mount_static_weight_unsupported')
+    if partition_only and (decision is not None or parents!=[doc['bones'][data[1]]['name']]):
+        raise ValueError('component_partition_must_preserve_parent')
     setup=dict(doc,animations={'setup':{}})
     positions,bones=sample(setup,'setup',0);transforms=matrices(setup,'setup',0)
     if not parents or len(set(parents))!=len(parents) or any(p not in bones for p in parents):
@@ -72,7 +74,7 @@ def generate(files,slot,parents,decision=None):
         doc['skins'][0]['attachments'][name]={name:dict(type='mesh',path=name,width=cw,height=ch,
             vertices=vertices,uvs=[0,0,1,0,1,1,0,1],triangles=[0,1,2,0,2,3],hull=4)}
         new_slots.append(dict(original_slot,name=name,attachment=name))
-        state='static_reference' if row['component_id']=='unbound-residual' else 'weighted_candidate'
+        state='static_reference' if partition_only or row['component_id']=='unbound-residual' else 'weighted_candidate'
         regions.append(dict(region_id=name,state=state))
         details.append({k:v for k,v in row.items() if k!='pixels'}|dict(region_id=name,visible_pixels=len(row['pixels'])))
     if len(covered)!=plan['visible_pixel_count']:raise ValueError('component_mount_coverage')
@@ -94,6 +96,7 @@ def generate(files,slot,parents,decision=None):
     layer=layers[0];layer['regions']=[r for r in layer['regions'] if r['region_id']!=slot]+regions
     layer.update(state='partial' if plan['residual_pixels'] else 'weighted_candidate',
         reason_codes=(['small_components_retained'] if plan['residual_pixels'] else [])+([] if decision else ['component_parent_review_required']))
+    if partition_only:layer.update(state='static_reference',reason_codes=['component_parent_review_required'])
     owners=manifest.get('region_owners',{});owner=owners.pop(slot,None)
     if owner is not None:
         for r in regions:owners[r['region_id']]=deepcopy(owner)
@@ -103,6 +106,9 @@ def generate(files,slot,parents,decision=None):
         authority='none',selected=False,production_authorized=False,parent_review_required=decision is None,
         draw_order='replace_source_slot_in_place',motion='rigid_parent_follow_no_added_tracks')
     output['component-mount.json']=canonical_bytes(report)
+    if partition_only:
+        report.update(profile='same-parent-component-partition-v1',motion='original_parent_preserved',partition_only=True)
+        output['component-mount.json']=canonical_bytes(report)
     if decision is not None:
         output['component-mount-decision.json']=canonical_bytes(decision)
         report['parent_decision_sha256']=sha256(output['component-mount-decision.json']).hexdigest()
