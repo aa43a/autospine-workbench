@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "autospine.project-route-default/v1"
+    },
+    "profile": {
+      "enum": [
+        "reviewed-narrow-arms-v1",
+        "combined-arm-preview-first-v1"
+      ]
+    },
+    "choice": {
+      "const": "ordinary"
+    },
+    "decision_source": {
+      "const": "policy_auto"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "production_authorized": {
+      "const": false
+    },
+    "reversible": {
+      "const": true
+    },
+    "binding_approved": {
+      "const": false
+    },
+    "sleeveless_inferred": {
+      "const": false
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "evidence_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  },
+  "required": [
+    "schema",
+    "profile",
+    "choice",
+    "decision_source",
+    "authority",
+    "production_authorized",
+    "reversible",
+    "binding_approved",
+    "sleeveless_inferred",
+    "project_id",
+    "source_sha256",
+    "evidence_sha256"
+  ]
+}

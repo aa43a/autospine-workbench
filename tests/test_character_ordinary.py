@@ -15,7 +15,7 @@ from test_character_sleeve_composition import fixture
 class OrdinaryCharacterTests(unittest.TestCase):
     def test_explicit_current_route_only_and_never_skip_existing_repair(self):
         with TemporaryDirectory() as root:
-            projects=SimpleNamespace(state_root=Path(root));sleeves=Mock()
+            projects=SimpleNamespace(state_root=Path(root),get_project=lambda _:dict(resolved=dict(sha256='a'*64,layers=[])));sleeves=Mock()
             sleeves.overview.return_value={'job':None}
             with self.assertRaisesRegex(RuntimeError,'confirmation_required'):route_source(projects,sleeves,'sample','a'*64)
             folder=Path(root)/'project-route-v1/sample';folder.mkdir(parents=True)

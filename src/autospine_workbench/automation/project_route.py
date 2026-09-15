@@ -55,11 +55,14 @@ class ProjectRoute:
             from .project_route_evidence import collect
             geometry=collect(self.projects,project,source)
             recommendation, reasons = suggest(source,geometry)
+            from .project_route_default import derive
+            default=derive(source,geometry) if saved is None else None
+            if default:reasons.insert(0,'默认先进入普通候选流程；合层及绑定异常继续复核，可随时改选袖装，不代表无袖判断。')
             if stale:
                 reasons.insert(0, '项目来源已变化，请重新确认处理路线。')
             return dict(project_id=project, source_sha256=sha, revision=saved['revision'] if saved else 0,
-                        choice=saved['choice'] if saved and not stale else 'undecided', stale=stale,
-                        recommendation=recommendation, reasons=reasons, geometry=geometry, authority='none')
+                        choice=saved['choice'] if saved and not stale else 'ordinary' if default else 'undecided', stale=stale,
+                        recommendation=recommendation, reasons=reasons, geometry=geometry, authority='none',default_choice=default)
 
     def save(self, project, body):
         if (set(body) != {'choice', 'expected_resolved_sha256', 'expected_revision'}

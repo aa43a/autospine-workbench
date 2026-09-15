@@ -20,7 +20,7 @@ export function createWorkbenchRoute(document, hooks, options = {}) {
   const current = token => token === generation && identity === projectIdentity(context());
   function render() {
     view.render({ choice: value?.choice || 'undecided', recommendation: value?.recommendation || 'undecided',
-      reasons: value?.reasons || [], stale: value?.stale || false, loaded: Boolean(value),
+      reasons: value?.reasons || [], stale: value?.stale || false, loaded: Boolean(value), automatic: Boolean(value?.default_choice),
       geometry: value?.geometry || null,
       enabled: Boolean(identity && editable() && value && !busy && !error), canRefresh: Boolean(identity && !busy),
       message: error || (busy ? '正在读取或保存处理路线…' : !editable() ? '请先保存校正并等待当前操作完成。'
@@ -69,7 +69,7 @@ function createView(document, callbacks) {
   const geometry=createRouteGeometryView(document);
   element.append(title, summary, reasons, geometry.element, controls, status);
   return { element, render(model) {
-    summary.textContent = model.loaded ? `自动建议：${CHOICES[model.recommendation]} · 已保存选择：${CHOICES[model.choice]}${model.stale ? '（需要重新确认）' : ''}` : '正在检查角色适用的处理路线。';
+    summary.textContent = model.loaded ? `自动建议：${CHOICES[model.recommendation]} · ${model.automatic ? '系统默认（可更改）' : '已保存选择'}：${CHOICES[model.choice]}${model.stale ? '（需要重新确认）' : ''}` : '正在检查角色适用的处理路线。';
     reasons.textContent = model.reasons.join('；'); status.textContent = model.message; refresh.disabled = !model.canRefresh;
     geometry.render(model.geometry);
     for (const [id, button] of Object.entries(buttons)) { button.disabled = !model.enabled; button.setAttribute('aria-pressed', String(model.loaded && !model.stale && model.choice === id)); }
