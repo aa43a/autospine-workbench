@@ -61,7 +61,12 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
   }
   textureProfile.value="aligned-low-alpha-v1";textureLabel.append(textureProfile);
   textureToggle.onchange=()=>render();
+  const residualLabel=node('label','自动隐藏极低透明度残余（取消勾选并重建可恢复） '),residualToggle=node('input');
+  let residualTouched=false;
+  residualToggle.type='checkbox';residualToggle.checked=true;residualToggle.setAttribute('aria-label','自动隐藏极低透明度残余');residualLabel.append(residualToggle);
+  residualToggle.onchange=()=>{residualTouched=true;};
   const motionLabel=node("label","整角色动作 "),motionSelect=node("select");motionSelect.setAttribute("aria-label","整角色动作");motionLabel.append(motionSelect);actions.append(motionLabel,textureLabel);
+  actions.append(residualLabel);
   const skirtLabel=node("label","生成裙装可变形候选 "),skirtToggle=node("input");
   skirtToggle.type="checkbox";skirtToggle.checked=false;skirtToggle.setAttribute("aria-label","生成裙装可变形候选");
   skirtLabel.append(skirtToggle,node("span","腰部与裙摆待复核，保留原纹理和原决定"));actions.append(skirtLabel);
@@ -90,6 +95,8 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
     if(finalRecipe){textureToggle.checked=Boolean(finalRecipe.residual_texture_profile);textureProfile.value=finalRecipe.residual_texture_profile||'aligned-low-alpha-v1';skirtToggle.checked=Boolean(finalRecipe.skirt_profile);if(!rebuildMotion||!motionTouched)motionChoice=finalRecipe.motion_choice_id||'';motionTouched=true;}
     build.disabled=!overview?.can_build||busy||active||dirty;refresh.disabled=!identity||busy;cancel.hidden=!active;cancel.disabled=busy||job?.cancel_requested;
     textureToggle.disabled=busy||active||dirty||Boolean(finalRecipe);
+    if(!residualTouched)residualToggle.checked=job?.residual_auto_profile!=='preserve';
+    residualToggle.disabled=busy||active||dirty;
     skirtToggle.disabled=busy||active||dirty||Boolean(finalRecipe);
     textureProfile.disabled=textureToggle.disabled||!textureToggle.checked;
     const available=overview?.motion_choices||[];
@@ -155,7 +162,7 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
         expected_resolved_sha256:overview.expected_resolved_sha256,expected_input_sha256:overview.expected_input_sha256,sleeve_job_id:overview.sleeve_job_id,
         ...(motionChoice?{motion_choice_id:motionChoice}:{}),
         ...(textureToggle.checked?{residual_texture_profile:textureProfile.value}:{}),
-        ...(skirtToggle.checked?{skirt_profile:"reviewed-torso-waist-v2"}:{}),...shoulder.payload()})};
+        ...(skirtToggle.checked?{skirt_profile:"reviewed-torso-waist-v2"}:{}),residual_auto_profile:residualToggle.checked?'low-alpha-residual-v1':'preserve',...shoulder.payload()})};
       if(action==='build')init.body=JSON.stringify(applyCharacterRecipe(JSON.parse(init.body),overview));
       const value=await hooks.apiRequest(url,init);if(!current(token))return;
       if(value.project_id!==project||value.authority!=="none")throw Error("响应来源不匹配");
@@ -165,6 +172,6 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
     finally{if(current(token)){busy=false;render();if(!error)queue(token);}}
   }
   build.addEventListener("click",()=>void request("build"));refresh.addEventListener("click",()=>void request());cancel.addEventListener("click",()=>void request("cancel"));
-  return {element,sync(){const next=projectIdentity(context());if(next!==identity){generation++;stop();identity=next;overview=job=null;shoulder.reset();motionChoice="";motionTouched=false;textureToggle.checked=false;skirtToggle.checked=false;textureProfile.value="aligned-low-alpha-v1";busy=false;error="";polls=0;if(identity)void request();}render();},
+  return {element,sync(){const next=projectIdentity(context());if(next!==identity){generation++;stop();identity=next;overview=job=null;shoulder.reset();motionChoice="";motionTouched=false;residualTouched=false;textureToggle.checked=false;skirtToggle.checked=false;textureProfile.value="aligned-low-alpha-v1";busy=false;error="";polls=0;if(identity)void request();}render();},
     dispose(){generation++;stop();visualReview.dispose();weightedReview.dispose();autoAudit.dispose();mounts.dispose();},refresh:()=>request()};
 }

@@ -6,7 +6,11 @@ from .numeric_reference import read as read_reference, write as write_reference
 
 
 def apply(files, decision):
-    if decision.get('schema') != 'autospine.region-exclusion/v1' or decision.get('decision_source') != 'human_confirmation':
+    automatic=decision.get('schema')=='autospine.region-exclusion/v2' and decision.get('decision_source')=='policy_auto'
+    if automatic:
+        from .low_alpha_residual import validate
+        validate(files,decision)
+    elif decision.get('schema') != 'autospine.region-exclusion/v1' or decision.get('decision_source') != 'human_confirmation':
         raise ValueError('character_region_exclusion_decision')
     manifest = json.loads(files['character-manifest.json'])
     if decision['manifest_sha256'] != sha256(files['character-manifest.json']).hexdigest():
@@ -42,7 +46,7 @@ def apply(files, decision):
     layer['state'] = next(iter(states)) if len(states) == 1 and not layer['missing_region_ids'] else 'partial'
     if not layer['regions'] and not layer['missing_region_ids']: layer['state'] = 'excluded'
     manifest.get('region_owners', {}).pop(region, None)
-    manifest.update(profile='reviewed-static-region-exclusion-v1', status='needs_review',
+    manifest.update(profile='automatic-low-alpha-residual-v1' if automatic else 'reviewed-static-region-exclusion-v1', status='needs_review',
                     authority='none', production_authorized=False, full_character_animation=False,
                     qa={'runtime_status': 'not_run', 'full_character_contact_status': 'not_evaluated'})
     result = {n: raw for n, raw in files.items() if n.endswith('.png') or n in ('skeleton.atlas', 'binding-provenance.json')}

@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Source-bound automatic low-alpha residual exclusion",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "decision_source", "policy_id", "source_bundle_sha256", "manifest_sha256", "layer_id", "region_id", "image_sha256", "visible_pixels", "max_alpha", "reversible"],
+  "properties": {
+    "schema": {"const": "autospine.region-exclusion/v2"},
+    "decision_source": {"const": "policy_auto"},
+    "policy_id": {"const": "low-alpha-residual-v1"},
+    "source_bundle_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "manifest_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "image_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "layer_id": {"type": "string", "minLength": 1},
+    "region_id": {"type": "string", "minLength": 1},
+    "visible_pixels": {"type": "integer", "minimum": 1},
+    "max_alpha": {"type": "integer", "minimum": 1, "maximum": 7},
+    "reversible": {"const": true},
+    "scope_replay": {"type": "object"}
+  }
+}

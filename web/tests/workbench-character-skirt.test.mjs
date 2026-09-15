@@ -3,6 +3,16 @@ import assert from 'node:assert/strict';
 import {createWorkbenchCharacter} from '../modules/workbench-character.js';
 
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
+test('residual preservation survives refresh and restores the saved build choice',async()=>{
+ const calls=[];const f=fixture(async(url,init)=>{calls.push(init);return init.method==='POST'?job('running',{residual_auto_profile:'preserve'}):overview(job('needs_review',{residual_auto_profile:'preserve'}));});
+ f.view.sync();await flush();
+ const toggle=f.all.find(n=>n.attrs['aria-label']==='自动隐藏极低透明度残余');
+ assert.equal(toggle.checked,false);
+ toggle.checked=true;toggle.onchange();await f.view.refresh();assert.equal(toggle.checked,true);
+ toggle.checked=false;toggle.onchange();f.build.events.click();await flush();
+ assert.equal(JSON.parse(calls.find(c=>c.method==='POST').body).residual_auto_profile,'preserve');
+ f.context.projectId=null;f.view.sync();assert.equal(toggle.checked,true);f.view.dispose();
+});
 test('whole build sends only the explicitly selected shoulder',async()=>{
  const calls=[];
  const f=fixture(async(url,init)=>{calls.push(init);return init.method==='POST'?job('running'):overview(job('needs_review',{
@@ -45,7 +55,7 @@ test('unchecked skirt leaves the original build request bytes and options unchan
  f.build.events.click();await flush();
  assert.deepEqual(calls.find(([,init])=>init.method==='POST'),['/api/projects/one/automation/character',{
   method:'POST',headers:{'X-Autospine-Intent':'pipeline-preview'},
-  body:JSON.stringify({expected_resolved_sha256:'a'.repeat(64),expected_input_sha256:'c'.repeat(64),sleeve_job_id:'sleeve-one'})}]);
+  body:JSON.stringify({expected_resolved_sha256:'a'.repeat(64),expected_input_sha256:'c'.repeat(64),sleeve_job_id:'sleeve-one',residual_auto_profile:'low-alpha-residual-v1'})}]);
  f.view.dispose();
 });
 
@@ -54,7 +64,7 @@ test('checked skirt adds only its explicit profile and resets across project ide
  f.view.sync();await flush();f.toggle.checked=true;f.toggle.onchange();f.build.events.click();await flush();
  assert.deepEqual(JSON.parse(calls.find(init=>init.method==='POST').body),{
   expected_resolved_sha256:'a'.repeat(64),expected_input_sha256:'c'.repeat(64),sleeve_job_id:'sleeve-one',
-  skirt_profile:'reviewed-torso-waist-v2'});
+  skirt_profile:'reviewed-torso-waist-v2',residual_auto_profile:'low-alpha-residual-v1'});
  assert.equal(f.toggle.disabled,true);f.context.projectId=null;f.view.sync();assert.equal(f.toggle.checked,false);f.view.dispose();
 });
 

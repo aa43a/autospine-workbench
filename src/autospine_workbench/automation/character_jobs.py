@@ -108,7 +108,8 @@ class CharacterJobs:
         return result
 
     def submit(self, project, expected_resolved_sha256, expected_input_sha256, sleeve_job_id, motion_choice_id=None,
-               residual_texture_profile=None, skirt_profile=None, shoulder_regions=None):
+               residual_texture_profile=None, skirt_profile=None, shoulder_regions=None, residual_auto_profile='low-alpha-residual-v1'):
+        if residual_auto_profile not in ('low-alpha-residual-v1','preserve'):raise PipelineRunError('pipeline_request_invalid')
         from .character_shoulder_trial import validate as validate_shoulder
         validate_shoulder(shoulder_regions)
         from .character_texture_trial import validate
@@ -117,7 +118,7 @@ class CharacterJobs:
         validate_skirt(skirt_profile)
         require_safe_token(project, 'project'); require_sha(expected_resolved_sha256); require_sha(expected_input_sha256)
         request=dict(project_id=project, expected_resolved_sha256=expected_resolved_sha256,
-                     expected_input_sha256=expected_input_sha256, sleeve_job_id=sleeve_job_id)
+                     expected_input_sha256=expected_input_sha256, sleeve_job_id=sleeve_job_id,residual_auto_profile=residual_auto_profile)
         from .character_region_decisions import overview as region_overview
         request['region_decisions_sha256'] = region_overview(self, project)['head_sha256']
         from .character_final_regions import overview as final_overview
@@ -145,7 +146,7 @@ class CharacterJobs:
             if len(self._active)>=4: raise PipelineRunError('pipeline_queue_full')
             job='job-'+uuid4().hex; root=self._path(job,True)
             publish_document(root/'request.json', request, staging=root/'staging')
-            response=dict(schema=SCHEMA,job_id=job,project_id=project,status='pending',stage='resolve',authority='none')
+            response=dict(schema=SCHEMA,job_id=job,project_id=project,status='pending',stage='resolve',authority='none',residual_auto_profile=residual_auto_profile)
             self._active[job]=dict(request=request,response=response,cancel=Event())
             self._pool.submit(self._execute,job)
             return deepcopy(response)
@@ -248,6 +249,8 @@ class CharacterJobs:
             result=apply_final(self,request,result,stage="after_components")
             from .character_order_review import apply_saved as apply_order
             result=apply_order(self,request,result)
+            from .character_residual_defaults import apply as apply_residual_defaults
+            result=apply_residual_defaults(self,request,result)
             self._current(request)
             runtime=self.capturer(self.projects,self.application.store,result['artifact_sha256'],self._path(job),
                                   progress=progress,cancel_requested=active['cancel'].is_set)
@@ -262,6 +265,7 @@ class CharacterJobs:
             if 'component_mounts' in result: response['component_mounts']=result['component_mounts']
             if 'post_component_regions' in result: response['post_component_regions']=result['post_component_regions']
             if 'order_review' in result: response['order_review']=result['order_review']
+            if 'residual_defaults' in result: response['residual_defaults']=result['residual_defaults']
             from .character_stage_defaults import publish as publish_defaults
             publish_defaults(self._path(job), response, self.application.store.read(result['artifact_sha256']))
         except Exception as exc:
