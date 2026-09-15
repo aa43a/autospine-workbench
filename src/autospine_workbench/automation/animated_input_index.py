@@ -42,9 +42,14 @@ def inspect_registration(store, project_id):
         inputs._match_audit(store, project_id, candidate)
         addresses = source_addresses(checkpoint, digest, registration, candidate_sha,
                                      bindings['source_skeleton_sha256'], bindings_sha, draft_sha)
+        skeleton = read_report(store.state_root, dataset, 'assisted-skeleton-candidates',
+                               bindings['source_skeleton_sha256'])
+        if skeleton.get('candidate_sha256') != candidate_sha:
+            raise AnimatedSourceError('animated_source_invalid')
         assert_registered_current(store, project_id, addresses)
         return {'source_addresses': addresses, 'bindings': bindings, 'draft': draft,
                 'candidate': candidate, 'registration_current': True,
+                'skeleton_status': skeleton.get('status'),
                 'authority': 'none', 'production_authorized': False,
                 'verification': 'registration_only'}
     except AnimatedSourceError:

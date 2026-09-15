@@ -26,10 +26,13 @@ class AnimatedInputTests(unittest.TestCase):
         self.manifest = {'dataset_id': 'fixture'}
         self.candidate['benchmark_manifest_sha256'] = canonical_sha256(self.manifest)
         self.bindings['candidate_sha256'] = canonical_sha256(self.candidate)
+        self.skeleton['candidate_sha256'] = canonical_sha256(self.candidate)
+        self.bindings['source_skeleton_sha256'] = canonical_sha256(self.skeleton)
         self.draft = build_layer_binding_draft(self.bindings)
         self.drafts = {canonical_sha256(self.draft): self.draft}
         from autospine_workbench.benchmark.artifacts import publish_report
         for kind, doc in [('semantic-candidates', self.candidate),
+                          ('assisted-skeleton-candidates', self.skeleton),
                           ('layer-binding-candidates-v2', self.bindings),
                           ('layer-binding-drafts-v2', self.draft)]:
             publish_report(self.store.state_root, 'fixture', kind, doc)

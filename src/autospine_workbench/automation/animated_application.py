@@ -40,6 +40,9 @@ class AnimatedApplication:
             result["review_items"] = [{"id": r["layer_id"] + ":binding", "layer_id": r["layer_id"],
                                            "type": "binding", "reason_code": "binding_selection_required"}
                                       for r in info["draft"]["records"] if r["action"] == "pending"]
+            if info.get('skeleton_status') != 'candidate_requires_review':
+                result.update(can_build=False, reason_code='joint_review_required')
+                result['review_items'].insert(0, dict(id='skeleton', type='joint', reason_code='joint_review_required'))
         except AnimatedSourceError as exc:
             result["reason_code"] = exc.reason_code
             if exc.reason_code == "animated_source_stale":
