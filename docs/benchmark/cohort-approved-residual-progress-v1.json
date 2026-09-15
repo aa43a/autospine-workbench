@@ -103,7 +103,13 @@
         "skirt_profile": "reviewed-torso-waist-v2"
       },
       "job_id": "job-6b76a6d54370458b856b2ab61ca9e47a",
-      "status": "running"
+      "status": "needs_review",
+      "artifact_sha256": "d3379cef30f7a812b931a55eb3ca899606aa0c5e820706822a06bb417355de81",
+      "runtime_frames": 2062,
+      "geometry_status": "passed",
+      "textures_unchanged": true,
+      "removed_regions_exact": true,
+      "visual_acceptance": "not_recorded"
     }
   ]
 }

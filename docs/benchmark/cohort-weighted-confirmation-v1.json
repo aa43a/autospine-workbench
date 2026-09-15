@@ -1,0 +1,72 @@
+{
+  "authority": "none",
+  "production_authorized": false,
+  "decision_source": "human_review",
+  "confirmed_layer_count": 24,
+  "records": [
+    {
+      "project_id": "alice",
+      "job_id": "job-a2db93f931824108982191eb0e2b9dce",
+      "artifact_sha256": "74e0c3ef7fe2c7847e7909cc6eba5d7231d71ef04c259ca064e791d4cdc32a96",
+      "review_sha256": "8c449b5cc283e84a42dda8c786b5998f193492443780952446fd759c4886d8bf",
+      "layer_ids": [
+        "layer-001",
+        "layer-002",
+        "layer-003",
+        "layer-004",
+        "layer-005"
+      ]
+    },
+    {
+      "project_id": "imported-3ac977caea4fa3acd2358eab227d156f935436efe12bc1a93e42f506c5e9ee31",
+      "job_id": "job-05f99e1371ee4cf1a005b4795e320080",
+      "artifact_sha256": "09e52f88108a398754e0b55f9cd31a6c285b254b81421d6a2a8e281164cd97e3",
+      "review_sha256": "d15e04fcee43f43b2e0b736e2c171652e6c8dda6ee20c50704b5a0c7f2258e98",
+      "layer_ids": [
+        "layer-002",
+        "layer-003",
+        "layer-004",
+        "layer-005",
+        "layer-009"
+      ]
+    },
+    {
+      "project_id": "lingxian",
+      "job_id": "job-4f642dd8c5d44d1a934ea4a0edde6f05",
+      "artifact_sha256": "ade6f3bc4e2a81b90934fd4da0bcf833e13cb2c8bf2dd63ee2553907afd3c9f4",
+      "review_sha256": "6194fb5d58b3c87494d065e84df953e4969b98f4f961d2589b9d9e62a1900e84",
+      "layer_ids": [
+        "layer-001",
+        "layer-002",
+        "layer-003",
+        "layer-005"
+      ]
+    },
+    {
+      "project_id": "lumia",
+      "job_id": "job-da9095a0d83a4bf3a1b795e5d0fc115d",
+      "artifact_sha256": "abb23e94fb8e8c80a392d5d7ae48f719dea64ff623878649de07dd8dadb06cb1",
+      "review_sha256": "0bac42794e5b12b6ae0ac1588f046bf2f235b34c0458090ebe52753948e3c904",
+      "layer_ids": [
+        "layer-001",
+        "layer-002",
+        "layer-003",
+        "layer-004",
+        "layer-005"
+      ]
+    },
+    {
+      "project_id": "uuz",
+      "job_id": "job-6b76a6d54370458b856b2ab61ca9e47a",
+      "artifact_sha256": "d3379cef30f7a812b931a55eb3ca899606aa0c5e820706822a06bb417355de81",
+      "review_sha256": "f8f1b1fca3768c288804dd1a7b86622df4edb984d45eca33856fcd31d51fb121",
+      "layer_ids": [
+        "layer-001",
+        "layer-002",
+        "layer-003",
+        "layer-005",
+        "layer-006"
+      ]
+    }
+  ]
+}
