@@ -252,7 +252,7 @@ class CharacterJobs:
             runtime=self.capturer(self.projects,self.application.store,result['artifact_sha256'],self._path(job),
                                   progress=progress,cancel_requested=active['cancel'].is_set)
             self._current(request)
-            response.update(status='needs_review',stage='review',artifact_sha256=result['artifact_sha256'],
+            response=dict(response, status='needs_review',stage='review',artifact_sha256=result['artifact_sha256'],
                             layers=result['manifest']['layers'],animations=result['manifest']['animations'],runtime=runtime,
                             motion_readiness=result['manifest'].get('motion_readiness',[]))
             if 'texture_trial' in result: response['texture_trial']=result['texture_trial']
@@ -262,6 +262,8 @@ class CharacterJobs:
             if 'component_mounts' in result: response['component_mounts']=result['component_mounts']
             if 'post_component_regions' in result: response['post_component_regions']=result['post_component_regions']
             if 'order_review' in result: response['order_review']=result['order_review']
+            from .character_stage_defaults import publish as publish_defaults
+            publish_defaults(self._path(job), response, self.application.store.read(result['artifact_sha256']))
         except Exception as exc:
             reason=getattr(exc,'reason_code',str(exc))
             if not re.fullmatch(r'[a-z][a-z0-9_]{0,99}',reason): reason='character_build_failed'

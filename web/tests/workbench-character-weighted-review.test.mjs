@@ -8,6 +8,16 @@ const document={createElement(tag){return {tag,children:[],append(...n){this.chi
 const job={project_id:'p',job_id:'j',artifact_sha256:'a',layers:[{layer_id:'arm',name:'手臂',state:'weighted_candidate',regions:[{region_id:'part',state:'weighted_candidate'}],binding_decision:{decision_source:'pending',action:'pending'}}]};
 const response={project_id:'p',job_id:'j',artifact_sha256:'a',authority:'none',can_review:true,eligible_layer_ids:['arm'],review_sha256:null,review:null};
 
+test('system defaults show provenance and allow stage exceptions',async()=>{
+ const view=createWeightedReview(document,{apiRequest:async(_url,init)=>({...response,
+  default_review:{accepted_layer_ids:['arm']},confirmed_layer_ids:init.method==='POST'?[]:['arm']})});
+ view.sync(job,true);await flush();
+ assert.ok(all(view.element).some(n=>n.textContent.includes('系统默认采用，可撤销')));
+ assert.deepEqual(view.confirmed(),['arm']);
+ all(view.element).find(n=>n.textContent==='撤销区域确认').onclick();await flush();
+ assert.deepEqual(view.confirmed(),[]);view.dispose();
+});
+
 test('inherited binding is visible, source-bound and independently revocable',async()=>{
  let body;const view=createWeightedReview(document,{apiRequest:async(_url,init)=>{
    if(init.method==='POST'){body=JSON.parse(init.body);return {...response,confirmed_layer_ids:[],review:{accepted_layer_ids:[],revoked_replayed_layer_ids:['arm']}};}

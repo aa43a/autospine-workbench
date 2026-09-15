@@ -25,6 +25,7 @@ export function createWeightedReview(document, hooks) {
       select.setAttribute("aria-label",`勾选 ${layer.name} 的有效加权区域`);select.disabled=busy||!editable||!report?.can_review;
       select.onchange=()=>{if(select.checked)selectedIds.add(layer.layer_id);else selectedIds.delete(layer.layer_id);render();};row.append(select);
       if(accepted.has(layer.layer_id)&&report?.replayed_review?.accepted_layer_ids?.includes(layer.layer_id))row.append(node('span','（沿用未变化区域的原确认） '));
+      if(accepted.has(layer.layer_id)&&report?.default_review?.accepted_layer_ids?.includes(layer.layer_id))row.append(node('span','（系统默认采用，可撤销；阶段视觉待验收） '));
       const button=node("button",accepted.has(layer.layer_id)?"撤销区域确认":"确认这些区域的绑定");
       button.type="button";button.disabled=busy||!editable||!report?.can_review;
       button.className="button button-secondary";

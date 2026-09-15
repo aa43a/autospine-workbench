@@ -41,6 +41,8 @@ def confirmed_layers(job,value):
     if not value or value.get('can_review') is not True or value.get('authority')!='none': return set()
     if any(value.get(k)!=job.get(k) for k in ('project_id','job_id','artifact_sha256')): return set()
     review=value.get('review')
+    from .character_stage_defaults import accepted as default_accepted
+    defaults=default_accepted(job,value)
     if review and review.get('schema')!=OVERRIDE_SCHEMA: return explicit
     revoked=[]
     if review:
@@ -52,7 +54,7 @@ def confirmed_layers(job,value):
         revoked=review.get('revoked_replayed_layer_ids')
         if type(revoked) is not list or any(type(k) is not str for k in revoked): return set()
     from .character_weighted_replay import confirmed
-    return explicit | (confirmed(job,value)-set(revoked))
+    return explicit | ((confirmed(job,value) | defaults)-set(revoked))
 
 
 def history(manager, job):
@@ -105,12 +107,16 @@ def overview(manager, project, job):
     if 'skeleton.json' in files:
         from ..targets.character43.binding_inventory import inspect
         value['binding_inventory']=inspect(json.loads(files['skeleton.json']),result['layers'])
+        from .character_stage_defaults import read as read_defaults
+        defaults=read_defaults(manager._path(job),result,files)
+        if defaults:
+            value.update(default_review=defaults,default_review_sha256=canonical_sha256(defaults))
     if ready and (not current or current[1]['schema']==OVERRIDE_SCHEMA):
         from .character_weighted_replay import derive
         proof=derive(manager,result,files)
         if proof:
             value.update(replayed_review=proof,replay_sha256=canonical_sha256(proof))
-    if value.get('replayed_review') or (current and current[1]['schema']==OVERRIDE_SCHEMA):
+    if value.get('default_review') or value.get('replayed_review') or (current and current[1]['schema']==OVERRIDE_SCHEMA):
         value['confirmed_layer_ids']=sorted(confirmed_layers(result,value))
     return value
 
@@ -137,7 +143,7 @@ def save(manager, project, job, body):
             raise PipelineRunError('character_weighted_scope_invalid')
         accepted = set((current['review'] or {}).get('accepted_layer_ids', []))
         revoked=set((current['review'] or {}).get('revoked_replayed_layer_ids',[]))
-        overrides=bool(current.get('replayed_review')) or (current['review'] or {}).get('schema')==OVERRIDE_SCHEMA
+        overrides=bool(current.get('default_review') or current.get('replayed_review')) or (current['review'] or {}).get('schema')==OVERRIDE_SCHEMA
         if body['action'] == 'confirm': accepted.update(selected)
         else: accepted.difference_update(selected)
         if overrides:
