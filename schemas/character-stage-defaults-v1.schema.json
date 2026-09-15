@@ -7,7 +7,7 @@
       "const": "autospine.character-stage-defaults/v1"
     },
     "policy_id": {
-      "const": "supported-weighted-stage-defaults-v1"
+      "enum": ["supported-weighted-stage-defaults-v1", "supported-weighted-stage-defaults-v2"]
     },
     "decision_source": {
       "const": "policy_auto"

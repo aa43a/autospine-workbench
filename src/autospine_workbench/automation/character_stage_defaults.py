@@ -4,16 +4,20 @@ from ..resolved_project import canonical_sha256
 from ..targets.character43.binding_inventory import inspect
 from .storage_io import publish_document, read_document
 
-PROFILE = 'supported-weighted-stage-defaults-v1'
+LEGACY_PROFILE = 'supported-weighted-stage-defaults-v1'
+PROFILE = 'supported-weighted-stage-defaults-v2'
 
 
-def _supported(layer, rows):
+def _supported(layer, rows, profile):
     name = layer.get('name', '').strip().lower()
+    combined = name == 'handwear' and profile == PROFILE
+    if combined and {r['region_id'] for r in rows} != {layer['layer_id']+'-l',layer['layer_id']+'-r'}:
+        return False
     for row in rows:
         bones = {item['bone'] for item in row['influences']}
         region = row['region_id']
-        if name in ('handwear-l', 'handwear-r'):
-            side = name[-1]
+        if name in ('handwear-l', 'handwear-r') or combined:
+            side = region[-1] if combined else name[-1]
             allowed = {f'{part}_{side}' for part in ('upperarm', 'forearm', 'hand')}
             allowed.add('cloth-' + region)
         elif name in ('legwear', 'legwear-l', 'legwear-r', 'footwear', 'footwear-l', 'footwear-r'):
@@ -32,7 +36,8 @@ def _supported(layer, rows):
     return bool(rows)
 
 
-def evaluate(job, files, human_overrides=()):
+def evaluate(job, files, human_overrides=(), *, profile=PROFILE):
+    if profile not in (PROFILE,LEGACY_PROFILE): raise ValueError('character_stage_defaults_profile_unknown')
     from .character_weighted_review import eligible
     inventory = inspect(json.loads(files['skeleton.json']), job['layers']) if job['layers'] else {'regions': []}
     runtime = job.get('runtime', {})
@@ -41,9 +46,9 @@ def evaluate(job, files, human_overrides=()):
     accepted = []
     for layer in job['layers']:
         rows = [row for row in inventory['regions'] if row['layer_id'] == layer['layer_id']]
-        if ready and eligible(layer) and layer['layer_id'] not in human_overrides and _supported(layer, rows):
+        if ready and eligible(layer) and layer['layer_id'] not in human_overrides and _supported(layer, rows, profile):
             accepted.append(layer['layer_id'])
-    return dict(schema='autospine.character-stage-defaults/v1', policy_id=PROFILE,
+    return dict(schema='autospine.character-stage-defaults/v1', policy_id=profile,
                 decision_source='policy_auto', authority='none', production_authorized=False,
                 project_id=job['project_id'], job_id=job['job_id'], artifact_sha256=job['artifact_sha256'],
                 runtime_sha256=canonical_sha256(runtime), layers_sha256=canonical_sha256(job['layers']),
@@ -84,14 +89,16 @@ def read(root, job, files):
     overrides=document.get('human_override_layer_ids')
     if type(overrides) is not list or any(type(key) is not str for key in overrides):
         raise ValueError('character_stage_defaults_source_changed')
-    if document != evaluate(job, files, overrides): raise ValueError('character_stage_defaults_source_changed')
+    if document != evaluate(job, files, overrides, profile=document.get('policy_id')):
+        raise ValueError('character_stage_defaults_source_changed')
     return document
 
 
 def accepted(job, value):
     doc = value.get('default_review')
     if not doc or value.get('default_review_sha256') != canonical_sha256(doc): return set()
-    expected = dict(schema='autospine.character-stage-defaults/v1', policy_id=PROFILE,
+    if doc.get('policy_id') not in (PROFILE,LEGACY_PROFILE): return set()
+    expected = dict(schema='autospine.character-stage-defaults/v1', policy_id=doc['policy_id'],
                     calibration_status='unmeasured', decision_source='policy_auto', authority='none',
                     production_authorized=False, project_id=job['project_id'], job_id=job['job_id'],
                     artifact_sha256=job['artifact_sha256'], runtime_sha256=canonical_sha256(job['runtime']),
