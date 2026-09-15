@@ -1,0 +1,91 @@
+{
+  "schema": "autospine.benchmark-safe-binding-progress/v1",
+  "project_id": "imported-9457d50ec689ef628e347db4125bbc4926192f0dbdcbc361d17fd9f1b00ec2c0",
+  "authority": "none",
+  "production_authorized": false,
+  "policy_id": "reviewed-head-anchor-binding-v4",
+  "source_addresses": {
+    "resolved_project_sha256": "b59b5bf08fed8a4493e22f74389bd3ed85b34ad74d8d351f7f98cfef949fa3f3",
+    "input_identity_sha256": "4a81041f2d714aa22a525b122b6bc20ec1b8c65f280917b92fd681555289dd80",
+    "animated_registration_sha256": "377a0e64cd7ea2c20ceee5b11a715d16e49dc68bb45fc12d9d1e31d45bea1633",
+    "benchmark_manifest_sha256": "7d98ab11198222c535ad3f7e4b37a92a1a512127b6857d9b63bcfe59a0efd824",
+    "semantic_candidate_sha256": "62b570536265b5573d12f7be7cc970da8fc3a77b164a4c6c7882828e3e3bb2ac",
+    "skeleton_candidate_sha256": "105dd4d43caf4a4c617c3473812659c3e4124e05ac23c8d377f93b04ac820ab0",
+    "layer_bindings_sha256": "9676407cae307fa9fa32e04f3a2ba14c89480746be08b9e2c9d392144102cb3f",
+    "layer_binding_draft_sha256": "bdc9b85bbf185ef5299a09fd27df55d89f1c18103ea36e921d6e68f632456fbd"
+  },
+  "operation": {
+    "schema": "autospine.binding-auto-workflow/v1",
+    "authority": "none",
+    "production_authorized": false,
+    "changed": true,
+    "status": "succeeded",
+    "reason_code": "safe_bindings_exhausted",
+    "batches": [
+      {
+        "decision_sha256": "59828134832cc1f1a7d12d0c8596834be59230921d4023fb38a65783f2d0ba0d",
+        "changed_layer_ids": [
+          "layer-007",
+          "layer-010"
+        ]
+      },
+      {
+        "decision_sha256": "9301a1e448dcd01f77ac75fe89eb05bee8c3d267a2278d9c1dcc5763db744d08",
+        "changed_layer_ids": [
+          "layer-011",
+          "layer-012",
+          "layer-013",
+          "layer-014",
+          "layer-015",
+          "layer-016"
+        ]
+      }
+    ],
+    "changed_layer_ids": [
+      "layer-007",
+      "layer-010",
+      "layer-011",
+      "layer-012",
+      "layer-013",
+      "layer-014",
+      "layer-015",
+      "layer-016"
+    ],
+    "rounds": 2,
+    "candidate_preparation": {
+      "changed": true,
+      "added_options": 10,
+      "authority": "none",
+      "bindings_sha256": "9676407cae307fa9fa32e04f3a2ba14c89480746be08b9e2c9d392144102cb3f"
+    }
+  },
+  "reversible_decisions": [
+    {
+      "decision_sha256": "9301a1e448dcd01f77ac75fe89eb05bee8c3d267a2278d9c1dcc5763db744d08",
+      "revision": 4,
+      "policy_id": "reviewed-head-anchor-binding-v4",
+      "layer_names": [
+        "nose",
+        "mouth",
+        "eyebrow",
+        "eyewhite",
+        "irides",
+        "eyelash"
+      ],
+      "can_undo": true,
+      "reason_code": null
+    },
+    {
+      "decision_sha256": "59828134832cc1f1a7d12d0c8596834be59230921d4023fb38a65783f2d0ba0d",
+      "revision": 3,
+      "policy_id": "reviewed-head-anchor-binding-v4",
+      "layer_names": [
+        "neck",
+        "face"
+      ],
+      "can_undo": true,
+      "reason_code": null
+    }
+  ],
+  "independent_accuracy_measured": false
+}
