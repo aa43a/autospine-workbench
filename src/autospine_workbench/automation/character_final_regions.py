@@ -112,10 +112,15 @@ def apply_saved(manager,request,result, *, stage="before_components"):
         raise PipelineRunError('character_final_decisions_changed')
     if not current['active']: return result
     review=current['review']
-    if review['source_bundle_sha256']!=result['artifact_sha256']:
-        raise PipelineRunError('character_final_source_changed')
     store=manager.application.store
-    output=apply_batch(store.read(result['artifact_sha256']),review['decisions'],after_components=post)
+    files=store.read(result['artifact_sha256']); decisions=review['decisions']
+    if review['source_bundle_sha256']!=result['artifact_sha256']:
+        from ..targets.character43.region_revalidation import revalidate
+        try:
+            decisions=revalidate(store.read(review['source_bundle_sha256']),files,decisions)
+        except (KeyError, ValueError, OSError) as exc:
+            raise PipelineRunError('character_final_source_changed') from exc
+    output=apply_batch(files,decisions,after_components=post)
     final=dict(result,artifact_sha256=store.publish(output),manifest=json.loads(output['character-manifest.json']),
         final_region_exclusions=dict(review_sha256=current['head_sha256'],
             excluded_region_ids=sorted(d['region_id'] for d in review['decisions']),authority='none'))

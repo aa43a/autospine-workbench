@@ -40,3 +40,13 @@
 独立重建基础角色（未切换工作台选择）得到 `d726eb24ecb431a9106660b6e2443a0ed2f53c3bc446f1fc5822f1551b0cf9e7`。与动作选择所绑定的旧基础 `79fa6e0a63f673828dcedd6bc49a0707a0eaba41a9f77d3ed226a8b8184e6605` 比较：骨骼、已有动画、全部保留 attachment 相同；slot 从 29 降为 28，仅移除 layer-023，同时移除该层三份导出 PNG。图集、数值参考、编辑器和运行时 skeleton、清单均发生变化。可复查结果位于 `tmp/character-visibility-upgrade/flandre/motion-blocker.json`。
 
 动作合并返回 `character_motion_source_changed`，符合旧重放规则只允许 base receipt 变化的限制。未放宽规则、未继承 Runtime 通过状态，未覆盖此前三处残余排除和五层骨骼确认。下一切片应从原动作输入重建新来源候选，再验证排除区域内容是否未变，最后重新运行 Runtime；不能只改旧动作的 source hash。此新基础仍不是整角色验收完成包。
+
+## 新来源动作重建与残余复核范围校验
+
+已从原内置 idle、wave（开启局部修正）和原 BVH MotionIR 重建三动作。walk 保留 513 个采样、投影长度、有界 v2 面积修正和 ankle-proxy root 参数；重新合并后接回 reviewed-chest-v1 裙腰候选。动作集合已登记为新可选项，原选择未替换。
+
+新增 `region_revalidation`，并接入整角色最终残余排除：新旧包不同但来源（除基础编译地址）、骨骼、完整源层行、区域 slot/attachment、原贴图和各动作逐帧区域位置全部不变时，可按原人工范围重新校验。旧决定先按旧包验证，新派生决定保留完整 original_decision，并明确 new_human_confirmation=false。来源改变、内容改变、动作依赖、重复范围及已撤销决定仍阻塞；不改写人工历史。此能力不沿用绑定或整角色视觉验收。
+
+芙兰三处残余均通过，新候选为 `b20ff271e37db859f0d1409dcb34f1c820f76e5bf013983e533002c528cf9483`。官方 WebGL Runtime 4.3.13 对 Spine 4.3.26 候选验证 1,675 帧、25 个附件，最大误差 0.000098471 px，通过当前数值与非空画面检查。详细地址与报告摘要见 [重建证据](flandre-visibility-rebuild-v1.json)。复核页为 `tmp/character-visibility-upgrade/flandre/runtime/index.html`。
+
+已查看实际捕获：腿裙遮挡仍待处理，翼层仍未采用。contact_status 仍为 not_evaluated；本次不增加十角色完成数量，不声称整角色视觉通过。下一步在新来源上完成这些部件，再切换工作台候选和重新核对绑定范围。

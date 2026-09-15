@@ -1,0 +1,148 @@
+{
+  "schema": "autospine.benchmark-visibility-rebuild/v1",
+  "authority": "none",
+  "candidate": {
+    "artifact_sha256": "b20ff271e37db859f0d1409dcb34f1c820f76e5bf013983e533002c528cf9483",
+    "previous_source_sha256": "909c174c163a06ef6dad4f9eb5ed2a1946f4378e21de80a6be098093cafd80ec",
+    "current_source_sha256": "90b86334710a1cbcf048d0dc7bad25d483b3ad5ad7d972a66fc58636a461f278",
+    "region_ids": [
+      "layer-003-residual",
+      "layer-004-residual",
+      "layer-005-unbound-residual"
+    ],
+    "geometry_passed": true,
+    "selected": false,
+    "runtime_status": "not_run",
+    "new_human_confirmation": false
+  },
+  "build": {
+    "base_sha256": "d726eb24ecb431a9106660b6e2443a0ed2f53c3bc446f1fc5822f1551b0cf9e7",
+    "motion_sha256": "48d0809bca33580ab052f33aceb848a25e02aedabea64d75325123fc04bb26ec",
+    "composed_sha256": "8ef5fb3e3cf140c057bd7ef35b03b08aec3760a07a2fb5c380e216a3580730ec",
+    "skirt_sha256": "90b86334710a1cbcf048d0dc7bad25d483b3ad5ad7d972a66fc58636a461f278",
+    "inputs": [
+      "92306b4494adaad35db6a34e8d878d73a3c49fe4681476a336ef05f1882fd493",
+      "25a3dd8d0aabdd1beb7d458d1db994490d4a2caff1ef9b9412327349af5f9959",
+      "724380693971d6ed5ad523226e93de372558753d88a91ecfecbe20ebd60e77ae"
+    ],
+    "selected": false
+  },
+  "motion_choice": {
+    "choice_id": "d0f081df50bfed8f0bcd32d858fbd711dbe53a988e983e5d348ead9f8c2de75d",
+    "authority": "none"
+  },
+  "runtime": {
+    "report_sha256": "00fc0b64ec5d4bc5aa597ab6f2e97a2350ccf2228861e918ac9d67e7543bbdd4",
+    "package": "@esotericsoftware/spine-webgl",
+    "version": "4.3.13",
+    "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+    "profile": "official-webgl-swiftshader-native-v1",
+    "passed": true,
+    "frames": 1675,
+    "slots": 25,
+    "max_error_px": 9.847103570697683e-05,
+    "scope": "all_attachment_vertices_and_nonempty_unclipped_framebuffer",
+    "contact_status": "not_evaluated",
+    "draw_order_visual_status": "needs_review"
+  },
+  "layers": [
+    {
+      "layer_id": "layer-000",
+      "state": "static_reference"
+    },
+    {
+      "layer_id": "layer-001",
+      "state": "rigid_reviewed"
+    },
+    {
+      "layer_id": "layer-002",
+      "state": "weighted_candidate"
+    },
+    {
+      "layer_id": "layer-003",
+      "state": "weighted_candidate"
+    },
+    {
+      "layer_id": "layer-004",
+      "state": "weighted_candidate"
+    },
+    {
+      "layer_id": "layer-005",
+      "state": "weighted_candidate"
+    },
+    {
+      "layer_id": "layer-006",
+      "state": "rigid_reviewed"
+    },
+    {
+      "layer_id": "layer-007",
+      "state": "rigid_reviewed"
+    },
+    {
+      "layer_id": "layer-008",
+      "state": "rigid_reviewed"
+    },
+    {
+      "layer_id": "layer-009",
+      "state": "weighted_candidate"
+    },
+    {
+      "layer_id": "layer-010",
+      "state": "rigid_reviewed"
+    },
+    {
+      "layer_id": "layer-011",
+      "state": "rigid_reviewed"
+    },
+    {
+      "layer_id": "layer-012",
+      "state": "rigid_reviewed"
+    },
+    {
+      "layer_id": "layer-013",
+      "state": "rigid_reviewed"
+    },
+    {
+      "layer_id": "layer-014",
+      "state": "rigid_reviewed"
+    },
+    {
+      "layer_id": "layer-015",
+      "state": "rigid_reviewed"
+    },
+    {
+      "layer_id": "layer-016",
+      "state": "rigid_reviewed"
+    },
+    {
+      "layer_id": "layer-017",
+      "state": "rigid_reviewed"
+    },
+    {
+      "layer_id": "layer-018",
+      "state": "rigid_reviewed"
+    },
+    {
+      "layer_id": "layer-019",
+      "state": "rigid_reviewed"
+    },
+    {
+      "layer_id": "layer-020",
+      "state": "rigid_reviewed"
+    },
+    {
+      "layer_id": "layer-021",
+      "state": "rigid_reviewed"
+    },
+    {
+      "layer_id": "layer-022",
+      "state": "rigid_reviewed"
+    },
+    {
+      "layer_id": "layer-023",
+      "state": "not_visible"
+    }
+  ],
+  "human_visual_status": "not_accepted",
+  "selected": false
+}

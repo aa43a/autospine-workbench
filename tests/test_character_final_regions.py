@@ -54,6 +54,27 @@ class CharacterFinalRegionsTests(unittest.TestCase):
             save(self.manager,'project',{**self.body,'regions':self.body['regions']*2})
         self.assertIsNone(overview(self.manager,'project')['head_sha256'])
 
+    def test_rebuilt_scope_revalidates_without_rewriting_review_history(self):
+        from autospine_workbench.targets.character43.region_revalidation import digest
+        manifest=json.loads(self.files['character-manifest.json'])
+        manifest['source_addresses']={'input_identity_sha256':'1'*64,'base_bundle_sha256':'2'*64}
+        self.files['character-manifest.json']=canonical_bytes(manifest)
+        self.digest=digest(self.files);self.result['artifact_sha256']=self.digest
+        self.body['expected_artifact_sha256']=self.digest
+        state=save(self.manager,'project',self.body)
+        manifest['source_addresses']['base_bundle_sha256']='3'*64
+        current=dict(self.files,**{'character-manifest.json':canonical_bytes(manifest)})
+        current_digest=digest(current);published=[]
+        self.manager.application.store.read={self.digest:self.files,current_digest:current}.__getitem__
+        self.manager.application.store.publish=lambda files: published.append(files) or digest(files)
+        result=apply_saved(self.manager,dict(project_id='project',final_region_decisions_sha256=state['head_sha256']),
+                           {'artifact_sha256':current_digest})
+        self.assertEqual(result['final_region_exclusions']['review_sha256'],state['head_sha256'])
+        receipt=json.loads(published[0]['final-region-exclusion.json'])
+        self.assertEqual(receipt['decisions'][0]['scope_replay']['original_decision'],state['review']['decisions'][0])
+        self.assertEqual(overview(self.manager,'project'),state)
+        self.assertEqual(result['manifest']['qa']['runtime_status'],'not_run')
+
     def test_malformed_or_cross_source_history_is_rejected(self):
         save(self.manager,'project',self.body)
         path=self.manager.root/'final-region-decisions/project/000000.json'
