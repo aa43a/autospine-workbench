@@ -70,5 +70,10 @@ def undo(store,project_id,digest,expected_input):
         plan=plan_undo(store,doc,history)
         if not plan['can_undo']:
             raise AnimatedSourceError('animated_review_conflict')
+        # Keep an explicit exception marker so future automatic continuation cannot
+        # immediately re-adopt the selection the user just withdrew.
+        for record in plan['records']:
+            if record['layer_id'] in doc['changed_layer_ids']:
+                record['notes']=(record['notes']+'\n用户撤销自动采用，保留人工复核。').strip()
         save_binding_review(store,project_id,expected_input,plan['records'])
         return {'changed':True,'reverted_decision_sha256':digest,'authority':'none'}

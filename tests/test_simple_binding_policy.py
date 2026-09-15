@@ -63,7 +63,15 @@ class PolicyTransactionTests(unittest.TestCase):
         self.assertEqual(doc['after_registration_sha256'],history[-1][0])
         self.assertFalse(doc['production_authorized'])
         undo(self.store,'fixture',result['decision_sha256'],self.key())
+        for record in records:
+            if record['layer_id'] in result['changed_layer_ids']:
+                record['notes']='用户撤销自动采用，保留人工复核。'
         self.assertEqual(inspect_registration(self.store,'fixture')['draft']['records'],records)
+        from autospine_workbench.automation.animated_inputs import load_inputs
+        from autospine_workbench.automation.head_anchor_policy import propose
+        with load_inputs(self.store,'fixture') as source:
+            rows={r['layer_id']:r for r in propose(source)['rows']}
+        self.assertTrue(all(rows[key]['status']=='preserved' for key in result['changed_layer_ids']))
         with self.assertRaisesRegex(AnimatedSourceError,'animated_review_conflict'):
             undo(self.store,'fixture',result['decision_sha256'],self.key())
 
@@ -98,7 +106,7 @@ class PolicyTransactionTests(unittest.TestCase):
         undo(self.store,'fixture',result['decision_sha256'],self.key())
         final=inspect_registration(self.store,'fixture')
         self.assertEqual(final['draft']['source_bindings_sha256'],current['draft']['source_bindings_sha256'])
-        self.assertEqual(final['draft']['records'][0],records[0])
+        self.assertEqual(final['draft']['records'][0],dict(records[0],notes='用户撤销自动采用，保留人工复核。'))
         self.assertEqual(final['draft']['records'][-1],latest[-1])
 
     def test_continuous_run_keeps_individual_durable_undo_batches(self):
@@ -124,4 +132,6 @@ class PolicyTransactionTests(unittest.TestCase):
         for batch in reversed(result['batches']):
             read_decision(self.store,'fixture',batch['decision_sha256'])
             undo(self.store,'fixture',batch['decision_sha256'],self.key())
+        for record in records:
+            if record['layer_id'] in selected:record['notes']='用户撤销自动采用，保留人工复核。'
         self.assertEqual(inspect_registration(self.store,'fixture')['draft']['records'],records)

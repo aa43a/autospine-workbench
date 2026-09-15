@@ -207,9 +207,9 @@ export function createWorkbenchAnimated(document, hooks, options = {}) {
   }
   async function jointsSaved(response) {
     serial++; stop(); job = null; overview = null; bindingDirty = jointDirty = false; intent = waiting = false;
-    const count = response?.joint_review_result?.migration_suggestions?.length || 0;
-    reviewNotice = count ? `关节复核已保存，${count} 个图层绑定因骨架变化退回待复核；请重新检查，候选构建不会自动确认绑定。`
-      : "关节复核已保存，将基于当前骨架重新构建动画候选。";
+    const automatic = response?.binding_auto_result;
+    reviewNotice = automatic?.status === 'succeeded' ? `关节已保存，已自动采用 ${automatic.changed_layer_ids?.length || 0} 层安全绑定；其余异常保留复核，自动决定可撤销。`
+      : "关节已保存；自动绑定尚未完成，请查看异常与绑定状态。当前保存记录已保留。";
     view.resetReview?.(); await refresh(); await start();
   }
   async function rebase() {

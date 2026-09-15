@@ -85,7 +85,8 @@ class AnimatedApplication:
         if _read(self.projects, project_id)[2].resolved_project_sha256 != expected_resolved_sha256:
             raise PipelineRunError("project_snapshot_stale")
         result = save_joint_review(self.projects, project_id, expected_input_sha256, records, reviewed_joint_ids)
-        return {**self.overview(project_id), "joint_review_result": result}
+        from .binding_stage_continuation import continue_after_review
+        return continue_after_review(self, project_id, result)
 
     def preview(self, project_id, expected_resolved_sha256, clip, resume=True,
                 cancel_requested=lambda: False, progress=lambda steps: None):
