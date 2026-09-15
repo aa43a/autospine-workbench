@@ -114,6 +114,7 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
     if(!error&&job?.skirt_trial?.authority==="none")status.textContent+=job.skirt_trial.layer_ids?.length===0?" · 未生成裙装网格，请处理逐层待办":` · 裙装候选：${job.skirt_trial.geometry_passed?"采样网格检查通过":"网格检查未通过"}，腰部与裙摆待复核`;
     if(!error&&job?.skirt_trial?.blocked_layers?.length)status.textContent+=` · ${job.skirt_trial.blocked_layers.length} 个裙装图层暂未生成网格，保留原图并列入逐层待办`;
     if(!error&&job?.final_region_exclusions)status.textContent+=` · 已应用 ${job.final_region_exclusions.excluded_region_ids.length} 处最终残余排除`;
+    if(!error&&job?.residual_defaults)status.textContent+=` · 系统默认隐藏 ${job.residual_defaults.excluded_region_ids.length} 处极低透明度残余，可取消选项重建恢复`;
     if(!error&&job?.post_component_regions)status.textContent+=` · 已应用 ${job.post_component_regions.excluded_region_ids.length} 处拆分后排除`;
     if(!error&&job?.status==="needs_review")status.textContent+=job.runtime?.geometry_status==='passed'?" · 采样网格检查通过":job.runtime?.geometry_status==='needs_changes'?` · ${job.runtime.geometry_failed_records} 项动作/附件变形超限，需修正`:" · 整角色网格检查尚未执行";
     if(!error&&job?.status==="needs_review"&&job.animations?.length)status.textContent+=` · 当前包动作：${job.animations.map(n=>({walk:"行走",idle:"待机","wave-left":"左手挥动",forearm:"前臂测试",hand:"手部测试",combined_same:"同向组合测试",combined_opposed:"反向组合测试"}[n]||n)).join("、")}`;
