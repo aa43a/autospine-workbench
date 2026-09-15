@@ -1,0 +1,38 @@
+{
+  "schema": "autospine.benchmark-current-version-joint-gates/v1",
+  "observed_date": "2026-09-15",
+  "authority": "none",
+  "production_authorized": false,
+  "characters": [
+    {
+      "name": "琪露诺",
+      "project_id": "imported-9457d50ec689ef628e347db4125bbc4926192f0dbdcbc361d17fd9f1b00ec2c0",
+      "resolved_project_sha256": "b59b5bf08fed8a4493e22f74389bd3ed85b34ad74d8d351f7f98cfef949fa3f3",
+      "source_registered": true,
+      "preview_job_id": "job-1237ec8efa2241089ac36c8b2e0b934b",
+      "preview_status": "needs_review",
+      "stopped_step": "resolve-project",
+      "reason_code": "joint_review_required",
+      "joint_records": 17,
+      "reviewed_joint_records": 0,
+      "mesh_generated": false,
+      "preview_available": false,
+      "route_confirmation_pending": true
+    },
+    {
+      "name": "八云蓝",
+      "project_id": "imported-16453de50001de216808e2e6dc12ee1db4bbb2cb677de976b52916a2f0d64079",
+      "resolved_project_sha256": "c37a9cdba313f988623dfc0b6f7e7129bc069c845b9d9f746d22ae45fadc0955",
+      "source_registered": true,
+      "preview_job_id": "job-5eae7f5085f74c3d992780c18247efae",
+      "preview_status": "needs_review",
+      "stopped_step": "resolve-project",
+      "reason_code": "joint_review_required",
+      "joint_records": 17,
+      "reviewed_joint_records": 0,
+      "mesh_generated": false,
+      "preview_available": false,
+      "route_confirmation_pending": true
+    }
+  ]
+}
