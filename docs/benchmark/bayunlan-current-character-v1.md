@@ -49,3 +49,19 @@ walk 候选 `521790a3e974e2688302ee590b7bcb85c53b2601635b0dd46c332bb986918bd1`
 `f97aac56fdbc603e22c5432559a0356d15091f4aca4ed93abc3ad7b002930ada`，
 工作台动作选项为 `d61e010067685639d007f1b4094f44ae80f6d8177ed4f0c507e465b6bf859baf`。
 下一步须在整角色合并后重新渲染，不能用单动作数值通过替代该验证。
+
+## 多动作整角色验证
+
+任务 `job-f7b13c137a2d430592b39e6d92f107da` 已完成；候选
+`fc4b0ebd8efd862601ebae2ce13c79cf61ab0d2444ba69bf39655a51cf3e222f`
+包含原袖装动作及 idle、wave-left、walk，官方 Runtime 1,674 帧几何通过。
+头饰计划与已确认版本地址完全相同，按原归属保存新来源决定
+`0dda95cca3da19663735c11786afb5f89bbea4add81e2d06774bcebe716ffc55`；
+旧决定保留在可撤销历史中。包含头饰的多动作重建任务为
+`job-923f75e06e854822bed40f7cf9a270bf`。
+
+用户明确允许排除三处仅 alpha<8/255 的残余：
+layer-001-unbound-residual（171 像素）、layer-003-residual（140 像素）、
+layer-004-unbound-residual（153 像素），合计 464 像素。
+待最新候选完成后应用，不能将许可扩展到 layer-002-residual：该腿部区域
+共 4,063 个非透明像素，其中 3 个 alpha>=8，仍需保留。
