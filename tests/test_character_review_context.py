@@ -44,3 +44,15 @@ class ReviewContextTests(unittest.TestCase):
         manifest['source_addresses']['input_identity_sha256']='e'*64
         self.files['character-manifest.json']=raw(manifest)
         with self.assertRaisesRegex(RuntimeError,'source_mismatch'):load(self.manager,'p','job')
+
+    def test_visual_overview_uses_verified_snapshot_and_rechecks_next_request(self):
+        from autospine_workbench.automation.character_visual_review import overview
+        self.manager.review_context=lambda project,job:load(self.manager,project,job)
+        result=overview(self.manager,'p','job')
+        self.assertIsNone(result['review'])
+        self.manager.get.assert_called_once()
+        self.manager.application.store.read.assert_called_once()
+        self.manager._current.assert_called_once()
+        (self.root/'runtime/report.json').write_bytes(raw({'passed':False}))
+        with self.assertRaisesRegex(RuntimeError,'artifact_invalid'):
+            overview(self.manager,'p','job')

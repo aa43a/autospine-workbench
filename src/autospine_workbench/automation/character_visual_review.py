@@ -10,6 +10,10 @@ VERDICTS={'acceptable','needs_changes','not_reviewed'}
 
 
 def context(manager,project,job):
+    reader=getattr(manager,'review_context',None)
+    if callable(reader):
+        result,_,_=reader(project,job)
+        return result
     result=manager.get(project,job)
     if result['status']!='needs_review': raise PipelineRunError('pipeline_preview_not_ready')
     # Validate the candidate inventory and the actual report, not just a displayed job ID.
