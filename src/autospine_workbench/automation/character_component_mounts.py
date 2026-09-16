@@ -86,11 +86,13 @@ def apply_saved(manager, request, result):
         raise PipelineRunError('character_mount_decisions_changed')
     if not current['active']: return result
     review = current['review']; decision = review['decision']
-    if result['artifact_sha256'] != decision['source_bundle_sha256']:
-        raise PipelineRunError('character_mount_source_changed')
     from ..targets.character43.component_mount_candidate import generate
     store = manager.application.store
-    files,report = generate(store.read(result['artifact_sha256']),decision['source_region_id'],review['allowed_parents'],decision)
+    if result['artifact_sha256'] != decision['source_bundle_sha256']:
+        from .character_mount_revalidation import rebuild
+        files,report=rebuild(store,result['artifact_sha256'],review)
+    else:
+        files,report = generate(store.read(result['artifact_sha256']),decision['source_region_id'],review['allowed_parents'],decision)
     return dict(result,artifact_sha256=store.publish(files),manifest=json.loads(files['character-manifest.json']),
                 component_mounts=dict(review_sha256=current['head_sha256'],source_region_id=decision['source_region_id'],
                                       parent_review_required=report['parent_review_required'],authority='none'))

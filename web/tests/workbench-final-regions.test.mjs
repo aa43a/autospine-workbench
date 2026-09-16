@@ -42,3 +42,16 @@ test('post-component review is separate and only offered after a mount',()=>{
   all(view.element).find(n=>n.tag==='button').onclick();
   assert.equal(calls[0].expected_artifact_sha256,job.artifact_sha256);
 });
+
+test('a saved batch can append a newly reviewed residual without resubmitting old items',()=>{
+  const calls=[],view=createFinalRegionReview(document,value=>calls.push(value));
+  const prior={active:true,review:{decisions:[{region_id:'old-residual'}]}};
+  view.sync(job,prior,false);
+  const check=all(view.element).find(n=>n.tag==='input');
+  const append=all(view.element).find(n=>n.textContent==='追加所选残余，保留已确认项');
+  assert.equal(append.disabled,true);check.checked=true;check.onchange();append.onclick();
+  assert.deepEqual(calls,[{action:'append',job_id:job.job_id,expected_artifact_sha256:job.artifact_sha256,
+    regions:[{layer_id:'layer',region_id:'layer-residual'}]}]);
+  assert.deepEqual(prior.review.decisions,[{region_id:'old-residual'}]);
+  view.sync(job,prior,true);assert.equal(all(view.element).find(n=>n.tag==='input').disabled,true);
+});

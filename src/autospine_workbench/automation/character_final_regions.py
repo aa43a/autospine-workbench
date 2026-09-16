@@ -63,7 +63,7 @@ def overview(manager, project, *, stage="before_components"):
 def save(manager,project,body, *, stage="before_components"):
     folder,schema=_stage(stage)
     keys={'expected_head_sha256','action'}
-    if body.get('action')=='replace': keys|={'job_id','expected_artifact_sha256','regions'}
+    if body.get('action') in ('replace','append'): keys|={'job_id','expected_artifact_sha256','regions'}
     elif body.get('action')!='revoke': raise PipelineRunError('character_final_review_invalid')
     if set(body)!=keys: raise PipelineRunError('character_final_review_invalid')
     with manager._lock:
@@ -72,7 +72,7 @@ def save(manager,project,body, *, stage="before_components"):
         if body['expected_head_sha256']!=current['head_sha256']:
             raise PipelineRunError('character_final_review_conflict')
         decisions=[]; digest=None; options={}
-        if body['action']=='replace':
+        if body['action'] in ('replace','append'):
             regions=body['regions']
             if (type(regions) is not list or not 0<len(regions)<=64
                     or any(type(r) is not dict or set(r)!={'layer_id','region_id'}
@@ -86,6 +86,11 @@ def save(manager,project,body, *, stage="before_components"):
                 raise PipelineRunError('character_post_component_stage_required')
             request=read_document(manager._path(body['job_id'])/'request.json')
             options={k:request[k] for k in OPTIONS if k in request}
+            if body['action']=='append':
+                from .character_final_append import source
+                files,digest,decisions=source(manager.application.store,current,files,after_components=stage=='after_components')
+                if options!=current['review']['build_options']:
+                    raise PipelineRunError('character_final_append_source_changed')
             doc=json.loads(files['skeleton.json'])
             for r in regions:
                 slot=r['region_id']; attachment=doc['skins'][0]['attachments'][slot][slot]

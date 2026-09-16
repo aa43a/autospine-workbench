@@ -12,10 +12,10 @@ export function createFinalRegionReview(document, save, {afterComponents=false}=
     if(value?.active){
       text.textContent=`已保存 ${value.review.decisions.length} 处最终排除，重建时自动应用。来源不一致将阻塞。`;
       const undo=document.createElement('button');undo.type='button';undo.textContent='撤销最终排除';undo.disabled=disabled;
-      undo.onclick=()=>save({action:'revoke'});body.append(undo);return;
+      undo.onclick=()=>save({action:'revoke'});body.append(undo);
     }
     const rows=(job?.layers||[]).flatMap(l=>(l.regions||[]).filter(r=>r.state==='static_reference'&&r.region_id.includes('residual')).map(r=>({layer_id:l.layer_id,region_id:r.region_id})));
-    const button=document.createElement('button');button.type='button';button.textContent='保存所选残余排除';
+    const button=document.createElement('button');button.type='button';button.textContent=value?.active?'追加所选残余，保留已确认项':'保存所选残余排除';
     for(const row of rows){
       const label=document.createElement('label'),check=document.createElement('input');check.type='checkbox';
       check.checked=selected.has(row.region_id);check.disabled=disabled;
@@ -24,7 +24,7 @@ export function createFinalRegionReview(document, save, {afterComponents=false}=
       label.append(check,name);body.append(label,document.createElement('br'));
     }
     button.disabled=disabled||!selected.size;
-    button.onclick=()=>save({action:'replace',job_id:job.job_id,expected_artifact_sha256:job.artifact_sha256,regions:rows.filter(r=>selected.has(r.region_id))});
-    body.append(button);element.hidden=(!rows.length&&!value?.active)||(afterComponents&&!job?.component_mounts&&!value?.active)||(!afterComponents&&job?.component_mounts&&!value?.active);
+    button.onclick=()=>save({action:value?.active?'append':'replace',job_id:job.job_id,expected_artifact_sha256:job.artifact_sha256,regions:rows.filter(r=>selected.has(r.region_id))});
+    body.append(button);element.hidden=Boolean((!rows.length&&!value?.active)||(afterComponents&&!job?.component_mounts&&!value?.active)||(!afterComponents&&job?.component_mounts&&!value?.active));
   }};
 }
