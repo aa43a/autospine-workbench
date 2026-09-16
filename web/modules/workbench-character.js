@@ -130,9 +130,9 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
     if(!error&&job?.status==="needs_review")for(const motion of job.motion_readiness||[])if(motion.status==='blocked')status.textContent+=` · ${motion.clip} 未输出：${motion.reason_code}${motion.failing_slots.length?'（'+motion.failing_slots.join('、')+'）':''}`;
     download.hidden=job?.status!=="needs_review"||dirty||(busy&&operation==="build");
     if(!download.hidden)download.setAttribute("href",`${endpoint()}/jobs/${job.job_id}/download`);else download.removeAttribute("href");
-    runtime.textContent=job?.runtime?.files?.['skirt/index.html']?"查看裙装与整角色时间轴":"查看整角色 Runtime";
-    for(const [link,file]of [[runtime,job?.runtime?.files?.['skirt/index.html']?"skirt/index.html":"index.html"],[setup,"setup/index.html"]]){
-      link.hidden=download.hidden||!job?.runtime?.files?.[file];
+    runtime.textContent="播放整角色 · 动作与时间轴";
+    for(const [link,file]of [[runtime,"player.html"],[setup,"setup/index.html"]]){
+      link.hidden=download.hidden||!job?.runtime?.files?.[file==='player.html'?'report.json':file];
       if(link.hidden)link.removeAttribute("href");else link.setAttribute("href",`${endpoint()}/jobs/${job.job_id}/view/${file}`);
     }
     visualReview.sync(job?.status==="needs_review"&&job.runtime?.files?.['report.json']?job:null,!dirty&&!busy&&!active);

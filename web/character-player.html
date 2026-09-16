@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>整角色动画验收</title><link rel="stylesheet" href="player-assets/style.css">
+<main>
+<header><h1>整角色动画验收</h1><p id="status" role="status">正在加载已验证候选与官方 Runtime…</p></header>
+<section class="viewport" id="viewport"><canvas aria-label="整角色实时动画预览"></canvas></section>
+<section class="controls" aria-label="播放控制">
+<label>动作 <select id="motion" disabled></select></label>
+<button id="play" disabled>播放</button><button id="reset" disabled>回到起点</button>
+<label>速度 <select id="speed"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select></label>
+<label><input type="checkbox" id="loop" checked>循环</label><button id="fullscreen">全屏预览</button>
+<label class="timeline">时间轴 <input id="time" type="range" min="0" max="1" step="0.001" value="0" disabled></label>
+<output id="position">0.000 / 0.000 秒</output>
+</section>
+<footer>实时播放用于观察，不新增捕获验证或自动验收。拖动时间轴会暂停播放。<br>
+<a href="index.html">原始捕获帧</a> · <a href="report.json">Runtime 报告</a> · <a href="setup/index.html">源图对照</a>
+<p id="identity"></p></footer></main>
+<script id="runtime" src="player-assets/runtime.js" async></script><script src="player-assets/client.js"></script></html>

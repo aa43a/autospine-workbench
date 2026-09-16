@@ -93,7 +93,11 @@ def dispatch_character(tail,handler,method,project):
             from .character_weighted_review import overview
             handler._send_visual_json(200,overview(manager,project,tail[1]))
         elif tail[2]=='view':
-            raw,mime=manager.review_file(project,tail[1],tail[3:])
+            if tail[3:] == ['player.html'] or tail[3:4] == ['player-assets']:
+                from .character_player import read
+                raw,mime=read(manager,project,tail[1],tail[3:])
+            else:
+                raw,mime=manager.review_file(project,tail[1],tail[3:])
             handler._send_bytes(200,raw,mime,visual_review=True)
         else:
             handler._send_bytes(200,manager.download(project,tail[1]),'application/zip',visual_review=True,
