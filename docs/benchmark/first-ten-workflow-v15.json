@@ -1,0 +1,505 @@
+{
+  "schema": "autospine.cohort-workflow/v1",
+  "authority": "none",
+  "production_authorized": false,
+  "scope": "first_ten_current_selected_versions_not_independent_holdout",
+  "characters": [
+    {
+      "project_id": "lingxian",
+      "name": "\u94c3\u4ed9",
+      "job_id": "job-7d1ae9502d12430892cc74a7965e709e",
+      "artifact_sha256": "af783dde52973a1c98f42968b26ecb52d0a82f0a67429d1831e11e368a0b2ef8",
+      "completed": true,
+      "reason_codes": [],
+      "motions": [
+        {
+          "animation": "idle",
+          "status": "passed",
+          "sampled_frames": 129,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "wave-left",
+          "status": "passed",
+          "sampled_frames": 257,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "walk",
+          "status": "passed",
+          "sampled_frames": 513,
+          "duration_seconds": 1.033333
+        }
+      ],
+      "missing_animations": [],
+      "unresolved_layers": [],
+      "unresolved_layer_details": [],
+      "region_confirmed_layers": [
+        "layer-001",
+        "layer-002",
+        "layer-003",
+        "layer-005"
+      ],
+      "stale_auto_layers": [],
+      "runtime_measured": true,
+      "runtime_passed": true,
+      "visual_accepted": true,
+      "visual_review_session_minutes": null,
+      "character_id": "character-1635e2f149a0cfb6",
+      "dataset_split": "development",
+      "source_reason_code": "source_matched_workflow_not_assessed"
+    },
+    {
+      "project_id": "imported-9457d50ec689ef628e347db4125bbc4926192f0dbdcbc361d17fd9f1b00ec2c0",
+      "name": "\u742a\u9732\u8bfa",
+      "job_id": "job-2888641475bd4dc1a296093b13cbf79e",
+      "artifact_sha256": "371c1ef016176002568e6f06a1fbc2a1a924ee4707dccccfc276cf349a65d3d1",
+      "completed": true,
+      "reason_codes": [],
+      "motions": [
+        {
+          "animation": "idle",
+          "status": "passed",
+          "sampled_frames": 129,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "wave-left",
+          "status": "passed",
+          "sampled_frames": 257,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "walk",
+          "status": "passed",
+          "sampled_frames": 513,
+          "duration_seconds": 1.033333
+        }
+      ],
+      "missing_animations": [],
+      "unresolved_layers": [],
+      "unresolved_layer_details": [],
+      "region_confirmed_layers": [
+        "layer-000",
+        "layer-002",
+        "layer-003",
+        "layer-004",
+        "layer-005",
+        "layer-006"
+      ],
+      "stale_auto_layers": [],
+      "runtime_measured": true,
+      "runtime_passed": true,
+      "visual_accepted": true,
+      "visual_review_session_minutes": null,
+      "character_id": "character-2c3669d4fb0f569d",
+      "dataset_split": "development",
+      "source_reason_code": "source_matched_workflow_not_assessed"
+    },
+    {
+      "project_id": "huiye",
+      "name": "\u84ec\u83b1\u5c71\u8f89\u591c",
+      "job_id": "job-6f92bece413a4909a553a95bbfc307f4",
+      "artifact_sha256": "63caa7fe5f9f40a92ebcd57ef0b345d7dcd47e5ed3feae65a95fad18e770d51b",
+      "completed": true,
+      "reason_codes": [],
+      "motions": [
+        {
+          "animation": "idle",
+          "status": "passed",
+          "sampled_frames": 129,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "wave-left",
+          "status": "passed",
+          "sampled_frames": 517,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "walk",
+          "status": "passed",
+          "sampled_frames": 513,
+          "duration_seconds": 1.033333
+        }
+      ],
+      "missing_animations": [],
+      "unresolved_layers": [],
+      "unresolved_layer_details": [],
+      "region_confirmed_layers": [
+        "layer-001",
+        "layer-002",
+        "layer-003",
+        "layer-004"
+      ],
+      "stale_auto_layers": [],
+      "runtime_measured": true,
+      "runtime_passed": true,
+      "visual_accepted": true,
+      "visual_review_session_minutes": null,
+      "character_id": "character-2f44df7238b441b6",
+      "dataset_split": "visible",
+      "source_reason_code": "source_matched_workflow_not_assessed"
+    },
+    {
+      "project_id": "uuz",
+      "name": "\u897f\u884c\u5bfa\u5e7d\u5e7d\u5b50",
+      "job_id": "job-0e2bd71f8d804ed58932ad51e2ff11f2",
+      "artifact_sha256": "be4b05269abfb6697f6c142be4481c77fc229e3930023496c962cf06b0ed4280",
+      "completed": true,
+      "reason_codes": [],
+      "motions": [
+        {
+          "animation": "idle",
+          "status": "passed",
+          "sampled_frames": 129,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "wave-left",
+          "status": "passed",
+          "sampled_frames": 517,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "walk",
+          "status": "passed",
+          "sampled_frames": 513,
+          "duration_seconds": 1.033333
+        }
+      ],
+      "missing_animations": [],
+      "unresolved_layers": [],
+      "unresolved_layer_details": [],
+      "region_confirmed_layers": [
+        "layer-001",
+        "layer-002",
+        "layer-003",
+        "layer-004",
+        "layer-005",
+        "layer-006"
+      ],
+      "stale_auto_layers": [],
+      "runtime_measured": true,
+      "runtime_passed": true,
+      "visual_accepted": true,
+      "visual_review_session_minutes": null,
+      "character_id": "character-31874aaa32a9bbf8",
+      "dataset_split": "visible",
+      "source_reason_code": "source_matched_workflow_not_assessed"
+    },
+    {
+      "project_id": "yaomeng",
+      "name": "\u9b42\u9b44\u5996\u68a6",
+      "job_id": "job-a282f3c9f98540cea7d2fffc16d9793d",
+      "artifact_sha256": "2023ff604a776505f002f73b3c018abfe8352a62d96b1318143866107388bf93",
+      "completed": true,
+      "reason_codes": [],
+      "motions": [
+        {
+          "animation": "idle",
+          "status": "passed",
+          "sampled_frames": 129,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "wave-left",
+          "status": "passed",
+          "sampled_frames": 257,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "walk",
+          "status": "passed",
+          "sampled_frames": 513,
+          "duration_seconds": 1.033333
+        }
+      ],
+      "missing_animations": [],
+      "unresolved_layers": [],
+      "unresolved_layer_details": [],
+      "region_confirmed_layers": [
+        "layer-001",
+        "layer-002",
+        "layer-003",
+        "layer-004",
+        "layer-005",
+        "layer-006"
+      ],
+      "stale_auto_layers": [],
+      "runtime_measured": true,
+      "runtime_passed": true,
+      "visual_accepted": true,
+      "visual_review_session_minutes": null,
+      "character_id": "character-677e29171939a236",
+      "dataset_split": "visible",
+      "source_reason_code": "source_matched_workflow_not_assessed"
+    },
+    {
+      "project_id": "lumia",
+      "name": "\u9732\u7c73\u5a05",
+      "job_id": "job-da9095a0d83a4bf3a1b795e5d0fc115d",
+      "artifact_sha256": "abb23e94fb8e8c80a392d5d7ae48f719dea64ff623878649de07dd8dadb06cb1",
+      "completed": true,
+      "reason_codes": [],
+      "motions": [
+        {
+          "animation": "idle",
+          "status": "passed",
+          "sampled_frames": 129,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "wave-left",
+          "status": "passed",
+          "sampled_frames": 257,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "walk",
+          "status": "passed",
+          "sampled_frames": 513,
+          "duration_seconds": 1.033333
+        }
+      ],
+      "missing_animations": [],
+      "unresolved_layers": [],
+      "unresolved_layer_details": [],
+      "region_confirmed_layers": [
+        "layer-001",
+        "layer-002",
+        "layer-003",
+        "layer-004",
+        "layer-005"
+      ],
+      "stale_auto_layers": [],
+      "runtime_measured": true,
+      "runtime_passed": true,
+      "visual_accepted": true,
+      "visual_review_session_minutes": null,
+      "character_id": "character-6c77f0930a13ebe9",
+      "dataset_split": "visible",
+      "source_reason_code": "source_matched_workflow_not_assessed"
+    },
+    {
+      "project_id": "imported-ac6ba48dc2d5052613d87ab2afc247e4ef5977d9431ef76544a457b3047a3457",
+      "name": "\u5341\u516d\u591c\u54b2\u591c",
+      "job_id": "job-fe8f73946cb248b29e750ea7713f9af4",
+      "artifact_sha256": "caea46d2c623e004536c8cb24fbd3f2ea190abc4c24bb9f5bb7d0d069d875d47",
+      "completed": true,
+      "reason_codes": [],
+      "motions": [
+        {
+          "animation": "idle",
+          "status": "passed",
+          "sampled_frames": 129,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "wave-left",
+          "status": "passed",
+          "sampled_frames": 257,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "walk",
+          "status": "passed",
+          "sampled_frames": 513,
+          "duration_seconds": 1.033333
+        }
+      ],
+      "missing_animations": [],
+      "unresolved_layers": [],
+      "unresolved_layer_details": [],
+      "region_confirmed_layers": [
+        "layer-001",
+        "layer-002",
+        "layer-003",
+        "layer-004",
+        "layer-006"
+      ],
+      "stale_auto_layers": [],
+      "runtime_measured": true,
+      "runtime_passed": true,
+      "visual_accepted": true,
+      "visual_review_session_minutes": null,
+      "character_id": "character-997aac4ca2302dd9",
+      "dataset_split": "holdout",
+      "source_reason_code": "source_matched_workflow_not_assessed"
+    },
+    {
+      "project_id": "imported-16453de50001de216808e2e6dc12ee1db4bbb2cb677de976b52916a2f0d64079",
+      "name": "\u516b\u4e91\u84dd",
+      "job_id": "job-3c6313cb9fb847aaacea6ea2616305d9",
+      "artifact_sha256": "2bc38367b8a08ba9ec3d465a67ca2374ed08f89ba694f5bdd81e8a6ab09c0d71",
+      "completed": true,
+      "reason_codes": [],
+      "motions": [
+        {
+          "animation": "idle",
+          "status": "passed",
+          "sampled_frames": 129,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "wave-left",
+          "status": "passed",
+          "sampled_frames": 517,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "walk",
+          "status": "passed",
+          "sampled_frames": 125,
+          "duration_seconds": 1.033333
+        }
+      ],
+      "missing_animations": [],
+      "unresolved_layers": [],
+      "unresolved_layer_details": [],
+      "region_confirmed_layers": [
+        "layer-001",
+        "layer-002",
+        "layer-003",
+        "layer-004",
+        "layer-006",
+        "layer-022"
+      ],
+      "stale_auto_layers": [],
+      "runtime_measured": true,
+      "runtime_passed": true,
+      "visual_accepted": true,
+      "visual_review_session_minutes": null,
+      "character_id": "character-bdbf05538b91718e",
+      "dataset_split": "holdout",
+      "source_reason_code": "source_matched_workflow_not_assessed"
+    },
+    {
+      "project_id": "imported-3ac977caea4fa3acd2358eab227d156f935436efe12bc1a93e42f506c5e9ee31",
+      "name": "\u8299\u5170\u6735\u9732",
+      "job_id": "job-89fa86989a344915825fda406d866a92",
+      "artifact_sha256": "f803fe473ae5c01fd164f672a38612ae4a5b6ef84465dba8bedce64000d6b190",
+      "completed": true,
+      "reason_codes": [],
+      "motions": [
+        {
+          "animation": "idle",
+          "status": "passed",
+          "sampled_frames": 129,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "wave-left",
+          "status": "passed",
+          "sampled_frames": 517,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "walk",
+          "status": "passed",
+          "sampled_frames": 513,
+          "duration_seconds": 1.033333
+        }
+      ],
+      "missing_animations": [],
+      "unresolved_layers": [],
+      "unresolved_layer_details": [],
+      "region_confirmed_layers": [
+        "layer-000",
+        "layer-002",
+        "layer-003",
+        "layer-004",
+        "layer-005",
+        "layer-009"
+      ],
+      "stale_auto_layers": [],
+      "runtime_measured": true,
+      "runtime_passed": true,
+      "visual_accepted": true,
+      "visual_review_session_minutes": null,
+      "character_id": "character-c631957bd1c41f53",
+      "dataset_split": "holdout",
+      "source_reason_code": "source_matched_workflow_not_assessed"
+    },
+    {
+      "project_id": "alice",
+      "name": "\u7231\u4e3d\u4e1d",
+      "job_id": "job-d8b67e10685347ed95d1fba113b92c45",
+      "artifact_sha256": "6e5c59db4ef072075b798efab12acf8ffdc883368a61a4bf3c1646305ef68b98",
+      "completed": true,
+      "reason_codes": [],
+      "motions": [
+        {
+          "animation": "idle",
+          "status": "passed",
+          "sampled_frames": 129,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "wave-left",
+          "status": "passed",
+          "sampled_frames": 257,
+          "duration_seconds": 2
+        },
+        {
+          "animation": "walk",
+          "status": "passed",
+          "sampled_frames": 513,
+          "duration_seconds": 1.033333
+        }
+      ],
+      "missing_animations": [],
+      "unresolved_layers": [],
+      "unresolved_layer_details": [],
+      "region_confirmed_layers": [
+        "layer-001",
+        "layer-002",
+        "layer-003",
+        "layer-004",
+        "layer-005",
+        "layer-008"
+      ],
+      "stale_auto_layers": [],
+      "runtime_measured": true,
+      "runtime_passed": true,
+      "visual_accepted": true,
+      "visual_review_session_minutes": null,
+      "character_id": "character-f83a6fabd05091f0",
+      "dataset_split": "development",
+      "source_reason_code": "source_matched_workflow_not_assessed"
+    }
+  ],
+  "required_animations": [
+    "idle",
+    "wave-left",
+    "walk"
+  ],
+  "metrics": {
+    "total_characters": 10,
+    "completed_characters": 10,
+    "completion_rate": 1.0,
+    "runtime_measured_characters": 10,
+    "required_motion_cases": 30,
+    "runtime_passed_motion_cases": 30,
+    "runtime_failure_rate": 0.0,
+    "human_review_minutes": null,
+    "incorrect_auto_adoption_rate": null,
+    "auto_binding_audit": {
+      "eligible_bindings": 119,
+      "assessed_bindings": 0,
+      "correct": 0,
+      "incorrect": 0,
+      "unobservable": 0,
+      "not_reviewed": 119,
+      "sampled_error_rate": null,
+      "projects_with_current_candidate": 10,
+      "sampling_scope": "human_selected_current_bindings_not_population_accuracy"
+    }
+  },
+  "unmeasured_reasons": {
+    "human_review_minutes": "operation_timing_not_available",
+    "incorrect_auto_adoption_rate": "independent_labels_not_available"
+  },
+  "intake_report_sha256": "7ac1aa3efa03516f43d9159e582dbee6d2d57a848b606805b95095b6162e9fe6",
+  "observations_sha256": "aecfaf278327319afb9cdd50f5bd241b71f85a4692200f4f75e44057d97e83a1"
+}
