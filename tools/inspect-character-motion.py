@@ -20,7 +20,8 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--contact-root', action='store_true', help='Try bounded ankle-proxy root correction; not sole locking')
     parser.add_argument('--publish', action='store_true', help='Publish an isolated diagnostic bundle for official capture')
-    parser.add_argument('--samples', type=int, default=125)
+    parser.add_argument('--samples', type=int, default=513,
+                        help='Samples over the clip (default: 513, matching first-ten walk validation)')
     parser.add_argument('--foreshortening', action='store_true', help='Add source projected limb length candidates')
     parser.add_argument('--repair-area', action='store_true', help='Try bounded mixed-weight affine deformation')
     parser.add_argument('--convergent-area', action='store_true', help='Use bounded v2 area solver (requires repair-area)')
