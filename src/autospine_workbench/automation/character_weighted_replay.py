@@ -14,7 +14,7 @@ SCHEMA='autospine.character-binding-replay/v1'
 def read_proof(manager,digest):
     require_sha(digest)
     proof=read_document(manager.root/'binding-replay-evidence'/(digest+'.json'))
-    if canonical_sha256(proof)!=digest or proof.get('schema') not in {SCHEMA,'autospine.character-binding-replay/v2','autospine.character-binding-replay/v3','autospine.character-binding-replay/v4'}:
+    if canonical_sha256(proof)!=digest or proof.get('schema') not in {SCHEMA,'autospine.character-binding-replay/v2','autospine.character-binding-replay/v3','autospine.character-binding-replay/v4','autospine.character-binding-replay/v5'}:
         raise PipelineRunError('character_binding_replay_digest_invalid')
     return proof
 
@@ -25,6 +25,9 @@ def derive(manager, result, files):
     if originals(files) is not None:
         from .character_rebuilt_binding_replay import derive as rebuilt_replay
         return rebuilt_replay(manager,result,files)
+    if originals(files,extended=True) is not None:
+        from .character_rebuilt_binding_replay import derive as rebuilt_replay
+        return rebuilt_replay(manager,result,files,extended=True)
     if receipt.get('schema')=='autospine.final-region-exclusion/v2':
         from .character_post_component_replay import derive as post_replay
         return post_replay(manager,result,files)
@@ -92,6 +95,8 @@ def confirmed(job,value):
         expected.update(schema='autospine.character-binding-replay/v3',profile='exact-post-component-exclusion-binding-v1')
     if proof.get('schema')=='autospine.character-binding-replay/v4':
         expected.update(schema='autospine.character-binding-replay/v4',profile='revalidated-exclusion-binding-v1')
+    if proof.get('schema')=='autospine.character-binding-replay/v5':
+        expected.update(schema='autospine.character-binding-replay/v5',profile='extended-post-exclusion-binding-v1')
     if any(proof.get(k)!=v for k,v in expected.items()): return set()
     from .character_weighted_review import eligible
     allowed={l['layer_id'] for l in job.get('layers',[]) if eligible(l)}

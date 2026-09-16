@@ -4,7 +4,7 @@ import json
 
 from ..resolved_project import canonical_sha256
 from ..safe_input_files import read_real_file
-from ..targets.character43.rebuilt_binding_continuity import originals, unchanged_layers
+from ..targets.character43.rebuilt_binding_continuity import originals, unchanged_layers, predecessor
 from .storage_io import read_document, directory, publish_document
 from .pipeline_run import PipelineRunError
 
@@ -12,10 +12,10 @@ SCHEMA = 'autospine.character-binding-replay/v4'
 PROFILE = 'revalidated-exclusion-binding-v1'
 
 
-def derive(manager, result, files):
+def derive(manager, result, files, *, extended=False):
     from .character_weighted_review import history, confirmed_layers, eligible
     from .character_weighted_replay import read_proof
-    expected = originals(files)
+    expected = originals(files,extended=extended)
     if expected is None: return None
     candidates = []
     folders = list(manager.root.glob('job-*'))
@@ -31,7 +31,7 @@ def derive(manager, result, files):
         source_sha = old['artifact_sha256']
         source = manager.application.store.read(source_sha)
         receipt = json.loads(source.get('final-region-exclusion.json', b'{}'))
-        if receipt.get('decisions') != expected: continue
+        if not predecessor(receipt.get('decisions'),expected,extended=extended): continue
         if json.loads(source['character-manifest.json'])['layers'] != old['layers']:
             raise PipelineRunError('character_binding_replay_source_invalid')
         raw = read_real_file(folder/'runtime/report.json', 64 << 20, 'historical runtime report')
@@ -47,11 +47,12 @@ def derive(manager, result, files):
     if len(candidates) != 1: return None
     old, review_sha, source, accepted = candidates[0]
     allowed = {r['layer_id'] for r in result['layers'] if eligible(r)}
-    retained = sorted(accepted & allowed & set(unchanged_layers(source, files)))
+    retained = sorted(accepted & allowed & set(unchanged_layers(source, files,extended=True) if extended else unchanged_layers(source,files)))
     if not retained: return None
     latest = history(manager, old['job_id'])
     if not latest or latest[-1][0] != review_sha: return None
-    proof = dict(schema=SCHEMA, profile=PROFILE, project_id=result['project_id'], job_id=result['job_id'],
+    proof = dict(schema='autospine.character-binding-replay/v5' if extended else SCHEMA,
+        profile='extended-post-exclusion-binding-v1' if extended else PROFILE, project_id=result['project_id'], job_id=result['job_id'],
         artifact_sha256=result['artifact_sha256'], runtime_sha256=canonical_sha256(result['runtime']),
         layers_sha256=canonical_sha256(result['layers']), source_job_id=old['job_id'],
         source_bundle_sha256=old['artifact_sha256'], source_review_sha256=review_sha,

@@ -1,0 +1,142 @@
+{
+  "schema": "autospine.cohort-source-versions/v1",
+  "baseline_manifest_sha256": "ab91a9b8a7a6f0a07a933800e5627c18004c70e3f9aa8c35daf1203c9edb4b1c",
+  "reason": "user_selected_current_crino_bayunlan_and_yaomeng_psd_versions",
+  "authority": "human_source_selection",
+  "production_authorized": false,
+  "entries": [
+    {
+      "character_id": "character-2c3669d4fb0f569d",
+      "dataset_split": "development",
+      "previous_psd_candidates": [
+        {
+          "dataset_split": "development",
+          "mapping": {
+            "basis": "filename_transliteration_only",
+            "png_path": "png/琪露诺.png",
+            "requires_visual_review": true,
+            "status": "candidate"
+          },
+          "source": {
+            "byte_size": 5448052,
+            "canvas": [
+              1280,
+              1280
+            ],
+            "path": "crino.psd",
+            "sha256": "b0fab13908b66b09537ceb8dc7c66111675eb88291e59f5662c4a2916d1e14c9"
+          },
+          "variant_review_required": false
+        }
+      ],
+      "source": {
+        "path": "crino.psd",
+        "sha256": "9457d50ec689ef628e347db4125bbc4926192f0dbdcbc361d17fd9f1b00ec2c0",
+        "byte_size": 6106399,
+        "canvas": [
+          1280,
+          1280
+        ]
+      },
+      "import": {
+        "job_id": "import-13d9825cf6574e10b062296b5aefd79c",
+        "status": "pending",
+        "step": "queued",
+        "authority": "none"
+      }
+    },
+    {
+      "character_id": "character-bdbf05538b91718e",
+      "dataset_split": "holdout",
+      "previous_psd_candidates": [
+        {
+          "dataset_split": "holdout",
+          "mapping": {
+            "basis": "filename_transliteration_only",
+            "png_path": "png/八云蓝.png",
+            "requires_visual_review": true,
+            "status": "candidate"
+          },
+          "source": {
+            "byte_size": 2622412,
+            "canvas": [
+              1024,
+              1024
+            ],
+            "path": "bayunlan.psd",
+            "sha256": "a63b5b67b1d6b0ed65afd9aa442bec474bc92a478a4441928801e1fbd383113e"
+          },
+          "variant_review_required": false
+        }
+      ],
+      "source": {
+        "path": "bayunlan.psd",
+        "sha256": "16453de50001de216808e2e6dc12ee1db4bbb2cb677de976b52916a2f0d64079",
+        "byte_size": 2700138,
+        "canvas": [
+          1024,
+          1024
+        ]
+      },
+      "import": {
+        "job_id": "import-ed70aabaf930487ca909b8c3547010ec",
+        "status": "pending",
+        "step": "queued",
+        "authority": "none"
+      }
+    },
+    {
+      "character_id": "character-677e29171939a236",
+      "dataset_split": "visible",
+      "previous_psd_candidates": [
+        {
+          "dataset_split": "visible",
+          "mapping": {
+            "basis": "filename_transliteration_only",
+            "png_path": "png/魂魄妖梦.png",
+            "requires_visual_review": true,
+            "status": "candidate"
+          },
+          "source": {
+            "byte_size": 3204828,
+            "canvas": [
+              1280,
+              1280
+            ],
+            "path": "yaomeng.psd",
+            "sha256": "4158dbf15da2dbd8a9e59f4386130b54265cee997ddeb39cb79ad87e353a33c7"
+          },
+          "variant_review_required": true
+        },
+        {
+          "dataset_split": "visible",
+          "mapping": {
+            "basis": "filename_transliteration_only",
+            "png_path": "png/魂魄妖梦.png",
+            "requires_visual_review": true,
+            "status": "candidate"
+          },
+          "source": {
+            "byte_size": 3804192,
+            "canvas": [
+              1280,
+              1280
+            ],
+            "path": "yaomeng1.psd",
+            "sha256": "3ccbd2a85d2a5f423d33aa2c929ef4517a9afe2f6eabcaf9c02a9ca78f85a801"
+          },
+          "variant_review_required": true
+        }
+      ],
+      "source": {
+        "path": "yaomeng.psd",
+        "sha256": "4158dbf15da2dbd8a9e59f4386130b54265cee997ddeb39cb79ad87e353a33c7",
+        "byte_size": 3204828,
+        "canvas": [
+          1280,
+          1280
+        ]
+      }
+    }
+  ]
+}

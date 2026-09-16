@@ -6,9 +6,9 @@ import json
 from .numeric_reference import read
 
 
-def originals(files):
+def originals(files, *, extended=False):
     receipt = json.loads(files.get('final-region-exclusion.json', b'{}'))
-    if receipt.get('schema') != 'autospine.final-region-exclusion/v1': return None
+    if receipt.get('schema') != ('autospine.final-region-exclusion/v2' if extended else 'autospine.final-region-exclusion/v1'): return None
     decisions = receipt.get('decisions', [])
     if not decisions or len(decisions) > 64: return None
     result = []
@@ -23,11 +23,16 @@ def originals(files):
     return result
 
 
-def unchanged_layers(previous, current):
-    expected = originals(current)
+def predecessor(decisions, expected, *, extended=False):
+    if not extended:return decisions==expected
+    return bool(decisions) and all(d in expected for d in decisions) and len(decisions)<=len(expected)
+
+
+def unchanged_layers(previous, current, *, extended=False):
+    expected = originals(current,extended=extended)
     old_receipt = json.loads(previous.get('final-region-exclusion.json', b'{}'))
-    if (expected is None or old_receipt.get('schema') != 'autospine.final-region-exclusion/v1'
-            or old_receipt.get('decisions') != expected): return []
+    if (expected is None or old_receipt.get('schema') != ('autospine.final-region-exclusion/v2' if extended else 'autospine.final-region-exclusion/v1')
+            or not predecessor(old_receipt.get('decisions'),expected,extended=extended)): return []
     # A single explicit predecessor, never recursive decision/transform traversal.
     if any('scope_replay' in d for d in expected): return []
     manifests = [json.loads(f['character-manifest.json']) for f in (previous, current)]

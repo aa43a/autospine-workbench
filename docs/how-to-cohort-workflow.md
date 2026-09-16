@@ -9,7 +9,7 @@
 ```powershell
 $env:PYTHONPATH='src'
 python tools/assess-cohort-intake.py --verify-workspace .. `
-  --source-versions docs/benchmark/first-ten-source-versions-v1.json `
+  --source-versions docs/benchmark/first-ten-source-versions-v2.json `
   --output ../tmp/character-first-ten-workflow-intake
 python tools/assess-cohort-workflow.py `
   --intake ../tmp/character-first-ten-workflow-intake `
