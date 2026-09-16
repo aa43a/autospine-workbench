@@ -1,11 +1,11 @@
-"""Inspect, apply, or undo evidence-based compact-foot candidates on a current project."""
+"""Inspect, apply, or undo the workbench's current evidence-based binding policy."""
 import argparse
 import json
 from pathlib import Path
 
 from autospine_workbench.project_store import ProjectStore
 from autospine_workbench.automation.animated_inputs import load_inputs
-from autospine_workbench.automation.head_parts_policy import propose
+from autospine_workbench.automation.static_part_policy import propose
 from autospine_workbench.automation.simple_binding_adoption import apply, undo
 from autospine_workbench.benchmark.artifacts import export_document
 
