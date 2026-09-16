@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "project_id", "revision", "previous_sha256", "decision", "authority", "production_authorized"],
+  "properties": {
+    "schema": {"const": "autospine.character-region-mounts/v1"},
+    "project_id": {"type": "string", "minLength": 1},
+    "revision": {"type": "integer", "minimum": 0},
+    "previous_sha256": {"oneOf": [{"type": "null"}, {"type": "string", "pattern": "^[a-f0-9]{64}$"}]},
+    "decision": {"oneOf": [{"type": "null"}, {"$ref": "region-mount-decision-v1.schema.json"}]},
+    "authority": {"const": "none"},
+    "production_authorized": {"const": false}
+  }
+}

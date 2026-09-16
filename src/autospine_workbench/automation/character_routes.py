@@ -19,6 +19,7 @@ def dispatch_character(tail,handler,method,project):
     from .web_routes import _error, _require_mutation
     allowed = 'GET, HEAD, POST, OPTIONS' if not tail else None
     if tail == ['regions']: allowed='GET, HEAD, POST, OPTIONS'
+    if tail == ['region-mounts']: allowed='GET, HEAD, POST, OPTIONS'
     if tail in (['final-regions'], ['post-component-regions'], ['component-mounts']): allowed='GET, HEAD, POST, OPTIONS'
     if tail == ['component-mount-plan']: allowed='POST, OPTIONS'
     if tail == ['order-review']: allowed='GET, HEAD, POST, OPTIONS'
@@ -37,7 +38,10 @@ def dispatch_character(tail,handler,method,project):
         if method=='POST':
             _require_mutation(handler.headers)
             body=read_json_object_request(handler,maximum_bytes=16384)
-            if tail == ['order-review']:
+            if tail == ['region-mounts']:
+                from .character_region_mounts import save
+                value=save(manager,project,body)
+            elif tail == ['order-review']:
                 from .character_order_review import save
                 value=save(manager,project,body)
             elif tail == ['component-mount-plan']:
@@ -69,6 +73,9 @@ def dispatch_character(tail,handler,method,project):
                 if body: raise PipelineRunError('pipeline_request_invalid')
                 value=manager.cancel(project,tail[1])
             handler._send_visual_json(202,value)
+        elif tail == ['region-mounts']:
+            from .character_region_mounts import overview
+            handler._send_visual_json(200,overview(manager,project))
         elif tail == ['order-review']:
             from .character_order_review import overview
             handler._send_visual_json(200,overview(manager,project))

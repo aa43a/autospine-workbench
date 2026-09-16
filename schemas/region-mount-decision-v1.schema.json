@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "source_bundle_sha256", "parents", "decision_source", "reversible"],
+  "properties": {
+    "schema": {"const": "autospine.region-mount-decision/v1"},
+    "source_bundle_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "parents": {"type": "object", "minProperties": 1, "maxProperties": 64,
+      "propertyNames": {"pattern": "^[A-Za-z0-9_-]{1,120}$"},
+      "additionalProperties": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,120}$"}},
+    "decision_source": {"const": "human_confirmation"},
+    "reversible": {"const": true}
+  }
+}

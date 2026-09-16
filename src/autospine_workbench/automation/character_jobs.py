@@ -39,6 +39,9 @@ class CharacterJobs:
         return directory(self.root / job, create=create)
 
     def _current(self, request):
+        from .character_region_mounts import overview as regional
+        if regional(self,request['project_id'])['head_sha256']!=request.get('region_mounts_sha256'):
+            raise PipelineRunError('character_region_mount_decisions_changed')
         from .character_order_review import overview as order_overview
         if order_overview(self, request['project_id'])['head_sha256'] != request.get('order_decisions_sha256'):
             raise PipelineRunError('character_order_decisions_changed')
@@ -84,6 +87,8 @@ class CharacterJobs:
         result['post_component_regions'] = final_overview(self,project,stage='after_components')
         from .character_component_mounts import overview as mount_overview
         result['component_mounts'] = mount_overview(self,project)
+        from .character_region_mounts import overview as regional
+        result['region_mounts'] = regional(self,project)
         from .character_order_review import overview as order_overview
         result['order_review'] = order_overview(self, project)
         try:
@@ -121,6 +126,9 @@ class CharacterJobs:
                      expected_input_sha256=expected_input_sha256, sleeve_job_id=sleeve_job_id,residual_auto_profile=residual_auto_profile)
         from .character_region_decisions import overview as region_overview
         request['region_decisions_sha256'] = region_overview(self, project)['head_sha256']
+        from .character_region_mounts import overview as regional
+        regional_head=regional(self,project)['head_sha256']
+        if regional_head is not None:request['region_mounts_sha256']=regional_head
         from .character_final_regions import overview as final_overview
         post_head=final_overview(self,project,stage='after_components')['head_sha256']
         if post_head is not None: request['post_component_regions_sha256']=post_head
@@ -246,6 +254,8 @@ class CharacterJobs:
             result=apply_final(self,request,result)
             from .character_component_mounts import apply_saved as apply_mounts
             result=apply_mounts(self,request,result)
+            from .character_region_mounts import apply_saved as apply_regional
+            result=apply_regional(self,request,result)
             result=apply_final(self,request,result,stage="after_components")
             from .character_order_review import apply_saved as apply_order
             result=apply_order(self,request,result)
@@ -263,6 +273,7 @@ class CharacterJobs:
             if 'shoulder_trial' in result: response['shoulder_trial']=result['shoulder_trial']
             if 'final_region_exclusions' in result: response['final_region_exclusions']=result['final_region_exclusions']
             if 'component_mounts' in result: response['component_mounts']=result['component_mounts']
+            if 'region_mounts' in result: response['region_mounts']=result['region_mounts']
             if 'post_component_regions' in result: response['post_component_regions']=result['post_component_regions']
             if 'order_review' in result: response['order_review']=result['order_review']
             if 'residual_defaults' in result: response['residual_defaults']=result['residual_defaults']
