@@ -1,7 +1,7 @@
 """Exhaust existing safe rules while keeping each committed decision reversible."""
 from ..project_authoring_transaction import project_authoring_transaction
 from .animated_inputs import load_inputs,AnimatedSourceError
-from .pixel_head_anchor_policy import propose
+from .static_part_policy import propose
 from .simple_binding_adoption import apply
 
 MAX_ROUNDS=32

@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "autospine.component-mount-decision/v2"
+    },
+    "source_bundle_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "source_region_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "plan_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "decision_source": {
+      "const": "human_confirmation"
+    },
+    "reversible": {
+      "const": true
+    },
+    "parents": {
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 64,
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "residual_parent": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "required": [
+    "schema",
+    "source_bundle_sha256",
+    "source_region_id",
+    "plan_sha256",
+    "decision_source",
+    "reversible",
+    "parents",
+    "residual_parent"
+  ]
+}

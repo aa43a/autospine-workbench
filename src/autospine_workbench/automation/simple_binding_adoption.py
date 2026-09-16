@@ -5,7 +5,7 @@ from ..benchmark.artifacts import publish_report, read_report
 from ..project_authoring_transaction import project_authoring_transaction
 from ..resolved_project import canonical_sha256
 from .animated_inputs import load_inputs, _registrations, save_binding_review, AnimatedSourceError
-from .pixel_head_anchor_policy import propose
+from .static_part_policy import propose
 
 KIND = 'simple-binding-decisions-v1'
 
@@ -28,7 +28,7 @@ def apply(store, project_id, expected_input):
         after_draft = dict(before_draft,records=records)
         after = dict(before,source_draft_sha256=canonical_sha256(after_draft),
                      previous_sha256=before_sha,revision=before['revision']+1)
-        decision = {'schema':'autospine.simple-binding-decision/v7','authority':'none',
+        decision = {'schema':'autospine.simple-binding-decision/v8','authority':'none',
                     'production_authorized':False,'decision_source':'policy_auto','project_id':project_id,
                     'proposal':proposal,'before_registration_sha256':before_sha,
                     'after_registration_sha256':canonical_sha256(after),
@@ -46,7 +46,7 @@ def apply(store, project_id, expected_input):
 def read_decision(store,project_id,digest):
     history = _registrations(store,project_id)
     doc = read_report(store.state_root,history[-1][1]['manifest']['dataset_id'],KIND,digest)
-    if (doc.get('project_id')!=project_id or doc.get('schema') not in ('autospine.simple-binding-decision/v1','autospine.simple-binding-decision/v2','autospine.simple-binding-decision/v3','autospine.simple-binding-decision/v4','autospine.simple-binding-decision/v5','autospine.simple-binding-decision/v6','autospine.simple-binding-decision/v7')
+    if (doc.get('project_id')!=project_id or doc.get('schema') not in ('autospine.simple-binding-decision/v1','autospine.simple-binding-decision/v2','autospine.simple-binding-decision/v3','autospine.simple-binding-decision/v4','autospine.simple-binding-decision/v5','autospine.simple-binding-decision/v6','autospine.simple-binding-decision/v7','autospine.simple-binding-decision/v8')
             or doc.get('decision_source')!='policy_auto' or doc.get('production_authorized') is not False):
         raise ValueError('binding_decision_source_mismatch')
     pair=next(((old,new) for old,new in zip(history,history[1:])

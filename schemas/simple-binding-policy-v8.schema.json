@@ -1,0 +1,225 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "autospine.simple-binding-policy/v8",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "authority",
+    "production_authorized",
+    "policy_id",
+    "limits",
+    "calibration_status",
+    "source_addresses",
+    "rows"
+  ],
+  "properties": {
+    "schema": {
+      "const": "autospine.simple-binding-policy/v8"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "production_authorized": {
+      "const": false
+    },
+    "policy_id": {
+      "const": "supported-static-parts-binding-v8"
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "foot",
+        "head",
+        "contact",
+        "head_anchor",
+        "head_parts",
+        "eye_neighborhood",
+        "static_parts"
+      ],
+      "properties": {
+        "foot": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "alpha",
+            "max_height_calf_ratio",
+            "max_width_calf_ratio",
+            "max_above_ankle_calf_ratio",
+            "min_other_ankle_margin_calf_ratio"
+          ],
+          "properties": {
+            "alpha": {
+              "const": 8
+            },
+            "max_height_calf_ratio": {
+              "const": 0.65
+            },
+            "max_width_calf_ratio": {
+              "const": 0.6
+            },
+            "max_above_ankle_calf_ratio": {
+              "const": 0.2
+            },
+            "min_other_ankle_margin_calf_ratio": {
+              "const": 0.5
+            }
+          }
+        },
+        "head": {
+          "const": {
+            "alpha": 8,
+            "min_face_overlap": 0.98,
+            "max_feature_face_area_ratio": 0.35
+          }
+        },
+        "contact": {
+          "const": {
+            "alpha": 8,
+            "min_shoe_overlap": 0.5,
+            "min_side_overlap_margin": 0.5,
+            "cuff_height_fraction": 0.2,
+            "min_cuff_overlap": 0.5
+          }
+        },
+        "head_anchor": {
+          "const": {
+            "alpha": 8,
+            "max_face_anchor_span_ratio": 3,
+            "max_neck_width_anchor_span_ratio": 1,
+            "minimum_overlap_pixels": 16,
+            "minimum_visible_pixels": 64
+          }
+        },
+        "head_parts": {
+          "const": {
+            "alpha": 8,
+            "horizontal_face_margin": 0.5,
+            "upper_face_margin": 0.5,
+            "lower_face_margin": 0.25,
+            "minimum_overlap_pixels": 16,
+            "minimum_visible_pixels": 16
+          }
+        },
+        "eye_neighborhood": {
+          "const": {
+            "alpha": 8,
+            "eye_margin_ratio": 0.5,
+            "min_eye_face_overlap": 0.98,
+            "max_eye_face_area_ratio": 0.2,
+            "minimum_visible_pixels": 16
+          }
+        },
+        "static_parts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "alpha",
+            "minimum_pixels",
+            "headwear_support_ratio",
+            "torso_side_margin_shoulder_ratio"
+          ],
+          "properties": {
+            "alpha": {
+              "const": 8
+            },
+            "minimum_pixels": {
+              "const": 64
+            },
+            "headwear_support_ratio": {
+              "const": 0.98
+            },
+            "torso_side_margin_shoulder_ratio": {
+              "const": 0.1
+            }
+          }
+        }
+      }
+    },
+    "calibration_status": {
+      "const": "unmeasured"
+    },
+    "source_addresses": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      }
+    },
+    "rows": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "layer_id",
+          "status",
+          "option_id",
+          "reason_codes",
+          "evidence",
+          "checks"
+        ],
+        "properties": {
+          "layer_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "enum": [
+              "eligible",
+              "needs_review",
+              "preserved"
+            ]
+          },
+          "option_id": {
+            "enum": [
+              null,
+              "rigid:foot_l",
+              "rigid:foot_r",
+              "rigid:head",
+              "rigid:neck"
+            ]
+          },
+          "reason_codes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "evidence": {
+            "type": "object",
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": [
+                    "number",
+                    "boolean",
+                    "string"
+                  ]
+                },
+                {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "number"
+                  }
+                }
+              ]
+            }
+          },
+          "checks": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    }
+  }
+}

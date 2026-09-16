@@ -1,11 +1,11 @@
 """Re-evaluate stale automatic selections without writing or changing decisions."""
 from copy import deepcopy
 from types import SimpleNamespace
-from .pixel_head_anchor_policy import propose
+from .static_part_policy import propose
 
 POLICIES={'compact-foot-binding-v1','head-foot-contact-binding-v3',
           'reviewed-head-anchor-binding-v4','head-and-foot-binding-v2','bounded-head-parts-binding-v5',
-          'bound-eye-neighborhood-binding-v6','pixel-cell-head-anchor-binding-v7'}
+          'bound-eye-neighborhood-binding-v6','pixel-cell-head-anchor-binding-v7','supported-static-parts-binding-v8'}
 
 
 def revalidate(source, rows):

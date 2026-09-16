@@ -17,11 +17,13 @@ def _valid(doc):
     if decision is None: return parents == [] and options == {}
     if type(parents) is not list or not 1 <= len(parents) <= 64 or any(type(p) is not str or not p for p in parents): return False
     if len(set(parents)) != len(parents) or type(decision) is not dict: return False
-    if set(decision) != {'schema','source_bundle_sha256','source_region_id','plan_sha256','decision_source','reversible','parents'}: return False
-    if decision['schema'] != 'autospine.component-mount-decision/v1' or decision['decision_source'] != 'human_confirmation' or decision['reversible'] is not True: return False
+    extra={'residual_parent'} if decision.get('schema')=='autospine.component-mount-decision/v2' else set()
+    if set(decision) != {'schema','source_bundle_sha256','source_region_id','plan_sha256','decision_source','reversible','parents'}|extra: return False
+    if decision['schema'] not in ('autospine.component-mount-decision/v1','autospine.component-mount-decision/v2') or decision['decision_source'] != 'human_confirmation' or decision['reversible'] is not True: return False
     if any(type(decision[k]) is not str or not re.fullmatch('[a-f0-9]{64}',decision[k]) for k in ('source_bundle_sha256','plan_sha256')): return False
     if type(decision['source_region_id']) is not str or not decision['source_region_id']: return False
     choices = decision['parents']
+    if extra and (decision['residual_parent'] not in parents or type(choices) is not dict or set(choices.values())!={decision['residual_parent']}): return False
     return (type(choices) is dict and 1 <= len(choices) <= 64
             and all(type(k) is str and k and type(v) is str and v in parents for k,v in choices.items()))
 
@@ -37,7 +39,7 @@ def overview(manager, project):
         for revision,path in enumerate(paths):
             doc = read_document(path)
             if (set(doc) != {'schema','project_id','revision','previous_sha256','decision','allowed_parents','build_options','authority','production_authorized'}
-                    or path.name != f'{revision:06d}.json' or doc.get('schema') != SCHEMA
+                    or path.name != f'{revision:06d}.json' or doc.get('schema') not in (SCHEMA,'autospine.character-component-mounts/v2')
                     or doc.get('project_id') != project or type(doc.get('revision')) is not int
                     or doc['revision'] != revision or doc.get('previous_sha256') != previous
                     or doc.get('authority') != 'none' or doc.get('production_authorized') is not False
@@ -71,7 +73,7 @@ def save(manager, project, body):
             request = read_document(manager._path(body['job_id'])/'request.json')
             options = {k:request[k] for k in OPTIONS if k in request}
         elif not current['active']: return current
-        doc = dict(schema=SCHEMA,project_id=project,revision=0 if current['review'] is None else current['review']['revision']+1,
+        doc = dict(schema='autospine.character-component-mounts/v2' if decision and decision['schema']=='autospine.component-mount-decision/v2' else SCHEMA,project_id=project,revision=0 if current['review'] is None else current['review']['revision']+1,
                    previous_sha256=current['head_sha256'],decision=decision,allowed_parents=parents,build_options=options,
                    authority='none',production_authorized=False)
         root = directory(manager.root/'component-mount-decisions'/project,create=True)
@@ -86,6 +88,11 @@ def apply_saved(manager, request, result):
         raise PipelineRunError('character_mount_decisions_changed')
     if not current['active']: return result
     review = current['review']; decision = review['decision']
+    if decision['schema']=='autospine.component-mount-decision/v2':
+        # v2 is reviewed against the visible post-default candidate. Reproduce
+        # that stage before exact-source comparison; legacy v1 stays unchanged.
+        from .character_residual_defaults import apply as apply_defaults
+        result=apply_defaults(manager,request,result)
     from ..targets.character43.component_mount_candidate import generate
     store = manager.application.store
     if result['artifact_sha256'] != decision['source_bundle_sha256']:
