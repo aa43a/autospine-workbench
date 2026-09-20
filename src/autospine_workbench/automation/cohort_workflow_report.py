@@ -1,6 +1,7 @@
 """Read-only first-ten acceptance matrix; never creates or upgrades evidence."""
 from html import escape
 from urllib.parse import quote, urlsplit
+from .cohort_metric_display import render as render_metrics
 
 
 LABELS = dict(character_candidate_missing='尚未构建整角色候选',
@@ -63,22 +64,6 @@ def render(report, base_url):
                     ('完成' if row['completed'] else '未完成') + '<details><summary>全部原因</summary>' +
                     reason_html + '</details></td></tr>')
     metrics = report['metrics']
-    timing = metrics.get('visual_review_timing'); timing_summary = ''
-    if timing:
-        duration = '未测量' if timing['measured_minutes'] is None else f'{timing["measured_minutes"]:g} 分钟'
-        timing_summary = (f'<p>当前候选视觉复核计时：{timing["measured_characters"]}/{timing["total_characters"]} 名角色；'
-                          f'已测部分合计 {duration}。未计时部分不按零计算，不包含标注、修正或历史返工耗时。</p>')
-    audit = metrics.get('auto_binding_audit'); audit_html = ''
-    if audit:
-        rate = '未测量' if audit['sampled_error_rate'] is None else f'{audit["sampled_error_rate"]*100:.1f}%'
-        audit_html = (f'<p>自动绑定抽查：明确判断 {audit["assessed_bindings"]}/{audit["eligible_bindings"]} 项，'
-                      f'需修改 {audit["incorrect"]} 项，无法判断 {audit["unobservable"]} 项；抽查错误率 {rate}。'
-                      '这是人工所选样本，不是全部输入的准确率。</p>')
-        audit_timing = audit.get('audit_timing')
-        if audit_timing:
-            duration = '未测量' if audit_timing['measured_minutes'] is None else f'{audit_timing["measured_minutes"]:g} 分钟'
-            audit_html += (f'<p>当前自动绑定抽查计时：{audit_timing["measured_projects"]}/{audit_timing["total_projects"]} 个项目；'
-                           f'已测部分合计 {duration}。此项不包含关节标注、修改和全部历史返工。</p>')
     labels = {'idle': '待机', 'wave-left': '左手挥动', 'walk': '行走'}
     headers = ''.join('<th>' + escape(labels.get(a, a)) + '</th>' for a in report['required_animations'])
     return ('<!doctype html><html lang="zh-CN"><meta charset="utf-8">'
@@ -96,5 +81,4 @@ def render(report, base_url):
         '<p>先处理绑定和几何问题，再完成动作及整角色视觉验收。动作已验证不代表绑定或视觉已接受。</p>'
         '<div class="matrix"><table><thead><tr><th>角色 / 候选</th><th>图层绑定</th><th>几何</th>' +
         headers + '<th>人工视觉</th><th>整角色</th></tr></thead><tbody>' + ''.join(rows) +
-        '</tbody></table></div>' + timing_summary + audit_html + '<p>人工总耗时：未测量。错误自动采用率：未测量。'
-        '单次视觉计时不代表全部人工耗时；这些角色不作为独立 holdout 精度证明。</p></html>')
+        '</tbody></table></div>' + render_metrics(metrics) + '</html>')
