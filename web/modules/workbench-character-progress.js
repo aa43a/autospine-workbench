@@ -1,12 +1,12 @@
 "use strict";
-import {needsBindingReview} from './workbench-character-ledger.js';
+import {needsBindingReview,auditBindingExceptions} from './workbench-character-ledger.js';
 
 export function characterProgress(job,confirmed=[],review=null,dirty=false,audit=null){
  if(dirty)return ['校正尚未保存：当前候选状态不能代表最新修改。'];
  if(!job||job.status!=='needs_review')return ['整角色候选尚未准备完成。'];
  const layers=job.layers||[];
  const auditExact=audit?.authority==='none'&&['project_id','job_id','artifact_sha256'].every(k=>audit[k]===job[k]);
- const failedAudit=new Set(auditExact?Object.entries(audit.review?.reviews||{}).filter(([,v])=>v==='incorrect').map(([id])=>id):[]);
+ const failedAudit=auditBindingExceptions(job,audit);
  const pending=layers.filter(l=>needsBindingReview(l,confirmed)||failedAudit.has(l.layer_id)).length;
  const rows=[`绑定处理：${layers.length-pending} / ${layers.length} 层；${pending} 层待处理。`];
  if(auditExact)rows.push(`自动绑定抽查：明确判断 ${audit.metrics.assessed_bindings} / ${audit.metrics.eligible_bindings} 项；${audit.metrics.incorrect} 项需修改。`);

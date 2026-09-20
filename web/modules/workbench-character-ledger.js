@@ -21,6 +21,12 @@ export function needsBindingReview(layer,confirmed=[]){
   return action!=="bind"||typeof decision.option_id!=="string"||!decision.option_id||!SELECTED.has(source);
 }
 
+export function auditBindingExceptions(job,audit){
+  if(!job||audit?.authority!=="none"||!["project_id","job_id","artifact_sha256"].every(k=>audit[k]===job[k]))return new Set();
+  const automatic=new Set((job.layers||[]).filter(l=>l.binding_decision?.decision_source==="policy_auto"&&l.binding_decision.evidence_current===true).map(l=>l.layer_id));
+  return new Set(Object.entries(audit.review?.reviews||{}).filter(([id,value])=>value==="incorrect"&&automatic.has(id)).map(([id])=>id));
+}
+
 export function createCharacterLedger(document,hooks){
   const node=(tag,text="")=>{const e=document.createElement(tag);e.textContent=text;return e;};
   const element=node("details"),summary=node("summary"),controls=node("div"),list=node("ul");
@@ -34,7 +40,8 @@ export function createCharacterLedger(document,hooks){
   function render(){
     const {job,endpoint,disabled}=state||{};
     const layers=job?.status==="needs_review"?job.layers||[]:[];
-    const pending=layers.filter(layer=>needsBindingReview(layer,state.confirmedLayerIds||[]));
+    const exceptions=auditBindingExceptions(job,state?.audit);
+    const pending=layers.filter(layer=>needsBindingReview(layer,state.confirmedLayerIds||[])||exceptions.has(layer.layer_id));
     const regions=layers.flatMap(l=>l.regions||[]);
     const number=s=>regions.filter(r=>r.state===s).length;
     element.hidden=!layers.length;
@@ -45,6 +52,7 @@ export function createCharacterLedger(document,hooks){
     list.replaceChildren(...shown.map(layer=>{
       const row=node("li"),button=node("button",`${layer.name} · ${STATES[layer.state]||layer.state}`);
       button.type="button";button.className="button button-secondary";button.addEventListener("click",()=>hooks.locate?.({layer_id:layer.layer_id,type:"binding"}));row.append(button);
+      if(exceptions.has(layer.layer_id))row.append(node("p","自动绑定抽查：需要修改。请定位此图层，撤销或修正原绑定后重建候选；已有视觉接受不能消除此异常。"));
       if(layer.binding_decision){
         const p=layer.binding_decision,labels={policy_auto:"自动策略采用",explicit_selection:"显式编辑",legacy_selection:"历史记录（来源未细分）",pending:"待复核"};
         row.append(node("p",`整层绑定：${({pending:"待处理",bind:"已选择",requires_split:"需要拆分",semantic_review:"需要语义复核",exclude:"已排除"})[p.action]||"动作未记录"}；来源：${labels[p.decision_source]||"未知"}${p.decision_source==="policy_auto"&&p.evidence_current!==true?" · 证据来源已变化或未验证，需重新检查":""}`));

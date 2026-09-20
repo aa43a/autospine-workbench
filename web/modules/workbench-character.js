@@ -139,7 +139,7 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
     weightedReview.sync(job?.status==="needs_review"&&job.runtime?.files?.["report.json"]?job:null,!dirty&&!busy&&!active);
     autoAudit.sync(job?.status==="needs_review"&&job.runtime?.files?.["report.json"]?job:null,!dirty&&!busy&&!active);
     progress.sync(job,weightedReview.confirmed(),visualReview.current(),dirty,autoAudit.current());
-    ledger.sync({confirmedLayerIds:weightedReview.confirmed(),projectId:context().projectId,job,endpoint:endpoint(),disabled:busy||active||dirty});
+    ledger.sync({audit:autoAudit.current(),confirmedLayerIds:weightedReview.confirmed(),projectId:context().projectId,job,endpoint:endpoint(),disabled:busy||active||dirty});
     postRegions.sync(job?.status==='needs_review'?job:null,overview?.post_component_regions,busy||active||dirty);
     finalRegions.sync(job?.status==='needs_review'?job:null,overview?.final_region_exclusions,busy||active||dirty);
     mounts.sync(job,overview?.component_mounts,endpoint(),busy||active||dirty);
