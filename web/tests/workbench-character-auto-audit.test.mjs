@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createAutoBindingAudit} from '../modules/workbench-character-auto-audit.js';
 const all=n=>[n,...n.children.flatMap(all)];
-const document={createElement(tag){return {tag,children:[],append(...n){this.children.push(...n);},replaceChildren(...n){this.children=n;},setAttribute(){}};}};
+const document={createElement(tag){return {tag,children:[],append(...n){this.children.push(...n);},replaceChildren(...n){this.children=n;},setAttribute(){},addEventListener(event,fn){this['on'+event]=fn;}};}};
 const job={project_id:'p',job_id:'j',artifact_sha256:'a'};
 const response={...job,authority:'none',inventory:[{layer_id:'eye',name:'眼睛',option_id:'rigid:head'}],review:null,review_sha256:null,
  metrics:{assessed_bindings:0,eligible_bindings:1,incorrect:0,unobservable:0,sampled_error_rate:null}};
@@ -18,6 +18,16 @@ test('save-next retains failed draft and advances only after successful save',as
  fail=false;await button('保存并下一项').onclick();
  assert.ok(all(ui.element).some(n=>n.textContent==='当前 2 / 2 · 0 项尚未保存'));
  assert.deepEqual(posted.reviews,{eye:'correct'});ui.dispose();
+});
+test('explicit audit stopwatch can save time without inventing an assessed verdict',async()=>{
+ let now=0,post;
+ const ui=createAutoBindingAudit(document,{clock:()=>now,apiRequest:async(url,init)=>{if(init.method==='POST'){post=JSON.parse(init.body);return {...response,review:{reviews:post.reviews,timing:post.timing}};}return response;}});
+ ui.sync(job,true);await ui.request();
+ all(ui.element).find(n=>n.textContent==='开始 / 继续复核计时').onclick();
+ now=12000;await ui.request(true);
+ assert.deepEqual(post.reviews,{eye:'not_reviewed'});
+ assert.equal(post.timing.scope,'automatic_binding_audit_session');assert.equal(post.timing.seconds,12);
+ ui.sync({...job,artifact_sha256:'other'},true);assert.ok(all(ui.element).some(n=>n.textContent?.startsWith('尚未计时。')));ui.dispose();
 });
 test('unreviewed default, explicit judgment only, one source-bound save',async()=>{
  const posts=[],located=[];const ui=createAutoBindingAudit(document,{locate:row=>located.push(row),apiRequest:async(_url,init)=>{if(init.method==='POST')posts.push(JSON.parse(init.body));return response;}});

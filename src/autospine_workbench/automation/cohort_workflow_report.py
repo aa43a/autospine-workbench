@@ -74,6 +74,11 @@ def render(report, base_url):
         audit_html = (f'<p>自动绑定抽查：明确判断 {audit["assessed_bindings"]}/{audit["eligible_bindings"]} 项，'
                       f'需修改 {audit["incorrect"]} 项，无法判断 {audit["unobservable"]} 项；抽查错误率 {rate}。'
                       '这是人工所选样本，不是全部输入的准确率。</p>')
+        audit_timing = audit.get('audit_timing')
+        if audit_timing:
+            duration = '未测量' if audit_timing['measured_minutes'] is None else f'{audit_timing["measured_minutes"]:g} 分钟'
+            audit_html += (f'<p>当前自动绑定抽查计时：{audit_timing["measured_projects"]}/{audit_timing["total_projects"]} 个项目；'
+                           f'已测部分合计 {duration}。此项不包含关节标注、修改和全部历史返工。</p>')
     labels = {'idle': '待机', 'wave-left': '左手挥动', 'walk': '行走'}
     headers = ''.join('<th>' + escape(labels.get(a, a)) + '</th>' for a in report['required_animations'])
     return ('<!doctype html><html lang="zh-CN"><meta charset="utf-8">'

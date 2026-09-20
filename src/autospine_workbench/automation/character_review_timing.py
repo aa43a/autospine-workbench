@@ -2,10 +2,10 @@
 import math
 
 
-def valid(value):
+def valid(value, scope='whole_character_visual_review_session'):
     return (type(value) is dict and set(value)=={'method','seconds','scope'}
             and value['method']=='operator_stopwatch_v1'
-            and value['scope']=='whole_character_visual_review_session'
+            and value['scope']==scope
             and type(value['seconds']) in (int,float) and math.isfinite(value['seconds'])
             and 0<=value['seconds']<=86400)
 

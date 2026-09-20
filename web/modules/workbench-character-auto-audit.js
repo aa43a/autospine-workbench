@@ -1,5 +1,6 @@
 "use strict";
 import {createAuditInspector} from "./workbench-audit-inspector.js";
+import {createReviewStopwatch} from "./workbench-review-stopwatch.js";
 export function createAutoBindingAudit(document,hooks){
  const node=(tag,text="")=>{const e=document.createElement(tag);e.textContent=text;return e;};
  const element=node("details"),load=node("button","读取自动绑定清单"),save=node("button","保存抽查结果"),status=node("p"),rows=node("div");
@@ -18,8 +19,12 @@ export function createAutoBindingAudit(document,hooks){
  const judgments=Object.entries(labels).filter(([value])=>value!=="not_reviewed").map(([value,label])=>{const button=node("button",`当前项：${label}`);button.type="button";button.onclick=()=>{if(selected&&!busy&&editable){edits[selected]=value;render();}};return button;});
  for(const button of [...judgments,previous,next,saveNext]){button.type="button";button.className="button button-secondary";}
  const actions=node("div");actions.style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px";actions.append(...judgments,previous,next,saveNext,position);inspector.element.append(actions);
+ const stopwatch=createReviewStopwatch(document,hooks.clock,{scope:'automatic_binding_audit_session',changed:()=>render()});
+ inspector.element.append(stopwatch.element);
+ function hasTimingEdit(){const timing=stopwatch.current();return timing&&JSON.stringify(timing)!==JSON.stringify(report?.review?.timing);}
  function render(){
-  element.hidden=!job;load.disabled=busy||!editable;save.disabled=busy||!editable||!report||!Object.keys(edits).length;
+  stopwatch.sync(editable&&!busy&&Boolean(report?.inventory?.length));
+  element.hidden=!job;load.disabled=busy||!editable;save.disabled=busy||!editable||!report||(!Object.keys(edits).length&&!hasTimingEdit());
   const items=report?.inventory||[];if(!selected&&items.length)selected=items[0].layer_id;
   const index=items.findIndex(r=>r.layer_id===selected);
   previous.disabled=busy||index<=0;next.disabled=busy||index<0||index>=items.length-1;saveNext.disabled=save.disabled;
@@ -39,14 +44,16 @@ export function createAutoBindingAudit(document,hooks){
   }));
  }
  async function request(write=false){
-  if(!job||!editable||busy||(write&&(!report||!Object.keys(edits).length)))return;
+  if(!job||!editable||busy||(write&&(!report||(!Object.keys(edits).length&&!hasTimingEdit()))))return;
+  const timing=write?stopwatch.snapshot():null;
+  const reviews=Object.keys(edits).length?edits:(selected?{[selected]:report?.review?.reviews?.[selected]||'not_reviewed'}:{});
   const token=generation,current=job;attempted=true;busy=true;render();status.textContent="正在核对抽查来源…";
   try{
-   const init=write?{method:"POST",headers:{"X-Autospine-Intent":"pipeline-preview"},body:JSON.stringify({expected_artifact_sha256:report.artifact_sha256,expected_review_sha256:report.review_sha256,reviews:edits})}:{cache:"no-store"};
+   const init=write?{method:"POST",headers:{"X-Autospine-Intent":"pipeline-preview"},body:JSON.stringify({expected_artifact_sha256:report.artifact_sha256,expected_review_sha256:report.review_sha256,reviews,...(timing?{timing}:{})})}:{cache:"no-store"};
    const value=await hooks.apiRequest(`/api/projects/${encodeURIComponent(current.project_id)}/automation/character/jobs/${current.job_id}/auto-binding-audit`,init);
    if(token!==generation)return;
    if(value.authority!=="none"||["project_id","job_id","artifact_sha256"].some(k=>value[k]!==current[k]))throw Error("source");
-   report=value;edits={};const m=value.metrics;
+   report=value;edits={};stopwatch.load(value.review?.timing);const m=value.metrics;
    if(m.incorrect>0)element.open=true;
    status.textContent=`已明确判断 ${m.assessed_bindings} / ${m.eligible_bindings} 项，其中 ${m.incorrect} 项需修改，${m.unobservable} 项无法判断。${m.assessed_bindings?`抽查错误率 ${(m.sampled_error_rate*100).toFixed(1)}%。`:"尚无可计算错误率的抽查。"}`;
    return true;
@@ -60,5 +67,5 @@ export function createAutoBindingAudit(document,hooks){
   attempted=true;const token=generation;
   return Promise.resolve().then(()=>{if(token!==generation)return;if(!editable){attempted=false;return;}return request();});
  },sync(value,canEdit){const next=value?`${value.project_id}:${value.job_id}:${value.artifact_sha256}`:"";editable=canEdit;
-  if(next!==key){key=next;generation++;job=value;selected=null;inspector.clear();report=null;edits={};busy=false;attempted=false;element.open=false;status.textContent="尚未读取抽查清单。";}render();},dispose(){generation++;attempted=true;inspector.dispose();}};
+  if(next!==key){key=next;generation++;job=value;selected=null;inspector.clear();stopwatch.load(null);report=null;edits={};busy=false;attempted=false;element.open=false;status.textContent="尚未读取抽查清单。";}render();},dispose(){generation++;attempted=true;stopwatch.pause();inspector.dispose();}};
 }

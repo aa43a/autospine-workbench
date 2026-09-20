@@ -6,9 +6,11 @@ from ..resolved_project import canonical_sha256
 from .character_visual_review import context
 from .pipeline_run import PipelineRunError
 from .storage_io import directory, publish_document, read_document
+from .character_review_timing import valid as valid_timing
 
 SCHEMA = 'autospine.character-auto-binding-audit/v1'
 VERDICTS = {'correct', 'incorrect', 'unobservable', 'not_reviewed'}
+TIMING_SCOPE = 'automatic_binding_audit_session'
 FIELDS = {'schema', 'project_id', 'job_id', 'artifact_sha256', 'inventory_sha256', 'reviews',
           'revision', 'previous_sha256', 'decision_source', 'authority', 'production_authorized'}
 
@@ -33,6 +35,7 @@ def verified_reviews(job, value):
     if any(value.get(k) != v for k, v in expected.items()): return {}
     doc = value.get('review')
     if not doc: return {}
+    if 'timing' in doc and not valid_timing(doc['timing'], TIMING_SCOPE): return {}
     expected.update(schema=SCHEMA, inventory_sha256=canonical_sha256(inventory(job)),
                     decision_source='human_audit', authority='none', production_authorized=False)
     if (value.get('review_sha256') != canonical_sha256(doc)
@@ -48,6 +51,8 @@ def summary(job, value):
     counts = {v: sum(reviews.get(r['layer_id'], 'not_reviewed') == v for r in rows) for v in VERDICTS}
     assessed = counts['correct'] + counts['incorrect']
     return dict(eligible_bindings=len(rows), assessed_bindings=assessed, **counts,
+                audit_session_minutes=(value['review']['timing']['seconds']/60
+                    if reviews and (value.get('review') or {}).get('timing') else None),
                 sampled_error_rate=counts['incorrect']/assessed if assessed else None,
                 sampling_scope='human_selected_current_bindings_not_population_accuracy')
 
@@ -61,7 +66,10 @@ def overview(manager, project, job):
         directory(root)
         for revision, path in enumerate(sorted(root.glob('*.json'))):
             doc = read_document(path); candidate = dict(value, review=doc, review_sha256=canonical_sha256(doc))
-            if (set(doc) != FIELDS or path.name != f'{revision:06d}.json'
+            if (set(doc) not in (FIELDS, FIELDS|{'timing'}) or path.name != f'{revision:06d}.json'
+                    or ('timing' in doc and not valid_timing(doc['timing'], TIMING_SCOPE))
+                    or ((value.get('review') or {}).get('timing') and
+                        (not doc.get('timing') or doc['timing']['seconds'] < value['review']['timing']['seconds']))
                     or type(doc.get('revision')) is not int or doc.get('revision') != revision
                     or doc.get('previous_sha256') != value['review_sha256']
                     or type(doc.get('reviews')) is not dict or len(doc['reviews']) > 128
@@ -77,7 +85,9 @@ def overview(manager, project, job):
 
 
 def save(manager, project, job, body):
-    if (set(body) != {'expected_artifact_sha256', 'expected_review_sha256', 'reviews'}
+    keys = {'expected_artifact_sha256', 'expected_review_sha256', 'reviews'}
+    if (set(body) not in (keys, keys|{'timing'})
+            or ('timing' in body and not valid_timing(body['timing'], TIMING_SCOPE))
             or type(body['reviews']) is not dict or not body['reviews'] or len(body['reviews']) > 128
             or any(type(v) is not str or v not in VERDICTS for v in body['reviews'].values())):
         raise PipelineRunError('character_auto_audit_invalid')
@@ -89,11 +99,15 @@ def save(manager, project, job, body):
         if not set(body['reviews']) <= {r['layer_id'] for r in current['inventory']}:
             raise PipelineRunError('character_auto_audit_scope_invalid')
         old = current['review']; reviews = dict(old['reviews'] if old else {}, **body['reviews'])
-        if old and old['reviews'] == reviews: return current
+        timing = body.get('timing', (old or {}).get('timing'))
+        if old and old.get('timing') and timing['seconds'] < old['timing']['seconds']:
+            raise PipelineRunError('character_review_timing_regression')
+        if old and old['reviews'] == reviews and old.get('timing') == timing: return current
         doc = dict(schema=SCHEMA, project_id=project, job_id=job, artifact_sha256=current['artifact_sha256'],
                    inventory_sha256=canonical_sha256(current['inventory']), reviews=reviews,
                    revision=old['revision']+1 if old else 0, previous_sha256=current['review_sha256'],
                    decision_source='human_audit', authority='none', production_authorized=False)
+        if timing is not None: doc['timing'] = timing
         root = directory(manager._path(job)/'auto-binding-audit', create=True)
         if not publish_document(root/f'{doc["revision"]:06d}.json', doc, staging=root/'staging'):
             raise PipelineRunError('character_review_conflict')

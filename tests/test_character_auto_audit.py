@@ -79,3 +79,27 @@ class AutoAuditTests(unittest.TestCase):
         result=overview(self.manager,'p','j')
         self.assertEqual(result['metrics']['eligible_bindings'],1)
         with self.assertRaisesRegex(RuntimeError,'scope_invalid'):save(self.manager,'p','j',self.body)
+
+    def test_measured_audit_time_is_cumulative_preserved_and_source_bound(self):
+        timing=dict(method='operator_stopwatch_v1',scope='automatic_binding_audit_session',seconds=90)
+        first=save(self.manager,'p','j',dict(self.body,timing=timing))
+        import json
+        from jsonschema import Draft202012Validator
+        schema=json.loads((Path(__file__).resolve().parents[1]/'schemas/character-auto-binding-audit-v1.schema.json').read_bytes())
+        Draft202012Validator(schema).validate(first['review'])
+        self.assertEqual(first['metrics']['audit_session_minutes'],1.5)
+        body=dict(self.body,expected_review_sha256=first['review_sha256'])
+        self.assertEqual(save(self.manager,'p','j',body)['review_sha256'],first['review_sha256'])
+        with self.assertRaisesRegex(RuntimeError,'timing_regression'):
+            save(self.manager,'p','j',dict(body,timing=dict(timing,seconds=89)))
+        second=save(self.manager,'p','j',dict(body,timing=dict(timing,seconds=120)))
+        metrics=summarize({'p':dict(job=self.job,auto_binding_audit=second)})
+        self.assertEqual(metrics['audit_timing']['measured_minutes'],2)
+        stale=dict(self.job,artifact_sha256='c'*64)
+        self.assertIsNone(summary(stale,second)['audit_session_minutes'])
+
+    def test_invalid_timing_never_creates_history(self):
+        for seconds in [True,-1,float('nan'),float('inf'),86401]:
+            with self.assertRaisesRegex(RuntimeError,'audit_invalid'):
+                save(self.manager,'p','j',dict(self.body,timing=dict(method='operator_stopwatch_v1',scope='automatic_binding_audit_session',seconds=seconds)))
+        self.assertIsNone(overview(self.manager,'p','j')['review'])

@@ -13,6 +13,9 @@
     "inventory_sha256": {"$ref": "#/$defs/sha"},
     "previous_sha256": {"anyOf": [{"$ref": "#/$defs/sha"}, {"type": "null"}]},
     "revision": {"type": "integer", "minimum": 0},
+    "timing": {"type": "object", "additionalProperties": false, "required": ["method", "scope", "seconds"], "properties": {
+      "method": {"const": "operator_stopwatch_v1"}, "scope": {"const": "automatic_binding_audit_session"},
+      "seconds": {"type": "number", "minimum": 0, "maximum": 86400}}},
     "reviews": {"type": "object", "maxProperties": 128,
       "additionalProperties": {"enum": ["correct", "incorrect", "unobservable", "not_reviewed"]}},
     "decision_source": {"const": "human_audit"},
