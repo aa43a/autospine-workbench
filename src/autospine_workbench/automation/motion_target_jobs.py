@@ -29,11 +29,15 @@ def assert_current(manager, request):
 
 
 def submit(manager, source_job, body):
-    if (set(body) - {'project_id', 'character_job_id', 'contact_correction', 'clip'}
+    if (set(body) - {'project_id', 'character_job_id', 'contact_correction', 'clip', 'projection'}
             or not {'project_id', 'character_job_id'} <= set(body)
             or type(body.get('contact_correction', True)) is not bool):
         raise PipelineRunError('motion_request_invalid')
     source = manager.get(source_job)
+    if 'projection' in body:
+        from ..targets.character43.oblique_target import validate
+        try: validate(body['projection'])
+        except ValueError as exc: raise PipelineRunError(str(exc)) from exc
     if (source.get('kind', 'import') not in ('import', 'generate') or source.get('status') != 'succeeded'
             or source.get('result', {}).get('motion_status') != 'compiled'):
         raise PipelineRunError('motion_target_source_unavailable')
@@ -57,6 +61,8 @@ def submit(manager, source_job, body):
                    inferred_contact_profile=CONTACT_PROFILE, depth_review_profile=DEPTH_PROFILE)
     if body.get('clip') is not None:
         request['clip'] = body['clip']
+    if 'projection' in body:
+        request['projection'] = dict(body['projection'])
     assert_current(manager, request)
     with manager._lock:
         if manager._closed or sum(j['status'] in {'pending', 'running'} for j in manager._jobs.values()) >= 2:

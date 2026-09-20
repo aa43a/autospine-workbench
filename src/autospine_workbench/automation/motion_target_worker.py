@@ -22,7 +22,7 @@ ANIMATION = 'external-motion'
 
 def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_digest, kimodo=None,
                     contact_correction=True, clip_bounds=None, inferred_contact_profile=None, depth_review_profile=None,
-                    on_stage=None):
+                    on_stage=None, oblique=None):
     """Only the animation changes; layers, meshes, weights and texture pixels stay exact."""
     source = json.loads(files['skeleton.json'])
     original = deepcopy(source)
@@ -33,13 +33,18 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
         setup['animations'] = {ANIMATION: {'bones': {}}}
         setup_vertices = sample(setup, ANIMATION, 0)[0]
     document, evidence = build(source, motion, ANIMATION)
+    if oblique is not None:
+        evidence['oblique_projection'] = oblique
     original_motion = motion
     motion = clip_motion(motion, clip_bounds)
     time_range = tuple(t/1_000_000 for t in clip_bounds) if clip_bounds else None
     issues = []
     from ..targets.character43.projected_lengths import build as add_lengths
     try:
-        if kimodo is None:
+        if oblique is not None:
+            from ..targets.character43.oblique_target import lengths as oblique_lengths
+            document, lengths = oblique_lengths(document, ANIMATION, oblique, time_range=time_range)
+        elif kimodo is None:
             document, lengths = add_lengths(document, ANIMATION, bvh, mapping, time_range=time_range)
         else:
             from ..targets.character43.kimodo_lengths import build as add_npz_lengths
@@ -101,7 +106,8 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
         from ..targets.character43.motion_depth import PROFILE as DEPTH_PROFILE, OVERLAP_PROFILE, build as inspect_depth
         if depth_review_profile not in (DEPTH_PROFILE, OVERLAP_PROFILE):
             raise ValueError('motion_depth_profile_unsupported')
-        depth = inspect_depth(document, bvh, mapping, kimodo=kimodo, clip_bounds=clip_bounds)
+        options = dict(yaw_degrees=oblique['yaw_degrees']) if oblique is not None else {}
+        depth = inspect_depth(document, bvh, mapping, kimodo=kimodo, clip_bounds=clip_bounds, **options)
         if depth_review_profile == OVERLAP_PROFILE:
             if on_stage:
                 on_stage('depth_overlap')
@@ -122,6 +128,8 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
     raw = canonical_bytes(document)
     result = {name: data for name, data in files.items() if name.endswith('.png') or name == 'skeleton.atlas'}
     result['skeleton.json'] = raw
+    if oblique is not None:
+        result['motion-projection.json'] = canonical_bytes(oblique)
     if setup_vertices is not None:
         result['rig-setup-reference.json'] = canonical_bytes(dict(skeleton_sha256=sha256(raw).hexdigest(),
                                                                  time=0, vertices=setup_vertices))
@@ -171,6 +179,10 @@ def execute(folder, state_root, workspace):
     motion_id = request['motion_identity']
     bundle = VerifiedMotionBundleReader(state_root).load(motion_id['clip_sha256'], motion_id['bundle_sha256'])
     motion = bundle.motion
+    oblique = None
+    if request.get('projection') is not None:
+        from ..targets.character43.oblique_target import prepare
+        motion, oblique = prepare(bundle, request['projection'])
     kimodo = (bundle.raw_npz, bundle.kimodo_source) if bundle.source_kind == 'kimodo_npz' else None
     bvh = None if kimodo else parse_bvh(bundle.raw_bvh)
     from ..bvh_fk import bvh_frame_ticks
@@ -185,6 +197,7 @@ def execute(folder, state_root, workspace):
         inferred_contact_profile=inferred_profile,
         depth_review_profile=request.get('depth_review_profile'),
         on_stage=lambda stage: progress(folder, stage),
+        oblique=oblique,
         clip_bounds=clip_bounds,
         character_digest=request['character_sha256'], motion_digest=motion_id['bundle_sha256'])
     progress(folder, 'publish_candidate')
@@ -196,6 +209,7 @@ def execute(folder, state_root, workspace):
                   animations=[ANIMATION], issues=evidence['issues'],
                   geometry_passed=geometry['passed'], contact_status=evidence['contact_status'],
                   clip=request.get('clip'),
+                  projection=request.get('projection'),
                   runtime_reference_profile=storage_reference or 'legacy_ideal_reference',
                   inferred_contact_profile=inferred_profile,
                   depth_order_status=evidence['depth_order_status'], authority='none', production_authorized=False)

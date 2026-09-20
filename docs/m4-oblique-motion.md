@@ -33,9 +33,29 @@ Reproduce with `tools/m4_oblique_candidates.py` and the frozen v3 plan; generate
 MotionIR documents, receipts and summary are under
 `../tmp/m4-motion-center/oblique-source-v1/`.
 
-This implementation compiles real source motion, but is not yet wired into the
-workbench target job contract. Next integration must propagate the same oblique
-basis into length, contact and depth evaluation and provide verified candidate
-storage. Reusing front-view depth evidence would be invalid. Root translation is
-reprojected; foot contact, target geometry and artwork remain to be evaluated.
-No side/back texture reconstruction or torso mesh deformation is implemented here.
+## Workbench target integration
+
+Target requests now accept an explicit `projection` with profile
+`constant-yaw-source-motion-v1` and `yaw_degrees` in [-90,90]. Omission retains the
+existing behavior. Retry preserves this selection. The motion center exposes a
+constant relative yaw selector only when the server advertises support; choosing
+a different source resets it. No source or reviewed character artifact is replaced.
+
+The worker compiles independent MotionIR, derives axial length ratios from the
+same projection receipt, and recomputes source depth using the same yaw. Original
+world-space source contact eligibility remains unchanged by camera yaw; target
+support correction and geometry are evaluated again on the new candidate. The
+receipt is part of the verified output inventory as `motion-projection.json`.
+
+First actual target: Alice walking at -45 degrees,
+`motion-650a3b14b51b49ec93638451f8474fee`, artifact
+`6088dbcb780444e8a164a1d7dae15302ee55ba75abf2bcb6ba68b51ae475e2b7`.
+It completed 377 official Runtime frames with geometry passing. Contact remains
+`inferred_proxy_drift` and depth remains `depth_candidates_need_review`; this is
+not an accepted motion. The independent side-view cohort continues separately.
+
+Validation: 29 related backend tests and browser checks for explicit selection,
+source-change reset and omitted-projection compatibility. No side/back texture
+reconstruction or torso mesh deformation is implemented here. Current capture
+and source projection success do not imply that front artwork looks correct
+under every oblique motion.

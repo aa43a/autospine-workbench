@@ -1,5 +1,6 @@
 """Source-bound arm/torso depth candidates; no implicit draw-order adoption."""
 from hashlib import sha256
+import math
 
 from ...bvh_fk import project_bvh_frames
 from ...depth_order_schmitt import evaluate_depth_pair
@@ -9,10 +10,12 @@ PROFILE = 'external-arm-torso-depth-review-v1'
 OVERLAP_PROFILE = 'external-arm-torso-depth-overlap-v2'
 
 
-def _source(bvh, mapping, kimodo):
+def _source(bvh, mapping, kimodo, yaw_degrees=None):
+    angle=math.radians(yaw_degrees or 0); c,s=math.cos(angle),math.sin(angle)
     if kimodo is None:
         projected = project_bvh_frames(bvh, mapping)
-        return [(f.tick, {n: p.depth for n, p in f.joints}) for f in projected.frames], \
+        return [(f.tick, {n: p.depth if yaw_degrees is None else s*p.screen_xy[0]+c*p.depth
+                         for n, p in f.joints}) for f in projected.frames], \
             mapping['root']['reference_length_source_units'], bvh.source_sha256
     from ...kimodo_npz_reader import decode_kimodo_npz
     from ...kimodo_npz_consistency import validate_kimodo_consistency
@@ -23,7 +26,9 @@ def _source(bvh, mapping, kimodo):
     require_kimodo_npz_map(mapping, source=source)
     validated = validate_kimodo_consistency(decode_kimodo_npz(raw, source), source)
     axis = mapping['basis']['depth']; index = 'XYZ'.index(axis[1]); sign = 1 if axis[0] == '+' else -1
-    rows = [(tick, {n: sign*positions[i][index] for n, i in SOMA77_INDEX_BY_NAME.items()})
+    xaxis=mapping['basis']['screen_x']; xindex='XYZ'.index(xaxis[1]); xsign=1 if xaxis[0]=='+' else -1
+    rows = [(tick, {n: sign*positions[i][index] if yaw_degrees is None else
+                   s*xsign*positions[i][xindex]+c*sign*positions[i][index] for n, i in SOMA77_INDEX_BY_NAME.items()})
             for tick, positions in zip(kimodo_frame_ticks(source), validated.positions)]
     return rows, mapping['root']['reference_length_meters'], sha256(raw).hexdigest()
 
@@ -58,8 +63,12 @@ def _slots(document):
     return result
 
 
-def build(document, bvh, mapping, *, kimodo=None, clip_bounds=None):
-    frames, length, source_sha = _source(bvh, mapping, kimodo)
+def build(document, bvh, mapping, *, kimodo=None, clip_bounds=None, yaw_degrees=None):
+    if yaw_degrees is not None:
+        from .oblique_target import validate
+        from .oblique_motion import PROFILE as OBLIQUE_PROFILE
+        validate(dict(profile=OBLIQUE_PROFILE,yaw_degrees=yaw_degrees))
+    frames, length, source_sha = _source(bvh, mapping, kimodo, yaw_degrees)
     roles = {r['role']: r for r in mapping['bones']}
     groups = _slots(document)
     report = dict(profile=PROFILE, authority='none', selected=False, source_sha256=source_sha,
@@ -70,6 +79,9 @@ def build(document, bvh, mapping, *, kimodo=None, clip_bounds=None):
         limitations=['source_depth_does_not_prove_target_pixel_overlap',
                      'straddling_arm_requires_partition_or_review', 'unclassified_slots_keep_setup_order'])
     torso = roles.get('humanoid.spine.upper')
+    if yaw_degrees is not None:
+        report.update(projection_profile=OBLIQUE_PROFILE,yaw_degrees=yaw_degrees,
+                      depth_axis='yaw_rotated_declared_basis')
     if not torso or not groups['torso']:
         report['status'] = 'depth_mapping_unavailable'
         return report

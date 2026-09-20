@@ -50,6 +50,7 @@ class MotionIntakeJobs:
         return dict(authority='none', jobs=jobs, formats=['fbx', 'bvh', 'npz'],
                     stage_review_available=True,
                     view_comparison_available=True,
+                    oblique_target_available=True,
                     blender_available=bool(self.blender and Path(self.blender).is_file()),
                     kimodo_generation=availability(self), npz_import='soma77_explicit_profile')
 
@@ -149,6 +150,8 @@ class MotionIntakeJobs:
             body['contact_correction'] = request.get('contact_correction', True)
             if request.get('clip') is not None:
                 body['clip'] = request['clip']
+            if request.get('projection') is not None:
+                body['projection'] = request['projection']
             return submit(self, request['source_job_id'], body)
         raw = read_real_file(self.folder(job) / ('source.' + request['format']), MAX_UPLOAD, 'motion source')
         if sha256(raw).hexdigest() != request['source_sha256']:

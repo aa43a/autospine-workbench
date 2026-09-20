@@ -138,12 +138,15 @@ class MotionTargetTests(unittest.TestCase):
                 self.assertEqual(request['inferred_contact_profile'], 'external-phase-contact-auto-v1')
                 assert_current(manager, request)
                 disabled = submit(manager, queued['job_id'], dict(project_id='alice',
-                    character_job_id='job-'+'c'*32, contact_correction=False, clip=dict(start_frame=0, end_frame=1)))
+                    character_job_id='job-'+'c'*32, contact_correction=False, clip=dict(start_frame=0, end_frame=1),
+                    projection=dict(profile='constant-yaw-source-motion-v1',yaw_degrees=30)))
                 manager._jobs[disabled['job_id']].update(status='failed')
                 with patch('autospine_workbench.automation.motion_target_jobs.submit') as retry:
                     manager.retry(disabled['job_id'])
                     self.assertFalse(retry.call_args.args[2]['contact_correction'])
                     self.assertEqual(retry.call_args.args[2]['clip'], dict(start_frame=0, end_frame=1))
+                    self.assertEqual(retry.call_args.args[2]['projection'],
+                                     dict(profile='constant-yaw-source-motion-v1',yaw_degrees=30))
                 character['artifact_sha256'] = 'd'*64
                 with self.assertRaisesRegex(PipelineRunError, 'motion_target_character_changed'):
                     assert_current(manager, request)
