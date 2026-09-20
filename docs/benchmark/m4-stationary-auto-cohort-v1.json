@@ -1,0 +1,128 @@
+{
+  "schema": "autospine.m4-stationary-auto-cohort/v1",
+  "date": "2026-09-20",
+  "source_job_id": "motion-c52561d5d07946539a8ca0da57e218e0",
+  "profile": "external-stationary-contact-auto-v1",
+  "records": [
+    {
+      "character": "alice",
+      "job_id": "motion-0092d8de2d054d188a5a77aa0f3e9d2a",
+      "artifact_sha256": "7aea82a5e32c91a6d54823020cd869fcf9db7617462879a11c5e3f7b813df380",
+      "geometry_passed": true,
+      "runtime_frames": 1108,
+      "runtime_report_sha256": "5a22d68fa3403afbc8942de04f2cb576ecb7079cd49d0d88e123b7ebdeee323f",
+      "contact_status": "inferred_proxy_corrected",
+      "before_px": 26.172938316284828,
+      "after_px": 0.0011405958689967512,
+      "selected": true,
+      "source_eligibility": {
+        "eligible": true,
+        "map_sha256": "a2a0ed3db70e5e0806c41435ae44b4a8d14ef8d27dac5548da88b09456119633",
+        "maximum_drift_ratio": 0.01,
+        "profile": "source-bilateral-full-clip-stationarity-v1",
+        "reason": "source_ankles_stationary",
+        "records": [
+          {
+            "joint": "LeftFoot",
+            "limb": "leg.left",
+            "maximum_drift_ratio": 0.0072309058963290745,
+            "passed": true,
+            "worst_tick": 3366667
+          },
+          {
+            "joint": "RightFoot",
+            "limb": "leg.right",
+            "maximum_drift_ratio": 0.0015816158897664643,
+            "passed": true,
+            "worst_tick": 3100000
+          }
+        ],
+        "scope": "ankle_stationarity_not_floor_contact",
+        "source_sha256": "55754b8cfb4e8d4f3915903cc508ebcdd011fa3276404cf78b4abbef4ac21920"
+      },
+      "max_endpoint_shift_px": 4.350010410291211,
+      "visual_accepted": false,
+      "depth_status": "not_evaluated"
+    },
+    {
+      "character": "huiye",
+      "job_id": "motion-8ca5593bc9b7499eab390d6bdaf1b5ca",
+      "artifact_sha256": "dd360e084231081cacd03bab4df412013f502d4e3cef021ab36cb2e01210952c",
+      "geometry_passed": true,
+      "runtime_frames": 1108,
+      "runtime_report_sha256": "9368dc28ec960d396cfae771837d56eda7e078bc37309cc83b4165ac79262a4e",
+      "contact_status": "inferred_proxy_corrected",
+      "before_px": 36.025391277569035,
+      "after_px": 0.0017473703938932434,
+      "selected": true,
+      "source_eligibility": {
+        "eligible": true,
+        "map_sha256": "a2a0ed3db70e5e0806c41435ae44b4a8d14ef8d27dac5548da88b09456119633",
+        "maximum_drift_ratio": 0.01,
+        "profile": "source-bilateral-full-clip-stationarity-v1",
+        "reason": "source_ankles_stationary",
+        "records": [
+          {
+            "joint": "LeftFoot",
+            "limb": "leg.left",
+            "maximum_drift_ratio": 0.0072309058963290745,
+            "passed": true,
+            "worst_tick": 3366667
+          },
+          {
+            "joint": "RightFoot",
+            "limb": "leg.right",
+            "maximum_drift_ratio": 0.0015816158897664643,
+            "passed": true,
+            "worst_tick": 3100000
+          }
+        ],
+        "scope": "ankle_stationarity_not_floor_contact",
+        "source_sha256": "55754b8cfb4e8d4f3915903cc508ebcdd011fa3276404cf78b4abbef4ac21920"
+      },
+      "max_endpoint_shift_px": 2.9669156203483946,
+      "visual_accepted": false,
+      "depth_status": "not_evaluated"
+    },
+    {
+      "character": "hongmeiling",
+      "job_id": "motion-fa8bf9a59c9e43d9aea79522303523b5",
+      "artifact_sha256": "f7a0b7e6f9accf79768336b990ab8f466d9a97d8e2f97fbb852857b6d0063379",
+      "geometry_passed": true,
+      "runtime_frames": 1108,
+      "runtime_report_sha256": "c2fdb8d2b8ad868dd97ca29a2898a421a934d6d34e825ec3b6da410e9a93b341",
+      "contact_status": "inferred_proxy_corrected",
+      "before_px": 42.211088748998144,
+      "after_px": 0.0018550367362645793,
+      "selected": true,
+      "source_eligibility": {
+        "eligible": true,
+        "map_sha256": "a2a0ed3db70e5e0806c41435ae44b4a8d14ef8d27dac5548da88b09456119633",
+        "maximum_drift_ratio": 0.01,
+        "profile": "source-bilateral-full-clip-stationarity-v1",
+        "reason": "source_ankles_stationary",
+        "records": [
+          {
+            "joint": "LeftFoot",
+            "limb": "leg.left",
+            "maximum_drift_ratio": 0.0072309058963290745,
+            "passed": true,
+            "worst_tick": 3366667
+          },
+          {
+            "joint": "RightFoot",
+            "limb": "leg.right",
+            "maximum_drift_ratio": 0.0015816158897664643,
+            "passed": true,
+            "worst_tick": 3100000
+          }
+        ],
+        "scope": "ankle_stationarity_not_floor_contact",
+        "source_sha256": "55754b8cfb4e8d4f3915903cc508ebcdd011fa3276404cf78b4abbef4ac21920"
+      },
+      "max_endpoint_shift_px": 8.127083590145073,
+      "visual_accepted": false,
+      "depth_status": "not_evaluated"
+    }
+  ]
+}

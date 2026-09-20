@@ -72,12 +72,18 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
         from ..motion2d.contact_candidate import infer
         document, contact = measure(document, ANIMATION, motion, times, evidence['reference_length_px'],
                                     infer(bvh, mapping), clip_bounds=clip_bounds)
+        from ..targets.character43.stationary_contact_policy import PROFILE as AUTO_PROFILE, select
+        if inferred_contact_profile == AUTO_PROFILE:
+            document, contact = select(document, ANIMATION, motion, times, evidence['reference_length_px'],
+                                       contact, bvh, mapping, enabled=contact_correction, clip_bounds=clip_bounds)
     if contact['status'] == 'inferred_proxy_drift':
         issues.append(dict(stage='contact', reason_code='motion_inferred_contact_drift'))
     if contact['status'] == 'needs_changes':
         issues.append(dict(stage='contact', reason_code='motion_contact_drift_needs_changes'))
     if contact['selected']:
         times = sorted(set(times) | {k['time'] for k in document['animations'][ANIMATION]['bones']['root']['translate']})
+        if contact['status'] == 'inferred_proxy_corrected':
+            times = sorted(set(times) | {s['time'] for r in contact['after']['intervals'] for s in r['samples']})
     frames = [dict(time=t, vertices=sample(document, ANIMATION, t)[0]) for t in times]
     raw = canonical_bytes(document)
     result = {name: data for name, data in files.items() if name.endswith('.png') or name == 'skeleton.atlas'}
@@ -118,7 +124,8 @@ def execute(folder, state_root, workspace):
         raise ValueError('motion_runtime_reference_profile_unsupported')
     from ..targets.character43.inferred_contacts import PROFILE as CONTACT_PROFILE
     inferred_profile = request.get('inferred_contact_profile')
-    if inferred_profile not in (None, CONTACT_PROFILE):
+    from ..targets.character43.stationary_contact_policy import PROFILE as AUTO_PROFILE
+    if inferred_profile not in (None, CONTACT_PROFILE, AUTO_PROFILE):
         raise ValueError('motion_inferred_contact_profile_unsupported')
     store = AnimatedStore(state_root)
     progress(folder, 'retarget')

@@ -2,12 +2,17 @@
 from html import escape
 
 STATES = {'unavailable_no_labels': '源动作无接触标签，不能判断接触是否正确',
+          'inferred_proxy_corrected': '已采用有界修正，保持源动作近静止的踝部位置',
           'inferred_proxy_passed': '推断区间内踝部位移通过采样门槛，接触本身尚未验证',
           'inferred_proxy_drift': '推断区间内存在踝部位移，需要检查支撑假设与动作',
           'inferred_support_unavailable': '当前片段没有足够支撑推断证据',
           'ankle_proxy_passed': '踝部支点采样通过', 'ankle_proxy_corrected': '已采用小幅根骨修正',
           'needs_changes': '支撑期存在滑移，需要调整'}
 REASONS = {'motion_contact_correction_disabled': '本次关闭了自动修正',
+           'full_bilateral_support_not_observed': '尚未观察到全片双脚支撑，保留原动作',
+           'source_ankle_drift_exceeds_limit': '源踝部本身有明显位移，不应锁定',
+           'stationary_target_limits_failed': '目标修正超出位移、速度或残差限制',
+           'stationary_target_geometry_failed': '修正引入网格异常，已保留原动作',
            'inferred_contact_not_authorized_for_locking': '推断区间仅供测量，不自动锁脚',
            'motion_contact_correction_limit_or_conflict': '所需位移过大或双脚目标冲突',
            'motion_contact_transition_too_fast': '接触切换的修正速度过大',
@@ -28,6 +33,13 @@ def render(report):
     correction = report.get('correction')
     detail = (f'<p>尝试修正峰值：{correction["max_correction_px"]:.3f} px；'
               f'双脚目标残差：{correction["max_residual_px"]:.3f} px。</p>') if correction else ''
+    stationary = report.get('stationary_source')
+    if stationary:
+        ratios = ' / '.join(f'{r["maximum_drift_ratio"]:.2%}' for r in stationary['records'])
+        detail += f'<p>源双踝三维位移 / 源腿长：{ratios or "未形成完整双脚区间"}；自动策略上限 1%。</p>'
+    attempt = report.get('stationary_attempt')
+    if attempt and 'max_endpoint_shift_px' in attempt:
+        detail += f'<p>踝端平移峰值 {attempt["max_endpoint_shift_px"]:.3f} px；上限为目标腿长的 2%。骨架、权重与贴图保持不变。</p>'
     body = f'''<!doctype html><html lang="zh-CN"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>动作接触检查</title>
 <style>body{{font:16px system-ui;background:#101922;color:#e7edf4;margin:24px;line-height:1.6}}
