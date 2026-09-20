@@ -1,0 +1,36 @@
+{
+  "schema": "autospine.m4-runtime-storage-evidence/v1",
+  "date": "2026-09-20",
+  "failed_job_id": "motion-fc64b30b756545588d65a2fee37d344d",
+  "unchanged_candidate_sha256": "a0d20d0734b117f2a8b38d24379cb8825f453c68793a15bc94cf31f579348685",
+  "failure": {
+    "reason_code": "official_pose_mismatch",
+    "time": 1.128125,
+    "slot": "layer-002-component-0000",
+    "vertex": 222,
+    "error_px": 0.001476765535233227,
+    "tolerance_px": 0.001
+  },
+  "runtime_storage_capture": {
+    "profile": "spine43-linear-weighted-float32-storage-v1",
+    "runtime_version": "4.3.13",
+    "frames": 313,
+    "slots": 22,
+    "max_error_px": 0.00016403145303431696,
+    "unchanged_tolerance_px": 0.001,
+    "ideal_to_storage_max_displacement_px": 0.0013323686649362471,
+    "capture_report_sha256": "422bb35736e1b621231fca4f89818908cf244ccea8598c9a378d4b4add69f92e",
+    "storage_reference_sha256": "ab8a2d5ae34d64a94083b6eb9f0ab9c8c581e417562b93aef6f6bcbd83a4ff4f",
+    "setup_missing_visible_pixels": 0,
+    "setup_unexpected_visible_pixels": 0,
+    "setup_pma_pixels_error_over_2": 0,
+    "ideal_geometry_failed_records": 1,
+    "human_visual_accepted": false
+  },
+  "source_rig_animation_bytes_changed": false,
+  "default_profile_selection": "new_submission_request_only_legacy_requests_remain_ideal",
+  "live_service_activation": "deferred_until_running_fixed_baseline_finishes",
+  "tests_passed": 15,
+  "milestone_complete": false,
+  "production_authorized": false
+}

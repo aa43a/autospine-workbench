@@ -13,7 +13,7 @@
   const data=new spine.SkeletonJson(new spine.AtlasAttachmentLoader(atlas)).readSkeletonData(doc);
   if(JSON.stringify(data.animations.map(a=>a.name).sort())!==JSON.stringify(Object.keys(reference.animations).sort()))throw Error('animation_inventory');
   let left=Infinity,bottom=Infinity,right=-Infinity,top=-Infinity;
-  const envelopes=[...Object.values(reference.animations),...(reference.setup?[[reference.setup]]:[])];
+  const envelopes=[...Object.values(reference.animations),...Object.values(reference.idealAnimations??{}),...(reference.setup?[[reference.setup]]:[])];
   for(const frames of envelopes)for(const frame of frames)for(const points of Object.values(frame.vertices))for(const [x,y]of points){
     if(!Number.isFinite(x)||!Number.isFinite(y))throw Error('nonfinite_reference');
     left=Math.min(left,x);bottom=Math.min(bottom,y);right=Math.max(right,x);top=Math.max(top,y);
@@ -35,7 +35,7 @@
     if(animation!==null){state.setAnimation(0,animation,false);state.update(frame.time);state.apply(skeleton);}
     skeleton.updateWorldTransform(spine.Physics.update);
     if(JSON.stringify(skeleton.slots.map(s=>s.data.name).sort())!==JSON.stringify(Object.keys(frame.vertices).sort()))throw Error('slot_inventory');
-    let error=0,probes=0;
+    let error=0,probes=0,worst=null;
     for(const slot of skeleton.slots){
       const attachment=slot.appliedPose.attachment,points=frame.vertices[slot.data.name];
       if(!attachment||!Number.isInteger(attachment.worldVerticesLength))throw Error('attachment_missing');
@@ -44,10 +44,16 @@
       if(vertices.length!==points.length*2)throw Error('vertex_inventory');
       for(let i=0;i<points.length;i++){
         const delta=Math.hypot(vertices[2*i]-points[i][0],vertices[2*i+1]-points[i][1]);
-        if(!Number.isFinite(delta))throw Error('nonfinite_vertices');error=Math.max(error,delta);probes++;
+        if(!Number.isFinite(delta))throw Error('nonfinite_vertices');
+        if(delta>error){error=delta;worst={slot:slot.data.name,vertex:i,expected:points[i],actual:[vertices[2*i],vertices[2*i+1]]};}
+        probes++;
       }
     }
-    if(error>.001)throw Error('official_pose_mismatch');
+    if(error>.001){
+      window.captureFailure={reason_code:'official_pose_mismatch',animation,index,time:frame.time,
+        max_error_px:error,tolerance_px:.001,...worst};
+      throw Error('official_pose_mismatch');
+    }
     gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);
     renderer.begin();renderer.drawSkeleton(skeleton);renderer.end();
     gl.readPixels(0,0,canvas.width,canvas.height,gl.RGBA,gl.UNSIGNED_BYTE,pixels);

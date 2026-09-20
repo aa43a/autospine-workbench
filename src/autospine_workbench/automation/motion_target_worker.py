@@ -105,6 +105,10 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
 
 def execute(folder, state_root, workspace):
     request = read_document(folder / 'request.json')
+    from ..targets.character43.runtime_storage_reference import PROFILE
+    storage_reference = request.get('runtime_reference_profile')
+    if storage_reference not in (None, PROFILE):
+        raise ValueError('motion_runtime_reference_profile_unsupported')
     store = AnimatedStore(state_root)
     progress(folder, 'retarget')
     motion_id = request['motion_identity']
@@ -126,11 +130,13 @@ def execute(folder, state_root, workspace):
     progress(folder, 'publish_candidate')
     digest = store.publish(files)
     runtime = capture(SimpleNamespace(workspace_root=workspace), store, digest, folder,
-                      progress=lambda stage: progress(folder, 'runtime'), cancel_requested=lambda: False)
+                      progress=lambda stage: progress(folder, 'runtime'), cancel_requested=lambda: False,
+                      storage_reference=storage_reference == PROFILE)
     result = dict(artifact_sha256=digest, character_animation_status=evidence['status'], runtime=runtime,
                   animations=[ANIMATION], issues=evidence['issues'],
                   geometry_passed=geometry['passed'], contact_status=evidence['contact_status'],
                   clip=request.get('clip'),
+                  runtime_reference_profile=storage_reference or 'legacy_ideal_reference',
                   depth_order_status='not_evaluated', authority='none', production_authorized=False)
     (folder / 'worker-result.json').write_bytes(canonical_bytes(result))
 

@@ -47,10 +47,11 @@ def submit(manager, source_job, body):
     project, character_job = body['project_id'], body['character_job_id']
     characters.verified_files(project, character_job)
     character = characters.get(project, character_job)
+    from ..targets.character43.runtime_storage_reference import PROFILE
     request = dict(kind='adapt', source_job_id=source_job, source_job_sha256=canonical_sha256(source),
                    motion_identity=source['result']['motion'], project_id=project, character_job_id=character_job,
                    character_sha256=character['artifact_sha256'], name=source['name'],
-                   contact_correction=body.get('contact_correction', True))
+                   contact_correction=body.get('contact_correction', True), runtime_reference_profile=PROFILE)
     if body.get('clip') is not None:
         request['clip'] = body['clip']
     assert_current(manager, request)

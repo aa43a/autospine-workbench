@@ -62,6 +62,8 @@ class MotionTargetTests(unittest.TestCase):
             self.assertEqual(store.read(original), files)
             self.assertIn('external-motion', json.loads(store.read(receipt['artifact_sha256'])['skeleton.json'])['animations'])
             capture.assert_called_once()
+            self.assertFalse(capture.call_args.kwargs['storage_reference'])
+            self.assertEqual(receipt['runtime_reference_profile'], 'legacy_ideal_reference')
 
     def test_only_animation_changes_and_geometry_is_resampled(self):
         files, clip, bvh, mapping = inputs()
@@ -102,6 +104,7 @@ class MotionTargetTests(unittest.TestCase):
                 value = submit(manager, queued['job_id'], dict(project_id='alice', character_job_id='job-'+'c'*32))
                 request = read_document(manager.folder(value['job_id']) / 'request.json')
                 self.assertTrue(request['contact_correction'])
+                self.assertEqual(request['runtime_reference_profile'], 'spine43-linear-weighted-float32-storage-v1')
                 assert_current(manager, request)
                 disabled = submit(manager, queued['job_id'], dict(project_id='alice',
                     character_job_id='job-'+'c'*32, contact_correction=False, clip=dict(start_frame=0, end_frame=1)))

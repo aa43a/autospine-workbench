@@ -28,7 +28,7 @@ def review_name(name):
     return name
 
 
-def capture(projects, store, digest, root, *, progress, cancel_requested):
+def capture(projects, store, digest, root, *, progress, cancel_requested, storage_reference=False):
     options = discover(projects.workspace_root)
     if not options:
         return dict(status='unavailable',reason_code='character_runtime_environment_missing')
@@ -56,6 +56,12 @@ def capture(projects, store, digest, root, *, progress, cancel_requested):
         ['node',str(repo/'tools/capture-character-runtime.mjs'),str(store.root/digest),str(output),dependencies,browser],
         [sys.executable,str(repo/'tools/review-character-setup.py'),str(store.root/digest),str(output),str(output/'setup')],
     ]
+    if storage_reference:
+        from ..targets.character43.runtime_storage_reference import build
+        storage = build(candidate)
+        path = root/'runtime-storage-reference.json'
+        path.write_bytes(canonical_bytes(storage))
+        commands[0].extend(['32', '{}', str(path)])
     for index, command in enumerate(commands):
         if cancel_requested(): raise ValueError('character_build_canceled')
         with (root/f'capture-{index}.log').open('wb') as log:
