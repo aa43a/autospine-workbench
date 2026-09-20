@@ -1,0 +1,25 @@
+{
+  "schema": "autospine.m4-stationary-ankle-experiment/v1",
+  "date": "2026-09-20",
+  "source_job_id": "motion-c52561d5d07946539a8ca0da57e218e0",
+  "source_artifact_sha256": "a14c12420a70789a1c6a206fdb121fef2ecf3e330fa98c1c17908f46a49687da",
+  "candidate_sha256": "79e0b45b7e4791921e2cf9f70af79ad3215514ba1abddd1c78ce787645b53a88",
+  "profile": "bilateral-stationary-ankle-translation-v1",
+  "source_drift_reference_ratios": {"left": 0.0072309058963290745, "right": 0.0015816158897664643},
+  "target_before_px": 26.172938316284828,
+  "shared_root_only_residual_px": 4.350010410291171,
+  "rotation_experiment": {"adopted": false, "residual_px": 5.847122879505668, "failed_knots": 124},
+  "endpoint_candidate": {
+    "maximum_world_shift_px": 4.350010410291211,
+    "maximum_speed_px_per_second": 6.346161191257727,
+    "root_maximum_speed_px_per_second": 34.85561664158514,
+    "target_after_px": 0.0011405958689967512
+  },
+  "geometry_passed": true,
+  "runtime_frames": 1108,
+  "runtime_slots": 26,
+  "runtime_report_sha256": "931c1f5fdbfa0ef267fc48bd5e3c805685c6c7bb72cfa1cd5c18415fe018c997",
+  "visual_accepted": false,
+  "automatic_workbench_adoption": false,
+  "scope": "bilateral_full_clip_ankle_proxy_not_sole_floor_or_occlusion_validation"
+}
