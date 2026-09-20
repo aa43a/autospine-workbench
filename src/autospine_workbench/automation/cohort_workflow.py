@@ -44,6 +44,8 @@ def summarize(intake, observations):
                     human_review_minutes=None, incorrect_auto_adoption_rate=None),
                 unmeasured_reasons=dict(human_review_minutes='operation_timing_not_available',
                     incorrect_auto_adoption_rate='independent_labels_not_available'))
+    from .character_review_timing import summarize as timing_summary
+    result['metrics']['visual_review_timing'] = timing_summary(rows)
     if any('auto_binding_audit' in o for o in observations.values()):
         from .character_auto_audit_metrics import summarize as audit_metrics
         result['metrics']['auto_binding_audit'] = audit_metrics(observations)

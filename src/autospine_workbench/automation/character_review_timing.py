@@ -13,3 +13,15 @@ def valid(value):
 def minutes(review):
     value=(review or {}).get('timing')
     return value['seconds']/60 if valid(value) else None
+
+
+def summarize(rows):
+    """Count measured current-candidate sessions, keeping missing time unknown."""
+    measured = [r['visual_review_session_minutes'] for r in rows
+                if r.get('visual_review_session_minutes') is not None]
+    return dict(scope='current_candidate_visual_review_sessions_only',
+                measured_characters=len(measured), total_characters=len(rows),
+                unmeasured_character_ids=[r.get('character_id', r['project_id']) for r in rows
+                                          if r.get('visual_review_session_minutes') is None],
+                measured_minutes=math.fsum(measured) if measured else None,
+                all_characters_measured=bool(rows) and len(measured)==len(rows))
