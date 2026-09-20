@@ -197,3 +197,33 @@ Evidence: `../tmp/m4-motion-center/regional-depth-order-hong-v1.json`. No new
 ordered candidate was generated. The next depth model must address chest/helper
 mixtures rather than treating an entire skirt layer as chest or dropping its
 visible ordering constraints.
+
+## Explicit garment-plane and palm-depth experiment
+
+`cloth_depth_plane.py` fits an affine depth plane to current target shoulder and
+pelvis anchors using their exact source BVH depths, normalized to the same source
+reference length as arm depths. Near-collinear projected anchors abstain. This
+assumes planar cloth without thickness or out-of-plane motion; it is not a
+reconstruction of the garment surface. The model only changes experimental depth
+comparisons, not the exported mesh positions or current candidate.
+
+`tools/m4_cloth_depth_probe.py JOB PARTITION_DIRECTORY ORDER_REPORT OUTPUT`
+checks the recorded cycle frames and their next midpoints against this plane.
+Identity checks bind the source artifact, request and partition skeleton; report
+hashes record the ordering input. `--hand-depth` optionally adds the explicit
+Mixamo wrist-to-middle-knuckle segment when its name and direct parent relation
+are verified. Missing hands stay unknown. The assumed correspondence between
+this source palm axis and the target hand axis is recorded separately; no finger
+joint, animation channel or garment depth is fabricated.
+
+The six Hongmeiling conflict intervals give 12 samples: two have no overlap and
+ten remain uncertain. Adding actual palm observations increases known-front
+coverage at 1.466667 s from 681 to 1,195 pixels and reduces unknown coverage from
+1,035 to 521, but none of the ten visible samples becomes uniformly classifiable.
+The existing endpoint-cap bound is not expanded to force success. No ordering
+candidate is produced or accepted by this diagnostic.
+
+Evidence: `../tmp/m4-motion-center/cloth-plane-hong-v1.json` and
+`../tmp/m4-motion-center/cloth-plane-hong-hands-v1.json`. Tests cover plane anchor
+interpolation, coordinate translation, degenerate views, relative depth against
+a tilted plane, source FK continuity and verified/missing palm topology.

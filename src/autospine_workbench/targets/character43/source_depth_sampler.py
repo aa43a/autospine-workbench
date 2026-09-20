@@ -20,7 +20,7 @@ class SegmentDepthSampler:
         self.channels=[c for j in bvh.joints for c in j.channels]
         self.angle=math.radians(yaw_degrees)
 
-    def __call__(self,tick):
+    def joint_depths(self,tick):
         if not math.isfinite(tick) or not self.ticks[0] <= tick <= self.ticks[-1]:
             raise ValueError('depth_sampler_time_invalid')
         index=min(bisect_right(self.ticks,tick)-1,len(self.ticks)-1)
@@ -41,11 +41,22 @@ class SegmentDepthSampler:
             return math.sin(self.angle)*values[0]+math.cos(self.angle)*values[1]
         reference=z(self.roles['humanoid.spine.upper']['joint_name'])
         length=self.mapping['root']['reference_length_source_units']
+        return {name:(z(name)-reference)/length for name in self.indices}
+
+    def torso_anchors(self,tick):
+        depths=self.joint_depths(tick)
+        return {bone:depths[name] for bone,name in (
+            ('upperarm_l',self.roles['humanoid.arm.upper.left']['joint_name']),
+            ('upperarm_r',self.roles['humanoid.arm.upper.right']['joint_name']),
+            ('pelvis',self.mapping['root']['joint_name']))}
+
+    def __call__(self,tick):
+        depths=self.joint_depths(tick)
         segments={}
         for side,suffix in [('left','l'),('right','r')]:
             for part,bone in [('upper','upperarm'),('lower','forearm')]:
                 role=self.roles.get('humanoid.arm.'+part+'.'+side)
                 if role and role['aim']['kind']=='joint':
-                    segments[bone+'_'+suffix]=tuple((z(n)-reference)/length
+                    segments[bone+'_'+suffix]=tuple(depths[n]
                         for n in (role['joint_name'],role['aim']['joint_name']))
         return segments
