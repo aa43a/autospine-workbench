@@ -25,14 +25,17 @@ export function characterProgress(job,confirmed=[],review=null,dirty=false,audit
  return rows;
 }
 
-export function createCharacterProgress(document,reviewAction){
+export function createCharacterProgress(document,reviewAction,auditAction){
  const node=(tag,text='')=>{const n=document.createElement(tag);n.textContent=text;return n;};
  const element=node('section'),list=node('ul'),button=node('button','查看并记录视觉复核');
  element.className='character-progress';element.setAttribute('aria-label','整角色完成情况');
  button.type='button';button.className='button button-secondary';button.addEventListener('click',reviewAction);
- element.append(node('h4','当前还差什么'),list,button);
+ const auditButton=node('button','自动绑定抽查');
+ auditButton.type='button';auditButton.className='button button-secondary';auditButton.addEventListener('click',()=>auditAction?.());
+ element.append(node('h4','当前还差什么'),list,button,auditButton);
  return {element,sync(job,confirmed,review,disabled,audit=null){
   list.replaceChildren(...characterProgress(job,confirmed,review,disabled,audit).map(text=>node('li',text)));
   button.disabled=disabled||job?.status!=='needs_review'||!job.runtime?.files?.['report.json'];
+  auditButton.disabled=button.disabled||!auditAction;
  }};
 }

@@ -82,7 +82,9 @@ export function createWorkbenchCharacter(document, hooks, options={}) {
   for(const link of [runtime,setup]){link.className="button button-secondary";link.target="_blank";link.rel="noopener";element.append(link);}
   element.append(shoulder.element);
   const visualReview=createCharacterReview(document,hooks,{changed:()=>render()}),visualSection=node("section"),visualFold=node("details");
-  const progress=createCharacterProgress(document,()=>{visualFold.open=true;void visualReview.request();visualFold.scrollIntoView?.({block:"nearest"});});
+  const progress=createCharacterProgress(document,()=>{visualFold.open=true;void visualReview.request();visualFold.scrollIntoView?.({block:"nearest"});},()=>{
+    autoAudit.element.open=true;void autoAudit.ensureLoaded();autoAudit.element.scrollIntoView?.({block:"start"});
+  });
   visualSection.append(progress.element);
   visualFold.append(node("summary","记录整角色视觉验收"),visualReview.element);visualSection.append(visualFold);element.append(visualSection,mounts.element,weightedReview.element,detail);
   actions.append(exclusions);
