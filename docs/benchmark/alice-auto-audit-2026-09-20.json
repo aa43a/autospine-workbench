@@ -1,0 +1,135 @@
+{
+  "artifact_sha256": "6e5c59db4ef072075b798efab12acf8ffdc883368a61a4bf3c1646305ef68b98",
+  "authority": "none",
+  "inventory": [
+    {
+      "decision_sha256": "4374266915b5c296acdc5459f9a353341e9aee1f1b5481fd37dcbd134b7c8511",
+      "layer_id": "layer-007",
+      "name": "neck",
+      "option_id": "rigid:neck",
+      "policy_id": "reviewed-head-anchor-binding-v4"
+    },
+    {
+      "decision_sha256": "ea41c5b679740cd977f564981cbf9a2ce0aa8ba9e712333106dd5c8a20a373c4",
+      "layer_id": "layer-009",
+      "name": "eyebrow-r",
+      "option_id": "rigid:head",
+      "policy_id": "reviewed-head-anchor-binding-v4"
+    },
+    {
+      "decision_sha256": "ea41c5b679740cd977f564981cbf9a2ce0aa8ba9e712333106dd5c8a20a373c4",
+      "layer_id": "layer-011",
+      "name": "eyebrow-l",
+      "option_id": "rigid:head",
+      "policy_id": "reviewed-head-anchor-binding-v4"
+    },
+    {
+      "decision_sha256": "4374266915b5c296acdc5459f9a353341e9aee1f1b5481fd37dcbd134b7c8511",
+      "layer_id": "layer-013",
+      "name": "face",
+      "option_id": "rigid:head",
+      "policy_id": "reviewed-head-anchor-binding-v4"
+    },
+    {
+      "decision_sha256": "ea41c5b679740cd977f564981cbf9a2ce0aa8ba9e712333106dd5c8a20a373c4",
+      "layer_id": "layer-014",
+      "name": "mouth",
+      "option_id": "rigid:head",
+      "policy_id": "reviewed-head-anchor-binding-v4"
+    },
+    {
+      "decision_sha256": "ea41c5b679740cd977f564981cbf9a2ce0aa8ba9e712333106dd5c8a20a373c4",
+      "layer_id": "layer-015",
+      "name": "eyewhite-r",
+      "option_id": "rigid:head",
+      "policy_id": "reviewed-head-anchor-binding-v4"
+    },
+    {
+      "decision_sha256": "ea41c5b679740cd977f564981cbf9a2ce0aa8ba9e712333106dd5c8a20a373c4",
+      "layer_id": "layer-016",
+      "name": "eyewhite-l",
+      "option_id": "rigid:head",
+      "policy_id": "reviewed-head-anchor-binding-v4"
+    },
+    {
+      "decision_sha256": "ea41c5b679740cd977f564981cbf9a2ce0aa8ba9e712333106dd5c8a20a373c4",
+      "layer_id": "layer-017",
+      "name": "irides-r",
+      "option_id": "rigid:head",
+      "policy_id": "reviewed-head-anchor-binding-v4"
+    },
+    {
+      "decision_sha256": "ea41c5b679740cd977f564981cbf9a2ce0aa8ba9e712333106dd5c8a20a373c4",
+      "layer_id": "layer-018",
+      "name": "irides-l",
+      "option_id": "rigid:head",
+      "policy_id": "reviewed-head-anchor-binding-v4"
+    },
+    {
+      "decision_sha256": "ea41c5b679740cd977f564981cbf9a2ce0aa8ba9e712333106dd5c8a20a373c4",
+      "layer_id": "layer-019",
+      "name": "eyelash-l",
+      "option_id": "rigid:head",
+      "policy_id": "reviewed-head-anchor-binding-v4"
+    },
+    {
+      "decision_sha256": "ea41c5b679740cd977f564981cbf9a2ce0aa8ba9e712333106dd5c8a20a373c4",
+      "layer_id": "layer-020",
+      "name": "eyelash-r",
+      "option_id": "rigid:head",
+      "policy_id": "reviewed-head-anchor-binding-v4"
+    },
+    {
+      "decision_sha256": "e940aba561b28f228a3c36b3893187e23f8df89f6b14aca86a6620fe84970dec",
+      "layer_id": "layer-022",
+      "name": "headwear",
+      "option_id": "rigid:head",
+      "policy_id": "supported-static-parts-binding-v8"
+    }
+  ],
+  "job_id": "job-d8b67e10685347ed95d1fba113b92c45",
+  "metrics": {
+    "assessed_bindings": 12,
+    "audit_session_minutes": 1.4151500000000001,
+    "correct": 12,
+    "eligible_bindings": 12,
+    "incorrect": 0,
+    "not_reviewed": 0,
+    "sampled_error_rate": 0.0,
+    "sampling_scope": "human_selected_current_bindings_not_population_accuracy",
+    "unobservable": 0
+  },
+  "project_id": "alice",
+  "review": {
+    "artifact_sha256": "6e5c59db4ef072075b798efab12acf8ffdc883368a61a4bf3c1646305ef68b98",
+    "authority": "none",
+    "decision_source": "human_audit",
+    "inventory_sha256": "9579adc39cd879db8ea070bd0a21587d0364ad38eaf0920848754fe3f7e407d9",
+    "job_id": "job-d8b67e10685347ed95d1fba113b92c45",
+    "previous_sha256": null,
+    "production_authorized": false,
+    "project_id": "alice",
+    "reviews": {
+      "layer-007": "correct",
+      "layer-009": "correct",
+      "layer-011": "correct",
+      "layer-013": "correct",
+      "layer-014": "correct",
+      "layer-015": "correct",
+      "layer-016": "correct",
+      "layer-017": "correct",
+      "layer-018": "correct",
+      "layer-019": "correct",
+      "layer-020": "correct",
+      "layer-022": "correct"
+    },
+    "revision": 0,
+    "schema": "autospine.character-auto-binding-audit/v1",
+    "timing": {
+      "method": "operator_stopwatch_v1",
+      "scope": "automatic_binding_audit_session",
+      "seconds": 84.909
+    }
+  },
+  "review_sha256": "83ae8d2fa9365d31910c3463a1a6e4200650a1d4643a0288b055d3d73216599c"
+}
