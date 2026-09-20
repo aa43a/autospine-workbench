@@ -86,10 +86,29 @@ def step(plan, state, publish, request):
                 return 'target_submitted'
             value_target = request('/api/motions/' + current['job_id'])
             state['cells'][cell] = value_target
+            publish(state)
+            expected = plan.get('expected_profiles', {})
+            cached = state.get('diagnostics', {}).get(cell, {})
+            checked = (cached.get('job_id') == current['job_id'] and
+                       cached.get('artifact_sha256') == value_target.get('result', {}).get('artifact_sha256') and
+                       cached.get('profiles') == expected)
+            if value_target['status'] == 'succeeded' and expected and not checked:
+                result = value_target['result']
+                depth = request('/api/motions/' + current['job_id'] + '/view/motion-depth.json')
+                actual = {name: result.get(name) for name in
+                          ('inferred_contact_profile', 'runtime_reference_profile')}
+                actual['depth_review_profile'] = depth.get('profile')
+                if any(actual.get(name) != profile for name, profile in expected.items()):
+                    raise ValueError('cohort_execution_profile_mismatch:' + cell)
             if value_target['status'] == 'succeeded' and cell not in state.setdefault('diagnostics', {}):
                 geometry = request('/api/motions/' + current['job_id'] + '/view/deformation.json')
                 state['diagnostics'][cell] = dict(job_id=current['job_id'], geometry=geometry,
                     report_sha256=value_target['result']['runtime']['files']['deformation.json'])
+            if value_target['status'] == 'succeeded' and expected and not checked:
+                state['diagnostics'][cell]['profiles'] = actual
+                state['diagnostics'][cell]['artifact_sha256'] = result['artifact_sha256']
+                state['diagnostics'][cell]['readiness'] = request(
+                    '/api/motions/' + current['job_id'] + '/view/readiness.json')
             publish(state)
             if value_target['status'] in ('pending', 'running'):
                 return 'waiting_target'

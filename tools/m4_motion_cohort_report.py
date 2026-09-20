@@ -9,6 +9,11 @@ LABELS = {'succeeded': '捕获完成', 'running': '运行中', 'pending': '排�
     'not_started': '尚未开始', 'needs_review': '待阶段验收', 'needs_changes': '存在异常',
     'not_evaluated': '未检查', 'unavailable_no_labels': '无源接触标签',
     'ankle_proxy_corrected': '已修正踝部滑移', 'ankle_proxy_passed': '踝部支点通过',
+    'inferred_partial_corrected': '部分源区间已修正，其余未验证',
+    'inferred_proxy_corrected': '推断支撑已修正', 'inferred_proxy_passed': '推断支撑通过',
+    'inferred_proxy_drift': '推断支撑仍有滑移',
+    'depth_candidates_need_review': '遮挡需处理', 'depth_overlap_no_change': '采样遮挡无需改序',
+    'evidence_incomplete': '证据不完整', 'stage_review': '可阶段复核',
     'True': '通过', 'False': '失败', 'None': '无证据'}
 
 
@@ -30,6 +35,12 @@ def rows(plan, state):
             diagnostic = state.get('diagnostics', {}).get(key, {})
             if diagnostic and diagnostic['job_id'] != job.get('job_id'):
                 raise ValueError('cohort_diagnostic_job_mismatch')
+            readiness = diagnostic.get('readiness', {})
+            if readiness and readiness.get('artifact_sha256') != result.get('artifact_sha256'):
+                raise ValueError('cohort_readiness_artifact_mismatch')
+            if diagnostic.get('profiles') and any(diagnostic['profiles'].get(k) != v
+                    for k, v in plan.get('expected_profiles', {}).items()):
+                raise ValueError('cohort_report_execution_profile_mismatch')
             status = job.get('status', 'not_started')
             if source_job.get('status') in ('failed', 'cancelled', 'interrupted') and not job:
                 status = 'source_' + source_job['status']
@@ -38,6 +49,9 @@ def rows(plan, state):
                 candidate=result.get('character_animation_status', 'not_evaluated'),
                 contact=result.get('contact_status', 'not_evaluated'),
                 depth=result.get('depth_order_status', 'not_evaluated'),
+                readiness=readiness.get('status', 'not_evaluated'),
+                stages=readiness.get('stages', []),
+                profiles=diagnostic.get('profiles', {}),
                 visual='not_evaluated', issues=issues,
                 geometry_failures=[r for r in diagnostic.get('geometry', {}).get('records', []) if not r['passed']],
                 runtime_frames=result.get('runtime', {}).get('frames'),
@@ -54,15 +68,19 @@ def render(plan, state):
         job = row['job_id']
         url = '/api/motions/' + job + '/view/' if job else ''
         links = (f'<a href="http://127.0.0.1:8918{escape(url)}player.html">播放/时间轴</a> · '
-                 f'<a href="http://127.0.0.1:8918{escape(url)}contact.html">接触定位</a>') if row['status'] == 'succeeded' else ''
+                 f'<a href="http://127.0.0.1:8918{escape(url)}contact.html">接触定位</a> · '
+                 f'<a href="http://127.0.0.1:8918{escape(url)}depth.html">遮挡定位</a>') if row['status'] == 'succeeded' else ''
         for failure in row['geometry_failures']:
             first = failure.get('first_failure')
             if first:
                 caption = escape(failure['slot']) + ' @ ' + str(round(first['time'], 3)) + 's'
                 links += f'<br><a href="http://127.0.0.1:8918{escape(url)}player.html?time={first["time"]}">{caption}</a>'
-        values = [row['cell'], row['status'], row['candidate'], str(row['geometry']), row['runtime_frames'],
+        gate_notes = [s['stage'] + ': ' + s['explanation'] for s in row['stages']
+                      if s['status'] != 'sampled_pass']
+        values = [row['cell'], row['status'], row['candidate'], row['readiness'], str(row['geometry']), row['runtime_frames'],
                   row['contact'], row['depth'], row['visual'],
-                  json.dumps(row['issues'], ensure_ascii=False) if row['issues'] else row['failure'] or '—']
+                  '\n'.join(gate_notes) or (json.dumps(row['issues'], ensure_ascii=False)
+                    if row['issues'] else row['failure'] or '—')]
         lines.append('<tr>' + ''.join('<td>'+escape(label(v))+'</td>' for v in values) + '<td>'+links+'</td></tr>')
     counts = summary(records)
     heading = (f'<p>固定组合 {counts["required"]} · 已结束 {counts["terminal"]} · '
@@ -72,7 +90,7 @@ def render(plan, state):
 <style>body{background:#101923;color:#e3edf6;font:15px system-ui;padding:24px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #425466;padding:10px;text-align:left}a{color:#69d4fa}td{max-width:300px;overflow-wrap:anywhere}</style>
 <h1>M4 三结构角色 × 八类动作</h1><p>固定完整源动作、正面投影；失败保留，不替换为更容易通过的样本。类别仍需核对实际动作。</p>
 <p>任务完成不等于动作通过。接触、遮挡、视觉验收分别列出，未检查不计通过。此页为生成时快照。</p>
-''' + heading + '<table><thead><tr>' + ''.join('<th>'+v+'</th>' for v in ['动作/角色','任务','候选','几何','Runtime 帧','接触','遮挡','人工视觉','异常','定位']) + '</tr></thead><tbody>' + ''.join(lines) + '</tbody></table>'
+''' + heading + '<table><thead><tr>' + ''.join('<th>'+v+'</th>' for v in ['动作/角色','任务','候选','综合检查','几何','Runtime 帧','接触','遮挡','人工视觉','异常','定位']) + '</tr></thead><tbody>' + ''.join(lines) + '</tbody></table>'
 
 
 def summary(records):
@@ -80,10 +98,12 @@ def summary(records):
         terminal=sum(r['status'] in ('succeeded', 'failed', 'cancelled', 'canceled', 'interrupted') or r['status'].startswith('source_') for r in records),
         captured=sum(r['status']=='succeeded' and bool(r['runtime_frames']) for r in records),
         geometry_passed=sum(r['geometry'] is True for r in records),
-        candidate_exceptions=sum(r['candidate']=='needs_changes' for r in records),
+        candidate_exceptions=sum(r['candidate']=='needs_changes' or r['readiness']=='needs_changes' for r in records),
         failed=sum(r['status']=='failed' or r['status'].startswith('source_') for r in records),
         runtime_frames=sum(r['runtime_frames'] or 0 for r in records),
         visual_accepted=sum(r['visual']=='accepted' for r in records),
+        stage_review_ready=sum(r['readiness']=='stage_review' for r in records),
+        contact_partial=sum(r['contact']=='inferred_partial_corrected' for r in records),
         contact_unmeasured=sum(r['contact'] in ('not_evaluated', 'unavailable_no_labels') for r in records),
         depth_unmeasured=sum(r['depth']=='not_evaluated' for r in records))
 

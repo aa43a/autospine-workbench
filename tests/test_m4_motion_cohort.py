@@ -44,6 +44,18 @@ class CohortTests(unittest.TestCase):
             runner.step(self.plan, self.state, lambda _: None,
                         lambda *_: dict(self.source, source_sha256='changed'))
 
+    def test_changed_execution_policy_stops_matrix_without_replacing_job(self):
+        self.plan['expected_profiles'] = {'inferred_contact_profile': 'new'}
+        target = dict(job_id='target', status='succeeded', result={'inferred_contact_profile': 'old'})
+        self.state['cells']['walk/a'] = target
+        def request(path, *args):
+            if path.endswith('source'): return self.source
+            if path.endswith('motion-depth.json'): return {'profile': 'depth'}
+            return target
+        with self.assertRaisesRegex(ValueError, 'execution_profile_mismatch'):
+            runner.step(self.plan, self.state, lambda _: None, request)
+        self.assertEqual(self.state['cells']['walk/a']['job_id'], 'target')
+
     def test_runtime_completion_does_not_hide_quality_failure(self):
         self.state['cells']['walk/a'] = dict(job_id='target', status='succeeded', result={
             'geometry_passed': False, 'character_animation_status': 'needs_changes',
@@ -67,6 +79,23 @@ class CohortTests(unittest.TestCase):
         self.assertIn('player.html?time=1.25', report.render(self.plan, self.state))
         self.state['diagnostics']['walk/a']['job_id'] = 'other'
         with self.assertRaisesRegex(ValueError, 'diagnostic_job_mismatch'):
+            report.rows(self.plan, self.state)
+
+    def test_partial_support_and_runtime_do_not_become_stage_acceptance(self):
+        self.state['cells']['walk/a'] = dict(job_id='target', status='succeeded', result={
+            'artifact_sha256': 'asset', 'geometry_passed': True,
+            'contact_status': 'inferred_partial_corrected', 'runtime': {'frames': 123}})
+        self.state['diagnostics'] = {'walk/a': dict(job_id='target', readiness={
+            'artifact_sha256': 'asset', 'status': 'needs_changes', 'stages': []})}
+        counts = report.summary(report.rows(self.plan, self.state))
+        self.assertEqual(counts['captured'], 1)
+        self.assertEqual(counts['contact_partial'], 1)
+        self.assertEqual(counts['stage_review_ready'], 0)
+        self.assertEqual(counts['candidate_exceptions'], 1)
+        self.assertEqual(counts['visual_accepted'], 0)
+        self.assertIn('depth.html', report.render(self.plan, self.state))
+        self.state['diagnostics']['walk/a']['readiness']['artifact_sha256'] = 'old'
+        with self.assertRaisesRegex(ValueError, 'readiness_artifact_mismatch'):
             report.rows(self.plan, self.state)
 
 
