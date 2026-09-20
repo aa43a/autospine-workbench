@@ -38,3 +38,27 @@ These measurements validate the declared proxy at sampled times, not continuous
 motion, anatomical depth, or human visual acceptance. Tests cover midpoint
 disagreement, explicit unmeasured results, source-time sampling, original-data
 preservation, and identity-bound cache reuse.
+
+## Arm/leg cycle evidence
+
+`m4_limb_depth_probe.py` verifies the exact partition and ordering identities,
+then evaluates recorded arm/leg cycle edges at source frames and midpoints.
+Mapped thigh/calf source axes are exposed separately from the existing arm-only
+sampler, preserving its default behavior. `mesh_pair_depth.py` rasterizes each
+triangle's conservative depth envelope in its clipped native-pixel bounds. Both
+attachments must clear the depth margin throughout their envelopes. Unknown
+triangles cannot be hidden by known triangles that overlap them; each attachment's
+unknown contribution is reported separately. Work remains pixel-budget bounded.
+
+Actual evidence: `../tmp/m4-motion-center/arm-leg-depth-hong-v2.json`.
+Across ten samples, one supports arm-in-front, one has no overlap, and eight
+remain uncertain. In all eight, uncertainty is entirely supported by right-leg
+mesh `layer-003`; right-arm `layer-001` has zero unknown overlapping pixels.
+Known overlapping pixels all support arm-in-front, with no opposite or ambiguous
+known classifications. This does not justify applying that order to the unknown
+pixels. The next investigation is the leg's influence-axis correspondence.
+
+Sixteen focused tests pass, including two-sided interval separation, reversed
+order, unknown/known triangle overlap, non-clearing intervals, resource failure,
+and declared leg endpoint extraction. No new candidate or Runtime capture is
+produced by this diagnostic.

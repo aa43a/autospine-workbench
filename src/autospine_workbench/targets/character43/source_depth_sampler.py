@@ -65,3 +65,14 @@ class SegmentDepthSampler:
                     segments[bone+'_'+suffix]=tuple(depths[n]
                         for n in (role['joint_name'],role['aim']['joint_name']))
         return segments
+
+    def leg_segments(self,tick):
+        """Explicit mapped thigh/calf axes; no inferred garment or foot depth."""
+        depths=self.joint_depths(tick); segments={}
+        for side,suffix in [('left','l'),('right','r')]:
+            for part,bone in [('upper','thigh'),('lower','calf')]:
+                role=self.roles.get('humanoid.leg.'+part+'.'+side)
+                if role and role['aim']['kind']=='joint':
+                    segments[bone+'_'+suffix]=tuple(depths[n]
+                        for n in (role['joint_name'],role['aim']['joint_name']))
+        return segments
