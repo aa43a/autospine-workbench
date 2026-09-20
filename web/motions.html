@@ -18,5 +18,11 @@
 <section aria-label="适配角色"><h2>应用到角色</h2><p id="target-source">先选择已生成 MotionIR 的源动作。</p><label>目标角色 <select id="target-project"><option value="">选择角色</option></select></label><label><input id="contact-correction" type="checkbox" checked>依据源接触标签尝试小幅支撑修正</label><p class="hint">检查踝部支点滑移；只在修正幅度、双脚冲突和过渡速度均通过时采用。不是鞋底或地面碰撞检查。取消勾选可生成未修正版，历史结果保留。</p><button id="adapt" disabled>构建角色动作候选</button><p id="target-status" role="status">选择已有整角色候选。</p></section>
 <div class="split"><section><h2>动作任务</h2><div id="jobs"></div></section>
 <section aria-label="源动作预览"><h2 id="title">源骨架时间轴</h2><p id="details">选择解析完成的动作查看骨架。</p><canvas id="canvas" width="820" height="600" aria-label="源骨架投影"></canvas>
-<div class="controls"><button id="play" disabled>播放</button><input id="time" aria-label="动作时间轴" type="range" min="0" max="1" step="0.001" value="0" disabled><output id="clock">0.00 秒</output></div><p class="hint">最多显示 240 个源姿态采样；不插造中间姿态。完整源帧进入编译，接触与循环不会自动确认。</p><details><summary>映射诊断</summary><p id="diagnostic">未选择动作。</p></details></section></div></main>
+<div class="controls"><button id="play" disabled>播放</button><input id="time" aria-label="动作时间轴" type="range" min="0" max="1" step="0.001" value="0" disabled><output id="clock">0.00 秒</output></div><p class="hint">最多显示 240 个源姿态采样；不插造中间姿态。完整源帧进入编译，接触与循环不会自动确认。</p>
+<h3>视角与片段</h3><label>新视角 <select id="selected-view"><option value="front">正面</option><option value="side">侧面</option></select></label><button id="reproject" disabled>生成此视角版本</button>
+<p><label><input id="clip-enabled" type="checkbox">下一次角色构建仅使用所选片段</label></p>
+<label>起始帧 <input id="clip-start" type="number" min="1" value="1"></label><button id="clip-in" disabled>当前时间设为起点</button>
+<label>结束帧 <input id="clip-end" type="number" min="2" value="2"></label><button id="clip-out" disabled>当前时间设为终点</button>
+<p id="selection-status" role="status">先选择源动作。</p><p class="hint">帧号从 1 开始，包含起止帧。裁剪只重置时间，不重置起始姿态；片段需重新通过变形、接触和 Runtime 检查。</p>
+<details><summary>映射诊断</summary><p id="diagnostic">未选择动作。</p></details></section></div></main>
 <script type="module" src="/modules/motion-center.js"></script></body></html>

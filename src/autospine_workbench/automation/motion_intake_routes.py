@@ -14,7 +14,7 @@ def _methods(tail):
     if (len(tail) == 1 or len(tail) == 2 and tail[1] in ('preview', 'download')
             or len(tail) >= 3 and tail[1] == 'view'):
         return 'GET, HEAD, OPTIONS'
-    if len(tail) == 2 and tail[1] in ('cancel', 'retry', 'adapt'):
+    if len(tail) == 2 and tail[1] in ('cancel', 'retry', 'adapt', 'reproject'):
         return 'POST, OPTIONS'
     return None
 
@@ -73,6 +73,9 @@ def dispatch_motions(parts, handler, method):
             elif tail[1] == 'adapt':
                 from .motion_target_jobs import submit
                 result = submit(manager, tail[0], read_json_object_request(handler, maximum_bytes=1024))
+            elif tail[1] == 'reproject':
+                from .motion_reproject import submit
+                result = submit(manager, tail[0], read_json_object_request(handler, maximum_bytes=200))
             else:
                 if read_json_object_request(handler, maximum_bytes=100):
                     raise PipelineRunError('motion_request_invalid')

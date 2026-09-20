@@ -20,14 +20,17 @@ def main():
     ref = read_reference(files); doc = json.loads(files['skeleton.json'])
     if ref['skeleton_sha256'] != sha256(files['skeleton.json']).hexdigest():
         raise ValueError('character_reference_source_mismatch')
-    shot = next(s for s in capture_report['screenshots'] if s['index']==0)
+    independent = capture_report.get('setup_capture')
+    shot = independent or next(s for s in capture_report['screenshots'] if s['index']==0)
     relative = Path(shot['file'])
     if relative.is_absolute() or '..' in relative.parts:
         raise ValueError('character_capture_path')
     png = (capture/relative).read_bytes()
     if sha256(png).hexdigest()!=shot['sha256']:
         raise ValueError('character_capture_frame_mismatch')
-    frame = ref['animations'][shot['animation']][0]
+    frame = json.loads(files['rig-setup-reference.json']) if independent else ref['animations'][shot['animation']][0]
+    if independent and frame['skeleton_sha256'] != sha256(files['skeleton.json']).hexdigest():
+        raise ValueError('character_reference_source_mismatch')
     if frame['time'] != 0:
         raise ValueError('character_capture_not_setup')
     result, source = compare_setup(doc, frame, files, png, capture_report['info'])

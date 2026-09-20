@@ -24,6 +24,10 @@ for(const [name,sha]of Object.entries(inventory)){
   files.set('/'+name,raw);
 }
 const reference=await readReference(files.get('/numeric-reference.json'),async name=>files.get('/'+name)),manifest=JSON.parse(files.get('/character-manifest.json'));
+if(files.has('/rig-setup-reference.json')){
+  reference.setup=JSON.parse(files.get('/rig-setup-reference.json'));
+  if(reference.setup.skeleton_sha256!==inventory['skeleton.json']||reference.setup.time!==0)throw Error('setup_reference_identity');
+}
 // The browser consumes the losslessly reconstructed reference after inventory verification.
 files.set('/numeric-reference.json',Buffer.from(JSON.stringify(reference)));
 if(reference.skeleton_sha256!==inventory['skeleton.json']||manifest.authority!=='none'||manifest.production_authorized!==false)throw Error('reference_identity');
@@ -61,6 +65,13 @@ try{
   await page.waitForFunction(()=>window.ready||window.failure,{},{timeout:120000});
   const failure=await page.evaluate(()=>window.failure);if(failure)throw Error(failure);
   const info=await page.evaluate(()=>window.captureInfo),results=[],screenshots=[];
+  let setupCapture=null;
+  if(reference.setup){
+    const result=await page.evaluate(()=>window.captureFrame(null,0));
+    const raw=Buffer.from((await page.evaluate(()=>window.framePNG())).split(',')[1],'base64');
+    await publish('setup-frame.png',raw);
+    setupCapture={...result,file:'setup-frame.png',sha256:hash(raw)};
+  }
   for(const animation of names){
     const frames=reference.animations[animation];if(!frames.length)throw Error('empty_track');
     for(let index=0;index<frames.length;index++){
@@ -78,7 +89,8 @@ try{
     reference_reader_sha256:hash(await fs.readFile(new URL('./character-reference.mjs',import.meta.url))),
     browser_sha256:hash(await fs.readFile(chrome)),profile:'official-webgl-swiftshader-native-v1',info,results,screenshots,screenshot_stride:screenshotStride,
     passed:true,scope:'all_attachment_vertices_and_nonempty_unclipped_framebuffer',
-    contact_status:'not_evaluated',draw_order_visual_status:'needs_review',authority:'none',production_authorized:false};
+    contact_status:'not_evaluated',draw_order_visual_status:'needs_review',authority:'none',production_authorized:false,
+    ...(setupCapture?{setup_capture:setupCapture}:{})};
   await publish('report.json',JSON.stringify(report,null,2));
   const cards=screenshots.map(s=>`<figure><img loading="lazy" src="${s.file}" width="320"><figcaption>${s.animation} · ${s.index}</figcaption></figure>`).join('');
   await publish('index.html',`<!doctype html><meta charset="utf-8"><title>整角色 Runtime 复核</title><style>body{background:#182531;color:#eee;font:16px sans-serif}main{display:flex;flex-wrap:wrap}figure{margin:8px}img{background:repeating-conic-gradient(#34424e 0% 25%,#263540 0% 50%) 0/20px 20px}</style><h1>整角色 Runtime 复核</h1><p>官方 WebGL / SwiftShader。${results.length}帧；${info.slots}附件。仅验证位置、非空画面和裁切；接触、遮挡和整角色动作仍待复核。</p><a href="report.json">机器报告</a><main>${cards}</main>`);

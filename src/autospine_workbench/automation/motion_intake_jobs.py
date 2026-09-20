@@ -51,7 +51,7 @@ class MotionIntakeJobs:
                     blender_available=bool(self.blender and Path(self.blender).is_file()),
                     kimodo_generation=availability(self), npz_import='soma77_explicit_profile')
 
-    def upload(self, stream, size, name, view, npz_options=None):
+    def upload(self, stream, size, name, view, npz_options=None, *, derivation=None, producer=None):
         suffix = Path(name).suffix.lower() if isinstance(name, str) else ''
         if suffix not in ('.fbx', '.bvh', '.npz') or len(name) > 180 or any(c in name for c in '/\\\r\n\0'):
             raise PipelineRunError('motion_filename_invalid')
@@ -71,6 +71,8 @@ class MotionIntakeJobs:
             folder = self.folder(job, True)
             value = dict(job_id=job, name=name, format=suffix[1:], view=view,
                          status='pending', step='uploading', authority='none')
+            if derivation is not None:
+                value['derivation'] = derivation
             self._jobs[job] = value
             self._cancel[job] = Event()
         try:
@@ -87,6 +89,8 @@ class MotionIntakeJobs:
             request = dict(value, source_sha256=digest.hexdigest(), byte_length=size)
             if npz_options is not None:
                 request['npz_options'] = npz_options
+            if producer is not None:
+                request['source_producer'] = producer
             publish_document(folder / 'request.json', request, staging=folder / 'staging')
             with self._lock:
                 value.update(source_sha256=request['source_sha256'], step='queued')
@@ -141,11 +145,14 @@ class MotionIntakeJobs:
             from .motion_target_jobs import submit
             body = {k: request[k] for k in ('project_id', 'character_job_id')}
             body['contact_correction'] = request.get('contact_correction', True)
+            if request.get('clip') is not None:
+                body['clip'] = request['clip']
             return submit(self, request['source_job_id'], body)
         raw = read_real_file(self.folder(job) / ('source.' + request['format']), MAX_UPLOAD, 'motion source')
         if sha256(raw).hexdigest() != request['source_sha256']:
             raise PipelineRunError('motion_source_changed')
-        return self.upload(BytesIO(raw), len(raw), request['name'], request['view'], request.get('npz_options'))
+        return self.upload(BytesIO(raw), len(raw), request['name'], request['view'], request.get('npz_options'),
+                           derivation=request.get('derivation'), producer=request.get('source_producer'))
 
     def cancel(self, job):
         with self._lock:

@@ -1,5 +1,5 @@
 // A target is an exact existing character job; no SHA/path fields for operators.
-export function createTargetControls(request, refresh) {
+export function createTargetControls(request, refresh, selection) {
   const $ = id => document.getElementById(id);
   let source = null, character = null, token = 0, busy = false;
   function enabled() { $('adapt').disabled = busy || !source || !character; }
@@ -38,7 +38,7 @@ export function createTargetControls(request, refresh) {
       await request(`/api/motions/${source.job_id}/adapt`, {
         method: 'POST', headers: {'Content-Type': 'application/json', 'X-Autospine-Intent': 'pipeline-preview'},
         body: JSON.stringify({project_id: character.project_id, character_job_id: character.job_id,
-          contact_correction: $('contact-correction').checked}),
+          contact_correction: $('contact-correction').checked, clip: selection.clip()}),
       });
       $('target-status').textContent = '角色动作已排队，将进行局部修正、几何检查与官方 Runtime 捕获。';
       await refresh();

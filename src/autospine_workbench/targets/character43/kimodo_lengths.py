@@ -11,7 +11,8 @@ from .motionir_candidate import ROLES
 from .projected_lengths import apply_ratios
 
 
-def build(document, name, raw, source, mapping):
+def build(document, name, raw, source, mapping, *, time_range=None):
+    from .motion_clip import selected_ratios
     require_kimodo_npz_map(mapping, source=source)
     validated = validate_kimodo_consistency(decode_kimodo_npz(raw, source), source)
     axes = ['XYZ'.index(mapping['basis'][key][1]) for key in ('screen_x', 'screen_y')]
@@ -25,15 +26,11 @@ def build(document, name, raw, source, mapping):
             a, b = frame[a_index], frame[b_index]
             world = math.dist(a, b)
             visible = math.sqrt(sum((a[i]-b[i])**2 for i in axes))
-            if world <= 1e-8 or visible/world < .2:
-                raise ValueError('character_length_projection_collapsed')
-            values.append(visible/world)
-        values = [v/values[0] for v in values]
-        if min(values) < .5 or max(values) > 1.5:
-            raise ValueError('character_length_ratio_outside_preview_range')
+            values.append(visible/world if world > 1e-8 else 0.)
+        values, times = selected_ratios(values, [tick/1_000_000 for tick in kimodo_frame_ticks(source)], time_range)
         bone = ROLES[row['role']]
         ratios[bone] = values
         summary.append(dict(role=row['role'], bone=bone, min_ratio=min(values), max_ratio=max(values)))
     return apply_ratios(document, name, ratios, summary,
-                        [tick/1_000_000 for tick in kimodo_frame_ticks(source)],
+                        times,
                         kimodo_npz_source_sha256(source), kimodo_npz_map_sha256(mapping))

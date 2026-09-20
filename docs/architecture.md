@@ -820,3 +820,7 @@ depth candidates 与各自 exact replay 通过的历史 P9 reviewed-motion bundl
 # 2026-09-15 增量：残余默认策略
 
 `character_residual_defaults` 在已选动作和变换完成后、Runtime 捕获前调用 `low_alpha_residual` 纯分析策略及现有排除编译器。新决定使用 `region-exclusion/v2` 与独立策略身份，历史人工 v1 行为不变。禁用选项记录为任务的 `residual_auto_profile=preserve`；新候选从来源重建，原包不修改。详见 [阶段默认处理](character-stage-defaults.md)。
+
+## M4 外部动作选择
+
+视角重选复制已验证原始源字节建立新任务，NPZ 的已记录 producer 从精确 Motion bundle 读取，不由客户端声明。目标片段范围以源帧号绑定请求；裁剪保留 setup-relative 数值，只平移时间并截取半开接触区间。修正及 QA 在所选片段执行，原始 Motion bundle 不重写。非静止起点使用独立的 `rig-setup-reference.json` 对照原网格，官方捕获额外渲染无动画的 setup；动画首帧不再被误作纹理 setup 对照。旧包缺少该文件时保留历史路径。

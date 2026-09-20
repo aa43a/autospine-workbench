@@ -96,7 +96,7 @@ class MotionTargetTests(unittest.TestCase):
             with patch.object(manager._pool, 'submit'):
                 queued = manager.upload(BytesIO(raw), len(raw), 'source.bvh', 'front')
                 manager._jobs[queued['job_id']].update(status='succeeded', step='complete',
-                    result=dict(motion_status='compiled', motion={'bundle_sha256':'a'*64}))
+                    result=dict(motion_status='compiled', frame_count=2, motion={'bundle_sha256':'a'*64}))
                 character = dict(status='needs_review', artifact_sha256='b'*64)
                 manager.character_manager = lambda: SimpleNamespace(verified_files=lambda *_: {}, get=lambda *_: character)
                 value = submit(manager, queued['job_id'], dict(project_id='alice', character_job_id='job-'+'c'*32))
@@ -104,11 +104,12 @@ class MotionTargetTests(unittest.TestCase):
                 self.assertTrue(request['contact_correction'])
                 assert_current(manager, request)
                 disabled = submit(manager, queued['job_id'], dict(project_id='alice',
-                    character_job_id='job-'+'c'*32, contact_correction=False))
+                    character_job_id='job-'+'c'*32, contact_correction=False, clip=dict(start_frame=0, end_frame=1)))
                 manager._jobs[disabled['job_id']].update(status='failed')
                 with patch('autospine_workbench.automation.motion_target_jobs.submit') as retry:
                     manager.retry(disabled['job_id'])
                     self.assertFalse(retry.call_args.args[2]['contact_correction'])
+                    self.assertEqual(retry.call_args.args[2]['clip'], dict(start_frame=0, end_frame=1))
                 character['artifact_sha256'] = 'd'*64
                 with self.assertRaisesRegex(PipelineRunError, 'motion_target_character_changed'):
                     assert_current(manager, request)

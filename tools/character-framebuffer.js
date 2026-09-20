@@ -13,7 +13,8 @@
   const data=new spine.SkeletonJson(new spine.AtlasAttachmentLoader(atlas)).readSkeletonData(doc);
   if(JSON.stringify(data.animations.map(a=>a.name).sort())!==JSON.stringify(Object.keys(reference.animations).sort()))throw Error('animation_inventory');
   let left=Infinity,bottom=Infinity,right=-Infinity,top=-Infinity;
-  for(const frames of Object.values(reference.animations))for(const frame of frames)for(const points of Object.values(frame.vertices))for(const [x,y]of points){
+  const envelopes=[...Object.values(reference.animations),...(reference.setup?[[reference.setup]]:[])];
+  for(const frames of envelopes)for(const frame of frames)for(const points of Object.values(frame.vertices))for(const [x,y]of points){
     if(!Number.isFinite(x)||!Number.isFinite(y))throw Error('nonfinite_reference');
     left=Math.min(left,x);bottom=Math.min(bottom,y);right=Math.max(right,x);top=Math.max(top,y);
   }
@@ -28,9 +29,11 @@
     renderer:gl.getParameter(debug?debug.UNMASKED_RENDERER_WEBGL:gl.RENDERER),
     vendor:gl.getParameter(debug?debug.UNMASKED_VENDOR_WEBGL:gl.VENDOR),atlas_pages:atlas.pages.length,slots:data.slots.length};
   window.captureFrame=(animation,index)=>{
-    const frame=reference.animations[animation]?.[index];if(!frame)throw Error('frame_missing');
+    const frame=animation===null?reference.setup:reference.animations[animation]?.[index];if(!frame)throw Error('frame_missing');
     const skeleton=new spine.Skeleton(data),state=new spine.AnimationState(new spine.AnimationStateData(data));
-    skeleton.setupPose();state.setAnimation(0,animation,false);state.update(frame.time);state.apply(skeleton);skeleton.updateWorldTransform(spine.Physics.update);
+    skeleton.setupPose();
+    if(animation!==null){state.setAnimation(0,animation,false);state.update(frame.time);state.apply(skeleton);}
+    skeleton.updateWorldTransform(spine.Physics.update);
     if(JSON.stringify(skeleton.slots.map(s=>s.data.name).sort())!==JSON.stringify(Object.keys(frame.vertices).sort()))throw Error('slot_inventory');
     let error=0,probes=0;
     for(const slot of skeleton.slots){

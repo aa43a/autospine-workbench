@@ -45,7 +45,10 @@ def capture(projects, store, digest, root, *, progress, cancel_requested):
         path.write_bytes(raw)
     from ..targets.character43.deformation_qa import inspect
     from .storage_io import canonical_bytes
-    geometry=inspect(candidate)
+    setup_reference = json.loads(candidate['rig-setup-reference.json']) if 'rig-setup-reference.json' in candidate else None
+    if setup_reference and setup_reference['skeleton_sha256'] != sha256(candidate['skeleton.json']).hexdigest():
+        raise ValueError('character_reference_source_mismatch')
+    geometry=inspect(candidate, setup_vertices=setup_reference['vertices'] if setup_reference else None)
     frame_count=sum({r['animation']:r['sample_count'] for r in geometry['records']}.values())
     (output/'deformation.json').write_bytes(canonical_bytes(geometry))
     progress('runtime')

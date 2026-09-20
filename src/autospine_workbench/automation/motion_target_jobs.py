@@ -29,7 +29,7 @@ def assert_current(manager, request):
 
 
 def submit(manager, source_job, body):
-    if (set(body) - {'project_id', 'character_job_id', 'contact_correction'}
+    if (set(body) - {'project_id', 'character_job_id', 'contact_correction', 'clip'}
             or not {'project_id', 'character_job_id'} <= set(body)
             or type(body.get('contact_correction', True)) is not bool):
         raise PipelineRunError('motion_request_invalid')
@@ -37,6 +37,12 @@ def submit(manager, source_job, body):
     if (source.get('kind', 'import') not in ('import', 'generate') or source.get('status') != 'succeeded'
             or source.get('result', {}).get('motion_status') != 'compiled'):
         raise PipelineRunError('motion_target_source_unavailable')
+    if body.get('clip') is not None:
+        from ..targets.character43.motion_clip import validate
+        try:
+            validate(body['clip'], source['result']['frame_count'])
+        except (ValueError, KeyError):
+            raise PipelineRunError('motion_clip_range_invalid') from None
     characters = manager.character_manager()
     project, character_job = body['project_id'], body['character_job_id']
     characters.verified_files(project, character_job)
@@ -45,6 +51,8 @@ def submit(manager, source_job, body):
                    motion_identity=source['result']['motion'], project_id=project, character_job_id=character_job,
                    character_sha256=character['artifact_sha256'], name=source['name'],
                    contact_correction=body.get('contact_correction', True))
+    if body.get('clip') is not None:
+        request['clip'] = body['clip']
     assert_current(manager, request)
     with manager._lock:
         if manager._closed or sum(j['status'] in {'pending', 'running'} for j in manager._jobs.values()) >= 2:

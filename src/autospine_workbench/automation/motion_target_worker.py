@@ -15,33 +15,47 @@ from .animated_store import AnimatedStore
 from .character_capture import capture
 from .motion_intake_process import progress
 from .storage_io import canonical_bytes, read_document
+from ..targets.character43.motion_clip import boundaries, clip_motion, clip_animation
 
 ANIMATION = 'external-motion'
 
 
 def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_digest, kimodo=None,
-                    contact_correction=True):
+                    contact_correction=True, clip_bounds=None):
     """Only the animation changes; layers, meshes, weights and texture pixels stay exact."""
     source = json.loads(files['skeleton.json'])
     original = deepcopy(source)
     source['animations'] = {}
+    setup_vertices = None
+    if clip_bounds:
+        setup = deepcopy(source)
+        setup['animations'] = {ANIMATION: {'bones': {}}}
+        setup_vertices = sample(setup, ANIMATION, 0)[0]
     document, evidence = build(source, motion, ANIMATION)
+    original_motion = motion
+    motion = clip_motion(motion, clip_bounds)
+    time_range = tuple(t/1_000_000 for t in clip_bounds) if clip_bounds else None
     issues = []
     from ..targets.character43.projected_lengths import build as add_lengths
     try:
         if kimodo is None:
-            document, lengths = add_lengths(document, ANIMATION, bvh, mapping)
+            document, lengths = add_lengths(document, ANIMATION, bvh, mapping, time_range=time_range)
         else:
             from ..targets.character43.kimodo_lengths import build as add_npz_lengths
-            document, lengths = add_npz_lengths(document, ANIMATION, *kimodo, mapping)
+            document, lengths = add_npz_lengths(document, ANIMATION, *kimodo, mapping, time_range=time_range)
         evidence['projected_lengths'] = lengths
     except ValueError as exc:
         # Preserve a diagnostic rotation-only animation when projection is unsuitable.
         # It must not become a supported/adopted result by falling back silently.
         issues.append(dict(stage='projection', reason_code=str(exc)))
+    document = clip_animation(document, ANIMATION, clip_bounds)
+    if clip_bounds:
+        evidence['clip'] = dict(start_tick=clip_bounds[0], end_tick=clip_bounds[1],
+                                source_duration_ticks=original_motion['duration_ticks'],
+                                pose_policy='preserve_original_setup_relative_values')
     from ..targets.character43.affine_area_repair import repair
     try:
-        document, correction = repair(document, ANIMATION, samples=129, convergent=True)
+        document, correction = repair(document, ANIMATION, samples=129, convergent=True, setup_vertices=setup_vertices)
         evidence['area_repair'] = correction
     except ValueError as exc:
         issues.append(dict(stage='repair', reason_code=str(exc)))
@@ -61,8 +75,11 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
     raw = canonical_bytes(document)
     result = {name: data for name, data in files.items() if name.endswith('.png') or name == 'skeleton.atlas'}
     result['skeleton.json'] = raw
+    if setup_vertices is not None:
+        result['rig-setup-reference.json'] = canonical_bytes(dict(skeleton_sha256=sha256(raw).hexdigest(),
+                                                                 time=0, vertices=setup_vertices))
     result = write_reference(result, dict(skeleton_sha256=sha256(raw).hexdigest(), animations={ANIMATION: frames}))
-    geometry = inspect(result)
+    geometry = inspect(result, setup_vertices=setup_vertices)
     if not geometry['passed']:
         issues.append(dict(stage='geometry', reason_code='motion_target_deformation_needs_changes'))
     if {k: v for k, v in document.items() if k != 'animations'} != {k: v for k, v in original.items() if k != 'animations'}:
@@ -93,14 +110,18 @@ def execute(folder, state_root, workspace):
     motion_id = request['motion_identity']
     bundle = VerifiedMotionBundleReader(state_root).load(motion_id['clip_sha256'], motion_id['bundle_sha256'])
     motion = json.loads((bundle.path / 'motion.json').read_bytes())
-    # Bound expensive correction work before allocating a full character timeline.
-    if max(len(track['keys']) for track in motion['tracks']) > 768:
-        raise ValueError('motion_target_sample_limit')
     kimodo = (bundle.raw_npz, bundle.kimodo_source) if bundle.source_kind == 'kimodo_npz' else None
     bvh = None if kimodo else parse_bvh((bundle.path / 'source.bvh').read_bytes())
+    from ..bvh_fk import bvh_frame_ticks
+    from ..kimodo_npz_projection import kimodo_frame_ticks
+    ticks = kimodo_frame_ticks(bundle.kimodo_source) if kimodo else bvh_frame_ticks(bvh)
+    clip_bounds = boundaries(request.get('clip'), ticks)
+    if max(len(track['keys']) for track in clip_motion(motion, clip_bounds)['tracks']) > 768:
+        raise ValueError('motion_target_sample_limit')
     files, evidence, geometry = build_candidate(store.read(request['character_sha256']), motion,
         bvh, json.loads((bundle.path / 'map.json').read_bytes()), kimodo=kimodo,
         contact_correction=request.get('contact_correction', True),
+        clip_bounds=clip_bounds,
         character_digest=request['character_sha256'], motion_digest=motion_id['bundle_sha256'])
     progress(folder, 'publish_candidate')
     digest = store.publish(files)
@@ -109,6 +130,7 @@ def execute(folder, state_root, workspace):
     result = dict(artifact_sha256=digest, character_animation_status=evidence['status'], runtime=runtime,
                   animations=[ANIMATION], issues=evidence['issues'],
                   geometry_passed=geometry['passed'], contact_status=evidence['contact_status'],
+                  clip=request.get('clip'),
                   depth_order_status='not_evaluated', authority='none', production_authorized=False)
     (folder / 'worker-result.json').write_bytes(canonical_bytes(result))
 

@@ -1,0 +1,48 @@
+{
+  "schema": "autospine.m4-motion-selection-evidence/v1",
+  "date": "2026-09-20",
+  "source_job_id": "motion-b691ce34c0b84cbcbf9ad4f5226d486d",
+  "raw_npz_sha256": "2ee03d7638686150305d61ff6bd5d8f21a05693cf139bb20467017feb3d363a6",
+  "side_view": {
+    "job_id": "motion-8bae77b44672414aac0e603e56e53d95",
+    "motion_bundle_sha256": "c61c1f9be9da14ee526ad7b22e8869c8e5ee229186754837ce961452f42e9c32",
+    "source_bytes_unchanged": true,
+    "producer_status": "recorded",
+    "character_adaptation_evaluated": false
+  },
+  "clip": {
+    "job_id": "motion-0226e99e75e443fe921a870e4e74a992",
+    "project_id": "alice",
+    "start_frame_zero_based": 30,
+    "end_frame_zero_based_inclusive": 90,
+    "source_time_seconds": [1, 3],
+    "duration_seconds": 2,
+    "artifact_sha256": "f02956c7e0aade9a8bf38093176eac5a1d0d1b560cbdde1fee5ffae16a2b722f",
+    "pose_policy": "preserve_original_setup_relative_values",
+    "geometry_baseline": "rig_setup_not_first_clip_frame",
+    "geometry_passed": true,
+    "runtime_frames": 345,
+    "runtime_version": "4.3.13",
+    "spine_target": "4.3.26",
+    "contact_status": "ankle_proxy_corrected",
+    "independent_setup_capture": true,
+    "setup_missing_visible_pixels": 0,
+    "setup_unexpected_visible_pixels": 0,
+    "setup_pixels_pma_error_over_2": 13,
+    "runtime_report_sha256": "5a10d785ea571d088b424d112e874241b0c3bfc3fef6986c82c4a68a463bee4d",
+    "browser_seek_seconds": 1,
+    "browser_errors": [],
+    "visual_human_accepted": false
+  },
+  "scope": "one_recorded_kimodo_source_view_and_one_real_character_clip",
+  "regression": {
+    "original_full_motion_recaptured_frames": 375,
+    "original_full_motion_geometry_passed": true,
+    "focused_python_tests_passed": 33,
+    "additional_tests": "19 executed; missing-Blender error-code assertion failed once, then passed individually and in the full 7-test intake module; remaining 18 passed",
+    "transient_failure_root_cause": "not_reproduced_no_claim_of_resolution",
+    "browser_frame_selection_and_invalid_range_guard": true
+  },
+  "milestone_complete": false,
+  "production_authorized": false
+}

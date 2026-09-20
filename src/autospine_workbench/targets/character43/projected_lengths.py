@@ -6,7 +6,8 @@ from .affine_pose import matrices
 from .motionir_candidate import ROLES
 
 
-def build(document, name, bvh, mapping):
+def build(document, name, bvh, mapping, *, time_range=None):
+    from .motion_clip import selected_ratios
     projected = project_bvh_frames(bvh, mapping)
     rows = [r for r in mapping['bones'] if r['role'].startswith(('humanoid.leg.', 'humanoid.arm.'))]
     ratios = {}; summary = []
@@ -19,17 +20,13 @@ def build(document, name, bvh, mapping):
             a, b = joints[row['joint_name']], joints[row['aim']['joint_name']]
             world = math.dist(a.world_xyz, b.world_xyz)
             visible = math.dist(a.screen_xy, b.screen_xy)
-            if world <= 1e-8 or visible/world < .2:
-                raise ValueError('character_length_projection_collapsed')
-            values.append(visible/world)
-        values = [v/values[0] for v in values]
-        if min(values) < .5 or max(values) > 1.5:
-            raise ValueError('character_length_ratio_outside_preview_range')
+            values.append(visible/world if world > 1e-8 else 0.)
+        values, times = selected_ratios(values, [frame.tick/1_000_000 for frame in projected.frames], time_range)
         bone = ROLES[row['role']]
         ratios[bone] = values
         summary.append(dict(role=row['role'], bone=bone, min_ratio=min(values), max_ratio=max(values)))
     return apply_ratios(document, name, ratios, summary,
-                        [frame.tick/1_000_000 for frame in projected.frames],
+                        times,
                         projected.source_sha256, projected.map_sha256)
 
 

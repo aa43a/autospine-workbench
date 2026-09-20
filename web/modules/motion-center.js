@@ -1,6 +1,7 @@
 import {createSourcePlayer} from './motion-source-player.js';
 import {createTargetControls} from './motion-target-controls.js';
 import {createGenerationControls} from './motion-generation-controls.js';
+import {createSelectionControls} from './motion-selection-controls.js';
 
 const $ = id => document.getElementById(id);
 const player = createSourcePlayer($('canvas'), $('time'), $('play'), $('clock'));
@@ -21,6 +22,7 @@ const steps = {
   retarget: '角色重定向与局部修正', publish_candidate: '保存角色候选', runtime: '官方 Runtime 捕获',
 };
 const reasons = {
+  motion_clip_range_invalid: '片段至少包含两帧，且须位于源动作范围内。',
   motion_generation_unavailable: '服务端尚未配置本地 Kimodo 环境。',
   motion_generation_prompt_invalid: '请输入不超过 1000 字符的单行动作描述。',
   motion_generation_single_prompt_required: '首版支持单句动作；请用逗号连接要求，句点仅用于句尾。',
@@ -69,6 +71,7 @@ async function preview(job) {
   const token = ++previewToken;
   player.clear();
   targetControls.select(job);
+  selectionControls.select(job);
   $('title').textContent = job.name;
   $('details').textContent = '正在读取源动作…';
   try {
@@ -95,13 +98,17 @@ function render(data) {
   for (const job of data.jobs) {
     const item = node('article', '');
     item.className = 'job';
+    item.dataset.jobId = job.job_id;
     const detail = job.reason_code ? reasons[job.reason_code] || job.reason_code : steps[job.step];
     const state = job.kind === 'adapt' && job.status === 'succeeded' ? '角色候选已生成' : states[job.status];
-    item.append(node('strong', job.name + (job.kind === 'adapt' ? ' → ' + job.project_id : '')),
+    const displayName = job.derivation?.source_name || job.name;
+    item.append(node('strong', displayName + (job.kind === 'adapt' ? ' → ' + job.project_id
+      : ' · ' + (job.view === 'side' ? '侧面' : '正面'))),
       node('p', `${state}${detail ? ' · ' + detail : ''}`));
     if (job.cancel_requested && active.has(job.status)) item.append(node('p', '正在停止解析进程…'));
     if (job.status === 'succeeded' && job.kind === 'adapt') {
       const result = job.result;
+      if (result.clip) item.append(node('p', `源片段：第 ${result.clip.start_frame+1}–${result.clip.end_frame+1} 帧`));
       item.append(node('p', result.character_animation_status === 'needs_changes'
         ? '已生成诊断候选 · 存在投影或变形异常' : '已生成角色候选 · 待阶段验收'));
       item.append(node('p', `几何：${result.geometry_passed ? '通过' : '需调整'} · `
@@ -217,7 +224,8 @@ $('upload').onclick = async () => {
   }
 };
 $('refresh').onclick = () => void refresh();
-const targetControls = createTargetControls(request, refresh);
+const selectionControls = createSelectionControls(request, refresh);
+const targetControls = createTargetControls(request, refresh, selectionControls);
 const generationControls = createGenerationControls(request, refresh);
 window.addEventListener('pagehide', () => {
   suspended = true;

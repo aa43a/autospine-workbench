@@ -87,7 +87,7 @@ def execute(folder, state_root, blender):
         if not verified['passed']:raise ValueError('motion_fbx_bridge_mismatch')
     if request['format'] == 'npz':
         from .motion_kimodo_intake import compile_source as compile_npz
-        result = compile_npz(source.read_bytes(), request, folder, state_root)
+        result = compile_npz(source.read_bytes(), request, folder, state_root, producer=request.get('source_producer'))
     else:
         result=compile_source((folder/'source.bvh').read_bytes(),request['view'],folder,state_root)
     if request['format'] == 'fbx':

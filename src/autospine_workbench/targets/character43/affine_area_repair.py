@@ -6,7 +6,7 @@ from ..spine43.continuous_pose import area
 from .affine_pose import matrices, sample
 
 
-def repair(document, name, *, samples=257, convergent=False):
+def repair(document, name, *, samples=257, convergent=False, setup_vertices=None):
     animation = document['animations'][name]
     if animation.get('attachments'):
         raise ValueError('character_affine_repair_existing_deform')
@@ -21,7 +21,7 @@ def repair(document, name, *, samples=257, convergent=False):
     for slot, choices in document['skins'][0]['attachments'].items():
         attachment = choices[slot]; flat = attachment['triangles']
         triangles = [flat[i:i+3] for i in range(0, len(flat), 3)]
-        base = worlds[0][slot]; areas = [area(base, t) for t in triangles]
+        base = (setup_vertices if setup_vertices is not None else worlds[0])[slot]; areas = [area(base, t) for t in triangles]
         ratios = [area(w[slot], t)/a for w in worlds for t, a in zip(triangles, areas)]
         if min(ratios) >= .5 and max(ratios) <= 2:
             continue
