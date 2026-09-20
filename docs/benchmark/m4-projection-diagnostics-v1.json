@@ -1,0 +1,34 @@
+{
+  "schema": "autospine.m4-projection-diagnostic-evidence/v1",
+  "date": "2026-09-20",
+  "source_sha256": "ba4923f188ee8580dbe07f79191c154cbad0425ba71a74229eeeba40ea015a68",
+  "front_source_job": "motion-1f52729769af473084912644f9d16765",
+  "side_source_job": "motion-18073cfe70ff45b8bc1eb7ccba1df3a1",
+  "front": {
+    "failed_limb_roles": ["humanoid.arm.lower.left", "humanoid.arm.upper.left", "humanoid.arm.upper.right"],
+    "upper_left_min_visibility": 0.05584413550829058,
+    "upper_left_min_time": 2.133333,
+    "upper_right_min_visibility": 0.06440400433976812,
+    "leg_roles_passed": 4
+  },
+  "side": {
+    "source_limb_roles_passed": 8,
+    "source_frame_count": 122,
+    "alice_job": "motion-f928f7f909544e8f8a3b5e78646c3104",
+    "artifact_sha256": "f2314d2ea7eadae4b9b298800f6af9404a5f486e678939bcc84e527027c1ed4d",
+    "geometry_passed": true,
+    "runtime_frames": 377,
+    "runtime_report_sha256": "0fd64a6326fe95ef77c979c7ca001998011a20625dda4c0c2a3489a2c7639153",
+    "browser_seek_seconds": 2.133333,
+    "browser_errors": [],
+    "contact_status": "unavailable_no_labels",
+    "depth_order_status": "not_evaluated",
+    "visual_observation": "At 2.133 seconds hands/arms are substantially obscured by the torso; original front-facing artwork and draw order remain, side source projection does not create side artwork.",
+    "human_visual_acceptance": "not_evaluated"
+  },
+  "kimodo_diagnostic_crosscheck": {"job_id": "motion-b691ce34c0b84cbcbf9ad4f5226d486d", "source_limb_roles_passed": 8},
+  "fixed_front_cohort_unchanged": true,
+  "tests_passed": 12,
+  "milestone_complete": false,
+  "production_authorized": false
+}

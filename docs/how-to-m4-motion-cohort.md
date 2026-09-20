@@ -26,3 +26,14 @@ python tools/m4_motion_cohort_report.py docs/benchmark/m4-cohort-plan-v2.json ..
 v1 发现已有 `walking.fbx` 与指定目录中的同名文件字节不同，身份检查拒绝复用。v2 仅去除该错误复用 ID，重新导入固定路径文件；保留 v1、拒绝记录及完全相同的三项呼吸结果。未更换固定动作文件或降低门槛。
 
 首个完整动作 `breathing_idle.fbx` 在 Alice、辉夜、红美铃分别完成 554 帧官方 Runtime 捕获及几何检查。接触、动态遮挡和人工视觉验收尚无通过结论，不能据此宣称 M4 完成。
+
+## 定位源投影异常
+
+```powershell
+$env:PYTHONPATH='src'
+python tools/diagnose_motion_projection.py motion-1f52729769af473084912644f9d16765 ../tmp/m4-motion-center/walking-projection
+```
+
+诊断读取经过内容验证的 MotionIR 来源包，支持 BVH/FBX 与 Kimodo SOMA77，生成逐骨段可见长度曲线、首次参考塌缩状态和完整异常源帧区间。保持既有 20% 可见长度与 0.5–1.5 倍相对长度门槛，不做权重修改或阈值放宽。
+
+固定行走的正面投影在三条手臂骨段失败，左上臂最低可见长度约 5.6%。同字节侧面版本八骨段通过，Alice 独立侧面候选通过 377 帧几何与官方捕获；但手臂仍存在被躯干遮挡的视觉现象。改变源投影视角不会生成角色侧面贴图，接触与动态遮挡仍需后续处理。侧面试验不替换固定正面矩阵中的失败项。详细身份见 `benchmark/m4-projection-diagnostics-v1.json`。
