@@ -147,3 +147,29 @@ unassigned. This is not yet a corrected order or a captured Runtime candidate.
 Splitting draw calls still needs official rendering/blending equivalence checks
 before integration. Mixed and unmapped regions do not inherit chest depth merely
 because they belong to the same clothing layer.
+
+## Official render-equivalence evidence
+
+`tools/m4_depth_region_capture.py PARTITION_DIRECTORY OUTPUT_DIRECTORY` prepares
+two isolated, content-addressed bundles from the exact source and partitioned
+skeleton, retaining the original atlas/textures. It regenerates ideal and Float32
+storage references and captures every selected frame using the existing official
+Spine 4.3.13 WebGL harness. It does not attach a new accepted workbench candidate.
+
+Hongmeiling now has fresh original/partitioned captures at all 115 source-frame
+and midpoint times. Both passed the existing 0.001 px vertex threshold; maximum
+error was 0.000116873 px. Slot counts are 27 and 31. The complete decoded PNG RGBA
+comparison reports zero changed pixels in all 115 pairs under identical camera,
+runtime, browser and harness identities. This verifies sampled rendering
+equivalence under this capture environment, not continuous-time or corrected
+depth ordering.
+
+- Original isolated bundle: `e051d3f97624066e6500a2a5f8c4717239f1821a6671e159687ae6517ef0ef2d`.
+- Partitioned bundle: `5b0a82605d7331e63337f884474ea2103b865520d302d586d30807cf090b1f60`.
+- Exact evidence: `../tmp/m4-motion-center/depth-regions-hong-runtime-v1/equivalence.json`.
+- Draggable comparison: `../tmp/m4-motion-center/depth-regions-hong-runtime-v1/comparison/index.html`.
+
+The comparison rejects incomplete screenshot inventories, changed image bytes,
+camera/time differences and mismatched capture environments. A changed alpha
+channel alone fails equivalence. No depth assignment or visual approval is
+inferred from equal images.
