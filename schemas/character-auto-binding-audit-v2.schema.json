@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Automatic binding audit with explicit exception resolution references",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "project_id", "job_id", "artifact_sha256", "inventory_sha256", "reviews", "revision", "previous_sha256", "decision_source", "authority", "production_authorized", "exception_resolutions"],
+  "$defs": {"sha": {"type": "string", "pattern": "^[a-f0-9]{64}$"}},
+  "properties": {
+    "schema": {"const": "autospine.character-auto-binding-audit/v2"},
+    "project_id": {"type": "string", "minLength": 1}, "job_id": {"type": "string", "minLength": 1},
+    "artifact_sha256": {"$ref": "#/$defs/sha"}, "inventory_sha256": {"$ref": "#/$defs/sha"},
+    "previous_sha256": {"anyOf": [{"$ref": "#/$defs/sha"}, {"type": "null"}]},
+    "revision": {"type": "integer", "minimum": 0},
+    "reviews": {"type": "object", "maxProperties": 128, "additionalProperties": {"enum": ["correct", "incorrect", "unobservable", "not_reviewed"]}},
+    "exception_resolutions": {"type": "array", "maxItems": 1024, "uniqueItems": true, "items": {"$ref": "#/$defs/sha"}},
+    "timing": {"type": "object", "additionalProperties": false, "required": ["method", "scope", "seconds"], "properties": {
+      "method": {"const": "operator_stopwatch_v1"}, "scope": {"const": "automatic_binding_audit_session"}, "seconds": {"type": "number", "minimum": 0, "maximum": 86400}}},
+    "decision_source": {"const": "human_audit"}, "authority": {"const": "none"}, "production_authorized": {"const": false}
+  }
+}

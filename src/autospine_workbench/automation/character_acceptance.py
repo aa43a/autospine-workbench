@@ -25,6 +25,8 @@ def assess_character(character, observed, required_animations):
     from .character_auto_audit import verified_reviews
     audit = verified_reviews(job, observed.get('auto_binding_audit'))
     incorrect = [key for key, verdict in audit.items() if verdict == 'incorrect']
+    from .character_audit_continuity import verified_exceptions
+    incorrect = sorted(set(incorrect) | {r['layer_id'] for r in verified_exceptions(job, observed.get('auto_binding_audit'))})
     if incorrect:
         unresolved=sorted(set(unresolved+incorrect));reasons.append('automatic_binding_audit_needs_changes')
     if stale_auto:reasons.append('automatic_binding_evidence_stale')

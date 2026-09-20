@@ -9,7 +9,7 @@ export function characterProgress(job,confirmed=[],review=null,dirty=false,audit
  const failedAudit=auditBindingExceptions(job,audit);
  const pending=layers.filter(l=>needsBindingReview(l,confirmed)||failedAudit.has(l.layer_id)).length;
  const rows=[`绑定处理：${layers.length-pending} / ${layers.length} 层；${pending} 层待处理。`];
- if(auditExact)rows.push(`自动归属：默认沿用，无需逐项确认；${audit.metrics.incorrect} 项异常需修改。可选人工抽查 ${audit.metrics.assessed_bindings} / ${audit.metrics.eligible_bindings} 项。`);
+ if(auditExact)rows.push(`自动归属：默认沿用，无需逐项确认；${failedAudit.size} 项异常需修改。可选人工抽查 ${audit.metrics.assessed_bindings} / ${audit.metrics.eligible_bindings} 项。`);
  const geometry=job.runtime?.geometry_status;
  rows.push(geometry==='passed'?'采样网格：通过。':geometry==='needs_changes'?'采样网格：存在超限变形，需要修正。':'采样网格：尚无通过证据。');
  rows.push(job.runtime?.files?.['report.json']?'Runtime：已有报告，需结合实际播放与视觉复核。':'Runtime：尚无报告。');

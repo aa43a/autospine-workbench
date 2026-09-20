@@ -33,6 +33,16 @@ test('default automatic assignments need no individual audit to remain complete'
  assert.match(rows[0],/0 层待处理/);assert.match(rows[1],/默认沿用，无需逐项确认/);
 });
 
+test('carried errors remain pending without increasing explicit audit count',()=>{
+ const auto={...job,layers:[{layer_id:'l',state:'rigid_reviewed',binding_decision:{action:'bind',option_id:'rigid:head',decision_source:'policy_auto',evidence_current:true}}]};
+ const proof={project_id:'p',job_id:'j',artifact_sha256:'a',authority:'none',exceptions:[{layer_id:'l',source_job_id:'old'}]};
+ const audit={...proof,review:null,exception_continuity:proof,metrics:{assessed_bindings:0,eligible_bindings:1,incorrect:0}};
+ const rows=characterProgress(auto,[],null,false,audit);
+ assert.match(rows[0],/1 层待处理/);assert.match(rows[1],/1 项异常需修改.*0 \/ 1/);
+ audit.exception_continuity={...proof,project_id:'other'};
+ assert.match(characterProgress(auto,[],null,false,audit)[0],/0 层待处理/);
+});
+
 test('audit shortcut has an explicit action and follows candidate editability',()=>{
  const document={createElement(tag){return {tag,children:[],append(...n){this.children.push(...n);},replaceChildren(...n){this.children=n;},setAttribute(){},addEventListener(k,f){this[k]=f;}};}};
  let opened=0;const ui=createCharacterProgress(document,()=>{},()=>opened++);

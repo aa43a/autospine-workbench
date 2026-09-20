@@ -38,7 +38,9 @@ export function createAutoBindingAudit(document,hooks){
    const item=node("div",`${row.name} · 自动目标 ${row.option_id} `),select=node("select"),locate=node("button",row.layer_id===selected?"正在检查":"在此检查");
    select.setAttribute("aria-label",`抽查 ${row.name}`);
    for(const [value,text]of Object.entries(labels)){const option=node("option",text);option.value=value;select.append(option);}
-   select.value=edits[row.layer_id]??report.review?.reviews?.[row.layer_id]??"not_reviewed";select.disabled=busy||!editable;
+   const origins=(report.exception_continuity?.exceptions||[]).filter(r=>r.layer_id===row.layer_id);
+   select.value=edits[row.layer_id]??(origins.length?"incorrect":report.review?.reviews?.[row.layer_id]??"not_reviewed");select.disabled=busy||!editable;
+   if(origins.length)item.append(node("p",`未修复异常沿用自 ${origins.map(r=>r.source_job_id).join("、")}；重建不会解除。确认误报可选择“归属正确”或恢复默认后保存。`));
    select.onchange=()=>{selected=row.layer_id;edits[row.layer_id]=select.value;render();};
    locate.type="button";locate.disabled=busy||!editable;locate.onclick=()=>{selected=row.layer_id;element.open=true;render();};
    locate.className="button button-secondary";
@@ -49,16 +51,17 @@ export function createAutoBindingAudit(document,hooks){
  async function request(write=false){
   if(!job||!editable||busy||(write&&(!report||(!Object.keys(edits).length&&!hasTimingEdit()))))return;
   const timing=write?stopwatch.snapshot():null;
-  const reviews=Object.keys(edits).length?edits:(selected?{[selected]:report?.review?.reviews?.[selected]||'not_reviewed'}:{});
+  const reviews=Object.keys(edits).length?edits:(report?.exception_continuity?.exceptions?.length?{}:(selected?{[selected]:report?.review?.reviews?.[selected]||'not_reviewed'}:{}));
   const token=generation,current=job;attempted=true;busy=true;render();status.textContent="正在核对抽查来源…";
   try{
-   const init=write?{method:"POST",headers:{"X-Autospine-Intent":"pipeline-preview"},body:JSON.stringify({expected_artifact_sha256:report.artifact_sha256,expected_review_sha256:report.review_sha256,reviews,...(timing?{timing}:{})})}:{cache:"no-store"};
+   const init=write?{method:"POST",headers:{"X-Autospine-Intent":"pipeline-preview"},body:JSON.stringify({expected_artifact_sha256:report.artifact_sha256,expected_review_sha256:report.review_sha256,reviews,...(report.exception_sha256?{expected_exception_sha256:report.exception_sha256}:{}),...(timing?{timing}:{})})}:{cache:"no-store"};
    const value=await hooks.apiRequest(`/api/projects/${encodeURIComponent(current.project_id)}/automation/character/jobs/${current.job_id}/auto-binding-audit`,init);
    if(token!==generation)return;
    if(value.authority!=="none"||["project_id","job_id","artifact_sha256"].some(k=>value[k]!==current[k]))throw Error("source");
    report=value;edits={};stopwatch.load(value.review?.timing);const m=value.metrics;
-   if(m.incorrect>0)element.open=true;
+   if(m.incorrect>0||m.carried_exception_layers>0)element.open=true;
    status.textContent=`自动归属默认沿用，无需逐项确认；已记录 ${m.incorrect} 项异常、${m.unobservable} 项无法判断。可选人工抽查：已明确判断 ${m.assessed_bindings} / ${m.eligible_bindings} 项。${m.assessed_bindings?`抽查错误率 ${(m.sampled_error_rate*100).toFixed(1)}%。`:"尚无可计算错误率的抽查。"}`;
+   if(m.carried_exception_layers)status.textContent+=` 另有 ${m.carried_exception_layers} 层原异常仍未修复，不重复计入本次抽查。`;
    return true;
   }catch(e){if(token===generation){if(!write)report=null;status.textContent="抽查未保存或来源已变化，请重新读取清单；原记录保留。";}}
   finally{if(token===generation){busy=false;render();hooks.changed?.();}}

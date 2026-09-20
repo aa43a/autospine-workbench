@@ -24,7 +24,11 @@ export function needsBindingReview(layer,confirmed=[]){
 export function auditBindingExceptions(job,audit){
   if(!job||audit?.authority!=="none"||!["project_id","job_id","artifact_sha256"].every(k=>audit[k]===job[k]))return new Set();
   const automatic=new Set((job.layers||[]).filter(l=>l.binding_decision?.decision_source==="policy_auto"&&l.binding_decision.evidence_current===true).map(l=>l.layer_id));
-  return new Set(Object.entries(audit.review?.reviews||{}).filter(([id,value])=>value==="incorrect"&&automatic.has(id)).map(([id])=>id));
+  const direct=Object.entries(audit.review?.reviews||{}).filter(([id,value])=>value==="incorrect"&&automatic.has(id)).map(([id])=>id);
+  const proof=audit.exception_continuity;
+  const inherited=proof?.authority==="none"&&["project_id","job_id","artifact_sha256"].every(k=>proof[k]===job[k])?
+    (proof.exceptions||[]).filter(r=>automatic.has(r.layer_id)).map(r=>r.layer_id):[];
+  return new Set([...direct,...inherited]);
 }
 
 export function createCharacterLedger(document,hooks){

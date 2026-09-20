@@ -6,6 +6,19 @@ const document={createElement(tag){return {tag,children:[],append(...n){this.chi
 const job={project_id:'p',job_id:'j',artifact_sha256:'a'};
 const response={...job,authority:'none',inventory:[{layer_id:'eye',name:'眼睛',option_id:'rigid:head'}],review:null,review_sha256:null,
  metrics:{assessed_bindings:0,eligible_bindings:1,incorrect:0,unobservable:0,sampled_error_rate:null}};
+test('carried error is visible without copying verdict and time-only save retains it',async()=>{
+ let now=0,posted;
+ const value={...response,exception_sha256:'proof',exception_continuity:{exceptions:[{layer_id:'eye',source_job_id:'job-old'}]},metrics:{...response.metrics,carried_exception_layers:1}};
+ const ui=createAutoBindingAudit(document,{clock:()=>now,apiRequest:async(url,init)=>{
+  if(init.method==='POST')posted=JSON.parse(init.body);return value;
+ }});
+ ui.sync(job,true);await ui.request();
+ assert.equal(ui.element.open,true);
+ assert.equal(all(ui.element).find(n=>n.tag==='select').value,'incorrect');
+ assert.ok(all(ui.element).some(n=>n.textContent.includes('未修复异常沿用自 job-old')));
+ all(ui.element).find(n=>n.textContent==='开始 / 继续复核计时').onclick();now=5000;await ui.request(true);
+ assert.deepEqual(posted.reviews,{});assert.equal(posted.expected_exception_sha256,'proof');ui.dispose();
+});
 test('exception edit saves the exact exception before opening binding editor; failure retains draft',async()=>{
  let fail=true;const events=[];
  const ui=createAutoBindingAudit(document,{locate:row=>events.push(row),apiRequest:async(url,init)=>{

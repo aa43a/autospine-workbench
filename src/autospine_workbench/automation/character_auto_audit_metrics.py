@@ -4,7 +4,7 @@ from .character_auto_audit import summary
 
 def summarize(observations):
     counts = dict(eligible_bindings=0, assessed_bindings=0, correct=0, incorrect=0,
-                  unobservable=0, not_reviewed=0)
+                  unobservable=0, not_reviewed=0, carried_exception_layers=0, default_unreviewed_bindings=0)
     projects = 0; measured = []
     for observed in observations.values():
         job = observed.get('job') or {}
