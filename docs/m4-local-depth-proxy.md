@@ -227,3 +227,27 @@ Evidence: `../tmp/m4-motion-center/cloth-plane-hong-v1.json` and
 `../tmp/m4-motion-center/cloth-plane-hong-hands-v1.json`. Tests cover plane anchor
 interpolation, coordinate translation, degenerate views, relative depth against
 a tilted plane, source FK continuity and verified/missing palm topology.
+
+## Remaining unknown-depth attribution
+
+The cloth probe accepts `--diagnose-unknown`. A separate raster budget attributes
+unknown support to missing segment observations, nonpositive bone length,
+out-of-quarter-cap influences or non-normalized weights. Only cause groups with
+actual opaque overlap are reported; cause groups may share pixels. Listed
+supporting triangles/vertices describe the whole cause group, not a claim that
+every listed vertex lies inside the visible overlap.
+
+On the same twelve Hongmeiling samples with palm observations, all ten visible
+unknown sets involve `hand_r` influences outside the axis cap. Three samples
+also have `upperarm_r` out-of-cap support: 3, 19 and 45 pixels at 1.433333, 1.45
+and 1.466667 s respectively. At the last of these samples, 476 unknown pixels
+have hand support and 45 have upper-arm support. No missing source segment is
+reported for these cause groups. Thus acquiring another garment observation
+alone cannot remove the present unknowns; target influence coordinates and the
+anatomical segment correspondence need to be addressed.
+
+The target hand's setup display length is 24.3359165131 px. That display length
+is not established as the extent of the full skinned hand. Future axis mapping
+must use actual mesh support and explicit source finger-chain observations;
+this experiment does not expand the cap or discard positive influences to force
+a pass. Evidence is `../tmp/m4-motion-center/cloth-plane-hong-unknown-v1.json`.

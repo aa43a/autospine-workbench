@@ -16,9 +16,10 @@ from autospine_workbench.targets.character43.cloth_depth_plane import at, PROFIL
 from autospine_workbench.targets.character43.motion_depth_overlap import Probe
 from autospine_workbench.targets.character43.mesh_depth_proxy import overlap_support
 from autospine_workbench.targets.character43.hand_depth_observation import observe
+from autospine_workbench.targets.character43.depth_proxy_unknown import inspect as unknown_causes
 
 
-def run(job, partition, ordering, output, *, hand_depth=False):
+def run(job, partition, ordering, output, *, hand_depth=False, diagnose_unknown=False):
     if not re.fullmatch(r'motion-[a-f0-9]{32}',job): raise ValueError('job_invalid')
     root=Path('workspace'); folder=root/'jobs/motion-intake-v1'/job
     request=read_document(folder/'request.json'); result=read_document(folder/'result.json')
@@ -40,6 +41,7 @@ def run(job, partition, ordering, output, *, hand_depth=False):
     if len(offsets)!=1: raise ValueError('cloth_probe_source_time_identity')
     offset=offsets.pop(); next_tick=dict(zip(ticks,ticks[1:]))
     probe=Probe(document,files,'external-motion')
+    diagnostic=Probe(document,files,'external-motion') if diagnose_unknown else None
     regions={r['slot'] for r in region['regions'] if r['group']=='mixed'}
     arms=set(order['depth_groups']['left']+order['depth_groups']['right']); rows=[]
     failures=order['order']['failures']
@@ -62,6 +64,10 @@ def run(job, partition, ordering, output, *, hand_depth=False):
                     check=overlap_support(probe,arm,cloth,time,segments,
                                           endpoint_caps=True,reference_plane=plane['coefficients'])
                     row=dict(time=time,source_tick=source_tick,plane=plane,hand_depth=hands,check=check)
+                    if diagnostic is not None:
+                        try: row['unknown_causes']=unknown_causes(diagnostic,arm,cloth,time,segments)
+                        except ValueError as exc:
+                            row['unknown_causes']=dict(status='unmeasured',reason_code=str(exc))
                 except ValueError as exc:
                     row=dict(time=time,source_tick=source_tick,check=dict(status='unmeasured',reason_code=str(exc)))
                 rows.append(dict(arm=arm,cloth=cloth,**row))
@@ -78,4 +84,6 @@ if __name__=='__main__':
     parser.add_argument('job'); parser.add_argument('partition',type=Path)
     parser.add_argument('ordering',type=Path); parser.add_argument('output',type=Path)
     parser.add_argument('--hand-depth',action='store_true')
-    args=parser.parse_args(); run(args.job,args.partition,args.ordering,args.output,hand_depth=args.hand_depth)
+    parser.add_argument('--diagnose-unknown',action='store_true')
+    args=parser.parse_args(); run(args.job,args.partition,args.ordering,args.output,
+                                hand_depth=args.hand_depth,diagnose_unknown=args.diagnose_unknown)
