@@ -36,6 +36,7 @@ const reasons = {
   motion_target_sample_limit: '该动作超出首版角色适配的采样上限，请截取较短片段。',
   character_length_projection_collapsed: '骨段几乎朝向相机，当前视角不适合直接生成二维动作。',
   character_length_ratio_outside_preview_range: '投影缩短变化超出支持范围，需要调整视角或动作片段。',
+  motion_contact_drift_needs_changes: '源标签对应的支撑期存在踝部滑移，自动修正未通过限制。',
 };
 
 function node(tag, text) {
@@ -92,6 +93,15 @@ function render(data) {
       item.append(node('p', `几何：${result.geometry_passed ? '通过' : '需调整'} · `
         + `Runtime：${result.runtime.status === 'needs_review' ? result.runtime.frames + ' 帧已捕获' : '环境不可用'}`));
       for (const issue of result.issues) item.append(node('p', reasons[issue.reason_code] || issue.reason_code));
+      const contactStates = {unavailable_no_labels: '源动作无接触标签，未检查',
+        ankle_proxy_passed: '踝部支点检查通过', ankle_proxy_corrected: '已采用小幅根骨修正，踝部支点检查通过',
+        needs_changes: '支撑期滑移需调整'};
+      item.append(node('p', '接触：' + (contactStates[result.contact_status] || '尚未检查')));
+      if (contactStates[result.contact_status]) {
+        const contact = node('a', '查看接触检查');
+        contact.href = `/api/motions/${job.job_id}/view/contact.html`;
+        contact.target = '_blank'; contact.rel = 'noopener'; item.append(contact);
+      }
       if (result.runtime.status === 'needs_review') {
         const link = node('a', '打开角色时间轴');
         link.href = `/api/motions/${job.job_id}/view/player.html`;

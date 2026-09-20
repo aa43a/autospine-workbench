@@ -69,5 +69,8 @@
   for (const id of ['motion','play','reset','time']) el(id).disabled = false;
   el('identity').textContent = `候选 ${context.artifact_sha256}`;
   el('status').textContent = '官方 Runtime 实时预览 · 选择动作或拖动时间轴';
-  select(); window.characterPlayerReady = true; requestAnimationFrame(tick);
+  select();
+  const requestedTime = Number(new URL(location.href).searchParams.get('time'));
+  if (Number.isFinite(requestedTime)) { time = Math.min(duration, Math.max(0, requestedTime)); draw(); }
+  window.characterPlayerReady = true; requestAnimationFrame(tick);
 })().catch(error => { document.getElementById('status').textContent = `预览加载失败：${error.message}`; window.characterPlayerError = String(error); });

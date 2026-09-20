@@ -29,7 +29,9 @@ def assert_current(manager, request):
 
 
 def submit(manager, source_job, body):
-    if set(body) != {'project_id', 'character_job_id'}:
+    if (set(body) - {'project_id', 'character_job_id', 'contact_correction'}
+            or not {'project_id', 'character_job_id'} <= set(body)
+            or type(body.get('contact_correction', True)) is not bool):
         raise PipelineRunError('motion_request_invalid')
     source = manager.get(source_job)
     if source.get('kind', 'import') != 'import' or source.get('result', {}).get('motion_status') != 'compiled':
@@ -40,7 +42,8 @@ def submit(manager, source_job, body):
     character = characters.get(project, character_job)
     request = dict(kind='adapt', source_job_id=source_job, source_job_sha256=canonical_sha256(source),
                    motion_identity=source['result']['motion'], project_id=project, character_job_id=character_job,
-                   character_sha256=character['artifact_sha256'], name=source['name'])
+                   character_sha256=character['artifact_sha256'], name=source['name'],
+                   contact_correction=body.get('contact_correction', True))
     assert_current(manager, request)
     with manager._lock:
         if manager._closed or sum(j['status'] in {'pending', 'running'} for j in manager._jobs.values()) >= 2:
@@ -75,6 +78,11 @@ def review_file(manager, job, parts):
         # still verify the addressed job, character sources and capture inventory.
         return read(None, None, None, parts)
     result, files = context(manager, job)
+    if parts == ['motion-contact.json']:
+        return files['motion-contact.json'], 'application/json'
+    if parts == ['contact.html']:
+        from ..targets.character43.motion_contact_review import render
+        return render(json.loads(files['motion-contact.json'])), 'text/html; charset=utf-8'
     root = directory(manager.folder(job) / 'runtime')
     def runtime_file(name):
         name = review_name(name)

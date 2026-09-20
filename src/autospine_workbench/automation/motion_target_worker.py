@@ -19,7 +19,8 @@ from .storage_io import canonical_bytes, read_document
 ANIMATION = 'external-motion'
 
 
-def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_digest, kimodo=None):
+def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_digest, kimodo=None,
+                    contact_correction=True):
     """Only the animation changes; layers, meshes, weights and texture pixels stay exact."""
     source = json.loads(files['skeleton.json'])
     original = deepcopy(source)
@@ -49,6 +50,13 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
     times = sorted(key_times | {duration * i / 256 for i in range(257)})
     if len(times) > 1025 or duration <= 0:
         raise ValueError('motion_target_sample_limit')
+    from ..targets.character43.motion_contacts import apply as apply_contacts
+    document, contact = apply_contacts(document, ANIMATION, motion, times,
+                                       evidence['reference_length_px'], enabled=contact_correction)
+    if contact['status'] == 'needs_changes':
+        issues.append(dict(stage='contact', reason_code='motion_contact_drift_needs_changes'))
+    if contact['selected']:
+        times = sorted(set(times) | {k['time'] for k in document['animations'][ANIMATION]['bones']['root']['translate']})
     frames = [dict(time=t, vertices=sample(document, ANIMATION, t)[0]) for t in times]
     raw = canonical_bytes(document)
     result = {name: data for name, data in files.items() if name.endswith('.png') or name == 'skeleton.atlas'}
@@ -61,10 +69,12 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
         raise ValueError('motion_target_rig_changed')
     evidence.update(character_sha256=character_digest, motion_bundle_sha256=motion_digest,
                     geometry_passed=geometry['passed'], issues=issues,
-                    contact_status='not_evaluated', depth_order_status='not_evaluated',
+                    contact_status=contact['status'], contact_policy=contact['policy_id'],
+                    depth_order_status='not_evaluated',
                     runtime_status='not_evaluated', authority='none',
                     status='needs_changes' if issues else 'needs_review')
     result.update({'motion-review.json': canonical_bytes(evidence),
+                   'motion-contact.json': canonical_bytes(contact),
                    'motion-ir.json': canonical_bytes(motion), 'deformation.json': canonical_bytes(geometry)})
     source_manifest = json.loads(files['character-manifest.json'])
     manifest = dict(schema='autospine.character-motion-preview/v1', profile='external-motion-target-v1',
@@ -90,6 +100,7 @@ def execute(folder, state_root, workspace):
     bvh = None if kimodo else parse_bvh((bundle.path / 'source.bvh').read_bytes())
     files, evidence, geometry = build_candidate(store.read(request['character_sha256']), motion,
         bvh, json.loads((bundle.path / 'map.json').read_bytes()), kimodo=kimodo,
+        contact_correction=request.get('contact_correction', True),
         character_digest=request['character_sha256'], motion_digest=motion_id['bundle_sha256'])
     progress(folder, 'publish_candidate')
     digest = store.publish(files)
@@ -97,7 +108,7 @@ def execute(folder, state_root, workspace):
                       progress=lambda stage: progress(folder, 'runtime'), cancel_requested=lambda: False)
     result = dict(artifact_sha256=digest, character_animation_status=evidence['status'], runtime=runtime,
                   animations=[ANIMATION], issues=evidence['issues'],
-                  geometry_passed=geometry['passed'], contact_status='not_evaluated',
+                  geometry_passed=geometry['passed'], contact_status=evidence['contact_status'],
                   depth_order_status='not_evaluated', authority='none', production_authorized=False)
     (folder / 'worker-result.json').write_bytes(canonical_bytes(result))
 

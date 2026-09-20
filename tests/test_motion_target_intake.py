@@ -77,7 +77,7 @@ class MotionTargetTests(unittest.TestCase):
         self.assertEqual(set(changed['animations']), {'external-motion'})
         self.assertTrue(geometry['passed'], geometry)
         self.assertGreaterEqual(geometry['records'][0]['sample_count'], 257)
-        self.assertEqual(evidence['contact_status'], 'not_evaluated')
+        self.assertEqual(evidence['contact_status'], 'unavailable_no_labels')
         self.assertFalse(json.loads(result['character-manifest.json'])['production_authorized'])
 
     def test_projection_failure_is_diagnostic_never_a_silent_success(self):
@@ -101,7 +101,14 @@ class MotionTargetTests(unittest.TestCase):
                 manager.character_manager = lambda: SimpleNamespace(verified_files=lambda *_: {}, get=lambda *_: character)
                 value = submit(manager, queued['job_id'], dict(project_id='alice', character_job_id='job-'+'c'*32))
                 request = read_document(manager.folder(value['job_id']) / 'request.json')
+                self.assertTrue(request['contact_correction'])
                 assert_current(manager, request)
+                disabled = submit(manager, queued['job_id'], dict(project_id='alice',
+                    character_job_id='job-'+'c'*32, contact_correction=False))
+                manager._jobs[disabled['job_id']].update(status='failed')
+                with patch('autospine_workbench.automation.motion_target_jobs.submit') as retry:
+                    manager.retry(disabled['job_id'])
+                    self.assertFalse(retry.call_args.args[2]['contact_correction'])
                 character['artifact_sha256'] = 'd'*64
                 with self.assertRaisesRegex(PipelineRunError, 'motion_target_character_changed'):
                     assert_current(manager, request)

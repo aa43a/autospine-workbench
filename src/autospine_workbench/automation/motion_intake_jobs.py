@@ -135,7 +135,9 @@ class MotionIntakeJobs:
         request = read_document(self.folder(job) / 'request.json')
         if request.get('kind') == 'adapt':
             from .motion_target_jobs import submit
-            return submit(self, request['source_job_id'], {k: request[k] for k in ('project_id', 'character_job_id')})
+            body = {k: request[k] for k in ('project_id', 'character_job_id')}
+            body['contact_correction'] = request.get('contact_correction', True)
+            return submit(self, request['source_job_id'], body)
         raw = read_real_file(self.folder(job) / ('source.' + request['format']), MAX_UPLOAD, 'motion source')
         if sha256(raw).hexdigest() != request['source_sha256']:
             raise PipelineRunError('motion_source_changed')

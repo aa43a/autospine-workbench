@@ -6,8 +6,8 @@
 <label>投影视角 <select id="view"><option value="front">正面 · X / −Y</option><option value="side">侧面 · −Z / −Y</option></select></label>
 <button id="upload">导入并解析</button><button id="refresh">刷新任务</button><p id="environment"></p><p id="status" role="status" aria-live="polite">正在读取动作库…</p>
 <p class="hint">首版自动映射支持 Mixamo 标准名称或 mixamorig: 前缀。其他骨架保留源文件并提示映射缺项。源动作解析不会改动角色绑定。</p>
-<details><summary>支持范围</summary><p>支持 Kimodo SOMA77 NPZ 导入，文字生成尚未接通。当前可将已编译动作试用于已有整角色候选；异常会单独保留。源骨架预览不是角色动作验收，源足部标签会保留，但角色接触锁定和深度遮挡尚未自动验证。</p></details></section>
-<section aria-label="适配角色"><h2>应用到角色</h2><p id="target-source">先选择已生成 MotionIR 的源动作。</p><label>目标角色 <select id="target-project"><option value="">选择角色</option></select></label><button id="adapt" disabled>构建角色动作候选</button><p id="target-status" role="status">选择已有整角色候选。</p></section>
+<details><summary>支持范围</summary><p>支持 Kimodo SOMA77 NPZ 导入，文字生成尚未接通。当前可将已编译动作试用于已有整角色候选；异常会单独保留。源标签已接通角色踝部支点检查与小幅修正；鞋底、地面碰撞和动态遮挡尚未自动验证。</p></details></section>
+<section aria-label="适配角色"><h2>应用到角色</h2><p id="target-source">先选择已生成 MotionIR 的源动作。</p><label>目标角色 <select id="target-project"><option value="">选择角色</option></select></label><label><input id="contact-correction" type="checkbox" checked>依据源接触标签尝试小幅支撑修正</label><p class="hint">检查踝部支点滑移；只在修正幅度、双脚冲突和过渡速度均通过时采用。不是鞋底或地面碰撞检查。取消勾选可生成未修正版，历史结果保留。</p><button id="adapt" disabled>构建角色动作候选</button><p id="target-status" role="status">选择已有整角色候选。</p></section>
 <div class="split"><section><h2>动作任务</h2><div id="jobs"></div></section>
 <section aria-label="源动作预览"><h2 id="title">源骨架时间轴</h2><p id="details">选择解析完成的动作查看骨架。</p><canvas id="canvas" width="820" height="600" aria-label="源骨架投影"></canvas>
 <div class="controls"><button id="play" disabled>播放</button><input id="time" aria-label="动作时间轴" type="range" min="0" max="1" step="0.001" value="0" disabled><output id="clock">0.00 秒</output></div><p class="hint">最多显示 240 个源姿态采样；不插造中间姿态。完整源帧进入编译，接触与循环不会自动确认。</p><details><summary>映射诊断</summary><p id="diagnostic">未选择动作。</p></details></section></div></main>
