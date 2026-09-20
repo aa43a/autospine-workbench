@@ -6,11 +6,25 @@ const document={createElement(tag){return {tag,children:[],append(...n){this.chi
 const job={project_id:'p',job_id:'j',artifact_sha256:'a'};
 const response={...job,authority:'none',inventory:[{layer_id:'eye',name:'眼睛',option_id:'rigid:head'}],review:null,review_sha256:null,
  metrics:{assessed_bindings:0,eligible_bindings:1,incorrect:0,unobservable:0,sampled_error_rate:null}};
+test('save-next retains failed draft and advances only after successful save',async()=>{
+ let fail=true,posted;
+ const value={...response,inventory:[...response.inventory,{layer_id:'neck',name:'颈部',option_id:'rigid:neck'}]};
+ const ui=createAutoBindingAudit(document,{apiRequest:async(url,init)=>{if(init.method==='POST'){posted=JSON.parse(init.body);if(fail)throw Error('offline');return {...value,review:{reviews:posted.reviews}};}return value;}});
+ ui.sync(job,true);await ui.request();
+ const button=text=>all(ui.element).find(n=>n.textContent===text);
+ button('当前项：归属正确').onclick();await button('保存并下一项').onclick();
+ assert.equal(all(ui.element).filter(n=>n.tag==='select')[0].value,'correct');
+ assert.ok(all(ui.element).some(n=>n.textContent==='当前 1 / 2 · 1 项尚未保存'));
+ fail=false;await button('保存并下一项').onclick();
+ assert.ok(all(ui.element).some(n=>n.textContent==='当前 2 / 2 · 0 项尚未保存'));
+ assert.deepEqual(posted.reviews,{eye:'correct'});ui.dispose();
+});
 test('unreviewed default, explicit judgment only, one source-bound save',async()=>{
  const posts=[],located=[];const ui=createAutoBindingAudit(document,{locate:row=>located.push(row),apiRequest:async(_url,init)=>{if(init.method==='POST')posts.push(JSON.parse(init.body));return response;}});
  ui.sync(job,true);await ui.request();
  const select=all(ui.element).find(n=>n.tag==='select');assert.equal(select.value,'not_reviewed');
- all(ui.element).find(n=>n.textContent==='定位图层').onclick();assert.deepEqual(located,[{layer_id:'eye',type:'binding'}]);
+ all(ui.element).find(n=>n.textContent==='正在检查').onclick();assert.deepEqual(located,[]);
+ assert.match(all(ui.element).find(n=>n.tag==='iframe').src,/\/view\/player.html/);
  await ui.request(true);assert.equal(posts.length,0);
  select.value='incorrect';select.onchange();await ui.request(true);
  assert.deepEqual(posts,[{expected_artifact_sha256:'a',expected_review_sha256:null,reviews:{eye:'incorrect'}}]);

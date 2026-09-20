@@ -16,6 +16,8 @@ def read(manager, project, job, parts):
     name = '/'.join(parts[1:])
     if any(p in {'', '.', '..'} for p in parts[1:]):
         raise PipelineRunError('pipeline_artifact_not_found')
+    if name == 'inspection.js':
+        return (web/'character-player-inspection.js').read_bytes(), 'text/javascript'
     if name in {'client.js', 'style.css'}:
         filename = 'character-player.' + ('js' if name == 'client.js' else 'css')
         return (web/filename).read_bytes(), 'text/javascript' if name.endswith('.js') else 'text/css'

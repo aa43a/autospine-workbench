@@ -37,13 +37,15 @@
   }
   if (!data.animations.length) throw Error('候选没有动作');
   let time = 0, duration = 0, playing = false, previous = 0;
+  const inspection=window.createCharacterInspection(context,renderer,()=>draw());
   function draw() {
     // Reconstruct setup pose on every seek: reverse scrubbing never accumulates deform/state.
     const skeleton = new spine.Skeleton(data), state = new spine.AnimationState(new spine.AnimationStateData(data));
     skeleton.setupPose(); state.setAnimation(0, el('motion').value, false); state.update(time); state.apply(skeleton);
     skeleton.updateWorldTransform(spine.Physics.update);
+    inspection.prepare(skeleton);
     gl.viewport(0,0,width,height); gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT);
-    renderer.begin(); renderer.drawSkeleton(skeleton); renderer.end();
+    renderer.begin(); renderer.drawSkeleton(skeleton); inspection.draw(skeleton); renderer.end();
     el('time').value = time; el('position').textContent = `${time.toFixed(3)} / ${duration.toFixed(3)} 秒`;
     window.characterPlayerState = {animation:el('motion').value, time, duration, playing};
   }
