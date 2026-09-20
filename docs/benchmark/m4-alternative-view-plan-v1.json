@@ -1,0 +1,158 @@
+{
+  "schema": "autospine.motion-cohort-plan/v1",
+  "characters": [
+    {
+      "id": "alice",
+      "project_id": "alice",
+      "job_id": "job-d8b67e10685347ed95d1fba113b92c45",
+      "sha256": "6e5c59db4ef072075b798efab12acf8ffdc883368a61a4bf3c1646305ef68b98",
+      "structure": "ordinary"
+    },
+    {
+      "id": "huiye",
+      "project_id": "huiye",
+      "job_id": "job-6f92bece413a4909a553a95bbfc307f4",
+      "sha256": "63caa7fe5f9f40a92ebcd57ef0b345d7dcd47e5ed3feae65a95fad18e770d51b",
+      "structure": "wide-sleeves-long-skirt"
+    },
+    {
+      "id": "hongmeiling",
+      "project_id": "imported-885b4d3d22ee151a0364ac499a419b8bd0e59699a7b27ee4f65f007eee551590",
+      "job_id": "job-7d8ce666ea13487a953bdfa5258ea79a",
+      "sha256": "fadde972f148b353592aaeebf75df151b9ef57032efaacde1773ea5a8754d28c",
+      "structure": "sleeveless"
+    }
+  ],
+  "motions": [
+    {
+      "id": "walking",
+      "path": "E:\\data\\game\\bip动画动作捕捉3D角色库源文件3dmaxmayac4dunity3dUE4\\C1455-mo动作库\\动作库角色模型moxion\\1-全套动作库带预览\\01\\walking.fbx",
+      "sha256": "ba4923f188ee8580dbe07f79191c154cbad0425ba71a74229eeeba40ea015a68",
+      "view": "side",
+      "category_basis": "source_label_pending_visual_verification",
+      "job_id": "motion-4f9f728385c848849ab101b8ba37eec5",
+      "parent_job_id": "motion-1f52729769af473084912644f9d16765",
+      "selection_profile": "full-source-front-side-projection-selection-v1",
+      "comparison_sha256": "bdac19f8ca80fe0aaa29483ca350b041dfcf8eeb01fca2a2a6d4827c8bf803a9",
+      "prepared_motion_identity": {
+        "bundle_sha256": "0f160f11bd3b42d8bfc088957a72a4554ff5cd620d327a8534395276edf45567",
+        "bvh_map_sha256": "a7329ad9906be17d944ff96b177daf4626af566735242c34b8aaa1700b9a49f5",
+        "clip_id": "external.505d23b551de8a4c.side",
+        "clip_sha256": "75052a69800543599dd95cf3abdab227307b50e6fcca038512f8db5b1483c1dc",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "75052a69800543599dd95cf3abdab227307b50e6fcca038512f8db5b1483c1dc",
+        "raw_bvh_byte_length": 346062,
+        "raw_bvh_sha256": "505d23b551de8a4ca0cbdcd78a728ebce4893f57493ffdf53fe3d1f105a8f71e",
+        "reused": true,
+        "run_sha256": "72467b90f4934d9f50cce741f641b54cea5bf540ccd262575f4908314907fcdc",
+        "source_kind": "bvh"
+      }
+    },
+    {
+      "id": "raise-arms",
+      "path": "E:\\data\\game\\bip动画动作捕捉3D角色库源文件3dmaxmayac4dunity3dUE4\\C1455-mo动作库\\动作库角色模型moxion\\1-全套动作库带预览\\01\\cheering.fbx",
+      "sha256": "779dcb5c003f715905f48eafaea706c4ab524d97c7554f6b90c178bff5eecdc9",
+      "view": "side",
+      "category_basis": "source_label_pending_visual_verification",
+      "job_id": "motion-064282652c084729aa93d830f31b6e80",
+      "parent_job_id": "motion-706de065008b4e9dbdaea14b7cb3c64e",
+      "selection_profile": "full-source-front-side-projection-selection-v1",
+      "comparison_sha256": "0ac2a350fb49468c7b0e09dfdf69b25d02999e0718adc491099a989f1aa6c881",
+      "prepared_motion_identity": {
+        "bundle_sha256": "971844af3f0bba58625e7b1048b29456fd3390053a4b1fb0c0e58b552501d835",
+        "bvh_map_sha256": "45800ea3f120f92a530ffa120f53647258c6f2806d4717a956c350f9b9fc210b",
+        "clip_id": "external.2ef3d860da11f245.side",
+        "clip_sha256": "711ca721d30d1272fea946190e7dccbcdcc53f7e1aac755ac7af44b8e091fb61",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "711ca721d30d1272fea946190e7dccbcdcc53f7e1aac755ac7af44b8e091fb61",
+        "raw_bvh_byte_length": 171331,
+        "raw_bvh_sha256": "2ef3d860da11f2456fd43323aaf35a5e8b2860aba2191311cfed35887e920686",
+        "reused": false,
+        "run_sha256": "96f14a717d2234f95af072e8be5eee1dc0f6467a2dd2b0f971db6ad29a4197aa",
+        "source_kind": "bvh"
+      }
+    },
+    {
+      "id": "squat",
+      "path": "E:\\data\\game\\bip动画动作捕捉3D角色库源文件3dmaxmayac4dunity3dUE4\\C1455-mo动作库\\动作库角色模型moxion\\1-全套动作库带预览\\05\\overhead_squat.fbx",
+      "sha256": "596014069e4ecc8527ba37feded9d7b8564d50832862dad89c0a75ca7c136bba",
+      "view": "side",
+      "category_basis": "source_label_pending_visual_verification",
+      "job_id": "motion-f2f3d0c66aa2481d87dfe72a5223d2cf",
+      "parent_job_id": "motion-42c342d1786f402299dfea949358a0d7",
+      "selection_profile": "full-source-front-side-projection-selection-v1",
+      "comparison_sha256": "795280ee9ec35e682df30e142d7be557fd18a162ffa21f6f6459b4c2474f2dc5",
+      "prepared_motion_identity": {
+        "bundle_sha256": "4e90135aef3d210a2e53741004b9631d238e80141077a600235b2897d3ffee54",
+        "bvh_map_sha256": "567c1adde3cf7bed93a62b1c6a988336203cb808e7891813d76fc19960ea652b",
+        "clip_id": "external.cf0b3afbf92df08c.side",
+        "clip_sha256": "86d5b5a852294052f34cb3e31e812281c7049bec6bf41abd0f790ee812002b6e",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "86d5b5a852294052f34cb3e31e812281c7049bec6bf41abd0f790ee812002b6e",
+        "raw_bvh_byte_length": 169539,
+        "raw_bvh_sha256": "cf0b3afbf92df08cd71fc680ffd49d32420e3a66de7f36ff64d930b9321ee55d",
+        "reused": false,
+        "run_sha256": "d6a4743dfca6d2d184ff6596187f788596fddb315e34b3f6a525b82f8f291674",
+        "source_kind": "bvh"
+      }
+    },
+    {
+      "id": "reach",
+      "path": "E:\\data\\game\\bip动画动作捕捉3D角色库源文件3dmaxmayac4dunity3dUE4\\C1455-mo动作库\\动作库角色模型moxion\\1-全套动作库带预览\\41\\reaching_out.fbx",
+      "sha256": "89e7b2785bdb93d4c1506d3621701126e37f47acb8757a6e76bde6eed3fbe615",
+      "view": "side",
+      "category_basis": "source_label_pending_visual_verification",
+      "job_id": "motion-11c18a317ffb418fa6950a8abcb0af62",
+      "parent_job_id": "motion-22d106d0a5994ea49be5d2e32f237e0c",
+      "selection_profile": "full-source-front-side-projection-selection-v1",
+      "comparison_sha256": "0b0b1efeb34eda93871684e2f150fc56b6b1cb922c0ba5ab5023102740f98cae",
+      "prepared_motion_identity": {
+        "bundle_sha256": "3451ff524d52372731cec914191e012c489e39704c29b74e765cb7d825881314",
+        "bvh_map_sha256": "f403967de4bf29201d12223a4f0be27500db74744b864030789942db95c62bbd",
+        "clip_id": "external.a4233c602a77a95c.side",
+        "clip_sha256": "63d9f952626edb9c8f9be59585adce20585dad4e88e69699036b346795a7cf05",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "63d9f952626edb9c8f9be59585adce20585dad4e88e69699036b346795a7cf05",
+        "raw_bvh_byte_length": 342778,
+        "raw_bvh_sha256": "a4233c602a77a95c1473ef7ab3f277fa7ca6aec5a98b4d5407dea904194bb2f4",
+        "reused": false,
+        "run_sha256": "1eba900bb25bede31e988c0f7135aa15d4cdbd7fef82de9adb2d8a12eef0712e",
+        "source_kind": "bvh"
+      }
+    }
+  ],
+  "policy": "full_source_front_projection_no_failure_replacement",
+  "visual_acceptance": "not_inferred",
+  "depth_order": "source_depth_with_native_alpha_overlap_and_guarded_order",
+  "expected_profiles": {
+    "inferred_contact_profile": "external-phase-contact-auto-v1",
+    "runtime_reference_profile": "spine43-linear-weighted-float32-storage-v1",
+    "depth_review_profile": "external-arm-torso-depth-overlap-v2"
+  },
+  "baseline_plan": "m4-cohort-plan-v2.json",
+  "baseline_plan_sha256": "289d24b4dd1d70d539265bb26c18ffa06b3d11e17173389ac87dbacb1886b940",
+  "view_preparation_sha256": "4fa818bfedd421832f91d39531c7033854589391d9a8d7f9363ae9207163226c",
+  "unchanged_or_unsupported_sources": [
+    {
+      "id": "breathing",
+      "status": "succeeded",
+      "view": "front"
+    },
+    {
+      "id": "turn",
+      "status": "unsupported_projection",
+      "view": null
+    },
+    {
+      "id": "boxing",
+      "status": "unsupported_projection",
+      "view": null
+    },
+    {
+      "id": "wave",
+      "status": "succeeded",
+      "view": "front"
+    }
+  ],
+  "scope": "alternative_views_require_new_target_geometry_contact_depth_and_visual_checks"
+}
