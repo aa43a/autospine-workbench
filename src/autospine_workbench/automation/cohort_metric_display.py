@@ -18,13 +18,13 @@ def render(metrics):
     audit = metrics.get('auto_binding_audit')
     if audit:
         parts.append('<p>自动归属默认沿用，未逐项抽查不阻塞工作流；已记录的异常仍需修改。'
-                     f'默认沿用且未单独抽查 {audit.get("default_unreviewed_bindings", audit.get("not_reviewed", 0))} 项。'
+                     f'默认沿用且未单独抽查 {audit.get("default_unreviewed_bindings", audit.get("not_reviewed", "未记录"))} 项。'
                      '默认沿用不等于人工验证正确。</p>')
         if audit.get('carried_exception_layers'):
             parts.append(f'<p>跨重建保留的未修复异常：{audit["carried_exception_layers"]} 层；不重复计入当前人工抽查。</p>')
         rate = audit['sampled_error_rate']
         parts.append(f'<p>可选自动绑定抽查：明确判断 {audit["assessed_bindings"]}/{audit["eligible_bindings"]} 项，'
-                     f'需修改 {audit["incorrect"]} 项，无法判断 {audit["unobservable"]} 项；'
+                     f'需修改 {audit["incorrect"]} 项，无法判断 {audit.get("unobservable", "未记录")} 项；'
                      f'抽查错误率 {number(None if rate is None else rate*100, "%")}。'
                      '这是人工所选样本，不是全部输入的准确率。</p>')
         timing = audit.get('audit_timing')
