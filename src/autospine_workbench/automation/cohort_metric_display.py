@@ -28,6 +28,12 @@ def render(metrics):
                      f'抽查错误率 {number(None if rate is None else rate*100, "%")}。'
                      '这是人工所选样本，不是全部输入的准确率。</p>')
         timing = audit.get('audit_timing')
+        history = audit.get('historical_audit')
+        if history:
+            parts.append(f'<p>历史记录覆盖 {history["measured_projects"]} 个项目；按原自动决定去重，'
+                         f'曾明确判断 {history["assessed_decisions"]} 项，曾标记异常 {history["ever_flagged_decisions"]} 项，'
+                         f'其中已不属于当前自动决定 {history["flagged_decisions_no_longer_current"]} 项。'
+                         '包含后来撤回的异常标记，不作为错误率；决定变更不等于修复验收通过。</p>')
         if timing:
             parts.append(f'<p>当前自动绑定抽查计时：{timing["measured_projects"]}/{timing["total_projects"]} 个项目；'
                          f'已测部分合计 {number(timing["measured_minutes"], " 分钟")}。'

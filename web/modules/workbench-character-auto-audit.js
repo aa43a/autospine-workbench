@@ -62,6 +62,7 @@ export function createAutoBindingAudit(document,hooks){
    if(m.incorrect>0||m.carried_exception_layers>0)element.open=true;
    status.textContent=`自动归属默认沿用，无需逐项确认；已记录 ${m.incorrect} 项异常、${m.unobservable} 项无法判断。可选人工抽查：已明确判断 ${m.assessed_bindings} / ${m.eligible_bindings} 项。${m.assessed_bindings?`抽查错误率 ${(m.sampled_error_rate*100).toFixed(1)}%。`:"尚无可计算错误率的抽查。"}`;
    if(m.carried_exception_layers)status.textContent+=` 另有 ${m.carried_exception_layers} 层原异常仍未修复，不重复计入本次抽查。`;
+   if(m.historical_audit){const h=m.historical_audit;status.textContent+=` 历史自动决定曾标记异常 ${h.ever_flagged_decisions} 项，其中 ${h.flagged_decisions_no_longer_current} 项已不属于当前决定；包含后来撤回的标记，不计作错误率或修复验收。`;}
    return true;
   }catch(e){if(token===generation){if(!write)report=null;status.textContent="抽查未保存或来源已变化，请重新读取清单；原记录保留。";}}
   finally{if(token===generation){busy=false;render();hooks.changed?.();}}

@@ -33,6 +33,46 @@ class ContinuityTests(unittest.TestCase):
             expected_artifact_sha256=job['artifact_sha256'],expected_review_sha256=current['review_sha256'],
             expected_exception_sha256=current['exception_sha256'],reviews={'eye':verdict},**extras))
 
+    def test_history_survives_rebinding_and_deduplicates_rebuilds(self):
+        self.write(self.old,'incorrect')
+        rebuilt=self.add('job-rebuilt');self.write(rebuilt,'incorrect')
+        changed=self.add('job-changed',decision='d'*64)
+        value=overview(self.manager,'p','job-changed')
+        history=value['metrics']['historical_audit']
+        self.assertEqual(history['assessed_decisions'],1)
+        self.assertEqual(history['ever_flagged_decisions'],1)
+        self.assertEqual(history['flagged_decisions_no_longer_current'],1)
+        self.assertIsNone(history['repaired_decisions'])
+        self.assertEqual(value['metrics']['carried_exception_layers'],0)
+        self.assertEqual(value['metrics']['assessed_bindings'],0)
+        self.write(changed,'correct')
+        self.assertEqual(overview(self.manager,'p','job-changed')['metrics']['historical_audit']['assessed_decisions'],2)
+
+    def test_withdrawn_flags_are_history_not_current_errors(self):
+        self.write(self.old,'incorrect');value=self.write(self.old,'correct')
+        self.assertEqual(value['metrics']['incorrect'],0)
+        self.assertEqual(value['metrics']['historical_audit']['ever_flagged_decisions'],1)
+        self.assertEqual(value['metrics']['historical_audit']['flagged_decisions_no_longer_current'],0)
+        from autospine_workbench.automation.character_audit_history_metrics import summarize
+        bad=deepcopy(value);bad['exception_continuity']['histories']=[]
+        self.assertIsNone(summarize(self.old,bad))
+        self.assertIsNone(summarize(self.old,{}))
+        foreign=self.add('job-foreign',project='foreign')
+        self.assertEqual(overview(self.manager,'foreign','job-foreign')['metrics']['historical_audit']['ever_flagged_decisions'],0)
+
+    def test_cohort_reports_history_separately_from_current_sample(self):
+        from autospine_workbench.automation.character_auto_audit_metrics import summarize
+        from autospine_workbench.automation.cohort_metric_display import render
+        self.write(self.old,'incorrect');new=self.add('job-new',decision='d'*64)
+        audit=overview(self.manager,'p','job-new')
+        metrics=summarize({'p':dict(job=new,auto_binding_audit=audit)})
+        self.assertEqual(metrics['incorrect'],0)
+        self.assertIsNone(metrics['sampled_error_rate'])
+        self.assertEqual(metrics['historical_audit']['ever_flagged_decisions'],1)
+        page=render(dict(auto_binding_audit=metrics))
+        self.assertIn('曾标记异常 1 项',page)
+        self.assertIn('决定变更不等于修复验收通过',page)
+
     def test_multiple_rebuilds_keep_error_without_inventing_audit_or_timing(self):
         first=self.write(self.old,'incorrect')
         original=(self.root/'job-old/auto-binding-audit/000000.json').read_bytes()

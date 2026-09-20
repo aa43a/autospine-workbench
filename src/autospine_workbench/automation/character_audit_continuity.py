@@ -76,14 +76,19 @@ def collect(manager, job):
                 histories=histories, exceptions=derive(job, histories))
 
 
-def verified_exceptions(job, value):
+def verified_proof(job, value):
     proof = (value or {}).get('exception_continuity')
-    if not proof: return []
+    if not proof: return None
     try:
         if (proof['schema'] != SCHEMA or proof['authority'] != 'none'
                 or value.get('exception_sha256') != canonical_sha256(proof)
-                or any(proof[k] != job[k] for k in ('project_id', 'job_id', 'artifact_sha256'))): return []
+                or any(proof[k] != job[k] for k in ('project_id', 'job_id', 'artifact_sha256'))): return None
         expected = derive(job, proof['histories'])
-        return expected if expected == proof['exceptions'] else []
+        return proof if expected == proof['exceptions'] else None
     except (KeyError, TypeError, ValueError, RuntimeError):
-        return []
+        return None
+
+
+def verified_exceptions(job, value):
+    proof = verified_proof(job, value)
+    return proof['exceptions'] if proof else []

@@ -60,11 +60,13 @@ def verified_reviews(job, value):
 
 def summary(job, value):
     from .character_audit_continuity import verified_exceptions
+    from .character_audit_history_metrics import summarize as historical_summary
     rows = inventory(job); reviews = verified_reviews(job, value)
     counts = {v: sum(reviews.get(r['layer_id'], 'not_reviewed') == v for r in rows) for v in VERDICTS}
     assessed = counts['correct'] + counts['incorrect']
     carried = {r['layer_id'] for r in verified_exceptions(job, value)}
     return dict(eligible_bindings=len(rows), assessed_bindings=assessed, **counts,
+                historical_audit=historical_summary(job, value),
                 carried_exception_layers=len(carried),
                 default_unreviewed_bindings=sum(reviews.get(r['layer_id'], 'not_reviewed') == 'not_reviewed'
                     and r['layer_id'] not in carried for r in rows),
