@@ -3,10 +3,11 @@ export function appendReadiness(item, job) {
   button.textContent = '检查可用范围与待处理项';
   const panel = document.createElement('section');
   panel.setAttribute('aria-live', 'polite');
+  panel.hidden = true;
   const labels = {needs_changes: '需处理异常', evidence_incomplete: '检查证据尚不完整', stage_review: '可进行阶段视觉复核'};
   const states = {sampled_pass: '限定采样通过', needs_changes: '需处理', unmeasured: '尚未验证'};
   button.onclick = async () => {
-    button.disabled = true; panel.textContent = '正在核对当前候选证据…';
+    button.disabled = true; panel.hidden = false; panel.textContent = '正在核对当前候选证据…';
     const base = `/api/motions/${job.job_id}/view/`;
     try {
       const response = await fetch(base + 'readiness.json', {cache: 'no-store'});

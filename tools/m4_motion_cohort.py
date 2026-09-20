@@ -139,6 +139,9 @@ def main():
         handle.write(str(os.getpid()))
     try:
         for _ in range(args.steps):
+            if args.state.with_suffix('.stop').exists():
+                print('stopped_at_checkpoint', flush=True)
+                break
             result = step(plan, state, lambda value: save(args.state, value),
                           lambda path, body=None, headers=None: api(args.base, path, body, headers))
             print(result, flush=True)

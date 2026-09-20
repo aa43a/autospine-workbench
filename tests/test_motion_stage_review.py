@@ -2,7 +2,7 @@
 from copy import deepcopy
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from threading import RLock
+from threading import RLock, Event, Thread
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
@@ -70,6 +70,31 @@ class StageReviewTests(unittest.TestCase):
 
     def test_route_methods(self):
         self.assertEqual(_methods(['job', 'stage-review']), 'GET, HEAD, POST, OPTIONS')
+
+    def test_slow_evidence_does_not_hold_job_manager_lock(self):
+        for operation in ('read', 'write'):
+            started, release = Event(), Event()
+            errors = []
+            def slow(*_):
+                started.set()
+                if not release.wait(5): raise RuntimeError('test_timeout')
+                return deepcopy(self.report), canonical_sha256(self.report)
+            def run():
+                try:
+                    if operation == 'read': review.inspect(self.manager, 'job')
+                    else: review.save(self.manager, 'job', self.body())
+                except Exception as exc: errors.append(exc)
+            review.evidence.side_effect = slow
+            worker = Thread(target=run); worker.start()
+            try:
+                self.assertTrue(started.wait(2))
+                acquired = self.manager._lock.acquire(timeout=.2)
+                if acquired: self.manager._lock.release()
+                self.assertTrue(acquired, 'evidence I/O must not block unrelated job operations')
+            finally:
+                release.set(); worker.join(5)
+            self.assertFalse(worker.is_alive())
+            self.assertEqual(errors, [])
 
 
 if __name__ == '__main__': unittest.main()

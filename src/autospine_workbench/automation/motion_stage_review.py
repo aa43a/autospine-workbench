@@ -33,16 +33,21 @@ def history(manager, job):
     return rows
 
 
+def _state(job, report, digest, rows):
+    current = rows[-1] if rows else None
+    applies = bool(current and current['artifact_sha256'] == report['artifact_sha256']
+                   and current['evidence_sha256'] == digest)
+    return dict(job_id=job, artifact_sha256=report['artifact_sha256'], evidence_sha256=digest,
+                readiness=report, revision=len(rows), current=current,
+                current_applies=applies, history=rows, authority='none', production_authorized=False)
+
+
 def inspect(manager, job):
+    # Artifact verification may take seconds. Do not hold the global job lock
+    # while reading large immutable bundles: it would stall polling/cancellation.
+    report, digest = evidence(manager, job)
     with manager._lock:
-        report, digest = evidence(manager, job)
-        rows = history(manager, job)
-        current = rows[-1] if rows else None
-        applies = bool(current and current['artifact_sha256'] == report['artifact_sha256']
-                       and current['evidence_sha256'] == digest)
-        return dict(job_id=job, artifact_sha256=report['artifact_sha256'], evidence_sha256=digest,
-                    readiness=report, revision=len(rows), current=current,
-                    current_applies=applies, history=rows, authority='none', production_authorized=False)
+        return _state(job, report, digest, history(manager, job))
 
 
 def save(manager, job, body):
@@ -52,8 +57,9 @@ def save(manager, job, body):
             or not isinstance(body.get('notes'), str) or len(body['notes']) > 4000
             or body['decision'] in ('rejected', 'accepted_with_exceptions') and not body['notes'].strip()):
         raise PipelineRunError('motion_review_request_invalid')
+    report, digest = evidence(manager, job)
     with manager._lock:
-        state = inspect(manager, job)
+        state = _state(job, report, digest, history(manager, job))
         if body['expected_revision'] != state['revision']:
             raise PipelineRunError('motion_review_revision_changed')
         if any(body[key] != state[key] for key in ('artifact_sha256', 'evidence_sha256')):
@@ -78,4 +84,4 @@ def save(manager, job, body):
                    production_authorized=False)
         if not publish_document(root / f'review-{revision:04d}.json', row, staging=root / 'staging'):
             raise PipelineRunError('motion_review_revision_changed')
-        return inspect(manager, job)
+        return _state(job, report, digest, state['history'] + [row])

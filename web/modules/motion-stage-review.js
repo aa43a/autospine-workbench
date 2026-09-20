@@ -8,6 +8,7 @@ const reasons = {motion_review_revision_changed: '验收记录已被其他页面
 export function appendStageReview(item, job) {
   const button = document.createElement('button'); button.textContent = '记录 / 查看阶段验收';
   const panel = document.createElement('section'); panel.setAttribute('aria-live', 'polite');
+  panel.className = 'motion-stage-review'; panel.hidden = true;
   const endpoint = `/api/motions/${job.job_id}/stage-review`;
   async function request(options) {
     const response = await fetch(endpoint, {cache: 'no-store', ...options});
@@ -61,7 +62,7 @@ export function appendStageReview(item, job) {
     panel.append(status, note, decision, notes, confirmation, save, feedback, history);
   }
   button.onclick = async () => {
-    button.disabled = true; panel.inert = true;
+    button.disabled = true; panel.inert = true; panel.hidden = false;
     try { render(await request()); }
     catch (error) { panel.textContent = error.message; }
     finally { button.disabled = false; panel.inert = false; }

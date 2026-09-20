@@ -1,9 +1,10 @@
 export function appendViewComparison(item, job, request, refresh) {
   const compare = document.createElement('button'); compare.textContent = '自动比较投影视角';
   const panel = document.createElement('section'); panel.setAttribute('aria-live', 'polite');
+  panel.hidden = true;
   const names = {front: '正面', side: '侧面'};
   compare.onclick = async () => {
-    compare.disabled = true; panel.textContent = '正在检查完整源动作的两个视角…';
+    compare.disabled = true; panel.hidden = false; panel.textContent = '正在检查完整源动作的两个视角…';
     try {
       const result = await request(`/api/motions/${job.job_id}/compare-views`);
       panel.replaceChildren();

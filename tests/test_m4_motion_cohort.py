@@ -3,6 +3,9 @@ import importlib.util
 from pathlib import Path
 import unittest
 import sys
+import json
+from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 
 def module(name):
@@ -34,6 +37,17 @@ class CohortTests(unittest.TestCase):
             return self.source if path.endswith('source') else failure
         self.assertEqual(runner.step(self.plan, self.state, lambda _: None, request), 'terminal')
         self.assertFalse(any('/adapt' in p for p in calls))
+
+    def test_maintenance_checkpoint_exits_without_contacting_server(self):
+        with TemporaryDirectory() as temp:
+            root = Path(temp); plan = root/'plan.json'; state = root/'state.json'
+            plan.write_text(json.dumps(self.plan), encoding='utf-8')
+            state.with_suffix('.stop').write_text('maintenance', encoding='utf-8')
+            with patch.object(sys, 'argv', ['runner', str(plan), str(state)]), \
+                    patch.object(runner, 'api', side_effect=AssertionError('must not submit')):
+                runner.main()
+            self.assertFalse(state.with_suffix('.lock').exists())
+            self.assertFalse(state.exists())
 
     def test_uncertain_post_requires_reconciliation(self):
         self.state['submitting'] = {'cell': 'walk/a'}

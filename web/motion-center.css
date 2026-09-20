@@ -30,6 +30,11 @@ canvas { width: 100%; height: auto; max-height: 65vh; background: #09101a; borde
 #status { color: #9bdcf6; }
 #clock { min-width: 90px; }
 details { margin-top: 12px; }
+.motion-stage-review select, .motion-stage-review textarea { display: block; width: 100%; margin: 12px 0; }
+.motion-stage-review textarea { min-height: 110px; resize: vertical; padding: 10px; font: inherit; color: inherit; background: #0b1623; border: 1px solid #49637f; border-radius: 6px; }
+.motion-stage-review textarea:focus-visible { outline: 2px solid #75d5ff; outline-offset: 3px; }
+.motion-stage-review label { align-items: flex-start; margin-right: 0; }
+.job:target { outline: 2px solid #75d5ff; outline-offset: 6px; scroll-margin-top: 16px; }
 @media(max-width:850px) {
   .split { display: block; }
   header, main { padding: 16px; }

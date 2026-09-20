@@ -16,6 +16,7 @@ $('diagnostic').closest('details').after(contactPanel);
 const contactControls = createContactControls(contactPanel, $('time'));
 const active = new Set(['pending', 'running']);
 let timer = null, busy = false, previewToken = 0, refreshToken = 0, suspended = false;
+let focusedFragment = null;
 const states = {
   pending: '等待解析', running: '处理中', succeeded: '解析完成', failed: '失败',
   canceled: '已取消', interrupted: '服务重启中断',
@@ -111,6 +112,7 @@ function render(data) {
   reconcileMotionJobs($('jobs'), data.jobs, job => {
     const item = node('article', '');
     item.className = 'job';
+    item.id = job.job_id;
     item.dataset.jobId = job.job_id;
     const detail = job.reason_code ? reasons[job.reason_code] || job.reason_code : steps[job.step];
     const state = job.kind === 'adapt' && job.status === 'succeeded' ? '角色候选已生成' : states[job.status];
@@ -183,7 +185,16 @@ function render(data) {
     return item;
   }, [busy, Boolean(data.stage_review_available), Boolean(data.view_comparison_available)]);
   if (!data.jobs.length) $('jobs').append(node('p', '尚未导入动作。'));
+  focusLinkedJob();
 }
+
+function focusLinkedJob() {
+  const fragment = location.hash.slice(1);
+  if (fragment === focusedFragment || !/^motion-[a-f0-9]{32}$/.test(fragment)) return;
+  const card = document.getElementById(fragment);
+  if (card) { card.scrollIntoView({block: 'start'}); focusedFragment = fragment; }
+}
+window.addEventListener('hashchange', () => { focusedFragment = null; focusLinkedJob(); });
 
 async function refresh() {
   clearTimeout(timer);

@@ -75,7 +75,8 @@ def render(plan, state, reviews=None):
         url = '/api/motions/' + job + '/view/' if job else ''
         links = (f'<a href="http://127.0.0.1:8918{escape(url)}player.html">播放/时间轴</a> · '
                  f'<a href="http://127.0.0.1:8918{escape(url)}contact.html">接触定位</a> · '
-                 f'<a href="http://127.0.0.1:8918{escape(url)}depth.html">遮挡定位</a>') if row['status'] == 'succeeded' else ''
+                 f'<a href="http://127.0.0.1:8918{escape(url)}depth.html">遮挡定位</a> · '
+                 f'<a href="http://127.0.0.1:8918/motions.html#{escape(job)}">记录阶段验收</a>') if row['status'] == 'succeeded' else ''
         for failure in row['geometry_failures']:
             first = failure.get('first_failure')
             if first:

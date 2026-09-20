@@ -86,6 +86,10 @@ class MotionHttpTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(len(json.loads(diagnostic)['records']), 8)
         self.assertEqual(json.loads(diagnostic)['authority'], 'none')
+        status, _, comparison = self.request('GET', path + '/compare-views')
+        self.assertEqual(status, 200)
+        self.assertEqual(len(json.loads(comparison)['records']), 2)
+        self.assertEqual(json.loads(comparison)['source_sha256'], value['source_sha256'])
         status, _, html = self.request('GET', path + '/projection')
         self.assertEqual(status, 200)
         self.assertIn('源动作投影诊断', html.decode('utf-8'))
@@ -96,6 +100,10 @@ class MotionHttpTests(unittest.TestCase):
         self.assertEqual(self.request('GET', path + '/cancel')[0], 405)
         self.assertEqual(self.request('GET', path + '/unknown')[0], 404)
         intent = {'Origin': headers['Origin'], 'X-Autospine-Intent': 'pipeline-preview'}
+        status, _, failure = self.request('POST', path + '/reproject',
+                                          dict(view='side', comparison_sha256='stale'), intent)
+        self.assertEqual(status, 400)
+        self.assertEqual(json.loads(failure)['reason_code'], 'motion_view_comparison_changed')
         self.assertEqual(self.request('POST', path + '/retry', {'path': 'arbitrary'}, intent)[0], 400)
         self.assertEqual(self.request('POST', path + '/retry', {}, intent)[0], 202)
 
