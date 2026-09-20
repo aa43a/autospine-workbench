@@ -1,5 +1,7 @@
 # AutoSpine Workbench 架构与质量门禁
 
+`targets/character43/motion_readiness.py` 汇总精确候选与已校验 Runtime 报告；`motion_target_jobs` 提供只读 `readiness.json`，前端 `motion-readiness.js` 按需在当前卡片显示。投影/几何/接触/遮挡失败优先于任务执行成功，缺失证据独立标识。汇总不写历史产物、不产生人工接受决定。
+
 M4 动作中心采用独立入口与任务模块：`motion_intake_routes/jobs/worker` 处理有界上传、隔离转换和 MotionIR，`motion_target_jobs/worker` 绑定精确整角色来源、调用既有投影/局部修正/Runtime。`motion_kimodo_intake` 将显式 SOMA77/FPS 与原始 NPZ 绑定，复用严格 reader/compiler；`kimodo_lengths` 直接从矩阵校验位置生成长度比例，再复用 BVH 同一缩放核心。`motion_intake_process` 负责进程树取消与阶段进度。前端控制、源播放器和角色选择分别拆分，主工作台只增加导航。不可变源任务与候选均保留；历史状态不赋予采用权，查看和下载目标结果前重新检查来源。
 
 `asset/planning/component_mount.py` 是无图像库依赖的分区与父骨骼建议核心；Spine 4.3.26 图像切片、

@@ -4,6 +4,7 @@ import {createGenerationControls} from './motion-generation-controls.js';
 import {createSelectionControls} from './motion-selection-controls.js';
 import {createContactControls} from './motion-contact-controls.js';
 import {appendDepthSummary} from './motion-depth-summary.js';
+import {appendReadiness} from './motion-readiness.js';
 
 const $ = id => document.getElementById(id);
 const player = createSourcePlayer($('canvas'), $('time'), $('play'), $('clock'));
@@ -118,6 +119,7 @@ function render(data) {
     if (job.status === 'succeeded' && job.kind === 'adapt') {
       const result = job.result;
       appendDepthSummary(item, job);
+      appendReadiness(item, job);
       if (result.clip) item.append(node('p', `源片段：第 ${result.clip.start_frame+1}–${result.clip.end_frame+1} 帧`));
       item.append(node('p', result.character_animation_status === 'needs_changes'
         ? '已生成诊断候选 · 存在投影或变形异常' : '已生成角色候选 · 待阶段验收'));

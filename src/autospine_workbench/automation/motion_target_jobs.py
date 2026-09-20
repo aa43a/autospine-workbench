@@ -111,6 +111,11 @@ def review_file(manager, job, parts):
     if parts == ['contact.html']:
         from ..targets.character43.motion_contact_review import render
         return render(json.loads(files['motion-contact.json'])), 'text/html; charset=utf-8'
+    if parts == ['readiness.json']:
+        from ..targets.character43.motion_readiness import build
+        runtime = (json.loads(review_file(manager, job, ['report.json'])[0])
+                   if result.get('runtime', {}).get('files', {}).get('report.json') else None)
+        return json.dumps(build(files, result['artifact_sha256'], runtime), ensure_ascii=False).encode('utf-8'), 'application/json'
     root = directory(manager.folder(job) / 'runtime')
     def runtime_file(name):
         name = review_name(name)
