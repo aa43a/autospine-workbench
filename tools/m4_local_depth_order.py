@@ -15,7 +15,7 @@ from autospine_workbench.targets.character43.motion_depth_overlap import Probe
 from autospine_workbench.targets.character43.motion_depth_order import build
 
 
-def run(job,output,*,refine_cycles=False,partition_slots=None,cloth_constraints=False,limb_constraints=False,torso_plane=False,rendered_bounds=False,reuse_refinement_overlap=False,tiled=False):
+def run(job,output,*,refine_cycles=False,partition_slots=None,cloth_constraints=False,limb_constraints=False,torso_plane=False,rendered_bounds=False,reuse_refinement_overlap=False,tiled=False,pair_budgets=False):
     root=Path('workspace'); folder=root/'jobs/motion-intake-v1'/job
     request=read_document(folder/'request.json'); result=read_document(folder/'result.json')
     identity=request['motion_identity']
@@ -38,7 +38,7 @@ def run(job,output,*,refine_cycles=False,partition_slots=None,cloth_constraints=
     sampler=SegmentDepthSampler(bvh,bundle.bvh_map,yaw)
     order_probe=Probe(document,files,'external-motion',rendered_bounds=rendered_bounds,tiled=tiled)
     refined,evidence=refine(document,files,'external-motion',depth,sampler,torso_plane=torso_plane,rendered_bounds=rendered_bounds,
-                            order_probe=order_probe if reuse_refinement_overlap else None,tiled=tiled)
+                            order_probe=order_probe if reuse_refinement_overlap else None,tiled=tiled,pair_budgets=pair_budgets)
     cloth=None
     if cloth_constraints:
         if partition is None: raise ValueError('cloth_constraints_require_partition')
@@ -84,8 +84,10 @@ if __name__=='__main__':
     parser.add_argument('--rendered-bounds',action='store_true')
     parser.add_argument('--reuse-refinement-overlap',action='store_true')
     parser.add_argument('--tiled',action='store_true')
+    parser.add_argument('--pair-budgets',action='store_true')
     args=parser.parse_args()
     if not __import__('re').fullmatch('motion-[a-f0-9]{32}',args.job):raise ValueError('job_invalid')
     print(json.dumps(run(args.job,args.output,refine_cycles=args.refine_cycles,partition_slots=args.partition_slot,
                          cloth_constraints=args.cloth_constraints,limb_constraints=args.limb_constraints,torso_plane=args.torso_plane,
-                         rendered_bounds=args.rendered_bounds,reuse_refinement_overlap=args.reuse_refinement_overlap,tiled=args.tiled)))
+                         rendered_bounds=args.rendered_bounds,reuse_refinement_overlap=args.reuse_refinement_overlap,tiled=args.tiled,
+                         pair_budgets=args.pair_budgets)))

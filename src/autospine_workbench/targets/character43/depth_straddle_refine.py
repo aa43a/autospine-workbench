@@ -6,21 +6,27 @@ from .motion_depth_overlap import Probe
 PROFILE='local-depth-held-order-refinement-v1'
 
 
-def refine(document,files,animation,depth,sampler,*,torso_plane=False,rendered_bounds=False,order_probe=None,tiled=False):
+def refine(document,files,animation,depth,sampler,*,torso_plane=False,rendered_bounds=False,order_probe=None,tiled=False,pair_budgets=False):
     candidate=deepcopy(depth)
     probe=Probe(document,files,animation,rendered_bounds=rendered_bounds,tiled=tiled)
     if order_probe is not None: order_probe.reuse(probe)
     ticks=sorted({r['tick'] for p in depth['pairs'] for r in p['samples']})
+    if pair_budgets and (len(depth['pairs'])>16 or len(ticks)>512):
+        raise ValueError('depth_refinement_pair_resource_limit')
     next_tick=dict(zip(ticks,ticks[1:]))
     evidence=dict(profile=PROFILE,proxy_profile=CAP_PROFILE,authority='none',selected=False,
                   rows=[],scope='source_frame_and_midpoint_model_not_continuous_time_or_visual_acceptance')
     checker=None
+    budgets=[]; reused=0; axes={}
     if torso_plane:
         from .torso_depth_refinement import Checker,PROFILE as TORSO_PROFILE
         checker=Checker(probe,sampler)
         evidence.update(profile=TORSO_PROFILE,proxy_profile=TORSO_PROFILE,
             assumptions=['planar_torso','mesh_hand_axis_to_source_fingertip','same_arm_secondary_influence_envelope'])
     for pair in candidate['pairs']:
+        if pair_budgets:
+            probe=Probe(document,files,animation,rendered_bounds=rendered_bounds,tiled=tiled)
+            if torso_plane: checker=Checker(probe,sampler)
         arm,body=pair['arm_slot'],pair['torso_slot']
         for row in pair['samples']:
             if not row['ambiguous']:
@@ -46,6 +52,10 @@ def refine(document,files,animation,depth,sampler,*,torso_plane=False,rendered_b
             if resolved: row['ambiguous']=False
             evidence['rows'].append(dict(pair=[arm,body],tick=tick,source_tick=row['source_tick'],
                                          resolved=resolved,checks=checks))
+        if pair_budgets:
+            budgets.append(dict(pair=[arm,body],pixel_budget_used=64_000_000-probe.remaining))
+            if checker is not None: axes.update(checker.axes)
+            if order_probe is not None: reused+=order_probe.reuse(probe)
     candidate['ambiguous_pair_samples']=sum(r['ambiguous'] for p in candidate['pairs'] for r in p['samples'])
     if 'target_overlap' in candidate:
         candidate['target_overlap']['ambiguous_visible_pair_samples']=sum(
@@ -57,5 +67,11 @@ def refine(document,files,animation,depth,sampler,*,torso_plane=False,rendered_b
     if rendered_bounds: evidence['bounds_policy']='rendered_triangle_vertices'
     if checker is not None: evidence['hand_mesh_axes']=checker.axes
     if order_probe is not None: evidence['reused_order_overlap_samples']=order_probe.reuse(probe)
+    if pair_budgets:
+        evidence.update(resource_profile='per_pair_refinement_budget_v1',pair_budgets=budgets,
+            pixel_budget_used=sum(b['pixel_budget_used'] for b in budgets),pixel_budget_per_pair=64_000_000,
+            max_pairs=16,max_source_frames=512)
+        if checker is not None: evidence['hand_mesh_axes']=axes
+        if order_probe is not None: evidence['reused_order_overlap_samples']=reused
     candidate['local_depth_refinement']=evidence
     return candidate,evidence

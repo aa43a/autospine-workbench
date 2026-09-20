@@ -229,3 +229,34 @@ refinement still has six unmeasured samples under its separate 64M total budget
 107 completed pair measurements. Cloth constraints remain fully measured:
 361 no-overlap and 99 uncertain. The next resource issue is the refinement total
 budget; measured sleeve-depth uncertainty remains a separate modeling limitation.
+
+## Per-pair refinement resource policy
+
+`--pair-budgets` opts into `per_pair_refinement_budget_v1`. Each arm/torso pair
+has its own 64M raster budget, with a maximum of 16 pairs and 512 source frames
+for the operation. Reports retain per-pair and summed cost, and completed overlaps
+are shared with the exact order probe. This increases allowed aggregate work in
+proportion to pair count; it is a resource allocation policy, not a claim of
+faster computation or a relaxation of depth/alpha quality checks. Legacy shared
+budget behavior remains default. A regression fixture verifies that one pair
+cannot starve the next, the full cost is reported, and oversized pair sets fail.
+
+The first matched Huiye run (`full-pair-budget-order-huiye-v1.json`) still left
+six samples unmeasured: one sleeve/chest pair alone consumed 63,974,290 pixels.
+This evidence rules out inter-pair starvation as the remaining cause here.
+
+Tiled probes now retain the most recent pair's opaque intersection tiles as
+read-only arrays, allowing the immediately following depth classification to
+reuse the already charged masks. At most one pair, bounded by 64 tiles, is kept;
+frame or pair changes cannot reuse stale masks. Scalar report caching remains
+separate. This saves duplicate alpha work without omitting depth classification.
+
+Matched evidence: `../tmp/m4-motion-center/full-alpha-reuse-order-huiye-v1.json`.
+All 112 refinement checks complete: 56 no-overlap, 56 uncertain, zero unmeasured.
+Total refinement cost is 49,439,554 pixels, with 49,406,958 for the large
+sleeve/chest pair. All 112 overlap results are available to ordering. Cloth
+constraints also complete (361 no-overlap, 99 uncertain). Whole ordering still
+has 45 visible-straddle failures and no candidate; these are now retained model
+uncertainties rather than unmeasured resource failures. Thirty-nine focused
+tests pass. This establishes a measured unsupported case for the workbench's
+exception flow, not a reason to raise quality thresholds or silently adopt it.

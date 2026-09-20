@@ -92,7 +92,8 @@ def overlap_support(probe, arm, torso, time, segments, *, margin=.02, endpoint_c
             raise ValueError('depth_overlap_pixel_budget')
         probe.remaining -= area
         return mask(attachment,probe.positions[time][name],probe.textures[name],rect)>=8
-    common=raster(arm,attachments[arm]) & raster(torso,attachments[torso])
+    common=probe.cached_common(arm,torso,time,rect)
+    if common is None: common=raster(arm,attachments[arm]) & raster(torso,attachments[torso])
     values=vertex_depths(probe.document,attachments[arm],segments,endpoint_caps=endpoint_caps,axis_lengths=axis_lengths)
     intervals=([[v,v] if v is not None else None for v in values] if depth_intervals is None else depth_intervals)
     if len(intervals)!=len(values) or any(v is not None and (len(v)!=2 or not all(math.isfinite(z) for z in v)

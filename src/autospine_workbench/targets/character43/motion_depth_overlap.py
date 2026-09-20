@@ -35,6 +35,12 @@ class Probe:
         self.tiled=tiled
         self.slots = {s['name']: s for s in document['slots']}
         self.textures = {}; self.positions = {}; self.results = {}
+        self._alpha_key=None; self._alpha_tiles={}
+
+    def cached_common(self,a,b,time,rect):
+        if self._alpha_key==(min(a,b),max(a,b),time):
+            return self._alpha_tiles.get(tuple(rect))
+        return None
 
     def reuse(self,other):
         """Reuse completed measurements only, under identical in-memory inputs."""
@@ -87,10 +93,15 @@ class Probe:
             regions=tiles(rect) if self.tiled else [rect]
             self.remaining -= area*2
             measurements=[]
+            if self.tiled: self._alpha_key=key; self._alpha_tiles={}
             for region in regions:
                 first = mask(attachments[0], points[a], self.textures[a], region) >= 8
                 second = mask(attachments[1], points[b], self.textures[b], region) >= 8
-                measurements.append(dict(status='sampled',overlap_pixels=int((first & second).sum()),roi=region))
+                common=first&second
+                measurements.append(dict(status='sampled',overlap_pixels=int(common.sum()),roi=region))
+                if self.tiled:
+                    common.flags.writeable=False
+                    self._alpha_tiles[tuple(region)]=common
             result = dict(status='sampled', overlap_pixels=sum(r['overlap_pixels'] for r in measurements), roi=rect)
             if self.tiled: result['tiles']=measurements
         self.results[key] = result

@@ -31,9 +31,15 @@ class RasterTileTests(unittest.TestCase):
         self.assertEqual(result['overlap_pixels'],int(direct.sum()))
         self.assertEqual(sum(t['roi'][2]*t['roi'][3] for t in result['tiles']),360000)
         self.assertEqual(probe.remaining,64_000_000-720000)
+        cached=probe.cached_common('a','b',0,result['tiles'][0]['roi'])
+        self.assertIsNotNone(cached)
+        self.assertFalse(cached.flags.writeable)
+        self.assertIsNone(probe.cached_common('a','b',1,result['tiles'][0]['roi']))
         classification=overlap_support(probe,'a','b',0,{'root':(.1,.2)})
         self.assertEqual(classification['counts']['front'],int(direct.sum()))
         self.assertEqual(classification['status'],'uniform_front_proxy')
+        probe.pair('a','b',.1)
+        self.assertIsNone(probe.cached_common('a','b',0,result['tiles'][0]['roi']))
         with self.assertRaisesRegex(ValueError,'pixel_budget'): Probe(doc,files,'test').pair('a','b',0)
 
     def test_tiling_does_not_bypass_aggregate_budget_or_cache_policy(self):

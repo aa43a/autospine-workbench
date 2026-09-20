@@ -6,6 +6,25 @@ from autospine_workbench.targets.character43.depth_straddle_refine import refine
 
 
 class RefinementTests(unittest.TestCase):
+    def test_pair_budgets_do_not_starve_later_pairs(self):
+        depth=dict(pairs=[dict(arm_slot=a,torso_slot=b,samples=[dict(tick=0,source_tick=0,
+            ambiguous=True,current_front_slot=a)]) for a,b in [('a','b'),('c','d')]])
+        def measure(probe,*args,**kwargs):
+            if probe.remaining<40_000_000: raise ValueError('depth_overlap_pixel_budget')
+            probe.remaining-=40_000_000
+            return dict(status='uniform_front_proxy')
+        module='autospine_workbench.targets.character43.depth_straddle_refine.'
+        with patch(module+'Probe',side_effect=lambda *a,**k:SimpleNamespace(remaining=64_000_000)), \
+             patch(module+'overlap_support',side_effect=measure):
+            _,legacy=refine({}, {},'test',depth,lambda t:{})
+            _,per_pair=refine({}, {},'test',depth,lambda t:{},pair_budgets=True)
+        self.assertEqual(legacy['resolved_rows'],1)
+        self.assertEqual(per_pair['resolved_rows'],2)
+        self.assertEqual(per_pair['pixel_budget_used'],80_000_000)
+        self.assertTrue(all(r['pixel_budget_used']==40_000_000 for r in per_pair['pair_budgets']))
+        with self.assertRaisesRegex(ValueError,'pair_resource_limit'):
+            refine({'slots':[]},{},'test',dict(pairs=depth['pairs']*9),None,pair_budgets=True)
+
     def test_refinement_passes_only_completed_overlap_to_order_probe(self):
         from test_motion_depth_overlap import fixture
         from autospine_workbench.targets.character43.motion_depth_overlap import Probe
