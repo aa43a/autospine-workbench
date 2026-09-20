@@ -89,6 +89,19 @@ class MotionTargetTests(unittest.TestCase):
         self.assertEqual(evidence['status'], 'needs_changes')
         self.assertEqual(evidence['issues'][0]['reason_code'], 'character_length_projection_collapsed')
 
+    def test_new_inference_profile_keeps_motion_bytes_and_legacy_behavior(self):
+        from autospine_workbench.targets.character43.inferred_contacts import PROFILE
+        args = inputs()
+        old, _, _ = build_candidate(*args, character_digest='a'*64, motion_digest='b'*64)
+        new, evidence, _ = build_candidate(*args, character_digest='a'*64, motion_digest='b'*64,
+                                           inferred_contact_profile=PROFILE)
+        self.assertEqual(new['motion-ir.json'], old['motion-ir.json'])
+        self.assertEqual(new['skeleton.json'], old['skeleton.json'])
+        self.assertEqual(evidence['contact_status'], 'inferred_support_unavailable')
+        report = json.loads(new['motion-contact.json'])
+        self.assertEqual(report['policy_id'], PROFILE)
+        self.assertIn('hypothesis', report)
+
     def test_source_bound_submission_and_character_change_invalidate_result(self):
         with tempfile.TemporaryDirectory() as temporary:
             projects = SimpleNamespace(state_root=Path(temporary), workspace_root=Path(temporary))
@@ -105,6 +118,7 @@ class MotionTargetTests(unittest.TestCase):
                 request = read_document(manager.folder(value['job_id']) / 'request.json')
                 self.assertTrue(request['contact_correction'])
                 self.assertEqual(request['runtime_reference_profile'], 'spine43-linear-weighted-float32-storage-v1')
+                self.assertEqual(request['inferred_contact_profile'], 'external-inferred-contact-measurement-v1')
                 assert_current(manager, request)
                 disabled = submit(manager, queued['job_id'], dict(project_id='alice',
                     character_job_id='job-'+'c'*32, contact_correction=False, clip=dict(start_frame=0, end_frame=1)))

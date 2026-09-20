@@ -21,7 +21,7 @@ ANIMATION = 'external-motion'
 
 
 def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_digest, kimodo=None,
-                    contact_correction=True, clip_bounds=None):
+                    contact_correction=True, clip_bounds=None, inferred_contact_profile=None):
     """Only the animation changes; layers, meshes, weights and texture pixels stay exact."""
     source = json.loads(files['skeleton.json'])
     original = deepcopy(source)
@@ -67,6 +67,13 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
     from ..targets.character43.motion_contacts import apply as apply_contacts
     document, contact = apply_contacts(document, ANIMATION, motion, times,
                                        evidence['reference_length_px'], enabled=contact_correction)
+    if inferred_contact_profile and bvh is not None and not any(m['kind'] == 'contact' for m in original_motion['markers']):
+        from ..targets.character43.inferred_contacts import measure
+        from ..motion2d.contact_candidate import infer
+        document, contact = measure(document, ANIMATION, motion, times, evidence['reference_length_px'],
+                                    infer(bvh, mapping), clip_bounds=clip_bounds)
+    if contact['status'] == 'inferred_proxy_drift':
+        issues.append(dict(stage='contact', reason_code='motion_inferred_contact_drift'))
     if contact['status'] == 'needs_changes':
         issues.append(dict(stage='contact', reason_code='motion_contact_drift_needs_changes'))
     if contact['selected']:
@@ -109,6 +116,10 @@ def execute(folder, state_root, workspace):
     storage_reference = request.get('runtime_reference_profile')
     if storage_reference not in (None, PROFILE):
         raise ValueError('motion_runtime_reference_profile_unsupported')
+    from ..targets.character43.inferred_contacts import PROFILE as CONTACT_PROFILE
+    inferred_profile = request.get('inferred_contact_profile')
+    if inferred_profile not in (None, CONTACT_PROFILE):
+        raise ValueError('motion_inferred_contact_profile_unsupported')
     store = AnimatedStore(state_root)
     progress(folder, 'retarget')
     motion_id = request['motion_identity']
@@ -125,6 +136,7 @@ def execute(folder, state_root, workspace):
     files, evidence, geometry = build_candidate(store.read(request['character_sha256']), motion,
         bvh, json.loads((bundle.path / 'map.json').read_bytes()), kimodo=kimodo,
         contact_correction=request.get('contact_correction', True),
+        inferred_contact_profile=inferred_profile,
         clip_bounds=clip_bounds,
         character_digest=request['character_sha256'], motion_digest=motion_id['bundle_sha256'])
     progress(folder, 'publish_candidate')
@@ -137,6 +149,7 @@ def execute(folder, state_root, workspace):
                   geometry_passed=geometry['passed'], contact_status=evidence['contact_status'],
                   clip=request.get('clip'),
                   runtime_reference_profile=storage_reference or 'legacy_ideal_reference',
+                  inferred_contact_profile=inferred_profile,
                   depth_order_status='not_evaluated', authority='none', production_authorized=False)
     (folder / 'worker-result.json').write_bytes(canonical_bytes(result))
 

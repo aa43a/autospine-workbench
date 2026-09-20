@@ -48,10 +48,12 @@ def submit(manager, source_job, body):
     characters.verified_files(project, character_job)
     character = characters.get(project, character_job)
     from ..targets.character43.runtime_storage_reference import PROFILE
+    from ..targets.character43.inferred_contacts import PROFILE as CONTACT_PROFILE
     request = dict(kind='adapt', source_job_id=source_job, source_job_sha256=canonical_sha256(source),
                    motion_identity=source['result']['motion'], project_id=project, character_job_id=character_job,
                    character_sha256=character['artifact_sha256'], name=source['name'],
-                   contact_correction=body.get('contact_correction', True), runtime_reference_profile=PROFILE)
+                   contact_correction=body.get('contact_correction', True), runtime_reference_profile=PROFILE,
+                   inferred_contact_profile=CONTACT_PROFILE)
     if body.get('clip') is not None:
         request['clip'] = body['clip']
     assert_current(manager, request)

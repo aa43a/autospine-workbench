@@ -2,9 +2,13 @@
 from html import escape
 
 STATES = {'unavailable_no_labels': '源动作无接触标签，不能判断接触是否正确',
+          'inferred_proxy_passed': '推断区间内踝部位移通过采样门槛，接触本身尚未验证',
+          'inferred_proxy_drift': '推断区间内存在踝部位移，需要检查支撑假设与动作',
+          'inferred_support_unavailable': '当前片段没有足够支撑推断证据',
           'ankle_proxy_passed': '踝部支点采样通过', 'ankle_proxy_corrected': '已采用小幅根骨修正',
           'needs_changes': '支撑期存在滑移，需要调整'}
 REASONS = {'motion_contact_correction_disabled': '本次关闭了自动修正',
+           'inferred_contact_not_authorized_for_locking': '推断区间仅供测量，不自动锁脚',
            'motion_contact_correction_limit_or_conflict': '所需位移过大或双脚目标冲突',
            'motion_contact_transition_too_fast': '接触切换的修正速度过大',
            'motion_contact_residual_after_correction': '修正后密集采样仍有滑移'}
@@ -12,6 +16,7 @@ REASONS = {'motion_contact_correction_disabled': '本次关闭了自动修正',
 
 def render(report):
     rows = []
+    source_label = '自动推断' if 'hypothesis' in report else '源动作标注'
     for before, after in zip(report['before']['intervals'], report['after']['intervals']):
         time = after['worst_time']
         rows.append(f'<tr><td>{"左脚" if before["limb"] == "leg.left" else "右脚"}</td>'
@@ -29,7 +34,7 @@ def render(report):
 main{{max-width:1100px;margin:auto}}a{{color:#7bd8ff}}table{{border-collapse:collapse;width:100%}}
 td,th{{text-align:left;padding:12px;border-bottom:1px solid #425365}}.scroll{{overflow-x:auto}}</style>
 <main><a href="/motions.html">← 动作中心</a><h1>{escape(STATES[report['status']])}</h1>
-<p>比较源动作标注的支撑期内，角色踝部支点相对于该段起点的位移。未测量鞋底、地面碰撞或遮挡。</p>
+<p>比较{source_label}的支撑期内，角色踝部支点相对于该段起点的位移。未测量鞋底、地面碰撞或遮挡。</p>
 <p>阈值：{report['before']['drift_limit_px']:.3f} px（角色腿长的 1%）。区间终点不属于支撑期；同时检查终点前的姿态。</p>
 <p>自动修正：{'已采用' if report['selected'] else '未采用'}。在动作中心取消“尝试小幅支撑修正”后重建，可保留未修正版。</p>
 {detail}<ul>{reasons}</ul><div class="scroll"><table><thead><tr><th>支点</th><th>支撑区间</th>

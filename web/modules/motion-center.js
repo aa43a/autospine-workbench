@@ -26,6 +26,7 @@ const steps = {
   retarget: '角色重定向与局部修正', publish_candidate: '保存角色候选', runtime: '官方 Runtime 捕获',
 };
 const reasons = {
+  motion_inferred_contact_drift: '推断支撑区间内存在踝部位移，请检查支撑假设与动作。',
   motion_clip_range_invalid: '片段至少包含两帧，且须位于源动作范围内。',
   motion_generation_unavailable: '服务端尚未配置本地 Kimodo 环境。',
   motion_generation_prompt_invalid: '请输入不超过 1000 字符的单行动作描述。',
@@ -121,6 +122,9 @@ function render(data) {
         + `Runtime：${result.runtime.status === 'needs_review' ? result.runtime.frames + ' 帧已捕获' : '环境不可用'}`));
       for (const issue of result.issues) item.append(node('p', reasons[issue.reason_code] || issue.reason_code));
       const contactStates = {unavailable_no_labels: '源动作无接触标签，未检查',
+        inferred_proxy_passed: '推断区间位移采样通过，尚未验证接触本身',
+        inferred_proxy_drift: '推断区间有位移，需检查支撑假设与动作',
+        inferred_support_unavailable: '未获得足够支撑推断证据',
         ankle_proxy_passed: '踝部支点检查通过', ankle_proxy_corrected: '已采用小幅根骨修正，踝部支点检查通过',
         needs_changes: '支撑期滑移需调整'};
       item.append(node('p', '接触：' + (contactStates[result.contact_status] || '尚未检查')));

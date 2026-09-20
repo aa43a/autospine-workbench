@@ -1,0 +1,19 @@
+{
+  "schema": "autospine.m4-inferred-target-contact-evidence/v1",
+  "date": "2026-09-20",
+  "source_job_id": "motion-c52561d5d07946539a8ca0da57e218e0",
+  "target_job_id": "motion-be5cb0a9f4334b3b97cf93b8eda58b3a",
+  "character_job_id": "job-d8b67e10685347ed95d1fba113b92c45",
+  "artifact_sha256": "a14c12420a70789a1c6a206fdb121fef2ecf3e330fa98c1c17908f46a49687da",
+  "profile": "external-inferred-contact-measurement-v1",
+  "runtime_frames": 554,
+  "geometry_passed": true,
+  "contact_status": "inferred_proxy_drift",
+  "maximum_drift_px": 26.172938316284828,
+  "limit_px": 3.5314073364688943,
+  "correction_selected": false,
+  "visual_accepted": false,
+  "depth_status": "not_evaluated",
+  "scope": "target_ankle_displacement_inside_inferred_windows_not_verified_floor_contact",
+  "browser": {"report_rows": 2, "seek_url_seconds": 3.0, "script_errors": 0}
+}
