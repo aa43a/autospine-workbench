@@ -54,6 +54,15 @@ class RuntimeStorageTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'key_times_collapsed'):
             stored_document(doc)
 
+    def test_draw_order_times_match_runtime_storage_without_changing_offsets(self):
+        doc = self.document()
+        keys = [dict(time=.1, offsets=[dict(slot='mesh', offset=0)]), dict(time=.2)]
+        doc['animations']['walk']['drawOrder'] = keys
+        stored = stored_document(doc)['animations']['walk']['drawOrder']
+        self.assertEqual(stored[0]['time'], f32(.1))
+        self.assertEqual(stored[0]['offsets'], keys[0]['offsets'])
+        self.assertEqual(keys[0]['time'], .1)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -25,6 +25,7 @@ const steps = {
   verify_generator: '核对 Kimodo 模型与代码', verify_text_encoder: '检查本地文本编码器与 CUDA',
   generate_motion: 'Kimodo 正在生成动作（含模型加载）', verify_generation: '复查生成环境与输出',
   retarget: '角色重定向与局部修正', publish_candidate: '保存角色候选', runtime: '官方 Runtime 捕获',
+  depth_overlap: '逐帧检查透明像素重叠与绘制顺序',
 };
 const reasons = {
   motion_inferred_contact_drift: '推断支撑区间内存在踝部位移，请检查支撑假设与动作。',

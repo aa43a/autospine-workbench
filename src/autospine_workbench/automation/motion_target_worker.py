@@ -21,13 +21,14 @@ ANIMATION = 'external-motion'
 
 
 def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_digest, kimodo=None,
-                    contact_correction=True, clip_bounds=None, inferred_contact_profile=None, depth_review_profile=None):
+                    contact_correction=True, clip_bounds=None, inferred_contact_profile=None, depth_review_profile=None,
+                    on_stage=None):
     """Only the animation changes; layers, meshes, weights and texture pixels stay exact."""
     source = json.loads(files['skeleton.json'])
     original = deepcopy(source)
     source['animations'] = {}
     setup_vertices = None
-    if clip_bounds:
+    if clip_bounds or depth_review_profile == 'external-arm-torso-depth-overlap-v2':
         setup = deepcopy(source)
         setup['animations'] = {ANIMATION: {'bones': {}}}
         setup_vertices = sample(setup, ANIMATION, 0)[0]
@@ -85,6 +86,29 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
         times = sorted(set(times) | {k['time'] for k in document['animations'][ANIMATION]['bones']['root']['translate']})
         if contact['status'] == 'inferred_proxy_corrected':
             times = sorted(set(times) | {s['time'] for r in contact['after']['intervals'] for s in r['samples']})
+    depth = None
+    depth_status = 'not_evaluated'
+    if depth_review_profile:
+        from ..targets.character43.motion_depth import PROFILE as DEPTH_PROFILE, OVERLAP_PROFILE, build as inspect_depth
+        if depth_review_profile not in (DEPTH_PROFILE, OVERLAP_PROFILE):
+            raise ValueError('motion_depth_profile_unsupported')
+        depth = inspect_depth(document, bvh, mapping, kimodo=kimodo, clip_bounds=clip_bounds)
+        if depth_review_profile == OVERLAP_PROFILE:
+            if on_stage:
+                on_stage('depth_overlap')
+            from ..targets.character43.motion_depth_overlap import inspect as overlap
+            from ..targets.character43.motion_depth_order import build as order_candidate
+            depth, probe = overlap(document, files, ANIMATION, depth)
+            proposed, order = order_candidate(document, ANIMATION, depth, probe)
+            depth.update(profile=OVERLAP_PROFILE, order=order)
+            if proposed is not None and order['frames']:
+                document = proposed
+                depth['selected'] = True
+                depth['status'] = 'depth_order_sampled_candidate'
+                times = sorted(set(times) | {r['time'] for r in order['frames']})
+            elif proposed is not None:
+                depth['status'] = 'depth_overlap_no_change'
+        depth_status = depth['status']
     frames = [dict(time=t, vertices=sample(document, ANIMATION, t)[0]) for t in times]
     raw = canonical_bytes(document)
     result = {name: data for name, data in files.items() if name.endswith('.png') or name == 'skeleton.atlas'}
@@ -98,16 +122,10 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
         issues.append(dict(stage='geometry', reason_code='motion_target_deformation_needs_changes'))
     if {k: v for k, v in document.items() if k != 'animations'} != {k: v for k, v in original.items() if k != 'animations'}:
         raise ValueError('motion_target_rig_changed')
-    depth_status = 'not_evaluated'
-    if depth_review_profile:
-        from ..targets.character43.motion_depth import PROFILE as DEPTH_PROFILE, build as inspect_depth
-        if depth_review_profile != DEPTH_PROFILE:
-            raise ValueError('motion_depth_profile_unsupported')
-        depth = inspect_depth(document, bvh, mapping, kimodo=kimodo, clip_bounds=clip_bounds)
+    if depth is not None:
         depth.update(character_sha256=character_digest, motion_bundle_sha256=motion_digest,
                      skeleton_sha256=sha256(raw).hexdigest())
         result['motion-depth.json'] = canonical_bytes(depth)
-        depth_status = depth['status']
     evidence.update(character_sha256=character_digest, motion_bundle_sha256=motion_digest,
                     geometry_passed=geometry['passed'], issues=issues,
                     contact_status=contact['status'], contact_policy=contact['policy_id'],
@@ -156,6 +174,7 @@ def execute(folder, state_root, workspace):
         contact_correction=request.get('contact_correction', True),
         inferred_contact_profile=inferred_profile,
         depth_review_profile=request.get('depth_review_profile'),
+        on_stage=lambda stage: progress(folder, stage),
         clip_bounds=clip_bounds,
         character_digest=request['character_sha256'], motion_digest=motion_id['bundle_sha256'])
     progress(folder, 'publish_candidate')

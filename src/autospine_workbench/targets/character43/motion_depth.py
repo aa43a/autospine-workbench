@@ -6,6 +6,7 @@ from ...depth_order_schmitt import evaluate_depth_pair
 from ...resolved_project import canonical_sha256
 
 PROFILE = 'external-arm-torso-depth-review-v1'
+OVERLAP_PROFILE = 'external-arm-torso-depth-overlap-v2'
 
 
 def _source(bvh, mapping, kimodo):

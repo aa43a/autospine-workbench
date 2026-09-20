@@ -34,6 +34,13 @@
     skeleton.setupPose();
     if(animation!==null){state.setAnimation(0,animation,false);state.update(frame.time);state.apply(skeleton);}
     skeleton.updateWorldTransform(spine.Physics.update);
+    const expectedOrder=autospineExpectedDrawOrder(doc,animation,frame.time);
+    const actualOrder=skeleton.drawOrder.appliedPose.map(slot=>slot.data.name);
+    if(JSON.stringify(expectedOrder)!==JSON.stringify(actualOrder)){
+      window.captureFailure={reason_code:'official_draw_order_mismatch',animation,index,time:frame.time,
+        expected:expectedOrder,actual:actualOrder};
+      throw Error('official_draw_order_mismatch');
+    }
     if(JSON.stringify(skeleton.slots.map(s=>s.data.name).sort())!==JSON.stringify(Object.keys(frame.vertices).sort()))throw Error('slot_inventory');
     let error=0,probes=0,worst=null;
     for(const slot of skeleton.slots){
@@ -63,7 +70,8 @@
       visible++;if(x===0||y===0||x===canvas.width-1||y===canvas.height-1)border++;
     }
     if(!visible||border)throw Error(!visible?'empty_framebuffer':'framebuffer_clipped');
-    return {animation,index,time:frame.time,max_error_px:error,probes,visible_pixels:visible,border_pixels:border};
+    return {animation,index,time:frame.time,max_error_px:error,probes,visible_pixels:visible,border_pixels:border,
+      draw_order:actualOrder,draw_order_matches:true};
   };
   window.framePNG=()=>canvas.toDataURL('image/png');window.ready=true;
 })().catch(e=>{window.failure=String(e.stack||e);});

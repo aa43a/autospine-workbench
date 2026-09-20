@@ -4,6 +4,22 @@ from html import escape
 
 def render(report):
     rows = []
+    overlap = report.get('target_overlap')
+    summary = ''
+    if overlap:
+        summary = (f'<p>目标同帧 alpha 交集：{overlap["visible_pair_samples"]} 个配对采样；'
+            f'其中跨平面 {overlap["ambiguous_visible_pair_samples"]} 个，顺序建议与原顺序不同 '
+            f'{overlap["order_mismatch_pair_samples"]} 个，未测量 {overlap["unmeasured_pair_samples"]} 个。'
+            '采用原图 UV、双线性 alpha 与 8/255 阈值；CPU 像素中心采样不等于 GPU 或连续时间验收。</p>')
+    failures = []
+    reasons = {'visible_depth_straddle': '有可见交集的手臂跨越躯干前后',
+               'visible_unmapped_order_conflict': '换序会跨过其他可见附件，缺少归属依据',
+               'depth_overlap_pixel_budget': '超出像素检查预算，保留原顺序',
+               'depth_overlap_attachment_unsupported': '当前附件类型尚未支持重叠检查'}
+    for failure in report.get('order', {}).get('failures', []):
+        time = failure['time']
+        failures.append(f'<tr><td>顺序约束</td><td>{escape(reasons.get(failure["reason_code"], failure["reason_code"]))}</td>'
+                    f'<td><a href="player.html?time={time:.9f}">{time:.3f} 秒</a></td></tr>')
     for pair in report['pairs']:
         label = escape(pair['arm_slot']+' / '+pair['torso_slot'])
         for event in pair['events']:
@@ -29,12 +45,14 @@ td,th{{text-align:left;padding:12px;border-bottom:1px solid #425365}}</style>
 <main><a href="/motions.html">← 动作中心</a><h1>手臂与躯干的深度候选</h1>
 <p>使用源动作的明确深度轴 {escape(report['depth_axis'])}，正方向朝向相机。
 按真实权重识别目标附件；混合部件与未分类附件保留原绘制顺序。</p>
-<p>换序候选 {report.get('switch_candidates', 0)} 个。本次没有更改绘制顺序。
+<p>换序候选 {report.get('switch_candidates', 0)} 个。{'已生成动态顺序候选，尚未人工验收。' if report.get('selected') else '本次没有更改绘制顺序。'}
 源骨骼深度不等于目标像素遮挡；跨前后平面的手臂可能需要分区。
 无候选也不代表遮挡已通过。</p>
 <p>采用 4% / 2% 源腿长的迟滞带，连续 3 帧形成换序建议，避免单帧抖动。</p>
+{summary}
 <table><thead><tr><th>附件配对</th><th>诊断</th><th>时间轴</th></tr></thead>
 <tbody>{''.join(rows) or '<tr><td colspan="3">没有换序或跨平面记录；请结合映射覆盖与画面检查。</td></tr>'}</tbody></table>
+<details><summary>未采用的采样约束（{len(failures)} 项）</summary><table>{''.join(failures)}</table></details>
 <p><a href="motion-depth.json">完整来源与逐帧证据</a> · <a href="player.html">播放当前候选</a></p>
 </main></html>'''
     return body.encode('utf-8')

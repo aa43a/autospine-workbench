@@ -72,9 +72,11 @@ const pkg=JSON.parse(await fs.readFile(path.join(packageRoot,'package.json')));
 if(pkg.name!=='@esotericsoftware/spine-webgl'||pkg.version!=='4.3.13')throw Error('runtime_version');
 const runtime=await fs.readFile(path.join(packageRoot,'dist/iife/spine-webgl.js'));
 const harness=await fs.readFile(new URL('./character-framebuffer.js',import.meta.url));
+const orderReader=await fs.readFile(new URL('./character-draw-order.js',import.meta.url));
 const {chromium}=await import(pathToFileURL(path.resolve(dependencies,'node_modules/playwright-core/index.mjs')));
 files.set('/runtime.js',runtime);files.set('/harness.js',harness);
-files.set('/',Buffer.from('<!doctype html><canvas></canvas><script src="/runtime.js"></script><script src="/harness.js"></script>'));
+files.set('/draw-order.js',orderReader);
+files.set('/',Buffer.from('<!doctype html><canvas></canvas><script src="/runtime.js"></script><script src="/draw-order.js"></script><script src="/harness.js"></script>'));
 const server=http.createServer((req,res)=>{
   const name=new URL(req.url,'http://localhost').pathname,raw=files.get(name);
   if(!raw){res.writeHead(404);res.end();return;}
@@ -115,6 +117,7 @@ try{
   if(errors.length)throw Error(errors.join('\n'));
   const report={schema:'autospine.character-framebuffer/v1',bundle_sha256:digest,runtime_package:pkg.name,runtime_version:pkg.version,
     runtime_sha256:hash(runtime),harness_sha256:hash(harness),tool_sha256:hash(await fs.readFile(new URL(import.meta.url))),
+    draw_order_reader_sha256:hash(orderReader),draw_order_numeric_status:'passed',
     reference_reader_sha256:hash(await fs.readFile(new URL('./character-reference.mjs',import.meta.url))),
     browser_sha256:hash(await fs.readFile(chrome)),profile:'official-webgl-swiftshader-native-v1',info,results,screenshots,screenshot_stride:screenshotStride,
     passed:true,scope:'all_attachment_vertices_and_nonempty_unclipped_framebuffer',
@@ -127,6 +130,7 @@ try{
 }catch(error){
   const detail=page?await page.evaluate(()=>window.captureFailure??null).catch(()=>null):null;
   const failure={schema:'autospine.character-capture-failure/v1',bundle_sha256:digest,
+    draw_order_reader_sha256:hash(orderReader),
     runtime_version:pkg.version,runtime_sha256:hash(runtime),harness_sha256:hash(harness),
     tool_sha256:hash(await fs.readFile(new URL(import.meta.url))),
     passed:false,authority:'none',production_authorized:false,
