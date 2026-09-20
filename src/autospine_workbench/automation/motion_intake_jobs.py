@@ -51,6 +51,7 @@ class MotionIntakeJobs:
                     stage_review_available=True,
                     view_comparison_available=True,
                     oblique_target_available=True,
+                    oblique_comparison_available=True,
                     blender_available=bool(self.blender and Path(self.blender).is_file()),
                     kimodo_generation=availability(self), npz_import='soma77_explicit_profile')
 
@@ -152,6 +153,8 @@ class MotionIntakeJobs:
                 body['clip'] = request['clip']
             if request.get('projection') is not None:
                 body['projection'] = request['projection']
+            if request.get('projection_selection') is not None:
+                body['projection_selection'] = {'comparison_sha256':request['projection_selection']['comparison_sha256']}
             return submit(self, request['source_job_id'], body)
         raw = read_real_file(self.folder(job) / ('source.' + request['format']), MAX_UPLOAD, 'motion source')
         if sha256(raw).hexdigest() != request['source_sha256']:

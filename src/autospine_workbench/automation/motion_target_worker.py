@@ -183,6 +183,8 @@ def execute(folder, state_root, workspace):
     if request.get('projection') is not None:
         from ..targets.character43.oblique_target import prepare
         motion, oblique = prepare(bundle, request['projection'])
+        if request.get('projection_selection') is not None:
+            oblique['selection'] = request['projection_selection']
     kimodo = (bundle.raw_npz, bundle.kimodo_source) if bundle.source_kind == 'kimodo_npz' else None
     bvh = None if kimodo else parse_bvh(bundle.raw_bvh)
     from ..bvh_fk import bvh_frame_ticks

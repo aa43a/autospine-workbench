@@ -29,7 +29,7 @@ def assert_current(manager, request):
 
 
 def submit(manager, source_job, body):
-    if (set(body) - {'project_id', 'character_job_id', 'contact_correction', 'clip', 'projection'}
+    if (set(body) - {'project_id', 'character_job_id', 'contact_correction', 'clip', 'projection', 'projection_selection'}
             or not {'project_id', 'character_job_id'} <= set(body)
             or type(body.get('contact_correction', True)) is not bool):
         raise PipelineRunError('motion_request_invalid')
@@ -63,6 +63,11 @@ def submit(manager, source_job, body):
         request['clip'] = body['clip']
     if 'projection' in body:
         request['projection'] = dict(body['projection'])
+    if 'projection_selection' in body:
+        from .motion_oblique_comparison import validate_selection
+        try:
+            request['projection_selection'] = validate_selection(manager,source_job,body['projection_selection'],body.get('projection'))
+        except ValueError as exc: raise PipelineRunError(str(exc)) from exc
     assert_current(manager, request)
     with manager._lock:
         if manager._closed or sum(j['status'] in {'pending', 'running'} for j in manager._jobs.values()) >= 2:

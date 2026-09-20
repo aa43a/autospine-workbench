@@ -60,6 +60,27 @@ reconstruction or torso mesh deformation is implemented here. Current capture
 and source projection success do not imply that front artwork looks correct
 under every oblique motion.
 
+## Automatic source-angle proposal
+
+The motion center's **自动选择投影角度** compares all thirteen constant yaws
+against the entire verified source. It retains zero when qualified, otherwise
+chooses the smallest absolute qualified angle (negative first for equal angles).
+No qualifying angle produces an explicit exception, not an approved fallback.
+This is a source projection rule, not an aesthetic or target acceptance score.
+
+The comparison receipt binds the source job, source bytes and MotionIR identity.
+Submission recomputes the comparison and rejects changed receipts or mismatched
+angles. The selected receipt travels into the candidate's projection artifact;
+retry revalidates it. Changing source or manually choosing an angle clears the
+automatic selection. Late responses cannot overwrite a newer selection.
+
+GET `/api/motions/{job_id}/compare-oblique` is read-only. Automatic submissions
+include `projection_selection: {comparison_sha256: ...}` alongside `projection`.
+Geometry, contact, depth and Runtime checks still run on the resulting character.
+
+Validation: source comparison, stale receipt and mismatched angle unit checks,
+real BVH HTTP comparison, and browser payload/manual override/source reset checks.
+
 ## Frozen oblique target cohort
 
 `tools/m4_oblique_cohort_plan.py` binds the full source-angle summary to the v3
