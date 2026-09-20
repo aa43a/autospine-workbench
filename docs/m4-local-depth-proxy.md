@@ -251,3 +251,31 @@ is not established as the extent of the full skinned hand. Future axis mapping
 must use actual mesh support and explicit source finger-chain observations;
 this experiment does not expand the cap or discard positive influences to force
 a pass. Evidence is `../tmp/m4-motion-center/cloth-plane-hong-unknown-v1.json`.
+
+## Mesh-supported hand-axis correspondence
+
+`--mesh-hand-axis` adds two explicit experimental contracts. Target axis extent
+comes from rendered vertices with bilinear alpha >=8 and hand influence >=0.9;
+at least three positive-axis support vertices at distinct coordinates are needed.
+The source endpoint comes from the complete declared wrist/Middle1/Middle2/Middle3
+chain and its actual BVH End Site, with every parent edge checked. Missing chain
+or endpoint observations abstain. A hand axis is overridden only when both target
+support and source endpoint evidence exist; display bones and original weights
+are not edited. Existing segment policies remain default.
+
+This is a wrist-to-fingertip chord correspondence model, not an anatomical
+reconstruction or finger-curl retargeting. The fixed quarter-cap policy is applied
+to this independent supported axis. Alpha threshold, weight threshold, support
+vertices, inferred extent and source chain are retained in the report.
+
+For Hongmeiling, target support gives right/left extents 148.5753 / 148.7801 px
+from 33 / 28 vertices. On the same twelve conflict samples, seven now classify
+uniformly in front of the garment-plane proxy, two have no overlap, and three
+remain uncertain. Remaining unknowns are solely upper-arm support: 3, 19 and 45
+pixels at 1.433333, 1.45 and 1.466667 s. Hand uncertainty is eliminated for these
+samples without changing the exported rig. This has not yet been run through
+full-clip order compilation or Runtime for a reordered candidate.
+
+Evidence: `../tmp/m4-motion-center/cloth-plane-hong-mesh-axis-v1.json`. Tests cover
+opaque dominant support, transparent/insufficient evidence, unchanged display
+bones, complete source chain requirements and actual BVH End Site FK depth.

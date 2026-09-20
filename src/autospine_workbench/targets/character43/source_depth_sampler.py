@@ -2,7 +2,7 @@
 from bisect import bisect_right
 import math
 
-from ...bvh_fk import bvh_frame_ticks, _world_matrices, _origin
+from ...bvh_fk import bvh_frame_ticks, _world_matrices, _origin, _multiply, _translate
 from ...bvh_map_validation import require_bvh_map
 
 PROFILE = 'bvh-linear-channel-depth-sampling-v1'
@@ -20,7 +20,7 @@ class SegmentDepthSampler:
         self.channels=[c for j in bvh.joints for c in j.channels]
         self.angle=math.radians(yaw_degrees)
 
-    def joint_depths(self,tick):
+    def joint_depths(self,tick,*,include_end_sites=False):
         if not math.isfinite(tick) or not self.ticks[0] <= tick <= self.ticks[-1]:
             raise ValueError('depth_sampler_time_invalid')
         index=min(bisect_right(self.ticks,tick)-1,len(self.ticks)-1)
@@ -34,14 +34,19 @@ class SegmentDepthSampler:
             frame=tuple(a+(b-a)*fraction for a,b in zip(frame,next_frame))
         matrices=_world_matrices(self.bvh,frame)
         basis=self.mapping['basis']
-        def z(name):
-            point=_origin(matrices[self.indices[name]])
+        def z(name,offset=None):
+            matrix=matrices[self.indices[name]]
+            point=_origin(matrix if offset is None else _multiply(matrix,_translate(offset)))
             values=[(-1 if basis[k][0]=='-' else 1)*point['XYZ'.index(basis[k][1])]
                     for k in ('screen_x','depth')]
             return math.sin(self.angle)*values[0]+math.cos(self.angle)*values[1]
         reference=z(self.roles['humanoid.spine.upper']['joint_name'])
         length=self.mapping['root']['reference_length_source_units']
-        return {name:(z(name)-reference)/length for name in self.indices}
+        result={name:(z(name)-reference)/length for name in self.indices}
+        if include_end_sites:
+            result.update({(j.name,'end_site'):(z(j.name,j.end_site_offset)-reference)/length
+                           for j in self.bvh.joints if j.end_site_offset is not None})
+        return result
 
     def torso_anchors(self,tick):
         depths=self.joint_depths(tick)

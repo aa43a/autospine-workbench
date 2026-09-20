@@ -4,7 +4,7 @@ from .mesh_depth_proxy import vertex_depths
 from ..spine43.seam_raster import mask
 
 
-def inspect(probe, arm, other, time, segments):
+def inspect(probe, arm, other, time, segments, *, axis_lengths=None):
     pair = probe.pair(arm,other,time)
     report = dict(profile='overlap-depth-unknown-causes-v1', time=time, pair=[arm,other],
                   authority='none', selected=False, causes=[], overlap_pixels=pair['overlap_pixels'],
@@ -13,7 +13,7 @@ def inspect(probe, arm, other, time, segments):
     rect=pair['roi']; area=rect[2]*rect[3]
     attachments={n:probe.document['skins'][0]['attachments'][n][probe.slots[n]['attachment']] for n in (arm,other)}
     mesh=attachments[arm]
-    values=vertex_depths(probe.document,mesh,segments,endpoint_caps=True)
+    values=vertex_depths(probe.document,mesh,segments,endpoint_caps=True,axis_lengths=axis_lengths)
     def raster(name,attachment):
         if area>probe.remaining: raise ValueError('depth_overlap_pixel_budget')
         probe.remaining-=area
@@ -25,7 +25,7 @@ def inspect(probe, arm, other, time, segments):
         for _ in range(count):
             index,x,y,weight=data[cursor:cursor+4]; cursor+=4; total+=weight
             if weight<=0: continue
-            bone=probe.document['bones'][index]; name=bone['name']; length=bone.get('length',0)
+            bone=probe.document['bones'][index]; name=bone['name']; length=(axis_lengths or {}).get(name,bone.get('length',0))
             reason=('missing_segment' if name not in segments else 'nonpositive_length' if length<=0 else
                     'outside_quarter_cap' if not -.25*length<=x<=1.25*length else None)
             if reason: rows.append(dict(bone=name,reason=reason,x_ratio=x/length if length>0 else None,weight=weight))

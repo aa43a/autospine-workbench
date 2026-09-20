@@ -19,6 +19,12 @@ def sampler(angle=90,yaw=0):
 
 
 class SourceDepthSamplerTests(unittest.TestCase):
+    def test_end_site_depth_uses_actual_declared_offset(self):
+        probe=sampler(angle=0)
+        depths=probe.joint_depths(0,include_end_sites=True)
+        self.assertAlmostEqual(depths['LeftHand','end_site']-depths['LeftHand'],.3)
+        self.assertNotIn(('LeftHand','end_site'),probe.joint_depths(0))
+
     def test_midpoint_runs_fk_instead_of_averaging_endpoint_depths(self):
         probe=sampler()
         delta=lambda tick:probe(tick)['upperarm_l'][1]-probe(tick)['upperarm_l'][0]

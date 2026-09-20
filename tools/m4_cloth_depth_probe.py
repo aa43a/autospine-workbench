@@ -17,9 +17,11 @@ from autospine_workbench.targets.character43.motion_depth_overlap import Probe
 from autospine_workbench.targets.character43.mesh_depth_proxy import overlap_support
 from autospine_workbench.targets.character43.hand_depth_observation import observe
 from autospine_workbench.targets.character43.depth_proxy_unknown import inspect as unknown_causes
+from autospine_workbench.targets.character43.hand_mesh_axis import infer
+from autospine_workbench.targets.spine43.seam_raster import texture
 
 
-def run(job, partition, ordering, output, *, hand_depth=False, diagnose_unknown=False):
+def run(job, partition, ordering, output, *, hand_depth=False, diagnose_unknown=False, mesh_axis=False):
     if not re.fullmatch(r'motion-[a-f0-9]{32}',job): raise ValueError('job_invalid')
     root=Path('workspace'); folder=root/'jobs/motion-intake-v1'/job
     request=read_document(folder/'request.json'); result=read_document(folder/'result.json')
@@ -44,6 +46,11 @@ def run(job, partition, ordering, output, *, hand_depth=False, diagnose_unknown=
     diagnostic=Probe(document,files,'external-motion') if diagnose_unknown else None
     regions={r['slot'] for r in region['regions'] if r['group']=='mixed'}
     arms=set(order['depth_groups']['left']+order['depth_groups']['right']); rows=[]
+    axes={}
+    if mesh_axis:
+        for arm in arms:
+            slot=probe.slots[arm]; mesh=document['skins'][0]['attachments'][arm][slot['attachment']]
+            axes[arm]=infer(document,mesh,texture(files['images/'+mesh.get('path',slot['attachment'])+'.png']))
     failures=order['order']['failures']
     if len(failures)>64: raise ValueError('cloth_probe_failure_limit')
     for failure in failures:
@@ -59,13 +66,15 @@ def run(job, partition, ordering, output, *, hand_depth=False, diagnose_unknown=
                 try:
                     plane=at(document,'external-motion',time,sampler,source_tick)
                     segments=sampler(source_tick)
-                    hands=observe(sampler,source_tick) if hand_depth else None
+                    hands=observe(sampler,source_tick,full_hand=mesh_axis) if hand_depth or mesh_axis else None
                     if hands: segments.update(hands['segments'])
+                    lengths={n:v['length'] for n,v in axes.get(arm,{}).get('axes',{}).items()
+                             if hands and n in hands['segments']}
                     check=overlap_support(probe,arm,cloth,time,segments,
-                                          endpoint_caps=True,reference_plane=plane['coefficients'])
+                                          endpoint_caps=True,reference_plane=plane['coefficients'],axis_lengths=lengths)
                     row=dict(time=time,source_tick=source_tick,plane=plane,hand_depth=hands,check=check)
                     if diagnostic is not None:
-                        try: row['unknown_causes']=unknown_causes(diagnostic,arm,cloth,time,segments)
+                        try: row['unknown_causes']=unknown_causes(diagnostic,arm,cloth,time,segments,axis_lengths=lengths)
                         except ValueError as exc:
                             row['unknown_causes']=dict(status='unmeasured',reason_code=str(exc))
                 except ValueError as exc:
@@ -74,6 +83,7 @@ def run(job, partition, ordering, output, *, hand_depth=False, diagnose_unknown=
     report=dict(profile=PROFILE,authority='none',selected=False,source_artifact_sha256=digest,
                 partition_skeleton_sha256=region['skeleton_sha256'],ordering_sha256=sha256(order_raw).hexdigest(),
                 request_sha256=provenance['request_sha256'],rows=rows,
+                hand_mesh_axes=axes,
                 scope='recorded_cycle_frames_and_midpoints_not_full_clip_or_order_adoption')
     output.write_bytes(canonical_bytes(report))
     print(json.dumps(dict(samples=len(rows),counts=dict(Counter(r['check']['status'] for r in rows)))))
@@ -85,5 +95,6 @@ if __name__=='__main__':
     parser.add_argument('ordering',type=Path); parser.add_argument('output',type=Path)
     parser.add_argument('--hand-depth',action='store_true')
     parser.add_argument('--diagnose-unknown',action='store_true')
+    parser.add_argument('--mesh-hand-axis',action='store_true')
     args=parser.parse_args(); run(args.job,args.partition,args.ordering,args.output,
-                                hand_depth=args.hand_depth,diagnose_unknown=args.diagnose_unknown)
+                                hand_depth=args.hand_depth,diagnose_unknown=args.diagnose_unknown,mesh_axis=args.mesh_hand_axis)

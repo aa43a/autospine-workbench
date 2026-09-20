@@ -7,12 +7,15 @@ PROFILE = 'weighted-segment-depth-proxy-v1'
 CAP_PROFILE = 'weighted-segment-quarter-cap-depth-proxy-v1'
 
 
-def vertex_depths(document, attachment, segments, *, endpoint_caps=False):
+def vertex_depths(document, attachment, segments, *, endpoint_caps=False, axis_lengths=None):
     """Interpolate source endpoint depths along each influence's setup bone axis.
 
     Missing bones, out-of-segment influences and non-normalized weights abstain.
     The planar cross-section assumption is explicit: this is not measured skin Z.
     """
+    axis_lengths=axis_lengths or {}
+    if any(n not in ('hand_l','hand_r') or not math.isfinite(v) or v<=0 for n,v in axis_lengths.items()):
+        raise ValueError('depth_proxy_hand_axis_invalid')
     data = attachment.get('vertices', [])
     if attachment.get('type') != 'mesh' or len(data) == len(attachment.get('uvs', [])):
         raise ValueError('depth_proxy_weighted_mesh_required')
@@ -30,7 +33,7 @@ def vertex_depths(document, attachment, segments, *, endpoint_caps=False):
             total += weight
             if weight == 0:
                 continue
-            bone = document['bones'][index]; length = bone.get('length', 0)
+            bone = document['bones'][index]; length = axis_lengths.get(bone['name'],bone.get('length', 0))
             segment = segments.get(bone['name'])
             extension = .25*length if endpoint_caps else 0
             if segment is None or length <= 0 or not -extension <= x <= length+extension:
@@ -47,7 +50,7 @@ def vertex_depths(document, attachment, segments, *, endpoint_caps=False):
     return values
 
 
-def overlap_support(probe, arm, torso, time, segments, *, margin=.02, endpoint_caps=False, reference_plane=None):
+def overlap_support(probe, arm, torso, time, segments, *, margin=.02, endpoint_caps=False, reference_plane=None, axis_lengths=None):
     """Classify opaque overlap with conservative per-triangle depth bounds."""
     import numpy as np
     if not math.isfinite(margin) or margin <= 0:
@@ -64,6 +67,8 @@ def overlap_support(probe, arm, torso, time, segments, *, margin=.02, endpoint_c
         result.update(profile='weighted-segment-versus-garment-plane-v1-experiment',
                       reference_plane=list(reference_plane),
                       assumption='source_segment_axis_depth_against_explicit_planar_garment_proxy')
+    if axis_lengths:
+        result.update(profile='weighted-mesh-hand-axis-depth-v1-experiment',hand_axis_lengths=dict(axis_lengths))
     if not pair['overlap_pixels']:
         return dict(result,status='no_overlap',counts={})
     rect=pair['roi']; area=rect[2]*rect[3]
@@ -74,7 +79,7 @@ def overlap_support(probe, arm, torso, time, segments, *, margin=.02, endpoint_c
         probe.remaining -= area
         return mask(attachment,probe.positions[time][name],probe.textures[name],rect)>=8
     common=raster(arm,attachments[arm]) & raster(torso,attachments[torso])
-    values=vertex_depths(probe.document,attachments[arm],segments,endpoint_caps=endpoint_caps)
+    values=vertex_depths(probe.document,attachments[arm],segments,endpoint_caps=endpoint_caps,axis_lengths=axis_lengths)
     if reference_plane is not None:
         dx,dy,offset=reference_plane
         values=[None if z is None else z-dx*p[0]-dy*p[1]-offset
