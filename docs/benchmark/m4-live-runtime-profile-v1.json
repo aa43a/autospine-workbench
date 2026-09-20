@@ -1,0 +1,17 @@
+{
+  "schema": "autospine.m4-live-runtime-profile/v1",
+  "date": "2026-09-20",
+  "job_id": "motion-0af2e2c4190340eaa179b50733abe3c8",
+  "request_profile": "spine43-linear-weighted-float32-storage-v1",
+  "status": "succeeded",
+  "unchanged_candidate_sha256": "a0d20d0734b117f2a8b38d24379cb8825f453c68793a15bc94cf31f579348685",
+  "runtime_frames": 313,
+  "runtime_report_sha256": "ba0582a8bb3a799d937c85f447539884c107ce007369b8af6133d7606c2c4586",
+  "geometry_passed": false,
+  "issues_retained": ["character_length_projection_collapsed", "motion_target_deformation_needs_changes"],
+  "baseline_replaced": false,
+  "projection_entry_browser_verified": true,
+  "projection_api_real_bvh_and_kimodo_verified": true,
+  "milestone_complete": false,
+  "production_authorized": false
+}

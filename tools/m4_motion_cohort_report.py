@@ -64,11 +64,28 @@ def render(plan, state):
                   row['contact'], row['depth'], row['visual'],
                   json.dumps(row['issues'], ensure_ascii=False) if row['issues'] else row['failure'] or '—']
         lines.append('<tr>' + ''.join('<td>'+escape(label(v))+'</td>' for v in values) + '<td>'+links+'</td></tr>')
+    counts = summary(records)
+    heading = (f'<p>固定组合 {counts["required"]} · 已结束 {counts["terminal"]} · '
+        f'完成 Runtime 捕获 {counts["captured"]} · 几何通过 {counts["geometry_passed"]} · '
+        f'存在候选异常 {counts["candidate_exceptions"]} · 任务失败 {counts["failed"]}</p>')
     return '''<!doctype html><meta charset="utf-8"><title>M4 固定动作验收矩阵</title>
 <style>body{background:#101923;color:#e3edf6;font:15px system-ui;padding:24px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #425466;padding:10px;text-align:left}a{color:#69d4fa}td{max-width:300px;overflow-wrap:anywhere}</style>
 <h1>M4 三结构角色 × 八类动作</h1><p>固定完整源动作、正面投影；失败保留，不替换为更容易通过的样本。类别仍需核对实际动作。</p>
 <p>任务完成不等于动作通过。接触、遮挡、视觉验收分别列出，未检查不计通过。此页为生成时快照。</p>
-<table><thead><tr>''' + ''.join('<th>'+v+'</th>' for v in ['动作/角色','任务','候选','几何','Runtime 帧','接触','遮挡','人工视觉','异常','定位']) + '</tr></thead><tbody>' + ''.join(lines) + '</tbody></table>'
+''' + heading + '<table><thead><tr>' + ''.join('<th>'+v+'</th>' for v in ['动作/角色','任务','候选','几何','Runtime 帧','接触','遮挡','人工视觉','异常','定位']) + '</tr></thead><tbody>' + ''.join(lines) + '</tbody></table>'
+
+
+def summary(records):
+    return dict(required=len(records),
+        terminal=sum(r['status'] in ('succeeded', 'failed', 'cancelled', 'canceled', 'interrupted') or r['status'].startswith('source_') for r in records),
+        captured=sum(r['status']=='succeeded' and bool(r['runtime_frames']) for r in records),
+        geometry_passed=sum(r['geometry'] is True for r in records),
+        candidate_exceptions=sum(r['candidate']=='needs_changes' for r in records),
+        failed=sum(r['status']=='failed' or r['status'].startswith('source_') for r in records),
+        runtime_frames=sum(r['runtime_frames'] or 0 for r in records),
+        visual_accepted=sum(r['visual']=='accepted' for r in records),
+        contact_unmeasured=sum(r['contact'] in ('not_evaluated', 'unavailable_no_labels') for r in records),
+        depth_unmeasured=sum(r['depth']=='not_evaluated' for r in records))
 
 
 if __name__ == '__main__':
@@ -76,5 +93,6 @@ if __name__ == '__main__':
     Path(sys.argv[3]).write_text(render(plan, state), encoding='utf-8')
     Path(sys.argv[3]).with_suffix('.json').write_text(json.dumps({
         'schema': 'autospine.motion-cohort-report/v1', 'plan_sha256': digest(plan),
-        'rows': rows(plan, state), 'authority': 'none', 'production_authorized': False},
+        'rows': rows(plan, state), 'summary': summary(rows(plan, state)),
+        'authority': 'none', 'production_authorized': False},
         ensure_ascii=False, indent=2), encoding='utf-8')

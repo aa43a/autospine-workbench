@@ -54,6 +54,11 @@ class CohortTests(unittest.TestCase):
         self.assertEqual(row['visual'], 'not_evaluated')
         self.assertEqual(row['contact'], 'not_evaluated')
         self.assertEqual(row['depth'], 'not_evaluated')
+        counts = report.summary([row])
+        self.assertEqual(counts['candidate_exceptions'], 1)
+        self.assertEqual(counts['geometry_passed'], 0)
+        self.assertEqual(counts['visual_accepted'], 0)
+        self.assertEqual(counts['contact_unmeasured'], 1)
 
     def test_first_geometry_failure_is_linked_to_time(self):
         self.state['cells']['walk/a'] = dict(job_id='target', status='succeeded')

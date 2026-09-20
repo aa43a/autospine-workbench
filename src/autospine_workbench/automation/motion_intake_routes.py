@@ -11,7 +11,7 @@ def _methods(tail):
         return 'POST, OPTIONS'
     if not tail:
         return 'GET, HEAD, POST, OPTIONS'
-    if (len(tail) == 1 or len(tail) == 2 and tail[1] in ('preview', 'download')
+    if (len(tail) == 1 or len(tail) == 2 and tail[1] in ('preview', 'download', 'projection', 'projection.json')
             or len(tail) >= 3 and tail[1] == 'view'):
         return 'GET, HEAD, OPTIONS'
     if len(tail) == 2 and tail[1] in ('cancel', 'retry', 'adapt', 'reproject'):
@@ -81,6 +81,13 @@ def dispatch_motions(parts, handler, method):
                     raise PipelineRunError('motion_request_invalid')
                 result = getattr(manager, tail[1])(tail[0])
             handler._send_visual_json(202, result)
+        elif len(tail) == 2 and tail[1] in ('projection', 'projection.json'):
+            from .motion_projection_review import inspect, render
+            report = inspect(manager, tail[0])
+            if tail[1] == 'projection.json':
+                handler._send_visual_json(200, report)
+            else:
+                handler._send_bytes(200, render(report), 'text/html; charset=utf-8', visual_review=True)
         elif len(tail) >= 3 and tail[1] == 'view':
             from .motion_target_jobs import review_file
             raw, mime = review_file(manager, tail[0], tail[2:])

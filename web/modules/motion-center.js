@@ -145,6 +145,11 @@ function render(data) {
       const button = node('button', '查看源动作');
       button.onclick = () => void preview(job);
       item.append(button);
+      if (job.result.motion_status === 'compiled') {
+        const projection = node('a', '查看投影异常');
+        projection.href = `/api/motions/${job.job_id}/projection`;
+        projection.target = '_blank'; projection.rel = 'noopener'; item.append(projection);
+      }
       item.append(node('p', job.result.motion_status === 'compiled'
         ? 'MotionIR 已保存 · 尚未适配角色' : reasons[job.result.reason_code] || job.result.reason_code));
     }

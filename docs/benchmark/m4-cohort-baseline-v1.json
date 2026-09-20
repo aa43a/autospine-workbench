@@ -1,0 +1,532 @@
+{
+  "schema": "autospine.m4-fixed-front-baseline/v1",
+  "plan_sha256": "8e357576e1a77aa9e1757bb5c2f4510cdb0f910a62297473c74121be636af957",
+  "date": "2026-09-20",
+  "plan": "m4-cohort-plan-v2.json",
+  "summary": {
+    "required": 24,
+    "terminal": 24,
+    "captured": 23,
+    "geometry_passed": 11,
+    "candidate_exceptions": 17,
+    "failed": 1,
+    "runtime_frames": 8447,
+    "visual_accepted": 0,
+    "contact_unmeasured": 21,
+    "depth_unmeasured": 24
+  },
+  "records": [
+    {
+      "cell": "breathing/alice",
+      "status": "succeeded",
+      "job_id": "motion-cad24c38acf04cb78c0188f1ff1d2075",
+      "geometry": true,
+      "candidate": "needs_review",
+      "contact": "unavailable_no_labels",
+      "depth": "not_evaluated",
+      "visual": "not_evaluated",
+      "issues": [],
+      "runtime_frames": 554,
+      "runtime_geometry": "passed",
+      "failure": null,
+      "artifact_sha256": "d42e4b8b31fccbead8b60688dd3dfad6ba62a02716c22297c9892aeeb0346a67"
+    },
+    {
+      "cell": "breathing/huiye",
+      "status": "succeeded",
+      "job_id": "motion-89191eca7f0b44eaa1a5b1d20df3abf9",
+      "geometry": true,
+      "candidate": "needs_review",
+      "contact": "unavailable_no_labels",
+      "depth": "not_evaluated",
+      "visual": "not_evaluated",
+      "issues": [],
+      "runtime_frames": 554,
+      "runtime_geometry": "passed",
+      "failure": null,
+      "artifact_sha256": "6d0534844ef3d1048649039a156bbe212fb06bf6264644658c5ef2e5c6a02307"
+    },
+    {
+      "cell": "breathing/hongmeiling",
+      "status": "succeeded",
+      "job_id": "motion-26fb6019555f49ff82d1624dd8242863",
+      "geometry": true,
+      "candidate": "needs_review",
+      "contact": "unavailable_no_labels",
+      "depth": "not_evaluated",
+      "visual": "not_evaluated",
+      "issues": [],
+      "runtime_frames": 554,
+      "runtime_geometry": "passed",
+      "failure": null,
+      "artifact_sha256": "fb62e9010ee88ef9e2cc6aa133f65cb2fc20fd79bd05e140e1e76c7c020cb3eb"
+    },
+    {
+      "cell": "walking/alice",
+      "status": "succeeded",
+      "job_id": "motion-04466e1cbbfd42c3bf089ba8378d9955",
+      "geometry": false,
+      "candidate": "needs_changes",
+      "contact": "unavailable_no_labels",
+      "depth": "not_evaluated",
+      "visual": "not_evaluated",
+      "issues": [
+        {
+          "reason_code": "character_length_projection_collapsed",
+          "stage": "projection"
+        },
+        {
+          "reason_code": "motion_target_deformation_needs_changes",
+          "stage": "geometry"
+        }
+      ],
+      "runtime_frames": 377,
+      "runtime_geometry": "needs_changes",
+      "failure": null,
+      "artifact_sha256": "817ff72bc44bfff7a8cdab76f35d5d3b7532a686701f78ca9b979dd87f0859b3"
+    },
+    {
+      "cell": "walking/huiye",
+      "status": "succeeded",
+      "job_id": "motion-9de2cc11c9f4457b8be8aff234a6e1d8",
+      "geometry": false,
+      "candidate": "needs_changes",
+      "contact": "unavailable_no_labels",
+      "depth": "not_evaluated",
+      "visual": "not_evaluated",
+      "issues": [
+        {
+          "reason_code": "character_length_projection_collapsed",
+          "stage": "projection"
+        },
+        {
+          "reason_code": "motion_target_deformation_needs_changes",
+          "stage": "geometry"
+        }
+      ],
+      "runtime_frames": 377,
+      "runtime_geometry": "needs_changes",
+      "failure": null,
+      "artifact_sha256": "6f182405bb02eb0e8407c120c9ec92355326945bfcc507aab405f02c71ff9e3e"
+    },
+    {
+      "cell": "walking/hongmeiling",
+      "status": "succeeded",
+      "job_id": "motion-9ee8988c36b34dc89ccf8f4f3791df86",
+      "geometry": false,
+      "candidate": "needs_changes",
+      "contact": "unavailable_no_labels",
+      "depth": "not_evaluated",
+      "visual": "not_evaluated",
+      "issues": [
+        {
+          "reason_code": "character_length_projection_collapsed",
+          "stage": "projection"
+        },
+        {
+          "reason_code": "motion_target_deformation_needs_changes",
+          "stage": "geometry"
+        }
+      ],
+      "runtime_frames": 377,
+      "runtime_geometry": "needs_changes",
+      "failure": null,
+      "artifact_sha256": "0731f6aabaf004d0dd0bd35a0f7ffad37acaa4bfb64b84fe9c7f09f39d78911f"
+    },
+    {
+      "cell": "raise-arms/alice",
+      "status": "succeeded",
+      "job_id": "motion-e2a054654aaa43beb44c2461cdd54aaf",
+      "geometry": false,
+      "candidate": "needs_changes",
+      "contact": "unavailable_no_labels",
+      "depth": "not_evaluated",
+      "visual": "not_evaluated",
+      "issues": [
+        {
+          "reason_code": "character_length_projection_collapsed",
+          "stage": "projection"
+        },
+        {
+          "reason_code": "motion_target_deformation_needs_changes",
+          "stage": "geometry"
+        }
+      ],
+      "runtime_frames": 313,
+      "runtime_geometry": "needs_changes",
+      "failure": null,
+      "artifact_sha256": "ce2266360317478dd9761b86f6b39edfda24dafcdae0eb1e7ca92150a80d5a13"
+    },
+    {
+      "cell": "raise-arms/huiye",
+      "status": "failed",
+      "job_id": "motion-51e4bf3e5dab4af4bafb30ebe9237ec5",
+      "geometry": null,
+      "candidate": "not_evaluated",
+      "contact": "not_evaluated",
+      "depth": "not_evaluated",
+      "visual": "not_evaluated",
+      "issues": [],
+      "runtime_frames": null,
+      "runtime_geometry": "not_evaluated",
+      "failure": "character_runtime_capture_failed",
+      "artifact_sha256": null
+    },
+    {
+      "cell": "raise-arms/hongmeiling",
+      "status": "succeeded",
+      "job_id": "motion-6cacf2060d82423cbbabff051605d768",
+      "geometry": false,
+      "candidate": "needs_changes",
+      "contact": "unavailable_no_labels",
+      "depth": "not_evaluated",
+      "visual": "not_evaluated",
+      "issues": [
+        {
+          "reason_code": "character_length_projection_collapsed",
+          "stage": "projection"
+        },
+        {
+          "reason_code": "motion_target_deformation_needs_changes",
+          "stage": "geometry"
+        }
+      ],
+      "runtime_frames": 313,
+      "runtime_geometry": "needs_changes",
+      "failure": null,
+      "artifact_sha256": "cfebf7e5abe80177c734cbeec891997678c867bc1ab40442571fc7ea41f1ca7d"
+    },
+    {
+      "cell": "turn/alice",
+      "status": "succeeded",
+      "job_id": "motion-a05d8e460d8945d5bb028637c448878b",
+      "geometry": true,
+      "candidate": "needs_changes",
+      "contact": "unavailable_no_labels",
+      "depth": "not_evaluated",
+      "visual": "not_evaluated",
+      "issues": [
+        {
+          "reason_code": "character_length_ratio_outside_preview_range",
+          "stage": "projection"
+        }
+      ],
+      "runtime_frames": 299,
+      "runtime_geometry": "passed",
+      "failure": null,
+      "artifact_sha256": "434e95400a10f749dd84e519d75b69e359956b9507244a51f06432e1db1b387c"
+    },
+    {
+      "cell": "turn/huiye",
+      "status": "succeeded",
+      "job_id": "motion-4e797bf747b74f2c9c32a276f48fa8c9",
+      "geometry": true,
+      "candidate": "needs_changes",
+      "contact": "unavailable_no_labels",
+      "depth": "not_evaluated",
+      "visual": "not_evaluated",
+      "issues": [
+        {
+          "reason_code": "character_length_ratio_outside_preview_range",
+          "stage": "projection"
+        }
+      ],
+      "runtime_frames": 299,
+      "runtime_geometry": "passed",
+      "failure": null,
+      "artifact_sha256": "332120de5d69233d3151f38afe792f559b500ea90b9091702c068ce1665b4656"
+    },
+    {
+      "cell": "turn/hongmeiling",
+      "status": "succeeded",
+      "job_id": "motion-e9880f024354445a924003c6cc5b0a8b",
+      "geometry": true,
+      "candidate": "needs_changes",
+      "contact": "unavailable_no_labels",
+      "depth": "not_evaluated",
+      "visual": "not_evaluated",
+      "issues": [
+        {
+          "reason_code": "character_length_ratio_outside_preview_range",
+          "stage": "projection"
+        }
+      ],
+      "runtime_frames": 299,
+      "runtime_geometry": "passed",
+      "failure": null,
+      "artifact_sha256": "818626f00c04a31d8c8f2c65fc4df7557bcf6e2b0ab1f20d69a9218f8904bcbb"
+    },
+    {
+      "cell": "squat/alice",
+      "status": "succeeded",
+      "job_id": "motion-7ce4870253984ae9874b2b1d0a3da492",
+      "geometry": false,
+      "candidate": "needs_changes",
+      "contact": "unavailable_no_labels",
+      "depth": "not_evaluated",
+      "visual": "not_evaluated",
+      "issues": [
+        {
+          "reason_code": "character_length_ratio_outside_preview_range",
+          "stage": "projection"
+        },
+        {
+          "reason_code": "motion_target_deformation_needs_changes",
+          "stage": "geometry"
+        }
+      ],
+      "runtime_frames": 312,
+      "runtime_geometry": "needs_changes",
+      "failure": null,
+      "artifact_sha256": "16d55c362d9dab19126a9feccdf1eaa1e4e17f09091c923f9267aada6277a393"
+    },
+    {
+      "cell": "squat/huiye",
+      "status": "succeeded",
+      "job_id": "motion-6289b546d64944f1923341415f987a7a",
+      "geometry": true,
+      "candidate": "needs_changes",
+      "contact": "unavailable_no_labels",
+      "depth": "not_evaluated",
+      "visual": "not_evaluated",
+      "issues": [
+        {
+          "reason_code": "character_length_ratio_outside_preview_range",
+          "stage": "projection"
+        }
+      ],
+      "runtime_frames": 312,
+      "runtime_geometry": "passed",
+      "failure": null,
+      "artifact_sha256": "26376a145754ea680dac0f5f3f35a91b25c515711df6c8c6e2a11241b5e858ac"
+    },
+    {
+      "cell": "squat/hongmeiling",
+      "status": "succeeded",
+      "job_id": "motion-c979b8ddf05a4720919107072577c8bf",
+      "geometry": true,
+      "candidate": "needs_changes",
+      "contact": "unavailable_no_labels",
+      "depth": "not_evaluated",
+      "visual": "not_evaluated",
+      "issues": [
+        {
+          "reason_code": "character_length_ratio_outside_preview_range",
+          "stage": "projection"
+        }
+      ],
+      "runtime_frames": 312,
+      "runtime_geometry": "passed",
+      "failure": null,
+      "artifact_sha256": "cd43c9db1cedea386d803e7328dd3876d0a5f41c21856cbcafc4d5d1722b28ff"
+    },
+    {
+      "cell": "boxing/alice",
+      "status": "succeeded",
+      "job_id": "motion-46270933ff564629b19fcc432245383c",
+      "geometry": false,
+      "candidate": "needs_changes",
+      "contact": "unavailable_no_labels",
+      "depth": "not_evaluated",
+      "visual": "not_evaluated",
+      "issues": [
+        {
+          "reason_code": "character_length_projection_collapsed",
+          "stage": "projection"
+        },
+        {
+          "reason_code": "motion_target_deformation_needs_changes",
+          "stage": "geometry"
+        }
+      ],
+      "runtime_frames": 321,
+      "runtime_geometry": "needs_changes",
+      "failure": null,
+      "artifact_sha256": "9f8c298877a2a306fa0f38b0ede28dd109c4047c9174040ee8b9d668c62cfe4f"
+    },
+    {
+      "cell": "boxing/huiye",
+      "status": "succeeded",
+      "job_id": "motion-bc2798d5e9a94177a3c929fdebe1aa46",
+      "geometry": false,
+      "candidate": "needs_changes",
+      "contact": "unavailable_no_labels",
+      "depth": "not_evaluated",
+      "visual": "not_evaluated",
+      "issues": [
+        {
+          "reason_code": "character_length_projection_collapsed",
+          "stage": "projection"
+        },
+        {
+          "reason_code": "motion_target_deformation_needs_changes",
+          "stage": "geometry"
+        }
+      ],
+      "runtime_frames": 321,
+      "runtime_geometry": "needs_changes",
+      "failure": null,
+      "artifact_sha256": "ead5482162e59e8bba51cf7aa98e4e27dcf2a15299fa48f0ce51decc90e4c1dc"
+    },
+    {
+      "cell": "boxing/hongmeiling",
+      "status": "succeeded",
+      "job_id": "motion-80522c1dae6942498cbc84f111348b68",
+      "geometry": false,
+      "candidate": "needs_changes",
+      "contact": "unavailable_no_labels",
+      "depth": "not_evaluated",
+      "visual": "not_evaluated",
+      "issues": [
+        {
+          "reason_code": "character_length_projection_collapsed",
+          "stage": "projection"
+        },
+        {
+          "reason_code": "motion_target_deformation_needs_changes",
+          "stage": "geometry"
+        }
+      ],
+      "runtime_frames": 321,
+      "runtime_geometry": "needs_changes",
+      "failure": null,
+      "artifact_sha256": "8ef18b323f4ad842ae9504689c35ded5977eb64b4ccc377cb6144f989329238b"
+    },
+    {
+      "cell": "reach/alice",
+      "status": "succeeded",
+      "job_id": "motion-51dc552109a94832bd2b287c4f47fef0",
+      "geometry": false,
+      "candidate": "needs_changes",
+      "contact": "unavailable_no_labels",
+      "depth": "not_evaluated",
+      "visual": "not_evaluated",
+      "issues": [
+        {
+          "reason_code": "character_length_ratio_outside_preview_range",
+          "stage": "projection"
+        },
+        {
+          "reason_code": "motion_target_deformation_needs_changes",
+          "stage": "geometry"
+        }
+      ],
+      "runtime_frames": 369,
+      "runtime_geometry": "needs_changes",
+      "failure": null,
+      "artifact_sha256": "25584aace34cbdd5137488c7aedbd0b74da9b2582c360d2e50d11139af9ec90d"
+    },
+    {
+      "cell": "reach/huiye",
+      "status": "succeeded",
+      "job_id": "motion-fa784626dd73457b877d6a3a8b04d52a",
+      "geometry": false,
+      "candidate": "needs_changes",
+      "contact": "unavailable_no_labels",
+      "depth": "not_evaluated",
+      "visual": "not_evaluated",
+      "issues": [
+        {
+          "reason_code": "character_length_ratio_outside_preview_range",
+          "stage": "projection"
+        },
+        {
+          "reason_code": "motion_target_deformation_needs_changes",
+          "stage": "geometry"
+        }
+      ],
+      "runtime_frames": 369,
+      "runtime_geometry": "needs_changes",
+      "failure": null,
+      "artifact_sha256": "86aa3fe54bfef0f206c48ed4b840e5478b4c8d147f4ed65e0f14f48cbb34820e"
+    },
+    {
+      "cell": "reach/hongmeiling",
+      "status": "succeeded",
+      "job_id": "motion-da1b7a4768c14cc2a17b4c9a5779706b",
+      "geometry": false,
+      "candidate": "needs_changes",
+      "contact": "unavailable_no_labels",
+      "depth": "not_evaluated",
+      "visual": "not_evaluated",
+      "issues": [
+        {
+          "reason_code": "character_length_ratio_outside_preview_range",
+          "stage": "projection"
+        },
+        {
+          "reason_code": "motion_target_deformation_needs_changes",
+          "stage": "geometry"
+        }
+      ],
+      "runtime_frames": 369,
+      "runtime_geometry": "needs_changes",
+      "failure": null,
+      "artifact_sha256": "36ac936cb385b7c0c9b23001735901e76dc043a3ec5eddfef79d767b1a7961fa"
+    },
+    {
+      "cell": "wave/alice",
+      "status": "succeeded",
+      "job_id": "motion-b29954c999014e3d9bd597ea1bd61312",
+      "geometry": true,
+      "candidate": "needs_review",
+      "contact": "ankle_proxy_corrected",
+      "depth": "not_evaluated",
+      "visual": "not_evaluated",
+      "issues": [],
+      "runtime_frames": 375,
+      "runtime_geometry": "passed",
+      "failure": null,
+      "artifact_sha256": "a029999e7fdb1d44e3a6be4f5d6d592d8cd32293edfeb380c88df24ef3df547c"
+    },
+    {
+      "cell": "wave/huiye",
+      "status": "succeeded",
+      "job_id": "motion-1ba635520cb84450960dd69aaaa7283b",
+      "geometry": true,
+      "candidate": "needs_review",
+      "contact": "ankle_proxy_corrected",
+      "depth": "not_evaluated",
+      "visual": "not_evaluated",
+      "issues": [],
+      "runtime_frames": 375,
+      "runtime_geometry": "passed",
+      "failure": null,
+      "artifact_sha256": "91c7a5f84178ff25e5c5d7f980d0a608f329c872a99aadb1017e5215191b703d"
+    },
+    {
+      "cell": "wave/hongmeiling",
+      "status": "succeeded",
+      "job_id": "motion-02a782dc87844cb5960c4b3de86d52b7",
+      "geometry": true,
+      "candidate": "needs_review",
+      "contact": "ankle_proxy_corrected",
+      "depth": "not_evaluated",
+      "visual": "not_evaluated",
+      "issues": [],
+      "runtime_frames": 375,
+      "runtime_geometry": "passed",
+      "failure": null,
+      "artifact_sha256": "b49e1a417dc8508eb29ae346e02a1e1f8d2b77342779788b66df06829c6d94f2"
+    }
+  ],
+  "runtime_reference_profile": "legacy_ideal_reference",
+  "source_jobs": {
+    "breathing": "motion-c52561d5d07946539a8ca0da57e218e0",
+    "walking": "motion-1f52729769af473084912644f9d16765",
+    "raise-arms": "motion-706de065008b4e9dbdaea14b7cb3c64e",
+    "turn": "motion-c0ed26b329174551a1c908351174f31f",
+    "squat": "motion-42c342d1786f402299dfea949358a0d7",
+    "boxing": "motion-0239e8622d68464bad355b4527c878f3",
+    "reach": "motion-22d106d0a5994ea49be5d2e32f237e0c",
+    "wave": "motion-b691ce34c0b84cbcbf9ad4f5226d486d"
+  },
+  "limitations": [
+    "source categories derived from labels/prompts, require visual verification",
+    "source-label contact checked only for generated wave",
+    "no dynamic depth evaluation",
+    "no human acceptance of this external-motion matrix"
+  ],
+  "milestone_complete": false,
+  "production_authorized": false
+}
