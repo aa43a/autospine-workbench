@@ -7,6 +7,7 @@ from ..bvh_fk import project_bvh_frames
 from ..bvh_map_validation import bvh_map_sha256, require_bvh_map
 
 PROFILE = 'bvh-low-stationary-ankle-v1'
+UP_PROFILE = 'bvh-declared-up-stationary-ankle-v2'
 
 
 def estimate_plane(points, axis, reference_length):
@@ -22,9 +23,9 @@ def estimate_plane(points, axis, reference_length):
     return heights[math.floor((len(heights)-1)*.05)]
 
 
-def infer(bvh, mapping):
+def infer(bvh, mapping, *, source_up=None):
     require_bvh_map(mapping, bvh=bvh)
-    report = dict(schema='autospine.source-contact-candidate/v1', profile=PROFILE,
+    report = dict(schema='autospine.source-contact-candidate/v1', profile=UP_PROFILE if source_up else PROFILE,
         authority='none', selected=False, source_sha256=bvh.source_sha256,
         map_sha256=bvh_map_sha256(mapping), status='unavailable', markers=[],
         scope='low_stationary_ankle_hypothesis_not_floor_or_sole',
@@ -47,8 +48,15 @@ def infer(bvh, mapping):
     projection = project_bvh_frames(bvh, mapping)
     frames = [dict(f.joints) for f in projection.frames]
     length = mapping['root']['reference_length_source_units']
+    screen_y = mapping['basis']['screen_y']
+    if source_up is not None and (source_up not in ('+X', '-X', '+Y', '-Y', '+Z', '-Z') or source_up[1] != screen_y[1]):
+        raise ValueError('contact_source_up_not_aligned_with_screen_vertical')
     floor = estimate_plane([f[foot['foot_joint_name']].world_xyz for f in frames for foot in feet],
-                           mapping['basis']['screen_y'], length)
+                           source_up or screen_y, length)
+    if source_up:
+        report['source_up'] = source_up
+        if source_up != screen_y:
+            floor = -floor
     derived = deepcopy(mapping)
     derived['contact'] = dict(enabled=True, mode='annotation_only', interval='half_open', feet=feet,
         floor_height_source_units=floor, height_threshold_source_units=.025*length,

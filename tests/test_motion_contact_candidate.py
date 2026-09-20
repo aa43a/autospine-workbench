@@ -1,4 +1,5 @@
 from copy import deepcopy
+from dataclasses import replace
 import unittest
 
 from autospine_workbench.bvh_parser import parse_bvh
@@ -24,6 +25,29 @@ def fixture(speed=0):
 
 
 class ContactCandidateTests(unittest.TestCase):
+    def test_declared_up_selects_low_ankles_instead_of_screen_top(self):
+        bvh, mapping = fixture()
+        mapping['basis']['screen_y'] = '-Y'
+        frames = []
+        for i, frame in enumerate(bvh.frames):
+            values = list(frame)
+            if i >= 10:
+                values[1] += .3
+            frames.append(tuple(values))
+        bvh = replace(bvh, frames=tuple(frames))
+        legacy = infer(bvh, mapping)
+        current = infer(bvh, mapping, source_up='+Y')
+        self.assertNotEqual(legacy['profile'], current['profile'])
+        self.assertAlmostEqual(current['derived_contact']['floor_height_source_units'], 0)
+        self.assertAlmostEqual(legacy['derived_contact']['floor_height_source_units'], -.3)
+        self.assertTrue(all(m['start_tick'] == 0 for m in current['markers']))
+        self.assertTrue(all(m['start_tick'] > 300000 for m in legacy['markers']))
+
+    def test_vertical_axis_must_be_explicit_and_aligned(self):
+        bvh, mapping = fixture()
+        with self.assertRaisesRegex(ValueError, 'not_aligned'):
+            infer(bvh, mapping, source_up='+Z')
+
     def test_stationary_support_is_separate_half_open_hypothesis(self):
         bvh, mapping = fixture()
         original = deepcopy(mapping)

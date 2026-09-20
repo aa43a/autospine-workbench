@@ -9,12 +9,15 @@ from .affine_pose import sample
 from .numeric_reference import write
 from .deformation_qa import inspect
 
-PROFILE = 'external-stationary-contact-auto-v1'
+LEGACY_PROFILE = 'external-stationary-contact-auto-v1'
+PROFILE = 'external-stationary-contact-auto-v2'
 
 
-def select(document, name, motion, times, reference_length, report, bvh, mapping, *, enabled=True, clip_bounds=None):
+def select(document, name, motion, times, reference_length, report, bvh, mapping, *, enabled=True, clip_bounds=None, profile=PROFILE):
     report = deepcopy(report)
-    report['policy_id'] = PROFILE
+    if profile not in (PROFILE, LEGACY_PROFILE):
+        raise ValueError('stationary_contact_profile_unsupported')
+    report['policy_id'] = profile
     report['enabled'] = enabled
     if not enabled or clip_bounds is not None or report['status'] != 'inferred_proxy_drift':
         return document, report

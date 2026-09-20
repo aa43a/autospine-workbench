@@ -25,8 +25,7 @@ def main():
     bundle = VerifiedMotionBundleReader(args.state_root).load(identity['clip_sha256'], identity['bundle_sha256'])
     if bundle.source_kind == 'kimodo_npz':
         parser.error('BVH/FBX required; Kimodo contact labels remain authoritative')
-    report = infer(parse_bvh((bundle.path/'source.bvh').read_bytes()),
-                   json.loads((bundle.path/'map.json').read_bytes()))
+    report = infer(parse_bvh(bundle.raw_bvh), bundle.bvh_map, source_up='+Y')
     report.update(source_job_id=args.job_id, input_source_sha256=job['source_sha256'], motion_identity=identity)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding='utf-8')

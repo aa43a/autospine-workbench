@@ -24,7 +24,7 @@ def inspect(manager, job_id):
                       authority='none', selected=False, profile='compiled-source-contact-markers',
                       scope='source_contact_markers_not_target_validation')
     elif bundle.source_kind == 'bvh':
-        report = infer(parse_bvh(bundle.raw_bvh), bundle.bvh_map)
+        report = infer(parse_bvh(bundle.raw_bvh), bundle.bvh_map, source_up='+Y')
     else:
         report = dict(status='unavailable', markers=[], reason='source_contact_labels_missing',
                       authority='none', selected=False)

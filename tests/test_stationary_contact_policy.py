@@ -37,6 +37,13 @@ class SelectionTests(unittest.TestCase):
                 self.assertIs(result, doc)
             build.assert_not_called()
 
+    def test_legacy_profile_identity_is_preserved(self):
+        from autospine_workbench.targets.character43.stationary_contact_policy import LEGACY_PROFILE
+        doc, motion = target()
+        _, report = select(doc, 'walk', motion, [0, 1], 100,
+                           dict(status='inferred_proxy_drift'), None, None, enabled=False, profile=LEGACY_PROFILE)
+        self.assertEqual(report['policy_id'], LEGACY_PROFILE)
+
     def test_geometry_failure_reverts_to_original_and_retains_attempt(self):
         doc, motion = target()
         report = dict(status='inferred_proxy_drift', selected=False,

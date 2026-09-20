@@ -70,12 +70,13 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
     if inferred_contact_profile and bvh is not None and not any(m['kind'] == 'contact' for m in original_motion['markers']):
         from ..targets.character43.inferred_contacts import measure
         from ..motion2d.contact_candidate import infer
+        from ..targets.character43.stationary_contact_policy import PROFILE as AUTO_PROFILE, LEGACY_PROFILE, select
         document, contact = measure(document, ANIMATION, motion, times, evidence['reference_length_px'],
-                                    infer(bvh, mapping), clip_bounds=clip_bounds)
-        from ..targets.character43.stationary_contact_policy import PROFILE as AUTO_PROFILE, select
-        if inferred_contact_profile == AUTO_PROFILE:
+                                    infer(bvh, mapping, source_up='+Y' if inferred_contact_profile == AUTO_PROFILE else None), clip_bounds=clip_bounds)
+        if inferred_contact_profile in (AUTO_PROFILE, LEGACY_PROFILE):
             document, contact = select(document, ANIMATION, motion, times, evidence['reference_length_px'],
-                                       contact, bvh, mapping, enabled=contact_correction, clip_bounds=clip_bounds)
+                                       contact, bvh, mapping, enabled=contact_correction, clip_bounds=clip_bounds,
+                                       profile=inferred_contact_profile)
     if contact['status'] == 'inferred_proxy_drift':
         issues.append(dict(stage='contact', reason_code='motion_inferred_contact_drift'))
     if contact['status'] == 'needs_changes':
@@ -124,8 +125,8 @@ def execute(folder, state_root, workspace):
         raise ValueError('motion_runtime_reference_profile_unsupported')
     from ..targets.character43.inferred_contacts import PROFILE as CONTACT_PROFILE
     inferred_profile = request.get('inferred_contact_profile')
-    from ..targets.character43.stationary_contact_policy import PROFILE as AUTO_PROFILE
-    if inferred_profile not in (None, CONTACT_PROFILE, AUTO_PROFILE):
+    from ..targets.character43.stationary_contact_policy import PROFILE as AUTO_PROFILE, LEGACY_PROFILE
+    if inferred_profile not in (None, CONTACT_PROFILE, AUTO_PROFILE, LEGACY_PROFILE):
         raise ValueError('motion_inferred_contact_profile_unsupported')
     store = AnimatedStore(state_root)
     progress(folder, 'retarget')
