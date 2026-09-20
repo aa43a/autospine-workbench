@@ -109,3 +109,29 @@ Eighteen focused tests pass, including source/midpoint disagreement, preservatio
 of originals, identity-bound reuse and unmeasured samples. This is a captured
 experimental candidate, not human visual acceptance or a production default.
 Remaining integration includes broader cohort checks and workbench exposure.
+
+## Matched three-structure check
+
+The same raise-arms source and -30 degree view were run on the frozen Alice and
+Huiye candidates. Alice partitions `layer-005`; Huiye partitions `layer-004`.
+No per-character depth margin or weight change was introduced.
+
+| Character | Cloth checks | Arm/leg checks | Ordering result |
+| --- | --- | --- | --- |
+| Hongmeiling | 894 no overlap, 26 front | 451 no overlap, 9 front | Candidate; 115 Runtime frames pass |
+| Alice | 425 no overlap, 28 front, 7 uncertain | 460 no overlap | No candidate; 29 visible straddle failures |
+| Huiye | 351 no overlap, 91 uncertain, 18 unmeasured | Not applicable: no identified leg slots | No candidate; 25 visible straddles, 32 order-budget failures |
+
+Evidence: `../tmp/m4-motion-center/full-limb-depth-order-alice-v1.json` and
+`full-limb-depth-order-huiye-v1.json`. The cloth counts and ordering failures have
+different units; they must not be summed into an error rate. Alice's first
+ordering failure involves the left arm and chest-bound `layer-006`, so fixing
+arm/leg order alone cannot resolve it. Huiye's missing leg pair is reported as
+not applicable, not a successful anatomical-depth measurement or a fatal error.
+Its unmeasured raster work remains separate from measured uncertainty.
+
+Thirty-four focused tests pass, including absent leg pairs and capture rejection
+of unrelated geometry edits, changed source identities, and unmeasured evidence.
+This comparison limits the current algorithm's support claim to the captured
+Hongmeiling case. Next work must improve torso/arm depth evidence and bounded
+raster efficiency before exposing a broadly applicable automatic workflow.

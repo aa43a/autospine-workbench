@@ -9,6 +9,13 @@ MODULE='autospine_workbench.targets.character43.limb_depth_constraints.'
 
 
 class LimbConstraintTests(unittest.TestCase):
+    def test_no_identified_leg_slots_adds_no_constraint(self):
+        doc,files=fixture(); depth=dict(groups={'left':['a'],'right':[]},pairs=[])
+        result,report=build(doc,files,'test',depth,None)
+        self.assertEqual(result,depth)
+        self.assertEqual(report['status'],'not_applicable')
+        self.assertEqual(report['pair_count'],0)
+
     def run_case(self,statuses):
         doc,files=fixture(); doc['slots'][1]['bone']='thigh_r'
         doc['bones'].append(dict(name='thigh_r',parent='root',length=2,x=0,y=0,rotation=0))

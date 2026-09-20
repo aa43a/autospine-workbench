@@ -17,7 +17,11 @@ def build(document,files,animation,depth,sampler,*,order_probe=None):
         raise ValueError('limb_constraint_probe_identity')
     result=deepcopy(depth); arms=depth['groups']['left']+depth['groups']['right']
     legs=[s['name'] for s in document['slots'] if s['bone'] in ('thigh_l','thigh_r','calf_l','calf_r')]
-    if not legs or len(arms)*len(legs)>16: raise ValueError('limb_constraint_pair_limit')
+    if not legs or not arms:
+        return result,dict(profile=PROFILE,authority='none',selected=False,status='not_applicable',
+            reason_code='no_identified_arm_leg_pairs',pairs=[],frame_count=0,pair_count=0,unmeasured_samples=0,
+            scope='no_order_constraint_added_not_anatomical_absence')
+    if len(arms)*len(legs)>16: raise ValueError('limb_constraint_pair_limit')
     slots={s['name']:s for s in document['slots']}; index={n:i for i,n in enumerate(slots)}
     source={r['tick']:r['source_tick'] for p in depth['pairs'] for r in p['samples']}
     ticks=sorted(source)
