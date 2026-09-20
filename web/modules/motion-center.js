@@ -6,6 +6,7 @@ import {createContactControls} from './motion-contact-controls.js';
 import {appendDepthSummary} from './motion-depth-summary.js';
 import {appendReadiness} from './motion-readiness.js';
 import {reconcileMotionJobs} from './motion-job-list.js';
+import {appendStageReview} from './motion-stage-review.js';
 
 const $ = id => document.getElementById(id);
 const player = createSourcePlayer($('canvas'), $('time'), $('play'), $('clock'));
@@ -121,6 +122,7 @@ function render(data) {
       const result = job.result;
       appendDepthSummary(item, job);
       appendReadiness(item, job);
+      if (data.stage_review_available) appendStageReview(item, job);
       if (result.clip) item.append(node('p', `源片段：第 ${result.clip.start_frame+1}–${result.clip.end_frame+1} 帧`));
       item.append(node('p', result.character_animation_status === 'needs_changes'
         ? '已生成诊断候选 · 存在投影或变形异常' : '已生成角色候选 · 待阶段验收'));
@@ -177,7 +179,7 @@ function render(data) {
     button.disabled = busy || Boolean(job.cancel_requested && active.has(job.status));
     item.append(button);
     return item;
-  }, busy);
+  }, [busy, Boolean(data.stage_review_available)]);
   if (!data.jobs.length) $('jobs').append(node('p', '尚未导入动作。'));
 }
 
