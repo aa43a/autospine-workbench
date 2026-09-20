@@ -48,7 +48,7 @@ def submit(manager, source_job, body):
     characters.verified_files(project, character_job)
     character = characters.get(project, character_job)
     from ..targets.character43.runtime_storage_reference import PROFILE
-    from ..targets.character43.stationary_contact_policy import PROFILE as CONTACT_PROFILE
+    from ..targets.character43.phase_contact_policy import PROFILE as CONTACT_PROFILE
     from ..targets.character43.motion_depth import OVERLAP_PROFILE as DEPTH_PROFILE
     request = dict(kind='adapt', source_job_id=source_job, source_job_sha256=canonical_sha256(source),
                    motion_identity=source['result']['motion'], project_id=project, character_job_id=character_job,

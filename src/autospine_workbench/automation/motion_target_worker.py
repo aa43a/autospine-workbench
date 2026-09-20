@@ -72,8 +72,13 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
         from ..targets.character43.inferred_contacts import measure
         from ..motion2d.contact_candidate import infer
         from ..targets.character43.stationary_contact_policy import PROFILE as AUTO_PROFILE, LEGACY_PROFILE, select
+        from ..targets.character43.phase_contact_policy import PROFILE as PHASE_PROFILE, select as select_phase
         document, contact = measure(document, ANIMATION, motion, times, evidence['reference_length_px'],
-                                    infer(bvh, mapping, source_up='+Y' if inferred_contact_profile == AUTO_PROFILE else None), clip_bounds=clip_bounds)
+                                    infer(bvh, mapping, source_up='+Y' if inferred_contact_profile in (AUTO_PROFILE, PHASE_PROFILE) else None), clip_bounds=clip_bounds)
+        if inferred_contact_profile == PHASE_PROFILE:
+            document, contact = select_phase(document, ANIMATION, motion, times, evidence['reference_length_px'],
+                                             contact, bvh, mapping, enabled=contact_correction,
+                                             clip_bounds=clip_bounds, setup_vertices=setup_vertices)
         if inferred_contact_profile in (AUTO_PROFILE, LEGACY_PROFILE):
             document, contact = select(document, ANIMATION, motion, times, evidence['reference_length_px'],
                                        contact, bvh, mapping, enabled=contact_correction, clip_bounds=clip_bounds,
@@ -82,10 +87,14 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
         issues.append(dict(stage='contact', reason_code='motion_inferred_contact_drift'))
     if contact['status'] == 'needs_changes':
         issues.append(dict(stage='contact', reason_code='motion_contact_drift_needs_changes'))
+    if contact['status'] == 'inferred_partial_corrected':
+        issues.append(dict(stage='contact', reason_code='motion_source_contact_intervals_unverified'))
     if contact['selected']:
         times = sorted(set(times) | {k['time'] for k in document['animations'][ANIMATION]['bones']['root']['translate']})
         if contact['status'] == 'inferred_proxy_corrected':
             times = sorted(set(times) | {s['time'] for r in contact['after']['intervals'] for s in r['samples']})
+        if contact.get('phase_checked_times'):
+            times = sorted(set(times) | set(contact['phase_checked_times']))
     depth = None
     depth_status = 'not_evaluated'
     if depth_review_profile:
@@ -154,7 +163,8 @@ def execute(folder, state_root, workspace):
     from ..targets.character43.inferred_contacts import PROFILE as CONTACT_PROFILE
     inferred_profile = request.get('inferred_contact_profile')
     from ..targets.character43.stationary_contact_policy import PROFILE as AUTO_PROFILE, LEGACY_PROFILE
-    if inferred_profile not in (None, CONTACT_PROFILE, AUTO_PROFILE, LEGACY_PROFILE):
+    from ..targets.character43.phase_contact_policy import PROFILE as PHASE_PROFILE
+    if inferred_profile not in (None, CONTACT_PROFILE, AUTO_PROFILE, LEGACY_PROFILE, PHASE_PROFILE):
         raise ValueError('motion_inferred_contact_profile_unsupported')
     store = AnimatedStore(state_root)
     progress(folder, 'retarget')

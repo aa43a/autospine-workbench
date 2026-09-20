@@ -42,6 +42,13 @@ class ReadinessTests(unittest.TestCase):
         self.assertEqual(report['status'], 'evidence_incomplete')
         self.assertEqual(report['stages'][-1]['status'], 'unmeasured')
 
+    def test_partial_contact_is_not_full_contact_pass(self):
+        files, runtime = fixture()
+        files['motion-contact.json'] = b'{"status":"inferred_partial_corrected","selected":true}'
+        report = build(files, 'a'*64, runtime)
+        self.assertEqual(report['status'], 'evidence_incomplete')
+        self.assertEqual(report['stages'][2]['status'], 'unmeasured')
+
     def test_wrong_runtime_or_geometry_identity_rejected(self):
         files, runtime = fixture()
         with self.assertRaisesRegex(ValueError, 'runtime_mismatch'):

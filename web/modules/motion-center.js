@@ -29,6 +29,7 @@ const steps = {
   depth_overlap: '逐帧检查透明像素重叠与绘制顺序',
 };
 const reasons = {
+  motion_source_contact_intervals_unverified: '已修正源证据充分的支撑区间；其余区间保留为异常，不代表整段接触通过。',
   motion_inferred_contact_drift: '推断支撑区间内存在踝部位移，请检查支撑假设与动作。',
   motion_clip_range_invalid: '片段至少包含两帧，且须位于源动作范围内。',
   motion_generation_unavailable: '服务端尚未配置本地 Kimodo 环境。',
@@ -127,6 +128,7 @@ function render(data) {
         + `Runtime：${result.runtime.status === 'needs_review' ? result.runtime.frames + ' 帧已捕获' : '环境不可用'}`));
       for (const issue of result.issues) item.append(node('p', reasons[issue.reason_code] || issue.reason_code));
       const contactStates = {unavailable_no_labels: '源动作无接触标签，未检查',
+        inferred_partial_corrected: '已修正合格区间；源证据不足的区间未锁定',
         inferred_proxy_corrected: '已采用有界修正保持源踝部静止；不代表鞋底接地',
         inferred_proxy_passed: '推断区间位移采样通过，尚未验证接触本身',
         inferred_proxy_drift: '推断区间有位移，需检查支撑假设与动作',

@@ -135,7 +135,7 @@ class MotionTargetTests(unittest.TestCase):
                 request = read_document(manager.folder(value['job_id']) / 'request.json')
                 self.assertTrue(request['contact_correction'])
                 self.assertEqual(request['runtime_reference_profile'], 'spine43-linear-weighted-float32-storage-v1')
-                self.assertEqual(request['inferred_contact_profile'], 'external-stationary-contact-auto-v2')
+                self.assertEqual(request['inferred_contact_profile'], 'external-phase-contact-auto-v1')
                 assert_current(manager, request)
                 disabled = submit(manager, queued['job_id'], dict(project_id='alice',
                     character_job_id='job-'+'c'*32, contact_correction=False, clip=dict(start_frame=0, end_frame=1)))

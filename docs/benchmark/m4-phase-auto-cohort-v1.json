@@ -1,0 +1,81 @@
+{
+  "profile": "external-phase-contact-auto-v1",
+  "source_job_id": "motion-18073cfe70ff45b8bc1eb7ccba1df3a1",
+  "authority": "none",
+  "milestone_complete": false,
+  "scope": "same_side_walking_three_character_regression_not_fixed_front_baseline_replacement",
+  "records": [
+    {
+      "character": "alice",
+      "job_id": "motion-49af74a87f42445aaf8ad8aceedbd571",
+      "artifact_sha256": "397baeeaea4041ce6a8023b76ad386f401ff5b844bd4fab76697846d92fad717",
+      "runtime_report_sha256": "95d21bdcfa6e242f24b1478a26fb5a99c18416dc205cf869b85d4ec516ce8695",
+      "runtime_frames": 767,
+      "geometry_passed": true,
+      "contact_status": "inferred_partial_corrected",
+      "selected": true,
+      "reason_codes": [
+        "phase_contact_unqualified_intervals_preserved"
+      ],
+      "eligible_intervals": 3,
+      "qualified_max_drift_px": 3.3317408960501544,
+      "all_interval_max_drift_px": 7.968574109755513,
+      "failure": null
+    },
+    {
+      "character": "huiye",
+      "job_id": "motion-0321e638b0bc40669a945330ae75ad59",
+      "artifact_sha256": "eb25c5d0a7033eec416b2389a0c49a00aebee209df991eb4aba2ce89cdfcffc2",
+      "runtime_report_sha256": "61dcb7884aabff5725e8c2734fd45361092d310b113eab0ac8c97e387be68974",
+      "runtime_frames": 377,
+      "geometry_passed": true,
+      "contact_status": "inferred_proxy_drift",
+      "selected": false,
+      "reason_codes": [
+        "phase_contact_timeline_limits_failed"
+      ],
+      "eligible_intervals": 3,
+      "qualified_max_drift_px": null,
+      "all_interval_max_drift_px": 142.91563339098133,
+      "failure": {
+        "authority": "none",
+        "best_errors_px": [
+          6.7060111212690785
+        ],
+        "failed_checks": [
+          "endpoint_residual"
+        ],
+        "limits": {
+          "residual_ratio": 0.01,
+          "root_ratio": 0.15,
+          "root_speed_ratio": 2,
+          "rotation_degrees": 30,
+          "rotation_speed_degrees_per_second": 180
+        },
+        "profile": "joint-root-affine-leg-support-v2",
+        "scope": "single_time_endpoints_not_temporal_mesh_or_runtime_validation",
+        "selected": false,
+        "solution": null,
+        "status": "no_bounded_solution_found",
+        "time": 1.7645831875
+      }
+    },
+    {
+      "character": "hongmeiling",
+      "job_id": "motion-d657c0fe236547f6bc7c0c9d68dd4647",
+      "artifact_sha256": "8d7c5d7a0b418d5fb6bc18023226c75f2659cf0ae73e58f3ac6646167bd5be1b",
+      "runtime_report_sha256": "f1719cca116e6e7da72f166f82dd495c3d9315343af632b2dc4649b1f041ff5c",
+      "runtime_frames": 767,
+      "geometry_passed": true,
+      "contact_status": "inferred_partial_corrected",
+      "selected": true,
+      "reason_codes": [
+        "phase_contact_unqualified_intervals_preserved"
+      ],
+      "eligible_intervals": 3,
+      "qualified_max_drift_px": 4.431521161792919,
+      "all_interval_max_drift_px": 17.412400085807523,
+      "failure": null
+    }
+  ]
+}
