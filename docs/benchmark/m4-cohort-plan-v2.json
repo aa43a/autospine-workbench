@@ -1,0 +1,88 @@
+{
+  "schema": "autospine.motion-cohort-plan/v1",
+  "characters": [
+    {
+      "id": "alice",
+      "project_id": "alice",
+      "job_id": "job-d8b67e10685347ed95d1fba113b92c45",
+      "sha256": "6e5c59db4ef072075b798efab12acf8ffdc883368a61a4bf3c1646305ef68b98",
+      "structure": "ordinary"
+    },
+    {
+      "id": "huiye",
+      "project_id": "huiye",
+      "job_id": "job-6f92bece413a4909a553a95bbfc307f4",
+      "sha256": "63caa7fe5f9f40a92ebcd57ef0b345d7dcd47e5ed3feae65a95fad18e770d51b",
+      "structure": "wide-sleeves-long-skirt"
+    },
+    {
+      "id": "hongmeiling",
+      "project_id": "imported-885b4d3d22ee151a0364ac499a419b8bd0e59699a7b27ee4f65f007eee551590",
+      "job_id": "job-7d8ce666ea13487a953bdfa5258ea79a",
+      "sha256": "fadde972f148b353592aaeebf75df151b9ef57032efaacde1773ea5a8754d28c",
+      "structure": "sleeveless"
+    }
+  ],
+  "motions": [
+    {
+      "id": "breathing",
+      "path": "E:\\data\\game\\bip动画动作捕捉3D角色库源文件3dmaxmayac4dunity3dUE4\\C1455-mo动作库\\动作库角色模型moxion\\1-全套动作库带预览\\01\\breathing_idle.fbx",
+      "sha256": "67bf8b91cb77fec8873bb059cddcb96198c9ca348a16cfa6eb60171dabbd5370",
+      "view": "front",
+      "category_basis": "source_label_pending_visual_verification"
+    },
+    {
+      "id": "walking",
+      "path": "E:\\data\\game\\bip动画动作捕捉3D角色库源文件3dmaxmayac4dunity3dUE4\\C1455-mo动作库\\动作库角色模型moxion\\1-全套动作库带预览\\01\\walking.fbx",
+      "sha256": "ba4923f188ee8580dbe07f79191c154cbad0425ba71a74229eeeba40ea015a68",
+      "view": "front",
+      "category_basis": "source_label_pending_visual_verification"
+    },
+    {
+      "id": "raise-arms",
+      "path": "E:\\data\\game\\bip动画动作捕捉3D角色库源文件3dmaxmayac4dunity3dUE4\\C1455-mo动作库\\动作库角色模型moxion\\1-全套动作库带预览\\01\\cheering.fbx",
+      "sha256": "779dcb5c003f715905f48eafaea706c4ab524d97c7554f6b90c178bff5eecdc9",
+      "view": "front",
+      "category_basis": "source_label_pending_visual_verification"
+    },
+    {
+      "id": "turn",
+      "path": "E:\\data\\game\\bip动画动作捕捉3D角色库源文件3dmaxmayac4dunity3dUE4\\C1455-mo动作库\\动作库角色模型moxion\\1-全套动作库带预览\\03\\turn_right.fbx",
+      "sha256": "543bfe46e10c5bf921e5fd16473340afe3563a6c18c2b7bb7bf9ed027c8ef165",
+      "view": "front",
+      "category_basis": "source_label_pending_visual_verification"
+    },
+    {
+      "id": "squat",
+      "path": "E:\\data\\game\\bip动画动作捕捉3D角色库源文件3dmaxmayac4dunity3dUE4\\C1455-mo动作库\\动作库角色模型moxion\\1-全套动作库带预览\\05\\overhead_squat.fbx",
+      "sha256": "596014069e4ecc8527ba37feded9d7b8564d50832862dad89c0a75ca7c136bba",
+      "view": "front",
+      "category_basis": "source_label_pending_visual_verification"
+    },
+    {
+      "id": "boxing",
+      "path": "E:\\data\\game\\bip动画动作捕捉3D角色库源文件3dmaxmayac4dunity3dUE4\\C1455-mo动作库\\动作库角色模型moxion\\1-全套动作库带预览\\01\\boxing.fbx",
+      "sha256": "9bbfe8fc1adf850fbf849a85d308d62f80394f81ee7eb3f483cd68cc6fd80d69",
+      "view": "front",
+      "category_basis": "source_label_pending_visual_verification",
+      "job_id": "motion-0239e8622d68464bad355b4527c878f3"
+    },
+    {
+      "id": "reach",
+      "path": "E:\\data\\game\\bip动画动作捕捉3D角色库源文件3dmaxmayac4dunity3dUE4\\C1455-mo动作库\\动作库角色模型moxion\\1-全套动作库带预览\\41\\reaching_out.fbx",
+      "sha256": "89e7b2785bdb93d4c1506d3621701126e37f47acb8757a6e76bde6eed3fbe615",
+      "view": "front",
+      "category_basis": "source_label_pending_visual_verification"
+    },
+    {
+      "id": "wave",
+      "job_id": "motion-b691ce34c0b84cbcbf9ad4f5226d486d",
+      "sha256": "2ee03d7638686150305d61ff6bd5d8f21a05693cf139bb20467017feb3d363a6",
+      "view": "front",
+      "category_basis": "generated_prompt_pending_visual_verification"
+    }
+  ],
+  "policy": "full_source_front_projection_no_failure_replacement",
+  "visual_acceptance": "not_inferred",
+  "depth_order": "not_evaluated"
+}

@@ -1,0 +1,20 @@
+{
+  "schema": "autospine.motion-cohort-progress/v1",
+  "date": "2026-09-20",
+  "plan": "m4-cohort-plan-v2.json",
+  "required_cells": 24,
+  "scope": "initial_results_not_complete_matrix",
+  "records": [
+    {"cell": "breathing/alice", "job_id": "motion-cad24c38acf04cb78c0188f1ff1d2075", "artifact_sha256": "d42e4b8b31fccbead8b60688dd3dfad6ba62a02716c22297c9892aeeb0346a67", "runtime_frames": 554, "geometry_passed": true},
+    {"cell": "breathing/huiye", "job_id": "motion-89191eca7f0b44eaa1a5b1d20df3abf9", "artifact_sha256": "6d0534844ef3d1048649039a156bbe212fb06bf6264644658c5ef2e5c6a02307", "runtime_frames": 554, "geometry_passed": true},
+    {"cell": "breathing/hongmeiling", "job_id": "motion-26fb6019555f49ff82d1624dd8242863", "artifact_sha256": "fb62e9010ee88ef9e2cc6aa133f65cb2fc20fd79bd05e140e1e76c7c020cb3eb", "runtime_frames": 554, "geometry_passed": true},
+    {"cell": "walking/alice", "job_id": "motion-04466e1cbbfd42c3bf089ba8378d9955", "artifact_sha256": "817ff72bc44bfff7a8cdab76f35d5d3b7532a686701f78ca9b979dd87f0859b3", "runtime_frames": 377, "geometry_passed": false, "issues": ["character_length_projection_collapsed", "motion_target_deformation_needs_changes"]}
+  ],
+  "contact_status": "unavailable_no_labels",
+  "depth_order_status": "not_evaluated",
+  "human_visual_acceptance": "not_evaluated",
+  "tests_passed": 8,
+  "browser_matrix_rows_verified": 24,
+  "milestone_complete": false,
+  "production_authorized": false
+}
