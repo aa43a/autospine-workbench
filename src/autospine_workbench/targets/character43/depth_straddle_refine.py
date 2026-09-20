@@ -6,9 +6,9 @@ from .motion_depth_overlap import Probe
 PROFILE='local-depth-held-order-refinement-v1'
 
 
-def refine(document,files,animation,depth,sampler,*,torso_plane=False,rendered_bounds=False,order_probe=None):
+def refine(document,files,animation,depth,sampler,*,torso_plane=False,rendered_bounds=False,order_probe=None,tiled=False):
     candidate=deepcopy(depth)
-    probe=Probe(document,files,animation,rendered_bounds=rendered_bounds)
+    probe=Probe(document,files,animation,rendered_bounds=rendered_bounds,tiled=tiled)
     if order_probe is not None: order_probe.reuse(probe)
     ticks=sorted({r['tick'] for p in depth['pairs'] for r in p['samples']})
     next_tick=dict(zip(ticks,ticks[1:]))

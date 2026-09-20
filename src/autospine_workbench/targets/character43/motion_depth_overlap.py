@@ -9,12 +9,12 @@ PROFILE = 'external-depth-native-alpha-overlap-v1'
 
 
 class RasterBudgetError(ValueError):
-    def __init__(self,a,b,time,rect,remaining):
+    def __init__(self,a,b,time,rect,remaining,*,max_roi=262144):
         super().__init__('depth_overlap_pixel_budget')
         area=rect[2]*rect[3]
         self.diagnostic=dict(pair=[a,b],time=time,roi=rect,roi_pixels=area,
             remaining_pixels=remaining,required_pixels=area*2,
-            limit_kind='single_roi' if area>262144 else 'aggregate_budget',max_roi_pixels=262144)
+            limit_kind='single_roi' if max_roi is not None and area>max_roi else 'aggregate_budget',max_roi_pixels=max_roi)
 
 
 def intersection(a, b):
@@ -28,17 +28,18 @@ def intersection(a, b):
 
 
 class Probe:
-    def __init__(self, document, files, animation, *, pixel_budget=64_000_000, rendered_bounds=False):
+    def __init__(self, document, files, animation, *, pixel_budget=64_000_000, rendered_bounds=False,tiled=False):
         self.document, self.files, self.animation = document, files, animation
         self.remaining = pixel_budget
         self.rendered_bounds = rendered_bounds
+        self.tiled=tiled
         self.slots = {s['name']: s for s in document['slots']}
         self.textures = {}; self.positions = {}; self.results = {}
 
     def reuse(self,other):
         """Reuse completed measurements only, under identical in-memory inputs."""
         if (self.document is not other.document or self.files is not other.files or
-                self.animation!=other.animation or self.rendered_bounds!=other.rendered_bounds):
+                self.animation!=other.animation or self.rendered_bounds!=other.rendered_bounds or self.tiled!=other.tiled):
             raise ValueError('depth_overlap_cache_identity')
         if any(k in self.results and self.results[k]!=v for k,v in other.results.items()):
             raise ValueError('depth_overlap_cache_conflict')
@@ -80,12 +81,18 @@ class Probe:
             result = dict(status='sampled', overlap_pixels=0, roi=None)
         else:
             area = rect[2]*rect[3]
-            if area > 262144 or area*2 > self.remaining:
-                raise RasterBudgetError(a,b,time,rect,self.remaining)
+            if (area > 262144 and not self.tiled) or area*2 > self.remaining:
+                raise RasterBudgetError(a,b,time,rect,self.remaining,max_roi=None if self.tiled else 262144)
+            from .depth_raster_tiles import tiles
+            regions=tiles(rect) if self.tiled else [rect]
             self.remaining -= area*2
-            first = mask(attachments[0], points[a], self.textures[a], rect) >= 8
-            second = mask(attachments[1], points[b], self.textures[b], rect) >= 8
-            result = dict(status='sampled', overlap_pixels=int((first & second).sum()), roi=rect)
+            measurements=[]
+            for region in regions:
+                first = mask(attachments[0], points[a], self.textures[a], region) >= 8
+                second = mask(attachments[1], points[b], self.textures[b], region) >= 8
+                measurements.append(dict(status='sampled',overlap_pixels=int((first & second).sum()),roi=region))
+            result = dict(status='sampled', overlap_pixels=sum(r['overlap_pixels'] for r in measurements), roi=rect)
+            if self.tiled: result['tiles']=measurements
         self.results[key] = result
         return result
 

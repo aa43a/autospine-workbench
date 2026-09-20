@@ -74,6 +74,17 @@ def overlap_support(probe, arm, torso, time, segments, *, margin=.02, endpoint_c
                       uncertainty_policy='entire_interval_must_clear_margin')
     if not pair['overlap_pixels']:
         return dict(result,status='no_overlap',counts={})
+    if 'tiles' in pair:
+        from .depth_raster_tiles import TileProbe
+        counts={k:0 for k in ('front','back','ambiguous','unknown')}
+        for tile in pair['tiles']:
+            if not tile['overlap_pixels']: continue
+            part=overlap_support(TileProbe(probe,tile),arm,torso,time,segments,margin=margin,
+                endpoint_caps=endpoint_caps,reference_plane=reference_plane,axis_lengths=axis_lengths,depth_intervals=depth_intervals)
+            for key,value in part['counts'].items(): counts[key]+=value
+        status=('uniform_front_proxy' if counts['front']==pair['overlap_pixels'] else
+                'uniform_back_proxy' if counts['back']==pair['overlap_pixels'] else 'requires_partition_or_more_depth')
+        return dict(result,status=status,counts=counts,raster_policy='native_pixel_tiles_256_v1')
     rect=pair['roi']; area=rect[2]*rect[3]
     attachments={n:probe.document['skins'][0]['attachments'][n][probe.slots[n]['attachment']] for n in (arm,torso)}
     def raster(name,attachment):

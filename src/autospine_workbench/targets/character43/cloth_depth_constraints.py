@@ -42,7 +42,8 @@ def build(document, files, animation, depth, partition, sampler, *, order_probe=
     for arm in arms:
         mesh=document['skins'][0]['attachments'][arm][slots[arm]['attachment']]
         for cloth in clothes:
-            probe=Probe(document,files,animation,rendered_bounds=bool(order_probe and order_probe.rendered_bounds))
+            probe=Probe(document,files,animation,rendered_bounds=bool(order_probe and order_probe.rendered_bounds),
+                        tiled=bool(order_probe and order_probe.tiled))
             fallback=max((arm,cloth),key=index.__getitem__); samples=[]; details=[]
             for tick in ticks:
                 times=[tick]+([(tick+following[tick])/2] if tick in following else [])

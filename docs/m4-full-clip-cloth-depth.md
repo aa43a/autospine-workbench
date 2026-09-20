@@ -203,3 +203,29 @@ the single-ROI cap 262,144 despite 63,999,648 total pixels remaining. Thus this
 failure cannot be fixed by more shared results or a larger aggregate budget.
 The next resource change should tile native-pixel work while retaining bounded
 total cost, alpha sampling and unresolved-depth semantics.
+
+## Bounded native-pixel tiles
+
+`--tiled` enables `native_pixel_tiles_256_v1`: disjoint 256-by-256 native-pixel
+tiles, including partial boundary tiles, with at most 64 tiles per pair ROI.
+Pair rasterization and arm/plane depth classification operate per tile; the
+aggregate pixel budget is unchanged and charged for actual work. Empty tiles
+need no additional classification. Coordinates, UV filtering and alpha>=8 remain
+identical. A tile-limit failure or total-budget failure is explicit. Cached
+measurements cannot cross the tiled/legacy policy boundary.
+
+Thirty-eight tests pass, including direct-versus-tiled counts, unknown triangle
+classification across tile seams, negative origins, partial edge tiles, aggregate
+resource failure, policy identity, and retained legacy single-ROI behavior.
+
+Actual Huiye evidence: `../tmp/m4-motion-center/full-tiled-depth-order-huiye-v1.json`.
+At 0.133333 seconds the formerly oversized left-sleeve/chest ROI uses eight
+tiles and measures 33,853 overlapping pixels, exactly matching an independent
+direct-mask calculation. Complete ordering has zero raster-budget failures,
+but retains 45 `visible_depth_straddle` failures and emits no candidate.
+This does not mean every upstream depth calculation completed: held-order
+refinement still has six unmeasured samples under its separate 64M total budget
+(56 no-overlap and 50 uncertain); it consumes 63,941,350 budget pixels and reuses
+107 completed pair measurements. Cloth constraints remain fully measured:
+361 no-overlap and 99 uncertain. The next resource issue is the refinement total
+budget; measured sleeve-depth uncertainty remains a separate modeling limitation.

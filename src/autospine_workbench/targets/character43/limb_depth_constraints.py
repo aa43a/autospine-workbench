@@ -35,7 +35,8 @@ def build(document,files,animation,depth,sampler,*,order_probe=None):
         axes[arm]=infer(document,m,texture(files['images/'+m.get('path',slots[arm]['attachment'])+'.png']))
     for arm in arms:
         for leg in legs:
-            probe=Probe(document,files,animation,rendered_bounds=bool(order_probe and order_probe.rendered_bounds)); rows=[]; samples=[]
+            probe=Probe(document,files,animation,rendered_bounds=bool(order_probe and order_probe.rendered_bounds),
+                        tiled=bool(order_probe and order_probe.tiled)); rows=[]; samples=[]
             fallback=max((arm,leg),key=index.__getitem__)
             for tick in ticks:
                 checks=[]
