@@ -62,3 +62,23 @@ Sixteen focused tests pass, including two-sided interval separation, reversed
 order, unknown/known triangle overlap, non-clearing intervals, resource failure,
 and declared leg endpoint extraction. No new candidate or Runtime capture is
 produced by this diagnostic.
+
+## Explicit leg influence envelope
+
+The cause report `../tmp/m4-motion-center/arm-leg-depth-hong-v3.json` attributes
+all eight uncertain samples to `calf_r` influences outside the existing quarter
+axis cap. No additional missing source segment is implicated in this overlap.
+
+`--leg-intervals` enables a separate same-leg envelope contract. It requires
+declared thigh/calf source endpoints to agree and the target calf to be directly
+parented to the same-side thigh. Only same-side thigh/calf influences qualify;
+foot, unrelated, missing, invalid, and wholly out-of-axis support remain unknown.
+Every positive secondary weight contributes its full observed-chain interval;
+weights and exported geometry are unchanged. Arm-only behavior remains default.
+This remains a depth-model assumption rather than a measured skin surface bound.
+
+On the same ten samples, nine now uniformly support arm-in-front and one has no
+overlap. Evidence: `../tmp/m4-motion-center/arm-leg-depth-hong-interval-v1.json`.
+Eleven focused regression tests pass. These local outcomes do not yet establish
+full-clip arm/leg order, a reordered candidate, or Runtime visual acceptance.
+The next step is complete-motion integration of the explicit pair constraints.

@@ -5,12 +5,14 @@ from .mesh_depth_proxy import vertex_depths
 PROFILE = 'same-arm-secondary-influence-depth-envelope-v1-experiment'
 
 
-def build(document, mesh, segments, *, axis_lengths=None):
+def build(document, mesh, segments, *, axis_lengths=None, chain_kind='arm'):
+    if chain_kind not in ('arm','leg'): raise ValueError('depth_interval_chain_invalid')
+    parts=('upperarm','forearm','hand') if chain_kind=='arm' else ('thigh','calf')
     lengths=axis_lengths or {}
     exact=vertex_depths(document,mesh,segments,endpoint_caps=True,axis_lengths=lengths)
     bones={b['name']:b for b in document['bones']}; envelopes={}
     for side in ('l','r'):
-        chain=['upperarm_'+side,'forearm_'+side,'hand_'+side]
+        chain=[part+'_'+side for part in parts]
         if not all(n in bones and n in segments for n in chain): continue
         if any(bones[b].get('parent')!=a for a,b in zip(chain,chain[1:])): continue
         if any(abs(segments[a][1]-segments[b][0])>1e-7 for a,b in zip(chain,chain[1:])): continue
@@ -23,7 +25,7 @@ def build(document, mesh, segments, *, axis_lengths=None):
         if value is not None:
             intervals.append([value,value]); continue
         names={document['bones'][weights[i]]['name'] for i in range(0,len(weights),4) if weights[i+3]>0}
-        side=next((s for s in envelopes if names <= {'upperarm_'+s,'forearm_'+s,'hand_'+s}),None)
+        side=next((s for s in envelopes if names <= {part+'_'+s for part in parts}),None)
         if side is None or abs(sum(weights[i+3] for i in range(0,len(weights),4))-1)>1e-6:
             intervals.append(None); continue
         low=high=known=0.; valid=True; uncertain=[]
@@ -43,6 +45,7 @@ def build(document, mesh, segments, *, axis_lengths=None):
             intervals.append(None); continue
         intervals.append([low,high])
         bounded.append(dict(vertex=vertex,known_weight=known,uncertain_influences=uncertain))
-    return dict(profile=PROFILE,intervals=intervals,bounded_vertices=bounded,authority='none',selected=False,
-                assumption='out_of_axis_secondary_influence_depth_lies_within_observed_same_arm_chain',
+    return dict(profile=PROFILE if chain_kind=='arm' else 'same-leg-secondary-influence-depth-envelope-v1-experiment',
+                intervals=intervals,bounded_vertices=bounded,authority='none',selected=False,
+                assumption='out_of_axis_secondary_influence_depth_lies_within_observed_same_'+chain_kind+'_chain',
                 scope='bounded_candidate_model_not_anatomical_surface_measurement')
