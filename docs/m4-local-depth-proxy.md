@@ -279,3 +279,29 @@ full-clip order compilation or Runtime for a reordered candidate.
 Evidence: `../tmp/m4-motion-center/cloth-plane-hong-mesh-axis-v1.json`. Tests cover
 opaque dominant support, transparent/insufficient evidence, unchanged display
 bones, complete source chain requirements and actual BVH End Site FK depth.
+
+## Bounded secondary-influence depth intervals
+
+`--interval-influences` opts into
+`same-arm-secondary-influence-depth-envelope-v1-experiment`. For a vertex with
+some valid in-axis influence and an out-of-axis secondary influence on the same
+verified arm chain, the latter contributes its full weighted interval over all
+observed shoulder/elbow/wrist/fingertip depths. No weight is dropped or renormalized.
+Source segment endpoints must agree and target upperarm/forearm/hand parent links
+must match. Missing chains, invalid normalization, cross-chain influences and
+vertices without any valid in-axis support remain unknown.
+
+This is an explicit model assumption that the uncertain influence lies within
+the observed same-arm depth envelope, not a guaranteed anatomical bound. Triangle
+classification requires every interval endpoint to clear the existing margin;
+a favorable midpoint is insufficient. The original point-depth behavior remains
+the default. Diagnostic cause rows are labeled `pre_interval_unknown_causes`
+when this mode is used, to distinguish baseline unknowns from interval outcomes.
+
+With the mesh hand axis and garment plane, all ten visible Hongmeiling cycle
+samples now have uniform-front interval support; two other samples have no
+overlap. Evidence: `../tmp/m4-motion-center/cloth-plane-hong-interval-v1.json`.
+This covers only the six recorded intervals, not the full clip or all ordering
+constraints. It does not create a reordered candidate or new Runtime evidence.
+The next integration must evaluate the same contracts across the entire motion,
+preserve unresolved relationships, and capture any generated candidate.

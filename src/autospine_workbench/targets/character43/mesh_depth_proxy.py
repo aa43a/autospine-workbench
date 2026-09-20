@@ -50,7 +50,7 @@ def vertex_depths(document, attachment, segments, *, endpoint_caps=False, axis_l
     return values
 
 
-def overlap_support(probe, arm, torso, time, segments, *, margin=.02, endpoint_caps=False, reference_plane=None, axis_lengths=None):
+def overlap_support(probe, arm, torso, time, segments, *, margin=.02, endpoint_caps=False, reference_plane=None, axis_lengths=None, depth_intervals=None):
     """Classify opaque overlap with conservative per-triangle depth bounds."""
     import numpy as np
     if not math.isfinite(margin) or margin <= 0:
@@ -69,6 +69,9 @@ def overlap_support(probe, arm, torso, time, segments, *, margin=.02, endpoint_c
                       assumption='source_segment_axis_depth_against_explicit_planar_garment_proxy')
     if axis_lengths:
         result.update(profile='weighted-mesh-hand-axis-depth-v1-experiment',hand_axis_lengths=dict(axis_lengths))
+    if depth_intervals is not None:
+        result.update(profile='weighted-depth-interval-overlap-v1-experiment',
+                      uncertainty_policy='entire_interval_must_clear_margin')
     if not pair['overlap_pixels']:
         return dict(result,status='no_overlap',counts={})
     rect=pair['roi']; area=rect[2]*rect[3]
@@ -80,15 +83,19 @@ def overlap_support(probe, arm, torso, time, segments, *, margin=.02, endpoint_c
         return mask(attachment,probe.positions[time][name],probe.textures[name],rect)>=8
     common=raster(arm,attachments[arm]) & raster(torso,attachments[torso])
     values=vertex_depths(probe.document,attachments[arm],segments,endpoint_caps=endpoint_caps,axis_lengths=axis_lengths)
+    intervals=([[v,v] if v is not None else None for v in values] if depth_intervals is None else depth_intervals)
+    if len(intervals)!=len(values) or any(v is not None and (len(v)!=2 or not all(math.isfinite(z) for z in v)
+                                                            or v[0]>v[1]) for v in intervals):
+        raise ValueError('depth_proxy_intervals_invalid')
     if reference_plane is not None:
         dx,dy,offset=reference_plane
-        values=[None if z is None else z-dx*p[0]-dy*p[1]-offset
-                for z,p in zip(values,probe.positions[time][arm])]
+        intervals=[None if v is None else [z-dx*p[0]-dy*p[1]-offset for z in v]
+                   for v,p in zip(intervals,probe.positions[time][arm])]
     flat=attachments[arm]['triangles']; groups={k:[] for k in ('front','back','ambiguous','unknown')}
     for i in range(0,len(flat),3):
-        tri=flat[i:i+3]; depths=[values[v] for v in tri]
+        tri=flat[i:i+3]; depths=[intervals[v] for v in tri]
         group=('unknown' if any(v is None for v in depths) else
-               'front' if min(depths)>margin else 'back' if max(depths)<-margin else 'ambiguous')
+               'front' if min(v[0] for v in depths)>margin else 'back' if max(v[1] for v in depths)<-margin else 'ambiguous')
         groups[group].extend(tri)
     masks={k:raster(arm,dict(attachments[arm],triangles=indices)) & common
            if indices else np.zeros_like(common) for k,indices in groups.items()}
