@@ -260,3 +260,22 @@ has 45 visible-straddle failures and no candidate; these are now retained model
 uncertainties rather than unmeasured resource failures. Thirty-nine focused
 tests pass. This establishes a measured unsupported case for the workbench's
 exception flow, not a reason to raise quality thresholds or silently adopt it.
+
+## Workbench diagnostics
+
+Motion task cards now expose an inline depth-status panel with category filters
+and exact-time player links. The read-only `depth-status.json` view validates
+the skeleton digest and reports the owning artifact identity. It distinguishes
+recorded depth conflicts, resource-limited checks, and unsupported checks;
+missing overlap measurements cannot produce a passing status. Counts represent
+diagnostic records, not an estimated error rate.
+
+This endpoint deliberately leaves the existing stage-review evidence contract
+unchanged, preserving previously saved review identities. Experimental partition
+and ordering builders above remain separate from the production task builder.
+
+Validation: 14 focused status/readiness/comparison tests passed. A real Chrome
+check of Huiye task `motion-32b455f6d40142a28d0d8844430bba20` verified endpoint
+identity, all category filters, and time-link destinations. That existing task
+reports 22 conflict records and 29 resource records; these are its immutable
+original evidence, not the later offline experiment's measurements.

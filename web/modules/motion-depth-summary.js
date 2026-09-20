@@ -1,3 +1,4 @@
+import {appendDepthDetails} from './motion-depth-details.js';
 export function appendDepthSummary(item, job) {
   const status = job.result.depth_order_status;
   const labels = {depth_order_sampled_candidate: '已生成受重叠约束的动态顺序，仍需阶段验收',
@@ -10,4 +11,5 @@ export function appendDepthSummary(item, job) {
   const link = document.createElement('a'); link.textContent = '查看遮挡时间点';
   link.href = `/api/motions/${job.job_id}/view/depth.html`; link.target = '_blank'; link.rel = 'noopener';
   item.append(line, link);
+  appendDepthDetails(item,job);
 }
