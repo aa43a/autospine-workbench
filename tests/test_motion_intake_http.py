@@ -3,6 +3,7 @@ import http.client
 import json
 import time
 import unittest
+from unittest.mock import patch
 from urllib.parse import quote
 
 from test_mixamo_map import source
@@ -13,6 +14,17 @@ class MotionHttpTests(unittest.TestCase):
     setUp = Fixture.setUp
     tearDown = Fixture.tearDown
     request = Fixture.request
+
+    def test_generation_requires_intent_and_rejects_client_runtime_paths(self):
+        from test_motion_generation import BODY
+        self.assertEqual(self.request('GET', '/api/motions/generate')[0], 405)
+        self.assertEqual(self.request('POST', '/api/motions/generate', BODY)[0], 403)
+        intent = {'Origin': f'http://{self.host}:{self.port}', 'X-Autospine-Intent': 'pipeline-preview'}
+        self.assertEqual(self.request('POST', '/api/motions/generate', dict(BODY, runtime='x'), intent)[0], 400)
+        with patch('autospine_workbench.automation.motion_generation_jobs.availability', return_value='unavailable'):
+            status, _, payload = self.request('POST', '/api/motions/generate', BODY, intent)
+            self.assertEqual(status, 400)
+            self.assertEqual(json.loads(payload)['reason_code'], 'motion_generation_unavailable')
 
     def upload(self, raw, headers):
         connection = http.client.HTTPConnection(self.host, self.port, timeout=10)

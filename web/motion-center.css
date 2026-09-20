@@ -8,9 +8,13 @@ h2 { font-size: 18px; margin-top: 0; }
 a { color: #63cdf4; }
 section { background: #141e2c; border: 1px solid #2c3e55; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
 label { display: inline-flex; gap: 10px; align-items: center; margin: 0 20px 12px 0; }
-button, select, input[type=file] {
+button, select, input[type=file], input[type=number], #prompt {
   font: inherit; padding: 9px 13px; border: 1px solid #49637f; border-radius: 6px; background: #1d3044; color: inherit;
 }
+#generation-form { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+#generation-form label:first-child { flex: 1 1 100%; }
+#prompt { flex: 1; min-width: 120px; width: 100%; }
+#generation-form input[type=number] { width: 135px; }
 button { cursor: pointer; margin-right: 8px; }
 button:disabled { opacity: .45; cursor: default; }
 button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid #75d5ff; outline-offset: 3px; }

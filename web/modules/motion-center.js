@@ -1,5 +1,6 @@
 import {createSourcePlayer} from './motion-source-player.js';
 import {createTargetControls} from './motion-target-controls.js';
+import {createGenerationControls} from './motion-generation-controls.js';
 
 const $ = id => document.getElementById(id);
 const player = createSourcePlayer($('canvas'), $('time'), $('play'), $('clock'));
@@ -15,9 +16,21 @@ const steps = {
   convert_fbx: 'Blender 转换 FBX', verify_bridge: '逐帧核对源骨架',
   inspect_bvh: '构建源时间轴', compile_motion: '生成 MotionIR',
   inspect_npz: '核对 SOMA77 位置与旋转矩阵',
+  verify_generator: '核对 Kimodo 模型与代码', verify_text_encoder: '检查本地文本编码器与 CUDA',
+  generate_motion: 'Kimodo 正在生成动作（含模型加载）', verify_generation: '复查生成环境与输出',
   retarget: '角色重定向与局部修正', publish_candidate: '保存角色候选', runtime: '官方 Runtime 捕获',
 };
 const reasons = {
+  motion_generation_unavailable: '服务端尚未配置本地 Kimodo 环境。',
+  motion_generation_prompt_invalid: '请输入不超过 1000 字符的单行动作描述。',
+  motion_generation_single_prompt_required: '首版支持单句动作；请用逗号连接要求，句点仅用于句尾。',
+  motion_generation_duration_invalid: '时长须在 1–10 秒之间。',
+  motion_generation_seed_invalid: '种子须为 0–2147483647 的整数。',
+  motion_generation_steps_invalid: '生成步数须为 10–100 的整数。',
+  motion_generation_failed: 'Kimodo 生成失败，参数与诊断已保存，可重试。',
+  motion_generation_loader_changed: '生成器代码与已验证版本不一致，请检查服务端环境。',
+  motion_generation_checkpoint_changed: '生成模型与已验证版本不一致，请检查服务端环境。',
+  motion_generation_cuda_unavailable: '本地 Kimodo CUDA 环境不可用，请检查服务端 GPU。',
   motion_blender_unavailable: '尚未配置 Blender，请设置服务端 AUTOSPINE_BLENDER 后重试。',
   motion_skeleton_mapping_required: '骨架不匹配已支持映射，需要补充骨骼对应关系。',
   motion_projection_or_mapping_unsupported: '当前映射或投影未通过检查。',
@@ -75,6 +88,7 @@ async function preview(job) {
 }
 
 function render(data) {
+  generationControls.update(data.kimodo_generation);
   $('environment').textContent = data.blender_available ? 'Blender 转换环境已配置。'
     : 'BVH 可直接解析；FBX 需要服务端配置 Blender。';
   $('jobs').replaceChildren();
@@ -110,6 +124,17 @@ function render(data) {
       const download = node('a', '下载诊断候选 ZIP');
       download.href = `/api/motions/${job.job_id}/download`; download.className = 'download'; item.append(download);
     } else if (job.status === 'succeeded') {
+      if (job.kind === 'generate') {
+        const config = job.result.generation.parameters;
+        item.append(node('p', `Kimodo · ${config.duration_seconds} 秒 · 种子 ${config.seed} · `
+          + `${config.diffusion_steps} 步 · 生成来源已记录`));
+        const details = node('details', '');
+        details.append(node('summary', '生成参数与来源'), node('p', config.prompt),
+          node('p', '模型 Kimodo-SOMA-RP-v1.1；本地离线执行；后处理关闭。'));
+        const receipt = node('a', '查看本次任务记录');
+        receipt.href = `/api/motions/${job.job_id}`; receipt.target = '_blank'; receipt.rel = 'noopener';
+        details.append(receipt); item.append(details);
+      }
       const button = node('button', '查看源动作');
       button.onclick = () => void preview(job);
       item.append(button);
@@ -117,7 +142,7 @@ function render(data) {
         ? 'MotionIR 已保存 · 尚未适配角色' : reasons[job.result.reason_code] || job.result.reason_code));
     }
     const action = active.has(job.status) ? 'cancel' : 'retry';
-    const button = node('button', action === 'cancel' ? '取消' : '重新解析');
+    const button = node('button', action === 'cancel' ? '取消' : job.kind === 'generate' ? '重新生成（保留旧记录）' : '重新解析');
     button.onclick = () => void mutate(job.job_id, action);
     button.disabled = busy || Boolean(job.cancel_requested && active.has(job.status));
     item.append(button);
@@ -193,6 +218,7 @@ $('upload').onclick = async () => {
 };
 $('refresh').onclick = () => void refresh();
 const targetControls = createTargetControls(request, refresh);
+const generationControls = createGenerationControls(request, refresh);
 window.addEventListener('pagehide', () => {
   suspended = true;
   clearTimeout(timer);

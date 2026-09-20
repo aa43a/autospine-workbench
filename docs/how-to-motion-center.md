@@ -22,4 +22,12 @@ NPZ 支持 `core-v1` / `complete-v1` 的 float32 / bool 数组及四或六通道
 
 外部 NPZ 没有随附的生成证据时，模型、seed 和生成环境记为未知，不冒充本机生成；历史已记录的来源包不受影响。数据格式依据 [Kimodo 官方输出说明](https://research.nvidia.com/labs/sil/projects/kimodo/docs/user_guide/output_formats.html)。
 
-Kimodo 文字生成、接触/遮挡处理和三角色八动作验收属于 [M4 后续交付](milestone-m4-external-motion.md)。
+## 文字生成
+
+在“用文字生成动作”输入英文单句、1–10 秒时长、种子和 10–100 步，点击“生成动作”。句点仅用于句尾，避免上游 CLI 将多个句子变成多个连续片段。完成后仍通过“查看源动作 → 应用到角色”生成独立候选。
+
+服务端默认使用工作区 `kimodo-runtime`，可用 `AUTOSPINE_KIMODO_RUNTIME` 指定同结构安装目录；浏览器不能传入路径或命令。当前适配固定 `Kimodo-SOMA-RP-v1.1` 与已验证的本地 loader 修订 `c503c77`。CUDA 必须可用，文本编码器使用 CPU，禁用下载与生成器后处理。准备阶段完整验证已下载 ModelScope 基座，并在每个任务目录建立派生适配器，不依赖或修改共享派生目录。
+
+生成任务上限 3,600 秒，显示模型校验、文本编码器校验、生成（含加载）、输出复查及 MotionIR 编译阶段。取消终止进程树；服务重启后的未完成任务显示中断，重试从头生成并创建新记录，不代表恢复扩散中间状态。原始 NPZ、请求、模型/适配器指纹与诊断均保留。即使参数相同，也不承诺跨设备逐字节一致。
+
+生成成功只表示动作资产形成；应用到角色后仍执行几何和 Runtime 检查。动态遮挡、视角增强和三角色八动作验收见 [M4 后续交付](milestone-m4-external-motion.md)。

@@ -34,7 +34,8 @@ def submit(manager, source_job, body):
             or type(body.get('contact_correction', True)) is not bool):
         raise PipelineRunError('motion_request_invalid')
     source = manager.get(source_job)
-    if source.get('kind', 'import') != 'import' or source.get('result', {}).get('motion_status') != 'compiled':
+    if (source.get('kind', 'import') not in ('import', 'generate') or source.get('status') != 'succeeded'
+            or source.get('result', {}).get('motion_status') != 'compiled'):
         raise PipelineRunError('motion_target_source_unavailable')
     characters = manager.character_manager()
     project, character_job = body['project_id'], body['character_job_id']

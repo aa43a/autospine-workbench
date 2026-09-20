@@ -74,10 +74,12 @@ def mapping(source, positions, view):
                      reduction_policy='any_true_per_limb', mode='annotation_only', interval='half_open'))
 
 
-def compile_source(raw, request, folder, state_root):
+def compile_source(raw, request, folder, state_root, *, producer=None):
     settings = options(**request.get('npz_options', {}))
     progress(folder, 'inspect_npz')
     source = sidecar(raw, settings)
+    if producer is not None:
+        source['producer'] = producer
     snapshot = decode_kimodo_npz(raw, source)
     validated = validate_kimodo_consistency(snapshot, source)
     fps = float(Fraction(settings['fps']))
@@ -95,7 +97,7 @@ def compile_source(raw, request, folder, state_root):
     result = dict(frame_count=snapshot.frame_count, joint_count=77, fps=fps,
                   duration_seconds=(snapshot.frame_count-1)/fps, preview_sha256=sha256(preview_raw).hexdigest(),
                   projection=request['view'], loop=False, contact_status='source_labels_annotation_only',
-                  producer_status='unavailable_external_export', interpretation=settings,
+                  producer_status='recorded' if producer is not None else 'unavailable_external_export', interpretation=settings,
                   target_runtime_status='not_evaluated', character_animation_status='not_built',
                   consistency=dict(max_position_error_meters=validated.max_position_error_meters,
                                    max_global_matrix_error=validated.max_global_matrix_error))

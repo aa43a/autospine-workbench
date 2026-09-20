@@ -8,7 +8,8 @@ import subprocess
 from .storage_io import canonical_bytes, read_document
 
 STEPS = {'verify_source', 'convert_fbx', 'verify_bridge', 'inspect_bvh', 'inspect_npz', 'compile_motion',
-         'retarget', 'publish_candidate', 'runtime'}
+         'retarget', 'publish_candidate', 'runtime', 'verify_generator', 'verify_text_encoder',
+         'generate_motion', 'verify_generation'}
 
 
 def progress(folder, step):

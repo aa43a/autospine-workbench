@@ -7,6 +7,8 @@ from .motion_intake_jobs import MotionIntakeJobs
 
 
 def _methods(tail):
+    if tail == ['generate']:
+        return 'POST, OPTIONS'
     if not tail:
         return 'GET, HEAD, POST, OPTIONS'
     if (len(tail) == 1 or len(tail) == 2 and tail[1] in ('preview', 'download')
@@ -65,6 +67,9 @@ def dispatch_motions(parts, handler, method):
             handler.connection.settimeout(30)
             if not tail:
                 result = _upload(manager, handler)
+            elif tail == ['generate']:
+                from .motion_generation_jobs import submit
+                result = submit(manager, read_json_object_request(handler, maximum_bytes=8192))
             elif tail[1] == 'adapt':
                 from .motion_target_jobs import submit
                 result = submit(manager, tail[0], read_json_object_request(handler, maximum_bytes=1024))

@@ -39,6 +39,7 @@ class MotionIntakeJobs:
         return directory(self.root / job, create=create)
 
     def overview(self):
+        from .motion_generation_jobs import availability
         jobs = []
         if self.root.exists():
             paths = sorted(self.root.glob('motion-*/request.json'),
@@ -48,7 +49,7 @@ class MotionIntakeJobs:
             jobs = [self.get(path.parent.name, check_current=False) for path in paths]
         return dict(authority='none', jobs=jobs, formats=['fbx', 'bvh', 'npz'],
                     blender_available=bool(self.blender and Path(self.blender).is_file()),
-                    kimodo_generation='not_connected', npz_import='soma77_explicit_profile')
+                    kimodo_generation=availability(self), npz_import='soma77_explicit_profile')
 
     def upload(self, stream, size, name, view, npz_options=None):
         suffix = Path(name).suffix.lower() if isinstance(name, str) else ''
@@ -133,6 +134,9 @@ class MotionIntakeJobs:
         if old['status'] in ACTIVE:
             raise PipelineRunError('motion_job_running')
         request = read_document(self.folder(job) / 'request.json')
+        if request.get('kind') == 'generate':
+            from .motion_generation_jobs import submit
+            return submit(self, request['generation'])
         if request.get('kind') == 'adapt':
             from .motion_target_jobs import submit
             body = {k: request[k] for k in ('project_id', 'character_job_id')}
@@ -161,11 +165,15 @@ class MotionIntakeJobs:
                 self._jobs[job].update(status='running', step='verify_source')
             request = read_document(folder / 'request.json')
             target = request.get('kind') == 'adapt'
+            generation = request.get('kind') == 'generate'
             if target:
                 from .motion_target_jobs import assert_current
                 assert_current(self, request)
             module = 'motion_target_worker' if target else 'motion_intake_worker'
             extra = str(self.projects.workspace_root.resolve()) if target else self.blender
+            if generation:
+                from .motion_generation_jobs import runtime_root
+                module, extra = 'motion_generation_worker', str(runtime_root(self))
             command = [sys.executable, '-m', 'autospine_workbench.automation.' + module,
                        str(folder), str(self.state_root), extra]
             with (folder / 'worker.log').open('wb') as log:
@@ -175,7 +183,7 @@ class MotionIntakeJobs:
                 while process.poll() is None:
                     if self._cancel[job].wait(.15):
                         raise PipelineRunError('motion_canceled')
-                    if time.monotonic() - started > (900 if target else 240):
+                    if time.monotonic() - started > (3600 if generation else 900 if target else 240):
                         raise PipelineRunError('motion_decode_timeout')
             if self._cancel[job].is_set():
                 raise PipelineRunError('motion_canceled')
@@ -185,6 +193,8 @@ class MotionIntakeJobs:
             if target:
                 assert_current(self, request)
             outcome = dict(status='succeeded', step='complete', result=result)
+            if generation:
+                outcome.update(source_sha256=result['source_sha256'], byte_length=result['byte_length'])
         except Exception as exc:
             reason = getattr(exc, 'reason_code', 'motion_decode_failed')
             outcome = dict(status='canceled' if reason == 'motion_canceled' else 'failed', reason_code=reason)
@@ -196,6 +206,8 @@ class MotionIntakeJobs:
                 outcome = dict(status='failed', reason_code='motion_termination_failed')
             with self._lock:
                 value = dict(self._jobs[job], **outcome)
+                if value['status'] != 'succeeded':
+                    value['step'] = read_progress(folder) or value['step']
                 publish_document(folder / 'result.json', value, staging=folder / 'staging')
                 self._jobs[job] = value
 
