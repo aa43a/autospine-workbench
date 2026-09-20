@@ -279,3 +279,21 @@ check of Huiye task `motion-32b455f6d40142a28d0d8844430bba20` verified endpoint
 identity, all category filters, and time-link destinations. That existing task
 reports 22 conflict records and 29 resource records; these are its immutable
 original evidence, not the later offline experiment's measurements.
+
+## Shared regional candidate pipeline
+
+The experimental CLI now calls `regional_depth_candidate.build`, a reusable
+target module, rather than owning the orchestration. Existing switches and
+sampling policies remain unchanged. `regional_depth_contract.verify` admits only
+the exact declared partition transformation plus reported draw-order keys. It
+rejects unrelated bone, weight, UV, triangle, or animation edits, invalid slot
+inventories, failed order evidence, and non-increasing/non-finite key times.
+This is preparation for a versioned worker integration; the ordinary worker's
+strict unchanged-rig requirement remains active.
+
+Twenty-nine focused tests pass. Re-running Hong's matched experiment produced
+`../tmp/m4-motion-center/reusable-depth-order-hong-v1.json` and an identical
+candidate document to the previously captured result. All numerical report
+fields match; the historical report predates the now-explicit bounds, raster,
+and cache policy metadata. The new transform contract also passes on that real
+candidate. This turn did not perform another Runtime capture or visual review.
