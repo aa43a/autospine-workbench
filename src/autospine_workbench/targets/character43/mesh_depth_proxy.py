@@ -4,9 +4,10 @@ import math
 from ..spine43.seam_raster import mask
 
 PROFILE = 'weighted-segment-depth-proxy-v1'
+CAP_PROFILE = 'weighted-segment-quarter-cap-depth-proxy-v1'
 
 
-def vertex_depths(document, attachment, segments):
+def vertex_depths(document, attachment, segments, *, endpoint_caps=False):
     """Interpolate source endpoint depths along each influence's setup bone axis.
 
     Missing bones, out-of-segment influences and non-normalized weights abstain.
@@ -31,27 +32,30 @@ def vertex_depths(document, attachment, segments):
                 continue
             bone = document['bones'][index]; length = bone.get('length', 0)
             segment = segments.get(bone['name'])
-            if segment is None or length <= 0 or not 0 <= x <= length:
+            extension = .25*length if endpoint_caps else 0
+            if segment is None or length <= 0 or not -extension <= x <= length+extension:
                 known = False
                 continue
             a,b = segment
             if not all(math.isfinite(v) for v in (a,b,length)):
                 raise ValueError('depth_proxy_segment_invalid')
-            z += weight*(a+(b-a)*x/length)
+            coordinate = min(length,max(0,x)) if endpoint_caps else x
+            z += weight*(a+(b-a)*coordinate/length)
         values.append(z if known and abs(total-1) <= 1e-6 else None)
     if len(values)*2 != len(attachment['uvs']):
         raise ValueError('depth_proxy_vertex_count_invalid')
     return values
 
 
-def overlap_support(probe, arm, torso, time, segments, *, margin=.02):
+def overlap_support(probe, arm, torso, time, segments, *, margin=.02, endpoint_caps=False):
     """Classify opaque overlap with conservative per-triangle depth bounds."""
     import numpy as np
     if not math.isfinite(margin) or margin <= 0:
         raise ValueError('depth_proxy_margin_invalid')
     pair = probe.pair(arm,torso,time)
-    result = dict(profile=PROFILE,authority='none',selected=False,time=time,pair=[arm,torso],
+    result = dict(profile=CAP_PROFILE if endpoint_caps else PROFILE,authority='none',selected=False,time=time,pair=[arm,torso],
                   overlap_pixels=pair['overlap_pixels'],margin=margin,
+                  endpoint_extension_ratio=.25 if endpoint_caps else 0,
                   assumption='source_segment_axis_depth_with_planar_cross_sections',
                   scope='candidate_proxy_not_measured_surface_depth_or_order_acceptance')
     if not pair['overlap_pixels']:
@@ -64,7 +68,7 @@ def overlap_support(probe, arm, torso, time, segments, *, margin=.02):
         probe.remaining -= area
         return mask(attachment,probe.positions[time][name],probe.textures[name],rect)>=8
     common=raster(arm,attachments[arm]) & raster(torso,attachments[torso])
-    values=vertex_depths(probe.document,attachments[arm],segments)
+    values=vertex_depths(probe.document,attachments[arm],segments,endpoint_caps=endpoint_caps)
     flat=attachments[arm]['triangles']; groups={k:[] for k in ('front','back','ambiguous','unknown')}
     for i in range(0,len(flat),3):
         tri=flat[i:i+3]; depths=[values[v] for v in tri]

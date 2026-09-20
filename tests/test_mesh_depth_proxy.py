@@ -6,6 +6,18 @@ from autospine_workbench.targets.character43.motion_depth_overlap import Probe
 
 
 class MeshDepthProxyTests(unittest.TestCase):
+    def test_optional_endpoint_caps_are_bounded_and_preserve_missing_evidence(self):
+        doc,_=fixture(); doc['bones'][0]['length']=2
+        mesh=deepcopy(doc['skins'][0]['attachments']['a']['a'])
+        mesh['vertices'][2]=-.3
+        self.assertIsNone(vertex_depths(doc,mesh,{'root':(-.2,.4)})[0])
+        self.assertEqual(vertex_depths(doc,mesh,{'root':(-.2,.4)},endpoint_caps=True)[0],-.2)
+        mesh['vertices'][2]=2.3
+        self.assertAlmostEqual(vertex_depths(doc,mesh,{'root':(-.2,.4)},endpoint_caps=True)[0],.4)
+        mesh['vertices'][2]=-.6
+        self.assertIsNone(vertex_depths(doc,mesh,{'root':(-.2,.4)},endpoint_caps=True)[0])
+        self.assertIsNone(vertex_depths(doc,mesh,{},endpoint_caps=True)[0])
+
     def test_multiple_influences_use_weights_without_inventing_missing_bone_depth(self):
         doc,_=fixture(); doc['bones'][0]['length']=2
         doc['bones'].append(dict(name='second',length=2))

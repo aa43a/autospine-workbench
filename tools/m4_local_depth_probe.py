@@ -13,7 +13,9 @@ from autospine_workbench.targets.character43.mesh_depth_proxy import overlap_sup
 from autospine_workbench.resolved_project import canonical_sha256
 
 
-def analyze(request,result,state_root):
+def analyze(request,result,state_root,*,endpoint_caps=False,sample_limit=16):
+    if type(sample_limit) is not int or not 1 <= sample_limit <= 2048:
+        raise ValueError('depth_proxy_sample_limit_invalid')
     files=AnimatedStore(state_root).read(result['result']['artifact_sha256'])
     document=json.loads(files['skeleton.json']); depth=json.loads(files['motion-depth.json'])
     identity=request['motion_identity']
@@ -32,7 +34,7 @@ def analyze(request,result,state_root):
     roles={r['role']:r for r in mapping['bones']}
     all_failures=[f for f in depth.get('order',{}).get('failures',[]) if f['reason_code']=='visible_depth_straddle']
     records=[]
-    for failure in all_failures[:16]:
+    for failure in all_failures[:sample_limit]:
         pair=next(p for p in depth['pairs'] if [p['arm_slot'],p['torso_slot']]==failure['pair'])
         row=next(s for s in pair['samples'] if abs(s['tick']/1e6-failure['time'])<1e-7)
         # Midpoint overlap cannot use preceding-frame source depth.
@@ -48,22 +50,29 @@ def analyze(request,result,state_root):
                 if aim in joints:
                     segments[bone+'_'+suffix]=tuple((joints[n]-reference)/length for n in (role['joint_name'],aim))
         probe=Probe(document,files,'external-motion',pixel_budget=8_000_000)
-        value=overlap_support(probe,*failure['pair'],failure['time'],segments)
+        value=overlap_support(probe,*failure['pair'],failure['time'],segments,endpoint_caps=endpoint_caps)
         records.append(dict(value,source_tick=row['source_tick'],segments=segments))
     return dict(profile='local-depth-probe-v1',artifact_sha256=result['result']['artifact_sha256'],
                 source_identity=identity,request_sha256=canonical_sha256(request),records=records,
-                total_straddle_failures=len(all_failures),sample_limit=16,authority='none',selected=False)
+                total_straddle_failures=len(all_failures),sample_limit=sample_limit,
+                complete_failure_inventory=len(all_failures)<=sample_limit,
+                endpoint_caps=endpoint_caps,authority='none',selected=False)
 
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('job'); parser.add_argument('output',type=Path)
+    parser.add_argument('--endpoint-caps',action='store_true')
+    parser.add_argument('--sample-limit',type=int,default=16)
     args=parser.parse_args(); root=Path('workspace'); folder=root/'jobs/motion-intake-v1'/args.job
     if folder.parent!=root/'jobs/motion-intake-v1' or not args.job.startswith('motion-'):
         raise ValueError('job_invalid')
-    report=analyze(read_document(folder/'request.json'),read_document(folder/'result.json'),root)
+    report=analyze(read_document(folder/'request.json'),read_document(folder/'result.json'),root,
+                   endpoint_caps=args.endpoint_caps,sample_limit=args.sample_limit)
     args.output.write_text(json.dumps(report,indent=2,ensure_ascii=False),encoding='utf-8')
-    print(json.dumps([dict(time=r['time'],status=r['status'],counts=r.get('counts')) for r in report['records']]))
+    from collections import Counter
+    print(json.dumps(dict(total=report['total_straddle_failures'],evaluated=len(report['records']),
+                          statuses=dict(Counter(r['status'] for r in report['records'])))))
 
 
 if __name__=='__main__':main()
