@@ -6,6 +6,19 @@ const document={createElement(tag){return {tag,children:[],append(...n){this.chi
 const job={project_id:'p',job_id:'j',artifact_sha256:'a'};
 const response={...job,authority:'none',inventory:[{layer_id:'eye',name:'眼睛',option_id:'rigid:head'}],review:null,review_sha256:null,
  metrics:{assessed_bindings:0,eligible_bindings:1,incorrect:0,unobservable:0,sampled_error_rate:null}};
+test('exception edit saves the exact exception before opening binding editor; failure retains draft',async()=>{
+ let fail=true;const events=[];
+ const ui=createAutoBindingAudit(document,{locate:row=>events.push(row),apiRequest:async(url,init)=>{
+  if(init.method==='POST'){events.push(JSON.parse(init.body));if(fail)throw Error('offline');return {...response,review:{reviews:{eye:'incorrect'}}};}return response;
+ }});
+ ui.sync(job,true);await ui.request();
+ const modify=()=>all(ui.element).find(n=>n.textContent==='标记异常并修改');
+ await modify().onclick();assert.equal(events.length,1);
+ assert.equal(all(ui.element).find(n=>n.tag==='select').value,'incorrect');
+ fail=false;await modify().onclick();
+ assert.deepEqual(events[1],{expected_artifact_sha256:'a',expected_review_sha256:null,reviews:{eye:'incorrect'}});
+ assert.deepEqual(events[2],{layer_id:'eye',type:'binding'});ui.dispose();
+});
 test('save-next retains failed draft and advances only after successful save',async()=>{
  let fail=true,posted;
  const value={...response,inventory:[...response.inventory,{layer_id:'neck',name:'颈部',option_id:'rigid:neck'}]};

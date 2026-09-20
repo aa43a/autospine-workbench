@@ -9,7 +9,7 @@ export function characterProgress(job,confirmed=[],review=null,dirty=false,audit
  const failedAudit=auditBindingExceptions(job,audit);
  const pending=layers.filter(l=>needsBindingReview(l,confirmed)||failedAudit.has(l.layer_id)).length;
  const rows=[`绑定处理：${layers.length-pending} / ${layers.length} 层；${pending} 层待处理。`];
- if(auditExact)rows.push(`自动绑定抽查：明确判断 ${audit.metrics.assessed_bindings} / ${audit.metrics.eligible_bindings} 项；${audit.metrics.incorrect} 项需修改。`);
+ if(auditExact)rows.push(`自动归属：默认沿用，无需逐项确认；${audit.metrics.incorrect} 项异常需修改。可选人工抽查 ${audit.metrics.assessed_bindings} / ${audit.metrics.eligible_bindings} 项。`);
  const geometry=job.runtime?.geometry_status;
  rows.push(geometry==='passed'?'采样网格：通过。':geometry==='needs_changes'?'采样网格：存在超限变形，需要修正。':'采样网格：尚无通过证据。');
  rows.push(job.runtime?.files?.['report.json']?'Runtime：已有报告，需结合实际播放与视觉复核。':'Runtime：尚无报告。');
@@ -30,7 +30,7 @@ export function createCharacterProgress(document,reviewAction,auditAction){
  const element=node('section'),list=node('ul'),button=node('button','查看并记录视觉复核');
  element.className='character-progress';element.setAttribute('aria-label','整角色完成情况');
  button.type='button';button.className='button button-secondary';button.addEventListener('click',reviewAction);
- const auditButton=node('button','自动绑定抽查');
+ const auditButton=node('button','自动归属与异常修改');
  auditButton.type='button';auditButton.className='button button-secondary';auditButton.addEventListener('click',()=>auditAction?.());
  element.append(node('h4','当前还差什么'),list,button,auditButton);
  return {element,sync(job,confirmed,review,disabled,audit=null){

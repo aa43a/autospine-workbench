@@ -5,7 +5,7 @@ export function createAutoBindingAudit(document,hooks){
  const node=(tag,text="")=>{const e=document.createElement(tag);e.textContent=text;return e;};
  const element=node("details"),load=node("button","读取自动绑定清单"),save=node("button","保存抽查结果"),status=node("p"),rows=node("div");
  for(const button of [load,save]){button.type="button";button.className="button button-secondary";}
- element.append(node("summary","自动绑定抽查与错误统计"),node("p","逐项核对自动采用的骨骼归属。抽查不改变绑定；发现错误后需撤销或修正原绑定。未检查的项保持未抽查，统计不代表全部角色的准确率。"),load,save,status,rows);
+ element.append(node("summary","自动归属与异常修改"),node("p","默认沿用自动归属，无需逐项确认或保存。可在此查看动作；发现异常时选择图层，点击“标记异常并修改”进入绑定编辑。人工抽查为可选操作，默认沿用不计为人工验证正确。"),load,save,status,rows);
  status.setAttribute("role","status");status.setAttribute("aria-live","polite");
  const inspector=createAuditInspector(document),previous=node("button","上一项"),next=node("button","下一项"),saveNext=node("button","保存并下一项"),position=node("p"),layout=node("div"),list=node("div");
  layout.style="display:flex;flex-wrap:wrap;gap:16px";list.style="flex:1 1 260px;max-height:650px;overflow:auto";inspector.element.style="flex:3 1 480px;min-width:0";
@@ -15,10 +15,12 @@ export function createAutoBindingAudit(document,hooks){
  previous.onclick=()=>move(-1);next.onclick=()=>move(1);
  saveNext.onclick=async()=>{const token=generation;if(await request(true)&&token===generation)move(1);};
  let job=null,key="",generation=0,editable=false,busy=false,report=null,edits={},attempted=false;
- const labels={not_reviewed:"未抽查",correct:"归属正确",incorrect:"需要修改",unobservable:"无法判断"};
+ const labels={not_reviewed:"默认沿用（未单独抽查）",correct:"归属正确",incorrect:"需要修改",unobservable:"无法判断"};
+ const modify=node("button","标记异常并修改");
+ modify.onclick=async()=>{if(busy||!editable||!selected||!hooks.locate)return;const token=generation,id=selected;edits[id]="incorrect";render();if(await request(true)&&token===generation&&editable)hooks.locate({layer_id:id,type:"binding"});};
  const judgments=Object.entries(labels).filter(([value])=>value!=="not_reviewed").map(([value,label])=>{const button=node("button",`当前项：${label}`);button.type="button";button.onclick=()=>{if(selected&&!busy&&editable){edits[selected]=value;render();}};return button;});
- for(const button of [...judgments,previous,next,saveNext]){button.type="button";button.className="button button-secondary";}
- const actions=node("div");actions.style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px";actions.append(...judgments,previous,next,saveNext,position);inspector.element.append(actions);
+ for(const button of [modify,...judgments,previous,next,saveNext]){button.type="button";button.className="button button-secondary";}
+ const actions=node("div");actions.style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px";actions.append(modify,...judgments,previous,next,saveNext,position);inspector.element.append(actions);
  const stopwatch=createReviewStopwatch(document,hooks.clock,{scope:'automatic_binding_audit_session',changed:()=>render()});
  inspector.element.append(stopwatch.element);
  function hasTimingEdit(){const timing=stopwatch.current();return timing&&JSON.stringify(timing)!==JSON.stringify(report?.review?.timing);}
@@ -29,6 +31,7 @@ export function createAutoBindingAudit(document,hooks){
   const index=items.findIndex(r=>r.layer_id===selected);
   previous.disabled=busy||index<=0;next.disabled=busy||index<0||index>=items.length-1;saveNext.disabled=save.disabled;
   for(const button of judgments)button.disabled=busy||!editable||index<0;
+  modify.disabled=busy||!editable||index<0||!hooks.locate;
   position.textContent=items.length?`当前 ${index+1} / ${items.length} · ${Object.keys(edits).length} 项尚未保存`:"";
   if(items[index]&&element.open)inspector.show(job,items[index]);
   rows.replaceChildren(...items.map(row=>{
@@ -55,7 +58,7 @@ export function createAutoBindingAudit(document,hooks){
    if(value.authority!=="none"||["project_id","job_id","artifact_sha256"].some(k=>value[k]!==current[k]))throw Error("source");
    report=value;edits={};stopwatch.load(value.review?.timing);const m=value.metrics;
    if(m.incorrect>0)element.open=true;
-   status.textContent=`已明确判断 ${m.assessed_bindings} / ${m.eligible_bindings} 项，其中 ${m.incorrect} 项需修改，${m.unobservable} 项无法判断。${m.assessed_bindings?`抽查错误率 ${(m.sampled_error_rate*100).toFixed(1)}%。`:"尚无可计算错误率的抽查。"}`;
+   status.textContent=`自动归属默认沿用，无需逐项确认；已记录 ${m.incorrect} 项异常、${m.unobservable} 项无法判断。可选人工抽查：已明确判断 ${m.assessed_bindings} / ${m.eligible_bindings} 项。${m.assessed_bindings?`抽查错误率 ${(m.sampled_error_rate*100).toFixed(1)}%。`:"尚无可计算错误率的抽查。"}`;
    return true;
   }catch(e){if(token===generation){if(!write)report=null;status.textContent="抽查未保存或来源已变化，请重新读取清单；原记录保留。";}}
   finally{if(token===generation){busy=false;render();hooks.changed?.();}}
