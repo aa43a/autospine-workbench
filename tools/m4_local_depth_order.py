@@ -15,7 +15,7 @@ from autospine_workbench.targets.character43.motion_depth_overlap import Probe
 from autospine_workbench.targets.character43.motion_depth_order import build
 
 
-def run(job,output,*,refine_cycles=False,partition_slots=None,cloth_constraints=False):
+def run(job,output,*,refine_cycles=False,partition_slots=None,cloth_constraints=False,limb_constraints=False):
     root=Path('workspace'); folder=root/'jobs/motion-intake-v1'/job
     request=read_document(folder/'request.json'); result=read_document(folder/'result.json')
     identity=request['motion_identity']
@@ -43,17 +43,24 @@ def run(job,output,*,refine_cycles=False,partition_slots=None,cloth_constraints=
         if partition is None: raise ValueError('cloth_constraints_require_partition')
         from autospine_workbench.targets.character43.cloth_depth_constraints import build as cloth_build
         refined,cloth=cloth_build(document,files,'external-motion',refined,partition,sampler,order_probe=order_probe)
+    limbs=None
+    if limb_constraints:
+        from autospine_workbench.targets.character43.limb_depth_constraints import build as limb_build
+        refined,limbs=limb_build(document,files,'external-motion',refined,sampler,order_probe=order_probe)
     candidate,order=build(document,'external-motion',refined,order_probe,
                           refine_cycles=refine_cycles)
     if cloth and cloth['unmeasured_samples']:
         candidate=None
         order['status']='blocked'; order['reason_codes'].append('cloth_depth_unmeasured')
+    if limbs and limbs['unmeasured_samples']:
+        candidate=None
+        order['status']='blocked'; order['reason_codes'].append('limb_depth_unmeasured')
     report=dict(profile='local-depth-order-experiment-v1',artifact_sha256=result['result']['artifact_sha256'],
                 source_identity=identity,request_sha256=provenance['request_sha256'],
                 sampling_profile=PROFILE,refinement=evidence,order=order,
                 candidate_available=candidate is not None,authority='none',selected=False,
                 original_failure_counts=original_failures,partition=partition,
-                depth_groups=depth.get('groups'),depth_profile=depth['profile'],cloth_constraints=cloth)
+                depth_groups=depth.get('groups'),depth_profile=depth['profile'],cloth_constraints=cloth,limb_constraints=limbs)
     output.write_text(json.dumps(report,indent=2,ensure_ascii=False),encoding='utf-8')
     if candidate is not None:
         output.with_suffix('.skeleton.json').write_text(json.dumps(candidate,ensure_ascii=False),encoding='utf-8')
@@ -68,7 +75,8 @@ if __name__=='__main__':
     parser.add_argument('--refine-cycles',action='store_true')
     parser.add_argument('--partition-slot',action='append')
     parser.add_argument('--cloth-constraints',action='store_true')
+    parser.add_argument('--limb-constraints',action='store_true')
     args=parser.parse_args()
     if not __import__('re').fullmatch('motion-[a-f0-9]{32}',args.job):raise ValueError('job_invalid')
     print(json.dumps(run(args.job,args.output,refine_cycles=args.refine_cycles,partition_slots=args.partition_slot,
-                         cloth_constraints=args.cloth_constraints)))
+                         cloth_constraints=args.cloth_constraints,limb_constraints=args.limb_constraints)))

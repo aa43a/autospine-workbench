@@ -82,3 +82,30 @@ overlap. Evidence: `../tmp/m4-motion-center/arm-leg-depth-hong-interval-v1.json`
 Eleven focused regression tests pass. These local outcomes do not yet establish
 full-clip arm/leg order, a reordered candidate, or Runtime visual acceptance.
 The next step is complete-motion integration of the explicit pair constraints.
+
+## Full-clip limb constraints and official capture
+
+`--limb-constraints` now evaluates all identified arm/thigh-or-calf slot pairs,
+with the same held-frame/midpoint rule and explicit unknown handling. Source time
+offsets must agree, raster work is bounded independently per pair, and verified
+overlap entries are reused only for the same order probe identity. The new model
+is opt-in; existing candidate adapters and reviewed decisions remain unchanged.
+
+`../tmp/m4-motion-center/full-limb-depth-order-hong-v1.json` contains four pairs
+over 115 times: 451 no-overlap checks, nine uniform-arm-front checks, and zero
+unmeasured checks. Combined with garment constraints, full ordering has no
+failures and emits one draw-order key. This covers this exact clip and character,
+not all three cohort structures or the other action categories.
+
+`m4_depth_order_capture.py` checks that the candidate differs from the verified
+partition only by the recorded draw-order keys, then captures isolated immutable
+bundles. Original and reordered candidates each pass 115 official Runtime frames;
+the latter has 31 slots and maximum vertex error 0.00011687258783135879 px.
+Runtime also checks the actual draw order. Evidence and draggable same-frame
+comparison: `../tmp/m4-motion-center/full-limb-depth-runtime-hong-v1/`.
+Candidate bundle: `5bf5df3ddc0d5a366380b71d89d8a19bdf0a7df5ba2394b65d3244faec64abca`.
+
+Eighteen focused tests pass, including source/midpoint disagreement, preservation
+of originals, identity-bound reuse and unmeasured samples. This is a captured
+experimental candidate, not human visual acceptance or a production default.
+Remaining integration includes broader cohort checks and workbench exposure.
