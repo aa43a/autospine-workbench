@@ -1,0 +1,468 @@
+{
+  "schema": "autospine.m4-phase-support-regression/v1",
+  "records": [
+    {
+      "action": "boxing",
+      "source_job_id": "motion-0239e8622d68464bad355b4527c878f3",
+      "input_source_sha256": "9bbfe8fc1adf850fbf849a85d308d62f80394f81ee7eb3f483cd68cc6fd80d69",
+      "motion_identity": {
+        "bundle_sha256": "140fabcf63c9f47995ce9fe291aeb848522179f90df27ca96e341f331d232cad",
+        "bvh_map_sha256": "3b55e23a044b0c2fcd977652155a19d6e9534994a99f60c72a81cc70508e92d0",
+        "clip_id": "external.d59e6622f2b71a45.front",
+        "clip_sha256": "9986140fc4f878461b29baf4a4be9856f33578ec777bda4cc7057eb5d4e9f1e1",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "9986140fc4f878461b29baf4a4be9856f33578ec777bda4cc7057eb5d4e9f1e1",
+        "raw_bvh_byte_length": 200284,
+        "raw_bvh_sha256": "d59e6622f2b71a4591147832de1a5bf5aceb585975431cad517b9329b705ce55",
+        "reused": false,
+        "run_sha256": "63f6bda9b2957b0438d5ff548a61ebf56bca9cdd2877656d0ed23cf52a9a4e7a",
+        "source_kind": "bvh"
+      },
+      "phase_support": {
+        "profile": "source-contact-phase-stationarity-v1",
+        "authority": "none",
+        "selected": false,
+        "records": [
+          {
+            "limb": "leg.right",
+            "joint": "RightFoot",
+            "start_tick": 0,
+            "end_tick": 333333,
+            "eligible": true,
+            "reason": "source_interval_stationary",
+            "samples": 10,
+            "maximum_drift_ratio": 0.0037578747040504477,
+            "worst_tick": 166667
+          },
+          {
+            "limb": "leg.left",
+            "joint": "LeftFoot",
+            "start_tick": 533333,
+            "end_tick": 866667,
+            "eligible": true,
+            "reason": "source_interval_stationary",
+            "samples": 10,
+            "maximum_drift_ratio": 0.007419789369152302,
+            "worst_tick": 800000
+          },
+          {
+            "limb": "leg.left",
+            "joint": "LeftFoot",
+            "start_tick": 933333,
+            "end_tick": 1133333,
+            "eligible": true,
+            "reason": "source_interval_stationary",
+            "samples": 6,
+            "maximum_drift_ratio": 0.004880214723763082,
+            "worst_tick": 1033333
+          },
+          {
+            "limb": "leg.left",
+            "joint": "LeftFoot",
+            "start_tick": 1600000,
+            "end_tick": 1766667,
+            "eligible": true,
+            "reason": "source_interval_stationary",
+            "samples": 5,
+            "maximum_drift_ratio": 0.008143868649237029,
+            "worst_tick": 1733333
+          },
+          {
+            "limb": "leg.right",
+            "joint": "RightFoot",
+            "start_tick": 1800000,
+            "end_tick": 2200000,
+            "eligible": true,
+            "reason": "source_interval_stationary",
+            "samples": 12,
+            "maximum_drift_ratio": 0.002153468381282828,
+            "worst_tick": 2166667
+          }
+        ],
+        "source_sha256": "d59e6622f2b71a4591147832de1a5bf5aceb585975431cad517b9329b705ce55",
+        "map_sha256": "3b55e23a044b0c2fcd977652155a19d6e9534994a99f60c72a81cc70508e92d0",
+        "eligible_intervals": 5,
+        "maximum_drift_ratio": 0.01,
+        "scope": "source_ankle_stability_not_floor_or_target_acceptance"
+      }
+    },
+    {
+      "action": "breathing",
+      "source_job_id": "motion-c52561d5d07946539a8ca0da57e218e0",
+      "input_source_sha256": "67bf8b91cb77fec8873bb059cddcb96198c9ca348a16cfa6eb60171dabbd5370",
+      "motion_identity": {
+        "bundle_sha256": "9a1840b148f2a635f8046e1005c759bdf706cb5448b5d08d3537cec350217d8c",
+        "bvh_map_sha256": "a2a0ed3db70e5e0806c41435ae44b4a8d14ef8d27dac5548da88b09456119633",
+        "clip_id": "external.55754b8cfb4e8d4f.front",
+        "clip_sha256": "a58b48eee62e87aa4963c29e9a6d61a62b6af9023497ef2bc1999ea7c6e55ecc",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "a58b48eee62e87aa4963c29e9a6d61a62b6af9023497ef2bc1999ea7c6e55ecc",
+        "raw_bvh_byte_length": 833202,
+        "raw_bvh_sha256": "55754b8cfb4e8d4f3915903cc508ebcdd011fa3276404cf78b4abbef4ac21920",
+        "reused": false,
+        "run_sha256": "ad37b8e09ea5dee62271cad1fd631f4618ee00373ce7e2daa2f8924719163377",
+        "source_kind": "bvh"
+      },
+      "phase_support": {
+        "profile": "source-contact-phase-stationarity-v1",
+        "authority": "none",
+        "selected": false,
+        "records": [
+          {
+            "limb": "leg.left",
+            "joint": "LeftFoot",
+            "start_tick": 0,
+            "end_tick": 9933333,
+            "eligible": true,
+            "reason": "source_interval_stationary",
+            "samples": 298,
+            "maximum_drift_ratio": 0.0072309058963290745,
+            "worst_tick": 3366667
+          },
+          {
+            "limb": "leg.right",
+            "joint": "RightFoot",
+            "start_tick": 0,
+            "end_tick": 9933333,
+            "eligible": true,
+            "reason": "source_interval_stationary",
+            "samples": 298,
+            "maximum_drift_ratio": 0.0015816158897664643,
+            "worst_tick": 3100000
+          }
+        ],
+        "source_sha256": "55754b8cfb4e8d4f3915903cc508ebcdd011fa3276404cf78b4abbef4ac21920",
+        "map_sha256": "a2a0ed3db70e5e0806c41435ae44b4a8d14ef8d27dac5548da88b09456119633",
+        "eligible_intervals": 2,
+        "maximum_drift_ratio": 0.01,
+        "scope": "source_ankle_stability_not_floor_or_target_acceptance"
+      }
+    },
+    {
+      "action": "raise-arms",
+      "source_job_id": "motion-706de065008b4e9dbdaea14b7cb3c64e",
+      "input_source_sha256": "779dcb5c003f715905f48eafaea706c4ab524d97c7554f6b90c178bff5eecdc9",
+      "motion_identity": {
+        "bundle_sha256": "d9567d693030411b0a7be28b6da14218851b052a915945bcccda5594fe43dd87",
+        "bvh_map_sha256": "b491975cfe78426f51bb943c459e6ff5fa105b9ef332495de1978857b7d5a564",
+        "clip_id": "external.2ef3d860da11f245.front",
+        "clip_sha256": "2393e9081dd8b4d4d7c89c2061fe3645303c5092c098a0f7752a0dbb1049237e",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "2393e9081dd8b4d4d7c89c2061fe3645303c5092c098a0f7752a0dbb1049237e",
+        "raw_bvh_byte_length": 171331,
+        "raw_bvh_sha256": "2ef3d860da11f2456fd43323aaf35a5e8b2860aba2191311cfed35887e920686",
+        "reused": false,
+        "run_sha256": "6237041e50ae8b0010f0f27c24cb6dc884fd1693e3bdba83b620551ff94f98d2",
+        "source_kind": "bvh"
+      },
+      "phase_support": {
+        "profile": "source-contact-phase-stationarity-v1",
+        "authority": "none",
+        "selected": false,
+        "records": [
+          {
+            "limb": "leg.left",
+            "joint": "LeftFoot",
+            "start_tick": 0,
+            "end_tick": 500000,
+            "eligible": true,
+            "reason": "source_interval_stationary",
+            "samples": 15,
+            "maximum_drift_ratio": 0.003780394812023299,
+            "worst_tick": 333333
+          },
+          {
+            "limb": "leg.right",
+            "joint": "RightFoot",
+            "start_tick": 0,
+            "end_tick": 633333,
+            "eligible": true,
+            "reason": "source_interval_stationary",
+            "samples": 19,
+            "maximum_drift_ratio": 0.005256408975054061,
+            "worst_tick": 600000
+          },
+          {
+            "limb": "leg.left",
+            "joint": "LeftFoot",
+            "start_tick": 533333,
+            "end_tick": 800000,
+            "eligible": true,
+            "reason": "source_interval_stationary",
+            "samples": 8,
+            "maximum_drift_ratio": 0.0037721938641801325,
+            "worst_tick": 666667
+          },
+          {
+            "limb": "leg.right",
+            "joint": "RightFoot",
+            "start_tick": 666667,
+            "end_tick": 1900000,
+            "eligible": true,
+            "reason": "source_interval_stationary",
+            "samples": 37,
+            "maximum_drift_ratio": 0.008825845337276716,
+            "worst_tick": 1866667
+          },
+          {
+            "limb": "leg.left",
+            "joint": "LeftFoot",
+            "start_tick": 833333,
+            "end_tick": 1533333,
+            "eligible": true,
+            "reason": "source_interval_stationary",
+            "samples": 21,
+            "maximum_drift_ratio": 0.007812767118751694,
+            "worst_tick": 1500000
+          },
+          {
+            "limb": "leg.left",
+            "joint": "LeftFoot",
+            "start_tick": 1666667,
+            "end_tick": 1900000,
+            "eligible": true,
+            "reason": "source_interval_stationary",
+            "samples": 7,
+            "maximum_drift_ratio": 0.005403357824796136,
+            "worst_tick": 1866667
+          }
+        ],
+        "source_sha256": "2ef3d860da11f2456fd43323aaf35a5e8b2860aba2191311cfed35887e920686",
+        "map_sha256": "b491975cfe78426f51bb943c459e6ff5fa105b9ef332495de1978857b7d5a564",
+        "eligible_intervals": 6,
+        "maximum_drift_ratio": 0.01,
+        "scope": "source_ankle_stability_not_floor_or_target_acceptance"
+      }
+    },
+    {
+      "action": "reach",
+      "source_job_id": "motion-22d106d0a5994ea49be5d2e32f237e0c",
+      "input_source_sha256": "89e7b2785bdb93d4c1506d3621701126e37f47acb8757a6e76bde6eed3fbe615",
+      "motion_identity": {
+        "bundle_sha256": "5f531a9327ad59abde64e643438baa794e5618b5629d59c0e3f9d4da990948b7",
+        "bvh_map_sha256": "f9d1995881e5623f72208050cc9b639d98b1317da3322e3480cf50a283fa7f5c",
+        "clip_id": "external.a4233c602a77a95c.front",
+        "clip_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "raw_bvh_byte_length": 342778,
+        "raw_bvh_sha256": "a4233c602a77a95c1473ef7ab3f277fa7ca6aec5a98b4d5407dea904194bb2f4",
+        "reused": false,
+        "run_sha256": "c48c0ffcb9338d2bc72a1013f1be8366de8ea5583419f979a9ac1c080b534207",
+        "source_kind": "bvh"
+      },
+      "phase_support": {
+        "profile": "source-contact-phase-stationarity-v1",
+        "authority": "none",
+        "selected": false,
+        "records": [
+          {
+            "limb": "leg.left",
+            "joint": "LeftFoot",
+            "start_tick": 0,
+            "end_tick": 4000000,
+            "eligible": true,
+            "reason": "source_interval_stationary",
+            "samples": 120,
+            "maximum_drift_ratio": 0.0016234311847463047,
+            "worst_tick": 2933333
+          },
+          {
+            "limb": "leg.right",
+            "joint": "RightFoot",
+            "start_tick": 0,
+            "end_tick": 4000000,
+            "eligible": false,
+            "reason": "source_interval_drift",
+            "samples": 120,
+            "maximum_drift_ratio": 0.010277690983707016,
+            "worst_tick": 3933333
+          }
+        ],
+        "source_sha256": "a4233c602a77a95c1473ef7ab3f277fa7ca6aec5a98b4d5407dea904194bb2f4",
+        "map_sha256": "f9d1995881e5623f72208050cc9b639d98b1317da3322e3480cf50a283fa7f5c",
+        "eligible_intervals": 1,
+        "maximum_drift_ratio": 0.01,
+        "scope": "source_ankle_stability_not_floor_or_target_acceptance"
+      }
+    },
+    {
+      "action": "squat",
+      "source_job_id": "motion-42c342d1786f402299dfea949358a0d7",
+      "input_source_sha256": "596014069e4ecc8527ba37feded9d7b8564d50832862dad89c0a75ca7c136bba",
+      "motion_identity": {
+        "bundle_sha256": "ef7afe08aab29cb0b617aefd9c7d2162f96b2930dba70f8b37a61c2d88e5c2ab",
+        "bvh_map_sha256": "e77a4090381517d48dc08a903db1b9ebe5ba223ca89cabb1eed5ba0b57eb2cca",
+        "clip_id": "external.cf0b3afbf92df08c.front",
+        "clip_sha256": "fb57014391df27c737995214f3ec89918b99192ceda0b4d1626d8cfbfc261061",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "fb57014391df27c737995214f3ec89918b99192ceda0b4d1626d8cfbfc261061",
+        "raw_bvh_byte_length": 169539,
+        "raw_bvh_sha256": "cf0b3afbf92df08cd71fc680ffd49d32420e3a66de7f36ff64d930b9321ee55d",
+        "reused": false,
+        "run_sha256": "8da605d84b8040bda1747658ec9511c4b52f81fd646de6d4ea5256df05620aee",
+        "source_kind": "bvh"
+      },
+      "phase_support": {
+        "profile": "source-contact-phase-stationarity-v1",
+        "authority": "none",
+        "selected": false,
+        "records": [
+          {
+            "limb": "leg.left",
+            "joint": "LeftFoot",
+            "start_tick": 0,
+            "end_tick": 1866667,
+            "eligible": true,
+            "reason": "source_interval_stationary",
+            "samples": 56,
+            "maximum_drift_ratio": 0.0012268850540556135,
+            "worst_tick": 300000
+          },
+          {
+            "limb": "leg.right",
+            "joint": "RightFoot",
+            "start_tick": 0,
+            "end_tick": 1866667,
+            "eligible": true,
+            "reason": "source_interval_stationary",
+            "samples": 56,
+            "maximum_drift_ratio": 0.002202061717760311,
+            "worst_tick": 1766667
+          }
+        ],
+        "source_sha256": "cf0b3afbf92df08cd71fc680ffd49d32420e3a66de7f36ff64d930b9321ee55d",
+        "map_sha256": "e77a4090381517d48dc08a903db1b9ebe5ba223ca89cabb1eed5ba0b57eb2cca",
+        "eligible_intervals": 2,
+        "maximum_drift_ratio": 0.01,
+        "scope": "source_ankle_stability_not_floor_or_target_acceptance"
+      }
+    },
+    {
+      "action": "turn",
+      "source_job_id": "motion-c0ed26b329174551a1c908351174f31f",
+      "input_source_sha256": "543bfe46e10c5bf921e5fd16473340afe3563a6c18c2b7bb7bf9ed027c8ef165",
+      "motion_identity": {
+        "bundle_sha256": "a3138b152d73ee38cebc9d1d77663cb44ba6458be2724eac04d6fbade9ed6380",
+        "bvh_map_sha256": "3c8a43c52c03572435e2ad34d4fc4edd6700d8c3617733ab8db1c79a60d227a4",
+        "clip_id": "external.5e80ce7665829fc3.front",
+        "clip_sha256": "b0cd98c1e0856a9e797309e2b26abc3ec297b6473081a53553a17d7dd7b6c13f",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "b0cd98c1e0856a9e797309e2b26abc3ec297b6473081a53553a17d7dd7b6c13f",
+        "raw_bvh_byte_length": 132962,
+        "raw_bvh_sha256": "5e80ce7665829fc3e6153edfbaab9c419953263262a695f084a23a09de31234b",
+        "reused": false,
+        "run_sha256": "ee073afd388167e900a82ea7b9ed4ffe2fbd3070cf8016c0185c6b2424bb5bfd",
+        "source_kind": "bvh"
+      },
+      "phase_support": {
+        "profile": "source-contact-phase-stationarity-v1",
+        "authority": "none",
+        "selected": false,
+        "records": [
+          {
+            "limb": "leg.left",
+            "joint": "LeftFoot",
+            "start_tick": 0,
+            "end_tick": 466667,
+            "eligible": true,
+            "reason": "source_interval_stationary",
+            "samples": 14,
+            "maximum_drift_ratio": 0.00461308585384505,
+            "worst_tick": 266667
+          },
+          {
+            "limb": "leg.left",
+            "joint": "LeftFoot",
+            "start_tick": 933333,
+            "end_tick": 1433333,
+            "eligible": true,
+            "reason": "source_interval_stationary",
+            "samples": 15,
+            "maximum_drift_ratio": 0.00273806928971783,
+            "worst_tick": 1200000
+          }
+        ],
+        "source_sha256": "5e80ce7665829fc3e6153edfbaab9c419953263262a695f084a23a09de31234b",
+        "map_sha256": "3c8a43c52c03572435e2ad34d4fc4edd6700d8c3617733ab8db1c79a60d227a4",
+        "eligible_intervals": 2,
+        "maximum_drift_ratio": 0.01,
+        "scope": "source_ankle_stability_not_floor_or_target_acceptance"
+      }
+    },
+    {
+      "action": "walking",
+      "source_job_id": "motion-1f52729769af473084912644f9d16765",
+      "input_source_sha256": "ba4923f188ee8580dbe07f79191c154cbad0425ba71a74229eeeba40ea015a68",
+      "motion_identity": {
+        "bundle_sha256": "73e0e6ee787985f7a0ae639951958205711d40d08fb4a751d3abc412b18ed44a",
+        "bvh_map_sha256": "7c9b299225d1b5647213681894592f51d4cc375501f0ede4fdc4e0f16b6f1d16",
+        "clip_id": "external.505d23b551de8a4c.front",
+        "clip_sha256": "f24b63fc9a949933243dc1163dbedeb8e0091d27b04e6b9389b519c1b211f663",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "f24b63fc9a949933243dc1163dbedeb8e0091d27b04e6b9389b519c1b211f663",
+        "raw_bvh_byte_length": 346062,
+        "raw_bvh_sha256": "505d23b551de8a4ca0cbdcd78a728ebce4893f57493ffdf53fe3d1f105a8f71e",
+        "reused": false,
+        "run_sha256": "b156f2888ea1c967cb83f0a627ec36f42d038349a4a032ca16b9099198de5f87",
+        "source_kind": "bvh"
+      },
+      "phase_support": {
+        "profile": "source-contact-phase-stationarity-v1",
+        "authority": "none",
+        "selected": false,
+        "records": [
+          {
+            "limb": "leg.right",
+            "joint": "RightFoot",
+            "start_tick": 0,
+            "end_tick": 1900000,
+            "eligible": true,
+            "reason": "source_interval_stationary",
+            "samples": 57,
+            "maximum_drift_ratio": 0.0010440113525605544,
+            "worst_tick": 500000
+          },
+          {
+            "limb": "leg.left",
+            "joint": "LeftFoot",
+            "start_tick": 366667,
+            "end_tick": 733333,
+            "eligible": false,
+            "reason": "source_interval_drift",
+            "samples": 11,
+            "maximum_drift_ratio": 0.019564134592933373,
+            "worst_tick": 700000
+          },
+          {
+            "limb": "leg.left",
+            "joint": "LeftFoot",
+            "start_tick": 2133333,
+            "end_tick": 4033333,
+            "eligible": true,
+            "reason": "source_interval_stationary",
+            "samples": 57,
+            "maximum_drift_ratio": 0.000635381865996769,
+            "worst_tick": 4000000
+          },
+          {
+            "limb": "leg.right",
+            "joint": "RightFoot",
+            "start_tick": 2500000,
+            "end_tick": 2633333,
+            "eligible": true,
+            "reason": "source_interval_stationary",
+            "samples": 4,
+            "maximum_drift_ratio": 0.0021228635544350964,
+            "worst_tick": 2600000
+          }
+        ],
+        "source_sha256": "505d23b551de8a4ca0cbdcd78a728ebce4893f57493ffdf53fe3d1f105a8f71e",
+        "map_sha256": "7c9b299225d1b5647213681894592f51d4cc375501f0ede4fdc4e0f16b6f1d16",
+        "eligible_intervals": 3,
+        "maximum_drift_ratio": 0.01,
+        "scope": "source_ankle_stability_not_floor_or_target_acceptance"
+      }
+    }
+  ]
+}

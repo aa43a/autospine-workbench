@@ -4,6 +4,7 @@ from hashlib import sha256
 from ..bvh_parser import parse_bvh
 from ..motion_bundle_reader import VerifiedMotionBundleReader
 from ..motion2d.contact_candidate import infer
+from ..motion2d.phase_support import inspect as inspect_phases
 from ..safe_input_files import read_real_file
 from .pipeline_run import PipelineRunError
 
@@ -24,7 +25,9 @@ def inspect(manager, job_id):
                       authority='none', selected=False, profile='compiled-source-contact-markers',
                       scope='source_contact_markers_not_target_validation')
     elif bundle.source_kind == 'bvh':
-        report = infer(parse_bvh(bundle.raw_bvh), bundle.bvh_map, source_up='+Y')
+        bvh, mapping = parse_bvh(bundle.raw_bvh), bundle.bvh_map
+        report = infer(bvh, mapping, source_up='+Y')
+        report['phase_support'] = inspect_phases(bvh, mapping, report)
     else:
         report = dict(status='unavailable', markers=[], reason='source_contact_labels_missing',
                       authority='none', selected=False)
