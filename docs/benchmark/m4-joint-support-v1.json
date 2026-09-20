@@ -1,0 +1,20 @@
+{
+  "profile": "source-qualified-joint-support-diagnostic-v1",
+  "input_artifact_sha256": "d75ec56c500c42ddb9d88aad9c8742f2fd938fb309b5e41c32b21d274507e3df",
+  "source_job_id": "motion-18073cfe70ff45b8bc1eb7ccba1df3a1",
+  "source_qualified_intervals": 3,
+  "expected_unique_times": 356,
+  "solved_unique_times": 356,
+  "prior_unresolved_contact_samples": 40,
+  "root_speed_px_per_second": 706.2746110944369,
+  "root_speed_limit_px_per_second": 706.2814672937789,
+  "max_root_shift_px": 52.97111004715013,
+  "max_endpoint_error_px": 2.757211140495029,
+  "max_rotation_speed_degrees_per_second": 6871.12382405075,
+  "rotation_jump_interval": [2.59960916015625, 2.6],
+  "limits": {"root_ratio": 0.15, "rotation_degrees": 30, "residual_ratio": 0.01},
+  "selected": false,
+  "authority": "none",
+  "not_validated": ["rotation_continuity", "contact_entry_release", "dense_mesh", "official_runtime", "visual_acceptance"],
+  "scope": "same_fixed_anchors_endpoint_comparison_not_accepted_animation"
+}
