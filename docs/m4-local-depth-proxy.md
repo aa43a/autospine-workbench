@@ -64,3 +64,35 @@ Artifacts: `../tmp/m4-motion-center/local-depth-{hong,alice,huiye}-v1.json`.
 Tests cover interpolation, multiple influences, missing bones, out-of-segment
 positions, unnormalized weights, opaque/transparent coverage, mixed depth and
 resource limits. The original skeleton and textures are preserved.
+
+## Held intervals and complete ordering constraints
+
+`tools/m4_local_depth_order.py JOB_ID OUTPUT.json` now tests the bounded cap
+assumption at source frames and interval midpoints, then reruns the complete
+existing ordering constraints. Midpoint source depth is calculated by interpolating
+BVH channels and running FK, not by averaging endpoint depths. Rotation-channel
+intervals of 180 degrees or more abstain; this model is currently BVH-only.
+
+An ambiguous row is refined only when every visible sample supports its already
+held front slot. Unknown coverage, resource limits, opposite support and entirely
+invisible sample pairs cannot clear that row. The experiment neither creates a
+new ordering decision from the proxy nor changes the stored candidate.
+
+| Character | Rows refined | Remaining visible ordering failures | New candidate |
+| --- | ---: | --- | --- |
+| Hongmeiling | 28 | 6 unmapped ordering conflicts | None |
+| Alice | 0 | 28 straddles, 4 unmapped ordering conflicts | None |
+| Huiye | 0 | 18 straddles, 4 unmapped ordering conflicts; 29 budget-limited checks | None |
+
+Hongmeiling previously reported four conflicts because straddle failures stopped
+some frame checks early. Refinement exposes six conflicts under the full check;
+it does not establish successful ordering. Other unresolved ambiguous rows with
+no overlap are distinct from visible straddle failures. Budget-limited checks are
+unmeasured, never interpreted as absence of overlap.
+
+Reports are `../tmp/m4-motion-center/local-depth-order-{hong,alice,huiye}-v1.json`.
+No changed candidate was produced, no new Runtime capture is claimed, and no
+visual acceptance was recorded. Frame-plus-midpoint evidence does not prove
+continuous-time correctness. Tests additionally cover nonlinear FK depth,
+camera yaw, ambiguous rotation intervals, clipped source time offsets, held-order
+agreement and preservation of the original report.
