@@ -8,6 +8,25 @@ from autospine_workbench.targets.character43.depth_overlap_ownership import insp
 
 
 class OwnershipTests(unittest.TestCase):
+    def test_straddle_report_locates_actual_overlap_without_reordering(self):
+        from autospine_workbench.targets.character43.depth_ownership_review import build, render
+        doc, files = fixture()
+        doc['animations']['external-motion'] = doc['animations'].pop('test')
+        sample = dict(tick=0,source_tick=100000,min_depth_ratio=-.1,max_depth_ratio=.2)
+        depth = dict(pairs=[dict(arm_slot='a',torso_slot='b',samples=[sample])],
+            order=dict(failures=[dict(reason_code='visible_depth_straddle',time=0,pair=['a','b'],
+                                     overlap=dict(time=0,overlap_pixels=1)),
+                                 dict(time=1,reason_code='visible_unmapped_order_conflict',conflict={'edges':[]})]))
+        files.update({'skeleton.json':json.dumps(doc).encode(), 'motion-depth.json':json.dumps(depth).encode()})
+        before=deepcopy(files)
+        report=build(files)
+        self.assertEqual(report['failure_kind'],'visible_depth_straddle')
+        self.assertEqual(report['source_depth_samples'],[sample])
+        self.assertGreater(report['samples'][0]['overlap_pixels'],0)
+        self.assertFalse(report['selected'])
+        self.assertEqual(files,before)
+        self.assertIn('同一手臂跨越躯干前后',render(report).decode())
+
     def test_known_chest_and_unmapped_helper_are_distinct(self):
         doc, files = fixture(); doc['bones'][0]['name'] = 'chest'
         for s in doc['slots']: s['bone'] = 'chest'

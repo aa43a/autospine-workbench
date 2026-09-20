@@ -11,7 +11,7 @@ from .motion_depth_overlap import Probe
 def build(files):
     depth = json.loads(files['motion-depth.json'])
     document = json.loads(files['skeleton.json'])
-    report = dict(profile='first-order-conflict-ownership-v1', authority='none', selected=False,
+    report = dict(profile='first-depth-failure-ownership-v2', authority='none', selected=False,
                   skeleton_sha256=sha256(files['skeleton.json']).hexdigest(),
                   depth_sha256=sha256(files['motion-depth.json']).hexdigest(), samples=[],
                   scope='first_conflict_only_not_full_motion_validation')
@@ -34,11 +34,25 @@ def build(files):
             conflict = next((f for f in diagnosis['failures'] if f.get('conflict')), None)
             report['witness_recomputed'] = True
             report['witness_scope'] = 'first_failure_and_next_source_frame_with_midpoint'
-    if conflict is None:
+    straddle = next((f for f in depth.get('order', {}).get('failures', [])
+                     if f.get('reason_code') == 'visible_depth_straddle' and f.get('pair')), None)
+    if straddle is not None and conflict is not None and straddle['time'] < conflict['time']:
+        conflict = None
+    if conflict is None and straddle is None:
         report['status'] = 'conflict_witness_unavailable'
         return report
+    if conflict is None:
+        report['failure_kind'] = 'visible_depth_straddle'
+        report['source_depth_samples'] = [s for p in depth['pairs']
+            if [p['arm_slot'], p['torso_slot']] == straddle['pair'] for s in p['samples']
+            if abs(s['tick']/1e6-straddle['time']) < 1e-7]
+        edges = [dict(source='visible_setup_order', back=straddle['pair'][0],
+                      front=straddle['pair'][1], overlap=straddle['overlap'])]
+    else:
+        report['failure_kind'] = 'visible_unmapped_order_conflict'
+        edges = conflict['conflict']['edges'][:8]
     probe = Probe(document, files, 'external-motion', pixel_budget=8_000_000)
-    for edge in conflict['conflict']['edges'][:8]:
+    for edge in edges:
         if edge['source'] != 'visible_setup_order':
             continue
         time = edge['overlap']['time']
@@ -55,6 +69,13 @@ def build(files):
 
 def render(report):
     rows = []
+    if report.get('failure_kind') == 'visible_depth_straddle':
+        rows.append('<h2>同一手臂跨越躯干前后</h2><p>这是源骨段深度跨度异常。以下定位实际重叠像素及其权重归属；'
+                    '归属为同一手臂不证明这些像素都在躯干同一侧，不能据此整体换序。</p>')
+        for sample in report.get('source_depth_samples', []):
+            rows.append('<p>'+escape(f"源时间 {sample['source_tick']/1e6:.3f}s；相对躯干的深度范围 "
+                f"{sample['min_depth_ratio']:.4f}–{sample['max_depth_ratio']:.4f}（按源参考长度归一化）；"
+                '正值朝向镜头。')+'</p>')
     labels = {'chest': '胸部', 'arm.left': '左臂', 'arm.right': '右臂',
               'mixed': '人体与其他骨骼混合', 'unmapped': '没有源深度映射的骨骼'}
     for sample in report['samples']:
@@ -74,7 +95,7 @@ def render(report):
     return ('''<!doctype html><meta charset="utf-8"><title>遮挡区域归属</title>
 <style>body{background:#101922;color:#e7edf4;font:16px system-ui;line-height:1.7;margin:32px;max-width:1100px}a{color:#7bd8ff}</style>
 <a href="depth.html">← 遮挡检查</a><h1>冲突位置的实际权重归属</h1>
-<p>仅检查首个冲突的可见原顺序边，最多八条。使用独立计算预算，不改变候选或自动采用结果。
+<p>按时间定位首个有证据的异常：绘制顺序冲突的可见原顺序边（最多八条），或跨前后深度异常的重叠对。使用独立计算预算，不改变候选或自动采用结果。
 按三角形全部正权重分类；混合区域与辅助骨不冒充胸部深度。共享边和折叠处各类计数可能重叠。</p>'''
             + ''.join(rows) + ('<p>此历史产物没有详细冲突证据，请重新构建候选。</p>' if not rows else '')
             + '<p><a href="depth-ownership.json">完整诊断记录</a></p>').encode('utf-8')

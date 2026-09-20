@@ -34,6 +34,21 @@ inventory, rejection/evidence-change exclusion and bounded recommendation tests.
 `tools/check-motion-target-comparison.mjs JOB_ID` performs a read-only browser
 check against the live workbench and its actual candidate evidence.
 
+## Depth failure localization
+
+The existing `depth-ownership.html` entry now handles both draw-order cycles and
+visible source-depth straddles, choosing the earlier evidenced failure. This is
+the versioned `first-depth-failure-ownership-v2` diagnostic; candidate animation,
+QA thresholds and adoption remain unchanged. It displays the source depth range,
+actual native-alpha overlap ownership and a link to the exact playback time.
+
+On the automatic Hongmeiling -30-degree candidate, the first failure is at
+0.166667 seconds: left-arm slot `layer-006` overlaps chest slot `layer-009` at
+951 sampled pixels. Source relative depth ranges from -0.185193 to +0.031209.
+Both attachments use recognized body weights, but that does not establish one
+depth side for all overlap pixels. Whole-arm reordering is therefore still not
+adopted. A later arm/skirt cycle at 1.4 seconds no longer hides this earlier issue.
+
 Current completed runs:
 
 | Matrix | Runtime captures | Geometry passes | Ready for stage review |
