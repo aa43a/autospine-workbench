@@ -21,7 +21,7 @@ ANIMATION = 'external-motion'
 
 
 def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_digest, kimodo=None,
-                    contact_correction=True, clip_bounds=None, inferred_contact_profile=None):
+                    contact_correction=True, clip_bounds=None, inferred_contact_profile=None, depth_review_profile=None):
     """Only the animation changes; layers, meshes, weights and texture pixels stay exact."""
     source = json.loads(files['skeleton.json'])
     original = deepcopy(source)
@@ -98,10 +98,20 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
         issues.append(dict(stage='geometry', reason_code='motion_target_deformation_needs_changes'))
     if {k: v for k, v in document.items() if k != 'animations'} != {k: v for k, v in original.items() if k != 'animations'}:
         raise ValueError('motion_target_rig_changed')
+    depth_status = 'not_evaluated'
+    if depth_review_profile:
+        from ..targets.character43.motion_depth import PROFILE as DEPTH_PROFILE, build as inspect_depth
+        if depth_review_profile != DEPTH_PROFILE:
+            raise ValueError('motion_depth_profile_unsupported')
+        depth = inspect_depth(document, bvh, mapping, kimodo=kimodo, clip_bounds=clip_bounds)
+        depth.update(character_sha256=character_digest, motion_bundle_sha256=motion_digest,
+                     skeleton_sha256=sha256(raw).hexdigest())
+        result['motion-depth.json'] = canonical_bytes(depth)
+        depth_status = depth['status']
     evidence.update(character_sha256=character_digest, motion_bundle_sha256=motion_digest,
                     geometry_passed=geometry['passed'], issues=issues,
                     contact_status=contact['status'], contact_policy=contact['policy_id'],
-                    depth_order_status='not_evaluated',
+                    depth_order_status=depth_status,
                     runtime_status='not_evaluated', authority='none',
                     status='needs_changes' if issues else 'needs_review')
     result.update({'motion-review.json': canonical_bytes(evidence),
@@ -132,9 +142,9 @@ def execute(folder, state_root, workspace):
     progress(folder, 'retarget')
     motion_id = request['motion_identity']
     bundle = VerifiedMotionBundleReader(state_root).load(motion_id['clip_sha256'], motion_id['bundle_sha256'])
-    motion = json.loads((bundle.path / 'motion.json').read_bytes())
+    motion = bundle.motion
     kimodo = (bundle.raw_npz, bundle.kimodo_source) if bundle.source_kind == 'kimodo_npz' else None
-    bvh = None if kimodo else parse_bvh((bundle.path / 'source.bvh').read_bytes())
+    bvh = None if kimodo else parse_bvh(bundle.raw_bvh)
     from ..bvh_fk import bvh_frame_ticks
     from ..kimodo_npz_projection import kimodo_frame_ticks
     ticks = kimodo_frame_ticks(bundle.kimodo_source) if kimodo else bvh_frame_ticks(bvh)
@@ -142,9 +152,10 @@ def execute(folder, state_root, workspace):
     if max(len(track['keys']) for track in clip_motion(motion, clip_bounds)['tracks']) > 768:
         raise ValueError('motion_target_sample_limit')
     files, evidence, geometry = build_candidate(store.read(request['character_sha256']), motion,
-        bvh, json.loads((bundle.path / 'map.json').read_bytes()), kimodo=kimodo,
+        bvh, bundle.kimodo_map if kimodo else bundle.bvh_map, kimodo=kimodo,
         contact_correction=request.get('contact_correction', True),
         inferred_contact_profile=inferred_profile,
+        depth_review_profile=request.get('depth_review_profile'),
         clip_bounds=clip_bounds,
         character_digest=request['character_sha256'], motion_digest=motion_id['bundle_sha256'])
     progress(folder, 'publish_candidate')
@@ -158,7 +169,7 @@ def execute(folder, state_root, workspace):
                   clip=request.get('clip'),
                   runtime_reference_profile=storage_reference or 'legacy_ideal_reference',
                   inferred_contact_profile=inferred_profile,
-                  depth_order_status='not_evaluated', authority='none', production_authorized=False)
+                  depth_order_status=evidence['depth_order_status'], authority='none', production_authorized=False)
     (folder / 'worker-result.json').write_bytes(canonical_bytes(result))
 
 

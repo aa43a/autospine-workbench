@@ -1,0 +1,2935 @@
+{
+  "records": [
+    {
+      "profile": "external-arm-torso-depth-review-v1",
+      "authority": "none",
+      "selected": false,
+      "source_sha256": "55754b8cfb4e8d4f3915903cc508ebcdd011fa3276404cf78b4abbef4ac21920",
+      "map_sha256": "a2a0ed3db70e5e0806c41435ae44b4a8d14ef8d27dac5548da88b09456119633",
+      "depth_axis": "+Z",
+      "depth_positive": "toward_camera",
+      "groups": {
+        "left": [
+          "layer-004"
+        ],
+        "right": [
+          "layer-003"
+        ],
+        "torso": [
+          "layer-006"
+        ],
+        "other": [
+          "layer-000",
+          "layer-001-l",
+          "layer-001-r",
+          "layer-002-l",
+          "layer-002-r",
+          "layer-005",
+          "layer-007",
+          "layer-008-component-0000",
+          "layer-008-unbound-residual",
+          "layer-009",
+          "layer-010",
+          "layer-011",
+          "layer-012",
+          "layer-013",
+          "layer-014",
+          "layer-015",
+          "layer-016",
+          "layer-017",
+          "layer-018",
+          "layer-019",
+          "layer-020",
+          "layer-021",
+          "layer-022"
+        ]
+      },
+      "scope": "source_depth_order_candidate_not_raster_occlusion_validation",
+      "limits": {
+        "enter_ratio": 0.04,
+        "exit_ratio": 0.02,
+        "minimum_hold_frames": 3
+      },
+      "limitations": [
+        "source_depth_does_not_prove_target_pixel_overlap",
+        "straddling_arm_requires_partition_or_review",
+        "unclassified_slots_keep_setup_order"
+      ],
+      "switch_candidates": 0,
+      "ambiguous_pair_samples": 598,
+      "status": "depth_candidates_need_review",
+      "cell": "breathing/alice",
+      "input_artifact_sha256": "d42e4b8b31fccbead8b60688dd3dfad6ba62a02716c22297c9892aeeb0346a67",
+      "motion_identity": {
+        "bundle_sha256": "9a1840b148f2a635f8046e1005c759bdf706cb5448b5d08d3537cec350217d8c",
+        "bvh_map_sha256": "a2a0ed3db70e5e0806c41435ae44b4a8d14ef8d27dac5548da88b09456119633",
+        "clip_id": "external.55754b8cfb4e8d4f.front",
+        "clip_sha256": "a58b48eee62e87aa4963c29e9a6d61a62b6af9023497ef2bc1999ea7c6e55ecc",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "a58b48eee62e87aa4963c29e9a6d61a62b6af9023497ef2bc1999ea7c6e55ecc",
+        "raw_bvh_byte_length": 833202,
+        "raw_bvh_sha256": "55754b8cfb4e8d4f3915903cc508ebcdd011fa3276404cf78b4abbef4ac21920",
+        "reused": false,
+        "run_sha256": "ad37b8e09ea5dee62271cad1fd631f4618ee00373ce7e2daa2f8924719163377",
+        "source_kind": "bvh"
+      },
+      "pairs": [
+        {
+          "arm_slot": "layer-004",
+          "torso_slot": "layer-006",
+          "side": "left",
+          "setup_front_slot": "layer-006",
+          "events": []
+        },
+        {
+          "arm_slot": "layer-003",
+          "torso_slot": "layer-006",
+          "side": "right",
+          "setup_front_slot": "layer-006",
+          "events": []
+        }
+      ]
+    },
+    {
+      "profile": "external-arm-torso-depth-review-v1",
+      "authority": "none",
+      "selected": false,
+      "source_sha256": "55754b8cfb4e8d4f3915903cc508ebcdd011fa3276404cf78b4abbef4ac21920",
+      "map_sha256": "a2a0ed3db70e5e0806c41435ae44b4a8d14ef8d27dac5548da88b09456119633",
+      "depth_axis": "+Z",
+      "depth_positive": "toward_camera",
+      "groups": {
+        "left": [
+          "layer-003-component-0000"
+        ],
+        "right": [
+          "layer-002-component-0000"
+        ],
+        "torso": [
+          "layer-005"
+        ],
+        "other": [
+          "layer-000",
+          "layer-001-l",
+          "layer-001-r",
+          "layer-004",
+          "layer-006",
+          "layer-007",
+          "layer-008",
+          "layer-009",
+          "layer-010",
+          "layer-011",
+          "layer-012",
+          "layer-013",
+          "layer-014",
+          "layer-015",
+          "layer-016",
+          "layer-017",
+          "layer-018",
+          "layer-019",
+          "layer-020"
+        ]
+      },
+      "scope": "source_depth_order_candidate_not_raster_occlusion_validation",
+      "limits": {
+        "enter_ratio": 0.04,
+        "exit_ratio": 0.02,
+        "minimum_hold_frames": 3
+      },
+      "limitations": [
+        "source_depth_does_not_prove_target_pixel_overlap",
+        "straddling_arm_requires_partition_or_review",
+        "unclassified_slots_keep_setup_order"
+      ],
+      "switch_candidates": 0,
+      "ambiguous_pair_samples": 598,
+      "status": "depth_candidates_need_review",
+      "cell": "breathing/huiye",
+      "input_artifact_sha256": "6d0534844ef3d1048649039a156bbe212fb06bf6264644658c5ef2e5c6a02307",
+      "motion_identity": {
+        "bundle_sha256": "9a1840b148f2a635f8046e1005c759bdf706cb5448b5d08d3537cec350217d8c",
+        "bvh_map_sha256": "a2a0ed3db70e5e0806c41435ae44b4a8d14ef8d27dac5548da88b09456119633",
+        "clip_id": "external.55754b8cfb4e8d4f.front",
+        "clip_sha256": "a58b48eee62e87aa4963c29e9a6d61a62b6af9023497ef2bc1999ea7c6e55ecc",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "a58b48eee62e87aa4963c29e9a6d61a62b6af9023497ef2bc1999ea7c6e55ecc",
+        "raw_bvh_byte_length": 833202,
+        "raw_bvh_sha256": "55754b8cfb4e8d4f3915903cc508ebcdd011fa3276404cf78b4abbef4ac21920",
+        "reused": false,
+        "run_sha256": "ad37b8e09ea5dee62271cad1fd631f4618ee00373ce7e2daa2f8924719163377",
+        "source_kind": "bvh"
+      },
+      "pairs": [
+        {
+          "arm_slot": "layer-003-component-0000",
+          "torso_slot": "layer-005",
+          "side": "left",
+          "setup_front_slot": "layer-005",
+          "events": []
+        },
+        {
+          "arm_slot": "layer-002-component-0000",
+          "torso_slot": "layer-005",
+          "side": "right",
+          "setup_front_slot": "layer-005",
+          "events": []
+        }
+      ]
+    },
+    {
+      "profile": "external-arm-torso-depth-review-v1",
+      "authority": "none",
+      "selected": false,
+      "source_sha256": "55754b8cfb4e8d4f3915903cc508ebcdd011fa3276404cf78b4abbef4ac21920",
+      "map_sha256": "a2a0ed3db70e5e0806c41435ae44b4a8d14ef8d27dac5548da88b09456119633",
+      "depth_axis": "+Z",
+      "depth_positive": "toward_camera",
+      "groups": {
+        "left": [
+          "layer-006"
+        ],
+        "right": [
+          "layer-001"
+        ],
+        "torso": [
+          "layer-009",
+          "layer-011"
+        ],
+        "other": [
+          "layer-000",
+          "layer-002",
+          "layer-003",
+          "layer-004",
+          "layer-005",
+          "layer-007",
+          "layer-008",
+          "layer-010",
+          "layer-012",
+          "layer-013",
+          "layer-014",
+          "layer-015",
+          "layer-016",
+          "layer-017",
+          "layer-018",
+          "layer-019",
+          "layer-020",
+          "layer-021",
+          "layer-022",
+          "layer-023",
+          "layer-024",
+          "layer-025",
+          "layer-026"
+        ]
+      },
+      "scope": "source_depth_order_candidate_not_raster_occlusion_validation",
+      "limits": {
+        "enter_ratio": 0.04,
+        "exit_ratio": 0.02,
+        "minimum_hold_frames": 3
+      },
+      "limitations": [
+        "source_depth_does_not_prove_target_pixel_overlap",
+        "straddling_arm_requires_partition_or_review",
+        "unclassified_slots_keep_setup_order"
+      ],
+      "switch_candidates": 0,
+      "ambiguous_pair_samples": 1196,
+      "status": "depth_candidates_need_review",
+      "cell": "breathing/hongmeiling",
+      "input_artifact_sha256": "fb62e9010ee88ef9e2cc6aa133f65cb2fc20fd79bd05e140e1e76c7c020cb3eb",
+      "motion_identity": {
+        "bundle_sha256": "9a1840b148f2a635f8046e1005c759bdf706cb5448b5d08d3537cec350217d8c",
+        "bvh_map_sha256": "a2a0ed3db70e5e0806c41435ae44b4a8d14ef8d27dac5548da88b09456119633",
+        "clip_id": "external.55754b8cfb4e8d4f.front",
+        "clip_sha256": "a58b48eee62e87aa4963c29e9a6d61a62b6af9023497ef2bc1999ea7c6e55ecc",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "a58b48eee62e87aa4963c29e9a6d61a62b6af9023497ef2bc1999ea7c6e55ecc",
+        "raw_bvh_byte_length": 833202,
+        "raw_bvh_sha256": "55754b8cfb4e8d4f3915903cc508ebcdd011fa3276404cf78b4abbef4ac21920",
+        "reused": false,
+        "run_sha256": "ad37b8e09ea5dee62271cad1fd631f4618ee00373ce7e2daa2f8924719163377",
+        "source_kind": "bvh"
+      },
+      "pairs": [
+        {
+          "arm_slot": "layer-006",
+          "torso_slot": "layer-009",
+          "side": "left",
+          "setup_front_slot": "layer-009",
+          "events": []
+        },
+        {
+          "arm_slot": "layer-006",
+          "torso_slot": "layer-011",
+          "side": "left",
+          "setup_front_slot": "layer-011",
+          "events": []
+        },
+        {
+          "arm_slot": "layer-001",
+          "torso_slot": "layer-009",
+          "side": "right",
+          "setup_front_slot": "layer-009",
+          "events": []
+        },
+        {
+          "arm_slot": "layer-001",
+          "torso_slot": "layer-011",
+          "side": "right",
+          "setup_front_slot": "layer-011",
+          "events": []
+        }
+      ]
+    },
+    {
+      "profile": "external-arm-torso-depth-review-v1",
+      "authority": "none",
+      "selected": false,
+      "source_sha256": "505d23b551de8a4ca0cbdcd78a728ebce4893f57493ffdf53fe3d1f105a8f71e",
+      "map_sha256": "7c9b299225d1b5647213681894592f51d4cc375501f0ede4fdc4e0f16b6f1d16",
+      "depth_axis": "+Z",
+      "depth_positive": "toward_camera",
+      "groups": {
+        "left": [
+          "layer-004"
+        ],
+        "right": [
+          "layer-003"
+        ],
+        "torso": [
+          "layer-006"
+        ],
+        "other": [
+          "layer-000",
+          "layer-001-l",
+          "layer-001-r",
+          "layer-002-l",
+          "layer-002-r",
+          "layer-005",
+          "layer-007",
+          "layer-008-component-0000",
+          "layer-008-unbound-residual",
+          "layer-009",
+          "layer-010",
+          "layer-011",
+          "layer-012",
+          "layer-013",
+          "layer-014",
+          "layer-015",
+          "layer-016",
+          "layer-017",
+          "layer-018",
+          "layer-019",
+          "layer-020",
+          "layer-021",
+          "layer-022"
+        ]
+      },
+      "scope": "source_depth_order_candidate_not_raster_occlusion_validation",
+      "limits": {
+        "enter_ratio": 0.04,
+        "exit_ratio": 0.02,
+        "minimum_hold_frames": 3
+      },
+      "limitations": [
+        "source_depth_does_not_prove_target_pixel_overlap",
+        "straddling_arm_requires_partition_or_review",
+        "unclassified_slots_keep_setup_order"
+      ],
+      "switch_candidates": 2,
+      "ambiguous_pair_samples": 0,
+      "status": "depth_candidates_need_review",
+      "cell": "walking/alice",
+      "input_artifact_sha256": "817ff72bc44bfff7a8cdab76f35d5d3b7532a686701f78ca9b979dd87f0859b3",
+      "motion_identity": {
+        "bundle_sha256": "73e0e6ee787985f7a0ae639951958205711d40d08fb4a751d3abc412b18ed44a",
+        "bvh_map_sha256": "7c9b299225d1b5647213681894592f51d4cc375501f0ede4fdc4e0f16b6f1d16",
+        "clip_id": "external.505d23b551de8a4c.front",
+        "clip_sha256": "f24b63fc9a949933243dc1163dbedeb8e0091d27b04e6b9389b519c1b211f663",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "f24b63fc9a949933243dc1163dbedeb8e0091d27b04e6b9389b519c1b211f663",
+        "raw_bvh_byte_length": 346062,
+        "raw_bvh_sha256": "505d23b551de8a4ca0cbdcd78a728ebce4893f57493ffdf53fe3d1f105a8f71e",
+        "reused": false,
+        "run_sha256": "b156f2888ea1c967cb83f0a627ec36f42d038349a4a032ca16b9099198de5f87",
+        "source_kind": "bvh"
+      },
+      "pairs": [
+        {
+          "arm_slot": "layer-004",
+          "torso_slot": "layer-006",
+          "side": "left",
+          "setup_front_slot": "layer-006",
+          "events": [
+            {
+              "source_frame_index": 2,
+              "tick": 66667,
+              "from_front_slot": "layer-006",
+              "to_front_slot": "layer-004",
+              "evidence_window": {
+                "start_source_frame_index": 0,
+                "end_source_frame_index": 2,
+                "start_tick": 0,
+                "end_tick": 66667,
+                "sample_count": 3
+              }
+            }
+          ]
+        },
+        {
+          "arm_slot": "layer-003",
+          "torso_slot": "layer-006",
+          "side": "right",
+          "setup_front_slot": "layer-006",
+          "events": [
+            {
+              "source_frame_index": 2,
+              "tick": 66667,
+              "from_front_slot": "layer-006",
+              "to_front_slot": "layer-003",
+              "evidence_window": {
+                "start_source_frame_index": 0,
+                "end_source_frame_index": 2,
+                "start_tick": 0,
+                "end_tick": 66667,
+                "sample_count": 3
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "profile": "external-arm-torso-depth-review-v1",
+      "authority": "none",
+      "selected": false,
+      "source_sha256": "505d23b551de8a4ca0cbdcd78a728ebce4893f57493ffdf53fe3d1f105a8f71e",
+      "map_sha256": "7c9b299225d1b5647213681894592f51d4cc375501f0ede4fdc4e0f16b6f1d16",
+      "depth_axis": "+Z",
+      "depth_positive": "toward_camera",
+      "groups": {
+        "left": [
+          "layer-003-component-0000"
+        ],
+        "right": [
+          "layer-002-component-0000"
+        ],
+        "torso": [
+          "layer-005"
+        ],
+        "other": [
+          "layer-000",
+          "layer-001-l",
+          "layer-001-r",
+          "layer-004",
+          "layer-006",
+          "layer-007",
+          "layer-008",
+          "layer-009",
+          "layer-010",
+          "layer-011",
+          "layer-012",
+          "layer-013",
+          "layer-014",
+          "layer-015",
+          "layer-016",
+          "layer-017",
+          "layer-018",
+          "layer-019",
+          "layer-020"
+        ]
+      },
+      "scope": "source_depth_order_candidate_not_raster_occlusion_validation",
+      "limits": {
+        "enter_ratio": 0.04,
+        "exit_ratio": 0.02,
+        "minimum_hold_frames": 3
+      },
+      "limitations": [
+        "source_depth_does_not_prove_target_pixel_overlap",
+        "straddling_arm_requires_partition_or_review",
+        "unclassified_slots_keep_setup_order"
+      ],
+      "switch_candidates": 2,
+      "ambiguous_pair_samples": 0,
+      "status": "depth_candidates_need_review",
+      "cell": "walking/huiye",
+      "input_artifact_sha256": "6f182405bb02eb0e8407c120c9ec92355326945bfcc507aab405f02c71ff9e3e",
+      "motion_identity": {
+        "bundle_sha256": "73e0e6ee787985f7a0ae639951958205711d40d08fb4a751d3abc412b18ed44a",
+        "bvh_map_sha256": "7c9b299225d1b5647213681894592f51d4cc375501f0ede4fdc4e0f16b6f1d16",
+        "clip_id": "external.505d23b551de8a4c.front",
+        "clip_sha256": "f24b63fc9a949933243dc1163dbedeb8e0091d27b04e6b9389b519c1b211f663",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "f24b63fc9a949933243dc1163dbedeb8e0091d27b04e6b9389b519c1b211f663",
+        "raw_bvh_byte_length": 346062,
+        "raw_bvh_sha256": "505d23b551de8a4ca0cbdcd78a728ebce4893f57493ffdf53fe3d1f105a8f71e",
+        "reused": false,
+        "run_sha256": "b156f2888ea1c967cb83f0a627ec36f42d038349a4a032ca16b9099198de5f87",
+        "source_kind": "bvh"
+      },
+      "pairs": [
+        {
+          "arm_slot": "layer-003-component-0000",
+          "torso_slot": "layer-005",
+          "side": "left",
+          "setup_front_slot": "layer-005",
+          "events": [
+            {
+              "source_frame_index": 2,
+              "tick": 66667,
+              "from_front_slot": "layer-005",
+              "to_front_slot": "layer-003-component-0000",
+              "evidence_window": {
+                "start_source_frame_index": 0,
+                "end_source_frame_index": 2,
+                "start_tick": 0,
+                "end_tick": 66667,
+                "sample_count": 3
+              }
+            }
+          ]
+        },
+        {
+          "arm_slot": "layer-002-component-0000",
+          "torso_slot": "layer-005",
+          "side": "right",
+          "setup_front_slot": "layer-005",
+          "events": [
+            {
+              "source_frame_index": 2,
+              "tick": 66667,
+              "from_front_slot": "layer-005",
+              "to_front_slot": "layer-002-component-0000",
+              "evidence_window": {
+                "start_source_frame_index": 0,
+                "end_source_frame_index": 2,
+                "start_tick": 0,
+                "end_tick": 66667,
+                "sample_count": 3
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "profile": "external-arm-torso-depth-review-v1",
+      "authority": "none",
+      "selected": false,
+      "source_sha256": "505d23b551de8a4ca0cbdcd78a728ebce4893f57493ffdf53fe3d1f105a8f71e",
+      "map_sha256": "7c9b299225d1b5647213681894592f51d4cc375501f0ede4fdc4e0f16b6f1d16",
+      "depth_axis": "+Z",
+      "depth_positive": "toward_camera",
+      "groups": {
+        "left": [
+          "layer-006"
+        ],
+        "right": [
+          "layer-001"
+        ],
+        "torso": [
+          "layer-009",
+          "layer-011"
+        ],
+        "other": [
+          "layer-000",
+          "layer-002",
+          "layer-003",
+          "layer-004",
+          "layer-005",
+          "layer-007",
+          "layer-008",
+          "layer-010",
+          "layer-012",
+          "layer-013",
+          "layer-014",
+          "layer-015",
+          "layer-016",
+          "layer-017",
+          "layer-018",
+          "layer-019",
+          "layer-020",
+          "layer-021",
+          "layer-022",
+          "layer-023",
+          "layer-024",
+          "layer-025",
+          "layer-026"
+        ]
+      },
+      "scope": "source_depth_order_candidate_not_raster_occlusion_validation",
+      "limits": {
+        "enter_ratio": 0.04,
+        "exit_ratio": 0.02,
+        "minimum_hold_frames": 3
+      },
+      "limitations": [
+        "source_depth_does_not_prove_target_pixel_overlap",
+        "straddling_arm_requires_partition_or_review",
+        "unclassified_slots_keep_setup_order"
+      ],
+      "switch_candidates": 4,
+      "ambiguous_pair_samples": 0,
+      "status": "depth_candidates_need_review",
+      "cell": "walking/hongmeiling",
+      "input_artifact_sha256": "0731f6aabaf004d0dd0bd35a0f7ffad37acaa4bfb64b84fe9c7f09f39d78911f",
+      "motion_identity": {
+        "bundle_sha256": "73e0e6ee787985f7a0ae639951958205711d40d08fb4a751d3abc412b18ed44a",
+        "bvh_map_sha256": "7c9b299225d1b5647213681894592f51d4cc375501f0ede4fdc4e0f16b6f1d16",
+        "clip_id": "external.505d23b551de8a4c.front",
+        "clip_sha256": "f24b63fc9a949933243dc1163dbedeb8e0091d27b04e6b9389b519c1b211f663",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "f24b63fc9a949933243dc1163dbedeb8e0091d27b04e6b9389b519c1b211f663",
+        "raw_bvh_byte_length": 346062,
+        "raw_bvh_sha256": "505d23b551de8a4ca0cbdcd78a728ebce4893f57493ffdf53fe3d1f105a8f71e",
+        "reused": false,
+        "run_sha256": "b156f2888ea1c967cb83f0a627ec36f42d038349a4a032ca16b9099198de5f87",
+        "source_kind": "bvh"
+      },
+      "pairs": [
+        {
+          "arm_slot": "layer-006",
+          "torso_slot": "layer-009",
+          "side": "left",
+          "setup_front_slot": "layer-009",
+          "events": [
+            {
+              "source_frame_index": 2,
+              "tick": 66667,
+              "from_front_slot": "layer-009",
+              "to_front_slot": "layer-006",
+              "evidence_window": {
+                "start_source_frame_index": 0,
+                "end_source_frame_index": 2,
+                "start_tick": 0,
+                "end_tick": 66667,
+                "sample_count": 3
+              }
+            }
+          ]
+        },
+        {
+          "arm_slot": "layer-006",
+          "torso_slot": "layer-011",
+          "side": "left",
+          "setup_front_slot": "layer-011",
+          "events": [
+            {
+              "source_frame_index": 2,
+              "tick": 66667,
+              "from_front_slot": "layer-011",
+              "to_front_slot": "layer-006",
+              "evidence_window": {
+                "start_source_frame_index": 0,
+                "end_source_frame_index": 2,
+                "start_tick": 0,
+                "end_tick": 66667,
+                "sample_count": 3
+              }
+            }
+          ]
+        },
+        {
+          "arm_slot": "layer-001",
+          "torso_slot": "layer-009",
+          "side": "right",
+          "setup_front_slot": "layer-009",
+          "events": [
+            {
+              "source_frame_index": 2,
+              "tick": 66667,
+              "from_front_slot": "layer-009",
+              "to_front_slot": "layer-001",
+              "evidence_window": {
+                "start_source_frame_index": 0,
+                "end_source_frame_index": 2,
+                "start_tick": 0,
+                "end_tick": 66667,
+                "sample_count": 3
+              }
+            }
+          ]
+        },
+        {
+          "arm_slot": "layer-001",
+          "torso_slot": "layer-011",
+          "side": "right",
+          "setup_front_slot": "layer-011",
+          "events": [
+            {
+              "source_frame_index": 2,
+              "tick": 66667,
+              "from_front_slot": "layer-011",
+              "to_front_slot": "layer-001",
+              "evidence_window": {
+                "start_source_frame_index": 0,
+                "end_source_frame_index": 2,
+                "start_tick": 0,
+                "end_tick": 66667,
+                "sample_count": 3
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "profile": "external-arm-torso-depth-review-v1",
+      "authority": "none",
+      "selected": false,
+      "source_sha256": "2ef3d860da11f2456fd43323aaf35a5e8b2860aba2191311cfed35887e920686",
+      "map_sha256": "b491975cfe78426f51bb943c459e6ff5fa105b9ef332495de1978857b7d5a564",
+      "depth_axis": "+Z",
+      "depth_positive": "toward_camera",
+      "groups": {
+        "left": [
+          "layer-004"
+        ],
+        "right": [
+          "layer-003"
+        ],
+        "torso": [
+          "layer-006"
+        ],
+        "other": [
+          "layer-000",
+          "layer-001-l",
+          "layer-001-r",
+          "layer-002-l",
+          "layer-002-r",
+          "layer-005",
+          "layer-007",
+          "layer-008-component-0000",
+          "layer-008-unbound-residual",
+          "layer-009",
+          "layer-010",
+          "layer-011",
+          "layer-012",
+          "layer-013",
+          "layer-014",
+          "layer-015",
+          "layer-016",
+          "layer-017",
+          "layer-018",
+          "layer-019",
+          "layer-020",
+          "layer-021",
+          "layer-022"
+        ]
+      },
+      "scope": "source_depth_order_candidate_not_raster_occlusion_validation",
+      "limits": {
+        "enter_ratio": 0.04,
+        "exit_ratio": 0.02,
+        "minimum_hold_frames": 3
+      },
+      "limitations": [
+        "source_depth_does_not_prove_target_pixel_overlap",
+        "straddling_arm_requires_partition_or_review",
+        "unclassified_slots_keep_setup_order"
+      ],
+      "switch_candidates": 1,
+      "ambiguous_pair_samples": 105,
+      "status": "depth_candidates_need_review",
+      "cell": "raise-arms/alice",
+      "input_artifact_sha256": "ce2266360317478dd9761b86f6b39edfda24dafcdae0eb1e7ca92150a80d5a13",
+      "motion_identity": {
+        "bundle_sha256": "d9567d693030411b0a7be28b6da14218851b052a915945bcccda5594fe43dd87",
+        "bvh_map_sha256": "b491975cfe78426f51bb943c459e6ff5fa105b9ef332495de1978857b7d5a564",
+        "clip_id": "external.2ef3d860da11f245.front",
+        "clip_sha256": "2393e9081dd8b4d4d7c89c2061fe3645303c5092c098a0f7752a0dbb1049237e",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "2393e9081dd8b4d4d7c89c2061fe3645303c5092c098a0f7752a0dbb1049237e",
+        "raw_bvh_byte_length": 171331,
+        "raw_bvh_sha256": "2ef3d860da11f2456fd43323aaf35a5e8b2860aba2191311cfed35887e920686",
+        "reused": false,
+        "run_sha256": "6237041e50ae8b0010f0f27c24cb6dc884fd1693e3bdba83b620551ff94f98d2",
+        "source_kind": "bvh"
+      },
+      "pairs": [
+        {
+          "arm_slot": "layer-004",
+          "torso_slot": "layer-006",
+          "side": "left",
+          "setup_front_slot": "layer-006",
+          "events": [
+            {
+              "source_frame_index": 8,
+              "tick": 266667,
+              "from_front_slot": "layer-006",
+              "to_front_slot": "layer-004",
+              "evidence_window": {
+                "start_source_frame_index": 6,
+                "end_source_frame_index": 8,
+                "start_tick": 200000,
+                "end_tick": 266667,
+                "sample_count": 3
+              }
+            }
+          ]
+        },
+        {
+          "arm_slot": "layer-003",
+          "torso_slot": "layer-006",
+          "side": "right",
+          "setup_front_slot": "layer-006",
+          "events": []
+        }
+      ]
+    },
+    {
+      "profile": "external-arm-torso-depth-review-v1",
+      "authority": "none",
+      "selected": false,
+      "source_sha256": "2ef3d860da11f2456fd43323aaf35a5e8b2860aba2191311cfed35887e920686",
+      "map_sha256": "b491975cfe78426f51bb943c459e6ff5fa105b9ef332495de1978857b7d5a564",
+      "depth_axis": "+Z",
+      "depth_positive": "toward_camera",
+      "groups": {
+        "left": [
+          "layer-006"
+        ],
+        "right": [
+          "layer-001"
+        ],
+        "torso": [
+          "layer-009",
+          "layer-011"
+        ],
+        "other": [
+          "layer-000",
+          "layer-002",
+          "layer-003",
+          "layer-004",
+          "layer-005",
+          "layer-007",
+          "layer-008",
+          "layer-010",
+          "layer-012",
+          "layer-013",
+          "layer-014",
+          "layer-015",
+          "layer-016",
+          "layer-017",
+          "layer-018",
+          "layer-019",
+          "layer-020",
+          "layer-021",
+          "layer-022",
+          "layer-023",
+          "layer-024",
+          "layer-025",
+          "layer-026"
+        ]
+      },
+      "scope": "source_depth_order_candidate_not_raster_occlusion_validation",
+      "limits": {
+        "enter_ratio": 0.04,
+        "exit_ratio": 0.02,
+        "minimum_hold_frames": 3
+      },
+      "limitations": [
+        "source_depth_does_not_prove_target_pixel_overlap",
+        "straddling_arm_requires_partition_or_review",
+        "unclassified_slots_keep_setup_order"
+      ],
+      "switch_candidates": 2,
+      "ambiguous_pair_samples": 210,
+      "status": "depth_candidates_need_review",
+      "cell": "raise-arms/hongmeiling",
+      "input_artifact_sha256": "cfebf7e5abe80177c734cbeec891997678c867bc1ab40442571fc7ea41f1ca7d",
+      "motion_identity": {
+        "bundle_sha256": "d9567d693030411b0a7be28b6da14218851b052a915945bcccda5594fe43dd87",
+        "bvh_map_sha256": "b491975cfe78426f51bb943c459e6ff5fa105b9ef332495de1978857b7d5a564",
+        "clip_id": "external.2ef3d860da11f245.front",
+        "clip_sha256": "2393e9081dd8b4d4d7c89c2061fe3645303c5092c098a0f7752a0dbb1049237e",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "2393e9081dd8b4d4d7c89c2061fe3645303c5092c098a0f7752a0dbb1049237e",
+        "raw_bvh_byte_length": 171331,
+        "raw_bvh_sha256": "2ef3d860da11f2456fd43323aaf35a5e8b2860aba2191311cfed35887e920686",
+        "reused": false,
+        "run_sha256": "6237041e50ae8b0010f0f27c24cb6dc884fd1693e3bdba83b620551ff94f98d2",
+        "source_kind": "bvh"
+      },
+      "pairs": [
+        {
+          "arm_slot": "layer-006",
+          "torso_slot": "layer-009",
+          "side": "left",
+          "setup_front_slot": "layer-009",
+          "events": [
+            {
+              "source_frame_index": 8,
+              "tick": 266667,
+              "from_front_slot": "layer-009",
+              "to_front_slot": "layer-006",
+              "evidence_window": {
+                "start_source_frame_index": 6,
+                "end_source_frame_index": 8,
+                "start_tick": 200000,
+                "end_tick": 266667,
+                "sample_count": 3
+              }
+            }
+          ]
+        },
+        {
+          "arm_slot": "layer-006",
+          "torso_slot": "layer-011",
+          "side": "left",
+          "setup_front_slot": "layer-011",
+          "events": [
+            {
+              "source_frame_index": 8,
+              "tick": 266667,
+              "from_front_slot": "layer-011",
+              "to_front_slot": "layer-006",
+              "evidence_window": {
+                "start_source_frame_index": 6,
+                "end_source_frame_index": 8,
+                "start_tick": 200000,
+                "end_tick": 266667,
+                "sample_count": 3
+              }
+            }
+          ]
+        },
+        {
+          "arm_slot": "layer-001",
+          "torso_slot": "layer-009",
+          "side": "right",
+          "setup_front_slot": "layer-009",
+          "events": []
+        },
+        {
+          "arm_slot": "layer-001",
+          "torso_slot": "layer-011",
+          "side": "right",
+          "setup_front_slot": "layer-011",
+          "events": []
+        }
+      ]
+    },
+    {
+      "profile": "external-arm-torso-depth-review-v1",
+      "authority": "none",
+      "selected": false,
+      "source_sha256": "5e80ce7665829fc3e6153edfbaab9c419953263262a695f084a23a09de31234b",
+      "map_sha256": "3c8a43c52c03572435e2ad34d4fc4edd6700d8c3617733ab8db1c79a60d227a4",
+      "depth_axis": "+Z",
+      "depth_positive": "toward_camera",
+      "groups": {
+        "left": [
+          "layer-004"
+        ],
+        "right": [
+          "layer-003"
+        ],
+        "torso": [
+          "layer-006"
+        ],
+        "other": [
+          "layer-000",
+          "layer-001-l",
+          "layer-001-r",
+          "layer-002-l",
+          "layer-002-r",
+          "layer-005",
+          "layer-007",
+          "layer-008-component-0000",
+          "layer-008-unbound-residual",
+          "layer-009",
+          "layer-010",
+          "layer-011",
+          "layer-012",
+          "layer-013",
+          "layer-014",
+          "layer-015",
+          "layer-016",
+          "layer-017",
+          "layer-018",
+          "layer-019",
+          "layer-020",
+          "layer-021",
+          "layer-022"
+        ]
+      },
+      "scope": "source_depth_order_candidate_not_raster_occlusion_validation",
+      "limits": {
+        "enter_ratio": 0.04,
+        "exit_ratio": 0.02,
+        "minimum_hold_frames": 3
+      },
+      "limitations": [
+        "source_depth_does_not_prove_target_pixel_overlap",
+        "straddling_arm_requires_partition_or_review",
+        "unclassified_slots_keep_setup_order"
+      ],
+      "switch_candidates": 3,
+      "ambiguous_pair_samples": 26,
+      "status": "depth_candidates_need_review",
+      "cell": "turn/alice",
+      "input_artifact_sha256": "434e95400a10f749dd84e519d75b69e359956b9507244a51f06432e1db1b387c",
+      "motion_identity": {
+        "bundle_sha256": "a3138b152d73ee38cebc9d1d77663cb44ba6458be2724eac04d6fbade9ed6380",
+        "bvh_map_sha256": "3c8a43c52c03572435e2ad34d4fc4edd6700d8c3617733ab8db1c79a60d227a4",
+        "clip_id": "external.5e80ce7665829fc3.front",
+        "clip_sha256": "b0cd98c1e0856a9e797309e2b26abc3ec297b6473081a53553a17d7dd7b6c13f",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "b0cd98c1e0856a9e797309e2b26abc3ec297b6473081a53553a17d7dd7b6c13f",
+        "raw_bvh_byte_length": 132962,
+        "raw_bvh_sha256": "5e80ce7665829fc3e6153edfbaab9c419953263262a695f084a23a09de31234b",
+        "reused": false,
+        "run_sha256": "ee073afd388167e900a82ea7b9ed4ffe2fbd3070cf8016c0185c6b2424bb5bfd",
+        "source_kind": "bvh"
+      },
+      "pairs": [
+        {
+          "arm_slot": "layer-004",
+          "torso_slot": "layer-006",
+          "side": "left",
+          "setup_front_slot": "layer-006",
+          "events": [
+            {
+              "source_frame_index": 2,
+              "tick": 66667,
+              "from_front_slot": "layer-006",
+              "to_front_slot": "layer-004",
+              "evidence_window": {
+                "start_source_frame_index": 0,
+                "end_source_frame_index": 2,
+                "start_tick": 0,
+                "end_tick": 66667,
+                "sample_count": 3
+              }
+            }
+          ]
+        },
+        {
+          "arm_slot": "layer-003",
+          "torso_slot": "layer-006",
+          "side": "right",
+          "setup_front_slot": "layer-006",
+          "events": [
+            {
+              "source_frame_index": 2,
+              "tick": 66667,
+              "from_front_slot": "layer-006",
+              "to_front_slot": "layer-003",
+              "evidence_window": {
+                "start_source_frame_index": 0,
+                "end_source_frame_index": 2,
+                "start_tick": 0,
+                "end_tick": 66667,
+                "sample_count": 3
+              }
+            },
+            {
+              "source_frame_index": 17,
+              "tick": 566667,
+              "from_front_slot": "layer-003",
+              "to_front_slot": "layer-006",
+              "evidence_window": {
+                "start_source_frame_index": 15,
+                "end_source_frame_index": 17,
+                "start_tick": 500000,
+                "end_tick": 566667,
+                "sample_count": 3
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "profile": "external-arm-torso-depth-review-v1",
+      "authority": "none",
+      "selected": false,
+      "source_sha256": "5e80ce7665829fc3e6153edfbaab9c419953263262a695f084a23a09de31234b",
+      "map_sha256": "3c8a43c52c03572435e2ad34d4fc4edd6700d8c3617733ab8db1c79a60d227a4",
+      "depth_axis": "+Z",
+      "depth_positive": "toward_camera",
+      "groups": {
+        "left": [
+          "layer-003-component-0000"
+        ],
+        "right": [
+          "layer-002-component-0000"
+        ],
+        "torso": [
+          "layer-005"
+        ],
+        "other": [
+          "layer-000",
+          "layer-001-l",
+          "layer-001-r",
+          "layer-004",
+          "layer-006",
+          "layer-007",
+          "layer-008",
+          "layer-009",
+          "layer-010",
+          "layer-011",
+          "layer-012",
+          "layer-013",
+          "layer-014",
+          "layer-015",
+          "layer-016",
+          "layer-017",
+          "layer-018",
+          "layer-019",
+          "layer-020"
+        ]
+      },
+      "scope": "source_depth_order_candidate_not_raster_occlusion_validation",
+      "limits": {
+        "enter_ratio": 0.04,
+        "exit_ratio": 0.02,
+        "minimum_hold_frames": 3
+      },
+      "limitations": [
+        "source_depth_does_not_prove_target_pixel_overlap",
+        "straddling_arm_requires_partition_or_review",
+        "unclassified_slots_keep_setup_order"
+      ],
+      "switch_candidates": 3,
+      "ambiguous_pair_samples": 26,
+      "status": "depth_candidates_need_review",
+      "cell": "turn/huiye",
+      "input_artifact_sha256": "332120de5d69233d3151f38afe792f559b500ea90b9091702c068ce1665b4656",
+      "motion_identity": {
+        "bundle_sha256": "a3138b152d73ee38cebc9d1d77663cb44ba6458be2724eac04d6fbade9ed6380",
+        "bvh_map_sha256": "3c8a43c52c03572435e2ad34d4fc4edd6700d8c3617733ab8db1c79a60d227a4",
+        "clip_id": "external.5e80ce7665829fc3.front",
+        "clip_sha256": "b0cd98c1e0856a9e797309e2b26abc3ec297b6473081a53553a17d7dd7b6c13f",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "b0cd98c1e0856a9e797309e2b26abc3ec297b6473081a53553a17d7dd7b6c13f",
+        "raw_bvh_byte_length": 132962,
+        "raw_bvh_sha256": "5e80ce7665829fc3e6153edfbaab9c419953263262a695f084a23a09de31234b",
+        "reused": false,
+        "run_sha256": "ee073afd388167e900a82ea7b9ed4ffe2fbd3070cf8016c0185c6b2424bb5bfd",
+        "source_kind": "bvh"
+      },
+      "pairs": [
+        {
+          "arm_slot": "layer-003-component-0000",
+          "torso_slot": "layer-005",
+          "side": "left",
+          "setup_front_slot": "layer-005",
+          "events": [
+            {
+              "source_frame_index": 2,
+              "tick": 66667,
+              "from_front_slot": "layer-005",
+              "to_front_slot": "layer-003-component-0000",
+              "evidence_window": {
+                "start_source_frame_index": 0,
+                "end_source_frame_index": 2,
+                "start_tick": 0,
+                "end_tick": 66667,
+                "sample_count": 3
+              }
+            }
+          ]
+        },
+        {
+          "arm_slot": "layer-002-component-0000",
+          "torso_slot": "layer-005",
+          "side": "right",
+          "setup_front_slot": "layer-005",
+          "events": [
+            {
+              "source_frame_index": 2,
+              "tick": 66667,
+              "from_front_slot": "layer-005",
+              "to_front_slot": "layer-002-component-0000",
+              "evidence_window": {
+                "start_source_frame_index": 0,
+                "end_source_frame_index": 2,
+                "start_tick": 0,
+                "end_tick": 66667,
+                "sample_count": 3
+              }
+            },
+            {
+              "source_frame_index": 17,
+              "tick": 566667,
+              "from_front_slot": "layer-002-component-0000",
+              "to_front_slot": "layer-005",
+              "evidence_window": {
+                "start_source_frame_index": 15,
+                "end_source_frame_index": 17,
+                "start_tick": 500000,
+                "end_tick": 566667,
+                "sample_count": 3
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "profile": "external-arm-torso-depth-review-v1",
+      "authority": "none",
+      "selected": false,
+      "source_sha256": "5e80ce7665829fc3e6153edfbaab9c419953263262a695f084a23a09de31234b",
+      "map_sha256": "3c8a43c52c03572435e2ad34d4fc4edd6700d8c3617733ab8db1c79a60d227a4",
+      "depth_axis": "+Z",
+      "depth_positive": "toward_camera",
+      "groups": {
+        "left": [
+          "layer-006"
+        ],
+        "right": [
+          "layer-001"
+        ],
+        "torso": [
+          "layer-009",
+          "layer-011"
+        ],
+        "other": [
+          "layer-000",
+          "layer-002",
+          "layer-003",
+          "layer-004",
+          "layer-005",
+          "layer-007",
+          "layer-008",
+          "layer-010",
+          "layer-012",
+          "layer-013",
+          "layer-014",
+          "layer-015",
+          "layer-016",
+          "layer-017",
+          "layer-018",
+          "layer-019",
+          "layer-020",
+          "layer-021",
+          "layer-022",
+          "layer-023",
+          "layer-024",
+          "layer-025",
+          "layer-026"
+        ]
+      },
+      "scope": "source_depth_order_candidate_not_raster_occlusion_validation",
+      "limits": {
+        "enter_ratio": 0.04,
+        "exit_ratio": 0.02,
+        "minimum_hold_frames": 3
+      },
+      "limitations": [
+        "source_depth_does_not_prove_target_pixel_overlap",
+        "straddling_arm_requires_partition_or_review",
+        "unclassified_slots_keep_setup_order"
+      ],
+      "switch_candidates": 6,
+      "ambiguous_pair_samples": 52,
+      "status": "depth_candidates_need_review",
+      "cell": "turn/hongmeiling",
+      "input_artifact_sha256": "818626f00c04a31d8c8f2c65fc4df7557bcf6e2b0ab1f20d69a9218f8904bcbb",
+      "motion_identity": {
+        "bundle_sha256": "a3138b152d73ee38cebc9d1d77663cb44ba6458be2724eac04d6fbade9ed6380",
+        "bvh_map_sha256": "3c8a43c52c03572435e2ad34d4fc4edd6700d8c3617733ab8db1c79a60d227a4",
+        "clip_id": "external.5e80ce7665829fc3.front",
+        "clip_sha256": "b0cd98c1e0856a9e797309e2b26abc3ec297b6473081a53553a17d7dd7b6c13f",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "b0cd98c1e0856a9e797309e2b26abc3ec297b6473081a53553a17d7dd7b6c13f",
+        "raw_bvh_byte_length": 132962,
+        "raw_bvh_sha256": "5e80ce7665829fc3e6153edfbaab9c419953263262a695f084a23a09de31234b",
+        "reused": false,
+        "run_sha256": "ee073afd388167e900a82ea7b9ed4ffe2fbd3070cf8016c0185c6b2424bb5bfd",
+        "source_kind": "bvh"
+      },
+      "pairs": [
+        {
+          "arm_slot": "layer-006",
+          "torso_slot": "layer-009",
+          "side": "left",
+          "setup_front_slot": "layer-009",
+          "events": [
+            {
+              "source_frame_index": 2,
+              "tick": 66667,
+              "from_front_slot": "layer-009",
+              "to_front_slot": "layer-006",
+              "evidence_window": {
+                "start_source_frame_index": 0,
+                "end_source_frame_index": 2,
+                "start_tick": 0,
+                "end_tick": 66667,
+                "sample_count": 3
+              }
+            }
+          ]
+        },
+        {
+          "arm_slot": "layer-006",
+          "torso_slot": "layer-011",
+          "side": "left",
+          "setup_front_slot": "layer-011",
+          "events": [
+            {
+              "source_frame_index": 2,
+              "tick": 66667,
+              "from_front_slot": "layer-011",
+              "to_front_slot": "layer-006",
+              "evidence_window": {
+                "start_source_frame_index": 0,
+                "end_source_frame_index": 2,
+                "start_tick": 0,
+                "end_tick": 66667,
+                "sample_count": 3
+              }
+            }
+          ]
+        },
+        {
+          "arm_slot": "layer-001",
+          "torso_slot": "layer-009",
+          "side": "right",
+          "setup_front_slot": "layer-009",
+          "events": [
+            {
+              "source_frame_index": 2,
+              "tick": 66667,
+              "from_front_slot": "layer-009",
+              "to_front_slot": "layer-001",
+              "evidence_window": {
+                "start_source_frame_index": 0,
+                "end_source_frame_index": 2,
+                "start_tick": 0,
+                "end_tick": 66667,
+                "sample_count": 3
+              }
+            },
+            {
+              "source_frame_index": 17,
+              "tick": 566667,
+              "from_front_slot": "layer-001",
+              "to_front_slot": "layer-009",
+              "evidence_window": {
+                "start_source_frame_index": 15,
+                "end_source_frame_index": 17,
+                "start_tick": 500000,
+                "end_tick": 566667,
+                "sample_count": 3
+              }
+            }
+          ]
+        },
+        {
+          "arm_slot": "layer-001",
+          "torso_slot": "layer-011",
+          "side": "right",
+          "setup_front_slot": "layer-011",
+          "events": [
+            {
+              "source_frame_index": 2,
+              "tick": 66667,
+              "from_front_slot": "layer-011",
+              "to_front_slot": "layer-001",
+              "evidence_window": {
+                "start_source_frame_index": 0,
+                "end_source_frame_index": 2,
+                "start_tick": 0,
+                "end_tick": 66667,
+                "sample_count": 3
+              }
+            },
+            {
+              "source_frame_index": 17,
+              "tick": 566667,
+              "from_front_slot": "layer-001",
+              "to_front_slot": "layer-011",
+              "evidence_window": {
+                "start_source_frame_index": 15,
+                "end_source_frame_index": 17,
+                "start_tick": 500000,
+                "end_tick": 566667,
+                "sample_count": 3
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "profile": "external-arm-torso-depth-review-v1",
+      "authority": "none",
+      "selected": false,
+      "source_sha256": "cf0b3afbf92df08cd71fc680ffd49d32420e3a66de7f36ff64d930b9321ee55d",
+      "map_sha256": "e77a4090381517d48dc08a903db1b9ebe5ba223ca89cabb1eed5ba0b57eb2cca",
+      "depth_axis": "+Z",
+      "depth_positive": "toward_camera",
+      "groups": {
+        "left": [
+          "layer-004"
+        ],
+        "right": [
+          "layer-003"
+        ],
+        "torso": [
+          "layer-006"
+        ],
+        "other": [
+          "layer-000",
+          "layer-001-l",
+          "layer-001-r",
+          "layer-002-l",
+          "layer-002-r",
+          "layer-005",
+          "layer-007",
+          "layer-008-component-0000",
+          "layer-008-unbound-residual",
+          "layer-009",
+          "layer-010",
+          "layer-011",
+          "layer-012",
+          "layer-013",
+          "layer-014",
+          "layer-015",
+          "layer-016",
+          "layer-017",
+          "layer-018",
+          "layer-019",
+          "layer-020",
+          "layer-021",
+          "layer-022"
+        ]
+      },
+      "scope": "source_depth_order_candidate_not_raster_occlusion_validation",
+      "limits": {
+        "enter_ratio": 0.04,
+        "exit_ratio": 0.02,
+        "minimum_hold_frames": 3
+      },
+      "limitations": [
+        "source_depth_does_not_prove_target_pixel_overlap",
+        "straddling_arm_requires_partition_or_review",
+        "unclassified_slots_keep_setup_order"
+      ],
+      "switch_candidates": 3,
+      "ambiguous_pair_samples": 9,
+      "status": "depth_candidates_need_review",
+      "cell": "squat/alice",
+      "input_artifact_sha256": "16d55c362d9dab19126a9feccdf1eaa1e4e17f09091c923f9267aada6277a393",
+      "motion_identity": {
+        "bundle_sha256": "ef7afe08aab29cb0b617aefd9c7d2162f96b2930dba70f8b37a61c2d88e5c2ab",
+        "bvh_map_sha256": "e77a4090381517d48dc08a903db1b9ebe5ba223ca89cabb1eed5ba0b57eb2cca",
+        "clip_id": "external.cf0b3afbf92df08c.front",
+        "clip_sha256": "fb57014391df27c737995214f3ec89918b99192ceda0b4d1626d8cfbfc261061",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "fb57014391df27c737995214f3ec89918b99192ceda0b4d1626d8cfbfc261061",
+        "raw_bvh_byte_length": 169539,
+        "raw_bvh_sha256": "cf0b3afbf92df08cd71fc680ffd49d32420e3a66de7f36ff64d930b9321ee55d",
+        "reused": false,
+        "run_sha256": "8da605d84b8040bda1747658ec9511c4b52f81fd646de6d4ea5256df05620aee",
+        "source_kind": "bvh"
+      },
+      "pairs": [
+        {
+          "arm_slot": "layer-004",
+          "torso_slot": "layer-006",
+          "side": "left",
+          "setup_front_slot": "layer-006",
+          "events": [
+            {
+              "source_frame_index": 10,
+              "tick": 333333,
+              "from_front_slot": "layer-006",
+              "to_front_slot": "layer-004",
+              "evidence_window": {
+                "start_source_frame_index": 8,
+                "end_source_frame_index": 10,
+                "start_tick": 266667,
+                "end_tick": 333333,
+                "sample_count": 3
+              }
+            }
+          ]
+        },
+        {
+          "arm_slot": "layer-003",
+          "torso_slot": "layer-006",
+          "side": "right",
+          "setup_front_slot": "layer-006",
+          "events": [
+            {
+              "source_frame_index": 14,
+              "tick": 466667,
+              "from_front_slot": "layer-006",
+              "to_front_slot": "layer-003",
+              "evidence_window": {
+                "start_source_frame_index": 12,
+                "end_source_frame_index": 14,
+                "start_tick": 400000,
+                "end_tick": 466667,
+                "sample_count": 3
+              }
+            },
+            {
+              "source_frame_index": 52,
+              "tick": 1733333,
+              "from_front_slot": "layer-003",
+              "to_front_slot": "layer-006",
+              "evidence_window": {
+                "start_source_frame_index": 50,
+                "end_source_frame_index": 52,
+                "start_tick": 1666667,
+                "end_tick": 1733333,
+                "sample_count": 3
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "profile": "external-arm-torso-depth-review-v1",
+      "authority": "none",
+      "selected": false,
+      "source_sha256": "cf0b3afbf92df08cd71fc680ffd49d32420e3a66de7f36ff64d930b9321ee55d",
+      "map_sha256": "e77a4090381517d48dc08a903db1b9ebe5ba223ca89cabb1eed5ba0b57eb2cca",
+      "depth_axis": "+Z",
+      "depth_positive": "toward_camera",
+      "groups": {
+        "left": [
+          "layer-003-component-0000"
+        ],
+        "right": [
+          "layer-002-component-0000"
+        ],
+        "torso": [
+          "layer-005"
+        ],
+        "other": [
+          "layer-000",
+          "layer-001-l",
+          "layer-001-r",
+          "layer-004",
+          "layer-006",
+          "layer-007",
+          "layer-008",
+          "layer-009",
+          "layer-010",
+          "layer-011",
+          "layer-012",
+          "layer-013",
+          "layer-014",
+          "layer-015",
+          "layer-016",
+          "layer-017",
+          "layer-018",
+          "layer-019",
+          "layer-020"
+        ]
+      },
+      "scope": "source_depth_order_candidate_not_raster_occlusion_validation",
+      "limits": {
+        "enter_ratio": 0.04,
+        "exit_ratio": 0.02,
+        "minimum_hold_frames": 3
+      },
+      "limitations": [
+        "source_depth_does_not_prove_target_pixel_overlap",
+        "straddling_arm_requires_partition_or_review",
+        "unclassified_slots_keep_setup_order"
+      ],
+      "switch_candidates": 3,
+      "ambiguous_pair_samples": 9,
+      "status": "depth_candidates_need_review",
+      "cell": "squat/huiye",
+      "input_artifact_sha256": "26376a145754ea680dac0f5f3f35a91b25c515711df6c8c6e2a11241b5e858ac",
+      "motion_identity": {
+        "bundle_sha256": "ef7afe08aab29cb0b617aefd9c7d2162f96b2930dba70f8b37a61c2d88e5c2ab",
+        "bvh_map_sha256": "e77a4090381517d48dc08a903db1b9ebe5ba223ca89cabb1eed5ba0b57eb2cca",
+        "clip_id": "external.cf0b3afbf92df08c.front",
+        "clip_sha256": "fb57014391df27c737995214f3ec89918b99192ceda0b4d1626d8cfbfc261061",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "fb57014391df27c737995214f3ec89918b99192ceda0b4d1626d8cfbfc261061",
+        "raw_bvh_byte_length": 169539,
+        "raw_bvh_sha256": "cf0b3afbf92df08cd71fc680ffd49d32420e3a66de7f36ff64d930b9321ee55d",
+        "reused": false,
+        "run_sha256": "8da605d84b8040bda1747658ec9511c4b52f81fd646de6d4ea5256df05620aee",
+        "source_kind": "bvh"
+      },
+      "pairs": [
+        {
+          "arm_slot": "layer-003-component-0000",
+          "torso_slot": "layer-005",
+          "side": "left",
+          "setup_front_slot": "layer-005",
+          "events": [
+            {
+              "source_frame_index": 10,
+              "tick": 333333,
+              "from_front_slot": "layer-005",
+              "to_front_slot": "layer-003-component-0000",
+              "evidence_window": {
+                "start_source_frame_index": 8,
+                "end_source_frame_index": 10,
+                "start_tick": 266667,
+                "end_tick": 333333,
+                "sample_count": 3
+              }
+            }
+          ]
+        },
+        {
+          "arm_slot": "layer-002-component-0000",
+          "torso_slot": "layer-005",
+          "side": "right",
+          "setup_front_slot": "layer-005",
+          "events": [
+            {
+              "source_frame_index": 14,
+              "tick": 466667,
+              "from_front_slot": "layer-005",
+              "to_front_slot": "layer-002-component-0000",
+              "evidence_window": {
+                "start_source_frame_index": 12,
+                "end_source_frame_index": 14,
+                "start_tick": 400000,
+                "end_tick": 466667,
+                "sample_count": 3
+              }
+            },
+            {
+              "source_frame_index": 52,
+              "tick": 1733333,
+              "from_front_slot": "layer-002-component-0000",
+              "to_front_slot": "layer-005",
+              "evidence_window": {
+                "start_source_frame_index": 50,
+                "end_source_frame_index": 52,
+                "start_tick": 1666667,
+                "end_tick": 1733333,
+                "sample_count": 3
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "profile": "external-arm-torso-depth-review-v1",
+      "authority": "none",
+      "selected": false,
+      "source_sha256": "cf0b3afbf92df08cd71fc680ffd49d32420e3a66de7f36ff64d930b9321ee55d",
+      "map_sha256": "e77a4090381517d48dc08a903db1b9ebe5ba223ca89cabb1eed5ba0b57eb2cca",
+      "depth_axis": "+Z",
+      "depth_positive": "toward_camera",
+      "groups": {
+        "left": [
+          "layer-006"
+        ],
+        "right": [
+          "layer-001"
+        ],
+        "torso": [
+          "layer-009",
+          "layer-011"
+        ],
+        "other": [
+          "layer-000",
+          "layer-002",
+          "layer-003",
+          "layer-004",
+          "layer-005",
+          "layer-007",
+          "layer-008",
+          "layer-010",
+          "layer-012",
+          "layer-013",
+          "layer-014",
+          "layer-015",
+          "layer-016",
+          "layer-017",
+          "layer-018",
+          "layer-019",
+          "layer-020",
+          "layer-021",
+          "layer-022",
+          "layer-023",
+          "layer-024",
+          "layer-025",
+          "layer-026"
+        ]
+      },
+      "scope": "source_depth_order_candidate_not_raster_occlusion_validation",
+      "limits": {
+        "enter_ratio": 0.04,
+        "exit_ratio": 0.02,
+        "minimum_hold_frames": 3
+      },
+      "limitations": [
+        "source_depth_does_not_prove_target_pixel_overlap",
+        "straddling_arm_requires_partition_or_review",
+        "unclassified_slots_keep_setup_order"
+      ],
+      "switch_candidates": 6,
+      "ambiguous_pair_samples": 18,
+      "status": "depth_candidates_need_review",
+      "cell": "squat/hongmeiling",
+      "input_artifact_sha256": "cd43c9db1cedea386d803e7328dd3876d0a5f41c21856cbcafc4d5d1722b28ff",
+      "motion_identity": {
+        "bundle_sha256": "ef7afe08aab29cb0b617aefd9c7d2162f96b2930dba70f8b37a61c2d88e5c2ab",
+        "bvh_map_sha256": "e77a4090381517d48dc08a903db1b9ebe5ba223ca89cabb1eed5ba0b57eb2cca",
+        "clip_id": "external.cf0b3afbf92df08c.front",
+        "clip_sha256": "fb57014391df27c737995214f3ec89918b99192ceda0b4d1626d8cfbfc261061",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "fb57014391df27c737995214f3ec89918b99192ceda0b4d1626d8cfbfc261061",
+        "raw_bvh_byte_length": 169539,
+        "raw_bvh_sha256": "cf0b3afbf92df08cd71fc680ffd49d32420e3a66de7f36ff64d930b9321ee55d",
+        "reused": false,
+        "run_sha256": "8da605d84b8040bda1747658ec9511c4b52f81fd646de6d4ea5256df05620aee",
+        "source_kind": "bvh"
+      },
+      "pairs": [
+        {
+          "arm_slot": "layer-006",
+          "torso_slot": "layer-009",
+          "side": "left",
+          "setup_front_slot": "layer-009",
+          "events": [
+            {
+              "source_frame_index": 10,
+              "tick": 333333,
+              "from_front_slot": "layer-009",
+              "to_front_slot": "layer-006",
+              "evidence_window": {
+                "start_source_frame_index": 8,
+                "end_source_frame_index": 10,
+                "start_tick": 266667,
+                "end_tick": 333333,
+                "sample_count": 3
+              }
+            }
+          ]
+        },
+        {
+          "arm_slot": "layer-006",
+          "torso_slot": "layer-011",
+          "side": "left",
+          "setup_front_slot": "layer-011",
+          "events": [
+            {
+              "source_frame_index": 10,
+              "tick": 333333,
+              "from_front_slot": "layer-011",
+              "to_front_slot": "layer-006",
+              "evidence_window": {
+                "start_source_frame_index": 8,
+                "end_source_frame_index": 10,
+                "start_tick": 266667,
+                "end_tick": 333333,
+                "sample_count": 3
+              }
+            }
+          ]
+        },
+        {
+          "arm_slot": "layer-001",
+          "torso_slot": "layer-009",
+          "side": "right",
+          "setup_front_slot": "layer-009",
+          "events": [
+            {
+              "source_frame_index": 14,
+              "tick": 466667,
+              "from_front_slot": "layer-009",
+              "to_front_slot": "layer-001",
+              "evidence_window": {
+                "start_source_frame_index": 12,
+                "end_source_frame_index": 14,
+                "start_tick": 400000,
+                "end_tick": 466667,
+                "sample_count": 3
+              }
+            },
+            {
+              "source_frame_index": 52,
+              "tick": 1733333,
+              "from_front_slot": "layer-001",
+              "to_front_slot": "layer-009",
+              "evidence_window": {
+                "start_source_frame_index": 50,
+                "end_source_frame_index": 52,
+                "start_tick": 1666667,
+                "end_tick": 1733333,
+                "sample_count": 3
+              }
+            }
+          ]
+        },
+        {
+          "arm_slot": "layer-001",
+          "torso_slot": "layer-011",
+          "side": "right",
+          "setup_front_slot": "layer-011",
+          "events": [
+            {
+              "source_frame_index": 14,
+              "tick": 466667,
+              "from_front_slot": "layer-011",
+              "to_front_slot": "layer-001",
+              "evidence_window": {
+                "start_source_frame_index": 12,
+                "end_source_frame_index": 14,
+                "start_tick": 400000,
+                "end_tick": 466667,
+                "sample_count": 3
+              }
+            },
+            {
+              "source_frame_index": 52,
+              "tick": 1733333,
+              "from_front_slot": "layer-001",
+              "to_front_slot": "layer-011",
+              "evidence_window": {
+                "start_source_frame_index": 50,
+                "end_source_frame_index": 52,
+                "start_tick": 1666667,
+                "end_tick": 1733333,
+                "sample_count": 3
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "profile": "external-arm-torso-depth-review-v1",
+      "authority": "none",
+      "selected": false,
+      "source_sha256": "d59e6622f2b71a4591147832de1a5bf5aceb585975431cad517b9329b705ce55",
+      "map_sha256": "3b55e23a044b0c2fcd977652155a19d6e9534994a99f60c72a81cc70508e92d0",
+      "depth_axis": "+Z",
+      "depth_positive": "toward_camera",
+      "groups": {
+        "left": [
+          "layer-004"
+        ],
+        "right": [
+          "layer-003"
+        ],
+        "torso": [
+          "layer-006"
+        ],
+        "other": [
+          "layer-000",
+          "layer-001-l",
+          "layer-001-r",
+          "layer-002-l",
+          "layer-002-r",
+          "layer-005",
+          "layer-007",
+          "layer-008-component-0000",
+          "layer-008-unbound-residual",
+          "layer-009",
+          "layer-010",
+          "layer-011",
+          "layer-012",
+          "layer-013",
+          "layer-014",
+          "layer-015",
+          "layer-016",
+          "layer-017",
+          "layer-018",
+          "layer-019",
+          "layer-020",
+          "layer-021",
+          "layer-022"
+        ]
+      },
+      "scope": "source_depth_order_candidate_not_raster_occlusion_validation",
+      "limits": {
+        "enter_ratio": 0.04,
+        "exit_ratio": 0.02,
+        "minimum_hold_frames": 3
+      },
+      "limitations": [
+        "source_depth_does_not_prove_target_pixel_overlap",
+        "straddling_arm_requires_partition_or_review",
+        "unclassified_slots_keep_setup_order"
+      ],
+      "switch_candidates": 2,
+      "ambiguous_pair_samples": 64,
+      "status": "depth_candidates_need_review",
+      "cell": "boxing/alice",
+      "input_artifact_sha256": "9f8c298877a2a306fa0f38b0ede28dd109c4047c9174040ee8b9d668c62cfe4f",
+      "motion_identity": {
+        "bundle_sha256": "140fabcf63c9f47995ce9fe291aeb848522179f90df27ca96e341f331d232cad",
+        "bvh_map_sha256": "3b55e23a044b0c2fcd977652155a19d6e9534994a99f60c72a81cc70508e92d0",
+        "clip_id": "external.d59e6622f2b71a45.front",
+        "clip_sha256": "9986140fc4f878461b29baf4a4be9856f33578ec777bda4cc7057eb5d4e9f1e1",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "9986140fc4f878461b29baf4a4be9856f33578ec777bda4cc7057eb5d4e9f1e1",
+        "raw_bvh_byte_length": 200284,
+        "raw_bvh_sha256": "d59e6622f2b71a4591147832de1a5bf5aceb585975431cad517b9329b705ce55",
+        "reused": false,
+        "run_sha256": "63f6bda9b2957b0438d5ff548a61ebf56bca9cdd2877656d0ed23cf52a9a4e7a",
+        "source_kind": "bvh"
+      },
+      "pairs": [
+        {
+          "arm_slot": "layer-004",
+          "torso_slot": "layer-006",
+          "side": "left",
+          "setup_front_slot": "layer-006",
+          "events": [
+            {
+              "source_frame_index": 2,
+              "tick": 66667,
+              "from_front_slot": "layer-006",
+              "to_front_slot": "layer-004",
+              "evidence_window": {
+                "start_source_frame_index": 0,
+                "end_source_frame_index": 2,
+                "start_tick": 0,
+                "end_tick": 66667,
+                "sample_count": 3
+              }
+            }
+          ]
+        },
+        {
+          "arm_slot": "layer-003",
+          "torso_slot": "layer-006",
+          "side": "right",
+          "setup_front_slot": "layer-006",
+          "events": [
+            {
+              "source_frame_index": 20,
+              "tick": 666667,
+              "from_front_slot": "layer-006",
+              "to_front_slot": "layer-003",
+              "evidence_window": {
+                "start_source_frame_index": 18,
+                "end_source_frame_index": 20,
+                "start_tick": 600000,
+                "end_tick": 666667,
+                "sample_count": 3
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "profile": "external-arm-torso-depth-review-v1",
+      "authority": "none",
+      "selected": false,
+      "source_sha256": "d59e6622f2b71a4591147832de1a5bf5aceb585975431cad517b9329b705ce55",
+      "map_sha256": "3b55e23a044b0c2fcd977652155a19d6e9534994a99f60c72a81cc70508e92d0",
+      "depth_axis": "+Z",
+      "depth_positive": "toward_camera",
+      "groups": {
+        "left": [
+          "layer-003-component-0000"
+        ],
+        "right": [
+          "layer-002-component-0000"
+        ],
+        "torso": [
+          "layer-005"
+        ],
+        "other": [
+          "layer-000",
+          "layer-001-l",
+          "layer-001-r",
+          "layer-004",
+          "layer-006",
+          "layer-007",
+          "layer-008",
+          "layer-009",
+          "layer-010",
+          "layer-011",
+          "layer-012",
+          "layer-013",
+          "layer-014",
+          "layer-015",
+          "layer-016",
+          "layer-017",
+          "layer-018",
+          "layer-019",
+          "layer-020"
+        ]
+      },
+      "scope": "source_depth_order_candidate_not_raster_occlusion_validation",
+      "limits": {
+        "enter_ratio": 0.04,
+        "exit_ratio": 0.02,
+        "minimum_hold_frames": 3
+      },
+      "limitations": [
+        "source_depth_does_not_prove_target_pixel_overlap",
+        "straddling_arm_requires_partition_or_review",
+        "unclassified_slots_keep_setup_order"
+      ],
+      "switch_candidates": 2,
+      "ambiguous_pair_samples": 64,
+      "status": "depth_candidates_need_review",
+      "cell": "boxing/huiye",
+      "input_artifact_sha256": "ead5482162e59e8bba51cf7aa98e4e27dcf2a15299fa48f0ce51decc90e4c1dc",
+      "motion_identity": {
+        "bundle_sha256": "140fabcf63c9f47995ce9fe291aeb848522179f90df27ca96e341f331d232cad",
+        "bvh_map_sha256": "3b55e23a044b0c2fcd977652155a19d6e9534994a99f60c72a81cc70508e92d0",
+        "clip_id": "external.d59e6622f2b71a45.front",
+        "clip_sha256": "9986140fc4f878461b29baf4a4be9856f33578ec777bda4cc7057eb5d4e9f1e1",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "9986140fc4f878461b29baf4a4be9856f33578ec777bda4cc7057eb5d4e9f1e1",
+        "raw_bvh_byte_length": 200284,
+        "raw_bvh_sha256": "d59e6622f2b71a4591147832de1a5bf5aceb585975431cad517b9329b705ce55",
+        "reused": false,
+        "run_sha256": "63f6bda9b2957b0438d5ff548a61ebf56bca9cdd2877656d0ed23cf52a9a4e7a",
+        "source_kind": "bvh"
+      },
+      "pairs": [
+        {
+          "arm_slot": "layer-003-component-0000",
+          "torso_slot": "layer-005",
+          "side": "left",
+          "setup_front_slot": "layer-005",
+          "events": [
+            {
+              "source_frame_index": 2,
+              "tick": 66667,
+              "from_front_slot": "layer-005",
+              "to_front_slot": "layer-003-component-0000",
+              "evidence_window": {
+                "start_source_frame_index": 0,
+                "end_source_frame_index": 2,
+                "start_tick": 0,
+                "end_tick": 66667,
+                "sample_count": 3
+              }
+            }
+          ]
+        },
+        {
+          "arm_slot": "layer-002-component-0000",
+          "torso_slot": "layer-005",
+          "side": "right",
+          "setup_front_slot": "layer-005",
+          "events": [
+            {
+              "source_frame_index": 20,
+              "tick": 666667,
+              "from_front_slot": "layer-005",
+              "to_front_slot": "layer-002-component-0000",
+              "evidence_window": {
+                "start_source_frame_index": 18,
+                "end_source_frame_index": 20,
+                "start_tick": 600000,
+                "end_tick": 666667,
+                "sample_count": 3
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "profile": "external-arm-torso-depth-review-v1",
+      "authority": "none",
+      "selected": false,
+      "source_sha256": "d59e6622f2b71a4591147832de1a5bf5aceb585975431cad517b9329b705ce55",
+      "map_sha256": "3b55e23a044b0c2fcd977652155a19d6e9534994a99f60c72a81cc70508e92d0",
+      "depth_axis": "+Z",
+      "depth_positive": "toward_camera",
+      "groups": {
+        "left": [
+          "layer-006"
+        ],
+        "right": [
+          "layer-001"
+        ],
+        "torso": [
+          "layer-009",
+          "layer-011"
+        ],
+        "other": [
+          "layer-000",
+          "layer-002",
+          "layer-003",
+          "layer-004",
+          "layer-005",
+          "layer-007",
+          "layer-008",
+          "layer-010",
+          "layer-012",
+          "layer-013",
+          "layer-014",
+          "layer-015",
+          "layer-016",
+          "layer-017",
+          "layer-018",
+          "layer-019",
+          "layer-020",
+          "layer-021",
+          "layer-022",
+          "layer-023",
+          "layer-024",
+          "layer-025",
+          "layer-026"
+        ]
+      },
+      "scope": "source_depth_order_candidate_not_raster_occlusion_validation",
+      "limits": {
+        "enter_ratio": 0.04,
+        "exit_ratio": 0.02,
+        "minimum_hold_frames": 3
+      },
+      "limitations": [
+        "source_depth_does_not_prove_target_pixel_overlap",
+        "straddling_arm_requires_partition_or_review",
+        "unclassified_slots_keep_setup_order"
+      ],
+      "switch_candidates": 4,
+      "ambiguous_pair_samples": 128,
+      "status": "depth_candidates_need_review",
+      "cell": "boxing/hongmeiling",
+      "input_artifact_sha256": "8ef18b323f4ad842ae9504689c35ded5977eb64b4ccc377cb6144f989329238b",
+      "motion_identity": {
+        "bundle_sha256": "140fabcf63c9f47995ce9fe291aeb848522179f90df27ca96e341f331d232cad",
+        "bvh_map_sha256": "3b55e23a044b0c2fcd977652155a19d6e9534994a99f60c72a81cc70508e92d0",
+        "clip_id": "external.d59e6622f2b71a45.front",
+        "clip_sha256": "9986140fc4f878461b29baf4a4be9856f33578ec777bda4cc7057eb5d4e9f1e1",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "9986140fc4f878461b29baf4a4be9856f33578ec777bda4cc7057eb5d4e9f1e1",
+        "raw_bvh_byte_length": 200284,
+        "raw_bvh_sha256": "d59e6622f2b71a4591147832de1a5bf5aceb585975431cad517b9329b705ce55",
+        "reused": false,
+        "run_sha256": "63f6bda9b2957b0438d5ff548a61ebf56bca9cdd2877656d0ed23cf52a9a4e7a",
+        "source_kind": "bvh"
+      },
+      "pairs": [
+        {
+          "arm_slot": "layer-006",
+          "torso_slot": "layer-009",
+          "side": "left",
+          "setup_front_slot": "layer-009",
+          "events": [
+            {
+              "source_frame_index": 2,
+              "tick": 66667,
+              "from_front_slot": "layer-009",
+              "to_front_slot": "layer-006",
+              "evidence_window": {
+                "start_source_frame_index": 0,
+                "end_source_frame_index": 2,
+                "start_tick": 0,
+                "end_tick": 66667,
+                "sample_count": 3
+              }
+            }
+          ]
+        },
+        {
+          "arm_slot": "layer-006",
+          "torso_slot": "layer-011",
+          "side": "left",
+          "setup_front_slot": "layer-011",
+          "events": [
+            {
+              "source_frame_index": 2,
+              "tick": 66667,
+              "from_front_slot": "layer-011",
+              "to_front_slot": "layer-006",
+              "evidence_window": {
+                "start_source_frame_index": 0,
+                "end_source_frame_index": 2,
+                "start_tick": 0,
+                "end_tick": 66667,
+                "sample_count": 3
+              }
+            }
+          ]
+        },
+        {
+          "arm_slot": "layer-001",
+          "torso_slot": "layer-009",
+          "side": "right",
+          "setup_front_slot": "layer-009",
+          "events": [
+            {
+              "source_frame_index": 20,
+              "tick": 666667,
+              "from_front_slot": "layer-009",
+              "to_front_slot": "layer-001",
+              "evidence_window": {
+                "start_source_frame_index": 18,
+                "end_source_frame_index": 20,
+                "start_tick": 600000,
+                "end_tick": 666667,
+                "sample_count": 3
+              }
+            }
+          ]
+        },
+        {
+          "arm_slot": "layer-001",
+          "torso_slot": "layer-011",
+          "side": "right",
+          "setup_front_slot": "layer-011",
+          "events": [
+            {
+              "source_frame_index": 20,
+              "tick": 666667,
+              "from_front_slot": "layer-011",
+              "to_front_slot": "layer-001",
+              "evidence_window": {
+                "start_source_frame_index": 18,
+                "end_source_frame_index": 20,
+                "start_tick": 600000,
+                "end_tick": 666667,
+                "sample_count": 3
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "profile": "external-arm-torso-depth-review-v1",
+      "authority": "none",
+      "selected": false,
+      "source_sha256": "a4233c602a77a95c1473ef7ab3f277fa7ca6aec5a98b4d5407dea904194bb2f4",
+      "map_sha256": "f9d1995881e5623f72208050cc9b639d98b1317da3322e3480cf50a283fa7f5c",
+      "depth_axis": "+Z",
+      "depth_positive": "toward_camera",
+      "groups": {
+        "left": [
+          "layer-004"
+        ],
+        "right": [
+          "layer-003"
+        ],
+        "torso": [
+          "layer-006"
+        ],
+        "other": [
+          "layer-000",
+          "layer-001-l",
+          "layer-001-r",
+          "layer-002-l",
+          "layer-002-r",
+          "layer-005",
+          "layer-007",
+          "layer-008-component-0000",
+          "layer-008-unbound-residual",
+          "layer-009",
+          "layer-010",
+          "layer-011",
+          "layer-012",
+          "layer-013",
+          "layer-014",
+          "layer-015",
+          "layer-016",
+          "layer-017",
+          "layer-018",
+          "layer-019",
+          "layer-020",
+          "layer-021",
+          "layer-022"
+        ]
+      },
+      "scope": "source_depth_order_candidate_not_raster_occlusion_validation",
+      "limits": {
+        "enter_ratio": 0.04,
+        "exit_ratio": 0.02,
+        "minimum_hold_frames": 3
+      },
+      "limitations": [
+        "source_depth_does_not_prove_target_pixel_overlap",
+        "straddling_arm_requires_partition_or_review",
+        "unclassified_slots_keep_setup_order"
+      ],
+      "switch_candidates": 1,
+      "ambiguous_pair_samples": 47,
+      "status": "depth_candidates_need_review",
+      "cell": "reach/alice",
+      "input_artifact_sha256": "25584aace34cbdd5137488c7aedbd0b74da9b2582c360d2e50d11139af9ec90d",
+      "motion_identity": {
+        "bundle_sha256": "5f531a9327ad59abde64e643438baa794e5618b5629d59c0e3f9d4da990948b7",
+        "bvh_map_sha256": "f9d1995881e5623f72208050cc9b639d98b1317da3322e3480cf50a283fa7f5c",
+        "clip_id": "external.a4233c602a77a95c.front",
+        "clip_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "raw_bvh_byte_length": 342778,
+        "raw_bvh_sha256": "a4233c602a77a95c1473ef7ab3f277fa7ca6aec5a98b4d5407dea904194bb2f4",
+        "reused": false,
+        "run_sha256": "c48c0ffcb9338d2bc72a1013f1be8366de8ea5583419f979a9ac1c080b534207",
+        "source_kind": "bvh"
+      },
+      "pairs": [
+        {
+          "arm_slot": "layer-004",
+          "torso_slot": "layer-006",
+          "side": "left",
+          "setup_front_slot": "layer-006",
+          "events": []
+        },
+        {
+          "arm_slot": "layer-003",
+          "torso_slot": "layer-006",
+          "side": "right",
+          "setup_front_slot": "layer-006",
+          "events": [
+            {
+              "source_frame_index": 26,
+              "tick": 866667,
+              "from_front_slot": "layer-006",
+              "to_front_slot": "layer-003",
+              "evidence_window": {
+                "start_source_frame_index": 24,
+                "end_source_frame_index": 26,
+                "start_tick": 800000,
+                "end_tick": 866667,
+                "sample_count": 3
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "profile": "external-arm-torso-depth-review-v1",
+      "authority": "none",
+      "selected": false,
+      "source_sha256": "a4233c602a77a95c1473ef7ab3f277fa7ca6aec5a98b4d5407dea904194bb2f4",
+      "map_sha256": "f9d1995881e5623f72208050cc9b639d98b1317da3322e3480cf50a283fa7f5c",
+      "depth_axis": "+Z",
+      "depth_positive": "toward_camera",
+      "groups": {
+        "left": [
+          "layer-003-component-0000"
+        ],
+        "right": [
+          "layer-002-component-0000"
+        ],
+        "torso": [
+          "layer-005"
+        ],
+        "other": [
+          "layer-000",
+          "layer-001-l",
+          "layer-001-r",
+          "layer-004",
+          "layer-006",
+          "layer-007",
+          "layer-008",
+          "layer-009",
+          "layer-010",
+          "layer-011",
+          "layer-012",
+          "layer-013",
+          "layer-014",
+          "layer-015",
+          "layer-016",
+          "layer-017",
+          "layer-018",
+          "layer-019",
+          "layer-020"
+        ]
+      },
+      "scope": "source_depth_order_candidate_not_raster_occlusion_validation",
+      "limits": {
+        "enter_ratio": 0.04,
+        "exit_ratio": 0.02,
+        "minimum_hold_frames": 3
+      },
+      "limitations": [
+        "source_depth_does_not_prove_target_pixel_overlap",
+        "straddling_arm_requires_partition_or_review",
+        "unclassified_slots_keep_setup_order"
+      ],
+      "switch_candidates": 1,
+      "ambiguous_pair_samples": 47,
+      "status": "depth_candidates_need_review",
+      "cell": "reach/huiye",
+      "input_artifact_sha256": "86aa3fe54bfef0f206c48ed4b840e5478b4c8d147f4ed65e0f14f48cbb34820e",
+      "motion_identity": {
+        "bundle_sha256": "5f531a9327ad59abde64e643438baa794e5618b5629d59c0e3f9d4da990948b7",
+        "bvh_map_sha256": "f9d1995881e5623f72208050cc9b639d98b1317da3322e3480cf50a283fa7f5c",
+        "clip_id": "external.a4233c602a77a95c.front",
+        "clip_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "raw_bvh_byte_length": 342778,
+        "raw_bvh_sha256": "a4233c602a77a95c1473ef7ab3f277fa7ca6aec5a98b4d5407dea904194bb2f4",
+        "reused": false,
+        "run_sha256": "c48c0ffcb9338d2bc72a1013f1be8366de8ea5583419f979a9ac1c080b534207",
+        "source_kind": "bvh"
+      },
+      "pairs": [
+        {
+          "arm_slot": "layer-003-component-0000",
+          "torso_slot": "layer-005",
+          "side": "left",
+          "setup_front_slot": "layer-005",
+          "events": []
+        },
+        {
+          "arm_slot": "layer-002-component-0000",
+          "torso_slot": "layer-005",
+          "side": "right",
+          "setup_front_slot": "layer-005",
+          "events": [
+            {
+              "source_frame_index": 26,
+              "tick": 866667,
+              "from_front_slot": "layer-005",
+              "to_front_slot": "layer-002-component-0000",
+              "evidence_window": {
+                "start_source_frame_index": 24,
+                "end_source_frame_index": 26,
+                "start_tick": 800000,
+                "end_tick": 866667,
+                "sample_count": 3
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "profile": "external-arm-torso-depth-review-v1",
+      "authority": "none",
+      "selected": false,
+      "source_sha256": "a4233c602a77a95c1473ef7ab3f277fa7ca6aec5a98b4d5407dea904194bb2f4",
+      "map_sha256": "f9d1995881e5623f72208050cc9b639d98b1317da3322e3480cf50a283fa7f5c",
+      "depth_axis": "+Z",
+      "depth_positive": "toward_camera",
+      "groups": {
+        "left": [
+          "layer-006"
+        ],
+        "right": [
+          "layer-001"
+        ],
+        "torso": [
+          "layer-009",
+          "layer-011"
+        ],
+        "other": [
+          "layer-000",
+          "layer-002",
+          "layer-003",
+          "layer-004",
+          "layer-005",
+          "layer-007",
+          "layer-008",
+          "layer-010",
+          "layer-012",
+          "layer-013",
+          "layer-014",
+          "layer-015",
+          "layer-016",
+          "layer-017",
+          "layer-018",
+          "layer-019",
+          "layer-020",
+          "layer-021",
+          "layer-022",
+          "layer-023",
+          "layer-024",
+          "layer-025",
+          "layer-026"
+        ]
+      },
+      "scope": "source_depth_order_candidate_not_raster_occlusion_validation",
+      "limits": {
+        "enter_ratio": 0.04,
+        "exit_ratio": 0.02,
+        "minimum_hold_frames": 3
+      },
+      "limitations": [
+        "source_depth_does_not_prove_target_pixel_overlap",
+        "straddling_arm_requires_partition_or_review",
+        "unclassified_slots_keep_setup_order"
+      ],
+      "switch_candidates": 2,
+      "ambiguous_pair_samples": 94,
+      "status": "depth_candidates_need_review",
+      "cell": "reach/hongmeiling",
+      "input_artifact_sha256": "36ac936cb385b7c0c9b23001735901e76dc043a3ec5eddfef79d767b1a7961fa",
+      "motion_identity": {
+        "bundle_sha256": "5f531a9327ad59abde64e643438baa794e5618b5629d59c0e3f9d4da990948b7",
+        "bvh_map_sha256": "f9d1995881e5623f72208050cc9b639d98b1317da3322e3480cf50a283fa7f5c",
+        "clip_id": "external.a4233c602a77a95c.front",
+        "clip_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "raw_bvh_byte_length": 342778,
+        "raw_bvh_sha256": "a4233c602a77a95c1473ef7ab3f277fa7ca6aec5a98b4d5407dea904194bb2f4",
+        "reused": false,
+        "run_sha256": "c48c0ffcb9338d2bc72a1013f1be8366de8ea5583419f979a9ac1c080b534207",
+        "source_kind": "bvh"
+      },
+      "pairs": [
+        {
+          "arm_slot": "layer-006",
+          "torso_slot": "layer-009",
+          "side": "left",
+          "setup_front_slot": "layer-009",
+          "events": []
+        },
+        {
+          "arm_slot": "layer-006",
+          "torso_slot": "layer-011",
+          "side": "left",
+          "setup_front_slot": "layer-011",
+          "events": []
+        },
+        {
+          "arm_slot": "layer-001",
+          "torso_slot": "layer-009",
+          "side": "right",
+          "setup_front_slot": "layer-009",
+          "events": [
+            {
+              "source_frame_index": 26,
+              "tick": 866667,
+              "from_front_slot": "layer-009",
+              "to_front_slot": "layer-001",
+              "evidence_window": {
+                "start_source_frame_index": 24,
+                "end_source_frame_index": 26,
+                "start_tick": 800000,
+                "end_tick": 866667,
+                "sample_count": 3
+              }
+            }
+          ]
+        },
+        {
+          "arm_slot": "layer-001",
+          "torso_slot": "layer-011",
+          "side": "right",
+          "setup_front_slot": "layer-011",
+          "events": [
+            {
+              "source_frame_index": 26,
+              "tick": 866667,
+              "from_front_slot": "layer-011",
+              "to_front_slot": "layer-001",
+              "evidence_window": {
+                "start_source_frame_index": 24,
+                "end_source_frame_index": 26,
+                "start_tick": 800000,
+                "end_tick": 866667,
+                "sample_count": 3
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "profile": "external-arm-torso-depth-review-v1",
+      "authority": "none",
+      "selected": false,
+      "source_sha256": "2ee03d7638686150305d61ff6bd5d8f21a05693cf139bb20467017feb3d363a6",
+      "map_sha256": "924e9ee8464aae1359065b7be0d719d9482bc5efe90f8fe86c36b34789635b49",
+      "depth_axis": "+Z",
+      "depth_positive": "toward_camera",
+      "groups": {
+        "left": [
+          "layer-004"
+        ],
+        "right": [
+          "layer-003"
+        ],
+        "torso": [
+          "layer-006"
+        ],
+        "other": [
+          "layer-000",
+          "layer-001-l",
+          "layer-001-r",
+          "layer-002-l",
+          "layer-002-r",
+          "layer-005",
+          "layer-007",
+          "layer-008-component-0000",
+          "layer-008-unbound-residual",
+          "layer-009",
+          "layer-010",
+          "layer-011",
+          "layer-012",
+          "layer-013",
+          "layer-014",
+          "layer-015",
+          "layer-016",
+          "layer-017",
+          "layer-018",
+          "layer-019",
+          "layer-020",
+          "layer-021",
+          "layer-022"
+        ]
+      },
+      "scope": "source_depth_order_candidate_not_raster_occlusion_validation",
+      "limits": {
+        "enter_ratio": 0.04,
+        "exit_ratio": 0.02,
+        "minimum_hold_frames": 3
+      },
+      "limitations": [
+        "source_depth_does_not_prove_target_pixel_overlap",
+        "straddling_arm_requires_partition_or_review",
+        "unclassified_slots_keep_setup_order"
+      ],
+      "switch_candidates": 0,
+      "ambiguous_pair_samples": 217,
+      "status": "depth_candidates_need_review",
+      "cell": "wave/alice",
+      "input_artifact_sha256": "a029999e7fdb1d44e3a6be4f5d6d592d8cd32293edfeb380c88df24ef3df547c",
+      "motion_identity": {
+        "array_inventory_sha256": "e4cf87890c002d9f67cdb6ca474c0ac857ec704e6e5549fb87e00da281f8b7b8",
+        "bundle_sha256": "7d9096d87d4016df2884f8a3cfd6b217d954f974c5ea9bbd831236d74983b645",
+        "clip_id": "external.2ee03d7638686150.front",
+        "clip_sha256": "64b40e08c4ebbeb5a01b15d341252115271ee1a54770716abf2781a24983175a",
+        "map_id": "kimodo.soma77.front-v1",
+        "map_sha256": "924e9ee8464aae1359065b7be0d719d9482bc5efe90f8fe86c36b34789635b49",
+        "motion_ir_sha256": "64b40e08c4ebbeb5a01b15d341252115271ee1a54770716abf2781a24983175a",
+        "raw_npz_byte_length": 782570,
+        "raw_npz_sha256": "2ee03d7638686150305d61ff6bd5d8f21a05693cf139bb20467017feb3d363a6",
+        "reused": false,
+        "run_sha256": "eba51b7f250c946ad173f82c64bec36aa37487a0cb3f0b5c065e789ba88629b3",
+        "source_id": "external.2ee03d7638686150",
+        "source_kind": "kimodo_npz",
+        "source_sha256": "406e38ff23db4887dabd220db8c8bf5a19aefd768cf8f705a8f13ca6b26c1423"
+      },
+      "pairs": [
+        {
+          "arm_slot": "layer-004",
+          "torso_slot": "layer-006",
+          "side": "left",
+          "setup_front_slot": "layer-006",
+          "events": []
+        },
+        {
+          "arm_slot": "layer-003",
+          "torso_slot": "layer-006",
+          "side": "right",
+          "setup_front_slot": "layer-006",
+          "events": []
+        }
+      ]
+    },
+    {
+      "profile": "external-arm-torso-depth-review-v1",
+      "authority": "none",
+      "selected": false,
+      "source_sha256": "2ee03d7638686150305d61ff6bd5d8f21a05693cf139bb20467017feb3d363a6",
+      "map_sha256": "924e9ee8464aae1359065b7be0d719d9482bc5efe90f8fe86c36b34789635b49",
+      "depth_axis": "+Z",
+      "depth_positive": "toward_camera",
+      "groups": {
+        "left": [
+          "layer-003-component-0000"
+        ],
+        "right": [
+          "layer-002-component-0000"
+        ],
+        "torso": [
+          "layer-005"
+        ],
+        "other": [
+          "layer-000",
+          "layer-001-l",
+          "layer-001-r",
+          "layer-004",
+          "layer-006",
+          "layer-007",
+          "layer-008",
+          "layer-009",
+          "layer-010",
+          "layer-011",
+          "layer-012",
+          "layer-013",
+          "layer-014",
+          "layer-015",
+          "layer-016",
+          "layer-017",
+          "layer-018",
+          "layer-019",
+          "layer-020"
+        ]
+      },
+      "scope": "source_depth_order_candidate_not_raster_occlusion_validation",
+      "limits": {
+        "enter_ratio": 0.04,
+        "exit_ratio": 0.02,
+        "minimum_hold_frames": 3
+      },
+      "limitations": [
+        "source_depth_does_not_prove_target_pixel_overlap",
+        "straddling_arm_requires_partition_or_review",
+        "unclassified_slots_keep_setup_order"
+      ],
+      "switch_candidates": 0,
+      "ambiguous_pair_samples": 217,
+      "status": "depth_candidates_need_review",
+      "cell": "wave/huiye",
+      "input_artifact_sha256": "91c7a5f84178ff25e5c5d7f980d0a608f329c872a99aadb1017e5215191b703d",
+      "motion_identity": {
+        "array_inventory_sha256": "e4cf87890c002d9f67cdb6ca474c0ac857ec704e6e5549fb87e00da281f8b7b8",
+        "bundle_sha256": "7d9096d87d4016df2884f8a3cfd6b217d954f974c5ea9bbd831236d74983b645",
+        "clip_id": "external.2ee03d7638686150.front",
+        "clip_sha256": "64b40e08c4ebbeb5a01b15d341252115271ee1a54770716abf2781a24983175a",
+        "map_id": "kimodo.soma77.front-v1",
+        "map_sha256": "924e9ee8464aae1359065b7be0d719d9482bc5efe90f8fe86c36b34789635b49",
+        "motion_ir_sha256": "64b40e08c4ebbeb5a01b15d341252115271ee1a54770716abf2781a24983175a",
+        "raw_npz_byte_length": 782570,
+        "raw_npz_sha256": "2ee03d7638686150305d61ff6bd5d8f21a05693cf139bb20467017feb3d363a6",
+        "reused": false,
+        "run_sha256": "eba51b7f250c946ad173f82c64bec36aa37487a0cb3f0b5c065e789ba88629b3",
+        "source_id": "external.2ee03d7638686150",
+        "source_kind": "kimodo_npz",
+        "source_sha256": "406e38ff23db4887dabd220db8c8bf5a19aefd768cf8f705a8f13ca6b26c1423"
+      },
+      "pairs": [
+        {
+          "arm_slot": "layer-003-component-0000",
+          "torso_slot": "layer-005",
+          "side": "left",
+          "setup_front_slot": "layer-005",
+          "events": []
+        },
+        {
+          "arm_slot": "layer-002-component-0000",
+          "torso_slot": "layer-005",
+          "side": "right",
+          "setup_front_slot": "layer-005",
+          "events": []
+        }
+      ]
+    },
+    {
+      "profile": "external-arm-torso-depth-review-v1",
+      "authority": "none",
+      "selected": false,
+      "source_sha256": "2ee03d7638686150305d61ff6bd5d8f21a05693cf139bb20467017feb3d363a6",
+      "map_sha256": "924e9ee8464aae1359065b7be0d719d9482bc5efe90f8fe86c36b34789635b49",
+      "depth_axis": "+Z",
+      "depth_positive": "toward_camera",
+      "groups": {
+        "left": [
+          "layer-006"
+        ],
+        "right": [
+          "layer-001"
+        ],
+        "torso": [
+          "layer-009",
+          "layer-011"
+        ],
+        "other": [
+          "layer-000",
+          "layer-002",
+          "layer-003",
+          "layer-004",
+          "layer-005",
+          "layer-007",
+          "layer-008",
+          "layer-010",
+          "layer-012",
+          "layer-013",
+          "layer-014",
+          "layer-015",
+          "layer-016",
+          "layer-017",
+          "layer-018",
+          "layer-019",
+          "layer-020",
+          "layer-021",
+          "layer-022",
+          "layer-023",
+          "layer-024",
+          "layer-025",
+          "layer-026"
+        ]
+      },
+      "scope": "source_depth_order_candidate_not_raster_occlusion_validation",
+      "limits": {
+        "enter_ratio": 0.04,
+        "exit_ratio": 0.02,
+        "minimum_hold_frames": 3
+      },
+      "limitations": [
+        "source_depth_does_not_prove_target_pixel_overlap",
+        "straddling_arm_requires_partition_or_review",
+        "unclassified_slots_keep_setup_order"
+      ],
+      "switch_candidates": 0,
+      "ambiguous_pair_samples": 434,
+      "status": "depth_candidates_need_review",
+      "cell": "wave/hongmeiling",
+      "input_artifact_sha256": "b49e1a417dc8508eb29ae346e02a1e1f8d2b77342779788b66df06829c6d94f2",
+      "motion_identity": {
+        "array_inventory_sha256": "e4cf87890c002d9f67cdb6ca474c0ac857ec704e6e5549fb87e00da281f8b7b8",
+        "bundle_sha256": "7d9096d87d4016df2884f8a3cfd6b217d954f974c5ea9bbd831236d74983b645",
+        "clip_id": "external.2ee03d7638686150.front",
+        "clip_sha256": "64b40e08c4ebbeb5a01b15d341252115271ee1a54770716abf2781a24983175a",
+        "map_id": "kimodo.soma77.front-v1",
+        "map_sha256": "924e9ee8464aae1359065b7be0d719d9482bc5efe90f8fe86c36b34789635b49",
+        "motion_ir_sha256": "64b40e08c4ebbeb5a01b15d341252115271ee1a54770716abf2781a24983175a",
+        "raw_npz_byte_length": 782570,
+        "raw_npz_sha256": "2ee03d7638686150305d61ff6bd5d8f21a05693cf139bb20467017feb3d363a6",
+        "reused": false,
+        "run_sha256": "eba51b7f250c946ad173f82c64bec36aa37487a0cb3f0b5c065e789ba88629b3",
+        "source_id": "external.2ee03d7638686150",
+        "source_kind": "kimodo_npz",
+        "source_sha256": "406e38ff23db4887dabd220db8c8bf5a19aefd768cf8f705a8f13ca6b26c1423"
+      },
+      "pairs": [
+        {
+          "arm_slot": "layer-006",
+          "torso_slot": "layer-009",
+          "side": "left",
+          "setup_front_slot": "layer-009",
+          "events": []
+        },
+        {
+          "arm_slot": "layer-006",
+          "torso_slot": "layer-011",
+          "side": "left",
+          "setup_front_slot": "layer-011",
+          "events": []
+        },
+        {
+          "arm_slot": "layer-001",
+          "torso_slot": "layer-009",
+          "side": "right",
+          "setup_front_slot": "layer-009",
+          "events": []
+        },
+        {
+          "arm_slot": "layer-001",
+          "torso_slot": "layer-011",
+          "side": "right",
+          "setup_front_slot": "layer-011",
+          "events": []
+        }
+      ]
+    },
+    {
+      "profile": "external-arm-torso-depth-review-v1",
+      "authority": "none",
+      "selected": false,
+      "source_sha256": "2ef3d860da11f2456fd43323aaf35a5e8b2860aba2191311cfed35887e920686",
+      "map_sha256": "b491975cfe78426f51bb943c459e6ff5fa105b9ef332495de1978857b7d5a564",
+      "depth_axis": "+Z",
+      "depth_positive": "toward_camera",
+      "groups": {
+        "left": [
+          "layer-003-component-0000"
+        ],
+        "right": [
+          "layer-002-component-0000"
+        ],
+        "torso": [
+          "layer-005"
+        ],
+        "other": [
+          "layer-000",
+          "layer-001-l",
+          "layer-001-r",
+          "layer-004",
+          "layer-006",
+          "layer-007",
+          "layer-008",
+          "layer-009",
+          "layer-010",
+          "layer-011",
+          "layer-012",
+          "layer-013",
+          "layer-014",
+          "layer-015",
+          "layer-016",
+          "layer-017",
+          "layer-018",
+          "layer-019",
+          "layer-020"
+        ]
+      },
+      "scope": "source_depth_order_candidate_not_raster_occlusion_validation",
+      "limits": {
+        "enter_ratio": 0.04,
+        "exit_ratio": 0.02,
+        "minimum_hold_frames": 3
+      },
+      "limitations": [
+        "source_depth_does_not_prove_target_pixel_overlap",
+        "straddling_arm_requires_partition_or_review",
+        "unclassified_slots_keep_setup_order"
+      ],
+      "switch_candidates": 1,
+      "ambiguous_pair_samples": 105,
+      "status": "depth_candidates_need_review",
+      "cell": "raise-arms/huiye",
+      "input_artifact_sha256": "a0d20d0734b117f2a8b38d24379cb8825f453c68793a15bc94cf31f579348685",
+      "motion_identity": {
+        "bundle_sha256": "d9567d693030411b0a7be28b6da14218851b052a915945bcccda5594fe43dd87",
+        "bvh_map_sha256": "b491975cfe78426f51bb943c459e6ff5fa105b9ef332495de1978857b7d5a564",
+        "clip_id": "external.2ef3d860da11f245.front",
+        "clip_sha256": "2393e9081dd8b4d4d7c89c2061fe3645303c5092c098a0f7752a0dbb1049237e",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "2393e9081dd8b4d4d7c89c2061fe3645303c5092c098a0f7752a0dbb1049237e",
+        "raw_bvh_byte_length": 171331,
+        "raw_bvh_sha256": "2ef3d860da11f2456fd43323aaf35a5e8b2860aba2191311cfed35887e920686",
+        "reused": false,
+        "run_sha256": "6237041e50ae8b0010f0f27c24cb6dc884fd1693e3bdba83b620551ff94f98d2",
+        "source_kind": "bvh"
+      },
+      "input_job_id": "motion-0af2e2c4190340eaa179b50733abe3c8",
+      "provenance": "precision-reference retry; original failed baseline preserved",
+      "pairs": [
+        {
+          "arm_slot": "layer-003-component-0000",
+          "torso_slot": "layer-005",
+          "side": "left",
+          "setup_front_slot": "layer-005",
+          "events": [
+            {
+              "source_frame_index": 8,
+              "tick": 266667,
+              "from_front_slot": "layer-005",
+              "to_front_slot": "layer-003-component-0000",
+              "evidence_window": {
+                "start_source_frame_index": 6,
+                "end_source_frame_index": 8,
+                "start_tick": 200000,
+                "end_tick": 266667,
+                "sample_count": 3
+              }
+            }
+          ]
+        },
+        {
+          "arm_slot": "layer-002-component-0000",
+          "torso_slot": "layer-005",
+          "side": "right",
+          "setup_front_slot": "layer-005",
+          "events": []
+        }
+      ]
+    }
+  ],
+  "integrated_validation": {
+    "job_id": "motion-807411591e6d42cc90f68dcdd3f18c7b",
+    "artifact_sha256": "14289f08a0f0cd158fbfcda0b70519885a659226cd8afe8f2819c2cd6ce64849",
+    "runtime_frames": 375,
+    "geometry_passed": true,
+    "depth_order_status": "depth_candidates_need_review",
+    "runtime_report_sha256": "ac53f1324798b242217483ccd069c3c6f29130ce487469185717d8595104114c"
+  }
+}

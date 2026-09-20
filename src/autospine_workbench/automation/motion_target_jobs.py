@@ -49,11 +49,12 @@ def submit(manager, source_job, body):
     character = characters.get(project, character_job)
     from ..targets.character43.runtime_storage_reference import PROFILE
     from ..targets.character43.stationary_contact_policy import PROFILE as CONTACT_PROFILE
+    from ..targets.character43.motion_depth import PROFILE as DEPTH_PROFILE
     request = dict(kind='adapt', source_job_id=source_job, source_job_sha256=canonical_sha256(source),
                    motion_identity=source['result']['motion'], project_id=project, character_job_id=character_job,
                    character_sha256=character['artifact_sha256'], name=source['name'],
                    contact_correction=body.get('contact_correction', True), runtime_reference_profile=PROFILE,
-                   inferred_contact_profile=CONTACT_PROFILE)
+                   inferred_contact_profile=CONTACT_PROFILE, depth_review_profile=DEPTH_PROFILE)
     if body.get('clip') is not None:
         request['clip'] = body['clip']
     assert_current(manager, request)
@@ -92,6 +93,13 @@ def review_file(manager, job, parts):
     result, files = context(manager, job)
     if parts == ['motion-contact.json']:
         return files['motion-contact.json'], 'application/json'
+    if parts in (['motion-depth.json'], ['depth.html']):
+        if 'motion-depth.json' not in files:
+            raise PipelineRunError('pipeline_artifact_not_found')
+        if parts == ['motion-depth.json']:
+            return files['motion-depth.json'], 'application/json'
+        from ..targets.character43.motion_depth_review import render
+        return render(json.loads(files['motion-depth.json'])), 'text/html; charset=utf-8'
     if parts == ['contact.html']:
         from ..targets.character43.motion_contact_review import render
         return render(json.loads(files['motion-contact.json'])), 'text/html; charset=utf-8'

@@ -36,6 +36,23 @@ def inputs():
 
 
 class MotionTargetTests(unittest.TestCase):
+    def test_depth_review_is_versioned_and_legacy_output_is_unchanged(self):
+        from autospine_workbench.targets.character43.motion_depth import PROFILE
+        files, motion_ir, bvh, mapping = inputs()
+        document = json.loads(files['skeleton.json'])
+        document['slots'] = [dict(name='point', attachment='point', bone='root')]
+        files['skeleton.json'] = canonical_bytes(document)
+        legacy, _, _ = build_candidate(files, motion_ir, bvh, mapping,
+                                      character_digest='a'*64, motion_digest='b'*64)
+        current, evidence, _ = build_candidate(files, motion_ir, bvh, mapping,
+            character_digest='a'*64, motion_digest='b'*64, depth_review_profile=PROFILE)
+        self.assertNotIn('motion-depth.json', legacy)
+        self.assertEqual(current['skeleton.json'], legacy['skeleton.json'])
+        depth = json.loads(current['motion-depth.json'])
+        self.assertFalse(depth['selected'])
+        self.assertEqual(depth['skeleton_sha256'], sha256(current['skeleton.json']).hexdigest())
+        self.assertEqual(evidence['depth_order_status'], depth['status'])
+
     def test_worker_loads_exact_compiled_motion_and_retains_source_bundle(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
