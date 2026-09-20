@@ -2,9 +2,13 @@ import {createSourcePlayer} from './motion-source-player.js';
 import {createTargetControls} from './motion-target-controls.js';
 import {createGenerationControls} from './motion-generation-controls.js';
 import {createSelectionControls} from './motion-selection-controls.js';
+import {createContactControls} from './motion-contact-controls.js';
 
 const $ = id => document.getElementById(id);
 const player = createSourcePlayer($('canvas'), $('time'), $('play'), $('clock'));
+const contactPanel = document.createElement('section');
+$('diagnostic').closest('details').after(contactPanel);
+const contactControls = createContactControls(contactPanel, $('time'));
 const active = new Set(['pending', 'running']);
 let timer = null, busy = false, previewToken = 0, refreshToken = 0, suspended = false;
 const states = {
@@ -70,6 +74,7 @@ async function request(url, options = {}) {
 async function preview(job) {
   const token = ++previewToken;
   player.clear();
+  contactControls.clear();
   targetControls.select(job);
   selectionControls.select(job);
   $('title').textContent = job.name;
@@ -78,6 +83,7 @@ async function preview(job) {
     const data = await request(`/api/motions/${job.job_id}/preview`);
     if (token !== previewToken) return;
     player.load(data);
+    if (job.result.motion_status === 'compiled') void contactControls.load(job);
     const result = job.result;
     const outcome = result.motion_status === 'compiled' ? 'MotionIR 已生成，尚未适配角色。'
       : reasons[result.reason_code] || result.reason_code;
