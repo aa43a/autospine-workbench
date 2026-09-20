@@ -15,7 +15,7 @@ from autospine_workbench.targets.character43.motion_depth_overlap import Probe
 from autospine_workbench.targets.character43.motion_depth_order import build
 
 
-def run(job,output,*,refine_cycles=False,partition_slots=None,cloth_constraints=False,limb_constraints=False):
+def run(job,output,*,refine_cycles=False,partition_slots=None,cloth_constraints=False,limb_constraints=False,torso_plane=False):
     root=Path('workspace'); folder=root/'jobs/motion-intake-v1'/job
     request=read_document(folder/'request.json'); result=read_document(folder/'result.json')
     identity=request['motion_identity']
@@ -36,7 +36,7 @@ def run(job,output,*,refine_cycles=False,partition_slots=None,cloth_constraints=
         depth=depth_build(document,bvh,bundle.bvh_map,clip_bounds=(min(ticks),max(ticks)),
                           yaw_degrees=yaw,render_regions=True)
     sampler=SegmentDepthSampler(bvh,bundle.bvh_map,yaw)
-    refined,evidence=refine(document,files,'external-motion',depth,sampler)
+    refined,evidence=refine(document,files,'external-motion',depth,sampler,torso_plane=torso_plane)
     order_probe=Probe(document,files,'external-motion')
     cloth=None
     if cloth_constraints:
@@ -76,7 +76,8 @@ if __name__=='__main__':
     parser.add_argument('--partition-slot',action='append')
     parser.add_argument('--cloth-constraints',action='store_true')
     parser.add_argument('--limb-constraints',action='store_true')
+    parser.add_argument('--torso-plane',action='store_true')
     args=parser.parse_args()
     if not __import__('re').fullmatch('motion-[a-f0-9]{32}',args.job):raise ValueError('job_invalid')
     print(json.dumps(run(args.job,args.output,refine_cycles=args.refine_cycles,partition_slots=args.partition_slot,
-                         cloth_constraints=args.cloth_constraints,limb_constraints=args.limb_constraints)))
+                         cloth_constraints=args.cloth_constraints,limb_constraints=args.limb_constraints,torso_plane=args.torso_plane)))

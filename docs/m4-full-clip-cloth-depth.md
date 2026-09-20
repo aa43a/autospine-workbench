@@ -135,3 +135,30 @@ of unrelated geometry edits, changed source identities, and unmeasured evidence.
 This comparison limits the current algorithm's support claim to the captured
 Hongmeiling case. Next work must improve torso/arm depth evidence and bounded
 raster efficiency before exposing a broadly applicable automatic workflow.
+
+## Torso-plane refinement option
+
+`--torso-plane` opts into `torso-plane-hand-interval-held-order-v1-experiment`.
+Previously ambiguous arm/chest rows can use source torso anchors, supported mesh
+hand axes, observed source fingertips and same-arm weighted depth intervals.
+The old zero-reference segment proxy remains the default. This mode preserves
+the held source order: both the frame and midpoint must support that order before
+ambiguity is cleared. Opposite depth, model degeneration, missing evidence and
+budget failures cannot silently change the order or become no-overlap results.
+The planar torso assumption is recorded explicitly and mesh geometry is untouched.
+
+Actual Alice evidence: `../tmp/m4-motion-center/full-torso-depth-order-alice-v1.json`.
+The refinement checks 112 source/midpoint samples: 56 no-overlap and 56 still
+requiring more local ordering evidence. No held rows are cleared; full ordering
+retains 29 visible-straddle failures. This result is not a resource timeout:
+refinement consumes 12,260,398 raster-budget pixels.
+
+At 0.166667 seconds the arm/chest overlap has 1,940 pixels: 255 support front,
+169 support back, 1,516 are within the uncertain boundary envelope, and zero
+are unknown. At the next midpoint both front and back support remain. The new
+model therefore exposes conflicting local surface-order requirements rather than
+just missing hand depth. A single whole-attachment swap cannot satisfy these
+modeled relationships. Next candidates should investigate local render regions
+or alternative projection; widening the depth margin is not a justified repair.
+Seventeen focused tests cover default compatibility, preserved held order,
+source-midpoint identity, plane-relative classification and degenerate rejection.
