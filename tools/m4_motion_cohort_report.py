@@ -36,6 +36,8 @@ def rows(plan, state, reviews=None):
             source_job = state['sources'].get(source['id'], {})
             job = state['cells'].get(key, {})
             result = job.get('result', {})
+            if job.get('status') == 'succeeded' and result.get('projection') != source.get('projection'):
+                raise ValueError('cohort_report_projection_mismatch')
             issues = result.get('issues', [])
             diagnostic = state.get('diagnostics', {}).get(key, {})
             if diagnostic and diagnostic['job_id'] != job.get('job_id'):
@@ -97,11 +99,14 @@ def render(plan, state, reviews=None):
     heading += (f'<p>人工阶段接受 {counts["visual_accepted"]} · 保留异常接受 '
                 f'{counts["visual_accepted_with_exceptions"]} · 验收证据已变化 {counts["visual_evidence_changed"]}。'
                 + ('验收快照：' + escape(reviews['captured_at']) if reviews else '未读取人工验收记录。') + '</p>')
+    views = ', '.join(sorted({s['view'] + (f" / 偏转 {s['projection']['yaw_degrees']}°" if s.get('projection') else '')
+                              for s in plan['motions']}))
+    intro = '<h1>M4 固定动作验收矩阵</h1><p>' + escape(
+        f"{len(plan['characters'])} 个角色 × {len(plan['motions'])} 类动作；来源视角：{views}。失败保留，不替换样本。") + '</p>'
     return '''<!doctype html><meta charset="utf-8"><title>M4 固定动作验收矩阵</title>
 <style>body{background:#101923;color:#e3edf6;font:15px system-ui;padding:24px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #425466;padding:10px;text-align:left}a{color:#69d4fa}td{max-width:300px;overflow-wrap:anywhere}</style>
-<h1>M4 三结构角色 × 八类动作</h1><p>固定完整源动作、正面投影；失败保留，不替换为更容易通过的样本。类别仍需核对实际动作。</p>
 <p>任务完成不等于动作通过。接触、遮挡、视觉验收分别列出，未检查不计通过。此页为生成时快照。</p>
-''' + heading + '<table><thead><tr>' + ''.join('<th>'+v+'</th>' for v in ['动作/角色','任务','候选','综合检查','几何','Runtime 帧','接触','遮挡','人工视觉','异常','定位']) + '</tr></thead><tbody>' + ''.join(lines) + '</tbody></table>'
+''' + intro + heading + '<table><thead><tr>' + ''.join('<th>'+v+'</th>' for v in ['动作/角色','任务','候选','综合检查','几何','Runtime 帧','接触','遮挡','人工视觉','异常','定位']) + '</tr></thead><tbody>' + ''.join(lines) + '</tbody></table>'
 
 
 def summary(records):
