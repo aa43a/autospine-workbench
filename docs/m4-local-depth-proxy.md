@@ -173,3 +173,27 @@ The comparison rejects incomplete screenshot inventories, changed image bytes,
 camera/time differences and mismatched capture environments. A changed alpha
 channel alone fails equivalence. No depth assignment or visual approval is
 inferred from equal images.
+
+## Rendered-region ownership in the depth compiler
+
+The opt-in `external-render-region-depth-review-v1-experiment` classifies only
+vertices referenced by a region's triangles, while retaining the full vertex
+arrays for deformation compatibility. Every positive influence participates;
+even a tiny auxiliary-bone influence prevents classifying a region as chest-only.
+The original whole-attachment policy remains unchanged. Source observations and
+Schmitt state are rebuilt for each region's actual setup order instead of copying
+a whole-layer order decision.
+
+Run the local-order tool with `--refine-cycles --partition-slot layer-002
+--partition-slot layer-005` for the verified Hongmeiling example. Four torso
+targets are identified: two existing chest attachments and two chest-only render
+regions. All six visible conflicts remain, now localized to `layer-002-depth-002`
+at 1.333333 s and `layer-005-depth-002` at 1.366667–1.5 s. Both are mixed-weight
+regions. Neither pure chest nor fully unmapped regions are the reported witness
+in these samples. The 84 remaining ambiguous pair rows include invisible pairs;
+they must not be presented as 84 visible failures.
+
+Evidence: `../tmp/m4-motion-center/regional-depth-order-hong-v1.json`. No new
+ordered candidate was generated. The next depth model must address chest/helper
+mixtures rather than treating an entire skirt layer as chest or dropping its
+visible ordering constraints.

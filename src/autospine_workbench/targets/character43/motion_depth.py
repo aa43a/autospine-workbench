@@ -33,7 +33,7 @@ def _source(bvh, mapping, kimodo, yaw_degrees=None):
     return rows, mapping['root']['reference_length_meters'], sha256(raw).hexdigest()
 
 
-def _slots(document):
+def _slots(document, *, render_regions=False):
     bones = document['bones']; parents = {b['name']: b.get('parent') for b in bones}
     def owner(name):
         original_name = name
@@ -52,25 +52,28 @@ def _slots(document):
         if attachment.get('type') != 'mesh' or len(weights) == len(attachment.get('uvs', [])):
             owners = {owner(slot['bone'])}
         else:
-            owners = set(); i = 0
+            owners = set(); i = 0; vertex = 0
+            used = set(attachment.get('triangles', [])) if render_regions else None
             while i < len(weights):
                 count = weights[i]; i += 1
                 for _ in range(count):
                     index, _, _, weight = weights[i:i+4]; i += 4
-                    if weight > 1e-8: owners.add(owner(bones[index]['name']))
+                    if (used is None or vertex in used) and weight > (0 if render_regions else 1e-8):
+                        owners.add(owner(bones[index]['name']))
+                vertex += 1
         group = next(iter(owners)) if len(owners) == 1 else 'other'
         result[group].append(slot['name'])
     return result
 
 
-def build(document, bvh, mapping, *, kimodo=None, clip_bounds=None, yaw_degrees=None):
+def build(document, bvh, mapping, *, kimodo=None, clip_bounds=None, yaw_degrees=None, render_regions=False):
     if yaw_degrees is not None:
         from .oblique_target import validate
         from .oblique_motion import PROFILE as OBLIQUE_PROFILE
         validate(dict(profile=OBLIQUE_PROFILE,yaw_degrees=yaw_degrees))
     frames, length, source_sha = _source(bvh, mapping, kimodo, yaw_degrees)
     roles = {r['role']: r for r in mapping['bones']}
-    groups = _slots(document)
+    groups = _slots(document, render_regions=render_regions)
     report = dict(profile=PROFILE, authority='none', selected=False, source_sha256=source_sha,
         map_sha256=canonical_sha256(mapping), depth_axis=mapping['basis']['depth'],
         depth_positive='toward_camera', groups=groups, pairs=[],
@@ -78,6 +81,9 @@ def build(document, bvh, mapping, *, kimodo=None, clip_bounds=None, yaw_degrees=
         limits=dict(enter_ratio=.04, exit_ratio=.02, minimum_hold_frames=3),
         limitations=['source_depth_does_not_prove_target_pixel_overlap',
                      'straddling_arm_requires_partition_or_review', 'unclassified_slots_keep_setup_order'])
+    if render_regions:
+        report.update(profile='external-render-region-depth-review-v1-experiment',
+                      ownership_scope='all_positive_influences_of_rendered_triangle_vertices')
     torso = roles.get('humanoid.spine.upper')
     if yaw_degrees is not None:
         report.update(projection_profile=OBLIQUE_PROFILE,yaw_degrees=yaw_degrees,
