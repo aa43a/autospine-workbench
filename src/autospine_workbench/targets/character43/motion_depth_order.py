@@ -17,11 +17,13 @@ def _sort(slots, edges):
     return output
 
 
-def build(document, animation, depth, probe):
+def build(document, animation, depth, probe, *, refine_cycles=False):
     slots = [s['name'] for s in document['slots']]
     indices = {s: i for i, s in enumerate(slots)}
     report = dict(profile=PROFILE, selected=False, authority='none', status='blocked',
                   reason_codes=[], failures=[], frames=[], scope='sampled_order_constraints_not_visual_acceptance')
+    if refine_cycles:
+        report.update(profile='external-overlap-guarded-draw-order-v2-experiment', cycle_refinements=[])
     if document['animations'][animation].get('drawOrder'):
         report['reason_codes'] = ['existing_draw_order_preserved']
         return None, report
@@ -67,6 +69,13 @@ def build(document, animation, depth, probe):
                     if overlap:
                         evidence[a, b]['overlap'] = overlap
             order = _sort(slots, edges)
+            if order is None and refine_cycles:
+                from .order_cycle_refine import resolve
+                order, audit = resolve(slots, edges, evidence, probe, times, _sort)
+                report['cycle_refinements'].append(dict(time=time, **audit))
+                if order is None:
+                    details = dict(conflict=audit.get('conflict'))
+                    raise ValueError(audit['reason_code'])
             if order is None:
                 details = dict(conflict=witness(slots, evidence))
                 raise ValueError('visible_unmapped_order_conflict')

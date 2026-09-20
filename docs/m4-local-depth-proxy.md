@@ -96,3 +96,29 @@ visual acceptance was recorded. Frame-plus-midpoint evidence does not prove
 continuous-time correctness. Tests additionally cover nonlinear FK depth,
 camera yaw, ambiguous rotation intervals, clipped source time offsets, held-order
 agreement and preservation of the original report.
+
+## Distinguishing conservative order edges from visible cycles
+
+An opt-in `--refine-cycles` experiment adds
+`sampled-disjoint-cycle-refinement-v1`. It shortens a cycle using existing graph
+chords, then tests its otherwise unmeasured setup-order edges at the source frame
+and midpoint. Only edges with no alpha overlap at both samples may be removed.
+Visible edges remain constraints; sampling errors and a 128-check bound abstain.
+The original ordering profile remains the default. This does not infer new depth
+for cloth, change pixels, or bypass source-depth conflicts.
+
+The exact Hongmeiling candidate still has six failures from 1.333333 to 1.5 s.
+No constraints could be removed. The first compact cycle is
+`layer-002 -> layer-009 -> layer-001 -> layer-002`; the previously unmeasured
+002/009 edge has 3,515 overlap pixels. The other five witnesses are
+`layer-005 -> layer-009 -> layer-001 -> layer-005`, with 3,439–3,461 overlap pixels
+on 005/009. Thus the failure is not explained solely by invisible setup-order
+constraints. The first cycle combines source-frame and midpoint evidence for a
+held interval; it is not asserted to be a simultaneous single-frame cycle.
+
+See `../tmp/m4-motion-center/local-depth-order-hong-cycle-v1.json` for each exact
+time, edge source and overlap sample. This establishes a conflict under the
+current source-depth and retained visible-order assumptions, not ground-truth
+physical depth. Resolving it requires revisiting local region ownership/depth or
+region-level rendering rather than simply moving the entire arm slot forward.
+There is still no new candidate or Runtime claim from this experiment.

@@ -15,7 +15,7 @@ from autospine_workbench.targets.character43.motion_depth_overlap import Probe
 from autospine_workbench.targets.character43.motion_depth_order import build
 
 
-def run(job,output):
+def run(job,output,*,refine_cycles=False):
     root=Path('workspace'); folder=root/'jobs/motion-intake-v1'/job
     request=read_document(folder/'request.json'); result=read_document(folder/'result.json')
     identity=request['motion_identity']
@@ -27,7 +27,8 @@ def run(job,output):
     sampler=SegmentDepthSampler(parse_bvh(bundle.raw_bvh),bundle.bvh_map,
                                request.get('projection',{}).get('yaw_degrees',0))
     refined,evidence=refine(document,files,'external-motion',depth,sampler)
-    candidate,order=build(document,'external-motion',refined,Probe(document,files,'external-motion'))
+    candidate,order=build(document,'external-motion',refined,Probe(document,files,'external-motion'),
+                          refine_cycles=refine_cycles)
     report=dict(profile='local-depth-order-experiment-v1',artifact_sha256=result['result']['artifact_sha256'],
                 source_identity=identity,request_sha256=provenance['request_sha256'],
                 sampling_profile=PROFILE,refinement=evidence,order=order,
@@ -44,6 +45,7 @@ def run(job,output):
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('job'); parser.add_argument('output',type=Path)
+    parser.add_argument('--refine-cycles',action='store_true')
     args=parser.parse_args()
     if not __import__('re').fullmatch('motion-[a-f0-9]{32}',args.job):raise ValueError('job_invalid')
-    print(json.dumps(run(args.job,args.output)))
+    print(json.dumps(run(args.job,args.output,refine_cycles=args.refine_cycles)))
