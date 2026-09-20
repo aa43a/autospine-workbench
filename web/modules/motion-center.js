@@ -123,6 +123,11 @@ function render(data) {
     if (job.cancel_requested && active.has(job.status)) item.append(node('p', '正在停止解析进程…'));
     if (job.status === 'succeeded' && job.kind === 'adapt') {
       const result = job.result;
+      if (result.projection) {
+        const receipt = node('a', `投影偏转 ${result.projection.yaw_degrees}° · 查看依据`);
+        receipt.href = `/api/motions/${job.job_id}/view/motion-projection.json`;
+        receipt.target = '_blank'; receipt.rel = 'noopener'; item.append(receipt);
+      }
       appendDepthSummary(item, job);
       appendReadiness(item, job);
       if (data.stage_review_available) appendStageReview(item, job);

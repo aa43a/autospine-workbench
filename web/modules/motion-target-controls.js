@@ -2,7 +2,7 @@
 import {createObliqueSelection} from './motion-oblique-selection.js';
 export function createTargetControls(request, refresh, selection) {
   const $ = id => document.getElementById(id);
-  let source = null, character = null, token = 0, busy = false;
+  let source = null, character = null, token = 0, busy = false, comparing = false;
   const label = document.createElement('label');
   label.textContent = '相对源视角的恒定偏转（实验） ';
   const yaw = document.createElement('select'); yaw.disabled = true;
@@ -16,13 +16,13 @@ export function createTargetControls(request, refresh, selection) {
   const hint = document.createElement('p'); hint.className = 'hint';
   hint.textContent = '偏转将建立独立候选并重算动作、长度与遮挡；不会生成侧面贴图。修改源动作后角度会重置。';
   label.after(hint);
-  const automatic = createObliqueSelection(request, yaw, hint);
+  const automatic = createObliqueSelection(request, yaw, hint, value => { comparing = value; enabled(); });
   let obliqueAvailable = false;
   void request('/api/motions').then(value => {
     obliqueAvailable = Boolean(value.oblique_target_available); yaw.disabled = !obliqueAvailable;
     automatic.available(obliqueAvailable && value.oblique_comparison_available);
   }).catch(() => {});
-  function enabled() { $('adapt').disabled = busy || !source || !character; }
+  function enabled() { $('adapt').disabled = busy || comparing || !source || !character; }
   async function selectProject() {
     const current = ++token, id = $('target-project').value;
     character = null; enabled();
@@ -52,7 +52,7 @@ export function createTargetControls(request, refresh, selection) {
   }
   $('target-project').onchange = () => void selectProject();
   $('adapt').onclick = async () => {
-    if (!source || !character || busy) return;
+    if (!source || !character || busy || comparing) return;
     busy = true; enabled();
     try {
       await request(`/api/motions/${source.job_id}/adapt`, {

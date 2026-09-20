@@ -17,6 +17,18 @@ from test_mixamo_map import source
 
 
 class ObliqueTargetTests(unittest.TestCase):
+    def test_projection_receipt_is_served_from_verified_candidate_only(self):
+        from autospine_workbench.automation.motion_target_jobs import review_file
+        from autospine_workbench.automation.pipeline_run import PipelineRunError
+        with patch('autospine_workbench.automation.motion_target_jobs.context',
+                   return_value=({}, {'motion-projection.json': b'{"selection":"verified"}'})):
+            raw, mime = review_file(None, 'job', ['motion-projection.json'])
+            self.assertEqual(json.loads(raw)['selection'], 'verified')
+            self.assertEqual(mime, 'application/json')
+        with patch('autospine_workbench.automation.motion_target_jobs.context', return_value=({}, {})):
+            with self.assertRaisesRegex(PipelineRunError, 'artifact_not_found'):
+                review_file(None, 'job', ['motion-projection.json'])
+
     def test_depth_uses_same_yaw_as_motion(self):
         point=SimpleNamespace(depth=5,screen_xy=(3,4))
         projected=SimpleNamespace(frames=[SimpleNamespace(tick=0,joints=[('joint',point)])])

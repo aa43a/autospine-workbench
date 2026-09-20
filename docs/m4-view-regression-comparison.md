@@ -12,6 +12,7 @@ Current completed runs:
 | --- | ---: | ---: | ---: |
 | Front: 8 categories × 3 characters | 24 / 24, 11,334 frames | 11 / 24 | 0 |
 | Side: 4 changed categories × 3 characters | 12 / 12, 6,978 frames | 11 / 12 | 1 |
+| Oblique: the same 4 categories × 3 characters | 12 / 12, 6,531 frames | 10 / 12 | 0 |
 
 These denominators differ, so the headline ratios are not a controlled comparison
 of view quality. The row-aligned report provides the appropriate same-source pairs.
@@ -24,7 +25,16 @@ The side raise-arms Hongmeiling candidate
 inferred support corrected, geometry passed, sampled draw-order candidate applied.
 Human visual feedback has been requested and is pending.
 
-The oblique cohort is still running. The generated comparison is a snapshot at
+The oblique cohort has completed. Walking passes geometry on all three characters
+but retains support drift. Raise-arms passes geometry and current support checks
+on all three, but retains depth exceptions. Squat has geometry failures on Alice
+and Hongmeiling; Huiye passes geometry and support. Reach passes geometry on all
+three with only partial support correction. Every oblique case retains depth
+exceptions. The smallest source-qualified yaw is therefore not a demonstrated
+best target view: the matched side cohort has one more geometry pass and one
+stage-ready candidate. No gates were relaxed to select these results.
+
+The generated comparison is a snapshot at
 `../tmp/m4-motion-center/view-comparison-current.html`, not a live progress monitor.
 Re-run the reporter with the three plan/state pairs to refresh it. Generic cohort
 report headings now show actual source views and projection offsets rather than

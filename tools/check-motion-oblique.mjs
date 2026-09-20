@@ -38,11 +38,14 @@ try {
     await document.getElementById('adapt').onclick();
     delayed=true;
     const pending=automatic.onclick();
+    const comparisonBlocksSubmit=document.getElementById('adapt').disabled;
+    await document.getElementById('adapt').onclick();
+    const whileComparing=calls.length;
     controls.select({job_id:'source-c',name:'C',result:{motion_status:'compiled'}});
     release(); await pending;
     const staleReset=yaw.value;
     await document.getElementById('adapt').onclick();
-    return {calls,reset,staleReset};
+    return {calls,reset,staleReset,comparisonBlocksSubmit,whileComparing};
   });
   assert.deepEqual(result.calls[0].projection,{profile:'constant-yaw-source-motion-v1',yaw_degrees:-45});
   assert.equal(result.reset,'');
@@ -51,7 +54,9 @@ try {
   assert.equal(result.calls[2].projection.yaw_degrees,-30);
   assert.equal('projection_selection' in result.calls[3],false);
   assert.equal(result.staleReset,'');
+  assert.equal(result.comparisonBlocksSubmit,true);
+  assert.equal(result.whileComparing,4);
   assert.equal('projection_selection' in result.calls[4],false);
   assert.equal('projection' in result.calls[4],false);
-  console.log(JSON.stringify({passed:true,cases:['explicit_yaw','source_change_reset','legacy_payload','automatic_receipt','manual_override','stale_response']}));
+  console.log(JSON.stringify({passed:true,cases:['explicit_yaw','source_change_reset','legacy_payload','automatic_receipt','manual_override','stale_response','comparison_blocks_submission']}));
 } finally {await browser.close();}

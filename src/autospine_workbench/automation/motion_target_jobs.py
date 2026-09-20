@@ -102,6 +102,10 @@ def review_file(manager, job, parts):
         # still verify the addressed job, character sources and capture inventory.
         return read(None, None, None, parts)
     result, files = context(manager, job)
+    if parts == ['motion-projection.json']:
+        if 'motion-projection.json' not in files:
+            raise PipelineRunError('pipeline_artifact_not_found')
+        return files['motion-projection.json'], 'application/json'
     if parts == ['motion-contact.json']:
         return files['motion-contact.json'], 'application/json'
     if parts in (['depth-ownership.json'], ['depth-ownership.html']):

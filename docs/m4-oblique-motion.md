@@ -80,6 +80,17 @@ Geometry, contact, depth and Runtime checks still run on the resulting character
 
 Validation: source comparison, stale receipt and mismatched angle unit checks,
 real BVH HTTP comparison, and browser payload/manual override/source reset checks.
+Comparison in progress disables target submission, including programmatic button
+activation; a manual override or source change ends that pending selection.
+
+Real automatic-path validation: Hongmeiling raise-arms chose -30 degrees and
+created `motion-6d7be7b37ac141c1906cf28ca5eb4c74`, artifact
+`1842fe3961713e9c7b32f3463be804749b7268208f1540a52a2c91053379434f`.
+Its 646 Runtime frames passed geometry and current inferred support checks;
+depth remains `depth_candidates_need_review`. The verified projection artifact
+contains the exact automatic comparison digest and source job. It is readable
+through `view/motion-projection.json` and the target card's projection link.
+This verifies persistence and execution, not human visual acceptance.
 
 ## Frozen oblique target cohort
 

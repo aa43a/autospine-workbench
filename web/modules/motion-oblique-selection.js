@@ -1,11 +1,11 @@
 // Propose a whole-clip angle; submission still produces a separately checked candidate.
-export function createObliqueSelection(request, yaw, anchor) {
+export function createObliqueSelection(request, yaw, anchor, onBusy = () => {}) {
   const button = document.createElement('button'); button.type = 'button';
   button.textContent = '自动选择投影角度'; button.disabled = true;
   const status = document.createElement('p'); status.className = 'hint'; status.role = 'status';
   anchor.after(button, status);
   let source = null, available = false, generation = 0, selection = null, busy = false;
-  const enable = () => { button.disabled = !available || !source || busy; };
+  const enable = () => { button.disabled = !available || !source || busy; onBusy(busy); };
   yaw.addEventListener('change', () => {
     generation++; selection = null; busy = false; status.textContent = '已切换为手动角度。'; enable();
   });
