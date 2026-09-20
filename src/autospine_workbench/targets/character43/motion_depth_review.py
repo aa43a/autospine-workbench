@@ -18,8 +18,21 @@ def render(report):
                'depth_overlap_attachment_unsupported': '当前附件类型尚未支持重叠检查'}
     for failure in report.get('order', {}).get('failures', []):
         time = failure['time']
+        explanation = ''
+        sources = {'source_depth': '源动作深度', 'visible_setup_order': '可见交集，保留原顺序',
+                   'preserved_setup_order': '保留原顺序（未测量此配对交集）'}
+        for edge in (failure.get('conflict') or {}).get('edges', []):
+            overlap = edge.get('overlap')
+            sample = (f'；{overlap["time"]:.3f} 秒，{overlap["overlap_pixels"]} 个交集像素'
+                      if overlap else '')
+            explanation += (f'<li>{escape(edge["back"])} 在 {escape(edge["front"])} 后方：'
+                            f'{escape(sources.get(edge["source"], edge["source"]))}{sample}</li>')
+        if explanation:
+            explanation = '<ul>' + explanation + '</ul>'
+        elif failure.get('pair'):
+            explanation = '<p>' + escape(' / '.join(failure['pair'])) + '</p>'
         failures.append(f'<tr><td>顺序约束</td><td>{escape(reasons.get(failure["reason_code"], failure["reason_code"]))}</td>'
-                    f'<td><a href="player.html?time={time:.9f}">{time:.3f} 秒</a></td></tr>')
+                    f'<td><a href="player.html?time={time:.9f}">{time:.3f} 秒</a>{explanation}</td></tr>')
     for pair in report['pairs']:
         label = escape(pair['arm_slot']+' / '+pair['torso_slot'])
         for event in pair['events']:

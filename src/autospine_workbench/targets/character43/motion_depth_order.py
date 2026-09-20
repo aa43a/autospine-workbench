@@ -1,5 +1,6 @@
 """Compile only overlap-supported orders without crossing unknown visible parts."""
 from copy import deepcopy
+from .order_conflict import first_overlap, witness
 
 PROFILE = 'external-overlap-guarded-draw-order-v1'
 
@@ -37,17 +38,19 @@ def build(document, animation, depth, probe):
         time = tick/1e6
         # Guard the held order at the next midpoint as well as the source frame.
         times = [time] + ([(tick+ticks[index+1])/2e6] if index+1 < len(ticks) else [])
-        edges = set(); requests = []
+        edges = set(); requests = []; evidence = {}; details = {}
         try:
             for pair, row in by_tick[tick]:
                 arm, torso = pair['arm_slot'], pair['torso_slot']
-                visible = any(probe.pair(arm, torso, t)['overlap_pixels'] for t in times)
+                visible = first_overlap(probe, arm, torso, times)
                 if not visible:
                     continue
                 if row['ambiguous']:
+                    details = dict(pair=[arm, torso], overlap=visible)
                     raise ValueError('visible_depth_straddle')
                 front = row['current_front_slot']; back = torso if front == arm else arm
                 edges.add((back, front))
+                evidence[back, front] = dict(source='source_depth', overlap=visible)
                 if indices[back] > indices[front]:
                     requests.append((arm, min(indices[arm], indices[torso]), max(indices[arm], indices[torso])))
             for i, a in enumerate(slots):
@@ -56,14 +59,19 @@ def build(document, animation, depth, probe):
                         continue
                     crossing = any((a == arm and lo <= indices[b] <= hi) or
                                    (b == arm and lo <= indices[a] <= hi) for arm, lo, hi in requests)
-                    if crossing and not any(probe.pair(a, b, t)['overlap_pixels'] for t in times):
+                    overlap = first_overlap(probe, a, b, times) if crossing else None
+                    if crossing and not overlap:
                         continue
                     edges.add((a, b))
+                    evidence[a, b] = dict(source='visible_setup_order' if crossing else 'preserved_setup_order')
+                    if overlap:
+                        evidence[a, b]['overlap'] = overlap
             order = _sort(slots, edges)
             if order is None:
+                details = dict(conflict=witness(slots, evidence))
                 raise ValueError('visible_unmapped_order_conflict')
         except ValueError as exc:
-            report['failures'].append(dict(time=time, reason_code=str(exc)))
+            report['failures'].append(dict(time=time, reason_code=str(exc), **details))
             continue
         if order != previous:
             keys.append(dict(time=time, offsets=[dict(slot=s, offset=order.index(s)-i) for i, s in enumerate(slots)]))

@@ -33,8 +33,22 @@ class DepthOrderTests(unittest.TestCase):
         candidate, report = build(doc, 'test', depth, FakeProbe(visible))
         self.assertIsNone(candidate)
         self.assertIn('visible_unmapped_order_conflict', report['reason_codes'])
+        conflict = report['failures'][0]['conflict']
+        self.assertEqual(conflict['slots'], ['arm', 'unknown', 'body', 'arm'])
+        self.assertEqual([e['source'] for e in conflict['edges']],
+                         ['visible_setup_order', 'preserved_setup_order', 'source_depth'])
+        self.assertEqual(conflict['edges'][0]['overlap'], dict(time=0, overlap_pixels=1))
+        self.assertNotIn('overlap', conflict['edges'][1])
         doc, depth = self.make(ambiguous=True)
         self.assertIsNone(build(doc, 'test', depth, FakeProbe(visible))[0])
+
+    def test_cycle_witness_handles_long_graph_without_recursion(self):
+        from autospine_workbench.targets.character43.order_conflict import witness
+        slots = [str(i) for i in range(2000)]
+        evidence = {(a, b): dict(source='test') for a, b in zip(slots, slots[1:])}
+        self.assertIsNone(witness(slots, evidence))
+        evidence[slots[-1], slots[-3]] = dict(source='test')
+        self.assertEqual(witness(slots, evidence)['slots'], slots[-3:] + [slots[-3]])
 
     def test_transparent_crossing_is_allowed_and_disjoint_pair_does_not_change(self):
         doc, depth = self.make(middle=True)
