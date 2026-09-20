@@ -66,6 +66,7 @@ td,th{{text-align:left;padding:12px;border-bottom:1px solid #425365}}</style>
 <table><thead><tr><th>附件配对</th><th>诊断</th><th>时间轴</th></tr></thead>
 <tbody>{''.join(rows) or '<tr><td colspan="3">没有换序或跨平面记录；请结合映射覆盖与画面检查。</td></tr>'}</tbody></table>
 <details><summary>未采用的采样约束（{len(failures)} 项）</summary><table>{''.join(failures)}</table></details>
+<p><a href="depth-ownership.html">检查首个冲突位置的权重归属</a>（按需计算，不改变候选）</p>
 <p><a href="motion-depth.json">完整来源与逐帧证据</a> · <a href="player.html">播放当前候选</a></p>
 </main></html>'''
     return body.encode('utf-8')

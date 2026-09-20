@@ -29,6 +29,8 @@ v1 发现已有 `walking.fbx` 与指定目录中的同名文件字节不同，�
 
 ## 定位源投影异常
 
+动作中心的目标候选中打开“查看遮挡时间点”，再点“检查首个冲突位置的权重归属”，可查看人体与服装混合区域的实际交集，并跳转到播放时间。检查为只读诊断；提示缺少布料深度时不要将辅助骨一律当作胸部，也不要把诊断完成当作遮挡通过。
+
 ```powershell
 $env:PYTHONPATH='src'
 python tools/diagnose_motion_projection.py motion-1f52729769af473084912644f9d16765 ../tmp/m4-motion-center/walking-projection

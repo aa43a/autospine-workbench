@@ -93,6 +93,14 @@ def review_file(manager, job, parts):
     result, files = context(manager, job)
     if parts == ['motion-contact.json']:
         return files['motion-contact.json'], 'application/json'
+    if parts in (['depth-ownership.json'], ['depth-ownership.html']):
+        if 'motion-depth.json' not in files:
+            raise PipelineRunError('pipeline_artifact_not_found')
+        from ..targets.character43.depth_ownership_review import build, render
+        report = build(files)
+        if parts == ['depth-ownership.json']:
+            return json.dumps(report, ensure_ascii=False).encode('utf-8'), 'application/json'
+        return render(report), 'text/html; charset=utf-8'
     if parts in (['motion-depth.json'], ['depth.html']):
         if 'motion-depth.json' not in files:
             raise PipelineRunError('pipeline_artifact_not_found')
