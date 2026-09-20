@@ -94,6 +94,22 @@ def context(manager, job):
     return result, files
 
 
+def runtime_reader(manager, job, result):
+    """Read captures against this request's verified candidate inventory."""
+    def read(name):
+        name = review_name(name)
+        expected = result.get('runtime', {}).get('files', {}).get(name)
+        if not expected:
+            raise PipelineRunError('pipeline_artifact_not_found')
+        root = directory(manager.folder(job) / 'runtime')
+        directory((root / name).parent)
+        raw = read_real_file(root / name, 64 << 20, 'motion runtime')
+        if sha256(raw).hexdigest() != expected:
+            raise PipelineRunError('pipeline_artifact_invalid')
+        return raw
+    return read
+
+
 def review_file(manager, job, parts):
     if (parts == ['player.html'] or len(parts) == 2 and parts[0] == 'player-assets'
             and parts[1] in ('client.js', 'style.css', 'inspection.js')):
@@ -102,6 +118,7 @@ def review_file(manager, job, parts):
         # still verify the addressed job, character sources and capture inventory.
         return read(None, None, None, parts)
     result, files = context(manager, job)
+    runtime_file = runtime_reader(manager, job, result)
     if parts == ['motion-projection.json']:
         if 'motion-projection.json' not in files:
             raise PipelineRunError('pipeline_artifact_not_found')
@@ -128,20 +145,9 @@ def review_file(manager, job, parts):
         return render(json.loads(files['motion-contact.json'])), 'text/html; charset=utf-8'
     if parts == ['readiness.json']:
         from ..targets.character43.motion_readiness import build
-        runtime = (json.loads(review_file(manager, job, ['report.json'])[0])
+        runtime = (json.loads(runtime_file('report.json'))
                    if result.get('runtime', {}).get('files', {}).get('report.json') else None)
         return json.dumps(build(files, result['artifact_sha256'], runtime), ensure_ascii=False).encode('utf-8'), 'application/json'
-    root = directory(manager.folder(job) / 'runtime')
-    def runtime_file(name):
-        name = review_name(name)
-        expected = result.get('runtime', {}).get('files', {}).get(name)
-        if not expected:
-            raise PipelineRunError('pipeline_artifact_not_found')
-        directory((root / name).parent)
-        raw = read_real_file(root / name, 64 << 20, 'motion runtime')
-        if sha256(raw).hexdigest() != expected:
-            raise PipelineRunError('pipeline_artifact_invalid')
-        return raw
     if parts == ['player.html'] or parts[:1] == ['player-assets']:
         from .character_player import read
         adapter = SimpleNamespace(projects=manager.projects,

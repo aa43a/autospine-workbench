@@ -4,7 +4,7 @@ from .pipeline_run import PipelineRunError
 from .storage_io import read_document
 from .motion_stage_review import inspect as stage_review
 
-PROFILE = 'verified-target-view-comparison-v1'
+PROFILE = 'verified-target-view-comparison-v2'
 KEYS = ('project_id', 'character_job_id', 'character_sha256', 'clip',
         'contact_correction', 'runtime_reference_profile', 'inferred_contact_profile',
         'depth_review_profile')
@@ -13,7 +13,9 @@ KEYS = ('project_id', 'character_job_id', 'character_sha256', 'clip',
 def signature(manager, request):
     source = manager.get(request['source_job_id'])
     return {**{key: request.get(key) for key in KEYS},
-            'source_sha256': source['source_sha256'], 'source_format': source['format']}
+            'source_sha256': source['source_sha256'], 'source_format': source['format'],
+            'source_sampling': {key: source.get('result', {}).get(key)
+                                for key in ('frame_count', 'fps', 'duration_seconds')}}
 
 
 def recommend(rows, *, complete):

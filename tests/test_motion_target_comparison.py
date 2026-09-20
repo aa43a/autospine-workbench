@@ -38,6 +38,9 @@ class TargetComparisonTests(unittest.TestCase):
         for change in ({'clip':{'start_frame':3}}, {'character_sha256':'other'},
                        {'contact_correction':False}, {'depth_review_profile':'new'}):
             self.assertNotEqual(signature(manager,a), signature(manager,dict(b,**change)))
+        jobs['b']['result']={'fps':60}
+        self.assertNotEqual(signature(manager,a), signature(manager,b))
+        del jobs['b']['result']
         jobs['b']['source_sha256']='changed'
         self.assertNotEqual(signature(manager,a), signature(manager,b))
 

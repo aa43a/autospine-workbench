@@ -10,7 +10,7 @@ The report links each exact player, contact and depth inspection page.
 
 Completed character-motion cards expose **比较该角色的已有视角候选**.
 GET `/api/motions/{target_job}/compare-targets` groups existing requests by exact
-source byte identity and format, character artifact/job/project, clip, contact
+source byte identity and format, parsed frame count/fps/duration, character artifact/job/project, clip, contact
 option and execution profiles. Different views are compared; different sources,
 rig revisions, crop ranges or policies are not mixed. Each succeeded candidate is
 revalidated against current source/character state, verified artifacts, Runtime
@@ -33,6 +33,16 @@ Validation: exact grouping, changed source/rig/clip/policy exclusion, outdated
 inventory, rejection/evidence-change exclusion and bounded recommendation tests.
 `tools/check-motion-target-comparison.mjs JOB_ID` performs a read-only browser
 check against the live workbench and its actual candidate evidence.
+
+The `verified-target-view-comparison-v2` identity includes source sampling, so
+identical NPZ bytes interpreted at different frame rates are not comparable.
+Readiness now reads the verified candidate artifact once and checks its capture
+report directly against the recorded hash, avoiding recursive artifact reads.
+There is no cross-request verification cache. A single local before/after run on
+the four targets above measured 97.64 seconds versus 39.06 seconds, retaining the
+same recommendation; this is an observed local timing, not a throughput guarantee.
+Mutation and missing-evidence tests still reject changed Runtime bytes and keep
+absent captures unmeasured.
 
 ## Depth failure localization
 
