@@ -21,7 +21,7 @@ export function characterProgress(job,confirmed=[],review=null,dirty=false,audit
   const bad=Object.keys(labels).filter(k=>aspects[k]==='needs_changes').map(k=>labels[k]);
   rows.push(`视觉验收：${accepted} / 4 项可接受${bad.length?'；需要修改：'+bad.join('、'):''}。`);
  }
- rows.push('数值通过不代表视觉通过；此状态不授予发布权。');
+ rows.push('抽查与人工耗时为可选测量，未采集不阻塞默认归属和候选流程；仅处理待办与已记录异常，阶段验收仍需查看动作。');
  return rows;
 }
 
@@ -32,7 +32,7 @@ export function createCharacterProgress(document,reviewAction,auditAction){
  button.type='button';button.className='button button-secondary';button.addEventListener('click',reviewAction);
  const auditButton=node('button','自动归属与异常修改');
  auditButton.type='button';auditButton.className='button button-secondary';auditButton.addEventListener('click',()=>auditAction?.());
- element.append(node('h4','当前还差什么'),list,button,auditButton);
+ element.append(node('h4','当前状态与需干预项'),list,button,auditButton);
  return {element,sync(job,confirmed,review,disabled,audit=null){
   list.replaceChildren(...characterProgress(job,confirmed,review,disabled,audit).map(text=>node('li',text)));
   button.disabled=disabled||job?.status!=='needs_review'||!job.runtime?.files?.['report.json'];
