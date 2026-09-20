@@ -10,7 +10,7 @@ from ..targets.character43.projection_diagnostics import bvh_series, kimodo_seri
 from .pipeline_run import PipelineRunError
 
 
-def inspect(manager, job_id):
+def source_context(manager, job_id):
     job = manager.get(job_id)
     if job.get('kind') == 'adapt' or job['status'] != 'succeeded' or job['result'].get('motion_status') != 'compiled':
         raise PipelineRunError('motion_projection_source_unavailable')
@@ -20,10 +20,15 @@ def inspect(manager, job_id):
     identity = job['result']['motion']
     bundle = VerifiedMotionBundleReader(manager.state_root).load(identity['clip_sha256'], identity['bundle_sha256'])
     mapping = json.loads((bundle.path/'map.json').read_bytes())
+    return job, bundle, mapping
+
+
+def inspect(manager, job_id):
+    job, bundle, mapping = source_context(manager, job_id)
     data = (kimodo_series(bundle.raw_npz, bundle.kimodo_source, mapping) if bundle.source_kind == 'kimodo_npz'
             else bvh_series(parse_bvh((bundle.path/'source.bvh').read_bytes()), mapping))
     report = summarize(*data)
-    report.update(source_job_id=job_id, source_sha256=job['source_sha256'], motion_identity=identity,
+    report.update(source_job_id=job_id, source_sha256=job['source_sha256'], motion_identity=job['result']['motion'],
                   basis=mapping['basis'], source_name=job['name'], view=job['view'])
     return report
 

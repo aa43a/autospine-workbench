@@ -49,6 +49,7 @@ class MotionIntakeJobs:
             jobs = [self.get(path.parent.name, check_current=False) for path in paths]
         return dict(authority='none', jobs=jobs, formats=['fbx', 'bvh', 'npz'],
                     stage_review_available=True,
+                    view_comparison_available=True,
                     blender_available=bool(self.blender and Path(self.blender).is_file()),
                     kimodo_generation=availability(self), npz_import='soma77_explicit_profile')
 

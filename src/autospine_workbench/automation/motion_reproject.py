@@ -10,7 +10,8 @@ from .storage_io import read_document
 
 
 def submit(manager, job_id, body):
-    if set(body) != {'view'} or body['view'] not in ('front', 'side'):
+    automatic = set(body) == {'view', 'comparison_sha256'}
+    if (set(body) != {'view'} and not automatic) or body.get('view') not in ('front', 'side'):
         raise PipelineRunError('motion_view_invalid')
     source = manager.get(job_id)
     if source['status'] != 'succeeded' or source.get('kind') == 'adapt':
@@ -31,6 +32,13 @@ def submit(manager, job_id, body):
     derivation = dict(kind='view_selection', parent_job_id=job_id,
                       source_name=source.get('derivation', {}).get('source_name', source['name']),
                       parent_job_sha256=canonical_sha256(source), source_sha256=source['source_sha256'])
+    if automatic:
+        from .motion_view_comparison import inspect
+        comparison = inspect(manager, job_id)
+        if (comparison['comparison_sha256'] != body['comparison_sha256'] or
+                comparison['recommended_view'] != body['view']):
+            raise PipelineRunError('motion_view_comparison_changed')
+        derivation.update(selection_profile=comparison['profile'], comparison_sha256=body['comparison_sha256'])
     # Generated prompts are display labels, not file names.
     return manager.upload(BytesIO(raw), len(raw), 'view-'+job_id[-8:]+'.'+source['format'],
                           body['view'], request.get('npz_options'), derivation=derivation, producer=recorded)

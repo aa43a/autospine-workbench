@@ -7,6 +7,7 @@ import {appendDepthSummary} from './motion-depth-summary.js';
 import {appendReadiness} from './motion-readiness.js';
 import {reconcileMotionJobs} from './motion-job-list.js';
 import {appendStageReview} from './motion-stage-review.js';
+import {appendViewComparison} from './motion-view-comparison.js';
 
 const $ = id => document.getElementById(id);
 const player = createSourcePlayer($('canvas'), $('time'), $('play'), $('clock'));
@@ -166,6 +167,7 @@ function render(data) {
       button.onclick = () => void preview(job);
       item.append(button);
       if (job.result.motion_status === 'compiled') {
+        if (data.view_comparison_available) appendViewComparison(item, job, request, refresh);
         const projection = node('a', '查看投影异常');
         projection.href = `/api/motions/${job.job_id}/projection`;
         projection.target = '_blank'; projection.rel = 'noopener'; item.append(projection);
@@ -179,7 +181,7 @@ function render(data) {
     button.disabled = busy || Boolean(job.cancel_requested && active.has(job.status));
     item.append(button);
     return item;
-  }, [busy, Boolean(data.stage_review_available)]);
+  }, [busy, Boolean(data.stage_review_available), Boolean(data.view_comparison_available)]);
   if (!data.jobs.length) $('jobs').append(node('p', '尚未导入动作。'));
 }
 
