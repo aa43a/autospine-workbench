@@ -1,0 +1,28 @@
+{
+  "profile": "causal-joint-support-timeline-v1",
+  "source_job_id": "motion-18073cfe70ff45b8bc1eb7ccba1df3a1",
+  "input_artifact_sha256": "d75ec56c500c42ddb9d88aad9c8742f2fd938fb309b5e41c32b21d274507e3df",
+  "candidate_artifact_sha256": "a41c253076ce8ec741c6d94a50277c077599674383bd8ba2f057b804c1a0375f",
+  "runtime_report_sha256": "7259ce278286645426c4db8cca1be54b22248c3cf6d9810a24cd6f437607dbda",
+  "source_qualified_intervals": 3,
+  "root_speed_px_per_second": 655.7229318483859,
+  "rotation_correction_speed_degrees_per_second": 179.99820000000022,
+  "maximum_ankle_drift_px": 3.3317408960501544,
+  "ankle_drift_limit_px": 3.5314073364688943,
+  "qa_samples": 764,
+  "geometry_failed_records": 0,
+  "runtime_frames": 764,
+  "runtime_max_error_px": 0.00008025199767712779,
+  "runtime_draw_order_numeric_status": "passed",
+  "exact_document_replay": true,
+  "selected": false,
+  "authority": "none",
+  "production_authorized": false,
+  "failed_attempt": {
+    "artifact_sha256": "5940c09c38b5b33b3e85759fc4df9b505f708958c75a54f38efc493d833daff1",
+    "frames": 1476,
+    "reason": "runtime_storage_reference_limit"
+  },
+  "not_validated": ["unstable_source_contact_interval", "sole_ground_collision", "dynamic_occlusion", "human_visual_acceptance", "three_character_generalization"],
+  "scope": "one_character_side_walking_three_source_stable_contact_intervals"
+}

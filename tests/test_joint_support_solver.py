@@ -53,3 +53,13 @@ class JointSupportTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'previous_invalid'):
             solve(doc, 'move', 0, [dict(upper='upper', lower='lower', tip='tip', target=tip)],
                   30, previous=dict(time=0, root_shift=[0, 0]))
+
+    def test_rotation_speed_caps_recomputed_solution(self):
+        doc = fixture(); target = matrices(doc, 'move', 0)['tip'][4:6]
+        prior = dict(time=0, root_shift=[0, 0], legs=[dict(upper='upper', lower='lower', tip='tip',
+                     upper_delta_degrees=0, lower_delta_degrees=0)])
+        result = solve(doc, 'move', .001, [dict(upper='upper', lower='lower', tip='tip',
+                       target=[target[0]+.01, target[1]])], 30, previous=prior, maximum_rotation_speed=180)
+        self.assertIsNotNone(result['solution'])
+        for key in ('upper_delta_degrees', 'lower_delta_degrees'):
+            self.assertLessEqual(abs(result['solution']['legs'][0][key])/.001, 180)

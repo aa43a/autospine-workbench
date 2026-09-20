@@ -5,13 +5,16 @@ from .affine_leg_ik import _local, _rotate
 from .affine_pose import matrices
 
 
-def solve(document, animation, time, contacts, reference_length, *, maximum_degrees=30, previous=None):
+def solve(document, animation, time, contacts, reference_length, *, maximum_degrees=30, previous=None,
+          maximum_rotation_speed=None):
     import numpy as np
     from scipy.optimize import minimize
     if (not math.isfinite(reference_length) or reference_length <= 0
             or not math.isfinite(maximum_degrees) or not 0 < maximum_degrees <= 90
             or not 1 <= len(contacts) <= 2):
         raise ValueError('joint_support_limits_invalid')
+    if maximum_rotation_speed is not None and (not math.isfinite(maximum_rotation_speed) or maximum_rotation_speed <= 0):
+        raise ValueError('joint_support_rotation_speed_invalid')
     bones = {b['name']: b for b in document['bones']}
     if bones['root'].get('parent'):
         raise ValueError('joint_support_root_parent')
@@ -72,6 +75,21 @@ def solve(document, animation, time, contacts, reference_length, *, maximum_degr
         other[:2] = previous_root
     limit = math.radians(maximum_degrees)
     bounds = [(-.15, .15)]*2 + [(-limit, limit)]*(size-2)
+    if maximum_rotation_speed is not None and previous is not None:
+        prior_legs = {r['upper']: r for r in previous.get('legs', [])}
+        for i, contact in enumerate(contacts):
+            prior = prior_legs.get(contact['upper'])
+            if prior is None:
+                continue  # Entry and release still need their own transition QA.
+            if prior['lower'] != contact['lower'] or prior['tip'] != contact['tip']:
+                raise ValueError('joint_support_previous_chain_changed')
+            for j, key in enumerate(('upper_delta_degrees', 'lower_delta_degrees')):
+                value = math.radians(prior[key])
+                if not math.isfinite(value) or abs(value) > limit+1e-9:
+                    raise ValueError('joint_support_previous_rotation_invalid')
+                radius = math.radians(maximum_rotation_speed*elapsed)*.99999
+                bounds[2+i*2+j] = (max(-limit, value-radius), min(limit, value+radius))
+                seed[2+i*2+j] = other[2+i*2+j] = value
     trials = []
     constraints = [dict(type='ineq', fun=lambda x: .15**2-float(np.dot(x[:2], x[:2])))]
     if previous_root is not None:
@@ -82,14 +100,30 @@ def solve(document, animation, time, contacts, reference_length, *, maximum_degr
         result = minimize(objective, start, method='SLSQP', bounds=bounds,
                           constraints=constraints,
                           options=dict(maxiter=200, ftol=1e-13))
-        values = result.x
+        # SLSQP may return a value one ULP beyond a bound. Clamp the actual
+        # proposed parameters, then recompute FK/residual; never relax the gate.
+        values = (np.clip(result.x, [b[0] for b in bounds], [b[1] for b in bounds])
+                  if maximum_rotation_speed is not None else result.x)
         if not np.isfinite(values).all(): continue
+        if maximum_rotation_speed is not None:
+            # Project numerical optimizer overshoot into the two convex root
+            # disks. Finite iterations are not assumed feasible: gates below
+            # independently verify both disks and recomputed endpoint residual.
+            disks = [(np.zeros(2), .15*.99999999)]
+            if previous_root is not None: disks.append((previous_root, step_limit*.99999))
+            for _ in range(16):
+                for center, radius in disks:
+                    delta = values[:2]-center; distance = float(np.linalg.norm(delta))
+                    if distance > radius: values[:2] = center+delta*(radius/distance)
         errors = [math.dist(point, c[-1]) for point, c in zip(endpoints(values), chains)]
-        valid = (np.linalg.norm(values[:2]) <= .15+1e-9
-                 and max(abs(v) for v in values[2:]) <= limit+1e-9
-                 and (previous_root is None or np.linalg.norm(values[:2]-previous_root) <= step_limit)
-                 and max(errors) <= .01*reference_length)
+        checks = dict(root_displacement=np.linalg.norm(values[:2]) <= .15+1e-9,
+                      rotation_magnitude=max(abs(v) for v in values[2:]) <= limit+1e-9,
+                      rotation_speed=maximum_rotation_speed is None or all(lo <= value <= hi for value, (lo, hi) in zip(values[2:], bounds[2:])),
+                      root_speed=previous_root is None or np.linalg.norm(values[:2]-previous_root) <= step_limit,
+                      endpoint_residual=max(errors) <= .01*reference_length)
+        valid = all(checks.values())
         trials.append(dict(valid=bool(valid), values=values, errors=errors, objective=objective(values),
+                           failed_checks=[k for k, passed in checks.items() if not passed],
                            solver_success=bool(result.success), iterations=int(result.nit)))
     best = min(trials, key=lambda r: (not r['valid'], r['objective']), default=None)
     solution = None
@@ -99,9 +133,11 @@ def solve(document, animation, time, contacts, reference_length, *, maximum_degr
             legs=[dict(upper=c['upper'], lower=c['lower'], tip=c['tip'],
                        upper_delta_degrees=math.degrees(v[2+i*2]), lower_delta_degrees=math.degrees(v[3+i*2]),
                        endpoint_error_px=best['errors'][i]) for i, c in enumerate(contacts)])
-    return dict(profile='joint-root-affine-leg-support-v1', selected=False, authority='none',
+    return dict(profile='joint-root-affine-leg-support-v2' if maximum_rotation_speed is not None else 'joint-root-affine-leg-support-v1', selected=False, authority='none',
                 status='candidate' if solution else 'no_bounded_solution_found', solution=solution,
                 best_errors_px=best['errors'] if best else [],
+                failed_checks=best['failed_checks'] if best else ['nonfinite_solver_result'],
                 scope='single_time_endpoints_not_temporal_mesh_or_runtime_validation',
                 limits=dict(root_ratio=.15, rotation_degrees=maximum_degrees, residual_ratio=.01,
-                            root_speed_ratio=2 if previous is not None else None))
+                            root_speed_ratio=2 if previous is not None else None,
+                            rotation_speed_degrees_per_second=maximum_rotation_speed))

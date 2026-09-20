@@ -17,6 +17,7 @@ def main():
     parser.add_argument('prior', type=Path)
     parser.add_argument('output', type=Path)
     parser.add_argument('--state-root', type=Path, default=Path('workspace'))
+    parser.add_argument('--rotation-speed', type=float, default=None)
     args = parser.parse_args()
     raw = args.prior.read_bytes(); prior = json.loads(raw)
     files = AnimatedStore(args.state_root).read(prior['input_artifact_sha256'])
@@ -42,10 +43,11 @@ def main():
                                                               tip='foot_'+side, target=interval['anchor']))
     rows = []; previous = None
     for i, (time, contacts) in enumerate(sorted(by_time.items())):
-        result = solve(document, 'external-motion', time, contacts, length, previous=previous)
+        result = solve(document, 'external-motion', time, contacts, length, previous=previous,
+                       maximum_rotation_speed=args.rotation_speed)
         rows.append(dict(time=time, **result))
         if result['solution']:
-            previous = dict(time=time, root_shift=result['solution']['root_shift'])
+            previous = dict(time=time, **result['solution'])
         else:
             # Stop: skipping an unsolved frame would hide a continuity break.
             break
@@ -61,13 +63,14 @@ def main():
             for key in ('upper_delta_degrees', 'lower_delta_degrees'):
                 angular.append(dict(time=b['time'], bone=leg['upper'] if key.startswith('upper') else leg['lower'],
                     degrees_per_second=abs(leg[key]-previous_legs[leg['upper']][key])/(b['time']-a['time'])))
-    report = dict(profile='source-qualified-joint-support-diagnostic-v1', selected=False, authority='none',
+    report = dict(profile='source-qualified-joint-support-diagnostic-v2' if args.rotation_speed is not None else 'source-qualified-joint-support-diagnostic-v1', selected=False, authority='none',
         input_artifact_sha256=prior['input_artifact_sha256'], prior_evidence_sha256=sha256(raw).hexdigest(),
         motion_identity=identity, source_support=support, rows=rows, expected_frames=len(by_time),
         solved_frames=sum(r['solution'] is not None for r in rows), root_speed_px_per_second=speed,
         root_speed_limit_px_per_second=2*length,
         root_speed_passed=speed <= 2*length,
         maximum_rotation_speed=max(angular, key=lambda r: r['degrees_per_second'], default=None),
+        rotation_speed_limit=args.rotation_speed,
         scope='contact_sample_endpoints_only_no_release_rotation_speed_mesh_or_runtime_validation')
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2), encoding='utf-8')
