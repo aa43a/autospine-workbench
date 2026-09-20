@@ -22,3 +22,30 @@ test('dirty state and candidate change block stale audit writes',async()=>{
  ui.sync(job,true);const pending=ui.request();ui.sync(null,false);release(response);await pending;
  await ui.request(true);assert.equal(calls,1);ui.dispose();
 });
+
+test('restored audit loads once, exposes saved exceptions, and never writes',async()=>{
+ let calls=0,changed=0;
+ const saved={...response,review:{reviews:{eye:'incorrect'}},metrics:{...response.metrics,incorrect:1,assessed_bindings:1,sampled_error_rate:1}};
+ const ui=createAutoBindingAudit(document,{changed:()=>changed++,apiRequest:async(_url,init)=>{calls++;assert.equal(init.method,undefined);return saved;}});
+ ui.sync(job,true);const pending=ui.ensureLoaded();ui.ensureLoaded();await pending;
+ assert.equal(calls,1);assert.equal(changed,1);assert.equal(ui.element.open,true);assert.equal(ui.current(),saved);
+ ui.sync(job,true);await ui.ensureLoaded();assert.equal(calls,1);
+ ui.sync({...job,artifact_sha256:'new'},true);assert.equal(ui.current(),null);assert.equal(ui.element.open,false);
+ await ui.ensureLoaded();assert.equal(calls,2);assert.equal(ui.current(),null);
+ await ui.ensureLoaded();assert.equal(calls,2);ui.dispose();
+});
+
+test('failed background read waits for manual retry and deferred reads respect dirty state',async()=>{
+ let calls=0;
+ const ui=createAutoBindingAudit(document,{apiRequest:async()=>{calls++;if(calls===1)throw Error('offline');return response;}});
+ ui.sync(job,true);const delayed=ui.ensureLoaded();ui.sync(job,false);await delayed;assert.equal(calls,0);
+ ui.sync(job,true);await ui.ensureLoaded();assert.equal(calls,1);
+ await ui.ensureLoaded();assert.equal(calls,1);
+ await ui.request();assert.equal(calls,2);assert.equal(ui.current(),response);ui.dispose();
+});
+
+test('project changes or disposal cancel queued automatic reads',async()=>{
+ let calls=0;const ui=createAutoBindingAudit(document,{apiRequest:async()=>{calls++;return response;}});
+ ui.sync(job,true);const pending=ui.ensureLoaded();ui.sync(null,false);await pending;assert.equal(calls,0);
+ ui.sync(job,true);const disposed=ui.ensureLoaded();ui.dispose();await disposed;assert.equal(calls,0);
+});
