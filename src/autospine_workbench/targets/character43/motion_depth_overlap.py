@@ -19,9 +19,10 @@ def intersection(a, b):
 
 
 class Probe:
-    def __init__(self, document, files, animation, *, pixel_budget=64_000_000):
+    def __init__(self, document, files, animation, *, pixel_budget=64_000_000, rendered_bounds=False):
         self.document, self.files, self.animation = document, files, animation
         self.remaining = pixel_budget
+        self.rendered_bounds = rendered_bounds
         self.slots = {s['name']: s for s in document['slots']}
         self.textures = {}; self.positions = {}; self.results = {}
 
@@ -46,7 +47,15 @@ class Probe:
             if name not in self.textures:
                 self.textures[name] = texture(self.files['images/'+attachment.get('path', slot['attachment'])+'.png'])
             attachments.append(attachment)
-        rect = intersection(points[a], points[b])
+        bounds=[]
+        for name,attachment in zip((a,b),attachments):
+            indices=attachment.get('triangles',[])
+            if self.rendered_bounds:
+                if len(indices)%3 or any(type(i) is not int or not 0<=i<len(points[name]) for i in indices):
+                    raise ValueError('depth_overlap_triangle_indices_invalid')
+                bounds.append([points[name][i] for i in sorted(set(indices))])
+            else: bounds.append(points[name])
+        rect = intersection(*bounds)
         if rect is None:
             result = dict(status='sampled', overlap_pixels=0, roi=None)
         else:

@@ -162,3 +162,27 @@ modeled relationships. Next candidates should investigate local render regions
 or alternative projection; widening the depth margin is not a justified repair.
 Seventeen focused tests cover default compatibility, preserved held order,
 source-midpoint identity, plane-relative classification and degenerate rejection.
+
+## Rendered-vertex bounds
+
+`--rendered-bounds` restricts each experimental pair ROI to vertices referenced
+by its actual triangles. Partition attachments deliberately retain the complete
+source vertex array for deformation identity; unused vertices must not enlarge
+the raster work region. The old all-vertex behavior remains the default. Reports
+record `bounds_policy`, and pair constraints use the order probe's same policy
+when caching overlap results. Invalid triangle indices fail explicitly.
+
+Alpha threshold, depth margin, pixel budget, UV interpolation and original mesh
+arrays are unchanged. Tests compare identical overlap counts with unused far-away
+vertices, verify the reduced budget cost, and cover empty/invalid index sets.
+
+Matched Huiye evidence: `../tmp/m4-motion-center/full-render-bounds-order-huiye-v1.json`.
+The four cloth pairs now complete all 460 checks: 361 no-overlap, 99 uncertain,
+zero unmeasured (previously 18 unmeasured). Aggregate pair raster cost drops from
+232,410,884 to 103,969,710 budget pixels, approximately 55 percent, without
+increasing any budget. The additional completed samples expose ten no-overlap
+and eight uncertain results; neither category is counted as automatically accepted.
+Whole ordering still reports 27 visible straddles and 29 budget failures, so no
+candidate is emitted. These remaining failures include other ordering work and
+must not be mistaken for the now-complete cloth pair checks. Thirty-seven
+focused regression tests pass.

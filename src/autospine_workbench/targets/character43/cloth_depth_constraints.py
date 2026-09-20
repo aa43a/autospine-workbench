@@ -42,7 +42,7 @@ def build(document, files, animation, depth, partition, sampler, *, order_probe=
     for arm in arms:
         mesh=document['skins'][0]['attachments'][arm][slots[arm]['attachment']]
         for cloth in clothes:
-            probe=Probe(document,files,animation)
+            probe=Probe(document,files,animation,rendered_bounds=bool(order_probe and order_probe.rendered_bounds))
             fallback=max((arm,cloth),key=index.__getitem__); samples=[]; details=[]
             for tick in ticks:
                 times=[tick]+([(tick+following[tick])/2] if tick in following else [])
@@ -84,5 +84,6 @@ def build(document, files, animation, depth, partition, sampler, *, order_probe=
         assumptions=['planar_garment','mesh_hand_axis_to_source_fingertip','same_arm_secondary_influence_envelope'],
         scope='source_frames_and_midpoints_not_continuous_time_or_visual_acceptance')
     report['reused_order_overlap_samples']=len(order_probe.results) if order_probe is not None else 0
+    report['bounds_policy']='rendered_triangle_vertices' if order_probe and order_probe.rendered_bounds else 'all_vertices'
     result['ambiguous_pair_samples']=sum(r['ambiguous'] for p in result['pairs'] for r in p['samples'])
     return result,report

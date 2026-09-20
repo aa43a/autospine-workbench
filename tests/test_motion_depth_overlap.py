@@ -19,6 +19,28 @@ def fixture(transparent=False):
 
 
 class DepthOverlapTests(unittest.TestCase):
+    def test_rendered_bounds_exclude_unused_vertices_without_changing_overlap(self):
+        doc,files=fixture()
+        for name in ('a','b'):
+            mesh=doc['skins'][0]['attachments'][name][name]
+            mesh['vertices']=mesh['vertices']+[1,0,100,100,1]
+            mesh['uvs']=mesh['uvs']+[0,0]
+        legacy=Probe(doc,files,'test'); clipped=Probe(doc,files,'test',rendered_bounds=True)
+        self.assertEqual(legacy.pair('a','b',0)['overlap_pixels'],clipped.pair('a','b',0)['overlap_pixels'])
+        self.assertEqual(clipped.pair('a','b',0)['roi'],[0,-2,2,2])
+        self.assertGreater(clipped.remaining,legacy.remaining)
+        self.assertEqual(Probe(doc,files,'test',pixel_budget=8,rendered_bounds=True).pair('a','b',0)['overlap_pixels'],4)
+        with self.assertRaisesRegex(ValueError,'pixel_budget'):
+            Probe(doc,files,'test',pixel_budget=8).pair('a','b',0)
+
+    def test_rendered_bounds_reject_invalid_indices_and_allow_empty_mesh(self):
+        doc,files=fixture(); mesh=doc['skins'][0]['attachments']['a']['a']
+        mesh['triangles']=[0,1,-1]
+        with self.assertRaisesRegex(ValueError,'triangle_indices_invalid'):
+            Probe(doc,files,'test',rendered_bounds=True).pair('a','b',0)
+        mesh['triangles']=[]
+        self.assertEqual(Probe(doc,files,'test',rendered_bounds=True).pair('a','b',0)['overlap_pixels'],0)
+
     def test_exact_mesh_overlap_uses_alpha_and_world_y_flip(self):
         doc, files = fixture()
         result = Probe(doc, files, 'test').pair('a', 'b', 0)

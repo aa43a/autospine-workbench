@@ -35,7 +35,7 @@ def build(document,files,animation,depth,sampler,*,order_probe=None):
         axes[arm]=infer(document,m,texture(files['images/'+m.get('path',slots[arm]['attachment'])+'.png']))
     for arm in arms:
         for leg in legs:
-            probe=Probe(document,files,animation); rows=[]; samples=[]
+            probe=Probe(document,files,animation,rendered_bounds=bool(order_probe and order_probe.rendered_bounds)); rows=[]; samples=[]
             fallback=max((arm,leg),key=index.__getitem__)
             for tick in ticks:
                 checks=[]
@@ -74,4 +74,5 @@ def build(document,files,animation,depth,sampler,*,order_probe=None):
         assumptions=['segment_axis_planar_cross_sections','quarter_endpoint_caps','mesh_hand_axis_to_source_fingertip',
                      'same_arm_secondary_influence_envelope','same_leg_secondary_influence_envelope'],
         scope='source_frames_and_midpoints_not_continuous_time_or_visual_acceptance')
+    report['bounds_policy']='rendered_triangle_vertices' if order_probe and order_probe.rendered_bounds else 'all_vertices'
     return result,report
