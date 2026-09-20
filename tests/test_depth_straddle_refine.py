@@ -6,6 +6,19 @@ from autospine_workbench.targets.character43.depth_straddle_refine import refine
 
 
 class RefinementTests(unittest.TestCase):
+    def test_refinement_passes_only_completed_overlap_to_order_probe(self):
+        from test_motion_depth_overlap import fixture
+        from autospine_workbench.targets.character43.motion_depth_overlap import Probe
+        doc,files=fixture(); doc['bones'][0]['length']=2
+        depth=dict(pairs=[dict(arm_slot='a',torso_slot='b',samples=[
+            dict(tick=0,source_tick=0,ambiguous=True,current_front_slot='a')])])
+        target=Probe(doc,files,'test')
+        candidate,report=refine(doc,files,'test',depth,lambda tick:{'root':(.1,.2)},order_probe=target)
+        self.assertEqual(report['reused_order_overlap_samples'],1)
+        self.assertEqual(target.pair('a','b',0)['overlap_pixels'],4)
+        self.assertEqual(target.remaining,64_000_000)
+        self.assertFalse(candidate['pairs'][0]['samples'][0]['ambiguous'])
+
     def test_plane_mode_keeps_held_order_and_checks_source_midpoint(self):
         depth=dict(pairs=[dict(arm_slot='a',torso_slot='b',samples=[
             dict(tick=0,source_tick=200000,ambiguous=True,current_front_slot='b'),

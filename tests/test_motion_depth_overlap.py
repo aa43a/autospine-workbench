@@ -19,6 +19,21 @@ def fixture(transparent=False):
 
 
 class DepthOverlapTests(unittest.TestCase):
+    def test_completed_cache_reuse_preserves_budget_and_checks_identity(self):
+        doc,files=fixture(); source=Probe(doc,files,'test'); target=Probe(doc,files,'test')
+        source.pair('a','b',0)
+        self.assertEqual(target.reuse(source),1)
+        self.assertEqual(target.reuse(source),0)
+        self.assertEqual(target.pair('b','a',0)['overlap_pixels'],4)
+        self.assertEqual(target.remaining,64_000_000)
+        source.results['a','b',0]['overlap_pixels']=3
+        self.assertEqual(target.results['a','b',0]['overlap_pixels'],4)
+        with self.assertRaisesRegex(ValueError,'cache_conflict'): target.reuse(source)
+        with self.assertRaisesRegex(ValueError,'cache_identity'):
+            target.reuse(Probe(doc,files,'test',rendered_bounds=True))
+        with self.assertRaisesRegex(ValueError,'cache_identity'):
+            target.reuse(Probe(dict(doc),files,'test'))
+
     def test_rendered_bounds_exclude_unused_vertices_without_changing_overlap(self):
         doc,files=fixture()
         for name in ('a','b'):
@@ -51,8 +66,10 @@ class DepthOverlapTests(unittest.TestCase):
 
     def test_budget_failure_is_not_absence_of_overlap(self):
         doc, files = fixture()
-        with self.assertRaisesRegex(ValueError, 'pixel_budget'):
+        with self.assertRaisesRegex(ValueError, 'pixel_budget') as caught:
             Probe(doc, files, 'test', pixel_budget=1).pair('a', 'b', 0)
+        self.assertEqual(caught.exception.diagnostic['limit_kind'],'aggregate_budget')
+        self.assertEqual(caught.exception.diagnostic['required_pixels'],8)
         doc['animations']['test']['slots'] = {'a': {'rgba': []}}
         with self.assertRaisesRegex(ValueError, 'attachment_unsupported'):
             Probe(doc, files, 'test').pair('a', 'b', 0)

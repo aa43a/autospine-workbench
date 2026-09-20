@@ -80,6 +80,7 @@ def build(document, animation, depth, probe, *, refine_cycles=False):
                 details = dict(conflict=witness(slots, evidence))
                 raise ValueError('visible_unmapped_order_conflict')
         except ValueError as exc:
+            if getattr(exc,'diagnostic',None): details['raster_budget']=exc.diagnostic
             report['failures'].append(dict(time=time, reason_code=str(exc), **details))
             continue
         if order != previous:

@@ -8,6 +8,15 @@ from ..spine43.seam_raster import mask, texture
 PROFILE = 'external-depth-native-alpha-overlap-v1'
 
 
+class RasterBudgetError(ValueError):
+    def __init__(self,a,b,time,rect,remaining):
+        super().__init__('depth_overlap_pixel_budget')
+        area=rect[2]*rect[3]
+        self.diagnostic=dict(pair=[a,b],time=time,roi=rect,roi_pixels=area,
+            remaining_pixels=remaining,required_pixels=area*2,
+            limit_kind='single_roi' if area>262144 else 'aggregate_budget',max_roi_pixels=262144)
+
+
 def intersection(a, b):
     if not a or not b:
         return None
@@ -25,6 +34,17 @@ class Probe:
         self.rendered_bounds = rendered_bounds
         self.slots = {s['name']: s for s in document['slots']}
         self.textures = {}; self.positions = {}; self.results = {}
+
+    def reuse(self,other):
+        """Reuse completed measurements only, under identical in-memory inputs."""
+        if (self.document is not other.document or self.files is not other.files or
+                self.animation!=other.animation or self.rendered_bounds!=other.rendered_bounds):
+            raise ValueError('depth_overlap_cache_identity')
+        if any(k in self.results and self.results[k]!=v for k,v in other.results.items()):
+            raise ValueError('depth_overlap_cache_conflict')
+        count=len(other.results.keys()-self.results.keys())
+        self.results.update(deepcopy(other.results))
+        return count
 
     def pair(self, a, b, time):
         if self.document['animations'][self.animation].get('slots'):
@@ -61,7 +81,7 @@ class Probe:
         else:
             area = rect[2]*rect[3]
             if area > 262144 or area*2 > self.remaining:
-                raise ValueError('depth_overlap_pixel_budget')
+                raise RasterBudgetError(a,b,time,rect,self.remaining)
             self.remaining -= area*2
             first = mask(attachments[0], points[a], self.textures[a], rect) >= 8
             second = mask(attachments[1], points[b], self.textures[b], rect) >= 8

@@ -186,3 +186,20 @@ Whole ordering still reports 27 visible straddles and 29 budget failures, so no
 candidate is emitted. These remaining failures include other ordering work and
 must not be mistaken for the now-complete cloth pair checks. Thirty-seven
 focused regression tests pass.
+
+## Refinement overlap reuse and resource attribution
+
+`--reuse-refinement-overlap` copies completed refinement overlap measurements into
+the order probe. Identity checks require the same document, files, animation and
+bounds policy; conflicting entries fail, and copied records are detached from
+the producer. The default remains unchanged. Huiye reused 92 records, but the
+matched full run still has 27 straddles and 29 budget failures:
+`../tmp/m4-motion-center/full-shared-depth-order-huiye-v1.json`.
+
+Budget errors now carry structured pair/time/ROI/cost evidence while retaining
+their legacy reason code. A direct reproduction of the left-sleeve/chest pair
+at 0.133333 seconds shows ROI `[609,224,337,784]`, or 264,208 pixels, exceeding
+the single-ROI cap 262,144 despite 63,999,648 total pixels remaining. Thus this
+failure cannot be fixed by more shared results or a larger aggregate budget.
+The next resource change should tile native-pixel work while retaining bounded
+total cost, alpha sampling and unresolved-depth semantics.

@@ -6,9 +6,10 @@ from .motion_depth_overlap import Probe
 PROFILE='local-depth-held-order-refinement-v1'
 
 
-def refine(document,files,animation,depth,sampler,*,torso_plane=False,rendered_bounds=False):
+def refine(document,files,animation,depth,sampler,*,torso_plane=False,rendered_bounds=False,order_probe=None):
     candidate=deepcopy(depth)
     probe=Probe(document,files,animation,rendered_bounds=rendered_bounds)
+    if order_probe is not None: order_probe.reuse(probe)
     ticks=sorted({r['tick'] for p in depth['pairs'] for r in p['samples']})
     next_tick=dict(zip(ticks,ticks[1:]))
     evidence=dict(profile=PROFILE,proxy_profile=CAP_PROFILE,authority='none',selected=False,
@@ -55,5 +56,6 @@ def refine(document,files,animation,depth,sampler,*,torso_plane=False,rendered_b
     evidence['pixel_budget_used']=64_000_000-probe.remaining
     if rendered_bounds: evidence['bounds_policy']='rendered_triangle_vertices'
     if checker is not None: evidence['hand_mesh_axes']=checker.axes
+    if order_probe is not None: evidence['reused_order_overlap_samples']=order_probe.reuse(probe)
     candidate['local_depth_refinement']=evidence
     return candidate,evidence

@@ -15,7 +15,7 @@ from autospine_workbench.targets.character43.motion_depth_overlap import Probe
 from autospine_workbench.targets.character43.motion_depth_order import build
 
 
-def run(job,output,*,refine_cycles=False,partition_slots=None,cloth_constraints=False,limb_constraints=False,torso_plane=False,rendered_bounds=False):
+def run(job,output,*,refine_cycles=False,partition_slots=None,cloth_constraints=False,limb_constraints=False,torso_plane=False,rendered_bounds=False,reuse_refinement_overlap=False):
     root=Path('workspace'); folder=root/'jobs/motion-intake-v1'/job
     request=read_document(folder/'request.json'); result=read_document(folder/'result.json')
     identity=request['motion_identity']
@@ -36,8 +36,9 @@ def run(job,output,*,refine_cycles=False,partition_slots=None,cloth_constraints=
         depth=depth_build(document,bvh,bundle.bvh_map,clip_bounds=(min(ticks),max(ticks)),
                           yaw_degrees=yaw,render_regions=True)
     sampler=SegmentDepthSampler(bvh,bundle.bvh_map,yaw)
-    refined,evidence=refine(document,files,'external-motion',depth,sampler,torso_plane=torso_plane,rendered_bounds=rendered_bounds)
     order_probe=Probe(document,files,'external-motion',rendered_bounds=rendered_bounds)
+    refined,evidence=refine(document,files,'external-motion',depth,sampler,torso_plane=torso_plane,rendered_bounds=rendered_bounds,
+                            order_probe=order_probe if reuse_refinement_overlap else None)
     cloth=None
     if cloth_constraints:
         if partition is None: raise ValueError('cloth_constraints_require_partition')
@@ -59,6 +60,7 @@ def run(job,output,*,refine_cycles=False,partition_slots=None,cloth_constraints=
                 source_identity=identity,request_sha256=provenance['request_sha256'],
                 sampling_profile=PROFILE,refinement=evidence,order=order,
                 bounds_policy='rendered_triangle_vertices' if rendered_bounds else 'all_vertices',
+                reuse_refinement_overlap=reuse_refinement_overlap,
                 candidate_available=candidate is not None,authority='none',selected=False,
                 original_failure_counts=original_failures,partition=partition,
                 depth_groups=depth.get('groups'),depth_profile=depth['profile'],cloth_constraints=cloth,limb_constraints=limbs)
@@ -79,8 +81,9 @@ if __name__=='__main__':
     parser.add_argument('--limb-constraints',action='store_true')
     parser.add_argument('--torso-plane',action='store_true')
     parser.add_argument('--rendered-bounds',action='store_true')
+    parser.add_argument('--reuse-refinement-overlap',action='store_true')
     args=parser.parse_args()
     if not __import__('re').fullmatch('motion-[a-f0-9]{32}',args.job):raise ValueError('job_invalid')
     print(json.dumps(run(args.job,args.output,refine_cycles=args.refine_cycles,partition_slots=args.partition_slot,
                          cloth_constraints=args.cloth_constraints,limb_constraints=args.limb_constraints,torso_plane=args.torso_plane,
-                         rendered_bounds=args.rendered_bounds)))
+                         rendered_bounds=args.rendered_bounds,reuse_refinement_overlap=args.reuse_refinement_overlap)))
