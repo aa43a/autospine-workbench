@@ -122,3 +122,28 @@ current source-depth and retained visible-order assumptions, not ground-truth
 physical depth. Resolving it requires revisiting local region ownership/depth or
 region-level rendering rather than simply moving the entire arm slot forward.
 There is still no new candidate or Runtime claim from this experiment.
+
+## Region-level render prototype
+
+`tools/m4_depth_region_partition.py JOB_ID OUTPUT_DIRECTORY --slot SLOT ...`
+builds an isolated `ordered-weight-ownership-regions-v1` representation. It splits
+consecutive runs of triangle ownership while keeping their original draw sequence.
+Vertex arrays, weights, UVs and animation deformation index spaces are preserved;
+each new slot shares the original texture path. This intentionally avoids merging
+separated runs, which could change blending in folded/self-overlapping geometry.
+Existing draw-order tracks, selected-slot timelines, linked meshes, clipping and
+multiple skins are rejected rather than silently altered. Outputs are bounded to
+128 regions and remain separate from workbench adoption.
+
+Hongmeiling's exact candidate was tested on `layer-002` and `layer-005`. Six render
+regions were generated: each source layer has chest-only, mixed and unmapped
+triangle runs (8/232/324 triangles and 2/122/54 triangles respectively). Across
+115 source-frame and midpoint samples, every retained vertex matches its original
+animated position exactly (maximum difference 0). The source remains unchanged.
+Files: `../tmp/m4-motion-center/depth-regions-hong-v1/{skeleton,report}.json`.
+
+These regions provide separate future ordering targets; their depth remains
+unassigned. This is not yet a corrected order or a captured Runtime candidate.
+Splitting draw calls still needs official rendering/blending equivalence checks
+before integration. Mixed and unmapped regions do not inherit chest depth merely
+because they belong to the same clothing layer.
