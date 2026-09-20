@@ -1,5 +1,5 @@
 {
-  "catalog_version": "1.7.0",
+  "catalog_version": "1.8.0",
   "current_stage": "workbench-animated-preview-v1",
   "stages": [
     {"id":"P0","label":"合同、服务与基础验证"},
@@ -15,6 +15,7 @@
     {"id":"P10","label":"Idle、Body-sway 与接缝安全"}
   ],
   "entries": [
+    {"id":"page-motion-center","stage":"P5","title":"M4 外部动作中心","summary":"上传 FBX/BVH，查看源骨架时间轴，编译 Mixamo MotionIR，再选择已有整角色构建独立候选、官方 Runtime 播放和下载。接触/遮挡与 Kimodo/NPZ 尚未接通。","kind":"page","status":"available","href":"./motions.html","doc":"docs/how-to-motion-center.md"},
     {"id":"cli-serve","stage":"P0","title":"启动本地工作台","summary":"运行仅监听 loopback 的 Web 工作台和 HTTP API。","kind":"cli","status":"available","command":"serve","doc":"docs/operator-quick-guide.zh-CN.md"},
     {"id":"cli-validate-rig","stage":"P0","title":"验证 RigIR","summary":"检查交叉引用、拓扑和有限数等语义不变量。","kind":"cli","status":"available","command":"validate-rig","doc":"docs/architecture.md"},
     {"id":"page-main-workbench","stage":"P1","title":"绑定与动画候选工作台","summary":"已登记来源无需 SHA 构建 Spine 4.3.26 有限屈伸候选，同页十七点拖动、绑定复核、重建与 ZIP 下载；CPU 诊断播放器不代替官方 Runtime。未登记项目保留静态 Region 预览。","kind":"page","status":"available","href":"./index.html","doc":"docs/how-to-build-animated-spine-preview.md"},

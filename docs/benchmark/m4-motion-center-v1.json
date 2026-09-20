@@ -1,0 +1,72 @@
+{
+  "schema": "local.m4-motion-center-validation/v1",
+  "date": "2026-09-20",
+  "authority": "none",
+  "production_authorized": false,
+  "milestone_complete": false,
+  "target_version": "4.3.26",
+  "runtime_version": "4.3.13",
+  "scope": "two_real_fbx_imports_and_one_character_two_motion_diagnostics",
+  "tests": {"python_related_passed": 52, "frontend_related_passed": 13, "browser_page_errors": 0},
+  "imports": [
+    {
+      "name": "walking.fbx",
+      "job_id": "motion-cab1a05681a64002bf82664349da1bc9",
+      "result_sha256": "c196632137de8f6cd3a986bfd6cfb7520036616ae5e410fe29b7e8c9f4ecc43f",
+      "source_sha256": "dd4661a0b2dbd312068f605e570f64530963652aa8d7609b9ce34848a7b09251",
+      "joint_count": 53,
+      "frame_count": 32,
+      "motion_bundle_sha256": "d0aa985c22343180a37bfb67edeb9c416bf5a208b748b51d3de5ae77926e498c",
+      "bridge_max_world_error": 5.524460658567085e-7,
+      "bridge_passed": true
+    },
+    {
+      "name": "boxing.fbx",
+      "job_id": "motion-0239e8622d68464bad355b4527c878f3",
+      "result_sha256": "7d9fd00d9572698b5cb5b66dfc247db5228cb3a3ed7be643db9242de1145e6b7",
+      "source_sha256": "9bbfe8fc1adf850fbf849a85d308d62f80394f81ee7eb3f483cd68cc6fd80d69",
+      "joint_count": 53,
+      "frame_count": 67,
+      "motion_bundle_sha256": "140fabcf63c9f47995ce9fe291aeb848522179f90df27ca96e341f331d232cad",
+      "bridge_max_world_error": 4.884116335138967e-7,
+      "bridge_passed": true
+    }
+  ],
+  "targets": [
+    {
+      "project_id": "alice",
+      "motion": "walking.fbx",
+      "job_id": "motion-129dc93364784fdda5fed37355dafd59",
+      "result_sha256": "e69363453d02faec4809d9a1888d4c9de4bdda5b75c065e7534817c0b4c6dde3",
+      "artifact_sha256": "e4d7cfdd9cd58e8e04e6b43bfb8f4fb38ae239eda4535266842912cfa9fbef3b",
+      "status": "needs_review",
+      "geometry_passed": true,
+      "runtime_frames": 287,
+      "runtime_passed": true,
+      "runtime_max_error_px": 0.00011334121657160606,
+      "issues": []
+    },
+    {
+      "project_id": "alice",
+      "motion": "boxing.fbx",
+      "job_id": "motion-45af57554b464e43988b5a41b073ff7b",
+      "result_sha256": "8c8dc7a906df4282451aa9610727e108fbfb90f13db4807e9ec3e975417efa39",
+      "artifact_sha256": "07b906130b58f6fec009bc119c1faca2b84ea96ebe1db0e92ec031d80b163d55",
+      "status": "needs_changes",
+      "geometry_passed": false,
+      "geometry_failed_records": 1,
+      "runtime_frames": 321,
+      "runtime_passed": true,
+      "runtime_max_error_px": 0.00015118032103301595,
+      "issues": ["character_length_projection_collapsed", "motion_target_deformation_needs_changes"]
+    }
+  ],
+  "download": {
+    "job_id": "motion-129dc93364784fdda5fed37355dafd59",
+    "zip_sha256": "66c787bf3ba34e3f820b2bcbd3d4a6647db8614b5c2128ff6393e9873bcc6f3a",
+    "file_count": 94,
+    "byte_length": 22221249,
+    "inventory_verified": true
+  },
+  "not_evaluated": ["human_visual_acceptance", "contact_lock", "dynamic_depth_order", "three_character_eight_motion_gate", "kimodo_generation"]
+}

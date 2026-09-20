@@ -1,0 +1,35 @@
+:root { color-scheme: dark; font: 15px/1.6 system-ui; background: #0b111b; color: #dae4f2; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+header, main { max-width: 1500px; margin: auto; padding: 24px; }
+header { padding-bottom: 0; }
+h1 { margin: 12px 0 0; }
+h2 { font-size: 18px; margin-top: 0; }
+a { color: #63cdf4; }
+section { background: #141e2c; border: 1px solid #2c3e55; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+label { display: inline-flex; gap: 10px; align-items: center; margin: 0 20px 12px 0; }
+button, select, input[type=file] {
+  font: inherit; padding: 9px 13px; border: 1px solid #49637f; border-radius: 6px; background: #1d3044; color: inherit;
+}
+button { cursor: pointer; margin-right: 8px; }
+button:disabled { opacity: .45; cursor: default; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid #75d5ff; outline-offset: 3px; }
+.split { display: grid; grid-template-columns: minmax(300px,1fr) minmax(480px,2fr); gap: 20px; }
+.job { padding: 14px 0; border-bottom: 1px solid #31425a; overflow-wrap: anywhere; }
+.job strong { display: block; }
+.job p { margin: 6px 0 12px; }
+.job a { display: inline-block; margin: 0 14px 12px 0; }
+.hint { color: #9cafc7; font-size: 13px; }
+canvas { width: 100%; height: auto; max-height: 65vh; background: #09101a; border-radius: 8px; }
+.controls { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
+#time { flex: 1; min-width: 70px; }
+#status { color: #9bdcf6; }
+#clock { min-width: 90px; }
+details { margin-top: 12px; }
+@media(max-width:850px) {
+  .split { display: block; }
+  header, main { padding: 16px; }
+  label { display: flex; flex-wrap: wrap; }
+  input[type=file], select { max-width: 100%; }
+  canvas { max-height: none; }
+}

@@ -30,6 +30,7 @@ class PipelineWebJobs:
         self._animated = None
         self._preparation = None
         self._imports = None
+        self._motions = None
         self._sleeves = None
         self._characters = None
 
@@ -154,6 +155,8 @@ class PipelineWebJobs:
             self._sleeves.close()
         if self._imports is not None:
             self._imports.close()
+        if self._motions is not None:
+            self._motions.close()
 
 
 def _response(job_id, project_id, status, *, target_version="4.2", **fields):

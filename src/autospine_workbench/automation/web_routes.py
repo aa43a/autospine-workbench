@@ -11,6 +11,9 @@ from .web_download import download_job
 
 
 def dispatch_automation(parts, handler, method):
+    from .motion_intake_routes import dispatch_motions
+    if dispatch_motions(parts, handler, method):
+        return True
     from .psd_import_routes import dispatch_imports
     if dispatch_imports(parts, handler, method):
         return True

@@ -47,9 +47,9 @@ class WorkflowHubCatalogTests(unittest.TestCase):
     def test_entries_have_unique_ids_and_supported_taxonomy(self) -> None:
         ids = [entry["id"] for entry in self.entries]
         self.assertEqual(len(ids), len(set(ids)))
-        self.assertEqual(107, len(ids))
+        self.assertEqual(108, len(ids))
         self.assertEqual(
-            {"cli": 76, "page": 13, "planned": 18},
+            {"cli": 76, "page": 14, "planned": 18},
             {
                 kind: sum(entry["kind"] == kind for entry in self.entries)
                 for kind in ("cli", "page", "planned")
@@ -78,6 +78,7 @@ class WorkflowHubCatalogTests(unittest.TestCase):
     def test_page_entries_target_all_existing_workbench_pages(self) -> None:
         expected = {
             "./index.html",
+            "./motions.html",
             "./body-sway-probe.html",
             "./body-sway-review-admission-v2.html",
             "./body-sway-review.html",

@@ -1,5 +1,7 @@
 # AutoSpine Workbench 功能与入口参考
 
+- [M4 动作中心](how-to-motion-center.md)：FBX/BVH 上传、可恢复导入任务、源骨架时间轴、Mixamo→MotionIR，以及已有整角色的独立动画候选、官方 Runtime 播放和下载。接触/遮挡、Kimodo/NPZ 与三角色八动作验收尚未完成。
+
 - [独立连衣裙组件编译](how-to-dress-component.md)：工作台整角色构建支持自动寻找连衣裙组件，混合衣层先保持原运动拆分，再生成上身固定、裙摆辅助链候选；其他部件保留待办，不要求伪造已确认上衣。
 
 - [有界头部部件默认归属](benchmark/head-parts-defaults-v1.md)：已复核头颈与已绑定脸层支持短发/耳层的像素范围和接触检查；一键绑定可采用、可撤销，长发等超范围部件保留异常。

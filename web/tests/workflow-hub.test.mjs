@@ -50,7 +50,7 @@ const EXPECTED_COMMANDS = [
 
 test("catalog is valid and matches all 76 CLI entry points", () => {
   assert.equal(validateCatalog(catalog), catalog);
-  assert.equal(catalog.catalog_version, "1.7.0");
+  assert.equal(catalog.catalog_version, "1.8.0");
   assert.equal(catalog.current_stage, "workbench-animated-preview-v1");
   const commands = catalog.entries.filter(({ kind }) => kind === "cli").map(({ command }) => command);
   assert.deepEqual(new Set(commands), new Set(EXPECTED_COMMANDS));
@@ -66,7 +66,7 @@ test("catalog exposes all pages, all stage groups, and explicit delivery states"
     "./body-sway-runtime-capture.html", "./body-sway-safety-analysis-v2.html",
     "./idle-behavior-review.html",
     "./index.html", "./motion-instance-v3-v2.html",
-    "./motion-policy-review.html", "./seam-anchor-review.html",
+    "./motion-policy-review.html", "./motions.html", "./seam-anchor-review.html",
     "./spine42-v3-v2.html",
   ]);
   assert.deepEqual(catalog.stages.map(({ id }) => id), [
@@ -75,8 +75,8 @@ test("catalog exposes all pages, all stage groups, and explicit delivery states"
   assert.ok(catalog.entries.some(({ status }) => status === "available"));
   assert.ok(catalog.entries.some(({ status }) => status === "external_required"));
   assert.ok(catalog.entries.some(({ status }) => status === "planned"));
-  assert.equal(catalog.entries.length, 107);
-  assert.equal(pages.length, 13);
+  assert.equal(catalog.entries.length, 108);
+  assert.equal(pages.length, 14);
   assert.equal(catalog.entries.filter(({ kind }) => kind === "planned").length, 18);
   assert.equal(
     catalog.entries.find(({ command }) => command === "capture-body-sway-spine42-v3-runtime").status,
