@@ -52,7 +52,7 @@ def build(document, animation, depth, probe, *, refine_cycles=False):
                     raise ValueError('visible_depth_straddle')
                 front = row['current_front_slot']; back = torso if front == arm else arm
                 edges.add((back, front))
-                evidence[back, front] = dict(source='source_depth', overlap=visible)
+                evidence[back, front] = dict(source=pair.get('evidence_source','source_depth'), overlap=visible)
                 if indices[back] > indices[front]:
                     requests.append((arm, min(indices[arm], indices[torso]), max(indices[arm], indices[torso])))
             for i, a in enumerate(slots):
