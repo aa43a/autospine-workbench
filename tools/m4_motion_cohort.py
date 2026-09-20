@@ -77,14 +77,20 @@ def step(plan, state, publish, request):
                     raise ValueError('frozen_character_changed:' + character['id'])
                 state['submitting'] = {'cell': cell, 'source_job_id': value['job_id']}
                 publish(state)
-                current = request('/api/motions/' + value['job_id'] + '/adapt', {
+                body = {
                     'project_id': character['project_id'], 'character_job_id': character['job_id'],
-                    'contact_correction': True})
+                    'contact_correction': True}
+                if source.get('projection') is not None:
+                    body['projection'] = source['projection']
+                current = request('/api/motions/' + value['job_id'] + '/adapt', body)
                 state.pop('submitting')
                 state['cells'][cell] = current
                 publish(state)
                 return 'target_submitted'
             value_target = request('/api/motions/' + current['job_id'])
+            if (value_target['status'] == 'succeeded'
+                    and value_target.get('result', {}).get('projection') != source.get('projection')):
+                raise ValueError('cohort_target_projection_mismatch:' + cell)
             state['cells'][cell] = value_target
             publish(state)
             expected = plan.get('expected_profiles', {})

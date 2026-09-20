@@ -1,0 +1,110 @@
+{
+  "schema": "autospine.motion-cohort-plan/v1",
+  "characters": [
+    {
+      "id": "alice",
+      "project_id": "alice",
+      "job_id": "job-d8b67e10685347ed95d1fba113b92c45",
+      "sha256": "6e5c59db4ef072075b798efab12acf8ffdc883368a61a4bf3c1646305ef68b98",
+      "structure": "ordinary"
+    },
+    {
+      "id": "huiye",
+      "project_id": "huiye",
+      "job_id": "job-6f92bece413a4909a553a95bbfc307f4",
+      "sha256": "63caa7fe5f9f40a92ebcd57ef0b345d7dcd47e5ed3feae65a95fad18e770d51b",
+      "structure": "wide-sleeves-long-skirt"
+    },
+    {
+      "id": "hongmeiling",
+      "project_id": "imported-885b4d3d22ee151a0364ac499a419b8bd0e59699a7b27ee4f65f007eee551590",
+      "job_id": "job-7d8ce666ea13487a953bdfa5258ea79a",
+      "sha256": "fadde972f148b353592aaeebf75df151b9ef57032efaacde1773ea5a8754d28c",
+      "structure": "sleeveless"
+    }
+  ],
+  "motions": [
+    {
+      "id": "walking",
+      "path": "E:\\data\\game\\bip动画动作捕捉3D角色库源文件3dmaxmayac4dunity3dUE4\\C1455-mo动作库\\动作库角色模型moxion\\1-全套动作库带预览\\01\\walking.fbx",
+      "sha256": "ba4923f188ee8580dbe07f79191c154cbad0425ba71a74229eeeba40ea015a68",
+      "view": "front",
+      "category_basis": "source_label_pending_visual_verification",
+      "job_id": "motion-1f52729769af473084912644f9d16765",
+      "projection": {
+        "profile": "constant-yaw-source-motion-v1",
+        "yaw_degrees": -45
+      },
+      "prepared_motion_sha256": "d49497471d86a57821db2734079110decdc2e9770f61740af4d4900f9565b64b"
+    },
+    {
+      "id": "raise-arms",
+      "path": "E:\\data\\game\\bip动画动作捕捉3D角色库源文件3dmaxmayac4dunity3dUE4\\C1455-mo动作库\\动作库角色模型moxion\\1-全套动作库带预览\\01\\cheering.fbx",
+      "sha256": "779dcb5c003f715905f48eafaea706c4ab524d97c7554f6b90c178bff5eecdc9",
+      "view": "front",
+      "category_basis": "source_label_pending_visual_verification",
+      "job_id": "motion-706de065008b4e9dbdaea14b7cb3c64e",
+      "projection": {
+        "profile": "constant-yaw-source-motion-v1",
+        "yaw_degrees": -30
+      },
+      "prepared_motion_sha256": "c5b3d2b321525515aadfd1c3c6d2c55a905826d1adde8820202328513da487cf"
+    },
+    {
+      "id": "squat",
+      "path": "E:\\data\\game\\bip动画动作捕捉3D角色库源文件3dmaxmayac4dunity3dUE4\\C1455-mo动作库\\动作库角色模型moxion\\1-全套动作库带预览\\05\\overhead_squat.fbx",
+      "sha256": "596014069e4ecc8527ba37feded9d7b8564d50832862dad89c0a75ca7c136bba",
+      "view": "front",
+      "category_basis": "source_label_pending_visual_verification",
+      "job_id": "motion-42c342d1786f402299dfea949358a0d7",
+      "projection": {
+        "profile": "constant-yaw-source-motion-v1",
+        "yaw_degrees": -60
+      },
+      "prepared_motion_sha256": "8fcdf731978354b23488456fbb644ccb9d6c7a8bc96813576a030de6382bb1f5"
+    },
+    {
+      "id": "reach",
+      "path": "E:\\data\\game\\bip动画动作捕捉3D角色库源文件3dmaxmayac4dunity3dUE4\\C1455-mo动作库\\动作库角色模型moxion\\1-全套动作库带预览\\41\\reaching_out.fbx",
+      "sha256": "89e7b2785bdb93d4c1506d3621701126e37f47acb8757a6e76bde6eed3fbe615",
+      "view": "front",
+      "category_basis": "source_label_pending_visual_verification",
+      "job_id": "motion-22d106d0a5994ea49be5d2e32f237e0c",
+      "projection": {
+        "profile": "constant-yaw-source-motion-v1",
+        "yaw_degrees": 45
+      },
+      "prepared_motion_sha256": "86142c40bcd5815547ddb3f6bfdaccf6fa058b265e1630b48693b2bce3fb74a4"
+    }
+  ],
+  "policy": "full_source_front_projection_no_failure_replacement",
+  "visual_acceptance": "not_inferred",
+  "depth_order": "source_depth_with_native_alpha_overlap_and_guarded_order",
+  "expected_profiles": {
+    "inferred_contact_profile": "external-phase-contact-auto-v1",
+    "runtime_reference_profile": "spine43-linear-weighted-float32-storage-v1",
+    "depth_review_profile": "external-arm-torso-depth-overlap-v2"
+  },
+  "baseline_plan": "m4-cohort-plan-v2.json",
+  "unchanged_or_unsupported_sources": [
+    {
+      "id": "breathing",
+      "yaw": 0
+    },
+    {
+      "id": "turn",
+      "yaw": null
+    },
+    {
+      "id": "boxing",
+      "yaw": null
+    },
+    {
+      "id": "wave",
+      "yaw": 0
+    }
+  ],
+  "baseline_plan_sha256": "289d24b4dd1d70d539265bb26c18ffa06b3d11e17173389ac87dbacb1886b940",
+  "oblique_summary_sha256": "db44c43da2e8863e3cf54c1fc699874ccf804ae6a85e12dceed77cbfc8174bcc",
+  "scope": "source_qualified_oblique_angles_require_target_regression"
+}

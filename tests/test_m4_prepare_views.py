@@ -9,6 +9,7 @@ from test_m4_motion_cohort import module
 
 views = module('m4_prepare_views')
 plans = module('m4_view_cohort_plan')
+oblique_plans = module('m4_oblique_cohort_plan')
 
 
 class PrepareViewsTests(unittest.TestCase):
@@ -84,6 +85,16 @@ class PrepareViewsTests(unittest.TestCase):
         result = plans.build(self.plan, self.state)
         self.assertEqual(result['motions'], [])
         self.assertEqual(len(result['unchanged_or_unsupported_sources']), 1)
+
+    def test_oblique_plan_requires_exact_qualified_angle(self):
+        summary=dict(plan_sha256=views.digest(self.plan),records=[dict(source='walk',source_qualified_yaw=-45,
+            records=[dict(yaw=-45,status='compiled',projection_passed=True,motion_sha256='compiled')])])
+        result=oblique_plans.build(self.plan,summary)
+        self.assertEqual(result['motions'][0]['projection']['yaw_degrees'],-45)
+        self.assertNotIn('projection',self.plan['motions'][0])
+        summary['records'][0]['records'][0]['projection_passed']=False
+        with self.assertRaisesRegex(ValueError,'not_qualified'):
+            oblique_plans.build(self.plan,summary)
 
 
 if __name__ == '__main__':

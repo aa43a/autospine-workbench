@@ -54,6 +54,22 @@ class CohortTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'uncertain_submission'):
             runner.step(self.plan, self.state, lambda _: None, lambda *_: self.fail())
 
+    def test_target_projection_is_submitted_and_verified(self):
+        projection=dict(profile='constant-yaw-source-motion-v1',yaw_degrees=-45)
+        self.plan['motions'][0]['projection']=projection
+        calls=[]
+        def request(path,body=None):
+            if body is not None:
+                calls.append(body); return dict(job_id='target',status='pending')
+            if path.endswith('source'): return self.source
+            return dict(artifact_sha256='rig')
+        self.assertEqual(runner.step(self.plan,self.state,lambda _:None,request),'target_submitted')
+        self.assertEqual(calls[0]['projection'],projection)
+        target=dict(job_id='target',status='succeeded',result={'projection':dict(projection,yaw_degrees=45)})
+        with self.assertRaisesRegex(ValueError,'target_projection_mismatch'):
+            runner.step(self.plan,self.state,lambda _:None,
+                        lambda path: self.source if path.endswith('source') else target)
+
     def test_changed_source_blocks_new_targets(self):
         with self.assertRaisesRegex(ValueError, 'identity_changed'):
             runner.step(self.plan, self.state, lambda _: None,

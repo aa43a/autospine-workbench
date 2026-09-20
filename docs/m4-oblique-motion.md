@@ -59,3 +59,25 @@ source-change reset and omitted-projection compatibility. No side/back texture
 reconstruction or torso mesh deformation is implemented here. Current capture
 and source projection success do not imply that front artwork looks correct
 under every oblique motion.
+
+## Frozen oblique target cohort
+
+`tools/m4_oblique_cohort_plan.py` binds the full source-angle summary to the v3
+baseline and emits `benchmark/m4-oblique-cohort-plan-v1.json`. Four nonzero
+qualified angles are tested on all three unchanged characters (12 cases).
+Unavailable projections and unchanged zero-degree sources remain listed rather
+than disappearing from the scope. These twelve cases supplement the original
+eight-category matrix; they do not replace its failed cases.
+
+The cohort runner submits each exact projection and checks the returned projection
+before accepting a completed task as evidence. The already completed Alice -45
+walking job is reused after checking its immutable request, character identity
+and result; the other cases are new tasks. State:
+`../tmp/m4-motion-center/oblique-cohort-state-v1.json`.
+
+The initial Alice contact failure is at 3.576431996 seconds: endpoint residual
+4.109350732 pixels, after the left calf correction reaches its 30-degree bound.
+The existing root/rotation limits and 1% residual gate remain unchanged. This
+does not prove no solution exists globally; it explains why this bounded causal
+attempt was rejected. New views must be evaluated, not approved from source
+projection alone.
