@@ -15,6 +15,33 @@ class MotionHttpTests(unittest.TestCase):
     tearDown = Fixture.tearDown
     request = Fixture.request
 
+    def test_stage_review_http_keeps_intent_and_revision_guards(self):
+        from autospine_workbench.resolved_project import canonical_sha256
+        self.request('GET', '/api/motions')
+        manager = self.server.automation_manager._motions
+        job = 'motion-' + 'a'*32
+        manager.folder(job, True)
+        path = '/api/motions/' + job + '/stage-review'
+        report = dict(artifact_sha256='asset', status='needs_changes', stages=[
+            dict(stage='Runtime', status='sampled_pass')])
+        body = dict(artifact_sha256='asset', evidence_sha256=canonical_sha256(report),
+                    expected_revision=0, decision='accepted_with_exceptions', notes='测试限定范围')
+        intent = {'Origin': f'http://{self.host}:{self.port}', 'X-Autospine-Intent': 'pipeline-preview'}
+        with patch('autospine_workbench.automation.motion_stage_review.evidence',
+                   return_value=(report, canonical_sha256(report))):
+            self.assertEqual(self.request('POST', path, body)[0], 403)
+            self.assertEqual(self.request('POST', path, body, dict(intent, Origin='https://other.test'))[0], 403)
+            self.assertEqual(self.request('GET', path)[0], 200)
+            self.assertEqual(self.request('POST', path, body, intent)[0], 202)
+            status, _, data = self.request('GET', path)
+            saved = json.loads(data)
+            self.assertEqual(status, 200)
+            self.assertEqual(saved['revision'], 1)
+            self.assertTrue(saved['current_applies'])
+            self.assertEqual(saved['readiness']['status'], 'needs_changes')
+            self.assertEqual(self.request('POST', path, body, intent)[0], 400)
+            self.assertEqual(self.request('DELETE', path)[0], 405)
+
     def test_generation_requires_intent_and_rejects_client_runtime_paths(self):
         from test_motion_generation import BODY
         self.assertEqual(self.request('GET', '/api/motions/generate')[0], 405)

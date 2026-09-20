@@ -14,6 +14,7 @@ def module(name):
 
 
 runner = module('m4_motion_cohort')
+reviews = module('m4_motion_cohort_reviews')
 report = module('m4_motion_cohort_report')
 
 
@@ -97,6 +98,35 @@ class CohortTests(unittest.TestCase):
         self.state['diagnostics']['walk/a']['readiness']['artifact_sha256'] = 'old'
         with self.assertRaisesRegex(ValueError, 'readiness_artifact_mismatch'):
             report.rows(self.plan, self.state)
+
+    def test_visual_snapshot_preserves_exceptions_and_revocation(self):
+        readiness = dict(artifact_sha256='asset', status='needs_changes', stages=[])
+        evidence = runner.digest(readiness)
+        self.state['plan_sha256'] = runner.digest(self.plan)
+        self.state['cells']['walk/a'] = dict(job_id='target', status='succeeded', result={
+            'artifact_sha256': 'asset', 'geometry_passed': False})
+        self.state['diagnostics'] = {'walk/a': dict(job_id='target', readiness=readiness)}
+        row = dict(job_id='target', artifact_sha256='asset', evidence_sha256=evidence,
+                   readiness=readiness, revision=1, current_applies=True, current=dict(
+                       artifact_sha256='asset', evidence_sha256=evidence,
+                       decision='accepted_with_exceptions', notes='限定动作，保留异常'))
+        calls = []
+        def request(path):
+            calls.append(path); return row
+        snapshot = reviews.collect(self.plan, self.state, request)
+        self.assertEqual(calls, ['/api/motions/target/stage-review'])
+        counts = report.summary(report.rows(self.plan, self.state, snapshot))
+        self.assertEqual(counts['visual_accepted'], 0)
+        self.assertEqual(counts['visual_accepted_with_exceptions'], 1)
+        self.assertEqual(counts['candidate_exceptions'], 1)
+        self.assertEqual(counts['geometry_passed'], 0)
+        row['current']['decision'] = 'revoked'
+        self.assertEqual(report.rows(self.plan, self.state, snapshot)[0]['visual'], 'revoked')
+        readiness['status'] = 'changed'
+        self.assertEqual(report.rows(self.plan, self.state, snapshot)[0]['visual'], 'evidence_changed')
+        snapshot['cells']['walk/a']['job_id'] = 'other'
+        with self.assertRaisesRegex(ValueError, 'candidate_mismatch'):
+            report.rows(self.plan, self.state, snapshot)
 
 
 if __name__ == '__main__':
