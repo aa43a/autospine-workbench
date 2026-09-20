@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "project_id", "source_sha256", "revision", "previous_sha256", "action", "payload", "authority"],
+  "$defs": {
+    "sha": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "id": {"type": "string", "pattern": "^[a-f0-9]{32}$"},
+    "segment": {"type": "object", "additionalProperties": false,
+      "required": ["session_id", "stage", "started_at", "ended_at", "seconds", "method"],
+      "properties": {
+        "session_id": {"$ref": "#/$defs/id"},
+        "stage": {"enum": ["source_preparation", "joints", "bindings", "sleeves", "visual_review", "auto_audit", "other"]},
+        "started_at": {"type": "string", "format": "date-time"},
+        "ended_at": {"type": "string", "format": "date-time"},
+        "seconds": {"type": "number", "exclusiveMinimum": 0, "maximum": 86400},
+        "method": {"const": "operator_stopwatch_segment_v1"}
+      }}
+  },
+  "properties": {
+    "schema": {"const": "autospine.project-work-session/v1"}, "project_id": {"type": "string", "minLength": 1},
+    "source_sha256": {"$ref": "#/$defs/sha"}, "revision": {"type": "integer", "minimum": 0},
+    "previous_sha256": {"anyOf": [{"$ref": "#/$defs/sha"}, {"type": "null"}]},
+    "action": {"enum": ["record", "revoke"]}, "payload": {}, "authority": {"const": "none"}
+  },
+  "allOf": [
+    {"if": {"properties": {"action": {"const": "record"}}}, "then": {"properties": {"payload": {"$ref": "#/$defs/segment"}}}},
+    {"if": {"properties": {"action": {"const": "revoke"}}}, "then": {"properties": {"payload": {"$ref": "#/$defs/id"}}}}
+  ]
+}

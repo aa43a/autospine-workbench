@@ -33,4 +33,6 @@ def summarize(cohort,observations):
     if any('auto_binding_audit' in o for o in observations.values()):
         from .character_auto_audit_metrics import summarize as audit_metrics
         result['metrics']['auto_binding_audit'] = audit_metrics(observations)
+    from .project_work_sessions import summarize as work_timing
+    result['metrics']['project_work_timing'] = work_timing(observations)
     return result

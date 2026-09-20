@@ -63,5 +63,5 @@ export function workbenchLayout(document) {
   // The legacy stage indicators remain status-only data; this navigation owns workspace selection.
   const legacy = document.getElementById("workflowNav"); if (legacy) legacy.hidden = true;
   showBinding("plan"); show("asset"); showIssues("animated");
-  const api = { show, showBinding, mount, mountIssues }; layouts.set(document, api); return api;
+  const api = { show, showBinding, mount, mountIssues, mountStatus(element){nav.after(element);} }; layouts.set(document, api); return api;
 }

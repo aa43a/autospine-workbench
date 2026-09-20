@@ -60,6 +60,11 @@ def main():
         if current['project_id'] != project or current['authority'] != 'none':
             raise ValueError('workflow_project_mismatch')
         item = dict(job=job, reason_code=current.get('reason_code'))
+        from autospine_workbench.resolved_project import canonical_sha256
+        work = get(prefix + '/automation/character/work-sessions')
+        if work['project_id'] != project or work['authority'] != 'none' or work['source_sha256'] != canonical_sha256(document['source']):
+            raise ValueError('work_session_source_mismatch')
+        item['verified_work_sessions'] = work
         if job and job['status'] == 'needs_review':
             endpoint = prefix + '/automation/character/jobs/' + job['job_id']
             encoded = raw(endpoint + '/view/report.json'); report = json.loads(encoded)

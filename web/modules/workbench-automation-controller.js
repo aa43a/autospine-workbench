@@ -4,6 +4,7 @@ import { ACTIVE_JOBS, DEFAULT_TARGET_VERSION, TARGET_VERSIONS, automationEndpoin
 import { AUTOMATION_STATUS, automationReason, createAutomationView } from "./workbench-automation-view.js";
 import { createWorkbenchAnimated } from "./workbench-animated-controller.js";
 import { workbenchLayout } from "./workbench-layout.js";
+import { createWorkSessions } from "./workbench-work-sessions.js";
 
 export function createWorkbenchAutomation(document, hooks, options = {}) {
   const layout = workbenchLayout(document), originalHooks = hooks;
@@ -23,6 +24,7 @@ export function createWorkbenchAutomation(document, hooks, options = {}) {
     canLocate: (item) => Boolean(reviewTarget(item, hooks.context())),
   });
   const animated = document ? createWorkbenchAnimated(document, hooks) : null;
+  const workSessions=layout?createWorkSessions(document,hooks):null; if(workSessions)layout.mountStatus(workSessions.element);
 
   function context() { return hooks.context(); }
   function selectedIdentity(value = context()) {
@@ -71,6 +73,7 @@ export function createWorkbenchAutomation(document, hooks, options = {}) {
     });
   }
   function sync() {
+    workSessions?.sync();
     animated?.sync();
     const value = context();
     const next = selectedIdentity(value);
@@ -183,6 +186,6 @@ export function createWorkbenchAutomation(document, hooks, options = {}) {
     inspector?.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
     inspector?.querySelector?.("input:not([disabled]), select:not([disabled]), button:not([disabled])")?.focus?.({ preventScroll: true });
   }
-  function dispose() { generation += 1; stopTimer(); animated?.dispose(); }
+  function dispose() { generation += 1; stopTimer(); animated?.dispose(); workSessions?.dispose(); }
   return { sync, refresh: async () => { await refresh(); if (active()) queuePoll(); }, start, cancel, locate, canDownload, setTarget, dispose };
 }

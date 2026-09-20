@@ -27,6 +27,12 @@ def main():
     for character in cohort['characters']:
         project=character['project_id'];base='/api/projects/'+quote(project,safe='')+'/automation/character'
         overview=get(base);job=overview.get('job');item=dict(job=job,reason_code=overview.get('reason_code'))
+        from autospine_workbench.resolved_project import canonical_sha256
+        document=get('/api/projects/'+quote(project,safe=''))
+        work=get(base+'/work-sessions')
+        if work['project_id']!=project or work['authority']!='none' or work['source_sha256']!=canonical_sha256(document['source']):
+            raise ValueError('work_session_source_mismatch')
+        item['verified_work_sessions']=work
         if overview['project_id']!=project or overview['authority']!='none':raise ValueError('cohort_project_mismatch')
         if job and job['status']=='needs_review':
             path=base+'/jobs/'+job['job_id']
