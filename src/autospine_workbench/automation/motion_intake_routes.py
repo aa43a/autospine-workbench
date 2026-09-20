@@ -13,7 +13,7 @@ def _methods(tail):
         return 'POST, OPTIONS'
     if not tail:
         return 'GET, HEAD, POST, OPTIONS'
-    if (len(tail) == 1 or len(tail) == 2 and tail[1] in ('preview', 'download', 'projection', 'projection.json', 'contacts', 'compare-views', 'compare-oblique')
+    if (len(tail) == 1 or len(tail) == 2 and tail[1] in ('preview', 'download', 'projection', 'projection.json', 'contacts', 'compare-views', 'compare-oblique', 'compare-targets')
             or len(tail) >= 3 and tail[1] == 'view'):
         return 'GET, HEAD, OPTIONS'
     if len(tail) == 2 and tail[1] in ('cancel', 'retry', 'adapt', 'reproject'):
@@ -97,6 +97,9 @@ def dispatch_motions(parts, handler, method):
             handler._send_visual_json(200, inspect(manager, tail[0]))
         elif len(tail) == 2 and tail[1] == 'compare-oblique':
             from .motion_oblique_comparison import inspect
+            handler._send_visual_json(200, inspect(manager, tail[0]))
+        elif len(tail) == 2 and tail[1] == 'compare-targets':
+            from .motion_target_comparison import inspect
             handler._send_visual_json(200, inspect(manager, tail[0]))
         elif len(tail) == 2 and tail[1] in ('projection', 'projection.json'):
             from .motion_projection_review import inspect, render

@@ -52,6 +52,7 @@ class MotionIntakeJobs:
                     view_comparison_available=True,
                     oblique_target_available=True,
                     oblique_comparison_available=True,
+                    target_comparison_available=True,
                     blender_available=bool(self.blender and Path(self.blender).is_file()),
                     kimodo_generation=availability(self), npz_import='soma77_explicit_profile')
 

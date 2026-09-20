@@ -5,6 +5,7 @@ import {createSelectionControls} from './motion-selection-controls.js';
 import {createContactControls} from './motion-contact-controls.js';
 import {appendDepthSummary} from './motion-depth-summary.js';
 import {appendReadiness} from './motion-readiness.js';
+import {appendTargetComparison} from './motion-target-comparison.js';
 import {reconcileMotionJobs} from './motion-job-list.js';
 import {appendStageReview} from './motion-stage-review.js';
 import {appendViewComparison} from './motion-view-comparison.js';
@@ -130,6 +131,7 @@ function render(data) {
       }
       appendDepthSummary(item, job);
       appendReadiness(item, job);
+      if (data.target_comparison_available) appendTargetComparison(item, job, request);
       if (data.stage_review_available) appendStageReview(item, job);
       if (result.clip) item.append(node('p', `源片段：第 ${result.clip.start_frame+1}–${result.clip.end_frame+1} 帧`));
       item.append(node('p', result.character_animation_status === 'needs_changes'
@@ -188,7 +190,7 @@ function render(data) {
     button.disabled = busy || Boolean(job.cancel_requested && active.has(job.status));
     item.append(button);
     return item;
-  }, [busy, Boolean(data.stage_review_available), Boolean(data.view_comparison_available)]);
+  }, [busy, Boolean(data.stage_review_available), Boolean(data.view_comparison_available), Boolean(data.target_comparison_available)]);
   if (!data.jobs.length) $('jobs').append(node('p', '尚未导入动作。'));
   focusLinkedJob();
 }

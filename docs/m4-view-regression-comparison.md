@@ -6,6 +6,34 @@ projection parameters must match the plan. All original baseline combinations
 remain visible; missing variant cases and unfinished evidence never count as passes.
 The report links each exact player, contact and depth inspection page.
 
+## Workbench comparison
+
+Completed character-motion cards expose **比较该角色的已有视角候选**.
+GET `/api/motions/{target_job}/compare-targets` groups existing requests by exact
+source byte identity and format, character artifact/job/project, clip, contact
+option and execution profiles. Different views are compared; different sources,
+rig revisions, crop ranges or policies are not mixed. Each succeeded candidate is
+revalidated against current source/character state, verified artifacts, Runtime
+evidence and its stage-review history. Outdated tasks remain visible.
+
+Only `stage_review` technical readiness qualifies for a recommendation. Human
+rejection and changed review evidence exclude a candidate. An exact existing
+`accepted` decision is preferred among qualified candidates; other ties use job
+identity for reproducibility, not an aesthetic score. No review or artifact is
+changed. More than 24 matching candidates declines recommendation rather than
+ranking a silently truncated sample. This compares already built candidates; it
+does not yet construct all camera angles for each new character.
+
+Actual check: `motion-6d7be7b37ac141c1906cf28ca5eb4c74` groups four Hongmeiling
+raise-arms targets and recommends the side candidate
+`motion-c22f2a09ce804829ab7cc9a4ecf0ebbd`. The front and both -30 degree candidates
+retain exceptions. The automatic and manual -30 builds remain separate records.
+
+Validation: exact grouping, changed source/rig/clip/policy exclusion, outdated
+inventory, rejection/evidence-change exclusion and bounded recommendation tests.
+`tools/check-motion-target-comparison.mjs JOB_ID` performs a read-only browser
+check against the live workbench and its actual candidate evidence.
+
 Current completed runs:
 
 | Matrix | Runtime captures | Geometry passes | Ready for stage review |
