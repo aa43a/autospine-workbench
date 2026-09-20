@@ -5,6 +5,7 @@ import {createSelectionControls} from './motion-selection-controls.js';
 import {createContactControls} from './motion-contact-controls.js';
 import {appendDepthSummary} from './motion-depth-summary.js';
 import {appendReadiness} from './motion-readiness.js';
+import {reconcileMotionJobs} from './motion-job-list.js';
 
 const $ = id => document.getElementById(id);
 const player = createSourcePlayer($('canvas'), $('time'), $('play'), $('clock'));
@@ -105,8 +106,7 @@ function render(data) {
   generationControls.update(data.kimodo_generation);
   $('environment').textContent = data.blender_available ? 'Blender 转换环境已配置。'
     : 'BVH 可直接解析；FBX 需要服务端配置 Blender。';
-  $('jobs').replaceChildren();
-  for (const job of data.jobs) {
+  reconcileMotionJobs($('jobs'), data.jobs, job => {
     const item = node('article', '');
     item.className = 'job';
     item.dataset.jobId = job.job_id;
@@ -176,8 +176,8 @@ function render(data) {
     button.onclick = () => void mutate(job.job_id, action);
     button.disabled = busy || Boolean(job.cancel_requested && active.has(job.status));
     item.append(button);
-    $('jobs').append(item);
-  }
+    return item;
+  }, busy);
   if (!data.jobs.length) $('jobs').append(node('p', '尚未导入动作。'));
 }
 
