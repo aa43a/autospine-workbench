@@ -26,7 +26,14 @@ def _upload(manager, handler):
             or handler.headers.get_all('Transfer-Encoding', [])
             or handler.headers.get_all('Content-Type', []) != ['application/octet-stream']):
         raise PipelineRunError('motion_upload_headers_invalid')
-    return manager.upload(handler.rfile, int(lengths[0]), unquote(names[0], errors='strict'), views[0])
+    profiles = handler.headers.get_all('X-Autospine-Npz-Profile', [])
+    rates = handler.headers.get_all('X-Autospine-Npz-Fps', [])
+    settings = None
+    if profiles or rates:
+        if len(profiles) != 1 or len(rates) != 1:
+            raise PipelineRunError('motion_upload_headers_invalid')
+        settings = dict(profile=profiles[0], fps=rates[0])
+    return manager.upload(handler.rfile, int(lengths[0]), unquote(names[0], errors='strict'), views[0], settings)
 
 
 def dispatch_motions(parts, handler, method):

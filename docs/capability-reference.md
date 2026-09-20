@@ -1,6 +1,6 @@
 # AutoSpine Workbench 功能与入口参考
 
-- [M4 动作中心](how-to-motion-center.md)：FBX/BVH 上传、可恢复导入任务、源骨架时间轴、Mixamo→MotionIR，以及已有整角色的独立动画候选、官方 Runtime 播放和下载。接触/遮挡、Kimodo/NPZ 与三角色八动作验收尚未完成。
+- [M4 动作中心](how-to-motion-center.md)：FBX/BVH/Kimodo SOMA77 NPZ 上传、可恢复导入任务、源骨架时间轴、MotionIR，以及已有整角色的独立动画候选、官方 Runtime 播放和下载。NPZ 帧率和骨架约定显式输入，足部标签仅作观测。接触/遮挡、Kimodo 生成器与三角色八动作验收尚未完成。
 
 - [独立连衣裙组件编译](how-to-dress-component.md)：工作台整角色构建支持自动寻找连衣裙组件，混合衣层先保持原运动拆分，再生成上身固定、裙摆辅助链候选；其他部件保留待办，不要求伪造已确认上衣。
 

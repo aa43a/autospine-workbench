@@ -24,6 +24,7 @@ from .npy_snapshot import (
     NpyArraySnapshot,
     NpySnapshotError,
     parse_npy_snapshot,
+    _decode,
 )
 from .safe_input_files import SafeInputFileError, read_real_file
 
@@ -31,6 +32,24 @@ from .safe_input_files import SafeInputFileError, read_real_file
 MAX_TOTAL_UNCOMPRESSED_BYTES = 128 * 1024 * 1024
 _CHUNK_BYTES = 64 * 1024
 _COMPRESSION_TYPES = frozenset((zipfile.ZIP_STORED, zipfile.ZIP_DEFLATED))
+
+
+def inspect_kimodo_npz_profile(raw_npz: bytes) -> tuple[int, str, int]:
+    """Discover bounded array dimensions, never infer skeleton identity or FPS."""
+    from .kimodo_npz_source import CORE_ARRAY_NAMES, COMPLETE_ARRAY_NAMES, MAX_FRAMES
+    if type(raw_npz) is not bytes or not 1 <= len(raw_npz) <= MAX_RAW_NPZ_BYTES:
+        raise KimodoNpzReaderError('Kimodo NPZ byte limit exceeded')
+    with zipfile.ZipFile(io.BytesIO(raw_npz), allowZip64=False) as archive:
+        names = set(archive.namelist())
+    complete = names == {name + '.npy' for name in COMPLETE_ARRAY_NAMES}
+    members = _read_archive(raw_npz, COMPLETE_ARRAY_NAMES if complete else CORE_ARRAY_NAMES)
+    dtype, shape, _ = _decode(members['posed_joints'], 'posed_joints')
+    contact_dtype, contacts, _ = _decode(members['foot_contacts'], 'foot_contacts')
+    if (dtype != '<f4' or len(shape) != 3 or shape[1:] != (77, 3)
+            or not 2 <= shape[0] <= MAX_FRAMES or contact_dtype != '|b1'
+            or len(contacts) != 2 or contacts[0] != shape[0] or contacts[1] not in (4, 6)):
+        raise KimodoNpzReaderError('Kimodo SOMA77 dimensions are unsupported')
+    return shape[0], 'complete-v1' if complete else 'core-v1', contacts[1]
 
 
 class KimodoNpzReaderError(ValueError):

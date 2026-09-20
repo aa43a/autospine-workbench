@@ -1,6 +1,6 @@
 # AutoSpine Workbench 架构与质量门禁
 
-M4 动作中心采用独立入口与任务模块：`motion_intake_routes/jobs/worker` 处理有界上传、隔离转换和 MotionIR，`motion_target_jobs/worker` 绑定精确整角色来源、调用既有投影/局部修正/Runtime。`motion_intake_process` 负责进程树取消与阶段进度。前端控制、源播放器和角色选择分别拆分，主工作台只增加导航。不可变源任务与候选均保留；历史状态不赋予采用权，查看和下载目标结果前重新检查来源。
+M4 动作中心采用独立入口与任务模块：`motion_intake_routes/jobs/worker` 处理有界上传、隔离转换和 MotionIR，`motion_target_jobs/worker` 绑定精确整角色来源、调用既有投影/局部修正/Runtime。`motion_kimodo_intake` 将显式 SOMA77/FPS 与原始 NPZ 绑定，复用严格 reader/compiler；`kimodo_lengths` 直接从矩阵校验位置生成长度比例，再复用 BVH 同一缩放核心。`motion_intake_process` 负责进程树取消与阶段进度。前端控制、源播放器和角色选择分别拆分，主工作台只增加导航。不可变源任务与候选均保留；历史状态不赋予采用权，查看和下载目标结果前重新检查来源。
 
 `asset/planning/component_mount.py` 是无图像库依赖的分区与父骨骼建议核心；Spine 4.3.26 图像切片、
 坐标转换和整角色合成位于独立 Adapter。确切决定绑定输入包与分区摘要，剩余附件运动不改写。

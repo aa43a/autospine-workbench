@@ -46,18 +46,23 @@ class MotionIntakeJobs:
             # Historical task cards are a journal, not fresh character verification.
             # Verify source state on opening/retrying/downloading a specific target.
             jobs = [self.get(path.parent.name, check_current=False) for path in paths]
-        return dict(authority='none', jobs=jobs, formats=['fbx', 'bvh'],
+        return dict(authority='none', jobs=jobs, formats=['fbx', 'bvh', 'npz'],
                     blender_available=bool(self.blender and Path(self.blender).is_file()),
-                    kimodo_generation='not_connected', npz_import='not_connected')
+                    kimodo_generation='not_connected', npz_import='soma77_explicit_profile')
 
-    def upload(self, stream, size, name, view):
+    def upload(self, stream, size, name, view, npz_options=None):
         suffix = Path(name).suffix.lower() if isinstance(name, str) else ''
-        if suffix not in ('.fbx', '.bvh') or len(name) > 180 or any(c in name for c in '/\\\r\n\0'):
+        if suffix not in ('.fbx', '.bvh', '.npz') or len(name) > 180 or any(c in name for c in '/\\\r\n\0'):
             raise PipelineRunError('motion_filename_invalid')
         if type(size) is not int or not 16 <= size <= MAX_UPLOAD:
             raise PipelineRunError('motion_file_limit')
         if view not in ('front', 'side'):
             raise PipelineRunError('motion_view_invalid')
+        if suffix == '.npz':
+            from .motion_kimodo_intake import options
+            npz_options = options((npz_options or {}).get('profile'), (npz_options or {}).get('fps'))
+        elif npz_options is not None:
+            raise PipelineRunError('motion_npz_options_unexpected')
         with self._lock:
             if self._closed or sum(j['status'] in ACTIVE for j in self._jobs.values()) >= 2:
                 raise PipelineRunError('motion_queue_full')
@@ -79,6 +84,8 @@ class MotionIntakeJobs:
                     digest.update(raw)
                     remaining -= len(raw)
             request = dict(value, source_sha256=digest.hexdigest(), byte_length=size)
+            if npz_options is not None:
+                request['npz_options'] = npz_options
             publish_document(folder / 'request.json', request, staging=folder / 'staging')
             with self._lock:
                 value.update(source_sha256=request['source_sha256'], step='queued')
@@ -132,7 +139,7 @@ class MotionIntakeJobs:
         raw = read_real_file(self.folder(job) / ('source.' + request['format']), MAX_UPLOAD, 'motion source')
         if sha256(raw).hexdigest() != request['source_sha256']:
             raise PipelineRunError('motion_source_changed')
-        return self.upload(BytesIO(raw), len(raw), request['name'], request['view'])
+        return self.upload(BytesIO(raw), len(raw), request['name'], request['view'], request.get('npz_options'))
 
     def cancel(self, job):
         with self._lock:

@@ -52,5 +52,27 @@ class MotionHttpTests(unittest.TestCase):
         self.assertEqual(self.request('POST', path + '/retry', {'path': 'arbitrary'}, intent)[0], 400)
         self.assertEqual(self.request('POST', path + '/retry', {}, intent)[0], 202)
 
+    def test_npz_requires_explicit_profile_and_returns_source_timeline(self):
+        from tests.fixtures.kimodo_npz_archive import build_npz, motion_member_bytes
+        raw = build_npz(motion_member_bytes())
+        headers = {'Content-Type': 'application/octet-stream', 'X-Autospine-File-Name': 'motion.npz',
+                   'X-Autospine-Motion-View': 'front', 'Origin': f'http://{self.host}:{self.port}',
+                   'X-Autospine-Intent': 'pipeline-preview'}
+        self.assertEqual(self.upload(raw, headers)[0], 400)
+        headers.update({'X-Autospine-Npz-Profile': 'kimodo-soma77-v1', 'X-Autospine-Npz-Fps': '24'})
+        status, value = self.upload(raw, headers)
+        self.assertEqual(status, 202, value)
+        path = '/api/motions/' + value['job_id']
+        deadline = time.monotonic()+15
+        while time.monotonic() < deadline:
+            value = json.loads(self.request('GET', path)[2])
+            if value['status'] not in ('pending', 'running'):
+                break
+            time.sleep(.05)
+        self.assertEqual(value['status'], 'succeeded', value)
+        self.assertEqual(value['result']['fps'], 24)
+        self.assertEqual(value['result']['motion']['source_kind'], 'kimodo_npz')
+        self.assertEqual(self.request('GET', path + '/preview')[0], 200)
+
 
 del Fixture

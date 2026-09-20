@@ -14,6 +14,7 @@ const steps = {
   uploading: '上传原文件', queued: '已排队', verify_source: '校验源文件',
   convert_fbx: 'Blender 转换 FBX', verify_bridge: '逐帧核对源骨架',
   inspect_bvh: '构建源时间轴', compile_motion: '生成 MotionIR',
+  inspect_npz: '核对 SOMA77 位置与旋转矩阵',
   retarget: '角色重定向与局部修正', publish_candidate: '保存角色候选', runtime: '官方 Runtime 捕获',
 };
 const reasons = {
@@ -23,7 +24,9 @@ const reasons = {
   motion_decode_timeout: '解析超时，原文件保留。',
   motion_fbx_bridge_mismatch: 'FBX 转换后的骨架与源动作不一致。',
   motion_file_limit: '文件须为 16 字节至 64 MiB。',
-  motion_filename_invalid: '请选择 FBX 或 BVH 文件。',
+  motion_filename_invalid: '请选择 FBX、BVH 或 Kimodo NPZ 文件。',
+  motion_npz_profile_required: 'NPZ 需要明确选择 SOMA77 骨架约定和源帧率。',
+  motion_npz_fps_invalid: '请输入 1–240 范围内的源帧率。',
   motion_queue_full: '已有两个任务正在处理，请完成后再导入。',
   motion_decode_failed: '解析失败，源文件和诊断已保留。',
   motion_import_interrupted: '上次解析未完成，可重新解析。',
@@ -145,6 +148,7 @@ async function mutate(id, action) {
   }
 }
 
+$('file').onchange = () => { $('npz-options').hidden = !$('file').files[0]?.name.toLowerCase().endsWith('.npz'); };
 $('upload').onclick = async () => {
   const file = $('file').files[0];
   if (!file || busy) return;
@@ -157,13 +161,18 @@ $('upload').onclick = async () => {
   $('status').textContent = '正在上传…';
   let failure = null;
   try {
+    const npzHeaders = file.name.toLowerCase().endsWith('.npz') ? {
+      'X-Autospine-Npz-Profile': $('npz-profile').value, 'X-Autospine-Npz-Fps': $('npz-fps').value,
+    } : {};
     await request('/api/motions', {
       method: 'POST', headers: {
         'Content-Type': 'application/octet-stream', 'X-Autospine-Intent': 'pipeline-preview',
         'X-Autospine-File-Name': encodeURIComponent(file.name), 'X-Autospine-Motion-View': $('view').value,
+        ...npzHeaders,
       }, body: file,
     });
     $('file').value = '';
+    $('npz-options').hidden = true;
   } catch (error) { failure = error.message; }
   finally {
     busy = false;

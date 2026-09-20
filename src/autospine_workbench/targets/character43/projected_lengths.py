@@ -28,13 +28,19 @@ def build(document, name, bvh, mapping):
         bone = ROLES[row['role']]
         ratios[bone] = values
         summary.append(dict(role=row['role'], bone=bone, min_ratio=min(values), max_ratio=max(values)))
+    return apply_ratios(document, name, ratios, summary,
+                        [frame.tick/1_000_000 for frame in projected.frames],
+                        projected.source_sha256, projected.map_sha256)
+
+
+def apply_ratios(document, name, ratios, summary, times, source_sha256, map_sha256):
+    """Shared axial scaling after source-specific, validated 3D projection."""
     result = deepcopy(document)
     tracks = result['animations'][name]['bones']
     if any(tracks.get(b, {}).get('scale') for b in ratios):
         raise ValueError('character_length_scale_already_present')
     baseline = matrices(document, name, 0)
-    for index, frame in enumerate(projected.frames):
-        time = frame.tick/1_000_000
+    for index, time in enumerate(times):
         for bone in result['bones']:
             key = bone['name']
             if key not in ratios:
@@ -58,6 +64,6 @@ def build(document, name, bvh, mapping):
             if abs(math.hypot(actual[0], actual[2])-desired) > 1e-7:
                 raise ValueError('character_length_world_axis_mismatch')
     return result, dict(profile='projected-world-axis-width-v1', authority='none',
-                        status='preview_only', source_sha256=projected.source_sha256,
-                        map_sha256=projected.map_sha256, ratios=summary,
+                        status='preview_only', source_sha256=source_sha256,
+                        map_sha256=map_sha256, ratios=summary,
                         limitation='fixed_texture_depth_order_and_visibility_unresolved')

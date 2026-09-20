@@ -19,7 +19,7 @@ from .storage_io import canonical_bytes, read_document
 ANIMATION = 'external-motion'
 
 
-def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_digest):
+def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_digest, kimodo=None):
     """Only the animation changes; layers, meshes, weights and texture pixels stay exact."""
     source = json.loads(files['skeleton.json'])
     original = deepcopy(source)
@@ -28,7 +28,11 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
     issues = []
     from ..targets.character43.projected_lengths import build as add_lengths
     try:
-        document, lengths = add_lengths(document, ANIMATION, bvh, mapping)
+        if kimodo is None:
+            document, lengths = add_lengths(document, ANIMATION, bvh, mapping)
+        else:
+            from ..targets.character43.kimodo_lengths import build as add_npz_lengths
+            document, lengths = add_npz_lengths(document, ANIMATION, *kimodo, mapping)
         evidence['projected_lengths'] = lengths
     except ValueError as exc:
         # Preserve a diagnostic rotation-only animation when projection is unsuitable.
@@ -82,8 +86,10 @@ def execute(folder, state_root, workspace):
     # Bound expensive correction work before allocating a full character timeline.
     if max(len(track['keys']) for track in motion['tracks']) > 768:
         raise ValueError('motion_target_sample_limit')
+    kimodo = (bundle.raw_npz, bundle.kimodo_source) if bundle.source_kind == 'kimodo_npz' else None
+    bvh = None if kimodo else parse_bvh((bundle.path / 'source.bvh').read_bytes())
     files, evidence, geometry = build_candidate(store.read(request['character_sha256']), motion,
-        parse_bvh((bundle.path / 'source.bvh').read_bytes()), json.loads((bundle.path / 'map.json').read_bytes()),
+        bvh, json.loads((bundle.path / 'map.json').read_bytes()), kimodo=kimodo,
         character_digest=request['character_sha256'], motion_digest=motion_id['bundle_sha256'])
     progress(folder, 'publish_candidate')
     digest = store.publish(files)

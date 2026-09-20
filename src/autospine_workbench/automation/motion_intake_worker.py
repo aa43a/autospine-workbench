@@ -85,7 +85,11 @@ def execute(folder, state_root, blender):
         verified=verify((folder/'source.bvh').read_bytes(),evidence)
         (folder/'bridge-verification.json').write_bytes(canonical_bytes(verified))
         if not verified['passed']:raise ValueError('motion_fbx_bridge_mismatch')
-    result=compile_source((folder/'source.bvh').read_bytes(),request['view'],folder,state_root)
+    if request['format'] == 'npz':
+        from .motion_kimodo_intake import compile_source as compile_npz
+        result = compile_npz(source.read_bytes(), request, folder, state_root)
+    else:
+        result=compile_source((folder/'source.bvh').read_bytes(),request['view'],folder,state_root)
     if request['format'] == 'fbx':
         result['fbx_bridge'] = verified
     if sha256(source.read_bytes()).hexdigest()!=request['source_sha256']:raise ValueError('motion_source_changed')
