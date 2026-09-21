@@ -14,6 +14,7 @@ export function appendStageReview(item, job) {
     const response = await fetch(endpoint, {cache: 'no-store', ...options});
     const result = await response.json();
     if (!response.ok) throw Error(reasons[result.reason_code] || result.reason_code || '验收请求失败');
+    if(result.artifact_sha256!==job.result.artifact_sha256)throw Error('候选版本已变化，请重新打开。');
     return result;
   }
   function render(state) {

@@ -6,6 +6,7 @@ import sys
 from m4_motion_cohort import digest
 from m4_motion_cohort_reviews import decision
 from m4_motion_support_matrix import render as render_support, coverage
+from m4_motion_review_pack import url as review_url
 
 LABELS = {'succeeded': '捕获完成', 'running': '运行中', 'pending': '排队中', 'failed': '任务失败',
     'not_started': '尚未开始', 'needs_review': '待阶段验收', 'needs_changes': '存在异常',
@@ -77,6 +78,9 @@ def rows(plan, state, reviews=None):
 
 def render(plan, state, reviews=None):
     records = rows(plan, state, reviews)
+    hub=review_url(plan,state) if state.get('plan_sha256')==digest(plan) else None
+    hub_link=('<p><a href="'+escape(hub,quote=True)+'">集中播放与验收：切换动作和角色，在当前页面记录结论</a></p>'
+              if hub else '<p>尚无可核对身份的集中复核清单。</p>')
     lines = []
     for row in records:
         job = row['job_id']
@@ -120,7 +124,7 @@ def render(plan, state, reviews=None):
     return '''<!doctype html><meta charset="utf-8"><title>M4 固定动作验收矩阵</title>
 <style>body{background:#101923;color:#e3edf6;font:15px system-ui;padding:24px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #425466;padding:10px;text-align:left}a{color:#69d4fa}td{max-width:300px;overflow-wrap:anywhere}</style>
 <p>任务完成不等于动作通过。接触、遮挡、视觉验收分别列出，未检查不计通过。此页为生成时快照。</p>
-''' + intro + heading + render_support(plan, records) + '<h2>逐项证据与异常定位</h2><table><thead><tr>' + ''.join('<th>'+v+'</th>' for v in ['动作/角色','任务','候选','综合检查','几何','Runtime 帧','接触','遮挡','人工视觉','异常','定位']) + '</tr></thead><tbody>' + ''.join(lines) + '</tbody></table>'
+''' + intro + hub_link + heading + render_support(plan, records) + '<h2>逐项证据与异常定位</h2><table><thead><tr>' + ''.join('<th>'+v+'</th>' for v in ['动作/角色','任务','候选','综合检查','几何','Runtime 帧','接触','遮挡','人工视觉','异常','定位']) + '</tr></thead><tbody>' + ''.join(lines) + '</tbody></table>'
 
 
 def summary(records):
