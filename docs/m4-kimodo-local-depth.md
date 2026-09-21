@@ -30,8 +30,25 @@ checks every recorded arm/torso source-frame pair with sparse alpha sampling;
 and preserves every unmeasured result. For a torso bake it reconstructs the
 compensated virtual shoulder/pelvis origins at exact source keys, after matching
 the stored shape receipt against a freshly derived source report. Unchanged bone
-guides are not used as warped anchors. It does not check intermediate times or
-capture new Runtime frames.
+guides are not used as warped anchors. The default does not check intermediate
+times. No mode captures new Runtime frames.
+
+With `--midpoints`, the tool explicitly uses linearly interpolated source joint
+positions and checks every adjacent source-frame midpoint. For warped candidates,
+`BakedWarpPlane` reads the common deform-key schedule, verifies it against the
+bake receipt, reconstructs virtual anchor offsets in each bone's local frame,
+and interpolates these offsets before applying the current bone transform.
+It rejects mismatched schedules, non-linear deform curves, and candidate reuse.
+This differs from interpolating world positions or applying an ideal shape at
+the query time. Tests compare against baked marker vertices, including a rotating
+parent; 12 relevant tests pass.
+
+Alice's same torso candidate was checked at all 238 arm/torso interval midpoints:
+119 `uniform_back_proxy`, 119 `requires_partition_or_more_depth`, zero unmeasured,
+10,873,815 sampled pixels. Report:
+`../tmp/m4-motion-center/kimodo-warp-depth-alice-midpoints-v1.json`.
+This supplements the source-frame evidence, not a continuous-time or Runtime
+acceptance proof. Intermediate source depth is explicitly modeled, not observed.
 
 Alice's original Kimodo wave candidate
 `9fc3e02e74036b34322480c4936f5bfd874c8931bf11372e8c1c19fe2e0c486a`
