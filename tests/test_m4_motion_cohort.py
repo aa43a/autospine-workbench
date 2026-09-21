@@ -22,6 +22,21 @@ report = module('m4_motion_cohort_report')
 
 
 class CohortTests(unittest.TestCase):
+    def test_depth_completeness_is_distinct_from_execution_and_quality(self):
+        self.state['cells']['walk/a'] = dict(job_id='target', status='succeeded',
+            result=dict(artifact_sha256='exact', depth_order_status='needs_changes'))
+        unknown = report.summary(report.rows(self.plan, self.state))
+        self.assertEqual(unknown['depth_completeness_unknown'], 1)
+        self.state['diagnostics'] = {'walk/a': dict(job_id='target', depth_status=dict(
+            artifact_sha256='exact', has_incomplete_checks=True))}
+        counts = report.summary(report.rows(self.plan, self.state))
+        self.assertEqual(counts['depth_checks_incomplete'], 1)
+        self.assertEqual(counts['depth_unmeasured'], 0)
+        self.assertEqual(counts['depth_completeness_unknown'], 0)
+        self.state['diagnostics']['walk/a']['depth_status']['artifact_sha256'] = 'stale'
+        with self.assertRaisesRegex(ValueError, 'depth_status_artifact_mismatch'):
+            report.rows(self.plan, self.state)
+
     def setUp(self):
         self.plan = {'motions': [{'id': 'walk', 'sha256': 'raw', 'view': 'front'}],
                      'characters': [{'id': 'a', 'project_id': 'a', 'job_id': 'c', 'sha256': 'rig'}]}

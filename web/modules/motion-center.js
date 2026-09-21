@@ -135,8 +135,8 @@ function render(data) {
         receipt.target = '_blank'; receipt.rel = 'noopener'; item.append(receipt);
       }
       appendDepthSummary(item, job);
-      appendReadiness(item, job);
-      if (data.target_comparison_available) appendTargetComparison(item, job, request);
+      const compare=data.target_comparison_available?appendTargetComparison(item, job, request):null;
+      appendReadiness(item, job, compare);
       if (data.stage_review_available) appendStageReview(item, job);
       if (result.clip) item.append(node('p', `源片段：第 ${result.clip.start_frame+1}–${result.clip.end_frame+1} 帧`));
       item.append(node('p', result.character_animation_status === 'needs_changes'

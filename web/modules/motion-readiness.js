@@ -1,4 +1,5 @@
-export function appendReadiness(item, job) {
+import {appendNextActions} from './motion-next-actions.js';
+export function appendReadiness(item, job, compare) {
   const button = document.createElement('button');
   button.textContent = '检查可用范围与待处理项';
   const panel = document.createElement('section');
@@ -13,6 +14,7 @@ export function appendReadiness(item, job) {
       const response = await fetch(base + 'readiness.json', {cache: 'no-store'});
       const report = await response.json();
       if (!response.ok) throw Error(report.reason_code || '检查失败');
+      if(report.artifact_sha256!==job.result.artifact_sha256)throw Error('候选版本已变化，请刷新任务');
       panel.replaceChildren();
       const title = document.createElement('h4'); title.textContent = labels[report.status]; panel.append(title);
       for (const row of report.stages) {
@@ -29,6 +31,7 @@ export function appendReadiness(item, job) {
         }
         panel.append(p);
       }
+      appendNextActions(panel,report,compare);
       const note = document.createElement('p');
       note.textContent = '执行完成不等于动作通过；已有文件可下载为诊断候选。这里不记录人工验收或发布许可。';
       panel.append(note);

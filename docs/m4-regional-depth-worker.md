@@ -81,8 +81,22 @@ test and an unknown-step rejection check. Fifteen intake/worker/progress tests
 pass with process-tree permissions. Independent v2 plan/state files retain
 Alice's unchanged exact candidate and submit new Huiye/Hong tasks after the fix.
 Use `m4-regional-breathing-plan-v2.json` and `regional-breathing-state-v2.json` to
-resume that run. Huiye task `motion-0b4162c0d79347109872e775b91bb445` has reached
-`depth_cloth_constraints`, confirming the repaired transport. It remains running.
+resume that run. The v2 run is now terminal: all three candidates completed,
+with 3,324 Runtime frames and three geometry passes. All retain depth exceptions;
+none is stage-review-ready. Alice and Huiye have incomplete depth checks; Hong's
+sampling completed but did not pass the depth gate. This does not establish that
+all reported model conflicts are visible rendering errors.
+
+The cohort collector reads exact-artifact depth-status evidence. Reports now
+separate never-evaluated depth, incomplete checks, and unknown completeness.
+The refreshed v2 report has two incomplete cells and zero unknown-completeness
+cells. Existing captures were reused; this refresh did not recapture animation.
+
+Candidate readiness panels now explain next actions and offer same-page view
+comparison for projection, geometry, and depth exceptions. Guidance is separate
+from immutable review evidence, and stale readiness responses are rejected.
+Twelve cohort tests pass; Chrome checks cover same-page comparison and polling
+with stale-response rejection. No visual acceptance has been inferred.
 
 ## Model uncertainty explanation
 

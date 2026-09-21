@@ -28,4 +28,5 @@ export function appendTargetComparison(item, job, request) {
     finally { button.disabled = false; }
   };
   item.append(button, panel);
+  return ()=>{button.click();panel.scrollIntoView({block:'nearest'});};
 }

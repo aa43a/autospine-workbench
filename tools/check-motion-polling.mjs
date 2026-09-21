@@ -9,7 +9,7 @@ try {
   const page = await browser.newPage();
   const errors = []; page.on('pageerror', error => { errors.push(error.message); console.error(error.message); });
   page.on('response', response => { if (!response.ok()) console.error(response.status(), response.url()); });
-  let polls = 0, phase = 0;
+  let polls = 0, phase = 0, stale = true;
   const completed = {job_id: 'motion-polling-fixture', kind: 'adapt', name: 'fixture',
     project_id: 'fixture', status: 'succeeded', step: 'complete', result: {
       artifact_sha256: 'first', geometry_passed: true, character_animation_status: 'needs_review',
@@ -24,10 +24,14 @@ try {
     await route.fulfill({json: {jobs, blender_available: true}});
   });
   await page.route('**/view/readiness.json', route => route.fulfill({json: {
+    artifact_sha256: stale ? 'unrelated' : phase ? 'second' : 'first',
     status: 'needs_changes', stages: [{stage: '遮挡', status: 'needs_changes',
       explanation: 'polling-fixture-review', href: 'depth.html'}]}}));
   await page.goto(new URL('/motions.html', base).href);
   const card = page.locator('[data-job-id="motion-polling-fixture"]');
+  await card.getByRole('button', {name: '检查可用范围与待处理项'}).click();
+  await card.getByText('无法核对：候选版本已变化，请刷新任务', {exact: true}).waitFor();
+  stale = false;
   await card.getByRole('button', {name: '检查可用范围与待处理项'}).click();
   await card.getByText('polling-fixture-review', {exact: false}).waitFor();
   await card.evaluate(node => { window.reviewCard = node; });

@@ -43,6 +43,9 @@ def rows(plan, state, reviews=None):
             if diagnostic and diagnostic['job_id'] != job.get('job_id'):
                 raise ValueError('cohort_diagnostic_job_mismatch')
             readiness = diagnostic.get('readiness', {})
+            depth_status = diagnostic.get('depth_status', {})
+            if depth_status and depth_status.get('artifact_sha256') != result.get('artifact_sha256'):
+                raise ValueError('cohort_depth_status_artifact_mismatch')
             if readiness and readiness.get('artifact_sha256') != result.get('artifact_sha256'):
                 raise ValueError('cohort_readiness_artifact_mismatch')
             if diagnostic.get('profiles') and any(diagnostic['profiles'].get(k) != v
@@ -57,6 +60,7 @@ def rows(plan, state, reviews=None):
                 candidate=result.get('character_animation_status', 'not_evaluated'),
                 contact=result.get('contact_status', 'not_evaluated'),
                 depth=result.get('depth_order_status', 'not_evaluated'),
+                depth_checks_incomplete=depth_status.get('has_incomplete_checks'),
                 readiness=readiness.get('status', 'not_evaluated'),
                 stages=readiness.get('stages', []),
                 profiles=diagnostic.get('profiles', {}),
@@ -86,6 +90,8 @@ def render(plan, state, reviews=None):
                 links += f'<br><a href="http://127.0.0.1:8918{escape(url)}player.html?time={first["time"]}">{caption}</a>'
         gate_notes = [s['stage'] + ': ' + s['explanation'] for s in row['stages']
                       if s['status'] != 'sampled_pass']
+        gate_notes.append('遮挡检查完整性：' + {True: '存在未完成检查', False: '采样检查已完成',
+            None: '未读取完整性证据'}[row['depth_checks_incomplete']])
         values = [row['cell'], row['status'], row['candidate'], row['readiness'], str(row['geometry']), row['runtime_frames'],
                   row['contact'], row['depth'], label(row['visual']) +
                   ((' · ' + row['visual_record']['notes']) if row['visual_record'] else ''),
@@ -99,6 +105,8 @@ def render(plan, state, reviews=None):
     heading += (f'<p>人工阶段接受 {counts["visual_accepted"]} · 保留异常接受 '
                 f'{counts["visual_accepted_with_exceptions"]} · 验收证据已变化 {counts["visual_evidence_changed"]}。'
                 + ('验收快照：' + escape(reviews['captured_at']) if reviews else '未读取人工验收记录。') + '</p>')
+    heading += (f'<p>遮挡检查不完整 {counts["depth_checks_incomplete"]} · '
+                f'完整性未知 {counts["depth_completeness_unknown"]}；检查完成不等于遮挡通过。</p>')
     views = ', '.join(sorted({s['view'] + (f" / 偏转 {s['projection']['yaw_degrees']}°" if s.get('projection') else '')
                               for s in plan['motions']}))
     intro = '<h1>M4 固定动作验收矩阵</h1><p>' + escape(
@@ -123,7 +131,9 @@ def summary(records):
         stage_review_ready=sum(r['readiness']=='stage_review' for r in records),
         contact_partial=sum(r['contact']=='inferred_partial_corrected' for r in records),
         contact_unmeasured=sum(r['contact'] in ('not_evaluated', 'unavailable_no_labels') for r in records),
-        depth_unmeasured=sum(r['depth']=='not_evaluated' for r in records))
+        depth_unmeasured=sum(r['depth']=='not_evaluated' for r in records),
+        depth_checks_incomplete=sum(r.get('depth_checks_incomplete') is True for r in records),
+        depth_completeness_unknown=sum(r.get('depth_checks_incomplete') is None for r in records))
 
 
 if __name__ == '__main__':

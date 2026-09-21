@@ -120,6 +120,14 @@ def step(plan, state, publish, request):
                 state['diagnostics'][cell]['artifact_sha256'] = result['artifact_sha256']
                 state['diagnostics'][cell]['readiness'] = request(
                     '/api/motions/' + current['job_id'] + '/view/readiness.json')
+            if value_target['status'] == 'succeeded' and depth_profile == 'external-regional-depth-order-v1':
+                diagnostic = state['diagnostics'][cell]
+                artifact = value_target['result']['artifact_sha256']
+                if diagnostic.get('depth_status', {}).get('artifact_sha256') != artifact:
+                    status = request('/api/motions/' + current['job_id'] + '/view/depth-status.json')
+                    if status.get('artifact_sha256') != artifact:
+                        raise ValueError('cohort_depth_status_artifact_mismatch:' + cell)
+                    diagnostic['depth_status'] = status
             publish(state)
             if value_target['status'] in ('pending', 'running'):
                 return 'waiting_target'
