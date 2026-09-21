@@ -71,4 +71,28 @@ python -X utf8 -u tools/m4_motion_cohort.py docs/benchmark/m4-regional-breathing
 The regional worker reports partitioning, torso refinement, cloth constraints,
 limb constraints, and ordering as distinct progress stages. These callbacks do
 not alter generated evidence. Twenty focused runner/profile/worker/progress
-tests pass. This supplemental run is still in progress; no outcomes are inferred.
+tests pass. The first run subsequently ended: Alice completed; Huiye and Hong
+failed with `motion_progress_invalid`. The added progress stages had not been
+registered with the process transport. Those two failures are plumbing failures,
+not character quality conclusions, and remain in the v1 journal.
+
+The transport allowlist is now updated, with a real temporary-file write/read
+test and an unknown-step rejection check. Fifteen intake/worker/progress tests
+pass with process-tree permissions. Independent v2 plan/state files retain
+Alice's unchanged exact candidate and submit new Huiye/Hong tasks after the fix.
+Use `m4-regional-breathing-plan-v2.json` and `regional-breathing-state-v2.json` to
+resume that run. Huiye task `motion-0b4162c0d79347109872e775b91bb445` has reached
+`depth_cloth_constraints`, confirming the repaired transport. It remains running.
+
+## Model uncertainty explanation
+
+Alice's candidate `53cb8bb55f666badb1f0c78d78f024284243dd2589c0c72198533cb71c3e22c1`
+retains 299 order-failure records and 69 unmeasured regional checks. For the first
+failure, all 1,785 overlap pixels have ambiguous model intervals, with no definite
+front/back support. All first 100 displayed records have this uncertainty class;
+this is not a claim that all 299 records or the rendered clip are visually wrong.
+
+Inline diagnostics now attach the exact pair/time model counts, distinguishing
+margin uncertainty, opposing model support, missing depth, and inconsistent
+evidence. They leave the quality gate and stage-review identities unchanged.
+Twelve focused diagnostics/progress/gate tests and a real Chrome check pass.

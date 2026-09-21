@@ -1,0 +1,51 @@
+{
+  "schema": "autospine.motion-cohort-plan/v1",
+  "characters": [
+    {
+      "id": "alice",
+      "project_id": "alice",
+      "job_id": "job-d8b67e10685347ed95d1fba113b92c45",
+      "sha256": "6e5c59db4ef072075b798efab12acf8ffdc883368a61a4bf3c1646305ef68b98",
+      "structure": "ordinary"
+    },
+    {
+      "id": "huiye",
+      "project_id": "huiye",
+      "job_id": "job-6f92bece413a4909a553a95bbfc307f4",
+      "sha256": "63caa7fe5f9f40a92ebcd57ef0b345d7dcd47e5ed3feae65a95fad18e770d51b",
+      "structure": "wide-sleeves-long-skirt"
+    },
+    {
+      "id": "hongmeiling",
+      "project_id": "imported-885b4d3d22ee151a0364ac499a419b8bd0e59699a7b27ee4f65f007eee551590",
+      "job_id": "job-7d8ce666ea13487a953bdfa5258ea79a",
+      "sha256": "fadde972f148b353592aaeebf75df151b9ef57032efaacde1773ea5a8754d28c",
+      "structure": "sleeveless"
+    }
+  ],
+  "motions": [
+    {
+      "id": "breathing",
+      "path": "E:\\data\\game\\bip动画动作捕捉3D角色库源文件3dmaxmayac4dunity3dUE4\\C1455-mo动作库\\动作库角色模型moxion\\1-全套动作库带预览\\01\\breathing_idle.fbx",
+      "sha256": "67bf8b91cb77fec8873bb059cddcb96198c9ca348a16cfa6eb60171dabbd5370",
+      "view": "front",
+      "category_basis": "source_label_pending_visual_verification",
+      "job_id": "motion-c52561d5d07946539a8ca0da57e218e0"
+    }
+  ],
+  "policy": "supplemental_regional_three_structure_full_breathing_no_baseline_replacement",
+  "visual_acceptance": "not_inferred",
+  "depth_order": "regional_partition_torso_plane_cloth_limb_constraints",
+  "expected_profiles": {
+    "inferred_contact_profile": "external-phase-contact-auto-v1",
+    "runtime_reference_profile": "spine43-linear-weighted-float32-storage-v1",
+    "depth_review_profile": "external-regional-depth-order-v1"
+  },
+  "baseline_plan": "m4-cohort-plan-v3.json",
+  "target_depth_profile": "external-regional-depth-order-v1",
+  "previous_regional_plan": "m4-regional-breathing-plan-v1.json",
+  "rerun_reason": "progress_transport_allowlist_fix_preserve_failed_v1_jobs",
+  "reused_cells": {
+    "breathing/alice": "motion-180cbd9da18648c98e345a1f63a3db6a"
+  }
+}

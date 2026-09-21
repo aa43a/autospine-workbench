@@ -1,6 +1,9 @@
 const states={needs_changes:'有待处理的遮挡关系',evidence_incomplete:'遮挡检查尚未完成',
   sampled_candidate:'已生成限定采样通过的排序候选',sampled_no_change:'限定采样通过，保留原顺序',not_evaluated:'尚无可用遮挡结论'};
 const categories={depth_conflict:'前后关系冲突',resource_limit:'计算限制，尚未测完',unsupported_check:'当前检查不支持'};
+const evidenceLabels={missing_depth_support:'缺少深度支持',opposing_model_support:'模型同时存在前后支持',
+  interval_margin_uncertain:'深度区间尚不能区分前后',uniform_model_support:'模型支持单一方向，需结合整段约束',
+  inconsistent_model_evidence:'模型证据不一致'};
 
 export function appendDepthDetails(item,job) {
   const button=document.createElement('button'); button.textContent='在此查看遮挡状态';
@@ -35,6 +38,9 @@ export function appendDepthDetails(item,job) {
         for(const row of rows.slice(0,20)){
           const p=document.createElement('p');
           p.textContent=`${categories[row.category]||row.category}${row.pair?.length?' · '+row.pair.join(' / '):''} `;
+          if(row.model_evidence){
+            p.append(document.createTextNode(`（${evidenceLabels[row.model_evidence.kind]||'模型证据待解释'}；不等于已观察到画面错误） `));
+          }
           const link=document.createElement('a'); link.textContent=`定位 ${row.time.toFixed(3)} 秒`;
           link.href=base+`player.html?time=${row.time}`; link.target='_blank'; link.rel='noopener'; p.append(link); list.append(p);
         }

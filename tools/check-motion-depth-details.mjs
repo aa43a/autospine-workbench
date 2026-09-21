@@ -19,6 +19,9 @@ try{
     const section=filter.locator('xpath=../..');
     const expected=report.records.filter(r=>r.category===category).slice(0,20);
     assert.equal(await section.getByRole('link',{name:/^定位 /}).count(),expected.length);
+    if(expected.some(r=>r.model_evidence)){
+      assert.ok((await section.textContent()).includes('不等于已观察到画面错误'));
+    }
     for(const row of expected){
       assert.ok(await section.locator(`a[href="/api/motions/${id}/view/player.html?time=${row.time}"]`).count());
     }

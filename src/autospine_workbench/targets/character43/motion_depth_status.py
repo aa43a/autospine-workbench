@@ -14,6 +14,8 @@ def build(files,artifact):
     if depth and depth.get('skeleton_sha256')!=digest:
         raise ValueError('motion_depth_status_identity')
     order=depth.get('order',{}); rows=[]; counts=Counter()
+    from .depth_model_evidence import index, lookup
+    model_evidence = index(depth)
     for failure in order.get('failures',[]):
         reason=failure.get('reason_code','unknown')
         category=('resource_limit' if reason in RESOURCE else
@@ -25,6 +27,8 @@ def build(files,artifact):
         row=dict(time=time,reason_code=reason,category=category)
         if failure.get('pair'): row['pair']=failure['pair']
         if failure.get('raster_budget'): row['raster_budget']=failure['raster_budget']
+        support = lookup(model_evidence, failure)
+        if support is not None: row['model_evidence'] = support
         rows.append(row)
     overlap=depth.get('target_overlap',{})
     unmeasured=overlap.get('unmeasured_pair_samples')
