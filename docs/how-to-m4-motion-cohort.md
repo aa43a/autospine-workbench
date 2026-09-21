@@ -37,6 +37,20 @@ python tools/m4_motion_cohort_report.py docs/benchmark/m4-cohort-plan-v2.json ..
 独立。替代窗口的验收只属于该候选，不覆盖固定矩阵中的原版本。
 打开时再次核对来源、候选和比较证据；证据变化需重新比较。
 
+原候选和替代窗口分别提供“下载此候选 Spine 包”。链接固定到各自任务，
+不会因为浏览了推荐视角而替换原包。下载不是验收或发布，异常继续保留。
+
+可以对冻结矩阵执行逐包交付核对：
+
+```powershell
+python tools/m4_motion_cohort_delivery.py docs/benchmark/m4-cohort-plan-v3.json ../tmp/m4-motion-center/cohort-diagnostics-refreshed-v1.json ../tmp/m4-motion-center/cohort-delivery-v1
+```
+
+检查下载 ZIP 的完整文件清单及每个文件的字节，并验证播放、接触和遮挡
+页面可读取。每个候选单独保存带验证时间的记录；重复执行复用匹配身份的
+历史记录，明确标记 `historical_receipt`，不会伪称重新验证。要重新实测请使用
+新的输出目录。该检查不替代浏览器画面验收或新的 Runtime 捕获。
+
 清单固定源文件与候选身份，打开时重新读取服务端核对。版本不一致会停止展示，
 应重新生成报告。切换候选清空上一项表单，不自动保存或自动确认。
 报告仍是快照：完成复核后重新运行 reviews 收集器和报告命令更新统计。

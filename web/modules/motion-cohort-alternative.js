@@ -1,5 +1,6 @@
 import {appendStageReview} from './motion-stage-review.js';
 import {appendRotationDetails} from './motion-rotation-details.js';
+import {appendCandidateDownload} from './motion-candidate-download.js';
 
 export function createAlternativePanel(container,request){
   let revision=0;
@@ -22,6 +23,7 @@ export function createAlternativePanel(container,request){
       status.textContent='原固定候选保留在上方。此窗口与上方时间轴独立；下面的验收只记录当前替代候选，不替换固定矩阵。';
       const frame=document.createElement('iframe');frame.title='替代视角角色时间轴';frame.src=base+'/view/player.html';
       container.append(frame);
+      appendCandidateDownload(container,job);
       appendStageReview(container,job);
       appendRotationDetails(container,job,{onSeek:time=>{
         if(version===revision)frame.src=base+`/view/player.html?time=${encodeURIComponent(time)}`;

@@ -37,8 +37,10 @@ try{
   const pack={version:1,plan_sha256:hash,groups:sources.map((job_id,i)=>({job_id,label:'motion '+i,source_sha256:hash,
     targets:[{job_id:targets[i],label:'character '+i,artifact_sha256:hash}]}))};
   await page.goto(base+'/motion-cohort.html#'+encodeURIComponent(JSON.stringify(pack)));
-  await page.getByText('已核对版本。查看角色动作后，可直接在本页保存阶段结论；不会自动确认。',{exact:true}).waitFor();
+  await page.getByText('已核对版本。查看角色动作后，可直接在本页保存阶段结论；不会自动确认。',{exact:true}).waitFor()
+    .catch(async error=>{console.error(JSON.stringify({errors,status:await page.locator('#status').textContent()}));throw error;});
   assert.equal(await page.locator('iframe').count(),1);
+  assert.equal(await page.getByRole('link',{name:'下载此候选 Spine 包'}).getAttribute('href'),`/api/motions/${targets[0]}/download`);
   await page.getByRole('button',{name:'记录 / 查看阶段验收'}).click();
   await page.getByLabel('阶段验收结论').selectOption('accepted_with_exceptions');
   await page.getByLabel('验收说明').fill('fixture only');
@@ -57,6 +59,7 @@ try{
   await alternative.getByRole('button',{name:'记录 / 查看阶段验收'}).click();
   assert.equal(await page.locator('iframe').count(),2);
   assert.match(await alternative.locator('iframe').getAttribute('src'),new RegExp(alternate));
+  assert.equal(await alternative.getByRole('link',{name:'下载此候选 Spine 包'}).getAttribute('href'),`/api/motions/${alternate}/download`);
   await alternative.getByLabel('阶段验收结论').selectOption('accepted_with_exceptions');
   await alternative.getByLabel('验收说明').fill('fixture only');
   await alternative.getByRole('checkbox').check();
@@ -69,6 +72,7 @@ try{
   await page.getByRole('link',{name:'在当前页比较',exact:true}).click();
   await alternative.getByText('无法打开：来源或候选证据已变化，请重新比较',{exact:true}).waitFor();
   assert.equal(await alternative.locator('iframe').count(),0);
+  assert.equal(await alternative.getByRole('link',{name:'下载此候选 Spine 包'}).count(),0);
   assert.equal(await alternative.getByRole('button',{name:'记录 / 查看阶段验收'}).count(),0);
   await page.getByRole('button',{name:'下一项'}).click();
   await page.getByRole('heading',{name:'motion 1 · character 1',exact:true}).waitFor();
@@ -80,5 +84,5 @@ try{
   assert.equal(await page.locator('iframe').count(),0);
   assert.equal(await page.getByRole('button',{name:'记录 / 查看阶段验收'}).count(),0);
   assert.deepEqual(errors,[]);
-  console.log(JSON.stringify({passed:true,synthetic_posts:posts,real_decisions_written:0,checks:17}));
+  console.log(JSON.stringify({passed:true,synthetic_posts:posts,real_decisions_written:0,checks:20}));
 }finally{await browser.close();}

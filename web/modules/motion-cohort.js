@@ -3,6 +3,7 @@ import {appendStageReview} from './motion-stage-review.js';
 import {appendRotationDetails} from './motion-rotation-details.js';
 import {appendTargetComparison} from './motion-target-comparison.js';
 import {createAlternativePanel} from './motion-cohort-alternative.js';
+import {appendCandidateDownload} from './motion-candidate-download.js';
 const byId=id=>document.getElementById(id), motion=byId('motion'),character=byId('character');
 const player=createSourcePlayer(byId('source'),byId('time'),byId('play'),byId('time-label'));
 const alternative=createAlternativePanel(byId('alternative'),get);
@@ -41,6 +42,7 @@ async function show(){
     player.load(preview);byId('target-title').textContent=`${g.label} · ${t.label}`;
     const frame=document.createElement('iframe');frame.title=`${t.label} 角色动作时间轴`;frame.src=`/api/motions/${t.job_id}/view/player.html`;byId('target').append(frame);
     appendStageReview(byId('review'),job);
+    appendCandidateDownload(byId('review'),job);
     appendTargetComparison(byId('review'),job,get,{onOpen:row=>{
       if(version===revision)alternative.open(row,g.source_sha256);
     }});
