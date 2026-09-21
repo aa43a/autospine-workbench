@@ -27,9 +27,21 @@ def matrices(document, animation_name, time):
                     sx *= u; sy *= v
         if not all(math.isfinite(v) for v in (rotation, x, y, sx, sy)) or sx <= 0 or sy <= 0:
             raise ValueError('character_affine_nonpositive_scale')
-        angle = math.radians(rotation)
-        a, b = math.cos(angle)*sx, -math.sin(angle)*sy
-        c, d = math.sin(angle)*sx, math.cos(angle)*sy
+        shear_x = shear_y = 0.
+        if tracks.get('shear'):
+            keys=[dict(time=k['time'],vertices=[k.get('x',0),k.get('y',0)],
+                       **({'curve':k['curve']} if 'curve' in k else {})) for k in tracks['shear']]
+            shear_x,shear_y=interpolate(keys,time,'vertices')
+            if not all(math.isfinite(v) for v in (shear_x,shear_y)):
+                raise ValueError('character_affine_shear_nonfinite')
+        angle = math.radians(rotation+shear_x)
+        if tracks.get('shear'):
+            other=math.radians(rotation+90+shear_y)
+            a,b,c,d=math.cos(angle)*sx,math.cos(other)*sy,math.sin(angle)*sx,math.sin(other)*sy
+            if a*d-b*c<=1e-10:raise ValueError('character_affine_shear_singular')
+        else:
+            a, b = math.cos(angle)*sx, -math.sin(angle)*sy
+            c, d = math.sin(angle)*sx, math.cos(angle)*sy
         parent = bone.get('parent')
         if parent:
             if parent not in transforms:

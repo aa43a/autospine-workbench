@@ -1,0 +1,23 @@
+{
+  "profile": "source-foot-orientation-integration-evidence-v1",
+  "authority": "none",
+  "selected": false,
+  "candidate_bundle_sha256": "a04a4cdb3b36509d88d289fd384895e23ad7828afeae8e2c32bc9e6f20f5b64b",
+  "output": "tmp/m4-source-pose/squat-foot-orientation-v1",
+  "source_kind": "bvh",
+  "source_maximum_foot_rotation_deg": [0.0000678951380619402, 0.08522142855608957],
+  "sampled_world_foot_matrix_error": 1.1102230246251565e-15,
+  "sampled_frames": 843,
+  "runtime_numeric_passed": true,
+  "runtime_maximum_error_px": 0.00011555895142130149,
+  "maximum_ankle_drift_px": 1.112285640080576,
+  "sampled_inversions": 160,
+  "inversion_slot": "layer-003",
+  "minimum_signed_area_ratio": -0.00832758619467271,
+  "projected_area_failure_samples": 289,
+  "original_geometry_passed": false,
+  "depth_status": "depth_candidates_need_review",
+  "visual_observation": "Shoes remain upright rather than rotating with calves; knee contours and left ankle transition remain unsuitable. Candidate not accepted.",
+  "limitations": ["BVH_adapter_only", "camera_plane_relative_orientation_not_full_3D_foot_artwork", "sampled_not_continuous_proof"],
+  "next_action": "Localize ankle transition failures and resolve weights/mesh constraints without undoing source foot orientation."
+}

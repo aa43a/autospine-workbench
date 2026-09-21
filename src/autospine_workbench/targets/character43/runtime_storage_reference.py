@@ -60,7 +60,7 @@ def stored_document(document):
         require_distinct_times(animation.get('drawOrder', []))
         for tracks in animation.get('bones', {}).values():
             for prop, keys in tracks.items():
-                if prop not in ('rotate', 'translate', 'scale'):
+                if prop not in ('rotate', 'translate', 'scale', 'shear'):
                     raise ValueError('runtime_storage_track_unsupported')
                 for key in keys:
                     if 'curve' in key:

@@ -8,6 +8,15 @@ from autospine_workbench.targets.character43.runtime_storage_reference import bu
 
 
 class RuntimeStorageTests(unittest.TestCase):
+    def test_shear_arrays_match_float32_storage(self):
+        doc=self.document()
+        doc['animations']['walk']['bones']['a']['shear']=[dict(time=.123456789,x=0,y=12.3456789)]
+        stored=stored_document(doc)
+        key=stored['animations']['walk']['bones']['a']['shear'][0]
+        self.assertEqual(key['time'],f32(.123456789))
+        self.assertEqual(key['y'],f32(12.3456789))
+        self.assertEqual(doc['animations']['walk']['bones']['a']['shear'][0]['y'],12.3456789)
+
     def document(self):
         doc = fixture()
         doc['skins'][0]['attachments']['mesh']['mesh'].update(type='mesh', uvs=[0, 0, 1, 0, 0, 1])

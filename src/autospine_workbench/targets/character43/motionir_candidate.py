@@ -58,7 +58,7 @@ def build(document, motion, name):
 
 def sample(document, name, time):
     """Evaluate translation separately because the existing mesh FK handles rotation."""
-    if any(t.get('scale') for t in document['animations'][name].get('bones', {}).values()):
+    if any(t.get('scale') or t.get('shear') for t in document['animations'][name].get('bones', {}).values()):
         from .affine_pose import sample as affine_sample
         return affine_sample(document, name, time)
     isolated = deepcopy(document)

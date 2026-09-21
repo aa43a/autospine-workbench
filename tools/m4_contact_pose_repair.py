@@ -17,18 +17,27 @@ from autospine_workbench.targets.character43.deformation_qa import inspect
 from autospine_workbench.targets.character43.motion_contacts import analyze
 
 
-def run(folder,output,capture_runtime=False):
+def run(folder,output,capture_runtime=False,foot_orientation=False):
     source=json.loads((folder/'report.json').read_bytes());address=source['candidate_bundle_sha256']
     files=AnimatedStore(folder/'isolated-store').read(address)
     doc=json.loads(files['skeleton.json']);name='external-motion'
     contact=json.loads(files['motion-contact.json']);evidence=json.loads(files['motion-review.json'])
     candidate=replay(doc,name,contact)
     bare=without_generated_deform(candidate,name,evidence['area_repair'])
+    foot=None
+    if foot_orientation:
+        from autospine_workbench.motion_bundle_reader import VerifiedMotionBundleReader
+        from autospine_workbench.targets.character43.source_foot_orientation import extract
+        from autospine_workbench.targets.character43.foot_orientation_fit import fit
+        identity=source['motion_identity']
+        bundle=VerifiedMotionBundleReader(Path('workspace')).load(identity['clip_sha256'],identity['bundle_sha256'])
+        observed=extract(bundle);bare,foot=fit(bare,name,observed)
+        foot['observations']=observed
     setup=json.loads(files['rig-setup-reference.json'])['vertices']
     output.mkdir(parents=True,exist_ok=False)
     print(json.dumps(dict(stage='post_contact_repair')),flush=True)
     repaired,correction=build(bare,name,setup,temporal=True)
-    if repaired['animations'][name]['bones']!=candidate['animations'][name]['bones']:
+    if repaired['animations'][name]['bones']!=bare['animations'][name]['bones']:
         raise ValueError('post_contact_repair_changed_bones')
     from m4_pose_depth_recheck import recheck
     print(json.dumps(dict(stage='depth_recheck')),flush=True)
@@ -50,6 +59,7 @@ def run(folder,output,capture_runtime=False):
     depth['skeleton_sha256']=digest
     for n,v in [('correction',correction),('contact',checked),('deformation',qa),('depth',depth)]:
         (output/(n+'.json')).write_bytes(canonical_bytes(v))
+    if foot:(output/'foot-orientation.json').write_bytes(canonical_bytes(foot))
     report=dict(profile='post-contact-source-pose-repair-v1',source_candidate_sha256=address,
         candidate_bundle_sha256=artifact,authority='none',selected=False,production_authorized=False,
         sampled_frames=len(times),contact_passed=checked['passed'],
@@ -57,6 +67,7 @@ def run(folder,output,capture_runtime=False):
         original_geometry_passed=qa['passed'],sampled_inversions=sum(r['inversion_samples'] for r in qa['records']),
         projected_area_failure_samples=len(correction['refinement'][-1]['check']['failures']),
         depth_status=depth['status'],depth_scope=depth['scope'],runtime_status='not_evaluated')
+    if foot:report['foot_orientation_profile']=foot['profile']
     (output/'report.json').write_bytes(canonical_bytes(report))
     if capture_runtime:
         runtime=capture(SimpleNamespace(workspace_root=Path.cwd().parent),store,artifact,output,
@@ -71,4 +82,5 @@ def run(folder,output,capture_runtime=False):
 
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('folder',type=Path);p.add_argument('output',type=Path)
-    p.add_argument('--capture',action='store_true');a=p.parse_args();run(a.folder,a.output,a.capture)
+    p.add_argument('--capture',action='store_true');p.add_argument('--foot-orientation',action='store_true')
+    a=p.parse_args();run(a.folder,a.output,a.capture,a.foot_orientation)
