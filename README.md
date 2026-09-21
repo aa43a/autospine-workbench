@@ -1,5 +1,7 @@
 # AutoSpine Workbench
 
+[动作同步对照](docs/how-to-motion-sync.md)：集中验收页共用源骨架/角色时间轴，异常原地跳转；六个原候选已验证，不新增动作质量或视觉接受结论。
+
 [阶段默认处理](docs/character-stage-defaults.md)：整角色构建可自动隐藏符合严格规则的极低透明度残余，取消选项并重建可恢复；系统处理与人工验收分别记录。
 
 [一键处理安全绑定](docs/how-to-auto-binding.md)：自动连续检查新解锁的安全项，逐批保存并保留撤销；不扩大现有规则支持范围。

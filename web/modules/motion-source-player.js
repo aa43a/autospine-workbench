@@ -1,4 +1,4 @@
-export function createSourcePlayer(canvas, slider, button, label) {
+export function createSourcePlayer(canvas, slider, button, label, onTime = () => {}) {
   const ctx = canvas.getContext('2d');
   let data = null, playing = false, previous = 0, elapsed = 0, handle = null;
   let bounds = [0, 0, 1, 1];
@@ -28,6 +28,7 @@ export function createSourcePlayer(canvas, slider, button, label) {
       ctx.beginPath(); ctx.arc(...value, 2.5, 0, Math.PI * 2); ctx.fill();
     });
     label.textContent = `${frame.time.toFixed(2)} 秒 · 帧 ${frame.frame + 1}`;
+    onTime(time, Number(slider.max));
   }
 
   function stop() {
@@ -59,6 +60,10 @@ export function createSourcePlayer(canvas, slider, button, label) {
   };
   slider.oninput = () => { stop(); draw(); };
   return {
+    seek(time) {
+      if (!data || !Number.isFinite(time)) return;
+      stop(); slider.value = Math.max(0, Math.min(Number(slider.max), time)); draw();
+    },
     clear() {
       stop(); data = null;
       button.disabled = slider.disabled = true;

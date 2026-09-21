@@ -73,4 +73,11 @@
   const requestedTime = Number(new URL(location.href).searchParams.get('time'));
   if (Number.isFinite(requestedTime)) { time = Math.min(duration, Math.max(0, requestedTime)); draw(); }
   window.characterPlayerReady = true; requestAnimationFrame(tick);
+  window.characterPlayerControl = {
+    artifact: context.artifact_sha256,
+    seek(value) {
+      if (!Number.isFinite(value) || value < 0 || value > duration + 0.001) return false;
+      stop(); time = Math.min(duration, value); draw(); return true;
+    },
+  };
 })().catch(error => { document.getElementById('status').textContent = `预览加载失败：${error.message}`; window.characterPlayerError = String(error); });

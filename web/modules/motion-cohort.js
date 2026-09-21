@@ -5,8 +5,10 @@ import {appendTargetComparison} from './motion-target-comparison.js';
 import {createAlternativePanel} from './motion-cohort-alternative.js';
 import {appendCandidateDownload} from './motion-candidate-download.js';
 import {appendReadiness} from './motion-readiness.js';
+import {createCohortSync} from './motion-cohort-sync.js';
 const byId=id=>document.getElementById(id), motion=byId('motion'),character=byId('character');
-const player=createSourcePlayer(byId('source'),byId('time'),byId('play'),byId('time-label'));
+const sync=createCohortSync(byId('sync-status'));
+const player=createSourcePlayer(byId('source'),byId('time'),byId('play'),byId('time-label'),(time,end)=>sync.seek(time,end));
 const alternative=createAlternativePanel(byId('alternative'),get);
 let pack,revision=0;
 const id=/^motion-[a-f0-9]{32}$/,sha=/^[a-f0-9]{64}$/;
@@ -29,6 +31,7 @@ function targets(){
 async function show(){
   const version=++revision,g=pack.groups[Number(motion.value)],t=g.targets[Number(character.value)];
   alternative.clear();
+  sync.clear();
   player.clear();byId('target').replaceChildren();byId('review').replaceChildren();
   byId('status').textContent='正在核对当前动作与角色版本…';
   const flat=pack.groups.flatMap((g,mi)=>g.targets.map((t,ci)=>({mi,ci}))),index=flat.findIndex(v=>v.mi===Number(motion.value)&&v.ci===Number(character.value));
@@ -42,11 +45,12 @@ async function show(){
     const preview=await get(`/api/motions/${g.job_id}/preview`);if(version!==revision)return;
     player.load(preview);byId('target-title').textContent=`${g.label} · ${t.label}`;
     const frame=document.createElement('iframe');frame.title=`${t.label} 角色动作时间轴`;frame.src=`/api/motions/${t.job_id}/view/player.html`;byId('target').append(frame);
+    sync.attach(frame,t.artifact_sha256);
     appendStageReview(byId('review'),job);
     appendCandidateDownload(byId('review'),job);
     appendReadiness(byId('review'),job,null,{onSeek:time=>{
       if(version!==revision)return;
-      frame.src=`/api/motions/${t.job_id}/view/player.html?time=${encodeURIComponent(time)}`;
+      player.seek(time);
       frame.scrollIntoView({block:'nearest'});
     }});
     appendTargetComparison(byId('review'),job,get,{onOpen:row=>{
@@ -54,7 +58,7 @@ async function show(){
     }});
     appendRotationDetails(byId('review'),job,{onSeek:time=>{
       if(version!==revision)return;
-      frame.src=`/api/motions/${t.job_id}/view/player.html?time=${encodeURIComponent(time)}`;
+      player.seek(time);
       frame.scrollIntoView({block:'nearest'});
     }});
     byId('status').textContent='已核对版本。查看角色动作后，可直接在本页保存阶段结论；不会自动确认。';
