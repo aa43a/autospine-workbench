@@ -63,3 +63,5 @@ per-triangle contexts, verifies unchanged observations/non-A labels and
 recomputes actual graph energies. The result remains an isolated blocked
 experiment at `../tmp/m4-motion-center/coherent-temporal-hong-v1/`, with no
 replacement skeleton, fresh Runtime capture or visual acceptance.
+
+The next isolated hypothesis is [equal-bracket hysteresis](m4-bracket-hysteresis.md).
