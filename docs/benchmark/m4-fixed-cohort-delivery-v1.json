@@ -1,0 +1,204 @@
+{
+  "profile": "m4-fixed-cohort-delivery-evidence-v1",
+  "plan_sha256": "289d24b4dd1d70d539265bb26c18ffa06b3d11e17173389ac87dbacb1886b940",
+  "summary_sha256": "1a573e49a07e4eca1f5eeb7415c0bae061dbb9c74cd3aa4f808665abf7edef2e",
+  "required": 24,
+  "verified": 24,
+  "scope": "delivery_at_receipt_times_not_quality_or_new_runtime_capture",
+  "authority": "none",
+  "production_authorized": false,
+  "receipts": [
+    {
+      "cell": "breathing/alice",
+      "job_id": "motion-bf659c34670d4319aab72cf673f1d3d7",
+      "artifact_sha256": "8b1a2c9f30d9d341828fd8931faa3e1d2d2f15c7109cec7574d98764e89f3d7b",
+      "archive_sha256": "d18c9cfcf3a048ea5a9d93d28ca9b93ef670e34758fa22d9acc27e628598d3fd",
+      "archive_files": 97,
+      "verified_at": "2026-09-21T11:59:47.024823+00:00"
+    },
+    {
+      "cell": "breathing/huiye",
+      "job_id": "motion-71be588acdfe4c4db3777c98c1ae733e",
+      "artifact_sha256": "6d4d72c931da6e8e6a35c3ff3c12b2ef92221f794e1c6f4ba21f0e654cc1e038",
+      "archive_sha256": "10ad0057e68f58a5233b0caba88b22d120783b4eef9c5ce826f40455ce659d5c",
+      "archive_files": 87,
+      "verified_at": "2026-09-21T12:00:06.047034+00:00"
+    },
+    {
+      "cell": "breathing/hongmeiling",
+      "job_id": "motion-f151d1a412154c379ddd324526e463dd",
+      "artifact_sha256": "db485dbc559b5dd7858b6224def0f7a56838e76733c6351f1cdfb7b237cbef4a",
+      "archive_sha256": "4546d2ced53907d22560cf9011af761f2a05ed4dce3e972d345bda85645177cc",
+      "archive_files": 91,
+      "verified_at": "2026-09-21T12:00:47.604837+00:00"
+    },
+    {
+      "cell": "walking/alice",
+      "job_id": "motion-9e472d3c8a7148ae8b3a0695d1d7feea",
+      "artifact_sha256": "aabcb621b78368fc0d4ad1efda103e47d9661265b4460ee6f1485a1aad887c85",
+      "archive_sha256": "1155308f48baed3dbf4b3a8af990f41a92de25666155185df7591a088f5a15cd",
+      "archive_files": 97,
+      "verified_at": "2026-09-21T12:01:10.281511+00:00"
+    },
+    {
+      "cell": "walking/huiye",
+      "job_id": "motion-e938b620ba1a408997dd6091e9cc14c6",
+      "artifact_sha256": "d967df3868862af8c85b2c525f960074d7b5f917bf835db2eacf6535147d7fd1",
+      "archive_sha256": "c4abf0bcbedbb1dfb3f3a3c6392de7a80b1a9ab6205fcc51ad7b05a23e28e646",
+      "archive_files": 87,
+      "verified_at": "2026-09-21T12:01:30.495496+00:00"
+    },
+    {
+      "cell": "walking/hongmeiling",
+      "job_id": "motion-3cef343ab24c446c88b6a0ffcfa4aab7",
+      "artifact_sha256": "6b09b21250312ccba465b4115a61536f7b192d3f84c5f939dd180751d86ab175",
+      "archive_sha256": "7c5c7c11f3e60fcf5046d7d74a3ebad2beca3215b8f66ff1f3f4db75bb3dc7d7",
+      "archive_files": 91,
+      "verified_at": "2026-09-21T12:02:09.289002+00:00"
+    },
+    {
+      "cell": "raise-arms/alice",
+      "job_id": "motion-23fdfd4259864891a1c22e7d3f58ba63",
+      "artifact_sha256": "09df7a84b5ca687628c0e105e9f94a80f327b1d02132603ea97a849afc7406e9",
+      "archive_sha256": "e6e03d66c5b427bc0b300743ee94394adab8a5a86c07a30011a2ea8fb826ecab",
+      "archive_files": 97,
+      "verified_at": "2026-09-21T12:02:29.452841+00:00"
+    },
+    {
+      "cell": "raise-arms/huiye",
+      "job_id": "motion-9ee3582ab88445a792f5c38462d84f87",
+      "artifact_sha256": "2af625cef32b89e3e427ed8432acacb412d641e9630aa4dd027632158f5aff27",
+      "archive_sha256": "a78514622c838cd10626c627436a9904222438671a73781e2ef25c7ae0bc6add",
+      "archive_files": 87,
+      "verified_at": "2026-09-21T12:02:47.691464+00:00"
+    },
+    {
+      "cell": "raise-arms/hongmeiling",
+      "job_id": "motion-a181853667ad443b8bcacb449eb2f1c5",
+      "artifact_sha256": "bcf9d98e8643b9beaa508293f60dc0830a3d464e77c7761a0058419f7f8e1ede",
+      "archive_sha256": "95651aa0051211da33e2a99fa18545a3dae43681a3b23150434291a6ec311123",
+      "archive_files": 91,
+      "verified_at": "2026-09-21T12:03:22.795107+00:00"
+    },
+    {
+      "cell": "turn/alice",
+      "job_id": "motion-02c7a8ea09d44cd0a7ed73ec452d6590",
+      "artifact_sha256": "a005044b2e3b0f94029749c6ec0e0e3392eb63c146230d181bbea78553ed3c7a",
+      "archive_sha256": "20d55587a203af0329691cc107c481581aeeb253d6f939c951c0c12d59724868",
+      "archive_files": 97,
+      "verified_at": "2026-09-21T12:03:42.951850+00:00"
+    },
+    {
+      "cell": "turn/huiye",
+      "job_id": "motion-f840e319d25f46b693e52749beca02bc",
+      "artifact_sha256": "69bb6218ed421fcd1c5538b6c88e65565f783ab5ff343465f6d6eb170cb58585",
+      "archive_sha256": "3c95a5944fa59cd22e1bc238207a4a5ff122159c603ae85482d791f0e53888c2",
+      "archive_files": 87,
+      "verified_at": "2026-09-21T12:04:01.338506+00:00"
+    },
+    {
+      "cell": "turn/hongmeiling",
+      "job_id": "motion-4de7a1c108384e12a513621a7f5c119a",
+      "artifact_sha256": "74cbc377399f46070f9744a32e903b0488af2f9cd04112b0027adcd4ce45d8c4",
+      "archive_sha256": "c7fc8b43b60efe0abcf144aed93344183cb43b9f9a4b5e829ba74bef5fef910b",
+      "archive_files": 91,
+      "verified_at": "2026-09-21T12:04:36.215821+00:00"
+    },
+    {
+      "cell": "squat/alice",
+      "job_id": "motion-3954d8fe062b4a439b26a90667e97781",
+      "artifact_sha256": "a0d320b6380cd274182dc8c4f35eab15c0d969f441e1e22fc581d72ee98bd97f",
+      "archive_sha256": "f4d434d9087bc999787ce1cda0538e2d83fee3ed06da8361bbe8f71e8f1e7995",
+      "archive_files": 97,
+      "verified_at": "2026-09-21T12:04:56.390354+00:00"
+    },
+    {
+      "cell": "squat/huiye",
+      "job_id": "motion-6fe3bc850b7d40c9bba86b5a9675d6e8",
+      "artifact_sha256": "cadc5834a668bc9900de33edd5753c13a0d418468a9ed585881123054d8f7f85",
+      "archive_sha256": "4d3bedce45e4095d6bc3fbf0e11176770f43e5e63d4e07831b7d3ddbaf871f7b",
+      "archive_files": 87,
+      "verified_at": "2026-09-21T12:05:14.335595+00:00"
+    },
+    {
+      "cell": "squat/hongmeiling",
+      "job_id": "motion-b0901a9dfc184e59bfbb3eff3eda8561",
+      "artifact_sha256": "d2978ab5b36faf47a45ae56924c7f6b4892b24a3ea1a5dec44b6f870884df4c0",
+      "archive_sha256": "cc8989f0fa62b6299cfd0b9e9b5cab4834864ccbbb38088be27c83cf07cee006",
+      "archive_files": 91,
+      "verified_at": "2026-09-21T12:05:49.158021+00:00"
+    },
+    {
+      "cell": "boxing/alice",
+      "job_id": "motion-7b9ab257663e4d1daf91c3d620d50b69",
+      "artifact_sha256": "663c4cd44bc69a97a0d85a59576be2c7fa7d9eb7a2c092828a5c5ee96f0be0eb",
+      "archive_sha256": "915d490c6da75dc1d603e28aa548a6bf7ef229c1322d0a831f0459d08aff581f",
+      "archive_files": 97,
+      "verified_at": "2026-09-21T12:06:09.664323+00:00"
+    },
+    {
+      "cell": "boxing/huiye",
+      "job_id": "motion-566a58653f43405fa8c4fb9742de4951",
+      "artifact_sha256": "912134a543d8938630e8976718626bcf769924991e7f904b29c1d0900fb7470c",
+      "archive_sha256": "1b53d559a4e0462e4cc8b3cd0c841320e1cd3cb23deb865cc3d79e6637274d25",
+      "archive_files": 87,
+      "verified_at": "2026-09-21T12:06:28.656119+00:00"
+    },
+    {
+      "cell": "boxing/hongmeiling",
+      "job_id": "motion-6c01b6ac334947729089deabcb1dbed5",
+      "artifact_sha256": "d6be67d4a04c3c01d661ac81ad8c06037fe1539090859884776bf5b5aa720767",
+      "archive_sha256": "7972c6cfbde09302124beea73bd8f5c6e90ac2ec68b85ca8c108ec77f50dfea4",
+      "archive_files": 91,
+      "verified_at": "2026-09-21T12:07:03.622839+00:00"
+    },
+    {
+      "cell": "reach/alice",
+      "job_id": "motion-76a6d4f31c104facb5bf066093aec4a0",
+      "artifact_sha256": "7b1e7d78ec07e8070ec9d53dfd79116d95f42a8a21c12d08693a9b0c2695a718",
+      "archive_sha256": "355cc976f530739f94c167bcefabd9c793ee8c61b798bc1298160cfdd7a6e4e2",
+      "archive_files": 97,
+      "verified_at": "2026-09-21T12:07:24.856581+00:00"
+    },
+    {
+      "cell": "reach/huiye",
+      "job_id": "motion-fdbf9bc8f31348ec85ae768aae704337",
+      "artifact_sha256": "6f5f17f8660ab80e9592c58718490487ce469a7a516aabb100100ac845d8e3e5",
+      "archive_sha256": "339d70b4fd94110128bcb0ab8a4747c133af9853d6c4c0a6563a73b04a412032",
+      "archive_files": 87,
+      "verified_at": "2026-09-21T12:07:43.745281+00:00"
+    },
+    {
+      "cell": "reach/hongmeiling",
+      "job_id": "motion-aa45429b532747c5954389a5c1a706c1",
+      "artifact_sha256": "dbf6e6ba1a812255eec74010e21ad6dc85aa0df056eb613f248b9010b7ac55d8",
+      "archive_sha256": "ba67091c26cdd9c418f7345355ba41539c105e16c7ba5d11af52b86f8182c698",
+      "archive_files": 91,
+      "verified_at": "2026-09-21T12:08:19.173446+00:00"
+    },
+    {
+      "cell": "wave/alice",
+      "job_id": "motion-76e0d141f979430db88de1183c46a79b",
+      "artifact_sha256": "9fc3e02e74036b34322480c4936f5bfd874c8931bf11372e8c1c19fe2e0c486a",
+      "archive_sha256": "d8df472c0fd3a895a5ad4ac5acd89a7b8526ea400b138ff58e5748da4d949b14",
+      "archive_files": 97,
+      "verified_at": "2026-09-21T12:08:39.935614+00:00"
+    },
+    {
+      "cell": "wave/huiye",
+      "job_id": "motion-883cb61bb3a84aee91f233cca536a552",
+      "artifact_sha256": "8dd7feb7a42764d6bba8780ad4d8262fbcf25e6a35d6f733cd45acc7f88f46b8",
+      "archive_sha256": "9bc45631de71a590028c0d83efedfa3c8e73bb1fd9ee5d4fd12028377ddb7e82",
+      "archive_files": 87,
+      "verified_at": "2026-09-21T12:08:59.083610+00:00"
+    },
+    {
+      "cell": "wave/hongmeiling",
+      "job_id": "motion-a64993a0ffba4fdd9e09d4e5e1a7389d",
+      "artifact_sha256": "97f933ed42fb42a91ea845ef312b3683661e13034b282881a11baa49c0411230",
+      "archive_sha256": "aee04f77951471efbbc4bce9b64bdbff39e5e96dc74a5364731c73bcc1afd2bf",
+      "archive_files": 91,
+      "verified_at": "2026-09-21T12:09:36.850807+00:00"
+    }
+  ]
+}

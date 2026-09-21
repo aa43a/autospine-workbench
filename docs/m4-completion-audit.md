@@ -53,3 +53,20 @@ technical exceptions retained. Each exact candidate now has revision 1 with
 `accepted_with_exceptions`, after matching artifact and readiness hashes against
 the reviewed snapshot. Other motions are not covered by that decision. The
 fresh stage snapshot is `cohort-reviewed-breathing-v1.json`.
+
+## Complete fixed-cohort export verification
+
+All 24 frozen candidates were downloaded through the public workbench endpoint.
+Their ZIP inventories and 2,200 total contained files matched the addressed
+stored artifacts byte-for-byte. Each candidate's playback, contact and depth
+HTML endpoints were readable, and its job/artifact identity was unchanged after
+verification. See [per-candidate identities](benchmark/m4-fixed-cohort-delivery-v1.json)
+and `../tmp/m4-motion-center/cohort-delivery-v1/summary.json`.
+
+This verifies delivery at the recorded times, not all rendered frames or new
+captures. All 24 technical readiness results remain `needs_changes`; the three
+explicit breathing acceptances do not override these results. Baseline and
+alternative players now expose separate exact-job download links. Six delivery
+tests and 20 synthetic browser checks pass. One initial browser startup wait
+timed out during the concurrent download run; the diagnostic rerun passed without
+changing candidate data. This is not a responsiveness benchmark under load.
