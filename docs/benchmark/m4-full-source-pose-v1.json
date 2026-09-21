@@ -1,0 +1,22 @@
+{
+  "profile": "full-source-pose-integration-evidence-v1",
+  "authority": "none",
+  "selected": false,
+  "source_job": "motion-b0901a9dfc184e59bfbb3eff3eda8561",
+  "candidate_bundle_sha256": "8d3c9af3a8f2b6bb59df2dc8b14f0e7ab8b15f1d9bdeed5cb11719a3ee1f0e56",
+  "output": "tmp/m4-source-pose/squat-full-chain-v1",
+  "runtime_numeric_passed": true,
+  "runtime_sampled_frames": 623,
+  "runtime_max_error_px": 0.00011739505522111336,
+  "sampled_inversion_count": 0,
+  "original_geometry_passed": false,
+  "contact_status": "inferred_proxy_drift",
+  "left_ankle_max_drift_px": 68.74117652985733,
+  "right_ankle_max_drift_px": 86.10589513313752,
+  "contact_attempt_failure_time": 0.72187512890625,
+  "contact_attempt_failure": "no_bounded_solution_found:endpoint_residual",
+  "depth_status": "depth_candidates_need_review",
+  "depth_straddle_failure_samples": 4,
+  "visual_observation": "Raised arms retained; knees remain unnaturally folded and feet lift. Not accepted.",
+  "next_action": "Joint-position and contact-constrained pose fitting before another area-only correction iteration."
+}

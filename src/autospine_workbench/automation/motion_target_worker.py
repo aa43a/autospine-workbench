@@ -23,14 +23,14 @@ ANIMATION = 'external-motion'
 
 def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_digest, kimodo=None,
                     contact_correction=True, clip_bounds=None, inferred_contact_profile=None, depth_review_profile=None,
-                    on_stage=None, oblique=None, torso_projection=None):
+                    on_stage=None, oblique=None, torso_projection=None, pose_fit=None):
     """Preserve the rig, or verify the explicit regional render transformation."""
     from ..targets.character43.regional_depth_profile import PROFILE as REGIONAL_PROFILE
     source = json.loads(files['skeleton.json'])
     original = deepcopy(source)
     source['animations'] = {}
     setup_vertices = None
-    if clip_bounds or depth_review_profile in ('external-arm-torso-depth-overlap-v2', REGIONAL_PROFILE, SPARSE_DEPTH_PROFILE):
+    if pose_fit is not None or clip_bounds or depth_review_profile in ('external-arm-torso-depth-overlap-v2', REGIONAL_PROFILE, SPARSE_DEPTH_PROFILE):
         setup = deepcopy(source)
         setup['animations'] = {ANIMATION: {'bones': {}}}
         setup_vertices = sample(setup, ANIMATION, 0)[0]
@@ -41,18 +41,16 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
     motion = clip_motion(motion, clip_bounds)
     time_range = tuple(t/1_000_000 for t in clip_bounds) if clip_bounds else None
     issues = []
-    from ..targets.character43.projected_lengths import build as add_lengths
+    from .motion_target_pose import project as project_pose, correct as correct_pose, final_times
     try:
-        if oblique is not None:
-            from ..targets.character43.oblique_target import lengths as oblique_lengths
-            document, lengths = oblique_lengths(document, ANIMATION, oblique, time_range=time_range)
-        elif kimodo is None:
-            document, lengths = add_lengths(document, ANIMATION, bvh, mapping, time_range=time_range)
-        else:
-            from ..targets.character43.kimodo_lengths import build as add_npz_lengths
-            document, lengths = add_npz_lengths(document, ANIMATION, *kimodo, mapping, time_range=time_range)
-        evidence['projected_lengths'] = lengths
+        document, lengths = project_pose(document, ANIMATION, original_motion, bvh, mapping, kimodo,
+                                         oblique, time_range, pose_fit)
+        evidence['source_pose_fit' if pose_fit is not None else 'projected_lengths'] = lengths
+        if pose_fit is not None:
+            evidence['profile'] = lengths['target_profile']
     except ValueError as exc:
+        if pose_fit is not None:
+            raise
         # Preserve a diagnostic rotation-only animation when projection is unsuitable.
         # It must not become a supported/adopted result by falling back silently.
         issues.append(dict(stage='projection', reason_code=str(exc)))
@@ -61,9 +59,8 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
         evidence['clip'] = dict(start_tick=clip_bounds[0], end_tick=clip_bounds[1],
                                 source_duration_ticks=original_motion['duration_ticks'],
                                 pose_policy='preserve_original_setup_relative_values')
-    from ..targets.character43.affine_area_repair import repair
     try:
-        document, correction = repair(document, ANIMATION, samples=129, convergent=True, setup_vertices=setup_vertices)
+        document, correction = correct_pose(document, ANIMATION, setup_vertices, pose_fit)
         evidence['area_repair'] = correction
     except ValueError as exc:
         issues.append(dict(stage='repair', reason_code=str(exc)))
@@ -159,6 +156,8 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
             elif proposed is not None:
                 depth['status'] = 'depth_overlap_no_change'
         depth_status = depth['status']
+    if pose_fit is not None:
+        times = final_times(document, ANIMATION, times)
     frames = [dict(time=t, vertices=sample(document, ANIMATION, t)[0]) for t in times]
     raw = canonical_bytes(document)
     result = {name: data for name, data in files.items() if name.endswith('.png') or name == 'skeleton.atlas'}
@@ -193,7 +192,7 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
                    'motion-contact.json': canonical_bytes(contact),
                    'motion-ir.json': canonical_bytes(motion), 'deformation.json': canonical_bytes(geometry)})
     source_manifest = json.loads(files['character-manifest.json'])
-    manifest = dict(schema='autospine.character-motion-preview/v1', profile='external-motion-target-v1',
+    manifest = dict(schema='autospine.character-motion-preview/v1', profile='external-motion-target-v1' if pose_fit is None else 'external-source-pose-target-v1',
                     authority='none', production_authorized=False, animations=[ANIMATION],
                     source_character_sha256=character_digest, source_motion_bundle_sha256=motion_digest,
                     source_addresses=source_manifest['source_addresses'], layers=source_manifest['layers'],
