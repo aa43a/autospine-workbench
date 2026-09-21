@@ -124,6 +124,11 @@ def review_file(manager, job, parts):
         return read(None, None, None, parts)
     result, files = context(manager, job)
     runtime_file = runtime_reader(manager, job, result)
+    if parts == ['local-depth-status.json']:
+        from .motion_local_depth_evidence import read
+        request=read_document(manager.folder(job)/'request.json')
+        return json.dumps(read(manager.state_root,manager.folder(job),request,result['artifact_sha256'],files),
+                          ensure_ascii=False).encode('utf-8'),'application/json'
     if parts == ['motion-torso-projection.json']:
         if 'motion-torso-projection.json' not in files:raise PipelineRunError('pipeline_artifact_not_found')
         return files['motion-torso-projection.json'], 'application/json'

@@ -149,6 +149,24 @@ captures do not cover Huiye's 55 unmeasured records. They leave draw order and
 acceptance unchanged. This wave-only experiment supplements, rather than
 replaces, the frozen eight-motion cohort and its unresolved failures.
 
+### Workbench supplemental evidence
+
+Open the motion candidate's **在此查看遮挡状态 → 查看局部深度补充检查**.
+Registered reports show per-pair causes and exact player-time links. Missing
+reports are explicitly absent, not passing. Unresolved and unmeasured records
+each retain up to 20 links, so a long ambiguity list cannot hide budget failures.
+Counts include all records. Human-readable labels distinguish source samples
+from modeled intermediate samples.
+
+`tools/m4_register_local_depth.py` verifies the addressed job, candidate/MotionIR
+source relation and SOMA77 source identity before registering a report. Each
+report is content-addressed; independent immutable registration records preserve
+multiple experiments for the same candidate. The read-only endpoint checks the
+exact request, artifact, skeleton and recomputed cause summary. No candidate,
+readiness or human decision is rewritten. The three cohort reports are registered.
+Tests cover absent reports, idempotent registration, request/skeleton mismatch,
+rejected selected reports, multiple retained reports and visible unmeasured rows.
+
 ### Projection and rotation strategy
 
 Use three distinct channels rather than applying a single 2D rotation to all art:

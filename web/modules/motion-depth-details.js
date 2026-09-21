@@ -1,3 +1,4 @@
+import {appendLocalDepthDetails} from './motion-local-depth-details.js';
 const states={needs_changes:'有待处理的遮挡关系',evidence_incomplete:'遮挡检查尚未完成',
   sampled_candidate:'已生成限定采样通过的排序候选',sampled_no_change:'限定采样通过，保留原顺序',not_evaluated:'尚无可用遮挡结论'};
 const categories={depth_conflict:'前后关系冲突',resource_limit:'计算限制，尚未测完',unsupported_check:'当前检查不支持'};
@@ -17,6 +18,7 @@ export function appendDepthDetails(item,job) {
       if(!response.ok)throw Error(report.reason_code||'读取失败');
       if(report.artifact_sha256!==job.result.artifact_sha256)throw Error('候选版本已变化，请刷新任务');
       panel.replaceChildren();
+      appendLocalDepthDetails(panel,job,base);
       const title=document.createElement('h4'); title.textContent=states[report.status]||'状态未知'; panel.append(title);
       const counts=document.createElement('p');
       counts.textContent=Object.entries(report.failure_record_counts).map(([key,value])=>`${categories[key]||key}：${value} 条`).join('；')||'没有已记录的排序失败；需结合采样状态判断。';
