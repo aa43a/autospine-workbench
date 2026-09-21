@@ -59,6 +59,23 @@ class DepthOrderTests(unittest.TestCase):
         self.assertEqual(candidate, doc)
         self.assertEqual(report['status'], 'no_visible_order_change')
 
+    def test_strict_interval_depth_replaces_unobserved_origin_order(self):
+        doc,depth=self.make();original=deepcopy(doc)
+        depth['strict_interval_evidence']=True
+        origin=depth['pairs'][0]['samples'][0]
+        origin.update(current_front_slot='body',support='no_overlap',
+                      interval_sample=dict(tick=50000,current_front_slot='arm',ambiguous=False,support='sampled'))
+        class IntervalProbe:
+            def pair(self,a,b,time):return dict(overlap_pixels=int(time>0))
+        candidate,report=build(doc,'test',depth,IntervalProbe())
+        self.assertIsNotNone(candidate)
+        self.assertEqual(report['frames'][0]['order'],['body','arm'])
+        self.assertEqual(doc,original)
+        origin.pop('interval_sample')
+        candidate,report=build(doc,'test',depth,IntervalProbe())
+        self.assertIsNone(candidate)
+        self.assertEqual(report['reason_codes'],['held_interval_depth_missing'])
+
 
 if __name__ == '__main__':
     unittest.main()

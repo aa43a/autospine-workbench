@@ -2,8 +2,22 @@
 from copy import deepcopy
 import heapq
 from .order_conflict import first_overlap, witness
+from .depth_interval_evidence import requests as interval_requests
 
 PROFILE = 'external-overlap-guarded-draw-order-v1'
+
+
+def _crossing_ranges(requests):
+    ranges={}
+    for arm,lo,hi in requests:
+        # Every interval includes this arm's setup index; their union has no gaps.
+        a,b=ranges.get(arm,(lo,hi));ranges[arm]=(min(a,lo),max(b,hi))
+    return ranges
+
+
+def _crosses(a,b,indices,ranges):
+    x,y=ranges.get(a),ranges.get(b)
+    return bool((x and x[0]<=indices[b]<=x[1]) or (y and y[0]<=indices[a]<=y[1]))
 
 
 def _sort(slots, edges):
@@ -27,6 +41,8 @@ def build(document, animation, depth, probe, *, refine_cycles=False):
     indices = {s: i for i, s in enumerate(slots)}
     report = dict(profile=PROFILE, selected=False, authority='none', status='blocked',
                   reason_codes=[], failures=[], frames=[], scope='sampled_order_constraints_not_visual_acceptance')
+    if depth.get('strict_interval_evidence'):
+        report['interval_evidence_policy']='same-time-source-and-held-midpoint-v1'
     if refine_cycles:
         report.update(profile='external-overlap-guarded-draw-order-v2-experiment', cycle_refinements=[])
     if document['animations'][animation].get('drawOrder'):
@@ -49,23 +65,23 @@ def build(document, animation, depth, probe, *, refine_cycles=False):
         try:
             for pair, row in by_tick[tick]:
                 arm, torso = pair['arm_slot'], pair['torso_slot']
-                visible = first_overlap(probe, arm, torso, times)
-                if not visible:
-                    continue
-                if row['ambiguous']:
-                    details = dict(pair=[arm, torso], overlap=visible)
-                    raise ValueError('visible_depth_straddle')
-                front = row['current_front_slot']; back = torso if front == arm else arm
-                edges.add((back, front))
-                evidence[back, front] = dict(source=pair.get('evidence_source','source_depth'), overlap=visible)
-                if indices[back] > indices[front]:
-                    requests.append((arm, min(indices[arm], indices[torso]), max(indices[arm], indices[torso])))
+                for back, front, visible in interval_requests(pair,row,times,probe,
+                        strict=depth.get('strict_interval_evidence',False)):
+                    fresh=(back,front) not in edges
+                    edges.add((back, front))
+                    if depth.get('strict_interval_evidence'):
+                        evidence.setdefault((back,front),dict(source=pair.get('evidence_source','source_depth'),overlap=visible))
+                        evidence[back,front].setdefault('interval_overlaps',[]).append(visible)
+                    else:
+                        evidence[back,front]=dict(source=pair.get('evidence_source','source_depth'),overlap=visible)
+                    if fresh and indices[back] > indices[front]:
+                        requests.append((arm, min(indices[arm], indices[torso]), max(indices[arm], indices[torso])))
+            crossing_ranges=_crossing_ranges(requests)
             for i, a in enumerate(slots):
                 for b in slots[i+1:]:
                     if (a, b) in edges or (b, a) in edges:
                         continue
-                    crossing = any((a == arm and lo <= indices[b] <= hi) or
-                                   (b == arm and lo <= indices[a] <= hi) for arm, lo, hi in requests)
+                    crossing = _crosses(a,b,indices,crossing_ranges)
                     overlap = first_overlap(probe, a, b, times) if crossing else None
                     if crossing and not overlap:
                         continue
@@ -85,6 +101,7 @@ def build(document, animation, depth, probe, *, refine_cycles=False):
                 details = dict(conflict=witness(slots, evidence))
                 raise ValueError('visible_unmapped_order_conflict')
         except ValueError as exc:
+            if getattr(exc,'details',None): details.update(exc.details)
             if getattr(exc,'diagnostic',None): details['raster_budget']=exc.diagnostic
             report['failures'].append(dict(time=time, reason_code=str(exc), **details))
             continue

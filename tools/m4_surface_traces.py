@@ -15,7 +15,7 @@ from autospine_workbench.targets.character43.depth_surface_checker import Surfac
 from autospine_workbench.targets.character43.depth_surface_inventory import build as inventory_build
 
 
-def run(job,output):
+def run(job,output,subdivisions=2):
     import re
     if not re.fullmatch(r'motion-[a-f0-9]{32}',job):raise ValueError('surface_trace_job_invalid')
     if output.exists() and any(output.iterdir()):raise ValueError('surface_trace_output_exists')
@@ -34,8 +34,10 @@ def run(job,output):
             tick=row['tick'];value=row['source_tick']
             if tick in source and source[tick]!=value:raise ValueError('surface_trace_time_conflict')
             source[tick]=value
+    if subdivisions not in (2,4):raise ValueError('surface_trace_subdivisions')
     ticks=sorted(source.items());times=dict(ticks)
-    times.update({(a[0]+b[0])/2:(a[1]+b[1])/2 for a,b in zip(ticks,ticks[1:])})
+    times.update({a[0]+(b[0]-a[0])*i/subdivisions:a[1]+(b[1]-a[1])*i/subdivisions
+                  for a,b in zip(ticks,ticks[1:]) for i in range(1,subdivisions)})
     if not times or len(times)>512 or len(arms)*len(inventory['surfaces'])>512:raise ValueError('surface_trace_resource_limit')
     sampler=SegmentDepthSampler(parse_bvh(bundle.raw_bvh),json.loads((bundle.path/'map.json').read_bytes()),
                                 request.get('projection',{}).get('yaw_degrees',0))
@@ -65,7 +67,7 @@ def run(job,output):
     output.mkdir(parents=True,exist_ok=True);raw=canonical_bytes(observations);check_raw=canonical_bytes(checks)
     report=dict(source_job_id=job,source_artifact_sha256=result['artifact_sha256'],inventory=inventory,pairs=pairs,
         observations_sha256=sha256(raw).hexdigest(),checks_sha256=sha256(check_raw).hexdigest(),
-        source_sha256=sha256(bundle.raw_bvh).hexdigest(),sampled_frames=len(times),pixel_budget_per_pair=64_000_000,
+        source_sha256=sha256(bundle.raw_bvh).hexdigest(),sampled_frames=len(times),source_subdivisions=subdivisions,pixel_budget_per_pair=64_000_000,
         supplemental_models=[dict(profile='surface-routing-depth-models-v1-experiment',
             assumptions=['torso_planar_garment_without_thickness_or_cloth_z','segment_axis_depth',
                          'observed_fingertip_hand_axis','same_chain_secondary_influence_envelopes'])],
@@ -77,4 +79,5 @@ def run(job,output):
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('job');parser.add_argument('output',type=Path)
-    args=parser.parse_args();run(args.job,args.output)
+    parser.add_argument('--subdivisions',type=int,choices=(2,4),default=2)
+    args=parser.parse_args();run(args.job,args.output,args.subdivisions)

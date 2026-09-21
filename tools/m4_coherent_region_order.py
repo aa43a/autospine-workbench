@@ -15,7 +15,7 @@ from autospine_workbench.targets.character43.affine_pose import sample
 from autospine_workbench.targets.character43.depth_region_constraints import build as constraints,PROFILE as CONSTRAINT_PROFILE
 
 
-def run(parent,output,shared_boundaries=False,surface_routing=False,shared_planes=False):
+def run(parent,output,shared_boundaries=False,surface_routing=False,shared_planes=False,interval_depth=False):
     if output.exists() and any(output.iterdir()):raise ValueError('coherent_output_exists')
     receipt_raw=(parent/'report.json').read_bytes();receipt=json.loads(receipt_raw);raw=(parent/'observations.json').read_bytes()
     if sha256(raw).hexdigest()!=receipt.get('observations_sha256'):raise ValueError('coherent_observations_identity')
@@ -54,17 +54,22 @@ def run(parent,output,shared_boundaries=False,surface_routing=False,shared_plane
         labels[arm]=['model-'+sha256(signature.encode()).hexdigest() for signature in signatures]
     partitioned,partition=partition_build(source,sorted(labels),triangle_labels=labels,part_limit=512)
     partitioned,partition=compact(partitioned,partition)
+    from autospine_workbench.targets.character43.depth_region_bounds import SampledRegionBounds
+    bounds=SampledRegionBounds(r['slot'] for r in partition['regions']) if interval_depth else None
     for time in sorted(times):
         before=sample(source,'external-motion',time)[0];after=sample(partitioned,'external-motion',time)[0]
+        if bounds is not None:bounds.record(time,after)
         for region in partition['regions']:
             if [before[region['source_slot']][i] for i in region['source_vertex_indices']]!=after[region['slot']]:
                 raise ValueError('coherent_partition_geometry_changed')
-    pairs=constraints(partition,models)
+    if interval_depth and receipt.get('source_subdivisions')!=4:raise ValueError('interval_depth_quarter_trace_required')
+    pruning={};pairs=constraints(partition,models,interval_depth=interval_depth,diagnostics=pruning,
+                                overlap_possible=bounds.possible if bounds is not None else None)
     probe=Probe(partitioned,files,'external-motion',tiled=True,sparse=True,rendered_bounds=True)
     if shared_boundaries:
         from autospine_workbench.targets.character43.depth_shared_boundary import BoundaryProbe
         probe=BoundaryProbe(probe,partition)
-    candidate,order=order_build(partitioned,'external-motion',dict(pairs=pairs),probe,refine_cycles=True)
+    candidate,order=order_build(partitioned,'external-motion',dict(pairs=pairs,strict_interval_evidence=interval_depth),probe,refine_cycles=True)
     output.mkdir(parents=True,exist_ok=True);partition_raw=canonical_bytes(partitioned)
     (output/'partition.json').write_bytes(partition_raw)
     (output/'inference.json').write_bytes(canonical_bytes(models))
@@ -73,7 +78,7 @@ def run(parent,output,shared_boundaries=False,surface_routing=False,shared_plane
         observations_sha256=receipt['observations_sha256'],partition_skeleton_sha256=sha256(partition_raw).hexdigest(),
         partition=partition,observed_state_counts=dict(counts),sampled_frames=len(times),max_vertex_error=0,order=order,
         relation_pair_count=len(pairs),relation_sample_count=sum(len(p['samples']) for p in pairs),
-        constraint_profile=CONSTRAINT_PROFILE,
+        constraint_profile=CONSTRAINT_PROFILE,strict_interval_evidence=interval_depth,relation_pruning=pruning,
         surface_routing=surface_routing,held_setup_pairs=held,shared_plane_coupling=coupling,
         failure_counts=dict(Counter(f['reason_code'] for f in order['failures'])),
         pixel_budget_used=64_000_000-probe.remaining,authority='none',selected=False,
@@ -93,4 +98,5 @@ if __name__=='__main__':
     parser.add_argument('--shared-boundaries',action='store_true')
     parser.add_argument('--surface-routing',action='store_true')
     parser.add_argument('--shared-planes',action='store_true')
-    args=parser.parse_args();run(args.parent,args.output,args.shared_boundaries,args.surface_routing,args.shared_planes)
+    parser.add_argument('--interval-depth',action='store_true')
+    args=parser.parse_args();run(args.parent,args.output,args.shared_boundaries,args.surface_routing,args.shared_planes,args.interval_depth)

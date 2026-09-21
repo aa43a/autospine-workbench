@@ -69,3 +69,5 @@ before/after report and inference identities. Final outputs are
 `../tmp/m4-motion-center/coherent-shared-plane-{alice,hong}-v2/`; the earlier v1
 trial initialized coupling from independent first-frame labels. V2 initializes
 from source setup order and accounts for transitions into uncoupled frames.
+
+The following experiment adds [same-time held-interval depth](m4-held-interval-depth.md).
