@@ -9,10 +9,14 @@ from .motion_depth_order import build as order_build
 def build(document, files, animation, depth, bvh, mapping, *, yaw=0,
           partition_slots=None, cloth_constraints=False, limb_constraints=False,
           torso_plane=False, rendered_bounds=False, reuse_refinement_overlap=False,
-          tiled=False, pair_budgets=False, refine_cycles=False, include_depth=False):
+          tiled=False, pair_budgets=False, refine_cycles=False, include_depth=False, on_stage=None):
+    def stage(name):
+        if on_stage is not None:
+            on_stage(name)
     original = deepcopy(document)
     partition = None
     if partition_slots:
+        stage('depth_partition')
         from .depth_region_partition import build as partition_build
         from .motion_depth import build as depth_build
         ticks = [r['source_tick'] for p in depth['pairs'] for r in p['samples']]
@@ -25,17 +29,21 @@ def build(document, files, animation, depth, bvh, mapping, *, yaw=0,
         raise ValueError('cloth_constraints_require_partition')
     sampler = SegmentDepthSampler(bvh, mapping, yaw)
     probe = Probe(document, files, animation, rendered_bounds=rendered_bounds, tiled=tiled)
+    stage('depth_refinement')
     refined, evidence = refine(document, files, animation, depth, sampler,
         torso_plane=torso_plane, rendered_bounds=rendered_bounds,
         order_probe=probe if reuse_refinement_overlap else None,
         tiled=tiled, pair_budgets=pair_budgets)
     cloth = limbs = None
     if cloth_constraints:
+        stage('depth_cloth_constraints')
         from .cloth_depth_constraints import build as cloth_build
         refined, cloth = cloth_build(document, files, animation, refined, partition, sampler, order_probe=probe)
     if limb_constraints:
+        stage('depth_limb_constraints')
         from .limb_depth_constraints import build as limb_build
         refined, limbs = limb_build(document, files, animation, refined, sampler, order_probe=probe)
+    stage('depth_ordering')
     candidate, order = order_build(document, animation, refined, probe, refine_cycles=refine_cycles)
     for name, result in [('cloth', cloth), ('limb', limbs)]:
         if result and result['unmeasured_samples']:

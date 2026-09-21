@@ -75,6 +75,19 @@ class CohortTests(unittest.TestCase):
             runner.step(self.plan, self.state, lambda _: None,
                         lambda *_: dict(self.source, source_sha256='changed'))
 
+    def test_explicit_depth_strategy_requires_matching_expectation(self):
+        self.plan['target_depth_profile'] = 'external-regional-depth-order-v1'
+        with self.assertRaisesRegex(ValueError, 'expectation_missing'):
+            runner.step(self.plan, self.state, lambda _: None, lambda *_: self.fail())
+        self.plan['expected_profiles'] = dict(depth_review_profile=self.plan['target_depth_profile'])
+        bodies = []
+        def request(path, body=None):
+            if body is not None:
+                bodies.append(body); return dict(job_id='target', status='pending')
+            return self.source if path.endswith('source') else dict(artifact_sha256='rig')
+        self.assertEqual(runner.step(self.plan, self.state, lambda _: None, request), 'target_submitted')
+        self.assertEqual(bodies[0]['depth_review_profile'], self.plan['target_depth_profile'])
+
     def test_changed_execution_policy_stops_matrix_without_replacing_job(self):
         self.plan['expected_profiles'] = {'inferred_contact_profile': 'new'}
         target = dict(job_id='target', status='succeeded', result={'inferred_contact_profile': 'old'})

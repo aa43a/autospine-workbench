@@ -115,7 +115,7 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
             if on_stage:
                 on_stage('depth_overlap')
             document, depth, regional_transform = apply(document, files, ANIMATION, depth, bvh, mapping,
-                yaw=oblique['yaw_degrees'] if oblique is not None else 0)
+                yaw=oblique['yaw_degrees'] if oblique is not None else 0, on_stage=on_stage)
             if regional_transform:
                 partition = depth['regional']['partition']
                 setup_vertices = remap_setup(setup_vertices, partition)

@@ -38,6 +38,9 @@ def step(plan, state, publish, request):
     """Resume exact IDs, retaining terminal failures and explicit evidence gaps."""
     if state.get('submitting'):
         raise ValueError('uncertain_submission_reconcile_before_resuming')
+    depth_profile = plan.get('target_depth_profile')
+    if depth_profile is not None and depth_profile != plan.get('expected_profiles', {}).get('depth_review_profile'):
+        raise ValueError('cohort_depth_profile_expectation_missing')
     for source in plan['motions']:
         key = source['id']
         record = state['sources'].get(key)
@@ -82,6 +85,8 @@ def step(plan, state, publish, request):
                     'contact_correction': True}
                 if source.get('projection') is not None:
                     body['projection'] = source['projection']
+                if depth_profile is not None:
+                    body['depth_review_profile'] = depth_profile
                 current = request('/api/motions/' + value['job_id'] + '/adapt', body)
                 state.pop('submitting')
                 state['cells'][cell] = current
