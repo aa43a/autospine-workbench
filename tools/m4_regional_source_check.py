@@ -49,5 +49,7 @@ if __name__ == '__main__':
     policy=parser.add_mutually_exclusive_group()
     policy.add_argument('--sparse',action='store_true')
     policy.add_argument('--tight-sparse',action='store_true')
+    policy.add_argument('--tight-depth-groups',action='store_true')
     args=parser.parse_args();run(args.job,args.output,
-        sparse='tight_triangle_boxes' if args.tight_sparse else args.sparse)
+        sparse='tight_depth_groups' if args.tight_depth_groups else
+               'tight_triangle_boxes' if args.tight_sparse else args.sparse)

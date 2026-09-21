@@ -1,5 +1,25 @@
 # Regional depth worker integration
 
+## Classification-mask cropping
+
+`--tight-depth-groups` is a separate experimental replay policy. Beyond tight
+overlap tiles, each front/back/ambiguous/unknown triangle mask is clipped to its
+own conservative bounding box intersected with the opaque common-pixel bounds.
+Pixels outside those bounds cannot affect the final class counts. Raster centers,
+alpha interpolation, uncertainty composition and all thresholds remain unchanged;
+only the smaller rectangle is charged to the same pixel budget. The helper is
+isolated in `depth_group_raster.py`; older policies retain their previous behavior.
+
+The fixed Huiye wave replay preserves all 432 checks and all 294 previously
+measured outcomes, recovering 89 additional checks. Unmeasured checks fall from
+138 to 49, while 120 order blockers remain. Evidence:
+`../tmp/m4-motion-center/regional-kimodo-huiye-groups-v1/report.json`, SHA256
+`7caf5b7d89543ce7690e6397a013c261db4942af1cedc707fce33bdafd9a3d9f`, and
+`regional-kimodo-huiye-groups-comparison-v1.json`. No replacement skeleton or
+Runtime capture is emitted. Thirty-five distinct focused tests pass, including
+per-pixel cropped-mask equivalence, preserved known/unknown/ambiguous counts,
+and propagation of budget refusal. This remains an opt-in experiment.
+
 ## Tight sparse cells
 
 An additional `--tight-sparse` replay mode intersects each attachment's union of

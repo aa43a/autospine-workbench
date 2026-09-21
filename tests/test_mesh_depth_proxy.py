@@ -6,6 +6,16 @@ from autospine_workbench.targets.character43.motion_depth_overlap import Probe
 
 
 class MeshDepthProxyTests(unittest.TestCase):
+    def test_cropped_groups_preserve_known_unknown_and_ambiguous_counts(self):
+        doc,files=fixture();doc['bones'][0]['length']=2
+        for segments in ({'root':(.1,.2)},{'root':(-.1,-.2)},{'root':(-.1,.2)},{}):
+            for intervals in (None,[[.1,.2],[-.2,-.1],None,[-.01,.01]]):
+                records=[overlap_support(Probe(doc,files,'test',tiled=True,sparse=policy),
+                    'a','b',0,segments,depth_intervals=intervals)
+                    for policy in ('tight_triangle_boxes','tight_depth_groups')]
+                self.assertEqual(records[0]['status'],records[1]['status'])
+                self.assertEqual(records[0]['counts'],records[1]['counts'])
+
     def test_optional_endpoint_caps_are_bounded_and_preserve_missing_evidence(self):
         doc,_=fixture(); doc['bones'][0]['length']=2
         mesh=deepcopy(doc['skins'][0]['attachments']['a']['a'])

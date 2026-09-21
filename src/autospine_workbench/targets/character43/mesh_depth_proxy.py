@@ -122,7 +122,16 @@ def overlap_support(probe, arm, torso, time, segments, *, margin=.02, endpoint_c
         group=('unknown' if any(v is None for v in depths) else
                'front' if min(v[0] for v in depths)>margin else 'back' if max(v[1] for v in depths)<-margin else 'ambiguous')
         groups[group].extend(tri)
-    masks={k:raster(arm,dict(attachments[arm],triangles=indices)) & common
+    def group_raster(indices):
+        attachment=dict(attachments[arm],triangles=indices)
+        if getattr(probe,'sparse',False)=='tight_depth_groups':
+            from .depth_group_raster import raster as cropped
+            def charge(amount):
+                if probe.remaining<amount:raise ValueError('depth_overlap_pixel_budget')
+                probe.remaining-=amount
+            return cropped(attachment,probe.positions[time][arm],probe.textures[arm],rect,common,charge)
+        return raster(arm,attachment)
+    masks={k:group_raster(indices) & common
            if indices else np.zeros_like(common) for k,indices in groups.items()}
     unknown=masks['unknown'] | (common & ~np.logical_or.reduce(list(masks.values())))
     ambiguous=(masks['ambiguous'] | (masks['front'] & masks['back'])) & ~unknown
