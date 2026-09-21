@@ -6,6 +6,15 @@ from ...automation.storage_io import canonical_bytes
 from ..spine43.continuous_pose import interpolate
 
 
+def prepared_contact(document,name,contact):
+    """Preserve an exact selected result, or reconstruct an unselected proposal."""
+    if contact.get('selected') is True:
+        if sha256(canonical_bytes(document)).hexdigest()!=contact.get('output_skeleton_sha256'):
+            raise ValueError('support_selected_output_changed')
+        return deepcopy(document)
+    return replay(document,name,contact)
+
+
 def replay(document,name,contact):
     if contact['selected'] or sha256(canonical_bytes(document)).hexdigest()!=contact['input_skeleton_sha256']:
         raise ValueError('support_probe_base_changed')

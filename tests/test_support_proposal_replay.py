@@ -2,10 +2,23 @@ from copy import deepcopy
 from hashlib import sha256
 import unittest
 from autospine_workbench.automation.storage_io import canonical_bytes
-from autospine_workbench.targets.character43.support_proposal_replay import replay,without_generated_deform
+from autospine_workbench.targets.character43.support_proposal_replay import replay,prepared_contact,without_generated_deform
 
 
 class ProposalTests(unittest.TestCase):
+    def test_selected_output_preserved_without_replay_or_phase(self):
+        doc={'animations':{'a':{'bones':{'root':{'translate':[dict(time=0,x=2,y=3)]}}}}}
+        contact=dict(selected=True,output_skeleton_sha256=sha256(canonical_bytes(doc)).hexdigest())
+        result=prepared_contact(doc,'a',contact)
+        self.assertEqual(result,doc)
+        result['animations']['a']['bones']['root']['translate'][0]['x']=9
+        self.assertEqual(doc['animations']['a']['bones']['root']['translate'][0]['x'],2)
+        with self.assertRaisesRegex(ValueError,'selected_output_changed'):
+            prepared_contact(result,'a',contact)
+        del contact['output_skeleton_sha256']
+        with self.assertRaisesRegex(ValueError,'selected_output_changed'):
+            prepared_contact(doc,'a',contact)
+
     def test_exact_replay_and_changed_source_rejection(self):
         names=('thigh_l','calf_l','thigh_r','calf_r')
         tracks={n:{'rotate':[dict(time=0,value=10),dict(time=1,value=20)]} for n in names}

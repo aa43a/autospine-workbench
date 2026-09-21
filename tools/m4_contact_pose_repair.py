@@ -9,7 +9,7 @@ from autospine_workbench.automation.animated_store import AnimatedStore
 from autospine_workbench.automation.storage_io import canonical_bytes
 from autospine_workbench.automation.character_capture import capture
 from autospine_workbench.automation.motion_target_pose import final_times
-from autospine_workbench.targets.character43.support_proposal_replay import replay,without_generated_deform
+from autospine_workbench.targets.character43.support_proposal_replay import prepared_contact,without_generated_deform
 from autospine_workbench.targets.character43.projected_area_adaptive import build
 from autospine_workbench.targets.character43.affine_pose import sample
 from autospine_workbench.targets.character43.numeric_reference import write
@@ -23,7 +23,7 @@ def run(folder,output,capture_runtime=False,foot_orientation=False,ankle_collar=
     files=AnimatedStore(folder/'isolated-store').read(address)
     doc=json.loads(files['skeleton.json']);name='external-motion'
     contact=json.loads(files['motion-contact.json']);evidence=json.loads(files['motion-review.json'])
-    candidate=replay(doc,name,contact)
+    candidate=prepared_contact(doc,name,contact)
     bare=without_generated_deform(candidate,name,evidence['area_repair'])
     foot=None
     if foot_orientation:
@@ -43,7 +43,7 @@ def run(folder,output,capture_runtime=False,foot_orientation=False,ankle_collar=
     from m4_pose_depth_recheck import recheck
     print(json.dumps(dict(stage='depth_recheck')),flush=True)
     repaired,depth=recheck(repaired,name,files,source)
-    times=final_times(repaired,name,[r['time'] for r in contact['phase_attempt']['rows']])
+    times=final_times(repaired,name,[r['time'] for r in contact.get('phase_attempt',{}).get('rows',[])])
     motion=json.loads(files['motion-ir.json']);motion['markers']=deepcopy(contact['hypothesis']['markers'])
     checked=analyze(repaired,name,motion,times,evidence['reference_length_px'])
     raw=canonical_bytes(repaired);digest=sha256(raw).hexdigest()
@@ -63,6 +63,7 @@ def run(folder,output,capture_runtime=False,foot_orientation=False,ankle_collar=
     if foot:(output/'foot-orientation.json').write_bytes(canonical_bytes(foot))
     report=dict(profile='post-contact-source-pose-repair-v1',source_candidate_sha256=address,
         candidate_bundle_sha256=artifact,authority='none',selected=False,production_authorized=False,
+        contact_input_mode='preserved_selected' if contact['selected'] else 'replayed_proposal',
         sampled_frames=len(times),contact_passed=checked['passed'],
         maximum_ankle_drift_px=max(r['max_drift_px'] for r in checked['intervals']),
         original_geometry_passed=qa['passed'],sampled_inversions=sum(r['inversion_samples'] for r in qa['records']),
