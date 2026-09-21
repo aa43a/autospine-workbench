@@ -16,6 +16,7 @@ from .character_capture import capture
 from .motion_intake_process import progress
 from .storage_io import canonical_bytes, read_document
 from ..targets.character43.motion_clip import boundaries, clip_motion, clip_animation
+from ..targets.character43.motion_depth_overlap import SPARSE_DEPTH_PROFILE
 
 ANIMATION = 'external-motion'
 
@@ -29,7 +30,7 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
     original = deepcopy(source)
     source['animations'] = {}
     setup_vertices = None
-    if clip_bounds or depth_review_profile in ('external-arm-torso-depth-overlap-v2', REGIONAL_PROFILE):
+    if clip_bounds or depth_review_profile in ('external-arm-torso-depth-overlap-v2', REGIONAL_PROFILE, SPARSE_DEPTH_PROFILE):
         setup = deepcopy(source)
         setup['animations'] = {ANIMATION: {'bones': {}}}
         setup_vertices = sample(setup, ANIMATION, 0)[0]
@@ -104,7 +105,7 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
     depth = None
     torso_evidence = None
     if torso_projection is not None:
-        if depth_review_profile != 'external-arm-torso-depth-overlap-v2':
+        if depth_review_profile not in ('external-arm-torso-depth-overlap-v2', SPARSE_DEPTH_PROFILE):
             raise ValueError('motion_torso_requires_overlap_depth')
         from ..targets.character43.torso_projection_profile import apply as apply_torso
         if on_stage:on_stage('torso_projection')
@@ -123,7 +124,7 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
     depth_status = 'not_evaluated'
     if depth_review_profile:
         from ..targets.character43.motion_depth import PROFILE as DEPTH_PROFILE, OVERLAP_PROFILE, build as inspect_depth
-        if depth_review_profile not in (DEPTH_PROFILE, OVERLAP_PROFILE, REGIONAL_PROFILE):
+        if depth_review_profile not in (DEPTH_PROFILE, OVERLAP_PROFILE, REGIONAL_PROFILE, SPARSE_DEPTH_PROFILE):
             raise ValueError('motion_depth_profile_unsupported')
         options = dict(yaw_degrees=oblique['yaw_degrees']) if oblique is not None else {}
         depth = inspect_depth(document, bvh, mapping, kimodo=kimodo, clip_bounds=clip_bounds, **options)
@@ -141,14 +142,15 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
                 if regional_transform['partition_slots']:
                     original = partition_build(original, regional_transform['partition_slots'])[0]
                 times = sorted(set(times) | {r['time'] for r in depth['order']['frames']})
-        if depth_review_profile == OVERLAP_PROFILE:
+        if depth_review_profile in (OVERLAP_PROFILE, SPARSE_DEPTH_PROFILE):
             if on_stage:
                 on_stage('depth_overlap')
             from ..targets.character43.motion_depth_overlap import inspect as overlap
             from ..targets.character43.motion_depth_order import build as order_candidate
-            depth, probe = overlap(document, files, ANIMATION, depth)
+            options = dict(sparse=True) if depth_review_profile == SPARSE_DEPTH_PROFILE else {}
+            depth, probe = overlap(document, files, ANIMATION, depth, **options)
             proposed, order = order_candidate(document, ANIMATION, depth, probe)
-            depth.update(profile=OVERLAP_PROFILE, order=order)
+            depth.update(profile=depth_review_profile, order=order)
             if proposed is not None and order['frames']:
                 document = proposed
                 depth['selected'] = True

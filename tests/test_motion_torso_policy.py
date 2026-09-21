@@ -14,6 +14,8 @@ class TorsoPolicyTests(unittest.TestCase):
         overlap='external-arm-torso-depth-overlap-v2'
         self.assertIsNone(select({},overlap))
         self.assertEqual(select(dict(torso_projection_profile=PROFILE),overlap),PROFILE)
+        self.assertEqual(select(dict(torso_projection_profile=PROFILE),
+            'external-arm-torso-depth-sparse-v1-experiment'),PROFILE)
         for value in ('wrong',None,True):
             with self.assertRaisesRegex(Exception,'profile_unsupported'):
                 select(dict(torso_projection_profile=value),overlap)

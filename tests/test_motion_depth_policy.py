@@ -1,5 +1,5 @@
 import unittest
-from autospine_workbench.automation.motion_depth_policy import select, LEGACY, OVERLAP_PROFILE, REGIONAL
+from autospine_workbench.automation.motion_depth_policy import select, LEGACY, OVERLAP_PROFILE, REGIONAL, SPARSE_DEPTH_PROFILE
 from autospine_workbench.automation.pipeline_run import PipelineRunError
 
 
@@ -7,7 +7,7 @@ class DepthPolicyTests(unittest.TestCase):
     def test_default_and_explicit_historical_profiles(self):
         for format in ('fbx', 'bvh', 'npz'):
             self.assertEqual(select({}, dict(format=format)), OVERLAP_PROFILE)
-            for profile in (LEGACY, OVERLAP_PROFILE):
+            for profile in (LEGACY, OVERLAP_PROFILE, SPARSE_DEPTH_PROFILE):
                 self.assertEqual(select(dict(depth_review_profile=profile), dict(format=format)), profile)
 
     def test_regional_requires_supported_source(self):

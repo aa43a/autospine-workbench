@@ -14,7 +14,7 @@ budget applies; cache reuse rejects different sparse policies. Resource failures
 remain unmeasured, with actual sparse required pixels recorded separately from
 the enclosing rectangle area.
 
-This remains an opt-in probe, not the default worker policy. It does not modify
+This remains opt-in, not the default worker policy. It does not modify
 candidate meshes, UVs, weights, draw order or acceptance. Source-sample completion
 does not prove held-order midpoints, local depth models or Runtime appearance.
 
@@ -61,3 +61,34 @@ Exact task/artifact/report identities and summaries are in
 reviews are unchanged. The next integration must re-evaluate order midpoints and
 any local depth constraints under this policy; these measurements alone cannot
 clear the existing depth-conflict gate.
+
+## Workbench integration
+
+`external-arm-torso-depth-sparse-v1-experiment` is an explicit target request
+strategy. FBX, BVH and Kimodo are supported; it can accompany torso projection.
+The UI resets it on source changes and rejects combining it with regional depth
+sorting. Historical requests and defaults remain unchanged, retry preserves the
+requested profile, and comparisons keep different policies separate.
+
+The worker uses the same sparse probe for source overlap and guarded ordering,
+then performs normal geometry and fresh official Runtime capture. Guarded order
+can stop at a source conflict before a midpoint; it is not an exhaustive temporal
+proof. `m4_sparse_depth_probe.py --order` exposes that behavior separately: Huiye
+wave retains 120 visible straddles without spending additional midpoint budget.
+
+Actual workbench task `motion-9aaeab1a1df74bd3a8b7ea75a535f38a` produced artifact
+`80f9d85c47424825cfd6174eb1d26510354831b57b01cdd415e0546c0746baf6`.
+Its skeleton SHA matches the previous torso candidate exactly, so this case
+changes evidence rather than animation. Geometry and 375 new Runtime frames pass.
+All 240 pair/source samples are measured, including 217 ambiguous visible samples;
+the same 120 order conflicts remain, and aggregate readiness is `needs_changes`.
+The previous 27 unmeasured samples are not reclassified as successful ordering.
+
+Twenty policy, inspection, torso compatibility, target intake and comparison
+tests pass. Live Chrome verifies strategy availability, source reset, conflict
+guard, NPZ support and the actual candidate's depth panel. No visual acceptance
+or default adoption is inferred.
+
+The new candidate ZIP was downloaded and all 88 entries matched the addressed
+store artifact byte-for-byte (66,198,697 ZIP bytes), including the explicit sparse
+depth profile. This verifies export identity, not visual correctness.

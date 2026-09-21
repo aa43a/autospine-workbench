@@ -25,7 +25,7 @@ export function createTargetControls(request, refresh, selection) {
   void request('/api/motions').then(value => {
     obliqueAvailable = Boolean(value.oblique_target_available); yaw.disabled = !obliqueAvailable;
     automatic.available(obliqueAvailable && value.oblique_comparison_available);
-    depth.available(Boolean(value.regional_depth_available));
+    depth.available(Boolean(value.regional_depth_available),Boolean(value.sparse_depth_available));
     torso.available(Boolean(value.torso_projection_available));
   }).catch(() => {});
   function enabled() { $('adapt').disabled = busy || comparing || !source || !character; }

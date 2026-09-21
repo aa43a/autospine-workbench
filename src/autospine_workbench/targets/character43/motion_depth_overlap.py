@@ -6,6 +6,8 @@ from .affine_pose import sample
 from ..spine43.seam_raster import mask, texture
 
 PROFILE = 'external-depth-native-alpha-overlap-v1'
+SPARSE_PROFILE = 'external-depth-sparse-alpha-overlap-v1-experiment'
+SPARSE_DEPTH_PROFILE = 'external-arm-torso-depth-sparse-v1-experiment'
 
 
 class RasterBudgetError(ValueError):
@@ -119,9 +121,9 @@ class Probe:
         return result
 
 
-def inspect(document, files, animation, depth):
+def inspect(document, files, animation, depth, *, sparse=False):
     report = deepcopy(depth)
-    probe = Probe(document, files, animation)
+    probe = Probe(document, files, animation, sparse=sparse, tiled=sparse, rendered_bounds=sparse)
     pending = unmeasured = visible = ambiguous = 0
     for pair in report['pairs']:
         for row in pair['samples']:
@@ -139,7 +141,7 @@ def inspect(document, files, animation, depth):
                     ambiguous += 1
                 elif row['current_front_slot'] != pair['setup_front_slot']:
                     pending += 1
-    report['target_overlap'] = dict(profile=PROFILE, visible_pair_samples=visible,
+    report['target_overlap'] = dict(profile=SPARSE_PROFILE if sparse else PROFILE, visible_pair_samples=visible,
         ambiguous_visible_pair_samples=ambiguous, order_mismatch_pair_samples=pending,
         unmeasured_pair_samples=unmeasured, alpha_threshold=8, pixel_budget=64_000_000,
         sampled_pixel_budget_used=64_000_000-probe.remaining,

@@ -22,5 +22,14 @@ try {
   await page.evaluate(()=>depthTest.source({job_id:'c',format:'npz'}));
   assert.equal(await input.isDisabled(),true);
   assert.deepEqual(await page.evaluate(()=>depthTest.selection()),{});
-  console.log(JSON.stringify({passed:true,sourceReset:true,npzDisabled:true}));
+  const sparse=page.locator('#depth-test').getByRole('checkbox',{name:'稀疏遮挡采样（实验）'});
+  assert.equal(await sparse.isDisabled(),true);
+  await page.evaluate(()=>depthTest.available(true,true));await sparse.check();
+  assert.equal((await page.evaluate(()=>depthTest.selection())).depth_review_profile,'external-arm-torso-depth-sparse-v1-experiment');
+  await page.evaluate(()=>depthTest.source({job_id:'d',format:'fbx'}));
+  assert.equal(await sparse.isChecked(),false);await input.check();await sparse.check();
+  assert.equal(await page.evaluate(()=>{try{depthTest.selection();return false;}catch{return true;}}),true);
+  await page.evaluate(()=>depthTest.source(null));assert.equal(await sparse.isDisabled(),true);
+  assert.deepEqual(await page.evaluate(()=>depthTest.selection()),{});
+  console.log(JSON.stringify({passed:true,sourceReset:true,regionalNpzDisabled:true,sparseNpzEnabled:true,conflictGuard:true}));
 } finally {await browser.close();}

@@ -9,7 +9,7 @@ from autospine_workbench.targets.character43.motion_depth_overlap import Probe
 from m4_motion_cohort import api
 
 
-def run(job,output):
+def run(job,output,check_order=False):
     task=api('http://127.0.0.1:8918','/api/motions/'+job)
     if task.get('kind')!='adapt' or task['status']!='succeeded':raise ValueError('completed_candidate_required')
     artifact=task['result']['artifact_sha256'];files=AnimatedStore(Path('workspace')).read(artifact)
@@ -41,12 +41,28 @@ def run(job,output):
         unmeasured=sum(r['current']['status']=='unmeasured' for r in rows),records=rows,
         authority='none',production_authorized=False,
         scope='source_sample_overlap_only_not_new_order_midpoints_runtime_or_visual_acceptance')
+    if check_order:
+        from copy import deepcopy
+        from collections import Counter
+        from autospine_workbench.targets.character43.motion_depth_order import build
+        checked=deepcopy(depth)
+        lookup={(tuple(r['pair']),r['time']):r['current'] for r in rows}
+        for pair in checked['pairs']:
+            for sample in pair['samples']:
+                sample['overlap']=lookup[((pair['arm_slot'],pair['torso_slot']),sample['tick']/1e6)]
+        proposed,order=build(document,'external-motion',checked,probe)
+        result.update(order=order,order_candidate_available=proposed is not None,
+            order_failure_counts=dict(Counter(r['reason_code'] for r in order['failures'])),
+            total_pixel_budget_used=64_000_000-probe.remaining,
+            measured_pair_times=len(probe.results),
+            scope='source_samples_and_guarded_order_attempts_not_exhaustive_midpoints_or_visual_acceptance')
     output.write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8')
-    print(json.dumps({k:v for k,v in result.items() if k!='records'}),flush=True)
+    print(json.dumps({k:v for k,v in result.items() if k not in ('records','order')}),flush=True)
     if mismatches:raise ValueError('sparse_overlap_disagrees_with_existing_measurements')
 
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('job');parser.add_argument('output',type=Path)
-    args=parser.parse_args();run(args.job,args.output)
+    parser.add_argument('--order',action='store_true')
+    args=parser.parse_args();run(args.job,args.output,args.order)

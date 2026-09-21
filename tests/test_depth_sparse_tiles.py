@@ -1,10 +1,21 @@
 import unittest
 from copy import deepcopy
 from test_motion_depth_overlap import fixture
-from autospine_workbench.targets.character43.motion_depth_overlap import Probe
+from autospine_workbench.targets.character43.motion_depth_overlap import Probe, inspect, SPARSE_PROFILE
 
 
 class SparseDepthTests(unittest.TestCase):
+    def test_opt_in_inspection_marks_its_policy_and_keeps_legacy_default(self):
+        doc,files=fixture(); depth=dict(pairs=[dict(arm_slot='a',torso_slot='b',setup_front_slot='b',
+            samples=[dict(tick=0,ambiguous=False,current_front_slot='b')])])
+        old,_=inspect(doc,files,'test',depth)
+        new,probe=inspect(doc,files,'test',depth,sparse=True)
+        a=old['pairs'][0]['samples'][0]['overlap'];b=new['pairs'][0]['samples'][0]['overlap']
+        self.assertEqual((a['status'],a['overlap_pixels']),(b['status'],b['overlap_pixels']))
+        self.assertNotEqual(old['target_overlap']['profile'],SPARSE_PROFILE)
+        self.assertEqual(new['target_overlap']['profile'],SPARSE_PROFILE)
+        self.assertTrue(probe.sparse)
+
     def test_disconnected_geometry_preserves_exact_overlap_and_saves_budget(self):
         doc,files=fixture()
         for name in ('a','b'):
