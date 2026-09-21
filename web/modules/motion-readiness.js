@@ -1,4 +1,5 @@
 import {appendNextActions} from './motion-next-actions.js';
+import {appendDepthTimeline} from './motion-depth-timeline.js';
 export function appendReadiness(item, job, compare, {onSeek} = {}) {
   const button = document.createElement('button');
   button.textContent = '检查可用范围与待处理项';
@@ -47,6 +48,8 @@ export function appendReadiness(item, job, compare, {onSeek} = {}) {
         if (failures.length) panel.append(details);
       }
       appendNextActions(panel,report,compare);
+      if(report.stages.some(row=>row.stage==='遮挡'&&row.status!=='sampled_pass'))
+        appendDepthTimeline(panel,job,report,onSeek);
       const note = document.createElement('p');
       note.textContent = '执行完成不等于动作通过；已有文件可下载为诊断候选。这里不记录人工验收或发布许可。';
       panel.append(note);

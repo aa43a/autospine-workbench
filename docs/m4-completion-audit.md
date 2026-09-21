@@ -147,3 +147,17 @@ Read-only live Chrome verification opened Alice breathing candidate
 sought 0.6 seconds on the real Runtime canvas, and reread revision 1
 accepted-with-exceptions. Zero mutations were submitted. This improves exception
 localization; it does not resolve or reclassify the retained depth conflicts.
+
+### Complete recorded depth-failure navigation
+
+Alice breathing's original order report contains 299 failures from 0 to
+9.933333 seconds; the readiness summary returns only the first 20. A separate
+read-only navigator now reads `motion-depth.json`, verifies skeleton identity,
+groups failures by exact ordered pair and reason, and seeks any recorded sample.
+It never infers failure between samples or changes the readiness evidence hash.
+
+The cohort browser suite now passes 30 checks, including seeking beyond record
+20 without submitting a decision. A real read-only Chrome run opened all 299
+Alice records, sought the last record at 9.933333 seconds on the Runtime canvas,
+and verified the existing revision 1 acceptance still applies. No new Runtime
+capture, human decision or corrected geometry is claimed.

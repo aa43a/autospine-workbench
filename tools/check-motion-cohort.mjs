@@ -23,10 +23,12 @@ try{
     if(path.endsWith('/preview'))return route.fulfill({json:{view:'front',parents:[null,0],frames:[
       {time:0,frame:0,joints:[[0,0,0],[0,1,0]]},{time:1,frame:1,joints:[[0,0,0],[1,1,0]]}]}});
     if(path.endsWith('/readiness.json'))return route.fulfill({json:{
-      artifact_sha256:job===alternate?alternateHash:hash,status:'needs_changes',stages:[{
+      artifact_sha256:job===alternate?alternateHash:hash,skeleton_sha256:hash,status:'needs_changes',stages:[{
         stage:'遮挡',status:'needs_changes',explanation:'fixture only',href:'depth.html',
         failures:[...Array.from({length:9},(_,i)=>({time:i/10,reason:'visible_depth_straddle'})),
           {time:null,reason:'unmeasured'}]}]}});
+    if(path.endsWith('/motion-depth.json'))return route.fulfill({json:{skeleton_sha256:hash,order:{failures:
+      Array.from({length:30},(_,i)=>({time:i/10,pair:['arm','body'],reason_code:'visible_depth_straddle'}))}}});
     if(path.endsWith('/rotation-status.json'))return route.fulfill({json:{artifact_sha256:hash,
       target:{records:[{bone:'upperarm_l',extra_turn_suspected:false,maximum_transfer_difference_deg:0,
         large_key_intervals:[],source_events:[{frame:2,time:.2,reason:'projection_direction_unreliable'},
@@ -55,6 +57,13 @@ try{
   assert.match(await page.locator('#target iframe').getAttribute('src'),/player.html\?time=0.8$/);
   assert.equal(await page.getByLabel('验收说明').inputValue(),'fixture only');
   assert.equal(await page.getByText('未提供有效时间',{exact:false}).count(),1);
+  assert.equal(posts,0);
+  await page.getByRole('button',{name:'展开完整遮挡失败采样'}).click();
+  await page.getByText('arm ↔ body · visible_depth_straddle · 30 条 · 0.000–2.900 秒',{exact:true}).click();
+  await page.getByLabel('遮挡失败采样序号').fill('29');
+  await page.getByRole('link',{name:'定位此采样',exact:true}).click();
+  assert.match(await page.locator('#target iframe').getAttribute('src'),/player.html\?time=2.9$/);
+  assert.equal(await page.getByLabel('验收说明').inputValue(),'fixture only');
   assert.equal(posts,0);
   await page.getByRole('checkbox').check();await page.getByRole('button',{name:'保存阶段结论'}).click();
   await page.getByText('r1 · 阶段可接受，保留异常。fixture only',{exact:true}).waitFor();
@@ -102,5 +111,5 @@ try{
   assert.equal(await page.locator('iframe').count(),0);
   assert.equal(await page.getByRole('button',{name:'记录 / 查看阶段验收'}).count(),0);
   assert.deepEqual(errors,[]);
-  console.log(JSON.stringify({passed:true,synthetic_posts:posts,real_decisions_written:0,checks:27}));
+  console.log(JSON.stringify({passed:true,synthetic_posts:posts,real_decisions_written:0,checks:30}));
 }finally{await browser.close();}
