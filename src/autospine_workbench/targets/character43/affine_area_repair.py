@@ -6,7 +6,8 @@ from ..spine43.continuous_pose import area
 from .affine_pose import matrices, sample
 
 
-def repair(document, name, *, samples=257, convergent=False, setup_vertices=None, projected_reference=False, extra_times=(), temporal=False, terminal_collar=False, progress=None, proximal_ring=False):
+def repair(document, name, *, samples=257, convergent=False, setup_vertices=None, projected_reference=False, extra_times=(), temporal=False, terminal_collar=False, progress=None, proximal_ring=False, preserve_area=False):
+    if preserve_area and not (convergent and projected_reference):raise ValueError('area_preservation_requires_projection')
     if proximal_ring and not terminal_collar:raise ValueError('proximal_ring_requires_collar')
     if terminal_collar and not (convergent and projected_reference):
         raise ValueError('character_collar_projection_required')
@@ -82,6 +83,9 @@ def repair(document, name, *, samples=257, convergent=False, setup_vertices=None
                 progress(dict(stage='solve_attachment',slot=slot,frame_index=frame_index,sample_count=len(times),time=time))
             context['areas'] = references
             original = world[slot]
+            if preserve_area:
+                from .area_preservation import from_pose
+                context['minimum_ratios'] = from_pose(original, triangles, references)
             if convergent:
                 from .area_projection import project as project_v2
                 initial = None
@@ -96,7 +100,8 @@ def repair(document, name, *, samples=257, convergent=False, setup_vertices=None
             else:
                 corrected = project(context, original)
             corrected_ratios = [area(corrected, t)/a for t, a in zip(triangles, references)]
-            if min(corrected_ratios) < .5 or max(corrected_ratios) > 2:
+            preservation_failed = preserve_area and any(r<f-1e-7 for r,f in zip(corrected_ratios,context['minimum_ratios']))
+            if min(corrected_ratios) < .5 or max(corrected_ratios) > 2 or preservation_failed:
                 unresolved.append(dict(time=time, min_area_ratio=min(corrected_ratios),
                                        max_area_ratio=max(corrected_ratios)))
             offsets = []
@@ -129,5 +134,6 @@ def repair(document, name, *, samples=257, convergent=False, setup_vertices=None
         profile = 'transported-projected-area-budget10-v1'
     if terminal_collar:profile='terminal-collar-projected-area-budget10-v1'
     if proximal_ring:profile='proximal-ring-projected-area-budget10-v1-experiment'
+    if preserve_area:profile='healthy-area-preservation-budget10-v1-experiment'
     return result, dict(profile=profile, authority='none', selected=False,
                         records=rows, validation='dense_resampling_required')

@@ -5,7 +5,12 @@ from .projected_area_reference import reference
 from ..spine43.continuous_pose import area
 
 
-def inspect(document, name, slots):
+def inspect(document, name, slots, *, preservation_source=None):
+    if preservation_source is not None:
+        if (preservation_source['bones'] != document['bones'] or preservation_source['skins'] != document['skins']
+                or preservation_source['animations'][name]['bones'] != document['animations'][name]['bones']
+                or preservation_source['animations'][name].get('attachments')):
+            raise ValueError('area_preservation_source_mismatch')
     setup=deepcopy(document);setup['animations']={name:{'bones':{}}}
     base=sample(setup,name,0)[0];rest=matrices(setup,name,0)
     animation=document['animations'][name]
@@ -24,12 +29,20 @@ def inspect(document, name, slots):
     failures=[]
     for time in times:
         world=sample(document,name,time)[0];transform=matrices(document,name,time)
+        original=sample(preservation_source,name,time)[0] if preservation_source is not None else None
         for slot,(triangles,areas,influences) in prepared.items():
             refs=reference(areas,triangles,influences,document['bones'],rest,transform)
             ratios=[area(world[slot],tri)/ref for tri,ref in zip(triangles,refs)]
-            if min(ratios)<.5 or max(ratios)>2:
+            deficits=[]
+            if original is not None:
+                # Independent of solver floor generation, including interpolated poses.
+                floors=[max(.5,min(1.,area(original[slot],tri)/ref)) for tri,ref in zip(triangles,refs)]
+                deficits=[dict(triangle=i,ratio=r,minimum=f) for i,(r,f) in enumerate(zip(ratios,floors)) if r<f-1e-7]
+            if min(ratios)<.5 or max(ratios)>2 or deficits:
                 failures.append(dict(time=time,slot=slot,min_ratio=min(ratios),max_ratio=max(ratios),
                     inversions=sum(v<=0 for v in ratios),at_key=time in knots))
-    return dict(profile='projected-area-key-and-midpoint-check-v1',authority='none',
+                if original is not None:failures[-1]['preservation_failures']=deficits
+    profile='healthy-area-key-and-midpoint-check-v1-experiment' if preservation_source is not None else 'projected-area-key-and-midpoint-check-v1'
+    return dict(profile=profile,authority='none',
                 sampled_frames=len(times),failures=failures,
                 limitation='sampled_area_proxy_not_continuous_or_visual_quality_proof')

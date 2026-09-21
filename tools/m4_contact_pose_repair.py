@@ -17,7 +17,7 @@ from autospine_workbench.targets.character43.deformation_qa import inspect
 from autospine_workbench.targets.character43.motion_contacts import analyze
 
 
-def run(folder,output,capture_runtime=False,foot_orientation=False,ankle_collar=False,proximal_ring=False):
+def run(folder,output,capture_runtime=False,foot_orientation=False,ankle_collar=False,proximal_ring=False,preserve_area=False):
     if proximal_ring and not ankle_collar:raise ValueError('proximal_ring_requires_collar')
     if ankle_collar and not foot_orientation:raise ValueError('ankle_collar_requires_foot_orientation')
     source=json.loads((folder/'report.json').read_bytes());address=source['candidate_bundle_sha256']
@@ -39,7 +39,7 @@ def run(folder,output,capture_runtime=False,foot_orientation=False,ankle_collar=
     output.mkdir(parents=True,exist_ok=False)
     print(json.dumps(dict(stage='post_contact_repair')),flush=True)
     repaired,correction=build(bare,name,setup,temporal=True,terminal_collar=ankle_collar,
-        progress=lambda row:print(json.dumps(row),flush=True),proximal_ring=proximal_ring)
+        progress=lambda row:print(json.dumps(row),flush=True),proximal_ring=proximal_ring,preserve_area=preserve_area)
     if repaired['animations'][name]['bones']!=bare['animations'][name]['bones']:
         raise ValueError('post_contact_repair_changed_bones')
     from m4_pose_depth_recheck import recheck
@@ -73,6 +73,10 @@ def run(folder,output,capture_runtime=False,foot_orientation=False,ankle_collar=
         depth_status=depth['status'],depth_scope=depth['scope'],runtime_status='not_evaluated')
     if foot:report['foot_orientation_profile']=foot['profile']
     report['correction_profile']=correction['profile']
+    if preserve_area:
+        failures=correction['refinement'][-1]['check']['failures']
+        report['area_preservation_failure_samples']=sum(bool(r.get('preservation_failures')) for r in failures)
+        report['area_proxy_failure_samples']=sum(r['min_ratio']<.5 or r['max_ratio']>2 for r in failures)
     (output/'report.json').write_bytes(canonical_bytes(report))
     if capture_runtime:
         runtime=capture(SimpleNamespace(workspace_root=Path.cwd().parent),store,artifact,output,
@@ -90,4 +94,5 @@ if __name__=='__main__':
     p.add_argument('--capture',action='store_true');p.add_argument('--foot-orientation',action='store_true')
     p.add_argument('--ankle-collar',action='store_true')
     p.add_argument('--proximal-ring',action='store_true')
-    a=p.parse_args();run(a.folder,a.output,a.capture,a.foot_orientation,a.ankle_collar,a.proximal_ring)
+    p.add_argument('--preserve-area',action='store_true')
+    a=p.parse_args();run(a.folder,a.output,a.capture,a.foot_orientation,a.ankle_collar,a.proximal_ring,a.preserve_area)
