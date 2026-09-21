@@ -3,7 +3,7 @@ import numpy as np
 from ..spine43.seam_raster import mask
 
 
-def classify(mesh, positions, alpha, rect, common, intervals, margin, charge):
+def classify(mesh, positions, alpha, rect, common, intervals, margin, charge, on_triangle=None):
     x,y,w,h=rect
     points=np.asarray([(p[0],-p[1]) for p in positions])
     masks={k:np.zeros((h,w),dtype=bool) for k in ('front','back','ambiguous','unknown')}
@@ -21,10 +21,14 @@ def classify(mesh, positions, alpha, rect, common, intervals, margin, charge):
         if not opaque.any():continue
         values=[intervals[v] for v in indices]
         if any(v is None for v in values):
-            masks['unknown'][region]|=opaque;continue
+            masks['unknown'][region]|=opaque
+            if on_triangle:on_triangle(i//3,dict(unknown=int(opaque.sum())))
+            continue
         det=(b[1]-c[1])*(a[0]-c[0])+(c[0]-b[0])*(a[1]-c[1])
         if abs(det)<1e-12:
-            masks['unknown'][region]|=opaque;continue
+            masks['unknown'][region]|=opaque
+            if on_triangle:on_triangle(i//3,dict(unknown=int(opaque.sum())))
+            continue
         px,py=np.meshgrid(np.arange(lo[0],hi[0])+.5,np.arange(lo[1],hi[1])+.5)
         u=((b[1]-c[1])*(px-c[0])+(c[0]-b[0])*(py-c[1]))/det
         v=((c[1]-a[1])*(px-c[0])+(a[0]-c[0])*(py-c[1]))/det
@@ -36,6 +40,8 @@ def classify(mesh, positions, alpha, rect, common, intervals, margin, charge):
         masks['front'][region]|=opaque&front
         masks['back'][region]|=opaque&back
         masks['ambiguous'][region]|=opaque&~(front|back)
+        if on_triangle:on_triangle(i//3,dict(front=int((opaque&front).sum()),
+            back=int((opaque&back).sum()),ambiguous=int((opaque&~(front|back)).sum())))
     unknown=masks['unknown']|(common&~np.logical_or.reduce(list(masks.values())))
     ambiguous=(masks['ambiguous']|(masks['front']&masks['back']))&~unknown
     return {k:int(v.sum()) for k,v in dict(unknown=unknown,ambiguous=ambiguous,

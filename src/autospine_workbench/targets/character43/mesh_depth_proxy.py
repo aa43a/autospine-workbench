@@ -50,7 +50,7 @@ def vertex_depths(document, attachment, segments, *, endpoint_caps=False, axis_l
     return values
 
 
-def overlap_support(probe, arm, torso, time, segments, *, margin=.02, endpoint_caps=False, reference_plane=None, axis_lengths=None, depth_intervals=None, pixelwise=False):
+def overlap_support(probe, arm, torso, time, segments, *, margin=.02, endpoint_caps=False, reference_plane=None, axis_lengths=None, depth_intervals=None, pixelwise=False, on_triangle=None):
     """Classify opaque overlap with conservative per-triangle depth bounds."""
     import numpy as np
     if not math.isfinite(margin) or margin <= 0:
@@ -83,7 +83,7 @@ def overlap_support(probe, arm, torso, time, segments, *, margin=.02, endpoint_c
         for tile in pair['tiles']:
             if not tile['overlap_pixels']: continue
             part=overlap_support(TileProbe(probe,tile),arm,torso,time,segments,margin=margin,
-                endpoint_caps=endpoint_caps,reference_plane=reference_plane,axis_lengths=axis_lengths,depth_intervals=depth_intervals,pixelwise=pixelwise)
+                endpoint_caps=endpoint_caps,reference_plane=reference_plane,axis_lengths=axis_lengths,depth_intervals=depth_intervals,pixelwise=pixelwise,on_triangle=on_triangle)
             for key,value in part['counts'].items(): counts[key]+=value
         status=('uniform_front_proxy' if counts['front']==pair['overlap_pixels'] else
                 'uniform_back_proxy' if counts['back']==pair['overlap_pixels'] else 'requires_partition_or_more_depth')
@@ -112,7 +112,7 @@ def overlap_support(probe, arm, torso, time, segments, *, margin=.02, endpoint_c
             if probe.remaining<amount:raise ValueError('depth_overlap_pixel_budget')
             probe.remaining-=amount
         counts=classify(attachments[arm],probe.positions[time][arm],probe.textures[arm],rect,
-                        common,intervals,margin,charge)
+                        common,intervals,margin,charge,on_triangle=on_triangle)
         status=('uniform_front_proxy' if counts['front']==pair['overlap_pixels'] else
                 'uniform_back_proxy' if counts['back']==pair['overlap_pixels'] else 'requires_partition_or_more_depth')
         return dict(result,status=status,counts=counts)

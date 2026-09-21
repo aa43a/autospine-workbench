@@ -13,10 +13,11 @@ class PixelDepthTests(unittest.TestCase):
         self.common=mask(self.mesh,self.points,self.alpha,self.rect)>=8
 
     def test_linear_gradient_resolves_only_pixels_clearing_margin(self):
-        charges=[]
+        charges=[];triangles=[]
         counts=classify(self.mesh,self.points,self.alpha,self.rect,self.common,
-                        [[0,0],[.4,.4],[0,0]],.1,charges.append)
+                        [[0,0],[.4,.4],[0,0]],.1,charges.append,on_triangle=lambda i,c:triangles.append((i,c)))
         self.assertEqual(counts,dict(front=6,back=0,ambiguous=4,unknown=0))
+        self.assertEqual(triangles,[(0,dict(front=6,back=0,ambiguous=4))])
         self.assertEqual(sum(charges),32)
         wide=classify(self.mesh,self.points,self.alpha,self.rect,self.common,
                      [[-.2,.2],[.2,.6],[-.2,.2]],.1,lambda n:None)

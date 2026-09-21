@@ -6,7 +6,7 @@ from .depth_overlap_ownership import triangle_groups
 PROFILE = 'ordered-weight-ownership-regions-v1'
 
 
-def build(document, selected_slots, *, part_limit=128):
+def build(document, selected_slots, *, part_limit=128, triangle_labels=None):
     """Split consecutive ownership runs, preserving original triangle draw sequence.
 
     This creates an experimental render representation, not inferred garment depth.
@@ -14,6 +14,8 @@ def build(document, selected_slots, *, part_limit=128):
     """
     names = [s['name'] for s in document['slots']]
     selected = set(selected_slots)
+    if triangle_labels is not None and set(triangle_labels)!=selected:
+        raise ValueError('depth_partition_label_slots')
     if not selected or not selected <= set(names) or len(names) != len(set(names)):
         raise ValueError('depth_partition_slots_invalid')
     if len(document['skins']) != 1:
@@ -43,6 +45,15 @@ def build(document, selected_slots, *, part_limit=128):
             raise ValueError('depth_partition_triangle_indices_invalid')
         groups, bones = triangle_groups(document, mesh)
         owner = {t: group for group, triangles in groups.items() for t in triangles}
+        if triangle_labels is not None:
+            labels=triangle_labels[name]
+            if (len(labels)!=len(mesh['triangles'])//3
+                    or any(not isinstance(v,str) or not v for v in labels)):
+                raise ValueError('depth_partition_label_inventory')
+            old_owner=owner;owner=dict(enumerate(labels));new_bones={}
+            for triangle,group in owner.items():
+                new_bones.setdefault(group,set()).update(bones[old_owner[triangle]])
+            bones=new_bones
         runs = []
         for triangle in range(len(mesh['triangles'])//3):
             group = owner[triangle]
@@ -80,4 +91,5 @@ def build(document, selected_slots, *, part_limit=128):
     report = dict(profile=PROFILE, selected=False, authority='none', regions=rows,
                   triangle_order_preserved=True, deformation_index_space_preserved=True,
                   scope='render_partition_candidate_not_depth_inference_or_runtime_acceptance')
+    if triangle_labels is not None:report['profile']='ordered-explicit-triangle-regions-v1'
     return candidate, report

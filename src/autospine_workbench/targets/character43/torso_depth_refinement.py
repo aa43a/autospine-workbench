@@ -16,7 +16,7 @@ class Checker:
         self.pixelwise=pixelwise
         self.axes={}; self.models={}
 
-    def check(self,arm,body,time,source_tick):
+    def check(self,arm,body,time,source_tick,*,on_triangle=None):
         probe=self.probe
         if not probe.pair(arm,body,time)['overlap_pixels']:
             return dict(status='no_overlap',time=time)
@@ -36,5 +36,5 @@ class Checker:
         lengths={n:v['length'] for n,v in self.axes[arm]['axes'].items() if n in hands['segments']}
         intervals=build(probe.document,mesh,segments,axis_lengths=lengths)
         result=overlap_support(probe,arm,body,time,segments,endpoint_caps=True,
-            reference_plane=plane['coefficients'],axis_lengths=lengths,depth_intervals=intervals['intervals'],pixelwise=self.pixelwise)
+            reference_plane=plane['coefficients'],axis_lengths=lengths,depth_intervals=intervals['intervals'],pixelwise=self.pixelwise,on_triangle=on_triangle)
         return dict(result,reference_plane_evidence=plane)
