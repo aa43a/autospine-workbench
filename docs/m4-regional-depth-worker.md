@@ -1,5 +1,24 @@
 # Regional depth worker integration
 
+## Common-pixel depth classification
+
+`--common-depth-points` evaluates group alpha only at known overlapping native
+pixel centres inside that group's conservative triangle bounds. The isolated
+sampler preserves the dense raster's barycentric tolerance, bilinear alpha,
+out-of-texture behavior, maximum composition and threshold. Pixel-query cost is
+bounded by the preceding cropped rectangle cost; the same overall budget applies.
+The first experiment omitted the group-bound filter and regressed to 89 unmeasured
+checks. It was rejected and remains in `regional-kimodo-huiye-common-v1/`.
+
+The corrected v2 retains all 432 fixed Huiye samples and all 383 previously
+measured outcomes, recovering 14 more. Unmeasured count becomes 35; 120 order
+blockers still prevent a selected candidate. Evidence:
+`../tmp/m4-motion-center/regional-kimodo-huiye-common-v2/report.json`, SHA256
+`eeb85e61068f5bb5da191cc67385db166bc3d52143c1a2412023848f11dd7f6a`, and
+`regional-kimodo-huiye-common-comparison-v2.json`. Twenty-nine focused tests pass,
+including randomized alpha/UV/triangle equivalence and the per-group query-cost
+bound. Defaults, original artifacts and Runtime evidence remain unchanged.
+
 ## Classification-mask cropping
 
 `--tight-depth-groups` is a separate experimental replay policy. Beyond tight

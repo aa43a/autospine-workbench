@@ -36,7 +36,7 @@ class Probe:
         self.rendered_bounds = rendered_bounds
         self.tiled=tiled
         self.sparse=sparse
-        if sparse not in (False,True,'tight_triangle_boxes','tight_depth_groups'):
+        if sparse not in (False,True,'tight_triangle_boxes','tight_depth_groups','common_depth_points'):
             raise ValueError('depth_sparse_policy_unsupported')
         if sparse and not tiled:raise ValueError('depth_sparse_requires_tiled')
         self.slots = {s['name']: s for s in document['slots']}
@@ -98,7 +98,7 @@ class Probe:
             if self.sparse:
                 from .depth_sparse_tiles import regions as sparse_regions
                 regions=sparse_regions(rect,attachments,[points[a],points[b]],
-                    tight=self.sparse in ('tight_triangle_boxes','tight_depth_groups'))
+                    tight=self.sparse in ('tight_triangle_boxes','tight_depth_groups','common_depth_points'))
                 area=sum(r[2]*r[3] for r in regions)
             else:regions=tiles(rect) if self.tiled else [rect]
             if (area > 262144 and not self.tiled) or area*2 > self.remaining:

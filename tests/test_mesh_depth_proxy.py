@@ -12,9 +12,9 @@ class MeshDepthProxyTests(unittest.TestCase):
             for intervals in (None,[[.1,.2],[-.2,-.1],None,[-.01,.01]]):
                 records=[overlap_support(Probe(doc,files,'test',tiled=True,sparse=policy),
                     'a','b',0,segments,depth_intervals=intervals)
-                    for policy in ('tight_triangle_boxes','tight_depth_groups')]
-                self.assertEqual(records[0]['status'],records[1]['status'])
-                self.assertEqual(records[0]['counts'],records[1]['counts'])
+                    for policy in ('tight_triangle_boxes','tight_depth_groups','common_depth_points')]
+                self.assertTrue(all(r['status']==records[0]['status'] for r in records))
+                self.assertTrue(all(r['counts']==records[0]['counts'] for r in records))
 
     def test_optional_endpoint_caps_are_bounded_and_preserve_missing_evidence(self):
         doc,_=fixture(); doc['bones'][0]['length']=2

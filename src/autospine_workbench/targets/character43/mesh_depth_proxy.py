@@ -124,8 +124,10 @@ def overlap_support(probe, arm, torso, time, segments, *, margin=.02, endpoint_c
         groups[group].extend(tri)
     def group_raster(indices):
         attachment=dict(attachments[arm],triangles=indices)
-        if getattr(probe,'sparse',False)=='tight_depth_groups':
+        if getattr(probe,'sparse',False) in ('tight_depth_groups','common_depth_points'):
             from .depth_group_raster import raster as cropped
+            if probe.sparse=='common_depth_points':
+                from .depth_common_raster import raster as cropped
             def charge(amount):
                 if probe.remaining<amount:raise ValueError('depth_overlap_pixel_budget')
                 probe.remaining-=amount
