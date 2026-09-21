@@ -12,7 +12,7 @@ from autospine_workbench.motion_bundle_reader import VerifiedMotionBundleReader
 from autospine_workbench.bvh_parser import parse_bvh
 
 
-def run(job, output, capture_runtime=False):
+def run(job, output, capture_runtime=False, hip_center=False):
     state=Path('workspace')
     request=read_document(state/'jobs/motion-intake-v1'/job/'request.json')
     if request.get('clip') or request.get('projection') or request.get('torso_projection_profile'):
@@ -27,7 +27,7 @@ def run(job, output, capture_runtime=False):
     files,evidence,geometry=build_candidate(source,bundle.motion,
         None if kimodo else parse_bvh(bundle.raw_bvh),bundle.kimodo_map if kimodo else bundle.bvh_map,
         character_digest=request['character_sha256'],motion_digest=identity['bundle_sha256'],kimodo=kimodo,
-        pose_fit=prepare(bundle),contact_correction=request.get('contact_correction',True),
+        pose_fit=prepare(bundle,hip_center=hip_center),contact_correction=request.get('contact_correction',True),
         inferred_contact_profile=request.get('inferred_contact_profile'),
         depth_review_profile=request.get('depth_review_profile'),on_stage=progress)
     store=AnimatedStore(output/'isolated-store')
@@ -44,7 +44,8 @@ def run(job, output, capture_runtime=False):
             progress=progress,cancel_requested=lambda:False,storage_reference=True)
         report['runtime']=runtime
         report['runtime_status']=runtime['status']
-        runtime_report=read_document(output/'runtime/report.json')
+        from autospine_workbench.safe_input_files import read_real_file
+        runtime_report=json.loads(read_real_file(output/'runtime/report.json',256*1024*1024,'runtime report'))
         if runtime_report['bundle_sha256']!=digest:
             raise ValueError('full_pose_runtime_identity_mismatch')
         report['runtime_numeric_passed']=runtime_report['passed']
@@ -57,4 +58,5 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('job');parser.add_argument('output',type=Path)
     parser.add_argument('--capture',action='store_true')
-    args=parser.parse_args();run(args.job,args.output,args.capture)
+    parser.add_argument('--hip-center',action='store_true')
+    args=parser.parse_args();run(args.job,args.output,args.capture,args.hip_center)

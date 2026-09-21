@@ -2,9 +2,10 @@
 from ..motion_validation import motion_ir_sha256
 
 PROFILE = 'absolute-projection-temporal-corrective-v1'
+HIP_PROFILE = 'absolute-projection-hip-center-temporal-v1'
 
 
-def prepare(bundle):
+def prepare(bundle, *, hip_center=False):
     from ..targets.character43.oblique_source import extract
     vectors,_,_=extract(bundle)
     motion=bundle.motion
@@ -14,18 +15,31 @@ def prepare(bundle):
     ticks=[k['tick'] for k in tracks[0]['keys']]
     if any([k['tick'] for k in t['keys']]!=ticks for t in tracks):
         raise ValueError('source_pose_profile_samples_mismatch')
-    return dict(profile=PROFILE,motion_sha256=motion_ir_sha256(motion),vectors=vectors,
+    result=dict(profile=HIP_PROFILE if hip_center else PROFILE,motion_sha256=motion_ir_sha256(motion),vectors=vectors,
                 times=[t/motion['ticks_per_second'] for t in ticks])
+    if hip_center:
+        from ..targets.character43.source_hip_centers import extract as hip_centers
+        result['hip_centers'],result['source_reference']=hip_centers(bundle)
+    return result
 
 
 def project(document,name,motion,bvh,mapping,kimodo,oblique,time_range,pose_fit):
     if pose_fit is not None:
-        if (pose_fit.get('profile')!=PROFILE or pose_fit.get('motion_sha256')!=motion_ir_sha256(motion)
+        if (pose_fit.get('profile') not in (PROFILE,HIP_PROFILE) or pose_fit.get('motion_sha256')!=motion_ir_sha256(motion)
                 or oblique is not None):
             raise ValueError('source_pose_profile_identity_or_view_mismatch')
         from ..targets.character43.source_pose_fit import fit
         document,evidence=fit(document,name,pose_fit['vectors'],pose_fit['times'],project_lengths=True)
-        evidence['target_profile']=PROFILE
+        if pose_fit['profile']==HIP_PROFILE:
+            import math
+            from ..targets.character43.hip_center_motion import apply
+            bones={b['name']:b for b in document['bones']}
+            reference=sum(math.hypot(bones[n]['x'],bones[n]['y']) for n in ('calf_l','foot_l','calf_r','foot_r'))/2
+            document,evidence['hip_center']=apply(document,name,pose_fit['hip_centers'],pose_fit['times'],
+                                                 pose_fit['source_reference'],reference)
+            evidence['limb_output_sha256']=evidence['output_sha256']
+            evidence['output_sha256']=evidence['hip_center']['output_sha256']
+        evidence['target_profile']=pose_fit['profile']
         return document,evidence
     if oblique is not None:
         from ..targets.character43.oblique_target import lengths

@@ -1,0 +1,22 @@
+{
+  "profile": "source-hip-center-integration-evidence-v1",
+  "authority": "none",
+  "selected": false,
+  "candidate_bundle_sha256": "b1dbd20f46d958dc49e3c3ef368fbd41a100973df02951c7823fb1c41d28fdc5",
+  "output": "tmp/m4-source-pose/squat-hip-center-v2",
+  "runtime_numeric_passed": true,
+  "runtime_sampled_frames": 623,
+  "runtime_max_error_px": 0.00011674510354185316,
+  "hip_center_before_error_px": 74.72821550016772,
+  "hip_center_after_error_px": 2.2737367544323206e-13,
+  "ankle_drift_before_px": [68.74117652985733, 86.10589513313752],
+  "ankle_drift_after_px": [44.98183004763939, 13.781256021374869],
+  "contact_status": "inferred_proxy_drift",
+  "contact_rejection": "phase_contact_geometry_failed",
+  "contact_proposal_skeleton_sha256": "e938ac030b0bd24be07d71f695c0cd5756e89d63575edb46eb52589a5a4dcedf",
+  "contact_proposal_sampled_inversions": 0,
+  "contact_proposal_projected_area_failure_records": 40,
+  "contact_proposal_runtime": "not_evaluated",
+  "limitations": ["single_character_squat_experiment", "sampled_not_continuous_proof", "not_visual_acceptance"],
+  "next_action": "Recompute bounded local deformation on the contact-adjusted pose, then recheck contact, projected shape, depth and Runtime."
+}
