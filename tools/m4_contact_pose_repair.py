@@ -17,7 +17,8 @@ from autospine_workbench.targets.character43.deformation_qa import inspect
 from autospine_workbench.targets.character43.motion_contacts import analyze
 
 
-def run(folder,output,capture_runtime=False,foot_orientation=False,ankle_collar=False):
+def run(folder,output,capture_runtime=False,foot_orientation=False,ankle_collar=False,proximal_ring=False):
+    if proximal_ring and not ankle_collar:raise ValueError('proximal_ring_requires_collar')
     if ankle_collar and not foot_orientation:raise ValueError('ankle_collar_requires_foot_orientation')
     source=json.loads((folder/'report.json').read_bytes());address=source['candidate_bundle_sha256']
     files=AnimatedStore(folder/'isolated-store').read(address)
@@ -38,7 +39,7 @@ def run(folder,output,capture_runtime=False,foot_orientation=False,ankle_collar=
     output.mkdir(parents=True,exist_ok=False)
     print(json.dumps(dict(stage='post_contact_repair')),flush=True)
     repaired,correction=build(bare,name,setup,temporal=True,terminal_collar=ankle_collar,
-        progress=lambda row:print(json.dumps(row),flush=True))
+        progress=lambda row:print(json.dumps(row),flush=True),proximal_ring=proximal_ring)
     if repaired['animations'][name]['bones']!=bare['animations'][name]['bones']:
         raise ValueError('post_contact_repair_changed_bones')
     from m4_pose_depth_recheck import recheck
@@ -88,4 +89,5 @@ if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('folder',type=Path);p.add_argument('output',type=Path)
     p.add_argument('--capture',action='store_true');p.add_argument('--foot-orientation',action='store_true')
     p.add_argument('--ankle-collar',action='store_true')
-    a=p.parse_args();run(a.folder,a.output,a.capture,a.foot_orientation,a.ankle_collar)
+    p.add_argument('--proximal-ring',action='store_true')
+    a=p.parse_args();run(a.folder,a.output,a.capture,a.foot_orientation,a.ankle_collar,a.proximal_ring)

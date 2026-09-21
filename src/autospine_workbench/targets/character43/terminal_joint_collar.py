@@ -3,6 +3,17 @@ import math
 from statistics import median
 
 
+def extend_proximal_ring(collar,triangles,influences,bones):
+    seeds=set(collar['vertices'])
+    if not seeds:return dict(collar)
+    neighbors={v for tri in triangles if seeds.intersection(tri) for v in tri}
+    added=sorted(v for v in neighbors-seeds if {bones[i]['name'] for i,w in influences[v] if w>0}=={collar['parent']})
+    result=dict(collar,profile='terminal-proximal-extra-ring-v1-experiment',
+                vertices=sorted(seeds|set(added)),additional_ring_vertices=added)
+    if 'radius_px' in result:result['seed_radius_px']=result.pop('radius_px')
+    return result
+
+
 def propose(points,triangles,influences,bones,pose,parent,child):
     lookup={b['name']:b for b in bones}
     if lookup[child].get('parent')!=parent:raise ValueError('joint_collar_direct_chain_required')
