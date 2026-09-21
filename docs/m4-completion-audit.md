@@ -34,6 +34,11 @@ browser test checks seven navigation/save/identity cases without real decisions.
 The preceding intake/generation/recovery/review audit passed 37 tests; it is not
 a new Kimodo generation or Runtime capture.
 
+Source content now has [dual-view sampled observations](m4-source-category-inspection.md).
+In particular, `raise-arms` is a one-arm bent-elbow cheering sample and `walking`
+has forward-reaching arms. Coverage claims must use these concrete descriptions;
+the original plan and pending category authority are not silently relabeled.
+
 Read-only Chrome verification loaded all eight real source previews, their eight
 Alice target player canvases and stage-review forms. No review POST was sent.
 This verifies delivery and identity checks, not the visual correctness of the

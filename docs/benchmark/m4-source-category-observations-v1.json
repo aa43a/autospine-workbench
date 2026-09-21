@@ -1,0 +1,162 @@
+{
+  "profile": "m4-source-category-observations-v1",
+  "plan_sha256": "289d24b4dd1d70d539265bb26c18ffa06b3d11e17173389ac87dbacb1886b940",
+  "records": [
+    {
+      "motion_id": "breathing",
+      "source_job_id": "motion-c52561d5d07946539a8ca0da57e218e0",
+      "source_sha256": "67bf8b91cb77fec8873bb059cddcb96198c9ca348a16cfa6eb60171dabbd5370",
+      "preview_sha256": "6e328962c2ca91eb4846b1f2cc5badd071c7d5b158247178fb43a06b3597dafc",
+      "preview_samples": 240,
+      "selected_frames": [
+        0,
+        60,
+        120,
+        178,
+        238,
+        298
+      ],
+      "image": "motion-c52561d5d07946539a8ca0da57e218e0.png",
+      "image_sha256": "87252aacd16dc03cd210411f91d7e7080a712223593a6c89e29275db22085cf7",
+      "observed": "站立、手臂下垂，采样间姿态变化较小。",
+      "limits": "支持待机样本描述，不能仅凭六个骨架姿态证明呼吸周期或胸部起伏。"
+    },
+    {
+      "motion_id": "walking",
+      "source_job_id": "motion-1f52729769af473084912644f9d16765",
+      "source_sha256": "ba4923f188ee8580dbe07f79191c154cbad0425ba71a74229eeeba40ea015a68",
+      "preview_sha256": "377a3ee2f1d8f13ef418ffdc9bb648596614109460048551ed03d68f3950e1ac",
+      "preview_samples": 122,
+      "selected_frames": [
+        0,
+        24,
+        48,
+        73,
+        97,
+        121
+      ],
+      "image": "motion-1f52729769af473084912644f9d16765.png",
+      "image_sha256": "1aeb042f1a39cf4f3eacd3e39df8f8b1de3cb50fd960bab02b057ac2870ad989",
+      "observed": "双腿出现交替迈步姿态，双臂明显前伸并屈肘。",
+      "limits": "属于带前伸手臂风格的行走样本，不能代表所有自然摆臂行走。"
+    },
+    {
+      "motion_id": "raise-arms",
+      "source_job_id": "motion-706de065008b4e9dbdaea14b7cb3c64e",
+      "source_sha256": "779dcb5c003f715905f48eafaea706c4ab524d97c7554f6b90c178bff5eecdc9",
+      "preview_sha256": "843897961223679cfffa0de2db1cbfb974ba61a7bbefacf16cfff8cfb0beafe7",
+      "preview_samples": 58,
+      "selected_frames": [
+        0,
+        11,
+        23,
+        34,
+        46,
+        57
+      ],
+      "image": "motion-706de065008b4e9dbdaea14b7cb3c64e.png",
+      "image_sha256": "bae4a2c0f9f83810b8f2cec6465e3bcec7401d43be0ce0d899b45b262736aac9",
+      "observed": "右臂在躯干前屈肘抬动，左臂大致下垂。",
+      "limits": "单臂欢呼/屈肘抬臂样本，不是双臂完整举过头顶。"
+    },
+    {
+      "motion_id": "turn",
+      "source_job_id": "motion-c0ed26b329174551a1c908351174f31f",
+      "source_sha256": "543bfe46e10c5bf921e5fd16473340afe3563a6c18c2b7bb7bf9ed027c8ef165",
+      "preview_sha256": "130a6c138b667a7699f5187da87168f9f16755e3fedb895f5df3d879851fcf57",
+      "preview_samples": 44,
+      "selected_frames": [
+        0,
+        9,
+        17,
+        26,
+        34,
+        43
+      ],
+      "image": "motion-c0ed26b329174551a1c908351174f31f.png",
+      "image_sha256": "7de72473cbfa3e0c141b6941f85d8c945586edd38d0b8088f7bcc69c673130ec",
+      "observed": "屈膝姿态下躯干和双肩方向发生明显改变。",
+      "limits": "支持转向样本描述，不能据此宣称覆盖完整360度转身。"
+    },
+    {
+      "motion_id": "squat",
+      "source_job_id": "motion-42c342d1786f402299dfea949358a0d7",
+      "source_sha256": "596014069e4ecc8527ba37feded9d7b8564d50832862dad89c0a75ca7c136bba",
+      "preview_sha256": "eda91d473b1e4742624d7dc33e7b806109962bfeaf17a0f9cfccb574495132b8",
+      "preview_samples": 57,
+      "selected_frames": [
+        0,
+        11,
+        22,
+        34,
+        45,
+        56
+      ],
+      "image": "motion-42c342d1786f402299dfea949358a0d7.png",
+      "image_sha256": "8cb47b151b31e9caa64c6bf0ef4a6bbbcb4823d771a03a65f251596daabb3684",
+      "observed": "双臂保持高举，骨盆下移、双膝弯曲后恢复。",
+      "limits": "高举双臂下蹲样本，不代表所有下蹲深度或手臂组合。"
+    },
+    {
+      "motion_id": "boxing",
+      "source_job_id": "motion-0239e8622d68464bad355b4527c878f3",
+      "source_sha256": "9bbfe8fc1adf850fbf849a85d308d62f80394f81ee7eb3f483cd68cc6fd80d69",
+      "preview_sha256": "e44cb58bd7dbbf80f4d06768a4939cc13cf58e47e8fb26520210caab07fc1aea",
+      "preview_samples": 67,
+      "selected_frames": [
+        0,
+        13,
+        26,
+        40,
+        53,
+        66
+      ],
+      "image": "motion-0239e8622d68464bad355b4527c878f3.png",
+      "image_sha256": "5965b56cb080986b95bf1dfbf49749faf18199f02aabbf04e5d9fc02019c3080",
+      "observed": "双手在躯干前交替屈伸，伴随躯干倾斜和步态变化。",
+      "limits": "姿态与拳击/出拳标签相符，六帧不用于判定拳法或接触时刻。"
+    },
+    {
+      "motion_id": "reach",
+      "source_job_id": "motion-22d106d0a5994ea49be5d2e32f237e0c",
+      "source_sha256": "89e7b2785bdb93d4c1506d3621701126e37f47acb8757a6e76bde6eed3fbe615",
+      "preview_sha256": "737409365968f864fcec14b57c5f0b6d9fdc642ede22c9b3c8da0106c29969bc",
+      "preview_samples": 121,
+      "selected_frames": [
+        0,
+        24,
+        48,
+        72,
+        96,
+        120
+      ],
+      "image": "motion-22d106d0a5994ea49be5d2e32f237e0c.png",
+      "image_sha256": "ac4747ae57258eacc3ef6dd51ce98e8f07995018099a21c7b0a84901e9ec3e46",
+      "observed": "右手由身体旁逐渐向前上方伸出，左臂大致下垂。",
+      "limits": "单侧前伸动作，不能代表任意方向双手抓取。"
+    },
+    {
+      "motion_id": "wave",
+      "source_job_id": "motion-b691ce34c0b84cbcbf9ad4f5226d486d",
+      "source_sha256": "2ee03d7638686150305d61ff6bd5d8f21a05693cf139bb20467017feb3d363a6",
+      "preview_sha256": "bc32e7b5a6fba5eca35d526dca5148646a05a1a22e9f7d576bd215b72c2b9a77",
+      "preview_samples": 120,
+      "selected_frames": [
+        0,
+        24,
+        48,
+        71,
+        95,
+        119
+      ],
+      "image": "motion-b691ce34c0b84cbcbf9ad4f5226d486d.png",
+      "image_sha256": "806d4bf401d9aa7bdbb5317be5eebe4208e2e2b517fee2fefbed137ad8b5b983",
+      "observed": "左臂抬起，前臂和手在多个采样姿态中改变朝向，最后回落。",
+      "limits": "与左手挥手提示相符；六帧不证明完整频率、连续性或所有中间姿态。"
+    }
+  ],
+  "authority": "none",
+  "scope": "six_sample_poses_per_source_not_continuous_motion_or_human_acceptance",
+  "observer": "assistant_visual_inspection",
+  "category_acceptance": false
+}
