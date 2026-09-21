@@ -13,7 +13,7 @@ from autospine_workbench.targets.character43.local_area_constraints import refin
 from autospine_workbench.targets.spine43.continuous_pose import area
 
 
-def run(folder, attribution, output):
+def run(folder, attribution, output, *, expanded=False, repair_band=False):
     receipt=json.loads((folder/'report.json').read_bytes());evidence=json.loads(attribution.read_bytes())
     identity=receipt['candidate_bundle_sha256']
     if evidence['candidate']!=identity:raise ValueError('preservation_candidate_mismatch')
@@ -38,12 +38,16 @@ def run(folder, attribution, output):
         refs=reference(setup_areas,triangles,owners,doc['bones'],matrices(rest,name,0),matrices(doc,name,time))
         base=sample(bare,name,time)[0][slot];initial=sample(doc,name,time)[0][slot]
         floors=from_pose(base,triangles,refs)
+        band=[]
+        if repair_band:
+            from autospine_workbench.targets.character43.area_preservation import outside_repair_band
+            floors,band=outside_repair_band(base,triangles,refs)
         context=dict(row={'triangles':triangles},areas=refs,edges=edges,
             lengths=[math.dist(setup[slot][a],setup[slot][b]) for a,b in edges],
             free=free,budget=row['budget_px'],minimum_ratios=floors)
         points,solver=project(context,base,initial=initial)
         if not solver['converged']:
-            points,solver['local']=refine(context,base,points,analytic=True)
+            points,solver['local']=refine(context,base,points,analytic=True,**({'expanded':True} if expanded else {}))
         ratios=[area(points,t)/a for t,a in zip(triangles,refs)]
         failed=[i for i,(r,f) in enumerate(zip(ratios,floors)) if r<f-1e-7 or r>2]
         displacement=max(math.dist(a,b) for a,b in zip(base,points))
@@ -51,6 +55,7 @@ def run(folder, attribution, output):
         stretch=max(math.dist(points[a],points[b])/length for (a,b),length in zip(edges,context['lengths']))
         index=target['triangle']
         result=dict(slot=slot,time=time,triangle=index,solver=solver,
+            preservation_scope='outside_one_ring_repair_band' if repair_band else 'all_triangles',repair_band=band,
             failed_triangles=failed,maximum_displacement=displacement,budget_px=context['budget'],
             maximum_fixed_displacement=fixed,max_edge_stretch=stretch,
             previous_setup_ratio=area(initial,triangles[index])/setup_areas[index],
@@ -66,4 +71,6 @@ def run(folder, attribution, output):
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     for key in ('folder','attribution','output'):parser.add_argument(key,type=Path)
-    args=parser.parse_args();run(args.folder,args.attribution,args.output)
+    parser.add_argument('--expanded',action='store_true')
+    parser.add_argument('--repair-band',action='store_true')
+    args=parser.parse_args();run(args.folder,args.attribution,args.output,expanded=args.expanded,repair_band=args.repair_band)

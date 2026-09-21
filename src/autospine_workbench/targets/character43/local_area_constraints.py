@@ -3,7 +3,8 @@ import math
 from .area_preservation import minimum_ratios
 
 
-def refine(context,base,initial,*,analytic=False):
+def refine(context,base,initial,*,analytic=False,expanded=False):
+    if expanded and not analytic:raise ValueError('expanded_area_requires_analytic_derivatives')
     import numpy as np
     from scipy.optimize import minimize
     triangles=np.asarray(context['row']['triangles'],dtype=int)
@@ -30,7 +31,9 @@ def refine(context,base,initial,*,analytic=False):
                 movable_vertices=movable,initial_failed_triangles=bad.tolist(),budget_px=budget)
     if analytic:report['profile']='local-area-analytic-fixed-budget-v1-experiment'
     if 'minimum_ratios' in context:report['profile']='local-area-preservation-v1-experiment'
-    if not movable or len(movable)>32:
+    if expanded:
+        report.update(profile='expanded-area-analytic-v1-experiment',vertex_limit=128)
+    if not movable or len(movable)>(128 if expanded else 32):
         return initial,dict(report,status='local_patch_unavailable')
     indices=np.asarray(movable);size=len(indices)
     def unpack(v):

@@ -21,3 +21,13 @@ def from_pose(points, triangles, references):
         raise ValueError('area_preservation_nonfinite_pose')
     # Do not preserve a pre-existing expansion beyond the projected reference.
     return [max(.5,min(1.,r)) for r in ratios]
+
+
+def outside_repair_band(points, triangles, references):
+    """Preserve distant healthy shape; keep the existing floor in one repair ring."""
+    floors = from_pose(points, triangles, references)
+    seeds = {i for i,(t,a) in enumerate(zip(triangles,references)) if not .5<=area(points,t)/a<=2}
+    vertices = {v for i in seeds for v in triangles[i]}
+    band = [i for i,t in enumerate(triangles) if vertices.intersection(t)]
+    for i in band:floors[i]=.5
+    return floors, band
