@@ -1,5 +1,15 @@
 # Regional depth worker integration
 
+The readiness gate now independently checks refinement sample statuses and each
+present cloth/limb unmeasured count, rather than trusting the zero aggregate.
+Missing/malformed details and unknown measurement statuses stay unmeasured;
+measured uncertainty remains distinct and is subject to the order solver.
+Absent optional cloth/limb reports remain valid when that model was inapplicable.
+The 2026-09-21 read-only audit of `regional-breathing-state-v2.json` preserves
+all three needs-changes results: Alice has 69 unmeasured samples, Huiye 2,613,
+and Hongmeiling zero but unresolved ordering conflicts. This audit reads verified
+stored artifacts; it does not recapture Runtime or grant visual acceptance.
+
 The optional `external-regional-depth-order-v1` worker profile composes render
 partitioning, torso-plane interval refinement, garment/limb constraints, tiled
 alpha checks, and guarded ordering. Existing submission defaults are unchanged.

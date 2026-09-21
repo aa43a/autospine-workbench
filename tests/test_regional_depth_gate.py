@@ -42,3 +42,28 @@ class RegionalGateTests(unittest.TestCase):
             elif kind == 'unselected': depth['selected'] = False
             else: depth['regional']['order'] = {}
             self.assertNotEqual(evaluate(files, depth), 'sampled_pass')
+
+    def test_zero_summary_cannot_hide_unmeasured_details(self):
+        for name in ('refinement', 'cloth_constraints', 'limb_constraints'):
+            files, depth, _ = self.fixture()
+            depth['regional'][name] = (dict(rows=[dict(checks=[dict(status='unmeasured')])])
+                if name == 'refinement' else dict(unmeasured_samples=1))
+            self.assertEqual(evaluate(files, depth), 'unmeasured')
+
+    def test_malformed_detail_is_not_completed_evidence(self):
+        for detail in (dict(rows=None), dict(rows=[{}]), dict(rows=[dict(checks=[{}])])):
+            files, depth, _ = self.fixture()
+            depth['regional']['refinement'] = detail
+            self.assertEqual(evaluate(files, depth), 'unmeasured')
+        for count in (False, -1, '0', None):
+            files, depth, _ = self.fixture()
+            depth['regional']['limb_constraints'] = dict(unmeasured_samples=count)
+            self.assertEqual(evaluate(files, depth), 'unmeasured')
+
+    def test_measured_uncertainty_stays_distinct_from_missing_measurement(self):
+        files, depth, _ = self.fixture()
+        depth['regional']['refinement']['rows'] = [
+            dict(checks=[dict(status='requires_partition_or_more_depth')])]
+        # The order solver, not a local uncertain measurement, decides admissibility.
+        depth['order']['failures'] = [dict(reason_code='visible_depth_straddle')]
+        self.assertEqual(evaluate(files, depth), 'needs_changes')
