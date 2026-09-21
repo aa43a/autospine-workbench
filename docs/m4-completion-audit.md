@@ -114,3 +114,20 @@ All 36 relevant generation, intake, ownership and suspended-thread tests pass.
 This closes the preceding running-worker orphan gap for Windows; it does not
 claim non-Windows crash containment, GPU model quality or checkpoint resumption.
 The already-running workbench must restart to load the new backend implementation.
+
+### Loaded backend and real-input smoke verification
+
+The workbench on port 8918 was restarted at `f0a2be9` after checking the live
+motion queue, recent durable job outcomes and actual worker processes. The
+replacement service PID at verification was 26228. A broad project-overview
+query timed out before restart; this was not treated as evidence of task completion.
+
+Real FBX (299 frames), its verified BVH (299 frames), and external SOMA77 NPZ
+(120 frames) compiled successfully under the new ownership launcher. FBX and BVH
+produced the same MotionIR bundle; all three public preview payloads matched
+their recorded hashes. All 267 pre-restart motion requests, results and stage
+decisions remained byte-identical. Exact jobs and hashes are in
+[the deployment receipt](benchmark/m4-process-owner-deployment-v1.json).
+These are new source compilation runs, not a new Kimodo generation or target
+Runtime capture. The previous restart-required note is now satisfied for this
+local workbench.

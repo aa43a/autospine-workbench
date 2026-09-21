@@ -1,0 +1,137 @@
+{
+  "schema_version": "m4-process-owner-deployment/v1",
+  "verified_at": "2026-09-21T12:44:36.955604+00:00",
+  "commit": "f0a2be9",
+  "service_pid": 26228,
+  "history_files_unchanged": 267,
+  "history_snapshot_sha256": "30238e407fa41e7ca603ef531cd6cf301594c926711dd3618a73ffca715cb2b8",
+  "jobs": [
+    {
+      "format": "fbx",
+      "job_id": "motion-d6681bf7e39545b49921e6f855451d4a",
+      "source_sha256": "67bf8b91cb77fec8873bb059cddcb96198c9ca348a16cfa6eb60171dabbd5370",
+      "result": {
+        "bvh_sha256": "55754b8cfb4e8d4f3915903cc508ebcdd011fa3276404cf78b4abbef4ac21920",
+        "character_animation_status": "not_built",
+        "contact_status": "not_inferred",
+        "duration_seconds": 9.933333333333334,
+        "fbx_bridge": {
+          "authority": "none",
+          "bvh_sha256": "55754b8cfb4e8d4f3915903cc508ebcdd011fa3276404cf78b4abbef4ac21920",
+          "frames": 299,
+          "joints": 53,
+          "max_time_error_seconds": 1.7763568394002505e-15,
+          "max_world_error": 5.132562750494726e-07,
+          "passed": true,
+          "schema": "local.fbx-bvh-verification/v1",
+          "scope": "joint_heads_and_time_only_not_mesh_or_runtime",
+          "source_sha256": "67bf8b91cb77fec8873bb059cddcb96198c9ca348a16cfa6eb60171dabbd5370",
+          "world_tolerance": 0.0001
+        },
+        "fps": 30.0,
+        "frame_count": 299,
+        "joint_count": 53,
+        "loop": false,
+        "motion": {
+          "bundle_sha256": "9a1840b148f2a635f8046e1005c759bdf706cb5448b5d08d3537cec350217d8c",
+          "bvh_map_sha256": "a2a0ed3db70e5e0806c41435ae44b4a8d14ef8d27dac5548da88b09456119633",
+          "clip_id": "external.55754b8cfb4e8d4f.front",
+          "clip_sha256": "a58b48eee62e87aa4963c29e9a6d61a62b6af9023497ef2bc1999ea7c6e55ecc",
+          "map_id": "mixamo-declared-body-v1",
+          "motion_ir_sha256": "a58b48eee62e87aa4963c29e9a6d61a62b6af9023497ef2bc1999ea7c6e55ecc",
+          "raw_bvh_byte_length": 833202,
+          "raw_bvh_sha256": "55754b8cfb4e8d4f3915903cc508ebcdd011fa3276404cf78b4abbef4ac21920",
+          "reused": true,
+          "run_sha256": "ad37b8e09ea5dee62271cad1fd631f4618ee00373ce7e2daa2f8924719163377",
+          "source_kind": "bvh"
+        },
+        "motion_status": "compiled",
+        "preview_sha256": "6e328962c2ca91eb4846b1f2cc5badd071c7d5b158247178fb43a06b3597dafc",
+        "projection": "front",
+        "reference_length_source_units": 80.96501919926655,
+        "reference_policy": "mean_rest_leg_segment_lengths",
+        "target_runtime_status": "not_evaluated"
+      }
+    },
+    {
+      "format": "bvh",
+      "job_id": "motion-f5368eea7d3b47ddb75eea25c0341740",
+      "source_sha256": "55754b8cfb4e8d4f3915903cc508ebcdd011fa3276404cf78b4abbef4ac21920",
+      "result": {
+        "bvh_sha256": "55754b8cfb4e8d4f3915903cc508ebcdd011fa3276404cf78b4abbef4ac21920",
+        "character_animation_status": "not_built",
+        "contact_status": "not_inferred",
+        "duration_seconds": 9.933333333333334,
+        "fps": 30.0,
+        "frame_count": 299,
+        "joint_count": 53,
+        "loop": false,
+        "motion": {
+          "bundle_sha256": "9a1840b148f2a635f8046e1005c759bdf706cb5448b5d08d3537cec350217d8c",
+          "bvh_map_sha256": "a2a0ed3db70e5e0806c41435ae44b4a8d14ef8d27dac5548da88b09456119633",
+          "clip_id": "external.55754b8cfb4e8d4f.front",
+          "clip_sha256": "a58b48eee62e87aa4963c29e9a6d61a62b6af9023497ef2bc1999ea7c6e55ecc",
+          "map_id": "mixamo-declared-body-v1",
+          "motion_ir_sha256": "a58b48eee62e87aa4963c29e9a6d61a62b6af9023497ef2bc1999ea7c6e55ecc",
+          "raw_bvh_byte_length": 833202,
+          "raw_bvh_sha256": "55754b8cfb4e8d4f3915903cc508ebcdd011fa3276404cf78b4abbef4ac21920",
+          "reused": true,
+          "run_sha256": "ad37b8e09ea5dee62271cad1fd631f4618ee00373ce7e2daa2f8924719163377",
+          "source_kind": "bvh"
+        },
+        "motion_status": "compiled",
+        "preview_sha256": "6e328962c2ca91eb4846b1f2cc5badd071c7d5b158247178fb43a06b3597dafc",
+        "projection": "front",
+        "reference_length_source_units": 80.96501919926655,
+        "reference_policy": "mean_rest_leg_segment_lengths",
+        "target_runtime_status": "not_evaluated"
+      }
+    },
+    {
+      "format": "npz",
+      "job_id": "motion-1261e0ce40754bf49bed2f8a16fefddb",
+      "source_sha256": "9b3b9e991370538e48b139ba618bcd8f52502835689bd828df7068dc3fc6c582",
+      "result": {
+        "character_animation_status": "not_built",
+        "consistency": {
+          "max_global_matrix_error": 3.19235e-07,
+          "max_position_error_meters": 4.91194e-07
+        },
+        "contact_status": "source_labels_annotation_only",
+        "duration_seconds": 3.966666666666667,
+        "fps": 30.0,
+        "frame_count": 120,
+        "interpretation": {
+          "fps": "30",
+          "profile": "kimodo-soma77-v1"
+        },
+        "joint_count": 77,
+        "loop": false,
+        "motion": {
+          "array_inventory_sha256": "c9ab859f90b37f9dde3c95d14a7a311c5b527e688eea2b9ccf41fa1aed03b0c8",
+          "bundle_sha256": "40c0889e82c966a379057f6edfee97dd2eee5b96e4e608450e35cf5897237818",
+          "clip_id": "external.9b3b9e991370538e.front",
+          "clip_sha256": "0d70bf854d1f7ee91a9d4dd4cba0a70d881d9dc50dac3340d8b1781e187b8f36",
+          "map_id": "kimodo.soma77.front-v1",
+          "map_sha256": "c7f70b3d5a8504692ee196ab9d22445cd1defc49b80dcc7701855db54f2ad87f",
+          "motion_ir_sha256": "0d70bf854d1f7ee91a9d4dd4cba0a70d881d9dc50dac3340d8b1781e187b8f36",
+          "raw_npz_byte_length": 782570,
+          "raw_npz_sha256": "9b3b9e991370538e48b139ba618bcd8f52502835689bd828df7068dc3fc6c582",
+          "reused": true,
+          "run_sha256": "ef0ff13d26b10869fe7df15bc0b1b43010f7bca490864d896ebd653d56199819",
+          "source_id": "external.9b3b9e991370538e",
+          "source_kind": "kimodo_npz",
+          "source_sha256": "1bb8a9e075e8e72fa5f4db2d1ae1e3b5645499d9f660be0e6a12b458c40d5177"
+        },
+        "motion_status": "compiled",
+        "preview_sha256": "2c48e21f430e4e8a12741223b580006c8359b865ffb4386a657fe96283c1a502",
+        "producer_status": "unavailable_external_export",
+        "projection": "front",
+        "reference_length_source_units": 0.8557914991853858,
+        "reference_policy": "mean_frame_zero_leg_segment_lengths",
+        "target_runtime_status": "not_evaluated"
+      }
+    }
+  ],
+  "scope": "real input recompilation and preview integrity; no new model generation or target Runtime capture"
+}
