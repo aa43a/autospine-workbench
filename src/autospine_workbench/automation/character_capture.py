@@ -60,7 +60,13 @@ def capture(projects, store, digest, root, *, progress, cancel_requested, storag
         from ..targets.character43.runtime_storage_reference import build
         storage = build(candidate)
         path = root/'runtime-storage-reference.json'
-        path.write_bytes(canonical_bytes(storage))
+        raw = canonical_bytes(storage)
+        if len(raw)>256*1024*1024:raise ValueError('runtime_storage_reference_limit')
+        if len(raw)>64*1024*1024:
+            import gzip
+            path = root/'runtime-storage-reference.json.gz'
+            raw = gzip.compress(raw,mtime=0)
+        path.write_bytes(raw)
         commands[0].extend(['32', '{}', str(path)])
     for index, command in enumerate(commands):
         if cancel_requested(): raise ValueError('character_build_canceled')

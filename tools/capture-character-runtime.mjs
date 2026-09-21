@@ -5,6 +5,7 @@ import http from 'node:http';
 import crypto from 'node:crypto';
 import {pathToFileURL} from 'node:url';
 import {readReference} from './character-reference.mjs';
+import {decodeStorageReference} from './runtime-storage-input.mjs';
 const [folderArg,outputArg,dependencies,chrome,strideArg,probeTimesArg,storageReferenceArg]=process.argv.slice(2);
 if(!chrome)throw Error('usage: bundle output dependencies chrome');
 const screenshotStride=strideArg===undefined?32:Number(strideArg);
@@ -26,8 +27,7 @@ for(const [name,sha]of Object.entries(inventory)){
 const reference=await readReference(files.get('/numeric-reference.json'),async name=>files.get('/'+name)),manifest=JSON.parse(files.get('/character-manifest.json'));
 let storageEvidence=null,storageBytes=null;
 if(storageReferenceArg){
-  const raw=await fs.readFile(storageReferenceArg);
-  if(raw.length>64*1024*1024)throw Error('runtime_storage_reference_limit');
+  const raw=decodeStorageReference(await fs.readFile(storageReferenceArg));
   const stored=JSON.parse(raw);
   if(stored.schema!=='autospine.runtime-storage-reference/v1'||stored.profile!=='spine43-linear-weighted-float32-storage-v1'||
     stored.runtime_version!=='4.3.13'||stored.skeleton_sha256!==inventory['skeleton.json']||stored.authority!=='none'||
