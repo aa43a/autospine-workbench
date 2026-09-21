@@ -1,0 +1,19 @@
+{
+  "profile": "post-contact-repair-joint-evidence-v1",
+  "authority": "none",
+  "selected": false,
+  "candidate_bundle_sha256": "b362ecc284ca5dcb7a05cb785e2e8b2c86ff30446a4e5357e385bef102cefb5c",
+  "source_candidate_sha256": "b1dbd20f46d958dc49e3c3ef368fbd41a100973df02951c7823fb1c41d28fdc5",
+  "output": "tmp/m4-source-pose/squat-contact-repair-v3",
+  "sampled_frames": 623,
+  "runtime_numeric_passed": true,
+  "maximum_ankle_drift_px": 1.112285640080576,
+  "ankle_proxy_contact_passed": true,
+  "sampled_inversions": 0,
+  "projected_area_failure_samples": 0,
+  "original_geometry_passed": false,
+  "depth_status": "depth_candidates_need_review",
+  "depth_scope": "arm_torso_only_not_knee_or_skirt_depth_acceptance",
+  "visual_observation": "Knee silhouettes still fold unnaturally; shoe orientation is not a planted-sole pose. No visual acceptance.",
+  "next_action": "Inspect source foot orientation and target foot surface, and resolve knee silhouette/depth rather than treating ankle locking as sole contact."
+}

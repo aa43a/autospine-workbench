@@ -1,12 +1,11 @@
 """Replay an exact rejected support proposal without adopting it."""
 import argparse
-from copy import deepcopy
 from hashlib import sha256
 import json
 from pathlib import Path
 from autospine_workbench.automation.animated_store import AnimatedStore
 from autospine_workbench.automation.storage_io import canonical_bytes
-from autospine_workbench.targets.spine43.continuous_pose import interpolate
+from autospine_workbench.targets.character43.support_proposal_replay import replay
 from autospine_workbench.targets.character43.affine_pose import sample
 from autospine_workbench.targets.character43.numeric_reference import write
 from autospine_workbench.targets.character43.deformation_qa import inspect
@@ -17,22 +16,8 @@ def run(folder,output):
     receipt=json.loads((folder/'report.json').read_bytes())
     files=AnimatedStore(folder/'isolated-store').read(receipt['candidate_bundle_sha256'])
     contact=json.loads(files['motion-contact.json'])
-    if contact['selected'] or sha256(files['skeleton.json']).hexdigest()!=contact['input_skeleton_sha256']:
-        raise ValueError('support_probe_base_changed')
     attempt=contact['phase_attempt']
-    if attempt['status']!='candidate':raise ValueError('support_probe_no_complete_proposal')
-    doc=json.loads(files['skeleton.json']);name='external-motion'
-    base=deepcopy(doc['animations'][name]['bones']);tracks=doc['animations'][name]['bones']
-    tracks['root']['translate']=[]
-    names=('thigh_l','calf_l','thigh_r','calf_r')
-    for n in names:tracks[n]['rotate']=[]
-    root=[dict(time=k['time'],vertices=[k['x'],k['y']]) for k in base['root']['translate']]
-    for row in attempt['rows']:
-        t=row['time'];xy=interpolate(root,t,'vertices')
-        tracks['root']['translate'].append(dict(time=t,x=xy[0]+row['root_shift'][0],y=xy[1]+row['root_shift'][1]))
-        for n in names:
-            angle=interpolate(base[n]['rotate'],t,'value')+row['angles'][n]
-            tracks[n]['rotate'].append(dict(time=t,value=angle))
+    name='external-motion';doc=replay(json.loads(files['skeleton.json']),name,contact)
     times=final_times(doc,name,[r['time'] for r in attempt['rows']]);raw=canonical_bytes(doc)
     trial=write({'skeleton.json':raw},dict(skeleton_sha256=sha256(raw).hexdigest(),
         animations={name:[dict(time=t,vertices=sample(doc,name,t)[0]) for t in times]}))
