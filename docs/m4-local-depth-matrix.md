@@ -11,7 +11,8 @@ Run with `PYTHONPATH=src;tools`:
 python tools/m4_local_depth_matrix.py docs/benchmark/m4-cohort-plan-v3.json ../tmp/m4-motion-center/cohort-state-v3.json ../tmp/m4-motion-center/local-depth-matrix-v1 --limit 3
 ```
 
-Each invocation processes at most three unfinished cells. Resume validates the
+Each invocation defaults to three unfinished cells; `--limit 21` completed the
+remaining cells in this run. Resume validates the
 plan/cohort/profile identity and completed report hashes. New work also verifies
 the live task's candidate, original raw source, frozen character and immutable
 MotionIR bundle. Completed diagnostics are registered on their original tasks
@@ -31,7 +32,26 @@ The first completed group is breathing across all three structures:
 These are sampled model records, not independent observations or visual error
 rates. The report retains the specific cause and missing-data reason for every
 record. No Runtime or human acceptance claim follows from this supplemental
-check. The other 21 cells remain pending in this run.
+check.
+
+The full run is now complete: 24/24 processed, 17 fully measured, seven with
+unmeasured records, zero pending. Across all pair/frame records there are 4,289
+unresolved, 631 uniform-front proxy, 247 uniform-back proxy, 1,067 no-overlap and
+870 unmeasured results. These counts do not denote independent visual samples.
+The frozen evidence is [matrix audit](benchmark/m4-local-depth-matrix-evidence-v1.json).
+
+`tools/m4_local_depth_matrix_audit.py` verifies report hashes, frozen candidate
+identities and recalculated counts, and presents reused geometry/contact/Runtime
+evidence separately. Empty reports cannot count as fully measured. Run:
+
+```powershell
+python tools/m4_local_depth_matrix_audit.py docs/benchmark/m4-cohort-plan-v3.json ../tmp/m4-motion-center/cohort-state-v3.json ../tmp/m4-motion-center/local-depth-matrix-v1 ../tmp/m4-motion-center/local-depth-matrix-v1/audit.json
+```
+
+This also writes `audit.html`. Original technical failures remain in force; this
+run neither changes meshes nor recaptures Runtime nor grants visual acceptance.
+The next algorithm direction is documented in
+[side-turn and rotation policy](m4-side-turn-visual-policy.md).
 
 A checkpoint regression test confirms exact results are reused and changed
 report bytes or profile identity are rejected before reuse. The batch does not

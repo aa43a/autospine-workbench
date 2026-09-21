@@ -1,0 +1,475 @@
+{
+  "profile": "frozen-matrix-local-depth-audit-v1",
+  "plan_sha256": "289d24b4dd1d70d539265bb26c18ffa06b3d11e17173389ac87dbacb1886b940",
+  "planned": 24,
+  "processed": 24,
+  "pending": 0,
+  "fully_measured": 17,
+  "incomplete": 7,
+  "counts": {
+    "requires_partition_or_more_depth": 4289,
+    "uniform_front_proxy": 631,
+    "uniform_back_proxy": 247,
+    "no_overlap": 1067,
+    "unmeasured": 870
+  },
+  "rows": [
+    {
+      "cell": "boxing/alice",
+      "status": "measured",
+      "job_id": "motion-7b9ab257663e4d1daf91c3d620d50b69",
+      "artifact_sha256": "663c4cd44bc69a97a0d85a59576be2c7fa7d9eb7a2c092828a5c5ee96f0be0eb",
+      "report_sha256": "0feafd3056a4a0b8a3f87077fa6121906625b5b5ce3905cb45f85afed53caf84",
+      "counts": {
+        "requires_partition_or_more_depth": 70,
+        "uniform_front_proxy": 63,
+        "uniform_back_proxy": 1
+      },
+      "reasons": {
+        "mixed_front_back_support": 52,
+        "depth_margin_ambiguity": 18,
+        "uniform_front_proxy": 63,
+        "uniform_back_proxy": 1
+      },
+      "prior_geometry_passed": false,
+      "prior_runtime_frames": 321,
+      "prior_contact_status": "inferred_proxy_drift"
+    },
+    {
+      "cell": "boxing/hongmeiling",
+      "status": "measured",
+      "job_id": "motion-6c01b6ac334947729089deabcb1dbed5",
+      "artifact_sha256": "d6be67d4a04c3c01d661ac81ad8c06037fe1539090859884776bf5b5aa720767",
+      "report_sha256": "912951c8499135d7ef6365ef02708c99050de12c502fb70fe5ef05bb3bda1bc7",
+      "counts": {
+        "uniform_front_proxy": 69,
+        "requires_partition_or_more_depth": 117,
+        "no_overlap": 67,
+        "uniform_back_proxy": 15
+      },
+      "reasons": {
+        "uniform_front_proxy": 69,
+        "depth_margin_ambiguity": 62,
+        "mixed_front_back_support": 55,
+        "no_visible_overlap": 67,
+        "uniform_back_proxy": 15
+      },
+      "prior_geometry_passed": false,
+      "prior_runtime_frames": 321,
+      "prior_contact_status": "inferred_proxy_drift"
+    },
+    {
+      "cell": "boxing/huiye",
+      "status": "incomplete",
+      "job_id": "motion-566a58653f43405fa8c4fb9742de4951",
+      "artifact_sha256": "912134a543d8938630e8976718626bcf769924991e7f904b29c1d0900fb7470c",
+      "report_sha256": "050f8e1abd9060092034da3ad4fc6d20315c185ccdbae657a7102bbff2753d64",
+      "counts": {
+        "requires_partition_or_more_depth": 111,
+        "unmeasured": 23
+      },
+      "reasons": {
+        "missing_depth_support": 111,
+        "unmeasured:depth_overlap_pixel_budget": 23
+      },
+      "prior_geometry_passed": false,
+      "prior_runtime_frames": 321,
+      "prior_contact_status": "inferred_proxy_drift"
+    },
+    {
+      "cell": "breathing/alice",
+      "status": "measured",
+      "job_id": "motion-bf659c34670d4319aab72cf673f1d3d7",
+      "artifact_sha256": "8b1a2c9f30d9d341828fd8931faa3e1d2d2f15c7109cec7574d98764e89f3d7b",
+      "report_sha256": "b1979db035b97aee695151723b24abf27f6720789552896314da2896eb5a0a17",
+      "counts": {
+        "requires_partition_or_more_depth": 598
+      },
+      "reasons": {
+        "depth_margin_ambiguity": 598
+      },
+      "prior_geometry_passed": true,
+      "prior_runtime_frames": 1108,
+      "prior_contact_status": "inferred_proxy_corrected"
+    },
+    {
+      "cell": "breathing/hongmeiling",
+      "status": "measured",
+      "job_id": "motion-f151d1a412154c379ddd324526e463dd",
+      "artifact_sha256": "db485dbc559b5dd7858b6224def0f7a56838e76733c6351f1cdfb7b237cbef4a",
+      "report_sha256": "65864e4de2a3315d607ffd0b922a9b17bdf014e1f7cba996ca5a84fcc19e95da",
+      "counts": {
+        "requires_partition_or_more_depth": 897,
+        "no_overlap": 299
+      },
+      "reasons": {
+        "depth_margin_ambiguity": 897,
+        "no_visible_overlap": 299
+      },
+      "prior_geometry_passed": true,
+      "prior_runtime_frames": 1108,
+      "prior_contact_status": "inferred_proxy_corrected"
+    },
+    {
+      "cell": "breathing/huiye",
+      "status": "incomplete",
+      "job_id": "motion-71be588acdfe4c4db3777c98c1ae733e",
+      "artifact_sha256": "6d4d72c931da6e8e6a35c3ff3c12b2ef92221f794e1c6f4ba21f0e654cc1e038",
+      "report_sha256": "a2ecf6b69e5be2f564087a70b9797cc3c15383ac4fe8def8ffd4c502f307e7a2",
+      "counts": {
+        "requires_partition_or_more_depth": 95,
+        "unmeasured": 503
+      },
+      "reasons": {
+        "missing_depth_support": 95,
+        "unmeasured:depth_overlap_pixel_budget": 503
+      },
+      "prior_geometry_passed": true,
+      "prior_runtime_frames": 1108,
+      "prior_contact_status": "inferred_proxy_corrected"
+    },
+    {
+      "cell": "raise-arms/alice",
+      "status": "measured",
+      "job_id": "motion-23fdfd4259864891a1c22e7d3f58ba63",
+      "artifact_sha256": "09df7a84b5ca687628c0e105e9f94a80f327b1d02132603ea97a849afc7406e9",
+      "report_sha256": "1b1857c7b435729419089257a8cbe94f694d7a274d21cdcec0d76b5a0939cb3d",
+      "counts": {
+        "uniform_back_proxy": 44,
+        "requires_partition_or_more_depth": 70,
+        "uniform_front_proxy": 2
+      },
+      "reasons": {
+        "uniform_back_proxy": 44,
+        "depth_margin_ambiguity": 58,
+        "mixed_front_back_support": 12,
+        "uniform_front_proxy": 2
+      },
+      "prior_geometry_passed": false,
+      "prior_runtime_frames": 313,
+      "prior_contact_status": "inferred_proxy_drift"
+    },
+    {
+      "cell": "raise-arms/hongmeiling",
+      "status": "measured",
+      "job_id": "motion-a181853667ad443b8bcacb449eb2f1c5",
+      "artifact_sha256": "bcf9d98e8643b9beaa508293f60dc0830a3d464e77c7761a0058419f7f8e1ede",
+      "report_sha256": "a19cc3c7f909cbac44cf092a9de9f3868e11163f6baa0283cfceb1235b41bb6c",
+      "counts": {
+        "requires_partition_or_more_depth": 174,
+        "no_overlap": 58
+      },
+      "reasons": {
+        "depth_margin_ambiguity": 171,
+        "mixed_front_back_support": 3,
+        "no_visible_overlap": 58
+      },
+      "prior_geometry_passed": false,
+      "prior_runtime_frames": 313,
+      "prior_contact_status": "inferred_proxy_drift"
+    },
+    {
+      "cell": "raise-arms/huiye",
+      "status": "incomplete",
+      "job_id": "motion-9ee3582ab88445a792f5c38462d84f87",
+      "artifact_sha256": "2af625cef32b89e3e427ed8432acacb412d641e9630aa4dd027632158f5aff27",
+      "report_sha256": "7a997ac79349963d62ddd06cb3849e6f09a0f027947fff5847ae5f2ea783805d",
+      "counts": {
+        "requires_partition_or_more_depth": 114,
+        "unmeasured": 2
+      },
+      "reasons": {
+        "missing_depth_support": 114,
+        "unmeasured:depth_overlap_pixel_budget": 2
+      },
+      "prior_geometry_passed": false,
+      "prior_runtime_frames": 313,
+      "prior_contact_status": "inferred_proxy_drift"
+    },
+    {
+      "cell": "reach/alice",
+      "status": "measured",
+      "job_id": "motion-76a6d4f31c104facb5bf066093aec4a0",
+      "artifact_sha256": "7b1e7d78ec07e8070ec9d53dfd79116d95f42a8a21c12d08693a9b0c2695a718",
+      "report_sha256": "21726bb1f5d742f72a9e4dd084444f33957ede1acaec392c08d48c7b3cdfb780",
+      "counts": {
+        "requires_partition_or_more_depth": 183,
+        "uniform_front_proxy": 59
+      },
+      "reasons": {
+        "depth_margin_ambiguity": 183,
+        "uniform_front_proxy": 59
+      },
+      "prior_geometry_passed": false,
+      "prior_runtime_frames": 369,
+      "prior_contact_status": "inferred_proxy_drift"
+    },
+    {
+      "cell": "reach/hongmeiling",
+      "status": "measured",
+      "job_id": "motion-aa45429b532747c5954389a5c1a706c1",
+      "artifact_sha256": "dbf6e6ba1a812255eec74010e21ad6dc85aa0df056eb613f248b9010b7ac55d8",
+      "report_sha256": "5338c4326f2b5e51d18d7b4f7d73ed3d2e472a1d852c2795be347bc7af3df00f",
+      "counts": {
+        "requires_partition_or_more_depth": 217,
+        "no_overlap": 191,
+        "uniform_front_proxy": 76
+      },
+      "reasons": {
+        "depth_margin_ambiguity": 217,
+        "no_visible_overlap": 191,
+        "uniform_front_proxy": 76
+      },
+      "prior_geometry_passed": false,
+      "prior_runtime_frames": 369,
+      "prior_contact_status": "inferred_proxy_drift"
+    },
+    {
+      "cell": "reach/huiye",
+      "status": "incomplete",
+      "job_id": "motion-fdbf9bc8f31348ec85ae768aae704337",
+      "artifact_sha256": "6f5f17f8660ab80e9592c58718490487ce469a7a516aabb100100ac845d8e3e5",
+      "report_sha256": "a7c28799898953aaceadd1dbc41f44c7e473bc0339928277cddc51587f9aca81",
+      "counts": {
+        "requires_partition_or_more_depth": 106,
+        "unmeasured": 136
+      },
+      "reasons": {
+        "missing_depth_support": 106,
+        "unmeasured:depth_overlap_pixel_budget": 136
+      },
+      "prior_geometry_passed": false,
+      "prior_runtime_frames": 369,
+      "prior_contact_status": "inferred_proxy_drift"
+    },
+    {
+      "cell": "squat/alice",
+      "status": "measured",
+      "job_id": "motion-3954d8fe062b4a439b26a90667e97781",
+      "artifact_sha256": "a0d320b6380cd274182dc8c4f35eab15c0d969f441e1e22fc581d72ee98bd97f",
+      "report_sha256": "b939ed190f2e1af147d438060d9b2e0b7648cb26e6dee035adeb751ec99841f8",
+      "counts": {
+        "requires_partition_or_more_depth": 94,
+        "uniform_front_proxy": 20
+      },
+      "reasons": {
+        "depth_margin_ambiguity": 94,
+        "uniform_front_proxy": 20
+      },
+      "prior_geometry_passed": false,
+      "prior_runtime_frames": 312,
+      "prior_contact_status": "inferred_proxy_drift"
+    },
+    {
+      "cell": "squat/hongmeiling",
+      "status": "measured",
+      "job_id": "motion-b0901a9dfc184e59bfbb3eff3eda8561",
+      "artifact_sha256": "d2978ab5b36faf47a45ae56924c7f6b4892b24a3ea1a5dec44b6f870884df4c0",
+      "report_sha256": "51ad78f3d8696d8ffe8006d50433eef33880da33b687b93ed29f943b0dbad25d",
+      "counts": {
+        "requires_partition_or_more_depth": 171,
+        "no_overlap": 57
+      },
+      "reasons": {
+        "depth_margin_ambiguity": 171,
+        "no_visible_overlap": 57
+      },
+      "prior_geometry_passed": true,
+      "prior_runtime_frames": 312,
+      "prior_contact_status": "inferred_proxy_drift"
+    },
+    {
+      "cell": "squat/huiye",
+      "status": "incomplete",
+      "job_id": "motion-6fe3bc850b7d40c9bba86b5a9675d6e8",
+      "artifact_sha256": "cadc5834a668bc9900de33edd5753c13a0d418468a9ed585881123054d8f7f85",
+      "report_sha256": "150cbbd7d7b6e127bd2f75ce6a959049e59d25fcfc4a6cfb9916ecebb2c3d05e",
+      "counts": {
+        "requires_partition_or_more_depth": 97,
+        "unmeasured": 17
+      },
+      "reasons": {
+        "missing_depth_support": 97,
+        "unmeasured:depth_overlap_pixel_budget": 17
+      },
+      "prior_geometry_passed": true,
+      "prior_runtime_frames": 312,
+      "prior_contact_status": "inferred_proxy_drift"
+    },
+    {
+      "cell": "turn/alice",
+      "status": "measured",
+      "job_id": "motion-02c7a8ea09d44cd0a7ed73ec452d6590",
+      "artifact_sha256": "a005044b2e3b0f94029749c6ec0e0e3392eb63c146230d181bbea78553ed3c7a",
+      "report_sha256": "c8e5a79bec2cfd8634fb3048d6c690f7ab48c92b1924805e5632d38d67c38918",
+      "counts": {
+        "uniform_front_proxy": 15,
+        "requires_partition_or_more_depth": 73
+      },
+      "reasons": {
+        "uniform_front_proxy": 15,
+        "depth_margin_ambiguity": 8,
+        "mixed_front_back_support": 65
+      },
+      "prior_geometry_passed": true,
+      "prior_runtime_frames": 603,
+      "prior_contact_status": "inferred_proxy_corrected"
+    },
+    {
+      "cell": "turn/hongmeiling",
+      "status": "measured",
+      "job_id": "motion-4de7a1c108384e12a513621a7f5c119a",
+      "artifact_sha256": "74cbc377399f46070f9744a32e903b0488af2f9cd04112b0027adcd4ce45d8c4",
+      "report_sha256": "43c150808fb9614ccd0ba13dc6080d3cb81e69d82f15913c51ef54abe91da3d0",
+      "counts": {
+        "uniform_front_proxy": 46,
+        "requires_partition_or_more_depth": 52,
+        "no_overlap": 14,
+        "uniform_back_proxy": 64
+      },
+      "reasons": {
+        "uniform_front_proxy": 46,
+        "depth_margin_ambiguity": 13,
+        "mixed_front_back_support": 39,
+        "no_visible_overlap": 14,
+        "uniform_back_proxy": 64
+      },
+      "prior_geometry_passed": true,
+      "prior_runtime_frames": 603,
+      "prior_contact_status": "inferred_proxy_corrected"
+    },
+    {
+      "cell": "turn/huiye",
+      "status": "measured",
+      "job_id": "motion-f840e319d25f46b693e52749beca02bc",
+      "artifact_sha256": "69bb6218ed421fcd1c5538b6c88e65565f783ab5ff343465f6d6eb170cb58585",
+      "report_sha256": "7c1c72723eed2213264c0cbc18c20a645a071109064987cf916a55ad6b36e6f5",
+      "counts": {
+        "requires_partition_or_more_depth": 88
+      },
+      "reasons": {
+        "missing_depth_support": 88
+      },
+      "prior_geometry_passed": true,
+      "prior_runtime_frames": 603,
+      "prior_contact_status": "inferred_proxy_corrected"
+    },
+    {
+      "cell": "walking/alice",
+      "status": "measured",
+      "job_id": "motion-9e472d3c8a7148ae8b3a0695d1d7feea",
+      "artifact_sha256": "aabcb621b78368fc0d4ad1efda103e47d9661265b4460ee6f1485a1aad887c85",
+      "report_sha256": "b175d350367e9a96627a12cdedd2c3354b84c04424d4cee5065a300d0b3d731e",
+      "counts": {
+        "uniform_front_proxy": 184,
+        "no_overlap": 60
+      },
+      "reasons": {
+        "uniform_front_proxy": 184,
+        "no_visible_overlap": 60
+      },
+      "prior_geometry_passed": false,
+      "prior_runtime_frames": 377,
+      "prior_contact_status": "inferred_proxy_drift"
+    },
+    {
+      "cell": "walking/hongmeiling",
+      "status": "measured",
+      "job_id": "motion-3cef343ab24c446c88b6a0ffcfa4aab7",
+      "artifact_sha256": "6b09b21250312ccba465b4115a61536f7b192d3f84c5f939dd180751d86ab175",
+      "report_sha256": "202eade8faff6e3ccda3a794d652b6ae96349ec04a38d8cc714fc22774ba2367",
+      "counts": {
+        "requires_partition_or_more_depth": 188,
+        "uniform_front_proxy": 97,
+        "no_overlap": 200,
+        "uniform_back_proxy": 3
+      },
+      "reasons": {
+        "mixed_front_back_support": 39,
+        "depth_margin_ambiguity": 149,
+        "uniform_front_proxy": 97,
+        "no_visible_overlap": 200,
+        "uniform_back_proxy": 3
+      },
+      "prior_geometry_passed": false,
+      "prior_runtime_frames": 377,
+      "prior_contact_status": "inferred_proxy_drift"
+    },
+    {
+      "cell": "walking/huiye",
+      "status": "incomplete",
+      "job_id": "motion-e938b620ba1a408997dd6091e9cc14c6",
+      "artifact_sha256": "d967df3868862af8c85b2c525f960074d7b5f917bf835db2eacf6535147d7fd1",
+      "report_sha256": "ee900a89a9fa712e4b2f6510063d78778182e7d6c5a4bb448635057d7a63706e",
+      "counts": {
+        "requires_partition_or_more_depth": 107,
+        "unmeasured": 137
+      },
+      "reasons": {
+        "missing_depth_support": 102,
+        "depth_margin_ambiguity": 5,
+        "unmeasured:depth_overlap_pixel_budget": 137
+      },
+      "prior_geometry_passed": false,
+      "prior_runtime_frames": 377,
+      "prior_contact_status": "inferred_proxy_drift"
+    },
+    {
+      "cell": "wave/alice",
+      "status": "measured",
+      "job_id": "motion-76e0d141f979430db88de1183c46a79b",
+      "artifact_sha256": "9fc3e02e74036b34322480c4936f5bfd874c8931bf11372e8c1c19fe2e0c486a",
+      "report_sha256": "0d58f5285af92dda60341cae8f9f3659eabd2cceaa057e2fe220aee2c0e70cdc",
+      "counts": {
+        "uniform_back_proxy": 120,
+        "requires_partition_or_more_depth": 120
+      },
+      "reasons": {
+        "uniform_back_proxy": 120,
+        "depth_margin_ambiguity": 120
+      },
+      "prior_geometry_passed": true,
+      "prior_runtime_frames": 375,
+      "prior_contact_status": "ankle_proxy_corrected"
+    },
+    {
+      "cell": "wave/hongmeiling",
+      "status": "measured",
+      "job_id": "motion-a64993a0ffba4fdd9e09d4e5e1a7389d",
+      "artifact_sha256": "97f933ed42fb42a91ea845ef312b3683661e13034b282881a11baa49c0411230",
+      "report_sha256": "849700bb9b11a9b0d3f83ad436ddb86bbdf15355c7a09f79f9c306af049cc7a8",
+      "counts": {
+        "requires_partition_or_more_depth": 359,
+        "no_overlap": 121
+      },
+      "reasons": {
+        "depth_margin_ambiguity": 359,
+        "no_visible_overlap": 121
+      },
+      "prior_geometry_passed": true,
+      "prior_runtime_frames": 375,
+      "prior_contact_status": "ankle_proxy_corrected"
+    },
+    {
+      "cell": "wave/huiye",
+      "status": "incomplete",
+      "job_id": "motion-883cb61bb3a84aee91f233cca536a552",
+      "artifact_sha256": "8dd7feb7a42764d6bba8780ad4d8262fbcf25e6a35d6f733cd45acc7f88f46b8",
+      "report_sha256": "70bfea87857e628bb1f3a3938b30046f4a5c1bfae657ba3318566e742aee79ad",
+      "counts": {
+        "requires_partition_or_more_depth": 188,
+        "unmeasured": 52
+      },
+      "reasons": {
+        "missing_depth_support": 188,
+        "unmeasured:depth_overlap_pixel_budget": 52
+      },
+      "prior_geometry_passed": true,
+      "prior_runtime_frames": 375,
+      "prior_contact_status": "ankle_proxy_corrected"
+    }
+  ],
+  "authority": "none",
+  "selected": false,
+  "scope": "diagnostic_coverage_and_prior_candidate_evidence_not_new_runtime_or_visual_acceptance"
+}
