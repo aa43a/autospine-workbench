@@ -11,6 +11,7 @@ export function appendLocalDepthDetails(panel,job,base){
       const note=document.createElement('p');note.textContent='补充检查不改变当前候选或阶段验收。深度模型结论不等于画面错误。';content.append(note);
       if(!report.reports.length)content.append(document.createTextNode('此候选尚无局部深度补充检查。'));
       for(const evidence of report.reports){
+        if(evidence.failure){const error=document.createElement('p');error.textContent='补充检查未完成：'+evidence.failure;content.append(error);continue;}
         const details=document.createElement('details'),summary=document.createElement('summary');
         summary.textContent=`${evidence.spatial_sampling==='barycentric_pixel_intervals'?'逐像素检查':'三角形范围检查'} · ${evidence.interpolation==='source_samples_only'?'源动作帧':'帧间插值模型'}`;details.append(summary);
         for(const pair of evidence.causes.pairs){

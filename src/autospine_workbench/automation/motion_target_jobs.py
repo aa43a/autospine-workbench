@@ -64,6 +64,10 @@ def submit(manager, source_job, body):
                    inferred_contact_profile=CONTACT_PROFILE, depth_review_profile=depth_profile)
     if body.get('clip') is not None:
         request['clip'] = body['clip']
+    from ..targets.character43.motion_depth_overlap import SPARSE_DEPTH_PROFILE
+    if depth_profile in ('external-arm-torso-depth-overlap-v2',SPARSE_DEPTH_PROFILE):
+        from ..targets.character43.local_depth_analysis import PROFILE as LOCAL_PROFILE
+        request['local_depth_profile']=LOCAL_PROFILE
     if torso_profile is not None:
         request['torso_projection_profile'] = torso_profile
     if 'projection' in body:

@@ -26,6 +26,7 @@ const states = {
   outdated: '来源已变化',
 };
 const steps = {
+  local_depth:'检查局部深度并分类异常',
   torso_projection:'应用躯干投影并检查脚部路径',
   uploading: '上传原文件', queued: '已排队', verify_source: '校验源文件',
   convert_fbx: 'Blender 转换 FBX', verify_bridge: '逐帧核对源骨架',

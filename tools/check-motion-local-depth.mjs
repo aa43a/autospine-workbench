@@ -3,7 +3,9 @@ const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');
 const browser=await chromium.launch({channel:'chrome',headless:true});
 try{
   const page=await browser.newPage();
-  for(const id of ['motion-8ca66333718c4e9698c2de4261be5878','motion-07cd3c09f104427689fc6773db28269b','motion-223847a1e58e45cfa2d7764ccc6ef282']){
+  const ids=process.argv.slice(2);
+  for(const id of (ids.length?ids:['motion-8ca66333718c4e9698c2de4261be5878','motion-07cd3c09f104427689fc6773db28269b','motion-223847a1e58e45cfa2d7764ccc6ef282'])){
+    if(!/^motion-[a-f0-9]{32}$/.test(id))throw Error('invalid_job');
     await page.goto('http://127.0.0.1:8918/motions.html#'+id);
     const card=page.locator('#'+id);
     await card.getByRole('button',{name:'在此查看遮挡状态'}).click();

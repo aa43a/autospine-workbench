@@ -252,6 +252,19 @@ def execute(folder, state_root, workspace):
     runtime = capture(SimpleNamespace(workspace_root=workspace), store, digest, folder,
                       progress=lambda stage: progress(folder, 'runtime'), cancel_requested=lambda: False,
                       storage_reference=storage_reference == PROFILE)
+    local_depth=None
+    if request.get('local_depth_profile'):
+        from ..targets.character43.local_depth_analysis import PROFILE as LOCAL_PROFILE,analyze
+        from .motion_local_depth_evidence import publish
+        if request['local_depth_profile']!=LOCAL_PROFILE:raise ValueError('motion_local_depth_profile_unsupported')
+        progress(folder,'local_depth')
+        try:
+            report=analyze(files,digest,bundle,request,on_pair=lambda:progress(folder,'local_depth'))
+        except ValueError as exc:
+            report=dict(profile=LOCAL_PROFILE,job_id=request['job_id'],artifact_sha256=digest,
+                authority='none',selected=False,records=[],interpolation='not_evaluated',
+                failure=str(exc),scope='supplemental_check_failed_not_acceptance')
+        local_depth=publish(state_root,folder,request,digest,report)
     result = dict(artifact_sha256=digest, character_animation_status=evidence['status'], runtime=runtime,
                   animations=[ANIMATION], issues=evidence['issues'],
                   geometry_passed=geometry['passed'], contact_status=evidence['contact_status'],
@@ -262,6 +275,7 @@ def execute(folder, state_root, workspace):
                   depth_order_status=evidence['depth_order_status'], authority='none', production_authorized=False)
     if request.get('torso_projection_profile') is not None:
         result['torso_projection_profile'] = request['torso_projection_profile']
+    if local_depth:result['local_depth_evidence_sha256']=local_depth
     (folder / 'worker-result.json').write_bytes(canonical_bytes(result))
 
 

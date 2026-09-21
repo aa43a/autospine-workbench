@@ -167,6 +167,37 @@ readiness or human decision is rewritten. The three cohort reports are registere
 Tests cover absent reports, idempotent registration, request/skeleton mismatch,
 rejected selected reports, multiple retained reports and visible unmeasured rows.
 
+### Automatic worker integration
+
+New target requests using the standard or sparse overlap profile record
+`local_depth_profile=source-bound-local-depth-supplement-v1`. After fresh Runtime
+capture, the isolated worker runs the bounded shared analysis and publishes its
+supplemental evidence automatically. The UI displays **检查局部深度并分类异常**
+while it runs. FBX-derived BVH and Kimodo use their verified source samplers;
+default analysis covers source samples, with the fixed 64-million-pixel budget.
+Resource failures remain explicit. Initialization failures produce a visible
+failed diagnostic rather than an empty passing report. Regional partition
+experiments keep their existing separate checks.
+
+Policy identity is included in existing-target comparisons. Old requests without
+the field retain their old behavior. The CLI and worker call the same analysis
+module; no duplicated algorithm remains. Numeric/readiness/acceptance contracts
+are unchanged, and supplemental evidence never approves a candidate.
+
+Full public-API smoke task `motion-de98ac42418d43cdb1c27a34d6801827` completed a
+fresh 375-frame official Runtime capture (maximum error
+0.00008016478116947709 px), then automatically generated and exposed the local
+report. Its animation artifact remains exactly
+`5423f18e0fc9f5270ca6b5354d87284c4384284e2e41507a87de8079cd86ac08`.
+The real browser check passed. State/evidence:
+`../tmp/m4-motion-center/local-depth-worker-smoke-v1.json`.
+
+The shared module also checked the full FBX-derived Hongmeiling raise candidate
+`motion-de081c9760914eb4b83c7595ae28223a`: 232 pair/frame samples, 63 back, 80 front,
+53 no overlap and 36 unresolved; budget 3,203,562 pixels. Report:
+`../tmp/m4-motion-center/local-depth-fbx-hong-v1.json`. These proxy results do not
+automatically reorder the candidate or replace the eight-motion acceptance set.
+
 ### Projection and rotation strategy
 
 Use three distinct channels rather than applying a single 2D rotation to all art:
