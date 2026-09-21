@@ -29,11 +29,13 @@ def assert_current(manager, request):
 
 
 def submit(manager, source_job, body):
-    if (set(body) - {'project_id', 'character_job_id', 'contact_correction', 'clip', 'projection', 'projection_selection'}
+    if (set(body) - {'project_id', 'character_job_id', 'contact_correction', 'clip', 'projection', 'projection_selection', 'depth_review_profile'}
             or not {'project_id', 'character_job_id'} <= set(body)
             or type(body.get('contact_correction', True)) is not bool):
         raise PipelineRunError('motion_request_invalid')
     source = manager.get(source_job)
+    from .motion_depth_policy import select as select_depth
+    depth_profile = select_depth(body, source)
     if 'projection' in body:
         from ..targets.character43.oblique_target import validate
         try: validate(body['projection'])
@@ -53,12 +55,11 @@ def submit(manager, source_job, body):
     character = characters.get(project, character_job)
     from ..targets.character43.runtime_storage_reference import PROFILE
     from ..targets.character43.phase_contact_policy import PROFILE as CONTACT_PROFILE
-    from ..targets.character43.motion_depth import OVERLAP_PROFILE as DEPTH_PROFILE
     request = dict(kind='adapt', source_job_id=source_job, source_job_sha256=canonical_sha256(source),
                    motion_identity=source['result']['motion'], project_id=project, character_job_id=character_job,
                    character_sha256=character['artifact_sha256'], name=source['name'],
                    contact_correction=body.get('contact_correction', True), runtime_reference_profile=PROFILE,
-                   inferred_contact_profile=CONTACT_PROFILE, depth_review_profile=DEPTH_PROFILE)
+                   inferred_contact_profile=CONTACT_PROFILE, depth_review_profile=depth_profile)
     if body.get('clip') is not None:
         request['clip'] = body['clip']
     if 'projection' in body:

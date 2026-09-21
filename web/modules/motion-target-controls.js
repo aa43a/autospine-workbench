@@ -1,7 +1,9 @@
 // A target is an exact existing character job; no SHA/path fields for operators.
 import {createObliqueSelection} from './motion-oblique-selection.js';
+import {createDepthSelection} from './motion-depth-selection.js';
 export function createTargetControls(request, refresh, selection) {
   const $ = id => document.getElementById(id);
+  const depth = createDepthSelection($('adapt'));
   let source = null, character = null, token = 0, busy = false, comparing = false;
   const label = document.createElement('label');
   label.textContent = '相对源视角的恒定偏转（实验） ';
@@ -21,6 +23,7 @@ export function createTargetControls(request, refresh, selection) {
   void request('/api/motions').then(value => {
     obliqueAvailable = Boolean(value.oblique_target_available); yaw.disabled = !obliqueAvailable;
     automatic.available(obliqueAvailable && value.oblique_comparison_available);
+    depth.available(Boolean(value.regional_depth_available));
   }).catch(() => {});
   function enabled() { $('adapt').disabled = busy || comparing || !source || !character; }
   async function selectProject() {
@@ -59,6 +62,7 @@ export function createTargetControls(request, refresh, selection) {
         method: 'POST', headers: {'Content-Type': 'application/json', 'X-Autospine-Intent': 'pipeline-preview'},
         body: JSON.stringify({project_id: character.project_id, character_job_id: character.job_id,
           contact_correction: $('contact-correction').checked, clip: selection.clip(),
+          ...depth.selection(),
           ...(obliqueAvailable && yaw.value !== '' ? {projection: {
             profile: 'constant-yaw-source-motion-v1', yaw_degrees: Number(yaw.value)}, ...automatic.selection()} : {})}),
       });
@@ -72,6 +76,7 @@ export function createTargetControls(request, refresh, selection) {
     if (source?.job_id !== job?.job_id) yaw.value = '';
     source = job?.result?.motion_status === 'compiled' ? job : null;
     automatic.source(source);
+    depth.source(source);
     $('target-source').textContent = source ? `动作：${source.name}` : '先选择已生成 MotionIR 的源动作。';
     enabled();
   }};

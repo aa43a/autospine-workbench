@@ -2,8 +2,11 @@
 
 The optional `external-regional-depth-order-v1` worker profile composes render
 partitioning, torso-plane interval refinement, garment/limb constraints, tiled
-alpha checks, and guarded ordering. Existing submission defaults are unchanged;
-the profile is not yet exposed through the workbench submission UI.
+alpha checks, and guarded ordering. Existing submission defaults are unchanged.
+The motion-center target controls expose an optional regional-depth checkbox for
+FBX/BVH sources; source changes reset it and NPZ disables it. The API validates
+the explicit profile and records it in the immutable request. Retry preserves
+that profile instead of silently returning to the current default.
 
 Partition selection comes from the exact character's existing
 `fixed-waist-three-chain-sway-v1` skirt-trial records, not character names or
@@ -36,3 +39,16 @@ are its texture/atlas bytes. Geometry passed. Official Runtime checked 646 frame
 and 27 slots with maximum vertex error 0.00011744571093256878 px. The depth gate
 remains `needs_changes`. This verifies the real worker's rejected-order path,
 not the selected regional candidate's full worker capture or visual acceptance.
+
+## Workbench submission verification
+
+Formal API task `motion-71e9441a4dbc41f6b4734e01228e2919` completed with artifact
+`4152d6356ac06b02757bf5353a030319e9ee9f5864e23d267b30ea6201aafbed`.
+It uses the explicit -30 degree projection without the earlier automatic-view
+selection receipt, so its artifact identity is independent. Geometry passed;
+14 depth-conflict records remain and the original order is retained.
+
+Twenty focused tests cover strategy validation, persisted submission, retry,
+worker/profile evidence and comparison. Real Chrome checks cover checkbox
+accessibility, source reset, NPZ exclusion, and the completed task's inline
+category filters/time links. Task completion does not imply depth acceptance.

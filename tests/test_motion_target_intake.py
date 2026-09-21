@@ -136,14 +136,19 @@ class MotionTargetTests(unittest.TestCase):
                 self.assertTrue(request['contact_correction'])
                 self.assertEqual(request['runtime_reference_profile'], 'spine43-linear-weighted-float32-storage-v1')
                 self.assertEqual(request['inferred_contact_profile'], 'external-phase-contact-auto-v1')
+                self.assertEqual(request['depth_review_profile'], 'external-arm-torso-depth-overlap-v2')
                 assert_current(manager, request)
                 disabled = submit(manager, queued['job_id'], dict(project_id='alice',
                     character_job_id='job-'+'c'*32, contact_correction=False, clip=dict(start_frame=0, end_frame=1),
-                    projection=dict(profile='constant-yaw-source-motion-v1',yaw_degrees=30)))
+                    projection=dict(profile='constant-yaw-source-motion-v1',yaw_degrees=30),
+                    depth_review_profile='external-regional-depth-order-v1'))
+                regional = read_document(manager.folder(disabled['job_id']) / 'request.json')
+                self.assertEqual(regional['depth_review_profile'], 'external-regional-depth-order-v1')
                 manager._jobs[disabled['job_id']].update(status='failed')
                 with patch('autospine_workbench.automation.motion_target_jobs.submit') as retry:
                     manager.retry(disabled['job_id'])
                     self.assertFalse(retry.call_args.args[2]['contact_correction'])
+                    self.assertEqual(retry.call_args.args[2]['depth_review_profile'], 'external-regional-depth-order-v1')
                     self.assertEqual(retry.call_args.args[2]['clip'], dict(start_frame=0, end_frame=1))
                     self.assertEqual(retry.call_args.args[2]['projection'],
                                      dict(profile='constant-yaw-source-motion-v1',yaw_degrees=30))
