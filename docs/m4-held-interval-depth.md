@@ -69,3 +69,5 @@ partition and inference identities, pruning counts and each reversal's observed
 states. There is no replacement skeleton or new Runtime capture. Local outputs:
 `../tmp/m4-motion-center/surface-quarter-hong-v1/` and
 `../tmp/m4-motion-center/coherent-interval-hong-v1/`.
+
+Next experiment: [bounded temporal label stabilization](m4-temporal-depth-labels.md).
