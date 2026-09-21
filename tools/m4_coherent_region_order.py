@@ -12,14 +12,20 @@ from autospine_workbench.targets.character43.depth_partition_compact import comp
 from autospine_workbench.targets.character43.motion_depth_overlap import Probe
 from autospine_workbench.targets.character43.motion_depth_order import build as order_build
 from autospine_workbench.targets.character43.affine_pose import sample
+from autospine_workbench.targets.character43.depth_region_constraints import build as constraints,PROFILE as CONSTRAINT_PROFILE
 
 
-def run(parent,output,shared_boundaries=False):
+def run(parent,output,shared_boundaries=False,surface_routing=False):
     if output.exists() and any(output.iterdir()):raise ValueError('coherent_output_exists')
     receipt_raw=(parent/'report.json').read_bytes();receipt=json.loads(receipt_raw);raw=(parent/'observations.json').read_bytes()
     if sha256(raw).hexdigest()!=receipt.get('observations_sha256'):raise ValueError('coherent_observations_identity')
     observations=json.loads(raw);files=AnimatedStore(Path('workspace')).read(receipt['source_artifact_sha256'])
     source=json.loads(files['skeleton.json']);rank={s['name']:i for i,s in enumerate(source['slots'])}
+    held=[]
+    if surface_routing:
+        from autospine_workbench.targets.character43.depth_surface_inventory import build as inventory_build,route
+        if receipt.get('inventory')!=inventory_build(source):raise ValueError('coherent_surface_inventory_identity')
+        observations,held=route(observations,receipt['inventory'])
     models={};labels={};counts=Counter();times=set()
     for arm,rows in observations.items():
         mesh=source['skins'][0]['attachments'][arm][arm];models[arm]={}
@@ -44,18 +50,7 @@ def run(parent,output,shared_boundaries=False):
         for region in partition['regions']:
             if [before[region['source_slot']][i] for i in region['source_vertex_indices']]!=after[region['slot']]:
                 raise ValueError('coherent_partition_geometry_changed')
-    pairs=[]
-    for region in partition['regions']:
-        arm=region['source_slot']
-        for body,frames in models[arm].items():
-            samples=[]
-            for frame in frames:
-                values={frame['labels'][t] for t in region['triangles']}
-                if len(values)!=1:raise ValueError('coherent_partition_signature_changed')
-                unresolved=any(frame['observed_states'][t] in 'UM' for t in region['triangles'])
-                samples.append(dict(tick=frame['time']*1e6,source_tick=frame['source_tick'],ambiguous=unresolved,
-                    current_front_slot=region['slot'] if values.pop() else body))
-            pairs.append(dict(arm_slot=region['slot'],torso_slot=body,evidence_source='regularized_proxy_inference',samples=samples))
+    pairs=constraints(partition,models)
     probe=Probe(partitioned,files,'external-motion',tiled=True,sparse=True,rendered_bounds=True)
     if shared_boundaries:
         from autospine_workbench.targets.character43.depth_shared_boundary import BoundaryProbe
@@ -68,6 +63,9 @@ def run(parent,output,shared_boundaries=False):
         parent_report_sha256=sha256(receipt_raw).hexdigest(),supplemental_models=receipt.get('supplemental_models',[]),
         observations_sha256=receipt['observations_sha256'],partition_skeleton_sha256=sha256(partition_raw).hexdigest(),
         partition=partition,observed_state_counts=dict(counts),sampled_frames=len(times),max_vertex_error=0,order=order,
+        relation_pair_count=len(pairs),relation_sample_count=sum(len(p['samples']) for p in pairs),
+        constraint_profile=CONSTRAINT_PROFILE,
+        surface_routing=surface_routing,held_setup_pairs=held,
         failure_counts=dict(Counter(f['reason_code'] for f in order['failures'])),
         pixel_budget_used=64_000_000-probe.remaining,authority='none',selected=False,
         scope='regularized_inference_with_held_unresolved_regions_not_depth_truth_or_visual_acceptance')
@@ -84,4 +82,5 @@ def run(parent,output,shared_boundaries=False):
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('parent',type=Path);parser.add_argument('output',type=Path)
     parser.add_argument('--shared-boundaries',action='store_true')
-    args=parser.parse_args();run(args.parent,args.output,args.shared_boundaries)
+    parser.add_argument('--surface-routing',action='store_true')
+    args=parser.parse_args();run(args.parent,args.output,args.shared_boundaries,args.surface_routing)

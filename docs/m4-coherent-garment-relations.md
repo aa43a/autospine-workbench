@@ -81,3 +81,7 @@ surfaces and reconcile their constraints together. Independently adding one
 garment pair does not establish a consistent surface order. Garment proxy
 assumptions and missing depth must remain visible through any joint solution,
 and a new candidate still needs continuity checks and fresh Runtime rendering.
+
+The subsequent [complete surface inventory](m4-surface-relation-inventory.md)
+adds automatic model routing and bilateral partition references, retaining
+unmodeled surfaces under their original visible setup-order constraints.

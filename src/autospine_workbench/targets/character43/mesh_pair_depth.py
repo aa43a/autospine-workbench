@@ -40,13 +40,24 @@ def _field(probe,name,time,rect,intervals):
     return low,high,unknown,covered
 
 
-def compare(probe,a,b,time,a_intervals,b_intervals,*,margin=.02):
+def compare(probe,a,b,time,a_intervals,b_intervals,*,margin=.02,on_triangle=None):
     if not math.isfinite(margin) or margin<=0: raise ValueError('pair_depth_margin_invalid')
     pair=probe.pair(a,b,time)
     result=dict(profile=PROFILE,authority='none',selected=False,time=time,pair=[a,b],
                 overlap_pixels=pair['overlap_pixels'],margin=margin,
                 scope='sampled_cpu_alpha_and_depth_model_not_surface_truth_or_runtime')
     if not pair['overlap_pixels']: return dict(result,status='no_overlap',counts={})
+    if 'tiles' in pair:
+        from .depth_raster_tiles import TileProbe
+        counts={k:0 for k in ('front','back','unknown','ambiguous')};unknown_support={a:0,b:0}
+        for tile in pair['tiles']:
+            if not tile['overlap_pixels']:continue
+            part=compare(TileProbe(probe,tile),a,b,time,a_intervals,b_intervals,margin=margin,on_triangle=on_triangle)
+            for k,v in part['counts'].items():counts[k]+=v
+            for k,v in part['unknown_support'].items():unknown_support[k]+=v
+        status=('uniform_front_proxy' if counts['front']==pair['overlap_pixels'] else
+                'uniform_back_proxy' if counts['back']==pair['overlap_pixels'] else 'requires_partition_or_more_depth')
+        return dict(result,status=status,counts=counts,unknown_support=unknown_support)
     al,ah,au,ac=_field(probe,a,time,pair['roi'],a_intervals)
     bl,bh,bu,bc=_field(probe,b,time,pair['roi'],b_intervals)
     common=ac&bc
@@ -54,6 +65,9 @@ def compare(probe,a,b,time,a_intervals,b_intervals,*,margin=.02):
     unknown=common&(au|bu); known=common&~unknown
     front=known&(al>bh+margin); back=known&(ah<bl-margin)
     ambiguous=known&~front&~back
+    if on_triangle is not None:
+        from .depth_triangle_counts import collect
+        collect(probe,a,time,pair['roi'],dict(front=front,back=back,unknown=unknown,ambiguous=ambiguous),on_triangle)
     counts={k:int(v.sum()) for k,v in dict(front=front,back=back,unknown=unknown,ambiguous=ambiguous).items()}
     status=('uniform_front_proxy' if counts['front']==pair['overlap_pixels'] else
             'uniform_back_proxy' if counts['back']==pair['overlap_pixels'] else 'requires_partition_or_more_depth')
