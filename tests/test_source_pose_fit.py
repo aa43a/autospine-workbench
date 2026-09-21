@@ -44,6 +44,22 @@ class SourcePoseFitTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'unobservable'):
             fit(fixture(), 'motion', {'humanoid.arm.upper.right': [(0, 0, 1)]*2}, [0, 1])
 
+    def test_camera_facing_limb_shortens_without_clamping_or_parent_scale_leak(self):
+        doc = fixture()
+        vectors = {'humanoid.arm.upper.right': [(0, -.8, .6)]*2,
+                   'humanoid.arm.lower.right': [(.04, 0, math.sqrt(1-.04**2))]*2}
+        result, report = fit(doc, 'motion', vectors, [0, 1], project_lengths=True)
+        for time in (0, 1):
+            pose = matrices(result, 'motion', time)
+            for name, length in [('upperarm_r', .8), ('forearm_r', .04)]:
+                a, b, c, d, _, _ = pose[name]
+                self.assertAlmostEqual(math.hypot(a, c), length)
+                self.assertAlmostEqual((a*d-b*c)/length, 1.)
+        self.assertEqual(len(report['records'][1]['unreliable_frames']), 2)
+        self.assertLess(report['records'][1]['maximum_axis_length_error'], 1e-10)
+        with self.assertRaisesRegex(ValueError, 'existing_scale'):
+            fit(result, 'motion', vectors, [0, 1], project_lengths=True)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -23,6 +23,14 @@ reach 缓慢抬臂变成快速半圈旋转，以及大幅度屈肢变形。
 实验输出：../tmp/m4-source-pose/{squat-v1,reach-v1}/index.html、report.json、skeleton.json。
 比较对象是未加接触和网格修正的旋转基线；不能将此误差声称为最终 framebuffer 误差。
 
+第二版实验 source-absolute-limb-projection-v1 同时拟合绝对方向与源投影长度，
+使用父级逆仿射矩阵补偿，并保留垂直于骨轴的 setup 厚度。
+输出 ../tmp/m4-source-pose/{squat-v2,reach-v2}/index.html；源肢体正面/侧面方向链
+与目标骨架共享时间轴。右侧是肢体方向示意，不是完整源三维角色。
+Chrome 实测 reach 2.467 秒显示前臂 4.0% 投影长度，无页面脚本错误；
+播放约 1.1 秒后到 3.600 秒。14 项相关单元测试通过。
+新策略尚未接入默认构建，未执行新网格、接触、遮挡或官方 Runtime 验收。
+
 ## M4-A：动作语义与投影正确（当前主目标）
 
 交付：source pose → target pose 的显式标定、深度/弯曲平面信息、
