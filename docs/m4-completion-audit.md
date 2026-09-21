@@ -38,3 +38,18 @@ Read-only Chrome verification loaded all eight real source previews, their eight
 Alice target player canvases and stage-review forms. No review POST was sent.
 This verifies delivery and identity checks, not the visual correctness of the
 motions or the other sixteen target players.
+
+## Refreshed diagnostics and explicit breathing feedback
+
+The separate `cohort-diagnostics-refreshed-v1.json` snapshot rereads all 24 exact
+candidates through the live API. Sixteen have complete sampled depth checks;
+eight have incomplete checks, all Huiye motions. The latter include resource
+limits and actual depth conflicts. Completion of sampling is not a depth pass.
+This replaces the unknown-completeness interpretation for this new snapshot,
+not the historical state or previous experimental reports.
+
+The user explicitly accepted breathing on Alice, Huiye and Hongmeiling with
+technical exceptions retained. Each exact candidate now has revision 1 with
+`accepted_with_exceptions`, after matching artifact and readiness hashes against
+the reviewed snapshot. Other motions are not covered by that decision. The
+fresh stage snapshot is `cohort-reviewed-breathing-v1.json`.
