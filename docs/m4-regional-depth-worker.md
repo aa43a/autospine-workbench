@@ -1,5 +1,32 @@
 # Regional depth worker integration
 
+## Live SOMA77 delivery verification (2026-09-21)
+
+The server was restarted after checking its listener identity and unfinished
+jobs. `m4-regional-kimodo-plan-v1.json` preserves the three frozen characters and
+the original generated wave bytes, with regional strategy explicitly selected.
+Plan identity: `9c244540c8457a60ab84f4d146510ba5b73332157d8a077d7d818c466e09afb5`.
+This is an additional experiment, not replacement of the 24-cell baseline.
+
+| Character | New API job | Fresh Runtime frames | Download files | Unmeasured | Order failures |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Alice | motion-2d475d4ac87344aab4fc2b18c3b04cf1 | 375 | 97 | 0 | 120 |
+| Huiye | motion-13aa3123eb17439e8dfdde4361ce32e4 | 375 | 87 | 194 | 120 |
+| Hongmeiling | motion-ad427fb6a0344efe902f2e962f899ebb | 375 | 91 | 0 | 120 |
+
+All three geometry checks pass. Every ordering failure is
+`visible_depth_straddle`; all remain `needs_changes` and retain fallback order.
+Each actual downloaded ZIP matches the verified immutable artifact file inventory
+and every file's bytes. Player, contact and depth HTTP endpoints return HTML;
+this is not a browser-render or human visual acceptance claim.
+
+Evidence is in `../tmp/m4-motion-center/regional-kimodo-state-v1.json`,
+`regional-kimodo-report-v1.html`, and `regional-kimodo-*-delivery-v1.json`.
+The reusable `m4_motion_delivery_check.py JOB OUTPUT` rejects nonterminal jobs,
+changed artifact identities, duplicate/missing/extra ZIP files and changed bytes.
+Twenty-eight focused tests pass. M4 still requires unresolved quality work;
+successful delivery and Runtime correspondence do not establish supported motion.
+
 The readiness gate now independently checks refinement sample statuses and each
 present cloth/limb unmeasured count, rather than trusting the zero aggregate.
 Missing/malformed details and unknown measurement statuses stay unmeasured;
