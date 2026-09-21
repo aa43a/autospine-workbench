@@ -1,0 +1,51 @@
+{
+  "job_id": "motion-27303356132f4a4bace5ed864ccdb2f6",
+  "artifact_sha256": "0a8db04f667b8848e249f32792070024ff98857f731a14952b56243a1ff8d606",
+  "archive_sha256": "e43dfc10fcc2b7b763dca180f02a650dd9211cb3b3223d2b3c2384d4edd1a139",
+  "archive_files": 97,
+  "page_sha256": {
+    "player.html": "e9e6744f7f487807051e35073902a28d472b0f1dfd7862ea907e13d43e729ffd",
+    "contact.html": "dc60f3bc1873db2eb2e43d9327841a78a02d0e2eb52063ae10fa6a70b61f93bb",
+    "depth.html": "56b6f8bf484798399b064e14d56a08333169d0b6db7dfc3a56991761e629dc4c"
+  },
+  "readiness": "needs_changes",
+  "runtime": {
+    "contact_status": "not_evaluated",
+    "files": {
+      "deformation.json": "bf088e82f13723486e2afd45a2c5c377be4fed138a600fe11cb873e1190315f0",
+      "frames/external-motion-0.png": "fd5432b3db07e6d71ca05bd027b147046a2e5f50d2e596e4207ac824ec2ce009",
+      "frames/external-motion-128.png": "03f8a692924dfb4e4b02391eede7c861ba20b099c31ab34fe8e0fb8198a54f0e",
+      "frames/external-motion-160.png": "41936a4fbcd28e54d2b4a3d2754f1be09ce7e3acde04d9a1cafd0e27255d6555",
+      "frames/external-motion-192.png": "9185a43feda99acf678c1b8931cbdc39ca7d452ff18257ed5abbdfeb2ba60838",
+      "frames/external-motion-224.png": "1bfaa7f44124fc506a577800104525a42d4ddc6c16da146a1e05eabcaa886a8a",
+      "frames/external-motion-256.png": "a99ba6e6bdff4d8d79bb990f3f16e40fd341d13dc8f7fb3d8a8125b992361444",
+      "frames/external-motion-288.png": "f7b5133a6ec7ae4a3be0198e834751658d7dc9ba458c590d9d7b4ceb4650b029",
+      "frames/external-motion-32.png": "83b4a9c4d2073dfdde04859f6b6d2f4d00b0531e7a1d0ee16bbc2393278e7aaa",
+      "frames/external-motion-320.png": "56eecc0647b810448c6d2ad4d6c0ad5ce9f7ddf6727fcab265b3eab313b58887",
+      "frames/external-motion-352.png": "1e9672596b0a871bdb497216d19f0b2cd54a9f6580279c7835fd823745ab0c19",
+      "frames/external-motion-374.png": "95d0a84b5b3c823484fba96b63b4ae19a5c43a9453d8a29fb7628d2a8b8f9288",
+      "frames/external-motion-64.png": "7f6c46261cc26f5fb2b35e2a62974e4553c93e56c2b9aae4f94cf7e83f4651a1",
+      "frames/external-motion-96.png": "484f67ecaa9cc5ccf5ddad7f24b0e5ab1d17e2b875cd38a97201451b72c8742d",
+      "index.html": "7b92e2ac31d220096ac7d6c2f3f55bfb9054e7136eae88f206067c4d92443e3b",
+      "report.json": "0b9ddbc5df10d391735056979b4bc32e1e5c32bd724487eca00fd76db77ab3e5",
+      "runtime-storage-reference.json": "2299e1abee4ff5598bd89470459494c3892023d5365b7cad795dbf660cb02667",
+      "setup-frame.png": "fd5432b3db07e6d71ca05bd027b147046a2e5f50d2e596e4207ac824ec2ce009",
+      "setup/index.html": "37110b23434d611dee9919a6bc3c17811ae627f7b87a63c564e15c98131689ed",
+      "setup/report.json": "e0ae2e3235b7b40f02d6c561add39230750f39da471ebcdeeb6028b16b086e2a",
+      "setup/runtime.png": "fd5432b3db07e6d71ca05bd027b147046a2e5f50d2e596e4207ac824ec2ce009",
+      "setup/source.png": "aa661e9fe4ea3636af512ea92f20d56ec753683a5c39ee4e71f99663b9adab31",
+      "static-regions/index.html": "085f263b5a292eed4281c5849a7c9c6ec9b04bbec75d5b63606d4187bb5b5f51",
+      "static-regions/report.json": "9124d6847302894b2bc02d301853c9abe4e50ed084d604e4eb9ae54123372ac8"
+    },
+    "frames": 375,
+    "geometry_failed_records": 0,
+    "geometry_status": "passed",
+    "scope": "all_attachment_vertices_and_nonempty_unclipped_framebuffer",
+    "slots": 26,
+    "static_region_links": {},
+    "status": "needs_review"
+  },
+  "authority": "none",
+  "production_authorized": false,
+  "scope": "live_http_and_exact_download_bytes_not_browser_render_or_visual_acceptance"
+}

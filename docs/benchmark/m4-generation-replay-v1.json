@@ -1,0 +1,307 @@
+{
+  "schema": "autospine.m4-generation-replay/v1",
+  "checked_at": "2026-09-21T12:58:08.511112+00:00",
+  "old": {
+    "job_id": "motion-b691ce34c0b84cbcbf9ad4f5226d486d",
+    "source_sha256": "2ee03d7638686150305d61ff6bd5d8f21a05693cf139bb20467017feb3d363a6",
+    "result": {
+      "byte_length": 782570,
+      "character_animation_status": "not_built",
+      "consistency": {
+        "max_global_matrix_error": 3.02572e-07,
+        "max_position_error_meters": 6.64315e-07
+      },
+      "contact_status": "source_labels_annotation_only",
+      "duration_seconds": 3.966666666666667,
+      "fps": 30.0,
+      "frame_count": 120,
+      "generation": {
+        "environment_sha256": "e8f4db888bf8dcc815c5f63f317c3d8504d1445d14c1d68e59d5cf7080b2b2b0",
+        "model": "Kimodo-SOMA-RP-v1.1",
+        "parameters": {
+          "diffusion_steps": 100,
+          "duration_seconds": 4,
+          "prompt": "A person stands facing forward and slowly waves with their left hand while keeping both feet planted.",
+          "seed": 42,
+          "view": "front"
+        },
+        "postprocess": false,
+        "request_sha256": "51855259373ad6b555799d82627bf677ad146b2790f359baee93aabba2764ac4"
+      },
+      "interpretation": {
+        "fps": "30",
+        "profile": "kimodo-soma77-v1"
+      },
+      "joint_count": 77,
+      "loop": false,
+      "motion": {
+        "array_inventory_sha256": "e4cf87890c002d9f67cdb6ca474c0ac857ec704e6e5549fb87e00da281f8b7b8",
+        "bundle_sha256": "7d9096d87d4016df2884f8a3cfd6b217d954f974c5ea9bbd831236d74983b645",
+        "clip_id": "external.2ee03d7638686150.front",
+        "clip_sha256": "64b40e08c4ebbeb5a01b15d341252115271ee1a54770716abf2781a24983175a",
+        "map_id": "kimodo.soma77.front-v1",
+        "map_sha256": "924e9ee8464aae1359065b7be0d719d9482bc5efe90f8fe86c36b34789635b49",
+        "motion_ir_sha256": "64b40e08c4ebbeb5a01b15d341252115271ee1a54770716abf2781a24983175a",
+        "raw_npz_byte_length": 782570,
+        "raw_npz_sha256": "2ee03d7638686150305d61ff6bd5d8f21a05693cf139bb20467017feb3d363a6",
+        "reused": false,
+        "run_sha256": "eba51b7f250c946ad173f82c64bec36aa37487a0cb3f0b5c065e789ba88629b3",
+        "source_id": "external.2ee03d7638686150",
+        "source_kind": "kimodo_npz",
+        "source_sha256": "406e38ff23db4887dabd220db8c8bf5a19aefd768cf8f705a8f13ca6b26c1423"
+      },
+      "motion_status": "compiled",
+      "preview_sha256": "bc32e7b5a6fba5eca35d526dca5148646a05a1a22e9f7d576bd215b72c2b9a77",
+      "producer_status": "recorded",
+      "projection": "front",
+      "reference_length_source_units": 0.8557909591127404,
+      "reference_policy": "mean_frame_zero_leg_segment_lengths",
+      "source_sha256": "2ee03d7638686150305d61ff6bd5d8f21a05693cf139bb20467017feb3d363a6",
+      "target_runtime_status": "not_evaluated"
+    },
+    "members": {
+      "local_rot_mats.npy": "df259734fb69ea960bba49e57ab7a8df18275439d0f77a5cf93cce176b692569",
+      "global_rot_mats.npy": "6179efe1f76d8b41af7fa4ae2e1685525b6b649bb8e4c3d8e89bd90a9bb1401e",
+      "posed_joints.npy": "2e445cb18e5418034afae9bed7dff8c7ffb8757da052021f251ddd2d2262e84d",
+      "root_positions.npy": "f747f9950899f66b19925cfc7306be16b8d0fa899ebd09e8eedb522b7f4ea4a4",
+      "smooth_root_pos.npy": "4305cc9fad425bad626c56501e6cbf04b0ace873c52fea9f6a9ecd1b926b1156",
+      "foot_contacts.npy": "bd373c853909f21f16e04be657708b6583b76be53f9a93d8b9b3b9094ae73903",
+      "global_root_heading.npy": "f59a11f21c1bc716e675baad4be02822959f617e3f73f83e770b25959bf96906"
+    },
+    "environment": {
+      "adapters": {
+        "LLM2Vec-Meta-Llama-3-8B-Instruct-mntp": {
+          "adapter_config.json": {
+            "byte_length": 794,
+            "sha256": "1d3bbf14142865885ea8d0dbc1fb261adf4f5d14ddbdc939efb47c4913037813"
+          },
+          "adapter_model.safetensors": {
+            "byte_length": 167829552,
+            "sha256": "de9c8736618a13173c6a1623cdef1b75e86c69317f1073ae82cd516ac36a632d"
+          }
+        },
+        "LLM2Vec-Meta-Llama-3-8B-Instruct-mntp-supervised": {
+          "adapter_config.json": {
+            "byte_length": 794,
+            "sha256": "2a1265e4a7829c16dad38a5175ec8ac41ea1e851654da5044ace2437615a58ba"
+          },
+          "adapter_model.safetensors": {
+            "byte_length": 167829552,
+            "sha256": "53f8f94ebdf396667ba99dd96e78203edae27bbcdbd1cf5f12b611e1d916b225"
+          }
+        }
+      },
+      "base_manifest": {
+        "byte_length": 1905,
+        "sha256": "84525f8ab287d8863384959774c2226ce925df3dea2a423a0a6e3b6d5973f74e"
+      },
+      "checkpoint": {
+        "config.yaml": {
+          "byte_length": 675,
+          "sha256": "905664ad05779b0e28c391b85dc81c9de166418bd5f471ef605f75ab746ce391"
+        },
+        "model.safetensors": {
+          "byte_length": 1133185036,
+          "sha256": "ef0a0ca45a6089ab4532dde609785771ae3f38755b4ae6cf314b0213e07cd4a3"
+        },
+        "stats/motion/body/mean.npy": {
+          "byte_length": 3040,
+          "sha256": "d42f35f8bb7ef52fdec66ae29c5cf590bd038f4f1aabd2d560d1d0f78663ed6f"
+        },
+        "stats/motion/body/std.npy": {
+          "byte_length": 3040,
+          "sha256": "965bbad497726ef4e6c46b519827e2cbcb29f974214b25718d20a725b82279ed"
+        },
+        "stats/motion/global_root/mean.npy": {
+          "byte_length": 168,
+          "sha256": "6c110980f9a0386e57a8c186f8eac7f55dc05bade92f44c4b391450ada598da1"
+        },
+        "stats/motion/global_root/std.npy": {
+          "byte_length": 168,
+          "sha256": "fb15aeed7143f5f0754611f0acf5fa5f55d1f6492a49c23e490fc62f7bf11fb0"
+        },
+        "stats/motion/local_root/mean.npy": {
+          "byte_length": 160,
+          "sha256": "4c36e8e33d6d51e6c8206ac796a52b7b3a4da7f0dc49ebdbb4f130178e3e9d31"
+        },
+        "stats/motion/local_root/std.npy": {
+          "byte_length": 160,
+          "sha256": "5f57b41f51ced7832cffa81702f6e04d8694e16475c184baec6c8be0e98c8dba"
+        }
+      },
+      "checkpoint_revision": "6c9233af1180b8151e3c4703477104af5dce9dd5",
+      "layout_builder": {
+        "byte_length": 1677,
+        "sha256": "139916f50036ca37838e98e1ec9f0c63b7e3b5f3737e2be42db2a490a2a3fc85"
+      },
+      "model": "Kimodo-SOMA-RP-v1.1",
+      "offline": true,
+      "postprocess": false,
+      "preparation": {
+        "byte_length": 13034,
+        "sha256": "755f4f6f70e0eba225419cd112e9a49a29e006f7a2b2a25d012d1eee25e4b2da"
+      },
+      "repository_revision": "c503c77aa877f4e4469402ae197bb0e5739bbedd",
+      "runner": {
+        "byte_length": 4717,
+        "sha256": "5a350dd2d4842a4b17d327f0e677cf2748b230d42a4dcd3ae719dd53f34f349b"
+      },
+      "schema": "autospine.kimodo-generation-environment/v1",
+      "text_encoder_device": "cpu"
+    }
+  },
+  "new": {
+    "job_id": "motion-dc7dc44a65c74445bd87e1baaf81c6cf",
+    "source_sha256": "2ee03d7638686150305d61ff6bd5d8f21a05693cf139bb20467017feb3d363a6",
+    "result": {
+      "byte_length": 782570,
+      "character_animation_status": "not_built",
+      "consistency": {
+        "max_global_matrix_error": 3.02572e-07,
+        "max_position_error_meters": 6.64315e-07
+      },
+      "contact_status": "source_labels_annotation_only",
+      "duration_seconds": 3.966666666666667,
+      "fps": 30.0,
+      "frame_count": 120,
+      "generation": {
+        "environment_sha256": "284fc779d858ce3d91de3001a2b1dfdc65e1acef3b76f2e9991220b7d9db2c14",
+        "model": "Kimodo-SOMA-RP-v1.1",
+        "parameters": {
+          "diffusion_steps": 100,
+          "duration_seconds": 4,
+          "prompt": "A person stands facing forward and slowly waves with their left hand while keeping both feet planted.",
+          "seed": 42,
+          "view": "front"
+        },
+        "postprocess": false,
+        "request_sha256": "3e1277ae824265f939059998c2ed089c3900556566e72c5aba44865eca8600f5"
+      },
+      "interpretation": {
+        "fps": "30",
+        "profile": "kimodo-soma77-v1"
+      },
+      "joint_count": 77,
+      "loop": false,
+      "motion": {
+        "array_inventory_sha256": "e4cf87890c002d9f67cdb6ca474c0ac857ec704e6e5549fb87e00da281f8b7b8",
+        "bundle_sha256": "571428c04e573db828d89f0b5f646b4e36fcaebb947cb141629b38a0f7dbd2ff",
+        "clip_id": "external.2ee03d7638686150.front",
+        "clip_sha256": "64b40e08c4ebbeb5a01b15d341252115271ee1a54770716abf2781a24983175a",
+        "map_id": "kimodo.soma77.front-v1",
+        "map_sha256": "924e9ee8464aae1359065b7be0d719d9482bc5efe90f8fe86c36b34789635b49",
+        "motion_ir_sha256": "64b40e08c4ebbeb5a01b15d341252115271ee1a54770716abf2781a24983175a",
+        "raw_npz_byte_length": 782570,
+        "raw_npz_sha256": "2ee03d7638686150305d61ff6bd5d8f21a05693cf139bb20467017feb3d363a6",
+        "reused": false,
+        "run_sha256": "4f5fd1b6c00be95e9aaeeab020931fec873962751beb49f7b4910889e4c51a9b",
+        "source_id": "external.2ee03d7638686150",
+        "source_kind": "kimodo_npz",
+        "source_sha256": "f5361d8ff9a2ec5ec751d34d838be6b08d59ded8e284b041e201f398fda6116a"
+      },
+      "motion_status": "compiled",
+      "preview_sha256": "bc32e7b5a6fba5eca35d526dca5148646a05a1a22e9f7d576bd215b72c2b9a77",
+      "producer_status": "recorded",
+      "projection": "front",
+      "reference_length_source_units": 0.8557909591127404,
+      "reference_policy": "mean_frame_zero_leg_segment_lengths",
+      "source_sha256": "2ee03d7638686150305d61ff6bd5d8f21a05693cf139bb20467017feb3d363a6",
+      "target_runtime_status": "not_evaluated"
+    },
+    "members": {
+      "local_rot_mats.npy": "df259734fb69ea960bba49e57ab7a8df18275439d0f77a5cf93cce176b692569",
+      "global_rot_mats.npy": "6179efe1f76d8b41af7fa4ae2e1685525b6b649bb8e4c3d8e89bd90a9bb1401e",
+      "posed_joints.npy": "2e445cb18e5418034afae9bed7dff8c7ffb8757da052021f251ddd2d2262e84d",
+      "root_positions.npy": "f747f9950899f66b19925cfc7306be16b8d0fa899ebd09e8eedb522b7f4ea4a4",
+      "smooth_root_pos.npy": "4305cc9fad425bad626c56501e6cbf04b0ace873c52fea9f6a9ecd1b926b1156",
+      "foot_contacts.npy": "bd373c853909f21f16e04be657708b6583b76be53f9a93d8b9b3b9094ae73903",
+      "global_root_heading.npy": "f59a11f21c1bc716e675baad4be02822959f617e3f73f83e770b25959bf96906"
+    },
+    "environment": {
+      "adapters": {
+        "LLM2Vec-Meta-Llama-3-8B-Instruct-mntp": {
+          "adapter_config.json": {
+            "byte_length": 794,
+            "sha256": "1d3bbf14142865885ea8d0dbc1fb261adf4f5d14ddbdc939efb47c4913037813"
+          },
+          "adapter_model.safetensors": {
+            "byte_length": 167829552,
+            "sha256": "de9c8736618a13173c6a1623cdef1b75e86c69317f1073ae82cd516ac36a632d"
+          }
+        },
+        "LLM2Vec-Meta-Llama-3-8B-Instruct-mntp-supervised": {
+          "adapter_config.json": {
+            "byte_length": 794,
+            "sha256": "2a1265e4a7829c16dad38a5175ec8ac41ea1e851654da5044ace2437615a58ba"
+          },
+          "adapter_model.safetensors": {
+            "byte_length": 167829552,
+            "sha256": "53f8f94ebdf396667ba99dd96e78203edae27bbcdbd1cf5f12b611e1d916b225"
+          }
+        }
+      },
+      "base_manifest": {
+        "byte_length": 1905,
+        "sha256": "84525f8ab287d8863384959774c2226ce925df3dea2a423a0a6e3b6d5973f74e"
+      },
+      "checkpoint": {
+        "config.yaml": {
+          "byte_length": 675,
+          "sha256": "905664ad05779b0e28c391b85dc81c9de166418bd5f471ef605f75ab746ce391"
+        },
+        "model.safetensors": {
+          "byte_length": 1133185036,
+          "sha256": "ef0a0ca45a6089ab4532dde609785771ae3f38755b4ae6cf314b0213e07cd4a3"
+        },
+        "stats/motion/body/mean.npy": {
+          "byte_length": 3040,
+          "sha256": "d42f35f8bb7ef52fdec66ae29c5cf590bd038f4f1aabd2d560d1d0f78663ed6f"
+        },
+        "stats/motion/body/std.npy": {
+          "byte_length": 3040,
+          "sha256": "965bbad497726ef4e6c46b519827e2cbcb29f974214b25718d20a725b82279ed"
+        },
+        "stats/motion/global_root/mean.npy": {
+          "byte_length": 168,
+          "sha256": "6c110980f9a0386e57a8c186f8eac7f55dc05bade92f44c4b391450ada598da1"
+        },
+        "stats/motion/global_root/std.npy": {
+          "byte_length": 168,
+          "sha256": "fb15aeed7143f5f0754611f0acf5fa5f55d1f6492a49c23e490fc62f7bf11fb0"
+        },
+        "stats/motion/local_root/mean.npy": {
+          "byte_length": 160,
+          "sha256": "4c36e8e33d6d51e6c8206ac796a52b7b3a4da7f0dc49ebdbb4f130178e3e9d31"
+        },
+        "stats/motion/local_root/std.npy": {
+          "byte_length": 160,
+          "sha256": "5f57b41f51ced7832cffa81702f6e04d8694e16475c184baec6c8be0e98c8dba"
+        }
+      },
+      "checkpoint_revision": "6c9233af1180b8151e3c4703477104af5dce9dd5",
+      "layout_builder": {
+        "byte_length": 1991,
+        "sha256": "458dede5e1fd08a55aa0a117d4058524b4a5334bc27eecfa8f33997e217ca69d"
+      },
+      "model": "Kimodo-SOMA-RP-v1.1",
+      "offline": true,
+      "postprocess": false,
+      "preparation": {
+        "byte_length": 13034,
+        "sha256": "755f4f6f70e0eba225419cd112e9a49a29e006f7a2b2a25d012d1eee25e4b2da"
+      },
+      "repository_revision": "c503c77aa877f4e4469402ae197bb0e5739bbedd",
+      "runner": {
+        "byte_length": 4744,
+        "sha256": "483fd7c819a1f16d04ee3b1e6333993407d85238c19241c66c214df9c8ff2b95"
+      },
+      "schema": "autospine.kimodo-generation-environment/v1",
+      "text_encoder_device": "cpu"
+    }
+  },
+  "parameters_equal": true,
+  "environment_equal": false,
+  "npz_bytes_equal": true,
+  "npz_members_equal": true,
+  "scope": "two_observed_runs_not_general_determinism_or_visual_acceptance"
+}

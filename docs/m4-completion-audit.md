@@ -161,3 +161,26 @@ The cohort browser suite now passes 30 checks, including seeking beyond record
 Alice records, sought the last record at 9.933333 seconds on the Runtime canvas,
 and verified the existing revision 1 acceptance still applies. No new Runtime
 capture, human decision or corrected geometry is claimed.
+
+## Real generation replay under process ownership
+
+After deployment, the original four-second, seed-42, 100-step Kimodo request was
+retried as `motion-dc7dc44a65c74445bd87e1baaf81c6cf`. It completed with 120 frames
+and 77 joints. Its NPZ archive and every member match the original generation
+byte-for-byte. The recorded environment correctly differs in the runner and
+layout-builder hashes; the new request and provenance are separate identities.
+This is an observed replay, not a guarantee of universal deterministic output.
+See [source replay receipt](benchmark/m4-generation-replay-v1.json) and the
+reusable `tools/m4_generation_replay_check.py` verifier.
+
+The new source was adapted to the frozen Alice character as
+`motion-27303356132f4a4bace5ed864ccdb2f6`, artifact
+`0a8db04f667b8848e249f32792070024ff98857f731a14952b56243a1ff8d606`.
+This run newly captured 375 official Runtime samples across 26 slots, with zero
+failed geometry records, and selected ankle-proxy contact correction. Depth
+remains unresolved and readiness is `needs_changes`. All 97 downloaded files
+match the addressed artifact; the live player loads at 1.5 seconds with a canvas
+and no page errors. See [delivery receipt](benchmark/m4-generation-replay-delivery-v1.json).
+No human decision was submitted or copied, and the original fixed matrix remains
+unchanged. The replay verifies actual model/Blender-independent generation and
+downstream capture with the new Windows ownership mechanism.
