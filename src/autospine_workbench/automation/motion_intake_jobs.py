@@ -14,7 +14,8 @@ import time
 from uuid import uuid4
 
 from ..safe_input_files import read_real_file
-from .motion_intake_process import failure_reason, read_progress, terminate_tree
+from .motion_intake_process import failure_reason, read_progress
+from .motion_process_owner import launch as launch_owned, stop as stop_owned
 from .pipeline_run import PipelineRunError
 from .storage_io import directory, publish_document, read_document
 
@@ -181,6 +182,7 @@ class MotionIntakeJobs:
     def _execute(self, job):
         folder = self.folder(job)
         process = None
+        process_owner = None
         try:
             if self._cancel[job].is_set():
                 raise PipelineRunError('motion_canceled')
@@ -200,8 +202,7 @@ class MotionIntakeJobs:
             command = [sys.executable, '-m', 'autospine_workbench.automation.' + module,
                        str(folder), str(self.state_root), extra]
             with (folder / 'worker.log').open('wb') as log:
-                process = subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT,
-                                           start_new_session=os.name != 'nt')
+                process, process_owner = launch_owned(command, log)
                 started = time.monotonic()
                 while process.poll() is None:
                     if self._cancel[job].wait(.15):
@@ -224,8 +225,8 @@ class MotionIntakeJobs:
         finally:
             try:
                 if process is not None:
-                    terminate_tree(process)
-            except (OSError, subprocess.SubprocessError):
+                    stop_owned(process, process_owner)
+            except (OSError, subprocess.SubprocessError, PipelineRunError):
                 outcome = dict(status='failed', reason_code='motion_termination_failed')
             with self._lock:
                 value = dict(self._jobs[job], **outcome)

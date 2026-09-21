@@ -96,3 +96,21 @@ run. Abrupt server termination and orphan cleanup are not covered: the current
 executor uses taskkill during cleanup, which requires the manager to reach that
 cleanup. This remains a recovery-hardening item; durable interrupted status alone
 does not prove that descendants of a forcibly terminated service have exited.
+
+### Abrupt-exit hardening
+
+The subsequent implementation adds `motion_process_owner.py`: Windows workers
+start suspended, join a verified kill-on-close Job Object, and only then resume.
+The service owns the non-inheritable handle. Normal cleanup also closes that job
+after a worker exits, covering any remaining descendants. Ownership failures
+stop the suspended worker and expose `motion_process_ownership_failed`.
+
+A disposable real manager host now spawns a worker and grandchild. The test opens
+handles proving both are alive, kills only the host (no tree-kill command), and
+verifies both handles become signaled. A fresh manager reads the old request as
+interrupted and retries under a new ID without changing the original bytes.
+Two injected startup failure boundaries also prove the worker payload never runs.
+All 36 relevant generation, intake, ownership and suspended-thread tests pass.
+This closes the preceding running-worker orphan gap for Windows; it does not
+claim non-Windows crash containment, GPU model quality or checkpoint resumption.
+The already-running workbench must restart to load the new backend implementation.

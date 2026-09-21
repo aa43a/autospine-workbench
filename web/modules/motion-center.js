@@ -68,6 +68,8 @@ const reasons = {
   motion_queue_full: '已有两个任务正在处理，请完成后再导入。',
   motion_decode_failed: '解析失败，源文件和诊断已保留。',
   motion_import_interrupted: '上次解析未完成，可重新解析。',
+  motion_process_ownership_failed: '无法建立工作进程隔离，任务未启动。请检查服务运行权限后重试。',
+  motion_termination_failed: '未能确认工作进程已停止，请检查后台任务后再重试。',
   motion_canceled: '已停止解析，原文件保留。',
   motion_target_character_or_source_changed: '角色或动作来源已变化，请选择当前角色重新构建。',
   motion_target_deformation_needs_changes: '部分部件在动作中变形超限，可在候选预览中定位。',

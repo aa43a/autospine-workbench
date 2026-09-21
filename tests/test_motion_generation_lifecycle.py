@@ -2,6 +2,7 @@
 import ctypes
 from ctypes import wintypes
 import os
+import json
 from pathlib import Path
 import subprocess
 import sys
@@ -15,6 +16,8 @@ from autospine_workbench.automation.motion_generation_jobs import submit
 from autospine_workbench.automation.motion_intake_jobs import MotionIntakeJobs
 from autospine_workbench.automation.motion_intake_process import terminate_tree
 from autospine_workbench.automation.storage_io import read_document
+from autospine_workbench.automation.motion_process_owner import launch as launch_owned
+from autospine_workbench.automation.pipeline_run import PipelineRunError
 
 
 BODY = dict(prompt='A person waves.', duration_seconds=4, seed=42,
@@ -110,3 +113,62 @@ class MotionGenerationLifecycleTests(unittest.TestCase):
 
     def test_graceful_close_stops_real_worker_and_descendant_and_preserves_retry(self):
         self.exercise_stop(close=True)
+
+    def test_forced_host_exit_kills_descendants_and_reopens_as_interrupted(self):
+        script = Path(__file__).parent / 'fixtures/motion_crash_host.py'
+        host = self.real_popen([sys.executable, str(script), str(self.root)],
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        self.addCleanup(terminate_tree, host)
+        def ready():
+            try:
+                return json.loads((self.root / 'pids.json').read_text())
+            except (OSError, ValueError):
+                return None
+        pids = self.await_value(ready)
+        handles = []
+        for pid in pids:
+            handle = self.api.OpenProcess(0x00100000, False, pid)
+            self.assertTrue(handle, ctypes.get_last_error())
+            self.addCleanup(self.api.CloseHandle, handle)
+            self.assertEqual(self.api.WaitForSingleObject(handle, 0), 258)
+            handles.append(handle)
+        job = json.loads((self.root / 'job.json').read_text())['job_id']
+        folder = self.jobs.folder(job)
+        before = (folder / 'request.json').read_bytes()
+        # Kill ONLY the manager host, without taskkill /T or running its finally.
+        host.kill()
+        host.wait(timeout=5)
+        for handle in handles:
+            self.assertEqual(self.api.WaitForSingleObject(handle, 5000), 0)
+        reopened = MotionIntakeJobs(self.projects)
+        self.addCleanup(reopened.close)
+        self.assertEqual(reopened.get(job)['status'], 'interrupted')
+        self.assertFalse((folder / 'result.json').exists())
+        with patch('autospine_workbench.automation.motion_generation_jobs.availability',
+                   return_value='configured'), patch.object(reopened._pool, 'submit'):
+            retry = reopened.retry(job)['job_id']
+        self.assertNotEqual(retry, job)
+        self.assertEqual(read_document(reopened.folder(retry) / 'request.json')['generation'], BODY)
+        self.assertEqual((folder / 'request.json').read_bytes(), before)
+
+    def test_ownership_failure_never_runs_worker(self):
+        for boundary in ('attach_kill_on_close_process_job', 'resume_suspended_primary_thread'):
+            with self.subTest(boundary=boundary):
+                marker = self.root / (boundary + '.txt')
+                command = [sys.executable, '-c',
+                           'from pathlib import Path; import sys; Path(sys.argv[1]).write_text("ran")',
+                           str(marker)]
+                created = []
+                def capture(*args, **kwargs):
+                    process = self.real_popen(*args, **kwargs)
+                    created.append(process)
+                    return process
+                with (self.root / 'ownership.log').open('wb') as log, patch(
+                        'autospine_workbench.automation.motion_process_owner.subprocess.Popen',
+                        side_effect=capture), patch(
+                            'autospine_workbench.automation.motion_process_owner.' + boundary,
+                            side_effect=RuntimeError('injected ownership failure')):
+                    with self.assertRaisesRegex(PipelineRunError, 'motion_process_ownership_failed'):
+                        launch_owned(command, log)
+                self.assertFalse(marker.exists())
+                self.assertIsNotNone(created[0].poll())
