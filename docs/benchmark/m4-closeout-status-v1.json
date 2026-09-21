@@ -1,0 +1,55 @@
+{
+  "plan_sha256": "289d24b4dd1d70d539265bb26c18ffa06b3d11e17173389ac87dbacb1886b940",
+  "summary": {
+    "required": 24,
+    "terminal": 24,
+    "captured": 24,
+    "geometry_passed": 11,
+    "candidate_exceptions": 24,
+    "failed": 0,
+    "runtime_frames": 11334,
+    "visual_accepted": 0,
+    "visual_accepted_with_exceptions": 3,
+    "visual_evidence_changed": 0,
+    "stage_review_ready": 0,
+    "contact_partial": 0,
+    "contact_unmeasured": 0,
+    "depth_unmeasured": 0,
+    "depth_checks_incomplete": 8,
+    "torso_applied": 0,
+    "torso_not_applied": 0,
+    "torso_application_unknown": 24,
+    "depth_completeness_unknown": 0
+  },
+  "stage_coverage": {
+    "投影": {
+      "sampled_pass": 6,
+      "needs_changes": 18,
+      "unmeasured": 0
+    },
+    "几何": {
+      "sampled_pass": 11,
+      "needs_changes": 13,
+      "unmeasured": 0
+    },
+    "接触": {
+      "sampled_pass": 9,
+      "needs_changes": 15,
+      "unmeasured": 0
+    },
+    "遮挡": {
+      "sampled_pass": 0,
+      "needs_changes": 24,
+      "unmeasured": 0
+    },
+    "Runtime": {
+      "sampled_pass": 24,
+      "needs_changes": 0,
+      "unmeasured": 0
+    }
+  },
+  "visual_snapshot_at": "2026-09-21T13:06:28.562335+00:00",
+  "report_sha256": "77b637bff48e893e2fc1fade47a193dc3fcd866c187128030b3372b86197e623",
+  "review_snapshot_sha256": "2bd0bc095a36cb18bda79b05dc7ea1be6573578e76237349fd7cddeb114ee713",
+  "scope": "current_stage_records_for_exact_fixed_candidates_no_new_runtime_capture"
+}
