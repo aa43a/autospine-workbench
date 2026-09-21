@@ -28,11 +28,13 @@ def intersection(a, b):
 
 
 class Probe:
-    def __init__(self, document, files, animation, *, pixel_budget=64_000_000, rendered_bounds=False,tiled=False):
+    def __init__(self, document, files, animation, *, pixel_budget=64_000_000, rendered_bounds=False,tiled=False,sparse=False):
         self.document, self.files, self.animation = document, files, animation
         self.remaining = pixel_budget
         self.rendered_bounds = rendered_bounds
         self.tiled=tiled
+        self.sparse=sparse
+        if sparse and not tiled:raise ValueError('depth_sparse_requires_tiled')
         self.slots = {s['name']: s for s in document['slots']}
         self.textures = {}; self.positions = {}; self.results = {}
         self._alpha_key=None; self._alpha_tiles={}
@@ -45,7 +47,8 @@ class Probe:
     def reuse(self,other):
         """Reuse completed measurements only, under identical in-memory inputs."""
         if (self.document is not other.document or self.files is not other.files or
-                self.animation!=other.animation or self.rendered_bounds!=other.rendered_bounds or self.tiled!=other.tiled):
+                self.animation!=other.animation or self.rendered_bounds!=other.rendered_bounds or
+                self.tiled!=other.tiled or self.sparse!=other.sparse):
             raise ValueError('depth_overlap_cache_identity')
         if any(k in self.results and self.results[k]!=v for k,v in other.results.items()):
             raise ValueError('depth_overlap_cache_conflict')
@@ -87,10 +90,17 @@ class Probe:
             result = dict(status='sampled', overlap_pixels=0, roi=None)
         else:
             area = rect[2]*rect[3]
-            if (area > 262144 and not self.tiled) or area*2 > self.remaining:
-                raise RasterBudgetError(a,b,time,rect,self.remaining,max_roi=None if self.tiled else 262144)
             from .depth_raster_tiles import tiles
-            regions=tiles(rect) if self.tiled else [rect]
+            if self.sparse:
+                from .depth_sparse_tiles import regions as sparse_regions
+                regions=sparse_regions(rect,attachments,[points[a],points[b]])
+                area=sum(r[2]*r[3] for r in regions)
+            else:regions=tiles(rect) if self.tiled else [rect]
+            if (area > 262144 and not self.tiled) or area*2 > self.remaining:
+                error=RasterBudgetError(a,b,time,rect,self.remaining,max_roi=None if self.tiled else 262144)
+                if self.sparse:error.diagnostic.update(required_pixels=area*2,
+                    sampled_roi_pixels=area,profile='conservative-triangle-box-tiles-v1-experiment')
+                raise error
             self.remaining -= area*2
             measurements=[]
             if self.tiled: self._alpha_key=key; self._alpha_tiles={}
@@ -104,6 +114,7 @@ class Probe:
                     self._alpha_tiles[tuple(region)]=common
             result = dict(status='sampled', overlap_pixels=sum(r['overlap_pixels'] for r in measurements), roi=rect)
             if self.tiled: result['tiles']=measurements
+            if self.sparse:result['sampled_roi_pixels']=area
         self.results[key] = result
         return result
 
