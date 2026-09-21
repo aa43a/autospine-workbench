@@ -1,0 +1,21 @@
+{
+  "profile": "ankle-collar-joint-validation-v1",
+  "authority": "none",
+  "selected": false,
+  "candidate_bundle_sha256": "483d921c24cf0d0e5271ee0865418b0c5966c58202b2d40d3e85c94b3278262c",
+  "output": "tmp/m4-source-pose/squat-ankle-collar-full-v1",
+  "sampled_frames": 623,
+  "runtime_numeric_passed": true,
+  "maximum_ankle_drift_px": 1.112285640080576,
+  "sampled_inversions": 0,
+  "projected_area_failure_samples": 0,
+  "original_geometry_passed": false,
+  "depth_status": "depth_candidates_need_review",
+  "collars": [
+    {"slot": "layer-003", "anatomical_side": "right", "added_proximal_vertices": [137,138,139], "budget_px": 27.419690005541646},
+    {"slot": "layer-004", "anatomical_side": "left", "added_proximal_vertices": [148,149,150], "budget_px": 24.117945600734732}
+  ],
+  "invariants": ["no_weight_or_setup_change", "original_displacement_budgets", "distal_single_bone_vertices_fixed", "source_foot_orientation_preserved"],
+  "visual_observation": "Foot orientation remains improved; knee silhouette and small transparent contour gaps remain. No visual acceptance.",
+  "next_action": "Cross-character validation and joint silhouette/alpha/depth assessment."
+}

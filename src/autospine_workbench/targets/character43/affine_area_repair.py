@@ -6,7 +6,9 @@ from ..spine43.continuous_pose import area
 from .affine_pose import matrices, sample
 
 
-def repair(document, name, *, samples=257, convergent=False, setup_vertices=None, projected_reference=False, extra_times=(), temporal=False):
+def repair(document, name, *, samples=257, convergent=False, setup_vertices=None, projected_reference=False, extra_times=(), temporal=False, terminal_collar=False):
+    if terminal_collar and not (convergent and projected_reference):
+        raise ValueError('character_collar_projection_required')
     if temporal and not (convergent and projected_reference):
         raise ValueError('character_temporal_projection_required')
     animation = document['animations'][name]
@@ -51,6 +53,14 @@ def repair(document, name, *, samples=257, convergent=False, setup_vertices=None
             if min(ratios) >= .5 and max(ratios) <= 2:
                 continue
         free = [sum(w > 0 for _, w in entries) > 1 for entries in influences]
+        collars=[]
+        if terminal_collar:
+            from .terminal_joint_collar import propose
+            for side in ('l','r'):
+                if 'foot_'+side not in rest_transforms:continue
+                collar=propose(base,triangles,influences,bones,rest_transforms,'calf_'+side,'foot_'+side)
+                for vertex in collar['vertices']:free[vertex]=True
+                if collar['vertices']:collars.append(collar)
         used = {bones[i]['name'] for entries in influences for i, w in entries if w > 0}
         lengths = [math.hypot(b['x'], b['y']) for b in bones if b['name'] in used and b.get('parent') in used]
         if not lengths or min(lengths) <= 0:
@@ -70,6 +80,9 @@ def repair(document, name, *, samples=257, convergent=False, setup_vertices=None
                     from .corrective_transport import transport
                     initial = transport(original, influences, keys[-1]['vertices'], bones, transform)
                 corrected, solver = project_v2(context, original, **({'initial':initial} if temporal else {}))
+                if terminal_collar and not solver['converged']:
+                    from .local_area_constraints import refine
+                    corrected,solver['local_constraints']=refine(context,original,corrected)
                 solver_rows.append(dict(time=time, **solver))
             else:
                 corrected = project(context, original)
@@ -98,10 +111,12 @@ def repair(document, name, *, samples=257, convergent=False, setup_vertices=None
                          area_status='needs_review' if unresolved else 'sampled_pass'))
         if convergent:
             rows[-1]['solver_samples'] = solver_rows
+        if terminal_collar:rows[-1]['terminal_collars']=collars
     profile = 'affine-mixed-area-budget10-v2' if convergent else 'affine-mixed-area-budget10-v1'
     if projected_reference:
         profile = 'affine-mixed-projected-area-budget10-v1'
     if temporal:
         profile = 'transported-projected-area-budget10-v1'
+    if terminal_collar:profile='terminal-collar-projected-area-budget10-v1'
     return result, dict(profile=profile, authority='none', selected=False,
                         records=rows, validation='dense_resampling_required')

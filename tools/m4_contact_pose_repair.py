@@ -17,7 +17,8 @@ from autospine_workbench.targets.character43.deformation_qa import inspect
 from autospine_workbench.targets.character43.motion_contacts import analyze
 
 
-def run(folder,output,capture_runtime=False,foot_orientation=False):
+def run(folder,output,capture_runtime=False,foot_orientation=False,ankle_collar=False):
+    if ankle_collar and not foot_orientation:raise ValueError('ankle_collar_requires_foot_orientation')
     source=json.loads((folder/'report.json').read_bytes());address=source['candidate_bundle_sha256']
     files=AnimatedStore(folder/'isolated-store').read(address)
     doc=json.loads(files['skeleton.json']);name='external-motion'
@@ -36,7 +37,7 @@ def run(folder,output,capture_runtime=False,foot_orientation=False):
     setup=json.loads(files['rig-setup-reference.json'])['vertices']
     output.mkdir(parents=True,exist_ok=False)
     print(json.dumps(dict(stage='post_contact_repair')),flush=True)
-    repaired,correction=build(bare,name,setup,temporal=True)
+    repaired,correction=build(bare,name,setup,temporal=True,terminal_collar=ankle_collar)
     if repaired['animations'][name]['bones']!=bare['animations'][name]['bones']:
         raise ValueError('post_contact_repair_changed_bones')
     from m4_pose_depth_recheck import recheck
@@ -68,6 +69,7 @@ def run(folder,output,capture_runtime=False,foot_orientation=False):
         projected_area_failure_samples=len(correction['refinement'][-1]['check']['failures']),
         depth_status=depth['status'],depth_scope=depth['scope'],runtime_status='not_evaluated')
     if foot:report['foot_orientation_profile']=foot['profile']
+    report['correction_profile']=correction['profile']
     (output/'report.json').write_bytes(canonical_bytes(report))
     if capture_runtime:
         runtime=capture(SimpleNamespace(workspace_root=Path.cwd().parent),store,artifact,output,
@@ -83,4 +85,5 @@ def run(folder,output,capture_runtime=False,foot_orientation=False):
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('folder',type=Path);p.add_argument('output',type=Path)
     p.add_argument('--capture',action='store_true');p.add_argument('--foot-orientation',action='store_true')
-    a=p.parse_args();run(a.folder,a.output,a.capture,a.foot_orientation)
+    p.add_argument('--ankle-collar',action='store_true')
+    a=p.parse_args();run(a.folder,a.output,a.capture,a.foot_orientation,a.ankle_collar)
