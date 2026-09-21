@@ -18,7 +18,7 @@ from autospine_workbench.targets.character43.depth_partition_compact import comp
 from autospine_workbench.targets.character43.affine_pose import sample
 
 
-def run(job,output,part_limit=128):
+def run(job,output,part_limit=128,coalesce=False):
     import re
     if not re.fullmatch(r'motion-[a-f0-9]{32}',job):raise ValueError('job_invalid')
     root=Path('workspace');folder=root/'jobs/motion-intake-v1'/job
@@ -49,7 +49,10 @@ def run(job,output,part_limit=128):
     selected={};reports={}
     for arm,rows in traces.items():
         mesh=document['skins'][0]['attachments'][arm][probe.slots[arm]['attachment']]
-        selected[arm],reports[arm]=labels(len(mesh['triangles'])//3,rows)
+        if coalesce:
+            from autospine_workbench.targets.character43.depth_partition_coalesce import coalesced_labels
+            selected[arm],reports[arm]=coalesced_labels(len(mesh['triangles'])//3,rows)
+        else:selected[arm],reports[arm]=labels(len(mesh['triangles'])//3,rows)
     required=sum(1+sum(a!=b for a,b in zip(values,values[1:])) for values in selected.values())
     output.mkdir(parents=True,exist_ok=True)
     (output/'observations.json').write_bytes(canonical_bytes(traces))
@@ -75,4 +78,5 @@ def run(job,output,part_limit=128):
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('job');parser.add_argument('output',type=Path)
     parser.add_argument('--part-limit',type=int,choices=(128,256,512),default=128)
-    args=parser.parse_args();run(args.job,args.output,args.part_limit)
+    parser.add_argument('--coalesce',action='store_true')
+    args=parser.parse_args();run(args.job,args.output,args.part_limit,args.coalesce)

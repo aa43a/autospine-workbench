@@ -54,3 +54,60 @@ python tools/m4_partition_runtime_compare.py ../tmp/m4-motion-center/temporal-de
 这两个工具写入独立输出，不修改已确认角色、原动作任务或默认策略。
 当前工具限制为未施加躯干投影形变的 BVH 候选，不能直接用于 Kimodo
 或已投影变形的候选；这些场景已有独立深度采样器，但分区工具尚未接入。
+
+## 兼容合并与时序约束
+
+`--coalesce` 启用独立的连续区间合并策略。只有 `N`（该时刻无采样
+重叠）可作为兼容项；前/后冲突不能合并，未知、裕量不足或混合也不能
+被明确的前/后状态覆盖。原三角形状态计数和序列摘要保留在报告中。
+
+Alice 转身的区域数从 494 降到 206，JSON 从 12,274,905 降到
+7,203,527 字节。原候选与合并候选再次各捕获 87 帧，全部对应 RGBA
+像素一致；最大 Runtime 顶点误差仍约 `0.0000807782 px`。证据见
+[合并对比](benchmark/m4-coalesced-partition-runtime-v1.json)。输出目录：
+`../tmp/m4-motion-center/temporal-depth-partition-alice-coalesced-v1/`。
+206 仍超过默认 128 上限，本实验没有改变工作台默认上限。
+
+时序约束模块将每个区域的明确前/后状态转换为所需前景附件；未知、
+裕量不足、内部混合和无重叠均不会生成前景要求。该候选产生 131 个
+明确前后关系之间的转变区间，全部标记为需要区间验证，不据此直接
+生成已经通过的切换动画。分类统计是区域/采样时刻数，不是三角形数
+或真实视觉错误率。
+
+其中 16 个区域在全部已测重叠时刻保持同一方向，11 个需要相对于
+原身体顺序调整。`tools/m4_stable_region_order.py` 对这类区域单独尝试
+现有的可见部件交叉保护检查；其它区域保持原顺序约束。该实验不修改
+原候选，得到结果后仍需官方 Runtime 和阶段复核。
+
+实际交叉检查在 16 个时刻发现同一处顺序环：`layer-004-depth-120`
+必须在上衣前方，同时原有可见裙装关系要求它在裙装后方；裙装又在
+上衣后方。实测重叠存在，不能移除这些边来伪造通过。
+
+`--safe-subset` 最多尝试四轮，使用同一 Probe 与共享像素预算，只将
+顺序环中明确涉及的区域保留在原顺序。资源不足等错误不会通过删除
+区域绕过。本例经过两轮，保留上述一处异常，余下 15 条单一方向关系
+得到部分调整候选，包含六个绘制顺序关键帧；约使用 497 万像素预算。
+这不处理其余混合/近共面区域，也不表示整个候选通过深度检查。
+
+部分调整前后各捕获 173 个源帧、中间帧与区间中间时刻。官方 Runtime
+数值检查通过，最大顶点误差约 `0.0000807782 px`。173 帧均有颜色
+变化，最大差异帧为 `0.89166675 s`，改变 1,066 个像素。
+查看该帧发现胸前局部袖布片段：部分显示与邻接未确定区域的遮挡不
+连续。因此不能将这版视为已证明的视觉改善；保持实验状态，未采用。
+后续必须加入相邻区域可见性连续性检查，再决定允许哪些局部调整。
+
+证据：[部分顺序 Runtime 对比](benchmark/m4-stable-region-order-runtime-v1.json)。
+可拖动时间轴与前后对照：
+`../tmp/m4-motion-center/stable-region-order-alice-v3/index.html`。
+它播放实际捕获帧，不生成帧间图像，也不会记录用户验收。
+
+```powershell
+python tools/m4_stable_region_order.py ../tmp/m4-motion-center/temporal-depth-partition-alice-coalesced-v1 ../tmp/m4-motion-center/stable-region-order-alice-v3 --safe-subset
+python tools/m4_partition_runtime_compare.py ../tmp/m4-motion-center/stable-region-order-alice-v3 --allow-order-change
+python tools/m4_partition_compare_review.py ../tmp/m4-motion-center/stable-region-order-alice-v3
+```
+
+拓扑排序改用按原 slot 序号优先的堆，避免分区增加后反复扫描全部约束
+边。随机有环图与 DAG 对照测试验证其选择顺序与旧实现一致；未改变
+排序策略和异常门禁。Chrome 检查覆盖最大差异帧、时间轴、播放暂停和
+图片加载。

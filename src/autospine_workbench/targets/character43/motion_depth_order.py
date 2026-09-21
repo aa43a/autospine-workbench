@@ -1,19 +1,24 @@
 """Compile only overlap-supported orders without crossing unknown visible parts."""
 from copy import deepcopy
+import heapq
 from .order_conflict import first_overlap, witness
 
 PROFILE = 'external-overlap-guarded-draw-order-v1'
 
 
 def _sort(slots, edges):
-    output = []
-    remaining = set(slots)
-    while remaining:
-        next_slot = next((s for s in slots if s in remaining
-                          and not any(b == s and a in remaining for a, b in edges)), None)
-        if next_slot is None:
-            return None
-        output.append(next_slot); remaining.remove(next_slot)
+    rank={name:i for i,name in enumerate(slots)}
+    following={name:[] for name in slots};incoming=dict.fromkeys(slots,0)
+    for back,front in edges:
+        following[back].append(front);incoming[front]+=1
+    ready=[rank[name] for name in slots if not incoming[name]]
+    heapq.heapify(ready);output=[]
+    while ready:
+        name=slots[heapq.heappop(ready)];output.append(name)
+        for front in following[name]:
+            incoming[front]-=1
+            if not incoming[front]:heapq.heappush(ready,rank[front])
+    if len(output)!=len(slots):return None
     return output
 
 
