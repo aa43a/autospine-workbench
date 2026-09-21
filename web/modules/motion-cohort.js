@@ -4,6 +4,7 @@ import {appendRotationDetails} from './motion-rotation-details.js';
 import {appendTargetComparison} from './motion-target-comparison.js';
 import {createAlternativePanel} from './motion-cohort-alternative.js';
 import {appendCandidateDownload} from './motion-candidate-download.js';
+import {appendReadiness} from './motion-readiness.js';
 const byId=id=>document.getElementById(id), motion=byId('motion'),character=byId('character');
 const player=createSourcePlayer(byId('source'),byId('time'),byId('play'),byId('time-label'));
 const alternative=createAlternativePanel(byId('alternative'),get);
@@ -43,6 +44,11 @@ async function show(){
     const frame=document.createElement('iframe');frame.title=`${t.label} 角色动作时间轴`;frame.src=`/api/motions/${t.job_id}/view/player.html`;byId('target').append(frame);
     appendStageReview(byId('review'),job);
     appendCandidateDownload(byId('review'),job);
+    appendReadiness(byId('review'),job,null,{onSeek:time=>{
+      if(version!==revision)return;
+      frame.src=`/api/motions/${t.job_id}/view/player.html?time=${encodeURIComponent(time)}`;
+      frame.scrollIntoView({block:'nearest'});
+    }});
     appendTargetComparison(byId('review'),job,get,{onOpen:row=>{
       if(version===revision)alternative.open(row,g.source_sha256);
     }});

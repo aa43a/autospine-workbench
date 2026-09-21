@@ -1,5 +1,5 @@
 import {appendNextActions} from './motion-next-actions.js';
-export function appendReadiness(item, job, compare) {
+export function appendReadiness(item, job, compare, {onSeek} = {}) {
   const button = document.createElement('button');
   button.textContent = '检查可用范围与待处理项';
   const panel = document.createElement('section');
@@ -23,13 +23,28 @@ export function appendReadiness(item, job, compare) {
         const link = document.createElement('a'); link.textContent = '查看 / 处理';
         link.href = row.href.startsWith('/') ? row.href : base + row.href;
         link.target = '_blank'; link.rel = 'noopener'; p.append(link);
-        for (const failure of (row.failures || []).slice(0, 8)) {
+        const failures = row.failures || [];
+        const details = document.createElement('details');
+        const summary = document.createElement('summary');
+        summary.textContent = `异常定位（报告返回 ${failures.length} 条采样记录）`;
+        details.append(summary);
+        for (const failure of failures) {
+          const entry = document.createElement('p');
+          const reason = document.createElement('span');
+          reason.textContent = failure.reason || '检查异常';
+          entry.append(reason);
+          if (!Number.isFinite(failure.time) || failure.time < 0) {
+            entry.append(' · 未提供有效时间'); details.append(entry); continue;
+          }
           const point = document.createElement('a');
           point.textContent = ` ${failure.slot || '异常'} · ${failure.time.toFixed(3)} 秒 `;
           point.href = base + `player.html?time=${failure.time}`;
-          point.target = '_blank'; point.rel = 'noopener'; p.append(point);
+          if (onSeek) point.onclick = event => {event.preventDefault(); onSeek(failure.time);};
+          else {point.target = '_blank'; point.rel = 'noopener';}
+          entry.append(point); details.append(entry);
         }
         panel.append(p);
+        if (failures.length) panel.append(details);
       }
       appendNextActions(panel,report,compare);
       const note = document.createElement('p');

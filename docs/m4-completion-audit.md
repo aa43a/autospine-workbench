@@ -131,3 +131,19 @@ decisions remained byte-identical. Exact jobs and hashes are in
 These are new source compilation runs, not a new Kimodo generation or target
 Runtime capture. The previous restart-required note is now satisfied for this
 local workbench.
+
+## Same-page technical exception inspection
+
+The cohort and alternative-view players now expose all five readiness stages.
+Returned failure records can seek their own existing player without replacing
+the human review form; invalid times are displayed without a seek action.
+The client no longer hides records after the eighth entry. The label explicitly
+states that these are report-returned samples, not a complete failure census.
+
+The synthetic Chrome suite passes 27 checks, including the ninth failure,
+malformed time, preserved unsaved notes and separate alternative-player seeking.
+Read-only live Chrome verification opened Alice breathing candidate
+`motion-bf659c34670d4319aab72cf673f1d3d7`, displayed its 20 returned depth records,
+sought 0.6 seconds on the real Runtime canvas, and reread revision 1
+accepted-with-exceptions. Zero mutations were submitted. This improves exception
+localization; it does not resolve or reclassify the retained depth conflicts.

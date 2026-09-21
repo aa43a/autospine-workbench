@@ -1,6 +1,7 @@
 import {appendStageReview} from './motion-stage-review.js';
 import {appendRotationDetails} from './motion-rotation-details.js';
 import {appendCandidateDownload} from './motion-candidate-download.js';
+import {appendReadiness} from './motion-readiness.js';
 
 export function createAlternativePanel(container,request){
   let revision=0;
@@ -25,6 +26,9 @@ export function createAlternativePanel(container,request){
       container.append(frame);
       appendCandidateDownload(container,job);
       appendStageReview(container,job);
+      appendReadiness(container,job,null,{onSeek:time=>{
+        if(version===revision)frame.src=base+`/view/player.html?time=${encodeURIComponent(time)}`;
+      }});
       appendRotationDetails(container,job,{onSeek:time=>{
         if(version===revision)frame.src=base+`/view/player.html?time=${encodeURIComponent(time)}`;
       }});

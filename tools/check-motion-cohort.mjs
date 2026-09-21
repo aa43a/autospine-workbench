@@ -22,6 +22,11 @@ try{
     }
     if(path.endsWith('/preview'))return route.fulfill({json:{view:'front',parents:[null,0],frames:[
       {time:0,frame:0,joints:[[0,0,0],[0,1,0]]},{time:1,frame:1,joints:[[0,0,0],[1,1,0]]}]}});
+    if(path.endsWith('/readiness.json'))return route.fulfill({json:{
+      artifact_sha256:job===alternate?alternateHash:hash,status:'needs_changes',stages:[{
+        stage:'遮挡',status:'needs_changes',explanation:'fixture only',href:'depth.html',
+        failures:[...Array.from({length:9},(_,i)=>({time:i/10,reason:'visible_depth_straddle'})),
+          {time:null,reason:'unmeasured'}]}]}});
     if(path.endsWith('/rotation-status.json'))return route.fulfill({json:{artifact_sha256:hash,
       target:{records:[{bone:'upperarm_l',extra_turn_suspected:false,maximum_transfer_difference_deg:0,
         large_key_intervals:[],source_events:[{frame:2,time:.2,reason:'projection_direction_unreliable'},
@@ -44,6 +49,13 @@ try{
   await page.getByRole('button',{name:'记录 / 查看阶段验收'}).click();
   await page.getByLabel('阶段验收结论').selectOption('accepted_with_exceptions');
   await page.getByLabel('验收说明').fill('fixture only');
+  await page.getByRole('button',{name:'检查可用范围与待处理项'}).click();
+  await page.getByText('异常定位（报告返回 10 条采样记录）',{exact:true}).click();
+  await page.getByRole('link',{name:'异常 · 0.800 秒',exact:true}).click();
+  assert.match(await page.locator('#target iframe').getAttribute('src'),/player.html\?time=0.8$/);
+  assert.equal(await page.getByLabel('验收说明').inputValue(),'fixture only');
+  assert.equal(await page.getByText('未提供有效时间',{exact:false}).count(),1);
+  assert.equal(posts,0);
   await page.getByRole('checkbox').check();await page.getByRole('button',{name:'保存阶段结论'}).click();
   await page.getByText('r1 · 阶段可接受，保留异常。fixture only',{exact:true}).waitFor();
   assert.equal(posts,1);
@@ -62,6 +74,12 @@ try{
   assert.equal(await alternative.getByRole('link',{name:'下载此候选 Spine 包'}).getAttribute('href'),`/api/motions/${alternate}/download`);
   await alternative.getByLabel('阶段验收结论').selectOption('accepted_with_exceptions');
   await alternative.getByLabel('验收说明').fill('fixture only');
+  await alternative.getByRole('button',{name:'检查可用范围与待处理项'}).click();
+  await alternative.getByText('异常定位（报告返回 10 条采样记录）',{exact:true}).click();
+  await alternative.getByRole('link',{name:'异常 · 0.800 秒',exact:true}).click();
+  assert.match(await alternative.locator('iframe').getAttribute('src'),/player.html\?time=0.8$/);
+  assert.match(await page.locator('#target iframe').getAttribute('src'),/player.html\?time=0.2$/);
+  assert.equal(await alternative.getByLabel('验收说明').inputValue(),'fixture only');
   await alternative.getByRole('checkbox').check();
   await alternative.getByRole('button',{name:'保存阶段结论'}).click();
   await alternative.getByText('r1 · 阶段可接受，保留异常。fixture only',{exact:true}).waitFor();
@@ -84,5 +102,5 @@ try{
   assert.equal(await page.locator('iframe').count(),0);
   assert.equal(await page.getByRole('button',{name:'记录 / 查看阶段验收'}).count(),0);
   assert.deepEqual(errors,[]);
-  console.log(JSON.stringify({passed:true,synthetic_posts:posts,real_decisions_written:0,checks:20}));
+  console.log(JSON.stringify({passed:true,synthetic_posts:posts,real_decisions_written:0,checks:27}));
 }finally{await browser.close();}
