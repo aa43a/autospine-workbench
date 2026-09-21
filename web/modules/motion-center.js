@@ -172,6 +172,9 @@ function render(data) {
         link.target = '_blank'; link.rel = 'noopener'; item.append(link);
       }
       const download = node('a', '下载诊断候选 ZIP');
+      const handStatus = node('a', '手部侧向区间');
+      handStatus.href = `/api/motions/${job.job_id}/view/hand-status.html`;
+      handStatus.target = '_blank'; handStatus.rel = 'noopener'; item.append(handStatus);
       download.href = `/api/motions/${job.job_id}/download`; download.className = 'download'; item.append(download);
     } else if (job.status === 'succeeded') {
       if (job.kind === 'generate') {

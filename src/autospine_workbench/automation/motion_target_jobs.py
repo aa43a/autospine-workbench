@@ -128,6 +128,14 @@ def review_file(manager, job, parts):
         return read(None, None, None, parts)
     result, files = context(manager, job)
     runtime_file = runtime_reader(manager, job, result)
+    if parts in (['hand-status.json'],['hand-status.html']):
+        from ..motion_bundle_reader import VerifiedMotionBundleReader
+        from ..targets.character43.motion_hand_status import build,render
+        request=read_document(manager.folder(job)/'request.json');identity=request['motion_identity']
+        bundle=VerifiedMotionBundleReader(manager.state_root).load(identity['clip_sha256'],identity['bundle_sha256'])
+        report=build(files,result['artifact_sha256'],bundle,request)
+        return ((render(report),'text/html; charset=utf-8') if parts==['hand-status.html'] else
+                (json.dumps(report,ensure_ascii=False).encode('utf-8'),'application/json'))
     if parts == ['local-depth-status.json']:
         from .motion_local_depth_evidence import read
         request=read_document(manager.folder(job)/'request.json')
