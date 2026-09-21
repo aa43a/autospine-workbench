@@ -111,3 +111,38 @@ python tools/m4_partition_compare_review.py ../tmp/m4-motion-center/stable-regio
 边。随机有环图与 DAG 对照测试验证其选择顺序与旧实现一致；未改变
 排序策略和异常门禁。Chrome 检查覆盖最大差异帧、时间轴、播放暂停和
 图片加载。
+
+## 相邻显示连续性门禁
+
+新增检查从原网格的共享边恢复分区邻接关系。若原本处于身体同一侧的
+相邻区域被新顺序分到身体前后，在共享边两侧向三角形内部最多偏移
+0.5 px 采样，确认原材质和遮挡部件的 alpha 均不低于 8/255。
+每边采样 3–33 点；采样证据与三角形、区域、时刻和世界坐标一起保存。
+这标记的是新出现的不透明显示切口，不能等同于已证明的裂缝。真正
+合理的三维遮挡交界也可能触发，因此它用于保守候选门禁与异常定位。
+
+预算耗尽明确返回 `incomplete`，不会作为无异常；原顺序、透明遮挡物、
+同侧整体移动，以及不位于遮挡物内的共享边不会仅因邻接而触发。
+非流形边与重复/缺失三角形归属拒绝继续分析。
+
+Alice v3 在 173 个时刻产生 2,128 条边界记录，涉及九个提前显示区域。
+`--continuity-guard` 将它们保留在 setup 顺序后再次求解，发现另一区域
+产生 394 条边界记录。三轮后，十个连续性异常区域和原有一个顺序环
+区域均保留原顺序，结果与输入完全相同。最终状态为
+`no_supported_order_change`，不输出修复 skeleton，不把回到原结果
+记作成功。原 16 条单向关系与所有失败证据仍保留。
+
+本轮没有重新捕获 Runtime；检查的是上一轮已捕获的精确候选。
+完整记录：`../tmp/m4-motion-center/stable-region-order-alice-v5/report.json`；
+[冻结摘要](benchmark/m4-continuity-guard-evidence-v1.json) 包含原报告 SHA。
+
+```powershell
+python tools/m4_partition_continuity.py ../tmp/m4-motion-center/temporal-depth-partition-alice-coalesced-v1 ../tmp/m4-motion-center/stable-region-order-alice-v3 ../tmp/m4-motion-center/stable-region-order-alice-v3/continuity.json
+python tools/m4_stable_region_order.py ../tmp/m4-motion-center/temporal-depth-partition-alice-coalesced-v1 ../tmp/m4-motion-center/stable-region-order-alice-v5 --continuity-guard
+```
+
+顺序实验现在要求新的空输出目录，避免一次未产出候选的运行留下旧
+skeleton 供人误用。复现时请选择新的目录名，历史记录保持不变。
+下一步需要同一帧内的连贯区域求解，不能只选择整段始终单向的小区域
+提前显示。现有连续性门禁保留为该算法的回归检查，不能通过放宽它来
+消除视觉问题。
