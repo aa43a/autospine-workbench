@@ -6,13 +6,32 @@ from autospine_workbench.targets.character43.motion_depth_overlap import Probe
 
 
 class MeshDepthProxyTests(unittest.TestCase):
+    def test_priority_preserves_overlapping_class_precedence(self):
+        for depths,expected in (([.1,-.1],'ambiguous'),
+                                ([.1,-.1,0.],'ambiguous'),
+                                ([.1,-.1,0.,None],'unknown')):
+            doc,files=fixture();doc['bones'][0]['length']=2
+            mesh=doc['skins'][0]['attachments']['a']['a']
+            original=deepcopy(mesh);count=len(depths)
+            mesh['vertices']=original['vertices']*count
+            mesh['uvs']=original['uvs']*count
+            mesh['triangles']=[v+4*i for i in range(count) for v in original['triangles']]
+            intervals=[None if z is None else [z,z] for z in depths for _ in range(4)]
+            probes=[Probe(doc,files,'test',tiled=True,sparse=policy)
+                    for policy in ('common_depth_points','priority_depth_points')]
+            results=[overlap_support(p,'a','b',0,{},depth_intervals=intervals) for p in probes]
+            self.assertEqual(results[0]['counts'],results[1]['counts'])
+            self.assertEqual(results[1]['counts'][expected],4)
+            self.assertEqual(sum(results[1]['counts'].values()),4)
+            if count>2:self.assertGreater(probes[1].remaining,probes[0].remaining)
+
     def test_cropped_groups_preserve_known_unknown_and_ambiguous_counts(self):
         doc,files=fixture();doc['bones'][0]['length']=2
         for segments in ({'root':(.1,.2)},{'root':(-.1,-.2)},{'root':(-.1,.2)},{}):
             for intervals in (None,[[.1,.2],[-.2,-.1],None,[-.01,.01]]):
                 records=[overlap_support(Probe(doc,files,'test',tiled=True,sparse=policy),
                     'a','b',0,segments,depth_intervals=intervals)
-                    for policy in ('tight_triangle_boxes','tight_depth_groups','common_depth_points')]
+                    for policy in ('tight_triangle_boxes','tight_depth_groups','common_depth_points','priority_depth_points')]
                 self.assertTrue(all(r['status']==records[0]['status'] for r in records))
                 self.assertTrue(all(r['counts']==records[0]['counts'] for r in records))
 

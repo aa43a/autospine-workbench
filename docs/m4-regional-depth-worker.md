@@ -1,5 +1,26 @@
 # Regional depth worker integration
 
+## Priority depth classification experiment
+
+`m4_regional_source_check.py --priority-depth-points` evaluates unknown and
+ambiguous masks before known directions, removing their pixels from subsequent
+queries. Front and back still use the same remaining support, preserving their
+overlap as ambiguous. This changes query cost, not alpha, depth margins, native
+resolution, or the 64-million-pixel budget. The worker default is unchanged.
+
+The fixed Huiye source replay in
+`../tmp/m4-motion-center/regional-kimodo-huiye-priority-v1/report.json`
+(SHA256 `e0d562c2ac31bdab7b8a17a97c22a6a908be5ec3027498a9d75e560afbdb48da`)
+preserves all 432 check identities and all 397 previously measured outcomes from
+common-v2. Four more checks complete; 31 remain unmeasured. All 120 recorded
+ordering blockers remain. No transformed skeleton or Runtime capture is produced,
+and the candidate is not selected. The exact comparison is saved in
+`../tmp/m4-motion-center/regional-kimodo-huiye-priority-comparison-v1.json`.
+
+Twenty-one focused raster/proxy tests pass, including overlapping independent
+triangles with unknown, ambiguous, front, and back evidence. Reduced query cost
+does not resolve missing garment depth or prove visual correctness.
+
 ## Common-pixel depth classification
 
 `--common-depth-points` evaluates group alpha only at known overlapping native

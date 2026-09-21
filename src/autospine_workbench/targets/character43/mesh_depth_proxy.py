@@ -122,19 +122,27 @@ def overlap_support(probe, arm, torso, time, segments, *, margin=.02, endpoint_c
         group=('unknown' if any(v is None for v in depths) else
                'front' if min(v[0] for v in depths)>margin else 'back' if max(v[1] for v in depths)<-margin else 'ambiguous')
         groups[group].extend(tri)
-    def group_raster(indices):
+    def group_raster(indices,support=common):
         attachment=dict(attachments[arm],triangles=indices)
-        if getattr(probe,'sparse',False) in ('tight_depth_groups','common_depth_points'):
+        if getattr(probe,'sparse',False) in ('tight_depth_groups','common_depth_points','priority_depth_points'):
             from .depth_group_raster import raster as cropped
-            if probe.sparse=='common_depth_points':
+            if probe.sparse in ('common_depth_points','priority_depth_points'):
                 from .depth_common_raster import raster as cropped
             def charge(amount):
                 if probe.remaining<amount:raise ValueError('depth_overlap_pixel_budget')
                 probe.remaining-=amount
-            return cropped(attachment,probe.positions[time][arm],probe.textures[arm],rect,common,charge)
+            return cropped(attachment,probe.positions[time][arm],probe.textures[arm],rect,support,charge)
         return raster(arm,attachment)
-    masks={k:group_raster(indices) & common
-           if indices else np.zeros_like(common) for k,indices in groups.items()}
+    if getattr(probe,'sparse',False)=='priority_depth_points':
+        masks={};support=common.copy()
+        for kind in ('unknown','ambiguous','front','back'):
+            masks[kind]=group_raster(groups[kind],support)&support if groups[kind] else np.zeros_like(common)
+            # Unknown dominates ambiguous, which dominates either known direction.
+            # Front and back must still be evaluated on the same remaining pixels.
+            if kind in ('unknown','ambiguous'):support &= ~masks[kind]
+    else:
+        masks={k:group_raster(indices) & common
+               if indices else np.zeros_like(common) for k,indices in groups.items()}
     unknown=masks['unknown'] | (common & ~np.logical_or.reduce(list(masks.values())))
     ambiguous=(masks['ambiguous'] | (masks['front'] & masks['back'])) & ~unknown
     front=masks['front'] & ~unknown & ~ambiguous
