@@ -1,0 +1,266 @@
+{
+  "profile": "source-pose-six-cell-mesh-validation-v1",
+  "authority": "none",
+  "selected": false,
+  "runtime_frames": 1062,
+  "geometry_passed": 1,
+  "cells": [
+    {
+      "label": "红美铃 squat",
+      "folder": "squat-mesh-v1",
+      "report_sha256": "d91f19418889b53ea1bbd72245bf2c53604ef6098aeb630d297b41e584a488a1",
+      "authority": "none",
+      "candidate_bundle_sha256": "aaad63d23394ebb73eecd8f34cc6e20e36f1f9add3b9e214eb1b8cdfd0cfbf45",
+      "contact_status": "not_evaluated",
+      "depth_status": "not_evaluated",
+      "failing_slots": [
+        {
+          "animation": "external-motion",
+          "failing_frame_count": 42,
+          "first_failure": {
+            "frame": 33,
+            "inversions": 0,
+            "max_area_ratio": 0.8617406672814695,
+            "max_edge_stretch": 1.2259292930533203,
+            "min_area_ratio": 0.49930061978339085,
+            "time": 0.55
+          },
+          "inversion_samples": 65,
+          "max_area_ratio": 1.0881181480552389,
+          "max_edge_stretch": 1.758091157613115,
+          "min_area_ratio": -0.1164010070022835,
+          "passed": false,
+          "sample_count": 113,
+          "slot": "layer-003"
+        },
+        {
+          "animation": "external-motion",
+          "failing_frame_count": 52,
+          "first_failure": {
+            "frame": 27,
+            "inversions": 0,
+            "max_area_ratio": 0.8764329520372651,
+            "max_edge_stretch": 1.1592509030156772,
+            "min_area_ratio": 0.48844210783438036,
+            "time": 0.45
+          },
+          "inversion_samples": 125,
+          "max_area_ratio": 1.092508579965384,
+          "max_edge_stretch": 1.5427761759065015,
+          "min_area_ratio": -0.2003056964640872,
+          "passed": false,
+          "sample_count": 113,
+          "slot": "layer-004"
+        }
+      ],
+      "geometry_passed": false,
+      "probe_receipt_sha256": "bb0ee2e288188e8a0fb48783d574d10c4b2f17a9fb6fa9386195ff1fb653f7f3",
+      "production_authorized": false,
+      "profile": "source-absolute-limb-projection-v1",
+      "runtime_max_error_px": 0.00011143378165917047,
+      "runtime_status": "passed",
+      "sampled_frames": 113,
+      "selected": false,
+      "skeleton_sha256": "e4f89244174f99b582a4da19ad3bd3a17228204a34fbb139ab1583a7928dcac4"
+    },
+    {
+      "label": "Alice squat",
+      "folder": "squat-alice-mesh-v1",
+      "report_sha256": "765e5653c32c1f887b4f3de381c13916b04e36e17555b11216654d3e962a4905",
+      "authority": "none",
+      "candidate_bundle_sha256": "68cccb9439353fbd18f7eb9574450b9f657de5fc01c23649823ee4dd421dab57",
+      "contact_status": "not_evaluated",
+      "depth_status": "not_evaluated",
+      "failing_slots": [
+        {
+          "animation": "external-motion",
+          "failing_frame_count": 46,
+          "first_failure": {
+            "frame": 30,
+            "inversions": 0,
+            "max_area_ratio": 0.8100201421462598,
+            "max_edge_stretch": 1.1481306647559644,
+            "min_area_ratio": 0.49490916775653343,
+            "time": 0.5
+          },
+          "inversion_samples": 212,
+          "max_area_ratio": 1.040245875530085,
+          "max_edge_stretch": 1.6142552752614867,
+          "min_area_ratio": -0.21731677341632394,
+          "passed": false,
+          "sample_count": 113,
+          "slot": "layer-001-l"
+        },
+        {
+          "animation": "external-motion",
+          "failing_frame_count": 38,
+          "first_failure": {
+            "frame": 36,
+            "inversions": 0,
+            "max_area_ratio": 0.7736742744605729,
+            "max_edge_stretch": 1.2163800189118235,
+            "min_area_ratio": 0.4871789338742274,
+            "time": 0.6
+          },
+          "inversion_samples": 136,
+          "max_area_ratio": 1.0613344250749392,
+          "max_edge_stretch": 1.7879928891564376,
+          "min_area_ratio": -0.17807848021826747,
+          "passed": false,
+          "sample_count": 113,
+          "slot": "layer-001-r"
+        }
+      ],
+      "geometry_passed": false,
+      "probe_receipt_sha256": "7e5ade180da9555d93ebfb131937672d05b2f8752a3f77f9e1e427545813af16",
+      "production_authorized": false,
+      "profile": "source-absolute-limb-projection-v1",
+      "runtime_max_error_px": 7.804167593830112e-05,
+      "runtime_status": "passed",
+      "sampled_frames": 113,
+      "selected": false,
+      "skeleton_sha256": "91488cdf9272248d7079b16b3f98c6573268741aa3659c8fe5192c93880b802c"
+    },
+    {
+      "label": "辉夜 squat",
+      "folder": "squat-huiye-mesh-v1",
+      "report_sha256": "885d3777f429a909262fa2e5bc7a64dcc68a694038d2ac714ad9aa214ecb1c5f",
+      "authority": "none",
+      "candidate_bundle_sha256": "8a9a66664160d818fac1c4df63d854ecfe98f8fea121e7cf2466337a90c45ca5",
+      "contact_status": "not_evaluated",
+      "depth_status": "not_evaluated",
+      "failing_slots": [],
+      "geometry_passed": true,
+      "probe_receipt_sha256": "075ce58299d5ce67e937251414c7a4c3e7c65c0248b27aa2b1637df658093ff4",
+      "production_authorized": false,
+      "profile": "source-absolute-limb-projection-v1",
+      "runtime_max_error_px": 0.00015359791273716593,
+      "runtime_status": "passed",
+      "sampled_frames": 113,
+      "selected": false,
+      "skeleton_sha256": "3b99f5e1dcaa3949da58a5cab23355b793f3344655a0b61d9d54ed9dccdfc62e"
+    },
+    {
+      "label": "红美铃 reach",
+      "folder": "reach-mesh-v1",
+      "report_sha256": "1a86bbee297e79de48aa7099076c394ea69bb1aae15f58fd3042b9677667dc7b",
+      "authority": "none",
+      "candidate_bundle_sha256": "265719c6af3f508218db724fe47c5f23ce2c0f98813019a9518b8aefe65025e5",
+      "contact_status": "not_evaluated",
+      "depth_status": "not_evaluated",
+      "failing_slots": [
+        {
+          "animation": "external-motion",
+          "failing_frame_count": 145,
+          "first_failure": {
+            "frame": 96,
+            "inversions": 0,
+            "max_area_ratio": 1.0519760993284646,
+            "max_edge_stretch": 1.0705339712358222,
+            "min_area_ratio": 0.4934740924020146,
+            "time": 1.6
+          },
+          "inversion_samples": 1009,
+          "max_area_ratio": 1.1379903304495362,
+          "max_edge_stretch": 2.022253290423217,
+          "min_area_ratio": -0.24849963578744613,
+          "passed": false,
+          "sample_count": 241,
+          "slot": "layer-001"
+        }
+      ],
+      "geometry_passed": false,
+      "probe_receipt_sha256": "7ba5fe027c91f678b1010a09e6e0dfe8fdc5019480499faf9b085d736678ded6",
+      "production_authorized": false,
+      "profile": "source-absolute-limb-projection-v1",
+      "runtime_max_error_px": 0.00011385292039391791,
+      "runtime_status": "passed",
+      "sampled_frames": 241,
+      "selected": false,
+      "skeleton_sha256": "c38b7687c02dc2ef7dc410cb3afbb3505677824f128c9e3b05243309edb5ebd8"
+    },
+    {
+      "label": "Alice reach",
+      "folder": "reach-alice-mesh-v1",
+      "report_sha256": "34eb7b4584d4e84880a4b5932b69f92fe80fa2b4ef01f0a8e3eabcd75b19e2bd",
+      "authority": "none",
+      "candidate_bundle_sha256": "42e6c92d16d2846a92cc45af443348ade615a46f2f68661876940a7d7086a7d7",
+      "contact_status": "not_evaluated",
+      "depth_status": "not_evaluated",
+      "failing_slots": [
+        {
+          "animation": "external-motion",
+          "failing_frame_count": 142,
+          "first_failure": {
+            "frame": 99,
+            "inversions": 0,
+            "max_area_ratio": 0.9704909623225535,
+            "max_edge_stretch": 1.0134179372416674,
+            "min_area_ratio": 0.4985181289583128,
+            "time": 1.65
+          },
+          "inversion_samples": 1439,
+          "max_area_ratio": 1.058113871794991,
+          "max_edge_stretch": 2.0171771921946946,
+          "min_area_ratio": -0.27001610177754654,
+          "passed": false,
+          "sample_count": 241,
+          "slot": "layer-003"
+        }
+      ],
+      "geometry_passed": false,
+      "probe_receipt_sha256": "b8695d27da35debccfb6c281b3694a6427b3c9858c447773cdc97d00f8a800a6",
+      "production_authorized": false,
+      "profile": "source-absolute-limb-projection-v1",
+      "runtime_max_error_px": 8.243485621988266e-05,
+      "runtime_status": "passed",
+      "sampled_frames": 241,
+      "selected": false,
+      "skeleton_sha256": "35052e22e4eed4d622f3dbcfea97be04cd269024849eeae2199833c080c75186"
+    },
+    {
+      "label": "辉夜 reach",
+      "folder": "reach-huiye-mesh-v1",
+      "report_sha256": "1d9b69ce43f9b1e52298fdd88016689ff6d92b700862b16e4b6ca02dd7b23dc8",
+      "authority": "none",
+      "candidate_bundle_sha256": "972ca6042adb47f6df003c3e659019b8baffaceea0480ea910ca222dd76723cb",
+      "contact_status": "not_evaluated",
+      "depth_status": "not_evaluated",
+      "failing_slots": [
+        {
+          "animation": "external-motion",
+          "failing_frame_count": 159,
+          "first_failure": {
+            "frame": 82,
+            "inversions": 0,
+            "max_area_ratio": 1.0342098105467976,
+            "max_edge_stretch": 1.0755778461693766,
+            "min_area_ratio": 0.4948501447039326,
+            "time": 1.366667
+          },
+          "inversion_samples": 998,
+          "max_area_ratio": 1.0890160428464155,
+          "max_edge_stretch": 2.5785144175448926,
+          "min_area_ratio": -0.4802267151185434,
+          "passed": false,
+          "sample_count": 241,
+          "slot": "layer-002-component-0000"
+        }
+      ],
+      "geometry_passed": false,
+      "probe_receipt_sha256": "13200bfc872069f71fb922e08aceb105d3db266db1b8f564c56dbb2ef35ad379",
+      "production_authorized": false,
+      "profile": "source-absolute-limb-projection-v1",
+      "runtime_max_error_px": 0.00012630671682857615,
+      "runtime_status": "passed",
+      "sampled_frames": 241,
+      "selected": false,
+      "skeleton_sha256": "e206008433a7730d0320872b160366c0bb2b85ec2897ffa8dedfa2d9a11e5361"
+    }
+  ],
+  "limitations": [
+    "runtime_numeric_agreement_not_visual_acceptance",
+    "contact_and_depth_not_evaluated",
+    "source_projection_shortening_and_foldover_must_be_distinguished"
+  ]
+}

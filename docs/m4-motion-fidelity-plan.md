@@ -31,6 +31,13 @@ Chrome 实测 reach 2.467 秒显示前臂 4.0% 投影长度，无页面脚本错
 播放约 1.1 秒后到 3.600 秒。14 项相关单元测试通过。
 新策略尚未接入默认构建，未执行新网格、接触、遮挡或官方 Runtime 验收。
 
+随后完成三角色 × squat/reach 的真实网格与官方 Runtime 验证，见
+[六组合证据](benchmark/m4-source-pose-mesh-v1.json)。共 1,062 个源关键帧及中间采样，
+六组合 Runtime 数值一致；几何仅辉夜 squat 通过，其余五项保留翻转失败。
+红美铃 squat 的官方截图显示初始双臂举起；reach 近镜头前臂仍有压缩与折叠，
+不能仅凭绝对方向吻合采用该策略。接触、深度与人工视觉验收未完成。
+集中入口 ../tmp/m4-source-pose/mesh-review-v1.html。
+
 ## M4-A：动作语义与投影正确（当前主目标）
 
 交付：source pose → target pose 的显式标定、深度/弯曲平面信息、
