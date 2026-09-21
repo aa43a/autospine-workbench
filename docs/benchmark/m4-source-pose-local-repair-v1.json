@@ -1,0 +1,95 @@
+{
+  "profile": "source-pose-local-repair-comparison-v1",
+  "authority": "none",
+  "selected": false,
+  "candidate_bundle_sha256": "8be0da36d398817a3e325fbec469d188f1c23eb3c55058462ed655f1f183c82f",
+  "sample_times_sha256": "d3353f152cee75c8765f1743e7ba371bd04024aafcb481d4a409c8f31f4f30eb",
+  "sample_count": 367,
+  "runtime_status": "passed",
+  "contact_status": "not_evaluated",
+  "depth_status": "not_evaluated",
+  "records": [
+    {
+      "slot": "layer-003",
+      "before": {
+        "animation": "external-motion",
+        "slot": "layer-003",
+        "passed": false,
+        "sample_count": 367,
+        "min_area_ratio": -0.1164010070022835,
+        "max_area_ratio": 1.0902937178415637,
+        "max_edge_stretch": 1.7580320582569968,
+        "inversion_samples": 213,
+        "failing_frame_count": 137,
+        "first_failure": {
+          "frame": 108,
+          "time": 0.554166765625,
+          "inversions": 0,
+          "min_area_ratio": 0.49571977456865457,
+          "max_area_ratio": 0.8608107362104148,
+          "max_edge_stretch": 1.2306967670003037
+        }
+      },
+      "after": {
+        "animation": "external-motion",
+        "failing_frame_count": 109,
+        "first_failure": {
+          "frame": 127,
+          "inversions": 0,
+          "max_area_ratio": 0.8493801519463026,
+          "max_edge_stretch": 1.4490890970826282,
+          "min_area_ratio": 0.49772922132086705,
+          "time": 0.64895844921875
+        },
+        "inversion_samples": 14,
+        "max_area_ratio": 1.847691688938198,
+        "max_edge_stretch": 1.9035204215226158,
+        "min_area_ratio": -0.4316219233086207,
+        "passed": false,
+        "sample_count": 367,
+        "slot": "layer-003"
+      }
+    },
+    {
+      "slot": "layer-004",
+      "before": {
+        "animation": "external-motion",
+        "slot": "layer-004",
+        "passed": false,
+        "sample_count": 367,
+        "min_area_ratio": -0.2003056964640872,
+        "max_area_ratio": 1.092660805948525,
+        "max_edge_stretch": 1.5432604443128155,
+        "inversion_samples": 413,
+        "failing_frame_count": 170,
+        "first_failure": {
+          "frame": 87,
+          "time": 0.44479174609375005,
+          "inversions": 0,
+          "min_area_ratio": 0.4942556854345857,
+          "max_area_ratio": 0.8768482491222681,
+          "max_edge_stretch": 1.1553716195662618
+        }
+      },
+      "after": {
+        "animation": "external-motion",
+        "failing_frame_count": 93,
+        "first_failure": {
+          "frame": 141,
+          "inversions": 0,
+          "max_area_ratio": 1.0737434063955553,
+          "max_edge_stretch": 1.4899261389810914,
+          "min_area_ratio": 0.32772828705516244,
+          "time": 0.72187512890625
+        },
+        "inversion_samples": 16,
+        "max_area_ratio": 1.8988882159829499,
+        "max_edge_stretch": 1.9026579449427492,
+        "min_area_ratio": -0.4556446303809822,
+        "passed": false,
+        "sample_count": 367,
+        "slot": "layer-004"
+      }
+    }
+  ]
+}

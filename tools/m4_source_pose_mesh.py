@@ -16,7 +16,7 @@ from autospine_workbench.targets.character43.deformation_qa import inspect
 from autospine_workbench.targets.character43.runtime_storage_reference import build as storage
 
 
-def run(probe, output, capture=False):
+def run(probe, output, capture=False, repair=False):
     receipt = json.loads((probe/'report.json').read_bytes())
     document = json.loads((probe/'skeleton.json').read_bytes())
     if receipt['output_sha256'] != canonical_sha256(document):
@@ -26,12 +26,27 @@ def run(probe, output, capture=False):
     if {k:v for k,v in original.items() if k != 'animations'} != {k:v for k,v in document.items() if k != 'animations'}:
         raise ValueError('source_pose_rig_changed')
     animation, = document['animations']
+    uncorrected = deepcopy(document)
+    output.mkdir(parents=True, exist_ok=False)
+    setup = deepcopy(document); setup['animations'] = {animation:{'bones':{}}}
+    setup_vertices = sample(setup, animation, 0)[0]
+    correction = None
+    if repair:
+        from autospine_workbench.targets.character43.affine_area_repair import repair as correct
+        before = deepcopy(document['animations'][animation]['bones'])
+        print(json.dumps(dict(stage='local_correction',status='running')),flush=True)
+        document, correction = correct(document, animation, samples=129,
+                                       convergent=True, setup_vertices=setup_vertices)
+        if document['animations'][animation]['bones'] != before:
+            raise ValueError('source_pose_correction_changed_motion')
+        (output/'correction.json').write_bytes(canonical_bytes(correction))
     knots = sorted({k['time'] for tracks in document['animations'][animation]['bones'].values()
-                    for keys in tracks.values() for k in keys})
+                    for keys in tracks.values() for k in keys} |
+                   {k['time'] for slots in document['animations'][animation].get('attachments',{}).values()
+                    for choices in slots.values() for tracks in choices.values() for keys in tracks.values() for k in keys})
     times = sorted(set(knots) | {(a+b)/2 for a,b in zip(knots,knots[1:])})
     if not 2 <= len(times) <= 2049:
         raise ValueError('source_pose_sample_limit')
-    output.mkdir(parents=True, exist_ok=False)
     raw = canonical_bytes(document)
     frames = [dict(time=t, vertices=sample(document, animation, t)[0]) for t in times]
     isolated = {n:v for n,v in files.items() if n.endswith('.png') or n == 'skeleton.atlas'}
@@ -40,13 +55,26 @@ def run(probe, output, capture=False):
         source_character_sha256=receipt['character_sha256'], source_identity=receipt['source_identity'],
         production_authorized=False, profile=receipt['profile']))
     isolated = write(isolated, dict(skeleton_sha256=sha256(raw).hexdigest(), animations={animation:frames}))
-    setup = deepcopy(document); setup['animations'] = {animation:{'bones':{}}}
-    qa = inspect(isolated, setup_vertices=sample(setup, animation, 0)[0])
+    qa = inspect(isolated, setup_vertices=setup_vertices)
+    comparison = None
+    if correction:
+        before_raw = canonical_bytes(uncorrected)
+        before_files = write({'skeleton.json':before_raw}, dict(skeleton_sha256=sha256(before_raw).hexdigest(),
+            animations={animation:[dict(time=t,vertices=sample(uncorrected,animation,t)[0]) for t in times]}))
+        before_qa = inspect(before_files, setup_vertices=setup_vertices)
+        (output/'before-deformation.json').write_bytes(canonical_bytes(before_qa))
+        comparison = dict(same_sample_times=times, before_skeleton_sha256=sha256(before_raw).hexdigest(),
+            before_inversion_samples=sum(r['inversion_samples'] for r in before_qa['records']),
+            after_inversion_samples=sum(r['inversion_samples'] for r in qa['records']),
+            before_min_area_ratio=min(r['min_area_ratio'] for r in before_qa['records']),
+            after_min_area_ratio=min(r['min_area_ratio'] for r in qa['records']))
     (output/'deformation.json').write_bytes(canonical_bytes(qa))
     store = AnimatedStore(output/'isolated-store'); digest = store.publish(isolated)
     report = dict(profile=receipt['profile'], probe_receipt_sha256=sha256((probe/'report.json').read_bytes()).hexdigest(),
         candidate_bundle_sha256=digest, skeleton_sha256=sha256(raw).hexdigest(),
         sampled_frames=len(times), geometry_passed=qa['passed'],
+        correction_profile=correction['profile'] if correction else None,
+        correction_comparison=comparison,
         failing_slots=[r for r in qa['records'] if not r['passed']],
         contact_status='not_evaluated', depth_status='not_evaluated', runtime_status='not_evaluated',
         authority='none', selected=False, production_authorized=False)
@@ -77,4 +105,5 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('probe',type=Path);parser.add_argument('output',type=Path)
     parser.add_argument('--capture',action='store_true')
-    args=parser.parse_args();run(args.probe,args.output,args.capture)
+    parser.add_argument('--repair',action='store_true')
+    args=parser.parse_args();run(args.probe,args.output,args.capture,args.repair)
