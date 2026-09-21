@@ -10,6 +10,7 @@ import {reconcileMotionJobs} from './motion-job-list.js';
 import {appendStageReview} from './motion-stage-review.js';
 import {appendViewComparison} from './motion-view-comparison.js';
 import {appendRotationDetails} from './motion-rotation-details.js';
+import {appendTorsoDetails} from './motion-torso-details.js';
 
 const $ = id => document.getElementById(id);
 const player = createSourcePlayer($('canvas'), $('time'), $('play'), $('clock'));
@@ -131,11 +132,7 @@ function render(data) {
     if (job.cancel_requested && active.has(job.status)) item.append(node('p', '正在停止解析进程…'));
     if (job.status === 'succeeded' && job.kind === 'adapt') {
       const result = job.result;
-      if(result.torso_projection_profile){
-        const torso=node('a','躯干投影候选 · 查看范围与检查');
-        torso.href=`/api/motions/${job.job_id}/view/motion-torso-projection.json`;
-        torso.target='_blank';torso.rel='noopener';item.append(torso);
-      }
+      if(result.torso_projection_profile)appendTorsoDetails(item,job);
       if (result.projection) {
         const receipt = node('a', `投影偏转 ${result.projection.yaw_degrees}° · 查看依据`);
         receipt.href = `/api/motions/${job.job_id}/view/motion-projection.json`;

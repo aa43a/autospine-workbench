@@ -50,6 +50,20 @@ An initial browser attempt timed out before locating its button; a fresh page
 showed the candidate and the repeated check passed. No root cause or UI fix is
 claimed from that transient timeout. Twenty-five focused regression tests pass.
 
+## Inline inspection
+
+Torso-enabled candidate cards expose “在此检查躯干偏斜”. The panel verifies the
+readiness artifact and matching skeleton/profile before displaying source samples.
+Its slider displays width, height, shear and visibility at the exact clip time;
+unsupported observations can be cycled without omitting any from the raw report.
+Time links open the corresponding candidate player. No mutation requests or
+review decisions are issued. Missing application evidence and stale identities
+fail explicitly instead of displaying a successful state.
+
+Live Chrome checks cover real Kimodo and FBX candidates, exact final-sample
+player links, and separately simulated stale, missing-application and unsupported
+responses. Simulated responses are UI tests, not real motion-validation results.
+
 ## Full-source support scan
 
 The original front-view eight-source plan was measured without trimming frames,
