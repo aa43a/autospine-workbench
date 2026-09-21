@@ -36,6 +36,17 @@ python tools/m4_motion_cohort_report.py docs/benchmark/m4-cohort-plan-v2.json ..
 应重新生成报告。切换候选清空上一项表单，不自动保存或自动确认。
 报告仍是快照：完成复核后重新运行 reviews 收集器和报告命令更新统计。
 
+旧运行状态可能没有后续新增的诊断字段。可先只读刷新已完成候选的检查证据：
+
+```powershell
+$env:PYTHONPATH='src;tools'
+python tools/m4_motion_cohort_refresh.py docs/benchmark/m4-cohort-plan-v3.json ../tmp/m4-motion-center/cohort-state-v3.json ../tmp/m4-motion-center/cohort-diagnostics-refreshed-v1.json
+```
+
+输出必须是新文件，不覆盖原计划、运行状态或历史诊断。后续 reviews 与 report
+命令均使用这份新状态。刷新只读取现有候选，不提交构建、不重新捕获 Runtime、
+不写人工结论；读取前后核对候选身份，缺失或变化会中止而不是沿用旧证据。
+
 报告固定显示 24 个组合，并分别展示任务、几何、Runtime 帧数、接触、遮挡与人工视觉状态。几何失败可按附件跳到首个异常时刻；接触报告可定位滑移时间。未完成或无证据的项目不会计为通过。
 
 报告是生成时的快照；播放和接触入口仍由服务器重新检查源身份。此批次不自动登记人工视觉验收，也不授权发布。FBX 缺少接触标签时显示“无源接触标签”，不能宣称足底锁定通过；动态遮挡仍显示“未检查”。
