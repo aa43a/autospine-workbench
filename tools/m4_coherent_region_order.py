@@ -15,7 +15,7 @@ from autospine_workbench.targets.character43.affine_pose import sample
 from autospine_workbench.targets.character43.depth_region_constraints import build as constraints,PROFILE as CONSTRAINT_PROFILE
 
 
-def run(parent,output,shared_boundaries=False,surface_routing=False):
+def run(parent,output,shared_boundaries=False,surface_routing=False,shared_planes=False):
     if output.exists() and any(output.iterdir()):raise ValueError('coherent_output_exists')
     receipt_raw=(parent/'report.json').read_bytes();receipt=json.loads(receipt_raw);raw=(parent/'observations.json').read_bytes()
     if sha256(raw).hexdigest()!=receipt.get('observations_sha256'):raise ValueError('coherent_observations_identity')
@@ -26,6 +26,11 @@ def run(parent,output,shared_boundaries=False,surface_routing=False):
         from autospine_workbench.targets.character43.depth_surface_inventory import build as inventory_build,route
         if receipt.get('inventory')!=inventory_build(source):raise ValueError('coherent_surface_inventory_identity')
         observations,held=route(observations,receipt['inventory'])
+    checks=[];coupling=[]
+    if shared_planes:
+        check_raw=(parent/'checks.json').read_bytes()
+        if sha256(check_raw).hexdigest()!=receipt.get('checks_sha256'):raise ValueError('coherent_checks_identity')
+        checks=json.loads(check_raw)
     models={};labels={};counts=Counter();times=set()
     for arm,rows in observations.items():
         mesh=source['skins'][0]['attachments'][arm][arm];models[arm]={}
@@ -40,6 +45,10 @@ def run(parent,output,shared_boundaries=False,surface_routing=False):
                 counts.update(result['state_counts'])
             models[arm][body]=frames
             print(json.dumps(dict(arm=arm,body=body,frames=len(frames),inferred=sum(len(f['inferred_triangles']) for f in frames))),flush=True)
+        if shared_planes:
+            from autospine_workbench.targets.character43.depth_plane_coupling import couple
+            setup={body:rank[arm]>rank[body] for body in models[arm]}
+            coupling.extend(dict(row,arm=arm) for row in couple(mesh,models[arm],checks,arm,setup))
         signatures=[''.join(str(frame['labels'][i]) for frames in models[arm].values() for frame in frames)
                     for i in range(len(mesh['triangles'])//3)]
         labels[arm]=['model-'+sha256(signature.encode()).hexdigest() for signature in signatures]
@@ -65,7 +74,7 @@ def run(parent,output,shared_boundaries=False,surface_routing=False):
         partition=partition,observed_state_counts=dict(counts),sampled_frames=len(times),max_vertex_error=0,order=order,
         relation_pair_count=len(pairs),relation_sample_count=sum(len(p['samples']) for p in pairs),
         constraint_profile=CONSTRAINT_PROFILE,
-        surface_routing=surface_routing,held_setup_pairs=held,
+        surface_routing=surface_routing,held_setup_pairs=held,shared_plane_coupling=coupling,
         failure_counts=dict(Counter(f['reason_code'] for f in order['failures'])),
         pixel_budget_used=64_000_000-probe.remaining,authority='none',selected=False,
         scope='regularized_inference_with_held_unresolved_regions_not_depth_truth_or_visual_acceptance')
@@ -83,4 +92,5 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('parent',type=Path);parser.add_argument('output',type=Path)
     parser.add_argument('--shared-boundaries',action='store_true')
     parser.add_argument('--surface-routing',action='store_true')
-    args=parser.parse_args();run(args.parent,args.output,args.shared_boundaries,args.surface_routing)
+    parser.add_argument('--shared-planes',action='store_true')
+    args=parser.parse_args();run(args.parent,args.output,args.shared_boundaries,args.surface_routing,args.shared_planes)

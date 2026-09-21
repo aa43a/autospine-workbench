@@ -83,3 +83,4 @@ directories. Reports remain isolated from current workbench candidates.
 The next issue is joint consistency across surfaces sharing a plane model and
 across held-order time intervals. Independently inferred per-body labels can
 still contradict each other; a complete inventory alone cannot settle that.
+The next isolated experiment is [shared-plane inference](m4-shared-plane-inference.md).
