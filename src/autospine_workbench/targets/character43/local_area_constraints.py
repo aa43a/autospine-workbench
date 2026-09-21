@@ -2,7 +2,7 @@
 import math
 
 
-def refine(context,base,initial):
+def refine(context,base,initial,*,analytic=False):
     import numpy as np
     from scipy.optimize import minimize
     triangles=np.asarray(context['row']['triangles'],dtype=int)
@@ -25,6 +25,7 @@ def refine(context,base,initial):
     movable=sorted(int(v) for v in neighborhood if context['free'][v])
     report=dict(profile='local-area-fixed-budget-v1',authority='none',selected=False,
                 movable_vertices=movable,initial_failed_triangles=bad.tolist(),budget_px=budget)
+    if analytic:report['profile']='local-area-analytic-fixed-budget-v1-experiment'
     if not movable or len(movable)>32:
         return initial,dict(report,status='local_patch_unavailable')
     indices=np.asarray(movable);size=len(indices)
@@ -41,9 +42,14 @@ def refine(context,base,initial):
     seed/=np.maximum(1,np.linalg.norm(seed,axis=1))[:,None]
     seed=seed.ravel()
     best=None
+    derivatives={};constraint=dict(type='ineq',fun=constraints)
+    if analytic:
+        from .local_area_derivatives import jacobian
+        derivatives['jac']=lambda v:2*(v-seed)
+        constraint['jac']=lambda v:jacobian(unpack(v),triangles,refs,edges,lengths,indices,budget,v)
     for start in (seed,np.zeros_like(seed)):
         result=minimize(lambda v:float(np.sum((v-seed)**2)),start,method='SLSQP',
-            bounds=[(-1,1)]*len(seed),constraints=[dict(type='ineq',fun=constraints)],
+            bounds=[(-1,1)]*len(seed),constraints=[constraint],**derivatives,
             options=dict(maxiter=400,ftol=1e-12))
         if not np.isfinite(result.x).all():continue
         v=result.x.reshape(size,2);v/=np.maximum(1,np.linalg.norm(v,axis=1))[:,None]
