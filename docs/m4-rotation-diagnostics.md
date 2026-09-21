@@ -62,3 +62,32 @@ Reports: `../tmp/m4-motion-center/rotation-transfer-walking-v1/` and
 preserved two-turn motion, an introduced turn that modulo would conceal, bounded
 correction and mismatched source/target durations. Target appearance and the cause
 of source-projection singularities still require the planned visual adaptation.
+
+## Workbench candidate inspection
+
+The motion candidate card now offers “在此检查旋转与绕圈”. Its read-only
+`rotation-status.json` endpoint loads the verified source bundle and exact target
+artifact, verifies the source character/bundle identities and reconstructs the
+requested projection and clip to match the stored MotionIR hash. Source events
+use the candidate's view and clip-relative player time. No candidate, animation,
+stage-review evidence or decision is rewritten.
+
+The inline panel separates direction branch crossings, unreliable projections,
+ambiguous half turns, and differences in exported local rotation. It retains
+absolute winding differences, includes timeline links and exposes the full JSON.
+It does not diagnose axial twist, hidden artwork or visual correctness.
+
+Four integration-level unit cases cover exact source identity, introduced turns,
+oblique view identity, and clip-relative time; the ten existing source/transfer
+tests also pass. Live Chrome checks passed for:
+
+- Hongmeiling oblique -30°: `motion-71e9441a4dbc41f6b4734e01228e2919`.
+- Alice walking: `motion-9e472d3c8a7148ae8b3a0695d1d7feea`.
+- Alice Kimodo wave: `motion-76e0d141f979430db88de1183c46a79b`.
+- Clipped frames 30–90: `motion-0226e99e75e443fe921a870e4e74a992`.
+
+All four show no extra full turn relative to the declared transfer. Walking has
+66 source-direction diagnostic events. These were reads of existing captured
+candidates, not new captures or new visual acceptance.
+
+The final focused run passed 24 rotation, view and existing depth-endpoint tests.

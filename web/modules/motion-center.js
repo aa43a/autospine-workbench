@@ -9,6 +9,7 @@ import {appendTargetComparison} from './motion-target-comparison.js';
 import {reconcileMotionJobs} from './motion-job-list.js';
 import {appendStageReview} from './motion-stage-review.js';
 import {appendViewComparison} from './motion-view-comparison.js';
+import {appendRotationDetails} from './motion-rotation-details.js';
 
 const $ = id => document.getElementById(id);
 const player = createSourcePlayer($('canvas'), $('time'), $('play'), $('clock'));
@@ -135,6 +136,7 @@ function render(data) {
         receipt.target = '_blank'; receipt.rel = 'noopener'; item.append(receipt);
       }
       appendDepthSummary(item, job);
+      appendRotationDetails(item, job);
       const compare=data.target_comparison_available?appendTargetComparison(item, job, request):null;
       appendReadiness(item, job, compare);
       if (data.stage_review_available) appendStageReview(item, job);

@@ -120,6 +120,14 @@ def review_file(manager, job, parts):
         return read(None, None, None, parts)
     result, files = context(manager, job)
     runtime_file = runtime_reader(manager, job, result)
+    if parts == ['rotation-status.json']:
+        from ..motion_bundle_reader import VerifiedMotionBundleReader
+        from ..targets.character43.motion_rotation_status import build
+        request = read_document(manager.folder(job) / 'request.json')
+        identity = request['motion_identity']
+        bundle = VerifiedMotionBundleReader(manager.state_root).load(identity['clip_sha256'], identity['bundle_sha256'])
+        return json.dumps(build(files, result['artifact_sha256'], bundle, request),
+                          ensure_ascii=False).encode('utf-8'), 'application/json'
     if parts == ['depth-status.json']:
         from ..targets.character43.motion_depth_status import build
         return json.dumps(build(files,result['artifact_sha256']),ensure_ascii=False).encode('utf-8'),'application/json'
