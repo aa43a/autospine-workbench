@@ -83,6 +83,12 @@ def read(manager, job, parts):
     from .character_player import read as player
     files = AnimatedStore(manager.state_root).read(value['report']['candidate_bundle_sha256'])
     result = dict(artifact_sha256=value['report']['candidate_bundle_sha256'])
+    if tail == ['bend-status.json']:
+        from ..motion_bundle_reader import VerifiedMotionBundleReader
+        from ..targets.character43.knee_projection import build
+        request=read_document(manager.folder(job)/'request.json');identity=request['motion_identity']
+        bundle=VerifiedMotionBundleReader(manager.state_root).load(identity['clip_sha256'],identity['bundle_sha256'])
+        return canonical_bytes(build(files,result['artifact_sha256'],bundle,request)), 'application/json'
     adapter = SimpleNamespace(projects=manager.projects,
         review_context=lambda *_: (result, files, canonical_bytes(value['runtime'])))
     raw, mime = player(adapter, None, None, tail)

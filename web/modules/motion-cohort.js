@@ -7,12 +7,13 @@ import {appendCandidateDownload} from './motion-candidate-download.js';
 import {appendReadiness} from './motion-readiness.js';
 import {createCohortSync} from './motion-cohort-sync.js';
 import {createExperimentPanel} from './motion-experiments.js';
+import {appendKneeDetails} from './motion-knee-details.js';
 const byId=id=>document.getElementById(id), motion=byId('motion'),character=byId('character');
 const sync=createCohortSync(byId('sync-status'));
 const player=createSourcePlayer(byId('source'),byId('time'),byId('play'),byId('time-label'),(time,end)=>{sync.seek(time,end);alternative.seek(time,end);experiments.seek(time,end);});
 byId('source-view').onchange=()=>player.setView(byId('source-view').value||null);
 const alternative=createAlternativePanel(byId('alternative'),get,{onSeek:time=>player.seek(time)});
-const experiments=createExperimentPanel(byId('experiments'),get);
+const experiments=createExperimentPanel(byId('experiments'),get,time=>player.seek(time));
 let pack,revision=0;
 const id=/^motion-[a-f0-9]{32}$/,sha=/^[a-f0-9]{64}$/;
 function validate(value){
@@ -51,6 +52,7 @@ async function show(){
     const frame=document.createElement('iframe');frame.title=`${t.label} 角色动作时间轴`;frame.src=`/api/motions/${t.job_id}/view/player.html`;byId('target').append(frame);
     sync.attach(frame,t.artifact_sha256);
     experiments.load(t.job_id);
+    appendKneeDetails(byId('review'),`/api/motions/${t.job_id}/view/`,t.artifact_sha256,time=>{if(version===revision)player.seek(time);});
     appendStageReview(byId('review'),job);
     appendCandidateDownload(byId('review'),job);
     appendReadiness(byId('review'),job,null,{onSeek:time=>{

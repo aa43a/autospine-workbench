@@ -131,6 +131,12 @@ def review_file(manager, job, parts):
         return read(None, None, None, parts)
     result, files = context(manager, job)
     runtime_file = runtime_reader(manager, job, result)
+    if parts == ['bend-status.json']:
+        from ..motion_bundle_reader import VerifiedMotionBundleReader
+        from ..targets.character43.knee_projection import build
+        request=read_document(manager.folder(job)/'request.json');identity=request['motion_identity']
+        bundle=VerifiedMotionBundleReader(manager.state_root).load(identity['clip_sha256'],identity['bundle_sha256'])
+        return json.dumps(build(files,result['artifact_sha256'],bundle,request)).encode(), 'application/json'
     if parts in (['hand-status.json'],['hand-status.html']):
         from ..motion_bundle_reader import VerifiedMotionBundleReader
         from ..targets.character43.motion_hand_status import build,render

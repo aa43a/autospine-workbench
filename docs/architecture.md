@@ -1,5 +1,7 @@
 # AutoSpine Workbench 架构与质量门禁
 
+`knee_projection.py` 使用源链向量及目标骨骼实际位置，归一化计算膝点相对髋踝连线的深度偏离和可见弯曲符号。近直线/退化情况不判反折；观察结果不修改动画或 draw order。工作台通过精确原任务/实验来源提供只读查询。
+
 `motion_experiments.py` 将局部实验作为原动作任务的只读附件：候选、父来源、Runtime 与 request 摘要绑定，独立不可变登记；重用播放器而不更改任务结果、readiness 或视觉决定。其接口位于原任务 `view/experiments.json` 和 `view/experiments/{digest}/player.html`。
 
 源播放器的观察方向作为本地显示状态保存，不修改 preview 数据、候选或时间原点；替代候选复用同源时间桥，各自保留精确身份与独立验收。

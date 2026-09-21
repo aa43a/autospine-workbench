@@ -1,6 +1,7 @@
 import {createCohortSync} from './motion-cohort-sync.js';
+import {appendKneeDetails} from './motion-knee-details.js';
 
-export function createExperimentPanel(container, request) {
+export function createExperimentPanel(container, request, onSeek) {
   let revision=0, sync=null, time=0, end=null;
   function clear(){revision++;sync?.clear();sync=null;container.replaceChildren();}
   async function load(job){
@@ -22,6 +23,7 @@ export function createExperimentPanel(container, request) {
         const frame=document.createElement('iframe');frame.title='局部修正实验实时对照';
         frame.src=`${base}/experiments/${row.evidence_sha256}/player.html`;
         const status=document.createElement('p');body.append(note,frame,status);
+        if(onSeek)appendKneeDetails(body,`${base}/experiments/${row.evidence_sha256}/`,row.candidate_bundle_sha256,onSeek);
         sync=createCohortSync(status);if(end!==null)sync.seek(time,end);sync.attach(frame,row.candidate_bundle_sha256);
       };
     }catch(error){if(token===revision)container.textContent='实验对照读取失败：'+error.message;}
