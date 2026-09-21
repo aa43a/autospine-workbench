@@ -10,6 +10,7 @@ from autospine_workbench.motion_bundle_reader import VerifiedMotionBundleReader
 from autospine_workbench.bvh_parser import parse_bvh
 from autospine_workbench.targets.character43.motion_rotation_status import build as verify_source
 from autospine_workbench.targets.character43.regional_depth_profile import apply
+from m4_regional_replay_inputs import prepare
 
 
 def run(job, output, *, sparse=False):
@@ -25,6 +26,8 @@ def run(job, output, *, sparse=False):
     verify_source(files,result['artifact_sha256'],bundle,request)
     if json.loads(files.get('motion-torso-projection.json',b'{}')).get('applied'):
         raise ValueError('regional_check_warped_plane_unsupported')
+    character=AnimatedStore(root).read(request['character_sha256'])
+    files,replay_inputs=prepare(files,character,request['character_sha256'])
     kimodo = (bundle.raw_npz,bundle.kimodo_source) if bundle.source_kind == 'kimodo_npz' else None
     document, depth, transform = apply(json.loads(files['skeleton.json']),files,'external-motion',
         json.loads(files['motion-depth.json']),None if kimodo else parse_bvh(bundle.raw_bvh),
@@ -34,7 +37,7 @@ def run(job, output, *, sparse=False):
     output.mkdir(parents=True)
     report = dict(source_job=job,source_artifact_sha256=result['artifact_sha256'],
         request_sha256=sha256((folder/'request.json').read_bytes()).hexdigest(),
-        motion_identity=identity,depth=depth,transform=transform,authority='none',selected=False,
+        motion_identity=identity,replay_inputs=replay_inputs,depth=depth,transform=transform,authority='none',selected=False,
         runtime='not_captured',scope='regional_source_replay_not_visual_acceptance')
     (output/'report.json').write_bytes(canonical_bytes(report))
     if transform:

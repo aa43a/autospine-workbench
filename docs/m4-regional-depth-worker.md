@@ -1,5 +1,31 @@
 # Regional depth worker integration
 
+## Replay source-scope correction
+
+The isolated source-check tool previously passed only the external-motion bundle
+to regional evaluation. That bundle intentionally omits `skirt-trial.json`, while
+the live worker receives the original character bundle. Consequently the dense,
+sparse, tight, groups, common and priority source-check experiments below covered
+only their recorded partial inventory: **their 432 checks do not establish full
+regional worker coverage**. Their immutable results remain useful only for that
+same partial inventory. The live worker itself did receive skirt metadata.
+
+The replay tool now reads the exact `character_sha256` through `AnimatedStore`,
+verifies the candidate manifest, unchanged setup rig, textures and atlas, and
+restores the source skirt metadata with a hash receipt. Changed/partitioned rigs,
+changed textures and contradictory metadata are rejected. No metadata is inferred
+from names, and candidate/source packages remain unchanged.
+
+The corrected Huiye replay is
+`../tmp/m4-motion-center/regional-kimodo-huiye-source-scope-v1/report.json`, SHA256
+`4d532784edf55231d435b285077292a3c22156c23e749c376a4795c8035f9368`.
+It partitions source `layer-004`, checks 864 refinement samples and 956 samples
+over four arm/garment pairs, for 1,820 total. Refinement has 432 no-overlap,
+401 uncertain and 31 unmeasured checks. Garment checks have 856 no-overlap and
+100 uncertain checks. All 120 first-blocker ordering records remain; no candidate
+is selected and no new Runtime capture is claimed. Seven replay/profile tests
+pass. Subsequent cloth-depth experiments must use this corrected input scope.
+
 ## Active diagnostic measurement precedence
 
 Regional refinement can complete a pair/time previously left unmeasured by the
