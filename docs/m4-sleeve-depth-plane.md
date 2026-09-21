@@ -32,10 +32,32 @@ sample locations, not proven continuous unsupported intervals. Ten focused
 plane/replay/weighted-interval tests pass, including mirroring, scale, attachment
 invariants, missing observations and degenerate projection.
 
-This experiment does not yet supply mixed mesh influence depths, reorder slots,
-produce a transformed candidate, or capture Runtime frames. Next validation must
-combine ordinary arm influence intervals with explicit helper-plane influence
-depths, retaining unknowns through degenerate samples and checking the full
-restored regional inventory. It must not replace unknown cloth depth merely to
-make an ordering gate pass. Neither visual acceptance nor default adoption has
-been granted by this model-conditioning result.
+## Mixed influence experiment
+
+`m4_regional_source_check.py` now accepts explicit repeated
+`--sleeve-helper helper=forearm_l/r` arguments. The option is absent from default
+workbench requests. It keeps ordinary arm influence intervals, evaluates helper
+influence positions through the actual animated affine transform and deform, and
+combines all contributions using the original weights. Unknown body influences,
+unavailable helper planes and invalid normalization remain unknown. Unaffected
+vertices retain their original intervals. Every applicable check records the
+helper planes, unavailable reasons and vertices receiving model-derived depth.
+
+The full Huiye run at
+`../tmp/m4-motion-center/regional-kimodo-huiye-sleeve-plane-v1/report.json` has SHA256
+`048e0e2f67ca214011f15880b16f20cb8007d58121661c00e76652f934eb6e0f`.
+All 1,820 sample identities match the corrected source-scope baseline. Of those,
+1,288 no-overlap checks stay unchanged, 490 remain uncertain, two become uniform
+back under this model, 31 stay unmeasured, and **nine previously measured checks
+hit the pixel budget**. Across 1,780 mutually measured checks, summed unknown pixel
+contributions decrease from 6,196,801 to 709,073 (repeated pixel/sample counts,
+not unique pixels, a correctness metric or an error rate). Of the remaining 490
+uncertain checks, 452 still contain unknown depth and 38 have margin uncertainty.
+
+This candidate is not adopted: 40 checks are unmeasured and 120 first-blocker
+ordering records remain. No transformed skeleton or Runtime capture is produced.
+Twenty-six focused tests pass, including mixed/all-helper/all-body weights, actual
+helper-space deform, unknown preservation and default-off parameter propagation.
+Further work must resolve remaining unknown influence sources and the resource
+regression before this can enter default selection. Model-derived depth is not
+observed cloth surface or human visual approval.

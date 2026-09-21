@@ -10,7 +10,7 @@ def build(document, files, animation, depth, bvh, mapping, *, yaw=0,
           partition_slots=None, cloth_constraints=False, limb_constraints=False,
           torso_plane=False, rendered_bounds=False, reuse_refinement_overlap=False,
           tiled=False, pair_budgets=False, refine_cycles=False, include_depth=False, on_stage=None,
-          kimodo=None, sparse=False):
+          kimodo=None, sparse=False,sleeve_helpers=None):
     def stage(name):
         if on_stage is not None:
             on_stage(name)
@@ -42,12 +42,12 @@ def build(document, files, animation, depth, bvh, mapping, *, yaw=0,
     refined, evidence = refine(document, files, animation, depth, sampler,
         torso_plane=torso_plane, rendered_bounds=rendered_bounds,
         order_probe=probe if reuse_refinement_overlap else None,
-        tiled=tiled, pair_budgets=pair_budgets, sparse=sparse)
+        tiled=tiled, pair_budgets=pair_budgets, sparse=sparse,sleeve_helpers=sleeve_helpers)
     cloth = limbs = None
     if cloth_constraints:
         stage('depth_cloth_constraints')
         from .cloth_depth_constraints import build as cloth_build
-        refined, cloth = cloth_build(document, files, animation, refined, partition, sampler, order_probe=probe)
+        refined, cloth = cloth_build(document, files, animation, refined, partition, sampler, order_probe=probe,sleeve_helpers=sleeve_helpers)
     if limb_constraints:
         stage('depth_limb_constraints')
         from .limb_depth_constraints import build as limb_build
@@ -68,4 +68,5 @@ def build(document, files, animation, depth, bvh, mapping, *, yaw=0,
         sparse_sampling=sparse)
     if include_depth:
         report['depth'] = refined
+    if sleeve_helpers:report['sleeve_helpers']=dict(sleeve_helpers)
     return candidate, report

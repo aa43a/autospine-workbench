@@ -8,6 +8,14 @@ from autospine_workbench.targets.character43.regional_depth_profile import apply
 
 
 class RegionalProfileTests(unittest.TestCase):
+    def test_explicit_sleeve_model_reaches_pipeline_without_becoming_default(self):
+        for helpers in (None,{'cloth':'forearm_r'}):
+            doc,files,candidate,report=self.fixture()
+            with patch('autospine_workbench.targets.character43.regional_depth_profile.build',
+                       return_value=(candidate,report)) as pipeline:
+                apply(doc,files,'test',{},object(),{},sleeve_helpers=helpers)
+            self.assertEqual(pipeline.call_args.kwargs['sleeve_helpers'],helpers)
+
     def fixture(self):
         doc, files = source()
         files['skirt-trial.json'] = json.dumps(dict(profile='fixed-waist-three-chain-sway-v1', rows=[dict(layer_id='a')])).encode()

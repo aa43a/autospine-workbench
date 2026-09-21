@@ -19,7 +19,7 @@ def held_front(checks, arm, cloth, fallback):
     return fallback,True
 
 
-def build(document, files, animation, depth, partition, sampler, *, order_probe=None):
+def build(document, files, animation, depth, partition, sampler, *, order_probe=None,sleeve_helpers=None):
     if order_probe is not None and (order_probe.document is not document or order_probe.files is not files
                                     or order_probe.animation!=animation):
         raise ValueError('cloth_constraint_probe_identity')
@@ -63,8 +63,13 @@ def build(document, files, animation, depth, partition, sampler, *, order_probe=
                             plane,segments,hands=models[point]
                             lengths={n:v['length'] for n,v in axes[arm]['axes'].items() if n in hands['segments']}
                             intervals=interval_build(document,mesh,segments,axis_lengths=lengths)
+                            if sleeve_helpers:
+                                from .sleeve_depth_intervals import at as sleeve_intervals
+                                intervals=sleeve_intervals(probe,sampler,source_tick,arm,time,segments,sleeve_helpers,axis_lengths=lengths)
                             check=overlap_support(probe,arm,cloth,time,segments,endpoint_caps=True,
                                 reference_plane=plane['coefficients'],axis_lengths=lengths,depth_intervals=intervals['intervals'])
+                            if sleeve_helpers:
+                                check['sleeve_depth_model']={k:v for k,v in intervals.items() if k!='intervals'}
                     except ValueError as exc:
                         check=dict(status='unmeasured',time=time,reason_code=str(exc))
                     checks.append(check)

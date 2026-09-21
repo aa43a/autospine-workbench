@@ -13,7 +13,7 @@ from autospine_workbench.targets.character43.regional_depth_profile import apply
 from m4_regional_replay_inputs import prepare
 
 
-def run(job, output, *, sparse=False):
+def run(job, output, *, sparse=False,sleeve_helpers=None):
     if not re.fullmatch(r'motion-[a-f0-9]{32}', job):
         raise ValueError('invalid_motion_job')
     if output.exists():
@@ -32,7 +32,7 @@ def run(job, output, *, sparse=False):
     document, depth, transform = apply(json.loads(files['skeleton.json']),files,'external-motion',
         json.loads(files['motion-depth.json']),None if kimodo else parse_bvh(bundle.raw_bvh),
         bundle.kimodo_map if kimodo else bundle.bvh_map,kimodo=kimodo,
-        yaw=request.get('projection',{}).get('yaw_degrees',0),sparse=sparse,
+        yaw=request.get('projection',{}).get('yaw_degrees',0),sparse=sparse,sleeve_helpers=sleeve_helpers,
         on_stage=lambda stage: print(stage,flush=True))
     output.mkdir(parents=True)
     report = dict(source_job=job,source_artifact_sha256=result['artifact_sha256'],
@@ -49,13 +49,17 @@ def run(job, output, *, sparse=False):
 if __name__ == '__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('job'); parser.add_argument('output',type=Path)
+    parser.add_argument('--sleeve-helper',action='append',default=[],help='Experimental helper=forearm_l/r plane')
     policy=parser.add_mutually_exclusive_group()
     policy.add_argument('--sparse',action='store_true')
     policy.add_argument('--tight-sparse',action='store_true')
     policy.add_argument('--tight-depth-groups',action='store_true')
     policy.add_argument('--common-depth-points',action='store_true')
     policy.add_argument('--priority-depth-points',action='store_true')
-    args=parser.parse_args();run(args.job,args.output,
+    args=parser.parse_args();pairs=[v.split('=') for v in args.sleeve_helper]
+    if (len(pairs)>8 or any(len(v)!=2 or v[1] not in ('forearm_l','forearm_r') for v in pairs)
+            or len({v[0] for v in pairs})!=len(pairs)):parser.error('invalid sleeve helper mapping')
+    run(args.job,args.output,sleeve_helpers=dict(pairs),
         sparse='priority_depth_points' if args.priority_depth_points else
                'common_depth_points' if args.common_depth_points else
                'tight_depth_groups' if args.tight_depth_groups else

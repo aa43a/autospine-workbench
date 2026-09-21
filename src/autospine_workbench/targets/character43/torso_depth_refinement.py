@@ -10,11 +10,12 @@ PROFILE='torso-plane-hand-interval-held-order-v1-experiment'
 
 
 class Checker:
-    def __init__(self,probe,sampler,*,plane_provider=None,pixelwise=False):
+    def __init__(self,probe,sampler,*,plane_provider=None,pixelwise=False,sleeve_helpers=None):
         self.probe,self.sampler=probe,sampler
         self.plane_provider=plane_provider or at
         self.pixelwise=pixelwise
         self.axes={}; self.models={}
+        self.sleeve_helpers=sleeve_helpers
 
     def check(self,arm,body,time,source_tick,*,on_triangle=None):
         probe=self.probe
@@ -35,6 +36,11 @@ class Checker:
         segments,hands,plane=self.models[key]
         lengths={n:v['length'] for n,v in self.axes[arm]['axes'].items() if n in hands['segments']}
         intervals=build(probe.document,mesh,segments,axis_lengths=lengths)
+        if self.sleeve_helpers:
+            from .sleeve_depth_intervals import at as sleeve_intervals
+            intervals=sleeve_intervals(probe,self.sampler,source_tick,arm,time,segments,self.sleeve_helpers,axis_lengths=lengths)
         result=overlap_support(probe,arm,body,time,segments,endpoint_caps=True,
             reference_plane=plane['coefficients'],axis_lengths=lengths,depth_intervals=intervals['intervals'],pixelwise=self.pixelwise,on_triangle=on_triangle)
+        if self.sleeve_helpers:
+            result['sleeve_depth_model']={k:v for k,v in intervals.items() if k!='intervals'}
         return dict(result,reference_plane_evidence=plane)
