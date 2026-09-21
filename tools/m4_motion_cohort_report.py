@@ -5,6 +5,7 @@ from pathlib import Path
 import sys
 from m4_motion_cohort import digest
 from m4_motion_cohort_reviews import decision
+from m4_motion_support_matrix import render as render_support, coverage
 
 LABELS = {'succeeded': '捕获完成', 'running': '运行中', 'pending': '排队中', 'failed': '任务失败',
     'not_started': '尚未开始', 'needs_review': '待阶段验收', 'needs_changes': '存在异常',
@@ -98,7 +99,7 @@ def render(plan, state, reviews=None):
                   ((' · ' + row['visual_record']['notes']) if row['visual_record'] else ''),
                   '\n'.join(gate_notes) or (json.dumps(row['issues'], ensure_ascii=False)
                     if row['issues'] else row['failure'] or '—')]
-        lines.append('<tr>' + ''.join('<td>'+escape(label(v))+'</td>' for v in values) + '<td>'+links+'</td></tr>')
+        lines.append('<tr id="cell-' + escape(row['cell'], quote=True) + '">' + ''.join('<td>'+escape(label(v))+'</td>' for v in values) + '<td>'+links+'</td></tr>')
     counts = summary(records)
     heading = (f'<p>固定组合 {counts["required"]} · 已结束 {counts["terminal"]} · '
         f'完成 Runtime 捕获 {counts["captured"]} · 几何通过 {counts["geometry_passed"]} · '
@@ -119,7 +120,7 @@ def render(plan, state, reviews=None):
     return '''<!doctype html><meta charset="utf-8"><title>M4 固定动作验收矩阵</title>
 <style>body{background:#101923;color:#e3edf6;font:15px system-ui;padding:24px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #425466;padding:10px;text-align:left}a{color:#69d4fa}td{max-width:300px;overflow-wrap:anywhere}</style>
 <p>任务完成不等于动作通过。接触、遮挡、视觉验收分别列出，未检查不计通过。此页为生成时快照。</p>
-''' + intro + heading + '<table><thead><tr>' + ''.join('<th>'+v+'</th>' for v in ['动作/角色','任务','候选','综合检查','几何','Runtime 帧','接触','遮挡','人工视觉','异常','定位']) + '</tr></thead><tbody>' + ''.join(lines) + '</tbody></table>'
+''' + intro + heading + render_support(plan, records) + '<h2>逐项证据与异常定位</h2><table><thead><tr>' + ''.join('<th>'+v+'</th>' for v in ['动作/角色','任务','候选','综合检查','几何','Runtime 帧','接触','遮挡','人工视觉','异常','定位']) + '</tr></thead><tbody>' + ''.join(lines) + '</tbody></table>'
 
 
 def summary(records):
@@ -151,6 +152,7 @@ if __name__ == '__main__':
     Path(sys.argv[3]).with_suffix('.json').write_text(json.dumps({
         'schema': 'autospine.motion-cohort-report/v1', 'plan_sha256': digest(plan),
         'rows': rows(plan, state, reviews), 'summary': summary(rows(plan, state, reviews)),
+        'stage_coverage': coverage(rows(plan, state, reviews)),
         'visual_snapshot_at': reviews.get('captured_at') if reviews else None,
         'authority': 'none', 'production_authorized': False},
         ensure_ascii=False, indent=2), encoding='utf-8')
