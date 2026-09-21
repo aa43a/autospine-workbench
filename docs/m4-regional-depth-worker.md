@@ -14,15 +14,34 @@ The optional `external-regional-depth-order-v1` worker profile composes render
 partitioning, torso-plane interval refinement, garment/limb constraints, tiled
 alpha checks, and guarded ordering. Existing submission defaults are unchanged.
 The motion-center target controls expose an optional regional-depth checkbox for
-FBX/BVH sources; source changes reset it and NPZ disables it. The API validates
+FBX/BVH and verified Kimodo SOMA77 NPZ sources; source changes reset it. The API validates
 the explicit profile and records it in the immutable request. Retry preserves
 that profile instead of silently returning to the current default.
 
 Partition selection comes from the exact character's existing
 `fixed-waist-three-chain-sway-v1` skirt-trial records, not character names or
 layer-name guesses. Unknown provenance leaves the slot inventory unchanged.
-SOMA77 source sampling is not supported by this new regional profile yet; the
-existing Kimodo retarget profile remains available.
+SOMA77 source sampling uses the same validated NPZ/FK contract as local depth
+diagnostics. Regional `source_sampling` records raw/source/array identities and
+the explicit `linear_observed_positions` midpoint model. It does not invent BVH
+rotation channels or claim measured cloth depth between source frames. Render
+partition reconstruction receives the original NPZ and mapping as well.
+
+`tools/m4_regional_source_check.py JOB OUTPUT` replays this strategy on an exact
+existing candidate, verifies source identity, rejects already warped torso
+geometry, and writes an independent report. It never overwrites an output or
+publishes a replacement candidate. Runtime and visual acceptance remain separate.
+
+Actual SOMA77 replay: fixed Alice wave job
+`motion-76e0d141f979430db88de1183c46a79b`, artifact
+`9fc3e02e74036b34322480c4936f5bfd874c8931bf11372e8c1c19fe2e0c486a`.
+`../tmp/m4-motion-center/regional-kimodo-alice-v1/report.json` has SHA256
+`9e39540e0288e6636650ee4649554f825847fa45b57d3505e821a2babc768aab`.
+All requested checks complete (zero unmeasured), but 120
+`visible_depth_straddle` records prevent selection. No replacement skeleton,
+new Runtime capture or visual acceptance is claimed. Twenty-five focused tests
+cover NPZ corruption, midpoint observations, partition source propagation,
+legacy BVH behavior, worker references, incomplete gates and transform identity.
 
 Accepted transformations carry an exact source/candidate digest contract. Setup
 vertices follow the source-to-region mapping; geometry and Runtime references

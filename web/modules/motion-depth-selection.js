@@ -4,7 +4,7 @@ export function createDepthSelection(anchor) {
   const input=document.createElement('input'); input.type='checkbox'; input.disabled=true;
   label.append(input,document.createTextNode(' 区域深度排序（实验）'));
   const hint=document.createElement('p'); hint.className='hint';
-  hint.textContent='适用于 FBX/BVH：根据已有裙装记录拆分绘制区域并检查前后关系。保留纹理与权重；冲突时保留原顺序。Kimodo NPZ 暂不支持此策略。';
+  hint.textContent='适用于 FBX/BVH/Kimodo SOMA77：根据已有裙装记录拆分绘制区域并检查前后关系。保留纹理与权重；冲突时保留原顺序。Kimodo 中间时刻使用已记录的三维位置线性插值，不代表真实布料深度。';
   const sparseLabel=document.createElement('label'),sparse=document.createElement('input');
   sparse.type='checkbox';sparse.disabled=true;
   sparseLabel.append(sparse,document.createTextNode(' 稀疏遮挡采样（实验）'));
@@ -13,7 +13,7 @@ export function createDepthSelection(anchor) {
   anchor.before(label,hint,sparseLabel,sparseHint);
   let available=false,sparseAvailable=false,source=null;
   function update(){
-    input.disabled=!(available && source && ['bvh','fbx'].includes(source.format));
+    input.disabled=!(available && source && ['bvh','fbx','npz'].includes(source.format));
     if(input.disabled)input.checked=false;
     sparse.disabled=!(sparseAvailable&&source);if(sparse.disabled)sparse.checked=false;
   }

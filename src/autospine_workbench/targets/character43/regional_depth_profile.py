@@ -20,14 +20,15 @@ def partition_slots(files, document):
     return selected
 
 
-def apply(document, files, animation, depth, bvh, mapping, *, yaw=0, on_stage=None):
+def apply(document, files, animation, depth, bvh, mapping, *, yaw=0, on_stage=None, kimodo=None):
     selected = partition_slots(files, document)
-    if bvh is None:
-        raise ValueError('regional_depth_bvh_required')
+    if bvh is None and kimodo is None:
+        raise ValueError('regional_depth_source_required')
     candidate, report = build(document, files, animation, depth, bvh, mapping,
         yaw=yaw, partition_slots=selected, cloth_constraints=bool(selected), limb_constraints=True,
         torso_plane=True, rendered_bounds=True, reuse_refinement_overlap=True,
-        tiled=True, pair_budgets=True, refine_cycles=True, include_depth=True, on_stage=on_stage)
+        tiled=True, pair_budgets=True, refine_cycles=True, include_depth=True, on_stage=on_stage,
+        kimodo=kimodo)
     refined = report.pop('depth')
     unmeasured = sum(c['status'] == 'unmeasured' for r in report['refinement']['rows'] for c in r['checks'])
     unmeasured += sum((report.get(k) or {}).get('unmeasured_samples', 0)

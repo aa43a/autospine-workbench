@@ -11,10 +11,10 @@ class DepthPolicyTests(unittest.TestCase):
                 self.assertEqual(select(dict(depth_review_profile=profile), dict(format=format)), profile)
 
     def test_regional_requires_supported_source(self):
-        for format in ('fbx', 'bvh'):
+        for format in ('fbx', 'bvh', 'npz'):
             self.assertEqual(select(dict(depth_review_profile=REGIONAL), dict(format=format)), REGIONAL)
-        for format in ('npz', None):
-            with self.assertRaisesRegex(PipelineRunError, 'bvh_required'):
+        for format in ('unknown', None):
+            with self.assertRaisesRegex(PipelineRunError, 'source_unsupported'):
                 select(dict(depth_review_profile=REGIONAL), dict(format=format))
 
     def test_unknown_profile_rejected(self):

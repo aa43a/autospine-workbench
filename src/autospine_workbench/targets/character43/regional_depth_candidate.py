@@ -9,7 +9,8 @@ from .motion_depth_order import build as order_build
 def build(document, files, animation, depth, bvh, mapping, *, yaw=0,
           partition_slots=None, cloth_constraints=False, limb_constraints=False,
           torso_plane=False, rendered_bounds=False, reuse_refinement_overlap=False,
-          tiled=False, pair_budgets=False, refine_cycles=False, include_depth=False, on_stage=None):
+          tiled=False, pair_budgets=False, refine_cycles=False, include_depth=False, on_stage=None,
+          kimodo=None):
     def stage(name):
         if on_stage is not None:
             on_stage(name)
@@ -23,11 +24,19 @@ def build(document, files, animation, depth, bvh, mapping, *, yaw=0,
         if not ticks:
             raise ValueError('regional_depth_source_ticks_missing')
         document, partition = partition_build(document, partition_slots)
-        depth = depth_build(document, bvh, mapping, clip_bounds=(min(ticks), max(ticks)),
+        depth = depth_build(document, bvh, mapping, kimodo=kimodo, clip_bounds=(min(ticks), max(ticks)),
                             yaw_degrees=yaw, render_regions=True)
     if cloth_constraints and partition is None:
         raise ValueError('cloth_constraints_require_partition')
-    sampler = SegmentDepthSampler(bvh, mapping, yaw)
+    if kimodo is None:
+        sampler = SegmentDepthSampler(bvh, mapping, yaw)
+        sampling = dict(kind='bvh', interpolation='linear_bvh_channels')
+    else:
+        from .kimodo_depth_sampler import KimodoDepthSampler
+        sampler = KimodoDepthSampler(*kimodo, mapping, yaw,
+                                    interpolation='linear_observed_positions')
+        sampling = dict(kind='kimodo_npz', interpolation=sampler.interpolation,
+                        identity=sampler.identity)
     probe = Probe(document, files, animation, rendered_bounds=rendered_bounds, tiled=tiled)
     stage('depth_refinement')
     refined, evidence = refine(document, files, animation, depth, sampler,
@@ -55,7 +64,7 @@ def build(document, files, animation, depth, bvh, mapping, *, yaw=0,
         verify(original, candidate, animation, partition_slots, order)
     report = dict(refinement=evidence, order=order, partition=partition,
         depth_groups=depth.get('groups'), depth_profile=depth['profile'],
-        cloth_constraints=cloth, limb_constraints=limbs)
+        cloth_constraints=cloth, limb_constraints=limbs, source_sampling=sampling)
     if include_depth:
         report['depth'] = refined
     return candidate, report

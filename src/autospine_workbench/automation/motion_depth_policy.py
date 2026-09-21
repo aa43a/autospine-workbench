@@ -9,6 +9,6 @@ def select(body, source):
     value = body.get('depth_review_profile', OVERLAP_PROFILE)
     if value not in (LEGACY, OVERLAP_PROFILE, REGIONAL, SPARSE_DEPTH_PROFILE):
         raise PipelineRunError('motion_depth_profile_unsupported')
-    if value == REGIONAL and source.get('format') not in ('bvh', 'fbx'):
-        raise PipelineRunError('regional_depth_bvh_required')
+    if value == REGIONAL and source.get('format') not in ('bvh', 'fbx', 'npz'):
+        raise PipelineRunError('regional_depth_source_unsupported')
     return value
