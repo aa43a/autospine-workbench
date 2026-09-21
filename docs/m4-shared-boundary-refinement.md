@@ -44,6 +44,10 @@ cannot be satisfied by a single global slot ordering. The next step is to resolv
 the per-surface depth/partition relationship with the third layer, retaining
 continuity checks, rather than discarding positive-area overlap constraints.
 
+The subsequent [same-frame pixel localization](m4-cycle-pixel-localization.md)
+confirms simultaneous alpha support for these contradictory requirements. It
+separates this case from cycles supported at different spatial positions.
+
 Outputs are under `../tmp/m4-motion-center/shared-boundary-order-{alice,hong}-v1/`.
 [Frozen audit](benchmark/m4-shared-boundary-evidence-v1.json) binds each raw report
 to its prior report and source artifact. Reproduce from the repository with
