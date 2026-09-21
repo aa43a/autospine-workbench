@@ -62,3 +62,6 @@ Next, the ordering solver needs explicit evidence or a separately declared
 visual-adaptation model for arm/skirt relations. Simply subdividing the same
 conflicting requirements or increasing the cycle-check limit cannot settle
 the demonstrated simultaneous conflicts.
+
+The next [garment-relation experiment](m4-coherent-garment-relations.md) reuses
+the existing explicit garment-plane model and preserves these limitations.

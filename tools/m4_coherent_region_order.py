@@ -14,9 +14,9 @@ from autospine_workbench.targets.character43.motion_depth_order import build as 
 from autospine_workbench.targets.character43.affine_pose import sample
 
 
-def run(parent,output):
+def run(parent,output,shared_boundaries=False):
     if output.exists() and any(output.iterdir()):raise ValueError('coherent_output_exists')
-    receipt=json.loads((parent/'report.json').read_bytes());raw=(parent/'observations.json').read_bytes()
+    receipt_raw=(parent/'report.json').read_bytes();receipt=json.loads(receipt_raw);raw=(parent/'observations.json').read_bytes()
     if sha256(raw).hexdigest()!=receipt.get('observations_sha256'):raise ValueError('coherent_observations_identity')
     observations=json.loads(raw);files=AnimatedStore(Path('workspace')).read(receipt['source_artifact_sha256'])
     source=json.loads(files['skeleton.json']);rank={s['name']:i for i,s in enumerate(source['slots'])}
@@ -57,16 +57,23 @@ def run(parent,output):
                     current_front_slot=region['slot'] if values.pop() else body))
             pairs.append(dict(arm_slot=region['slot'],torso_slot=body,evidence_source='regularized_proxy_inference',samples=samples))
     probe=Probe(partitioned,files,'external-motion',tiled=True,sparse=True,rendered_bounds=True)
+    if shared_boundaries:
+        from autospine_workbench.targets.character43.depth_shared_boundary import BoundaryProbe
+        probe=BoundaryProbe(probe,partition)
     candidate,order=order_build(partitioned,'external-motion',dict(pairs=pairs),probe,refine_cycles=True)
     output.mkdir(parents=True,exist_ok=True);partition_raw=canonical_bytes(partitioned)
     (output/'partition.json').write_bytes(partition_raw)
     (output/'inference.json').write_bytes(canonical_bytes(models))
     report=dict(profile=PROFILE,source_artifact_sha256=receipt['source_artifact_sha256'],
+        parent_report_sha256=sha256(receipt_raw).hexdigest(),supplemental_models=receipt.get('supplemental_models',[]),
         observations_sha256=receipt['observations_sha256'],partition_skeleton_sha256=sha256(partition_raw).hexdigest(),
         partition=partition,observed_state_counts=dict(counts),sampled_frames=len(times),max_vertex_error=0,order=order,
         failure_counts=dict(Counter(f['reason_code'] for f in order['failures'])),
         pixel_budget_used=64_000_000-probe.remaining,authority='none',selected=False,
         scope='regularized_inference_with_held_unresolved_regions_not_depth_truth_or_visual_acceptance')
+    if shared_boundaries:
+        report['shared_boundary_refinement']=dict(records=probe.records,triangle_pairs_checked=probe.checked,
+                                                limit_reached=probe.limit_reached)
     if candidate is not None:
         encoded=canonical_bytes(candidate);(output/'skeleton.json').write_bytes(encoded)
         report['skeleton_sha256']=sha256(encoded).hexdigest()
@@ -76,4 +83,5 @@ def run(parent,output):
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('parent',type=Path);parser.add_argument('output',type=Path)
-    args=parser.parse_args();run(args.parent,args.output)
+    parser.add_argument('--shared-boundaries',action='store_true')
+    args=parser.parse_args();run(args.parent,args.output,args.shared_boundaries)
