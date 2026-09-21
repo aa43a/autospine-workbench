@@ -1,10 +1,11 @@
-export function appendTargetComparison(item, job, request) {
+export function appendTargetComparison(item, job, request, {onOpen}={}) {
   const button = document.createElement('button'); button.textContent = '比较该角色的已有视角候选';
   const panel = document.createElement('section'); panel.setAttribute('aria-live', 'polite');
   button.onclick = async () => {
     button.disabled = true; panel.textContent = '正在核对同源动作、角色版本和检查结果…';
     try {
       const report = await request(`/api/motions/${job.job_id}/compare-targets`);
+      if(report.source_job_id!==job.job_id)throw Error('比较对象已变化，请重新读取');
       panel.replaceChildren();
       const note = document.createElement('p');
       note.textContent = !report.complete ? '候选超过本次检查上限，未给出推荐。' : report.recommended_job_id
@@ -21,6 +22,7 @@ export function appendTargetComparison(item, job, request) {
         if (row.status === 'succeeded') {
           const link = document.createElement('a'); link.textContent = ' 打开时间轴';
           link.href = `/api/motions/${row.job_id}/view/player.html`; link.target = '_blank'; link.rel = 'noopener'; p.append(link);
+          if(onOpen){link.textContent=' 在当前页比较';link.onclick=e=>{e.preventDefault();onOpen(row);};}
         }
         panel.append(p);
       }

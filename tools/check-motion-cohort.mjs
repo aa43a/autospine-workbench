@@ -7,14 +7,16 @@ try{
   const page=await browser.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
   const sources=['motion-'+'1'.repeat(32),'motion-'+'2'.repeat(32)];
   const targets=['motion-'+'3'.repeat(32),'motion-'+'4'.repeat(32)];
-  const hash='a'.repeat(64);let changed=false,posts=0;
+  const alternate='motion-'+'5'.repeat(32),alternateHash='c'.repeat(64);
+  const hash='a'.repeat(64);let changed=false,posts=0,staleAlternative=false;
   await page.route('**/api/motions/**',async route=>{
     const path=new URL(route.request().url()).pathname;
     const job=path.split('/')[3];
     if(path.endsWith('/stage-review')){
       const saved=route.request().method()==='POST';
-      if(saved){posts++;assert.equal(route.request().postDataJSON().artifact_sha256,hash);}
-      return route.fulfill({json:{artifact_sha256:hash,evidence_sha256:'e',revision:saved?1:0,
+      const artifact=job===alternate?alternateHash:hash;
+      if(saved){posts++;assert.equal(route.request().postDataJSON().artifact_sha256,artifact);}
+      return route.fulfill({json:{artifact_sha256:artifact,evidence_sha256:job===alternate&&staleAlternative?'changed':'e',revision:saved?1:0,
         readiness:{status:'needs_changes'},history:[],current_applies:saved,
         current:saved?{decision:'accepted_with_exceptions',notes:'fixture only'}:null}});
     }
@@ -24,9 +26,12 @@ try{
       target:{records:[{bone:'upperarm_l',extra_turn_suspected:false,maximum_transfer_difference_deg:0,
         large_key_intervals:[],source_events:[{frame:2,time:.2,reason:'projection_direction_unreliable'},
           {frame:3,time:.3,reason:'projection_direction_unreliable'}]}]}}});
+    if(path.endsWith('/compare-targets'))return route.fulfill({json:{source_job_id:job,complete:true,recommended_job_id:alternate,
+      rows:[{job_id:alternate,source_job_id:sources[0],artifact_sha256:alternateHash,evidence_sha256:'e',view:'side',status:'succeeded',stages:[]}]}});
     if(path.endsWith('/player.html'))return route.fulfill({contentType:'text/html',body:'<p>Fixture player</p>'});
     if(sources.includes(job))return route.fulfill({json:{job_id:job,status:'succeeded',source_sha256:changed?'b'.repeat(64):hash}});
     if(targets.includes(job))return route.fulfill({json:{job_id:job,status:'succeeded',kind:'adapt',result:{artifact_sha256:hash}}});
+    if(job===alternate)return route.fulfill({json:{job_id:job,status:'succeeded',kind:'adapt',result:{artifact_sha256:alternateHash}}});
     throw Error('unexpected fixture route '+path);
   });
   const pack={version:1,plan_sha256:hash,groups:sources.map((job_id,i)=>({job_id,label:'motion '+i,source_sha256:hash,
@@ -46,14 +51,34 @@ try{
   assert.match(await page.locator('iframe').getAttribute('src'),/player.html\?time=0.2$/);
   assert.equal(posts,1);
   await page.getByText('r1 · 阶段可接受，保留异常。fixture only',{exact:true}).waitFor();
+  await page.getByRole('button',{name:'比较该角色的已有视角候选'}).click();
+  await page.getByRole('link',{name:'在当前页比较',exact:true}).click();
+  const alternative=page.locator('#alternative');
+  await alternative.getByRole('button',{name:'记录 / 查看阶段验收'}).click();
+  assert.equal(await page.locator('iframe').count(),2);
+  assert.match(await alternative.locator('iframe').getAttribute('src'),new RegExp(alternate));
+  await alternative.getByLabel('阶段验收结论').selectOption('accepted_with_exceptions');
+  await alternative.getByLabel('验收说明').fill('fixture only');
+  await alternative.getByRole('checkbox').check();
+  await alternative.getByRole('button',{name:'保存阶段结论'}).click();
+  await alternative.getByText('r1 · 阶段可接受，保留异常。fixture only',{exact:true}).waitFor();
+  assert.equal(posts,2);
+  assert.match(await page.locator('#target iframe').getAttribute('src'),new RegExp(targets[0]));
+  await alternative.getByRole('button',{name:'关闭替代候选'}).click();
+  staleAlternative=true;
+  await page.getByRole('link',{name:'在当前页比较',exact:true}).click();
+  await alternative.getByText('无法打开：来源或候选证据已变化，请重新比较',{exact:true}).waitFor();
+  assert.equal(await alternative.locator('iframe').count(),0);
+  assert.equal(await alternative.getByRole('button',{name:'记录 / 查看阶段验收'}).count(),0);
   await page.getByRole('button',{name:'下一项'}).click();
   await page.getByRole('heading',{name:'motion 1 · character 1',exact:true}).waitFor();
   assert.equal(await page.getByRole('button',{name:'下一项'}).isDisabled(),true);
   assert.equal(await page.getByRole('checkbox').count(),0);
+  assert.equal(await alternative.isHidden(),true);
   changed=true;await page.getByRole('button',{name:'上一项'}).click();
   await page.getByText('无法打开：来源或候选身份已变化，请重新生成复核清单',{exact:true}).waitFor();
   assert.equal(await page.locator('iframe').count(),0);
   assert.equal(await page.getByRole('button',{name:'记录 / 查看阶段验收'}).count(),0);
   assert.deepEqual(errors,[]);
-  console.log(JSON.stringify({passed:true,synthetic_posts:posts,real_decisions_written:0,checks:10}));
+  console.log(JSON.stringify({passed:true,synthetic_posts:posts,real_decisions_written:0,checks:17}));
 }finally{await browser.close();}

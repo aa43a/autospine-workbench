@@ -24,6 +24,21 @@ changed. More than 24 matching candidates declines recommendation rather than
 ranking a silently truncated sample. This compares already built candidates; it
 does not yet construct all camera angles for each new character.
 
+The centralized cohort page reuses this same comparison endpoint and offers an
+in-page alternative player. Source bytes, target artifact and readiness evidence
+are checked again before opening it. The baseline remains visible; the source
+skeleton above remains the baseline view. Each candidate has its own independent
+timeline and stage-review form. Changing the fixed cell closes the alternative
+and prevents late requests from opening a stale player. No automatic acceptance
+or replacement is performed, including for a recommended candidate.
+
+Live GET-only Chrome verification opened Hongmeiling raise-arms baseline
+`motion-a181853667ad443b8bcacb449eb2f1c5` and its recommended side alternative
+`motion-c22f2a09ce804829ab7cc9a4ecf0ebbd` together, then read the alternative's
+stage form. No decision was submitted. Seventeen synthetic browser checks also
+cover separate acceptance identities, stale-evidence rejection and navigation
+cleanup; seven comparison/navigation backend tests pass.
+
 Actual check: `motion-6d7be7b37ac141c1906cf28ca5eb4c74` groups four Hongmeiling
 raise-arms targets and recommends the side candidate
 `motion-c22f2a09ce804829ab7cc9a4ecf0ebbd`. The front and both -30 degree candidates

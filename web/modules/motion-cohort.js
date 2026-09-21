@@ -1,8 +1,11 @@
 import {createSourcePlayer} from './motion-source-player.js';
 import {appendStageReview} from './motion-stage-review.js';
 import {appendRotationDetails} from './motion-rotation-details.js';
+import {appendTargetComparison} from './motion-target-comparison.js';
+import {createAlternativePanel} from './motion-cohort-alternative.js';
 const byId=id=>document.getElementById(id), motion=byId('motion'),character=byId('character');
 const player=createSourcePlayer(byId('source'),byId('time'),byId('play'),byId('time-label'));
+const alternative=createAlternativePanel(byId('alternative'),get);
 let pack,revision=0;
 const id=/^motion-[a-f0-9]{32}$/,sha=/^[a-f0-9]{64}$/;
 function validate(value){
@@ -23,6 +26,7 @@ function targets(){
 }
 async function show(){
   const version=++revision,g=pack.groups[Number(motion.value)],t=g.targets[Number(character.value)];
+  alternative.clear();
   player.clear();byId('target').replaceChildren();byId('review').replaceChildren();
   byId('status').textContent='正在核对当前动作与角色版本…';
   const flat=pack.groups.flatMap((g,mi)=>g.targets.map((t,ci)=>({mi,ci}))),index=flat.findIndex(v=>v.mi===Number(motion.value)&&v.ci===Number(character.value));
@@ -37,6 +41,9 @@ async function show(){
     player.load(preview);byId('target-title').textContent=`${g.label} · ${t.label}`;
     const frame=document.createElement('iframe');frame.title=`${t.label} 角色动作时间轴`;frame.src=`/api/motions/${t.job_id}/view/player.html`;byId('target').append(frame);
     appendStageReview(byId('review'),job);
+    appendTargetComparison(byId('review'),job,get,{onOpen:row=>{
+      if(version===revision)alternative.open(row,g.source_sha256);
+    }});
     appendRotationDetails(byId('review'),job,{onSeek:time=>{
       if(version!==revision)return;
       frame.src=`/api/motions/${t.job_id}/view/player.html?time=${encodeURIComponent(time)}`;
