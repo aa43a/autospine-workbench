@@ -27,6 +27,23 @@ changed artifact identities, duplicate/missing/extra ZIP files and changed bytes
 Twenty-eight focused tests pass. M4 still requires unresolved quality work;
 successful delivery and Runtime correspondence do not establish supported motion.
 
+### Wave exception localization
+
+The 120 ordering failures per character are first-blocker records from a
+short-circuiting solver, not 120 independently observed visual defects or an
+exhaustive inventory of all overlapping pairs. Model evidence attributes Alice
+and Hongmeiling's recorded blockers to interval-margin uncertainty; Huiye's
+recorded blockers lack depth support for part of the sleeve pixels.
+
+Operator diagnostics now also collect unmeasured refinement, garment and limb
+checks at their own sample times, deduplicating only identical time/reason/pair
+records. Huiye's actual wave report consequently exposes 194 pixel-budget limits
+alongside 120 order blockers. The first limit is at 0.750 seconds for
+`layer-002-component-0000` / `layer-005`; interval midpoint times remain exact.
+These details were previously absent from the operator list even though the
+aggregate unmeasured count existed. Fifteen focused tests pass; stored candidate
+bytes, thresholds, rendering and stage acceptance remain unchanged.
+
 The readiness gate now independently checks refinement sample statuses and each
 present cloth/limb unmeasured count, rather than trusting the zero aggregate.
 Missing/malformed details and unknown measurement statuses stay unmeasured;

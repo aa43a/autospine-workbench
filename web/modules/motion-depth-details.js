@@ -56,7 +56,7 @@ export function appendDepthDetails(item,job) {
       }
       select.onchange=show; show();
       const note=document.createElement('p');
-      note.textContent='以上为诊断记录数，不是错误率。可使用任务卡片的“比较该角色的已有视角候选”寻找替代视角；阶段验收记录保持不变。';panel.append(note);
+      note.textContent='以上为诊断记录数，不是画面错误数或错误率。排序检查每个时刻遇到首个阻塞即停止，因此列表不代表全部冲突；未测细项另行保留。可使用“比较该角色的已有视角候选”寻找替代视角；阶段验收记录保持不变。';panel.append(note);
     }catch(error){panel.textContent='无法检查：'+error.message;}
     finally{button.disabled=false;}
   };

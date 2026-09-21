@@ -7,6 +7,27 @@ from autospine_workbench.targets.character43.motion_readiness import build as re
 
 
 class DepthStatusTests(unittest.TestCase):
+    def test_regional_midpoint_limits_are_localizable_despite_early_conflicts(self):
+        files,_=self.report([dict(time=0,reason_code='visible_depth_straddle',pair=['a','b'])])
+        depth=json.loads(files['motion-depth.json'])
+        check=dict(time=.5,status='unmeasured',reason_code='depth_overlap_pixel_budget')
+        depth['regional']=dict(refinement=dict(rows=[dict(pair=['a','c'],checks=[check])]),
+            cloth_constraints=dict(pairs=[dict(arm='a',cloth='c',rows=[dict(checks=[check])])]),
+            limb_constraints=dict(pairs=[dict(arm='a',leg='d',rows=[dict(checks=[dict(check,time=.75)])])]))
+        files['motion-depth.json']=json.dumps(depth).encode();before=dict(files)
+        result=build(files,'a'*64)
+        self.assertEqual(result['failure_record_counts'],{'depth_conflict':1,'resource_limit':2})
+        limits=result['records_by_category']['resource_limit']
+        self.assertEqual([(r['time'],r['pair']) for r in limits],[(.5,['a','c']),(.75,['a','d'])])
+        self.assertEqual(files,before)
+
+    def test_unmeasured_regional_time_must_not_be_invented(self):
+        files,_=self.report([]);depth=json.loads(files['motion-depth.json'])
+        depth['regional']=dict(refinement=dict(rows=[dict(pair=['a','b'],checks=[dict(status='unmeasured')])]))
+        files['motion-depth.json']=json.dumps(depth).encode()
+        with self.assertRaisesRegex(ValueError,'time'):
+            build(files,'a'*64)
+
     def test_early_order_conflicts_do_not_hide_unmeasured_samples(self):
         files,_=self.report([dict(time=i/30,reason_code='visible_depth_straddle') for i in range(120)])
         depth=json.loads(files['motion-depth.json'])
