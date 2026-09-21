@@ -11,7 +11,7 @@ class RegionalProgressTests(unittest.TestCase):
     def test_worker_progress_round_trip_and_unknown_step_rejection(self):
         with TemporaryDirectory() as folder:
             root = Path(folder)
-            for stage in ('depth_partition', 'depth_refinement', 'depth_cloth_constraints',
+            for stage in ('torso_projection', 'depth_partition', 'depth_refinement', 'depth_cloth_constraints',
                           'depth_limb_constraints', 'depth_ordering'):
                 progress(root, stage)
                 self.assertEqual(read_progress(root), stage)

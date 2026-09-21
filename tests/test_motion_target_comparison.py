@@ -8,6 +8,12 @@ from autospine_workbench.automation.motion_target_comparison import signature, r
 
 
 class TargetComparisonTests(unittest.TestCase):
+    def test_torso_strategy_does_not_mix_with_old_view_candidates(self):
+        manager=SimpleNamespace(get=lambda _:dict(source_sha256='raw',format='fbx'))
+        request=dict(source_job_id='source')
+        self.assertNotEqual(signature(manager,request),signature(manager,dict(request,
+            torso_projection_profile='torso-plane-compensated-deform-v1-experiment')))
+
     def test_inventory_excludes_other_character_and_keeps_outdated_candidates(self):
         with TemporaryDirectory() as temporary:
             root=Path(temporary)

@@ -29,13 +29,15 @@ def assert_current(manager, request):
 
 
 def submit(manager, source_job, body):
-    if (set(body) - {'project_id', 'character_job_id', 'contact_correction', 'clip', 'projection', 'projection_selection', 'depth_review_profile'}
+    if (set(body) - {'project_id', 'character_job_id', 'contact_correction', 'clip', 'projection', 'projection_selection', 'depth_review_profile', 'torso_projection_profile'}
             or not {'project_id', 'character_job_id'} <= set(body)
             or type(body.get('contact_correction', True)) is not bool):
         raise PipelineRunError('motion_request_invalid')
     source = manager.get(source_job)
     from .motion_depth_policy import select as select_depth
     depth_profile = select_depth(body, source)
+    from .motion_torso_policy import select as select_torso
+    torso_profile = select_torso(body, depth_profile)
     if 'projection' in body:
         from ..targets.character43.oblique_target import validate
         try: validate(body['projection'])
@@ -62,6 +64,8 @@ def submit(manager, source_job, body):
                    inferred_contact_profile=CONTACT_PROFILE, depth_review_profile=depth_profile)
     if body.get('clip') is not None:
         request['clip'] = body['clip']
+    if torso_profile is not None:
+        request['torso_projection_profile'] = torso_profile
     if 'projection' in body:
         request['projection'] = dict(body['projection'])
     if 'projection_selection' in body:
@@ -120,6 +124,9 @@ def review_file(manager, job, parts):
         return read(None, None, None, parts)
     result, files = context(manager, job)
     runtime_file = runtime_reader(manager, job, result)
+    if parts == ['motion-torso-projection.json']:
+        if 'motion-torso-projection.json' not in files:raise PipelineRunError('pipeline_artifact_not_found')
+        return files['motion-torso-projection.json'], 'application/json'
     if parts == ['rotation-status.json']:
         from ..motion_bundle_reader import VerifiedMotionBundleReader
         from ..targets.character43.motion_rotation_status import build

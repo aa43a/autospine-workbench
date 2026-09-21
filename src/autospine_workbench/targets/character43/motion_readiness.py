@@ -18,6 +18,12 @@ def build(files, artifact_sha256, runtime=None):
     def add(stage, status, explanation, href, **extra):
         rows.append(dict(stage=stage, status=status, explanation=explanation, href=href, **extra))
     projection = [i for i in motion.get('issues', []) if i['stage'] == 'projection']
+    torso = read('motion-torso-projection.json')
+    if torso:
+        if torso.get('skeleton_sha256') != digest:raise ValueError('motion_readiness_torso_identity_mismatch')
+        add('躯干投影','sampled_pass' if torso.get('applied') is True else 'needs_changes',
+            '实验性网格烘焙；头部与手臂作形状补偿，骨骼辅助线不随烘焙移动。侧背面素材和视觉效果仍需检查。',
+            'motion-torso-projection.json',applied=torso.get('applied'))
     add('投影', 'needs_changes' if projection else 'sampled_pass' if motion.get('projected_lengths') else 'unmeasured',
         '当前视角存在缩短或塌缩异常，请切换源视角或截取片段后重新构建。' if projection else
         '只说明已实施的骨段投影检查；不代表具有侧面或背面贴图。',

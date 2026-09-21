@@ -54,6 +54,7 @@ class MotionIntakeJobs:
                     oblique_comparison_available=True,
                     target_comparison_available=True,
                     regional_depth_available=True,
+                    torso_projection_available=True,
                     blender_available=bool(self.blender and Path(self.blender).is_file()),
                     kimodo_generation=availability(self), npz_import='soma77_explicit_profile')
 
@@ -153,6 +154,8 @@ class MotionIntakeJobs:
             body['contact_correction'] = request.get('contact_correction', True)
             if request.get('depth_review_profile') is not None:
                 body['depth_review_profile'] = request['depth_review_profile']
+            if request.get('torso_projection_profile') is not None:
+                body['torso_projection_profile'] = request['torso_projection_profile']
             if request.get('clip') is not None:
                 body['clip'] = request['clip']
             if request.get('projection') is not None:

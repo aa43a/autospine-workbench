@@ -22,7 +22,7 @@ ANIMATION = 'external-motion'
 
 def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_digest, kimodo=None,
                     contact_correction=True, clip_bounds=None, inferred_contact_profile=None, depth_review_profile=None,
-                    on_stage=None, oblique=None):
+                    on_stage=None, oblique=None, torso_projection=None):
     """Preserve the rig, or verify the explicit regional render transformation."""
     from ..targets.character43.regional_depth_profile import PROFILE as REGIONAL_PROFILE
     source = json.loads(files['skeleton.json'])
@@ -102,6 +102,23 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
         if contact.get('phase_checked_times'):
             times = sorted(set(times) | set(contact['phase_checked_times']))
     depth = None
+    torso_evidence = None
+    if torso_projection is not None:
+        if depth_review_profile != 'external-arm-torso-depth-overlap-v2':
+            raise ValueError('motion_torso_requires_overlap_depth')
+        from ..targets.character43.torso_projection_profile import apply as apply_torso
+        if on_stage:on_stage('torso_projection')
+        document, torso_evidence, reason = apply_torso(document, ANIMATION, torso_projection, times)
+        if reason:
+            issues.append(dict(stage='projection' if not torso_evidence['applied'] else 'contact',reason_code=reason))
+        contact['torso_projection_recheck'] = torso_evidence.get('contact_preservation')
+        if torso_evidence['applied'] and reason:
+            contact['original_ankle_status'] = contact['status']
+            contact['status'] = ('needs_changes' if torso_evidence['contact_preservation']['status']=='foot_surface_changed'
+                                 else 'torso_contact_unmeasured')
+        times = sorted(set(times) | {k['time'] for slots in document['animations'][ANIMATION].get('attachments',{}).values()
+            for choices in slots.values() for props in choices.values() for keys in props.values() for k in keys})
+        if len(times)>2049:raise ValueError('motion_torso_sample_limit')
     regional_transform = None
     depth_status = 'not_evaluated'
     if depth_review_profile:
@@ -144,6 +161,9 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
     raw = canonical_bytes(document)
     result = {name: data for name, data in files.items() if name.endswith('.png') or name == 'skeleton.atlas'}
     result['skeleton.json'] = raw
+    if torso_evidence is not None:
+        torso_evidence.update(skeleton_sha256=sha256(raw).hexdigest(),character_sha256=character_digest,motion_bundle_sha256=motion_digest)
+        result['motion-torso-projection.json'] = canonical_bytes(torso_evidence)
     if regional_transform is not None:
         result['motion-regional-transform.json'] = canonical_bytes(regional_transform)
     if oblique is not None:
@@ -211,6 +231,10 @@ def execute(folder, state_root, workspace):
     clip_bounds = boundaries(request.get('clip'), ticks)
     if max(len(track['keys']) for track in clip_motion(motion, clip_bounds)['tracks']) > 768:
         raise ValueError('motion_target_sample_limit')
+    torso_projection = None
+    if request.get('torso_projection_profile') is not None:
+        from ..targets.character43.torso_projection_profile import prepare as prepare_torso
+        torso_projection = prepare_torso(bundle, request)
     files, evidence, geometry = build_candidate(store.read(request['character_sha256']), motion,
         bvh, bundle.kimodo_map if kimodo else bundle.bvh_map, kimodo=kimodo,
         contact_correction=request.get('contact_correction', True),
@@ -218,6 +242,7 @@ def execute(folder, state_root, workspace):
         depth_review_profile=request.get('depth_review_profile'),
         on_stage=lambda stage: progress(folder, stage),
         oblique=oblique,
+        torso_projection=torso_projection,
         clip_bounds=clip_bounds,
         character_digest=request['character_sha256'], motion_digest=motion_id['bundle_sha256'])
     progress(folder, 'publish_candidate')
@@ -233,6 +258,8 @@ def execute(folder, state_root, workspace):
                   runtime_reference_profile=storage_reference or 'legacy_ideal_reference',
                   inferred_contact_profile=inferred_profile,
                   depth_order_status=evidence['depth_order_status'], authority='none', production_authorized=False)
+    if request.get('torso_projection_profile') is not None:
+        result['torso_projection_profile'] = request['torso_projection_profile']
     (folder / 'worker-result.json').write_bytes(canonical_bytes(result))
 
 

@@ -152,6 +152,16 @@ class MotionTargetTests(unittest.TestCase):
                     self.assertEqual(retry.call_args.args[2]['clip'], dict(start_frame=0, end_frame=1))
                     self.assertEqual(retry.call_args.args[2]['projection'],
                                      dict(profile='constant-yaw-source-motion-v1',yaw_degrees=30))
+                torso_profile='torso-plane-compensated-deform-v1-experiment'
+                torso_job=submit(manager,queued['job_id'],dict(project_id='alice',
+                    character_job_id='job-'+'c'*32,torso_projection_profile=torso_profile))
+                torso_request=read_document(manager.folder(torso_job['job_id'])/'request.json')
+                self.assertEqual(torso_request['torso_projection_profile'],torso_profile)
+                self.assertNotIn('torso_projection_profile',request)
+                manager._jobs[torso_job['job_id']].update(status='failed')
+                with patch('autospine_workbench.automation.motion_target_jobs.submit') as retry:
+                    manager.retry(torso_job['job_id'])
+                    self.assertEqual(retry.call_args.args[2]['torso_projection_profile'],torso_profile)
                 character['artifact_sha256'] = 'd'*64
                 with self.assertRaisesRegex(PipelineRunError, 'motion_target_character_changed'):
                     assert_current(manager, request)

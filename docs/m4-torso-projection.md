@@ -52,5 +52,46 @@ source shape bounds. That extraction alone is not target or Runtime validation.
 
 Twelve core and affine regression tests pass. They cover shoulder narrowing,
 roll isolation, side/back rejection, preserved arm/head shape, unaffected legs,
-input preservation and composition with an existing deform. New full-character
-contact/depth checks and workbench strategy integration remain required.
+input preservation and composition with an existing deform.
+
+## Fresh checks and workbench strategy
+
+`torso_projection_validation.py` proves that the setup and non-deform animation
+are unchanged, then samples actual foot-weighted vertices. This distinguishes
+unchanged ankle bone paths from a deform that can still move the foot surface.
+Missing foot evidence remains unmeasured; floor and sole contact are not inferred.
+For the isolated Hong candidate all 633 sampled foot paths were preserved.
+
+The coarse source-depth/actual-alpha check was rerun on the new mesh: 179 visible
+pair samples, 32 ambiguous samples, no unmeasured pair samples, 28 straddle order
+failures and four unmapped-order conflicts. Local depth models anchored to the
+old bone guides are not reused. Counts from different depth profiles must not be
+treated as an improvement/regression comparison.
+
+Workbench target controls now expose “躯干投影偏斜（实验）”, disabled by default.
+FBX/BVH and Kimodo NPZ are supported by source extraction. It creates an exact
+new candidate; retry retains the explicit strategy and source changes reset the
+checkbox. It currently requires the standard overlap depth strategy, because
+regional depth refinement still uses unwarped bone guides. Conflicting choices
+are rejected rather than silently changed.
+
+The worker applies the bake after existing contact correction, checks foot
+preservation, then regenerates overlap, geometry, Runtime and candidate evidence.
+Unsupported source frames preserve a diagnostic original and add a projection
+exception. A failed foot-preservation check cannot inherit a contact pass.
+The readiness panel includes a candidate-bound torso stage, and view comparison
+does not mix torso-enabled candidates with historical strategies.
+
+The real API task `motion-de081c9760914eb4b83c7595ae28223a` completed on
+Hongmeiling's -30° raise motion. Exact artifact:
+`cf4e0b865dda7da5922223c2b962c57499c5b01b03593b3e2f15effff78a3b33`.
+Its new geometry and 646 Runtime frames pass; foot paths are preserved, with
+inferred ankle correction retained. Depth still requires review and aggregate
+readiness is `needs_changes`. This is not visual acceptance.
+
+The downloadable ZIP was read back and all 93 entries compared byte-for-byte
+with the addressed store artifact (72,016,688 bytes in the ZIP). Live Chrome
+checks verified strategy selection/reset/conflict handling and the new task's
+readiness/inline view comparison. Its comparison includes only itself and makes
+no recommendation. Policy, worker integration, identity, retry and contact tests
+passed; progress transport explicitly includes the torso stage.
