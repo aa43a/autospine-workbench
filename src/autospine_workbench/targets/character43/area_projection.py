@@ -1,6 +1,7 @@
 """Bounded iterative projection; v2 keeps the displacement origin fixed across sweeps."""
 import math
 from ..spine43.continuous_pose import area
+from .area_preservation import minimum_ratios
 
 
 def project(context, base, *, initial=None):
@@ -8,6 +9,7 @@ def project(context, base, *, initial=None):
     triangles, areas = context['row']['triangles'], context['areas']
     free, budget = context['free'], context['budget']
     edges, lengths = context['edges'], context['lengths']
+    floors = minimum_ratios(context)
     if not math.isfinite(budget) or budget < 0 or any(abs(a) < 1e-12 for a in areas):
         raise ValueError('character_area_projection_invalid_context')
     if any(not math.isfinite(v) for p in points for v in p):
@@ -27,9 +29,9 @@ def project(context, base, *, initial=None):
     # In a narrow fixed boundary, .55 can be infeasible while .5 remains feasible.
     for iteration in range(1536):
         lower_target = (.55, .525, .5125, .50625)[iteration//384]
-        for tri, reference in zip(triangles, areas):
+        for tri, reference, floor in zip(triangles, areas, floors):
             ratio = area(points, tri)/reference
-            target = max(lower_target, min(1.9, ratio))
+            target = max(lower_target, floor, min(1.9, ratio))
             if ratio == target:
                 continue
             a, b, c = [points[i] for i in tri]
@@ -62,6 +64,8 @@ def project(context, base, *, initial=None):
             converged = min(ratios) >= max(.5001, lower_target-.01) and max(ratios) <= 1.91 and all(
                 math.dist(points[a], points[b]) <= 1.91*length
                 for (a, b), length in zip(edges, lengths))
+            if 'minimum_ratios' in context:
+                converged = converged and all(r >= f-1e-7 for r,f in zip(ratios,floors))
             if converged:
                 break
     if any(not math.isfinite(v) for p in points for v in p):

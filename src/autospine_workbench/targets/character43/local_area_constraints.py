@@ -1,5 +1,6 @@
 """Small-neighborhood constrained solve after cyclic area projection stalls."""
 import math
+from .area_preservation import minimum_ratios
 
 
 def refine(context,base,initial,*,analytic=False):
@@ -7,6 +8,7 @@ def refine(context,base,initial,*,analytic=False):
     from scipy.optimize import minimize
     triangles=np.asarray(context['row']['triangles'],dtype=int)
     refs=np.asarray(context['areas'],dtype=float)
+    floors=np.asarray(minimum_ratios(context))
     points=np.asarray(initial,dtype=float);origin=np.asarray(base,dtype=float)
     edges=np.asarray(context['edges'],dtype=int);lengths=np.asarray(context['lengths'],dtype=float)
     budget=context['budget']
@@ -16,7 +18,8 @@ def refine(context,base,initial,*,analytic=False):
     def ratios(p):
         a,b,c=(p[triangles[:,i]] for i in range(3))
         return ((b[:,0]-a[:,0])*(c[:,1]-a[:,1])-(b[:,1]-a[:,1])*(c[:,0]-a[:,0]))*.5/refs
-    values=ratios(points);bad=np.flatnonzero((values<.50001)|(values>1.99999))
+    lower=np.maximum(.50001,floors)
+    values=ratios(points);bad=np.flatnonzero((values<lower)|(values>1.99999))
     touched=set(triangles[bad].flat)
     touched.update(edges[np.linalg.norm(points[edges[:,0]]-points[edges[:,1]],axis=1)>1.99999*lengths].flat)
     neighborhood=set(touched)
@@ -26,6 +29,7 @@ def refine(context,base,initial,*,analytic=False):
     report=dict(profile='local-area-fixed-budget-v1',authority='none',selected=False,
                 movable_vertices=movable,initial_failed_triangles=bad.tolist(),budget_px=budget)
     if analytic:report['profile']='local-area-analytic-fixed-budget-v1-experiment'
+    if 'minimum_ratios' in context:report['profile']='local-area-preservation-v1-experiment'
     if not movable or len(movable)>32:
         return initial,dict(report,status='local_patch_unavailable')
     indices=np.asarray(movable);size=len(indices)
@@ -35,7 +39,7 @@ def refine(context,base,initial,*,analytic=False):
     def constraints(v):
         p=unpack(v);r=ratios(p)
         distances=np.sum((p[edges[:,0]]-p[edges[:,1]])**2,axis=1)
-        return np.concatenate((r-.50001,1.99999-r,
+        return np.concatenate((r-lower,1.99999-r,
             1.99999**2-distances/np.maximum(lengths**2,1e-20),
             1-np.sum(v.reshape(size,2)**2,axis=1)))
     seed=(points[indices]-origin[indices])/budget
@@ -57,6 +61,7 @@ def refine(context,base,initial,*,analytic=False):
         valid=(min(r)>=.5 and max(r)<=2 and np.all(np.linalg.norm(p-origin,axis=1)<=budget+1e-7)
                and np.all(np.linalg.norm(p[np.logical_not(context['free'])]-origin[np.logical_not(context['free'])],axis=1)<=1e-7)
                and np.all(np.linalg.norm(p[edges[:,0]]-p[edges[:,1]],axis=1)<=2*lengths+1e-7))
+        if 'minimum_ratios' in context:valid=valid and bool(np.all(r>=floors-1e-7))
         row=dict(report,status='candidate' if valid else 'no_feasible_patch_found',
                  min_ratio=float(min(r)),max_ratio=float(max(r)),iterations=int(result.nit),
                  optimizer_success=bool(result.success))
