@@ -16,6 +16,15 @@ def fixture():
 
 
 class SourcePoseFitTests(unittest.TestCase):
+    def test_fixed_yaw_resolves_camera_axis_without_inventing_rest_pose(self):
+        vectors={'humanoid.arm.upper.right':[(0,0,1)]*2}
+        result,report=fit(fixture(),'motion',vectors,[0,1],yaw=15,project_lengths=True)
+        for time in (0,1):
+            m=matrices(result,'motion',time)['upperarm_r']
+            self.assertAlmostEqual(m[0],-math.sin(math.radians(15)))
+            self.assertAlmostEqual(m[2],0)
+        self.assertEqual(report['records'][0]['unreliable_frames'],[])
+
     def test_initial_raised_pose_and_parent_scaling(self):
         doc = fixture(); before = deepcopy(doc)
         vectors = {'humanoid.arm.upper.right': [(0, -1, 0), (1, -1, 0)],
