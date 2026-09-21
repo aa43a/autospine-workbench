@@ -1,0 +1,33 @@
+{
+  "profile": "source-pose-fixed-triangle-classification-v1",
+  "authority": "none",
+  "selected": false,
+  "raw_evidence_sha256": "0511b0751dac50668f45fb8d3756119c14a52f6b6ec32cc48eeef5240f893084",
+  "records": [
+    {
+      "slot": "layer-003",
+      "tested_frames": 184,
+      "infeasible_frames": 54,
+      "witnesses": 2970,
+      "single_same_bone_witnesses": 2970,
+      "nonpositive_witnesses": 0,
+      "minimum_area_ratio": 0.3542359996144073,
+      "max_area_determinant_difference": 1.1712852909795402e-14
+    },
+    {
+      "slot": "layer-004",
+      "tested_frames": 184,
+      "infeasible_frames": 46,
+      "witnesses": 3128,
+      "single_same_bone_witnesses": 3128,
+      "nonpositive_witnesses": 0,
+      "minimum_area_ratio": 0.4036241923540665,
+      "max_area_determinant_difference": 1.2101430968414206e-14
+    }
+  ],
+  "conclusion": "all_area_bound_witnesses_are_positive_single_bone_projection_compression",
+  "limitations": [
+    "does_not_explain_or_accept_mixed_weight_inversions",
+    "original_geometry_gate_unchanged"
+  ]
+}
