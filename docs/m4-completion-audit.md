@@ -75,3 +75,24 @@ alternative players now expose separate exact-job download links. Six delivery
 tests and 20 synthetic browser checks pass. One initial browser startup wait
 timed out during the concurrent download run; the diagnostic rerun passed without
 changing candidate data. This is not a responsiveness benchmark under load.
+
+## Real Windows generation lifecycle checks
+
+`tests/test_motion_generation_lifecycle.py` exercises the actual manager executor,
+progress file, cancellation, Windows process-tree termination and durable result
+reader. Only the model command is replaced with a real Python worker that spawns
+a real sleeping descendant. A Windows process handle proves the descendant is
+alive before cancellation and terminated afterward; the worker also exits.
+
+Both explicit cancellation and graceful manager shutdown pass. A new manager
+reads the same canceled outcome; retry creates a new identity with unchanged
+generation parameters and preserves the original request and result. These two
+integration cases plus six existing generation contract tests pass on Windows
+with ordinary process permissions. The initial sandbox run could not terminate
+the tree and correctly produced failure instead of claiming successful cancel.
+
+This is lifecycle evidence using a synthetic workload, not a new Kimodo model
+run. Abrupt server termination and orphan cleanup are not covered: the current
+executor uses taskkill during cleanup, which requires the manager to reach that
+cleanup. This remains a recovery-hardening item; durable interrupted status alone
+does not prove that descendants of a forcibly terminated service have exited.
