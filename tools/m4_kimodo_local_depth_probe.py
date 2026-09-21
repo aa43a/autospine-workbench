@@ -10,6 +10,8 @@ from autospine_workbench.targets.character43.motion_rotation_status import build
 from autospine_workbench.targets.character43.kimodo_depth_sampler import KimodoDepthSampler
 from autospine_workbench.targets.character43.motion_depth_overlap import Probe
 from autospine_workbench.targets.character43.torso_depth_refinement import Checker
+from autospine_workbench.targets.character43.torso_warp_depth_plane import WarpedPlane
+from autospine_workbench.targets.character43.torso_projection_profile import prepare
 from m4_motion_cohort import api
 
 
@@ -18,8 +20,7 @@ def run(job,output):
     if task['status']!='succeeded' or task.get('kind')!='adapt':raise ValueError('completed_target_required')
     request=read_document(Path('workspace/jobs/motion-intake-v1')/job/'request.json')
     artifact=task['result']['artifact_sha256'];files=AnimatedStore(Path('workspace')).read(artifact)
-    if json.loads(files.get('motion-torso-projection.json',b'{}')).get('applied'):
-        raise ValueError('local_depth_warped_bone_guides_unsupported')
+    receipt=json.loads(files.get('motion-torso-projection.json',b'{}'))
     identity=request['motion_identity']
     bundle=VerifiedMotionBundleReader(Path('workspace')).load(identity['clip_sha256'],identity['bundle_sha256'])
     if bundle.source_kind!='kimodo_npz':raise ValueError('kimodo_source_required')
@@ -29,7 +30,8 @@ def run(job,output):
                               request.get('projection',{}).get('yaw_degrees',0))
     document=json.loads(files['skeleton.json']);depth=json.loads(files['motion-depth.json'])
     probe=Probe(document,files,'external-motion',tiled=True,sparse=True,rendered_bounds=True)
-    checker=Checker(probe,sampler);rows=[]
+    options={'plane_provider':WarpedPlane(receipt,prepare(bundle,request))} if receipt.get('applied') else {}
+    checker=Checker(probe,sampler,**options);rows=[]
     for pair in depth['pairs']:
         for sample in pair['samples']:
             time=sample['tick']/1e6
@@ -39,6 +41,7 @@ def run(job,output):
         print(json.dumps(dict(pair=[pair['arm_slot'],pair['torso_slot']],remaining=probe.remaining)),flush=True)
     result=dict(profile='soma77-local-depth-source-frame-probe-v1',job_id=job,artifact_sha256=artifact,
         source_identity=sampler.identity,interpolation=sampler.interpolation,
+        torso_anchor_mode='compensated_source_key_origins' if options else 'original_bone_origins',
         counts=dict(Counter(r['check']['status'] for r in rows)),records=rows,
         hand_mesh_axes=checker.axes,pixel_budget_used=64_000_000-probe.remaining,
         scope='source_frame_model_only_not_midpoints_cloth_depth_order_or_runtime_acceptance',

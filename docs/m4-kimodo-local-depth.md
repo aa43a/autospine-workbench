@@ -27,9 +27,11 @@ python tools/m4_kimodo_local_depth_probe.py motion-76e0d141f979430db88de1183c46a
 
 The tool verifies the completed task, source bundle, and candidate identities;
 checks every recorded arm/torso source-frame pair with sparse alpha sampling;
-and preserves every unmeasured result. It rejects candidates with a torso bake:
-their unchanged bone guides cannot yet represent the warped surface for this
-checker. It does not check intermediate times or capture new Runtime frames.
+and preserves every unmeasured result. For a torso bake it reconstructs the
+compensated virtual shoulder/pelvis origins at exact source keys, after matching
+the stored shape receipt against a freshly derived source report. Unchanged bone
+guides are not used as warped anchors. It does not check intermediate times or
+capture new Runtime frames.
 
 Alice's original Kimodo wave candidate
 `9fc3e02e74036b34322480c4936f5bfd874c8931bf11372e8c1c19fe2e0c486a`
@@ -46,6 +48,15 @@ produced 172 `requires_partition_or_more_depth` and 68 unmeasured records
 `../tmp/m4-motion-center/kimodo-local-depth-huiye-v1.json`; they are not evidence
 of correct ordering. Sparse coarse overlap success does not imply this more
 expensive local check is complete.
+
+The compensated-anchor check also ran on Alice's torso-baked wave candidate
+`5423f18e0fc9f5270ca6b5354d87284c4384284e2e41507a87de8079cd86ac08`:
+120 `uniform_back_proxy`, 120 `requires_partition_or_more_depth`, zero unmeasured,
+10,972,397 sampled pixels. Evidence is in
+`../tmp/m4-motion-center/kimodo-warp-depth-alice-v1.json`. Every measured record
+includes the fitted plane and virtual anchor coordinates. Synthetic marker
+vertices independently sampled from the baked mesh match these anchor positions.
+All 14 relevant torso, local-depth, and Kimodo tests pass.
 
 ## Large-motion design
 
@@ -72,6 +83,5 @@ single front image cannot supply newly visible surfaces. Unsupported spans must
 remain explicit; never hide them by modulo-clamping rotation, silently freezing
 poses, or relabeling unknown cloth depth as a successful check.
 
-Next integration requires consistent depth anchors after torso deformation,
-intermediate-time validation, and same-frame Runtime checks before local ordering
+Next integration requires intermediate-time validation and same-frame Runtime checks before local ordering
 can be adopted. This experiment alone does not complete M4.
