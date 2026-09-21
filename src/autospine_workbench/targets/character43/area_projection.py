@@ -1,7 +1,7 @@
 """Bounded iterative projection; v2 keeps the displacement origin fixed across sweeps."""
 import math
 from ..spine43.continuous_pose import area
-from .area_preservation import minimum_ratios
+from .interpolation_area_margin import targets
 
 
 def project(context, base, *, initial=None):
@@ -9,7 +9,7 @@ def project(context, base, *, initial=None):
     triangles, areas = context['row']['triangles'], context['areas']
     free, budget = context['free'], context['budget']
     edges, lengths = context['edges'], context['lengths']
-    floors = minimum_ratios(context)
+    floors = targets(context)
     if not math.isfinite(budget) or budget < 0 or any(abs(a) < 1e-12 for a in areas):
         raise ValueError('character_area_projection_invalid_context')
     if any(not math.isfinite(v) for p in points for v in p):

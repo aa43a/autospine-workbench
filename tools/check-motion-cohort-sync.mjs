@@ -37,6 +37,17 @@ try {
     assert.ok(Math.abs(sideTime-end*.5)<.002,'view must preserve time');
     await page.selectOption('#source-view','');
     assert.deepEqual(await page.locator('#source').screenshot(),before,'source view restores exactly');
+    if(mi===0){
+      const select=page.getByLabel('局部修正实验',{exact:true});
+      await select.waitFor({timeout:120000});
+      const value=await select.locator('option').nth(1).getAttribute('value');
+      await select.selectOption(value);
+      await page.waitForFunction(()=>[...document.querySelectorAll('#experiments p')].some(e=>e.textContent.startsWith('共用时间轴')),{},{timeout:120000});
+      await page.locator('#time').evaluate((e,t)=>{e.value=t;e.dispatchEvent(new Event('input'));},end*.3);
+      const actual=await page.locator('#experiments iframe').evaluate(e=>e.contentWindow.characterPlayerState.time);
+      assert.ok(Math.abs(actual-end*.3)<.002,'experiment shares baseline timeline');
+      assert.match(await page.locator('#experiments').innerText(),/未采用实验/);
+    }
     checked.push(groups[mi].label+'/'+groups[mi].targets[ci].label);
   }
   await page.getByRole('button',{name:'比较该角色的已有视角候选'}).click();

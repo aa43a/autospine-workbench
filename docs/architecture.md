@@ -1,5 +1,7 @@
 # AutoSpine Workbench 架构与质量门禁
 
+`motion_experiments.py` 将局部实验作为原动作任务的只读附件：候选、父来源、Runtime 与 request 摘要绑定，独立不可变登记；重用播放器而不更改任务结果、readiness 或视觉决定。其接口位于原任务 `view/experiments.json` 和 `view/experiments/{digest}/player.html`。
+
 源播放器的观察方向作为本地显示状态保存，不修改 preview 数据、候选或时间原点；替代候选复用同源时间桥，各自保留精确身份与独立验收。
 
 动作集中复核通过 `motion-cohort-sync.js` 在同源 iframe 内核对精确候选和时长后驱动实时播放器；源时间轴为单一时钟，切换角色清理旧控制。该只读桥不提交决定，不替代捕获验证。操作与边界见 [同步对照](how-to-motion-sync.md)。

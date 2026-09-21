@@ -6,7 +6,8 @@ from ..spine43.continuous_pose import area
 from .affine_pose import matrices, sample
 
 
-def repair(document, name, *, samples=257, convergent=False, setup_vertices=None, projected_reference=False, extra_times=(), temporal=False, terminal_collar=False, progress=None, proximal_ring=False, preserve_area=False, repair_band=False, fixed_band=False):
+def repair(document, name, *, samples=257, convergent=False, setup_vertices=None, projected_reference=False, extra_times=(), temporal=False, terminal_collar=False, progress=None, proximal_ring=False, preserve_area=False, repair_band=False, fixed_band=False, area_margins=None):
+    if area_margins is not None and not fixed_band:raise ValueError('area_margins_require_fixed_band')
     if fixed_band and not repair_band:raise ValueError('fixed_band_requires_repair_band')
     if repair_band and not preserve_area:raise ValueError('repair_band_requires_preservation')
     if preserve_area and not (convergent and projected_reference):raise ValueError('area_preservation_requires_projection')
@@ -80,6 +81,7 @@ def repair(document, name, *, samples=257, convergent=False, setup_vertices=None
         context = dict(row={'triangles': triangles}, areas=areas, edges=edges,
                        lengths=[math.dist(base[a], base[b]) for a, b in edges], free=free, budget=budget)
         keys = []; maximum = 0.; unresolved = []; solver_rows = []
+        if area_margins is not None and slot in area_margins:context['solver_margins']=area_margins[slot]
         footprint=None
         if fixed_band:
             from .fixed_repair_band import collect
@@ -151,5 +153,6 @@ def repair(document, name, *, samples=257, convergent=False, setup_vertices=None
     if preserve_area:profile='healthy-area-preservation-budget10-v1-experiment'
     if repair_band:profile='repair-band-area-preservation-budget10-v1-experiment'
     if fixed_band:profile='fixed-band-area-preservation-budget10-v1-experiment'
+    if area_margins is not None:profile='margin-fixed-band-preservation-budget10-v1-experiment'
     return result, dict(profile=profile, authority='none', selected=False,
                         records=rows, validation='dense_resampling_required')

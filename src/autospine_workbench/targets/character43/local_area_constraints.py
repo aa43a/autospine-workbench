@@ -1,6 +1,6 @@
 """Small-neighborhood constrained solve after cyclic area projection stalls."""
 import math
-from .area_preservation import minimum_ratios
+from .interpolation_area_margin import targets
 
 
 def refine(context,base,initial,*,analytic=False,expanded=False):
@@ -9,7 +9,7 @@ def refine(context,base,initial,*,analytic=False,expanded=False):
     from scipy.optimize import minimize
     triangles=np.asarray(context['row']['triangles'],dtype=int)
     refs=np.asarray(context['areas'],dtype=float)
-    floors=np.asarray(minimum_ratios(context))
+    floors=np.asarray(targets(context))
     points=np.asarray(initial,dtype=float);origin=np.asarray(base,dtype=float)
     edges=np.asarray(context['edges'],dtype=int);lengths=np.asarray(context['lengths'],dtype=float)
     budget=context['budget']

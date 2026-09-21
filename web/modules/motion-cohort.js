@@ -6,11 +6,13 @@ import {createAlternativePanel} from './motion-cohort-alternative.js';
 import {appendCandidateDownload} from './motion-candidate-download.js';
 import {appendReadiness} from './motion-readiness.js';
 import {createCohortSync} from './motion-cohort-sync.js';
+import {createExperimentPanel} from './motion-experiments.js';
 const byId=id=>document.getElementById(id), motion=byId('motion'),character=byId('character');
 const sync=createCohortSync(byId('sync-status'));
-const player=createSourcePlayer(byId('source'),byId('time'),byId('play'),byId('time-label'),(time,end)=>{sync.seek(time,end);alternative.seek(time,end);});
+const player=createSourcePlayer(byId('source'),byId('time'),byId('play'),byId('time-label'),(time,end)=>{sync.seek(time,end);alternative.seek(time,end);experiments.seek(time,end);});
 byId('source-view').onchange=()=>player.setView(byId('source-view').value||null);
 const alternative=createAlternativePanel(byId('alternative'),get,{onSeek:time=>player.seek(time)});
+const experiments=createExperimentPanel(byId('experiments'),get);
 let pack,revision=0;
 const id=/^motion-[a-f0-9]{32}$/,sha=/^[a-f0-9]{64}$/;
 function validate(value){
@@ -32,6 +34,7 @@ function targets(){
 async function show(){
   const version=++revision,g=pack.groups[Number(motion.value)],t=g.targets[Number(character.value)];
   alternative.clear();
+  experiments.clear();
   sync.clear();
   player.clear();byId('target').replaceChildren();byId('review').replaceChildren();
   byId('status').textContent='正在核对当前动作与角色版本…';
@@ -47,6 +50,7 @@ async function show(){
     player.load(preview);byId('target-title').textContent=`${g.label} · ${t.label}`;
     const frame=document.createElement('iframe');frame.title=`${t.label} 角色动作时间轴`;frame.src=`/api/motions/${t.job_id}/view/player.html`;byId('target').append(frame);
     sync.attach(frame,t.artifact_sha256);
+    experiments.load(t.job_id);
     appendStageReview(byId('review'),job);
     appendCandidateDownload(byId('review'),job);
     appendReadiness(byId('review'),job,null,{onSeek:time=>{

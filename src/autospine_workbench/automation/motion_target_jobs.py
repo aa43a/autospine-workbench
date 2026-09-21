@@ -120,6 +120,9 @@ def runtime_reader(manager, job, result):
 
 
 def review_file(manager, job, parts):
+    if parts == ['experiments.json'] or parts[:1] == ['experiments']:
+        from .motion_experiments import read
+        return read(manager, job, parts)
     if (parts == ['player.html'] or len(parts) == 2 and parts[0] == 'player-assets'
             and parts[1] in ('client.js', 'style.css', 'inspection.js')):
         from .character_player import read
