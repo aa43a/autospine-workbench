@@ -1,0 +1,65 @@
+{
+  "schema": "autospine.motion-cohort-plan/v1",
+  "characters": [
+    {
+      "id": "alice",
+      "project_id": "alice",
+      "job_id": "job-d8b67e10685347ed95d1fba113b92c45",
+      "sha256": "6e5c59db4ef072075b798efab12acf8ffdc883368a61a4bf3c1646305ef68b98",
+      "structure": "ordinary"
+    },
+    {
+      "id": "huiye",
+      "project_id": "huiye",
+      "job_id": "job-6f92bece413a4909a553a95bbfc307f4",
+      "sha256": "63caa7fe5f9f40a92ebcd57ef0b345d7dcd47e5ed3feae65a95fad18e770d51b",
+      "structure": "wide-sleeves-long-skirt"
+    },
+    {
+      "id": "hongmeiling",
+      "project_id": "imported-885b4d3d22ee151a0364ac499a419b8bd0e59699a7b27ee4f65f007eee551590",
+      "job_id": "job-7d8ce666ea13487a953bdfa5258ea79a",
+      "sha256": "fadde972f148b353592aaeebf75df151b9ef57032efaacde1773ea5a8754d28c",
+      "structure": "sleeveless"
+    }
+  ],
+  "motions": [
+    {
+      "id": "raise-arms",
+      "path": "E:\\data\\game\\bip动画动作捕捉3D角色库源文件3dmaxmayac4dunity3dUE4\\C1455-mo动作库\\动作库角色模型moxion\\1-全套动作库带预览\\01\\cheering.fbx",
+      "sha256": "779dcb5c003f715905f48eafaea706c4ab524d97c7554f6b90c178bff5eecdc9",
+      "view": "front",
+      "category_basis": "source_label_pending_visual_verification",
+      "job_id": "motion-706de065008b4e9dbdaea14b7cb3c64e",
+      "projection": {
+        "profile": "constant-yaw-source-motion-v1",
+        "yaw_degrees": -30
+      }
+    },
+    {
+      "id": "wave",
+      "job_id": "motion-b691ce34c0b84cbcbf9ad4f5226d486d",
+      "sha256": "2ee03d7638686150305d61ff6bd5d8f21a05693cf139bb20467017feb3d363a6",
+      "view": "front",
+      "category_basis": "generated_prompt_pending_visual_verification"
+    }
+  ],
+  "policy": "supplemental_full_clip_torso_projection_no_failure_replacement",
+  "visual_acceptance": "not_inferred",
+  "depth_order": "source_depth_with_native_alpha_overlap_and_guarded_order",
+  "expected_profiles": {
+    "inferred_contact_profile": "external-phase-contact-auto-v1",
+    "runtime_reference_profile": "spine43-linear-weighted-float32-storage-v1",
+    "depth_review_profile": "external-arm-torso-depth-overlap-v2",
+    "torso_projection_profile": "torso-plane-compensated-deform-v1-experiment"
+  },
+  "baseline_plan": "m4-cohort-plan-v2.json",
+  "parent_plan_sha256": "289d24b4dd1d70d539265bb26c18ffa06b3d11e17173389ac87dbacb1886b940",
+  "target_torso_profile": "torso-plane-compensated-deform-v1-experiment",
+  "reused_tasks": {
+    "raise-arms/hongmeiling": {
+      "job_id": "motion-de081c9760914eb4b83c7595ae28223a",
+      "artifact_sha256": "cf4e0b865dda7da5922223c2b962c57499c5b01b03593b3e2f15effff78a3b33"
+    }
+  }
+}

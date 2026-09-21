@@ -63,6 +63,7 @@ def rows(plan, state, reviews=None):
                 depth_checks_incomplete=depth_status.get('has_incomplete_checks'),
                 readiness=readiness.get('status', 'not_evaluated'),
                 stages=readiness.get('stages', []),
+                torso_applied=next((r.get('applied') for r in readiness.get('stages', []) if r['stage']=='躯干投影'),None),
                 profiles=diagnostic.get('profiles', {}),
                 visual=visual, visual_record=visual_record, issues=issues,
                 geometry_failures=[r for r in diagnostic.get('geometry', {}).get('records', []) if not r['passed']],
@@ -102,6 +103,10 @@ def render(plan, state, reviews=None):
     heading = (f'<p>固定组合 {counts["required"]} · 已结束 {counts["terminal"]} · '
         f'完成 Runtime 捕获 {counts["captured"]} · 几何通过 {counts["geometry_passed"]} · '
         f'存在候选异常 {counts["candidate_exceptions"]} · 任务失败 {counts["failed"]}</p>')
+    if plan.get('target_torso_profile'):
+        heading += (f'<p>实际应用躯干投影 {counts["torso_applied"]} · '
+                    f'未应用 {counts["torso_not_applied"]} · '
+                    f'应用情况未知 {counts["torso_application_unknown"]}。应用不等于动作验收通过。</p>')
     heading += (f'<p>人工阶段接受 {counts["visual_accepted"]} · 保留异常接受 '
                 f'{counts["visual_accepted_with_exceptions"]} · 验收证据已变化 {counts["visual_evidence_changed"]}。'
                 + ('验收快照：' + escape(reviews['captured_at']) if reviews else '未读取人工验收记录。') + '</p>')
@@ -133,6 +138,9 @@ def summary(records):
         contact_unmeasured=sum(r['contact'] in ('not_evaluated', 'unavailable_no_labels') for r in records),
         depth_unmeasured=sum(r['depth']=='not_evaluated' for r in records),
         depth_checks_incomplete=sum(r.get('depth_checks_incomplete') is True for r in records),
+        torso_applied=sum(r.get('torso_applied') is True for r in records),
+        torso_not_applied=sum(r.get('torso_applied') is False for r in records),
+        torso_application_unknown=sum(r.get('torso_applied') is None for r in records),
         depth_completeness_unknown=sum(r.get('depth_checks_incomplete') is None for r in records))
 
 

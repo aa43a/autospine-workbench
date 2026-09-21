@@ -22,6 +22,37 @@ report = module('m4_motion_cohort_report')
 
 
 class CohortTests(unittest.TestCase):
+    def test_torso_application_is_not_inferred_from_success_or_quality(self):
+        self.state['cells']['walk/a'] = dict(job_id='target', status='succeeded',
+            result=dict(artifact_sha256='exact', geometry_passed=True))
+        counts = report.summary(report.rows(self.plan, self.state))
+        self.assertEqual(counts['torso_application_unknown'], 1)
+        self.assertEqual(counts['torso_applied'], 0)
+        readiness = dict(artifact_sha256='exact', status='needs_changes', stages=[
+            dict(stage='躯干投影', applied=True)])
+        self.state['diagnostics'] = {'walk/a': dict(job_id='target', readiness=readiness)}
+        counts = report.summary(report.rows(self.plan, self.state))
+        self.assertEqual(counts['torso_applied'], 1)
+        self.assertEqual(counts['stage_review_ready'], 0)
+        readiness['stages'][0]['applied'] = False
+        counts = report.summary(report.rows(self.plan, self.state))
+        self.assertEqual(counts['torso_not_applied'], 1)
+        self.assertEqual(counts['torso_application_unknown'], 0)
+
+    def test_explicit_torso_strategy_requires_expectation_and_is_submitted(self):
+        profile='torso-plane-compensated-deform-v1-experiment'
+        self.plan['target_torso_profile']=profile
+        with self.assertRaisesRegex(ValueError,'torso_profile_expectation_missing'):
+            runner.step(self.plan,self.state,lambda _:None,lambda *_:self.fail())
+        self.plan['expected_profiles']={'torso_projection_profile':profile}
+        bodies=[]
+        def request(path,body=None):
+            if body is not None:
+                bodies.append(body);return dict(job_id='target',status='pending')
+            return self.source if path.endswith('source') else dict(artifact_sha256='rig')
+        self.assertEqual(runner.step(self.plan,self.state,lambda _:None,request),'target_submitted')
+        self.assertEqual(bodies[0]['torso_projection_profile'],profile)
+
     def test_depth_completeness_is_distinct_from_execution_and_quality(self):
         self.state['cells']['walk/a'] = dict(job_id='target', status='succeeded',
             result=dict(artifact_sha256='exact', depth_order_status='needs_changes'))

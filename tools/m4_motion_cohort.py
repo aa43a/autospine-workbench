@@ -39,6 +39,9 @@ def step(plan, state, publish, request):
     if state.get('submitting'):
         raise ValueError('uncertain_submission_reconcile_before_resuming')
     depth_profile = plan.get('target_depth_profile')
+    torso_profile = plan.get('target_torso_profile')
+    if torso_profile is not None and torso_profile != plan.get('expected_profiles', {}).get('torso_projection_profile'):
+        raise ValueError('cohort_torso_profile_expectation_missing')
     if depth_profile is not None and depth_profile != plan.get('expected_profiles', {}).get('depth_review_profile'):
         raise ValueError('cohort_depth_profile_expectation_missing')
     for source in plan['motions']:
@@ -87,6 +90,8 @@ def step(plan, state, publish, request):
                     body['projection'] = source['projection']
                 if depth_profile is not None:
                     body['depth_review_profile'] = depth_profile
+                if torso_profile is not None:
+                    body['torso_projection_profile'] = torso_profile
                 current = request('/api/motions/' + value['job_id'] + '/adapt', body)
                 state.pop('submitting')
                 state['cells'][cell] = current
@@ -109,6 +114,8 @@ def step(plan, state, publish, request):
                 actual = {name: result.get(name) for name in
                           ('inferred_contact_profile', 'runtime_reference_profile')}
                 actual['depth_review_profile'] = depth.get('profile')
+                if 'torso_projection_profile' in expected:
+                    actual['torso_projection_profile'] = result.get('torso_projection_profile')
                 if any(actual.get(name) != profile for name, profile in expected.items()):
                     raise ValueError('cohort_execution_profile_mismatch:' + cell)
             if value_target['status'] == 'succeeded' and cell not in state.setdefault('diagnostics', {}):
@@ -120,7 +127,7 @@ def step(plan, state, publish, request):
                 state['diagnostics'][cell]['artifact_sha256'] = result['artifact_sha256']
                 state['diagnostics'][cell]['readiness'] = request(
                     '/api/motions/' + current['job_id'] + '/view/readiness.json')
-            if value_target['status'] == 'succeeded' and depth_profile == 'external-regional-depth-order-v1':
+            if value_target['status'] == 'succeeded' and (depth_profile == 'external-regional-depth-order-v1' or torso_profile):
                 diagnostic = state['diagnostics'][cell]
                 artifact = value_target['result']['artifact_sha256']
                 if diagnostic.get('depth_status', {}).get('artifact_sha256') != artifact:
