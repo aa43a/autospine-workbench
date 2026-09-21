@@ -16,6 +16,17 @@ def fixture():
 
 
 class SourcePoseFitTests(unittest.TestCase):
+    def test_hand_axis_compensates_forearm_scale_and_preserves_wrist(self):
+        doc=fixture();doc['bones'].append(dict(name='hand_r',parent='forearm_r',x=8,y=0,rotation=10))
+        doc['animations']['motion']['bones']['forearm_r']={'scale':[dict(time=0,x=.2,y=1),dict(time=1,x=.4,y=1)]}
+        vectors={'humanoid.arm.hand.right':[(0,-.8,.6)]*2}
+        result,report=fit(doc,'motion',vectors,[0,1],project_lengths=True,include_hands=True)
+        for t in (0,1):
+            before=matrices(doc,'motion',t)['hand_r'];after=matrices(result,'motion',t)['hand_r']
+            self.assertEqual(before[4:],after[4:]);self.assertAlmostEqual(after[0],0)
+            self.assertAlmostEqual(after[2],.8)
+        self.assertEqual(report['profile'],'source-absolute-hand-axis-v1-experiment')
+
     def test_fixed_yaw_resolves_camera_axis_without_inventing_rest_pose(self):
         vectors={'humanoid.arm.upper.right':[(0,0,1)]*2}
         result,report=fit(fixture(),'motion',vectors,[0,1],yaw=15,project_lengths=True)

@@ -10,7 +10,7 @@ from .oblique_motion import project
 PROFILE = 'source-absolute-limb-direction-v1'
 
 
-def fit(document, name, vectors, times, *, yaw=0, project_lengths=False):
+def fit(document, name, vectors, times, *, yaw=0, project_lengths=False, include_hands=False):
     """Fit projected directions through each animated parent's inverse matrix.
 
     This isolates pose calibration from mesh correction. Near-camera directions
@@ -24,8 +24,12 @@ def fit(document, name, vectors, times, *, yaw=0, project_lengths=False):
     animation = document['animations'][name]
     if animation.get('attachments') or animation.get('deform'):
         raise ValueError('source_pose_fit_requires_uncorrected_mesh')
-    selected = {ROLES[r]: (r, values) for r, values in vectors.items()
-                if r.startswith(('humanoid.arm.', 'humanoid.leg.')) and r in ROLES}
+    if type(include_hands) is not bool:raise ValueError('source_pose_hand_mode_invalid')
+    role_map=dict(ROLES)
+    if include_hands:
+        role_map.update({'humanoid.arm.hand.left':'hand_l','humanoid.arm.hand.right':'hand_r'})
+    selected = {role_map[r]: (r, values) for r, values in vectors.items()
+                if r.startswith(('humanoid.arm.', 'humanoid.leg.')) and r in role_map}
     if not selected:
         raise ValueError('source_pose_limbs_missing')
     if type(project_lengths) is not bool:
@@ -99,8 +103,10 @@ def fit(document, name, vectors, times, *, yaw=0, project_lengths=False):
             world = matrices(result, name, time)[key]
             error = abs((math.degrees(math.atan2(world[2], world[0])-math.atan2(y, x))+180) % 360-180)
             row['maximum_direction_error_deg'] = max(row['maximum_direction_error_deg'], error)
-    return result, dict(profile=PROFILE if not project_lengths else 'source-absolute-limb-projection-v1', authority='none', selected=False,
-        input_sha256=canonical_sha256(dict(document=document, vectors=vectors, times=times, yaw=yaw, project_lengths=project_lengths)),
+    return result, dict(profile=('source-absolute-hand-axis-v1-experiment' if include_hands else
+                                PROFILE if not project_lengths else 'source-absolute-limb-projection-v1'), authority='none', selected=False,
+        input_sha256=canonical_sha256(dict(document=document, vectors=vectors, times=times, yaw=yaw, project_lengths=project_lengths,
+                                          **({'include_hands':True} if include_hands else {}))),
         output_sha256=canonical_sha256(result), records=list(records.values()),
         limitations=['direction_fit_not_joint_position_or_silhouette_fit',
                      'unreliable_projection_requires_3d_bend_plane_resolution',
