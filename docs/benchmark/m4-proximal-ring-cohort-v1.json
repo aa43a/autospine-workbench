@@ -1,0 +1,58 @@
+{
+  "profile": "proximal-ring-three-character-regression-v1",
+  "authority": "none",
+  "selected": false,
+  "rows": [
+    {
+      "character": "alice",
+      "previous_candidate": "821dba1c71f4641276174584289ed9975b21fb4aed47d60b14c518bd08552206",
+      "candidate": "c5aca2c211ccfdabcf343e96fe4f57af5518cba1ae4168ecb7d51d5353638128",
+      "sampled_frames": 625,
+      "previous_inversions": 737,
+      "inversions": 0,
+      "projected_area_failures": 0,
+      "ankle_drift_px": 0.24920714284853615,
+      "geometry_passed": false,
+      "contact_passed": true,
+      "runtime_numeric_passed": true,
+      "depth_status": "depth_overlap_no_change",
+      "unchanged_setup_bones_textures": true
+    },
+    {
+      "character": "hongmeiling",
+      "previous_candidate": "483d921c24cf0d0e5271ee0865418b0c5966c58202b2d40d3e85c94b3278262c",
+      "candidate": "ca6a98b9965768e71bfdc56b587d0eccc5ff9c409aef2188779897a206e01f57",
+      "sampled_frames": 623,
+      "previous_inversions": 0,
+      "inversions": 0,
+      "projected_area_failures": 0,
+      "ankle_drift_px": 1.112285640080576,
+      "geometry_passed": false,
+      "contact_passed": true,
+      "runtime_numeric_passed": true,
+      "depth_status": "depth_candidates_need_review",
+      "unchanged_setup_bones_textures": true
+    },
+    {
+      "character": "huiye",
+      "previous_candidate": "6fbec79d3dd9a8a5d604cf0ce96767408925f1a15d362034fafe3d72a8eaa0f7",
+      "candidate": "6fbec79d3dd9a8a5d604cf0ce96767408925f1a15d362034fafe3d72a8eaa0f7",
+      "sampled_frames": 623,
+      "previous_inversions": 0,
+      "inversions": 0,
+      "projected_area_failures": 0,
+      "ankle_drift_px": 0.4381097869444041,
+      "geometry_passed": true,
+      "contact_passed": true,
+      "runtime_numeric_passed": true,
+      "depth_status": "depth_candidates_need_review",
+      "unchanged_setup_bones_textures": true
+    }
+  ],
+  "total_sampled_frames": 1871,
+  "limitations": [
+    "different_sample_grids_not_direct_error_rate_comparison",
+    "runtime_numeric_not_visual_acceptance",
+    "knee_skirt_depth_not_checked"
+  ]
+}
