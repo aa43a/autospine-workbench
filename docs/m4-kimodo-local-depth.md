@@ -102,6 +102,26 @@ Twenty-three related tests cover interval gradients, unknown data, opposite
 overlapping triangles, budgets, legacy depth checks and sparse sampling. No
 candidate, draw order, or Runtime acceptance is changed by this experiment.
 
+### Official same-frame review capture
+
+`tools/m4_local_depth_capture.py` reads a diagnostic and its exact stored candidate,
+selects the first, maximum-ambiguity and last unresolved time per attachment pair,
+and performs a fresh official WebGL/SwiftShader capture. It preserves skeleton,
+atlas, textures and draw order. A separate immutable capture bundle holds only
+the selected numeric references; it does not replace the source candidate.
+Image crops use the recorded framebuffer origin and dimensions, with checked
+world-to-image coordinates. Reports bind the diagnostic, candidate, skeleton,
+capture bundle, source times, full images and crops by hash.
+
+Alice's pixel-interval report produced three new captures at 0, 3.166667 and
+3.966667 seconds, with maximum numeric error 0.00007090526301690037 pixels.
+Review page: `../tmp/m4-motion-center/local-depth-runtime-alice-v1/index.html`.
+The cropped region is the attachment-pair overlap bounding box, not a claim that
+every pixel in the crop is ambiguous. It includes other visible character parts
+from the actual complete framebuffer. Two tests cover the coordinate conversion
+and representative-time selection. Capture passes do not establish anatomical
+depth truth, correct visual order, or human acceptance.
+
 ### Projection and rotation strategy
 
 Use three distinct channels rather than applying a single 2D rotation to all art:
