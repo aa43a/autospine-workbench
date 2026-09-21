@@ -78,6 +78,24 @@ GET `/api/motions/{job_id}/compare-oblique` is read-only. Automatic submissions
 include `projection_selection: {comparison_sha256: ...}` alongside `projection`.
 Geometry, contact, depth and Runtime checks still run on the resulting character.
 
+The workbench now defaults **新动作默认自动选择合格投影** to enabled. Selecting
+a compiled source starts the same verified thirteen-angle comparison; merely
+refreshing or reselecting the same source does not repeat it. Target submission
+is disabled while the comparison is pending. Manual yaw changes opt out for the
+current page session, while the operator can explicitly re-enable the checkbox
+or comparison button. Source changes clear the previous angle and receipt.
+Late replies cannot overwrite a newer source or manual decision. Failed or
+unqualified comparisons display an exception and do not claim a recommended
+fallback; the unchanged source can still be built as a diagnostic candidate.
+This changes the default UI selection, not historical jobs or the backend
+recommendation/acceptance rules.
+
+Live GET-only Chrome checks verified walking selects -45 degrees, generated
+Kimodo wave selects 0 degrees, and manual selection disables automatic changes.
+No real jobs were created by this test. Fourteen synthetic browser cases and
+17 projection/intake backend tests pass, including cancellation of a pending
+comparison and explicit re-enable.
+
 Validation: source comparison, stale receipt and mismatched angle unit checks,
 real BVH HTTP comparison, and browser payload/manual override/source reset checks.
 Comparison in progress disables target submission, including programmatic button
