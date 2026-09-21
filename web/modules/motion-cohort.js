@@ -1,5 +1,6 @@
 import {createSourcePlayer} from './motion-source-player.js';
 import {appendStageReview} from './motion-stage-review.js';
+import {appendRotationDetails} from './motion-rotation-details.js';
 const byId=id=>document.getElementById(id), motion=byId('motion'),character=byId('character');
 const player=createSourcePlayer(byId('source'),byId('time'),byId('play'),byId('time-label'));
 let pack,revision=0;
@@ -36,6 +37,11 @@ async function show(){
     player.load(preview);byId('target-title').textContent=`${g.label} · ${t.label}`;
     const frame=document.createElement('iframe');frame.title=`${t.label} 角色动作时间轴`;frame.src=`/api/motions/${t.job_id}/view/player.html`;byId('target').append(frame);
     appendStageReview(byId('review'),job);
+    appendRotationDetails(byId('review'),job,{onSeek:time=>{
+      if(version!==revision)return;
+      frame.src=`/api/motions/${t.job_id}/view/player.html?time=${encodeURIComponent(time)}`;
+      frame.scrollIntoView({block:'nearest'});
+    }});
     byId('status').textContent='已核对版本。查看角色动作后，可直接在本页保存阶段结论；不会自动确认。';
   }catch(error){if(version===revision)byId('status').textContent='无法打开：'+error.message;}
 }

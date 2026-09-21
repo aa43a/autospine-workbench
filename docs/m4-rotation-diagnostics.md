@@ -91,3 +91,29 @@ All four show no extra full turn relative to the declared transfer. Walking has
 candidates, not new captures or new visual acceptance.
 
 The final focused run passed 24 rotation, view and existing depth-endpoint tests.
+
+## Complete fixed-matrix correlation and inline interval seeking
+
+The read-only `cohort-rotation-audit-v1/` run checked all 24 exact v3 candidates,
+including their source job and artifact identities. None reports an extra full
+turn relative to MotionIR, or a local exported key interval reaching 180 degrees.
+The largest transfer difference is 5.9553473185 degrees; contact corrections may
+intentionally change these local angles. This does not prove appearance or axial
+twist correctness, and no rotation repair was applied.
+
+Per-source unreliable-direction sample counts remain walking 64, raise-arms 23,
+reach 20, boxing 1, and zero for the other four sources. These are limb samples,
+not counts of distinct defective rendered frames. Branch crossings remain
+walking 2, turning 4 and squat 2; they are not automatically treated as defects.
+
+The centralized cohort page now offers rotation inspection beside stage review.
+Consecutive unreliable samples on one bone become a localized time interval;
+missing frames or intervening event types separate intervals. All events remain
+available, replacing the previous first-30-record truncation. Clicking a time
+seeks within the existing target iframe and preserves the review form. Standalone
+task cards retain their separate player links. This is diagnostic navigation,
+not interpolation across the unobservable interval or automatic acceptance.
+
+Validation: seven interval-grouping checks and ten synthetic cohort browser
+checks pass, including in-page seeking and unchanged review state. The real
+walking/Alice page is checked separately with GET-only requests.

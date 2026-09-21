@@ -20,6 +20,10 @@ try{
     }
     if(path.endsWith('/preview'))return route.fulfill({json:{view:'front',parents:[null,0],frames:[
       {time:0,frame:0,joints:[[0,0,0],[0,1,0]]},{time:1,frame:1,joints:[[0,0,0],[1,1,0]]}]}});
+    if(path.endsWith('/rotation-status.json'))return route.fulfill({json:{artifact_sha256:hash,
+      target:{records:[{bone:'upperarm_l',extra_turn_suspected:false,maximum_transfer_difference_deg:0,
+        large_key_intervals:[],source_events:[{frame:2,time:.2,reason:'projection_direction_unreliable'},
+          {frame:3,time:.3,reason:'projection_direction_unreliable'}]}]}}});
     if(path.endsWith('/player.html'))return route.fulfill({contentType:'text/html',body:'<p>Fixture player</p>'});
     if(sources.includes(job))return route.fulfill({json:{job_id:job,status:'succeeded',source_sha256:changed?'b'.repeat(64):hash}});
     if(targets.includes(job))return route.fulfill({json:{job_id:job,status:'succeeded',kind:'adapt',result:{artifact_sha256:hash}}});
@@ -36,6 +40,12 @@ try{
   await page.getByRole('checkbox').check();await page.getByRole('button',{name:'保存阶段结论'}).click();
   await page.getByText('r1 · 阶段可接受，保留异常。fixture only',{exact:true}).waitFor();
   assert.equal(posts,1);
+  await page.getByRole('button',{name:'在此检查旋转与绕圈'}).click();
+  await page.getByText('upperarm_l · 未发现新增整圈 · 与源传递最大差 0.00°',{exact:true}).click();
+  await page.getByRole('link',{name:'定位 0.200–0.300 秒（2 个源采样）'}).click();
+  assert.match(await page.locator('iframe').getAttribute('src'),/player.html\?time=0.2$/);
+  assert.equal(posts,1);
+  await page.getByText('r1 · 阶段可接受，保留异常。fixture only',{exact:true}).waitFor();
   await page.getByRole('button',{name:'下一项'}).click();
   await page.getByRole('heading',{name:'motion 1 · character 1',exact:true}).waitFor();
   assert.equal(await page.getByRole('button',{name:'下一项'}).isDisabled(),true);
@@ -45,5 +55,5 @@ try{
   assert.equal(await page.locator('iframe').count(),0);
   assert.equal(await page.getByRole('button',{name:'记录 / 查看阶段验收'}).count(),0);
   assert.deepEqual(errors,[]);
-  console.log(JSON.stringify({passed:true,synthetic_posts:posts,real_decisions_written:0,checks:7}));
+  console.log(JSON.stringify({passed:true,synthetic_posts:posts,real_decisions_written:0,checks:10}));
 }finally{await browser.close();}
