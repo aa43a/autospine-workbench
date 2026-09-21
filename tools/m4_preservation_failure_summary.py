@@ -11,7 +11,8 @@ def run(folder,output):
     AnimatedStore(folder/'isolated-store').read(receipt['candidate_bundle_sha256'])
     evidence=json.loads((folder/'correction.json').read_bytes())
     if evidence['profile'] not in ('adaptive-healthy-area-preservation-budget10-v1-experiment',
-                                  'adaptive-repair-band-preservation-budget10-v1-experiment'):
+                                  'adaptive-repair-band-preservation-budget10-v1-experiment',
+                                  'adaptive-fixed-band-preservation-budget10-v1-experiment'):
         raise ValueError('preservation_profile_required')
     check=evidence['refinement'][-1]['check'];rows=[]
     for slot in sorted({r['slot'] for r in check['failures']}):

@@ -6,7 +6,8 @@ from ..spine43.continuous_pose import area
 from .affine_pose import matrices, sample
 
 
-def repair(document, name, *, samples=257, convergent=False, setup_vertices=None, projected_reference=False, extra_times=(), temporal=False, terminal_collar=False, progress=None, proximal_ring=False, preserve_area=False, repair_band=False):
+def repair(document, name, *, samples=257, convergent=False, setup_vertices=None, projected_reference=False, extra_times=(), temporal=False, terminal_collar=False, progress=None, proximal_ring=False, preserve_area=False, repair_band=False, fixed_band=False):
+    if fixed_band and not repair_band:raise ValueError('fixed_band_requires_repair_band')
     if repair_band and not preserve_area:raise ValueError('repair_band_requires_preservation')
     if preserve_area and not (convergent and projected_reference):raise ValueError('area_preservation_requires_projection')
     if proximal_ring and not terminal_collar:raise ValueError('proximal_ring_requires_collar')
@@ -79,6 +80,10 @@ def repair(document, name, *, samples=257, convergent=False, setup_vertices=None
         context = dict(row={'triangles': triangles}, areas=areas, edges=edges,
                        lengths=[math.dist(base[a], base[b]) for a, b in edges], free=free, budget=budget)
         keys = []; maximum = 0.; unresolved = []; solver_rows = []
+        footprint=None
+        if fixed_band:
+            from .fixed_repair_band import collect
+            footprint=collect(worlds,slot,triangles,frame_areas,{v for c in collars for v in c['vertices']})
         for frame_index,(time, world, transform, references) in enumerate(zip(times, worlds, transforms, frame_areas)):
             if progress and frame_index%16==0:
                 progress(dict(stage='solve_attachment',slot=slot,frame_index=frame_index,sample_count=len(times),time=time))
@@ -87,7 +92,9 @@ def repair(document, name, *, samples=257, convergent=False, setup_vertices=None
             if preserve_area:
                 from .area_preservation import from_pose
                 context['minimum_ratios'] = from_pose(original, triangles, references)
-                if repair_band:
+                if fixed_band:
+                    for i in footprint:context['minimum_ratios'][i]=.5
+                elif repair_band:
                     from .area_preservation import outside_repair_band
                     support={v for c in collars for v in c['vertices']}
                     context['minimum_ratios'],_ = outside_repair_band(original,triangles,references,support_vertices=support)
@@ -132,6 +139,7 @@ def repair(document, name, *, samples=257, convergent=False, setup_vertices=None
         if convergent:
             rows[-1]['solver_samples'] = solver_rows
         if terminal_collar:rows[-1]['terminal_collars']=collars
+        if fixed_band:rows[-1]['fixed_repair_band']=footprint
         if progress:progress(dict(stage='attachment_complete',slot=slot,sample_count=len(times),unresolved_samples=len(unresolved)))
     profile = 'affine-mixed-area-budget10-v2' if convergent else 'affine-mixed-area-budget10-v1'
     if projected_reference:
@@ -142,5 +150,6 @@ def repair(document, name, *, samples=257, convergent=False, setup_vertices=None
     if proximal_ring:profile='proximal-ring-projected-area-budget10-v1-experiment'
     if preserve_area:profile='healthy-area-preservation-budget10-v1-experiment'
     if repair_band:profile='repair-band-area-preservation-budget10-v1-experiment'
+    if fixed_band:profile='fixed-band-area-preservation-budget10-v1-experiment'
     return result, dict(profile=profile, authority='none', selected=False,
                         records=rows, validation='dense_resampling_required')

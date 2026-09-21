@@ -5,7 +5,8 @@ from .projected_area_reference import reference
 from ..spine43.continuous_pose import area
 
 
-def inspect(document, name, slots, *, preservation_source=None, repair_support=None):
+def inspect(document, name, slots, *, preservation_source=None, repair_support=None, fixed_repair_bands=None):
+    if fixed_repair_bands is not None and repair_support is None:raise ValueError('fixed_band_requires_support')
     if repair_support is not None and preservation_source is None:raise ValueError('repair_support_requires_source')
     if preservation_source is not None:
         if (preservation_source['bones'] != document['bones'] or preservation_source['skins'] != document['skins']
@@ -27,6 +28,9 @@ def inspect(document, name, slots, *, preservation_source=None, repair_support=N
             n=data[i];i+=1;influences.append([(data[i+4*j],data[i+4*j+3]) for j in range(n)]);i+=4*n
         flat=attachment['triangles'];triangles=[flat[i:i+3] for i in range(0,len(flat),3)]
         prepared[slot]=(triangles,[area(base[slot],t) for t in triangles],influences)
+    if fixed_repair_bands is not None:
+        from .fixed_repair_band import verify
+        fixed_repair_bands=verify(preservation_source,name,knots,prepared,rest,repair_support,fixed_repair_bands)
     failures=[]
     for time in times:
         world=sample(document,name,time)[0];transform=matrices(document,name,time)
@@ -38,7 +42,9 @@ def inspect(document, name, slots, *, preservation_source=None, repair_support=N
             if original is not None:
                 # Independent of solver floor generation, including interpolated poses.
                 floors=[max(.5,min(1.,area(original[slot],tri)/ref)) for tri,ref in zip(triangles,refs)]
-                if repair_support is not None:
+                if fixed_repair_bands is not None:
+                    floors=[.5 if i in fixed_repair_bands[slot] else f for i,f in enumerate(floors)]
+                elif repair_support is not None:
                     seeds=[tri for tri,ref in zip(triangles,refs) if not .5<=area(original[slot],tri)/ref<=2]
                     vertices={v for tri in seeds for v in tri}|set(repair_support[slot])
                     floors=[.5 if vertices.intersection(tri) else f for tri,f in zip(triangles,floors)]
@@ -49,6 +55,7 @@ def inspect(document, name, slots, *, preservation_source=None, repair_support=N
                 if original is not None:failures[-1]['preservation_failures']=deficits
     profile='healthy-area-key-and-midpoint-check-v1-experiment' if preservation_source is not None else 'projected-area-key-and-midpoint-check-v1'
     if repair_support is not None:profile='repair-band-key-and-midpoint-check-v1-experiment'
+    if fixed_repair_bands is not None:profile='fixed-band-key-and-midpoint-check-v1-experiment'
     return dict(profile=profile,authority='none',
                 sampled_frames=len(times),failures=failures,
                 limitation='sampled_area_proxy_not_continuous_or_visual_quality_proof')
