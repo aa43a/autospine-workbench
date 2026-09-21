@@ -1,5 +1,25 @@
 # Regional depth worker integration
 
+## Tight sparse cells
+
+An additional `--tight-sparse` replay mode intersects each attachment's union of
+triangle bounding boxes inside each existing 64-pixel cell. It omits only pixels
+outside at least one conservative mesh bound. Disjoint native pixel regions,
+alpha/bilinear rules, depth thresholds, cell-count limit and pixel budget remain
+unchanged. The explicit `tight_triangle_boxes` policy participates in cache
+identity and is carried through cloth/limb probes; boolean sparse behavior and
+default worker selection remain available unchanged.
+
+The same Huiye source replay retains all 432 checks, preserves the 277 measurements
+from the prior sparse run, and recovers 17 more. There are still 138 unmeasured
+checks and 120 order blockers. No candidate is selected and no new Runtime
+capture is claimed. The `regional-kimodo-huiye-tight-v1/report.json` report has
+SHA256 `e5f708004f1b8d958664f6fc8036949ceedd9cbc9662918a73b1f14a796fd7cd`;
+the comparison is `regional-kimodo-huiye-tight-comparison-v1.json`, both under
+`../tmp/m4-motion-center/`. Twenty-three focused tests cover transformed alpha
+overlap equivalence, disjoint boxes within one cell, multi-triangle bounds,
+cross-cell clipping and propagation through shared constraint caches.
+
 ## Conservative sparse regional sampling experiment
 
 `m4_regional_source_check.py --sparse` now carries the existing conservative

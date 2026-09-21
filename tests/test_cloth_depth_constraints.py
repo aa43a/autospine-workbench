@@ -15,14 +15,14 @@ class ClothConstraintsTests(unittest.TestCase):
             dict(tick=0,source_tick=0,ambiguous=False)])])
         results=[]
         with patch(MODULE+'at',return_value={'coefficients':[0,0,0]}), patch(MODULE+'observe',return_value={'segments':{}}):
-            for sparse in (False,True):
-                probe=Probe(doc,files,'test',tiled=sparse,sparse=sparse)
+            for sparse in (False,True,'tight_triangle_boxes'):
+                probe=Probe(doc,files,'test',tiled=bool(sparse),sparse=sparse)
                 result,report=build(doc,files,'test',depth,dict(regions=[dict(slot='b',group='mixed')]),
                     lambda _: {'root':(.1,.2)},order_probe=probe)
                 results.append(result)
                 self.assertEqual(report['unmeasured_samples'],0)
                 self.assertEqual(report['reused_order_overlap_samples'],1)
-        self.assertEqual(*results)
+        self.assertTrue(all(result==results[0] for result in results))
 
     def test_midpoint_disagreement_and_unmeasured_are_ambiguous(self):
         front=dict(status='uniform_front_proxy'); back=dict(status='uniform_back_proxy')

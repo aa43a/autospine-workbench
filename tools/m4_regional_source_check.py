@@ -46,5 +46,8 @@ def run(job, output, *, sparse=False):
 if __name__ == '__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('job'); parser.add_argument('output',type=Path)
-    parser.add_argument('--sparse',action='store_true')
-    args=parser.parse_args();run(args.job,args.output,sparse=args.sparse)
+    policy=parser.add_mutually_exclusive_group()
+    policy.add_argument('--sparse',action='store_true')
+    policy.add_argument('--tight-sparse',action='store_true')
+    args=parser.parse_args();run(args.job,args.output,
+        sparse='tight_triangle_boxes' if args.tight_sparse else args.sparse)

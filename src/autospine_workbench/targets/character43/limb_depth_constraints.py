@@ -36,7 +36,7 @@ def build(document,files,animation,depth,sampler,*,order_probe=None):
     for arm in arms:
         for leg in legs:
             probe=Probe(document,files,animation,rendered_bounds=bool(order_probe and order_probe.rendered_bounds),
-                        tiled=bool(order_probe and order_probe.tiled),sparse=bool(order_probe and order_probe.sparse)); rows=[]; samples=[]
+                        tiled=bool(order_probe and order_probe.tiled),sparse=order_probe.sparse if order_probe else False); rows=[]; samples=[]
             fallback=max((arm,leg),key=index.__getitem__)
             for tick in ticks:
                 checks=[]
