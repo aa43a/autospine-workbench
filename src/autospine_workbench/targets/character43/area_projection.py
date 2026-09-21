@@ -3,8 +3,8 @@ import math
 from ..spine43.continuous_pose import area
 
 
-def project(context, base):
-    points = [list(p) for p in base]
+def project(context, base, *, initial=None):
+    points = [list(p) for p in (base if initial is None else initial)]
     triangles, areas = context['row']['triangles'], context['areas']
     free, budget = context['free'], context['budget']
     edges, lengths = context['edges'], context['lengths']
@@ -12,6 +12,16 @@ def project(context, base):
         raise ValueError('character_area_projection_invalid_context')
     if any(not math.isfinite(v) for p in points for v in p):
         raise ValueError('character_area_projection_nonfinite')
+    if len(points) != len(base) or any(len(p) != 2 for p in points):
+        raise ValueError('character_area_projection_initial_shape')
+    if initial is not None:
+        for i, origin in enumerate(base):
+            if not free[i]:
+                points[i] = list(origin)
+            else:
+                distance = math.dist(points[i], origin)
+                if distance > budget:
+                    points[i] = [origin[k]+(points[i][k]-origin[k])*budget/distance for k in (0,1)]
     converged = False
     # These are solver margins, not the independent QA floor (which remains .5).
     # In a narrow fixed boundary, .55 can be infeasible while .5 remains feasible.

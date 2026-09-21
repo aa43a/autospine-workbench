@@ -6,7 +6,9 @@ from ..spine43.continuous_pose import area
 from .affine_pose import matrices, sample
 
 
-def repair(document, name, *, samples=257, convergent=False, setup_vertices=None, projected_reference=False, extra_times=()):
+def repair(document, name, *, samples=257, convergent=False, setup_vertices=None, projected_reference=False, extra_times=(), temporal=False):
+    if temporal and not (convergent and projected_reference):
+        raise ValueError('character_temporal_projection_required')
     animation = document['animations'][name]
     if animation.get('attachments'):
         raise ValueError('character_affine_repair_existing_deform')
@@ -63,7 +65,11 @@ def repair(document, name, *, samples=257, convergent=False, setup_vertices=None
             original = world[slot]
             if convergent:
                 from .area_projection import project as project_v2
-                corrected, solver = project_v2(context, original)
+                initial = None
+                if temporal and keys:
+                    from .corrective_transport import transport
+                    initial = transport(original, influences, keys[-1]['vertices'], bones, transform)
+                corrected, solver = project_v2(context, original, **({'initial':initial} if temporal else {}))
                 solver_rows.append(dict(time=time, **solver))
             else:
                 corrected = project(context, original)
@@ -95,5 +101,7 @@ def repair(document, name, *, samples=257, convergent=False, setup_vertices=None
     profile = 'affine-mixed-area-budget10-v2' if convergent else 'affine-mixed-area-budget10-v1'
     if projected_reference:
         profile = 'affine-mixed-projected-area-budget10-v1'
+    if temporal:
+        profile = 'transported-projected-area-budget10-v1'
     return result, dict(profile=profile, authority='none', selected=False,
                         records=rows, validation='dense_resampling_required')
