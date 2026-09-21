@@ -3,6 +3,7 @@ from collections import Counter
 from hashlib import sha256
 import json
 import math
+from .depth_failure_records import collect, categories
 
 RESOURCE={'depth_overlap_pixel_budget','depth_overlap_tile_limit','depth_overlap_frame_limit'}
 CONFLICT={'visible_depth_straddle','visible_unmapped_order_conflict'}
@@ -16,7 +17,7 @@ def build(files,artifact):
     order=depth.get('order',{}); rows=[]; counts=Counter()
     from .depth_model_evidence import index, lookup
     model_evidence = index(depth)
-    for failure in order.get('failures',[]):
+    for failure in collect(depth):
         reason=failure.get('reason_code','unknown')
         category=('resource_limit' if reason in RESOURCE else
                   'depth_conflict' if reason in CONFLICT else 'unsupported_check')
@@ -46,9 +47,11 @@ def build(files,artifact):
         incomplete = gate == 'unmeasured' or bool(counts['resource_limit'] or counts['unsupported_check'] or unmeasured)
         state = {'needs_changes': 'needs_changes', 'unmeasured': 'evidence_incomplete',
                  'sampled_pass': 'sampled_candidate'}[gate]
+    grouped, truncated = categories(rows)
     return dict(profile='external-motion-depth-operator-status-v1',artifact_sha256=artifact,
         skeleton_sha256=digest,status=state,selected=depth.get('selected') is True,
         failure_record_counts=dict(counts),failure_records=len(rows),records=rows[:100],
+        records_by_category=grouped,category_records_truncated=truncated,
         records_truncated=len(rows)>100,unmeasured_pair_samples=unmeasured,
         ambiguous_visible_pair_samples=ambiguous,has_incomplete_checks=incomplete,
         authority='none',production_authorized=False,

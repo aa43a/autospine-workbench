@@ -17,10 +17,13 @@ try{
   for(const category of ['depth_conflict','resource_limit','unsupported_check']){
     await filter.selectOption(category);
     const section=filter.locator('xpath=../..');
-    const expected=report.records.filter(r=>r.category===category).slice(0,20);
+    const expected=(report.records_by_category?.[category]||report.records.filter(r=>r.category===category)).slice(0,20);
     assert.equal(await section.getByRole('link',{name:/^定位 /}).count(),expected.length);
     if(expected.some(r=>r.model_evidence)){
       assert.ok((await section.textContent()).includes('不等于已观察到画面错误'));
+    }
+    if(category==='resource_limit'&&expected.length){
+      assert.ok((await section.textContent()).includes('此处未测量，不计作画面错误'));
     }
     for(const row of expected){
       assert.ok(await section.locator(`a[href="/api/motions/${id}/view/player.html?time=${row.time}"]`).count());

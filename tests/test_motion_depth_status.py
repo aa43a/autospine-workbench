@@ -7,6 +7,28 @@ from autospine_workbench.targets.character43.motion_readiness import build as re
 
 
 class DepthStatusTests(unittest.TestCase):
+    def test_early_order_conflicts_do_not_hide_unmeasured_samples(self):
+        files,_=self.report([dict(time=i/30,reason_code='visible_depth_straddle') for i in range(120)])
+        depth=json.loads(files['motion-depth.json'])
+        depth['pairs']=[dict(arm_slot='arm',torso_slot='body',samples=[dict(tick=4_000_000,
+            overlap=dict(status='unmeasured',reason_code='depth_overlap_pixel_budget'))])]
+        files['motion-depth.json']=json.dumps(depth).encode()
+        before=dict(files); result=build(files,'a'*64)
+        self.assertEqual(result['failure_record_counts'],{'depth_conflict':120,'resource_limit':1})
+        self.assertEqual(result['records_by_category']['resource_limit'][0]['time'],4)
+        self.assertTrue(result['category_records_truncated']['depth_conflict'])
+        self.assertFalse(result['category_records_truncated']['resource_limit'])
+        self.assertEqual(files,before)
+
+    def test_overlap_failure_already_recorded_by_order_is_not_counted_twice(self):
+        failure=dict(time=1,reason_code='depth_overlap_pixel_budget',pair=['arm','body'])
+        files,_=self.report([failure]);depth=json.loads(files['motion-depth.json'])
+        depth['pairs']=[dict(arm_slot='arm',torso_slot='body',samples=[dict(tick=1_000_000,
+            overlap=dict(status='unmeasured',reason_code='depth_overlap_pixel_budget'))])]
+        files['motion-depth.json']=json.dumps(depth).encode()
+        result=build(files,'a'*64)
+        self.assertEqual(result['failure_record_counts'],{'resource_limit':1})
+
     def report(self,failures):
         files,runtime=fixture(); depth=json.loads(files['motion-depth.json'])
         depth['order']=dict(status='blocked',failures=failures)

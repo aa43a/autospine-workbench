@@ -1,8 +1,9 @@
 from io import BytesIO
 import unittest
+from unittest.mock import patch
 from PIL import Image
 
-from autospine_workbench.targets.character43.motion_depth_overlap import Probe, inspect
+from autospine_workbench.targets.character43.motion_depth_overlap import Probe, inspect, RasterBudgetError
 
 
 def fixture(transparent=False):
@@ -19,6 +20,18 @@ def fixture(transparent=False):
 
 
 class DepthOverlapTests(unittest.TestCase):
+    def test_inspection_keeps_budget_location_and_does_not_fabricate_overlap(self):
+        doc,files=fixture()
+        depth=dict(pairs=[dict(arm_slot='a',torso_slot='b',samples=[dict(tick=0)])])
+        error=RasterBudgetError('a','b',0,[0,0,2,2],1)
+        with patch.object(Probe,'pair',side_effect=error):
+            report,_=inspect(doc,files,'test',depth)
+        sample=report['pairs'][0]['samples'][0]['overlap']
+        self.assertEqual(sample['status'],'unmeasured')
+        self.assertEqual(sample['raster_budget']['required_pixels'],8)
+        self.assertNotIn('overlap_pixels',sample)
+        self.assertEqual(report['target_overlap']['unmeasured_pair_samples'],1)
+
     def test_completed_cache_reuse_preserves_budget_and_checks_identity(self):
         doc,files=fixture(); source=Probe(doc,files,'test'); target=Probe(doc,files,'test')
         source.pair('a','b',0)

@@ -118,6 +118,8 @@ def inspect(document, files, animation, depth):
                 overlap = probe.pair(pair['arm_slot'], pair['torso_slot'], row['tick']/1e6)
             except ValueError as exc:
                 overlap = dict(status='unmeasured', reason_code=str(exc))
+                if getattr(exc, 'diagnostic', None):
+                    overlap['raster_budget'] = exc.diagnostic
                 unmeasured += 1
             row['overlap'] = overlap
             if overlap.get('overlap_pixels', 0) > 0:

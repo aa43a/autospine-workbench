@@ -34,10 +34,14 @@ export function appendDepthDetails(item,job) {
       const list=document.createElement('div'); panel.append(list);
       function show(){
         list.replaceChildren();
-        const rows=report.records.filter(r=>select.value==='all'||r.category===select.value);
+        const rows=select.value!=='all'&&report.records_by_category
+          ?report.records_by_category[select.value]||[]
+          :report.records.filter(r=>select.value==='all'||r.category===select.value);
         for(const row of rows.slice(0,20)){
           const p=document.createElement('p');
           p.textContent=`${categories[row.category]||row.category}${row.pair?.length?' · '+row.pair.join(' / '):''} `;
+          if(row.category==='resource_limit')p.append(document.createTextNode(
+            `${row.reason_code==='depth_overlap_pixel_budget'?'像素计算预算不足':row.reason_code}；此处未测量，不计作画面错误。 `));
           if(row.model_evidence){
             p.append(document.createTextNode(`（${evidenceLabels[row.model_evidence.kind]||'模型证据待解释'}；不等于已观察到画面错误） `));
           }
@@ -45,7 +49,8 @@ export function appendDepthDetails(item,job) {
           link.href=base+`player.html?time=${row.time}`; link.target='_blank'; link.rel='noopener'; p.append(link); list.append(p);
         }
         if(!rows.length)list.textContent='此类别没有已记录项。';
-        if(rows.length>20||report.records_truncated){const note=document.createElement('p');note.textContent='当前仅显示部分记录，完整内容见遮挡报告。';list.append(note);}
+        const truncated=select.value==='all'?report.records_truncated:report.category_records_truncated?.[select.value];
+        if(rows.length>20||truncated){const note=document.createElement('p');note.textContent='当前仅显示部分记录，完整内容见遮挡报告。';list.append(note);}
       }
       select.onchange=show; show();
       const note=document.createElement('p');
