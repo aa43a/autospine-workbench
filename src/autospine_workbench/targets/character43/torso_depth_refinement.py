@@ -10,9 +10,10 @@ PROFILE='torso-plane-hand-interval-held-order-v1-experiment'
 
 
 class Checker:
-    def __init__(self,probe,sampler,*,plane_provider=None):
+    def __init__(self,probe,sampler,*,plane_provider=None,pixelwise=False):
         self.probe,self.sampler=probe,sampler
         self.plane_provider=plane_provider or at
+        self.pixelwise=pixelwise
         self.axes={}; self.models={}
 
     def check(self,arm,body,time,source_tick):
@@ -35,5 +36,5 @@ class Checker:
         lengths={n:v['length'] for n,v in self.axes[arm]['axes'].items() if n in hands['segments']}
         intervals=build(probe.document,mesh,segments,axis_lengths=lengths)
         result=overlap_support(probe,arm,body,time,segments,endpoint_caps=True,
-            reference_plane=plane['coefficients'],axis_lengths=lengths,depth_intervals=intervals['intervals'])
+            reference_plane=plane['coefficients'],axis_lengths=lengths,depth_intervals=intervals['intervals'],pixelwise=self.pixelwise)
         return dict(result,reference_plane_evidence=plane)

@@ -77,6 +77,33 @@ All 14 relevant torso, local-depth, and Kimodo tests pass.
 
 ## Large-motion design
 
+### Optional spatial interval refinement
+
+`--pixelwise` selects `barycentric-pixel-depth-interval-v1-experiment` inside
+each check. It evaluates the lower and upper vertex-depth bounds at opaque
+pixel centres rather than assigning an entire triangle's min/max to each pixel.
+The alpha mask, bilinear texture sampling, margin, and source depth assumptions
+are unchanged. Unknown triangles and front/back overlap retain priority over a
+single signed result. Raster/interval work is charged to the same finite budget.
+Default checks retain the original whole-triangle policy.
+
+On the same Alice torso candidate, 240 source-frame pair checks remain 120 back
+and 120 unresolved, with no unmeasured records. For `layer-003`, summed ambiguous
+pixel observations across 120 frames decrease from 156,296 to 142,297; back
+observations increase from 34,945 to 48,944. There are zero front or unknown
+observations in either run. These are repeated pixel observations, not unique
+pixels or a statistical error rate. The first frame changes from 372 ambiguous
+pixels to 141. Total budget used is 9,198,556. Evidence:
+`../tmp/m4-motion-center/kimodo-warp-pixel-depth-alice-v1.json`.
+
+This narrows the remaining issue to depth-margin ambiguity under the plane/limb
+model; it does not justify an automatic front/back partition or a relaxed margin.
+Twenty-three related tests cover interval gradients, unknown data, opposite
+overlapping triangles, budgets, legacy depth checks and sparse sampling. No
+candidate, draw order, or Runtime acceptance is changed by this experiment.
+
+### Projection and rotation strategy
+
 Use three distinct channels rather than applying a single 2D rotation to all art:
 
 1. **Torso orientation:** project shoulder and pelvis anchors into the chosen

@@ -50,7 +50,7 @@ def vertex_depths(document, attachment, segments, *, endpoint_caps=False, axis_l
     return values
 
 
-def overlap_support(probe, arm, torso, time, segments, *, margin=.02, endpoint_caps=False, reference_plane=None, axis_lengths=None, depth_intervals=None):
+def overlap_support(probe, arm, torso, time, segments, *, margin=.02, endpoint_caps=False, reference_plane=None, axis_lengths=None, depth_intervals=None, pixelwise=False):
     """Classify opaque overlap with conservative per-triangle depth bounds."""
     import numpy as np
     if not math.isfinite(margin) or margin <= 0:
@@ -72,6 +72,9 @@ def overlap_support(probe, arm, torso, time, segments, *, margin=.02, endpoint_c
     if depth_intervals is not None:
         result.update(profile='weighted-depth-interval-overlap-v1-experiment',
                       uncertainty_policy='entire_interval_must_clear_margin')
+    if pixelwise:
+        result.update(profile='barycentric-pixel-depth-interval-v1-experiment',
+                      spatial_sampling='opaque_native_pixel_centres_linear_vertex_depth_intervals')
     if not pair['overlap_pixels']:
         return dict(result,status='no_overlap',counts={})
     if 'tiles' in pair:
@@ -80,7 +83,7 @@ def overlap_support(probe, arm, torso, time, segments, *, margin=.02, endpoint_c
         for tile in pair['tiles']:
             if not tile['overlap_pixels']: continue
             part=overlap_support(TileProbe(probe,tile),arm,torso,time,segments,margin=margin,
-                endpoint_caps=endpoint_caps,reference_plane=reference_plane,axis_lengths=axis_lengths,depth_intervals=depth_intervals)
+                endpoint_caps=endpoint_caps,reference_plane=reference_plane,axis_lengths=axis_lengths,depth_intervals=depth_intervals,pixelwise=pixelwise)
             for key,value in part['counts'].items(): counts[key]+=value
         status=('uniform_front_proxy' if counts['front']==pair['overlap_pixels'] else
                 'uniform_back_proxy' if counts['back']==pair['overlap_pixels'] else 'requires_partition_or_more_depth')
@@ -103,6 +106,16 @@ def overlap_support(probe, arm, torso, time, segments, *, margin=.02, endpoint_c
         dx,dy,offset=reference_plane
         intervals=[None if v is None else [z-dx*p[0]-dy*p[1]-offset for z in v]
                    for v,p in zip(intervals,probe.positions[time][arm])]
+    if pixelwise:
+        from .depth_pixel_intervals import classify
+        def charge(amount):
+            if probe.remaining<amount:raise ValueError('depth_overlap_pixel_budget')
+            probe.remaining-=amount
+        counts=classify(attachments[arm],probe.positions[time][arm],probe.textures[arm],rect,
+                        common,intervals,margin,charge)
+        status=('uniform_front_proxy' if counts['front']==pair['overlap_pixels'] else
+                'uniform_back_proxy' if counts['back']==pair['overlap_pixels'] else 'requires_partition_or_more_depth')
+        return dict(result,status=status,counts=counts)
     flat=attachments[arm]['triangles']; groups={k:[] for k in ('front','back','ambiguous','unknown')}
     for i in range(0,len(flat),3):
         tri=flat[i:i+3]; depths=[intervals[v] for v in tri]

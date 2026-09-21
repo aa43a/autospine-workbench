@@ -16,7 +16,7 @@ from autospine_workbench.targets.character43.torso_baked_depth_plane import Bake
 from m4_motion_cohort import api
 
 
-def run(job,output,*,midpoints=False):
+def run(job,output,*,midpoints=False,pixelwise=False):
     task=api('http://127.0.0.1:8918','/api/motions/'+job)
     if task['status']!='succeeded' or task.get('kind')!='adapt':raise ValueError('completed_target_required')
     request=read_document(Path('workspace/jobs/motion-intake-v1')/job/'request.json')
@@ -35,7 +35,7 @@ def run(job,output,*,midpoints=False):
     options={'plane_provider':WarpedPlane(receipt,prepare(bundle,request))} if receipt.get('applied') else {}
     if options and midpoints:
         options={'plane_provider':BakedWarpPlane(document,'external-motion',receipt,prepare(bundle,request))}
-    checker=Checker(probe,sampler,**options);rows=[]
+    checker=Checker(probe,sampler,pixelwise=pixelwise,**options);rows=[]
     for pair in depth['pairs']:
         samples=pair['samples']
         if midpoints:
@@ -49,6 +49,7 @@ def run(job,output,*,midpoints=False):
         print(json.dumps(dict(pair=[pair['arm_slot'],pair['torso_slot']],remaining=probe.remaining)),flush=True)
     result=dict(profile='soma77-local-depth-midpoint-probe-v1' if midpoints else 'soma77-local-depth-source-frame-probe-v1',job_id=job,artifact_sha256=artifact,
         source_identity=sampler.identity,interpolation=sampler.interpolation,
+        spatial_sampling='barycentric_pixel_intervals' if pixelwise else 'whole_triangle_intervals',
         torso_anchor_mode=('baked_local_offsets' if midpoints else 'compensated_source_key_origins') if options else 'original_bone_origins',
         counts=dict(Counter(r['check']['status'] for r in rows)),records=rows,
         hand_mesh_axes=checker.axes,pixel_budget_used=64_000_000-probe.remaining,
@@ -61,4 +62,5 @@ def run(job,output,*,midpoints=False):
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('job');parser.add_argument('output',type=Path)
     parser.add_argument('--midpoints',action='store_true')
-    args=parser.parse_args();run(args.job,args.output,midpoints=args.midpoints)
+    parser.add_argument('--pixelwise',action='store_true')
+    args=parser.parse_args();run(args.job,args.output,midpoints=args.midpoints,pixelwise=args.pixelwise)
