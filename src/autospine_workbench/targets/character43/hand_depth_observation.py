@@ -3,6 +3,8 @@ PROFILE = 'mixamo-wrist-middle-knuckle-depth-v1-experiment'
 
 
 def observe(sampler, tick, *, full_hand=False):
+    if hasattr(sampler,'hand_observations'):
+        return sampler.hand_observations(tick,full_hand=full_hand)
     result = dict(profile=PROFILE, segments={}, joints={}, authority='none', selected=False,
                   assumption='target_hand_axis_corresponds_to_source_wrist_middle_knuckle_segment')
     if sampler.mapping.get('map_id') != 'mixamo-declared-body-v1':
