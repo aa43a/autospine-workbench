@@ -1,5 +1,30 @@
 # Regional depth worker integration
 
+## Conservative sparse regional sampling experiment
+
+`m4_regional_source_check.py --sparse` now carries the existing conservative
+triangle-box sparse tile policy through refinement, garment constraints, limb
+constraints and ordering. All probes sharing overlap results must use the same
+policy. Default worker behavior stays unchanged; raster pixel precision, alpha
+threshold, depth margin and 64-million-pixel pair budget are unchanged.
+
+On the exact fixed Huiye wave source job
+`motion-883cb61bb3a84aee91f233cca536a552`, dense and sparse replays retain all
+432 recorded checks. The 238 previously measured outcomes match exactly by
+status, overlap count and depth-class counts. Sparse evaluation recovers 39
+checks; unmeasured count falls from 194 to 155. Both retain 120 order blockers,
+emit no replacement skeleton and do not trigger Runtime capture or adoption.
+
+Evidence under `../tmp/m4-motion-center/`:
+`regional-kimodo-huiye-dense-v1/report.json`,
+`regional-kimodo-huiye-sparse-v1/report.json`, and
+`regional-kimodo-huiye-sparse-comparison-v1.json`.
+Dense SHA256: `7ccda81d4936d68ac5894d77587abe98062d17e0e81239673f68ba666f3bfdbf`;
+sparse SHA256: `e920b9e3645ee6082a9a63edfb486278d8ef9fcde73be6fb27b7ce10e7ead064`.
+The comparison tool rejects changed source identities, missing sample keys and
+changed previously measured outcomes. Twenty-eight focused tests pass, including
+cache-policy propagation and conservative sparse-vs-dense overlap equivalence.
+
 ## Live SOMA77 delivery verification (2026-09-21)
 
 The server was restarted after checking its listener identity and unfinished

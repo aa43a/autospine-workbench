@@ -9,6 +9,21 @@ MODULE='autospine_workbench.targets.character43.cloth_depth_constraints.'
 
 
 class ClothConstraintsTests(unittest.TestCase):
+    def test_sparse_policy_is_shared_by_cloth_and_order_probes(self):
+        doc,files=fixture();doc['bones'][0]['length']=2
+        depth=dict(groups={'left':['a'],'right':[]},pairs=[dict(samples=[
+            dict(tick=0,source_tick=0,ambiguous=False)])])
+        results=[]
+        with patch(MODULE+'at',return_value={'coefficients':[0,0,0]}), patch(MODULE+'observe',return_value={'segments':{}}):
+            for sparse in (False,True):
+                probe=Probe(doc,files,'test',tiled=sparse,sparse=sparse)
+                result,report=build(doc,files,'test',depth,dict(regions=[dict(slot='b',group='mixed')]),
+                    lambda _: {'root':(.1,.2)},order_probe=probe)
+                results.append(result)
+                self.assertEqual(report['unmeasured_samples'],0)
+                self.assertEqual(report['reused_order_overlap_samples'],1)
+        self.assertEqual(*results)
+
     def test_midpoint_disagreement_and_unmeasured_are_ambiguous(self):
         front=dict(status='uniform_front_proxy'); back=dict(status='uniform_back_proxy')
         for checks in ([front,back],[front,dict(status='unmeasured')], [front,dict(status='requires_partition_or_more_depth')]):

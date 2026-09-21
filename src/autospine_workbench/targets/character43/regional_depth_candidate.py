@@ -10,7 +10,7 @@ def build(document, files, animation, depth, bvh, mapping, *, yaw=0,
           partition_slots=None, cloth_constraints=False, limb_constraints=False,
           torso_plane=False, rendered_bounds=False, reuse_refinement_overlap=False,
           tiled=False, pair_budgets=False, refine_cycles=False, include_depth=False, on_stage=None,
-          kimodo=None):
+          kimodo=None, sparse=False):
     def stage(name):
         if on_stage is not None:
             on_stage(name)
@@ -37,12 +37,12 @@ def build(document, files, animation, depth, bvh, mapping, *, yaw=0,
                                     interpolation='linear_observed_positions')
         sampling = dict(kind='kimodo_npz', interpolation=sampler.interpolation,
                         identity=sampler.identity)
-    probe = Probe(document, files, animation, rendered_bounds=rendered_bounds, tiled=tiled)
+    probe = Probe(document, files, animation, rendered_bounds=rendered_bounds, tiled=tiled, sparse=sparse)
     stage('depth_refinement')
     refined, evidence = refine(document, files, animation, depth, sampler,
         torso_plane=torso_plane, rendered_bounds=rendered_bounds,
         order_probe=probe if reuse_refinement_overlap else None,
-        tiled=tiled, pair_budgets=pair_budgets)
+        tiled=tiled, pair_budgets=pair_budgets, sparse=sparse)
     cloth = limbs = None
     if cloth_constraints:
         stage('depth_cloth_constraints')
@@ -64,7 +64,8 @@ def build(document, files, animation, depth, bvh, mapping, *, yaw=0,
         verify(original, candidate, animation, partition_slots, order)
     report = dict(refinement=evidence, order=order, partition=partition,
         depth_groups=depth.get('groups'), depth_profile=depth['profile'],
-        cloth_constraints=cloth, limb_constraints=limbs, source_sampling=sampling)
+        cloth_constraints=cloth, limb_constraints=limbs, source_sampling=sampling,
+        sparse_sampling=sparse)
     if include_depth:
         report['depth'] = refined
     return candidate, report

@@ -6,9 +6,9 @@ from .motion_depth_overlap import Probe
 PROFILE='local-depth-held-order-refinement-v1'
 
 
-def refine(document,files,animation,depth,sampler,*,torso_plane=False,rendered_bounds=False,order_probe=None,tiled=False,pair_budgets=False):
+def refine(document,files,animation,depth,sampler,*,torso_plane=False,rendered_bounds=False,order_probe=None,tiled=False,pair_budgets=False,sparse=False):
     candidate=deepcopy(depth)
-    probe=Probe(document,files,animation,rendered_bounds=rendered_bounds,tiled=tiled)
+    probe=Probe(document,files,animation,rendered_bounds=rendered_bounds,tiled=tiled,sparse=sparse)
     if order_probe is not None: order_probe.reuse(probe)
     ticks=sorted({r['tick'] for p in depth['pairs'] for r in p['samples']})
     if pair_budgets and (len(depth['pairs'])>16 or len(ticks)>512):
@@ -25,7 +25,7 @@ def refine(document,files,animation,depth,sampler,*,torso_plane=False,rendered_b
             assumptions=['planar_torso','mesh_hand_axis_to_source_fingertip','same_arm_secondary_influence_envelope'])
     for pair in candidate['pairs']:
         if pair_budgets:
-            probe=Probe(document,files,animation,rendered_bounds=rendered_bounds,tiled=tiled)
+            probe=Probe(document,files,animation,rendered_bounds=rendered_bounds,tiled=tiled,sparse=sparse)
             if torso_plane: checker=Checker(probe,sampler)
         arm,body=pair['arm_slot'],pair['torso_slot']
         for row in pair['samples']:

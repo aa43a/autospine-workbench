@@ -12,7 +12,7 @@ from autospine_workbench.targets.character43.motion_rotation_status import build
 from autospine_workbench.targets.character43.regional_depth_profile import apply
 
 
-def run(job, output):
+def run(job, output, *, sparse=False):
     if not re.fullmatch(r'motion-[a-f0-9]{32}', job):
         raise ValueError('invalid_motion_job')
     if output.exists():
@@ -29,7 +29,7 @@ def run(job, output):
     document, depth, transform = apply(json.loads(files['skeleton.json']),files,'external-motion',
         json.loads(files['motion-depth.json']),None if kimodo else parse_bvh(bundle.raw_bvh),
         bundle.kimodo_map if kimodo else bundle.bvh_map,kimodo=kimodo,
-        yaw=request.get('projection',{}).get('yaw_degrees',0),
+        yaw=request.get('projection',{}).get('yaw_degrees',0),sparse=sparse,
         on_stage=lambda stage: print(stage,flush=True))
     output.mkdir(parents=True)
     report = dict(source_job=job,source_artifact_sha256=result['artifact_sha256'],
@@ -46,4 +46,5 @@ def run(job, output):
 if __name__ == '__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('job'); parser.add_argument('output',type=Path)
-    args=parser.parse_args();run(args.job,args.output)
+    parser.add_argument('--sparse',action='store_true')
+    args=parser.parse_args();run(args.job,args.output,sparse=args.sparse)

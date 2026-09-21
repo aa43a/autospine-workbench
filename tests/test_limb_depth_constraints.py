@@ -16,13 +16,13 @@ class LimbConstraintTests(unittest.TestCase):
         self.assertEqual(report['status'],'not_applicable')
         self.assertEqual(report['pair_count'],0)
 
-    def run_case(self,statuses):
+    def run_case(self,statuses,sparse=False):
         doc,files=fixture(); doc['slots'][1]['bone']='thigh_r'
         doc['bones'].append(dict(name='thigh_r',parent='root',length=2,x=0,y=0,rotation=0))
         depth=dict(groups={'left':['a'],'right':[]},pairs=[dict(samples=[
             dict(tick=t,source_tick=t+200000,ambiguous=False) for t in (0,100000)])])
         before=deepcopy(depth); sampler=Mock(return_value={}); sampler.leg_segments.return_value={}
-        probe=Probe(doc,files,'test')
+        probe=Probe(doc,files,'test',tiled=sparse,sparse=sparse)
         with patch(MODULE+'infer',return_value={'axes':{}}), patch(MODULE+'observe',return_value={'segments':{}}), \
              patch(MODULE+'intervals',return_value={'intervals':[[0,0]]*4}), \
              patch(MODULE+'compare',side_effect=[dict(status=s) for s in statuses]):
@@ -31,6 +31,12 @@ class LimbConstraintTests(unittest.TestCase):
         self.assertEqual([c.args[0] for c in sampler.call_args_list],[200000,250000,300000])
         self.assertEqual(len(probe.results),3)
         return result,report
+
+    def test_sparse_policy_is_shared_by_limb_and_order_probes(self):
+        dense,first=self.run_case(['uniform_front_proxy']*3)
+        sparse,second=self.run_case(['uniform_front_proxy']*3,sparse=True)
+        self.assertEqual(dense,sparse)
+        self.assertEqual(first['unmeasured_samples'],second['unmeasured_samples'])
 
     def test_all_visible_samples_agree_and_preserve_original(self):
         result,report=self.run_case(['uniform_front_proxy']*3)
