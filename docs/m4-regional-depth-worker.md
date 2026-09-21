@@ -1,5 +1,9 @@
 # Regional depth worker integration
 
+An isolated [wrist-anchored sleeve plane](m4-sleeve-depth-plane.md) now evaluates
+the cloth-helper model's conditioning on exact source frames and midpoints.
+It does not yet replace missing cloth depth in the regional worker.
+
 ## Replay source-scope correction
 
 The isolated source-check tool previously passed only the external-motion bundle
