@@ -23,12 +23,13 @@ ANIMATION = 'external-motion'
 def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_digest, kimodo=None,
                     contact_correction=True, clip_bounds=None, inferred_contact_profile=None, depth_review_profile=None,
                     on_stage=None, oblique=None):
-    """Only the animation changes; layers, meshes, weights and texture pixels stay exact."""
+    """Preserve the rig, or verify the explicit regional render transformation."""
+    from ..targets.character43.regional_depth_profile import PROFILE as REGIONAL_PROFILE
     source = json.loads(files['skeleton.json'])
     original = deepcopy(source)
     source['animations'] = {}
     setup_vertices = None
-    if clip_bounds or depth_review_profile == 'external-arm-torso-depth-overlap-v2':
+    if clip_bounds or depth_review_profile in ('external-arm-torso-depth-overlap-v2', REGIONAL_PROFILE):
         setup = deepcopy(source)
         setup['animations'] = {ANIMATION: {'bones': {}}}
         setup_vertices = sample(setup, ANIMATION, 0)[0]
@@ -101,13 +102,28 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
         if contact.get('phase_checked_times'):
             times = sorted(set(times) | set(contact['phase_checked_times']))
     depth = None
+    regional_transform = None
     depth_status = 'not_evaluated'
     if depth_review_profile:
         from ..targets.character43.motion_depth import PROFILE as DEPTH_PROFILE, OVERLAP_PROFILE, build as inspect_depth
-        if depth_review_profile not in (DEPTH_PROFILE, OVERLAP_PROFILE):
+        if depth_review_profile not in (DEPTH_PROFILE, OVERLAP_PROFILE, REGIONAL_PROFILE):
             raise ValueError('motion_depth_profile_unsupported')
         options = dict(yaw_degrees=oblique['yaw_degrees']) if oblique is not None else {}
         depth = inspect_depth(document, bvh, mapping, kimodo=kimodo, clip_bounds=clip_bounds, **options)
+        if depth_review_profile == REGIONAL_PROFILE:
+            from ..targets.character43.regional_depth_profile import apply, remap_setup
+            if on_stage:
+                on_stage('depth_overlap')
+            document, depth, regional_transform = apply(document, files, ANIMATION, depth, bvh, mapping,
+                yaw=oblique['yaw_degrees'] if oblique is not None else 0)
+            if regional_transform:
+                partition = depth['regional']['partition']
+                setup_vertices = remap_setup(setup_vertices, partition)
+                from ..targets.character43.depth_region_partition import build as partition_build
+                original['animations'] = {}
+                if regional_transform['partition_slots']:
+                    original = partition_build(original, regional_transform['partition_slots'])[0]
+                times = sorted(set(times) | {r['time'] for r in depth['order']['frames']})
         if depth_review_profile == OVERLAP_PROFILE:
             if on_stage:
                 on_stage('depth_overlap')
@@ -128,6 +144,8 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
     raw = canonical_bytes(document)
     result = {name: data for name, data in files.items() if name.endswith('.png') or name == 'skeleton.atlas'}
     result['skeleton.json'] = raw
+    if regional_transform is not None:
+        result['motion-regional-transform.json'] = canonical_bytes(regional_transform)
     if oblique is not None:
         result['motion-projection.json'] = canonical_bytes(oblique)
     if setup_vertices is not None:

@@ -35,6 +35,13 @@ def build(files,artifact):
         order.get('status')=='candidate' and depth.get('selected') is True))
     state=('needs_changes' if conflict else 'evidence_incomplete' if incomplete else
            'sampled_candidate' if passed and depth.get('selected') else 'sampled_no_change' if passed else 'not_evaluated')
+    if depth.get('profile') == 'external-regional-depth-order-v1':
+        from .regional_depth_gate import evaluate
+        gate = evaluate(files, depth)
+        unmeasured = depth.get('regional', {}).get('unmeasured_samples')
+        incomplete = gate == 'unmeasured' or bool(counts['resource_limit'] or counts['unsupported_check'] or unmeasured)
+        state = {'needs_changes': 'needs_changes', 'unmeasured': 'evidence_incomplete',
+                 'sampled_pass': 'sampled_candidate'}[gate]
     return dict(profile='external-motion-depth-operator-status-v1',artifact_sha256=artifact,
         skeleton_sha256=digest,status=state,selected=depth.get('selected') is True,
         failure_record_counts=dict(counts),failure_records=len(rows),records=rows[:100],

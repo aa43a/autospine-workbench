@@ -38,7 +38,11 @@ def build(files, artifact_sha256, runtime=None):
     depth_passed = ((order.get('status') == 'no_visible_order_change'
                      or order.get('status') == 'candidate' and depth.get('selected') is True)
                     and not depth.get('target_overlap', {}).get('unmeasured_pair_samples', 1))
-    add('遮挡', 'needs_changes' if depth_failed else 'sampled_pass' if depth_passed else 'unmeasured',
+    depth_state = 'needs_changes' if depth_failed else 'sampled_pass' if depth_passed else 'unmeasured'
+    if depth.get('profile') == 'external-regional-depth-order-v1':
+        from .regional_depth_gate import evaluate
+        depth_state = evaluate(files, depth)
+    add('遮挡', depth_state,
         '顺序约束未通过，保留原动画；查看冲突位置。' if depth_failed else
         '手臂/躯干与受影响顺序的采样检查；整角色视觉遮挡仍需复核。',
         'depth.html', failures=[dict(time=f['time'], reason=f['reason_code']) for f in failures[:20]])

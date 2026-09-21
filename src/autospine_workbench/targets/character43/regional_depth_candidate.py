@@ -9,7 +9,7 @@ from .motion_depth_order import build as order_build
 def build(document, files, animation, depth, bvh, mapping, *, yaw=0,
           partition_slots=None, cloth_constraints=False, limb_constraints=False,
           torso_plane=False, rendered_bounds=False, reuse_refinement_overlap=False,
-          tiled=False, pair_budgets=False, refine_cycles=False):
+          tiled=False, pair_budgets=False, refine_cycles=False, include_depth=False):
     original = deepcopy(document)
     partition = None
     if partition_slots:
@@ -45,6 +45,9 @@ def build(document, files, animation, depth, bvh, mapping, *, yaw=0,
     if candidate is not None:
         from .regional_depth_contract import verify
         verify(original, candidate, animation, partition_slots, order)
-    return candidate, dict(refinement=evidence, order=order, partition=partition,
+    report = dict(refinement=evidence, order=order, partition=partition,
         depth_groups=depth.get('groups'), depth_profile=depth['profile'],
         cloth_constraints=cloth, limb_constraints=limbs)
+    if include_depth:
+        report['depth'] = refined
+    return candidate, report

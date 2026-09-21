@@ -35,7 +35,7 @@ def render(report):
                     f'<td><a href="player.html?time={time:.9f}">{time:.3f} 秒</a>{explanation}</td></tr>')
     for pair in report['pairs']:
         label = escape(pair['arm_slot']+' / '+pair['torso_slot'])
-        for event in pair['events']:
+        for event in pair.get('events', []):
             time = event['tick']/1_000_000
             rows.append(f'<tr><td>{label}</td><td>前景建议：{escape(event["to_front_slot"])}</td>'
                 f'<td><a href="player.html?time={time:.9f}">定位 {time:.3f} 秒</a></td></tr>')
@@ -43,7 +43,8 @@ def render(report):
         segments = []
         for sample in pair['samples']:
             if sample['ambiguous']:
-                if not segments or segments[-1][-1]['source_frame_index']+1 != sample['source_frame_index']:
+                if (not segments or 'source_frame_index' not in sample or
+                        segments[-1][-1].get('source_frame_index', -2)+1 != sample['source_frame_index']):
                     segments.append([])
                 segments[-1].append(sample)
         for segment in segments:
