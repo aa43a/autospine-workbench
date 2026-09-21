@@ -6,7 +6,7 @@ from ..spine43.continuous_pose import area
 from .affine_pose import matrices, sample
 
 
-def repair(document, name, *, samples=257, convergent=False, setup_vertices=None):
+def repair(document, name, *, samples=257, convergent=False, setup_vertices=None, projected_reference=False, extra_times=()):
     animation = document['animations'][name]
     if animation.get('attachments'):
         raise ValueError('character_affine_repair_existing_deform')
@@ -14,16 +14,24 @@ def repair(document, name, *, samples=257, convergent=False, setup_vertices=None
         raise ValueError('character_affine_repair_sample_limit')
     key_times = {k['time'] for tracks in animation['bones'].values() for keys in tracks.values() for k in keys}
     duration = max(key_times)
-    times = sorted(key_times | {duration*i/(samples-1) for i in range(samples)})
+    if len(extra_times) > 1025 or any(not math.isfinite(t) or not 0 <= t <= duration for t in extra_times):
+        raise ValueError('character_affine_extra_times_invalid')
+    times = sorted(key_times | set(extra_times) | {duration*i/(samples-1) for i in range(samples)})
     worlds = [sample(document, name, t)[0] for t in times]
     transforms = [matrices(document, name, t) for t in times]
+    rest_transforms = None
+    if projected_reference:
+        if setup_vertices is None or not convergent:
+            raise ValueError('character_projected_area_setup_required')
+        rest = deepcopy(document); rest['animations'] = {name: {'bones': {}}}
+        rest_transforms = matrices(rest, name, 0)
     result = deepcopy(document); rows = []; bones = document['bones']
     for slot, choices in document['skins'][0]['attachments'].items():
         attachment = choices[slot]; flat = attachment['triangles']
         triangles = [flat[i:i+3] for i in range(0, len(flat), 3)]
         base = (setup_vertices if setup_vertices is not None else worlds[0])[slot]; areas = [area(base, t) for t in triangles]
         ratios = [area(w[slot], t)/a for w in worlds for t, a in zip(triangles, areas)]
-        if min(ratios) >= .5 and max(ratios) <= 2:
+        if not projected_reference and min(ratios) >= .5 and max(ratios) <= 2:
             continue
         data = attachment['vertices']; influences = []; i = 0
         while i < len(data):
@@ -33,6 +41,13 @@ def repair(document, name, *, samples=257, convergent=False, setup_vertices=None
             if abs(sum(w for _, w in entries)-1) > 1e-6:
                 raise ValueError('character_affine_repair_weights')
             influences.append(entries)
+        frame_areas = [areas]*len(times)
+        if projected_reference:
+            from .projected_area_reference import reference
+            frame_areas = [reference(areas, triangles, influences, bones, rest_transforms, t) for t in transforms]
+            ratios = [area(w[slot], tri)/a for w, refs in zip(worlds, frame_areas) for tri,a in zip(triangles,refs)]
+            if min(ratios) >= .5 and max(ratios) <= 2:
+                continue
         free = [sum(w > 0 for _, w in entries) > 1 for entries in influences]
         used = {bones[i]['name'] for entries in influences for i, w in entries if w > 0}
         lengths = [math.hypot(b['x'], b['y']) for b in bones if b['name'] in used and b.get('parent') in used]
@@ -43,7 +58,8 @@ def repair(document, name, *, samples=257, convergent=False, setup_vertices=None
         context = dict(row={'triangles': triangles}, areas=areas, edges=edges,
                        lengths=[math.dist(base[a], base[b]) for a, b in edges], free=free, budget=budget)
         keys = []; maximum = 0.; unresolved = []; solver_rows = []
-        for time, world, transform in zip(times, worlds, transforms):
+        for time, world, transform, references in zip(times, worlds, transforms, frame_areas):
+            context['areas'] = references
             original = world[slot]
             if convergent:
                 from .area_projection import project as project_v2
@@ -51,7 +67,7 @@ def repair(document, name, *, samples=257, convergent=False, setup_vertices=None
                 solver_rows.append(dict(time=time, **solver))
             else:
                 corrected = project(context, original)
-            corrected_ratios = [area(corrected, t)/a for t, a in zip(triangles, areas)]
+            corrected_ratios = [area(corrected, t)/a for t, a in zip(triangles, references)]
             if min(corrected_ratios) < .5 or max(corrected_ratios) > 2:
                 unresolved.append(dict(time=time, min_area_ratio=min(corrected_ratios),
                                        max_area_ratio=max(corrected_ratios)))
@@ -77,5 +93,7 @@ def repair(document, name, *, samples=257, convergent=False, setup_vertices=None
         if convergent:
             rows[-1]['solver_samples'] = solver_rows
     profile = 'affine-mixed-area-budget10-v2' if convergent else 'affine-mixed-area-budget10-v1'
+    if projected_reference:
+        profile = 'affine-mixed-projected-area-budget10-v1'
     return result, dict(profile=profile, authority='none', selected=False,
                         records=rows, validation='dense_resampling_required')

@@ -16,7 +16,11 @@ from autospine_workbench.targets.character43.deformation_qa import inspect
 from autospine_workbench.targets.character43.runtime_storage_reference import build as storage
 
 
-def run(probe, output, capture=False, repair=False):
+def run(probe, output, capture=False, repair=False, projected_reference=False, adaptive=False):
+    if adaptive and not projected_reference:
+        raise ValueError('adaptive_requires_projected_reference')
+    if projected_reference and not repair:
+        raise ValueError('projected_reference_requires_repair')
     receipt = json.loads((probe/'report.json').read_bytes())
     document = json.loads((probe/'skeleton.json').read_bytes())
     if receipt['output_sha256'] != canonical_sha256(document):
@@ -35,8 +39,12 @@ def run(probe, output, capture=False, repair=False):
         from autospine_workbench.targets.character43.affine_area_repair import repair as correct
         before = deepcopy(document['animations'][animation]['bones'])
         print(json.dumps(dict(stage='local_correction',status='running')),flush=True)
-        document, correction = correct(document, animation, samples=129,
-                                       convergent=True, setup_vertices=setup_vertices)
+        if adaptive:
+            from autospine_workbench.targets.character43.projected_area_adaptive import build
+            document, correction = build(document, animation, setup_vertices)
+        else:
+            document, correction = correct(document, animation, samples=129,
+                                           convergent=True, setup_vertices=setup_vertices, projected_reference=projected_reference)
         if document['animations'][animation]['bones'] != before:
             raise ValueError('source_pose_correction_changed_motion')
         (output/'correction.json').write_bytes(canonical_bytes(correction))
@@ -106,4 +114,6 @@ if __name__ == '__main__':
     parser.add_argument('probe',type=Path);parser.add_argument('output',type=Path)
     parser.add_argument('--capture',action='store_true')
     parser.add_argument('--repair',action='store_true')
-    args=parser.parse_args();run(args.probe,args.output,args.capture,args.repair)
+    parser.add_argument('--projected-reference',action='store_true')
+    parser.add_argument('--adaptive',action='store_true')
+    args=parser.parse_args();run(args.probe,args.output,args.capture,args.repair,args.projected_reference,args.adaptive)

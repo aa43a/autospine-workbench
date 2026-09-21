@@ -1,0 +1,73 @@
+{
+  "authority": "none",
+  "selected": false,
+  "records": [
+    {
+      "folder": "squat-projected-correction-v1",
+      "candidate_bundle_sha256": "34b1d1d4d4018d21b2f0b51ee73b1a46094535c169033e755878f0cc3b74b333",
+      "report_sha256": "523c3eb984bfd015857ff89f43af42be4c425d850870cc5b4fc6940cab74f8ae",
+      "correction_profile": "affine-mixed-projected-area-budget10-v1",
+      "sampled_frames": 367,
+      "runtime_status": "passed",
+      "geometry_passed": false,
+      "slots": [
+        {
+          "slot": "layer-003",
+          "inversion_samples": 2,
+          "min_area_ratio": -0.17052072098387333
+        },
+        {
+          "slot": "layer-004",
+          "inversion_samples": 4,
+          "min_area_ratio": -0.16169684479731872
+        }
+      ],
+      "refinement": [],
+      "solver_key_failures": 0
+    },
+    {
+      "folder": "squat-adaptive-correction-v1",
+      "candidate_bundle_sha256": "289ec2aed9308c6ce3aaf4559a292d4908c92144f6c14eab8850e71743174213",
+      "report_sha256": "f54ecdda17b9db11e4bb0a9b564c7f1473c845bd318b27f729af345c96dd6582",
+      "correction_profile": "adaptive-projected-area-budget10-v1",
+      "sampled_frames": 403,
+      "runtime_status": "passed",
+      "geometry_passed": false,
+      "slots": [
+        {
+          "slot": "layer-003",
+          "inversion_samples": 2,
+          "min_area_ratio": -0.15144185299841367
+        },
+        {
+          "slot": "layer-004",
+          "inversion_samples": 6,
+          "min_area_ratio": -0.09795044101542877
+        }
+      ],
+      "refinement": [
+        {
+          "iteration": 0,
+          "sampled_frames": 367,
+          "failed_slot_samples": 10
+        },
+        {
+          "iteration": 1,
+          "sampled_frames": 383,
+          "failed_slot_samples": 12
+        },
+        {
+          "iteration": 2,
+          "sampled_frames": 403,
+          "failed_slot_samples": 11
+        }
+      ],
+      "solver_key_failures": 0
+    }
+  ],
+  "conclusion": "key_samples_satisfy_proxy_but_interpolated_foldovers_remain",
+  "limitations": [
+    "different_sample_grids_do_not_support_direct_inversion_count_comparison",
+    "area_proxy_is_not_a_render_or_contact_acceptance"
+  ]
+}
