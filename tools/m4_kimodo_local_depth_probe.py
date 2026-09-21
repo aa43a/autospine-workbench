@@ -13,6 +13,7 @@ from autospine_workbench.targets.character43.torso_depth_refinement import Check
 from autospine_workbench.targets.character43.torso_warp_depth_plane import WarpedPlane
 from autospine_workbench.targets.character43.torso_projection_profile import prepare
 from autospine_workbench.targets.character43.torso_baked_depth_plane import BakedWarpPlane
+from autospine_workbench.targets.character43.local_depth_summary import summarize
 from m4_motion_cohort import api
 
 
@@ -51,7 +52,7 @@ def run(job,output,*,midpoints=False,pixelwise=False):
         source_identity=sampler.identity,interpolation=sampler.interpolation,
         spatial_sampling='barycentric_pixel_intervals' if pixelwise else 'whole_triangle_intervals',
         torso_anchor_mode=('baked_local_offsets' if midpoints else 'compensated_source_key_origins') if options else 'original_bone_origins',
-        counts=dict(Counter(r['check']['status'] for r in rows)),records=rows,
+        counts=dict(Counter(r['check']['status'] for r in rows)),records=rows,causes=summarize(rows),
         hand_mesh_axes=checker.axes,pixel_budget_used=64_000_000-probe.remaining,
         scope='sampled_midpoint_model_not_continuous_or_runtime_acceptance' if midpoints else 'source_frame_model_only_not_midpoints_cloth_depth_order_or_runtime_acceptance',
         authority='none',selected=False,production_authorized=False)

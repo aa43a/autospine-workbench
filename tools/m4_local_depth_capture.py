@@ -1,5 +1,6 @@
 """Capture exact unchanged candidates at representative unresolved depth times."""
 import argparse
+from collections import Counter
 from hashlib import sha256
 import html
 import json
@@ -89,12 +90,13 @@ def run(report_path,output):
                      f'<a href="runtime/{frame["file"]}">完整同帧画面</a></figure>')
     result=dict(profile='local-depth-official-framebuffer-review-v1',source_artifact_sha256=report['artifact_sha256'],
         skeleton_sha256=sha256(source['skeleton.json']).hexdigest(),diagnostic_sha256=sha256(raw).hexdigest(),
-        capture_bundle_sha256=digest,frames=entries,authority='none',selected=False,
+        capture_bundle_sha256=digest,frames=entries,input_status_counts=dict(Counter(r['check']['status'] for r in report['records'])),authority='none',selected=False,
         scope='representative_overlap_roi_visual_review_not_depth_truth_or_acceptance')
     (output/'report.json').write_bytes(canonical_bytes(result))
     (output/'index.html').write_text('<!doctype html><meta charset="utf-8"><title>局部深度 Runtime 复核</title>'
         '<style>body{background:#182531;color:#eee;font:16px sans-serif}main{display:flex;flex-wrap:wrap}figure{max-width:48%;margin:12px}img{max-width:100%;background:repeating-conic-gradient(#34424e 0% 25%,#263540 0% 50%) 0/20px 20px}a{color:#8dd8ff}</style>'
-        '<h1>局部深度 · 官方 Runtime 同帧画面</h1><p>保留当前绘制顺序。显示异常重叠区域的首帧、歧义像素最多帧和末帧；计数来自 CPU 深度模型，图像来自官方 Runtime。画面本身不能证明深度正确，不代表自动验收。</p>'
+        '<h1>局部深度 · 官方 Runtime 同帧画面</h1><p>保留当前绘制顺序。显示已测异常中的首帧、歧义像素最多帧和末帧，不覆盖未测记录；计数来自 CPU 深度模型，图像来自官方 Runtime。画面本身不能证明深度正确，不代表自动验收。</p>'
+        f'<p>完整输入状态：{html.escape(str(result["input_status_counts"]))}</p>'
         '<a href="report.json">身份与定位记录</a><main>'+''.join(cards)+'</main>',encoding='utf-8')
     print(json.dumps(dict(frames=len(times),regions=len(entries),artifact=report['artifact_sha256'],
                          max_error_px=max(r['max_error_px'] for r in capture['results']))),flush=True)

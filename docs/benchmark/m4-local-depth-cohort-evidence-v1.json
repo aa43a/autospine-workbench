@@ -1,0 +1,199 @@
+{
+  "profile": "local-depth-cohort-evidence-v1",
+  "rows": [
+    {
+      "job_id": "motion-8ca66333718c4e9698c2de4261be5878",
+      "artifact_sha256": "5423f18e0fc9f5270ca6b5354d87284c4384284e2e41507a87de8079cd86ac08",
+      "skeleton_sha256": "618a6ac521a2d5e5a83244c4abcebcf56a31b5a145d27e6b13c3e3441f0d76de",
+      "report_sha256": "70c18930d34bd0524b59e2f2daf24c50141070fac421f69553f631fb72730da8",
+      "source_identity": {
+        "raw_npz_sha256": "2ee03d7638686150305d61ff6bd5d8f21a05693cf139bb20467017feb3d363a6",
+        "source_sha256": "406e38ff23db4887dabd220db8c8bf5a19aefd768cf8f705a8f13ca6b26c1423",
+        "array_inventory_sha256": "e4cf87890c002d9f67cdb6ca474c0ac857ec704e6e5549fb87e00da281f8b7b8"
+      },
+      "interpolation": "source_samples_only",
+      "spatial_sampling": "barycentric_pixel_intervals",
+      "pixel_budget_used": 9198556,
+      "causes": {
+        "profile": "local-depth-cause-summary-v1",
+        "pairs": [
+          {
+            "pair": [
+              "layer-004",
+              "layer-006"
+            ],
+            "samples": 120,
+            "reasons": {
+              "uniform_back_proxy": 120
+            },
+            "pixel_observations": {
+              "front": 0,
+              "back": 186827,
+              "ambiguous": 0,
+              "unknown": 0
+            }
+          },
+          {
+            "pair": [
+              "layer-003",
+              "layer-006"
+            ],
+            "samples": 120,
+            "reasons": {
+              "depth_margin_ambiguity": 120
+            },
+            "pixel_observations": {
+              "front": 0,
+              "back": 48944,
+              "ambiguous": 142297,
+              "unknown": 0
+            }
+          }
+        ],
+        "authority": "none",
+        "selected": false,
+        "scope": "sampled_proxy_causes_not_depth_truth_or_error_rate"
+      }
+    },
+    {
+      "job_id": "motion-07cd3c09f104427689fc6773db28269b",
+      "artifact_sha256": "2ed330d52014281203f51447287034cf753d79e38bcab43cb8a2146818db7912",
+      "skeleton_sha256": "531d2c70ccc7c36a5c88d8c9dd98288e8687906f48bd9597a2c3fb9a5c83a7a9",
+      "report_sha256": "b1fed782b3422d1b59a224d186f191bdb4a1001d4ee020260987504d547edae7",
+      "source_identity": {
+        "raw_npz_sha256": "2ee03d7638686150305d61ff6bd5d8f21a05693cf139bb20467017feb3d363a6",
+        "source_sha256": "406e38ff23db4887dabd220db8c8bf5a19aefd768cf8f705a8f13ca6b26c1423",
+        "array_inventory_sha256": "e4cf87890c002d9f67cdb6ca474c0ac857ec704e6e5549fb87e00da281f8b7b8"
+      },
+      "interpolation": "source_samples_only",
+      "spatial_sampling": "barycentric_pixel_intervals",
+      "pixel_budget_used": 4302720,
+      "causes": {
+        "profile": "local-depth-cause-summary-v1",
+        "pairs": [
+          {
+            "pair": [
+              "layer-006",
+              "layer-009"
+            ],
+            "samples": 120,
+            "reasons": {
+              "depth_margin_ambiguity": 41,
+              "no_visible_overlap": 79
+            },
+            "pixel_observations": {
+              "front": 0,
+              "back": 7770,
+              "ambiguous": 2895,
+              "unknown": 0
+            }
+          },
+          {
+            "pair": [
+              "layer-006",
+              "layer-011"
+            ],
+            "samples": 120,
+            "reasons": {
+              "no_visible_overlap": 120
+            },
+            "pixel_observations": {}
+          },
+          {
+            "pair": [
+              "layer-001",
+              "layer-009"
+            ],
+            "samples": 120,
+            "reasons": {
+              "depth_margin_ambiguity": 120
+            },
+            "pixel_observations": {
+              "front": 0,
+              "back": 39944,
+              "ambiguous": 96195,
+              "unknown": 0
+            }
+          },
+          {
+            "pair": [
+              "layer-001",
+              "layer-011"
+            ],
+            "samples": 120,
+            "reasons": {
+              "depth_margin_ambiguity": 120
+            },
+            "pixel_observations": {
+              "front": 0,
+              "back": 0,
+              "ambiguous": 3230,
+              "unknown": 0
+            }
+          }
+        ],
+        "authority": "none",
+        "selected": false,
+        "scope": "sampled_proxy_causes_not_depth_truth_or_error_rate"
+      }
+    },
+    {
+      "job_id": "motion-223847a1e58e45cfa2d7764ccc6ef282",
+      "artifact_sha256": "32859aa579178b38d2d2c0b76e4fe6679a361d82faaf67332bd24b1c5955cef0",
+      "skeleton_sha256": "7e92f5f4cb07331132cd75c3ab9a8e6e611fc7a86aee174503be6d73a12f0f7b",
+      "report_sha256": "0408de68b7536962c9358ee36d352a1c7e1f740f1df1807fe7edc715652d7b9d",
+      "source_identity": {
+        "raw_npz_sha256": "2ee03d7638686150305d61ff6bd5d8f21a05693cf139bb20467017feb3d363a6",
+        "source_sha256": "406e38ff23db4887dabd220db8c8bf5a19aefd768cf8f705a8f13ca6b26c1423",
+        "array_inventory_sha256": "e4cf87890c002d9f67cdb6ca474c0ac857ec704e6e5549fb87e00da281f8b7b8"
+      },
+      "interpolation": "source_samples_only",
+      "spatial_sampling": "barycentric_pixel_intervals",
+      "pixel_budget_used": 63834112,
+      "causes": {
+        "profile": "local-depth-cause-summary-v1",
+        "pairs": [
+          {
+            "pair": [
+              "layer-003-component-0000",
+              "layer-005"
+            ],
+            "samples": 120,
+            "reasons": {
+              "missing_depth_support": 120
+            },
+            "pixel_observations": {
+              "front": 0,
+              "back": 296900,
+              "ambiguous": 244178,
+              "unknown": 230392
+            }
+          },
+          {
+            "pair": [
+              "layer-002-component-0000",
+              "layer-005"
+            ],
+            "samples": 120,
+            "reasons": {
+              "missing_depth_support": 65,
+              "unmeasured:depth_overlap_pixel_budget": 55
+            },
+            "pixel_observations": {
+              "front": 15448,
+              "back": 309628,
+              "ambiguous": 516527,
+              "unknown": 2056598
+            }
+          }
+        ],
+        "authority": "none",
+        "selected": false,
+        "scope": "sampled_proxy_causes_not_depth_truth_or_error_rate"
+      }
+    }
+  ],
+  "authority": "none",
+  "selected": false,
+  "scope": "exact_report_cause_inventory_not_full_motion_acceptance"
+}

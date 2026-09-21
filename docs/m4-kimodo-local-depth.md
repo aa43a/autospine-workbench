@@ -122,6 +122,33 @@ from the actual complete framebuffer. Two tests cover the coordinate conversion
 and representative-time selection. Capture passes do not establish anatomical
 depth truth, correct visual order, or human acceptance.
 
+### Three-structure local-depth evidence
+
+The same pixel-interval strategy ran without parameter changes on Alice,
+Hongmeiling and Huiye's frozen torso-baked Kimodo wave candidates. Exact report,
+skeleton and artifact hashes are frozen in
+`benchmark/m4-local-depth-cohort-evidence-v1.json`.
+
+| Character | Pair/frame samples | Main causes | Pixel budget used |
+| --- | ---: | --- | ---: |
+| Alice | 240 | 120 back, 120 depth-margin ambiguity | 9,198,556 |
+| Hongmeiling | 480 | 199 no overlap, 281 depth-margin ambiguity | 4,302,720 |
+| Huiye | 240 | 185 missing depth support, 55 unmeasured budget failures | 63,834,112 |
+
+Missing depth takes priority in cause labels; the separate front/back/ambiguous/
+unknown pixel counts retain mixed evidence. Unknown or unmeasured samples never
+enter a correct/accepted denominator. The summary rejects duplicate samples and
+nonconserving pixel inventories. Two tests cover these distinctions.
+
+New official captures supplement the earlier Alice capture: Hongmeiling has
+4 distinct times / 8 pair crops, maximum error 0.00010115556942487207 px; Huiye
+has 5 times / 6 crops, maximum error 0.00012122095011158246 px. Review folders are
+`../tmp/m4-motion-center/local-depth-runtime-hong-v1` and
+`../tmp/m4-motion-center/local-depth-runtime-huiye-v1`. These representative
+captures do not cover Huiye's 55 unmeasured records. They leave draw order and
+acceptance unchanged. This wave-only experiment supplements, rather than
+replaces, the frozen eight-motion cohort and its unresolved failures.
+
 ### Projection and rotation strategy
 
 Use three distinct channels rather than applying a single 2D rotation to all art:
