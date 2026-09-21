@@ -14,6 +14,13 @@ def context(budget=1):
 
 
 class AreaPreservationTests(unittest.TestCase):
+    def test_existing_support_relaxes_only_incident_triangles(self):
+        points=[[0,0],[2,0],[1,1],[3,2],[4,1]]
+        floors,band=outside_repair_band(points,[[0,1,2],[2,3,4]],[1,-1.5],support_vertices=[0])
+        self.assertEqual(band,[0]);self.assertEqual(floors,[.5,1.])
+        with self.assertRaisesRegex(ValueError,'invalid_support'):
+            outside_repair_band(points,[[0,1,2]],[1],support_vertices=[5])
+
     def test_repair_band_is_one_ring_and_retains_distant_healthy_shape(self):
         points=[[0,0],[2,0],[1,.1],[3,1],[4,1],[5,2]]
         triangles=[[0,1,2],[1,3,2],[3,4,5]]

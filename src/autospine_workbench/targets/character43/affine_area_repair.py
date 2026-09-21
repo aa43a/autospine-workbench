@@ -6,7 +6,8 @@ from ..spine43.continuous_pose import area
 from .affine_pose import matrices, sample
 
 
-def repair(document, name, *, samples=257, convergent=False, setup_vertices=None, projected_reference=False, extra_times=(), temporal=False, terminal_collar=False, progress=None, proximal_ring=False, preserve_area=False):
+def repair(document, name, *, samples=257, convergent=False, setup_vertices=None, projected_reference=False, extra_times=(), temporal=False, terminal_collar=False, progress=None, proximal_ring=False, preserve_area=False, repair_band=False):
+    if repair_band and not preserve_area:raise ValueError('repair_band_requires_preservation')
     if preserve_area and not (convergent and projected_reference):raise ValueError('area_preservation_requires_projection')
     if proximal_ring and not terminal_collar:raise ValueError('proximal_ring_requires_collar')
     if terminal_collar and not (convergent and projected_reference):
@@ -86,6 +87,10 @@ def repair(document, name, *, samples=257, convergent=False, setup_vertices=None
             if preserve_area:
                 from .area_preservation import from_pose
                 context['minimum_ratios'] = from_pose(original, triangles, references)
+                if repair_band:
+                    from .area_preservation import outside_repair_band
+                    support={v for c in collars for v in c['vertices']}
+                    context['minimum_ratios'],_ = outside_repair_band(original,triangles,references,support_vertices=support)
             if convergent:
                 from .area_projection import project as project_v2
                 initial = None
@@ -95,7 +100,8 @@ def repair(document, name, *, samples=257, convergent=False, setup_vertices=None
                 corrected, solver = project_v2(context, original, **({'initial':initial} if temporal else {}))
                 if terminal_collar and not solver['converged']:
                     from .local_area_constraints import refine
-                    corrected,solver['local_constraints']=refine(context,original,corrected,**({'analytic':True} if proximal_ring else {}))
+                    corrected,solver['local_constraints']=refine(context,original,corrected,
+                        **({'analytic':True} if proximal_ring or repair_band else {}),**({'expanded':True} if repair_band else {}))
                 solver_rows.append(dict(time=time, **solver))
             else:
                 corrected = project(context, original)
@@ -135,5 +141,6 @@ def repair(document, name, *, samples=257, convergent=False, setup_vertices=None
     if terminal_collar:profile='terminal-collar-projected-area-budget10-v1'
     if proximal_ring:profile='proximal-ring-projected-area-budget10-v1-experiment'
     if preserve_area:profile='healthy-area-preservation-budget10-v1-experiment'
+    if repair_band:profile='repair-band-area-preservation-budget10-v1-experiment'
     return result, dict(profile=profile, authority='none', selected=False,
                         records=rows, validation='dense_resampling_required')

@@ -13,7 +13,8 @@ from autospine_workbench.targets.character43.local_area_constraints import refin
 from autospine_workbench.targets.spine43.continuous_pose import area
 
 
-def run(folder, attribution, output, *, expanded=False, repair_band=False):
+def run(folder, attribution, output, *, expanded=False, repair_band=False, collar_band=False):
+    if collar_band and not repair_band:raise ValueError('collar_band_requires_repair_band')
     receipt=json.loads((folder/'report.json').read_bytes());evidence=json.loads(attribution.read_bytes())
     identity=receipt['candidate_bundle_sha256']
     if evidence['candidate']!=identity:raise ValueError('preservation_candidate_mismatch')
@@ -41,7 +42,8 @@ def run(folder, attribution, output, *, expanded=False, repair_band=False):
         band=[]
         if repair_band:
             from autospine_workbench.targets.character43.area_preservation import outside_repair_band
-            floors,band=outside_repair_band(base,triangles,refs)
+            support={v for c in row.get('terminal_collars',[]) for v in c['vertices']} if collar_band else ()
+            floors,band=outside_repair_band(base,triangles,refs,support_vertices=support)
         context=dict(row={'triangles':triangles},areas=refs,edges=edges,
             lengths=[math.dist(setup[slot][a],setup[slot][b]) for a,b in edges],
             free=free,budget=row['budget_px'],minimum_ratios=floors)
@@ -55,7 +57,7 @@ def run(folder, attribution, output, *, expanded=False, repair_band=False):
         stretch=max(math.dist(points[a],points[b])/length for (a,b),length in zip(edges,context['lengths']))
         index=target['triangle']
         result=dict(slot=slot,time=time,triangle=index,solver=solver,
-            preservation_scope='outside_one_ring_repair_band' if repair_band else 'all_triangles',repair_band=band,
+            preservation_scope='outside_repair_and_collar_band' if collar_band else 'outside_one_ring_repair_band' if repair_band else 'all_triangles',repair_band=band,
             failed_triangles=failed,maximum_displacement=displacement,budget_px=context['budget'],
             maximum_fixed_displacement=fixed,max_edge_stretch=stretch,
             previous_setup_ratio=area(initial,triangles[index])/setup_areas[index],
@@ -73,4 +75,5 @@ if __name__=='__main__':
     for key in ('folder','attribution','output'):parser.add_argument(key,type=Path)
     parser.add_argument('--expanded',action='store_true')
     parser.add_argument('--repair-band',action='store_true')
-    args=parser.parse_args();run(args.folder,args.attribution,args.output,expanded=args.expanded,repair_band=args.repair_band)
+    parser.add_argument('--collar-band',action='store_true')
+    args=parser.parse_args();run(args.folder,args.attribution,args.output,expanded=args.expanded,repair_band=args.repair_band,collar_band=args.collar_band)

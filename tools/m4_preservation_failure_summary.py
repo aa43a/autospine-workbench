@@ -10,7 +10,8 @@ def run(folder,output):
     receipt=json.loads((folder/'report.json').read_bytes())
     AnimatedStore(folder/'isolated-store').read(receipt['candidate_bundle_sha256'])
     evidence=json.loads((folder/'correction.json').read_bytes())
-    if evidence['profile']!='adaptive-healthy-area-preservation-budget10-v1-experiment':
+    if evidence['profile'] not in ('adaptive-healthy-area-preservation-budget10-v1-experiment',
+                                  'adaptive-repair-band-preservation-budget10-v1-experiment'):
         raise ValueError('preservation_profile_required')
     check=evidence['refinement'][-1]['check'];rows=[]
     for slot in sorted({r['slot'] for r in check['failures']}):
@@ -27,6 +28,7 @@ def run(folder,output):
             tiny_deficits_le_1e_5=sum(d<=1e-5 for d,_,_ in losses),
             larger_deficits=sum(d>1e-5 for d,_,_ in losses),local_status_counts=dict(local)))
     result=dict(profile='preservation-failure-summary-v1',candidate=receipt['candidate_bundle_sha256'],
+        correction_profile=evidence['profile'],
         authority='none',selected=False,sampled_frames=check['sampled_frames'],rows=rows,
         limitation='magnitude_buckets_are_diagnostic_not_relaxed_acceptance_thresholds')
     with output.open('x',encoding='utf-8') as f:json.dump(result,f,indent=2)

@@ -23,11 +23,14 @@ def from_pose(points, triangles, references):
     return [max(.5,min(1.,r)) for r in ratios]
 
 
-def outside_repair_band(points, triangles, references):
+def outside_repair_band(points, triangles, references, *, support_vertices=()):
     """Preserve distant healthy shape; keep the existing floor in one repair ring."""
     floors = from_pose(points, triangles, references)
     seeds = {i for i,(t,a) in enumerate(zip(triangles,references)) if not .5<=area(points,t)/a<=2}
     vertices = {v for i in seeds for v in triangles[i]}
+    if any(type(v) is not int or not 0<=v<len(points) for v in support_vertices):
+        raise ValueError('area_preservation_invalid_support')
+    vertices.update(support_vertices)
     band = [i for i,t in enumerate(triangles) if vertices.intersection(t)]
     for i in band:floors[i]=.5
     return floors, band

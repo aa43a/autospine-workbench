@@ -5,7 +5,8 @@ from .projected_area_reference import reference
 from ..spine43.continuous_pose import area
 
 
-def inspect(document, name, slots, *, preservation_source=None):
+def inspect(document, name, slots, *, preservation_source=None, repair_support=None):
+    if repair_support is not None and preservation_source is None:raise ValueError('repair_support_requires_source')
     if preservation_source is not None:
         if (preservation_source['bones'] != document['bones'] or preservation_source['skins'] != document['skins']
                 or preservation_source['animations'][name]['bones'] != document['animations'][name]['bones']
@@ -37,12 +38,17 @@ def inspect(document, name, slots, *, preservation_source=None):
             if original is not None:
                 # Independent of solver floor generation, including interpolated poses.
                 floors=[max(.5,min(1.,area(original[slot],tri)/ref)) for tri,ref in zip(triangles,refs)]
+                if repair_support is not None:
+                    seeds=[tri for tri,ref in zip(triangles,refs) if not .5<=area(original[slot],tri)/ref<=2]
+                    vertices={v for tri in seeds for v in tri}|set(repair_support[slot])
+                    floors=[.5 if vertices.intersection(tri) else f for tri,f in zip(triangles,floors)]
                 deficits=[dict(triangle=i,ratio=r,minimum=f) for i,(r,f) in enumerate(zip(ratios,floors)) if r<f-1e-7]
             if min(ratios)<.5 or max(ratios)>2 or deficits:
                 failures.append(dict(time=time,slot=slot,min_ratio=min(ratios),max_ratio=max(ratios),
                     inversions=sum(v<=0 for v in ratios),at_key=time in knots))
                 if original is not None:failures[-1]['preservation_failures']=deficits
     profile='healthy-area-key-and-midpoint-check-v1-experiment' if preservation_source is not None else 'projected-area-key-and-midpoint-check-v1'
+    if repair_support is not None:profile='repair-band-key-and-midpoint-check-v1-experiment'
     return dict(profile=profile,authority='none',
                 sampled_frames=len(times),failures=failures,
                 limitation='sampled_area_proxy_not_continuous_or_visual_quality_proof')

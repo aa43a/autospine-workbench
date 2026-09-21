@@ -26,3 +26,12 @@ class PreservationSamplingTests(unittest.TestCase):
         result['animations']['move']['bones']['root']['rotate'][1]['value']=30
         with self.assertRaisesRegex(ValueError,'source_mismatch'):
             inspect(result,'move',['mesh'],preservation_source=source)
+
+    def test_declared_repair_support_keeps_old_floor_only_for_incident_triangles(self):
+        source=fixture();result=deepcopy(source)
+        result['animations']['move']['attachments']={'default':{'mesh':{'mesh':{'deform':[
+            dict(time=0,vertices=[0,0,0,0,0,-.2]),dict(time=1,vertices=[0,0,0,0,0,-.2])]}}}}
+        self.assertTrue(inspect(result,'move',['mesh'],preservation_source=source,repair_support={'mesh':[]})['failures'])
+        self.assertEqual(inspect(result,'move',['mesh'],preservation_source=source,repair_support={'mesh':[2]})['failures'],[])
+        result['animations']['move']['attachments']['default']['mesh']['mesh']['deform'][1]['vertices'][-1]=-.6
+        self.assertTrue(inspect(result,'move',['mesh'],preservation_source=source,repair_support={'mesh':[2]})['failures'])
