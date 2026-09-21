@@ -55,7 +55,8 @@ def run(job,output,part_limit=128,coalesce=False):
         else:selected[arm],reports[arm]=labels(len(mesh['triangles'])//3,rows)
     required=sum(1+sum(a!=b for a,b in zip(values,values[1:])) for values in selected.values())
     output.mkdir(parents=True,exist_ok=True)
-    (output/'observations.json').write_bytes(canonical_bytes(traces))
+    observations_raw=canonical_bytes(traces)
+    (output/'observations.json').write_bytes(observations_raw)
     print(json.dumps(dict(required_regions=required,part_limit=part_limit)),flush=True)
     candidate,partition=build(document,sorted(selected),triangle_labels=selected,part_limit=part_limit)
     candidate,partition=compact(candidate,partition)
@@ -66,6 +67,7 @@ def run(job,output,part_limit=128,coalesce=False):
             if expected!=after[region['slot']]:raise ValueError('trace_deformation_changed')
     payload=canonical_bytes(candidate)
     report=dict(source_job_id=job,source_artifact_sha256=artifact,source_sha256=sha256(bundle.raw_bvh).hexdigest(),
+        observations_sha256=sha256(observations_raw).hexdigest(),
         skeleton_sha256=sha256(payload).hexdigest(),partition=partition,traces=reports,
         sampled_frames=len(times),max_vertex_error=0,draw_order_status='unchanged',runtime_status='not_run',
         pixel_budget_used=64_000_000-probe.remaining,authority='none',selected=False)
