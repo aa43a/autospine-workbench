@@ -11,7 +11,7 @@ from autospine_workbench.targets.character43.source_depth_sampler import Segment
 from autospine_workbench.targets.character43.skirt_depth_probe import inspect
 
 
-def run(evidence,output):
+def run(evidence,output,surface=False):
     import re
     if not re.fullmatch('[a-f0-9]{64}',evidence):raise ValueError('experiment_identity_invalid')
     store=AnimatedStore(Path('workspace'));value=json.loads(store.read_file(evidence,'experiment.json'))
@@ -22,7 +22,7 @@ def run(evidence,output):
     duration=bundle.motion['duration_ticks']/bundle.motion['ticks_per_second']
     times=[duration*i/8 for i in range(9)]
     artifact=value['report']['candidate_bundle_sha256'];files=store.read(artifact)
-    report=inspect(json.loads(files['skeleton.json']),files,sampler,times)
+    report=inspect(json.loads(files['skeleton.json']),files,sampler,times,surface=surface)
     report.update(artifact_sha256=artifact,experiment_sha256=evidence,times=times)
     output.parent.mkdir(parents=True,exist_ok=True)
     with output.open('xb') as f:f.write(canonical_bytes(report))
@@ -30,4 +30,5 @@ def run(evidence,output):
 
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('evidence');p.add_argument('output',type=Path)
-    a=p.parse_args();run(a.evidence,a.output)
+    p.add_argument('--surface-envelope',action='store_true')
+    a=p.parse_args();run(a.evidence,a.output,a.surface_envelope)

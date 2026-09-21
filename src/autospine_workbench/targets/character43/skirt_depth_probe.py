@@ -27,10 +27,22 @@ def groups(document):
     return legs,skirts
 
 
-def inspect(document,files,sampler,times):
+def inspect(document,files,sampler,times,*,surface=False):
     legs,skirts=groups(document)
     if len(times)>9 or len(legs)*len(skirts)>32:raise ValueError('skirt_probe_budget')
     probe=Probe(document,files,'external-motion',tiled=True,rendered_bounds=True)
+    models={}
+    if surface and skirts and legs:
+        from .affine_pose import sample
+        from .skirt_surface_envelope import material_offsets
+        setup=dict(document,animations={'setup':{}})
+        points,_=sample(setup,'setup',0)
+        lengths=[b['length'] for b in document['bones'] if b['name'] in ('thigh_l','thigh_r','calf_l','calf_r')]
+        if len(lengths)!=4:raise ValueError('skirt_surface_reference_missing')
+        reference=sum(lengths)/4
+        for slot in skirts:
+            mesh=document['skins'][0]['attachments'][slot][probe.slots[slot]['attachment']]
+            models[slot]=material_offsets(points[slot],mesh['triangles'],reference)
     rows=[]
     if not legs or not skirts:
         return dict(profile='leg-skirt-plane-overlap-probe-v1',legs=legs,skirts=skirts,rows=[],
@@ -38,7 +50,7 @@ def inspect(document,files,sampler,times):
             authority='none',selected=False,order_changed=False)
     for time in times:
         segments=sampler.leg_segments(round(time*1e6))
-        try:plane=at(document,'external-motion',time,sampler,round(time*1e6))
+        try:plane=None if surface else at(document,'external-motion',time,sampler,round(time*1e6))
         except ValueError as exc:
             rows.append(dict(time=time,status='unmeasured',reason_code=str(exc)));continue
         for leg in legs:
@@ -46,11 +58,21 @@ def inspect(document,files,sampler,times):
             intervals=build(document,mesh,segments,chain_kind='leg')['intervals']
             for skirt in skirts:
                 try:
-                    result=overlap_support(probe,leg,skirt,time,segments,endpoint_caps=True,
-                        reference_plane=plane['coefficients'],depth_intervals=intervals)
+                    if surface:
+                        from .skirt_surface_envelope import at as surface_at
+                        from .mesh_pair_depth import compare
+                        # Preserve setup order as a hypothesis; never infer observed depth from it.
+                        names=[s['name'] for s in document['slots']]
+                        side='front' if names.index(skirt)>names.index(leg) else 'back'
+                        garment=surface_at(models[skirt],sampler.torso_anchors(round(time*1e6))['pelvis'],side)
+                        result=compare(probe,leg,skirt,time,intervals,garment)
+                        result['surface_side_hypothesis']=side
+                    else:
+                        result=overlap_support(probe,leg,skirt,time,segments,endpoint_caps=True,
+                            reference_plane=plane['coefficients'],depth_intervals=intervals)
                 except ValueError as exc:result=dict(status='unmeasured',reason_code=str(exc),time=time,pair=[leg,skirt])
                 rows.append(result)
-    return dict(profile='leg-skirt-plane-overlap-probe-v1',legs=legs,skirts=skirts,rows=rows,status='candidate_model_only',
+    return dict(profile='leg-skirt-surface-envelope-probe-v1' if surface else 'leg-skirt-plane-overlap-probe-v1',legs=legs,skirts=skirts,rows=rows,status='candidate_model_only',
         authority='none',selected=False,order_changed=False,
-        limitation='torso_plane_is_not_skirt_surface_do_not_auto_apply_order',
+        models=models,limitation='explicit_garment_model_not_observed_surface_do_not_auto_apply_order',
         scope='selected_pose_native_alpha_overlap_not_full_motion_acceptance')
