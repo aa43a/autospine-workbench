@@ -1,9 +1,11 @@
 """Collect source-sample failures even when order evaluation exits early."""
 from copy import deepcopy
+from .depth_measurement_precedence import superseded
 
 
 def collect(depth):
     records = deepcopy(depth.get('order', {}).get('failures', []))
+    replaced = superseded(depth)
     def key(row):
         return row.get('time'), row.get('reason_code'), tuple(sorted(row.get('pair', [])))
     seen = {key(row) for row in records}
@@ -14,6 +16,8 @@ def collect(depth):
         for sample in pair.get('samples', []):
             overlap = sample.get('overlap', {})
             if overlap.get('status') != 'unmeasured':
+                continue
+            if (tuple(sorted((pair['arm_slot'], pair['torso_slot']))), sample['tick']/1e6) in replaced:
                 continue
             row = dict(time=sample['tick']/1e6,
                 reason_code=overlap.get('reason_code', 'depth_overlap_unmeasured'),

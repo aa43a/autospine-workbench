@@ -23,6 +23,11 @@ export function appendDepthDetails(item,job) {
       const counts=document.createElement('p');
       counts.textContent=Object.entries(report.failure_record_counts).map(([key,value])=>`${categories[key]||key}：${value} 条`).join('；')||'没有已记录的排序失败；需结合采样状态判断。';
       panel.append(counts);
+      if(report.superseded_legacy_overlap_samples){
+        const recovered=document.createElement('p');
+        recovered.textContent=`${report.superseded_legacy_overlap_samples} 个早期未测位置已有同位置区域检查，当前列表采用后续证据；历史报告保留，完成检查不等于前后关系通过。`;
+        panel.append(recovered);
+      }
       if(report.has_incomplete_checks){
         const pending=document.createElement('p');
         pending.textContent='仍有未完成或不支持的检查，不能据此判定遮挡正确。'; panel.append(pending);

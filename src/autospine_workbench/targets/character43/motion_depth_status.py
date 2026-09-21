@@ -4,6 +4,7 @@ from hashlib import sha256
 import json
 import math
 from .depth_failure_records import collect, categories
+from .depth_measurement_precedence import superseded
 
 RESOURCE={'depth_overlap_pixel_budget','depth_overlap_tile_limit','depth_overlap_frame_limit'}
 CONFLICT={'visible_depth_straddle','visible_unmapped_order_conflict'}
@@ -53,6 +54,7 @@ def build(files,artifact):
         failure_record_counts=dict(counts),failure_records=len(rows),records=rows[:100],
         records_by_category=grouped,category_records_truncated=truncated,
         records_truncated=len(rows)>100,unmeasured_pair_samples=unmeasured,
+        superseded_legacy_overlap_samples=len(superseded(depth)),
         ambiguous_visible_pair_samples=ambiguous,has_incomplete_checks=incomplete,
         authority='none',production_authorized=False,
         scope='diagnostic_records_not_error_rate_or_visual_acceptance')

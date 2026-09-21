@@ -1,5 +1,23 @@
 # Regional depth worker integration
 
+## Active diagnostic measurement precedence
+
+Regional refinement can complete a pair/time previously left unmeasured by the
+initial overlap pass. Operator diagnostics now omit only those superseded legacy
+unmeasured entries and explicitly report their count. Exact pair/time matches,
+recognized completed statuses, and consistent pixel inventories are required;
+conflicting or incomplete duplicate checks cannot supersede an entry. Ordering
+failures and independent cloth/limb failures remain visible. Historical artifacts,
+readiness gates and human decisions are unchanged.
+
+For the fixed Huiye priority-v1 replay, seven legacy budget failures at
+3.233333–3.433333 seconds had already been measured by refinement. The active list
+now agrees with the 31 remaining unmeasured checks instead of showing 38 budget
+records. All 120 ordering blockers remain, with missing depth support; this does
+not establish 120 visual errors. Exact report identity and verification are in
+`../tmp/m4-motion-center/regional-depth-precedence-check-v1.json`. No animation or
+Runtime capture was changed.
+
 ## Priority depth classification experiment
 
 `m4_regional_source_check.py --priority-depth-points` evaluates unknown and
