@@ -3,14 +3,17 @@ from .affine_area_repair import repair
 from .projected_area_sampling import inspect
 
 
-def build(document,name,setup_vertices,*,samples=129,rounds=3,temporal=False,terminal_collar=False):
+def build(document,name,setup_vertices,*,samples=129,rounds=3,temporal=False,terminal_collar=False,progress=None):
     if type(rounds) is not int or not 1 <= rounds <= 5:
         raise ValueError('projected_area_refinement_rounds')
     extra=set();history=[]
     for iteration in range(rounds):
+        if progress:progress(dict(stage='refinement_round',iteration=iteration,max_rounds=rounds))
         result,evidence=repair(document,name,samples=samples,convergent=True,
             setup_vertices=setup_vertices,projected_reference=True,extra_times=sorted(extra),temporal=temporal,
-            **({'terminal_collar':True} if terminal_collar else {}))
+            **({'terminal_collar':True} if terminal_collar else {}),
+            **({'progress':progress} if progress else {}))
+        if progress:progress(dict(stage='check_interpolation',iteration=iteration))
         checked=inspect(result,name,[r['slot'] for r in evidence['records']])
         history.append(dict(iteration=iteration,extra_times=sorted(extra),check=checked))
         new={r['time'] for r in checked['failures'] if not r['at_key']}-extra

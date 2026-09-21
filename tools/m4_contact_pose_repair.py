@@ -37,7 +37,8 @@ def run(folder,output,capture_runtime=False,foot_orientation=False,ankle_collar=
     setup=json.loads(files['rig-setup-reference.json'])['vertices']
     output.mkdir(parents=True,exist_ok=False)
     print(json.dumps(dict(stage='post_contact_repair')),flush=True)
-    repaired,correction=build(bare,name,setup,temporal=True,terminal_collar=ankle_collar)
+    repaired,correction=build(bare,name,setup,temporal=True,terminal_collar=ankle_collar,
+        progress=lambda row:print(json.dumps(row),flush=True))
     if repaired['animations'][name]['bones']!=bare['animations'][name]['bones']:
         raise ValueError('post_contact_repair_changed_bones')
     from m4_pose_depth_recheck import recheck

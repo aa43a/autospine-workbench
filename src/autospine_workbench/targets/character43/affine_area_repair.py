@@ -6,7 +6,7 @@ from ..spine43.continuous_pose import area
 from .affine_pose import matrices, sample
 
 
-def repair(document, name, *, samples=257, convergent=False, setup_vertices=None, projected_reference=False, extra_times=(), temporal=False, terminal_collar=False):
+def repair(document, name, *, samples=257, convergent=False, setup_vertices=None, projected_reference=False, extra_times=(), temporal=False, terminal_collar=False, progress=None):
     if terminal_collar and not (convergent and projected_reference):
         raise ValueError('character_collar_projection_required')
     if temporal and not (convergent and projected_reference):
@@ -21,6 +21,7 @@ def repair(document, name, *, samples=257, convergent=False, setup_vertices=None
     if len(extra_times) > 1025 or any(not math.isfinite(t) or not 0 <= t <= duration for t in extra_times):
         raise ValueError('character_affine_extra_times_invalid')
     times = sorted(key_times | set(extra_times) | {duration*i/(samples-1) for i in range(samples)})
+    if progress:progress(dict(stage='sample_geometry',sample_count=len(times)))
     worlds = [sample(document, name, t)[0] for t in times]
     transforms = [matrices(document, name, t) for t in times]
     rest_transforms = None
@@ -30,7 +31,9 @@ def repair(document, name, *, samples=257, convergent=False, setup_vertices=None
         rest = deepcopy(document); rest['animations'] = {name: {'bones': {}}}
         rest_transforms = matrices(rest, name, 0)
     result = deepcopy(document); rows = []; bones = document['bones']
-    for slot, choices in document['skins'][0]['attachments'].items():
+    attachments=document['skins'][0]['attachments']
+    for slot_index,(slot, choices) in enumerate(attachments.items()):
+        if progress:progress(dict(stage='inspect_attachment',slot=slot,slot_index=slot_index,total_slots=len(attachments)))
         attachment = choices[slot]; flat = attachment['triangles']
         triangles = [flat[i:i+3] for i in range(0, len(flat), 3)]
         base = (setup_vertices if setup_vertices is not None else worlds[0])[slot]; areas = [area(base, t) for t in triangles]
@@ -70,7 +73,9 @@ def repair(document, name, *, samples=257, convergent=False, setup_vertices=None
         context = dict(row={'triangles': triangles}, areas=areas, edges=edges,
                        lengths=[math.dist(base[a], base[b]) for a, b in edges], free=free, budget=budget)
         keys = []; maximum = 0.; unresolved = []; solver_rows = []
-        for time, world, transform, references in zip(times, worlds, transforms, frame_areas):
+        for frame_index,(time, world, transform, references) in enumerate(zip(times, worlds, transforms, frame_areas)):
+            if progress and frame_index%16==0:
+                progress(dict(stage='solve_attachment',slot=slot,frame_index=frame_index,sample_count=len(times),time=time))
             context['areas'] = references
             original = world[slot]
             if convergent:
@@ -112,6 +117,7 @@ def repair(document, name, *, samples=257, convergent=False, setup_vertices=None
         if convergent:
             rows[-1]['solver_samples'] = solver_rows
         if terminal_collar:rows[-1]['terminal_collars']=collars
+        if progress:progress(dict(stage='attachment_complete',slot=slot,sample_count=len(times),unresolved_samples=len(unresolved)))
     profile = 'affine-mixed-area-budget10-v2' if convergent else 'affine-mixed-area-budget10-v1'
     if projected_reference:
         profile = 'affine-mixed-projected-area-budget10-v1'

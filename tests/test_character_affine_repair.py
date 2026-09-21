@@ -16,6 +16,16 @@ def fixture():
 
 
 class AffineRepairTests(unittest.TestCase):
+    def test_progress_does_not_change_candidate_or_report(self):
+        events=[]
+        with patch('autospine_workbench.targets.character43.affine_area_repair.project',side_effect=lambda c,p:p):
+            expected=repair(fixture(),'walk',samples=3)
+            actual=repair(fixture(),'walk',samples=3,progress=events.append)
+        self.assertEqual(expected,actual)
+        self.assertEqual(events[0],dict(stage='sample_geometry',sample_count=3))
+        self.assertEqual(events[-1]['stage'],'attachment_complete')
+        self.assertEqual(events[-1]['unresolved_samples'],1)
+
     def test_inverse_affine_offsets_reconstruct_world_correction(self):
         source = fixture(); before = deepcopy(source)
         def translated(context, points):
