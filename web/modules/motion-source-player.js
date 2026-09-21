@@ -2,7 +2,18 @@ export function createSourcePlayer(canvas, slider, button, label, onTime = () =>
   const ctx = canvas.getContext('2d');
   let data = null, playing = false, previous = 0, elapsed = 0, handle = null;
   let bounds = [0, 0, 1, 1];
-  const xy = point => data.view === 'side' ? [-point[2], -point[1]] : [point[0], -point[1]];
+  let view = null;
+  const xy = point => (view || data.view) === 'side' ? [-point[2], -point[1]] : [point[0], -point[1]];
+  function fitBounds() {
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const frame of data.frames) for (const point of frame.joints) {
+      const [x, y] = xy(point);
+      minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+      minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+    }
+    // Fixed envelope across the clip, never follow individual frames.
+    bounds = [minX, minY, Math.max(1e-6, maxX - minX), Math.max(1e-6, maxY - minY)];
+  }
 
   function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -60,6 +71,11 @@ export function createSourcePlayer(canvas, slider, button, label, onTime = () =>
   };
   slider.oninput = () => { stop(); draw(); };
   return {
+    setView(value) {
+      if (![null, 'front', 'side'].includes(value)) throw Error('source_view_invalid');
+      view = value;
+      if (data) { fitBounds(); draw(); }
+    },
     seek(time) {
       if (!data || !Number.isFinite(time)) return;
       stop(); slider.value = Math.max(0, Math.min(Number(slider.max), time)); draw();
@@ -73,14 +89,7 @@ export function createSourcePlayer(canvas, slider, button, label, onTime = () =>
     },
     load(value) {
       stop(); data = value;
-      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-      for (const frame of data.frames) for (const point of frame.joints) {
-        const [x, y] = xy(point);
-        minX = Math.min(minX, x); maxX = Math.max(maxX, x);
-        minY = Math.min(minY, y); maxY = Math.max(maxY, y);
-      }
-      // One envelope for the entire clip; playback must not introduce camera jitter.
-      bounds = [minX, minY, Math.max(1e-6, maxX - minX), Math.max(1e-6, maxY - minY)];
+      fitBounds();
       slider.max = data.frames.at(-1).time;
       slider.value = 0;
       button.disabled = slider.disabled = false;

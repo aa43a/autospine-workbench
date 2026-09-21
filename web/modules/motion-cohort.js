@@ -8,8 +8,9 @@ import {appendReadiness} from './motion-readiness.js';
 import {createCohortSync} from './motion-cohort-sync.js';
 const byId=id=>document.getElementById(id), motion=byId('motion'),character=byId('character');
 const sync=createCohortSync(byId('sync-status'));
-const player=createSourcePlayer(byId('source'),byId('time'),byId('play'),byId('time-label'),(time,end)=>sync.seek(time,end));
-const alternative=createAlternativePanel(byId('alternative'),get);
+const player=createSourcePlayer(byId('source'),byId('time'),byId('play'),byId('time-label'),(time,end)=>{sync.seek(time,end);alternative.seek(time,end);});
+byId('source-view').onchange=()=>player.setView(byId('source-view').value||null);
+const alternative=createAlternativePanel(byId('alternative'),get,{onSeek:time=>player.seek(time)});
 let pack,revision=0;
 const id=/^motion-[a-f0-9]{32}$/,sha=/^[a-f0-9]{64}$/;
 function validate(value){

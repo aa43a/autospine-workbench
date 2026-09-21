@@ -29,7 +29,25 @@ try {
       const target=await page.locator('#target iframe').evaluate(e=>e.contentWindow.characterPlayerState);
       assert.ok(Math.abs(target.time-t)<.002);assert.equal(target.playing,false);
     }
+    await page.locator('#time').evaluate((e,t)=>{e.value=t;e.dispatchEvent(new Event('input'));},end*.5);
+    const before=await page.locator('#source').screenshot();
+    await page.selectOption('#source-view','side');
+    assert.notDeepEqual(await page.locator('#source').screenshot(),before);
+    const sideTime=await page.locator('#target iframe').evaluate(e=>e.contentWindow.characterPlayerState.time);
+    assert.ok(Math.abs(sideTime-end*.5)<.002,'view must preserve time');
+    await page.selectOption('#source-view','');
+    assert.deepEqual(await page.locator('#source').screenshot(),before,'source view restores exactly');
     checked.push(groups[mi].label+'/'+groups[mi].targets[ci].label);
+  }
+  await page.getByRole('button',{name:'比较该角色的已有视角候选'}).click();
+  await page.getByRole('link',{name:'在当前页比较',exact:false}).first().click({timeout:120000});
+  await page.waitForFunction(()=>[...document.querySelectorAll('#alternative p')].some(e=>e.textContent.startsWith('共用时间轴')),{},{timeout:120000});
+  for(const t of [2.5,.5]){
+    await page.locator('#time').evaluate((e,t)=>{e.value=t;e.dispatchEvent(new Event('input'));},t);
+    for(const selector of ['#target iframe','#alternative iframe']){
+      const actual=await page.locator(selector).evaluate(e=>e.contentWindow.characterPlayerState.time);
+      assert.ok(Math.abs(actual-t)<.002,'both candidates share timeline');
+    }
   }
   assert.deepEqual(errors,[]);
   await fs.mkdir('../tmp/m4-motion-center/sync-check-v1',{recursive:true});

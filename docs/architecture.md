@@ -1,5 +1,7 @@
 # AutoSpine Workbench 架构与质量门禁
 
+源播放器的观察方向作为本地显示状态保存，不修改 preview 数据、候选或时间原点；替代候选复用同源时间桥，各自保留精确身份与独立验收。
+
 动作集中复核通过 `motion-cohort-sync.js` 在同源 iframe 内核对精确候选和时长后驱动实时播放器；源时间轴为单一时钟，切换角色清理旧控制。该只读桥不提交决定，不替代捕获验证。操作与边界见 [同步对照](how-to-motion-sync.md)。
 
 `phase_contact_policy` 将源区间筛选、`support_timeline` 因果求解、密集支点和几何门禁封装为新 profile；worker 保留旧静止策略分派。部分采用使用独立状态，前后区间保持同一清单，所有新根骨/腿骨关键时刻进入 Runtime 数值参考。推断窗口不改写 MotionIR。
