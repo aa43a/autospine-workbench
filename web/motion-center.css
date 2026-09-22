@@ -19,6 +19,8 @@ button { cursor: pointer; margin-right: 8px; }
 button:disabled { opacity: .45; cursor: default; }
 button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid #75d5ff; outline-offset: 3px; }
 .split { display: grid; grid-template-columns: minmax(300px,1fr) minmax(480px,2fr); gap: 20px; }
+.split:has(.motion-inline-player:not([hidden])) { grid-template-columns: minmax(480px,2fr) minmax(300px,1fr); }
+.motion-inline-player { padding: 10px; margin-top: 12px; }
 .job { padding: 14px 0; border-bottom: 1px solid #31425a; overflow-wrap: anywhere; }
 .job strong { display: block; }
 .job p { margin: 6px 0 12px; }

@@ -12,6 +12,7 @@ import {appendViewComparison} from './motion-view-comparison.js';
 import {appendRotationDetails} from './motion-rotation-details.js';
 import {appendTorsoDetails} from './motion-torso-details.js';
 import {appendPoseSummary} from './motion-pose-selection.js';
+import {appendInlinePlayer} from './motion-inline-player.js';
 
 const $ = id => document.getElementById(id);
 const player = createSourcePlayer($('canvas'), $('time'), $('play'), $('clock'));
@@ -146,9 +147,10 @@ function render(data) {
         receipt.target = '_blank'; receipt.rel = 'noopener'; item.append(receipt);
       }
       appendDepthSummary(item, job);
-      appendRotationDetails(item, job);
+      const inspection = appendInlinePlayer(item, job);
+      appendRotationDetails(item, job, inspection);
       const compare=data.target_comparison_available?appendTargetComparison(item, job, request):null;
-      appendReadiness(item, job, compare);
+      appendReadiness(item, job, compare, inspection);
       if (data.stage_review_available) appendStageReview(item, job);
       if (result.clip) item.append(node('p', `源片段：第 ${result.clip.start_frame+1}–${result.clip.end_frame+1} 帧`));
       item.append(node('p', result.character_animation_status === 'needs_changes'
