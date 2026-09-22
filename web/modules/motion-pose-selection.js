@@ -8,6 +8,11 @@ export function appendPoseSummary(container,job){
   link.href=`/api/motions/${job.job_id}/view/motion-review.json`;
   link.target='_blank';link.rel='noopener';
   note.append(' · ',link);container.append(note);
+  if(profile===POST_CONTACT_PROFILE){
+    const finalContact=document.createElement('a');finalContact.textContent='最终时间轴接触复核';
+    finalContact.href=`/api/motions/${job.job_id}/view/final-contact.json`;
+    finalContact.target='_blank';finalContact.rel='noopener';container.append(finalContact);
+  }
 }
 export function poseSelection(value,body){
   if(!value)return {};

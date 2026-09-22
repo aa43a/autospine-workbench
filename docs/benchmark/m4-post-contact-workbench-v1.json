@@ -17,7 +17,21 @@
       "remaining_constraint_samples": 1,
       "depth_status": "depth_overlap_no_change",
       "visual_acceptance": "not_recorded",
-      "player_url": "http://127.0.0.1:8918/api/motions/motion-8a48f34642c643e397f95b433046b8bb/view/player.html"
+      "player_url": "http://127.0.0.1:8918/api/motions/motion-8a48f34642c643e397f95b433046b8bb/view/player.html",
+      "supplemental_final_contact": {
+        "status": "inferred_proxy_corrected",
+        "samples": 2009,
+        "max_drift_px": 0.24920714284853615,
+        "final_timeline_check": {
+          "profile": "final-timeline-ankle-proxy-v1",
+          "skeleton_sha256": "ebe101f8e008a13598606b7faa4deb65a9aa0f6f5609d4099964a210d8ae04eb",
+          "animation": "external-motion",
+          "times_sha256": "acdf0a24051845f19c556007398921129abe57479b3b61df30a070fd0fe057b4",
+          "samples": 2009,
+          "authority": "none",
+          "scope": "final_cpu_bone_samples_not_gpu_sole_or_continuous_contact"
+        }
+      }
     },
     {
       "character": "huiye",
@@ -32,7 +46,21 @@
       "remaining_constraint_samples": 0,
       "depth_status": "depth_candidates_need_review",
       "visual_acceptance": "not_recorded",
-      "player_url": "http://127.0.0.1:8918/api/motions/motion-f53960f6d29b4b8692913a6d86f05485/view/player.html"
+      "player_url": "http://127.0.0.1:8918/api/motions/motion-f53960f6d29b4b8692913a6d86f05485/view/player.html",
+      "supplemental_final_contact": {
+        "status": "inferred_proxy_corrected",
+        "samples": 1245,
+        "max_drift_px": 0.4381097869444041,
+        "final_timeline_check": {
+          "profile": "final-timeline-ankle-proxy-v1",
+          "skeleton_sha256": "7b35b6e4b1943966f87c9ff6a0d1312cc7ae29466f3615b8625133b3aabdffe0",
+          "animation": "external-motion",
+          "times_sha256": "6ff69d9c87e5e95c97b4b84202caf1c6ae98b8d5fa29b92c919d779ee31c6076",
+          "samples": 1245,
+          "authority": "none",
+          "scope": "final_cpu_bone_samples_not_gpu_sole_or_continuous_contact"
+        }
+      }
     },
     {
       "character": "hongmeiling",
@@ -47,7 +75,21 @@
       "remaining_constraint_samples": 1,
       "depth_status": "depth_candidates_need_review",
       "visual_acceptance": "not_recorded",
-      "player_url": "http://127.0.0.1:8918/api/motions/motion-e2f8058160c14d959d468d75cc53a35e/view/player.html"
+      "player_url": "http://127.0.0.1:8918/api/motions/motion-e2f8058160c14d959d468d75cc53a35e/view/player.html",
+      "supplemental_final_contact": {
+        "status": "inferred_proxy_corrected",
+        "samples": 1937,
+        "max_drift_px": 1.1531845029053214,
+        "final_timeline_check": {
+          "profile": "final-timeline-ankle-proxy-v1",
+          "skeleton_sha256": "7aea2aa9c9fbf0d52c847df080ff9171b365dc4f8a2e0991e738917f8302a243",
+          "animation": "external-motion",
+          "times_sha256": "f65c088416aa842a926ae90c5deb881f7e2eac3df35329e30321b4e7889297e7",
+          "samples": 1937,
+          "authority": "none",
+          "scope": "final_cpu_bone_samples_not_gpu_sole_or_continuous_contact"
+        }
+      }
     }
   ],
   "authority": "none",

@@ -164,6 +164,11 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
         depth_status = depth['status']
     if pose_fit is not None:
         times = final_times(document, ANIMATION, times)
+    if pose_fit is not None and pose_fit.get('post_contact_profile'):
+        from ..targets.character43.final_motion_contact import recheck
+        contact = recheck(document, ANIMATION, motion, contact, times, evidence['reference_length_px'])
+        if contact['after']['passed'] is False:
+            issues.append(dict(stage='contact', reason_code='motion_final_contact_drift'))
     frames = [dict(time=t, vertices=sample(document, ANIMATION, t)[0]) for t in times]
     raw = canonical_bytes(document)
     result = {name: data for name, data in files.items() if name.endswith('.png') or name == 'skeleton.atlas'}

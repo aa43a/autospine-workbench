@@ -24,6 +24,14 @@ try{
  assert.equal(response.status(),200);
  const evidence=await response.json();
  assert.equal(evidence.profile,state.result.pose_profile);
+ if(evidence.post_contact_repair){
+   const finalLink=card.getByRole('link',{name:'最终时间轴接触复核',exact:true});
+   const checked=await page.request.get('http://127.0.0.1:8918'+await finalLink.getAttribute('href'));
+   assert.equal(checked.status(),200);
+   const finalContact=await checked.json();
+   assert.equal(finalContact.artifact_sha256,artifact);
+   assert.equal(finalContact.final_timeline_check.samples,state.result.runtime.frames);
+ }
  await card.getByRole('button',{name:'检查可用范围与待处理项',exact:true}).click();
  await card.getByText(/需处理异常|检查证据尚不完整|可进行阶段视觉复核/).first().waitFor();
  if(evidence.post_contact_repair?.sampled_constraint_failures){
