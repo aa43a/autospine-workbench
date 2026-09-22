@@ -1,0 +1,31 @@
+{
+  "authority": "none",
+  "selected": false,
+  "character": "Alice",
+  "candidate": "21969ed99dd41e85171f52842fc4754a8d8c4bd425fd722cf87a78ce94b9d437",
+  "source_identity": {
+    "bundle_sha256": "5f531a9327ad59abde64e643438baa794e5618b5629d59c0e3f9d4da990948b7",
+    "bvh_map_sha256": "f9d1995881e5623f72208050cc9b639d98b1317da3322e3480cf50a283fa7f5c",
+    "clip_id": "external.a4233c602a77a95c.front",
+    "clip_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+    "map_id": "mixamo-declared-body-v1",
+    "motion_ir_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+    "raw_bvh_byte_length": 342778,
+    "raw_bvh_sha256": "a4233c602a77a95c1473ef7ab3f277fa7ca6aec5a98b4d5407dea904194bb2f4",
+    "reused": false,
+    "run_sha256": "c48c0ffcb9338d2bc72a1013f1be8366de8ea5583419f979a9ac1c080b534207",
+    "source_kind": "bvh"
+  },
+  "yaw": 45,
+  "baked_torso_plane": true,
+  "counts": {
+    "requires_partition_or_more_depth": 333,
+    "uniform_front_proxy": 149
+  },
+  "candidate_available": false,
+  "pixel_budget_used": 35324572,
+  "failure_counts": {
+    "visible_depth_straddle": 121
+  },
+  "scope": "source_and_midpoint_proxy_order_constraints_not_runtime_or_visual_acceptance"
+}

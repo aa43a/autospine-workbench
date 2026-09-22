@@ -1,0 +1,132 @@
+{
+  "selected": false,
+  "authority": "none",
+  "rows": [
+    {
+      "source": "4eaad46c8f4c596a8bf1b19a42ab8b99b3d8703a05105908d2d689b50be81e08",
+      "runtime_passed": true,
+      "contact": {
+        "authority": "none",
+        "bone_animation_unchanged": true,
+        "profile": "torso-bake-contact-preservation-v1",
+        "records": [
+          {
+            "maximum_displacement_px": 0.0,
+            "slot": "layer-001-l",
+            "vertex_count": 20,
+            "worst_time": null
+          },
+          {
+            "maximum_displacement_px": 0.0,
+            "slot": "layer-001-r",
+            "vertex_count": 20,
+            "worst_time": null
+          },
+          {
+            "maximum_displacement_px": 0.0,
+            "slot": "layer-002-l",
+            "vertex_count": 142,
+            "worst_time": null
+          },
+          {
+            "maximum_displacement_px": 0.0,
+            "slot": "layer-002-r",
+            "vertex_count": 141,
+            "worst_time": null
+          }
+        ],
+        "sample_count": 817,
+        "scope": "unchanged_ankle_animation_and_sampled_foot_weighted_vertices_not_floor_or_sole_contact",
+        "status": "sampled_paths_preserved",
+        "tolerance_px": 1E-07
+      },
+      "index": 0,
+      "geometry": true,
+      "candidate": "21969ed99dd41e85171f52842fc4754a8d8c4bd425fd722cf87a78ce94b9d437",
+      "frames": 817,
+      "retained_source_times": 513,
+      "visual": "not_accepted",
+      "runtime_version": "4.3.13"
+    },
+    {
+      "source": "a8c70444b4857af11ba8303d7f0bc3e39fb8c112c8bcbefbcb4b3b5e734a06b6",
+      "runtime_passed": true,
+      "contact": {
+        "authority": "none",
+        "bone_animation_unchanged": true,
+        "profile": "torso-bake-contact-preservation-v1",
+        "records": [
+          {
+            "maximum_displacement_px": 0.0,
+            "slot": "layer-001-l",
+            "vertex_count": 264,
+            "worst_time": null
+          },
+          {
+            "maximum_displacement_px": 0.0,
+            "slot": "layer-001-r",
+            "vertex_count": 265,
+            "worst_time": null
+          }
+        ],
+        "sample_count": 817,
+        "scope": "unchanged_ankle_animation_and_sampled_foot_weighted_vertices_not_floor_or_sole_contact",
+        "status": "sampled_paths_preserved",
+        "tolerance_px": 1E-07
+      },
+      "index": 1,
+      "geometry": true,
+      "candidate": "5c1547c83d150eb19f9bd2c1e32acda6fbf87e1d56adc077617392cc99e79818",
+      "frames": 817,
+      "retained_source_times": 513,
+      "visual": "not_accepted",
+      "runtime_version": "4.3.13"
+    },
+    {
+      "source": "9ed7fc02c012ea90d6278e94dc357c1eb6c2f5ed770978a00b5c02829f5db1cf",
+      "runtime_passed": true,
+      "contact": {
+        "authority": "none",
+        "bone_animation_unchanged": true,
+        "profile": "torso-bake-contact-preservation-v1",
+        "records": [
+          {
+            "maximum_displacement_px": 0.0,
+            "slot": "layer-003",
+            "vertex_count": 35,
+            "worst_time": null
+          },
+          {
+            "maximum_displacement_px": 0.0,
+            "slot": "layer-004",
+            "vertex_count": 38,
+            "worst_time": null
+          },
+          {
+            "maximum_displacement_px": 0.0,
+            "slot": "layer-007",
+            "vertex_count": 4,
+            "worst_time": null
+          },
+          {
+            "maximum_displacement_px": 0.0,
+            "slot": "layer-008",
+            "vertex_count": 4,
+            "worst_time": null
+          }
+        ],
+        "sample_count": 817,
+        "scope": "unchanged_ankle_animation_and_sampled_foot_weighted_vertices_not_floor_or_sole_contact",
+        "status": "sampled_paths_preserved",
+        "tolerance_px": 1E-07
+      },
+      "index": 2,
+      "geometry": true,
+      "candidate": "cd4a9966309e0e30377a4fad323caed297777d0de157902a8ce066e419b68ec2",
+      "frames": 817,
+      "retained_source_times": 513,
+      "visual": "not_accepted",
+      "runtime_version": "4.3.13"
+    }
+  ]
+}

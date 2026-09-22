@@ -21,7 +21,7 @@ def evidence(check,tick,source_tick,arm,body,fallback):
                 support=status,local_check=check)
 
 
-def run(root,depth_root,output,index):
+def run(root,depth_root,output,index,*,torso=None):
     output.mkdir(parents=True,exist_ok=False)
     item=json.loads((root/'comparison.json').read_bytes())['rows'][index]
     depth=json.loads((depth_root/(str(index)+'.json')).read_bytes());digest=depth['candidate_bundle_sha256']
@@ -29,13 +29,22 @@ def run(root,depth_root,output,index):
         raise ValueError('held_order_candidate_view_mismatch')
     files=AnimatedStore(root/str(index)/'isolated-store').read(digest);doc=json.loads(files['skeleton.json'])
     identity=depth['source_identity'];bundle=VerifiedMotionBundleReader(Path('workspace')).load(identity['clip_sha256'],identity['bundle_sha256'])
+    plane=None
+    if torso is not None:
+        from m4_torso_reference_reader import load
+        from autospine_workbench.targets.character43.motion_depth import build as fresh_depth
+        files,doc,digest,plane=load(torso,digest,doc,bundle,identity,depth['yaw_degrees'])
+        kimodo=(bundle.raw_npz,bundle.kimodo_source) if bundle.source_kind=='kimodo_npz' else None
+        depth=fresh_depth(doc,None if kimodo else parse_bvh(bundle.raw_bvh),
+                          bundle.kimodo_map if kimodo else bundle.bvh_map,kimodo=kimodo,yaw_degrees=depth['yaw_degrees'])
+        depth.update(candidate_bundle_sha256=digest,source_identity=identity)
     if bundle.source_kind=='kimodo_npz':
         sampler=KimodoDepthSampler(bundle.raw_npz,bundle.kimodo_source,bundle.kimodo_map,
                                   depth['yaw_degrees'],interpolation='linear_observed_positions')
     else:sampler=SegmentDepthSampler(parse_bvh(bundle.raw_bvh),bundle.bvh_map,depth['yaw_degrees'])
     checked=deepcopy(depth);checked['strict_interval_evidence']=True;counts=Counter()
     probe=Probe(doc,files,'external-motion',tiled=True,rendered_bounds=True,sparse='priority_depth_points')
-    checker=Checker(probe,sampler,pixelwise=True)
+    checker=Checker(probe,sampler,pixelwise=True,plane_provider=plane)
     for pair in checked['pairs']:
         arm,body=pair['arm_slot'],pair['torso_slot'];samples=pair['samples'];fresh=[]
         for i,row in enumerate(samples):
@@ -59,7 +68,7 @@ def run(root,depth_root,output,index):
     if proposed is not None:
         (output/'skeleton-candidate.json').write_text(json.dumps(proposed),encoding='utf-8')
     report=dict(authority='none',selected=False,character=item['label'],candidate=digest,
-                source_identity=identity,yaw=depth['yaw_degrees'],counts=dict(counts),order=order,
+                source_identity=identity,yaw=depth['yaw_degrees'],baked_torso_plane=plane is not None,counts=dict(counts),order=order,
                 candidate_available=proposed is not None,pixel_budget_used=64_000_000-probe.remaining,
                 failure_counts=dict(Counter(f['reason_code'] for f in order['failures'])),
                 scope='source_and_midpoint_proxy_order_constraints_not_runtime_or_visual_acceptance')
@@ -71,4 +80,5 @@ if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
     for name in ('root','depth_root','output'):p.add_argument(name,type=Path)
     p.add_argument('--index',type=int,default=0)
-    a=p.parse_args();run(a.root,a.depth_root,a.output,a.index)
+    p.add_argument('--torso',type=Path)
+    a=p.parse_args();run(a.root,a.depth_root,a.output,a.index,torso=a.torso)
