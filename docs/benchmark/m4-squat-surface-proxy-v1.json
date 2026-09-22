@@ -1,0 +1,22 @@
+{
+  "profile": "m4-source-depth-cylindrical-surface-probe-v1",
+  "source_artifact": "0b8feb06ac10e2baa631b5e0dbbd170e48826f0e685f658c9ab796eacc4d9dcf",
+  "character": "hongmeiling",
+  "motion": "squat",
+  "method": "Lift original weighted material coordinates onto hypothesized cylindrical surfaces, rotate cross sections using source 3D depth and current bone axis, retain source textures and existing weighted topology.",
+  "assumptions": ["95th percentile transverse material offset defines per-bone radius", "two explicit front signs tested", "shortest rotation has no source axial twist", "no depth sorting or new back-face artwork"],
+  "checks": [
+    {"time": 0.0, "original_inversions_right_left": [0,0], "positive_front_inversions_right_left": [0,0], "negative_front_inversions_right_left": [0,0]},
+    {"time": 0.966667, "original_inversions_right_left": [0,0], "positive_front_inversions_right_left": [25,51], "negative_front_inversions_right_left": [62,114]},
+    {"time": 1.12, "original_inversions_right_left": [0,0], "positive_front_inversions_right_left": [12,8], "negative_front_inversions_right_left": [39,60]}
+  ],
+  "status": "rejected_geometry",
+  "runtime_captured": false,
+  "visual_accepted": false,
+  "selected": false,
+  "tests": "4 math tests: setup reconstruction, source-depth response, proper rotation/antipodal rejection, invalid/degenerate input",
+  "invariants": "Bone animation, setup skins/slots unchanged; non-selected attachment vertices identical at the three check times.",
+  "evidence_directories": ["tmp/m4-motion-center/squat-surface-proxy-v1/positive-invariants", "tmp/m4-motion-center/squat-surface-proxy-v1/negative-invariants"],
+  "conclusion": "Both signs fail under the current weighted topology; do not adopt or continue radius tuning. This is not a test of complete 3D reconstruction/rendering and does not prove pose artwork is missing.",
+  "next": "Separate visible-surface selection from material deformation: test supported pose/occlusion expression rather than directly projecting lifted front texels through existing mixed joint weights. Preserve exact failure times and existing technical gates."
+}
