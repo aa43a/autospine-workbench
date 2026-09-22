@@ -44,6 +44,7 @@ const steps = {
   depth_ordering: '求解并检查绘制顺序',
 };
 const reasons = {
+  motion_post_contact_constraints_failed: '接触后局部修正仍有约束未满足，请在可用范围检查中定位对应部件和时间。',
   motion_source_contact_intervals_unverified: '已修正源证据充分的支撑区间；其余区间保留为异常，不代表整段接触通过。',
   motion_inferred_contact_drift: '推断支撑区间内存在踝部位移，请检查支撑假设与动作。',
   motion_clip_range_invalid: '片段至少包含两帧，且须位于源动作范围内。',

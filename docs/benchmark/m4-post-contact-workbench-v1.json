@@ -1,0 +1,56 @@
+{
+  "profile": "m4-post-contact-workbench-evidence-v1",
+  "strategy": "source-pose-post-contact-margin-v1",
+  "motion": "squat",
+  "required_characters": 3,
+  "rows": [
+    {
+      "character": "alice",
+      "job_id": "motion-8a48f34642c643e397f95b433046b8bb",
+      "artifact_sha256": "2424c43da460100d70b0c4d43ef380da86b999fd8daa8beba04e98480005479c",
+      "runtime_numeric_passed": true,
+      "runtime_frames": 2009,
+      "geometry_passed": false,
+      "contact_status": "inferred_proxy_corrected",
+      "contact_samples": 1005,
+      "maximum_ankle_drift_px": 0.24920714284853615,
+      "remaining_constraint_samples": 1,
+      "depth_status": "depth_overlap_no_change",
+      "visual_acceptance": "not_recorded",
+      "player_url": "http://127.0.0.1:8918/api/motions/motion-8a48f34642c643e397f95b433046b8bb/view/player.html"
+    },
+    {
+      "character": "huiye",
+      "job_id": "motion-f53960f6d29b4b8692913a6d86f05485",
+      "artifact_sha256": "fbdef9bcaf5f513d6202f68680c059ea2120841c6fe441aea532c95c95b55125",
+      "runtime_numeric_passed": true,
+      "runtime_frames": 1245,
+      "geometry_passed": true,
+      "contact_status": "inferred_proxy_corrected",
+      "contact_samples": 623,
+      "maximum_ankle_drift_px": 0.4381097869444041,
+      "remaining_constraint_samples": 0,
+      "depth_status": "depth_candidates_need_review",
+      "visual_acceptance": "not_recorded",
+      "player_url": "http://127.0.0.1:8918/api/motions/motion-f53960f6d29b4b8692913a6d86f05485/view/player.html"
+    },
+    {
+      "character": "hongmeiling",
+      "job_id": "motion-e2f8058160c14d959d468d75cc53a35e",
+      "artifact_sha256": "b682ae45d064f3106f6af72ab23d5c3c5170d3b0d1c0d39773091fd61c761dc9",
+      "runtime_numeric_passed": true,
+      "runtime_frames": 1937,
+      "geometry_passed": false,
+      "contact_status": "inferred_proxy_corrected",
+      "contact_samples": 969,
+      "maximum_ankle_drift_px": 1.132524767385687,
+      "remaining_constraint_samples": 1,
+      "depth_status": "depth_candidates_need_review",
+      "visual_acceptance": "not_recorded",
+      "player_url": "http://127.0.0.1:8918/api/motions/motion-e2f8058160c14d959d468d75cc53a35e/view/player.html"
+    }
+  ],
+  "authority": "none",
+  "production_authorized": false,
+  "scope": "current_workbench_builds_not_all_motion_or_visual_acceptance"
+}

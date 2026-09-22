@@ -67,7 +67,11 @@ def build(files, artifact_sha256, runtime=None):
         frames=len(runtime.get('results', [])) if runtime else 0)
     other = [i for i in motion.get('issues', []) if i['stage'] not in ('projection', 'geometry', 'contact')]
     if other:
-        add('其他修正', 'needs_changes', '局部修正仍有未解决问题。', 'player.html', reasons=[i['reason_code'] for i in other])
+        refinement = motion.get('post_contact_repair', {}).get('correction', {}).get('refinement', [])
+        residual = refinement[-1].get('check', {}).get('failures', []) if refinement else []
+        add('其他修正', 'needs_changes', '局部修正仍有未解决问题。', 'player.html',
+            reasons=[i['reason_code'] for i in other],
+            failures=[dict(time=r['time'],slot=r['slot'],reason='post_contact_constraint_failed') for r in residual])
     status = ('needs_changes' if any(r['status'] == 'needs_changes' for r in rows) else
               'evidence_incomplete' if any(r['status'] == 'unmeasured' for r in rows) else 'stage_review')
     return dict(profile='external-motion-readiness-v1', artifact_sha256=artifact_sha256,

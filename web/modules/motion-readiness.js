@@ -32,7 +32,8 @@ export function appendReadiness(item, job, compare, {onSeek} = {}) {
         for (const failure of failures) {
           const entry = document.createElement('p');
           const reason = document.createElement('span');
-          reason.textContent = failure.reason === 'source_projection_unreliable' ? '源投影方向不可靠' : failure.reason || '检查异常';
+          reason.textContent = ({source_projection_unreliable:'源投影方向不可靠',
+            post_contact_constraint_failed:'接触后局部变形约束未满足'})[failure.reason] || failure.reason || '检查异常';
           entry.append(reason);
           if (!Number.isFinite(failure.time) || failure.time < 0) {
             entry.append(' · 未提供有效时间'); details.append(entry); continue;

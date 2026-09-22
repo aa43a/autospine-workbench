@@ -20,6 +20,20 @@ def fixture():
 
 
 class ReadinessTests(unittest.TestCase):
+    def test_post_contact_failure_retains_exact_slot_and_time(self):
+        files, runtime = fixture()
+        motion=json.loads(files['motion-review.json'])
+        motion['issues']=[dict(stage='repair',reason_code='motion_post_contact_constraints_failed')]
+        motion['post_contact_repair']={'correction':{'refinement':[
+            {'check':{'failures':[dict(slot='old',time=.2)]}},
+            {'check':{'failures':[dict(slot='leg-r',time=.0273437548828125)]}}]}}
+        files['motion-review.json']=json.dumps(motion).encode()
+        row=build(files,'a'*64,runtime)['stages'][-1]
+        self.assertEqual(row['stage'],'其他修正')
+        self.assertEqual(row['status'],'needs_changes')
+        self.assertEqual(row['failures'],[dict(slot='leg-r',time=.0273437548828125,
+                                             reason='post_contact_constraint_failed')])
+
     def test_source_pose_unreliable_frames_reach_readiness(self):
         files, runtime = fixture()
         pose = dict(target_profile='absolute-projection-hip-center-temporal-v1',
