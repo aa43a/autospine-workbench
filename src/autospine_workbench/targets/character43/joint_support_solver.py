@@ -6,13 +6,18 @@ from .affine_pose import matrices
 
 
 def solve(document, animation, time, contacts, reference_length, *, maximum_degrees=30, previous=None,
-          maximum_rotation_speed=None):
+          maximum_rotation_speed=None, preserve_pose=False, maximum_error_px=None):
     import numpy as np
     from scipy.optimize import minimize
+    if type(preserve_pose) is not bool:
+        raise ValueError('joint_support_pose_mode_invalid')
     if (not math.isfinite(reference_length) or reference_length <= 0
             or not math.isfinite(maximum_degrees) or not 0 < maximum_degrees <= 90
             or not 1 <= len(contacts) <= 2):
         raise ValueError('joint_support_limits_invalid')
+    residual_limit = .01*reference_length if maximum_error_px is None else maximum_error_px
+    if not math.isfinite(residual_limit) or not 0 < residual_limit <= .01*reference_length:
+        raise ValueError('joint_support_residual_limit_invalid')
     if maximum_rotation_speed is not None and (not math.isfinite(maximum_rotation_speed) or maximum_rotation_speed <= 0):
         raise ValueError('joint_support_rotation_speed_invalid')
     bones = {b['name']: b for b in document['bones']}
@@ -62,6 +67,9 @@ def solve(document, animation, time, contacts, reference_length, *, maximum_degr
     def objective(values):
         error = sum(math.dist(point, chain[-1])**2 for point, chain in zip(endpoints(values), chains))
         continuity = float(np.dot(values[:2]-previous_root, values[:2]-previous_root)) if previous_root is not None else 0
+        if preserve_pose:
+            from .support_pose_objective import loss
+            return loss(chains, values) + 1e-8*float(np.dot(values, values)) + 1e-8*continuity
         return error/reference_length**2 + 1e-8*float(np.dot(values, values)) + 1e-8*continuity
 
     size = 2+2*len(chains)
@@ -92,6 +100,12 @@ def solve(document, animation, time, contacts, reference_length, *, maximum_degr
                 seed[2+i*2+j] = other[2+i*2+j] = value
     trials = []
     constraints = [dict(type='ineq', fun=lambda x: .15**2-float(np.dot(x[:2], x[:2])))]
+    if preserve_pose:
+        # Normalized exact endpoint equations avoid near-zero squared-distance
+        # gradients. Independent residual checks below still enforce the gate.
+        constraints.append(dict(type='eq', fun=lambda x: np.asarray([
+            (p[j]-c[-1][j])/reference_length
+            for p, c in zip(endpoints(x), chains) for j in (0, 1)])))
     if previous_root is not None:
         # Leave numerical headroom, then enforce the actual speed bound without
         # tolerance. Tiny time gaps amplify even nanometre constraint overshoot.
@@ -120,7 +134,7 @@ def solve(document, animation, time, contacts, reference_length, *, maximum_degr
                       rotation_magnitude=max(abs(v) for v in values[2:]) <= limit+1e-9,
                       rotation_speed=maximum_rotation_speed is None or all(lo <= value <= hi for value, (lo, hi) in zip(values[2:], bounds[2:])),
                       root_speed=previous_root is None or np.linalg.norm(values[:2]-previous_root) <= step_limit,
-                      endpoint_residual=max(errors) <= .01*reference_length)
+                      endpoint_residual=max(errors) <= residual_limit)
         valid = all(checks.values())
         trials.append(dict(valid=bool(valid), values=values, errors=errors, objective=objective(values),
                            failed_checks=[k for k, passed in checks.items() if not passed],
@@ -133,11 +147,13 @@ def solve(document, animation, time, contacts, reference_length, *, maximum_degr
             legs=[dict(upper=c['upper'], lower=c['lower'], tip=c['tip'],
                        upper_delta_degrees=math.degrees(v[2+i*2]), lower_delta_degrees=math.degrees(v[3+i*2]),
                        endpoint_error_px=best['errors'][i]) for i, c in enumerate(contacts)])
-    return dict(profile='joint-root-affine-leg-support-v2' if maximum_rotation_speed is not None else 'joint-root-affine-leg-support-v1', selected=False, authority='none',
+    return dict(profile='joint-root-source-axis-support-v1-experiment' if preserve_pose else
+                'joint-root-affine-leg-support-v2' if maximum_rotation_speed is not None else 'joint-root-affine-leg-support-v1', selected=False, authority='none',
                 status='candidate' if solution else 'no_bounded_solution_found', solution=solution,
                 best_errors_px=best['errors'] if best else [],
                 failed_checks=best['failed_checks'] if best else ['nonfinite_solver_result'],
                 scope='single_time_endpoints_not_temporal_mesh_or_runtime_validation',
-                limits=dict(root_ratio=.15, rotation_degrees=maximum_degrees, residual_ratio=.01,
+                limits=dict(root_ratio=.15, rotation_degrees=maximum_degrees,
+                            residual_ratio=.01 if maximum_error_px is None else residual_limit/reference_length,
                             root_speed_ratio=2 if previous is not None else None,
                             rotation_speed_degrees_per_second=maximum_rotation_speed))

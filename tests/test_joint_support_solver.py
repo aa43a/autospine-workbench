@@ -7,6 +7,24 @@ from autospine_workbench.targets.character43.joint_support_solver import solve
 
 
 class JointSupportTests(unittest.TestCase):
+    def test_pose_objective_preserves_axes_when_root_translation_suffices(self):
+        doc = fixture(); before = deepcopy(doc)
+        tip = matrices(doc, 'move', 0)['tip'][4:6]
+        result = solve(doc, 'move', 0, [dict(upper='upper', lower='lower', tip='tip',
+                       target=[tip[0]+2, tip[1]-1])], 30, preserve_pose=True, maximum_error_px=1e-5)
+        self.assertEqual(doc, before)
+        self.assertIsNotNone(result['solution'])
+        leg = result['solution']['legs'][0]
+        self.assertLess(abs(leg['upper_delta_degrees']), .01)
+        self.assertLess(abs(leg['lower_delta_degrees']), .01)
+        self.assertLessEqual(leg['endpoint_error_px'], 1e-5)
+
+    def test_pose_objective_does_not_relax_unreachable_contact(self):
+        report = solve(fixture(), 'move', 0,
+                       [dict(upper='upper', lower='lower', tip='tip', target=[10000, 0])],
+                       30, preserve_pose=True)
+        self.assertIsNone(report['solution'])
+
     def test_joint_solution_matches_full_affine_fk_without_mutation(self):
         doc = fixture(); before = deepcopy(doc)
         target = matrices(doc, 'move', 0)['tip'][4:6]
