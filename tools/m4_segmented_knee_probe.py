@@ -18,9 +18,10 @@ from autospine_workbench.targets.character43.material_band_partition import part
 from autospine_workbench.targets.character43.skirt_candidate import inverse
 from autospine_workbench.targets.spine43.continuous_pose import area
 from autospine_workbench.asset.planning.component_local_solver import metrics
+from autospine_workbench.targets.character43.joint_cover_bounds import cover
 
 
-def run(source,output,slots):
+def run(source,output,slots,bounded_cover=False):
     receipt=json.loads((source/'report.json').read_bytes());identity=receipt['candidate_bundle_sha256']
     _,_,pose,_,_,parent,_=load_stages(receipt['source_job_id'])
     if parent!=receipt['source_candidate_sha256']:raise ValueError('segmented_knee_source_mismatch')
@@ -28,7 +29,7 @@ def run(source,output,slots):
     name='external-motion';animation=doc['animations'][name]
     if animation.get('drawOrder') or animation.get('slots'):raise ValueError('segmented_knee_order_unsupported')
     setupdoc=dict(original,animations={'setup':{}});setup=sample(setupdoc,'setup',0)[0];rest=matrices(setupdoc,'setup',0)
-    bones={b['name']:i for i,b in enumerate(doc['bones'])};records=[];coverage=[]
+    bones={b['name']:i for i,b in enumerate(doc['bones'])};records=[];coverage=[];cover_checks=[]
     for slot in slots:
         mesh=original['skins'][0]['attachments'][slot][slot];owners=entries(mesh)
         knees={original['bones'][i]['name'] for row in owners for i,w in row if w>0 and original['bones'][i]['name'].startswith('calf_')}
@@ -65,6 +66,18 @@ def run(source,output,slots):
                 def transform(frame,p):
                     a,b,c,d,x,y=frame;return [a*p[0]+b*p[1]+x,c*p[0]+d*p[1]+y]
                 target=[blend(p,center,frames,[.5,.5]) if index==1 else transform(frames[0 if index==0 else 1],p) for p in part['points']]
+                if index==1 and bounded_cover:
+                    anchors=[]
+                    for p in part['points']:
+                        s=float((np.array(p)-center)@axis)
+                        if abs(abs(s)-radius)<1e-6:anchors.append(transform(frames[0 if s<0 else 1],p))
+                    mapped_center=np.array(blend(center,center,frames,[.5,.5]))
+                    columns=[np.array(blend(center+v,center,frames,[.5,.5]))-mapped_center for v in np.eye(2)]
+                    linear=np.column_stack(columns);det=float(np.linalg.det(linear));stretch=float(np.linalg.svd(linear,compute_uv=False)[0])
+                    maximum=min(math.sqrt(2/det),2/stretch)
+                    if maximum<1:raise ValueError('joint_cover_base_geometry_exceeded')
+                    target,check=cover(target,mapped_center,anchors,maximum,padding=.5)
+                    cover_checks.append(dict(slot=slot,time=time,**check))
                 base=[transform(relative(rest['root'],current['root']),p) for p in part['points']]
                 keys.append(dict(time=time,vertices=[float(v) for v in local_delta(doc,influences,current,base,target)]))
             animation.setdefault('attachments',{}).setdefault('default',{})[partname]={partname:dict(deform=keys)}
@@ -80,7 +93,7 @@ def run(source,output,slots):
     if animation['bones']!=original['animations'][name]['bones']:raise ValueError('segmented_knee_bones_changed')
     output.mkdir(parents=True,exist_ok=False)
     (output/'probe.json').write_bytes(canonical_bytes(dict(profile='segmented-knee-source-surfaces-v1',source=identity,
-        authority='none',selected=False,coverage=coverage,checks=checks,
+        authority='none',selected=False,coverage=coverage,checks=checks,bounded_cover=bounded_cover,cover_checks=cover_checks,
         limitations=['setup_area_uv_conservation_not_pixel_capture_proof','joint_front_order_is_experimental',
                      'ankle_contact_and_dynamic_overlap_not_validated','not_parent_full_dense_sample_grid'])))
     print(json.dumps(dict(surfaces=len(records),maximum_inversions=max(r['inversions'] for r in checks))),flush=True)
@@ -89,4 +102,5 @@ def run(source,output,slots):
 
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('source',type=Path);p.add_argument('output',type=Path)
-    p.add_argument('--slots',nargs='+',required=True);a=p.parse_args();run(a.source,a.output,a.slots)
+    p.add_argument('--slots',nargs='+',required=True);p.add_argument('--bounded-cover',action='store_true')
+    a=p.parse_args();run(a.source,a.output,a.slots,a.bounded_cover)

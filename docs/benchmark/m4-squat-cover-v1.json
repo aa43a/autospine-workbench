@@ -1,0 +1,37 @@
+{
+  "profile": "bounded-uniform-joint-cover-v1",
+  "source": "0b8feb06ac10e2baa631b5e0dbbd170e48826f0e685f658c9ab796eacc4d9dcf",
+  "candidate": "7524a6512fbc3fee294a4e346f8a4810361eab253560be624d7f040d390a5b31",
+  "authority": "none",
+  "selected": false,
+  "target_version": "4.3.26",
+  "runtime_version": "4.3.13",
+  "runtime_numeric_passed": true,
+  "runtime_samples": 113,
+  "geometry_passed": false,
+  "visual_accepted": false,
+  "boundary_key_checks": 114,
+  "bounded_geometric_cover_count": 67,
+  "over_budget_count": 47,
+  "worst": {
+    "slot": "layer-003",
+    "time": 0.966667,
+    "required_scale": 3.3176813480209586,
+    "maximum_scale": 1.912599483094875,
+    "applied_scale": 1.0,
+    "maximum_boundary_deficit_px": 62.818185979913466
+  },
+  "joint_cover_geometry": [
+    {"slot": "layer-003-surface-1","passed": true,"inversion_samples": 0,"max_area_ratio": 1.9734439468263965,"max_edge_stretch": 1.5938512966341456},
+    {"slot": "layer-004-surface-1","passed": true,"inversion_samples": 0,"max_area_ratio": 1.9955218872901501,"max_edge_stretch": 1.8469368863329785}
+  ],
+  "limitations": [
+    "Convex hull coverage does not prove source alpha coverage.",
+    "Over-budget times return the original cover; transitions may change size abruptly.",
+    "Visible knee gaps remain at 1.12 seconds.",
+    "Proximal setup-area failures remain; parent dense sampling has not been repeated."
+  ],
+  "browser_sync_seek_reverse_play_passed": true,
+  "evidence": "../tmp/m4-motion-center/squat-cover-v1/hongmeiling",
+  "comparison": "http://127.0.0.1:14703/squat-cover-v1/comparison/?time=1.12"
+}
