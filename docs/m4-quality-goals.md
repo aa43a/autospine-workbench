@@ -1,6 +1,6 @@
 # M4：动作可用性优先的里程碑
 
-最新切片顺序与验收目标见 [M4 动作质量交付计划](m4-quality-delivery-plan.md)。下文保留较早的进度快照，最新计划优先。
+最新执行目标见 [M4 执行目标](m4-execution-targets.md)。[动作质量交付计划](m4-quality-delivery-plan.md) 与下文保留历史进度和实验经过，最新执行目标优先。
 
 2026-09-22 重新分解。本计划优先于 m4-next-milestones.md 中历史记录的下一步安排，保留已有实验与验收身份。
 

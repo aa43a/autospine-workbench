@@ -21,7 +21,7 @@ def evidence(check,tick,source_tick,arm,body,fallback):
                 support=status,local_check=check)
 
 
-def run(root,depth_root,output,index,*,torso=None):
+def run(root,depth_root,output,index,*,torso=None,trace=False):
     output.mkdir(parents=True,exist_ok=False)
     item=json.loads((root/'comparison.json').read_bytes())['rows'][index]
     depth=json.loads((depth_root/(str(index)+'.json')).read_bytes());digest=depth['candidate_bundle_sha256']
@@ -44,7 +44,7 @@ def run(root,depth_root,output,index,*,torso=None):
     else:sampler=SegmentDepthSampler(parse_bvh(bundle.raw_bvh),bundle.bvh_map,depth['yaw_degrees'])
     checked=deepcopy(depth);checked['strict_interval_evidence']=True;counts=Counter()
     probe=Probe(doc,files,'external-motion',tiled=True,rendered_bounds=True,sparse='priority_depth_points')
-    checker=Checker(probe,sampler,pixelwise=True,plane_provider=plane)
+    checker=Checker(probe,sampler,pixelwise=True,plane_provider=plane);traces={}
     for pair in checked['pairs']:
         arm,body=pair['arm_slot'],pair['torso_slot'];samples=pair['samples'];fresh=[]
         for i,row in enumerate(samples):
@@ -54,8 +54,12 @@ def run(root,depth_root,output,index,*,torso=None):
                 times.append(((row['tick']+following['tick'])/2,(row['source_tick']+following['source_tick'])/2))
             values=[]
             for tick,source_tick in times:
-                try:check=checker.check(arm,body,tick/1e6,source_tick)
+                triangles={}
+                def collect(triangle,values):triangles.setdefault(triangle,Counter()).update(values)
+                try:check=checker.check(arm,body,tick/1e6,source_tick,on_triangle=collect if trace else None)
                 except ValueError as exc:check=dict(status='unmeasured',reason=str(exc),time=tick/1e6)
+                if trace:traces.setdefault(arm,[]).append(dict(body=body,time=tick/1e6,source_tick=source_tick,
+                    status=check['status'],triangles=triangles))
                 counts[check['status']]+=1
                 values.append(evidence(check,tick,source_tick,arm,body,pair['setup_front_slot']))
             sample=dict(row,**values[0])
@@ -64,6 +68,7 @@ def run(root,depth_root,output,index,*,torso=None):
         pair.update(samples=fresh,evidence_source='same_view_torso_plane_hand_interval_proxy')
         print(json.dumps(dict(stage='local_depth_complete',pair=[arm,body],counts=dict(counts))),flush=True)
     (output/'depth.json').write_text(json.dumps(checked,ensure_ascii=False),encoding='utf-8')
+    if trace:(output/'triangle-traces.json').write_text(json.dumps(traces),encoding='utf-8')
     proposed,order=build(doc,'external-motion',checked,probe)
     if proposed is not None:
         (output/'skeleton-candidate.json').write_text(json.dumps(proposed),encoding='utf-8')
@@ -81,4 +86,5 @@ if __name__=='__main__':
     for name in ('root','depth_root','output'):p.add_argument(name,type=Path)
     p.add_argument('--index',type=int,default=0)
     p.add_argument('--torso',type=Path)
-    a=p.parse_args();run(a.root,a.depth_root,a.output,a.index,torso=a.torso)
+    p.add_argument('--trace',action='store_true')
+    a=p.parse_args();run(a.root,a.depth_root,a.output,a.index,torso=a.torso,trace=a.trace)

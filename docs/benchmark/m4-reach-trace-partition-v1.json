@@ -1,0 +1,19 @@
+{
+  "authority": "none",
+  "selected": false,
+  "character": "Alice",
+  "source_candidate_sha256": "21969ed99dd41e85171f52842fc4754a8d8c4bd425fd722cf87a78ce94b9d437",
+  "trace_sha256": "9ee70d71c689483cae6732a51c334405995602ebc60f577ceb34e77f8b114403",
+  "status": "requires_representation_review",
+  "candidate_available": false,
+  "required_regions": 218,
+  "part_limit": 128,
+  "runtime_status": "not_evaluated",
+  "slots": [
+    {"slot": "layer-003", "samples": 241, "original_runs": 120, "coalesced_runs": 46},
+    {"slot": "layer-004", "samples": 241, "original_runs": 296, "coalesced_runs": 172, "mixed_triangle_time_samples": 17}
+  ],
+  "scope": "consecutive_compatible_partition_budget_not_proof_of_minimum_possible_partition_or_visual_failure",
+  "report": "../tmp/m4-motion-center/reach-live-yaw-comparison-v1/trace-partition-v2/0/report.json",
+  "next_action": "retain_existing_candidate_and_advance_squat_pose_support_work; do_not_raise_budget_or_suppress_ambiguous_samples"
+}
