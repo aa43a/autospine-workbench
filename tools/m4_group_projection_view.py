@@ -27,6 +27,7 @@ function draw(){const t=Number(slider.value);let index=0;for(let i=1;i<data.time
  const legs=(data.metrics[select.value]?.records||[]).filter(r=>r.group.startsWith('leg.'));
  const adjustments=record?.length_changes||[],blend=Math.max(0,...adjustments.map(r=>r.blend||0));
  document.getElementById('diagnostic').textContent=`不可达骨段采样：${failures.length}（不可达帧保留未约束投影，不算通过）。`+legs.map(r=>`${r.group} 新增脚踝位移/初始投影腿长：${(100*r.added_motion_over_initial_projected_chain).toFixed(2)}%`).join('；')+`。向源三维骨长调整的最大混合量：${(blend*100).toFixed(2)}%。保持源脚踝不等于真实脚底接触；膝分支尚未自动确定。`;
+ for(const row of record?.source_relative_continuity?.records||[])document.getElementById('diagnostic').textContent+=` ${row.side} 相对源三维方向变化的最大额外帧间角度 ${row.maximum_excess_step_degrees.toFixed(3)}°（${row.time.toFixed(3)} 秒，仅幅度对照）。`;
  window.projectionState={frame:index,time:data.times[index],variant:select.value};}
 function stop(){playing=false;document.getElementById('play').textContent='播放';}
 slider.oninput=()=>{stop();draw();};select.onchange=draw;

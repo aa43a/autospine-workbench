@@ -42,7 +42,9 @@ def main():
     from autospine_workbench.targets.character43.group_projection_constraints import preserve_ankles, measure
     original = variants['original']
     report['endpoint_constraints'] = []
-    from autospine_workbench.targets.character43.group_projection_lengths import constrain, continuity
+    from autospine_workbench.targets.character43.group_projection_lengths import constrain, continuity, source_continuity
+    report['source_continuity'] = source_continuity(segments, report['times'])
+    report['original_projection_continuity'] = continuity(variants['original'], report['times'])
     for name, frames in list(variants.items()):
         if name == 'original': continue
         for sign in (-1, 1):
@@ -62,6 +64,22 @@ def main():
                           for i, item in enumerate(bounded) for failure in item[1]]))
     report['endpoint_metrics'] = {name: measure(original, frames, report['times'])
                                   for name, frames in variants.items()}
+    for sign in (-1, 1):
+        frames = variants[next(name for name in modes if name != 'original')]
+        checked = [constrain(a, b, segments, i, sign, length_mode='source_lengths')
+                   for i, (a, b) in enumerate(zip(original, frames))]
+        label = f'源三维骨长保持 · 膝分支 {sign}'
+        variants[label] = [item[0] for item in checked]
+        report['endpoint_metrics'][label] = measure(original, variants[label], report['times'])
+        report['endpoint_constraints'].append(dict(variant=label,
+            length_changes=[dict(frame=i, **r) for i, item in enumerate(checked) for r in item[2]],
+            continuity=continuity(variants[label], report['times']),
+            failures=[dict(frame=i, time=report['times'][i], **failure)
+                      for i, item in enumerate(checked) for failure in item[1]]))
+    from autospine_workbench.targets.character43.group_projection_lengths import compare_continuity
+    for record in report['endpoint_constraints']:
+        if 'continuity' in record:
+            record['source_relative_continuity'] = compare_continuity(record['continuity'], report['source_continuity'], report['times'])
     args.output.write_text(json.dumps(report, ensure_ascii=False), encoding='utf-8')
     args.output.with_suffix('.html').write_text(render(report['times'], variants,
         report['endpoint_constraints'], report['endpoint_metrics']), encoding='utf-8')
