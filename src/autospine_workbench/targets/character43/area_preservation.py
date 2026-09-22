@@ -4,11 +4,15 @@ from ..spine43.continuous_pose import area
 
 
 def minimum_ratios(context):
+    contract=context.get('area_floor_contract')
+    if contract not in (None,'raw-compression-preservation-v1-experiment'):
+        raise ValueError('area_preservation_unknown_contract')
+    upper=2 if contract else 1
     values = context.get('minimum_ratios')
     if values is None:
         return [.5]*len(context['row']['triangles'])
     if (len(values) != len(context['row']['triangles']) or
-            any(not math.isfinite(v) or not .5 <= v <= 1 for v in values)):
+            any(not math.isfinite(v) or not .5 <= v <= upper for v in values)):
         raise ValueError('area_preservation_invalid_floors')
     return list(values)
 
