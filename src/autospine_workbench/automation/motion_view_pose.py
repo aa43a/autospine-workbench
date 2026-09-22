@@ -8,7 +8,8 @@ from ..targets.character43.source_hip_centers import extract as hip_centers
 PROFILE = 'constant-view-absolute-pose-hip-center-v1-experiment'
 
 
-def prepare(bundle, yaw):
+def prepare(bundle, yaw, *, post_contact=False):
+    if type(post_contact) is not bool:raise ValueError('view_pose_post_contact_invalid')
     vectors, roots, reference = extract(bundle)
     motion, view = compile_candidate(bundle.motion, vectors, roots, reference, yaw,
                                     precision=5 if bundle.source_kind=='kimodo_npz' else 12)
@@ -24,6 +25,10 @@ def prepare(bundle, yaw):
                 times=[t/motion['ticks_per_second'] for t in ticks],
                 source_motion_sha256=motion_ir_sha256(bundle.motion),yaw_degrees=yaw,
                 scope='shared_source_camera_not_reconstructed_character_surface')
+    if post_contact:
+        from .motion_post_contact import PROFILE as POST_PROFILE
+        from ..targets.character43.source_foot_orientation import extract as feet
+        pose.update(post_contact_profile=POST_PROFILE,foot_observations=feet(bundle,yaw=yaw))
     return motion, view, pose
 
 
@@ -34,3 +39,7 @@ def validate(pose, motion, view, time_range):
             or pose.get('yaw_degrees') != view.get('yaw_degrees')
             or pose.get('source_motion_sha256') != view.get('parent_motion_sha256')):
         raise ValueError('view_pose_identity_or_camera_mismatch')
+    if pose.get('post_contact_profile'):
+        feet=pose.get('foot_observations',{})
+        if feet.get('yaw_degrees',0) != pose['yaw_degrees']:
+            raise ValueError('view_pose_foot_camera_mismatch')

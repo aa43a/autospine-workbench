@@ -36,3 +36,11 @@ class ViewPoseTests(unittest.TestCase):
         (_,_,pose),vectors,centers=self.prepared(0)
         self.assertEqual(pose['vectors'],vectors)
         self.assertEqual(pose['hip_centers'],centers)
+
+    def test_oblique_contact_cannot_reuse_front_foot_observation(self):
+        (motion,view,pose),_,_=self.prepared(-45)
+        pose.update(post_contact_profile='source-pose-post-contact-margin-v1',foot_observations={})
+        with self.assertRaisesRegex(ValueError,'foot_camera_mismatch'):
+            validate(pose,motion,view,None)
+        pose['foot_observations']['yaw_degrees']=-45
+        validate(pose,motion,view,None)
