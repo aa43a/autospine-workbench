@@ -51,8 +51,16 @@ def stored_document(document):
                             data[i+offset] = f32(data[i+offset])
                         i += 4
     for animation in result['animations'].values():
-        if set(animation) - {'bones', 'attachments', 'drawOrder'}:
+        if set(animation) - {'bones', 'attachments', 'drawOrder', 'slots'}:
             raise ValueError('runtime_storage_animation_unsupported')
+        for name,tracks in animation.get('slots',{}).items():
+            if name not in {s['name'] for s in result['slots']} or set(tracks)-{'alpha'}:
+                raise ValueError('runtime_storage_slot_track_unsupported')
+            for key in tracks.get('alpha',[]):
+                if set(key)-{'time','value'} or not 0<=key.get('value',0)<=1:
+                    raise ValueError('runtime_storage_alpha_unsupported')
+                key['time']=f32(key.get('time',0));key['value']=f32(key.get('value',0))
+            require_distinct_times(tracks.get('alpha',[]))
         for key in animation.get('drawOrder', []):
             if set(key)-{'time', 'offsets'}:
                 raise ValueError('runtime_storage_draw_order_unsupported')

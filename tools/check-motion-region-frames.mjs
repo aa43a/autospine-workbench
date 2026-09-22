@@ -3,7 +3,9 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {pathToFileURL} from 'node:url';
-const [url,output,dependencies]=process.argv.slice(2);
+const [url,output,dependencies,timesArg]=process.argv.slice(2);
+const times=timesArg?JSON.parse(timesArg):[0,.8,.9,1.2,1.866667];
+assert.ok(Array.isArray(times)&&times.length>0&&times.length<=60&&times.every(t=>Number.isFinite(t)&&t>=0));
 const {chromium}=await import(pathToFileURL(path.resolve(dependencies,'node_modules/playwright-core/index.mjs')));
 const browser=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true,
   args:['--enable-webgl','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
@@ -13,9 +15,12 @@ try{
  await page.getByText('部件与遮挡对照',{exact:true}).click();
  await fs.mkdir(output,{recursive:true});
  const artifact=await page.evaluate(()=>window.characterPlayerControl.artifact),rows=[];
- for(const time of [0,.8,.9,1.2,1.866667]){
+ for(const time of times){
   for(const slot of ['full','layer-003','layer-004']){
    await page.selectOption('#inspect-a',slot==='full'?'':slot);
+   const overlay=slot+'-pose-material';
+   const hasOverlay=slot!=='full'&&await page.locator(`#inspect-b option[value="${overlay}"]`).count();
+   await page.selectOption('#inspect-b',hasOverlay?overlay:'');
    await page.selectOption('#inspect-mode',slot==='full'?'full':'isolate');
    assert.equal(await page.evaluate(t=>window.characterPlayerControl.seek(t),time),true);
    const file=`${slot}-${time}.png`;
@@ -32,10 +37,10 @@ try{
      return {screenshot_pixel:pixel,framebuffer_pixel:[x,y],rgba:Array.from(rgba)};
     },{pixel,time});
    }
-   rows.push({time,slot,file,pixelProbe,state:await page.evaluate(()=>window.characterPlayerState)});
+   rows.push({time,slot,file,overlay:hasOverlay?overlay:null,pixelProbe,state:await page.evaluate(()=>window.characterPlayerState)});
   }
  }
  await fs.writeFile(path.join(output,'report.json'),JSON.stringify({artifact,rows,authority:'none',selected:false},null,2));
- await fs.writeFile(path.join(output,'index.html'),'<!doctype html><meta charset="utf-8"><title>腿部同帧隔离</title><style>body{background:#172430;color:white;font:16px sans-serif}section{display:flex}figure{width:32%;margin:4px}img{width:100%;background:repeating-conic-gradient(#293849 0% 25%,#354558 0% 50%) 0/20px 20px}</style><h1>同帧、同相机完整角色与双腿</h1><p>只读隔离，不改变候选；不同区域的几何与外观分别判断。</p>'+[0,.8,.9,1.2,1.866667].map(t=>`<h2>${t} 秒</h2><section>${rows.filter(r=>r.time===t).map(r=>`<figure><figcaption>${r.slot}</figcaption><img src="${r.file}"></figure>`).join('')}</section>`).join(''));
+ await fs.writeFile(path.join(output,'index.html'),'<!doctype html><meta charset="utf-8"><title>腿部同帧隔离</title><style>body{background:#172430;color:white;font:16px sans-serif}section{display:flex}figure{width:32%;margin:4px}img{width:100%;background:repeating-conic-gradient(#293849 0% 25%,#354558 0% 50%) 0/20px 20px}</style><h1>同帧、同相机完整角色与双腿</h1><p>只读隔离，不改变候选；不同区域的几何与外观分别判断。</p>'+times.map(t=>`<h2>${t} 秒</h2><section>${rows.filter(r=>r.time===t).map(r=>`<figure><figcaption>${r.slot}</figcaption><img src="${r.file}"></figure>`).join('')}</section>`).join(''));
  console.log(JSON.stringify({artifact,captures:rows.length}));
 }finally{await browser.close();}

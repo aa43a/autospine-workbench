@@ -8,6 +8,16 @@ from autospine_workbench.targets.character43.runtime_storage_reference import bu
 
 
 class RuntimeStorageTests(unittest.TestCase):
+    def test_linear_alpha_is_quantized_but_attachment_switching_rejected(self):
+        doc=self.document();name='mesh';doc['slots']=[dict(name=name,bone='a')]
+        doc['animations']['walk']['slots']={name:{'alpha':[dict(time=.123456789,value=.3456789)]}}
+        key=stored_document(doc)['animations']['walk']['slots'][name]['alpha'][0]
+        self.assertEqual(key['time'],f32(.123456789));self.assertEqual(key['value'],f32(.3456789))
+        doc['animations']['walk']['slots'][name]['alpha']=[dict(time=0)]
+        self.assertEqual(stored_document(doc)['animations']['walk']['slots'][name]['alpha'][0]['value'],0)
+        doc['animations']['walk']['slots'][name]['attachment']=[dict(time=0,name='other')]
+        with self.assertRaisesRegex(ValueError,'slot_track_unsupported'):stored_document(doc)
+
     def test_shear_arrays_match_float32_storage(self):
         doc=self.document()
         doc['animations']['walk']['bones']['a']['shear']=[dict(time=.123456789,x=0,y=12.3456789)]

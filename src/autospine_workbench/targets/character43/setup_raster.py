@@ -1,6 +1,7 @@
 """Native-pixel setup comparison against source RGBA, without deleting faint pixels."""
 from io import BytesIO
 import math
+import re
 
 
 def compare_setup(document, reference, files, framebuffer, viewport):
@@ -23,6 +24,8 @@ def compare_setup(document, reference, files, framebuffer, viewport):
         actual = np.asarray(image.convert('RGBA'), dtype=np.float64)
     canvas = Image.new('RGBA', (width, height)); records = []
     for slot in document['slots']:
+        if slot.get('blend','normal')=='normal' and re.fullmatch(r'[0-9a-fA-F]{6}00',slot.get('color','ffffffff')):
+            continue  # Exact zero setup alpha contributes no source pixels.
         if slot.get('blend', 'normal') != 'normal' or slot.get('color', 'ffffffff') != 'ffffffff':
             raise ValueError('character_setup_blend_unsupported')
         mesh = document['skins'][0]['attachments'][slot['name']][slot['attachment']]

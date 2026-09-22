@@ -9,6 +9,14 @@ def png(color):
 
 
 class SetupRasterTests(unittest.TestCase):
+    def test_exactly_hidden_setup_material_is_ignored_but_faint_is_not(self):
+        self.doc['slots'].append(dict(name='hidden',attachment='missing',color='ffffff00'))
+        result=self.compare((200,40,80,255),(200,40,80,255))
+        self.assertEqual(result['max_pma_channel_error'],0)
+        self.doc['slots'][-1]['color']='ffffff01'
+        with self.assertRaisesRegex(ValueError,'blend_unsupported'):
+            self.compare((200,40,80,255),(200,40,80,255))
+
     def setUp(self):
         self.doc={'slots':[{'name':'s','attachment':'a'}], 'skins':[{'attachments':{'s':{'a':{
             'type':'mesh','path':'source','uvs':[0,0,1,0,1,1,0,1]}}}}]}
