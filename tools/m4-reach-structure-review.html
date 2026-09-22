@@ -1,0 +1,19 @@
+<!doctype html><html lang="zh"><meta charset="utf-8"><title>Reach 肩袖遮挡定位</title>
+<style>body{background:#15222d;color:#edf5fa;font:16px system-ui;margin:24px}button,select,input{margin:8px}main{display:flex;gap:24px;flex-wrap:wrap}section{width:45%;min-width:300px}svg{width:100%;height:600px;background:#293744}p{max-width:1050px}#time{width:55%}pre{white-space:pre-wrap;font-size:13px}</style>
+<h1>Reach 肩袖遮挡定位</h1><p>原纹理 UV 定位，共用时间轴。彩色三角形表示当前姿态与上衣重叠位置的深度代理证据，图像保持原纹理姿态，用于定位，不是动画预览。骨骼分组只采用最大权重，不能替代语义归属。</p>
+<p>绿色：前方；蓝色：后方；红色：同一三角形内前后混合；橙色：深度不确定；紫色：未知。透明区仍显示源纹理。此前整层排序跳变候选未采用。</p>
+<button id="play">播放定位</button><button id="reset">回到起点</button><input id="time" type="range" min="0" step="1"><output id="label"></output><main id="views"></main>
+<script>
+const data=/*DATA*/;const ns='http://www.w3.org/2000/svg', rows=data.rows;
+const seek=document.getElementById('time'), label=document.getElementById('label');
+const make=(tag,attrs)=>{const e=document.createElementNS(ns,tag);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);return e};
+const colors={F:'#22e58b',B:'#59a8ff',M:'#ff335a',A:'#ffb52a',U:'#c97dff'};
+const views=rows.map(row=>{const s=document.createElement('section'),h=document.createElement('h2');h.textContent=row.slot;s.append(h);
+const svg=make('svg',{viewBox:`0 0 ${row.width} ${row.height}`,preserveAspectRatio:'xMidYMid meet'}),img=make('image',{href:row.texture,width:row.width,height:row.height});svg.append(img);
+const layer=make('g',{transform:`scale(${row.width} ${row.height})`});svg.append(layer);s.append(svg);const summary=document.createElement('pre');summary.textContent=JSON.stringify(row.groups,null,2);s.append(summary);document.getElementById('views').append(s);return {svg,layer,row};});
+if(!rows.every(r=>JSON.stringify(r.frames.map(f=>f.time))===JSON.stringify(rows[0].frames.map(f=>f.time))))throw Error('时间轴不一致');
+seek.max=rows[0].frames.length-1;let playing=false,last=0;
+function render(){const i=Number(seek.value);label.textContent=rows[0].frames[i].time.toFixed(6)+' 秒';for(const {layer,row}of views){layer.replaceChildren();for(const[t,state]of row.frames[i].marked){const ids=row.triangles.slice(t*3,t*3+3);const points=ids.map(v=>row.uvs[v*2]+','+row.uvs[v*2+1]).join(' ');const p=make('polygon',{points,fill:colors[state],'fill-opacity':'.45',stroke:colors[state],'stroke-width':'.001'});const title=make('title',{});title.textContent='三角形 '+t+' / '+state;p.append(title);layer.append(p);}}window.structureReviewState={time:rows[0].frames[i].time,candidate:data.candidate};}
+seek.value=0;seek.oninput=()=>{playing=false;render()};document.getElementById('reset').onclick=()=>{playing=false;seek.value=0;render()};document.getElementById('play').onclick=()=>{playing=!playing;last=performance.now()};document.addEventListener('visibilitychange',()=>{if(document.hidden)playing=false});
+function tick(now){if(playing&&now-last>1000/60){seek.value=(Number(seek.value)+1)%rows[0].frames.length;render();last=now}requestAnimationFrame(tick)}render();requestAnimationFrame(tick);
+</script></html>
