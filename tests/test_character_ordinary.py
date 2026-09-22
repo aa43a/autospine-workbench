@@ -16,7 +16,7 @@ class OrdinaryCharacterTests(unittest.TestCase):
     def test_explicit_current_route_only_and_never_skip_existing_repair(self):
         with TemporaryDirectory() as root:
             projects=SimpleNamespace(state_root=Path(root),get_project=lambda _:dict(resolved=dict(sha256='a'*64,layers=[])));sleeves=Mock()
-            sleeves.overview.return_value={'job':None}
+            sleeves.has_job.return_value=False
             with self.assertRaisesRegex(RuntimeError,'confirmation_required'):route_source(projects,sleeves,'sample','a'*64)
             folder=Path(root)/'project-route-v1/sample';folder.mkdir(parents=True)
             value=dict(schema='autospine.project-route-choice/v1',project_id='sample',source_sha256='a'*64,
@@ -24,7 +24,7 @@ class OrdinaryCharacterTests(unittest.TestCase):
             (folder/'revision-000000000001.json').write_bytes(canonical_bytes(value))
             self.assertEqual(len(route_source(projects,sleeves,'sample','a'*64)),64)
             with self.assertRaisesRegex(RuntimeError,'confirmation_required'):route_source(projects,sleeves,'sample','b'*64)
-            sleeves.overview.return_value={'job':{'status':'failed'}}
+            sleeves.has_job.return_value=True
             with self.assertRaisesRegex(RuntimeError,'resolution_required'):route_source(projects,sleeves,'sample','a'*64)
 
     def test_package_keeps_original_scene_and_all_unbound_statuses(self):

@@ -50,6 +50,21 @@ class SleeveWebJobs:
         from .sleeve_draft_source import available
         return dict(project_id=project,can_build=available(self.projects,self.drafts,project),authority='none',job=latest)
 
+    def has_job(self, project):
+        """Any repair history blocks ordinary fallback, regardless of its outcome.
+
+        This is an existence guard, not candidate validation. Do not load annotation
+        meshes or compute onboarding readiness merely to answer this question.
+        """
+        require_safe_token(project, 'project')
+        self.projects.get_project(project)
+        if self.root.exists():
+            directory(self.root)
+            for path in self.root.glob('job-*/request.json'):
+                if read_document(path)['project_id'] == project:
+                    return True
+        return False
+
     def _draft_sha(self,project):
         from .sleeve_draft_source import read
         return sha256(read(self.projects,self.drafts,project)).hexdigest()

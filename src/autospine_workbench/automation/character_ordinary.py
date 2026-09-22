@@ -17,7 +17,7 @@ def route_source(projects, sleeves, project, resolved):
     if not saved or saved['source_sha256'] != resolved or saved['choice'] != 'ordinary':
         raise PipelineRunError('character_route_confirmation_required')
     # A failed/withdrawn repair is not permission to silently fall back to old weights.
-    if sleeves.overview(project).get('job') is not None:
+    if sleeves.has_job(project):
         raise PipelineRunError('character_sleeve_resolution_required')
     return canonical_sha256(saved)
 

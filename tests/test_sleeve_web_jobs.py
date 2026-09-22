@@ -26,6 +26,28 @@ class SleeveWebTests(unittest.TestCase):
         with patch.object(self.manager._pool,'submit'):
             return self.manager.submit('huiye',self.sha)
 
+    def test_history_guard_avoids_annotation_readiness_and_retains_canceled_jobs(self):
+        self.assertFalse(self.manager.has_job('huiye'))
+        job = self.submit()
+        with patch('autospine_workbench.automation.sleeve_draft_source.available',
+                   side_effect=AssertionError('unnecessary annotation load')):
+            self.assertTrue(self.manager.has_job('huiye'))
+            self.assertFalse(self.manager.has_job('uuz'))
+            self.manager.cancel('huiye', job['job_id'])
+            self.manager._jobs.clear()
+            self.assertTrue(self.manager.has_job('huiye'))
+
+    def test_history_guard_does_not_ignore_unreadable_requests(self):
+        job = self.submit()
+        path = self.manager._path(job['job_id']) / 'request.json'
+        original = path.read_bytes()
+        try:
+            path.write_text('invalid')
+            with self.assertRaises((ValueError, RuntimeError)):
+                self.manager.has_job('huiye')
+        finally:
+            path.write_bytes(original)
+
     def test_pending_cancel_is_persistent_idempotent_and_skips_execution(self):
         job=self.submit();job_id=job['job_id'];root=self.manager._path(job_id)
         with self.assertRaisesRegex(RuntimeError,'not_found'):self.manager.cancel('uuz',job_id)
