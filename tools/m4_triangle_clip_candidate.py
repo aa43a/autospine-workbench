@@ -7,7 +7,7 @@ from autospine_workbench.targets.character43.depth_partition_compact import comp
 from m4_halfplane_clips import rectangles
 
 
-def build(document, report, arm, body):
+def build(document, report, arm, body, *, group_pixels=None, boundary_guard=0):
     candidate = deepcopy(document)
     if report.get('side') != 'front' or report['arm'] != arm:
         raise ValueError('triangle_clip_field_identity')
@@ -69,11 +69,19 @@ def build(document, report, arm, body):
 
     for side, selected in [('front', front), ('back', back)]:
         if selected.any(): part('m4-tri-'+side+'-static', triangles[selected], side)
-    for index in dynamic:
+    if group_pixels is None:
+        groups = [[int(i)] for i in dynamic]
+    else:
+        from m4_clip_groups import group
+        if not 0 < group_pixels <= .05: raise ValueError('triangle_clip_group_error_budget')
+        groups = group(points, values, triangles, dynamic, pixel_tolerance=group_pixels)
+    for members in groups:
+        index = members[0]
         tri = triangles[index]
-        quads = [rectangles(p[tri], v[tri]) for p, v in zip(points, values)]
+        used = sorted(set(triangles[members].flatten()))
+        quads = [rectangles(p[tri], v[tri], support=p[used], boundary_guard=boundary_guard) for p, v in zip(points, values)]
         for side in ('back', 'front'):
-            part(f'm4-tri-{side}-{index:04d}', triangles[index:index+1], side, [q[side] for q in quads])
+            part(f'm4-tri-{side}-{index:04d}', triangles[members], side, [q[side] for q in quads])
     candidate['slots'] = []
     for slot in document['slots']:
         candidate['slots'].extend(output['back'] if slot['name'] == arm else [deepcopy(slot)])
@@ -90,5 +98,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ('source', 'field', 'output'): parser.add_argument(name, type=Path)
     parser.add_argument('--arm', required=True); parser.add_argument('--body', required=True)
+    parser.add_argument('--group-pixels', type=float)
+    parser.add_argument('--boundary-guard', type=float, default=0)
     args = parser.parse_args()
-    run(args.source, args.field, args.output, args.arm, args.body, candidate_builder=build)
+    from functools import partial
+    run(args.source, args.field, args.output, args.arm, args.body,
+        candidate_builder=partial(build, group_pixels=args.group_pixels, boundary_guard=args.boundary_guard),
+        experiment=dict(profile='ordinary-halfplane-group-v1', sampled_boundary_error_pixels=args.group_pixels,
+                        boundary_guard_pixels=args.boundary_guard))

@@ -27,6 +27,15 @@ class HalfplaneTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 rectangles(points, values)
 
+    def test_guard_is_bounded_and_only_expands_shared_boundary(self):
+        points = [[0, 0], [10, 0], [0, 10]]
+        q = rectangles(points, [-5, 5, -5], boundary_guard=.001)
+        probes = [[4.9995, 2], [5.0005, 2]]
+        self.assertTrue(contains(q['front'], probes).all())
+        self.assertTrue(contains(q['back'], probes).all())
+        for guard in (-1, .002, float('nan')):
+            with self.assertRaises(ValueError): rectangles(points, [-5, 5, -5], boundary_guard=guard)
+
 
 if __name__ == '__main__':
     unittest.main()

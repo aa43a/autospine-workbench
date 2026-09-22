@@ -2,7 +2,9 @@
 import numpy as np
 
 
-def rectangles(points, values):
+def rectangles(points, values, *, support=None, boundary_guard=0):
+    if not np.isfinite(boundary_guard) or not 0 <= boundary_guard <= .001:
+        raise ValueError('halfplane_boundary_guard')
     points = np.asarray(points, dtype=float)
     values = np.asarray(values, dtype=float)
     if points.shape != (3, 2) or values.shape != (3,):
@@ -16,7 +18,10 @@ def rectangles(points, values):
         raise ValueError('halfplane_degenerate_triangle')
     gradient = np.linalg.solve(matrix, values)
     length = np.linalg.norm(gradient[:2])
-    radius = float(np.linalg.norm(local, axis=1).max()) + 2
+    support = points if support is None else np.asarray(support, dtype=float)
+    if support.ndim != 2 or support.shape[1] != 2 or not len(support) or not np.isfinite(support).all():
+        raise ValueError('halfplane_support')
+    radius = float(np.linalg.norm(support-center, axis=1).max()) + 2
     if length <= 1e-12:
         normal = np.array([1., 0.])
         boundary = -radius if gradient[2] >= 0 else radius
@@ -31,7 +36,7 @@ def rectangles(points, values):
                 for x, y in ((lower, -extent), (upper, -extent),
                              (upper, extent), (lower, extent))]
 
-    return dict(front=quad(boundary, extent), back=quad(-extent, boundary))
+    return dict(front=quad(boundary-boundary_guard, extent), back=quad(-extent, boundary+boundary_guard))
 
 
 def contains(quad, points, tolerance=1e-8):

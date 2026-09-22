@@ -69,7 +69,7 @@ def build(document, report, arm, body):
     return candidate
 
 
-def run(source,segments,output,arm,body,*,crop=None,material_bones=None,candidate_builder=build):
+def run(source,segments,output,arm,body,*,crop=None,material_bones=None,candidate_builder=build,experiment=None):
     camera=None if crop is None else crop_camera(crop)
     receipt=json.loads((source/'report.json').read_bytes());raw=segments.read_bytes();report=json.loads(raw)
     parent=receipt['candidate_bundle_sha256']
@@ -94,7 +94,7 @@ def run(source,segments,output,arm,body,*,crop=None,material_bones=None,candidat
     isolated['skeleton.json']=canonical_bytes(candidate)
     isolated.update(additions)
     if material_report is not None:isolated['root-material-experiment.json']=canonical_bytes(material_report)
-    isolated['clipping-experiment.json']=canonical_bytes(dict(parent=parent,segments_sha256=sha256(raw).hexdigest(),authority='none',selected=False))
+    isolated['clipping-experiment.json']=canonical_bytes(dict(parent=parent,segments_sha256=sha256(raw).hexdigest(),authority='none',selected=False,experiment=experiment))
     digest=AnimatedStore(output/'isolated-store').publish(isolated)
     for label,doc,address in [('before',document,parent),('after',candidate,digest)]:
         target=output/label/'runtime';target.mkdir(parents=True)
@@ -116,7 +116,7 @@ def run(source,segments,output,arm,body,*,crop=None,material_bones=None,candidat
         view_scope='full_character' if camera is None else 'diagnostic_world_crop',camera=camera,
         note=(f'右肩源骨架深度代理，{count} 个拓扑区间。' if candidate_builder is build else '逐三角形普通裁剪实验，固定四顶点时间轴。')+('另含近端连接片材料实验；不固定远端袖布。' if additions else '')+'尚未通过裁剪数值、跨图层、插值深度和视觉验收；左臂未修复。',rows=[dict(label='Reach',views=views)])))
     for name,target in [('m4-reach-comparison.html','index.html'),('m4-reach-comparison.js','comparison.js')]:shutil.copy2(Path('tools')/name,output/target)
-    (output/'report.json').write_bytes(canonical_bytes(dict(parent=parent,candidate=digest,authority='none',selected=False,segments=count,runtime_status='not_evaluated',runtime_sha256=runtime['runtime_sha256'],material=material_report)))
+    (output/'report.json').write_bytes(canonical_bytes(dict(parent=parent,candidate=digest,authority='none',selected=False,segments=count,runtime_status='not_evaluated',runtime_sha256=runtime['runtime_sha256'],material=material_report,experiment=experiment)))
     print(digest)
 
 
