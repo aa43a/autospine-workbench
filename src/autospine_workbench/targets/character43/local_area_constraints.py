@@ -3,8 +3,9 @@ import math
 from .interpolation_area_margin import targets
 
 
-def refine(context,base,initial,*,analytic=False,expanded=False):
+def refine(context,base,initial,*,analytic=False,expanded=False,recover_source=False,recover_area=False):
     if expanded and not analytic:raise ValueError('expanded_area_requires_analytic_derivatives')
+    if recover_area and not (analytic and recover_source):raise ValueError('area_recovery_requires_source_analytic')
     import numpy as np
     from scipy.optimize import minimize
     triangles=np.asarray(context['row']['triangles'],dtype=int)
@@ -22,6 +23,10 @@ def refine(context,base,initial,*,analytic=False,expanded=False):
     lower=np.maximum(.50001,floors)
     values=ratios(points);bad=np.flatnonzero((values<lower)|(values>1.99999))
     touched=set(triangles[bad].flat)
+    if recover_source:
+        # Include compressed but formally valid triangles in the local repair.
+        compressed=np.flatnonzero(values<np.minimum(ratios(origin),1.)-1e-7)
+        touched.update(triangles[compressed].flat)
     touched.update(edges[np.linalg.norm(points[edges[:,0]]-points[edges[:,1]],axis=1)>1.99999*lengths].flat)
     neighborhood=set(touched)
     for tri in triangles:
@@ -33,6 +38,8 @@ def refine(context,base,initial,*,analytic=False,expanded=False):
     if 'minimum_ratios' in context:report['profile']='local-area-preservation-v1-experiment'
     if expanded:
         report.update(profile='expanded-area-analytic-v1-experiment',vertex_limit=128)
+    if recover_source:report['profile']='source-shape-local-recovery-v1-experiment'
+    if recover_area:report['profile']='source-area-local-recovery-v1-experiment'
     if not movable or len(movable)>(128 if expanded else 32):
         return initial,dict(report,status='local_patch_unavailable')
     indices=np.asarray(movable);size=len(indices)
@@ -48,14 +55,22 @@ def refine(context,base,initial,*,analytic=False,expanded=False):
     seed=(points[indices]-origin[indices])/budget
     seed/=np.maximum(1,np.linalg.norm(seed,axis=1))[:,None]
     seed=seed.ravel()
+    target=np.zeros_like(seed) if recover_source else seed
     best=None
     derivatives={};constraint=dict(type='ineq',fun=constraints)
+    area_target=np.minimum(1.,np.maximum(.5,ratios(origin)))
+    def objective(v):
+        if not recover_area:return float(np.sum((v-target)**2))
+        deficit=np.minimum(0.,ratios(unpack(v))-area_target)
+        return float(np.sum(deficit**2)+.001*np.sum(v*v))
     if analytic:
         from .local_area_derivatives import jacobian
-        derivatives['jac']=lambda v:2*(v-seed)
+        derivatives['jac']=lambda v:2*(v-target)
         constraint['jac']=lambda v:jacobian(unpack(v),triangles,refs,edges,lengths,indices,budget,v)
+        if recover_area:
+            derivatives['jac']=lambda v:2*np.minimum(0.,ratios(unpack(v))-area_target)@constraint['jac'](v)[:len(triangles)]+.002*v
     for start in (seed,np.zeros_like(seed)):
-        result=minimize(lambda v:float(np.sum((v-seed)**2)),start,method='SLSQP',
+        result=minimize(objective,start,method='SLSQP',
             bounds=[(-1,1)]*len(seed),constraints=[constraint],**derivatives,
             options=dict(maxiter=400,ftol=1e-12))
         if not np.isfinite(result.x).all():continue

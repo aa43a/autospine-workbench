@@ -13,8 +13,9 @@ from autospine_workbench.targets.character43.local_area_constraints import refin
 from autospine_workbench.targets.spine43.continuous_pose import area
 
 
-def run(folder, attribution, output, *, expanded=False, repair_band=False, collar_band=False):
+def run(folder, attribution, output, *, expanded=False, repair_band=False, collar_band=False,recover_source=False,recover_area=False):
     if collar_band and not repair_band:raise ValueError('collar_band_requires_repair_band')
+    if recover_area and not recover_source:raise ValueError('area_recovery_requires_source')
     receipt=json.loads((folder/'report.json').read_bytes());evidence=json.loads(attribution.read_bytes())
     identity=receipt['candidate_bundle_sha256']
     if evidence['candidate']!=identity:raise ValueError('preservation_candidate_mismatch')
@@ -47,8 +48,14 @@ def run(folder, attribution, output, *, expanded=False, repair_band=False, colla
         context=dict(row={'triangles':triangles},areas=refs,edges=edges,
             lengths=[math.dist(setup[slot][a],setup[slot][b]) for a,b in edges],
             free=free,budget=row['budget_px'],minimum_ratios=floors)
-        points,solver=project(context,base,initial=initial)
-        if not solver['converged']:
+        if recover_source:
+            if 'fixed_repair_band' not in row:raise ValueError('source_recovery_requires_fixed_band')
+            band=row['fixed_repair_band']
+            for i in band:context['minimum_ratios'][i]=.5
+            points,solver=refine(context,base,initial,analytic=True,expanded=True,recover_source=True,recover_area=recover_area)
+        else:
+            points,solver=project(context,base,initial=initial)
+        if not recover_source and not solver['converged']:
             points,solver['local']=refine(context,base,points,analytic=True,**({'expanded':True} if expanded else {}))
         ratios=[area(points,t)/a for t,a in zip(triangles,refs)]
         failed=[i for i,(r,f) in enumerate(zip(ratios,floors)) if r<f-1e-7 or r>2]
@@ -56,15 +63,23 @@ def run(folder, attribution, output, *, expanded=False, repair_band=False, colla
         fixed=max((math.dist(a,b) for a,b,f in zip(base,points,free) if not f),default=0)
         stretch=max(math.dist(points[a],points[b])/length for (a,b),length in zip(edges,context['lengths']))
         index=target['triangle']
+        before_setup=[area(initial,t)/a for t,a in zip(triangles,setup_areas)]
+        after_setup=[area(points,t)/a for t,a in zip(triangles,setup_areas)]
         result=dict(slot=slot,time=time,triangle=index,solver=solver,
-            preservation_scope='outside_repair_and_collar_band' if collar_band else 'outside_one_ring_repair_band' if repair_band else 'all_triangles',repair_band=band,
+            minimum_setup_ratio_before=min(before_setup),minimum_setup_ratio_after=min(after_setup),
+            newly_failed_setup_triangles=[i for i,(a,b) in enumerate(zip(before_setup,after_setup)) if .5<=a<=2 and not .5<=b<=2],
+            source_recovery=recover_source,points=points if recover_source else None,
+            preservation_scope='outside_existing_fixed_band' if recover_source else 'outside_repair_and_collar_band' if collar_band else 'outside_one_ring_repair_band' if repair_band else 'all_triangles',repair_band=band,
             failed_triangles=failed,maximum_displacement=displacement,budget_px=context['budget'],
             maximum_fixed_displacement=fixed,max_edge_stretch=stretch,
             previous_setup_ratio=area(initial,triangles[index])/setup_areas[index],
             proposed_setup_ratio=area(points,triangles[index])/setup_areas[index],
             target_projected_floor=floors[index],proposed_projected_ratio=ratios[index],
             passed=not failed and displacement<=context['budget']+1e-7 and fixed<=1e-7 and stretch<=2+1e-7)
-        rows.append(result);print(json.dumps(result),flush=True)
+        result['passed_scope']='projected_constraints_only_not_original_setup_geometry'
+        result['eligible_for_sequence_experiment']=bool(result['passed'] and not result['newly_failed_setup_triangles']
+            and min(after_setup)>=min(before_setup) and result['proposed_setup_ratio']>result['previous_setup_ratio'])
+        rows.append(result);print(json.dumps({k:v for k,v in result.items() if k!='points'}),flush=True)
     with output.open('x',encoding='utf-8') as f:
         json.dump(dict(profile='healthy-area-preservation-probe-v1',candidate=identity,authority='none',
             selected=False,scope='attributed_poses_only_not_animation_or_visual_acceptance',rows=rows),f,indent=2)
@@ -76,4 +91,6 @@ if __name__=='__main__':
     parser.add_argument('--expanded',action='store_true')
     parser.add_argument('--repair-band',action='store_true')
     parser.add_argument('--collar-band',action='store_true')
-    args=parser.parse_args();run(args.folder,args.attribution,args.output,expanded=args.expanded,repair_band=args.repair_band,collar_band=args.collar_band)
+    parser.add_argument('--recover-source',action='store_true')
+    parser.add_argument('--recover-area',action='store_true')
+    args=parser.parse_args();run(args.folder,args.attribution,args.output,expanded=args.expanded,repair_band=args.repair_band,collar_band=args.collar_band,recover_source=args.recover_source,recover_area=args.recover_area)
