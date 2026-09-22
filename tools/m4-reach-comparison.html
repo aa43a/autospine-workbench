@@ -1,0 +1,9 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>Reach 同步视角实验</title>
+<style>body{background:#13212c;color:#e5edf4;font:16px system-ui;margin:20px}button,select{padding:9px;background:#234355;color:white;border:1px solid #678;padding:8px}header{position:sticky;top:0;background:#13212c;padding:12px}main{display:grid;grid-template-columns:1fr 1fr;gap:12px}iframe{width:100%;height:760px;border:1px solid #456}input{width:50%}.note{color:#ffd38a}output{font-variant-numeric:tabular-nums}</style>
+<header><h1>Reach：原视角与偏转视角同步对照</h1>
+<p class="note">两侧都采用源方向拟合，不是旧版本与新版本比较。仅调整肢体投影；躯干、根运动与正面素材未整体转为侧视。未启用局部修正、接触修正或遮挡重排；本页是诊断实验，不代表通过验收。</p>
+<label>角色 <select id="character"></select></label> <button id="play" disabled>播放</button> <button id="reset" disabled>回到起点</button>
+<label>时间 <input id="seek" type="range" min="0" max="1" value="0" step="0.001" disabled></label> <output id="time">加载中</output><p id="status" role="status"></p></header>
+<main><section><h2>原视角 0°</h2><p id="left-info"></p><iframe id="left" title="原视角实时动画"></iframe></section><section><h2>固定偏转 +45°</h2><p id="right-info"></p><iframe id="right" title="偏转视角实时动画"></iframe></section></main>
+<p>两侧使用官方 Runtime 实时计算；拖动总时间轴会暂停并同步。子窗口独立播放不会改变候选。<a href="comparison.json">实验身份与检查结果</a></p>
+<script src="comparison.js"></script></html>

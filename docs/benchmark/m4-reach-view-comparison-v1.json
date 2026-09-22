@@ -1,0 +1,137 @@
+{
+  "authority": "none",
+  "selected": false,
+  "rows": [
+    {
+      "job": "motion-76a6d4f31c104facb5bf066093aec4a0",
+      "views": [
+        {
+          "yaw": 0,
+          "url": "0/yaw-0/mesh/runtime/player.html",
+          "artifact": "42e6c92d16d2846a92cc45af443348ade615a46f2f68661876940a7d7086a7d7",
+          "geometry_passed": false,
+          "runtime_status": "passed",
+          "frames": 241,
+          "scope": "limbs_only_torso_root_artwork_not_reprojected",
+          "unreliable_samples": 20,
+          "direction_audit": "source_grid_only_not_whole_view_acceptance"
+        },
+        {
+          "yaw": 45,
+          "url": "0/yaw-45/mesh/runtime/player.html",
+          "artifact": "4e9a1ffcf258d93cea131161b913edc78069680b18addfdefc9bcf92db837c70",
+          "geometry_passed": true,
+          "runtime_status": "passed",
+          "frames": 241,
+          "scope": "limbs_only_torso_root_artwork_not_reprojected",
+          "unreliable_samples": 0,
+          "direction_audit": "source_grid_only_not_whole_view_acceptance"
+        }
+      ],
+      "project_id": "alice",
+      "source_identity": {
+        "bundle_sha256": "5f531a9327ad59abde64e643438baa794e5618b5629d59c0e3f9d4da990948b7",
+        "bvh_map_sha256": "f9d1995881e5623f72208050cc9b639d98b1317da3322e3480cf50a283fa7f5c",
+        "clip_id": "external.a4233c602a77a95c.front",
+        "clip_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "raw_bvh_byte_length": 342778,
+        "raw_bvh_sha256": "a4233c602a77a95c1473ef7ab3f277fa7ca6aec5a98b4d5407dea904194bb2f4",
+        "reused": false,
+        "run_sha256": "c48c0ffcb9338d2bc72a1013f1be8366de8ea5583419f979a9ac1c080b534207",
+        "source_kind": "bvh"
+      },
+      "label": "Alice"
+    },
+    {
+      "job": "motion-fdbf9bc8f31348ec85ae768aae704337",
+      "views": [
+        {
+          "yaw": 0,
+          "url": "1/yaw-0/mesh/runtime/player.html",
+          "artifact": "972ca6042adb47f6df003c3e659019b8baffaceea0480ea910ca222dd76723cb",
+          "geometry_passed": false,
+          "runtime_status": "passed",
+          "frames": 241,
+          "scope": "limbs_only_torso_root_artwork_not_reprojected",
+          "unreliable_samples": 20,
+          "direction_audit": "source_grid_only_not_whole_view_acceptance"
+        },
+        {
+          "yaw": 45,
+          "url": "1/yaw-45/mesh/runtime/player.html",
+          "artifact": "0e8bf5e57d280f7259ce29d8a046eac73fb94803eb26fc1638f89901745fb538",
+          "geometry_passed": true,
+          "runtime_status": "passed",
+          "frames": 241,
+          "scope": "limbs_only_torso_root_artwork_not_reprojected",
+          "unreliable_samples": 0,
+          "direction_audit": "source_grid_only_not_whole_view_acceptance"
+        }
+      ],
+      "project_id": "huiye",
+      "source_identity": {
+        "bundle_sha256": "5f531a9327ad59abde64e643438baa794e5618b5629d59c0e3f9d4da990948b7",
+        "bvh_map_sha256": "f9d1995881e5623f72208050cc9b639d98b1317da3322e3480cf50a283fa7f5c",
+        "clip_id": "external.a4233c602a77a95c.front",
+        "clip_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "raw_bvh_byte_length": 342778,
+        "raw_bvh_sha256": "a4233c602a77a95c1473ef7ab3f277fa7ca6aec5a98b4d5407dea904194bb2f4",
+        "reused": false,
+        "run_sha256": "c48c0ffcb9338d2bc72a1013f1be8366de8ea5583419f979a9ac1c080b534207",
+        "source_kind": "bvh"
+      },
+      "label": "辉夜"
+    },
+    {
+      "job": "motion-aa45429b532747c5954389a5c1a706c1",
+      "views": [
+        {
+          "yaw": 0,
+          "url": "2/yaw-0/mesh/runtime/player.html",
+          "artifact": "265719c6af3f508218db724fe47c5f23ce2c0f98813019a9518b8aefe65025e5",
+          "geometry_passed": false,
+          "runtime_status": "passed",
+          "frames": 241,
+          "scope": "limbs_only_torso_root_artwork_not_reprojected",
+          "unreliable_samples": 20,
+          "direction_audit": "source_grid_only_not_whole_view_acceptance"
+        },
+        {
+          "yaw": 45,
+          "url": "2/yaw-45/mesh/runtime/player.html",
+          "artifact": "909ce9ee37960d0f065f840a3de52588ce4a21903e3a95c58aefb8f45c2b31b6",
+          "geometry_passed": true,
+          "runtime_status": "passed",
+          "frames": 241,
+          "scope": "limbs_only_torso_root_artwork_not_reprojected",
+          "unreliable_samples": 0,
+          "direction_audit": "source_grid_only_not_whole_view_acceptance"
+        }
+      ],
+      "project_id": "imported-885b4d3d22ee151a0364ac499a419b8bd0e59699a7b27ee4f65f007eee551590",
+      "source_identity": {
+        "bundle_sha256": "5f531a9327ad59abde64e643438baa794e5618b5629d59c0e3f9d4da990948b7",
+        "bvh_map_sha256": "f9d1995881e5623f72208050cc9b639d98b1317da3322e3480cf50a283fa7f5c",
+        "clip_id": "external.a4233c602a77a95c.front",
+        "clip_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "raw_bvh_byte_length": 342778,
+        "raw_bvh_sha256": "a4233c602a77a95c1473ef7ab3f277fa7ca6aec5a98b4d5407dea904194bb2f4",
+        "reused": false,
+        "run_sha256": "c48c0ffcb9338d2bc72a1013f1be8366de8ea5583419f979a9ac1c080b534207",
+        "source_kind": "bvh"
+      },
+      "label": "红美铃"
+    }
+  ],
+  "scope": "absolute_limb_fit_only_no_contact_depth_or_torso_reprojection",
+  "visual_acceptance": "not_recorded",
+  "assistant_image_inspection": [
+    "Alice shoulder connection remains unnatural in inspected frame at 2.4 seconds."
+  ]
+}
