@@ -19,9 +19,10 @@ from autospine_workbench.targets.character43.skirt_candidate import inverse
 from autospine_workbench.targets.spine43.continuous_pose import area
 from autospine_workbench.asset.planning.component_local_solver import metrics
 from autospine_workbench.targets.character43.joint_cover_bounds import cover
+from autospine_workbench.targets.character43.directional_joint_cover import cover as directional_cover
 
 
-def run(source,output,slots,bounded_cover=False):
+def run(source,output,slots,bounded_cover=False,directional=False,probe_only=False):
     receipt=json.loads((source/'report.json').read_bytes());identity=receipt['candidate_bundle_sha256']
     _,_,pose,_,_,parent,_=load_stages(receipt['source_job_id'])
     if parent!=receipt['source_candidate_sha256']:raise ValueError('segmented_knee_source_mismatch')
@@ -66,7 +67,7 @@ def run(source,output,slots,bounded_cover=False):
                 def transform(frame,p):
                     a,b,c,d,x,y=frame;return [a*p[0]+b*p[1]+x,c*p[0]+d*p[1]+y]
                 target=[blend(p,center,frames,[.5,.5]) if index==1 else transform(frames[0 if index==0 else 1],p) for p in part['points']]
-                if index==1 and bounded_cover:
+                if index==1 and (bounded_cover or directional):
                     anchors=[]
                     for p in part['points']:
                         s=float((np.array(p)-center)@axis)
@@ -76,7 +77,10 @@ def run(source,output,slots,bounded_cover=False):
                     linear=np.column_stack(columns);det=float(np.linalg.det(linear));stretch=float(np.linalg.svd(linear,compute_uv=False)[0])
                     maximum=min(math.sqrt(2/det),2/stretch)
                     if maximum<1:raise ValueError('joint_cover_base_geometry_exceeded')
-                    target,check=cover(target,mapped_center,anchors,maximum,padding=.5)
+                    if directional:
+                        target,check=directional_cover(target,mapped_center,anchors,linear@np.column_stack([axis,normal]),padding=.5)
+                    else:
+                        target,check=cover(target,mapped_center,anchors,maximum,padding=.5)
                     cover_checks.append(dict(slot=slot,time=time,**check))
                 base=[transform(relative(rest['root'],current['root']),p) for p in part['points']]
                 keys.append(dict(time=time,vertices=[float(v) for v in local_delta(doc,influences,current,base,target)]))
@@ -93,14 +97,16 @@ def run(source,output,slots,bounded_cover=False):
     if animation['bones']!=original['animations'][name]['bones']:raise ValueError('segmented_knee_bones_changed')
     output.mkdir(parents=True,exist_ok=False)
     (output/'probe.json').write_bytes(canonical_bytes(dict(profile='segmented-knee-source-surfaces-v1',source=identity,
-        authority='none',selected=False,coverage=coverage,checks=checks,bounded_cover=bounded_cover,cover_checks=cover_checks,
+        authority='none',selected=False,coverage=coverage,checks=checks,bounded_cover=bounded_cover,
+        directional_cover=directional,cover_checks=cover_checks,
         limitations=['setup_area_uv_conservation_not_pixel_capture_proof','joint_front_order_is_experimental',
                      'ankle_contact_and_dynamic_overlap_not_validated','not_parent_full_dense_sample_grid'])))
     print(json.dumps(dict(surfaces=len(records),maximum_inversions=max(r['inversions'] for r in checks))),flush=True)
-    stage(doc,files,times,output/'trial',identity)
+    if not probe_only:stage(doc,files,times,output/'trial',identity)
 
 
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('source',type=Path);p.add_argument('output',type=Path)
     p.add_argument('--slots',nargs='+',required=True);p.add_argument('--bounded-cover',action='store_true')
-    a=p.parse_args();run(a.source,a.output,a.slots,a.bounded_cover)
+    p.add_argument('--directional-cover',action='store_true');p.add_argument('--probe-only',action='store_true')
+    a=p.parse_args();run(a.source,a.output,a.slots,a.bounded_cover,a.directional_cover,a.probe_only)

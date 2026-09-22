@@ -1,0 +1,30 @@
+{
+  "profile": "bounded-directional-joint-cover-v1",
+  "source": "0b8feb06ac10e2baa631b5e0dbbd170e48826f0e685f658c9ab796eacc4d9dcf",
+  "candidate": "18bc4730ff2003b02ec027bc27fa149c64eda35e54c3dd6923eb3e0b4b2c27a9",
+  "authority": "none",
+  "selected": false,
+  "target_version": "4.3.26",
+  "runtime_version": "4.3.13",
+  "source_boundary_checks": 114,
+  "source_boundary_covered": 114,
+  "runtime_numeric_passed": true,
+  "runtime_samples": 113,
+  "geometry_passed": false,
+  "visual_accepted": false,
+  "unselected_vertex_error_px": 0,
+  "baked_boundary_checks": [
+    {"slot": "layer-003", "samples": 113, "uncovered_samples": 0, "maximum_vertex_speed_px_s": 1144.8818851130598},
+    {"slot": "layer-004", "samples": 113, "uncovered_samples": 0, "maximum_vertex_speed_px_s": 1274.196812191013}
+  ],
+  "cover_geometry": [
+    {"slot": "layer-003-surface-1", "passed": true, "inversion_samples": 0, "max_area_ratio": 1.9398931816344374, "max_edge_stretch": 1.8095295737342652},
+    {"slot": "layer-004-surface-1", "passed": true, "inversion_samples": 0, "max_area_ratio": 1.3637369492612932, "max_edge_stretch": 1.2791990620280425}
+  ],
+  "visual_observation": "At 1.12 seconds large holes are reduced but stretched joint patches form protruding flaps; not visually usable.",
+  "limitations": ["convex coverage is not alpha proof", "speed is measured without a temporal acceptance claim", "original proximal area failures remain", "parent full dense sample grid not rerun"],
+  "browser_sync_seek_reverse_play_passed": true,
+  "evidence": "../tmp/m4-motion-center/squat-directional-cover-v2/hongmeiling",
+  "comparison": "http://127.0.0.1:14703/squat-directional-cover-v2/comparison/?time=1.12",
+  "next": "Stop uniform/directional cover tuning; use source bend-plane guided pose representation and explicit pose-art requirements."
+}
