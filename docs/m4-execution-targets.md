@@ -42,6 +42,7 @@ FBX/BVH 与 Kimodo 共用后续 MotionIR 链路；Kimodo 生成任务独立提�
 
 ## 证据
 
+- [deform 存储压缩验证](benchmark/m4-deform-storage-v1.md)：scene 降至 31.5 MB，官方解析 deform 位模式及 481 时刻渲染像素完全一致；槽位不变。下一切片回到前后边界插值与肩部材料外观。
 - [裁剪合并实测失败](benchmark/m4-group-clips-v1.md)：槽位降至 201，但出现不透明像素缺失，一次数值边界修正亦失败。停止近似合并调参；先考虑不改变几何的存储压缩，并继续核查插值和整角色肩部连接。
 - [固定四顶点连续普通裁剪首轮结果](benchmark/m4-triangle-clips-v1.md)：481 个实际动画采样无不透明像素丢失；仍有单像素差异、477 个手臂槽位及材料外观问题，未采用，作为后续对照。
 - [独立 Runtime 重构与 inverse 失败](benchmark/m4-material-reconstruction-v1.md)

@@ -7,7 +7,7 @@ from autospine_workbench.targets.character43.depth_partition_compact import comp
 from m4_halfplane_clips import rectangles
 
 
-def build(document, report, arm, body, *, group_pixels=None, boundary_guard=0):
+def build(document, report, arm, body, *, group_pixels=None, boundary_guard=0, compact_deform=False):
     candidate = deepcopy(document)
     if report.get('side') != 'front' or report['arm'] != arm:
         raise ValueError('triangle_clip_field_identity')
@@ -90,6 +90,9 @@ def build(document, report, arm, body, *, group_pixels=None, boundary_guard=0):
     for animation in candidate['animations'].values():
         animation.get('attachments', {}).get('default', {}).pop(arm, None)
     candidate, _ = compact(candidate, dict(regions=regions))
+    if compact_deform:
+        from autospine_workbench.targets.spine43.deform_storage import compact as compact_storage
+        candidate, _ = compact_storage(candidate)
     return candidate
 
 
@@ -100,9 +103,10 @@ if __name__ == '__main__':
     parser.add_argument('--arm', required=True); parser.add_argument('--body', required=True)
     parser.add_argument('--group-pixels', type=float)
     parser.add_argument('--boundary-guard', type=float, default=0)
+    parser.add_argument('--compact-deform', action='store_true')
     args = parser.parse_args()
     from functools import partial
     run(args.source, args.field, args.output, args.arm, args.body,
-        candidate_builder=partial(build, group_pixels=args.group_pixels, boundary_guard=args.boundary_guard),
+        candidate_builder=partial(build, group_pixels=args.group_pixels, boundary_guard=args.boundary_guard, compact_deform=args.compact_deform),
         experiment=dict(profile='ordinary-halfplane-group-v1', sampled_boundary_error_pixels=args.group_pixels,
-                        boundary_guard_pixels=args.boundary_guard))
+                        boundary_guard_pixels=args.boundary_guard, compact_deform_float32=args.compact_deform))

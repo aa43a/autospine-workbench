@@ -5,7 +5,7 @@ import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {pathToFileURL} from 'node:url';
 const [url,deps,chrome,folder,fieldPath,referenceUrl,mode='union']=process.argv.slice(2);
-assert.ok(['union','front','back'].includes(mode));assert.ok(mode==='union'||referenceUrl);
+assert.ok(['union','front','back','equivalent'].includes(mode));assert.ok(mode==='union'||referenceUrl);
 const hash=b=>createHash('sha256').update(b).digest('hex');
 const receipt=JSON.parse(await fs.readFile(path.join(folder,'report.json')));
 const fieldRaw=await fs.readFile(fieldPath),field=JSON.parse(fieldRaw);
@@ -42,7 +42,7 @@ try {
   assert.deepEqual(reference.textures,after.textures);assert.equal(reference.atlas,after.atlas);
  }
  const docs=mode==='union'?[isolate(before.skeleton,[field.arm]),isolate(after.skeleton,after.skeleton.slots.filter(s=>s.name.startsWith('m4-tri-')).map(s=>s.name))]:
-   [reference,after].map(scene=>isolate(scene.skeleton,scene.skeleton.slots.filter(s=>s.name.startsWith(`m4-tri-${mode}-`)).map(s=>s.name)));
+   [reference,after].map(scene=>isolate(scene.skeleton,scene.skeleton.slots.filter(s=>s.name.startsWith(mode==='equivalent'?'m4-tri-':`m4-tri-${mode}-`)).map(s=>s.name)));
  const result=await page.evaluate(async({docs,empty,atlasText,textures,info,times})=>{
   const {left,bottom,width,height}=info;if(width*height>4194304)throw Error('camera budget');
   const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
@@ -69,6 +69,7 @@ try {
  result.image_inventory=[];for(const image of result.images){const bytes=Buffer.from(image.data,'base64');await fs.writeFile(path.join(output,image.name),bytes);result.image_inventory.push({name:image.name,sha256:hash(bytes)});}delete result.images;
  Object.assign(result,{authority:'none',selected:false,parent:receipt.parent,candidate:receipt.candidate,field_sha256:hash(fieldRaw),scene_sha256:raws.map(hash),runtime_sha256:hash(runtime),reference_candidate:referenceReceipt?.candidate??null,comparison_mode:mode,
   opaque_coverage_status:mode!=='union'?'side_difference_not_coverage_gate':result.rows.some(r=>r.missing>0)?'failed':'sampled_pass_other_gates_unverified',
+  exact_render_status:mode==='equivalent'?(result.rows.every(r=>r.maximum===0)?'sampled_identical':'failed'):'not_evaluated',
   scope:'animated_isolated_arm_samples_not_full_character_visual_acceptance'});
  await fs.writeFile(path.join(output,'report.json'),JSON.stringify(result,null,2));
  console.log(JSON.stringify({samples:result.rows.length,missing:Math.max(...result.rows.map(r=>r.missing)),over8:Math.max(...result.rows.map(r=>r.over8)),maximum:Math.max(...result.rows.map(r=>r.maximum)),slots:result.slots,elapsed_ms:result.elapsed_ms}));
