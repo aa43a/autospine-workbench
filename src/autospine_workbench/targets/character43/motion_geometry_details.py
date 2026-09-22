@@ -7,6 +7,7 @@ import numpy as np
 from .numeric_reference import read
 from .affine_pose import matrices, sample
 from .projected_area_reference import reference as projected_reference
+from .triangle_shape_evidence import build as shape_evidence
 
 
 def build(files, artifact, *, limit=12):
@@ -96,6 +97,12 @@ def build(files, artifact, *, limit=12):
                 texture_uv=[mesh['uvs'][v*2:v*2+2] for v in tri],
                 sampled_world=[frame['vertices'][slot][v] for v in tri],
                 bones=sorted({doc['bones'][b]['name'] for v in tri for b,w in influences[v] if w>0})))
+            try:
+                details[-1]['shape_evidence']=shape_evidence(base[tri],
+                    np.asarray(frame['vertices'][slot])[tri],p,[influences[v] for v in tri],
+                    doc['bones'],rest_matrix,matrices(doc,name,time))
+            except ValueError as exc:
+                details[-1]['shape_evidence']=dict(status='unavailable',reason=str(exc))
         texture=files['images/'+mesh.get('path',slot)+'.png']
         if len(texture)>8*1024*1024:raise ValueError('geometry_detail_texture_budget')
         rows.append(dict(slot=slot,animation=name,failed_area_triangles=len(failed),

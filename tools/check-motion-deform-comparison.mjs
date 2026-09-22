@@ -20,6 +20,8 @@ try {
   assert.ok(Number.isFinite(detail.without_deform_setup_ratio));
   assert.ok(Math.abs(detail.setup_ratio-detail.without_deform_setup_ratio-detail.deform_area_delta_ratio)<1e-12);
   await card.getByText(/同时刻移除局部 deform 后/).first().waitFor();
+  await card.getByLabel('投影与局部形状对照').filter({hasText:'三角形主方向伸缩'}).first().waitFor();
+  assert.ok(Number.isFinite(detail.shape_evidence.actual.minimum_stretch));
   await card.getByRole('combobox',{name:report.rows[0].slot+' 异常区域'}).selectOption('1');
   assert.equal(report.selected,false);
   assert.deepEqual(errors,[]);

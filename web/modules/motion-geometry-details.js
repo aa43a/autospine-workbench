@@ -1,3 +1,4 @@
+import {describeShape} from './motion-shape-evidence.js';
 const node = (tag, text) => {
   const element = document.createElement(tag);
   if (text !== undefined) element.textContent = text;
@@ -49,9 +50,11 @@ function renderRow(panel, row, base, onSeek, onInspect) {
   const canvas = node('canvas'); canvas.style.cssText = 'display:block;max-width:100%;max-height:480px;background:#263442';
   canvas.setAttribute('aria-label', '原始纹理及异常三角形位置');
   const detailText = node('p'); const seek = node('a', onInspect ? '定位时间并高亮动作区域' : '定位到此动作时刻');
+  const shapeText = node('p');shapeText.setAttribute('aria-label','投影与局部形状对照');
   const image = new Image();
   const draw = () => {
     const detail = row.details[Number(select.value)];
+    shapeText.textContent=describeShape(detail.shape_evidence);
     detailText.textContent = `此时面积/原姿态：${detail.setup_ratio.toFixed(3)}；投影参考/原姿态：${detail.projected_reference_ratio?.toFixed(3) ?? '不可用'}。影响骨骼：${detail.bones.join('、')}。`;
     if (Number.isFinite(detail.without_deform_setup_ratio)) {
       detailText.append(` 同时刻移除局部 deform 后：${detail.without_deform_setup_ratio.toFixed(3)}；修正造成的面积比变化：${detail.deform_area_delta_ratio.toFixed(3)}（正值表示面积增加，未必更自然）。`);
@@ -78,7 +81,7 @@ function renderRow(panel, row, base, onSeek, onInspect) {
   };
   select.onchange = draw; image.onload = draw;
   image.onerror = () => {detailText.append(' 原纹理加载失败。');};
-  section.append(select, canvas, detailText, seek, node('p', row.note),
+  section.append(select, canvas, detailText, shapeText, seek, node('p', row.note),
     node('p', '下一步：在此时刻对照源姿态与整体轮廓，再选择局部修正、分区或姿态附件；这些选项尚不自动改动素材。'));
   draw(); image.src = row.texture;
 }
