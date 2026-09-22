@@ -69,13 +69,13 @@ def build(document, report, arm, body):
     return candidate
 
 
-def run(source,segments,output,arm,body,*,crop=None,material_bones=None):
+def run(source,segments,output,arm,body,*,crop=None,material_bones=None,candidate_builder=build):
     camera=None if crop is None else crop_camera(crop)
     receipt=json.loads((source/'report.json').read_bytes());raw=segments.read_bytes();report=json.loads(raw)
     parent=receipt['candidate_bundle_sha256']
-    if report['parent']!=parent:raise ValueError('clip_candidate_parent')
+    if report.get('parent',report.get('candidate'))!=parent:raise ValueError('clip_candidate_parent')
     files=AnimatedStore(source/'isolated-store').read(parent);document=json.loads(files['skeleton.json'])
-    candidate=build(document,report,arm,body)
+    candidate=candidate_builder(document,report,arm,body)
     additions={};material_report=None
     if material_bones is not None:
         from m4_root_material import apply
@@ -111,10 +111,10 @@ def run(source,segments,output,arm,body,*,crop=None,material_bones=None):
         (target/'player-assets/scene.json').write_bytes(canonical_bytes(scene))
     views=[dict(url=f'{label}/runtime/player.html',artifact=address,geometry_passed=True if label=='before' else None,
                 runtime_status='既有数值证据' if label=='before' else '新裁剪实验，待验证',unreliable_samples='未统计') for label,address in [('before',parent),('after',digest)]]
-    count=len(report['segments'])
+    count=len(report.get('segments',[]))
     (output/'comparison.json').write_bytes(canonical_bytes(dict(authority='none',selected=False,title='Reach 连续裁剪边界实验',headings=['原候选（相同视角）','连续裁剪候选'],
         view_scope='full_character' if camera is None else 'diagnostic_world_crop',camera=camera,
-        note=f'右肩源骨架深度代理，{count} 个拓扑区间。'+('另含近端连接片材料实验；不固定远端袖布。' if additions else '')+'尚未通过裁剪数值、跨图层、插值深度和视觉验收；左臂未修复。',rows=[dict(label='Reach',views=views)])))
+        note=(f'右肩源骨架深度代理，{count} 个拓扑区间。' if candidate_builder is build else '逐三角形普通裁剪实验，固定四顶点时间轴。')+('另含近端连接片材料实验；不固定远端袖布。' if additions else '')+'尚未通过裁剪数值、跨图层、插值深度和视觉验收；左臂未修复。',rows=[dict(label='Reach',views=views)])))
     for name,target in [('m4-reach-comparison.html','index.html'),('m4-reach-comparison.js','comparison.js')]:shutil.copy2(Path('tools')/name,output/target)
     (output/'report.json').write_bytes(canonical_bytes(dict(parent=parent,candidate=digest,authority='none',selected=False,segments=count,runtime_status='not_evaluated',runtime_sha256=runtime['runtime_sha256'],material=material_report)))
     print(digest)

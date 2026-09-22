@@ -48,7 +48,7 @@ def run(source,evidence,output,arm,side='front'):
                 status='single_loop' if len(contour['loops'])==1 else 'empty' if not contour['loops'] else 'multiple_loops'
             except ValueError as error:
                 contour=dict(loops=[]);status=str(error)
-            rows.append(dict(time=time,status=status,margin=margin,**contour))
+            rows.append(dict(time=time,status=status,margin=margin,vertices=points,depth_values=values,**contour))
     report=dict(candidate=digest,source_identity=identity,depth_sha256=sha256(raw).hexdigest(),arm=arm,side=side,rows=rows,
                 statuses=dict(Counter(r['status'] for r in rows)),authority='none',selected=False,
                 scope='positive_lower_bound_proxy_contours_not_interpolated_clipping_or_visual_acceptance')
