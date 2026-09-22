@@ -1,0 +1,165 @@
+{
+  "authority": "none",
+  "selected": false,
+  "rows": [
+    {
+      "character": "Alice",
+      "candidate": "4eaad46c8f4c596a8bf1b19a42ab8b99b3d8703a05105908d2d689b50be81e08",
+      "yaw": 45,
+      "status": "depth_candidates_need_review",
+      "groups": {
+        "left": [
+          "layer-004"
+        ],
+        "right": [
+          "layer-003"
+        ],
+        "torso": [
+          "layer-006"
+        ],
+        "other": [
+          "layer-000",
+          "layer-001-l",
+          "layer-001-r",
+          "layer-002-l",
+          "layer-002-r",
+          "layer-005",
+          "layer-007",
+          "layer-008-component-0000",
+          "layer-008-unbound-residual",
+          "layer-009",
+          "layer-010",
+          "layer-011",
+          "layer-012",
+          "layer-013",
+          "layer-014",
+          "layer-015",
+          "layer-016",
+          "layer-017",
+          "layer-018",
+          "layer-019",
+          "layer-020",
+          "layer-021",
+          "layer-022"
+        ]
+      },
+      "target_overlap": {
+        "profile": "external-depth-sparse-alpha-overlap-v1-experiment",
+        "visible_pair_samples": 242,
+        "ambiguous_visible_pair_samples": 82,
+        "order_mismatch_pair_samples": 119,
+        "unmeasured_pair_samples": 0,
+        "alpha_threshold": 8,
+        "pixel_budget": 64000000,
+        "sampled_pixel_budget_used": 8199524,
+        "scope": "cpu_native_pixel_centres_bilinear_alpha_not_gpu_or_continuous_time"
+      },
+      "zero_yaw_comparison_changed_pair_samples": 221
+    },
+    {
+      "character": "辉夜",
+      "candidate": "a8c70444b4857af11ba8303d7f0bc3e39fb8c112c8bcbefbcb4b3b5e734a06b6",
+      "yaw": 45,
+      "status": "depth_candidates_need_review",
+      "groups": {
+        "left": [
+          "layer-003-component-0000"
+        ],
+        "right": [
+          "layer-002-component-0000"
+        ],
+        "torso": [
+          "layer-005"
+        ],
+        "other": [
+          "layer-000",
+          "layer-001-l",
+          "layer-001-r",
+          "layer-004",
+          "layer-006",
+          "layer-007",
+          "layer-008",
+          "layer-009",
+          "layer-010",
+          "layer-011",
+          "layer-012",
+          "layer-013",
+          "layer-014",
+          "layer-015",
+          "layer-016",
+          "layer-017",
+          "layer-018",
+          "layer-019",
+          "layer-020"
+        ]
+      },
+      "target_overlap": {
+        "profile": "external-depth-sparse-alpha-overlap-v1-experiment",
+        "visible_pair_samples": 242,
+        "ambiguous_visible_pair_samples": 82,
+        "order_mismatch_pair_samples": 119,
+        "unmeasured_pair_samples": 0,
+        "alpha_threshold": 8,
+        "pixel_budget": 64000000,
+        "sampled_pixel_budget_used": 57137284,
+        "scope": "cpu_native_pixel_centres_bilinear_alpha_not_gpu_or_continuous_time"
+      },
+      "zero_yaw_comparison_changed_pair_samples": 221
+    },
+    {
+      "character": "红美铃",
+      "candidate": "9ed7fc02c012ea90d6278e94dc357c1eb6c2f5ed770978a00b5c02829f5db1cf",
+      "yaw": 45,
+      "status": "depth_candidates_need_review",
+      "groups": {
+        "left": [
+          "layer-006"
+        ],
+        "right": [
+          "layer-001"
+        ],
+        "torso": [
+          "layer-009",
+          "layer-011"
+        ],
+        "other": [
+          "layer-000",
+          "layer-002",
+          "layer-003",
+          "layer-004",
+          "layer-005",
+          "layer-007",
+          "layer-008",
+          "layer-010",
+          "layer-012",
+          "layer-013",
+          "layer-014",
+          "layer-015",
+          "layer-016",
+          "layer-017",
+          "layer-018",
+          "layer-019",
+          "layer-020",
+          "layer-021",
+          "layer-022",
+          "layer-023",
+          "layer-024",
+          "layer-025",
+          "layer-026"
+        ]
+      },
+      "target_overlap": {
+        "profile": "external-depth-sparse-alpha-overlap-v1-experiment",
+        "visible_pair_samples": 363,
+        "ambiguous_visible_pair_samples": 164,
+        "order_mismatch_pair_samples": 119,
+        "unmeasured_pair_samples": 0,
+        "alpha_threshold": 8,
+        "pixel_budget": 64000000,
+        "sampled_pixel_budget_used": 4308710,
+        "scope": "cpu_native_pixel_centres_bilinear_alpha_not_gpu_or_continuous_time"
+      },
+      "zero_yaw_comparison_changed_pair_samples": 442
+    }
+  ]
+}

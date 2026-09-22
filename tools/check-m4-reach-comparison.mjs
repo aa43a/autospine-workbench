@@ -32,5 +32,10 @@ try{
   await page.selectOption('#character','0');await ready();await seek(2.4);
   await fs.mkdir(output,{recursive:true});await page.screenshot({path:path.join(output,'reach-comparison.png'),fullPage:true});
   assert.deepEqual(errors,[]);await fs.writeFile(path.join(output,'check.json'),JSON.stringify({checked,errors,authority:'none'},null,2));
+  const jump=new URL(url);jump.searchParams.set('character','1');jump.searchParams.set('time','1.25');
+  await page.goto(jump.href);await ready();
+  assert.equal(await page.locator('#character').inputValue(),'1');
+  assert.equal((await page.evaluate(()=>window.reachComparisonState)).time,1.25);
+  assert.deepEqual(errors,[]);
   console.log(JSON.stringify({passed:true,characters:checked.length}));
 }finally{await browser.close();}

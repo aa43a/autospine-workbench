@@ -1,8 +1,11 @@
 from copy import deepcopy
 import unittest
 from unittest.mock import patch
+from types import SimpleNamespace
 
 from autospine_workbench.targets.character43.motion_depth import build
+from autospine_workbench.targets.character43.motion_depth import _source
+from autospine_workbench.targets.character43.oblique_motion import project
 
 
 def fixture():
@@ -18,6 +21,30 @@ def fixture():
 
 
 class MotionDepthTests(unittest.TestCase):
+    def test_depth_uses_same_yaw_basis_as_limb_projection(self):
+        points=[(3.,2.,-1.),(-2.,4.,5.)]
+        projected=SimpleNamespace(frames=[SimpleNamespace(tick=i*10000,
+            joints=[('wrist',SimpleNamespace(screen_xy=p[:2],depth=p[2]))]) for i,p in enumerate(points)])
+        mapping={'root':{'reference_length_source_units':2}}
+        with patch('autospine_workbench.targets.character43.motion_depth.project_bvh_frames',return_value=projected):
+            for yaw in (-45,0,45,90):
+                frames,length,digest=_source(SimpleNamespace(source_sha256='a'*64),mapping,None,yaw)
+                self.assertEqual(length,2)
+                self.assertEqual(digest,'a'*64)
+                for i,((tick,joints),point) in enumerate(zip(frames,points)):
+                    self.assertEqual(tick,i*10000)
+                    self.assertAlmostEqual(joints['wrist'],project(point,yaw)[2])
+
+    def test_build_preserves_explicit_view_in_evidence(self):
+        doc,mapping=fixture()
+        frames=[(0,dict(torso=0,shoulder=1,elbow=1,wrist=1))]
+        with patch('autospine_workbench.targets.character43.motion_depth._source',return_value=(frames,1,'a'*64)) as source:
+            report=build(doc,None,mapping,yaw_degrees=45)
+        source.assert_called_once_with(None,mapping,None,45)
+        self.assertEqual(report['yaw_degrees'],45)
+        self.assertEqual(report['depth_axis'],'yaw_rotated_declared_basis')
+        self.assertFalse(report['selected'])
+
     def run_depth(self, values, bounds=None):
         doc, mapping = fixture(); original = deepcopy(doc)
         frames = [(i*10000, dict(torso=0, shoulder=v[0], elbow=v[1], wrist=v[2])) for i, v in enumerate(values)]
