@@ -7,7 +7,7 @@ from .motion_intake_jobs import MotionIntakeJobs
 
 
 def _methods(tail):
-    if len(tail) == 2 and tail[1] == 'stage-review':
+    if len(tail) == 2 and tail[1] in ('stage-review', 'repair-draft'):
         return 'GET, HEAD, POST, OPTIONS'
     if tail == ['generate']:
         return 'POST, OPTIONS'
@@ -78,6 +78,9 @@ def dispatch_motions(parts, handler, method):
             elif tail[1] == 'stage-review':
                 from .motion_stage_review import save
                 result = save(manager, tail[0], read_json_object_request(handler, maximum_bytes=20000))
+            elif tail[1] == 'repair-draft':
+                from .motion_repair_draft import save
+                result = save(manager, tail[0], read_json_object_request(handler, maximum_bytes=20000))
             elif tail[1] == 'reproject':
                 from .motion_reproject import submit
                 result = submit(manager, tail[0], read_json_object_request(handler, maximum_bytes=200))
@@ -86,6 +89,9 @@ def dispatch_motions(parts, handler, method):
                     raise PipelineRunError('motion_request_invalid')
                 result = getattr(manager, tail[1])(tail[0])
             handler._send_visual_json(202, result)
+        elif len(tail) == 2 and tail[1] == 'repair-draft':
+            from .motion_repair_draft import inspect
+            handler._send_visual_json(200, inspect(manager, tail[0]))
         elif len(tail) == 2 and tail[1] == 'stage-review':
             from .motion_stage_review import inspect
             handler._send_visual_json(200, inspect(manager, tail[0]))

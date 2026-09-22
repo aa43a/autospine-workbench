@@ -1,5 +1,7 @@
 # AutoSpine Workbench 架构与质量门禁
 
+`motion_repair_draft.py` 保存独立的追加式异常处理草稿。服务端从 geometry-details 重新解析真实极值事件，排除纹理内联字节后计算证据摘要；保存时校验候选、证据及期望修订。证据读取在任务锁外，修订检查与原子追加在锁内。撤销也是新修订，不写入阶段验收或执行修复。
+
 播放器 `inspectTriangle` 以当前动作和有效三角形索引校验观察请求，cohort 同步控制额外校验候选身份。边框从官方 Runtime 的当前 attachment 世界顶点计算，在完整角色绘制后叠加，不改 draw order、权重或素材。原纹理 UV 和变形后世界位置分别展示。
 
 `motion_geometry_details.py` 从已校验候选读取原姿态、数值采样和几何报告，验证 skeleton 身份后计算面积极值事件；压缩/扩张保留各自时间。`view/geometry-details.json` 只读返回原纹理 UV 定位及投影参考比值，代理不可用不掩盖实际失败。UI 在 readiness 内按需加载，候选身份不匹配拒绝展示，不修改 QA 或采用状态。

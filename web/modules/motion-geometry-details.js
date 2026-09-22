@@ -1,4 +1,5 @@
 import {describeShape} from './motion-shape-evidence.js';
+import {appendRepairDraft} from './motion-repair-draft.js';
 const node = (tag, text) => {
   const element = document.createElement(tag);
   if (text !== undefined) element.textContent = text;
@@ -25,7 +26,7 @@ export function appendGeometryDetails(parent, job, onSeek, onInspect) {
         return;
       }
       panel.append(node('p', '这里显示原纹理上的失败网格。投影缩短、权重或素材轮廓均可能造成异常；不能仅凭面积比决定补图。'));
-      for (const row of report.rows) renderRow(panel, row, base, onSeek, onInspect);
+      for (const row of report.rows) renderRow(panel, row, base, onSeek, onInspect, job);
       if (!report.rows.length) panel.append(node('p', '当前报告没有几何失败记录。'));
     } catch (error) { panel.textContent = '无法定位：' + error.message; }
     finally { button.disabled = false; }
@@ -33,7 +34,7 @@ export function appendGeometryDetails(parent, job, onSeek, onInspect) {
   parent.append(button, panel);
 }
 
-function renderRow(panel, row, base, onSeek, onInspect) {
+function renderRow(panel, row, base, onSeek, onInspect, job) {
   const section = node('section');
   section.append(node('h4', `${row.slot} · ${row.animation}`));
   section.append(node('p', `${row.failed_area_triangles} 个面积异常三角形；展示 ${row.shown} 个极值事件${row.truncated ? '（其余保留在原检查中）' : ''}。`));
@@ -79,9 +80,11 @@ function renderRow(panel, row, base, onSeek, onInspect) {
     ctx.closePath(); ctx.fillStyle = '#ff334466'; ctx.fill();
     ctx.strokeStyle = '#ffcc00'; ctx.lineWidth = 2; ctx.stroke();
   };
-  select.onchange = draw; image.onload = draw;
+  image.onload = draw;
   image.onerror = () => {detailText.append(' 原纹理加载失败。');};
   section.append(select, canvas, detailText, shapeText, seek, node('p', row.note),
     node('p', '下一步：在此时刻对照源姿态与整体轮廓，再选择局部修正、分区或姿态附件；这些选项尚不自动改动素材。'));
   draw(); image.src = row.texture;
+  const changed=appendRepairDraft(section,job,row,()=>row.details[Number(select.value)]);
+  select.onchange=()=>{draw();changed();};
 }
