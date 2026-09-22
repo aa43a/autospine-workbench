@@ -5,7 +5,7 @@ from autospine_workbench.targets.character43.depth_order_continuity_guard import
 
 class ContinuityGuardTests(unittest.TestCase):
     def test_bad_region_is_retained_while_independent_requirements_continue(self):
-        depth={'pairs':[dict(arm_slot=n,torso_slot='body') for n in ('a','b')]}
+        depth={'strict_interval_evidence':True,'pairs':[dict(arm_slot=n,torso_slot='body') for n in ('a','b')]}
         seen=[];probe=object()
         def subset(doc,animation,proposal,actual_probe):
             self.assertIs(probe,actual_probe);seen.append(proposal)
@@ -16,6 +16,7 @@ class ContinuityGuardTests(unittest.TestCase):
             candidate,report=build({},'move',depth,probe,lambda c:next(checks))
         self.assertIsNotNone(candidate);self.assertEqual(report['status'],'partial_candidate')
         self.assertEqual(seen[-1]['pairs'],[dict(arm_slot='b',torso_slot='body')])
+        self.assertTrue(all(row['strict_interval_evidence'] for row in seen))
         self.assertEqual(len(depth['pairs']),2);self.assertFalse(report['selected'])
 
     def test_unmeasured_check_does_not_return_candidate_or_discard_evidence(self):

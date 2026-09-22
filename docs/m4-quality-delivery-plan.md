@@ -71,3 +71,9 @@ Squat 存在源姿态、脚部支撑、投影缩短和原 setup 面积门禁之�
 该比较没有更改任何绘制顺序。平面、截面和深度区间是模型假设，不是表面真值，不能把上述比例称为视觉通过率。摘要见 docs/benchmark/m4-reach-local-depth-v1.json；时间定位页见 ../tmp/m4-motion-center/reach-local-plane-v1/index.html。
 
 接下来的顺序：先验证 Alice 已解释区间的帧间排序和其他部件交叉约束；其 8 个近面采样保留异常。红美铃单独分析接触面，辉夜使用已有袖装辅助骨深度证据，均不盲目整体重排或修改权重。
+
+Alice 全段双臂严格检查已完成：每侧 121 个源帧和 120 个中点，共 482 个部件对样本。局部模型给出 148 个统一前侧样本、334 个仍含歧义，未测量为零；左臂全部 241 个样本均含混合前后或近面像素，深度缺失为零。排序器在 121 个源帧区间均遇到跨面门禁，因此没有生成候选，也不能声称后续全部部件交叉约束已通过。此前仅检查源关节跨面样本的 82 项不足以代表全段双臂。
+
+本轮同时修复 depth_order_subset 和 depth_order_continuity_guard 在筛选部件对时丢失 strict_interval_evidence 的问题；严格中点证据现在跨包装层保留。新增回归证明中点歧义不能被部分排序流程自动忽略。18 项相关测试通过。
+
+完整报告见 ../tmp/m4-motion-center/reach-held-order-v1/alice/report.json；摘要见 docs/benchmark/m4-reach-held-order-v1.json。下一步对已定位的混合区域验证最小分区与躯干投影一致性，保留近面不确定性；不将未通过的整层排序接入默认工作台。

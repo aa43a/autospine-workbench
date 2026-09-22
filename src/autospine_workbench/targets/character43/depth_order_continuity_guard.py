@@ -6,7 +6,7 @@ def build(document,animation,depth,probe,inspect,*,attempt_limit=4):
     remaining=list(depth['pairs']);attempts=[];excluded=[]
     for _ in range(attempt_limit):
         if not remaining:break
-        candidate,subset=subset_build(document,animation,dict(pairs=remaining),probe)
+        candidate,subset=subset_build(document,animation,dict(depth,pairs=remaining),probe)
         entry=dict(subset=subset);attempts.append(entry)
         if candidate is None:break
         check=inspect(candidate);entry['continuity']=check

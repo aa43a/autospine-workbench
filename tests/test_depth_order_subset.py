@@ -10,6 +10,18 @@ class Probe:
 
 
 class OrderSubsetTests(unittest.TestCase):
+    def test_strict_midpoint_failure_is_not_lost_by_subset_wrapper(self):
+        doc=dict(slots=[dict(name=n) for n in ['c','body']],animations={'move':{}})
+        depth=dict(strict_interval_evidence=True,pairs=[dict(arm_slot='c',torso_slot='body',samples=[
+            dict(tick=0,ambiguous=False,current_front_slot='c',
+                 interval_sample=dict(tick=500000,ambiguous=True,current_front_slot='c')),
+            dict(tick=1000000,ambiguous=False,current_front_slot='c')])])
+        candidate,report=build(doc,'move',depth,Probe())
+        self.assertIsNone(candidate)
+        self.assertEqual(report['excluded'],[])
+        self.assertIn('visible_depth_straddle',report['attempts'][0]['reason_codes'])
+        self.assertEqual(report['attempts'][0]['interval_evidence_policy'],'same-time-source-and-held-midpoint-v1')
+
     def test_conflicted_region_preserved_and_independent_region_can_move(self):
         doc=dict(slots=[dict(name=n) for n in ['a','c','x','body']],animations={'move':{}})
         depth=dict(pairs=[dict(arm_slot=n,torso_slot='body',evidence_source='uniform_sampled_local_depth',

@@ -6,7 +6,7 @@ def build(document,animation,depth,probe,*,attempt_limit=4):
     remaining=list(depth['pairs']);attempts=[];excluded=[]
     for _ in range(attempt_limit):
         if not remaining:break
-        candidate,report=order_build(document,animation,dict(pairs=remaining),probe,refine_cycles=True)
+        candidate,report=order_build(document,animation,dict(depth,pairs=remaining),probe,refine_cycles=True)
         attempts.append(report)
         if candidate is not None:
             return candidate,dict(profile='bounded-conflict-preserving-order-subset-v1',
