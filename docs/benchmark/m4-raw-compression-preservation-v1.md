@@ -22,3 +22,17 @@
 **它只解决修正带来的额外压缩，不解决原始投影自身的面积缩短。** 最严重时刻仍有 162 个 setup 面积失败，不能声称大动作通过。该合同尚未接入默认构建；若继续验证，需整段插值与 Runtime 对照，不能继承旧验收。
 
 复现：`tools/m4_raw_area_preservation_probe.py ARTIFACT SLOT ANIMATION TIME OUTPUT`。实际证据位于 `localset/tmp/m4-motion-center/raw-area-preservation-v1/summary.json` 及四份 pose JSON，保存实际顶点、三角形、全部面积比和求解状态。26 项相关单元测试覆盖合同隔离、真实求解、冲突拒绝、已有保形与采样逻辑。
+
+## 整段烘焙和 Runtime 验证
+
+`tools/m4_raw_preservation_sequence.py` 将该约束用于 120 个原骨骼关键时刻，只替换 layer-006 的 deform；源动作、其他附件与通道保持不变。另生成 keys + midpoints 数值参考，由官方 Runtime 捕获验证，导出独立时间轴播放器。
+
+首轮候选 `544002518dc760bbe94520bf4cac31970004f1ef0e46773d80f7ab5537f071ee`：120 个关键帧无保护退化，239 个检查时刻有 31 条中点退化记录，最大面积比损失约 0.000070688。Runtime 数值一致性通过，几何失败。
+
+第二轮显式 `--rounds 3` 仅在失败中点补充 deform 关键帧，不重采样或变更原骨骼动画。最终 176 个修正关键帧、351 个检查时刻，候选 `578a342f15f0aa963408c59ab2f394546c0c517ca73aac957d9f21e7d8755184`。在原相同 239 个时刻复查，31 条退化均已消除；新增更密采样中仍有 108 条中点退化、0 条关键帧退化，最大面积比损失 0.000121037。不同采样密度下的记录数不可直接比较。
+
+第二轮 Runtime 数值核对通过；几何仍失败，仅 layer-006：309 个失败时刻，最小面积比 0.309557267，翻转 0。已查看实际 Runtime 采样图，未记录人工接受。保留已有 0.5 setup 面积门槛和保护误差容差，没有通过放宽阈值把失败改为成功。
+
+两轮都在 CPU 反事实中检查保护退化；官方 Runtime 验证烘焙数值一致性，不能将它表述为 GPU 对保护规则或视觉质量的自动接受。未验证连续时间，也未做三角色泛化验证。下一项不再仅加密求解次数：需区分投影缩短和局部材质压缩，并把可支持范围及异常交付到主流程。
+
+证据：`localset/tmp/m4-motion-center/raw-area-sequence-v{1,2}/hongmeiling`。第二轮包含同采样比较 `comparison.json`、`summary.json`、完整求解记录和 `candidate/runtime/player.html`；`m4_raw_sequence_compare.py` 核查精确父身份及其他通道不变。28 项相关测试通过，新增测试专门覆盖关键帧通过、中点失败的情况。

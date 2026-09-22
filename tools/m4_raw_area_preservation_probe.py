@@ -16,8 +16,8 @@ from autospine_workbench.targets.character43.raw_compression_preservation import
 from autospine_workbench.targets.spine43.continuous_pose import area
 
 
-def run(artifact, slot, name, time):
-    files=AnimatedStore(Path('workspace')).read(artifact)
+def run(artifact, slot, name, time, *, files=None, policies=None):
+    if files is None:files=AnimatedStore(Path('workspace')).read(artifact)
     doc=json.loads(files['skeleton.json'])
     if not math.isfinite(time) or time<0:raise ValueError('invalid_time')
     keys=[k['time'] for tracks in doc['animations'][name]['bones'].values() for track in tracks.values() for k in track]
@@ -61,7 +61,10 @@ def run(artifact, slot, name, time):
             fixed_vertex_shift=max([math.dist(a,b) for a,b,free in zip(points,origin,context['free']) if not free] or [0]),
             setup_ratios=ratios)
     results={};points_by_policy={}
-    for policy in ('fixed_floor','preserve_raw_pose','preserve_raw_compression'):
+    choices=('fixed_floor','preserve_raw_pose','preserve_raw_compression')
+    if policies is None:policies=choices
+    if not policies or any(p not in choices for p in policies):raise ValueError('unknown_probe_policy')
+    for policy in policies:
         trial=deepcopy(context)
         trial['minimum_ratios']=[.5]*len(triangles) if policy=='fixed_floor' else from_pose(origin,triangles,refs)
         if policy=='preserve_raw_compression':
