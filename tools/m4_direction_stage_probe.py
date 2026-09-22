@@ -50,7 +50,7 @@ def support_probe(fitted, final, contact, time, reference):
                 scope='single_pose_without_temporal_mesh_or_runtime_validation')
 
 
-def run(job):
+def load_stages(job):
     root = Path('workspace/jobs/motion-intake-v1') / job
     request = json.loads((root/'request.json').read_bytes())
     result = json.loads((root/'result.json').read_bytes())
@@ -72,6 +72,11 @@ def run(job):
     if canonical_sha256(fitted) != review['source_pose_fit']['output_sha256']:
         raise ValueError('stage_probe_fitted_identity_changed')
     final = json.loads(files['skeleton.json'])
+    return fitted, final, pose, review, files, artifact, bundle.motion
+
+
+def run(job):
+    fitted, final, pose, review, files, artifact, motion = load_stages(job)
     before = audit(fitted, 'external-motion', pose['vectors'], pose['times'])
     after = audit(final, 'external-motion', pose['vectors'], pose['times'])
     worst = max((r['worst_direction'] for r in after['records'] if r['bone'].startswith(('thigh','calf'))),

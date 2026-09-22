@@ -20,6 +20,18 @@ def fixture():
 
 
 class TimelineTests(unittest.TestCase):
+    def test_pose_preserving_timeline_keeps_contact_and_release(self):
+        doc, motion = fixture(); original = deepcopy(doc)
+        candidate, report = build(doc, 'walk', motion, [0, 1.2], 20,
+                                  preserve_pose=True, maximum_error_px=1e-4)
+        self.assertIsNotNone(candidate, report.get('failure'))
+        self.assertEqual(doc, original)
+        self.assertEqual(report['profile'], 'causal-source-axis-support-v1-experiment')
+        qa = analyze(candidate, 'walk', motion, schedule(motion, [r['time'] for r in report['rows']]), 20)
+        self.assertTrue(qa['passed'])
+        self.assertLessEqual(report['rotation_speed_degrees_per_second'], 180)
+        self.assertEqual(report['rows'][-1]['root_shift'], [0, 0])
+
     def test_causal_entry_release_and_dense_contact(self):
         doc, motion = fixture(); original = deepcopy(doc)
         candidate, report = build(doc, 'walk', motion, [0, 1.2], 20)

@@ -7,7 +7,13 @@ from .joint_support_solver import solve
 from ..spine43.continuous_pose import interpolate
 
 
-def build(document, animation, motion, times, reference_length, *, release_seconds=.25):
+def build(document, animation, motion, times, reference_length, *, release_seconds=.25,
+          preserve_pose=False, maximum_error_px=None):
+    if type(preserve_pose) is not bool:
+        raise ValueError('joint_support_pose_mode_invalid')
+    if maximum_error_px is not None and not preserve_pose:
+        raise ValueError('joint_support_residual_requires_pose_mode')
+    profile = 'causal-source-axis-support-v1-experiment' if preserve_pose else 'causal-joint-support-timeline-v1'
     if not math.isfinite(release_seconds) or release_seconds <= 0:
         raise ValueError('joint_support_release_invalid')
     rate = motion['ticks_per_second']; duration = motion['duration_ticks']/rate
@@ -76,9 +82,10 @@ def build(document, animation, motion, times, reference_length, *, release_secon
                          upper_delta_degrees=rows[-1]['angles']['thigh_'+s], lower_delta_degrees=rows[-1]['angles']['calf_'+s])
                     for s in ('l', 'r')])
             result = solve(document, animation, t, requested, reference_length,
-                           previous=previous, maximum_rotation_speed=180)
+                           previous=previous, maximum_rotation_speed=180,
+                           **(dict(preserve_pose=True, maximum_error_px=maximum_error_px) if preserve_pose else {}))
             if not result['solution']:
-                return None, dict(profile='causal-joint-support-timeline-v1', selected=False, authority='none',
+                return None, dict(profile=profile, selected=False, authority='none',
                                   status='blocked', failure=dict(time=t, **result), rows=rows, anchors=anchors)
             shift = result['solution']['root_shift']
             for leg in result['solution']['legs']:
@@ -93,7 +100,7 @@ def build(document, animation, motion, times, reference_length, *, release_secon
     reasons = []
     if speed > 2*reference_length: reasons.append('root_speed')
     if angular > 180: reasons.append('rotation_speed')
-    report = dict(profile='causal-joint-support-timeline-v1', selected=False, authority='none',
+    report = dict(profile=profile, selected=False, authority='none',
                   status='blocked' if reasons else 'candidate', reason_codes=reasons, rows=rows, anchors=anchors,
                   root_speed_px_per_second=speed, rotation_speed_degrees_per_second=angular,
                   limits=dict(root_ratio=.15, root_speed_ratio=2, rotation_degrees=30,
