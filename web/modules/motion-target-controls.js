@@ -3,6 +3,7 @@ import {createObliqueSelection} from './motion-oblique-selection.js';
 import {createDepthSelection} from './motion-depth-selection.js';
 import {createTorsoSelection} from './motion-torso-selection.js';
 import {createPoseSelection} from './motion-pose-selection.js';
+import {successorId} from './motion-job-actions.js';
 export function createTargetControls(request, refresh, selection) {
   const $ = id => document.getElementById(id);
   const depth = createDepthSelection($('adapt'));
@@ -61,6 +62,7 @@ export function createTargetControls(request, refresh, selection) {
   $('target-project').onchange = () => void selectProject();
   $('adapt').onclick = async () => {
     if (!source || !character || busy || comparing) return;
+    const sourceId=source.job_id;
     busy = true; enabled();
     try {
       const body={project_id: character.project_id, character_job_id: character.job_id,
@@ -70,12 +72,13 @@ export function createTargetControls(request, refresh, selection) {
           ...(obliqueAvailable && yaw.value !== '' ? {projection: {
             profile: 'constant-yaw-source-motion-v1', yaw_degrees: Number(yaw.value)}, ...automatic.selection()} : {})};
       Object.assign(body,pose.selection(body));
-      await request(`/api/motions/${source.job_id}/adapt`, {
+      const queued = await request(`/api/motions/${sourceId}/adapt`, {
         method: 'POST', headers: {'Content-Type': 'application/json', 'X-Autospine-Intent': 'pipeline-preview'},
         body: JSON.stringify(body),
       });
       $('target-status').textContent = '角色动作已排队，将进行局部修正、几何检查与官方 Runtime 捕获。';
       await refresh();
+      location.hash = successorId(sourceId,queued);
     } catch (error) { $('target-status').textContent = error.message; }
     finally { busy = false; enabled(); }
   };

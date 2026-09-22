@@ -13,6 +13,7 @@ import {appendRotationDetails} from './motion-rotation-details.js';
 import {appendTorsoDetails} from './motion-torso-details.js';
 import {appendPoseSummary} from './motion-pose-selection.js';
 import {appendInlinePlayer} from './motion-inline-player.js';
+import {jobAction,successorId} from './motion-job-actions.js';
 
 const $ = id => document.getElementById(id);
 const player = createSourcePlayer($('canvas'), $('time'), $('play'), $('clock'));
@@ -74,7 +75,7 @@ const reasons = {
   motion_import_interrupted: '上次解析未完成，可重新解析。',
   motion_process_ownership_failed: '无法建立工作进程隔离，任务未启动。请检查服务运行权限后重试。',
   motion_termination_failed: '未能确认工作进程已停止，请检查后台任务后再重试。',
-  motion_canceled: '已停止解析，原文件保留。',
+  motion_canceled: '任务已停止，原文件与历史记录保留。',
   motion_target_character_or_source_changed: '角色或动作来源已变化，请选择当前角色重新构建。',
   motion_target_deformation_needs_changes: '部分部件在动作中变形超限，可在候选预览中定位。',
   motion_target_sample_limit: '该动作超出首版角色适配的采样上限，请截取较短片段。',
@@ -136,7 +137,7 @@ function render(data) {
     item.append(node('strong', displayName + (job.kind === 'adapt' ? ' → ' + job.project_id
       : ' · ' + (job.view === 'side' ? '侧面' : '正面'))),
       node('p', `${state}${detail ? ' · ' + detail : ''}`));
-    if (job.cancel_requested && active.has(job.status)) item.append(node('p', '正在停止解析进程…'));
+    if (job.cancel_requested && active.has(job.status)) item.append(node('p', '正在停止任务及其子进程；确认停止后可重新执行。'));
     if (job.status === 'succeeded' && job.kind === 'adapt') {
       const result = job.result;
       appendPoseSummary(item,job);
@@ -206,10 +207,10 @@ function render(data) {
       item.append(node('p', job.result.motion_status === 'compiled'
         ? 'MotionIR 已保存 · 尚未适配角色' : reasons[job.result.reason_code] || job.result.reason_code));
     }
-    const action = active.has(job.status) ? 'cancel' : 'retry';
-    const button = node('button', action === 'cancel' ? '取消' : job.kind === 'generate' ? '重新生成（保留旧记录）' : '重新解析');
+    const {action,label,disabled} = jobAction(job);
+    const button = node('button', label);
     button.onclick = () => void mutate(job.job_id, action);
-    button.disabled = busy || Boolean(job.cancel_requested && active.has(job.status));
+    button.disabled = busy || disabled;
     item.append(button);
     return item;
   }, [busy, Boolean(data.stage_review_available), Boolean(data.view_comparison_available), Boolean(data.target_comparison_available)]);
@@ -244,15 +245,19 @@ async function mutate(id, action) {
   if (busy) return;
   busy = true;
   let failure = null;
+  let successor = null;
   try {
-    await request(`/api/motions/${id}/${action}`, {
+    const result = await request(`/api/motions/${id}/${action}`, {
       method: 'POST', headers: {'Content-Type': 'application/json', 'X-Autospine-Intent': 'pipeline-preview'},
       body: '{}',
     });
+    if(action==='retry')successor=successorId(id,result);
   } catch (error) { failure = error.message; }
   finally {
     busy = false;
     await refresh();
+    if(successor){location.hash=successor;focusedFragment=null;focusLinkedJob();
+      $('status').textContent='已定位新任务；从头重新执行，原任务、候选及其复核记录保留。';}
     if (failure) $('status').textContent = failure;
   }
 }
