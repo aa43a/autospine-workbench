@@ -7,7 +7,7 @@ from types import SimpleNamespace
 from autospine_workbench.automation.animated_store import AnimatedStore
 from autospine_workbench.automation.storage_io import canonical_bytes
 from autospine_workbench.automation.character_capture import capture
-from autospine_workbench.targets.character43.shoulder_transition import propose
+from autospine_workbench.targets.character43.shoulder_axis_transition import propose
 from autospine_workbench.targets.character43.affine_pose import sample
 from autospine_workbench.targets.character43.numeric_reference import write
 from autospine_workbench.targets.character43.deformation_qa import inspect
