@@ -33,3 +33,15 @@ class WindowVerificationTests(unittest.TestCase):
         doc,motion,pose,contact,report=self.values();report['candidate_rows'].append(deepcopy(report['candidate_rows'][0]))
         with self.assertRaisesRegex(ValueError,'replacement_times_invalid'):
             verify(doc,doc,motion,pose,contact,report,20)
+
+    def test_independent_endpoint_guard_detects_changed_leg(self):
+        doc,motion,pose,contact,report=self.values()
+        report=deepcopy(report)
+        report.update(endpoint_guard='per_sample_per_leg_hip_relative_no_regression',endpoint_floor_px=1e-6)
+        report['candidate_rows'][1]['angles']['calf_l']=10
+        result=verify(doc,doc,motion,pose,contact,report,20)
+        self.assertFalse(result['endpoint_passed'])
+        self.assertGreater(result['endpoint_maximum_regression_px'],.1)
+        report['endpoint_check_times']=[0,1.2]
+        with self.assertRaisesRegex(ValueError,'endpoint_time_grid'):
+            verify(doc,doc,motion,pose,contact,report,20)

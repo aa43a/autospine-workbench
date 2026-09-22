@@ -44,6 +44,19 @@ class SupportWindowTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'constant_double_support'):
             optimize(doc, 'walk', rows, [], 20)
 
+    def test_endpoint_guard_keeps_exact_pose_and_rejects_invalid_mode(self):
+        doc,_=fixture();doc['animations']['walk']['bones']['root']['translate']=[dict(time=0,x=0,y=0)]
+        pose=matrices(doc,'walk',0)
+        anchors=[dict(limb='leg.'+side,start=0,end=2,target=pose['foot_'+s][4:6])
+                 for side,s in [('left','l'),('right','r')]]
+        rows=[dict(time=i/10,root_shift=[0,0],angles={n:0 for n in ('thigh_l','calf_l','thigh_r','calf_r')}) for i in range(5)]
+        output,report=optimize(doc,'walk',rows,anchors,20,preserve_endpoint=True)
+        self.assertEqual(output,rows)
+        self.assertEqual(report['baseline_endpoint_error_px'],0)
+        self.assertLessEqual(report['maximum_endpoint_regression_px'],0)
+        with self.assertRaisesRegex(ValueError,'endpoint_mode'):
+            optimize(doc,'walk',rows,anchors,20,preserve_endpoint=1)
+
     def test_feedback_exposes_motion_between_existing_samples(self):
         doc, _ = fixture(); tracks=doc['animations']['walk']['bones']
         tracks['root']['translate']=[dict(time=0,x=0,y=0)]

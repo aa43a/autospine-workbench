@@ -1,0 +1,48 @@
+{
+  "authority": "none",
+  "selected": false,
+  "scope": "local_65_sample_bone_windows_not_complete_clip_mesh_runtime_or_visual_acceptance",
+  "rows": [
+    {
+      "job_id": "motion-8a48f34642c643e397f95b433046b8bb",
+      "status": "candidate",
+      "baseline_loss": 0.013098008966974675,
+      "candidate_loss": 0.012796129485618606,
+      "baseline_endpoint_error_px": 23.335439550892985,
+      "candidate_endpoint_error_px": 23.242695223944462,
+      "maximum_endpoint_regression_px": 0.0,
+      "verification": {
+        "endpoint_passed": true,
+        "endpoint_maximum_regression_px": 0.0,
+        "endpoint_samples": 65,
+        "contact_not_increased": true,
+        "support_limits_passed": true
+      }
+    },
+    {
+      "job_id": "motion-b5610841e66e4f599d58360ef9de20bb",
+      "status": "candidate",
+      "baseline_loss": 0.019428609960653667,
+      "candidate_loss": 0.018930127238129632,
+      "baseline_endpoint_error_px": 37.724025964875736,
+      "candidate_endpoint_error_px": 37.556798998865474,
+      "maximum_endpoint_regression_px": 0.0,
+      "verification": {
+        "endpoint_passed": true,
+        "endpoint_maximum_regression_px": 0.0,
+        "endpoint_samples": 65,
+        "contact_not_increased": true,
+        "support_limits_passed": true
+      }
+    },
+    {
+      "job_id": "motion-e2f8058160c14d959d468d75cc53a35e",
+      "status": "no_improving_window_found",
+      "baseline_loss": 0.11735679490052502,
+      "candidate_loss": 0.05688828122232234,
+      "baseline_endpoint_error_px": 89.55400090213973,
+      "candidate_endpoint_error_px": 88.7145895801222,
+      "maximum_endpoint_regression_px": 0.0
+    }
+  ]
+}
