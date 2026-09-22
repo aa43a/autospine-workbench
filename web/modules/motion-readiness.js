@@ -1,7 +1,7 @@
 import {appendNextActions} from './motion-next-actions.js';
 import {appendDepthTimeline} from './motion-depth-timeline.js';
 import {appendGeometryDetails} from './motion-geometry-details.js';
-export function appendReadiness(item, job, compare, {onSeek,onInspect} = {}) {
+export function appendReadiness(item, job, compare, {onSeek,onInspect,onRegions} = {}) {
   const button = document.createElement('button');
   button.textContent = '检查可用范围与待处理项';
   const panel = document.createElement('section');
@@ -34,17 +34,19 @@ export function appendReadiness(item, job, compare, {onSeek,onInspect} = {}) {
           const entry = document.createElement('p');
           const reason = document.createElement('span');
           reason.textContent = ({source_projection_unreliable:'源投影方向不可靠',
+            visible_depth_straddle:'同一部件跨越前后深度',
             post_contact_constraint_failed:'接触后局部变形约束未满足'})[failure.reason] || failure.reason || '检查异常';
           entry.append(reason);
           if (!Number.isFinite(failure.time) || failure.time < 0) {
             entry.append(' · 未提供有效时间'); details.append(entry); continue;
           }
           const point = document.createElement('a');
-          point.textContent = ` ${failure.slot || failure.bone || '异常'} · ${failure.time.toFixed(3)} 秒 `;
+          point.textContent = ` ${failure.pair?.join(' ↔ ') || failure.slot || failure.bone || '异常'} · ${failure.time.toFixed(3)} 秒 `;
           point.href = base + `player.html?time=${failure.time}`;
           if (onSeek) point.onclick = event => {event.preventDefault(); onSeek(failure.time);};
           else {point.target = '_blank'; point.rel = 'noopener';}
-          entry.append(point); details.append(entry);
+          entry.append(point);
+          details.append(entry);
         }
         panel.append(p);
         if (failures.length) panel.append(details);
@@ -53,7 +55,7 @@ export function appendReadiness(item, job, compare, {onSeek,onInspect} = {}) {
       if(report.stages.some(row=>row.stage==='几何'&&row.status==='needs_changes'))
         appendGeometryDetails(panel,job,onSeek,onInspect);
       if(report.stages.some(row=>row.stage==='遮挡'&&row.status!=='sampled_pass'))
-        appendDepthTimeline(panel,job,report,onSeek);
+        appendDepthTimeline(panel,job,report,onSeek,onRegions);
       const note = document.createElement('p');
       note.textContent = '执行完成不等于动作通过；已有文件可下载为诊断候选。这里不记录人工验收或发布许可。';
       panel.append(note);

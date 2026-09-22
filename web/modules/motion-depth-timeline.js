@@ -13,7 +13,7 @@ export function groupDepthFailures(failures){
   return {groups:[...groups.values()],invalid};
 }
 
-export function appendDepthTimeline(panel,job,readiness,onSeek){
+export function appendDepthTimeline(panel,job,readiness,onSeek,onRegions){
   const button=document.createElement('button');button.textContent='展开完整遮挡失败采样';
   const body=document.createElement('section');body.setAttribute('aria-live','polite');
   button.onclick=async()=>{
@@ -47,7 +47,12 @@ export function appendDepthTimeline(panel,job,readiness,onSeek){
           if(onSeek)link.onclick=event=>{event.preventDefault();onSeek(time);};
           else{link.target='_blank';link.rel='noopener';}
         };
-        slider.oninput=update;update();section.append(title,slider,label,link);body.append(section);
+        slider.oninput=update;update();section.append(title,slider,label,link);
+        if(onRegions&&group.pair.length){
+          const isolate=document.createElement('button');isolate.textContent='同页隔离冲突部件';
+          isolate.onclick=()=>{onSeek?.(group.times[Number(slider.value)]);onRegions(group.pair);};section.append(isolate);
+        }
+        body.append(section);
       }
     }catch(error){body.textContent='无法读取完整定位：'+error.message;}
     finally{button.disabled=false;}

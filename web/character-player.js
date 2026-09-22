@@ -91,6 +91,10 @@
   window.characterPlayerReady = true; requestAnimationFrame(tick);
   window.characterPlayerControl = {
     artifact: context.artifact_sha256,
+    inspectRegions(regions,mode='isolate'){
+      if(!inspection.setRegions(regions,mode))return false;
+      inspection.setTriangle(null);return true;
+    },
     inspectTriangle(slot,index,animation){
       if(animation!==el('motion').value)return false;
       return inspection.setTriangle(slot,index);

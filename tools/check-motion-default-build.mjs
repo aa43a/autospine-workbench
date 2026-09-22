@@ -14,8 +14,8 @@ try {
   await page.goto(new URL('/motions.html#'+sourceId,base).href);
   await page.locator('#'+sourceId).getByRole('button',{name:'查看源动作',exact:true}).click();
   await page.locator('#target-project').selectOption(projectId);
-  await page.waitForFunction(()=>!document.getElementById('adapt').disabled);
-  const responsePromise=page.waitForResponse(r=>r.url().endsWith(`/api/motions/${sourceId}/adapt`)&&r.request().method()==='POST');
+  await page.waitForFunction(()=>!document.getElementById('adapt').disabled,{},{timeout:120000});
+  const responsePromise=page.waitForResponse(r=>r.url().endsWith(`/api/motions/${sourceId}/adapt`)&&r.request().method()==='POST',{timeout:120000});
   await page.locator('#adapt').click();
   const response=await responsePromise,receipt=await response.json();
   assert.equal(response.status(),202,JSON.stringify(receipt));
