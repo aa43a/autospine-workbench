@@ -12,6 +12,13 @@
 <label class="timeline">时间轴 <input id="time" type="range" min="0" max="1" step="0.001" value="0" disabled></label>
 <output id="position">0.000 / 0.000 秒</output>
 </section>
+<details class="controls"><summary>部件与遮挡对照</summary>
+<p>在同一时间和镜头查看部件；隐藏只影响预览，不修改绘制顺序、绑定或验收记录。</p>
+<label>部件 A <select id="inspect-a"><option value="">未选择</option></select></label>
+<label>部件 B <select id="inspect-b"><option value="">未选择</option></select></label>
+<label>显示方式 <select id="inspect-mode"><option value="full">完整角色</option><option value="isolate">仅看所选</option><option value="hide">隐藏所选</option></select></label>
+<button id="inspect-clear">恢复完整角色</button><p id="inspect-note">局部可见不代表深度或遮挡已通过验证。</p>
+</details>
 <footer>实时播放用于观察，不新增捕获验证或自动验收。拖动时间轴会暂停播放。<br>
 <a href="index.html">原始捕获帧</a> · <a href="report.json">Runtime 报告</a> · <a href="setup/index.html">源图对照</a>
 <p id="identity"></p></footer></main>

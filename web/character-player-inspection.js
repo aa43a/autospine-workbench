@@ -9,19 +9,26 @@ window.createCharacterInspection=function(context,renderer,redraw){
  });
  parent.postMessage({type:'audit-player-ready'},location.origin);
  return {
+  setRegions(regions,mode){
+   if(!['full','isolate','hide'].includes(mode)||!Array.isArray(regions)||
+      !regions.every(id=>context.skeleton.slots.some(s=>s.name===id)))return false;
+   focus=mode==='full'||!regions.length?null:{regions:[...new Set(regions)],isolated:mode==='isolate',hidden:mode==='hide',keepCamera:true};
+   redraw();return true;
+  },
   prepare(skeleton){
-   defaults();if(!focus)return;
+   defaults();if(!focus){window.characterInspectionState={regions:[],isolated:false,hidden:false};return;}
+   if(focus.hidden)for(const slot of skeleton.slots)if(focus.regions.includes(slot.data.name))slot.appliedPose.setAttachment(null);
    if(focus.isolated){
     for(const slot of skeleton.slots)if(!focus.regions.includes(slot.data.name))slot.appliedPose.setAttachment(null);
-    const b=skeleton.getBoundsRect();
-    if([b.x,b.y,b.width,b.height].every(Number.isFinite)&&b.width>0&&b.height>0){
+    const b=focus.keepCamera?null:skeleton.getBoundsRect();
+    if(b&&[b.x,b.y,b.width,b.height].every(Number.isFinite)&&b.width>0&&b.height>0){
      const ratio=context.info.width/context.info.height,h=Math.max(b.height*1.4,b.width*1.4/ratio,80);
      renderer.camera.setViewport(h*ratio,h);renderer.camera.position.x=b.x+b.width/2;renderer.camera.position.y=b.y+b.height/2;renderer.camera.update();
     }
    }
-   window.characterInspectionState={regions:focus.regions,isolated:focus.isolated,bone:focus.bone};
+   window.characterInspectionState={regions:focus.regions,isolated:focus.isolated,hidden:!!focus.hidden,bone:focus.bone};
   },draw(skeleton){
-   if(!focus)return;
+   if(!focus||!focus.bone)return;
    const debug=renderer.skeletonDebugRenderer;
    for(const k of ['drawRegionAttachments','drawBoundingBoxes','drawMeshHull','drawMeshTriangles','drawPaths','drawSkeletonXY','drawClipping'])debug[k]=false;
    debug.drawBones=true;

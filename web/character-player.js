@@ -38,6 +38,21 @@
   if (!data.animations.length) throw Error('候选没有动作');
   let time = 0, duration = 0, playing = false, previous = 0;
   const inspection=window.createCharacterInspection(context,renderer,()=>draw());
+  for(const id of ['inspect-a','inspect-b']){
+    for(const slot of doc.slots){
+      const option=document.createElement('option');option.value=slot.name;option.textContent=slot.name;
+      el(id).append(option);
+    }
+  }
+  function inspect(){
+    const regions=[el('inspect-a').value,el('inspect-b').value].filter(Boolean);
+    inspection.setRegions(regions,el('inspect-mode').value);
+    el('inspect-note').textContent=regions.length?'局部显示仅用于观察，不改变候选或代表遮挡验证通过。':'请先选择部件；当前显示完整角色。';
+  }
+  for(const id of ['inspect-a','inspect-b','inspect-mode'])el(id).onchange=inspect;
+  el('inspect-clear').onclick=()=>{
+    el('inspect-mode').value='full';el('inspect-a').value='';el('inspect-b').value='';inspect();
+  };
   function draw() {
     // Reconstruct setup pose on every seek: reverse scrubbing never accumulates deform/state.
     const skeleton = new spine.Skeleton(data), state = new spine.AnimationState(new spine.AnimationStateData(data));

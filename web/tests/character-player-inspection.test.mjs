@@ -15,4 +15,13 @@ test('inspection scopes messages to exact candidate and uses applied slot poses 
  const skeleton={slots:['eye','body'].map(name=>({data:{name},appliedPose:{setAttachment(value){assert.equal(value,null);cleared++;}}})),getBoundsRect:()=>({x:10,y:20,width:30,height:40})};
  inspect.prepare(skeleton);assert.equal(cleared,1);assert.equal(source.skeleton.slots.length,2);
  receive({source:parent,origin:'http://local',data:{...message,isolated:false}});inspect.prepare(skeleton);assert.equal(cleared,1);
+ assert.equal(inspect.setRegions(['missing'],'hide'),false);
+ assert.equal(inspect.setRegions(['eye'],'hide'),true);inspect.prepare(skeleton);assert.equal(cleared,2);
+ assert.equal(window.characterInspectionState.hidden,true);
+ assert.equal(inspect.setRegions(['eye'],'full'),true);inspect.prepare(skeleton);assert.equal(cleared,2);
+ assert.equal(window.characterInspectionState.regions.length,0);
+ // Local isolation must preserve the full-character camera for same-frame comparison.
+ skeleton.getBoundsRect=()=>{throw Error('local isolation need not measure bounds');};
+ assert.equal(inspect.setRegions(['eye'],'isolate'),true);
+ inspect.prepare(skeleton);assert.equal(cleared,3);
 });
