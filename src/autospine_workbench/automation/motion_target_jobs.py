@@ -135,6 +135,10 @@ def review_file(manager, job, parts):
         return read(None, None, None, parts)
     result, files = context(manager, job)
     runtime_file = runtime_reader(manager, job, result)
+    if parts == ['motion-review.json']:
+        if 'motion-review.json' not in files:
+            raise PipelineRunError('pipeline_artifact_not_found')
+        return files['motion-review.json'], 'application/json'
     if parts == ['bend-status.json']:
         from ..motion_bundle_reader import VerifiedMotionBundleReader
         from ..targets.character43.knee_projection import build

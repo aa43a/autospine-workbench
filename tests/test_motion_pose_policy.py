@@ -28,3 +28,13 @@ class MotionPosePolicyTests(unittest.TestCase):
         new=signature(manager,{'source_job_id':'source','pose_profile':HIP_PROFILE})
         self.assertNotIn('pose_profile',old)
         self.assertNotEqual(old,new)
+
+    def test_pose_report_is_read_from_verified_candidate_only(self):
+        from autospine_workbench.automation.motion_target_jobs import review_file
+        with patch('autospine_workbench.automation.motion_target_jobs.context',return_value=({}, {'motion-review.json':b'{"exact":true}'})), \
+             patch('autospine_workbench.automation.motion_target_jobs.runtime_reader') as runtime:
+            self.assertEqual(review_file(None,'job',['motion-review.json']),(b'{"exact":true}','application/json'))
+            runtime.return_value.assert_not_called()
+        with patch('autospine_workbench.automation.motion_target_jobs.context',return_value=({}, {})), \
+             patch('autospine_workbench.automation.motion_target_jobs.runtime_reader'):
+            with self.assertRaisesRegex(Exception,'not_found'):review_file(None,'job',['motion-review.json'])

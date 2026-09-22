@@ -24,10 +24,20 @@ def build(files, artifact_sha256, runtime=None):
         add('躯干投影','sampled_pass' if torso.get('applied') is True else 'needs_changes',
             '实验性网格烘焙；头部与手臂作形状补偿，骨骼辅助线不随烘焙移动。侧背面素材和视觉效果仍需检查。',
             'motion-torso-projection.json',applied=torso.get('applied'))
-    add('投影', 'needs_changes' if projection else 'sampled_pass' if motion.get('projected_lengths') else 'unmeasured',
+    pose = motion.get('source_pose_fit', {})
+    unreliable = [dict(bone=row['bone'], **frame) for row in pose.get('records', [])
+                  for frame in row.get('unreliable_frames', [])]
+    pose_measured = bool(pose.get('records')) and all(
+        'unreliable_frames' in row for row in pose['records'])
+    add('投影', 'needs_changes' if projection or unreliable else
+        'sampled_pass' if motion.get('projected_lengths') or pose_measured else 'unmeasured',
+        '源骨段接近朝向镜头，二维方向不可靠；查看标记时间，不应仅靠旋转平滑隐藏。' if unreliable else
         '当前视角存在缩短或塌缩异常，请切换源视角或截取片段后重新构建。' if projection else
         '只说明已实施的骨段投影检查；不代表具有侧面或背面贴图。',
-        '/motions.html', reasons=[i['reason_code'] for i in projection])
+        'player.html' if unreliable else '/motions.html',
+        reasons=[i['reason_code'] for i in projection],
+        unreliable_frames=unreliable, pose_profile=pose.get('target_profile'),
+        failures=[dict(time=f['time'], bone=f['bone'], reason='source_projection_unreliable') for f in unreliable])
     failed = [r for r in geometry.get('records', []) if not r['passed']]
     add('几何', 'sampled_pass' if geometry.get('passed') is True else 'needs_changes' if geometry else 'unmeasured',
         f'{len(failed)} 个附件动作记录超限；按失败时间检查。' if failed else '采样网格检查，不是连续时间证明。',

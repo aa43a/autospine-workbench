@@ -32,13 +32,13 @@ export function appendReadiness(item, job, compare, {onSeek} = {}) {
         for (const failure of failures) {
           const entry = document.createElement('p');
           const reason = document.createElement('span');
-          reason.textContent = failure.reason || '检查异常';
+          reason.textContent = failure.reason === 'source_projection_unreliable' ? '源投影方向不可靠' : failure.reason || '检查异常';
           entry.append(reason);
           if (!Number.isFinite(failure.time) || failure.time < 0) {
             entry.append(' · 未提供有效时间'); details.append(entry); continue;
           }
           const point = document.createElement('a');
-          point.textContent = ` ${failure.slot || '异常'} · ${failure.time.toFixed(3)} 秒 `;
+          point.textContent = ` ${failure.slot || failure.bone || '异常'} · ${failure.time.toFixed(3)} 秒 `;
           point.href = base + `player.html?time=${failure.time}`;
           if (onSeek) point.onclick = event => {event.preventDefault(); onSeek(failure.time);};
           else {point.target = '_blank'; point.rel = 'noopener';}

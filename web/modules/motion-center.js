@@ -11,6 +11,7 @@ import {appendStageReview} from './motion-stage-review.js';
 import {appendViewComparison} from './motion-view-comparison.js';
 import {appendRotationDetails} from './motion-rotation-details.js';
 import {appendTorsoDetails} from './motion-torso-details.js';
+import {appendPoseSummary} from './motion-pose-selection.js';
 
 const $ = id => document.getElementById(id);
 const player = createSourcePlayer($('canvas'), $('time'), $('play'), $('clock'));
@@ -135,6 +136,7 @@ function render(data) {
     if (job.cancel_requested && active.has(job.status)) item.append(node('p', '正在停止解析进程…'));
     if (job.status === 'succeeded' && job.kind === 'adapt') {
       const result = job.result;
+      appendPoseSummary(item,job);
       if(result.torso_projection_profile)appendTorsoDetails(item,job);
       if (result.projection) {
         const receipt = node('a', `投影偏转 ${result.projection.yaw_degrees}° · 查看依据`);

@@ -20,6 +20,25 @@ def fixture():
 
 
 class ReadinessTests(unittest.TestCase):
+    def test_source_pose_unreliable_frames_reach_readiness(self):
+        files, runtime = fixture()
+        pose = dict(target_profile='absolute-projection-hip-center-temporal-v1',
+                    records=[dict(bone='forearm_r', unreliable_frames=[
+                        dict(frame=66, time=2.2, visibility=.04)])])
+        files['motion-review.json'] = json.dumps(dict(source_pose_fit=pose, issues=[])).encode()
+        report = build(files, 'a'*64, runtime)
+        self.assertEqual(report['status'], 'needs_changes')
+        row = report['stages'][0]
+        self.assertEqual(row['failures'][0]['time'], 2.2)
+        self.assertEqual(row['failures'][0]['bone'], 'forearm_r')
+        self.assertEqual(row['href'], 'player.html')
+        pose['records'][0]['unreliable_frames'] = []
+        files['motion-review.json'] = json.dumps(dict(source_pose_fit=pose, issues=[])).encode()
+        self.assertEqual(build(files, 'a'*64, runtime)['stages'][0]['status'], 'sampled_pass')
+        del pose['records'][0]['unreliable_frames']
+        files['motion-review.json'] = json.dumps(dict(source_pose_fit=pose, issues=[])).encode()
+        self.assertEqual(build(files, 'a'*64, runtime)['stages'][0]['status'], 'unmeasured')
+
     def test_sampled_pass_never_means_accepted(self):
         files, runtime = fixture()
         report = build(files, 'a'*64, runtime)

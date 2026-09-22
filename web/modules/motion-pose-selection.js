@@ -1,4 +1,13 @@
 export const POSE_PROFILE='absolute-projection-hip-center-temporal-v1';
+export function appendPoseSummary(container,job){
+  const profile=job.result?.pose_profile;if(!profile)return;
+  const note=document.createElement('p');
+  note.textContent=profile===POSE_PROFILE?'姿态策略：源姿态与髋中心（实验候选）':'姿态策略：'+profile;
+  const link=document.createElement('a');link.textContent='查看姿态与修正依据';
+  link.href=`/api/motions/${job.job_id}/view/motion-review.json`;
+  link.target='_blank';link.rel='noopener';
+  note.append(' · ',link);container.append(note);
+}
 export function poseSelection(value,body){
   if(!value)return {};
   if(value!==POSE_PROFILE)throw Error('未知源姿态策略');
