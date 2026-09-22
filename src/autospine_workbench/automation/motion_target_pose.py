@@ -25,12 +25,15 @@ def prepare(bundle, *, hip_center=False):
 
 def project(document,name,motion,bvh,mapping,kimodo,oblique,time_range,pose_fit):
     if pose_fit is not None:
-        if (pose_fit.get('profile') not in (PROFILE,HIP_PROFILE) or pose_fit.get('motion_sha256')!=motion_ir_sha256(motion)
+        from .motion_view_pose import PROFILE as VIEW_PROFILE, validate as validate_view
+        if pose_fit.get('profile') == VIEW_PROFILE:
+            validate_view(pose_fit,motion,oblique,time_range)
+        elif (pose_fit.get('profile') not in (PROFILE,HIP_PROFILE) or pose_fit.get('motion_sha256')!=motion_ir_sha256(motion)
                 or oblique is not None):
             raise ValueError('source_pose_profile_identity_or_view_mismatch')
         from ..targets.character43.source_pose_fit import fit
         document,evidence=fit(document,name,pose_fit['vectors'],pose_fit['times'],project_lengths=True)
-        if pose_fit['profile']==HIP_PROFILE:
+        if pose_fit['profile'] in (HIP_PROFILE,VIEW_PROFILE):
             import math
             from ..targets.character43.hip_center_motion import apply
             bones={b['name']:b for b in document['bones']}
