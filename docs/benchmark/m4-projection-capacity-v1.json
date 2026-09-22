@@ -1,0 +1,212 @@
+[
+  {
+    "job": "motion-8a48f34642c643e397f95b433046b8bb",
+    "motion_identity": {
+      "bundle_sha256": "ef7afe08aab29cb0b617aefd9c7d2162f96b2930dba70f8b37a61c2d88e5c2ab",
+      "bvh_map_sha256": "e77a4090381517d48dc08a903db1b9ebe5ba223ca89cabb1eed5ba0b57eb2cca",
+      "clip_id": "external.cf0b3afbf92df08c.front",
+      "clip_sha256": "fb57014391df27c737995214f3ec89918b99192ceda0b4d1626d8cfbfc261061",
+      "map_id": "mixamo-declared-body-v1",
+      "motion_ir_sha256": "fb57014391df27c737995214f3ec89918b99192ceda0b4d1626d8cfbfc261061",
+      "raw_bvh_byte_length": 169539,
+      "raw_bvh_sha256": "cf0b3afbf92df08cd71fc680ffd49d32420e3a66de7f36ff64d930b9321ee55d",
+      "reused": false,
+      "run_sha256": "8da605d84b8040bda1747658ec9511c4b52f81fd646de6d4ea5256df05620aee",
+      "source_kind": "bvh"
+    },
+    "rows": [
+      {
+        "yaw": -45,
+        "minimum_visibility": 0.39475803773252116,
+        "all_limb_samples_above_half": false,
+        "worst_limb": {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.39475803773252116,
+          "worst_time": 0.833333,
+          "below_half_length": 13,
+          "unreliable_samples": 0
+        }
+      },
+      {
+        "yaw": -30,
+        "minimum_visibility": 0.14498125554787042,
+        "all_limb_samples_above_half": false,
+        "worst_limb": {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.14498125554787042,
+          "worst_time": 0.833333,
+          "below_half_length": 19,
+          "unreliable_samples": 8
+        }
+      },
+      {
+        "yaw": -15,
+        "minimum_visibility": 0.10275027522110843,
+        "all_limb_samples_above_half": false,
+        "worst_limb": {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.10275027522110843,
+          "worst_time": 1.0,
+          "below_half_length": 20,
+          "unreliable_samples": 10
+        }
+      },
+      {
+        "yaw": 0,
+        "minimum_visibility": 0.35423599961441465,
+        "all_limb_samples_above_half": false,
+        "worst_limb": {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.35423599961441465,
+          "worst_time": 1.033333,
+          "below_half_length": 16,
+          "unreliable_samples": 0
+        }
+      },
+      {
+        "yaw": 15,
+        "minimum_visibility": 0.15974262251683866,
+        "all_limb_samples_above_half": false,
+        "worst_limb": {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.15974262251683866,
+          "worst_time": 1.033333,
+          "below_half_length": 21,
+          "unreliable_samples": 5
+        }
+      },
+      {
+        "yaw": 30,
+        "minimum_visibility": 0.03898440982482097,
+        "all_limb_samples_above_half": false,
+        "worst_limb": {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.03898440982482097,
+          "worst_time": 0.8,
+          "below_half_length": 21,
+          "unreliable_samples": 11
+        }
+      },
+      {
+        "yaw": 45,
+        "minimum_visibility": 0.2959757953142483,
+        "all_limb_samples_above_half": false,
+        "worst_limb": {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.2959757953142483,
+          "worst_time": 0.8,
+          "below_half_length": 18,
+          "unreliable_samples": 0
+        }
+      }
+    ],
+    "authority": "none",
+    "selected": false,
+    "scope": "source_vector_projection_only_not_target_mesh_contact_artwork_or_visual_acceptance"
+  },
+  {
+    "job": "motion-76a6d4f31c104facb5bf066093aec4a0",
+    "motion_identity": {
+      "bundle_sha256": "5f531a9327ad59abde64e643438baa794e5618b5629d59c0e3f9d4da990948b7",
+      "bvh_map_sha256": "f9d1995881e5623f72208050cc9b639d98b1317da3322e3480cf50a283fa7f5c",
+      "clip_id": "external.a4233c602a77a95c.front",
+      "clip_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+      "map_id": "mixamo-declared-body-v1",
+      "motion_ir_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+      "raw_bvh_byte_length": 342778,
+      "raw_bvh_sha256": "a4233c602a77a95c1473ef7ab3f277fa7ca6aec5a98b4d5407dea904194bb2f4",
+      "reused": false,
+      "run_sha256": "c48c0ffcb9338d2bc72a1013f1be8366de8ea5583419f979a9ac1c080b534207",
+      "source_kind": "bvh"
+    },
+    "rows": [
+      {
+        "yaw": -45,
+        "minimum_visibility": 0.47563832830990754,
+        "all_limb_samples_above_half": false,
+        "worst_limb": {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.47563832830990754,
+          "worst_time": 2.9,
+          "below_half_length": 19,
+          "unreliable_samples": 0
+        }
+      },
+      {
+        "yaw": -30,
+        "minimum_visibility": 0.2532593505385028,
+        "all_limb_samples_above_half": false,
+        "worst_limb": {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.2532593505385028,
+          "worst_time": 3.1,
+          "below_half_length": 50,
+          "unreliable_samples": 0
+        }
+      },
+      {
+        "yaw": -15,
+        "minimum_visibility": 0.031233193327087284,
+        "all_limb_samples_above_half": false,
+        "worst_limb": {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.031233193327087284,
+          "worst_time": 4.0,
+          "below_half_length": 51,
+          "unreliable_samples": 35
+        }
+      },
+      {
+        "yaw": 0,
+        "minimum_visibility": 0.03953871757388028,
+        "all_limb_samples_above_half": false,
+        "worst_limb": {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.03953871757388028,
+          "worst_time": 2.466667,
+          "below_half_length": 67,
+          "unreliable_samples": 20
+        }
+      },
+      {
+        "yaw": 15,
+        "minimum_visibility": 0.22047630228437234,
+        "all_limb_samples_above_half": false,
+        "worst_limb": {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.22047630228437234,
+          "worst_time": 2.466667,
+          "below_half_length": 64,
+          "unreliable_samples": 0
+        }
+      },
+      {
+        "yaw": 30,
+        "minimum_visibility": 0.4652891550675811,
+        "all_limb_samples_above_half": false,
+        "worst_limb": {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.4652891550675811,
+          "worst_time": 2.5,
+          "below_half_length": 55,
+          "unreliable_samples": 0
+        }
+      },
+      {
+        "yaw": 45,
+        "minimum_visibility": 0.6651971500968753,
+        "all_limb_samples_above_half": true,
+        "worst_limb": {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.6651971500968753,
+          "worst_time": 3.6,
+          "below_half_length": 0,
+          "unreliable_samples": 0
+        }
+      }
+    ],
+    "authority": "none",
+    "selected": false,
+    "scope": "source_vector_projection_only_not_target_mesh_contact_artwork_or_visual_acceptance"
+  }
+]
