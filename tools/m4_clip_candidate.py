@@ -1,6 +1,6 @@
 """Isolated Spine clipping candidate; no claim from mesh-only numeric validators."""
 import argparse
-from base64 import b64decode
+from base64 import b64decode,b64encode
 from copy import deepcopy
 from hashlib import sha256
 import json
@@ -67,13 +67,17 @@ def build(document, report, arm, body):
     return candidate
 
 
-def run(source,segments,output,arm,body,*,crop=None):
+def run(source,segments,output,arm,body,*,crop=None,material_bones=None):
     camera=None if crop is None else crop_camera(crop)
     receipt=json.loads((source/'report.json').read_bytes());raw=segments.read_bytes();report=json.loads(raw)
     parent=receipt['candidate_bundle_sha256']
     if report['parent']!=parent:raise ValueError('clip_candidate_parent')
     files=AnimatedStore(source/'isolated-store').read(parent);document=json.loads(files['skeleton.json'])
     candidate=build(document,report,arm,body)
+    additions={};material_report=None
+    if material_bones is not None:
+        from m4_root_material import apply
+        candidate,additions,material_report=apply(candidate,document,files,arm,body,*material_bones)
     runtime=json.loads((source/'runtime/report.json').read_bytes())
     if runtime['bundle_sha256']!=parent or not runtime['passed']:raise ValueError('clip_candidate_runtime_source')
     source_scene=json.loads((source/'runtime/player-assets/scene.json').read_bytes())
@@ -86,6 +90,8 @@ def run(source,segments,output,arm,body,*,crop=None):
     output.mkdir(parents=True,exist_ok=False)
     isolated={n:v for n,v in files.items() if n.endswith('.png') or n in ('skeleton.atlas','character-manifest.json')}
     isolated['skeleton.json']=canonical_bytes(candidate)
+    isolated.update(additions)
+    if material_report is not None:isolated['root-material-experiment.json']=canonical_bytes(material_report)
     isolated['clipping-experiment.json']=canonical_bytes(dict(parent=parent,segments_sha256=sha256(raw).hexdigest(),authority='none',selected=False))
     digest=AnimatedStore(output/'isolated-store').publish(isolated)
     for label,doc,address in [('before',document,parent),('after',candidate,digest)]:
@@ -93,6 +99,9 @@ def run(source,segments,output,arm,body,*,crop=None):
         shutil.copy2(source/'runtime/player.html',target/'player.html')
         shutil.copytree(source/'runtime/player-assets',target/'player-assets')
         scene=deepcopy(source_scene);scene['skeleton']=doc;scene['artifact_sha256']=address;scene['info']['slots']=len(doc['slots'])
+        if label=='after' and additions:
+            scene['atlas']=isolated['skeleton.atlas'].decode()
+            scene['textures'].update({n:'data:image/png;base64,'+b64encode(v).decode() for n,v in additions.items() if n.endswith('.png')})
         if camera is not None:
             scene['info'].update(camera)
             with (target/'player.html').open('a',encoding='utf-8') as stream:
@@ -103,9 +112,9 @@ def run(source,segments,output,arm,body,*,crop=None):
     count=len(report['segments'])
     (output/'comparison.json').write_bytes(canonical_bytes(dict(authority='none',selected=False,title='Reach 连续裁剪边界实验',headings=['原候选（相同视角）','连续裁剪候选'],
         view_scope='full_character' if camera is None else 'diagnostic_world_crop',camera=camera,
-        note=f'右肩源骨架深度代理，{count} 个拓扑区间。尚未通过裁剪数值、跨图层、插值深度和视觉验收；左臂未修复。',rows=[dict(label='Reach',views=views)])))
+        note=f'右肩源骨架深度代理，{count} 个拓扑区间。'+('另含近端连接片材料实验；不固定远端袖布。' if additions else '')+'尚未通过裁剪数值、跨图层、插值深度和视觉验收；左臂未修复。',rows=[dict(label='Reach',views=views)])))
     for name,target in [('m4-reach-comparison.html','index.html'),('m4-reach-comparison.js','comparison.js')]:shutil.copy2(Path('tools')/name,output/target)
-    (output/'report.json').write_bytes(canonical_bytes(dict(parent=parent,candidate=digest,authority='none',selected=False,segments=count,runtime_status='not_evaluated',runtime_sha256=runtime['runtime_sha256'])))
+    (output/'report.json').write_bytes(canonical_bytes(dict(parent=parent,candidate=digest,authority='none',selected=False,segments=count,runtime_status='not_evaluated',runtime_sha256=runtime['runtime_sha256'],material=material_report)))
     print(digest)
 
 
@@ -113,4 +122,5 @@ if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
     for name in ('source','segments','output'):p.add_argument(name,type=Path)
     p.add_argument('--arm',required=True);p.add_argument('--body',required=True);p.add_argument('--crop',nargs=4,type=float)
-    a=p.parse_args();run(a.source,a.segments,a.output,a.arm,a.body,crop=a.crop)
+    p.add_argument('--material-bones',nargs=2,metavar=('ROOT','DISTAL'))
+    a=p.parse_args();run(a.source,a.segments,a.output,a.arm,a.body,crop=a.crop,material_bones=a.material_bones)
