@@ -1,4 +1,4 @@
-"""Declared BVH foot frames, reduced to relative camera-plane rotation."""
+"""Verified source foot frames, reduced to relative camera-plane rotation."""
 import json
 import math
 from ...bvh_parser import parse_bvh
@@ -18,15 +18,23 @@ def camera_rotation(matrix, yaw):
 
 def extract(bundle, *, yaw=0):
     camera_rotation([[1,0,0],[0,1,0],[0,0,1]],yaw)
-    if bundle.source_kind!='bvh':raise ValueError('foot_orientation_source_not_supported')
     mapping=json.loads((bundle.path/'map.json').read_bytes())
     roles={r['role']:r for r in mapping['bones']};names={}
     for side,suffix in [('left','l'),('right','r')]:
-        aim=roles['humanoid.leg.lower.'+side]['aim']
-        if aim['kind']!='joint':raise ValueError('foot_orientation_joint_required')
-        names['foot_'+suffix]=aim['joint_name']
-    bvh=parse_bvh(bundle.raw_bvh);lookup={j.name:i for i,j in enumerate(bvh.joints)}
-    poses=[_world_matrices(bvh,f) for f in bvh.frames]
+        row=roles['humanoid.leg.lower.'+side]
+        if bundle.source_kind=='bvh':
+            if row['aim']['kind']!='joint':raise ValueError('foot_orientation_joint_required')
+            names['foot_'+suffix]=row['aim']['joint_name']
+        elif bundle.source_kind=='kimodo_npz':
+            names['foot_'+suffix]=row['aim_joint_name']
+        else:raise ValueError('foot_orientation_source_not_supported')
+    if bundle.source_kind=='bvh':
+        bvh=parse_bvh(bundle.raw_bvh);lookup={j.name:i for i,j in enumerate(bvh.joints)}
+        poses=[_world_matrices(bvh,f) for f in bvh.frames]
+        times=[t/1e6 for t in bvh_frame_ticks(bvh)]
+    else:
+        from .kimodo_foot_frames import read
+        poses,lookup,times=read(bundle,mapping)
     basis=mapping['basis'];axes=[]
     for key in ('screen_x','screen_y','depth'):
         value=basis[key];axes.append(('XYZ'.index(value[1]),(-1 if value[0]=='-' else 1)*(-1 if key=='screen_y' else 1)))
@@ -48,8 +56,9 @@ def extract(bundle, *, yaw=0):
         tracks[target]=angles
         records.append(dict(bone=target,source_joint=source,maximum_3d_rotation_deg=max3d,
                             minimum_planar_strength=min(strengths)))
-    result=dict(profile='declared-bvh-relative-foot-frame-v1',times=[t/1e6 for t in bvh_frame_ticks(bvh)],
+    kind='bvh' if bundle.source_kind=='bvh' else 'kimodo'
+    result=dict(profile=f'declared-{kind}-relative-foot-frame-v1',times=times,
                 tracks=tracks,records=records,authority='none',
                 limitation='camera_plane_rotation_not_sole_geometry_or_hidden_foot_artwork')
-    if yaw != 0:result.update(profile='declared-bvh-relative-foot-view-v1',yaw_degrees=yaw)
+    if yaw != 0:result.update(profile=f'declared-{kind}-relative-foot-view-v1',yaw_degrees=yaw)
     return result
