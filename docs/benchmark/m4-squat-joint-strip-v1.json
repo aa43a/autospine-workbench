@@ -1,0 +1,25 @@
+{
+  "profile": "joint-material-strip-comparison-v1",
+  "source": "0b8feb06ac10e2baa631b5e0dbbd170e48826f0e685f658c9ab796eacc4d9dcf",
+  "authority": "none",
+  "selected": false,
+  "candidate_published": false,
+  "runtime_captured": false,
+  "baseline": "direct_transverse_no_shear_not_interpolated_baked_candidate",
+  "samples": [
+    {"slot": "layer-003", "time": 0.0, "baseline_inversions": 0, "hermite_inversions": 0, "curve_normal_inversions": 0, "negative_mapping_samples": 0},
+    {"slot": "layer-003", "time": 0.966667, "baseline_inversions": 2, "hermite_inversions": 8, "curve_normal_inversions": 14, "negative_mapping_samples": 9},
+    {"slot": "layer-003", "time": 1.12, "baseline_inversions": 0, "hermite_inversions": 0, "curve_normal_inversions": 1, "negative_mapping_samples": 2},
+    {"slot": "layer-004", "time": 0.0, "baseline_inversions": 0, "hermite_inversions": 0, "curve_normal_inversions": 0, "negative_mapping_samples": 0},
+    {"slot": "layer-004", "time": 0.966667, "baseline_inversions": 5, "hermite_inversions": 16, "curve_normal_inversions": 15, "negative_mapping_samples": 11},
+    {"slot": "layer-004", "time": 1.12, "baseline_inversions": 2, "hermite_inversions": 2, "curve_normal_inversions": 4, "negative_mapping_samples": 5}
+  ],
+  "scope": "sampled_local_mapping_not_global_impossibility_proof",
+  "diagnostic": "Negative Jacobians agree at two finite-difference step sizes; denser triangulation alone cannot fix the tested mapping.",
+  "evidence": [
+    "../tmp/m4-motion-center/squat-joint-strip-v1/hongmeiling/probe.json",
+    "../tmp/m4-motion-center/squat-joint-strip-v2/hongmeiling/probe.json",
+    "../tmp/m4-motion-center/squat-joint-strip-v3/hongmeiling/probe.json"
+  ],
+  "next": "Prototype separated proximal/distal surfaces and a source-supported joint cover; verify setup preservation, overlap, seam and depth without claiming arbitrary missing-view reconstruction."
+}
