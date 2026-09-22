@@ -1,0 +1,102 @@
+{
+  "authority": "none",
+  "rows": [
+    {
+      "authority": "none",
+      "geometry": {
+        "bad_triangles": [
+          5,
+          15,
+          27,
+          45
+        ],
+        "inversions": 0,
+        "max_area_ratio": 1.9483951571001863,
+        "max_edge_stretch": 2.075478195516244,
+        "min_area_ratio": 0.44031797549564056
+      },
+      "iterations": 7,
+      "maximum_displacement_px": 87.07858712006275,
+      "minimum_constraint": -0.08047819551624391,
+      "optimizer_success": false,
+      "path_bound": {
+        "max_edge_stretch": 2.0,
+        "scope": "necessary_path_bound_not_full_mesh_feasibility",
+        "status": "no_path_counterexample",
+        "witnesses": []
+      },
+      "profile": "boundary-hard-shape-feasibility-v1",
+      "scope": "single_pose_not_temporal_or_visual_acceptance",
+      "selected": false,
+      "slot": "layer-004",
+      "status": "no_feasible_candidate_found",
+      "time": 0.0
+    },
+    {
+      "authority": "none",
+      "geometry": {
+        "bad_triangles": [
+          5,
+          15,
+          27,
+          30,
+          31
+        ],
+        "inversions": 0,
+        "max_area_ratio": 1.958418323662298,
+        "max_edge_stretch": 2.021538877152247,
+        "min_area_ratio": 0.4778198760489158
+      },
+      "iterations": 16,
+      "maximum_displacement_px": 86.53558398505874,
+      "minimum_constraint": -0.027180123951084212,
+      "optimizer_success": false,
+      "path_bound": {
+        "max_edge_stretch": 2.0,
+        "scope": "necessary_path_bound_not_full_mesh_feasibility",
+        "status": "no_path_counterexample",
+        "witnesses": []
+      },
+      "profile": "boundary-hard-shape-feasibility-v1",
+      "scope": "single_pose_not_temporal_or_visual_acceptance",
+      "selected": false,
+      "slot": "layer-004",
+      "status": "no_feasible_candidate_found",
+      "time": 0.866667
+    },
+    {
+      "authority": "none",
+      "geometry": {
+        "bad_triangles": [
+          5,
+          15
+        ],
+        "inversions": 0,
+        "max_area_ratio": 1.9916185814776037,
+        "max_edge_stretch": 2.0059073536259486,
+        "min_area_ratio": 0.49627368575577796
+      },
+      "iterations": 18,
+      "maximum_displacement_px": 86.04014387717302,
+      "minimum_constraint": -0.010907353625948524,
+      "optimizer_success": false,
+      "path_bound": {
+        "max_edge_stretch": 2.0,
+        "scope": "necessary_path_bound_not_full_mesh_feasibility",
+        "status": "no_path_counterexample",
+        "witnesses": []
+      },
+      "profile": "boundary-hard-shape-feasibility-v1",
+      "scope": "single_pose_not_temporal_or_visual_acceptance",
+      "selected": false,
+      "slot": "layer-004",
+      "status": "no_feasible_candidate_found",
+      "time": 1.12
+    }
+  ],
+  "selected": false,
+  "source": "8a10b240c237a21e4fd9b9b7b415b491fc197aea3e85998fa2f6bc59f7f753e0",
+  "trial": "c1b1a51d25da8d6bf956a51ea048eb8a29d95fc9fe8b703dea681631d4f5df71",
+  "scope": "three_failed_source_poses_not_full_motion_or_proof_of_infeasibility",
+  "conclusion": "No feasible hard-constraint solution found; no fixed-boundary path contradiction found. Preserve previous candidate and do not increase budget."
+}

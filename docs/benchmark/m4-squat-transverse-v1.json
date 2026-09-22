@@ -1,0 +1,27 @@
+{
+  "profile": "transverse-frame-probe-v1",
+  "authority": "none",
+  "selected": false,
+  "character": "hongmeiling",
+  "source": "0b8feb06ac10e2baa631b5e0dbbd170e48826f0e685f658c9ab796eacc4d9dcf",
+  "candidate": "e2837b0ba8178c6adf42eabee4debf118db4a8c4695c4708a660e369aef21338",
+  "target_version": "4.3.26",
+  "runtime_version": "4.3.13",
+  "runtime_numeric_passed": true,
+  "sample_count": 113,
+  "sampling_scope": "source_frames_and_midpoints_not_full_parent_grid",
+  "geometry_passed": false,
+  "visual_accepted": false,
+  "numeric_baseline": "support_pose_without_selected_leg_deforms",
+  "player_baseline": "original_final_candidate_including_deforms",
+  "unchanged": ["bone_animation", "setup", "weights", "textures", "unselected_attachments"],
+  "samples": [
+    {"time": 0.966667, "slot": "layer-003", "before_inversions": 6, "after_inversions": 2, "before_edge_stretch": 3.870539616683333, "after_edge_stretch": 1.927136216038695},
+    {"time": 0.966667, "slot": "layer-004", "before_inversions": 8, "after_inversions": 5, "before_edge_stretch": 2.0756926630264196, "after_edge_stretch": 1.1366811548611613},
+    {"time": 1.12, "slot": "layer-004", "before_inversions": 0, "after_inversions": 1}
+  ],
+  "visual_observation": "At 1.12 seconds the sharp knee silhouette is reduced; remaining inversion prevents adoption.",
+  "browser_sync_seek_reverse_play_passed": true,
+  "evidence": "../tmp/m4-motion-center/squat-transverse-v1/hongmeiling",
+  "comparison": "../tmp/m4-motion-center/reach-live-yaw-comparison-v1/squat-transverse-v1/comparison/index.html"
+}

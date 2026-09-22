@@ -1,6 +1,6 @@
 # M4 重新分解：从可转换到可用动作
 
-日期：2026-09-22。本文作为后续执行入口；历史实验和验收记录不改写。详细证据见 [当前实验进度](m4-next-objectives.md)、[动作保真计划](m4-motion-fidelity-plan.md) 和 [三角色回归](benchmark/m4-proximal-ring-cohort-v1.json)。
+日期：2026-09-22。本文保留历次规划与实验记录；当前唯一执行顺序见 [M4 执行目标](m4-execution-targets.md)，下文历史“下一步”不再独立排期。历史实验和验收记录不改写。详细证据见 [当前实验进度](m4-next-objectives.md)、[动作保真计划](m4-motion-fidelity-plan.md) 和 [三角色回归](benchmark/m4-proximal-ring-cohort-v1.json)。
 
 ## 总目标
 
