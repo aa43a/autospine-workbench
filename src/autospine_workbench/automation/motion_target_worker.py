@@ -87,6 +87,12 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
             document, contact = select(document, ANIMATION, motion, times, evidence['reference_length_px'],
                                        contact, bvh, mapping, enabled=contact_correction, clip_bounds=clip_bounds,
                                        profile=inferred_contact_profile)
+    if pose_fit is not None and pose_fit.get('post_contact_profile'):
+        from .motion_post_contact import apply as repair_after_contact
+        document, contact, times, repair_issues = repair_after_contact(document, ANIMATION, motion,
+            setup_vertices, evidence, contact, times, pose_fit, on_stage)
+        evidence['profile'] = pose_fit['post_contact_profile']
+        issues.extend(repair_issues)
     if contact['status'] == 'inferred_proxy_drift':
         issues.append(dict(stage='contact', reason_code='motion_inferred_contact_drift'))
     if contact['status'] == 'needs_changes':

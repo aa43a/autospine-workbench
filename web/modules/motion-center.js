@@ -35,7 +35,7 @@ const steps = {
   inspect_npz: '核对 SOMA77 位置与旋转矩阵',
   verify_generator: '核对 Kimodo 模型与代码', verify_text_encoder: '检查本地文本编码器与 CUDA',
   generate_motion: 'Kimodo 正在生成动作（含模型加载）', verify_generation: '复查生成环境与输出',
-  retarget: '角色重定向与局部修正', publish_candidate: '保存角色候选', runtime: '官方 Runtime 捕获',
+  retarget: '角色重定向与局部修正', post_contact_repair: '接触后脚部与局部变形修正', publish_candidate: '保存角色候选', runtime: '官方 Runtime 捕获',
   depth_overlap: '逐帧检查透明像素重叠与绘制顺序',
   depth_partition: '按已有归属拆分绘制区域',
   depth_refinement: '校准手臂与躯干深度',

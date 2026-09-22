@@ -8,7 +8,7 @@ import subprocess
 from .storage_io import canonical_bytes, read_document
 
 STEPS = {'verify_source', 'convert_fbx', 'verify_bridge', 'inspect_bvh', 'inspect_npz', 'compile_motion',
-         'retarget', 'publish_candidate', 'runtime', 'verify_generator', 'verify_text_encoder',
+         'retarget', 'post_contact_repair', 'publish_candidate', 'runtime', 'verify_generator', 'verify_text_encoder',
          'generate_motion', 'verify_generation', 'depth_overlap', 'depth_partition',
          'depth_refinement', 'depth_cloth_constraints', 'depth_limb_constraints', 'depth_ordering', 'torso_projection', 'local_depth'}
 
