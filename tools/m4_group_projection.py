@@ -1,0 +1,38 @@
+"""Inspect exact imported source bundles without rebuilding character candidates."""
+import argparse
+import json
+from pathlib import Path
+from urllib.request import urlopen
+
+from autospine_workbench.motion_bundle_reader import VerifiedMotionBundleReader
+from autospine_workbench.targets.character43.oblique_source import extract
+from autospine_workbench.targets.character43.group_projection import compare
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('source_job')
+    parser.add_argument('output', type=Path)
+    args = parser.parse_args()
+    if not args.source_job.startswith('motion-') or not args.source_job[7:].isalnum():
+        raise ValueError('invalid_source_job')
+    with urlopen('http://127.0.0.1:8918/api/motions/'+args.source_job, timeout=120) as response:
+        job = json.load(response)
+    identity = job['result']['motion']
+    bundle = VerifiedMotionBundleReader(Path('workspace')).load(identity['clip_sha256'], identity['bundle_sha256'])
+    vectors, _, _ = extract(bundle)
+    tracks = [t for t in bundle.motion['tracks'] if t['property'] == 'rotation']
+    ticks = [k['tick'] for k in tracks[0]['keys']]
+    if any([k['tick'] for k in track['keys']] != ticks for track in tracks):
+        raise ValueError('source_ticks_mismatch')
+    report = compare(vectors, [t/bundle.motion['ticks_per_second'] for t in ticks])
+    report.update(source_job=args.source_job, source_identity=identity)
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    args.output.write_text(json.dumps(report, ensure_ascii=False), encoding='utf-8')
+    print(json.dumps([dict(group=r['group'], best=r['best_visibility_yaws'],
+        scores=[(a['yaw_degrees'], a['collapsed_samples'], a['minimum_visibility'])
+                for a in r['alternatives']]) for r in report['records']]))
+
+
+if __name__ == '__main__':
+    main()
