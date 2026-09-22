@@ -1,0 +1,116 @@
+{
+  "authority": "none",
+  "selected": false,
+  "rows": [
+    {
+      "candidate": "21969ed99dd41e85171f52842fc4754a8d8c4bd425fd722cf87a78ce94b9d437",
+      "source_identity": {
+        "bundle_sha256": "5f531a9327ad59abde64e643438baa794e5618b5629d59c0e3f9d4da990948b7",
+        "bvh_map_sha256": "f9d1995881e5623f72208050cc9b639d98b1317da3322e3480cf50a283fa7f5c",
+        "clip_id": "external.a4233c602a77a95c.front",
+        "clip_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "raw_bvh_byte_length": 342778,
+        "raw_bvh_sha256": "a4233c602a77a95c1473ef7ab3f277fa7ca6aec5a98b4d5407dea904194bb2f4",
+        "reused": false,
+        "run_sha256": "c48c0ffcb9338d2bc72a1013f1be8366de8ea5583419f979a9ac1c080b534207",
+        "source_kind": "bvh"
+      },
+      "arm": "layer-003",
+      "body": "layer-006",
+      "authority": "none",
+      "selected": false,
+      "source_textures": {
+        "images/layer-003.png": "cc127e3ea4887422f397c244fbfee9a494c5f1325c9f3acfc4ab9ed09c2c0252",
+        "images/layer-006.png": "243923637daf9e779a0fcd874738babe3bfbc5964a2b3d6da16aedb456298052"
+      },
+      "setup_occluded_visible_texels": 1390,
+      "visible_texels": 12028,
+      "mesh_uncovered_visible_texels": 0,
+      "hidden_bounds": [
+        131,
+        0,
+        194,
+        43
+      ],
+      "scope": "source_texel_center_setup_alpha_localization_not_dynamic_occlusion_or_missing_material_proof",
+      "character": "alice",
+      "report_sha256": "c1775b3de06f56c83b5417060eadc6673bc01a8dbad4180169d8f6fa87bc9f6a"
+    },
+    {
+      "candidate": "5c1547c83d150eb19f9bd2c1e32acda6fbf87e1d56adc077617392cc99e79818",
+      "source_identity": {
+        "bundle_sha256": "5f531a9327ad59abde64e643438baa794e5618b5629d59c0e3f9d4da990948b7",
+        "bvh_map_sha256": "f9d1995881e5623f72208050cc9b639d98b1317da3322e3480cf50a283fa7f5c",
+        "clip_id": "external.a4233c602a77a95c.front",
+        "clip_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "raw_bvh_byte_length": 342778,
+        "raw_bvh_sha256": "a4233c602a77a95c1473ef7ab3f277fa7ca6aec5a98b4d5407dea904194bb2f4",
+        "reused": false,
+        "run_sha256": "c48c0ffcb9338d2bc72a1013f1be8366de8ea5583419f979a9ac1c080b534207",
+        "source_kind": "bvh"
+      },
+      "arm": "layer-002-component-0000",
+      "body": "layer-005",
+      "authority": "none",
+      "selected": false,
+      "source_textures": {
+        "images/layer-002-component-0000.png": "3eca4b2fab938a33abfcc014bdee0aa6cd42f5d136ff411b32dc183183307462",
+        "images/layer-005.png": "1be5032e0f8e16d6ab50131a7096a1aba47da5073c07069cb279a6eae34605bd"
+      },
+      "setup_occluded_visible_texels": 41559,
+      "visible_texels": 80814,
+      "mesh_uncovered_visible_texels": 0,
+      "hidden_bounds": [
+        21,
+        0,
+        320,
+        726
+      ],
+      "scope": "source_texel_center_setup_alpha_localization_not_dynamic_occlusion_or_missing_material_proof",
+      "character": "huiye",
+      "report_sha256": "8aa43fb518aafc2db7a10c493d2eebb93ba1438c06e39cb74ff66b42bc306d68"
+    },
+    {
+      "candidate": "cd4a9966309e0e30377a4fad323caed297777d0de157902a8ce066e419b68ec2",
+      "source_identity": {
+        "bundle_sha256": "5f531a9327ad59abde64e643438baa794e5618b5629d59c0e3f9d4da990948b7",
+        "bvh_map_sha256": "f9d1995881e5623f72208050cc9b639d98b1317da3322e3480cf50a283fa7f5c",
+        "clip_id": "external.a4233c602a77a95c.front",
+        "clip_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "raw_bvh_byte_length": 342778,
+        "raw_bvh_sha256": "a4233c602a77a95c1473ef7ab3f277fa7ca6aec5a98b4d5407dea904194bb2f4",
+        "reused": false,
+        "run_sha256": "c48c0ffcb9338d2bc72a1013f1be8366de8ea5583419f979a9ac1c080b534207",
+        "source_kind": "bvh"
+      },
+      "arm": "layer-001",
+      "body": "layer-009",
+      "authority": "none",
+      "selected": false,
+      "source_textures": {
+        "images/layer-001.png": "90e847c051c3c3e1296ad0bc1b0f9d97ce21ea50c67fa437b4cbed46a6cd726c",
+        "images/layer-009.png": "b714b484203330be38e4886fcc11df611221468c111ee73eefb60149fba404d2"
+      },
+      "setup_occluded_visible_texels": 688,
+      "visible_texels": 22732,
+      "mesh_uncovered_visible_texels": 0,
+      "hidden_bounds": [
+        227,
+        42,
+        252,
+        112
+      ],
+      "scope": "source_texel_center_setup_alpha_localization_not_dynamic_occlusion_or_missing_material_proof",
+      "character": "hongmeiling",
+      "report_sha256": "116c34dd494d70479501345830bd87cc9875ee7999bd0c2b206699cf273b5ec2"
+    }
+  ],
+  "decision": "setup overlap alone cannot define shoulder attachment root; separate attached root from freely moving material before deformation",
+  "missing_artwork_proven": false
+}
