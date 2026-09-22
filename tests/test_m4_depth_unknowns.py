@@ -34,3 +34,12 @@ class DepthUnknownTests(unittest.TestCase):
         field['rows'].reverse()
         with self.assertRaisesRegex(ValueError, 'schedule'):
             locate(doc, field)
+
+    def test_axis_evidence_does_not_fill_unknown_depth(self):
+        doc, field = self.fixture()
+        doc['skins'][0]['attachments']['arm']['arm']['vertices'][7] = -3
+        report = locate(doc, field, axis_lengths={'cloth': 10})
+        influence = report['issues'][0]['influences'][0]
+        self.assertEqual(influence['axis_ratio'], -.3)
+        self.assertTrue(influence['outside_quarter_cap'])
+        self.assertEqual(report['unknown_vertices'], 1)

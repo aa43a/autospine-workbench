@@ -6,7 +6,7 @@ from pathlib import Path
 from autospine_workbench.automation.animated_store import AnimatedStore
 
 
-def locate(document, field):
+def locate(document, field, *, axis_lengths=None):
     mesh = document['skins'][0]['attachments'][field['arm']][field['arm']]
     count = len(mesh['uvs']) // 2
     influences = []
@@ -18,7 +18,12 @@ def locate(document, field):
             index, x, y, weight = data[cursor:cursor+4]; cursor += 4
             if weight > 0:
                 bone = document['bones'][index]
-                weights.append(dict(bone=bone['name'], parent=bone.get('parent'), weight=weight))
+                length = (axis_lengths or {}).get(bone['name'], bone.get('length', 0))
+                weights.append(dict(bone=bone['name'], parent=bone.get('parent'), weight=weight,
+                                    local_x=x, local_y=y, axis_length=length,
+                                    axis_ratio=x/length if length > 0 else None,
+                                    outside_quarter_cap=not (-.25*length <= x <= 1.25*length)
+                                    if length > 0 else None))
         influences.append(weights)
     if cursor != len(data):
         raise ValueError('depth_mesh_vertex_count')
@@ -65,7 +70,13 @@ def main():
     if field['candidate'] != receipt['candidate_bundle_sha256']:
         raise ValueError('depth_candidate_mismatch')
     files = AnimatedStore(args.source/'isolated-store').read(field['candidate'])
-    report = locate(json.loads(files['skeleton.json']), field)
+    from autospine_workbench.targets.character43.hand_mesh_axis import infer
+    from autospine_workbench.targets.spine43.seam_raster import texture
+    document = json.loads(files['skeleton.json'])
+    mesh = document['skins'][0]['attachments'][field['arm']][field['arm']]
+    axes = infer(document, mesh, texture(files['images/'+mesh.get('path', field['arm'])+'.png']))
+    report = locate(document, field, axis_lengths={n:r['length'] for n,r in axes['axes'].items()})
+    report['hand_axis_evidence'] = axes
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with args.output.open('x', encoding='utf-8') as stream:
         json.dump(report, stream, ensure_ascii=False, allow_nan=False, indent=2)
