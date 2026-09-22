@@ -16,7 +16,7 @@ from autospine_workbench.targets.character43.deformation_qa import inspect
 from m4_experiment_player_export import export
 
 
-def run(source,trace_folder,output):
+def run(source,trace_folder,output,*,selected_slots=None):
     output.mkdir(parents=True,exist_ok=False)
     receipt=json.loads((source/'report.json').read_bytes());digest=receipt['candidate_bundle_sha256']
     trace_report=json.loads((trace_folder/'report.json').read_bytes())
@@ -24,8 +24,11 @@ def run(source,trace_folder,output):
         raise ValueError('trace_partition_source_mismatch')
     files=AnimatedStore(source/'isolated-store').read(digest);doc=json.loads(files['skeleton.json'])
     raw=(trace_folder/'triangle-traces.json').read_bytes();traces=json.loads(raw);selected={};reports={}
+    requested=set(traces) if selected_slots is None else set(selected_slots)
+    if not requested or not requested<=set(traces):raise ValueError('trace_partition_selected_slots')
     depth=json.loads((trace_folder/'depth.json').read_bytes())
     for arm,rows in traces.items():
+        if arm not in requested:continue
         expected=set()
         for pair in depth['pairs']:
             if pair['arm_slot']!=arm:continue
@@ -41,6 +44,7 @@ def run(source,trace_folder,output):
     required=sum(1+sum(a!=b for a,b in zip(v,v[1:])) for v in selected.values())
     report=dict(authority='none',selected=False,source_candidate_sha256=digest,
                 trace_sha256=sha256(raw).hexdigest(),groups=reports,required_regions=required,part_limit=128,
+                selected_source_slots=sorted(requested),untouched_source_slots=sorted(set(traces)-requested),
                 scope='lossless_render_partition_not_depth_order_or_visual_acceptance')
     (output/'trace-groups.json').write_bytes(canonical_bytes(report))
     if required>report['part_limit']:
@@ -82,4 +86,5 @@ def run(source,trace_folder,output):
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
     for name in ('source','trace_folder','output'):p.add_argument(name,type=Path)
-    a=p.parse_args();run(a.source,a.trace_folder,a.output)
+    p.add_argument('--slot',action='append',dest='selected_slots')
+    a=p.parse_args();run(a.source,a.trace_folder,a.output,selected_slots=a.selected_slots)

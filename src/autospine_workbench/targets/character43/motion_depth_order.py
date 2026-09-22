@@ -1,6 +1,7 @@
 """Compile only overlap-supported orders without crossing unknown visible parts."""
 from copy import deepcopy
 import heapq
+import math
 from .order_conflict import first_overlap, witness
 from .depth_interval_evidence import requests as interval_requests
 
@@ -36,7 +37,7 @@ def _sort(slots, edges):
     return output
 
 
-def build(document, animation, depth, probe, *, refine_cycles=False):
+def build(document, animation, depth, probe, *, refine_cycles=False, evaluation_ticks=None):
     slots = [s['name'] for s in document['slots']]
     indices = {s: i for i, s in enumerate(slots)}
     report = dict(profile=PROFILE, selected=False, authority='none', status='blocked',
@@ -52,6 +53,14 @@ def build(document, animation, depth, probe, *, refine_cycles=False):
     for pair in depth['pairs']:
         for sample in pair['samples']:
             by_tick.setdefault(sample['tick'], []).append((pair, sample))
+    if evaluation_ticks is not None:
+        if (not evaluation_ticks or len(evaluation_ticks)>2049 or
+                any(type(t) not in (int,float) or not math.isfinite(t) or t<0 for t in evaluation_ticks) or
+                any(b<=a for a,b in zip(evaluation_ticks,evaluation_ticks[1:])) or
+                not set(by_tick)<=set(evaluation_ticks)):
+            raise ValueError('order_evaluation_ticks_invalid')
+        for tick in evaluation_ticks:by_tick.setdefault(tick,[])
+        report['scope']='explicit_schedule_partial_constraints_not_full_depth_or_visual_acceptance'
     ticks = sorted(by_tick)
     if not ticks:
         report['reason_codes'] = ['depth_pairs_unavailable']
