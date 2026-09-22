@@ -16,4 +16,13 @@ class KneeTests(unittest.TestCase):
         self.assertEqual(measure((0,1,0),(0,-1,0))['status'],'folded_chord_unobservable')
         self.assertEqual(compare((0,1,0),(0,1,0),(0,2,0),(0,2,0))['status'],'source_nearly_straight')
 
+    def test_bend_plane_separates_depth_and_screen_bending(self):
+        depth=measure((0,1,1),(0,1,-1));screen=measure((1,1,0),(-1,1,0))
+        self.assertEqual(depth['screen_plane_alignment'],0)
+        self.assertEqual(screen['screen_plane_alignment'],1)
+        self.assertIsNone(measure((0,1,0),(0,2,0))['bend_plane_normal'])
+    def test_plane_measurement_does_not_depend_on_bone_lengths(self):
+        a=measure((0,1,1),(1,1,-1));b=measure((0,10,10),(2,2,-2))
+        self.assertEqual(a['bend_plane_normal'],b['bend_plane_normal'])
+
 if __name__=='__main__':unittest.main()

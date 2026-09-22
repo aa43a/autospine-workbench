@@ -12,14 +12,13 @@ try{
   const page=await browser.newPage(),errors=[];page.on('pageerror',e=>errors.push(String(e)));
   await page.goto('http://127.0.0.1:8918/motion-cohort.html#'+encodeURIComponent(JSON.stringify(pack)));
   await page.locator('#review').getByRole('button',{name:'检查膝盖方向与深度'}).click();
-  await page.locator('#review').getByRole('button',{name:/可见弯曲方向反转 · 首次/}).first().click({timeout:120000});
+  await page.locator('#review').getByRole('button',{name:'下一处需要检查的采样',exact:true}).click({timeout:120000});
   const select=page.getByLabel('局部修正实验',{exact:true});await select.waitFor();
   await select.selectOption(await select.locator('option').nth(1).getAttribute('value'));
   await page.locator('#experiments').getByRole('button',{name:'检查膝盖方向与深度'}).click();
-  await page.locator('#experiments').getByRole('button',{name:/目标弯曲投影接近拉直 · 首次/}).first().waitFor({timeout:120000});
-  assert.equal(await page.locator('#experiments').getByRole('button',{name:/可见弯曲方向反转 · 首次/}).count(),0);
+  await page.locator('#experiments').getByRole('slider',{name:'膝部源采样时间'}).waitFor({timeout:120000});
   await page.waitForFunction(()=>[...document.querySelectorAll('#experiments p')].some(e=>e.textContent.startsWith('共用时间轴')),{},{timeout:120000});
-  await page.locator('#experiments').getByRole('button',{name:/目标弯曲投影接近拉直 · 首次/}).first().click();
+  await page.locator('#experiments').getByRole('button',{name:'下一处需要检查的采样',exact:true}).click();
   const times=await page.locator('#target iframe, #experiments iframe').evaluateAll(frames=>frames.map(f=>f.contentWindow.characterPlayerState.time));
   assert.equal(times.length,2);assert.ok(Math.abs(times[0]-times[1])<.001);assert.deepEqual(errors,[]);
   await fs.mkdir('../tmp/m4-motion-center/knee-check-v1',{recursive:true});

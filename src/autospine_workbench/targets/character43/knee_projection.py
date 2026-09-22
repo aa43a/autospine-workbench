@@ -14,10 +14,15 @@ def measure(upper, lower):
     u=sum(x*y for x,y in zip(upper,chord))/square
     residual=[x-u*y for x,y in zip(upper,chord)]
     screen=math.hypot(chord[0],chord[1])
+    unit_a=[x/a for x in upper];unit_b=[x/b for x in lower]
+    cross=[unit_a[1]*unit_b[2]-unit_a[2]*unit_b[1],unit_a[2]*unit_b[0]-unit_a[0]*unit_b[2],unit_a[0]*unit_b[1]-unit_a[1]*unit_b[0]]
+    cross_length=math.hypot(*cross)
+    plane=[x/cross_length for x in cross] if cross_length>1e-8 else None
     # Positive/negative are screen-coordinate signs, never anatomical front/back.
     signed=((chord[0]*upper[1]-chord[1]*upper[0])/screen/(a+b)) if screen>1e-8*(a+b) else None
     return dict(status='measured',bend_degrees=math.degrees(math.acos(max(-1,min(1,sum(x*y for x,y in zip(upper,lower))/(a*b))))),
         knee_depth_offset_ratio=residual[2]/(a+b),screen_bend_ratio=signed,
+        bend_plane_normal=plane,screen_plane_alignment=abs(plane[2]) if plane else None,
         projection_visibility=[math.hypot(v[0],v[1])/length for v,length in ((upper,a),(lower,b))])
 
 

@@ -1,23 +1,41 @@
+import {kneeLabels,kneeRows,strongestKnee} from './motion-knee-model.js';
+
+function node(tag,text){const el=document.createElement(tag);el.textContent=text;return el;}
+
 export function appendKneeDetails(container,base,artifact,onSeek){
   const button=document.createElement('button');button.textContent='检查膝盖方向与深度';
-  const panel=document.createElement('section');container.append(button,panel);
+  const panel=document.createElement('section');panel.setAttribute('aria-label','膝部动作与素材需求');container.append(button,panel);
   button.onclick=async()=>{
     button.disabled=true;panel.textContent='正在比较同帧骨轴…';
     try{
       const response=await fetch(base+'bend-status.json',{cache:'no-store'}),report=await response.json();
       if(!response.ok)throw Error(report.reason_code||'读取失败');
-      if(report.artifact_sha256!==artifact)throw Error('候选身份变化');
+      const rows=kneeRows(report,artifact);
       panel.replaceChildren();
       const note=document.createElement('p');note.textContent='仅检查源采样时刻的骨轴。深度符号不是人体朝前方向；方向一致也不能证明膝形或裙腿遮挡正确。';panel.append(note);
-      const labels={projected_bend_reversed:'可见弯曲方向反转',target_bend_flattened:'目标弯曲投影接近拉直',source_bend_hidden_in_depth:'源弯曲主要藏在深度方向',source_nearly_straight:'源接近伸直',unobservable:'无法观测',projected_side_consistent:'可见弯曲方向一致'};
       for(const side of ['left','right']){
-        const rows=report.rows.filter(r=>r.side===side),counts={};for(const r of rows)counts[r.status]=(counts[r.status]||0)+1;
-        const text=document.createElement('p');text.textContent=(side==='left'?'左腿':'右腿')+'：'+Object.entries(counts).map(([k,v])=>`${labels[k]} ${v}`).join('；');panel.append(text);
-        for(const status of ['projected_bend_reversed','target_bend_flattened','source_bend_hidden_in_depth']){
-          const r=rows.find(r=>r.status===status);if(!r)continue;
-          const seek=document.createElement('button');seek.textContent=`${labels[status]} · 首次 ${r.time.toFixed(3)} 秒`;seek.onclick=()=>onSeek(r.time);panel.append(seek);
-        }
+        const counts={};for(const r of rows.filter(r=>r.side===side))counts[r.status]=(counts[r.status]||0)+1;
+        panel.append(node('p',(side==='left'?'左腿':'右腿')+'：'+Object.entries(counts).map(([k,v])=>`${kneeLabels[k]} ${v}`).join('；')));
       }
+      const side=node('select','');side.setAttribute('aria-label','检查哪条腿');
+      for(const [value,label] of [['left','左腿'],['right','右腿']]){const option=node('option',label);option.value=value;side.append(option);}
+      side.value=rows[strongestKnee(rows)].side;
+      let selected=rows.filter(r=>r.side===side.value);
+      const slider=node('input','');slider.type='range';slider.min='0';slider.step='1';slider.setAttribute('aria-label','膝部源采样时间');
+      const output=node('p',''),issues=node('p',''),seek=node('button','在当前时间轴定位'),next=node('button','下一处需要检查的采样');
+      const current=()=>selected[Number(slider.value)];
+      function render(){
+        const r=current(),s=r.source;
+        output.textContent=`${r.time.toFixed(3)} 秒 · ${kneeLabels[r.status]}`;
+        if(s.status==='measured')output.textContent+=` · 三维弯曲 ${s.bend_degrees.toFixed(1)}° · 大腿/小腿投影长度 ${s.projection_visibility.map(v=>(v*100).toFixed(1)+'%').join(' / ')} · 弯曲平面与画面平行程度 ${s.screen_plane_alignment==null?'未测量':(s.screen_plane_alignment*100).toFixed(1)+'%'}`;
+        issues.textContent=r.issues.join('；')||'该采样未触发方向或强缩短提示，仍需检查实际贴图。';
+        next.disabled=!selected.some(r=>r.issues.length);
+      }
+      function reset(){selected=rows.filter(r=>r.side===side.value);slider.max=String(selected.length-1);slider.value=String(strongestKnee(selected));render();}
+      side.onchange=reset;slider.oninput=render;seek.onclick=()=>onSeek(current().time);
+      next.onclick=()=>{const index=Number(slider.value);for(let step=1;step<=selected.length;step++){const i=(index+step)%selected.length;if(selected[i].issues.length){slider.value=String(i);render();onSeek(current().time);break;}}};
+      panel.append(side,slider,output,issues,seek,next,node('p','先在同一时刻比较源正侧视和角色。骨轴正确但轮廓仍失败时，检查姿态替换或补图需求；这些提示不会自动认定缺素材、裁剪动作或放宽网格门槛。'));
+      reset();
     }catch(error){panel.textContent='无法检查：'+error.message;}finally{button.disabled=false;}
   };
 }

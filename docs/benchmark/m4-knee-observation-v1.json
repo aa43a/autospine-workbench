@@ -1,0 +1,24 @@
+{
+  "profile": "m4-knee-observation-ui-evidence-v1",
+  "artifact_sha256": "0b8feb06ac10e2baa631b5e0dbbd170e48826f0e685f658c9ab796eacc4d9dcf",
+  "source_job_id": "motion-e2f8058160c14d959d468d75cc53a35e",
+  "character": "hongmeiling",
+  "motion": "squat",
+  "source_samples_per_side": 57,
+  "worst_shortening": [
+    {"side": "left", "time": 1.066667, "upper_projection_ratio": 0.40362419235407315, "lower_projection_ratio": 0.7284552997394494, "source_bend_degrees": 128.60775893100336, "screen_plane_alignment": 0.3762414734910894, "bend_status": "projected_side_consistent"},
+    {"side": "right", "time": 1.033333, "upper_projection_ratio": 0.35423599961441465, "lower_projection_ratio": 0.743341656370798, "source_bend_degrees": 129.2742175622261, "screen_plane_alignment": 0.34001178216675454, "bend_status": "projected_side_consistent"}
+  ],
+  "evidence": "tmp/m4-motion-center/knee-observation-v1/hongmeiling.json (workspace parent)",
+  "verification": {
+    "python_measurement_tests": 5,
+    "javascript_evidence_model_tests": 3,
+    "browser": "production component with actual evidence replay; no live server or full player revalidation",
+    "cases": ["both_sides", "forward_reverse_seek_callback", "next_issue", "stale_artifact_clears_controls", "missing_side_clears_controls", "legacy_missing_plane"]
+  },
+  "conclusion": "Screen bend agreement coexists with strong source depth foreshortening; preserve direction and investigate pose contour expression at these times.",
+  "new_runtime_capture": false,
+  "motion_modified": false,
+  "visual_accepted": false,
+  "selected": false
+}
