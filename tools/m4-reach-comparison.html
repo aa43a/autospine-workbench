@@ -4,6 +4,6 @@
 <p class="note">两侧都采用源方向拟合，不是旧版本与新版本比较。仅调整肢体投影；躯干、根运动与正面素材未整体转为侧视。未启用局部修正、接触修正或遮挡重排；本页是诊断实验，不代表通过验收。</p>
 <label>角色 <select id="character"></select></label> <button id="play" disabled>播放</button> <button id="reset" disabled>回到起点</button>
 <label>时间 <input id="seek" type="range" min="0" max="1" value="0" step="0.001" disabled></label> <output id="time">加载中</output><p id="status" role="status"></p></header>
-<main><section><h2>原视角 0°</h2><p id="left-info"></p><iframe id="left" title="原视角实时动画"></iframe></section><section><h2>固定偏转 +45°</h2><p id="right-info"></p><iframe id="right" title="偏转视角实时动画"></iframe></section></main>
+<main><section><h2 id="left-heading">原视角 0°</h2><p id="left-info"></p><iframe id="left" title="左侧实时动画"></iframe></section><section><h2 id="right-heading">固定偏转 +45°</h2><p id="right-info"></p><iframe id="right" title="右侧实时动画"></iframe></section></main>
 <p>两侧使用官方 Runtime 实时计算；拖动总时间轴会暂停并同步。子窗口独立播放不会改变候选。<a href="comparison.json">实验身份与检查结果</a></p>
 <script src="comparison.js"></script></html>

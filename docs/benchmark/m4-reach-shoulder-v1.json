@@ -1,0 +1,75 @@
+{
+  "profile": "reach-shoulder-verification-v1",
+  "authority": "none",
+  "selected": false,
+  "rows": [
+    {
+      "character": "Alice",
+      "candidate": "4eaad46c8f4c596a8bf1b19a42ab8b99b3d8703a05105908d2d689b50be81e08",
+      "source_candidate": "4e9a1ffcf258d93cea131161b913edc78069680b18addfdefc9bcf92db837c70",
+      "boundary": [
+        {
+          "animation": "external-motion",
+          "frames": 513,
+          "max_displacement_budget_ratio": 0.4053154581707867,
+          "max_pin_error_px": 0.12442964237979089,
+          "original_pin_error_px": 40.34501598169063
+        }
+      ],
+      "runtime_version": "4.3.13",
+      "runtime_frames": 513,
+      "geometry_passed": true,
+      "setup_and_non_deform_motion_unchanged": true,
+      "textures_unchanged": true,
+      "unselected_and_distal_fixed_error_px": 0,
+      "visual_status": "not_accepted"
+    },
+    {
+      "character": "辉夜",
+      "candidate": "a8c70444b4857af11ba8303d7f0bc3e39fb8c112c8bcbefbcb4b3b5e734a06b6",
+      "source_candidate": "0e8bf5e57d280f7259ce29d8a046eac73fb94803eb26fc1638f89901745fb538",
+      "boundary": [
+        {
+          "animation": "external-motion",
+          "frames": 513,
+          "max_displacement_budget_ratio": 0.33128563039852504,
+          "max_pin_error_px": 0.13126646376633636,
+          "original_pin_error_px": 45.84981934194501
+        }
+      ],
+      "runtime_version": "4.3.13",
+      "runtime_frames": 513,
+      "geometry_passed": true,
+      "setup_and_non_deform_motion_unchanged": true,
+      "textures_unchanged": true,
+      "unselected_and_distal_fixed_error_px": 0,
+      "visual_status": "not_accepted"
+    },
+    {
+      "character": "红美铃",
+      "candidate": "9ed7fc02c012ea90d6278e94dc357c1eb6c2f5ed770978a00b5c02829f5db1cf",
+      "source_candidate": "909ce9ee37960d0f065f840a3de52588ce4a21903e3a95c58aefb8f45c2b31b6",
+      "boundary": [
+        {
+          "animation": "external-motion",
+          "frames": 513,
+          "max_displacement_budget_ratio": 0.28472686645084283,
+          "max_pin_error_px": 0.08073091930744856,
+          "original_pin_error_px": 31.411589142816528
+        }
+      ],
+      "runtime_version": "4.3.13",
+      "runtime_frames": 513,
+      "geometry_passed": true,
+      "setup_and_non_deform_motion_unchanged": true,
+      "textures_unchanged": true,
+      "unselected_and_distal_fixed_error_px": 0,
+      "visual_status": "not_accepted"
+    }
+  ],
+  "limitations": [
+    "limb_yaw_only_not_whole_character_side_view",
+    "sampled_geometry_not_continuous_or_alpha_seam_proof",
+    "three_2.4s_images_inspected_not_full_motion_visual_acceptance"
+  ]
+}

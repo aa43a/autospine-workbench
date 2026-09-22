@@ -2,6 +2,9 @@
   const el=id=>document.getElementById(id);
   const response=await fetch('comparison.json');if(!response.ok)throw Error('对照数据读取失败');
   const data=await response.json();let row,ready=false,playing=false,time=0,duration=0,last=0,generation=0;
+  if(data.title)document.querySelector('h1').textContent=data.title;
+  if(data.note)document.querySelector('.note').textContent=data.note;
+  if(data.headings)['left','right'].forEach((id,i)=>el(id+'-heading').textContent=data.headings[i]);
   const players=()=>['left','right'].map(id=>el(id).contentWindow);
   data.rows.forEach((r,i)=>{const o=document.createElement('option');o.value=i;o.textContent=r.label??r.job;el('character').append(o);});
   function stop(){playing=false;el('play').textContent='播放';}
