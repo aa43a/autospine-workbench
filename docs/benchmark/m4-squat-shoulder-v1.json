@@ -1,0 +1,33 @@
+{
+  "candidate_bundle_sha256": "c1b1a51d25da8d6bf956a51ea048eb8a29d95fc9fe8b703dea681631d4f5df71",
+  "source_candidate_sha256": "8a10b240c237a21e4fd9b9b7b415b491fc197aea3e85998fa2f6bc59f7f753e0",
+  "status": "blocked",
+  "geometry_passed": false,
+  "adaptive_failure": "shoulder_adaptive_sample_budget",
+  "dense_boundary": [
+    {
+      "animation": "external-motion",
+      "frames": 4090,
+      "max_displacement_budget_ratio": 0.9009632285735992,
+      "max_pin_error_px": 0.1441117617109246,
+      "original_pin_error_px": 86.45088823650813
+    }
+  ],
+  "unselected_error_px": 0.0,
+  "distal_fixed_error_px": 0.0,
+  "source_sample_times_preserved": true,
+  "non_deform_motion_and_art_unchanged": true,
+  "authority": "none",
+  "selected": false,
+  "runtime_frames": 4090,
+  "runtime_numeric_passed": true,
+  "runtime_version": "4.3.13",
+  "geometry_failed_slots": [
+    "layer-001-l",
+    "layer-001-r",
+    "layer-004"
+  ],
+  "visual_status": "not_accepted",
+  "scope": "single_character_shoulder_trial_full_clip_sampled_not_alpha_seam_or_visual_acceptance",
+  "comparison_url": "http://127.0.0.1:14703/squat-shoulder-v1/comparison/"
+}

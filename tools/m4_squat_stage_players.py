@@ -16,8 +16,8 @@ from autospine_workbench.targets.character43.affine_pose import sample
 from autospine_workbench.targets.character43.numeric_reference import write
 
 
-def shared_camera(output):
-    paths=[output/name/'runtime/player-assets/scene.json' for name in ('source','support','final')]
+def shared_camera(output,names=('source','support','final')):
+    paths=[output/name/'runtime/player-assets/scene.json' for name in names]
     scenes=[json.loads(p.read_bytes()) for p in paths];infos=[s['info'] for s in scenes]
     left=math.floor(min(i['left'] for i in infos));bottom=math.floor(min(i['bottom'] for i in infos))
     width=math.ceil(max(i['left']+i['width'] for i in infos))-left

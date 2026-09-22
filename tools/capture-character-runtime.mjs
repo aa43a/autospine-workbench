@@ -27,7 +27,9 @@ for(const [name,sha]of Object.entries(inventory)){
 const reference=await readReference(files.get('/numeric-reference.json'),async name=>files.get('/'+name)),manifest=JSON.parse(files.get('/character-manifest.json'));
 let storageEvidence=null,storageBytes=null;
 if(storageReferenceArg){
-  const raw=decodeStorageReference(await fs.readFile(storageReferenceArg));
+  // Python bounds the uncompressed reference at 256 MiB. Large dense captures
+  // can remain above 64 MiB after gzip; keep the same bounded transport budget.
+  const raw=decodeStorageReference(await fs.readFile(storageReferenceArg),{inputLimit:256*1024*1024});
   const stored=JSON.parse(raw);
   if(stored.schema!=='autospine.runtime-storage-reference/v1'||stored.profile!=='spine43-linear-weighted-float32-storage-v1'||
     stored.runtime_version!=='4.3.13'||stored.skeleton_sha256!==inventory['skeleton.json']||stored.authority!=='none'||

@@ -6,6 +6,8 @@ const raw=Buffer.from('{"value":"'+ 'x'.repeat(1000)+'"}');
 assert.deepEqual(decodeStorageReference(raw),raw);
 assert.deepEqual(decodeStorageReference(gzipSync(raw)),raw);
 assert.throws(()=>decodeStorageReference(raw,{inputLimit:100}),/reference_limit/);
+assert.throws(()=>decodeStorageReference(raw,{inputLimit:raw.length+1,outputLimit:100}),/reference_limit/);
+assert.deepEqual(decodeStorageReference(gzipSync(raw),{inputLimit:256*1024*1024}),raw);
 assert.throws(()=>decodeStorageReference(gzipSync(raw),{outputLimit:100}));
 assert.throws(()=>decodeStorageReference(Buffer.from([0x1f,0x8b,0x00])));
 console.log('storage transport: lossless plain/gzip and size/corruption boundaries passed');
