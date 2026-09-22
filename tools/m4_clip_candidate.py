@@ -10,6 +10,7 @@ import shutil
 from autospine_workbench.automation.animated_store import AnimatedStore
 from autospine_workbench.automation.storage_io import canonical_bytes
 from m4_candidate_comparison import crop_camera
+from m4_clip_inverse_guard import validate as validate_inverse
 
 
 def validate_segments(segments):
@@ -38,6 +39,7 @@ def build(document, report, arm, body):
     candidate=deepcopy(document);animation=candidate['animations']['external-motion']
     if animation.get('drawOrder') or len(candidate['skins'])!=1 or candidate['skins'][0]['name']!='default':raise ValueError('clip_candidate_existing_order')
     validate_segments(report['segments'])
+    validate_inverse(report['segments'])
     slots={s['name']:s for s in candidate['slots']};attachments=candidate['skins'][0]['attachments']
     if arm not in slots or body not in slots:raise ValueError('clip_candidate_slots_missing')
     if list(slots).index(arm)>=list(slots).index(body):raise ValueError('clip_candidate_order_unsupported')

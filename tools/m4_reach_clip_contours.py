@@ -16,7 +16,8 @@ from autospine_workbench.targets.character43.depth_clip_contour import extract
 from autospine_workbench.targets.spine43.seam_raster import texture
 
 
-def run(source,evidence,output,arm):
+def run(source,evidence,output,arm,side='front'):
+    if side not in ('front','back'):raise ValueError('clip_side_invalid')
     receipt=json.loads((source/'report.json').read_bytes());raw=evidence.read_bytes();depth=json.loads(raw)
     digest=receipt['candidate_bundle_sha256']
     if depth['candidate_bundle_sha256']!=digest or depth['source_identity']!=receipt['source_identity']:
@@ -41,13 +42,14 @@ def run(source,evidence,output,arm):
             points=sample(document,'external-motion',time)[0][arm]
             dx,dy,offset=check['reference_plane'];margin=check['margin']
             values=[None if v is None else v[0]-dx*p[0]-dy*p[1]-offset-margin for p,v in zip(points,intervals)]
+            if side=='back':values=[None if v is None else -v for v in values]
             try:
                 contour=extract(points,mesh['triangles'],values)
                 status='single_loop' if len(contour['loops'])==1 else 'empty' if not contour['loops'] else 'multiple_loops'
             except ValueError as error:
                 contour=dict(loops=[]);status=str(error)
             rows.append(dict(time=time,status=status,margin=margin,**contour))
-    report=dict(candidate=digest,source_identity=identity,depth_sha256=sha256(raw).hexdigest(),arm=arm,rows=rows,
+    report=dict(candidate=digest,source_identity=identity,depth_sha256=sha256(raw).hexdigest(),arm=arm,side=side,rows=rows,
                 statuses=dict(Counter(r['status'] for r in rows)),authority='none',selected=False,
                 scope='positive_lower_bound_proxy_contours_not_interpolated_clipping_or_visual_acceptance')
     output.parent.mkdir(parents=True,exist_ok=True)
@@ -58,5 +60,5 @@ def run(source,evidence,output,arm):
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     for name in ('source','evidence','output'):parser.add_argument(name,type=Path)
-    parser.add_argument('--arm',required=True)
-    args=parser.parse_args();run(args.source,args.evidence,args.output,args.arm)
+    parser.add_argument('--arm',required=True);parser.add_argument('--side',choices=('front','back'),default='front')
+    args=parser.parse_args();run(args.source,args.evidence,args.output,args.arm,args.side)

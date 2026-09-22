@@ -1,0 +1,59 @@
+{
+  "authority": "none",
+  "selected": false,
+  "status": "inverse_candidate_invalid",
+  "reports": {
+    "isolation": {
+      "sha256": "a878365a316ef37ee34e0f4a4beee684914d897c0578d0031735df5dc894aabd",
+      "candidate": "a4d8ba03a1bec3760489abcd184a956fa8d83cdea1ca6d8313ee427de881b438",
+      "parent": "21969ed99dd41e85171f52842fc4754a8d8c4bd425fd722cf87a78ce94b9d437",
+      "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+      "frames": 198,
+      "summary": {
+        "material": {
+          "frames_with_difference_over_eight": 198,
+          "maximum_pixels_over_eight": 10,
+          "maximum_alpha_difference": 58,
+          "maximum_missing_opaque_pixels": 0
+        },
+        "clipping": {
+          "frames_with_difference_over_eight": 127,
+          "maximum_pixels_over_eight": 625,
+          "maximum_alpha_difference": 255,
+          "maximum_missing_opaque_pixels": 596
+        }
+      },
+      "scope": "isolated_arm_native_framebuffer_samples_not_character_occlusion_acceptance",
+      "explicit_scope": null
+    },
+    "explicit": {
+      "sha256": "57546c2c2e19c8daadb8e4b04ecf54718b3b56cf22228c795fa395860c25f65e",
+      "candidate": "a4d8ba03a1bec3760489abcd184a956fa8d83cdea1ca6d8313ee427de881b438",
+      "parent": "21969ed99dd41e85171f52842fc4754a8d8c4bd425fd722cf87a78ce94b9d437",
+      "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+      "frames": 241,
+      "summary": {
+        "material": {
+          "frames_with_difference_over_eight": 241,
+          "maximum_pixels_over_eight": 10,
+          "maximum_alpha_difference": 58,
+          "maximum_missing_opaque_pixels": 0
+        },
+        "clipping": {
+          "frames_with_difference_over_eight": 81,
+          "maximum_pixels_over_eight": 625,
+          "maximum_alpha_difference": 255,
+          "maximum_missing_opaque_pixels": 596
+        },
+        "explicit_complement": {
+          "frames_with_difference_over_eight": 23,
+          "maximum_pixels_over_eight": 2,
+          "maximum_alpha_difference": 109,
+          "maximum_missing_opaque_pixels": 0
+        }
+      },
+      "scope": "isolated_arm_native_framebuffer_samples_not_character_occlusion_acceptance",
+      "explicit_scope": "independent_static_skeleton_per_source_sample_not_animation_timeline"
+    }
+  }
+}
