@@ -1,5 +1,7 @@
 # AutoSpine Workbench 架构与质量门禁
 
+播放器 `inspectTriangle` 以当前动作和有效三角形索引校验观察请求，cohort 同步控制额外校验候选身份。边框从官方 Runtime 的当前 attachment 世界顶点计算，在完整角色绘制后叠加，不改 draw order、权重或素材。原纹理 UV 和变形后世界位置分别展示。
+
 `motion_geometry_details.py` 从已校验候选读取原姿态、数值采样和几何报告，验证 skeleton 身份后计算面积极值事件；压缩/扩张保留各自时间。`view/geometry-details.json` 只读返回原纹理 UV 定位及投影参考比值，代理不可用不掩盖实际失败。UI 在 readiness 内按需加载，候选身份不匹配拒绝展示，不修改 QA 或采用状态。
 
 `knee_projection.py` 使用源链向量及目标骨骼实际位置，归一化计算膝点相对髋踝连线的深度偏离和可见弯曲符号。近直线/退化情况不判反折；观察结果不修改动画或 draw order。工作台通过精确原任务/实验来源提供只读查询。

@@ -4,20 +4,32 @@ import path from 'node:path';
 import {pathToFileURL} from 'node:url';
 const [url, output, dependencies] = process.argv.slice(2);
 const {chromium} = await import(pathToFileURL(path.resolve(dependencies,'node_modules/playwright-core/index.mjs')));
-const browser = await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
+const browser = await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true,
+  args:['--enable-webgl','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
 try {
   const page = await browser.newPage({viewport:{width:1100,height:1000}});
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
   await page.goto(url);
+  await page.waitForFunction(()=>document.querySelector('iframe').contentWindow.characterPlayerReady);
   await page.getByRole('button',{name:'查看变形区域与处理方案'}).click();
   await page.waitForFunction(()=>document.querySelector('canvas')?.height>150);
   const report=await (await page.request.get(new URL('geometry-details.json',url).href)).json();
   const row=report.rows[0];
   assert.equal(await page.locator('select option').count(),row.details.length);
-  await page.getByRole('link',{name:'定位到此动作时刻'}).click();
+  await page.getByRole('link',{name:'定位时间并高亮动作区域'}).click();
   assert.equal(await page.evaluate(()=>window.lastSeek),row.details[0].time);
+  const actual=await page.evaluate(()=>{
+    const win=document.querySelector('iframe').contentWindow;
+    return {state:win.characterPlayerState,triangle:win.characterTriangleInspection};
+  });
+  assert.equal(actual.state.time,row.details[0].time);
+  assert.equal(actual.triangle.index,row.details[0].triangle);
+  assert.equal(actual.triangle.slot,row.slot);
+  assert.equal(actual.triangle.points.length,3);
+  const worldError=Math.max(...actual.triangle.points.flatMap((p,i)=>p.map((v,j)=>Math.abs(v-row.details[0].sampled_world[i][j]))));
+  assert.ok(worldError<.05,`Runtime triangle mismatch: ${worldError}`);
   await page.locator('select').selectOption('1');
-  await page.getByRole('link',{name:'定位到此动作时刻'}).click();
+  await page.getByRole('link',{name:'定位时间并高亮动作区域'}).click();
   assert.equal(await page.evaluate(()=>window.lastSeek),row.details[1].time);
   const pixels=await page.locator('canvas').evaluate(canvas=>{
     const data=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;
@@ -34,6 +46,6 @@ try {
   assert.equal(await page.locator('canvas').count(),0);
   assert.deepEqual(errors,[]);
   await fs.writeFile(path.join(output,'check.json'),JSON.stringify({passed:true,candidate:report.artifact_sha256,pixels,
-    checks:['actual_texture_and_uv_overlay','selection','seek_callback','identity_rejection'],errors},null,2));
+    checks:['actual_texture_and_uv_overlay','selection','runtime_seek_and_triangle','identity_rejection'],worldError,actual,errors},null,2));
   console.log(JSON.stringify({passed:true,pixels}));
 } finally {await browser.close();}

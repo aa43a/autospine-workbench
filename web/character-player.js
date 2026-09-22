@@ -51,6 +51,7 @@
   }
   for(const id of ['inspect-a','inspect-b','inspect-mode'])el(id).onchange=inspect;
   el('inspect-clear').onclick=()=>{
+    inspection.setTriangle(null);
     el('inspect-mode').value='full';el('inspect-a').value='';el('inspect-b').value='';inspect();
   };
   function draw() {
@@ -90,6 +91,10 @@
   window.characterPlayerReady = true; requestAnimationFrame(tick);
   window.characterPlayerControl = {
     artifact: context.artifact_sha256,
+    inspectTriangle(slot,index,animation){
+      if(animation!==el('motion').value)return false;
+      return inspection.setTriangle(slot,index);
+    },
     seek(value) {
       if (!Number.isFinite(value) || value < 0 || value > duration + 0.001) return false;
       stop(); time = Math.min(duration, value); draw(); return true;

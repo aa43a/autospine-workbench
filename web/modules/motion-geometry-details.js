@@ -4,7 +4,7 @@ const node = (tag, text) => {
   return element;
 };
 
-export function appendGeometryDetails(parent, job, onSeek) {
+export function appendGeometryDetails(parent, job, onSeek, onInspect) {
   const button = node('button', '查看变形区域与处理方案');
   const panel = node('section'); panel.hidden = true;
   panel.setAttribute('aria-live', 'polite');
@@ -24,7 +24,7 @@ export function appendGeometryDetails(parent, job, onSeek) {
         return;
       }
       panel.append(node('p', '这里显示原纹理上的失败网格。投影缩短、权重或素材轮廓均可能造成异常；不能仅凭面积比决定补图。'));
-      for (const row of report.rows) renderRow(panel, row, base, onSeek);
+      for (const row of report.rows) renderRow(panel, row, base, onSeek, onInspect);
       if (!report.rows.length) panel.append(node('p', '当前报告没有几何失败记录。'));
     } catch (error) { panel.textContent = '无法定位：' + error.message; }
     finally { button.disabled = false; }
@@ -32,7 +32,7 @@ export function appendGeometryDetails(parent, job, onSeek) {
   parent.append(button, panel);
 }
 
-function renderRow(panel, row, base, onSeek) {
+function renderRow(panel, row, base, onSeek, onInspect) {
   const section = node('section');
   section.append(node('h4', `${row.slot} · ${row.animation}`));
   section.append(node('p', `${row.failed_area_triangles} 个面积异常三角形；展示 ${row.shown} 个极值事件${row.truncated ? '（其余保留在原检查中）' : ''}。`));
@@ -48,13 +48,20 @@ function renderRow(panel, row, base, onSeek) {
   });
   const canvas = node('canvas'); canvas.style.cssText = 'display:block;max-width:100%;max-height:480px;background:#263442';
   canvas.setAttribute('aria-label', '原始纹理及异常三角形位置');
-  const detailText = node('p'); const seek = node('a', '定位到此动作时刻');
+  const detailText = node('p'); const seek = node('a', onInspect ? '定位时间并高亮动作区域' : '定位到此动作时刻');
   const image = new Image();
   const draw = () => {
     const detail = row.details[Number(select.value)];
     detailText.textContent = `此时面积/原姿态：${detail.setup_ratio.toFixed(3)}；投影参考/原姿态：${detail.projected_reference_ratio?.toFixed(3) ?? '不可用'}。影响骨骼：${detail.bones.join('、')}。`;
     seek.href = base + `player.html?time=${detail.time}`;
-    if (onSeek) seek.onclick = event => {event.preventDefault(); onSeek(detail.time);};
+    if (onSeek) seek.onclick = event => {
+      event.preventDefault();
+      try {
+        onSeek(detail.time);
+        if(onInspect&&onInspect(row.slot,detail.triangle,row.animation)===false)
+          throw Error('高亮未就绪，请等待匹配候选加载后重试');
+      } catch(error) {detailText.append(' 定位失败：'+error.message);}
+    };
     else {seek.target = '_blank'; seek.rel = 'noopener';}
     if (!image.naturalWidth) return;
     const scale = Math.min(1, 900 / Math.max(image.naturalWidth, image.naturalHeight));

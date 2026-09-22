@@ -23,6 +23,13 @@ export function createCohortSync(status) {
     }
   }
   return {
+    inspect(slot,triangle,animation){
+      const control=frame?.contentWindow?.characterPlayerControl;
+      if(!control||control.artifact!==artifact||!control.inspectTriangle?.(slot,triangle,animation)){
+        status.textContent='区域高亮未启用：请等待匹配候选及动作加载';return false;
+      }
+      return true;
+    },
     clear() { if (timer !== null) clearInterval(timer); timer = null; frame = null; duration = null; status.textContent = '正在切换对照…'; },
     attach(value, identity) { frame = value; artifact = identity; timer = setInterval(push, 100); push(); },
     seek(value, end) { time = value; duration = end; push(); },

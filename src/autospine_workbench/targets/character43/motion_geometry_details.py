@@ -83,6 +83,7 @@ def build(files, artifact, *, limit=12):
                 projected_reference_ratio=refs_ratio,
                 ratio_to_projected_reference=float(ratio/refs_ratio) if refs_ratio is not None and abs(refs_ratio)>1e-10 else None,
                 texture_uv=[mesh['uvs'][v*2:v*2+2] for v in tri],
+                sampled_world=[frame['vertices'][slot][v] for v in tri],
                 bones=sorted({doc['bones'][b]['name'] for v in tri for b,w in influences[v] if w>0})))
         texture=files['images/'+mesh.get('path',slot)+'.png']
         if len(texture)>8*1024*1024:raise ValueError('geometry_detail_texture_budget')

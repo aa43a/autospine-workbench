@@ -1,7 +1,7 @@
 import {appendNextActions} from './motion-next-actions.js';
 import {appendDepthTimeline} from './motion-depth-timeline.js';
 import {appendGeometryDetails} from './motion-geometry-details.js';
-export function appendReadiness(item, job, compare, {onSeek} = {}) {
+export function appendReadiness(item, job, compare, {onSeek,onInspect} = {}) {
   const button = document.createElement('button');
   button.textContent = '检查可用范围与待处理项';
   const panel = document.createElement('section');
@@ -51,7 +51,7 @@ export function appendReadiness(item, job, compare, {onSeek} = {}) {
       }
       appendNextActions(panel,report,compare);
       if(report.stages.some(row=>row.stage==='几何'&&row.status==='needs_changes'))
-        appendGeometryDetails(panel,job,onSeek);
+        appendGeometryDetails(panel,job,onSeek,onInspect);
       if(report.stages.some(row=>row.stage==='遮挡'&&row.status!=='sampled_pass'))
         appendDepthTimeline(panel,job,report,onSeek);
       const note = document.createElement('p');

@@ -59,6 +59,8 @@ async function show(){
       if(version!==revision)return;
       player.seek(time);
       frame.scrollIntoView({block:'nearest'});
+    },onInspect:(slot,triangle,animation)=>{
+      if(version===revision)sync.inspect(slot,triangle,animation);
     }});
     appendTargetComparison(byId('review'),job,get,{onOpen:row=>{
       if(version===revision)alternative.open(row,g.source_sha256);

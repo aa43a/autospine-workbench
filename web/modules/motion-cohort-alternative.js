@@ -35,7 +35,9 @@ export function createAlternativePanel(container,request,{onSeek}={}){
       appendStageReview(container,job);
       appendReadiness(container,job,null,{onSeek:time=>{
         seek(time);
-      }});
+      },onInspect:onSeek?(slot,triangle,animation)=>{
+        if(version===revision)sync?.inspect(slot,triangle,animation);
+      }:undefined});
       appendRotationDetails(container,job,{onSeek:time=>{
         seek(time);
       }});

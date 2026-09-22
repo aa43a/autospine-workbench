@@ -25,3 +25,22 @@ test('inspection scopes messages to exact candidate and uses applied slot poses 
  assert.equal(inspect.setRegions(['eye'],'isolate'),true);
  inspect.prepare(skeleton);assert.equal(cleared,3);
 });
+
+test('triangle overlay follows current runtime vertices and rejects invalid indices',()=>{
+ const window={addEventListener(){}},parent={postMessage(){}};
+ vm.runInNewContext(readFileSync(new URL('../character-player-inspection.js',import.meta.url),'utf8'),
+   {window,parent,location:{origin:'http://local'},Float32Array});
+ const lines=[];const renderer={line:(...v)=>lines.push(v)};
+ const context={skeleton:{skins:[{attachments:{leg:{leg:{triangles:[0,1,2]}}}}]}};
+ const inspect=window.createCharacterInspection(context,renderer,()=>{});
+ assert.equal(inspect.setTriangle('leg',-1),false);
+ assert.equal(inspect.setTriangle('leg',1),false);
+ assert.equal(inspect.setTriangle('missing',0),false);
+ assert.equal(inspect.setTriangle('leg',0),true);
+ const attachment={triangles:[0,1,2],worldVerticesLength:6,
+   computeWorldVertices(_s,_slot,_start,_count,out){out.set([10,20,30,20,10,40]);}};
+ inspect.draw({findSlot:()=>({appliedPose:{attachment}})});
+ assert.equal(lines.length,3);assert.deepEqual(lines[0].slice(0,4),[10,20,30,20]);
+ assert.equal(window.characterTriangleInspection.index,0);
+ inspect.setTriangle(null);inspect.draw({});assert.equal(window.characterTriangleInspection,null);
+});
