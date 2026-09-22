@@ -1,6 +1,7 @@
 """Explain worst setup-area failures using exact transforms, without changing gates."""
 import argparse
 from copy import deepcopy
+from hashlib import sha256
 import json
 from pathlib import Path
 from autospine_workbench.automation.animated_store import AnimatedStore
@@ -10,14 +11,16 @@ from autospine_workbench.targets.character43.projected_area_reference import ref
 from autospine_workbench.targets.spine43.continuous_pose import area
 
 
-def run(folder,output):
-    report=json.loads((folder/'report.json').read_bytes())
-    files=AnimatedStore(folder/'isolated-store').read(report['candidate_bundle_sha256'])
+def analyze(files, candidate, qa):
     doc=json.loads(files['skeleton.json']);name='external-motion'
-    frames=read(files)['animations'][name];setup=json.loads(files['rig-setup-reference.json'])['vertices']
+    numeric=read(files);setup_report=json.loads(files['rig-setup-reference.json'])
+    digest=sha256(files['skeleton.json']).hexdigest()
+    if any(r.get('skeleton_sha256')!=digest for r in (numeric,setup_report,qa)):
+        raise ValueError('area_attribution_identity_mismatch')
+    frames=numeric['animations'][name];setup=setup_report['vertices']
     rest=deepcopy(doc);rest['animations']={name:{'bones':{}}};rest_pose=matrices(rest,name,0)
     bare=deepcopy(doc);bare['animations'][name].pop('attachments',None)
-    qa=json.loads((folder/'deformation.json').read_bytes());rows=[]
+    rows=[]
     for failure in qa['records']:
         if failure['passed']:continue
         slot=failure['slot'];mesh=doc['skins'][0]['attachments'][slot][slot]
@@ -34,9 +37,15 @@ def run(folder,output):
             ratio_to_projected_reference=ratio/(refs[index]/areas[index]),
             classification='single_bone_projection' if len(names)==1 and abs(ratio-before)<1e-7 else 'mixed_or_corrected_area',
             original_failure=failure))
-    result=dict(profile='setup-area-failure-attribution-v1',candidate=report['candidate_bundle_sha256'],
+    return dict(profile='setup-area-failure-attribution-v1',candidate=candidate,
         authority='none',selected=False,rows=rows,scope='worst_triangle_per_failing_slot_not_visual_acceptance',
         geometry_passed=qa['passed'],limits_unchanged=True)
+
+
+def run(folder,output):
+    report=json.loads((folder/'report.json').read_bytes())
+    files=AnimatedStore(folder/'isolated-store').read(report['candidate_bundle_sha256'])
+    result=analyze(files,report['candidate_bundle_sha256'],json.loads((folder/'deformation.json').read_bytes()))
     with output.open('x',encoding='utf-8') as f:json.dump(result,f,indent=2)
     print(json.dumps(result))
 
