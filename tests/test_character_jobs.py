@@ -58,6 +58,19 @@ class CharacterJobsTests(unittest.TestCase):
         self.assertEqual(resumed.get('sample',job['job_id'])['status'],'blocked')
         with self.assertRaises(RuntimeError):resumed.download('sample',job['job_id'])
 
+    def test_motion_target_preserves_fresh_source_checks_without_composition_overview(self):
+        manager = self.manager()
+        self.assertIsNone(manager.motion_target('sample')['job'])
+        job = self.submit(manager)
+        self.assertEqual(self.terminal(manager, job)['status'], 'needs_review')
+        with patch.object(manager, 'overview', side_effect=AssertionError('unused composition options')):
+            target = manager.motion_target('sample')
+            self.assertEqual(target['job']['job_id'], job['job_id'])
+            self.assertEqual(target['job']['status'], 'needs_review')
+            self.assertIsNone(manager.motion_target('other')['job'])
+            self.info['source_addresses']['input_identity_sha256'] = 'c'*64
+            self.assertEqual(manager.motion_target('sample')['job']['status'], 'blocked')
+
     def test_component_stage_follows_exclusions_and_precedes_capture(self):
         stages=[]; manager=self.manager()
         def stage(name):

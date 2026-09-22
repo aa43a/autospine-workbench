@@ -38,7 +38,7 @@ export function createTargetControls(request, refresh, selection) {
     if (!id) { $('target-status').textContent = '选择已有整角色候选。'; return; }
     $('target-status').textContent = '正在检查角色来源…';
     try {
-      const value = await request(`/api/projects/${encodeURIComponent(id)}/automation/character`);
+      const value = await request(`/api/projects/${encodeURIComponent(id)}/automation/character/motion-target`);
       if (current !== token) return;
       if (value.job?.status === 'needs_review') {
         character = value.job;
@@ -64,6 +64,7 @@ export function createTargetControls(request, refresh, selection) {
     if (!source || !character || busy || comparing) return;
     const sourceId=source.job_id;
     busy = true; enabled();
+    $('target-status').textContent = '正在校验来源并提交构建，请勿重复提交…';
     try {
       const body={project_id: character.project_id, character_job_id: character.job_id,
           contact_correction: $('contact-correction').checked, clip: selection.clip(),

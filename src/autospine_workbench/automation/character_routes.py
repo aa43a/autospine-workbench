@@ -18,6 +18,7 @@ def manager_for(server):
 def dispatch_character(tail,handler,method,project):
     from .web_routes import _error, _require_mutation
     allowed = 'GET, HEAD, POST, OPTIONS' if not tail else None
+    if tail == ['motion-target']: allowed='GET, HEAD, OPTIONS'
     if tail == ['regions']: allowed='GET, HEAD, POST, OPTIONS'
     if tail == ['region-mounts']: allowed='GET, HEAD, POST, OPTIONS'
     if tail in (['final-regions'], ['post-component-regions'], ['component-mounts']): allowed='GET, HEAD, POST, OPTIONS'
@@ -77,6 +78,8 @@ def dispatch_character(tail,handler,method,project):
                 if body: raise PipelineRunError('pipeline_request_invalid')
                 value=manager.cancel(project,tail[1])
             handler._send_visual_json(202,value)
+        elif tail == ['motion-target']:
+            handler._send_visual_json(200,manager.motion_target(project))
         elif tail == ['work-sessions']:
             from .project_work_sessions import overview
             handler._send_visual_json(200,overview(manager,project))

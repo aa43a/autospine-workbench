@@ -106,11 +106,20 @@ class CharacterJobs:
             if not result['can_build']: result['reason_code']='character_sleeve_unavailable'
         except (ValueError, RuntimeError) as exc:
             result['reason_code']=getattr(exc, 'reason_code', 'character_source_unavailable')
+        result['job'] = self.motion_target(project)['job']
+        return result
+
+    def motion_target(self, project):
+        """Validate the current job without rebuilding composition form options."""
+        require_safe_token(project, 'project')
+        self.projects.get_project(project)
+        job = None
         if self.root.exists():
             for file in sorted(self.root.glob('job-*/request.json'), key=lambda p:p.stat().st_mtime_ns, reverse=True):
                 if read_document(file)['project_id'] == project:
-                    result['job'] = self.get(project, file.parent.name); break
-        return result
+                    job = self.get(project, file.parent.name)
+                    break
+        return dict(project_id=project, authority='none', job=job)
 
     def submit(self, project, expected_resolved_sha256, expected_input_sha256, sleeve_job_id, motion_choice_id=None,
                residual_texture_profile=None, skirt_profile=None, shoulder_regions=None, residual_auto_profile='low-alpha-residual-v1'):

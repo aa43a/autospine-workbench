@@ -13,14 +13,18 @@ try {
   const page=await browser.newPage({viewport:{width:1400,height:1000}});
   await page.goto(new URL('/motions.html#'+sourceId,base).href);
   await page.locator('#'+sourceId).getByRole('button',{name:'查看源动作',exact:true}).click();
+  const selectionStarted=performance.now();
   await page.locator('#target-project').selectOption(projectId);
   await page.waitForFunction(()=>!document.getElementById('adapt').disabled,{},{timeout:120000});
+  const selectionMs=performance.now()-selectionStarted;
   const responsePromise=page.waitForResponse(r=>r.url().endsWith(`/api/motions/${sourceId}/adapt`)&&r.request().method()==='POST',{timeout:120000});
+  const submissionStarted=performance.now();
   await page.locator('#adapt').click();
   const response=await responsePromise,receipt=await response.json();
+  const submissionMs=performance.now()-submissionStarted;
   assert.equal(response.status(),202,JSON.stringify(receipt));
   await fs.writeFile(path.join(output,'submitted.json'),JSON.stringify({sourceId,projectId,
-    request:response.request().postDataJSON(),receipt,submittedAt:new Date().toISOString()},null,2),{flag:'wx'});
+    request:response.request().postDataJSON(),receipt,selectionMs,submissionMs,submittedAt:new Date().toISOString()},null,2),{flag:'wx'});
   assert.equal(response.request().postDataJSON().contact_correction,true);
   assert.equal(response.request().postDataJSON().clip,null);
   assert.equal(response.request().postDataJSON().pose_profile,undefined);
