@@ -1,0 +1,79 @@
+{
+  "authority": "none",
+  "selected": false,
+  "scope": "source_and_support_new_numeric_capture_final_reused_evidence_not_visual_acceptance",
+  "characters": [
+    {
+      "character": "alice",
+      "shared_camera": {
+        "left": 200,
+        "bottom": -1070,
+        "width": 599,
+        "height": 1171
+      },
+      "stages": [
+        {
+          "stage": "source",
+          "artifact": "6db8fb7b9cb8aef6fb26ad5ac7e7e7c1670c57563d0d8031d8653ff30f8db644",
+          "frames": 113,
+          "numeric_passed": true
+        },
+        {
+          "stage": "support",
+          "artifact": "5cb712683d2eeb6d41904881cc570a7a9fc96a4a0a817174598a511291775922",
+          "frames": 113,
+          "numeric_passed": true
+        }
+      ],
+      "final_artifact": "8a10b240c237a21e4fd9b9b7b415b491fc197aea3e85998fa2f6bc59f7f753e0"
+    },
+    {
+      "character": "huiye",
+      "shared_camera": {
+        "left": -73,
+        "bottom": -1573,
+        "width": 1470,
+        "height": 1890
+      },
+      "stages": [
+        {
+          "stage": "source",
+          "artifact": "c7ddc1c99d90d43ae253dece1035745f4bf91446d27a1d0375682c5c7853df84",
+          "frames": 113,
+          "numeric_passed": true
+        },
+        {
+          "stage": "support",
+          "artifact": "0e8d761f5f8f77215ca882ea3af58999aa742cc4fecb857b43a9f0915f6d0425",
+          "frames": 113,
+          "numeric_passed": true
+        }
+      ],
+      "final_artifact": "a46a3b98ae342c08f1a707a3303e1f8ec38f058bf6cd9af96d4f0b7f9b52cc8f"
+    },
+    {
+      "character": "hongmeiling",
+      "shared_camera": {
+        "left": 255,
+        "bottom": -1511,
+        "width": 793,
+        "height": 1654
+      },
+      "stages": [
+        {
+          "stage": "source",
+          "artifact": "047d216efee8071325fc7aab39f4779dc8c83ba07f0dcf0aa3fbfee3d2e883bd",
+          "frames": 113,
+          "numeric_passed": true
+        },
+        {
+          "stage": "support",
+          "artifact": "895911572a46f9170fe73ec829ff798a06fe17b48561809551fd1682e2cfea5e",
+          "frames": 113,
+          "numeric_passed": true
+        }
+      ],
+      "final_artifact": "0b8feb06ac10e2baa631b5e0dbbd170e48826f0e685f658c9ab796eacc4d9dcf"
+    }
+  ]
+}
