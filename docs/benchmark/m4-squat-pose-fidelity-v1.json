@@ -1,0 +1,123 @@
+{
+  "profile": "squat-pose-fidelity-cohort-v1",
+  "authority": "none",
+  "selected": false,
+  "rows": [
+    {
+      "character": "alice",
+      "candidate_sha256": "8a10b240c237a21e4fd9b9b7b415b491fc197aea3e85998fa2f6bc59f7f753e0",
+      "source_job_id": "motion-8a48f34642c643e397f95b433046b8bb",
+      "request_sha256": "f0f7cea4a75448c7aed72979693b425696429c25d53dc2f432669b3f4a142323",
+      "summary": {
+        "arm_left": {
+          "samples": 57,
+          "worst_time": 0.733333,
+          "maximum_endpoint_error_ratio": 6.720158543636819e-16,
+          "knee_counts": null
+        },
+        "arm_right": {
+          "samples": 57,
+          "worst_time": 0.6,
+          "maximum_endpoint_error_ratio": 5.823453448012693e-16,
+          "knee_counts": null
+        },
+        "leg_left": {
+          "samples": 57,
+          "worst_time": 0.866667,
+          "maximum_endpoint_error_ratio": 0.08718494625320578,
+          "knee_counts": {
+            "projected_side_consistent": 50,
+            "source_bend_hidden_in_depth": 7
+          }
+        },
+        "leg_right": {
+          "samples": 57,
+          "worst_time": 0.866667,
+          "maximum_endpoint_error_ratio": 0.07181463613873978,
+          "knee_counts": {
+            "projected_side_consistent": 51,
+            "source_bend_hidden_in_depth": 6
+          }
+        }
+      }
+    },
+    {
+      "character": "huiye",
+      "candidate_sha256": "a46a3b98ae342c08f1a707a3303e1f8ec38f058bf6cd9af96d4f0b7f9b52cc8f",
+      "source_job_id": "motion-b5610841e66e4f599d58360ef9de20bb",
+      "request_sha256": "eac5846c14df6e2b54f482930ede06c2d13372014d42b564dd00062c4155d67a",
+      "summary": {
+        "arm_left": {
+          "samples": 57,
+          "worst_time": 0.066667,
+          "maximum_endpoint_error_ratio": 6.141918792924146e-16,
+          "knee_counts": null
+        },
+        "arm_right": {
+          "samples": 57,
+          "worst_time": 1.2,
+          "maximum_endpoint_error_ratio": 5.835810787919002e-16,
+          "knee_counts": null
+        },
+        "leg_left": {
+          "samples": 57,
+          "worst_time": 0.9,
+          "maximum_endpoint_error_ratio": 0.09739593981368988,
+          "knee_counts": {
+            "projected_side_consistent": 50,
+            "source_bend_hidden_in_depth": 7
+          }
+        },
+        "leg_right": {
+          "samples": 57,
+          "worst_time": 0.9,
+          "maximum_endpoint_error_ratio": 0.0835881516451667,
+          "knee_counts": {
+            "projected_side_consistent": 51,
+            "source_bend_hidden_in_depth": 6
+          }
+        }
+      }
+    },
+    {
+      "character": "hongmeiling",
+      "candidate_sha256": "0b8feb06ac10e2baa631b5e0dbbd170e48826f0e685f658c9ab796eacc4d9dcf",
+      "source_job_id": "motion-e2f8058160c14d959d468d75cc53a35e",
+      "request_sha256": "26ac8a5ecae721f16f5aeac1bd50e6256106e121d4755f14d25b0c37723ef4e9",
+      "summary": {
+        "arm_left": {
+          "samples": 57,
+          "worst_time": 1.533333,
+          "maximum_endpoint_error_ratio": 6.295097114043015e-16,
+          "knee_counts": null
+        },
+        "arm_right": {
+          "samples": 57,
+          "worst_time": 0.366667,
+          "maximum_endpoint_error_ratio": 4.465924583845402e-16,
+          "knee_counts": null
+        },
+        "leg_left": {
+          "samples": 57,
+          "worst_time": 0.966667,
+          "maximum_endpoint_error_ratio": 0.15335732750815503,
+          "knee_counts": {
+            "projected_side_consistent": 50,
+            "source_bend_hidden_in_depth": 7
+          }
+        },
+        "leg_right": {
+          "samples": 57,
+          "worst_time": 0.966667,
+          "maximum_endpoint_error_ratio": 0.07405462910576865,
+          "knee_counts": {
+            "projected_side_consistent": 51,
+            "source_bend_hidden_in_depth": 6
+          }
+        }
+      }
+    }
+  ],
+  "scope": "57_source_frames_per_character_bone_origins_only_not_mesh_midpoints_or_visual_acceptance",
+  "next_action": "preserve_arm_direction_and_compare_support_induced_leg_changes_against_mesh_and_depth_at_worst_times"
+}
