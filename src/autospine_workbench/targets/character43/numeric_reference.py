@@ -6,6 +6,22 @@ from ...automation.storage_io import canonical_bytes
 SCHEMA = 'autospine.character-reference-chunks/v1'
 
 
+def carry_setup(source, output):
+    """Carry an exact setup reference only through an unchanged bind structure."""
+    key = 'rig-setup-reference.json'
+    if key not in source:
+        return None
+    value = json.loads(source[key])
+    if value['skeleton_sha256'] != sha256(source['skeleton.json']).hexdigest():
+        raise ValueError('character_setup_source_mismatch')
+    before, after = (json.loads(p['skeleton.json']) for p in (source, output))
+    if any(before.get(k) != after.get(k) for k in ('bones', 'slots', 'skins')):
+        raise ValueError('character_setup_bind_changed')
+    value['skeleton_sha256'] = sha256(output['skeleton.json']).hexdigest()
+    output[key] = canonical_bytes(value)
+    return value['vertices']
+
+
 def read(files):
     value = json.loads(files['numeric-reference.json'])
     if 'schema' not in value:

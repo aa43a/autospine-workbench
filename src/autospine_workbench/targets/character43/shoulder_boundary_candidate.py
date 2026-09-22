@@ -7,7 +7,7 @@ import math
 from ...automation.storage_io import canonical_bytes
 from .affine_pose import sample, matrices
 from .deformation_qa import inspect
-from .numeric_reference import read, write
+from .numeric_reference import read, write, carry_setup
 from .shoulder_source import contexts, select_rows
 from .shoulder_boundary import prepare, solve
 from .skirt_candidate import inverse
@@ -97,7 +97,8 @@ def finalize(files, original, document, prepared, records, source_digest, *, pro
         editor.update({k: document[k] for k in ('bones', 'slots', 'skins', 'animations')})
         output['editor/skeleton.json'] = canonical_bytes(editor)
     reference['skeleton_sha256'] = sha256(output['skeleton.json']).hexdigest()
-    output = write(output, reference); qa = inspect(output)
+    setup_vertices = carry_setup(files, output)
+    output = write(output, reference); qa = inspect(output, setup_vertices=setup_vertices)
     output['deformation.json'] = canonical_bytes(qa)
     passed = qa['passed'] and all(not r['solver_failures'] for r in records) and all(
         r['max_pin_error_px'] <= .5 and r['max_displacement_budget_ratio'] <= 1+1e-7 for r in boundary)
