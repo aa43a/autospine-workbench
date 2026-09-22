@@ -1,27 +1,32 @@
+import copy
 import unittest
+from autospine_workbench.targets.character43.shoulder_transition import propose
 
-from autospine_workbench.targets.character43.shoulder_transition import append_parent
-from autospine_workbench.targets.character43.affine_pose import sample
+
+def fixture():
+    bones=[dict(name='chest',x=20,y=30,rotation=25),
+           dict(name='upperarm_l',parent='chest',x=2,y=3,rotation=-60),
+           dict(name='forearm_l',parent='upperarm_l',x=10,y=0,rotation=0)]
+    mesh=dict(type='mesh',uvs=[0,0,0,1,1,0],triangles=[0,1,2],
+              vertices=[1,1,1,0,1,1,1,2,2,1,1,1,8,0,1])
+    return dict(bones=bones,slots=[dict(name='arm',attachment='arm',bone='upperarm_l')],
+                skins=[dict(attachments={'arm':{'arm':mesh}})],animations={'motion':{'bones':{}}})
 
 
 class ShoulderTransitionTests(unittest.TestCase):
-    def test_sparse_deform_keeps_influence_alignment(self):
-        document = dict(bones=[dict(name='chest', x=0, y=0, rotation=0),
-                               dict(name='arm', x=0, y=0, rotation=0)],
-            skins=[dict(attachments={'arm': {'arm': dict(vertices=[
-                2, 1, 10, 0, 1., 0, 10, 0, 0., 1, 1, 20, 0, 1.])}})],
-            animations={'move': dict(attachments={'default': {'arm': {'arm': dict(deform=[
-                dict(time=0, offset=0, vertices=[2, 0, 100, 0, 4, 0]),
-                dict(time=1, offset=4, vertices=[6, 0])])}}})})
-        append_parent(document, 'arm', [.5, 0], [[10, 0], [20, 0]], 'chest')
-        points, _ = sample(document, 'move', 0)
-        self.assertEqual(points['arm'], [[11., 0.], [24., 0.]])
-        points, _ = sample(document, 'move', 1)
-        self.assertEqual(points['arm'], [[10., 0.], [26., 0.]])
-        keys = document['animations']['move']['attachments']['default']['arm']['arm']['deform']
-        self.assertEqual(keys[0]['vertices'], [2, 0, 100, 0, 0., 0., 4, 0])
-        self.assertNotIn('offset', keys[1])
+    def test_setup_preserved_and_distal_untouched(self):
+        doc=fixture();before=copy.deepcopy(doc);result,report=propose(doc)
+        self.assertEqual(doc,before)
+        self.assertLess(report['setup_max_error_px'],1e-10)
+        self.assertEqual([r['vertex'] for r in report['records'][0]['changed']],[0,1])
+        self.assertEqual(result['skins'][0]['attachments']['arm']['arm']['vertices'][-5:],
+                         doc['skins'][0]['attachments']['arm']['arm']['vertices'][-5:])
+        self.assertEqual(result['animations'],doc['animations'])
 
+    def test_existing_deform_cannot_be_reinterpreted(self):
+        doc=fixture();doc['animations']['motion']['attachments']={'default':{'arm':{'arm':{'deform':[]}}}}
+        with self.assertRaisesRegex(ValueError,'existing_deform'):propose(doc)
 
-if __name__ == '__main__':
-    unittest.main()
+    def test_no_unbounded_transition(self):
+        for value in (0,1,float('nan')):
+            with self.assertRaisesRegex(ValueError,'band_invalid'):propose(fixture(),band_ratio=value)
