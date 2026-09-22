@@ -104,9 +104,11 @@ if __name__ == '__main__':
     parser.add_argument('--group-pixels', type=float)
     parser.add_argument('--boundary-guard', type=float, default=0)
     parser.add_argument('--compact-deform', action='store_true')
+    parser.add_argument('--material-bones', nargs=2, metavar=('ROOT','DISTAL'))
     args = parser.parse_args()
     from functools import partial
     run(args.source, args.field, args.output, args.arm, args.body,
+        material_bones=args.material_bones,
         candidate_builder=partial(build, group_pixels=args.group_pixels, boundary_guard=args.boundary_guard, compact_deform=args.compact_deform),
         experiment=dict(profile='ordinary-halfplane-group-v1', sampled_boundary_error_pixels=args.group_pixels,
                         boundary_guard_pixels=args.boundary_guard, compact_deform_float32=args.compact_deform))

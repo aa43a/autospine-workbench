@@ -20,6 +20,22 @@ def split_texture(image,mask):
     return root_image,free_image,int(guard.sum())
 
 
+def preserve_padding(image,source,page):
+    """Apply an alpha-only split to the existing atlas page, including its padding."""
+    h,w=source.shape[:2]
+    if (image.shape!=source.shape or page.shape!=(h+4,w+4,4)
+            or not np.array_equal(page[2:-2,2:-2],source)
+            or not np.array_equal(image[:,:,:3],source[:,:,:3])
+            or not np.all((image[:,:,3]==0)|(image[:,:,3]==source[:,:,3]))):
+        raise ValueError('root_material_page_layout')
+    result=page.copy()
+    keep=(image[:,:,3]>0)
+    result[~np.pad(keep,2,mode='edge'),3]=0
+    # Preserve the exact source RGB everywhere, including transparent texels.
+    result[2:-2,2:-2]=image
+    return result
+
+
 def partition(document,files,arm,body,root_bone,distal_bone):
     points,pose=sample(dict(document,animations={'setup':{}}),'setup',0)
     root=np.asarray(pose[root_bone][:2]);distal=np.asarray(pose[distal_bone][:2]);length=float(np.linalg.norm(distal-root))
@@ -50,20 +66,38 @@ def apply(candidate,source,files,arm,body,root_bone,distal_bone):
     result=deepcopy(candidate);output={};attachments=result['skins'][0]['attachments']
     root_name='m4-root-material';free_name='m4-free-material'
     if root_name in attachments or free_name in attachments:raise ValueError('root_material_collision')
-    original=next(s for s in result['slots'] if s['name']==arm)
+    original=next(s for s in source['slots'] if s['name']==arm)
     root_slot=dict(original,name=root_name,attachment=root_name)
+    mesh=source['skins'][0]['attachments'][arm][original['attachment']]
+    source_path=mesh.get('path',original['attachment'])
+    if arm in attachments:
+        selected=[arm,'m4-front-mesh'];start='m4-clip-back'
+    else:
+        selected=[s['name'] for s in result['slots'] if s['name'].startswith('m4-tri-')
+                  and attachments[s['name']][s['attachment']].get('type')=='mesh'
+                  and attachments[s['name']][s['attachment']].get('path')==source_path]
+        if not selected:raise ValueError('root_material_render_parts_missing')
+        start=next(s['name'] for s in result['slots'] if s['name'].startswith('m4-tri-back-') or s['name']==body)
     # Outside the back clipping scope, but still before the torso.
-    index=next(i for i,s in enumerate(result['slots']) if s['name']=='m4-clip-back')
+    index=next(i for i,s in enumerate(result['slots']) if s['name']==start)
     result['slots'].insert(index,root_slot)
-    mesh=attachments[arm][original['attachment']]
     attachments[root_name]={root_name:dict(deepcopy(mesh),path=root_name)}
-    mesh['path']=free_name;attachments['m4-front-mesh']['m4-front-mesh']['path']=free_name
+    for name in selected:
+        slot=next(s for s in result['slots'] if s['name']==name)
+        attachments[name][slot['attachment']]['path']=free_name
     tracks=result['animations']['external-motion']['attachments']['default']
-    if arm in tracks:tracks[root_name]={root_name:deepcopy(tracks[arm][original['attachment']])}
+    source_tracks=source['animations']['external-motion'].get('attachments',{}).get('default',{})
+    if arm in source_tracks:tracks[root_name]={root_name:deepcopy(source_tracks[arm][original['attachment']])}
     atlas=files['skeleton.atlas'].decode()
+    source_image=np.asarray(Image.open(BytesIO(files['images/'+source_path+'.png'])).convert('RGBA'))
+    page=np.asarray(Image.open(BytesIO(files['textures/'+source_path+'.png'])).convert('RGBA'))
+    h,w=source_image.shape[:2]
+    expected=f'textures/{source_path}.png\nsize: {w+4},{h+4}\nfilter: Linear,Linear\npma: false\nrepeat: none\n{source_path}\nbounds: 2,2,{w},{h}'
+    if expected not in atlas.replace('\r\n','\n'):raise ValueError('root_material_atlas_layout')
+    report.update(atlas_padding='preserved_source_page',source_page_sha256=sha256(files['textures/'+source_path+'.png']).hexdigest(),render_parts=len(selected))
     for name,image in ((root_name,root_image),(free_name,free_image)):
         h,w=image.shape[:2]
-        for prefix,array in [('images',image),('editor/images',image),('textures',np.pad(image,((2,2),(2,2),(0,0)),mode='edge'))]:
+        for prefix,array in [('images',image),('editor/images',image),('textures',preserve_padding(image,source_image,page))]:
             buffer=BytesIO();Image.fromarray(array).save(buffer,format='PNG');output[f'{prefix}/{name}.png']=buffer.getvalue()
         atlas+=f'\ntextures/{name}.png\nsize: {w+4},{h+4}\nfilter: Linear,Linear\npma: false\nrepeat: none\n{name}\nbounds: 2,2,{w},{h}\n'
     output['skeleton.atlas']=atlas.encode()
