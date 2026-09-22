@@ -1,0 +1,23 @@
+{
+  "profile": "adjacent-joint-polar-material-probe-v1",
+  "source": "0b8feb06ac10e2baa631b5e0dbbd170e48826f0e685f658c9ab796eacc4d9dcf",
+  "authority": "none",
+  "selected": false,
+  "runtime_captured": false,
+  "candidate_published": false,
+  "scope": "three_diagnostic_times_from_57_key_bake_not_whole_animation_acceptance",
+  "baseline": "selected_leg_deforms_removed_other_attachments_preserved",
+  "first_trial": "../tmp/m4-motion-center/squat-pivot-v1/hongmeiling/probe.json",
+  "adjacent_joint_trial": "../tmp/m4-motion-center/squat-pivot-v2/hongmeiling/probe.json",
+  "results": [
+    {"slot": "layer-003", "time": 0.0, "inversions": 0},
+    {"slot": "layer-004", "time": 0.0, "inversions": 0},
+    {"slot": "layer-003", "time": 0.966667, "baseline_inversions": 6, "transverse_trial_inversions": 2, "pivot_trial_inversions": 3, "inverted_triangles": [106,115,124]},
+    {"slot": "layer-004", "time": 0.966667, "baseline_inversions": 8, "transverse_trial_inversions": 5, "pivot_trial_inversions": 6, "inverted_triangles": [113,114,122,123,125,132]},
+    {"slot": "layer-003", "time": 1.12, "inversions": 0},
+    {"slot": "layer-004", "time": 1.12, "baseline_inversions": 0, "transverse_trial_inversions": 1, "pivot_trial_inversions": 2, "inverted_triangles": [113,122]}
+  ],
+  "remaining_inverted_region": "thigh_calf_mixed_influences",
+  "conclusion": "Rotation/stretch blending does not resolve the spatial knee transition; reject before Runtime capture.",
+  "next": "Change local knee material parameterization or topology; retain joint trajectories and contact constraints. Do not tune polar blend weights indefinitely."
+}
