@@ -53,6 +53,9 @@ function renderRow(panel, row, base, onSeek, onInspect) {
   const draw = () => {
     const detail = row.details[Number(select.value)];
     detailText.textContent = `此时面积/原姿态：${detail.setup_ratio.toFixed(3)}；投影参考/原姿态：${detail.projected_reference_ratio?.toFixed(3) ?? '不可用'}。影响骨骼：${detail.bones.join('、')}。`;
+    if (Number.isFinite(detail.without_deform_setup_ratio)) {
+      detailText.append(` 同时刻移除局部 deform 后：${detail.without_deform_setup_ratio.toFixed(3)}；修正造成的面积比变化：${detail.deform_area_delta_ratio.toFixed(3)}（正值表示面积增加，未必更自然）。`);
+    }
     seek.href = base + `player.html?time=${detail.time}`;
     if (onSeek) seek.onclick = event => {
       event.preventDefault();

@@ -5,7 +5,7 @@ from hashlib import sha256
 import json
 import numpy as np
 from .numeric_reference import read
-from .affine_pose import matrices
+from .affine_pose import matrices, sample
 from .projected_area_reference import reference as projected_reference
 
 
@@ -67,6 +67,10 @@ def build(files, artifact, *, limit=12):
                 influences.append([(data[cursor+4*j],data[cursor+4*j+3]) for j in range(n)])
                 cursor+=4*n
         rest=deepcopy(doc);rest['animations']={name:{'bones':{}}};rest_matrix=matrices(rest,name,0)
+        uncorrected=deepcopy(doc)
+        uncorrected['animations'][name].pop('attachments',None)
+        uncorrected['animations'][name].pop('deform',None)
+        raw_frames={}
         details=[]
         for i,reason,frame_index,ratio,_severity in selected:
             frame=frames[frame_index];time=frame['time']
@@ -77,7 +81,14 @@ def build(files, artifact, *, limit=12):
             except ValueError:
                 refs_ratio=None  # A proxy limitation must not hide the measured failure.
             tri=triangles[i].tolist()
+            if time not in raw_frames:
+                raw_frames[time]=sample(uncorrected,name,time)[0][slot]
+            p=np.asarray(raw_frames[time],dtype=float)[tri]
+            a,b=p[1]-p[0],p[2]-p[0]
+            uncorrected_ratio=float((a[0]*b[1]-a[1]*b[0])/2/original[i])
             details.append(dict(triangle=int(i),vertices=tri,time=time,reason=reason,setup_ratio=ratio,
+                without_deform_setup_ratio=uncorrected_ratio,
+                deform_area_delta_ratio=ratio-uncorrected_ratio,
                 minimum_setup_ratio=float(worst[i]),
                 maximum_setup_ratio=float(maximum[i]),failed_samples=int(counts[i]),
                 projected_reference_ratio=refs_ratio,
@@ -91,7 +102,7 @@ def build(files, artifact, *, limit=12):
             shown=len(details),truncated=len(events)>len(details),sample_count=len(frames),
             texture='data:image/png;base64,'+b64encode(texture).decode(),details=details,
             next_action='compare_pose_attachment_or_partition' if details else 'inspect_edge_stretch',
-            note='投影参考是近似模型；比值正常不能证明轮廓自然，也不改变原几何门禁。'))
+            note='移除 deform 的对照保留相同骨骼、权重与时间，仅用于分析修正影响，不是修复方案。投影参考是近似模型；所有比值均不改变原几何门禁。'))
     return dict(profile='motion-geometry-source-locations-v1',artifact_sha256=artifact,
                 skeleton_sha256=digest,rows=rows,status='available',authority='none',selected=False,
                 scope='sampled_area_locations_not_automatic_artwork_requirement_or_acceptance')

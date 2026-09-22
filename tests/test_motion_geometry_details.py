@@ -33,11 +33,45 @@ class GeometryDetailsTests(unittest.TestCase):
         self.assertEqual(events['area_compression']['texture_uv'],[[0,0],[1,0],[0,1]])
         self.assertFalse(report['selected'])
 
+    def test_counterfactual_retains_bone_scale_and_does_not_mutate_files(self):
+        files=fixture()
+        doc=json.loads(files['skeleton.json'])
+        doc['animations']['move']={'bones':{'root':{'scale':[dict(time=0,x=.4,y=1)]}}}
+        raw=json.dumps(doc).encode();files['skeleton.json']=raw
+        for name in ('deformation.json','rig-setup-reference.json','numeric-reference.json'):
+            value=json.loads(files[name]);value['skeleton_sha256']=sha256(raw).hexdigest()
+            files[name]=json.dumps(value).encode()
+        before=dict(files)
+        detail=next(r for r in build(files,'a'*64)['rows'][0]['details'] if r['reason']=='area_compression')
+        self.assertAlmostEqual(detail['without_deform_setup_ratio'],.4)
+        self.assertAlmostEqual(detail['deform_area_delta_ratio'],-.2)
+        self.assertEqual(files,before)
+
     def test_identity_rejected_and_missing_setup_is_unavailable(self):
         files=fixture();del files['rig-setup-reference.json']
         self.assertEqual(build(files,'a'*64)['status'],'unavailable')
         files=fixture();files['skeleton.json']+=b' '
         with self.assertRaisesRegex(ValueError,'identity_mismatch'):build(files,'a'*64)
+
+    def test_real_deform_is_removed_only_in_counterfactual(self):
+        from autospine_workbench.targets.character43.affine_pose import sample
+        files=fixture();doc=json.loads(files['skeleton.json'])
+        doc['animations']['move']={
+            'bones':{'root':{'scale':[dict(time=0,x=.4,y=1)]}},
+            'attachments':{'default':{'leg':{'leg':{'deform':[
+                dict(time=0,vertices=[0,0,0,0,0,-.5])]}}}}}
+        raw=json.dumps(doc).encode();files['skeleton.json']=raw
+        for name in ('deformation.json','rig-setup-reference.json','numeric-reference.json'):
+            value=json.loads(files[name]);value['skeleton_sha256']=sha256(raw).hexdigest()
+            if name=='numeric-reference.json':
+                value['animations']={'move':[dict(time=0,vertices=sample(doc,'move',0)[0])]}
+            files[name]=json.dumps(value).encode()
+        before=dict(files)
+        detail=build(files,'a'*64)['rows'][0]['details'][0]
+        self.assertAlmostEqual(detail['setup_ratio'],.2)
+        self.assertAlmostEqual(detail['without_deform_setup_ratio'],.4)
+        self.assertAlmostEqual(detail['deform_area_delta_ratio'],-.2)
+        self.assertEqual(files,before)
 
     def test_proxy_failure_does_not_hide_actual_failure(self):
         with patch('autospine_workbench.targets.character43.motion_geometry_details.projected_reference',
