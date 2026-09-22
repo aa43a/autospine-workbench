@@ -1,0 +1,44 @@
+{
+  "candidate": "70bfd51d35cebb2cbf4a1e7d496fd1d20f4a98abc9782869480116ce43506e3d",
+  "parent": "21969ed99dd41e85171f52842fc4754a8d8c4bd425fd722cf87a78ce94b9d437",
+  "authority": "none",
+  "selected": false,
+  "status": "not_adopted",
+  "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+  "target_version": "4.3.26",
+  "capture_runtime_version": "4.3.13",
+  "scope": "Alice right shoulder 100x100 world ROI; sampled boundaries and interval interiors only",
+  "sampled_times": 197,
+  "topology_segments": 50,
+  "segment_switches": 49,
+  "maximum_vertices": 155,
+  "maximum_join_error_px": 5.684341886080802e-14,
+  "switches_with_visible_delta_over_eight": [
+    {
+      "segment": 30,
+      "time": 1.05,
+      "baseline": {
+        "changed_over_one": 0,
+        "changed_over_eight": 0,
+        "maximum_visible_channel_delta": 0.0,
+        "maximum_alpha_delta": 0.0
+      },
+      "candidate": {
+        "changed_over_one": 2,
+        "changed_over_eight": 1,
+        "maximum_visible_channel_delta": 255.0,
+        "maximum_alpha_delta": 255.0
+      }
+    }
+  ],
+  "capture_sha256": "e22f859f77c82d95509fbfd7125e77981d86eeaf2911b512d6c1902bf8ce9c2b",
+  "measurement_sha256": "79ac6c416b0debe697dd7840d7fb825af0f9547ccd86d5a42c8e2e05628a6273",
+  "unresolved": [
+    "straight visible shoulder cut",
+    "one native pixel alpha jump at 1.05 seconds",
+    "interpolation depth safety not proved",
+    "other attachment occlusion not verified",
+    "cross-character validation not run"
+  ],
+  "next": "stop contour subdivision and fitting experiments; inspect local pose attachment and image requirements"
+}

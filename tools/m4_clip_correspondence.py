@@ -29,7 +29,7 @@ def worst_corner(points,line):
     return float(errors[index]),float(arc[index]/arc[-1])
 
 
-def build(rows, tolerance=.1, limit=512):
+def build(rows, tolerance=.1, limit=512, *, anchor_edges=False, exact_endpoints=False):
     if not rows or not math.isfinite(tolerance) or tolerance<=0 or type(limit) is not int or limit<3:
         raise ValueError('clip_correspondence_options')
     if any(r['status']!='single_loop' or len(r['loops'])!=1 for r in rows):
@@ -42,7 +42,7 @@ def build(rows, tolerance=.1, limit=512):
     times=[r['time'] for r in rows]
     if any(not math.isfinite(t) for t in times) or any(b<=a for a,b in zip(times,times[1:])):
         raise ValueError('clip_correspondence_times')
-    common=set.intersection(*[{tuple(k) for k in r['loops'][0]['vertex_keys'] if k[0]=='v'} for r in rows])
+    common=set.intersection(*[{tuple(k) for k in r['loops'][0]['vertex_keys'] if anchor_edges or k[0]=='v'} for r in rows])
     if len(common)<3:raise ValueError('clip_stable_anchors_missing')
     anchor=min(common);spans=[];expected=None
     for row in rows:
@@ -53,6 +53,13 @@ def build(rows, tolerance=.1, limit=512):
         expected=order;indices.append(len(keys));points=points+[points[0]]
         spans.append([points[a:b+1] for a,b in zip(indices,indices[1:])])
     parameters=[list(np.linspace(0,1,max(len(frame[i])-1 for frame in spans)+1)) for i in range(len(expected))]
+    if exact_endpoints:
+        for i,values in enumerate(parameters):
+            for frame in (spans[0],spans[-1]):
+                arc=np.concatenate(([0.],np.cumsum(np.linalg.norm(np.diff(frame[i],axis=0),axis=1))))
+                if arc[-1]<=1e-10:raise ValueError('clip_collapsed_anchor_span')
+                values.extend((arc/arc[-1]).tolist())
+            parameters[i]=sorted(set(values))
     sampled=[[None for _ in expected] for _ in spans]
     errors=[0.]*len(expected);pending=list(range(len(expected)))
     while True:
@@ -71,7 +78,7 @@ def build(rows, tolerance=.1, limit=512):
         pending=bad
     return dict(authority='none',selected=False,anchor_keys=[list(k) for k in expected],span_counts=counts,
                 span_parameters=parameters,vertex_count=sum(counts),tolerance_px=tolerance,maximum_sampled_boundary_error_px=max(errors),
-                error_scope='bidirectional_polyline_vertex_distance_not_continuous_hausdorff_or_depth_safety',
+                exact_endpoints=exact_endpoints,error_scope='bidirectional_polyline_vertex_distance_not_continuous_hausdorff_or_depth_safety',
                 frames=[dict(time=t,points=np.concatenate([p[:-1] for p in candidate]).tolist()) for t,candidate in zip(times,sampled)])
 
 
