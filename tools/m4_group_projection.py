@@ -29,6 +29,18 @@ def main():
     report.update(source_job=args.source_job, source_identity=identity)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, ensure_ascii=False), encoding='utf-8')
+    from autospine_workbench.targets.character43.group_projection_pose import source_segments, pose
+    from m4_group_projection_view import render
+    segments = source_segments(bundle)
+    # Both signs remain visible, never silently select one from a tied score.
+    modes = {'original': {}}
+    for sign in (-90, 90):
+        modes[f'侧向 {sign}°（长度评分分组）'] = {
+            row['group']: sign if sign in row['best_visibility_yaws'] else 0
+            for row in report['records']}
+    variants = {name: [pose(segments, i, planes) for i in range(len(ticks))]
+                for name, planes in modes.items()}
+    args.output.with_suffix('.html').write_text(render(report['times'], variants), encoding='utf-8')
     print(json.dumps([dict(group=r['group'], best=r['best_visibility_yaws'],
         scores=[(a['yaw_degrees'], a['collapsed_samples'], a['minimum_visibility'])
                 for a in r['alternatives']]) for r in report['records']]))
