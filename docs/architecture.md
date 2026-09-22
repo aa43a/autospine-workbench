@@ -1,5 +1,7 @@
 # AutoSpine Workbench 架构与质量门禁
 
+`motion_repair_material.py` 基于当前有效姿态草稿生成确定性 ZIP，重新核对完整定位报告与草稿事件，输出原 PNG 字节及诊断 SVG。源纹理 Y 向下、世界诊断 Y 反向转换分别记录；注释不进入 SVG。下载接口为只读 `/api/motions/<job>/repair-material/<revision>`，拒绝同事件已被更新或撤销的修订，不产生候选或改变门禁。
+
 `motion_repair_draft.py` 保存独立的追加式异常处理草稿。服务端从 geometry-details 重新解析真实极值事件，排除纹理内联字节后计算证据摘要；保存时校验候选、证据及期望修订。证据读取在任务锁外，修订检查与原子追加在锁内。撤销也是新修订，不写入阶段验收或执行修复。
 
 播放器 `inspectTriangle` 以当前动作和有效三角形索引校验观察请求，cohort 同步控制额外校验候选身份。边框从官方 Runtime 的当前 attachment 世界顶点计算，在完整角色绘制后叠加，不改 draw order、权重或素材。原纹理 UV 和变形后世界位置分别展示。

@@ -7,6 +7,8 @@ from .motion_intake_jobs import MotionIntakeJobs
 
 
 def _methods(tail):
+    if len(tail) == 3 and tail[1] == 'repair-material':
+        return 'GET, HEAD, OPTIONS'
     if len(tail) == 2 and tail[1] in ('stage-review', 'repair-draft'):
         return 'GET, HEAD, POST, OPTIONS'
     if tail == ['generate']:
@@ -89,6 +91,10 @@ def dispatch_motions(parts, handler, method):
                     raise PipelineRunError('motion_request_invalid')
                 result = getattr(manager, tail[1])(tail[0])
             handler._send_visual_json(202, result)
+        elif len(tail) == 3 and tail[1] == 'repair-material':
+            from .motion_repair_material import download as material_download
+            handler._send_bytes(200, material_download(manager, tail[0], tail[2]), 'application/zip',
+                visual_review=True, extra_headers={'Content-Disposition': 'attachment; filename="pose-material-request.zip"'})
         elif len(tail) == 2 and tail[1] == 'repair-draft':
             from .motion_repair_draft import inspect
             handler._send_visual_json(200, inspect(manager, tail[0]))

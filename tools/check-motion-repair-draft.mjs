@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {pathToFileURL} from 'node:url';
-const [base,jobId,output,dependencies]=process.argv.slice(2);
+const [base,jobId,output,dependencies,mode='partition']=process.argv.slice(2);
+assert.ok(['partition','pose_attachment'].includes(mode));
 const {chromium}=await import(pathToFileURL(path.resolve(dependencies,'node_modules/playwright-core/index.mjs')));
 const browser=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
 try {
@@ -24,7 +25,7 @@ try {
   const before=await (await page.request.get(`${base}/api/motions/${jobId}/repair-draft`)).json();
   // Do not overwrite any existing active intervention.
   assert.ok(!before.history.some(r=>r.action!=='withdraw' && !r.notes.startsWith('UI regression draft;')), 'Use a candidate without existing intervention plans');
-  await card.getByLabel('异常处理路线').first().selectOption('partition');
+  await card.getByLabel('异常处理路线').first().selectOption(mode);
   await card.getByLabel('异常处理说明').first().fill('UI regression draft; withdrawn after reload verification');
   const save=async()=>{
     const result=page.waitForResponse(r=>r.url().endsWith('/repair-draft')&&r.request().method()==='POST',{timeout:120000});
@@ -32,13 +33,23 @@ try {
     const response=await result;assert.ok(response.ok());return response.json();
   };
   const saved=await save();assert.equal(saved.revision,before.revision+1);
-  card=await open();assert.equal(await card.getByLabel('异常处理路线').first().inputValue(),'partition');
+  card=await open();assert.equal(await card.getByLabel('异常处理路线').first().inputValue(),mode);
   assert.match(await card.getByLabel('异常处理说明').first().inputValue(),/UI regression/);
+  let materialUrl=null;
+  if(mode==='pose_attachment') {
+    const link=card.getByRole('link',{name:'下载姿态素材任务包',exact:true}).first();
+    await link.waitFor();materialUrl=await link.getAttribute('href');
+    const pending=page.waitForEvent('download',{timeout:120000});await link.click();
+    const download=await pending;await fs.mkdir(output,{recursive:true});
+    await download.saveAs(path.join(output,'pose-material-request.zip'));
+    assert.equal(await download.failure(),null);
+  }
   await card.getByLabel('异常处理路线').first().selectOption('withdraw');
   const withdrawn=await save();assert.equal(withdrawn.history.at(-1).action,'withdraw');
+  if(materialUrl)assert.equal((await page.request.get(new URL(materialUrl,base).href)).status(),400);
   assert.equal(withdrawn.repair_executed,false);assert.deepEqual(errors,[]);
   await fs.mkdir(output,{recursive:true});await card.screenshot({path:path.join(output,'draft.png')});
   await fs.writeFile(path.join(output,'check.json'),JSON.stringify({passed:true,jobId,artifact:saved.artifact_sha256,
-    savedRevision:saved.revision,withdrawnRevision:withdrawn.revision,errors,scope:'draft_save_reload_withdraw_only'},null,2));
+    savedRevision:saved.revision,withdrawnRevision:withdrawn.revision,materialUrl,errors,scope:'draft_save_reload_export_withdraw_only'},null,2));
   console.log(JSON.stringify({passed:true,revision:withdrawn.revision}));
 } finally {await browser.close();}
