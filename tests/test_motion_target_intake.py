@@ -165,6 +165,15 @@ class MotionTargetTests(unittest.TestCase):
                     manager.retry(torso_job['job_id'])
                     self.assertEqual(retry.call_args.args[2]['torso_projection_profile'],torso_profile)
                 character['artifact_sha256'] = 'd'*64
+                from autospine_workbench.automation.motion_target_pose import HIP_PROFILE
+                pose_job=submit(manager,queued['job_id'],dict(project_id='alice',character_job_id='job-'+'c'*32,pose_profile=HIP_PROFILE))
+                pose_request=read_document(manager.folder(pose_job['job_id'])/'request.json')
+                self.assertEqual(pose_request['pose_profile'],HIP_PROFILE)
+                self.assertNotIn('pose_profile',request)
+                manager._jobs[pose_job['job_id']].update(status='failed')
+                with patch('autospine_workbench.automation.motion_target_jobs.submit') as retry:
+                    manager.retry(pose_job['job_id'])
+                    self.assertEqual(retry.call_args.args[2]['pose_profile'],HIP_PROFILE)
                 with self.assertRaisesRegex(PipelineRunError, 'motion_target_character_changed'):
                     assert_current(manager, request)
                 manager._jobs[value['job_id']].update(status='succeeded', result={})

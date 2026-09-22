@@ -154,6 +154,8 @@ class MotionIntakeJobs:
             from .motion_target_jobs import submit
             body = {k: request[k] for k in ('project_id', 'character_job_id')}
             body['contact_correction'] = request.get('contact_correction', True)
+            if request.get('pose_profile') is not None:
+                body['pose_profile'] = request['pose_profile']
             if request.get('depth_review_profile') is not None:
                 body['depth_review_profile'] = request['depth_review_profile']
             if request.get('torso_projection_profile') is not None:

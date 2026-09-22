@@ -2,10 +2,12 @@
 import {createObliqueSelection} from './motion-oblique-selection.js';
 import {createDepthSelection} from './motion-depth-selection.js';
 import {createTorsoSelection} from './motion-torso-selection.js';
+import {createPoseSelection} from './motion-pose-selection.js';
 export function createTargetControls(request, refresh, selection) {
   const $ = id => document.getElementById(id);
   const depth = createDepthSelection($('adapt'));
   const torso = createTorsoSelection($('adapt'));
+  const pose = createPoseSelection($('adapt'));
   let source = null, character = null, token = 0, busy = false, comparing = false;
   const label = document.createElement('label');
   label.textContent = '相对源视角的恒定偏转（实验） ';
@@ -61,14 +63,16 @@ export function createTargetControls(request, refresh, selection) {
     if (!source || !character || busy || comparing) return;
     busy = true; enabled();
     try {
-      await request(`/api/motions/${source.job_id}/adapt`, {
-        method: 'POST', headers: {'Content-Type': 'application/json', 'X-Autospine-Intent': 'pipeline-preview'},
-        body: JSON.stringify({project_id: character.project_id, character_job_id: character.job_id,
+      const body={project_id: character.project_id, character_job_id: character.job_id,
           contact_correction: $('contact-correction').checked, clip: selection.clip(),
           ...depth.selection(),
           ...torso.selection(depth.selection()),
           ...(obliqueAvailable && yaw.value !== '' ? {projection: {
-            profile: 'constant-yaw-source-motion-v1', yaw_degrees: Number(yaw.value)}, ...automatic.selection()} : {})}),
+            profile: 'constant-yaw-source-motion-v1', yaw_degrees: Number(yaw.value)}, ...automatic.selection()} : {})};
+      Object.assign(body,pose.selection(body));
+      await request(`/api/motions/${source.job_id}/adapt`, {
+        method: 'POST', headers: {'Content-Type': 'application/json', 'X-Autospine-Intent': 'pipeline-preview'},
+        body: JSON.stringify(body),
       });
       $('target-status').textContent = '角色动作已排队，将进行局部修正、几何检查与官方 Runtime 捕获。';
       await refresh();
@@ -77,7 +81,7 @@ export function createTargetControls(request, refresh, selection) {
   };
   void loadProjects();
   return {select(job) {
-    if (source?.job_id !== job?.job_id) yaw.value = '';
+    if (source?.job_id !== job?.job_id) {yaw.value = '';pose.reset();}
     source = job?.result?.motion_status === 'compiled' ? job : null;
     automatic.source(source);
     depth.source(source);

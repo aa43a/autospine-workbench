@@ -218,6 +218,8 @@ def execute(folder, state_root, workspace):
     motion_id = request['motion_identity']
     bundle = VerifiedMotionBundleReader(state_root).load(motion_id['clip_sha256'], motion_id['bundle_sha256'])
     motion = bundle.motion
+    from .motion_pose_policy import prepare as prepare_pose
+    pose_fit = prepare_pose(bundle, request)
     oblique = None
     if request.get('projection') is not None:
         from ..targets.character43.oblique_target import prepare
@@ -244,6 +246,7 @@ def execute(folder, state_root, workspace):
         on_stage=lambda stage: progress(folder, stage),
         oblique=oblique,
         torso_projection=torso_projection,
+        pose_fit=pose_fit,
         clip_bounds=clip_bounds,
         character_digest=request['character_sha256'], motion_digest=motion_id['bundle_sha256'])
     progress(folder, 'publish_candidate')
@@ -274,6 +277,8 @@ def execute(folder, state_root, workspace):
                   depth_order_status=evidence['depth_order_status'], authority='none', production_authorized=False)
     if request.get('torso_projection_profile') is not None:
         result['torso_projection_profile'] = request['torso_projection_profile']
+    if pose_fit is not None:
+        result['pose_profile'] = request['pose_profile']
     if local_depth:result['local_depth_evidence_sha256']=local_depth
     (folder / 'worker-result.json').write_bytes(canonical_bytes(result))
 
