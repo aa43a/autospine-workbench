@@ -42,6 +42,7 @@ def main():
     from autospine_workbench.targets.character43.group_projection_constraints import preserve_ankles, measure
     original = variants['original']
     report['endpoint_constraints'] = []
+    from autospine_workbench.targets.character43.group_projection_lengths import constrain, continuity
     for name, frames in list(variants.items()):
         if name == 'original': continue
         for sign in (-1, 1):
@@ -51,6 +52,14 @@ def main():
             report['endpoint_constraints'].append(dict(variant=label,
                 failures=[dict(frame=i, time=report['times'][i], **failure)
                           for i, item in enumerate(checked) for failure in item[1]]))
+            bounded = [constrain(a, b, segments, i, sign) for i, (a, b) in enumerate(zip(original, frames))]
+            bounded_label = name+f' · 源骨长上限，膝分支 {sign}'
+            variants[bounded_label] = [item[0] for item in bounded]
+            report['endpoint_constraints'].append(dict(variant=bounded_label,
+                length_changes=[dict(frame=i, **r) for i, item in enumerate(bounded) for r in item[2]],
+                continuity=continuity(variants[bounded_label], report['times']),
+                failures=[dict(frame=i, time=report['times'][i], **failure)
+                          for i, item in enumerate(bounded) for failure in item[1]]))
     report['endpoint_metrics'] = {name: measure(original, frames, report['times'])
                                   for name, frames in variants.items()}
     args.output.write_text(json.dumps(report, ensure_ascii=False), encoding='utf-8')

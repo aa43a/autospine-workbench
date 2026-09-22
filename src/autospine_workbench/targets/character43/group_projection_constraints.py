@@ -15,15 +15,15 @@ def circle_joint(start, end, upper, lower, sign):
     return [start[0]+along*x-sign*height*y, start[1]+along*y+sign*height*x]
 
 
-def preserve_ankles(original, projected, sign):
+def preserve_ankles(original, projected, sign, *, lengths=None):
     result = deepcopy(projected)
     failures = []
     for side in ('left', 'right'):
         upper, lower = (f'humanoid.leg.{part}.{side}' for part in ('upper', 'lower'))
         a, b = result[upper], result[lower]
         end = original[lower]['end']
-        joint = circle_joint(a['start'], end, math.dist(a['start'], a['end']),
-                             math.dist(b['start'], b['end']), sign)
+        sizes = lengths[side] if lengths is not None else (math.dist(a['start'], a['end']), math.dist(b['start'], b['end']))
+        joint = circle_joint(a['start'], end, *sizes, sign)
         if joint is None:
             failures.append(dict(side=side, reason='projected_lengths_cannot_reach_original_ankle'))
             continue

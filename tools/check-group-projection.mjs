@@ -14,6 +14,10 @@ try{
  await page.getByRole('button',{name:'播放',exact:true}).click();
  await page.waitForFunction(t=>window.projectionState.time>t,second.time);
  await page.getByRole('button',{name:'暂停',exact:true}).click();
+ const bounded=await page.locator('#variant option').allTextContents();
+ const candidate=bounded.find(value=>value.includes('源骨长上限'));
+ if(candidate){await page.locator('#variant').selectOption({label:candidate});
+   assert.match(await page.locator('#diagnostic').textContent(),/不可达骨段采样：0/);}
  await page.screenshot({path:file+'.png',fullPage:true});assert.deepEqual(errors,[]);
  console.log(JSON.stringify({passed:true,first,second}));
 }finally{await browser.close();}
