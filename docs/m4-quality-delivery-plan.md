@@ -77,3 +77,11 @@ Alice 全段双臂严格检查已完成：每侧 121 个源帧和 120 个中点�
 本轮同时修复 depth_order_subset 和 depth_order_continuity_guard 在筛选部件对时丢失 strict_interval_evidence 的问题；严格中点证据现在跨包装层保留。新增回归证明中点歧义不能被部分排序流程自动忽略。18 项相关测试通过。
 
 完整报告见 ../tmp/m4-motion-center/reach-held-order-v1/alice/report.json；摘要见 docs/benchmark/m4-reach-held-order-v1.json。下一步对已定位的混合区域验证最小分区与躯干投影一致性，保留近面不确定性；不将未通过的整层排序接入默认工作台。
+
+## 显式躯干参考视角实验
+
+已确认旧躯干 shape 模式相对当前视角首帧归一化，因此固定 yaw 的初始缩短会被消除。新增独立 reference source/profile，以声明的源参考姿态计算宽度、纵向和剪切，旧模式保持不变；仍受原侧背面与幅度门禁约束。该实验假设源初始 0° 对应正面图像，并非自动证明角色朝向或生成侧背面。
+
+Alice 的 45° Reach 与肩部候选已组合新躯干投影：817 个检查时刻包含此前全部 513 个时刻，原 setup 几何与官方 Runtime 4.3.13 数值通过，脚部受权重影响的顶点轨迹偏差为零。候选身份 21969ed99dd41e85171f52842fc4754a8d8c4bd425fd722cf87a78ce94b9d437。首帧横向比为 0.653557，末帧为 0.974389。对照页 ../tmp/m4-motion-center/reach-live-yaw-comparison-v1/torso-reference-v2/index.html；查看了 2.4 秒单帧，不代表整段视觉验收。
+
+新模式的虚拟深度锚点随实际 bake 采样，不能继续用未变的骨骼引导点作为躯干表面参照。19 项相关测试通过；新单角色及原三角色同步播放器检查通过。候选仍未采用，肩缝、裙腰、遮挡及跨角色泛化待验证；下一步使用匹配此 bake 的深度平面重测，随后再确定最小分区需求。

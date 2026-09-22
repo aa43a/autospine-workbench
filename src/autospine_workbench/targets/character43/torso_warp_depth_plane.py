@@ -8,7 +8,9 @@ from .torso_projection_candidate import PROFILE, transformed
 
 class WarpedPlane:
     def __init__(self, receipt, expected_source):
-        if receipt.get('profile') != PROFILE or receipt.get('applied') is not True:
+        expected_profile=('reference-torso-plane-compensated-deform-v1-experiment'
+                          if expected_source.get('profile')=='source-reference-torso-plane-shape-v1-experiment' else PROFILE)
+        if receipt.get('profile') != expected_profile or receipt.get('applied') is not True:
             raise ValueError('depth_torso_bake_required')
         if receipt.get('source') != expected_source:
             raise ValueError('depth_torso_source_mismatch')

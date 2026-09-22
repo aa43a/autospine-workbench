@@ -8,6 +8,19 @@ from autospine_workbench.targets.character43.torso_projection_candidate import b
 
 
 class BakedPlaneTests(unittest.TestCase):
+    def test_constant_view_reference_matches_baked_markers(self):
+        from autospine_workbench.targets.character43.torso_projection_source import reference_shapes
+        from test_torso_projection import observations
+        doc=deepcopy(self.doc);doc['animations']['move'].pop('attachments')
+        source=reference_shapes([observations(45)]*2,[0,1],observations(0))
+        candidate,receipt=build(doc,'move',source,samples=3);receipt['applied']=True
+        plane=BakedWarpPlane(candidate,'move',receipt,source)
+        for t in (0,.25,.5,1):
+            result=plane(candidate,'move',t,fixture_module.Sampler(),t*1e6)
+            rendered=sample(candidate,'move',t)[0]
+            for name,anchor in result['anchors'].items():
+                for a,b in zip(anchor['xy'],rendered[name][0]):self.assertAlmostEqual(a,b)
+
     def setUp(self):
         fixture=fixture_module.WarpedPlaneTests();fixture.setUp()
         self.doc,self.receipt,self.source=fixture.doc,fixture.receipt,fixture.source

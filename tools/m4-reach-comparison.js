@@ -11,10 +11,10 @@
   function seek(t){if(!ready)return;time=Math.max(0,Math.min(duration,t));for(const w of players())if(!w.characterPlayerControl.seek(time))throw Error('子窗口拒绝同步时间');el('seek').value=time;el('time').textContent=`${time.toFixed(3)} / ${duration.toFixed(3)} 秒`;window.reachComparisonState={ready,time,duration,artifacts:row.views.map(v=>v.artifact)};}
   async function select(initialTime=0){const token=++generation;stop();ready=false;time=0;window.reachComparisonState={ready:false};for(const id of ['play','reset','seek'])el(id).disabled=true;
     row=data.rows[Number(el('character').value)];el('status').textContent='正在加载两个精确候选…';
-    ['left','right'].forEach((id,i)=>{el(id).src=row.views[i].url;el(id+'-info').textContent=`Runtime ${row.views[i].runtime_status} · 几何${row.views[i].geometry_passed?'通过':'未通过'} · 不可靠投影样本 ${row.views[i].unreliable_samples}`;});
+    ['left','right'].forEach((id,i)=>{const url=new URL(row.views[i].url,location.href);url.searchParams.set('comparisonGeneration',String(token));el(id).src=url.href;el(id+'-info').textContent=`Runtime ${row.views[i].runtime_status} · 几何${row.views[i].geometry_passed?'通过':'未通过'} · 不可靠投影样本 ${row.views[i].unreliable_samples}`;});
     const deadline=performance.now()+120000;
     while(token===generation){const ws=players();if(ws.some(w=>w.characterPlayerError))throw Error('子窗口加载失败');
-      if(ws.every((w,i)=>w.characterPlayerReady&&w.characterPlayerControl?.artifact===row.views[i].artifact)){
+      if(ws.every((w,i)=>w.location.href===el(['left','right'][i]).src&&w.characterPlayerReady&&w.characterPlayerControl?.artifact===row.views[i].artifact)){
         const states=ws.map(w=>w.characterPlayerState);if(states[0].duration!==states[1].duration)throw Error('对照动作时长不一致');
         duration=states[0].duration;el('seek').max=duration;ready=true;for(const id of ['play','reset','seek'])el(id).disabled=false;
         el('status').textContent='已同步；两侧均为实验，几何、接触和遮挡状态分别保留。';seek(initialTime);return;}

@@ -41,7 +41,7 @@ def transformed(document, baseline, shape):
 
 
 def build(document, animation, report, *, samples=129):
-    if report['profile'] != 'source-torso-plane-shape-v1-experiment':
+    if report['profile'] not in ('source-torso-plane-shape-v1-experiment','source-reference-torso-plane-shape-v1-experiment'):
         raise ValueError('torso_shape_profile_unsupported')
     rows = report['records']; rejected = [r for r in rows if r['reasons']]
     if (len(rows)<2 or any(not math.isfinite(r[k]) for r in rows
@@ -52,6 +52,8 @@ def build(document, animation, report, *, samples=129):
         failures=rejected,source=report,scope='baked_visual_candidate_bone_guides_unchanged',
         limitations=['requires_new_geometry_contact_depth_and_runtime_checks',
                      'no_side_back_artwork_generation','planar_torso_not_surface_reconstruction'])
+    if report['profile']=='source-reference-torso-plane-shape-v1-experiment':
+        receipt['profile']='reference-torso-plane-compensated-deform-v1-experiment'
     if rejected: return None,dict(receipt,status='source_projection_unsupported')
     if any(not (.75<=r['longitudinal']<=1.25 and .5<=r['transverse']<=1.5
                 and abs(r['shear'])<=.5 and r['visibility']>=.2) for r in rows):

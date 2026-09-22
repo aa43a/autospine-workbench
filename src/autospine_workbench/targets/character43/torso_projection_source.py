@@ -6,6 +6,19 @@ from .oblique_source import _basis
 from .oblique_motion import project
 
 PROFILE = 'source-torso-plane-shape-v1-experiment'
+REFERENCE_PROFILE = 'source-reference-torso-plane-shape-v1-experiment'
+
+
+def reference_shapes(frames,times,reference_frame):
+    """Retain constant view foreshortening relative to a declared source reference."""
+    if len(times)<2 or len(frames)!=len(times):
+        raise ValueError('torso_samples_invalid')
+    # Reuse all geometric gates; the extra frame is calibration, never animation.
+    report=shapes([reference_frame,*frames],[times[0]-1,*times])
+    report.update(profile=REFERENCE_PROFILE,records=report['records'][1:],
+                  reference_anchors=[list(p) for p in reference_frame],
+                  reference_policy='declared_source_reference_not_first_projected_frame')
+    return report
 
 
 def anchors(bundle, yaw=0):

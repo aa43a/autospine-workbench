@@ -1,0 +1,90 @@
+{
+  "profile": "reference-torso-plane-compensated-deform-v1-experiment",
+  "authority": "none",
+  "selected": false,
+  "source_candidate_sha256": "4eaad46c8f4c596a8bf1b19a42ab8b99b3d8703a05105908d2d689b50be81e08",
+  "candidate_bundle_sha256": "21969ed99dd41e85171f52842fc4754a8d8c4bd425fd722cf87a78ce94b9d437",
+  "source_identity": {
+    "bundle_sha256": "5f531a9327ad59abde64e643438baa794e5618b5629d59c0e3f9d4da990948b7",
+    "bvh_map_sha256": "f9d1995881e5623f72208050cc9b639d98b1317da3322e3480cf50a283fa7f5c",
+    "clip_id": "external.a4233c602a77a95c.front",
+    "clip_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+    "map_id": "mixamo-declared-body-v1",
+    "motion_ir_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+    "raw_bvh_byte_length": 342778,
+    "raw_bvh_sha256": "a4233c602a77a95c1473ef7ab3f277fa7ca6aec5a98b4d5407dea904194bb2f4",
+    "reused": false,
+    "run_sha256": "c48c0ffcb9338d2bc72a1013f1be8366de8ea5583419f979a9ac1c080b534207",
+    "source_kind": "bvh"
+  },
+  "yaw_degrees": 45,
+  "reference_source_yaw": 0,
+  "reference_assumption": "source_initial_zero_yaw_matches_front_artwork",
+  "geometry_passed": true,
+  "sampled_frames": 817,
+  "retained_source_check_times": 513,
+  "contact_preservation": {
+    "authority": "none",
+    "bone_animation_unchanged": true,
+    "profile": "torso-bake-contact-preservation-v1",
+    "records": [
+      {
+        "maximum_displacement_px": 0.0,
+        "slot": "layer-001-l",
+        "vertex_count": 20,
+        "worst_time": null
+      },
+      {
+        "maximum_displacement_px": 0.0,
+        "slot": "layer-001-r",
+        "vertex_count": 20,
+        "worst_time": null
+      },
+      {
+        "maximum_displacement_px": 0.0,
+        "slot": "layer-002-l",
+        "vertex_count": 142,
+        "worst_time": null
+      },
+      {
+        "maximum_displacement_px": 0.0,
+        "slot": "layer-002-r",
+        "vertex_count": 141,
+        "worst_time": null
+      }
+    ],
+    "sample_count": 817,
+    "scope": "unchanged_ankle_animation_and_sampled_foot_weighted_vertices_not_floor_or_sole_contact",
+    "status": "sampled_paths_preserved",
+    "tolerance_px": 1E-07
+  },
+  "changed_slots": [
+    "layer-000",
+    "layer-003",
+    "layer-004",
+    "layer-005",
+    "layer-006",
+    "layer-007",
+    "layer-009",
+    "layer-010",
+    "layer-011",
+    "layer-012",
+    "layer-013",
+    "layer-014",
+    "layer-015",
+    "layer-016",
+    "layer-017",
+    "layer-018",
+    "layer-019",
+    "layer-020",
+    "layer-021",
+    "layer-022"
+  ],
+  "maximum_influence_displacement_px": 82.45477488442677,
+  "runtime_verification": {
+    "version": "4.3.13",
+    "bundle": "21969ed99dd41e85171f52842fc4754a8d8c4bd425fd722cf87a78ce94b9d437",
+    "passed": true,
+    "frames": 817
+  }
+}

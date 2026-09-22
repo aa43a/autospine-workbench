@@ -2,7 +2,7 @@ from copy import deepcopy
 import math
 import unittest
 
-from autospine_workbench.targets.character43.torso_projection_source import shapes
+from autospine_workbench.targets.character43.torso_projection_source import shapes,reference_shapes
 from autospine_workbench.targets.character43.torso_projection_candidate import build,transformed
 from autospine_workbench.targets.character43.affine_pose import matrices,sample
 
@@ -27,6 +27,23 @@ def fixture():
 
 
 class TorsoProjectionTests(unittest.TestCase):
+    def test_declared_front_reference_retains_constant_view_shortening(self):
+        frames=[observations(45),observations(45)]
+        old=shapes(frames,[0,1]);new=reference_shapes(frames,[0,1],observations(0))
+        self.assertEqual(old['records'][0]['transverse'],1)
+        self.assertAlmostEqual(new['records'][0]['transverse'],math.sqrt(.5))
+        self.assertEqual([r['time'] for r in new['records']],[0,1])
+        candidate,receipt=build(fixture(),'move',new,samples=3)
+        self.assertIsNotNone(candidate)
+        self.assertEqual(receipt['profile'],'reference-torso-plane-compensated-deform-v1-experiment')
+
+    def test_reference_projection_keeps_side_back_and_scale_gates(self):
+        for angle in (90,120):
+            report=reference_shapes([observations(angle)]*2,[0,1],observations(0))
+            candidate,receipt=build(fixture(),'move',report,samples=3)
+            self.assertIsNone(candidate)
+            self.assertEqual(len(receipt['failures']),2)
+
     def test_turn_shortens_width_without_height_loss(self):
         report=shapes([observations(0),observations(50)],[0,1])
         row=report['records'][1]
