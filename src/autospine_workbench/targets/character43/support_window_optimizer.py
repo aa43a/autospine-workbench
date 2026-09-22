@@ -4,7 +4,7 @@ from copy import deepcopy
 from .support_window_model import prepare, evaluate
 
 
-def optimize(document, name, rows, anchors, reference):
+def optimize(document, name, rows, anchors, reference, *, extra_times=()):
     import numpy as np
     from scipy.optimize import minimize
     if not 5 <= len(rows) <= 65 or not math.isfinite(reference) or reference <= 0:
@@ -24,7 +24,10 @@ def optimize(document, name, rows, anchors, reference):
                         *[math.radians(r['angles'][n]) for n in names]] for r in rows])
     if not np.isfinite(seed).all() or targets.shape != (2, 2) or not np.isfinite(targets).all():
         raise ValueError('support_window_values_invalid')
-    times = np.unique(np.concatenate((knots, (knots[:-1]+knots[1:])/2)))
+    extra = np.asarray(extra_times,dtype=float)
+    if extra.ndim!=1 or len(extra)>4097 or not np.isfinite(extra).all() or np.any(extra<knots[0]) or np.any(extra>knots[-1]):
+        raise ValueError('support_window_extra_times_invalid')
+    times = np.unique(np.concatenate((knots, (knots[:-1]+knots[1:])/2, extra)))
     base = np.column_stack([np.interp(times, knots, seed[:, i]) for i in range(6)])
     controls = np.unique(np.linspace(0, len(knots)-1, 9).round().astype(int))
     control_times = knots[controls]
@@ -62,6 +65,8 @@ def optimize(document, name, rows, anchors, reference):
     report = dict(profile='fixed-end-source-axis-window-v1-experiment', authority='none', selected=False,
                   start=float(knots[0]), end=float(knots[-1]), samples=len(times),
                   baseline_loss=before, baseline_contact_px=contact_limit, residual_limit_px=residual)
+    if len(extra):
+        report.update(profile='fixed-end-source-axis-feedback-window-v1-experiment', feedback_samples=len(extra))
     report['baseline_minimum_constraint'] = float(np.min(constraints(zero)))
     if np.min(constraints(zero)) < -1e-7:
         return rows, dict(report, status='baseline_constraints_failed')

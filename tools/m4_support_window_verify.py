@@ -18,7 +18,13 @@ def verify(fitted, final, motion, pose, contact, report, reference):
     if contact['hypothesis']['ticks_per_second'] != motion['ticks_per_second']:
         raise ValueError('window_verify_tick_rate_mismatch')
     measured['markers'] = deepcopy(contact['hypothesis']['markers'])
-    times = schedule(measured, [r['time'] for r in rows])
+    times = schedule(measured, sorted({r['time'] for r in rows}|set(report.get('check_times',[]))))
+    if 'verification_time_grid' in report:
+        explicit=report['verification_time_grid'];duration=motion['duration_ticks']/motion['ticks_per_second']
+        if (not 2<=len(explicit)<=4096 or any(not math.isfinite(t) or not 0<=t<=duration for t in explicit)
+                or any(b<=a for a,b in zip(explicit,explicit[1:])) or set(times)-set(explicit)):
+            raise ValueError('window_verify_explicit_grid_invalid')
+        times=explicit
     old = analyze(final,name,measured,times,reference); new = analyze(doc,name,measured,times,reference)
     root_speed = max(math.dist(a['root_shift'],b['root_shift'])/(b['time']-a['time']) for a,b in zip(rows,rows[1:]))
     speed = max(abs(a['angles'][n]-b['angles'][n])/(b['time']-a['time']) for a,b in zip(rows,rows[1:]) for n in names)

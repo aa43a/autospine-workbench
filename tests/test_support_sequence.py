@@ -33,3 +33,8 @@ class SequenceTests(unittest.TestCase):
             result,report=build({},'move',rows,[],20)
         solve.assert_not_called();self.assertEqual(result,rows)
         self.assertTrue(all(r['status']=='contact_transition_or_single_support_preserved' for r in report['windows']))
+
+    def test_feedback_outside_clip_rejected(self):
+        rows,anchors=self.fixture()
+        with self.assertRaisesRegex(ValueError,'extra_times_invalid'):
+            build({},'move',rows,anchors,20,extra_times=[10])

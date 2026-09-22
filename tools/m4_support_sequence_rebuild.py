@@ -11,7 +11,7 @@ from m4_pose_depth_recheck import recheck
 from autospine_workbench.automation.animated_store import AnimatedStore
 from autospine_workbench.automation.storage_io import canonical_bytes
 from autospine_workbench.automation.character_capture import capture
-from autospine_workbench.automation.motion_target_pose import final_times
+from m4_support_capture_grid import build as capture_grid
 from autospine_workbench.targets.character43.support_row_tracks import apply
 from autospine_workbench.targets.character43.foot_orientation_fit import fit
 from autospine_workbench.targets.character43.projected_area_adaptive import build
@@ -41,7 +41,7 @@ def run(folder,output,capture_runtime=False):
         raise ValueError('support_rebuild_changed_bone_tracks')
     request=json.loads((Path('workspace/jobs/motion-intake-v1')/job/'request.json').read_bytes())
     repaired,depth=recheck(repaired,name,files,request)
-    times=final_times(repaired,name,[r['time'] for r in sequence['candidate_rows']])
+    times=capture_grid(repaired,name,sequence)
     measured=deepcopy(motion);measured['markers']=deepcopy(contact['hypothesis']['markers'])
     checked=analyze(repaired,name,measured,times,evidence['reference_length_px'])
     old=analyze(final,name,measured,times,evidence['reference_length_px'])
@@ -60,6 +60,7 @@ def run(folder,output,capture_runtime=False):
         (output/(n+'.json')).write_bytes(canonical_bytes(v))
     report=dict(profile='support-window-rebuild-v1-experiment',source_job_id=job,source_candidate_sha256=address,
         source_sequence_sha256=sha256(canonical_bytes(sequence)).hexdigest(),
+        capture_times_sha256=sha256(canonical_bytes(times)).hexdigest(),
         candidate_bundle_sha256=artifact,authority='none',selected=False,production_authorized=False,
         geometry_passed=qa['passed'],contact_passed=checked['passed'],sampled_frames=len(times),
         maximum_ankle_drift_px=checked['max_drift_px'],old_maximum_ankle_drift_px=old['max_drift_px'],

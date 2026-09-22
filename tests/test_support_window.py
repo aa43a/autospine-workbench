@@ -43,3 +43,20 @@ class SupportWindowTests(unittest.TestCase):
         rows = [dict(time=i/10) for i in range(5)]
         with self.assertRaisesRegex(ValueError, 'constant_double_support'):
             optimize(doc, 'walk', rows, [], 20)
+
+    def test_feedback_exposes_motion_between_existing_samples(self):
+        doc, _ = fixture(); tracks=doc['animations']['walk']['bones']
+        tracks['root']['translate']=[dict(time=0,x=0,y=0)]
+        tracks['thigh_l']={'rotate':[dict(time=0,value=0),dict(time=.025,value=90),
+                                    dict(time=.05,value=0),dict(time=.4,value=0)]}
+        pose=matrices(doc,'walk',0)
+        anchors=[dict(limb='leg.'+side,start=0,end=2,target=pose['foot_'+s][4:6])
+                 for side,s in (('left','l'),('right','r'))]
+        rows=[dict(time=i/10,root_shift=[0,0],angles={n:0 for n in ('thigh_l','calf_l','thigh_r','calf_r')}) for i in range(5)]
+        _,coarse=optimize(doc,'walk',rows,anchors,20)
+        _,dense=optimize(doc,'walk',rows,anchors,20,extra_times=[.025])
+        self.assertLess(coarse['baseline_contact_px'],1e-8)
+        self.assertGreater(dense['baseline_contact_px'],10)
+        self.assertEqual(dense['samples'],coarse['samples']+1)
+        with self.assertRaisesRegex(ValueError,'extra_times_invalid'):
+            optimize(doc,'walk',rows,anchors,20,extra_times=[.5])
