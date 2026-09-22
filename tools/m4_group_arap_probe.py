@@ -18,6 +18,7 @@ def main():
     parser.add_argument('source', type=Path)
     parser.add_argument('output', type=Path)
     parser.add_argument('--hard-area', action='store_true')
+    parser.add_argument('--full-clip', action='store_true')
     args = parser.parse_args()
     parent = json.loads((args.source/'report.json').read_bytes())['candidate_bundle_sha256']
     files = AnimatedStore(args.source/'isolated-store').read(parent)
@@ -25,6 +26,10 @@ def main():
     result = deepcopy(document)
     rest = sample(dict(document, animations={'setup': {}}), 'setup', 0)[0]
     times = [0., .933333, 1.866667]
+    if args.full_clip:
+        times = sorted({key['time'] for row in document['animations']['external-motion']['bones'].values()
+                        for key in row.get('rotate', [])})
+        if len(times) < 2: raise ValueError('arap_probe_motion_keys_missing')
     rows = []
     for slot in ('layer-003', 'layer-004'):
         mesh = document['skins'][0]['attachments'][slot][slot]
@@ -54,8 +59,11 @@ def main():
         target['deform'] = corrections
     args.output.mkdir(parents=True, exist_ok=False)
     (args.output/'probe.json').write_text(json.dumps(dict(parent=parent, authority='none', selected=False,
-        hard_area=args.hard_area, scope='three_key_poses_not_interpolation_or_visual_acceptance', records=rows), indent=2), encoding='utf-8')
-    stage(result, files, times, args.output/'candidate', parent)
+        hard_area=args.hard_area, full_clip=args.full_clip, solved_times=times,
+        scope='source_keys_with_midpoint_checks_not_visual_acceptance' if args.full_clip else
+              'three_key_poses_not_interpolation_or_visual_acceptance', records=rows), indent=2), encoding='utf-8')
+    capture_times = sorted(set(times) | {(a+b)/2 for a,b in zip(times,times[1:])}) if args.full_clip else times
+    stage(result, files, capture_times, args.output/'candidate', parent)
     print(json.dumps([dict(slot=r['slot'], time=r['time'], before=r['before']['inversions'],
         after=r['after']['inversions'], bad_after=len(r['after']['bad_triangles'])) for r in rows]))
 
