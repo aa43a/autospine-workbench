@@ -3,7 +3,7 @@ import math
 from ...asset.planning.component_local_solver import metrics
 
 
-def refine(setup,triangles,fixed,free,source,seed,budget,*,regions=None):
+def refine(setup,triangles,fixed,free,source,seed,budget,*,regions=None,region_margin=1e-5):
     import numpy as np
     from scipy.optimize import minimize
     arrays=[np.asarray(p,dtype=float) for p in (setup,fixed,source,seed)]
@@ -26,6 +26,7 @@ def refine(setup,triangles,fixed,free,source,seed,budget,*,regions=None):
     if np.any(abs(refs)<1e-10) or np.any(lengths<=1e-10):raise ValueError('boundary_feasibility_degenerate')
     scale=float(np.median(lengths));free=list(free)
     regions=[] if regions is None else regions
+    if not math.isfinite(region_margin) or not 0<region_margin<=.05:raise ValueError('boundary_feasibility_region_margin')
     for r in regions:
         if (r['vertex'] not in free or np.asarray(r['center']).shape!=(2,) or np.asarray(r['inverse']).shape!=(2,2)
                 or not np.isfinite([*r['center'],*np.asarray(r['inverse']).ravel(),r['radius']]).all()
@@ -43,7 +44,7 @@ def refine(setup,triangles,fixed,free,source,seed,budget,*,regions=None):
         p=locked.copy();p[free]=start[free]+scale*x.reshape(-1,2);return p
     def constraints(x):
         p=unpack(x);r=areas(p)/refs;s=np.linalg.norm(p[edges[:,0]]-p[edges[:,1]],axis=1)/lengths
-        contact=[.99999-np.linalg.norm(np.asarray(z['inverse'])@(p[z['vertex']]-z['center']))/z['radius'] for z in regions]
+        contact=[1-region_margin-np.linalg.norm(np.asarray(z['inverse'])@(p[z['vertex']]-z['center']))/z['radius'] for z in regions]
         return np.concatenate((r[~fixed_tri]-.505,1.995-r[~fixed_tri],1.995-s[~fixed_edges],
                                1-np.linalg.norm(p[free]-origin[free],axis=1)/budget,contact))
     fit=minimize(lambda x:float(x@x),np.zeros(2*len(free)),jac=lambda x:2*x,
