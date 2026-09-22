@@ -28,7 +28,6 @@ def main():
     report = compare(vectors, [t/bundle.motion['ticks_per_second'] for t in ticks])
     report.update(source_job=args.source_job, source_identity=identity)
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(report, ensure_ascii=False), encoding='utf-8')
     from autospine_workbench.targets.character43.group_projection_pose import source_segments, pose
     from m4_group_projection_view import render
     segments = source_segments(bundle)
@@ -40,7 +39,23 @@ def main():
             for row in report['records']}
     variants = {name: [pose(segments, i, planes) for i in range(len(ticks))]
                 for name, planes in modes.items()}
-    args.output.with_suffix('.html').write_text(render(report['times'], variants), encoding='utf-8')
+    from autospine_workbench.targets.character43.group_projection_constraints import preserve_ankles, measure
+    original = variants['original']
+    report['endpoint_constraints'] = []
+    for name, frames in list(variants.items()):
+        if name == 'original': continue
+        for sign in (-1, 1):
+            checked = [preserve_ankles(a, b, sign) for a, b in zip(original, frames)]
+            label = name+f' · 保持源脚踝，膝分支 {sign}'
+            variants[label] = [item[0] for item in checked]
+            report['endpoint_constraints'].append(dict(variant=label,
+                failures=[dict(frame=i, time=report['times'][i], **failure)
+                          for i, item in enumerate(checked) for failure in item[1]]))
+    report['endpoint_metrics'] = {name: measure(original, frames, report['times'])
+                                  for name, frames in variants.items()}
+    args.output.write_text(json.dumps(report, ensure_ascii=False), encoding='utf-8')
+    args.output.with_suffix('.html').write_text(render(report['times'], variants,
+        report['endpoint_constraints'], report['endpoint_metrics']), encoding='utf-8')
     print(json.dumps([dict(group=r['group'], best=r['best_visibility_yaws'],
         scores=[(a['yaw_degrees'], a['collapsed_samples'], a['minimum_visibility'])
                 for a in r['alternatives']]) for r in report['records']]))
