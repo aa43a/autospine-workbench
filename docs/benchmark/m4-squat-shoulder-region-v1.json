@@ -1,0 +1,32 @@
+{
+  "profile": "m4-alpha-supported-shoulder-regions-v1",
+  "source_artifact": "8a10b240c237a21e4fd9b9b7b415b491fc197aea3e85998fa2f6bc59f7f753e0",
+  "character": "alice",
+  "motion": "squat",
+  "times": [0, 0.866667, 1.12],
+  "method": "Replace exact pins with conservative disks wholly inside source arm/torso alpha overlap, transformed with chest; unsupported pins retain original exact constraints.",
+  "region_counts": {"layer-003": 6, "layer-004": 5},
+  "retained_fixed_pins": {"layer-004": [6]},
+  "geometry_feasible_poses": 6,
+  "total_poses": 6,
+  "inversions": 0,
+  "fixed_error_px": 0,
+  "maximum_contact_region_ratio": 0.9999900000316191,
+  "maximum_displacement_px": 88.31025798025286,
+  "acceptance": "Original independent area/edge/budget/contact bounds hold. New region solver tolerates 1e-7 error only in stricter optimization margins; original acceptance bounds are not loosened.",
+  "evidence": "tmp/m4-motion-center/squat-shoulder-region-v4/report.json",
+  "static_runtime": {
+    "source_time": 1.12,
+    "before": "393290be738790421293aa489c09191ef7f2dd315b21deef89fd7cd9912cb3d3",
+    "after": "6ffdf207348762056d7ec44bb9d4bea26ab5537cbccb0846127673ae1a816d91",
+    "frames": "Two identical static frames per snapshot, not four distinct motion samples",
+    "numeric_passed": true,
+    "setup_source_comparison": "Unsupported because source pose was deliberately baked into setup; failure preserved",
+    "pixel_capture": "tmp/m4-motion-center/squat-shoulder-region-pose-v3/pixels",
+    "observation": "Arm/body separation reduced at 1.12s, but sleeve material becomes narrow and vertically stretched. No whole-motion or human visual acceptance."
+  },
+  "tests_passed": 7,
+  "selected": false,
+  "authority": "none",
+  "next": "Before default adoption, verify full trajectory/contact transitions and sleeve contour preservation; retain all leg failures and do not transfer static snapshot geometry claims to the original setup."
+}

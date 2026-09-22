@@ -3,7 +3,7 @@ import math
 from ...asset.planning.component_local_solver import metrics
 
 
-def refine(setup,triangles,fixed,free,source,seed,budget):
+def refine(setup,triangles,fixed,free,source,seed,budget,*,regions=None):
     import numpy as np
     from scipy.optimize import minimize
     arrays=[np.asarray(p,dtype=float) for p in (setup,fixed,source,seed)]
@@ -25,6 +25,12 @@ def refine(setup,triangles,fixed,free,source,seed,budget):
     refs=areas(rest);lengths=np.linalg.norm(rest[edges[:,0]]-rest[edges[:,1]],axis=1)
     if np.any(abs(refs)<1e-10) or np.any(lengths<=1e-10):raise ValueError('boundary_feasibility_degenerate')
     scale=float(np.median(lengths));free=list(free)
+    regions=[] if regions is None else regions
+    for r in regions:
+        if (r['vertex'] not in free or np.asarray(r['center']).shape!=(2,) or np.asarray(r['inverse']).shape!=(2,2)
+                or not np.isfinite([*r['center'],*np.asarray(r['inverse']).ravel(),r['radius']]).all()
+                or r['radius']<=0 or abs(np.linalg.det(r['inverse']))<1e-10):
+            raise ValueError('boundary_feasibility_region')
     movable=np.zeros(len(rest),dtype=bool);movable[free]=True
     fixed_tri=~movable[tri].any(axis=1);fixed_edges=~movable[edges].any(axis=1)
     ratio=areas(locked)/refs;stretch=np.linalg.norm(locked[edges[:,0]]-locked[edges[:,1]],axis=1)/lengths
@@ -37,16 +43,24 @@ def refine(setup,triangles,fixed,free,source,seed,budget):
         p=locked.copy();p[free]=start[free]+scale*x.reshape(-1,2);return p
     def constraints(x):
         p=unpack(x);r=areas(p)/refs;s=np.linalg.norm(p[edges[:,0]]-p[edges[:,1]],axis=1)/lengths
+        contact=[.99999-np.linalg.norm(np.asarray(z['inverse'])@(p[z['vertex']]-z['center']))/z['radius'] for z in regions]
         return np.concatenate((r[~fixed_tri]-.505,1.995-r[~fixed_tri],1.995-s[~fixed_edges],
-                               1-np.linalg.norm(p[free]-origin[free],axis=1)/budget))
+                               1-np.linalg.norm(p[free]-origin[free],axis=1)/budget,contact))
     fit=minimize(lambda x:float(x@x),np.zeros(2*len(free)),jac=lambda x:2*x,
                  method='SLSQP',constraints=[dict(type='ineq',fun=constraints)],
                  options=dict(maxiter=200,ftol=1e-10))
-    finite=np.isfinite(fit.x).all();valid=finite and float(constraints(fit.x).min())>=0
+    # Only the new region experiment tolerates numerical error in the stricter
+    # solver margins. Independently enforce the original geometry/budget and
+    # exact contact-region bounds below; no acceptance threshold is loosened.
+    finite=np.isfinite(fit.x).all();valid=finite and float(constraints(fit.x).min())>=(-1e-7 if regions else 0)
     result=unpack(fit.x) if finite else start
     quality=metrics(setup,result.tolist(),triangles)
     valid=valid and not quality['bad_triangles'] and quality['max_edge_stretch']<=2
+    contact_ratios=[float(np.linalg.norm(np.asarray(z['inverse'])@(result[z['vertex']]-z['center']))/z['radius']) for z in regions]
+    if regions:valid=valid and max(contact_ratios)<=1 and float(np.linalg.norm(result-origin,axis=1).max())<=budget
     report.update(status='feasible_candidate' if valid else 'no_feasible_candidate_found',
+                  contact_region_count=len(regions),
+                  maximum_contact_region_ratio=max(contact_ratios,default=None),
                   optimizer_success=bool(fit.success),iterations=int(fit.nit),geometry=quality,
                   minimum_constraint=float(constraints(fit.x).min()) if finite else None,
                   maximum_displacement_px=float(np.linalg.norm(result-origin,axis=1).max()))
