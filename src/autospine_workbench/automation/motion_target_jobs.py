@@ -205,6 +205,9 @@ def review_file(manager, job, parts):
         runtime = (json.loads(runtime_file('report.json'))
                    if result.get('runtime', {}).get('files', {}).get('report.json') else None)
         return json.dumps(build(files, result['artifact_sha256'], runtime), ensure_ascii=False).encode('utf-8'), 'application/json'
+    if parts == ['geometry-details.json']:
+        from ..targets.character43.motion_geometry_details import build
+        return json.dumps(build(files,result['artifact_sha256']),ensure_ascii=False,allow_nan=False).encode('utf-8'), 'application/json'
     if parts == ['player.html'] or parts[:1] == ['player-assets']:
         from .character_player import read
         adapter = SimpleNamespace(projects=manager.projects,

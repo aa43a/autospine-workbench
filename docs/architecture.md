@@ -1,5 +1,7 @@
 # AutoSpine Workbench 架构与质量门禁
 
+`motion_geometry_details.py` 从已校验候选读取原姿态、数值采样和几何报告，验证 skeleton 身份后计算面积极值事件；压缩/扩张保留各自时间。`view/geometry-details.json` 只读返回原纹理 UV 定位及投影参考比值，代理不可用不掩盖实际失败。UI 在 readiness 内按需加载，候选身份不匹配拒绝展示，不修改 QA 或采用状态。
+
 `knee_projection.py` 使用源链向量及目标骨骼实际位置，归一化计算膝点相对髋踝连线的深度偏离和可见弯曲符号。近直线/退化情况不判反折；观察结果不修改动画或 draw order。工作台通过精确原任务/实验来源提供只读查询。
 
 `motion_experiments.py` 将局部实验作为原动作任务的只读附件：候选、父来源、Runtime 与 request 摘要绑定，独立不可变登记；重用播放器而不更改任务结果、readiness 或视觉决定。其接口位于原任务 `view/experiments.json` 和 `view/experiments/{digest}/player.html`。
