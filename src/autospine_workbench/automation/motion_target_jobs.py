@@ -135,6 +135,9 @@ def review_file(manager, job, parts):
         return read(None, None, None, parts)
     result, files = context(manager, job)
     runtime_file = runtime_reader(manager, job, result)
+    if parts == ['source-comparison.json']:
+        from .motion_source_comparison import build
+        return json.dumps(build(manager, job, result), ensure_ascii=False, allow_nan=False).encode('utf-8'), 'application/json'
     if parts == ['final-contact.json']:
         from ..targets.character43.final_motion_contact import for_candidate
         report = for_candidate(files, result['artifact_sha256'], json.loads(runtime_file('report.json')))

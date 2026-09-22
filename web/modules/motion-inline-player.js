@@ -1,3 +1,4 @@
+import {createInlineSource} from './motion-inline-source.js';
 // Load only the inspected candidate; pending commands never cross candidate identities.
 export function appendInlinePlayer(parent, job) {
   const node = (tag, text) => {
@@ -13,6 +14,10 @@ export function appendInlinePlayer(parent, job) {
   const holder = node('div');
   panel.append(close, status, holder); parent.append(open, panel);
   let frame = null, timer = null, pending = null, attempts = 0;
+  const source=createInlineSource(panel,job,()=>frame?.contentWindow,time=>{
+    if(!parent.isConnected){source.clear();return;}
+    pending={time};flush();
+  });
   function stop() { clearTimeout(timer); timer = null; }
   function flush() {
     stop();
@@ -32,7 +37,7 @@ export function appendInlinePlayer(parent, job) {
         pending = null;
       }
       status.textContent = '当前候选已核对；可播放、拖动时间轴或从异常记录定位。';
-    } catch (error) { status.textContent = '定位未完成：' + error.message; }
+    } catch (error) { source.clear(); status.textContent = '定位未完成：' + error.message; }
   }
   function show() {
     panel.hidden = false;
@@ -45,12 +50,12 @@ export function appendInlinePlayer(parent, job) {
     flush(); panel.scrollIntoView({block:'nearest'});
   }
   open.onclick = show;
-  close.onclick = () => { stop(); frame = null; pending = null; holder.replaceChildren(); panel.hidden = true; };
+  close.onclick = () => { stop(); source.clear(); frame = null; pending = null; holder.replaceChildren(); panel.hidden = true; };
   let lastTime = 0;
   return {
     onSeek(time) {
       if (!Number.isFinite(time) || time < 0) throw Error('动作时间无效');
-      lastTime = time; pending = {time}; show();
+      lastTime = time; pending = {time}; show(); source.seek(time);
     },
     onInspect(slot, triangle, animation) {
       pending = {time:lastTime, region:[slot, triangle, animation]}; show();

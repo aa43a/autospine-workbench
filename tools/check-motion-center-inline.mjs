@@ -27,6 +27,12 @@ try {
   assert.equal(actual.triangle.index,report.rows[0].details[0].triangle);
   assert.equal(actual.triangle.slot,report.rows[0].slot);
   assert.equal(page.context().pages().length,1,'Inspection must stay on this page');
+  await card.getByRole('button',{name:'同步源骨架对照',exact:true}).click();
+  await card.getByText('共用时间轴；骨架显示最近源采样，观察视角不修改角色动画。',{exact:true}).waitFor();
+  const timeline=card.getByRole('slider',{name:'源与角色共用时间轴',exact:true});
+  await timeline.evaluate(el=>{el.value='0.5';el.dispatchEvent(new Event('input'));});
+  assert.equal(await card.locator('iframe').evaluate(frame=>frame.contentWindow.characterPlayerState.time),.5);
+  assert.equal(await card.locator('iframe').evaluate(frame=>frame.contentWindow.document.getElementById('time').disabled),true);
   await fs.mkdir(output,{recursive:true});
   await card.locator('iframe').screenshot({path:path.join(output,'inline-player.png')});
   // An already-loaded wrong candidate must receive neither seek nor highlight.
@@ -35,11 +41,12 @@ try {
   });
   await card.getByRole('link',{name:'定位时间并高亮动作区域',exact:true}).first().click();
   await card.getByText('定位未完成：候选身份不一致，请刷新任务',{exact:true}).waitFor();
+  assert.equal(await card.locator('iframe').evaluate(frame=>frame.contentWindow.document.getElementById('time').disabled),false);
   await card.getByRole('button',{name:'关闭播放器',exact:true}).click();
   assert.equal(await card.locator('iframe').count(),0);
   assert.deepEqual(errors,[]);
   await fs.mkdir(output,{recursive:true});
   await fs.writeFile(path.join(output,'check.json'),JSON.stringify({passed:true,jobId,actual,
-    checks:['live_motion_center','lazy_load','queued_seek_and_highlight','no_navigation','identity_guard','close_disposes_player'],errors},null,2));
+    checks:['live_motion_center','lazy_load','queued_seek_and_highlight','source_timeline_sync','no_navigation','identity_guard','close_disposes_player'],errors},null,2));
   console.log(JSON.stringify({passed:true,jobId,actual}));
 } finally {await browser.close();}

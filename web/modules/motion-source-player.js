@@ -63,7 +63,7 @@ export function createSourcePlayer(canvas, slider, button, label, onTime = () =>
     if (playing) { stop(); return; }
     if (!data) return;
     elapsed = Number(slider.value);
-    if (elapsed >= Number(slider.max)) elapsed = 0;
+    if (elapsed >= Number(slider.max)) elapsed = Number(slider.min);
     previous = performance.now();
     playing = true;
     button.textContent = '暂停';
@@ -78,7 +78,7 @@ export function createSourcePlayer(canvas, slider, button, label, onTime = () =>
     },
     seek(time) {
       if (!data || !Number.isFinite(time)) return;
-      stop(); slider.value = Math.max(0, Math.min(Number(slider.max), time)); draw();
+      stop(); slider.value = Math.max(Number(slider.min), Math.min(Number(slider.max), time)); draw();
     },
     clear() {
       stop(); data = null;
@@ -87,11 +87,13 @@ export function createSourcePlayer(canvas, slider, button, label, onTime = () =>
       label.textContent = '0.00 秒';
       draw();
     },
-    load(value) {
+    load(value, {start=0, end=value.frames.at(-1).time} = {}) {
+      if (!Number.isFinite(start) || !Number.isFinite(end) || start < 0 || end < start)
+        throw Error('source_time_range_invalid');
       stop(); data = value;
       fitBounds();
-      slider.max = data.frames.at(-1).time;
-      slider.value = 0;
+      slider.min = start; slider.max = end;
+      slider.value = start;
       button.disabled = slider.disabled = false;
       draw();
     },
