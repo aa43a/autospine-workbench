@@ -14,17 +14,21 @@ export function appendRepairDraft(parent, job, row, getDetail) {
   const material=node('a','下载姿态素材任务包');material.hidden=true;material.style.display='none';
   const execute=node('button','构建局部修正候选');execute.hidden=true;
   const status=node('p','先加载当前记录，再选择处理路线。');status.setAttribute('role','status');
+  const materialScope=node('p','当前姿态素材入口只换图，保留原网格与变形。翻转、面积压缩等几何异常需要单独修正；补图后仍保留这些失败。任务包包含几何诊断，尚不支持回交新的姿态网格。');
+  materialScope.hidden=true;
   panel.append(legend,load,action,notes,save,status,material,execute,node('p','保存不执行修复。局部修正会重算此附件的变形；分区构建仅重绑所选区域并检查边界。两者均保留骨骼、其他附件及原候选，需要重新验证，不自动采用。'));
   parent.append(panel);let state=null, generation=0;save.disabled=true;
+  panel.append(materialScope);
   const showReturn=materialReturn(panel,job,row);showReturn(null);
   const region=partitionEditor(panel,job,row);region.show(false);
-  action.onchange=()=>region.show(action.value==='partition');
+  action.onchange=()=>{region.show(action.value==='partition');materialScope.hidden=action.value!=='pose_attachment';};
   const matches = r => r.slot===row.slot && r.animation===row.animation &&
     r.event.triangle===getDetail().triangle && r.event.time===getDetail().time;
   const render = () => {
     const records=state.history.filter(matches), latest=records.at(-1);
     const applies=latest && latest.artifact_sha256===state.artifact_sha256 && latest.evidence_sha256===state.evidence_sha256;
     action.value=applies?latest.action:'local_repair';notes.value=applies?latest.notes:'';
+    materialScope.hidden=action.value!=='pose_attachment';
     region.restore(applies?latest.partition:null);region.show(action.value==='partition');
     material.hidden=!(applies&&latest.action==='pose_attachment');
     material.style.display=material.hidden?'none':'';

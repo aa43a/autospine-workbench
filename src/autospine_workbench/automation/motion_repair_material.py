@@ -77,6 +77,24 @@ def build(report, row, *, preview=None):
                  '回交素材应保持原纹理画布尺寸、透明背景和位置；需要改变画布时必须另给坐标变换。\n'
                  '在原处理草稿的“回交姿态素材”中选择本 request.json 和修改后的 RGBA PNG 保存独立版本。\n'
                  '后续仍须区域映射、构建及整段验证；保存回交不直接替换动画。\n').encode('utf-8')}
+    # Keep request.json stable: existing returned artwork binds its exact hash.
+    # This is additional evidence, not a new accepted geometry-edit contract.
+    files['geometry-context.json'] = canonical_bytes(dict(
+        schema='autospine.motion-material-geometry-context/v1',
+        artifact_sha256=row['artifact_sha256'], draft_sha256=canonical_sha256(row),
+        slot=row['slot'], animation=row['animation'], triangle=event['triangle'], time=event['time'],
+        observed_event=event,
+        current_mapping_geometry='preserve_original_weights_uv_and_deform',
+        image_replacement_changes_geometry=False,
+        geometric_failure_cleared_by_image_replacement=False,
+        next_geometry_route='separate_geometry_or_partition_candidate_requires_validation',
+        desired_geometry_provided=False, missing_art_proven=False, authority='none'))
+    files['README.txt'] += (
+        '\n几何限制：当前回交与区域换图保留原网格、权重、UV 和 deform。'
+        '修改 PNG 不会修复三角形翻转、面积压缩或边长超限；也不能通过擦除该区域透明度清除几何失败。\n'
+        'geometry-context.json 保存同一候选、时刻和三角形的原始诊断。'
+        '需要改变轮廓或几何时，应另建几何/分区候选并验证；当前回交入口尚不接收新姿态网格。\n'
+    ).encode('utf-8')
     if preview is not None:
         files['pose-preview.html'] = preview
         files['README.txt'] += '\n打开 pose-preview.html 可离线播放同版本完整角色，自动定位异常三角形；它不是正确姿态或补图目标。\n'.encode('utf-8')

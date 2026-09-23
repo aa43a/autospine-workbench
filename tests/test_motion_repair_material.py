@@ -37,6 +37,12 @@ class MaterialTests(unittest.TestCase):
             self.assertIn(b'10,-20',archive.read('deformed-triangle.svg'))
             self.assertNotIn(b'<script>',archive.read('source-location.svg'))
             self.assertEqual(request['draft_sha256'],canonical_sha256(self.row))
+            context=json.loads(archive.read('geometry-context.json'))
+            self.assertEqual(context['observed_event'],self.event)
+            self.assertEqual(context['artifact_sha256'],request['artifact_sha256'])
+            self.assertFalse(context['image_replacement_changes_geometry'])
+            self.assertFalse(context['desired_geometry_provided'])
+            self.assertNotIn('geometry-context',request)
 
     def test_stale_and_non_material_plan_rejected(self):
         for key,value in [('artifact_sha256','b'*64),('evidence_sha256','c'*64),('action','withdraw'),('action','local_repair')]:
