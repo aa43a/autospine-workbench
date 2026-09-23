@@ -62,3 +62,14 @@ class ReturnTests(unittest.TestCase):
     def test_route(self):
         from autospine_workbench.automation.motion_intake_routes import _methods
         self.assertEqual(_methods(['job','material-return']),'GET, HEAD, POST, OPTIONS')
+
+    def test_browser_integer_float_normalization_is_idempotent(self):
+        self.request['event']['time']=1.0
+        stream=BytesIO()
+        with ZipFile(stream,'w') as archive:archive.writestr('request.json',json.dumps(self.request))
+        self.download.return_value=stream.getvalue()
+        first=module.save(self.manager,'job',self.body())
+        body=self.body();body['request']=json.loads(json.dumps(self.request),parse_float=lambda v:int(float(v)) if float(v).is_integer() else float(v))
+        second=module.save(self.manager,'job',body)
+        self.assertEqual(first,second)
+        self.assertEqual(len(module.inspect(self.manager,'job')['returns']),1)

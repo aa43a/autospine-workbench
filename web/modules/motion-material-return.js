@@ -1,4 +1,5 @@
-export function materialReturn(parent, job) {
+import {materialMapping} from './motion-material-mapping.js';
+export function materialReturn(parent, job, row) {
   const panel=document.createElement('fieldset');
   panel.innerHTML='<legend>回交姿态素材</legend><label>任务包内 request.json <input type="file" accept=".json" aria-label="素材任务身份文件"></label><label>修改后的同画布 RGBA PNG <input type="file" accept="image/png" aria-label="回交姿态图片"></label><button type="button">保存回交素材</button><p role="status">保存后等待区域映射与重建，不直接替换当前动画。</p>';
   panel.style.cssText='min-width:0;width:100%;box-sizing:border-box;grid-column:1/-1;overflow-wrap:anywhere';
@@ -31,5 +32,6 @@ export function materialReturn(parent, job) {
       status.textContent=value.unchanged_source?'已保存；图片与原纹理相同，尚未提供修改。':'已保存独立素材版本；尚未映射或替换动画。';
     }catch(e){status.textContent=e.message;}finally{panel.disabled=false;}
   };
-  return revision=>{current=revision;panel.hidden=!revision;panel.style.display=revision?'':'none';};
+  const mapping=materialMapping(parent,job,row);
+  return revision=>{current=revision;panel.hidden=!revision;panel.style.display=revision?'':'none';mapping(revision);};
 }

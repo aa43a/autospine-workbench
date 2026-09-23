@@ -1,8 +1,9 @@
 const el=(tag,text)=>{const n=document.createElement(tag);if(text)n.textContent=text;return n;};
-export function partitionEditor(parent,job,row) {
+export function partitionEditor(parent,job,row,{textureOnly=false}={}) {
   const box=el('fieldset'),open=el('button','在原纹理上划分区域'),canvas=el('canvas');
   canvas.setAttribute('aria-label','区域三角形选择画布');canvas.style.cssText='max-width:100%;touch-action:none;background:#29333e';
   const bone=el('select');bone.setAttribute('aria-label','区域目标骨骼');
+  if(textureOnly){bone.hidden=true;bone.style.display='none';}
   const radius=el('input');radius.type='range';radius.min=2;radius.max=80;radius.value=12;radius.setAttribute('aria-label','区域笔刷半径');
   const erase=el('input');erase.type='checkbox';erase.setAttribute('aria-label','取消区域选择');
   const clear=el('button','清空区域'),status=el('p','尚未载入区域。');
@@ -16,7 +17,7 @@ export function partitionEditor(parent,job,row) {
       ctx.closePath();if(selected.has(i/3)){ctx.fillStyle='#ffbb0070';ctx.fill();}
       ctx.strokeStyle=selected.has(i/3)?'#ffd050':'#7faabb60';ctx.stroke();
     }
-    status.textContent=`已选择 ${selected.size} 个三角形。保存后可构建独立分区候选；所选区域刚性随目标骨骼，边界可能分离，需重新检查。`;
+    status.textContent=textureOnly?`已选择 ${selected.size} 个三角形。仅指定换图区域，保留原权重和变形；尚未应用。`:`已选择 ${selected.size} 个三角形。保存后可构建独立分区候选；所选区域刚性随目标骨骼，边界可能分离，需重新检查。`;
   };
   const restore=()=>{selected=new Set(saved?.triangles||[]);if(saved)bone.value=saved.bone;draw();};
   open.onclick=async()=>{const ticket=++generation;open.disabled=true;
@@ -44,5 +45,5 @@ export function partitionEditor(parent,job,row) {
   canvas.onpointermove=e=>{if(e.buttons===1)paint(e);};clear.onclick=()=>{selected.clear();draw();};
   return {show:value=>{box.hidden=!value;},restore:value=>{generation++;open.disabled=false;saved=value||null;restore();},
     value:()=>{if(!mesh||!selected.size)throw Error('请先载入网格并选择区域');
-      return {mesh_sha256:mesh.mesh_sha256,triangles:[...selected].sort((a,b)=>a-b),bone:bone.value};}};
+      return {mesh_sha256:mesh.mesh_sha256,triangles:[...selected].sort((a,b)=>a-b),...(textureOnly?{}:{bone:bone.value})};}};
 }

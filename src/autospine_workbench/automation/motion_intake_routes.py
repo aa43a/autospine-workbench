@@ -9,7 +9,7 @@ from .motion_intake_jobs import MotionIntakeJobs
 def _methods(tail):
     if len(tail) == 3 and tail[1] == 'repair-material':
         return 'GET, HEAD, OPTIONS'
-    if len(tail) == 2 and tail[1] in ('stage-review', 'repair-draft', 'material-return'):
+    if len(tail) == 2 and tail[1] in ('stage-review', 'repair-draft', 'material-return', 'material-mapping'):
         return 'GET, HEAD, POST, OPTIONS'
     if tail == ['generate']:
         return 'POST, OPTIONS'
@@ -89,6 +89,9 @@ def dispatch_motions(parts, handler, method):
             elif tail[1] == 'material-return':
                 from .motion_material_return import save
                 result = save(manager, tail[0], read_json_object_request(handler, maximum_bytes=12 << 20))
+            elif tail[1] == 'material-mapping':
+                from .motion_material_mapping import save
+                result = save(manager, tail[0], read_json_object_request(handler, maximum_bytes=128000))
             elif tail[1] == 'reproject':
                 from .motion_reproject import submit
                 result = submit(manager, tail[0], read_json_object_request(handler, maximum_bytes=200))
@@ -101,6 +104,9 @@ def dispatch_motions(parts, handler, method):
             from .motion_repair_material import download as material_download
             handler._send_bytes(200, material_download(manager, tail[0], tail[2]), 'application/zip',
                 visual_review=True, extra_headers={'Content-Disposition': 'attachment; filename="pose-material-request.zip"'})
+        elif len(tail) == 2 and tail[1] == 'material-mapping':
+            from .motion_material_mapping import inspect
+            handler._send_visual_json(200, inspect(manager, tail[0]))
         elif len(tail) == 2 and tail[1] == 'material-return':
             from .motion_material_return import inspect
             handler._send_visual_json(200, inspect(manager, tail[0]))

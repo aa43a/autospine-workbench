@@ -16,7 +16,7 @@ export function appendRepairDraft(parent, job, row, getDetail) {
   const status=node('p','先加载当前记录，再选择处理路线。');status.setAttribute('role','status');
   panel.append(legend,load,action,notes,save,status,material,execute,node('p','保存不执行修复。局部修正会重算此附件的变形；分区构建仅重绑所选区域并检查边界。两者均保留骨骼、其他附件及原候选，需要重新验证，不自动采用。'));
   parent.append(panel);let state=null, generation=0;save.disabled=true;
-  const showReturn=materialReturn(panel,job);showReturn(null);
+  const showReturn=materialReturn(panel,job,row);showReturn(null);
   const region=partitionEditor(panel,job,row);region.show(false);
   action.onchange=()=>region.show(action.value==='partition');
   const matches = r => r.slot===row.slot && r.animation===row.animation &&
