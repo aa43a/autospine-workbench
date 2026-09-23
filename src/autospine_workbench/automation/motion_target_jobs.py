@@ -228,6 +228,9 @@ def review_file(manager, job, parts):
     if parts == ['geometry-details.json']:
         from ..targets.character43.motion_geometry_details import build
         return json.dumps(build(files,result['artifact_sha256']),ensure_ascii=False,allow_nan=False).encode('utf-8'), 'application/json'
+    if parts == ['repair-feasibility.json']:
+        from ..targets.character43.repair_feasibility import inspect
+        return json.dumps(inspect(files,result['artifact_sha256']),ensure_ascii=False,allow_nan=False).encode('utf-8'), 'application/json'
     if parts == ['player.html'] or parts[:1] == ['player-assets']:
         from .character_player import read
         adapter = SimpleNamespace(projects=manager.projects,

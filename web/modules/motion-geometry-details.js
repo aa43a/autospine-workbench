@@ -1,5 +1,6 @@
 import {describeShape} from './motion-shape-evidence.js';
 import {appendRepairDraft} from './motion-repair-draft.js';
+import {appendRepairFeasibility} from './motion-repair-feasibility.js';
 const node = (tag, text) => {
   const element = document.createElement(tag);
   if (text !== undefined) element.textContent = text;
@@ -85,6 +86,7 @@ function renderRow(panel, row, base, onSeek, onInspect, job) {
   section.append(select, canvas, detailText, shapeText, seek, node('p', row.note),
     node('p', '下一步：在此时刻对照源姿态与整体轮廓，再选择局部修正、分区或姿态附件；这些选项尚不自动改动素材。'));
   draw(); image.src = row.texture;
+  appendRepairFeasibility(section,job,row,onSeek);
   const changed=appendRepairDraft(section,job,row,()=>row.details[Number(select.value)]);
   select.onchange=()=>{draw();changed();};
 }
