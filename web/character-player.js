@@ -76,7 +76,8 @@
   canvas.addEventListener('webglcontextlost', event => { event.preventDefault(); stop(); el('status').textContent = 'WebGL 上下文已丢失，请刷新恢复。'; });
   function tick(now) {
     if (playing) {
-      time += Math.min((now-previous)/1000, .1) * Number(el('speed').value);
+      // Missed display frames must not silently slow the source motion.
+      time += Math.max(0, (now-previous)/1000) * Number(el('speed').value);
       if (time >= duration) { if (el('loop').checked && duration > 0) time %= duration; else { time = duration; stop(); } }
       draw();
     }
