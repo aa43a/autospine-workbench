@@ -30,3 +30,14 @@ test('candidate identity or duration mismatch never drives target', () => {
     assert.match(status.textContent,/同步未启用/); sync.clear();
   }
 });
+
+test('depth isolation and restore preserve time and reject stale identity',()=>{
+ const calls=[],status={},sync=createCohortSync(status);
+ const control={artifact:'a',seek:()=>assert.fail('isolation must not seek'),inspectRegions:(...args)=>{calls.push(args);return true;}};
+ sync.attach({contentWindow:{characterPlayerControl:control}},'a');
+ assert.equal(sync.regions(['arm','torso']),true);
+ assert.equal(sync.regions([],'full'),true);
+ assert.deepEqual(calls,[[['arm','torso'],'isolate'],[[],'full']]);
+ control.artifact='old';assert.equal(sync.regions(['arm','torso']),false);
+ assert.equal(calls.length,2);sync.clear();assert.equal(sync.regions([],'full'),false);
+});

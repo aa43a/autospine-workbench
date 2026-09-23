@@ -23,6 +23,14 @@ export function createCohortSync(status) {
     }
   }
   return {
+    regions(pair,mode='isolate'){
+      const control=frame?.contentWindow?.characterPlayerControl;
+      if(!control||control.artifact!==artifact||!control.inspectRegions?.(pair,mode)){
+        status.textContent='部件隔离未启用：请等待匹配候选加载并检查区域';return false;
+      }
+      status.textContent=mode==='full'?'已恢复完整角色，保持当前时间':`当前隔离：${pair.join(' ↔ ')}，使用“显示完整角色”恢复`;
+      return true;
+    },
     inspect(slot,triangle,animation){
       const control=frame?.contentWindow?.characterPlayerControl;
       if(!control||control.artifact!==artifact||!control.inspectTriangle?.(slot,triangle,animation)){

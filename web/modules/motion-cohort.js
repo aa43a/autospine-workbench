@@ -9,6 +9,7 @@ import {createCohortSync} from './motion-cohort-sync.js';
 import {createExperimentPanel} from './motion-experiments.js';
 import {appendKneeDetails} from './motion-knee-details.js';
 import {createCohortStatus} from './motion-cohort-status.js';
+import {appendDepthSummary} from './motion-depth-summary.js';
 const byId=id=>document.getElementById(id), motion=byId('motion'),character=byId('character');
 const sync=createCohortSync(byId('sync-status'));
 const player=createSourcePlayer(byId('source'),byId('time'),byId('play'),byId('time-label'),(time,end)=>{sync.seek(time,end);alternative.seek(time,end);experiments.seek(time,end);});
@@ -60,13 +61,17 @@ async function show(){
     appendKneeDetails(byId('review'),`/api/motions/${t.job_id}/view/`,t.artifact_sha256,time=>{if(version===revision)player.seek(time);});
     appendStageReview(byId('review'),job);
     appendCandidateDownload(byId('review'),job);
-    appendReadiness(byId('review'),job,null,{onSeek:time=>{
+    const inspection={onSeek:time=>{
       if(version!==revision)return;
       player.seek(time);
       frame.scrollIntoView({block:'nearest'});
     },onInspect:(slot,triangle,animation)=>{
       if(version===revision)sync.inspect(slot,triangle,animation);
-    }});
+    },onRegions:pair=>{if(version===revision)sync.regions(pair);}};
+    const whole=document.createElement('button');whole.textContent='显示完整角色';
+    whole.onclick=()=>{if(version===revision)sync.regions([],'full');};byId('review').append(whole);
+    appendReadiness(byId('review'),job,null,inspection);
+    appendDepthSummary(byId('review'),job,inspection);
     appendTargetComparison(byId('review'),job,get,{onOpen:row=>{
       if(version===revision)alternative.open(row,g.source_sha256);
     }});
