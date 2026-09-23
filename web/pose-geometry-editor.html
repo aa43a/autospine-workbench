@@ -1,0 +1,17 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>局部姿态几何编辑</title><link rel="stylesheet" href="editor.css">
+<header><h1>局部姿态几何编辑 · 实验候选</h1><p id="identity"></p>
+<p>拖动黄色顶点调整当前姿态，松开后保存为关键帧。时间轴预览局部补丁；原骨骼动作保持不变。保存草稿不代表几何、接缝或视觉验收通过。</p></header>
+<main><section><canvas aria-label="姿态顶点编辑画布"></canvas></section><aside>
+<p id="status" role="status">加载官方 Runtime…</p>
+<button id="play" disabled>播放</button><button id="undo" disabled>撤销上次编辑</button>
+<button id="focus">放大编辑区域</button><button id="full">查看完整角色</button>
+<label>时间 <input id="time" type="range" min="0" step="0.001" value="0" disabled></label><output id="position"></output>
+<label><input id="isolate" type="checkbox">仅看编辑部件</label>
+<label><input id="overlay" type="checkbox" checked>显示顶点与网格</label>
+<label><input id="preview" type="checkbox" checked>显示补丁（取消可对比原候选）</label>
+<p id="quality"></p><h2>已保存关键姿态</h2><select id="keys" size="8" aria-label="已保存关键姿态"></select>
+<button id="remove" disabled>删除所选关键姿态</button><button id="download" disabled>导出几何补丁草稿</button>
+<label>恢复草稿 <input id="import" type="file" accept=".json" disabled></label>
+<p>区间两端回到原动画；内部在骨骼局部空间插值。此页检查当前帧，完整验证需导出后构建独立候选。</p>
+</aside></main><script src="runtime.js"></script><script type="module" src="editor.js"></script></html>
