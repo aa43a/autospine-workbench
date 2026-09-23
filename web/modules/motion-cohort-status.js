@@ -5,13 +5,16 @@ export function createCohortStatus(parent,pack,onSelect){
   const title=node('h2','固定集状态与异常');
   const refresh=node('button','核对全部候选状态'),stop=node('button','停止核对');stop.disabled=true;
   const label=node('label'),filter=node('input');filter.type='checkbox';label.append(filter,'仅显示异常或未验收');
+  const stageLabel=node('label','按检查阶段筛选 '),stageFilter=node('select');stageFilter.setAttribute('aria-label','按检查阶段筛选');
+  for(const stage of ['', '投影','几何','接触','遮挡','Runtime']){const option=node('option',stage||'全部阶段');option.value=stage;stageFilter.append(option);}stageLabel.append(stageFilter);
   const summary=node('p');summary.setAttribute('role','status');
   const note=node('p','点击核对可更新状态快照；读取现有检查与验收记录，不重新捕获动画，不自动接受。阶段接受不会清除技术异常；未读取或读取失败保留在总数中。');
   const scroll=node('div');scroll.style.cssText='overflow:auto;max-height:360px';const table=node('table');table.style.width='100%';
   const head=node('thead'),headRow=node('tr');
   for(const text of ['动作 / 角色','技术检查','阶段视觉','操作'])headRow.append(node('th',text));
   head.append(headRow);const body=node('tbody');table.append(head,body);scroll.append(table);
-  section.append(title,refresh,stop,label,summary,note,scroll);parent.append(section);
+  note.append(' 阶段筛选显示该项未通过的候选；缺失或无法核实的记录始终保留，统计不随筛选改变。');
+  section.append(title,refresh,stop,label,stageLabel,summary,note,scroll);parent.append(section);
   let generation=0,controller;
   const rows=pack.groups.flatMap((g,mi)=>g.targets.map((t,ci)=>({g,t,mi,ci,status:'unread',visual:'未读取'})));
   const missing=pack.coverage?.missing||[];
@@ -22,8 +25,16 @@ export function createCohortStatus(parent,pack,onSelect){
       read+=Boolean(row.loaded);technical+=pass;accepted+=Boolean(ok);
       historical+=Boolean(row.loaded&&['accepted','accepted_with_exceptions'].includes(row.decision));
       if(filter.checked&&pass&&ok)continue;
+      const selectedStage=row.stages?.find(s=>s.stage===stageFilter.value);
+      if(stageFilter.value&&selectedStage?.status==='sampled_pass')continue;
       const tr=node('tr');tr.append(node('td',row.g.label+' / '+row.t.label));
-      tr.append(node('td',row.error||({unread:'未读取',loading:'正在核对',stage_review:'已实施技术检查通过',needs_changes:'存在技术异常',evidence_incomplete:'技术证据不完整'})[row.status]||'技术状态未知'));
+      const technicalCell=node('td',row.error||({unread:'未读取',loading:'正在核对',stage_review:'已实施技术检查通过',needs_changes:'存在技术异常',evidence_incomplete:'技术证据不完整'})[row.status]||'技术状态未知');
+      for(const stage of row.stages||[]){
+        const detail=node('details'),caption=node('summary',`${stage.stage}：${({sampled_pass:'限定采样通过',needs_changes:'需处理',unmeasured:'尚未验证'})[stage.status]||'状态未知'}`);
+        detail.append(caption,node('p',stage.explanation||'未提供说明'));technicalCell.append(detail);
+      }
+      if(row.loaded&&!row.stages?.length)technicalCell.append(node('p','未提供分阶段证据'));
+      tr.append(technicalCell);
       tr.append(node('td',row.visual));const action=node('td'),open=node('button','检查此项');
       open.onclick=()=>onSelect(row.mi,row.ci);action.append(open);tr.append(action);body.append(tr);
     }
@@ -35,7 +46,7 @@ export function createCohortStatus(parent,pack,onSelect){
   refresh.onclick=async()=>{
     const token=++generation;controller?.abort();controller=new AbortController();const signal=controller.signal;
     refresh.disabled=true;stop.disabled=false;
-    for(const row of rows)Object.assign(row,{status:'unread',visual:'未读取',loaded:false,applies:false,decision:null,error:null});render();
+    for(const row of rows)Object.assign(row,{status:'unread',visual:'未读取',loaded:false,applies:false,decision:null,error:null,stages:null});render();
     let cursor=0;const sourceChecks=new Map();
     async function worker(){while(cursor<rows.length&&!signal.aborted){
       const row=rows[cursor++],version=row.version;row.status='loading';render();
@@ -49,7 +60,7 @@ export function createCohortStatus(parent,pack,onSelect){
         if(review.artifact_sha256!==row.t.artifact_sha256||review.readiness?.artifact_sha256!==row.t.artifact_sha256)throw Error('检查身份不匹配');
         if(token!==generation)return;
         if(row.version!==version)continue;
-        Object.assign(row,{loaded:true,status:review.readiness.status,applies:review.current_applies===true,decision:review.current?.decision});
+        Object.assign(row,{loaded:true,status:review.readiness.status,stages:Array.isArray(review.readiness.stages)?review.readiness.stages:[],applies:review.current_applies===true,decision:review.current?.decision});
         row.visual=review.current?(row.applies?(visualLabels[row.decision]||'未知结论'):`历史：${visualLabels[row.decision]||'未知结论'}；旧结论已过期，需复核`):'尚未验收';
         if(review.evidence_match==='legacy_empty_projection_fields')row.visual+='（仅新增空字段，原确认保留）';
       }catch(error){if(token!==generation)return;if(row.version!==version)continue;row.status='error';row.error='无法核对：'+error.message;row.visual='尚未核实';}
@@ -61,8 +72,9 @@ export function createCohortStatus(parent,pack,onSelect){
   stop.onclick=()=>{generation++;controller?.abort();for(const row of rows)if(row.status==='loading'){row.status='unread';row.visual='未读取';}refresh.disabled=false;stop.disabled=true;render();};
   window.addEventListener('motion-stage-review-saved',event=>{
     const row=rows.find(r=>r.t.job_id===event.detail?.jobId);if(!row)return;
-    Object.assign(row,{version:(row.version||0)+1,loaded:false,status:'unread',applies:false,decision:null,error:null,visual:'结论已更新，请重新核对'});render();
+    Object.assign(row,{version:(row.version||0)+1,loaded:false,status:'unread',applies:false,decision:null,error:null,stages:null,visual:'结论已更新，请重新核对'});render();
   });
   filter.onchange=render;
+  stageFilter.onchange=render;
   window.addEventListener('pagehide',()=>{generation++;controller?.abort();},{once:true});render();
 }
