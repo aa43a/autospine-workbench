@@ -53,11 +53,14 @@ def execute(folder, state_root, workspace, request):
     artifact = store.publish(files)
     runtime = capture(SimpleNamespace(workspace_root=workspace),store,artifact,folder,
         progress=lambda _:progress(folder,'runtime'),cancel_requested=lambda:False,storage_reference=True)
+    from .motion_repair_local_depth import run as local_recheck
+    local_depth = local_recheck(files,artifact,request,state_root,folder,lambda:progress(folder,'local_depth'))
     result = dict(artifact_sha256=artifact,character_animation_status='needs_changes',runtime=runtime,
         animations=[plan['animation']],issues=evidence['issues'],geometry_passed=geometry['passed'],
         contact_status=evidence['contact_status'],depth_order_status='not_evaluated',
         authority='none',production_authorized=False,repair_parent_job_id=repair['parent_job_id'],
         repair_parent_artifact_sha256=repair['parent_artifact_sha256'],repair_profile=expected,
         repair_depth_overlap=depth.get('target_overlap'),
+        local_depth_evidence_sha256=local_depth,
         clip=request.get('clip'),projection=request.get('projection'))
     (folder/'worker-result.json').write_bytes(canonical_bytes(result))

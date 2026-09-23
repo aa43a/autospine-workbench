@@ -16,18 +16,18 @@ from .local_depth_summary import summarize
 PROFILE='source-bound-local-depth-supplement-v1'
 
 
-def analyze(files,artifact,bundle,request,*,midpoints=False,pixelwise=True,on_pair=None):
+def analyze(files,artifact,bundle,request,*,midpoints=False,pixelwise=True,on_pair=None,sample_times=None):
     verify_source(files,artifact,bundle,request)
     mapping=json.loads((bundle.path/'map.json').read_bytes())
-    yaw=request.get('projection',{}).get('yaw_degrees',0)
+    yaw=(request.get('projection') or {}).get('yaw_degrees',0)
     if bundle.source_kind=='kimodo_npz':
         sampler=KimodoDepthSampler(bundle.raw_npz,bundle.kimodo_source,mapping,yaw,
-            interpolation='linear_observed_positions' if midpoints else 'source_samples_only')
+            interpolation='linear_observed_positions' if midpoints or sample_times is not None else 'source_samples_only')
         identity=sampler.identity;interpolation=sampler.interpolation
     else:
         sampler=SegmentDepthSampler(parse_bvh(bundle.raw_bvh),mapping,yaw)
         identity=dict(raw_bvh_sha256=sha256(bundle.raw_bvh).hexdigest())
-        interpolation='linear_bvh_channels' if midpoints else 'source_samples_only'
+        interpolation='linear_bvh_channels' if midpoints or sample_times is not None else 'source_samples_only'
     document=json.loads(files['skeleton.json']);depth=json.loads(files['motion-depth.json'])
     receipt=json.loads(files.get('motion-torso-projection.json',b'{}'))
     probe=Probe(document,files,'external-motion',tiled=True,sparse=True,rendered_bounds=True)
@@ -35,11 +35,14 @@ def analyze(files,artifact,bundle,request,*,midpoints=False,pixelwise=True,on_pa
     if receipt.get('applied'):
         expected=prepare(bundle,request)
         options['plane_provider']=(BakedWarpPlane(document,'external-motion',receipt,expected)
-                                   if midpoints else WarpedPlane(receipt,expected))
+                                   if midpoints or sample_times is not None else WarpedPlane(receipt,expected))
     checker=Checker(probe,sampler,pixelwise=pixelwise,**options);rows=[]
     for pair in depth['pairs']:
         samples=pair['samples']
-        if midpoints:
+        if sample_times is not None:
+            from .depth_sample_times import select
+            samples=select(samples,sample_times)
+        elif midpoints:
             samples=[dict(tick=(a['tick']+b['tick'])/2,source_tick=(a['source_tick']+b['source_tick'])/2)
                      for a,b in zip(samples,samples[1:])]
         for sample in samples:
@@ -50,6 +53,7 @@ def analyze(files,artifact,bundle,request,*,midpoints=False,pixelwise=True,on_pa
         if on_pair:on_pair()
     return dict(profile=PROFILE,job_id=request['job_id'],artifact_sha256=artifact,
         source_identity=identity,interpolation=interpolation,
+        requested_sample_times=sample_times,
         spatial_sampling='barycentric_pixel_intervals' if pixelwise else 'whole_triangle_intervals',
         counts=dict(Counter(r['check']['status'] for r in rows)),records=rows,causes=summarize(rows),
         hand_mesh_axes=checker.axes,pixel_budget_used=64_000_000-probe.remaining,
