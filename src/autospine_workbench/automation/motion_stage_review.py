@@ -35,11 +35,13 @@ def history(manager, job):
 
 def _state(job, report, digest, rows):
     current = rows[-1] if rows else None
-    applies = bool(current and current['artifact_sha256'] == report['artifact_sha256']
-                   and current['evidence_sha256'] == digest)
+    from .motion_review_compatibility import match
+    compatibility = match(current, report, digest)
+    applies = compatibility in ('exact', 'legacy_empty_projection_fields')
     return dict(job_id=job, artifact_sha256=report['artifact_sha256'], evidence_sha256=digest,
                 readiness=report, revision=len(rows), current=current,
-                current_applies=applies, history=rows, authority='none', production_authorized=False)
+                current_applies=applies, evidence_match=compatibility,
+                history=rows, authority='none', production_authorized=False)
 
 
 def inspect(manager, job):

@@ -51,6 +51,7 @@ export function createCohortStatus(parent,pack,onSelect){
         if(row.version!==version)continue;
         Object.assign(row,{loaded:true,status:review.readiness.status,applies:review.current_applies===true,decision:review.current?.decision});
         row.visual=review.current?(row.applies?(visualLabels[row.decision]||'未知结论'):`历史：${visualLabels[row.decision]||'未知结论'}；旧结论已过期，需复核`):'尚未验收';
+        if(review.evidence_match==='legacy_empty_projection_fields')row.visual+='（仅新增空字段，原确认保留）';
       }catch(error){if(token!==generation)return;if(row.version!==version)continue;row.status='error';row.error='无法核对：'+error.message;row.visual='尚未核实';}
       render();
     }}

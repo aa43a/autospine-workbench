@@ -6,6 +6,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from m4_motion_cohort import api, digest, save
+from autospine_workbench.automation.motion_review_compatibility import match
 
 
 def collect(plan, state, request):
@@ -27,6 +28,7 @@ def collect(plan, state, request):
                 raise ValueError('cohort_review_identity_mismatch:' + key)
             output['cells'][key] = {k: row[k] for k in (
                 'job_id', 'artifact_sha256', 'evidence_sha256', 'revision', 'current', 'current_applies')}
+            output['cells'][key]['evidence_match'] = row.get('evidence_match', 'legacy_unspecified')
     return output
 
 
@@ -42,7 +44,7 @@ def decision(snapshot, key, job, readiness):
         return 'not_evaluated', None
     if (not row['current_applies'] or row['evidence_sha256'] != digest(readiness) or
             current['artifact_sha256'] != row['artifact_sha256'] or
-            current['evidence_sha256'] != row['evidence_sha256']):
+            match(current,readiness,row['evidence_sha256']) not in ('exact','legacy_empty_projection_fields')):
         return 'evidence_changed', current
     if current['decision'] not in ('accepted', 'accepted_with_exceptions', 'rejected', 'revoked'):
         raise ValueError('cohort_review_decision_invalid')

@@ -47,6 +47,20 @@ class StageReviewTests(unittest.TestCase):
             review.save(self.manager, 'job', stale)
         self.assertEqual(len(review.history(self.manager, 'job')), 1)
 
+    def test_empty_projection_extension_preserves_original_record_bytes(self):
+        self.report['profile']='external-motion-readiness-v1'
+        self.report['stages'].append(dict(stage='投影',status='sampled_pass',reasons=[]))
+        first=review.save(self.manager,'job',self.body())
+        path=Path(self.temp.name)/'stage-reviews/review-0001.json';raw=path.read_bytes()
+        self.report['stages'][-1].update(unreliable_frames=[],failures=[],pose_profile=None)
+        current=review.inspect(self.manager,'job')
+        self.assertTrue(current['current_applies'])
+        self.assertEqual(current['evidence_match'],'legacy_empty_projection_fields')
+        self.assertEqual(current['current'],first['current']);self.assertEqual(path.read_bytes(),raw)
+        self.assertEqual(current['revision'],1);self.assertEqual(current['readiness']['status'],'needs_changes')
+        self.report['stages'][-1]['failures']=[dict(time=1)]
+        self.assertFalse(review.inspect(self.manager,'job')['current_applies'])
+
     def test_exception_cannot_be_plain_acceptance(self):
         with self.assertRaisesRegex(RuntimeError, 'exceptions_require'):
             review.save(self.manager, 'job', self.body('accepted'))
