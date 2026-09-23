@@ -6,6 +6,9 @@ from .oblique_source import _basis
 
 
 def extract(bundle):
+    if bundle.source_kind=='kimodo_npz':
+        from .kimodo_hand_axis import extract as kimodo
+        return kimodo(bundle)
     if bundle.source_kind!='bvh':raise ValueError('hand_axis_source_unsupported')
     mapping=json.loads((bundle.path/'map.json').read_bytes())
     if mapping['map_id']!='mixamo-declared-body-v1':raise ValueError('hand_axis_map_unsupported')
