@@ -26,3 +26,15 @@ class TargetContactTests(unittest.TestCase):
         self.assertEqual(report['failures'], 0)
         self.assertLess(report['maximum_endpoint_error_px'], 1e-7)
         self.assertFalse(report['selected'])
+        self.assertEqual(report['bend_branch_changes'], 0)
+        self.assertIn('bend_branch_unknown', report)
+
+    def test_bend_uses_joint_positions_with_screen_down_conversion(self):
+        from autospine_workbench.targets.character43.group_target_contact import _bend
+        def point(x, y): return (1, 0, 0, 1, x, y)
+        pose = {'a': point(10, 20), 'b': point(11, 19), 'c': point(10, 18)}
+        self.assertEqual(_bend(pose, 'a', 'b', 'c')['branch'], -1)
+        pose['b'] = point(9, 19)
+        self.assertEqual(_bend(pose, 'a', 'b', 'c')['branch'], 1)
+        pose['b'] = point(10, 19)
+        self.assertIsNone(_bend(pose, 'a', 'b', 'c')['branch'])
