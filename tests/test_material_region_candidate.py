@@ -24,6 +24,24 @@ def fixture():
 
 
 class MaterialRegionTests(unittest.TestCase):
+    def test_second_region_preserves_previous_switch_and_corrective(self):
+        doc,plan=fixture()
+        mesh=deepcopy(doc['skins'][0]['attachments']['arm']['arm'])
+        doc['slots'].append(dict(name='leg',bone='root',attachment='leg'))
+        doc['skins'][0]['attachments']['leg']={'leg':mesh}
+        deform={'deform':[dict(time=0,vertices=[0]*8),dict(time=3,vertices=[1]*8)]}
+        doc['animations']['reach']['attachments']={'default':{'leg':{'leg':deform}}}
+        first,_=scene(doc,plan,'first-image')
+        next_plan=deepcopy(plan);next_plan['slot']='leg'
+        second,_=scene(first,next_plan,'second-image')
+        for slot in first['slots']:
+            if slot['name']=='leg':continue
+            self.assertIn(slot,second['slots'])
+            self.assertEqual(second['skins'][0]['attachments'][slot['name']],first['skins'][0]['attachments'][slot['name']])
+        for slot,track in first['animations']['reach']['slots'].items():
+            self.assertEqual(second['animations']['reach']['slots'][slot],track)
+        self.assertEqual(second['animations']['reach']['attachments']['default']['leg-material-replacement']['leg-material-replacement'],deform)
+
     def test_complementary_switches_preserve_motion_and_disjoint_regions(self):
         doc,plan=fixture();original=deepcopy(doc);result,report=scene(doc,plan,'new-art')
         self.assertEqual(doc,original);self.assertEqual(result['bones'],doc['bones'])

@@ -7,8 +7,8 @@ from m4_material_live_fixture import prepare
 from m4_partition_execution_check import request,PARENT
 
 
-def run(output,selection):
-    prepare(output);prefix='/api/motions/'+PARENT
+def run(output,selection,parent=PARENT):
+    prepare(output,parent);prefix='/api/motions/'+parent
     receipt=request(prefix+'/material-return',dict(request=json.loads((output/'request.json').read_bytes()),
         png_base64=base64.b64encode((output/'source-texture.png').read_bytes()).decode()))
     state=request(prefix+'/material-mapping');mesh=next(r for r in request(prefix+'/view/partition-mesh.json')['rows'] if r['slot']==receipt['slot'])

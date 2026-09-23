@@ -20,6 +20,8 @@ def execute(folder, state_root, workspace, request):
         raise ValueError('motion_repair_identity_mismatch')
     store = AnimatedStore(state_root)
     source = store.read(repair['parent_artifact_sha256'])
+    from .motion_repair_lineage import carry
+    history = carry(source, repair)
     progress(folder,'post_contact_repair')
     builder=build
     if expected==PARTITION_PROFILE:
@@ -36,10 +38,12 @@ def execute(folder, state_root, workspace, request):
     # This provenance is part of the immutable result, not a mutable UI association.
     import json
     provenance = dict(repair, selected=False, authority='none')
+    files.update(history)
     files['motion-repair-provenance.json'] = canonical_bytes(provenance)
     manifest = json.loads(files['character-manifest.json'])
     from hashlib import sha256
     manifest['files']['motion-repair-provenance.json'] = sha256(files['motion-repair-provenance.json']).hexdigest()
+    manifest['files'].update({name:sha256(raw).hexdigest() for name,raw in history.items()})
     files['character-manifest.json'] = canonical_bytes(manifest)
     progress(folder,'publish_candidate')
     artifact = store.publish(files)

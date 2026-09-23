@@ -1,5 +1,6 @@
 """Freeze a live artwork mapping into the existing cancellable candidate queue."""
 from copy import deepcopy
+from hashlib import sha256
 from threading import Event
 from uuid import uuid4
 from ..resolved_project import canonical_sha256
@@ -18,10 +19,9 @@ def submit(manager,parent_job,body):
     if set(body)!={'revision','mapping_sha256'} or type(body['revision']) is not int:
         raise PipelineRunError('motion_material_execution_request_invalid')
     request=read_document(manager.folder(parent_job)/'request.json')
-    if request.get('repair_execution'):raise PipelineRunError('motion_repair_nested_execution_unsupported')
     assert_current(manager,request)
     with manager._lock:
-        result,_=context(manager,parent_job);rows=history(manager,parent_job);i=body['revision']-1
+        result,parent_files=context(manager,parent_job);rows=history(manager,parent_job);i=body['revision']-1
         if not 0<=i<len(rows):raise PipelineRunError('motion_material_mapping_missing')
         mapping=rows[i]
         if (mapping['action']!='map' or canonical_sha256(mapping)!=body['mapping_sha256']
@@ -42,6 +42,8 @@ def submit(manager,parent_job,body):
         request.update(job_id=job,repair_execution=dict(profile=PROFILE,parent_job_id=parent_job,
             parent_artifact_sha256=mapping['artifact_sha256'],draft_sha256=canonical_sha256(draft),draft=draft,
             material_mapping=mapping,material_mapping_sha256=canonical_sha256(mapping)))
+        if 'motion-repair-provenance.json' in parent_files:
+            request['repair_execution']['parent_repair_sha256']=sha256(parent_files['motion-repair-provenance.json']).hexdigest()
         publish_document(root/'request.json',request,staging=root/'staging')
         value=dict(job_id=job,kind='adapt',project_id=request['project_id'],character_job_id=request['character_job_id'],
             name=request['name']+' · 区域换图候选',status='pending',step='queued',authority='none',repair_parent_job_id=parent_job)

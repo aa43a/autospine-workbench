@@ -8,9 +8,9 @@ from zipfile import ZipFile
 from m4_partition_execution_check import BASE, PARENT, request
 
 
-def prepare(output):
+def prepare(output, parent=PARENT):
     output.mkdir(parents=True,exist_ok=False)
-    prefix='/api/motions/'+PARENT
+    prefix='/api/motions/'+parent
     state=request(prefix+'/repair-draft');report=request(prefix+'/view/geometry-details.json')
     row=report['rows'][0];event=row['details'][0]
     matching=[r for r in state['history'] if r['slot']==row['slot'] and r['animation']==row['animation']
@@ -21,11 +21,11 @@ def prepare(output):
         triangle=event['triangle'],time=event['time'],action='pose_attachment',
         notes='Diagnostic live upload/recovery test using unchanged source texture; withdraw after test; not artwork repair.')
     saved=request(prefix+'/repair-draft',body)
-    (output/'fixture.json').write_text(json.dumps(dict(job=PARENT,body=body,revision=saved['revision'])),encoding='utf-8')
+    (output/'fixture.json').write_text(json.dumps(dict(job=parent,body=body,revision=saved['revision'])),encoding='utf-8')
     raw=urlopen(BASE+prefix+'/repair-material/'+str(saved['revision']),timeout=120).read()
     with ZipFile(BytesIO(raw)) as archive:
         for name in ('request.json','source-texture.png'):(output/name).write_bytes(archive.read(name))
-    print(json.dumps(dict(job=PARENT,revision=saved['revision'])))
+    print(json.dumps(dict(job=parent,revision=saved['revision'])))
 
 
 if __name__=='__main__':
