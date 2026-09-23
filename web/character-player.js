@@ -88,6 +88,14 @@
   select();
   const requestedTime = Number(new URL(location.href).searchParams.get('time'));
   if (Number.isFinite(requestedTime)) { time = Math.min(duration, Math.max(0, requestedTime)); draw(); }
+  const query=new URL(location.href).searchParams, requestedRegions=query.getAll('region');
+  if(requestedRegions.length){
+    if(requestedRegions.length<=2&&requestedRegions.every(n=>doc.slots.some(s=>s.name===n))){
+      el('inspect-a').value=requestedRegions[0];el('inspect-b').value=requestedRegions[1]||'';
+      el('inspect-mode').value=['full','isolate','hide'].includes(query.get('mode'))?query.get('mode'):'full';
+      el('inspect-a').closest('details').open=true;inspect();
+    }else{el('inspect-a').closest('details').open=true;el('inspect-note').textContent='定位部件与当前候选不匹配，已保留完整角色。';}
+  }
   window.characterPlayerReady = true; requestAnimationFrame(tick);
   window.characterPlayerControl = {
     artifact: context.artifact_sha256,

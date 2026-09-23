@@ -25,6 +25,6 @@ try{
   assert.ok(text.includes('靠近躯干后侧，间隔不足 41'));
   assert.ok(text.includes('仍未通过前后关系验收'));
   assert.ok(!text.includes('深度区间跨越躯干平面 0'));
-  assert.equal(await page.getByRole('link',{name:'定位 1.500 秒'}).getAttribute('href'),'/player.html?time=1.5');
+  assert.equal(await page.getByRole('link',{name:'定位 1.500 秒'}).getAttribute('href'),'/player.html?time=1.5&mode=isolate&region=arm&region=body');
   assert.deepEqual(errors,[]);console.log(JSON.stringify({passed:true}));
 }finally{await browser.close();}

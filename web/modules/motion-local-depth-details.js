@@ -21,7 +21,8 @@ export function appendLocalDepthDetails(panel,job,base){
         }
         for(const row of evidence.records){
           const p=document.createElement('p'),a=document.createElement('a');p.textContent=row.pair.join(' / ')+(row.reason_code?' · 未测 '+row.reason_code:'')+' ';
-          a.textContent=`定位 ${row.time.toFixed(3)} 秒`;a.href=base+`player.html?time=${row.time}`;a.target='_blank';a.rel='noopener';p.append(a);details.append(p);
+          const query=new URLSearchParams({time:String(row.time),mode:'isolate'});for(const region of row.pair)query.append('region',region);
+          a.textContent=`定位 ${row.time.toFixed(3)} 秒`;a.href=base+'player.html?'+query;a.target='_blank';a.rel='noopener';p.append(a);details.append(p);
         }
         if(evidence.records_truncated)details.append(document.createTextNode('异常与未测记录各显示最多 20 条定位，以上分类统计覆盖完整记录。'));
         content.append(details);
