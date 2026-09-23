@@ -8,6 +8,7 @@ import {appendReadiness} from './motion-readiness.js';
 import {createCohortSync} from './motion-cohort-sync.js';
 import {createExperimentPanel} from './motion-experiments.js';
 import {appendKneeDetails} from './motion-knee-details.js';
+import {createCohortStatus} from './motion-cohort-status.js';
 const byId=id=>document.getElementById(id), motion=byId('motion'),character=byId('character');
 const sync=createCohortSync(byId('sync-status'));
 const player=createSourcePlayer(byId('source'),byId('time'),byId('play'),byId('time-label'),(time,end)=>{sync.seek(time,end);alternative.seek(time,end);experiments.seek(time,end);});
@@ -25,6 +26,10 @@ function validate(value){
       if(!id.test(t.job_id)||!sha.test(t.artifact_sha256)||typeof t.label!=='string'||t.label.length>100||jobs.has(t.job_id))throw Error('角色候选清单无效');
       jobs.add(t.job_id);if(++count>96)throw Error('复核数量超过限制');
     }
+  }
+  if(value.coverage){const c=value.coverage;
+    if(!Number.isInteger(c.expected)||c.expected<1||c.expected>96||c.available!==count||!Array.isArray(c.missing)||c.expected!==count+c.missing.length
+      ||c.missing.some(r=>['motion','character','status'].some(k=>typeof r[k]!=='string'||r[k].length>100)))throw Error('固定集覆盖数量无效');
   }
   return value;
 }
@@ -77,5 +82,6 @@ try{
   if(location.hash.length>100000)throw Error('复核清单过大');
   pack=validate(JSON.parse(decodeURIComponent(location.hash.slice(1))));
   pack.groups.forEach((g,i)=>motion.add(new Option(g.label,String(i))));targets();
+  createCohortStatus(byId('cohort-status'),pack,(mi,ci)=>{motion.value=String(mi);targets();character.value=String(ci);show();byId('target-title').scrollIntoView({block:'start'});});
   motion.onchange=()=>{targets();show();};character.onchange=show;show();
 }catch(error){byId('status').textContent=error.message+'。请从固定动作矩阵的“集中播放与验收”入口打开。';}

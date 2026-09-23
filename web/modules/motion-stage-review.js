@@ -51,6 +51,7 @@ export function appendStageReview(item, job) {
             artifact_sha256: state.artifact_sha256, evidence_sha256: state.evidence_sha256,
             expected_revision: state.revision, decision: decision.value, notes: notes.value})});
         render(next);
+        window.dispatchEvent(new CustomEvent('motion-stage-review-saved',{detail:{jobId:job.job_id}}));
       } catch (error) { feedback.textContent = error.message; update(); }
       finally { button.disabled = false; panel.inert = false; }
     };

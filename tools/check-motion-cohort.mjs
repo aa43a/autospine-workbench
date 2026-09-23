@@ -21,7 +21,7 @@ try{
         current:saved?{decision:'accepted_with_exceptions',notes:'fixture only'}:null}});
     }
     if(path.endsWith('/preview'))return route.fulfill({json:{view:'front',parents:[null,0],frames:[
-      {time:0,frame:0,joints:[[0,0,0],[0,1,0]]},{time:1,frame:1,joints:[[0,0,0],[1,1,0]]}]}});
+      {time:0,frame:0,joints:[[0,0,0],[0,1,0]]},{time:3,frame:1,joints:[[0,0,0],[1,1,0]]}]}});
     if(path.endsWith('/readiness.json'))return route.fulfill({json:{
       artifact_sha256:job===alternate?alternateHash:hash,skeleton_sha256:hash,status:'needs_changes',stages:[{
         stage:'遮挡',status:'needs_changes',explanation:'fixture only',href:'depth.html',
@@ -35,7 +35,7 @@ try{
           {frame:3,time:.3,reason:'projection_direction_unreliable'}]}]}}});
     if(path.endsWith('/compare-targets'))return route.fulfill({json:{source_job_id:job,complete:true,recommended_job_id:alternate,
       rows:[{job_id:alternate,source_job_id:sources[0],artifact_sha256:alternateHash,evidence_sha256:'e',view:'side',status:'succeeded',stages:[]}]}});
-    if(path.endsWith('/player.html'))return route.fulfill({contentType:'text/html',body:'<p>Fixture player</p>'});
+    if(path.endsWith('/player.html'))return route.fulfill({contentType:'text/html',body:`<p>Fixture player</p><script>window.characterPlayerState={duration:3};window.characterPlayerControl={artifact:'${job===alternate?alternateHash:hash}',seek(t){window.fixtureTime=t;return true;}};</script>`});
     if(sources.includes(job))return route.fulfill({json:{job_id:job,status:'succeeded',source_sha256:changed?'b'.repeat(64):hash}});
     if(targets.includes(job))return route.fulfill({json:{job_id:job,status:'succeeded',kind:'adapt',result:{artifact_sha256:hash}}});
     if(job===alternate)return route.fulfill({json:{job_id:job,status:'succeeded',kind:'adapt',result:{artifact_sha256:alternateHash}}});
@@ -54,7 +54,7 @@ try{
   await page.getByRole('button',{name:'检查可用范围与待处理项'}).click();
   await page.getByText('异常定位（报告返回 10 条采样记录）',{exact:true}).click();
   await page.getByRole('link',{name:'异常 · 0.800 秒',exact:true}).click();
-  assert.match(await page.locator('#target iframe').getAttribute('src'),/player.html\?time=0.8$/);
+  await page.waitForFunction(()=>document.querySelector('#target iframe').contentWindow.fixtureTime===.8);
   assert.equal(await page.getByLabel('验收说明').inputValue(),'fixture only');
   assert.equal(await page.getByText('未提供有效时间',{exact:false}).count(),1);
   assert.equal(posts,0);
@@ -62,16 +62,16 @@ try{
   await page.getByText('arm ↔ body · visible_depth_straddle · 30 条 · 0.000–2.900 秒',{exact:true}).click();
   await page.getByLabel('遮挡失败采样序号').fill('29');
   await page.getByRole('link',{name:'定位此采样',exact:true}).click();
-  assert.match(await page.locator('#target iframe').getAttribute('src'),/player.html\?time=2.9$/);
+  await page.waitForFunction(()=>document.querySelector('#target iframe').contentWindow.fixtureTime===2.9);
   assert.equal(await page.getByLabel('验收说明').inputValue(),'fixture only');
   assert.equal(posts,0);
-  await page.getByRole('checkbox').check();await page.getByRole('button',{name:'保存阶段结论'}).click();
+  await page.locator('#review').getByRole('checkbox').check();await page.getByRole('button',{name:'保存阶段结论'}).click();
   await page.getByText('r1 · 阶段可接受，保留异常。fixture only',{exact:true}).waitFor();
   assert.equal(posts,1);
   await page.getByRole('button',{name:'在此检查旋转与绕圈'}).click();
   await page.getByText('upperarm_l · 未发现新增整圈 · 与源传递最大差 0.00°',{exact:true}).click();
   await page.getByRole('link',{name:'定位 0.200–0.300 秒（2 个源采样）'}).click();
-  assert.match(await page.locator('iframe').getAttribute('src'),/player.html\?time=0.2$/);
+  await page.waitForFunction(()=>document.querySelector('#target iframe').contentWindow.fixtureTime===.2);
   assert.equal(posts,1);
   await page.getByText('r1 · 阶段可接受，保留异常。fixture only',{exact:true}).waitFor();
   await page.getByRole('button',{name:'比较该角色的已有视角候选'}).click();
@@ -86,8 +86,8 @@ try{
   await alternative.getByRole('button',{name:'检查可用范围与待处理项'}).click();
   await alternative.getByText('异常定位（报告返回 10 条采样记录）',{exact:true}).click();
   await alternative.getByRole('link',{name:'异常 · 0.800 秒',exact:true}).click();
-  assert.match(await alternative.locator('iframe').getAttribute('src'),/player.html\?time=0.8$/);
-  assert.match(await page.locator('#target iframe').getAttribute('src'),/player.html\?time=0.2$/);
+  await page.waitForFunction(()=>document.querySelector('#alternative iframe').contentWindow.fixtureTime===.8);
+  await page.waitForFunction(()=>document.querySelector('#target iframe').contentWindow.fixtureTime===.8);
   assert.equal(await alternative.getByLabel('验收说明').inputValue(),'fixture only');
   await alternative.getByRole('checkbox').check();
   await alternative.getByRole('button',{name:'保存阶段结论'}).click();
@@ -104,7 +104,7 @@ try{
   await page.getByRole('button',{name:'下一项'}).click();
   await page.getByRole('heading',{name:'motion 1 · character 1',exact:true}).waitFor();
   assert.equal(await page.getByRole('button',{name:'下一项'}).isDisabled(),true);
-  assert.equal(await page.getByRole('checkbox').count(),0);
+  assert.equal(await page.locator('#review').getByRole('checkbox').count(),0);
   assert.equal(await alternative.isHidden(),true);
   changed=true;await page.getByRole('button',{name:'上一项'}).click();
   await page.getByText('无法打开：来源或候选身份已变化，请重新生成复核清单',{exact:true}).waitFor();

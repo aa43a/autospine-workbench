@@ -29,5 +29,19 @@ class ReviewPackTests(unittest.TestCase):
         self.state['cells']['wave/alice']['status']='running'
         self.assertIsNone(url(self.plan,self.state))
 
+    def test_missing_and_failed_cells_remain_in_denominator(self):
+        self.plan['characters'].append(dict(id='huiye'))
+        self.plan['motions'].append(dict(id='reach',sha256='r'*64))
+        self.state['plan_sha256']=digest(self.plan)
+        self.state['sources']['reach']=dict(status='failed')
+        self.state['cells']['wave/huiye']=dict(status='running')
+        pack=json.loads(unquote(urlsplit(url(self.plan,self.state)).fragment))
+        self.assertEqual(pack['coverage']['expected'],4)
+        self.assertEqual(pack['coverage']['available'],1)
+        self.assertEqual(pack['coverage']['missing'],[
+            dict(motion='wave',character='huiye',status='running'),
+            dict(motion='reach',character='alice',status='source_failed'),
+            dict(motion='reach',character='huiye',status='source_failed')])
+
 
 if __name__=='__main__':unittest.main()
