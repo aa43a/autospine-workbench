@@ -82,7 +82,7 @@ def dispatch_motions(parts, handler, method):
                 result = save(manager, tail[0], read_json_object_request(handler, maximum_bytes=20000))
             elif tail[1] == 'repair-draft':
                 from .motion_repair_draft import save
-                result = save(manager, tail[0], read_json_object_request(handler, maximum_bytes=20000))
+                result = save(manager, tail[0], read_json_object_request(handler, maximum_bytes=128000))
             elif tail[1] == 'repair-execute':
                 from .motion_repair_execution import submit
                 result = submit(manager, tail[0], read_json_object_request(handler, maximum_bytes=1024))

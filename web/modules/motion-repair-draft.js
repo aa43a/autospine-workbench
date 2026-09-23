@@ -1,3 +1,4 @@
+import {partitionEditor} from './motion-partition-editor.js';
 const labels = {local_repair:'局部变形修正', partition:'重新划分区域', pose_attachment:'补充姿态附件', withdraw:'撤销此处处理草稿'};
 const node = (tag, text) => {const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e;};
 
@@ -9,18 +10,22 @@ export function appendRepairDraft(parent, job, row, getDetail) {
     const option=node('option',label);option.value=value;action.append(option);
   }
   const notes=node('textarea');notes.maxLength=4000;notes.setAttribute('aria-label','异常处理说明');
-  const material=node('a','下载姿态素材任务包');material.hidden=true;
+  const material=node('a','下载姿态素材任务包');material.hidden=true;material.style.display='none';
   const execute=node('button','构建局部修正候选');execute.hidden=true;
   const status=node('p','先加载当前记录，再选择处理路线。');status.setAttribute('role','status');
   panel.append(legend,load,action,notes,save,status,material,execute,node('p','保存不执行修复。构建会重算此附件整段动作的局部变形，保留骨骼、其他附件及原候选；需要重新验证，不自动采用。'));
   parent.append(panel);let state=null, generation=0;save.disabled=true;
+  const region=partitionEditor(panel,job,row);region.show(false);
+  action.onchange=()=>region.show(action.value==='partition');
   const matches = r => r.slot===row.slot && r.animation===row.animation &&
     r.event.triangle===getDetail().triangle && r.event.time===getDetail().time;
   const render = () => {
     const records=state.history.filter(matches), latest=records.at(-1);
     const applies=latest && latest.artifact_sha256===state.artifact_sha256 && latest.evidence_sha256===state.evidence_sha256;
     action.value=applies?latest.action:'local_repair';notes.value=applies?latest.notes:'';
+    region.restore(applies?latest.partition:null);region.show(action.value==='partition');
     material.hidden=!(applies&&latest.action==='pose_attachment');
+    material.style.display=material.hidden?'none':'';
     execute.hidden=!(applies&&latest.action==='local_repair');
     execute.onclick=async()=>{
       panel.disabled=true;status.textContent='正在提交独立修正任务…';
@@ -47,6 +52,7 @@ export function appendRepairDraft(parent, job, row, getDetail) {
   };
   const run = async body => {
     const ticket=++generation;panel.disabled=true;material.hidden=true;execute.hidden=true;status.textContent=body?'正在保存…':'正在加载…';
+    material.style.display='none';
     try {const result=await request(body);if(ticket!==generation)return;state=result;render();}
     catch(error){if(ticket===generation){state=null;save.disabled=true;status.textContent=error.message+'；请重新加载。';}}
     finally {if(ticket===generation)panel.disabled=false;}
@@ -55,12 +61,16 @@ export function appendRepairDraft(parent, job, row, getDetail) {
   save.onclick=()=>{
     if(!state)return;
     const detail=getDetail();
+    let partition;
+    try{if(action.value==='partition')partition=region.value();}
+    catch(error){status.textContent=error.message;return;}
     run({artifact_sha256:state.artifact_sha256,evidence_sha256:state.evidence_sha256,
       expected_revision:state.revision,slot:row.slot,animation:row.animation,
-      triangle:detail.triangle,time:detail.time,action:action.value,notes:notes.value});
+      triangle:detail.triangle,time:detail.time,action:action.value,notes:notes.value,...(partition?{partition}:{})});
   };
   return () => {
     generation++;panel.disabled=false;material.hidden=true;execute.hidden=true;
+    material.style.display='none';
     if(state)render();else {save.disabled=true;status.textContent='先加载当前记录，再选择处理路线。';}
   };
 }
