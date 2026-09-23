@@ -15,6 +15,12 @@ export function appendRepairFeasibility(parent,job,row,onSeek) {
         link.href=`/api/motions/${encodeURIComponent(job.job_id)}/view/player.html?time=${record.worst.time}`;
         if(onSeek)link.onclick=e=>{e.preventDefault();onSeek(record.worst.time);};
         status.append(link);
+        const shape=record.worst.shape_evidence;
+        if(shape?.reference_kind==='single_bone_affine'&&shape.bone_compensated) {
+          const text=document.createElement('p');
+          text.textContent=`该定位三角形：实际面积比 ${shape.actual.signed_area_ratio.toFixed(3)}；扣除单骨整体变换后的面积比 ${shape.bone_compensated.signed_area_ratio.toFixed(3)}。后者用于区分整体缩短与额外局部变形，不改变几何门槛，也不代表视觉通过。`;
+          status.append(text);
+        }
       } else status.textContent=record.status==='no_fixed_vertex_counterexample'
         ?'当前采样未发现全固定三角形的面积反例；不代表位移预算、接缝、插值或完整修复一定可行。'
         :'当前附件不支持这项约束检查，不能推定可修复。';

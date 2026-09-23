@@ -33,6 +33,10 @@ class FeasibilityTests(unittest.TestCase):
         self.assertEqual(row['failed_times'],1)
         self.assertAlmostEqual(row['worst']['setup_ratio'],.4)
         self.assertEqual(row['worst']['time'],1)
+        shape=row['worst']['shape_evidence']
+        self.assertEqual(shape['reference_kind'],'single_bone_affine')
+        self.assertAlmostEqual(shape['bone_compensated']['signed_area_ratio'],1)
+        self.assertAlmostEqual(shape['actual']['signed_area_ratio'],.4)
         self.assertEqual(files,before)
         self.assertFalse(report['selected'])
 

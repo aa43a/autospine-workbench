@@ -4,9 +4,10 @@ from hashlib import sha256
 import json
 import math
 
-from .affine_pose import sample
+from .affine_pose import sample, matrices
 from .deform_addition import entries
 from .numeric_reference import read
+from .triangle_shape_evidence import build as shape_evidence
 from ..spine43.continuous_pose import area
 
 
@@ -57,6 +58,18 @@ def inspect(files, artifact):
             if bad:
                 samples+=1
                 if len(failures)<20:failures.append(dict(time=time,triangle_count=len(bad)))
+        if worst:
+            event=worst[1];tri=triangles[event['triangle']];time=event['time']
+            rest=deepcopy(source);rest['animations']={name:{'bones':{}}}
+            selected=deepcopy(source)
+            selected['animations']={name:deepcopy(document['animations'][name])}
+            actual=sample(selected,name,time)[0][slot]
+            raw=sample(source,name,time)[0][slot]
+            event['shape_evidence']=shape_evidence(
+                [setup['vertices'][slot][v] for v in tri],
+                [actual[v] for v in tri],[raw[v] for v in tri],
+                [owners[v] for v in tri],document['bones'],
+                matrices(rest,name,0),matrices(document,name,time))
         rows.append(dict(slot=slot,animation=name,
             status='fixed_vertex_counterexample' if unique else 'no_fixed_vertex_counterexample',
             counterexample_count=len(unique),fixed_triangles=len(fixed),failed_times=samples,
