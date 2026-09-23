@@ -45,7 +45,7 @@ def options(body):
     return dict(body, prompt=prompt.strip())
 
 
-def submit(manager, body):
+def submit(manager, body, *, retry_of=None):
     selected = options(body)
     if availability(manager) != 'configured':
         raise PipelineRunError('motion_generation_unavailable')
@@ -56,6 +56,8 @@ def submit(manager, body):
         folder = manager.folder(job, True)
         value = dict(job_id=job, kind='generate', name=selected['prompt'][:80], format='npz',
                      view=selected['view'], status='pending', step='queued', authority='none')
+        if retry_of is not None:
+            value['retry_of'] = deepcopy(retry_of)
         request = dict(value, generation=selected, model=MODEL,
                        npz_options=dict(profile='kimodo-soma77-v1', fps='30'))
         publish_document(folder / 'request.json', request, staging=folder / 'staging')

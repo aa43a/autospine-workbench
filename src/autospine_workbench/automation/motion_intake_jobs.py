@@ -122,7 +122,7 @@ class MotionIntakeJobs:
                 if (folder / 'result.json').exists():
                     value = read_document(folder / 'result.json')
                 else:
-                    public = {k: request[k] for k in ('job_id', 'kind', 'name', 'format', 'view', 'project_id') if k in request}
+                    public = {k: request[k] for k in ('job_id', 'kind', 'name', 'format', 'view', 'project_id', 'retry_of') if k in request}
                     value = dict(public, status='interrupted', step='interrupted',
                                  authority='none', reason_code='motion_import_interrupted')
         if check_current and value.get('kind') == 'adapt' and value['status'] == 'succeeded':
@@ -152,7 +152,13 @@ class MotionIntakeJobs:
             return retry(self, request)
         if request.get('kind') == 'generate':
             from .motion_generation_jobs import submit
-            return submit(self, request['generation'])
+            raw = read_real_file(self.folder(job) / 'request.json', MAX_UPLOAD, 'generation request')
+            import json
+            exact = json.loads(raw)
+            if exact != request:
+                raise PipelineRunError('motion_generation_request_changed')
+            return submit(self, exact['generation'], retry_of=dict(
+                job_id=job, request_sha256=sha256(raw).hexdigest()))
         if request.get('kind') == 'adapt':
             from .motion_target_jobs import submit
             body = {k: request[k] for k in ('project_id', 'character_job_id')}

@@ -47,11 +47,19 @@ class MotionGenerationTests(unittest.TestCase):
             self.assertEqual(self.jobs.get(first['job_id'])['status'], 'interrupted')
             second = self.jobs.retry(first['job_id'])
             self.assertNotEqual(first['job_id'], second['job_id'])
+            lineage = dict(job_id=first['job_id'], request_sha256=sha256(before).hexdigest())
+            self.assertEqual(second['retry_of'], lineage)
             self.assertEqual(read_document(self.jobs.folder(second['job_id']) / 'request.json')['generation'], BODY)
+            self.assertEqual(read_document(self.jobs.folder(second['job_id']) / 'request.json')['retry_of'], lineage)
             self.assertEqual((folder / 'request.json').read_bytes(), before)
+            pending = self.jobs._jobs.pop(second['job_id'])
+            self.assertEqual(self.jobs.get(second['job_id'])['retry_of'], lineage)
+            self.jobs._jobs[second['job_id']] = pending
             self.jobs.cancel(second['job_id'])
             self.jobs._execute(second['job_id'])
             self.assertEqual(self.jobs.get(second['job_id'])['status'], 'canceled')
+            del self.jobs._jobs[second['job_id']]
+            self.assertEqual(self.jobs.get(second['job_id'])['retry_of'], lineage)
 
     def test_unconfigured_runtime_does_not_queue(self):
         with patch('autospine_workbench.automation.motion_generation_jobs.availability', return_value='unavailable'), \
