@@ -26,7 +26,11 @@ def history(manager, job):
 def inspect(manager, job):
     with manager._lock:
         rows=history(manager,job)
-        return dict(job_id=job,revision=len(rows),history=rows,authority='none',replacement_applied=False)
+        return state(job,rows)
+
+
+def state(job,rows):
+    return dict(job_id=job,revision=len(rows),history=rows,mapping_sha256s=[canonical_sha256(r) for r in rows],authority='none',replacement_applied=False)
 
 
 def validate(files, receipt, body):
@@ -90,4 +94,4 @@ def save(manager, job, body):
         root=directory(manager.folder(job)/'material-mappings',create=True)
         if not publish_document(root/f"mapping-{row['revision']:04d}.json",row,staging=root/'staging'):
             raise PipelineRunError('motion_material_mapping_revision_changed')
-        return dict(job_id=job,revision=len(rows)+1,history=rows+[row],authority='none',replacement_applied=False)
+        return state(job,rows+[row])

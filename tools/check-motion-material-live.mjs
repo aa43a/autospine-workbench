@@ -49,6 +49,12 @@ try {
  await mapping.getByRole('button',{name:'加载回交版本和映射',exact:true}).click();
  await mapping.getByText(/已恢复 .* 个三角形，1–2 秒/).waitFor();
  await mapping.screenshot({path:path.join(output,'mapping.png')});
+ if(process.argv.includes('--execute')){
+  const submitted=page.waitForResponse(r=>r.url()===prefix+'/material-execute'&&r.request().method()==='POST');
+  await mapping.getByRole('button',{name:'构建区域换图候选',exact:true}).click();
+  const response=await submitted,value=await response.json();assert.equal(response.status(),202,JSON.stringify(value));
+  await fs.writeFile(path.join(output,'execution.json'),JSON.stringify(value));
+ }
  const unmapped=page.waitForResponse(r=>r.url()===prefix+'/material-mapping'&&r.request().method()==='POST');
  await mapping.getByRole('button',{name:'撤销当前素材映射',exact:true}).click();
  assert.equal((await (await unmapped).json()).history.at(-1).action,'withdraw');

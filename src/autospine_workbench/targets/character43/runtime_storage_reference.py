@@ -57,7 +57,8 @@ def stored_document(document):
             if name not in {s['name'] for s in result['slots']} or set(tracks)-{'alpha'}:
                 raise ValueError('runtime_storage_slot_track_unsupported')
             for key in tracks.get('alpha',[]):
-                if set(key)-{'time','value'} or not 0<=key.get('value',0)<=1:
+                if (set(key)-{'time','value','curve'} or not 0<=key.get('value',0)<=1
+                        or 'curve' in key and key['curve']!='stepped'):
                     raise ValueError('runtime_storage_alpha_unsupported')
                 key['time']=f32(key.get('time',0));key['value']=f32(key.get('value',0))
             require_distinct_times(tracks.get('alpha',[]))

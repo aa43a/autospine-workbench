@@ -6,6 +6,16 @@ export function materialMapping(parent,job,row) {
   const [load,save,withdraw]=panel.querySelectorAll('button'),select=panel.querySelector('select'),[start,end]=panel.querySelectorAll('input'),status=panel.querySelector('p');
   for(const control of panel.querySelectorAll('input,select'))control.style.cssText='max-width:100%;min-width:0;box-sizing:border-box';
   const region=partitionEditor(panel,job,row,{textureOnly:true});let draft=null,state=null,generation=0;
+  const execute=document.createElement('button');execute.type='button';execute.textContent='构建区域换图候选';execute.disabled=true;panel.append(execute);
+  execute.onclick=async()=>{
+    const latest=state?.history.filter(r=>r.material_bundle_sha256===select.value).at(-1);
+    if(latest?.action!=='map')return;panel.disabled=true;
+    try{
+      const response=await fetch(`/api/motions/${encodeURIComponent(job.job_id)}/material-execute`,{method:'POST',headers:{'Content-Type':'application/json','X-Autospine-Intent':'pipeline-preview'},body:JSON.stringify({revision:latest.revision,mapping_sha256:state.mapping_sha256s[latest.revision-1]})});
+      const value=await response.json();if(!response.ok)throw Error(value.reason_code||'构建失败');
+      const link=document.createElement('a');link.textContent='查看换图任务进度与结果';link.href='/motions.html#'+encodeURIComponent(value.job_id);status.replaceChildren(link);
+    }catch(e){status.textContent=e.message;}finally{panel.disabled=false;}
+  };
   save.disabled=withdraw.disabled=true;
   const url=`/api/motions/${encodeURIComponent(job.job_id)}/material-mapping`;
   const restore=()=>{
@@ -13,6 +23,7 @@ export function materialMapping(parent,job,row) {
     const mapping=latest?.action==='map'?latest.mapping:null;region.restore(mapping);
     start.value=mapping?.interval[0]??'';end.value=mapping?.interval[1]??'';
     save.disabled=!select.value;withdraw.disabled=!mapping;
+    execute.disabled=!mapping;
     status.textContent=mapping?`已恢复 ${mapping.triangles.length} 个三角形，${mapping.interval[0]}–${mapping.interval[1]} 秒；尚未应用。`:'尚无有效映射；圈选区域并填写时间。';
   };
   select.onchange=restore;
@@ -42,5 +53,5 @@ export function materialMapping(parent,job,row) {
     }catch(e){status.textContent=e.message;}finally{if(token===generation)panel.disabled=false;}
   };
   save.onclick=()=>submit('map');withdraw.onclick=()=>submit('withdraw');
-  return revision=>{generation++;draft=revision;state=null;panel.disabled=false;select.replaceChildren();region.restore(null);start.value=end.value='';save.disabled=withdraw.disabled=true;panel.hidden=!revision;panel.style.display=revision?'':'none';};
+  return revision=>{generation++;draft=revision;state=null;panel.disabled=false;select.replaceChildren();region.restore(null);start.value=end.value='';save.disabled=withdraw.disabled=execute.disabled=true;panel.hidden=!revision;panel.style.display=revision?'':'none';};
 }

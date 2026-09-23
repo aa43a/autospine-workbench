@@ -8,6 +8,14 @@ from autospine_workbench.targets.character43.runtime_storage_reference import bu
 
 
 class RuntimeStorageTests(unittest.TestCase):
+    def test_stepped_alpha_is_preserved_but_bezier_is_rejected(self):
+        doc=self.document();doc['slots']=[dict(name='mesh',bone='a')]
+        doc['animations']['walk']['slots']={'mesh':{'alpha':[dict(time=.123456789,value=1,curve='stepped')]}}
+        key=stored_document(doc)['animations']['walk']['slots']['mesh']['alpha'][0]
+        self.assertEqual(key['curve'],'stepped');self.assertEqual(key['time'],f32(.123456789))
+        doc['animations']['walk']['slots']['mesh']['alpha'][0]['curve']=[0,1,0,1]
+        with self.assertRaisesRegex(ValueError,'alpha_unsupported'):stored_document(doc)
+
     def test_linear_alpha_is_quantized_but_attachment_switching_rejected(self):
         doc=self.document();name='mesh';doc['slots']=[dict(name=name,bone='a')]
         doc['animations']['walk']['slots']={name:{'alpha':[dict(time=.123456789,value=.3456789)]}}

@@ -58,5 +58,8 @@ def submit(manager, parent_job, body):
 
 def retry(manager, request):
     repair = request['repair_execution']
+    if repair.get('material_mapping'):
+        from .motion_material_execution import submit as material_submit
+        return material_submit(manager,repair['parent_job_id'],dict(revision=repair['material_mapping']['revision'],mapping_sha256=repair['material_mapping_sha256']))
     return submit(manager, repair['parent_job_id'],
                   dict(revision=repair['draft']['revision'], draft_sha256=repair['draft_sha256']))
