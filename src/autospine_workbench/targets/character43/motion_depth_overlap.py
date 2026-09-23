@@ -61,8 +61,8 @@ class Probe:
         return count
 
     def pair(self, a, b, time):
-        if self.document['animations'][self.animation].get('slots'):
-            raise ValueError('depth_overlap_attachment_unsupported')
+        from .depth_slot_visibility import sample as visibility
+        alpha = visibility(self.document, self.animation, time)
         key = (min(a, b), max(a, b), time)
         if key in self.results:
             return self.results[key]
@@ -75,7 +75,7 @@ class Probe:
         for name in (a, b):
             slot = self.slots[name]
             attachment = self.document['skins'][0]['attachments'][name][slot['attachment']]
-            if (slot.get('blend', 'normal') != 'normal' or slot.get('color', 'ffffffff') != 'ffffffff'
+            if (slot.get('blend', 'normal') != 'normal' or slot.get('color', 'ffffffff') not in ('ffffffff', 'ffffff00')
                     or attachment.get('type') != 'mesh' or attachment.get('color', 'ffffffff') != 'ffffffff'):
                 raise ValueError('depth_overlap_attachment_unsupported')
             if name not in self.textures:
@@ -110,8 +110,8 @@ class Probe:
             measurements=[]
             if self.tiled: self._alpha_key=key; self._alpha_tiles={}
             for region in regions:
-                first = mask(attachments[0], points[a], self.textures[a], region) >= 8
-                second = mask(attachments[1], points[b], self.textures[b], region) >= 8
+                first = mask(attachments[0], points[a], self.textures[a], region) * alpha.get(a, 1) >= 8
+                second = mask(attachments[1], points[b], self.textures[b], region) * alpha.get(b, 1) >= 8
                 common=first&second
                 measurements.append(dict(status='sampled',overlap_pixels=int(common.sum()),roi=region))
                 if self.tiled:
