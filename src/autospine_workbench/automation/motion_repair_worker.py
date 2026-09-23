@@ -37,11 +37,15 @@ def execute(folder, state_root, workspace, request):
         files, evidence, geometry = builder(source,plan,lambda _:progress(folder,'post_contact_repair'))
     # This provenance is part of the immutable result, not a mutable UI association.
     import json
+    from .motion_repair_depth import recheck
+    progress(folder, 'depth_overlap')
+    depth = recheck(files, request, state_root, lambda: progress(folder, 'depth_overlap'))
     provenance = dict(repair, selected=False, authority='none')
     files.update(history)
     files['motion-repair-provenance.json'] = canonical_bytes(provenance)
     manifest = json.loads(files['character-manifest.json'])
     from hashlib import sha256
+    manifest['files']['motion-depth.json'] = sha256(files['motion-depth.json']).hexdigest()
     manifest['files']['motion-repair-provenance.json'] = sha256(files['motion-repair-provenance.json']).hexdigest()
     manifest['files'].update({name:sha256(raw).hexdigest() for name,raw in history.items()})
     files['character-manifest.json'] = canonical_bytes(manifest)
@@ -54,5 +58,6 @@ def execute(folder, state_root, workspace, request):
         contact_status=evidence['contact_status'],depth_order_status='not_evaluated',
         authority='none',production_authorized=False,repair_parent_job_id=repair['parent_job_id'],
         repair_parent_artifact_sha256=repair['parent_artifact_sha256'],repair_profile=expected,
+        repair_depth_overlap=depth.get('target_overlap'),
         clip=request.get('clip'),projection=request.get('projection'))
     (folder/'worker-result.json').write_bytes(canonical_bytes(result))
