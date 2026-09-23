@@ -6,20 +6,24 @@ from ..targets.character43.selected_attachment_repair import build
 from .animated_store import AnimatedStore
 from .character_capture import capture
 from .motion_intake_process import progress
-from .motion_repair_execution import PROFILE
+from .motion_repair_execution import PROFILE,PARTITION_PROFILE
 from .storage_io import canonical_bytes
 
 
 def execute(folder, state_root, workspace, request):
     repair = request['repair_execution']; plan = repair['draft']
-    if (repair['profile'] != PROFILE or canonical_sha256(plan) != repair['draft_sha256']
+    expected={'local_repair':PROFILE,'partition':PARTITION_PROFILE}.get(plan['action'])
+    if (expected is None or repair['profile'] != expected or canonical_sha256(plan) != repair['draft_sha256']
             or plan['artifact_sha256'] != repair['parent_artifact_sha256']
-            or plan['action'] != 'local_repair'):
+            ):
         raise ValueError('motion_repair_identity_mismatch')
     store = AnimatedStore(state_root)
     source = store.read(repair['parent_artifact_sha256'])
     progress(folder,'post_contact_repair')
-    files, evidence, geometry = build(source,plan,lambda _:progress(folder,'post_contact_repair'))
+    builder=build
+    if expected==PARTITION_PROFILE:
+        from ..targets.character43.partition_candidate import build as builder
+    files, evidence, geometry = builder(source,plan,lambda _:progress(folder,'post_contact_repair'))
     # This provenance is part of the immutable result, not a mutable UI association.
     import json
     provenance = dict(repair, selected=False, authority='none')
@@ -36,6 +40,6 @@ def execute(folder, state_root, workspace, request):
         animations=[plan['animation']],issues=evidence['issues'],geometry_passed=geometry['passed'],
         contact_status=evidence['contact_status'],depth_order_status='not_evaluated',
         authority='none',production_authorized=False,repair_parent_job_id=repair['parent_job_id'],
-        repair_parent_artifact_sha256=repair['parent_artifact_sha256'],repair_profile=PROFILE,
+        repair_parent_artifact_sha256=repair['parent_artifact_sha256'],repair_profile=expected,
         clip=request.get('clip'),projection=request.get('projection'))
     (folder/'worker-result.json').write_bytes(canonical_bytes(result))

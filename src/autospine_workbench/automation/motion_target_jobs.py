@@ -143,7 +143,8 @@ def review_file(manager, job, parts):
         report = dict(artifact_sha256=result['artifact_sha256'], parent_job_id=parent['parent_job_id'],
             parent_artifact_sha256=parent['parent_artifact_sha256'], slot=repair['slot'],
             before=repair['parent_geometry'], after=repair['geometry'],
-            unchanged_other_channels=repair['unchanged_other_channels'], selected=False, authority='none')
+            unchanged_other_channels=repair.get('unchanged_other_channels',True),
+            profile=repair['profile'],boundary=repair.get('boundary'), selected=False, authority='none')
         return json.dumps(report,ensure_ascii=False).encode('utf-8'),'application/json'
     if parts == ['source-comparison.json']:
         from .motion_source_comparison import build

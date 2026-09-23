@@ -16,7 +16,7 @@ export function partitionEditor(parent,job,row) {
       ctx.closePath();if(selected.has(i/3)){ctx.fillStyle='#ffbb0070';ctx.fill();}
       ctx.strokeStyle=selected.has(i/3)?'#ffd050':'#7faabb60';ctx.stroke();
     }
-    status.textContent=`已选择 ${selected.size} 个三角形。拖动笔刷增减区域，再保存处理草稿；尚不拆分或重绑网格。`;
+    status.textContent=`已选择 ${selected.size} 个三角形。保存后可构建独立分区候选；所选区域刚性随目标骨骼，边界可能分离，需重新检查。`;
   };
   const restore=()=>{selected=new Set(saved?.triangles||[]);if(saved)bone.value=saved.bone;draw();};
   open.onclick=async()=>{const ticket=++generation;open.disabled=true;
