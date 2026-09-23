@@ -12,6 +12,17 @@ STEPS = {'verify_source', 'convert_fbx', 'verify_bridge', 'inspect_bvh', 'inspec
          'generate_motion', 'verify_generation', 'depth_overlap', 'depth_partition',
          'depth_refinement', 'depth_cloth_constraints', 'depth_limb_constraints', 'depth_ordering', 'torso_projection', 'local_depth'}
 
+# Only explicit internal failures may cross the worker log boundary.
+REPAIR_FAILURES = frozenset({
+    'runtime_storage_alpha_unsupported',
+    'material_scene_skin_or_animation', 'material_scene_existing_order_or_slot_tracks',
+    'material_scene_mesh_changed', 'material_scene_mapping_invalid',
+    'material_scene_policy_unsupported', 'material_scene_slot_style', 'material_scene_name_collision',
+    'material_candidate_identity_changed', 'material_candidate_bundle_changed',
+    'material_candidate_reference_changed', 'material_candidate_time_outside_motion',
+    'material_candidate_sample_limit', 'material_candidate_image_changed',
+})
+
 
 def progress(folder, step):
     if step not in STEPS:
@@ -37,7 +48,7 @@ def failure_reason(path):
     for line in reversed(lines[-3:]):
         try:
             reason = json.loads(line).get('reason_code', '')
-            if isinstance(reason, str) and re.fullmatch(r'(motion|character)_[a-z0-9_]{1,80}', reason):
+            if isinstance(reason, str) and (reason in REPAIR_FAILURES or re.fullmatch(r'(motion|character)_[a-z0-9_]{1,80}', reason)):
                 return reason
         except (ValueError, AttributeError):
             pass

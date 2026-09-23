@@ -84,7 +84,7 @@ function renderRow(panel, row, base, onSeek, onInspect, job) {
   image.onload = draw;
   image.onerror = () => {detailText.append(' 原纹理加载失败。');};
   section.append(select, canvas, detailText, shapeText, seek, node('p', row.note),
-    node('p', '下一步：在此时刻对照源姿态与整体轮廓，再选择局部修正、分区或姿态附件；这些选项尚不自动改动素材。'));
+    node('p', '处理顺序：先同帧核对源动作的方向和前后关系；方向正确后再检查权重、分区及局部形状。区域换图只替换选区纹理，保留原网格与动作，不能消除翻转、压缩或错误的屈膝方向。所有修正另建候选，保留原结果。'));
   draw(); image.src = row.texture;
   appendRepairFeasibility(section,job,row,onSeek);
   const changed=appendRepairDraft(section,job,row,()=>row.details[Number(select.value)]);
