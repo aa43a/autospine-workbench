@@ -147,12 +147,12 @@ class MotionTargetTests(unittest.TestCase):
                 self.assertEqual(regional['depth_review_profile'], 'external-regional-depth-order-v1')
                 self.assertNotIn('local_depth_profile',regional)
                 manager._jobs[disabled['job_id']].update(status='failed')
-                with patch('autospine_workbench.automation.motion_target_jobs.submit') as retry:
+                with patch('autospine_workbench.automation.motion_target_retry.retry') as retry:
                     manager.retry(disabled['job_id'])
-                    self.assertFalse(retry.call_args.args[2]['contact_correction'])
-                    self.assertEqual(retry.call_args.args[2]['depth_review_profile'], 'external-regional-depth-order-v1')
-                    self.assertEqual(retry.call_args.args[2]['clip'], dict(start_frame=0, end_frame=1))
-                    self.assertEqual(retry.call_args.args[2]['projection'],
+                    self.assertFalse(retry.call_args.args[1]['contact_correction'])
+                    self.assertEqual(retry.call_args.args[1]['depth_review_profile'], 'external-regional-depth-order-v1')
+                    self.assertEqual(retry.call_args.args[1]['clip'], dict(start_frame=0, end_frame=1))
+                    self.assertEqual(retry.call_args.args[1]['projection'],
                                      dict(profile='constant-yaw-source-motion-v1',yaw_degrees=30))
                 torso_profile='torso-plane-compensated-deform-v1-experiment'
                 torso_job=submit(manager,queued['job_id'],dict(project_id='alice',
@@ -161,9 +161,9 @@ class MotionTargetTests(unittest.TestCase):
                 self.assertEqual(torso_request['torso_projection_profile'],torso_profile)
                 self.assertNotIn('torso_projection_profile',request)
                 manager._jobs[torso_job['job_id']].update(status='failed')
-                with patch('autospine_workbench.automation.motion_target_jobs.submit') as retry:
+                with patch('autospine_workbench.automation.motion_target_retry.retry') as retry:
                     manager.retry(torso_job['job_id'])
-                    self.assertEqual(retry.call_args.args[2]['torso_projection_profile'],torso_profile)
+                    self.assertEqual(retry.call_args.args[1]['torso_projection_profile'],torso_profile)
                 character['artifact_sha256'] = 'd'*64
                 from autospine_workbench.automation.motion_target_pose import HIP_PROFILE
                 pose_job=submit(manager,queued['job_id'],dict(project_id='alice',character_job_id='job-'+'c'*32,pose_profile=HIP_PROFILE))
@@ -171,9 +171,9 @@ class MotionTargetTests(unittest.TestCase):
                 self.assertEqual(pose_request['pose_profile'],HIP_PROFILE)
                 self.assertNotIn('pose_profile',request)
                 manager._jobs[pose_job['job_id']].update(status='failed')
-                with patch('autospine_workbench.automation.motion_target_jobs.submit') as retry:
+                with patch('autospine_workbench.automation.motion_target_retry.retry') as retry:
                     manager.retry(pose_job['job_id'])
-                    self.assertEqual(retry.call_args.args[2]['pose_profile'],HIP_PROFILE)
+                    self.assertEqual(retry.call_args.args[1]['pose_profile'],HIP_PROFILE)
                 with self.assertRaisesRegex(PipelineRunError, 'motion_target_character_changed'):
                     assert_current(manager, request)
                 manager._jobs[value['job_id']].update(status='succeeded', result={})

@@ -160,22 +160,8 @@ class MotionIntakeJobs:
             return submit(self, exact['generation'], retry_of=dict(
                 job_id=job, request_sha256=sha256(raw).hexdigest()))
         if request.get('kind') == 'adapt':
-            from .motion_target_jobs import submit
-            body = {k: request[k] for k in ('project_id', 'character_job_id')}
-            body['contact_correction'] = request.get('contact_correction', True)
-            if request.get('pose_profile') is not None:
-                body['pose_profile'] = request['pose_profile']
-            if request.get('depth_review_profile') is not None:
-                body['depth_review_profile'] = request['depth_review_profile']
-            if request.get('torso_projection_profile') is not None:
-                body['torso_projection_profile'] = request['torso_projection_profile']
-            if request.get('clip') is not None:
-                body['clip'] = request['clip']
-            if request.get('projection') is not None:
-                body['projection'] = request['projection']
-            if request.get('projection_selection') is not None:
-                body['projection_selection'] = {'comparison_sha256':request['projection_selection']['comparison_sha256']}
-            return submit(self, request['source_job_id'], body)
+            from .motion_target_retry import retry
+            return retry(self, request)
         raw = read_real_file(self.folder(job) / ('source.' + request['format']), MAX_UPLOAD, 'motion source')
         if sha256(raw).hexdigest() != request['source_sha256']:
             raise PipelineRunError('motion_source_changed')

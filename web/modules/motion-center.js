@@ -153,8 +153,8 @@ function render(data) {
       : ' · ' + (job.view === 'side' ? '侧面' : '正面'))),
       node('p', `${state}${detail ? ' · ' + detail : ''}`));
     if (job.cancel_requested && active.has(job.status)) item.append(node('p', '正在停止任务及其子进程；确认停止后可重新执行。'));
-    if(job.kind==='generate'&&/^motion-[a-f0-9]{32}$/.test(job.retry_of?.job_id)){
-      const retry=node('a','查看原生成任务（本次为独立重试）');
+    if(/^motion-[a-f0-9]{32}$/.test(job.retry_of?.job_id)){
+      const retry=node('a',job.kind==='generate'?'查看原生成任务（本次为独立重试）':'查看原适配任务（保留原策略重试）');
       retry.href='/motions.html#'+job.retry_of.job_id;item.append(retry);
     }
     if (job.status === 'succeeded' && job.kind === 'adapt') {
