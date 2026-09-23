@@ -3,10 +3,11 @@ import numpy as np
 from ..spine43.seam_raster import mask
 
 
-def classify(mesh, positions, alpha, rect, common, intervals, margin, charge, on_triangle=None):
+def classify(mesh, positions, alpha, rect, common, intervals, margin, charge, on_triangle=None,on_ambiguity=None):
     x,y,w,h=rect
     points=np.asarray([(p[0],-p[1]) for p in positions])
     masks={k:np.zeros((h,w),dtype=bool) for k in ('front','back','ambiguous','unknown')}
+    near={k:np.zeros((h,w),dtype=bool) for k in ('front','back','crossing','plane')}
     flat=mesh['triangles']
     for i in range(0,len(flat),3):
         indices=flat[i:i+3];a,b,c=points[indices]
@@ -40,9 +41,23 @@ def classify(mesh, positions, alpha, rect, common, intervals, margin, charge, on
         masks['front'][region]|=opaque&front
         masks['back'][region]|=opaque&back
         masks['ambiguous'][region]|=opaque&~(front|back)
+        near['crossing'][region]|=opaque&(low<0)&(high>0)
+        near['front'][region]|=opaque&(low>=0)&(high>0)
+        near['back'][region]|=opaque&(high<=0)&(low<0)
+        near['plane'][region]|=opaque&(low==0)&(high==0)
         if on_triangle:on_triangle(i//3,dict(front=int((opaque&front).sum()),
             back=int((opaque&back).sum()),ambiguous=int((opaque&~(front|back)).sum())))
     unknown=masks['unknown']|(common&~np.logical_or.reduce(list(masks.values())))
     ambiguous=(masks['ambiguous']|(masks['front']&masks['back']))&~unknown
+    if on_ambiguity:
+        remaining=ambiguous.copy();causes={}
+        for name,support in (
+                ('opposing_surface_support',near['front']&near['back']),
+                ('interval_crosses_plane',near['crossing']),
+                ('near_plane_back',near['back']),('near_plane_front',near['front']),
+                ('on_reference_plane',near['plane'])):
+            selected=remaining&support;causes[name]=int(selected.sum());remaining&=~selected
+        causes['unclassified']=int(remaining.sum())
+        on_ambiguity(causes)
     return {k:int(v.sum()) for k,v in dict(unknown=unknown,ambiguous=ambiguous,
         front=masks['front']&~unknown&~ambiguous,back=masks['back']&~unknown&~ambiguous).items()}

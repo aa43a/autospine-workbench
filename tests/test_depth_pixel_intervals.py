@@ -38,5 +38,25 @@ class PixelDepthTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'budget'):
             classify(self.mesh,self.points,self.alpha,self.rect,self.common,[[1,1]]*3,.1,charge)
 
+    def test_ambiguity_causes_keep_near_plane_separate_from_crossing(self):
+        for interval,reason in (([-.01,-.01],'near_plane_back'),([.01,.01],'near_plane_front'),
+                                ([-.2,.2],'interval_crosses_plane'),([0,0],'on_reference_plane')):
+            evidence={}
+            counts=classify(self.mesh,self.points,self.alpha,self.rect,self.common,[interval]*3,.1,
+                lambda n:None,on_ambiguity=evidence.update)
+            self.assertEqual(counts['ambiguous'],int(self.common.sum()))
+            self.assertEqual(evidence[reason],counts['ambiguous'])
+            self.assertEqual(sum(evidence.values()),counts['ambiguous'])
+
+    def test_opposite_surfaces_and_unknown_priority_preserve_inventory(self):
+        mesh=dict(uvs=self.mesh['uvs']*2,triangles=[0,1,2,3,4,5]);evidence={}
+        counts=classify(mesh,self.points*2,self.alpha,self.rect,self.common,[[1,1]]*3+[[-1,-1]]*3,
+            .1,lambda n:None,on_ambiguity=evidence.update)
+        self.assertEqual(evidence['opposing_surface_support'],counts['ambiguous'])
+        counts=classify(mesh,self.points*2,self.alpha,self.rect,self.common,[None]*3+[[-.01,-.01]]*3,
+            .1,lambda n:None,on_ambiguity=evidence.update)
+        self.assertEqual(counts['unknown'],int(self.common.sum()))
+        self.assertEqual(sum(evidence.values()),0)
+
 
 if __name__=='__main__':unittest.main()

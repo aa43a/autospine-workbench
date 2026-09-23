@@ -21,5 +21,13 @@ class SummaryTests(unittest.TestCase):
         row['check']['overlap_pixels']=8
         with self.assertRaisesRegex(ValueError,'inventory'):summarize([row])
 
+    def test_optional_ambiguity_details_conserve_and_keep_old_reports_unchanged(self):
+        row=self.row(0,[0,5,2,0])
+        self.assertNotIn('ambiguity_causes',summarize([row])['pairs'][0])
+        row['check']['ambiguity_causes']={'near_plane_back':2}
+        self.assertEqual(summarize([row])['pairs'][0]['ambiguity_causes'],{'near_plane_back':2})
+        row['check']['ambiguity_causes']['near_plane_back']=3
+        with self.assertRaisesRegex(ValueError,'ambiguity_inventory'):summarize([row])
+
 
 if __name__=='__main__':unittest.main()

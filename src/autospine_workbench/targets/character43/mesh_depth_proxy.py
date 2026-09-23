@@ -80,14 +80,16 @@ def overlap_support(probe, arm, torso, time, segments, *, margin=.02, endpoint_c
     if 'tiles' in pair:
         from .depth_raster_tiles import TileProbe
         counts={k:0 for k in ('front','back','ambiguous','unknown')}
+        ambiguity={}
         for tile in pair['tiles']:
             if not tile['overlap_pixels']: continue
             part=overlap_support(TileProbe(probe,tile),arm,torso,time,segments,margin=margin,
                 endpoint_caps=endpoint_caps,reference_plane=reference_plane,axis_lengths=axis_lengths,depth_intervals=depth_intervals,pixelwise=pixelwise,on_triangle=on_triangle)
             for key,value in part['counts'].items(): counts[key]+=value
+            for key,value in part.get('ambiguity_causes',{}).items():ambiguity[key]=ambiguity.get(key,0)+value
         status=('uniform_front_proxy' if counts['front']==pair['overlap_pixels'] else
                 'uniform_back_proxy' if counts['back']==pair['overlap_pixels'] else 'requires_partition_or_more_depth')
-        return dict(result,status=status,counts=counts,raster_policy='native_pixel_tiles_256_v1')
+        return dict(result,status=status,counts=counts,ambiguity_causes=ambiguity,raster_policy='native_pixel_tiles_256_v1')
     rect=pair['roi']; area=rect[2]*rect[3]
     attachments={n:probe.document['skins'][0]['attachments'][n][probe.slots[n]['attachment']] for n in (arm,torso)}
     def raster(name,attachment):
@@ -111,11 +113,12 @@ def overlap_support(probe, arm, torso, time, segments, *, margin=.02, endpoint_c
         def charge(amount):
             if probe.remaining<amount:raise ValueError('depth_overlap_pixel_budget')
             probe.remaining-=amount
+        ambiguity={}
         counts=classify(attachments[arm],probe.positions[time][arm],probe.textures[arm],rect,
-                        common,intervals,margin,charge,on_triangle=on_triangle)
+                        common,intervals,margin,charge,on_triangle=on_triangle,on_ambiguity=ambiguity.update)
         status=('uniform_front_proxy' if counts['front']==pair['overlap_pixels'] else
                 'uniform_back_proxy' if counts['back']==pair['overlap_pixels'] else 'requires_partition_or_more_depth')
-        return dict(result,status=status,counts=counts)
+        return dict(result,status=status,counts=counts,ambiguity_causes=ambiguity)
     flat=attachments[arm]['triangles']; groups={k:[] for k in ('front','back','ambiguous','unknown')}
     for i in range(0,len(flat),3):
         tri=flat[i:i+3]; depths=[intervals[v] for v in tri]

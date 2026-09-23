@@ -18,6 +18,12 @@ def summarize(records):
             reason='no_visible_overlap'
         else:
             counts=check['counts']
+            ambiguity=check.get('ambiguity_causes')
+            if ambiguity:
+                if (any(type(v) is not int or v<0 for v in ambiguity.values())
+                        or sum(ambiguity.values())!=counts['ambiguous']):
+                    raise ValueError('local_depth_ambiguity_inventory')
+                group.setdefault('ambiguity',Counter()).update(ambiguity)
             if (set(counts)!={'front','back','ambiguous','unknown'}
                     or any(type(v) is not int or v<0 for v in counts.values())
                     or sum(counts.values())!=check['overlap_pixels']):
@@ -32,5 +38,6 @@ def summarize(records):
             else:reason='uniform_back_proxy'
         group['reasons'][reason]+=1
     return dict(profile='local-depth-cause-summary-v1',pairs=[dict(pair=list(pair),samples=g['samples'],
-        reasons=dict(g['reasons']),pixel_observations=dict(g['pixels'])) for pair,g in groups.items()],
+        reasons=dict(g['reasons']),pixel_observations=dict(g['pixels']),
+        **({'ambiguity_causes':dict(g['ambiguity'])} if 'ambiguity' in g else {})) for pair,g in groups.items()],
         authority='none',selected=False,scope='sampled_proxy_causes_not_depth_truth_or_error_rate')

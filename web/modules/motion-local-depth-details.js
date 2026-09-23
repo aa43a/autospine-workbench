@@ -1,4 +1,5 @@
 const labels={depth_margin_ambiguity:'深度接近，暂不能判定前后',missing_depth_support:'缺少深度依据',mixed_front_back_support:'同一区域存在前后支持',uniform_back_proxy:'模型支持后侧',uniform_front_proxy:'模型支持前侧',no_visible_overlap:'没有可见重叠'};
+const ambiguityLabels={near_plane_back:'靠近躯干后侧，间隔不足',near_plane_front:'靠近躯干前侧，间隔不足',interval_crosses_plane:'深度区间跨越躯干平面',opposing_surface_support:'重叠表面前后支持冲突',on_reference_plane:'位于参考平面',unclassified:'尚未分类'};
 export function appendLocalDepthDetails(panel,job,base){
   const button=document.createElement('button');button.textContent='查看局部深度补充检查';
   const content=document.createElement('section');content.setAttribute('aria-live','polite');
@@ -16,6 +17,7 @@ export function appendLocalDepthDetails(panel,job,base){
         summary.textContent=`${evidence.spatial_sampling==='barycentric_pixel_intervals'?'逐像素检查':'三角形范围检查'} · ${evidence.interpolation==='source_samples_only'?'源动作帧':'帧间插值模型'}`;details.append(summary);
         for(const pair of evidence.causes.pairs){
           const p=document.createElement('p');p.textContent=pair.pair.join(' / ')+'：'+Object.entries(pair.reasons).map(([k,v])=>`${labels[k]||(k.startsWith('unmeasured:')?'未测：'+k.slice(11):k)} ${v} 项`).join('；');details.append(p);
+          if(pair.ambiguity_causes&&Object.values(pair.ambiguity_causes).some(v=>v>0)){const detail=document.createElement('p');detail.textContent='歧义像素观测：'+Object.entries(pair.ambiguity_causes).filter(([,v])=>v>0).map(([k,v])=>`${ambiguityLabels[k]||k} ${v}`).join('；')+'。跨帧累计，非错误率；靠近参考平面不等于必须分区，仍未通过前后关系验收。';details.append(detail);}
         }
         for(const row of evidence.records){
           const p=document.createElement('p'),a=document.createElement('a');p.textContent=row.pair.join(' / ')+(row.reason_code?' · 未测 '+row.reason_code:'')+' ';
