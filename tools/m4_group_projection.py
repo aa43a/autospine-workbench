@@ -31,6 +31,9 @@ def main():
     from autospine_workbench.targets.character43.group_projection_pose import source_segments, pose
     from m4_group_projection_view import render
     segments = source_segments(bundle)
+    from autospine_workbench.targets.character43.group_bend_evidence import summarize as bend_evidence
+    report['source_bend_evidence'] = [bend_evidence(segments, report['times'], yaw)
+                                      for yaw in (0, -90, 90)]
     # Both signs remain visible, never silently select one from a tied score.
     modes = {'original': {}}
     for sign in (-90, 90):
