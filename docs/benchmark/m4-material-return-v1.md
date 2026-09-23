@@ -23,3 +23,17 @@ GET 返回历史回交记录；它不代表当前草稿已采用这些图片。
 
 后续必须完成：局部区域/UV 映射、姿态适用时段、独立候选构建、Runtime 与视觉验收。
 本次没有新美术素材，没有宣称 Reach/Squat 表达已修复，也没有改变默认采用策略。
+
+## 真实工作台验收补充
+
+8918 服务已加载本功能。在实际 Alice 候选上建立明确标注的测试草稿，上传原纹理，
+收到 `unchanged_source=true`，刷新整页后读取到同一草稿的回交版本。撤销测试草稿后
+再次提交旧任务返回 400 / `motion_material_plan_superseded`。
+原候选与动画保持不变，测试回交历史保留，不属于美术修复或视觉接受。
+
+第一次脚本未真正刷新同 URL，等待已展开页面按钮超时；其测试草稿已撤销。
+第二次通过，但实际截图发现窄栏标签竖排。修正文件选择器为上下布局并限制宽度后，
+第三次完整检查通过，增加无水平溢出与标签高度断言，截图已人工查看。
+证据：`tmp/material-return-live-v3/{browser.json,withdrawal.json,restored.png}`。
+脚本：`tools/m4_material_live_fixture.py`、`tools/check-motion-material-live.mjs`。
+15 项后端测试再次通过。本轮完成回交产品入口验收，区域映射与动作时段尚未实现。

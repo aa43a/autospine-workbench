@@ -1,6 +1,9 @@
 export function materialReturn(parent, job) {
   const panel=document.createElement('fieldset');
   panel.innerHTML='<legend>回交姿态素材</legend><label>任务包内 request.json <input type="file" accept=".json" aria-label="素材任务身份文件"></label><label>修改后的同画布 RGBA PNG <input type="file" accept="image/png" aria-label="回交姿态图片"></label><button type="button">保存回交素材</button><p role="status">保存后等待区域映射与重建，不直接替换当前动画。</p>';
+  panel.style.cssText='min-width:0;width:100%;box-sizing:border-box;grid-column:1/-1;overflow-wrap:anywhere';
+  for(const label of panel.querySelectorAll('label'))label.style.cssText='display:flex;flex-direction:column;align-items:stretch;gap:8px;min-width:0;width:100%;margin-bottom:12px';
+  for(const input of panel.querySelectorAll('input'))input.style.cssText='min-width:0;width:100%;max-width:100%;box-sizing:border-box';
   parent.append(panel);const [requestFile,pngFile]=panel.querySelectorAll('input'),button=panel.querySelector('button'),status=panel.querySelector('p');
   let current=null;
   const refresh=document.createElement('button');refresh.type='button';refresh.textContent='查看已回交版本';panel.append(refresh);
