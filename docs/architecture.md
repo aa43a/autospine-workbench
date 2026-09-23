@@ -1,5 +1,7 @@
 # AutoSpine Workbench 架构与质量门禁
 
+`motion_repair_execution` 冻结当前有效草稿与父候选，复用 adapt 隔离任务；重试保持修复合同，不退回普通 retarget。`selected_attachment_repair` 只在求解输入中隔离附件，输出恢复完整角色并验证其他通道不变；重建数值参考及原几何门禁，重新测量踝部支点，不沿用旧遮挡结论。`motion_repair_worker` 发布不可变候选、冻结计划来源并执行官方 Runtime，保留失败和独立人工验收边界。
+
 `motion_repair_material.py` 基于当前有效姿态草稿生成确定性 ZIP，重新核对完整定位报告与草稿事件，输出原 PNG 字节及诊断 SVG。源纹理 Y 向下、世界诊断 Y 反向转换分别记录；注释不进入 SVG。下载接口为只读 `/api/motions/<job>/repair-material/<revision>`，拒绝同事件已被更新或撤销的修订，不产生候选或改变门禁。
 
 `motion_repair_draft.py` 保存独立的追加式异常处理草稿。服务端从 geometry-details 重新解析真实极值事件，排除纹理内联字节后计算证据摘要；保存时校验候选、证据及期望修订。证据读取在任务锁外，修订检查与原子追加在锁内。撤销也是新修订，不写入阶段验收或执行修复。

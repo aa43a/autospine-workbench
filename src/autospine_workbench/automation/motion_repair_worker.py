@@ -1,0 +1,41 @@
+"""Isolated local corrective generation and official runtime capture."""
+from types import SimpleNamespace
+
+from ..resolved_project import canonical_sha256
+from ..targets.character43.selected_attachment_repair import build
+from .animated_store import AnimatedStore
+from .character_capture import capture
+from .motion_intake_process import progress
+from .motion_repair_execution import PROFILE
+from .storage_io import canonical_bytes
+
+
+def execute(folder, state_root, workspace, request):
+    repair = request['repair_execution']; plan = repair['draft']
+    if (repair['profile'] != PROFILE or canonical_sha256(plan) != repair['draft_sha256']
+            or plan['artifact_sha256'] != repair['parent_artifact_sha256']
+            or plan['action'] != 'local_repair'):
+        raise ValueError('motion_repair_identity_mismatch')
+    store = AnimatedStore(state_root)
+    source = store.read(repair['parent_artifact_sha256'])
+    progress(folder,'post_contact_repair')
+    files, evidence, geometry = build(source,plan,lambda _:progress(folder,'post_contact_repair'))
+    # This provenance is part of the immutable result, not a mutable UI association.
+    import json
+    provenance = dict(repair, selected=False, authority='none')
+    files['motion-repair-provenance.json'] = canonical_bytes(provenance)
+    manifest = json.loads(files['character-manifest.json'])
+    from hashlib import sha256
+    manifest['files']['motion-repair-provenance.json'] = sha256(files['motion-repair-provenance.json']).hexdigest()
+    files['character-manifest.json'] = canonical_bytes(manifest)
+    progress(folder,'publish_candidate')
+    artifact = store.publish(files)
+    runtime = capture(SimpleNamespace(workspace_root=workspace),store,artifact,folder,
+        progress=lambda _:progress(folder,'runtime'),cancel_requested=lambda:False,storage_reference=True)
+    result = dict(artifact_sha256=artifact,character_animation_status='needs_changes',runtime=runtime,
+        animations=[plan['animation']],issues=evidence['issues'],geometry_passed=geometry['passed'],
+        contact_status=evidence['contact_status'],depth_order_status='not_evaluated',
+        authority='none',production_authorized=False,repair_parent_job_id=repair['parent_job_id'],
+        repair_parent_artifact_sha256=repair['parent_artifact_sha256'],repair_profile=PROFILE,
+        clip=request.get('clip'),projection=request.get('projection'))
+    (folder/'worker-result.json').write_bytes(canonical_bytes(result))

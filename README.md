@@ -1,5 +1,7 @@
 # AutoSpine Workbench
 
+[局部修复任务](docs/how-to-motion-repair-draft.md)：从异常草稿构建独立附件修复候选，复用进度、取消、重试与 Runtime 验证；不覆盖原候选，不保证大动作修复成功。
+
 姿态附件草稿支持同页下载原纹理和异常定位素材任务包；这是补图交接，尚不自动生成或替换素材。
 
 [动作异常处理草稿](docs/how-to-motion-repair-draft.md)：在几何异常页选择处理路线、保存说明、刷新恢复及撤销；尚不执行修复或改变验收结论。

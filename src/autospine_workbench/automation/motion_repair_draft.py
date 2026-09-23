@@ -39,6 +39,7 @@ def history(manager, job):
 def _state(job, report, digest, rows):
     return dict(job_id=job, artifact_sha256=report['artifact_sha256'],
                 evidence_sha256=digest, revision=len(rows), history=rows,
+                draft_sha256s=[canonical_sha256(row) for row in rows],
                 authority='none', repair_executed=False, production_authorized=False)
 
 

@@ -135,6 +135,16 @@ def review_file(manager, job, parts):
         return read(None, None, None, parts)
     result, files = context(manager, job)
     runtime_file = runtime_reader(manager, job, result)
+    if parts == ['repair-summary.json']:
+        if 'motion-repair.json' not in files:
+            raise PipelineRunError('pipeline_artifact_not_found')
+        repair = json.loads(files['motion-repair.json'])
+        parent = json.loads(files['motion-repair-provenance.json'])
+        report = dict(artifact_sha256=result['artifact_sha256'], parent_job_id=parent['parent_job_id'],
+            parent_artifact_sha256=parent['parent_artifact_sha256'], slot=repair['slot'],
+            before=repair['parent_geometry'], after=repair['geometry'],
+            unchanged_other_channels=repair['unchanged_other_channels'], selected=False, authority='none')
+        return json.dumps(report,ensure_ascii=False).encode('utf-8'),'application/json'
     if parts == ['source-comparison.json']:
         from .motion_source_comparison import build
         return json.dumps(build(manager, job, result), ensure_ascii=False, allow_nan=False).encode('utf-8'), 'application/json'
@@ -195,6 +205,13 @@ def review_file(manager, job, parts):
         return render(report), 'text/html; charset=utf-8'
     if parts in (['motion-depth.json'], ['depth.html']):
         if 'motion-depth.json' not in files:
+            if parts == ['depth.html'] and result.get('repair_profile'):
+                return ('<!doctype html><html lang="zh-CN"><meta charset="utf-8">'
+                    '<title>修复后遮挡待验证</title><h1>修复后遮挡尚未重新验证</h1>'
+                    '<p>所选附件的变形已经变化，原候选的遮挡检查不能直接沿用。'
+                    '此页面不表示遮挡通过；请先检查整角色动画，保留待复核状态。</p>'
+                    '<a href="player.html">播放当前候选</a> · '
+                    '<a href="readiness.json">当前检查状态</a></html>').encode('utf-8'), 'text/html; charset=utf-8'
             raise PipelineRunError('pipeline_artifact_not_found')
         if parts == ['motion-depth.json']:
             return files['motion-depth.json'], 'application/json'

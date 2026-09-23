@@ -1,6 +1,7 @@
 import {appendNextActions} from './motion-next-actions.js';
 import {appendDepthTimeline} from './motion-depth-timeline.js';
 import {appendGeometryDetails} from './motion-geometry-details.js';
+import {appendRepairSummary} from './motion-repair-summary.js';
 export function appendReadiness(item, job, compare, {onSeek,onInspect,onRegions} = {}) {
   const button = document.createElement('button');
   button.textContent = '检查可用范围与待处理项';
@@ -19,6 +20,7 @@ export function appendReadiness(item, job, compare, {onSeek,onInspect,onRegions}
       if(report.artifact_sha256!==job.result.artifact_sha256)throw Error('候选版本已变化，请刷新任务');
       panel.replaceChildren();
       const title = document.createElement('h4'); title.textContent = labels[report.status]; panel.append(title);
+      await appendRepairSummary(panel,job);
       for (const row of report.stages) {
         const p = document.createElement('p');
         p.textContent = `${row.stage}：${states[row.status]}。${row.explanation} `;

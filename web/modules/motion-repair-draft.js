@@ -10,8 +10,9 @@ export function appendRepairDraft(parent, job, row, getDetail) {
   }
   const notes=node('textarea');notes.maxLength=4000;notes.setAttribute('aria-label','异常处理说明');
   const material=node('a','下载姿态素材任务包');material.hidden=true;
+  const execute=node('button','构建局部修正候选');execute.hidden=true;
   const status=node('p','先加载当前记录，再选择处理路线。');status.setAttribute('role','status');
-  panel.append(legend,load,action,notes,save,status,material,node('p','仅保存处理意图，尚未执行修复；技术异常及阶段验收结论保持不变。'));
+  panel.append(legend,load,action,notes,save,status,material,execute,node('p','保存不执行修复。构建会重算此附件整段动作的局部变形，保留骨骼、其他附件及原候选；需要重新验证，不自动采用。'));
   parent.append(panel);let state=null, generation=0;save.disabled=true;
   const matches = r => r.slot===row.slot && r.animation===row.animation &&
     r.event.triangle===getDetail().triangle && r.event.time===getDetail().time;
@@ -20,6 +21,19 @@ export function appendRepairDraft(parent, job, row, getDetail) {
     const applies=latest && latest.artifact_sha256===state.artifact_sha256 && latest.evidence_sha256===state.evidence_sha256;
     action.value=applies?latest.action:'local_repair';notes.value=applies?latest.notes:'';
     material.hidden=!(applies&&latest.action==='pose_attachment');
+    execute.hidden=!(applies&&latest.action==='local_repair');
+    execute.onclick=async()=>{
+      panel.disabled=true;status.textContent='正在提交独立修正任务…';
+      try {
+        const response=await fetch(`/api/motions/${encodeURIComponent(job.job_id)}/repair-execute`,{
+          method:'POST',headers:{'Content-Type':'application/json','X-Autospine-Intent':'pipeline-preview'},
+          body:JSON.stringify({revision:latest.revision,draft_sha256:state.draft_sha256s[latest.revision-1]})});
+        const result=await response.json();if(!response.ok)throw Error(result.reason_code||'构建失败');
+        const link=node('a','查看修正任务进度与结果');link.href='/motions.html#'+encodeURIComponent(result.job_id);
+        status.replaceChildren(node('span','已创建独立候选任务。'),link);
+      }catch(error){status.textContent=error.message;}
+      finally{panel.disabled=false;}
+    };
     if(!material.hidden)material.href=`/api/motions/${encodeURIComponent(job.job_id)}/repair-material/${latest.revision}`;
     status.textContent=latest ? `${applies?'当前':'已过期'}：${labels[latest.action]}；此处 ${records.length} 条历史记录。` : '此处尚无处理草稿。';
     save.disabled=false;
@@ -32,7 +46,7 @@ export function appendRepairDraft(parent, job, row, getDetail) {
     return result;
   };
   const run = async body => {
-    const ticket=++generation;panel.disabled=true;material.hidden=true;status.textContent=body?'正在保存…':'正在加载…';
+    const ticket=++generation;panel.disabled=true;material.hidden=true;execute.hidden=true;status.textContent=body?'正在保存…':'正在加载…';
     try {const result=await request(body);if(ticket!==generation)return;state=result;render();}
     catch(error){if(ticket===generation){state=null;save.disabled=true;status.textContent=error.message+'；请重新加载。';}}
     finally {if(ticket===generation)panel.disabled=false;}
@@ -46,7 +60,7 @@ export function appendRepairDraft(parent, job, row, getDetail) {
       triangle:detail.triangle,time:detail.time,action:action.value,notes:notes.value});
   };
   return () => {
-    generation++;panel.disabled=false;material.hidden=true;
+    generation++;panel.disabled=false;material.hidden=true;execute.hidden=true;
     if(state)render();else {save.disabled=true;status.textContent='先加载当前记录，再选择处理路线。';}
   };
 }
