@@ -6,4 +6,4 @@
 
 验证：`tests.test_motion_generation` 与 `tests.test_motion_generation_lifecycle` 共 10 项通过，含实际 Windows 父子进程取消、正常关闭、强制宿主退出及重开。负载为模拟工作进程，不作为模型生成质量证据。浏览器 `tools/check-motion-generation-retry-link.mjs` 使用路由任务夹具验证工作台返回原任务及历史无关联任务兼容，未提交真实模型任务。
 
-当前常驻服务须重启加载 Python 更新后，新的重试才会带关联；旧记录仍可读取。
+2026-09-23 常驻服务已在无活跃任务时重启加载更新，155 条历史任务状态核对一致。新的重试会带关联；旧记录仍可读取。
