@@ -1,6 +1,7 @@
 const labels={depth_margin_ambiguity:'深度接近，暂不能判定前后',missing_depth_support:'缺少深度依据',mixed_front_back_support:'同一区域存在前后支持',uniform_back_proxy:'模型支持后侧',uniform_front_proxy:'模型支持前侧',no_visible_overlap:'没有可见重叠'};
 const ambiguityLabels={near_plane_back:'靠近躯干后侧，间隔不足',near_plane_front:'靠近躯干前侧，间隔不足',interval_crosses_plane:'深度区间跨越躯干平面',opposing_surface_support:'重叠表面前后支持冲突',on_reference_plane:'位于参考平面',unclassified:'尚未分类'};
-export function appendLocalDepthDetails(panel,job,base){
+import {depthLocation} from './motion-depth-location.js';
+export function appendLocalDepthDetails(panel,job,base,inspection){
   const button=document.createElement('button');button.textContent='查看局部深度补充检查';
   const content=document.createElement('section');content.setAttribute('aria-live','polite');
   button.onclick=async()=>{
@@ -21,8 +22,7 @@ export function appendLocalDepthDetails(panel,job,base){
         }
         for(const row of evidence.records){
           const p=document.createElement('p'),a=document.createElement('a');p.textContent=row.pair.join(' / ')+(row.reason_code?' · 未测 '+row.reason_code:'')+' ';
-          const query=new URLSearchParams({time:String(row.time),mode:'isolate'});for(const region of row.pair)query.append('region',region);
-          a.textContent=`定位 ${row.time.toFixed(3)} 秒`;a.href=base+'player.html?'+query;a.target='_blank';a.rel='noopener';p.append(a);details.append(p);
+          a.textContent=`定位 ${row.time.toFixed(3)} 秒`;depthLocation(a,row,base,inspection,p);p.append(a);details.append(p);
         }
         if(evidence.records_truncated)details.append(document.createTextNode('异常与未测记录各显示最多 20 条定位，以上分类统计覆盖完整记录。'));
         content.append(details);

@@ -162,8 +162,8 @@ function render(data) {
         receipt.href = `/api/motions/${job.job_id}/view/motion-projection.json`;
         receipt.target = '_blank'; receipt.rel = 'noopener'; item.append(receipt);
       }
-      appendDepthSummary(item, job);
       const inspection = appendInlinePlayer(item, job);
+      appendDepthSummary(item, job, inspection);
       appendRotationDetails(item, job, inspection);
       const compare=data.target_comparison_available?appendTargetComparison(item, job, request):null;
       appendReadiness(item, job, compare, inspection);

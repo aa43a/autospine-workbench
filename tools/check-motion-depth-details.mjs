@@ -26,7 +26,9 @@ try{
       assert.ok((await section.textContent()).includes('此处未测量，不计作画面错误'));
     }
     for(const row of expected){
-      assert.ok(await section.locator(`a[href="/api/motions/${id}/view/player.html?time=${row.time}"]`).count());
+      const query=new URLSearchParams({time:String(row.time)});
+      if(row.pair?.length){query.set('mode','isolate');for(const region of row.pair)query.append('region',region);}
+      assert.ok(await section.locator(`a[href="/api/motions/${id}/view/player.html?${query}"]`).count());
     }
   }
   await filter.selectOption('all');

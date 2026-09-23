@@ -2,12 +2,14 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');
 const module=await readFile(new URL('../web/modules/motion-local-depth-details.js',import.meta.url),'utf8');
+const locationModule=await readFile(new URL('../web/modules/motion-depth-location.js',import.meta.url),'utf8');
 const browser=await chromium.launch({channel:'chrome',headless:true});
 try{
   const page=await browser.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.route('http://depth.test/**',route=>{
     const path=new URL(route.request().url()).pathname;
     if(path==='/module.js')return route.fulfill({contentType:'text/javascript',body:module});
+    if(path==='/motion-depth-location.js')return route.fulfill({contentType:'text/javascript',body:locationModule});
     if(path==='/local-depth-status.json')return route.fulfill({json:{artifact_sha256:'a',reports:[{
       spatial_sampling:'barycentric_pixel_intervals',interpolation:'linear_observed_positions',
       causes:{pairs:[{pair:['arm','body'],reasons:{depth_margin_ambiguity:1},
