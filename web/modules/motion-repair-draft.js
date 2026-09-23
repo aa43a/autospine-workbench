@@ -1,4 +1,5 @@
 import {partitionEditor} from './motion-partition-editor.js';
+import {materialReturn} from './motion-material-return.js';
 const labels = {local_repair:'局部变形修正', partition:'重新划分区域', pose_attachment:'补充姿态附件', withdraw:'撤销此处处理草稿'};
 const node = (tag, text) => {const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e;};
 
@@ -15,6 +16,7 @@ export function appendRepairDraft(parent, job, row, getDetail) {
   const status=node('p','先加载当前记录，再选择处理路线。');status.setAttribute('role','status');
   panel.append(legend,load,action,notes,save,status,material,execute,node('p','保存不执行修复。局部修正会重算此附件的变形；分区构建仅重绑所选区域并检查边界。两者均保留骨骼、其他附件及原候选，需要重新验证，不自动采用。'));
   parent.append(panel);let state=null, generation=0;save.disabled=true;
+  const showReturn=materialReturn(panel,job);showReturn(null);
   const region=partitionEditor(panel,job,row);region.show(false);
   action.onchange=()=>region.show(action.value==='partition');
   const matches = r => r.slot===row.slot && r.animation===row.animation &&
@@ -26,6 +28,7 @@ export function appendRepairDraft(parent, job, row, getDetail) {
     region.restore(applies?latest.partition:null);region.show(action.value==='partition');
     material.hidden=!(applies&&latest.action==='pose_attachment');
     material.style.display=material.hidden?'none':'';
+    showReturn(material.hidden?null:latest.revision);
     execute.hidden=!(applies&&(latest.action==='local_repair'||latest.action==='partition'&&latest.partition));
     execute.textContent=latest?.action==='partition'?'构建独立分区候选':'构建局部修正候选';
     execute.onclick=async()=>{
@@ -54,6 +57,7 @@ export function appendRepairDraft(parent, job, row, getDetail) {
   const run = async body => {
     const ticket=++generation;panel.disabled=true;material.hidden=true;execute.hidden=true;status.textContent=body?'正在保存…':'正在加载…';
     material.style.display='none';
+    showReturn(null);
     try {const result=await request(body);if(ticket!==generation)return;state=result;render();}
     catch(error){if(ticket===generation){state=null;save.disabled=true;status.textContent=error.message+'；请重新加载。';}}
     finally {if(ticket===generation)panel.disabled=false;}

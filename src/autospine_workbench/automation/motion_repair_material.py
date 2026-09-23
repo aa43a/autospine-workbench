@@ -75,7 +75,8 @@ def build(report, row):
                  '请结合工作台源动作和整角色画面判断是否需要补图，不能仅凭该形状绘制。\n'
                  '当前包不生成侧背面、不自动替换附件、不改变骨骼或验收。\n'
                  '回交素材应保持原纹理画布尺寸、透明背景和位置；需要改变画布时必须另给坐标变换。\n'
-                 '后续仍须重新映射、构建及整段验证；当前尚无自动导入替换功能。\n').encode('utf-8')}
+                 '在原处理草稿的“回交姿态素材”中选择本 request.json 和修改后的 RGBA PNG 保存独立版本。\n'
+                 '后续仍须区域映射、构建及整段验证；保存回交不直接替换动画。\n').encode('utf-8')}
     files['inventory.json'] = canonical_bytes({name: sha256(value).hexdigest() for name,value in files.items()})
     output = BytesIO()
     with ZipFile(output, 'w', compression=ZIP_STORED) as archive:
