@@ -18,7 +18,7 @@ def _methods(tail):
     if (len(tail) == 1 or len(tail) == 2 and tail[1] in ('preview', 'download', 'projection', 'projection.json', 'contacts', 'compare-views', 'compare-oblique', 'compare-targets')
             or len(tail) >= 3 and tail[1] == 'view'):
         return 'GET, HEAD, OPTIONS'
-    if len(tail) == 2 and tail[1] in ('cancel', 'retry', 'adapt', 'reproject', 'repair-execute', 'material-execute'):
+    if len(tail) == 2 and tail[1] in ('cancel', 'retry', 'adapt', 'reproject', 'repair-execute', 'material-execute', 'pose-geometry-execute'):
         return 'POST, OPTIONS'
     return None
 
@@ -86,6 +86,9 @@ def dispatch_motions(parts, handler, method):
             elif tail[1] == 'repair-execute':
                 from .motion_repair_execution import submit
                 result = submit(manager, tail[0], read_json_object_request(handler, maximum_bytes=1024))
+            elif tail[1] == 'pose-geometry-execute':
+                from .motion_pose_geometry_execution import submit
+                result = submit(manager, tail[0], read_json_object_request(handler, maximum_bytes=8 << 20))
             elif tail[1] == 'material-return':
                 from .motion_material_return import save
                 result = save(manager, tail[0], read_json_object_request(handler, maximum_bytes=12 << 20))

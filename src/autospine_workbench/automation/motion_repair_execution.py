@@ -58,6 +58,10 @@ def submit(manager, parent_job, body):
 
 def retry(manager, request):
     repair = request['repair_execution']
+    if repair['draft'].get('action') == 'pose_geometry':
+        from .motion_pose_geometry_execution import submit as pose_submit
+        return pose_submit(manager, repair['parent_job_id'], dict(
+            artifact_sha256=repair['parent_artifact_sha256'], pose_geometry=repair['draft']['pose_geometry']))
     if repair.get('material_mapping'):
         from .motion_material_execution import submit as material_submit
         return material_submit(manager,repair['parent_job_id'],dict(revision=repair['material_mapping']['revision'],mapping_sha256=repair['material_mapping_sha256']))

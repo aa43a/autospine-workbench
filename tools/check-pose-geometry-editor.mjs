@@ -6,13 +6,20 @@ const [folder,output,dependencies]=process.argv.slice(2);
 const {chromium}=await import(pathToFileURL(path.resolve(dependencies,'node_modules/playwright-core/index.mjs')));
 const browser=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
 try{
- const page=await browser.newPage({viewport:{width:1250,height:1000}}),errors=[];
+ const page=await browser.newPage({viewport:{width:1250,height:1000}}),errors=[];let submitted=null;
  page.on('pageerror',e=>errors.push(e.message));
  await page.route('http://pose-editor.test/**',async route=>{
   const name=new URL(route.request().url()).pathname.slice(1)||'index.html';
+  if(name==='api/motions/test/pose-geometry-execute'){
+   submitted=route.request().postDataJSON();assert.equal(route.request().headers()['x-autospine-intent'],'pipeline-preview');
+   return route.fulfill({json:{job_id:'motion-test'}});
+  }
   if(!/^[a-zA-Z0-9.-]+$/.test(name))return route.abort();
   const type=name.endsWith('.js')?'text/javascript':name.endsWith('.css')?'text/css':name.endsWith('.json')?'application/json':'text/html';
-  await route.fulfill({body:await fs.readFile(path.join(folder,name)),contentType:type});
+  const source={'index.html':'pose-geometry-editor.html','editor.js':'pose-geometry-editor.js','editor.css':'pose-geometry-editor.css'}[name];
+  let body=await fs.readFile(source?path.join('web',source):path.join(folder,name));
+  if(name==='editor-config.json')body=Buffer.from(JSON.stringify({...JSON.parse(body),execute_url:'/api/motions/test/pose-geometry-execute'}));
+  await route.fulfill({body,contentType:type});
  });
  await page.goto('http://pose-editor.test/');
  await page.waitForFunction(()=>window.poseGeometryEditorReady||window.poseGeometryEditorError,{},{timeout:60000});
@@ -59,6 +66,10 @@ try{
  await page.waitForFunction(()=>window.poseGeometryEditorState.time>.6);
  await page.locator('#play').click();
  await seek(1.2);
+ await page.locator('#build').click();
+ await page.waitForFunction(()=>document.getElementById('build-status').textContent.includes('修改已封存'));
+ assert.equal(submitted.artifact_sha256,config.artifact);
+ assert.deepEqual(submitted.pose_geometry,JSON.parse(await fs.readFile(path.join(output,'request.json'),'utf8')));
  await page.locator('#focus').click();
  const state=await page.evaluate(()=>window.poseGeometryEditorState);
   await fs.writeFile(path.join(output,'preview.json'),JSON.stringify(state));

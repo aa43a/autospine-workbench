@@ -19,6 +19,10 @@ export function appendRepairDraft(parent, job, row, getDetail) {
   panel.append(legend,load,action,notes,save,status,material,execute,node('p','保存不执行修复。局部修正会重算此附件的变形；分区构建仅重绑所选区域并检查边界。两者均保留骨骼、其他附件及原候选，需要重新验证，不自动采用。'));
   parent.append(panel);let state=null, generation=0;save.disabled=true;
   panel.append(materialScope);
+  const poseButton=node('button','在当前页编辑异常附近的姿态'),poseFrame=node('iframe');
+  poseFrame.hidden=true;poseFrame.title='局部姿态几何编辑';poseFrame.style.cssText='width:100%;height:780px;border:0';
+  poseButton.onclick=()=>{const detail=getDetail();poseFrame.src='/api/motions/'+encodeURIComponent(job.job_id)+'/view/pose-geometry/'+[row.slot,row.animation,String(detail.triangle),'index.html'].map(encodeURIComponent).join('/');poseFrame.hidden=false;};
+  panel.append(poseButton,poseFrame);
   const showReturn=materialReturn(panel,job,row);showReturn(null);
   const region=partitionEditor(panel,job,row);region.show(false);
   action.onchange=()=>{region.show(action.value==='partition');materialScope.hidden=action.value!=='pose_attachment';};

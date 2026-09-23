@@ -13,5 +13,6 @@
 <p id="quality"></p><h2>已保存关键姿态</h2><select id="keys" size="8" aria-label="已保存关键姿态"></select>
 <button id="remove" disabled>删除所选关键姿态</button><button id="download" disabled>导出几何补丁草稿</button>
 <label>恢复草稿 <input id="import" type="file" accept=".json" disabled></label>
-<p>区间两端回到原动画；内部在骨骼局部空间插值。此页检查当前帧，完整验证需导出后构建独立候选。</p>
+<button id="build" hidden disabled>保存并构建独立候选</button><p id="build-status" role="status"></p>
+<p>区间两端回到原动画；内部在骨骼局部空间插值。此页检查当前帧，完整验证需构建独立候选；离线页面可导出草稿。</p>
 </aside></main><script src="runtime.js"></script><script type="module" src="editor.js"></script></html>

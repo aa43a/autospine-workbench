@@ -19,7 +19,8 @@ try {
  const selected=new Set(vertices),triangles=[];
  for(let i=0;i<mesh.triangles.length;i+=3)triangles.push(mesh.triangles.slice(i,i+3));
  let time=interval[0],playing=false,previous=0,poses=[],history=[],drag=null,lastWorld=[],cached=[],storageError='';
- const storageKey=`pose-geometry-v1:${config.request.document_sha256}:${slot}:${animation}`;
+ const legacyKey=`pose-geometry-v1:${config.request.document_sha256}:${slot}:${animation}`;
+ const storageKey=`${legacyKey}:${vertices.join(',')}:${interval.join(',')}`;
  const area=(p,t)=>{const [a,b,c]=t.map(i=>p[i]);return ((b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]))/2;};
  function skeleton(t,setup=false){const s=new spine.Skeleton(data);s.setupPose();if(!setup){const state=new spine.AnimationState(new spine.AnimationStateData(data));state.setAnimation(0,animation,false);state.update(t);state.apply(s);}s.updateWorldTransform(spine.Physics.update);return s;}
  function points(s){const sl=s.findSlot(slot),a=sl.appliedPose.attachment;if(!a?.bones)throw Error('需要当前加权 Mesh');const v=new Float32Array(a.worldVerticesLength);a.computeWorldVertices(s,sl,0,v.length,v,0,2);return Array.from({length:v.length/2},(_,i)=>[v[i*2],v[i*2+1]]);}
@@ -71,9 +72,23 @@ try {
  el('full').onclick=()=>{finish();view={width,height,left,bottom};draw();};
  el('download').onclick=()=>{finish();const url=URL.createObjectURL(new Blob([JSON.stringify(request(),null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download=`pose-geometry-${slot}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
  el('import').onchange=async e=>{try{const file=e.target.files[0];if(!file)return;if(file.size>8*1024*1024)throw Error('草稿超过 8MB');const restored=validate(JSON.parse(await file.text()));stop();snapshot();poses=restored;rebuild();persist();refresh();draw();}catch(error){el('status').textContent=error.message;}};
- try{const saved=localStorage.getItem(storageKey);if(saved)poses=validate(JSON.parse(saved));}catch(error){storageError=`本地草稿未恢复：${error.message}`;}
+ try{const saved=localStorage.getItem(storageKey)||localStorage.getItem(legacyKey);if(saved)poses=validate(JSON.parse(saved));}catch(error){storageError=`本地草稿未恢复：${error.message}`;}
  rebuild();refresh();el('time').max=interval[1];el('time').min=interval[0];for(const id of ['time','play','import'])el(id).disabled=false;
  el('identity').textContent=`${slot} · ${animation} · 候选 ${config.artifact}`;draw();
+ if(config.execute_url){
+  const endpoint=new URL(config.execute_url,location.href);
+  if(endpoint.origin!==location.origin)throw Error('构建地址必须同源');
+  el('build').hidden=false;el('build').disabled=false;
+  el('build').onclick=async()=>{finish();stop();el('build').disabled=true;
+   try{if(!poses.length)throw Error('请先拖动顶点保存一个姿态');
+    el('build-status').textContent='正在保存并提交独立候选…';
+    const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','X-Autospine-Intent':'pipeline-preview'},body:JSON.stringify({artifact_sha256:config.artifact,pose_geometry:request()})});
+    const result=await response.json();if(!response.ok)throw Error(result.reason_code||'构建提交失败');
+    const link=document.createElement('a');link.textContent='查看任务进度与候选结果';link.href='/motions.html#'+encodeURIComponent(result.job_id);link.target='_top';
+    el('build-status').replaceChildren(document.createTextNode('修改已封存到独立任务；原候选保留。'),link);
+   }catch(error){el('build-status').textContent=error.message;}finally{el('build').disabled=false;}
+  };
+ }
  function tick(now){if(playing){time+=Math.max(0,now-previous)/1000;if(time>=interval[1]){time=interval[1];stop();}draw();}previous=now;requestAnimationFrame(tick);}requestAnimationFrame(tick);
  document.addEventListener('visibilitychange',()=>{if(document.hidden){finish();stop();}});
  window.poseGeometryEditorReady=true;
