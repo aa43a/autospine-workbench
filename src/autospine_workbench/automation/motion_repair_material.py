@@ -26,7 +26,7 @@ def _svg(points, *, image=False):
             'stroke-width="1" vector-effect="non-scaling-stroke"/></svg>').encode()
 
 
-def build(report, row):
+def build(report, row, *, preview=None):
     """The plan and full geometry report must address the identical event."""
     from .motion_repair_draft import ACTIONS
     if row.get('action') not in ACTIONS - {'withdraw'}:
@@ -77,6 +77,9 @@ def build(report, row):
                  '回交素材应保持原纹理画布尺寸、透明背景和位置；需要改变画布时必须另给坐标变换。\n'
                  '在原处理草稿的“回交姿态素材”中选择本 request.json 和修改后的 RGBA PNG 保存独立版本。\n'
                  '后续仍须区域映射、构建及整段验证；保存回交不直接替换动画。\n').encode('utf-8')}
+    if preview is not None:
+        files['pose-preview.html'] = preview
+        files['README.txt'] += '\n打开 pose-preview.html 可离线播放同版本完整角色，自动定位异常三角形；它不是正确姿态或补图目标。\n'.encode('utf-8')
     files['inventory.json'] = canonical_bytes({name: sha256(value).hexdigest() for name,value in files.items()})
     output = BytesIO()
     with ZipFile(output, 'w', compression=ZIP_STORED) as archive:
@@ -85,7 +88,7 @@ def build(report, row):
     return output.getvalue()
 
 
-def download(manager, job, revision):
+def download(manager, job, revision, *, include_preview=True):
     from .motion_repair_draft import history
     from .motion_target_jobs import review_file
     if not revision.isascii() or not revision.isdigit() or str(int(revision)) != revision:
@@ -100,4 +103,8 @@ def download(manager, job, revision):
         identity = lambda r: (r['slot'], r['animation'], r['event']['triangle'], r['event']['time'])
         if any(identity(r) == identity(row) for r in rows[index+1:]):
             raise PipelineRunError('motion_material_plan_superseded')
-    return build(report, row)
+    if not include_preview:
+        return build(report, row)
+    from .motion_material_preview import build as preview
+    context = preview(lambda parts: review_file(manager, job, parts), row)
+    return build(report, row, preview=context)

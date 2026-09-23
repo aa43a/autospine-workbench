@@ -57,7 +57,7 @@ def save(manager, job, body):
     raw = validate_png(body['png_base64'], request.get('texture_size'))
     # Recheck live draft under the same lock as publication; withdrawal wins before admission.
     with manager._lock:
-        with ZipFile(BytesIO(download(manager, job, str(revision)))) as archive:
+        with ZipFile(BytesIO(download(manager, job, str(revision), include_preview=False))) as archive:
             expected = json.loads(archive.read('request.json'))
         if request != expected:
             raise PipelineRunError('motion_material_return_identity_changed')

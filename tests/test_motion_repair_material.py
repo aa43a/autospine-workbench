@@ -43,6 +43,14 @@ class MaterialTests(unittest.TestCase):
             row={**self.row,key:value}
             with self.subTest(key=key,value=value),self.assertRaises(RuntimeError):material.build(self.report,row)
 
+    def test_preview_is_in_inventory_without_changing_return_contract(self):
+        with ZipFile(BytesIO(material.build(self.report,self.row,preview=b'<html>context</html>'))) as archive:
+            inventory=json.loads(archive.read('inventory.json'))
+            self.assertEqual(inventory['pose-preview.html'],sha256(b'<html>context</html>').hexdigest())
+            request=archive.read('request.json')
+        with ZipFile(BytesIO(material.build(self.report,self.row))) as archive:
+            self.assertEqual(request,archive.read('request.json'))
+
     def test_revoked_and_superseded_download_rejected(self):
         newer={**self.row,'revision':2,'action':'withdraw'}
         with patch('autospine_workbench.automation.motion_repair_draft.history',return_value=[self.row,newer]), \
