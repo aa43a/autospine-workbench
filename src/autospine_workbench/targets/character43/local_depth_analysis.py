@@ -14,9 +14,10 @@ from .torso_projection_profile import prepare
 from .local_depth_summary import summarize
 
 PROFILE='source-bound-local-depth-supplement-v1'
+HELPER_PROFILE='source-bound-local-depth-sleeve-plane-v1-experiment'
 
 
-def analyze(files,artifact,bundle,request,*,midpoints=False,pixelwise=True,on_pair=None,sample_times=None):
+def analyze(files,artifact,bundle,request,*,midpoints=False,pixelwise=True,on_pair=None,sample_times=None,sleeve_helpers=None):
     verify_source(files,artifact,bundle,request)
     mapping=json.loads((bundle.path/'map.json').read_bytes())
     yaw=(request.get('projection') or {}).get('yaw_degrees',0)
@@ -29,6 +30,12 @@ def analyze(files,artifact,bundle,request,*,midpoints=False,pixelwise=True,on_pa
         identity=dict(raw_bvh_sha256=sha256(bundle.raw_bvh).hexdigest())
         interpolation='linear_bvh_channels' if midpoints or sample_times is not None else 'source_samples_only'
     document=json.loads(files['skeleton.json']);depth=json.loads(files['motion-depth.json'])
+    if sleeve_helpers:
+        bones={b['name']:b for b in document['bones']}
+        if (not isinstance(sleeve_helpers,dict) or len(sleeve_helpers)>8 or
+            any(parent not in ('forearm_l','forearm_r') or helper not in bones or
+                bones[helper].get('parent')!=parent for helper,parent in sleeve_helpers.items())):
+            raise ValueError('local_depth_sleeve_mapping_invalid')
     receipt=json.loads(files.get('motion-torso-projection.json',b'{}'))
     probe=Probe(document,files,'external-motion',tiled=True,sparse=True,rendered_bounds=True)
     options={}
@@ -36,7 +43,7 @@ def analyze(files,artifact,bundle,request,*,midpoints=False,pixelwise=True,on_pa
         expected=prepare(bundle,request)
         options['plane_provider']=(BakedWarpPlane(document,'external-motion',receipt,expected)
                                    if midpoints or sample_times is not None else WarpedPlane(receipt,expected))
-    checker=Checker(probe,sampler,pixelwise=pixelwise,**options);rows=[]
+    checker=Checker(probe,sampler,pixelwise=pixelwise,sleeve_helpers=sleeve_helpers,**options);rows=[]
     for pair in depth['pairs']:
         samples=pair['samples']
         if sample_times is not None:
@@ -51,7 +58,8 @@ def analyze(files,artifact,bundle,request,*,midpoints=False,pixelwise=True,on_pa
             except ValueError as error:check=dict(status='unmeasured',reason_code=str(error),time=time)
             rows.append(dict(pair=[pair['arm_slot'],pair['torso_slot']],source_tick=sample['source_tick'],check=check))
         if on_pair:on_pair()
-    return dict(profile=PROFILE,job_id=request['job_id'],artifact_sha256=artifact,
+    return dict(profile=HELPER_PROFILE if sleeve_helpers else PROFILE,job_id=request['job_id'],artifact_sha256=artifact,
+        **(dict(sleeve_helpers=dict(sleeve_helpers),helper_model_scope='explicit_planar_helper_assumption_not_observed_cloth_depth') if sleeve_helpers else {}),
         source_identity=identity,interpolation=interpolation,
         requested_sample_times=sample_times,
         spatial_sampling='barycentric_pixel_intervals' if pixelwise else 'whole_triangle_intervals',

@@ -48,7 +48,8 @@ def read(root, folder, request, artifact, files):
         report=value['report'];causes=summarize(report['records'])
         if causes!=value['causes']:raise ValueError('local_depth_evidence_summary_mismatch')
         records=[dict(pair=r['pair'],time=r['check']['time'],status=r['check']['status'],
-                      counts=r['check'].get('counts'),reason_code=r['check'].get('reason_code'))
+                      counts=r['check'].get('counts'),reason_code=r['check'].get('reason_code'),
+                      unavailable_helpers=r['check'].get('sleeve_depth_model',{}).get('unavailable_helpers',{}))
                  for r in report['records'] if r['check']['status'] not in ('no_overlap','uniform_back_proxy','uniform_front_proxy')]
         visible=[]
         for status in ('requires_partition_or_more_depth','unmeasured'):
@@ -56,6 +57,7 @@ def read(root, folder, request, artifact, files):
         rows.append(dict(evidence_sha256=digest,profile=report['profile'],causes=causes,
             failure=report.get('failure'),
             requested_sample_times=report.get('requested_sample_times'),
+            sleeve_helpers=report.get('sleeve_helpers'),helper_model_scope=report.get('helper_model_scope'),
             interpolation=report['interpolation'],spatial_sampling=report.get('spatial_sampling','whole_triangle_intervals'),
             records=visible,records_truncated=len(records)>len(visible)))
     return dict(profile='motion-local-depth-operator-v1',artifact_sha256=artifact,reports=rows,

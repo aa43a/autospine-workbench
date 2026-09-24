@@ -15,7 +15,14 @@ export function appendLocalDepthDetails(panel,job,base,inspection){
       for(const evidence of report.reports){
         if(evidence.failure){const error=document.createElement('p');error.textContent='补充检查未完成：'+evidence.failure;content.append(error);continue;}
         const details=document.createElement('details'),summary=document.createElement('summary');
+        details.dataset.depthEvidence=evidence.evidence_sha256;
         summary.textContent=`${evidence.spatial_sampling==='barycentric_pixel_intervals'?'逐像素检查':'三角形范围检查'} · ${evidence.interpolation==='source_samples_only'?'源动作帧':'帧间插值模型'}`;details.append(summary);
+        if(evidence.sleeve_helpers){
+          summary.textContent+=' · 服装平面假设';
+          const assumption=document.createElement('p');
+          assumption.textContent='实验假设：服装位于前臂与画面竖直方向构成的平面；不代表观测到真实布料深度，不证明褶皱或厚度。映射：'+Object.entries(evidence.sleeve_helpers).map(([a,b])=>`${a} → ${b}`).join('；');
+          details.append(assumption);
+        }
         if(Array.isArray(evidence.requested_sample_times)){
           const scope=document.createElement('p');
           scope.textContent=`限定 ${evidence.requested_sample_times.length} 个时刻的补充检查，不覆盖整段；原完整检查中的失败和未测记录继续保留。`;
@@ -28,6 +35,11 @@ export function appendLocalDepthDetails(panel,job,base,inspection){
         for(const row of evidence.records){
           const p=document.createElement('p'),a=document.createElement('a');p.textContent=row.pair.join(' / ')+(row.reason_code?' · 未测 '+row.reason_code:'')+' ';
           a.textContent=`定位 ${row.time.toFixed(3)} 秒`;depthLocation(a,row,base,inspection,p);p.append(a);details.append(p);
+          if(Object.keys(row.unavailable_helpers||{}).length){
+            const unavailable=document.createElement('p');
+            unavailable.textContent='本时刻未能建立的服装平面（全映射诊断）：'+Object.entries(row.unavailable_helpers).map(([helper,reason])=>`${helper}：${reason==='sleeve_plane_projected_axes_degenerate'?'前臂投影接近竖直，无法确定平面':reason}`).join('；')+'。其他区域仍可能缺少深度依据。';
+            details.append(unavailable);
+          }
         }
         if(evidence.records_truncated)details.append(document.createTextNode('异常与未测记录各显示最多 20 条定位，以上分类统计覆盖完整记录。'));
         content.append(details);

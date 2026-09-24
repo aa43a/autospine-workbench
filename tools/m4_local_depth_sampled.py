@@ -11,7 +11,7 @@ from autospine_workbench.motion_bundle_reader import VerifiedMotionBundleReader
 from autospine_workbench.targets.character43.local_depth_analysis import analyze
 
 
-def run(job, output, count=9, register=False):
+def run(job, output, count=9, register=False, sleeve_helpers=None):
     if not re.fullmatch(r'motion-[a-f0-9]{32}', job):
         raise ValueError('invalid_job')
     if type(count) is not int or not 2 <= count <= 33:
@@ -39,7 +39,7 @@ def run(job, output, count=9, register=False):
     if lo >= hi:
         raise ValueError('depth_common_interval_missing')
     times=[(lo+(hi-lo)*i/(count-1))/1e6 for i in range(count)]
-    report=analyze(files,artifact,bundle,request,sample_times=times,
+    report=analyze(files,artifact,bundle,request,sample_times=times,sleeve_helpers=sleeve_helpers,
                    on_pair=lambda:print('pair checked',flush=True))
     if current()!=before:
         raise ValueError('candidate_changed')
@@ -56,5 +56,9 @@ if __name__=='__main__':
     parser.add_argument('job');parser.add_argument('output',type=Path)
     parser.add_argument('--samples',type=int,default=9)
     parser.add_argument('--register',action='store_true')
+    parser.add_argument('--sleeve-helper',action='append',default=[],help='Explicit experimental helper=forearm_l/r')
     args=parser.parse_args()
-    print(json.dumps(run(args.job,args.output,args.samples,args.register)))
+    pairs=[v.split('=') for v in args.sleeve_helper]
+    if len(pairs)>8 or any(len(v)!=2 or not v[0] or v[1] not in ('forearm_l','forearm_r') for v in pairs) or len({v[0] for v in pairs})!=len(pairs):
+        parser.error('invalid sleeve helper mapping')
+    print(json.dumps(run(args.job,args.output,args.samples,args.register,dict(pairs) or None)))
