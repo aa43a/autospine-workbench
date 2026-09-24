@@ -37,7 +37,7 @@ export function appendGeometryDetails(parent, job, onSeek, onInspect) {
 
 function renderRow(panel, row, base, onSeek, onInspect, job) {
   const section = node('section');
-  section.append(node('h4', `${row.slot} · ${row.animation}`));
+  section.append(node('h4', `${row.slot}${row.attachment ? ' / '+row.attachment : ''} · ${row.animation}`));
   section.append(node('p', `${row.failed_area_triangles} 个面积异常三角形；展示 ${row.shown} 个极值事件${row.truncated ? '（其余保留在原检查中）' : ''}。`));
   panel.append(section);
   if (!row.details.length) {
@@ -51,7 +51,8 @@ function renderRow(panel, row, base, onSeek, onInspect, job) {
   });
   const canvas = node('canvas'); canvas.style.cssText = 'display:block;max-width:100%;max-height:480px;background:#263442';
   canvas.setAttribute('aria-label', '原始纹理及异常三角形位置');
-  const detailText = node('p'); const seek = node('a', onInspect ? '定位时间并高亮动作区域' : '定位到此动作时刻');
+  const canInspect = onInspect && !row.attachment;
+  const detailText = node('p'); const seek = node('a', canInspect ? '定位时间并高亮动作区域' : '定位到此动作时刻');
   const shapeText = node('p');shapeText.setAttribute('aria-label','投影与局部形状对照');
   const image = new Image();
   const draw = () => {
@@ -66,7 +67,7 @@ function renderRow(panel, row, base, onSeek, onInspect, job) {
       event.preventDefault();
       try {
         onSeek(detail.time);
-        if(onInspect&&onInspect(row.slot,detail.triangle,row.animation)===false)
+        if(canInspect&&onInspect(row.slot,detail.triangle,row.animation)===false)
           throw Error('高亮未就绪，请等待匹配候选加载后重试');
       } catch(error) {detailText.append(' 定位失败：'+error.message);}
     };
@@ -86,6 +87,11 @@ function renderRow(panel, row, base, onSeek, onInspect, job) {
   section.append(select, canvas, detailText, shapeText, seek, node('p', row.note),
     node('p', '处理顺序：先同帧核对源动作的方向和前后关系；方向正确后再检查权重、分区及局部形状。区域换图只替换选区纹理，保留原网格与动作，不能消除翻转、压缩或错误的屈膝方向。所有修正另建候选，保留原结果。'));
   draw(); image.src = row.texture;
+  if(row.repair_scope === 'active_attachment_read_only') {
+    section.append(node('p','此记录使用独立姿态附件；可查看贴图定位和动作时间。当前固定网格编辑器不支持修改此附件，原失败记录保留。'));
+    select.onchange=draw;
+    return;
+  }
   appendRepairFeasibility(section,job,row,onSeek);
   const changed=appendRepairDraft(section,job,row,()=>row.details[Number(select.value)]);
   select.onchange=()=>{draw();changed();};

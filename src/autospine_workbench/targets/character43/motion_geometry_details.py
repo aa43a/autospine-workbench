@@ -13,21 +13,23 @@ from .triangle_shape_evidence import build as shape_evidence
 def build(files, artifact, *, limit=12):
     if type(limit) is not int or not 1 <= limit <= 24:
         raise ValueError('geometry_detail_limit')
-    required={'skeleton.json','deformation.json','numeric-reference.json','rig-setup-reference.json'}
+    required={'skeleton.json','deformation.json','numeric-reference.json'}
     missing=sorted(required-files.keys())
     if missing:
         return dict(profile='motion-geometry-source-locations-v1',artifact_sha256=artifact,
                     status='unavailable',missing=missing,rows=[],authority='none',selected=False)
     doc=json.loads(files['skeleton.json']);digest=sha256(files['skeleton.json']).hexdigest()
     qa=json.loads(files['deformation.json']);samples=read(files)
-    setup=json.loads(files['rig-setup-reference.json'])
-    if any(r.get('skeleton_sha256')!=digest for r in (qa,samples,setup)):
+    if any(r.get('skeleton_sha256')!=digest for r in (qa,samples)):
         raise ValueError('geometry_detail_identity_mismatch')
     if qa.get('profile')=='character-active-attachment-deformation-v1':
+        from .active_geometry_details import build as locate_active
+        return locate_active(files,artifact,doc,samples,limit)
+    if 'rig-setup-reference.json' not in files:
         return dict(profile='motion-geometry-source-locations-v1',artifact_sha256=artifact,
-            skeleton_sha256=digest,status='unavailable',rows=[],authority='none',selected=False,
-            reason='active_attachment_source_locations_not_supported',
-            note='姿态附件几何失败已保留；固定网格定位器不能将新附件索引映射到原纹理。')
+            status='unavailable',missing=['rig-setup-reference.json'],rows=[],authority='none',selected=False)
+    setup=json.loads(files['rig-setup-reference.json'])
+    if setup.get('skeleton_sha256')!=digest:raise ValueError('geometry_detail_identity_mismatch')
     rows=[];budget=20_000_000
     for record in qa['records']:
         if record['passed']:continue
