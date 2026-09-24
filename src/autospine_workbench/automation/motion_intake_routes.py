@@ -166,5 +166,8 @@ def dispatch_motions(parts, handler, method):
     except (OSError, RuntimeError, ValueError, TypeError, KeyError) as exc:
         handler.close_connection = True
         reason = getattr(exc, 'reason_code', 'motion_request_failed')
+        from .motion_view_failures import VIEW_FAILURES
+        if isinstance(exc, ValueError) and str(exc) in VIEW_FAILURES:
+            reason = str(exc)
         _error(handler, 403 if reason in ('forbidden_origin', 'forbidden_intent') else 400, reason)
     return True
