@@ -105,16 +105,19 @@ def run(surface_path,poses_path,output,diagnostic=False):
                 renderer='Blender Cycles CPU',samples=8,filter='Linear',view_transform='Standard',
                 camera_location=list(camera.location),ortho_scale=scale,accepted=False,
                 rotation_mode=poses.get('rotation_mode','source_full_rotation'),
+                comparison_labels=poses.get('comparison_labels',['lbs','dq']),
                 missing_material_display='magenta' if any('material_roles' in s for s in surfaces['surfaces'].values()) else 'none',
                 scope='isolated_two_legs_original_front_material_not_Spine_Runtime',
                 limitations=['two_sided_front_texture_not_back_material','hip_fixed_no_ground_contact',
                              'no_character_occlusion_or_seam_acceptance'])
     (output/'report.json').write_text(json.dumps(report,indent=2),encoding='utf-8')
     cards=''.join(f'<figure><img src="{r["image"]}"><figcaption>{r["image"]}</figcaption></figure>' for r in captures)
+    comparison=('前四图左：原 DQ；右：局部修正 DQ。' if poses.get('comparison_labels')==['baseline-dq','local-corrected-dq']
+                else '前四图左 LBS，右 DQ。')
     (output/'index.html').write_text('<!doctype html><meta charset="utf-8"><title>目标表面贴图对照</title>'
         '<style>body{background:#18232e;color:white;font:16px sans-serif}.grid{display:grid;grid-template-columns:1fr 1fr}'
         'img{max-width:100%;background:#46525e}figure{margin:12px}</style><h1>原贴图三维蒙皮对照</h1>'
-        '<p>固定同一相机。前四图左 LBS、右 DQ；0 秒与 0.9 秒。后续诊断图按单腿显示原 alpha 与不透明几何；不透明不代表有效材料。尚未通过。</p>'
+        '<p>固定同一相机。'+comparison+'0 秒与 0.9 秒。后续诊断图按单腿显示原 alpha 与不透明几何；不透明不代表有效材料。尚未通过。</p>'
         '<p>若出现洋红色，表示新增侧面或背面缺少有效纹理，不是角色最终配色。</p>'
         '<p>'+('诊断：本组已移除源绕轴旋转，不是原动作候选。' if poses.get('rotation_mode')=='swing_control_source_twist_removed'
                   else '本组保留源完整旋转。')+'</p><div class="grid">'+cards+'</div>',encoding='utf-8')
