@@ -13,8 +13,10 @@ try{
  page.on('pageerror',e=>errors.push(String(e)));
  await page.route('**/api/**',route=>{assert.equal(route.request().method(),'GET');return route.continue();});
  await page.goto('http://127.0.0.1:8918/motions.html#'+job);
- const card=page.locator(`[data-job-id="${job}"]`);
- await card.getByText('姿态策略：',{exact:false}).waitFor({timeout:120000});
+ const card=page.locator('#'+job);
+ await card.waitFor({state:'attached',timeout:30000});
+ await card.scrollIntoViewIfNeeded();
+ assert.ok((await card.textContent()).includes('姿态策略：'),'Missing source-pose summary');
  const state=await (await page.request.get('http://127.0.0.1:8918/api/motions/'+job)).json();
  assert.equal(state.status,'succeeded');assert.equal(state.result.artifact_sha256,artifact);
  assert.ok((await card.textContent()).includes('几何：'+(state.result.geometry_passed?'通过':'需调整')));

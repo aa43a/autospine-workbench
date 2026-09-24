@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import {createHash} from 'node:crypto';
 import {pathToFileURL} from 'node:url';
 const [base,jobId,output,dependencies]=process.argv.slice(2);
 const {chromium}=await import(pathToFileURL(path.resolve(dependencies,'node_modules/playwright-core/index.mjs')));
@@ -33,8 +34,16 @@ try {
   const downloaded=page.waitForEvent('download');
   await card.getByRole('link',{name:'下载诊断候选 ZIP',exact:true}).click();
   await (await downloaded).saveAs(path.join(output,'candidate.zip'));
+  const bytes=await fs.readFile(path.join(output,'candidate.zip'));
+  const verified=await page.request.get(new URL(`/api/motions/${jobId}/download`,base).href);
+  assert.equal(verified.status(),200);
+  assert.deepEqual(bytes,await verified.body(),'UI download differs from verified current candidate');
+  const current=await (await page.request.get(new URL('/api/motions/'+jobId,base).href)).json();
+  assert.equal(current.result.artifact_sha256,identity,'Candidate changed during delivery verification');
+  const download={sha256:createHash('sha256').update(bytes).digest('hex'),bytes:bytes.length,
+    matchesVerifiedCandidate:true};
   assert.deepEqual(errors,[]);
   await fs.writeFile(path.join(output,'browser-delivery.json'),JSON.stringify({passed:true,jobId,
-    artifact:identity,samples,errors,scope:'live_ui_playback_seek_and_download_not_visual_acceptance'},null,2));
+    artifact:identity,samples,download,errors,scope:'live_ui_playback_seek_and_download_not_visual_acceptance'},null,2));
   console.log(JSON.stringify({passed:true,jobId,artifact:identity,samples}));
 } finally {await browser.close();}
