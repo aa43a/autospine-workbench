@@ -22,6 +22,16 @@ try{
   const summary=await panel.getByRole('status').innerText();assert(summary.includes(`已读取 ${available}/${available}`),summary);
   assert(summary.includes(`固定集共 ${expected} 项`),summary);
   const rows=await panel.locator('tbody tr').allTextContents();assert.equal(rows.length,expected);
+  const deliverySummary=await panel.getByLabel('交付状态统计').innerText();
+  const deliveries={};
+  for(const state of ['accepted','review','visual_changes','technical_changes','incomplete','missing']){
+    await panel.getByLabel('按交付状态筛选').selectOption(state);
+    deliveries[state]=await panel.locator('tbody tr').count();
+    assert.equal(await panel.getByRole('status').innerText(),summary);
+    assert.equal(await panel.getByLabel('交付状态统计').innerText(),deliverySummary);
+  }
+  assert.equal(Object.values(deliveries).reduce((a,b)=>a+b),expected);
+  await panel.getByLabel('按交付状态筛选').selectOption('');
   const stages={};
   for(const stage of ['投影','几何','接触','遮挡','Runtime']){
     await panel.getByLabel('按检查阶段筛选').selectOption(stage);
@@ -35,6 +45,6 @@ try{
   await page.getByText('已核对版本。查看角色动作后，可直接在本页保存阶段结论；不会自动确认。',{exact:true}).waitFor({timeout:120000});
   await panel.screenshot({path:folder+'/matrix.png'});
   assert.deepEqual(errors,[]);
-  const report={expected,available,missing:pack.coverage.missing,summary,stages,rows,selected:await page.locator('#target-title').innerText(),decisions_written:0,runtime_recaptured:false};
+  const report={expected,available,missing:pack.coverage.missing,summary,deliverySummary,deliveries,stages,rows,selected:await page.locator('#target-title').innerText(),decisions_written:0,runtime_recaptured:false};
   await fs.writeFile(folder+'/report.json',JSON.stringify(report,null,2));console.log(JSON.stringify(report));
 }finally{await browser.close();}

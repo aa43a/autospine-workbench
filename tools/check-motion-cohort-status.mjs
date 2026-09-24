@@ -5,7 +5,8 @@ const {chromium}=createRequire(process.argv[2]+'/package.json')('playwright-core
 const browser=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
 try{
   const page=await browser.newPage();await page.setContent('<main></main>');
-  await page.addScriptTag({content:fs.readFileSync('web/modules/motion-cohort-status.js','utf8').replace('export function','function')});
+  await page.addScriptTag({content:fs.readFileSync('web/modules/motion-cohort-delivery.js','utf8').replaceAll('export ','')});
+  await page.addScriptTag({content:fs.readFileSync('web/modules/motion-cohort-status.js','utf8').replace(/^import .*\n/,'').replace('export function','function')});
   await page.evaluate(()=>{
     window.calls=[];window.stale=false;
     window.fetch=async(url,options)=>{
@@ -19,6 +20,15 @@ try{
   });
   await page.getByRole('button',{name:'核对全部候选状态'}).click();await page.waitForFunction(()=>document.querySelector('[role=status]').textContent.includes('已读取 3/3'));
   const status=await page.getByRole('status').innerText();assert(status.includes('技术通过 1/4'));assert(status.includes('有效阶段接受 2/4'));
+  const delivery=await page.getByLabel('交付状态统计').innerText();
+  assert(delivery.includes('技术通过且阶段接受 1/4'));
+  assert(delivery.includes('需处理技术异常 2/4'));
+  await page.getByLabel('按交付状态筛选').selectOption('technical_changes');
+  assert.equal(await page.locator('tbody tr').count(),2);
+  assert.equal(await page.getByLabel('交付状态统计').innerText(),delivery);
+  await page.getByLabel('按交付状态筛选').selectOption('missing');
+  assert.equal(await page.locator('tbody tr').count(),1);
+  await page.getByLabel('按交付状态筛选').selectOption('');
   assert((await page.locator('tbody').innerText()).includes('旧结论已过期'));
   await page.getByLabel('按检查阶段筛选').selectOption('几何');
   assert.equal(await page.locator('tbody tr').count(),3);

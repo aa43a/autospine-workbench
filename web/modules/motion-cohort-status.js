@@ -1,3 +1,4 @@
+import {deliveryLabels,deliveryState,deliveryCounts} from './motion-cohort-delivery.js';
 const node=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n;};
 const visualLabels={accepted:'阶段接受',accepted_with_exceptions:'阶段接受，保留异常',rejected:'需调整',revoked:'已撤销'};
 export function createCohortStatus(parent,pack,onSelect){
@@ -8,13 +9,19 @@ export function createCohortStatus(parent,pack,onSelect){
   const stageLabel=node('label','按检查阶段筛选 '),stageFilter=node('select');stageFilter.setAttribute('aria-label','按检查阶段筛选');
   for(const stage of ['', '投影','几何','接触','遮挡','Runtime']){const option=node('option',stage||'全部阶段');option.value=stage;stageFilter.append(option);}stageLabel.append(stageFilter);
   const summary=node('p');summary.setAttribute('role','status');
+  const deliverySummary=node('p');deliverySummary.setAttribute('aria-label','交付状态统计');
+  const deliveryLabel=node('label','按交付状态筛选 '),deliveryFilter=node('select');deliveryFilter.setAttribute('aria-label','按交付状态筛选');
+  for(const [value,text] of [['','全部状态'],...Object.entries(deliveryLabels)]){const option=node('option',text);option.value=value;deliveryFilter.append(option);}deliveryLabel.append(deliveryFilter);
   const note=node('p','点击核对可更新状态快照；读取现有检查与验收记录，不重新捕获动画，不自动接受。阶段接受不会清除技术异常；未读取或读取失败保留在总数中。');
   const scroll=node('div');scroll.style.cssText='overflow:auto;max-height:360px';const table=node('table');table.style.width='100%';
   const head=node('thead'),headRow=node('tr');
-  for(const text of ['动作 / 角色','技术检查','阶段视觉','操作'])headRow.append(node('th',text));
+  for(const text of ['动作 / 角色','交付状态','技术检查','阶段视觉','操作'])headRow.append(node('th',text));
   head.append(headRow);const body=node('tbody');table.append(head,body);scroll.append(table);
   note.append(' 阶段筛选显示该项未通过的候选；缺失或无法核实的记录始终保留，统计不随筛选改变。');
-  section.append(title,refresh,stop,label,stageLabel,summary,note,scroll);parent.append(section);
+  note.append(' 交付状态互斥计数；技术异常优先，阶段接受不代表发布授权。');
+  const controls=node('nav');controls.setAttribute('aria-label','固定集筛选与核对');
+  controls.append(refresh,stop,label,stageLabel,deliveryLabel);
+  section.append(title,controls,summary,deliverySummary,note,scroll);parent.append(section);
   let generation=0,controller;
   const rows=pack.groups.flatMap((g,mi)=>g.targets.map((t,ci)=>({g,t,mi,ci,status:'unread',visual:'未读取'})));
   const missing=pack.coverage?.missing||[];
@@ -24,10 +31,13 @@ export function createCohortStatus(parent,pack,onSelect){
       const pass=row.status==='stage_review',ok=row.applies&&['accepted','accepted_with_exceptions'].includes(row.decision);
       read+=Boolean(row.loaded);technical+=pass;accepted+=Boolean(ok);
       historical+=Boolean(row.loaded&&['accepted','accepted_with_exceptions'].includes(row.decision));
+      const delivery=deliveryState(row);
+      if(deliveryFilter.value&&deliveryFilter.value!==delivery)continue;
       if(filter.checked&&pass&&ok)continue;
       const selectedStage=row.stages?.find(s=>s.stage===stageFilter.value);
       if(stageFilter.value&&selectedStage?.status==='sampled_pass')continue;
       const tr=node('tr');tr.append(node('td',row.g.label+' / '+row.t.label));
+      tr.append(node('td',deliveryLabels[delivery]));
       const technicalCell=node('td',row.error||({unread:'未读取',loading:'正在核对',stage_review:'已实施技术检查通过',needs_changes:'存在技术异常',evidence_incomplete:'技术证据不完整'})[row.status]||'技术状态未知');
       for(const stage of row.stages||[]){
         const detail=node('details'),caption=node('summary',`${stage.stage}：${({sampled_pass:'限定采样通过',needs_changes:'需处理',unmeasured:'尚未验证'})[stage.status]||'状态未知'}`);
@@ -38,8 +48,9 @@ export function createCohortStatus(parent,pack,onSelect){
       tr.append(node('td',row.visual));const action=node('td'),open=node('button','检查此项');
       open.onclick=()=>onSelect(row.mi,row.ci);action.append(open);tr.append(action);body.append(tr);
     }
-    for(const row of missing){const tr=node('tr');tr.append(node('td',row.motion+' / '+row.character),node('td','未生成可复核候选：'+row.status),node('td','未验收'),node('td','在动作中心处理来源或构建任务'));body.append(tr);}
+    if(!deliveryFilter.value||deliveryFilter.value==='missing')for(const row of missing){const tr=node('tr');tr.append(node('td',row.motion+' / '+row.character),node('td',deliveryLabels.missing),node('td','未生成可复核候选：'+row.status),node('td','未验收'),node('td','在动作中心处理来源或构建任务'));body.append(tr);}
     const total=rows.length+missing.length;
+    deliverySummary.textContent=Object.entries(deliveryCounts(rows,missing.length)).map(([key,count])=>`${deliveryLabels[key]} ${count}/${total}`).join('；');
     summary.textContent=`已读取 ${read}/${rows.length} 个可复核候选；技术通过 ${technical}/${total}；有效阶段接受 ${accepted}/${total}；历史阶段接受 ${historical} 项。${pack.coverage?'固定集共 '+total+' 项。':'此清单未声明缺失项目，以上仅统计列出的候选。'}`;
   }
   async function get(path,signal){const response=await fetch(path,{cache:'no-store',signal});const value=await response.json();if(!response.ok)throw Error(value.reason_code||'读取失败');return value;}
@@ -76,5 +87,6 @@ export function createCohortStatus(parent,pack,onSelect){
   });
   filter.onchange=render;
   stageFilter.onchange=render;
+  deliveryFilter.onchange=render;
   window.addEventListener('pagehide',()=>{generation++;controller?.abort();},{once:true});render();
 }
