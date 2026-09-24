@@ -6,6 +6,11 @@ from ...resolved_project import canonical_sha256
 
 
 def fit(document,name,observations):
+    from .foot_orientation_timeline import refine
+    return refine(document, name, observations, _fit_samples)
+
+
+def _fit_samples(document,name,observations):
     result=deepcopy(document);setup=deepcopy(document);setup['animations'][name]={'bones':{}}
     rest=matrices(setup,name,0);bones={b['name']:b for b in document['bones']}
     times=observations['times'];selected=observations['tracks']

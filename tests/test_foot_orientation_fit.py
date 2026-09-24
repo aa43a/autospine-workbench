@@ -45,7 +45,43 @@ class FootFitTests(unittest.TestCase):
             n='foot_'+s
             for a,b in zip(current[n][:4],rest[n][:4]):self.assertAlmostEqual(a,b)
             self.assertEqual(current[n][4:],old[n][4:])
+        self.assertGreater(report['timeline']['fitted_key_count'],2)
+        self.assertLessEqual(report['timeline']['maximum_relative_matrix_error'],1e-3)
+        # Independent dense samples, not just the solver's quarter-point checks.
+        for index in range(101):
+            t=index/100
+            posed=matrices(result,'a',t);original=matrices(doc,'a',t)
+            for n in ('foot_l','foot_r'):
+                self.assertLess(max(abs(a-b) for a,b in zip(posed[n][:4],rest[n][:4])),.002)
+                self.assertEqual(posed[n][4:],original[n][4:])
         with self.assertRaisesRegex(ValueError,'existing_channels'):fit(result,'a',observation)
+
+    def test_refinement_budget_does_not_return_unverified_fit(self):
+        from unittest.mock import patch
+        bones=[dict(name='root',x=0,y=0,rotation=0)]
+        tracks={}
+        for s in ('l','r'):
+            bones.extend([dict(name='calf_'+s,parent='root',x=0,y=0,rotation=0),
+                          dict(name='foot_'+s,parent='calf_'+s,x=1,y=0,rotation=0)])
+            tracks['calf_'+s]={'scale':[dict(time=0,x=1,y=1),dict(time=1,x=.2,y=1)]}
+        doc=dict(bones=bones,animations={'a':{'bones':tracks}})
+        with patch('autospine_workbench.targets.character43.foot_orientation_timeline.MAX_PASSES',0):
+            with self.assertRaisesRegex(ValueError,'timeline_budget_exceeded'):
+                fit(doc,'a',dict(times=[0,1],tracks={'foot_l':[0,0],'foot_r':[0,0]}))
+
+    def test_parent_keys_between_source_samples_are_included(self):
+        bones=[dict(name='root',x=0,y=0,rotation=0)]
+        tracks={}
+        for s in ('l','r'):
+            bones.extend([dict(name='calf_'+s,parent='root',x=0,y=0,rotation=0),
+                          dict(name='foot_'+s,parent='calf_'+s,x=1,y=0,rotation=0)])
+            tracks['calf_'+s]={'rotate':[dict(time=t,value=v) for t,v in
+                [(0,0),(.12,0),(.13,60),(.14,0),(1,0)]]}
+        doc=dict(bones=bones,animations={'a':{'bones':tracks}})
+        result,report=fit(doc,'a',dict(times=[0,1],tracks={'foot_l':[0,0],'foot_r':[0,0]}))
+        self.assertIn(.13,[key['time'] for key in result['animations']['a']['bones']['foot_l']['rotate']])
+        for time in (.125,.13,.135):
+            self.assertAlmostEqual(matrices(result,'a',time)['foot_l'][0],1)
 
     def test_singular_shear_is_rejected(self):
         doc=dict(bones=[dict(name='root',x=0,y=0,rotation=0)],
