@@ -58,12 +58,13 @@ def inspect(document,name,vectors,times,yaw=0):
 
 def build(files,artifact,bundle,request):
     import json
-    from .oblique_source import extract
-    if request.get('clip'):raise ValueError('knee_observation_clipped_time_not_supported')
-    vectors,_,_=extract(bundle)
-    keys=next(t for t in bundle.motion['tracks'] if t['property']=='rotation')['keys']
-    times=[k['tick']/bundle.motion['ticks_per_second'] for k in keys]
-    report=inspect(json.loads(files['skeleton.json']),'external-motion',vectors,times,
-                   request.get('projection',{}).get('yaw_degrees',0))
+    from .knee_source_samples import read
+    name,vectors,times,source_times=read(files,bundle,request)
+    report=inspect(json.loads(files['skeleton.json']),name,vectors,times,
+                   (request.get('projection') or {}).get('yaw_degrees',0))
+    for row in report['rows']:
+        row['source_time']=source_times[times.index(row['time'])]
     report['artifact_sha256']=artifact
+    report.update(animation=name,clip=request.get('clip'),projection=request.get('projection'),
+                  motion_identity=request['motion_identity'],animation_modified=False)
     return report

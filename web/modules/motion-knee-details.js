@@ -27,6 +27,7 @@ export function appendKneeDetails(container,base,artifact,onSeek){
       function render(){
         const r=current(),s=r.source;
         output.textContent=`${r.time.toFixed(3)} 秒 · ${kneeLabels[r.status]}`;
+        if(Number.isFinite(r.source_time)&&r.source_time!==r.time)output.textContent+=` · 原动作 ${r.source_time.toFixed(3)} 秒`;
         if(s.status==='measured')output.textContent+=` · 三维弯曲 ${s.bend_degrees.toFixed(1)}° · 大腿/小腿投影长度 ${s.projection_visibility.map(v=>(v*100).toFixed(1)+'%').join(' / ')} · 弯曲平面与画面平行程度 ${s.screen_plane_alignment==null?'未测量':(s.screen_plane_alignment*100).toFixed(1)+'%'}`;
         issues.textContent=r.issues.join('；')||'该采样未触发方向或强缩短提示，仍需检查实际贴图。';
         next.disabled=!selected.some(r=>r.issues.length);

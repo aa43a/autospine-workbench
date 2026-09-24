@@ -10,6 +10,7 @@ import {reconcileMotionJobs} from './motion-job-list.js';
 import {appendStageReview} from './motion-stage-review.js';
 import {appendViewComparison} from './motion-view-comparison.js';
 import {appendRotationDetails} from './motion-rotation-details.js';
+import {appendKneeDetails} from './motion-knee-details.js';
 import {appendTorsoDetails} from './motion-torso-details.js';
 import {appendPoseSummary} from './motion-pose-selection.js';
 import {appendInlinePlayer} from './motion-inline-player.js';
@@ -177,6 +178,7 @@ function render(data) {
       const inspection = appendInlinePlayer(item, job);
       appendDepthSummary(item, job, inspection);
       appendRotationDetails(item, job, inspection);
+      appendKneeDetails(item, `/api/motions/${job.job_id}/view/`, result.artifact_sha256, inspection.onSeek);
       const compare=data.target_comparison_available?appendTargetComparison(item, job, request):null;
       appendReadiness(item, job, compare, inspection);
       if (data.stage_review_available) appendStageReview(item, job);
