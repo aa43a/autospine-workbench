@@ -64,6 +64,9 @@ def submit(manager, parent_job, body):
 
 def retry(manager, request):
     repair = request['repair_execution']
+    if repair['draft'].get('action') == 'additional_view':
+        from .motion_view_execution import retry as view_retry
+        return view_retry(manager, request)
     if repair['draft'].get('action') == 'pose_geometry':
         from .motion_pose_geometry_execution import submit as pose_submit
         return pose_submit(manager, repair['parent_job_id'], dict(

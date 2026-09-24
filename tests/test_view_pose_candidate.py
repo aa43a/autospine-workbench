@@ -45,8 +45,9 @@ class ViewPoseCandidateTests(unittest.TestCase):
         self.assertNotEqual(next(r for r in frames if r['time'] == 1)['attachments']['leg'], 'leg')
         self.assertEqual(review['contact_status'], 'not_evaluated')
         self.assertFalse(review['selected'])
-        for old in ('runtime.json', 'motion-depth.json', 'motion-contact.json'):
+        for old in ('runtime.json', 'motion-depth.json'):
             self.assertNotIn(old, output)
+        self.assertNotEqual(output['motion-contact.json'], files['motion-contact.json'])
         manifest = json.loads(output['character-manifest.json'])
         self.assertFalse(manifest['production_authorized'])
         for path, digest in manifest['files'].items():

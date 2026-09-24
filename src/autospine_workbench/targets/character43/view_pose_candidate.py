@@ -65,9 +65,15 @@ def build(files, request, png, on_progress=None):
     geometry = inspect(result, reference)
     output = write(output, reference)
     parent = json.loads(files['motion-review.json'])
+    contact = dict(status='not_evaluated', scope='missing_source_contact_inputs')
+    if 'motion-ir.json' in files and 'motion-contact.json' in files:
+        from .final_motion_contact import recheck
+        contact = recheck(result, name, json.loads(files['motion-ir.json']),
+                          json.loads(files['motion-contact.json']), sorted(times), parent['reference_length_px'])
+    output['motion-contact.json'] = canonical_bytes(contact)
     evidence = dict(status='needs_changes', reference_length_px=parent['reference_length_px'],
         geometry_passed=geometry['passed'], runtime_status='not_evaluated',
-        contact_status='not_evaluated', depth_order_status='not_evaluated',
+        contact_status=contact['status'], depth_order_status='not_evaluated',
         authority='none', selected=False, production_authorized=False,
         issues=[i for i in parent.get('issues', []) if i['stage'] == 'projection'])
     for field in ('source_pose_fit', 'projected_lengths'):

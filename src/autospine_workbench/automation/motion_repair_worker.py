@@ -9,13 +9,14 @@ from .motion_intake_process import progress
 from .motion_repair_execution import PROFILE,PARTITION_PROFILE,ORDER_PROFILE,INTERVAL_ORDER_PROFILE
 from ..targets.character43.material_region_candidate import PROFILE as MATERIAL_PROFILE
 from ..targets.character43.pose_geometry_candidate import PROFILE as POSE_PROFILE
+from ..targets.character43.view_pose_candidate import PROFILE as VIEW_PROFILE
 from .storage_io import canonical_bytes
 
 
 def execute(folder, state_root, workspace, request):
     repair = request['repair_execution']; plan = repair['draft']
     expected={'local_repair':PROFILE,'partition':PARTITION_PROFILE,'pose_attachment':MATERIAL_PROFILE,
-              'pose_geometry':POSE_PROFILE,'region_order':ORDER_PROFILE}.get(plan['action'])
+              'pose_geometry':POSE_PROFILE,'region_order':ORDER_PROFILE,'additional_view':VIEW_PROFILE}.get(plan['action'])
     if plan['action']=='region_order' and 'interval' in plan.get('region_order', {}):
         expected=INTERVAL_ORDER_PROFILE
     if (expected is None or repair['profile'] != expected or canonical_sha256(plan) != repair['draft_sha256']
@@ -34,7 +35,17 @@ def execute(folder, state_root, workspace, request):
         from ..targets.character43.region_order_bundle import build as builder
     if expected==POSE_PROFILE:
         from ..targets.character43.pose_geometry_candidate import build as builder
-    if expected==MATERIAL_PROFILE:
+    if expected==VIEW_PROFILE:
+        import json
+        from ..targets.character43.view_pose_candidate import build as view_build
+        material=store.read(plan['material_bundle_sha256'])
+        handoff=json.loads(material['request.json']); pose=json.loads(material['view-pose.json'])
+        if (handoff['artifact_sha256']!=plan['artifact_sha256'] or handoff['slot']!=plan['slot']
+                or handoff['animation']!=plan['animation'] or not handoff.get('view_needs')
+                or pose['slot']!=plan['slot'] or pose['animation']!=plan['animation']):
+            raise ValueError('motion_view_worker_scope_changed')
+        files,evidence,geometry=view_build(source,pose,material['view.png'],lambda _:progress(folder,'post_contact_repair'))
+    elif expected==MATERIAL_PROFILE:
         from ..targets.character43.material_region_candidate import build as material_build
         mapping=repair['material_mapping']
         if canonical_sha256(mapping)!=repair['material_mapping_sha256'] or mapping['draft_sha256']!=repair['draft_sha256']:
