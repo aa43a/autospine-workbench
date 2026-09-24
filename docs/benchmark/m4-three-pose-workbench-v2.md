@@ -9,8 +9,8 @@
 | 角色 | 任务 | 本次核查状态 |
 | --- | --- | --- |
 | 红美铃 | motion-2006938df1554092aa3fe10e7eaea819 | 构建完成；播放、同步、下载及报告入口通过 |
-| Alice | motion-a78eb317d46b447cade3f83371e54ff1 | 运行中，局部深度分析；不计完成 |
-| 辉夜 | motion-b5c0568c213d4c9ab341547eb1348ebb | 排队中；不计完成 |
+| Alice | motion-a78eb317d46b447cade3f83371e54ff1 | 构建完成；播放、同步、下载及报告入口通过 |
+| 辉夜 | motion-b5c0568c213d4c9ab341547eb1348ebb | 运行中，透明像素重叠与顺序检查；不计完成 |
 
 Alice 与辉夜的独占提交回执分别位于 `tmp/foot-v2-alice-workbench-v1/submitted.json`
 及 `tmp/foot-v2-huiye-workbench-v1/submitted.json`。后续先查这两个任务，不重复提交。
@@ -35,5 +35,17 @@ Alice 与辉夜的独占提交回执分别位于 `tmp/foot-v2-alice-workbench-v1
 状态保持一致。随后才提交 Alice 与辉夜。两者终止前不再重启服务。
 
 红美铃深度仍待复核，代理接触不证明鞋底接地；本轮没有新增人工视觉接受。
-下一步读取两个任务的最终证据，执行同样的实际播放/下载检查，并记录真实失败，
+下一步读取剩余任务的最终证据，执行同样的实际播放/下载检查，并记录真实失败，
 不把单例通过推广为三结构通过。
+
+## Alice 后续结果
+
+候选 `c9bff7444d62d778e8a81762a2032ecb0b6bf9dd0b2f64e9c175abac03f7ef8a`，
+2,213 个 Runtime 采样的几何检查通过。接触 `inferred_proxy_passed`，深度仍为
+`depth_candidates_need_review`。同页播放器及 0、4.967、9.933 秒源时间轴同步通过。
+浏览器 ZIP 与验证接口一致，135,181,656 字节，SHA256：
+`bba3bc836e540584852880deab4c1438204a0d769229b6d4618a988d549e5e2e`。
+证据在 `tmp/foot-v2-alice-workbench-v1/delivery/browser-delivery.json`。
+已查看中间帧，不生成整段视觉接受记录。
+姿态依据、最终接触时间轴和播放器身份检查也通过，证据在同目录
+`readiness/report.json`，未写入任何阶段接受决定。
