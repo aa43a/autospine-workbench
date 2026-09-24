@@ -4,7 +4,8 @@ from .depth_region_partition import build as partition
 PROFILE = 'selected-region-static-order-v1'
 
 
-def build(document, source_slot, triangles, reference_slot, side, *, part_limit=128):
+def build(document, source_slot, triangles, reference_slot, side, *, part_limit=128,
+          animation=None, interval=None):
     """Move selected triangles before/after a reference for the entire animation.
 
     This explicit editing operation is not automatic depth inference. Source and
@@ -33,6 +34,7 @@ def build(document, source_slot, triangles, reference_slot, side, *, part_limit=
     retained = [s for s in candidate['slots'] if s['name'] not in moved_names]
     index = next(i for i, s in enumerate(retained) if s['name'] == reference_slot)
     index += side == 'after'
+    original_slots = candidate['slots']
     candidate['slots'] = retained[:index] + moved + retained[index:]
     report = dict(profile=PROFILE, authority='none', selected=False,
                   source_slot=source_slot, reference_slot=reference_slot, side=side,
@@ -42,4 +44,9 @@ def build(document, source_slot, triangles, reference_slot, side, *, part_limit=
                   source_triangle_coverage_preserved=True,
                   triangle_order_preserved=False,
                   within_each_group_triangle_order_preserved=True)
+    if interval is not None:
+        from .region_order_interval import apply
+        report.update(apply(candidate, original_slots, candidate['slots'], animation, interval))
+    elif animation is not None:
+        raise ValueError('region_order_interval_required')
     return candidate, report

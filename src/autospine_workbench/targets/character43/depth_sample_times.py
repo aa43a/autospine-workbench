@@ -27,6 +27,9 @@ def repair_times(document, animation, depth):
         return None
     times = {t/1e6 for t in ticks}
     times.update((a+b)/2e6 for a,b in zip(ticks,ticks[1:]))
+    for key in document['animations'][animation].get('drawOrder', []):
+        t = key.get('time', 0)
+        times.update(v for v in (t-1e-4,t,t+1e-4) if ticks[0]/1e6 <= v <= ticks[-1]/1e6)
     for tracks in document['animations'][animation].get('slots',{}).values():
         for key in tracks.get('alpha',[]):
             t = key.get('time',0)
