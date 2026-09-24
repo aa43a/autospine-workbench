@@ -1,3 +1,5 @@
+import {viewEditor} from './view-pose-editor.js';
+
 export function validateViewHandoff(value, job, row, revision) {
   if(!value?.request||!value?.view_pose)throw Error('请选择包含 request 和 view_pose 的对应文件');
   const {request,view_pose:pose}=value;
@@ -17,14 +19,31 @@ export function viewReturn(parent,job,row) {
   parent.append(panel);
   const [jsonFile,pngFile]=panel.querySelectorAll('input'),button=panel.querySelector('button');
   const status=panel.querySelector('[role="status"]'),link=panel.querySelector('a');
-  let current=null,generation=0;
+  panel.querySelector('p').textContent='选择新视角 PNG 后，可在画布上编辑对应位置与姿态时间；也可上传已编辑的 JSON。源坐标仅作参考，保存姿态后才可回交候选。';
+  const open=document.createElement('button');open.type='button';open.textContent='在画布上编辑新视角对应';panel.insertBefore(open,button);
+  let current=null,generation=0,authored=null;
+  const editor=viewEditor(panel,value=>{authored=value;jsonFile.value='';status.textContent='已加载画布姿态，使用当前所选 PNG 提交';},()=>{authored=null;status.textContent='画布已修改，请重新使用画布结果回交';});
+  jsonFile.onchange=pngFile.onchange=()=>{generation++;open.disabled=false;authored=null;editor.reset();};
+  open.onclick=async()=>{
+    const revision=current,ticket=generation;open.disabled=true;
+    try {
+      const png=pngFile.files[0];if(!revision||!png)throw Error('请先选择新视角 PNG');
+      if(png.size>8*1024*1024)throw Error('PNG 限 8 MB');
+      const response=await fetch(link.href);const template=await response.json();
+      if(!response.ok)throw Error(template.reason_code||'模板加载失败');
+      const image=await createImageBitmap(png);
+      if(ticket!==generation||png!==pngFile.files[0]){image.close();return;}
+      authored=null;editor.load(template,image);status.textContent='请在画布调整并保存姿态，再使用画布结果回交';
+    }catch(e){if(ticket===generation)status.textContent=e.message;}
+    finally{if(ticket===generation)open.disabled=false;}
+  };
   button.onclick=async()=>{
     const revision=current,ticket=generation;panel.disabled=true;
     try {
       const source=jsonFile.files[0],png=pngFile.files[0];
-      if(!revision||!source||!png)throw Error('请选择已编辑的对应文件和 PNG');
-      if(source.size>8*1024*1024||png.size>8*1024*1024)throw Error('对应文件与 PNG 各限 8 MB');
-      const body=validateViewHandoff(JSON.parse(await source.text()),job,row,revision);
+      if(!revision||(!source&&!authored)||!png)throw Error('请选择已编辑的对应文件和 PNG，或先保存画布结果');
+      if(source?.size>8*1024*1024||png.size>8*1024*1024)throw Error('对应文件与 PNG 各限 8 MB');
+      const body=validateViewHandoff(authored?structuredClone(authored):JSON.parse(await source.text()),job,row,revision);
       const bytes=await png.arrayBuffer();
       body.view_pose.texture_sha256=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),v=>v.toString(16).padStart(2,'0')).join('');
       const bitmap=await createImageBitmap(png);
@@ -41,7 +60,7 @@ export function viewReturn(parent,job,row) {
     finally{if(ticket===generation)panel.disabled=false;}
   };
   return revision=>{
-    generation++;current=revision;panel.disabled=false;panel.hidden=!revision;panel.style.display=revision?'':'none';
+    generation++;current=revision;authored=null;editor.reset();open.disabled=false;panel.disabled=false;panel.hidden=!revision;panel.style.display=revision?'':'none';
     link.href=revision?`/api/motions/${encodeURIComponent(job.job_id)}/view-pose-template/${revision}`:'';
     jsonFile.value='';pngFile.value='';
   };
