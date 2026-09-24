@@ -40,6 +40,15 @@ class IntervalOrderTests(unittest.TestCase):
             for delta in (-1e-4, 0, 1e-4):
                 self.assertIn(boundary+delta, times)
 
+    def test_float32_collapse_rejected_and_effective_times_recorded(self):
+        doc, _ = source(); original = deepcopy(doc)
+        with self.assertRaisesRegex(ValueError, 'collapses_in_runtime'):
+            build(doc, 'a', [0], 'b', 'after', animation='test', interval=[.5, .500000001])
+        _, report = build(doc, 'a', [0], 'b', 'after', animation='test', interval=[.1, .3])
+        self.assertEqual(report['interval'], [.1, .3])
+        self.assertEqual(report['runtime_interval'], [.10000000149011612, .30000001192092896])
+        self.assertEqual(doc, original)
+
 
 if __name__ == '__main__':
     unittest.main()

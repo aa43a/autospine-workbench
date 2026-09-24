@@ -15,7 +15,7 @@ const skeleton = new spine.Skeleton(data);
 const animation = data.findAnimation(report.animation);
 const state = new spine.AnimationState(new spine.AnimationStateData(data));
 const entry = state.setAnimation(0, report.animation, true);
-const [start, end] = report.interval;
+const [start, end] = report.runtime_interval ?? report.interval.map(Math.fround);
 const times = [0, start-1e-4, start, start+1e-4, end-1e-4, end, end+1e-4,
   animation.duration, start, 0, end, start, animation.duration+start, animation.duration+end];
 for (const time of times) {

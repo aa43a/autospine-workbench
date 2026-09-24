@@ -59,3 +59,18 @@ grid does not contain it. This closes a screenshot-selection gap in the default
 non-exact keys, endpoint switches, out-of-grid keys, and invalid frame order.
 This new selector was added after the live job started; that immutable report does
 not contain the new switch screenshot coverage. Fresh capture is still required.
+
+## Boundary inspection and precision
+
+The actual official player was inspected at 0.999, 1.000, 1.999 and 2.000 seconds.
+At the full-character display scale no obvious new jump was visible. This does not
+prove pixel continuity or improvement: the selected waving example does not establish
+that the order edit repairs the original Reach shoulder. Do not count it toward
+the original six-case quality acceptance or automatically adopt the interval.
+
+A separate precision defect was reproduced: authored endpoints 0.5 and 0.500000001
+both become 0.5 in Runtime Float32 storage. Such collapsed intervals are now rejected.
+Reports preserve authored endpoints and record effective runtime endpoints; supplemental
+depth probes use runtime key times. Official core verification of the real Alice
+scene with 0.1–0.3 endpoints passed 14 boundary/reverse/loop checks. Thirty-three focused
+Python tests passed. This is timing correctness, not visual acceptance.
