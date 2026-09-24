@@ -54,6 +54,9 @@ def matrices(document, animation_name, time):
 
 
 def sample(document, animation_name, time):
+    if any(channels.get('attachment') for channels in
+           document['animations'][animation_name].get('slots', {}).values()):
+        raise ValueError('character_affine_attachment_timeline_requires_active_mesh_sampler')
     transforms = matrices(document, animation_name, time)
     animation = document['animations'][animation_name]
     result = {}
