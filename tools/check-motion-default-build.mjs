@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {pathToFileURL} from 'node:url';
-const [base,sourceId,projectId,output,dependencies]=process.argv.slice(2);
+const [base,sourceId,projectId,output,dependencies,poseProfile]=process.argv.slice(2);
+if(poseProfile && poseProfile!=='source-pose-post-contact-timeline-v2')throw Error('unsupported UI pose profile');
 const {chromium}=await import(pathToFileURL(path.resolve(dependencies,'node_modules/playwright-core/index.mjs')));
 const browser=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
 try {
@@ -16,10 +17,14 @@ try {
   const selectionStarted=performance.now();
   await page.locator('#target-project').selectOption(projectId);
   await page.waitForFunction(()=>!document.getElementById('adapt').disabled,{},{timeout:120000});
+  if(poseProfile)await page.getByLabel('姿态策略',{exact:true}).selectOption(poseProfile);
   const selectionMs=performance.now()-selectionStarted;
   const responsePromise=page.waitForResponse(r=>r.url().endsWith(`/api/motions/${sourceId}/adapt`)&&r.request().method()==='POST',{timeout:120000});
+  responsePromise.catch(()=>{});
   const submissionStarted=performance.now();
   await page.locator('#adapt').click();
+  await page.waitForTimeout(1000);
+  console.log(JSON.stringify({submission_status:await page.locator('#target-status').textContent()}));
   const response=await responsePromise,receipt=await response.json();
   const submissionMs=performance.now()-submissionStarted;
   assert.equal(response.status(),202,JSON.stringify(receipt));
@@ -27,7 +32,7 @@ try {
     request:response.request().postDataJSON(),receipt,selectionMs,submissionMs,submittedAt:new Date().toISOString()},null,2),{flag:'wx'});
   assert.equal(response.request().postDataJSON().contact_correction,true);
   assert.equal(response.request().postDataJSON().clip,null);
-  assert.equal(response.request().postDataJSON().pose_profile,undefined);
+  assert.equal(response.request().postDataJSON().pose_profile,poseProfile);
   await page.waitForFunction(id=>location.hash==='#'+id,receipt.job_id);
   await page.locator('#'+receipt.job_id).waitFor();
   await page.screenshot({path:path.join(output,'queued.png')});

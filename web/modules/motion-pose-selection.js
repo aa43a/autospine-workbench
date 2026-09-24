@@ -24,12 +24,13 @@ export function poseSelection(value,body){
     throw Error('源姿态候选目前要求完整片段及来源视角，请取消裁剪、恒定偏转和躯干投影。');
   return {pose_profile:value};
 }
-export function createPoseSelection(button){
+export function createPoseSelection(button,onChange=()=>{}){
   const label=document.createElement('label');label.textContent='姿态策略 ';
   const select=document.createElement('select');select.setAttribute('aria-label','姿态策略');
   select.add(new Option('现有策略',''));select.add(new Option('源姿态与髋中心（实验候选）',POSE_PROFILE));
   select.add(new Option('接触后修正与脚部帧间校正 v2（实验）',POST_CONTACT_PROFILE));
   const note=document.createElement('p');note.textContent='源姿态候选保留源举臂方向；v2 还会检查脚部帧间朝向并补充必要关键帧。要求源脚部方向可观测；肩部、掌面、鞋底与遮挡仍需检查。旧任务重试保留其原策略。';
   label.append(select);button.before(label,note);
+  select.onchange=()=>onChange(select.value);
   return {selection:body=>poseSelection(select.value,body),reset(){select.value='';}};
 }

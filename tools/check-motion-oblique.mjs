@@ -42,7 +42,14 @@ try{
   mode.checked=false;mode.dispatchEvent(new Event('change'));await adapt.onclick();
   releases.get('source-f')();await flush();const canceledYaw=yaw.value;
   delayed=false;mode.checked=true;mode.dispatchEvent(new Event('change'));await flush();await adapt.onclick();
-  return {calls,comparisons,defaultBusy,reset,blocked,before,staleYaw,stillBlocked,noFit,failureVisible,canceledYaw};
+  delayed=true;source('source-g');
+  const pose=document.querySelector('[aria-label="姿态策略"]');
+  pose.value='source-pose-post-contact-timeline-v2';pose.dispatchEvent(new Event('change'));
+  const poseSuspended=mode.disabled&&yaw.disabled&&auto.disabled&&!adapt.disabled;
+  releases.get('source-g')();await flush();await adapt.onclick();
+  const poseYaw=yaw.value;
+  delayed=false;pose.value='';pose.dispatchEvent(new Event('change'));await flush();await adapt.onclick();
+  return {calls,comparisons,defaultBusy,reset,blocked,before,staleYaw,stillBlocked,noFit,failureVisible,canceledYaw,poseSuspended,poseYaw};
  });
  assert.equal(result.defaultBusy,true);
  assert.deepEqual(result.calls[0].projection_selection,{comparison_sha256:'receipt-source-a'});
@@ -58,5 +65,9 @@ try{
  assert.equal(result.failureVisible,true);assert.equal(result.comparisons.filter(x=>x==='source-e').length,1);
  assert.equal('projection_selection' in result.calls[7],false);assert.equal(result.canceledYaw,'');
  assert.equal(result.calls[8].projection_selection.comparison_sha256,'receipt-source-f');
- console.log(JSON.stringify({passed:true,checks:14,scope:'synthetic_default_selection_no_real_jobs'}));
+ assert.equal(result.poseSuspended,true);assert.equal(result.poseYaw,'');
+ assert.equal(result.calls[9].pose_profile,'source-pose-post-contact-timeline-v2');
+ assert.equal('projection' in result.calls[9],false);assert.equal('projection_selection' in result.calls[9],false);
+ assert.equal('pose_profile' in result.calls[10],false);assert.equal(result.calls[10].projection.yaw_degrees,-30);
+ console.log(JSON.stringify({passed:true,checks:21,scope:'synthetic_default_selection_no_real_jobs'}));
 }finally{await browser.close();}

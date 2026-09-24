@@ -7,15 +7,15 @@ export function createObliqueSelection(request, yaw, anchor, onBusy = () => {}) 
   mode.setAttribute('aria-label','新动作默认自动选择合格投影');
   const label=document.createElement('label');label.append(mode,' 新动作默认自动选择合格投影');
   anchor.after(label, button, status);
-  let source = null, available = false, generation = 0, selection = null, busy = false, attempted=null;
-  const enable = () => { button.disabled = !available || !source || busy; onBusy(busy); };
-  const startDefault=()=>{if(mode.checked&&available&&source&&attempted!==source.job_id)void compare();};
+  let source = null, available = false, generation = 0, selection = null, busy = false, attempted=null, suspended=false;
+  const enable = () => { button.disabled = !available || !source || busy || suspended; mode.disabled=!available||suspended; onBusy(busy); };
+  const startDefault=()=>{if(!suspended&&mode.checked&&available&&source&&attempted!==source.job_id)void compare();};
   yaw.addEventListener('change', () => {
     mode.checked=false;
     generation++; selection = null; busy = false; status.textContent = '已切换为手动角度。'; enable();
   });
   async function compare() {
-    if (!source || busy || !available) return;
+    if (!source || busy || !available || suspended) return;
     const current = ++generation, id = source.job_id;
     attempted=id;
     busy = true; enable(); status.textContent = '正在比较整段动作的 13 个投影角度…';
@@ -41,6 +41,13 @@ export function createObliqueSelection(request, yaw, anchor, onBusy = () => {}) 
     else{generation++;selection=null;busy=false;status.textContent='已关闭自动选择，保留当前手动角度。';enable();}
   };
   return {
+    suspend(value) {
+      if(suspended===Boolean(value))return;
+      suspended=Boolean(value);generation++;selection=null;busy=false;attempted=null;
+      if(suspended){yaw.value='';status.textContent='源姿态策略保留源视角，自动偏转已暂停。';}
+      else status.textContent='';
+      enable();startDefault();
+    },
     available(value) {
       available = Boolean(value); mode.disabled=!available;
       if(!available){generation++;selection=null;busy=false;attempted=null;}

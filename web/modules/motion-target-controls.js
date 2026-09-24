@@ -8,7 +8,11 @@ export function createTargetControls(request, refresh, selection) {
   const $ = id => document.getElementById(id);
   const depth = createDepthSelection($('adapt'));
   const torso = createTorsoSelection($('adapt'));
-  const pose = createPoseSelection($('adapt'));
+  let poseActive=false;
+  const pose = createPoseSelection($('adapt'),value=>{
+    poseActive=Boolean(value);automatic.suspend(poseActive);
+    yaw.disabled=!obliqueAvailable||poseActive;
+  });
   let source = null, character = null, token = 0, busy = false, comparing = false;
   const label = document.createElement('label');
   label.textContent = '相对源视角的恒定偏转（实验） ';
@@ -26,7 +30,7 @@ export function createTargetControls(request, refresh, selection) {
   const automatic = createObliqueSelection(request, yaw, hint, value => { comparing = value; enabled(); });
   let obliqueAvailable = false;
   void request('/api/motions').then(value => {
-    obliqueAvailable = Boolean(value.oblique_target_available); yaw.disabled = !obliqueAvailable;
+    obliqueAvailable = Boolean(value.oblique_target_available); yaw.disabled = !obliqueAvailable||poseActive;
     automatic.available(obliqueAvailable && value.oblique_comparison_available);
     depth.available(Boolean(value.regional_depth_available),Boolean(value.sparse_depth_available));
     torso.available(Boolean(value.torso_projection_available));
@@ -85,9 +89,11 @@ export function createTargetControls(request, refresh, selection) {
   };
   void loadProjects();
   return {select(job) {
-    if (source?.job_id !== job?.job_id) {yaw.value = '';pose.reset();}
+    const changed=source?.job_id !== job?.job_id;
+    if (changed) {yaw.value = '';pose.reset();poseActive=false;}
     source = job?.result?.motion_status === 'compiled' ? job : null;
     automatic.source(source);
+    if(changed){automatic.suspend(false);yaw.disabled=!obliqueAvailable;}
     depth.source(source);
     torso.source(source);
     $('target-source').textContent = source ? `动作：${source.name}` : '先选择已生成 MotionIR 的源动作。';
