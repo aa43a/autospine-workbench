@@ -18,7 +18,10 @@ export async function loadSourceReference(config) {
   const player = createSourcePlayer(el('source-canvas'), slider, button, el('source-position'));
   player.load(source.preview, {start: source.source_start, end: source.source_start + source.duration});
   player.setView('front');
-  el('source-view').onchange = () => player.setView(el('source-view').value);
+  el('source-view').onchange = () => {
+    const value = el('source-view').value;
+    player.setView(['front', 'side'].includes(value) ? value : Number(value));
+  };
   el('source-reference').hidden = false;
   return {seek(time) {
     player.seek(source.source_start + time);

@@ -3,7 +3,12 @@ export function createSourcePlayer(canvas, slider, button, label, onTime = () =>
   let data = null, playing = false, previous = 0, elapsed = 0, handle = null;
   let bounds = [0, 0, 1, 1];
   let view = null;
-  const xy = point => (view || data.view) === 'side' ? [-point[2], -point[1]] : [point[0], -point[1]];
+  const xy = point => {
+    const selected = view ?? data.view;
+    const yaw = typeof selected === 'number' ? selected : selected === 'side' ? 90 : 0;
+    const angle = yaw * Math.PI / 180;
+    return [Math.cos(angle) * point[0] - Math.sin(angle) * point[2], -point[1]];
+  };
   function fitBounds() {
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     for (const frame of data.frames) for (const point of frame.joints) {
@@ -72,7 +77,9 @@ export function createSourcePlayer(canvas, slider, button, label, onTime = () =>
   slider.oninput = () => { stop(); draw(); };
   return {
     setView(value) {
-      if (![null, 'front', 'side'].includes(value)) throw Error('source_view_invalid');
+      if (![null, 'front', 'side'].includes(value)
+          && !(typeof value === 'number' && Number.isFinite(value) && Math.abs(value) <= 90))
+        throw Error('source_view_invalid');
       view = value;
       if (data) { fitBounds(); draw(); }
     },

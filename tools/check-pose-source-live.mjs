@@ -24,6 +24,14 @@ try {
   }
   await page.locator('#source-view').selectOption('side');
   assert.equal(await page.evaluate(()=>window.poseGeometryEditorState.time),1.2);
+  const views=[];
+  for(const view of ['-90','-45','front','45','side']) {
+    await page.locator('#source-view').selectOption(view);
+    assert.equal(await page.evaluate(()=>window.poseGeometryEditorState.time),1.2);
+    assert.ok(Math.abs(Number(await page.locator('#source-position').getAttribute('data-requested-time'))-source.source_start-1.2)<1e-6);
+    views.push(await page.locator('#source-canvas').evaluate(el=>el.toDataURL()));
+  }
+  assert.ok(new Set(views).size>1,'source view selection must change the drawing');
   await page.locator('#play').click();
   await page.waitForFunction(()=>window.poseGeometryEditorState.time>1.4);
   await page.locator('#play').click();
