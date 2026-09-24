@@ -21,9 +21,10 @@ try{
   if(name==='editor-config.json')body=Buffer.from(JSON.stringify({...JSON.parse(body),execute_url:'/api/motions/test/pose-geometry-execute'}));
   await route.fulfill({body,contentType:type});
  });
- await page.goto('http://pose-editor.test/');
+ await page.goto('http://pose-editor.test/?time=0.7');
  await page.waitForFunction(()=>window.poseGeometryEditorReady||window.poseGeometryEditorError,{},{timeout:60000});
  assert.equal(await page.evaluate(()=>window.poseGeometryEditorError),undefined);
+ assert.equal(await page.evaluate(()=>window.poseGeometryEditorState.time),.7);
  const seek=async t=>page.locator('#time').evaluate((e,t)=>{e.value=t;e.dispatchEvent(new Event('input'));},t);
  const drag=async(index,dx,dy)=>{
   const xy=await page.evaluate(index=>{const canvas=document.querySelector('canvas'),r=canvas.getBoundingClientRect();

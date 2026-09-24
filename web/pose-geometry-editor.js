@@ -19,6 +19,8 @@ try {
  const selected=new Set(vertices),triangles=[];
  for(let i=0;i<mesh.triangles.length;i+=3)triangles.push(mesh.triangles.slice(i,i+3));
  let time=interval[0],playing=false,previous=0,poses=[],history=[],drag=null,lastWorld=[],cached=[],storageError='';
+ const entryTime=new URL(location.href).searchParams.get('time');
+ if(entryTime!==null&&entryTime.trim()!==''&&Number.isFinite(Number(entryTime))&&Number(entryTime)>=interval[0]&&Number(entryTime)<=interval[1])time=Number(entryTime);
  const legacyKey=`pose-geometry-v1:${config.request.document_sha256}:${slot}:${animation}`;
  const storageKey=`${legacyKey}:${vertices.join(',')}:${interval.join(',')}`;
  const area=(p,t)=>{const [a,b,c]=t.map(i=>p[i]);return ((b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]))/2;};

@@ -64,6 +64,23 @@ class PoseGeometryCandidateTests(unittest.TestCase):
         self.assertFalse(next(r for r in geometry['records'] if r['slot'] == 'other')['passed'])
         self.assertEqual(evidence['status'], 'needs_changes')
 
+    def test_bone_projection_diagnostics_survive_without_surface_acceptance(self):
+        files, plan = bundle()
+        parent = json.loads(files['motion-review.json'])
+        parent['source_pose_fit'] = dict(target_profile='source-test', records=[dict(
+            bone='child', unreliable_frames=[dict(time=1, reason='collapsed')])])
+        parent['projected_lengths'] = dict(measured=True)
+        parent['surface_accepted'] = True
+        files['motion-review.json'] = canonical_bytes(parent)
+        output, evidence, _ = build(files, plan)
+        self.assertEqual(evidence['source_pose_fit'], parent['source_pose_fit'])
+        self.assertEqual(evidence['projected_lengths'], parent['projected_lengths'])
+        self.assertNotIn('surface_accepted', evidence)
+        from autospine_workbench.targets.character43.motion_readiness import build as readiness
+        projection = next(s for s in readiness(output, 'candidate')['stages'] if s['stage'] == '投影')
+        self.assertEqual(projection['status'], 'needs_changes')
+        self.assertEqual(projection['unreliable_frames'][0]['time'], 1)
+
     def test_stale_reference_missing_setup_and_cross_slot_rejected(self):
         files, plan = bundle()
         bad = dict(files, **{'numeric-reference.json': canonical_bytes(dict(

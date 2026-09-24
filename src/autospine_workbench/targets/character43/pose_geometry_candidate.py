@@ -48,6 +48,7 @@ def build(files, plan, on_progress=None):
                                animations={name: frames}))
     geometry = inspect(output, setup_vertices=setup)
     evidence = json.loads(files['motion-review.json'])
+    source_facts = {k: evidence[k] for k in ('source_pose_fit', 'projected_lengths') if k in evidence}
     contact = recheck(result, name, json.loads(files['motion-ir.json']),
                       json.loads(files['motion-contact.json']), times, evidence['reference_length_px'])
     # Derive a fresh review rather than carrying accepted/selected state forward.
@@ -56,6 +57,9 @@ def build(files, plan, on_progress=None):
                     depth_order_status='not_evaluated', contact_status=contact['status'],
                     authority='none', selected=False, production_authorized=False,
                     issues=[i for i in evidence.get('issues', []) if i['stage'] == 'projection'])
+    # The compiler preserves bones and bone timelines. Their original projection
+    # measurements remain valid; no surface/acceptance evidence is carried here.
+    evidence.update(source_facts)
     evidence['issues'].append(dict(stage='repair', reason_code='pose_geometry_requires_runtime_and_visual_review'))
     if not geometry['passed']:
         evidence['issues'].append(dict(stage='geometry', reason_code='motion_target_deformation_needs_changes'))

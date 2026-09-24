@@ -14,6 +14,15 @@ STEPS = {'verify_source', 'convert_fbx', 'verify_bridge', 'inspect_bvh', 'inspec
 
 # Only explicit internal failures may cross the worker log boundary.
 REPAIR_FAILURES = frozenset({
+    'pose_candidate_scope_mismatch', 'pose_candidate_reference_mismatch',
+    'pose_candidate_single_animation_required', 'pose_candidate_default_skin_required',
+    'pose_candidate_sample_limit', 'pose_candidate_setup_required',
+    'pose_patch_source_time_invalid', 'pose_patch_request_invalid', 'pose_patch_document_changed',
+    'pose_patch_legacy_deform_unsupported', 'pose_patch_bezier_bone_timeline_unsupported',
+    'pose_patch_mesh_changed', 'pose_patch_vertices_invalid', 'pose_patch_source_sample_budget',
+    'pose_patch_interval_invalid', 'pose_patch_poses_invalid', 'pose_patch_pose_time_invalid',
+    'pose_patch_points_invalid', 'pose_patch_dense_linear_deform_required',
+    'pose_patch_sample_budget', 'pose_patch_fidelity_failed',
     'runtime_storage_alpha_unsupported',
     'material_scene_skin_or_animation', 'material_scene_existing_order_or_slot_tracks',
     'material_scene_mesh_changed', 'material_scene_mapping_invalid',

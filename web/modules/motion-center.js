@@ -14,6 +14,7 @@ import {appendTorsoDetails} from './motion-torso-details.js';
 import {appendPoseSummary} from './motion-pose-selection.js';
 import {appendInlinePlayer} from './motion-inline-player.js';
 import {jobAction,successorId} from './motion-job-actions.js';
+import {poseErrors} from './motion-pose-errors.js';
 
 const $ = id => document.getElementById(id);
 const player = createSourcePlayer($('canvas'), $('time'), $('play'), $('clock'));
@@ -46,6 +47,7 @@ const steps = {
   depth_ordering: '求解并检查绘制顺序',
 };
 const reasons = {
+  ...poseErrors,
   runtime_storage_alpha_unsupported: 'Runtime 数值校验尚不支持该透明度轨道，请检查轨道兼容性；这不是源动作解析失败。',
   material_scene_skin_or_animation: '区域换图当前需要单一默认皮肤及单一动作。原候选保留。',
   material_scene_existing_order_or_slot_tracks: '该区域已有绘制顺序或插槽动画，当前换图策略不能安全合并；请保留原候选并调整合并策略。',

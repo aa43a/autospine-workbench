@@ -18,6 +18,7 @@ class RepairDiagnosticsTests(unittest.TestCase):
                 self.assertEqual(failure_reason(path), reason)
             for value in [dict(reason_code='runtime_storage_C:/private/file'),
                           dict(reason_code='material_scene_arbitrary_secret'),
+                          dict(reason_code='pose_patch_private_path'),
                           dict(reason_code=['runtime_storage_alpha_unsupported']), [], None, 12]:
                 path.write_text(json.dumps(value), encoding='utf-8')
                 self.assertEqual(failure_reason(path), 'motion_decode_failed')
@@ -42,3 +43,18 @@ class RepairDiagnosticsTests(unittest.TestCase):
             self.assertFalse(report['selected'])
             self.assertEqual(report['authority'], 'none')
             self.assertEqual(mime, 'application/json')
+
+    def test_pose_summary_keeps_authored_times_and_scope(self):
+        from test_pose_geometry_candidate import bundle
+        from autospine_workbench.targets.character43.pose_geometry_candidate import build
+        files, plan = bundle()
+        output, _, _ = build(files, plan)
+        output['motion-repair-provenance.json'] = b'{"parent_job_id":"parent","parent_artifact_sha256":"old"}'
+        with patch('autospine_workbench.automation.motion_target_jobs.context', return_value=({'artifact_sha256':'new'}, output)):
+            raw, _ = review_file(None, 'job', ['repair-summary.json'])
+        report = json.loads(raw)
+        self.assertEqual(report['pose_geometry']['times'], [1])
+        self.assertEqual(report['pose_geometry']['vertices'], 1)
+        self.assertEqual(report['pose_geometry']['interval'], [0, 2])
+        self.assertLess(report['pose_geometry']['authored_point_error_px'], 1e-6)
+        self.assertFalse(report['selected'])

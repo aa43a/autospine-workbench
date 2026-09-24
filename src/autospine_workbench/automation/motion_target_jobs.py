@@ -148,6 +148,13 @@ def review_file(manager, job, parts):
             before=repair['parent_geometry'], after=repair['geometry'],
             unchanged_other_channels=repair.get('unchanged_other_channels',True),
             profile=repair['profile'],boundary=repair.get('boundary'), material=repair.get('material'), selected=False, authority='none')
+        if 'pose-geometry-report.json' in files:
+            patch = json.loads(files['pose-geometry-report.json'])
+            poses = json.loads(files['pose-geometry-request.json'])
+            report['pose_geometry'] = dict(interval=patch['interval'], vertices=len(patch['vertices']),
+                times=[p['time'] for p in poses['poses']], authored_point_error_px=patch['authored_point_error_px'],
+                unchanged_vertex_error_px=patch['unchanged_vertex_error_px'],
+                outside_interval_error_px=patch['outside_interval_error_px'])
         return json.dumps(report,ensure_ascii=False).encode('utf-8'),'application/json'
     if parts == ['source-comparison.json']:
         from .motion_source_comparison import build
