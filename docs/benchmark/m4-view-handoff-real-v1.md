@@ -9,3 +9,9 @@
 本次草稿 revision 3，子任务 `motion-00696eeedad848029806096960447241`。输出位于 `localset/tmp/m4-motion-center/view-handoff-real-v1/{draft,handoff,submitted}.json`。截至本次记录，API 和子进程均确认任务仍运行，步骤 post_contact_repair；尚无 Runtime 结论。下次应继续观察该任务，不能因本轮结束创建替代任务或声称通过。
 
 等待期间补充新视角 worker 的显式失败码白名单，保留对应折叠、姿态翻转、来源不匹配等原因；任意日志或未列入的 view 消息仍不外传。关键原因增加中文调整提示。2 项失败边界测试、23 项活动附件/几何/深度/存储与候选测试通过。
+
+## 采样复制开销
+
+后续检查确认 worker 仍有 CPU 活动，未因状态重复而中断或重建。活动附件采样原先每帧深复制完整动画后又丢弃整段 deform，改为只复制归一化后仍需要的字段；公开的 normalized document 仍独立于源数据，setup 采样只读共享静态数据。没有减少时刻、顶点或几何检查。
+
+`tools/m4_active_sample_benchmark.py` 与提交 `2c2d1a5` 的旧采样器直接对照同一父 artifact。0.05、0.1、0.15 秒的完整返回数据严格相等；旧耗时分别 70.1、76.2、66.5 ms，新耗时 10.7、11.1、11.0 ms。原始结果在 `sampler-comparison.json`。这是三个 CPU 采样的性能证据，不是整段 Runtime 成功或整体提速比例。25 项相关测试通过，包含返回对象修改不会污染源候选的检查。当前已运行 worker 不重启，优化用于后续执行。

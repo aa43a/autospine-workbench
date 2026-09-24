@@ -1,8 +1,9 @@
 import struct
+from copy import deepcopy
 import unittest
 
 from test_pose_attachment_variant import PoseAttachmentVariantTests
-from autospine_workbench.targets.character43.active_mesh_pose import sample_active
+from autospine_workbench.targets.character43.active_mesh_pose import sample_active, active_document
 from autospine_workbench.targets.character43.affine_pose import sample
 from autospine_workbench.asset.planning.component_local_solver import metrics
 
@@ -22,6 +23,19 @@ class ActiveMeshPoseTests(unittest.TestCase):
             self.assertEqual(len(frame['setup_vertices']['leg']), count)
         with self.assertRaisesRegex(ValueError, 'requires_active'):
             sample(document, 'move', 1)
+
+    def test_normalized_result_remains_independent_of_source(self):
+        document, _ = self.fixture()
+        document['animations']['other'] = {'bones': {'root': {'rotate': [{'time': 0, 'value': 4}]}}}
+        before = deepcopy(document)
+        normalized, _ = active_document(document, 'move', 1)
+        normalized['bones'][0]['x'] = 999
+        normalized['skins'][0]['attachments']['leg']['leg']['vertices'][1] = 999
+        normalized['animations']['other']['bones']['root']['rotate'][0]['value'] = 999
+        self.assertEqual(document, before)
+        frame = sample_active(document, 'move', 1)
+        frame['triangles']['leg'][0] = 999
+        self.assertEqual(document, before)
 
     def test_sparse_variant_deform_and_late_first_key(self):
         document, report = self.fixture()

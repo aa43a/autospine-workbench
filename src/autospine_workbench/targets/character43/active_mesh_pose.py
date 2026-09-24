@@ -19,9 +19,12 @@ def active_document(document, animation, time):
     motion = document['animations'][animation]
     if motion.get('deform'):
         raise ValueError('active_mesh_legacy_deform_unsupported')
-    normalized = deepcopy(document)
-    target = normalized['animations'][animation]
-    target.pop('slots', None)
+    # Dense deform tracks can dominate the document. They are replaced below
+    # with one sampled key, so copying all of them per frame is wasted work.
+    normalized = deepcopy({k:v for k,v in document.items() if k not in ('animations','skins')})
+    normalized['skins'] = [deepcopy({k:v for k,v in document['skins'][0].items() if k != 'attachments'})]
+    normalized['animations'] = {k:deepcopy(v) for k,v in document['animations'].items() if k != animation}
+    target = normalized['animations'][animation] = deepcopy({k:v for k,v in motion.items() if k not in ('slots','attachments')})
     target['attachments'] = {'default': {}}
     target_meshes = normalized['skins'][0]['attachments'] = {}
     identities = {}
@@ -76,8 +79,7 @@ def active_document(document, animation, time):
 def sample_active(document, animation, time):
     normalized, identities = active_document(document, animation, time)
     points, bones = sample(normalized, animation, time)
-    setup = deepcopy(normalized)
-    setup['animations'] = {'setup': {}}
+    setup = dict(normalized, animations={'setup': {}})
     rest = sample(setup, 'setup', 0)[0]
     meshes = normalized['skins'][0]['attachments']
     return dict(attachments=identities, vertices=points, bones=bones, setup_vertices=rest,
