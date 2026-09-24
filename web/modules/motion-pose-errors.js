@@ -1,4 +1,7 @@
 export const poseErrors = {
+  foot_fit_timeline_budget_exceeded:'脚部帧间朝向修正未在计算上限内收敛，已停止生成；原候选保留，不能视为脚底接触通过。',
+  foot_fit_timeline_sample_limit:'脚部来源关键帧超过当前修正上限，未丢弃采样或缩短动作；请保留原候选。',
+  foot_orientation_plane_unobservable:'当前视角下脚部朝向投影退化，无法可靠拟合；请检查源动作与观察方向。',
   pose_candidate_scope_mismatch:'补丁与所选部件或动作不一致，请重新打开当前异常的编辑器。',
   pose_candidate_reference_mismatch:'骨架与数值参考不一致，原候选保留，请重新构建来源。',
   pose_candidate_single_animation_required:'姿态修形目前要求候选只包含一个动作。',
