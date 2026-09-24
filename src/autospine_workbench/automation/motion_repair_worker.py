@@ -71,7 +71,7 @@ def execute(folder, state_root, workspace, request):
     progress(folder,'publish_candidate')
     artifact = store.publish(files)
     runtime = capture(SimpleNamespace(workspace_root=workspace),store,artifact,folder,
-        progress=lambda _:progress(folder,'runtime'),cancel_requested=lambda:False,storage_reference=True)
+        progress=lambda stage:progress(folder,stage),cancel_requested=lambda:False,storage_reference=True)
     from .motion_repair_local_depth import run as local_recheck
     local_depth = local_recheck(files,artifact,request,state_root,folder,lambda:progress(folder,'local_depth'))
     result = dict(artifact_sha256=artifact,character_animation_status='needs_changes',runtime=runtime,

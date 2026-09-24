@@ -31,6 +31,8 @@ const states = {
   outdated: '来源已变化',
 };
 const steps = {
+  runtime_prepare:'准备候选与素材对照', runtime_geometry:'逐帧复查候选网格',
+  runtime_reference:'生成 Runtime 数值参考', runtime_setup:'核对初始姿态图像',
   local_depth:'检查局部深度并分类异常',
   torso_projection:'应用躯干投影并检查脚部路径',
   uploading: '上传原文件', queued: '已排队', verify_source: '校验源文件',

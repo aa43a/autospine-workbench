@@ -34,6 +34,7 @@ def capture(projects, store, digest, root, *, progress, cancel_requested, storag
         return dict(status='unavailable',reason_code='character_runtime_environment_missing')
     if cancel_requested(): raise ValueError('character_build_canceled')
     dependencies, browser = options[1], options[3]
+    progress('runtime_prepare')
     repo = Path(__file__).resolve().parents[3]
     output = directory(root/'runtime',create=True)
     candidate=store.read(digest)  # Content inventory must pass before an external process runs.
@@ -48,16 +49,17 @@ def capture(projects, store, digest, root, *, progress, cancel_requested, storag
     setup_reference = json.loads(candidate['rig-setup-reference.json']) if 'rig-setup-reference.json' in candidate else None
     if setup_reference and setup_reference['skeleton_sha256'] != sha256(candidate['skeleton.json']).hexdigest():
         raise ValueError('character_reference_source_mismatch')
+    progress('runtime_geometry')
     geometry=inspect(candidate, setup_vertices=setup_reference['vertices'] if setup_reference else None)
     from ..targets.character43.numeric_reference import read as read_reference
     frame_count=sum(len(frames) for frames in read_reference(candidate)['animations'].values())
     (output/'deformation.json').write_bytes(canonical_bytes(geometry))
-    progress('runtime')
     commands = [
         ['node',str(repo/'tools/capture-character-runtime.mjs'),str(store.root/digest),str(output),dependencies,browser],
         [sys.executable,str(repo/'tools/review-character-setup.py'),str(store.root/digest),str(output),str(output/'setup')],
     ]
     if storage_reference:
+        progress('runtime_reference')
         from ..targets.character43.runtime_storage_reference import build
         storage = build(candidate)
         path = root/'runtime-storage-reference.json'
@@ -71,6 +73,7 @@ def capture(projects, store, digest, root, *, progress, cancel_requested, storag
         commands[0].extend(['32', '{}', str(path)])
     for index, command in enumerate(commands):
         if cancel_requested(): raise ValueError('character_build_canceled')
+        progress('runtime' if index == 0 else 'runtime_setup')
         with (root/f'capture-{index}.log').open('wb') as log:
             try:
                 run = subprocess.run(command,cwd=repo,stdout=log,stderr=subprocess.STDOUT,

@@ -266,7 +266,7 @@ def execute(folder, state_root, workspace):
     progress(folder, 'publish_candidate')
     digest = store.publish(files)
     runtime = capture(SimpleNamespace(workspace_root=workspace), store, digest, folder,
-                      progress=lambda stage: progress(folder, 'runtime'), cancel_requested=lambda: False,
+                      progress=lambda stage: progress(folder, stage), cancel_requested=lambda: False,
                       storage_reference=storage_reference == PROFILE)
     local_depth=None
     if request.get('local_depth_profile'):

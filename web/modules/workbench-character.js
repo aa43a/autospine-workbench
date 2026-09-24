@@ -12,7 +12,8 @@ import { createCharacterOrder } from "./workbench-character-order.js";
 import { createShoulderRepair, characterRecipe, applyCharacterRecipe } from "./workbench-character-shoulder.js";
 import { createAutoBindingAudit } from "./workbench-character-auto-audit.js";
 const ACTIVE = new Set(["pending", "running"]);
-const STAGES = {resolve:"核对来源", "base-preview":"准备整角色基础", compose:"合并袖装与校验动作", "skirt-trial":"正在生成裙装可变形候选", publish:"封存候选", runtime:"官方 Runtime 渲染与 setup 对照", review:"等待整角色复核"};
+const STAGES = {resolve:"核对来源", "base-preview":"准备整角色基础", compose:"合并袖装与校验动作", "skirt-trial":"正在生成裙装可变形候选", publish:"封存候选", runtime:"官方 Runtime 捕获", review:"等待整角色复核",
+  runtime_prepare:"准备候选与素材对照", runtime_geometry:"逐帧复查候选网格", runtime_reference:"生成 Runtime 数值参考", runtime_setup:"核对初始姿态图像"};
 const REASONS = {character_sleeve_unavailable:"尚无当前可用袖装候选，请先完成袖装构建。",
   shoulder_region_selection_invalid:"所选肩部区域已失效，请刷新当前候选后重新选择。",
   character_order_source_changed:"遮挡决定与本次角色来源不同，请撤销旧遮挡关系后重新复核。",
