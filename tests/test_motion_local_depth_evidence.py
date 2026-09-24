@@ -30,6 +30,14 @@ class EvidenceTests(unittest.TestCase):
             latest=next(r for r in read(root,folder,request,artifact,files)['reports'] if r['records'])
             self.assertEqual(len(latest['records']),21)
             self.assertEqual(latest['records'][-1]['status'],'unmeasured')
+            sampled=publish(root,folder,request,artifact,dict(report,records=records[:2],
+                requested_sample_times=[0,1],interpolation='linear_bvh_channels'))
+            versions=read(root,folder,request,artifact,files)['reports']
+            self.assertEqual(len(versions),3)
+            limited=next(r for r in versions if r['evidence_sha256']==sampled)
+            self.assertEqual(limited['requested_sample_times'],[0,1])
+            self.assertTrue(any(r['records_truncated'] for r in versions))
+            self.assertTrue(any(r['requested_sample_times'] is None for r in versions))
 
 
 if __name__=='__main__':unittest.main()

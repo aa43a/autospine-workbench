@@ -12,6 +12,7 @@ try{
     if(path==='/motion-depth-location.js')return route.fulfill({contentType:'text/javascript',body:locationModule});
     if(path==='/local-depth-status.json')return route.fulfill({json:{artifact_sha256:'a',reports:[{
       spatial_sampling:'barycentric_pixel_intervals',interpolation:'linear_observed_positions',
+      requested_sample_times:[0,1.5,3],
       causes:{pairs:[{pair:['arm','body'],reasons:{depth_margin_ambiguity:1},
         ambiguity_causes:{near_plane_back:41,interval_crosses_plane:0}}]},
       records:[{pair:['arm','body'],time:1.5}],records_truncated:false}]}});
@@ -26,6 +27,8 @@ try{
   const text=await page.locator('main').innerText();
   assert.ok(text.includes('靠近躯干后侧，间隔不足 41'));
   assert.ok(text.includes('仍未通过前后关系验收'));
+  assert.ok(text.includes('限定 3 个时刻的补充检查，不覆盖整段'));
+  assert.ok(text.includes('原完整检查中的失败和未测记录继续保留'));
   assert.ok(!text.includes('深度区间跨越躯干平面 0'));
   assert.equal(await page.getByRole('link',{name:'定位 1.500 秒'}).getAttribute('href'),'/player.html?time=1.5&mode=isolate&region=arm&region=body');
   assert.deepEqual(errors,[]);console.log(JSON.stringify({passed:true}));

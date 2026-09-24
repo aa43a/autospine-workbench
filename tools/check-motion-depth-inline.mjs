@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');
 const [base,job,repair]=process.argv.slice(2);
+const sampleCount=process.env.LOCAL_DEPTH_SAMPLE_COUNT?Number(process.env.LOCAL_DEPTH_SAMPLE_COUNT):null;
+assert.ok(sampleCount===null||Number.isInteger(sampleCount)&&sampleCount>0);
 const browser=await chromium.launch({channel:'chrome',headless:true,
  args:['--enable-webgl','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
 try{
@@ -9,10 +11,13 @@ try{
  await card.getByRole('button',{name:'在此查看遮挡状态',exact:true}).click();
  const response=page.waitForResponse(r=>r.url().endsWith(`/${job}/view/local-depth-status.json`));
  await card.getByRole('button',{name:'查看局部深度补充检查',exact:true}).click();
- const report=await (await response).json();const evidence=report.reports.find(r=>r.records.length);
+ const report=await (await response).json();const evidence=report.reports.find(r=>r.records.length&&
+   (sampleCount===null||r.requested_sample_times?.length===sampleCount));
  assert.ok(evidence);const row=evidence.records[0];
- await card.locator('details').filter({has:page.locator('summary').filter({hasText:'逐像素检查'})}).first().locator('summary').click();
- const link=card.getByRole('link',{name:`定位 ${row.time.toFixed(3)} 秒`,exact:true}).first();
+ const details=sampleCount===null?card.locator('details').filter({has:page.locator('summary').filter({hasText:'逐像素检查'})}).first():
+   card.locator('details').filter({has:page.locator('p').filter({hasText:`限定 ${sampleCount} 个时刻的补充检查`})}).last();
+ await details.locator('summary').click();
+ const link=details.getByRole('link',{name:`定位 ${row.time.toFixed(3)} 秒`,exact:true}).first();
  assert.equal(await card.locator('iframe').count(),0);
  await link.click();
  await page.waitForFunction(({job,pair,time})=>{
@@ -39,6 +44,6 @@ try{
    await repaired.getByRole('button',{name:'在此查看遮挡状态',exact:true}).click();
    await repaired.getByRole('button',{name:'查看局部深度补充检查',exact:true}).waitFor();
  }
- assert.deepEqual(errors,[]);console.log(JSON.stringify({passed:true,job,repair,time:row.time,pair:row.pair,
+ assert.deepEqual(errors,[]);console.log(JSON.stringify({passed:true,job,repair,sampleCount,time:row.time,pair:row.pair,
    checks:['same_page','lazy_load','source_timeline_preserves_pair','identity_guard','restore_full_at_same_time','repair_entry_visible']}));
 }finally{await browser.close();}

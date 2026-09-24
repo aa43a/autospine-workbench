@@ -55,6 +55,7 @@ def read(root, folder, request, artifact, files):
             visible.extend([r for r in records if r['status']==status][:20])
         rows.append(dict(evidence_sha256=digest,profile=report['profile'],causes=causes,
             failure=report.get('failure'),
+            requested_sample_times=report.get('requested_sample_times'),
             interpolation=report['interpolation'],spatial_sampling=report.get('spatial_sampling','whole_triangle_intervals'),
             records=visible,records_truncated=len(records)>len(visible)))
     return dict(profile='motion-local-depth-operator-v1',artifact_sha256=artifact,reports=rows,

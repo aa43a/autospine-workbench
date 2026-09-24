@@ -16,6 +16,11 @@ export function appendLocalDepthDetails(panel,job,base,inspection){
         if(evidence.failure){const error=document.createElement('p');error.textContent='补充检查未完成：'+evidence.failure;content.append(error);continue;}
         const details=document.createElement('details'),summary=document.createElement('summary');
         summary.textContent=`${evidence.spatial_sampling==='barycentric_pixel_intervals'?'逐像素检查':'三角形范围检查'} · ${evidence.interpolation==='source_samples_only'?'源动作帧':'帧间插值模型'}`;details.append(summary);
+        if(Array.isArray(evidence.requested_sample_times)){
+          const scope=document.createElement('p');
+          scope.textContent=`限定 ${evidence.requested_sample_times.length} 个时刻的补充检查，不覆盖整段；原完整检查中的失败和未测记录继续保留。`;
+          details.append(scope);
+        }
         for(const pair of evidence.causes.pairs){
           const p=document.createElement('p');p.textContent=pair.pair.join(' / ')+'：'+Object.entries(pair.reasons).map(([k,v])=>`${labels[k]||(k.startsWith('unmeasured:')?'未测：'+k.slice(11):k)} ${v} 项`).join('；');details.append(p);
           if(pair.ambiguity_causes&&Object.values(pair.ambiguity_causes).some(v=>v>0)){const detail=document.createElement('p');detail.textContent='歧义像素观测：'+Object.entries(pair.ambiguity_causes).filter(([,v])=>v>0).map(([k,v])=>`${ambiguityLabels[k]||k} ${v}`).join('；')+'。跨帧累计，非错误率；靠近参考平面不等于必须分区，仍未通过前后关系验收。';details.append(detail);}
