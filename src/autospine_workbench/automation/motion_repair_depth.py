@@ -28,7 +28,12 @@ def recheck(files, request, state_root, on_progress=None):
         render_regions=True)
     if on_progress:
         on_progress()
-    depth, _ = inspect(document, files, request['repair_execution']['draft']['animation'], depth, sparse=True)
+    animation = request['repair_execution']['draft']['animation']
+    if any('attachment' in tracks for tracks in document['animations'][animation].get('slots', {}).values()):
+        from ..targets.character43.active_depth_overlap import recheck as active_overlap
+        depth = active_overlap(document, files, animation, depth, sparse=True)
+    else:
+        depth, _ = inspect(document, files, animation, depth, sparse=True)
     depth.update(skeleton_sha256=sha256(files['skeleton.json']).hexdigest(),
         character_sha256=request['character_sha256'], motion_bundle_sha256=identity['bundle_sha256'],
         repair_recheck=True, selected=False,

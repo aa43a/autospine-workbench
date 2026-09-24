@@ -124,9 +124,9 @@ class Probe:
         return result
 
 
-def inspect(document, files, animation, depth, *, sparse=False):
+def inspect(document, files, animation, depth, *, sparse=False, _probe=None):
     report = deepcopy(depth)
-    probe = Probe(document, files, animation, sparse=sparse, tiled=sparse, rendered_bounds=sparse)
+    probe = _probe if _probe is not None else Probe(document, files, animation, sparse=sparse, tiled=sparse, rendered_bounds=sparse)
     pending = unmeasured = visible = ambiguous = 0
     for pair in report['pairs']:
         for row in pair['samples']:
