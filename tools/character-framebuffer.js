@@ -45,6 +45,7 @@
     let error=0,probes=0,worst=null;
     for(const slot of skeleton.slots){
       const attachment=slot.appliedPose.attachment,points=frame.vertices[slot.data.name];
+      if(frame.attachments&&attachment?.name!==frame.attachments[slot.data.name])throw Error('active_attachment_identity');
       if(!attachment||!Number.isInteger(attachment.worldVerticesLength))throw Error('attachment_missing');
       const vertices=new Float32Array(attachment.worldVerticesLength);
       attachment.computeWorldVertices(skeleton,slot,0,vertices.length,vertices,0,2);

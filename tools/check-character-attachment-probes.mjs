@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {attachmentProbes} from './character-attachment-probes.mjs';
+const document={animations:{move:{slots:{leg:{attachment:[{time:.1,name:'b'},{time:.3,name:'a'}]},arm:{attachment:[{time:.2,name:null}]}}}}};
+const reference={animations:{move:[0,.1,Math.fround(.1),.2,.3,Math.fround(.3),.4].map(time=>({time}))}};
+const rows=attachmentProbes(document,reference).move;
+assert.equal(rows.length,3);
+assert.equal(rows[0].slot,'leg');
+assert.equal(rows[0].attachment,'b');
+assert.equal(rows[0].exact_sample,true);
+assert.deepEqual(rows[0].samples.map(s=>s.index),[1,2,3]);
+assert.equal(rows[1].exact_sample,true);
+assert.equal(rows[2].attachment,null);
+assert.equal(rows[2].exact_sample,false);
+assert.deepEqual(attachmentProbes({animations:{move:{}}},reference),{});
+console.log('Attachment switch screenshot selection passed.');

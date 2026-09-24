@@ -7,6 +7,7 @@ import {pathToFileURL} from 'node:url';
 import {readReference} from './character-reference.mjs';
 import {decodeStorageReference} from './runtime-storage-input.mjs';
 import {orderProbes} from './character-order-probes.mjs';
+import {attachmentProbes} from './character-attachment-probes.mjs';
 const [folderArg,outputArg,dependencies,chrome,strideArg,probeTimesArg,storageReferenceArg]=process.argv.slice(2);
 if(!chrome)throw Error('usage: bundle output dependencies chrome');
 const screenshotStride=strideArg===undefined?32:Number(strideArg);
@@ -64,6 +65,7 @@ files.set('/numeric-reference.json',Buffer.from(JSON.stringify(reference)));
 if(reference.skeleton_sha256!==inventory['skeleton.json']||manifest.authority!=='none'||manifest.production_authorized!==false)throw Error('reference_identity');
 const names=Object.keys(reference.animations).sort();
 const orderCoverage=orderProbes(JSON.parse(files.get('/skeleton.json')),reference);
+const attachmentCoverage=attachmentProbes(JSON.parse(files.get('/skeleton.json')),reference);
 if(!names.length||names.some(n=>!/^[a-zA-Z0-9_-]+$/.test(n)))throw Error('animation_name');
 const probeTimes=probeTimesArg===undefined?{}:JSON.parse(probeTimesArg);
 if(!probeTimes||typeof probeTimes!=='object'||Array.isArray(probeTimes)||Object.keys(probeTimes).length>32)throw Error('probe_times');
@@ -110,6 +112,7 @@ try{
   for(const animation of names){
     const frames=reference.animations[animation];if(!frames.length)throw Error('empty_track');
     const orderIndices=new Set((orderCoverage[animation]??[]).flatMap(key=>key.samples.map(s=>s.index)));
+    for(const key of attachmentCoverage[animation]??[])for(const sample of key.samples)orderIndices.add(sample.index);
     for(let index=0;index<frames.length;index++){
       results.push(await page.evaluate(({animation,index})=>window.captureFrame(animation,index),{animation,index}));
       if(orderIndices.has(index)||index%screenshotStride===0||index===frames.length-1||(probeTimes[animation]??[]).some(t=>Math.abs(t-frames[index].time)<1e-10)){
@@ -124,6 +127,8 @@ try{
     runtime_sha256:hash(runtime),harness_sha256:hash(harness),tool_sha256:hash(await fs.readFile(new URL(import.meta.url))),
     draw_order_reader_sha256:hash(orderReader),draw_order_numeric_status:'passed',
     draw_order_switch_samples:orderCoverage,
+    attachment_switch_samples:attachmentCoverage,
+    attachment_probe_selector_sha256:hash(await fs.readFile(new URL('./character-attachment-probes.mjs',import.meta.url))),
     order_probe_selector_sha256:hash(await fs.readFile(new URL('./character-order-probes.mjs',import.meta.url))),
     reference_reader_sha256:hash(await fs.readFile(new URL('./character-reference.mjs',import.meta.url))),
     browser_sha256:hash(await fs.readFile(chrome)),profile:'official-webgl-swiftshader-native-v1',info,results,screenshots,screenshot_stride:screenshotStride,
