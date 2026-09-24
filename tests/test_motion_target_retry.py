@@ -14,7 +14,9 @@ from autospine_workbench.automation.pipeline_run import PipelineRunError
 
 class TargetRetryTests(TestCase):
     def test_preserves_exact_policies_and_missing_legacy_fields(self):
-        for policies in ({}, dict(contact_correction=False, depth_review_profile='external-regional-depth-order-v1',
+        for policies in ({}, {'pose_profile':'source-pose-post-contact-margin-v1'},
+                {'pose_profile':'source-pose-post-contact-timeline-v2'},
+                dict(contact_correction=False, depth_review_profile='external-regional-depth-order-v1',
                 inferred_contact_profile='legacy', runtime_reference_profile='original',
                 clip=dict(start_frame=2,end_frame=7), projection=dict(yaw_degrees=30),
                 projection_selection=dict(comparison_sha256='a'*64, original='receipt'),

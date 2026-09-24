@@ -166,14 +166,15 @@ class MotionTargetTests(unittest.TestCase):
                     self.assertEqual(retry.call_args.args[1]['torso_projection_profile'],torso_profile)
                 character['artifact_sha256'] = 'd'*64
                 from autospine_workbench.automation.motion_target_pose import HIP_PROFILE
-                pose_job=submit(manager,queued['job_id'],dict(project_id='alice',character_job_id='job-'+'c'*32,pose_profile=HIP_PROFILE))
-                pose_request=read_document(manager.folder(pose_job['job_id'])/'request.json')
-                self.assertEqual(pose_request['pose_profile'],HIP_PROFILE)
-                self.assertNotIn('pose_profile',request)
-                manager._jobs[pose_job['job_id']].update(status='failed')
-                with patch('autospine_workbench.automation.motion_target_retry.retry') as retry:
-                    manager.retry(pose_job['job_id'])
-                    self.assertEqual(retry.call_args.args[1]['pose_profile'],HIP_PROFILE)
+                for profile in (HIP_PROFILE,'source-pose-post-contact-margin-v1','source-pose-post-contact-timeline-v2'):
+                    pose_job=submit(manager,queued['job_id'],dict(project_id='alice',character_job_id='job-'+'c'*32,pose_profile=profile))
+                    pose_request=read_document(manager.folder(pose_job['job_id'])/'request.json')
+                    self.assertEqual(pose_request['pose_profile'],profile)
+                    self.assertNotIn('pose_profile',request)
+                    manager._jobs[pose_job['job_id']].update(status='failed')
+                    with patch('autospine_workbench.automation.motion_target_retry.retry') as retry:
+                        manager.retry(pose_job['job_id'])
+                        self.assertEqual(retry.call_args.args[1]['pose_profile'],profile)
                 with self.assertRaisesRegex(PipelineRunError, 'motion_target_character_changed'):
                     assert_current(manager, request)
                 manager._jobs[value['job_id']].update(status='succeeded', result={})

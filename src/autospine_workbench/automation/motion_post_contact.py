@@ -4,10 +4,12 @@ from hashlib import sha256
 from .storage_io import canonical_bytes
 
 PROFILE = 'source-pose-post-contact-margin-v1'
+TIMELINE_PROFILE = 'source-pose-post-contact-timeline-v2'
 
 
 def apply(document, name, motion, setup, evidence, contact, times, pose, on_stage=None):
-    if pose.get('post_contact_profile') != PROFILE:
+    profile = pose.get('post_contact_profile')
+    if profile not in (PROFILE,TIMELINE_PROFILE):
         raise ValueError('motion_post_contact_profile_unsupported')
     from ..targets.character43.support_proposal_replay import prepared_contact, without_generated_deform
     from ..targets.character43.foot_orientation_fit import fit
@@ -19,7 +21,7 @@ def apply(document, name, motion, setup, evidence, contact, times, pose, on_stag
     replay = not contact.get('selected') and attempt.get('status') == 'candidate'
     candidate = prepared_contact(document, name, contact) if contact.get('selected') or replay else deepcopy(document)
     bare = without_generated_deform(candidate, name, evidence['area_repair'])
-    bare, foot = fit(bare, name, pose['foot_observations'])
+    bare, foot = fit(bare, name, pose['foot_observations'],temporal=profile==TIMELINE_PROFILE)
     if on_stage: on_stage('post_contact_repair')
     repaired, correction = build(bare, name, setup, temporal=True, terminal_collar=True,
         proximal_ring=True, preserve_area=True, repair_band=True, fixed_band=True,
@@ -41,11 +43,11 @@ def apply(document, name, motion, setup, evidence, contact, times, pose, on_stag
         'inferred_proxy_drift' if inferred else 'needs_changes') if checked['passed'] is False else checked['status']
     report.update(status=status, after=checked, selected=bool(contact.get('selected') or replay),
         output_skeleton_sha256=sha256(canonical_bytes(repaired)).hexdigest(),
-        post_contact_profile=PROFILE, post_contact_before=before,
+        post_contact_profile=profile, post_contact_before=before,
         phase_checked_times=checked_times,
         scope='sampled_ankle_proxy_not_sole_or_visual_acceptance')
     failures = correction['refinement'][-1]['check']['failures']
-    evidence['post_contact_repair'] = dict(profile=PROFILE, authority='none',
+    evidence['post_contact_repair'] = dict(profile=profile, authority='none',
         input_skeleton_sha256=sha256(canonical_bytes(document)).hexdigest(),
         contact_input_mode='replayed_proposal' if replay else 'preserved',
         foot_orientation=foot, observations=pose['foot_observations'],

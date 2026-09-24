@@ -5,7 +5,9 @@ from .affine_pose import matrices
 from ...resolved_project import canonical_sha256
 
 
-def fit(document,name,observations):
+def fit(document,name,observations,*,temporal=True):
+    if type(temporal) is not bool:raise ValueError('foot_fit_temporal_policy_invalid')
+    if not temporal:return _fit_samples(document,name,observations)
     from .foot_orientation_timeline import refine
     return refine(document, name, observations, _fit_samples)
 

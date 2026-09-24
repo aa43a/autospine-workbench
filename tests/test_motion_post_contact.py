@@ -2,13 +2,19 @@ from copy import deepcopy
 from hashlib import sha256
 import unittest
 from unittest.mock import patch
-from autospine_workbench.automation.motion_post_contact import apply, PROFILE
+from autospine_workbench.automation.motion_post_contact import apply, PROFILE, TIMELINE_PROFILE
 from autospine_workbench.automation.storage_io import canonical_bytes
 from autospine_workbench.automation.motion_pose_policy import select, prepare, HIP_PROFILE
 from autospine_workbench.automation.pipeline_run import PipelineRunError
 
 
 class PostContactTests(unittest.TestCase):
+    def test_new_profile_survives_preparation(self):
+        with patch('autospine_workbench.automation.motion_target_pose.prepare',return_value={'profile':HIP_PROFILE}), \
+             patch('autospine_workbench.targets.character43.source_foot_orientation.extract',return_value={'times':[0,1]}):
+            pose=prepare(object(),dict(pose_profile=TIMELINE_PROFILE))
+        self.assertEqual(pose['post_contact_profile'],TIMELINE_PROFILE)
+
     def test_prepares_foot_observations_from_same_verified_bundle(self):
         bundle=object()
         with patch('autospine_workbench.automation.motion_target_pose.prepare',return_value={'profile':HIP_PROFILE}) as base, \
@@ -29,9 +35,10 @@ class PostContactTests(unittest.TestCase):
             self.assertEqual(read_progress(Path(folder)),'post_contact_repair')
 
     def test_strategy_requires_contact_and_rejects_incompatible_views(self):
-        self.assertEqual(select(dict(pose_profile=PROFILE)), PROFILE)
-        for extra in ({'contact_correction':False}, {'inferred_contact_profile':None}, {'clip':{}}):
-            with self.assertRaises(PipelineRunError): select(dict(pose_profile=PROFILE, **extra))
+        for profile in (PROFILE,TIMELINE_PROFILE):
+            self.assertEqual(select(dict(pose_profile=profile)), profile)
+            for extra in ({'contact_correction':False}, {'inferred_contact_profile':None}, {'clip':{}}):
+                with self.assertRaises(PipelineRunError): select(dict(pose_profile=profile, **extra))
 
     def test_replay_precedes_repair_and_failures_are_not_hidden(self):
         names=('thigh_l','calf_l','thigh_r','calf_r')
@@ -50,10 +57,14 @@ class PostContactTests(unittest.TestCase):
             self.assertEqual(d['animations']['a']['bones']['root']['translate'][-1]['x'],5)
             self.assertTrue(kwargs['fixed_band']);self.assertTrue(kwargs['interpolation_margin'])
             return d,dict(refinement=[{'check':{'failures':[{'time':.5}]}}])
-        with patch('autospine_workbench.targets.character43.foot_orientation_fit.fit',side_effect=lambda d,*_: (d,{})), \
+        with patch('autospine_workbench.targets.character43.foot_orientation_fit.fit',side_effect=lambda d,*_,**kw: (d,{})) as foot, \
              patch('autospine_workbench.targets.character43.projected_area_adaptive.build',side_effect=repair), \
              patch('autospine_workbench.targets.character43.motion_contacts.analyze',return_value={'passed':True}) as check:
-            result, report, times, issues=apply(doc,'a',{'ticks_per_second':100},[],evidence,contact,[0,1],pose)
+            for profile in (PROFILE,TIMELINE_PROFILE):
+                pose['post_contact_profile']=profile
+                result, report, times, issues=apply(doc,'a',{'ticks_per_second':100},[],evidence,contact,[0,1],pose)
+                self.assertEqual(foot.call_args.kwargs['temporal'],profile==TIMELINE_PROFILE)
+                self.assertEqual(report['post_contact_profile'],profile)
         self.assertEqual((doc,contact),original)
         self.assertEqual(report['post_contact_before'],contact)
         self.assertEqual(report['status'],'inferred_proxy_corrected')
