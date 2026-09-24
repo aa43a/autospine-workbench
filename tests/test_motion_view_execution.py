@@ -1,4 +1,5 @@
 import base64
+import json
 from copy import deepcopy
 from io import BytesIO
 from pathlib import Path
@@ -12,6 +13,7 @@ import test_view_pose_candidate as candidate_fixtures
 from autospine_workbench.automation.animated_store import AnimatedStore
 from autospine_workbench.automation.motion_view_execution import submit, retry
 from autospine_workbench.automation.storage_io import canonical_bytes, read_document
+from autospine_workbench.resolved_project import canonical_sha256
 
 
 class ViewExecutionTests(unittest.TestCase):
@@ -32,6 +34,7 @@ class ViewExecutionTests(unittest.TestCase):
             mock = patch('autospine_workbench.automation.'+target, return_value=result)
             handle = mock.start(); self.addCleanup(mock.stop)
             if target.endswith('download'): self.download = handle
+            if target.endswith('context'): self.context = handle
         return dict(request=handoff, view_pose=pose, png_base64=base64.b64encode(png).decode('ascii'))
 
     def test_frozen_submission_and_retry_revalidate_live_handoff(self):
@@ -59,4 +62,18 @@ class ViewExecutionTests(unittest.TestCase):
         self.manager._jobs = {'a': {'status': 'pending'}, 'b': {'status': 'running'}}
         with self.assertRaisesRegex(RuntimeError, 'queue_full'):
             submit(self.manager, 'parent', body)
+        self.manager._pool.submit.assert_not_called()
+
+    def test_switched_attachment_rejected_before_queue_or_publication(self):
+        body = self.fixture()
+        result, files = self.context.return_value
+        doc = json.loads(files['skeleton.json'])
+        doc['animations']['move']['slots'] = {'leg': {'attachment': [{'time': .5, 'name': None}]}}
+        files['skeleton.json'] = canonical_bytes(doc)
+        body['view_pose']['document_sha256'] = canonical_sha256(doc)
+        store = self.manager.character_manager().application.store
+        with patch.object(store, 'publish') as publish:
+            with self.assertRaisesRegex(ValueError, 'existing_attachment_timeline'):
+                submit(self.manager, 'parent', body)
+            publish.assert_not_called()
         self.manager._pool.submit.assert_not_called()

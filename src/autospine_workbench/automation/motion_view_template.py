@@ -6,6 +6,7 @@ from zipfile import ZipFile
 from ..resolved_project import canonical_sha256
 from ..targets.character43.affine_pose import sample
 from ..targets.character43.pose_geometry_patch import _times
+from ..targets.character43.view_pose_variant import source_mesh
 from .pipeline_run import PipelineRunError
 from .storage_io import canonical_bytes
 
@@ -22,7 +23,7 @@ def download(manager, job, revision):
         if result['artifact_sha256'] != request['artifact_sha256']:
             raise PipelineRunError('motion_view_candidate_changed')
         doc = json.loads(files['skeleton.json']); slot = request['slot']; name = request['animation']
-        mesh = doc['skins'][0]['attachments'][slot][slot]
+        mesh = source_mesh(doc, slot, name)
         duration = max(_times(doc['animations'][name]), default=0)
         points = sample(doc, name, request['event']['time'])[0][slot]
         source = [mesh['uvs'][i:i+2] for i in range(0, len(mesh['uvs']), 2)]

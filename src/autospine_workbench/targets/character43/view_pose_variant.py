@@ -7,6 +7,25 @@ from .pose_geometry_patch import compile_patch
 from .view_correspondence import compile_mapping
 
 
+def source_mesh(document, slot, animation):
+    """Require the same source identity that the attachment compiler supports."""
+    skins = document.get('skins', [])
+    if len(skins) != 1 or skins[0].get('name', 'default') != 'default':
+        raise ValueError('pose_variant_default_skin_required')
+    source = next((s for s in document.get('slots', []) if s['name'] == slot), None)
+    if source is None or source.get('attachment') != slot:
+        raise ValueError('pose_variant_setup_attachment_mismatch')
+    if animation not in document.get('animations', {}):
+        raise ValueError('view_pose_animation_missing')
+    for motion in document['animations'].values():
+        if motion.get('slots', {}).get(slot, {}).get('attachment'):
+            raise ValueError('pose_variant_existing_attachment_timeline')
+    mesh = skins[0].get('attachments', {}).get(slot, {}).get(slot)
+    if not mesh or mesh.get('type') != 'mesh' or mesh.get('parent'):
+        raise ValueError('pose_variant_mesh_required')
+    return mesh
+
+
 def build(document, request):
     fields = {'document_sha256', 'slot', 'animation', 'interval',
               'texture_sha256', 'texture_size', 'poses'}
@@ -24,7 +43,7 @@ def build(document, request):
     if not isinstance(poses, list) or not 1 <= len(poses) <= 512:
         raise ValueError('view_pose_poses_invalid')
     slot, animation = request['slot'], request['animation']
-    mesh = document['skins'][0]['attachments'][slot][slot]
+    mesh = source_mesh(document, slot, animation)
     mapped, uv, identities = [], None, []
     for pose in poses:
         if not isinstance(pose, dict) or set(pose) != {'time', 'correspondence'}:

@@ -10,6 +10,7 @@ from zipfile import ZipFile
 
 from ..resolved_project import canonical_sha256
 from ..targets.character43.view_pose_candidate import PROFILE
+from ..targets.character43.view_pose_variant import source_mesh
 from .motion_material_return import validate_png
 from .pipeline_run import PipelineRunError
 from .storage_io import canonical_bytes, publish_document, read_document
@@ -39,6 +40,7 @@ def submit(manager, parent_job, body):
                 pose.get('document_sha256') != canonical_sha256(document) or
                 pose.get('slot') != expected['slot'] or pose.get('animation') != expected['animation']):
             raise PipelineRunError('motion_view_candidate_changed')
+        source_mesh(document, pose['slot'], pose['animation'])
         request = read_document(manager.folder(parent_job)/'request.json')
         assert_current(manager, request)
         if manager._closed or sum(j['status'] in {'pending', 'running'} for j in manager._jobs.values()) >= 2:

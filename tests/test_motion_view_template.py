@@ -12,8 +12,12 @@ from autospine_workbench.automation.motion_intake_routes import _methods
 
 
 class ViewTemplateTests(unittest.TestCase):
-    def invoke(self, views):
+    def invoke(self, views, mutate=None):
         files, _, _ = fixtures.ViewPoseCandidateTests().fixture()
+        if mutate:
+            doc = json.loads(files['skeleton.json'])
+            mutate(doc)
+            files['skeleton.json'] = json.dumps(doc).encode()
         request = dict(view_needs=views, artifact_sha256='a'*64, slot='leg', animation='move', event=dict(time=1))
         stream = BytesIO()
         with ZipFile(stream, 'w') as archive:
@@ -34,3 +38,16 @@ class ViewTemplateTests(unittest.TestCase):
     def test_plain_texture_task_rejected(self):
         with self.assertRaisesRegex(RuntimeError, 'requires_view_task'):
             self.invoke([])
+
+    def test_switched_source_cannot_emit_wrong_base_coordinates(self):
+        def switch(doc):
+            doc['animations']['move']['slots'] = {'leg': {'attachment': [
+                {'time': 0, 'name': 'leg'}, {'time': .5, 'name': None}]}}
+        with self.assertRaisesRegex(ValueError, 'existing_attachment_timeline'):
+            self.invoke(['side'], switch)
+
+    def test_setup_attachment_identity_must_match(self):
+        def switch(doc):
+            next(s for s in doc['slots'] if s['name'] == 'leg')['attachment'] = 'other'
+        with self.assertRaisesRegex(ValueError, 'setup_attachment_mismatch'):
+            self.invoke(['side'], switch)
