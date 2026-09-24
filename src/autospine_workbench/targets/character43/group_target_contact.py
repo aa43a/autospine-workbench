@@ -11,7 +11,9 @@ def _bend(pose, upper, lower, tip):
     return evidence([b[0]-a[0], a[1]-b[1], 0], [c[0]-b[0], b[1]-c[1], 0], 0)
 
 
-def constrain(candidate, reference, times):
+def constrain(candidate, reference, times, *, preserve_foot_frames=False):
+    if type(preserve_foot_frames) is not bool:
+        raise ValueError('group_target_foot_policy_invalid')
     result = deepcopy(candidate)
     tracks = result['animations']['external-motion']['bones']
     records = []
@@ -42,7 +44,12 @@ def constrain(candidate, reference, times):
         keys = tracks[bone]['rotate']
         for previous, key in zip(keys, keys[1:]):
             key['value'] = previous['value']+(key['value']-previous['value']+180)%360-180
+    foot_frames=None
+    if preserve_foot_frames:
+        from .foot_frame_preservation import preserve
+        result,foot_frames=preserve(result,reference,'external-motion',times)
     return result, dict(profile='target-ankle-preservation-after-group-fit-v1-experiment',
+        foot_frame_preservation=foot_frames,
         authority='none', selected=False, records=records,
         failures=sum(r['status'] != 'candidate' for r in records),
         bend_branch_changes=sum(r['bend_status'] == 'changed' for r in records),

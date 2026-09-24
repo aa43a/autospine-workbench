@@ -28,6 +28,10 @@ class TargetContactTests(unittest.TestCase):
         self.assertFalse(report['selected'])
         self.assertEqual(report['bend_branch_changes'], 0)
         self.assertIn('bend_branch_unknown', report)
+        self.assertIsNone(report['foot_frame_preservation'])
+        preserved,diagnostic=constrain(source,target,[0,1],preserve_foot_frames=True)
+        self.assertLess(diagnostic['foot_frame_preservation']['maximum_relative_matrix_error'],.001)
+        self.assertEqual(diagnostic['foot_frame_preservation']['maximum_ankle_position_change_px'],0)
 
     def test_bend_uses_joint_positions_with_screen_down_conversion(self):
         from autospine_workbench.targets.character43.group_target_contact import _bend
