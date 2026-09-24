@@ -2,6 +2,7 @@ const el=id=>document.getElementById(id);
 try {
  const read=async name=>{const r=await fetch(name);if(!r.ok)throw Error(`读取 ${name} 失败`);return r.json();};
  const [scene,config]=await Promise.all([read('scene.json'),read('editor-config.json')]);
+ let sourceReference=null;
  const {slot,animation,vertices,interval}=config.request,doc=scene.skeleton;
  if(scene.artifact_sha256!==config.artifact)throw Error('候选版本不匹配');
  const canvas=document.querySelector('canvas'),{width,height,left,bottom}=scene.info;
@@ -44,6 +45,7 @@ try {
   const ratios=triangles.map((t,i)=>area(lastWorld,t)/baseAreas[i]);
   el('quality').textContent=`当前帧：翻转 ${ratios.filter(x=>x<=0).length}；面积超限 ${ratios.filter(x=>x<.5||x>2).length}。接缝、边长及整段尚未验收。`;
   window.poseGeometryEditorState={time,poses:structuredClone(poses),points:lastWorld,view:{...view},artifact:config.artifact};
+  sourceReference?.seek(time);
  }
  function request(){return {...config.request,poses:structuredClone(poses)};}
  function persist(){try{localStorage.setItem(storageKey,JSON.stringify(request()));storageError='';}catch{storageError='本地保存失败，请立即导出草稿。';}}
@@ -77,6 +79,10 @@ try {
  try{const saved=localStorage.getItem(storageKey)||localStorage.getItem(legacyKey);if(saved)poses=validate(JSON.parse(saved));}catch(error){storageError=`本地草稿未恢复：${error.message}`;}
  rebuild();refresh();el('time').max=interval[1];el('time').min=interval[0];for(const id of ['time','play','import'])el(id).disabled=false;
  el('identity').textContent=`${slot} · ${animation} · 候选 ${config.artifact}`;draw();
+ if(config.source_comparison_url){
+  import('./pose-source.js').then(module=>module.loadSourceReference(config)).then(reference=>{sourceReference=reference;sourceReference.seek(time);})
+   .catch(error=>{el('source-error').textContent=`源动作参考不可用：${error.message}。未替换为其他来源；当前草稿仍可编辑。`;});
+ }
  if(config.execute_url){
   const endpoint=new URL(config.execute_url,location.href);
   if(endpoint.origin!==location.origin)throw Error('构建地址必须同源');

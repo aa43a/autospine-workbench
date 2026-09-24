@@ -38,12 +38,17 @@ def read(manager, job, parts):
     if name in static:
         filename, mime = static[name]
         return (web/filename).read_bytes(), mime
+    if name in ('pose-source.js', 'motion-source-player.js'):
+        return (web/'modules'/name).read_bytes(), 'text/javascript'
+    if name == 'source-comparison.json':
+        return review_file(manager, job, ['source-comparison.json'])
     if name in ('scene.json', 'runtime.js'):
         return review_file(manager, job, ['player-assets', name])
     if name == 'editor-config.json':
         request = dict(document_sha256=canonical_sha256(document), mesh_sha256=canonical_sha256(mesh),
                        animation=animation, slot=slot, vertices=sorted(vertices), interval=[0, duration], poses=[])
         return canonical_bytes(dict(artifact=result['artifact_sha256'], request=request,
+            source_comparison_url='source-comparison.json',
             execute_url='/api/motions/'+quote(job, safe='')+'/pose-geometry-execute',
             authority='none', selected=False)), 'application/json'
     raise PipelineRunError('pipeline_artifact_not_found')

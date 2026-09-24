@@ -15,16 +15,25 @@ try{
    return route.fulfill({json:{job_id:'motion-test'}});
   }
   if(!/^[a-zA-Z0-9.-]+$/.test(name))return route.abort();
+  if(name==='source-comparison.json'){
+   const config=JSON.parse(await fs.readFile(path.join(folder,'editor-config.json')));
+   return route.fulfill({json:{artifact_sha256:config.artifact,source_start:2,duration:config.request.interval[1],
+    preview:{parents:[null,0],view:'front',frames:Array.from({length:101},(_,i)=>({time:2+i*.1,frame:i,joints:[[0,0,0],[i*.01,1,i*.02]]}))}}});
+  }
   const type=name.endsWith('.js')?'text/javascript':name.endsWith('.css')?'text/css':name.endsWith('.json')?'application/json':'text/html';
-  const source={'index.html':'pose-geometry-editor.html','editor.js':'pose-geometry-editor.js','editor.css':'pose-geometry-editor.css'}[name];
+  const source={'index.html':'pose-geometry-editor.html','editor.js':'pose-geometry-editor.js','editor.css':'pose-geometry-editor.css',
+   'pose-source.js':'modules/pose-source.js','motion-source-player.js':'modules/motion-source-player.js'}[name];
   let body=await fs.readFile(source?path.join('web',source):path.join(folder,name));
-  if(name==='editor-config.json')body=Buffer.from(JSON.stringify({...JSON.parse(body),execute_url:'/api/motions/test/pose-geometry-execute'}));
+  if(name==='editor-config.json')body=Buffer.from(JSON.stringify({...JSON.parse(body),source_comparison_url:'source-comparison.json',execute_url:'/api/motions/test/pose-geometry-execute'}));
   await route.fulfill({body,contentType:type});
  });
  await page.goto('http://pose-editor.test/?time=0.7');
  await page.waitForFunction(()=>window.poseGeometryEditorReady||window.poseGeometryEditorError,{},{timeout:60000});
  assert.equal(await page.evaluate(()=>window.poseGeometryEditorError),undefined);
  assert.equal(await page.evaluate(()=>window.poseGeometryEditorState.time),.7);
+ await page.waitForFunction(()=>document.getElementById('source-position').dataset.requestedTime==='2.7');
+ await page.locator('#source-view').selectOption('side');
+ assert.equal(await page.locator('#source-position').getAttribute('data-requested-time'),'2.7');
  const seek=async t=>page.locator('#time').evaluate((e,t)=>{e.value=t;e.dispatchEvent(new Event('input'));},t);
  const drag=async(index,dx,dy)=>{
   const xy=await page.evaluate(index=>{const canvas=document.querySelector('canvas'),r=canvas.getBoundingClientRect();
@@ -35,6 +44,7 @@ try{
  const config=JSON.parse(await fs.readFile(path.join(folder,'editor-config.json'),'utf8'));
  const vertex=config.request.vertices[10];
  await seek(1);
+ assert.equal(await page.locator('#source-position').getAttribute('data-requested-time'),'3');
  await page.locator('#focus').click();
  assert.ok(await page.evaluate(()=>window.poseGeometryEditorState.view.height<1000));
  const before=await page.evaluate(v=>window.poseGeometryEditorState.points[v],vertex);
@@ -82,6 +92,11 @@ try{
  await page.locator('#keys').selectOption('1');await page.locator('#remove').click();
  assert.equal(await page.evaluate(()=>window.poseGeometryEditorState.poses.length),1);
  assert.deepEqual(errors,[]);
+ await page.route('http://pose-editor.test/source-comparison.json',route=>route.fulfill({json:{artifact_sha256:'wrong'}}));
+ await page.reload();
+ await page.waitForFunction(()=>document.getElementById('source-error').textContent.includes('版本不匹配'));
+ assert.equal(await page.evaluate(()=>window.poseGeometryEditorReady),true);
+ assert.equal(await page.locator('#source-reference').isVisible(),false);
  await fs.writeFile(path.join(output,'check.json'),JSON.stringify({passed:true,artifact:config.artifact,vertex,errors,
   scope:'drag_seek_source_toggle_undo_export_reload_remove_not_quality_acceptance'},null,2));
  console.log(JSON.stringify({passed:true,vertex,artifact:config.artifact}));
