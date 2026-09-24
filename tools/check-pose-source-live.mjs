@@ -10,6 +10,7 @@ try {
   await page.goto(url);
   await page.waitForFunction(()=>window.poseGeometryEditorReady||window.poseGeometryEditorError,{},{timeout:60000});
   assert.equal(await page.evaluate(()=>window.poseGeometryEditorError),undefined);
+  assert.equal(await page.evaluate(()=>Number.isFinite(window.poseGeometryEditorState.quality.maxEdgeStretch)),true);
   await page.waitForFunction(()=>!document.getElementById('source-reference').hidden||document.getElementById('source-error').textContent,{},{timeout:60000});
   assert.equal(await page.locator('#source-error').textContent(),'');
   const source = await (await page.request.get(new URL('source-comparison.json',url).href)).json();

@@ -22,7 +22,7 @@ def read(manager, job, parts):
     if name in static:
         filename, mime = static[name]
         return (web/filename).read_bytes(), mime
-    if name in ('pose-source.js', 'motion-source-player.js'):
+    if name in ('pose-source.js', 'motion-source-player.js', 'pose-geometry-metrics.js'):
         return (web/'modules'/name).read_bytes(), 'text/javascript'
     if name == 'source-comparison.json':
         return review_file(manager, job, ['source-comparison.json'])

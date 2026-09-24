@@ -22,7 +22,8 @@ try{
   }
   const type=name.endsWith('.js')?'text/javascript':name.endsWith('.css')?'text/css':name.endsWith('.json')?'application/json':'text/html';
   const source={'index.html':'pose-geometry-editor.html','editor.js':'pose-geometry-editor.js','editor.css':'pose-geometry-editor.css',
-   'pose-source.js':'modules/pose-source.js','motion-source-player.js':'modules/motion-source-player.js'}[name];
+   'pose-source.js':'modules/pose-source.js','motion-source-player.js':'modules/motion-source-player.js',
+   'pose-geometry-metrics.js':'modules/pose-geometry-metrics.js'}[name];
   let body=await fs.readFile(source?path.join('web',source):path.join(folder,name));
   if(name==='editor-config.json')body=Buffer.from(JSON.stringify({...JSON.parse(body),source_comparison_url:'source-comparison.json',execute_url:'/api/motions/test/pose-geometry-execute'}));
   await route.fulfill({body,contentType:type});
@@ -31,6 +32,7 @@ try{
  await page.waitForFunction(()=>window.poseGeometryEditorReady||window.poseGeometryEditorError,{},{timeout:60000});
  assert.equal(await page.evaluate(()=>window.poseGeometryEditorError),undefined);
  assert.equal(await page.evaluate(()=>window.poseGeometryEditorState.time),.7);
+ assert.equal(await page.evaluate(()=>Number.isFinite(window.poseGeometryEditorState.quality.maxEdgeStretch)),true);
  await page.waitForFunction(()=>document.getElementById('source-position').dataset.requestedTime==='2.7');
  await page.locator('#source-view').selectOption('side');
  assert.equal(await page.locator('#source-position').getAttribute('data-requested-time'),'2.7');
@@ -55,6 +57,7 @@ try{
  await seek(.6);await seek(1);
  assert.deepEqual(await page.evaluate(v=>window.poseGeometryEditorState.points[v],vertex),after);
  await page.locator('#preview').uncheck();
+ assert.deepEqual(await page.evaluate(()=>window.poseGeometryEditorState.quality),await page.evaluate(()=>window.poseGeometryEditorState.originalQuality));
  assert.deepEqual(await page.evaluate(v=>window.poseGeometryEditorState.points[v],vertex),before);
  await page.locator('#preview').check();
  await seek(1.2);await drag(vertex,-5,2);

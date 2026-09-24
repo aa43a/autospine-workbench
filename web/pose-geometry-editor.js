@@ -1,5 +1,6 @@
 const el=id=>document.getElementById(id);
 try {
+ const {createGeometryMetrics}=await import('./pose-geometry-metrics.js');
  const read=async name=>{const r=await fetch(name);if(!r.ok)throw Error(`读取 ${name} 失败`);return r.json();};
  const [scene,config]=await Promise.all([read('scene.json'),read('editor-config.json')]);
  let sourceReference=null;
@@ -24,27 +25,32 @@ try {
  if(entryTime!==null&&entryTime.trim()!==''&&Number.isFinite(Number(entryTime))&&Number(entryTime)>=interval[0]&&Number(entryTime)<=interval[1])time=Number(entryTime);
  const legacyKey=`pose-geometry-v1:${config.request.document_sha256}:${slot}:${animation}`;
  const storageKey=`${legacyKey}:${vertices.join(',')}:${interval.join(',')}`;
- const area=(p,t)=>{const [a,b,c]=t.map(i=>p[i]);return ((b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]))/2;};
  function skeleton(t,setup=false){const s=new spine.Skeleton(data);s.setupPose();if(!setup){const state=new spine.AnimationState(new spine.AnimationStateData(data));state.setAnimation(0,animation,false);state.update(t);state.apply(s);}s.updateWorldTransform(spine.Physics.update);return s;}
  function points(s){const sl=s.findSlot(slot),a=sl.appliedPose.attachment;if(!a?.bones)throw Error('需要当前加权 Mesh');const v=new Float32Array(a.worldVerticesLength);a.computeWorldVertices(s,sl,0,v.length,v,0,2);return Array.from({length:v.length/2},(_,i)=>[v[i*2],v[i*2+1]]);}
- const setup=points(skeleton(0,true)),baseAreas=triangles.map(t=>area(setup,t));
+ const setup=points(skeleton(0,true)),measure=createGeometryMetrics(setup,triangles);
  function offsets(pose){const s=skeleton(pose.time),base=points(s),out=Array(size).fill(0);
   vertices.forEach((v,i)=>{const dx=pose.points[i][0]-base[v][0],dy=pose.points[i][1]-base[v][1];
    for(const o of owners[v]){const b=s.bones[o.bone].appliedPose,det=b.a*b.d-b.b*b.c;if(Math.abs(det)<1e-10)throw Error('骨骼变换退化');out[o.offset]=(b.d*dx-b.b*dy)/det;out[o.offset+1]=(b.a*dy-b.c*dx)/det;}});return out;}
  function rebuild(){cached=[{time:interval[0],values:Array(size).fill(0)},...poses.map(p=>({time:p.time,values:offsets(p)})),{time:interval[1],values:Array(size).fill(0)}];}
  function correction(t){if(t<=interval[0]||t>=interval[1])return Array(size).fill(0);let i=0;while(i+1<cached.length&&cached[i+1].time<=t)i++;const a=cached[i],b=cached[i+1],f=(t-a.time)/(b.time-a.time);return a.values.map((x,j)=>x+(b.values[j]-x)*f);}
- function draw(){const s=skeleton(time),sl=s.findSlot(slot);
+ function draw(){const s=skeleton(time),sl=s.findSlot(slot),originalQuality=measure(points(s));
   if(el('preview').checked){const extra=correction(time),d=sl.appliedPose.deform;if(!d.length)for(let i=0;i<size;i++)d.push(0);for(let i=0;i<size;i++)d[i]+=extra[i];}
   lastWorld=points(s);
+  const quality=measure(lastWorld);
   if(el('isolate').checked)for(const x of s.slots)if(x.data.name!==slot)x.appliedPose.setAttachment(null);
   renderer.camera.setViewport(view.width,view.height);renderer.camera.position.x=view.left+view.width/2;renderer.camera.position.y=view.bottom+view.height/2;renderer.camera.update();
   gl.viewport(0,0,width,height);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);renderer.begin();renderer.drawSkeleton(s);
   if(el('overlay').checked){for(const tri of triangles)if(tri.some(v=>selected.has(v)))for(let i=0;i<3;i++)renderer.line(...lastWorld[tri[i]],...lastWorld[tri[(i+1)%3]],{r:1,g:.85,b:.2,a:.6});
    for(const v of vertices){const [x,y]=lastWorld[v],r=3*view.width/canvas.getBoundingClientRect().width;renderer.line(x-r,y,x+r,y,{r:1,g:1,b:0,a:1});renderer.line(x,y-r,x,y+r,{r:1,g:1,b:0,a:1});}}
+  if(el('failures').checked){
+   for(const index of quality.badTriangles){const tri=triangles[index];for(let i=0;i<3;i++)renderer.line(...lastWorld[tri[i]],...lastWorld[tri[(i+1)%3]],{r:1,g:.15,b:.2,a:1});}
+   for(const edge of quality.badEdges)renderer.line(...lastWorld[edge[0]],...lastWorld[edge[1]],{r:1,g:.2,b:1,a:1});
+  }
   renderer.end();el('time').value=time;el('position').textContent=`${time.toFixed(3)} / ${interval[1].toFixed(3)} 秒`;
-  const ratios=triangles.map((t,i)=>area(lastWorld,t)/baseAreas[i]);
-  el('quality').textContent=`当前帧：翻转 ${ratios.filter(x=>x<=0).length}；面积超限 ${ratios.filter(x=>x<.5||x>2).length}。接缝、边长及整段尚未验收。`;
-  window.poseGeometryEditorState={time,poses:structuredClone(poses),points:lastWorld,view:{...view},artifact:config.artifact};
+  const describe=q=>`翻转 ${q.inversions}，面积超限 ${q.badTriangles.length}，拉伸超限 ${q.badEdges.length}，最大边长 ${q.maxEdgeStretch.toFixed(3)} 倍`;
+  const outside=quality.badTriangles.filter(i=>!triangles[i].some(v=>selected.has(v))).length;
+  el('quality').textContent=`当前部件原候选：${describe(originalQuality)}。显示结果：${describe(quality)}。${outside} 个面积异常位于编辑范围外。接缝、轮廓与整段尚未验收。`;
+  window.poseGeometryEditorState={time,poses:structuredClone(poses),points:lastWorld,view:{...view},artifact:config.artifact,quality,originalQuality};
   sourceReference?.seek(time);
  }
  function request(){return {...config.request,poses:structuredClone(poses)};}
@@ -69,7 +75,7 @@ try {
  el('keys').onchange=()=>{finish();stop();time=Number(el('keys').value);draw();};
  el('undo').onclick=()=>{stop();if(history.length){poses=history.pop();rebuild();persist();refresh();draw();}};
  el('remove').onclick=()=>{if(!el('keys').value)return;snapshot();poses=poses.filter(p=>p.time!==Number(el('keys').value));rebuild();persist();refresh();draw();};
- for(const id of ['isolate','overlay','preview'])el(id).onchange=()=>{finish();draw();};
+ for(const id of ['isolate','overlay','preview','failures'])el(id).onchange=()=>{finish();draw();};
  el('focus').onclick=()=>{finish();const p=vertices.map(v=>lastWorld[v]),xs=p.map(p=>p[0]),ys=p.map(p=>p[1]);
   const l=Math.min(...xs),r=Math.max(...xs),b=Math.min(...ys),t=Math.max(...ys),h=Math.max(50,(t-b)*1.3,(r-l)*1.3*height/width),w=h*width/height;
   view={width:w,height:h,left:(l+r-w)/2,bottom:(b+t-h)/2};draw();};

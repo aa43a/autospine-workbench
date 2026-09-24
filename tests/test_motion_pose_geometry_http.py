@@ -14,7 +14,7 @@ class PoseHttpTests(unittest.TestCase):
     def test_static_editor_assets_do_not_read_candidate(self):
         from autospine_workbench.automation.motion_pose_geometry_editor import read
         with patch('autospine_workbench.automation.motion_target_jobs.context', side_effect=AssertionError('unneeded candidate read')):
-            for name in ('index.html', 'editor.js', 'editor.css', 'pose-source.js', 'motion-source-player.js'):
+            for name in ('index.html', 'editor.js', 'editor.css', 'pose-source.js', 'motion-source-player.js', 'pose-geometry-metrics.js'):
                 raw, mime = read(None, 'unused', ['pose-geometry', 'leg', 'move', '0', name])
                 self.assertTrue(raw)
                 self.assertTrue(mime.startswith('text/'))

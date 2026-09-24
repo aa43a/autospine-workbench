@@ -32,6 +32,7 @@ def export(source, template, output):
                       ('pose-geometry-editor.css', 'editor.css'), ('pose-geometry-editor.js', 'editor.js')]:
         shutil.copyfile(Path('web')/src, output/dest)
     shutil.copyfile(assets/'scene.json', output/'scene.json')
+    shutil.copyfile(Path('web/modules/pose-geometry-metrics.js'), output/'pose-geometry-metrics.js')
     (output/'runtime.js').write_bytes(raw)
     # Template authoring is not implicitly applied or accepted. Import explicitly.
     (output/'editor-config.json').write_bytes(canonical_bytes(dict(
