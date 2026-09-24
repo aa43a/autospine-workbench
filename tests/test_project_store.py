@@ -325,6 +325,23 @@ class ProjectStoreContractTests(unittest.TestCase):
             store.resolve_asset("fixture-project", "composite")
         with self.assertRaises(AssetNotFoundError):
             store.resolve_asset("fixture-project", "layer", layer_id)
+        with self.assertRaises(AssetNotFoundError):
+            store.resolve_layer_assets('fixture-project',[layer_id])
+
+    def test_batch_assets_share_one_fresh_audit_and_preserve_ids(self):
+        key='layer-000-topwear'
+        expected=self.store.resolve_asset('fixture-project','layer',key)
+        with patch.object(self.store,'_record',wraps=self.store._record) as record:
+            self.assertEqual(self.store.resolve_layer_assets('fixture-project',[key]),{key:expected})
+            self.assertEqual(record.call_count,1)
+        changed=self.fixture.layer_dir/'changed.png';changed.write_bytes(PNG_SIGNATURE)
+        self.fixture.audit['layers'][0]['crop_path']=str(changed);self.fixture.write_audit()
+        self.assertEqual(self.store.resolve_layer_assets('fixture-project',[key]),{key:changed.resolve()})
+        with self.assertRaises(AssetNotFoundError):
+            self.store.resolve_layer_assets('fixture-project',[key,'../outside'])
+        changed.unlink()
+        with self.assertRaises(AssetNotFoundError):
+            self.store.resolve_layer_assets('fixture-project',[key])
 
     def test_validation_reports_missing_assets_without_exposing_paths(self) -> None:
         self.fixture.layer_image.unlink()

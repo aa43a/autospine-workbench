@@ -44,7 +44,6 @@ from .project_authoring_transaction import project_authoring_transaction
 
 
 _PROJECT_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
-_IMAGE_SUFFIXES = frozenset({".png", ".jpg", ".jpeg", ".webp"})
 _MAX_AUDIT_BYTES = 64 * 1024 * 1024
 
 
@@ -797,41 +796,11 @@ class ProjectStore:
         document; arbitrary relative paths are never accepted.
         """
 
-        record = self._record(project_id)
-        if asset == "composite":
-            filename = Path(str(record.audit.get("composite_path", "composite.png"))).name
-            candidate = record.audit_dir / filename
-        elif asset in {"embedded-composite", "embedded_composite"}:
-            filename = Path(
-                str(record.audit.get("embedded_composite_path", "embedded_composite.png"))
-            ).name
-            candidate = record.audit_dir / filename
-        elif asset in {"contact-sheet", "contact_sheet"}:
-            filename = Path(
-                str(record.audit.get("layers_contact_sheet_path", "layers_contact_sheet.png"))
-            ).name
-            candidate = record.audit_dir / filename
-        elif asset == "layer":
-            if not layer_id:
-                raise AssetNotFoundError(project_id, "layer")
-            match: Mapping[str, Any] | None = None
-            for _, raw_layer, assigned_id in _assigned_layers(record.audit.get("layers")):
-                if assigned_id == layer_id:
-                    match = raw_layer
-                    break
-            if match is None:
-                raise AssetNotFoundError(project_id, f"layer:{layer_id}")
-            filename = Path(str(match.get("crop_path", ""))).name
-            candidate = record.audit_dir / "layers" / filename
-        else:
-            raise AssetNotFoundError(project_id, asset)
+        from .project_asset_resolution import resolve
+        return resolve(self._record(project_id),project_id,asset,layer_id,_assigned_layers)
 
-        try:
-            resolved_root = record.audit_dir.resolve(strict=True)
-            resolved = candidate.resolve(strict=True)
-            resolved.relative_to(resolved_root)
-        except (OSError, ValueError) as exc:
-            raise AssetNotFoundError(project_id, asset) from exc
-        if not resolved.is_file() or resolved.suffix.lower() not in _IMAGE_SUFFIXES:
-            raise AssetNotFoundError(project_id, asset)
-        return resolved
+    def resolve_layer_assets(self, project_id: str, layer_ids) -> dict[str, Path]:
+        """Resolve a batch from a fresh audit; callers still verify image bytes."""
+        from .project_asset_resolution import resolve
+        record=self._record(project_id)
+        return {key:resolve(record,project_id,'layer',key,_assigned_layers) for key in layer_ids}

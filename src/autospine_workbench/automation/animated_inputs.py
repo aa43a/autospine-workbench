@@ -14,6 +14,7 @@ from ..benchmark.validation import validate_benchmark_manifest
 from ..manifest_artifacts import require_safe_token, require_sha256
 from ..resolved_project import canonical_sha256
 from ..safe_input_files import read_real_file
+from ..project_asset_resolution import layers as layer_assets
 from ..project_authoring_transaction import project_authoring_transaction
 from .project_snapshot import _read
 from .storage_io import directory, publish_document, read_document
@@ -69,10 +70,11 @@ def _match_audit(store, project_id, candidate):
     layers = project['layers']
     if len(layers) != len(candidate['layers']):
         raise AnimatedSourceError('animated_source_mismatch')
+    assets=layer_assets(store,project_id,[layer['id'] for layer in layers])
     for layer, source in zip(layers, candidate['layers']):
         if layer['source_index'] != source['traversal_index'] or layer['name'] != source['name']:
             raise AnimatedSourceError('animated_source_mismatch')
-        raw = read_real_file(Path(store.resolve_asset(project_id, 'layer', layer['id'])),
+        raw = read_real_file(assets[layer['id']],
                              128 << 20, 'project layer')
         if hashlib.sha256(raw).hexdigest() != source['image_sha256']:
             raise AnimatedSourceError('animated_source_mismatch')

@@ -18,6 +18,7 @@ from ..manifest_artifacts import png_ihdr
 from ..project_store import ProjectStore, ProjectNotFoundError, AssetNotFoundError
 from ..region_rig import RegionRigCompilation, RegionRigError, compile_region_rig
 from ..resolved_project import canonical_sha256
+from ..project_asset_resolution import layers as layer_assets
 
 
 class SnapshotError(ValueError):
@@ -49,10 +50,7 @@ def _read(store, project_id):
             raise SnapshotError("project_snapshot_invalid")
         resolved = project["resolved"]
         canonical_sha256(project)
-        assets = {
-            layer["id"]: Path(store.resolve_asset(project_id, "layer", layer["id"]))
-            for layer in resolved["layers"]
-        }
+        assets = layer_assets(store,project_id,[layer['id'] for layer in resolved['layers']])
         key = current_project_chain_cache_key(project_id, resolved["sha256"], assets)
         return project, assets, key
     except SnapshotError:
