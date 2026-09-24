@@ -52,6 +52,14 @@ def run(surface_path,poses_path,output,diagnostic=False):
                 u,v=s['uvs'][mesh.loops[loop_id].vertex_index];uv.data[loop_id].uv=(u,1-v)
         obj=bpy.data.objects.new(slot,mesh);scene.collection.objects.link(obj)
         obj.data.materials.append(material(Path(s['texture_path'])));objects[slot]=obj
+        if 'material_roles' in s:
+            missing=bpy.data.materials.new(slot+'-missing-material');missing.use_nodes=True
+            nodes=missing.node_tree.nodes;nodes.clear()
+            emission=nodes.new('ShaderNodeEmission');emission.inputs['Color'].default_value=(1,0,.6,1)
+            out=nodes.new('ShaderNodeOutputMaterial');missing.node_tree.links.new(emission.outputs[0],out.inputs['Surface'])
+            obj.data.materials.append(missing)
+            for polygon,role in zip(mesh.polygons,s['material_roles'],strict=True):
+                polygon.material_index=0 if role=='original_front' else 1
     all_points=np.concatenate([np.asarray(r[key]) for r in records for key in ('vertices','dq_vertices')])
     low=all_points.min(axis=0);high=all_points.max(axis=0);center=(low+high)/2
     scale=max(high[1]-low[1],(high[0]-low[0])*800/640)*1.1
@@ -97,6 +105,7 @@ def run(surface_path,poses_path,output,diagnostic=False):
                 renderer='Blender Cycles CPU',samples=8,filter='Linear',view_transform='Standard',
                 camera_location=list(camera.location),ortho_scale=scale,accepted=False,
                 rotation_mode=poses.get('rotation_mode','source_full_rotation'),
+                missing_material_display='magenta' if any('material_roles' in s for s in surfaces['surfaces'].values()) else 'none',
                 scope='isolated_two_legs_original_front_material_not_Spine_Runtime',
                 limitations=['two_sided_front_texture_not_back_material','hip_fixed_no_ground_contact',
                              'no_character_occlusion_or_seam_acceptance'])
@@ -106,6 +115,7 @@ def run(surface_path,poses_path,output,diagnostic=False):
         '<style>body{background:#18232e;color:white;font:16px sans-serif}.grid{display:grid;grid-template-columns:1fr 1fr}'
         'img{max-width:100%;background:#46525e}figure{margin:12px}</style><h1>原贴图三维蒙皮对照</h1>'
         '<p>固定同一相机。前四图左 LBS、右 DQ；0 秒与 0.9 秒。后续诊断图按单腿显示原 alpha 与不透明几何；不透明不代表有效材料。尚未通过。</p>'
+        '<p>若出现洋红色，表示新增侧面或背面缺少有效纹理，不是角色最终配色。</p>'
         '<p>'+('诊断：本组已移除源绕轴旋转，不是原动作候选。' if poses.get('rotation_mode')=='swing_control_source_twist_removed'
                   else '本组保留源完整旋转。')+'</p><div class="grid">'+cards+'</div>',encoding='utf-8')
     print(json.dumps(report))
