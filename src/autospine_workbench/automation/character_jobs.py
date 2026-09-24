@@ -195,6 +195,10 @@ class CharacterJobs:
 
     def verified_files(self, project, job):
         """Validate exact sources without allocating an unused download archive."""
+        return self.verified_snapshot(project,job)[1]
+
+    def verified_snapshot(self, project, job):
+        """Return the identity and bytes from one verification, without caching."""
         result=self.get(project,job)
         if result['status']!='needs_review': raise PipelineRunError('pipeline_preview_not_ready')
         files=self.application.store.read(result['artifact_sha256'])
@@ -206,7 +210,7 @@ class CharacterJobs:
                 or (request['sleeve_job_id'] is None and sources.get('route_choice_sha256')!=request['route_choice_sha256']):
             raise PipelineRunError('character_artifact_source_mismatch')
         self._current(request)
-        return files
+        return result,files
 
     def review_context(self, project, job):
         from .character_review_context import load

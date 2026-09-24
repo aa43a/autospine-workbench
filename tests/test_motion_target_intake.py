@@ -130,7 +130,14 @@ class MotionTargetTests(unittest.TestCase):
                 manager._jobs[queued['job_id']].update(status='succeeded', step='complete',
                     result=dict(motion_status='compiled', frame_count=2, motion={'bundle_sha256':'a'*64}))
                 character = dict(status='needs_review', artifact_sha256='b'*64)
-                manager.character_manager = lambda: SimpleNamespace(verified_files=lambda *_: {}, get=lambda *_: character)
+                manager.character_manager = lambda: SimpleNamespace(verified_snapshot=lambda *_: (dict(character),{}), get=lambda *_: character)
+                before=set(manager._jobs)
+                with patch.object(manager,'character_manager',return_value=SimpleNamespace(
+                        verified_snapshot=lambda *_:(dict(character),{}),
+                        get=lambda *_:dict(character,artifact_sha256='e'*64))):
+                    with self.assertRaisesRegex(PipelineRunError,'motion_target_character_changed'):
+                        submit(manager,queued['job_id'],dict(project_id='alice',character_job_id='job-'+'c'*32))
+                self.assertEqual(set(manager._jobs),before)
                 value = submit(manager, queued['job_id'], dict(project_id='alice', character_job_id='job-'+'c'*32))
                 request = read_document(manager.folder(value['job_id']) / 'request.json')
                 self.assertTrue(request['contact_correction'])

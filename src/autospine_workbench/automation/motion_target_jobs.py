@@ -55,8 +55,7 @@ def submit(manager, source_job, body):
             raise PipelineRunError('motion_clip_range_invalid') from None
     characters = manager.character_manager()
     project, character_job = body['project_id'], body['character_job_id']
-    characters.verified_files(project, character_job)
-    character = characters.get(project, character_job)
+    character, _ = characters.verified_snapshot(project, character_job)
     from ..targets.character43.runtime_storage_reference import PROFILE
     from ..targets.character43.phase_contact_policy import PROFILE as CONTACT_PROFILE
     request = dict(kind='adapt', source_job_id=source_job, source_job_sha256=canonical_sha256(source),

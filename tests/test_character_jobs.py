@@ -71,6 +71,21 @@ class CharacterJobsTests(unittest.TestCase):
             self.info['source_addresses']['input_identity_sha256'] = 'c'*64
             self.assertEqual(manager.motion_target('sample')['job']['status'], 'blocked')
 
+    def test_verified_snapshot_binds_identity_bytes_and_rechecks_after_read(self):
+        manager=self.manager();job=self.submit(manager)
+        ready=self.terminal(manager,job)
+        result,files=manager.verified_snapshot('sample',job['job_id'])
+        self.assertEqual(result['artifact_sha256'],ready['artifact_sha256'])
+        self.assertEqual(files,self.app.store.read(ready['artifact_sha256']))
+        original=self.app.store.read
+        def change_after_read(digest):
+            value=original(digest)
+            self.info['source_addresses']['input_identity_sha256']='c'*64
+            return value
+        with patch.object(self.app.store,'read',side_effect=change_after_read):
+            with self.assertRaisesRegex(RuntimeError,'project_snapshot_stale'):
+                manager.verified_snapshot('sample',job['job_id'])
+
     def test_component_stage_follows_exclusions_and_precedes_capture(self):
         stages=[]; manager=self.manager()
         def stage(name):
