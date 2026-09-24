@@ -96,6 +96,7 @@ def run(surface_path,poses_path,output,diagnostic=False):
                 textures={k:s['texture_sha256'] for k,s in surfaces['surfaces'].items()},
                 renderer='Blender Cycles CPU',samples=8,filter='Linear',view_transform='Standard',
                 camera_location=list(camera.location),ortho_scale=scale,accepted=False,
+                rotation_mode=poses.get('rotation_mode','source_full_rotation'),
                 scope='isolated_two_legs_original_front_material_not_Spine_Runtime',
                 limitations=['two_sided_front_texture_not_back_material','hip_fixed_no_ground_contact',
                              'no_character_occlusion_or_seam_acceptance'])
@@ -105,7 +106,8 @@ def run(surface_path,poses_path,output,diagnostic=False):
         '<style>body{background:#18232e;color:white;font:16px sans-serif}.grid{display:grid;grid-template-columns:1fr 1fr}'
         'img{max-width:100%;background:#46525e}figure{margin:12px}</style><h1>原贴图三维蒙皮对照</h1>'
         '<p>固定同一相机。前四图左 LBS、右 DQ；0 秒与 0.9 秒。后续诊断图按单腿显示原 alpha 与不透明几何；不透明不代表有效材料。尚未通过。</p>'
-        '<div class="grid">'+cards+'</div>',encoding='utf-8')
+        '<p>'+('诊断：本组已移除源绕轴旋转，不是原动作候选。' if poses.get('rotation_mode')=='swing_control_source_twist_removed'
+                  else '本组保留源完整旋转。')+'</p><div class="grid">'+cards+'</div>',encoding='utf-8')
     print(json.dumps(report))
 
 
