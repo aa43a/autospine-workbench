@@ -14,7 +14,7 @@ def run(folder):
     keys=sorted(set([0.,*_times(d['animations'][animation])]))
     times=sorted(set(keys+[(a+b)/2 for a,b in zip(keys,keys[1:])]))
     frames=[];rows=[];names=[b['name'] for b in d['bones']]
-    for time in times:
+    for sample_index,time in enumerate(times):
         frame=sample_active(d,animation,time)
         frames.append(dict(time=time,attachments=frame['attachments'],vertices=frame['vertices']))
         for slot,name in frame['attachments'].items():
@@ -31,6 +31,8 @@ def run(folder):
             rows.append(dict(time=time,slot=slot,attachment=name,transition=quality,
                 transition_passed=not quality['bad_triangles'] and quality['max_edge_stretch']<=2,
                 whole_attachment=whole))
+        if sample_index%250==0:
+            print(json.dumps(dict(stage='geometry',completed=sample_index+1,total=len(times))),flush=True)
     report=dict(document_sha256=canonical_sha256(d),authority='none',selected=False,
         scope='baked_keys_and_midpoints_cpu_geometry_not_visual_acceptance',
         sample_count=len(times),records=rows)

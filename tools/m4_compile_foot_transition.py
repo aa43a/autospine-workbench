@@ -9,6 +9,7 @@ from autospine_workbench.resolved_project import canonical_sha256
 from autospine_workbench.targets.character43.active_mesh_pose import sample_active
 from autospine_workbench.targets.character43.affine_pose import matrices
 from autospine_workbench.targets.character43.deform_addition import entries,local_delta,add
+from autospine_workbench.targets.character43.attachment_exit_pose import outgoing_document
 
 
 def runtime_keys(keys):
@@ -45,11 +46,16 @@ def run(source_path,shoe_path,report_path,output):
         before=sample_active(original,name,time);transforms=matrices(result,name,time)
         for row in records:
             slot,attachment=row['slot'],row['attachment'];key=(slot,attachment)
-            if before['attachments'][slot]!=attachment:raise ValueError('foot_bake_attachment_changed')
+            pose=before
+            if row.get('guard')=='attachment_exit':
+                pinned=outgoing_document(original,name,slot,attachment,time)
+                pose=sample_active(pinned,name,time)
+            elif row.get('guard') is not None:raise ValueError('foot_bake_unknown_guard')
+            if pose['attachments'][slot]!=attachment:raise ValueError('foot_bake_attachment_changed')
             mesh=original['skins'][0]['attachments'][slot][attachment]
             if result['skins'][0]['attachments'][slot][attachment]!=mesh:raise ValueError('foot_bake_mesh_changed')
             influences=entries(mesh)
-            offsets=local_delta(result,influences,transforms,before['vertices'][slot],row['points'])
+            offsets=local_delta(result,influences,transforms,pose['vertices'][slot],row['points'])
             corrections.setdefault(key,[]).append(dict(time=time,vertices=offsets));counts[key]=len(offsets)
     key_reports=[]
     for (slot,attachment),keys in corrections.items():
