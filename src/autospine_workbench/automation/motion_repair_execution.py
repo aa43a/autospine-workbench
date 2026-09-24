@@ -10,6 +10,7 @@ from .storage_io import publish_document, read_document
 PROFILE = 'selected-attachment-area-repair-v1'
 PARTITION_PROFILE = 'selected-region-rigid-partition-v1'
 ORDER_PROFILE = 'selected-region-static-order-v1'
+from ..targets.character43.region_order_interval import PROFILE as INTERVAL_ORDER_PROFILE
 
 
 def submit(manager, parent_job, body):
@@ -48,6 +49,8 @@ def submit(manager, parent_job, body):
         root = manager.folder(job, True)
         request = deepcopy(request)
         profile={'partition':PARTITION_PROFILE,'region_order':ORDER_PROFILE}.get(row['action'],PROFILE)
+        if row['action']=='region_order' and 'interval' in row['region_order']:
+            profile=INTERVAL_ORDER_PROFILE
         request.update(job_id=job, repair_execution=dict(profile=profile, parent_job_id=parent_job,
             parent_artifact_sha256=report['artifact_sha256'], draft_sha256=body['draft_sha256'], draft=row))
         publish_document(root/'request.json', request, staging=root/'staging')

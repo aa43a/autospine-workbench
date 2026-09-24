@@ -20,7 +20,7 @@ export async function appendRepairSummary(panel,job) {
     const link=document.createElement('a');link.textContent='查看原候选';link.href='/motions.html#'+encodeURIComponent(report.parent_job_id);
     section.append(note,link);
     if(report.region_order){const p=document.createElement('p'),r=report.region_order;
-      p.textContent=`${r.selected_triangles.length} 个选中三角形，整段位于 ${r.reference_slot} ${r.side==='after'?'前方':'后方'}。权重、纹理与运动保留；区域内无用顶点已移除。未验证动态前后穿越或视觉接缝。`;section.append(p);
+      p.textContent=`${r.selected_triangles.length} 个选中三角形，${r.interval?`${r.interval[0]}–${r.interval[1]} 秒（含起点、不含终点），区间外恢复原顺序`:'整段'}位于 ${r.reference_slot} ${r.side==='after'?'前方':'后方'}。权重、纹理与运动保留；区域内无用顶点已移除。视觉接缝仍需复核。`;section.append(p);
     }
     if(report.pose_geometry){const p=document.createElement('p'),g=report.pose_geometry;
       p.textContent=`显式修形：${g.vertices} 个选区顶点，${g.times.length} 个关键姿态，区间 ${g.interval[0]}–${g.interval[1]} 秒。纹理、UV 和骨骼保持原样；补丁插值不代表整段轮廓通过。`;section.append(p);

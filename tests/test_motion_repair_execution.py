@@ -80,6 +80,14 @@ class SubmissionTests(unittest.TestCase):
         self.assertIn('不表示遮挡通过',raw.decode())
         self.assertIn('text/html',mime)
 
+    def test_interval_order_profile_and_payload_frozen(self):
+        self.row['action']='region_order'
+        self.row['region_order']=dict(mesh_sha256='d'*64,triangles=[0],reference_slot='body',side='after',interval=[1,2])
+        value=self.invoke();saved=read_document(self.manager.folder(value['job_id'])/'request.json')
+        self.assertEqual(saved['repair_execution']['profile'],execution.INTERVAL_ORDER_PROFILE)
+        self.row['region_order']['interval'][0]=0
+        self.assertEqual(saved['repair_execution']['draft']['region_order']['interval'],[1,2])
+
 
 class SelectedRepairTests(unittest.TestCase):
     def test_only_selected_deform_changes_and_old_depth_not_reissued(self):

@@ -43,3 +43,19 @@ class RegionOrderDraftTests(RepairDraftTests):
         with self.assertRaisesRegex(RuntimeError,'region_order_required'):
             draft.save(self.manager,'job',body)
         self.assertEqual(draft.inspect(self.manager,'job')['history'], [])
+
+    def test_interval_roundtrip_and_invalid_duration(self):
+        import json
+        document = json.loads(self.files['skeleton.json'])
+        document['animations']['reach'] = document['animations'].pop('test')
+        self.files['skeleton.json'] = json.dumps(document).encode()
+        body = self.ordered(); body['region_order']['interval'] = [.25, .75]
+        saved = draft.save(self.manager, 'job', body)
+        self.assertEqual(saved['history'][0]['region_order']['interval'], [.25, .75])
+        self.assertEqual(draft.inspect(self.manager, 'job'), saved)
+        body['expected_revision'] = saved['revision']
+        for interval in (None, [0, 2], [.5, .5], [False, .5]):
+            body['region_order']['interval'] = interval
+            with self.assertRaisesRegex(RuntimeError, 'region_order_unsupported'):
+                draft.save(self.manager, 'job', body)
+        self.assertEqual(draft.inspect(self.manager, 'job'), saved)

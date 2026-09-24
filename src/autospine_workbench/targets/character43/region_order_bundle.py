@@ -25,8 +25,11 @@ def build(files, plan, on_progress=None):
     mesh = document['skins'][0]['attachments'][slot][slot]
     if canonical_sha256(mesh) != selection['mesh_sha256']:
         raise ValueError('region_order_mesh_changed')
+    options = dict(animation=name, interval=selection['interval']) if 'interval' in selection else {}
+    if 'interval' in selection and selection['interval'] is None:
+        raise ValueError('region_order_interval_invalid')
     result, report = order_scene(document, slot, selection['triangles'],
-                                 selection['reference_slot'], selection['side'])
+                                 selection['reference_slot'], selection['side'], **options)
     result, report = compact(result, report)
     old_slots = set(document['skins'][0]['attachments'])
     def remap(vertices):
@@ -75,7 +78,7 @@ def build(files, plan, on_progress=None):
     output['motion-review.json'] = canonical_bytes(evidence)
     output['motion-contact.json'] = canonical_bytes(contact)
     output['parent-motion-review.json'] = files['motion-review.json']
-    output['motion-repair.json'] = canonical_bytes(dict(profile=PROFILE, slot=slot,
+    output['motion-repair.json'] = canonical_bytes(dict(profile=report['profile'], slot=slot,
         animation=name, region_order=report, geometry=geometry,
         parent_geometry=json.loads(files['deformation.json']), sample_count=len(frames),
         source_skeleton_sha256=source_digest, authority='none', selected=False))

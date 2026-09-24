@@ -43,7 +43,8 @@ def validate_order(manager, job, body):
         return None
     part = body['region_order']
     if (body['action'] != 'region_order' or not isinstance(part, dict)
-            or set(part) != {'mesh_sha256', 'triangles', 'reference_slot', 'side'}):
+            or set(part) not in ({'mesh_sha256', 'triangles', 'reference_slot', 'side'},
+                                {'mesh_sha256', 'triangles', 'reference_slot', 'side', 'interval'})):
         raise PipelineRunError('motion_region_order_invalid')
     from .motion_target_jobs import context
     from ..targets.character43.region_order_candidate import build
@@ -55,8 +56,11 @@ def validate_order(manager, job, body):
             or part['mesh_sha256'] != row['mesh_sha256']):
         raise PipelineRunError('motion_partition_mesh_changed')
     try:
-        build(document, body['slot'], part['triangles'], part['reference_slot'], part['side'])
+        options = dict(animation=body['animation'], interval=part['interval']) if 'interval' in part else {}
+        if 'interval' in part and part['interval'] is None:
+            raise ValueError('region_order_interval_invalid')
+        build(document, body['slot'], part['triangles'], part['reference_slot'], part['side'], **options)
     except (ValueError, TypeError, KeyError) as error:
         raise PipelineRunError('motion_region_order_unsupported') from error
     return dict(part, triangles=sorted(part['triangles']), authority='none',
-                status='proposed_static_order_not_applied')
+                status='proposed_interval_order_not_applied' if 'interval' in part else 'proposed_static_order_not_applied')

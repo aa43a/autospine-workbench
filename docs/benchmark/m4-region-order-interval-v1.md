@@ -27,8 +27,15 @@ Local evidence: `tmp/region-order-live-v1/interval-check.json` and
 
 ## Remaining work
 
-The interval is not yet exposed through the workbench draft, queue, or bundle path.
-Those still offer the existing static operation. Next integrate the interval into
-immutable job requests and the editor, then capture the switch frames for visual
-review. Correct order and unchanged geometry do not prove a natural material seam.
+The interval is now exposed through the workbench editor, draft history, immutable
+queue requests, worker dispatch, candidate bundle and summary. Static drafts remain
+compatible. Invalid, empty and out-of-duration intervals are rejected.
+52 focused Python tests and JavaScript syntax checks passed. Live browser testing
+on the Alice parent motion-d556e3bdce29417db09a94cbac9fc0da restored the existing
+19 triangles, saved a 1–2 second interval as revision 2, and reloaded it correctly
+with no page errors. This is an engineering probe, not visual acceptance.
+The service restart preserved all 164 historical job states.
+
+Next capture the switch frames for visual review and select intervals from real
+crossing evidence. Correct order and unchanged geometry do not prove a natural material seam.
 Reach and Squat across the original three characters remain unfinished.

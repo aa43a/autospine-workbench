@@ -63,5 +63,18 @@ class RegionOrderBundleTests(unittest.TestCase):
         files['rig-setup-reference.json'] = canonical_bytes(setup)
         with self.assertRaisesRegex(ValueError, 'source_identity'): build(files, plan)
 
+    @patch('autospine_workbench.targets.character43.final_motion_contact.recheck', return_value={'status':'not_evaluated'})
+    def test_interval_bundle_keeps_timeline_and_profile(self, contact):
+        files, plan = fixture(); plan['region_order']['interval'] = [.25, .75]
+        output, _, _ = build(files, plan)
+        report = json.loads(output['motion-repair.json'])
+        scene = json.loads(output['skeleton.json'])
+        self.assertEqual(report['profile'], 'selected-region-interval-order-v1')
+        self.assertEqual(report['region_order']['interval'], [.25, .75])
+        self.assertEqual([s['name'] for s in scene['slots']], report['region_order']['setup_order'])
+        self.assertEqual(scene['animations']['test']['drawOrder'][-1], dict(time=.75, offsets=[]))
+        self.assertEqual(json.loads(output['character-manifest.json'])['files']['skeleton.json'],
+                         sha256(output['skeleton.json']).hexdigest())
+
 
 if __name__ == '__main__': unittest.main()

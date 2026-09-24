@@ -8,10 +8,14 @@ export function partitionEditor(parent,job,row,{textureOnly=false,orderOnly=fals
   const reference=el('select'),side=el('select');reference.setAttribute('aria-label','遮挡参考附件');side.setAttribute('aria-label','区域绘制顺序');
   for(const [value,label] of [['before','位于参考附件后方'],['after','位于参考附件前方']]){const o=el('option',label);o.value=value;side.append(o);}
   reference.hidden=side.hidden=!orderOnly;
+  const intervalBox=el('label','仅在指定时间段生效'),limited=el('input'),start=el('input'),end=el('input');
+  limited.type='checkbox';limited.setAttribute('aria-label','限定区域顺序时间段');
+  for(const [input,label,value] of [[start,'顺序开始秒',0],[end,'顺序结束秒',1]]){input.type='number';input.min=0;input.step=.001;input.value=value;input.setAttribute('aria-label',label);input.disabled=true;}
+  intervalBox.append(limited,start,end);intervalBox.hidden=!orderOnly;
   const radius=el('input');radius.type='range';radius.min=2;radius.max=80;radius.value=12;radius.setAttribute('aria-label','区域笔刷半径');
   const erase=el('input');erase.type='checkbox';erase.setAttribute('aria-label','取消区域选择');
   const clear=el('button','清空区域'),status=el('p','尚未载入区域。');
-  box.append(el('legend',orderOnly?'区域前后顺序草稿':'区域划分草稿'),open,bone,reference,side,radius,el('span','取消选择'),erase,clear,status,canvas);parent.append(box);
+  box.append(el('legend',orderOnly?'区域前后顺序草稿':'区域划分草稿'),open,bone,reference,side,intervalBox,radius,el('span','取消选择'),erase,clear,status,canvas);parent.append(box);
   let mesh=null,image=null,selected=new Set(),saved=null,generation=0,previous=null,pointer=null;
   const draw=()=>{
     if(!mesh||!image)return;
@@ -22,9 +26,12 @@ export function partitionEditor(parent,job,row,{textureOnly=false,orderOnly=fals
       ctx.strokeStyle=selected.has(i/3)?'#ffd050':'#7faabb60';ctx.stroke();
     }
     status.textContent=textureOnly?`已选择 ${selected.size} 个三角形。仅指定换图区域，保留原权重和变形；尚未应用。`:`已选择 ${selected.size} 个三角形。保存后可构建独立分区候选；所选区域刚性随目标骨骼，边界可能分离，需重新检查。`;
-    if(orderOnly)status.textContent=`已选择 ${selected.size} 个三角形。整段动作使用此顺序，保留原权重与变形；不自动追踪前后穿越，需检查遮挡与材质边界。`;
+    if(orderOnly)status.textContent=`已选择 ${selected.size} 个三角形。${limited.checked?`${start.value}–${end.value} 秒使用此顺序（含起点、不含终点），区间外恢复原顺序`:'整段动作使用此顺序'}，保留原权重与变形；需检查切换与材质边界。`;
   };
-  const restore=()=>{selected=new Set(saved?.triangles||[]);if(saved){bone.value=saved.bone;reference.value=saved.reference_slot;side.value=saved.side||'before';}draw();};
+  const restore=()=>{selected=new Set(saved?.triangles||[]);limited.checked=!!saved?.interval;start.disabled=end.disabled=!limited.checked;
+    start.value=saved?.interval?.[0]??0;end.value=saved?.interval?.[1]??1;
+    if(saved){bone.value=saved.bone;reference.value=saved.reference_slot;side.value=saved.side||'before';}draw();};
+  limited.onchange=()=>{start.disabled=end.disabled=!limited.checked;draw();};start.oninput=end.oninput=draw;
   open.onclick=async()=>{const ticket=++generation;open.disabled=true;
     try{
       const response=await fetch(`/api/motions/${encodeURIComponent(job.job_id)}/view/partition-mesh.json`,{cache:'no-store'});
@@ -55,5 +62,7 @@ export function partitionEditor(parent,job,row,{textureOnly=false,orderOnly=fals
   return {show:value=>{stop();box.hidden=!value;},restore:value=>{stop();generation++;open.disabled=false;saved=value||null;restore();},
     value:()=>{if(!mesh||!selected.size)throw Error('请先载入网格并选择区域');
       if(orderOnly&&!reference.value)throw Error('请选择参考附件');
-      return {mesh_sha256:mesh.mesh_sha256,triangles:[...selected].sort((a,b)=>a-b),...(orderOnly?{reference_slot:reference.value,side:side.value}:textureOnly?{}:{bone:bone.value})};}};
+      const interval=[Number(start.value),Number(end.value)];
+      if(orderOnly&&limited.checked&&(!start.value||!end.value||!interval.every(Number.isFinite)||interval[0]<0||interval[0]>=interval[1]))throw Error('请输入有效开始和结束秒数；结束时间须大于开始时间');
+      return {mesh_sha256:mesh.mesh_sha256,triangles:[...selected].sort((a,b)=>a-b),...(orderOnly?{reference_slot:reference.value,side:side.value,...(limited.checked?{interval}:{})}:textureOnly?{}:{bone:bone.value})};}};
 }
