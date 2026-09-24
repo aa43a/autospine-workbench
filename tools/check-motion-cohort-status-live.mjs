@@ -5,7 +5,11 @@ import {createRequire} from 'node:module';
 const {chromium}=createRequire(process.argv[2]+'/package.json')('playwright-core');
 const folder=process.argv[3],url=(await fs.readFile(folder+'/url.txt','utf8')).trim();
 const pack=JSON.parse(decodeURIComponent(new URL(url).hash.slice(1)));
-assert.equal(pack.coverage.expected,24);assert.equal(pack.coverage.available,24);
+const expected=Number(process.argv[4]||24),available=pack.coverage.available;
+assert.ok(Number.isInteger(expected)&&expected>0&&expected<=96);
+assert.equal(pack.coverage.expected,expected);
+assert.ok(Number.isInteger(available)&&available>0&&available<=expected);
+assert.equal(available+pack.coverage.missing.length,expected);
 const browser=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
 try{
   const page=await browser.newPage({viewport:{width:1400,height:1000}}),errors=[];
@@ -15,8 +19,9 @@ try{
   await page.getByRole('button',{name:'核对全部候选状态'}).click();
   await page.waitForFunction(()=>!Array.from(document.querySelectorAll('button')).find(b=>b.textContent==='核对全部候选状态')?.disabled,null,{timeout:300000});
   const panel=page.getByRole('region',{name:'固定集状态'});
-  const summary=await panel.getByRole('status').innerText();assert(summary.includes('已读取 24/24'),summary);
-  const rows=await panel.locator('tbody tr').allTextContents();assert.equal(rows.length,24);
+  const summary=await panel.getByRole('status').innerText();assert(summary.includes(`已读取 ${available}/${available}`),summary);
+  assert(summary.includes(`固定集共 ${expected} 项`),summary);
+  const rows=await panel.locator('tbody tr').allTextContents();assert.equal(rows.length,expected);
   const stages={};
   for(const stage of ['投影','几何','接触','遮挡','Runtime']){
     await panel.getByLabel('按检查阶段筛选').selectOption(stage);
@@ -30,6 +35,6 @@ try{
   await page.getByText('已核对版本。查看角色动作后，可直接在本页保存阶段结论；不会自动确认。',{exact:true}).waitFor({timeout:120000});
   await panel.screenshot({path:folder+'/matrix.png'});
   assert.deepEqual(errors,[]);
-  const report={summary,stages,rows,selected:await page.locator('#target-title').innerText(),decisions_written:0,runtime_recaptured:false};
+  const report={expected,available,missing:pack.coverage.missing,summary,stages,rows,selected:await page.locator('#target-title').innerText(),decisions_written:0,runtime_recaptured:false};
   await fs.writeFile(folder+'/report.json',JSON.stringify(report,null,2));console.log(JSON.stringify(report));
 }finally{await browser.close();}

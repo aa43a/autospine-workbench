@@ -113,6 +113,8 @@ FBX/BVH 与 Kimodo 继续共用 MotionIR；补齐当前 BVH 专属脚部观测�
 
 ## 证据入口
 
+- [源姿态 v2 三结构工作台回归](benchmark/m4-three-pose-workbench-v2.md)：三例完成实际构建、播放、同步及导出核对；遮挡仍为 3/3 待处理，新视觉接受 0/3。此项不替代原三角色八动作固定集。
+
 - [原 M4 目标与约束](m4-execution-targets.md)
 - [同视角脚部观测及接触重建](benchmark/m4-squat-full-view-repair-v1.md)
 - [Reach 普通裁剪与肩部材料](benchmark/m4-root-ordinary-v1.md)
