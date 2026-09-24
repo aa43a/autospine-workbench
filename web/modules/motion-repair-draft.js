@@ -1,6 +1,6 @@
 import {partitionEditor} from './motion-partition-editor.js';
 import {materialReturn} from './motion-material-return.js';
-const labels = {local_repair:'局部变形修正', partition:'重新划分区域', pose_attachment:'补充姿态附件', withdraw:'撤销此处处理草稿'};
+const labels = {local_repair:'局部变形修正', partition:'区域刚性重绑', pose_attachment:'补充姿态附件', withdraw:'撤销此处处理草稿'};
 const node = (tag, text) => {const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e;};
 
 export function appendRepairDraft(parent, job, row, getDetail) {
@@ -16,7 +16,7 @@ export function appendRepairDraft(parent, job, row, getDetail) {
   const status=node('p','先加载当前记录，再选择处理路线。');status.setAttribute('role','status');
   const materialScope=node('p','当前姿态素材入口只换图，保留原网格与变形。翻转、面积压缩等几何异常需要单独修正；补图后仍保留这些失败。任务包包含几何诊断，尚不支持回交新的姿态网格。');
   materialScope.hidden=true;
-  panel.append(legend,load,action,notes,save,status,material,execute,node('p','保存不执行修复。局部修正会重算此附件的变形；分区构建仅重绑所选区域并检查边界。两者均保留骨骼、其他附件及原候选，需要重新验证，不自动采用。'));
+  panel.append(legend,load,action,notes,save,status,material,execute,node('p','保存不执行修复。局部修正会重算此附件的变形；区域刚性重绑会改变所选区域的权重并检查边界，不调整前后遮挡顺序。两者均保留骨骼、其他附件及原候选，需要重新验证，不自动采用。'));
   parent.append(panel);let state=null, generation=0;save.disabled=true;
   panel.append(materialScope);
   const poseButton=node('button','在当前页编辑异常附近的姿态'),poseFrame=node('iframe');

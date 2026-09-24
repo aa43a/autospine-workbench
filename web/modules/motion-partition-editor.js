@@ -1,3 +1,4 @@
+import {brushTriangles} from './mesh-brush.js';
 const el=(tag,text)=>{const n=document.createElement(tag);if(text)n.textContent=text;return n;};
 export function partitionEditor(parent,job,row,{textureOnly=false}={}) {
   const box=el('fieldset'),open=el('button','在原纹理上划分区域'),canvas=el('canvas');
@@ -8,7 +9,7 @@ export function partitionEditor(parent,job,row,{textureOnly=false}={}) {
   const erase=el('input');erase.type='checkbox';erase.setAttribute('aria-label','取消区域选择');
   const clear=el('button','清空区域'),status=el('p','尚未载入区域。');
   box.append(el('legend','区域划分草稿'),open,bone,radius,el('span','取消选择'),erase,clear,status,canvas);parent.append(box);
-  let mesh=null,image=null,selected=new Set(),saved=null,generation=0;
+  let mesh=null,image=null,selected=new Set(),saved=null,generation=0,previous=null,pointer=null;
   const draw=()=>{
     if(!mesh||!image)return;
     const ctx=canvas.getContext('2d');ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(image,0,0,canvas.width,canvas.height);
@@ -36,14 +37,17 @@ export function partitionEditor(parent,job,row,{textureOnly=false}={}) {
   };
   const paint=e=>{if(!mesh||!image)return;
     const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)*canvas.width/r.width,y=(e.clientY-r.top)*canvas.height/r.height;
-    for(let i=0;i<mesh.triangles.length;i+=3){let cx=0,cy=0;
-      for(let k=0;k<3;k++){const v=mesh.triangles[i+k];cx+=mesh.uvs[2*v]*canvas.width/3;cy+=mesh.uvs[2*v+1]*canvas.height/3;}
-      if(Math.hypot(cx-x,cy-y)<=Number(radius.value))erase.checked?selected.delete(i/3):selected.add(i/3);
-    }draw();
+    const point=[x,y];
+    for(const index of brushTriangles(mesh,canvas.width,canvas.height,previous||point,point,Number(radius.value)))
+      erase.checked?selected.delete(index):selected.add(index);
+    previous=point;draw();
   };
-  canvas.onpointerdown=e=>{canvas.setPointerCapture(e.pointerId);paint(e);};
-  canvas.onpointermove=e=>{if(e.buttons===1)paint(e);};clear.onclick=()=>{selected.clear();draw();};
-  return {show:value=>{box.hidden=!value;},restore:value=>{generation++;open.disabled=false;saved=value||null;restore();},
+  canvas.onpointerdown=e=>{if(e.button!==0)return;pointer=e.pointerId;previous=null;canvas.setPointerCapture(e.pointerId);paint(e);};
+  canvas.onpointermove=e=>{if(e.pointerId===pointer&&e.buttons===1)paint(e);};
+  const stop=()=>{pointer=null;previous=null;};
+  canvas.onpointerup=canvas.onpointercancel=canvas.onlostpointercapture=stop;
+  clear.onclick=()=>{stop();selected.clear();draw();};
+  return {show:value=>{stop();box.hidden=!value;},restore:value=>{stop();generation++;open.disabled=false;saved=value||null;restore();},
     value:()=>{if(!mesh||!selected.size)throw Error('请先载入网格并选择区域');
       return {mesh_sha256:mesh.mesh_sha256,triangles:[...selected].sort((a,b)=>a-b),...(textureOnly?{}:{bone:bone.value})};}};
 }

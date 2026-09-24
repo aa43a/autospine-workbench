@@ -5,7 +5,7 @@ const {chromium}=require('playwright-core');
 const browser=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
 try {
   const page=await browser.newPage();await page.setContent('<main></main>');
-  for(const name of ['motion-partition-editor','motion-material-mapping','motion-material-return'])await page.addScriptTag({content:fs.readFileSync(`web/modules/${name}.js`,'utf8').replace(/^import .*;\r?\n/gm,'').replace('export function','function')});
+  for(const name of ['mesh-brush','motion-partition-editor','motion-material-mapping','motion-material-return'])await page.addScriptTag({content:fs.readFileSync(`web/modules/${name}.js`,'utf8').replace(/^import .*;\r?\n/gm,'').replace('export function','function')});
   await page.evaluate(()=>{
     window.showReturn=materialReturn(document.querySelector('main'),{job_id:'job'},{slot:'arm',animation:'reach'});showReturn(2);
     window.fetch=async(url,options)=>{window.submitted={url,body:JSON.parse(options.body)};return {ok:true,json:async()=>({unchanged_source:false})};};
