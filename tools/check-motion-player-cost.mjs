@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import assert from 'node:assert/strict';
+import {playbackProbe} from './m4_playback_probe.mjs';
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');
 const [folder,output]=process.argv.slice(2),root=path.resolve(folder);
 const raw=await fs.readFile(path.join(root,'player-assets/scene.json'));
@@ -20,6 +21,7 @@ try{
  const start=performance.now();await page.goto('http://m4-cost.test/player.html');
  await page.waitForFunction(()=>window.characterPlayerReady||window.characterPlayerError,null,{timeout:120000});
  const readyMs=performance.now()-start;
+ const playback=process.argv.includes('--playback')?await playbackProbe(page):null;
  const metrics=await page.evaluate(async()=>{
   if(window.characterPlayerError)throw Error(window.characterPlayerError);
   const control=window.characterPlayerControl,canvas=document.querySelector('canvas'),gl=canvas.getContext('webgl');
@@ -39,7 +41,8 @@ try{
  const sorted=[...metrics.samples].sort((a,b)=>a-b);
  const report={scope:'60 synchronous reverse/forward seeks including gl.finish; five warmups; headless SwiftShader; no hardware GPU or network SLA claim',
   browser:browser.version(),platform:os.platform(),cpu:os.cpus()[0].model,logical_cpus:os.cpus().length,
-  scene_bytes:raw.length,slots:scene.skeleton.slots.length,ready_ms:readyMs,...metrics,
+  scene_bytes:raw.length,slots:scene.skeleton.slots.length,ready_ms:readyMs,playback,...metrics,
   median_ms:sorted[Math.floor(sorted.length*.5)],p95_ms:sorted[Math.ceil(sorted.length*.95)-1],max_ms:sorted.at(-1),visual_accepted:false};
- await fs.writeFile(output,JSON.stringify(report,null,2));console.log(JSON.stringify({...report,samples:undefined}));
+ await fs.writeFile(output,JSON.stringify(report,null,2));console.log(JSON.stringify({...report,samples:undefined,
+   playback:playback?{...playback,observations:undefined}:null}));
 }finally{await browser.close();}
