@@ -10,11 +10,20 @@ from autospine_workbench.targets.character43.active_mesh_pose import sample_acti
 from autospine_workbench.targets.character43.deformation_qa import inspect
 
 
-def run(scene_path,store,digest,output):
+def run(scene_path,store,digest,output,isolate_shoes=False):
     scene=json.loads(scene_path.read_bytes());doc=scene['skeleton']
     reference=json.loads(AnimatedStore(store).read(digest)['skeleton.json'])
     times=sorted({0.,*_times(doc['animations']['external-motion'].get('bones',{}))})
     candidate,evidence=preserve(doc,reference,'external-motion',times)
+    if isolate_shoes:
+        from autospine_workbench.targets.character43.deform_addition import entries
+        from autospine_workbench.targets.character43.isolated_foot_surface import build
+        bindings={}
+        for slot,choices in doc['skins'][0]['attachments'].items():
+            bones={doc['bones'][i]['name'] for mesh in choices.values() for row in entries(mesh) for i,w in row if w>0}
+            if bones in ({'foot_l'},{'foot_r'}):bindings[slot]=next(iter(bones))
+        candidate,isolated=build(doc,candidate,'external-motion',bindings)
+        evidence=dict(isolated,foot_frame_fit=evidence)
     scene['skeleton']=candidate;scene['artifact']=None
     keys=sorted(set(times)|set(_times(candidate['animations']['external-motion'].get('bones',{}))))
     checked=sorted(set(keys)|{(a+b)/2 for a,b in zip(keys,keys[1:])})
@@ -38,4 +47,5 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('scene',type=Path);parser.add_argument('store',type=Path)
     parser.add_argument('digest');parser.add_argument('output',type=Path)
-    args=parser.parse_args();run(args.scene,args.store,args.digest,args.output)
+    parser.add_argument('--isolate-shoes',action='store_true')
+    args=parser.parse_args();run(args.scene,args.store,args.digest,args.output,args.isolate_shoes)
