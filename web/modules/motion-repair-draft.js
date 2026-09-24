@@ -1,6 +1,6 @@
 import {partitionEditor} from './motion-partition-editor.js';
 import {materialReturn} from './motion-material-return.js';
-const labels = {local_repair:'局部变形修正', partition:'区域刚性重绑', pose_attachment:'补充姿态附件', withdraw:'撤销此处处理草稿'};
+const labels = {local_repair:'局部变形修正', partition:'区域刚性重绑', region_order:'区域前后顺序', pose_attachment:'补充姿态附件', withdraw:'撤销此处处理草稿'};
 const node = (tag, text) => {const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e;};
 
 export function appendRepairDraft(parent, job, row, getDetail) {
@@ -25,7 +25,8 @@ export function appendRepairDraft(parent, job, row, getDetail) {
   panel.append(poseButton,poseFrame);
   const showReturn=materialReturn(panel,job,row);showReturn(null);
   const region=partitionEditor(panel,job,row);region.show(false);
-  action.onchange=()=>{region.show(action.value==='partition');materialScope.hidden=action.value!=='pose_attachment';};
+  const order=partitionEditor(panel,job,row,{orderOnly:true});order.show(false);
+  action.onchange=()=>{region.show(action.value==='partition');order.show(action.value==='region_order');materialScope.hidden=action.value!=='pose_attachment';};
   const matches = r => r.slot===row.slot && r.animation===row.animation &&
     r.event.triangle===getDetail().triangle && r.event.time===getDetail().time;
   const render = () => {
@@ -34,11 +35,12 @@ export function appendRepairDraft(parent, job, row, getDetail) {
     action.value=applies?latest.action:'local_repair';notes.value=applies?latest.notes:'';
     materialScope.hidden=action.value!=='pose_attachment';
     region.restore(applies?latest.partition:null);region.show(action.value==='partition');
+    order.restore(applies?latest.region_order:null);order.show(action.value==='region_order');
     material.hidden=!(applies&&latest.action==='pose_attachment');
     material.style.display=material.hidden?'none':'';
     showReturn(material.hidden?null:latest.revision);
-    execute.hidden=!(applies&&(latest.action==='local_repair'||latest.action==='partition'&&latest.partition));
-    execute.textContent=latest?.action==='partition'?'构建独立分区候选':'构建局部修正候选';
+    execute.hidden=!(applies&&(latest.action==='local_repair'||latest.action==='partition'&&latest.partition||latest.action==='region_order'&&latest.region_order));
+    execute.textContent=latest?.action==='region_order'?'构建区域顺序候选':latest?.action==='partition'?'构建独立分区候选':'构建局部修正候选';
     execute.onclick=async()=>{
       panel.disabled=true;status.textContent='正在提交独立修正任务…';
       try {
@@ -74,12 +76,12 @@ export function appendRepairDraft(parent, job, row, getDetail) {
   save.onclick=()=>{
     if(!state)return;
     const detail=getDetail();
-    let partition;
-    try{if(action.value==='partition')partition=region.value();}
+    let partition,region_order;
+    try{if(action.value==='partition')partition=region.value();if(action.value==='region_order')region_order=order.value();}
     catch(error){status.textContent=error.message;return;}
     run({artifact_sha256:state.artifact_sha256,evidence_sha256:state.evidence_sha256,
       expected_revision:state.revision,slot:row.slot,animation:row.animation,
-      triangle:detail.triangle,time:detail.time,action:action.value,notes:notes.value,...(partition?{partition}:{})});
+      triangle:detail.triangle,time:detail.time,action:action.value,notes:notes.value,...(partition?{partition}:{}),...(region_order?{region_order}:{})});
   };
   return () => {
     generation++;panel.disabled=false;material.hidden=true;execute.hidden=true;

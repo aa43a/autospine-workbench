@@ -63,6 +63,14 @@ class SubmissionTests(unittest.TestCase):
         self.assertEqual(saved['repair_execution']['profile'],execution.PARTITION_PROFILE)
         self.assertEqual(saved['repair_execution']['draft']['partition'],self.row['partition'])
 
+    def test_region_order_requires_selection_and_freezes_distinct_profile(self):
+        self.row['action']='region_order'
+        with self.assertRaisesRegex(RuntimeError,'region_order_required'):self.invoke()
+        self.row['region_order']=dict(mesh_sha256='d'*64,triangles=[0],reference_slot='body',side='after')
+        value=self.invoke();saved=read_document(self.manager.folder(value['job_id'])/'request.json')
+        self.assertEqual(saved['repair_execution']['profile'],execution.ORDER_PROFILE)
+        self.assertEqual(saved['repair_execution']['draft']['region_order'],self.row['region_order'])
+
     def test_missing_repair_depth_is_readable_but_not_a_pass(self):
         from autospine_workbench.automation.motion_target_jobs import review_file
         with patch('autospine_workbench.automation.motion_target_jobs.context',return_value=({'repair_profile':execution.PROFILE},{})), \

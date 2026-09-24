@@ -1,0 +1,83 @@
+"""Package an order-only candidate without reusing obsolete QA or identities."""
+from copy import deepcopy
+from hashlib import sha256
+import json
+
+from ...automation.storage_io import canonical_bytes
+from ...resolved_project import canonical_sha256
+from .region_order_candidate import build as order_scene, PROFILE
+from .numeric_reference import read, write
+from .deformation_qa import inspect
+
+
+def build(files, plan, on_progress=None):
+    document = json.loads(files['skeleton.json'])
+    reference = read(files)
+    setup = json.loads(files['rig-setup-reference.json'])
+    source_digest = sha256(files['skeleton.json']).hexdigest()
+    if any(r['skeleton_sha256'] != source_digest for r in (reference, setup)):
+        raise ValueError('region_order_source_identity')
+    name, slot, selection = plan['animation'], plan['slot'], plan['region_order']
+    if (set(document['animations']) != {name} or len(document['skins']) != 1
+            or document['skins'][0].get('name') != 'default'):
+        raise ValueError('region_order_animation_or_skin_unsupported')
+    mesh = document['skins'][0]['attachments'][slot][slot]
+    if canonical_sha256(mesh) != selection['mesh_sha256']:
+        raise ValueError('region_order_mesh_changed')
+    result, report = order_scene(document, slot, selection['triangles'],
+                                 selection['reference_slot'], selection['side'])
+    old_slots = set(document['skins'][0]['attachments'])
+    def remap(vertices):
+        if set(vertices) != old_slots:
+            raise ValueError('region_order_reference_inventory')
+        values = deepcopy(vertices)
+        points = values.pop(slot)
+        for region in report['regions']:
+            values[region['slot']] = deepcopy(points)
+        return values
+    setup['vertices'] = remap(setup['vertices'])
+    # All weights, transforms and deform tracks are identical. Remap the exact
+    # stored reference rather than re-sampling with a less capable CPU parser.
+    frames = reference['animations'][name]
+    if not 2 <= len(frames) <= 4097:
+        raise ValueError('region_order_sample_limit')
+    for index, frame in enumerate(frames):
+        if on_progress and index % 32 == 0:
+            on_progress(dict(stage='region_order_validate', index=index, total=len(frames)))
+        frame['vertices'] = remap(frame['vertices'])
+    output = {n: v for n, v in files.items()
+              if n.endswith('.png') or n in ('skeleton.atlas', 'motion-ir.json')}
+    output['skeleton.json'] = canonical_bytes(result)
+    digest = sha256(output['skeleton.json']).hexdigest()
+    setup['skeleton_sha256'] = reference['skeleton_sha256'] = digest
+    output['rig-setup-reference.json'] = canonical_bytes(setup)
+    output = write(output, reference)
+    geometry = inspect(output, setup_vertices=setup['vertices'])
+    output['deformation.json'] = canonical_bytes(geometry)
+    evidence = json.loads(files['motion-review.json'])
+    from .final_motion_contact import recheck
+    contact = recheck(result, name, json.loads(files['motion-ir.json']),
+                      json.loads(files['motion-contact.json']),
+                      [f['time'] for f in frames], evidence['reference_length_px'])
+    evidence.update(status='needs_changes', geometry_passed=geometry['passed'],
+                    runtime_status='not_evaluated', depth_order_status='not_evaluated',
+                    contact_status=contact['status'], authority='none')
+    # Keep previous issues in parent evidence. Geometry slot/triangle identities
+    # have changed and are regenerated; prior visual acceptance cannot carry over.
+    evidence['issues'] = [i for i in evidence.get('issues', []) if i['stage'] == 'projection']
+    evidence['issues'].append(dict(stage='repair', reason_code='motion_region_order_requires_visual_review'))
+    if not geometry['passed']:
+        evidence['issues'].append(dict(stage='geometry', reason_code='motion_target_deformation_needs_changes'))
+    for key in ('area_repair', 'post_contact_repair'):
+        evidence.pop(key, None)
+    output['motion-review.json'] = canonical_bytes(evidence)
+    output['motion-contact.json'] = canonical_bytes(contact)
+    output['parent-motion-review.json'] = files['motion-review.json']
+    output['motion-repair.json'] = canonical_bytes(dict(profile=PROFILE, slot=slot,
+        animation=name, region_order=report, geometry=geometry, sample_count=len(frames),
+        source_skeleton_sha256=source_digest, authority='none', selected=False))
+    manifest = json.loads(files['character-manifest.json'])
+    manifest.update(status='needs_changes', authority='none', production_authorized=False,
+                    files={n: sha256(v).hexdigest() for n, v in output.items()})
+    output['character-manifest.json'] = canonical_bytes(manifest)
+    return output, evidence, geometry

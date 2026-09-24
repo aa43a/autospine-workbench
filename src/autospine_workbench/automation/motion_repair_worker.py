@@ -6,7 +6,7 @@ from ..targets.character43.selected_attachment_repair import build
 from .animated_store import AnimatedStore
 from .character_capture import capture
 from .motion_intake_process import progress
-from .motion_repair_execution import PROFILE,PARTITION_PROFILE
+from .motion_repair_execution import PROFILE,PARTITION_PROFILE,ORDER_PROFILE
 from ..targets.character43.material_region_candidate import PROFILE as MATERIAL_PROFILE
 from ..targets.character43.pose_geometry_candidate import PROFILE as POSE_PROFILE
 from .storage_io import canonical_bytes
@@ -15,7 +15,7 @@ from .storage_io import canonical_bytes
 def execute(folder, state_root, workspace, request):
     repair = request['repair_execution']; plan = repair['draft']
     expected={'local_repair':PROFILE,'partition':PARTITION_PROFILE,'pose_attachment':MATERIAL_PROFILE,
-              'pose_geometry':POSE_PROFILE}.get(plan['action'])
+              'pose_geometry':POSE_PROFILE,'region_order':ORDER_PROFILE}.get(plan['action'])
     if (expected is None or repair['profile'] != expected or canonical_sha256(plan) != repair['draft_sha256']
             or plan['artifact_sha256'] != repair['parent_artifact_sha256']
             ):
@@ -28,6 +28,8 @@ def execute(folder, state_root, workspace, request):
     builder=build
     if expected==PARTITION_PROFILE:
         from ..targets.character43.partition_candidate import build as builder
+    if expected==ORDER_PROFILE:
+        from ..targets.character43.region_order_bundle import build as builder
     if expected==POSE_PROFILE:
         from ..targets.character43.pose_geometry_candidate import build as builder
     if expected==MATERIAL_PROFILE:

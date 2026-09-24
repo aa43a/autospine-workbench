@@ -12,6 +12,7 @@ def meshes(files,artifact):
         rows.append(dict(slot=slot,mesh_sha256=canonical_sha256(mesh),
             uvs=mesh['uvs'],triangles=mesh['triangles'],texture_path='images/'+mesh.get('path',slot)+'.png'))
     return dict(artifact_sha256=artifact,rows=rows,bones=[b['name'] for b in doc['bones']],
+        slots=[s['name'] for s in doc['slots']],
         authority='none',selected=False)
 
 
@@ -33,3 +34,29 @@ def validate(manager,job,body):
         raise PipelineRunError('motion_partition_selection_invalid')
     return dict(mesh_sha256=part['mesh_sha256'],triangles=sorted(triangles),bone=part['bone'],
         status='proposed_region_not_applied',authority='none')
+
+
+def validate_order(manager, job, body):
+    if 'region_order' not in body:
+        if body['action'] == 'region_order':
+            raise PipelineRunError('motion_region_order_required')
+        return None
+    part = body['region_order']
+    if (body['action'] != 'region_order' or not isinstance(part, dict)
+            or set(part) != {'mesh_sha256', 'triangles', 'reference_slot', 'side'}):
+        raise PipelineRunError('motion_region_order_invalid')
+    from .motion_target_jobs import context
+    from ..targets.character43.region_order_candidate import build
+    result, files = context(manager, job)
+    document = json.loads(files['skeleton.json'])
+    report = meshes(files, result['artifact_sha256'])
+    row = next((r for r in report['rows'] if r['slot'] == body['slot']), None)
+    if (row is None or body['artifact_sha256'] != report['artifact_sha256']
+            or part['mesh_sha256'] != row['mesh_sha256']):
+        raise PipelineRunError('motion_partition_mesh_changed')
+    try:
+        build(document, body['slot'], part['triangles'], part['reference_slot'], part['side'])
+    except (ValueError, TypeError, KeyError) as error:
+        raise PipelineRunError('motion_region_order_unsupported') from error
+    return dict(part, triangles=sorted(part['triangles']), authority='none',
+                status='proposed_static_order_not_applied')

@@ -6,7 +6,7 @@ from ..resolved_project import canonical_sha256
 from .pipeline_run import PipelineRunError
 from .storage_io import directory, publish_document, read_document
 
-ACTIONS = {'local_repair', 'partition', 'pose_attachment', 'withdraw'}
+ACTIONS = {'local_repair', 'partition', 'region_order', 'pose_attachment', 'withdraw'}
 
 
 def evidence(manager, job):
@@ -52,15 +52,16 @@ def inspect(manager, job):
 def save(manager, job, body):
     fields = {'artifact_sha256', 'evidence_sha256', 'expected_revision', 'action',
               'notes', 'slot', 'animation', 'triangle', 'time'}
-    if (set(body)-{'partition'} != fields or body.get('action') not in ACTIONS
+    if (set(body)-{'partition', 'region_order'} != fields or body.get('action') not in ACTIONS
             or type(body.get('expected_revision')) is not int
             or type(body.get('triangle')) is not int
             or type(body.get('time')) not in (int, float)
             or not isinstance(body.get('notes'), str) or len(body['notes']) > 4000):
         raise PipelineRunError('motion_draft_request_invalid')
     report, digest = evidence(manager, job)
-    from .motion_partition_draft import validate
+    from .motion_partition_draft import validate, validate_order
     partition = validate(manager,job,body)
+    region_order = validate_order(manager,job,body)
     matches = [detail for row in report.get('rows', [])
                if row['slot'] == body['slot'] and row['animation'] == body['animation']
                for detail in row['details']
@@ -85,6 +86,7 @@ def save(manager, job, body):
                    previous_sha256=canonical_sha256(rows[-1]) if rows else None,
                    authority='none', repair_executed=False)
         if partition is not None:row['partition']=partition
+        if region_order is not None:row['region_order']=region_order
         root = directory(manager.folder(job) / 'repair-drafts', create=True)
         if not publish_document(root / f'draft-{revision:04d}.json', row, staging=root / 'staging'):
             raise PipelineRunError('motion_draft_revision_changed')
