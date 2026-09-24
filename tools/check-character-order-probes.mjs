@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {orderProbes} from './character-order-probes.mjs';
+const doc={animations:{wave:{drawOrder:[{time:0},{time:.25},{time:.3},{time:1},{time:2}]}}};
+const reference={animations:{wave:[0,.25,.5,1].map(time=>({time}))}};
+const rows=orderProbes(doc,reference).wave;
+assert.deepEqual(rows[0].samples.map(s=>s.index),[0,1]);
+assert.equal(rows[0].before_available,false);
+assert.equal(rows[1].exact_sample,true);
+assert.deepEqual(rows[1].samples.map(s=>s.index),[0,1,2]);
+assert.equal(rows[2].runtime_time,Math.fround(.3));
+assert.equal(rows[2].exact_sample,false);
+assert.deepEqual(rows[2].samples.map(s=>s.index),[1,2,3]);
+assert.deepEqual(rows[3].samples.map(s=>s.index),[2,3]);
+assert.equal(rows[4].after_available,false);
+assert.deepEqual(rows[4].samples.map(s=>s.index),[3]);
+assert.deepEqual(orderProbes({animations:{wave:{}}},reference),{});
+assert.throws(()=>orderProbes(doc,{animations:{wave:[{time:1},{time:0}]}}),/frame_times/);
+console.log('Order switch screenshot selection passed.');

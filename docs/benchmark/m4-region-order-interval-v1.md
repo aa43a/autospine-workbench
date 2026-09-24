@@ -39,3 +39,23 @@ The service restart preserved all 164 historical job states.
 Next capture the switch frames for visual review and select intervals from real
 crossing evidence. Correct order and unchanged geometry do not prove a natural material seam.
 Reach and Squat across the original three characters remain unfinished.
+
+## Live queue result and capture follow-up
+
+Job `motion-744b6a402ba546c783b50cc871a653d5` completed successfully, producing
+artifact `24a39f6e66829e2595bb90c1461d755f531be1c45df0cf1a1cb83b37ae007b23`.
+Official core/WebGL 4.3.13 captured 2,106 reference frames and checked draw order
+against the JSON offsets. The real output switches at 1 second and resets at 2.
+The downloaded 117-file ZIP matched its manifest hashes, and its skeleton matched
+the scene served to the player. Thirteen regional geometry records still fail;
+the result remains needs_changes, with no visual acceptance.
+
+The capture tool now explicitly saves existing reference frames immediately before
+and at/after draw-order switches, plus the following frame. Its report records the
+authored time, Float32 runtime key time, exact-sample availability, and offsets of
+the selected samples. It does not claim to capture an exact switch if the reference
+grid does not contain it. This closes a screenshot-selection gap in the default
+32-frame stride. `node tools/check-character-order-probes.mjs` passed, including
+non-exact keys, endpoint switches, out-of-grid keys, and invalid frame order.
+This new selector was added after the live job started; that immutable report does
+not contain the new switch screenshot coverage. Fresh capture is still required.
