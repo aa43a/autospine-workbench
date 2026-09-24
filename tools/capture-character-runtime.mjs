@@ -42,6 +42,8 @@ if(storageReferenceArg){
     if(other.length!==frames.length)throw Error('runtime_storage_frame_inventory');
     for(let i=0;i<frames.length;i++){
       if(other[i].time!==frames[i].time||JSON.stringify(Object.keys(other[i].vertices).sort())!==JSON.stringify(Object.keys(frames[i].vertices).sort()))throw Error('runtime_storage_frame_inventory');
+      const identities=frame=>Object.entries(frame.attachments||{}).sort(([a],[b])=>a.localeCompare(b));
+      if(JSON.stringify(identities(other[i]))!==JSON.stringify(identities(frames[i])))throw Error('runtime_storage_attachment_identity');
       for(const [slot,points]of Object.entries(frames[i].vertices)){
         const target=other[i].vertices[slot];
         if(target.length!==points.length||target.some(p=>!Array.isArray(p)||p.length!==2||p.some(v=>!Number.isFinite(v))))throw Error('runtime_storage_vertex_inventory');

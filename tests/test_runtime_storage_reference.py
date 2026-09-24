@@ -16,7 +16,7 @@ class RuntimeStorageTests(unittest.TestCase):
         doc['animations']['walk']['slots']['mesh']['alpha'][0]['curve']=[0,1,0,1]
         with self.assertRaisesRegex(ValueError,'alpha_unsupported'):stored_document(doc)
 
-    def test_linear_alpha_is_quantized_but_attachment_switching_rejected(self):
+    def test_linear_alpha_is_quantized_but_missing_attachment_rejected(self):
         doc=self.document();name='mesh';doc['slots']=[dict(name=name,bone='a')]
         doc['animations']['walk']['slots']={name:{'alpha':[dict(time=.123456789,value=.3456789)]}}
         key=stored_document(doc)['animations']['walk']['slots'][name]['alpha'][0]
@@ -24,7 +24,7 @@ class RuntimeStorageTests(unittest.TestCase):
         doc['animations']['walk']['slots'][name]['alpha']=[dict(time=0)]
         self.assertEqual(stored_document(doc)['animations']['walk']['slots'][name]['alpha'][0]['value'],0)
         doc['animations']['walk']['slots'][name]['attachment']=[dict(time=0,name='other')]
-        with self.assertRaisesRegex(ValueError,'slot_track_unsupported'):stored_document(doc)
+        with self.assertRaisesRegex(ValueError,'attachment_switch_invalid'):stored_document(doc)
 
     def test_shear_arrays_match_float32_storage(self):
         doc=self.document()

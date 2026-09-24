@@ -54,8 +54,18 @@ def stored_document(document):
         if set(animation) - {'bones', 'attachments', 'drawOrder', 'slots'}:
             raise ValueError('runtime_storage_animation_unsupported')
         for name,tracks in animation.get('slots',{}).items():
-            if name not in {s['name'] for s in result['slots']} or set(tracks)-{'alpha'}:
+            if name not in {s['name'] for s in result['slots']} or set(tracks)-{'alpha', 'attachment'}:
                 raise ValueError('runtime_storage_slot_track_unsupported')
+            choices = result['skins'][0]['attachments'].get(name, {})
+            for key in tracks.get('attachment', []):
+                if (set(key)-{'time', 'name'} or key.get('name') is not None and
+                        (not isinstance(key['name'], str) or key['name'] not in choices)):
+                    raise ValueError('runtime_storage_attachment_switch_invalid')
+                timestamp = key.get('time', 0)
+                if type(timestamp) not in (int, float) or not math.isfinite(timestamp) or timestamp < 0:
+                    raise ValueError('runtime_storage_attachment_switch_time')
+                key['time'] = f32(timestamp)
+            require_distinct_times(tracks.get('attachment', []))
             for key in tracks.get('alpha',[]):
                 if (set(key)-{'time','value','curve'} or not 0<=key.get('value',0)<=1
                         or 'curve' in key and key['curve']!='stepped'):
@@ -98,19 +108,30 @@ def build(files):
     if ideal['skeleton_sha256'] != digest:
         raise ValueError('runtime_storage_source_mismatch')
     document = stored_document(json.loads(files['skeleton.json']))
+    switched = any('attachment' in tracks for motion in document['animations'].values()
+                   for tracks in motion.get('slots', {}).values())
     frames = {}
     maximum = 0.
     for name, rows in ideal['animations'].items():
         frames[name] = []
         for row in rows:
-            points = sample(document, name, row['time'])[0]
+            identities = None
+            if switched:
+                from .active_mesh_pose import sample_active
+                active = sample_active(document, name, row['time'])
+                points, identities = active['vertices'], active['attachments']
+                if row.get('attachments') != identities:
+                    raise ValueError('runtime_storage_attachment_identity')
+            else:
+                points = sample(document, name, row['time'])[0]
             if set(points) != set(row['vertices']):
                 raise ValueError('runtime_storage_slot_inventory')
             for slot, values in points.items():
                 if len(values) != len(row['vertices'][slot]):
                     raise ValueError('runtime_storage_vertex_inventory')
                 maximum = max(maximum, *(math.dist(a, b) for a, b in zip(values, row['vertices'][slot])))
-            frames[name].append(dict(time=row['time'], vertices=points))
+            frames[name].append(dict(time=row['time'], vertices=points,
+                                    **({'attachments': identities} if switched else {})))
     return dict(schema='autospine.runtime-storage-reference/v1', profile=PROFILE,
         skeleton_sha256=digest, runtime_version='4.3.13', animations=frames,
         implementation_sha256=sha256(Path(__file__).read_bytes()).hexdigest(),
