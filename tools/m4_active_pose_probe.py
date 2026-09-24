@@ -6,6 +6,7 @@ from pathlib import Path
 from autospine_workbench.resolved_project import canonical_sha256
 from autospine_workbench.targets.character43.active_mesh_pose import sample_active
 from autospine_workbench.asset.planning.component_local_solver import metrics
+from autospine_workbench.targets.character43.pose_variant_transition import inspect as inspect_transitions
 
 
 def main():
@@ -32,7 +33,7 @@ def main():
             geometry[slot] = metrics(frame['setup_vertices'][slot], frame['vertices'][slot], triangles)
         frames.append(dict(time=time, attachments=frame['attachments'], vertices=frame['vertices'], geometry=geometry))
     result = dict(document_sha256=report['output_sha256'], animation=report['animation'],
-        frames=frames, authority='none', selected=False,
+        frames=frames, transitions=inspect_transitions(document, report), authority='none', selected=False,
         scope='interval_local_active_attachment_geometry_not_full_clip_acceptance')
     with args.output.open('x', encoding='utf-8') as stream:
         json.dump(result, stream)
