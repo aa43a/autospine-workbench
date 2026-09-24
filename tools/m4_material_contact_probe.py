@@ -42,7 +42,7 @@ def run(store,artifact,output,limit):
     request=dict(document_sha256=canonical_sha256(doc),animation=animation,interval=[times[0],times[-1]],
                  times=times,limit_px=limit,anchors=anchors)
     report=trace(doc,files,request)
-    report.update(artifact_sha256=artifact,request=request,
+    report.update(artifact_sha256=artifact,skeleton_byte_sha256=sha256(files['skeleton.json']).hexdigest(),request=request,
                   selection='automatic_opaque_setup_lower_edge_not_reviewed_sole',
                   interval_source='capture_span_not_source_contact_marker')
     with output.open('x',encoding='utf8') as f:json.dump(report,f,indent=2)
