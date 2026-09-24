@@ -6,6 +6,7 @@ import signal
 import subprocess
 
 from .storage_io import canonical_bytes, read_document
+from .motion_view_failures import VIEW_FAILURES
 
 STEPS = {'verify_source', 'convert_fbx', 'verify_bridge', 'inspect_bvh', 'inspect_npz', 'compile_motion',
          'retarget', 'post_contact_repair', 'publish_candidate', 'runtime', 'verify_generator', 'verify_text_encoder',
@@ -62,7 +63,7 @@ def failure_reason(path):
     for line in reversed(lines[-3:]):
         try:
             reason = json.loads(line).get('reason_code', '')
-            if isinstance(reason, str) and (reason in REPAIR_FAILURES or re.fullmatch(r'(motion|character)_[a-z0-9_]{1,80}', reason)):
+            if isinstance(reason, str) and (reason in REPAIR_FAILURES or reason in VIEW_FAILURES or re.fullmatch(r'(motion|character)_[a-z0-9_]{1,80}', reason)):
                 return reason
         except (ValueError, AttributeError):
             pass

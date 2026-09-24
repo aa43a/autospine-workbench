@@ -1,0 +1,22 @@
+"""Explicit public reason codes for authored-view workers; never arbitrary logs."""
+VIEW_FAILURES = frozenset({
+    'view_pose_animation_missing', 'view_pose_request_invalid', 'view_pose_document_changed',
+    'view_pose_texture_identity_invalid', 'view_pose_texture_size_invalid', 'view_pose_poses_invalid',
+    'view_pose_pose_invalid', 'view_pose_animated_uv_requires_separate_variant',
+    'view_candidate_texture_changed', 'view_candidate_reference_changed',
+    'view_candidate_single_animation_required', 'view_candidate_sample_limit',
+    'view_candidate_texture_collision', 'view_candidate_atlas_collision',
+    'view_correspondence_request_invalid', 'view_correspondence_mesh_changed',
+    'view_correspondence_control_count', 'view_correspondence_triangles_invalid',
+    'view_correspondence_degenerate_or_uv_fold', 'view_correspondence_pose_fold',
+    'view_correspondence_mesh_uv_invalid', 'view_correspondence_work_budget',
+    'view_correspondence_uncovered_vertex', 'view_correspondence_ambiguous_overlap',
+    'view_correspondence_mesh_triangles_invalid', 'view_correspondence_requires_subdivision',
+    'view_correspondence_source_uv_invalid', 'view_correspondence_target_uv_invalid',
+    'view_correspondence_target_xy_invalid',
+    'pose_variant_source_changed', 'pose_variant_default_skin_required', 'pose_variant_mesh_required',
+    'pose_variant_legacy_deform_unsupported', 'pose_variant_existing_attachment_timeline',
+    'pose_variant_changes_outside_mesh_and_deform', 'pose_variant_interval_invalid',
+    'pose_variant_interval_collapsed', 'pose_variant_setup_attachment_mismatch',
+    'pose_variant_attachment_exists',
+})
