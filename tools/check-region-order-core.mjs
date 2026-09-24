@@ -17,6 +17,7 @@ const data = [source, candidate].map(s => new spine.SkeletonJson(
   new spine.AtlasAttachmentLoader(new spine.TextureAtlas(s.atlas))).readSkeletonData(s.skeleton));
 assert.deepEqual(data[0].animations.map(a => [a.name,a.duration]), data[1].animations.map(a => [a.name,a.duration]));
 const mapping = new Map(report.regions.map(r => [r.slot, r.source_slot]));
+const regions = new Map(report.regions.map(r => [r.slot, r]));
 let frames = 0, vertices = 0;
 function points(data, name, time) {
   const skeleton = new spine.Skeleton(data), state = new spine.AnimationState(new spine.AnimationStateData(data));
@@ -36,7 +37,10 @@ for (const animation of data[0].animations) {
     const before = points(data[0], animation.name, time), after = points(data[1], animation.name, time);
     for (const [slot, values] of after) {
       assert.ok(Array.from(values).every(Number.isFinite));
-      assert.deepEqual(values, before.get(mapping.get(slot) ?? slot));
+      let expected = before.get(mapping.get(slot) ?? slot);
+      const indices = regions.get(slot)?.source_vertex_indices;
+      if(indices)expected = new Float32Array(indices.flatMap(i => [expected[2*i], expected[2*i+1]]));
+      assert.deepEqual(values, expected);
       vertices += values.length / 2;
     }
     frames++;

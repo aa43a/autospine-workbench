@@ -18,6 +18,7 @@ def fixture():
     files = dict(images, **{'skeleton.json': raw, 'skeleton.atlas': b'atlas',
         'motion-ir.json': b'{}', 'motion-contact.json': b'{}',
         'character-manifest.json': b'{}', 'motion-depth.json': b'old depth',
+        'deformation.json': b'{"passed":false,"records":[]}',
         'motion-review.json': canonical_bytes(dict(reference_length_px=100, issues=[
             dict(stage='geometry', reason_code='old_slot_failure'),
             dict(stage='projection', reason_code='source_problem')]))})
@@ -37,11 +38,13 @@ class RegionOrderBundleTests(unittest.TestCase):
         output, evidence, geometry = build(files, plan)
         digest = sha256(output['skeleton.json']).hexdigest()
         reference = read(output)
+        regions = json.loads(output['motion-repair.json'])['region_order']['regions']
         self.assertEqual(reference['skeleton_sha256'], digest)
         for before, after in zip(read(files)['animations']['test'], reference['animations']['test']):
             self.assertEqual(after['vertices']['b'], before['vertices']['b'])
-            for name in ('a-depth-001', 'a-depth-002', 'a-depth-003'):
-                self.assertEqual(after['vertices'][name], before['vertices']['a'])
+            for region in regions:
+                self.assertEqual(after['vertices'][region['slot']],
+                                 [before['vertices']['a'][i] for i in region['source_vertex_indices']])
         self.assertNotIn('motion-depth.json', output)
         self.assertEqual(output['parent-motion-review.json'], files['motion-review.json'])
         self.assertEqual(evidence['runtime_status'], 'not_evaluated')

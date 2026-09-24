@@ -1,4 +1,13 @@
 export const poseErrors = {
+  animated_resource_limit:'候选数据超过存储上限，已停止生成并保留原结果；请检查区域数量与动画数据规模。',
+  region_order_source_identity:'区域顺序来源与数值参考不一致，请重新加载候选。',
+  region_order_mesh_changed:'区域顺序草稿的网格已经变化，请重新选择区域。',
+  region_order_animation_or_skin_unsupported:'区域顺序候选目前要求单动作与默认皮肤。',
+  region_order_reference_inventory:'区域顺序候选的顶点参考不完整，原结果保留。',
+  region_order_sample_limit:'区域顺序验证帧数超过当前上限，未删减检查帧。',
+  partition_compact_curve:'区域压缩暂不支持当前变形曲线，未将曲线改为线性。',
+  partition_compact_timeline:'区域压缩遇到不支持的附件轨道，原动画保留。',
+  motion_region_order_requires_visual_review:'区域顺序候选已生成，仍需检查整段动作的遮挡与材质边界。',
   foot_fit_timeline_budget_exceeded:'脚部帧间朝向修正未在计算上限内收敛，已停止生成；原候选保留，不能视为脚底接触通过。',
   foot_fit_timeline_sample_limit:'脚部来源关键帧超过当前修正上限，未丢弃采样或缩短动作；请保留原候选。',
   foot_orientation_plane_unobservable:'当前视角下脚部朝向投影退化，无法可靠拟合；请检查源动作与观察方向。',

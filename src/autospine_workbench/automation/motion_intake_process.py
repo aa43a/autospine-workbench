@@ -14,6 +14,9 @@ STEPS = {'verify_source', 'convert_fbx', 'verify_bridge', 'inspect_bvh', 'inspec
 
 # Only explicit internal failures may cross the worker log boundary.
 REPAIR_FAILURES = frozenset({
+    'animated_resource_limit', 'region_order_source_identity', 'region_order_mesh_changed',
+    'region_order_animation_or_skin_unsupported', 'region_order_reference_inventory',
+    'region_order_sample_limit', 'partition_compact_curve', 'partition_compact_timeline',
     'foot_fit_timeline_budget_exceeded', 'foot_fit_timeline_sample_limit',
     'foot_orientation_plane_unobservable',
     'pose_candidate_scope_mismatch', 'pose_candidate_reference_mismatch',

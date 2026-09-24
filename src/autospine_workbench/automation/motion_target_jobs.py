@@ -144,9 +144,13 @@ def review_file(manager, job, parts):
         parent = json.loads(files['motion-repair-provenance.json'])
         report = dict(artifact_sha256=result['artifact_sha256'], parent_job_id=parent['parent_job_id'],
             parent_artifact_sha256=parent['parent_artifact_sha256'], slot=repair['slot'],
-            before=repair['parent_geometry'], after=repair['geometry'],
+            before=repair.get('parent_geometry'), after=repair['geometry'],
             unchanged_other_channels=repair.get('unchanged_other_channels',True),
             profile=repair['profile'],boundary=repair.get('boundary'), material=repair.get('material'), selected=False, authority='none')
+        if report['before'] is None:
+            report['before'] = dict(passed=None, records=[], status='unavailable')
+        if repair.get('region_order'):
+            report['region_order'] = repair['region_order']
         if 'pose-geometry-report.json' in files:
             patch = json.loads(files['pose-geometry-report.json'])
             poses = json.loads(files['pose-geometry-request.json'])

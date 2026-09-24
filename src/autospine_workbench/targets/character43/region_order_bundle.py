@@ -8,6 +8,7 @@ from ...resolved_project import canonical_sha256
 from .region_order_candidate import build as order_scene, PROFILE
 from .numeric_reference import read, write
 from .deformation_qa import inspect
+from .depth_partition_compact import compact
 
 
 def build(files, plan, on_progress=None):
@@ -26,6 +27,7 @@ def build(files, plan, on_progress=None):
         raise ValueError('region_order_mesh_changed')
     result, report = order_scene(document, slot, selection['triangles'],
                                  selection['reference_slot'], selection['side'])
+    result, report = compact(result, report)
     old_slots = set(document['skins'][0]['attachments'])
     def remap(vertices):
         if set(vertices) != old_slots:
@@ -33,7 +35,7 @@ def build(files, plan, on_progress=None):
         values = deepcopy(vertices)
         points = values.pop(slot)
         for region in report['regions']:
-            values[region['slot']] = deepcopy(points)
+            values[region['slot']] = [deepcopy(points[i]) for i in region['source_vertex_indices']]
         return values
     setup['vertices'] = remap(setup['vertices'])
     # All weights, transforms and deform tracks are identical. Remap the exact
@@ -74,7 +76,8 @@ def build(files, plan, on_progress=None):
     output['motion-contact.json'] = canonical_bytes(contact)
     output['parent-motion-review.json'] = files['motion-review.json']
     output['motion-repair.json'] = canonical_bytes(dict(profile=PROFILE, slot=slot,
-        animation=name, region_order=report, geometry=geometry, sample_count=len(frames),
+        animation=name, region_order=report, geometry=geometry,
+        parent_geometry=json.loads(files['deformation.json']), sample_count=len(frames),
         source_skeleton_sha256=source_digest, authority='none', selected=False))
     manifest = json.loads(files['character-manifest.json'])
     manifest.update(status='needs_changes', authority='none', production_authorized=False,
