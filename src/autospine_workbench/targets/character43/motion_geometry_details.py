@@ -23,6 +23,11 @@ def build(files, artifact, *, limit=12):
     setup=json.loads(files['rig-setup-reference.json'])
     if any(r.get('skeleton_sha256')!=digest for r in (qa,samples,setup)):
         raise ValueError('geometry_detail_identity_mismatch')
+    if qa.get('profile')=='character-active-attachment-deformation-v1':
+        return dict(profile='motion-geometry-source-locations-v1',artifact_sha256=artifact,
+            skeleton_sha256=digest,status='unavailable',rows=[],authority='none',selected=False,
+            reason='active_attachment_source_locations_not_supported',
+            note='姿态附件几何失败已保留；固定网格定位器不能将新附件索引映射到原纹理。')
     rows=[];budget=20_000_000
     for record in qa['records']:
         if record['passed']:continue

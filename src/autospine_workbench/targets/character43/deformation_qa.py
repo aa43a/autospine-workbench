@@ -12,6 +12,10 @@ def inspect(files, *, setup_vertices=None):
     if reference['skeleton_sha256']!=sha256(files['skeleton.json']).hexdigest():
         raise ValueError('character_reference_source_mismatch')
     if not reference['animations'] or set(reference['animations'])!=set(document['animations']):raise ValueError('character_animation_inventory')
+    if any('attachment' in tracks for motion in document['animations'].values()
+           for tracks in motion.get('slots',{}).values()):
+        from .active_deformation_qa import inspect as inspect_active
+        return inspect_active(document,reference)
     attachments=document['skins'][0]['attachments'];rows=[]
     def area(points,t):
         a,b,c=(points[i] for i in t)

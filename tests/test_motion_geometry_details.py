@@ -24,6 +24,15 @@ def fixture():
 
 
 class GeometryDetailsTests(unittest.TestCase):
+    def test_active_mesh_report_is_not_located_using_setup_triangle_indices(self):
+        files=fixture();qa=json.loads(files['deformation.json'])
+        qa['profile']='character-active-attachment-deformation-v1'
+        files['deformation.json']=json.dumps(qa).encode()
+        report=build(files,'a'*64)
+        self.assertEqual(report['status'],'unavailable')
+        self.assertEqual(report['reason'],'active_attachment_source_locations_not_supported')
+        self.assertEqual(report['rows'],[])
+
     def test_compression_and_expansion_use_their_own_times_and_ratios(self):
         report=build(fixture(),'a'*64)
         events={r['reason']:r for r in report['rows'][0]['details']}
