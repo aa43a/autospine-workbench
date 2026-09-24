@@ -10,12 +10,13 @@
 <label><input id="isolate" type="checkbox">仅看编辑部件</label>
 <label><input id="overlay" type="checkbox" checked>显示顶点与网格</label>
 <label><input id="preview" type="checkbox" checked>显示补丁（取消可对比原候选）</label>
-<p id="quality"></p><h2>已保存关键姿态</h2><select id="keys" size="8" aria-label="已保存关键姿态"></select>
+<p id="quality"></p>
 <details id="source-reference" hidden open><summary>同步源动作参考</summary>
 <p>原始三维骨架的正面／侧面观察，不是当前角色的适配视角。与上方时间轴同步。</p>
 <select id="source-view" aria-label="源骨架观察视角"><option value="front">正面</option><option value="side">侧面</option></select>
 <canvas id="source-canvas" width="300" height="240" aria-label="同步源动作骨架"></canvas><output id="source-position"></output>
 </details><p id="source-error" role="status"></p>
+<h2>已保存关键姿态</h2><select id="keys" size="8" aria-label="已保存关键姿态"></select>
 <button id="remove" disabled>删除所选关键姿态</button><button id="download" disabled>导出几何补丁草稿</button>
 <label>恢复草稿 <input id="import" type="file" accept=".json" disabled></label>
 <button id="build" hidden disabled>保存并构建独立候选</button><p id="build-status" role="status"></p>

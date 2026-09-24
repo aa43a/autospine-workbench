@@ -14,6 +14,22 @@ def read(manager, job, parts):
     if len(parts) != 5 or parts[0] != 'pose-geometry':
         raise PipelineRunError('pipeline_artifact_not_found')
     _, slot, animation, triangle, name = parts
+    # Application assets carry no candidate data; verify identity only for data reads.
+    web = Path(__file__).resolve().parents[3]/'web'
+    static = {'index.html': ('pose-geometry-editor.html', 'text/html; charset=utf-8'),
+              'editor.js': ('pose-geometry-editor.js', 'text/javascript'),
+              'editor.css': ('pose-geometry-editor.css', 'text/css')}
+    if name in static:
+        filename, mime = static[name]
+        return (web/filename).read_bytes(), mime
+    if name in ('pose-source.js', 'motion-source-player.js'):
+        return (web/'modules'/name).read_bytes(), 'text/javascript'
+    if name == 'source-comparison.json':
+        return review_file(manager, job, ['source-comparison.json'])
+    if name in ('scene.json', 'runtime.js'):
+        return review_file(manager, job, ['player-assets', name])
+    if name != 'editor-config.json':
+        raise PipelineRunError('pipeline_artifact_not_found')
     result, files = context(manager, job)
     document = json.loads(files['skeleton.json'])
     if not triangle.isascii() or not triangle.isdigit():
@@ -31,19 +47,6 @@ def read(manager, job, parts):
         row = mesh['triangles'][start:start+3]
         if seed.intersection(row):
             vertices.update(row)
-    web = Path(__file__).resolve().parents[3]/'web'
-    static = {'index.html': ('pose-geometry-editor.html', 'text/html; charset=utf-8'),
-              'editor.js': ('pose-geometry-editor.js', 'text/javascript'),
-              'editor.css': ('pose-geometry-editor.css', 'text/css')}
-    if name in static:
-        filename, mime = static[name]
-        return (web/filename).read_bytes(), mime
-    if name in ('pose-source.js', 'motion-source-player.js'):
-        return (web/'modules'/name).read_bytes(), 'text/javascript'
-    if name == 'source-comparison.json':
-        return review_file(manager, job, ['source-comparison.json'])
-    if name in ('scene.json', 'runtime.js'):
-        return review_file(manager, job, ['player-assets', name])
     if name == 'editor-config.json':
         request = dict(document_sha256=canonical_sha256(document), mesh_sha256=canonical_sha256(mesh),
                        animation=animation, slot=slot, vertices=sorted(vertices), interval=[0, duration], poses=[])
