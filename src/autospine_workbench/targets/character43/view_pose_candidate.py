@@ -55,6 +55,12 @@ def build(files, request, png, on_progress=None):
     output['skeleton.atlas'] = (atlas.rstrip()+f'\n\ntextures/{texture}.png\nsize: {w+4},{h+4}\n'
         f'filter: Linear,Linear\npma: false\nrepeat: none\n{texture}\nbounds: 2,2,{w},{h}\n').encode()
     output['skeleton.json'] = canonical_bytes(result)
+    # Motion time zero can already contain bone/deform motion. Capture setup
+    # separately so source-raster QA never treats that frame as the rest pose.
+    setup = sample_active(dict(result, animations={'setup': {}}), 'setup', 0)
+    output['rig-setup-reference.json'] = canonical_bytes(dict(
+        skeleton_sha256=sha256(output['skeleton.json']).hexdigest(), time=0,
+        vertices=setup['vertices'], attachments=setup['attachments']))
     frames = []
     for index, time in enumerate(sorted(times)):
         if on_progress and index % 32 == 0:

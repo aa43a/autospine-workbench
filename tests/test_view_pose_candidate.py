@@ -62,6 +62,27 @@ class ViewPoseCandidateTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, 'png_invalid'):
             build(files, request, png)
 
+    def test_setup_is_independent_of_first_motion_frame(self):
+        files, request, png = self.fixture()
+        doc = json.loads(files['skeleton.json'])
+        root = doc['bones'][0]['name']
+        doc['animations']['move'].setdefault('bones', {}).setdefault(root, {})['translate'] = [
+            dict(time=0, x=17, y=23)]
+        files['skeleton.json'] = canonical_bytes(doc)
+        request['document_sha256'] = canonical_sha256(doc)
+        reference = read(files)
+        reference['skeleton_sha256'] = sha256(files['skeleton.json']).hexdigest()
+        files['numeric-reference.json'] = canonical_bytes(reference)
+        output, _, _ = build(files, request, png)
+        setup = json.loads(output['rig-setup-reference.json'])
+        result = json.loads(output['skeleton.json'])
+        expected = sample(dict(result, animations={'setup': {}}), 'setup', 0)[0]
+        self.assertEqual(setup['vertices'], expected)
+        self.assertEqual(setup['skeleton_sha256'], sha256(output['skeleton.json']).hexdigest())
+        self.assertEqual(setup['time'], 0)
+        self.assertEqual(setup['attachments']['leg'], 'leg')
+        self.assertNotEqual(setup['vertices'], read(output)['animations']['move'][0]['vertices'])
+
     def test_other_region_failure_remains(self):
         files, request, png = self.fixture()
         doc = json.loads(files['skeleton.json'])
