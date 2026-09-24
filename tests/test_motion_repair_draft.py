@@ -27,6 +27,17 @@ class RepairDraftTests(unittest.TestCase):
                     expected_revision=state['revision'], action='partition', notes='check seam',
                     slot='arm', animation='reach', triangle=3, time=0.5, **changes)
 
+    def test_view_needs_save_restore_and_scope_validation(self):
+        body=self.body();body.update(action='pose_attachment',view_needs=['side','back'])
+        state=draft.save(self.manager,'job',body)
+        self.assertEqual(state['history'][-1]['view_needs'],['back','side'])
+        self.assertEqual(draft.inspect(self.manager,'job')['history'][-1]['view_needs'],['back','side'])
+        for views in ([],['side','side'],['unknown']):
+            body=self.body();body.update(action='pose_attachment',view_needs=views)
+            with self.assertRaisesRegex(RuntimeError,'view_needs_invalid'):draft.save(self.manager,'job',body)
+        body=self.body();body['view_needs']=['side']
+        with self.assertRaisesRegex(RuntimeError,'view_needs_invalid'):draft.save(self.manager,'job',body)
+
     def test_save_restore_withdraw_preserves_evidence(self):
         first = draft.save(self.manager, 'job', self.body())
         self.assertFalse(first['repair_executed'])

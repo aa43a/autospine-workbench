@@ -13,6 +13,23 @@ from autospine_workbench.resolved_project import canonical_sha256
 
 
 class MaterialTests(unittest.TestCase):
+    def test_additional_view_task_cannot_use_same_canvas_return(self):
+        from threading import RLock
+        from types import SimpleNamespace
+        from autospine_workbench.automation.motion_material_return import save
+        row={**self.row,'view_needs':['side','back']}
+        raw=material.build(self.report,row)
+        with ZipFile(BytesIO(raw)) as archive:
+            request=json.loads(archive.read('request.json'))
+            needs=json.loads(archive.read('view-needs.json'))
+            self.assertEqual(request['view_needs'],['back','side'])
+            self.assertFalse(needs['same_canvas_return_supported'])
+            self.assertFalse(needs['missing_art_proven'])
+            self.assertNotIn('回交素材应保持',archive.read('README.txt').decode())
+        with patch.object(material,'download',return_value=raw):
+            with self.assertRaisesRegex(RuntimeError,'additional_view_requires_geometry_mapping'):
+                save(SimpleNamespace(_lock=RLock()),'job',dict(request=request,png_base64=base64.b64encode(self.png).decode()))
+
     def setUp(self):
         image=BytesIO(); Image.new('RGBA',(40,30),(255,0,0,255)).save(image,format='PNG')
         self.png=image.getvalue()

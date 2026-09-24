@@ -52,12 +52,14 @@ def inspect(manager, job):
 def save(manager, job, body):
     fields = {'artifact_sha256', 'evidence_sha256', 'expected_revision', 'action',
               'notes', 'slot', 'animation', 'triangle', 'time'}
-    if (set(body)-{'partition', 'region_order'} != fields or body.get('action') not in ACTIONS
+    if (set(body)-{'partition', 'region_order', 'view_needs'} != fields or body.get('action') not in ACTIONS
             or type(body.get('expected_revision')) is not int
             or type(body.get('triangle')) is not int
             or type(body.get('time')) not in (int, float)
             or not isinstance(body.get('notes'), str) or len(body['notes']) > 4000):
         raise PipelineRunError('motion_draft_request_invalid')
+    from .motion_material_scope import validate as validate_views
+    views=validate_views(body['action'],body.get('view_needs'))
     report, digest = evidence(manager, job)
     from .motion_partition_draft import validate, validate_order
     partition = validate(manager,job,body)
@@ -86,6 +88,7 @@ def save(manager, job, body):
                    previous_sha256=canonical_sha256(rows[-1]) if rows else None,
                    authority='none', repair_executed=False)
         if partition is not None:row['partition']=partition
+        if views is not None:row['view_needs']=views
         if region_order is not None:row['region_order']=region_order
         root = directory(manager.folder(job) / 'repair-drafts', create=True)
         if not publish_document(root / f'draft-{revision:04d}.json', row, staging=root / 'staging'):

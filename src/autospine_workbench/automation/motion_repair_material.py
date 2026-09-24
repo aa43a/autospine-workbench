@@ -68,6 +68,10 @@ def build(report, row, *, preview=None):
         preview_axes='source_image_y_down; pose_svg_world_y_negated', notes=row['notes'],
         status='material_request_not_replacement', missing_art_proven=False,
         authority='none', production_authorized=False)
+    from .motion_material_scope import validate as validate_views, context as view_context
+    views=validate_views(row['action'],row.get('view_needs'))
+    if views is not None:
+        request.update(view_needs=views,return_contract='additional_view_requires_geometry_mapping')
     files = {'source-texture.png': raw, 'source-location.svg': _svg(pixels, image=(width,height)),
              'deformed-triangle.svg': _svg(projected), 'request.json': canonical_bytes(request),
              'README.txt': ('姿态素材处理任务\n\n原纹理保持原字节；source-location.svg 标出异常三角形。\n'
@@ -95,6 +99,15 @@ def build(report, row, *, preview=None):
         'geometry-context.json 保存同一候选、时刻和三角形的原始诊断。'
         '需要改变轮廓或几何时，应另建几何/分区候选并验证；当前回交入口尚不接收新姿态网格。\n'
     ).encode('utf-8')
+    if views is not None:
+        files['view-needs.json']=canonical_bytes(view_context(request,views))
+        files['README.txt']=(
+            '新增视角素材需求\n\n本任务需要侧面、背面或弯曲关节素材及其几何对应，详见 view-needs.json。\n'
+            '源图与失败姿态仅用于定位，不是期望轮廓，也不证明必须补图。\n'
+            '需要提供透明素材、视角和坐标约定、源区域对应、姿态几何与使用区间。\n'
+            '当前同画布 PNG 回交接口不接收此类任务；必须建立独立几何映射后再构建与验收。\n'
+            '不得将侧背面图直接套用原正面 UV。此任务可由后续草稿修改或撤销，不改现有候选。\n'
+        ).encode('utf-8')
     if preview is not None:
         files['pose-preview.html'] = preview
         files['README.txt'] += '\n打开 pose-preview.html 可离线播放同版本完整角色，自动定位异常三角形；它不是正确姿态或补图目标。\n'.encode('utf-8')

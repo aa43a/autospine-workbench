@@ -61,6 +61,8 @@ def save(manager, job, body):
             expected = json.loads(archive.read('request.json'))
         if request != expected:
             raise PipelineRunError('motion_material_return_identity_changed')
+        if expected.get('view_needs'):
+            raise PipelineRunError('motion_material_additional_view_requires_geometry_mapping')
         # Browser JSON serializes 0.0 as 0; freeze the authoritative request bytes.
         request = expected
         root = directory(manager.folder(job)/'material-returns', create=True)

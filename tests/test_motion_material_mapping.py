@@ -16,7 +16,7 @@ class MappingTests(unittest.TestCase):
         self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
         self.manager=SimpleNamespace(_lock=RLock(),folder=lambda _:Path(self.temp.name))
         self.mesh=dict(type='mesh',uvs=[0,0,1,0,0,1,1,1],triangles=[0,1,2,1,3,2])
-        self.files={'skeleton.json':json.dumps(dict(bones=[],skins=[dict(attachments={'arm':{'arm':self.mesh}})])).encode(),
+        self.files={'skeleton.json':json.dumps(dict(bones=[],slots=[dict(name='arm')],skins=[dict(attachments={'arm':{'arm':self.mesh}})])).encode(),
             'numeric-reference.json':json.dumps(dict(animations={'reach':[dict(time=0),dict(time=4)]})).encode()}
         self.request=dict(draft_revision=1)
         self.receipt=dict(material_bundle_sha256='b'*64,artifact_sha256='a'*64,slot='arm',animation='reach',
