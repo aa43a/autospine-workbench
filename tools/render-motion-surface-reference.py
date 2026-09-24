@@ -62,10 +62,12 @@ def assign(rig,rest,sample):
     return errors
 
 
-def run(motion,model,output,times):
+def run(motion,model,output,times,yaws):
     motion,model,output=(p.resolve() for p in (motion,model,output))
     if not 1<=len(times)<=64 or any(not math.isfinite(t) for t in times) or times!=sorted(set(times)):
         raise ValueError('finite_ordered_sample_times_required')
+    if not 1<=len(yaws)<=5 or any(not math.isfinite(y) or not -90<=y<=90 for y in yaws) or len(set(yaws))!=len(yaws):
+        raise ValueError('reference_yaws_invalid')
     if output.exists():raise ValueError('output_exists')
     hashes={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in (motion,model)}
     rest,samples,object_matrix,clock=capture_source(motion,times)
@@ -89,6 +91,7 @@ def run(motion,model,output,times):
             bounds.extend(evaluated.matrix_world @ v.co for v in mesh.vertices)
             evaluated.to_mesh_clear()
     report=dict(schema='autospine.motion-surface-reference/v1',authority='none',sources=hashes,clock=clock,
+                motion_sha256=hashes[str(motion)],model_sha256=hashes[str(model)],
                 profile='source-endpoints-rest-roll-calibrated-reference-skin-v1',records=records,
                 endpoint_fidelity_passed=all(r['max_world_error']<1e-5 for r in records),
                 limitations=['reference_body_not_target_character','reference_skin_distortion_not_evaluated',
@@ -108,7 +111,11 @@ def run(motion,model,output,times):
     scene.collection.objects.link(camera);scene.camera=camera
     camera.data.type='ORTHO';camera.data.ortho_scale=size*1.35
     images=[];captures=[]
-    for view,direction in [('front',Vector((0,-1,0))),('side',Vector((1,0,0)))]:
+    for yaw in yaws:
+        # FBX local +Y maps to Blender +Z, local +Z to Blender -Y.
+        # Screen right is cos(yaw)*local X - sin(yaw)*local Z.
+        angle=math.radians(yaw);direction=Vector((math.sin(angle),-math.cos(angle),0))
+        view=f'yaw-{yaw:g}'
         camera.location=center+direction*size*3
         camera.rotation_euler=(center-camera.location).to_track_quat('-Z','Y').to_euler()
         for i,sample in enumerate(samples):
@@ -116,7 +123,7 @@ def run(motion,model,output,times):
             filename=f'{view}-{i}.png';scene.render.filepath=str(output/filename)
             bpy.ops.render.render(write_still=True)
             if not (output/filename).is_file():raise ValueError('capture_missing')
-            captures.append(dict(view=view,time=sample['time'],image=filename,
+            captures.append(dict(view=view,yaw_degrees=yaw,time=sample['time'],image=filename,
                 image_sha256=hashlib.sha256((output/filename).read_bytes()).hexdigest(),
                 camera_world_matrix=[list(r) for r in camera.matrix_world],ortho_scale=camera.data.ortho_scale,
                 joint_coordinates='normalized_image_xy_bottom_left_and_camera_depth',
@@ -137,4 +144,5 @@ if __name__=='__main__':
     p=argparse.ArgumentParser()
     for key in ('motion','model','output'):p.add_argument(key,type=Path)
     p.add_argument('--times',type=float,nargs='+',required=True)
-    a=p.parse_args(sys.argv[sys.argv.index('--')+1:]);run(a.motion,a.model,a.output,a.times)
+    p.add_argument('--yaws',type=float,nargs='+',default=[0,90])
+    a=p.parse_args(sys.argv[sys.argv.index('--')+1:]);run(a.motion,a.model,a.output,a.times,a.yaws)
