@@ -1,5 +1,6 @@
 import {partitionEditor} from './motion-partition-editor.js';
 import {materialReturn} from './motion-material-return.js';
+import {viewReturn} from './motion-view-return.js';
 const labels = {local_repair:'局部变形修正', partition:'区域刚性重绑', region_order:'区域前后顺序', pose_attachment:'补充姿态附件', withdraw:'撤销此处处理草稿'};
 const node = (tag, text) => {const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e;};
 
@@ -22,7 +23,7 @@ export function appendRepairDraft(parent, job, row, getDetail) {
   }
   const showScope=()=>{
     viewNeeds.hidden=action.value!=='pose_attachment';materialScope.hidden=viewNeeds.hidden;
-    materialScope.textContent=viewNeeds.value?'新视角需求会保存到任务包；需要素材、视角坐标、区域对应和姿态几何。当前同画布回交不适用于此任务，尚未接入新视角映射构建。':'同画布换图保留原网格、UV 与变形，不能修复几何失败。需要改变姿态时可使用下方几何编辑入口。';
+    materialScope.textContent=viewNeeds.value?'保存后可在下方下载对应模板，回交新视角 PNG 与姿态几何并生成候选；复杂遮挡与切换边界仍需检查。':'同画布换图保留原网格、UV 与变形，不能修复几何失败。需要改变姿态时可使用下方几何编辑入口。';
   };
   viewNeeds.onchange=showScope;
   panel.append(legend,load,action,notes,save,status,material,execute,node('p','保存不执行修复。局部修正会重算此附件的变形；区域刚性重绑会改变所选区域的权重并检查边界，不调整前后遮挡顺序。两者均保留骨骼、其他附件及原候选，需要重新验证，不自动采用。'));
@@ -33,6 +34,7 @@ export function appendRepairDraft(parent, job, row, getDetail) {
   poseButton.onclick=()=>{const detail=getDetail();poseFrame.src='/api/motions/'+encodeURIComponent(job.job_id)+'/view/pose-geometry/'+[row.slot,row.animation,String(detail.triangle),'index.html'].map(encodeURIComponent).join('/')+'?time='+encodeURIComponent(detail.time);poseFrame.hidden=false;};
   panel.append(poseButton,poseFrame);
   const showReturn=materialReturn(panel,job,row);showReturn(null);
+  const showViewReturn=viewReturn(panel,job,row);showViewReturn(null);
   const region=partitionEditor(panel,job,row);region.show(false);
   const order=partitionEditor(panel,job,row,{orderOnly:true});order.show(false);
   action.onchange=()=>{region.show(action.value==='partition');order.show(action.value==='region_order');showScope();};
@@ -58,6 +60,7 @@ export function appendRepairDraft(parent, job, row, getDetail) {
     material.hidden=!(applies&&latest.action==='pose_attachment');
     material.style.display=material.hidden?'none':'';
     showReturn(material.hidden||latest.view_needs?.length?null:latest.revision);
+    showViewReturn(!material.hidden&&latest.view_needs?.length?latest.revision:null);
     material.textContent=latest?.view_needs?.length?'下载新视角需求任务包':'下载姿态素材任务包';
     execute.hidden=!(applies&&(latest.action==='local_repair'||latest.action==='partition'&&latest.partition||latest.action==='region_order'&&latest.region_order));
     execute.textContent=latest?.action==='region_order'?'构建区域顺序候选':latest?.action==='partition'?'构建独立分区候选':'构建局部修正候选';
@@ -88,6 +91,7 @@ export function appendRepairDraft(parent, job, row, getDetail) {
     const ticket=++generation;panel.disabled=true;material.hidden=true;execute.hidden=true;status.textContent=body?'正在保存…':'正在加载…';
     material.style.display='none';
     showReturn(null);
+    showViewReturn(null);
     try {const result=await request(body);if(ticket!==generation)return;state=result;render();}
     catch(error){if(ticket===generation){state=null;save.disabled=true;status.textContent=error.message+'；请重新加载。';}}
     finally {if(ticket===generation)panel.disabled=false;}

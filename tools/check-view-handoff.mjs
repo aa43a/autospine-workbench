@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+const source=await fs.readFile(new URL('../web/modules/motion-view-return.js',import.meta.url),'utf8');
+const {validateViewHandoff}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+const job={job_id:'job',result:{artifact_sha256:'a'}},row={slot:'arm',animation:'reach'};
+const value={request:{job_id:'job',draft_revision:1,artifact_sha256:'a',...row,view_needs:['side']},view_pose:{...row,poses:[{time:1}]}};
+assert.deepEqual(validateViewHandoff(value,job,row,1),value);
+assert.throws(()=>validateViewHandoff(value,job,row,2),/不属于/);
+assert.throws(()=>validateViewHandoff({...value,view_pose:{...row,poses:[]}},job,row,1),/尚未填写/);
+assert.throws(()=>validateViewHandoff(value,job,{slot:'other',animation:'reach'},1),/不属于/);
+console.log('4 handoff checks passed; no browser rendering exercised');
