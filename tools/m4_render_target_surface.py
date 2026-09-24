@@ -26,7 +26,7 @@ def material(path):
     return mat
 
 
-def run(surface_path,poses_path,output):
+def run(surface_path,poses_path,output,diagnostic=False):
     surface_path,poses_path,output=(p.resolve() for p in (surface_path,poses_path,output))
     surface_raw=surface_path.read_bytes();poses_raw=poses_path.read_bytes()
     surfaces=json.loads(surface_raw);poses=json.loads(poses_raw)
@@ -71,6 +71,23 @@ def run(surface_path,poses_path,output):
             name=f'{mode}-{t:g}.png';scene.render.filepath=str(output/name)
             bpy.ops.render.render(write_still=True)
             captures.append(dict(time=t,mode=mode,image=name,sha256=digest((output/name).read_bytes())))
+    if diagnostic:
+        # Last pose above is DQ at .9. Isolate each leg; opaque pass retains all
+        # original triangles, including transparent texture support margins.
+        for slot,obj in objects.items():
+            for other in objects.values():other.hide_render=other!=obj
+            mat=obj.data.materials[0];nodes=mat.node_tree.nodes;links=mat.node_tree.links
+            mix=next(n for n in nodes if n.type=='MIX_SHADER')
+            alpha_link=next(l for l in links if l.to_node==mix and l.to_socket==mix.inputs[0])
+            source_socket=alpha_link.from_socket
+            for opaque in (False,True):
+                if opaque:links.remove(alpha_link);mix.inputs[0].default_value=1
+                name=f'{slot}-dq-0.9-'+('opaque' if opaque else 'texture')+'.png'
+                scene.render.filepath=str(output/name);bpy.ops.render.render(write_still=True)
+                captures.append(dict(time=.9,mode='dq-isolated',slot=slot,opaque=opaque,
+                                     image=name,sha256=digest((output/name).read_bytes())))
+            links.new(source_socket,mix.inputs[0])
+        for obj in objects.values():obj.hide_render=False
     for s in surfaces['surfaces'].values():
         if digest(Path(s['texture_path']).read_bytes())!=s['texture_sha256']:raise ValueError('render_texture_changed_during_capture')
     if digest(surface_path.read_bytes())!=digest(surface_raw) or digest(poses_path.read_bytes())!=digest(poses_raw):
@@ -83,11 +100,11 @@ def run(surface_path,poses_path,output):
                 limitations=['two_sided_front_texture_not_back_material','hip_fixed_no_ground_contact',
                              'no_character_occlusion_or_seam_acceptance'])
     (output/'report.json').write_text(json.dumps(report,indent=2),encoding='utf-8')
-    cards=''.join(f'<figure><img src="{r["image"]}"><figcaption>{r["mode"]} · {r["time"]}s</figcaption></figure>' for r in captures)
+    cards=''.join(f'<figure><img src="{r["image"]}"><figcaption>{r["image"]}</figcaption></figure>' for r in captures)
     (output/'index.html').write_text('<!doctype html><meta charset="utf-8"><title>目标表面贴图对照</title>'
         '<style>body{background:#18232e;color:white;font:16px sans-serif}.grid{display:grid;grid-template-columns:1fr 1fr}'
         'img{max-width:100%;background:#46525e}figure{margin:12px}</style><h1>原贴图三维蒙皮对照</h1>'
-        '<p>固定同一相机。左 LBS，右 DQ；上方 0 秒，下方 0.9 秒。仅双腿实验，尚未通过。</p>'
+        '<p>固定同一相机。前四图左 LBS、右 DQ；0 秒与 0.9 秒。后续诊断图按单腿显示原 alpha 与不透明几何；不透明不代表有效材料。尚未通过。</p>'
         '<div class="grid">'+cards+'</div>',encoding='utf-8')
     print(json.dumps(report))
 
@@ -95,4 +112,5 @@ def run(surface_path,poses_path,output):
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
     for key in ('surface','poses','output'):p.add_argument(key,type=Path)
-    a=p.parse_args(sys.argv[sys.argv.index('--')+1:]);run(a.surface,a.poses,a.output)
+    p.add_argument('--diagnostic',action='store_true')
+    a=p.parse_args(sys.argv[sys.argv.index('--')+1:]);run(a.surface,a.poses,a.output,a.diagnostic)
