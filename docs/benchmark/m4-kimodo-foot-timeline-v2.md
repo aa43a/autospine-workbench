@@ -23,4 +23,13 @@
 旧候选仍有左臂 layer-004 面积压缩失败，最小面积比约 0.29719。
 
 本地证据：`tmp/kimodo-foot-v2-alice/submitted.json`、`legacy-check.json`。
-新候选 Runtime 与交付检查尚在执行；本记录不授予采用或视觉验收。
+新候选已完成：artifact `31db6e1a03724175493680a8b93f80ecd29c48184d3071632fdf8d1fe16b707d`。
+独立帧间误差与旧候选完全相同；脚踝受脚部通道影响的位移为 0，源接触标记保留。
+官方 Runtime 检查 2,106 帧，仍有一个失败附件：左臂 layer-004，
+1,810 个面积失败采样、无翻转，最小面积比 0.29718885566729525。
+因此 v2 NPZ 链路完成兼容验证，但不构成该动作的质量通过。
+接触结果是 ankle_proxy_passed；Runtime 接触仍为 not_evaluated，不宣称脚掌验收。
+新报告位于 `tmp/kimodo-foot-v2-alice/target-check.json`。
+真实浏览器交付检查通过：当前页播放、源骨架与角色共用时间轴（起点、中点、终点）、
+UI 下载与 API 字节一致、候选身份保持不变。证据位于同目录 `delivery`。
+本记录不授予采用或视觉验收。
