@@ -1,4 +1,5 @@
 import {viewEditor} from './view-pose-editor.js';
+import {restoreViewDraft,bindViewTexture} from './view-pose-restore.js';
 
 export function validateViewHandoff(value, job, row, revision) {
   if(!value?.request||!value?.view_pose)throw Error('请选择包含 request 和 view_pose 的对应文件');
@@ -29,11 +30,15 @@ export function viewReturn(parent,job,row) {
     try {
       const png=pngFile.files[0];if(!revision||!png)throw Error('请先选择新视角 PNG');
       if(png.size>8*1024*1024)throw Error('PNG 限 8 MB');
-      const response=await fetch(link.href);const template=await response.json();
+      const response=await fetch(link.href);let template=await response.json();
       if(!response.ok)throw Error(template.reason_code||'模板加载失败');
+      const duration=template.view_pose.interval[1],source=jsonFile.files[0];
+      if(source){if(source.size>8*1024*1024)throw Error('对应文件限 8 MB');template=restoreViewDraft(template,JSON.parse(await source.text()));}
+      const digest=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',await png.arrayBuffer())),v=>v.toString(16).padStart(2,'0')).join('');
       const image=await createImageBitmap(png);
       if(ticket!==generation||png!==pngFile.files[0]){image.close();return;}
-      authored=null;editor.load(template,image);status.textContent='请在画布调整并保存姿态，再使用画布结果回交';
+      try{bindViewTexture(template,digest,[image.width,image.height]);}catch(e){image.close();throw e;}
+      authored=null;editor.load(template,image,duration);jsonFile.value='';status.textContent=source?'草稿已恢复到画布；调整后重新使用画布结果回交':'请在画布调整并保存姿态，再使用画布结果回交';
     }catch(e){if(ticket===generation)status.textContent=e.message;}
     finally{if(ticket===generation)open.disabled=false;}
   };
@@ -45,9 +50,9 @@ export function viewReturn(parent,job,row) {
       if(source?.size>8*1024*1024||png.size>8*1024*1024)throw Error('对应文件与 PNG 各限 8 MB');
       const body=validateViewHandoff(authored?structuredClone(authored):JSON.parse(await source.text()),job,row,revision);
       const bytes=await png.arrayBuffer();
-      body.view_pose.texture_sha256=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),v=>v.toString(16).padStart(2,'0')).join('');
+      const digest=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),v=>v.toString(16).padStart(2,'0')).join('');
       const bitmap=await createImageBitmap(png);
-      body.view_pose.texture_size=[bitmap.width,bitmap.height];bitmap.close();
+      try{bindViewTexture(body,digest,[bitmap.width,bitmap.height]);}finally{bitmap.close();}
       body.png_base64=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result).split(',')[1]);reader.onerror=()=>reject(Error('图片读取失败'));reader.readAsDataURL(png);});
       if(ticket!==generation)return;
       status.textContent='正在提交新视角候选…';

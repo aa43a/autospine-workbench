@@ -42,7 +42,7 @@ export function viewEditor(parent,onUse,onInvalidate=()=>{}) {
     if(action==='fit'){views.forEach(v=>v.fit());return;}
     if(action==='discard'){restore();say('已恢复保存前坐标');return;}
     if(action==='stop')return;
-    if(action==='save'){state.save(Number(time.value),Number(start.value),Number(end.value));onInvalidate();checkpoint();list();select.value=time.value;slider.value=time.value;say(`已保存 ${state.value.view_pose.poses.length} 个姿态；尚未回交`);return;}
+    if(action==='save'){state.save(Number(time.value),Number(start.value),Number(end.value));onInvalidate();checkpoint();list();select.value=time.value;slider.min=start.value;slider.max=end.value;slider.value=time.value;say(`已保存 ${state.value.view_pose.poses.length} 个姿态；尚未回交`);return;}
     clean();
     if(action==='delete'){state.remove(Number(select.value));onInvalidate();list();say('已删除选中姿态');return;}
     if(action==='play'){
@@ -54,11 +54,11 @@ export function viewEditor(parent,onUse,onInvalidate=()=>{}) {
     if(action==='download'){const url=URL.createObjectURL(new Blob([JSON.stringify(result,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='view-pose-canvas-draft.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
   });
   return {
-    load(template,image){
-      stop();views.forEach(v=>v.destroy());bitmap?.close();bitmap=image;state=createViewState(template);
-      panel.hidden=false;[start.value,end.value]=template.view_pose.interval;time.value=((Number(start.value)+Number(end.value))/2).toFixed(3);slider.max=end.value;
+    load(template,image,maximumTime=template.view_pose.interval[1]){
+      stop();views.forEach(v=>v.destroy());bitmap?.close();bitmap=image;state=createViewState(template,maximumTime);
+      panel.hidden=false;[start.value,end.value]=template.view_pose.interval;time.value=template.view_pose.poses.at(-1)?.time??((Number(start.value)+Number(end.value))/2).toFixed(3);slider.max=end.value;slider.min=start.value;slider.value=time.value;
       views=Array.from(panel.querySelectorAll('canvas')).map((c,i)=>viewCanvas(c,state,i?'pose':'uv',changed=>{stop();dirty ||= changed;draw();if(changed){onInvalidate();say('坐标已修改，请保存此时姿态');}}));
-      views.forEach(v=>{v.setImage(image);v.fit();});index.max=state.points.length-1;checkpoint();list();draw();say('源网格作为初始参考；请调整对应并保存目标姿态');
+      views.forEach(v=>{v.setImage(image);v.fit();});index.max=state.points.length-1;checkpoint();list();select.value=time.value;draw();say(template.view_pose.poses.length?'已恢复保存姿态，可继续调整':'源网格作为初始参考；请调整对应并保存目标姿态');
     },
     reset(){stop();views.forEach(v=>v.destroy());views=[];bitmap?.close();bitmap=null;state=null;panel.hidden=true;}
   };

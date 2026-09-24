@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 const source=await fs.readFile(new URL('../web/modules/motion-view-return.js',import.meta.url),'utf8');
-const {validateViewHandoff}=await import('data:text/javascript;base64,'+Buffer.from(source.replace(/^import .*;\r?\n/, '')).toString('base64'));
+const {validateViewHandoff}=await import('data:text/javascript;base64,'+Buffer.from(source.replace(/^import .*;\r?\n/gm, '')).toString('base64'));
 const job={job_id:'job',result:{artifact_sha256:'a'}},row={slot:'arm',animation:'reach'};
 const value={request:{job_id:'job',draft_revision:1,artifact_sha256:'a',...row,view_needs:['side']},view_pose:{...row,poses:[{time:1}]}};
 assert.deepEqual(validateViewHandoff(value,job,row,1),value);

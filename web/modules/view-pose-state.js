@@ -1,5 +1,5 @@
 // Authored control state only. Interpolation is a preview, never a saved observation.
-export function createViewState(template) {
+export function createViewState(template,maximumTime=template.view_pose.interval[1]) {
   const value=structuredClone(template), controls=value.control_template;
   if(!controls?.source_uv?.length||!controls.target_xy?.length)throw Error('模板缺少控制网格');
   let points=structuredClone(controls.target_xy), selected=0;
@@ -16,7 +16,7 @@ export function createViewState(template) {
       } else points[index]=[...point];
     },
     save(time,start,end){
-      const duration=template.view_pose.interval[1];
+      const duration=maximumTime;
       if(![time,start,end].every(Number.isFinite)||!(0<=start&&start<time&&time<end&&end<=duration))throw Error('姿态时间必须严格位于生效区间内');
       if(poses.some(p=>p.time!==time&&(p.time<=start||p.time>=end)))throw Error('已有姿态超出新区间，请先删除或调整');
       const pose={time,correspondence:{...structuredClone(controls),target_xy:structuredClone(points)}};
