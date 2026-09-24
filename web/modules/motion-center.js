@@ -78,7 +78,7 @@ const reasons = {
   motion_generation_loader_changed: '生成器代码与已验证版本不一致，请检查服务端环境。',
   motion_generation_checkpoint_changed: '生成模型与已验证版本不一致，请检查服务端环境。',
   motion_generation_cuda_unavailable: '本地 Kimodo CUDA 环境不可用，请检查服务端 GPU。',
-  motion_blender_unavailable: '尚未配置 Blender，请设置服务端 AUTOSPINE_BLENDER 后重试。',
+  motion_blender_unavailable: 'Blender 不可用，请检查服务端环境变量或状态目录 config/motion-tools.json，重启后重试。',
   motion_skeleton_mapping_required: '骨架不匹配已支持映射，需要补充骨骼对应关系。',
   motion_projection_or_mapping_unsupported: '当前映射或投影未通过检查。',
   motion_decode_timeout: '解析超时，原文件保留。',
@@ -143,6 +143,12 @@ function render(data) {
   generationControls.update(data.kimodo_generation);
   $('environment').textContent = data.blender_available ? 'Blender 转换环境已配置。'
     : 'BVH 可直接解析；FBX 需要服务端配置 Blender。';
+  const tool = data.blender_configuration;
+  if(tool){
+    const source={environment:'环境变量',state_config:'持久化配置',path:'PATH'}[tool.source]||'未知';
+    const status={configured:'已配置',invalid_config:'配置文件无效',not_configured:'未配置',absolute_path_required:'需要绝对路径',executable_missing:'程序不存在'}[tool.status]||'未知';
+    $('environment').textContent+=` 配置来源：${source}；${status}。`;
+  }
   reconcileMotionJobs($('jobs'), data.jobs, job => {
     const item = node('article', '');
     item.className = 'job';

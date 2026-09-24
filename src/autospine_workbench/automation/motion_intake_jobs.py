@@ -3,10 +3,8 @@ from concurrent.futures import ThreadPoolExecutor
 from copy import deepcopy
 from hashlib import sha256
 from io import BytesIO
-import os
 from pathlib import Path
 import re
-import shutil
 import subprocess
 import sys
 from threading import Event, RLock
@@ -29,7 +27,9 @@ class MotionIntakeJobs:
         self.character_manager = None
         self.root = Path(projects.state_root) / 'jobs/motion-intake-v1'
         self.state_root = Path(projects.state_root).resolve()
-        self.blender = os.environ.get('AUTOSPINE_BLENDER') or shutil.which('blender') or ''
+        from .motion_tool_config import blender_location
+        self.blender_config = blender_location(self.state_root)
+        self.blender = self.blender_config['path']
         self._lock = RLock()
         self._jobs, self._cancel, self._closed = {}, {}, False
         self._pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix='motion-intake')
@@ -58,6 +58,7 @@ class MotionIntakeJobs:
                     sparse_depth_available=True,
                     torso_projection_available=True,
                     blender_available=bool(self.blender and Path(self.blender).is_file()),
+                    blender_configuration={k:v for k,v in self.blender_config.items() if k != 'path'},
                     kimodo_generation=availability(self), npz_import='soma77_explicit_profile')
 
     def upload(self, stream, size, name, view, npz_options=None, *, derivation=None, producer=None):
