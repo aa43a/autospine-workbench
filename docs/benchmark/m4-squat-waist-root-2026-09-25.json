@@ -1,0 +1,132 @@
+{
+  "schema": "autospine.attachment-root-transport-trial/v1",
+  "character": "alice",
+  "motion": "squat",
+  "yaw_degrees": -55,
+  "candidate": "418038c3621a71b2a56893f53862b0611ce1feb7e0b232f75e786d09ff29dcb2",
+  "source": "3b8c76f2fb24830c1735f3f8b7d6efde25ccc8e421356ef8515b9e8638418756",
+  "skeleton_sha256": "bfd43de77aa435e84c61eb7e650f79b54e47738a1f645f6590b6c8c039d5a782",
+  "root_transport": {
+    "authority": "none",
+    "key_samples": 1238,
+    "maximum_root_shift_px": 13.56096988527087,
+    "original_reference_samples": 1245,
+    "roots": [
+      "layer-005-skirt_0_upper",
+      "layer-005-skirt_1_upper",
+      "layer-005-skirt_2_upper"
+    ],
+    "rows": [
+      {
+        "slot": "layer-005"
+      }
+    ],
+    "scope": "root_translation_experiment_requires_all_target_checks",
+    "selected": false,
+    "skeleton_sha256": "65aecda3854d31e714fea9c074f6f4ad05f819738eb42e223d5189629cbdd61a",
+    "source_candidate": "3b8c76f2fb24830c1735f3f8b7d6efde25ccc8e421356ef8515b9e8638418756",
+    "time_policy": "recompute_at_distinct_runtime_float32_times_preserve_original_qa_samples"
+  },
+  "geometry_passed": true,
+  "geometry_records": [
+    {
+      "animation": "external-motion",
+      "failing_frame_count": 0,
+      "first_failure": null,
+      "inversion_samples": 0,
+      "max_area_ratio": 1.885050012273878,
+      "max_edge_stretch": 1.9000000000000272,
+      "min_area_ratio": 0.5260174915571284,
+      "passed": true,
+      "sample_count": 3713,
+      "slot": "layer-001-l"
+    },
+    {
+      "animation": "external-motion",
+      "failing_frame_count": 0,
+      "first_failure": null,
+      "inversion_samples": 0,
+      "max_area_ratio": 1.8964989480079475,
+      "max_edge_stretch": 1.9000522232120716,
+      "min_area_ratio": 0.5043769188745442,
+      "passed": true,
+      "sample_count": 3713,
+      "slot": "layer-001-r"
+    },
+    {
+      "animation": "external-motion",
+      "failing_frame_count": 0,
+      "first_failure": null,
+      "inversion_samples": 0,
+      "max_area_ratio": 1.1923427973640832,
+      "max_edge_stretch": 1.3835468458725901,
+      "min_area_ratio": 0.5202434144496996,
+      "passed": true,
+      "sample_count": 3713,
+      "slot": "layer-005"
+    }
+  ],
+  "runtime": {
+    "passed": true,
+    "runtime_version": "4.3.13",
+    "target_version": "4.3.26",
+    "frames": 3713
+  },
+  "skirt_contact": {
+    "schema": "autospine.skirt-motion-contact/v1",
+    "authority": "none",
+    "skeleton_sha256": "bfd43de77aa435e84c61eb7e650f79b54e47738a1f645f6590b6c8c039d5a782",
+    "rows": [
+      {
+        "layer_id": "layer-005",
+        "paired_samples": 17,
+        "motions": [
+          {
+            "animation": "external-motion",
+            "frames": 3713,
+            "peak": {
+              "separation_px": 0.010070701210615299,
+              "index": 1722,
+              "time": 0.866667,
+              "setup_point": [
+                498.5,
+                -344.5
+              ],
+              "skirt_point": [
+                545.2537729194453,
+                -565.9276326767036
+              ],
+              "torso_point": [
+                545.2452819337649,
+                -565.9222176803926
+              ],
+              "torso_slot": "layer-006"
+            }
+          }
+        ],
+        "status": "needs_review",
+        "reason_code": "skirt_dynamic_contact_review_required"
+      }
+    ],
+    "method": "same_setup_alpha_supported_material_points",
+    "scope": "numeric_reference_samples_only",
+    "raster_crack_status": "not_evaluated"
+  },
+  "visual_review": {
+    "author": "assistant",
+    "time": 0.9645835859375,
+    "frame": 1920,
+    "findings": [
+      "shoulder_cape_gaps_remain",
+      "detached_light_region_right_of_skirt_remains"
+    ],
+    "not_human_acceptance": true
+  },
+  "authority": "none",
+  "selected": false,
+  "remaining": [
+    "shoulder_coverage",
+    "depth_and_occlusion",
+    "human_visual_acceptance"
+  ]
+}

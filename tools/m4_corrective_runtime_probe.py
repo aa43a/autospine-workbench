@@ -37,9 +37,14 @@ def run(source, experiment, output):
                   scope='isolated_corrective_geometry_and_runtime_not_full_motion_admission',
                   pending_checks=['contact_and_depth_revalidation', 'visual_review'])
     (output/'report.json').write_bytes(canonical_bytes(report))
-    result = capture(SimpleNamespace(workspace_root=Path.cwd().parent), store, digest, output,
-                     progress=lambda stage: print(stage, flush=True), cancel_requested=lambda: False,
-                     storage_reference=True)
+    try:
+        result = capture(SimpleNamespace(workspace_root=Path.cwd().parent), store, digest, output,
+                         progress=lambda stage: print(stage, flush=True), cancel_requested=lambda: False,
+                         storage_reference=True)
+    except Exception as exc:
+        report.update(runtime_status='failed', runtime_error=str(exc))
+        (output/'report.json').write_bytes(canonical_bytes(report))
+        raise
     report['runtime_status'] = result['status']
     (output/'report.json').write_bytes(canonical_bytes(report))
     if result['status'] == 'unavailable':
