@@ -1,0 +1,227 @@
+{
+  "authority": "none",
+  "batch_records": [
+    {
+      "bundle_sha256": "944947e70777ccadc37106686c7843fb9b911206e666f99035c186080754b44a",
+      "end": 0.26044926451277733,
+      "folder": "batch-000",
+      "frames": 2048,
+      "render_identity": "fbbf15bb12d15524c1bec4a41106a3d875ea59b9ffae8b9316e54f198ad4eebb",
+      "runtime_report_sha256": "3367d9d99b70be544794ddcf44ba4f5cf7161c00628c77b43aa64323895b9aae",
+      "start": 0.0
+    },
+    {
+      "bundle_sha256": "b682e8e958d8946fb6fdc2b88dd4b327e64f9e81f9a6072a70d30e75be118eb0",
+      "end": 0.5081381239233017,
+      "folder": "batch-001",
+      "frames": 2048,
+      "render_identity": "fbbf15bb12d15524c1bec4a41106a3d875ea59b9ffae8b9316e54f198ad4eebb",
+      "runtime_report_sha256": "08d1aabdac309cef2b8340fef0d779cf3d46a919166e647d3cc53676b0fdd97c",
+      "start": 0.0
+    },
+    {
+      "bundle_sha256": "569a3b037a40f06f7a67b7813fed2094a0bedb573c17658340166aa30d746d82",
+      "end": 0.7663088606987,
+      "folder": "batch-002",
+      "frames": 2048,
+      "render_identity": "fbbf15bb12d15524c1bec4a41106a3d875ea59b9ffae8b9316e54f198ad4eebb",
+      "runtime_report_sha256": "ad431eb918ec3c559d7eff3c17870d3c47be9c4ff6ab4b1de03441712f4201fa",
+      "start": 0.0
+    },
+    {
+      "bundle_sha256": "1d72f0c17f53b1c33f9a7ac5f9a6634e7fdbfe198b7883a435d78f75856a2780",
+      "end": 1.0244793694000245,
+      "folder": "batch-003",
+      "frames": 2048,
+      "render_identity": "fbbf15bb12d15524c1bec4a41106a3d875ea59b9ffae8b9316e54f198ad4eebb",
+      "runtime_report_sha256": "ce39d4862279fb51447524bf8f3bd74729d2ad64c4dcfeb30653fa4e1092808b",
+      "start": 0.0
+    },
+    {
+      "bundle_sha256": "9c2f6e0d27fd27476af9f87d440e64ca91b57c49c267ad25a56f18b7fad06691",
+      "end": 1.2803713232278824,
+      "folder": "batch-004",
+      "frames": 2048,
+      "render_identity": "fbbf15bb12d15524c1bec4a41106a3d875ea59b9ffae8b9316e54f198ad4eebb",
+      "runtime_report_sha256": "d3e53956793df6cb7a2eee237f6b6e1c86e077c98aef375213e4c12b454210b9",
+      "start": 0.0
+    },
+    {
+      "bundle_sha256": "ecacdd2dc43dbc5945726594809554f50f613f03ee86c7c0266498bf9894bba3",
+      "end": 1.5333329649477005,
+      "folder": "batch-005",
+      "frames": 2048,
+      "render_identity": "fbbf15bb12d15524c1bec4a41106a3d875ea59b9ffae8b9316e54f198ad4eebb",
+      "runtime_report_sha256": "e8249cb3b39e8ce44e8d4edaf73137380e4e7aa2a9beb235053490c58379f840",
+      "start": 0.0
+    },
+    {
+      "bundle_sha256": "27784ad84ec2b49c15621e3e16a58c8e31d004e294e84be228d2fc118ca8307c",
+      "end": 1.790560245513916,
+      "folder": "batch-006",
+      "frames": 2048,
+      "render_identity": "fbbf15bb12d15524c1bec4a41106a3d875ea59b9ffae8b9316e54f198ad4eebb",
+      "runtime_report_sha256": "272e244871e63ad4a80dc215375e1dde94969f6367f76a39347f9053e6123141",
+      "start": 0.0
+    },
+    {
+      "bundle_sha256": "45f0bf900037f7c30037bfffc12c6904c70033deeef659b13d4070306f8a567e",
+      "end": 1.8666670322418213,
+      "folder": "batch-007",
+      "frames": 599,
+      "render_identity": "fbbf15bb12d15524c1bec4a41106a3d875ea59b9ffae8b9316e54f198ad4eebb",
+      "runtime_report_sha256": "bf8deb3e5d31d4c05d81dc249b3b41d507c23f2d57066a16b42e9383fd5899c8",
+      "start": 0.0
+    }
+  ],
+  "batch_sizes": [
+    2048,
+    2048,
+    2048,
+    2048,
+    2048,
+    2048,
+    2048,
+    599
+  ],
+  "completed_batches": 8,
+  "coverage": {
+    "authority": "none",
+    "batches": 8,
+    "frames": 14928,
+    "passed": true,
+    "render_identity": "fbbf15bb12d15524c1bec4a41106a3d875ea59b9ffae8b9316e54f198ad4eebb",
+    "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+    "runtime_version": "4.3.13",
+    "scope": "declared_times_official_runtime_not_contact_or_visual_acceptance",
+    "selected": false,
+    "times_sha256": "ab68adb5432670720530918da24b1097b915e6724564df06d22f84d386cdf0a0"
+  },
+  "selected": false,
+  "skeleton_sha256": "3f592733b7a643503dbfbef784fa51a8ee1f13764049f88b80480bccaf246cfa",
+  "source_candidate": "418038c3621a71b2a56893f53862b0611ce1feb7e0b232f75e786d09ff29dcb2",
+  "status": "complete",
+  "report_sha256": "83eefae40982210702124dc6b8f2eb9a060b13822701830a5a4f0e858a5e3a71",
+  "target_spine_version": "4.3.26",
+  "independent_saved_evidence_audit": "passed",
+  "player": {
+    "authority": "none",
+    "coverage": {
+      "authority": "none",
+      "batches": 8,
+      "frames": 14928,
+      "passed": true,
+      "render_identity": "fbbf15bb12d15524c1bec4a41106a3d875ea59b9ffae8b9316e54f198ad4eebb",
+      "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+      "runtime_version": "4.3.13",
+      "scope": "declared_times_official_runtime_not_contact_or_visual_acceptance",
+      "selected": false,
+      "times_sha256": "ab68adb5432670720530918da24b1097b915e6724564df06d22f84d386cdf0a0"
+    },
+    "player": "batch-000/runtime/player.html",
+    "scene_sha256": "399c623910f634edb95171b41210242ef423424ecf8181cf73b620f947e7d5fe",
+    "scope": "playback_viewport_union_not_visual_acceptance",
+    "selected": false,
+    "source_viewports": [
+      {
+        "bottom": -1036,
+        "height": 1135,
+        "left": 207,
+        "width": 575
+      },
+      {
+        "bottom": -1036,
+        "height": 1135,
+        "left": 196,
+        "width": 586
+      },
+      {
+        "bottom": -1036,
+        "height": 1135,
+        "left": 188,
+        "width": 594
+      },
+      {
+        "bottom": -1037,
+        "height": 1136,
+        "left": 182,
+        "width": 607
+      },
+      {
+        "bottom": -1037,
+        "height": 1136,
+        "left": 181,
+        "width": 610
+      },
+      {
+        "bottom": -1036,
+        "height": 1135,
+        "left": 190,
+        "width": 592
+      },
+      {
+        "bottom": -1036,
+        "height": 1137,
+        "left": 212,
+        "width": 573
+      },
+      {
+        "bottom": -1036,
+        "height": 1137,
+        "left": 212,
+        "width": 570
+      }
+    ],
+    "viewport": {
+      "bottom": -1037,
+      "height": 1138,
+      "left": 181,
+      "width": 610
+    }
+  },
+  "visual_observations": {
+    "skeleton_sha256": "3f592733b7a643503dbfbef784fa51a8ee1f13764049f88b80480bccaf246cfa",
+    "source_candidate": "418038c3621a71b2a56893f53862b0611ce1feb7e0b232f75e786d09ff29dcb2",
+    "authority": "none",
+    "selected": false,
+    "records": [
+      {
+        "code": "transparent-edge-speckles",
+        "description": "肩部和腰侧存在透明边缘散点，未视为已修复。",
+        "time": 0.37496764957904816,
+        "image": "tmp\\m4-moving-workbench\\alice-squat-material-interval-runtime-v3\\batch-001\\runtime\\frames\\external-motion-960.png",
+        "image_sha256": "7b5f452f14fa4c3cfaf1007954de5a184addf419b2d404e5ee38c2cc5a41248b",
+        "candidate_bundle_sha256": "b682e8e958d8946fb6fdc2b88dd4b327e64f9e81f9a6072a70d30e75be118eb0",
+        "status": "unresolved",
+        "reviewer": "assistant_visual_inspection",
+        "human_accepted": false
+      },
+      {
+        "code": "leg-material-outside-skirt",
+        "description": "蹲姿中裙侧露出不自然的腿部材料轮廓，需要继续检查投影和遮挡。",
+        "time": 0.9641929343342781,
+        "image": "tmp\\m4-moving-workbench\\alice-squat-material-interval-runtime-v3\\batch-003\\runtime\\frames\\external-motion-1568.png",
+        "image_sha256": "c95d1ea5a65d3e3d63b1719aa5d271dc65f3c983529aafcc4f5ffe05a86d54a4",
+        "candidate_bundle_sha256": "1d72f0c17f53b1c33f9a7ac5f9a6634e7fdbfe198b7883a435d78f75856a2780",
+        "status": "unresolved",
+        "reviewer": "assistant_visual_inspection",
+        "human_accepted": false
+      }
+    ]
+  },
+  "rendered_frames_including_setup_anchors": 14935,
+  "prior_failed_attempts": [
+    {
+      "report": "tmp\\m4-moving-workbench\\alice-squat-material-interval-runtime-v1\\report.json",
+      "status": "failed",
+      "error": "animated_resource_limit",
+      "completed_batches": 0
+    },
+    {
+      "report": "tmp\\m4-moving-workbench\\alice-squat-material-interval-runtime-v2\\report.json",
+      "status": "failed",
+      "error": "character_reference_setup_missing",
+      "completed_batches": 1
+    }
+  ]
+}
