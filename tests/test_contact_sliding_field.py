@@ -42,3 +42,29 @@ class ContactSlidingFieldTests(unittest.TestCase):
             solve(self.points,self.points,self.tris,{}, {i:self.guide(p) for i,p in enumerate(self.points)})
         with self.assertRaisesRegex(ValueError,'guide_invalid'):
             solve(self.points,self.points,self.tris,{}, {2:self.guide((2,2),tangent=(0,0))})
+
+    def test_transition_spreads_normal_displacement_without_moving_exterior(self):
+        actual,report=solve(self.points,self.points,self.tris,{},
+                            {2:self.guide((2,2.2))},transition=[1,2,3])
+        self.assertEqual(actual[0],self.points[0])
+        np.testing.assert_allclose(actual[2],[2,2.2],atol=1e-8)
+        for v in (1,3):
+            self.assertGreater(actual[v][1],self.points[v][1])
+            self.assertLess(actual[v][1],self.points[v][1]+.2)
+        self.assertEqual(report['transition_vertices'],2)
+        self.assertEqual(report['degrees_of_freedom'],5)
+        self.assertEqual(report['after']['inversions'],0)
+
+    def test_transition_respects_fixed_and_preserved_constraints(self):
+        actual,report=solve(self.points,self.points,self.tris,{2:[2,2.2]}, {},
+                            preserved=[0,1],transition=[0,1,2,3])
+        self.assertEqual(actual[:2],self.points[:2])
+        self.assertEqual(actual[2],[2,2.2])
+        self.assertEqual(report['transition_vertices'],1)
+
+    def test_transition_requires_support_and_shares_existing_vertex_budget(self):
+        with self.assertRaisesRegex(ValueError,'underdetermined'):
+            solve(self.points,self.points,self.tris,{}, {},transition=range(4))
+        points=[[float(i),0.] for i in range(257)]
+        with self.assertRaisesRegex(ValueError,'selection_invalid'):
+            solve(points,points,[],{0:points[0]}, {},transition=range(1,257))

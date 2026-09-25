@@ -10,7 +10,7 @@ from autospine_workbench.targets.character43.material_frontier_sliding import to
 from m4_pose_material_review import transfer
 
 
-def run(sources, anchors_path, frontier_path, output):
+def run(sources, anchors_path, frontier_path, output, transition=False):
     anchors=json.loads(anchors_path.read_bytes())['records']
     frontier=json.loads(frontier_path.read_bytes())['records']; rows=[]
     for i,(old,edge) in enumerate(zip(anchors,frontier,strict=True)):
@@ -41,6 +41,7 @@ def run(sources, anchors_path, frontier_path, output):
             assignments[v]=dict(edge=[a,b],rest_length=float(size),limits=limits)
         row=dict(character=edge['character'],artifact_sha256=digest,assignments=assignments,
                  unsupported_vertices=unsupported,records=[],authority='none',selected=False,
+                 transition_vertices=old['movable'] if transition else [],
                  scope='automatic_local_tangent_hypothesis_not_reviewed_contact_scope')
         for frame in edge['frames']:
             time=frame['time']; posed=sample(doc,'external-motion',time)[0]
@@ -56,7 +57,8 @@ def run(sources, anchors_path, frontier_path, output):
             if not guides:
                 row['records'].append(dict(time=time,status='no_supported_guides'));continue
             try:
-                points,report=solve(setup[arm],posed[arm],np.asarray(am['triangles']).reshape(-1,3).tolist(),{},guides)
+                points,report=solve(setup[arm],posed[arm],np.asarray(am['triangles']).reshape(-1,3).tolist(),{},guides,
+                                    transition=old['movable'] if transition else ())
                 row['records'].append(dict(time=time,**report,points=points))
             except ValueError as exc:
                 row['records'].append(dict(time=time,status=str(exc)))
@@ -71,4 +73,5 @@ def run(sources, anchors_path, frontier_path, output):
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     for key in ('sources','anchors','frontier','output'):parser.add_argument(key,type=Path)
-    args=parser.parse_args();run(args.sources,args.anchors,args.frontier,args.output)
+    parser.add_argument('--transition',action='store_true',help='Use the previously frozen movable region, without expanding it')
+    args=parser.parse_args();run(args.sources,args.anchors,args.frontier,args.output,args.transition)

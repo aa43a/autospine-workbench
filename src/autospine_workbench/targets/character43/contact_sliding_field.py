@@ -4,18 +4,21 @@ import numpy as np
 from ...asset.planning.component_local_solver import metrics
 
 
-def solve(setup, posed, triangles, fixed, sliding, preserved=()):
+def solve(setup, posed, triangles, fixed, sliding, preserved=(), *, transition=()):
     """Keep all unspecified vertices unchanged; sliding guides have finite limits.
 
     A guide is {origin: [x,y], tangent: [x,y], limits: [min,max]} in world pixels.
     Guides must be supplied by a validated contact mapping. This routine neither
     extracts garment boundaries nor treats every mesh edge as a clothing seam.
+    Explicit transition vertices have two displacement freedoms; fixed, sliding
+    and preserved constraints take precedence. Unknown vertices remain unchanged.
     """
     from scipy.optimize import lsq_linear
     rest, points=np.asarray(setup,float),np.asarray(posed,float)
     if rest.ndim!=2 or rest.shape[1]!=2 or points.shape!=rest.shape or not np.isfinite([rest,points]).all():
         raise ValueError('contact_field_points_invalid')
-    count=len(rest); chosen=set(fixed)|set(sliding); keep=set(preserved)
+    count=len(rest); transition=set(transition)
+    chosen=set(fixed)|set(sliding)|transition; keep=set(preserved)
     if (not chosen or len(chosen)>256 or
             any(type(v) is not int or not 0<=v<count for v in chosen|keep)):
         raise ValueError('contact_field_selection_invalid')
@@ -43,21 +46,25 @@ def solve(setup, posed, triangles, fixed, sliding, preserved=()):
         if len(tri)!=3 or len(set(tri))!=3 or any(type(v) is not int or not 0<=v<count for v in tri):
             raise ValueError('contact_field_triangles_invalid')
         edges.update(tuple(sorted((a,b))) for a,b in zip(tri,tri[1:]+tri[:1]))
-    ids=sorted(guides); index={v:i for i,v in enumerate(ids)}
-    matrix=np.zeros((2*len(edges),len(ids))); rhs=np.zeros(2*len(edges))
+    ids=sorted(guides); free=sorted(transition-set(fixed)-set(sliding)-keep)
+    variables=[(v,guides[v][1],*guides[v][2]) for v in ids]
+    variables.extend((v,np.asarray(axis),-np.inf,np.inf) for v in free for axis in ((1.,0.),(0.,1.)))
+    index={}
+    for col,(v,axis,_,_) in enumerate(variables):index.setdefault(v,[]).append((col,axis))
+    matrix=np.zeros((2*len(edges),len(variables))); rhs=np.zeros(2*len(edges))
     for i,(a,b) in enumerate(sorted(edges)):
         length=math.dist(rest[a],rest[b])
         if length<=1e-10:raise ValueError('contact_field_degenerate_edge')
         scale=1/math.sqrt(length)
         rhs[2*i:2*i+2]=-scale*((base[a]-base[b])-(points[a]-points[b]))
         for v,sign in ((a,1),(b,-1)):
-            if v in index:matrix[2*i:2*i+2,index[v]]=scale*sign*guides[v][1]
-    if ids:
-        if np.linalg.matrix_rank(matrix)<len(ids):raise ValueError('contact_field_underdetermined')
-        lower=[guides[v][2][0] for v in ids];upper=[guides[v][2][1] for v in ids]
+            for col,axis in index.get(v,[]):matrix[2*i:2*i+2,col]=scale*sign*axis
+    if variables:
+        if np.linalg.matrix_rank(matrix)<len(variables):raise ValueError('contact_field_underdetermined')
+        lower=[item[2] for item in variables];upper=[item[3] for item in variables]
         result=lsq_linear(matrix,rhs,bounds=(lower,upper),method='bvls',tol=1e-9,max_iter=100)
         if not result.success or not np.isfinite(result.x).all():raise ValueError('contact_field_not_converged')
-        for v,amount in zip(ids,result.x):base[v]=guides[v][0]+amount*guides[v][1]
+        for (v,axis,_,_),amount in zip(variables,result.x):base[v]+=amount*axis
     else:
         result=None
     if not np.isfinite(base).all():raise ValueError('contact_field_nonfinite_result')
@@ -75,9 +82,11 @@ def solve(setup, posed, triangles, fixed, sliding, preserved=()):
     before=metrics(rest.tolist(),points.tolist(),triangles)
     after=metrics(rest.tolist(),base.tolist(),triangles)
     failed=bool(after['bad_triangles'] or after['inversions'] or after['max_edge_stretch']>2)
-    return base.tolist(),dict(profile='bounded-directional-contact-field-v1',selected=False,authority='none',
+    profile='bounded-directional-contact-field-v2' if transition else 'bounded-directional-contact-field-v1'
+    return base.tolist(),dict(profile=profile,selected=False,authority='none',
         status='rejected_geometry' if failed else 'single_pose_requires_validation',before=before,after=after,
         fixed_vertices=len(fixed),sliding_variables=len(ids),preserved_vertices=len(unchanged),
+        transition_vertices=len(free),degrees_of_freedom=len(variables),
         maximum_guide_error_px=guide_error,maximum_fixed_error_px=fixed_error,
         iterations=0 if result is None else int(result.nit),
         maximum_displacement_px=float(np.linalg.norm(base-points,axis=1).max()),
