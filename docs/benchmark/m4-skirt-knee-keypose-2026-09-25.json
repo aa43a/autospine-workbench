@@ -1,0 +1,141 @@
+{
+  "authority": "none",
+  "cloth": "layer-005",
+  "coverage": [
+    {
+      "after": 0.0,
+      "before": 0.0,
+      "kind": "not_visible_in_captured_frame",
+      "pixel": [
+        490,
+        866
+      ]
+    },
+    {
+      "after": 0.0,
+      "before": 0.0,
+      "kind": "previously_visible_limb_material",
+      "pixel": [
+        494,
+        890
+      ]
+    },
+    {
+      "after": 255.0,
+      "before": 7.246437748433744,
+      "kind": "newly_exposed_source_covered_material",
+      "pixel": [
+        470,
+        858
+      ]
+    }
+  ],
+  "current_material_point": [
+    515.3437133829362,
+    -901.7651415285661
+  ],
+  "geometry": {
+    "bad_triangles": [
+      150,
+      152,
+      153,
+      154,
+      155,
+      156,
+      157,
+      159,
+      180,
+      182,
+      184,
+      185,
+      186,
+      187,
+      188,
+      189,
+      191,
+      216,
+      218,
+      219,
+      220,
+      221,
+      222,
+      223,
+      224,
+      225,
+      227,
+      254,
+      255,
+      256,
+      257,
+      258,
+      259,
+      260,
+      261,
+      262,
+      263,
+      265,
+      290,
+      291,
+      293,
+      294,
+      295,
+      296,
+      297,
+      298,
+      299,
+      301,
+      320,
+      321,
+      322,
+      323,
+      324,
+      325,
+      326,
+      328,
+      329,
+      330,
+      331,
+      340,
+      342,
+      343,
+      344,
+      345,
+      347,
+      348
+    ],
+    "inversions": 29,
+    "max_area_ratio": 4.268042737891272,
+    "max_edge_stretch": 3.619602903470635,
+    "min_area_ratio": -2.9877823867562507
+  },
+  "hypothesis": "source_covered_cloth_material_follows_knee_with_fixed_waist",
+  "movement": {
+    "anchors": 3,
+    "authority": "none",
+    "free_vertices": 40,
+    "geometry_status": "not_evaluated",
+    "maximum_anchor_error_px": 0.0,
+    "maximum_displacement_px": 197.61380886143834,
+    "selected": false
+  },
+  "passed": false,
+  "scope": "one_material_sample_one_pose_not_garment_collision_or_visual_acceptance",
+  "selected": false,
+  "skeleton_sha256": "3f592733b7a643503dbfbef784fa51a8ee1f13764049f88b80480bccaf246cfa",
+  "source_candidate": "1d72f0c17f53b1c33f9a7ac5f9a6634e7fdbfe198b7883a435d78f75856a2780",
+  "source_point": [
+    566.6104713308362,
+    -679.2076960008807
+  ],
+  "target": [
+    652.5,
+    -759.5
+  ],
+  "time": 0.9641929343342781,
+  "triangle": 292,
+  "visible_limb_preserved": true,
+  "waist_error_px": 0.0,
+  "report_sha256": "b86cff28e834d8324ea2abf3428aa5f383cbb939d011d33d8796c93030ed84a4",
+  "source_report": "tmp\\m4-moving-workbench\\alice-squat-skirt-knee-keypose-v1\\report.json",
+  "decision": "reject_fixed_material_following; investigate_sliding_coverage_boundary"
+}
