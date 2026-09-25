@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {shapeNextStep} from '../web/modules/motion-shape-evidence.js';
+const base={reference_kind:'single_bone_affine',bone_compensated:{minimum_stretch:1,maximum_stretch:1,signed_area_ratio:1}};
+assert.match(shapeNextStep(base),/不足以要求重新绑骨/);
+assert.match(shapeNextStep({...base,bone_compensated:{...base.bone_compensated,signed_area_ratio:-1}}),/仍有翻转/);
+assert.match(shapeNextStep({...base,bone_compensated:{...base.bone_compensated,minimum_stretch:.6}}),/仍有局部形状变化/);
+assert.match(shapeNextStep({...base,reference_kind:'mixed_bone_proxy_only'}),/尚不能分离/);
+assert.match(shapeNextStep({...base,bone_compensated:null}),/补偿不可用/);
+assert.match(shapeNextStep({status:'unavailable'}),/缺少形状对照/);
+assert.match(shapeNextStep({...base,bone_compensated:{minimum_stretch:NaN,maximum_stretch:1,signed_area_ratio:1}}),/补偿不可用/);
+console.log('7 shape guidance cases passed; no quality gates changed');
