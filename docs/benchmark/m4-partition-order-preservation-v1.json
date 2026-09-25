@@ -1,0 +1,92 @@
+{
+  "scope": "sampled_representation_preservation_not_runtime_or_occlusion_quality",
+  "rows": [
+    {
+      "character": "alice",
+      "job_id": "motion-c54fd4c586ee439d8c2c38e8037f4c6b",
+      "artifact_sha256": "cb2f7dbccb796996108be3508293f2f5f0fee98b623ecaa4b4930b4ee7219fab",
+      "source_slots": [
+        "layer-003",
+        "layer-004"
+      ],
+      "authority": "none",
+      "selected": false,
+      "status": "sampled_preservation_passed",
+      "sample_times": [
+        0,
+        0.7,
+        1.725,
+        2.4,
+        4
+      ],
+      "render_parts": 2,
+      "order": {
+        "profile": "partition-source-order-expansion-v1",
+        "key_count": 0,
+        "source_key_times_preserved": true,
+        "part_order_preserved": true,
+        "scope": "source_painter_order_preserved_not_occlusion_repair",
+        "authority": "none"
+      },
+      "candidate_skeleton_sha256": "39530e3aa866a830d16f45e17e540f6915574de784b9695c7f18625c8bdf379b"
+    },
+    {
+      "character": "huiye",
+      "job_id": "motion-a6486fd0e64f4904b8f7d3c0be84191d",
+      "artifact_sha256": "b8b83fe8e808f91f8884e287844956d230c5feffbbc425ec3f3eb034120c54a7",
+      "source_slots": [
+        "layer-002-component-0000",
+        "layer-003-component-0000"
+      ],
+      "authority": "none",
+      "selected": false,
+      "status": "sampled_preservation_passed",
+      "sample_times": [
+        0,
+        0.7,
+        1.725,
+        2.4,
+        4
+      ],
+      "render_parts": 30,
+      "order": {
+        "profile": "partition-source-order-expansion-v1",
+        "key_count": 0,
+        "source_key_times_preserved": true,
+        "part_order_preserved": true,
+        "scope": "source_painter_order_preserved_not_occlusion_repair",
+        "authority": "none"
+      },
+      "candidate_skeleton_sha256": "ce2ddb91a8812fb3b0aa67424006e25f0d9a88d73c89922fb6c13094d34b8780"
+    },
+    {
+      "character": "hongmeiling",
+      "job_id": "motion-bbab56185e3045f7b410fa3e1d2e115e",
+      "artifact_sha256": "a9594f9019352d4a835c1ebc23c162fdbf714a132857c3184eeadfcbf065f915",
+      "source_slots": [
+        "layer-001",
+        "layer-006"
+      ],
+      "authority": "none",
+      "selected": false,
+      "status": "sampled_preservation_passed",
+      "sample_times": [
+        0,
+        0.7,
+        1.725,
+        2.4,
+        4
+      ],
+      "render_parts": 2,
+      "order": {
+        "profile": "partition-source-order-expansion-v1",
+        "key_count": 0,
+        "source_key_times_preserved": true,
+        "part_order_preserved": true,
+        "scope": "source_painter_order_preserved_not_occlusion_repair",
+        "authority": "none"
+      },
+      "candidate_skeleton_sha256": "eaf681c192cf9387641982a9263527c9b5c4e8bb82a3415e86306383bdacd6f8"
+    }
+  ]
+}

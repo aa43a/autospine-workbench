@@ -6,7 +6,7 @@ from .depth_overlap_ownership import triangle_groups
 PROFILE = 'ordered-weight-ownership-regions-v1'
 
 
-def build(document, selected_slots, *, part_limit=128, triangle_labels=None):
+def build(document, selected_slots, *, part_limit=128, triangle_labels=None, preserve_draw_order=False):
     """Split consecutive ownership runs, preserving original triangle draw sequence.
 
     This creates an experimental render representation, not inferred garment depth.
@@ -25,7 +25,7 @@ def build(document, selected_slots, *, part_limit=128, triangle_labels=None):
         if any(a.get('type') in ('clipping', 'linkedmesh') for a in attachments.values()):
             raise ValueError('depth_partition_linked_or_clipped_unsupported')
     for animation in document['animations'].values():
-        if animation.get('drawOrder') or animation.get('draworder'):
+        if (animation.get('drawOrder') or animation.get('draworder')) and not preserve_draw_order:
             raise ValueError('depth_partition_existing_order_preserved')
         if selected & animation.get('slots', {}).keys():
             raise ValueError('depth_partition_slot_timeline_unsupported')
@@ -92,4 +92,7 @@ def build(document, selected_slots, *, part_limit=128, triangle_labels=None):
                   triangle_order_preserved=True, deformation_index_space_preserved=True,
                   scope='render_partition_candidate_not_depth_inference_or_runtime_acceptance')
     if triangle_labels is not None:report['profile']='ordered-explicit-triangle-regions-v1'
+    if preserve_draw_order:
+        from .partition_draw_order import remap
+        report['source_draw_order']=remap(document,candidate,rows)
     return candidate, report
