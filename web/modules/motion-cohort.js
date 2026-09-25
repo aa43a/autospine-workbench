@@ -14,7 +14,8 @@ import {navigationPack} from './motion-cohort-entry.js';
 import {appendRelatedCandidates} from './motion-related-candidates.js';
 const byId=id=>document.getElementById(id), motion=byId('motion'),character=byId('character');
 const sync=createCohortSync(byId('sync-status'));
-const player=createSourcePlayer(byId('source'),byId('time'),byId('play'),byId('time-label'),(time,end)=>{sync.seek(time,end);alternative.seek(time,end);experiments.seek(time,end);});
+let related=null;
+const player=createSourcePlayer(byId('source'),byId('time'),byId('play'),byId('time-label'),(time,end)=>{sync.seek(time,end);alternative.seek(time,end);experiments.seek(time,end);related?.seek(time,end);});
 byId('source-view').onchange=()=>player.setView(byId('source-view').value||null);
 const alternative=createAlternativePanel(byId('alternative'),get,{onSeek:time=>player.seek(time)});
 const experiments=createExperimentPanel(byId('experiments'),get,time=>player.seek(time));
@@ -42,6 +43,7 @@ function targets(){
 }
 async function show(){
   const version=++revision,g=pack.groups[Number(motion.value)],t=g.targets[Number(character.value)];
+  related?.clear();related=null;
   alternative.clear();
   experiments.clear();
   sync.clear();
@@ -62,7 +64,8 @@ async function show(){
     experiments.load(t.job_id);
     appendKneeDetails(byId('review'),`/api/motions/${t.job_id}/view/`,t.artifact_sha256,time=>{if(version===revision)player.seek(time);});
     appendStageReview(byId('review'),job);
-    appendRelatedCandidates(byId('review'),job);
+    related=appendRelatedCandidates(byId('review'),job,{synchronize:true});
+    related.seek(Number(byId('time').value),Number(byId('time').max));
     appendCandidateDownload(byId('review'),job);
     const inspection={onSeek:time=>{
       if(version!==revision)return;

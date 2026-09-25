@@ -4,11 +4,13 @@ export function createCohortSync(status) {
   function push() {
     if (!frame || duration === null) return;
     try {
+      if(!Number.isFinite(time)||!Number.isFinite(duration)||duration<0||time<0||time>duration)
+        throw Error('源时间无效，不能直接同步');
       const win = frame.contentWindow, control = win?.characterPlayerControl;
       if (!control) { status.textContent = '等待角色播放器加载后同步…'; return; }
       if (control.artifact !== artifact) throw Error('候选身份不一致');
       const target = win.characterPlayerState;
-      if (!target || Math.abs(target.duration - duration) > 0.002) throw Error('源与目标时长不同，不能直接同步');
+      if (!target || !Number.isFinite(target.duration) || Math.abs(target.duration - duration) > 0.002) throw Error('源与目标时长不同，不能直接同步');
       if (!control.seek(time)) throw Error('目标不支持此时间');
       for (const id of ['motion','play','reset','time']) {
         const input = win.document?.getElementById(id);
