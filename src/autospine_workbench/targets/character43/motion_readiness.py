@@ -39,10 +39,15 @@ def build(files, artifact_sha256, runtime=None):
         unreliable_frames=unreliable, pose_profile=pose.get('target_profile'),
         failures=[dict(time=f['time'], bone=f['bone'], reason='source_projection_unreliable') for f in unreliable])
     failed = [r for r in geometry.get('records', []) if not r['passed']]
+    constrained=[r for r in failed if r.get('repair_limit',{}).get('status')=='fixed_vertex_area_counterexample']
     add('几何', 'sampled_pass' if geometry.get('passed') is True else 'needs_changes' if geometry else 'unmeasured',
-        f'{len(failed)} 个附件动作记录超限；按失败时间检查。' if failed else '采样网格检查，不是连续时间证明。',
+        (f'{len(failed)} 个附件动作记录超限；按失败时间检查。'+
+         (f'其中 {len(constrained)} 个区域含固定顶点面积失败；仅调整混合权重区域无法解决，需检查投影及姿态表达。' if constrained else '')) if failed else '采样网格检查，不是连续时间证明。',
         'player.html', failures=[dict(slot=r['slot'], animation=r['animation'],
-                                     time=r['first_failure']['time']) for r in failed if r.get('first_failure')])
+                                     time=r['first_failure']['time']) for r in failed if r.get('first_failure')]+
+        [dict(slot=r['slot'],animation=r['animation'],time=r['repair_limit']['first']['time'],
+              triangle=r['repair_limit']['first']['triangle'],reason='fixed_vertex_area_counterexample') for r in constrained],
+        repair_limits=[dict(slot=r['slot'],animation=r['animation'],**r['repair_limit']) for r in constrained])
     state = contact.get('status')
     moving = read('motion-moving-ankles.json')
     if moving or motion.get('moving_ankles'):

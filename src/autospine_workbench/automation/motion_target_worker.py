@@ -207,6 +207,9 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
                                                                  time=0, vertices=setup_vertices))
     result = write_reference(result, dict(skeleton_sha256=sha256(raw).hexdigest(), animations={ANIMATION: frames}))
     geometry = inspect(result, setup_vertices=setup_vertices)
+    if pose_fit is not None:
+        from ..targets.character43.geometry_repair_limits import annotate
+        geometry = annotate(result, geometry, setup_vertices)
     if not geometry['passed']:
         issues.append(dict(stage='geometry', reason_code='motion_target_deformation_needs_changes'))
     if {k: v for k, v in document.items() if k != 'animations'} != {k: v for k, v in original.items() if k != 'animations'}:

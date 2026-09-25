@@ -1,0 +1,302 @@
+{
+  "rows": [
+    {
+      "character": "alice",
+      "source_candidate": "6f618bf1fbf9d4a66925b11ae85494b46150b4ae06d1e788bc43d880ad9ca96e",
+      "stage": {
+        "stage": "几何",
+        "status": "needs_changes",
+        "explanation": "2 个附件动作记录超限；按失败时间检查。其中 1 个区域含固定顶点面积失败；仅调整混合权重区域无法解决，需检查投影及姿态表达。",
+        "href": "player.html",
+        "failures": [
+          {
+            "slot": "layer-001-l",
+            "animation": "external-motion",
+            "time": 0.495833421875
+          },
+          {
+            "slot": "layer-001-r",
+            "animation": "external-motion",
+            "time": 0.23697920898437502
+          }
+        ],
+        "repair_limits": [
+          {
+            "slot": "layer-001-l",
+            "animation": "external-motion",
+            "authority": "none",
+            "first": {
+              "area_ratio": 0.4971267952457846,
+              "time": 0.586979271484375,
+              "triangle": 0
+            },
+            "locations": [
+              {
+                "area_ratio": 0.4971267952457846,
+                "time": 0.586979271484375,
+                "triangle": 0
+              },
+              {
+                "area_ratio": 0.49712679524578185,
+                "time": 0.586979271484375,
+                "triangle": 1
+              },
+              {
+                "area_ratio": 0.4971267952457798,
+                "time": 0.586979271484375,
+                "triangle": 2
+              },
+              {
+                "area_ratio": 0.4971267952457743,
+                "time": 0.586979271484375,
+                "triangle": 3
+              },
+              {
+                "area_ratio": 0.4971267952457764,
+                "time": 0.586979271484375,
+                "triangle": 4
+              },
+              {
+                "area_ratio": 0.49712679524577363,
+                "time": 0.586979271484375,
+                "triangle": 5
+              },
+              {
+                "area_ratio": 0.4971267952457798,
+                "time": 0.586979271484375,
+                "triangle": 6
+              },
+              {
+                "area_ratio": 0.4971267952457703,
+                "time": 0.586979271484375,
+                "triangle": 7
+              },
+              {
+                "area_ratio": 0.49712679524577974,
+                "time": 0.586979271484375,
+                "triangle": 8
+              },
+              {
+                "area_ratio": 0.4971267952457825,
+                "time": 0.586979271484375,
+                "triangle": 9
+              },
+              {
+                "area_ratio": 0.4971267952457804,
+                "time": 0.586979271484375,
+                "triangle": 10
+              },
+              {
+                "area_ratio": 0.4971267952457859,
+                "time": 0.586979271484375,
+                "triangle": 11
+              },
+              {
+                "area_ratio": 0.4971267952457921,
+                "time": 0.586979271484375,
+                "triangle": 12
+              },
+              {
+                "area_ratio": 0.4971267952457921,
+                "time": 0.586979271484375,
+                "triangle": 13
+              },
+              {
+                "area_ratio": 0.4971267952457798,
+                "time": 0.586979271484375,
+                "triangle": 14
+              },
+              {
+                "area_ratio": 0.4971267952457798,
+                "time": 0.586979271484375,
+                "triangle": 15
+              },
+              {
+                "area_ratio": 0.49712679524577225,
+                "time": 0.586979271484375,
+                "triangle": 16
+              },
+              {
+                "area_ratio": 0.4971267952457846,
+                "time": 0.586979271484375,
+                "triangle": 17
+              },
+              {
+                "area_ratio": 0.497126795245788,
+                "time": 0.586979271484375,
+                "triangle": 18
+              },
+              {
+                "area_ratio": 0.49712679524578796,
+                "time": 0.586979271484375,
+                "triangle": 19
+              }
+            ],
+            "locations_truncated": true,
+            "policy": "single_influence_vertices_held_fixed",
+            "sample_observations": 6567,
+            "scope": "cannot_repair_without_changing_fixed_vertex_policy_not_proof_of_missing_artwork",
+            "selected": false,
+            "status": "fixed_vertex_area_counterexample",
+            "triangle_count": 33,
+            "worst": {
+              "area_ratio": 0.2959757953142386,
+              "time": 0.8,
+              "triangle": 4
+            }
+          }
+        ]
+      },
+      "scope": "derived_readiness_preview_original_artifact_unchanged"
+    },
+    {
+      "character": "hongmeiling",
+      "source_candidate": "ea6dfdb756455e642867824a9cfe396c2dcc434b01435b060560205d9de9046c",
+      "stage": {
+        "stage": "几何",
+        "status": "needs_changes",
+        "explanation": "2 个附件动作记录超限；按失败时间检查。其中 1 个区域含固定顶点面积失败；仅调整混合权重区域无法解决，需检查投影及姿态表达。",
+        "href": "player.html",
+        "failures": [
+          {
+            "slot": "layer-003",
+            "animation": "external-motion",
+            "time": 0.28802088476562504
+          },
+          {
+            "slot": "layer-004",
+            "animation": "external-motion",
+            "time": 0.5140625917968751
+          }
+        ],
+        "repair_limits": [
+          {
+            "slot": "layer-004",
+            "animation": "external-motion",
+            "authority": "none",
+            "first": {
+              "area_ratio": 0.49712679524577885,
+              "time": 0.586979271484375,
+              "triangle": 0
+            },
+            "locations": [
+              {
+                "area_ratio": 0.49712679524577885,
+                "time": 0.586979271484375,
+                "triangle": 0
+              },
+              {
+                "area_ratio": 0.49712679524578407,
+                "time": 0.586979271484375,
+                "triangle": 1
+              },
+              {
+                "area_ratio": 0.49712679524577885,
+                "time": 0.586979271484375,
+                "triangle": 2
+              },
+              {
+                "area_ratio": 0.49712679524577885,
+                "time": 0.586979271484375,
+                "triangle": 3
+              },
+              {
+                "area_ratio": 0.4971267952457835,
+                "time": 0.586979271484375,
+                "triangle": 4
+              },
+              {
+                "area_ratio": 0.49712679524578085,
+                "time": 0.586979271484375,
+                "triangle": 5
+              },
+              {
+                "area_ratio": 0.49712679524578146,
+                "time": 0.586979271484375,
+                "triangle": 6
+              },
+              {
+                "area_ratio": 0.49712679524578746,
+                "time": 0.586979271484375,
+                "triangle": 7
+              },
+              {
+                "area_ratio": 0.4971267952457838,
+                "time": 0.586979271484375,
+                "triangle": 8
+              },
+              {
+                "area_ratio": 0.49712679524578146,
+                "time": 0.586979271484375,
+                "triangle": 9
+              },
+              {
+                "area_ratio": 0.4971267952457785,
+                "time": 0.586979271484375,
+                "triangle": 10
+              },
+              {
+                "area_ratio": 0.4971267952457894,
+                "time": 0.586979271484375,
+                "triangle": 11
+              },
+              {
+                "area_ratio": 0.49712679524578307,
+                "time": 0.586979271484375,
+                "triangle": 12
+              },
+              {
+                "area_ratio": 0.49712679524578574,
+                "time": 0.586979271484375,
+                "triangle": 13
+              },
+              {
+                "area_ratio": 0.49712679524578507,
+                "time": 0.586979271484375,
+                "triangle": 14
+              },
+              {
+                "area_ratio": 0.4971267952457852,
+                "time": 0.586979271484375,
+                "triangle": 15
+              },
+              {
+                "area_ratio": 0.4971267952457759,
+                "time": 0.586979271484375,
+                "triangle": 16
+              },
+              {
+                "area_ratio": 0.49712679524578346,
+                "time": 0.586979271484375,
+                "triangle": 17
+              },
+              {
+                "area_ratio": 0.49712679524577263,
+                "time": 0.586979271484375,
+                "triangle": 18
+              },
+              {
+                "area_ratio": 0.4971267952457845,
+                "time": 0.586979271484375,
+                "triangle": 19
+              }
+            ],
+            "locations_truncated": true,
+            "policy": "single_influence_vertices_held_fixed",
+            "sample_observations": 13532,
+            "scope": "cannot_repair_without_changing_fixed_vertex_policy_not_proof_of_missing_artwork",
+            "selected": false,
+            "status": "fixed_vertex_area_counterexample",
+            "triangle_count": 68,
+            "worst": {
+              "area_ratio": 0.2959757953142397,
+              "time": 0.8,
+              "triangle": 53
+            }
+          }
+        ]
+      },
+      "scope": "derived_readiness_preview_original_artifact_unchanged"
+    }
+  ]
+}
