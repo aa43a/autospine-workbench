@@ -183,6 +183,10 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
     if moving_report is not None or (pose_fit is not None and pose_fit.get('post_contact_profile')):
         from ..targets.character43.final_motion_contact import recheck
         contact = recheck(document, ANIMATION, motion, contact, times, evidence['reference_length_px'])
+        from .motion_contact_issues import reconcile
+        issues, resolved = reconcile(issues, contact, document)
+        if resolved:
+            evidence['resolved_issues'] = resolved
         if contact['after']['passed'] is False:
             issues.append(dict(stage='contact', reason_code='motion_final_contact_drift'))
     frames = [dict(time=t, vertices=sample(document, ANIMATION, t)[0]) for t in times]

@@ -1,0 +1,215 @@
+{
+  "rows": [
+    {
+      "character": "alice",
+      "artifact": "6f618bf1fbf9d4a66925b11ae85494b46150b4ae06d1e788bc43d880ad9ca96e",
+      "motion_identity": {
+        "bundle_sha256": "ef7afe08aab29cb0b617aefd9c7d2162f96b2930dba70f8b37a61c2d88e5c2ab",
+        "bvh_map_sha256": "e77a4090381517d48dc08a903db1b9ebe5ba223ca89cabb1eed5ba0b57eb2cca",
+        "clip_id": "external.cf0b3afbf92df08c.front",
+        "clip_sha256": "fb57014391df27c737995214f3ec89918b99192ceda0b4d1626d8cfbfc261061",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "fb57014391df27c737995214f3ec89918b99192ceda0b4d1626d8cfbfc261061",
+        "raw_bvh_byte_length": 169539,
+        "raw_bvh_sha256": "cf0b3afbf92df08cd71fc680ffd49d32420e3a66de7f36ff64d930b9321ee55d",
+        "reused": false,
+        "run_sha256": "8da605d84b8040bda1747658ec9511c4b52f81fd646de6d4ea5256df05620aee",
+        "source_kind": "bvh"
+      },
+      "geometry_passed": false,
+      "failed_regions": [
+        {
+          "animation": "external-motion",
+          "failing_frame_count": 356,
+          "first_failure": {
+            "frame": 164,
+            "inversions": 0,
+            "max_area_ratio": 0.9562085962666016,
+            "max_edge_stretch": 1.2623348820865188,
+            "min_area_ratio": 0.4986374510670801,
+            "time": 0.495833421875
+          },
+          "inversion_samples": 0,
+          "max_area_ratio": 1.9170569182264616,
+          "max_edge_stretch": 1.9606195590758746,
+          "min_area_ratio": 0.17101274773032865,
+          "passed": false,
+          "sample_count": 623,
+          "slot": "layer-001-l"
+        },
+        {
+          "animation": "external-motion",
+          "failing_frame_count": 336,
+          "first_failure": {
+            "frame": 79,
+            "inversions": 0,
+            "max_area_ratio": 1.152407556338099,
+            "max_edge_stretch": 1.1847610294102002,
+            "min_area_ratio": 0.49867228520494833,
+            "time": 0.23697920898437502
+          },
+          "inversion_samples": 0,
+          "max_area_ratio": 1.8880456283779241,
+          "max_edge_stretch": 1.8548035368163065,
+          "min_area_ratio": 0.3956655044841286,
+          "passed": false,
+          "sample_count": 623,
+          "slot": "layer-001-r"
+        }
+      ],
+      "ankles": {
+        "limit_px": 3.5314073364688943,
+        "passed": true,
+        "samples": 623,
+        "scope": "moving_ankle_tracking_not_stationary_contact_or_visual_acceptance",
+        "skeleton_sha256": "ff47b098cb58804a3f4befa0568adbea2fa92707a3495de8bbfbeee5ea4f8696",
+        "worst": {
+          "error_px": 1.5125164026078437,
+          "side": "l",
+          "time": 0.740104298828125
+        }
+      },
+      "contact_status": "inferred_proxy_passed",
+      "contact_max_drift": 1.3099503480644425,
+      "runtime_status": "not_evaluated",
+      "visual_status": "not_reviewed"
+    },
+    {
+      "character": "huiye",
+      "artifact": "91bbb99808242efaa8e84705f82d23ff7cc72482de761609fb240493c51dac73",
+      "motion_identity": {
+        "bundle_sha256": "ef7afe08aab29cb0b617aefd9c7d2162f96b2930dba70f8b37a61c2d88e5c2ab",
+        "bvh_map_sha256": "e77a4090381517d48dc08a903db1b9ebe5ba223ca89cabb1eed5ba0b57eb2cca",
+        "clip_id": "external.cf0b3afbf92df08c.front",
+        "clip_sha256": "fb57014391df27c737995214f3ec89918b99192ceda0b4d1626d8cfbfc261061",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "fb57014391df27c737995214f3ec89918b99192ceda0b4d1626d8cfbfc261061",
+        "raw_bvh_byte_length": 169539,
+        "raw_bvh_sha256": "cf0b3afbf92df08cd71fc680ffd49d32420e3a66de7f36ff64d930b9321ee55d",
+        "reused": false,
+        "run_sha256": "8da605d84b8040bda1747658ec9511c4b52f81fd646de6d4ea5256df05620aee",
+        "source_kind": "bvh"
+      },
+      "geometry_passed": true,
+      "failed_regions": [],
+      "ankles": {
+        "limit_px": 5.407652833063458,
+        "passed": true,
+        "samples": 623,
+        "scope": "moving_ankle_tracking_not_stationary_contact_or_visual_acceptance",
+        "skeleton_sha256": "cfd8381820e2b2116ad33f51c2d0e1861203cbb2c6bc5239e291ded506f8d6bc",
+        "worst": {
+          "error_px": 2.069799830044051,
+          "side": "l",
+          "time": 0.740104298828125
+        }
+      },
+      "contact_status": "inferred_proxy_passed",
+      "contact_max_drift": 1.7598267232808256,
+      "runtime_status": "not_evaluated",
+      "visual_status": "not_reviewed"
+    },
+    {
+      "character": "hongmeiling",
+      "artifact": "ea6dfdb756455e642867824a9cfe396c2dcc434b01435b060560205d9de9046c",
+      "motion_identity": {
+        "bundle_sha256": "ef7afe08aab29cb0b617aefd9c7d2162f96b2930dba70f8b37a61c2d88e5c2ab",
+        "bvh_map_sha256": "e77a4090381517d48dc08a903db1b9ebe5ba223ca89cabb1eed5ba0b57eb2cca",
+        "clip_id": "external.cf0b3afbf92df08c.front",
+        "clip_sha256": "fb57014391df27c737995214f3ec89918b99192ceda0b4d1626d8cfbfc261061",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "fb57014391df27c737995214f3ec89918b99192ceda0b4d1626d8cfbfc261061",
+        "raw_bvh_byte_length": 169539,
+        "raw_bvh_sha256": "cf0b3afbf92df08cd71fc680ffd49d32420e3a66de7f36ff64d930b9321ee55d",
+        "reused": false,
+        "run_sha256": "8da605d84b8040bda1747658ec9511c4b52f81fd646de6d4ea5256df05620aee",
+        "source_kind": "bvh"
+      },
+      "geometry_passed": false,
+      "failed_regions": [
+        {
+          "animation": "external-motion",
+          "failing_frame_count": 175,
+          "first_failure": {
+            "frame": 95,
+            "inversions": 0,
+            "max_area_ratio": 1.2382866185399515,
+            "max_edge_stretch": 1.3426715286257431,
+            "min_area_ratio": 0.49995290474097503,
+            "time": 0.28802088476562504
+          },
+          "inversion_samples": 0,
+          "max_area_ratio": 1.8922754602754746,
+          "max_edge_stretch": 1.7995598733104343,
+          "min_area_ratio": 0.45496263414234644,
+          "passed": false,
+          "sample_count": 623,
+          "slot": "layer-003"
+        },
+        {
+          "animation": "external-motion",
+          "failing_frame_count": 345,
+          "first_failure": {
+            "frame": 171,
+            "inversions": 0,
+            "max_area_ratio": 0.87295810422908,
+            "max_edge_stretch": 1.2341696903626274,
+            "min_area_ratio": 0.4973510435006044,
+            "time": 0.5140625917968751
+          },
+          "inversion_samples": 0,
+          "max_area_ratio": 1.9211461837684096,
+          "max_edge_stretch": 1.9793099477248175,
+          "min_area_ratio": 0.164522822121395,
+          "passed": false,
+          "sample_count": 623,
+          "slot": "layer-004"
+        }
+      ],
+      "ankles": {
+        "limit_px": 5.493700613074059,
+        "passed": true,
+        "samples": 623,
+        "scope": "moving_ankle_tracking_not_stationary_contact_or_visual_acceptance",
+        "skeleton_sha256": "de9d79d2d99be63837fde060a439d523295123dd3032b09587f806038bae6191",
+        "worst": {
+          "error_px": 2.297307047334202,
+          "side": "l",
+          "time": 0.740104298828125
+        }
+      },
+      "contact_status": "inferred_proxy_passed",
+      "contact_max_drift": 1.9830425340395486,
+      "runtime_status": "not_evaluated",
+      "visual_status": "not_reviewed"
+    }
+  ],
+  "authority": "none",
+  "selected": false,
+  "huiye_contact_issue_rebuild": {
+    "artifact": "4c662e516865ea93414f848e4c6add33b7cddf78bed63a58908557a32ce59aee",
+    "geometry_passed": true,
+    "issues": [],
+    "resolved_issues": [
+      {
+        "evidence": {
+          "animation": "external-motion",
+          "authority": "none",
+          "profile": "final-timeline-ankle-proxy-v1",
+          "samples": 623,
+          "scope": "final_cpu_bone_samples_not_gpu_sole_or_continuous_contact",
+          "skeleton_sha256": "cfd8381820e2b2116ad33f51c2d0e1861203cbb2c6bc5239e291ded506f8d6bc",
+          "times_sha256": "7dabcfb862e8a02c1a2380c22676d28f14cb8f40546e63c35fed87fa74ad9ae6"
+        },
+        "reason_code": "motion_inferred_contact_drift",
+        "resolution": "final_sampled_ankle_check_passed",
+        "stage": "contact"
+      }
+    ],
+    "runtime_passed": true,
+    "runtime_frames": 623,
+    "runtime_version": "4.3.13",
+    "visual_status": "not_accepted",
+    "observed_exception": "thin colored streak above head in captured frame 320"
+  }
+}
