@@ -18,7 +18,18 @@ def coverage(body_vertices, mesh, texture, points):
     return values, hit
 
 
-def run(source, frontier, output):
+def capture_times(report_path, digest):
+    raw=report_path.read_bytes(); report=json.loads(raw)
+    if report['bundle_sha256']!=digest:raise ValueError('overlap_capture_identity_mismatch')
+    lookup={(r['animation'],r['index']):r['time'] for r in report['results']}
+    times=sorted({lookup[(s['animation'],s['index'])] for s in report['screenshots']
+                  if s['animation']=='external-motion'})
+    if not times or any(not np.isfinite(t) or t<0 for t in times):
+        raise ValueError('overlap_capture_times_invalid')
+    return times,sha256(raw).hexdigest()
+
+
+def run(source, frontier, output, runtime_report=None):
     digest = json.loads((source/'report.json').read_bytes())['candidate_bundle_sha256']
     row = next(r for r in json.loads(frontier.read_bytes())['records'] if r['character']=='alice')
     if digest != row['artifact_sha256']:
@@ -48,8 +59,9 @@ def run(source, frontier, output):
     root=np.asarray(bones['upperarm_r'][:2]); radius=row['radius_px']
     chosen=valid & (arm_alpha.ravel()>=8) & (alpha>=254) & (np.linalg.norm(world-root,axis=1)<=radius)
     seed_uv=uv[chosen]; ids=np.flatnonzero(chosen)
+    times,report_sha=capture_times(runtime_report,digest) if runtime_report else ([0.,.7,1.05,1.725,2.4,4.],None)
     frames=[]
-    for time in (0., .7, 1.05, 1.725, 2.4, 4.):
+    for time in times:
         posed=sample(doc,animation,time)[0]
         points,found=transfer(np.asarray(a['uvs']).reshape(-1,2),posed[arm],a['triangles'],seed_uv)
         if not found.all():raise ValueError('overlap_material_correspondence_missing')
@@ -63,8 +75,9 @@ def run(source, frontier, output):
     report=dict(profile='setup_hidden_material_overlap_trace-v1',artifact_sha256=digest,
         textures=row['textures'],arm=arm,body=body,source_texels=len(ids),radius_px=radius,
         intent='covering_relative_motion_confirmed_by_user',frames=frames,
+        capture_report_sha256=report_sha,
         selected=False,authority='none',visual_status='not_evaluated',
-        scope='six_pose_nearest_texel_alpha_trace_not_framebuffer_crack_or_connection_acceptance')
+        scope='sampled_pose_nearest_texel_alpha_trace_not_framebuffer_crack_or_connection_acceptance')
     output.parent.mkdir(parents=True,exist_ok=True)
     with output.open('x',encoding='utf8') as stream:
         json.dump(report,stream,ensure_ascii=False,allow_nan=False)
@@ -75,4 +88,5 @@ def run(source, frontier, output):
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     for name in ('source','frontier','output'):parser.add_argument(name,type=Path)
-    args=parser.parse_args();run(args.source,args.frontier,args.output)
+    parser.add_argument('--runtime-report',type=Path)
+    args=parser.parse_args();run(args.source,args.frontier,args.output,args.runtime_report)

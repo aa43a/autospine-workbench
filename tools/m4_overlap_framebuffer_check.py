@@ -19,6 +19,8 @@ def run(trace_path, runtime, output):
     report_raw=(runtime/'report.json').read_bytes(); report=json.loads(report_raw)
     if report['bundle_sha256']!=trace['artifact_sha256']:
         raise ValueError('overlap_runtime_identity_mismatch')
+    if trace.get('capture_report_sha256') not in (None,sha256(report_raw).hexdigest()):
+        raise ValueError('overlap_capture_report_changed')
     if report['profile']!='official-webgl-swiftshader-native-v1':
         raise ValueError('overlap_runtime_camera_profile_unsupported')
     results={(r['animation'],r['index']):r for r in report['results']}
