@@ -62,6 +62,16 @@ class ViewPoseCandidateTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, 'png_invalid'):
             build(files, request, png)
 
+    def test_boundary_report_is_fresh_and_bound_to_new_candidate(self):
+        files, request, png = self.fixture()
+        files['view-switch-continuity.json']=b'old-success'
+        output,review,_=build(files,request,png)
+        report=json.loads(output['view-switch-continuity.json'])
+        self.assertEqual(report['skeleton_sha256'],canonical_sha256(json.loads(output['skeleton.json'])))
+        self.assertEqual([r['direction'] for r in report['records']],['enter','exit'])
+        self.assertEqual(json.loads(output['motion-repair.json'])['switch_continuity'],report)
+        self.assertEqual(review['status'],'needs_changes')
+
     def test_setup_is_independent_of_first_motion_frame(self):
         files, request, png = self.fixture()
         doc = json.loads(files['skeleton.json'])

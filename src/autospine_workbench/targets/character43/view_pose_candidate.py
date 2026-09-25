@@ -28,6 +28,8 @@ def build(files, request, png, on_progress=None):
     if set(reference['animations']) != {name} or set(document['animations']) != {name}:
         raise ValueError('view_candidate_single_animation_required')
     result, report = compile_variant(document, request)
+    from .view_switch_continuity import inspect as inspect_switch
+    continuity = inspect_switch(result, report['variant'])
     times = {r['time'] for r in reference['animations'][name]}
     times.update(r['time'] for r in report['geometry']['records'])
     duration = max(times)
@@ -86,12 +88,16 @@ def build(files, request, png, on_progress=None):
         if field in parent:
             evidence[field] = parent[field]
     evidence['issues'].append(dict(stage='repair', reason_code='additional_view_requires_contact_runtime_and_visual_review'))
+    if any(r['geometry_status']!='unchanged_within_tolerance' for r in continuity['records']):
+        evidence['issues'].append(dict(stage='repair', reason_code='additional_view_switch_geometry_needs_changes'))
     if not geometry['passed']:
         evidence['issues'].append(dict(stage='geometry', reason_code='motion_target_deformation_needs_changes'))
     output.update({'deformation.json': canonical_bytes(geometry),
+        'view-switch-continuity.json': canonical_bytes(continuity),
         'motion-review.json': canonical_bytes(evidence), 'parent-motion-review.json': files['motion-review.json'],
         'view-pose-request.json': canonical_bytes(request), 'view-pose-report.json': canonical_bytes(report),
         'motion-repair.json': canonical_bytes(dict(profile=PROFILE, slot=request['slot'], animation=name,
+            switch_continuity=continuity,
             geometry=geometry, sample_count=len(frames), authority='none', selected=False,
             scope='active_attachment_sampled_geometry_not_contact_or_visual_acceptance'))})
     manifest = json.loads(files['character-manifest.json'])
