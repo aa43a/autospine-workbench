@@ -17,7 +17,9 @@ PROFILE='source-bound-local-depth-supplement-v1'
 HELPER_PROFILE='source-bound-local-depth-sleeve-plane-v1-experiment'
 
 
-def analyze(files,artifact,bundle,request,*,midpoints=False,pixelwise=True,on_pair=None,sample_times=None,sleeve_helpers=None):
+def analyze(files,artifact,bundle,request,*,midpoints=False,pixelwise=True,on_pair=None,sample_times=None,sleeve_helpers=None,triangle_traces=False):
+    if type(triangle_traces) is not bool or (triangle_traces and not pixelwise):
+        raise ValueError('local_depth_triangle_trace_requires_pixels')
     verify_source(files,artifact,bundle,request)
     mapping=json.loads((bundle.path/'map.json').read_bytes())
     yaw=(request.get('projection') or {}).get('yaw_degrees',0)
@@ -54,9 +56,18 @@ def analyze(files,artifact,bundle,request,*,midpoints=False,pixelwise=True,on_pa
                      for a,b in zip(samples,samples[1:])]
         for sample in samples:
             time=sample['tick']/1e6
-            try:check=checker.check(pair['arm_slot'],pair['torso_slot'],time,sample['source_tick'])
+            triangles={}
+            def collect(index,counts):
+                triangles.setdefault(index,Counter()).update(counts)
+            try:check=checker.check(pair['arm_slot'],pair['torso_slot'],time,sample['source_tick'],
+                                  **({'on_triangle':collect} if triangle_traces else {}))
             except ValueError as error:check=dict(status='unmeasured',reason_code=str(error),time=time)
-            rows.append(dict(pair=[pair['arm_slot'],pair['torso_slot']],source_tick=sample['source_tick'],check=check))
+            row=dict(pair=[pair['arm_slot'],pair['torso_slot']],source_tick=sample['source_tick'],check=check)
+            if triangle_traces:
+                row['triangle_observations']=[dict(triangle=i,counts=dict(counts)) for i,counts in sorted(triangles.items())]
+                row['triangle_scope']='per_triangle_observations_may_overlap_not_unique_pixel_counts'
+                row['trace_complete']=check['status']!='unmeasured'
+            rows.append(row)
         if on_pair:on_pair()
     return dict(profile=HELPER_PROFILE if sleeve_helpers else PROFILE,job_id=request['job_id'],artifact_sha256=artifact,
         **(dict(sleeve_helpers=dict(sleeve_helpers),helper_model_scope='explicit_planar_helper_assumption_not_observed_cloth_depth') if sleeve_helpers else {}),
