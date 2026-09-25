@@ -1,0 +1,165 @@
+{
+  "schema": "autospine.view-corrective-comparison/v1",
+  "records": [
+    {
+      "folder": "tmp\\m4-moving-workbench\\alice-squat-shared60-v1",
+      "candidate_sha256": "86af7c065d0c41ad9a8f4fb02d990a0ae5c07f3b1c2b093bbe8db9b623414bb4",
+      "geometry_passed": false,
+      "failed_records": [
+        {
+          "animation": "external-motion",
+          "failing_frame_count": 376,
+          "first_failure": {
+            "frame": 136,
+            "inversions": 0,
+            "max_area_ratio": 1.1367810113890242,
+            "max_edge_stretch": 1.254560197768185,
+            "min_area_ratio": 0.4959564108424334,
+            "time": 0.40833340625000003
+          },
+          "inversion_samples": 0,
+          "max_area_ratio": 1.9331738506973386,
+          "max_edge_stretch": 1.9828925131291377,
+          "min_area_ratio": 0.3003367250580087,
+          "passed": false,
+          "sample_count": 623,
+          "slot": "layer-001-l"
+        },
+        {
+          "animation": "external-motion",
+          "failing_frame_count": 258,
+          "first_failure": {
+            "frame": 73,
+            "inversions": 0,
+            "max_area_ratio": 1.2007173777084288,
+            "max_edge_stretch": 1.240393912699315,
+            "min_area_ratio": 0.4997077289208294,
+            "time": 0.22239587304687503
+          },
+          "inversion_samples": 0,
+          "max_area_ratio": 1.8868630291176864,
+          "max_edge_stretch": 1.8521155647728762,
+          "min_area_ratio": 0.42705512003189994,
+          "passed": false,
+          "sample_count": 623,
+          "slot": "layer-001-r"
+        }
+      ],
+      "torso": {
+        "applied": false,
+        "failure_count": 57
+      }
+    },
+    {
+      "folder": "tmp\\m4-moving-workbench\\alice-squat-shared-minus55-v1",
+      "candidate_sha256": "3b8c76f2fb24830c1735f3f8b7d6efde25ccc8e421356ef8515b9e8638418756",
+      "geometry_passed": false,
+      "failed_records": [
+        {
+          "animation": "external-motion",
+          "failing_frame_count": 140,
+          "first_failure": {
+            "frame": 119,
+            "inversions": 0,
+            "max_area_ratio": 1.2105160553102587,
+            "max_edge_stretch": 1.3044699684210252,
+            "min_area_ratio": 0.49999326381595044,
+            "time": 0.360937564453125
+          },
+          "inversion_samples": 0,
+          "max_area_ratio": 1.889780358955932,
+          "max_edge_stretch": 1.8977213405466054,
+          "min_area_ratio": 0.47646913679604386,
+          "passed": false,
+          "sample_count": 623,
+          "slot": "layer-001-l"
+        },
+        {
+          "animation": "external-motion",
+          "failing_frame_count": 386,
+          "first_failure": {
+            "frame": 118,
+            "inversions": 0,
+            "max_area_ratio": 1.134783084874926,
+            "max_edge_stretch": 1.2507905017447156,
+            "min_area_ratio": 0.4999184659291111,
+            "time": 0.35729173046875
+          },
+          "inversion_samples": 0,
+          "max_area_ratio": 1.9088420742902041,
+          "max_edge_stretch": 1.903940162139724,
+          "min_area_ratio": 0.3112298513383817,
+          "passed": false,
+          "sample_count": 623,
+          "slot": "layer-001-r"
+        },
+        {
+          "animation": "external-motion",
+          "failing_frame_count": 119,
+          "first_failure": {
+            "frame": 285,
+            "inversions": 0,
+            "max_area_ratio": 1.2178854634357812,
+            "max_edge_stretch": 1.4201427905747412,
+            "min_area_ratio": 0.49972953093715944,
+            "time": 0.856770986328125
+          },
+          "inversion_samples": 0,
+          "max_area_ratio": 1.2324486312853575,
+          "max_edge_stretch": 1.4376396861949274,
+          "min_area_ratio": 0.4873758866339745,
+          "passed": false,
+          "sample_count": 623,
+          "slot": "layer-005"
+        }
+      ],
+      "torso": {
+        "applied": true,
+        "failure_count": 0
+      }
+    },
+    {
+      "folder": "tmp\\m4-moving-workbench\\alice-squat-shared-minus55-runtime-v1",
+      "candidate_sha256": "a89c248da5c3717c717a33816c287bd5fae702625392700f332234d527e8a57d",
+      "geometry_passed": false,
+      "failed_records": [
+        {
+          "animation": "external-motion",
+          "failing_frame_count": 238,
+          "first_failure": {
+            "frame": 569,
+            "inversions": 0,
+            "max_area_ratio": 1.2176935181677462,
+            "max_edge_stretch": 1.4198494931487007,
+            "min_area_ratio": 0.4999170419364754,
+            "time": 0.8549480693359375
+          },
+          "inversion_samples": 0,
+          "max_area_ratio": 1.2324486312853575,
+          "max_edge_stretch": 1.4376396861949274,
+          "min_area_ratio": 0.4873758866339745,
+          "passed": false,
+          "sample_count": 1245,
+          "slot": "layer-005"
+        }
+      ],
+      "runtime": {
+        "passed": true,
+        "frames": 1245,
+        "runtime_version": "4.3.13"
+      }
+    }
+  ],
+  "authority": "none",
+  "selected": false,
+  "visual_observations": [
+    "minus55 frame 640: visible shoulder/cape gaps and detached light region right of skirt",
+    "front head and planar torso do not establish coherent side-facing artwork"
+  ],
+  "remaining": [
+    "skirt geometry failure",
+    "contact and depth revalidation",
+    "visual coherence"
+  ],
+  "scope": "diagnostic_comparison_not_accepted_candidate"
+}

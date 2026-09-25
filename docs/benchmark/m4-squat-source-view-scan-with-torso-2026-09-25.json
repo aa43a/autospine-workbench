@@ -1,0 +1,3285 @@
+{
+  "schema": "autospine.source-view-scan/v1",
+  "motion_identity": {
+    "bundle_sha256": "ef7afe08aab29cb0b617aefd9c7d2162f96b2930dba70f8b37a61c2d88e5c2ab",
+    "bvh_map_sha256": "e77a4090381517d48dc08a903db1b9ebe5ba223ca89cabb1eed5ba0b57eb2cca",
+    "clip_id": "external.cf0b3afbf92df08c.front",
+    "clip_sha256": "fb57014391df27c737995214f3ec89918b99192ceda0b4d1626d8cfbfc261061",
+    "map_id": "mixamo-declared-body-v1",
+    "motion_ir_sha256": "fb57014391df27c737995214f3ec89918b99192ceda0b4d1626d8cfbfc261061",
+    "raw_bvh_byte_length": 169539,
+    "raw_bvh_sha256": "cf0b3afbf92df08cd71fc680ffd49d32420e3a66de7f36ff64d930b9321ee55d",
+    "reused": false,
+    "run_sha256": "8da605d84b8040bda1747658ec9511c4b52f81fd646de6d4ea5256df05620aee",
+    "source_kind": "bvh"
+  },
+  "request_sha256": "cb92b09d5767970f65921cb656f58b8763d5afed05ff529a4ce84e5894da2d6a",
+  "spatial_vectors_sha256": "e3a24e5e91e9ba20e8e6983100818664a6745b3392ee3962bdb98772f4107517",
+  "candidates": [
+    {
+      "yaw_degrees": -90,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.8569951106434024,
+          "minimum_frame": 36,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.768296969373182
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.8364359324018535,
+          "minimum_frame": 20,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.0438935451825273
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.7956745656818872,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.8532053525529477
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.7453570423469807,
+          "minimum_frame": 33,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.6917756240995914
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.9781360812067532,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 11.787470792775366
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.9769042709191699,
+          "minimum_frame": 24,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 8.904469160198175
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.8820394208274404,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 11.76942056089905
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.9285809732569996,
+          "minimum_frame": 25,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 9.053230433388848
+        }
+      ],
+      "torso": {
+        "source_supported": false,
+        "minimum_width_ratio": 0.03114028748011971,
+        "maximum_width_ratio": 0.08667087268554893,
+        "reasons": [
+          "torso_side_view_degenerate",
+          "torso_width_outside_candidate_range"
+        ],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": -85,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.8671108647757086,
+          "minimum_frame": 37,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.5895565300013175
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.8277794024439461,
+          "minimum_frame": 21,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.2682258551836867
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.7892483086015245,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.7709151439553352
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.7562765573551297,
+          "minimum_frame": 3,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.6901301307649987
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.9884325164405048,
+          "minimum_frame": 0,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 11.978365872709503
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.9614786286794506,
+          "minimum_frame": 24,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 8.726715176111156
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.9196506247912691,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 11.900127052366543
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.89271685019849,
+          "minimum_frame": 25,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 8.896848291063861
+        }
+      ],
+      "torso": {
+        "source_supported": false,
+        "minimum_width_ratio": 0.1148729082791169,
+        "maximum_width_ratio": 0.1631692223177876,
+        "reasons": [
+          "torso_side_view_degenerate",
+          "torso_width_outside_candidate_range"
+        ],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": -80,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.8777858220637692,
+          "minimum_frame": 37,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.379370872824552
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.8201577425264103,
+          "minimum_frame": 22,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.462619280406841
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.7851894360600743,
+          "minimum_frame": 30,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.6468588809564153
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.7683749513537915,
+          "minimum_frame": 3,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.645841582120056
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.9880722811155772,
+          "minimum_frame": 56,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 12.079558282179846
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.942576633159815,
+          "minimum_frame": 24,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 8.486598737661978
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.9500840523403778,
+          "minimum_frame": 22,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 11.939683015366256
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.850065640920043,
+          "minimum_frame": 25,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 8.67318163778566
+        }
+      ],
+      "torso": {
+        "source_supported": false,
+        "minimum_width_ratio": 0.18984381898263913,
+        "maximum_width_ratio": 0.24740748014081435,
+        "reasons": [
+          "torso_width_outside_candidate_range"
+        ],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": -75,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.8898026707198401,
+          "minimum_frame": 37,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.144764738420065
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.8150231802667319,
+          "minimum_frame": 22,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.619693847732293
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.7840153252849992,
+          "minimum_frame": 29,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.4837827117145252
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.7835091019306205,
+          "minimum_frame": 2,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.568268080861486
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.9852416434366439,
+          "minimum_frame": 3,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 12.08849480312628
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.9205781736955329,
+          "minimum_frame": 24,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 8.185940458665357
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.9734258458171001,
+          "minimum_frame": 21,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 11.889824878892995
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.800953066772921,
+          "minimum_frame": 25,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 8.382436132738405
+        }
+      ],
+      "torso": {
+        "source_supported": false,
+        "minimum_width_ratio": 0.2636414387434189,
+        "maximum_width_ratio": 0.32976393805775206,
+        "reasons": [
+          "torso_width_outside_candidate_range"
+        ],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": -70,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.9008629165502823,
+          "minimum_frame": 16,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.892380360380315
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.8118930426011036,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.7330541317908796
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.7860365374192189,
+          "minimum_frame": 29,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.2867942328281856
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.8013623937271004,
+          "minimum_frame": 2,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.46677821653779
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.9786818605064589,
+          "minimum_frame": 5,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 12.003323106214282
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.8959502787907669,
+          "minimum_frame": 24,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 7.826758683634694
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.9893263611577697,
+          "minimum_frame": 19,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 11.752843578652232
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.7457545097973967,
+          "minimum_frame": 25,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 8.025376324622528
+        }
+      ],
+      "torso": {
+        "source_supported": false,
+        "minimum_width_ratio": 0.33433759653156875,
+        "maximum_width_ratio": 0.40962805023370186,
+        "reasons": [
+          "torso_width_outside_candidate_range"
+        ],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": -65,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.912022277415722,
+          "minimum_frame": 16,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.6280858515020213
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.8080696453516629,
+          "minimum_frame": 29,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.7980359618402986
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.7916970508565112,
+          "minimum_frame": 29,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.062774166210886
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.8208854321875729,
+          "minimum_frame": 1,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.3496864177066072
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.9700140990087714,
+          "minimum_frame": 6,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 11.823026705012666
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.8692515247538671,
+          "minimum_frame": 24,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 7.411270931275425
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.9926629594016818,
+          "minimum_frame": 54,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 11.53144828015644
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.6848924166319045,
+          "minimum_frame": 25,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 7.6034196086403085
+        }
+      ],
+      "torso": {
+        "source_supported": false,
+        "minimum_width_ratio": 0.399799507591919,
+        "maximum_width_ratio": 0.48640706386810456,
+        "reasons": [
+          "torso_width_outside_candidate_range"
+        ],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": -60,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.9204912473292896,
+          "minimum_frame": 49,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.3567502827309568
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.8011919279484367,
+          "minimum_frame": 30,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.8122876859791575
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.8007502853669171,
+          "minimum_frame": 29,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.8689661821726133
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.8416559817067454,
+          "minimum_frame": 56,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.223730052250289
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.9593385897159566,
+          "minimum_frame": 7,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 11.547549851048586
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.8411361892760736,
+          "minimum_frame": 24,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 6.941908600190345
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.9908064335222476,
+          "minimum_frame": 35,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 11.228646096694376
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.6188335473471992,
+          "minimum_frame": 25,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 7.118719577112472
+        }
+      ],
+      "torso": {
+        "source_supported": false,
+        "minimum_width_ratio": 0.463212279967107,
+        "maximum_width_ratio": 0.5595295177987422,
+        "reasons": [
+          "torso_width_outside_candidate_range"
+        ],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": -55,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.9295333312829562,
+          "minimum_frame": 49,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.082164233999464
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.7972426185977229,
+          "minimum_frame": 30,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.7760546003599984
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.8128135017032254,
+          "minimum_frame": 29,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.767961126597129
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.862745139505802,
+          "minimum_frame": 0,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.093961526863154
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.9466662937380956,
+          "minimum_frame": 8,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 11.177902898221276
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.8123568564735205,
+          "minimum_frame": 24,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 6.421343289870691
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.9759597032271383,
+          "minimum_frame": 34,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 10.847643045051768
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.5480863009660671,
+          "minimum_frame": 25,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 6.574230831284069
+        }
+      ],
+      "torso": {
+        "source_supported": true,
+        "minimum_width_ratio": 0.5246107503346634,
+        "maximum_width_ratio": 0.6284487241814108,
+        "reasons": [],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": -50,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.9390038246649196,
+          "minimum_frame": 49,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.8070694096854254
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.7961771953122576,
+          "minimum_frame": 31,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.692101172963305
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.8273977884216098,
+          "minimum_frame": 29,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.6511611330504934
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.8840376203908964,
+          "minimum_frame": 0,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.9638898493830936
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.932047081675312,
+          "minimum_frame": 9,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 10.716238875904224
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.7837632441176322,
+          "minimum_frame": 24,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 5.852522347657612
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.9540733277709655,
+          "minimum_frame": 34,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 10.391769798151188
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.4731986450939846,
+          "minimum_frame": 25,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 7.0941503160231605
+        }
+      ],
+      "torso": {
+        "source_supported": true,
+        "minimum_width_ratio": 0.583574762024986,
+        "maximum_width_ratio": 0.6926462640397608,
+        "reasons": [],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": -45,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.948508337261693,
+          "minimum_frame": 50,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.5332584157938811
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.7979543707801414,
+          "minimum_frame": 31,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.5652954864043522
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.8439420109016186,
+          "minimum_frame": 29,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.5232718770435554
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.904894860038804,
+          "minimum_frame": 0,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.8357332215281303
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.9155047255196382,
+          "minimum_frame": 11,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 10.165893065512591
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.7562937813193669,
+          "minimum_frame": 24,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 5.238710537657624
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.925431329153602,
+          "minimum_frame": 34,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 9.86443426071557
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.39475803773252116,
+          "minimum_frame": 25,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 8.083664304240472
+        }
+      ],
+      "torso": {
+        "source_supported": true,
+        "minimum_width_ratio": 0.6396083073804241,
+        "maximum_width_ratio": 0.7518188506084387,
+        "reasons": [],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": -40,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.9578151697384877,
+          "minimum_frame": 50,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.2988013328284183
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.803143856898917,
+          "minimum_frame": 31,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.401959529769954
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.861846087660737,
+          "minimum_frame": 29,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.3885199165682707
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.9247334989056482,
+          "minimum_frame": 0,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.7106917735198124
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.8946751464159924,
+          "minimum_frame": 36,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 9.531379346217477
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.7309551605759864,
+          "minimum_frame": 24,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 4.583534066136963
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.8903003506893271,
+          "minimum_frame": 34,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 9.269101630995465
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.3133976933815246,
+          "minimum_frame": 25,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 9.668118980532768
+        }
+      ],
+      "torso": {
+        "source_supported": true,
+        "minimum_width_ratio": 0.6919995576806268,
+        "maximum_width_ratio": 0.8056393677912947,
+        "reasons": [],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": -35,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.9667216452342859,
+          "minimum_frame": 50,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.107715596748477
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.811524673927615,
+          "minimum_frame": 31,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.209129347832743
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.880500325920465,
+          "minimum_frame": 29,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.250414596687392
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.9430332162187974,
+          "minimum_frame": 0,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.594377274719676
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.8715800384837378,
+          "minimum_frame": 36,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 8.81833991467272
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.7087844149388448,
+          "minimum_frame": 24,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.891022636808941
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.8483370654051728,
+          "minimum_frame": 33,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 8.609301394631927
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.2298264607392785,
+          "minimum_frame": 25,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 12.64843984469536
+        }
+      ],
+      "torso": {
+        "source_supported": true,
+        "minimum_width_ratio": 0.738811935688348,
+        "maximum_width_ratio": 0.8533739566449096,
+        "reasons": [],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": -30,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.974971676540238,
+          "minimum_frame": 50,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.0277011862582413
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.8225384172766181,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.9938623659118093
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.899309174823405,
+          "minimum_frame": 29,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.1799700112295
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.95934091253709,
+          "minimum_frame": 0,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.4950048100906201
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.8479613820765137,
+          "minimum_frame": 36,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 8.033448498636233
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.6905409129998715,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.165644817133966
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.8000408569594866,
+          "minimum_frame": 33,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 7.888659574491982
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.14498125554787042,
+          "minimum_frame": 25,
+          "collapsed_samples": 8,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 18.520504024311606
+        }
+      ],
+      "torso": {
+        "source_supported": true,
+        "minimum_width_ratio": 0.7803195042200117,
+        "maximum_width_ratio": 0.8946507197250658,
+        "reasons": [],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": -25,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.9823340884410097,
+          "minimum_frame": 50,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.0770125612381207
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.8352250816006295,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.762687780300439
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.917709118576505,
+          "minimum_frame": 29,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.1173532428832118
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.9732725385268143,
+          "minimum_frame": 0,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.3972699925931522
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.8240303244971762,
+          "minimum_frame": 35,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 7.184271036498785
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.6770171949197861,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.412331857588981
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.7460690752960956,
+          "minimum_frame": 33,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 7.110953470550044
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.061501607387027125,
+          "minimum_frame": 25,
+          "collapsed_samples": 10,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 40.01345735919767
+        }
+      ],
+      "torso": {
+        "source_supported": true,
+        "minimum_width_ratio": 0.8155543579301514,
+        "maximum_width_ratio": 0.9291443816833598,
+        "reasons": [],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": -20,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.9886072818123111,
+          "minimum_frame": 50,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.1481687766587925
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.8499137828922662,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.521242042564438
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.9351813093216544,
+          "minimum_frame": 29,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.0517754608508767
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.9845135369913968,
+          "minimum_frame": 0,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.3007477661027735
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.8008314329259338,
+          "minimum_frame": 35,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 6.2790915332789154
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.6692471099813183,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.636485308384664
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.6869296378084848,
+          "minimum_frame": 33,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 6.366812227262784
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.0228729414382871,
+          "minimum_frame": 30,
+          "collapsed_samples": 10,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 104.25403282405262
+        }
+      ],
+      "torso": {
+        "source_supported": true,
+        "minimum_width_ratio": 0.8443949393647099,
+        "maximum_width_ratio": 0.957063706982852,
+        "reasons": [],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": -15,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.9901252361163956,
+          "minimum_frame": 29,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.2187432154559303
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.8660686230964479,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.2740848785674643
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.9512599474387415,
+          "minimum_frame": 29,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 0.9839668159554833
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.9928185692392835,
+          "minimum_frame": 0,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.2047143753785292
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.7791753625973895,
+          "minimum_frame": 34,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 5.3267139353724815
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.6676696999292369,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.1072922603474922
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.6232175752564978,
+          "minimum_frame": 33,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 7.028467741640668
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.10275027522110843,
+          "minimum_frame": 30,
+          "collapsed_samples": 10,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 26.585459461504314
+        }
+      ],
+      "torso": {
+        "source_supported": true,
+        "minimum_width_ratio": 0.8657570634783472,
+        "maximum_width_ratio": 0.9781598571562301,
+        "reasons": [],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": -10,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.9824072999333623,
+          "minimum_frame": 29,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.2848601807750697
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.88313243641831,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.024662119128834
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.9655374880222708,
+          "minimum_frame": 29,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 0.9143709323273868
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.9916417615566202,
+          "minimum_frame": 37,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.1081959610090735
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.753458900032813,
+          "minimum_frame": 22,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 4.336252947907326
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.6723762049623169,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.1973467575721202
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.5536313486591202,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 7.895242398102937
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.18833072869828216,
+          "minimum_frame": 30,
+          "collapsed_samples": 5,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 16.969146610127524
+        }
+      ],
+      "torso": {
+        "source_supported": true,
+        "minimum_width_ratio": 0.8795671618043279,
+        "maximum_width_ratio": 0.9925957868037143,
+        "reasons": [],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": -5,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.972740858152335,
+          "minimum_frame": 29,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.3465670354032682
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.9005501883705193,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.7753705210478756
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.9776676345923396,
+          "minimum_frame": 29,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 0.8431833786867173
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.9819941118029972,
+          "minimum_frame": 37,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.0099967704831556
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.7301251874387733,
+          "minimum_frame": 22,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.3169274490999783
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.6830965229340544,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.2610825253647704
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.4801593008683608,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 9.055594869962732
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.2729446848595716,
+          "minimum_frame": 30,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 12.86218284470121
+        }
+      ],
+      "torso": {
+        "source_supported": true,
+        "minimum_width_ratio": 0.8854637315786704,
+        "maximum_width_ratio": 0.999844348781159,
+        "reasons": [],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": 0,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.9613658263723156,
+          "minimum_frame": 29,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.4037021744938443
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.9177876153376877,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.52768182218324
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.9873668885093255,
+          "minimum_frame": 29,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 0.8234572581454813
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.9689227386510413,
+          "minimum_frame": 37,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 0.908712981350277
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.7102679903381428,
+          "minimum_frame": 22,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.2778694436066473
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.698909345766451,
+          "minimum_frame": 22,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.5691113088238353
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.4036241923540731,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 10.64943622037373
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.35423599961441465,
+          "minimum_frame": 31,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 10.383615904742612
+        }
+      ],
+      "torso": {
+        "source_supported": true,
+        "minimum_width_ratio": 0.8831527215118213,
+        "maximum_width_ratio": 1.0,
+        "reasons": [],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": 5,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.9485731404454308,
+          "minimum_frame": 29,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.4558711913637694
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.9342924797292934,
+          "minimum_frame": 33,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.2822922704959296
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.9944152240817914,
+          "minimum_frame": 29,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 0.9840670797450741
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.9526934117271841,
+          "minimum_frame": 37,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 0.8027384732029077
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.6948113865198464,
+          "minimum_frame": 22,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.4737729812702582
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.7190566627133546,
+          "minimum_frame": 22,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.3623498319381895
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.32502537572563556,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 12.890591376185512
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.43314096124022794,
+          "minimum_frame": 31,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 8.892581888177887
+        }
+      ],
+      "torso": {
+        "source_supported": true,
+        "minimum_width_ratio": 0.872519890451961,
+        "maximum_width_ratio": 0.993554807892044,
+        "reasons": [],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": 10,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.9347017818589647,
+          "minimum_frame": 29,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.5024257012668727
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.9493525097478217,
+          "minimum_frame": 33,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.0392747988054793
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.9984466920281552,
+          "minimum_frame": 42,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.1427229737177242
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.9336489771713412,
+          "minimum_frame": 37,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 0.6902698815532631
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.6845359059628261,
+          "minimum_frame": 22,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.356212914530289
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.7428989033675989,
+          "minimum_frame": 22,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.138193919998514
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.24466935188338917,
+          "minimum_frame": 31,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 16.803168534955944
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.5092194870083165,
+          "minimum_frame": 31,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 7.746718248620596
+        }
+      ],
+      "torso": {
+        "source_supported": true,
+        "minimum_width_ratio": 0.8536475336352705,
+        "maximum_width_ratio": 0.9794939258936353,
+        "reasons": [],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": 15,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.9199884588626304,
+          "minimum_frame": 30,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.7003288994278876
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.9629927747546554,
+          "minimum_frame": 33,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 0.8748906064502933
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.995591306983611,
+          "minimum_frame": 56,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.2980422791940214
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.9122115124030411,
+          "minimum_frame": 37,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 0.6681779474837981
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.679993310658454,
+          "minimum_frame": 22,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.2285627492637445
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.7694050116600957,
+          "minimum_frame": 22,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.8895947581959263
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.15974262251683866,
+          "minimum_frame": 31,
+          "collapsed_samples": 5,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 24.8944869746843
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.5806101137230588,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 6.870032277568015
+        }
+      ],
+      "torso": {
+        "source_supported": true,
+        "minimum_width_ratio": 0.8268152057970912,
+        "maximum_width_ratio": 0.9579252717307911,
+        "reasons": [],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": 20,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.9049522389370007,
+          "minimum_frame": 30,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.9832794850952666
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.974866427104124,
+          "minimum_frame": 33,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 0.851002430102966
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.9901624109237946,
+          "minimum_frame": 56,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.4510225595177246
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.8888843349012763,
+          "minimum_frame": 37,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 0.6772018844771992
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.6814364894905011,
+          "minimum_frame": 22,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.9043101052114366
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.7973274888736622,
+          "minimum_frame": 21,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 4.609728933150393
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.0748081071446882,
+          "minimum_frame": 31,
+          "collapsed_samples": 11,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 41.60723864927019
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.6478009239784254,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 6.192911086348886
+        }
+      ],
+      "torso": {
+        "source_supported": true,
+        "minimum_width_ratio": 0.7924839060749251,
+        "maximum_width_ratio": 0.9290175548538896,
+        "reasons": [],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": 25,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.8899801331933253,
+          "minimum_frame": 31,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.266595326983065
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.9846824138597007,
+          "minimum_frame": 33,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 0.8431825468387046
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.9827416474750785,
+          "minimum_frame": 56,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.6024124198777656
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.8642531768996081,
+          "minimum_frame": 37,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 0.6844147883429628
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.6887844855325371,
+          "minimum_frame": 22,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.9175906204058606
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.8255878128541281,
+          "minimum_frame": 21,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 5.292131591478665
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.02653370204459046,
+          "minimum_frame": 31,
+          "collapsed_samples": 12,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 136.9748047828528
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.710556885056342,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 5.720484310479577
+        }
+      ],
+      "torso": {
+        "source_supported": true,
+        "minimum_width_ratio": 0.7512659104796042,
+        "maximum_width_ratio": 0.8929986773610864,
+        "reasons": [],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": 30,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.875312642682194,
+          "minimum_frame": 31,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.547372433949647
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.980965715260838,
+          "minimum_frame": 50,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 0.8568018815261098
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.9735119569704233,
+          "minimum_frame": 56,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.752647685756699
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.8389853869772752,
+          "minimum_frame": 37,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 0.6891737387203989
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.7016338894779532,
+          "minimum_frame": 22,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.9042946296063974
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.8537360949060943,
+          "minimum_frame": 21,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 5.930817221333655
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.03898440982482097,
+          "minimum_frame": 24,
+          "collapsed_samples": 11,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 57.260559769170754
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.7682793280029139,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 6.023363837445714
+        }
+      ],
+      "torso": {
+        "source_supported": true,
+        "minimum_width_ratio": 0.7038846456622314,
+        "maximum_width_ratio": 0.8501534530026383,
+        "reasons": [],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": 35,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.8615275472882952,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.8216164771039587
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.9718079402478532,
+          "minimum_frame": 50,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 0.8676942181988352
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.961762244321232,
+          "minimum_frame": 36,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.9017760444255885
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.8138254099598181,
+          "minimum_frame": 37,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 0.7516032888149482
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.7193128529797518,
+          "minimum_frame": 22,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 4.858458970152213
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.88082247723121,
+          "minimum_frame": 20,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 6.520381375675413
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.1256764622080278,
+          "minimum_frame": 24,
+          "collapsed_samples": 8,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 27.48785355468374
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.8200147934226931,
+          "minimum_frame": 33,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 6.588259843468677
+        }
+      ],
+      "torso": {
+        "source_supported": true,
+        "minimum_width_ratio": 0.6511301543323259,
+        "maximum_width_ratio": 0.8008207004547495,
+        "reasons": [],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": 40,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.8490684084017069,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.084223056690746
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.9612803232280708,
+          "minimum_frame": 50,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 0.9874500543672298
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.9478862042001632,
+          "minimum_frame": 36,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.0493679908930176
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.7895840919719511,
+          "minimum_frame": 37,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 0.8986443688161785
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.7409611187603767,
+          "minimum_frame": 22,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 5.77453626148602
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.905213236527584,
+          "minimum_frame": 36,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 7.0560783321751614
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.21161787794259584,
+          "minimum_frame": 24,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 17.002605766529825
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.8655189787615648,
+          "minimum_frame": 33,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 7.102944704947788
+        }
+      ],
+      "torso": {
+        "source_supported": true,
+        "minimum_width_ratio": 0.5938156386545027,
+        "maximum_width_ratio": 0.7453897853845992,
+        "reasons": [],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": 45,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.8385436323532423,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.329077335635816
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.949347129144686,
+          "minimum_frame": 45,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.1571313195257744
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.9326015667532763,
+          "minimum_frame": 36,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.1944151327068653
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.7671187706933389,
+          "minimum_frame": 37,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.0523183425499383
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.7654853362437649,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 6.647323035202248
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.9246248436875668,
+          "minimum_frame": 36,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 7.533871758769266
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.2959757953142483,
+          "minimum_frame": 24,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 12.972214680759862
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.9049123568176242,
+          "minimum_frame": 33,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 7.564956758333835
+        }
+      ],
+      "torso": {
+        "source_supported": true,
+        "minimum_width_ratio": 0.5327394962344298,
+        "maximum_width_ratio": 0.6842966996357033,
+        "reasons": [],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": 50,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.8303518409835668,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.5493088873248553
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.9365347815308406,
+          "minimum_frame": 45,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.3253741520386768
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.9163144775432559,
+          "minimum_frame": 36,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.335221840077679
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.7473010835113347,
+          "minimum_frame": 37,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.2084914305785048
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.7919720332528921,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 7.47188542434219
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.9423096402294797,
+          "minimum_frame": 37,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 7.9504576613443305
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.37700333001771136,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 10.542248907701719
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.937819844712799,
+          "minimum_frame": 34,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 7.9721292503505765
+        }
+      ],
+      "torso": {
+        "source_supported": false,
+        "minimum_width_ratio": 0.468655635983522,
+        "maximum_width_ratio": 0.6180197743755558,
+        "reasons": [
+          "torso_width_outside_candidate_range"
+        ],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": 55,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.8248144187370481,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.7377188241873114
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.9232282473920028,
+          "minimum_frame": 45,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.4926366446118777
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.8994792141611347,
+          "minimum_frame": 36,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.469303377901724
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.7309706218534064,
+          "minimum_frame": 37,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.383866258501314
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.8195451001791203,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 8.243489450171637
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.9578563127986904,
+          "minimum_frame": 38,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 8.303260975136993
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.4552370443330295,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 8.873548889236588
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.9635436987453267,
+          "minimum_frame": 34,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 8.322524674561578
+        }
+      ],
+      "torso": {
+        "source_supported": false,
+        "minimum_width_ratio": 0.4022531668252473,
+        "maximum_width_ratio": 0.5470751269278654,
+        "reasons": [
+          "torso_width_outside_candidate_range"
+        ],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": 60,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.8221543921995443,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.887362107944739
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.9096445590165376,
+          "minimum_frame": 43,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.6590456823324757
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.8825907442617301,
+          "minimum_frame": 36,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.5933130403077485
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.718875606717756,
+          "minimum_frame": 37,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.6631287197337201
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.847302242675989,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 8.957542064665972
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.9709381547458301,
+          "minimum_frame": 39,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 8.59040891747037
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.5303921845616216,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 9.07907616101221
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.9825604537989784,
+          "minimum_frame": 34,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 8.6143803411818
+        }
+      ],
+      "torso": {
+        "source_supported": false,
+        "minimum_width_ratio": 0.33411771058302037,
+        "maximum_width_ratio": 0.4720119383606818,
+        "reasons": [
+          "torso_width_outside_candidate_range"
+        ],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": 65,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.8224806085721479,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.992223435895312
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.8959758625922727,
+          "minimum_frame": 43,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.835260392871504
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.8660071833906445,
+          "minimum_frame": 35,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.7030313173646334
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.7116066279872131,
+          "minimum_frame": 37,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.9315801246384297
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.8744224735075122,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 9.609548096080175
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.9813691845887571,
+          "minimum_frame": 41,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 8.810685513353405
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.6017525114689878,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 9.744629226924474
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.9945471642831027,
+          "minimum_frame": 35,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 8.84606858756311
+        }
+      ],
+      "torso": {
+        "source_supported": false,
+        "minimum_width_ratio": 0.26463953681120717,
+        "maximum_width_ratio": 0.39340765122398375,
+        "reasons": [
+          "torso_width_outside_candidate_range"
+        ],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": 70,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.8257796585406889,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 4.047883140928661
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.8829653786482444,
+          "minimum_frame": 43,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.063203480191362
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.8491471084767919,
+          "minimum_frame": 33,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.793458723094261
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.7095347472601514,
+          "minimum_frame": 37,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.1755237808563095
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.9001756083522507,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 10.195087167881127
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.9892810969022681,
+          "minimum_frame": 42,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 8.963472484302969
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.6686977221129004,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 10.327830366361752
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.995667833510977,
+          "minimum_frame": 52,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 9.01607413678255
+        }
+      ],
+      "torso": {
+        "source_supported": false,
+        "minimum_width_ratio": 0.19442926274427877,
+        "maximum_width_ratio": 0.3118631663128481,
+        "reasons": [
+          "torso_width_outside_candidate_range"
+        ],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": 75,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.8316742095283506,
+          "minimum_frame": 33,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 4.0520477705485405
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.8710463879965905,
+          "minimum_frame": 43,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.289490026922863
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.8325467678106765,
+          "minimum_frame": 33,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.859055121317027
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.7127680526208113,
+          "minimum_frame": 37,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.3816699364827514
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.9239247078022208,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 10.70981354373572
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.9940462818589486,
+          "minimum_frame": 51,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 9.048681972622546
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.7306732010693537,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 10.82439392318824
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.9929849625504666,
+          "minimum_frame": 25,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 9.122990257428143
+        }
+      ],
+      "torso": {
+        "source_supported": false,
+        "minimum_width_ratio": 0.12388053135044985,
+        "maximum_width_ratio": 0.2279980955452124,
+        "reasons": [
+          "torso_side_view_degenerate",
+          "torso_width_outside_candidate_range"
+        ],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": 80,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.8399614442064587,
+          "minimum_frame": 33,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 4.004832800291126
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.8599319690468378,
+          "minimum_frame": 20,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.5354034701057344
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.8177756062376469,
+          "minimum_frame": 33,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.8941549371962765
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.7211383226758779,
+          "minimum_frame": 37,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.5394718876466698
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.9451246493782134,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 11.149480689922228
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.9946566629832477,
+          "minimum_frame": 52,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 9.066686428101747
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.7871791335406606,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 11.231254737187442
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.9789069944070943,
+          "minimum_frame": 25,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 9.165534543761623
+        }
+      ],
+      "torso": {
+        "source_supported": false,
+        "minimum_width_ratio": 0.05332820901261276,
+        "maximum_width_ratio": 0.1424461237496396,
+        "reasons": [
+          "torso_side_view_degenerate",
+          "torso_width_outside_candidate_range"
+        ],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": 85,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.8486198339068652,
+          "minimum_frame": 36,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.9087342115060437
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.8472099090104213,
+          "minimum_frame": 20,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.7972262710798645
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.8053757832399515,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.8935534734082466
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.7326795555720613,
+          "minimum_frame": 33,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.643011611157533
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.9633189452063522,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 11.509991121990822
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.988515328287472,
+          "minimum_frame": 25,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 9.01825051006574
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.8377670446650836,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 11.54652688945447
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.9573842746446078,
+          "minimum_frame": 25,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 9.142584280276594
+        }
+      ],
+      "torso": {
+        "source_supported": false,
+        "minimum_width_ratio": -0.016939973891619425,
+        "maximum_width_ratio": 0.05585050697615148,
+        "reasons": [
+          "torso_back_view_requires_artwork",
+          "torso_side_view_degenerate",
+          "torso_width_outside_candidate_range"
+        ],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    },
+    {
+      "yaw_degrees": 90,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.8569951106434024,
+          "minimum_frame": 36,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.768296969373182
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.8364359324018535,
+          "minimum_frame": 20,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.0438935451825273
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.7956745656818872,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.8532053525529477
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.7453570423469807,
+          "minimum_frame": 33,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.6917756240995914
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.9781360812067532,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 11.787470792775423
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.9769042709191699,
+          "minimum_frame": 24,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 8.904469160198175
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.8820394208274404,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 11.76942056089905
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.9285809732569996,
+          "minimum_frame": 25,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 9.053230433388848
+        }
+      ],
+      "torso": {
+        "source_supported": false,
+        "minimum_width_ratio": -0.08667087268554893,
+        "maximum_width_ratio": -0.031140287480119593,
+        "reasons": [
+          "torso_back_view_requires_artwork",
+          "torso_side_view_degenerate"
+        ],
+        "limits": {
+          "width_ratio": [
+            0.5,
+            1.5
+          ],
+          "height_ratio": [
+            0.75,
+            1.25
+          ],
+          "maximum_shear": 0.5,
+          "minimum_visibility": 0.2
+        }
+      }
+    }
+  ],
+  "authority": "none",
+  "selected": false,
+  "scope": "source_samples_only_not_target_geometry_contact_or_visual_acceptance",
+  "limitations": [
+    "view_change_requires_matching_character_artwork_and_occlusion",
+    "adjacent_angle_is_not_angular_velocity_or_interpolation_validation"
+  ]
+}

@@ -1,0 +1,924 @@
+{
+  "schema": "autospine.source-view-scan/v1",
+  "motion_identity": {
+    "bundle_sha256": "ef7afe08aab29cb0b617aefd9c7d2162f96b2930dba70f8b37a61c2d88e5c2ab",
+    "bvh_map_sha256": "e77a4090381517d48dc08a903db1b9ebe5ba223ca89cabb1eed5ba0b57eb2cca",
+    "clip_id": "external.cf0b3afbf92df08c.front",
+    "clip_sha256": "fb57014391df27c737995214f3ec89918b99192ceda0b4d1626d8cfbfc261061",
+    "map_id": "mixamo-declared-body-v1",
+    "motion_ir_sha256": "fb57014391df27c737995214f3ec89918b99192ceda0b4d1626d8cfbfc261061",
+    "raw_bvh_byte_length": 169539,
+    "raw_bvh_sha256": "cf0b3afbf92df08cd71fc680ffd49d32420e3a66de7f36ff64d930b9321ee55d",
+    "reused": false,
+    "run_sha256": "8da605d84b8040bda1747658ec9511c4b52f81fd646de6d4ea5256df05620aee",
+    "source_kind": "bvh"
+  },
+  "request_sha256": "cb92b09d5767970f65921cb656f58b8763d5afed05ff529a4ce84e5894da2d6a",
+  "spatial_vectors_sha256": "e3a24e5e91e9ba20e8e6983100818664a6745b3392ee3962bdb98772f4107517",
+  "candidates": [
+    {
+      "yaw_degrees": -90,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.8569951106434024,
+          "minimum_frame": 36,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.768296969373182
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.8364359324018535,
+          "minimum_frame": 20,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.0438935451825273
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.7956745656818872,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.8532053525529477
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.7453570423469807,
+          "minimum_frame": 33,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.6917756240995914
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.9781360812067532,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 11.787470792775366
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.9769042709191699,
+          "minimum_frame": 24,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 8.904469160198175
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.8820394208274404,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 11.76942056089905
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.9285809732569996,
+          "minimum_frame": 25,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 9.053230433388848
+        }
+      ]
+    },
+    {
+      "yaw_degrees": -75,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.8898026707198401,
+          "minimum_frame": 37,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.144764738420065
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.8150231802667319,
+          "minimum_frame": 22,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.619693847732293
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.7840153252849992,
+          "minimum_frame": 29,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.4837827117145252
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.7835091019306205,
+          "minimum_frame": 2,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.568268080861486
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.9852416434366439,
+          "minimum_frame": 3,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 12.08849480312628
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.9205781736955329,
+          "minimum_frame": 24,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 8.185940458665357
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.9734258458171001,
+          "minimum_frame": 21,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 11.889824878892995
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.800953066772921,
+          "minimum_frame": 25,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 8.382436132738405
+        }
+      ]
+    },
+    {
+      "yaw_degrees": -60,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.9204912473292896,
+          "minimum_frame": 49,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.3567502827309568
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.8011919279484367,
+          "minimum_frame": 30,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.8122876859791575
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.8007502853669171,
+          "minimum_frame": 29,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.8689661821726133
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.8416559817067454,
+          "minimum_frame": 56,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.223730052250289
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.9593385897159566,
+          "minimum_frame": 7,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 11.547549851048586
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.8411361892760736,
+          "minimum_frame": 24,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 6.941908600190345
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.9908064335222476,
+          "minimum_frame": 35,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 11.228646096694376
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.6188335473471992,
+          "minimum_frame": 25,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 7.118719577112472
+        }
+      ]
+    },
+    {
+      "yaw_degrees": -45,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.948508337261693,
+          "minimum_frame": 50,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.5332584157938811
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.7979543707801414,
+          "minimum_frame": 31,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.5652954864043522
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.8439420109016186,
+          "minimum_frame": 29,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.5232718770435554
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.904894860038804,
+          "minimum_frame": 0,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.8357332215281303
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.9155047255196382,
+          "minimum_frame": 11,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 10.165893065512591
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.7562937813193669,
+          "minimum_frame": 24,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 5.238710537657624
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.925431329153602,
+          "minimum_frame": 34,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 9.86443426071557
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.39475803773252116,
+          "minimum_frame": 25,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 8.083664304240472
+        }
+      ]
+    },
+    {
+      "yaw_degrees": -30,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.974971676540238,
+          "minimum_frame": 50,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.0277011862582413
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.8225384172766181,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.9938623659118093
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.899309174823405,
+          "minimum_frame": 29,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.1799700112295
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.95934091253709,
+          "minimum_frame": 0,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.4950048100906201
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.8479613820765137,
+          "minimum_frame": 36,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 8.033448498636233
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.6905409129998715,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.165644817133966
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.8000408569594866,
+          "minimum_frame": 33,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 7.888659574491982
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.14498125554787042,
+          "minimum_frame": 25,
+          "collapsed_samples": 8,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 18.520504024311606
+        }
+      ]
+    },
+    {
+      "yaw_degrees": -15,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.9901252361163956,
+          "minimum_frame": 29,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.2187432154559303
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.8660686230964479,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.2740848785674643
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.9512599474387415,
+          "minimum_frame": 29,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 0.9839668159554833
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.9928185692392835,
+          "minimum_frame": 0,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.2047143753785292
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.7791753625973895,
+          "minimum_frame": 34,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 5.3267139353724815
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.6676696999292369,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.1072922603474922
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.6232175752564978,
+          "minimum_frame": 33,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 7.028467741640668
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.10275027522110843,
+          "minimum_frame": 30,
+          "collapsed_samples": 10,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 26.585459461504314
+        }
+      ]
+    },
+    {
+      "yaw_degrees": 0,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.9613658263723156,
+          "minimum_frame": 29,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.4037021744938443
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.9177876153376877,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.52768182218324
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.9873668885093255,
+          "minimum_frame": 29,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 0.8234572581454813
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.9689227386510413,
+          "minimum_frame": 37,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 0.908712981350277
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.7102679903381428,
+          "minimum_frame": 22,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.2778694436066473
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.698909345766451,
+          "minimum_frame": 22,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.5691113088238353
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.4036241923540731,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 10.64943622037373
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.35423599961441465,
+          "minimum_frame": 31,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 10.383615904742612
+        }
+      ]
+    },
+    {
+      "yaw_degrees": 15,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.9199884588626304,
+          "minimum_frame": 30,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.7003288994278876
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.9629927747546554,
+          "minimum_frame": 33,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 0.8748906064502933
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.995591306983611,
+          "minimum_frame": 56,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.2980422791940214
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.9122115124030411,
+          "minimum_frame": 37,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 0.6681779474837981
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.679993310658454,
+          "minimum_frame": 22,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.2285627492637445
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.7694050116600957,
+          "minimum_frame": 22,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.8895947581959263
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.15974262251683866,
+          "minimum_frame": 31,
+          "collapsed_samples": 5,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 24.8944869746843
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.5806101137230588,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 6.870032277568015
+        }
+      ]
+    },
+    {
+      "yaw_degrees": 30,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.875312642682194,
+          "minimum_frame": 31,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.547372433949647
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.980965715260838,
+          "minimum_frame": 50,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 0.8568018815261098
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.9735119569704233,
+          "minimum_frame": 56,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.752647685756699
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.8389853869772752,
+          "minimum_frame": 37,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 0.6891737387203989
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.7016338894779532,
+          "minimum_frame": 22,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.9042946296063974
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.8537360949060943,
+          "minimum_frame": 21,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 5.930817221333655
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.03898440982482097,
+          "minimum_frame": 24,
+          "collapsed_samples": 11,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 57.260559769170754
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.7682793280029139,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 6.023363837445714
+        }
+      ]
+    },
+    {
+      "yaw_degrees": 45,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.8385436323532423,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.329077335635816
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.949347129144686,
+          "minimum_frame": 45,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.1571313195257744
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.9326015667532763,
+          "minimum_frame": 36,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.1944151327068653
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.7671187706933389,
+          "minimum_frame": 37,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.0523183425499383
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.7654853362437649,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 6.647323035202248
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.9246248436875668,
+          "minimum_frame": 36,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 7.533871758769266
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.2959757953142483,
+          "minimum_frame": 24,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 12.972214680759862
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.9049123568176242,
+          "minimum_frame": 33,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 7.564956758333835
+        }
+      ]
+    },
+    {
+      "yaw_degrees": 60,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.8221543921995443,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.887362107944739
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.9096445590165376,
+          "minimum_frame": 43,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.6590456823324757
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.8825907442617301,
+          "minimum_frame": 36,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.5933130403077485
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.718875606717756,
+          "minimum_frame": 37,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 1.6631287197337201
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.847302242675989,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 8.957542064665972
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.9709381547458301,
+          "minimum_frame": 39,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 8.59040891747037
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.5303921845616216,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 9.07907616101221
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.9825604537989784,
+          "minimum_frame": 34,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 8.6143803411818
+        }
+      ]
+    },
+    {
+      "yaw_degrees": 75,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.8316742095283506,
+          "minimum_frame": 33,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 4.0520477705485405
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.8710463879965905,
+          "minimum_frame": 43,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.289490026922863
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.8325467678106765,
+          "minimum_frame": 33,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.859055121317027
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.7127680526208113,
+          "minimum_frame": 37,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.3816699364827514
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.9239247078022208,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 10.70981354373572
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.9940462818589486,
+          "minimum_frame": 51,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 9.048681972622546
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.7306732010693537,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 10.82439392318824
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.9929849625504666,
+          "minimum_frame": 25,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 9.122990257428143
+        }
+      ]
+    },
+    {
+      "yaw_degrees": 90,
+      "records": [
+        {
+          "role": "humanoid.arm.lower.left",
+          "minimum_visibility": 0.8569951106434024,
+          "minimum_frame": 36,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.768296969373182
+        },
+        {
+          "role": "humanoid.arm.lower.right",
+          "minimum_visibility": 0.8364359324018535,
+          "minimum_frame": 20,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 3.0438935451825273
+        },
+        {
+          "role": "humanoid.arm.upper.left",
+          "minimum_visibility": 0.7956745656818872,
+          "minimum_frame": 32,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.8532053525529477
+        },
+        {
+          "role": "humanoid.arm.upper.right",
+          "minimum_visibility": 0.7453570423469807,
+          "minimum_frame": 33,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 2.6917756240995914
+        },
+        {
+          "role": "humanoid.leg.lower.left",
+          "minimum_visibility": 0.9781360812067532,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 11.787470792775423
+        },
+        {
+          "role": "humanoid.leg.lower.right",
+          "minimum_visibility": 0.9769042709191699,
+          "minimum_frame": 24,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 8.904469160198175
+        },
+        {
+          "role": "humanoid.leg.upper.left",
+          "minimum_visibility": 0.8820394208274404,
+          "minimum_frame": 23,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 11.76942056089905
+        },
+        {
+          "role": "humanoid.leg.upper.right",
+          "minimum_visibility": 0.9285809732569996,
+          "minimum_frame": 25,
+          "collapsed_samples": 0,
+          "undefined_direction_samples": 0,
+          "max_adjacent_angle_degrees": 9.053230433388848
+        }
+      ]
+    }
+  ],
+  "authority": "none",
+  "selected": false,
+  "scope": "source_samples_only_not_target_geometry_contact_or_visual_acceptance",
+  "limitations": [
+    "view_change_requires_matching_character_artwork_and_occlusion",
+    "adjacent_angle_is_not_angular_velocity_or_interpolation_validation"
+  ]
+}

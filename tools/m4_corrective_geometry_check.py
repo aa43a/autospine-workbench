@@ -12,7 +12,7 @@ from autospine_workbench.targets.character43.numeric_reference import read,write
 from autospine_workbench.targets.character43.deformation_qa import inspect
 
 
-def run(source,experiment,output):
+def prepare(source,experiment):
     receipt=json.loads((source/'report.json').read_bytes())
     report=json.loads((experiment/'report.json').read_bytes())
     if report['source_candidate']!=receipt['candidate_bundle_sha256']:
@@ -40,6 +40,12 @@ def run(source,experiment,output):
     value=dict(source_candidate=report['source_candidate'],skeleton_sha256=report['skeleton_sha256'],
         geometry=qa,selected_slots=sorted(selected),authority='none',selected=False,
         scope='full_character_sampled_geometry_not_runtime_or_visual_acceptance')
+    return files,value
+
+
+def run(source,experiment,output):
+    files,value=prepare(source,experiment)
+    qa=value['geometry'];selected=set(value['selected_slots'])
     with output.open('xb') as handle:handle.write(canonical_bytes(value))
     print(json.dumps(dict(passed=qa['passed'],failed=[r['slot'] for r in qa['records'] if not r['passed']],
         selected=[r for r in qa['records'] if r['slot'] in selected])),flush=True)
