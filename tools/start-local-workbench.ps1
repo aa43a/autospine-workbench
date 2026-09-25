@@ -17,7 +17,12 @@ foreach ($required in @($posePython, $poseModel)) {
 $env:AUTOSPINE_POSE_PYTHON = $posePython
 $env:AUTOSPINE_POSE_MODEL = $poseModel
 $env:PYTHONPATH = Join-Path $repoRoot 'src'
-& $Python -c 'from autospine_workbench.automation.input_preparation_runner import PoseRunnerConfig; s=PoseRunnerConfig.from_environment().public_status(); print(s); raise SystemExit(0 if s["status"] == "ready" else 1)'
+@'
+from autospine_workbench.automation.input_preparation_runner import PoseRunnerConfig
+status = PoseRunnerConfig.from_environment().public_status()
+print(status)
+raise SystemExit(0 if status["status"] == "ready" else 1)
+'@ | & $Python -
 if ($LASTEXITCODE -ne 0) { throw 'Pose runner verification failed; service not started' }
 if ($CheckOnly) { return }
 Push-Location $repoRoot

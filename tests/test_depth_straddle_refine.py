@@ -6,6 +6,21 @@ from autospine_workbench.targets.character43.depth_straddle_refine import refine
 
 
 class RefinementTests(unittest.TestCase):
+    def test_explicit_baked_plane_survives_per_pair_checker_recreation(self):
+        provider=Mock()
+        depth=dict(pairs=[dict(arm_slot=a,torso_slot=b,samples=[dict(tick=0,source_tick=0,
+            ambiguous=True,current_front_slot=a)]) for a,b in [('a','b'),('c','d')]])
+        checker=Mock();checker.axes={}
+        checker.check.return_value=dict(status='uniform_front_proxy')
+        with patch('autospine_workbench.targets.character43.torso_depth_refinement.Checker',return_value=checker) as factory:
+            _,report=refine({'slots':[]},{},'test',depth,None,torso_plane=True,pair_budgets=True,plane_provider=provider)
+        self.assertEqual(report['resolved_rows'],2)
+        self.assertEqual(len(factory.call_args_list),3)
+        self.assertTrue(all(call.kwargs['plane_provider'] is provider for call in factory.call_args_list))
+        self.assertEqual(report['torso_plane_source'],'explicit_provider_not_unwarped_bones')
+        with self.assertRaisesRegex(ValueError,'requires_torso_model'):
+            refine({}, {},'test',depth,None,plane_provider=provider)
+
     def test_pair_budgets_do_not_starve_later_pairs(self):
         depth=dict(pairs=[dict(arm_slot=a,torso_slot=b,samples=[dict(tick=0,source_tick=0,
             ambiguous=True,current_front_slot=a)]) for a,b in [('a','b'),('c','d')]])

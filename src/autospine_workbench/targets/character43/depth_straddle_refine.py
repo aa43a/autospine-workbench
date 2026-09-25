@@ -6,7 +6,9 @@ from .motion_depth_overlap import Probe
 PROFILE='local-depth-held-order-refinement-v1'
 
 
-def refine(document,files,animation,depth,sampler,*,torso_plane=False,rendered_bounds=False,order_probe=None,tiled=False,pair_budgets=False,sparse=False,sleeve_helpers=None):
+def refine(document,files,animation,depth,sampler,*,torso_plane=False,rendered_bounds=False,order_probe=None,tiled=False,pair_budgets=False,sparse=False,sleeve_helpers=None,plane_provider=None):
+    if plane_provider is not None and not torso_plane:
+        raise ValueError('depth_refinement_plane_requires_torso_model')
     candidate=deepcopy(depth)
     probe=Probe(document,files,animation,rendered_bounds=rendered_bounds,tiled=tiled,sparse=sparse)
     if order_probe is not None: order_probe.reuse(probe)
@@ -20,13 +22,15 @@ def refine(document,files,animation,depth,sampler,*,torso_plane=False,rendered_b
     budgets=[]; reused=0; axes={}
     if torso_plane:
         from .torso_depth_refinement import Checker,PROFILE as TORSO_PROFILE
-        checker=Checker(probe,sampler,sleeve_helpers=sleeve_helpers)
+        checker=Checker(probe,sampler,sleeve_helpers=sleeve_helpers,plane_provider=plane_provider)
         evidence.update(profile=TORSO_PROFILE,proxy_profile=TORSO_PROFILE,
             assumptions=['planar_torso','mesh_hand_axis_to_source_fingertip','same_arm_secondary_influence_envelope'])
+        if plane_provider is not None:
+            evidence['torso_plane_source']='explicit_provider_not_unwarped_bones'
     for pair in candidate['pairs']:
         if pair_budgets:
             probe=Probe(document,files,animation,rendered_bounds=rendered_bounds,tiled=tiled,sparse=sparse)
-            if torso_plane: checker=Checker(probe,sampler,sleeve_helpers=sleeve_helpers)
+            if torso_plane: checker=Checker(probe,sampler,sleeve_helpers=sleeve_helpers,plane_provider=plane_provider)
         arm,body=pair['arm_slot'],pair['torso_slot']
         for row in pair['samples']:
             if not row['ambiguous']:

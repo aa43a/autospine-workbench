@@ -1,0 +1,37 @@
+{
+  "profile": "baked-torso-order-refinement-probe-v1",
+  "artifact_sha256": "cb2f7dbccb796996108be3508293f2f5f0fee98b623ecaa4b4930b4ee7219fab",
+  "request_sha256": "d445d57116cb99eeb0751b98a47bd197012e407b4d41693eb34ecf765d0527b8",
+  "source_identity": {
+    "bundle_sha256": "5f531a9327ad59abde64e643438baa794e5618b5629d59c0e3f9d4da990948b7",
+    "bvh_map_sha256": "f9d1995881e5623f72208050cc9b639d98b1317da3322e3480cf50a283fa7f5c",
+    "clip_id": "external.a4233c602a77a95c.front",
+    "clip_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+    "map_id": "mixamo-declared-body-v1",
+    "motion_ir_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+    "raw_bvh_byte_length": 342778,
+    "raw_bvh_sha256": "a4233c602a77a95c1473ef7ab3f277fa7ca6aec5a98b4d5407dea904194bb2f4",
+    "reused": false,
+    "run_sha256": "c48c0ffcb9338d2bc72a1013f1be8366de8ea5583419f979a9ac1c080b534207",
+    "source_kind": "bvh"
+  },
+  "original_failure_count": 119,
+  "candidate_available": false,
+  "authority": "none",
+  "selected": false,
+  "production_authorized": false,
+  "scope": "source_frames_and_midpoints_proxy_order_not_surface_truth_or_visual_acceptance",
+  "report_sha256": "4d04ffdad567b9b51a8e25edd2b696fdf7ba85bf505424f7eb315fab6643e0cf",
+  "report_path": "tmp/m4-baked-order/alice-v1/report.json",
+  "resolved_rows": 0,
+  "remaining_rows": 82,
+  "pixel_budget_used": 3583978,
+  "checks": {
+    "requires_partition_or_more_depth": 12,
+    "uniform_front_proxy": 151
+  },
+  "failures": {
+    "visible_unmapped_order_conflict": 37,
+    "visible_depth_straddle": 82
+  }
+}
