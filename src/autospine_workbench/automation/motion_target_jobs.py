@@ -29,11 +29,13 @@ def assert_current(manager, request):
 
 
 def submit(manager, source_job, body):
-    if (set(body) - {'project_id', 'character_job_id', 'contact_correction', 'clip', 'projection', 'projection_selection', 'depth_review_profile', 'torso_projection_profile', 'pose_profile'}
+    if (set(body) - {'project_id', 'character_job_id', 'contact_correction', 'clip', 'projection', 'projection_selection', 'depth_review_profile', 'torso_projection_profile', 'pose_profile', 'moving_ankle_profile'}
             or not {'project_id', 'character_job_id'} <= set(body)
             or type(body.get('contact_correction', True)) is not bool):
         raise PipelineRunError('motion_request_invalid')
     source = manager.get(source_job)
+    from .motion_ankle_policy import select as select_ankles
+    ankle_profile = select_ankles(body)
     from .motion_pose_policy import select as select_pose
     pose_profile = select_pose(body)
     from .motion_depth_policy import select as select_depth
@@ -73,6 +75,8 @@ def submit(manager, source_job, body):
         request['torso_projection_profile'] = torso_profile
     if pose_profile is not None:
         request['pose_profile'] = pose_profile
+    if ankle_profile is not None:
+        request['moving_ankle_profile'] = ankle_profile
     if 'projection' in body:
         request['projection'] = dict(body['projection'])
     if 'projection_selection' in body:

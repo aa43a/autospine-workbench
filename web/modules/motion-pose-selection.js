@@ -3,6 +3,12 @@ export const LEGACY_POST_CONTACT_PROFILE='source-pose-post-contact-margin-v1';
 export const POST_CONTACT_PROFILE='source-pose-post-contact-timeline-v2';
 const postProfiles=[LEGACY_POST_CONTACT_PROFILE,POST_CONTACT_PROFILE];
 export function appendPoseSummary(container,job){
+  if(job.result?.moving_ankle_profile){
+    const ankle=document.createElement('p');ankle.textContent='脚端策略：跟随源动作（实验）；接触只检查，不锁脚。';
+    const details=document.createElement('a');details.textContent='查看脚端修正与最终误差';
+    details.href=`/api/motions/${job.job_id}/view/motion-review.json`;details.target='_blank';details.rel='noopener';
+    ankle.append(' ',details);container.append(ankle);
+  }
   const profile=job.result?.pose_profile;if(!profile)return;
   const note=document.createElement('p');
   note.textContent=profile===POST_CONTACT_PROFILE?'姿态策略：接触后修正与脚部帧间校正 v2（实验候选）':profile===LEGACY_POST_CONTACT_PROFILE?'姿态策略：接触后修正 v1（历史策略）':profile===POSE_PROFILE?'姿态策略：源姿态与髋中心（实验候选）':'姿态策略：'+profile;

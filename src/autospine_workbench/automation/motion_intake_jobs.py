@@ -52,6 +52,7 @@ class MotionIntakeJobs:
                     stage_review_available=True,
                     view_comparison_available=True,
                     oblique_target_available=True,
+                    moving_ankle_available=True,
                     oblique_comparison_available=True,
                     target_comparison_available=True,
                     regional_depth_available=True,

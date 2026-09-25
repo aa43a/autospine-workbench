@@ -4,10 +4,12 @@ import {createDepthSelection} from './motion-depth-selection.js';
 import {createTorsoSelection} from './motion-torso-selection.js';
 import {createPoseSelection} from './motion-pose-selection.js';
 import {successorId} from './motion-job-actions.js';
+import {createAnkleSelection} from './motion-ankle-selection.js';
 export function createTargetControls(request, refresh, selection) {
   const $ = id => document.getElementById(id);
   const depth = createDepthSelection($('adapt'));
   const torso = createTorsoSelection($('adapt'));
+  const ankles = createAnkleSelection($('adapt'),$('contact-correction'));
   let poseActive=false;
   const pose = createPoseSelection($('adapt'),value=>{
     poseActive=Boolean(value);automatic.suspend(poseActive);
@@ -34,6 +36,7 @@ export function createTargetControls(request, refresh, selection) {
     automatic.available(obliqueAvailable && value.oblique_comparison_available);
     depth.available(Boolean(value.regional_depth_available),Boolean(value.sparse_depth_available));
     torso.available(Boolean(value.torso_projection_available));
+    ankles.available(Boolean(value.moving_ankle_available));
   }).catch(() => {});
   function enabled() { $('adapt').disabled = busy || comparing || !source || !character; }
   async function selectProject() {
@@ -76,6 +79,7 @@ export function createTargetControls(request, refresh, selection) {
           ...torso.selection(depth.selection()),
           ...(obliqueAvailable && yaw.value !== '' ? {projection: {
             profile: 'constant-yaw-source-motion-v1', yaw_degrees: Number(yaw.value)}, ...automatic.selection()} : {})};
+      Object.assign(body,ankles.selection(body));
       Object.assign(body,pose.selection(body));
       const queued = await request(`/api/motions/${sourceId}/adapt`, {
         method: 'POST', headers: {'Content-Type': 'application/json', 'X-Autospine-Intent': 'pipeline-preview'},
@@ -90,7 +94,7 @@ export function createTargetControls(request, refresh, selection) {
   void loadProjects();
   return {select(job) {
     const changed=source?.job_id !== job?.job_id;
-    if (changed) {yaw.value = '';pose.reset();poseActive=false;}
+    if (changed) {yaw.value = '';pose.reset();ankles.reset();poseActive=false;}
     source = job?.result?.motion_status === 'compiled' ? job : null;
     automatic.source(source);
     if(changed){automatic.suspend(false);yaw.disabled=!obliqueAvailable;}

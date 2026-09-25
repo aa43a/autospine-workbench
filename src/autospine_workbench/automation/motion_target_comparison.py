@@ -13,6 +13,7 @@ KEYS = ('project_id', 'character_job_id', 'character_sha256', 'clip',
 def signature(manager, request):
     source = manager.get(request['source_job_id'])
     return {**({'pose_profile':request['pose_profile']} if 'pose_profile' in request else {}),
+            **({'moving_ankle_profile':request['moving_ankle_profile']} if 'moving_ankle_profile' in request else {}),
             **{key: request.get(key) for key in KEYS},
             'source_sha256': source['source_sha256'], 'source_format': source['format'],
             'source_sampling': {key: source.get('result', {}).get(key)

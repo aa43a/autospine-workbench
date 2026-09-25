@@ -250,6 +250,8 @@ def execute(folder, state_root, workspace):
     motion = bundle.motion
     from .motion_pose_policy import prepare as prepare_pose
     pose_fit = prepare_pose(bundle, request)
+    from .motion_ankle_policy import prepare as prepare_ankles
+    moving_ankles = prepare_ankles(bundle, request)
     oblique = None
     if request.get('projection') is not None:
         from ..targets.character43.oblique_target import prepare
@@ -277,6 +279,7 @@ def execute(folder, state_root, workspace):
         oblique=oblique,
         torso_projection=torso_projection,
         pose_fit=pose_fit,
+        moving_ankles=moving_ankles,
         clip_bounds=clip_bounds,
         character_digest=request['character_sha256'], motion_digest=motion_id['bundle_sha256'])
     progress(folder, 'publish_candidate')
@@ -309,6 +312,8 @@ def execute(folder, state_root, workspace):
         result['torso_projection_profile'] = request['torso_projection_profile']
     if pose_fit is not None:
         result['pose_profile'] = request['pose_profile']
+    if moving_ankles is not None:
+        result['moving_ankle_profile'] = request['moving_ankle_profile']
     if local_depth:result['local_depth_evidence_sha256']=local_depth
     (folder / 'worker-result.json').write_bytes(canonical_bytes(result))
 
