@@ -158,6 +158,7 @@ def review_file(manager, job, parts):
             variant = json.loads(files['view-pose-report.json'])['variant']
             report['additional_view'] = {k: variant[k] for k in (
                 'original_attachment', 'variant_attachment', 'interval', 'runtime_interval')}
+            report['additional_view']['switch_continuity'] = repair.get('switch_continuity')
         if 'pose-geometry-report.json' in files:
             patch = json.loads(files['pose-geometry-report.json'])
             poses = json.loads(files['pose-geometry-request.json'])

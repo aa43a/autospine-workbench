@@ -71,6 +71,8 @@ class RepairDiagnosticsTests(unittest.TestCase):
         variant = json.loads(output['view-pose-report.json'])['variant']
         self.assertEqual(report['additional_view']['runtime_interval'], variant['runtime_interval'])
         self.assertEqual(report['additional_view']['variant_attachment'], variant['variant_attachment'])
+        self.assertEqual(report['additional_view']['switch_continuity'],
+                         json.loads(output['view-switch-continuity.json']))
         self.assertEqual(report['before']['status'], 'unavailable')
         self.assertEqual({r['attachment'] for r in report['after']['records'] if r['slot']=='leg'},
                          {'leg', variant['variant_attachment']})

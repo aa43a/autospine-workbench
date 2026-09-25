@@ -1,4 +1,5 @@
 import {geometryLines} from './motion-repair-geometry.js';
+import {switchContinuityLines} from './motion-switch-continuity.js';
 export async function appendRepairSummary(panel,job) {
   if(!job.result?.repair_profile)return;
   const section=document.createElement('section');panel.append(section);
@@ -24,6 +25,9 @@ export async function appendRepairSummary(panel,job) {
       const v=report.additional_view,p=document.createElement('p');
       p.textContent=`新附件 ${v.variant_attachment} 在 ${v.interval.map(t=>Number(t.toFixed(6))).join('–')} 秒启用（含起点、不含终点），区间外恢复 ${v.original_attachment}。上方分别显示原附件和新附件的检查；任一附件失败均保留。切换边界、纹理接缝和整体动作仍需复核。`;
       section.append(p);
+      for(const text of switchContinuityLines(v.switch_continuity)){
+        const line=document.createElement('p');line.textContent=text;section.append(line);
+      }
       for(const time of v.runtime_interval) {
         const a=document.createElement('a');a.textContent=`检查切换边界 ${time.toFixed(6)} 秒 `;
         a.href=`/api/motions/${encodeURIComponent(job.job_id)}/view/player.html?time=${time}`;section.append(a);
