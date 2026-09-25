@@ -17,6 +17,21 @@ def build(files, artifact_sha256, runtime=None):
     rows = []
     def add(stage, status, explanation, href, **extra):
         rows.append(dict(stage=stage, status=status, explanation=explanation, href=href, **extra))
+    inherited = motion.get('inherited_issue_context')
+    if inherited:
+        parent_raw = files.get('parent-motion-review.json')
+        count = inherited.get('issue_count')
+        if (parent_raw is None or sha256(parent_raw).hexdigest() != inherited.get('source_review_sha256')
+                or type(count) is not int or count < 0):
+            raise ValueError('motion_readiness_parent_issue_identity')
+        parent_issues = json.loads(parent_raw).get('issues', [])
+        if len(parent_issues) != count or motion.get('issues', [])[:count] != parent_issues:
+            raise ValueError('motion_readiness_parent_issue_inventory')
+        if count:
+            add('原候选未解决项', 'needs_changes',
+                f'{count} 项原问题继续保留；新采样通过不会自动撤销它们。位置对应原候选，请查看原报告。',
+                'parent-motion-review.json', reasons=[i['reason_code'] for i in parent_issues],
+                source_skeleton_sha256=inherited.get('source_skeleton_sha256'), failures=[])
     projection = [i for i in motion.get('issues', []) if i['stage'] == 'projection']
     torso = read('motion-torso-projection.json')
     if torso:

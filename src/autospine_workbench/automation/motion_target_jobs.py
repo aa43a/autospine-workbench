@@ -181,10 +181,10 @@ def review_file(manager, job, parts):
         from ..targets.character43.final_motion_contact import for_candidate
         report = for_candidate(files, result['artifact_sha256'], json.loads(runtime_file('report.json')))
         return json.dumps(report, ensure_ascii=False).encode('utf-8'), 'application/json'
-    if parts == ['motion-review.json']:
-        if 'motion-review.json' not in files:
+    if parts in (['motion-review.json'], ['parent-motion-review.json']):
+        if parts[0] not in files:
             raise PipelineRunError('pipeline_artifact_not_found')
-        return files['motion-review.json'], 'application/json'
+        return files[parts[0]], 'application/json'
     if parts == ['bend-status.json']:
         from ..motion_bundle_reader import VerifiedMotionBundleReader
         from ..targets.character43.knee_projection import build
