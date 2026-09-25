@@ -217,6 +217,9 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
     if depth is not None:
         depth.update(character_sha256=character_digest, motion_bundle_sha256=motion_digest,
                      skeleton_sha256=sha256(raw).hexdigest())
+        if (depth.get('order', {}).get('failures')
+                or depth.get('target_overlap', {}).get('ambiguous_visible_pair_samples')):
+            issues.append(dict(stage='depth', reason_code='motion_visible_depth_needs_changes'))
         result['motion-depth.json'] = canonical_bytes(depth)
     evidence.update(character_sha256=character_digest, motion_bundle_sha256=motion_digest,
                     geometry_passed=geometry['passed'], issues=issues,

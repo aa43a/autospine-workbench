@@ -100,6 +100,7 @@ const reasons = {
   motion_canceled: '任务已停止，原文件与历史记录保留。',
   motion_target_character_or_source_changed: '角色或动作来源已变化，请选择当前角色重新构建。',
   motion_target_deformation_needs_changes: '部分部件在动作中变形超限，可在候选预览中定位。',
+  motion_visible_depth_needs_changes: '可见区域的前后顺序存在冲突或歧义，已保留原顺序；请查看遮挡时间点。',
   motion_target_sample_limit: '该动作超出首版角色适配的采样上限，请截取较短片段。',
   character_length_projection_collapsed: '骨段几乎朝向相机，当前视角不适合直接生成二维动作。',
   character_length_ratio_outside_preview_range: '投影缩短变化超出支持范围，需要调整视角或动作片段。',
@@ -190,7 +191,7 @@ function render(data) {
       appendRelatedCandidates(item, job);
       if (result.clip) item.append(node('p', `源片段：第 ${result.clip.start_frame+1}–${result.clip.end_frame+1} 帧`));
       item.append(node('p', result.character_animation_status === 'needs_changes'
-        ? '已生成诊断候选 · 存在投影或变形异常' : '已生成角色候选 · 待阶段验收'));
+        ? '已生成诊断候选 · 存在待处理技术异常' : '已生成角色候选 · 待阶段验收'));
       item.append(node('p', `几何：${result.geometry_passed ? '通过' : '需调整'} · `
         + `Runtime：${result.runtime.status === 'needs_review' ? result.runtime.frames + ' 帧已捕获' : '环境不可用'}`));
       for (const issue of result.issues) item.append(node('p', reasons[issue.reason_code] || issue.reason_code));

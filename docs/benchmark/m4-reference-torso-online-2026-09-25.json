@@ -1,0 +1,20 @@
+{
+  "job_id": "motion-c54fd4c586ee439d8c2c38e8037f4c6b",
+  "artifact_sha256": "cb2f7dbccb796996108be3508293f2f5f0fee98b623ecaa4b4930b4ee7219fab",
+  "zip_sha256": "746fd5e86ae038502199b44e4996f745910e626b3d4ea03f9de7e4a00bcc40c3",
+  "zip_files": 100,
+  "all_bytes_match": true,
+  "skeleton_unchanged_by_status_fix": true,
+  "runtime_frames": 737,
+  "geometry_passed": true,
+  "issues": [
+    {
+      "reason_code": "motion_visible_depth_needs_changes",
+      "stage": "depth"
+    }
+  ],
+  "retry_of": {
+    "job_id": "motion-6d7cb062619e4cd1865aa37ba6f821bc",
+    "request_sha256": "1c8834a5bb01d68acea6a4d7e642841ddfccae31bb9f033b094787f46706b4fe"
+  }
+}

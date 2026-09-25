@@ -20,6 +20,19 @@ def fixture():
 
 
 class ReadinessTests(unittest.TestCase):
+    def test_known_depth_issue_is_deduplicated_only_with_failed_depth_evidence(self):
+        files,runtime=fixture()
+        motion=json.loads(files['motion-review.json'])
+        motion['issues']=[dict(stage='depth',reason_code='motion_visible_depth_needs_changes')]
+        files['motion-review.json']=json.dumps(motion).encode()
+        self.assertEqual(build(files,'a'*64,runtime)['status'],'needs_changes')
+        depth=json.loads(files['motion-depth.json'])
+        depth['order']=dict(status='blocked',failures=[dict(time=.5,reason_code='visible_unmapped_order_conflict')])
+        files['motion-depth.json']=json.dumps(depth).encode()
+        report=build(files,'a'*64,runtime)
+        self.assertEqual(report['status'],'needs_changes')
+        self.assertNotIn('其他修正',[r['stage'] for r in report['stages']])
+
     def test_moving_ankle_failure_cannot_hide_behind_contact_pass(self):
         files,runtime=fixture()
         evidence=dict(applied=False,failure=dict(time=.5),final_check=dict(

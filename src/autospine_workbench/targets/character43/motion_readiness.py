@@ -83,7 +83,9 @@ def build(files, artifact_sha256, runtime=None):
     add('Runtime', 'sampled_pass' if runtime and runtime.get('passed') is True and runtime.get('results') else 'needs_changes' if runtime else 'unmeasured',
         '官方捕获的顶点数值与画面边界检查；不代替几何、接触或视觉验收。', 'player.html',
         frames=len(runtime.get('results', [])) if runtime else 0)
-    other = [i for i in motion.get('issues', []) if i['stage'] not in ('projection', 'geometry', 'contact')]
+    other = [i for i in motion.get('issues', []) if i['stage'] not in ('projection', 'geometry', 'contact')
+             and not (depth_state == 'needs_changes'
+                      and i == dict(stage='depth', reason_code='motion_visible_depth_needs_changes'))]
     if other:
         refinement = motion.get('post_contact_repair', {}).get('correction', {}).get('refinement', [])
         residual = refinement[-1].get('check', {}).get('failures', []) if refinement else []
