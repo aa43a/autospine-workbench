@@ -1,0 +1,129 @@
+{
+  "authority": "none",
+  "candidate_bundle_sha256": "1d72f0c17f53b1c33f9a7ac5f9a6634e7fdbfe198b7883a435d78f75856a2780",
+  "cloth": "layer-005",
+  "cloth_weight_bones": [
+    "chest",
+    "layer-005-skirt_0_lower",
+    "layer-005-skirt_0_upper",
+    "layer-005-skirt_1_lower",
+    "layer-005-skirt_1_upper",
+    "layer-005-skirt_2_lower",
+    "layer-005-skirt_2_upper"
+  ],
+  "limb": "layer-001-l",
+  "rows": [
+    {
+      "bone_weights": {
+        "calf_l": 0.5653676361896237,
+        "foot_l": 0.0,
+        "thigh_l": 0.4346323638103763
+      },
+      "current_cloth_alpha": 0.0,
+      "current_world": [
+        672.5,
+        -767.5
+      ],
+      "exposure_kind": "not_visible_in_captured_frame",
+      "framebuffer_rgba": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "leg_deform_displacement_px": 6.9316423976290755,
+      "pixel": [
+        490,
+        866
+      ],
+      "setup_cloth_alpha": 255.0,
+      "source_covered_now_exposed": false,
+      "source_material_world": [
+        546.5399770558007,
+        -727.73155165502
+      ],
+      "triangle": 131,
+      "without_leg_deform_world": [
+        675.5162070323622,
+        -761.2589935533972
+      ]
+    },
+    {
+      "bone_weights": {
+        "calf_l": 0.8802490206640605,
+        "foot_l": 0.0,
+        "thigh_l": 0.11975097933593942
+      },
+      "current_cloth_alpha": 0.0,
+      "current_world": [
+        676.5,
+        -791.5
+      ],
+      "exposure_kind": "previously_visible_limb_material",
+      "framebuffer_rgba": [
+        249,
+        240,
+        246,
+        255
+      ],
+      "leg_deform_displacement_px": 3.0158313868343796,
+      "pixel": [
+        494,
+        890
+      ],
+      "setup_cloth_alpha": 0.0,
+      "source_covered_now_exposed": false,
+      "source_material_world": [
+        590.4844137863993,
+        -759.8580614837562
+      ],
+      "triangle": 175,
+      "without_leg_deform_world": [
+        676.3229601410948,
+        -788.489369527462
+      ]
+    },
+    {
+      "bone_weights": {
+        "calf_l": 0.16144539076303144,
+        "foot_l": 0.0,
+        "thigh_l": 0.8385546092369686
+      },
+      "current_cloth_alpha": 7.246437748433744,
+      "current_world": [
+        652.5,
+        -759.5
+      ],
+      "exposure_kind": "newly_exposed_source_covered_material",
+      "framebuffer_rgba": [
+        190,
+        182,
+        204,
+        255
+      ],
+      "leg_deform_displacement_px": 7.768985485677397,
+      "pixel": [
+        470,
+        858
+      ],
+      "setup_cloth_alpha": 255.00000000000003,
+      "source_covered_now_exposed": true,
+      "source_material_world": [
+        566.6104713308362,
+        -679.2076960008807
+      ],
+      "triangle": 90,
+      "without_leg_deform_world": [
+        659.811939820022,
+        -762.1253897891634
+      ]
+    }
+  ],
+  "scope": "sampled_material_coverage_change_not_3d_collision_or_garment_semantic_proof",
+  "selected": false,
+  "skeleton_sha256": "3f592733b7a643503dbfbef784fa51a8ee1f13764049f88b80480bccaf246cfa",
+  "time": 0.9641929343342781,
+  "trace_sha256": "1321e5e35f535dd4d7ddb5cee1852c034a7d40ebf7c13c075fde99aa0d9fa205",
+  "report_sha256": "28bb675caf0ceb2eac6bb9c7c99bf610e481c75781fcbf043769c64d1693ffaa",
+  "source_report": "tmp\\m4-moving-workbench\\alice-squat-material-interval-runtime-v3\\cloth-limb-coupling-v2.json"
+}
