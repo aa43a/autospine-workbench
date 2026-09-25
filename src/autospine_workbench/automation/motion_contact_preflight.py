@@ -35,8 +35,11 @@ def read(manager, job, parts, result, files):
     output=inspect(pose['setup_vertices'][slot],pose['vertices'][slot],pose['triangles'][slot],
                    pose['setup_vertices'][reference],pose['vertices'][reference],pose['triangles'][reference],scope['regions'])
     if output['occlusion_review']['required']:
+        from .motion_occlusion_alpha import read as read_alpha
         order=inspect_order(doc,row['animation'],row['event']['time'],slot,reference)
         output['occlusion_review']['draw_order']=order
+        output['occlusion_review']['texture_samples']=read_alpha(doc,files,pose,slot,reference,
+                                                               scope['regions']['occlusion'],row['animation'])
         if not order['reference_can_cover_in_order']:
             output['reasons'].append('occlusion_reference_behind')
             output['status']='requires_changes'
