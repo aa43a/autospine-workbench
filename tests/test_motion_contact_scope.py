@@ -61,6 +61,17 @@ class ContactScopeTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError,'revision_changed'):draft.save(self.manager,'job',body)
         self.assertEqual(draft.inspect(self.manager,'job')['history'][0]['contact_scope']['regions']['fixed'],[0])
 
+    def test_transition_save_restore_and_overlap_rejection(self):
+        body=copy.deepcopy(self.body)
+        body['contact_scope']['regions']['transition']=[1]
+        state=draft.save(self.manager,'job',body)
+        stored=draft.inspect(self.manager,'job')
+        self.assertEqual(stored['history'][0]['contact_scope']['regions']['transition'],[1])
+        self.assertEqual(stored['history'][0]['contact_scope']['unclassified_triangles'],0)
+        self.assertEqual(stored['draft_sha256s'],state['draft_sha256s'])
+        body['contact_scope']['regions']['transition']=[0]
+        with self.assertRaisesRegex(RuntimeError,'regions_invalid'):validate(self.manager,'job',body)
+
     def test_preflight_bound_to_saved_revision_and_withdrawal(self):
         from autospine_workbench.automation.motion_contact_preflight import read
         state=draft.save(self.manager,'job',self.body)

@@ -2,7 +2,7 @@
 from .pipeline_run import PipelineRunError
 from .motion_partition_draft import meshes
 
-KINDS = {'fixed', 'sliding', 'free'}
+KINDS = {'fixed', 'sliding', 'free', 'transition'}
 
 
 def validate(manager, job, body):
@@ -13,7 +13,8 @@ def validate(manager, job, body):
         return None
     if (body['action'] != 'contact_scope' or not isinstance(part, dict)
             or set(part) != {'mesh_sha256', 'reference_slot', 'regions'}
-            or not isinstance(part['regions'], dict) or set(part['regions']) != KINDS):
+            or not isinstance(part['regions'], dict)
+            or set(part['regions']) not in (KINDS, KINDS-{'transition'})):
         raise PipelineRunError('motion_contact_scope_invalid')
     from .motion_target_jobs import context
     result, files = context(manager, job)
@@ -28,7 +29,7 @@ def validate(manager, job, body):
     count = len(row['triangles'])//3
     seen = set(); regions = {}
     for kind in sorted(KINDS):
-        ids = part['regions'][kind]
+        ids = part['regions'].get(kind, [])
         if (not isinstance(ids, list) or len(ids)>10000
                 or any(type(i) is not int or not 0<=i<count for i in ids)
                 or len(set(ids)) != len(ids) or seen.intersection(ids)):

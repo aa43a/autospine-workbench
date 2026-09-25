@@ -33,3 +33,17 @@ class ContactConstraintsTests(unittest.TestCase):
                        [[10,10],[11,10],[10,11]],[0,1,2],dict(fixed=[0],sliding=[],free=[]))
         self.assertEqual(result['unsupported_vertices'],[0,1,2])
         with self.assertRaises(ValueError):self.check(dict(fixed=[0],sliding=[0],free=[]))
+
+    def test_explicit_transition_releases_unknown_but_does_not_claim_repair(self):
+        result=self.check(dict(fixed=[0],sliding=[],free=[],transition=[1]),
+                          [[3,0],[5,0],[5,2],[3,2]])
+        self.assertEqual(result['conflicts'],[])
+        self.assertEqual(result['unknown_triangles'],[])
+        self.assertEqual(result['transition_only_vertices'],[3])
+        self.assertIn('transition_constraints_not_implemented',result['reasons'])
+        self.assertFalse(result['sufficient_for_repair'])
+
+    def test_transition_boundary_does_not_override_preserved_region(self):
+        result=self.check(dict(fixed=[],sliding=[],free=[0],transition=[1]))
+        self.assertEqual(result['transition_preserved_vertices'],[0,2])
+        self.assertEqual(result['transition_only_vertices'],[3])

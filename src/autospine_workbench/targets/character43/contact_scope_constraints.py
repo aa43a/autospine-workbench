@@ -13,8 +13,9 @@ def inspect(setup, posed, triangles, reference_setup, reference_pose, reference_
     if (len(flat)%3 or len(other)%3 or any(type(v) is not int or not 0<=v<len(rest) for v in flat)
             or any(type(v) is not int or not 0<=v<len(source) for v in other)):
         raise ValueError('contact_constraint_triangles_invalid')
-    if set(regions) != {'fixed','sliding','free'}:
+    if set(regions) not in ({'fixed','sliding','free'}, {'fixed','sliding','free','transition'}):
         raise ValueError('contact_constraint_regions_invalid')
+    regions={'transition':[],**regions}
     selected = set(); vertices = {}
     for name, ids in regions.items():
         if (not isinstance(ids,list) or len(set(ids))!=len(ids) or selected.intersection(ids)
@@ -50,9 +51,12 @@ def inspect(setup, posed, triangles, reference_setup, reference_pose, reference_
     if ambiguous:reasons.append('reference_mapping_ambiguous')
     if conflicts:reasons.append('shared_vertex_motion_conflict')
     if vertices['sliding']:reasons.append('sliding_constraints_not_implemented')
+    if vertices['transition']:reasons.append('transition_constraints_not_implemented')
     return dict(status='requires_changes' if reasons else 'no_local_counterexample', reasons=reasons,
         vertex_roles={k:sorted(v) for k,v in vertices.items()}, unknown_triangles=unknown,
         shared_preserved_vertices=sorted(shared), fixed_targets=mappings, conflicts=conflicts,
+        transition_preserved_vertices=sorted(vertices['transition'] & preserved),
+        transition_only_vertices=sorted(vertices['transition']-preserved-vertices['fixed']-vertices['sliding']),
         unsupported_vertices=unsupported, ambiguous_vertices=ambiguous,
         selected=False, authority='none', sufficient_for_repair=False,
         scope='single_pose_geometric_mapping_not_texture_contact_or_whole_animation')
