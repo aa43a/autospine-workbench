@@ -12,6 +12,10 @@ from .deform_addition import entries, value
 
 
 def active_document(document, animation, time):
+    return _active_document(document, animation, time, deepcopy)
+
+
+def _active_document(document, animation, time, copy):
     if type(time) not in (int, float) or not math.isfinite(time) or time < 0:
         raise ValueError('active_mesh_time_invalid')
     if len(document['skins']) != 1 or document['skins'][0].get('name', 'default') != 'default':
@@ -21,10 +25,10 @@ def active_document(document, animation, time):
         raise ValueError('active_mesh_legacy_deform_unsupported')
     # Dense deform tracks can dominate the document. They are replaced below
     # with one sampled key, so copying all of them per frame is wasted work.
-    normalized = deepcopy({k:v for k,v in document.items() if k not in ('animations','skins')})
-    normalized['skins'] = [deepcopy({k:v for k,v in document['skins'][0].items() if k != 'attachments'})]
-    normalized['animations'] = {k:deepcopy(v) for k,v in document['animations'].items() if k != animation}
-    target = normalized['animations'][animation] = deepcopy({k:v for k,v in motion.items() if k not in ('slots','attachments')})
+    normalized = copy({k:v for k,v in document.items() if k not in ('animations','skins')})
+    normalized['skins'] = [copy({k:v for k,v in document['skins'][0].items() if k != 'attachments'})]
+    normalized['animations'] = {k:copy(v) for k,v in document['animations'].items() if k != animation}
+    target = normalized['animations'][animation] = copy({k:v for k,v in motion.items() if k not in ('slots','attachments')})
     target['attachments'] = {'default': {}}
     target_meshes = normalized['skins'][0]['attachments'] = {}
     identities = {}
@@ -54,7 +58,7 @@ def active_document(document, animation, time):
         influences = entries(mesh)
         if len(influences)*2 != len(mesh['uvs']):
             raise ValueError('active_mesh_vertex_count_mismatch')
-        target_meshes[slot_name] = {slot_name: deepcopy(mesh)}
+        target_meshes[slot_name] = {slot_name: copy(mesh)}
         keys = motion.get('attachments', {}).get('default', {}).get(slot_name, {}).get(name, {}).get('deform', [])
         if keys:
             effective_keys = []
@@ -77,10 +81,13 @@ def active_document(document, animation, time):
 
 
 def sample_active(document, animation, time):
-    normalized, identities = active_document(document, animation, time)
+    # The affine evaluator only reads its document and allocates result points.
+    # Keep shared static data private; the public normalized document remains
+    # fully detached, and topology returned below must also be independent.
+    normalized, identities = _active_document(document, animation, time, lambda v:v)
     points, bones = sample(normalized, animation, time)
     setup = dict(normalized, animations={'setup': {}})
     rest = sample(setup, 'setup', 0)[0]
     meshes = normalized['skins'][0]['attachments']
     return dict(attachments=identities, vertices=points, bones=bones, setup_vertices=rest,
-                triangles={slot: choices[slot]['triangles'] for slot, choices in meshes.items()})
+                triangles={slot: list(choices[slot]['triangles']) for slot, choices in meshes.items()})

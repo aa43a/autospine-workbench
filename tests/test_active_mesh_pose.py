@@ -50,6 +50,26 @@ class ActiveMeshPoseTests(unittest.TestCase):
         self.assertEqual(quality(early)['inversions'], 0)
         self.assertGreater(quality(late)['inversions'], 0)
 
+    def test_readonly_sampling_matches_detached_evaluator_at_switches(self):
+        document, report = self.fixture()
+        document['animations']['move']['bones'] = {'root': {
+            'translate': [{'time': 0, 'x': 2, 'y': -3}, {'time': 2, 'x': 9, 'y': 5}],
+            'rotate': [{'time': 0, 'value': 0}, {'time': 2, 'value': 35}]}}
+        before = deepcopy(document)
+        for time in (0, .499999, .5, .500001, 1, 1.499999, 1.5, 2):
+            normalized, identities = active_document(document, 'move', time)
+            points, bones = sample(normalized, 'move', time)
+            rest = sample(dict(normalized, animations={'setup': {}}), 'setup', 0)[0]
+            frame = sample_active(document, 'move', time)
+            self.assertEqual(frame['attachments'], identities)
+            self.assertEqual(frame['vertices'], points)
+            self.assertEqual(frame['bones'], bones)
+            self.assertEqual(frame['setup_vertices'], rest)
+            frame['vertices']['leg'][0][0] = 999
+            frame['setup_vertices']['leg'][0][0] = 999
+            frame['triangles']['leg'][0] = 999
+            self.assertEqual(document, before)
+
     def test_hidden_attachment_and_float32_boundary(self):
         document, _ = self.fixture()
         keys = document['animations']['move']['slots']['leg']['attachment']
