@@ -1,0 +1,72 @@
+{
+  "authority": "none",
+  "candidate_generated": false,
+  "cloth": "layer-005",
+  "error": "sliding_material_fixed_support",
+  "fixed_support_vertices": [
+    58,
+    60,
+    74
+  ],
+  "scope": "sliding_support_feasibility_not_visual_acceptance",
+  "selected": false,
+  "skeleton_sha256": "3f592733b7a643503dbfbef784fa51a8ee1f13764049f88b80480bccaf246cfa",
+  "sliding_support": {
+    "distance_px": 3.026691776981141,
+    "pixel": [
+      441,
+      166
+    ],
+    "triangle": 108,
+    "vertices": [
+      58,
+      60,
+      74
+    ],
+    "weights": [
+      0.2031249999999989,
+      0.5937500000000012,
+      0.20312499999999994
+    ],
+    "world": [
+      649.7378339259425,
+      -760.7374577536914
+    ]
+  },
+  "source_candidate": "1d72f0c17f53b1c33f9a7ac5f9a6634e7fdbfe198b7883a435d78f75856a2780",
+  "support_bones": {
+    "58": [
+      {
+        "bone": "chest",
+        "weight": 0.10303457494443935
+      },
+      {
+        "bone": "layer-005-skirt_2_upper",
+        "weight": 0.8969654250555607
+      }
+    ],
+    "60": [
+      {
+        "bone": "chest",
+        "weight": 0.10303457494443935
+      },
+      {
+        "bone": "layer-005-skirt_2_upper",
+        "weight": 0.8969654250555607
+      }
+    ],
+    "74": [
+      {
+        "bone": "chest",
+        "weight": 0.004174872507967886
+      },
+      {
+        "bone": "layer-005-skirt_2_upper",
+        "weight": 0.9958251274920321
+      }
+    ]
+  },
+  "time": 0.9641929343342781,
+  "report_sha256": "800e510227e97a6fe9eb0a700cc34ea2ef5fd21bec05702121223b97964354d8",
+  "source_report": "tmp\\m4-moving-workbench\\alice-squat-skirt-sliding-keypose-v1\\report.json"
+}
