@@ -151,6 +151,10 @@ def review_file(manager, job, parts):
             report['before'] = dict(passed=None, records=[], status='unavailable')
         if repair.get('region_order'):
             report['region_order'] = repair['region_order']
+        if 'view-pose-report.json' in files:
+            variant = json.loads(files['view-pose-report.json'])['variant']
+            report['additional_view'] = {k: variant[k] for k in (
+                'original_attachment', 'variant_attachment', 'interval', 'runtime_interval')}
         if 'pose-geometry-report.json' in files:
             patch = json.loads(files['pose-geometry-report.json'])
             poses = json.loads(files['pose-geometry-request.json'])

@@ -1,3 +1,4 @@
+import {geometryLines} from './motion-repair-geometry.js';
 export async function appendRepairSummary(panel,job) {
   if(!job.result?.repair_profile)return;
   const section=document.createElement('section');panel.append(section);
@@ -6,19 +7,28 @@ export async function appendRepairSummary(panel,job) {
     const response=await fetch(`/api/motions/${encodeURIComponent(job.job_id)}/view/repair-summary.json`,{cache:'no-store'});
     const report=await response.json();
     if(!response.ok||report.artifact_sha256!==job.result.artifact_sha256)throw Error('修正结果身份不匹配');
-    section.replaceChildren();const title=document.createElement('h4');title.textContent=report.region_order?'区域顺序候选':report.pose_geometry?'姿态修形候选前后':report.material?'区域换图候选前后':report.boundary?'分区候选前后':'局部修正前后';section.append(title);
+    section.replaceChildren();const title=document.createElement('h4');title.textContent=report.additional_view?'新视角附件候选前后':report.region_order?'区域顺序候选':report.pose_geometry?'姿态修形候选前后':report.material?'区域换图候选前后':report.boundary?'分区候选前后':'局部修正前后';section.append(title);
     for(const [label,geometry] of [['原候选',report.before],['修正候选',report.after]]) {
       if(report.region_order&&label==='修正候选') {
         const names=new Set(report.region_order.regions.map(r=>r.slot)),rows=geometry.records.filter(r=>names.has(r.slot)),p=document.createElement('p');
         p.textContent=`修正候选：${rows.length} 个区域动作记录，${rows.filter(r=>!r.passed).length} 个仍有几何超限。仅修改绘制顺序，不会消除原有变形失败。`;section.append(p);continue;
       }
-      const row=geometry.records.find(r=>r.slot===report.slot);const p=document.createElement('p');
-      p.textContent=row?`${label} · ${report.slot}：最小面积比 ${row.min_area_ratio.toFixed(3)}，最大边长比 ${row.max_edge_stretch.toFixed(3)}，翻转采样 ${row.inversion_samples}，检查 ${row.sample_count} 帧。`:`${label}：缺少附件检查记录。`;
-      section.append(p);
+      for(const text of geometryLines(label,geometry,report.slot)) {
+        const p=document.createElement('p');p.textContent=text;section.append(p);
+      }
     }
     const note=document.createElement('p');note.textContent='新候选保留原检查时刻并增加修正关键点与中点；采样数可能不同，失败次数不能直接当作错误率比较。骨骼与其他附件保持不变，遮挡和视觉尚未重新接受。';
     const link=document.createElement('a');link.textContent='查看原候选';link.href='/motions.html#'+encodeURIComponent(report.parent_job_id);
     section.append(note,link);
+    if(report.additional_view) {
+      const v=report.additional_view,p=document.createElement('p');
+      p.textContent=`新附件 ${v.variant_attachment} 在 ${v.interval.map(t=>Number(t.toFixed(6))).join('–')} 秒启用（含起点、不含终点），区间外恢复 ${v.original_attachment}。上方分别显示原附件和新附件的检查；任一附件失败均保留。切换边界、纹理接缝和整体动作仍需复核。`;
+      section.append(p);
+      for(const time of v.runtime_interval) {
+        const a=document.createElement('a');a.textContent=`检查切换边界 ${time.toFixed(6)} 秒 `;
+        a.href=`/api/motions/${encodeURIComponent(job.job_id)}/view/player.html?time=${time}`;section.append(a);
+      }
+    }
     if(report.region_order){const p=document.createElement('p'),r=report.region_order;
       p.textContent=`${r.selected_triangles.length} 个选中三角形，${r.interval?`${r.interval[0]}–${r.interval[1]} 秒（含起点、不含终点），区间外恢复原顺序`:'整段'}位于 ${r.reference_slot} ${r.side==='after'?'前方':'后方'}。权重、纹理与运动保留；区域内无用顶点已移除。视觉接缝仍需复核。`;section.append(p);
     }

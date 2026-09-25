@@ -58,3 +58,20 @@ class RepairDiagnosticsTests(unittest.TestCase):
         self.assertEqual(report['pose_geometry']['interval'], [0, 2])
         self.assertLess(report['pose_geometry']['authored_point_error_px'], 1e-6)
         self.assertFalse(report['selected'])
+
+    def test_additional_view_summary_retains_both_attachments_and_boundaries(self):
+        from test_view_pose_candidate import ViewPoseCandidateTests
+        from autospine_workbench.targets.character43.view_pose_candidate import build
+        files, request, png = ViewPoseCandidateTests().fixture()
+        output, _, _ = build(files, request, png)
+        output['motion-repair-provenance.json'] = b'{"parent_job_id":"parent","parent_artifact_sha256":"old"}'
+        with patch('autospine_workbench.automation.motion_target_jobs.context', return_value=({'artifact_sha256':'new'}, output)):
+            raw, _ = review_file(None, 'job', ['repair-summary.json'])
+        report = json.loads(raw)
+        variant = json.loads(output['view-pose-report.json'])['variant']
+        self.assertEqual(report['additional_view']['runtime_interval'], variant['runtime_interval'])
+        self.assertEqual(report['additional_view']['variant_attachment'], variant['variant_attachment'])
+        self.assertEqual(report['before']['status'], 'unavailable')
+        self.assertEqual({r['attachment'] for r in report['after']['records'] if r['slot']=='leg'},
+                         {'leg', variant['variant_attachment']})
+        self.assertFalse(report['selected'])
