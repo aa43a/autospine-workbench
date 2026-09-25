@@ -23,7 +23,7 @@ def load(folder):
     return receipt,AnimatedStore(folder/'isolated-store').read(receipt['candidate_bundle_sha256'])
 
 
-def run(source,motion_source,output):
+def run(source,motion_source,output,feedback_from=None):
     if output.exists():raise ValueError('material_shoulder_output_exists')
     receipt,files=load(source);motion_receipt,motion_files=load(motion_source)
     doc,rows=contexts(files);motion_doc=json.loads(motion_files['skeleton.json']);name='external-motion'
@@ -37,6 +37,14 @@ def run(source,motion_source,output):
     times=sorted({f32(t) for t in source_times});candidate=deepcopy(doc)
     prepared=[(r,prepare_regions(r)) for r in rows];owners=resolve_owners(prepared)
     if owners is None:raise ValueError('material_shoulder_owner_required')
+    reference_times=[r['time'] for r in read(files)['animations'][name]]
+    feedback=None;margin=1e-5
+    if feedback_from:
+        from m4_material_shoulder_feedback import load as load_feedback
+        feedback=load_feedback(feedback_from,receipt['candidate_bundle_sha256'],
+            motion_receipt['candidate_bundle_sha256'],owners,source_times,reference_times)
+        margin=feedback['region_margin'];times=sorted(set(times)|{f32(t) for t in feedback['extra_times']})
+        if len(times)>512:raise ValueError('material_shoulder_feedback_sample_bound')
     setup=sample(dict(doc,animations={'setup':{}}),'setup',0)[0]
     rest=matrices(dict(doc,animations={'setup':{}}),'setup',0)['chest']
     output.mkdir(parents=True,exist_ok=False);records=[]
@@ -46,7 +54,7 @@ def run(source,motion_source,output):
             for index,time in enumerate(times):
                 world=sample(doc,name,time)[0];transforms=matrices(doc,name,time)
                 material,_=fit(setup[owners[slot]],world[owners[slot]])
-                points,evidence=solve(row,p,rest,multiply(material,rest),world[slot],harmonic_seed=True)
+                points,evidence=solve(row,p,rest,multiply(material,rest),world[slot],harmonic_seed=True,region_margin=margin)
                 record=dict(slot=slot,time=time,**evidence);records.append(record)
                 log.write(json.dumps(record)+'\n');log.flush()
                 print(json.dumps(dict(slot=slot,index=index,total=len(times),status=evidence['status'])),flush=True)
@@ -59,19 +67,22 @@ def run(source,motion_source,output):
     report=dict(source_candidate=receipt['candidate_bundle_sha256'],skeleton_sha256=sha256(raw).hexdigest(),
         motion_source_candidate=motion_receipt['candidate_bundle_sha256'],source_times=source_times,
         rows=[dict(slot=row['slot']) for row,p in prepared],material_owners=owners,
+        feedback=feedback,region_margin=margin,
         solver_failures=[r for r in records if r['status']!='feasible_candidate'],authority='none',selected=False,
         scope='full_source_frame_trial_requires_dense_validation_and_runtime',
         solver_worktree_sha256=sha256(Path('src/autospine_workbench/targets/character43/boundary_shape_feasible.py').read_bytes()).hexdigest())
     (output/'report.json').write_bytes(canonical_bytes(report))
-    dense=sorted({r['time'] for r in read(files)['animations'][name]}|set(source_times)|set(times))
+    dense=sorted(set(reference_times)|set(source_times)|set(times)|
+                 set(feedback['previous_validation_times'] if feedback else []))
     dense=sorted(set(dense)|{(a+b)/2 for a,b in zip(dense,dense[1:])})
     if len(dense)>16385:raise ValueError('material_shoulder_validation_sample_bound')
     validation=inspect(doc,candidate,prepared,dense,lambda s:print(json.dumps(s),flush=True))
-    report['validation']=validation;(output/'report.json').write_bytes(canonical_bytes(report))
+    report.update(validation=validation,validation_times=dense);(output/'report.json').write_bytes(canonical_bytes(report))
     print(json.dumps(dict(solver_failures=len(report['solver_failures']),passed=validation['passed'],frames=len(dense))),flush=True)
 
 
 if __name__=='__main__':
     p=argparse.ArgumentParser()
     for name in ('source','motion_source','output'):p.add_argument(name,type=Path)
-    a=p.parse_args();run(a.source,a.motion_source,a.output)
+    p.add_argument('--feedback-from',type=Path)
+    a=p.parse_args();run(a.source,a.motion_source,a.output,a.feedback_from)

@@ -1,0 +1,39 @@
+{
+  "source_candidate": "418038c3621a71b2a56893f53862b0611ce1feb7e0b232f75e786d09ff29dcb2",
+  "motion_source_candidate": "3b8c76f2fb24830c1735f3f8b7d6efde25ccc8e421356ef8515b9e8638418756",
+  "skeleton_sha256": "f92a8d6531f886c5c6b5c11d559e340fcfbbf881a4a7b17413a13c78ef8645bd",
+  "solver_worktree_sha256": "acb1a912be087d8a24b2224097e670f3d36f84ffb2118e3dc33b5cc863fb2d7f",
+  "material_owners": {
+    "layer-003": "layer-006",
+    "layer-004": "layer-006"
+  },
+  "region_margin": 0.011743634031203532,
+  "selected": false,
+  "authority": "none",
+  "report_sha256": "8c44a8e87cf554a62f1232e218c23c59e8a455f1a5707cf4a12ae1837a7e3595",
+  "source_report": "tmp\\m4-moving-workbench\\alice-squat-material-sequence-v2\\report.json",
+  "solver_poses": 118,
+  "solver_failures": 0,
+  "validation_frames": 14853,
+  "previous_validation_frames": 7425,
+  "previous_grid_preserved": true,
+  "extra_solve_times": [
+    0.4165365292186737,
+    1.3498700261116028
+  ],
+  "validation_passed": false,
+  "failure_records": 178,
+  "failed_slots": [
+    "layer-004"
+  ],
+  "min_failed_area_ratio": 0.49742884523190517,
+  "max_failed_area_ratio": 2.001138811697992,
+  "max_failed_inversions": 0,
+  "max_region_ratio": 0.9931669563381282,
+  "max_distal_error_px": 2.2737367544323206e-13,
+  "max_locked_pin_error_px": 0.009931291049196489,
+  "max_displacement_ratio": 0.9613803398599724,
+  "unselected_error_px": 0.0,
+  "runtime_captured": false,
+  "visual_accepted": false
+}
