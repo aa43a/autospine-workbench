@@ -22,6 +22,11 @@ def locate(arm_alpha, body_alpha, world, covered, root, radius):
             or not np.isfinite(points[valid]).all()):
         raise ValueError('material_frontier_input_invalid')
     height, width = arm.shape
+    opaque = body >= 254
+    saddle = ((opaque[:-1, :-1] == opaque[1:, 1:])
+              & (opaque[:-1, 1:] == opaque[1:, :-1])
+              & (opaque[:-1, :-1] != opaque[:-1, 1:]))
+    ambiguous = set(zip(*np.where(saddle)))
     records = []
     for axis in (0, 1):
         left = (slice(None, -1), slice(None)) if axis == 0 else (slice(None), slice(None, -1))
@@ -38,8 +43,10 @@ def locate(arm_alpha, body_alpha, world, covered, root, radius):
                 continue
             uv = [(x + .5 + fraction * (axis == 1)) / width,
                   (y + .5 + fraction * (axis == 0)) / height]
+            incident = [(y, x-1), (y, x)] if axis == 0 else [(y-1, x), (y, x)]
             records.append(dict(edge=[[y, x], [other_y, other_x]],
-                                fraction=fraction, uv=uv, world=p.tolist()))
+                                fraction=fraction, uv=uv, world=p.tolist(),
+                                ambiguous_cells=[list(cell) for cell in incident if cell in ambiguous]))
     return dict(profile='setup-material-occlusion-frontier-v1', alpha_threshold=254,
                 arm_visible_threshold=8, radius_px=float(radius), samples=records,
                 authority='none', selected=False,

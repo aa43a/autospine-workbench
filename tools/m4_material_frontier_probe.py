@@ -9,6 +9,7 @@ from PIL import Image, ImageDraw
 from autospine_workbench.automation.animated_store import AnimatedStore
 from autospine_workbench.targets.character43.affine_pose import sample
 from autospine_workbench.targets.character43.material_contact_frontier import locate
+from autospine_workbench.targets.character43.material_frontier_sliding import compare
 from m4_pose_material_review import transfer, alpha_at
 from m4_material_anchor_probe import key_times
 
@@ -71,12 +72,19 @@ def run(sources, fields, output):
                 b, bv = transfer(setup[body], posed[body], bm['triangles'], points)
                 valid = av & bv
                 gap = np.linalg.norm(a[valid]-b[valid], axis=1)
+                sliding = compare(result['samples'], a, b) if valid.all() else None
+                distances = [r['sliding_distance_px'] for r in sliding['records']
+                             if r['sliding_distance_px'] is not None] if sliding else []
                 result['frames'].append(dict(time=time, supported=int(valid.sum()), missing=int((~valid).sum()),
                     maximum_gap_px=float(gap.max()) if len(gap) else None,
-                    median_gap_px=float(np.median(gap)) if len(gap) else None))
+                    median_gap_px=float(np.median(gap)) if len(gap) else None,
+                    sliding=sliding, sliding_supported=len(distances),
+                    sliding_maximum_distance_px=max(distances) if distances else None,
+                    sliding_median_distance_px=float(np.median(distances)) if distances else None))
         rows.append(result)
     (output / 'report.json').write_text(json.dumps(dict(selected=False, authority='none', records=rows), indent=2), encoding='utf8')
-    print(json.dumps([dict(character=r['character'], crossings=len(r['samples']), frames=r['frames']) for r in rows]))
+    print(json.dumps([dict(character=r['character'], crossings=len(r['samples']),
+        frames=[{k:v for k,v in f.items() if k!='sliding'} for f in r['frames']]) for r in rows]))
 
 
 if __name__ == '__main__':
