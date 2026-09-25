@@ -4,6 +4,7 @@ from hashlib import sha256
 import json
 
 from .motion_contacts import apply
+from .contact_windows import for_motion
 
 PROFILE = 'external-inferred-contact-measurement-v1'
 
@@ -14,15 +15,7 @@ def measure(document, name, motion, times, reference_length, hypothesis, *, clip
     probe = deepcopy(motion)
     if any(m['kind'] == 'contact' for m in motion['markers']):
         raise ValueError('motion_contact_source_labels_take_precedence')
-    offset = clip_bounds[0]/1_000_000 if clip_bounds else 0
-    duration = motion['duration_ticks']/motion['ticks_per_second']
-    rate = motion['ticks_per_second']
-    probe['markers'] = []
-    for marker in hypothesis['markers']:
-        start = max(0, marker['start_tick']/hypothesis['ticks_per_second']-offset)
-        end = min(duration, marker['end_tick']/hypothesis['ticks_per_second']-offset)
-        if start < end:
-            probe['markers'].append(dict(marker, start_tick=round(start*rate), end_tick=round(end*rate)))
+    probe['markers'] = for_motion(motion, hypothesis, clip_bounds)
     kept, report = apply(document, name, probe, times, reference_length, enabled=False)
     report['measurement_windows_sha256'] = report['source_motion_sha256']
     # The probe only supplies measurement windows, not new MotionIR source labels.

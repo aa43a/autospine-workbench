@@ -47,7 +47,7 @@ class PostContactTests(unittest.TestCase):
         doc={'bones':[], 'animations':{'a':{'bones':tracks}}}
         contact=dict(selected=False,status='inferred_proxy_drift',
             input_skeleton_sha256=sha256(canonical_bytes(doc)).hexdigest(),
-            hypothesis=dict(ticks_per_second=100,markers=[{'kind':'contact'}]),
+            hypothesis=dict(ticks_per_second=100,markers=[dict(kind='contact', limb='leg.left', start_tick=0, end_tick=100)]),
             phase_attempt=dict(status='candidate',profile='causal-joint-support-timeline-v1',
                 rows=[dict(time=t,root_shift=[2,1],angles={n:5 for n in names}) for t in (0,1)]))
         original=deepcopy((doc,contact))
@@ -62,7 +62,7 @@ class PostContactTests(unittest.TestCase):
              patch('autospine_workbench.targets.character43.motion_contacts.analyze',return_value={'passed':True}) as check:
             for profile in (PROFILE,TIMELINE_PROFILE):
                 pose['post_contact_profile']=profile
-                result, report, times, issues=apply(doc,'a',{'ticks_per_second':100},[],evidence,contact,[0,1],pose)
+                result, report, times, issues=apply(doc,'a',dict(ticks_per_second=100, duration_ticks=100, markers=[]),[],evidence,contact,[0,1],pose)
                 self.assertEqual(foot.call_args.kwargs['temporal'],profile==TIMELINE_PROFILE)
                 self.assertEqual(report['post_contact_profile'],profile)
         self.assertEqual((doc,contact),original)

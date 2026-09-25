@@ -5,6 +5,7 @@ import json
 import math
 from ...resolved_project import canonical_sha256
 from .motion_contacts import analyze
+from .contact_windows import for_motion
 
 
 def recheck(document, name, motion, contact, times, reference_length):
@@ -19,7 +20,7 @@ def recheck(document, name, motion, contact, times, reference_length):
         hypothesis = contact['hypothesis']
         if hypothesis['ticks_per_second'] != motion['ticks_per_second']:
             raise ValueError('motion_final_contact_tick_rate_mismatch')
-        source['markers'] = deepcopy(hypothesis['markers'])
+        source['markers'] = for_motion(motion, hypothesis, contact.get('clip_bounds'))
     checked = analyze(document, name, source, times, reference_length)
     report = deepcopy(contact)
     report['pre_final_after'] = report.get('after')

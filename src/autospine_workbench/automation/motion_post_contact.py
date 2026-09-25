@@ -15,6 +15,7 @@ def apply(document, name, motion, setup, evidence, contact, times, pose, on_stag
     from ..targets.character43.foot_orientation_fit import fit
     from ..targets.character43.projected_area_adaptive import build
     from ..targets.character43.motion_contacts import analyze
+    from ..targets.character43.contact_windows import for_motion
     from .motion_target_pose import final_times
     before = deepcopy(contact)
     attempt = contact.get('phase_attempt', {})
@@ -36,7 +37,7 @@ def apply(document, name, motion, setup, evidence, contact, times, pose, on_stag
         hypothesis = contact['hypothesis']
         if hypothesis['ticks_per_second'] != motion['ticks_per_second']:
             raise ValueError('post_contact_tick_rate_mismatch')
-        measured['markers'] = deepcopy(hypothesis['markers'])
+        measured['markers'] = for_motion(motion, hypothesis, contact.get('clip_bounds'))
     checked = analyze(repaired, name, measured, checked_times, evidence['reference_length_px'])
     report = deepcopy(contact)
     status = ('inferred_proxy_corrected' if inferred else 'ankle_proxy_corrected') if checked['passed'] is True else (
