@@ -35,7 +35,7 @@ def contexts(files):
                     if weight > 0 and document['bones'][index]['name'] != 'chest':
                         raise ValueError('shoulder_torso_parent_unsupported')
             im, origin = source_image(files, document, points, slot)
-            torso.append((im.getchannel('A'), origin))
+            torso.append((im.getchannel('A'), origin, slot))
     if not torso: raise ValueError('shoulder_reviewed_torso_missing')
     rows = []
     for layer in manifest['layers']:
@@ -51,8 +51,12 @@ def contexts(files):
                     p = (origin[0]+x, origin[1]-y)
                     if math.dist(p, root) > length*.65 or alpha.getpixel((x, y)) < 8: continue
                     if any(0 <= p[0]-o[0] < a.width and 0 <= o[1]-p[1] < a.height
-                           and a.getpixel((p[0]-o[0], o[1]-p[1])) >= 8 for a, o in torso): contact.append(p)
+                           and a.getpixel((p[0]-o[0], o[1]-p[1])) >= 8 for a, o, _ in torso): contact.append(p)
             flat = document['skins'][0]['attachments'][slot][slot]['triangles']
+            owners=[owner for a,o,owner in torso if contact and all(
+                0 <= p[0]-o[0] < a.width and 0 <= o[1]-p[1] < a.height
+                and a.getpixel((p[0]-o[0],o[1]-p[1])) >= 8 for p in contact)]
             rows.append(dict(slot=slot, root=root, distal=distal, contact=contact,
+                             material_owner_candidates=owners,
                              points=points[slot], triangles=[flat[i:i+3] for i in range(0, len(flat), 3)]))
     return document, rows

@@ -11,7 +11,9 @@ from autospine_workbench.automation.animated_store import AnimatedStore
 from autospine_workbench.automation.storage_io import canonical_bytes
 from autospine_workbench.targets.character43.shoulder_source import contexts
 from autospine_workbench.targets.character43.shoulder_contact_regions import prepare_regions,solve
-from autospine_workbench.targets.character43.shoulder_region_validation import inspect
+from autospine_workbench.targets.character43.shoulder_region_validation import inspect,resolve_owners
+from autospine_workbench.targets.character43.material_affine_frame import fit
+from autospine_workbench.targets.character43.torso_projection_candidate import multiply
 from autospine_workbench.targets.character43.affine_pose import sample,matrices
 from autospine_workbench.targets.character43.deform_addition import entries,local_delta,add
 from autospine_workbench.targets.character43.numeric_reference import read
@@ -38,18 +40,21 @@ def run(source,output,capture,headroom_from=None):
     _,_,pose,_,_,parent,_=load_stages(receipt['source_job_id'])
     if parent!=receipt['source_candidate_sha256']:raise ValueError('shoulder_sequence_parent')
     files=AnimatedStore(source/'isolated-store').read(identity);original,rows=contexts(files);doc=deepcopy(original)
+    prepared=[(row,prepare_regions(row)) for row in rows];owners=resolve_owners(prepared)
     margin=1e-5;headroom_digest=None
     if headroom_from:
         raw=headroom_from.read_bytes();previous_report=json.loads(raw);headroom_digest=sha256(raw).hexdigest()
         if (previous_report['source']!=identity or previous_report['profile']!='shoulder-contact-regions-sequence-v1'
-                or previous_report['source_times']!=sorted(set(pose['times'])) or previous_report['solver_failures']):
+                or previous_report['source_times']!=sorted(set(pose['times'])) or previous_report['solver_failures']
+                or previous_report['validation'].get('material_owners')!=owners):
             raise ValueError('shoulder_sequence_headroom_identity')
         ratio=previous_report['validation']['max_region_ratio']
         if not math.isfinite(ratio) or ratio<0:raise ValueError('shoulder_sequence_headroom_ratio')
         margin=max(margin,2*max(0,ratio-1)+1e-5)
         if margin>.05:raise ValueError('shoulder_sequence_headroom_limit')
     name='external-motion';rest=matrices(dict(original,animations={'setup':{}}),'setup',0)['chest']
-    prepared=[(row,prepare_regions(row)) for row in rows];records=[];output.mkdir(parents=True,exist_ok=False)
+    records=[];output.mkdir(parents=True,exist_ok=False)
+    setup=sample(dict(original,animations={'setup':{}}),'setup',0)[0] if owners is not None else None
     def progress(value):print(json.dumps(value),flush=True)
     times=sorted(set(pose['times']))
     with (output/'solver.jsonl').open('w',encoding='utf8') as log:
@@ -57,8 +62,12 @@ def run(source,output,capture,headroom_from=None):
             slot=row['slot'];influences=entries(doc['skins'][0]['attachments'][slot][slot]);keys=[];previous=None
             for index,time in enumerate(times):
                 progress(dict(stage='solve',slot=slot,index=index,total=len(times)))
-                world=sample(original,name,time)[0][slot];current=matrices(original,name,time)
-                points,evidence=solve(row,p,rest,current['chest'],world,previous,region_margin=margin)
+                sampled=sample(original,name,time)[0];world=sampled[slot];current=matrices(original,name,time)
+                contact_frame=current['chest']
+                if owners is not None:
+                    material,_=fit(setup[owners[slot]],sampled[owners[slot]])
+                    contact_frame=multiply(material,rest)
+                points,evidence=solve(row,p,rest,contact_frame,world,previous,region_margin=margin)
                 previous=(world,points) if evidence['status']=='feasible_candidate' else None
                 record=dict(slot=slot,time=time,**evidence);records.append(record);log.write(json.dumps(record)+'\n');log.flush()
                 keys.append(dict(time=time,vertices=local_delta(original,influences,current,world,points)))

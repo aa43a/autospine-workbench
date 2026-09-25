@@ -1,0 +1,82 @@
+{
+  "candidate": "418038c3621a71b2a56893f53862b0611ce1feb7e0b232f75e786d09ff29dcb2",
+  "authority": "none",
+  "selected": false,
+  "validation": {
+    "passed": false,
+    "frames": 3713,
+    "max_region_ratio": 59.58816605897947,
+    "contact_frame": "verified_material_affine",
+    "material_owners": {
+      "layer-003": "layer-006",
+      "layer-004": "layer-006"
+    },
+    "max_material_fit_error_px": 1.2974751610401343e-12,
+    "max_distal_error_px": 0.0,
+    "max_locked_pin_error_px": 73.32592915674955,
+    "locked_pin_limit_px": 0.5,
+    "max_displacement_ratio": 0.0,
+    "unselected_error_px": 0.0,
+    "maximum_vertex_speed_px_s": 704.3049816249037,
+    "speed_is_measurement_not_acceptance": true,
+    "speed_minimum_delta_seconds": 1e-06,
+    "near_time_samples_excluded_from_speed_only": 1280,
+    "failure_count": 7426,
+    "failures_by_slot": {
+      "layer-003": 3713,
+      "layer-004": 3713
+    },
+    "first_failures": [
+      {
+        "slot": "layer-003",
+        "time": 0.0,
+        "geometry": {
+          "inversions": 0,
+          "min_area_ratio": 0.7531943012476312,
+          "max_area_ratio": 0.9587160431049571,
+          "max_edge_stretch": 1.0415954907040468,
+          "bad_triangles": []
+        },
+        "region_ratio": 52.006133180512585,
+        "distal_error_px": 0.0,
+        "locked_pin_error_px": 0.0,
+        "displacement_ratio": 0.0
+      },
+      {
+        "slot": "layer-004",
+        "time": 0.0,
+        "geometry": {
+          "inversions": 0,
+          "min_area_ratio": 0.8239527625420217,
+          "max_area_ratio": 1.0092348536222548,
+          "max_edge_stretch": 1.0383044140601614,
+          "bad_triangles": []
+        },
+        "region_ratio": 49.644985601004706,
+        "distal_error_px": 0.0,
+        "locked_pin_error_px": 70.62129084646749,
+        "displacement_ratio": 0.0
+      }
+    ],
+    "worst_region_failure": {
+      "slot": "layer-003",
+      "time": 1.1,
+      "geometry": {
+        "inversions": 0,
+        "min_area_ratio": 0.568312128118534,
+        "max_area_ratio": 1.1375667926101003,
+        "max_edge_stretch": 1.176196980504228,
+        "bad_triangles": []
+      },
+      "region_ratio": 59.58816605897947,
+      "distal_error_px": 0.0,
+      "locked_pin_error_px": 0.0,
+      "displacement_ratio": 0.0
+    }
+  },
+  "scope": "full_existing_numeric_timeline_material_contact_not_visual_acceptance",
+  "automatic_material_owners_verified": {
+    "layer-003": "layer-006",
+    "layer-004": "layer-006"
+  }
+}
