@@ -60,3 +60,22 @@ class ContactScopeTests(unittest.TestCase):
         body=copy.deepcopy(self.body);body['contact_scope']['regions']=dict(fixed=[],sliding=[0],free=[1])
         with self.assertRaisesRegex(RuntimeError,'revision_changed'):draft.save(self.manager,'job',body)
         self.assertEqual(draft.inspect(self.manager,'job')['history'][0]['contact_scope']['regions']['fixed'],[0])
+
+    def test_preflight_bound_to_saved_revision_and_withdrawal(self):
+        from autospine_workbench.automation.motion_contact_preflight import read
+        state=draft.save(self.manager,'job',self.body)
+        rest=[[0,0],[2,0],[2,2],[0,2]]; moved=[[3,0],[5,0],[5,2],[3,2]]
+        pose=dict(attachments={'arm':'arm','body':'body'},setup_vertices={'arm':rest,'body':rest},
+                  vertices={'arm':rest,'body':moved},triangles={'arm':[0,1,2,0,2,3],'body':[0,1,2,0,2,3]})
+        with patch('autospine_workbench.targets.character43.active_mesh_pose.sample_active',return_value=pose):
+            raw,_=read(self.manager,'job',['contact-scope','1.json'],{'artifact_sha256':'a'*64},self.files)
+            report=json.loads(raw)
+            self.assertEqual(report['draft_sha256'],state['draft_sha256s'][0])
+            self.assertEqual(len(report['conflicts']),2)
+            pose['attachments']['arm']='other'
+            with self.assertRaisesRegex(RuntimeError,'active_attachment_unsupported'):
+                read(self.manager,'job',['contact-scope','1.json'],{'artifact_sha256':'a'*64},self.files)
+        body=copy.deepcopy(self.body);body.pop('contact_scope');body.update(action='withdraw',expected_revision=1)
+        draft.save(self.manager,'job',body)
+        with self.assertRaisesRegex(RuntimeError,'plan_changed'):
+            read(self.manager,'job',['contact-scope','1.json'],{'artifact_sha256':'a'*64},self.files)

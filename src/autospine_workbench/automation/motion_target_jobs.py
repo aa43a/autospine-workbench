@@ -136,6 +136,9 @@ def review_file(manager, job, parts):
         # still verify the addressed job, character sources and capture inventory.
         return read(None, None, None, parts)
     result, files = context(manager, job)
+    if parts[:1] == ['contact-scope']:
+        from .motion_contact_preflight import read
+        return read(manager, job, parts, result, files)
     runtime_file = runtime_reader(manager, job, result)
     if parts == ['repair-summary.json']:
         if 'motion-repair.json' not in files:

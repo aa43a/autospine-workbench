@@ -2,6 +2,7 @@ import {partitionEditor} from './motion-partition-editor.js';
 import {materialReturn} from './motion-material-return.js';
 import {viewReturn} from './motion-view-return.js';
 import {contactEditor} from './motion-contact-editor.js';
+import {contactPreflight} from './motion-contact-preflight.js';
 const labels = {local_repair:'局部变形修正', partition:'区域刚性重绑', region_order:'区域前后顺序', pose_attachment:'补充姿态附件', contact_scope:'衣料连接与活动范围（仅记录）', withdraw:'撤销此处处理草稿'};
 const node = (tag, text) => {const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e;};
 
@@ -39,6 +40,7 @@ export function appendRepairDraft(parent, job, row, getDetail) {
   const region=partitionEditor(panel,job,row);region.show(false);
   const order=partitionEditor(panel,job,row,{orderOnly:true});order.show(false);
   const contact=contactEditor(panel,job,row);contact.show(false);
+  const showContact=contactPreflight(panel,job);showContact(null);
   action.onchange=()=>{region.show(action.value==='partition');order.show(action.value==='region_order');contact.show(action.value==='contact_scope');showScope();};
   const matches = r => r.slot===row.slot && r.animation===row.animation &&
     r.event.triangle===getDetail().triangle && r.event.time===getDetail().time;
@@ -60,6 +62,7 @@ export function appendRepairDraft(parent, job, row, getDetail) {
     region.restore(applies?latest.partition:null);region.show(action.value==='partition');
     order.restore(applies?latest.region_order:null);order.show(action.value==='region_order');
     contact.restore(applies?latest.contact_scope:null);contact.show(action.value==='contact_scope');
+    showContact(applies&&latest.action==='contact_scope'?latest:null,applies?state.draft_sha256s[latest.revision-1]:null);
     material.hidden=!(applies&&latest.action==='pose_attachment');
     material.style.display=material.hidden?'none':'';
     showReturn(material.hidden||latest.view_needs?.length?null:latest.revision);
@@ -95,6 +98,7 @@ export function appendRepairDraft(parent, job, row, getDetail) {
     material.style.display='none';
     showReturn(null);
     showViewReturn(null);
+    showContact(null);
     try {const result=await request(body);if(ticket!==generation)return;state=result;render();}
     catch(error){if(ticket===generation){state=null;save.disabled=true;status.textContent=error.message+'；请重新加载。';}}
     finally {if(ticket===generation)panel.disabled=false;}
