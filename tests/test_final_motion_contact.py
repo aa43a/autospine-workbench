@@ -58,3 +58,18 @@ class FinalContactTests(unittest.TestCase):
         doc,motion=fixture()
         for times in ([0,.5],[.5,1],[0,.5,.5,1],[0,1,.5],[0,float('nan'),1]):
             with self.assertRaisesRegex(ValueError,'times_invalid'):recheck(doc,'a',motion,{},times,100)
+
+    def test_final_grid_missing_short_window_remains_unknown_and_renderable(self):
+        from autospine_workbench.targets.character43.motion_contact_review import render
+        doc, motion = fixture()
+        motion['markers'][0].update(start_tick=20, end_tick=30)
+        before = analyze(doc, 'a', motion, [0, .2, .25, 1], 100)
+        result = recheck(doc, 'a', motion, dict(before=before, after=before,
+                         selected=False, reason_codes=[]), [0, .5, 1], 100)
+        self.assertEqual(result['status'], 'insufficient_contact_samples')
+        self.assertIsNone(result['after']['passed'])
+        self.assertEqual(result['final_timeline_check']['samples'], 3)
+        page = render(result).decode()
+        self.assertIn('区间未采样，证据不足', page)
+        self.assertIn('区间起点 0.200 秒', page)
+        self.assertIn('未测量', page)

@@ -53,14 +53,22 @@ def analyze(document, name, motion, times, reference_length):
             point = pose[bone][4:6]
             samples.append(dict(time=t, x=point[0], y=point[1], drift_px=math.dist(anchor, point),
                                 horizontal_px=abs(point[0]-anchor[0]), vertical_px=abs(point[1]-anchor[1])))
+        if not samples:
+            rows.append(dict(**interval, bone=bone, anchor=list(anchor), samples=[],
+                             max_drift_px=None, worst_time=None, passed=None,
+                             reason_code='contact_interval_not_sampled'))
+            continue
         worst = max(samples, key=lambda s: s['drift_px'])
         rows.append(dict(**interval, bone=bone, anchor=list(anchor), samples=samples,
                          max_drift_px=worst['drift_px'], worst_time=worst['time'],
                          passed=worst['drift_px'] <= limit))
-    return dict(status=('unavailable_no_labels' if not rows else
-                        'ankle_proxy_passed' if all(r['passed'] for r in rows) else 'needs_changes'),
-                passed=all(r['passed'] for r in rows) if rows else None,
-                intervals=rows, max_drift_px=max((r['max_drift_px'] for r in rows), default=None),
+    failed = any(r['passed'] is False for r in rows)
+    missing = any(r['passed'] is None for r in rows)
+    return dict(status=('unavailable_no_labels' if not rows else 'needs_changes' if failed else
+                        'insufficient_contact_samples' if missing else 'ankle_proxy_passed'),
+                passed=False if failed else None if missing or not rows else True,
+                intervals=rows, max_drift_px=max((r['max_drift_px'] for r in rows
+                                                if r['max_drift_px'] is not None), default=None),
                 drift_limit_px=limit, samples=len(times))
 
 

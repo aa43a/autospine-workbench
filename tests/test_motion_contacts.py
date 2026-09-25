@@ -62,6 +62,22 @@ class MotionContactTests(unittest.TestCase):
         self.assertIsNone(report['before']['passed'])
         self.assertEqual(report['status'], 'unavailable_no_labels')
 
+    def test_unsampled_interval_is_unknown_and_known_failure_is_retained(self):
+        doc, motion = fixture()
+        motion['markers'][0].update(start_tick=200000, end_tick=300000)
+        motion['markers'][1].update(start_tick=600000, end_tick=700000)
+        report = analyze(doc, 'walk', motion, [0, .5, 1], 100)
+        self.assertEqual(report['status'], 'insufficient_contact_samples')
+        self.assertIsNone(report['passed'])
+        self.assertIsNone(report['max_drift_px'])
+        self.assertTrue(all(r['reason_code'] == 'contact_interval_not_sampled' for r in report['intervals']))
+        motion['markers'][1].update(start_tick=0, end_tick=800000)
+        mixed = analyze(doc, 'walk', motion, [0, .5, 1], 100)
+        self.assertEqual(mixed['status'], 'needs_changes')
+        self.assertFalse(mixed['passed'])
+        self.assertIsNone(mixed['intervals'][0]['passed'])
+        self.assertEqual(mixed['max_drift_px'], 2.5)
+
     def test_large_correction_or_snap_never_auto_adopted(self):
         doc, motion = fixture()
         doc['animations']['walk']['bones']['root']['translate'][-1]['x'] = 100

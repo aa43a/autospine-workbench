@@ -191,6 +191,7 @@ function render(data) {
         + `Runtime：${result.runtime.status === 'needs_review' ? result.runtime.frames + ' 帧已捕获' : '环境不可用'}`));
       for (const issue of result.issues) item.append(node('p', reasons[issue.reason_code] || issue.reason_code));
       const contactStates = {unavailable_no_labels: '源动作无接触标签，未检查',
+        insufficient_contact_samples: '部分支撑区间未采样，接触证据不足',
         inferred_partial_corrected: '已修正合格区间；源证据不足的区间未锁定',
         inferred_proxy_corrected: '已采用有界修正保持源踝部静止；不代表鞋底接地',
         inferred_proxy_passed: '推断区间位移采样通过，尚未验证接触本身',

@@ -2,6 +2,7 @@
 from html import escape
 
 STATES = {'unavailable_no_labels': '源动作无接触标签，不能判断接触是否正确',
+          'insufficient_contact_samples': '部分支撑区间没有采样，接触证据不足',
           'inferred_partial_corrected': '合格支撑区间已修正，其他区间仍需检查',
           'inferred_proxy_corrected': '已采用有界修正，保持源动作近静止的踝部位置',
           'inferred_proxy_passed': '推断区间内踝部位移通过采样门槛，接触本身尚未验证',
@@ -29,19 +30,24 @@ REASONS = {'motion_contact_correction_disabled': '本次关闭了自动修正',
 
 
 def render(report):
+    def drift(value):
+        return '未测量' if value is None else f'{value:.3f} px'
     rows = []
     source_label = '自动推断' if 'hypothesis' in report else '源动作标注'
     phase = {(r['limb'], r['start_tick']/1e6, r['end_tick']/1e6): r['eligible']
              for r in report.get('phase_source', {}).get('records', [])}
     for before, after in zip(report['before']['intervals'], report['after']['intervals']):
-        time = after['worst_time']
+        time = after['worst_time'] if after['worst_time'] is not None else after['start']
         qualified = phase.get((before['limb'], before['start'], before['end']), True)
         verdict = ('通过' if after['passed'] else '需调整') if qualified else '源证据不足，未锁定'
+        if after['passed'] is None:
+            verdict = '区间未采样，证据不足'
+        location = '区间起点' if after['worst_time'] is None else '定位'
         rows.append(f'<tr><td>{"左脚" if before["limb"] == "leg.left" else "右脚"}</td>'
             f'<td>{before["start"]:.3f}–{before["end"]:.3f} 秒</td>'
-            f'<td>{before["max_drift_px"]:.3f} px</td><td>{after["max_drift_px"]:.3f} px</td>'
+            f'<td>{drift(before["max_drift_px"])}</td><td>{drift(after["max_drift_px"])}</td>'
             f'<td>{verdict}</td>'
-            f'<td><a href="player.html?time={time:.9f}" target="_blank" rel="noopener">定位 {time:.3f} 秒</a></td></tr>')
+            f'<td><a href="player.html?time={time:.9f}" target="_blank" rel="noopener">{location} {time:.3f} 秒</a></td></tr>')
     reasons = ''.join('<li>'+escape(REASONS.get(r, r))+'</li>' for r in report['reason_codes'])
     correction = report.get('correction')
     detail = (f'<p>尝试修正峰值：{correction["max_correction_px"]:.3f} px；'

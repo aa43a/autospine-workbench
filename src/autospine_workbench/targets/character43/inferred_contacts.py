@@ -24,6 +24,7 @@ def measure(document, name, motion, times, reference_length, hypothesis, *, clip
                   hypothesis=hypothesis, clip_bounds=clip_bounds,
                   status={'ankle_proxy_passed': 'inferred_proxy_passed',
                           'needs_changes': 'inferred_proxy_drift',
+                          'insufficient_contact_samples': 'insufficient_contact_samples',
                           'unavailable_no_labels': 'inferred_support_unavailable'}[report['status']],
                   reason_codes=['inferred_contact_not_authorized_for_locking'])
     return kept, report
