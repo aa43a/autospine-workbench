@@ -1,0 +1,62 @@
+{
+  "scope": "read_only_server_snapshot_and_local_current_code_no_service_restart",
+  "frozen_snapshot_sha256": "a40ad12495c48e5d47a96a1f848e40ef0cca883896658f3b5315d8583765cf0a",
+  "removed_fields": [
+    "projection.unreliable_frames=[]",
+    "projection.failures=[]",
+    "projection.pose_profile=null",
+    "geometry.repair_limits=[]"
+  ],
+  "rows": [
+    {
+      "character": "alice",
+      "job_id": "motion-bf659c34670d4319aab72cf673f1d3d7",
+      "artifact_sha256": "8b1a2c9f30d9d341828fd8931faa3e1d2d2f15c7109cec7574d98764e89f3d7b",
+      "snapshot_sha256": "0f824f7eff0116f5d7a26f996455370492243c1c542735aeba1e4d70cf64bd9b",
+      "historical_evidence_sha256": "67e448a4a396358294045ec65855bc80b6be4154387c184e31704b4b91fd4a99",
+      "current_evidence_sha256": "989f9973538bacc9c3f098585996299c6343f977a025321c3956f4195a96dd40",
+      "server_match": "evidence_changed",
+      "local_match": "legacy_empty_diagnostic_fields",
+      "local_applies": true,
+      "revision": 1,
+      "technical_status": "needs_changes",
+      "history_sha256": {
+        "workspace\\jobs\\motion-intake-v1\\motion-bf659c34670d4319aab72cf673f1d3d7\\stage-reviews\\review-0001.json": "266dd8027b8e3974573ed924bfdcccdcbd31b5cd458e30dee63e5614c68cd078"
+      }
+    },
+    {
+      "character": "huiye",
+      "job_id": "motion-71be588acdfe4c4db3777c98c1ae733e",
+      "artifact_sha256": "6d4d72c931da6e8e6a35c3ff3c12b2ef92221f794e1c6f4ba21f0e654cc1e038",
+      "snapshot_sha256": "ec60e1aa807318c27dabc17e4b3e7abc0bb3daf42a6241b145b9334b3d167daf",
+      "historical_evidence_sha256": "f1ce15a21244dc1102a1b1a8c7e1ff8ccec2fb121b77b93ea02c63320b0959e1",
+      "current_evidence_sha256": "d43c7352cfce9d4be550f9538b5a5769cd68f3f6b3989b0d5e228e0813c1da44",
+      "server_match": "evidence_changed",
+      "local_match": "legacy_empty_diagnostic_fields",
+      "local_applies": true,
+      "revision": 1,
+      "technical_status": "needs_changes",
+      "history_sha256": {
+        "workspace\\jobs\\motion-intake-v1\\motion-71be588acdfe4c4db3777c98c1ae733e\\stage-reviews\\review-0001.json": "94af56193af58c0203d67eeeacc182aa9a6e8b06cdbba0d8e27dbed9ec683af5"
+      }
+    },
+    {
+      "character": "hongmeiling",
+      "job_id": "motion-f151d1a412154c379ddd324526e463dd",
+      "artifact_sha256": "db485dbc559b5dd7858b6224def0f7a56838e76733c6351f1cdfb7b237cbef4a",
+      "snapshot_sha256": "331d7fa187f68ecf6d3d61d54a4d074c3656d33cf7683adaa2e9a81e7f9c9b80",
+      "historical_evidence_sha256": "74b56a62908af59272216cf2f31b3839c071b9c8d03ed10653b99f8c4d2d7367",
+      "current_evidence_sha256": "0a418e0c6abc2d2c337384e0e24d09a3a97450fc97422431d38a541473793a7c",
+      "server_match": "evidence_changed",
+      "local_match": "legacy_empty_diagnostic_fields",
+      "local_applies": true,
+      "revision": 1,
+      "technical_status": "needs_changes",
+      "history_sha256": {
+        "workspace\\jobs\\motion-intake-v1\\motion-f151d1a412154c379ddd324526e463dd\\stage-reviews\\review-0001.json": "09b88461e1e7db8c208060a84772d2cc98b0e97fabb0c5567c7245d4ccd9d7b5"
+      }
+    }
+  ],
+  "runtime_recaptured": false,
+  "decisions_written": 0
+}

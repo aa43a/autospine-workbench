@@ -35,9 +35,9 @@ def history(manager, job):
 
 def _state(job, report, digest, rows):
     current = rows[-1] if rows else None
-    from .motion_review_compatibility import match
+    from .motion_review_compatibility import COMPATIBLE_MATCHES, match
     compatibility = match(current, report, digest)
-    applies = compatibility in ('exact', 'legacy_empty_projection_fields')
+    applies = compatibility in COMPATIBLE_MATCHES
     return dict(job_id=job, artifact_sha256=report['artifact_sha256'], evidence_sha256=digest,
                 readiness=report, revision=len(rows), current=current,
                 current_applies=applies, evidence_match=compatibility,

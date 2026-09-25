@@ -67,6 +67,26 @@ class StageReviewTests(unittest.TestCase):
         self.report['status'] = 'stage_review'
         self.assertEqual(review.save(self.manager, 'job', self.body('accepted'))['revision'], 1)
 
+    def test_empty_geometry_extension_preserves_bytes_and_save_conflict_guard(self):
+        self.report.update(profile='external-motion-readiness-v1')
+        self.report['stages'].append(dict(stage='几何', status='sampled_pass', failures=[]))
+        first=review.save(self.manager,'job',self.body())
+        stale=self.body(revision=1)
+        path=Path(self.temp.name)/'stage-reviews/review-0001.json';raw=path.read_bytes()
+        self.report['stages'][-1]['repair_limits']=[]
+        state=review.inspect(self.manager,'job')
+        self.assertTrue(state['current_applies'])
+        self.assertEqual(state['evidence_match'],'legacy_empty_diagnostic_fields')
+        self.assertEqual(state['revision'],1)
+        self.assertEqual(state['current'],first['current'])
+        self.assertEqual(path.read_bytes(),raw)
+        self.assertEqual(state['readiness']['status'],'needs_changes')
+        with self.assertRaisesRegex(RuntimeError,'evidence_changed'):
+            review.save(self.manager,'job',stale)
+        self.report['stages'][-1]['repair_limits']=[dict(triangle=1)]
+        self.assertFalse(review.inspect(self.manager,'job')['current_applies'])
+        self.assertEqual(len(review.history(self.manager,'job')),1)
+
     def test_missing_runtime_and_blank_exception_notes_refused(self):
         body = self.body(); body['notes'] = '  '
         with self.assertRaisesRegex(RuntimeError, 'request_invalid'):

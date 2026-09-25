@@ -32,7 +32,7 @@ export function appendStageReview(item, job) {
       : '尚未记录本候选的阶段验收。';
     const note = document.createElement('p');
     note.textContent = '请先查看当前角色时间轴。这里只记录视觉阶段结论；投影、接触、几何和遮挡检查保持原结果，不代表发布许可。';
-    if(state.evidence_match==='legacy_empty_projection_fields')note.append(' 已核实新增投影诊断字段均为空，其余证据与原验收摘要完全一致，沿用原人工结论；没有新增验收记录。');
+    if(['legacy_empty_projection_fields','legacy_empty_diagnostic_fields'].includes(state.evidence_match))note.append(' 已核实仅有已知诊断字段新增且为空，其余证据与原验收摘要完全一致，沿用原人工结论；没有新增验收记录。');
     const decision = document.createElement('select'); decision.setAttribute('aria-label', '阶段验收结论');
     decision.add(new Option('选择验收结论', ''));
     for (const [value, text] of Object.entries(labels)) {

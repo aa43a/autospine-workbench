@@ -1,6 +1,9 @@
-"""Exact compatibility for an additive, empty projection diagnostic extension."""
+"""Exact compatibility for known additive, empty diagnostic extensions."""
 from copy import deepcopy
+from itertools import combinations
 from ..resolved_project import canonical_sha256
+
+COMPATIBLE_MATCHES = ('exact', 'legacy_empty_projection_fields', 'legacy_empty_diagnostic_fields')
 
 
 def match(current, report, digest):
@@ -12,15 +15,24 @@ def match(current, report, digest):
         return 'exact'
     if report.get('profile') != 'external-motion-readiness-v1':
         return 'evidence_changed'
-    legacy = deepcopy(report)
-    rows = [r for r in legacy.get('stages', []) if r.get('stage') == '投影']
-    defaults = {'unreliable_frames': [], 'failures': [], 'pose_profile': None}
-    if len(rows) != 1 or any(key not in rows[0] or rows[0][key] != value for key, value in defaults.items()):
-        return 'evidence_changed'
-    # Preserve every other byte-significant field, including scope, text and checks.
-    # The transformed report must match the historical human record's exact hash.
-    for key in defaults:
-        del rows[0][key]
-    if canonical_sha256(legacy) == current['evidence_sha256']:
-        return 'legacy_empty_projection_fields'
+    extensions = []
+    for stage, defaults in (
+            ('投影', {'unreliable_frames': [], 'failures': [], 'pose_profile': None}),
+            ('几何', {'repair_limits': []})):
+        rows = [(i, r) for i, r in enumerate(report.get('stages', [])) if r.get('stage') == stage]
+        if len(rows) == 1 and all(key in rows[0][1] and rows[0][1][key] == value
+                                  for key, value in defaults.items()):
+            extensions.append((rows[0][0], defaults, stage))
+    # Try only known schema additions, separately or together. Preserve all
+    # other fields (including text, failures, scope and Runtime sample counts).
+    # A full historical digest match is required; no acceptance record is edited.
+    for count in range(1, len(extensions) + 1):
+        for subset in combinations(extensions, count):
+            legacy = deepcopy(report)
+            for index, defaults, _stage in subset:
+                for key in defaults:
+                    del legacy['stages'][index][key]
+            if canonical_sha256(legacy) == current['evidence_sha256']:
+                return ('legacy_empty_projection_fields' if count == 1 and subset[0][2] == '投影'
+                        else 'legacy_empty_diagnostic_fields')
     return 'evidence_changed'

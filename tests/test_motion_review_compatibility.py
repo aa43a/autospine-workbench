@@ -51,3 +51,42 @@ class CompatibilityTests(unittest.TestCase):
         changed=deepcopy(self.new);changed['stages'][0]['failures']=[dict(time=1)]
         row['evidence_sha256']=canonical_sha256(changed)
         self.assertEqual(decision(snapshot,'cell',job,changed)[0],'evidence_changed')
+
+    def test_empty_geometry_extension_alone_or_with_projection(self):
+        for projection_added in (False, True):
+            old = deepcopy(self.old)
+            old['stages'].append(dict(stage='几何', status='sampled_pass', failures=[]))
+            new = deepcopy(old)
+            if projection_added:
+                new['stages'][0].update(unreliable_frames=[], failures=[], pose_profile=None)
+            new['stages'][-1]['repair_limits'] = []
+            current = dict(artifact_sha256='same', evidence_sha256=canonical_sha256(old))
+            before = deepcopy(new)
+            self.assertEqual(match(current, new, canonical_sha256(new)), 'legacy_empty_diagnostic_fields')
+            self.assertEqual(new, before)
+            from autospine_workbench.automation.motion_stage_review import _state
+            state = _state('job', new, canonical_sha256(new), [current])
+            self.assertTrue(state['current_applies'])
+            self.assertEqual(state['current'], current)
+            from m4_motion_cohort_reviews import decision
+            current.update(decision='accepted_with_exceptions')
+            self.assertEqual(decision(dict(cells={'cell':state}), 'cell',
+                dict(job_id='job', result=dict(artifact_sha256='same')), new)[0], 'accepted_with_exceptions')
+
+    def test_geometry_compatibility_rejects_nonempty_or_other_changes(self):
+        old = deepcopy(self.new)
+        old['stages'].append(dict(stage='几何', status='sampled_pass', failures=[]))
+        current = dict(artifact_sha256='same', evidence_sha256=canonical_sha256(old))
+        new = deepcopy(old); new['stages'][-1]['repair_limits'] = []
+        mutations = [
+            lambda r:r['stages'][-1].update(repair_limits=[{'triangle':3}]),
+            lambda r:r['stages'][-1].update(repair_limits=None),
+            lambda r:r['stages'][-1].update(status='needs_changes'),
+            lambda r:r['stages'][-1].update(failures=[{'time':1}]),
+            lambda r:r['stages'][-1].update(unknown=[]),
+            lambda r:r['stages'].append(deepcopy(r['stages'][-1])),
+            lambda r:r.update(scope='changed'),
+        ]
+        for mutate in mutations:
+            report=deepcopy(new); mutate(report)
+            self.assertEqual(match(current,report,canonical_sha256(report)),'evidence_changed')
