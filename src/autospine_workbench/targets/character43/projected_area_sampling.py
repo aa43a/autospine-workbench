@@ -5,7 +5,7 @@ from .projected_area_reference import reference
 from ..spine43.continuous_pose import area
 
 
-def inspect(document, name, slots, *, preservation_source=None, repair_support=None, fixed_repair_bands=None):
+def inspect(document, name, slots, *, preservation_source=None, repair_support=None, fixed_repair_bands=None,dual_floor=False):
     if fixed_repair_bands is not None and repair_support is None:raise ValueError('fixed_band_requires_support')
     if repair_support is not None and preservation_source is None:raise ValueError('repair_support_requires_source')
     if preservation_source is not None:
@@ -49,13 +49,17 @@ def inspect(document, name, slots, *, preservation_source=None, repair_support=N
                     vertices={v for tri in seeds for v in tri}|set(repair_support[slot])
                     floors=[.5 if vertices.intersection(tri) else f for tri,f in zip(triangles,floors)]
                 deficits=[dict(triangle=i,ratio=r,minimum=f) for i,(r,f) in enumerate(zip(ratios,floors)) if r<f-1e-7]
-            if min(ratios)<.5 or max(ratios)>2 or deficits:
+            setup_ratios=[area(world[slot],tri)/a for tri,a in zip(triangles,areas)] if dual_floor else []
+            setup_failed=dual_floor and (min(setup_ratios)<.5 or max(setup_ratios)>2)
+            if min(ratios)<.5 or max(ratios)>2 or deficits or setup_failed:
                 failures.append(dict(time=time,slot=slot,min_ratio=min(ratios),max_ratio=max(ratios),
                     inversions=sum(v<=0 for v in ratios),at_key=time in knots))
+                if dual_floor:failures[-1].update(min_setup_ratio=min(setup_ratios),max_setup_ratio=max(setup_ratios))
                 if original is not None:failures[-1]['preservation_failures']=deficits
     profile='healthy-area-key-and-midpoint-check-v1-experiment' if preservation_source is not None else 'projected-area-key-and-midpoint-check-v1'
     if repair_support is not None:profile='repair-band-key-and-midpoint-check-v1-experiment'
     if fixed_repair_bands is not None:profile='fixed-band-key-and-midpoint-check-v1-experiment'
+    if dual_floor:profile='dual-reference-key-and-midpoint-check-v1-experiment'
     return dict(profile=profile,authority='none',
                 sampled_frames=len(times),failures=failures,
                 limitation='sampled_area_proxy_not_continuous_or_visual_quality_proof')

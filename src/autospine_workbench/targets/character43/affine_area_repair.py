@@ -6,7 +6,9 @@ from ..spine43.continuous_pose import area
 from .affine_pose import matrices, sample
 
 
-def repair(document, name, *, samples=257, convergent=False, setup_vertices=None, projected_reference=False, extra_times=(), temporal=False, terminal_collar=False, progress=None, proximal_ring=False, preserve_area=False, repair_band=False, fixed_band=False, area_margins=None):
+def repair(document, name, *, samples=257, convergent=False, setup_vertices=None, projected_reference=False, extra_times=(), temporal=False, terminal_collar=False, progress=None, proximal_ring=False, preserve_area=False, repair_band=False, fixed_band=False, area_margins=None, dual_floor=False):
+    if dual_floor and (not convergent or not projected_reference or preserve_area):
+        raise ValueError('dual_area_repair_mode_invalid')
     if area_margins is not None and not fixed_band:raise ValueError('area_margins_require_fixed_band')
     if fixed_band and not repair_band:raise ValueError('fixed_band_requires_repair_band')
     if repair_band and not preserve_area:raise ValueError('repair_band_requires_preservation')
@@ -58,7 +60,7 @@ def repair(document, name, *, samples=257, convergent=False, setup_vertices=None
             from .projected_area_reference import reference
             frame_areas = [reference(areas, triangles, influences, bones, rest_transforms, t) for t in transforms]
             ratios = [area(w[slot], tri)/a for w, refs in zip(worlds, frame_areas) for tri,a in zip(triangles,refs)]
-            if min(ratios) >= .5 and max(ratios) <= 2:
+            if not dual_floor and min(ratios) >= .5 and max(ratios) <= 2:
                 continue
         free = [sum(w > 0 for _, w in entries) > 1 for entries in influences]
         collars=[]
@@ -100,6 +102,10 @@ def repair(document, name, *, samples=257, convergent=False, setup_vertices=None
                     from .area_preservation import outside_repair_band
                     support={v for c in collars for v in c['vertices']}
                     context['minimum_ratios'],_ = outside_repair_band(original,triangles,references,support_vertices=support)
+            if dual_floor:
+                from .dual_area_floor import floors
+                context['minimum_ratios'] = floors(areas,references)
+                context['area_floor_contract'] = 'raw-compression-preservation-v1-experiment'
             if convergent:
                 from .area_projection import project as project_v2
                 initial = None
@@ -115,7 +121,7 @@ def repair(document, name, *, samples=257, convergent=False, setup_vertices=None
             else:
                 corrected = project(context, original)
             corrected_ratios = [area(corrected, t)/a for t, a in zip(triangles, references)]
-            preservation_failed = preserve_area and any(r<f-1e-7 for r,f in zip(corrected_ratios,context['minimum_ratios']))
+            preservation_failed = (preserve_area or dual_floor) and any(r<f-1e-7 for r,f in zip(corrected_ratios,context['minimum_ratios']))
             if min(corrected_ratios) < .5 or max(corrected_ratios) > 2 or preservation_failed:
                 unresolved.append(dict(time=time, min_area_ratio=min(corrected_ratios),
                                        max_area_ratio=max(corrected_ratios)))
@@ -154,5 +160,6 @@ def repair(document, name, *, samples=257, convergent=False, setup_vertices=None
     if repair_band:profile='repair-band-area-preservation-budget10-v1-experiment'
     if fixed_band:profile='fixed-band-area-preservation-budget10-v1-experiment'
     if area_margins is not None:profile='margin-fixed-band-preservation-budget10-v1-experiment'
+    if dual_floor:profile='dual-reference-area-budget10-v1-experiment'
     return result, dict(profile=profile, authority='none', selected=False,
                         records=rows, validation='dense_resampling_required')

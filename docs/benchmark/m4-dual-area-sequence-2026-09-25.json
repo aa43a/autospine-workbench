@@ -1,0 +1,60 @@
+{
+  "rows": [
+    {
+      "authority": "none",
+      "rows": [
+        {
+          "before_max_area_ratio": 1.8880456283779241,
+          "before_min_area_ratio": 0.3956655044841286,
+          "inversions": 0,
+          "max_area_ratio": 1.8952871615491236,
+          "min_area_ratio": 0.5049746032088163,
+          "slot": "layer-001-r"
+        }
+      ],
+      "samples": 1245,
+      "scope": "area_only_not_full_geometry_runtime_or_visual_acceptance",
+      "selected": false,
+      "skeleton_sha256": "cfe2ae18245907f11a167c5ac1b18865c6929978fe7a29ab9a2516339367f87d",
+      "source_candidate": "6f618bf1fbf9d4a66925b11ae85494b46150b4ae06d1e788bc43d880ad9ca96e",
+      "character": "alice",
+      "maximum_displacement": 11.418861023907882,
+      "budget_px": 14.86739178609962,
+      "maximum_fixed_displacement": 0,
+      "max_edge_ratio": 1.8651123426711067,
+      "budget_passed": true,
+      "fixed_passed": true,
+      "edge_passed": true,
+      "other_failed_leg_retained": true
+    },
+    {
+      "authority": "none",
+      "rows": [
+        {
+          "before_max_area_ratio": 1.8922754602754746,
+          "before_min_area_ratio": 0.45496263414234644,
+          "inversions": 0,
+          "max_area_ratio": 1.8952986152334033,
+          "min_area_ratio": 0.5049802597881133,
+          "slot": "layer-003"
+        }
+      ],
+      "samples": 1245,
+      "scope": "area_only_not_full_geometry_runtime_or_visual_acceptance",
+      "selected": false,
+      "skeleton_sha256": "754c163c39aa24f77e02187d1c6a6e5a1e90ef985fb307765868c8099ffe147e",
+      "source_candidate": "ea6dfdb756455e642867824a9cfe396c2dcc434b01435b060560205d9de9046c",
+      "character": "hongmeiling",
+      "maximum_displacement": 23.82874497586393,
+      "budget_px": 27.419690005541646,
+      "maximum_fixed_displacement": 0,
+      "max_edge_ratio": 1.8236075771009916,
+      "budget_passed": true,
+      "fixed_passed": true,
+      "edge_passed": true,
+      "other_failed_leg_retained": true
+    }
+  ],
+  "authority": "none",
+  "selected": false
+}

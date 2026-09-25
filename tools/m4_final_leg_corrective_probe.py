@@ -11,7 +11,7 @@ from autospine_workbench.targets.character43.affine_pose import sample
 from autospine_workbench.targets.spine43.continuous_pose import area
 
 
-def run(folder,output):
+def run(folder,output,selected_slot=None,dual_floor=False):
     receipt=json.loads((folder/'report.json').read_bytes())
     files=AnimatedStore(folder/'isolated-store').read(receipt['candidate_bundle_sha256'])
     doc=json.loads(files['skeleton.json']);setup=json.loads(files['rig-setup-reference.json'])
@@ -28,11 +28,14 @@ def run(folder,output):
                 if data[i+j*4+3]>0:used.add(doc['bones'][data[i+j*4]]['name'])
             i+=4*n
         if used and used<={'thigh_l','calf_l','foot_l','thigh_r','calf_r','foot_r'}:slots.append(row['slot'])
+    if selected_slot is not None:
+        if selected_slot not in slots:raise ValueError('final_leg_probe_slot_not_failed_leg')
+        slots=[selected_slot]
     if not slots:raise ValueError('final_leg_probe_no_failed_legs')
     isolated=deepcopy(doc);name='external-motion'
     isolated['skins'][0]['attachments']={s:isolated['skins'][0]['attachments'][s] for s in slots}
     isolated['animations'][name].pop('attachments',None)
-    fixed,correction=build(isolated,name,setup['vertices'],temporal=True,
+    fixed,correction=build(isolated,name,setup['vertices'],temporal=True,dual_floor=dual_floor,
                            progress=lambda r:print(r['stage'],flush=True) if r['stage']=='refinement_round' else None)
     candidate=deepcopy(doc);tracks=candidate['animations'][name].setdefault('attachments',{}).setdefault('default',{})
     replacement=fixed['animations'][name].get('attachments',{}).get('default',{})
@@ -69,4 +72,5 @@ def run(folder,output):
 
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('folder',type=Path);p.add_argument('output',type=Path)
-    a=p.parse_args();run(a.folder,a.output)
+    p.add_argument('--slot');p.add_argument('--dual-floor',action='store_true')
+    a=p.parse_args();run(a.folder,a.output,a.slot,a.dual_floor)
