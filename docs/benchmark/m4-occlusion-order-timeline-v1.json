@@ -1,0 +1,196 @@
+{
+  "authority": "none",
+  "selected": false,
+  "scope": "existing_candidate_order_only_not_new_runtime_or_material_acceptance",
+  "rows": [
+    {
+      "character": "alice",
+      "job_id": "motion-c54fd4c586ee439d8c2c38e8037f4c6b",
+      "artifact_sha256": "cb2f7dbccb796996108be3508293f2f5f0fee98b623ecaa4b4930b4ee7219fab",
+      "checks": [
+        {
+          "slot": "layer-003",
+          "reference_slot": "layer-006",
+          "status": "measured",
+          "duration": 4.0,
+          "intervals": [
+            {
+              "start": 0.0,
+              "end": 4.0,
+              "reference_can_cover_in_order": true
+            }
+          ],
+          "interval_convention": "start_inclusive_end_exclusive",
+          "endpoint": {
+            "time": 4.0,
+            "reference_can_cover_in_order": true
+          },
+          "scope": "order_intervals_only_not_material_relation_for_all_times_or_visual_acceptance",
+          "authority": "none",
+          "selected": false
+        },
+        {
+          "slot": "layer-004",
+          "reference_slot": "layer-006",
+          "status": "measured",
+          "duration": 4.0,
+          "intervals": [
+            {
+              "start": 0.0,
+              "end": 4.0,
+              "reference_can_cover_in_order": true
+            }
+          ],
+          "interval_convention": "start_inclusive_end_exclusive",
+          "endpoint": {
+            "time": 4.0,
+            "reference_can_cover_in_order": true
+          },
+          "scope": "order_intervals_only_not_material_relation_for_all_times_or_visual_acceptance",
+          "authority": "none",
+          "selected": false
+        }
+      ]
+    },
+    {
+      "character": "huiye",
+      "job_id": "motion-a6486fd0e64f4904b8f7d3c0be84191d",
+      "artifact_sha256": "b8b83fe8e808f91f8884e287844956d230c5feffbbc425ec3f3eb034120c54a7",
+      "checks": [
+        {
+          "slot": "layer-002-component-0000",
+          "reference_slot": "layer-005",
+          "status": "measured",
+          "duration": 4.0,
+          "intervals": [
+            {
+              "start": 0.0,
+              "end": 4.0,
+              "reference_can_cover_in_order": true
+            }
+          ],
+          "interval_convention": "start_inclusive_end_exclusive",
+          "endpoint": {
+            "time": 4.0,
+            "reference_can_cover_in_order": true
+          },
+          "scope": "order_intervals_only_not_material_relation_for_all_times_or_visual_acceptance",
+          "authority": "none",
+          "selected": false
+        },
+        {
+          "slot": "layer-003-component-0000",
+          "reference_slot": "layer-005",
+          "status": "measured",
+          "duration": 4.0,
+          "intervals": [
+            {
+              "start": 0.0,
+              "end": 4.0,
+              "reference_can_cover_in_order": true
+            }
+          ],
+          "interval_convention": "start_inclusive_end_exclusive",
+          "endpoint": {
+            "time": 4.0,
+            "reference_can_cover_in_order": true
+          },
+          "scope": "order_intervals_only_not_material_relation_for_all_times_or_visual_acceptance",
+          "authority": "none",
+          "selected": false
+        }
+      ]
+    },
+    {
+      "character": "hongmeiling",
+      "job_id": "motion-bbab56185e3045f7b410fa3e1d2e115e",
+      "artifact_sha256": "a9594f9019352d4a835c1ebc23c162fdbf714a132857c3184eeadfcbf065f915",
+      "checks": [
+        {
+          "slot": "layer-001",
+          "reference_slot": "layer-009",
+          "status": "measured",
+          "duration": 4.0,
+          "intervals": [
+            {
+              "start": 0.0,
+              "end": 4.0,
+              "reference_can_cover_in_order": true
+            }
+          ],
+          "interval_convention": "start_inclusive_end_exclusive",
+          "endpoint": {
+            "time": 4.0,
+            "reference_can_cover_in_order": true
+          },
+          "scope": "order_intervals_only_not_material_relation_for_all_times_or_visual_acceptance",
+          "authority": "none",
+          "selected": false
+        },
+        {
+          "slot": "layer-001",
+          "reference_slot": "layer-011",
+          "status": "measured",
+          "duration": 4.0,
+          "intervals": [
+            {
+              "start": 0.0,
+              "end": 4.0,
+              "reference_can_cover_in_order": true
+            }
+          ],
+          "interval_convention": "start_inclusive_end_exclusive",
+          "endpoint": {
+            "time": 4.0,
+            "reference_can_cover_in_order": true
+          },
+          "scope": "order_intervals_only_not_material_relation_for_all_times_or_visual_acceptance",
+          "authority": "none",
+          "selected": false
+        },
+        {
+          "slot": "layer-006",
+          "reference_slot": "layer-009",
+          "status": "measured",
+          "duration": 4.0,
+          "intervals": [
+            {
+              "start": 0.0,
+              "end": 4.0,
+              "reference_can_cover_in_order": true
+            }
+          ],
+          "interval_convention": "start_inclusive_end_exclusive",
+          "endpoint": {
+            "time": 4.0,
+            "reference_can_cover_in_order": true
+          },
+          "scope": "order_intervals_only_not_material_relation_for_all_times_or_visual_acceptance",
+          "authority": "none",
+          "selected": false
+        },
+        {
+          "slot": "layer-006",
+          "reference_slot": "layer-011",
+          "status": "measured",
+          "duration": 4.0,
+          "intervals": [
+            {
+              "start": 0.0,
+              "end": 4.0,
+              "reference_can_cover_in_order": true
+            }
+          ],
+          "interval_convention": "start_inclusive_end_exclusive",
+          "endpoint": {
+            "time": 4.0,
+            "reference_can_cover_in_order": true
+          },
+          "scope": "order_intervals_only_not_material_relation_for_all_times_or_visual_acceptance",
+          "authority": "none",
+          "selected": false
+        }
+      ]
+    }
+  ]
+}

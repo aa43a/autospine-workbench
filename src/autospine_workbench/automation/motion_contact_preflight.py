@@ -8,7 +8,7 @@ def read(manager, job, parts, result, files):
     from .motion_repair_draft import evidence, history
     from ..targets.character43.active_mesh_pose import sample_active
     from ..targets.character43.contact_scope_constraints import inspect
-    from ..targets.character43.occlusion_scope_order import inspect as inspect_order
+    from ..targets.character43.occlusion_scope_order import inspect as inspect_order, timeline
     if len(parts)!=2 or not parts[1].endswith('.json') or not parts[1][:-5].isdigit():
         raise PipelineRunError('pipeline_artifact_not_found')
     revision=int(parts[1][:-5])
@@ -38,6 +38,7 @@ def read(manager, job, parts, result, files):
         from .motion_occlusion_alpha import read as read_alpha
         order=inspect_order(doc,row['animation'],row['event']['time'],slot,reference)
         output['occlusion_review']['draw_order']=order
+        output['occlusion_review']['order_timeline']=timeline(doc,row['animation'],slot,reference)
         output['occlusion_review']['texture_samples']=read_alpha(doc,files,pose,slot,reference,
                                                                scope['regions']['occlusion'],row['animation'])
         if not order['reference_can_cover_in_order']:

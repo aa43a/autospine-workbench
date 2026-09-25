@@ -31,3 +31,29 @@ def inspect(document, animation, time, slot, reference):
         reference_index=order.index(reference),order=list(order),
         sampled_time=time,source_key_time=None if selected is None else selected.get('time',0),
         scope='draw_order_only_not_alpha_overlap_or_visual_acceptance')
+
+
+def timeline(document, animation, slot, reference):
+    """Exact held-order intervals, without extending an event's material decision."""
+    from .region_order_interval import duration
+    motion=document['animations'][animation]
+    keys=motion.get('drawOrder',[])
+    scope='order_intervals_only_not_material_relation_for_all_times_or_visual_acceptance'
+    if len(keys)>1024:
+        return dict(status='unmeasured',reason_code='occlusion_order_timeline_budget',scope=scope)
+    # Inspect validates all key times, including Float32 collisions and legacy keys.
+    initial=inspect(document,animation,0,slot,reference)
+    end=struct.unpack('f',struct.pack('f',duration(motion)))[0]
+    ticks=sorted({0.,end,*(struct.unpack('f',struct.pack('f',k.get('time',0)))[0] for k in keys)})
+    intervals=[]
+    for start,stop in zip(ticks,ticks[1:]):
+        result=initial if start==0 else inspect(document,animation,start,slot,reference)
+        front=result['reference_can_cover_in_order']
+        if intervals and intervals[-1]['reference_can_cover_in_order']==front:
+            intervals[-1]['end']=stop
+        else:
+            intervals.append(dict(start=start,end=stop,reference_can_cover_in_order=front))
+    endpoint=inspect(document,animation,end,slot,reference)
+    return dict(status='measured',duration=end,intervals=intervals,interval_convention='start_inclusive_end_exclusive',
+                endpoint=dict(time=end,reference_can_cover_in_order=endpoint['reference_can_cover_in_order']),
+                scope=scope,authority='none',selected=False)

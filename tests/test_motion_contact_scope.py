@@ -130,5 +130,7 @@ class ContactScopeTests(unittest.TestCase):
         self.assertIn('occlusion_reference_behind',report['reasons'])
         self.assertEqual(report['status'],'requires_changes')
         self.assertEqual(report['occlusion_review']['draw_order']['order'],['body','arm'])
+        self.assertEqual(report['occlusion_review']['order_timeline']['status'],'measured')
+        self.assertFalse(report['occlusion_review']['order_timeline']['endpoint']['reference_can_cover_in_order'])
         self.assertEqual(report['fixed_targets'],[])
         self.assertEqual(saved['history'],draft.inspect(self.manager,'job')['history'])
