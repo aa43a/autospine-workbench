@@ -1,6 +1,7 @@
 import {describeShape} from './motion-shape-evidence.js';
 import {appendRepairDraft} from './motion-repair-draft.js';
 import {appendRepairFeasibility} from './motion-repair-feasibility.js';
+import {diagnosticPanel} from './motion-diagnostic-panel.js';
 const node = (tag, text) => {
   const element = document.createElement(tag);
   if (text !== undefined) element.textContent = text;
@@ -8,20 +9,17 @@ const node = (tag, text) => {
 };
 
 export function appendGeometryDetails(parent, job, onSeek, onInspect) {
-  const button = node('button', '查看变形区域与处理方案');
-  const panel = node('section'); panel.hidden = true;
-  panel.setAttribute('aria-live', 'polite');
   const base = `/api/motions/${encodeURIComponent(job.job_id)}/view/`;
-  button.onclick = async () => {
-    button.disabled = true; panel.hidden = false;
-    panel.textContent = '正在定位当前候选的采样异常…';
-    try {
+  diagnosticPanel(parent, {label:'查看变形区域与处理方案',
+    load:async()=>{
       const response = await fetch(base + 'geometry-details.json', {cache:'no-store'});
       const report = await response.json();
       if (!response.ok) throw Error(report.reason_code || '区域检查失败');
       if (report.artifact_sha256 !== job.result.artifact_sha256)
         throw Error('候选版本已变化，请刷新任务');
-      panel.replaceChildren();
+      return report;
+    },
+    render:(panel,report)=>{
       if (report.status === 'unavailable') {
         panel.append(node('p', '当前候选缺少定位证据，请重建；原检查状态保持不变。'));
         return;
@@ -29,10 +27,8 @@ export function appendGeometryDetails(parent, job, onSeek, onInspect) {
       panel.append(node('p', '这里显示原纹理上的失败网格。投影缩短、权重或素材轮廓均可能造成异常；不能仅凭面积比决定补图。'));
       for (const row of report.rows) renderRow(panel, row, base, onSeek, onInspect, job);
       if (!report.rows.length) panel.append(node('p', '当前报告没有几何失败记录。'));
-    } catch (error) { panel.textContent = '无法定位：' + error.message; }
-    finally { button.disabled = false; }
-  };
-  parent.append(button, panel);
+    }
+  });
 }
 
 function renderRow(panel, row, base, onSeek, onInspect, job) {
