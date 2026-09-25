@@ -61,8 +61,8 @@ def run(artifact, slot, name, time, *, files=None, policies=None):
             fixed_vertex_shift=max([math.dist(a,b) for a,b,free in zip(points,origin,context['free']) if not free] or [0]),
             setup_ratios=ratios)
     results={};points_by_policy={}
-    choices=('fixed_floor','preserve_raw_pose','preserve_raw_compression')
-    if policies is None:policies=choices
+    choices=('fixed_floor','preserve_raw_pose','preserve_raw_compression','dual_area_floor')
+    if policies is None:policies=choices[:3]
     if not policies or any(p not in choices for p in policies):raise ValueError('unknown_probe_policy')
     for policy in policies:
         trial=deepcopy(context)
@@ -70,6 +70,10 @@ def run(artifact, slot, name, time, *, files=None, policies=None):
         if policy=='preserve_raw_compression':
             trial['area_floor_contract']=CONTRACT
             trial['minimum_ratios']=floors(origin,triangles,refs,areas)
+        if policy=='dual_area_floor':
+            from autospine_workbench.targets.character43.dual_area_floor import floors as dual_floors
+            trial['area_floor_contract']=CONTRACT
+            trial['minimum_ratios']=dual_floors(areas,refs)
         points,solver=project(trial,origin)
         if not solver['converged']:
             points,solver['refinement']=refine(trial,origin,points,analytic=True,expanded=True)
