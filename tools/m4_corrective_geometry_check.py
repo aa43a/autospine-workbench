@@ -3,6 +3,7 @@ import argparse
 from copy import deepcopy
 from hashlib import sha256
 import json
+import math
 from pathlib import Path
 from autospine_workbench.automation.animated_store import AnimatedStore
 from autospine_workbench.automation.storage_io import canonical_bytes
@@ -10,6 +11,20 @@ from autospine_workbench.automation.motion_target_pose import final_times
 from autospine_workbench.targets.character43.affine_pose import sample
 from autospine_workbench.targets.character43.numeric_reference import read,write,carry_setup
 from autospine_workbench.targets.character43.deformation_qa import inspect
+
+
+def checked_times(document,name,reference_times,report):
+    times=final_times(document,name,reference_times)
+    declared=report.get('validation_times',[])
+    if declared:
+        if (report.get('validation',{}).get('frames')!=len(declared) or
+                any(not math.isfinite(t) or t<times[0] or t>times[-1] for t in declared) or
+                any(b<=a for a,b in zip(declared,declared[1:]))):
+            raise ValueError('corrective_geometry_validation_grid_invalid')
+        times=sorted(set(times)|set(declared))
+        if len(times)>4097:
+            raise ValueError('corrective_geometry_required_samples_exceed_capture_budget')
+    return times
 
 
 def prepare(source,experiment):
@@ -33,7 +48,7 @@ def prepare(source,experiment):
         unchanged.append(value)
     if unchanged[0]!=unchanged[1]:raise ValueError('corrective_geometry_unselected_tracks_changed')
     files=dict(original,**{'skeleton.json':raw});setup=carry_setup(original,files)
-    times=final_times(doc,name,[r['time'] for r in read(original)['animations'][name]])
+    times=checked_times(doc,name,[r['time'] for r in read(original)['animations'][name]],report)
     frames=[dict(time=t,vertices=sample(doc,name,t)[0]) for t in times]
     files=write(files,dict(skeleton_sha256=sha256(raw).hexdigest(),animations={name:frames}))
     qa=inspect(files,setup_vertices=setup)

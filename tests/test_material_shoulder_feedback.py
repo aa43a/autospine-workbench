@@ -3,10 +3,24 @@ import json
 from hashlib import sha256
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from m4_material_shoulder_feedback import select,load
+from m4_material_shoulder_feedback import select,load,solve_times,validation_grid
 
 
 class ShoulderFeedbackTests(unittest.TestCase):
+    def test_feedback_keeps_previous_correction_knots(self):
+        report=self.report();report['feedback']={'extra_times':[.25]}
+        self.assertEqual(solve_times(report),[0,.25,.5,1])
+        extra,_=select(report,'source','motion',{'a':'b'},[0,.5,1])
+        self.assertEqual(extra,[.2,.3,.8])
+
+    def test_existing_dense_grid_is_preserved_without_global_doubling(self):
+        previous=[i/10000 for i in range(10001)]
+        grid=validation_grid([0,1],[0,1],[0,.375,1],previous)
+        self.assertTrue(set(previous)<=set(grid))
+        self.assertLessEqual(len(grid),10004)
+        self.assertIn(.1875,grid);self.assertIn(.6875,grid)
+        self.assertEqual(validation_grid([0,1],[0,1],[0,.375,1],grid),grid)
+
     def report(self):
         rows=[dict(slot='a',time=t,geometry=dict(min_area_ratio=area,max_area_ratio=1,max_edge_stretch=1))
               for t,area in ((.2,.49),(.3,.47),(.8,.48))]

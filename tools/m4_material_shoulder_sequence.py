@@ -16,6 +16,7 @@ from autospine_workbench.targets.character43.torso_projection_candidate import m
 from autospine_workbench.targets.character43.deform_addition import entries,local_delta,value,runtime_union_times
 from autospine_workbench.targets.character43.numeric_reference import read
 from autospine_workbench.targets.character43.runtime_storage_reference import f32
+from m4_material_shoulder_feedback import validation_grid
 
 
 def load(folder):
@@ -43,8 +44,11 @@ def run(source,motion_source,output,feedback_from=None):
         from m4_material_shoulder_feedback import load as load_feedback
         feedback=load_feedback(feedback_from,receipt['candidate_bundle_sha256'],
             motion_receipt['candidate_bundle_sha256'],owners,source_times,reference_times)
-        margin=feedback['region_margin'];times=sorted(set(times)|{f32(t) for t in feedback['extra_times']})
+        margin=feedback['region_margin'];times=sorted(set(times)|set(feedback['previous_solve_times'])|
+                                                    {f32(t) for t in feedback['extra_times']})
         if len(times)>512:raise ValueError('material_shoulder_feedback_sample_bound')
+    dense=validation_grid(reference_times,source_times,times,
+                          feedback['previous_validation_times'] if feedback else [])
     setup=sample(dict(doc,animations={'setup':{}}),'setup',0)[0]
     rest=matrices(dict(doc,animations={'setup':{}}),'setup',0)['chest']
     output.mkdir(parents=True,exist_ok=False);records=[]
@@ -67,15 +71,11 @@ def run(source,motion_source,output,feedback_from=None):
     report=dict(source_candidate=receipt['candidate_bundle_sha256'],skeleton_sha256=sha256(raw).hexdigest(),
         motion_source_candidate=motion_receipt['candidate_bundle_sha256'],source_times=source_times,
         rows=[dict(slot=row['slot']) for row,p in prepared],material_owners=owners,
-        feedback=feedback,region_margin=margin,
+        feedback=feedback,region_margin=margin,solve_times=times,
         solver_failures=[r for r in records if r['status']!='feasible_candidate'],authority='none',selected=False,
         scope='full_source_frame_trial_requires_dense_validation_and_runtime',
         solver_worktree_sha256=sha256(Path('src/autospine_workbench/targets/character43/boundary_shape_feasible.py').read_bytes()).hexdigest())
     (output/'report.json').write_bytes(canonical_bytes(report))
-    dense=sorted(set(reference_times)|set(source_times)|set(times)|
-                 set(feedback['previous_validation_times'] if feedback else []))
-    dense=sorted(set(dense)|{(a+b)/2 for a,b in zip(dense,dense[1:])})
-    if len(dense)>16385:raise ValueError('material_shoulder_validation_sample_bound')
     validation=inspect(doc,candidate,prepared,dense,lambda s:print(json.dumps(s),flush=True))
     report.update(validation=validation,validation_times=dense);(output/'report.json').write_bytes(canonical_bytes(report))
     print(json.dumps(dict(solver_failures=len(report['solver_failures']),passed=validation['passed'],frames=len(dense))),flush=True)
