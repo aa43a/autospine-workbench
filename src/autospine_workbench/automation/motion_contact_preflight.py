@@ -8,6 +8,7 @@ def read(manager, job, parts, result, files):
     from .motion_repair_draft import evidence, history
     from ..targets.character43.active_mesh_pose import sample_active
     from ..targets.character43.contact_scope_constraints import inspect
+    from ..targets.character43.occlusion_scope_order import inspect as inspect_order
     if len(parts)!=2 or not parts[1].endswith('.json') or not parts[1][:-5].isdigit():
         raise PipelineRunError('pipeline_artifact_not_found')
     revision=int(parts[1][:-5])
@@ -33,6 +34,12 @@ def read(manager, job, parts, result, files):
         raise PipelineRunError('motion_contact_active_attachment_unsupported')
     output=inspect(pose['setup_vertices'][slot],pose['vertices'][slot],pose['triangles'][slot],
                    pose['setup_vertices'][reference],pose['vertices'][reference],pose['triangles'][reference],scope['regions'])
+    if output['occlusion_review']['required']:
+        order=inspect_order(doc,row['animation'],row['event']['time'],slot,reference)
+        output['occlusion_review']['draw_order']=order
+        if not order['reference_can_cover_in_order']:
+            output['reasons'].append('occlusion_reference_behind')
+            output['status']='requires_changes'
     output.update(artifact_sha256=result['artifact_sha256'],draft_sha256=canonical_sha256(row),revision=revision,
                   slot=slot,reference_slot=reference,animation=row['animation'],time=row['event']['time'])
     with manager._lock:

@@ -112,3 +112,23 @@ class ContactScopeTests(unittest.TestCase):
             body=copy.deepcopy(self.body);body['contact_scope']['regions']=regions
             with self.subTest(regions=regions),self.assertRaises(RuntimeError):
                 validate(self.manager,'job',body)
+
+    def test_preflight_reports_cover_reference_behind_at_event(self):
+        from autospine_workbench.automation.motion_contact_preflight import read
+        doc=json.loads(self.files['skeleton.json'])
+        doc['animations']={'reach':{'drawOrder':[dict(time=.25,offsets=[dict(slot='arm',offset=1)])]}}
+        self.files['skeleton.json']=json.dumps(doc).encode()
+        body=copy.deepcopy(self.body)
+        body['contact_scope']['regions']=dict(fixed=[],sliding=[],free=[],occlusion=[0])
+        saved=draft.save(self.manager,'job',body)
+        rest=[[0,0],[2,0],[2,2],[0,2]]
+        pose=dict(attachments={'arm':'arm','body':'body'},setup_vertices={'arm':rest,'body':rest},
+                  vertices={'arm':rest,'body':rest},triangles={'arm':[0,1,2,0,2,3],'body':[0,1,2,0,2,3]})
+        with patch('autospine_workbench.targets.character43.active_mesh_pose.sample_active',return_value=pose):
+            raw,_=read(self.manager,'job',['contact-scope','1.json'],{'artifact_sha256':'a'*64},self.files)
+        report=json.loads(raw)
+        self.assertIn('occlusion_reference_behind',report['reasons'])
+        self.assertEqual(report['status'],'requires_changes')
+        self.assertEqual(report['occlusion_review']['draw_order']['order'],['body','arm'])
+        self.assertEqual(report['fixed_targets'],[])
+        self.assertEqual(saved['history'],draft.inspect(self.manager,'job')['history'])
