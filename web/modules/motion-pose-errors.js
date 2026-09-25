@@ -20,6 +20,7 @@ export const poseErrors = {
   partition_compact_curve:'区域压缩暂不支持当前变形曲线，未将曲线改为线性。',
   partition_compact_timeline:'区域压缩遇到不支持的附件轨道，原动画保留。',
   motion_region_order_requires_visual_review:'区域顺序候选已生成，仍需检查整段动作的遮挡与材质边界。',
+  motion_occlusion_representation_not_repaired:'覆盖区已分为独立绘制区域，原运动和顺序保留；尚未修复遮挡，原异常继续保留。',
   foot_fit_timeline_budget_exceeded:'脚部帧间朝向修正未在计算上限内收敛，已停止生成；原候选保留，不能视为脚底接触通过。',
   foot_fit_timeline_sample_limit:'脚部来源关键帧超过当前修正上限，未丢弃采样或缩短动作；请保留原候选。',
   foot_orientation_plane_unobservable:'当前视角下脚部朝向投影退化，无法可靠拟合；请检查源动作与观察方向。',

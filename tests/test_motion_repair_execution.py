@@ -63,6 +63,15 @@ class SubmissionTests(unittest.TestCase):
         self.assertEqual(saved['repair_execution']['profile'],execution.PARTITION_PROFILE)
         self.assertEqual(saved['repair_execution']['draft']['partition'],self.row['partition'])
 
+    def test_occlusion_execution_requires_explicit_region_and_freezes_it(self):
+        self.row['action']='contact_scope'
+        with self.assertRaisesRegex(RuntimeError,'occlusion_region_required'):self.invoke()
+        self.row['contact_scope']=dict(regions={'occlusion':[0]},reference_slot='body')
+        value=self.invoke();saved=read_document(self.manager.folder(value['job_id'])/'request.json')
+        self.assertEqual(saved['repair_execution']['profile'],execution.OCCLUSION_PROFILE)
+        self.assertEqual(saved['repair_execution']['draft']['contact_scope'],self.row['contact_scope'])
+        self.assertEqual(read_document(self.manager.folder('parent')/'request.json'),self.request)
+
     def test_region_order_requires_selection_and_freezes_distinct_profile(self):
         self.row['action']='region_order'
         with self.assertRaisesRegex(RuntimeError,'region_order_required'):self.invoke()

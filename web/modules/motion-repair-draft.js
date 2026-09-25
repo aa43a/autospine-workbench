@@ -68,8 +68,8 @@ export function appendRepairDraft(parent, job, row, getDetail) {
     showReturn(material.hidden||latest.view_needs?.length?null:latest.revision);
     showViewReturn(!material.hidden&&latest.view_needs?.length?latest.revision:null);
     material.textContent=latest?.view_needs?.length?'下载新视角需求任务包':'下载姿态素材任务包';
-    execute.hidden=!(applies&&(latest.action==='local_repair'||latest.action==='partition'&&latest.partition||latest.action==='region_order'&&latest.region_order));
-    execute.textContent=latest?.action==='region_order'?'构建区域顺序候选':latest?.action==='partition'?'构建独立分区候选':'构建局部修正候选';
+    execute.hidden=!(applies&&(latest.action==='local_repair'||latest.action==='partition'&&latest.partition||latest.action==='region_order'&&latest.region_order||latest.action==='contact_scope'&&latest.contact_scope?.regions?.occlusion?.length));
+    execute.textContent=latest?.action==='contact_scope'?'构建覆盖区表示候选（保留原运动）':latest?.action==='region_order'?'构建区域顺序候选':latest?.action==='partition'?'构建独立分区候选':'构建局部修正候选';
     execute.onclick=async()=>{
       panel.disabled=true;status.textContent='正在提交独立修正任务…';
       try {

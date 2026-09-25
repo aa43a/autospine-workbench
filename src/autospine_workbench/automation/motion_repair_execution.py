@@ -10,6 +10,7 @@ from .storage_io import publish_document, read_document
 PROFILE = 'selected-attachment-area-repair-v1'
 PARTITION_PROFILE = 'selected-region-rigid-partition-v1'
 ORDER_PROFILE = 'selected-region-static-order-v1'
+from ..targets.character43.occlusion_scope_bundle import PROFILE as OCCLUSION_PROFILE
 from ..targets.character43.region_order_interval import PROFILE as INTERVAL_ORDER_PROFILE
 
 
@@ -34,13 +35,15 @@ def submit(manager, parent_job, body):
             raise PipelineRunError('motion_repair_plan_unavailable')
         row = rows[index]
         key = lambda r: (r['slot'], r['animation'], r['event']['triangle'], r['event']['time'])
-        if (canonical_sha256(row) != body['draft_sha256'] or row['action'] not in ('local_repair','partition','region_order')
+        if (canonical_sha256(row) != body['draft_sha256'] or row['action'] not in ('local_repair','partition','region_order','contact_scope')
                 or any(key(r) == key(row) for r in rows[index+1:])):
             raise PipelineRunError('motion_repair_plan_changed')
         if row['action']=='partition' and not row.get('partition'):
             raise PipelineRunError('motion_partition_region_required')
         if row['action']=='region_order' and not row.get('region_order'):
             raise PipelineRunError('motion_region_order_required')
+        if row['action']=='contact_scope' and not row.get('contact_scope',{}).get('regions',{}).get('occlusion'):
+            raise PipelineRunError('motion_occlusion_region_required')
         if row['artifact_sha256'] != report['artifact_sha256'] or row['evidence_sha256'] != digest:
             raise PipelineRunError('motion_repair_evidence_changed')
         if manager._closed or sum(j['status'] in {'pending','running'} for j in manager._jobs.values()) >= 2:
@@ -48,14 +51,14 @@ def submit(manager, parent_job, body):
         job = 'motion-' + uuid4().hex
         root = manager.folder(job, True)
         request = deepcopy(request)
-        profile={'partition':PARTITION_PROFILE,'region_order':ORDER_PROFILE}.get(row['action'],PROFILE)
+        profile={'partition':PARTITION_PROFILE,'region_order':ORDER_PROFILE,'contact_scope':OCCLUSION_PROFILE}.get(row['action'],PROFILE)
         if row['action']=='region_order' and 'interval' in row['region_order']:
             profile=INTERVAL_ORDER_PROFILE
         request.update(job_id=job, repair_execution=dict(profile=profile, parent_job_id=parent_job,
             parent_artifact_sha256=report['artifact_sha256'], draft_sha256=body['draft_sha256'], draft=row))
         publish_document(root/'request.json', request, staging=root/'staging')
         value = dict(job_id=job, kind='adapt', project_id=request['project_id'],
-            character_job_id=request['character_job_id'], name=request['name']+({'partition':' · 分区候选','region_order':' · 区域顺序候选'}.get(row['action'],' · 局部修正候选')),
+            character_job_id=request['character_job_id'], name=request['name']+({'partition':' · 分区候选','region_order':' · 区域顺序候选','contact_scope':' · 覆盖区表示候选'}.get(row['action'],' · 局部修正候选')),
             status='pending', step='queued', authority='none', repair_parent_job_id=parent_job)
         manager._jobs[job] = value; manager._cancel[job] = Event()
         manager._pool.submit(manager._execute, job)

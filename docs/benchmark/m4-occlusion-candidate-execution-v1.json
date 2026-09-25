@@ -1,0 +1,34 @@
+{
+  "candidate": "8c4778d992af00da337710f8dc8c98a387915e94c9f0a894b16e4606fd066bdb",
+  "diagnostic_only": true,
+  "geometry_passed": true,
+  "parent": "cb2f7dbccb796996108be3508293f2f5f0fee98b623ecaa4b4930b4ee7219fab",
+  "status": "needs_changes",
+  "runtime": {
+    "version": "4.3.13",
+    "passed": true,
+    "frames": 737,
+    "report_sha256": "1e3c04cd6fe612efaa01d4dc3cc0360fcf15f19cf2e1f6685cd4eb45f3c982d2"
+  },
+  "screenshots": {
+    "count": 24,
+    "pixel_identical": 24,
+    "comparison_sha256": "e47c1e2b327fdafa00fa77f0476f19f0fa3fb36747003cd10da94ba8207df072"
+  },
+  "depth": {
+    "alpha_threshold": 8,
+    "ambiguous_visible_pair_samples": 82,
+    "order_mismatch_pair_samples": 119,
+    "pixel_budget": 64000000,
+    "profile": "external-depth-sparse-alpha-overlap-v1-experiment",
+    "sampled_pixel_budget_used": 10086034,
+    "scope": "cpu_native_pixel_centres_bilinear_alpha_not_gpu_or_continuous_time",
+    "unmeasured_pair_samples": 0,
+    "visible_pair_samples": 242
+  },
+  "plan_sha256": "8f5175cf1e0ba16eeaa9f779d1b39be582833382e0fe1b52b5e83494b8718c0b",
+  "authority": "none",
+  "selected": false,
+  "production_authorized": false,
+  "scope": "offline_diagnostic_region_not_user_label_or_online_end_to_end_acceptance"
+}
