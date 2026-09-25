@@ -1,0 +1,51 @@
+{
+  "candidate": "0b42c09f432a52c691ef0d8db53789c1164fd37c864f88ea96cacead9dab6af3",
+  "diagnostic_only": true,
+  "files": 98,
+  "geometry_passed": true,
+  "inherited_issue_count": 2,
+  "parent": "8c4778d992af00da337710f8dc8c98a387915e94c9f0a894b16e4606fd066bdb",
+  "status": "needs_changes",
+  "runtime_passed": true,
+  "runtime_frames": 737,
+  "runtime_version": "4.3.13",
+  "readiness": "needs_changes",
+  "stages": [
+    {
+      "stage": "\u539f\u5019\u9009\u672a\u89e3\u51b3\u9879",
+      "status": "needs_changes"
+    },
+    {
+      "stage": "\u6295\u5f71",
+      "status": "sampled_pass"
+    },
+    {
+      "stage": "\u51e0\u4f55",
+      "status": "sampled_pass"
+    },
+    {
+      "stage": "\u811a\u7aef\u8f68\u8ff9",
+      "status": "unmeasured"
+    },
+    {
+      "stage": "\u63a5\u89e6",
+      "status": "sampled_pass"
+    },
+    {
+      "stage": "\u906e\u6321",
+      "status": "unmeasured"
+    },
+    {
+      "stage": "Runtime",
+      "status": "sampled_pass"
+    },
+    {
+      "stage": "\u5176\u4ed6\u4fee\u6b63",
+      "status": "needs_changes"
+    }
+  ],
+  "zip_files": 98,
+  "zip_sha256": "276c76a30af55daa5602c7c3c3ed795207992dd4034782d25a5b59751ee66599",
+  "download_validation": "offline_archive_only_not_http",
+  "source_user_decisions_changed": false
+}
