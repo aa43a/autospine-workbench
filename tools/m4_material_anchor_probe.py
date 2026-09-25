@@ -1,5 +1,6 @@
 """Three-structure key-pose test of setup-occluded shoulder material anchors."""
 import argparse
+from collections import Counter
 from io import BytesIO
 import json
 from pathlib import Path
@@ -21,9 +22,23 @@ def key_times(value):
     return []
 
 
+def boundary_anchors(flat, eligible):
+    """Topological perimeter only; this is not a semantic seam classifier."""
+    if not flat or len(flat)%3:raise ValueError('anchor_boundary_triangles')
+    edges=Counter()
+    for i in range(0,len(flat),3):
+        t=flat[i:i+3]
+        if len(set(t))!=3:raise ValueError('anchor_boundary_triangles')
+        edges.update(tuple(sorted((a,b))) for a,b in zip(t,t[1:]+t[:1]))
+    if any(count>2 for count in edges.values()):raise ValueError('anchor_boundary_nonmanifold')
+    perimeter={v for edge,count in edges.items() if count==1 for v in edge}
+    return [v for v in eligible if v in perimeter]
+
+
 def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('sources',type=Path);parser.add_argument('fields',type=Path);parser.add_argument('output',type=Path)
+    parser.add_argument('--boundary-only',action='store_true')
     args=parser.parse_args(); records=[]
     for index,name in enumerate(('alice','huiye','hongmeiling')):
         source=args.sources/str(index)
@@ -42,9 +57,13 @@ def main():
         distance=np.linalg.norm(np.asarray(setup[arm])-root,axis=1)
         supported=covered & (alpha_at(texture(torso,body),body_uv)>=254) & (alpha_at(texture(mesh,arm),np.asarray(mesh['uvs']).reshape(-1,2))>=8)
         anchors=np.flatnonzero(supported & (distance<=.65*length)).tolist()
+        supported_anchors=anchors[:]
+        if args.boundary_only:anchors=boundary_anchors(mesh['triangles'],anchors)
         movable=np.flatnonzero(distance<=length).tolist()
         row=dict(character=name,artifact_sha256=artifact,arm=arm,body=body,anchors=anchors,movable=movable,
-                 hypothesis='occluded_proximal_material_follows_body_with_one_arm_length_support',
+                 hypothesis=('occluded_proximal_boundary_follows_body' if args.boundary_only else
+                             'occluded_proximal_material_follows_body_with_one_arm_length_support'),
+                 original_supported_anchors=supported_anchors,
                  anchor_radius_px=float(.65*length),movable_radius_px=float(length),records=[])
         if not anchors:
             row['status']='no_vertex_anchor_support';records.append(row);continue
