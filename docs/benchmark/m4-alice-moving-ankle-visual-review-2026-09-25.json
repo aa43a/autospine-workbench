@@ -1,0 +1,17 @@
+{
+  "schema": "autospine.scoped-human-visual-evidence/v1",
+  "date": "2026-09-25",
+  "character": "alice",
+  "artifact_sha256": "31ccd0a8411cfba14b15aca899cef2f3f622dc614c9f6890d7d0153610e1ff7a",
+  "source_artifact_sha256": "21969ed99dd41e85171f52842fc4754a8d8c4bd425fd722cf87a78ce94b9d437",
+  "source_motion_ir_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+  "decision": "stage_accepted_with_retained_exceptions",
+  "user_response": "阶段可接受，保留异常",
+  "scope": "alice_reach_moving_ankle_candidate_body_translation_and_leg_foot_visuals",
+  "root_correction_peak_px": 52.97110951732231,
+  "runtime_snapshot": {"passed": true, "frames": 1633, "runtime_version": "4.3.13", "target_version": "4.3.26"},
+  "retained_exceptions": ["known_transparency_edge_issues", "sole_and_floor_contact_not_validated"],
+  "technical_override": false,
+  "production_authorized": false,
+  "applies_to_other_candidates": false
+}

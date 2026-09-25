@@ -13,7 +13,7 @@ from autospine_workbench.targets.character43.numeric_reference import read
 from autospine_workbench.targets.spine43.continuous_pose import interpolate
 
 
-def run(folder, state, output):
+def run(folder, state, output, *, timeline=False):
     receipt = json.loads((folder/'report.json').read_bytes())
     digest = receipt['candidate_bundle_sha256']
     files = AnimatedStore(folder/'isolated-store').read(digest)
@@ -38,6 +38,22 @@ def run(folder, state, output):
             or [r['time'] for r in reference['animations']['external-motion']] !=
                [r['time'] for r in runtime['results']]):
         raise ValueError('source_ankle_reference_mismatch')
+    if timeline:
+        from autospine_workbench.targets.character43.moving_ankle_candidate import build
+        if any(r['animation'] != 'external-motion' for r in runtime['results']):
+            raise ValueError('source_ankle_animation_mismatch')
+        candidate, report = build(document, 'external-motion', trajectory,
+                                  [r['time'] for r in runtime['results']], length)
+        report.update(artifact_sha256=digest, source_observation=observation)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        with output.open('x', encoding='utf8') as stream: json.dump(report, stream)
+        if candidate is not None:
+            with output.with_suffix('.candidate.json').open('x', encoding='utf8') as stream:
+                json.dump(candidate, stream)
+        print(json.dumps(dict(status=report['status'], knots=report['required_knots'],
+            solved=len(report['rows']), failure_time=report.get('failure', {}).get('time'),
+            failed_checks=report.get('failure', {}).get('failed_checks'))))
+        return
     rows = []
     for frame in runtime['results']:
         t = frame['time']
@@ -62,4 +78,5 @@ if __name__ == '__main__':
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('folder',type=Path);p.add_argument('output',type=Path)
     p.add_argument('--state',type=Path,default=Path('workspace'))
-    a=p.parse_args();run(a.folder,a.state,a.output)
+    p.add_argument('--timeline',action='store_true')
+    a=p.parse_args();run(a.folder,a.state,a.output,timeline=a.timeline)
