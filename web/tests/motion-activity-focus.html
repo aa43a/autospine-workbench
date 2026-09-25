@@ -1,0 +1,27 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>生成进度焦点回归</title>
+<h1>生成进度焦点回归</h1><p>仅模拟状态，不请求服务或启动模型。</p>
+<button id="run">开始进度与焦点检查</button><div id="jobs"></div><pre id="result"></pre>
+<script type="module">
+import {reconcileMotionJobs} from '../modules/motion-job-list.js';
+import {generationActivity} from '../modules/motion-generation-activity.js';
+const jobs=document.querySelector('#jobs'),result=document.querySelector('#result');
+let job={job_id:'fixture',kind:'generate',status:'running',step:'generate_motion'},builds=0;
+function render(){reconcileMotionJobs(jobs,[job],()=>{
+  builds++;const card=document.createElement('article'),line=document.createElement('p'),cancel=document.createElement('button');
+  line.className='activity';line.textContent=generationActivity(job)||'模拟任务已停止';
+  cancel.textContent=job.status==='canceled'?'已取消':'取消模拟任务';cancel.disabled=job.status==='canceled';
+  cancel.onclick=()=>{job={...job,status:'canceled'};render();result.textContent+='\n取消处理完成；卡片构建次数：'+builds;};
+  card.append(line,cancel);return card;
+},'',(card,current)=>{card.querySelector('.activity').textContent=generationActivity(current)||'模拟任务已停止';});}
+render();
+document.querySelector('#run').onclick=async()=>{
+  const original=jobs.firstElementChild,button=original.querySelector('button');button.focus();
+  let stable=true,focused=true;
+  for(let i=1;i<=10;i++){
+    await new Promise(resolve=>setTimeout(resolve,50));
+    job={...job,activity:{meaning:'observed_activity_not_completion_or_health',stage_elapsed_seconds:i,log_bytes:i*100,log_age_seconds:0}};
+    render();stable&&=jobs.firstElementChild===original;focused&&=document.activeElement===button;
+  }
+  result.textContent=JSON.stringify({updates:10,stable,focused,builds,activeButton:document.activeElement.textContent});
+};
+</script></html>
