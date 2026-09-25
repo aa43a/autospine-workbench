@@ -1,6 +1,7 @@
 import {createSourcePlayer} from './motion-source-player.js';
 import {appendRelatedCandidates} from './motion-related-candidates.js';
 import {generationActivity} from './motion-generation-activity.js';
+import {jobStatus} from './motion-job-status.js';
 import {createTargetControls} from './motion-target-controls.js';
 import {createGenerationControls} from './motion-generation-controls.js';
 import {createSelectionControls} from './motion-selection-controls.js';
@@ -160,8 +161,7 @@ function render(data) {
     item.className = 'job';
     item.id = job.job_id;
     item.dataset.jobId = job.job_id;
-    const detail = job.reason_code ? reasons[job.reason_code] || job.reason_code : steps[job.step];
-    const state = job.kind === 'adapt' && job.status === 'succeeded' ? '角色候选已生成' : states[job.status];
+    const {state,detail}=jobStatus(job,states,reasons,steps);
     const displayName = job.derivation?.source_name || job.name;
     item.append(node('strong', displayName + (job.kind === 'adapt' ? ' → ' + job.project_id
       : ' · ' + (job.view === 'side' ? '侧面' : '正面'))),
