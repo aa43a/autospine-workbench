@@ -49,6 +49,16 @@ class PhasePolicyTests(unittest.TestCase):
         self.assertIs(output, original); self.assertFalse(report['selected'])
         inspect_source.assert_not_called()
 
+    def test_sample_budget_preserves_original_and_reports_unchecked_geometry(self):
+        with patch.object(policy, 'schedule', return_value=list(range(1026))):
+            original, output, report, _, analyzed = self.fixture()
+        self.assertIs(output, original)
+        self.assertFalse(report['selected'])
+        analyzed.assert_not_called()
+        self.assertEqual(report['reason_codes'], ['phase_contact_sample_limit'])
+        self.assertEqual(report['phase_sampling'], dict(input_samples=2, solver_samples=2,
+            required_check_samples=1026, maximum_check_samples=1025, geometry_evaluated=False))
+
     def test_source_labels_are_never_replaced(self):
         with self.assertRaisesRegex(ValueError, 'source_labels_preserved'):
             policy.select({}, 'x', {'markers': [{'kind': 'contact'}]}, [], 10, {}, None, {})

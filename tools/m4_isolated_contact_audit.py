@@ -10,6 +10,8 @@ from autospine_workbench.automation.storage_io import canonical_bytes
 from autospine_workbench.bvh_parser import parse_bvh
 from autospine_workbench.motion_bundle_reader import VerifiedMotionBundleReader
 from autospine_workbench.motion2d.contact_candidate import infer
+from autospine_workbench.motion2d.stationary_support import inspect as stationary_support
+from autospine_workbench.motion2d.phase_support import inspect as phase_support
 from autospine_workbench.targets.character43.final_motion_contact import for_candidate
 
 
@@ -42,6 +44,10 @@ def audit(files, artifact, runtime, bundle):
                    'motion-contact.json': canonical_bytes(contact),
                    'motion-review.json': canonical_bytes({'reference_length_px': length})})
     result = for_candidate(inputs, artifact, runtime)
+    if 'hypothesis' in contact:
+        bvh = parse_bvh(bundle.raw_bvh)
+        result['stationary_source'] = stationary_support(bvh, bundle.bvh_map, contact['hypothesis'])
+        result['phase_source'] = phase_support(bvh, bundle.bvh_map, contact['hypothesis'])
     result.update(profile='isolated-full-clip-contact-audit-v1',
                   source_identity=identity, reference_length_px=length,
                   correction_applied=False, production_authorized=False,

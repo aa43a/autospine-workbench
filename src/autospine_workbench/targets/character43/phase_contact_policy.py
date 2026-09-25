@@ -48,6 +48,9 @@ def select(document, name, motion, times, reference_length, report, bvh, mapping
         return document, report
     all_windows = deepcopy(motion); all_windows['markers'] = deepcopy(report['hypothesis']['markers'])
     checked_times = schedule(all_windows, [r['time'] for r in attempt['rows']])
+    report['phase_sampling'] = dict(input_samples=len(times), solver_samples=len(attempt['rows']),
+                                   required_check_samples=len(checked_times), maximum_check_samples=1025,
+                                   geometry_evaluated=False)
     if len(checked_times) > 1025:
         report['reason_codes'] = ['phase_contact_sample_limit']
         return document, report
@@ -60,6 +63,7 @@ def select(document, name, motion, times, reference_length, report, bvh, mapping
     files = write({'skeleton.json': raw}, dict(skeleton_sha256=sha256(raw).hexdigest(),
         animations={name: [dict(time=t, vertices=sample(candidate, name, t)[0]) for t in checked_times]}))
     geometry = inspect(files, setup_vertices=setup_vertices)
+    report['phase_sampling']['geometry_evaluated'] = True
     report['phase_geometry'] = dict(passed=geometry['passed'], samples=len(checked_times))
     if not geometry['passed']:
         report['reason_codes'] = ['phase_contact_geometry_failed']

@@ -55,6 +55,12 @@ def render(report):
         detail += f'<p>踝端平移峰值 {attempt["max_endpoint_shift_px"]:.3f} px；上限为目标腿长的 2%。骨架、权重与贴图保持不变。</p>'
     if report.get('phase_attempt'):
         detail += '<p>联合支撑修正使用当前姿态记录进入支点，并在离地后释放。表中两版位移各自相对于本版区间起点，不能当作同一固定世界锚点误差比较。未合格区间没有锁定；骨架、权重与贴图保持不变。</p>'
+        sampling = report.get('phase_sampling')
+        if sampling and 'phase_contact_sample_limit' in report['reason_codes']:
+            detail += (f'<p>原候选 {int(sampling["input_samples"])} 个采样；修正后需检查 '
+                       f'{int(sampling["required_check_samples"])} 个时刻，上限 '
+                       f'{int(sampling["maximum_check_samples"])}。未删减采样，'
+                       '未执行修正后的几何检查，播放器仍显示原候选。</p>')
         failure = report['phase_attempt'].get('failure')
         if failure:
             detail += (f'<p>联合修正停止于 <a href="player.html?time={failure["time"]:.9f}">{failure["time"]:.3f} 秒</a>。'
