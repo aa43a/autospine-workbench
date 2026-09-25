@@ -194,6 +194,8 @@ function render(data) {
         ? '已生成诊断候选 · 存在待处理技术异常' : '已生成角色候选 · 待阶段验收'));
       item.append(node('p', `几何：${result.geometry_passed ? '通过' : '需调整'} · `
         + `Runtime：${result.runtime.status === 'needs_review' ? result.runtime.frames + ' 帧已捕获' : '环境不可用'}`));
+      if(result.inherited_issue_context?.issue_count) item.append(node('p',
+        `以下前 ${result.inherited_issue_context.issue_count} 项来自原候选，顺序调整未将其消除；旧区域位置请对照原候选，当前网格以重新检查结果为准。`));
       for (const issue of result.issues) item.append(node('p', reasons[issue.reason_code] || issue.reason_code));
       const contactStates = {unavailable_no_labels: '源动作无接触标签，未检查',
         insufficient_contact_samples: '部分支撑区间未采样，接触证据不足',

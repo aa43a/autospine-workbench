@@ -49,6 +49,10 @@ class RegionOrderBundleTests(unittest.TestCase):
         self.assertEqual(output['parent-motion-review.json'], files['motion-review.json'])
         self.assertEqual(evidence['runtime_status'], 'not_evaluated')
         self.assertEqual(evidence['status'], 'needs_changes')
+        parent = json.loads(files['motion-review.json'])
+        self.assertEqual(evidence['issues'][:len(parent['issues'])], parent['issues'])
+        self.assertEqual(evidence['inherited_issue_context']['source_review_sha256'],
+                         sha256(files['motion-review.json']).hexdigest())
         self.assertEqual(geometry['skeleton_sha256'], digest)
         self.assertEqual(files, original)
         for path, value in json.loads(output['character-manifest.json'])['files'].items():
@@ -62,6 +66,34 @@ class RegionOrderBundleTests(unittest.TestCase):
         setup = json.loads(files['rig-setup-reference.json']); setup['skeleton_sha256'] = '0' * 64
         files['rig-setup-reference.json'] = canonical_bytes(setup)
         with self.assertRaisesRegex(ValueError, 'source_identity'): build(files, plan)
+
+    @patch('autospine_workbench.targets.character43.final_motion_contact.recheck', return_value={'status':'not_evaluated'})
+    def test_scope_then_order_keeps_failures_and_exact_parent_review(self, contact):
+        from autospine_workbench.targets.character43.occlusion_scope_bundle import build as scope_build
+        files, _ = fixture(); doc = json.loads(files['skeleton.json'])
+        meshes = doc['skins'][0]['attachments']
+        review = json.loads(files['motion-review.json'])
+        review['issues'] += [dict(stage='contact', reason_code='foot_sliding'),
+                             dict(stage='material', reason_code='transparent_edge', slot='a', triangle=0)]
+        files['motion-review.json'] = canonical_bytes(review)
+        scope = dict(slot='a', animation='test', contact_scope=dict(reference_slot='b',
+            mesh_sha256=canonical_sha256(meshes['a']['a']),
+            reference_mesh_sha256=canonical_sha256(meshes['b']['b']), regions={'occlusion':[0]}))
+        parent, _, _ = scope_build(files, scope)
+        scene = json.loads(parent['skeleton.json']); slot = 'a-depth-001'
+        plan = dict(slot=slot, animation='test', region_order=dict(
+            mesh_sha256=canonical_sha256(scene['skins'][0]['attachments'][slot][slot]),
+            triangles=[0], reference_slot='b', side='after', interval=[.25, .75]))
+        output, evidence, _ = build(parent, plan)
+        inherited = json.loads(parent['motion-review.json'])['issues']
+        self.assertEqual(evidence['issues'][:len(inherited)], inherited)
+        self.assertEqual(output['parent-motion-review.json'], parent['motion-review.json'])
+        context = evidence['inherited_issue_context']
+        self.assertEqual(context['issue_count'], len(inherited))
+        self.assertEqual(context['source_skeleton_sha256'], sha256(parent['skeleton.json']).hexdigest())
+        self.assertEqual(context['location_scope'], 'parent_candidate_not_current_partition')
+        self.assertEqual(evidence['runtime_status'], 'not_evaluated')
+        self.assertEqual(evidence['depth_order_status'], 'not_evaluated')
 
     @patch('autospine_workbench.targets.character43.final_motion_contact.recheck', return_value={'status':'not_evaluated'})
     def test_interval_bundle_keeps_timeline_and_profile(self, contact):

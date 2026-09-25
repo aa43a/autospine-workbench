@@ -67,9 +67,17 @@ def build(files, plan, on_progress=None):
     evidence.update(status='needs_changes', geometry_passed=geometry['passed'],
                     runtime_status='not_evaluated', depth_order_status='not_evaluated',
                     contact_status=contact['status'], authority='none')
-    # Keep previous issues in parent evidence. Geometry slot/triangle identities
-    # have changed and are regenerated; prior visual acceptance cannot carry over.
-    evidence['issues'] = [i for i in evidence.get('issues', []) if i['stage'] == 'projection']
+    # Painter order cannot resolve contact/material failures. Keep unresolved
+    # issues visible; their old slot/triangle locations belong to parent evidence,
+    # not the newly split mesh. Fresh geometry remains a separate measurement.
+    evidence['issues'] = list(evidence.get('issues', []))
+    evidence['inherited_issue_context'] = dict(
+        source_skeleton_sha256=source_digest,
+        source_review_sha256=sha256(files['motion-review.json']).hexdigest(),
+        source_review_file='parent-motion-review.json',
+        issue_count=len(evidence['issues']),
+        location_scope='parent_candidate_not_current_partition',
+        resolution_status='unresolved_not_cleared_by_order_edit')
     evidence['issues'].append(dict(stage='repair', reason_code='motion_region_order_requires_visual_review'))
     if not geometry['passed']:
         evidence['issues'].append(dict(stage='geometry', reason_code='motion_target_deformation_needs_changes'))

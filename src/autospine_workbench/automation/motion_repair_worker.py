@@ -85,4 +85,6 @@ def execute(folder, state_root, workspace, request):
         repair_depth_overlap=depth.get('target_overlap'),
         local_depth_evidence_sha256=local_depth,
         clip=request.get('clip'),projection=request.get('projection'))
+    if evidence.get('inherited_issue_context'):
+        result['inherited_issue_context']=evidence['inherited_issue_context']
     (folder/'worker-result.json').write_bytes(canonical_bytes(result))
