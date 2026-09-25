@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {generationActivity} from '../modules/motion-generation-activity.js';
+const job={kind:'generate',status:'running',activity:{meaning:'observed_activity_not_completion_or_health',stage_elapsed_seconds:125,log_age_seconds:8,log_bytes:2048}};
+assert.match(generationActivity(job),/2 分 5 秒/);
+assert.match(generationActivity(job),/2.0 KB/);
+assert.match(generationActivity(job),/8 秒前更新/);
+assert.match(generationActivity(job),/不代表任务失败/);
+for(const status of ['pending','canceled','interrupted','succeeded','failed'])assert.equal(generationActivity({...job,status}),null);
+assert.equal(generationActivity({...job,kind:'adapt'}),null);
+assert.match(generationActivity({...job,activity:null}),/等待/);
+assert.match(generationActivity({...job,activity:{...job.activity,log_age_seconds:NaN,stage_elapsed_seconds:-1}}),/尚不可用.*尚未获得/);
+console.log('Generation activity: bounded observations and lifecycle separation passed');

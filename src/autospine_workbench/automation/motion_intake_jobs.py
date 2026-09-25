@@ -121,6 +121,9 @@ class MotionIntakeJobs:
                 value = deepcopy(self._jobs[job])
                 if value['status'] == 'running':
                     value['step'] = read_progress(folder) or value['step']
+                    if value.get('kind') == 'generate':
+                        from .motion_generation_activity import activity
+                        value['activity'] = activity(folder)
             else:
                 request = read_document(folder / 'request.json')
                 if (folder / 'result.json').exists():
