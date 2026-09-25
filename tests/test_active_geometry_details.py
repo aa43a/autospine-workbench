@@ -1,5 +1,6 @@
 import json
 import unittest
+from copy import deepcopy
 from test_active_deformation_qa import ActiveDeformationQATests
 from autospine_workbench.targets.character43.deformation_qa import inspect
 from autospine_workbench.targets.character43.motion_geometry_details import build
@@ -34,3 +35,26 @@ class ActiveGeometryDetailsTests(unittest.TestCase):
         files['numeric-reference.json']=json.dumps(ref).encode()
         with self.assertRaisesRegex(ValueError,'active_attachment_mismatch'):
             build(files,'a'*64)
+
+    def test_other_attachment_failures_and_all_its_frames_remain_visible(self):
+        files, variant, _, _ = self.fixture()
+        doc = json.loads(files['skeleton.json'])
+        other = deepcopy(doc['slots'][0])
+        other.update(name='other', attachment='other')
+        doc['slots'].append(other)
+        mesh = deepcopy(doc['skins'][0]['attachments']['leg']['leg'])
+        doc['skins'][0]['attachments']['other'] = {'other': mesh}
+        doc['animations']['move']['attachments']['default']['other'] = {
+            'other': {'deform': [dict(time=0, vertices=[0, 0, 100, 0])]}}
+        _, _, changed, reference = ActiveDeformationQATests().fixtures(doc)
+        for slot, choices in doc['skins'][0]['attachments'].items():
+            for name, attachment in choices.items():
+                changed['images/'+attachment.get('path', name)+'.png'] = b'png'
+        changed['deformation.json'] = json.dumps(inspect(changed)).encode()
+        before = deepcopy(changed)
+        rows = build(changed, 'a'*64)['rows']
+        self.assertTrue(any(r['attachment'] == variant['variant_attachment'] for r in rows))
+        row = next(r for r in rows if r['slot'] == 'other')
+        self.assertEqual(row['sample_count'], len(reference['animations']['move']))
+        self.assertGreater(row['failed_area_triangles'], 0)
+        self.assertEqual(changed, before)

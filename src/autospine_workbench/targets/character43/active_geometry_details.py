@@ -14,7 +14,11 @@ def build(files, artifact, document, samples, limit):
         if record['passed']:
             continue
         animation,slot,attachment=(record[k] for k in ('animation','slot','attachment'))
-        frames=[f for f in samples['animations'][animation] if f['attachments'][slot]==attachment]
+        # Full-scene identities and geometry were checked above. This per-record
+        # locator only reads the selected slot; copying every other slot through
+        # JSON for each failed record dominates large character diagnostics.
+        frames=[dict(f, vertices={slot:f['vertices'][slot]})
+                for f in samples['animations'][animation] if f['attachments'][slot]==attachment]
         # Freeze only mesh identity. The source bone timeline remains unchanged;
         # the fixed analyzer removes deform only for its explicit counterfactual.
         normalized,_=active_document(document,animation,frames[0]['time'])
