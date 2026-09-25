@@ -1,7 +1,8 @@
 import {partitionEditor} from './motion-partition-editor.js';
 import {materialReturn} from './motion-material-return.js';
 import {viewReturn} from './motion-view-return.js';
-const labels = {local_repair:'局部变形修正', partition:'区域刚性重绑', region_order:'区域前后顺序', pose_attachment:'补充姿态附件', withdraw:'撤销此处处理草稿'};
+import {contactEditor} from './motion-contact-editor.js';
+const labels = {local_repair:'局部变形修正', partition:'区域刚性重绑', region_order:'区域前后顺序', pose_attachment:'补充姿态附件', contact_scope:'衣料连接与活动范围（仅记录）', withdraw:'撤销此处处理草稿'};
 const node = (tag, text) => {const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e;};
 
 export function appendRepairDraft(parent, job, row, getDetail) {
@@ -37,7 +38,8 @@ export function appendRepairDraft(parent, job, row, getDetail) {
   const showViewReturn=viewReturn(panel,job,row);showViewReturn(null);
   const region=partitionEditor(panel,job,row);region.show(false);
   const order=partitionEditor(panel,job,row,{orderOnly:true});order.show(false);
-  action.onchange=()=>{region.show(action.value==='partition');order.show(action.value==='region_order');showScope();};
+  const contact=contactEditor(panel,job,row);contact.show(false);
+  action.onchange=()=>{region.show(action.value==='partition');order.show(action.value==='region_order');contact.show(action.value==='contact_scope');showScope();};
   const matches = r => r.slot===row.slot && r.animation===row.animation &&
     r.event.triangle===getDetail().triangle && r.event.time===getDetail().time;
   const render = () => {
@@ -57,6 +59,7 @@ export function appendRepairDraft(parent, job, row, getDetail) {
     showScope();
     region.restore(applies?latest.partition:null);region.show(action.value==='partition');
     order.restore(applies?latest.region_order:null);order.show(action.value==='region_order');
+    contact.restore(applies?latest.contact_scope:null);contact.show(action.value==='contact_scope');
     material.hidden=!(applies&&latest.action==='pose_attachment');
     material.style.display=material.hidden?'none':'';
     showReturn(material.hidden||latest.view_needs?.length?null:latest.revision);
@@ -100,12 +103,12 @@ export function appendRepairDraft(parent, job, row, getDetail) {
   save.onclick=()=>{
     if(!state)return;
     const detail=getDetail();
-    let partition,region_order;
-    try{if(action.value==='partition')partition=region.value();if(action.value==='region_order')region_order=order.value();}
+    let partition,region_order,contact_scope;
+    try{if(action.value==='partition')partition=region.value();if(action.value==='region_order')region_order=order.value();if(action.value==='contact_scope')contact_scope=contact.value();}
     catch(error){status.textContent=error.message;return;}
     run({artifact_sha256:state.artifact_sha256,evidence_sha256:state.evidence_sha256,
       expected_revision:state.revision,slot:row.slot,animation:row.animation,
-      triangle:detail.triangle,time:detail.time,action:action.value,notes:notes.value,...(partition?{partition}:{}),...(region_order?{region_order}:{}),
+      triangle:detail.triangle,time:detail.time,action:action.value,notes:notes.value,...(partition?{partition}:{}),...(region_order?{region_order}:{}),...(contact_scope?{contact_scope}:{}),
       ...(action.value==='pose_attachment'&&viewNeeds.value?{view_needs:viewNeeds.value.split(',')}: {})});
   };
   return () => {
