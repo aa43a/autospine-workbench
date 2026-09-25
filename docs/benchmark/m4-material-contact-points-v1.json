@@ -1,0 +1,177 @@
+{
+  "candidate": "418038c3621a71b2a56893f53862b0611ce1feb7e0b232f75e786d09ff29dcb2",
+  "skeleton_sha256": "bfd43de77aa435e84c61eb7e650f79b54e47738a1f645f6590b6c8c039d5a782",
+  "profile": "material-contact-point-diagnostic-v1",
+  "records": [
+    {
+      "slot": "layer-003",
+      "owner": "layer-006",
+      "source_owner_alpha": [
+        255,
+        255,
+        255,
+        255,
+        255,
+        255
+      ],
+      "old_constraint_setup_ratios": [
+        1.8215171877788818,
+        4.081649239442544,
+        1.542943452541247,
+        6.324555320336758,
+        1.0871136007521953,
+        1.947664683641695
+      ],
+      "old_constraint_setup_outside": 6,
+      "setup_reconstruction_error_px": 0.0,
+      "unsupported_vertex_ids": [],
+      "frames": [
+        {
+          "time": 0.0,
+          "material_fit_residual_px": 5.240704272917405e-13,
+          "owner_alpha_nearest": [
+            0,
+            0,
+            1,
+            2,
+            1,
+            2
+          ],
+          "displacement_from_reference_px": [
+            83.82656857394647,
+            74.40367485536203,
+            79.37847831980064,
+            73.69120199160398,
+            85.66243114176,
+            82.12924498934308
+          ]
+        },
+        {
+          "time": 0.964584,
+          "material_fit_residual_px": 1.0435064581705444e-12,
+          "owner_alpha_nearest": [
+            0,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "displacement_from_reference_px": [
+            82.16603763643998,
+            71.2800988974974,
+            71.78833370441902,
+            63.665539534082434,
+            74.06553769752716,
+            69.69075903437238
+          ]
+        },
+        {
+          "time": 1.1,
+          "material_fit_residual_px": 7.279509460923746e-13,
+          "owner_alpha_nearest": [
+            1,
+            1,
+            0,
+            1,
+            0,
+            1
+          ],
+          "displacement_from_reference_px": [
+            81.07693482196207,
+            70.33755106752879,
+            70.78162800393105,
+            62.68801682456949,
+            72.9303861273737,
+            68.57230349315496
+          ]
+        }
+      ],
+      "landmark_count": 6
+    },
+    {
+      "slot": "layer-004",
+      "owner": "layer-006",
+      "source_owner_alpha": [
+        255,
+        255,
+        255,
+        255,
+        255
+      ],
+      "old_constraint_setup_ratios": [
+        6.324555320336758,
+        2.0250853088217093,
+        1.3091737318032821,
+        1.792830638302024,
+        1.4422617161496312
+      ],
+      "old_constraint_setup_outside": 5,
+      "setup_reconstruction_error_px": 0.0,
+      "unsupported_vertex_ids": [
+        6
+      ],
+      "frames": [
+        {
+          "time": 0.0,
+          "material_fit_residual_px": 5.240704272917405e-13,
+          "owner_alpha_nearest": [
+            0,
+            0,
+            0,
+            1,
+            1
+          ],
+          "displacement_from_reference_px": [
+            75.80659948635207,
+            82.10227690471564,
+            89.85406047115806,
+            86.65315396043057,
+            94.08128221004095
+          ]
+        },
+        {
+          "time": 0.964584,
+          "material_fit_residual_px": 1.0435064581705444e-12,
+          "owner_alpha_nearest": [
+            0,
+            255,
+            255,
+            0,
+            0
+          ],
+          "displacement_from_reference_px": [
+            69.07130864302664,
+            73.08053643955361,
+            79.20331208992506,
+            83.08113512133748,
+            92.55336017745255
+          ]
+        },
+        {
+          "time": 1.1,
+          "material_fit_residual_px": 7.279509460923746e-13,
+          "owner_alpha_nearest": [
+            0,
+            249,
+            255,
+            0,
+            0
+          ],
+          "displacement_from_reference_px": [
+            69.5280035116303,
+            73.52886092741427,
+            79.57076236962584,
+            83.4981756794143,
+            92.89365297812459
+          ]
+        }
+      ],
+      "landmark_count": 5
+    }
+  ],
+  "selected": false,
+  "authority": "none",
+  "scope": "landmark_positions_only_not_sliding_alpha_coverage_or_visual_acceptance",
+  "full_report_sha256": "dda7f06cd2650ec1b49723a54d17b9e27fc76077944db13f5457a4072bec7fc2"
+}
