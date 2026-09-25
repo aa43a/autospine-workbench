@@ -15,7 +15,7 @@ from autospine_workbench.asset.planning.component_local_solver import metrics
 from m4_cloth_limb_coupling_probe import coverage
 
 
-def run(source,coupling,output,sliding=False):
+def run(source,coupling,output,sliding=False,waist_source=None):
     if output.exists():raise ValueError('skirt_knee_output_exists')
     receipt=json.loads((source/'report.json').read_bytes());files=AnimatedStore(source/'isolated-store').read(receipt['candidate_bundle_sha256'])
     evidence=json.loads(coupling.read_bytes());setup=json.loads(files['rig-setup-reference.json']);digest=sha256(files['skeleton.json']).hexdigest()
@@ -25,6 +25,11 @@ def run(source,coupling,output,sliding=False):
     rest=setup['vertices'][slot];posed=sample(doc,'external-motion',evidence['time'])[0][slot]
     tri=np.asarray(mesh['triangles']).reshape(-1,3).tolist();influences=entries(mesh)
     waist={i for i,row in enumerate(influences) if any(doc['bones'][b]['name']=='chest' and w>0 for b,w in row)}
+    waist_evidence=None
+    if waist_source:
+        from m4_skirt_waist_support import fixed_region
+        waist,waist_evidence=fixed_region(AnimatedStore(Path('workspace')).read(waist_source),files,slot)
+        waist=set(waist);waist_evidence['source_candidate']=waist_source
     candidates=[r for r in evidence['rows'] if r['exposure_kind']=='newly_exposed_source_covered_material']
     if len(candidates)!=1:raise ValueError('skirt_knee_single_supported_sample_required')
     query=candidates[0];matches=[]
@@ -68,6 +73,7 @@ def run(source,coupling,output,sliding=False):
     result=dict(source_candidate=evidence['candidate_bundle_sha256'],skeleton_sha256=digest,time=evidence['time'],
         hypothesis='current_boundary_sliding_support' if sliding else 'source_covered_cloth_material_follows_knee_with_fixed_waist',cloth=slot,triangle=index,
         sliding_support=support,
+        waist_support=waist_evidence,
         source_point=query['source_material_world'],current_material_point=current.tolist(),target=query['current_world'],
         movement=field,geometry=quality,coverage=comparisons,visible_limb_preserved=preserved,
         waist_error_px=max((float(np.linalg.norm(np.asarray(points[v])-posed[v])) for v in waist),default=0),
@@ -75,6 +81,10 @@ def run(source,coupling,output,sliding=False):
                all(r['after']>=128 for r in comparisons if r['kind']=='newly_exposed_source_covered_material'),
         authority='none',selected=False,scope='one_material_sample_one_pose_not_garment_collision_or_visual_acceptance')
     output.mkdir();(output/'posed-cloth.json').write_bytes(canonical_bytes(points));(output/'report.json').write_bytes(canonical_bytes(result))
+    if waist_evidence:
+        from m4_skirt_waist_support import contact_change
+        result['waist_material_change_px']=contact_change(posed,points,waist_evidence['anchors'])
+        (output/'report.json').write_bytes(canonical_bytes(result))
     print(json.dumps(result),flush=True)
 
 
@@ -82,4 +92,5 @@ if __name__=='__main__':
     p=argparse.ArgumentParser()
     for n in ('source','coupling','output'):p.add_argument(n,type=Path)
     p.add_argument('--sliding',action='store_true')
-    a=p.parse_args();run(a.source,a.coupling,a.output,a.sliding)
+    p.add_argument('--waist-source')
+    a=p.parse_args();run(a.source,a.coupling,a.output,a.sliding,a.waist_source)
