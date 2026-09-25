@@ -17,36 +17,22 @@ export function applyCharacterRecipe(payload,overview){
 
 export function createShoulderRepair(document){
   const node=(tag,text="")=>{const e=document.createElement(tag);e.textContent=text;return e;};
-  const element=node("section"),choices=node("div"),status=node("p"),clear=node("button","关闭肩部修复");
-  clear.type="button";clear.className="button button-secondary";
+  const element=node("section"),status=node("p");
   status.setAttribute("role","status");status.setAttribute("aria-live","polite");
-  element.append(node("h4","肩部局部连接修复（可选）"),node("p","只勾选动作中出现分离的肩部。默认关闭；构建后需检查袖布形状，几何通过不会自动记录视觉接受。"),choices,clear,status);
-  let selected=new Set(),rows=[],disabled=true,locked=false,currentJob=null;
-  const stages={"shoulder-boundary":"正在约束选定肩部边界","shoulder-adaptive":"正在检查并修正异常时间段","shoulder-temporal":"正在保持跨帧变形连续性"};
+  element.append(node("h4","肩部覆盖与滑动"),node("p","不要求肩部边界或材质点始终被衣服覆盖。允许披肩与袖子相对滑动；按画面中的异常裂缝、穿插和不自然变形复核。旧硬约束入口已停用。"),status);
+  let selected=new Set(),currentJob=null;
   function render(){
-    choices.replaceChildren(...rows.map(row=>{
-      const label=node("label",row.label+" "),input=node("input");input.type="checkbox";
-      input.setAttribute("aria-label",`修复${row.label}`);input.checked=selected.has(row.id);input.disabled=disabled||locked;
-      input.onchange=()=>{if(input.checked)selected.add(row.id);else selected.delete(row.id);render();};
-      label.append(input);return label;
-    }));
-    clear.disabled=disabled||locked||!selected.size;
     const trial=currentJob?.shoulder_trial;
-    status.textContent=stages[currentJob?.stage]||(trial?.status==="blocked"?"肩部修复未通过，当前输出保留原候选。请查看原动作并复核问题区域。":trial?.included_in_candidate?"本次候选已包含局部修复，仍需检查连接与轮廓。关闭选项后重建可恢复原方案。":selected.size?`已选 ${selected.size} 处；点击“构建整角色候选”开始。`:rows.length?"未启用肩部修复。":"先构建整角色候选，再选择需要修复的肩部区域。");
-    if(locked)status.textContent+=" 当前选项由已保存的区域或遮挡复核固定；需撤销相应复核后才能更改。";
+    status.textContent=trial?.reason_code==="shoulder_boundary_constraint_retired"
+      ?"本次已跳过旧肩部硬约束，保持输入动作；几何与 Runtime 检查仍独立执行。"
+      :trial?.included_in_candidate
+        ?"当前历史候选曾应用旧约束，尚未回退。新构建不再自动沿用；原候选和验收记录保留。"
+        :selected.size?"历史方案含旧肩部约束；服务更新后重建将记录跳过该约束。":"覆盖变化不自动判为失败，实际画面仍需检查。";
   }
-  clear.onclick=()=>{selected.clear();render();};
-  return {element,payload:()=>selected.size?{shoulder_regions:[...selected].sort()}:{},
-    reset(){selected.clear();rows=[];currentJob=null;locked=false;},
-    sync(job,recipe,isDisabled){
-      currentJob=job;disabled=isDisabled;locked=recipe!==null;
-      if(Array.isArray(job?.layers)){
-        rows=job.layers.filter(r=>["handwear-l","handwear-r"].includes(r.name)).flatMap(r=>(r.regions||[])
-          .filter(part=>part.state==="weighted_candidate")
-          .map(part=>({id:part.region_id,label:`${r.name.endsWith("-l")?"左":"右"}肩 · ${part.region_id}`})));
-        selected=new Set([...selected].filter(id=>rows.some(r=>r.id===id)));
-      }
-      if(recipe)selected=new Set(recipe.shoulder_regions||[]);
+  return {element,payload:()=>({}),
+    reset(){selected.clear();currentJob=null;render();},
+    sync(job,recipe){
+      currentJob=job;selected=new Set(recipe?.shoulder_regions||[]);
       render();
     }};
 }

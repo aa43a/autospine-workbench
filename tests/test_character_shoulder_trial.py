@@ -1,7 +1,5 @@
 """Pipeline selection, fallback, recipe compatibility and cancellation boundaries."""
-from contextlib import ExitStack
 import unittest
-from types import SimpleNamespace
 from unittest.mock import patch
 
 from autospine_workbench.automation.character_shoulder_trial import apply_selected, validate
@@ -22,62 +20,23 @@ class ShoulderTrialTests(unittest.TestCase):
         for bad in ({'other': 'x'}, {'shoulder_regions': []}, {'skirt_profile': []}):
             self.assertFalse(valid_options(bad))
 
-    def run_trial(self, states, cancel=lambda: False):
-        files = {'character-manifest.json': b'{"layers": []}'}; published = []
-        def publish(output):
-            published.append(output)
-            return str(len(published))*64
-        manager = SimpleNamespace(application=SimpleNamespace(store=SimpleNamespace(
-            read=lambda _: files, publish=publish)))
-        original = {'artifact_sha256': 'a'*64, 'manifest': {'layers': ['original']}}
-        stages = []; mocks = []
-        with ExitStack() as stack:
-            for name, state in zip(('shoulder_boundary_candidate', 'shoulder_boundary_adaptive', 'shoulder_temporal'), states):
-                report = dict(profile=name, status=state, geometry_passed=state=='needs_review', dense_boundary=[])
-                mocks.append(stack.enter_context(patch(f'autospine_workbench.targets.character43.{name}.generate',
-                                                      return_value=(files, report))))
-            result = apply_selected(manager, {'shoulder_regions': ['layer-004']}, original,
-                                    progress=stages.append, cancel_requested=cancel)
-        return original, result, mocks, published, stages
+    def test_legacy_request_does_not_run_solver_or_read_store(self):
+        original={'artifact_sha256':'a'*64,'issues':[{'reason':'geometry_failure'}]}
+        request={'shoulder_regions':['layer-004']}
+        with patch('autospine_workbench.targets.character43.shoulder_boundary_candidate.generate') as solver:
+            result=apply_selected(None,request,original)
+            solver.assert_not_called()
+        self.assertEqual(result['artifact_sha256'],original['artifact_sha256'])
+        self.assertIs(result['issues'],original['issues'])
+        trial=result['shoulder_trial']
+        self.assertEqual(trial['status'],'not_applied')
+        self.assertEqual(trial['reason_code'],'shoulder_boundary_constraint_retired')
+        self.assertFalse(trial['included_in_candidate'])
+        self.assertEqual(trial['attempts'],[])
+        self.assertEqual(trial['visual_contact_status'],'not_evaluated')
+        self.assertNotIn('shoulder_trial',original)
+        self.assertEqual(request,{'shoulder_regions':['layer-004']})
 
-    def test_selected_region_runs_bounded_refinement_and_preserves_source(self):
-        original, result, mocks, published, stages = self.run_trial(['blocked', 'blocked', 'needs_review'])
-        self.assertEqual(mocks[0].call_args.kwargs['slot_ids'], ['layer-004'])
-        self.assertEqual(mocks[1].call_args.args[1], original['artifact_sha256'])
-        self.assertEqual(mocks[2].call_args.args[3], '2'*64)
-        self.assertEqual(result['artifact_sha256'], '3'*64)
-        self.assertEqual(original['manifest']['layers'], ['original'])
-        self.assertTrue(result['shoulder_trial']['included_in_candidate'])
-        self.assertFalse(result['shoulder_trial']['selected'])
-        self.assertEqual(len(published), 3)
-        self.assertIn('shoulder-temporal', stages)
-
-    def test_failure_keeps_original_artifact_and_exposes_trial(self):
-        original, result, _, published, _ = self.run_trial(['blocked']*3)
-        self.assertEqual(result['artifact_sha256'], original['artifact_sha256'])
-        self.assertIs(result['manifest'], original['manifest'])
-        self.assertEqual(result['shoulder_trial']['reason_code'], 'shoulder_geometry_blocked')
-        self.assertEqual(len(published), 3)
-
-    def test_pass_stops_without_running_additional_repairs(self):
-        _, result, mocks, published, _ = self.run_trial(['needs_review', 'blocked', 'blocked'])
-        mocks[1].assert_not_called(); mocks[2].assert_not_called()
-        self.assertEqual(len(published), 1)
-        self.assertEqual(result['shoulder_trial']['visual_contact_status'], 'not_evaluated')
-
-    def test_cancel_stops_before_solver(self):
-        with self.assertRaisesRegex(PipelineRunError, 'character_build_canceled'):
-            self.run_trial(['needs_review']*3, cancel=lambda: True)
-
-    def test_insufficient_contact_returns_original_but_integrity_errors_fail(self):
-        original={'artifact_sha256':'a'*64}
-        manager=SimpleNamespace(application=SimpleNamespace(store=SimpleNamespace(read=lambda _:{})))
-        for reason in ('shoulder_boundary_contact_missing','shoulder_adaptive_trial_source_mismatch'):
-            with patch('autospine_workbench.targets.character43.shoulder_boundary_candidate.generate',side_effect=ValueError(reason)):
-                if 'source_mismatch' in reason:
-                    with self.assertRaisesRegex(ValueError,reason):
-                        apply_selected(manager,{'shoulder_regions':['layer-004']},original)
-                else:
-                    result=apply_selected(manager,{'shoulder_regions':['layer-004']},original)
-                    self.assertEqual(result['artifact_sha256'],original['artifact_sha256'])
-                    self.assertEqual(result['shoulder_trial']['reason_code'],reason)
+    def test_cancel_still_honored(self):
+        with self.assertRaisesRegex(PipelineRunError,'character_build_canceled'):
+            apply_selected(None,{'shoulder_regions':['layer-004']},{},cancel_requested=lambda:True)
