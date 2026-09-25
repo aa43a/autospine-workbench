@@ -167,7 +167,9 @@ function render(data) {
       : ' · ' + (job.view === 'side' ? '侧面' : '正面'))),
       node('p', `${state}${detail ? ' · ' + detail : ''}`));
     if (job.cancel_requested && active.has(job.status)) item.append(node('p', '正在停止任务及其子进程；确认停止后可重新执行。'));
-    const activity=generationActivity(job);if(activity)item.append(node('p',activity));
+    const activity=generationActivity(job);if(activity){
+      const line=node('p',activity);line.className='generation-activity';item.append(line);
+    }
     if(/^motion-[a-f0-9]{32}$/.test(job.retry_of?.job_id)){
       const retry=node('a',job.kind==='generate'?'查看原生成任务（本次为独立重试）':'查看原适配任务（保留原策略重试）');
       retry.href='/motions.html#'+job.retry_of.job_id;item.append(retry);
@@ -252,7 +254,8 @@ function render(data) {
     button.disabled = busy || disabled;
     item.append(button);
     return item;
-  }, [busy, Boolean(data.stage_review_available), Boolean(data.view_comparison_available), Boolean(data.target_comparison_available)]);
+  }, [busy, Boolean(data.stage_review_available), Boolean(data.view_comparison_available), Boolean(data.target_comparison_available)],
+  (card,job)=>{const line=card.querySelector('.generation-activity');if(line)line.textContent=generationActivity(job)||'';});
   if (!data.jobs.length) $('jobs').append(node('p', '尚未导入动作。'));
   focusLinkedJob();
 }
