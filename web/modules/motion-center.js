@@ -1,4 +1,5 @@
 import {createSourcePlayer} from './motion-source-player.js';
+import {appendRelatedCandidates} from './motion-related-candidates.js';
 import {createTargetControls} from './motion-target-controls.js';
 import {createGenerationControls} from './motion-generation-controls.js';
 import {createSelectionControls} from './motion-selection-controls.js';
@@ -184,6 +185,7 @@ function render(data) {
       const compare=data.target_comparison_available?appendTargetComparison(item, job, request):null;
       appendReadiness(item, job, compare, inspection);
       if (data.stage_review_available) appendStageReview(item, job);
+      appendRelatedCandidates(item, job);
       if (result.clip) item.append(node('p', `源片段：第 ${result.clip.start_frame+1}–${result.clip.end_frame+1} 帧`));
       item.append(node('p', result.character_animation_status === 'needs_changes'
         ? '已生成诊断候选 · 存在投影或变形异常' : '已生成角色候选 · 待阶段验收'));

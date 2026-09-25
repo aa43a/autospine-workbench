@@ -127,6 +127,9 @@ def runtime_reader(manager, job, result):
 
 
 def review_file(manager, job, parts):
+    if parts == ['related-candidates.json'] or parts[:1] == ['related-candidates']:
+        from .motion_related_candidates import read
+        return read(manager, job, parts)
     if parts[:1] == ['pose-geometry']:
         from .motion_pose_geometry_editor import read
         return read(manager, job, parts)

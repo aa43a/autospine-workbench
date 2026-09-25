@@ -11,6 +11,7 @@ import {appendKneeDetails} from './motion-knee-details.js';
 import {createCohortStatus} from './motion-cohort-status.js';
 import {appendDepthSummary} from './motion-depth-summary.js';
 import {navigationPack} from './motion-cohort-entry.js';
+import {appendRelatedCandidates} from './motion-related-candidates.js';
 const byId=id=>document.getElementById(id), motion=byId('motion'),character=byId('character');
 const sync=createCohortSync(byId('sync-status'));
 const player=createSourcePlayer(byId('source'),byId('time'),byId('play'),byId('time-label'),(time,end)=>{sync.seek(time,end);alternative.seek(time,end);experiments.seek(time,end);});
@@ -61,6 +62,7 @@ async function show(){
     experiments.load(t.job_id);
     appendKneeDetails(byId('review'),`/api/motions/${t.job_id}/view/`,t.artifact_sha256,time=>{if(version===revision)player.seek(time);});
     appendStageReview(byId('review'),job);
+    appendRelatedCandidates(byId('review'),job);
     appendCandidateDownload(byId('review'),job);
     const inspection={onSeek:time=>{
       if(version!==revision)return;
