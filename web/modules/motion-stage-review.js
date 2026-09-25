@@ -1,3 +1,4 @@
+import {stageSummary} from './motion-stage-summary.js';
 const labels = {accepted: '阶段可接受', accepted_with_exceptions: '阶段可接受，保留异常',
   rejected: '需要调整', revoked: '撤销此前阶段结论'};
 const reasons = {motion_review_revision_changed: '验收记录已被其他页面更新，请重新读取后再保存。',
@@ -9,6 +10,11 @@ export function appendStageReview(item, job) {
   const button = document.createElement('button'); button.textContent = '记录 / 查看阶段验收';
   const panel = document.createElement('section'); panel.setAttribute('aria-live', 'polite');
   panel.className = 'motion-stage-review'; panel.hidden = true;
+  const overview = document.createElement('p');
+  overview.setAttribute('role', 'status'); overview.className = 'motion-stage-summary';
+  overview.textContent = stageSummary(null, job.result.artifact_sha256);
+  const collapse = document.createElement('button'); collapse.textContent = '收起验收详情';
+  collapse.onclick = () => {panel.hidden = true; button.focus();};
   const endpoint = `/api/motions/${job.job_id}/stage-review`;
   async function request(options) {
     const response = await fetch(endpoint, {cache: 'no-store', ...options});
@@ -18,6 +24,7 @@ export function appendStageReview(item, job) {
     return result;
   }
   function render(state) {
+    overview.textContent = stageSummary(state, job.result.artifact_sha256);
     panel.replaceChildren();
     const status = document.createElement('p');
     status.textContent = state.current
@@ -53,7 +60,11 @@ export function appendStageReview(item, job) {
             expected_revision: state.revision, decision: decision.value, notes: notes.value})});
         render(next);
         window.dispatchEvent(new CustomEvent('motion-stage-review-saved',{detail:{jobId:job.job_id}}));
-      } catch (error) { feedback.textContent = error.message; update(); }
+      } catch (error) {
+        feedback.textContent = error.message;
+        overview.textContent = '保存未完成，当前状态需重新核对：' + error.message;
+        update();
+      }
       finally { button.disabled = false; panel.inert = false; }
     };
     const history = document.createElement('details');
@@ -62,13 +73,14 @@ export function appendStageReview(item, job) {
       const p = document.createElement('p'); p.textContent = `r${row.revision} · ${row.created_at} · ${labels[row.decision]} · ${row.notes}`;
       history.append(p);
     }
-    panel.append(status, note, decision, notes, confirmation, save, feedback, history);
+    panel.append(collapse, status, note, decision, notes, confirmation, save, feedback, history);
   }
   button.onclick = async () => {
     button.disabled = true; panel.inert = true; panel.hidden = false;
+    overview.textContent = '正在核对当前候选的技术状态与阶段结论…';
     try { render(await request()); }
-    catch (error) { panel.textContent = error.message; }
+    catch (error) { panel.textContent = error.message; overview.textContent = '当前状态未核实：' + error.message; }
     finally { button.disabled = false; panel.inert = false; }
   };
-  item.append(button, panel);
+  item.append(overview, button, panel);
 }

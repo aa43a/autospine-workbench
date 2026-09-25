@@ -12,7 +12,9 @@ try {
       artifact_sha256: 'fixture', geometry_passed: true, character_animation_status: 'needs_review',
       runtime: {status: 'needs_review', frames: 12}, issues: []}};
   const state = {artifact_sha256: 'fixture', evidence_sha256: 'evidence', revision: 0,
-    readiness: {status: 'needs_changes'}, history: [], current: null, current_applies: false};
+    readiness: {artifact_sha256:'fixture',status: 'needs_changes',
+      stages:[{stage:'Runtime',status:'sampled_pass'},{stage:'遮挡',status:'needs_changes'}]},
+    history: [], current: null, current_applies: false};
   let failNext = false, posts = 0;
   await page.route('**/api/motions', route => route.fulfill({json: {
     jobs: [job], stage_review_available: true, blender_available: true}}));
@@ -45,6 +47,11 @@ try {
   await page.getByLabel('验收说明').fill('仅限当前待机，保留遮挡异常');
   await save.click();
   await page.getByText('r1 · 阶段可接受，保留异常。仅限当前待机，保留遮挡异常', {exact: true}).waitFor();
+  await page.getByRole('button',{name:'收起验收详情'}).click();
+  assert.equal(await page.locator('.motion-stage-review').isVisible(),false);
+  assert.match(await page.locator('.motion-stage-summary').innerText(),/需处理技术异常.*视觉：阶段可接受，保留异常/);
+  await page.getByRole('button',{name:'记录 / 查看阶段验收'}).click();
+  await page.waitForFunction(()=>!document.querySelector('.motion-stage-review').inert);
   await select.selectOption('revoked');
   await page.getByRole('checkbox', {name: '我已检查当前候选，并了解检查中保留的异常。'}).check();
   failNext = true; await save.click();
