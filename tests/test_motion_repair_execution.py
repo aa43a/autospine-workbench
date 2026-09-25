@@ -72,6 +72,24 @@ class SubmissionTests(unittest.TestCase):
         self.assertEqual(saved['repair_execution']['draft']['contact_scope'],self.row['contact_scope'])
         self.assertEqual(read_document(self.manager.folder('parent')/'request.json'),self.request)
 
+    def test_order_after_scope_freezes_parent_provenance(self):
+        parent_draft=dict(action='contact_scope',artifact_sha256='original')
+        parent=dict(profile=execution.OCCLUSION_PROFILE,draft=parent_draft,draft_sha256=canonical_sha256(parent_draft))
+        self.request['repair_execution']=parent
+        self.manager.folder('parent').joinpath('request.json').write_bytes(canonical_bytes(self.request))
+        mesh=dict(type='mesh',triangles=[0,1,2])
+        self.row.update(action='region_order',region_order=dict(mesh_sha256=canonical_sha256(mesh),
+            triangles=[0],reference_slot='body',side='before'))
+        raw=canonical_bytes(dict(parent,authority='none',selected=False))
+        files={'motion-repair-provenance.json':raw,'motion-repair.json':b'{}',
+               'skeleton.json':canonical_bytes(dict(skins=[dict(attachments={'arm':{'arm':mesh}})]))}
+        with patch('autospine_workbench.automation.motion_target_jobs.context',return_value=({'artifact_sha256':'a'*64},files)):
+            value=self.invoke()
+        frozen=read_document(self.manager.folder(value['job_id'])/'request.json')['repair_execution']
+        self.assertEqual(frozen['parent_repair_sha256'],sha256(raw).hexdigest())
+        self.assertEqual(frozen['parent_artifact_sha256'],'a'*64)
+        self.assertEqual(frozen['profile'],execution.ORDER_PROFILE)
+
     def test_region_order_requires_selection_and_freezes_distinct_profile(self):
         self.row['action']='region_order'
         with self.assertRaisesRegex(RuntimeError,'region_order_required'):self.invoke()

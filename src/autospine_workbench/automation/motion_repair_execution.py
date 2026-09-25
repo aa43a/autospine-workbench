@@ -25,7 +25,7 @@ def submit(manager, parent_job, body):
     if parent.get('kind') != 'adapt' or parent['status'] != 'succeeded':
         raise PipelineRunError('motion_repair_parent_unavailable')
     request = read_document(manager.folder(parent_job) / 'request.json')
-    if request.get('repair_execution'):
+    if request.get('repair_execution') and request['repair_execution'].get('profile')!=OCCLUSION_PROFILE:
         raise PipelineRunError('motion_repair_nested_execution_unsupported')
     assert_current(manager, request)
     with manager._lock:
@@ -46,6 +46,8 @@ def submit(manager, parent_job, body):
             raise PipelineRunError('motion_occlusion_region_required')
         if row['artifact_sha256'] != report['artifact_sha256'] or row['evidence_sha256'] != digest:
             raise PipelineRunError('motion_repair_evidence_changed')
+        from .motion_scope_order_parent import verify as verify_scope_parent
+        parent_repair_sha=verify_scope_parent(manager,parent_job,request,row,report['artifact_sha256'])
         if manager._closed or sum(j['status'] in {'pending','running'} for j in manager._jobs.values()) >= 2:
             raise PipelineRunError('motion_queue_full')
         job = 'motion-' + uuid4().hex
@@ -56,6 +58,8 @@ def submit(manager, parent_job, body):
             profile=INTERVAL_ORDER_PROFILE
         request.update(job_id=job, repair_execution=dict(profile=profile, parent_job_id=parent_job,
             parent_artifact_sha256=report['artifact_sha256'], draft_sha256=body['draft_sha256'], draft=row))
+        if parent_repair_sha is not None:
+            request['repair_execution']['parent_repair_sha256']=parent_repair_sha
         publish_document(root/'request.json', request, staging=root/'staging')
         value = dict(job_id=job, kind='adapt', project_id=request['project_id'],
             character_job_id=request['character_job_id'], name=request['name']+({'partition':' · 分区候选','region_order':' · 区域顺序候选','contact_scope':' · 覆盖区表示候选'}.get(row['action'],' · 局部修正候选')),
