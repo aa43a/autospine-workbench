@@ -28,9 +28,12 @@ class RegionSequenceTests(unittest.TestCase):
         np.testing.assert_allclose(np.array(r['inverse'])@np.array([-.4,0.]),[0.,.2])
 
     def test_failed_optimizer_seed_never_becomes_animation(self):
-        with patch('autospine_workbench.targets.character43.shoulder_contact_regions.refine',return_value=([[99.,99.]]*3,{'status':'no_feasible_candidate_found'})):
-            points,report=solve(ROW,PREPARED,IDENTITY,IDENTITY,POINTS)
-        self.assertEqual(points,POINTS)
+        for harmonic in (False,True):
+            with patch('autospine_workbench.targets.character43.shoulder_contact_regions.refine',return_value=([[99.,99.]]*3,{'status':'no_feasible_candidate_found'})) as refine:
+                points,report=solve(ROW,PREPARED,IDENTITY,IDENTITY,POINTS,harmonic_seed=harmonic)
+            self.assertEqual(points,POINTS)
+            self.assertIs(refine.call_args.args[4],POINTS)
+            self.assertEqual(refine.call_args.args[6],PREPARED['context']['budget_px'])
 
     def test_interpolated_contact_failure_is_not_hidden_by_good_geometry(self):
         def sample(doc,name,t):

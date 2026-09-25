@@ -16,7 +16,9 @@ from autospine_workbench.targets.character43.skirt_contact import source_image
 from autospine_workbench.targets.character43.numeric_reference import read
 
 
-def run(source, output, owner, times, perform_solve=False):
+def run(source, output, owner, times, perform_solve=False, continuation=False, harmonic_seed=False):
+    if (continuation or harmonic_seed) and not perform_solve:raise ValueError('material_contact_seed_requires_solve')
+    if continuation and harmonic_seed:raise ValueError('material_contact_seed_selection')
     receipt=json.loads((source/'report.json').read_bytes());identity=receipt['candidate_bundle_sha256']
     files=AnimatedStore(source/'isolated-store').read(identity);doc,rows=contexts(files)
     frames=read(files)['animations']['external-motion']
@@ -47,7 +49,22 @@ def run(source, output, owner, times, perform_solve=False):
                         maximum_support_shift_px=peak,material_frame=list(material),
                         region_count=len(after),locked_count=len(p['locked']))
             if perform_solve:
-                points,evidence=solve(row,p,rest,effective,world[row['slot']])
+                if continuation:
+                    from autospine_workbench.targets.character43.boundary_contact_continuation import solve as continue_solve
+                    points,evidence=continue_solve(row['points'],row['triangles'],world[row['slot']],corrected,
+                                                  p['free'],after,p['context']['budget_px'])
+                elif harmonic_seed:
+                    from autospine_workbench.targets.character43.material_anchor_field import solve as field
+                    from autospine_workbench.targets.character43.boundary_shape_feasible import refine
+                    targets={v:corrected[v] for v in p['locked']}
+                    targets.update({r['vertex']:r['center'] for r in after})
+                    seed,seed_evidence=field(row['points'],world[row['slot']],row['triangles'],targets,
+                                             sorted(set(p['free'])|set(p['locked'])))
+                    points,evidence=refine(row['points'],row['triangles'],corrected,p['free'],world[row['slot']],
+                                           seed,p['context']['budget_px'],regions=after)
+                    evidence['seed']=seed_evidence
+                    if evidence['status']!='feasible_candidate':points=world[row['slot']]
+                else:points,evidence=solve(row,p,rest,effective,world[row['slot']])
                 record.update(solver=evidence,points=points)
             records.append(record)
             print(json.dumps({k:v for k,v in record.items() if k!='points'}),flush=True)
@@ -62,4 +79,6 @@ def run(source, output, owner, times, perform_solve=False):
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('source',type=Path);p.add_argument('output',type=Path)
     p.add_argument('--owner',required=True);p.add_argument('--time',type=float,action='append',required=True)
-    p.add_argument('--solve',action='store_true');a=p.parse_args();run(a.source,a.output,a.owner,a.time,a.solve)
+    p.add_argument('--solve',action='store_true');strategy=p.add_mutually_exclusive_group()
+    strategy.add_argument('--continuation',action='store_true');strategy.add_argument('--harmonic-seed',action='store_true')
+    a=p.parse_args();run(a.source,a.output,a.owner,a.time,a.solve,a.continuation,a.harmonic_seed)

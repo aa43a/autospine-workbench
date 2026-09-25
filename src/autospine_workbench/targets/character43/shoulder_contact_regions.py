@@ -26,13 +26,21 @@ def constraints(row,prepared,rest,current,world):
     return fixed,regions
 
 
-def solve(row,prepared,rest,current,world,previous=None,*,region_margin=1e-5):
+def solve(row,prepared,rest,current,world,previous=None,*,region_margin=1e-5,harmonic_seed=False):
     fixed,regions=constraints(row,prepared,rest,current,world)
     seed=[p[:] for p in world] if previous is None else (np.asarray(previous[1])+np.asarray(world)-previous[0]).tolist()
     for v in prepared['locked']:seed[v]=fixed[v][:]
     if previous is None:
         for region in regions:seed[region['vertex']]=region['center'][:]
+    seed_report=None
+    if harmonic_seed:
+        from .material_anchor_field import solve as field
+        targets={v:fixed[v] for v in prepared['locked']}
+        targets.update({r['vertex']:r['center'] for r in regions})
+        seed,seed_report=field(row['points'],world,row['triangles'],targets,
+                               sorted(set(prepared['free'])|set(prepared['locked'])))
     points,report=refine(row['points'],row['triangles'],fixed,prepared['free'],world,seed,
                          prepared['context']['budget_px'],regions=regions,region_margin=region_margin)
+    if seed_report is not None:report['seed']=seed_report
     # Never bake an unchecked warm-start seed when a solve failed.
     return (points if report['status']=='feasible_candidate' else world),report

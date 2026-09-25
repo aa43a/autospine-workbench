@@ -1,0 +1,23 @@
+{
+  "source": "418038c3621a71b2a56893f53862b0611ce1feb7e0b232f75e786d09ff29dcb2",
+  "time": 0.9645835859375,
+  "records": [
+    {
+      "slot": "layer-003",
+      "status": "no_region_path_counterexample",
+      "witnesses": [],
+      "max_edge_stretch": 2.0,
+      "authority": "none",
+      "scope": "necessary_conservative_distance_bound_not_full_feasibility"
+    },
+    {
+      "slot": "layer-004",
+      "status": "no_region_path_counterexample",
+      "witnesses": [],
+      "max_edge_stretch": 2.0,
+      "authority": "none",
+      "scope": "necessary_conservative_distance_bound_not_full_feasibility"
+    }
+  ],
+  "authority": "none"
+}

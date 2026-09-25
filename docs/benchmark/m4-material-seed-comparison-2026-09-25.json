@@ -1,0 +1,467 @@
+{
+  "authority": "none",
+  "selected": false,
+  "records": [
+    {
+      "method": "continuation",
+      "authority": "none",
+      "records": [
+        {
+          "locked_count": 0,
+          "material_fit_residual_px": 7.896940126926099e-13,
+          "material_frame": [
+            0.6441236748839752,
+            0.4219243757234678,
+            0.06310268302455627,
+            0.8631020339949483,
+            369.74066944310084,
+            -296.83011149446236
+          ],
+          "maximum_support_shift_px": 50.10289163758721,
+          "owner": "layer-006",
+          "region_count": 6,
+          "slot": "layer-003",
+          "solver": {
+            "authority": "none",
+            "final": {
+              "authority": "none",
+              "contact_region_count": 6,
+              "fraction": 1.0,
+              "geometry": {
+                "bad_triangles": [],
+                "inversions": 0,
+                "max_area_ratio": 1.9950000000013737,
+                "max_edge_stretch": 1.9950000000449368,
+                "min_area_ratio": 0.5049999999999059
+              },
+              "iterations": 74,
+              "maximum_contact_region_ratio": 0.9999900000450518,
+              "maximum_displacement_px": 73.33126698269777,
+              "minimum_constraint": -4.505174011626423e-11,
+              "objective_profile": "seed-displacement-v1",
+              "optimizer_success": true,
+              "profile": "boundary-hard-shape-feasibility-v1",
+              "scope": "single_pose_not_temporal_or_visual_acceptance",
+              "selected": false,
+              "status": "feasible_candidate"
+            },
+            "profile": "fixed-budget-contact-continuation-v1",
+            "scope": "single_pose_solver_not_animation_or_visual_acceptance",
+            "selected": false,
+            "stages": [
+              {
+                "authority": "none",
+                "contact_region_count": 6,
+                "fraction": 0.125,
+                "geometry": {
+                  "bad_triangles": [],
+                  "inversions": 0,
+                  "max_area_ratio": 1.4166991370377597,
+                  "max_edge_stretch": 1.5044439976475494,
+                  "min_area_ratio": 0.5049999999995489
+                },
+                "iterations": 17,
+                "maximum_contact_region_ratio": 0.9999900000001835,
+                "maximum_displacement_px": 6.18641680404852,
+                "minimum_constraint": -4.510836149052011e-13,
+                "objective_profile": "seed-displacement-v1",
+                "optimizer_success": true,
+                "profile": "boundary-hard-shape-feasibility-v1",
+                "scope": "single_pose_not_temporal_or_visual_acceptance",
+                "selected": false,
+                "status": "feasible_candidate"
+              },
+              {
+                "authority": "none",
+                "contact_region_count": 6,
+                "fraction": 0.25,
+                "geometry": {
+                  "bad_triangles": [],
+                  "inversions": 0,
+                  "max_area_ratio": 1.9950000000010684,
+                  "max_edge_stretch": 1.995000000002531,
+                  "min_area_ratio": 0.5049999999896208
+                },
+                "iterations": 23,
+                "maximum_contact_region_ratio": 0.999990000004168,
+                "maximum_displacement_px": 14.60357063801984,
+                "minimum_constraint": -1.0379253012615663e-11,
+                "objective_profile": "seed-displacement-v1",
+                "optimizer_success": true,
+                "profile": "boundary-hard-shape-feasibility-v1",
+                "scope": "single_pose_not_temporal_or_visual_acceptance",
+                "selected": false,
+                "status": "feasible_candidate"
+              },
+              {
+                "authority": "none",
+                "contact_region_count": 6,
+                "fraction": 0.375,
+                "geometry": {
+                  "bad_triangles": [],
+                  "inversions": 0,
+                  "max_area_ratio": 1.886930931579421,
+                  "max_edge_stretch": 1.9950000000053523,
+                  "min_area_ratio": 0.5049999999997938
+                },
+                "iterations": 26,
+                "maximum_contact_region_ratio": 0.9999900000285159,
+                "maximum_displacement_px": 24.377503600175423,
+                "minimum_constraint": -2.851585634289222e-11,
+                "objective_profile": "seed-displacement-v1",
+                "optimizer_success": true,
+                "profile": "boundary-hard-shape-feasibility-v1",
+                "scope": "single_pose_not_temporal_or_visual_acceptance",
+                "selected": false,
+                "status": "feasible_candidate"
+              },
+              {
+                "authority": "none",
+                "contact_region_count": 6,
+                "fraction": 0.5,
+                "geometry": {
+                  "bad_triangles": [],
+                  "inversions": 0,
+                  "max_area_ratio": 1.995000000000002,
+                  "max_edge_stretch": 1.9950000000002517,
+                  "min_area_ratio": 0.5049999999999351
+                },
+                "iterations": 26,
+                "maximum_contact_region_ratio": 0.9999900000003404,
+                "maximum_displacement_px": 34.15101255344539,
+                "minimum_constraint": -3.40394379350073e-13,
+                "objective_profile": "seed-displacement-v1",
+                "optimizer_success": true,
+                "profile": "boundary-hard-shape-feasibility-v1",
+                "scope": "single_pose_not_temporal_or_visual_acceptance",
+                "selected": false,
+                "status": "feasible_candidate"
+              },
+              {
+                "authority": "none",
+                "contact_region_count": 6,
+                "fraction": 0.625,
+                "geometry": {
+                  "bad_triangles": [],
+                  "inversions": 0,
+                  "max_area_ratio": 1.9950000000002115,
+                  "max_edge_stretch": 1.9950000000033166,
+                  "min_area_ratio": 0.5049999999988009
+                },
+                "iterations": 25,
+                "maximum_contact_region_ratio": 0.9999900000011502,
+                "maximum_displacement_px": 43.958597174971274,
+                "minimum_constraint": -3.3164582191602676e-12,
+                "objective_profile": "seed-displacement-v1",
+                "optimizer_success": true,
+                "profile": "boundary-hard-shape-feasibility-v1",
+                "scope": "single_pose_not_temporal_or_visual_acceptance",
+                "selected": false,
+                "status": "feasible_candidate"
+              },
+              {
+                "authority": "none",
+                "contact_region_count": 6,
+                "fraction": 0.75,
+                "geometry": {
+                  "bad_triangles": [],
+                  "inversions": 0,
+                  "max_area_ratio": 1.9950000000002306,
+                  "max_edge_stretch": 1.9950000000012262,
+                  "min_area_ratio": 0.5049999999989933
+                },
+                "iterations": 34,
+                "maximum_contact_region_ratio": 0.9999900000008067,
+                "maximum_displacement_px": 53.77195006858089,
+                "minimum_constraint": -1.2261303083960229e-12,
+                "objective_profile": "seed-displacement-v1",
+                "optimizer_success": true,
+                "profile": "boundary-hard-shape-feasibility-v1",
+                "scope": "single_pose_not_temporal_or_visual_acceptance",
+                "selected": false,
+                "status": "feasible_candidate"
+              },
+              {
+                "authority": "none",
+                "contact_region_count": 6,
+                "fraction": 0.875,
+                "geometry": {
+                  "bad_triangles": [],
+                  "inversions": 0,
+                  "max_area_ratio": 1.9950000000000518,
+                  "max_edge_stretch": 1.9950000000001218,
+                  "min_area_ratio": 0.504999999999886
+                },
+                "iterations": 52,
+                "maximum_contact_region_ratio": 0.9999900000003332,
+                "maximum_displacement_px": 63.48953513953493,
+                "minimum_constraint": -3.331779296900095e-13,
+                "objective_profile": "seed-displacement-v1",
+                "optimizer_success": true,
+                "profile": "boundary-hard-shape-feasibility-v1",
+                "scope": "single_pose_not_temporal_or_visual_acceptance",
+                "selected": false,
+                "status": "feasible_candidate"
+              },
+              {
+                "authority": "none",
+                "contact_region_count": 6,
+                "fraction": 1.0,
+                "geometry": {
+                  "bad_triangles": [],
+                  "inversions": 0,
+                  "max_area_ratio": 1.9950000000013737,
+                  "max_edge_stretch": 1.9950000000449368,
+                  "min_area_ratio": 0.5049999999999059
+                },
+                "iterations": 74,
+                "maximum_contact_region_ratio": 0.9999900000450518,
+                "maximum_displacement_px": 73.33126698269777,
+                "minimum_constraint": -4.505174011626423e-11,
+                "objective_profile": "seed-displacement-v1",
+                "optimizer_success": true,
+                "profile": "boundary-hard-shape-feasibility-v1",
+                "scope": "single_pose_not_temporal_or_visual_acceptance",
+                "selected": false,
+                "status": "feasible_candidate"
+              }
+            ],
+            "status": "feasible_candidate",
+            "steps": 8
+          },
+          "time": 0.9645835859375
+        },
+        {
+          "locked_count": 1,
+          "material_fit_residual_px": 7.896940126926099e-13,
+          "material_frame": [
+            0.6441236748839752,
+            0.4219243757234678,
+            0.06310268302455627,
+            0.8631020339949483,
+            369.74066944310084,
+            -296.83011149446236
+          ],
+          "maximum_support_shift_px": 53.23873293181715,
+          "owner": "layer-006",
+          "region_count": 5,
+          "slot": "layer-004",
+          "solver": {
+            "authority": "none",
+            "profile": "fixed-budget-contact-continuation-v1",
+            "scope": "single_pose_solver_not_animation_or_visual_acceptance",
+            "selected": false,
+            "stages": [
+              {
+                "authority": "none",
+                "contact_region_count": 5,
+                "fraction": 0.125,
+                "geometry": {
+                  "bad_triangles": [],
+                  "inversions": 0,
+                  "max_area_ratio": 1.5706601441451933,
+                  "max_edge_stretch": 1.4601788400038533,
+                  "min_area_ratio": 0.504999999999678
+                },
+                "iterations": 19,
+                "maximum_contact_region_ratio": 0.9999900000111602,
+                "maximum_displacement_px": 8.976292845303691,
+                "minimum_constraint": -1.1160183888136999e-11,
+                "objective_profile": "seed-displacement-v1",
+                "optimizer_success": true,
+                "profile": "boundary-hard-shape-feasibility-v1",
+                "scope": "single_pose_not_temporal_or_visual_acceptance",
+                "selected": false,
+                "status": "feasible_candidate"
+              },
+              {
+                "authority": "none",
+                "contact_region_count": 5,
+                "fraction": 0.25,
+                "geometry": {
+                  "bad_triangles": [],
+                  "inversions": 0,
+                  "max_area_ratio": 1.9187708870919076,
+                  "max_edge_stretch": 1.9950000000494665,
+                  "min_area_ratio": 0.505000000001171
+                },
+                "iterations": 20,
+                "maximum_contact_region_ratio": 0.9999900000247837,
+                "maximum_displacement_px": 17.952585690607425,
+                "minimum_constraint": -4.94664309513837e-11,
+                "objective_profile": "seed-displacement-v1",
+                "optimizer_success": true,
+                "profile": "boundary-hard-shape-feasibility-v1",
+                "scope": "single_pose_not_temporal_or_visual_acceptance",
+                "selected": false,
+                "status": "feasible_candidate"
+              },
+              {
+                "authority": "none",
+                "contact_region_count": 5,
+                "fraction": 0.375,
+                "geometry": {
+                  "bad_triangles": [],
+                  "inversions": 0,
+                  "max_area_ratio": 1.8930946722230835,
+                  "max_edge_stretch": 1.9950000000046728,
+                  "min_area_ratio": 0.504999999999971
+                },
+                "iterations": 26,
+                "maximum_contact_region_ratio": 0.9999900000002181,
+                "maximum_displacement_px": 26.928878535911117,
+                "minimum_constraint": -4.673150755252209e-12,
+                "objective_profile": "seed-displacement-v1",
+                "optimizer_success": true,
+                "profile": "boundary-hard-shape-feasibility-v1",
+                "scope": "single_pose_not_temporal_or_visual_acceptance",
+                "selected": false,
+                "status": "feasible_candidate"
+              },
+              {
+                "authority": "none",
+                "contact_region_count": 5,
+                "fraction": 0.5,
+                "geometry": {
+                  "bad_triangles": [
+                    0,
+                    10,
+                    29
+                  ],
+                  "inversions": 0,
+                  "max_area_ratio": 2.0000352905353678,
+                  "max_edge_stretch": 2.047959877030969,
+                  "min_area_ratio": 0.21408422014198988
+                },
+                "iterations": 47,
+                "maximum_contact_region_ratio": 1.6179673020395509,
+                "maximum_displacement_px": 41.02079643394542,
+                "minimum_constraint": -0.6179773020395508,
+                "objective_profile": "seed-displacement-v1",
+                "optimizer_success": false,
+                "profile": "boundary-hard-shape-feasibility-v1",
+                "scope": "single_pose_not_temporal_or_visual_acceptance",
+                "selected": false,
+                "status": "no_feasible_candidate_found"
+              }
+            ],
+            "status": "no_feasible_candidate_found",
+            "steps": 8,
+            "stopped_fraction": 0.5
+          },
+          "time": 0.9645835859375
+        }
+      ],
+      "scope": "selected_pose_material_support_probe_not_baked_candidate_or_acceptance",
+      "selected": false,
+      "skeleton_sha256": "bfd43de77aa435e84c61eb7e650f79b54e47738a1f645f6590b6c8c039d5a782",
+      "solver_worktree_sha256": "acb1a912be087d8a24b2224097e670f3d36f84ffb2118e3dc33b5cc863fb2d7f",
+      "source_candidate": "418038c3621a71b2a56893f53862b0611ce1feb7e0b232f75e786d09ff29dcb2"
+    },
+    {
+      "method": "harmonic",
+      "authority": "none",
+      "records": [
+        {
+          "locked_count": 0,
+          "material_fit_residual_px": 7.896940126926099e-13,
+          "material_frame": [
+            0.6441236748839752,
+            0.4219243757234678,
+            0.06310268302455627,
+            0.8631020339949483,
+            369.74066944310084,
+            -296.83011149446236
+          ],
+          "maximum_support_shift_px": 50.10289163758721,
+          "owner": "layer-006",
+          "region_count": 6,
+          "slot": "layer-003",
+          "solver": {
+            "authority": "none",
+            "contact_region_count": 6,
+            "geometry": {
+              "bad_triangles": [],
+              "inversions": 0,
+              "max_area_ratio": 1.957143094806126,
+              "max_edge_stretch": 1.9950000000000014,
+              "min_area_ratio": 0.5049999999999386
+            },
+            "iterations": 26,
+            "maximum_contact_region_ratio": 0.9999900000044823,
+            "maximum_displacement_px": 73.37281526083603,
+            "minimum_constraint": -4.4823034173191445e-12,
+            "objective_profile": "seed-displacement-v1",
+            "optimizer_success": true,
+            "profile": "boundary-hard-shape-feasibility-v1",
+            "scope": "single_pose_not_temporal_or_visual_acceptance",
+            "seed": {
+              "anchors": 6,
+              "authority": "none",
+              "free_vertices": 100,
+              "geometry_status": "not_evaluated",
+              "maximum_anchor_error_px": 0.0,
+              "maximum_displacement_px": 78.2542376891582,
+              "selected": false
+            },
+            "selected": false,
+            "status": "feasible_candidate"
+          },
+          "time": 0.9645835859375
+        },
+        {
+          "locked_count": 1,
+          "material_fit_residual_px": 7.896940126926099e-13,
+          "material_frame": [
+            0.6441236748839752,
+            0.4219243757234678,
+            0.06310268302455627,
+            0.8631020339949483,
+            369.74066944310084,
+            -296.83011149446236
+          ],
+          "maximum_support_shift_px": 53.23873293181715,
+          "owner": "layer-006",
+          "region_count": 5,
+          "slot": "layer-004",
+          "solver": {
+            "authority": "none",
+            "contact_region_count": 5,
+            "geometry": {
+              "bad_triangles": [],
+              "inversions": 0,
+              "max_area_ratio": 1.9950000000016768,
+              "max_edge_stretch": 1.9950000002090829,
+              "min_area_ratio": 0.5049999999959122
+            },
+            "iterations": 70,
+            "maximum_contact_region_ratio": 0.9999899999999908,
+            "maximum_displacement_px": 89.8169534875806,
+            "minimum_constraint": -2.090827511125326e-10,
+            "objective_profile": "seed-displacement-v1",
+            "optimizer_success": true,
+            "profile": "boundary-hard-shape-feasibility-v1",
+            "scope": "single_pose_not_temporal_or_visual_acceptance",
+            "seed": {
+              "anchors": 6,
+              "authority": "none",
+              "free_vertices": 94,
+              "geometry_status": "not_evaluated",
+              "maximum_anchor_error_px": 0.0,
+              "maximum_displacement_px": 88.29879349493787,
+              "selected": false
+            },
+            "selected": false,
+            "status": "feasible_candidate"
+          },
+          "time": 0.9645835859375
+        }
+      ],
+      "scope": "selected_pose_material_support_probe_not_baked_candidate_or_acceptance",
+      "selected": false,
+      "skeleton_sha256": "bfd43de77aa435e84c61eb7e650f79b54e47738a1f645f6590b6c8c039d5a782",
+      "solver_worktree_sha256": "acb1a912be087d8a24b2224097e670f3d36f84ffb2118e3dc33b5cc863fb2d7f",
+      "source_candidate": "418038c3621a71b2a56893f53862b0611ce1feb7e0b232f75e786d09ff29dcb2"
+    }
+  ]
+}

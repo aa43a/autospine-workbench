@@ -50,3 +50,17 @@ def add(original, correction, size):
         raise ValueError('deform_addition_key_order')
     return [dict(time=t, vertices=[a+b for a, b in zip(value(original, t, size),
                  value(correction, t, size), strict=True)]) for t in times]
+
+
+def runtime_union_times(original, correction):
+    """Keep original breakpoints exact; avoid new aliases in Runtime storage."""
+    from .runtime_storage_reference import f32
+    times={}
+    for key in original:
+        time=key['time'];stored=f32(time)
+        if stored in times:raise ValueError('deform_original_runtime_times_collide')
+        times[stored]=time
+    for key in correction:
+        stored=f32(key['time'])
+        times.setdefault(stored,stored)
+    return sorted(times.values())
