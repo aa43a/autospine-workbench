@@ -1,7 +1,7 @@
 import {brushTriangles} from './mesh-brush.js';
 const node=(tag,text)=>{const n=document.createElement(tag);if(text)n.textContent=text;return n;};
-const names={fixed:'固定连接区',sliding:'允许滑动的遮挡区',transition:'可变形过渡区',free:'保留原运动区'};
-const colors={fixed:'#fa777799',sliding:'#67caff99',transition:'#e6b85399',free:'#7cdb9999'};
+const names={fixed:'固定连接区',sliding:'沿边滑动约束区',occlusion:'覆盖区（可相对滑动）',transition:'可变形过渡区',free:'保留原运动区'};
+const colors={fixed:'#fa777799',sliding:'#67caff99',occlusion:'#c59aff99',transition:'#e6b85399',free:'#7cdb9999'};
 export function contactEditor(parent,job,row) {
   const box=node('fieldset'),open=node('button','载入衣料连接画布'),reference=node('select'),kind=node('select');
   reference.setAttribute('aria-label','衣料连接参考附件');kind.setAttribute('aria-label','衣料区域类型');
@@ -9,7 +9,7 @@ export function contactEditor(parent,job,row) {
   const radius=node('input');radius.type='range';radius.min=2;radius.max=80;radius.value=12;radius.setAttribute('aria-label','衣料区域笔刷半径');
   const canvas=node('canvas');canvas.setAttribute('aria-label','衣料连接区域画布');canvas.style.cssText='max-width:100%;touch-action:none;background:#29333e';
   const status=node('p','未标注区域保持未知。');status.setAttribute('role','status');
-  box.append(node('legend','衣料连接与活动范围'),node('p','在原纹理上刷选区域，再保存处理草稿。红色：拟保持与参考附件连接；蓝色：允许沿边相对滑动；黄色：允许局部变形的连续过渡区；绿色：保留原运动。未标注区域不自动推断；与保留区共享的边界顶点仍保留原运动。此处只记录修复意图，尚未求解或改动动画，也不代表视觉验收。'),open,reference,kind,radius,status,canvas);parent.append(box);
+  box.append(node('legend','衣料连接与活动范围'),node('p','在原纹理上刷选区域，再保存处理草稿。红色：固定连接；蓝色：沿边滑动约束；紫色：被参考附件覆盖、可相对滑动，例如披肩下方的袖布，保留原运动，不锁定材料点或限制沿边移动；黄色：可变形过渡区；绿色：保留原运动。旧蓝色标注不会自动改成紫色。未标注区域保持未知；覆盖区与保留区的共享顶点仍保留原运动。此处只记录意图，尚未修复动画或验收遮挡效果。'),open,reference,kind,radius,status,canvas);parent.append(box);
   let mesh=null,image=null,saved=null,labels=new Map(),ticket=0,pointer=null,previous=null;
   const stop=()=>{pointer=null;previous=null;};
   const draw=()=>{

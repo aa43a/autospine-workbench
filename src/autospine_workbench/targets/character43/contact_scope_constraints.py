@@ -13,9 +13,9 @@ def inspect(setup, posed, triangles, reference_setup, reference_pose, reference_
     if (len(flat)%3 or len(other)%3 or any(type(v) is not int or not 0<=v<len(rest) for v in flat)
             or any(type(v) is not int or not 0<=v<len(source) for v in other)):
         raise ValueError('contact_constraint_triangles_invalid')
-    if set(regions) not in ({'fixed','sliding','free'}, {'fixed','sliding','free','transition'}):
+    if not {'fixed','sliding','free'} <= set(regions) <= {'fixed','sliding','free','transition','occlusion'}:
         raise ValueError('contact_constraint_regions_invalid')
-    regions={'transition':[],**regions}
+    regions={'transition':[],'occlusion':[],**regions}
     selected = set(); vertices = {}
     for name, ids in regions.items():
         if (not isinstance(ids,list) or len(set(ids))!=len(ids) or selected.intersection(ids)
@@ -25,7 +25,8 @@ def inspect(setup, posed, triangles, reference_setup, reference_pose, reference_
         vertices[name] = {v for i in ids for v in flat[i*3:i*3+3]}
     unknown = sorted(set(range(len(flat)//3))-selected)
     vertices['unknown'] = {v for i in unknown for v in flat[i*3:i*3+3]}
-    preserved = vertices['free'] | vertices['unknown']
+    # Coverage allows relative motion; it supplies no material-point target.
+    preserved = vertices['free'] | vertices['unknown'] | vertices['occlusion']
     shared = vertices['fixed'] & preserved
     mappings, unsupported, ambiguous, conflicts = [], [], [], []
     for v in sorted(vertices['fixed']):
@@ -45,7 +46,7 @@ def inspect(setup, posed, triangles, reference_setup, reference_pose, reference_
         mappings.append(dict(vertex=v,target=mapped[0].tolist(),displacement_px=error))
         if v in shared and error>1e-6:
             conflicts.append(dict(vertex=v,required_displacement_px=error,
-                preserved_by=sorted(k for k in ('free','unknown') if v in vertices[k])))
+                preserved_by=sorted(k for k in ('free','unknown','occlusion') if v in vertices[k])))
     reasons=[]
     if unsupported:reasons.append('reference_support_missing')
     if ambiguous:reasons.append('reference_mapping_ambiguous')
@@ -58,5 +59,8 @@ def inspect(setup, posed, triangles, reference_setup, reference_pose, reference_
         transition_preserved_vertices=sorted(vertices['transition'] & preserved),
         transition_only_vertices=sorted(vertices['transition']-preserved-vertices['fixed']-vertices['sliding']),
         unsupported_vertices=unsupported, ambiguous_vertices=ambiguous,
+        occlusion_review=dict(required=bool(vertices['occlusion']),
+            status='rendered_overlap_not_checked' if vertices['occlusion'] else 'not_requested',
+            preserves_original_motion=True, material_correspondence_required=False),
         selected=False, authority='none', sufficient_for_repair=False,
         scope='single_pose_geometric_mapping_not_texture_contact_or_whole_animation')

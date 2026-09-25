@@ -90,3 +90,25 @@ class ContactScopeTests(unittest.TestCase):
         draft.save(self.manager,'job',body)
         with self.assertRaisesRegex(RuntimeError,'plan_changed'):
             read(self.manager,'job',['contact-scope','1.json'],{'artifact_sha256':'a'*64},self.files)
+
+    def test_coverage_intent_retained_without_reinterpreting_old_sliding(self):
+        body=copy.deepcopy(self.body)
+        body['contact_scope']['regions']=dict(fixed=[],sliding=[0],free=[])
+        first=draft.save(self.manager,'job',body)['history'][0]
+        self.assertEqual(first['contact_scope']['regions']['occlusion'],[])
+        body['expected_revision']=1
+        body['contact_scope']['regions']=dict(fixed=[],sliding=[],free=[],occlusion=[0])
+        state=draft.save(self.manager,'job',body)
+        self.assertEqual(state['history'][0],first)
+        self.assertEqual(state['history'][1]['contact_scope']['regions']['sliding'],[])
+        self.assertEqual(state['history'][1]['contact_scope']['regions']['occlusion'],[0])
+        self.assertFalse(state['repair_executed'])
+        self.assertEqual(draft.inspect(self.manager,'job')['history'],state['history'])
+
+    def test_coverage_scope_rejects_overlaps_and_unrecognized_roles(self):
+        for regions in [dict(fixed=[0],sliding=[],free=[],occlusion=[0]),
+                        dict(fixed=[],sliding=[],free=[],occlusion=[9]),
+                        dict(fixed=[],sliding=[],free=[],occlusion=[0],invented=[])]:
+            body=copy.deepcopy(self.body);body['contact_scope']['regions']=regions
+            with self.subTest(regions=regions),self.assertRaises(RuntimeError):
+                validate(self.manager,'job',body)

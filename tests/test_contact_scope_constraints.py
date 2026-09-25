@@ -47,3 +47,21 @@ class ContactConstraintsTests(unittest.TestCase):
         result=self.check(dict(fixed=[],sliding=[],free=[0],transition=[1]))
         self.assertEqual(result['transition_preserved_vertices'],[0,2])
         self.assertEqual(result['transition_only_vertices'],[3])
+
+    def test_covering_reference_can_slide_away_without_a_fixed_target(self):
+        result=self.check(dict(fixed=[],sliding=[],free=[],occlusion=[0,1]),
+                          [[30,0],[32,0],[32,2],[30,2]])
+        self.assertEqual(result['fixed_targets'],[])
+        self.assertEqual(result['conflicts'],[])
+        self.assertEqual(result['vertex_roles']['occlusion'],[0,1,2,3])
+        self.assertEqual(result['occlusion_review']['status'],'rendered_overlap_not_checked')
+        self.assertTrue(result['occlusion_review']['required'])
+        self.assertFalse(result['sufficient_for_repair'])
+
+    def test_covering_region_preserves_shared_vertices_against_fixed_motion(self):
+        result=self.check(dict(fixed=[0],sliding=[],free=[],occlusion=[1]),
+                          [[3,0],[5,0],[5,2],[3,2]])
+        self.assertEqual([r['vertex'] for r in result['conflicts']],[0,2])
+        self.assertTrue(all(r['preserved_by']==['occlusion'] for r in result['conflicts']))
+        with self.assertRaises(ValueError):
+            self.check(dict(fixed=[0],sliding=[],free=[],occlusion=[0]))
