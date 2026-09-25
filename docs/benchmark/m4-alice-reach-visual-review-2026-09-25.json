@@ -1,0 +1,30 @@
+{
+  "schema": "autospine.scoped-human-visual-evidence/v1",
+  "date": "2026-09-25",
+  "character": "alice",
+  "artifact_sha256": "21969ed99dd41e85171f52842fc4754a8d8c4bd425fd722cf87a78ce94b9d437",
+  "source_motion_ir_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+  "decision": "accepted",
+  "user_response": "可接受",
+  "scope": "alice_reach_shoulder_arm_shape_in_presented_keyframes",
+  "question_context": "首帧、3.45 秒和末帧的肩臂形状是否可以接受；不代表整段 Reach 或技术检查通过",
+  "reviewed_keyframe_times": [0, 3.45, 4],
+  "structural_decision": "cape_overlays_sleeve_with_relative_sliding",
+  "existing_technical_snapshot": {
+    "geometry_passed": true,
+    "attachment_records": 26,
+    "runtime_passed": true,
+    "runtime_frames": 817,
+    "runtime_version": "4.3.13",
+    "target_version": "4.3.26",
+    "contact_status": "not_evaluated",
+    "draw_order_visual_status": "needs_review"
+  },
+  "retained_observations": [
+    "frame_704_time_3.45_source_texel_7565_framebuffer_alpha_5",
+    "continuous_animation_and_contact_not_accepted_by_this_scoped_decision"
+  ],
+  "technical_override": false,
+  "production_authorized": false,
+  "applies_to_other_candidates": false
+}
