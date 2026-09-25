@@ -10,6 +10,7 @@ import {createExperimentPanel} from './motion-experiments.js';
 import {appendKneeDetails} from './motion-knee-details.js';
 import {createCohortStatus} from './motion-cohort-status.js';
 import {appendDepthSummary} from './motion-depth-summary.js';
+import {navigationPack} from './motion-cohort-entry.js';
 const byId=id=>document.getElementById(id), motion=byId('motion'),character=byId('character');
 const sync=createCohortSync(byId('sync-status'));
 const player=createSourcePlayer(byId('source'),byId('time'),byId('play'),byId('time-label'),(time,end)=>{sync.seek(time,end);alternative.seek(time,end);experiments.seek(time,end);});
@@ -84,8 +85,7 @@ async function show(){
   }catch(error){if(version===revision)byId('status').textContent='无法打开：'+error.message;}
 }
 try{
-  if(location.hash.length>100000)throw Error('复核清单过大');
-  pack=validate(JSON.parse(decodeURIComponent(location.hash.slice(1))));
+  pack=validate(await navigationPack(location.hash,location.search,get));
   pack.groups.forEach((g,i)=>motion.add(new Option(g.label,String(i))));targets();
   createCohortStatus(byId('cohort-status'),pack,(mi,ci)=>{motion.value=String(mi);targets();character.value=String(ci);show();byId('target-title').scrollIntoView({block:'start'});});
   motion.onchange=()=>{targets();show();};character.onchange=show;show();
