@@ -21,7 +21,8 @@ def duration(value):
     return max(times)
 
 
-def apply(candidate, original_slots, desired_slots, animation, interval):
+def apply(candidate, original_slots, desired_slots, animation, interval, *,
+          moved_names=None, reference=None, side=None):
     if not isinstance(animation, str) or animation not in candidate['animations']:
         raise ValueError('region_order_animation_invalid')
     motion = candidate['animations'][animation]
@@ -39,12 +40,22 @@ def apply(candidate, original_slots, desired_slots, animation, interval):
     names = [s['name'] for s in original_slots]
     desired = [s['name'] for s in desired_slots]
     candidate['slots'] = original_slots
-    motion['drawOrder'] = [
-        dict(time=interval[0], offsets=[dict(slot=name, offset=desired.index(name)-i)
-                                      for i, name in enumerate(names)]),
-        dict(time=interval[1], offsets=[])]
+    source_keys = motion.get('drawOrder', [])
+    if source_keys:
+        if not moved_names or reference not in names or side not in ('before', 'after'):
+            raise ValueError('region_order_overlay_selection_required')
+        from .region_order_overlay import merge
+        motion['drawOrder'] = merge(names, source_keys, moved_names, reference, side, interval)
+    else:
+        motion['drawOrder'] = [
+            dict(time=interval[0], offsets=[dict(slot=name, offset=desired.index(name)-i)
+                                          for i, name in enumerate(names)]),
+            dict(time=interval[1], offsets=[])]
     return dict(profile=PROFILE, animation=animation, interval=list(interval),
                 runtime_interval=runtime_interval,
+                source_order_keys_composed=len(source_keys),
+                active_order_semantics=('setup_reference_only_source_keys_composed'
+                                        if source_keys else 'constant_during_interval'),
                 interval_semantics='start_inclusive_end_exclusive',
                 setup_order=names, active_order=desired,
                 scope='interval_order_candidate_requires_visual_and_runtime_review')

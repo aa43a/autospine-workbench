@@ -6,6 +6,8 @@ import {pathToFileURL} from 'node:url';
 const [scenePath, reportPath, coreRoot, output] = process.argv.slice(2);
 const scene = JSON.parse(await fs.readFile(scenePath));
 const report = JSON.parse(await fs.readFile(reportPath));
+assert.ok(!report.source_order_keys_composed,
+  'This constant-order checker cannot verify a composed source timeline.');
 const pkg = JSON.parse(await fs.readFile(path.join(coreRoot, 'package.json')));
 assert.equal(pkg.version, '4.3.13');
 const spine = await import(pathToFileURL(path.resolve(coreRoot, 'dist/index.js')));

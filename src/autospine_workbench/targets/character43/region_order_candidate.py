@@ -28,7 +28,8 @@ def build(document, source_slot, triangles, reference_slot, side, *, part_limit=
     selected = set(triangles)
     labels = ['selected' if t in selected else 'retained' for t in range(count)]
     candidate, split = partition(document, [source_slot], part_limit=part_limit,
-                                 triangle_labels={source_slot: labels})
+                                 triangle_labels={source_slot: labels},
+                                 preserve_draw_order=interval is not None)
     moved_names = {r['slot'] for r in split['regions'] if r['group'] == 'selected'}
     moved = [s for s in candidate['slots'] if s['name'] in moved_names]
     retained = [s for s in candidate['slots'] if s['name'] not in moved_names]
@@ -46,7 +47,8 @@ def build(document, source_slot, triangles, reference_slot, side, *, part_limit=
                   within_each_group_triangle_order_preserved=True)
     if interval is not None:
         from .region_order_interval import apply
-        report.update(apply(candidate, original_slots, candidate['slots'], animation, interval))
+        report.update(apply(candidate, original_slots, candidate['slots'], animation, interval,
+                            moved_names=moved_names, reference=reference_slot, side=side))
     elif animation is not None:
         raise ValueError('region_order_interval_required')
     return candidate, report
