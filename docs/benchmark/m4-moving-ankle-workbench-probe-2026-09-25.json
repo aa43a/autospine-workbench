@@ -1,0 +1,66 @@
+{
+  "applied": true,
+  "authority": "none",
+  "candidate_bundle_sha256": "a0e9ffdda511232c7847258b38261b721332d3e2a69d367e4ae4b2878e93c03b",
+  "character_sha256": "6e5c59db4ef072075b798efab12acf8ffdc883368a61a4bf3c1646305ef68b98",
+  "failure": null,
+  "final_check": {
+    "limit_px": 3.5314073364688943,
+    "passed": true,
+    "samples": 827,
+    "scope": "moving_ankle_tracking_not_stationary_contact_or_visual_acceptance",
+    "skeleton_sha256": "8acdef87ba9198dce68a2c4d355d019cebb9c37b8eb56cc0fd52c7e263d2ff16",
+    "worst": {
+      "error_px": 0.005105131166870283,
+      "side": "r",
+      "time": 1.9140625
+    }
+  },
+  "geometry_passed": false,
+  "issues": [
+    {
+      "reason_code": "motion_target_deformation_needs_changes",
+      "stage": "geometry"
+    }
+  ],
+  "motion_identity": {
+    "bundle_sha256": "5f531a9327ad59abde64e643438baa794e5618b5629d59c0e3f9d4da990948b7",
+    "bvh_map_sha256": "f9d1995881e5623f72208050cc9b639d98b1317da3322e3480cf50a283fa7f5c",
+    "clip_id": "external.a4233c602a77a95c.front",
+    "clip_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+    "map_id": "mixamo-declared-body-v1",
+    "motion_ir_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+    "raw_bvh_byte_length": 342778,
+    "raw_bvh_sha256": "a4233c602a77a95c1473ef7ab3f277fa7ca6aec5a98b4d5407dea904194bb2f4",
+    "reused": false,
+    "run_sha256": "c48c0ffcb9338d2bc72a1013f1be8366de8ea5583419f979a9ac1c080b534207",
+    "source_kind": "bvh"
+  },
+  "parent_request_sha256": "f1f0787d12abafe759e1c6c0836f9ea1e28006f692e5447d28cc6dc669a208ba",
+  "profile": "workbench-moving-ankle-probe-v1",
+  "request_sha256": "c2a95bd02f7706ecfb757e8799328938a8274c371ed2b867ba3b4770c7144596",
+  "runtime_status": "not_evaluated",
+  "selected": false,
+  "status": "needs_changes",
+  "failed_geometry_records": [
+    {
+      "animation": "external-motion",
+      "failing_frame_count": 524,
+      "first_failure": {
+        "frame": 303,
+        "inversions": 0,
+        "max_area_ratio": 0.9708192462514328,
+        "max_edge_stretch": 1.013501828227226,
+        "min_area_ratio": 0.4995804060108431,
+        "time": 1.6484375
+      },
+      "inversion_samples": 13,
+      "max_area_ratio": 1.058113871794991,
+      "max_edge_stretch": 2.012125798904172,
+      "min_area_ratio": -0.022537893208162744,
+      "passed": false,
+      "sample_count": 827,
+      "slot": "layer-003"
+    }
+  ]
+}

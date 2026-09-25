@@ -60,7 +60,8 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
                                 source_duration_ticks=original_motion['duration_ticks'],
                                 pose_policy='preserve_original_setup_relative_values')
     try:
-        document, correction = correct_pose(document, ANIMATION, setup_vertices, pose_fit)
+        document, correction = correct_pose(document, ANIMATION, setup_vertices, pose_fit,
+                                             **({'on_stage':on_stage} if on_stage else {}))
         evidence['area_repair'] = correction
     except ValueError as exc:
         issues.append(dict(stage='repair', reason_code=str(exc)))
@@ -126,6 +127,7 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
     moving_report = None
     if moving_ankles is not None:
         from .motion_moving_ankles import apply as move_ankles
+        if on_stage: on_stage('retarget')
         document, moving_report = move_ankles(document, ANIMATION, original_motion, moving_ankles,
             times, evidence['reference_length_px'], bundle_sha256=motion_digest,
             oblique=oblique, clip_bounds=clip_bounds)

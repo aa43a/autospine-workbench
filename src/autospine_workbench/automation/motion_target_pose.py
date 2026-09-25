@@ -54,10 +54,11 @@ def project(document,name,motion,bvh,mapping,kimodo,oblique,time_range,pose_fit)
     return build(document,name,*kimodo,mapping,time_range=time_range)
 
 
-def correct(document,name,setup_vertices,pose_fit):
+def correct(document,name,setup_vertices,pose_fit,on_stage=None):
     if pose_fit is not None:
         from ..targets.character43.projected_area_adaptive import build
-        return build(document,name,setup_vertices,temporal=True)
+        return build(document,name,setup_vertices,temporal=True,
+                     **({'progress':lambda _:on_stage('retarget')} if on_stage else {}))
     from ..targets.character43.affine_area_repair import repair
     return repair(document,name,samples=129,convergent=True,setup_vertices=setup_vertices)
 

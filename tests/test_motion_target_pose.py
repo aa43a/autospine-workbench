@@ -9,6 +9,16 @@ from test_motion_target_intake import inputs
 
 
 class TargetPoseTests(unittest.TestCase):
+    def test_corrective_progress_reaches_job_stage(self):
+        from autospine_workbench.automation.motion_target_pose import correct
+        stages=[]
+        def repair(*args, **kwargs):
+            kwargs['progress']({'iteration':0})
+            return {}, {}
+        with patch('autospine_workbench.targets.character43.projected_area_adaptive.build',side_effect=repair):
+            correct({},'motion',{}, {'profile':PROFILE}, on_stage=stages.append)
+        self.assertEqual(stages,['retarget'])
+
     def test_wrong_source_cannot_fall_back_to_rotation_candidate(self):
         with self.assertRaisesRegex(ValueError, 'identity_or_view_mismatch'):
             build_candidate(*inputs(), character_digest='a'*64, motion_digest='b'*64,
