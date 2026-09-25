@@ -8,4 +8,14 @@
 
 22 项相关 Python 回归通过，包含区间内源顺序变化、区间结束恰逢源关键帧、其他动画、省略零时间、Float32 边界重合、非法源时间及旧编辑行为。旧的恒定顺序 Runtime 检查器现在明确拒绝这种动态合并报告，避免把 setup 参考顺序当成全部帧的期待值。
 
-此轮没有写入用户草稿、创建在线任务或接受候选。官方 Runtime 与真实工作台串联验证尚未完成；已有技术异常和视觉决定均保留。此功能落实显式编辑，不提供自动服装深度推断，也不代表 Reach 遮挡已修复。
+## 官方 Runtime 顺序回归
+
+`tools/check-region-order-overlay.mjs` 独立播放源文档的官方顺序轨道，将源槽位展开后，仅在指定区间移动选中部分，以此核对候选实际播放。不会读取候选关键帧来推导期待结果。覆盖 120Hz、关键帧两侧、倒向拖动和循环，并逐顶点比较源与候选世界坐标。
+
+- 合成双动画案例：1,310 次采样、26,200 个顶点比较通过。包含其他动画和省略零时间的源键。
+- Alice 完整角色案例：2,445 次采样、4,237,185 个顶点比较通过。输入来自 `tmp/m4-moving-workbench/alice-shared45-torso-v1/runtime/player-assets/scene.json`，原文件 SHA256 为 `dc1f46b632448517c3795cfe7ea3c3a8541d069982fa09bb5a58737b87972311`。副本注入三组明确标记为诊断的动态顺序键，选择 layer-003 的三角形 0 相对 layer-006 做区间编辑；并非人工语义标注或建议使用的顺序。
+- 目标 Spine 4.3.26，实测官方 Runtime 4.3.13。两者不混用。
+
+复现完整角色测试：设置 `PYTHONPATH=src`，运行 `python tools/m4_order_overlay_fixture.py <原scene.json> <隔离输出目录> --slot layer-003 --reference layer-006`，再运行 `node tools/check-region-order-overlay.mjs <输出目录>/source.json <输出目录>/candidate.json <输出目录>/report.json <官方spine-core目录> <输出目录>/runtime.json`。结果包含全部输入摘要。
+
+此轮没有写入用户草稿、创建在线任务或接受候选。验证的是官方核心顺序与顶点，不含 framebuffer、视觉质量或真实工作台串联；已有技术异常和视觉决定均保留。此功能落实显式编辑，不提供自动服装深度推断，也不代表 Reach 遮挡已修复。
