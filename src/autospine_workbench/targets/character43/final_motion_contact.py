@@ -18,7 +18,7 @@ def recheck(document, name, motion, contact, times, reference_length):
     inferred = 'hypothesis' in contact
     if inferred:
         hypothesis = contact['hypothesis']
-        if hypothesis['ticks_per_second'] != motion['ticks_per_second']:
+        if hypothesis['markers'] and hypothesis['ticks_per_second'] != motion['ticks_per_second']:
             raise ValueError('motion_final_contact_tick_rate_mismatch')
         source['markers'] = for_motion(motion, hypothesis, contact.get('clip_bounds'))
     checked = analyze(document, name, source, times, reference_length)

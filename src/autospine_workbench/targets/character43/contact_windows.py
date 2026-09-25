@@ -6,7 +6,6 @@ def for_motion(motion, hypothesis, clip_bounds=None):
     if any(m['kind'] == 'contact' for m in motion['markers']):
         raise ValueError('motion_contact_source_labels_take_precedence')
     rate = motion['ticks_per_second']
-    source_rate = hypothesis['ticks_per_second']
     duration = Fraction(motion['duration_ticks'], rate)
     offset = Fraction(0)
     if clip_bounds is not None:
@@ -15,6 +14,9 @@ def for_motion(motion, hypothesis, clip_bounds=None):
                 or Fraction(clip_bounds[1] - clip_bounds[0], 1_000_000) != duration):
             raise ValueError('motion_contact_clip_bounds_invalid')
         offset = Fraction(clip_bounds[0], 1_000_000)
+    if not hypothesis['markers']:
+        return []
+    source_rate = hypothesis['ticks_per_second']
     markers = []
     for marker in hypothesis['markers']:
         start = max(Fraction(0), Fraction(marker['start_tick'], source_rate) - offset)

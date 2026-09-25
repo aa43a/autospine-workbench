@@ -35,7 +35,7 @@ def apply(document, name, motion, setup, evidence, contact, times, pose, on_stag
     inferred = 'hypothesis' in contact
     if inferred:
         hypothesis = contact['hypothesis']
-        if hypothesis['ticks_per_second'] != motion['ticks_per_second']:
+        if hypothesis['markers'] and hypothesis['ticks_per_second'] != motion['ticks_per_second']:
             raise ValueError('post_contact_tick_rate_mismatch')
         measured['markers'] = for_motion(motion, hypothesis, contact.get('clip_bounds'))
     checked = analyze(repaired, name, measured, checked_times, evidence['reference_length_px'])

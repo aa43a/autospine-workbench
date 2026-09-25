@@ -23,14 +23,14 @@ ANIMATION = 'external-motion'
 
 def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_digest, kimodo=None,
                     contact_correction=True, clip_bounds=None, inferred_contact_profile=None, depth_review_profile=None,
-                    on_stage=None, oblique=None, torso_projection=None, pose_fit=None):
+                    on_stage=None, oblique=None, torso_projection=None, pose_fit=None, moving_ankles=None):
     """Preserve the rig, or verify the explicit regional render transformation."""
     from ..targets.character43.regional_depth_profile import PROFILE as REGIONAL_PROFILE
     source = json.loads(files['skeleton.json'])
     original = deepcopy(source)
     source['animations'] = {}
     setup_vertices = None
-    if pose_fit is not None or clip_bounds or depth_review_profile in ('external-arm-torso-depth-overlap-v2', REGIONAL_PROFILE, SPARSE_DEPTH_PROFILE):
+    if moving_ankles is not None or pose_fit is not None or clip_bounds or depth_review_profile in ('external-arm-torso-depth-overlap-v2', REGIONAL_PROFILE, SPARSE_DEPTH_PROFILE):
         setup = deepcopy(source)
         setup['animations'] = {ANIMATION: {'bones': {}}}
         setup_vertices = sample(setup, ANIMATION, 0)[0]
@@ -123,6 +123,14 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
         times = sorted(set(times) | {k['time'] for slots in document['animations'][ANIMATION].get('attachments',{}).values()
             for choices in slots.values() for props in choices.values() for keys in props.values() for k in keys})
         if len(times)>2049:raise ValueError('motion_torso_sample_limit')
+    moving_report = None
+    if moving_ankles is not None:
+        from .motion_moving_ankles import apply as move_ankles
+        document, moving_report = move_ankles(document, ANIMATION, original_motion, moving_ankles,
+            times, evidence['reference_length_px'], bundle_sha256=motion_digest,
+            oblique=oblique, clip_bounds=clip_bounds)
+        if not moving_report['applied']:
+            issues.append(dict(stage='contact', reason_code='motion_moving_ankle_infeasible'))
     regional_transform = None
     depth_status = 'not_evaluated'
     if depth_review_profile:
@@ -162,9 +170,15 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
             elif proposed is not None:
                 depth['status'] = 'depth_overlap_no_change'
         depth_status = depth['status']
-    if pose_fit is not None:
+    if pose_fit is not None or moving_report is not None:
         times = final_times(document, ANIMATION, times)
-    if pose_fit is not None and pose_fit.get('post_contact_profile'):
+    if moving_report is not None:
+        from .motion_moving_ankles import check as check_ankles
+        moving_report['final_check'] = check_ankles(document, ANIMATION, moving_report, times, evidence['reference_length_px'])
+        if not moving_report['final_check']['passed']:
+            issues.append(dict(stage='contact', reason_code='motion_moving_ankle_tracking_failed'))
+        evidence['moving_ankles'] = moving_report
+    if moving_report is not None or (pose_fit is not None and pose_fit.get('post_contact_profile')):
         from ..targets.character43.final_motion_contact import recheck
         contact = recheck(document, ANIMATION, motion, contact, times, evidence['reference_length_px'])
         if contact['after']['passed'] is False:
@@ -173,6 +187,8 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
     raw = canonical_bytes(document)
     result = {name: data for name, data in files.items() if name.endswith('.png') or name == 'skeleton.atlas'}
     result['skeleton.json'] = raw
+    if moving_report is not None:
+        result['motion-moving-ankles.json'] = canonical_bytes(moving_report)
     if torso_evidence is not None:
         torso_evidence.update(skeleton_sha256=sha256(raw).hexdigest(),character_sha256=character_digest,motion_bundle_sha256=motion_digest)
         result['motion-torso-projection.json'] = canonical_bytes(torso_evidence)
