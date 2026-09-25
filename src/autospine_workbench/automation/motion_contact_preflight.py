@@ -39,6 +39,12 @@ def read(manager, job, parts, result, files):
         order=inspect_order(doc,row['animation'],row['event']['time'],slot,reference)
         output['occlusion_review']['draw_order']=order
         output['occlusion_review']['order_timeline']=timeline(doc,row['animation'],slot,reference)
+        from ..targets.character43.occlusion_scope_partition import build as partition_scope
+        try:
+            _,partition=partition_scope(doc,slot,scope)
+            output['occlusion_review']['render_partition']=dict(status='prepared',**partition)
+        except ValueError as error:
+            output['occlusion_review']['render_partition']=dict(status='unavailable',reason_code=str(error))
         output['occlusion_review']['texture_samples']=read_alpha(doc,files,pose,slot,reference,
                                                                scope['regions']['occlusion'],row['animation'])
         if not order['reference_can_cover_in_order']:
