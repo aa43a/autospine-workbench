@@ -1,0 +1,294 @@
+{
+  "profile": "reference-torso-workbench-cohort-v1",
+  "rows": [
+    {
+      "character": "alice",
+      "artifact_sha256": "8b35644d8b69b9be905242ab114c0f5a2edf14b46279d4602c20f9741dd78784",
+      "request_sha256": "cad5659db5e657e5e95d8e5d1bdb8cdbd684c721f102d417b9ff0d4a1159bb33",
+      "source_identity": {
+        "bundle_sha256": "5f531a9327ad59abde64e643438baa794e5618b5629d59c0e3f9d4da990948b7",
+        "bvh_map_sha256": "f9d1995881e5623f72208050cc9b639d98b1317da3322e3480cf50a283fa7f5c",
+        "clip_id": "external.a4233c602a77a95c.front",
+        "clip_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "raw_bvh_byte_length": 342778,
+        "raw_bvh_sha256": "a4233c602a77a95c1473ef7ab3f277fa7ca6aec5a98b4d5407dea904194bb2f4",
+        "reused": false,
+        "run_sha256": "c48c0ffcb9338d2bc72a1013f1be8366de8ea5583419f979a9ac1c080b534207",
+        "source_kind": "bvh"
+      },
+      "geometry_passed": true,
+      "final_check": {
+        "limit_px": 3.5314073364688943,
+        "passed": true,
+        "samples": 737,
+        "scope": "moving_ankle_tracking_not_stationary_contact_or_visual_acceptance",
+        "skeleton_sha256": "e924d3465fd7ff0ecce2377d25c94ab32da5508d4ca6b1639e697e6d127ec707",
+        "worst": {
+          "error_px": 0.002709986007306519,
+          "side": "r",
+          "time": 1.066667
+        }
+      },
+      "runtime": {
+        "passed": true,
+        "frames": 737,
+        "version": "4.3.13"
+      },
+      "readiness": "needs_changes",
+      "stages": [
+        {
+          "stage": "\u8eaf\u5e72\u6295\u5f71",
+          "status": "sampled_pass"
+        },
+        {
+          "stage": "\u6295\u5f71",
+          "status": "sampled_pass"
+        },
+        {
+          "stage": "\u51e0\u4f55",
+          "status": "sampled_pass"
+        },
+        {
+          "stage": "\u811a\u7aef\u8f68\u8ff9",
+          "status": "sampled_pass"
+        },
+        {
+          "stage": "\u63a5\u89e6",
+          "status": "unmeasured"
+        },
+        {
+          "stage": "\u906e\u6321",
+          "status": "needs_changes"
+        },
+        {
+          "stage": "Runtime",
+          "status": "sampled_pass"
+        }
+      ],
+      "torso_applied": true,
+      "contact_preservation": "sampled_paths_preserved",
+      "depth_order_status": "blocked",
+      "depth_failures": 119,
+      "first_depth_failure": {
+        "conflict": {
+          "edges": [
+            {
+              "back": "layer-004",
+              "front": "layer-005",
+              "overlap": {
+                "overlap_pixels": 6491,
+                "time": 0.066667
+              },
+              "source": "visible_setup_order"
+            },
+            {
+              "back": "layer-005",
+              "front": "layer-006",
+              "source": "preserved_setup_order"
+            },
+            {
+              "back": "layer-006",
+              "front": "layer-004",
+              "overlap": {
+                "overlap_pixels": 6507,
+                "time": 0.066667
+              },
+              "source": "source_depth"
+            }
+          ],
+          "slots": [
+            "layer-004",
+            "layer-005",
+            "layer-006",
+            "layer-004"
+          ]
+        },
+        "reason_code": "visible_unmapped_order_conflict",
+        "time": 0.066667
+      },
+      "visual_status": "not_reviewed"
+    },
+    {
+      "character": "huiye",
+      "artifact_sha256": "2a567033054ff12eb78a2e7b170c7d613e95eeedbb1e158f0dd3d1f1d6d81c23",
+      "request_sha256": "46eed2b873e430e7161543bfbf75a44c16b2cfd9e527c0a9a9032ac79fdd1a6e",
+      "source_identity": {
+        "bundle_sha256": "5f531a9327ad59abde64e643438baa794e5618b5629d59c0e3f9d4da990948b7",
+        "bvh_map_sha256": "f9d1995881e5623f72208050cc9b639d98b1317da3322e3480cf50a283fa7f5c",
+        "clip_id": "external.a4233c602a77a95c.front",
+        "clip_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "raw_bvh_byte_length": 342778,
+        "raw_bvh_sha256": "a4233c602a77a95c1473ef7ab3f277fa7ca6aec5a98b4d5407dea904194bb2f4",
+        "reused": false,
+        "run_sha256": "c48c0ffcb9338d2bc72a1013f1be8366de8ea5583419f979a9ac1c080b534207",
+        "source_kind": "bvh"
+      },
+      "geometry_passed": true,
+      "final_check": {
+        "limit_px": 5.407652833063458,
+        "passed": true,
+        "samples": 737,
+        "scope": "moving_ankle_tracking_not_stationary_contact_or_visual_acceptance",
+        "skeleton_sha256": "c376ef4e50b4cd1cb0794dc5c4bc9ed6182c813815d7dba1f8434781a48acc39",
+        "worst": {
+          "error_px": 0.0025240316976642787,
+          "side": "r",
+          "time": 1.3
+        }
+      },
+      "runtime": {
+        "passed": true,
+        "frames": 737,
+        "version": "4.3.13"
+      },
+      "readiness": "needs_changes",
+      "stages": [
+        {
+          "stage": "\u8eaf\u5e72\u6295\u5f71",
+          "status": "sampled_pass"
+        },
+        {
+          "stage": "\u6295\u5f71",
+          "status": "sampled_pass"
+        },
+        {
+          "stage": "\u51e0\u4f55",
+          "status": "sampled_pass"
+        },
+        {
+          "stage": "\u811a\u7aef\u8f68\u8ff9",
+          "status": "sampled_pass"
+        },
+        {
+          "stage": "\u63a5\u89e6",
+          "status": "unmeasured"
+        },
+        {
+          "stage": "\u906e\u6321",
+          "status": "needs_changes"
+        },
+        {
+          "stage": "Runtime",
+          "status": "sampled_pass"
+        }
+      ],
+      "torso_applied": true,
+      "contact_preservation": "sampled_paths_preserved",
+      "depth_order_status": "blocked",
+      "depth_failures": 121,
+      "first_depth_failure": {
+        "raster_budget": {
+          "limit_kind": "single_roi",
+          "max_roi_pixels": 262144,
+          "pair": [
+            "layer-003-component-0000",
+            "layer-005"
+          ],
+          "remaining_pixels": 28010834,
+          "required_pixels": 552816,
+          "roi": [
+            419,
+            205,
+            349,
+            792
+          ],
+          "roi_pixels": 276408,
+          "time": 0.0
+        },
+        "reason_code": "depth_overlap_pixel_budget",
+        "time": 0.0
+      },
+      "visual_status": "not_reviewed"
+    },
+    {
+      "character": "hongmeiling",
+      "artifact_sha256": "1cc103a7a700311451668c2e3ee5c4399760177638e2c5d82de73359ad61f7f6",
+      "request_sha256": "3dbdc2f3d985f63b1e25970617785d6dc2b67f68e5b55cda706924408b6823d7",
+      "source_identity": {
+        "bundle_sha256": "5f531a9327ad59abde64e643438baa794e5618b5629d59c0e3f9d4da990948b7",
+        "bvh_map_sha256": "f9d1995881e5623f72208050cc9b639d98b1317da3322e3480cf50a283fa7f5c",
+        "clip_id": "external.a4233c602a77a95c.front",
+        "clip_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "raw_bvh_byte_length": 342778,
+        "raw_bvh_sha256": "a4233c602a77a95c1473ef7ab3f277fa7ca6aec5a98b4d5407dea904194bb2f4",
+        "reused": false,
+        "run_sha256": "c48c0ffcb9338d2bc72a1013f1be8366de8ea5583419f979a9ac1c080b534207",
+        "source_kind": "bvh"
+      },
+      "geometry_passed": true,
+      "final_check": {
+        "limit_px": 5.493700613074059,
+        "passed": true,
+        "samples": 737,
+        "scope": "moving_ankle_tracking_not_stationary_contact_or_visual_acceptance",
+        "skeleton_sha256": "4cc55569e7d44474277b4a95fba723f1c3e5d441dc9148aec359d68b3dd412d0",
+        "worst": {
+          "error_px": 0.0050068469127242205,
+          "side": "l",
+          "time": 2.140625
+        }
+      },
+      "runtime": {
+        "passed": true,
+        "frames": 737,
+        "version": "4.3.13"
+      },
+      "readiness": "needs_changes",
+      "stages": [
+        {
+          "stage": "\u8eaf\u5e72\u6295\u5f71",
+          "status": "sampled_pass"
+        },
+        {
+          "stage": "\u6295\u5f71",
+          "status": "sampled_pass"
+        },
+        {
+          "stage": "\u51e0\u4f55",
+          "status": "sampled_pass"
+        },
+        {
+          "stage": "\u811a\u7aef\u8f68\u8ff9",
+          "status": "sampled_pass"
+        },
+        {
+          "stage": "\u63a5\u89e6",
+          "status": "unmeasured"
+        },
+        {
+          "stage": "\u906e\u6321",
+          "status": "needs_changes"
+        },
+        {
+          "stage": "Runtime",
+          "status": "sampled_pass"
+        }
+      ],
+      "torso_applied": true,
+      "contact_preservation": "sampled_paths_preserved",
+      "depth_order_status": "blocked",
+      "depth_failures": 24,
+      "first_depth_failure": {
+        "overlap": {
+          "overlap_pixels": 739,
+          "time": 1.3
+        },
+        "pair": [
+          "layer-001",
+          "layer-009"
+        ],
+        "reason_code": "visible_depth_straddle",
+        "time": 1.3
+      },
+      "visual_status": "not_reviewed"
+    }
+  ],
+  "authority": "none",
+  "production_authorized": false
+}

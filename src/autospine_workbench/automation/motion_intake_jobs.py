@@ -54,6 +54,7 @@ class MotionIntakeJobs:
                     oblique_target_available=True,
                     moving_ankle_available=True,
                     shared_view_pose_available=True,
+                    reference_torso_available=True,
                     oblique_comparison_available=True,
                     target_comparison_available=True,
                     regional_depth_available=True,

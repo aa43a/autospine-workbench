@@ -20,6 +20,23 @@ def fixture():
 
 
 class ReadinessTests(unittest.TestCase):
+    def test_moving_ankle_failure_cannot_hide_behind_contact_pass(self):
+        files,runtime=fixture()
+        evidence=dict(applied=False,failure=dict(time=.5),final_check=dict(
+            skeleton_sha256=sha256(files['skeleton.json']).hexdigest(),passed=True,worst=dict(time=0)))
+        files['motion-moving-ankles.json']=json.dumps(evidence).encode()
+        report=build(files,'a'*64,runtime)
+        self.assertEqual(report['status'],'needs_changes')
+        row=next(r for r in report['stages'] if r['stage']=='脚端轨迹')
+        self.assertEqual(row['failures'][0]['time'],.5)
+        evidence['applied']=True
+        files['motion-moving-ankles.json']=json.dumps(evidence).encode()
+        self.assertEqual(build(files,'a'*64,runtime)['status'],'stage_review')
+        evidence['final_check']['skeleton_sha256']='stale'
+        files['motion-moving-ankles.json']=json.dumps(evidence).encode()
+        with self.assertRaisesRegex(ValueError,'moving_ankle_identity'):
+            build(files,'a'*64,runtime)
+
     def test_post_contact_failure_retains_exact_slot_and_time(self):
         files, runtime = fixture()
         motion=json.loads(files['motion-review.json'])

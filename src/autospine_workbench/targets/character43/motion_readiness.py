@@ -44,6 +44,19 @@ def build(files, artifact_sha256, runtime=None):
         'player.html', failures=[dict(slot=r['slot'], animation=r['animation'],
                                      time=r['first_failure']['time']) for r in failed if r.get('first_failure')])
     state = contact.get('status')
+    moving = read('motion-moving-ankles.json')
+    if moving or motion.get('moving_ankles'):
+        checked = moving.get('final_check', {})
+        if checked and checked.get('skeleton_sha256') != digest:
+            raise ValueError('motion_readiness_moving_ankle_identity_mismatch')
+        moving_status = ('unmeasured' if not moving or not checked else
+            'sampled_pass' if moving.get('applied') is True and checked.get('passed') is True else 'needs_changes')
+        worst = checked.get('worst', {})
+        failure_time = moving.get('failure', {}).get('time') if moving.get('failure') else worst.get('time')
+        add('脚端轨迹', moving_status,
+            '检查跟随源脚端的最终采样误差；与静止接触、鞋底接地和视觉验收分别判断。',
+            'motion-review.json', applied=moving.get('applied'), final_check=checked,
+            failures=[dict(time=failure_time,reason='moving_ankle_failed')] if moving_status=='needs_changes' else [])
     passed = state in ('ankle_proxy_passed', 'ankle_proxy_corrected', 'inferred_proxy_passed', 'inferred_proxy_corrected')
     add('接触', 'sampled_pass' if passed else 'needs_changes' if state in ('needs_changes', 'inferred_proxy_drift') else 'unmeasured',
         '仅检查源标签或推断区间的踝部支点；不证明鞋底接地。', 'contact.html', evidence_status=state)

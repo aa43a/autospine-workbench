@@ -13,7 +13,7 @@ from autospine_workbench.motion_bundle_reader import VerifiedMotionBundleReader
 from autospine_workbench.resolved_project import canonical_sha256
 
 
-def run(state, source_request, output, source_pose=False, shared_yaw=None):
+def run(state, source_request, output, source_pose=False, shared_yaw=None, reference_torso=False):
     parent = json.loads(source_request.read_bytes())
     request = dict(parent, moving_ankle_profile=PROFILE, contact_correction=False)
     if source_pose:
@@ -24,12 +24,22 @@ def run(state, source_request, output, source_pose=False, shared_yaw=None):
         request.update(pose_profile=VIEW_PROFILE,projection=dict(
             profile='constant-yaw-source-motion-v1',yaw_degrees=shared_yaw))
         request.pop('projection_selection',None)
+    if reference_torso:
+        from autospine_workbench.targets.character43.torso_projection_profile import REFERENCE_PROFILE
+        request.update(torso_projection_profile=REFERENCE_PROFILE,
+                       depth_review_profile='external-arm-torso-depth-overlap-v2')
+    from autospine_workbench.automation.motion_torso_policy import select as select_torso
+    torso_profile=select_torso(request,request.get('depth_review_profile'))
     identity = request['motion_identity']
     bundle = VerifiedMotionBundleReader(state).load(identity['clip_sha256'], identity['bundle_sha256'])
     motion, view, fitted = prepare_inputs(bundle, request)
     observation = ankles(bundle, request)
-    if request.get('clip') or request.get('torso_projection_profile'):
-        raise ValueError('probe_requires_unclipped_non_torso_request')
+    torso=None
+    if torso_profile:
+        from autospine_workbench.targets.character43.torso_projection_profile import prepare
+        torso=prepare(bundle,request)
+    if request.get('clip'):
+        raise ValueError('probe_requires_unclipped_request')
     output.mkdir(parents=True, exist_ok=False)
     (output/'request.json').write_bytes(canonical_bytes(request))
     kimodo = (bundle.raw_npz, bundle.kimodo_source) if bundle.source_kind == 'kimodo_npz' else None
@@ -38,7 +48,8 @@ def run(state, source_request, output, source_pose=False, shared_yaw=None):
         kimodo=kimodo, character_digest=request['character_sha256'], motion_digest=bundle.bundle_sha256,
         contact_correction=False, inferred_contact_profile=request.get('inferred_contact_profile'),
         depth_review_profile=request.get('depth_review_profile'), oblique=view, pose_fit=fitted,
-        moving_ankles=observation, on_stage=lambda stage: print(stage, flush=True))
+        moving_ankles=observation, torso_projection=torso,
+        on_stage=lambda stage: print(stage, flush=True))
     digest = AnimatedStore(output/'isolated-store').publish(files)
     moving = evidence['moving_ankles']
     report = dict(profile='workbench-moving-ankle-probe-v1', candidate_bundle_sha256=digest,
@@ -57,4 +68,5 @@ if __name__ == '__main__':
     strategy=p.add_mutually_exclusive_group()
     strategy.add_argument('--source-pose',action='store_true')
     strategy.add_argument('--shared-yaw',type=float)
-    a=p.parse_args();run(a.state,a.request,a.output,a.source_pose,a.shared_yaw)
+    p.add_argument('--reference-torso',action='store_true')
+    a=p.parse_args();run(a.state,a.request,a.output,a.source_pose,a.shared_yaw,a.reference_torso)

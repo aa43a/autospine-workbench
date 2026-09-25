@@ -35,7 +35,7 @@ export function createTargetControls(request, refresh, selection) {
     obliqueAvailable = Boolean(value.oblique_target_available); yaw.disabled = !obliqueAvailable||poseActive;
     automatic.available(obliqueAvailable && value.oblique_comparison_available);
     depth.available(Boolean(value.regional_depth_available),Boolean(value.sparse_depth_available));
-    torso.available(Boolean(value.torso_projection_available));
+    torso.available(Boolean(value.torso_projection_available),Boolean(value.reference_torso_available));
     ankles.available(Boolean(value.moving_ankle_available));
     pose.available(Boolean(value.shared_view_pose_available));
   }).catch(() => {});
@@ -77,9 +77,9 @@ export function createTargetControls(request, refresh, selection) {
       const body={project_id: character.project_id, character_job_id: character.job_id,
           contact_correction: $('contact-correction').checked, clip: selection.clip(),
           ...depth.selection(),
-          ...torso.selection(depth.selection()),
           ...(obliqueAvailable && yaw.value !== '' ? {projection: {
             profile: 'constant-yaw-source-motion-v1', yaw_degrees: Number(yaw.value)}, ...automatic.selection()} : {})};
+      Object.assign(body,torso.selection(depth.selection(),body.projection));
       Object.assign(body,ankles.selection(body));
       Object.assign(body,pose.selection(body));
       const queued = await request(`/api/motions/${sourceId}/adapt`, {
