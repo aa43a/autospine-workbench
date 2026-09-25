@@ -52,7 +52,7 @@ def inspect(manager, job):
 def save(manager, job, body):
     fields = {'artifact_sha256', 'evidence_sha256', 'expected_revision', 'action',
               'notes', 'slot', 'animation', 'triangle', 'time'}
-    if (set(body)-{'partition', 'region_order', 'view_needs', 'contact_scope'} != fields or body.get('action') not in ACTIONS
+    if (set(body)-{'partition', 'region_order', 'view_needs', 'contact_scope', 'visual_inspection'} != fields or body.get('action') not in ACTIONS
             or type(body.get('expected_revision')) is not int
             or type(body.get('triangle')) is not int
             or type(body.get('time')) not in (int, float)
@@ -70,6 +70,9 @@ def save(manager, job, body):
                if row['slot'] == body['slot'] and row['animation'] == body['animation']
                for detail in row['details']
                if detail['triangle'] == body['triangle'] and detail['time'] == body['time']]
+    if 'visual_inspection' in body:
+        from .motion_visual_scope_event import validate as visual_event
+        matches=[visual_event(manager,job,body)]
     if len(matches) != 1:
         raise PipelineRunError('motion_draft_event_not_found')
     with manager._lock:

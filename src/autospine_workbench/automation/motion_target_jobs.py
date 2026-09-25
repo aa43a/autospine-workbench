@@ -263,6 +263,11 @@ def review_file(manager, job, parts):
     if parts == ['partition-mesh.json']:
         from .motion_partition_draft import meshes
         return json.dumps(meshes(files,result['artifact_sha256']),ensure_ascii=False,allow_nan=False).encode('utf-8'), 'application/json'
+    if parts[:1] == ['images']:
+        name=review_name('/'.join(parts))
+        if not name.endswith('.png') or name not in files:
+            raise PipelineRunError('pipeline_artifact_not_found')
+        return files[name], 'image/png'
     if parts == ['player.html'] or parts[:1] == ['player-assets']:
         from .character_player import read
         adapter = SimpleNamespace(projects=manager.projects,

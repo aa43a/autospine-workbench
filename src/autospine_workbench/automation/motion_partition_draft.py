@@ -5,6 +5,7 @@ from .pipeline_run import PipelineRunError
 
 
 def meshes(files,artifact):
+    from ..targets.character43.region_order_interval import duration
     doc=json.loads(files['skeleton.json']);rows=[]
     for slot,choices in doc['skins'][0]['attachments'].items():
         mesh=choices[slot]
@@ -12,6 +13,7 @@ def meshes(files,artifact):
         rows.append(dict(slot=slot,mesh_sha256=canonical_sha256(mesh),
             uvs=mesh['uvs'],triangles=mesh['triangles'],texture_path='images/'+mesh.get('path',slot)+'.png'))
     return dict(artifact_sha256=artifact,rows=rows,bones=[b['name'] for b in doc['bones']],
+        animations=[dict(name=name,duration=duration(value)) for name,value in doc.get('animations',{}).items()],
         slots=[s['name'] for s in doc['slots']],
         authority='none',selected=False)
 

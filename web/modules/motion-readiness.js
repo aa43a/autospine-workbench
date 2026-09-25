@@ -2,6 +2,7 @@ import {appendNextActions} from './motion-next-actions.js';
 import {appendDepthTimeline} from './motion-depth-timeline.js';
 import {appendGeometryDetails} from './motion-geometry-details.js';
 import {appendRepairSummary} from './motion-repair-summary.js';
+import {appendVisualScope} from './motion-visual-scope.js';
 export function appendReadiness(item, job, compare, {onSeek,onInspect,onRegions} = {}) {
   const button = document.createElement('button');
   button.textContent = '检查可用范围与待处理项';
@@ -66,4 +67,5 @@ export function appendReadiness(item, job, compare, {onSeek,onInspect,onRegions}
     finally { button.disabled = false; }
   };
   item.append(button, panel);
+  appendVisualScope(item,job,onSeek);
 }

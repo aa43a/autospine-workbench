@@ -6,11 +6,12 @@ import {contactPreflight} from './motion-contact-preflight.js';
 const labels = {local_repair:'局部变形修正', partition:'区域刚性重绑', region_order:'区域前后顺序', pose_attachment:'补充姿态附件', contact_scope:'衣料连接与活动范围（仅记录）', withdraw:'撤销此处处理草稿'};
 const node = (tag, text) => {const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e;};
 
-export function appendRepairDraft(parent, job, row, getDetail) {
-  const panel=node('fieldset'), legend=node('legend','当前异常的处理草稿');
+export function appendRepairDraft(parent, job, row, getDetail, {visualInspection=false} = {}) {
+  const panel=node('fieldset'), legend=node('legend',visualInspection?'主动视觉检查草稿（不代表检测失败）':'当前异常的处理草稿');
   const load=node('button','加载处理草稿'), save=node('button','保存处理草稿');
   const action=node('select');action.setAttribute('aria-label','异常处理路线');
   for(const [value,label] of Object.entries(labels)) {
+    if(visualInspection&&!['contact_scope','region_order','withdraw'].includes(value))continue;
     const option=node('option',label);option.value=value;action.append(option);
   }
   const notes=node('textarea');notes.maxLength=4000;notes.setAttribute('aria-label','异常处理说明');
@@ -32,6 +33,7 @@ export function appendRepairDraft(parent, job, row, getDetail) {
   parent.append(panel);let state=null, generation=0;save.disabled=true;
   panel.append(viewNeeds,materialScope);
   const poseButton=node('button','在当前页编辑异常附近的姿态'),poseFrame=node('iframe');
+  poseButton.hidden=visualInspection;
   poseFrame.hidden=true;poseFrame.title='局部姿态几何编辑';poseFrame.style.cssText='width:100%;height:780px;border:0';
   poseButton.onclick=()=>{const detail=getDetail();poseFrame.src='/api/motions/'+encodeURIComponent(job.job_id)+'/view/pose-geometry/'+[row.slot,row.animation,String(detail.triangle),'index.html'].map(encodeURIComponent).join('/')+'?time='+encodeURIComponent(detail.time);poseFrame.hidden=false;};
   panel.append(poseButton,poseFrame);
@@ -47,7 +49,7 @@ export function appendRepairDraft(parent, job, row, getDetail) {
   const render = () => {
     const records=state.history.filter(matches), latest=records.at(-1);
     const applies=latest && latest.artifact_sha256===state.artifact_sha256 && latest.evidence_sha256===state.evidence_sha256;
-    action.value=applies?latest.action:'local_repair';notes.value=applies?latest.notes:'';
+    action.value=applies?latest.action:visualInspection?'contact_scope':'local_repair';notes.value=applies?latest.notes:'';
     viewNeeds.value=applies?(latest.view_needs||[]).slice().sort().join(','):'';
     if(applies&&latest.view_needs?.length) {
       const value=latest.view_needs.slice().sort().join(',');
@@ -113,6 +115,7 @@ export function appendRepairDraft(parent, job, row, getDetail) {
     run({artifact_sha256:state.artifact_sha256,evidence_sha256:state.evidence_sha256,
       expected_revision:state.revision,slot:row.slot,animation:row.animation,
       triangle:detail.triangle,time:detail.time,action:action.value,notes:notes.value,...(partition?{partition}:{}),...(region_order?{region_order}:{}),...(contact_scope?{contact_scope}:{}),
+      ...(visualInspection?{visual_inspection:true}:{}),
       ...(action.value==='pose_attachment'&&viewNeeds.value?{view_needs:viewNeeds.value.split(',')}: {})});
   };
   return () => {

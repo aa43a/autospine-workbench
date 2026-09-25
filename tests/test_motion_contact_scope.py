@@ -12,6 +12,38 @@ from autospine_workbench.resolved_project import canonical_sha256
 
 
 class ContactScopeTests(unittest.TestCase):
+    def test_visual_editor_reads_texture_from_verified_candidate_not_capture_folder(self):
+        from autospine_workbench.automation.motion_target_jobs import review_file
+        self.files['images/arm.png']=b'exact candidate texture'
+        with patch('autospine_workbench.automation.motion_target_jobs.runtime_reader') as runtime:
+            raw,mime=review_file(self.manager,'job',['images','arm.png'])
+        self.assertEqual(raw,b'exact candidate texture');self.assertEqual(mime,'image/png')
+        runtime.return_value.assert_not_called()
+        for parts in (['images','missing.png'],['images','..','skeleton.json']):
+            with self.assertRaises(RuntimeError):review_file(self.manager,'job',parts)
+
+    def test_visual_scope_saved_without_fabricating_geometry_failure(self):
+        doc=json.loads(self.files['skeleton.json'])
+        doc['animations']={'reach':{'bones':{'chest':{'rotate':[dict(time=1,value=0)]}}}}
+        self.files['skeleton.json']=json.dumps(doc).encode()
+        before=copy.deepcopy(self.report)
+        body=copy.deepcopy(self.body);body.update(visual_inspection=True,triangle=-1,time=.25)
+        state=draft.save(self.manager,'job',body)
+        self.assertEqual(state['history'][0]['event'],dict(triangle=-1,time=.25,reason='user_visual_inspection',detected_failure=False))
+        self.assertEqual(self.report,before)
+        self.assertEqual(state['evidence_sha256'],body['evidence_sha256'])
+        withdrawn=copy.deepcopy(body);withdrawn.pop('contact_scope');withdrawn.update(action='withdraw',expected_revision=1)
+        result=draft.save(self.manager,'job',withdrawn)
+        self.assertEqual(result['history'][0],state['history'][0])
+        self.assertEqual(result['history'][1]['action'],'withdraw')
+
+    def test_visual_scope_invalid_times_and_detected_event_collision_rejected(self):
+        doc=json.loads(self.files['skeleton.json']);doc['animations']={'reach':{}}
+        self.files['skeleton.json']=json.dumps(doc).encode()
+        for changes in [dict(time=float('nan')),dict(time=1),dict(triangle=0),dict(visual_inspection=False),dict(animation='missing')]:
+            body=copy.deepcopy(self.body);body.update(visual_inspection=True,triangle=-1,time=0);body.update(changes)
+            with self.subTest(changes=changes),self.assertRaises(RuntimeError):draft.save(self.manager,'job',body)
+
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory(); self.addCleanup(self.temp.cleanup)
         self.manager=SimpleNamespace(_lock=threading.RLock(),folder=lambda _:Path(self.temp.name))
