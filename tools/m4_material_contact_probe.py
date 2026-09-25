@@ -1,57 +1,65 @@
-"""Diagnostic lower shoe material probes, not semantic sole or contact labels."""
+"""Compare bone-only and actual-material shoulder support at explicit times."""
 import argparse
 from hashlib import sha256
-from io import BytesIO
 import json
+import math
 from pathlib import Path
-import numpy as np
-from PIL import Image
+
 from autospine_workbench.automation.animated_store import AnimatedStore
-from autospine_workbench.resolved_project import canonical_sha256
-from autospine_workbench.targets.character43.active_mesh_pose import sample_active
-from autospine_workbench.targets.character43.deform_addition import entries
-from autospine_workbench.targets.character43.material_contact_trace import trace
+from autospine_workbench.automation.storage_io import canonical_bytes
+from autospine_workbench.targets.character43.affine_pose import sample, matrices
+from autospine_workbench.targets.character43.material_affine_frame import fit
+from autospine_workbench.targets.character43.shoulder_source import contexts
+from autospine_workbench.targets.character43.shoulder_contact_regions import prepare_regions, constraints, solve
+from autospine_workbench.targets.character43.torso_projection_candidate import multiply
+from autospine_workbench.targets.character43.skirt_contact import source_image
 from autospine_workbench.targets.character43.numeric_reference import read
-from m4_pose_material_review import transfer
 
 
-def run(store,artifact,output,limit):
-    files=AnimatedStore(store).read(artifact);doc=json.loads(files['skeleton.json'])
-    reference=read(files)
-    if reference['skeleton_sha256']!=sha256(files['skeleton.json']).hexdigest():
-        raise ValueError('material_probe_source_mismatch')
-    animation='external-motion';times=[f['time'] for f in reference['animations'][animation]]
-    setup=sample_active(dict(doc,animations={'setup':{}}),'setup',0);anchors=[]
-    for slot,name in setup['attachments'].items():
-        if name is None:continue
-        mesh=doc['skins'][0]['attachments'][slot][name]
-        bones={doc['bones'][i]['name'] for row in entries(mesh) for i,w in row if w>0}
-        if bones not in ({'foot_l'},{'foot_r'}):continue
-        path='images/'+mesh.get('path',name)+'.png';raw=files[path]
-        alpha=np.asarray(Image.open(BytesIO(raw)).convert('RGBA'))[:,:,3]
-        yy,xx=np.nonzero(alpha>=254)
-        uv=np.column_stack(((xx+.5)/alpha.shape[1],(yy+.5)/alpha.shape[0]))
-        points,valid=transfer(np.asarray(mesh['uvs']).reshape(-1,2),setup['vertices'][slot],mesh['triangles'],uv)
-        if not valid.any():continue
-        bottom=np.flatnonzero(valid & (points[:,1]<=np.min(points[valid,1])+1.))
-        ordered=bottom[np.argsort(points[bottom,0])]
-        for n,i in enumerate(sorted(set([int(ordered[0]),int(ordered[len(ordered)//2]),int(ordered[-1])]))):
-            anchors.append(dict(id=f'{slot}-{n}',slot=slot,uv=uv[i].tolist(),texture_path=path,
-                                texture_sha256=sha256(raw).hexdigest()))
-    if not anchors:raise ValueError('material_probe_no_pure_foot_mesh')
-    request=dict(document_sha256=canonical_sha256(doc),animation=animation,interval=[times[0],times[-1]],
-                 times=times,limit_px=limit,anchors=anchors)
-    report=trace(doc,files,request)
-    report.update(artifact_sha256=artifact,skeleton_byte_sha256=sha256(files['skeleton.json']).hexdigest(),request=request,
-                  selection='automatic_opaque_setup_lower_edge_not_reviewed_sole',
-                  interval_source='capture_span_not_source_contact_marker')
-    with output.open('x',encoding='utf8') as f:json.dump(report,f,indent=2)
-    print(json.dumps(dict(passed=report['passed'],anchors=len(anchors),samples=len(times),
-        rows=[dict(id=r['id'],drift=r['maximum_drift_px'],unresolved=r['unresolved_samples']) for r in report['records']])))
+def run(source, output, owner, times, perform_solve=False):
+    receipt=json.loads((source/'report.json').read_bytes());identity=receipt['candidate_bundle_sha256']
+    files=AnimatedStore(source/'isolated-store').read(identity);doc,rows=contexts(files)
+    frames=read(files)['animations']['external-motion']
+    if not times or any(not math.isfinite(t) or not frames[0]['time'] <= t <= frames[-1]['time'] for t in times):
+        raise ValueError('material_contact_time_outside_candidate')
+    manifest=json.loads(files['character-manifest.json'])
+    eligible={r['region_id'] for layer in manifest['layers'] if layer['name'] in ('topwear','topwear-front')
+              and layer['state']=='rigid_reviewed' for r in layer['regions']}
+    if owner not in eligible:raise ValueError('material_contact_owner_not_reviewed_torso')
+    setup=sample(dict(doc,animations={'setup':{}}),'setup',0)[0]
+    image,origin=source_image(files,doc,setup,owner);alpha=image.getchannel('A')
+    for row in rows:
+        for x,y in row['contact']:
+            px,py=x-origin[0],origin[1]-y
+            if not (0 <= px < alpha.width and 0 <= py < alpha.height and alpha.getpixel((px,py)) >= 8):
+                raise ValueError('material_contact_multiple_owners_require_separate_regions')
+    rest=matrices(dict(doc,animations={'setup':{}}),'setup',0)['chest']
+    prepared=[(row,prepare_regions(row)) for row in rows];records=[]
+    for time in times:
+        world=sample(doc,'external-motion',time)[0];bone=matrices(doc,'external-motion',time)['chest']
+        material,residual=fit(setup[owner],world[owner]);effective=multiply(material,rest)
+        for row,p in prepared:
+            fixed,before=constraints(row,p,rest,bone,world[row['slot']])
+            corrected,after=constraints(row,p,rest,effective,world[row['slot']])
+            peak=max([math.dist(a['center'],b['center']) for a,b in zip(before,after)]+
+                     [math.dist(fixed[v],corrected[v]) for v in p['locked']]+[0.])
+            record=dict(slot=row['slot'],time=time,owner=owner,material_fit_residual_px=residual,
+                        maximum_support_shift_px=peak,material_frame=list(material),
+                        region_count=len(after),locked_count=len(p['locked']))
+            if perform_solve:
+                points,evidence=solve(row,p,rest,effective,world[row['slot']])
+                record.update(solver=evidence,points=points)
+            records.append(record)
+            print(json.dumps({k:v for k,v in record.items() if k!='points'}),flush=True)
+    output.mkdir(parents=True,exist_ok=False)
+    solver_path=Path('src/autospine_workbench/targets/character43/boundary_shape_feasible.py')
+    (output/'report.json').write_bytes(canonical_bytes(dict(source_candidate=identity,
+        skeleton_sha256=sha256(files['skeleton.json']).hexdigest(),records=records,authority='none',selected=False,
+        solver_worktree_sha256=sha256(solver_path.read_bytes()).hexdigest() if perform_solve else None,
+        scope='selected_pose_material_support_probe_not_baked_candidate_or_acceptance')))
 
 
 if __name__=='__main__':
-    parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('store',type=Path);parser.add_argument('artifact');parser.add_argument('output',type=Path)
-    parser.add_argument('--limit-px',required=True,type=float)
-    args=parser.parse_args();run(args.store,args.artifact,args.output,args.limit_px)
+    p=argparse.ArgumentParser();p.add_argument('source',type=Path);p.add_argument('output',type=Path)
+    p.add_argument('--owner',required=True);p.add_argument('--time',type=float,action='append',required=True)
+    p.add_argument('--solve',action='store_true');a=p.parse_args();run(a.source,a.output,a.owner,a.time,a.solve)

@@ -1,0 +1,91 @@
+{
+  "authority": "none",
+  "records": [
+    {
+      "locked_count": 0,
+      "material_fit_residual_px": 7.896940126926099e-13,
+      "material_frame": [
+        0.6441236748839752,
+        0.4219243757234678,
+        0.06310268302455627,
+        0.8631020339949483,
+        369.74066944310084,
+        -296.83011149446236
+      ],
+      "maximum_support_shift_px": 50.10289163758721,
+      "owner": "layer-006",
+      "region_count": 6,
+      "slot": "layer-003",
+      "solver": {
+        "authority": "none",
+        "contact_region_count": 6,
+        "geometry": {
+          "bad_triangles": [],
+          "inversions": 0,
+          "max_area_ratio": 1.995000000007277,
+          "max_edge_stretch": 1.9950000006165287,
+          "min_area_ratio": 0.50499999997285
+        },
+        "iterations": 76,
+        "maximum_contact_region_ratio": 0.9999900000036693,
+        "maximum_displacement_px": 73.32642687100005,
+        "minimum_constraint": -6.165286059456321e-10,
+        "objective_profile": "seed-displacement-v1",
+        "optimizer_success": false,
+        "profile": "boundary-hard-shape-feasibility-v1",
+        "scope": "single_pose_not_temporal_or_visual_acceptance",
+        "selected": false,
+        "status": "feasible_candidate"
+      },
+      "time": 0.9645835859375
+    },
+    {
+      "locked_count": 1,
+      "material_fit_residual_px": 7.896940126926099e-13,
+      "material_frame": [
+        0.6441236748839752,
+        0.4219243757234678,
+        0.06310268302455627,
+        0.8631020339949483,
+        369.74066944310084,
+        -296.83011149446236
+      ],
+      "maximum_support_shift_px": 53.23873293181715,
+      "owner": "layer-006",
+      "region_count": 5,
+      "slot": "layer-004",
+      "solver": {
+        "authority": "none",
+        "contact_region_count": 5,
+        "geometry": {
+          "bad_triangles": [
+            4,
+            12,
+            42
+          ],
+          "inversions": 0,
+          "max_area_ratio": 1.888393239554964,
+          "max_edge_stretch": 2.227627883205974,
+          "min_area_ratio": 0.461732611215531
+        },
+        "iterations": 27,
+        "maximum_contact_region_ratio": 1.4541295092326891,
+        "maximum_displacement_px": 88.08727316237605,
+        "minimum_constraint": -0.4541395092326891,
+        "objective_profile": "seed-displacement-v1",
+        "optimizer_success": false,
+        "profile": "boundary-hard-shape-feasibility-v1",
+        "scope": "single_pose_not_temporal_or_visual_acceptance",
+        "selected": false,
+        "status": "no_feasible_candidate_found"
+      },
+      "time": 0.9645835859375
+    }
+  ],
+  "scope": "selected_pose_material_support_probe_not_baked_candidate_or_acceptance",
+  "selected": false,
+  "skeleton_sha256": "bfd43de77aa435e84c61eb7e650f79b54e47738a1f645f6590b6c8c039d5a782",
+  "solver_worktree_sha256": "acb1a912be087d8a24b2224097e670f3d36f84ffb2118e3dc33b5cc863fb2d7f",
+  "source_candidate": "418038c3621a71b2a56893f53862b0611ce1feb7e0b232f75e786d09ff29dcb2",
+  "interpretation": "material basis differs from chest bone basis; one selected pose and one side feasible, other side remains infeasible; no temporal candidate or acceptance"
+}
