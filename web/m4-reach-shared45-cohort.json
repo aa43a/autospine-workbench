@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "plan_sha256": "13c184991adf584f9f0713a9eda54c0aba0a567cf490e82e2bad613e7b157426",
+  "groups": [
+    {
+      "label": "reach · 45° 共享视角实验",
+      "job_id": "motion-22d106d0a5994ea49be5d2e32f237e0c",
+      "source_sha256": "89e7b2785bdb93d4c1506d3621701126e37f47acb8757a6e76bde6eed3fbe615",
+      "targets": [
+        {
+          "label": "alice",
+          "job_id": "motion-c54fd4c586ee439d8c2c38e8037f4c6b",
+          "artifact_sha256": "cb2f7dbccb796996108be3508293f2f5f0fee98b623ecaa4b4930b4ee7219fab"
+        },
+        {
+          "label": "huiye",
+          "job_id": "motion-a6486fd0e64f4904b8f7d3c0be84191d",
+          "artifact_sha256": "b8b83fe8e808f91f8884e287844956d230c5feffbbc425ec3f3eb034120c54a7"
+        },
+        {
+          "label": "hongmeiling",
+          "job_id": "motion-bbab56185e3045f7b410fa3e1d2e115e",
+          "artifact_sha256": "a9594f9019352d4a835c1ebc23c162fdbf714a132857c3184eeadfcbf065f915"
+        }
+      ]
+    }
+  ],
+  "coverage": {
+    "expected": 3,
+    "available": 3,
+    "missing": []
+  }
+}

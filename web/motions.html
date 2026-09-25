@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>AutoSpine · 动作中心</title><link rel="stylesheet" href="/motion-center.css"></head>
 <body><header><a href="/">← 角色工作台</a><h1>动作中心</h1><p>导入动作、检查源骨架，再用于角色动画。</p>
-<nav aria-label="动作验收"><a href="/motion-cohort.html?pack=m4-fixed">三角色 × 八类动作 · 集中播放与验收</a></nav>
+<nav aria-label="动作验收"><a href="/motion-cohort.html?pack=m4-fixed">三角色 × 八类动作 · 集中播放与验收</a> · <a href="/motion-cohort.html?pack=m4-reach-shared45">Reach 三角色 · 45° 共享视角候选</a></nav>
 <p class="hint">固定基线：Alice、辉夜、红美铃。进入后可核对最新检查与验收记录；新实验不会自动替换基线。</p></header>
 <main><section aria-label="导入动作"><h2>导入外部动作</h2><label>FBX、BVH 或 Kimodo NPZ 文件 <input id="file" type="file" accept=".fbx,.bvh,.npz"></label>
 <div id="npz-options" hidden><label>NPZ 骨架约定 <select id="npz-profile"><option value="kimodo-soma77-v1">Kimodo SOMA77 · Y 向上 / 米</option></select></label><label>源帧率 <input id="npz-fps" type="number" min="1" max="240" step="0.001" value="30"></label><p class="hint">请与导出设置保持一致。支持完整 SOMA77 的 float32 / bool 数组，四或六通道足部标签；不支持 SMPL-X、G1 或旧 SOMA30。外部文件的模型与生成参数记为未知。</p></div>

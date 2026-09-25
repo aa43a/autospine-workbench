@@ -1,0 +1,325 @@
+{
+  "profile": "online-cohort-delivery-verification-v1",
+  "rows": [
+    {
+      "character": "alice",
+      "job_id": "motion-c54fd4c586ee439d8c2c38e8037f4c6b",
+      "artifact_sha256": "cb2f7dbccb796996108be3508293f2f5f0fee98b623ecaa4b4930b4ee7219fab",
+      "request_sha256": "d445d57116cb99eeb0751b98a47bd197012e407b4d41693eb34ecf765d0527b8",
+      "source_job_id": "motion-22d106d0a5994ea49be5d2e32f237e0c",
+      "character_sha256": "6e5c59db4ef072075b798efab12acf8ffdc883368a61a4bf3c1646305ef68b98",
+      "motion_identity": {
+        "bundle_sha256": "5f531a9327ad59abde64e643438baa794e5618b5629d59c0e3f9d4da990948b7",
+        "bvh_map_sha256": "f9d1995881e5623f72208050cc9b639d98b1317da3322e3480cf50a283fa7f5c",
+        "clip_id": "external.a4233c602a77a95c.front",
+        "clip_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "raw_bvh_byte_length": 342778,
+        "raw_bvh_sha256": "a4233c602a77a95c1473ef7ab3f277fa7ca6aec5a98b4d5407dea904194bb2f4",
+        "reused": false,
+        "run_sha256": "c48c0ffcb9338d2bc72a1013f1be8366de8ea5583419f979a9ac1c080b534207",
+        "source_kind": "bvh"
+      },
+      "strategies": {
+        "projection": {
+          "profile": "constant-yaw-source-motion-v1",
+          "yaw_degrees": 45
+        },
+        "pose_profile": "constant-view-absolute-pose-hip-center-v1-experiment",
+        "moving_ankle_profile": "moving-source-ankle-timeline-v1",
+        "torso_projection_profile": "reference-torso-plane-compensated-deform-v1-experiment",
+        "depth_review_profile": "external-arm-torso-depth-overlap-v2",
+        "contact_correction": false
+      },
+      "candidate_status": "needs_changes",
+      "readiness_status": "needs_changes",
+      "stages": [
+        {
+          "stage": "\u8eaf\u5e72\u6295\u5f71",
+          "status": "sampled_pass"
+        },
+        {
+          "stage": "\u6295\u5f71",
+          "status": "sampled_pass"
+        },
+        {
+          "stage": "\u51e0\u4f55",
+          "status": "sampled_pass"
+        },
+        {
+          "stage": "\u811a\u7aef\u8f68\u8ff9",
+          "status": "sampled_pass"
+        },
+        {
+          "stage": "\u63a5\u89e6",
+          "status": "sampled_pass"
+        },
+        {
+          "stage": "\u906e\u6321",
+          "status": "needs_changes"
+        },
+        {
+          "stage": "Runtime",
+          "status": "sampled_pass"
+        },
+        {
+          "stage": "\u5176\u4ed6\u4fee\u6b63",
+          "status": "needs_changes"
+        }
+      ],
+      "depth_failure_count": 119,
+      "first_depth_failure": {
+        "conflict": {
+          "edges": [
+            {
+              "back": "layer-004",
+              "front": "layer-005",
+              "overlap": {
+                "overlap_pixels": 6491,
+                "time": 0.066667
+              },
+              "source": "visible_setup_order"
+            },
+            {
+              "back": "layer-005",
+              "front": "layer-006",
+              "source": "preserved_setup_order"
+            },
+            {
+              "back": "layer-006",
+              "front": "layer-004",
+              "overlap": {
+                "overlap_pixels": 6507,
+                "time": 0.066667
+              },
+              "source": "source_depth"
+            }
+          ],
+          "slots": [
+            "layer-004",
+            "layer-005",
+            "layer-006",
+            "layer-004"
+          ]
+        },
+        "reason_code": "visible_unmapped_order_conflict",
+        "time": 0.066667
+      },
+      "runtime": {
+        "passed": true,
+        "version": "4.3.13",
+        "frames": 737,
+        "sha256": "18673383bd582ec0db76cd4bae325214af543aff78d7e6226409dd8d5d5e0d5a"
+      },
+      "geometry_passed": true,
+      "zip_sha256": "746fd5e86ae038502199b44e4996f745910e626b3d4ea03f9de7e4a00bcc40c3",
+      "zip_files": 100,
+      "all_download_bytes_match": true,
+      "visual_decision": null,
+      "visual_applies": false,
+      "player_url": "http://127.0.0.1:8918/api/motions/motion-c54fd4c586ee439d8c2c38e8037f4c6b/view/player.html"
+    },
+    {
+      "character": "huiye",
+      "job_id": "motion-a6486fd0e64f4904b8f7d3c0be84191d",
+      "artifact_sha256": "b8b83fe8e808f91f8884e287844956d230c5feffbbc425ec3f3eb034120c54a7",
+      "request_sha256": "809457e6b8cec8d6374fbb8b37dd47814a8d1cc56b6484298c9246936073c856",
+      "source_job_id": "motion-22d106d0a5994ea49be5d2e32f237e0c",
+      "character_sha256": "63caa7fe5f9f40a92ebcd57ef0b345d7dcd47e5ed3feae65a95fad18e770d51b",
+      "motion_identity": {
+        "bundle_sha256": "5f531a9327ad59abde64e643438baa794e5618b5629d59c0e3f9d4da990948b7",
+        "bvh_map_sha256": "f9d1995881e5623f72208050cc9b639d98b1317da3322e3480cf50a283fa7f5c",
+        "clip_id": "external.a4233c602a77a95c.front",
+        "clip_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "raw_bvh_byte_length": 342778,
+        "raw_bvh_sha256": "a4233c602a77a95c1473ef7ab3f277fa7ca6aec5a98b4d5407dea904194bb2f4",
+        "reused": false,
+        "run_sha256": "c48c0ffcb9338d2bc72a1013f1be8366de8ea5583419f979a9ac1c080b534207",
+        "source_kind": "bvh"
+      },
+      "strategies": {
+        "projection": {
+          "profile": "constant-yaw-source-motion-v1",
+          "yaw_degrees": 45
+        },
+        "pose_profile": "constant-view-absolute-pose-hip-center-v1-experiment",
+        "moving_ankle_profile": "moving-source-ankle-timeline-v1",
+        "torso_projection_profile": "reference-torso-plane-compensated-deform-v1-experiment",
+        "depth_review_profile": "external-arm-torso-depth-overlap-v2",
+        "contact_correction": false
+      },
+      "candidate_status": "needs_changes",
+      "readiness_status": "needs_changes",
+      "stages": [
+        {
+          "stage": "\u8eaf\u5e72\u6295\u5f71",
+          "status": "sampled_pass"
+        },
+        {
+          "stage": "\u6295\u5f71",
+          "status": "sampled_pass"
+        },
+        {
+          "stage": "\u51e0\u4f55",
+          "status": "sampled_pass"
+        },
+        {
+          "stage": "\u811a\u7aef\u8f68\u8ff9",
+          "status": "sampled_pass"
+        },
+        {
+          "stage": "\u63a5\u89e6",
+          "status": "sampled_pass"
+        },
+        {
+          "stage": "\u906e\u6321",
+          "status": "needs_changes"
+        },
+        {
+          "stage": "Runtime",
+          "status": "sampled_pass"
+        },
+        {
+          "stage": "\u5176\u4ed6\u4fee\u6b63",
+          "status": "needs_changes"
+        }
+      ],
+      "depth_failure_count": 121,
+      "first_depth_failure": {
+        "raster_budget": {
+          "limit_kind": "single_roi",
+          "max_roi_pixels": 262144,
+          "pair": [
+            "layer-003-component-0000",
+            "layer-005"
+          ],
+          "remaining_pixels": 28010834,
+          "required_pixels": 552816,
+          "roi": [
+            419,
+            205,
+            349,
+            792
+          ],
+          "roi_pixels": 276408,
+          "time": 0.0
+        },
+        "reason_code": "depth_overlap_pixel_budget",
+        "time": 0.0
+      },
+      "runtime": {
+        "passed": true,
+        "version": "4.3.13",
+        "frames": 737,
+        "sha256": "60d2f344b686a1aacd7ecc1b4ec4470332780e3374538ad6958fed2165bd76cb"
+      },
+      "geometry_passed": true,
+      "zip_sha256": "269e34ae5e6a8db3daee77ae3a98dca68a6146a875888385eb1efd320b143bb2",
+      "zip_files": 90,
+      "all_download_bytes_match": true,
+      "visual_decision": null,
+      "visual_applies": false,
+      "player_url": "http://127.0.0.1:8918/api/motions/motion-a6486fd0e64f4904b8f7d3c0be84191d/view/player.html"
+    },
+    {
+      "character": "hongmeiling",
+      "job_id": "motion-bbab56185e3045f7b410fa3e1d2e115e",
+      "artifact_sha256": "a9594f9019352d4a835c1ebc23c162fdbf714a132857c3184eeadfcbf065f915",
+      "request_sha256": "9eb482b89c4008fe26f2090a2b94057a208373d6b3a7643c4be807f1e3ba513f",
+      "source_job_id": "motion-22d106d0a5994ea49be5d2e32f237e0c",
+      "character_sha256": "fadde972f148b353592aaeebf75df151b9ef57032efaacde1773ea5a8754d28c",
+      "motion_identity": {
+        "bundle_sha256": "5f531a9327ad59abde64e643438baa794e5618b5629d59c0e3f9d4da990948b7",
+        "bvh_map_sha256": "f9d1995881e5623f72208050cc9b639d98b1317da3322e3480cf50a283fa7f5c",
+        "clip_id": "external.a4233c602a77a95c.front",
+        "clip_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "raw_bvh_byte_length": 342778,
+        "raw_bvh_sha256": "a4233c602a77a95c1473ef7ab3f277fa7ca6aec5a98b4d5407dea904194bb2f4",
+        "reused": false,
+        "run_sha256": "c48c0ffcb9338d2bc72a1013f1be8366de8ea5583419f979a9ac1c080b534207",
+        "source_kind": "bvh"
+      },
+      "strategies": {
+        "projection": {
+          "profile": "constant-yaw-source-motion-v1",
+          "yaw_degrees": 45
+        },
+        "pose_profile": "constant-view-absolute-pose-hip-center-v1-experiment",
+        "moving_ankle_profile": "moving-source-ankle-timeline-v1",
+        "torso_projection_profile": "reference-torso-plane-compensated-deform-v1-experiment",
+        "depth_review_profile": "external-arm-torso-depth-overlap-v2",
+        "contact_correction": false
+      },
+      "candidate_status": "needs_changes",
+      "readiness_status": "needs_changes",
+      "stages": [
+        {
+          "stage": "\u8eaf\u5e72\u6295\u5f71",
+          "status": "sampled_pass"
+        },
+        {
+          "stage": "\u6295\u5f71",
+          "status": "sampled_pass"
+        },
+        {
+          "stage": "\u51e0\u4f55",
+          "status": "sampled_pass"
+        },
+        {
+          "stage": "\u811a\u7aef\u8f68\u8ff9",
+          "status": "sampled_pass"
+        },
+        {
+          "stage": "\u63a5\u89e6",
+          "status": "sampled_pass"
+        },
+        {
+          "stage": "\u906e\u6321",
+          "status": "needs_changes"
+        },
+        {
+          "stage": "Runtime",
+          "status": "sampled_pass"
+        },
+        {
+          "stage": "\u5176\u4ed6\u4fee\u6b63",
+          "status": "needs_changes"
+        }
+      ],
+      "depth_failure_count": 24,
+      "first_depth_failure": {
+        "overlap": {
+          "overlap_pixels": 739,
+          "time": 1.3
+        },
+        "pair": [
+          "layer-001",
+          "layer-009"
+        ],
+        "reason_code": "visible_depth_straddle",
+        "time": 1.3
+      },
+      "runtime": {
+        "passed": true,
+        "version": "4.3.13",
+        "frames": 737,
+        "sha256": "10546c0175d1ed1cd7a2a1c394c649db7abac57495a0f90866021581bb5feafb"
+      },
+      "geometry_passed": true,
+      "zip_sha256": "04345aa66d7b1893037393943157600bd48d32551fb74fb30a223cc761661a84",
+      "zip_files": 94,
+      "all_download_bytes_match": true,
+      "visual_decision": null,
+      "visual_applies": false,
+      "player_url": "http://127.0.0.1:8918/api/motions/motion-bbab56185e3045f7b410fa3e1d2e115e/view/player.html"
+    }
+  ],
+  "authority": "none",
+  "new_runtime_capture": false,
+  "new_visual_acceptance": false
+}
