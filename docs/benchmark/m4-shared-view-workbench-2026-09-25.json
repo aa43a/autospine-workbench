@@ -1,0 +1,133 @@
+{
+  "profile": "shared-view-workbench-cohort-v1",
+  "yaw_degrees": 45,
+  "target_version": "4.3.26",
+  "rows": [
+    {
+      "character": "alice",
+      "artifact_sha256": "eb9a22d281728ab520942ee32c3e3ed03b932f1cbaa876d971151a08b1a90bf5",
+      "character_sha256": "6e5c59db4ef072075b798efab12acf8ffdc883368a61a4bf3c1646305ef68b98",
+      "request_sha256": "7085e3c9b5ac9026de4a2b70b8a97d918329e231ef064ff8fa1dc1cb97f43f19",
+      "motion_identity": {
+        "bundle_sha256": "5f531a9327ad59abde64e643438baa794e5618b5629d59c0e3f9d4da990948b7",
+        "bvh_map_sha256": "f9d1995881e5623f72208050cc9b639d98b1317da3322e3480cf50a283fa7f5c",
+        "clip_id": "external.a4233c602a77a95c.front",
+        "clip_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "raw_bvh_byte_length": 342778,
+        "raw_bvh_sha256": "a4233c602a77a95c1473ef7ab3f277fa7ca6aec5a98b4d5407dea904194bb2f4",
+        "reused": false,
+        "run_sha256": "c48c0ffcb9338d2bc72a1013f1be8366de8ea5583419f979a9ac1c080b534207",
+        "source_kind": "bvh"
+      },
+      "geometry_passed": true,
+      "final_check": {
+        "limit_px": 3.5314073364688943,
+        "passed": true,
+        "samples": 737,
+        "scope": "moving_ankle_tracking_not_stationary_contact_or_visual_acceptance",
+        "skeleton_sha256": "1b5c32f0be4828056a7aa2efb62ba1c86d5f607c80fcb063133bae0eb2e44ea7",
+        "worst": {
+          "error_px": 0.002709986007306519,
+          "side": "r",
+          "time": 1.066667
+        }
+      },
+      "runtime": {
+        "passed": true,
+        "frames": 737,
+        "version": "4.3.13",
+        "sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676"
+      },
+      "visual_status": "not_reviewed",
+      "player": "E:\\proj\\unusual\\localset\\autospine-workbench\\tmp\\m4-moving-workbench\\alice-shared45-v1\\runtime\\player.html"
+    },
+    {
+      "character": "huiye",
+      "artifact_sha256": "52294eb5a3daee961dac0ec7e68ee5ab3036865083f2eb25f95a3326b4f6ccfb",
+      "character_sha256": "63caa7fe5f9f40a92ebcd57ef0b345d7dcd47e5ed3feae65a95fad18e770d51b",
+      "request_sha256": "69c30f73c07821c4f5c706b92f13a7f4977c82bd650568a4014769225aaad990",
+      "motion_identity": {
+        "bundle_sha256": "5f531a9327ad59abde64e643438baa794e5618b5629d59c0e3f9d4da990948b7",
+        "bvh_map_sha256": "f9d1995881e5623f72208050cc9b639d98b1317da3322e3480cf50a283fa7f5c",
+        "clip_id": "external.a4233c602a77a95c.front",
+        "clip_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "raw_bvh_byte_length": 342778,
+        "raw_bvh_sha256": "a4233c602a77a95c1473ef7ab3f277fa7ca6aec5a98b4d5407dea904194bb2f4",
+        "reused": false,
+        "run_sha256": "c48c0ffcb9338d2bc72a1013f1be8366de8ea5583419f979a9ac1c080b534207",
+        "source_kind": "bvh"
+      },
+      "geometry_passed": true,
+      "final_check": {
+        "limit_px": 5.407652833063458,
+        "passed": true,
+        "samples": 737,
+        "scope": "moving_ankle_tracking_not_stationary_contact_or_visual_acceptance",
+        "skeleton_sha256": "038ca32e243ee36d544fe1eb289a6603233bc5e8d976ad68a8fad6c414dae6be",
+        "worst": {
+          "error_px": 0.0025240316976642787,
+          "side": "r",
+          "time": 1.3
+        }
+      },
+      "runtime": {
+        "passed": true,
+        "frames": 737,
+        "version": "4.3.13",
+        "sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676"
+      },
+      "visual_status": "not_reviewed",
+      "player": "E:\\proj\\unusual\\localset\\autospine-workbench\\tmp\\m4-moving-workbench\\huiye-shared45-v1\\runtime\\player.html"
+    },
+    {
+      "character": "hongmeiling",
+      "artifact_sha256": "cad1754c49f2e48f952aa0b4aae196a72b99c71a5128ef4ab2bb47a7f9276c22",
+      "character_sha256": "fadde972f148b353592aaeebf75df151b9ef57032efaacde1773ea5a8754d28c",
+      "request_sha256": "7c35416871e1237c80e59444c43fa08415dc8852b9ff067af848d9abe49928c4",
+      "motion_identity": {
+        "bundle_sha256": "5f531a9327ad59abde64e643438baa794e5618b5629d59c0e3f9d4da990948b7",
+        "bvh_map_sha256": "f9d1995881e5623f72208050cc9b639d98b1317da3322e3480cf50a283fa7f5c",
+        "clip_id": "external.a4233c602a77a95c.front",
+        "clip_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+        "raw_bvh_byte_length": 342778,
+        "raw_bvh_sha256": "a4233c602a77a95c1473ef7ab3f277fa7ca6aec5a98b4d5407dea904194bb2f4",
+        "reused": false,
+        "run_sha256": "c48c0ffcb9338d2bc72a1013f1be8366de8ea5583419f979a9ac1c080b534207",
+        "source_kind": "bvh"
+      },
+      "geometry_passed": true,
+      "final_check": {
+        "limit_px": 5.493700613074059,
+        "passed": true,
+        "samples": 737,
+        "scope": "moving_ankle_tracking_not_stationary_contact_or_visual_acceptance",
+        "skeleton_sha256": "94a8a187699224fabc1aa122427164966677284c4c6c7ba203897c421e11e634",
+        "worst": {
+          "error_px": 0.0050068469127242205,
+          "side": "l",
+          "time": 2.140625
+        }
+      },
+      "runtime": {
+        "passed": true,
+        "frames": 737,
+        "version": "4.3.13",
+        "sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676"
+      },
+      "visual_status": "not_reviewed",
+      "player": "E:\\proj\\unusual\\localset\\autospine-workbench\\tmp\\m4-moving-workbench\\hongmeiling-shared45-v1\\runtime\\player.html"
+    }
+  ],
+  "authority": "none",
+  "production_authorized": false,
+  "retained_exceptions": [
+    "transparent_edge_artifacts",
+    "shoulder_torso_visuals_not_accepted"
+  ]
+}

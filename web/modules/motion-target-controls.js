@@ -2,7 +2,7 @@
 import {createObliqueSelection} from './motion-oblique-selection.js';
 import {createDepthSelection} from './motion-depth-selection.js';
 import {createTorsoSelection} from './motion-torso-selection.js';
-import {createPoseSelection} from './motion-pose-selection.js';
+import {createPoseSelection,VIEW_POSE_PROFILE} from './motion-pose-selection.js';
 import {successorId} from './motion-job-actions.js';
 import {createAnkleSelection} from './motion-ankle-selection.js';
 export function createTargetControls(request, refresh, selection) {
@@ -12,7 +12,7 @@ export function createTargetControls(request, refresh, selection) {
   const ankles = createAnkleSelection($('adapt'),$('contact-correction'));
   let poseActive=false;
   const pose = createPoseSelection($('adapt'),value=>{
-    poseActive=Boolean(value);automatic.suspend(poseActive);
+    poseActive=Boolean(value)&&value!==VIEW_POSE_PROFILE;automatic.suspend(Boolean(value));
     yaw.disabled=!obliqueAvailable||poseActive;
   });
   let source = null, character = null, token = 0, busy = false, comparing = false;
@@ -37,6 +37,7 @@ export function createTargetControls(request, refresh, selection) {
     depth.available(Boolean(value.regional_depth_available),Boolean(value.sparse_depth_available));
     torso.available(Boolean(value.torso_projection_available));
     ankles.available(Boolean(value.moving_ankle_available));
+    pose.available(Boolean(value.shared_view_pose_available));
   }).catch(() => {});
   function enabled() { $('adapt').disabled = busy || comparing || !source || !character; }
   async function selectProject() {

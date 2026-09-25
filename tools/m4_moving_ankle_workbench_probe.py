@@ -5,7 +5,7 @@ from pathlib import Path
 
 from autospine_workbench.automation.animated_store import AnimatedStore
 from autospine_workbench.automation.motion_ankle_policy import PROFILE, prepare as ankles
-from autospine_workbench.automation.motion_pose_policy import prepare as pose
+from autospine_workbench.automation.motion_pose_policy import prepare_inputs
 from autospine_workbench.automation.motion_target_worker import build_candidate
 from autospine_workbench.automation.storage_io import canonical_bytes
 from autospine_workbench.bvh_parser import parse_bvh
@@ -13,20 +13,21 @@ from autospine_workbench.motion_bundle_reader import VerifiedMotionBundleReader
 from autospine_workbench.resolved_project import canonical_sha256
 
 
-def run(state, source_request, output, source_pose=False):
+def run(state, source_request, output, source_pose=False, shared_yaw=None):
     parent = json.loads(source_request.read_bytes())
     request = dict(parent, moving_ankle_profile=PROFILE, contact_correction=False)
     if source_pose:
         from autospine_workbench.automation.motion_target_pose import HIP_PROFILE
         request['pose_profile'] = HIP_PROFILE
+    if shared_yaw is not None:
+        from autospine_workbench.automation.motion_view_pose import PROFILE as VIEW_PROFILE
+        request.update(pose_profile=VIEW_PROFILE,projection=dict(
+            profile='constant-yaw-source-motion-v1',yaw_degrees=shared_yaw))
+        request.pop('projection_selection',None)
     identity = request['motion_identity']
     bundle = VerifiedMotionBundleReader(state).load(identity['clip_sha256'], identity['bundle_sha256'])
-    fitted = pose(bundle, request)
+    motion, view, fitted = prepare_inputs(bundle, request)
     observation = ankles(bundle, request)
-    motion, view = bundle.motion, None
-    if request.get('projection'):
-        from autospine_workbench.targets.character43.oblique_target import prepare
-        motion, view = prepare(bundle, request['projection'])
     if request.get('clip') or request.get('torso_projection_profile'):
         raise ValueError('probe_requires_unclipped_non_torso_request')
     output.mkdir(parents=True, exist_ok=False)
@@ -53,5 +54,7 @@ def run(state, source_request, output, source_pose=False):
 if __name__ == '__main__':
     p=argparse.ArgumentParser()
     for name in ('state','request','output'): p.add_argument(name,type=Path)
-    p.add_argument('--source-pose',action='store_true')
-    a=p.parse_args();run(a.state,a.request,a.output,a.source_pose)
+    strategy=p.add_mutually_exclusive_group()
+    strategy.add_argument('--source-pose',action='store_true')
+    strategy.add_argument('--shared-yaw',type=float)
+    a=p.parse_args();run(a.state,a.request,a.output,a.source_pose,a.shared_yaw)
