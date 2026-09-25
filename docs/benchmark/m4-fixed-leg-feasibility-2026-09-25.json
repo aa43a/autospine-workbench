@@ -1,0 +1,48 @@
+{
+  "rows": [
+    {
+      "authority": "none",
+      "candidate_generated": false,
+      "fixed_triangles": 135,
+      "sample_count": 312,
+      "scope": "necessary_fixed_vertex_condition_not_complete_feasibility_or_visual_acceptance",
+      "selected": false,
+      "slot": "layer-001-l",
+      "source_candidate": "6f618bf1fbf9d4a66925b11ae85494b46150b4ae06d1e788bc43d880ad9ca96e",
+      "status": "infeasible_fixed_vertices",
+      "character": "alice",
+      "failure_observations": 3267,
+      "affected_triangles": 33,
+      "affected_times": 99,
+      "first_failure": {
+        "projected_ratio": 0.9999999999999719,
+        "setup_ratio": 0.49257399487959314,
+        "time": 0.59062510546875,
+        "triangle": 0
+      },
+      "minimum_setup_ratio": 0.2959757953142386
+    },
+    {
+      "authority": "none",
+      "candidate_generated": false,
+      "fixed_triangles": 161,
+      "sample_count": 312,
+      "scope": "necessary_fixed_vertex_condition_not_complete_feasibility_or_visual_acceptance",
+      "selected": false,
+      "slot": "layer-004",
+      "source_candidate": "ea6dfdb756455e642867824a9cfe396c2dcc434b01435b060560205d9de9046c",
+      "status": "infeasible_fixed_vertices",
+      "character": "hongmeiling",
+      "failure_observations": 6732,
+      "affected_triangles": 68,
+      "affected_times": 99,
+      "first_failure": {
+        "projected_ratio": 1.0000000000000053,
+        "setup_ratio": 0.49257399487960984,
+        "time": 0.59062510546875,
+        "triangle": 0
+      },
+      "minimum_setup_ratio": 0.2959757953142397
+    }
+  ]
+}

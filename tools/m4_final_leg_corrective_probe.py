@@ -73,4 +73,12 @@ def run(folder,output,selected_slot=None,dual_floor=False):
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('folder',type=Path);p.add_argument('output',type=Path)
     p.add_argument('--slot');p.add_argument('--dual-floor',action='store_true')
-    a=p.parse_args();run(a.folder,a.output,a.slot,a.dual_floor)
+    a=p.parse_args()
+    from autospine_workbench.targets.character43.fixed_area_feasibility import FixedAreaInfeasible
+    try:run(a.folder,a.output,a.slot,a.dual_floor)
+    except FixedAreaInfeasible as error:
+        receipt=json.loads((a.folder/'report.json').read_bytes())
+        result=dict(error.report,source_candidate=receipt['candidate_bundle_sha256'],candidate_generated=False)
+        a.output.mkdir(parents=True,exist_ok=False)
+        (a.output/'infeasible.json').write_bytes(canonical_bytes(result))
+        print(json.dumps(dict(status=result['status'],slot=result['slot'],failures=len(result['failures']))),flush=True)

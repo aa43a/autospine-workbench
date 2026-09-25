@@ -74,6 +74,10 @@ def repair(document, name, *, samples=257, convergent=False, setup_vertices=None
                     collar=extend_proximal_ring(collar,triangles,influences,bones)
                 for vertex in collar['vertices']:free[vertex]=True
                 if collar['vertices']:collars.append(collar)
+        if dual_floor:
+            from .fixed_area_feasibility import inspect as fixed_check, FixedAreaInfeasible
+            feasibility=fixed_check(slot,triangles,areas,free,times,[w[slot] for w in worlds],frame_areas)
+            if feasibility['failures']:raise FixedAreaInfeasible(feasibility)
         used = {bones[i]['name'] for entries in influences for i, w in entries if w > 0}
         lengths = [math.hypot(b['x'], b['y']) for b in bones if b['name'] in used and b.get('parent') in used]
         if not lengths or min(lengths) <= 0:
