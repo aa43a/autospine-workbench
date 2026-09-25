@@ -1,0 +1,241 @@
+{
+  "profile": "kimodo-moving-ankle-source-audit-v1",
+  "rows": [
+    {
+      "clip_sha256": "0d70bf854d1f7ee91a9d4dd4cba0a70d881d9dc50dac3340d8b1781e187b8f36",
+      "bundle_sha256": "40c0889e82c966a379057f6edfee97dd2eee5b96e4e608450e35cf5897237818",
+      "status": "passed",
+      "source_id": "external.9b3b9e991370538e",
+      "producer": "unavailable",
+      "checks": [
+        {
+          "yaw": -90,
+          "samples": 120,
+          "max_projection_error": 0,
+          "peak_normalized_displacement": 0.004527204298616883
+        },
+        {
+          "yaw": -30,
+          "samples": 120,
+          "max_projection_error": 0,
+          "peak_normalized_displacement": 0.004033222917903387
+        },
+        {
+          "yaw": 0,
+          "samples": 120,
+          "max_projection_error": 0,
+          "peak_normalized_displacement": 0.0040735683526058955
+        },
+        {
+          "yaw": 30,
+          "samples": 120,
+          "max_projection_error": 0,
+          "peak_normalized_displacement": 0.004035397540510641
+        },
+        {
+          "yaw": 90,
+          "samples": 120,
+          "max_projection_error": 0,
+          "peak_normalized_displacement": 0.004527204298616883
+        }
+      ]
+    },
+    {
+      "clip_sha256": "135389db5df6e6454360bacc151f30f4de7c7ef56cb6b5bb551dd0c6cb0a160c",
+      "bundle_sha256": "c61c1f9be9da14ee526ad7b22e8869c8e5ee229186754837ce961452f42e9c32",
+      "status": "passed",
+      "source_id": "external.2ee03d7638686150",
+      "producer": "recorded",
+      "checks": [
+        {
+          "yaw": -90,
+          "samples": 120,
+          "max_projection_error": 0,
+          "peak_normalized_displacement": 0.007034824915293647
+        },
+        {
+          "yaw": -30,
+          "samples": 120,
+          "max_projection_error": 0,
+          "peak_normalized_displacement": 0.006277452059792502
+        },
+        {
+          "yaw": 0,
+          "samples": 120,
+          "max_projection_error": 0,
+          "peak_normalized_displacement": 0.004642394691875586
+        },
+        {
+          "yaw": 30,
+          "samples": 120,
+          "max_projection_error": 0,
+          "peak_normalized_displacement": 0.0056653988579329125
+        },
+        {
+          "yaw": 90,
+          "samples": 120,
+          "max_projection_error": 0,
+          "peak_normalized_displacement": 0.007034824915293647
+        }
+      ]
+    },
+    {
+      "clip_sha256": "2752692ad5490f4ab89254590e4a25649dafaa38bcfe0cd13eae5b5f62607ef2",
+      "bundle_sha256": "98838e33cf96ae44517b87da8f59b0da0f8142a5df7b5b930db7e1046f398219",
+      "status": "passed",
+      "source_id": "kimodo.empty-text.smoke-s20260828-v1",
+      "producer": "recorded",
+      "checks": [
+        {
+          "yaw": -90,
+          "samples": 120,
+          "max_projection_error": 0,
+          "peak_normalized_displacement": 0.0030129081731243485
+        },
+        {
+          "yaw": -30,
+          "samples": 120,
+          "max_projection_error": 0,
+          "peak_normalized_displacement": 0.003093059780056011
+        },
+        {
+          "yaw": 0,
+          "samples": 120,
+          "max_projection_error": 0,
+          "peak_normalized_displacement": 0.002903926520055713
+        },
+        {
+          "yaw": 30,
+          "samples": 120,
+          "max_projection_error": 0,
+          "peak_normalized_displacement": 0.002221840236690737
+        },
+        {
+          "yaw": 90,
+          "samples": 120,
+          "max_projection_error": 0,
+          "peak_normalized_displacement": 0.0030129081731243485
+        }
+      ]
+    },
+    {
+      "clip_sha256": "64b40e08c4ebbeb5a01b15d341252115271ee1a54770716abf2781a24983175a",
+      "bundle_sha256": "571428c04e573db828d89f0b5f646b4e36fcaebb947cb141629b38a0f7dbd2ff",
+      "status": "passed",
+      "source_id": "external.2ee03d7638686150",
+      "producer": "recorded",
+      "checks": [
+        {
+          "yaw": -90,
+          "samples": 120,
+          "max_projection_error": 0,
+          "peak_normalized_displacement": 0.004642394691875586
+        },
+        {
+          "yaw": -30,
+          "samples": 120,
+          "max_projection_error": 0,
+          "peak_normalized_displacement": 0.005754067839889909
+        },
+        {
+          "yaw": 0,
+          "samples": 120,
+          "max_projection_error": 0,
+          "peak_normalized_displacement": 0.007034824915293647
+        },
+        {
+          "yaw": 30,
+          "samples": 120,
+          "max_projection_error": 0,
+          "peak_normalized_displacement": 0.0072206538088982536
+        },
+        {
+          "yaw": 90,
+          "samples": 120,
+          "max_projection_error": 0,
+          "peak_normalized_displacement": 0.004642394691875586
+        }
+      ]
+    },
+    {
+      "clip_sha256": "64b40e08c4ebbeb5a01b15d341252115271ee1a54770716abf2781a24983175a",
+      "bundle_sha256": "7d9096d87d4016df2884f8a3cfd6b217d954f974c5ea9bbd831236d74983b645",
+      "status": "passed",
+      "source_id": "external.2ee03d7638686150",
+      "producer": "recorded",
+      "checks": [
+        {
+          "yaw": -90,
+          "samples": 120,
+          "max_projection_error": 0,
+          "peak_normalized_displacement": 0.004642394691875586
+        },
+        {
+          "yaw": -30,
+          "samples": 120,
+          "max_projection_error": 0,
+          "peak_normalized_displacement": 0.005754067839889909
+        },
+        {
+          "yaw": 0,
+          "samples": 120,
+          "max_projection_error": 0,
+          "peak_normalized_displacement": 0.007034824915293647
+        },
+        {
+          "yaw": 30,
+          "samples": 120,
+          "max_projection_error": 0,
+          "peak_normalized_displacement": 0.0072206538088982536
+        },
+        {
+          "yaw": 90,
+          "samples": 120,
+          "max_projection_error": 0,
+          "peak_normalized_displacement": 0.004642394691875586
+        }
+      ]
+    },
+    {
+      "clip_sha256": "f67a9e9beae9d1292c0bd16bcb03024692ea43179be4ceeaf4ca413690636a93",
+      "bundle_sha256": "7d564a7f26e4a21a8f7d1e85e0d3875a8996ce191e8f4eea56d65856a786451f",
+      "status": "passed",
+      "source_id": "kimodo.wave-left.semantic-s42-v1",
+      "producer": "recorded",
+      "checks": [
+        {
+          "yaw": -90,
+          "samples": 120,
+          "max_projection_error": 0,
+          "peak_normalized_displacement": 0.004527204482380523
+        },
+        {
+          "yaw": -30,
+          "samples": 120,
+          "max_projection_error": 0,
+          "peak_normalized_displacement": 0.004035397704311365
+        },
+        {
+          "yaw": 0,
+          "samples": 120,
+          "max_projection_error": 0,
+          "peak_normalized_displacement": 0.00407356851795601
+        },
+        {
+          "yaw": 30,
+          "samples": 120,
+          "max_projection_error": 0,
+          "peak_normalized_displacement": 0.0040332230816158415
+        },
+        {
+          "yaw": 90,
+          "samples": 120,
+          "max_projection_error": 0,
+          "peak_normalized_displacement": 0.004527204482380523
+        }
+      ]
+    }
+  ],
+  "scope": "source_extraction_only_not_solver_runtime_or_visual_acceptance",
+  "authority": "none"
+}
