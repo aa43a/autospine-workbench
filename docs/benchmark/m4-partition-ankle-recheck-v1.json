@@ -1,0 +1,49 @@
+{
+  "diagnostic_only": true,
+  "parent": "cb2f7dbccb796996108be3508293f2f5f0fee98b623ecaa4b4930b4ee7219fab",
+  "rows": [
+    {
+      "stage": "source",
+      "applied": true,
+      "limit_px": 3.5314073364688943,
+      "passed": true,
+      "samples": 737,
+      "scope": "moving_ankle_tracking_not_stationary_contact_or_visual_acceptance",
+      "skeleton_sha256": "e924d3465fd7ff0ecce2377d25c94ab32da5508d4ca6b1639e697e6d127ec707",
+      "worst": {
+        "error_px": 0.002709986007306519,
+        "side": "r",
+        "time": 1.066667
+      }
+    },
+    {
+      "stage": "scope",
+      "applied": true,
+      "limit_px": 3.5314073364688943,
+      "passed": true,
+      "samples": 737,
+      "scope": "moving_ankle_tracking_not_stationary_contact_or_visual_acceptance",
+      "skeleton_sha256": "caf632cd1a7c28da102229390b7775cf8e9e634e041b8567faaedce0662809d9",
+      "worst": {
+        "error_px": 0.002709986007306519,
+        "side": "r",
+        "time": 1.066667
+      }
+    },
+    {
+      "stage": "order",
+      "applied": true,
+      "limit_px": 3.5314073364688943,
+      "passed": true,
+      "samples": 737,
+      "scope": "moving_ankle_tracking_not_stationary_contact_or_visual_acceptance",
+      "skeleton_sha256": "037dfd4db21dbce17bc5e595523558ccf0ca3a155bdfaecd34a2ac740a49ced4",
+      "worst": {
+        "error_px": 0.002709986007306519,
+        "side": "r",
+        "time": 1.066667
+      }
+    }
+  ],
+  "new_runtime_capture": false
+}

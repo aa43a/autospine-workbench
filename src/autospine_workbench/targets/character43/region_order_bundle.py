@@ -83,6 +83,8 @@ def build(files, plan, on_progress=None):
         evidence['issues'].append(dict(stage='geometry', reason_code='motion_target_deformation_needs_changes'))
     for key in ('area_repair', 'post_contact_repair'):
         evidence.pop(key, None)
+    from .partition_ankle_recheck import apply as recheck_ankles
+    recheck_ankles(files, output, result, name, [f['time'] for f in frames], evidence)
     output['motion-review.json'] = canonical_bytes(evidence)
     output['motion-contact.json'] = canonical_bytes(contact)
     output['parent-motion-review.json'] = files['motion-review.json']
