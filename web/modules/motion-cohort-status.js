@@ -1,5 +1,6 @@
 import {deliveryLabels,deliveryState,deliveryCounts} from './motion-cohort-delivery.js';
 import {readRelatedSummary,relatedCounts} from './motion-related-summary.js';
+import {visualFilters,matchesVisual,visualNotes} from './motion-cohort-visual.js';
 const node=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n;};
 const visualLabels={accepted:'阶段接受',accepted_with_exceptions:'阶段接受，保留异常',rejected:'需调整',revoked:'已撤销'};
 export function createCohortStatus(parent,pack,onSelect){
@@ -15,8 +16,11 @@ export function createCohortStatus(parent,pack,onSelect){
   const relatedStatus=node('p');relatedStatus.setAttribute('aria-label','关联改进结果统计');
   const deliveryLabel=node('label','按交付状态筛选 '),deliveryFilter=node('select');deliveryFilter.setAttribute('aria-label','按交付状态筛选');
   for(const [value,text] of [['','全部状态'],...Object.entries(deliveryLabels)]){const option=node('option',text);option.value=value;deliveryFilter.append(option);}deliveryLabel.append(deliveryFilter);
+  const visualLabel=node('label','按阶段验收筛选 '),visualFilter=node('select');visualFilter.setAttribute('aria-label','按阶段验收筛选');
+  for(const [value,text] of [['','全部阶段结论'],...Object.entries(visualFilters)]){const option=node('option',text);option.value=value;visualFilter.append(option);}visualLabel.append(visualFilter);
   const note=node('p','点击核对可更新状态快照；读取现有检查与验收记录，不重新捕获动画，不自动接受。阶段接受不会清除技术异常；未读取或读取失败保留在总数中。');
   const scroll=node('div');scroll.style.cssText='overflow:auto;max-height:360px';const table=node('table');table.style.width='100%';
+  const visibleStatus=node('p');visibleStatus.setAttribute('aria-label','筛选结果');
   const head=node('thead'),headRow=node('tr');
   for(const text of ['动作 / 角色','交付状态','技术检查','阶段视觉','关联改进结果','操作'])headRow.append(node('th',text));
   head.append(headRow);const body=node('tbody');table.append(head,body);scroll.append(table);
@@ -24,8 +28,9 @@ export function createCohortStatus(parent,pack,onSelect){
   note.append(' 交付状态互斥计数；技术异常优先，阶段接受不代表发布授权。');
   note.append(' 关联改进结果单独展示；局部阶段接受不替换旧候选，也不计入固定集通过数量。');
   const controls=node('nav');controls.setAttribute('aria-label','固定集筛选与核对');
-  controls.append(refresh,stop,label,relatedLabel,stageLabel,deliveryLabel);
-  section.append(title,controls,summary,deliverySummary,relatedStatus,note,scroll);parent.append(section);
+  controls.append(refresh,stop,label,relatedLabel,stageLabel,deliveryLabel,visualLabel);
+  note.append(' 可单独筛选已阶段接受的动作并查看验收说明；接受范围以说明为准，技术异常仍显示。多个筛选条件同时生效。');
+  section.append(title,controls,summary,deliverySummary,relatedStatus,note,visibleStatus,scroll);parent.append(section);
   let generation=0,controller;
   const rows=pack.groups.flatMap((g,mi)=>g.targets.map((t,ci)=>({g,t,mi,ci,status:'unread',visual:'未读取'})));
   const missing=pack.coverage?.missing||[];
@@ -36,6 +41,7 @@ export function createCohortStatus(parent,pack,onSelect){
       read+=Boolean(row.loaded);technical+=pass;accepted+=Boolean(ok);
       historical+=Boolean(row.loaded&&['accepted','accepted_with_exceptions'].includes(row.decision));
       const delivery=deliveryState(row);
+      if(!matchesVisual(row,visualFilter.value))continue;
       if(relatedFilter.checked&&!(row.related?.status==='loaded'&&row.related.rows.length))continue;
       if(deliveryFilter.value&&deliveryFilter.value!==delivery)continue;
       if(filter.checked&&pass&&ok)continue;
@@ -50,7 +56,9 @@ export function createCohortStatus(parent,pack,onSelect){
       }
       if(row.loaded&&!row.stages?.length)technicalCell.append(node('p','未提供分阶段证据'));
       tr.append(technicalCell);
-      tr.append(node('td',row.visual));
+      const visualCell=node('td',row.visual),notes=visualNotes(row);
+      if(notes){const p=node('p',notes);p.style.whiteSpace='pre-wrap';visualCell.append(p);}
+      tr.append(visualCell);
       const relatedCell=node('td');
       if(row.related?.status==='loaded'){
         if(!row.related.rows.length)relatedCell.textContent='暂无已关联改进结果';
@@ -64,8 +72,9 @@ export function createCohortStatus(parent,pack,onSelect){
       tr.append(relatedCell);const action=node('td'),open=node('button','检查此项');
       open.onclick=()=>onSelect(row.mi,row.ci);action.append(open);tr.append(action);body.append(tr);
     }
-    if(!relatedFilter.checked&&(!deliveryFilter.value||deliveryFilter.value==='missing'))for(const row of missing){const tr=node('tr');tr.append(node('td',row.motion+' / '+row.character),node('td',deliveryLabels.missing),node('td','未生成可复核候选：'+row.status),node('td','未验收'),node('td','无可关联基线'),node('td','在动作中心处理来源或构建任务'));body.append(tr);}
+    if(matchesVisual({},visualFilter.value)&&!relatedFilter.checked&&(!deliveryFilter.value||deliveryFilter.value==='missing'))for(const row of missing){const tr=node('tr');tr.append(node('td',row.motion+' / '+row.character),node('td',deliveryLabels.missing),node('td','未生成可复核候选：'+row.status),node('td','未验收'),node('td','无可关联基线'),node('td','在动作中心处理来源或构建任务'));body.append(tr);}
     const total=rows.length+missing.length;
+    visibleStatus.textContent=body.children.length?`当前显示 ${body.children.length}/${total} 项。`:'没有符合当前筛选的已核实记录；可清除筛选或核对候选状态。';
     deliverySummary.textContent=Object.entries(deliveryCounts(rows,missing.length)).map(([key,count])=>`${deliveryLabels[key]} ${count}/${total}`).join('；');
     const related=relatedCounts(rows);
     relatedStatus.textContent=`关联记录已核对 ${related.checked}/${rows.length} 项；其中 ${related.available} 项有改进结果。独立统计，不改变固定集验收结论。`;
@@ -75,7 +84,7 @@ export function createCohortStatus(parent,pack,onSelect){
   refresh.onclick=async()=>{
     const token=++generation;controller?.abort();controller=new AbortController();const signal=controller.signal;
     refresh.disabled=true;stop.disabled=false;
-    for(const row of rows)Object.assign(row,{status:'unread',visual:'未读取',loaded:false,applies:false,decision:null,error:null,stages:null,related:null});render();
+    for(const row of rows)Object.assign(row,{status:'unread',visual:'未读取',loaded:false,applies:false,decision:null,notes:null,error:null,stages:null,related:null});render();
     let cursor=0;const sourceChecks=new Map();
     async function worker(){while(cursor<rows.length&&!signal.aborted){
       const row=rows[cursor++],version=row.version;row.status='loading';render();
@@ -89,7 +98,7 @@ export function createCohortStatus(parent,pack,onSelect){
         if(review.artifact_sha256!==row.t.artifact_sha256||review.readiness?.artifact_sha256!==row.t.artifact_sha256)throw Error('检查身份不匹配');
         if(token!==generation)return;
         if(row.version!==version)continue;
-        Object.assign(row,{loaded:true,status:review.readiness.status,stages:Array.isArray(review.readiness.stages)?review.readiness.stages:[],applies:review.current_applies===true,decision:review.current?.decision});
+        Object.assign(row,{loaded:true,status:review.readiness.status,stages:Array.isArray(review.readiness.stages)?review.readiness.stages:[],applies:review.current_applies===true,decision:review.current?.decision,notes:review.current?.notes});
         row.visual=review.current?(row.applies?(visualLabels[row.decision]||'未知结论'):`历史：${visualLabels[row.decision]||'未知结论'}；旧结论已过期，需复核`):'尚未验收';
         if(review.evidence_match==='legacy_empty_projection_fields')row.visual+='（仅新增空字段，原确认保留）';
         render();
@@ -106,11 +115,12 @@ export function createCohortStatus(parent,pack,onSelect){
   stop.onclick=()=>{generation++;controller?.abort();for(const row of rows)if(row.status==='loading'){row.status='unread';row.visual='未读取';}refresh.disabled=false;stop.disabled=true;render();};
   window.addEventListener('motion-stage-review-saved',event=>{
     const row=rows.find(r=>r.t.job_id===event.detail?.jobId);if(!row)return;
-    Object.assign(row,{version:(row.version||0)+1,loaded:false,status:'unread',applies:false,decision:null,error:null,stages:null,visual:'结论已更新，请重新核对'});render();
+    Object.assign(row,{version:(row.version||0)+1,loaded:false,status:'unread',applies:false,decision:null,notes:null,error:null,stages:null,visual:'结论已更新，请重新核对'});render();
   });
   filter.onchange=render;
   relatedFilter.onchange=render;
   stageFilter.onchange=render;
   deliveryFilter.onchange=render;
+  visualFilter.onchange=render;
   window.addEventListener('pagehide',()=>{generation++;controller?.abort();},{once:true});render();
 }
