@@ -18,7 +18,7 @@ def run(files, artifact, request, state_root, folder, on_progress):
     try:
         on_progress()
         times = repair_times(document,request['repair_execution']['draft']['animation'],depth)
-        report = analyze(files,artifact,bundle,request,sample_times=times,on_pair=on_progress)
+        report = analyze(files,artifact,bundle,request,sample_times=times,on_pair=on_progress,triangle_traces=True)
     except ValueError as error:
         report = dict(profile=PROFILE,job_id=request['job_id'],artifact_sha256=artifact,
             authority='none',selected=False,records=[],interpolation='not_evaluated',

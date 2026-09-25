@@ -42,3 +42,25 @@ def summarize(records):
             counts=dict(Counter(r['status'] for r in triangles)),incomplete_times=group['incomplete']))
     return dict(profile='depth-triangle-localization-v1',pairs=result,authority='none',selected=False,
         scope='sampled_overlap_triangles_not_complete_surface_ownership_or_order_adoption')
+
+
+def operator_summary(records):
+    """Bounded operator view; absence of old traces is not a passing result."""
+    if not records or not any('triangle_observations' in r for r in records):
+        return None
+    result=summarize(records)
+    priority=('within_frame_mixed','temporal_side_change','uncertain_depth')
+    for pair in result['pairs']:
+        entries=[]
+        for status in priority:
+            for row in pair['triangles']:
+                if row['status']!=status:continue
+                times=(row['mixed_times'] if status=='within_frame_mixed' else
+                       row['front_times']+row['back_times'] if status=='temporal_side_change' else
+                       row['uncertain_times'])
+                entries.append(dict(triangle=row['triangle'],status=status,time=min(times)))
+        pair['locations']=entries[:20]
+        pair['locations_truncated']=len(entries)>20
+        pair['incomplete_samples']=len(pair.pop('incomplete_times'))
+        del pair['triangles']
+    return result

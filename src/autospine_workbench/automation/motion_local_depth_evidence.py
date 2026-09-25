@@ -5,6 +5,7 @@ from .animated_store import AnimatedStore
 from .storage_io import canonical_bytes, publish_document, read_document, directory
 from ..resolved_project import canonical_sha256
 from ..targets.character43.local_depth_summary import summarize
+from ..targets.character43.depth_triangle_summary import operator_summary
 
 
 def registered(folder):
@@ -26,6 +27,7 @@ def publish(root, folder, request, artifact, report):
             or report.get('authority')!='none' or report.get('selected') is not False):
         raise ValueError('local_depth_report_identity')
     files=AnimatedStore(root).read(artifact)
+    operator_summary(report['records'])  # Validate optional traces before registration.
     value=dict(artifact_sha256=artifact,skeleton_sha256=sha256(files['skeleton.json']).hexdigest(),
         request_sha256=canonical_sha256(request),report=report,causes=summarize(report['records']))
     digest=AnimatedStore(root).publish({'local-depth.json':canonical_bytes(value)})
@@ -55,6 +57,7 @@ def read(root, folder, request, artifact, files):
         for status in ('requires_partition_or_more_depth','unmeasured'):
             visible.extend([r for r in records if r['status']==status][:20])
         rows.append(dict(evidence_sha256=digest,profile=report['profile'],causes=causes,
+            triangle_summary=operator_summary(report['records']),
             failure=report.get('failure'),
             requested_sample_times=report.get('requested_sample_times'),
             sleeve_helpers=report.get('sleeve_helpers'),helper_model_scope=report.get('helper_model_scope'),

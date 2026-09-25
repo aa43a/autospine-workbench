@@ -289,7 +289,7 @@ def execute(folder, state_root, workspace):
         if request['local_depth_profile']!=LOCAL_PROFILE:raise ValueError('motion_local_depth_profile_unsupported')
         progress(folder,'local_depth')
         try:
-            report=analyze(files,digest,bundle,request,on_pair=lambda:progress(folder,'local_depth'))
+            report=analyze(files,digest,bundle,request,triangle_traces=True,on_pair=lambda:progress(folder,'local_depth'))
         except ValueError as exc:
             report=dict(profile=LOCAL_PROFILE,job_id=request['job_id'],artifact_sha256=digest,
                 authority='none',selected=False,records=[],interpolation='not_evaluated',

@@ -21,6 +21,7 @@ class RepairLocalDepthTests(unittest.TestCase):
                 patch(MODULE+'analyze',return_value={'report':'fresh'}) as analyze):
             self.assertEqual(run(files,'artifact',request,'root','folder',lambda:None),'evidence')
             self.assertEqual(analyze.call_args.kwargs['sample_times'],[0,.5,1])
+            self.assertTrue(analyze.call_args.kwargs['triangle_traces'])
             self.assertEqual(publish.call_args.args[2:],(request,'artifact',{'report':'fresh'}))
             analyze.side_effect=ValueError('unsupported_surface')
             run(files,'artifact',request,'root','folder',lambda:None)
