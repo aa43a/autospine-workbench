@@ -55,6 +55,59 @@ class SubmissionTests(unittest.TestCase):
             self.assertEqual(execution.retry(self.manager,request),{'job_id':'new'})
         call.assert_called_once_with(self.manager,'parent',dict(revision=1,draft_sha256='c'*64))
 
+    def test_automatic_final_leg_profile_is_frozen_and_can_follow_other_slot(self):
+        from test_final_leg_repair_policy import fixture
+        from autospine_workbench.targets.character43.final_leg_repair_policy import select, PROFILE
+        files=fixture();scope=select(files,'mesh','walk')
+        self.row.update(slot='mesh',animation='walk',local_solver=scope)
+        queued=self.invoke()
+        self.assertEqual(read_document(self.manager.folder(queued['job_id'])/'request.json')['repair_execution']['profile'],PROFILE)
+        parent_plan=dict(self.row,slot='previous_leg')
+        parent=dict(profile=PROFILE,draft=parent_plan,draft_sha256=canonical_sha256(parent_plan))
+        self.request['repair_execution']=parent
+        self.manager.folder('parent').joinpath('request.json').write_bytes(canonical_bytes(self.request))
+        raw=canonical_bytes(dict(parent,authority='none',selected=False))
+        files.update({'motion-repair-provenance.json':raw,'motion-repair.json':canonical_bytes(dict(profile=PROFILE))})
+        def context(*_):
+            self.assertFalse(self.manager._lock._is_owned())
+            return {'artifact_sha256':'a'*64},files
+        with patch('autospine_workbench.automation.motion_target_jobs.context',side_effect=context):
+            queued=self.invoke()
+        frozen=read_document(self.manager.folder(queued['job_id'])/'request.json')['repair_execution']
+        self.assertEqual(frozen['parent_repair_sha256'],sha256(raw).hexdigest())
+        self.assertEqual(frozen['draft']['local_solver'],scope)
+        self.assertEqual(files['motion-repair-provenance.json'],raw)
+        from autospine_workbench.automation.motion_repair_lineage import carry
+        earlier_plan=dict(self.row)
+        earlier_raw=canonical_bytes(dict(profile=PROFILE,draft=earlier_plan,draft_sha256=canonical_sha256(earlier_plan)))
+        files.update(carry({'motion-repair-provenance.json':earlier_raw,'motion-repair.json':b'{}'},
+            dict(parent_repair_sha256=sha256(earlier_raw).hexdigest(),parent_artifact_sha256='e'*64,parent_job_id='earlier')))
+        with patch('autospine_workbench.automation.motion_target_jobs.context',side_effect=context):
+            with self.assertRaisesRegex(RuntimeError,'already_processed'):self.invoke()
+        self.row['slot']='previous_leg'
+        with self.assertRaisesRegex(RuntimeError,'nested_execution'):self.invoke()
+
+    def test_changed_corrective_parent_and_withdrawn_plan_never_queue(self):
+        from test_final_leg_repair_policy import fixture
+        from autospine_workbench.targets.character43.final_leg_repair_policy import select, PROFILE
+        files=fixture();self.row.update(slot='mesh',animation='walk',local_solver=select(files,'mesh','walk'))
+        parent_plan=dict(self.row,slot='previous_leg')
+        parent=dict(profile=PROFILE,draft=parent_plan,draft_sha256=canonical_sha256(parent_plan))
+        self.request['repair_execution']=parent
+        self.manager.folder('parent').joinpath('request.json').write_bytes(canonical_bytes(self.request))
+        files.update({'motion-repair-provenance.json':canonical_bytes(dict(parent,draft_sha256='changed')),
+                      'motion-repair.json':canonical_bytes(dict(profile=PROFILE))})
+        with patch('autospine_workbench.automation.motion_target_jobs.context',return_value=({'artifact_sha256':'a'*64},files)):
+            with self.assertRaisesRegex(RuntimeError,'parent_changed'):self.invoke()
+        files['motion-repair-provenance.json']=canonical_bytes(parent)
+        rows=[self.row]
+        def context(*_):
+            rows.append(dict(self.row,action='withdraw',revision=2))
+            return {'artifact_sha256':'a'*64},files
+        with patch('autospine_workbench.automation.motion_target_jobs.context',side_effect=context):
+            with self.assertRaisesRegex(RuntimeError,'plan_changed'):self.invoke(rows=rows)
+        self.manager._pool.submit.assert_not_called()
+
     def test_partition_requires_region_and_freezes_distinct_profile(self):
         self.row['action']='partition'
         with self.assertRaisesRegex(RuntimeError,'region_required'):self.invoke()

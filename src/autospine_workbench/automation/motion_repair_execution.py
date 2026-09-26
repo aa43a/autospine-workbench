@@ -26,7 +26,8 @@ def submit(manager, parent_job, body):
     if parent.get('kind') != 'adapt' or parent['status'] != 'succeeded':
         raise PipelineRunError('motion_repair_parent_unavailable')
     request = read_document(manager.folder(parent_job) / 'request.json')
-    if request.get('repair_execution') and request['repair_execution'].get('profile')!=OCCLUSION_PROFILE:
+    from .motion_corrective_parent import PROFILES, verify as verify_corrective_parent
+    if request.get('repair_execution') and request['repair_execution'].get('profile') not in PROFILES | {OCCLUSION_PROFILE}:
         raise PipelineRunError('motion_repair_nested_execution_unsupported')
     assert_current(manager, request)
     # Scope resolution reads large immutable bundles; do not hold the queue lock.
@@ -34,6 +35,9 @@ def submit(manager, parent_job, body):
         snapshots = history(manager, parent_job)
         planned = deepcopy(snapshots[body['revision']-1]) if 1 <= body['revision'] <= len(snapshots) else None
     garment = None
+    corrective_parent = None
+    if planned and canonical_sha256(planned) == body['draft_sha256']:
+        corrective_parent = verify_corrective_parent(manager,parent_job,request,planned,report['artifact_sha256'])
     if planned and planned['action'] == 'garment_follow' and canonical_sha256(planned) == body['draft_sha256']:
         from .motion_garment_follow import scope
         garment = scope(manager, parent_job, planned['slot'], planned['animation'], planned['artifact_sha256'])
@@ -59,13 +63,17 @@ def submit(manager, parent_job, body):
             if garment is None or row.get('garment_follow') != garment:
                 raise PipelineRunError('motion_garment_scope_changed')
         from .motion_scope_order_parent import verify as verify_scope_parent
-        parent_repair_sha=verify_scope_parent(manager,parent_job,request,row,report['artifact_sha256'])
+        parent_repair_sha=corrective_parent
+        if parent_repair_sha is None:
+            parent_repair_sha=verify_scope_parent(manager,parent_job,request,row,report['artifact_sha256'])
         if manager._closed or sum(j['status'] in {'pending','running'} for j in manager._jobs.values()) >= 2:
             raise PipelineRunError('motion_queue_full')
         job = 'motion-' + uuid4().hex
         root = manager.folder(job, True)
         request = deepcopy(request)
         profile={'partition':PARTITION_PROFILE,'region_order':ORDER_PROFILE,'contact_scope':OCCLUSION_PROFILE,'garment_follow':GARMENT_PROFILE}.get(row['action'],PROFILE)
+        from ..targets.character43.final_leg_repair_policy import execution_profile
+        profile = execution_profile(row, profile)
         if row['action']=='region_order' and 'interval' in row['region_order']:
             profile=INTERVAL_ORDER_PROFILE
         request.update(job_id=job, repair_execution=dict(profile=profile, parent_job_id=parent_job,

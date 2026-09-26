@@ -12,6 +12,10 @@ from .numeric_reference import read, write, carry_setup
 
 def build(files, plan, on_progress=None):
     slot, name = plan['slot'], plan['animation']
+    final_leg = plan.get('local_solver') is not None
+    if final_leg:
+        from .final_leg_repair_policy import verify
+        verify(files, plan)
     document = json.loads(files['skeleton.json'])
     reference = read(files)
     if reference['skeleton_sha256'] != sha256(files['skeleton.json']).hexdigest():
@@ -31,8 +35,13 @@ def build(files, plan, on_progress=None):
     isolated['skins'][0]['attachments'] = {slot: deepcopy(document['skins'][0]['attachments'][slot])}
     # Only solver input is stripped; original channels are retained in output.
     isolated['animations'][name] = {'bones': deepcopy(document['animations'][name]['bones'])}
-    solved, solver = repair(isolated, name, samples=129, convergent=True,
-        setup_vertices={slot: setup['vertices'][slot]}, progress=on_progress)
+    if final_leg:
+        from .projected_area_adaptive import build as adaptive
+        solved, solver = adaptive(isolated, name, {slot:setup['vertices'][slot]},
+            temporal=True, dual_floor=True, progress=on_progress)
+    else:
+        solved, solver = repair(isolated, name, samples=129, convergent=True,
+            setup_vertices={slot: setup['vertices'][slot]}, progress=on_progress)
     tracks = solved['animations'][name].get('attachments',{}).get('default',{}).get(slot)
     if tracks is None:
         raise ValueError('motion_repair_no_corrective_generated')
@@ -58,7 +67,19 @@ def build(files, plan, on_progress=None):
                    | {(a+b)/2 for a,b in zip(keys,keys[1:])})
     if len(times) > 4097:
         raise ValueError('motion_repair_sample_limit')
+    if final_leg:
+        from ...automation.motion_target_pose import final_times
+        # Quarter-key intervals match the final-pose experiment. Subdivide actual
+        # animation keys, never recursively subdivide a preceding QA-only grid.
+        key_midpoints = final_times(result, name, [])
+        times = sorted(set(final_times(result, name, key_midpoints)) |
+                       {f['time'] for f in reference['animations'][name]})
+        if len(times) > 4097:
+            raise ValueError('motion_repair_sample_limit')
     output = {n:v for n,v in files.items() if n.endswith('.png') or n in ('skeleton.atlas','motion-ir.json')}
+    if final_leg and 'motion-torso-projection.json' in files:
+        # Bone motion and torso deform are unchanged; keep the declared driver.
+        output['motion-torso-projection.json'] = files['motion-torso-projection.json']
     output['skeleton.json'] = canonical_bytes(result)
     digest = sha256(output['skeleton.json']).hexdigest()
     carry_setup(files, output)
@@ -66,7 +87,7 @@ def build(files, plan, on_progress=None):
     for index,time in enumerate(times):
         if on_progress and index%32 == 0:on_progress(dict(stage='validate',index=index,total=len(times)))
         frames.append(dict(time=time,vertices=sample(result,name,time)[0]))
-    output = write(output, dict(skeleton_sha256=digest,animations={name:frames}))
+    output = write(output, dict(skeleton_sha256=digest,animations={name:frames}), compressed=final_leg)
     geometry = inspect(output,setup_vertices=setup['vertices'])
     output['deformation.json'] = canonical_bytes(geometry)
     evidence = json.loads(files['motion-review.json'])
@@ -75,7 +96,7 @@ def build(files, plan, on_progress=None):
                       json.loads(files['motion-contact.json']),times,evidence['reference_length_px'])
     evidence.update(status='needs_changes', geometry_passed=geometry['passed'],
                     runtime_status='not_evaluated', depth_order_status='not_evaluated',
-                    contact_status=contact['status'], authority='none')
+                    contact_status=contact['status'], authority='none', selected=False, production_authorized=False)
     evidence['issues'] = [i for i in evidence.get('issues',[]) if i['stage']=='projection']
     evidence['issues'].append(dict(stage='repair',reason_code='motion_repair_requires_visual_and_depth_revalidation'))
     if not geometry['passed']:
@@ -90,9 +111,16 @@ def build(files, plan, on_progress=None):
         solver=solver,unchanged_other_channels=True,authority='none',selected=False,
         parent_geometry=json.loads(files['deformation.json']),geometry=geometry,
         sample_count=len(times),scope='sampled_local_candidate_not_continuous_or_visual_acceptance')
+    if final_leg:
+        from .final_leg_repair_policy import PROFILE
+        baseline = write(dict(files), dict(skeleton_sha256=sha256(files['skeleton.json']).hexdigest(),
+            animations={name:[dict(time=t,vertices=sample(document,name,t)[0]) for t in times]}), compressed=True)
+        summary.update(profile=PROFILE, local_solver=plan['local_solver'],
+            parent_geometry=inspect(baseline,setup_vertices=setup['vertices']),
+            scope='same_grid_final_leg_candidate_not_continuous_or_visual_acceptance')
     output['motion-repair.json'] = canonical_bytes(summary)
     manifest = json.loads(files['character-manifest.json'])
-    manifest.update(status='needs_changes',authority='none',production_authorized=False,
+    manifest.update(status='needs_changes',authority='none',selected=False,production_authorized=False,
                     files={n:sha256(v).hexdigest() for n,v in output.items()})
     output['character-manifest.json'] = canonical_bytes(manifest)
     return output, evidence, geometry

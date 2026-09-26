@@ -74,7 +74,7 @@ export function appendRepairDraft(parent, job, row, getDetail, {visualInspection
     showViewReturn(!material.hidden&&latest.view_needs?.length?latest.revision:null);
     material.textContent=latest?.view_needs?.length?'下载新视角需求任务包':'下载姿态素材任务包';
     execute.hidden=!(applies&&(latest.action==='local_repair'||latest.action==='garment_follow'&&latest.garment_follow||latest.action==='partition'&&latest.partition||latest.action==='region_order'&&latest.region_order||latest.action==='contact_scope'&&latest.contact_scope?.regions?.occlusion?.length));
-    execute.textContent=latest?.action==='garment_follow'?'构建裙腰跟随候选':latest?.action==='contact_scope'?'构建覆盖区表示候选（保留原运动）':latest?.action==='region_order'?'构建区域顺序候选':latest?.action==='partition'?'构建独立分区候选':'构建局部修正候选';
+    execute.textContent=latest?.local_solver?'构建最终腿姿态修正候选':latest?.action==='garment_follow'?'构建裙腰跟随候选':latest?.action==='contact_scope'?'构建覆盖区表示候选（保留原运动）':latest?.action==='region_order'?'构建区域顺序候选':latest?.action==='partition'?'构建独立分区候选':'构建局部修正候选';
     execute.onclick=async()=>{
       panel.disabled=true;status.textContent='正在提交独立修正任务…';
       try {
@@ -89,6 +89,7 @@ export function appendRepairDraft(parent, job, row, getDetail, {visualInspection
     };
     if(!material.hidden)material.href=`/api/motions/${encodeURIComponent(job.job_id)}/repair-material/${latest.revision}`;
     status.textContent=latest ? `${applies?'当前':'已过期'}：${labels[latest.action]}；此处 ${records.length} 条历史记录。` : '此处尚无处理草稿。';
+    if(applies&&latest.local_solver)status.textContent+=' 已自动选择最终腿姿态修正，同时约束原始和投影面积；固定单骨顶点与位移预算保持不变。';
     save.disabled=false;
   };
   const request = async body => {
@@ -121,6 +122,7 @@ export function appendRepairDraft(parent, job, row, getDetail, {visualInspection
       expected_revision:state.revision,slot:row.slot,animation:row.animation,
       triangle:detail.triangle,time:detail.time,action:action.value,notes:notes.value,...(partition?{partition}:{}),...(region_order?{region_order}:{}),...(contact_scope?{contact_scope}:{}),
       ...(visualInspection?{visual_inspection:true}:{}),
+      ...(action.value==='local_repair'?{automatic_strategy:true}:{}),
       ...(action.value==='pose_attachment'&&viewNeeds.value?{view_needs:viewNeeds.value.split(',')}: {})});
   };
   return () => {

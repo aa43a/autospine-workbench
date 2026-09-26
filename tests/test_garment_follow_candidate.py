@@ -68,6 +68,7 @@ class GarmentCandidateTests(unittest.TestCase):
         self.assertFalse(evidence['selected']); self.assertEqual(evidence['status'], 'needs_changes')
         self.assertEqual(evidence['runtime_status'], 'not_evaluated')
         self.assertNotIn('motion-depth.json', output)
+        self.assertEqual(output['motion-torso-projection.json'],files['motion-torso-projection.json'])
         self.assertEqual(output['images/garment.png'], b'original')
         self.assertFalse(next(r for r in geometry['records'] if r['slot']=='body')['passed'])
         report = json.loads(output['motion-repair.json'])
@@ -94,3 +95,17 @@ class GarmentCandidateTests(unittest.TestCase):
             value=json.loads(files[key]);value['skeleton_sha256']=sha256(files['skeleton.json']).hexdigest();files[key]=canonical_bytes(value)
         with self.assertRaisesRegex(ValueError, 'dense_linear'):
             resolve(files, character, 'garment', 'motion')
+
+    def test_chained_sampling_preserves_dense_qa_without_baking_it_as_animation_keys(self):
+        files,character=bundle();reference=json.loads(files['numeric-reference.json'])
+        times=[i/3000 for i in range(3001)]
+        reference['animations']['motion']=[dict(time=t) for t in times]
+        files['numeric-reference.json']=canonical_bytes(reference)
+        scope=resolve(files,character,'garment','motion',stable_sampling=True)
+        self.assertEqual(scope['bake_sample_count'],3)
+        plan=dict(slot='garment',animation='motion',garment_follow=scope)
+        with patch('autospine_workbench.targets.character43.final_motion_contact.recheck',return_value={'status':'unavailable'}):
+            output,_,_=build(files,character,plan)
+        actual={r['time'] for r in read(output)['animations']['motion']}
+        self.assertTrue(set(times)<=actual);self.assertLessEqual(len(actual),4097)
+        self.assertEqual(json.loads(output['motion-garment-follow.json'])['key_samples'],3)

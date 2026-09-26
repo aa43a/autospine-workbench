@@ -127,6 +127,9 @@ def runtime_reader(manager, job, result):
 
 
 def review_file(manager, job, parts):
+    if parts == ['repair-blocker.json']:
+        from .motion_repair_feasibility import read
+        return read(manager, job)
     if parts == ['related-candidates.json'] or parts[:1] == ['related-candidates']:
         from .motion_related_candidates import read
         return read(manager, job, parts)
@@ -166,6 +169,8 @@ def review_file(manager, job, parts):
             report['region_order'] = repair['region_order']
         if repair.get('garment_follow'):
             report['garment_follow'] = repair['garment_follow']
+        if repair.get('local_solver'):
+            report['local_solver'] = repair['local_solver']
         if 'view-pose-report.json' in files:
             variant = json.loads(files['view-pose-report.json'])['variant']
             report['additional_view'] = {k: variant[k] for k in (

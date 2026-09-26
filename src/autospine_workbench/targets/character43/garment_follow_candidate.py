@@ -9,18 +9,19 @@ from .attachment_root_bake import build as bake
 from .affine_pose import sample
 from .deformation_qa import inspect
 from .numeric_reference import carry_setup, read, write
-from .garment_follow_scope import PROFILE, resolve
+from .garment_follow_scope import PROFILE, STABLE_TIME_POLICY, resolve
 
 
 def build(files, character, plan, on_progress=None):
     slot, name = plan['slot'], plan['animation']
-    declaration = resolve(files, character, slot, name)
+    stable_sampling = plan['garment_follow'].get('time_policy') == STABLE_TIME_POLICY
+    declaration = resolve(files, character, slot, name, stable_sampling=stable_sampling)
     frozen = {k: v for k, v in plan['garment_follow'].items() if k != 'character_sha256'}
     if declaration != frozen:
         raise ValueError('motion_garment_scope_changed')
     document = json.loads(files['skeleton.json']); reference = read(files)
     original_times = [r['time'] for r in reference['animations'][name]]
-    bake_times = final_times(document, name, original_times)
+    bake_times = final_times(document, name, [] if stable_sampling else original_times)
     result, report = bake(document, name, json.loads(files['motion-torso-projection.json']),
                           declaration['roots'], bake_times, on_progress)
     if report['rows'] != [dict(slot=slot)]:
@@ -35,9 +36,12 @@ def build(files, character, plan, on_progress=None):
     else:
         tracks[slot] = previous
     if restored != document: raise ValueError('motion_garment_unrelated_channels_changed')
-    times = final_times(result, name, original_times)
+    times = final_times(result, name, [] if stable_sampling else original_times)
+    if stable_sampling:
+        times = sorted(set(times) | set(original_times))
+        if len(times) > 4097: raise ValueError('source_pose_final_sample_limit')
     output = {n: v for n, v in files.items()
-              if n.endswith('.png') or n in ('skeleton.atlas', 'motion-ir.json')}
+              if n.endswith('.png') or n in ('skeleton.atlas', 'motion-ir.json', 'motion-torso-projection.json')}
     output['skeleton.json'] = canonical_bytes(result)
     setup = carry_setup(files, output)
     if setup is None: raise ValueError('motion_garment_setup_required')

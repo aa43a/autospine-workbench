@@ -74,6 +74,15 @@ class GarmentWorkflowTests(unittest.TestCase):
                 (root/'request.json').write_bytes(canonical_bytes(request))
                 raw,_ = review_file(manager,'job',['garment-follow','garment','motion.json'])
                 self.assertFalse(json.loads(raw)['available'])
+                from autospine_workbench.targets.character43.final_leg_repair_policy import PROFILE
+                request['repair_execution']={'profile':PROFILE,'draft':{'slot':'other_leg'}}
+                (root/'request.json').write_bytes(canonical_bytes(request))
+                raw,_=review_file(manager,'job',['garment-follow','garment','motion.json'])
+                self.assertTrue(json.loads(raw)['available'])
+                request['repair_execution']['draft']['slot']='garment'
+                (root/'request.json').write_bytes(canonical_bytes(request))
+                raw,_=review_file(manager,'job',['garment-follow','garment','motion.json'])
+                self.assertFalse(json.loads(raw)['available'])
 
     def test_worker_dispatches_frozen_scope_and_fresh_downstream_checks_without_review(self):
         files, character = bundle()

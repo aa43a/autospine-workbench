@@ -1,0 +1,385 @@
+{
+  "profile": "final-leg-workbench-validation-v1",
+  "date": "2026-09-26",
+  "target": "Spine 4.3.26",
+  "runtime": "4.3.13",
+  "authority": "none",
+  "selected": false,
+  "rows": [
+    {
+      "artifact_sha256": "4e5703535a5604c66fb27b666cecd78c28a1c5ccff4b473ccab15727c3e949b1",
+      "candidate_bytes": 68415146,
+      "checked_slots": [
+        "layer-001-l"
+      ],
+      "contact_status": "inferred_proxy_passed",
+      "gpu_status": "not_run",
+      "official_cpu": {
+        "authority": "none",
+        "frames": 129,
+        "limit_px": 0.01,
+        "maximum_error_px": 0.00009720945928079524,
+        "passed": true,
+        "reference_frames": 1245,
+        "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+        "scope": "sampled_official_runtime_cpu_vertices_no_gpu_capture_or_visual_acceptance",
+        "selected": false,
+        "skeleton_sha256": "d38c83aa9052701f1918012037c13dc52d0d3244f08856dc58ddeae0608af633",
+        "source_candidate": "3b8c76f2fb24830c1735f3f8b7d6efde25ccc8e421356ef8515b9e8638418756",
+        "vertices": 27348
+      },
+      "sample_count": 1245,
+      "skeleton_sha256": "d38c83aa9052701f1918012037c13dc52d0d3244f08856dc58ddeae0608af633",
+      "slot": "layer-001-l",
+      "status": "candidate",
+      "strategy": {
+        "authority": "none",
+        "bones": [
+          "calf_l",
+          "foot_l",
+          "thigh_l"
+        ],
+        "mesh_sha256": "b23c8f7326c875f90147cef66082552578de43f228fee592a851438e0dbd23f3",
+        "profile": "selected-final-leg-dual-area-v1",
+        "scope": "final_bone_pose_fixed_single_bone_vertices_budget10_dual_area",
+        "selected": false,
+        "setup_sha256": "bed9546b4298d098f7cf47c34841cc248c0934baddaddadaec18a2df8e900501",
+        "skeleton_sha256": "9e426f16c316c921fefa12c5fe41304ce796e7945269ab23a02f9511c2c45071"
+      },
+      "visual_status": "not_reviewed",
+      "character": "alice",
+      "parent_artifact": "3b8c76f2fb24830c1735f3f8b7d6efde25ccc8e421356ef8515b9e8638418756",
+      "source": "tmp\\m4-moving-workbench\\alice-squat-shared-minus55-v1",
+      "receipt": "tmp\\m4-final-leg-workbench-v5\\alice\\summary.json",
+      "summary_sha256": "54f2b193adc6a14338723e4f5fa832e925b5f48a3b0be30d89d39d16e97e7e26",
+      "before": {
+        "animation": "external-motion",
+        "failing_frame_count": 279,
+        "first_failure": {
+          "frame": 238,
+          "inversions": 0,
+          "max_area_ratio": 1.2105160553102587,
+          "max_edge_stretch": 1.3044699684210252,
+          "min_area_ratio": 0.49999326381595044,
+          "time": 0.360937564453125
+        },
+        "inversion_samples": 0,
+        "max_area_ratio": 1.889780358955932,
+        "max_edge_stretch": 1.8977213405466054,
+        "min_area_ratio": 0.47646913679604386,
+        "passed": false,
+        "sample_count": 1245,
+        "slot": "layer-001-l"
+      },
+      "after": {
+        "animation": "external-motion",
+        "failing_frame_count": 0,
+        "first_failure": null,
+        "inversion_samples": 0,
+        "max_area_ratio": 1.8850500122723703,
+        "max_edge_stretch": 1.9000000000000272,
+        "min_area_ratio": 0.5260174915571284,
+        "passed": true,
+        "sample_count": 1245,
+        "slot": "layer-001-l"
+      },
+      "remaining_failed_slots": [
+        "layer-001-r",
+        "layer-005"
+      ]
+    },
+    {
+      "artifact_sha256": "1885c9ab983d99e446746468d1bd687dc10313097dd54b6951ec4449e695d25b",
+      "candidate_bytes": 69980643,
+      "checked_slots": [
+        "layer-001-l",
+        "layer-001-r"
+      ],
+      "contact_status": "inferred_proxy_passed",
+      "gpu_status": "not_run",
+      "official_cpu": {
+        "authority": "none",
+        "frames": 129,
+        "limit_px": 0.01,
+        "maximum_error_px": 0.00009720945928079524,
+        "passed": true,
+        "reference_frames": 1245,
+        "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+        "scope": "sampled_official_runtime_cpu_vertices_no_gpu_capture_or_visual_acceptance",
+        "selected": false,
+        "skeleton_sha256": "a1421d0036dc447227536c4f352c4cc6b1902365d197463cc4b2adf642a07668",
+        "source_candidate": "3b8c76f2fb24830c1735f3f8b7d6efde25ccc8e421356ef8515b9e8638418756",
+        "vertices": 53664
+      },
+      "sample_count": 1245,
+      "skeleton_sha256": "a1421d0036dc447227536c4f352c4cc6b1902365d197463cc4b2adf642a07668",
+      "slot": "layer-001-r",
+      "status": "candidate",
+      "strategy": {
+        "authority": "none",
+        "bones": [
+          "calf_r",
+          "foot_r",
+          "thigh_r"
+        ],
+        "mesh_sha256": "ca3752539fb542f7d9ec6ed423d0c7809f54c5a7753f35a889f30bd254b15557",
+        "profile": "selected-final-leg-dual-area-v1",
+        "scope": "final_bone_pose_fixed_single_bone_vertices_budget10_dual_area",
+        "selected": false,
+        "setup_sha256": "c3fe98ab3b122bdb42f0070c834740ba0b052b380164f9823678a99fee4dcce8",
+        "skeleton_sha256": "d38c83aa9052701f1918012037c13dc52d0d3244f08856dc58ddeae0608af633"
+      },
+      "visual_status": "not_reviewed",
+      "character": "alice",
+      "parent_artifact": "3b8c76f2fb24830c1735f3f8b7d6efde25ccc8e421356ef8515b9e8638418756",
+      "source": "tmp\\m4-moving-workbench\\alice-squat-shared-minus55-v1",
+      "receipt": "tmp\\m4-final-leg-workbench-v5\\alice\\summary.json",
+      "summary_sha256": "54f2b193adc6a14338723e4f5fa832e925b5f48a3b0be30d89d39d16e97e7e26",
+      "before": {
+        "animation": "external-motion",
+        "failing_frame_count": 771,
+        "first_failure": {
+          "frame": 236,
+          "inversions": 0,
+          "max_area_ratio": 1.134783084874926,
+          "max_edge_stretch": 1.2507905017447156,
+          "min_area_ratio": 0.4999184659291111,
+          "time": 0.35729173046875
+        },
+        "inversion_samples": 0,
+        "max_area_ratio": 1.9088420742902041,
+        "max_edge_stretch": 1.903940162139724,
+        "min_area_ratio": 0.3112298513383817,
+        "passed": false,
+        "sample_count": 1245,
+        "slot": "layer-001-r"
+      },
+      "after": {
+        "animation": "external-motion",
+        "failing_frame_count": 0,
+        "first_failure": null,
+        "inversion_samples": 0,
+        "max_area_ratio": 1.8964989480079475,
+        "max_edge_stretch": 1.9000522232120716,
+        "min_area_ratio": 0.5043769188745442,
+        "passed": true,
+        "sample_count": 1245,
+        "slot": "layer-001-r"
+      },
+      "remaining_failed_slots": [
+        "layer-005"
+      ]
+    },
+    {
+      "artifact_sha256": "0b0801018e080173e361f95f840b5cb42dcf831e24388500faa8b873edc27226",
+      "candidate_bytes": 133377367,
+      "checked_slots": [
+        "layer-001-l",
+        "layer-001-r",
+        "layer-005"
+      ],
+      "contact_status": "inferred_proxy_passed",
+      "gpu_status": "not_run",
+      "official_cpu": {
+        "authority": "none",
+        "frames": 129,
+        "limit_px": 0.01,
+        "maximum_error_px": 0.00010132523502008943,
+        "passed": true,
+        "reference_frames": 2792,
+        "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+        "scope": "sampled_official_runtime_cpu_vertices_no_gpu_capture_or_visual_acceptance",
+        "selected": false,
+        "skeleton_sha256": "d570e80b87bfbfe891397115aa6adf7b80bee8336a49fe61beb1264870dd6c33",
+        "source_candidate": "3b8c76f2fb24830c1735f3f8b7d6efde25ccc8e421356ef8515b9e8638418756",
+        "vertices": 80625
+      },
+      "sample_count": 2792,
+      "skeleton_sha256": "d570e80b87bfbfe891397115aa6adf7b80bee8336a49fe61beb1264870dd6c33",
+      "slot": "layer-005",
+      "status": "candidate",
+      "strategy": {
+        "animation": "external-motion",
+        "authority": "none",
+        "bake_sample_count": 623,
+        "character_skeleton_sha256": "9bf7a0264203561d8a67260217a41a06872cb93471c13ecc05de577eeba76268",
+        "declaration_sha256": "e2acf3474f59513937badb81d3cb549fc3e3fdb423db917a595bcdfd2fb36db6",
+        "profile": "selected-declared-garment-follow-v1",
+        "reference_sha256": "4d61f7a28d8cf8bba95d2f86c446c74d27eb0cf09603f72b77cedf1396d537a5",
+        "roots": [
+          "layer-005-skirt_0_upper",
+          "layer-005-skirt_1_upper",
+          "layer-005-skirt_2_upper"
+        ],
+        "selected": false,
+        "skeleton_sha256": "a1421d0036dc447227536c4f352c4cc6b1902365d197463cc4b2adf642a07668",
+        "slot": "layer-005",
+        "time_policy": "animation-key-midpoints-preserve-prior-qa-v1",
+        "torso_sha256": "6ae4e599ab87beda64f65212b7d162a0fe22a954d5dab1d2ed5cd9e90739cc21"
+      },
+      "visual_status": "not_reviewed",
+      "character": "alice",
+      "parent_artifact": "3b8c76f2fb24830c1735f3f8b7d6efde25ccc8e421356ef8515b9e8638418756",
+      "source": "tmp\\m4-moving-workbench\\alice-squat-shared-minus55-v1",
+      "receipt": "tmp\\m4-final-leg-workbench-v5\\alice\\summary.json",
+      "summary_sha256": "54f2b193adc6a14338723e4f5fa832e925b5f48a3b0be30d89d39d16e97e7e26",
+      "before": {
+        "animation": "external-motion",
+        "failing_frame_count": 531,
+        "first_failure": {
+          "frame": 1277,
+          "inversions": 0,
+          "max_area_ratio": 1.2176935181677462,
+          "max_edge_stretch": 1.4198494931487007,
+          "min_area_ratio": 0.4999170419364754,
+          "time": 0.8549480693359375
+        },
+        "inversion_samples": 0,
+        "max_area_ratio": 1.2324486312853575,
+        "max_edge_stretch": 1.4376396861949274,
+        "min_area_ratio": 0.4873758866339745,
+        "passed": false,
+        "sample_count": 2792,
+        "slot": "layer-005"
+      },
+      "after": {
+        "animation": "external-motion",
+        "failing_frame_count": 0,
+        "first_failure": null,
+        "inversion_samples": 0,
+        "max_area_ratio": 1.1923427973640832,
+        "max_edge_stretch": 1.3835468458725901,
+        "min_area_ratio": 0.5202434144496996,
+        "passed": true,
+        "sample_count": 2792,
+        "slot": "layer-005"
+      },
+      "remaining_failed_slots": []
+    },
+    {
+      "artifact_sha256": "070a661126d4dbb219bb0542bba588be69d52bb35c2636538ffbd08eae9ba48e",
+      "candidate_bytes": 70032783,
+      "checked_slots": [
+        "layer-003"
+      ],
+      "contact_status": "inferred_proxy_passed",
+      "gpu_status": "not_run",
+      "official_cpu": {
+        "authority": "none",
+        "frames": 129,
+        "limit_px": 0.01,
+        "maximum_error_px": 0.00021820945871000623,
+        "passed": true,
+        "reference_frames": 1245,
+        "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+        "scope": "sampled_official_runtime_cpu_vertices_no_gpu_capture_or_visual_acceptance",
+        "selected": false,
+        "skeleton_sha256": "754c163c39aa24f77e02187d1c6a6e5a1e90ef985fb307765868c8099ffe147e",
+        "source_candidate": "ea6dfdb756455e642867824a9cfe396c2dcc434b01435b060560205d9de9046c",
+        "vertices": 22704
+      },
+      "sample_count": 1245,
+      "skeleton_sha256": "754c163c39aa24f77e02187d1c6a6e5a1e90ef985fb307765868c8099ffe147e",
+      "slot": "layer-003",
+      "status": "candidate",
+      "strategy": {
+        "authority": "none",
+        "bones": [
+          "calf_r",
+          "foot_r",
+          "thigh_r"
+        ],
+        "mesh_sha256": "cf400ddf2f8781b74b62dd58fb3621084cff28150af87c2f39b55f73e47b9a3b",
+        "profile": "selected-final-leg-dual-area-v1",
+        "scope": "final_bone_pose_fixed_single_bone_vertices_budget10_dual_area",
+        "selected": false,
+        "setup_sha256": "668e7479e77766bbffc639b60d65a2f0ef6b399e7ecb3cb1dee6329772869451",
+        "skeleton_sha256": "de9d79d2d99be63837fde060a439d523295123dd3032b09587f806038bae6191"
+      },
+      "visual_status": "not_reviewed",
+      "character": "hongmeiling",
+      "parent_artifact": "ea6dfdb756455e642867824a9cfe396c2dcc434b01435b060560205d9de9046c",
+      "source": "tmp\\m4-moving-workbench\\hongmeiling-squat-shared45-v1",
+      "receipt": "tmp\\m4-final-leg-workbench-v4\\hongmeiling\\summary.json",
+      "summary_sha256": "377806b3a0b8024a950ab2edc6827e288e3148ae80bbf06211a33e2a81de5712",
+      "before": {
+        "animation": "external-motion",
+        "failing_frame_count": 350,
+        "first_failure": {
+          "frame": 190,
+          "inversions": 0,
+          "max_area_ratio": 1.2382866185399515,
+          "max_edge_stretch": 1.3426715286257431,
+          "min_area_ratio": 0.49995290474097503,
+          "time": 0.28802088476562504
+        },
+        "inversion_samples": 0,
+        "max_area_ratio": 1.8922754602754746,
+        "max_edge_stretch": 1.7995598733104343,
+        "min_area_ratio": 0.45496263414234644,
+        "passed": false,
+        "sample_count": 1245,
+        "slot": "layer-003"
+      },
+      "after": {
+        "animation": "external-motion",
+        "failing_frame_count": 0,
+        "first_failure": null,
+        "inversion_samples": 0,
+        "max_area_ratio": 1.8952986152334033,
+        "max_edge_stretch": 1.8236075771009916,
+        "min_area_ratio": 0.5049802597881133,
+        "passed": true,
+        "sample_count": 1245,
+        "slot": "layer-003"
+      },
+      "remaining_failed_slots": [
+        "layer-004"
+      ]
+    },
+    {
+      "candidate_generated": false,
+      "failure_observations": 6732,
+      "fixed_triangles": 161,
+      "slot": "layer-004",
+      "status": "infeasible_fixed_vertices",
+      "character": "hongmeiling",
+      "parent_artifact": "ea6dfdb756455e642867824a9cfe396c2dcc434b01435b060560205d9de9046c",
+      "source": "tmp\\m4-moving-workbench\\hongmeiling-squat-shared45-v1",
+      "receipt": "tmp\\m4-final-leg-workbench-v4\\hongmeiling\\summary.json",
+      "summary_sha256": "377806b3a0b8024a950ab2edc6827e288e3148ae80bbf06211a33e2a81de5712",
+      "failed_triangles": 68,
+      "sample_count": 312,
+      "counterexample_sha256": "c9028575b03c2e3aad7de0dcb47c8498315c3dd5445185937b663972eb351726",
+      "minimum_setup_ratio": 0.2959757953142397
+    },
+    {
+      "candidate_generated": false,
+      "slot": "layer-001-l",
+      "status": "strategy_not_applicable",
+      "character": "huiye",
+      "parent_artifact": "4c662e516865ea93414f848e4c6add33b7cddf78bed63a58908557a32ce59aee",
+      "source": "tmp\\m4-moving-workbench\\huiye-squat-shared45-v2",
+      "receipt": "tmp\\m4-final-leg-workbench-v4\\huiye\\summary.json",
+      "summary_sha256": "e83cc8e7bf29d542f72f9604bcc6ba9fb9c045186e7b26199a47744c8f923a4f"
+    },
+    {
+      "candidate_generated": false,
+      "slot": "layer-001-r",
+      "status": "strategy_not_applicable",
+      "character": "huiye",
+      "parent_artifact": "4c662e516865ea93414f848e4c6add33b7cddf78bed63a58908557a32ce59aee",
+      "source": "tmp\\m4-moving-workbench\\huiye-squat-shared45-v2",
+      "receipt": "tmp\\m4-final-leg-workbench-v4\\huiye\\summary.json",
+      "summary_sha256": "e83cc8e7bf29d542f72f9604bcc6ba9fb9c045186e7b26199a47744c8f923a4f"
+    }
+  ],
+  "verification": {
+    "python_tests": 74,
+    "node_tests": 8,
+    "browser": "blocked_saved_permissions_unverified",
+    "new_gpu_capture": "not_run",
+    "official_cpu_frames": 516
+  },
+  "scope": "fixed_three_structure_examples_not_general_motion_or_visual_acceptance"
+}

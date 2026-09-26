@@ -13,6 +13,9 @@ export async function appendRepairSummary(panel,job) {
     if(report.garment_follow)for(const text of garmentSummary(report.garment_follow)){
       const p=document.createElement('p');p.textContent=text;section.append(p);
     }
+    if(report.local_solver){const p=document.createElement('p');
+      p.textContent='自动策略：在最终腿姿态上同时约束原始与投影面积。固定单骨顶点、权重和其他附件保持不变；原候选与修正候选使用同一组时间采样比较。';section.append(p);
+    }
     for(const [label,geometry] of [['原候选',report.before],['修正候选',report.after]]) {
       if(report.region_order&&label==='修正候选') {
         const names=new Set(report.region_order.regions.map(r=>r.slot)),rows=geometry.records.filter(r=>names.has(r.slot)),p=document.createElement('p');
@@ -22,7 +25,9 @@ export async function appendRepairSummary(panel,job) {
         const p=document.createElement('p');p.textContent=text;section.append(p);
       }
     }
-    const note=document.createElement('p');note.textContent='新候选保留原检查时刻并增加修正关键点与中点；采样数可能不同，失败次数不能直接当作错误率比较。骨骼与其他附件保持不变，遮挡和视觉尚未重新接受。';
+    const note=document.createElement('p');note.textContent=report.local_solver
+      ?'同一时间采样上的对照只证明已执行的几何检查。接触和遮挡需要重新检查，视觉尚未接受。'
+      :'新候选保留原检查时刻并增加修正关键点与中点；采样数可能不同，失败次数不能直接当作错误率比较。骨骼与其他附件保持不变，遮挡和视觉尚未重新接受。';
     const link=document.createElement('a');link.textContent='查看原候选';link.href='/motions.html#'+encodeURIComponent(report.parent_job_id);
     section.append(note,link);
     if(report.additional_view) {

@@ -66,6 +66,25 @@ class RepairDraftTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, 'evidence_changed'):
             draft.save(self.manager, 'job', body)
 
+    def test_automatic_solver_is_server_selected_and_not_client_forged(self):
+        from autospine_workbench.automation import motion_local_solver
+        from test_final_leg_repair_policy import fixture
+        from autospine_workbench.targets.character43.final_leg_repair_policy import PROFILE
+        from autospine_workbench.automation.storage_io import canonical_bytes
+        self.report['rows'][0].update(slot='mesh',animation='walk')
+        body=self.body(automatic_strategy=True);body.update(action='local_repair',slot='mesh',animation='walk')
+        (Path(self.temp.name)/'request.json').write_bytes(canonical_bytes({}))
+        with patch('autospine_workbench.automation.motion_target_jobs.context',return_value=({'artifact_sha256':'a'*64},fixture())), \
+             patch('autospine_workbench.automation.motion_target_jobs.assert_current'):
+            saved=draft.save(self.manager,'job',body)
+        self.assertEqual(saved['history'][-1]['local_solver']['profile'],PROFILE)
+        restored=draft.inspect(self.manager,'job');self.assertEqual(restored['history'],saved['history'])
+        with self.assertRaisesRegex(RuntimeError,'request_invalid'):
+            draft.save(self.manager,'job',dict(body,local_solver={'profile':PROFILE}))
+        for bad in (dict(body,automatic_strategy=False),dict(body,action='partition')):
+            with self.assertRaisesRegex(RuntimeError,'request_invalid'):motion_local_solver.choose(self.manager,'job',bad)
+        self.assertIsNone(motion_local_solver.choose(None,'job',dict(action='local_repair')))
+
     def test_fabricated_event_and_invalid_action_rejected(self):
         for field, value in [('triangle', 999), ('time', 0.6), ('slot', 'other'), ('animation', 'walk'), ('action', 'accepted')]:
             body = self.body(); body[field] = value

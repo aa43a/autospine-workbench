@@ -6,7 +6,8 @@ const reasons={
   motion_garment_slot_undeclared:'所选部件没有声明为随胸部连接的裙装。',
   motion_garment_shared_or_missing_weights:'该骨链影响了其他部件，或没有有效权重，不能单独修正。',
   motion_garment_bind_changed:'当前网格或绑定已变化，需要基于当前角色重新生成候选。',
-  motion_repair_nested_execution_unsupported:'当前版本已经过独立修正，请回到原动作候选选择此路线。',
+  motion_repair_nested_execution_unsupported:'当前修正路线不支持继续处理，或同一部位已经修正；请回到合适的原候选。',
+  motion_garment_already_applied:'该裙装已做过跟随补偿，不重复叠加；需要调整时请回到补偿前的候选。',
 };
 export function garmentPreflight(parent,job,row) {
   const panel=document.createElement('p');panel.setAttribute('role','status');parent.append(panel);

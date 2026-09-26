@@ -12,12 +12,14 @@ def scope(manager, job, slot, animation, artifact, *, current=None):
     if result['artifact_sha256'] != artifact:
         raise PipelineRunError('motion_garment_candidate_changed')
     request = read_document(manager.folder(job)/'request.json')
-    if request.get('repair_execution'):
+    from .motion_corrective_parent import PROFILES
+    parent = request.get('repair_execution')
+    if parent and (parent.get('profile') not in PROFILES or parent['draft']['slot'] == slot):
         raise PipelineRunError('motion_repair_nested_execution_unsupported')
     assert_current(manager, request)
     character = manager.character_manager().application.store.read(request['character_sha256'])
     try:
-        value = resolve(files, character, slot, animation)
+        value = resolve(files, character, slot, animation, stable_sampling=parent is not None)
     except ValueError as error:
         raise PipelineRunError(str(error)) from error
     return dict(value, character_sha256=request['character_sha256'])

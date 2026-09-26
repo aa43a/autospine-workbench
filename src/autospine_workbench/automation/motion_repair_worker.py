@@ -18,6 +18,8 @@ def execute(folder, state_root, workspace, request):
     expected={'local_repair':PROFILE,'partition':PARTITION_PROFILE,'pose_attachment':MATERIAL_PROFILE,
               'pose_geometry':POSE_PROFILE,'region_order':ORDER_PROFILE,'additional_view':VIEW_PROFILE,
               'contact_scope':OCCLUSION_PROFILE,'garment_follow':GARMENT_PROFILE}.get(plan['action'])
+    from ..targets.character43.final_leg_repair_policy import execution_profile
+    expected = execution_profile(plan, expected)
     if plan['action']=='region_order' and 'interval' in plan.get('region_order', {}):
         expected=INTERVAL_ORDER_PROFILE
     if (expected is None or repair['profile'] != expected or canonical_sha256(plan) != repair['draft_sha256']
@@ -64,7 +66,13 @@ def execute(folder, state_root, workspace, request):
         material=store.read(mapping['material_bundle_sha256'])
         files,evidence,geometry=material_build(source,mapping,material,lambda _:progress(folder,'post_contact_repair'))
     else:
-        files, evidence, geometry = builder(source,plan,lambda _:progress(folder,'post_contact_repair'))
+        from ..targets.character43.fixed_area_feasibility import FixedAreaInfeasible
+        try:
+            files, evidence, geometry = builder(source,plan,lambda _:progress(folder,'post_contact_repair'))
+        except FixedAreaInfeasible as error:
+            from .motion_repair_feasibility import save, REASON
+            save(folder,request,error.report)
+            raise ValueError(REASON) from error
     # This provenance is part of the immutable result, not a mutable UI association.
     import json
     from .motion_repair_depth import recheck

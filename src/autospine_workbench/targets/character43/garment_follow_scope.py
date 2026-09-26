@@ -10,11 +10,14 @@ from .affine_pose import matrices
 from .numeric_reference import read
 
 PROFILE = 'selected-declared-garment-follow-v1'
+STABLE_TIME_POLICY = 'animation-key-midpoints-preserve-prior-qa-v1'
 
 
-def resolve(files, character, slot, animation):
+def resolve(files, character, slot, animation, *, stable_sampling=False):
     if 'motion-garment-follow.json' in files:
-        raise ValueError('motion_garment_already_applied')
+        applied = json.loads(files['motion-garment-follow.json']).get('declaration', {})
+        if not applied.get('slot') or applied['slot'] == slot:
+            raise ValueError('motion_garment_already_applied')
     if 'skirt-trial.json' not in character:
         raise ValueError('motion_garment_declaration_missing')
     if 'motion-torso-projection.json' not in files:
@@ -38,7 +41,7 @@ def resolve(files, character, slot, animation):
     roots = [f"{slot}-{chain['id']}_upper" for chain in rows[0]['mesh']['helper_chains']]
     if not roots or len(set(roots)) != len(roots):
         raise ValueError('motion_garment_roots_invalid')
-    times = final_times(doc, animation, [r['time'] for r in reference['animations'][animation]])
+    times = final_times(doc, animation, [] if stable_sampling else [r['time'] for r in reference['animations'][animation]])
     torso = json.loads(files['motion-torso-projection.json'])
     validate(doc, animation, torso, times)
     baseline = matrices(doc, animation, 0)
@@ -71,4 +74,5 @@ def resolve(files, character, slot, animation):
         declaration_sha256=sha256(character['skirt-trial.json']).hexdigest(),
         torso_sha256=sha256(files['motion-torso-projection.json']).hexdigest(),
         reference_sha256=sha256(files['numeric-reference.json']).hexdigest(),
-        bake_sample_count=len(times), authority='none', selected=False)
+        bake_sample_count=len(times), authority='none', selected=False,
+        **({'time_policy': STABLE_TIME_POLICY} if stable_sampling else {}))

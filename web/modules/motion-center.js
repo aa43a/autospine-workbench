@@ -2,6 +2,7 @@ import {createSourcePlayer} from './motion-source-player.js';
 import {appendRelatedCandidates} from './motion-related-candidates.js';
 import {generationActivity} from './motion-generation-activity.js';
 import {jobStatus} from './motion-job-status.js';
+import {appendRepairBlocker} from './motion-repair-blocker.js';
 import {createTargetControls} from './motion-target-controls.js';
 import {createGenerationControls} from './motion-generation-controls.js';
 import {createSelectionControls} from './motion-selection-controls.js';
@@ -166,6 +167,7 @@ function render(data) {
     item.append(node('strong', displayName + (job.kind === 'adapt' ? ' → ' + job.project_id
       : ' · ' + (job.view === 'side' ? '侧面' : '正面'))),
       node('p', `${state}${detail ? ' · ' + detail : ''}`));
+    appendRepairBlocker(item,job);
     if (job.cancel_requested && active.has(job.status)) item.append(node('p', '正在停止任务及其子进程；确认停止后可重新执行。'));
     const activity=generationActivity(job);if(activity){
       const line=node('p',activity);line.className='generation-activity';item.append(line);

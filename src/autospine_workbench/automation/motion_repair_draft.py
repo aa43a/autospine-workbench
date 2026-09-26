@@ -52,7 +52,7 @@ def inspect(manager, job):
 def save(manager, job, body):
     fields = {'artifact_sha256', 'evidence_sha256', 'expected_revision', 'action',
               'notes', 'slot', 'animation', 'triangle', 'time'}
-    if (set(body)-{'partition', 'region_order', 'view_needs', 'contact_scope', 'visual_inspection'} != fields or body.get('action') not in ACTIONS
+    if (set(body)-{'partition', 'region_order', 'view_needs', 'contact_scope', 'visual_inspection', 'automatic_strategy'} != fields or body.get('action') not in ACTIONS
             or type(body.get('expected_revision')) is not int
             or type(body.get('triangle')) is not int
             or type(body.get('time')) not in (int, float)
@@ -75,6 +75,8 @@ def save(manager, job, body):
         matches=[visual_event(manager,job,body)]
     if len(matches) != 1:
         raise PipelineRunError('motion_draft_event_not_found')
+    from .motion_local_solver import choose
+    local_solver = choose(manager, job, body)
     garment = None
     if body['action'] == 'garment_follow':
         from .motion_garment_follow import scope
@@ -101,6 +103,7 @@ def save(manager, job, body):
         if region_order is not None:row['region_order']=region_order
         if contact_scope is not None:row['contact_scope']=contact_scope
         if garment is not None:row['garment_follow']=garment
+        if local_solver is not None:row['local_solver']=local_solver
         root = directory(manager.folder(job) / 'repair-drafts', create=True)
         if not publish_document(root / f'draft-{revision:04d}.json', row, staging=root / 'staging'):
             raise PipelineRunError('motion_draft_revision_changed')
