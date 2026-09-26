@@ -31,6 +31,20 @@ class RelatedEvidenceTests(unittest.TestCase):
         self.files['skeleton.json']=b'{ }'
         with self.assertRaisesRegex(ValueError,'bundle_identity'):self.check()
 
+    def test_direct_character_bundle_provenance_is_valid(self):
+        import json
+        manifest=json.loads(self.files['character-manifest.json'])
+        manifest['source_character_sha256']=self.request['character_sha256']
+        self.files['character-manifest.json']=raw(manifest)
+        digest=bundle_digest(self.files)
+        self.receipt['candidate_bundle_sha256']=digest
+        self.runtime['bundle_sha256']=digest;self.visual['artifact_sha256']=digest
+        self.assertEqual(self.check()['character_sha256'],self.request['character_sha256'])
+        manifest['source_character_sha256']='f'*64
+        self.files['character-manifest.json']=raw(manifest)
+        self.receipt['candidate_bundle_sha256']=bundle_digest(self.files)
+        with self.assertRaisesRegex(ValueError,'character_sources'):self.check()
+
     def test_other_motion_rejected(self):
         self.receipt['source_identity']={'motion_ir_sha256':'e'*64}
         with self.assertRaisesRegex(ValueError,'motion_identity'):self.check()

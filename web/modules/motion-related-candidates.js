@@ -26,7 +26,7 @@ export function appendRelatedCandidates(parent, job, {synchronize=false}={}) {
         const detail=document.createElement('details'),summary=document.createElement('summary');
         summary.textContent=`改进候选 ${row.candidate_sha256.slice(0,10)} · 对照播放与下载`;
         const note=document.createElement('p');
-        note.textContent=`目标 Spine ${row.target_version}；实际 Runtime ${row.runtime_version}，${row.sampled_frames} 个已有采样。与原任务共享动作和角色来源，策略及结果不同；不替换原任务。`;
+        note.textContent=`目标 Spine ${row.target_version}；实际 Runtime ${row.runtime_version}，${row.sampled_frames} 个已有采样。与原任务共享动作和角色来源，策略及结果不同；不替换原任务。关联与 Runtime 通过不代表接触、遮挡或视觉通过，原任务结论不沿用。`;
         const visual=document.createElement('p');
         visual.textContent=row.visual ? `本候选阶段记录：${row.visual.user_response||row.visual.decision}。范围：${row.visual.scope}。保留异常：${(row.visual.retained_exceptions||[]).join('、')||'见记录'}。` : '本候选尚无阶段视觉记录。';
         const path=base+'related-candidates/'+row.registration_sha256+'/';

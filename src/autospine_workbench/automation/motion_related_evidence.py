@@ -23,7 +23,7 @@ def inspect(request, character_files, candidate_files, receipt, runtime, visual=
     if (not required<=addresses.keys() or any(not addresses[k] for k in required)
             or after.get('source_addresses')!=addresses
             or not before.get('source_character_sha256')
-            or after.get('source_character_sha256')!=before['source_character_sha256']):
+            or after.get('source_character_sha256') not in (character, before['source_character_sha256'])):
         raise ValueError('motion_related_character_sources')
     if receipt.get('authority')!='none' or receipt.get('selected') is not False or receipt.get('production_authorized') is not False:
         raise ValueError('motion_related_authority')
