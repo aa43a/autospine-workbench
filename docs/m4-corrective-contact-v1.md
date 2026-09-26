@@ -25,3 +25,24 @@ nonfinite times, nonmonotonic grids and larger duration discrepancies still fail
 These are CPU bone proxies. They do not measure deformed shoe soles, GPU contact,
 depth ordering or visual quality, and do not remove their pending checks.
 The 12 tests across corrective contact, moving ankles and final contact pass.
+
+## Workbench integration
+
+Supplemental contact evidence can now be attached with the corrective linking
+tool's `--contact-audit` option. The reader checks candidate, skeleton, Runtime
+report and time-grid identity, finite measurements and consistent pass labels.
+It exposes bounded numeric summaries without changing historical evidence.
+The UI labels records with these checks and distinguishes missing checks from
+passed/failed bone proxies. The original receipt and full audit travel with the
+related-candidate export.
+
+Registration `f7b87f685963fa6e10eade8efe75c88cbd9c33bc236507d4c2794150668cc2c4`
+was appended and read back through the live workbench endpoint. It identifies
+the same candidate as the earlier registration, reports 3,713 samples with both
+bone-proxy checks passed, keeps `selected=false`, and retains mesh-sole contact,
+depth and visual checks. The old registration remains readable and has no
+supplemental check result. No visual acceptance was written.
+
+Sixteen related-candidate tests and a pure JavaScript display check pass. Browser
+interaction remains unverified because the browser permission check is unavailable;
+the API check is not a substitute for that UI verification.

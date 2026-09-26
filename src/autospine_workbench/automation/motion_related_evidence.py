@@ -44,7 +44,7 @@ def inspect(request, character_files, candidate_files, receipt, runtime, visual=
                 or visual.get('production_authorized') is not False
                 or visual.get('applies_to_other_candidates') is not False):
             raise ValueError('motion_related_visual_identity')
-    return dict(schema='autospine.motion-related-evidence/v1',
+    result=dict(schema='autospine.motion-related-evidence/v1',
         relationship='same_motion_and_character_source_records_not_same_candidate_or_strategy',
         request_sha256=canonical_sha256(request),character_sha256=character,
         candidate_sha256=candidate,skeleton_sha256=skeleton,
@@ -55,3 +55,10 @@ def inspect(request, character_files, candidate_files, receipt, runtime, visual=
         visual=visual,authority='none',selected=False,production_authorized=False,
         limitations=['not_a_parent_chain_proof','no_new_runtime_capture',
                     'no_inherited_baseline_acceptance','no_job_replacement'])
+    if 'contact_audit' in receipt:
+        if set(ref['animations'])!={'external-motion'}:
+            raise ValueError('motion_related_contact_animations')
+        from .motion_related_contact import summary
+        result['additional_checks']=summary(receipt['contact_audit'],candidate,skeleton,runtime,
+                                            [f['time'] for f in ref['animations']['external-motion']])
+    return result
