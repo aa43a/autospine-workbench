@@ -27,8 +27,12 @@ try{
         stage:'遮挡',status:'needs_changes',explanation:'fixture only',href:'depth.html',
         failures:[...Array.from({length:9},(_,i)=>({time:i/10,reason:'visible_depth_straddle'})),
           {time:null,reason:'unmeasured'}]}]}});
-    if(path.endsWith('/motion-depth.json'))return route.fulfill({json:{skeleton_sha256:hash,order:{failures:
-      Array.from({length:30},(_,i)=>({time:i/10,pair:['arm','body'],reason_code:'visible_depth_straddle'}))}}});
+    if(path.endsWith('/depth-navigation.json'))return route.fulfill({json:{
+      profile:'external-motion-depth-navigation-v1',skeleton_sha256:hash,
+      artifact_sha256:job===alternate?alternateHash:hash,authority:'none',order_changed:false,
+      original_order_records:30,diagnostic_records:30,navigable_samples:30,
+      groups:[{pair:['arm','body'],reason:'visible_depth_straddle',time_source:'record_time',
+        samples:Array.from({length:30},(_,i)=>({time:i/10,order_times:[i/10]}))}]}});
     if(path.endsWith('/rotation-status.json'))return route.fulfill({json:{artifact_sha256:hash,
       target:{records:[{bone:'upperarm_l',extra_turn_suspected:false,maximum_transfer_difference_deg:0,
         large_key_intervals:[],source_events:[{frame:2,time:.2,reason:'projection_direction_unreliable'},
@@ -58,9 +62,9 @@ try{
   assert.equal(await page.getByLabel('验收说明').inputValue(),'fixture only');
   assert.equal(await page.getByText('未提供有效时间',{exact:false}).count(),1);
   assert.equal(posts,0);
-  await page.getByRole('button',{name:'展开完整遮挡失败采样'}).click();
-  await page.getByText('arm ↔ body · visible_depth_straddle · 30 条 · 0.000–2.900 秒',{exact:true}).click();
-  await page.getByLabel('遮挡失败采样序号').fill('29');
+  await page.getByRole('button',{name:'展开完整遮挡定位（含未测记录）'}).click();
+  await page.getByText('arm ↔ body · 前后深度尚不能整层确定 · 30 个采样 · 0.000–2.900 秒',{exact:true}).click();
+  await page.getByLabel('遮挡诊断采样序号').fill('29');
   await page.getByRole('link',{name:'定位此采样',exact:true}).click();
   await page.waitForFunction(()=>document.querySelector('#target iframe').contentWindow.fixtureTime===2.9);
   assert.equal(await page.getByLabel('验收说明').inputValue(),'fixture only');

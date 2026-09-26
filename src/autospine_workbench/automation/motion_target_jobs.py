@@ -218,6 +218,9 @@ def review_file(manager, job, parts):
     if parts == ['depth-status.json']:
         from ..targets.character43.motion_depth_status import build
         return json.dumps(build(files,result['artifact_sha256']),ensure_ascii=False).encode('utf-8'),'application/json'
+    if parts == ['depth-navigation.json']:
+        from ..targets.character43.depth_failure_navigation import build
+        return json.dumps(build(files,result['artifact_sha256']),ensure_ascii=False).encode('utf-8'),'application/json'
     if parts == ['motion-projection.json']:
         if 'motion-projection.json' not in files:
             raise PipelineRunError('pipeline_artifact_not_found')

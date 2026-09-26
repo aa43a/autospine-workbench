@@ -11,11 +11,11 @@ try {
  page.on('pageerror',e=>errors.push(e.message));
  await page.goto(new URL('/motions.html#'+jobId,base).href);const card=page.locator('#'+jobId);
  await card.getByRole('button',{name:'检查可用范围与待处理项',exact:true}).click();
- await card.getByRole('button',{name:'展开完整遮挡失败采样',exact:true}).click();
+ await card.getByRole('button',{name:'展开完整遮挡定位（含未测记录）',exact:true}).click();
  const summary=card.locator('summary').filter({hasText:/^layer-004 ↔ layer-006/}).last();
  await summary.waitFor();const details=summary.locator('..');
  await summary.click();
- await details.getByRole('button',{name:'同页隔离冲突部件',exact:true}).click();
+ await details.getByRole('button',{name:'同页隔离相关部件',exact:true}).click();
  await page.waitForFunction(id=>document.getElementById(id)?.querySelector('iframe')?.contentWindow?.characterInspectionState?.isolated,jobId,{timeout:120000});
  const actual=await card.locator('iframe').evaluate(frame=>({inspection:frame.contentWindow.characterInspectionState,
    time:frame.contentWindow.characterPlayerState.time,identity:frame.contentWindow.characterPlayerControl.artifact}));

@@ -3,6 +3,7 @@ import {appendDepthTimeline} from './motion-depth-timeline.js';
 import {appendGeometryDetails} from './motion-geometry-details.js';
 import {appendRepairSummary} from './motion-repair-summary.js';
 import {appendVisualScope} from './motion-visual-scope.js';
+import {depthReason} from './motion-depth-reason.js';
 export function appendReadiness(item, job, compare, {onSeek,onInspect,onRegions} = {}) {
   const button = document.createElement('button');
   button.textContent = '检查可用范围与待处理项';
@@ -36,8 +37,7 @@ export function appendReadiness(item, job, compare, {onSeek,onInspect,onRegions}
         for (const failure of failures) {
           const entry = document.createElement('p');
           const reason = document.createElement('span');
-          reason.textContent = ({source_projection_unreliable:'源投影方向不可靠',
-            visible_depth_straddle:'同一部件跨越前后深度',
+          reason.textContent = row.stage==='遮挡'?depthReason(failure.reason)[0]:({source_projection_unreliable:'源投影方向不可靠',
             post_contact_constraint_failed:'接触后局部变形约束未满足'})[failure.reason] || failure.reason || '检查异常';
           entry.append(reason);
           if (!Number.isFinite(failure.time) || failure.time < 0) {
@@ -49,6 +49,7 @@ export function appendReadiness(item, job, compare, {onSeek,onInspect,onRegions}
           if (onSeek) point.onclick = event => {event.preventDefault(); onSeek(failure.time);};
           else {point.target = '_blank'; point.rel = 'noopener';}
           entry.append(point);
+          if(row.stage==='遮挡')entry.append(' · 此处是原记录时刻；实际采样位置见下方“完整遮挡定位”。');
           details.append(entry);
         }
         panel.append(p);

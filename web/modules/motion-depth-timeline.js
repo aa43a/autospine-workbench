@@ -1,56 +1,52 @@
 // Read-only navigation over recorded samples, never interpolation or acceptance.
-export function groupDepthFailures(failures){
-  const groups=new Map();let invalid=0;
-  for(const row of failures){
-    if(!Number.isFinite(row.time)||row.time<0){invalid++;continue;}
-    const pair=Array.isArray(row.pair)?row.pair.filter(v=>typeof v==='string'):[];
-    const reason=typeof row.reason_code==='string'?row.reason_code:'unknown';
-    const key=JSON.stringify([pair,reason]);
-    if(!groups.has(key))groups.set(key,{pair,reason,times:[]});
-    groups.get(key).times.push(row.time);
-  }
-  for(const group of groups.values())group.times.sort((a,b)=>a-b);
-  return {groups:[...groups.values()],invalid};
-}
+import {depthReason,depthTimeLabel} from './motion-depth-reason.js';
 
 export function appendDepthTimeline(panel,job,readiness,onSeek,onRegions){
-  const button=document.createElement('button');button.textContent='展开完整遮挡失败采样';
+  const button=document.createElement('button');button.textContent='展开完整遮挡定位（含未测记录）';
   const body=document.createElement('section');body.setAttribute('aria-live','polite');
   button.onclick=async()=>{
     button.disabled=true;body.textContent='正在读取原始遮挡记录…';
     try{
       const base=`/api/motions/${job.job_id}/view/`;
-      const response=await fetch(base+'motion-depth.json',{cache:'no-store'});
+      const response=await fetch(base+'depth-navigation.json',{cache:'no-store'});
       const report=await response.json();
       if(!response.ok)throw Error(report.reason_code||'读取失败');
-      if(!readiness.skeleton_sha256||report.skeleton_sha256!==readiness.skeleton_sha256)
+      if(!readiness.skeleton_sha256||report.skeleton_sha256!==readiness.skeleton_sha256||
+        report.artifact_sha256!==job.result.artifact_sha256)
         throw Error('候选骨架证据已变化，请重新检查');
-      if(!Array.isArray(report.order?.failures))throw Error('此报告未提供完整顺序失败记录');
-      const {groups,invalid}=groupDepthFailures(report.order.failures);
+      if(report.profile!=='external-motion-depth-navigation-v1'||!Array.isArray(report.groups)||
+        report.authority!=='none'||report.order_changed!==false)throw Error('此报告未提供有效定位记录');
+      const groups=report.groups;
       body.replaceChildren();
       const note=document.createElement('p');
-      note.textContent=`原始报告 ${report.order.failures.length} 条失败记录，${groups.length} 组部件关系；无有效时间 ${invalid} 条。仅定位已有失败采样，首末时间之间不代表连续失败或完整验证。`;
+      note.textContent=`原排序记录 ${report.original_order_records} 条；合并未测项目后 ${report.diagnostic_records} 条诊断，${groups.length} 组关系，${report.navigable_samples} 个定位采样。诊断数不是画面错误数；原检查可能提前停止，这些不是全部潜在问题，首末时间之间也不代表连续失败或完整验证。`;
       body.append(note);
       for(const group of groups){
         const section=document.createElement('details'),title=document.createElement('summary');
-        const first=group.times[0],last=group.times.at(-1);
-        title.textContent=`${group.pair.join(' ↔ ')||'未指定部件'} · ${group.reason} · ${group.times.length} 条 · ${first.toFixed(3)}–${last.toFixed(3)} 秒`;
+        if(!Array.isArray(group.samples)||!group.samples.length||group.samples.some(s=>
+          !Number.isFinite(s.time)||s.time<0||!Array.isArray(s.order_times)))throw Error('定位时间无效');
+        const first=group.samples[0].time,last=group.samples.at(-1).time;
+        const [name,explanation]=depthReason(group.reason);
+        title.textContent=`${group.pair.join(' ↔ ')||'未指定部件'} · ${name} · ${group.samples.length} 个采样 · ${first.toFixed(3)}–${last.toFixed(3)} 秒`;
+        const help=document.createElement('p');help.textContent=`${explanation} 时间来源：${depthTimeLabel(group.time_source)}。原代码：${group.reason}`;
         const slider=document.createElement('input');slider.type='range';slider.min='0';
-        slider.max=String(group.times.length-1);slider.step='1';slider.value='0';
-        slider.setAttribute('aria-label','遮挡失败采样序号');
+        slider.max=String(group.samples.length-1);slider.step='1';slider.value='0';
+        slider.setAttribute('aria-label','遮挡诊断采样序号');
         const label=document.createElement('span'),link=document.createElement('a');
         link.textContent='定位此采样';
         const update=()=>{
-          const index=Number(slider.value),time=group.times[index];
-          label.textContent=` ${index+1}/${group.times.length} · ${time.toFixed(3)} 秒 `;
+          const index=Number(slider.value),sample=group.samples[index],time=sample.time;
+          const anchors=sample.order_times.filter(t=>t!==time);
+          label.textContent=` ${index+1}/${group.samples.length} · ${time.toFixed(6)} 秒 `+
+            (anchors.length?`（原判定起点 ${anchors.map(t=>t.toFixed(6)).join('、')} 秒） `:'');
           link.href=base+`player.html?time=${encodeURIComponent(time)}`;
           if(onSeek)link.onclick=event=>{event.preventDefault();onSeek(time);};
           else{link.target='_blank';link.rel='noopener';}
         };
-        slider.oninput=update;update();section.append(title,slider,label,link);
+        slider.oninput=update;update();section.append(title,help,slider,label,link);
         if(onRegions&&group.pair.length){
-          const isolate=document.createElement('button');isolate.textContent='同页隔离冲突部件';
-          isolate.onclick=()=>{onSeek?.(group.times[Number(slider.value)]);onRegions(group.pair);};section.append(isolate);
+          const isolate=document.createElement('button');isolate.textContent='同页隔离相关部件';
+          isolate.onclick=()=>{onSeek?.(group.samples[Number(slider.value)].time);onRegions(group.pair);};section.append(isolate);
         }
         body.append(section);
       }
