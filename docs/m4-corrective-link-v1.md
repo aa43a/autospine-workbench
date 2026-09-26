@@ -26,9 +26,13 @@ source-address records. Existing valid evidence remains unchanged.
 - Capturing Runtime: 4.3.13. Export target: Spine 4.3.26.
 - Local receipt: `tmp/m4-corrective-link-v1/proof.json`.
 
-Registration has not run against the live workbench: its loaded backend predates
-the exact-character provenance support. After a normal service update, the tool's
-`--register` option uses the existing append-only related-candidate registry.
+Registration initially waited for the service update. On 2026-09-26, after
+confirming the old service process had exited and port 8918 had no listener,
+the original `tools/start-local-workbench.ps1` was approved and started on 8918.
+The original Squat job returned `succeeded` from the updated service.
+The tool's `--register` option then appended registration
+`470828748c0df1bd32d13c034319de10cc30cfd138b8837d28d65e7731e95392`.
+The saved receipt is `tmp/m4-corrective-link-v1/registered.json`.
 It does not select the candidate or inherit visual acceptance from the baseline.
 
 ## Remaining work
@@ -56,5 +60,10 @@ timestamps. No acceptance or production authorization is introduced.
 
 The real Alice Squat export restored all 124 candidate files byte-for-byte and
 reconstructed the same bundle digest. This uses saved job and Runtime records:
-the live 8918 connection was refused during this check. Online download remains
-unverified. The 13 related-candidate tests pass.
+the live 8918 connection was refused during the initial export check. Online
+download remains unverified. The 13 related-candidate tests pass.
+
+After service recovery, Browser Use refused navigation because saved browser
+permissions could not be verified. No alternate browser control or indirect UI
+workaround was used. Playback, timeline interaction, and the live download still
+need browser verification; successful registration does not prove these checks.
