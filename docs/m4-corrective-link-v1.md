@@ -44,3 +44,17 @@ M4's three-character/eight-motion scope is unchanged.
 `test_corrective_candidate_link`, `test_motion_related_evidence`, and
 `test_motion_related_candidates` cover complete versus partial sampling,
 request changes, unrelated bone/texture changes, provenance and registry behavior.
+
+## Portable export follow-up
+
+Related downloads now include every immutable candidate file, including numeric
+reference chunks, geometry and corrective provenance, plus the original receipt.
+`related-export.json` lists candidate and evidence file hashes separately, so the
+original bundle identity can be reconstructed without treating added export
+metadata as part of that bundle. Entries are compressed and retain fixed ZIP
+timestamps. No acceptance or production authorization is introduced.
+
+The real Alice Squat export restored all 124 candidate files byte-for-byte and
+reconstructed the same bundle digest. This uses saved job and Runtime records:
+the live 8918 connection was refused during this check. Online download remains
+unverified. The 13 related-candidate tests pass.

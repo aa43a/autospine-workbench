@@ -10,6 +10,7 @@ import test_motion_related_evidence as fixtures
 from autospine_workbench.automation.animated_store import AnimatedStore
 from autospine_workbench.automation.storage_io import canonical_bytes
 from autospine_workbench.automation.motion_related_candidates import register,load,read,entries
+from autospine_workbench.automation.motion_related_evidence import bundle_digest
 
 
 class RelatedCandidateTests(unittest.TestCase):
@@ -32,6 +33,12 @@ class RelatedCandidateTests(unittest.TestCase):
             with ZipFile(BytesIO(raw)) as zip:
                 self.assertEqual(zip.read('skeleton.json'),f.files['skeleton.json'])
                 self.assertEqual(json.loads(zip.read('related-evidence.json'))['visual'],f.visual)
+                manifest=json.loads(zip.read('related-export.json'))
+                restored={name:zip.read(name) for name in manifest['candidate_files']}
+                self.assertEqual(restored,f.files)
+                self.assertEqual(bundle_digest(restored),manifest['candidate_sha256'])
+                self.assertEqual(json.loads(zip.read('related-receipt.json')),f.receipt)
+                self.assertFalse(manifest['selected'])
             page,_=read(manager,'job',['related-candidates',digest,'player.html'])
             self.assertNotIn(b'href="index.html"',page)
             self.assertFalse((folder/'stage-reviews').exists())

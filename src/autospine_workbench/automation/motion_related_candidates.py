@@ -1,9 +1,7 @@
 """Append-only related candidates, with exact playback and diagnostic downloads."""
-from io import BytesIO
 import json
 import re
 from types import SimpleNamespace
-from zipfile import ZipFile, ZIP_STORED, ZipInfo
 from .animated_store import AnimatedStore
 from .motion_related_evidence import inspect
 from .storage_io import canonical_bytes, directory, publish_document, read_document
@@ -64,13 +62,8 @@ def load(manager,job,digest):
 
 
 def download(value,files):
-    selected={k:v for k,v in files.items() if k in ('skeleton.json','skeleton.atlas') or k.endswith('.png')}
-    selected['related-evidence.json']=canonical_bytes(value['evidence'])
-    selected['runtime-report.json']=canonical_bytes(value['runtime'])
-    output=BytesIO()
-    with ZipFile(output,'w',compression=ZIP_STORED) as archive:
-        for name,raw in sorted(selected.items()):archive.writestr(ZipInfo(name),raw)
-    return output.getvalue()
+    from .motion_related_export import package
+    return package(value,files)
 
 
 def read(manager,job,parts):
