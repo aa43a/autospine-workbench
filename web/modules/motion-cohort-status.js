@@ -2,6 +2,7 @@ import {deliveryLabels,deliveryState,deliveryCounts} from './motion-cohort-deliv
 import {readRelatedSummary,relatedCounts} from './motion-related-summary.js';
 import {visualFilters,matchesVisual,visualNotes} from './motion-cohort-visual.js';
 import {verifyCohortSource} from './motion-cohort-source.js';
+import {appendSupportExport} from './motion-support-export.js';
 const node=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n;};
 const visualLabels={accepted:'阶段接受',accepted_with_exceptions:'阶段接受，保留异常',rejected:'需调整',revoked:'已撤销'};
 export function createCohortStatus(parent,pack,onSelect){
@@ -32,6 +33,7 @@ export function createCohortStatus(parent,pack,onSelect){
   controls.append(refresh,stop,label,relatedLabel,stageLabel,deliveryLabel,visualLabel);
   note.append(' 可单独筛选已阶段接受的动作并查看验收说明；接受范围以说明为准，技术异常仍显示。多个筛选条件同时生效。');
   section.append(title,controls,summary,deliverySummary,relatedStatus,note,visibleStatus,scroll);parent.append(section);
+  appendSupportExport(section,pack);
   let generation=0,controller;
   const rows=pack.groups.flatMap((g,mi)=>g.targets.map((t,ci)=>({g,t,mi,ci,status:'unread',visual:'未读取'})));
   const missing=pack.coverage?.missing||[];

@@ -13,6 +13,7 @@ import {appendDepthSummary} from './motion-depth-summary.js';
 import {navigationPack} from './motion-cohort-entry.js';
 import {appendRelatedCandidates} from './motion-related-candidates.js';
 import {verifyCohortSource} from './motion-cohort-source.js';
+import {validatePack as validate} from './motion-support-snapshot.js';
 const byId=id=>document.getElementById(id), motion=byId('motion'),character=byId('character');
 const sync=createCohortSync(byId('sync-status'));
 let related=null;
@@ -21,23 +22,6 @@ byId('source-view').onchange=()=>player.setView(byId('source-view').value||null)
 const alternative=createAlternativePanel(byId('alternative'),get,{onSeek:time=>player.seek(time)});
 const experiments=createExperimentPanel(byId('experiments'),get,time=>player.seek(time));
 let pack,revision=0;
-const id=/^motion-[a-f0-9]{32}$/,sha=/^[a-f0-9]{64}$/;
-function validate(value){
-  if(value.version!==1||!sha.test(value.plan_sha256)||!Array.isArray(value.groups)||!value.groups.length||value.groups.length>32)throw Error('复核清单无效');
-  const jobs=new Set();let count=0;
-  for(const g of value.groups){
-    if(!id.test(g.job_id)||!sha.test(g.source_sha256)||typeof g.label!=='string'||g.label.length>100||!Array.isArray(g.targets)||!g.targets.length)throw Error('动作来源清单无效');
-    for(const t of g.targets){
-      if(!id.test(t.job_id)||!sha.test(t.artifact_sha256)||typeof t.label!=='string'||t.label.length>100||jobs.has(t.job_id))throw Error('角色候选清单无效');
-      jobs.add(t.job_id);if(++count>96)throw Error('复核数量超过限制');
-    }
-  }
-  if(value.coverage){const c=value.coverage;
-    if(!Number.isInteger(c.expected)||c.expected<1||c.expected>96||c.available!==count||!Array.isArray(c.missing)||c.expected!==count+c.missing.length
-      ||c.missing.some(r=>['motion','character','status'].some(k=>typeof r[k]!=='string'||r[k].length>100)))throw Error('固定集覆盖数量无效');
-  }
-  return value;
-}
 async function get(path){const r=await fetch(path,{cache:'no-store'});const v=await r.json();if(!r.ok)throw Error(v.reason_code||'读取失败');return v;}
 function targets(){
   character.replaceChildren();pack.groups[Number(motion.value)].targets.forEach((t,i)=>character.add(new Option(t.label,String(i))));
