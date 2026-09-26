@@ -61,4 +61,8 @@ def inspect(request, character_files, candidate_files, receipt, runtime, visual=
         from .motion_related_contact import summary
         result['additional_checks']=summary(receipt['contact_audit'],candidate,skeleton,runtime,
                                             [f['time'] for f in ref['animations']['external-motion']])
+    if 'skirt_audit' in receipt:
+        from .motion_related_skirt import summary
+        result['skirt_checks']=summary(receipt['skirt_audit'],candidate,skeleton,
+                                      request['motion_identity'],max(t for _,_,t in expected))
     return result

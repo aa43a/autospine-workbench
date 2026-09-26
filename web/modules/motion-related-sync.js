@@ -8,6 +8,7 @@ export function createRelatedSync() {
       const sync=createCohortSync(status);controls.add(sync);
       if(end!==null)sync.seek(time,end);
       sync.attach(frame,artifact);
+      return ()=>{sync.clear();controls.delete(sync);};
     },
     seek(value,duration) {
       time=value;end=duration;
