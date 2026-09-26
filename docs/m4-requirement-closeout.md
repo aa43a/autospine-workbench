@@ -21,6 +21,7 @@
 - [真实 Kimodo 重跑](benchmark/m4-generation-replay-v1.json)及[新 Alice 捕获与交付](benchmark/m4-generation-replay-delivery-v1.json)
 - [完成审计及测试范围](m4-completion-audit.md)
 - [实际源动作内容观察](m4-source-category-inspection.md)
+- [改进候选同页阶段验收与导出](benchmark/m4-related-stage-review-v1.md)：独立记录、撤销及版本一致性；不提升基线技术结果，浏览器实测仍待恢复。
 
 ## 固定样本的适用边界
 

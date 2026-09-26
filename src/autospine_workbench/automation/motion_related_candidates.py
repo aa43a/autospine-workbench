@@ -68,24 +68,30 @@ def load(manager,job,digest):
     return value,files
 
 
-def download(value,files):
+def download(value,files,stage_review=None):
     from .motion_related_export import package
-    return package(value,files)
+    return package(value,files,stage_review)
 
 
 def read(manager,job,parts):
     if parts==['related-candidates.json']:
+        from .motion_related_review import from_verified
         rows=[]
         for digest in entries(manager.folder(job)):
-            value,_=load(manager,job,digest)
-            rows.append(dict(registration_sha256=digest,**value['evidence']))
+            value,files=load(manager,job,digest)
+            state=from_verified(manager,job,digest,value,files)
+            summary={k:state[k] for k in ('artifact_sha256','registration_sha256','revision',
+                                         'current','current_applies','evidence_sha256')}
+            rows.append(dict(registration_sha256=digest,stage_review=summary,**value['evidence']))
         return canonical_bytes(dict(rows=rows,baseline_sha256=baseline(manager,job),authority='none')),'application/json'
     if len(parts)<3 or parts[0]!='related-candidates':raise ValueError('motion_related_path_invalid')
     tail=parts[2:]
     if tail in (['report.json'],['candidate.zip']):
         value,files=load(manager,job,parts[1])
         if tail==['report.json']:return canonical_bytes(value['evidence']),'application/json'
-        return download(value,files),'application/zip'
+        from .motion_related_review import from_verified
+        state=from_verified(manager,job,parts[1],value,files)
+        return download(value,files,state),'application/zip'
     from .character_player import read as player
     _registration(manager,job,parts[1])
     # HTML, CSS and application scripts contain no candidate bytes. Defer the

@@ -7,6 +7,8 @@ from .motion_intake_jobs import MotionIntakeJobs
 
 
 def _methods(tail):
+    if len(tail) == 4 and tail[1] == 'related-candidates' and tail[3] == 'stage-review':
+        return 'GET, HEAD, POST, OPTIONS'
     if len(tail) == 3 and tail[1] in ('repair-material', 'view-pose-template'):
         return 'GET, HEAD, OPTIONS'
     if len(tail) == 2 and tail[1] in ('stage-review', 'repair-draft', 'material-return', 'material-mapping'):
@@ -80,6 +82,9 @@ def dispatch_motions(parts, handler, method):
             elif tail[1] == 'stage-review':
                 from .motion_stage_review import save
                 result = save(manager, tail[0], read_json_object_request(handler, maximum_bytes=20000))
+            elif tail[1] == 'related-candidates':
+                from .motion_related_review import save
+                result = save(manager, tail[0], tail[2], read_json_object_request(handler, maximum_bytes=20000))
             elif tail[1] == 'repair-draft':
                 from .motion_repair_draft import save
                 result = save(manager, tail[0], read_json_object_request(handler, maximum_bytes=128000))
@@ -109,6 +114,9 @@ def dispatch_motions(parts, handler, method):
                     raise PipelineRunError('motion_request_invalid')
                 result = getattr(manager, tail[1])(tail[0])
             handler._send_visual_json(202, result)
+        elif len(tail) == 4 and tail[1] == 'related-candidates':
+            from .motion_related_review import inspect
+            handler._send_visual_json(200, inspect(manager, tail[0], tail[2]))
         elif len(tail) == 3 and tail[1] == 'view-pose-template':
             from .motion_view_template import download as view_template
             handler._send_bytes(200, view_template(manager, tail[0], tail[2]), 'application/json',

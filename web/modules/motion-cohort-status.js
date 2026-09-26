@@ -102,10 +102,11 @@ export function createCohortStatus(parent,pack,onSelect){
         row.visual=review.current?(row.applies?(visualLabels[row.decision]||'未知结论'):`历史：${visualLabels[row.decision]||'未知结论'}；旧结论已过期，需复核`):'尚未验收';
         if(['legacy_empty_projection_fields','legacy_empty_diagnostic_fields'].includes(review.evidence_match))row.visual+='（仅新增空字段，原确认保留）';
         render();
+        const relatedVersion=row.relatedVersion;
         const related=await readRelatedSummary(get,row.t.job_id,row.t.artifact_sha256,signal);
         if(token!==generation)return;
         if(row.version!==version)continue;
-        row.related=related;
+        if(row.relatedVersion===relatedVersion)row.related=related;
       }catch(error){if(token!==generation)return;if(row.version!==version)continue;row.status='error';row.error='无法核对：'+error.message;row.visual='尚未核实';}
       render();
     }}
@@ -116,6 +117,12 @@ export function createCohortStatus(parent,pack,onSelect){
   window.addEventListener('motion-stage-review-saved',event=>{
     const row=rows.find(r=>r.t.job_id===event.detail?.jobId);if(!row)return;
     Object.assign(row,{version:(row.version||0)+1,loaded:false,status:'unread',applies:false,decision:null,notes:null,error:null,stages:null,visual:'结论已更新，请重新核对'});render();
+  });
+  window.addEventListener('motion-related-review-saved',event=>{
+    const row=rows.find(r=>r.t.job_id===event.detail?.jobId);if(!row)return;
+    row.relatedVersion=(row.relatedVersion||0)+1;
+    row.related={status:'unavailable',rows:[],message:'改进候选阶段结论已更新，请重新核对'};
+    render();
   });
   filter.onchange=render;
   relatedFilter.onchange=render;

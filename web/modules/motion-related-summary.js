@@ -14,8 +14,20 @@ export function relatedSummary(report, artifact) {
         ||visual.applies_to_other_candidates!==false||visual.production_authorized!==false))throw Error('关联视觉记录不匹配');
     const labels={accepted:'有独立阶段接受记录',accepted_with_exceptions:'阶段接受，保留异常',
       stage_accepted_with_retained_exceptions:'限定范围阶段接受，保留异常',rejected:'视觉需调整',revoked:'阶段记录已撤销'};
+    let conclusion=visual?(labels[visual.decision]||'独立阶段记录，范围见详情'):'尚无阶段视觉记录';
+    const state=row.stage_review;
+    if(state){
+      if(state.artifact_sha256!==row.candidate_sha256||state.registration_sha256!==row.registration_sha256
+          ||!Number.isInteger(state.revision)||state.revision<0)throw Error('关联阶段记录不匹配');
+      if(state.current){
+        if(state.current.registration_sha256!==row.registration_sha256||state.current.artifact_sha256!==row.candidate_sha256
+            ||state.current.revision!==state.revision||state.current.production_authorized!==false)throw Error('关联阶段记录不匹配');
+        const exact=state.current_applies===true&&state.current.evidence_sha256===state.evidence_sha256;
+        conclusion=(exact?'':'历史结论，当前证据需复核：')+(labels[state.current.decision]||'未知阶段记录');
+      }else if(state.revision!==0||state.current_applies===true)throw Error('关联阶段记录不匹配');
+    }
     return {registration:row.registration_sha256,artifact:row.candidate_sha256,
-      visual:visual?(labels[visual.decision]||'独立阶段记录，范围见详情'):'尚无阶段视觉记录'};
+      visual:conclusion};
   });
 }
 

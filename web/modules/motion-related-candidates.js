@@ -1,7 +1,8 @@
-// Related experiments are read-only; their decisions never update the baseline.
+// Related review journals are independent; their decisions never update the baseline.
 import {createRelatedSync} from './motion-related-sync.js';
 import {contactCheckText} from './motion-related-checks.js';
 import {appendSkirtChecks} from './motion-related-skirt.js';
+import {appendStageReview} from './motion-stage-review.js';
 export function appendRelatedCandidates(parent, job, {synchronize=false}={}) {
   const clock=synchronize?createRelatedSync():null;
   const controller=new AbortController();let disposed=false;
@@ -26,12 +27,12 @@ export function appendRelatedCandidates(parent, job, {synchronize=false}={}) {
       for(const row of report.rows){
         if(!/^[a-f0-9]{64}$/.test(row.registration_sha256)||!/^[a-f0-9]{64}$/.test(row.candidate_sha256))throw Error('候选身份无效');
         const detail=document.createElement('details'),summary=document.createElement('summary');
-        summary.textContent=`改进候选 ${row.candidate_sha256.slice(0,10)} · ${row.additional_checks?'含脚端复测 · ':''}${row.skirt_checks?'含遮挡定位 · ':''}对照播放与下载`;
+        summary.textContent=`改进候选 ${row.candidate_sha256.slice(0,10)} · 证据 ${row.registration_sha256.slice(0,8)} · ${row.additional_checks?'含脚端复测 · ':''}${row.skirt_checks?'含遮挡定位 · ':''}播放、验收与下载`;
         const note=document.createElement('p');
         note.textContent=`目标 Spine ${row.target_version||'未记录'}；实际 Runtime ${row.runtime_version}，${row.sampled_frames} 个已有采样。与原任务共享动作和角色来源，策略及结果不同；不替换原任务。关联与 Runtime 通过不代表接触、遮挡或视觉通过，原任务结论不沿用。`;
         const visual=document.createElement('p');
         const checks=document.createElement('p');checks.textContent=contactCheckText(row.additional_checks);
-        visual.textContent=row.visual ? `本候选阶段记录：${row.visual.user_response||row.visual.decision}。范围：${row.visual.scope}。保留异常：${(row.visual.retained_exceptions||[]).join('、')||'见记录'}。` : '本候选尚无阶段视觉记录。';
+        visual.textContent=row.visual ? `登记时保留的历史阶段记录：${row.visual.user_response||row.visual.decision}。范围：${row.visual.scope}。保留异常：${(row.visual.retained_exceptions||[]).join('、')||'见记录'}。当前结论请读取下方阶段验收。` : '可播放当前候选后，在下方记录阶段验收。';
         const path=base+'related-candidates/'+row.registration_sha256+'/';
         const play=document.createElement('button');play.textContent='加载改进候选时间轴';
         const syncStatus=document.createElement('p');syncStatus.setAttribute('role','status');
@@ -52,7 +53,10 @@ export function appendRelatedCandidates(parent, job, {synchronize=false}={}) {
         const evidence=document.createElement('a');evidence.textContent='查看关联依据';evidence.href=path+'report.json';evidence.target='_blank';evidence.rel='noopener';
         detail.append(summary,note,checks,visual);
         appendSkirtChecks(detail,row.skirt_checks,time=>show(time));
-        detail.append(playerHost,syncStatus,download,document.createTextNode(' · '),evidence);panel.append(detail);
+        detail.append(playerHost,syncStatus);
+        appendStageReview(detail,{job_id:job.job_id,result:{artifact_sha256:row.candidate_sha256}},
+          {registration:row.registration_sha256});
+        detail.append(download,document.createTextNode(' · '),evidence);panel.append(detail);
       }
     }catch(error){if(!disposed)panel.textContent=error.message;}
     finally{if(!disposed)button.disabled=false;}
