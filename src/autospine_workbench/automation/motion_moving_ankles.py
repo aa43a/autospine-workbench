@@ -30,7 +30,8 @@ def apply(document, name, motion, observation, times, reference, *, bundle_sha25
 def check(document, name, report, times, reference):
     """Measure actual final FK, including inserted interpolation samples."""
     trajectory = report['trajectory']
-    if (not 2 <= len(times) <= 4097 or times[0] != 0 or times[-1] != trajectory[-1]['time']
+    if (not 2 <= len(times) <= 4097 or times[0] != 0
+            or not math.isclose(times[-1], trajectory[-1]['time'], rel_tol=0, abs_tol=1e-6)
             or any(not math.isfinite(t) for t in times)
             or any(b <= a for a, b in zip(times, times[1:]))
             or not math.isfinite(reference) or reference <= 0):

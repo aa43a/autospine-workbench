@@ -10,8 +10,11 @@ from .contact_windows import for_motion
 
 def recheck(document, name, motion, contact, times, reference_length):
     duration = motion['duration_ticks'] / motion['ticks_per_second']
-    if (not 2 <= len(times) <= 4097 or times[0] != 0 or times[-1] != duration
-            or any(not math.isfinite(t) or t < 0 or t > duration for t in times)
+    # Exported float32 timeline keys can differ from integer-tick duration by
+    # sub-microsecond rounding. Keep actual samples; do not crop or rescale them.
+    if (not 2 <= len(times) <= 4097 or times[0] != 0
+            or not math.isclose(times[-1], duration, rel_tol=0, abs_tol=1e-6)
+            or any(not math.isfinite(t) or t < 0 or t > duration+1e-6 for t in times)
             or any(b <= a for a,b in zip(times,times[1:]))):
         raise ValueError('motion_final_contact_times_invalid')
     source = deepcopy(motion)
