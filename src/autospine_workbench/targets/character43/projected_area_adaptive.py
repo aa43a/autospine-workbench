@@ -3,7 +3,8 @@ from .affine_area_repair import repair
 from .projected_area_sampling import inspect
 
 
-def build(document,name,setup_vertices,*,samples=129,rounds=3,temporal=False,terminal_collar=False,progress=None,proximal_ring=False,preserve_area=False,repair_band=False,fixed_band=False,interpolation_margin=False,dual_floor=False):
+def build(document,name,setup_vertices,*,samples=129,rounds=3,temporal=False,terminal_collar=False,progress=None,proximal_ring=False,preserve_area=False,repair_band=False,fixed_band=False,interpolation_margin=False,dual_floor=False,additive=False):
+    if type(additive) is not bool:raise ValueError('character_affine_additive_mode_invalid')
     if interpolation_margin and not fixed_band:raise ValueError('interpolation_margin_requires_fixed_band')
     if type(rounds) is not int or not 1 <= rounds <= 5:
         raise ValueError('projected_area_refinement_rounds')
@@ -18,6 +19,7 @@ def build(document,name,setup_vertices,*,samples=129,rounds=3,temporal=False,ter
             **({'repair_band':True} if repair_band else {}),
             **({'fixed_band':True} if fixed_band else {}),
             **({'area_margins':margins} if interpolation_margin else {}),
+            **({'additive':True} if additive else {}),
             **({'progress':progress} if progress else {}))
         if progress:progress(dict(stage='check_interpolation',iteration=iteration))
         checked=inspect(result,name,[r['slot'] for r in evidence['records']],dual_floor=dual_floor,

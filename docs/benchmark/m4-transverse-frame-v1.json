@@ -1,0 +1,287 @@
+{
+  "profile": "m4-transverse-frame-three-structure-v1",
+  "date": "2026-09-26",
+  "status": "experimental_candidates_not_adopted",
+  "authority": "none",
+  "selected": false,
+  "validation_scope": "same_grid_geometry_and_official_cpu_not_browser_gpu_or_visual",
+  "invariants_verified": [
+    "bones_slots_skins_unchanged",
+    "all_bone_animation_tracks_unchanged",
+    "unselected_deforms_unchanged",
+    "png_atlas_and_motionir_bytes_unchanged"
+  ],
+  "rows": [
+    {
+      "parent_artifact": "3b8c76f2fb24830c1735f3f8b7d6efde25ccc8e421356ef8515b9e8638418756",
+      "candidate_bundle_sha256": "9bef1fcba0fee1ad718d1392b31ffd48c95183a5eff71ad092ce10586a2ce2c3",
+      "skeleton_sha256": "3e2ad97bf01c10c9cfcb270b5286af307b369ead235653f4118ce6632e806ca0",
+      "slots": [
+        "layer-001-l",
+        "layer-001-r"
+      ],
+      "sample_count": 1245,
+      "official_cpu": {
+        "authority": "none",
+        "frames": 129,
+        "limit_px": 0.01,
+        "maximum_error_px": 0.00009574599934752913,
+        "passed": true,
+        "reference_frames": 1245,
+        "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+        "scope": "sampled_official_runtime_cpu_vertices_no_gpu_capture_or_visual_acceptance",
+        "selected": false,
+        "skeleton_sha256": "3e2ad97bf01c10c9cfcb270b5286af307b369ead235653f4118ce6632e806ca0",
+        "source_candidate": "3b8c76f2fb24830c1735f3f8b7d6efde25ccc8e421356ef8515b9e8638418756",
+        "vertices": 53664
+      },
+      "contact_status": "inferred_proxy_passed",
+      "fixed_area_blocked_slots": [],
+      "joint_correction_passed": true,
+      "gpu_status": "not_run",
+      "visual_status": "not_reviewed",
+      "selected": false,
+      "authority": "none",
+      "character": "alice",
+      "report": "E:\\proj\\unusual\\localset\\tmp\\m4-transverse-frame-v2\\alice\\report.json",
+      "whole_geometry_passed": false,
+      "metrics": [
+        {
+          "slot": "layer-001-l",
+          "before": {
+            "passed": false,
+            "min_area_ratio": 0.47646913679604386,
+            "max_area_ratio": 1.889780358955932,
+            "max_edge_stretch": 1.8977213405466054,
+            "inversion_samples": 0,
+            "failing_frame_count": 279
+          },
+          "after": {
+            "passed": true,
+            "min_area_ratio": 0.5260174915571394,
+            "max_area_ratio": 1.8853237165707206,
+            "max_edge_stretch": 1.9000000000000286,
+            "inversion_samples": 0,
+            "failing_frame_count": 0
+          }
+        },
+        {
+          "slot": "layer-001-r",
+          "before": {
+            "passed": false,
+            "min_area_ratio": 0.3112298513383817,
+            "max_area_ratio": 1.9088420742902041,
+            "max_edge_stretch": 1.903940162139724,
+            "inversion_samples": 0,
+            "failing_frame_count": 771
+          },
+          "after": {
+            "passed": true,
+            "min_area_ratio": 0.5048826451433457,
+            "max_area_ratio": 1.896498948007954,
+            "max_edge_stretch": 1.9000342369752794,
+            "inversion_samples": 0,
+            "failing_frame_count": 0
+          }
+        }
+      ],
+      "transverse": {
+        "maximum_displacement_px": {
+          "layer-001-l": 0.8229202959286526,
+          "layer-001-r": 21.28693689021186
+        },
+        "maximum_interpolation_error_px": 0.0067047226111262735,
+        "sample_count": 312,
+        "validation_sample_count": 1245,
+        "bones": [
+          "calf_l",
+          "calf_r",
+          "foot_l",
+          "foot_r",
+          "thigh_l",
+          "thigh_r"
+        ]
+      }
+    },
+    {
+      "parent_artifact": "ea6dfdb756455e642867824a9cfe396c2dcc434b01435b060560205d9de9046c",
+      "candidate_bundle_sha256": "6ec3776f3761bc7d01471dfa0114ba5050b375021befe83f87abc7cb49134f5f",
+      "skeleton_sha256": "5f7bc44c51b021ff6865d969787103f0c459fda4a54eeb837e94a498b39b875d",
+      "slots": [
+        "layer-003",
+        "layer-004"
+      ],
+      "sample_count": 1521,
+      "official_cpu": {
+        "authority": "none",
+        "frames": 129,
+        "limit_px": 0.01,
+        "maximum_error_px": 0.00021780147293052528,
+        "passed": true,
+        "reference_frames": 1521,
+        "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+        "scope": "sampled_official_runtime_cpu_vertices_no_gpu_capture_or_visual_acceptance",
+        "selected": false,
+        "skeleton_sha256": "5f7bc44c51b021ff6865d969787103f0c459fda4a54eeb837e94a498b39b875d",
+        "source_candidate": "ea6dfdb756455e642867824a9cfe396c2dcc434b01435b060560205d9de9046c",
+        "vertices": 47085
+      },
+      "contact_status": "inferred_proxy_passed",
+      "fixed_area_blocked_slots": [
+        "layer-004"
+      ],
+      "joint_correction_passed": false,
+      "gpu_status": "not_run",
+      "visual_status": "not_reviewed",
+      "selected": false,
+      "authority": "none",
+      "character": "hongmeiling",
+      "report": "E:\\proj\\unusual\\localset\\tmp\\m4-transverse-frame-v2\\hongmeiling\\report.json",
+      "whole_geometry_passed": false,
+      "metrics": [
+        {
+          "slot": "layer-003",
+          "before": {
+            "passed": false,
+            "min_area_ratio": 0.45496263414234644,
+            "max_area_ratio": 1.8922754602754746,
+            "max_edge_stretch": 1.7995598733104343,
+            "inversion_samples": 0,
+            "failing_frame_count": 496
+          },
+          "after": {
+            "passed": true,
+            "min_area_ratio": 0.5049995845227512,
+            "max_area_ratio": 1.8953854242414874,
+            "max_edge_stretch": 1.85055251567858,
+            "inversion_samples": 0,
+            "failing_frame_count": 0
+          }
+        },
+        {
+          "slot": "layer-004",
+          "before": {
+            "passed": false,
+            "min_area_ratio": 0.16452231751819638,
+            "max_area_ratio": 1.9211461837684096,
+            "max_edge_stretch": 1.9793099477248175,
+            "inversion_samples": 0,
+            "failing_frame_count": 966
+          },
+          "after": {
+            "passed": false,
+            "min_area_ratio": 0.1641180946313716,
+            "max_area_ratio": 1.896993910849066,
+            "max_edge_stretch": 1.9003992018913785,
+            "inversion_samples": 0,
+            "failing_frame_count": 1040
+          }
+        }
+      ],
+      "transverse": {
+        "maximum_displacement_px": {
+          "layer-003": 5.941669121301097,
+          "layer-004": 105.42633686734517
+        },
+        "maximum_interpolation_error_px": 0.043526232108911815,
+        "sample_count": 381,
+        "validation_sample_count": 1522,
+        "bones": [
+          "calf_l",
+          "calf_r",
+          "foot_l",
+          "foot_r",
+          "thigh_l",
+          "thigh_r"
+        ]
+      }
+    },
+    {
+      "parent_artifact": "4c662e516865ea93414f848e4c6add33b7cddf78bed63a58908557a32ce59aee",
+      "candidate_bundle_sha256": "4d1bafa381e6de5cd33f96e1dda433939eea9e4cbdfcb29dbee2177037d54d35",
+      "skeleton_sha256": "bc07cdc504fc617fb13d4f78beef2d197639a98a3468a542b06622452a92d28c",
+      "slots": [
+        "layer-001-l",
+        "layer-001-r"
+      ],
+      "sample_count": 1421,
+      "official_cpu": {
+        "authority": "none",
+        "frames": 129,
+        "limit_px": 0.01,
+        "maximum_error_px": 0.0002185856220073907,
+        "passed": true,
+        "reference_frames": 1421,
+        "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+        "scope": "sampled_official_runtime_cpu_vertices_no_gpu_capture_or_visual_acceptance",
+        "selected": false,
+        "skeleton_sha256": "bc07cdc504fc617fb13d4f78beef2d197639a98a3468a542b06622452a92d28c",
+        "source_candidate": "4c662e516865ea93414f848e4c6add33b7cddf78bed63a58908557a32ce59aee",
+        "vertices": 68241
+      },
+      "contact_status": "inferred_proxy_passed",
+      "fixed_area_blocked_slots": [],
+      "joint_correction_passed": true,
+      "gpu_status": "not_run",
+      "visual_status": "not_reviewed",
+      "selected": false,
+      "authority": "none",
+      "character": "huiye",
+      "report": "E:\\proj\\unusual\\localset\\tmp\\m4-transverse-frame-v2\\huiye-validated\\report.json",
+      "whole_geometry_passed": true,
+      "metrics": [
+        {
+          "slot": "layer-001-l",
+          "before": {
+            "passed": true,
+            "min_area_ratio": 0.7654853362437068,
+            "max_area_ratio": 1,
+            "max_edge_stretch": 1.9467600596075023,
+            "inversion_samples": 0,
+            "failing_frame_count": 0
+          },
+          "after": {
+            "passed": true,
+            "min_area_ratio": 0.7654853362437114,
+            "max_area_ratio": 1,
+            "max_edge_stretch": 1.0212940471460048,
+            "inversion_samples": 0,
+            "failing_frame_count": 0
+          }
+        },
+        {
+          "slot": "layer-001-r",
+          "before": {
+            "passed": true,
+            "min_area_ratio": 0.9246248436875211,
+            "max_area_ratio": 1,
+            "max_edge_stretch": 1.0339091923833763,
+            "inversion_samples": 0,
+            "failing_frame_count": 0
+          },
+          "after": {
+            "passed": true,
+            "min_area_ratio": 0.9246248436874753,
+            "max_area_ratio": 1,
+            "max_edge_stretch": 1.0120221081810845,
+            "inversion_samples": 0,
+            "failing_frame_count": 0
+          }
+        }
+      ],
+      "transverse": {
+        "maximum_displacement_px": {
+          "layer-001-l": 76.46719266540505,
+          "layer-001-r": 4.089002629856529
+        },
+        "maximum_interpolation_error_px": 0.0482690056358658,
+        "sample_count": 356,
+        "validation_sample_count": 1423,
+        "bones": [
+          "foot_l",
+          "foot_r"
+        ]
+      }
+    }
+  ]
+}
