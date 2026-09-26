@@ -4,7 +4,7 @@ import {contactCheckText} from './motion-related-checks.js';
 import {appendSkirtChecks} from './motion-related-skirt.js';
 import {appendPoseChecks} from './motion-related-pose.js';
 import {appendStageReview} from './motion-stage-review.js';
-export function appendRelatedCandidates(parent, job, {synchronize=false}={}) {
+export function appendRelatedCandidates(parent, job, {synchronize=false,sourceRange=null}={}) {
   const clock=synchronize?createRelatedSync():null;
   const controller=new AbortController();let disposed=false;
   function clear(){disposed=true;controller.abort();clock?.clear();window.removeEventListener('pagehide',clear);}
@@ -46,7 +46,11 @@ export function appendRelatedCandidates(parent, job, {synchronize=false}={}) {
           const frame=document.createElement('iframe');frame.title='关联改进候选时间轴';
           frame.src=path+'player.html'+(time===null?'':`?time=${encodeURIComponent(time)}`);frame.style.cssText='width:100%;height:65vh;border:0';
           playerHost.replaceChildren(frame);
-          if(time===null)detach=clock?.attach(frame,row.candidate_sha256,syncStatus);
+          const clip=sourceRange?.clip,relatedClip=row.pose_checks?.clip;
+          const matchingClip=!clip&&!relatedClip||clip&&relatedClip
+            &&clip.start_frame===relatedClip.start_frame&&clip.end_frame===relatedClip.end_frame;
+          if(time===null&&matchingClip)detach=clock?.attach(frame,row.candidate_sha256,syncStatus,sourceRange);
+          else if(time===null)syncStatus.textContent='片段对应关系尚未核实，保留独立时间轴。';
           else syncStatus.textContent='已定位指定姿态，当前使用独立时间轴；不改变源动作播放位置。';
         };
         play.onclick=()=>show();

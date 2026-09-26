@@ -127,6 +127,12 @@ def runtime_reader(manager, job, result):
 
 
 def review_file(manager, job, parts):
+    if parts == ['source-link.json']:
+        from .motion_source_comparison import link
+        value = manager.get(job)
+        if value.get('kind') != 'adapt' or value.get('status') != 'succeeded':
+            raise PipelineRunError('motion_preview_unavailable')
+        return json.dumps(link(manager, job, value['result']), allow_nan=False).encode('utf-8'), 'application/json'
     if parts == ['repair-blocker.json']:
         from .motion_repair_feasibility import read
         return read(manager, job)

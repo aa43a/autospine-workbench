@@ -5,16 +5,20 @@ const {chromium}=createRequire(process.argv[2]+'/package.json')('playwright-core
 const browser=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
 try{
   const page=await browser.newPage();await page.setContent('<main></main>');
-  await page.addScriptTag({content:fs.readFileSync('web/modules/motion-cohort-delivery.js','utf8').replaceAll('export ','')});
-  await page.addScriptTag({content:fs.readFileSync('web/modules/motion-cohort-status.js','utf8').replace(/^import .*\n/,'').replace('export function','function')});
+  for(const name of ['motion-cohort-delivery','motion-related-summary','motion-cohort-visual','motion-cohort-source','motion-cohort-status'])
+    await page.addScriptTag({content:fs.readFileSync(`web/modules/${name}.js`,'utf8').replace(/^import .*\r?\n/gm,'').replaceAll('export ','')});
   await page.evaluate(()=>{
     window.calls=[];window.stale=false;
     window.fetch=async(url,options)=>{
       calls.push({url,method:options.method||'GET'});
       const id=url.split('/')[3];const review=url.endsWith('/stage-review');
-      return {ok:true,json:async()=>id==='source'?{status:'succeeded',source_sha256:'sourcehash'}:
+      return {ok:true,json:async()=>id==='source'?{job_id:'source',status:'succeeded',source_sha256:'sourcehash',
+        result:{motion:{motion_ir_sha256:'ir'},fps:30,frame_count:121,duration_seconds:4}}:
+        url.endsWith('/source-link.json')?{authority:'none',target_job_id:id,artifact_sha256:id,
+          source_job_id:'source',source_sha256:'sourcehash',motion_identity:{motion_ir_sha256:'ir'},
+          source_fps:30,source_frame_count:121,source_duration:4,source_start:0,source_end:4,duration:4,clip:null}:
         review?{artifact_sha256:stale&&id==='b'?'changed':id,readiness:{artifact_sha256:id,status:id==='a'?'stage_review':'needs_changes',stages:id==='c'?undefined:[{stage:'几何',status:id==='a'?'sampled_pass':'needs_changes',explanation:'局部面积检查'},{stage:'投影',status:'sampled_pass'}]},current_applies:id!=='c',current:{decision:'accepted_with_exceptions'}}:
-        {kind:'adapt',status:'succeeded',result:{artifact_sha256:id}}};
+        {job_id:id,kind:'adapt',status:'succeeded',result:{artifact_sha256:id}}};
     };
     createCohortStatus(document.querySelector('main'),{groups:[{job_id:'source',source_sha256:'sourcehash',label:'reach',targets:['a','b','c'].map(job_id=>({job_id,artifact_sha256:job_id,label:job_id}))}],coverage:{expected:4,available:3,missing:[{motion:'squat',character:'d',status:'failed'}]}},(mi,ci)=>window.selected=[mi,ci]);
   });

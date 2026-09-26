@@ -1,6 +1,7 @@
 import {deliveryLabels,deliveryState,deliveryCounts} from './motion-cohort-delivery.js';
 import {readRelatedSummary,relatedCounts} from './motion-related-summary.js';
 import {visualFilters,matchesVisual,visualNotes} from './motion-cohort-visual.js';
+import {verifyCohortSource} from './motion-cohort-source.js';
 const node=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n;};
 const visualLabels={accepted:'阶段接受',accepted_with_exceptions:'阶段接受，保留异常',rejected:'需调整',revoked:'已撤销'};
 export function createCohortStatus(parent,pack,onSelect){
@@ -94,6 +95,8 @@ export function createCohortStatus(parent,pack,onSelect){
         if(source.status!=='succeeded'||source.source_sha256!==row.g.source_sha256)throw Error('来源身份已变化');
         const job=await get('/api/motions/'+row.t.job_id,signal);
         if(job.kind!=='adapt'||job.status!=='succeeded'||job.result?.artifact_sha256!==row.t.artifact_sha256)throw Error('候选身份已变化');
+        const sourceLink=await get('/api/motions/'+row.t.job_id+'/view/source-link.json',signal);
+        verifyCohortSource(source,job,sourceLink,row.g,row.t.artifact_sha256);
         const review=await get('/api/motions/'+row.t.job_id+'/stage-review',signal);
         if(review.artifact_sha256!==row.t.artifact_sha256||review.readiness?.artifact_sha256!==row.t.artifact_sha256)throw Error('检查身份不匹配');
         if(token!==generation)return;
@@ -107,7 +110,7 @@ export function createCohortStatus(parent,pack,onSelect){
         if(token!==generation)return;
         if(row.version!==version)continue;
         if(row.relatedVersion===relatedVersion)row.related=related;
-      }catch(error){if(token!==generation)return;if(row.version!==version)continue;row.status='error';row.error='无法核对：'+error.message;row.visual='尚未核实';}
+      }catch(error){if(token!==generation)return;if(row.version!==version)continue;Object.assign(row,{loaded:false,applies:false,decision:null,notes:null,stages:null,related:null});row.status='error';row.error='无法核对：'+error.message;row.visual='尚未核实';}
       render();
     }}
     try{await Promise.all([worker(),worker()]);}

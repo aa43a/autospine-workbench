@@ -118,13 +118,38 @@ test('new review supersedes imported acceptance in summary; revoke and stale sta
   state.current.registration_sha256=second;assert.throws(()=>relatedSummary(report,baseline));
 });
 
+test('clipped related playback uses matching offset and otherwise stays independent',async()=>{
+  for(const matching of [false,true]) {
+    harness();
+    const clip={start_frame:30,end_frame:60},calls=[];
+    const row={registration_sha256:registration,candidate_sha256:artifact,runtime_version:'4.3.13',
+      sampled_frames:2,pose_checks:{clip:matching?clip:{start_frame:60,end_frame:90},limbs:[],events:[]}};
+    globalThis.fetch=async()=>({ok:true,json:async()=>({baseline_sha256:baseline,rows:[row]})});
+    const root=new Node('main'),ui=appendRelatedCandidates(root,{...job,result:{artifact_sha256:baseline}},
+      {synchronize:true,sourceRange:{start:1,end:2,duration:1,clip}});
+    ui.seek(1.5,2);await find(root,'查看已关联改进候选').onclick();
+    find(root,'加载改进候选时间轴').onclick();
+    const frame=walk(root).find(n=>n.tag==='iframe');frame.contentWindow={
+      characterPlayerControl:{artifact,seek:t=>{calls.push(t);return true;}},characterPlayerState:{duration:1}};
+    ui.seek(1.75,2);
+    assert.deepEqual(calls,matching?[.75]:[]);
+    if(!matching)assert.ok(walk(root).some(n=>n.textContent==='片段对应关系尚未核实，保留独立时间轴。'));
+    ui.clear();
+  }
+});
+
 test('saving related review during a cohort read invalidates only related status, including late replies',async()=>{
   const listeners=new Map();globalThis.window={addEventListener:(type,listener)=>listeners.set(type,listener)};
   let release,notify;const started=new Promise(resolve=>notify=resolve);
   const pending=new Promise(resolve=>release=resolve);
   globalThis.fetch=async url=>({ok:true,json:async()=>{
-    if(url==='/api/motions/source')return {status:'succeeded',source_sha256:'source-sha'};
+    if(url==='/api/motions/source')return {job_id:'source',status:'succeeded',source_sha256:'source-sha',
+      result:{motion:{motion_ir_sha256:'ir'},fps:30,frame_count:121,duration_seconds:4}};
     if(url==='/api/motions/motion-test')return {...job,kind:'adapt',status:'succeeded'};
+    if(url.endsWith('/source-link.json'))return {authority:'none',target_job_id:job.job_id,
+      artifact_sha256:artifact,source_job_id:'source',source_sha256:'source-sha',
+      motion_identity:{motion_ir_sha256:'ir'},source_fps:30,source_frame_count:121,source_duration:4,
+      source_start:0,source_end:4,duration:4,clip:null};
     if(url.endsWith('/stage-review'))return {...baseState(),readiness:{...baseState().readiness,status:'needs_changes'}};
     notify();return pending;
   }});

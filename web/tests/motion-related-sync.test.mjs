@@ -15,6 +15,8 @@ clock.clear();clock.seek(3,4);
 assert.equal(calls.length,4);
 clock.attach(frame('new',4),'new',{});
 assert.deepEqual(calls.at(-1),['new',3]);clock.clear();
+clock.seek(2.5,3);clock.attach(frame('clip',1),'clip',{}, {start:2,end:3});
+assert.deepEqual(calls.at(-1),['clip',.5]);clock.clear();
 for(const [time,end,target] of [[NaN,4,4],[1,Infinity,4],[5,4,4],[1,4,NaN]]){
   const guarded=createRelatedSync(),status={},before=calls.length;
   guarded.seek(time,end);guarded.attach(frame('guard',target),'guard',status);

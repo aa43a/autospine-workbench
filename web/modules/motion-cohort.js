@@ -12,6 +12,7 @@ import {createCohortStatus} from './motion-cohort-status.js';
 import {appendDepthSummary} from './motion-depth-summary.js';
 import {navigationPack} from './motion-cohort-entry.js';
 import {appendRelatedCandidates} from './motion-related-candidates.js';
+import {verifyCohortSource} from './motion-cohort-source.js';
 const byId=id=>document.getElementById(id), motion=byId('motion'),character=byId('character');
 const sync=createCohortSync(byId('sync-status'));
 let related=null;
@@ -57,19 +58,21 @@ async function show(){
     const [source,job]=await Promise.all([get(`/api/motions/${g.job_id}`),get(`/api/motions/${t.job_id}`)]);
     if(version!==revision)return;
     if(source.status!=='succeeded'||source.source_sha256!==g.source_sha256||job.status!=='succeeded'||job.kind!=='adapt'||job.result?.artifact_sha256!==t.artifact_sha256)throw Error('来源或候选身份已变化，请重新生成复核清单');
-    const preview=await get(`/api/motions/${g.job_id}/preview`);if(version!==revision)return;
-    player.load(preview);byId('target-title').textContent=`${g.label} · ${t.label}`;
+    const comparison=await get(`/api/motions/${t.job_id}/view/source-comparison.json`);if(version!==revision)return;
+    const range=verifyCohortSource(source,job,comparison,g,t.artifact_sha256);
+    const seekTarget=time=>{if(version===revision)player.seek(range.start+time);};
+    player.load(comparison.preview,range);byId('target-title').textContent=`${g.label} · ${t.label}`;
     const frame=document.createElement('iframe');frame.title=`${t.label} 角色动作时间轴`;frame.src=`/api/motions/${t.job_id}/view/player.html`;byId('target').append(frame);
-    sync.attach(frame,t.artifact_sha256);
+    sync.attach(frame,t.artifact_sha256,range);
     experiments.load(t.job_id);
-    appendKneeDetails(byId('review'),`/api/motions/${t.job_id}/view/`,t.artifact_sha256,time=>{if(version===revision)player.seek(time);});
+    appendKneeDetails(byId('review'),`/api/motions/${t.job_id}/view/`,t.artifact_sha256,seekTarget);
     appendStageReview(byId('review'),job);
-    related=appendRelatedCandidates(byId('review'),job,{synchronize:true});
+    related=appendRelatedCandidates(byId('review'),job,{synchronize:true,sourceRange:range});
     related.seek(Number(byId('time').value),Number(byId('time').max));
     appendCandidateDownload(byId('review'),job);
     const inspection={onSeek:time=>{
       if(version!==revision)return;
-      player.seek(time);
+      seekTarget(time);
       frame.scrollIntoView({block:'nearest'});
     },onInspect:(slot,triangle,animation)=>{
       if(version===revision)sync.inspect(slot,triangle,animation);
@@ -79,11 +82,11 @@ async function show(){
     appendReadiness(byId('review'),job,null,inspection);
     appendDepthSummary(byId('review'),job,inspection);
     appendTargetComparison(byId('review'),job,get,{onOpen:row=>{
-      if(version===revision)alternative.open(row,g.source_sha256);
+      if(version===revision)alternative.open(row,g.source_sha256,range);
     }});
     appendRotationDetails(byId('review'),job,{onSeek:time=>{
       if(version!==revision)return;
-      player.seek(time);
+      seekTarget(time);
       frame.scrollIntoView({block:'nearest'});
     }});
     byId('status').textContent='已核对版本。查看角色动作后，可直接在本页保存阶段结论；不会自动确认。';

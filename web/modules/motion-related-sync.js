@@ -4,10 +4,10 @@ import {createCohortSync} from './motion-cohort-sync.js';
 export function createRelatedSync() {
   const controls=new Set();let time=0,end=null;
   return {
-    attach(frame,artifact,status) {
+    attach(frame,artifact,status,sourceRange=null) {
       const sync=createCohortSync(status);controls.add(sync);
       if(end!==null)sync.seek(time,end);
-      sync.attach(frame,artifact);
+      sync.attach(frame,artifact,sourceRange);
       return ()=>{sync.clear();controls.delete(sync);};
     },
     seek(value,duration) {

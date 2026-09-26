@@ -1,0 +1,672 @@
+{
+  "profile": "m4-cohort-source-time-binding-v1",
+  "checked_at": "2026-09-26T10:11:13.038Z",
+  "fixed_candidates": 24,
+  "clipped_candidates": 1,
+  "rows": [
+    {
+      "cell": "breathing/alice",
+      "fixed": true,
+      "job_id": "motion-bf659c34670d4319aab72cf673f1d3d7",
+      "artifact_sha256": "8b1a2c9f30d9d341828fd8931faa3e1d2d2f15c7109cec7574d98764e89f3d7b",
+      "source_job_id": "motion-c52561d5d07946539a8ca0da57e218e0",
+      "source_sha256": "67bf8b91cb77fec8873bb059cddcb96198c9ca348a16cfa6eb60171dabbd5370",
+      "motion_ir_sha256": "a58b48eee62e87aa4963c29e9a6d61a62b6af9023497ef2bc1999ea7c6e55ecc",
+      "source_start": 0,
+      "source_end": 9.933333333333334,
+      "target_duration": 9.933333,
+      "clip": null,
+      "mapped_source_times": [
+        0,
+        7.45,
+        2.4833333333333334,
+        9.933333333333334
+      ],
+      "mapped_target_times": [
+        0,
+        7.45,
+        2.4833333333333334,
+        9.933333
+      ],
+      "source_relationship_verified": true
+    },
+    {
+      "cell": "breathing/huiye",
+      "fixed": true,
+      "job_id": "motion-71be588acdfe4c4db3777c98c1ae733e",
+      "artifact_sha256": "6d4d72c931da6e8e6a35c3ff3c12b2ef92221f794e1c6f4ba21f0e654cc1e038",
+      "source_job_id": "motion-c52561d5d07946539a8ca0da57e218e0",
+      "source_sha256": "67bf8b91cb77fec8873bb059cddcb96198c9ca348a16cfa6eb60171dabbd5370",
+      "motion_ir_sha256": "a58b48eee62e87aa4963c29e9a6d61a62b6af9023497ef2bc1999ea7c6e55ecc",
+      "source_start": 0,
+      "source_end": 9.933333333333334,
+      "target_duration": 9.933333,
+      "clip": null,
+      "mapped_source_times": [
+        0,
+        7.45,
+        2.4833333333333334,
+        9.933333333333334
+      ],
+      "mapped_target_times": [
+        0,
+        7.45,
+        2.4833333333333334,
+        9.933333
+      ],
+      "source_relationship_verified": true
+    },
+    {
+      "cell": "breathing/hongmeiling",
+      "fixed": true,
+      "job_id": "motion-f151d1a412154c379ddd324526e463dd",
+      "artifact_sha256": "db485dbc559b5dd7858b6224def0f7a56838e76733c6351f1cdfb7b237cbef4a",
+      "source_job_id": "motion-c52561d5d07946539a8ca0da57e218e0",
+      "source_sha256": "67bf8b91cb77fec8873bb059cddcb96198c9ca348a16cfa6eb60171dabbd5370",
+      "motion_ir_sha256": "a58b48eee62e87aa4963c29e9a6d61a62b6af9023497ef2bc1999ea7c6e55ecc",
+      "source_start": 0,
+      "source_end": 9.933333333333334,
+      "target_duration": 9.933333,
+      "clip": null,
+      "mapped_source_times": [
+        0,
+        7.45,
+        2.4833333333333334,
+        9.933333333333334
+      ],
+      "mapped_target_times": [
+        0,
+        7.45,
+        2.4833333333333334,
+        9.933333
+      ],
+      "source_relationship_verified": true
+    },
+    {
+      "cell": "walking/alice",
+      "fixed": true,
+      "job_id": "motion-9e472d3c8a7148ae8b3a0695d1d7feea",
+      "artifact_sha256": "aabcb621b78368fc0d4ad1efda103e47d9661265b4460ee6f1485a1aad887c85",
+      "source_job_id": "motion-1f52729769af473084912644f9d16765",
+      "source_sha256": "ba4923f188ee8580dbe07f79191c154cbad0425ba71a74229eeeba40ea015a68",
+      "motion_ir_sha256": "f24b63fc9a949933243dc1163dbedeb8e0091d27b04e6b9389b519c1b211f663",
+      "source_start": 0,
+      "source_end": 4.033333333333333,
+      "target_duration": 4.033333,
+      "clip": null,
+      "mapped_source_times": [
+        0,
+        3.025,
+        1.0083333333333333,
+        4.033333333333333
+      ],
+      "mapped_target_times": [
+        0,
+        3.025,
+        1.0083333333333333,
+        4.033333
+      ],
+      "source_relationship_verified": true
+    },
+    {
+      "cell": "walking/huiye",
+      "fixed": true,
+      "job_id": "motion-e938b620ba1a408997dd6091e9cc14c6",
+      "artifact_sha256": "d967df3868862af8c85b2c525f960074d7b5f917bf835db2eacf6535147d7fd1",
+      "source_job_id": "motion-1f52729769af473084912644f9d16765",
+      "source_sha256": "ba4923f188ee8580dbe07f79191c154cbad0425ba71a74229eeeba40ea015a68",
+      "motion_ir_sha256": "f24b63fc9a949933243dc1163dbedeb8e0091d27b04e6b9389b519c1b211f663",
+      "source_start": 0,
+      "source_end": 4.033333333333333,
+      "target_duration": 4.033333,
+      "clip": null,
+      "mapped_source_times": [
+        0,
+        3.025,
+        1.0083333333333333,
+        4.033333333333333
+      ],
+      "mapped_target_times": [
+        0,
+        3.025,
+        1.0083333333333333,
+        4.033333
+      ],
+      "source_relationship_verified": true
+    },
+    {
+      "cell": "walking/hongmeiling",
+      "fixed": true,
+      "job_id": "motion-3cef343ab24c446c88b6a0ffcfa4aab7",
+      "artifact_sha256": "6b09b21250312ccba465b4115a61536f7b192d3f84c5f939dd180751d86ab175",
+      "source_job_id": "motion-1f52729769af473084912644f9d16765",
+      "source_sha256": "ba4923f188ee8580dbe07f79191c154cbad0425ba71a74229eeeba40ea015a68",
+      "motion_ir_sha256": "f24b63fc9a949933243dc1163dbedeb8e0091d27b04e6b9389b519c1b211f663",
+      "source_start": 0,
+      "source_end": 4.033333333333333,
+      "target_duration": 4.033333,
+      "clip": null,
+      "mapped_source_times": [
+        0,
+        3.025,
+        1.0083333333333333,
+        4.033333333333333
+      ],
+      "mapped_target_times": [
+        0,
+        3.025,
+        1.0083333333333333,
+        4.033333
+      ],
+      "source_relationship_verified": true
+    },
+    {
+      "cell": "raise-arms/alice",
+      "fixed": true,
+      "job_id": "motion-23fdfd4259864891a1c22e7d3f58ba63",
+      "artifact_sha256": "09df7a84b5ca687628c0e105e9f94a80f327b1d02132603ea97a849afc7406e9",
+      "source_job_id": "motion-706de065008b4e9dbdaea14b7cb3c64e",
+      "source_sha256": "779dcb5c003f715905f48eafaea706c4ab524d97c7554f6b90c178bff5eecdc9",
+      "motion_ir_sha256": "2393e9081dd8b4d4d7c89c2061fe3645303c5092c098a0f7752a0dbb1049237e",
+      "source_start": 0,
+      "source_end": 1.9,
+      "target_duration": 1.9,
+      "clip": null,
+      "mapped_source_times": [
+        0,
+        1.4249999999999998,
+        0.475,
+        1.9
+      ],
+      "mapped_target_times": [
+        0,
+        1.4249999999999998,
+        0.475,
+        1.9
+      ],
+      "source_relationship_verified": true
+    },
+    {
+      "cell": "raise-arms/huiye",
+      "fixed": true,
+      "job_id": "motion-9ee3582ab88445a792f5c38462d84f87",
+      "artifact_sha256": "2af625cef32b89e3e427ed8432acacb412d641e9630aa4dd027632158f5aff27",
+      "source_job_id": "motion-706de065008b4e9dbdaea14b7cb3c64e",
+      "source_sha256": "779dcb5c003f715905f48eafaea706c4ab524d97c7554f6b90c178bff5eecdc9",
+      "motion_ir_sha256": "2393e9081dd8b4d4d7c89c2061fe3645303c5092c098a0f7752a0dbb1049237e",
+      "source_start": 0,
+      "source_end": 1.9,
+      "target_duration": 1.9,
+      "clip": null,
+      "mapped_source_times": [
+        0,
+        1.4249999999999998,
+        0.475,
+        1.9
+      ],
+      "mapped_target_times": [
+        0,
+        1.4249999999999998,
+        0.475,
+        1.9
+      ],
+      "source_relationship_verified": true
+    },
+    {
+      "cell": "raise-arms/hongmeiling",
+      "fixed": true,
+      "job_id": "motion-a181853667ad443b8bcacb449eb2f1c5",
+      "artifact_sha256": "bcf9d98e8643b9beaa508293f60dc0830a3d464e77c7761a0058419f7f8e1ede",
+      "source_job_id": "motion-706de065008b4e9dbdaea14b7cb3c64e",
+      "source_sha256": "779dcb5c003f715905f48eafaea706c4ab524d97c7554f6b90c178bff5eecdc9",
+      "motion_ir_sha256": "2393e9081dd8b4d4d7c89c2061fe3645303c5092c098a0f7752a0dbb1049237e",
+      "source_start": 0,
+      "source_end": 1.9,
+      "target_duration": 1.9,
+      "clip": null,
+      "mapped_source_times": [
+        0,
+        1.4249999999999998,
+        0.475,
+        1.9
+      ],
+      "mapped_target_times": [
+        0,
+        1.4249999999999998,
+        0.475,
+        1.9
+      ],
+      "source_relationship_verified": true
+    },
+    {
+      "cell": "turn/alice",
+      "fixed": true,
+      "job_id": "motion-02c7a8ea09d44cd0a7ed73ec452d6590",
+      "artifact_sha256": "a005044b2e3b0f94029749c6ec0e0e3392eb63c146230d181bbea78553ed3c7a",
+      "source_job_id": "motion-c0ed26b329174551a1c908351174f31f",
+      "source_sha256": "543bfe46e10c5bf921e5fd16473340afe3563a6c18c2b7bb7bf9ed027c8ef165",
+      "motion_ir_sha256": "b0cd98c1e0856a9e797309e2b26abc3ec297b6473081a53553a17d7dd7b6c13f",
+      "source_start": 0,
+      "source_end": 1.4333333333333333,
+      "target_duration": 1.433333,
+      "clip": null,
+      "mapped_source_times": [
+        0,
+        1.075,
+        0.35833333333333334,
+        1.4333333333333333
+      ],
+      "mapped_target_times": [
+        0,
+        1.075,
+        0.35833333333333334,
+        1.433333
+      ],
+      "source_relationship_verified": true
+    },
+    {
+      "cell": "turn/huiye",
+      "fixed": true,
+      "job_id": "motion-f840e319d25f46b693e52749beca02bc",
+      "artifact_sha256": "69bb6218ed421fcd1c5538b6c88e65565f783ab5ff343465f6d6eb170cb58585",
+      "source_job_id": "motion-c0ed26b329174551a1c908351174f31f",
+      "source_sha256": "543bfe46e10c5bf921e5fd16473340afe3563a6c18c2b7bb7bf9ed027c8ef165",
+      "motion_ir_sha256": "b0cd98c1e0856a9e797309e2b26abc3ec297b6473081a53553a17d7dd7b6c13f",
+      "source_start": 0,
+      "source_end": 1.4333333333333333,
+      "target_duration": 1.433333,
+      "clip": null,
+      "mapped_source_times": [
+        0,
+        1.075,
+        0.35833333333333334,
+        1.4333333333333333
+      ],
+      "mapped_target_times": [
+        0,
+        1.075,
+        0.35833333333333334,
+        1.433333
+      ],
+      "source_relationship_verified": true
+    },
+    {
+      "cell": "turn/hongmeiling",
+      "fixed": true,
+      "job_id": "motion-4de7a1c108384e12a513621a7f5c119a",
+      "artifact_sha256": "74cbc377399f46070f9744a32e903b0488af2f9cd04112b0027adcd4ce45d8c4",
+      "source_job_id": "motion-c0ed26b329174551a1c908351174f31f",
+      "source_sha256": "543bfe46e10c5bf921e5fd16473340afe3563a6c18c2b7bb7bf9ed027c8ef165",
+      "motion_ir_sha256": "b0cd98c1e0856a9e797309e2b26abc3ec297b6473081a53553a17d7dd7b6c13f",
+      "source_start": 0,
+      "source_end": 1.4333333333333333,
+      "target_duration": 1.433333,
+      "clip": null,
+      "mapped_source_times": [
+        0,
+        1.075,
+        0.35833333333333334,
+        1.4333333333333333
+      ],
+      "mapped_target_times": [
+        0,
+        1.075,
+        0.35833333333333334,
+        1.433333
+      ],
+      "source_relationship_verified": true
+    },
+    {
+      "cell": "squat/alice",
+      "fixed": true,
+      "job_id": "motion-3954d8fe062b4a439b26a90667e97781",
+      "artifact_sha256": "a0d320b6380cd274182dc8c4f35eab15c0d969f441e1e22fc581d72ee98bd97f",
+      "source_job_id": "motion-42c342d1786f402299dfea949358a0d7",
+      "source_sha256": "596014069e4ecc8527ba37feded9d7b8564d50832862dad89c0a75ca7c136bba",
+      "motion_ir_sha256": "fb57014391df27c737995214f3ec89918b99192ceda0b4d1626d8cfbfc261061",
+      "source_start": 0,
+      "source_end": 1.8666666666666667,
+      "target_duration": 1.866667,
+      "clip": null,
+      "mapped_source_times": [
+        0,
+        1.4,
+        0.4666666666666667,
+        1.8666666666666667
+      ],
+      "mapped_target_times": [
+        0,
+        1.4,
+        0.4666666666666667,
+        1.8666666666666667
+      ],
+      "source_relationship_verified": true
+    },
+    {
+      "cell": "squat/huiye",
+      "fixed": true,
+      "job_id": "motion-6fe3bc850b7d40c9bba86b5a9675d6e8",
+      "artifact_sha256": "cadc5834a668bc9900de33edd5753c13a0d418468a9ed585881123054d8f7f85",
+      "source_job_id": "motion-42c342d1786f402299dfea949358a0d7",
+      "source_sha256": "596014069e4ecc8527ba37feded9d7b8564d50832862dad89c0a75ca7c136bba",
+      "motion_ir_sha256": "fb57014391df27c737995214f3ec89918b99192ceda0b4d1626d8cfbfc261061",
+      "source_start": 0,
+      "source_end": 1.8666666666666667,
+      "target_duration": 1.866667,
+      "clip": null,
+      "mapped_source_times": [
+        0,
+        1.4,
+        0.4666666666666667,
+        1.8666666666666667
+      ],
+      "mapped_target_times": [
+        0,
+        1.4,
+        0.4666666666666667,
+        1.8666666666666667
+      ],
+      "source_relationship_verified": true
+    },
+    {
+      "cell": "squat/hongmeiling",
+      "fixed": true,
+      "job_id": "motion-b0901a9dfc184e59bfbb3eff3eda8561",
+      "artifact_sha256": "d2978ab5b36faf47a45ae56924c7f6b4892b24a3ea1a5dec44b6f870884df4c0",
+      "source_job_id": "motion-42c342d1786f402299dfea949358a0d7",
+      "source_sha256": "596014069e4ecc8527ba37feded9d7b8564d50832862dad89c0a75ca7c136bba",
+      "motion_ir_sha256": "fb57014391df27c737995214f3ec89918b99192ceda0b4d1626d8cfbfc261061",
+      "source_start": 0,
+      "source_end": 1.8666666666666667,
+      "target_duration": 1.866667,
+      "clip": null,
+      "mapped_source_times": [
+        0,
+        1.4,
+        0.4666666666666667,
+        1.8666666666666667
+      ],
+      "mapped_target_times": [
+        0,
+        1.4,
+        0.4666666666666667,
+        1.8666666666666667
+      ],
+      "source_relationship_verified": true
+    },
+    {
+      "cell": "boxing/alice",
+      "fixed": true,
+      "job_id": "motion-7b9ab257663e4d1daf91c3d620d50b69",
+      "artifact_sha256": "663c4cd44bc69a97a0d85a59576be2c7fa7d9eb7a2c092828a5c5ee96f0be0eb",
+      "source_job_id": "motion-0239e8622d68464bad355b4527c878f3",
+      "source_sha256": "9bbfe8fc1adf850fbf849a85d308d62f80394f81ee7eb3f483cd68cc6fd80d69",
+      "motion_ir_sha256": "9986140fc4f878461b29baf4a4be9856f33578ec777bda4cc7057eb5d4e9f1e1",
+      "source_start": 0,
+      "source_end": 2.2,
+      "target_duration": 2.2,
+      "clip": null,
+      "mapped_source_times": [
+        0,
+        1.6500000000000001,
+        0.55,
+        2.2
+      ],
+      "mapped_target_times": [
+        0,
+        1.6500000000000001,
+        0.55,
+        2.2
+      ],
+      "source_relationship_verified": true
+    },
+    {
+      "cell": "boxing/huiye",
+      "fixed": true,
+      "job_id": "motion-566a58653f43405fa8c4fb9742de4951",
+      "artifact_sha256": "912134a543d8938630e8976718626bcf769924991e7f904b29c1d0900fb7470c",
+      "source_job_id": "motion-0239e8622d68464bad355b4527c878f3",
+      "source_sha256": "9bbfe8fc1adf850fbf849a85d308d62f80394f81ee7eb3f483cd68cc6fd80d69",
+      "motion_ir_sha256": "9986140fc4f878461b29baf4a4be9856f33578ec777bda4cc7057eb5d4e9f1e1",
+      "source_start": 0,
+      "source_end": 2.2,
+      "target_duration": 2.2,
+      "clip": null,
+      "mapped_source_times": [
+        0,
+        1.6500000000000001,
+        0.55,
+        2.2
+      ],
+      "mapped_target_times": [
+        0,
+        1.6500000000000001,
+        0.55,
+        2.2
+      ],
+      "source_relationship_verified": true
+    },
+    {
+      "cell": "boxing/hongmeiling",
+      "fixed": true,
+      "job_id": "motion-6c01b6ac334947729089deabcb1dbed5",
+      "artifact_sha256": "d6be67d4a04c3c01d661ac81ad8c06037fe1539090859884776bf5b5aa720767",
+      "source_job_id": "motion-0239e8622d68464bad355b4527c878f3",
+      "source_sha256": "9bbfe8fc1adf850fbf849a85d308d62f80394f81ee7eb3f483cd68cc6fd80d69",
+      "motion_ir_sha256": "9986140fc4f878461b29baf4a4be9856f33578ec777bda4cc7057eb5d4e9f1e1",
+      "source_start": 0,
+      "source_end": 2.2,
+      "target_duration": 2.2,
+      "clip": null,
+      "mapped_source_times": [
+        0,
+        1.6500000000000001,
+        0.55,
+        2.2
+      ],
+      "mapped_target_times": [
+        0,
+        1.6500000000000001,
+        0.55,
+        2.2
+      ],
+      "source_relationship_verified": true
+    },
+    {
+      "cell": "reach/alice",
+      "fixed": true,
+      "job_id": "motion-76a6d4f31c104facb5bf066093aec4a0",
+      "artifact_sha256": "7b1e7d78ec07e8070ec9d53dfd79116d95f42a8a21c12d08693a9b0c2695a718",
+      "source_job_id": "motion-22d106d0a5994ea49be5d2e32f237e0c",
+      "source_sha256": "89e7b2785bdb93d4c1506d3621701126e37f47acb8757a6e76bde6eed3fbe615",
+      "motion_ir_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+      "source_start": 0,
+      "source_end": 4,
+      "target_duration": 4,
+      "clip": null,
+      "mapped_source_times": [
+        0,
+        3,
+        1,
+        4
+      ],
+      "mapped_target_times": [
+        0,
+        3,
+        1,
+        4
+      ],
+      "source_relationship_verified": true
+    },
+    {
+      "cell": "reach/huiye",
+      "fixed": true,
+      "job_id": "motion-fdbf9bc8f31348ec85ae768aae704337",
+      "artifact_sha256": "6f5f17f8660ab80e9592c58718490487ce469a7a516aabb100100ac845d8e3e5",
+      "source_job_id": "motion-22d106d0a5994ea49be5d2e32f237e0c",
+      "source_sha256": "89e7b2785bdb93d4c1506d3621701126e37f47acb8757a6e76bde6eed3fbe615",
+      "motion_ir_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+      "source_start": 0,
+      "source_end": 4,
+      "target_duration": 4,
+      "clip": null,
+      "mapped_source_times": [
+        0,
+        3,
+        1,
+        4
+      ],
+      "mapped_target_times": [
+        0,
+        3,
+        1,
+        4
+      ],
+      "source_relationship_verified": true
+    },
+    {
+      "cell": "reach/hongmeiling",
+      "fixed": true,
+      "job_id": "motion-aa45429b532747c5954389a5c1a706c1",
+      "artifact_sha256": "dbf6e6ba1a812255eec74010e21ad6dc85aa0df056eb613f248b9010b7ac55d8",
+      "source_job_id": "motion-22d106d0a5994ea49be5d2e32f237e0c",
+      "source_sha256": "89e7b2785bdb93d4c1506d3621701126e37f47acb8757a6e76bde6eed3fbe615",
+      "motion_ir_sha256": "906eb85645716208ab7e5a810d8cd5e03b3c009563c2056225c7f4769111b6b9",
+      "source_start": 0,
+      "source_end": 4,
+      "target_duration": 4,
+      "clip": null,
+      "mapped_source_times": [
+        0,
+        3,
+        1,
+        4
+      ],
+      "mapped_target_times": [
+        0,
+        3,
+        1,
+        4
+      ],
+      "source_relationship_verified": true
+    },
+    {
+      "cell": "wave/alice",
+      "fixed": true,
+      "job_id": "motion-76e0d141f979430db88de1183c46a79b",
+      "artifact_sha256": "9fc3e02e74036b34322480c4936f5bfd874c8931bf11372e8c1c19fe2e0c486a",
+      "source_job_id": "motion-b691ce34c0b84cbcbf9ad4f5226d486d",
+      "source_sha256": "2ee03d7638686150305d61ff6bd5d8f21a05693cf139bb20467017feb3d363a6",
+      "motion_ir_sha256": "64b40e08c4ebbeb5a01b15d341252115271ee1a54770716abf2781a24983175a",
+      "source_start": 0,
+      "source_end": 3.966666666666667,
+      "target_duration": 3.966667,
+      "clip": null,
+      "mapped_source_times": [
+        0,
+        2.975,
+        0.9916666666666667,
+        3.966666666666667
+      ],
+      "mapped_target_times": [
+        0,
+        2.975,
+        0.9916666666666667,
+        3.966666666666667
+      ],
+      "source_relationship_verified": true
+    },
+    {
+      "cell": "wave/huiye",
+      "fixed": true,
+      "job_id": "motion-883cb61bb3a84aee91f233cca536a552",
+      "artifact_sha256": "8dd7feb7a42764d6bba8780ad4d8262fbcf25e6a35d6f733cd45acc7f88f46b8",
+      "source_job_id": "motion-b691ce34c0b84cbcbf9ad4f5226d486d",
+      "source_sha256": "2ee03d7638686150305d61ff6bd5d8f21a05693cf139bb20467017feb3d363a6",
+      "motion_ir_sha256": "64b40e08c4ebbeb5a01b15d341252115271ee1a54770716abf2781a24983175a",
+      "source_start": 0,
+      "source_end": 3.966666666666667,
+      "target_duration": 3.966667,
+      "clip": null,
+      "mapped_source_times": [
+        0,
+        2.975,
+        0.9916666666666667,
+        3.966666666666667
+      ],
+      "mapped_target_times": [
+        0,
+        2.975,
+        0.9916666666666667,
+        3.966666666666667
+      ],
+      "source_relationship_verified": true
+    },
+    {
+      "cell": "wave/hongmeiling",
+      "fixed": true,
+      "job_id": "motion-a64993a0ffba4fdd9e09d4e5e1a7389d",
+      "artifact_sha256": "97f933ed42fb42a91ea845ef312b3683661e13034b282881a11baa49c0411230",
+      "source_job_id": "motion-b691ce34c0b84cbcbf9ad4f5226d486d",
+      "source_sha256": "2ee03d7638686150305d61ff6bd5d8f21a05693cf139bb20467017feb3d363a6",
+      "motion_ir_sha256": "64b40e08c4ebbeb5a01b15d341252115271ee1a54770716abf2781a24983175a",
+      "source_start": 0,
+      "source_end": 3.966666666666667,
+      "target_duration": 3.966667,
+      "clip": null,
+      "mapped_source_times": [
+        0,
+        2.975,
+        0.9916666666666667,
+        3.966666666666667
+      ],
+      "mapped_target_times": [
+        0,
+        2.975,
+        0.9916666666666667,
+        3.966666666666667
+      ],
+      "source_relationship_verified": true
+    },
+    {
+      "cell": "clip/alice",
+      "fixed": false,
+      "job_id": "motion-0226e99e75e443fe921a870e4e74a992",
+      "artifact_sha256": "f02956c7e0aade9a8bf38093176eac5a1d0d1b560cbdde1fee5ffae16a2b722f",
+      "source_job_id": "motion-b691ce34c0b84cbcbf9ad4f5226d486d",
+      "source_sha256": "2ee03d7638686150305d61ff6bd5d8f21a05693cf139bb20467017feb3d363a6",
+      "motion_ir_sha256": "64b40e08c4ebbeb5a01b15d341252115271ee1a54770716abf2781a24983175a",
+      "source_start": 1,
+      "source_end": 3,
+      "target_duration": 2,
+      "clip": {
+        "end_frame": 90,
+        "start_frame": 30
+      },
+      "mapped_source_times": [
+        1,
+        2.5,
+        1.5,
+        3
+      ],
+      "mapped_target_times": [
+        0,
+        1.5,
+        0.5,
+        2
+      ],
+      "source_relationship_verified": true
+    }
+  ],
+  "mismatch_checks": 25,
+  "review_journal_hashes": {
+    "motion-71be588acdfe4c4db3777c98c1ae733e/stage-reviews/review-0001.json": "94af56193af58c0203d67eeeacc182aa9a6e8b06cdbba0d8e27dbed9ec683af5",
+    "motion-bf659c34670d4319aab72cf673f1d3d7/stage-reviews/review-0001.json": "266dd8027b8e3974573ed924bfdcccdcbd31b5cd458e30dee63e5614c68cd078",
+    "motion-f151d1a412154c379ddd324526e463dd/stage-reviews/review-0001.json": "09b88461e1e7db8c208060a84772d2cc98b0e97fabb0c5567c7245d4ccd9d7b5"
+  },
+  "mutations": 0,
+  "scope": "verified_existing_candidate_sources_and_pure_timeline_mapping",
+  "browser_interaction_verified": false,
+  "new_runtime_capture": false,
+  "quality_pass_counts_changed": false
+}

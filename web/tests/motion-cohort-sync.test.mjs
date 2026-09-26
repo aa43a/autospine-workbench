@@ -31,6 +31,29 @@ test('candidate identity or duration mismatch never drives target', () => {
   }
 });
 
+test('clipped source seeks in candidate time and restores controls after failure',()=>{
+  const seen=[],status={},inputs={play:{disabled:false},motion:{disabled:true},time:{disabled:false}};
+  const sync=createCohortSync(status),win={characterPlayerState:{duration:1},
+    characterPlayerControl:{artifact:'a',seek:t=>{seen.push(t);return true;}},
+    document:{getElementById:id=>inputs[id]}};
+  sync.seek(1.75,2);sync.attach({contentWindow:win},'a',{start:1,end:2});
+  sync.seek(1.25,2);assert.deepEqual(seen,[.75,.25]);assert.equal(inputs.play.disabled,true);
+  assert.match(status.textContent,/源 1.000–2.000 秒 ↔ 角色 0–1.000 秒/);
+  win.characterPlayerControl.artifact='changed';sync.seek(1.5,2);
+  assert.equal(inputs.play.disabled,false);assert.equal(inputs.motion.disabled,true);
+  assert.equal(inputs.time.disabled,false);assert.equal(seen.length,2);sync.clear();
+});
+
+test('range mismatch is refused and reattachment stops the old target',()=>{
+  const seen=[],status={},sync=createCohortSync(status);
+  const frame=artifact=>({contentWindow:{characterPlayerControl:{artifact,seek:t=>{seen.push([artifact,t]);return true;}},characterPlayerState:{duration:1}}});
+  sync.seek(1.5,2);sync.attach(frame('a'),'a',{start:1,end:2});
+  sync.attach(frame('b'),'b',{start:1,end:2});sync.seek(1.1,2);
+  assert.deepEqual(seen.map(r=>r[0]),['a','b','b']);
+  sync.seek(.5,2);assert.match(status.textContent,/源片段时间不匹配/);
+  assert.equal(seen.length,3);sync.clear();
+});
+
 test('depth isolation and restore preserve time and reject stale identity',()=>{
  const calls=[],status={},sync=createCohortSync(status);
  const control={artifact:'a',seek:()=>assert.fail('isolation must not seek'),inspectRegions:(...args)=>{calls.push(args);return true;}};
