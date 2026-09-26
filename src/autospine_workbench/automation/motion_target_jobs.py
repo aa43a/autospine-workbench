@@ -143,6 +143,9 @@ def review_file(manager, job, parts):
         # still verify the addressed job, character sources and capture inventory.
         return read(None, None, None, parts)
     result, files = context(manager, job)
+    if parts[:1] == ['garment-follow']:
+        from .motion_garment_follow import read
+        return read(manager, job, parts, result, files)
     if parts[:1] == ['contact-scope']:
         from .motion_contact_preflight import read
         return read(manager, job, parts, result, files)
@@ -161,6 +164,8 @@ def review_file(manager, job, parts):
             report['before'] = dict(passed=None, records=[], status='unavailable')
         if repair.get('region_order'):
             report['region_order'] = repair['region_order']
+        if repair.get('garment_follow'):
+            report['garment_follow'] = repair['garment_follow']
         if 'view-pose-report.json' in files:
             variant = json.loads(files['view-pose-report.json'])['variant']
             report['additional_view'] = {k: variant[k] for k in (

@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Bounded lossless numeric reference chunk envelope",
+  "type": "object", "additionalProperties": false,
+  "required": ["codec", "bytes", "sha256", "data"],
+  "properties": {
+    "codec": {"const": "gzip-base64-json-v1"},
+    "bytes": {"type": "integer", "minimum": 1, "maximum": 67108864},
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "data": {"type": "string", "contentEncoding": "base64", "minLength": 1}
+  }
+}

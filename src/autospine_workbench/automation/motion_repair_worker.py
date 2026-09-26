@@ -6,7 +6,7 @@ from ..targets.character43.selected_attachment_repair import build
 from .animated_store import AnimatedStore
 from .character_capture import capture
 from .motion_intake_process import progress
-from .motion_repair_execution import PROFILE,PARTITION_PROFILE,ORDER_PROFILE,INTERVAL_ORDER_PROFILE,OCCLUSION_PROFILE
+from .motion_repair_execution import PROFILE,PARTITION_PROFILE,ORDER_PROFILE,INTERVAL_ORDER_PROFILE,OCCLUSION_PROFILE,GARMENT_PROFILE
 from ..targets.character43.material_region_candidate import PROFILE as MATERIAL_PROFILE
 from ..targets.character43.pose_geometry_candidate import PROFILE as POSE_PROFILE
 from ..targets.character43.view_pose_candidate import PROFILE as VIEW_PROFILE
@@ -17,7 +17,7 @@ def execute(folder, state_root, workspace, request):
     repair = request['repair_execution']; plan = repair['draft']
     expected={'local_repair':PROFILE,'partition':PARTITION_PROFILE,'pose_attachment':MATERIAL_PROFILE,
               'pose_geometry':POSE_PROFILE,'region_order':ORDER_PROFILE,'additional_view':VIEW_PROFILE,
-              'contact_scope':OCCLUSION_PROFILE}.get(plan['action'])
+              'contact_scope':OCCLUSION_PROFILE,'garment_follow':GARMENT_PROFILE}.get(plan['action'])
     if plan['action']=='region_order' and 'interval' in plan.get('region_order', {}):
         expected=INTERVAL_ORDER_PROFILE
     if (expected is None or repair['profile'] != expected or canonical_sha256(plan) != repair['draft_sha256']
@@ -48,6 +48,14 @@ def execute(folder, state_root, workspace, request):
                 or pose['slot']!=plan['slot'] or pose['animation']!=plan['animation']):
             raise ValueError('motion_view_worker_scope_changed')
         files,evidence,geometry=view_build(source,pose,material['view.png'],lambda _:progress(folder,'post_contact_repair'))
+    elif expected==GARMENT_PROFILE:
+        from ..targets.character43.garment_follow_candidate import build as garment_build
+        if plan['garment_follow']['character_sha256'] != request['character_sha256']:
+            raise ValueError('motion_garment_character_changed')
+        character = store.read(request['character_sha256'])
+        progress(folder,'garment_follow')
+        files,evidence,geometry=garment_build(source,character,plan,
+            lambda row:progress(folder,'garment_validate' if row['stage']=='validate' else 'garment_follow'))
     elif expected==MATERIAL_PROFILE:
         from ..targets.character43.material_region_candidate import build as material_build
         mapping=repair['material_mapping']

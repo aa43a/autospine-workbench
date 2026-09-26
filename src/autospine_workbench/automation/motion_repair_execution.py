@@ -12,6 +12,7 @@ PARTITION_PROFILE = 'selected-region-rigid-partition-v1'
 ORDER_PROFILE = 'selected-region-static-order-v1'
 from ..targets.character43.occlusion_scope_bundle import PROFILE as OCCLUSION_PROFILE
 from ..targets.character43.region_order_interval import PROFILE as INTERVAL_ORDER_PROFILE
+from ..targets.character43.garment_follow_scope import PROFILE as GARMENT_PROFILE
 
 
 def submit(manager, parent_job, body):
@@ -28,6 +29,14 @@ def submit(manager, parent_job, body):
     if request.get('repair_execution') and request['repair_execution'].get('profile')!=OCCLUSION_PROFILE:
         raise PipelineRunError('motion_repair_nested_execution_unsupported')
     assert_current(manager, request)
+    # Scope resolution reads large immutable bundles; do not hold the queue lock.
+    with manager._lock:
+        snapshots = history(manager, parent_job)
+        planned = deepcopy(snapshots[body['revision']-1]) if 1 <= body['revision'] <= len(snapshots) else None
+    garment = None
+    if planned and planned['action'] == 'garment_follow' and canonical_sha256(planned) == body['draft_sha256']:
+        from .motion_garment_follow import scope
+        garment = scope(manager, parent_job, planned['slot'], planned['animation'], planned['artifact_sha256'])
     with manager._lock:
         rows = history(manager, parent_job)
         index = body['revision'] - 1
@@ -35,7 +44,7 @@ def submit(manager, parent_job, body):
             raise PipelineRunError('motion_repair_plan_unavailable')
         row = rows[index]
         key = lambda r: (r['slot'], r['animation'], r['event']['triangle'], r['event']['time'])
-        if (canonical_sha256(row) != body['draft_sha256'] or row['action'] not in ('local_repair','partition','region_order','contact_scope')
+        if (canonical_sha256(row) != body['draft_sha256'] or row['action'] not in ('local_repair','partition','region_order','contact_scope','garment_follow')
                 or any(key(r) == key(row) for r in rows[index+1:])):
             raise PipelineRunError('motion_repair_plan_changed')
         if row['action']=='partition' and not row.get('partition'):
@@ -46,6 +55,9 @@ def submit(manager, parent_job, body):
             raise PipelineRunError('motion_occlusion_region_required')
         if row['artifact_sha256'] != report['artifact_sha256'] or row['evidence_sha256'] != digest:
             raise PipelineRunError('motion_repair_evidence_changed')
+        if row['action'] == 'garment_follow':
+            if garment is None or row.get('garment_follow') != garment:
+                raise PipelineRunError('motion_garment_scope_changed')
         from .motion_scope_order_parent import verify as verify_scope_parent
         parent_repair_sha=verify_scope_parent(manager,parent_job,request,row,report['artifact_sha256'])
         if manager._closed or sum(j['status'] in {'pending','running'} for j in manager._jobs.values()) >= 2:
@@ -53,7 +65,7 @@ def submit(manager, parent_job, body):
         job = 'motion-' + uuid4().hex
         root = manager.folder(job, True)
         request = deepcopy(request)
-        profile={'partition':PARTITION_PROFILE,'region_order':ORDER_PROFILE,'contact_scope':OCCLUSION_PROFILE}.get(row['action'],PROFILE)
+        profile={'partition':PARTITION_PROFILE,'region_order':ORDER_PROFILE,'contact_scope':OCCLUSION_PROFILE,'garment_follow':GARMENT_PROFILE}.get(row['action'],PROFILE)
         if row['action']=='region_order' and 'interval' in row['region_order']:
             profile=INTERVAL_ORDER_PROFILE
         request.update(job_id=job, repair_execution=dict(profile=profile, parent_job_id=parent_job,
@@ -62,7 +74,7 @@ def submit(manager, parent_job, body):
             request['repair_execution']['parent_repair_sha256']=parent_repair_sha
         publish_document(root/'request.json', request, staging=root/'staging')
         value = dict(job_id=job, kind='adapt', project_id=request['project_id'],
-            character_job_id=request['character_job_id'], name=request['name']+({'partition':' · 分区候选','region_order':' · 区域顺序候选','contact_scope':' · 覆盖区表示候选'}.get(row['action'],' · 局部修正候选')),
+            character_job_id=request['character_job_id'], name=request['name']+({'partition':' · 分区候选','region_order':' · 区域顺序候选','contact_scope':' · 覆盖区表示候选','garment_follow':' · 裙腰跟随候选'}.get(row['action'],' · 局部修正候选')),
             status='pending', step='queued', authority='none', repair_parent_job_id=parent_job)
         manager._jobs[job] = value; manager._cancel[job] = Event()
         manager._pool.submit(manager._execute, job)

@@ -1,0 +1,308 @@
+{
+  "profile": "workbench-declared-garment-follow-v1",
+  "date": "2026-09-26",
+  "summary_sha256": "79eb96e809745bd7e9c8ff22a368984fa455b2af4a1b20149561c1aee095638f",
+  "target": "Spine 4.3.26",
+  "runtime": "4.3.13",
+  "authority": "none",
+  "selected": false,
+  "rows": [
+    {
+      "source": "alice-squat-shared-minus55-v1",
+      "slot": "layer-005",
+      "parent_artifact": "3b8c76f2fb24830c1735f3f8b7d6efde25ccc8e421356ef8515b9e8638418756",
+      "artifact_sha256": "d4d632e61907e4c536ba136f109e4ba422b34c76ea097a6ecbeee4da8def8a24",
+      "skeleton_sha256": "65aecda3854d31e714fea9c074f6f4ad05f819738eb42e223d5189629cbdd61a",
+      "candidate_bytes": 173946573,
+      "max_file_bytes": 33919152,
+      "candidate_files": 129,
+      "reference_schema": "autospine.character-reference-chunks/v2",
+      "reference_frames": 3713,
+      "store_and_manifest_verified": true,
+      "before": {
+        "animation": "external-motion",
+        "failing_frame_count": 706,
+        "first_failure": {
+          "frame": 1700,
+          "inversions": 0,
+          "max_area_ratio": 1.2176935154820603,
+          "max_edge_stretch": 1.4198494890441853,
+          "min_area_ratio": 0.49991704456085767,
+          "time": 0.8549480438232422
+        },
+        "inversion_samples": 0,
+        "max_area_ratio": 1.2324486312853575,
+        "max_edge_stretch": 1.4376396861949274,
+        "min_area_ratio": 0.4873758866339745,
+        "passed": false,
+        "sample_count": 3713,
+        "slot": "layer-005"
+      },
+      "after": {
+        "animation": "external-motion",
+        "failing_frame_count": 0,
+        "first_failure": null,
+        "inversion_samples": 0,
+        "max_area_ratio": 1.1923427973640832,
+        "max_edge_stretch": 1.3835468458725901,
+        "min_area_ratio": 0.5202434144496996,
+        "passed": true,
+        "sample_count": 3713,
+        "slot": "layer-005"
+      },
+      "remaining_failed_slots": [
+        "layer-001-l",
+        "layer-001-r"
+      ],
+      "waist_contact": {
+        "after": {
+          "separation_px": 0.010070701210615299,
+          "time": 0.866667
+        },
+        "anchors": 17,
+        "before": {
+          "separation_px": 0.01982733523289894,
+          "time": 1.066667
+        },
+        "raster_status": "not_evaluated",
+        "sample_count": 3713,
+        "status": "measured"
+      },
+      "official_cpu": {
+        "authority": "none",
+        "frames": 129,
+        "limit_px": 0.01,
+        "maximum_error_px": 0.00010132523502008943,
+        "passed": true,
+        "reference_frames": 3713,
+        "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+        "scope": "sampled_official_runtime_cpu_vertices_no_gpu_capture_or_visual_acceptance",
+        "selected": false,
+        "skeleton_sha256": "65aecda3854d31e714fea9c074f6f4ad05f819738eb42e223d5189629cbdd61a",
+        "source_candidate": "3b8c76f2fb24830c1735f3f8b7d6efde25ccc8e421356ef8515b9e8638418756",
+        "vertices": 26961
+      },
+      "gpu_status": "not_run",
+      "visual_status": "not_reviewed"
+    },
+    {
+      "source": "huiye-squat-shared45-v2",
+      "slot": "layer-004",
+      "parent_artifact": "4c662e516865ea93414f848e4c6add33b7cddf78bed63a58908557a32ce59aee",
+      "artifact_sha256": "08dc9d42f48ea08215fdc80ea2a0fd674bd95f015f17c318f7c595ccf0e96a40",
+      "skeleton_sha256": "6da5385499a138b6a74d7027cad8e55326bb7229faeb7f649d7771365492b05e",
+      "candidate_bytes": 204006237,
+      "max_file_bytes": 55399565,
+      "candidate_files": 119,
+      "reference_schema": "autospine.character-reference-chunks/v2",
+      "reference_frames": 3713,
+      "store_and_manifest_verified": true,
+      "before": {
+        "animation": "external-motion",
+        "failing_frame_count": 0,
+        "first_failure": null,
+        "inversion_samples": 0,
+        "max_area_ratio": 1.0499628044970428,
+        "max_edge_stretch": 1.1235335369810506,
+        "min_area_ratio": 0.5039035710925693,
+        "passed": true,
+        "sample_count": 3713,
+        "slot": "layer-004"
+      },
+      "after": {
+        "animation": "external-motion",
+        "failing_frame_count": 0,
+        "first_failure": null,
+        "inversion_samples": 0,
+        "max_area_ratio": 1.0544194257332955,
+        "max_edge_stretch": 1.1241051328237908,
+        "min_area_ratio": 0.5114134895761158,
+        "passed": true,
+        "sample_count": 3713,
+        "slot": "layer-004"
+      },
+      "remaining_failed_slots": [],
+      "waist_contact": {
+        "after": {
+          "separation_px": 0.005152569139263093,
+          "time": 1
+        },
+        "anchors": 10,
+        "before": {
+          "separation_px": 0.011350276793283815,
+          "time": 1
+        },
+        "raster_status": "not_evaluated",
+        "sample_count": 3713,
+        "status": "measured"
+      },
+      "official_cpu": {
+        "authority": "none",
+        "frames": 129,
+        "limit_px": 0.01,
+        "maximum_error_px": 0.00017058781886506916,
+        "passed": true,
+        "reference_frames": 3713,
+        "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+        "scope": "sampled_official_runtime_cpu_vertices_no_gpu_capture_or_visual_acceptance",
+        "selected": false,
+        "skeleton_sha256": "6da5385499a138b6a74d7027cad8e55326bb7229faeb7f649d7771365492b05e",
+        "source_candidate": "4c662e516865ea93414f848e4c6add33b7cddf78bed63a58908557a32ce59aee",
+        "vertices": 58695
+      },
+      "gpu_status": "not_run",
+      "visual_status": "not_reviewed"
+    },
+    {
+      "source": "hongmeiling-squat-shared45-v1",
+      "slot": "layer-002",
+      "parent_artifact": "ea6dfdb756455e642867824a9cfe396c2dcc434b01435b060560205d9de9046c",
+      "artifact_sha256": "f9843d3f4a5ed88108436e1946ebe902cfe77ea58fcf676c388bc2b50043a234",
+      "skeleton_sha256": "b9a60c14aa8ed6113d13d202f0b8e3705486e8bd060760e4eedb586d13b96583",
+      "candidate_bytes": 183809304,
+      "max_file_bytes": 51209871,
+      "candidate_files": 123,
+      "reference_schema": "autospine.character-reference-chunks/v2",
+      "reference_frames": 3713,
+      "store_and_manifest_verified": true,
+      "before": {
+        "animation": "external-motion",
+        "failing_frame_count": 0,
+        "first_failure": null,
+        "inversion_samples": 0,
+        "max_area_ratio": 1.1177540490338826,
+        "max_edge_stretch": 1.235382858521848,
+        "min_area_ratio": 0.5090295968001675,
+        "passed": true,
+        "sample_count": 3713,
+        "slot": "layer-002"
+      },
+      "after": {
+        "animation": "external-motion",
+        "failing_frame_count": 0,
+        "first_failure": null,
+        "inversion_samples": 0,
+        "max_area_ratio": 1.0629042196468836,
+        "max_edge_stretch": 1.140341139364941,
+        "min_area_ratio": 0.51056732234974,
+        "passed": true,
+        "sample_count": 3713,
+        "slot": "layer-002"
+      },
+      "remaining_failed_slots": [
+        "layer-003",
+        "layer-004"
+      ],
+      "waist_contact": {
+        "after": {
+          "separation_px": 0.005625724216900686,
+          "time": 1
+        },
+        "anchors": 17,
+        "before": {
+          "separation_px": 0.0069764775913166,
+          "time": 0.8
+        },
+        "raster_status": "not_evaluated",
+        "sample_count": 3713,
+        "status": "measured"
+      },
+      "official_cpu": {
+        "authority": "none",
+        "frames": 129,
+        "limit_px": 0.01,
+        "maximum_error_px": 0.0001628225858825753,
+        "passed": true,
+        "reference_frames": 3713,
+        "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+        "scope": "sampled_official_runtime_cpu_vertices_no_gpu_capture_or_visual_acceptance",
+        "selected": false,
+        "skeleton_sha256": "b9a60c14aa8ed6113d13d202f0b8e3705486e8bd060760e4eedb586d13b96583",
+        "source_candidate": "ea6dfdb756455e642867824a9cfe396c2dcc434b01435b060560205d9de9046c",
+        "vertices": 43086
+      },
+      "gpu_status": "not_run",
+      "visual_status": "not_reviewed"
+    },
+    {
+      "source": "hongmeiling-squat-shared45-v1",
+      "slot": "layer-005",
+      "parent_artifact": "ea6dfdb756455e642867824a9cfe396c2dcc434b01435b060560205d9de9046c",
+      "artifact_sha256": "326c89642f82bcdd3762d91337e62b5765129b612c1604ef427467cb9ae2304e",
+      "skeleton_sha256": "0c2e08a75e9690e938f0f0a21721608662da49fafa647f520d87aa079c46df89",
+      "candidate_bytes": 164445034,
+      "max_file_bytes": 31786539,
+      "candidate_files": 123,
+      "reference_schema": "autospine.character-reference-chunks/v2",
+      "reference_frames": 3713,
+      "store_and_manifest_verified": true,
+      "before": {
+        "animation": "external-motion",
+        "failing_frame_count": 0,
+        "first_failure": null,
+        "inversion_samples": 0,
+        "max_area_ratio": 1.1390423015778286,
+        "max_edge_stretch": 1.2757541053166819,
+        "min_area_ratio": 0.5078469748121605,
+        "passed": true,
+        "sample_count": 3713,
+        "slot": "layer-005"
+      },
+      "after": {
+        "animation": "external-motion",
+        "failing_frame_count": 0,
+        "first_failure": null,
+        "inversion_samples": 0,
+        "max_area_ratio": 1.064371938754245,
+        "max_edge_stretch": 1.1553494558267763,
+        "min_area_ratio": 0.5090456351100849,
+        "passed": true,
+        "sample_count": 3713,
+        "slot": "layer-005"
+      },
+      "remaining_failed_slots": [
+        "layer-003",
+        "layer-004"
+      ],
+      "waist_contact": {
+        "after": {
+          "separation_px": 0.006562019337053871,
+          "time": 1
+        },
+        "anchors": 17,
+        "before": {
+          "separation_px": 0.015519241898213073,
+          "time": 1
+        },
+        "raster_status": "not_evaluated",
+        "sample_count": 3713,
+        "status": "measured"
+      },
+      "official_cpu": {
+        "authority": "none",
+        "frames": 129,
+        "limit_px": 0.01,
+        "maximum_error_px": 0.00011656484717509443,
+        "passed": true,
+        "reference_frames": 3713,
+        "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+        "scope": "sampled_official_runtime_cpu_vertices_no_gpu_capture_or_visual_acceptance",
+        "selected": false,
+        "skeleton_sha256": "0c2e08a75e9690e938f0f0a21721608662da49fafa647f520d87aa079c46df89",
+        "source_candidate": "ea6dfdb756455e642867824a9cfe396c2dcc434b01435b060560205d9de9046c",
+        "vertices": 15093
+      },
+      "gpu_status": "not_run",
+      "visual_status": "not_reviewed"
+    }
+  ],
+  "checks": {
+    "python_tests": 78,
+    "node_tests": 9,
+    "zip_roundtrip": "production_download_function_unit_test",
+    "live_preflight": "three_declared_positive_one_undeclared_negative",
+    "browser_interactions": "blocked_saved_permissions_not_verified",
+    "gpu_capture": "not_run",
+    "human_acceptance": "not_requested_for_this_slice"
+  }
+}

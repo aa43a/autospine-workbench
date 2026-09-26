@@ -1,5 +1,6 @@
 import {geometryLines} from './motion-repair-geometry.js';
 import {switchContinuityLines} from './motion-switch-continuity.js';
+import {garmentSummary} from './motion-garment-follow.js';
 export async function appendRepairSummary(panel,job) {
   if(!job.result?.repair_profile)return;
   const section=document.createElement('section');panel.append(section);
@@ -8,7 +9,10 @@ export async function appendRepairSummary(panel,job) {
     const response=await fetch(`/api/motions/${encodeURIComponent(job.job_id)}/view/repair-summary.json`,{cache:'no-store'});
     const report=await response.json();
     if(!response.ok||report.artifact_sha256!==job.result.artifact_sha256)throw Error('修正结果身份不匹配');
-    section.replaceChildren();const title=document.createElement('h4');title.textContent=report.additional_view?'新视角附件候选前后':report.region_order?'区域顺序候选':report.pose_geometry?'姿态修形候选前后':report.material?'区域换图候选前后':report.boundary?'分区候选前后':'局部修正前后';section.append(title);
+    section.replaceChildren();const title=document.createElement('h4');title.textContent=report.garment_follow?'裙腰跟随候选前后':report.additional_view?'新视角附件候选前后':report.region_order?'区域顺序候选':report.pose_geometry?'姿态修形候选前后':report.material?'区域换图候选前后':report.boundary?'分区候选前后':'局部修正前后';section.append(title);
+    if(report.garment_follow)for(const text of garmentSummary(report.garment_follow)){
+      const p=document.createElement('p');p.textContent=text;section.append(p);
+    }
     for(const [label,geometry] of [['原候选',report.before],['修正候选',report.after]]) {
       if(report.region_order&&label==='修正候选') {
         const names=new Set(report.region_order.regions.map(r=>r.slot)),rows=geometry.records.filter(r=>names.has(r.slot)),p=document.createElement('p');

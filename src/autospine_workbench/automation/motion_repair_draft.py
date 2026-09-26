@@ -6,7 +6,7 @@ from ..resolved_project import canonical_sha256
 from .pipeline_run import PipelineRunError
 from .storage_io import directory, publish_document, read_document
 
-ACTIONS = {'local_repair', 'partition', 'region_order', 'pose_attachment', 'contact_scope', 'withdraw'}
+ACTIONS = {'local_repair', 'partition', 'region_order', 'pose_attachment', 'contact_scope', 'garment_follow', 'withdraw'}
 
 
 def evidence(manager, job):
@@ -75,6 +75,10 @@ def save(manager, job, body):
         matches=[visual_event(manager,job,body)]
     if len(matches) != 1:
         raise PipelineRunError('motion_draft_event_not_found')
+    garment = None
+    if body['action'] == 'garment_follow':
+        from .motion_garment_follow import scope
+        garment = scope(manager, job, body['slot'], body['animation'], body['artifact_sha256'])
     with manager._lock:
         rows = history(manager, job)
         state = _state(job, report, digest, rows)
@@ -96,6 +100,7 @@ def save(manager, job, body):
         if views is not None:row['view_needs']=views
         if region_order is not None:row['region_order']=region_order
         if contact_scope is not None:row['contact_scope']=contact_scope
+        if garment is not None:row['garment_follow']=garment
         root = directory(manager.folder(job) / 'repair-drafts', create=True)
         if not publish_document(root / f'draft-{revision:04d}.json', row, staging=root / 'staging'):
             raise PipelineRunError('motion_draft_revision_changed')

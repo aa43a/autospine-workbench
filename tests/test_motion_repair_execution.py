@@ -63,6 +63,30 @@ class SubmissionTests(unittest.TestCase):
         self.assertEqual(saved['repair_execution']['profile'],execution.PARTITION_PROFILE)
         self.assertEqual(saved['repair_execution']['draft']['partition'],self.row['partition'])
 
+    def test_garment_scope_revalidated_and_frozen_in_distinct_queue_task(self):
+        self.row.update(action='garment_follow',garment_follow={'roots':['declared']})
+        def resolve(*_):
+            self.assertFalse(self.manager._lock._is_owned())
+            return {'roots':['declared']}
+        with patch('autospine_workbench.automation.motion_garment_follow.scope',side_effect=resolve):
+            value=self.invoke()
+        request=read_document(self.manager.folder(value['job_id'])/'request.json')
+        self.assertEqual(request['repair_execution']['profile'],execution.GARMENT_PROFILE)
+        self.assertEqual(request['repair_execution']['draft']['garment_follow'],self.row['garment_follow'])
+        with patch('autospine_workbench.automation.motion_garment_follow.scope',return_value={'roots':['changed']}):
+            with self.assertRaisesRegex(RuntimeError,'scope_changed'):self.invoke()
+
+    def test_garment_plan_withdrawn_during_scope_read_never_queues(self):
+        self.row.update(action='garment_follow',garment_follow={'roots':['declared']})
+        rows=[self.row]
+        def resolve(*_):
+            rows.append(dict(self.row,action='withdraw',revision=2))
+            return self.row['garment_follow']
+        with patch('autospine_workbench.automation.motion_garment_follow.scope',side_effect=resolve):
+            with self.assertRaisesRegex(RuntimeError,'plan_changed'):self.invoke(rows=rows)
+        self.manager._pool.submit.assert_not_called()
+        self.assertEqual(self.manager._jobs,{})
+
     def test_occlusion_execution_requires_explicit_region_and_freezes_it(self):
         self.row['action']='contact_scope'
         with self.assertRaisesRegex(RuntimeError,'occlusion_region_required'):self.invoke()

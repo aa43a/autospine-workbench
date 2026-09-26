@@ -12,10 +12,18 @@ STEPS = {'runtime_prepare', 'runtime_geometry', 'runtime_reference', 'runtime_se
          'verify_source', 'convert_fbx', 'verify_bridge', 'inspect_bvh', 'inspect_npz', 'compile_motion',
          'retarget', 'post_contact_repair', 'publish_candidate', 'runtime', 'verify_generator', 'verify_text_encoder',
          'generate_motion', 'verify_generation', 'depth_overlap', 'depth_partition',
-         'depth_refinement', 'depth_cloth_constraints', 'depth_limb_constraints', 'depth_ordering', 'torso_projection', 'local_depth'}
+         'depth_refinement', 'depth_cloth_constraints', 'depth_limb_constraints', 'depth_ordering', 'torso_projection', 'local_depth',
+         'garment_follow', 'garment_validate'}
 
 # Only explicit internal failures may cross the worker log boundary.
 REPAIR_FAILURES = frozenset({
+    'attachment_transport_requires_baked_torso', 'attachment_transport_profile_unsupported',
+    'attachment_transport_shape_invalid', 'attachment_transport_source_limits',
+    'attachment_transport_times_invalid', 'attachment_transport_roots_invalid',
+    'attachment_transport_root_ancestry', 'source_pose_final_sample_limit',
+    'attachment_transport_skin_unsupported', 'attachment_transport_legacy_deform_unsupported',
+    'attachment_transport_attachment_choice_unsupported', 'attachment_transport_weighted_mesh_required',
+    'attachment_transport_no_affected_vertices', 'torso_transform_degenerate',
     'animated_resource_limit', 'region_order_source_identity', 'region_order_mesh_changed',
     'region_order_animation_or_skin_unsupported', 'region_order_reference_inventory',
     'region_order_sample_limit', 'partition_compact_curve', 'partition_compact_timeline',

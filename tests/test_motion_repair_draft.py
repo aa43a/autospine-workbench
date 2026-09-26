@@ -49,6 +49,15 @@ class RepairDraftTests(unittest.TestCase):
         self.assertEqual([r['action'] for r in last['history']], ['partition', 'withdraw'])
         self.assertFalse((Path(self.temp.name)/'stage-reviews').exists())
 
+    def test_garment_scope_comes_from_server_and_is_saved_without_execution(self):
+        body=self.body();body['action']='garment_follow'
+        with patch('autospine_workbench.automation.motion_garment_follow.scope',return_value={'roots':['declared']}):
+            saved=draft.save(self.manager,'job',body)
+        self.assertEqual(saved['history'][-1]['garment_follow'],{'roots':['declared']})
+        self.assertFalse(saved['repair_executed'])
+        body=self.body();body.update(action='garment_follow',garment_follow={'roots':['guessed']})
+        with self.assertRaisesRegex(RuntimeError,'request_invalid'):draft.save(self.manager,'job',body)
+
     def test_stale_revision_and_evidence(self):
         body = self.body(); draft.save(self.manager, 'job', body)
         with self.assertRaisesRegex(RuntimeError, 'revision_changed'):

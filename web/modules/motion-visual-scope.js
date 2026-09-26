@@ -2,7 +2,7 @@ import {appendRepairDraft} from './motion-repair-draft.js';
 const node=(tag,text)=>{const value=document.createElement(tag);if(text)value.textContent=text;return value;};
 
 export function appendVisualScope(parent,job,onSeek){
-  const button=node('button','编辑衣料覆盖与前后关系'),panel=node('section');panel.hidden=true;
+  const button=node('button','编辑衣料跟随、覆盖与前后关系'),panel=node('section');panel.hidden=true;
   parent.append(button,panel);let generation=0;
   button.onclick=async()=>{
     const ticket=++generation;button.disabled=true;panel.hidden=false;panel.textContent='正在读取当前候选附件…';
@@ -13,7 +13,7 @@ export function appendVisualScope(parent,job,onSeek){
       if(report.artifact_sha256!==job.result.artifact_sha256)throw Error('候选已变化，请刷新任务');
       if(!report.animations?.length)throw Error('服务尚未提供视觉编辑入口所需的动画信息，请更新服务后重试');
       if(ticket!==generation)return;
-      panel.replaceChildren(node('p','无须先有几何失败。选择附件和检查时间，再在原纹理上标注覆盖区或提出前后顺序方案。这里记录人工检查意图，不自动判定遮挡错误。'));
+      panel.replaceChildren(node('p','选择附件和检查时间，可生成裙腰跟随候选、标注覆盖区或调整前后顺序；无需先有几何失败。裙腰跟随会自动核对骨链及躯干投影是否适用。'));
       const slot=node('select'),animation=node('select'),time=node('input'),open=node('button','打开所选附件的处理画布'),editor=node('div');
       slot.setAttribute('aria-label','视觉检查附件');animation.setAttribute('aria-label','视觉检查动作');
       time.type='number';time.min=0;time.step='any';time.value=0;time.setAttribute('aria-label','视觉检查时间（秒）');

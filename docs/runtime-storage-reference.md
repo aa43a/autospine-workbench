@@ -11,3 +11,10 @@
 辉夜抬臂原始失败已定位到 1.128125 秒、`layer-002-component-0000` 的第 222 个顶点。对完全相同工件应用独立存储参考后，313 帧对照通过，最大误差约 0.000164 px，setup 对照无可见像素缺失。原始理想几何仍有一项失败，因此候选仍不可视为动作质量通过。
 
 失败捕获新增 `failure.json`，保存确切工件、Runtime/工具/脚本身份，以及附件、顶点、时间、期望/实际坐标和门槛。文件是诊断证据，不是成功报告。实测记录见 [验证证据](benchmark/m4-runtime-storage-v1.json)。
+
+裙腰跟随候选使用 `autospine.character-reference-chunks/v2` 保存密集理想参考，避免大角色超过既有包体限制。
+索引格式见 `schemas/character-reference-chunks-v2.schema.json`，分块内容见
+`schemas/reference-chunk-envelope-v1.schema.json`。每块为 gzip/base64 的 JSON 封装，
+按压缩文件摘要寻址，并检查解压长度与摘要；解压每块最多 64 MiB、合计最多 256 MiB。
+这只改变证据的存储方式，不改采样、数值或导出骨架。Python 及官方捕获用的 Node 读取器兼容平铺、v1 和 v2；
+生产捕获仍另算 Float32 存储参考，不能把无损压缩等同于降低精度。

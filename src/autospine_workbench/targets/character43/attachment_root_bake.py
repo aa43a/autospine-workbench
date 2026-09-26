@@ -9,7 +9,7 @@ from .runtime_storage_reference import f32
 from ..spine43.continuous_pose import interpolate
 
 
-def build(document, animation, torso, roots, times, on_progress=None):
+def validate(document, animation, torso, times):
     if torso.get('applied') is not True:
         raise ValueError('attachment_transport_requires_baked_torso')
     if torso.get('profile') not in ('torso-plane-compensated-deform-v1-experiment',
@@ -33,6 +33,12 @@ def build(document, animation, torso, roots, times, on_progress=None):
     original = document['animations'][animation]
     if original.get('deform'):
         raise ValueError('attachment_transport_legacy_deform_unsupported')
+    return rows
+
+
+def build(document, animation, torso, roots, times, on_progress=None):
+    rows = validate(document, animation, torso, times)
+    original = document['animations'][animation]
     shapes = [dict(time=r['time'], vertices=[r['longitudinal'], r['shear'], r['transverse']]) for r in rows]
     keys = sorted({f32(time) for time in times})
     result = deepcopy(document)
