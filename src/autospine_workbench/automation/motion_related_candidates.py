@@ -31,6 +31,8 @@ def baseline(manager,job):
 def register(manager,job,files,receipt,runtime,visual=None):
     folder=manager.folder(job);request=read_document(folder/'request.json')
     original=baseline(manager,job);store=AnimatedStore(manager.state_root)
+    from .motion_related_pose import verify
+    verify(files,receipt,manager.state_root)
     evidence=inspect(request,store.read(request['character_sha256']),files,receipt,runtime,visual)
     candidate=store.publish(files)
     value=dict(baseline_sha256=original,request_sha256=canonical_sha256(request),
@@ -62,6 +64,8 @@ def load(manager,job,digest):
     value,request=_registration(manager,job,digest)
     store=AnimatedStore(manager.state_root)
     files=store.read(value['candidate_sha256'])
+    from .motion_related_pose import verify
+    verify(files,value['receipt'],manager.state_root)
     evidence=inspect(request,store.read(request['character_sha256']),files,
                      value['receipt'],value['runtime'],value['visual'])
     if evidence!=value['evidence']:raise ValueError('motion_related_evidence_changed')

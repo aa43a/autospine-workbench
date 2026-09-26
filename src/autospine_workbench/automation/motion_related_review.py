@@ -27,6 +27,11 @@ def readiness(value, files, registration):
     if value['evidence'].get('skirt_checks'):
         report['stages'].append(dict(stage='裙腿局部遮挡', status='unmeasured', href='report.json',
             explanation='选定姿态的假设布面定位；尚不证明完整动作的实际遮挡通过。'))
+    if value['evidence'].get('pose_checks'):
+        pose = value['evidence']['pose_checks']
+        report['stages'].append(dict(stage='源姿态复测', status='unmeasured', href='report.json',
+            explanation=f"已复测 {pose['samples']} 个源时刻；骨轴一致性不代表形体或前后关系通过。",
+            measurement=pose))
     statuses = {s['status'] for s in report['stages']}
     report.update(profile='external-motion-related-readiness-v1',
         status='needs_changes' if 'needs_changes' in statuses else

@@ -65,4 +65,8 @@ def inspect(request, character_files, candidate_files, receipt, runtime, visual=
         from .motion_related_skirt import summary
         result['skirt_checks']=summary(receipt['skirt_audit'],candidate,skeleton,
                                       request['motion_identity'],max(t for _,_,t in expected))
+    if 'pose_audit' in receipt:
+        from .motion_related_pose import summary
+        result['pose_checks']=summary(receipt['pose_audit'],candidate,skeleton,
+            request['motion_identity'],receipt.get('source_request_sha256'))
     return result

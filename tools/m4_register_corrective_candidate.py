@@ -50,7 +50,7 @@ def receipt_for(request, original_receipt, original_files, corrected_receipt, fi
         authority='none',selected=False,production_authorized=False)
 
 
-def run(state,job,source,corrected,output,do_register=False,contact_audit=None,skirt_audit=None):
+def run(state,job,source,corrected,output,do_register=False,contact_audit=None,skirt_audit=None,pose_audit=None):
     if not re.fullmatch('motion-[a-f0-9]{32}',job):raise ValueError('corrective_link_job_invalid')
     if output.exists():raise ValueError('corrective_link_output_exists')
     read=lambda p:json.loads(p.read_bytes())
@@ -63,6 +63,10 @@ def run(state,job,source,corrected,output,do_register=False,contact_audit=None,s
         receipt['contact_audit']=read(contact_audit)
     if skirt_audit is not None:
         receipt['skirt_audit']=read(skirt_audit)
+    if pose_audit is not None:
+        from autospine_workbench.automation.motion_related_pose import verify
+        receipt['pose_audit']=read(pose_audit)
+        verify(files,receipt,state)
     baseline=read(state/'jobs/motion-intake-v1'/job/'request.json')
     evidence=inspect(baseline,AnimatedStore(state).read(baseline['character_sha256']),files,receipt,runtime)
     result=dict(receipt=receipt,evidence=evidence,registered=False)
@@ -82,5 +86,5 @@ if __name__=='__main__':
     p.add_argument('state',type=Path);p.add_argument('job')
     for name in ('source','corrected','output'):p.add_argument(name,type=Path)
     p.add_argument('--register',action='store_true');p.add_argument('--contact-audit',type=Path)
-    p.add_argument('--skirt-audit',type=Path);a=p.parse_args()
-    run(a.state,a.job,a.source,a.corrected,a.output,a.register,a.contact_audit,a.skirt_audit)
+    p.add_argument('--skirt-audit',type=Path);p.add_argument('--pose-audit',type=Path);a=p.parse_args()
+    run(a.state,a.job,a.source,a.corrected,a.output,a.register,a.contact_audit,a.skirt_audit,a.pose_audit)

@@ -24,3 +24,8 @@ class RelatedReadinessTests(unittest.TestCase):
         self.assertEqual(readiness(changed, f.f.files, 'e'*64)['status'], 'needs_changes')
         changed = deepcopy(value); changed['evidence']['skirt_checks'] = {'status':'requires_review'}
         self.assertEqual(readiness(changed, f.f.files, 'e'*64)['stages'][-1]['status'], 'unmeasured')
+        changed['evidence']['pose_checks'] = {'samples':57, 'status':'requires_review'}
+        final = readiness(changed, f.f.files, 'e'*64)
+        self.assertEqual(final['stages'][-1]['stage'], '源姿态复测')
+        self.assertEqual(final['stages'][-1]['status'], 'unmeasured')
+        self.assertEqual(final['status'], 'evidence_incomplete')

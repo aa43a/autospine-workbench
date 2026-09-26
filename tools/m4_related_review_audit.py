@@ -67,7 +67,8 @@ def main():
             print(json.dumps(dict(registration=registration, status='verified')), flush=True)
         if data(base + '/stage-review') != baselines[job]: raise ValueError('baseline review changed')
     if journals(args.state) != before: raise ValueError('review history changed during read')
-    modules = ['motion-related-candidates.js', 'motion-stage-review.js', 'motion-related-summary.js', 'motion-cohort-status.js']
+    modules = ['motion-related-candidates.js', 'motion-related-pose.js', 'motion-stage-review.js',
+               'motion-related-summary.js', 'motion-cohort-status.js']
     if not args.snapshot:
         for name in modules:
             if get('/modules/' + name) != (Path('web/modules') / name).read_bytes(): raise ValueError('web module outdated')
