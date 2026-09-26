@@ -25,11 +25,12 @@ def build(files, slots, name='external-motion', on_progress=None):
     if set(document['animations']) != {name}:
         raise ValueError('limb_transverse_single_animation_required')
     if on_progress:on_progress(dict(stage='compensate_transverse'))
-    transverse, evidence = compensate(document, name, slots)
+    transverse, evidence = compensate(document, name, slots, on_progress=on_progress)
     result = deepcopy(document)
     target = result['animations'][name].setdefault('attachments', {}).setdefault('default', {})
     corrections = []
     for slot in slots:
+        if on_progress:on_progress(dict(stage='correct_joints', slot=slot))
         isolated = deepcopy(transverse)
         isolated['slots'] = [s for s in isolated['slots'] if s['name'] == slot]
         isolated['skins'][0]['attachments'] = {slot: isolated['skins'][0]['attachments'][slot]}
@@ -70,7 +71,8 @@ def build(files, slots, name='external-motion', on_progress=None):
     times = sorted(set(final_times(result, name, midpoints)) |
                    {f['time'] for f in parent['animations'][name]})
     if len(times) > 4097:raise ValueError('limb_transverse_sample_limit')
-    output = {n: v for n, v in files.items() if n.endswith('.png') or n in ('skeleton.atlas', 'motion-ir.json')}
+    output = {n: v for n, v in files.items() if n.endswith('.png') or
+              n in ('skeleton.atlas', 'motion-ir.json', 'motion-torso-projection.json')}
     output['skeleton.json'] = canonical_bytes(result); carry_setup(files, output)
     digest = sha256(output['skeleton.json']).hexdigest()
     frames = []; old_frames = []

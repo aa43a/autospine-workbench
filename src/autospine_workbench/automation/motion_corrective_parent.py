@@ -1,18 +1,20 @@
-"""Chain independent, topology-preserving leg and garment corrections."""
+"""Chain independent, topology-preserving corrections with exact provenance."""
 from hashlib import sha256
 import json
 from ..resolved_project import canonical_sha256
 from ..targets.character43.final_leg_repair_policy import PROFILE, execution_profile, verify as verify_leg
 from ..targets.character43.garment_follow_scope import PROFILE as GARMENT_PROFILE
+from ..targets.character43.limb_transverse_scope import PROFILE as TRANSVERSE_PROFILE
 from .pipeline_run import PipelineRunError
 
-PROFILES = {PROFILE, GARMENT_PROFILE}
+PROFILES = {PROFILE, GARMENT_PROFILE, TRANSVERSE_PROFILE}
 
 
 def verify(manager, job, request, row, artifact):
     parent = request.get('repair_execution')
     if not parent or parent.get('profile') not in PROFILES: return None
-    profile = execution_profile(row, GARMENT_PROFILE if row['action']=='garment_follow' else None)
+    profile = execution_profile(row, {'garment_follow':GARMENT_PROFILE,
+                                      'transverse_repair':TRANSVERSE_PROFILE}.get(row['action']))
     if (profile not in PROFILES or row['slot']==parent['draft']['slot']
             or row['animation']!=parent['draft']['animation']):
         raise PipelineRunError('motion_repair_nested_execution_unsupported')

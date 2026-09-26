@@ -55,14 +55,9 @@ def _chain(rows):
     raise ValueError('limb_transverse_single_limb_required')
 
 
-def build(document, name, slots, *, tolerance_px=.05, maximum_keys=2049):
-    """Bake additive rest-surface compensation with quarter-interval error checks.
-
-    Axial shortening is deliberately not clamped and the geometry gate is not
-    changed. This planar frame convention does not reconstruct 3D surface twist.
-    """
+def prepare(document, name, slots, maximum_keys=2049):
+    """Read-only structural preflight shared with the actual bake."""
     if (not slots or len(slots) != len(set(slots)) or
-            not math.isfinite(tolerance_px) or not 0 < tolerance_px <= .1 or
             type(maximum_keys) is not int or not 3 <= maximum_keys <= 2049):
         raise ValueError('limb_transverse_options_invalid')
     if len(document['skins']) != 1 or document['skins'][0]['name'] != 'default':
@@ -96,10 +91,24 @@ def build(document, name, slots, *, tolerance_px=.05, maximum_keys=2049):
         raise ValueError('limb_transverse_key_limit')
     rest = deepcopy(document); rest['animations'][name] = {'bones': {}}
     baseline = {n: _frame(m) for n, m in matrices(rest, name, 0).items() if n in used}
+    return rows, previous, used, times, baseline
+
+
+def build(document, name, slots, *, tolerance_px=.05, maximum_keys=2049, on_progress=None):
+    """Bake additive rest-surface compensation with quarter-interval error checks.
+
+    Axial shortening is deliberately not clamped and the geometry gate is not
+    changed. This planar frame convention does not reconstruct 3D surface twist.
+    """
+    if not math.isfinite(tolerance_px) or not 0 < tolerance_px <= .1:
+        raise ValueError('limb_transverse_options_invalid')
+    rows, previous, used, times, baseline = prepare(document, name, slots, maximum_keys)
     cache = {}
 
     def at(time):
         if time not in cache:
+            if on_progress and len(cache) % 64 == 0:
+                on_progress(dict(stage='compensate_transverse', index=len(cache)))
             transforms = matrices(document, name, time)
             frames = {n: _frame(transforms[n]) for n in used}
             offsets = {}; maximum = {}

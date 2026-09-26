@@ -7,7 +7,7 @@ from ..targets.character43.region_order_interval import duration
 
 def validate(manager,job,body):
     if (body.get('visual_inspection') is not True or body['triangle']!=-1
-            or body['action'] not in {'contact_scope','region_order','garment_follow','withdraw'}):
+            or body['action'] not in {'contact_scope','region_order','garment_follow','transverse_repair','withdraw'}):
         raise PipelineRunError('motion_visual_inspection_invalid')
     from .motion_target_jobs import context
     result,files=context(manager,job)

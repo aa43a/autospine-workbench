@@ -1,0 +1,32 @@
+{
+  "schema": "autospine.m4-transverse-workbench-evidence/v1",
+  "date": "2026-09-26",
+  "profile": "selected-leg-transverse-repair-v1",
+  "authority": "none",
+  "selected": false,
+  "production_authorized": false,
+  "tests": {"python": 77, "node": 9, "browser": "blocked_by_saved_permission_verification"},
+  "service": {"port": 8918, "launcher_pid": 19176, "jobs_before": 172, "jobs_after": 172, "active_jobs": 0, "module_http_status": 200},
+  "readonly_live_preflights": [
+    {"character": "alice", "job_id": "motion-8a48f34642c643e397f95b433046b8bb", "artifact_sha256": "2424c43da460100d70b0c4d43ef380da86b999fd8daa8beba04e98480005479c", "slots": ["layer-001-l", "layer-001-r"], "available": true},
+    {"character": "hongmeiling", "job_id": "motion-e2f8058160c14d959d468d75cc53a35e", "artifact_sha256": "b682ae45d064f3106f6af72ab23d5c3c5170d3b0d1c0d39773091fd61c761dc9", "slots": ["layer-003", "layer-004"], "available": true},
+    {"character": "huiye", "job_id": "motion-b5610841e66e4f599d58360ef9de20bb", "artifact_sha256": "d8024a97a0837e56f5e19813df3daf4fdfcaa0d62591a2c45446865e2b634c48", "slots": ["layer-001-l", "layer-001-r"], "available": true}
+  ],
+  "isolated_fresh_build": {
+    "source_job_id": "motion-b5610841e66e4f599d58360ef9de20bb",
+    "parent_artifact_sha256": "d8024a97a0837e56f5e19813df3daf4fdfcaa0d62591a2c45446865e2b634c48",
+    "candidate_bundle_sha256": "687f1d1f28640118e714726da55eb7c15836a4c8ee695e06a12e7869bf959baa",
+    "skeleton_sha256": "020d6dd3fb28e2b451cdf57e5ed52b69a9850e1b8e3ecac62818483b4246ab1a",
+    "animation": "external-motion", "slot": "layer-001-l",
+    "same_grid_samples": 1406,
+    "whole_character_geometry_passed": true,
+    "maximum_transverse_displacement_px": 6.051154716184967,
+    "before_max_edge_stretch": 1.1308991231860241,
+    "after_max_edge_stretch": 1.112446005781768,
+    "official_cpu": {"frames": 129, "vertices": 34056, "maximum_error_px": 0.00019167820742574764, "passed": true, "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676"},
+    "gpu": "not_run", "visual_status": "not_reviewed", "published_to_live_jobs": false,
+    "evidence_directory": "E:/proj/unusual/localset/tmp/m4-transverse-workbench-v1/huiye-live-left"
+  },
+  "stage_review_files_unchanged": 3,
+  "limitations": ["explicit_leg_candidate_only", "original_area_and_edge_gates_unchanged", "fixed_area_counterexamples_retained", "regressions_visible", "cpu_is_not_gpu_or_visual_acceptance"]
+}

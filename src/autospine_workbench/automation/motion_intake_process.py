@@ -13,10 +13,20 @@ STEPS = {'runtime_prepare', 'runtime_geometry', 'runtime_reference', 'runtime_se
          'retarget', 'post_contact_repair', 'publish_candidate', 'runtime', 'verify_generator', 'verify_text_encoder',
          'generate_motion', 'verify_generation', 'depth_overlap', 'depth_partition',
          'depth_refinement', 'depth_cloth_constraints', 'depth_limb_constraints', 'depth_ordering', 'torso_projection', 'local_depth',
-         'garment_follow', 'garment_validate'}
+         'garment_follow', 'garment_validate', 'transverse_compensate', 'transverse_joint', 'transverse_validate'}
 
 # Only explicit internal failures may cross the worker log boundary.
 REPAIR_FAILURES = frozenset({
+    'limb_transverse_frame_degenerate', 'limb_transverse_weighted_mesh_required',
+    'limb_transverse_weights_invalid', 'limb_transverse_vertex_inventory',
+    'limb_transverse_single_limb_required', 'limb_transverse_options_invalid',
+    'limb_transverse_skin_unsupported', 'limb_transverse_timeline_unsupported',
+    'limb_transverse_attachment_ambiguous', 'limb_transverse_dense_deform_required',
+    'limb_transverse_linear_required', 'limb_transverse_times_invalid', 'limb_transverse_key_limit',
+    'limb_transverse_deform_inventory', 'limb_transverse_interpolation_unresolved',
+    'limb_transverse_source_mismatch', 'limb_transverse_source_projection_required',
+    'limb_transverse_single_animation_required', 'limb_transverse_bind_changed',
+    'limb_transverse_unrelated_channels_changed', 'limb_transverse_sample_limit',
     'attachment_transport_requires_baked_torso', 'attachment_transport_profile_unsupported',
     'attachment_transport_shape_invalid', 'attachment_transport_source_limits',
     'attachment_transport_times_invalid', 'attachment_transport_roots_invalid',

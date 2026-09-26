@@ -6,7 +6,7 @@ from ..targets.character43.selected_attachment_repair import build
 from .animated_store import AnimatedStore
 from .character_capture import capture
 from .motion_intake_process import progress
-from .motion_repair_execution import PROFILE,PARTITION_PROFILE,ORDER_PROFILE,INTERVAL_ORDER_PROFILE,OCCLUSION_PROFILE,GARMENT_PROFILE
+from .motion_repair_execution import PROFILE,PARTITION_PROFILE,ORDER_PROFILE,INTERVAL_ORDER_PROFILE,OCCLUSION_PROFILE,GARMENT_PROFILE,TRANSVERSE_PROFILE
 from ..targets.character43.material_region_candidate import PROFILE as MATERIAL_PROFILE
 from ..targets.character43.pose_geometry_candidate import PROFILE as POSE_PROFILE
 from ..targets.character43.view_pose_candidate import PROFILE as VIEW_PROFILE
@@ -17,7 +17,8 @@ def execute(folder, state_root, workspace, request):
     repair = request['repair_execution']; plan = repair['draft']
     expected={'local_repair':PROFILE,'partition':PARTITION_PROFILE,'pose_attachment':MATERIAL_PROFILE,
               'pose_geometry':POSE_PROFILE,'region_order':ORDER_PROFILE,'additional_view':VIEW_PROFILE,
-              'contact_scope':OCCLUSION_PROFILE,'garment_follow':GARMENT_PROFILE}.get(plan['action'])
+              'contact_scope':OCCLUSION_PROFILE,'garment_follow':GARMENT_PROFILE,
+              'transverse_repair':TRANSVERSE_PROFILE}.get(plan['action'])
     from ..targets.character43.final_leg_repair_policy import execution_profile
     expected = execution_profile(plan, expected)
     if plan['action']=='region_order' and 'interval' in plan.get('region_order', {}):
@@ -50,6 +51,15 @@ def execute(folder, state_root, workspace, request):
                 or pose['slot']!=plan['slot'] or pose['animation']!=plan['animation']):
             raise ValueError('motion_view_worker_scope_changed')
         files,evidence,geometry=view_build(source,pose,material['view.png'],lambda _:progress(folder,'post_contact_repair'))
+    elif expected==TRANSVERSE_PROFILE:
+        from ..targets.character43.selected_transverse_candidate import build as transverse_build
+        if plan['transverse_repair']['character_sha256'] != request['character_sha256']:
+            raise ValueError('motion_transverse_character_changed')
+        character = store.read(request['character_sha256'])
+        def transverse_progress(row):
+            stage = {'compensate_transverse':'transverse_compensate', 'validate':'transverse_validate'}.get(row['stage'],'transverse_joint')
+            progress(folder,stage)
+        files,evidence,geometry=transverse_build(source,character,plan,transverse_progress)
     elif expected==GARMENT_PROFILE:
         from ..targets.character43.garment_follow_candidate import build as garment_build
         if plan['garment_follow']['character_sha256'] != request['character_sha256']:

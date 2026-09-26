@@ -1,6 +1,7 @@
 import {geometryLines} from './motion-repair-geometry.js';
 import {switchContinuityLines} from './motion-switch-continuity.js';
 import {garmentSummary} from './motion-garment-follow.js';
+import {transverseSummary} from './motion-transverse-repair.js';
 export async function appendRepairSummary(panel,job) {
   if(!job.result?.repair_profile)return;
   const section=document.createElement('section');panel.append(section);
@@ -9,7 +10,15 @@ export async function appendRepairSummary(panel,job) {
     const response=await fetch(`/api/motions/${encodeURIComponent(job.job_id)}/view/repair-summary.json`,{cache:'no-store'});
     const report=await response.json();
     if(!response.ok||report.artifact_sha256!==job.result.artifact_sha256)throw Error('修正结果身份不匹配');
-    section.replaceChildren();const title=document.createElement('h4');title.textContent=report.garment_follow?'裙腰跟随候选前后':report.additional_view?'新视角附件候选前后':report.region_order?'区域顺序候选':report.pose_geometry?'姿态修形候选前后':report.material?'区域换图候选前后':report.boundary?'分区候选前后':'局部修正前后';section.append(title);
+    section.replaceChildren();const title=document.createElement('h4');title.textContent=report.transverse_repair?'腿部斜切修正候选前后':report.garment_follow?'裙腰跟随候选前后':report.additional_view?'新视角附件候选前后':report.region_order?'区域顺序候选':report.pose_geometry?'姿态修形候选前后':report.material?'区域换图候选前后':report.boundary?'分区候选前后':'局部修正前后';section.append(title);
+    if(report.transverse_repair){
+      for(const text of transverseSummary(report.transverse_repair)){
+        const p=document.createElement('p');p.textContent=text;section.append(p);
+      }
+      const worst=report.transverse_repair.fixed_area_blocker?.worst;
+      if(worst){const a=document.createElement('a');a.textContent=`查看固定区域异常：三角形 ${worst.triangle}，${worst.time.toFixed(3)} 秒`;
+        a.href=`/api/motions/${encodeURIComponent(job.job_id)}/view/player.html?time=${worst.time}`;section.append(a);}
+    }
     if(report.garment_follow)for(const text of garmentSummary(report.garment_follow)){
       const p=document.createElement('p');p.textContent=text;section.append(p);
     }
@@ -25,7 +34,7 @@ export async function appendRepairSummary(panel,job) {
         const p=document.createElement('p');p.textContent=text;section.append(p);
       }
     }
-    const note=document.createElement('p');note.textContent=report.local_solver
+    const note=document.createElement('p');note.textContent=report.local_solver||report.transverse_repair||report.garment_follow
       ?'同一时间采样上的对照只证明已执行的几何检查。接触和遮挡需要重新检查，视觉尚未接受。'
       :'新候选保留原检查时刻并增加修正关键点与中点；采样数可能不同，失败次数不能直接当作错误率比较。骨骼与其他附件保持不变，遮挡和视觉尚未重新接受。';
     const link=document.createElement('a');link.textContent='查看原候选';link.href='/motions.html#'+encodeURIComponent(report.parent_job_id);

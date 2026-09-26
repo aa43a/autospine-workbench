@@ -4,7 +4,8 @@ import {viewReturn} from './motion-view-return.js';
 import {contactEditor} from './motion-contact-editor.js';
 import {contactPreflight} from './motion-contact-preflight.js';
 import {garmentPreflight} from './motion-garment-follow.js';
-const labels = {local_repair:'局部变形修正', garment_follow:'裙腰随躯干投影跟随', partition:'区域刚性重绑', region_order:'区域前后顺序', pose_attachment:'补充姿态附件', contact_scope:'衣料连接与活动范围（仅记录）', withdraw:'撤销此处处理草稿'};
+import {transversePreflight} from './motion-transverse-repair.js';
+const labels = {local_repair:'局部变形修正', transverse_repair:'修正腿部斜切（实验候选）', garment_follow:'裙腰随躯干投影跟随', partition:'区域刚性重绑', region_order:'区域前后顺序', pose_attachment:'补充姿态附件', contact_scope:'衣料连接与活动范围（仅记录）', withdraw:'撤销此处处理草稿'};
 const node = (tag, text) => {const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e;};
 
 export function appendRepairDraft(parent, job, row, getDetail, {visualInspection=false} = {}) {
@@ -12,7 +13,7 @@ export function appendRepairDraft(parent, job, row, getDetail, {visualInspection
   const load=node('button','加载处理草稿'), save=node('button','保存处理草稿');
   const action=node('select');action.setAttribute('aria-label','异常处理路线');
   for(const [value,label] of Object.entries(labels)) {
-    if(visualInspection&&!['contact_scope','region_order','garment_follow','withdraw'].includes(value))continue;
+    if(visualInspection&&!['contact_scope','region_order','garment_follow','transverse_repair','withdraw'].includes(value))continue;
     const option=node('option',label);option.value=value;action.append(option);
   }
   const notes=node('textarea');notes.maxLength=4000;notes.setAttribute('aria-label','异常处理说明');
@@ -45,7 +46,8 @@ export function appendRepairDraft(parent, job, row, getDetail, {visualInspection
   const contact=contactEditor(panel,job,row);contact.show(false);
   const showContact=contactPreflight(panel,job);showContact(null);
   const garment=garmentPreflight(panel,job,row);garment.show(false);
-  action.onchange=()=>{execute.hidden=true;region.show(action.value==='partition');order.show(action.value==='region_order');contact.show(action.value==='contact_scope');garment.show(action.value==='garment_follow');showScope();};
+  const transverse=transversePreflight(panel,job,row);transverse.show(false);
+  action.onchange=()=>{execute.hidden=true;region.show(action.value==='partition');order.show(action.value==='region_order');contact.show(action.value==='contact_scope');garment.show(action.value==='garment_follow');transverse.show(action.value==='transverse_repair');showScope();};
   const matches = r => r.slot===row.slot && r.animation===row.animation &&
     r.event.triangle===getDetail().triangle && r.event.time===getDetail().time;
   const render = () => {
@@ -64,6 +66,7 @@ export function appendRepairDraft(parent, job, row, getDetail, {visualInspection
     }
     showScope();
     garment.show(action.value==='garment_follow');
+    transverse.show(action.value==='transverse_repair');
     region.restore(applies?latest.partition:null);region.show(action.value==='partition');
     order.restore(applies?latest.region_order:null);order.show(action.value==='region_order');
     contact.restore(applies?latest.contact_scope:null);contact.show(action.value==='contact_scope');
@@ -73,8 +76,8 @@ export function appendRepairDraft(parent, job, row, getDetail, {visualInspection
     showReturn(material.hidden||latest.view_needs?.length?null:latest.revision);
     showViewReturn(!material.hidden&&latest.view_needs?.length?latest.revision:null);
     material.textContent=latest?.view_needs?.length?'下载新视角需求任务包':'下载姿态素材任务包';
-    execute.hidden=!(applies&&(latest.action==='local_repair'||latest.action==='garment_follow'&&latest.garment_follow||latest.action==='partition'&&latest.partition||latest.action==='region_order'&&latest.region_order||latest.action==='contact_scope'&&latest.contact_scope?.regions?.occlusion?.length));
-    execute.textContent=latest?.local_solver?'构建最终腿姿态修正候选':latest?.action==='garment_follow'?'构建裙腰跟随候选':latest?.action==='contact_scope'?'构建覆盖区表示候选（保留原运动）':latest?.action==='region_order'?'构建区域顺序候选':latest?.action==='partition'?'构建独立分区候选':'构建局部修正候选';
+    execute.hidden=!(applies&&(latest.action==='local_repair'||latest.action==='transverse_repair'&&latest.transverse_repair||latest.action==='garment_follow'&&latest.garment_follow||latest.action==='partition'&&latest.partition||latest.action==='region_order'&&latest.region_order||latest.action==='contact_scope'&&latest.contact_scope?.regions?.occlusion?.length));
+    execute.textContent=latest?.local_solver?'构建最终腿姿态修正候选':latest?.action==='transverse_repair'?'构建腿部斜切修正候选':latest?.action==='garment_follow'?'构建裙腰跟随候选':latest?.action==='contact_scope'?'构建覆盖区表示候选（保留原运动）':latest?.action==='region_order'?'构建区域顺序候选':latest?.action==='partition'?'构建独立分区候选':'构建局部修正候选';
     execute.onclick=async()=>{
       panel.disabled=true;status.textContent='正在提交独立修正任务…';
       try {
@@ -106,6 +109,7 @@ export function appendRepairDraft(parent, job, row, getDetail, {visualInspection
     showViewReturn(null);
     showContact(null);
     garment.show(false);
+    transverse.show(false);
     try {const result=await request(body);if(ticket!==generation)return;state=result;render();}
     catch(error){if(ticket===generation){state=null;save.disabled=true;status.textContent=error.message+'；请重新加载。';}}
     finally {if(ticket===generation)panel.disabled=false;}
@@ -114,6 +118,7 @@ export function appendRepairDraft(parent, job, row, getDetail, {visualInspection
   save.onclick=()=>{
     if(!state)return;
     if(action.value==='garment_follow'&&!garment.ready()){status.textContent='裙腰跟随尚未通过适用条件检查，请查看下方原因。';return;}
+    if(action.value==='transverse_repair'&&!transverse.ready()){status.textContent='腿部斜切修正尚未通过适用条件检查，请查看下方原因。';return;}
     const detail=getDetail();
     let partition,region_order,contact_scope;
     try{if(action.value==='partition')partition=region.value();if(action.value==='region_order')region_order=order.value();if(action.value==='contact_scope')contact_scope=contact.value();}

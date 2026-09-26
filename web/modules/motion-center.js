@@ -39,6 +39,7 @@ const steps = {
   runtime_reference:'生成 Runtime 数值参考', runtime_setup:'核对初始姿态图像',
   local_depth:'检查局部深度并分类异常',
   torso_projection:'应用躯干投影并检查脚部路径',
+  transverse_compensate:'补偿腿部横向斜切', transverse_joint:'叠加关节修正', transverse_validate:'对照检查整角色几何与接触',
   uploading: '上传原文件', queued: '已排队', verify_source: '校验源文件',
   convert_fbx: 'Blender 转换 FBX', verify_bridge: '逐帧核对源骨架',
   inspect_bvh: '构建源时间轴', compile_motion: '生成 MotionIR',
@@ -55,6 +56,9 @@ const steps = {
 };
 const reasons = {
   ...poseErrors,
+  motion_transverse_fixed_area_diagnostic:'固定区域无法同时满足面积约束；保留诊断候选，不能视为通过。',
+  motion_transverse_geometry_regression:'修正后部分几何指标变差，请对照原候选检查。',
+  motion_transverse_scope_changed:'来源或修正范围已变化，请重新加载并保存处理草稿。',
   runtime_storage_alpha_unsupported: 'Runtime 数值校验尚不支持该透明度轨道，请检查轨道兼容性；这不是源动作解析失败。',
   material_scene_skin_or_animation: '区域换图当前需要单一默认皮肤及单一动作。原候选保留。',
   material_scene_existing_order_or_slot_tracks: '该区域已有绘制顺序或插槽动画，当前换图策略不能安全合并；请保留原候选并调整合并策略。',

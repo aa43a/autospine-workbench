@@ -155,6 +155,9 @@ def review_file(manager, job, parts):
     if parts[:1] == ['garment-follow']:
         from .motion_garment_follow import read
         return read(manager, job, parts, result, files)
+    if parts[:1] == ['transverse-repair']:
+        from .motion_transverse_repair import read
+        return read(manager, job, parts, result, files)
     if parts[:1] == ['contact-scope']:
         from .motion_contact_preflight import read
         return read(manager, job, parts, result, files)
@@ -175,6 +178,8 @@ def review_file(manager, job, parts):
             report['region_order'] = repair['region_order']
         if repair.get('garment_follow'):
             report['garment_follow'] = repair['garment_follow']
+        if repair.get('transverse_repair'):
+            report['transverse_repair'] = repair['transverse_repair']
         if repair.get('local_solver'):
             report['local_solver'] = repair['local_solver']
         if 'view-pose-report.json' in files:
