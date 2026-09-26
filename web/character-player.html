@@ -18,6 +18,9 @@
 <label>部件 B <select id="inspect-b"><option value="">未选择</option></select></label>
 <label>显示方式 <select id="inspect-mode"><option value="full">完整角色</option><option value="isolate">仅看所选</option><option value="hide">隐藏所选</option></select></label>
 <button id="inspect-clear">恢复完整角色</button><p id="inspect-note">局部可见不代表深度或遮挡已通过验证。</p>
+<label><input id="pixel-check" type="checkbox">点击检查归属</label>
+<p>点击缺口或外露部分，查看当前位置的材质来源。检查使用当前画面与理想双线性纹理采样；不自动修改或验收。</p>
+<div id="pixel-result" role="status">开启后点击画布；拖动时间轴会清除上次显示结果。</div>
 </details>
 <footer>实时播放用于观察，不新增捕获验证或自动验收。拖动时间轴会暂停播放。<br>
 <a href="index.html">原始捕获帧</a> · <a href="report.json">Runtime 报告</a> · <a href="setup/index.html">源图对照</a>

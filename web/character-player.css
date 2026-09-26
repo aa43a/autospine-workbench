@@ -5,5 +5,6 @@ canvas{display:block;max-height:100%;max-width:100%;object-fit:contain}.viewport
 .controls{position:sticky;bottom:0;display:flex;flex-wrap:wrap;gap:12px;align-items:center;background:#182531;padding:14px;margin-top:10px;border-radius:8px}
 button,select{font:inherit;padding:8px 12px;background:#243c50;color:#fff;border:1px solid #65849c;border-radius:6px}button{cursor:pointer}button:disabled{opacity:.5;cursor:wait}
 button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #71dcff;outline-offset:3px}
+details.controls{position:static;display:block}details.controls>label{display:inline-flex;align-items:center;gap:8px;margin:8px 12px 8px 0}#pixel-result{max-height:20rem;overflow:auto;overflow-wrap:anywhere}
 .timeline{display:flex;gap:10px;align-items:center;flex:1 1 60%}input[type=range]{flex:1;min-width:120px;accent-color:#52c7ef}output{font-variant-numeric:tabular-nums}a{color:#7bd8ff}footer{font-size:13px;color:#adc0d2;margin:12px 0}#identity{overflow-wrap:anywhere}
 @media(max-width:600px){main{padding:8px}.viewport{height:58vh}.controls{gap:8px}button,select{padding:7px}.timeline{flex-basis:100%}}

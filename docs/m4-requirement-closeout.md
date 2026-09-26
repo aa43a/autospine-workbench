@@ -23,6 +23,7 @@
 - [实际源动作内容观察](m4-source-category-inspection.md)
 - [改进候选同页阶段验收与导出](benchmark/m4-related-stage-review-v1.md)：独立记录、撤销及版本一致性；不提升基线技术结果，浏览器实测仍待恢复。
 - [改进候选最终源姿态复测](benchmark/m4-final-pose-v1.md)：按实际视角/裁剪复算抬臂及膝部投影，同页定位偏差；骨轴观测不替代形体、遮挡或视觉验收。
+- [播放器点击归属与固定像素检查](benchmark/m4-pixel-ownership-v1.md)：同帧图层定位，五个样本排除单纯换序方案；不增加质量通过数，浏览器交互仍待实测。
 
 ## 固定样本的适用边界
 

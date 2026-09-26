@@ -18,10 +18,12 @@
   const gl = canvas.getContext('webgl', {alpha:true, premultipliedAlpha:true, antialias:false});
   if (!gl) throw Error('当前浏览器无法创建 WebGL');
   const atlas = new spine.TextureAtlas(atlasText);
+  const textureImages=new Map(),pixelTextures=new Map();let pixelTextureCount=0;
   await Promise.all(atlas.pages.map(async page => {
     if (!context.textures[page.name]) throw Error('图集纹理缺失');
     const image = new Image(); image.src = context.textures[page.name]; await image.decode();
-    page.setTexture(new spine.GLTexture(gl, image, false, false));
+    const texture=new spine.GLTexture(gl,image,false,false);page.setTexture(texture);
+    textureImages.set(texture,{image,page});
   }));
   const data = new spine.SkeletonJson(new spine.AtlasAttachmentLoader(atlas)).readSkeletonData(doc);
   const {width, height, left, bottom} = context.info;
@@ -37,6 +39,7 @@
   }
   if (!data.animations.length) throw Error('候选没有动作');
   let time = 0, duration = 0, playing = false, previous = 0;
+  let drawnSkeleton=null;
   const inspection=window.createCharacterInspection(context,renderer,()=>draw());
   for(const id of ['inspect-a','inspect-b']){
     for(const slot of doc.slots){
@@ -62,10 +65,66 @@
     inspection.prepare(skeleton);
     gl.viewport(0,0,width,height); gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT);
     renderer.begin(); renderer.drawSkeleton(skeleton); inspection.draw(skeleton); renderer.end();
+    drawnSkeleton=skeleton;
+    if(window.characterPixelInspection&&el('pixel-check').checked)
+      el('pixel-result').textContent='画面已改变，请重新点击检查。';
+    window.characterPixelInspection=null;
     el('time').value = time; el('position').textContent = `${time.toFixed(3)} / ${duration.toFixed(3)} 秒`;
     window.characterPlayerState = {animation:el('motion').value, time, duration, playing};
   }
   function stop() { playing = false; el('play').textContent = '播放'; }
+  function pixelTexture(texture){
+    if(pixelTextures.has(texture))return pixelTextures.get(texture);
+    const source=textureImages.get(texture);if(!source)throw Error('原纹理无法读取');
+    const {image,page}=source;const count=image.width*image.height;
+    if(pixelTextureCount+count>64_000_000)throw Error('纹理检查超过内存上限');
+    const surface=document.createElement('canvas');surface.width=image.width;surface.height=image.height;
+    const ctx=surface.getContext('2d',{willReadFrequently:true});if(!ctx)throw Error('无法读取纹理透明度');
+    ctx.drawImage(image,0,0);const pixels=ctx.getImageData(0,0,image.width,image.height);
+    const value={name:page.name,width:image.width,height:image.height,data:pixels.data,
+      linear:page.minFilter===spine.TextureFilter.Linear&&page.magFilter===spine.TextureFilter.Linear,
+      clamped:page.uWrap===spine.TextureWrap.ClampToEdge&&page.vWrap===spine.TextureWrap.ClampToEdge};
+    pixelTextureCount+=count;pixelTextures.set(texture,value);return value;
+  }
+  el('pixel-check').onchange=()=>{
+    window.characterPixelInspection=null;
+    canvas.style.cursor=el('pixel-check').checked?'crosshair':'';
+    el('pixel-result').textContent=el('pixel-check').checked?'点击画布检查；会暂停到当前时刻。':'像素检查已关闭。';
+  };
+  canvas.addEventListener('click',event=>{
+    if(!el('pixel-check').checked)return;
+    stop();draw();
+    const panel=el('pixel-result');
+    try{
+      const view=window.characterInspectionState;
+      if(view?.isolated||view?.hidden||view?.bone||window.characterTriangleInspection)
+        throw Error('请先恢复完整角色并关闭骨骼/三角形高亮，再检查像素');
+      const at=window.characterPixelMath.pixel([event.clientX,event.clientY],canvas.getBoundingClientRect(),width,height,renderer.camera);
+      if(!at)return;
+      if(gl.isContextLost())throw Error('画面上下文已丢失，请刷新恢复');
+      const rgba=new Uint8Array(4);gl.readPixels(at.pixel[0],height-1-at.pixel[1],1,1,gl.RGBA,gl.UNSIGNED_BYTE,rgba);
+      if(gl.getError()!==gl.NO_ERROR)throw Error('无法可靠读取当前画面');
+      const evidence=window.inspectCharacterPixel(drawnSkeleton,at.world,pixelTexture);
+      const result=window.characterPixelMath.classify(evidence.hits,rgba[3],evidence.limitations);
+      const labels={transparent_texture:'理想采样仅有低透明度材质（合成上限低于 8/255）；没有证据支持靠调整顺序补足此点。',
+        no_mesh:'按当前顶点计算，此点没有网格覆盖；请检查部件形状或素材缺口。',
+        covered:'此点有可见材质。请结合下方来源和部件对照判断是否应当露出。',
+        sampling_mismatch:'画面与理想纹理采样不一致，暂不能归因于绘制顺序。',
+        unsupported:'当前渲染条件无法用这项检查判断顺序影响。'};
+      panel.replaceChildren();
+      const note=document.createElement('p');note.textContent=`${el('motion').value} · ${time.toFixed(6)} 秒 · 像素 ${at.pixel.join(', ')} · 画面透明度 ${rgba[3]}/255。${labels[result.kind]}`;panel.append(note);
+      if(evidence.limitations.length){const warning=document.createElement('p');warning.textContent=evidence.limitations.join('；');panel.append(warning);}
+      const grouped=new Map();for(const hit of evidence.hits){const old=grouped.get(hit.slot);if(!old||hit.alpha>old.alpha)grouped.set(hit.slot,hit);}
+      for(const hit of [...grouped.values()].reverse()){
+        const row=document.createElement('p');row.textContent=`${hit.slot} · 纹理透明度 ${hit.sourceAlpha.toFixed(2)}/255 `;
+        const button=document.createElement('button');button.textContent='在部件对照中选择';
+        button.onclick=()=>{el('inspect-a').value=hit.slot;el('inspect-b').value='';el('inspect-mode').value='full';inspect();};
+        row.append(button);panel.append(row);
+      }
+      window.characterPixelInspection={artifact:context.artifact_sha256,animation:el('motion').value,time,
+        ...at,framebuffer:Array.from(rgba),...evidence,...result,authority:'none',selected:false};
+    }catch(error){panel.textContent=`检查未完成：${error.message}`;window.characterPixelInspection=null;}
+  });
   function select() { stop(); time = 0; duration = data.findAnimation(el('motion').value).duration; el('time').max = duration; draw(); }
   el('play').onclick = () => { playing = !playing; if (playing && time >= duration) time = 0; previous = performance.now(); el('play').textContent = playing ? '暂停' : '播放'; draw(); };
   el('reset').onclick = () => { stop(); time = 0; draw(); };
@@ -73,7 +132,7 @@
   el('motion').onchange = select;
   el('fullscreen').onclick = () => el('viewport').requestFullscreen?.().catch(() => { el('status').textContent = '当前浏览器不允许全屏，可继续在窗口播放。'; });
   document.addEventListener('visibilitychange', () => { if (document.hidden) { stop(); draw(); } });
-  canvas.addEventListener('webglcontextlost', event => { event.preventDefault(); stop(); el('status').textContent = 'WebGL 上下文已丢失，请刷新恢复。'; });
+  canvas.addEventListener('webglcontextlost', event => { event.preventDefault(); stop(); window.characterPixelInspection=null; el('pixel-result').textContent='画面已失效，请刷新恢复。'; el('status').textContent = 'WebGL 上下文已丢失，请刷新恢复。'; });
   function tick(now) {
     if (playing) {
       // Missed display frames must not silently slow the source motion.
