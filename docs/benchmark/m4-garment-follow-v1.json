@@ -1,0 +1,288 @@
+{
+  "profile": "declared-garment-root-three-structure-v1",
+  "rows": [
+    {
+      "source": "alice-squat-shared-minus55-v1",
+      "source_candidate": "3b8c76f2fb24830c1735f3f8b7d6efde25ccc8e421356ef8515b9e8638418756",
+      "character_sha256": "6e5c59db4ef072075b798efab12acf8ffdc883368a61a4bf3c1646305ef68b98",
+      "motion_identity": {
+        "bundle_sha256": "ef7afe08aab29cb0b617aefd9c7d2162f96b2930dba70f8b37a61c2d88e5c2ab",
+        "bvh_map_sha256": "e77a4090381517d48dc08a903db1b9ebe5ba223ca89cabb1eed5ba0b57eb2cca",
+        "clip_id": "external.cf0b3afbf92df08c.front",
+        "clip_sha256": "fb57014391df27c737995214f3ec89918b99192ceda0b4d1626d8cfbfc261061",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "fb57014391df27c737995214f3ec89918b99192ceda0b4d1626d8cfbfc261061",
+        "raw_bvh_byte_length": 169539,
+        "raw_bvh_sha256": "cf0b3afbf92df08cd71fc680ffd49d32420e3a66de7f36ff64d930b9321ee55d",
+        "reused": false,
+        "run_sha256": "8da605d84b8040bda1747658ec9511c4b52f81fd646de6d4ea5256df05620aee",
+        "source_kind": "bvh"
+      },
+      "skeleton_sha256": "65aecda3854d31e714fea9c074f6f4ad05f819738eb42e223d5189629cbdd61a",
+      "yaw": -55,
+      "frames": 3713,
+      "maximum_root_shift_px": 13.56096988527087,
+      "waist_contact": [
+        {
+          "after_max_px": 0.010070701210615299,
+          "anchors": 17,
+          "before_max_px": 0.01982733523289894,
+          "slot": "layer-005"
+        }
+      ],
+      "roots": [
+        "layer-005-skirt_0_upper",
+        "layer-005-skirt_1_upper",
+        "layer-005-skirt_2_upper"
+      ],
+      "before": [
+        {
+          "animation": "external-motion",
+          "failing_frame_count": 706,
+          "first_failure": {
+            "frame": 1700,
+            "inversions": 0,
+            "max_area_ratio": 1.2176935154820603,
+            "max_edge_stretch": 1.4198494890441853,
+            "min_area_ratio": 0.49991704456085767,
+            "time": 0.8549480438232422
+          },
+          "inversion_samples": 0,
+          "max_area_ratio": 1.2324486312853575,
+          "max_edge_stretch": 1.4376396861949274,
+          "min_area_ratio": 0.4873758866339745,
+          "passed": false,
+          "sample_count": 3713,
+          "slot": "layer-005"
+        }
+      ],
+      "after": [
+        {
+          "animation": "external-motion",
+          "failing_frame_count": 0,
+          "first_failure": null,
+          "inversion_samples": 0,
+          "max_area_ratio": 1.1923427973640832,
+          "max_edge_stretch": 1.3835468458725901,
+          "min_area_ratio": 0.5202434144496996,
+          "passed": true,
+          "sample_count": 3713,
+          "slot": "layer-005"
+        }
+      ],
+      "remaining_geometry_failures": [
+        "layer-001-l",
+        "layer-001-r"
+      ],
+      "official_numeric": {
+        "authority": "none",
+        "frames": 129,
+        "limit_px": 0.01,
+        "maximum_error_px": 0.00010132523502008943,
+        "passed": true,
+        "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+        "scope": "sampled_official_runtime_cpu_vertices_no_gpu_capture_or_visual_acceptance",
+        "selected": false,
+        "skeleton_sha256": "65aecda3854d31e714fea9c074f6f4ad05f819738eb42e223d5189629cbdd61a",
+        "source_candidate": "3b8c76f2fb24830c1735f3f8b7d6efde25ccc8e421356ef8515b9e8638418756",
+        "vertices": 26961
+      }
+    },
+    {
+      "source": "huiye-squat-shared45-v2",
+      "source_candidate": "4c662e516865ea93414f848e4c6add33b7cddf78bed63a58908557a32ce59aee",
+      "character_sha256": "63caa7fe5f9f40a92ebcd57ef0b345d7dcd47e5ed3feae65a95fad18e770d51b",
+      "motion_identity": {
+        "bundle_sha256": "ef7afe08aab29cb0b617aefd9c7d2162f96b2930dba70f8b37a61c2d88e5c2ab",
+        "bvh_map_sha256": "e77a4090381517d48dc08a903db1b9ebe5ba223ca89cabb1eed5ba0b57eb2cca",
+        "clip_id": "external.cf0b3afbf92df08c.front",
+        "clip_sha256": "fb57014391df27c737995214f3ec89918b99192ceda0b4d1626d8cfbfc261061",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "fb57014391df27c737995214f3ec89918b99192ceda0b4d1626d8cfbfc261061",
+        "raw_bvh_byte_length": 169539,
+        "raw_bvh_sha256": "cf0b3afbf92df08cd71fc680ffd49d32420e3a66de7f36ff64d930b9321ee55d",
+        "reused": false,
+        "run_sha256": "8da605d84b8040bda1747658ec9511c4b52f81fd646de6d4ea5256df05620aee",
+        "source_kind": "bvh"
+      },
+      "skeleton_sha256": "6da5385499a138b6a74d7027cad8e55326bb7229faeb7f649d7771365492b05e",
+      "yaw": 45,
+      "frames": 3713,
+      "maximum_root_shift_px": 48.46741707157023,
+      "waist_contact": [
+        {
+          "after_max_px": 0.005152569139263093,
+          "anchors": 10,
+          "before_max_px": 0.011350276793283815,
+          "slot": "layer-004"
+        }
+      ],
+      "roots": [
+        "layer-004-skirt_0_upper",
+        "layer-004-skirt_1_upper",
+        "layer-004-skirt_2_upper"
+      ],
+      "before": [
+        {
+          "animation": "external-motion",
+          "failing_frame_count": 0,
+          "first_failure": null,
+          "inversion_samples": 0,
+          "max_area_ratio": 1.0499628044970428,
+          "max_edge_stretch": 1.1235335369810506,
+          "min_area_ratio": 0.5039035710925693,
+          "passed": true,
+          "sample_count": 3713,
+          "slot": "layer-004"
+        }
+      ],
+      "after": [
+        {
+          "animation": "external-motion",
+          "failing_frame_count": 0,
+          "first_failure": null,
+          "inversion_samples": 0,
+          "max_area_ratio": 1.0544194257332955,
+          "max_edge_stretch": 1.1241051328237908,
+          "min_area_ratio": 0.5114134895761158,
+          "passed": true,
+          "sample_count": 3713,
+          "slot": "layer-004"
+        }
+      ],
+      "remaining_geometry_failures": [],
+      "official_numeric": {
+        "authority": "none",
+        "frames": 129,
+        "limit_px": 0.01,
+        "maximum_error_px": 0.00017058781886506916,
+        "passed": true,
+        "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+        "scope": "sampled_official_runtime_cpu_vertices_no_gpu_capture_or_visual_acceptance",
+        "selected": false,
+        "skeleton_sha256": "6da5385499a138b6a74d7027cad8e55326bb7229faeb7f649d7771365492b05e",
+        "source_candidate": "4c662e516865ea93414f848e4c6add33b7cddf78bed63a58908557a32ce59aee",
+        "vertices": 58695
+      }
+    },
+    {
+      "source": "hongmeiling-squat-shared45-v1",
+      "source_candidate": "ea6dfdb756455e642867824a9cfe396c2dcc434b01435b060560205d9de9046c",
+      "character_sha256": "fadde972f148b353592aaeebf75df151b9ef57032efaacde1773ea5a8754d28c",
+      "motion_identity": {
+        "bundle_sha256": "ef7afe08aab29cb0b617aefd9c7d2162f96b2930dba70f8b37a61c2d88e5c2ab",
+        "bvh_map_sha256": "e77a4090381517d48dc08a903db1b9ebe5ba223ca89cabb1eed5ba0b57eb2cca",
+        "clip_id": "external.cf0b3afbf92df08c.front",
+        "clip_sha256": "fb57014391df27c737995214f3ec89918b99192ceda0b4d1626d8cfbfc261061",
+        "map_id": "mixamo-declared-body-v1",
+        "motion_ir_sha256": "fb57014391df27c737995214f3ec89918b99192ceda0b4d1626d8cfbfc261061",
+        "raw_bvh_byte_length": 169539,
+        "raw_bvh_sha256": "cf0b3afbf92df08cd71fc680ffd49d32420e3a66de7f36ff64d930b9321ee55d",
+        "reused": false,
+        "run_sha256": "8da605d84b8040bda1747658ec9511c4b52f81fd646de6d4ea5256df05620aee",
+        "source_kind": "bvh"
+      },
+      "skeleton_sha256": "323cefa927b50ae0e7d5547f4e4c258bfdf803497e885edd8c34f424c5b0097d",
+      "yaw": 45,
+      "frames": 3713,
+      "maximum_root_shift_px": 30.424211887664832,
+      "waist_contact": [
+        {
+          "after_max_px": 0.005625724216900686,
+          "anchors": 17,
+          "before_max_px": 0.0069764775913166,
+          "slot": "layer-002"
+        },
+        {
+          "after_max_px": 0.006562019337053871,
+          "anchors": 17,
+          "before_max_px": 0.015519241898213073,
+          "slot": "layer-005"
+        }
+      ],
+      "roots": [
+        "layer-002-skirt_0_upper",
+        "layer-002-skirt_1_upper",
+        "layer-002-skirt_2_upper",
+        "layer-005-skirt_0_upper",
+        "layer-005-skirt_1_upper",
+        "layer-005-skirt_2_upper"
+      ],
+      "before": [
+        {
+          "animation": "external-motion",
+          "failing_frame_count": 0,
+          "first_failure": null,
+          "inversion_samples": 0,
+          "max_area_ratio": 1.1177540490338826,
+          "max_edge_stretch": 1.235382858521848,
+          "min_area_ratio": 0.5090295968001675,
+          "passed": true,
+          "sample_count": 3713,
+          "slot": "layer-002"
+        },
+        {
+          "animation": "external-motion",
+          "failing_frame_count": 0,
+          "first_failure": null,
+          "inversion_samples": 0,
+          "max_area_ratio": 1.1390423015778286,
+          "max_edge_stretch": 1.2757541053166819,
+          "min_area_ratio": 0.5078469748121605,
+          "passed": true,
+          "sample_count": 3713,
+          "slot": "layer-005"
+        }
+      ],
+      "after": [
+        {
+          "animation": "external-motion",
+          "failing_frame_count": 0,
+          "first_failure": null,
+          "inversion_samples": 0,
+          "max_area_ratio": 1.0629042196468836,
+          "max_edge_stretch": 1.140341139364941,
+          "min_area_ratio": 0.51056732234974,
+          "passed": true,
+          "sample_count": 3713,
+          "slot": "layer-002"
+        },
+        {
+          "animation": "external-motion",
+          "failing_frame_count": 0,
+          "first_failure": null,
+          "inversion_samples": 0,
+          "max_area_ratio": 1.064371938754245,
+          "max_edge_stretch": 1.1553494558267763,
+          "min_area_ratio": 0.5090456351100849,
+          "passed": true,
+          "sample_count": 3713,
+          "slot": "layer-005"
+        }
+      ],
+      "remaining_geometry_failures": [
+        "layer-003",
+        "layer-004"
+      ],
+      "official_numeric": {
+        "authority": "none",
+        "frames": 129,
+        "limit_px": 0.01,
+        "maximum_error_px": 0.0001628225858825753,
+        "passed": true,
+        "runtime_sha256": "58aea42c0765cb518667681fa4a580b1d809a62a94423cd4d28f90783325a676",
+        "scope": "sampled_official_runtime_cpu_vertices_no_gpu_capture_or_visual_acceptance",
+        "selected": false,
+        "skeleton_sha256": "323cefa927b50ae0e7d5547f4e4c258bfdf803497e885edd8c34f424c5b0097d",
+        "source_candidate": "ea6dfdb756455e642867824a9cfe396c2dcc434b01435b060560205d9de9046c",
+        "vertices": 58179
+      }
+    }
+  ],
+  "authority": "none",
+  "selected": false,
+  "production_authorized": false,
+  "new_gpu_capture": false,
+  "visual_review": "not_performed",
+  "scope": "paired_sampled_geometry_and_waist_numeric_contact_not_whole_motion_acceptance"
+}
