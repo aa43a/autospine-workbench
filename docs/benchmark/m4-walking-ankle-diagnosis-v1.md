@@ -96,3 +96,28 @@ The next experiment should preserve source orientation while comparing
 pelvis-centered versus target-root-centered rotation, and independently check
 leg setup-axis mapping. Do not enlarge the local correction budget to conceal
 an upstream representation mismatch.
+
+## Pelvis-centered rotation candidate
+
+`root_pivot_candidate.build` preserves source root rotation and all non-root
+channels, adding only the root translation needed to keep the direct-child
+pelvis on its unrotated trajectory. It preserves initial animated orientation,
+requires original root knots, and reports interpolation error. It does not
+overwrite the original candidate or claim contact acceptance.
+
+Full walking comparison (485 times, both feet):
+
+| Measure | Original | Pelvis pivot |
+| --- | ---: | ---: |
+| Ankle RMS error | 96.791360 px | 86.592139 px |
+| Worst ankle error | 222.010892 px | 210.247976 px |
+
+The pivot candidate uses at most 64.888687 px root compensation. Its pivot
+interpolation residual is 0.015775 px. The remaining foot error is far above
+the 5.493701 px tracking gate, so the candidate is not adopted. Next investigate
+source setup-axis mapping and source/target leg shape, not just root origin.
+
+Artifacts: `E:/proj/unusual/localset/tmp/m4-walking-pelvis-pivot-v1/`.
+Skeleton SHA256 `37cafd0f16ea73940fcb5d4f929b45d7e89ead0f125d46f3f2f837506af3e3de`.
+The test checks retained source orientation, moving pelvis target, interpolation
+and input immutability. No Runtime or mesh claim is made for this experiment.
