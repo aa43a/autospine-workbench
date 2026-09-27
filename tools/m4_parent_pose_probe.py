@@ -9,7 +9,7 @@ from autospine_workbench.targets.character43.limb_transverse_repair import build
 from autospine_workbench.targets.character43.parent_pose_area_repair import compare
 
 
-def run(state_root, artifact, slot, times, output, regressions=None, protect_setup=False, correction_frame='world', local_refinement=False, exact_poses=False):
+def run(state_root, artifact, slot, times, output, regressions=None, protect_setup=False, correction_frame='world', local_refinement=False, exact_poses=False, anchor_terminal=False):
     source=None
     if regressions is not None:
         raw=regressions.read_bytes();report=json.loads(raw)
@@ -20,7 +20,7 @@ def run(state_root, artifact, slot, times, output, regressions=None, protect_set
     if not times:raise ValueError('parent_probe_times_required')
     parent=json.loads(AnimatedStore(state_root).read(artifact)['skeleton.json'])
     candidate,compensation=build(parent,'external-motion',[slot],correction_frame=correction_frame,
-                                  required_times=times if exact_poses else ())
+                                  required_times=times if exact_poses else (),anchor_terminal=anchor_terminal)
     rows=[]
     for time in times:
         row=compare(parent,candidate,'external-motion',slot,time,protect_setup=protect_setup,local_refinement=local_refinement);rows.append(row)
@@ -43,4 +43,5 @@ if __name__=='__main__':
     parser.add_argument('--correction-frame',choices=('world','transverse'),default='world')
     parser.add_argument('--local-refinement',action='store_true')
     parser.add_argument('--exact-poses',action='store_true')
-    args=parser.parse_args();run(args.state_root,args.artifact,args.slot,args.times,args.output,args.regressions,args.protect_setup,args.correction_frame,args.local_refinement,args.exact_poses)
+    parser.add_argument('--anchor-terminal',action='store_true')
+    args=parser.parse_args();run(args.state_root,args.artifact,args.slot,args.times,args.output,args.regressions,args.protect_setup,args.correction_frame,args.local_refinement,args.exact_poses,args.anchor_terminal)

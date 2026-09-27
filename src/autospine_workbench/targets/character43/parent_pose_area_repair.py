@@ -37,14 +37,20 @@ def solve(context, origin, parent_points, setup_areas, *, protect_setup=False, l
     trial['area_floor_contract'] = CONTRACT
     from .area_budget_feasibility import inspect as budget_check
     feasibility = budget_check(trial, origin, trial['minimum_ratios'])
+    from .fixed_boundary_area import inspect as boundary_check
+    boundary = boundary_check(trial, origin, trial['minimum_ratios'])
+    from .single_vertex_area_feasibility import inspect as shared_check
+    shared = shared_check(trial, origin, trial['minimum_ratios'])
     corrected, evidence = project(trial, origin)
     if local_refinement and not evidence['converged']:
         from .local_area_constraints import refine
-        corrected, refinement = refine(trial, origin, corrected, analytic=True, expanded=True, active_tolerance=1e-7)
+        corrected, refinement = refine(trial, origin, corrected, analytic=True, expanded=True,
+                                       active_tolerance=1e-7,feasibility_first=True)
         evidence.update(projection_converged=False, refinement=refinement,
                         converged=refinement['status']=='candidate')
     return corrected, dict(evidence, parent_floors=trial['minimum_ratios'], setup_protected_triangles=protected,
-                           budget_feasibility=feasibility)
+                           budget_feasibility=feasibility,boundary_feasibility=boundary,
+                           shared_vertex_feasibility=shared)
 
 
 def compare(parent, candidate, name, slot, time, *, protect_setup=False, local_refinement=False):

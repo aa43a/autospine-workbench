@@ -3,13 +3,14 @@ import math
 from .interpolation_area_margin import targets
 
 
-def refine(context,base,initial,*,analytic=False,expanded=False,recover_source=False,recover_area=False,active_tolerance=0.):
+def refine(context,base,initial,*,analytic=False,expanded=False,recover_source=False,recover_area=False,active_tolerance=0.,feasibility_first=False):
+    if feasibility_first and not analytic:raise ValueError('local_area_feasibility_requires_derivatives')
     if not math.isfinite(active_tolerance) or not 0<=active_tolerance<=1e-7:
         raise ValueError('local_area_active_tolerance_invalid')
     if expanded and not analytic:raise ValueError('expanded_area_requires_analytic_derivatives')
     if recover_area and not (analytic and recover_source):raise ValueError('area_recovery_requires_source_analytic')
     import numpy as np
-    from scipy.optimize import minimize
+    from scipy.optimize import minimize, least_squares
     triangles=np.asarray(context['row']['triangles'],dtype=int)
     refs=np.asarray(context['areas'],dtype=float)
     floors=np.asarray(targets(context))
@@ -88,10 +89,18 @@ def refine(context,base,initial,*,analytic=False,expanded=False,recover_source=F
         constraint['jac']=lambda v:full_jacobian(v) if mask is None else full_jacobian(v)[mask]
         if recover_area:
             derivatives['jac']=lambda v:2*np.minimum(0.,ratios(unpack(v))-area_target)@full_jacobian(v)[:len(triangles)]+.002*v
-    for start in (seed,np.zeros_like(seed)):
-        result=minimize(objective,start,method='SLSQP',
+    def attempts(start):
+        if feasibility_first:
+            yield least_squares(lambda v:np.minimum(0.,constraints(v)),start,
+                jac=lambda v:constraint['jac'](v)*(constraints(v)<0)[:,None],
+                bounds=(-1,1),max_nfev=400,ftol=1e-14,xtol=1e-14,gtol=1e-14), 'least_squares_feasibility'
+        yield minimize(objective,start,method='SLSQP',
             bounds=[(-1,1)]*len(seed),constraints=[constraint],**derivatives,
-            options=dict(maxiter=400,ftol=1e-12))
+            options=dict(maxiter=400,ftol=1e-12)), 'SLSQP'
+    def solutions():
+        for start in (seed,np.zeros_like(seed)):
+            yield from attempts(start)
+    for result,method in solutions():
         if not np.isfinite(result.x).all():continue
         v=result.x.reshape(size,2);v/=np.maximum(1,np.linalg.norm(v,axis=1))[:,None]
         p=unpack(v.ravel());r=ratios(p)
@@ -100,8 +109,16 @@ def refine(context,base,initial,*,analytic=False,expanded=False,recover_source=F
                and np.all(np.linalg.norm(p[edges[:,0]]-p[edges[:,1]],axis=1)<=2*lengths+1e-7))
         if 'minimum_ratios' in context:valid=valid and bool(np.all(r>=floors-1e-7))
         row=dict(report,status='candidate' if valid else 'no_feasible_patch_found',
-                 min_ratio=float(min(r)),max_ratio=float(max(r)),iterations=int(result.nit),
+                 min_ratio=float(min(r)),max_ratio=float(max(r)),iterations=int(result.get('nit',result.get('nfev',0))),
                  optimizer_success=bool(result.success))
+        row['optimizer_method']=method
+        row['residuals']=dict(
+            floor_deficit=float(np.max(floors-r)),
+            failed_floor_triangles=np.flatnonzero(r<floors-1e-7).tolist(),
+            edge_excess_px=float(np.max(np.linalg.norm(p[edges[:,0]]-p[edges[:,1]],axis=1)-2*lengths)),
+            budget_excess_px=float(np.max(np.linalg.norm(p-origin,axis=1)-budget)),
+            fixed_shift_px=float(np.max(np.linalg.norm(p[np.logical_not(context['free'])]-origin[np.logical_not(context['free'])],axis=1),initial=0)))
+        row['optimizer_message']=str(result.message)
         if valid:return p.tolist(),row
         if best is None or row['min_ratio']>best['min_ratio']:best=row
     return initial,best or dict(report,status='nonfinite_optimizer_result')

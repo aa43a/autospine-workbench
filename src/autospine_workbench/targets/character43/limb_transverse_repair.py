@@ -95,7 +95,7 @@ def prepare(document, name, slots, maximum_keys=2049):
     return rows, previous, used, times, baseline
 
 
-def build(document, name, slots, *, tolerance_px=.05, maximum_keys=2049, on_progress=None, correction_frame='world', required_times=()):
+def build(document, name, slots, *, tolerance_px=.05, maximum_keys=2049, on_progress=None, correction_frame='world', required_times=(), anchor_terminal=False):
     """Bake additive rest-surface compensation with quarter-interval error checks.
 
     Axial shortening is deliberately not clamped and the geometry gate is not
@@ -105,7 +105,9 @@ def build(document, name, slots, *, tolerance_px=.05, maximum_keys=2049, on_prog
         raise ValueError('limb_transverse_options_invalid')
     if correction_frame not in ('world','transverse'):
         raise ValueError('limb_transverse_correction_frame_invalid')
+    if type(anchor_terminal) is not bool:raise ValueError('limb_transverse_terminal_option_invalid')
     rows, previous, used, times, baseline = prepare(document, name, slots, maximum_keys)
+    anchors = used & {'foot_l','foot_r','hand_l','hand_r'} if anchor_terminal else set()
     if any(not math.isfinite(t) or not 0<=t<=max(times) for t in required_times):
         raise ValueError('limb_transverse_required_times_invalid')
     times |= set(required_times)
@@ -133,7 +135,7 @@ def build(document, name, slots, *, tolerance_px=.05, maximum_keys=2049, on_prog
                         # through the same determinant-one shear as the bind surface.
                         # Single-bone triangles then retain their parent signed area.
                         ordinate = y+py if correction_frame == 'transverse' else y
-                        shift = (baseline[bone][0]-frames[bone][0])*ordinate if weight > 0 else 0.
+                        shift = (baseline[bone][0]-frames[bone][0])*ordinate if weight > 0 and bone not in anchors else 0.
                         values.extend((px+shift, py)); j += 2
                         if weight > 0:
                             a, _, c, _, _, _ = transforms[bone]
@@ -194,4 +196,8 @@ def build(document, name, slots, *, tolerance_px=.05, maximum_keys=2049, on_prog
         report['limitations'].append('previous_world_space_contact_corrections_require_recheck')
     report['correction_frame'] = correction_frame
     report['required_times'] = sorted(set(required_times))
+    if anchor_terminal:
+        report['profile'] = 'limb-transverse-terminal-anchor-v1-experiment'
+        report['terminal_anchors'] = sorted(anchors)
+        report['invariants'].append('terminal_influence_world_corrections_retained')
     return result, report

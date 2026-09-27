@@ -21,6 +21,17 @@ def fixture():
 
 
 class LimbTransverseRepairTests(unittest.TestCase):
+    def test_terminal_anchor_preserves_existing_deformed_foot_world_shape(self):
+        doc=fixture();mesh=doc['skins'][0]['attachments']['leg']['leg']
+        for offset in (1,6,11):mesh['vertices'][offset]=3
+        doc['animations']['motion']['attachments']={'default':{'leg':{'leg':{'deform':[
+            dict(time=0,vertices=[0.]*6),dict(time=1,vertices=[1.,2.,-2.,4.,3.,-1.])]}}}}
+        candidate,report=build(doc,'motion',['leg'],correction_frame='transverse',anchor_terminal=True)
+        for time in (0,.371,.8,1):
+            self.assertEqual(sample(candidate,'motion',time)[0],sample(doc,'motion',time)[0])
+        self.assertEqual(report['terminal_anchors'],['foot_l'])
+        self.assertEqual(candidate['bones'],doc['bones']);self.assertEqual(candidate['skins'],doc['skins'])
+
     def test_transports_nonuniform_prior_correction_with_same_bone_area(self):
         doc=fixture()
         doc['animations']['motion']['attachments']={'default':{'leg':{'leg':{'deform':[
