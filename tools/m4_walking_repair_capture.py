@@ -17,8 +17,8 @@ from autospine_workbench.resolved_project import canonical_sha256
 from m4_experiment_player_export import export
 
 
-def run(parent, repair, contact_path, output):
-    files=AnimatedStore(Path('workspace')).read(parent)
+def run(parent, repair, contact_path, output, artifact_state=Path('workspace')):
+    files=AnimatedStore(artifact_state).read(parent)
     document=json.loads((repair/'skeleton.json').read_bytes())
     repaired=json.loads((repair/'report.json').read_bytes())
     contact_report=json.loads(contact_path.read_bytes())
@@ -69,4 +69,5 @@ def run(parent, repair, contact_path, output):
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('parent')
     for key in ('repair','contact','output'):p.add_argument(key,type=Path)
-    a=p.parse_args();run(a.parent,a.repair,a.contact,a.output)
+    p.add_argument('--artifact-state',type=Path,default=Path('workspace'))
+    a=p.parse_args();run(a.parent,a.repair,a.contact,a.output,a.artifact_state)

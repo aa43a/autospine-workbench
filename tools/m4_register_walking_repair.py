@@ -13,22 +13,23 @@ from autospine_workbench.resolved_project import canonical_sha256
 from m4_motion_cohort import api
 
 
-def run(state, job, source):
+def run(state, job, source, *, parent_state=None, unreviewed=False):
     if not re.fullmatch(r'motion-[0-9a-f]{32}', job):
         raise ValueError('invalid_motion_job_id')
     read=lambda p:json.loads(p.read_bytes())
     folder=state/'jobs/motion-intake-v1'/job
     request=read(folder/'request.json')
     receipt=read(source/'report.json');runtime=read(source/'runtime/report.json')
-    accepted=read(source/'stage-review-v1.json');depth=read(source/'depth-review.json')
+    accepted=None if unreviewed else read(source/'stage-review-v1.json')
+    depth=read(source/'depth-review.json')
     digest=receipt['candidate_bundle_sha256']
-    if accepted['candidate_bundle_sha256']!=digest or accepted['decision']!='accepted_with_exceptions':
+    if accepted is not None and (accepted['candidate_bundle_sha256']!=digest or accepted['decision']!='accepted_with_exceptions'):
         raise ValueError('walking_visual_candidate_mismatch')
-    for file, expected in accepted['evidence'].items():
+    for file, expected in (accepted['evidence'] if accepted is not None else {}).items():
         if file not in ('report.json','runtime/report.json','depth-review.json') or sha256((source/file).read_bytes()).hexdigest()!=expected:
             raise ValueError('walking_visual_evidence_changed')
     files=AnimatedStore(source/'isolated-store').read(digest)
-    parent_files=AnimatedStore(state).read(receipt['parent_artifact'])
+    parent_files=AnimatedStore(parent_state or state).read(receipt['parent_artifact'])
     observation=json.loads(parent_files['motion-moving-ankles.json'])['source_observation']
     identity=request['motion_identity']
     if observation['source_bundle_sha256']!=identity['bundle_sha256'] or observation['motion_sha256']!=identity['clip_sha256']:
@@ -45,8 +46,9 @@ def run(state, job, source):
         authority='none',selected=False,production_authorized=False)
     linked=dict(receipt,source_identity=identity,sampled_frames=len(runtime['results']),
         contact_audit=audit,depth_audit=depth,source_request_sha256=canonical_sha256(request),
-        source_visual_record=accepted,remaining_checks=['depth','mesh_sole_contact'])
-    visual=dict(artifact_sha256=digest,source_motion_ir_sha256=identity['motion_ir_sha256'],
+        remaining_checks=['depth','mesh_sole_contact']+(['visual'] if unreviewed else []))
+    if accepted is not None:linked['source_visual_record']=accepted
+    visual=None if accepted is None else dict(artifact_sha256=digest,source_motion_ir_sha256=identity['motion_ir_sha256'],
         decision=accepted['decision'],notes=accepted['notes'],source_review_sha256=canonical_sha256(accepted),
         technical_override=False,production_authorized=False,applies_to_other_candidates=False)
     inspect(request,AnimatedStore(state).read(request['character_sha256']),files,linked,runtime,visual)
@@ -59,4 +61,6 @@ def run(state, job, source):
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('state',type=Path)
     p.add_argument('job');p.add_argument('source',type=Path)
-    a=p.parse_args();run(a.state,a.job,a.source)
+    p.add_argument('--parent-state',type=Path)
+    p.add_argument('--unreviewed',action='store_true',help='Register with no visual decision or imported acceptance')
+    a=p.parse_args();run(a.state,a.job,a.source,parent_state=a.parent_state,unreviewed=a.unreviewed)
