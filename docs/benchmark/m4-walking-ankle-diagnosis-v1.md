@@ -200,3 +200,26 @@ Runtime evidence must be regenerated for the new skeleton before adoption.
 
 Artifacts: `E:/proj/unusual/localset/tmp/m4-walking-knee-repair-v1/`.
 Localization: `E:/proj/unusual/localset/tmp/m4-walking-triangle-probe-v1.json`.
+
+## Independent Runtime capture
+
+The repaired skeleton was repackaged with original textures and setup reference,
+new numeric samples, geometry and contact checks; no old Runtime result was
+copied. Candidate bundle:
+`9d8143b3c517b7a4a972f328be9a79fb3dd516656a7ffa0909be21775de06b72`.
+Official Runtime report passes 969 frames. The capture pipeline returns
+`needs_review`, since technical capture does not grant visual acceptance.
+The current final-timeline inferred ankle contact proxy passes; moving-source
+ankle maximum error is 0.265164 px at 969 times. Shoe-surface contact is outside
+that proxy's scope.
+
+Fresh depth analysis is recorded separately in `depth-review.json`: order
+proposal blocked with 38 failure records. No order proposal was applied and
+the immutable capture bundle retains its original not-yet-evaluated depth flag;
+the external report is bound to the exact bundle and skeleton. Do not present
+this as an all-gates pass.
+
+Capture and player: `E:/proj/unusual/localset/tmp/m4-walking-repair-runtime-v1/`.
+Local review URL (when its separate server runs):
+`http://127.0.0.1:14631/player.html`.
+The workbench baseline and all previous human decisions remain unchanged.
