@@ -3,6 +3,7 @@ import {createRelatedSync} from './motion-related-sync.js';
 import {contactCheckText} from './motion-related-checks.js';
 import {appendSkirtChecks} from './motion-related-skirt.js';
 import {appendPoseChecks} from './motion-related-pose.js';
+import {appendDepthDiagnostics} from './motion-related-depth.js';
 import {appendStageReview} from './motion-stage-review.js';
 export function appendRelatedCandidates(parent, job, {synchronize=false,sourceRange=null}={}) {
   const clock=synchronize?createRelatedSync():null;
@@ -59,6 +60,7 @@ export function appendRelatedCandidates(parent, job, {synchronize=false,sourceRa
         detail.append(summary,note,checks,visual);
         appendSkirtChecks(detail,row.skirt_checks,time=>show(time));
         appendPoseChecks(detail,row.pose_checks,time=>show(time));
+        appendDepthDiagnostics(detail,row.depth_diagnostics,time=>show(time));
         detail.append(playerHost,syncStatus);
         appendStageReview(detail,{job_id:job.job_id,result:{artifact_sha256:row.candidate_sha256}},
           {registration:row.registration_sha256});

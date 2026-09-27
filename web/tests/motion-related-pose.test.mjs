@@ -39,3 +39,17 @@ test('pose locator stays in exact related registration and never posts a review'
   assert.equal(frame.src,`/api/motions/motion-test/view/related-candidates/${registration}/player.html?time=1.733333`);
   assert.equal(calls.length,1);assert.equal(calls[0].options.method,undefined);
 });
+
+test('depth conflict opens the registered candidate at its exact time',async()=>{
+  const artifact='a'.repeat(64),registration='b'.repeat(64),baseline='c'.repeat(64),calls=[];
+  globalThis.fetch=async(url,options)=>{calls.push({url,options});return {ok:true,json:async()=>({
+    baseline_sha256:baseline,rows:[{registration_sha256:registration,candidate_sha256:artifact,
+      runtime_version:'4.3.13',sampled_frames:969,depth_diagnostics:{failures:[
+        {time:.033333,pair:['arm','torso'],reason_code:'visible_depth_straddle'}]}}]})};};
+  const root=new Node('main');appendRelatedCandidates(root,{job_id:'motion-test',result:{artifact_sha256:baseline}});
+  await find(root,'查看已关联改进候选').onclick();
+  find(root,'查看此时刻').onclick();
+  assert.equal(walk(root).find(n=>n.tag==='iframe').src,
+    `/api/motions/motion-test/view/related-candidates/${registration}/player.html?time=0.033333`);
+  assert.equal(calls.length,1);assert.equal(calls[0].options.method,undefined);
+});
