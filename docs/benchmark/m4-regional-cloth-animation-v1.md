@@ -160,3 +160,26 @@ a new animation or promoted. Evidence is in
 The next solver must address visible silhouette/region coverage, not merely
 transport tracked material anchors into the garment. This counterexample is why
 point coverage cannot be the sole admission test for an occlusion repair.
+
+## Full-region counterexample
+
+`material_exposure_region.inspect` now raster-samples the entire posed limb at
+world-pixel centers and carries each point back to its setup material location.
+It separates originally uncovered material from material previously covered by
+the skirt. Overlapping triangles that map the same pixel to different setup
+locations are marked ambiguous, not silently assigned or accepted. The two-mesh
+CPU evidence is not final framebuffer visibility or proof that every originally
+covered point must remain hidden in every pose.
+
+At 0.9s, the original diagnostic has 1,353 unambiguous newly exposed pixel
+samples in one connected region, bounded by world rectangle [651, -776, 706,
+-738] (55×38 pixels). Another 873 samples are originally visible; 1,628 have
+ambiguous material provenance. After the rejected 1.88px limb correction, 1,340
+newly exposed samples remain: 16 old locations disappear and three new ones
+appear. This is a net decrease of only 13 samples, consistent with rejecting the
+point-only repair despite all 25 tracked points becoming covered.
+
+Evidence: `tmp/m4-moving-workbench/alice-squat-exposure-region-v2/`.
+Tests cover material-preserving translation, originally uncovered material and
+disconnected-region separation. The next repair must reason about this region's
+silhouette and occlusion, while keeping the ambiguous pixels explicit.
