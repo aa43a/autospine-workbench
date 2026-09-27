@@ -126,7 +126,10 @@ def run(state_root, probe, output, *, runtime=False):
             rows.append(row); save()
             verify_coverage(chunk, [row], runtime)
         receipt.update(status='complete', coverage=verify_coverage(times, rows, runtime))
-        save(); print(json.dumps(receipt['coverage']), flush=True)
+        save()
+        from m4_transverse_batch_audit import audit
+        audit(state_root, probe, output)
+        print(json.dumps(receipt['coverage']), flush=True)
     except Exception as exc:
         receipt.update(status='failed', error=str(exc)); save(); raise
 
