@@ -86,3 +86,25 @@ class RelatedPoseTests(unittest.TestCase):
             self.assertAlmostEqual(row['source_time'], row['worst_time']+.5)
         with self.assertRaisesRegex(ValueError, 'pose_identity'):
             pose.summary(audit, 'other', audit['skeleton_sha256'], self.request['motion_identity'], audit['source_request_sha256'])
+
+    def test_legacy_knee_fields_only_are_compatible_without_mutating_receipt(self):
+        expected = self.measure(); audit = deepcopy(expected)
+        for row in audit['rows']:
+            if 'knee' in row:
+                for side in ('source', 'target'):
+                    for key in ('hidden_bend_degrees', 'projected_bend_degrees'):
+                        row['knee'][side].pop(key)
+        before = deepcopy(audit)
+        with patch.object(pose.VerifiedMotionBundleReader, 'load', return_value=self.bundle):
+            pose.verify(self.files, self.receipt(audit), self.f.bundle.path)
+        self.assertEqual(audit, before)
+        self.assertTrue(pose._matches_saved_audit(audit, expected))
+        # A partial deletion in a modern audit is not the legacy format.
+        partial = deepcopy(expected)
+        knee = next(r['knee'] for r in partial['rows'] if 'knee' in r)
+        knee['source'].pop('hidden_bend_degrees')
+        self.assertFalse(pose._matches_saved_audit(partial, expected))
+        audit['rows'][0]['endpoint_error_ratio'] += 1
+        self.assertFalse(pose._matches_saved_audit(audit, expected))
+        audit = deepcopy(before); audit['rows'].pop()
+        self.assertFalse(pose._matches_saved_audit(audit, expected))

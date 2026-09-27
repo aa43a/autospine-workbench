@@ -1,5 +1,6 @@
 """Recompute final joint intent from a verified source, with explicit camera/clip."""
 from hashlib import sha256
+from copy import deepcopy
 import json
 
 from ..motion_bundle_reader import VerifiedMotionBundleReader
@@ -36,6 +37,25 @@ def measure(files, candidate, bundle, request):
     return result
 
 
+def _matches_saved_audit(audit, expected):
+    if canonical_sha256(audit) == canonical_sha256(expected):
+        return True
+    # Older v1 receipts predate these two additive knee diagnostics. Reproduce
+    # their exact shape, not arbitrary missing fields or changed measurements.
+    fields = ('hidden_bend_degrees', 'projected_bend_degrees')
+    knees = [row['knee'][side] for row in audit.get('rows', []) if 'knee' in row
+             for side in ('source', 'target')]
+    if not knees or any(key in knee for knee in knees for key in fields):
+        return False
+    legacy = deepcopy(expected)
+    for row in legacy.get('rows', []):
+        if 'knee' in row:
+            for side in ('source', 'target'):
+                for key in fields:
+                    row['knee'][side].pop(key, None)
+    return canonical_sha256(audit) == canonical_sha256(legacy)
+
+
 def verify(files, receipt, state_root):
     """Publication and reads reproduce every measurement, not just a supplied flag."""
     if 'pose_audit' not in receipt:
@@ -47,7 +67,7 @@ def verify(files, receipt, state_root):
         raise ValueError('motion_related_pose_source_identity')
     bundle = VerifiedMotionBundleReader(state_root).load(identity['clip_sha256'], identity['bundle_sha256'])
     expected = measure(files, receipt['candidate_bundle_sha256'], bundle, request)
-    if canonical_sha256(audit) != canonical_sha256(expected):
+    if not _matches_saved_audit(audit, expected):
         raise ValueError('motion_related_pose_measurement_changed')
 
 
