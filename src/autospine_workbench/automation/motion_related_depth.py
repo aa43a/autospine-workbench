@@ -30,13 +30,25 @@ def summary(value, files):
     rows = []
     for row in failures:
         time, pair = row.get('time'), row.get('pair')
+        if pair is None and row.get('reason_code') == 'depth_overlap_pixel_budget':
+            budget = row.get('raster_budget', {})
+            if budget.get('time') != time:
+                raise ValueError('motion_related_depth_failure_location')
+            pair = budget.get('pair')
         if (type(time) not in (int, float) or not math.isfinite(time) or not 0 <= time <= duration
                 or not isinstance(pair, list) or len(pair) != 2
                 or any(not isinstance(s, str) or s not in slots for s in pair)
                 or not isinstance(row.get('reason_code'), str)):
             raise ValueError('motion_related_depth_failure_location')
         rows.append(dict(time=time, pair=pair, reason_code=row['reason_code']))
+    coverage = depth.get('target_overlap')
+    if coverage is not None:
+        keys = ('visible_pair_samples', 'ambiguous_visible_pair_samples',
+                'order_mismatch_pair_samples', 'unmeasured_pair_samples')
+        if not isinstance(coverage, dict) or any(type(coverage.get(k)) is not int or coverage[k] < 0 for k in keys):
+            raise ValueError('motion_related_depth_coverage')
+        coverage = {k: coverage[k] for k in keys}
     return dict(artifact_sha256=value['candidate_sha256'], audit_sha256=canonical_sha256(audit),
-                status='needs_changes' if rows else 'requires_review', failures=rows,
+                status='needs_changes' if rows else 'requires_review', failures=rows, coverage=coverage,
                 scope='supplemental_source_depth_and_cpu_overlap_not_full_render_acceptance',
                 authority='none', selected=False)

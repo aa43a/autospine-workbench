@@ -20,8 +20,12 @@ test('nested supplemental depth keeps exact playback identity and historical acc
   assert.match(html,/&lt;cloth&gt;/);assert.doesNotMatch(html,/<cloth>/);
   assert.equal(JSON.stringify(snapshot),before);assert.deepEqual(supportTotals(snapshot),totals);
   entry.depth_diagnostics.failures=[];
+  entry.depth_diagnostics.coverage={visible_pair_samples:134,ambiguous_visible_pair_samples:32,
+    order_mismatch_pair_samples:69,unmeasured_pair_samples:110};
   const empty=await collect(f);
   assert.equal(supportExceptions(empty).some(r=>r.stage==='补充遮挡诊断'),false);
+  assert.ok(supportExceptions(empty).some(r=>r.stage==='补充遮挡缺测'&&r.kind==='evidence'));
+  assert.match(supportReportHTML(empty,'http://127.0.0.1:8918'),/未测 110/);
   assert.match(supportReportHTML(empty,'http://127.0.0.1:8918'),/完整遮挡检查仍以技术状态为准/);
 });
 

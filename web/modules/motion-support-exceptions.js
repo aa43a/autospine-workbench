@@ -13,7 +13,9 @@ export function supportExceptions(snapshot) {
     const stages = row.review.readiness?.stages || [];
     const depth = row.evidence?.depth_diagnostics;
     if (depth?.failures?.length) add('technical', '补充遮挡诊断',
-      `${depth.failures.length} 条来源深度与局部像素重叠冲突；阶段接受不清除，详见候选内时刻定位`);
+      `${depth.failures.length} 条来源深度与局部像素重叠失败记录；包含冲突或缺测，详见候选内原因与时刻定位`);
+    if (depth?.coverage?.unmeasured_pair_samples > 0) add('evidence', '补充遮挡缺测',
+      `${depth.coverage.unmeasured_pair_samples} 个部件对样本未测；不能视为通过或从失败数中相减`);
     for (const stage of stages) {
       if (stage.status !== 'sampled_pass') add(stage.status === 'needs_changes' ? 'technical' : 'evidence',
         stage.stage, stage.explanation || '检查未通过或未完成');

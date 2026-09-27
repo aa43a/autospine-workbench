@@ -44,3 +44,25 @@ class RelatedDepthTests(unittest.TestCase):
     def test_legacy_receipt_without_diagnostic_still_reads(self):
         self.value['receipt'].pop('depth_audit')
         self.assertIsNone(summary(self.value,self.files))
+
+    def test_missing_coverage_is_unknown_and_bad_counts_rejected(self):
+        self.assertIsNone(summary(self.value,self.files)['coverage'])
+        coverage=dict(visible_pair_samples=134,ambiguous_visible_pair_samples=32,
+                      order_mismatch_pair_samples=69,unmeasured_pair_samples=110)
+        self.audit['depth']['target_overlap']=coverage
+        before=deepcopy(self.value)
+        self.assertEqual(summary(self.value,self.files)['coverage'],coverage)
+        self.assertEqual(before,self.value)
+        for bad in (-1,True,1.5,None):
+            coverage['unmeasured_pair_samples']=bad
+            with self.assertRaisesRegex(ValueError,'depth_coverage'):summary(self.value,self.files)
+
+    def test_budget_location_can_be_nested_but_must_match_time_and_slots(self):
+        row=dict(time=.2,reason_code='depth_overlap_pixel_budget',
+                 raster_budget=dict(time=.2,pair=['arm','torso']))
+        self.audit['order']['failures']=[row]
+        self.assertEqual(summary(self.value,self.files)['failures'][0]['pair'],['arm','torso'])
+        row['raster_budget']['time']=.3
+        with self.assertRaisesRegex(ValueError,'failure_location'):summary(self.value,self.files)
+        row['raster_budget'].update(time=.2,pair=['arm','foreign'])
+        with self.assertRaisesRegex(ValueError,'failure_location'):summary(self.value,self.files)

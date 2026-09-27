@@ -1,6 +1,7 @@
 import {deliveryState,deliveryCounts,deliveryLabels} from './motion-cohort-delivery.js';
 import {supportExceptions} from './motion-support-exceptions.js';
 import {sourceScope} from './motion-source-scope.js';
+import {depthCoverageText} from './motion-depth-coverage.js';
 const gates=['投影','几何','接触','遮挡','Runtime'];
 const statuses={sampled_pass:'采样通过',needs_changes:'需处理',unmeasured:'未验证'};
 const decisions={accepted:'阶段接受',accepted_with_exceptions:'阶段接受，保留异常',rejected:'需调整',revoked:'已撤销',
@@ -45,8 +46,9 @@ function link(base,path,label){return `<a href="${escape(base+path)}" target="_b
 function depthHTML(row,base,path){
   const depth=row.evidence?.depth_diagnostics;
   if(row.status!=='verified'||!depth)return '';
-  return `<details><summary>补充遮挡诊断 · ${depth.failures.length} 条冲突</summary>`+
+  return `<details><summary>补充遮挡诊断 · ${depth.failures.length} 条失败记录</summary>`+
     '<p>来源深度与局部像素重叠检查，不代表整帧渲染验收；不改写历史检查或阶段结论。</p>'+
+    `<p>${escape(depthCoverageText(depth))}</p>`+
     `<p>诊断证据 ${escape(depth.audit_sha256)}</p>`+
     (depth.failures.length?'<ul>'+depth.failures.map(r=>`<li>${link(base,path+'?time='+encodeURIComponent(r.time),Number(r.time).toFixed(3)+' 秒')} · ${escape(r.pair.join(' / '))} · ${escape(r.reason_code)}</li>`).join('')+'</ul>':
       '<p>本诊断未列出冲突，完整遮挡检查仍以技术状态为准。</p>')+'</details>';

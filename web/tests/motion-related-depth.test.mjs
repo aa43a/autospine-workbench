@@ -21,3 +21,15 @@ test('missing evidence adds no claim; empty conflicts still require review',()=>
   appendDepthDiagnostics(root,{failures:[]},()=>{});
   assert.ok(walk(root).some(n=>n.textContent.includes('完整遮挡检查仍需')));
 });
+
+test('missing samples remain separate from failures and budget limits are not called conflicts',()=>{
+  const root=new Node('main');
+  appendDepthDiagnostics(root,{coverage:{visible_pair_samples:134,ambiguous_visible_pair_samples:32,
+    order_mismatch_pair_samples:69,unmeasured_pair_samples:110},
+    failures:[{time:1,pair:['arm','torso'],reason_code:'depth_overlap_pixel_budget'}]},()=>{});
+  const text=walk(root).map(n=>n.textContent).join('\n');
+  assert.match(text,/1 条失败记录/);assert.match(text,/未测 110/);
+  assert.match(text,/未测：像素检查预算不足/);assert.doesNotMatch(text,/1 条冲突/);
+  const legacy=new Node('main');appendDepthDiagnostics(legacy,{failures:[]},()=>{});
+  assert.match(walk(legacy).map(n=>n.textContent).join('\n'),/采样覆盖未记录/);
+});
