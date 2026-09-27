@@ -60,6 +60,15 @@ def prepare(original, raw, times):
     return files, geometry
 
 
+def normalized_diagnostic(original, raw, report, times):
+    document = verify_diagnostic(original, raw, report, times)
+    from autospine_workbench.targets.character43.deform_time_aliases import normalize
+    result, evidence = normalize(document, json.loads(original['skeleton.json']), 'external-motion', report['slot'])
+    # Retain the entire original diagnostic grid, including every removed key.
+    required = sorted(set(times) | set(inventory(result, 'external-motion', [])['times']))
+    return canonical_bytes(result), required, evidence
+
+
 def verify_coverage(times, rows, runtime=False):
     covered = []; identities = set(); implementations = set()
     for index, row in enumerate(rows):
@@ -92,11 +101,12 @@ def run(state_root, probe, output, *, runtime=False):
     raw = (probe/'solved-diagnostic.json').read_bytes()
     times = json.loads((probe/'validation-times.json').read_bytes())
     original = AnimatedStore(state_root).read(report['parent_artifact_sha256'])
-    verify_diagnostic(original, raw, report, times)
+    raw, times, normalization = normalized_diagnostic(original, raw, report, times)
     chunks = partition(times, size=1024)
     output.mkdir(parents=True, exist_ok=False); rows = []
     receipt = dict(status='running', parent_artifact_sha256=report['parent_artifact_sha256'],
-        skeleton_sha256=report['skeleton_sha256'], probe_sha256=sha256((probe/'report.json').read_bytes()).hexdigest(),
+        skeleton_sha256=sha256(raw).hexdigest(), diagnostic_skeleton_sha256=report['skeleton_sha256'],
+        normalization=normalization, probe_sha256=sha256((probe/'report.json').read_bytes()).hexdigest(),
         required_times=times, pending_checks=['contact', 'depth', 'visual'], authority='none', selected=False,
         production_authorized=False, rows=rows)
     def save(): (output/'report.json').write_bytes(canonical_bytes(receipt))

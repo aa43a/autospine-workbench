@@ -3,7 +3,7 @@ from hashlib import sha256
 import json
 import unittest
 from autospine_workbench.automation.storage_io import canonical_bytes
-from m4_transverse_batch_validation import verify_diagnostic, verify_coverage, prepare
+from m4_transverse_batch_validation import verify_diagnostic, verify_coverage, prepare, normalized_diagnostic
 from m4_transverse_sampling_probe import inventory
 from test_transverse_workflow import bundle
 
@@ -61,3 +61,15 @@ class TransverseBatchTests(unittest.TestCase):
         for key,value in [('bundle_sha256','b'),('passed',False),('runtime_sha256','other'),('tool_sha256',None)]:
             changed=deepcopy(rows);changed[1]['runtime'][key]=value
             with self.assertRaises(ValueError):verify_coverage([0,.5,1],changed,True)
+
+    def test_alias_repair_keeps_every_original_diagnostic_time(self):
+        files, _, report = self.fixture(); doc = json.loads(files['skeleton.json'])
+        keys=[dict(time=t,vertices=[t*1e-4,0.]*3) for t in (0,.5,.50000001,1)]
+        doc['animations']['external-motion']['attachments']={'default':{'leg':{'leg':{'deform':keys}}}}
+        raw=canonical_bytes(doc); times=inventory(doc,'external-motion',[0,.5,1])['times']
+        report.update(skeleton_sha256=sha256(raw).hexdigest(),times_sha256=sha256(canonical_bytes(times)).hexdigest())
+        normalized, required, evidence=normalized_diagnostic(files,raw,report,times)
+        self.assertTrue(set(times)<=set(required));self.assertIn(.50000001,required)
+        self.assertEqual(evidence['collisions'],1)
+        output=json.loads(normalized)['animations']['external-motion']['attachments']['default']['leg']['leg']['deform']
+        self.assertEqual(len(output),3)
