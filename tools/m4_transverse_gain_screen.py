@@ -16,12 +16,8 @@ from autospine_workbench.targets.character43.transverse_gain_feasibility import 
 from autospine_workbench.targets.spine43.continuous_pose import area
 
 
-def run(state, artifact, slot, source, output):
-    raw=source.read_bytes();report=json.loads(raw)
-    if report['parent_artifact_sha256']!=artifact or report['slot']!=slot:
-        raise ValueError('gain_screen_source_mismatch')
-    times=sorted({r['time'] for r in report['failures'] if not r['fixed'] and r['regressed']})
-    document=json.loads(AnimatedStore(state).read(artifact)['skeleton.json']);name='external-motion'
+def prepare_poses(document, slot, times):
+    name='external-motion'
     endpoints=[build(document,name,[slot],correction_frame='transverse',anchor_terminal=True,
                      required_times=times,distal_gain=g)[0] for g in (0.,1.)]
     rest=deepcopy(document);rest['animations']={name:{'bones':{}}}
@@ -40,7 +36,16 @@ def run(state, artifact, slot, source, output):
             one=sample(endpoints[1],name,time)[0][slot],floors=limits,
             context=dict(row={'triangles':triangles},areas=refs,budget=.1*min(lengths),
                          free=[sum(w>0 for _,w in row)>1 for row in influences])))
-    result=screen(poses,[i/32 for i in range(33)])
+    return poses
+
+
+def run(state, artifact, slot, source, output):
+    raw=source.read_bytes();report=json.loads(raw)
+    if report['parent_artifact_sha256']!=artifact or report['slot']!=slot:
+        raise ValueError('gain_screen_source_mismatch')
+    times=sorted({r['time'] for r in report['failures'] if not r['fixed'] and r['regressed']})
+    document=json.loads(AnimatedStore(state).read(artifact)['skeleton.json'])
+    result=screen(prepare_poses(document,slot,times),[i/32 for i in range(33)])
     result.update(parent_artifact_sha256=artifact,regression_source_sha256=sha256(raw).hexdigest(),slot=slot)
     with output.open('xb') as handle:handle.write(canonical_bytes(result))
     print(json.dumps({k:v for k,v in result.items() if k!='trials'}))
