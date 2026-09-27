@@ -139,3 +139,24 @@ The independent pixel trace remains in
 `tmp/m4-moving-workbench/alice-squat-regional-framebuffer-v1/pixel-trace.json`.
 No neighboring-time screenshot is substituted, no missing frame is counted as
 passed, and no raster edits or acceptance changes are made.
+
+## Hidden-limb point correction rejected as an occlusion repair
+
+`tools/m4_limb_occlusion_patch.py` independently tests the opposite surface:
+move only a local limb patch toward existing skirt alpha≥128, with a 2px budget,
+fixed foot-influenced vertices and fixed previously visible material support.
+At 0.9s a 1.881017px correction gives all 25 material points skirt coverage and
+passes local geometry (minimum area ratio 0.500010, maximum edge stretch 1.560579).
+Twenty distal vertices and three visible-material support vertices remain fixed.
+
+That is insufficient: at the original world point
+(656.4741145098347, -753.715011847071), skirt alpha remains 4.160951 and limb alpha
+remains 255 after the correction. A neighboring limb material point replaces the
+moved point. Therefore v3 is explicitly `original_exposure_remains`, with
+`material_pose_passed:true` but `visual_repair_proven:false`. It is not baked into
+a new animation or promoted. Evidence is in
+`tmp/m4-moving-workbench/alice-squat-limb-occlusion-v3/report.json`.
+
+The next solver must address visible silhouette/region coverage, not merely
+transport tracked material anchors into the garment. This counterexample is why
+point coverage cannot be the sole admission test for an occlusion repair.
