@@ -48,6 +48,8 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
         evidence['source_pose_fit' if pose_fit is not None else 'projected_lengths'] = lengths
         if pose_fit is not None:
             evidence['profile'] = lengths['target_profile']
+            if any(row.get('unreliable_frames') for row in lengths.get('records', [])):
+                issues.append(dict(stage='projection', reason_code='motion_source_pose_direction_unreliable'))
     except ValueError as exc:
         if pose_fit is not None:
             raise

@@ -32,6 +32,23 @@ class TargetPoseTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'unobservable'):
                 build_candidate(*args, character_digest='a'*64, motion_digest='b'*64, pose_fit=profile)
 
+    def test_near_camera_source_uncertainty_is_preserved_in_candidate_issues(self):
+        import json
+        args=inputs()
+        row=dict(bone='forearm_r',unreliable_frames=[dict(frame=0,time=0,visibility=.02)])
+        def projected(document,*unused,**kwargs):
+            return document,dict(target_profile=PROFILE,records=[row])
+        with patch('autospine_workbench.automation.motion_target_pose.project',side_effect=projected), \
+             patch('autospine_workbench.automation.motion_target_pose.correct',side_effect=lambda doc,*a,**k:(doc,{})):
+            files,evidence,_=build_candidate(*args,character_digest='a'*64,motion_digest='b'*64,
+                                            pose_fit={'profile':PROFILE})
+        issue=dict(stage='projection',reason_code='motion_source_pose_direction_unreliable')
+        self.assertIn(issue,evidence['issues'])
+        self.assertEqual(evidence['status'],'needs_changes')
+        saved=json.loads(files['motion-review.json'])
+        self.assertIn(issue,saved['issues'])
+        self.assertEqual(saved['source_pose_fit']['records'],[row])
+
     def test_final_grid_covers_bone_deform_and_existing_contact_samples(self):
         doc={'animations':{'motion':{'bones':{'arm':{'rotate':[{'time':0},{'time':1}]}},
             'attachments':{'default':{'slot':{'mesh':{'deform':[{'time':0.3}]}}}}}}}
