@@ -21,6 +21,23 @@ def fixture():
 
 
 class LimbTransverseRepairTests(unittest.TestCase):
+    def test_constant_distal_gain_preserves_single_bone_corrected_area(self):
+        doc=fixture()
+        doc['animations']['motion']['attachments']={'default':{'leg':{'leg':{'deform':[
+            dict(time=0,vertices=[0.]*6),dict(time=1,vertices=[1.,2.,-2.,4.,3.,-1.])]}}}}
+        for gain in (0.,.25,.5,.75,1.):
+            result,_=build(doc,'motion',['leg'],correction_frame='transverse',distal_gain=gain,required_times=[.371])
+            for t in (0,.371,1):
+                old=sample(doc,'motion',t)[0]['leg'];new=sample(result,'motion',t)[0]['leg']
+                self.assertAlmostEqual(area(old,[0,1,2]),area(new,[0,1,2]),places=8)
+        with self.assertRaisesRegex(ValueError,'distal_gain_invalid'):
+            build(doc,'motion',['leg'],distal_gain=1.1)
+        _,report=build(doc,'motion',['leg'],correction_frame='transverse',
+                       anchor_terminal=True,distal_gain=.25)
+        self.assertEqual(report['profile'],'limb-transverse-anchored-distal-gain-v1-experiment')
+        self.assertEqual(report['distal_gain'],.25)
+        self.assertFalse(report['production_authorized'])
+
     def test_terminal_anchor_preserves_existing_deformed_foot_world_shape(self):
         doc=fixture();mesh=doc['skins'][0]['attachments']['leg']['leg']
         for offset in (1,6,11):mesh['vertices'][offset]=3

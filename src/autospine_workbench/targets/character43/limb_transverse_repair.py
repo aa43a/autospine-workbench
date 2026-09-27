@@ -1,8 +1,8 @@
 """Remove inherited transverse shear from selected limb skins, not bone motion.
 
-The axial projection and signed area of every individual influence stay intact.
-Existing local corrections default to unchanged; opt-in transport moves the
-corrected surface through the new frame. Mixed weights still require QA.
+Uniform per-bone shear preserves signed area of a single-bone surface when
+transporting prior corrections. Spatial taper is a separate diagnostic and does
+not preserve area. Mixed weights and interpolated poses always require QA.
 """
 from copy import deepcopy
 import math
@@ -95,7 +95,7 @@ def prepare(document, name, slots, maximum_keys=2049):
     return rows, previous, used, times, baseline
 
 
-def build(document, name, slots, *, tolerance_px=.05, maximum_keys=2049, on_progress=None, correction_frame='world', required_times=(), anchor_terminal=False):
+def build(document, name, slots, *, tolerance_px=.05, maximum_keys=2049, on_progress=None, correction_frame='world', required_times=(), anchor_terminal=False, terminal_transition=None, distal_gain=1.):
     """Bake additive rest-surface compensation with quarter-interval error checks.
 
     Axial shortening is deliberately not clamped and the geometry gate is not
@@ -106,8 +106,14 @@ def build(document, name, slots, *, tolerance_px=.05, maximum_keys=2049, on_prog
     if correction_frame not in ('world','transverse'):
         raise ValueError('limb_transverse_correction_frame_invalid')
     if type(anchor_terminal) is not bool:raise ValueError('limb_transverse_terminal_option_invalid')
+    if not math.isfinite(distal_gain) or not 0<=distal_gain<=1:raise ValueError('limb_transverse_distal_gain_invalid')
     rows, previous, used, times, baseline = prepare(document, name, slots, maximum_keys)
     anchors = used & {'foot_l','foot_r','hand_l','hand_r'} if anchor_terminal else set()
+    gains={}
+    if terminal_transition is not None:
+        if not anchor_terminal:raise ValueError('terminal_transition_requires_anchor')
+        from .terminal_transverse_transition import gains as transition_gains
+        gains={slot:transition_gains(document,slot,terminal_transition) for slot in slots}
     if any(not math.isfinite(t) or not 0<=t<=max(times) for t in required_times):
         raise ValueError('limb_transverse_required_times_invalid')
     times |= set(required_times)
@@ -136,6 +142,8 @@ def build(document, name, slots, *, tolerance_px=.05, maximum_keys=2049, on_prog
                         # Single-bone triangles then retain their parent signed area.
                         ordinate = y+py if correction_frame == 'transverse' else y
                         shift = (baseline[bone][0]-frames[bone][0])*ordinate if weight > 0 and bone not in anchors else 0.
+                        if bone in {'calf_l','calf_r','forearm_l','forearm_r'}:shift*=distal_gain
+                        if slot in gains:shift*=gains[slot][j//2]
                         values.extend((px+shift, py)); j += 2
                         if weight > 0:
                             a, _, c, _, _, _ = transforms[bone]
@@ -196,8 +204,18 @@ def build(document, name, slots, *, tolerance_px=.05, maximum_keys=2049, on_prog
         report['limitations'].append('previous_world_space_contact_corrections_require_recheck')
     report['correction_frame'] = correction_frame
     report['required_times'] = sorted(set(required_times))
+    report['distal_gain'] = distal_gain
+    if distal_gain!=1:
+        report['profile']='limb-transverse-distal-gain-v1-experiment'
+        report['limitations'].append('partial_transverse_compensation')
     if anchor_terminal:
         report['profile'] = 'limb-transverse-terminal-anchor-v1-experiment'
         report['terminal_anchors'] = sorted(anchors)
         report['invariants'].append('terminal_influence_world_corrections_retained')
+        if distal_gain != 1:
+            report['profile'] = 'limb-transverse-anchored-distal-gain-v1-experiment'
+    if terminal_transition is not None:
+        report['profile']='limb-transverse-terminal-transition-v1-experiment'
+        report['terminal_transition_fraction']=terminal_transition
+        report['limitations'].append('spatial_taper_does_not_preserve_triangle_area')
     return result, report
