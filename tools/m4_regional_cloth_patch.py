@@ -16,7 +16,7 @@ from m4_cloth_limb_coupling_probe import coverage
 from m4_skirt_waist_support import fixed_region,contact_change
 
 
-def run(source,evidence,guards,waist_source,output):
+def run(source,evidence,guards,waist_source,output,continuous_support=False,refine_report=None,geometry=False):
     receipt=json.loads((source/'report.json').read_bytes())
     files=AnimatedStore(source/'isolated-store').read(receipt['candidate_bundle_sha256'])
     old=json.loads(evidence.read_bytes());doc=json.loads(files['skeleton.json'])
@@ -25,6 +25,13 @@ def run(source,evidence,guards,waist_source,output):
         raise ValueError('regional_cloth_identity')
     if any(protected[k]!=old[k] for k in ('candidate_bundle_sha256','skeleton_sha256','limb','cloth')):
         raise ValueError('regional_cloth_guard_identity')
+    refinement=None
+    if refine_report:
+        refinement=json.loads(refine_report.read_bytes())
+        if (refinement['source_candidate']!=old['candidate_bundle_sha256'] or refinement['skeleton_sha256']!=old['skeleton_sha256'] or
+            refinement['evidence_sha256']!=sha256(evidence.read_bytes()).hexdigest() or
+            refinement['guards_sha256']!=sha256(guards.read_bytes()).hexdigest()):
+            raise ValueError('regional_cloth_refinement_identity')
     fixed,waist=fixed_region(AnimatedStore(Path('workspace')).read(waist_source),files,old['cloth'])
     setup=sample(dict(doc,animations={'setup':{}}),'setup',0)[0]
     mesh=doc['skins'][0]['attachments'][old['cloth']][old['cloth']]
@@ -41,6 +48,17 @@ def run(source,evidence,guards,waist_source,output):
         item=dict(time=time,exposed_samples=[r['sample'] for r in exposed],before=metrics(setup[old['cloth']],posed,tri))
         if not exposed:item.update(status='no_exposed_samples');frames.append(item);continue
         groups=[candidates(mesh,posed,texture,r['world']) for r in exposed]
+        if continuous_support:
+            from autospine_workbench.targets.character43.material_reachability import inspect
+            alpha=np.asarray(texture.getchannel('A'),float);continuous=[]
+            for row,group in zip(exposed,groups):
+                if group:continue
+                check=inspect(mesh,posed,alpha,row['world'],threshold=128)
+                continuous.append(dict(sample=row['sample'],**check))
+                if check['status']=='material_witness_within_budget':
+                    witness=check['witness'];group.append(dict(witness,pixel=witness['texture_point'],
+                        support_kind='continuous_bilinear_alpha_128'))
+            item['continuous_support']=continuous
         item['support_counts']=[len(g) for g in groups]
         item['unsupported_samples']=[r['sample'] for r,g in zip(exposed,groups) if not g]
         supported=[(r,g) for r,g in zip(exposed,groups) if g]
@@ -49,9 +67,11 @@ def run(source,evidence,guards,waist_source,output):
         # A partial fit is diagnostic only; no target silently disappears from acceptance.
         try:selected=assign([g for r,g in supported])
         except ValueError as error:item.update(status=str(error));frames.append(item);continue
-        corrected,field=solve(setup[old['cloth']],posed,tri,selected,[r['world'] for r,g in supported],fixed)
+        failed=None if refinement is None else {r['sample'] for f in refinement['frames'] if f['time']==time for r in f.get('coverage',[]) if not r['passed']}
+        exact=[i for i,s in enumerate(selected) if s.get('support_kind')=='continuous_bilinear_alpha_128' and (failed is None or supported[i][0]['sample'] in failed)]
+        corrected,field=solve(setup[old['cloth']],posed,tri,selected,[r['world'] for r,g in supported],fixed,exact=exact,geometry=geometry)
         item.update(supports=selected,movement=field)
-        if corrected is None:item.update(status='displacement_budget_failed');frames.append(item);continue
+        if corrected is None:item.update(status='joint_solver_rejected');frames.append(item);continue
         quality=metrics(setup[old['cloth']],corrected,tri)
         checks=[]
         for row in frame['rows']:
@@ -78,6 +98,8 @@ def run(source,evidence,guards,waist_source,output):
         guards_sha256=sha256(guards.read_bytes()).hexdigest(),
         waist_source=waist_source,waist_support=waist,frames=frames,authority='none',selected=False,
         animation_modified=False,candidate_generated=False,posed_cloth_sha256=sha256(canonical_bytes(points)).hexdigest(),
+        support_mode='discrete_and_continuous_alpha128' if continuous_support else 'discrete_opaque_neighborhood',
+        refinement_report_sha256=None if refine_report is None else sha256(refine_report.read_bytes()).hexdigest(),geometry_constraints=geometry,
         limits=dict(world_support_px=8,texture_search_px=8,vertex_displacement_px=8,neighborhood_rings=3),
         scope='retained_material_grid_at_declared_poses_not_animation_or_visual_acceptance')
     output.mkdir(parents=True,exist_ok=False)
@@ -89,4 +111,6 @@ if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('source',type=Path);p.add_argument('evidence',type=Path);p.add_argument('guards',type=Path)
     p.add_argument('waist_source');p.add_argument('output',type=Path)
-    a=p.parse_args();run(a.source,a.evidence,a.guards,a.waist_source,a.output)
+    p.add_argument('--continuous-support',action='store_true')
+    p.add_argument('--refine-report',type=Path);p.add_argument('--geometry-constraints',action='store_true')
+    a=p.parse_args();run(a.source,a.evidence,a.guards,a.waist_source,a.output,a.continuous_support,a.refine_report,a.geometry_constraints)

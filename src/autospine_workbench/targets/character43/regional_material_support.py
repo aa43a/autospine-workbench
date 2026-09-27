@@ -57,13 +57,15 @@ def assign(groups):
     return [next(r for r in groups[i] if tuple(r['pixel'])==pixels[j]) for i,j in zip(rows,columns)]
 
 
-def solve(rest,posed,triangles,supports,queries,fixed,*,rings=3,budget=8.):
+def solve(rest,posed,triangles,supports,queries,fixed,*,rings=3,budget=8.,exact=(),geometry=False):
     """Least-squares material targets with harmonic regularization; output must pass independent QA."""
     rest=np.asarray(rest,float);posed=np.asarray(posed,float);queries=np.asarray(queries,float)
     if (not supports or queries.shape!=(len(supports),2) or rest.shape!=posed.shape or
         not np.isfinite(queries).all() or not np.isfinite(rest).all() or not np.isfinite(posed).all() or
         type(rings) is not int or not 0<=rings<=3 or not 0<budget<=8):
         raise ValueError('regional_support_solve_input')
+    if len(set(exact))!=len(exact) or any(type(i) is not int or not 0<=i<len(supports) for i in exact):
+        raise ValueError('regional_support_exact_targets')
     moving={v for s in supports for v in s['vertices']};fixed=set(fixed)
     for _ in range(rings):moving|={v for tri in triangles if moving&set(tri) for v in tri}
     moving=sorted(moving-fixed)
@@ -89,7 +91,7 @@ def solve(rest,posed,triangles,supports,queries,fixed,*,rings=3,budget=8.):
     offsets=np.linalg.lstsq(matrix,rhs,rcond=None)[0]
     unconstrained=float(np.linalg.norm(offsets,axis=1).max())
     optimizer='unconstrained_within_budget'
-    if unconstrained>budget:
+    if unconstrained>budget or exact or geometry:
         # Joint bounded least squares, not global scaling of the solved displacement.
         gram=matrix.T@matrix;linear=matrix.T@rhs;normal=max(float(np.linalg.norm(gram,2)),1.)
         def objective(x):
@@ -101,15 +103,25 @@ def solve(rest,posed,triangles,supports,queries,fixed,*,rings=3,budget=8.):
             for i,v in enumerate(p):jac[i,2*i:2*i+2]=-2*v
             return jac
         seed=offsets/np.maximum(np.linalg.norm(offsets,axis=1,keepdims=True),budget)
+        guards=[dict(type='ineq',fun=limits,jac=derivative)]
+        if geometry:
+            from .regional_patch_geometry import constraints as geometry_constraints
+            guards.append(geometry_constraints(rest,posed,triangles,moving,budget))
+        if exact:
+            exact_matrix=constraints[list(exact)];exact_rhs=np.asarray(delta)[list(exact)]/budget
+            guards.append(dict(type='eq',fun=lambda x:(exact_matrix@x.reshape(-1,2)-exact_rhs).ravel(),
+                               jac=lambda x:np.kron(exact_matrix,np.eye(2))))
         fit=minimize(objective,seed.ravel(),jac=True,method='SLSQP',
-            constraints=[dict(type='ineq',fun=limits,jac=derivative)],options=dict(maxiter=300,ftol=1e-10))
+            constraints=guards,options=dict(maxiter=300,ftol=1e-10))
         offsets=fit.x.reshape(-1,2)*budget;optimizer='bounded_converged' if fit.success else 'bounded_failed'
     maximum=float(np.linalg.norm(offsets,axis=1).max())
     report=dict(maximum_displacement_px=maximum,movable_vertices=moving,
         unconstrained_maximum_displacement_px=unconstrained,optimizer=optimizer,
+        geometry_constraints=geometry,
         maximum_target_error_px=float(np.linalg.norm(constraints@offsets-delta,axis=1).max()),
+        exact_targets=list(exact),exact_target_error_px=max((float(np.linalg.norm((constraints@offsets-delta)[i])) for i in exact),default=0.),
         within_displacement_budget=maximum<=budget,authority='none',selected=False,
         scope='joint_material_targets_not_geometry_or_coverage_acceptance')
-    if maximum>budget or optimizer=='bounded_failed':return None,report
+    if maximum>budget or optimizer=='bounded_failed' or report['exact_target_error_px']>1e-7:return None,report
     result=posed.copy();result[moving]+=offsets
     return result.tolist(),report

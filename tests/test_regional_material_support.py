@@ -42,3 +42,11 @@ class RegionalSupportTests(unittest.TestCase):
         self.assertLessEqual(report['maximum_displacement_px'],8+1e-7)
         self.assertGreater(report['maximum_target_error_px'],11.9)
         self.assertEqual(result[:2],self.points[:2])
+
+    def test_exact_target_preserved_against_competing_soft_target(self):
+        supports=[dict(vertices=[0,1,2],weights=[0,0,1])]*2
+        result,report=solve(self.points,self.points,[[0,1,2],[0,2,3]],supports,[[12,10],[6,10]],[0,1],exact=[0])
+        self.assertIsNotNone(result)
+        self.assertLess(np.linalg.norm(np.asarray(result[2])-[12,10]),1e-7)
+        self.assertLess(report['exact_target_error_px'],1e-7)
+        self.assertGreater(report['maximum_target_error_px'],5.9)
