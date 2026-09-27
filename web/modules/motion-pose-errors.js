@@ -1,4 +1,6 @@
 export const poseErrors = {
+  source_pose_final_sample_limit:'完整动作的验证时间点超过单批容量，修复候选尚未生成，未进入 Runtime 捕获。原候选和检查时间点保留；需分批验证后再继续。',
+  limb_transverse_sample_limit:'腿部修正合并后的验证时间点超过单批容量，未删减检查帧；原候选保留，尚不能确认修复有效。',
   view_correspondence_degenerate_or_uv_fold:'贴图对应出现折叠或退化三角形，请在 UV 画布检查交叉点。',
   view_correspondence_pose_fold:'目标姿态存在局部翻转，请检查姿态画布中的交叉或反折。',
   view_correspondence_ambiguous_overlap:'同一源位置有冲突的目标对应，请检查重叠控制区域。',
