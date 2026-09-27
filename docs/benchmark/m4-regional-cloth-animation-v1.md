@@ -183,3 +183,25 @@ Evidence: `tmp/m4-moving-workbench/alice-squat-exposure-region-v2/`.
 Tests cover material-preserving translation, originally uncovered material and
 disconnected-region separation. The next repair must reason about this region's
 silhouette and occlusion, while keeping the ambiguous pixels explicit.
+
+## Local repair budget is insufficient for the region
+
+`joint_coverage_bound.check` tests a necessary relative-motion condition: with
+fixed texture/UV/topology, a limb material point moves at most 2px and a skirt
+material point at most 8px, so their relative separation can close by at most
+10px. The conservative alpha-support search uses the existing fixed-material
+model and maximum-per-triangle alpha; it is not a GPU compositing proof.
+
+Seven distinct extreme points were checked in the 1,353-point region. Five
+are outside that combined budget at alpha threshold 8. One distance lower bound
+is 10.614589px; four report a conservative 20px lower bound at the search cap
+(not an exact 20px distance). The other two are merely not ruled out, not proven
+feasible. A single valid counterexample suffices to reject covering the entire
+region under these fixed assumptions and budgets.
+
+Evidence: `tmp/m4-moving-workbench/alice-squat-exposure-region-v2/feasibility.json`.
+The explicit route is now `pose_or_view_representation_review`; the diagnostic
+player displays the limitation without changing adoption or generalizing it to
+every Squat motion. Further iterations of the same bounded point correction
+cannot resolve this region. A pose/view change or a separately justified garment
+representation is required before spending more captures on that route.

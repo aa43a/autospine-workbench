@@ -8,7 +8,7 @@ from m4_regional_cloth_runtime_audit import audit
 from m4_runtime_batch_player import viewport
 
 
-def run(source,experiment,parent,root):
+def run(source,experiment,parent,root,feasibility=None):
     checked=audit(source,experiment,parent,root)
     if not checked['complete']:raise ValueError('cloth_player_complete_runtime_required')
     manifest=json.loads((root/'report.json').read_bytes())
@@ -30,6 +30,15 @@ def run(source,experiment,parent,root):
         diagnostic_report_sha256=sha256((experiment/'report.json').read_bytes()).hexdigest(),
         authority='none',selected=False,production_authorized=False,
         scope='audited_diagnostic_player_not_visual_acceptance')
+    route=''
+    if feasibility:
+        evidence=json.loads(feasibility.read_bytes())
+        if evidence['skeleton_sha256']!=manifest['skeleton_sha256']:
+            raise ValueError('cloth_player_feasibility_identity')
+        report['repair_feasibility']=dict(status=evidence['status'],
+            sha256=sha256(feasibility.read_bytes()).hexdigest(),next_route=evidence['next_route'])
+        if evidence['status']=='local_repair_insufficient':
+            route='<p class="warning">当前局部修复能力不足：露出区域存在超出裙片与腿部合计位移预算的点。下一步需要调整姿态或视角表现；这不等于所有下蹲动作均不支持，也不自动放宽预算。</p>'
     (root/'player-report.json').write_bytes(canonical_bytes(report))
     times=sorted({failed[0]['time'],.8,.9,.9641929343342781,1.,failed[-1]['time']})
     links=' '.join(f'<a target="motion" href="{link}?time={t:.9f}">{t:.3f} 秒</a>' for t in times)
@@ -40,6 +49,7 @@ iframe{{width:100%;height:78vh;border:1px solid #425568}}p{{max-width:1100px;lin
 .warning{{color:#ffd184}}</style>
 <h1>Alice 下蹲 · 裙片连续修复诊断</h1>
 <p class="warning">候选未采用：−55° 独立实验视角。保留原绑定与纹理；本页不代表三角色固定基线已通过。</p>
+{route}
 <p>官方 Runtime 已核对 {checked['coverage']['frames']:,} 个不重复时刻。
 材质覆盖检查仍有 {len(failed)} / {len(diagnostic['frames'])} 个时刻失败。
 数值播放通过不代表裂缝、遮挡或动作外观通过。</p>
@@ -54,4 +64,5 @@ iframe{{width:100%;height:78vh;border:1px solid #425568}}p{{max-width:1100px;lin
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
     for n in ('source','experiment','parent','root'):p.add_argument(n,type=Path)
-    a=p.parse_args();run(a.source,a.experiment,a.parent,a.root)
+    p.add_argument('--feasibility',type=Path)
+    a=p.parse_args();run(a.source,a.experiment,a.parent,a.root,a.feasibility)
