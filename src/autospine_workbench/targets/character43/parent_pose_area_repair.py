@@ -26,7 +26,7 @@ def verify_source(parent, candidate, name, slot):
     if slot not in parent['skins'][0]['attachments']:raise ValueError('parent_pose_slot_missing')
 
 
-def solve(context, origin, parent_points, setup_areas, *, protect_setup=False, local_refinement=False, solver_margins=None):
+def solve(context, origin, parent_points, setup_areas, *, protect_setup=False, local_refinement=False, solver_margins=None, initial=None):
     """Keep the parent compression floor without changing fixed vertices or budgets."""
     trial = deepcopy(context)
     trial['minimum_ratios'] = floors(parent_points, trial['row']['triangles'], trial['areas'], setup_areas)
@@ -42,7 +42,7 @@ def solve(context, origin, parent_points, setup_areas, *, protect_setup=False, l
     boundary = boundary_check(trial, origin, trial['minimum_ratios'])
     from .single_vertex_area_feasibility import inspect as shared_check
     shared = shared_check(trial, origin, trial['minimum_ratios'])
-    corrected, evidence = project(trial, origin)
+    corrected, evidence = project(trial, origin, **({'initial':initial} if initial is not None else {}))
     if local_refinement and not evidence['converged']:
         from .local_area_constraints import refine
         corrected, refinement = refine(trial, origin, corrected, analytic=True, expanded=True,
@@ -54,7 +54,8 @@ def solve(context, origin, parent_points, setup_areas, *, protect_setup=False, l
                            shared_vertex_feasibility=shared)
 
 
-def compare(parent, candidate, name, slot, time, *, protect_setup=False, local_refinement=False, boundary_rings=0):
+def compare(parent, candidate, name, slot, time, *, protect_setup=False, local_refinement=False, boundary_rings=0, initial=None):
+    if initial is not None and not protect_setup:raise ValueError('parent_initial_requires_joint_floors')
     if local_refinement and not protect_setup:raise ValueError('parent_refinement_requires_joint_floors')
     verify_source(parent, candidate, name, slot)
     keys = [k['time'] for tracks in parent['animations'][name]['bones'].values() for values in tracks.values() for k in values]
@@ -105,9 +106,10 @@ def compare(parent, candidate, name, slot, time, *, protect_setup=False, local_r
         triangles=triangles, correction_domain=domain, selected=False, authority='none',
         scope='single_pose_cpu_experiment_not_continuous_or_runtime_acceptance')
     if protect_setup:
-        joint, joint_solver = solve(context, origin, previous, areas, protect_setup=True, local_refinement=local_refinement)
+        joint, joint_solver = solve(context, origin, previous, areas, protect_setup=True, local_refinement=local_refinement,initial=initial)
         joint_solver['floor_failures'] = [i for i,(t,r,f) in enumerate(zip(triangles,refs,joint_solver['parent_floors']))
                                           if area(joint,t)/r < f-1e-7]
         result['parent_setup_floor'] = dict(metrics(joint), solver=joint_solver)
         result['points']['parent_setup_floor'] = joint
+        if initial is not None:result['initial_points_sha256']=sha256(canonical_bytes(initial)).hexdigest()
     return result

@@ -2,6 +2,7 @@
 import argparse
 from copy import deepcopy
 import json
+import math
 from pathlib import Path
 
 from autospine_workbench.automation.animated_store import AnimatedStore
@@ -13,9 +14,12 @@ from autospine_workbench.asset.planning.component_local_solver import metrics
 from autospine_workbench.resolved_project import canonical_sha256
 
 
-def run(state,job,slot,output):
+def run(state,job,slot,output,temporal=False,diagnostic_fallback=False):
     if not job.startswith('motion-') or not job[7:].isalnum():raise ValueError('job_invalid')
     result=json.loads((state/'jobs/motion-intake-v1'/job/'result.json').read_bytes())
+    projection_issues=[row for row in result['result'].get('issues',[]) if row.get('stage')=='projection']
+    if projection_issues and not diagnostic_fallback:
+        raise ValueError('interval_repair_projection_failed_requires_explicit_diagnostic_fallback')
     parent=result['result']['artifact_sha256'];files=AnimatedStore(state).read(parent)
     doc=json.loads(files['skeleton.json']);name='external-motion'
     rest=dict(doc,animations={'setup':{}});setup=sample(rest,'setup',0)[0][slot]
@@ -28,18 +32,26 @@ def run(state,job,slot,output):
     initial_times=sorted(times);history=[];cache={};candidate=None
     for iteration in range(4):
         if len(times)>2049:raise ValueError('interval_repair_sample_budget')
-        keys=[];rows=[]
+        keys=[];rows=[];previous_delta=None;previous_time=None
+        if temporal:cache={}
         for t in sorted(times):
             if t not in cache:
                 original=sample(doc,name,t)[0][slot];check=metrics(setup,original,triangles)
-                corrected=original;row=None
-                if check['min_area_ratio']<.52:
-                    repair=compare(doc,doc,name,slot,t,protect_setup=True,local_refinement=True)
+                corrected=original;row=None;initial=None
+                if temporal and previous_delta is not None:
+                    from autospine_workbench.targets.character43.corrective_transport import transport
+                    factor=math.exp(-20*(t-previous_time))
+                    initial=transport(original,weights,[v*factor for v in previous_delta],doc['bones'],matrices(doc,name,t))
+                if check['min_area_ratio']<.52 or initial is not None:
+                    repair=compare(doc,doc,name,slot,t,protect_setup=True,local_refinement=True,initial=initial)
                     corrected=repair['points']['parent_setup_floor'];q=repair['parent_setup_floor']
                     row=dict(time=t,minimum_area_ratio=q['minimum_setup_ratio'],maximum_shift=q['maximum_shift'],
                              fixed_shift=q['fixed_shift'],setup_failures=q['setup_failures'])
                 cache[t]=(dict(time=t,vertices=local_delta(doc,weights,matrices(doc,name,t),original,corrected)),row)
             key,row=cache[t];keys.append(key)
+            if temporal:
+                previous_delta=key['vertices'] if max(map(abs,key['vertices']),default=0)>1e-6 else None
+                previous_time=t
             if row:rows.append(row)
         candidate=deepcopy(doc)
         candidate['animations'][name].setdefault('attachments',{}).setdefault('default',{})[slot]={slot:{
@@ -58,7 +70,9 @@ def run(state,job,slot,output):
     output.mkdir(parents=True,exist_ok=False)
     report=dict(profile='additive-interval-local-repair-v1-experiment',source_job=job,parent_sha256=parent,
         skeleton_sha256=canonical_sha256(candidate),slot=slot,initial_times=initial_times,validation_times=samples,
-        history=history,repairs=rows,selected=False,authority='none',
+        history=history,repairs=rows,selected=False,authority='none',temporal=temporal,
+        temporal_decay_per_second=20 if temporal else None,
+        inherited_projection_issues=projection_issues,diagnostic_fallback=diagnostic_fallback,
         local_sampled_geometry_passed=not failures,
         limitations=['selected_attachment_cpu_only','requires_whole_character_runtime_contact_depth_and_visual_validation'])
     (output/'skeleton.json').write_bytes(canonical_bytes(candidate))
@@ -69,4 +83,6 @@ def run(state,job,slot,output):
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('state',type=Path);p.add_argument('job');p.add_argument('slot');p.add_argument('output',type=Path)
-    a=p.parse_args();run(a.state,a.job,a.slot,a.output)
+    p.add_argument('--temporal',action='store_true')
+    p.add_argument('--diagnostic-fallback',action='store_true',help='Keep projection failures; never qualify this experiment as supported motion')
+    a=p.parse_args();run(a.state,a.job,a.slot,a.output,a.temporal,a.diagnostic_fallback)

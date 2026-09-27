@@ -41,6 +41,18 @@ class ParentPoseAreaRepairTests(unittest.TestCase):
             self.assertFalse(evidence['converged'])
             self.assertLessEqual(max(math.dist(a,b) for a,b in zip(result,origin)),budget+1e-7)
 
+    def test_temporal_seed_does_not_override_fixed_vertices_or_budget(self):
+        origin=[[0,0],[2,0],[1,.6]]
+        context=dict(row={'triangles':[[0,1,2]]},areas=[1],edges=[],lengths=[],
+                     free=[False,False,True],budget=.2)
+        seed=[[100,100],[-100,-100],[1,100]];before=deepcopy(seed)
+        result,evidence=solve(context,origin,origin,[1],protect_setup=True,initial=seed)
+        self.assertEqual(result[:2],origin[:2])
+        self.assertLessEqual(math.dist(result[2],origin[2]),.2+1e-7)
+        self.assertEqual(seed,before)
+        self.assertGreaterEqual(area(result,[0,1,2]),.5)
+        self.assertTrue(evidence['converged'])
+
     def test_baseline_must_share_all_other_motion_bind_and_slots(self):
         parent=dict(bones=[{'name':'a'}],slots=[{'name':'leg'}],skins=[{'attachments':{'leg':{}}}],
             animations={'move':{'bones':{},'attachments':{'default':{'leg':{'old':1},'other':{'keep':1}}}}})
