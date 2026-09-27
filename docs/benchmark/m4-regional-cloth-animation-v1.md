@@ -79,3 +79,39 @@ identity, unions all batch viewports, and retains the unselected status and
 material failures beside the motion/time controls. Tests cover refusing incomplete
 captures and retaining the full viewport and failure label. Actual export remains
 dependent on the running capture completing; these tests are not browser evidence.
+
+## Captured-frame observation during the live run
+
+The assistant inspected `batch-008/runtime/frames/external-motion-320.png` at
+0.8998535051941872 seconds and the same batch's `setup-frame.png` directly.
+The animated image SHA-256 is
+`7cc49900b841ac539ba05b569c91bd5ae642bd7ac178ea199030109ce3c667f6`;
+its batch bundle is
+`790c2e6582789fc0d24802c860b5caf408dac4b82731f73df58f055315a6aef0`.
+That frame's numeric maximum error is 0.0000762704912902971 pixels, with zero
+border pixels and matching draw order. These are rendering checks, not visual
+quality acceptance.
+
+Both setup and animated images contain conspicuous scattered transparent-edge
+pixels around the head/shoulders. They are not established as a new cloth-repair
+regression. The animated torso is strongly slanted while the head artwork remains
+frontal, and the skirt conceals most of the bent-leg shape. The isolated −55°
+projection therefore still needs whole-character appearance review. No conclusion
+about the remaining microscopic coverage samples can be drawn from this full-view
+image, and no user acceptance is recorded by this observation.
+
+## Completed Runtime capture
+
+All 19 batches completed against the same baked skeleton and texture inputs.
+They cover 17,452 unique times (17,470 evaluations including repeated setup
+anchors). Full-character sampled geometry passed in every batch. Official
+Runtime numerical comparison passed, with maximum error
+0.00008301345142698096 pixels. The installed official renderer reports version
+4.3.13; the export target remains Spine 4.3.26. These version identities are not
+interchangeable and are retained in each capture report.
+
+The output directory is `tmp/m4-moving-workbench/alice-squat-regional-runtime-v1`.
+The live player's exact skeleton is shared by all batches; its final diagnostic
+entry is generated only after the stored-file audit and viewport union. The
+existing 254 material-coverage failure times remain unresolved. Numerical and
+geometry success do not grant visual acceptance or default adoption.
