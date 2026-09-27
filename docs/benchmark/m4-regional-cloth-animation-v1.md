@@ -42,3 +42,23 @@ the keypose results. The current candidate remains unselected.
 Full-character geometry, official Runtime, continuous visible-lower-leg guards
 and framebuffer/visual review remain separate checks. In particular, successful
 keypose fitting does not prove interpolation quality or resolve missing 3D depth.
+
+## Continuous regression check
+
+`tools/m4_regional_cloth_regression.py` independently compares source and baked
+curves at all 635 saved times. Batched bilinear sampling matches the existing
+scalar sampler in tests covering edge clamping, reversed winding, overlapping
+triangles and degenerate geometry. Real-candidate failure membership must also
+match the previously saved scalar results exactly; mismatches stop the report.
+
+`regression.json` in the same output directory records:
+
+- Newly uncovered material: zero sampled times.
+- Restored coverage: 5,295 sample-time pairs (not unique points or pixels).
+- Existing gaps still uncovered: 254 sampled times.
+- The one previously visible lower-leg material anchor: zero guard failures over
+  635 times. This is a single-point protection result, not whole-leg coverage.
+
+The source candidate, skeleton and evidence hashes are retained. The continuous
+single-point guard is now measured; complete limb occlusion, official Runtime
+and visual review remain pending. No acceptance or default selection changed.
