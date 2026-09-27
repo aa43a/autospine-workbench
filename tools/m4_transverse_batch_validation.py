@@ -36,7 +36,10 @@ def verify_diagnostic(original, raw, report, times):
         raise ValueError('transverse_batch_unselected_content_changed')
     expected = inventory(after, 'external-motion',
         [r['time'] for r in read(original)['animations']['external-motion']])['times']
-    if expected != times:
+    if report.get('profile')=='joint-boundary-runtime-input-v1':
+        from m4_boundary_runtime_input import validate
+        validate(original,raw,report,times)
+    elif expected != times:
         raise ValueError('transverse_batch_missing_required_times')
     return after
 
