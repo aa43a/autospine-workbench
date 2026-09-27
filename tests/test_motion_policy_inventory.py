@@ -35,3 +35,25 @@ class PolicyInventoryTests(unittest.TestCase):
             self.assertIsNone(report['recommended_job_id'])
             self.assertEqual(report['rows'][0]['policy_changes']['contact_correction'],
                              dict(baseline=True, candidate=False))
+
+    def test_bounded_inventory_reports_truncation_and_preserves_failed_jobs(self):
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            for index in range(27):
+                key = f'motion-{index:032x}'
+                folder = root/key; folder.mkdir()
+                request = dict(kind='adapt', job_id=key, source_job_id='source',
+                               character_sha256='rig', contact_correction=index == 0)
+                (folder/'request.json').write_bytes(canonical_bytes(request))
+            def get(job):
+                return (dict(source_sha256='raw', format='fbx', view='front')
+                        if job == 'source' else dict(status='failed'))
+            manager = SimpleNamespace(root=root, folder=lambda job:root/job, get=get)
+            with patch('autospine_workbench.automation.motion_policy_inventory.stage_review') as review:
+                report = inspect(manager, 'motion-'+'0'*32)
+            self.assertEqual(report['matching_candidates'], 26)
+            self.assertEqual(len(report['rows']), 24)
+            self.assertFalse(report['complete'])
+            self.assertTrue(all(row['status'] == 'failed' for row in report['rows']))
+            self.assertIsNone(report['recommended_job_id'])
+            review.assert_not_called()
