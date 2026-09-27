@@ -20,6 +20,32 @@ def fixture():
 
 
 class MovingAnkleTests(unittest.TestCase):
+    def test_roundoff_aliases_produce_distinct_runtime_keys(self):
+        from autospine_workbench.targets.character43.runtime_storage_reference import f32, require_distinct_times
+        doc,trajectory=fixture()
+        candidate,report=build(doc,'move',trajectory,[0,.21484375,.21484375000000003,1],20)
+        self.assertIsNotNone(candidate)
+        self.assertEqual(len(report['merged_time_aliases']),1)
+        self.assertEqual(report['required_knots'],3)
+        for row in candidate['animations']['move']['bones'].values():
+            for keys in row.values():
+                require_distinct_times([dict(time=f32(k['time'])) for k in keys])
+
+    def test_distinct_events_are_not_silently_merged(self):
+        from autospine_workbench.targets.character43.moving_ankle_candidate import timeline_union
+        with self.assertRaisesRegex(ValueError,'distinct_times_collide'):
+            timeline_union([0,1],[],[.5,.50000001])
+
+    def test_source_endpoint_is_retained_over_sampling_alias(self):
+        from autospine_workbench.targets.character43.moving_ankle_candidate import timeline_union
+        endpoint=.9882812500000001
+        source=[0,endpoint]; tracks=[0,.98828125]
+        knots,aliases=timeline_union(source,tracks,[.5])
+        self.assertEqual(knots,[0,.5,endpoint])
+        self.assertEqual(aliases[0]['retained_time'],endpoint)
+        self.assertEqual(source,[0,endpoint])
+        self.assertEqual(tracks,[0,.98828125])
+
     def test_moving_targets_preserved_without_mutating_source(self):
         doc, trajectory = fixture(); before = deepcopy((doc,trajectory))
         candidate, report = build(doc,'move',trajectory,[0,.5,1],20)

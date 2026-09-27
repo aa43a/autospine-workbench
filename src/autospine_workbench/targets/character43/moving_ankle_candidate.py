@@ -5,6 +5,21 @@ from .joint_support_solver import solve
 from ..spine43.continuous_pose import interpolate
 
 
+def timeline_union(source_times, track_times, extra_times):
+    """Coalesce roundoff aliases before solving, never discard distinct events."""
+    from .runtime_storage_reference import f32
+    stored={};aliases=[]
+    for time in [*source_times,*track_times,*extra_times]:
+        if not math.isfinite(time) or time<0:raise ValueError('moving_ankle_timeline_limit')
+        key=f32(time)
+        if key in stored and time!=stored[key]:
+            if abs(time-stored[key])>max(1e-12,4*math.ulp(time)):
+                raise ValueError('moving_ankle_distinct_times_collide_in_runtime')
+            aliases.append(dict(time=time,retained_time=stored[key],runtime_time=key))
+        else:stored.setdefault(key,time)
+    return sorted(stored.values()),aliases
+
+
 def build(document, name, trajectory, times, reference_length):
     source_times = [r['time'] for r in trajectory]
     if (len(source_times) < 2 or source_times[0] != 0
@@ -16,8 +31,8 @@ def build(document, name, trajectory, times, reference_length):
     tracks = document['animations'][name]['bones']
     if any('curve' in k for row in tracks.values() for keys in row.values() for k in keys):
         raise ValueError('moving_ankle_linear_required')
-    knots = sorted(set(times) | set(source_times) |
-                   {k.get('time', 0) for row in tracks.values() for keys in row.values() for k in keys})
+    knots,aliases = timeline_union(source_times,sorted({k.get('time',0)
+        for row in tracks.values() for keys in row.values() for k in keys}),sorted(set(times)))
     if (len(knots) > 2048 or knots[0] != 0 or knots[-1] != source_times[-1]
             or any(not math.isfinite(t) for t in knots)):
         raise ValueError('moving_ankle_timeline_limit')
@@ -36,6 +51,7 @@ def build(document, name, trajectory, times, reference_length):
     rows = []
     report = dict(profile='moving-source-ankle-timeline-v1', selected=False, authority='none',
                   status='blocked', rows=rows, input_samples=len(times), required_knots=len(knots),
+                  merged_time_aliases=aliases,
                   scope='bounded_timeline_not_mesh_runtime_or_visual_acceptance')
     for t in knots:
         requested = [dict(upper='thigh_'+s, lower='calf_'+s, tip='foot_'+s,
