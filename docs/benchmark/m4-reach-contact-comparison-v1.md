@@ -17,7 +17,7 @@ profile and stationary correction disabled. Artifact:
 - At the contact samples, left source/target displacement both round to 0.866 px;
   right source/target displacement both round to 5.619 px.
 - Right stationary displacement remains above the threshold. Contact status is
-  `inferred_proxy_drift`; this candidate is not adopted or visually accepted.
+  `inferred_proxy_drift`; this is not a technical pass.
 - The parent source qualification already classified the right interval as
   nonstationary (3D drift/reference 0.01027769), unlike the left (0.00162343).
 
@@ -37,3 +37,17 @@ Deployment follow-up: all 174 motion jobs were terminal before the authorized
 HTTP 200 with the comparison heading and 0.000733 px tracking error. Browser
 connection still returned `nodeRepl.fetch request failed`; browser interaction
 has not been independently tested. No gate or stored acceptance changed.
+
+Subsequent user review: "阶段可接受，保留接触限制". Saved revision 1,
+`accepted_with_exceptions`, for the exact Reach artifact above and evidence
+`ba2c6422a74644c36b3642c80cbca218563461d019854c5bf9b4f0bb69420dbd`.
+The receipt applies to the current evidence; readiness remains `needs_changes`.
+This accepts the specific visual stage while retaining the contact limitation,
+not the fixed baseline, other motions, or floor/sole correctness.
+
+Inventory gap identified: strict `compare-targets` intentionally groups identical
+processing policies. This moving-ankle candidate has different contact and ankle
+policies from the fixed Reach baseline and is consequently outside that view
+comparison inventory. The support report must add a separate policy-variant
+inventory before claiming to include all workbench improvements; do not weaken
+the strict view-comparison identity or count this acceptance in the baseline.
