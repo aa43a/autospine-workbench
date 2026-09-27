@@ -72,3 +72,10 @@ the source and experimental skeleton: exact numeric-reference times, render
 identity, saved geometry, and official Runtime results. `--partial` audits only
 completed batch records during a live run and explicitly returns `complete:false`;
 it cannot declare full coverage until all 19 batches and the final summary agree.
+
+`tools/m4_regional_cloth_player.py` requires that complete audit before creating
+the diagnostic entry page. It checks the exported scene's candidate and skeleton
+identity, unions all batch viewports, and retains the unselected status and
+material failures beside the motion/time controls. Tests cover refusing incomplete
+captures and retaining the full viewport and failure label. Actual export remains
+dependent on the running capture completing; these tests are not browser evidence.
