@@ -18,14 +18,17 @@ export function createObliqueSelection(request, yaw, anchor, onBusy = () => {}) 
     if (!source || busy || !available || suspended) return;
     const current = ++generation, id = source.job_id;
     attempted=id;
-    busy = true; enable(); status.textContent = '正在比较整段动作的 13 个投影角度…';
+    busy = true; enable(); status.textContent = '正在检查 13 个视角下的肢体投影与躯干朝向…';
     try {
       const result = await request(`/api/motions/${id}/compare-oblique`);
       if (generation !== current) return;
       if (result.source_job_id !== id) throw new Error('动作来源已变化，请重新比较。');
       if (result.recommended_yaw_degrees === null) {
         selection = null;
-        status.textContent = '当前角度均未通过源投影检查；保留当前选择，请缩小动作范围或处理投影异常。';
+        const torsoFailed=(result.records||[]).filter(row=>row.torso_projection_passed===false).length;
+        status.textContent = '没有同时满足肢体投影与躯干朝向的合格角度；保留当前选择。'
+          + (torsoFailed ? `其中 ${torsoFailed} 个视角存在躯干投影异常，单纯侧转可能造成身体翻面或过度压缩。` : '')
+          + '请处理异常，或另建较小动作范围的候选。';
       } else {
         if(!Number.isFinite(result.recommended_yaw_degrees)||![...yaw.options].some(o=>o.value===String(result.recommended_yaw_degrees)))throw Error('建议角度不在支持范围内。');
         yaw.value = String(result.recommended_yaw_degrees);
