@@ -25,4 +25,20 @@ class KneeTests(unittest.TestCase):
         a=measure((0,1,1),(1,1,-1));b=measure((0,10,10),(2,2,-2))
         self.assertEqual(a['bend_plane_normal'],b['bend_plane_normal'])
 
+    def test_consistent_screen_side_can_still_hide_most_bending(self):
+        row=compare((.2,1,2),(-.2,1,-2),(.2,1,0),(-.2,1,0))
+        self.assertEqual(row['status'],'projected_side_consistent')
+        source=row['source']
+        self.assertGreater(source['hidden_bend_degrees'],90)
+        self.assertAlmostEqual(source['projected_bend_degrees'],row['target']['bend_degrees'])
+        self.assertAlmostEqual(row['target']['hidden_bend_degrees'],0)
+
+    def test_camera_axis_and_screen_plane_are_not_confused(self):
+        hidden=measure((0,0,1),(0,1,0))
+        self.assertIsNone(hidden['projected_bend_degrees'])
+        self.assertIsNone(hidden['hidden_bend_degrees'])
+        visible=measure((1,1,0),(-1,1,0))
+        self.assertAlmostEqual(visible['projected_bend_degrees'],90)
+        self.assertAlmostEqual(visible['hidden_bend_degrees'],0)
+
 if __name__=='__main__':unittest.main()

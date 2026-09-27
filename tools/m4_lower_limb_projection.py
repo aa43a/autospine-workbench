@@ -8,7 +8,7 @@ from autospine_workbench.automation.storage_io import canonical_bytes
 from autospine_workbench.motion_bundle_reader import VerifiedMotionBundleReader
 from autospine_workbench.targets.character43.affine_pose import matrices
 from autospine_workbench.targets.character43.lower_limb_projection import angle, measure
-from autospine_workbench.targets.character43.oblique_source import extract
+from autospine_workbench.targets.character43.knee_source_samples import read
 
 
 def run(state, job, artifact, output):
@@ -19,27 +19,20 @@ def run(state, job, artifact, output):
     identity=request['motion_identity']
     bundle=VerifiedMotionBundleReader(state).load(identity['clip_sha256'],identity['bundle_sha256'])
     files=AnimatedStore(state).read(artifact)
-    if json.loads(files['motion-ir.json'])!=bundle.motion:
-        raise ValueError('source_candidate_motion_mismatch')
+    name,vectors,times,source_times=read(files,bundle,request)
     document=json.loads(files['skeleton.json'])
-    vectors,_,_=extract(bundle)
-    tracks=[t for t in bundle.motion['tracks'] if t['property']=='rotation']
-    ticks=[k['tick'] for k in tracks[0]['keys']]
-    if any([k['tick'] for k in t['keys']]!=ticks for t in tracks):
-        raise ValueError('source_times_mismatch')
     frames=[]
-    for i,tick in enumerate(ticks):
-        time=tick/bundle.motion['ticks_per_second'];pose=matrices(document,'external-motion',time)
+    for i,time in enumerate(times):
+        pose=matrices(document,name,time)
         sides={}
         for side,suffix in [('left','l'),('right','r')]:
             u,l=(vectors[f'humanoid.leg.{part}.{side}'] for part in ('upper','lower'))
-            if len(u)!=len(ticks) or len(l)!=len(ticks):raise ValueError('source_count_mismatch')
             points=[pose[f'{name}_{suffix}'][4:] for name in ('thigh','calf','foot')]
             origin=points[0];points=[[x-origin[0],origin[1]-y] for x,y in points]
             target_angle=angle(points[1],[b-a for a,b in zip(points[1],points[2])])
             sides[side]=dict(source=measure(u[i],l[i]),side_projection=measure(u[i],l[i],yaw=90),
                              target_points=points,target_bend_deg=target_angle)
-        frames.append(dict(time=time,sides=sides))
+        frames.append(dict(time=time,source_time=source_times[i],sides=sides))
     summary={}
     for side in ('left','right'):
         worst=max(frames,key=lambda f:f['sides'][side]['source']['hidden_bend_deg'] or 0)

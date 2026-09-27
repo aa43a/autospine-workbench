@@ -1,5 +1,6 @@
 """Separate 3D knee bending from observable 2D bend-side disagreement."""
 import math
+from .lower_limb_projection import angle
 
 
 def measure(upper, lower):
@@ -20,7 +21,10 @@ def measure(upper, lower):
     plane=[x/cross_length for x in cross] if cross_length>1e-8 else None
     # Positive/negative are screen-coordinate signs, never anatomical front/back.
     signed=((chord[0]*upper[1]-chord[1]*upper[0])/screen/(a+b)) if screen>1e-8*(a+b) else None
-    return dict(status='measured',bend_degrees=math.degrees(math.acos(max(-1,min(1,sum(x*y for x,y in zip(upper,lower))/(a*b))))),
+    bend=math.degrees(math.acos(max(-1,min(1,sum(x*y for x,y in zip(upper,lower))/(a*b)))))
+    projected=angle(upper[:2],lower[:2])
+    return dict(status='measured',bend_degrees=bend,projected_bend_degrees=projected,
+        hidden_bend_degrees=None if projected is None else max(0.,bend-projected),
         knee_depth_offset_ratio=residual[2]/(a+b),screen_bend_ratio=signed,
         bend_plane_normal=plane,screen_plane_alignment=abs(plane[2]) if plane else None,
         projection_visibility=[math.hypot(v[0],v[1])/length for v,length in ((upper,a),(lower,b))])
