@@ -272,7 +272,15 @@ function focusLinkedJob() {
   const card = document.getElementById(fragment);
   if (card) { card.scrollIntoView({block: 'start'}); focusedFragment = fragment; }
 }
-window.addEventListener('hashchange', () => { focusedFragment = null; focusLinkedJob(); });
+window.addEventListener('hashchange', () => {
+  focusedFragment = null;
+  const id = location.hash.slice(1);
+  if (!/^motion-[a-f0-9]{32}$/.test(id)) return;
+  // Repair drafts can create jobs while the idle list is no longer polling.
+  // Keep existing cards (and unsaved edits); refresh only a missing target.
+  if (document.getElementById(id)) focusLinkedJob();
+  else void refresh();
+});
 
 async function refresh() {
   clearTimeout(timer);
