@@ -3,6 +3,9 @@ from copy import deepcopy
 from hashlib import sha256
 from pathlib import Path
 from tempfile import TemporaryDirectory
+import json
+from io import BytesIO
+from zipfile import ZipFile
 from autospine_workbench.automation.storage_io import canonical_bytes
 from autospine_workbench.automation.motion_depth_supplement import validate, publish, summaries
 
@@ -57,3 +60,27 @@ class SupplementTests(unittest.TestCase):
         result=validate(r,'b'*64,self.value,self.files)
         self.assertEqual(result['missing'],[dict(time=0,pair=['arm','body'])])
         self.assertEqual(result['lost_measurements'],1)
+
+    def test_export_has_verified_supplement_and_unchanged_candidate(self):
+        from autospine_workbench.automation.motion_related_export import package
+        from autospine_workbench.automation.motion_related_evidence import bundle_digest
+        from autospine_workbench.resolved_project import canonical_sha256
+        candidate=bundle_digest(self.files)
+        self.value.update(candidate_sha256=candidate,evidence=dict(candidate_sha256=candidate),
+                          baseline_sha256='base',request_sha256='request',runtime={})
+        self.report['artifact_sha256']=candidate
+        readiness=dict(artifact_sha256=candidate,baseline_sha256='base',request_sha256='request',
+            registration_sha256='b'*64,related_evidence_sha256=canonical_sha256(self.value['evidence']))
+        stage=dict(artifact_sha256=candidate,registration_sha256='b'*64,readiness=readiness,
+            evidence_sha256=canonical_sha256(readiness),authority='none',production_authorized=False,revision=1)
+        raw=package(self.value,self.files,stage,[self.report])
+        with ZipFile(BytesIO(raw)) as archive:
+            manifest=json.loads(archive.read('related-export.json'))
+            name=next(n for n in manifest['evidence_files'] if n.startswith('depth-supplements/'))
+            self.assertEqual(json.loads(archive.read(name)),self.report)
+            self.assertEqual(sha256(archive.read(name)).hexdigest(),manifest['evidence_files'][name])
+            self.assertEqual(archive.read('skeleton.json'),self.files['skeleton.json'])
+            self.assertEqual(json.loads(archive.read('related-stage-review.json')),stage)
+        with self.assertRaises(ValueError):package(self.value,self.files,None,[self.report])
+        bad=deepcopy(self.report);bad['registration_sha256']='c'*64
+        with self.assertRaises(ValueError):package(self.value,self.files,stage,[bad])

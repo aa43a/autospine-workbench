@@ -72,9 +72,9 @@ def load(manager,job,digest):
     return value,files
 
 
-def download(value,files,stage_review=None):
+def download(value,files,stage_review=None,supplements=()):
     from .motion_related_export import package
-    return package(value,files,stage_review)
+    return package(value,files,stage_review,supplements)
 
 
 def depth_diagnostics(manager,job,digest,value,files):
@@ -107,7 +107,11 @@ def read(manager,job,parts):
         if tail==['report.json']:return canonical_bytes(value['evidence']),'application/json'
         from .motion_related_review import from_verified
         state=from_verified(manager,job,parts[1],value,files)
-        return download(value,files,state),'application/zip'
+        checks=depth_diagnostics(manager,job,parts[1],value,files)
+        store=AnimatedStore(manager.state_root)
+        supplements=[json.loads(store.read_file(r['digest'],'supplement.json'))
+                     for r in (checks or {}).get('supplements',[])]
+        return download(value,files,state,supplements),'application/zip'
     from .character_player import read as player
     _registration(manager,job,parts[1])
     # HTML, CSS and application scripts contain no candidate bytes. Defer the
