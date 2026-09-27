@@ -147,3 +147,33 @@ Next separate the inherited relative length scaling from absolute source
 projection and character leg proportions, then retry bounded contact solving.
 
 Exact-source artifacts: `E:/proj/unusual/localset/tmp/m4-walking-absolute-legs-v1/`.
+
+## Full calibrated ankle solve and geometry
+
+Absolute projection-length replacement alone increases RMS error to 46.823739 px
+(with pelvis pivot), versus 38.486901 px with retained relative scales. The
+experiment explicitly records the replaced four scale channels; it is not a
+silent change to the source or accepted output.
+
+After calibration, the existing bounded moving-ankle solver completes all 243
+knots for both policies. Independent FK at 485 times gives:
+
+| Policy | Worst ankle error | Additional root shift | Geometry |
+| --- | ---: | ---: | --- |
+| Absolute axes + pelvis pivot | 0.265164 px | 55.827664 px | layer-003 fails |
+| Absolute projection + pelvis pivot | 0.193169 px | 62.549321 px | layer-003 fails |
+
+Both track the source ankle displacement below 5.493701 px. This is not evidence
+of stationary shoe-floor contact. Geometry uses the original rig setup vertices,
+not the changed frame-zero pose. The failed layer has no inversions but minimum
+triangle area ratios 0.334539 / 0.347444, below 0.5. The first failures occur at
+0.70833325 / 0.67500025 seconds; 79 / 88 sampled frames fail, respectively.
+These candidates are **not adopted** and have not undergone new official Runtime
+capture. All other sampled slot records pass this geometry check.
+
+Reproducible command: `tools/m4_walking_refit_contact_probe.py` takes the
+calibration output directory and a new output directory. It checks input
+skeleton identities and preserves failed geometry reports. Artifacts are in
+`E:/proj/unusual/localset/tmp/m4-walking-calibrated-contact-v1/`.
+Next locate the failed triangles and classify projection compression versus
+material strain before choosing a local repair or representation limitation.

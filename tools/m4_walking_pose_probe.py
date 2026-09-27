@@ -1,5 +1,6 @@
 """Exact-source absolute leg pose comparison; independent experimental assets."""
 import argparse
+from copy import deepcopy
 import json
 import math
 from pathlib import Path
@@ -31,10 +32,19 @@ def run(artifact, output):
     fitted, fit_report = fit(document, name, legs, times)
     dense = sorted(set(times) | {(a+b)/2 for a, b in zip(times, times[1:])})
     pivot, pivot_report = build(fitted, name, dense)
+    # An explicit alternative length policy, never a silent removal from input.
+    projection_input = deepcopy(document)
+    replaced_scales = {}
+    for bone in ('thigh_l', 'calf_l', 'thigh_r', 'calf_r'):
+        channels = projection_input['animations'][name]['bones'].get(bone, {})
+        replaced_scales[bone] = channels.pop('scale', [])
+    projected, projection_report = fit(projection_input, name, legs, times, project_lengths=True)
+    projected_pivot, projected_pivot_report = build(projected, name, dense)
     reference = moving['final_check']['limit_px']/.01
     sample_times = sorted(set(dense) | {(a+b)/2 for a, b in zip(dense, dense[1:])})
     records = {}
     variants = {'original': document, 'absolute_legs': fitted, 'absolute_legs_pelvis_pivot': pivot}
+    variants.update(absolute_projection=projected, absolute_projection_pelvis_pivot=projected_pivot)
     for label, doc in variants.items():
         initial = matrices(doc, name, 0)
         trajectory = targets(observation, [initial['foot_'+s][4:6] for s in ('l','r')], reference)
@@ -48,6 +58,8 @@ def run(artifact, output):
             rms=math.sqrt(sum(r['error_px']**2 for r in errors)/len(errors)))
     report = dict(source_artifact=artifact, source_observation=observation,
                   variants=records, fit=fit_report, pivot=pivot_report, selected=False, authority='none',
+                  projection=projection_report, projected_pivot=projected_pivot_report,
+                  replaced_relative_scale_channels=replaced_scales,
                   scope='own_initial_ankle_displacement_comparison_not_setup_visual_or_runtime_acceptance')
     output.mkdir()
     for label, doc in variants.items():
