@@ -9,11 +9,11 @@ def timeline_union(source_times, track_times, extra_times):
     """Coalesce roundoff aliases before solving, never discard distinct events."""
     from .runtime_storage_reference import f32
     stored={};aliases=[]
-    for time in [*source_times,*track_times,*extra_times]:
+    for index,time in enumerate([*source_times,*track_times,*extra_times]):
         if not math.isfinite(time) or time<0:raise ValueError('moving_ankle_timeline_limit')
         key=f32(time)
         if key in stored and time!=stored[key]:
-            if abs(time-stored[key])>max(1e-12,4*math.ulp(time)):
+            if index<len(source_times) or abs(time-stored[key])>max(1e-12,4*math.ulp(time)):
                 raise ValueError('moving_ankle_distinct_times_collide_in_runtime')
             aliases.append(dict(time=time,retained_time=stored[key],runtime_time=key))
         else:stored.setdefault(key,time)

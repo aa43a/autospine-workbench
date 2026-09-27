@@ -46,6 +46,11 @@ class MovingAnkleTests(unittest.TestCase):
         self.assertEqual(source,[0,endpoint])
         self.assertEqual(tracks,[0,.98828125])
 
+    def test_distinct_source_observations_are_never_merged(self):
+        from autospine_workbench.targets.character43.moving_ankle_candidate import timeline_union
+        with self.assertRaisesRegex(ValueError,'distinct_times_collide'):
+            timeline_union([0,.5,math.nextafter(.5,1),1],[],[])
+
     def test_moving_targets_preserved_without_mutating_source(self):
         doc, trajectory = fixture(); before = deepcopy((doc,trajectory))
         candidate, report = build(doc,'move',trajectory,[0,.5,1],20)
