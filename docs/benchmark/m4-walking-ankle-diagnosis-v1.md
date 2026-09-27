@@ -223,3 +223,25 @@ Capture and player: `E:/proj/unusual/localset/tmp/m4-walking-repair-runtime-v1/`
 Local review URL (when its separate server runs):
 `http://127.0.0.1:14631/player.html`.
 The workbench baseline and all previous human decisions remain unchanged.
+
+## Stage acceptance and workbench registration
+
+On 2026-09-27 the user accepted this exact walking candidate as a stage result,
+explicitly retaining occlusion exceptions. The original acceptance is saved in
+`stage-review-v1.json`, bound to the capture, Runtime and fresh depth report
+byte hashes. It grants neither technical override nor production approval.
+
+`tools/m4_register_walking_repair.py` registers the candidate under parent job
+`motion-d1d3d27afaf348d2b95bd3433157b181`, after checking the source MotionIR,
+character evidence, acceptance hashes and exact depth skeleton identity.
+Registration:
+`7303a7884a3580523e2cac8888deeac7b02e6e77f5d82cc3395e8e43c5ab8f9e`.
+The workbench stage review is revision 1, `accepted_with_exceptions`, and applies
+to the current evidence. The fixed walking baseline is not replaced.
+
+Workbench player:
+http://127.0.0.1:8918/api/motions/motion-d1d3d27afaf348d2b95bd3433157b181/view/related-candidates/7303a7884a3580523e2cac8888deeac7b02e6e77f5d82cc3395e8e43c5ab8f9e/player.html
+
+The 38 depth conflict records remain attached to the registration receipt.
+Related-candidate readiness currently does not interpret this supplemental depth
+report and displays that gate as unmeasured; do not interpret it as cleared.
