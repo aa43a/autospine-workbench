@@ -39,7 +39,7 @@ function reviewHTML(row){
     (imported?`<p>导入记录范围：${escape(imported.scope)}；保留异常：${escape((imported.retained_exceptions||[]).join('、'))}</p>`:'')+
     `<ul>${review.readiness.stages.map(s=>`<li>${escape(s.stage)}：${escape(statuses[s.status]||'未知')} — ${escape(s.explanation)}</li>`).join('')}</ul>`+
     `<details><summary>身份与验收范围</summary><p>证据 ${escape(review.evidence_sha256)}；验收版本 ${review.revision}；匹配 ${escape(review.evidence_match)}</p>`+
-    `<p>核对时间 ${escape(row.checked_at)}</p></details>`;
+    `<p>核对时间 ${escape(row.checked_at)}${row.review_checked_at?`；同证据验收复查 ${escape(row.review_checked_at)}`:''}</p></details>`;
 }
 function link(base,path,label){return `<a href="${escape(base+path)}" target="_blank" rel="noopener">${escape(label)}</a>`;}
 function scopeHTML(snapshot,row){

@@ -29,3 +29,17 @@ The pre-change full export completed at
 inventories. Baseline stage acceptances remain 3; sampled passes remain projection
 6, geometry 11, contact 9, occlusion 0, Runtime 24. This historical report does not
 include the new policy family and must not be presented as its verification.
+
+The new full export completed in `tmp/m4-support-snapshot-20260927-v5` under the
+workspace parent. All 24 baseline, related and alternative-view groups verified;
+28 alternative-view and 90 policy-variant entries were retained. Nineteen policy
+groups have all evidence available; five retain ten historical failed builds.
+These are explicit failed tasks, not a truncated inventory or transport failure.
+
+`tools/m4_refresh_support_reviews.mjs` then wrote a separate `-v5-reviewed`
+directory, refreshing only Alice/Huiye raised-arm reviews whose candidate,
+evidence and readiness remained identical. Original source/inventory read times
+and the parent report SHA-256 are retained. Three alternative views now have
+stage acceptance, plus one policy variant (Hongmeiling Reach); baseline accepts
+remain three. All technical exceptions remain. The report has 451 check entries,
+not 451 faulty motions. This export is not new Runtime capture or M4 completion.
