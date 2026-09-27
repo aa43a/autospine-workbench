@@ -115,3 +115,27 @@ The live player's exact skeleton is shared by all batches; its final diagnostic
 entry is generated only after the stored-file audit and viewport union. The
 existing 254 material-coverage failure times remain unresolved. Numerical and
 geometry success do not grant visual acceptance or default adoption.
+
+## Exact-time framebuffer classification
+
+`tools/m4_cloth_capture_coverage.py` joins failed material samples only to an
+existing screenshot at exactly the same time, verifying capture and image hashes.
+The current captures cover 10 of the 254 failed times exactly; 244 remain without
+an exact screenshot. All ten matched screen pixels have alpha 255. They are not
+transparent framebuffer cracks. This does not prove garment coverage: an opaque
+leg can be visible through a garment coverage failure.
+
+At 0.7705731391906738 seconds, batch-006 frame 256, pixel (479, 853), the captured
+RGBA is (193, 185, 207, 255). Independent pixel provenance finds left-leg
+`layer-001-l` alpha 255 and skirt `layer-005` alpha 2.4779739845672157 at the pixel
+center. The original subpixel material query reports cloth alpha zero; these are
+different sampling locations, not contradictory measurements. This supports an
+exposed-leg/garment-occlusion classification for this point, not a transparency
+repair. Whole-view observation shows a pale leg area protruding beside the skirt.
+
+The exact-time report and unmodified-image magnifier are in
+`tmp/m4-moving-workbench/alice-squat-regional-framebuffer-v2/index.html`.
+The independent pixel trace remains in
+`tmp/m4-moving-workbench/alice-squat-regional-framebuffer-v1/pixel-trace.json`.
+No neighboring-time screenshot is substituted, no missing frame is counted as
+passed, and no raster edits or acceptance changes are made.
