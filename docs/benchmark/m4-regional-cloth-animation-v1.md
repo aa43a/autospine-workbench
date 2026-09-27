@@ -66,3 +66,9 @@ match the previously saved scalar results exactly; mismatches stop the report.
 The source candidate, skeleton and evidence hashes are retained. The continuous
 single-point guard is now measured; complete limb occlusion, official Runtime
 and visual review remain pending. No acceptance or default selection changed.
+
+`tools/m4_regional_cloth_runtime_audit.py` checks the actual stored files against
+the source and experimental skeleton: exact numeric-reference times, render
+identity, saved geometry, and official Runtime results. `--partial` audits only
+completed batch records during a live run and explicitly returns `complete:false`;
+it cannot declare full coverage until all 19 batches and the final summary agree.
