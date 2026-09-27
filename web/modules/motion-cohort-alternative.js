@@ -4,10 +4,11 @@ import {appendCandidateDownload} from './motion-candidate-download.js';
 import {appendReadiness} from './motion-readiness.js';
 import {createCohortSync} from './motion-cohort-sync.js';
 import {verifyCohortSource,sameSourceRange} from './motion-cohort-source.js';
+import {appendRelatedCandidates} from './motion-related-candidates.js';
 
 export function createAlternativePanel(container,request,{onSeek}={}){
-  let revision=0,sync=null,lastTime=0,lastEnd=null;
-  function clear(){revision++;sync?.clear();sync=null;container.replaceChildren();container.hidden=true;}
+  let revision=0,sync=null,related=null,lastTime=0,lastEnd=null;
+  function clear(){revision++;sync?.clear();sync=null;related?.clear();related=null;container.replaceChildren();container.hidden=true;}
   async function open(row,sourceHash,primaryRange){
     clear();const version=revision;container.hidden=false;
     const title=document.createElement('h2');title.textContent='替代视角候选';
@@ -37,6 +38,8 @@ export function createAlternativePanel(container,request,{onSeek}={}){
       const seek=time=>{if(version!==revision)return;if(onSeek)onSeek(range.start+time);else frame.src=base+`/view/player.html?time=${encodeURIComponent(time)}`;};
       appendCandidateDownload(container,job);
       appendStageReview(container,job);
+      related=appendRelatedCandidates(container,job,{synchronize:Boolean(onSeek),sourceRange:range});
+      if(lastEnd!==null)related.seek(lastTime,lastEnd);
       appendReadiness(container,job,null,{onSeek:time=>{
         seek(time);
       },onInspect:onSeek?(slot,triangle,animation)=>{
@@ -47,5 +50,5 @@ export function createAlternativePanel(container,request,{onSeek}={}){
       }});
     }catch(error){if(version===revision)status.textContent='无法打开：'+error.message;}
   }
-  return {clear,open,seek(time,end){lastTime=time;lastEnd=end;sync?.seek(time,end);}};
+  return {clear,open,seek(time,end){lastTime=time;lastEnd=end;sync?.seek(time,end);related?.seek(time,end);}};
 }

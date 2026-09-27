@@ -56,7 +56,8 @@ function familyHTML(family,kind,job,base,anchor){
       `<p>候选 ${escape(r.artifact_sha256)}${r.registration_sha256?'；关联 '+escape(r.registration_sha256):''}</p>`+
       (kind==='policy'?`<p>相对固定候选的策略变化：${escape(JSON.stringify(r.policy_changes))}。独立检查，不参与视角推荐。</p>`:'')+
       (r.status==='verified'?link(base,path,'打开该候选'):'')+reviewHTML(r)+
-      (r.source_link?`<p>源区间 ${r.source_link.source_start}–${r.source_link.source_end} 秒；来源 ${escape(r.source_link.source_job_id)}</p>`:'')+'</details>';
+      (r.source_link?`<p>源区间 ${r.source_link.source_start}–${r.source_link.source_end} 秒；来源 ${escape(r.source_link.source_job_id)}</p>`:'')+
+      (kind!=='related'&&r.related?`<h4>此候选的独立改进</h4>${familyHTML(r.related,'related',r.job_id,base,`${anchor}-${i}-related`)}`:'')+'</details>';
   }).join(''):'<p>当前查询未发现独立候选。</p>');
 }
 export function supportReportHTML(snapshot,origin){

@@ -40,8 +40,16 @@ export function supportExceptions(snapshot) {
       if (family?.status !== 'verified' || !family.complete) result.push({...context, family: label,
         artifact_sha256: null, registration_sha256: null, anchor: `cell-${i}`, kind: 'evidence', stage: '候选清单',
         reason: family?.reason || '清单或候选证据不完整；不推断未返回候选通过'});
-      if (family?.status === 'verified') (family.rows || []).forEach((candidate, j) =>
-        inspect(candidate, {...context, family: label, job_id: candidate.job_id || row.job_id}, `cell-${i}-${key}-${j}`));
+      if (family?.status === 'verified') (family.rows || []).forEach((candidate, j) => {
+        const parent={...context,family:label,job_id:candidate.job_id||row.job_id},anchor=`cell-${i}-${key}-${j}`;
+        inspect(candidate,parent,anchor);
+        if(key==='related'||!candidate.related)return;
+        const nested=candidate.related;
+        if(nested.status!=='verified'||!nested.complete)result.push({...parent,anchor,artifact_sha256:candidate.artifact_sha256,
+          registration_sha256:null,kind:'evidence',stage:'改进候选清单',reason:nested.reason||'改进候选尚未完整核对'});
+        if(nested.status==='verified')(nested.rows||[]).forEach((child,k)=>
+          inspect(child,{...parent,family:label+'的独立改进'},`${anchor}-related-${k}`));
+      });
     }
   });
   for (const row of snapshot.missing) result.push({...row, family: '固定候选', artifact_sha256: null,

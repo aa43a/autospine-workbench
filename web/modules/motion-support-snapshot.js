@@ -40,7 +40,7 @@ function verifyReview(review,job,artifact,registration){
 
 export async function collectSupportSnapshot(pack,get,{signal,onProgress=()=>{},now=()=>new Date().toISOString()}={}){
   validatePack(pack);
-  const started=now(),sources=new Map();
+  const started=now(),sources=new Map(),relatedCache=new Map();
   const check=()=>{if(signal?.aborted)throw Error('核对已停止');};
   const read=async path=>{check();const result=await get(path,signal);check();return result;};
   const source=job=>{if(!sources.has(job))sources.set(job,read('/api/motions/'+job));return sources.get(job);};
@@ -55,7 +55,12 @@ export async function collectSupportSnapshot(pack,get,{signal,onProgress=()=>{},
     if(evidenceHash&&review.evidence_sha256!==evidenceHash)throw Error('比较后证据已变化，请重新核对');
     return {source_link:link,review,checked_at:now()};
   }
-  async function related(job,artifact){
+  function related(job,artifact){
+    const key=job+':'+artifact;
+    if(!relatedCache.has(key))relatedCache.set(key,readRelated(job,artifact));
+    return relatedCache.get(key);
+  }
+  async function readRelated(job,artifact){
     const report=await read(`/api/motions/${job}/view/related-candidates.json`);
     const index=relatedSummary(report,artifact),rows=[];
     for(let i=0;i<index.length;i++){
@@ -86,10 +91,12 @@ export async function collectSupportSnapshot(pack,get,{signal,onProgress=()=>{},
         if(!sha.test(r.evidence_sha256))throw Error('替代检查证据缺失');
         return candidate(r.job_id,r.artifact_sha256,r.source_job_id,g.source_sha256,r.evidence_sha256);
       });
+      if(verified.status==='verified')verified.related=await safe(()=>related(r.job_id,r.artifact_sha256));
       rows.push({job_id:r.job_id,source_job_id:r.source_job_id,artifact_sha256:r.artifact_sha256??null,view:r.view,projection:r.projection,...(policy?{policy_changes:r.policy_changes}:{}),...verified});
     }
     return {comparison_sha256:report.comparison_sha256,identity:report.identity,inventory_complete:report.complete,
-      matching_candidates:report.matching_candidates,rows,complete:report.complete&&rows.every(r=>r.status==='verified')};
+      matching_candidates:report.matching_candidates,rows,complete:report.complete&&rows.every(r=>r.status==='verified'
+        &&r.related?.status==='verified'&&r.related.complete)};
   }
   const tasks=pack.groups.flatMap(g=>g.targets.map(t=>({g,t}))),rows=new Array(tasks.length);let cursor=0,finished=0;
   async function worker(){while(cursor<tasks.length){

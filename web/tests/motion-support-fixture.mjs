@@ -25,15 +25,16 @@ export function fixture(){
     const a=hash('7');registry.set(`/api/motions/${alternativeId}`,target(alternativeId,a));
     registry.set(`/api/motions/${alternativeId}/view/source-link.json`,link(alternativeId,a));
     registry.set(`/api/motions/${alternativeId}/stage-review`,review(alternativeId,a));
+    registry.set(`/api/motions/${alternativeId}/view/related-candidates.json`,{authority:'none',baseline_sha256:a,rows:[]});
     const report=registry.get(`/api/motions/${targetId}/compare-targets`);report.matching_candidates++;
     report.rows.push({job_id:alternativeId,source_job_id:sourceId,status:'succeeded',artifact_sha256:a,evidence_sha256:evidence,view:'side'});
     return alternativeId;
   }
-  function addRelated(){
-    const registration=hash('8'),a=hash('9'),state=review(targetId,a);
+  function addRelated(parentId=targetId){
+    const registration=hash('8'),a=hash('9'),state=review(parentId,a);
     state.registration_sha256=registration;state.current.registration_sha256=registration;state.readiness.registration_sha256=registration;
-    registry.set(`/api/motions/${targetId}/related-candidates/${registration}/stage-review`,state);
-    registry.get(`/api/motions/${targetId}/view/related-candidates.json`).rows.push({registration_sha256:registration,candidate_sha256:a,
+    registry.set(`/api/motions/${parentId}/related-candidates/${registration}/stage-review`,state);
+    registry.get(`/api/motions/${parentId}/view/related-candidates.json`).rows.push({registration_sha256:registration,candidate_sha256:a,
       authority:'none',selected:false,production_authorized:false,stage_review:structuredClone(state),sampled_frames:129});
     return registration;
   }

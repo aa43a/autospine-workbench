@@ -5,6 +5,21 @@ import {supportTotals,supportReportHTML} from '../modules/motion-support-report.
 import {fixture,hash,job} from './motion-support-fixture.mjs';
 const collect=f=>collectSupportSnapshot(f.pack,f.get,{now:()=> '2026-09-26T00:00:00Z'});
 
+test('repairs registered under an alternative are included without changing baseline totals',async()=>{
+  const f=fixture(),parent=f.addAlternative(),registration=f.addRelated(parent);
+  const s=await collect(f),nested=s.rows[0].alternatives.rows[0].related;
+  assert.equal(nested.status,'verified');assert.equal(nested.complete,true);
+  assert.equal(nested.rows[0].registration_sha256,registration);
+  assert.equal(supportTotals(s).accepted,1);
+  const html=supportReportHTML(s,'http://127.0.0.1:8918');
+  assert.ok(html.includes(`/api/motions/${parent}/view/related-candidates/${registration}/player.html`));
+  assert.ok(s.exception_index.some(e=>e.job_id===parent&&e.registration_sha256===registration&&e.stage==='遮挡'));
+  f.registry.delete(`/api/motions/${parent}/view/related-candidates.json`);
+  const missing=await collect(f);
+  assert.equal(missing.rows[0].alternatives.complete,false);
+  assert.equal(supportTotals(missing).accepted,1);
+});
+
 test('full inventory retains failures, missing items, human scope and independent candidates',async()=>{
   const f=fixture();f.addAlternative();f.addRelated();const before=JSON.stringify([...f.registry]);
   const s=await collect(f),t=supportTotals(s);
