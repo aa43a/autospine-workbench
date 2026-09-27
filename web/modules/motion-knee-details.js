@@ -1,4 +1,5 @@
 import {kneeLabels,kneeRows,strongestKnee} from './motion-knee-model.js';
+import {appendViewTradeoffs} from './motion-view-tradeoffs.js';
 
 function node(tag,text){const el=document.createElement(tag);el.textContent=text;return el;}
 
@@ -47,6 +48,7 @@ export function appendKneeDetails(container,base,artifact,onSeek){
       next.onclick=()=>{const index=Number(slider.value);for(let step=1;step<=selected.length;step++){const i=(index+step)%selected.length;if(selected[i].issues.length){slider.value=String(i);render();onSeek(current().time);break;}}};
       panel.append(side,slider,output,issues,seek,next,node('p','先在同一时刻比较源正侧视和角色。30° 仅用于定位明显投影损失，不是验收门槛。骨轴正确但轮廓仍失败时，检查姿态替换或补图需求；这些提示不会自动认定缺素材、裁剪动作或放宽网格门槛。'));
       reset();
+      appendViewTradeoffs(panel,base,artifact,onSeek);
     }catch(error){panel.textContent='无法检查：'+error.message;}finally{button.disabled=false;}
   };
 }

@@ -206,9 +206,12 @@ def review_file(manager, job, parts):
         if parts[0] not in files:
             raise PipelineRunError('pipeline_artifact_not_found')
         return files[parts[0]], 'application/json'
-    if parts == ['bend-status.json']:
+    if parts in (['bend-status.json'], ['view-tradeoffs.json']):
         from ..motion_bundle_reader import VerifiedMotionBundleReader
-        from ..targets.character43.knee_projection import build
+        if parts == ['bend-status.json']:
+            from ..targets.character43.knee_projection import build
+        else:
+            from ..targets.character43.source_view_tradeoffs import build
         request=read_document(manager.folder(job)/'request.json');identity=request['motion_identity']
         bundle=VerifiedMotionBundleReader(manager.state_root).load(identity['clip_sha256'],identity['bundle_sha256'])
         return json.dumps(build(files,result['artifact_sha256'],bundle,request)).encode(), 'application/json'

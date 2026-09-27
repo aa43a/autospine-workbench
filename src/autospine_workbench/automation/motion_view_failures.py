@@ -1,5 +1,7 @@
 """Explicit public reason codes for authored-view workers; never arbitrary logs."""
 VIEW_FAILURES = frozenset({
+    'view_tradeoff_source_times_mismatch', 'view_scan_limbs_missing', 'view_scan_samples_mismatch',
+    'view_scan_yaw_invalid', 'view_scan_vector_invalid', 'view_scan_zero_length',
     'view_pose_animation_missing', 'view_pose_request_invalid', 'view_pose_document_changed',
     'view_pose_texture_identity_invalid', 'view_pose_texture_size_invalid', 'view_pose_poses_invalid',
     'view_pose_pose_invalid', 'view_pose_animated_uv_requires_separate_variant',
