@@ -177,3 +177,26 @@ skeleton identities and preserves failed geometry reports. Artifacts are in
 `E:/proj/unusual/localset/tmp/m4-walking-calibrated-contact-v1/`.
 Next locate the failed triangles and classify projection compression versus
 material strain before choosing a local repair or representation limitation.
+
+## Knee localization and full-timeline local repair
+
+The compression probe finds four failed triangles in layer-003, around the
+right knee. Worst triangle 124 at 3.7 seconds has area ratio 0.334539. Its
+thigh_r/calf_r bone determinants relative to setup are 1.006024 / 1.045966,
+while triangle minimum stretch is 0.434484. This is mixed-weight shape evidence,
+not a reason to normalize away the compression gate.
+
+The existing parent/setup-preserving bounded area repair restores the worst
+pose with 3.915624 px maximum displacement and zero fixed-vertex movement.
+`tools/m4_walking_knee_repair_probe.py` applies this only at failed samples,
+retains zero correction at healthy samples, and converts world displacements
+to per-influence Spine deform offsets. Bone motion, attachments and weights
+remain unchanged.
+
+Full timeline: 79 repaired knots; independent denser 969-frame CPU geometry
+check passes all slots against original rig setup. Maximum displacement remains
+3.915624 px. This is not official Runtime or visual acceptance; contact/depth and
+Runtime evidence must be regenerated for the new skeleton before adoption.
+
+Artifacts: `E:/proj/unusual/localset/tmp/m4-walking-knee-repair-v1/`.
+Localization: `E:/proj/unusual/localset/tmp/m4-walking-triangle-probe-v1.json`.
