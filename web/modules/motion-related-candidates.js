@@ -34,7 +34,8 @@ export function appendRelatedCandidates(parent, job, {synchronize=false,sourceRa
         note.textContent=`目标 Spine ${row.target_version||'未记录'}；实际 Runtime ${row.runtime_version}，${row.sampled_frames} 个已有采样。与原任务共享动作和角色来源，策略及结果不同；不替换原任务。关联与 Runtime 通过不代表接触、遮挡或视觉通过，原任务结论不沿用。`;
         const visual=document.createElement('p');
         const checks=document.createElement('p');checks.textContent=contactCheckText(row.additional_checks);
-        visual.textContent=row.visual ? `登记时保留的历史阶段记录：${row.visual.user_response||row.visual.decision}。范围：${row.visual.scope}。保留异常：${(row.visual.retained_exceptions||[]).join('、')||'见记录'}。当前结论请读取下方阶段验收。` : '可播放当前候选后，在下方记录阶段验收。';
+        const decisions={accepted:'阶段可接受',accepted_with_exceptions:'阶段可接受，保留异常',rejected:'需要调整',revoked:'已撤销'};
+        visual.textContent=row.visual ? `登记时保留的历史阶段记录：${row.visual.user_response||decisions[row.visual.decision]||row.visual.decision}。范围：${row.visual.scope||'仅此候选，详细范围见原记录'}。保留异常：${(row.visual.retained_exceptions||[]).join('、')||'见记录'}。${typeof row.visual.notes==='string'?row.visual.notes:''} 当前结论请读取下方阶段验收。` : '可播放当前候选后，在下方记录阶段验收。';
         const path=base+'related-candidates/'+row.registration_sha256+'/';
         const play=document.createElement('button');play.textContent='加载改进候选时间轴';
         const syncStatus=document.createElement('p');syncStatus.setAttribute('role','status');

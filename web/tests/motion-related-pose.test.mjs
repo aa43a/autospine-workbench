@@ -44,10 +44,12 @@ test('depth conflict opens the registered candidate at its exact time',async()=>
   const artifact='a'.repeat(64),registration='b'.repeat(64),baseline='c'.repeat(64),calls=[];
   globalThis.fetch=async(url,options)=>{calls.push({url,options});return {ok:true,json:async()=>({
     baseline_sha256:baseline,rows:[{registration_sha256:registration,candidate_sha256:artifact,
-      runtime_version:'4.3.13',sampled_frames:969,depth_diagnostics:{failures:[
+      runtime_version:'4.3.13',sampled_frames:969,visual:{decision:'accepted_with_exceptions',notes:'保留遮挡异常'},depth_diagnostics:{failures:[
         {time:.033333,pair:['arm','torso'],reason_code:'visible_depth_straddle'}]}}]})};};
   const root=new Node('main');appendRelatedCandidates(root,{job_id:'motion-test',result:{artifact_sha256:baseline}});
   await find(root,'查看已关联改进候选').onclick();
+  assert.ok(walk(root).some(n=>n.textContent.includes('仅此候选，详细范围见原记录')));
+  assert.ok(walk(root).every(n=>!n.textContent.includes('undefined')));
   find(root,'查看此时刻').onclick();
   assert.equal(walk(root).find(n=>n.tag==='iframe').src,
     `/api/motions/motion-test/view/related-candidates/${registration}/player.html?time=0.033333`);
