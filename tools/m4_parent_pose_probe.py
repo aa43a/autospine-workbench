@@ -1,0 +1,39 @@
+"""Compare parent-relative floors at explicitly selected diagnostic poses."""
+import argparse
+import json
+from hashlib import sha256
+from pathlib import Path
+from autospine_workbench.automation.animated_store import AnimatedStore
+from autospine_workbench.automation.storage_io import canonical_bytes
+from autospine_workbench.targets.character43.limb_transverse_repair import build
+from autospine_workbench.targets.character43.parent_pose_area_repair import compare
+
+
+def run(state_root, artifact, slot, times, output, regressions=None):
+    source=None
+    if regressions is not None:
+        raw=regressions.read_bytes();report=json.loads(raw)
+        if report['parent_artifact_sha256']!=artifact or report['slot']!=slot:
+            raise ValueError('parent_probe_regression_source_mismatch')
+        times=sorted({r['time'] for r in report['failures'] if not r['fixed'] and r['regressed']})
+        source=dict(sha256=sha256(raw).hexdigest(),selection='all_movable_regression_worst_times')
+    if not times:raise ValueError('parent_probe_times_required')
+    parent=json.loads(AnimatedStore(state_root).read(artifact)['skeleton.json'])
+    candidate,_=build(parent,'external-motion',[slot])
+    rows=[]
+    for time in times:
+        row=compare(parent,candidate,'external-motion',slot,time);rows.append(row)
+        print(json.dumps(dict(time=time,results={key:{k:len(v) if isinstance(v,list) else v for k,v in row[key].items()
+            if k not in ('setup_ratios','solver')} for key in ('parent','transverse','projected_only','parent_floor')})),flush=True)
+    with output.open('xb') as handle:
+        handle.write(canonical_bytes(dict(parent_artifact_sha256=artifact,rows=rows,regression_source=source,
+            authority='none',selected=False,scope='selected_counterexample_poses_only')))
+
+
+if __name__=='__main__':
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('state_root',type=Path);parser.add_argument('artifact');parser.add_argument('slot')
+    parser.add_argument('output',type=Path)
+    group=parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('--times',nargs='+',type=float);group.add_argument('--regressions',type=Path)
+    args=parser.parse_args();run(args.state_root,args.artifact,args.slot,args.times,args.output,args.regressions)
