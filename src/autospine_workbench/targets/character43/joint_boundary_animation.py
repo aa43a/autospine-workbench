@@ -11,7 +11,19 @@ from ..spine43.continuous_pose import area
 
 
 def build(parent, candidate, name, slot, required_times, *, progress=None, solver_margins=None, subdivisions=4):
+    return _run(parent,candidate,name,slot,required_times,progress=progress,
+                solver_margins=solver_margins,subdivisions=subdivisions)
+
+
+def inspect(parent, compensation, result, name, slot, required_times, *, progress=None, subdivisions=8):
+    """Check an existing curve against its compensation origin without solving it."""
+    return _run(parent,compensation,name,slot,required_times,progress=progress,
+                subdivisions=subdivisions,existing_result=result)[1]
+
+
+def _run(parent, candidate, name, slot, required_times, *, progress=None, solver_margins=None, subdivisions=4,existing_result=None):
     verify_source(parent,candidate,name,slot)
+    if existing_result is not None:verify_source(parent,existing_result,name,slot)
     def selected(doc):
         return dict(doc,skins=[dict(doc['skins'][0],attachments={slot:doc['skins'][0]['attachments'][slot]})])
     parent_view=selected(parent);candidate_view=selected(candidate)
@@ -43,7 +55,7 @@ def build(parent, candidate, name, slot, required_times, *, progress=None, solve
         refs=reference(areas,triangles,influences,bones,bind,transforms)
         return transforms,previous,origin,dict(base,areas=refs)
     result=deepcopy(candidate);keys=[];solvers=[]
-    for index,time in enumerate(times):
+    for index,time in enumerate(times if existing_result is None else []):
         transforms,previous,origin,context=pose(time)
         corrected,evidence=solve(context,origin,previous,areas,protect_setup=True,local_refinement=True,
                                  solver_margins=solver_margins.get(time) if solver_margins else None)
@@ -52,7 +64,18 @@ def build(parent, candidate, name, slot, required_times, *, progress=None, solve
         keys.append(dict(time=time,vertices=[a+b for a,b in zip(prior,delta,strict=True)]))
         solvers.append(dict(time=time,converged=evidence['converged']))
         if progress and index%32==0:progress(dict(stage='bake',index=index,total=len(times)))
-    result['animations'][name]['attachments']['default'][slot][slot]['deform']=keys
+    if existing_result is None:
+        result['animations'][name]['attachments']['default'][slot][slot]['deform']=keys
+    else:
+        result=deepcopy(existing_result)
+        keys=result['animations'][name]['attachments']['default'][slot][slot]['deform']
+        result_times=[k['time'] for k in keys]
+        if (not result_times or len(result_times)>2049 or result_times[0]!=times[0] or
+                result_times[-1]!=times[-1] or any(not math.isfinite(t) for t in result_times) or
+                any(a>=b for a,b in zip(result_times,result_times[1:]))):
+            raise ValueError('boundary_animation_audit_keys')
+        required_times=sorted(set(required_times)|set(times))
+        times=result_times
     verify_source(parent,result,name,slot)
     result_view=selected(result)
     checked=sorted(set(required_times)|set(times)|{a+(b-a)*i/subdivisions for a,b in zip(times,times[1:]) for i in range(1,subdivisions)})
@@ -78,7 +101,8 @@ def build(parent, candidate, name, slot, required_times, *, progress=None, solve
         if last is not None:max_delta_step=max(max_delta_step,max(math.dist(a,b) for a,b in zip(last,delta)))
         last=delta
         if progress and index%128==0:progress(dict(stage='interpolation',index=index,total=len(checked)))
-    return result,dict(profile='joint-boundary-animation-v1-experiment',domain=domain,
+    return result,dict(profile='joint-boundary-animation-v1-experiment' if existing_result is None else 'joint-boundary-existing-curve-audit-v1',domain=domain,
+        solver_status='completed' if existing_result is None else 'not_run',
         key_count=len(keys),subdivisions=subdivisions,solver_failures=[r for r in solvers if not r['converged']],
         times=checked,failures=failures,maximum_shift_px=peak_shift,maximum_fixed_shift_px=peak_fixed,
         maximum_edge_ratio=peak_edge,minimum_setup_area_ratio=min_setup,

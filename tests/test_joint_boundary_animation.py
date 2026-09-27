@@ -3,10 +3,35 @@ import unittest
 from unittest.mock import patch
 from test_limb_transverse_repair import fixture
 from autospine_workbench.targets.character43.limb_transverse_repair import build as compensate
-from autospine_workbench.targets.character43.joint_boundary_animation import build
+from autospine_workbench.targets.character43.joint_boundary_animation import build,inspect
 
 
 class BoundaryAnimationTests(unittest.TestCase):
+    def test_existing_curve_audit_does_not_solve_or_change_input(self):
+        parent=fixture()
+        parent['skins'][0]['attachments']['leg']['leg']['vertices']=[v for x,y in ((0,0),(0,10),(10,0))
+            for v in (2,1,x,y,.5,2,x,y,.5)]
+        candidate,_=compensate(parent,'motion',['leg'])
+        result,first=build(parent,candidate,'motion','leg',[0,.371,1])
+        before=deepcopy(result)
+        with patch('autospine_workbench.targets.character43.joint_boundary_animation.solve',side_effect=AssertionError('must not solve')):
+            report=inspect(parent,candidate,result,'motion','leg',first['times'],subdivisions=4)
+        self.assertEqual(result,before);self.assertEqual(report['failures'],first['failures'])
+        self.assertEqual(report['solver_status'],'not_run')
+        self.assertTrue(set(first['times'])<=set(report['times']))
+        self.assertEqual(report['local_constraints_passed'],first['local_constraints_passed'])
+
+    def test_existing_curve_cannot_change_scope_or_shorten_clip(self):
+        parent=fixture()
+        parent['skins'][0]['attachments']['leg']['leg']['vertices']=[v for x,y in ((0,0),(0,10),(10,0))
+            for v in (2,1,x,y,.5,2,x,y,.5)]
+        candidate,_=compensate(parent,'motion',['leg'])
+        changed=deepcopy(candidate);changed['bones'][0]['x']=17
+        with self.assertRaisesRegex(ValueError,'unrelated'):inspect(parent,candidate,changed,'motion','leg',[0,1])
+        changed=deepcopy(candidate)
+        changed['animations']['motion']['attachments']['default']['leg']['leg']['deform'].pop()
+        with self.assertRaisesRegex(ValueError,'audit_keys'):inspect(parent,candidate,changed,'motion','leg',[0,1])
+
     def test_preserves_unselected_bind_motion_and_all_requested_times(self):
         parent=fixture()
         parent['skins'][0]['attachments']['leg']['leg']['vertices']=[v for x,y in ((0,0),(0,10),(10,0))
