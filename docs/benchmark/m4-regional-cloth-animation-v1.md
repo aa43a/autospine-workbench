@@ -31,9 +31,13 @@ samples, not independent statistical observations or a whole-character error rat
 
 Baked skeleton SHA-256:
 `fd645410983d1447c5adc577049128494d7c62024986e5cc7b828dc5325bf915`.
-The full source/reference/key/midpoint union requires 6,975 Runtime times, above
-the single-capture limit. It must be batched without dropping source samples if
-this diagnostic proceeds to official Runtime; no such capture is claimed here.
+The selected source batch/reference/key/midpoint union contains 6,975 times.
+This is not the complete parent validation grid: the parent report contains
+14,928 times. Their complete union is 17,452 times. The Runtime runner retains
+all of them using 19 batches of at most 1,024 times, including each batch's
+time-zero reference. No source sample is discarded and no capture limit is
+increased. See `tools/m4_regional_cloth_runtime.py`; a running job is not proof
+of capture success.
 
 The next repair target is continuous material coverage across this interval.
 Increasing vertex displacement or hiding failed samples is not justified by
