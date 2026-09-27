@@ -70,8 +70,9 @@ export async function collectSupportSnapshot(pack,get,{signal,onProgress=()=>{},
     }
     return {rows,complete:rows.every(r=>r.status==='verified')};
   }
-  async function alternatives(g,t){
-    const report=await read(`/api/motions/${t.job_id}/compare-targets`);
+  async function alternatives(g,t,policy=false){
+    const report=await read(`/api/motions/${t.job_id}/${policy?'policy-variants':'compare-targets'}`);
+    if(policy&&(report.profile!=='motion-policy-variant-inventory-v1'||report.recommended_job_id!==null))throw Error('策略候选清单无效');
     if(report?.source_job_id!==t.job_id||report.authority!=='none'||!sha.test(report.comparison_sha256)
         ||report.identity?.source_sha256!==g.source_sha256||!Array.isArray(report.rows)||report.rows.length>24
         ||typeof report.complete!=='boolean'||!Number.isInteger(report.matching_candidates)
@@ -85,7 +86,7 @@ export async function collectSupportSnapshot(pack,get,{signal,onProgress=()=>{},
         if(!sha.test(r.evidence_sha256))throw Error('替代检查证据缺失');
         return candidate(r.job_id,r.artifact_sha256,r.source_job_id,g.source_sha256,r.evidence_sha256);
       });
-      rows.push({job_id:r.job_id,source_job_id:r.source_job_id,artifact_sha256:r.artifact_sha256??null,view:r.view,projection:r.projection,...verified});
+      rows.push({job_id:r.job_id,source_job_id:r.source_job_id,artifact_sha256:r.artifact_sha256??null,view:r.view,projection:r.projection,...(policy?{policy_changes:r.policy_changes}:{}),...verified});
     }
     return {comparison_sha256:report.comparison_sha256,identity:report.identity,inventory_complete:report.complete,
       matching_candidates:report.matching_candidates,rows,complete:report.complete&&rows.every(r=>r.status==='verified')};
@@ -103,6 +104,8 @@ export async function collectSupportSnapshot(pack,get,{signal,onProgress=()=>{},
       row.related=await safe(()=>related(t.job_id,t.artifact_sha256));
       progress('核对已有替代视角');
       row.alternatives=await safe(()=>alternatives(g,t));
+      progress('核对不同策略候选');
+      row.policy_variants=await safe(()=>alternatives(g,t,true));
     }
     rows[i]=row;finished++;progress('此项读取完成');
   }}

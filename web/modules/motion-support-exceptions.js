@@ -35,7 +35,7 @@ export function supportExceptions(snapshot) {
     const context = {motion: row.motion, character: row.character, job_id: row.job_id, family: '固定候选'};
     inspect(row, context, `cell-${i}`);
     if (row.status !== 'verified') return;
-    for (const [key, label] of [['related', '独立改进'], ['alternatives', '替代视角']]) {
+    for (const [key, label] of [['related', '独立改进'], ['alternatives', '替代视角'], ['policy_variants', '不同策略候选']]) {
       const family = row[key];
       if (family?.status !== 'verified' || !family.complete) result.push({...context, family: label,
         artifact_sha256: null, registration_sha256: null, anchor: `cell-${i}`, kind: 'evidence', stage: '候选清单',

@@ -24,7 +24,8 @@ export function supportTotals(snapshot){
       rows.filter(r=>{const s=r.status==='verified'?r.review.readiness.stages.find(s=>s.stage===name)?.status:null;
         return (s in statuses?s:'unmeasured')===status;}).length+(status==='unmeasured'?missing:0)]))])),
     related_checked:rows.filter(r=>r.related?.status==='verified'&&r.related.complete).length,
-    alternatives_checked:rows.filter(r=>r.alternatives?.status==='verified'&&r.alternatives.complete).length};
+    alternatives_checked:rows.filter(r=>r.alternatives?.status==='verified'&&r.alternatives.complete).length,
+    policies_checked:rows.filter(r=>r.policy_variants?.status==='verified'&&r.policy_variants.complete).length};
 }
 function reviewHTML(row){
   const review=row.review;if(row.status!=='verified'||!review)return `<p>未核实：${escape(row.reason||'未读取')}</p>`;
@@ -45,9 +46,10 @@ function familyHTML(family,kind,job,base,anchor){
   const partial=!family.complete?'<p>清单或证据不完整；未返回、未核实的候选不计通过。</p>':'';
   return partial+(family.rows.length?family.rows.map((r,i)=>{
     const path=kind==='related'?`/api/motions/${job}/view/related-candidates/${r.registration_sha256}/player.html`:`/api/motions/${r.job_id}/view/player.html`;
-    const title=kind==='related'?'独立改进候选':`替代视角 ${r.view||''} ${r.projection?JSON.stringify(r.projection):''}`;
+    const title=kind==='related'?'独立改进候选':kind==='policy'?'不同处理策略候选':`替代视角 ${r.view||''} ${r.projection?JSON.stringify(r.projection):''}`;
     return `<details id="${escape(anchor)}-${i}"><summary>${escape(title)} · ${escape(r.artifact_sha256?.slice(0,12)||r.job_id)}</summary>`+
       `<p>候选 ${escape(r.artifact_sha256)}${r.registration_sha256?'；关联 '+escape(r.registration_sha256):''}</p>`+
+      (kind==='policy'?`<p>相对固定候选的策略变化：${escape(JSON.stringify(r.policy_changes))}。独立检查，不参与视角推荐。</p>`:'')+
       (r.status==='verified'?link(base,path,'打开该候选'):'')+reviewHTML(r)+
       (r.source_link?`<p>源区间 ${r.source_link.source_start}–${r.source_link.source_end} 秒；来源 ${escape(r.source_link.source_job_id)}</p>`:'')+'</details>';
   }).join(''):'<p>当前查询未发现独立候选。</p>');
@@ -67,7 +69,8 @@ export function supportReportHTML(snapshot,origin){
     (r.source_link?`<p>源区间 ${r.source_link.source_start}–${r.source_link.source_end} 秒 · ${r.source_link.source_fps} FPS</p>`:'')+
     (r.status==='verified'?link(base,`/api/motions/${r.job_id}/view/player.html`,'播放固定候选')+' · '+link(base,`/api/motions/${r.job_id}/download`,'下载固定候选'):'')+
     reviewHTML(r)+`<h3>独立改进结果</h3>${familyHTML(r.related,'related',r.job_id,base,`cell-${i}-related`)}`+
-    `<h3>独立替代视角</h3>${familyHTML(r.alternatives,'alternative',r.job_id,base,`cell-${i}-alternatives`)}</section>`).join('');
+    `<h3>独立替代视角</h3>${familyHTML(r.alternatives,'alternative',r.job_id,base,`cell-${i}-alternatives`)}`+
+    `<h3>不同处理策略</h3>${familyHTML(r.policy_variants,'policy',r.job_id,base,`cell-${i}-policy_variants`)}</section>`).join('');
   const table=snapshot.rows.map((r,i)=>`<tr><td><a href="#cell-${i}">${escape(r.motion)} / ${escape(r.character)}</a></td>`+
     `<td>${escape(deliveryLabels[deliveryState(state(r))])}</td><td>${r.status==='verified'?escape(r.review.current_applies?decisions[r.review.current?.decision]||'尚无有效阶段结论':'尚无有效阶段结论'):'未核实'}</td>`+
     gates.map(name=>{const status=r.status==='verified'?r.review.readiness.stages.find(s=>s.stage===name)?.status:null;return `<td>${statuses[status]||'未验证'}</td>`;}).join('')+'</tr>').join('')+
@@ -77,7 +80,7 @@ export function supportReportHTML(snapshot,origin){
 <h1>M4 支持范围核对</h1><p>固定清单 ${escape(snapshot.plan_sha256)}</p><p>读取时间：${escape(snapshot.started_at)} 至 ${escape(snapshot.finished_at)}</p>
 <p>这是已有证据的逐项读取快照，不是同时刻事务，也未重新捕获动画。${snapshot.coverage_declared?'包含清单声明的全部组合。':'清单未声明完整覆盖，仅统计列出项。'}
 仅适用于记录的来源、角色版本、视角和片段。阶段接受不会清除技术失败；独立候选不替换固定候选，不计入其通过率。未登记到工作台的本地实验不在本报告清单内。本报告不授予发布权限。详细失败采样与原始验收记录见配套 JSON。</p>
-<p>身份已核对 ${totals.verified}/${totals.expected}；有效阶段接受 ${totals.accepted}/${totals.expected}；改进记录完整核对 ${totals.related_checked}/${snapshot.rows.length}；替代记录完整核对 ${totals.alternatives_checked}/${snapshot.rows.length}。</p>
+<p>身份已核对 ${totals.verified}/${totals.expected}；有效阶段接受 ${totals.accepted}/${totals.expected}；改进记录完整核对 ${totals.related_checked}/${snapshot.rows.length}；替代记录完整核对 ${totals.alternatives_checked}/${snapshot.rows.length}；不同策略清单完整核对 ${totals.policies_checked}/${snapshot.rows.length}。</p>
 <p>${Object.entries(totals.delivery).map(([k,v])=>`${deliveryLabels[k]} ${v}/${totals.expected}`).join('；')}</p>
 ${queue}<div class="scroll"><table><thead><tr><th>动作 / 角色</th><th>交付状态</th><th>阶段验收</th>${gates.map(n=>`<th>${n}</th>`).join('')}</tr></thead><tbody>${table}</tbody></table></div>${cards}</html>`;
 }
