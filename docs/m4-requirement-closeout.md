@@ -72,6 +72,10 @@
 
 ## 剩余收尾
 
+最新[完整 Runtime 与播放器](benchmark/m4-boundary-runtime-complete-v1.md)：
+16 批 16,319 独立时刻数值验证通过，实时播放器已导出。两腿 setup 压缩、
+Float32 面积缺口以及接触/深度/视觉检查继续保留，尚不满足整角色采用。
+
 最新[存储精度检查](benchmark/m4-boundary-storage-audit-v1.md)确认一致时间表示
 下固定点漂移为零，但实际 Float32 模型在面积保护下仍有数值缺口。双精度
 局部通过与 Runtime 存储精度通过分开记录，候选继续未采用。

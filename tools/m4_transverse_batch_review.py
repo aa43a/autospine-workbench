@@ -24,11 +24,18 @@ def run(state_root, probe, root):
             f'<td>{"通过" if record["geometry_passed"] else "存在异常"}</td><td>{links}</td></tr>')
     normalization = manifest['normalization']
     runtime = '全部声明时间点已通过数值一致性检查' if coverage['runtime_status']=='passed' else '尚未执行'
+    player=''
+    if (root/'player-report.json').is_file():
+        playback=json.loads((root/'player-report.json').read_bytes())
+        if playback.get('skeleton_sha256')!=manifest['skeleton_sha256']:
+            raise ValueError('transverse_review_player_identity')
+        player='<p><a href="batch-000/runtime/player.html">打开实时播放窗口 · 播放 / 暂停 / 拖动时间轴</a></p>'
     html = f'''<!doctype html><html lang="zh"><meta charset="utf-8"><title>腿部修正分批验证</title>
 <style>body{{background:#101922;color:#e7edf4;font:16px system-ui;margin:32px;line-height:1.6}}
 a{{color:#81d5ff}}table{{border-collapse:collapse;width:100%}}td,th{{padding:12px;border:1px solid #435365;text-align:left}}
 .notice{{padding:20px;background:#392b20;border-left:4px solid #efba74}}small{{overflow-wrap:anywhere}}</style>
 <h1>腿部修正 · 完整动作分批对照</h1>
+{player}
 <p class="notice">实验结果未采用。Runtime 数值一致不代表变形自然；接触、遮挡和视觉验收仍待完成。
 整角色几何：{'通过当前采样检查' if coverage['geometry_passed'] else '存在异常，保留失败结果'}。</p>
 <p>已核实 {coverage['frames']} 个独立时间点，共 {coverage['batches']} 批。

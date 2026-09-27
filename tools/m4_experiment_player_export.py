@@ -7,12 +7,12 @@ from autospine_workbench.automation.animated_store import AnimatedStore
 from autospine_workbench.automation.sleeve_capture_environment import discover
 
 
-def export(folder):
-    report=json.loads((folder/'report.json').read_bytes())
+def export(folder, *, candidate_bundle_sha256=None):
+    digest=candidate_bundle_sha256 or json.loads((folder/'report.json').read_bytes())['candidate_bundle_sha256']
     runtime=json.loads((folder/'runtime/report.json').read_bytes())
-    if runtime['bundle_sha256']!=report['candidate_bundle_sha256'] or runtime['passed'] is not True:
+    if runtime['bundle_sha256']!=digest or runtime['passed'] is not True:
         raise ValueError('experiment_player_capture_mismatch')
-    files=AnimatedStore(folder/'isolated-store').read(report['candidate_bundle_sha256'])
+    files=AnimatedStore(folder/'isolated-store').read(digest)
     env=discover(Path.cwd().parent)
     if not env:raise ValueError('experiment_player_runtime_missing')
     package=Path(env[1])/'node_modules/@esotericsoftware/spine-webgl'
@@ -25,7 +25,7 @@ def export(folder):
     for target,source in [('client.js','character-player.js'),('style.css','character-player.css'),('inspection.js','character-player-inspection.js')]:
         (assets/target).write_bytes((web/source).read_bytes())
     (assets/'runtime.js').write_bytes(raw)
-    scene=dict(artifact_sha256=report['candidate_bundle_sha256'],info=runtime['info'],
+    scene=dict(artifact_sha256=digest,info=runtime['info'],
         skeleton=json.loads(files['skeleton.json']),atlas=files['skeleton.atlas'].decode(),
         textures={k:'data:image/png;base64,'+b64encode(v).decode() for k,v in files.items() if k.endswith('.png')})
     (assets/'scene.json').write_text(json.dumps(scene),encoding='utf-8')
