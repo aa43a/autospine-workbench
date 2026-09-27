@@ -26,7 +26,7 @@ def verify_source(parent, candidate, name, slot):
     if slot not in parent['skins'][0]['attachments']:raise ValueError('parent_pose_slot_missing')
 
 
-def solve(context, origin, parent_points, setup_areas, *, protect_setup=False, local_refinement=False):
+def solve(context, origin, parent_points, setup_areas, *, protect_setup=False, local_refinement=False, solver_margins=None):
     """Keep the parent compression floor without changing fixed vertices or budgets."""
     trial = deepcopy(context)
     trial['minimum_ratios'] = floors(parent_points, trial['row']['triangles'], trial['areas'], setup_areas)
@@ -35,6 +35,7 @@ def solve(context, origin, parent_points, setup_areas, *, protect_setup=False, l
         from .parent_setup_preservation import floors as joint_floors
         trial['minimum_ratios'], protected = joint_floors(parent_points, trial['row']['triangles'], trial['areas'], setup_areas)
     trial['area_floor_contract'] = CONTRACT
+    if solver_margins is not None:trial['solver_margins']=solver_margins
     from .area_budget_feasibility import inspect as budget_check
     feasibility = budget_check(trial, origin, trial['minimum_ratios'])
     from .fixed_boundary_area import inspect as boundary_check

@@ -10,19 +10,29 @@ from autospine_workbench.targets.character43.joint_boundary_animation import bui
 from m4_transverse_timeline_screen import validate_times
 
 
-def run(state,artifact,slot,source,output):
+def run(state,artifact,slot,source,output,margin_source=None,subdivisions=4):
     raw=(source/'report.json').read_bytes();declaration=json.loads(raw)
     times=json.loads((source/'validation-times.json').read_bytes())
     validate_times(declaration,times,artifact,slot)
     output.mkdir(parents=True,exist_ok=False)
     parent=json.loads(AnimatedStore(state).read(artifact)['skeleton.json'])
     candidate,compensation=compensate(parent,'external-motion',[slot],correction_frame='transverse',anchor_terminal=True)
+    margins=None;margin_evidence=None
+    if margin_source is not None:
+        from autospine_workbench.targets.character43.joint_boundary_margin import measure
+        previous_raw=(margin_source/'report.json').read_bytes();previous_report=json.loads(previous_raw)
+        if previous_report['parent_artifact_sha256']!=artifact:raise ValueError('boundary_margin_parent_identity')
+        times=sorted(set(times)|set(previous_report['times']))
+        margins,margin_evidence=measure(parent,json.loads((margin_source/'skeleton.json').read_bytes()),previous_report,'external-motion',slot)
+        margin_evidence['source_report_sha256']=sha256(previous_raw).hexdigest()
+        (output/'margin-evidence.json').write_bytes(canonical_bytes(margin_evidence))
     def progress(value):
         (output/'progress.json').write_bytes(canonical_bytes(value));print(json.dumps(value),flush=True)
-    result,report=build(parent,candidate,'external-motion',slot,times,progress=progress)
+    result,report=build(parent,candidate,'external-motion',slot,times,progress=progress,
+                        solver_margins=margins,subdivisions=subdivisions)
     skeleton=canonical_bytes(result)
     report.update(parent_artifact_sha256=artifact,slot=slot,source_sha256=sha256(raw).hexdigest(),
-                  skeleton_sha256=sha256(skeleton).hexdigest(),compensation=compensation)
+                  skeleton_sha256=sha256(skeleton).hexdigest(),compensation=compensation,margin_evidence=margin_evidence)
     (output/'skeleton.json').write_bytes(skeleton)
     (output/'report.json').write_bytes(canonical_bytes(report))
     progress(dict(stage='complete',local_constraints_passed=report['local_constraints_passed'],
@@ -33,4 +43,5 @@ if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('state',type=Path);p.add_argument('artifact');p.add_argument('slot')
     p.add_argument('source',type=Path);p.add_argument('output',type=Path)
-    a=p.parse_args();run(a.state,a.artifact,a.slot,a.source,a.output)
+    p.add_argument('--margin-source',type=Path);p.add_argument('--subdivisions',type=int,default=4)
+    a=p.parse_args();run(a.state,a.artifact,a.slot,a.source,a.output,a.margin_source,a.subdivisions)

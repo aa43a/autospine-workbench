@@ -10,10 +10,13 @@ from .projected_area_reference import reference
 from ..spine43.continuous_pose import area
 
 
-def build(parent, candidate, name, slot, required_times, *, progress=None):
+def build(parent, candidate, name, slot, required_times, *, progress=None, solver_margins=None, subdivisions=4):
     verify_source(parent,candidate,name,slot)
     original=candidate['animations'][name]['attachments']['default'][slot][slot]['deform']
     times=[k['time'] for k in original]
+    if type(subdivisions) is not int or subdivisions not in (4,8):raise ValueError('boundary_animation_subdivisions')
+    if solver_margins is not None and any(t not in times for t in solver_margins):
+        raise ValueError('boundary_animation_margin_time')
     if len(times)>2049 or not times or any(a>=b for a,b in zip(times,times[1:])):
         raise ValueError('boundary_animation_key_inventory')
     if any(not math.isfinite(t) or not times[0]<=t<=times[-1] for t in required_times):
@@ -39,7 +42,8 @@ def build(parent, candidate, name, slot, required_times, *, progress=None):
     result=deepcopy(candidate);keys=[];solvers=[]
     for index,time in enumerate(times):
         transforms,previous,origin,context=pose(time)
-        corrected,evidence=solve(context,origin,previous,areas,protect_setup=True,local_refinement=True)
+        corrected,evidence=solve(context,origin,previous,areas,protect_setup=True,local_refinement=True,
+                                 solver_margins=solver_margins.get(time) if solver_margins else None)
         delta=local_delta(parent,influences,transforms,origin,corrected)
         prior=value(original,time,len(delta))
         keys.append(dict(time=time,vertices=[a+b for a,b in zip(prior,delta,strict=True)]))
@@ -47,7 +51,7 @@ def build(parent, candidate, name, slot, required_times, *, progress=None):
         if progress and index%32==0:progress(dict(stage='bake',index=index,total=len(times)))
     result['animations'][name]['attachments']['default'][slot][slot]['deform']=keys
     verify_source(parent,result,name,slot)
-    checked=sorted(set(required_times)|set(times)|{a+(b-a)*u for a,b in zip(times,times[1:]) for u in (.25,.5,.75)})
+    checked=sorted(set(required_times)|set(times)|{a+(b-a)*i/subdivisions for a,b in zip(times,times[1:]) for i in range(1,subdivisions)})
     failures=[];peak_shift=0.;peak_edge=0.;peak_fixed=0.;min_setup=math.inf;max_delta_step=0.;last=None
     for index,time in enumerate(checked):
         _,previous,origin,context=pose(time);points=sample(result,name,time)[0][slot]
@@ -71,7 +75,7 @@ def build(parent, candidate, name, slot, required_times, *, progress=None):
         last=delta
         if progress and index%128==0:progress(dict(stage='interpolation',index=index,total=len(checked)))
     return result,dict(profile='joint-boundary-animation-v1-experiment',domain=domain,
-        key_count=len(keys),solver_failures=[r for r in solvers if not r['converged']],
+        key_count=len(keys),subdivisions=subdivisions,solver_failures=[r for r in solvers if not r['converged']],
         times=checked,failures=failures,maximum_shift_px=peak_shift,maximum_fixed_shift_px=peak_fixed,
         maximum_edge_ratio=peak_edge,minimum_setup_area_ratio=min_setup,
         maximum_sampled_correction_step_px=max_delta_step,budget_px=base['budget'],
