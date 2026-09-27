@@ -77,6 +77,15 @@ def download(value,files,stage_review=None):
     return package(value,files,stage_review)
 
 
+def depth_diagnostics(manager,job,digest,value,files):
+    from .motion_related_depth import summary
+    from .motion_depth_supplement import summaries
+    result=summary(value,files)
+    if result is not None:
+        result['supplements']=summaries(manager.state_root,manager.folder(job),digest,value,files)
+    return result
+
+
 def read(manager,job,parts):
     if parts==['related-candidates.json']:
         from .motion_related_review import from_verified
@@ -87,16 +96,14 @@ def read(manager,job,parts):
             summary={k:state[k] for k in ('artifact_sha256','registration_sha256','revision',
                                          'current','current_applies','evidence_sha256')}
             rows.append(dict(registration_sha256=digest,stage_review=summary,**value['evidence']))
-            from .motion_related_depth import summary as depth_summary
-            rows[-1]['depth_diagnostics']=depth_summary(value,files)
+            rows[-1]['depth_diagnostics']=depth_diagnostics(manager,job,digest,value,files)
         return canonical_bytes(dict(rows=rows,baseline_sha256=baseline(manager,job),authority='none')),'application/json'
     if len(parts)<3 or parts[0]!='related-candidates':raise ValueError('motion_related_path_invalid')
     tail=parts[2:]
     if tail in (['report.json'],['candidate.zip'],['depth-diagnostics.json']):
         value,files=load(manager,job,parts[1])
         if tail==['depth-diagnostics.json']:
-            from .motion_related_depth import summary as depth_summary
-            return canonical_bytes(depth_summary(value,files)),'application/json'
+            return canonical_bytes(depth_diagnostics(manager,job,parts[1],value,files)),'application/json'
         if tail==['report.json']:return canonical_bytes(value['evidence']),'application/json'
         from .motion_related_review import from_verified
         state=from_verified(manager,job,parts[1],value,files)

@@ -7,6 +7,17 @@ class Node {
 }
 globalThis.document={createElement:tag=>new Node(tag)};
 const walk=n=>[n,...n.children.flatMap(walk)];
+
+test('supplements preserve original diagnostics and seek missing source samples',()=>{
+  const root=new Node('main'),seen=[];
+  appendDepthDiagnostics(root,{failures:[],supplements:[{recovered:96,unmeasured:14,
+    common_measured:134,lost_measurements:0,overlap_mismatches:0,
+    missing:[{time:2.3,pair:['arm','body']}]}]},t=>seen.push(t));
+  const text=walk(root).map(n=>n.textContent).join('\n');
+  assert.match(text,/恢复 96 个/);assert.match(text,/仍未测 14 个/);
+  assert.match(text,/不代表前后顺序或 Runtime 通过/);
+  walk(root).find(n=>n.tag==='button').onclick();assert.deepEqual(seen,[2.3]);
+});
 test('all conflicts remain locatable at exact candidate times without saving reviews',()=>{
   const root=new Node('main'),seen=[];
   const checks={failures:[0,.033333,4.033333].map(time=>({time,pair:['arm','torso'],reason_code:'visible_depth_straddle'}))};
