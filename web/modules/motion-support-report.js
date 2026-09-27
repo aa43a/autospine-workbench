@@ -1,5 +1,6 @@
 import {deliveryState,deliveryCounts,deliveryLabels} from './motion-cohort-delivery.js';
 import {supportExceptions} from './motion-support-exceptions.js';
+import {sourceScope} from './motion-source-scope.js';
 const gates=['投影','几何','接触','遮挡','Runtime'];
 const statuses={sampled_pass:'采样通过',needs_changes:'需处理',unmeasured:'未验证'};
 const decisions={accepted:'阶段接受',accepted_with_exceptions:'阶段接受，保留异常',rejected:'需调整',revoked:'已撤销',
@@ -41,6 +42,10 @@ function reviewHTML(row){
     `<p>核对时间 ${escape(row.checked_at)}</p></details>`;
 }
 function link(base,path,label){return `<a href="${escape(base+path)}" target="_blank" rel="noopener">${escape(label)}</a>`;}
+function scopeHTML(snapshot,row){
+  const s=sourceScope(snapshot.plan_sha256,row);
+  return s?`<p><strong>本次源动作内容：</strong>${escape(s.observed)} ${escape(s.limits)}<br>来自六时刻骨架观察，不是人工验收或完整动作类别证明。</p>`:'';
+}
 function familyHTML(family,kind,job,base,anchor){
   if(family?.status!=='verified')return `<p>未核实：${escape(family?.reason||'未读取')}</p>`;
   const partial=!family.complete?'<p>清单或证据不完整；未返回、未核实的候选不计通过。</p>':'';
@@ -64,6 +69,7 @@ export function supportReportHTML(snapshot,origin){
         items.map(r=>`<li>${r.anchor?`<a href="#${escape(r.anchor)}">定位</a> · `:''}${escape(r.motion)} / ${escape(r.character)} · ${escape(r.family)} · ${escape(r.artifact_sha256?.slice(0,12)||'未确定候选')} · <strong>${escape(r.stage)}</strong>：${escape(r.reason)}</li>`).join('')+'</ul></details>';
     }).join('')+'</section>';
   const cards=snapshot.rows.map((r,i)=>`<section id="cell-${i}"><h2>${escape(r.motion)} / ${escape(r.character)}</h2>`+
+    scopeHTML(snapshot,r)+
     `<p>固定候选 ${escape(r.artifact_sha256)}；任务 ${escape(r.job_id)}</p>`+
     `<p>来源 ${escape(r.source_job_id)}；源文件 ${escape(r.source_sha256)}</p>`+
     (r.source_link?`<p>源区间 ${r.source_link.source_start}–${r.source_link.source_end} 秒 · ${r.source_link.source_fps} FPS</p>`:'')+
