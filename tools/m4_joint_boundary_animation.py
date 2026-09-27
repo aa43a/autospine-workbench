@@ -10,12 +10,13 @@ from autospine_workbench.targets.character43.joint_boundary_animation import bui
 from m4_transverse_timeline_screen import validate_times
 
 
-def run(state,artifact,slot,source,output,margin_source=None,subdivisions=4,compensation_source=None):
+def run(state,artifact,slot,source,output,margin_source=None,subdivisions=4,compensation_source=None,refine_source=None):
     raw=(source/'report.json').read_bytes();declaration=json.loads(raw)
     times=json.loads((source/'validation-times.json').read_bytes())
     validate_times(declaration,times,artifact,slot)
     output.mkdir(parents=True,exist_ok=False)
     parent=json.loads(AnimatedStore(state).read(artifact)['skeleton.json'])
+    def key_times(doc):return [k['time'] for k in doc['animations']['external-motion']['attachments']['default'][slot][slot]['deform']]
     if compensation_source is None:
         candidate,compensation=compensate(parent,'external-motion',[slot],correction_frame='transverse',anchor_terminal=True)
     else:
@@ -25,6 +26,16 @@ def run(state,artifact,slot,source,output,margin_source=None,subdivisions=4,comp
         times=sorted(set(times)|set(compensation['times']))
         compensation=dict(profile=compensation['profile'],source_report_sha256=sha256(compensation_raw).hexdigest(),
                           skeleton_sha256=compensation['skeleton_sha256'],status=compensation['status'])
+    refinement=None
+    if refine_source is not None:
+        from autospine_workbench.targets.character43.boundary_curve_sources import refinement_times
+        refinement_raw=(refine_source/'report.json').read_bytes();previous_report=json.loads(refinement_raw)
+        required=refinement_times(parent,(refine_source/'skeleton.json').read_bytes(),previous_report,
+                                  artifact,slot,'external-motion',key_times(candidate))
+        candidate,refinement=compensate(parent,'external-motion',[slot],correction_frame='transverse',
+                                       anchor_terminal=True,required_times=required)
+        refinement['source_report_sha256']=sha256(refinement_raw).hexdigest()
+        times=sorted(set(times)|set(previous_report['times']))
     margins=None;margin_evidence=None
     if margin_source is not None:
         from autospine_workbench.targets.character43.joint_boundary_margin import measure
@@ -34,7 +45,6 @@ def run(state,artifact,slot,source,output,margin_source=None,subdivisions=4,comp
         previous=json.loads((margin_source/'skeleton.json').read_bytes())
         margins,margin_evidence=measure(parent,previous,previous_report,'external-motion',slot)
         from autospine_workbench.targets.character43.boundary_curve_sources import resample_margins
-        def key_times(doc):return [k['time'] for k in doc['animations']['external-motion']['attachments']['default'][slot][slot]['deform']]
         margins=resample_margins(margins,key_times(previous),key_times(candidate),len(candidate['skins'][0]['attachments'][slot][slot]['triangles'])//3)
         margin_evidence['resampled_target_keys']=len(margins)
         margin_evidence['source_report_sha256']=sha256(previous_raw).hexdigest()
@@ -46,6 +56,7 @@ def run(state,artifact,slot,source,output,margin_source=None,subdivisions=4,comp
     skeleton=canonical_bytes(result)
     report.update(parent_artifact_sha256=artifact,slot=slot,source_sha256=sha256(raw).hexdigest(),
                   skeleton_sha256=sha256(skeleton).hexdigest(),compensation=compensation,margin_evidence=margin_evidence)
+    report['refinement']=refinement
     (output/'skeleton.json').write_bytes(skeleton)
     (output/'report.json').write_bytes(canonical_bytes(report))
     progress(dict(stage='complete',local_constraints_passed=report['local_constraints_passed'],
@@ -58,4 +69,5 @@ if __name__=='__main__':
     p.add_argument('source',type=Path);p.add_argument('output',type=Path)
     p.add_argument('--margin-source',type=Path);p.add_argument('--subdivisions',type=int,default=4)
     p.add_argument('--compensation-source',type=Path)
-    a=p.parse_args();run(a.state,a.artifact,a.slot,a.source,a.output,a.margin_source,a.subdivisions,a.compensation_source)
+    p.add_argument('--refine-source',type=Path)
+    a=p.parse_args();run(a.state,a.artifact,a.slot,a.source,a.output,a.margin_source,a.subdivisions,a.compensation_source,a.refine_source)
