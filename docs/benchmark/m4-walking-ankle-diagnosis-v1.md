@@ -121,3 +121,29 @@ Artifacts: `E:/proj/unusual/localset/tmp/m4-walking-pelvis-pivot-v1/`.
 Skeleton SHA256 `37cafd0f16ea73940fcb5d4f929b45d7e89ead0f125d46f3f2f837506af3e3de`.
 The test checks retained source orientation, moving pelvis target, interpolation
 and input immutability. No Runtime or mesh claim is made for this experiment.
+
+## Absolute leg-direction comparison
+
+The verified side source starts its right upper leg at -133.586 degrees in
+Spine screen coordinates; the target begins at -93.450 degrees. Relative angle
+retargeting retains this roughly 40-degree offset. Source ankle displacement
+and target initial leg pose are therefore not interchangeable constraints.
+
+`tools/m4_walking_pose_probe.py` reuses the existing absolute limb-direction fit
+for legs only, preserving existing animated axial scales and upper-body motion.
+Each variant measures source displacement relative to **its own** initial feet;
+the initial pose changes are explicitly recorded, not hidden as accuracy gains.
+
+| Variant, 485 times | Ankle RMS | Peak |
+| --- | ---: | ---: |
+| Original | 96.791360 px | 222.010892 px |
+| Absolute leg axes | 55.900780 px | 120.419518 px |
+| Absolute leg axes + pelvis pivot | 38.486901 px | 82.637761 px |
+
+The combined result still fails the 5.493701 px tracking gate and has not been
+adopted. It changes both initial foot positions substantially; geometry,
+silhouette, contact and Runtime must be checked before any future adoption.
+Next separate the inherited relative length scaling from absolute source
+projection and character leg proportions, then retry bounded contact solving.
+
+Exact-source artifacts: `E:/proj/unusual/localset/tmp/m4-walking-absolute-legs-v1/`.
