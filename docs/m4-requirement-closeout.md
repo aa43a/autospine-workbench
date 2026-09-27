@@ -72,6 +72,10 @@
 
 ## 剩余收尾
 
+最新[存储精度检查](benchmark/m4-boundary-storage-audit-v1.md)确认一致时间表示
+下固定点漂移为零，但实际 Float32 模型在面积保护下仍有数值缺口。双精度
+局部通过与 Runtime 存储精度通过分开记录，候选继续未采用。
+
 最新[转换曲线独立检查](benchmark/m4-boundary-normalized-audit-v1.md)：16,557
 时刻面积保护无失败，但 12 个时刻有超过原门槛的固定点微小转换差异。
 已完成的前六批官方 Runtime 数值通过，整角色 setup 几何仍不通过；不采用候选。
