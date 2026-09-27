@@ -22,7 +22,7 @@ class TimelineScreenTests(unittest.TestCase):
 
     def test_checks_every_time_in_batches_and_keeps_late_failure(self):
         times=[i/256 for i in range(257)];batches=[]
-        def prepare(document,slot,batch):batches.append(batch);return batch
+        def prepare(document,slot,batch,rings):batches.append(batch);return batch
         def screen(batch,gains):
             return dict(trials=[dict(gain=g,failures=[{'time':1.}] if 1. in batch else []) for g in gains])
         with tempfile.TemporaryDirectory() as root:

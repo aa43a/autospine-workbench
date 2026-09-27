@@ -9,7 +9,7 @@ from autospine_workbench.targets.character43.limb_transverse_repair import build
 from autospine_workbench.targets.character43.parent_pose_area_repair import compare
 
 
-def run(state_root, artifact, slot, times, output, regressions=None, protect_setup=False, correction_frame='world', local_refinement=False, exact_poses=False, anchor_terminal=False, terminal_transition=None, distal_gain=1.):
+def run(state_root, artifact, slot, times, output, regressions=None, protect_setup=False, correction_frame='world', local_refinement=False, exact_poses=False, anchor_terminal=False, terminal_transition=None, distal_gain=1., boundary_rings=0):
     source=None
     if regressions is not None:
         raw=regressions.read_bytes();report=json.loads(raw)
@@ -23,7 +23,7 @@ def run(state_root, artifact, slot, times, output, regressions=None, protect_set
                                   required_times=times if exact_poses else (),anchor_terminal=anchor_terminal,terminal_transition=terminal_transition,distal_gain=distal_gain)
     rows=[]
     for time in times:
-        row=compare(parent,candidate,'external-motion',slot,time,protect_setup=protect_setup,local_refinement=local_refinement);rows.append(row)
+        row=compare(parent,candidate,'external-motion',slot,time,protect_setup=protect_setup,local_refinement=local_refinement,boundary_rings=boundary_rings);rows.append(row)
         policies=('parent','transverse','projected_only','parent_floor')+(('parent_setup_floor',) if protect_setup else ())
         print(json.dumps(dict(time=time,results={key:{k:len(v) if isinstance(v,list) else v for k,v in row[key].items()
             if k not in ('setup_ratios','solver')} for key in policies})),flush=True)
@@ -46,4 +46,5 @@ if __name__=='__main__':
     parser.add_argument('--anchor-terminal',action='store_true')
     parser.add_argument('--terminal-transition',type=float)
     parser.add_argument('--distal-gain',type=float,default=1.)
-    args=parser.parse_args();run(args.state_root,args.artifact,args.slot,args.times,args.output,args.regressions,args.protect_setup,args.correction_frame,args.local_refinement,args.exact_poses,args.anchor_terminal,args.terminal_transition,args.distal_gain)
+    parser.add_argument('--boundary-rings',type=int,default=0)
+    args=parser.parse_args();run(args.state_root,args.artifact,args.slot,args.times,args.output,args.regressions,args.protect_setup,args.correction_frame,args.local_refinement,args.exact_poses,args.anchor_terminal,args.terminal_transition,args.distal_gain,args.boundary_rings)

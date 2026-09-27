@@ -16,7 +16,7 @@ from autospine_workbench.targets.character43.transverse_gain_feasibility import 
 from autospine_workbench.targets.spine43.continuous_pose import area
 
 
-def prepare_poses(document, slot, times):
+def prepare_poses(document, slot, times, boundary_rings=0):
     name='external-motion'
     endpoints=[build(document,name,[slot],correction_frame='transverse',anchor_terminal=True,
                      required_times=times,distal_gain=g)[0] for g in (0.,1.)]
@@ -27,6 +27,8 @@ def prepare_poses(document, slot, times):
     used={bones[b]['name'] for row in influences for b,w in row if w>0}
     lengths=[math.hypot(b['x'],b['y']) for b in bones if b['name'] in used and b.get('parent') in used]
     if not lengths or min(lengths)<=0:raise ValueError('gain_screen_chain_missing')
+    from autospine_workbench.targets.character43.joint_repair_domain import expand
+    free,_=expand(influences,bones,triangles,boundary_rings)
     poses=[]
     for time in times:
         previous=sample(document,name,time)[0][slot]
@@ -35,7 +37,7 @@ def prepare_poses(document, slot, times):
         poses.append(dict(time=time,zero=sample(endpoints[0],name,time)[0][slot],
             one=sample(endpoints[1],name,time)[0][slot],floors=limits,
             context=dict(row={'triangles':triangles},areas=refs,budget=.1*min(lengths),
-                         free=[sum(w>0 for _,w in row)>1 for row in influences])))
+                         free=free)))
     return poses
 
 

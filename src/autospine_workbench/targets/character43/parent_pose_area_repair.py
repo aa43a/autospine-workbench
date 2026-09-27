@@ -53,7 +53,7 @@ def solve(context, origin, parent_points, setup_areas, *, protect_setup=False, l
                            shared_vertex_feasibility=shared)
 
 
-def compare(parent, candidate, name, slot, time, *, protect_setup=False, local_refinement=False):
+def compare(parent, candidate, name, slot, time, *, protect_setup=False, local_refinement=False, boundary_rings=0):
     if local_refinement and not protect_setup:raise ValueError('parent_refinement_requires_joint_floors')
     verify_source(parent, candidate, name, slot)
     keys = [k['time'] for tracks in parent['animations'][name]['bones'].values() for values in tracks.values() for k in values]
@@ -71,9 +71,11 @@ def compare(parent, candidate, name, slot, time, *, protect_setup=False, local_r
     lengths = [math.hypot(b['x'], b['y']) for b in bones if b['name'] in used and b.get('parent') in used]
     if not lengths or min(lengths) <= 0:raise ValueError('parent_pose_chain_missing')
     edges = sorted({tuple(sorted((t[i], t[(i+1)%3]))) for t in triangles for i in range(3)})
+    from .joint_repair_domain import expand
+    free,domain=expand(influences,bones,triangles,boundary_rings)
     context = dict(row={'triangles': triangles}, areas=refs, edges=edges,
         lengths=[math.dist(setup[a], setup[b]) for a,b in edges], budget=.1*min(lengths),
-        free=[sum(w > 0 for _,w in row) > 1 for row in influences])
+        free=free)
     parent_ratios = [area(previous,t)/a for t,a in zip(triangles, areas)]
     def metrics(points):
         ratios = [area(points,t)/a for t,a in zip(triangles, areas)]
@@ -99,7 +101,7 @@ def compare(parent, candidate, name, slot, time, *, protect_setup=False, local_r
         projected_only=dict(metrics(baseline), solver=baseline_solver),
         parent_floor=dict(metrics(corrected), solver=solver),
         points=dict(parent=previous, transverse=origin, projected_only=baseline, parent_floor=corrected),
-        triangles=triangles, selected=False, authority='none',
+        triangles=triangles, correction_domain=domain, selected=False, authority='none',
         scope='single_pose_cpu_experiment_not_continuous_or_runtime_acceptance')
     if protect_setup:
         joint, joint_solver = solve(context, origin, previous, areas, protect_setup=True, local_refinement=local_refinement)

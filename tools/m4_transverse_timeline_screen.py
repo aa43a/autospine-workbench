@@ -21,16 +21,16 @@ def validate_times(report, times, artifact, slot):
         raise ValueError('timeline_screen_time_identity')
 
 
-def run(state, artifact, slot, source, output):
+def run(state, artifact, slot, source, output, boundary_rings=0, gains=None):
     raw=(source/'report.json').read_bytes();report=json.loads(raw)
     times=json.loads((source/'validation-times.json').read_bytes())
     validate_times(report,times,artifact,slot)
     document=json.loads(AnimatedStore(state).read(artifact)['skeleton.json'])
-    gains=[i/32 for i in range(33)]
+    gains=[i/32 for i in range(33)] if gains is None else sorted(gains)
     trials=[dict(gain=g,failures=[]) for g in gains];covered=[]
     for start in range(0,len(times),256):
         batch=times[start:start+256]
-        result=screen(prepare_poses(document,slot,batch),gains)
+        result=screen(prepare_poses(document,slot,batch,boundary_rings),gains)
         for target,row in zip(trials,result['trials'],strict=True):
             if target['gain']!=row['gain']:raise ValueError('timeline_screen_gain_order')
             target['failures'].extend(row['failures'])
@@ -42,6 +42,7 @@ def run(state, artifact, slot, source, output):
         parent_artifact_sha256=artifact,slot=slot,source_sha256=sha256(raw).hexdigest(),
         times_sha256=report['times_sha256'],times=times,poses=len(times),trials=trials,
         unexcluded_gains=unexcluded,suggested_gain=max(unexcluded) if unexcluded else None,
+        boundary_rings=boundary_rings,
         authority='none',selected=False,production_authorized=False,
         scope='all_saved_grid_times_not_continuous_solution_or_runtime_acceptance')
     with output.open('xb') as handle:handle.write(canonical_bytes(result))
@@ -52,4 +53,6 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('state',type=Path);parser.add_argument('artifact');parser.add_argument('slot')
     parser.add_argument('source',type=Path);parser.add_argument('output',type=Path)
-    args=parser.parse_args();run(args.state,args.artifact,args.slot,args.source,args.output)
+    parser.add_argument('--boundary-rings',type=int,default=0)
+    parser.add_argument('--gains',nargs='+',type=float)
+    args=parser.parse_args();run(args.state,args.artifact,args.slot,args.source,args.output,args.boundary_rings,args.gains)
