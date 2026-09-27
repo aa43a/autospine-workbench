@@ -12,6 +12,9 @@ from ..spine43.continuous_pose import area
 
 def build(parent, candidate, name, slot, required_times, *, progress=None, solver_margins=None, subdivisions=4):
     verify_source(parent,candidate,name,slot)
+    def selected(doc):
+        return dict(doc,skins=[dict(doc['skins'][0],attachments={slot:doc['skins'][0]['attachments'][slot]})])
+    parent_view=selected(parent);candidate_view=selected(candidate)
     original=candidate['animations'][name]['attachments']['default'][slot][slot]['deform']
     times=[k['time'] for k in original]
     if type(subdivisions) is not int or subdivisions not in (4,8):raise ValueError('boundary_animation_subdivisions')
@@ -35,8 +38,8 @@ def build(parent, candidate, name, slot, required_times, *, progress=None, solve
     base=dict(row={'triangles':triangles},free=free,budget=.1*min(chain),edges=edges,lengths=lengths)
     def pose(time):
         transforms=matrices(parent,name,time)
-        previous=sample(parent,name,time)[0][slot]
-        origin=sample(candidate,name,time)[0][slot]
+        previous=sample(parent_view,name,time)[0][slot]
+        origin=sample(candidate_view,name,time)[0][slot]
         refs=reference(areas,triangles,influences,bones,bind,transforms)
         return transforms,previous,origin,dict(base,areas=refs)
     result=deepcopy(candidate);keys=[];solvers=[]
@@ -51,10 +54,11 @@ def build(parent, candidate, name, slot, required_times, *, progress=None, solve
         if progress and index%32==0:progress(dict(stage='bake',index=index,total=len(times)))
     result['animations'][name]['attachments']['default'][slot][slot]['deform']=keys
     verify_source(parent,result,name,slot)
+    result_view=selected(result)
     checked=sorted(set(required_times)|set(times)|{a+(b-a)*i/subdivisions for a,b in zip(times,times[1:]) for i in range(1,subdivisions)})
     failures=[];peak_shift=0.;peak_edge=0.;peak_fixed=0.;min_setup=math.inf;max_delta_step=0.;last=None
     for index,time in enumerate(checked):
-        _,previous,origin,context=pose(time);points=sample(result,name,time)[0][slot]
+        _,previous,origin,context=pose(time);points=sample(result_view,name,time)[0][slot]
         limits,_=floors(previous,triangles,context['areas'],areas)
         ratios=[area(points,t)/r for t,r in zip(triangles,context['areas'])]
         setup_ratios=[area(points,t)/r for t,r in zip(triangles,areas)]

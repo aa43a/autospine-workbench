@@ -10,20 +10,33 @@ from autospine_workbench.targets.character43.joint_boundary_animation import bui
 from m4_transverse_timeline_screen import validate_times
 
 
-def run(state,artifact,slot,source,output,margin_source=None,subdivisions=4):
+def run(state,artifact,slot,source,output,margin_source=None,subdivisions=4,compensation_source=None):
     raw=(source/'report.json').read_bytes();declaration=json.loads(raw)
     times=json.loads((source/'validation-times.json').read_bytes())
     validate_times(declaration,times,artifact,slot)
     output.mkdir(parents=True,exist_ok=False)
     parent=json.loads(AnimatedStore(state).read(artifact)['skeleton.json'])
-    candidate,compensation=compensate(parent,'external-motion',[slot],correction_frame='transverse',anchor_terminal=True)
+    if compensation_source is None:
+        candidate,compensation=compensate(parent,'external-motion',[slot],correction_frame='transverse',anchor_terminal=True)
+    else:
+        from autospine_workbench.targets.character43.boundary_curve_sources import read_compensation
+        compensation_raw=(compensation_source/'report.json').read_bytes();compensation=json.loads(compensation_raw)
+        candidate=read_compensation(parent,(compensation_source/'skeleton.json').read_bytes(),compensation,artifact,slot,'external-motion')
+        times=sorted(set(times)|set(compensation['times']))
+        compensation=dict(profile=compensation['profile'],source_report_sha256=sha256(compensation_raw).hexdigest(),
+                          skeleton_sha256=compensation['skeleton_sha256'],status=compensation['status'])
     margins=None;margin_evidence=None
     if margin_source is not None:
         from autospine_workbench.targets.character43.joint_boundary_margin import measure
         previous_raw=(margin_source/'report.json').read_bytes();previous_report=json.loads(previous_raw)
         if previous_report['parent_artifact_sha256']!=artifact:raise ValueError('boundary_margin_parent_identity')
         times=sorted(set(times)|set(previous_report['times']))
-        margins,margin_evidence=measure(parent,json.loads((margin_source/'skeleton.json').read_bytes()),previous_report,'external-motion',slot)
+        previous=json.loads((margin_source/'skeleton.json').read_bytes())
+        margins,margin_evidence=measure(parent,previous,previous_report,'external-motion',slot)
+        from autospine_workbench.targets.character43.boundary_curve_sources import resample_margins
+        def key_times(doc):return [k['time'] for k in doc['animations']['external-motion']['attachments']['default'][slot][slot]['deform']]
+        margins=resample_margins(margins,key_times(previous),key_times(candidate),len(candidate['skins'][0]['attachments'][slot][slot]['triangles'])//3)
+        margin_evidence['resampled_target_keys']=len(margins)
         margin_evidence['source_report_sha256']=sha256(previous_raw).hexdigest()
         (output/'margin-evidence.json').write_bytes(canonical_bytes(margin_evidence))
     def progress(value):
@@ -44,4 +57,5 @@ if __name__=='__main__':
     p.add_argument('state',type=Path);p.add_argument('artifact');p.add_argument('slot')
     p.add_argument('source',type=Path);p.add_argument('output',type=Path)
     p.add_argument('--margin-source',type=Path);p.add_argument('--subdivisions',type=int,default=4)
-    a=p.parse_args();run(a.state,a.artifact,a.slot,a.source,a.output,a.margin_source,a.subdivisions)
+    p.add_argument('--compensation-source',type=Path)
+    a=p.parse_args();run(a.state,a.artifact,a.slot,a.source,a.output,a.margin_source,a.subdivisions,a.compensation_source)
