@@ -23,7 +23,8 @@ export function appendDepthDiagnostics(parent, checks, seek) {
     const reason={visible_depth_straddle:'同一部件跨越前后关系',
       depth_overlap_pixel_budget:'未测：像素检查预算不足',
       visible_unmapped_order_conflict:'未映射部件存在前后顺序冲突'}[row.reason_code]||row.reason_code;
-    const line=node('p',`${row.time.toFixed(3)} 秒 · ${row.pair.join(' / ')} · ${reason} `);
+    const location=row.location_kind==='order_cycle'?row.conflict_slots.join(' → '):row.pair.join(' / ');
+    const line=node('p',`${row.time.toFixed(3)} 秒 · ${location} · ${reason} `);
     const button=node('button','查看此时刻');
     button.onclick=()=>seek(row.time);line.append(button);details.append(line);
   }

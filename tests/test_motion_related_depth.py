@@ -45,6 +45,20 @@ class RelatedDepthTests(unittest.TestCase):
         self.value['receipt'].pop('depth_audit')
         self.assertIsNone(summary(self.value,self.files))
 
+    def test_cycle_preserves_complete_location_and_rejects_invalid_edges(self):
+        row=dict(time=.2,reason_code='visible_unmapped_order_conflict',conflict=dict(
+            slots=['arm','torso','arm'],edges=[dict(back='arm',front='torso'),dict(back='torso',front='arm')]))
+        self.audit['order']['failures']=[row];before=deepcopy(self.value)
+        result=summary(self.value,self.files)['failures']
+        self.assertEqual(len(result),1)
+        self.assertEqual(result[0]['location_kind'],'order_cycle')
+        self.assertEqual(result[0]['conflict_slots'],['arm','torso','arm'])
+        self.assertEqual(self.value,before)
+        for change in [dict(slots=['arm','foreign','arm']),dict(slots=['arm','torso']),
+                       dict(edges=[dict(back='torso',front='arm'),dict(back='arm',front='torso')])]:
+            value=deepcopy(before);value['receipt']['depth_audit']['order']['failures'][0]['conflict'].update(change)
+            with self.assertRaisesRegex(ValueError,'failure_location'):summary(value,self.files)
+
     def test_missing_coverage_is_unknown_and_bad_counts_rejected(self):
         self.assertIsNone(summary(self.value,self.files)['coverage'])
         coverage=dict(visible_pair_samples=134,ambiguous_visible_pair_samples=32,

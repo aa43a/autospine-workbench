@@ -50,7 +50,7 @@ function depthHTML(row,base,path){
     '<p>来源深度与局部像素重叠检查，不代表整帧渲染验收；不改写历史检查或阶段结论。</p>'+
     `<p>${escape(depthCoverageText(depth))}</p>`+
     `<p>诊断证据 ${escape(depth.audit_sha256)}</p>`+
-    (depth.failures.length?'<ul>'+depth.failures.map(r=>`<li>${link(base,path+'?time='+encodeURIComponent(r.time),Number(r.time).toFixed(3)+' 秒')} · ${escape(r.pair.join(' / '))} · ${escape(r.reason_code)}</li>`).join('')+'</ul>':
+    (depth.failures.length?'<ul>'+depth.failures.map(r=>`<li>${link(base,path+'?time='+encodeURIComponent(r.time),Number(r.time).toFixed(3)+' 秒')} · ${escape(r.location_kind==='order_cycle'?r.conflict_slots.join(' → '):r.pair.join(' / '))} · ${escape(r.reason_code)}</li>`).join('')+'</ul>':
       '<p>本诊断未列出冲突，完整遮挡检查仍以技术状态为准。</p>')+'</details>';
 }
 function scopeHTML(snapshot,row){

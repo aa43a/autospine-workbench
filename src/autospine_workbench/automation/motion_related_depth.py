@@ -30,6 +30,18 @@ def summary(value, files):
     rows = []
     for row in failures:
         time, pair = row.get('time'), row.get('pair')
+        cycle = None
+        if pair is None and row.get('reason_code') == 'visible_unmapped_order_conflict':
+            conflict = row.get('conflict', {})
+            cycle, edges = conflict.get('slots'), conflict.get('edges')
+            if (not isinstance(cycle, list) or not 3 <= len(cycle) <= len(slots)+1
+                    or any(not isinstance(s, str) or s not in slots for s in cycle)
+                    or cycle[0] != cycle[-1] or len(set(cycle[:-1])) != len(cycle)-1
+                    or not isinstance(edges, list) or len(edges) != len(cycle)-1
+                    or any(not isinstance(e, dict) or (e.get('back'),e.get('front')) != (a,b)
+                           for e,a,b in zip(edges,cycle,cycle[1:]))):
+                raise ValueError('motion_related_depth_failure_location')
+            pair = cycle[:2]  # Compatibility location; the complete cycle is retained below.
         if pair is None and row.get('reason_code') == 'depth_overlap_pixel_budget':
             budget = row.get('raster_budget', {})
             if budget.get('time') != time:
@@ -40,7 +52,9 @@ def summary(value, files):
                 or any(not isinstance(s, str) or s not in slots for s in pair)
                 or not isinstance(row.get('reason_code'), str)):
             raise ValueError('motion_related_depth_failure_location')
-        rows.append(dict(time=time, pair=pair, reason_code=row['reason_code']))
+        location = dict(time=time, pair=pair, reason_code=row['reason_code'])
+        if cycle is not None:location.update(location_kind='order_cycle',conflict_slots=list(cycle))
+        rows.append(location)
     coverage = depth.get('target_overlap')
     if coverage is not None:
         keys = ('visible_pair_samples', 'ambiguous_visible_pair_samples',

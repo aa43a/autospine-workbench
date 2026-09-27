@@ -8,6 +8,15 @@ class Node {
 globalThis.document={createElement:tag=>new Node(tag)};
 const walk=n=>[n,...n.children.flatMap(walk)];
 
+test('cycle locations retain the complete chain and exact seek time',()=>{
+  const root=new Node('main'),seen=[];
+  appendDepthDiagnostics(root,{failures:[{time:1.566667,pair:['arm','skirt'],
+    location_kind:'order_cycle',conflict_slots:['arm','skirt','torso','arm'],
+    reason_code:'visible_unmapped_order_conflict'}]},t=>seen.push(t));
+  assert.match(walk(root).map(n=>n.textContent).join('\n'),/arm → skirt → torso → arm/);
+  walk(root).find(n=>n.tag==='button').onclick();assert.deepEqual(seen,[1.566667]);
+});
+
 test('supplements preserve original diagnostics and seek missing source samples',()=>{
   const root=new Node('main'),seen=[];
   appendDepthDiagnostics(root,{failures:[],supplements:[{recovered:96,unmeasured:14,
