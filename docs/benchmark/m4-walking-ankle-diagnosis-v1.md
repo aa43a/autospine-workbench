@@ -35,3 +35,23 @@ any limits. Keep failed inputs and never publish a partial corrected animation.
 Receipt: `E:/proj/unusual/localset/tmp/m4-walking-ankle-failure-probe-v1.json`.
 No candidate, source animation, production threshold, or human decision was
 modified by the probe.
+
+## Joint window experiment
+
+`ankle_window_solver.py` jointly searches the first six knots, trying neutral
+and opposite knee seeds. The initial correction remains zero. Root displacement
+15%, correction rotation 30 degrees, root speed 2 reference lengths/second,
+correction angular speed 180 degrees/second, and endpoint error 1% stay unchanged.
+The optimizer uses numerical headroom and independent post-solve inequalities.
+
+The real source now admits a knot-level path with peak endpoint error
+5.488179345 px. Reconstructing the animation and checking full affine FK at
+knots and midpoints (11 times) finds 5.591680460 px at 0.055143224609375 seconds,
+right foot, above 5.493700613 px. This path is therefore **not adopted**.
+The next step must constrain interpolation samples, then extend beyond this
+initial window; the short window is not evidence of whole-walk support.
+
+Receipt: `E:/proj/unusual/localset/tmp/m4-walking-ankle-window-probe-v1.json`.
+19 focused tests pass, including independent FK, continuity bounds, immutable
+inputs, invalid windows and unreachable-window rejection. No production route
+uses the experimental solver yet.
