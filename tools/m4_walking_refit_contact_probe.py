@@ -12,9 +12,9 @@ from autospine_workbench.targets.character43.numeric_reference import write as w
 from autospine_workbench.targets.character43.deformation_qa import inspect
 
 
-def run(source, output):
+def run(source, output, artifact_state=Path('workspace')):
     parent = json.loads((source/'report.json').read_text(encoding='utf-8'))
-    files = AnimatedStore(Path('workspace')).read(parent['source_artifact'])
+    files = AnimatedStore(artifact_state).read(parent['source_artifact'])
     original = json.loads(files['motion-moving-ankles.json'])
     reference = original['final_check']['limit_px']/.01
     setup = json.loads(files['rig-setup-reference.json'])['vertices']
@@ -56,5 +56,6 @@ if __name__ == '__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('source',type=Path)
     parser.add_argument('output',type=Path)
+    parser.add_argument('--artifact-state',type=Path,default=Path('workspace'))
     args=parser.parse_args()
-    run(args.source,args.output)
+    run(args.source,args.output,args.artifact_state)

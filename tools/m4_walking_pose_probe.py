@@ -15,8 +15,8 @@ from autospine_workbench.targets.spine43.continuous_pose import interpolate
 from autospine_workbench.resolved_project import canonical_sha256
 
 
-def run(artifact, output):
-    files = AnimatedStore(Path('workspace')).read(artifact)
+def run(artifact, output, artifact_state=Path('workspace')):
+    files = AnimatedStore(artifact_state).read(artifact)
     document = json.loads(files['skeleton.json'])
     moving = json.loads(files['motion-moving-ankles.json'])
     observation = moving['source_observation']
@@ -74,5 +74,6 @@ if __name__ == '__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('artifact')
     parser.add_argument('output',type=Path)
+    parser.add_argument('--artifact-state',type=Path,default=Path('workspace'))
     args=parser.parse_args()
-    run(args.artifact,args.output)
+    run(args.artifact,args.output,args.artifact_state)
