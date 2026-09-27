@@ -20,6 +20,9 @@ export function appendSupportExport(parent,pack){
       const html=supportReportHTML(snapshot,location.origin),totals=supportTotals(snapshot);
       for(const [ext,raw,mime,label] of [['html',html,'text/html','下载可阅读报告'],['json',JSON.stringify(snapshot,null,2),'application/json','下载完整证据快照']]){
         const url=URL.createObjectURL(new Blob([raw],{type:mime}));urls.push(url);
+        if(ext==='html'){
+          const open=node('a','打开报告与异常索引');open.href=url;open.target='_blank';open.rel='noopener';files.append(open,'　');
+        }
         const a=node('a',label);a.href=url;a.download=`m4-support-${snapshot.plan_sha256.slice(0,12)}.${ext}`;files.append(a,'　');
       }
       status.textContent=`报告已生成：固定组合 ${totals.expected} 项，身份核对 ${totals.verified} 项，有效阶段接受 ${totals.accepted} 项。读取失败和缺失项保留；此快照不会自动更新。`;

@@ -25,8 +25,11 @@ function harness(){
 }
 test('exports both full report formats without mutating APIs, then invalidates on review change',async()=>{
   const h=harness();try{
-    await h.start.onclick();assert.equal(h.created.length,2);assert.equal(all(h.root).filter(n=>n.tag==='a').length,2);
+    await h.start.onclick();assert.equal(h.created.length,2);assert.equal(all(h.root).filter(n=>n.tag==='a').length,3);
+    const open=all(h.root).find(n=>n.textContent==='打开报告与异常索引');
+    assert.equal(open.href,'blob:local/1');assert.equal(open.target,'_blank');assert.equal(open.download,undefined);
     const snapshot=JSON.parse(await h.created[1].text());assert.equal(snapshot.expected,2);
+    assert.ok(snapshot.exception_index.some(r=>r.stage==='遮挡'&&r.kind==='technical'));
     assert.equal(snapshot.rows[0].review.current_applies,true);assert.equal(h.start.disabled,false);
     h.events['motion-stage-review-saved']({detail:{jobId:h.targetId}});
     assert.equal(all(h.root).filter(n=>n.tag==='a').length,0);assert.equal(h.revoked.length,2);

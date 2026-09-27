@@ -1,6 +1,7 @@
 // Read-only evidence collection. A snapshot never accepts or replaces a candidate.
 import {verifyCohortSource} from './motion-cohort-source.js';
 import {relatedSummary} from './motion-related-summary.js';
+import {supportExceptions} from './motion-support-exceptions.js';
 const id=/^motion-[a-f0-9]{32}$/,sha=/^[a-f0-9]{64}$/;
 const compatible=new Set(['legacy_empty_projection_fields','legacy_empty_diagnostic_fields']);
 export function validatePack(value){
@@ -106,9 +107,12 @@ export async function collectSupportSnapshot(pack,get,{signal,onProgress=()=>{},
     rows[i]=row;finished++;progress('此项读取完成');
   }}
   await Promise.all([worker(),worker()]);check();
-  return {schema:'autospine.motion-support-snapshot/v1',plan_sha256:pack.plan_sha256,started_at:started,finished_at:now(),
+  const snapshot={schema:'autospine.motion-support-snapshot/v1',plan_sha256:pack.plan_sha256,started_at:started,finished_at:now(),
     coverage_declared:Boolean(pack.coverage),expected:tasks.length+(pack.coverage?.missing.length||0),rows,
     missing:structuredClone(pack.coverage?.missing||[]),authority:'none',production_authorized:false,
     limitations:['existing_evidence_only_no_new_capture','per_record_read_times_not_atomic','fixed_source_character_and_clip_only',
-      'independent_candidates_do_not_replace_baseline','unverified_is_not_pass','human_acceptance_does_not_override_technical_failures']};
+      'independent_candidates_do_not_replace_baseline','unverified_is_not_pass','human_acceptance_does_not_override_technical_failures',
+      'unregistered_local_experiments_not_in_inventory']};
+  snapshot.exception_index=supportExceptions(snapshot);
+  return snapshot;
 }

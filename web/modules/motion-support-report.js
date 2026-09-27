@@ -1,4 +1,5 @@
 import {deliveryState,deliveryCounts,deliveryLabels} from './motion-cohort-delivery.js';
+import {supportExceptions} from './motion-support-exceptions.js';
 const gates=['投影','几何','接触','遮挡','Runtime'];
 const statuses={sampled_pass:'采样通过',needs_changes:'需处理',unmeasured:'未验证'};
 const decisions={accepted:'阶段接受',accepted_with_exceptions:'阶段接受，保留异常',rejected:'需调整',revoked:'已撤销',
@@ -39,13 +40,13 @@ function reviewHTML(row){
     `<p>核对时间 ${escape(row.checked_at)}</p></details>`;
 }
 function link(base,path,label){return `<a href="${escape(base+path)}" target="_blank" rel="noopener">${escape(label)}</a>`;}
-function familyHTML(family,kind,job,base){
+function familyHTML(family,kind,job,base,anchor){
   if(family?.status!=='verified')return `<p>未核实：${escape(family?.reason||'未读取')}</p>`;
   const partial=!family.complete?'<p>清单或证据不完整；未返回、未核实的候选不计通过。</p>':'';
-  return partial+(family.rows.length?family.rows.map(r=>{
+  return partial+(family.rows.length?family.rows.map((r,i)=>{
     const path=kind==='related'?`/api/motions/${job}/view/related-candidates/${r.registration_sha256}/player.html`:`/api/motions/${r.job_id}/view/player.html`;
     const title=kind==='related'?'独立改进候选':`替代视角 ${r.view||''} ${r.projection?JSON.stringify(r.projection):''}`;
-    return `<details><summary>${escape(title)} · ${escape(r.artifact_sha256?.slice(0,12)||r.job_id)}</summary>`+
+    return `<details id="${escape(anchor)}-${i}"><summary>${escape(title)} · ${escape(r.artifact_sha256?.slice(0,12)||r.job_id)}</summary>`+
       `<p>候选 ${escape(r.artifact_sha256)}${r.registration_sha256?'；关联 '+escape(r.registration_sha256):''}</p>`+
       (r.status==='verified'?link(base,path,'打开该候选'):'')+reviewHTML(r)+
       (r.source_link?`<p>源区间 ${r.source_link.source_start}–${r.source_link.source_end} 秒；来源 ${escape(r.source_link.source_job_id)}</p>`:'')+'</details>';
@@ -54,13 +55,19 @@ function familyHTML(family,kind,job,base){
 export function supportReportHTML(snapshot,origin){
   const url=new URL(origin);if(!['http:','https:'].includes(url.protocol)||url.username||url.password)throw Error('工作台地址无效');
   const base=url.origin,totals=supportTotals(snapshot);
+  const exceptions=supportExceptions(snapshot);
+  const queue=`<section id="exceptions"><h2>待处理异常与验收</h2><p>共 ${exceptions.length} 条检查事项，同一候选可能有多条。此数量不是失败角色数或错误率。独立候选单列；技术异常不会因阶段接受消失。先处理技术与证据问题，再对实际候选做阶段验收。</p>`+
+    ['technical','evidence','visual'].map(kind=>{const items=exceptions.filter(r=>r.kind===kind);
+      return `<details${kind==='technical'?' open':''}><summary>${{technical:'技术异常',evidence:'证据缺失或待核实',visual:'阶段结论待处理'}[kind]} · ${items.length}</summary><ul>`+
+        items.map(r=>`<li>${r.anchor?`<a href="#${escape(r.anchor)}">定位</a> · `:''}${escape(r.motion)} / ${escape(r.character)} · ${escape(r.family)} · ${escape(r.artifact_sha256?.slice(0,12)||'未确定候选')} · <strong>${escape(r.stage)}</strong>：${escape(r.reason)}</li>`).join('')+'</ul></details>';
+    }).join('')+'</section>';
   const cards=snapshot.rows.map((r,i)=>`<section id="cell-${i}"><h2>${escape(r.motion)} / ${escape(r.character)}</h2>`+
     `<p>固定候选 ${escape(r.artifact_sha256)}；任务 ${escape(r.job_id)}</p>`+
     `<p>来源 ${escape(r.source_job_id)}；源文件 ${escape(r.source_sha256)}</p>`+
     (r.source_link?`<p>源区间 ${r.source_link.source_start}–${r.source_link.source_end} 秒 · ${r.source_link.source_fps} FPS</p>`:'')+
     (r.status==='verified'?link(base,`/api/motions/${r.job_id}/view/player.html`,'播放固定候选')+' · '+link(base,`/api/motions/${r.job_id}/download`,'下载固定候选'):'')+
-    reviewHTML(r)+`<h3>独立改进结果</h3>${familyHTML(r.related,'related',r.job_id,base)}`+
-    `<h3>独立替代视角</h3>${familyHTML(r.alternatives,'alternative',r.job_id,base)}</section>`).join('');
+    reviewHTML(r)+`<h3>独立改进结果</h3>${familyHTML(r.related,'related',r.job_id,base,`cell-${i}-related`)}`+
+    `<h3>独立替代视角</h3>${familyHTML(r.alternatives,'alternative',r.job_id,base,`cell-${i}-alternatives`)}</section>`).join('');
   const table=snapshot.rows.map((r,i)=>`<tr><td><a href="#cell-${i}">${escape(r.motion)} / ${escape(r.character)}</a></td>`+
     `<td>${escape(deliveryLabels[deliveryState(state(r))])}</td><td>${r.status==='verified'?escape(r.review.current_applies?decisions[r.review.current?.decision]||'尚无有效阶段结论':'尚无有效阶段结论'):'未核实'}</td>`+
     gates.map(name=>{const status=r.status==='verified'?r.review.readiness.stages.find(s=>s.stage===name)?.status:null;return `<td>${statuses[status]||'未验证'}</td>`;}).join('')+'</tr>').join('')+
@@ -69,8 +76,8 @@ export function supportReportHTML(snapshot,origin){
 <style>body{font:16px system-ui;background:#101923;color:#e1e9f1;margin:24px;line-height:1.6}a{color:#75d6ff}table{border-collapse:collapse;width:100%}td,th{border:1px solid #42556a;padding:8px;text-align:left}section{margin:28px 0;padding:20px;background:#192735;overflow-wrap:anywhere}details{margin:12px 0}summary{cursor:pointer}.notes{white-space:pre-wrap}.scroll{overflow:auto}</style>
 <h1>M4 支持范围核对</h1><p>固定清单 ${escape(snapshot.plan_sha256)}</p><p>读取时间：${escape(snapshot.started_at)} 至 ${escape(snapshot.finished_at)}</p>
 <p>这是已有证据的逐项读取快照，不是同时刻事务，也未重新捕获动画。${snapshot.coverage_declared?'包含清单声明的全部组合。':'清单未声明完整覆盖，仅统计列出项。'}
-仅适用于记录的来源、角色版本、视角和片段。阶段接受不会清除技术失败；独立候选不替换固定候选，不计入其通过率。本报告不授予发布权限。详细失败采样与原始验收记录见配套 JSON。</p>
+仅适用于记录的来源、角色版本、视角和片段。阶段接受不会清除技术失败；独立候选不替换固定候选，不计入其通过率。未登记到工作台的本地实验不在本报告清单内。本报告不授予发布权限。详细失败采样与原始验收记录见配套 JSON。</p>
 <p>身份已核对 ${totals.verified}/${totals.expected}；有效阶段接受 ${totals.accepted}/${totals.expected}；改进记录完整核对 ${totals.related_checked}/${snapshot.rows.length}；替代记录完整核对 ${totals.alternatives_checked}/${snapshot.rows.length}。</p>
 <p>${Object.entries(totals.delivery).map(([k,v])=>`${deliveryLabels[k]} ${v}/${totals.expected}`).join('；')}</p>
-<div class="scroll"><table><thead><tr><th>动作 / 角色</th><th>交付状态</th><th>阶段验收</th>${gates.map(n=>`<th>${n}</th>`).join('')}</tr></thead><tbody>${table}</tbody></table></div>${cards}</html>`;
+${queue}<div class="scroll"><table><thead><tr><th>动作 / 角色</th><th>交付状态</th><th>阶段验收</th>${gates.map(n=>`<th>${n}</th>`).join('')}</tr></thead><tbody>${table}</tbody></table></div>${cards}</html>`;
 }
