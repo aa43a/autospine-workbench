@@ -46,3 +46,12 @@ def refinement_times(parent,raw,report,artifact,slot,name,existing,maximum_keys=
     required=sorted(set(existing)|extra)
     if len(required)>maximum_keys:raise ValueError('boundary_refinement_key_limit')
     return required
+
+
+def add_margins(base, increment, times, size):
+    """Accumulate measured headroom, retaining old targets and the solver cap."""
+    base=resample_margins(base,times,times,size)
+    increment=resample_margins(increment,times,times,size)
+    capped=sum(a+b>LIMIT for t in times for a,b in zip(base[t],increment[t]))
+    result={t:[min(LIMIT,a+b) for a,b in zip(base[t],increment[t])] for t in times}
+    return result,dict(capped_entries=capped,limit=LIMIT)

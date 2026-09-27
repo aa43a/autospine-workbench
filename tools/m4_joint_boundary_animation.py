@@ -10,7 +10,7 @@ from autospine_workbench.targets.character43.joint_boundary_animation import bui
 from m4_transverse_timeline_screen import validate_times
 
 
-def run(state,artifact,slot,source,output,margin_source=None,subdivisions=4,compensation_source=None,refine_source=None):
+def run(state,artifact,slot,source,output,margin_source=None,subdivisions=4,compensation_source=None,refine_source=None,margin_increments=()):
     raw=(source/'report.json').read_bytes();declaration=json.loads(raw)
     times=json.loads((source/'validation-times.json').read_bytes())
     validate_times(declaration,times,artifact,slot)
@@ -49,6 +49,21 @@ def run(state,artifact,slot,source,output,margin_source=None,subdivisions=4,comp
         margin_evidence['resampled_target_keys']=len(margins)
         margin_evidence['source_report_sha256']=sha256(previous_raw).hexdigest()
         (output/'margin-evidence.json').write_bytes(canonical_bytes(margin_evidence))
+    increments=[]
+    for increment_source in margin_increments:
+        from autospine_workbench.targets.character43.joint_boundary_margin import measure
+        from autospine_workbench.targets.character43.boundary_curve_sources import resample_margins,add_margins
+        increment_raw=(increment_source/'report.json').read_bytes();increment_report=json.loads(increment_raw)
+        if increment_report['parent_artifact_sha256']!=artifact:raise ValueError('boundary_margin_parent_identity')
+        previous=json.loads((increment_source/'skeleton.json').read_bytes())
+        addition,evidence=measure(parent,previous,increment_report,'external-motion',slot)
+        size=len(candidate['skins'][0]['attachments'][slot][slot]['triangles'])//3
+        addition=resample_margins(addition,key_times(previous),key_times(candidate),size)
+        margins,cap=add_margins(margins or {},addition,key_times(candidate),size)
+        evidence.update(source_report_sha256=sha256(increment_raw).hexdigest(),accumulation=cap)
+        increments.append(evidence);times=sorted(set(times)|set(increment_report['times']))
+    margin_bytes=canonical_bytes([dict(time=t,values=v) for t,v in (margins or {}).items()])
+    (output/'solver-margins.json').write_bytes(margin_bytes)
     def progress(value):
         (output/'progress.json').write_bytes(canonical_bytes(value));print(json.dumps(value),flush=True)
     result,report=build(parent,candidate,'external-motion',slot,times,progress=progress,
@@ -57,6 +72,8 @@ def run(state,artifact,slot,source,output,margin_source=None,subdivisions=4,comp
     report.update(parent_artifact_sha256=artifact,slot=slot,source_sha256=sha256(raw).hexdigest(),
                   skeleton_sha256=sha256(skeleton).hexdigest(),compensation=compensation,margin_evidence=margin_evidence)
     report['refinement']=refinement
+    report['margin_increments']=increments
+    report['solver_margins_sha256']=sha256(margin_bytes).hexdigest()
     (output/'skeleton.json').write_bytes(skeleton)
     (output/'report.json').write_bytes(canonical_bytes(report))
     progress(dict(stage='complete',local_constraints_passed=report['local_constraints_passed'],
@@ -70,4 +87,5 @@ if __name__=='__main__':
     p.add_argument('--margin-source',type=Path);p.add_argument('--subdivisions',type=int,default=4)
     p.add_argument('--compensation-source',type=Path)
     p.add_argument('--refine-source',type=Path)
-    a=p.parse_args();run(a.state,a.artifact,a.slot,a.source,a.output,a.margin_source,a.subdivisions,a.compensation_source,a.refine_source)
+    p.add_argument('--margin-increment',type=Path,action='append',default=[])
+    a=p.parse_args();run(a.state,a.artifact,a.slot,a.source,a.output,a.margin_source,a.subdivisions,a.compensation_source,a.refine_source,a.margin_increment)

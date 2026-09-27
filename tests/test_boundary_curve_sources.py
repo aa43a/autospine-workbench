@@ -4,10 +4,18 @@ import unittest
 from test_limb_transverse_repair import fixture
 from autospine_workbench.automation.storage_io import canonical_bytes
 from autospine_workbench.targets.character43.limb_transverse_repair import build
-from autospine_workbench.targets.character43.boundary_curve_sources import read_compensation,resample_margins,refinement_times
+from autospine_workbench.targets.character43.boundary_curve_sources import read_compensation,resample_margins,refinement_times,add_margins
 
 
 class BoundaryCurveSourcesTests(unittest.TestCase):
+    def test_increment_preserves_old_headroom_without_changing_inputs(self):
+        base={0.:[.019,.003],1.:[.01,0.]};extra={0.:[.002,0.]}
+        before=deepcopy(base)
+        result,report=add_margins(base,extra,[0.,1.],2)
+        self.assertEqual(result,{0.:[.02,.003],1.:[.01,0.]})
+        self.assertEqual(report['capped_entries'],1);self.assertEqual(base,before)
+        with self.assertRaises(ValueError):add_margins(base,{0.:[-.01,0.]},[0.,1.],2)
+
     def refinement_fixture(self):
         parent=fixture();candidate,_=build(parent,'motion',['leg']);raw=canonical_bytes(candidate)
         report=dict(profile='joint-boundary-animation-v1-experiment',parent_artifact_sha256='parent',
