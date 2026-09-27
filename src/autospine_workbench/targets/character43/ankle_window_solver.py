@@ -17,8 +17,16 @@ def solve_window(document, animation, times, targets, reference):
     tracks = document['animations'][animation]['bones']
     if bones['root'].get('parent') or any('curve' in k for r in tracks.values() for keys in r.values() for k in keys):
         raise ValueError('ankle_window_requires_linear_root')
+    # Preserve every original knot when reconstructing base + correction.
+    if any(0 < k.get('time', 0) < t[-1] and k['time'] not in times
+           for row in tracks.values() for keys in row.values() for k in keys):
+        raise ValueError('ankle_window_missing_source_knot')
+    sampled = np.asarray(sorted(set(times) | {float(a+(b-a)*i/4)
+                         for a, b in zip(t, t[1:]) for i in (1, 2, 3)}))
+    goal = np.stack([np.interp(sampled, t, goal[:, i, j])
+                     for i in (0, 1) for j in (0, 1)], axis=1).reshape((-1, 2, 2))
     geometry = []
-    for time in t:
+    for time in sampled:
         pose = matrices(document, animation, float(time))
         row = []
         for side in ('l', 'r'):
@@ -41,6 +49,7 @@ def solve_window(document, animation, times, targets, reference):
 
     def endpoints(x):
         v = x.reshape((-1, 6))
+        v = np.stack([np.interp(sampled, t, v[:, i]) for i in range(6)], axis=1)
         ua = g[:, :, 6] + v[:, [2, 4]]
         la = g[:, :, 9] + v[:, [3, 5]]
         rx = np.cos(la)*g[:, :, 12] - np.sin(la)*g[:, :, 13]
@@ -84,8 +93,9 @@ def solve_window(document, animation, times, targets, reference):
                            values=result.x.reshape((-1, 6)).tolist()))
     valid = [r for r in trials if not r['failed_checks']]
     best = min(valid, key=lambda r: r['maximum_error_px']) if valid else None
-    return dict(profile='moving-ankle-window-experiment-v1', selected=False, authority='none',
+    return dict(profile='moving-ankle-window-interpolated-experiment-v2', selected=False, authority='none',
                 status='candidate' if best else 'no_bounded_path_found', times=times,
+                constraint_times=sampled.tolist(),
                 solution=best['values'] if best else None, trials=trials,
                 parameter_units='root_over_reference_then_four_rotation_deltas_in_radians',
-                scope='window_knots_only_requires_full_timeline_interpolation_geometry_runtime_checks')
+                scope='sampled_window_only_requires_full_timeline_geometry_runtime_checks')

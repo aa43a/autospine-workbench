@@ -13,7 +13,7 @@ from autospine_workbench.targets.character43.affine_pose import matrices
 from autospine_workbench.targets.spine43.continuous_pose import interpolate
 
 
-def probe(files, window=False):
+def probe(files, window=False, window_end=None):
     report = json.loads(files['motion-moving-ankles.json'])
     document = json.loads(files['skeleton.json'])
     if report['applied'] or 'failure' not in report:
@@ -45,6 +45,13 @@ def probe(files, window=False):
                 scope='single_frame_counterfactual_not_feasibility_proof_or_timeline_acceptance')
     if window:
         times = [r['time'] for r in report['rows']] + [time]
+        if window_end is not None:
+            if not time <= window_end <= trajectory[-1]['time']:
+                raise ValueError('window_end_outside_source')
+            tracks = document['animations'][animations[0]]['bones']
+            times = sorted({0., window_end} | {r['time'] for r in trajectory if r['time'] < window_end}
+                           | {k.get('time', 0) for row in tracks.values() for keys in row.values()
+                              for k in keys if k.get('time', 0) < window_end})
         feet = [[dict(time=r['time'], vertices=r['targets'][i]) for r in trajectory] for i in (0, 1)]
         result = solve_window(document, animations[0], times,
                              [[interpolate(k, t, 'vertices') for k in feet] for t in times], reference)
@@ -65,7 +72,7 @@ def probe(files, window=False):
                     keys = tracks.get(bone, {}).get('rotate')
                     angle = interpolate(keys, t, 'value') if keys else 0
                     target[bone]['rotate'].append(dict(time=t, value=angle+math.degrees(v[i+2])))
-            samples = sorted(set(times) | {(a+b)/2 for a, b in zip(times, times[1:])})
+            samples = sorted(set(times) | {a+(b-a)*i/8 for a, b in zip(times, times[1:]) for i in range(1, 8)})
             errors = [dict(time=t, side=s, error_px=math.dist(
                 matrices(changed, animations[0], t)['foot_'+s][4:6], interpolate(feet[i], t, 'vertices')))
                 for t in samples for i, s in enumerate(('l', 'r'))]
@@ -80,8 +87,9 @@ if __name__ == '__main__':
     parser.add_argument('output', type=Path)
     parser.add_argument('--state-root', type=Path, default=Path('workspace'))
     parser.add_argument('--window', action='store_true')
+    parser.add_argument('--window-end', type=float)
     args = parser.parse_args()
-    result = probe(AnimatedStore(args.state_root).read(args.artifact), args.window)
+    result = probe(AnimatedStore(args.state_root).read(args.artifact), args.window, args.window_end)
     result['artifact_sha256'] = args.artifact
     with args.output.open('x', encoding='utf-8') as stream:
         json.dump(result, stream, ensure_ascii=False, indent=2)

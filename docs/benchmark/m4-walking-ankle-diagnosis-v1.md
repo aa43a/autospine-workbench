@@ -55,3 +55,22 @@ Receipt: `E:/proj/unusual/localset/tmp/m4-walking-ankle-window-probe-v1.json`.
 19 focused tests pass, including independent FK, continuity bounds, immutable
 inputs, invalid windows and unreachable-window rejection. No production route
 uses the experimental solver yet.
+
+## Interpolation-constrained window
+
+Version 2 constrains quarter-interval samples using actual animated affine
+transforms and linearly interpolated correction parameters. It rejects omitted
+source animation knots instead of silently changing the original base timeline.
+An independent reconstruction checks eighth-interval samples.
+
+The original six-knot window now passes 41 FK samples: worst error
+5.493645678 px, below 5.493700613 px. This is a very small margin and sampled
+evidence only. Receipt: `../tmp/m4-walking-ankle-window-probe-v2.json` relative
+to the repository root.
+
+Extending to 0.15 seconds using all source and target knots still finds no
+bounded path in three seeds; the best trial has 8.075080047 px error and fails
+root displacement, root speed and endpoint checks. No infeasibility proof is
+claimed. Receipt: `../tmp/m4-walking-ankle-window-015-v1.json`. This longer
+experiment must not inherit the short-window pass. Next inspect source body
+translation versus target ankle displacement before expanding root limits.

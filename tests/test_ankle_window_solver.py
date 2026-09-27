@@ -44,3 +44,26 @@ class AnkleWindowTests(unittest.TestCase):
         doc, trajectory = fixture()
         with self.assertRaisesRegex(ValueError, 'input_invalid'):
             solve_window(doc, 'move', [0., 0.], [r['targets'] for r in trajectory], 20)
+
+    def test_missing_original_knot_cannot_silently_change_base_animation(self):
+        doc, trajectory = fixture()
+        doc['animations']['move']['bones']['root']['translate'].insert(1, dict(time=.3, x=1, y=0))
+        with self.assertRaisesRegex(ValueError, 'missing_source_knot'):
+            solve_window(doc, 'move', [0., 1.], [r['targets'] for r in trajectory], 20)
+
+    def test_interpolated_track_checked_with_full_fk(self):
+        doc, trajectory = fixture()
+        report = solve_window(doc, 'move', [0., 1.], [r['targets'] for r in trajectory], 20)
+        self.assertEqual(report['constraint_times'], [0., .25, .5, .75, 1.])
+        values = report['solution']
+        self.assertIsNotNone(values)
+        tracks = doc['animations']['move']['bones']
+        tracks['root']['translate'] = [dict(time=t, x=v[0]*20, y=v[1]*20) for t, v in zip((0., 1.), values)]
+        for i, bone in enumerate(('thigh_l', 'calf_l', 'thigh_r', 'calf_r')):
+            tracks[bone] = dict(rotate=[dict(time=t, value=math.degrees(v[i+2])) for t, v in zip((0., 1.), values)])
+        for n in range(9):
+            t = n/8
+            pose = matrices(doc, 'move', t)
+            for i, side in enumerate(('l', 'r')):
+                p = trajectory[0]['targets'][i]
+                self.assertLessEqual(math.dist(pose['foot_'+side][4:6], [p[0]+.2*t, p[1]+.1*t]), .2)
