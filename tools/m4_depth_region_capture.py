@@ -14,12 +14,12 @@ from autospine_workbench.targets.character43.runtime_storage_reference import bu
 from autospine_workbench.targets.character43.framebuffer_equivalence import compare
 
 
-def prepare(partition, output):
+def prepare(partition, output, source_store=None):
     report = json.loads((partition/'report.json').read_bytes())
     raw = (partition/'skeleton.json').read_bytes()
     if sha256(raw).hexdigest() != report['skeleton_sha256']:
         raise ValueError('partition_skeleton_identity')
-    original = AnimatedStore(Path('workspace')).read(report['source_artifact_sha256'])
+    original = AnimatedStore(source_store or Path('workspace')).read(report['source_artifact_sha256'])
     depth = json.loads(original['motion-depth.json'])
     ticks = sorted({r['tick'] for p in depth['pairs'] for r in p['samples']})
     if not ticks or len(ticks) > 512:
@@ -44,9 +44,9 @@ def prepare(partition, output):
     return captures
 
 
-def run(partition, output):
+def run(partition, output, source_store=None):
     output.mkdir(parents=True, exist_ok=True)
-    captures = prepare(partition, output)
+    captures = prepare(partition, output, source_store)
     options = discover(Path.cwd().parent)
     if not options:
         raise ValueError('official_capture_environment_missing')
@@ -68,5 +68,6 @@ def run(partition, output):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('partition', type=Path); parser.add_argument('output', type=Path)
+    parser.add_argument('--source-store',type=Path,help='Explicit isolated source store; content identity is still verified')
     args = parser.parse_args()
-    run(args.partition, args.output)
+    run(args.partition, args.output, args.source_store)
