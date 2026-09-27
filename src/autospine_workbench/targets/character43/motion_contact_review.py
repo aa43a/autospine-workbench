@@ -29,7 +29,7 @@ REASONS = {'motion_contact_correction_disabled': '本次关闭了自动修正',
            'motion_contact_residual_after_correction': '修正后密集采样仍有滑移'}
 
 
-def render(report):
+def render(report, *, trajectory_detail=''):
     def drift(value):
         return '未测量' if value is None else f'{value:.3f} px'
     rows = []
@@ -81,7 +81,7 @@ td,th{{text-align:left;padding:12px;border-bottom:1px solid #425365}}.scroll{{ov
 <p>比较{source_label}的支撑期内，角色踝部支点相对于该段起点的位移。未测量鞋底、地面碰撞或遮挡。</p>
 <p>阈值：{report['before']['drift_limit_px']:.3f} px（角色腿长的 1%）。区间终点不属于支撑期；同时检查终点前的姿态。</p>
 <p>自动修正：{'已采用' if report['selected'] else '未采用'}。在动作中心关闭支撑修正后重建，可保留未修正版。</p>
-{detail}<ul>{reasons}</ul><div class="scroll"><table><thead><tr><th>支点</th><th>支撑区间</th>
+{detail}{trajectory_detail}<ul>{reasons}</ul><div class="scroll"><table><thead><tr><th>支点</th><th>支撑区间</th>
 <th>原动作最大滑移</th><th>当前候选最大滑移</th><th>采样结论</th><th>时间轴</th></tr></thead>
 <tbody>{''.join(rows)}</tbody></table></div><p><a href="motion-contact.json">完整检查数据</a> ·
 <a href="player.html">播放当前候选</a></p><p>采样检查不等于连续时间或人工视觉验收。</p></main></html>'''

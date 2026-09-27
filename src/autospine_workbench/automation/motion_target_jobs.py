@@ -275,7 +275,8 @@ def review_file(manager, job, parts):
         return render(json.loads(files['motion-depth.json'])), 'text/html; charset=utf-8'
     if parts == ['contact.html']:
         from ..targets.character43.motion_contact_review import render
-        return render(json.loads(files['motion-contact.json'])), 'text/html; charset=utf-8'
+        from ..targets.character43.contact_trajectory_review import render as trajectory
+        return render(json.loads(files['motion-contact.json']), trajectory_detail=trajectory(files)), 'text/html; charset=utf-8'
     if parts == ['readiness.json']:
         from ..targets.character43.motion_readiness import build
         runtime = (json.loads(runtime_file('report.json'))
