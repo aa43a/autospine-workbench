@@ -6,6 +6,25 @@ import {supportReportHTML, supportTotals} from '../modules/motion-support-report
 import {fixture} from './motion-support-fixture.mjs';
 const collect = f => collectSupportSnapshot(f.pack, f.get);
 
+test('nested supplemental depth keeps exact playback identity and historical acceptance', async () => {
+  const f=fixture(),alt=f.addAlternative(),reg=f.addRelated(alt);
+  const entry=f.registry.get(`/api/motions/${alt}/view/related-candidates.json`).rows[0];
+  entry.depth_diagnostics={artifact_sha256:entry.artifact_sha256,audit_sha256:'a'.repeat(64),
+    status:'needs_changes',failures:[{time:0.125,pair:['arm','<cloth>'],reason_code:'visible_depth_straddle'}]};
+  const snapshot=await collect(f),before=JSON.stringify(snapshot),totals=supportTotals(snapshot);
+  const issue=supportExceptions(snapshot).find(r=>r.stage==='补充遮挡诊断');
+  assert.equal(issue.job_id,alt);assert.equal(issue.registration_sha256,reg);
+  assert.equal(issue.kind,'technical');assert.match(issue.reason,/1 条/);
+  const html=supportReportHTML(snapshot,'http://127.0.0.1:8918');
+  assert.ok(html.includes(`/api/motions/${alt}/view/related-candidates/${reg}/player.html?time=0.125`));
+  assert.match(html,/&lt;cloth&gt;/);assert.doesNotMatch(html,/<cloth>/);
+  assert.equal(JSON.stringify(snapshot),before);assert.deepEqual(supportTotals(snapshot),totals);
+  entry.depth_diagnostics.failures=[];
+  const empty=await collect(f);
+  assert.equal(supportExceptions(empty).some(r=>r.stage==='补充遮挡诊断'),false);
+  assert.match(supportReportHTML(empty,'http://127.0.0.1:8918'),/完整遮挡检查仍以技术状态为准/);
+});
+
 test('accepted baseline keeps technical failures, independent candidates retain their own review', async () => {
   const f = fixture(), reg = f.addRelated(), alt = f.addAlternative();
   const state = f.registry.get(`/api/motions/${alt}/stage-review`);

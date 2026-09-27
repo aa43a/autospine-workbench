@@ -11,6 +11,9 @@ export function supportExceptions(snapshot) {
       return;
     }
     const stages = row.review.readiness?.stages || [];
+    const depth = row.evidence?.depth_diagnostics;
+    if (depth?.failures?.length) add('technical', '补充遮挡诊断',
+      `${depth.failures.length} 条来源深度与局部像素重叠冲突；阶段接受不清除，详见候选内时刻定位`);
     for (const stage of stages) {
       if (stage.status !== 'sampled_pass') add(stage.status === 'needs_changes' ? 'technical' : 'evidence',
         stage.stage, stage.explanation || '检查未通过或未完成');

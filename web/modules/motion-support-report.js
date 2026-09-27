@@ -42,6 +42,15 @@ function reviewHTML(row){
     `<p>核对时间 ${escape(row.checked_at)}${row.review_checked_at?`；同证据验收复查 ${escape(row.review_checked_at)}`:''}</p></details>`;
 }
 function link(base,path,label){return `<a href="${escape(base+path)}" target="_blank" rel="noopener">${escape(label)}</a>`;}
+function depthHTML(row,base,path){
+  const depth=row.evidence?.depth_diagnostics;
+  if(row.status!=='verified'||!depth)return '';
+  return `<details><summary>补充遮挡诊断 · ${depth.failures.length} 条冲突</summary>`+
+    '<p>来源深度与局部像素重叠检查，不代表整帧渲染验收；不改写历史检查或阶段结论。</p>'+
+    `<p>诊断证据 ${escape(depth.audit_sha256)}</p>`+
+    (depth.failures.length?'<ul>'+depth.failures.map(r=>`<li>${link(base,path+'?time='+encodeURIComponent(r.time),Number(r.time).toFixed(3)+' 秒')} · ${escape(r.pair.join(' / '))} · ${escape(r.reason_code)}</li>`).join('')+'</ul>':
+      '<p>本诊断未列出冲突，完整遮挡检查仍以技术状态为准。</p>')+'</details>';
+}
 function scopeHTML(snapshot,row){
   const s=sourceScope(snapshot.plan_sha256,row);
   return s?`<p><strong>本次源动作内容：</strong>${escape(s.observed)} ${escape(s.limits)}<br>来自六时刻骨架观察，不是人工验收或完整动作类别证明。</p>`:'';
@@ -55,7 +64,7 @@ function familyHTML(family,kind,job,base,anchor){
     return `<details id="${escape(anchor)}-${i}"><summary>${escape(title)} · ${escape(r.artifact_sha256?.slice(0,12)||r.job_id)}</summary>`+
       `<p>候选 ${escape(r.artifact_sha256)}${r.registration_sha256?'；关联 '+escape(r.registration_sha256):''}</p>`+
       (kind==='policy'?`<p>相对固定候选的策略变化：${escape(JSON.stringify(r.policy_changes))}。独立检查，不参与视角推荐。</p>`:'')+
-      (r.status==='verified'?link(base,path,'打开该候选'):'')+reviewHTML(r)+
+      (r.status==='verified'?link(base,path,'打开该候选'):'')+reviewHTML(r)+depthHTML(r,base,path)+
       (r.source_link?`<p>源区间 ${r.source_link.source_start}–${r.source_link.source_end} 秒；来源 ${escape(r.source_link.source_job_id)}</p>`:'')+
       (kind!=='related'&&r.related?`<h4>此候选的独立改进</h4>${familyHTML(r.related,'related',r.job_id,base,`${anchor}-${i}-related`)}`:'')+'</details>';
   }).join(''):'<p>当前查询未发现独立候选。</p>');
