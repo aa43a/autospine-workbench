@@ -30,5 +30,10 @@ uncertainty from retargeting error; do not widen thresholds to erase the warning
 
 18 focused Python tests passed. The real candidate was rendered to
 `E:/proj/unusual/localset/tmp/m4-reach-contact-comparison-v1.html`, with timeline
-links to the exact workbench candidate. The new server route requires the next
-controlled service reload; browser interaction has not been independently tested.
+links to the exact workbench candidate.
+
+Deployment follow-up: all 174 motion jobs were terminal before the authorized
+8918 service reload. The exact candidate's online `view/contact.html` returned
+HTTP 200 with the comparison heading and 0.000733 px tracking error. Browser
+connection still returned `nodeRepl.fetch request failed`; browser interaction
+has not been independently tested. No gate or stored acceptance changed.
