@@ -74,3 +74,25 @@ root displacement, root speed and endpoint checks. No infeasibility proof is
 claimed. Receipt: `../tmp/m4-walking-ankle-window-015-v1.json`. This longer
 experiment must not inherit the short-window pass. Next inspect source body
 translation versus target ankle displacement before expanding root limits.
+
+## Coordinate and ancestor-channel probe
+
+`tools/m4_ankle_coordinate_probe.py` checks the unchanged input skeleton hash,
+then compares its root translation with the MotionIR translation scaled by
+549.370061307 px and with the declared Y inversion. The maximum discrepancy
+over the union of translation knots is exactly 0 px. This verifies adapter
+translation consistency; it does not prove the upstream source map is correct.
+
+At 0.15 seconds, original foot errors are 78.136976 / 72.085762 px. Removing
+only animated root rotation in a read-only counterfactual reduces them to
+60.946669 / 54.545176 px, but they remain far above the gate. Root rotation alone
+is therefore insufficient as an explanation or repair. Its effect on hip
+position is approximately -68.379 / -70.157 px in X. The target root is at
+(663.4, -1261.7), below the pelvis; source root orientation and target rotation
+center require further analysis. Removing rotation is not an adopted remedy.
+
+Receipt: `E:/proj/unusual/localset/tmp/m4-walking-coordinate-probe-v1.json`.
+The next experiment should preserve source orientation while comparing
+pelvis-centered versus target-root-centered rotation, and independently check
+leg setup-axis mapping. Do not enlarge the local correction budget to conceal
+an upstream representation mismatch.
