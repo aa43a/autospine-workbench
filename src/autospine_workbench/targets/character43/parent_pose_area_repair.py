@@ -26,16 +26,29 @@ def verify_source(parent, candidate, name, slot):
     if slot not in parent['skins'][0]['attachments']:raise ValueError('parent_pose_slot_missing')
 
 
-def solve(context, origin, parent_points, setup_areas):
+def solve(context, origin, parent_points, setup_areas, *, protect_setup=False, local_refinement=False):
     """Keep the parent compression floor without changing fixed vertices or budgets."""
     trial = deepcopy(context)
     trial['minimum_ratios'] = floors(parent_points, trial['row']['triangles'], trial['areas'], setup_areas)
+    protected = []
+    if protect_setup:
+        from .parent_setup_preservation import floors as joint_floors
+        trial['minimum_ratios'], protected = joint_floors(parent_points, trial['row']['triangles'], trial['areas'], setup_areas)
     trial['area_floor_contract'] = CONTRACT
+    from .area_budget_feasibility import inspect as budget_check
+    feasibility = budget_check(trial, origin, trial['minimum_ratios'])
     corrected, evidence = project(trial, origin)
-    return corrected, dict(evidence, parent_floors=trial['minimum_ratios'])
+    if local_refinement and not evidence['converged']:
+        from .local_area_constraints import refine
+        corrected, refinement = refine(trial, origin, corrected, analytic=True, expanded=True, active_tolerance=1e-7)
+        evidence.update(projection_converged=False, refinement=refinement,
+                        converged=refinement['status']=='candidate')
+    return corrected, dict(evidence, parent_floors=trial['minimum_ratios'], setup_protected_triangles=protected,
+                           budget_feasibility=feasibility)
 
 
-def compare(parent, candidate, name, slot, time):
+def compare(parent, candidate, name, slot, time, *, protect_setup=False, local_refinement=False):
+    if local_refinement and not protect_setup:raise ValueError('parent_refinement_requires_joint_floors')
     verify_source(parent, candidate, name, slot)
     keys = [k['time'] for tracks in parent['animations'][name]['bones'].values() for values in tracks.values() for k in values]
     if not math.isfinite(time) or not 0 <= time <= max(keys):raise ValueError('parent_pose_time_invalid')
@@ -64,6 +77,7 @@ def compare(parent, candidate, name, slot, time):
             compressed_parent_regressions=regressed,
             movable_compression_regressions=[i for i in regressed if any(context['free'][v] for v in triangles[i])],
             fixed_compression_regressions=[i for i in regressed if not any(context['free'][v] for v in triangles[i])],
+            newly_failed_healthy=[i for i,(r,p) in enumerate(zip(ratios,parent_ratios)) if .5<=p<=2 and not .5<=r<=2],
             maximum_edge_ratio=max(math.dist(points[a],points[b])/l for (a,b),l in zip(edges,context['lengths'])),
             maximum_shift=max(math.dist(a,b) for a,b in zip(points,origin)),
             fixed_shift=max([math.dist(a,b) for a,b,f in zip(points,origin,context['free']) if not f] or [0]),
@@ -72,7 +86,7 @@ def compare(parent, candidate, name, slot, time):
     corrected, solver = solve(context, origin, previous, areas)
     solver['floor_failures'] = [i for i,(t,r,f) in enumerate(zip(triangles,refs,solver['parent_floors']))
                                 if area(corrected,t)/r < f-1e-7]
-    return dict(profile='parent-pose-area-repair-v1-experiment', time=time, slot=slot,
+    result = dict(profile='parent-pose-area-repair-v1-experiment', time=time, slot=slot,
         parent_sha256=sha256(canonical_bytes(parent)).hexdigest(),
         candidate_sha256=sha256(canonical_bytes(candidate)).hexdigest(), budget_px=context['budget'],
         parent=metrics(previous), transverse=metrics(origin),
@@ -81,3 +95,10 @@ def compare(parent, candidate, name, slot, time):
         points=dict(parent=previous, transverse=origin, projected_only=baseline, parent_floor=corrected),
         triangles=triangles, selected=False, authority='none',
         scope='single_pose_cpu_experiment_not_continuous_or_runtime_acceptance')
+    if protect_setup:
+        joint, joint_solver = solve(context, origin, previous, areas, protect_setup=True, local_refinement=local_refinement)
+        joint_solver['floor_failures'] = [i for i,(t,r,f) in enumerate(zip(triangles,refs,joint_solver['parent_floors']))
+                                          if area(joint,t)/r < f-1e-7]
+        result['parent_setup_floor'] = dict(metrics(joint), solver=joint_solver)
+        result['points']['parent_setup_floor'] = joint
+    return result

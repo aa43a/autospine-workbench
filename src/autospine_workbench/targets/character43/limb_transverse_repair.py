@@ -1,7 +1,8 @@
 """Remove inherited transverse shear from selected limb skins, not bone motion.
 
 The axial projection and signed area of every individual influence stay intact.
-Existing local corrections are added unchanged. Mixed weights still require QA.
+Existing local corrections default to unchanged; opt-in transport moves the
+corrected surface through the new frame. Mixed weights still require QA.
 """
 from copy import deepcopy
 import math
@@ -94,7 +95,7 @@ def prepare(document, name, slots, maximum_keys=2049):
     return rows, previous, used, times, baseline
 
 
-def build(document, name, slots, *, tolerance_px=.05, maximum_keys=2049, on_progress=None):
+def build(document, name, slots, *, tolerance_px=.05, maximum_keys=2049, on_progress=None, correction_frame='world', required_times=()):
     """Bake additive rest-surface compensation with quarter-interval error checks.
 
     Axial shortening is deliberately not clamped and the geometry gate is not
@@ -102,7 +103,13 @@ def build(document, name, slots, *, tolerance_px=.05, maximum_keys=2049, on_prog
     """
     if not math.isfinite(tolerance_px) or not 0 < tolerance_px <= .1:
         raise ValueError('limb_transverse_options_invalid')
+    if correction_frame not in ('world','transverse'):
+        raise ValueError('limb_transverse_correction_frame_invalid')
     rows, previous, used, times, baseline = prepare(document, name, slots, maximum_keys)
+    if any(not math.isfinite(t) or not 0<=t<=max(times) for t in required_times):
+        raise ValueError('limb_transverse_required_times_invalid')
+    times |= set(required_times)
+    if len(times)>maximum_keys:raise ValueError('limb_transverse_key_limit')
     cache = {}
 
     def at(time):
@@ -121,8 +128,12 @@ def build(document, name, slots, *, tolerance_px=.05, maximum_keys=2049, on_prog
                 for row in rows[slot]:
                     dx = dy = 0.
                     for bone, y, weight in row:
-                        shift = (baseline[bone][0]-frames[bone][0])*y if weight > 0 else 0.
                         px, py = old[j:j+2] if old else (0., 0.)
+                        # The opt-in mode transforms the already corrected surface
+                        # through the same determinant-one shear as the bind surface.
+                        # Single-bone triangles then retain their parent signed area.
+                        ordinate = y+py if correction_frame == 'transverse' else y
+                        shift = (baseline[bone][0]-frames[bone][0])*ordinate if weight > 0 else 0.
                         values.extend((px+shift, py)); j += 2
                         if weight > 0:
                             a, _, c, _, _, _ = transforms[bone]
@@ -176,4 +187,11 @@ def build(document, name, slots, *, tolerance_px=.05, maximum_keys=2049, on_prog
                     'existing_corrective_offsets_retained', 'axial_projection_not_clamped'],
         limitations=['mixed_weight_geometry_requires_recheck', 'depth_and_contact_require_recheck',
                      'no_side_back_artwork_or_3d_twist_reconstruction', 'sampled_interpolation_only'])
+    if correction_frame == 'transverse':
+        report['profile'] = 'limb-transverse-corrected-surface-v1-experiment'
+        report['invariants'].remove('existing_corrective_offsets_retained')
+        report['invariants'].append('existing_corrected_surface_transported')
+        report['limitations'].append('previous_world_space_contact_corrections_require_recheck')
+    report['correction_frame'] = correction_frame
+    report['required_times'] = sorted(set(required_times))
     return result, report

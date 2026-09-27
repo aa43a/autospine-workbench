@@ -9,7 +9,7 @@ from autospine_workbench.targets.character43.limb_transverse_repair import build
 from autospine_workbench.targets.character43.parent_pose_area_repair import compare
 
 
-def run(state_root, artifact, slot, times, output, regressions=None):
+def run(state_root, artifact, slot, times, output, regressions=None, protect_setup=False, correction_frame='world', local_refinement=False, exact_poses=False):
     source=None
     if regressions is not None:
         raw=regressions.read_bytes();report=json.loads(raw)
@@ -19,14 +19,17 @@ def run(state_root, artifact, slot, times, output, regressions=None):
         source=dict(sha256=sha256(raw).hexdigest(),selection='all_movable_regression_worst_times')
     if not times:raise ValueError('parent_probe_times_required')
     parent=json.loads(AnimatedStore(state_root).read(artifact)['skeleton.json'])
-    candidate,_=build(parent,'external-motion',[slot])
+    candidate,compensation=build(parent,'external-motion',[slot],correction_frame=correction_frame,
+                                  required_times=times if exact_poses else ())
     rows=[]
     for time in times:
-        row=compare(parent,candidate,'external-motion',slot,time);rows.append(row)
+        row=compare(parent,candidate,'external-motion',slot,time,protect_setup=protect_setup,local_refinement=local_refinement);rows.append(row)
+        policies=('parent','transverse','projected_only','parent_floor')+(('parent_setup_floor',) if protect_setup else ())
         print(json.dumps(dict(time=time,results={key:{k:len(v) if isinstance(v,list) else v for k,v in row[key].items()
-            if k not in ('setup_ratios','solver')} for key in ('parent','transverse','projected_only','parent_floor')})),flush=True)
+            if k not in ('setup_ratios','solver')} for key in policies})),flush=True)
     with output.open('xb') as handle:
         handle.write(canonical_bytes(dict(parent_artifact_sha256=artifact,rows=rows,regression_source=source,
+            compensation=compensation,
             authority='none',selected=False,scope='selected_counterexample_poses_only')))
 
 
@@ -36,4 +39,8 @@ if __name__=='__main__':
     parser.add_argument('output',type=Path)
     group=parser.add_mutually_exclusive_group(required=True)
     group.add_argument('--times',nargs='+',type=float);group.add_argument('--regressions',type=Path)
-    args=parser.parse_args();run(args.state_root,args.artifact,args.slot,args.times,args.output,args.regressions)
+    parser.add_argument('--protect-setup',action='store_true')
+    parser.add_argument('--correction-frame',choices=('world','transverse'),default='world')
+    parser.add_argument('--local-refinement',action='store_true')
+    parser.add_argument('--exact-poses',action='store_true')
+    args=parser.parse_args();run(args.state_root,args.artifact,args.slot,args.times,args.output,args.regressions,args.protect_setup,args.correction_frame,args.local_refinement,args.exact_poses)

@@ -21,6 +21,29 @@ def fixture():
 
 
 class LimbTransverseRepairTests(unittest.TestCase):
+    def test_transports_nonuniform_prior_correction_with_same_bone_area(self):
+        doc=fixture()
+        doc['animations']['motion']['attachments']={'default':{'leg':{'leg':{'deform':[
+            dict(time=0,vertices=[0.,0.,0.,0.,0.,0.]),
+            dict(time=1,vertices=[1.,2.,-2.,4.,3.,-1.])]}}}}
+        original=deepcopy(doc)
+        result,report=build(doc,'motion',['leg'],correction_frame='transverse',tolerance_px=.001,required_times=[.371,.5])
+        self.assertEqual(doc,original)
+        self.assertEqual(result['bones'],doc['bones']);self.assertEqual(result['skins'],doc['skins'])
+        for time in (0,.371,.5,1):
+            before=sample(doc,'motion',time)[0];after=sample(result,'motion',time)[0]
+            self.assertAlmostEqual(area(before['leg'],[0,1,2]),area(after['leg'],[0,1,2]),places=8)
+            self.assertEqual(before['other'],after['other'])
+        self.assertEqual(report['correction_frame'],'transverse')
+        self.assertNotIn('existing_corrective_offsets_retained',report['invariants'])
+        self.assertFalse(report['selected'])
+        self.assertIn(.371,[k['time'] for k in result['animations']['motion']['attachments']['default']['leg']['leg']['deform']])
+        for times in ([-1],[2],[float('nan')]):
+            with self.assertRaisesRegex(ValueError,'required_times_invalid'):
+                build(doc,'motion',['leg'],required_times=times)
+        with self.assertRaisesRegex(ValueError,'correction_frame_invalid'):
+            build(doc,'motion',['leg'],correction_frame='unknown')
+
     def test_removes_shear_without_changing_axes_area_width_or_other_slots(self):
         doc = fixture(); source = deepcopy(doc)
         result, report = build(doc, 'motion', ['leg'], tolerance_px=.001)
