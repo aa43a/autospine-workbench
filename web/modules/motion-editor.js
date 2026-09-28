@@ -6,16 +6,18 @@ import {createLiveCharacter} from './motion-editor-live.js';
 import {createEditorIntake} from './motion-editor-intake.js';
 import {createEditorResult} from './motion-editor-result.js';
 import {SAMPLING_PROFILE} from './motion-camera-sampling.js';
+import {PROJECTED_SAMPLING_PROFILE} from './motion-projected-camera-sampling.js';
 import {createEditHistory} from './motion-editor-history.js';
 const $=id=>document.getElementById(id);
 const get=async url=>{const r=await fetch(url);if(!r.ok)throw Error(`读取失败 (${r.status})`);return r.json();};
 let keys=[{time:0,yaw:0}],fixed=0,sourceToken=0,projectToken=0,duration=0,lastYaw=null,lastTime=null,override=null;
 let characterJob=null,loadedSource=null,sourceData=null,resultView=null;
 const history=createEditHistory();
-const editState=()=>({keys,fixed,override,adaptive:$('adaptive-camera').checked});
+const editState=()=>({keys,fixed,override,adaptive:$('adaptive-camera').checked,version:$('sampling-version').value});
 function historyControls(){$('undo-edit').disabled=!history.canUndo;$('redo-edit').disabled=!history.canRedo;}
 function remember(){history.record(editState());historyControls();}
 function restoreEdit(value){if(!value)return;({keys,fixed,override}=value);$('adaptive-camera').checked=value.adaptive;
+  $('sampling-version').value=value.version;
   const time=Number($('time').value),yaw=override??(keys.length>1?sampleYaw(keys,time):fixed);
   lastYaw=yaw;player.setView(yaw);$('yaw-value').value=yaw;$('yaw').value=((yaw%360)+360)%360;
   $('surface').textContent=yawSurfaceWarning(yaw);
@@ -24,7 +26,9 @@ $('undo-edit').onclick=()=>restoreEdit(history.undo(editState()));
 $('redo-edit').onclick=()=>restoreEdit(history.redo(editState()));
 const live=createLiveCharacter($('character-canvas'),$('character-status'));
 const currentKeys=()=>override!==null?[{time:0,yaw:override}]:keys.length>1?keys:[{time:0,yaw:fixed}];
-const sampling=()=>{const track=currentKeys();return $('adaptive-camera').checked&&(Math.abs(track[0].yaw)>90||track.some(k=>k.yaw!==track[0].yaw))?SAMPLING_PROFILE:null;};
+const sampling=()=>{const track=currentKeys();if(!$('adaptive-camera').checked)return null;
+  if($('sampling-version').value===PROJECTED_SAMPLING_PROFILE)return PROJECTED_SAMPLING_PROFILE;
+  return Math.abs(track[0].yaw)>90||track.some(k=>k.yaw!==track[0].yaw)?SAMPLING_PROFILE:null;};
 const seekLive=time=>live.seek(time,currentKeys(),sampling());
 const player=createSourcePlayer($('source-canvas'),$('time'),$('play'),$('clock'),time=>{
   if(time!==lastTime){override=null;lastTime=time;}
@@ -60,6 +64,7 @@ $('clear-keys').onclick=()=>{const value=Number($('yaw-value').value);if(!Number
   remember();
   fixed=value;keys=[{time:0,yaw:fixed}];override=null;keySummary();seekLive(Number($('time').value));resultView?.seek(Number($('time').value));};
 $('adaptive-camera').onchange=()=>{seekLive(Number($('time').value));resultView?.seek(Number($('time').value));};
+$('sampling-version').onchange=()=>{seekLive(Number($('time').value));resultView?.seek(Number($('time').value));};
 $('source').onchange=async()=>{
   const token=++sourceToken,id=$('source').value;player.clear();duration=0;
   loadedSource=null;sourceData=null;resultView?.seek(0);
@@ -121,6 +126,7 @@ resultView=createEditorResult({canvas:$('result-canvas'),status:$('result-status
     const initialSource=sourceToken;$('project').value=job.project_id;await loadProject(job.character_job_id);
     if(!current()||sourceToken!==initialSource||characterJob!==job.character_job_id||$('project').value!==job.project_id)throw Error('选择已变化或角色版本加载失败，停止恢复');
     keys=validateYawTrack(track,duration);fixed=keys[0].yaw;override=null;lastYaw=null;lastTime=null;$('adaptive-camera').checked=Boolean(job.result.projection.sampling_profile);
+    $('sampling-version').value=job.result.projection.sampling_profile||SAMPLING_PROFILE;
     $('yaw-value').value=fixed;$('yaw').value=((fixed%360)+360)%360;keySummary();player.seek(0);
   }});
 createEditorBuild({snapshot,inspect(job){$('result-viewport').hidden=false;document.querySelector('.canvases').append($('result-viewport'));void resultView.load(job);document.querySelector('.canvases').scrollIntoView({block:'start'});}});
@@ -133,7 +139,8 @@ createEditorDraftControls({snapshot,
     if(tokens[0]!==sourceToken||tokens[1]!==projectToken)throw Error('选择已变化，请重试恢复草稿');
     const value=matchEditorDraft(draft,{...current,character_job_id:target.job?.job_id});
     remember();
-    keys=value.keys;fixed=keys[0].yaw;override=null;lastYaw=null;lastTime=null;$('adaptive-camera').checked=Boolean(value.sampling_profile);player.seek(value.time);
+    keys=value.keys;fixed=keys[0].yaw;override=null;lastYaw=null;lastTime=null;$('adaptive-camera').checked=Boolean(value.sampling_profile);
+    $('sampling-version').value=value.sampling_profile||SAMPLING_PROFILE;player.seek(value.time);
     const yaw=sampleYaw(keys,value.time);$('yaw-value').value=yaw;$('yaw').value=((yaw%360)+360)%360;keySummary();
     $('status').textContent='草稿已恢复，角色版本和源动作一致。';
   },status:text=>{$('status').textContent=text;},

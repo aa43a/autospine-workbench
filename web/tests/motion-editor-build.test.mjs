@@ -3,6 +3,14 @@ import assert from 'node:assert/strict';
 import {fixedBuildRequest,editorBuildRequest} from '../modules/motion-editor-build.js';
 const draft=()=>({schema:'autospine.motion-editor-draft/v1',project_id:'alice',character_job_id:'job-1',source_id:'motion-1',
   duration:2,time:1,keys:[{time:0,yaw:45}]});
+
+test('projected grid remains explicit even for a fixed camera',()=>{
+  const profile='camera-world-projected-adaptive-v2';
+  const body=editorBuildRequest({...draft(),sampling_profile:profile});
+  assert.equal(body.projection.sampling_profile,profile);
+  assert.equal(body.projection.profile,'continuous-yaw-source-camera-v1');
+  assert.equal(body.contact_correction,false);
+});
 test('fixed build freezes exact character and shared source camera profile',()=>{
   const body=fixedBuildRequest(draft());assert.equal(body.character_job_id,'job-1');assert.equal(body.projection.yaw_degrees,45);
   assert.equal(body.pose_profile,'constant-view-absolute-pose-hip-center-v1-experiment');assert.equal(body.clip,null);

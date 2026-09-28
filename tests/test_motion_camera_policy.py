@@ -13,6 +13,10 @@ def request():
 
 
 class CameraPolicyTests(unittest.TestCase):
+    def test_projected_version_is_explicit_and_preserved(self):
+        from autospine_workbench.targets.character43.projected_camera_sampling import PROFILE as PROJECTED
+        body=request();body['projection']['sampling_profile']=PROJECTED;before=deepcopy(body)
+        self.assertEqual(select(body,2),PROFILE);self.assertEqual(body,before)
     def test_profiles_and_complete_track_are_required(self):
         self.assertEqual(select(request(),2),PROFILE)
         for change in ({'contact_correction':True},{'moving_ankle_profile':'moving-source-ankle-timeline-v1'},

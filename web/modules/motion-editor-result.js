@@ -9,7 +9,8 @@ export function resultTrack(job,link){
   const keys=p?.profile==='continuous-yaw-source-camera-v1'?p.keys:
     p?.profile==='constant-yaw-source-motion-v1'?[{time:0,yaw:p.yaw_degrees}]:null;
   if(!keys)throw Error('此候选没有编辑页支持的角度轨道');
-  return validateYawTrack(keys,link.duration);
+  // Source metadata uses rational frame duration; editor keys use MotionIR microseconds.
+  return validateYawTrack(keys,Math.round(link.duration*1e6)/1e6);
 }
 export function resultMatch(job,link,source,identity,keys,track){
   if(identity.project_id!==job.project_id||identity.character_job_id!==job.character_job_id||identity.source_id!==link.source_job_id

@@ -1,12 +1,13 @@
 import {validateYawTrack} from './motion-yaw-track.js';
 import {SAMPLING_PROFILE} from './motion-camera-sampling.js';
+import {PROJECTED_SAMPLING_PROFILE} from './motion-projected-camera-sampling.js';
 export const DRAFT_SCHEMA='autospine.motion-editor-draft/v1';
 export const DRAFT_STORAGE='autospine.motion-editor.draft.v1';
 export function validateEditorDraft(value){
   if(!value||value.schema!==DRAFT_SCHEMA)throw Error('不是受支持的动作编辑草稿');
   const fields=['character_job_id','duration','keys','project_id','schema','source_id','time'];
   if(Object.hasOwn(value,'sampling_profile')){
-    fields.push('sampling_profile');if(value.sampling_profile!==SAMPLING_PROFILE)throw Error('草稿采样版本不支持');
+    fields.push('sampling_profile');if(![SAMPLING_PROFILE,PROJECTED_SAMPLING_PROFILE].includes(value.sampling_profile))throw Error('草稿采样版本不支持');
   }
   if(Object.keys(value).sort().join(',')!==fields.sort().join(','))throw Error('草稿字段不完整或不受支持');
   for(const key of ['character_job_id','project_id','source_id'])

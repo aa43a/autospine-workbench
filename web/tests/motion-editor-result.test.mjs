@@ -6,6 +6,13 @@ const job={kind:'adapt',status:'succeeded',job_id:'target',project_id:'alice',ch
 const link={target_job_id:'target',artifact_sha256:'artifact',clip:null,duration:1,source_job_id:'source',source_sha256:'raw',motion_identity:{clip_sha256:'clip',bundle_sha256:'bundle'}};
 const source={source_sha256:'raw',motion_identity:{...link.motion_identity}};
 const identity={project_id:'alice',character_job_id:'character',source_id:'source'};
+
+test('last frame rational time agrees with MotionIR microsecond keys',()=>{
+  const candidate=structuredClone(job);candidate.result.projection.keys=[{time:0,yaw:0},{time:.966667,yaw:360}];
+  assert.deepEqual(resultTrack(candidate,{...link,duration:29/30}),candidate.result.projection.keys);
+  candidate.result.projection.keys[1].time=.966668;
+  assert.throws(()=>resultTrack(candidate,{...link,duration:29/30}));
+});
 test('exact result retains full turn and rejects unbound or cropped candidates',()=>{
   assert.deepEqual(resultTrack(job,link),keys);
   assert.throws(()=>resultTrack(job,{...link,artifact_sha256:'other'}));

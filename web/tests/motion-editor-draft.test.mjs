@@ -10,6 +10,8 @@ test('round trip preserves turns and detaches mutable keys',()=>{
 test('sampling version is retained; old drafts stay unchanged',()=>{
   const value={...draft(),sampling_profile:'camera-world-linear-adaptive-v1'};
   assert.deepEqual(validateEditorDraft(value),value);
+  const projected={...value,sampling_profile:'camera-world-projected-adaptive-v2'};
+  assert.deepEqual(matchEditorDraft(JSON.parse(JSON.stringify(projected)),value),projected);
   assert.equal(validateEditorDraft(draft()).sampling_profile,undefined);
   assert.throws(()=>validateEditorDraft({...value,sampling_profile:'future'}));
 });

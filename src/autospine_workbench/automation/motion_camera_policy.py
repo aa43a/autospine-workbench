@@ -12,7 +12,8 @@ def select(body, duration=None):
         raise PipelineRunError('motion_camera_projection_invalid')
     if 'sampling_profile' in projection:
         from ..targets.character43.camera_sampling import PROFILE as SAMPLING
-        if projection['sampling_profile']!=SAMPLING:raise PipelineRunError('camera_sampling_profile_unsupported')
+        from ..targets.character43.projected_camera_sampling import PROFILE as PROJECTED
+        if projection['sampling_profile'] not in (SAMPLING,PROJECTED):raise PipelineRunError('camera_sampling_profile_unsupported')
     if (body.get('pose_profile')!=PROFILE or body.get('moving_ankle_profile')!=ANKLE_PROFILE
             or body.get('contact_correction',True) is not False):
         raise PipelineRunError('motion_camera_profiles_must_match')

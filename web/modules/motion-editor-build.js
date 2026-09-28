@@ -18,7 +18,7 @@ export function fixedBuildRequest(draft){
 }
 export function editorBuildRequest(draft){
   const value=validateEditorDraft(draft),yaw=value.keys[0].yaw;
-  if(Math.abs(yaw)<=90&&value.keys.every(k=>k.yaw===yaw))return fixedBuildRequest(value);
+  if(value.sampling_profile!=='camera-world-projected-adaptive-v2'&&Math.abs(yaw)<=90&&value.keys.every(k=>k.yaw===yaw))return fixedBuildRequest(value);
   return {project_id:value.project_id,character_job_id:value.character_job_id,contact_correction:false,
     projection:{profile:'continuous-yaw-source-camera-v1',keys:value.keys.map(k=>({...k})),
       ...(value.sampling_profile?{sampling_profile:value.sampling_profile}:{})},

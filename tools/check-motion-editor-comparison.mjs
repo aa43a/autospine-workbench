@@ -12,9 +12,17 @@ try{
   await editor.goto(`http://127.0.0.1:8918/motion-editor.html#${id}`);
   const job=await (await editor.request.get(`http://127.0.0.1:8918/api/motions/${id}`)).json();
   await editor.getByText('在编辑区对照导出结果',{exact:true}).click();
-  await editor.waitForFunction(()=>!document.querySelector('#restore-result').disabled,{},{timeout:60000});
+  try{await editor.waitForFunction(()=>!document.querySelector('#restore-result').disabled,{},{timeout:60000});}
+  catch(e){await fs.writeFile(path.join(output,'failure.json'),JSON.stringify({errors,status:await editor.locator('#result-status').innerText()},null,2));throw e;}
   await editor.click('#restore-result');
   await editor.waitForFunction(()=>window.motionEditorResultState?.status==='matching',{},{timeout:60000});
+  if(job.result.projection.sampling_profile==='camera-world-projected-adaptive-v2'){
+    assert.equal(await editor.locator('#sampling-version').inputValue(),job.result.projection.sampling_profile);
+    await editor.click('#save-draft');await editor.selectOption('#sampling-version','camera-world-linear-adaptive-v1');
+    await editor.click('#restore-draft');
+    await editor.waitForFunction(()=>document.querySelector('#sampling-version').value==='camera-world-projected-adaptive-v2');
+    await editor.waitForFunction(()=>window.motionEditorResultState?.status==='matching');
+  }
   assert.equal(await editor.evaluate(()=>{
     const a=document.querySelector('#character-canvas'),b=document.querySelector('#result-canvas');
     return a.width===b.width&&a.height===b.height;

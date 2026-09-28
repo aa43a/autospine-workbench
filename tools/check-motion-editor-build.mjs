@@ -13,7 +13,8 @@ try{
   await page.waitForFunction(()=>document.querySelectorAll('#source option').length>1&&document.querySelectorAll('#project option').length>1);
   await page.selectOption('#project',project);await page.selectOption('#source',source||(mode==='adaptive-fast'?'motion-6fabae462531459ab74cdce05334d604':'motion-2671c6fdbc10444592420e6f8f4ad838'));
   await page.waitForFunction(()=>window.motionEditorPreviewState?.status==='raw_preview');
-  if(mode==='dynamic'||mode==='adaptive-fast'){
+  if(mode==='projected')await page.selectOption('#sampling-version','camera-world-projected-adaptive-v2');
+  if(mode==='dynamic'||mode==='adaptive-fast'||mode==='projected'){
     await page.locator('#time').evaluate((el,mode)=>{el.value=mode==='adaptive-fast'?.2:el.max;el.dispatchEvent(new Event('input'));},mode);
     await page.fill('#yaw-value','360');await page.locator('#yaw-value').dispatchEvent('change');await page.click('#key');
     await page.waitForFunction(()=>window.motionEditorPreviewState?.keys.length===2);
@@ -26,10 +27,11 @@ try{
   await page.click('#build');const submitted=await response;
   assert.equal(submitted.status(),202);const job=await submitted.json();
   const body=submitted.request().postDataJSON();
-  if(mode==='dynamic'||mode==='adaptive-fast'){
+  if(mode==='dynamic'||mode==='adaptive-fast'||mode==='projected'){
     assert.equal(body.projection.profile,'continuous-yaw-source-camera-v1');
     assert.equal(body.projection.keys.at(-1).yaw,360);assert.equal(body.contact_correction,false);
     if(mode==='adaptive-fast')assert.equal(body.projection.sampling_profile,'camera-world-linear-adaptive-v1');
+    if(mode==='projected')assert.equal(body.projection.sampling_profile,'camera-world-projected-adaptive-v2');
   }
   await fs.writeFile(path.join(output,'request.json'),JSON.stringify(body,null,2));
   await fs.writeFile(path.join(output,'submitted.json'),JSON.stringify(job,null,2));
