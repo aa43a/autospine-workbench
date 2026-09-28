@@ -5,6 +5,16 @@ from autospine_workbench.targets.character43.mesh_pair_depth import compare
 
 
 class MeshPairPixelDepthTests(unittest.TestCase):
+    def test_pixel_locations_match_counts_and_callback_cannot_change_classification(self):
+        doc,files=fixture();observations=[]
+        def capture(rect,masks):
+            observations.append((rect,{k:int(v.sum()) for k,v in masks.items()}))
+            for mask in masks.values():mask[:]=False
+        result=compare(Probe(doc,files,'test',tiled=True,sparse=True),'a','b',0,
+            [[1,1]]*4,[[0,0]]*4,pixelwise=True,on_pixels=capture)
+        self.assertEqual(sum(c['front'] for _,c in observations),result['counts']['front'])
+        self.assertEqual(result['status'],'uniform_front_proxy')
+
     def test_parallel_depth_gradients_resolve_coarse_false_ambiguity(self):
         doc,files=fixture();a=[[v,v] for v in (0,1,1,0)];b=[[v-.1,v-.1] for v in (0,1,1,0)]
         coarse=compare(Probe(doc,files,'test'),'a','b',0,a,b)

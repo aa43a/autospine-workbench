@@ -48,7 +48,7 @@ def _field(probe,name,time,rect,intervals,*,pixelwise=False):
     return low,high,unknown,covered,intrinsic_width
 
 
-def compare(probe,a,b,time,a_intervals,b_intervals,*,margin=.02,on_triangle=None,pixelwise=False):
+def compare(probe,a,b,time,a_intervals,b_intervals,*,margin=.02,on_triangle=None,pixelwise=False,on_pixels=None):
     if type(pixelwise) is not bool:raise ValueError('pair_depth_sampling_invalid')
     if not math.isfinite(margin) or margin<=0: raise ValueError('pair_depth_margin_invalid')
     pair=probe.pair(a,b,time)
@@ -64,7 +64,8 @@ def compare(probe,a,b,time,a_intervals,b_intervals,*,margin=.02,on_triangle=None
         counts={k:0 for k in ('front','back','unknown','ambiguous')};unknown_support={a:0,b:0};causes={}
         for tile in pair['tiles']:
             if not tile['overlap_pixels']:continue
-            part=compare(TileProbe(probe,tile),a,b,time,a_intervals,b_intervals,margin=margin,on_triangle=on_triangle,pixelwise=pixelwise)
+            part=compare(TileProbe(probe,tile),a,b,time,a_intervals,b_intervals,margin=margin,
+                         on_triangle=on_triangle,pixelwise=pixelwise,on_pixels=on_pixels)
             for k,v in part['counts'].items():counts[k]+=v
             for k,v in part['unknown_support'].items():unknown_support[k]+=v
             for k,v in part.get('ambiguity_sources',{}).items():causes[k]=causes.get(k,0)+v
@@ -79,6 +80,9 @@ def compare(probe,a,b,time,a_intervals,b_intervals,*,margin=.02,on_triangle=None
     unknown=common&(au|bu); known=common&~unknown
     front=known&(al>bh+margin); back=known&(ah<bl-margin)
     ambiguous=known&~front&~back
+    if on_pixels is not None:
+        on_pixels(list(pair['roi']),{k:v.copy() for k,v in
+            dict(front=front,back=back,unknown=unknown,ambiguous=ambiguous).items()})
     if pixelwise:
         from .depth_ambiguity_sources import inspect
         result['ambiguity_sources']=inspect(ambiguous,al,ah,aw,bl,bh,bw)
