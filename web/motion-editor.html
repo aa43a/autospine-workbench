@@ -1,0 +1,10 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AutoSpine · 角色动作编辑</title><link rel="stylesheet" href="/motion-editor.css"></head>
+<body><header><a href="/">AutoSpine</a><h1>角色动作编辑</h1><a href="/motions.html">动作库与 Kimodo 生成</a></header>
+<main><section class="selection" aria-label="角色与动作"><label>已绑定角色<select id="project"><option value="">选择角色</option></select></label><label>源动作<select id="source"><option value="">选择已解析动作</option></select></label><button id="refresh">刷新动作库</button></section>
+<p id="status" role="status" aria-live="polite">正在读取角色与动作…</p>
+<section class="selection" aria-label="编辑草稿"><button id="save-draft">保存草稿</button><button id="restore-draft">恢复草稿</button><button id="download-draft">下载草稿</button><label>导入草稿<input id="import-draft" type="file" accept="application/json,.json"></label></section>
+<div class="canvases"><section><h2>源骨架 · 水平观察角</h2><canvas id="source-canvas" width="820" height="640" aria-label="源骨架投影"></canvas></section><section><h2>已绑定角色 · 参考</h2><p id="character-status">选择角色后加载已保存候选。</p><iframe id="character" title="已绑定角色参考" hidden></iframe></section></div>
+<section class="transport" aria-label="动作时间轴"><button id="play" disabled>播放</button><input id="time" aria-label="动作时间" type="range" min="0" max="1" step="0.001" value="0" disabled><output id="clock">0.00 秒</output></section>
+<section class="angle" aria-label="水平角度"><label>水平角度<input id="yaw" type="range" min="0" max="360" step="1" value="0"></label><label>连续角度 / °<input id="yaw-value" type="number" min="-3600" max="3600" step="1" value="0"></label><button id="key" disabled>在当前时间记录角度</button><button id="clear-keys" disabled>恢复固定角度</button><p id="surface"></p><p id="keys">固定角度 0°</p></section>
+<p class="notice">当前切片：源骨架可实时水平旋转，角度关键帧可随时间播放；右侧是已绑定角色参考，尚未将新角度实时映射为角色贴图动画。新角度烘焙与导出接入后才可输出。</p>
+</main><script type="module" src="/modules/motion-editor.js"></script></body></html>

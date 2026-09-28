@@ -1,4 +1,5 @@
-export function createSourcePlayer(canvas, slider, button, label, onTime = () => {}) {
+export function createSourcePlayer(canvas, slider, button, label, onTime = () => {}, {maxYaw=90}={}) {
+  if(![90,3600].includes(maxYaw))throw Error('source_yaw_limit_invalid');
   const ctx = canvas.getContext('2d');
   let data = null, playing = false, previous = 0, elapsed = 0, handle = null;
   let bounds = [0, 0, 1, 1];
@@ -78,7 +79,7 @@ export function createSourcePlayer(canvas, slider, button, label, onTime = () =>
   return {
     setView(value) {
       if (![null, 'front', 'side'].includes(value)
-          && !(typeof value === 'number' && Number.isFinite(value) && Math.abs(value) <= 90))
+          && !(typeof value === 'number' && Number.isFinite(value) && Math.abs(value) <= maxYaw))
         throw Error('source_view_invalid');
       view = value;
       if (data) { fitBounds(); draw(); }
