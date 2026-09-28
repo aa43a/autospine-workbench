@@ -10,7 +10,7 @@ PROFILE = 'continuous-camera-ankle-displacement-v1'
 
 def extract(bundle, keys, *, sampling_profile=None):
     source = source_ankles(bundle)
-    _, roots, reference = source_vectors(bundle)
+    vectors, roots, reference = source_vectors(bundle)
     times = source['times']; duration = bundle.motion['duration_ticks']/bundle.motion['ticks_per_second']
     keys = validate(keys, duration)
     if (times[-1] != duration or len(roots) != len(times)
@@ -20,8 +20,10 @@ def extract(bundle, keys, *, sampling_profile=None):
     relative = [[tuple(v-p for v,p in zip(point,pivot)) for point in frame] for frame in source['points']]
     if sampling_profile is not None:
         from .camera_sampling import PROFILE as SAMPLING,schedule,interpolate
-        if sampling_profile!=SAMPLING:raise ValueError('camera_sampling_profile_unsupported')
-        wanted=schedule(times,keys,duration);relative=interpolate(relative,times,wanted);times=wanted
+        from .projected_camera_sampling import PROFILE as PROJECTED,refine
+        if sampling_profile not in (SAMPLING,PROJECTED):raise ValueError('camera_sampling_profile_unsupported')
+        wanted=refine(times,vectors,keys,duration,reference) if sampling_profile==PROJECTED else schedule(times,keys,duration)
+        relative=interpolate(relative,times,wanted);times=wanted
     yaws = at_times(keys, times, duration)
     # Orbit around exactly the pose solver's initial source root. Subtracting
     # each foot's own initial position before rotating would hide stance width.

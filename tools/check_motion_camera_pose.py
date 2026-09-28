@@ -18,6 +18,7 @@ def main():
     parser.add_argument('--character-job',required=True)
     parser.add_argument('--output',type=Path,required=True)
     parser.add_argument('--adaptive',action='store_true')
+    parser.add_argument('--projected',action='store_true')
     args=parser.parse_args()
     root='http://127.0.0.1:8918'
     read=lambda path:json.loads(urlopen(root+path,timeout=30).read())
@@ -37,8 +38,10 @@ def main():
     runtime_reference={}
     cases=[('fixed',[{'time':0,'yaw':30}]),('turn',[{'time':0,'yaw':0},{'time':duration,'yaw':360}])]
     options={}
-    if args.adaptive:
+    if args.adaptive or args.projected:
         from autospine_workbench.targets.character43.camera_sampling import PROFILE
+        if args.projected:
+            from autospine_workbench.targets.character43.projected_camera_sampling import PROFILE
         options=dict(sampling_profile=PROFILE)
         cases.append(('roundtrip',[dict(time=0,yaw=0),dict(time=.013579,yaw=360),dict(time=.028765,yaw=0)]))
     for name,keys in cases:

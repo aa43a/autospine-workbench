@@ -42,8 +42,14 @@ def extract(bundle,*,yaw=0,camera_keys=None,sampling_profile=None):
         world.append([[_basis(_origin(pose[lookup[n]]),mapping['basis']) for n in names] for names in chains.values()])
     if sampling_profile is not None:
         from .camera_sampling import PROFILE as SAMPLING,schedule,interpolate
-        if sampling_profile!=SAMPLING or camera_keys is None:raise ValueError('palm_plane_sampling_invalid')
-        times=[t/1e6 for t in ticks];wanted=schedule(times,camera_keys,times[-1])
+        from .projected_camera_sampling import PROFILE as PROJECTED,refine
+        if sampling_profile not in (SAMPLING,PROJECTED) or camera_keys is None:raise ValueError('palm_plane_sampling_invalid')
+        times=[t/1e6 for t in ticks]
+        if sampling_profile==PROJECTED:
+            from .oblique_source import extract as source_vectors
+            vectors,_,reference=source_vectors(bundle)
+            wanted=refine(times,vectors,camera_keys,times[-1],reference)
+        else:wanted=schedule(times,camera_keys,times[-1])
         world=interpolate(world,times,wanted);ticks=[math.floor(t*1e6+.5) for t in wanted]
     yaws=at_times(camera_keys,[t/1e6 for t in ticks],ticks[-1]/1e6) if camera_keys is not None else [yaw]*len(ticks)
     for tick,frame,angle in zip(ticks,world,yaws):

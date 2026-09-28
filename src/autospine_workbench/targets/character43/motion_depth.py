@@ -10,7 +10,7 @@ PROFILE = 'external-arm-torso-depth-review-v1'
 OVERLAP_PROFILE = 'external-arm-torso-depth-overlap-v2'
 
 
-def _source(bvh, mapping, kimodo, yaw_degrees=None, *, camera_keys=None,sampling_profile=None):
+def _source(bvh, mapping, kimodo, yaw_degrees=None, *, camera_keys=None,sampling_profile=None,sample_times=None):
     if camera_keys is not None and yaw_degrees is not None:
         raise ValueError('motion_depth_camera_conflict')
     angle=math.radians(yaw_degrees or 0); c,s=math.cos(angle),math.sin(angle)
@@ -19,7 +19,7 @@ def _source(bvh, mapping, kimodo, yaw_degrees=None, *, camera_keys=None,sampling
         if camera_keys is not None:
             from .camera_depth import sample_rows
             rows=[(f.tick,{n:(p.screen_xy[0],p.depth) for n,p in f.joints}) for f in projected.frames]
-            return sample_rows(rows,camera_keys,sampling_profile), \
+            return sample_rows(rows,camera_keys,sampling_profile,**(dict(sample_times=sample_times) if sample_times is not None else {})), \
                 mapping['root']['reference_length_source_units'], bvh.source_sha256
         return [(f.tick, {n: p.depth if yaw_degrees is None else s*p.screen_xy[0]+c*p.depth
                          for n, p in f.joints}) for f in projected.frames], \
@@ -40,7 +40,7 @@ def _source(bvh, mapping, kimodo, yaw_degrees=None, *, camera_keys=None,sampling
         rows=[(tick,{n:(xsign*positions[i][xindex],sign*positions[i][index])
                        for n,i in SOMA77_INDEX_BY_NAME.items()})
                 for tick,positions in zip(ticks,validated.positions)]
-        return sample_rows(rows,camera_keys,sampling_profile), \
+        return sample_rows(rows,camera_keys,sampling_profile,**(dict(sample_times=sample_times) if sample_times is not None else {})), \
             mapping['root']['reference_length_meters'], sha256(raw).hexdigest()
     rows = [(tick, {n: sign*positions[i][index] if yaw_degrees is None else
                    s*xsign*positions[i][xindex]+c*sign*positions[i][index] for n, i in SOMA77_INDEX_BY_NAME.items()})
@@ -82,7 +82,7 @@ def _slots(document, *, render_regions=False):
 
 
 def build(document, bvh, mapping, *, kimodo=None, clip_bounds=None, yaw_degrees=None, render_regions=False,
-          camera_keys=None,sampling_profile=None):
+          camera_keys=None,sampling_profile=None,sample_times=None):
     if yaw_degrees is not None:
         from .oblique_target import validate
         from .oblique_motion import PROFILE as OBLIQUE_PROFILE
@@ -90,6 +90,9 @@ def build(document, bvh, mapping, *, kimodo=None, clip_bounds=None, yaw_degrees=
     if camera_keys is not None and yaw_degrees is not None:
         raise ValueError('motion_depth_camera_conflict')
     options = dict(camera_keys=camera_keys,sampling_profile=sampling_profile) if camera_keys is not None else {}
+    if sample_times is not None:
+        if camera_keys is None:raise ValueError('motion_depth_sampling_requires_camera')
+        options['sample_times']=sample_times
     if sampling_profile is not None and camera_keys is None:raise ValueError('motion_depth_sampling_requires_camera')
     frames, length, source_sha = _source(bvh, mapping, kimodo, yaw_degrees, **options)
     roles = {r['role']: r for r in mapping['bones']}

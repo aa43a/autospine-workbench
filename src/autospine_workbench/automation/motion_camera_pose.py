@@ -30,9 +30,10 @@ def prepare(bundle, keys, *, sampling_profile=None):
     sampling=None
     if sampling_profile is not None:
         from ..targets.character43.camera_sampling import PROFILE as SAMPLING, schedule,interpolate,motion_grid
-        if sampling_profile!=SAMPLING:raise ValueError('camera_sampling_profile_unsupported')
-        wanted=schedule(times,keys,duration)
-        sampling=dict(profile=SAMPLING,source_samples=len(times),output_samples=len(wanted),
+        from ..targets.character43.projected_camera_sampling import PROFILE as PROJECTED,refine
+        if sampling_profile not in (SAMPLING,PROJECTED):raise ValueError('camera_sampling_profile_unsupported')
+        wanted=refine(times,vectors,keys,duration,reference) if sampling_profile==PROJECTED else schedule(times,keys,duration)
+        sampling=dict(profile=sampling_profile,source_samples=len(times),output_samples=len(wanted),
             source_times_sha256=canonical_sha256(times),scope='interpolated_world_observations_not_new_measurements')
         compile_base=motion_grid(base,times,wanted)
         vectors={role:interpolate(values,times,wanted) for role,values in vectors.items()}

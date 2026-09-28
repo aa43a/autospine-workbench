@@ -34,6 +34,10 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
     if camera and (moving_ankles.get('profile')!='continuous-camera-ankle-displacement-v1' or
                    moving_ankles.get('keys')!=pose_fit.get('keys')):
         raise ValueError('camera_target_ankle_track_mismatch')
+    if camera and (oblique or {}).get('sampling_profile')=='camera-world-projected-adaptive-v2':
+        if (moving_ankles.get('sampling_profile')!=oblique['sampling_profile']
+                or moving_ankles.get('times')!=pose_fit.get('times')):
+            raise ValueError('camera_target_ankle_sampling_mismatch')
     source = json.loads(files['skeleton.json'])
     original = deepcopy(source)
     source['animations'] = {}
@@ -159,6 +163,8 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
         if depth_review_profile not in (DEPTH_PROFILE, OVERLAP_PROFILE, REGIONAL_PROFILE, SPARSE_DEPTH_PROFILE):
             raise ValueError('motion_depth_profile_unsupported')
         options = dict(camera_keys=oblique['keys'],sampling_profile=oblique.get('sampling_profile')) if camera else dict(yaw_degrees=oblique['yaw_degrees']) if oblique is not None else {}
+        if camera and oblique.get('sampling_profile')=='camera-world-projected-adaptive-v2':
+            options['sample_times']=pose_fit['times']
         depth = inspect_depth(document, bvh, mapping, kimodo=kimodo, clip_bounds=clip_bounds, **options)
         if depth_review_profile == REGIONAL_PROFILE:
             from ..targets.character43.regional_depth_profile import apply, remap_setup

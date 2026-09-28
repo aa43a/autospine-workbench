@@ -20,7 +20,8 @@ class SegmentDepthSampler:
             raise ValueError('motion_depth_camera_conflict')
         self.camera_keys=validate(camera_keys,self.ticks[-1]/1e6) if camera_keys is not None else None
         from .camera_sampling import PROFILE as SAMPLING
-        if sampling_profile is not None and (sampling_profile!=SAMPLING or camera_keys is None):
+        from .projected_camera_sampling import PROFILE as PROJECTED
+        if sampling_profile is not None and (sampling_profile not in (SAMPLING,PROJECTED) or camera_keys is None):
             raise ValueError('depth_sampler_sampling_profile_invalid')
         self.sampling_profile=sampling_profile;self._world_cache={}
         self.indices={j.name:i for i,j in enumerate(bvh.joints)}

@@ -1,6 +1,7 @@
 // Browser counterpart of motion_camera_pose: full source frames, one camera basis.
 import {validateYawTrack,sampleYaw} from './motion-yaw-track.js';
 import {SAMPLING_PROFILE,cameraSchedule,interpolateWorld} from './motion-camera-sampling.js';
+import {PROJECTED_SAMPLING_PROFILE,refineProjectedCamera} from './motion-projected-camera-sampling.js';
 const radians=Math.PI/180,degrees=180/Math.PI;
 const det=m=>m[0]*m[3]-m[1]*m[2];
 const unwrap=(previous,value)=>previous===undefined?value:previous+((value-previous+180)%360+360)%360-180;
@@ -17,8 +18,8 @@ function matrix(bone,parent,rotation=0,sx=1,sy=1,translation=[0,0]){
 export function solveCamera(document,source,keys,{samplingProfile=null}={}){
   validateYawTrack(keys,source.duration);
   if(samplingProfile!==null){
-    if(samplingProfile!==SAMPLING_PROFILE)throw Error('camera_sampling_profile_unsupported');
-    const times=cameraSchedule(source.times,keys,source.duration);
+    if(![SAMPLING_PROFILE,PROJECTED_SAMPLING_PROFILE].includes(samplingProfile))throw Error('camera_sampling_profile_unsupported');
+    const times=samplingProfile===PROJECTED_SAMPLING_PROFILE?refineProjectedCamera(source.times,source.vectors,keys,source.duration,source.reference):cameraSchedule(source.times,keys,source.duration);
     source={...source,times,roots:interpolateWorld(source.roots,source.times,times),
       hip_centers:interpolateWorld(source.hip_centers,source.times,times),
       vectors:Object.fromEntries(Object.entries(source.vectors).map(([k,v])=>[k,interpolateWorld(v,source.times,times)]))};
