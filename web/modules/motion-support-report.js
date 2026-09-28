@@ -2,6 +2,7 @@ import {deliveryState,deliveryCounts,deliveryLabels} from './motion-cohort-deliv
 import {supportExceptions} from './motion-support-exceptions.js';
 import {sourceScope} from './motion-source-scope.js';
 import {depthCoverageText} from './motion-depth-coverage.js';
+import {independentAcceptance} from './motion-support-acceptance.js';
 const gates=['投影','几何','接触','遮挡','Runtime'];
 const statuses={sampled_pass:'采样通过',needs_changes:'需处理',unmeasured:'未验证'};
 const decisions={accepted:'阶段接受',accepted_with_exceptions:'阶段接受，保留异常',rejected:'需调整',revoked:'已撤销',
@@ -20,6 +21,7 @@ const state=row=>({loaded:row.status==='verified',status:effectiveStatus(row),
 export function supportTotals(snapshot){
   const rows=snapshot.rows,missing=snapshot.missing.length;
   return {expected:snapshot.expected,verified:rows.filter(r=>r.status==='verified').length,
+    independent_acceptance:independentAcceptance(snapshot),
     accepted:rows.filter(r=>r.status==='verified'&&r.review.current_applies&&['accepted','accepted_with_exceptions'].includes(r.review.current?.decision)).length,
     delivery:deliveryCounts(rows.map(state),missing),
     gates:Object.fromEntries(gates.map(name=>[name,Object.fromEntries(Object.keys(statuses).map(status=>[status,
@@ -99,6 +101,7 @@ export function supportReportHTML(snapshot,origin){
 <p>这是已有证据的逐项读取快照，不是同时刻事务，也未重新捕获动画。${snapshot.coverage_declared?'包含清单声明的全部组合。':'清单未声明完整覆盖，仅统计列出项。'}
 仅适用于记录的来源、角色版本、视角和片段。阶段接受不会清除技术失败；独立候选不替换固定候选，不计入其通过率。未登记到工作台的本地实验不在本报告清单内。本报告不授予发布权限。详细失败采样与原始验收记录见配套 JSON。</p>
 <p>身份已核对 ${totals.verified}/${totals.expected}；有效阶段接受 ${totals.accepted}/${totals.expected}；改进记录完整核对 ${totals.related_checked}/${snapshot.rows.length}；替代记录完整核对 ${totals.alternatives_checked}/${snapshot.rows.length}；不同策略清单完整核对 ${totals.policies_checked}/${snapshot.rows.length}。</p>
+<p>另有 ${totals.independent_acceptance.accepted} 个独立候选获有效阶段接受（按候选及注册身份去重）；${totals.independent_acceptance.conflicting} 个重复记录结论不一致，未计入接受。此数不加入固定候选通过率，不包含仅局部反馈，技术异常仍保留。</p>
 <p>${Object.entries(totals.delivery).map(([k,v])=>`${deliveryLabels[k]} ${v}/${totals.expected}`).join('；')}</p>
 ${queue}<div class="scroll"><table><thead><tr><th>动作 / 角色</th><th>交付状态</th><th>阶段验收</th>${gates.map(n=>`<th>${n}</th>`).join('')}</tr></thead><tbody>${table}</tbody></table></div>${cards}</html>`;
 }
