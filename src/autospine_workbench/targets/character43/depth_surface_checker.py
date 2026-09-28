@@ -8,14 +8,19 @@ from ..spine43.seam_raster import texture
 
 
 class SurfaceChecker:
-    def __init__(self,probe,sampler,inventory):
-        self.probe,self.sampler=probe,sampler;self.plane=Checker(probe,sampler,pixelwise=True)
-        self.roles={r['slot']:r['role'] for r in inventory['surfaces']};self.models={};self.axes={}
+    def __init__(self,probe,sampler,inventory,*,plane_provider=None,source_axes=None,allow_garment_plane=True):
+        self.probe,self.sampler=probe,sampler
+        self.plane=Checker(probe,sampler,pixelwise=True,plane_provider=plane_provider)
+        self.roles={r['slot']:r['role'] for r in inventory['surfaces']};self.models={}
+        self.axes=dict(source_axes or {});self.plane.axes.update(self.axes)
+        self.allow_garment_plane=allow_garment_plane
 
     def check(self,arm,body,time,source_tick,*,on_triangle=None):
         probe=self.probe
         if not probe.pair(arm,body,time)['overlap_pixels']:return dict(status='no_overlap',time=time)
         role=self.roles[body]
+        if role=='garment_plane_candidate' and not self.allow_garment_plane:
+            raise ValueError('surface_depth_model_unavailable:garment_requires_declared_surface')
         if role in ('torso','garment_plane_candidate'):
             return self.plane.check(arm,body,time,source_tick,on_triangle=on_triangle)
         if not role.startswith(('arm.','leg.')):
