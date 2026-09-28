@@ -24,7 +24,7 @@ export async function createEditorRenderer(canvas,base,current=()=>true){
     page.setTexture(new spine.GLTexture(gl,image,false,false));
   }));}catch(e){atlas.dispose();throw e;}
   if(!current()){atlas.dispose();return null;}
-  const {width,height,left,bottom}=scene.info;
+  let {width,height,left,bottom}=scene.info;
   if(![width,height,left,bottom].every(Number.isFinite)||width<1||height<1||width>4096||height>4096){atlas.dispose();throw Error('角色画布范围无效');}
   canvas.width=width;canvas.height=height;
   const renderer=new spine.SceneRenderer(canvas,gl);
@@ -32,7 +32,12 @@ export async function createEditorRenderer(canvas,base,current=()=>true){
   const parser=new spine.SkeletonJson(new spine.AtlasAttachmentLoader(atlas));
   let data=parser.readSkeletonData({...scene.skeleton,animations:{}}),hasAnimation=false;
   const clear=()=>{gl.viewport(0,0,width,height);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);};
-  return {document:scene.skeleton,artifact:scene.artifact_sha256,
+  return {document:scene.skeleton,artifact:scene.artifact_sha256,bounds:{width,height,left,bottom},
+    viewport(info){
+      if(![info.width,info.height,info.left,info.bottom].every(Number.isFinite)||info.width<1||info.height<1||info.width>4096||info.height>4096)throw Error('对照视口无效');
+      ({width,height,left,bottom}=info);canvas.width=width;canvas.height=height;
+      renderer.camera.setViewport(width,height);renderer.camera.position.x=left+width/2;renderer.camera.position.y=bottom+height/2;renderer.camera.update();
+    },
     animation(value){data=parser.readSkeletonData({...scene.skeleton,animations:{'camera-preview':value}});hasAnimation=true;},
     draw(time=0){
       if(gl.isContextLost())throw Error('角色画布已失效，请刷新');

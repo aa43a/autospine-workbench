@@ -2,6 +2,7 @@ import {solveCamera} from './motion-camera-solver.js';
 import {createEditorRenderer} from './motion-editor-renderer.js';
 export function createLiveCharacter(canvas,status){
   let renderer=null,source=null,version=0,frame=null,time=0,keys=[{time:0,yaw:0}],signature=null,result=null;
+  let bounds=null;
   function update(){
     frame=null;if(!renderer)return;
     try{
@@ -25,9 +26,11 @@ export function createLiveCharacter(canvas,status){
       const next=await createEditorRenderer(canvas,base,()=>token===version);
       if(!next)return null;
       if(token!==version){next.dispose();return null;}
-      renderer=next;signature=null;schedule();return next.artifact;
+      renderer=next;if(bounds)renderer.viewport(bounds);signature=null;schedule();return next.artifact;
     },
     source(value){source=value;signature=null;window.motionEditorPreviewState=null;if(!value)renderer?.clear();else schedule();},
     seek(value,track){time=value;keys=structuredClone(track);schedule();},
+    viewport(value){if(JSON.stringify(bounds)===JSON.stringify(value))return;bounds=value;
+      if(renderer){renderer.viewport(value??renderer.bounds);schedule();}},
   };
 }

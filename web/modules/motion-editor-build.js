@@ -24,7 +24,7 @@ export function editorBuildRequest(draft){
     pose_profile:'continuous-yaw-source-camera-v1',moving_ankle_profile:'continuous-camera-ankle-displacement-v1',
     depth_review_profile:'external-arm-torso-depth-sparse-v1-experiment'};
 }
-export function createEditorBuild({snapshot}){
+export function createEditorBuild({snapshot,inspect=()=>{}}){
   const $=id=>document.getElementById(id);
   let current=null,timer=null,busy=false,fetching=false;
   const request=async(url,body)=>{
@@ -41,6 +41,7 @@ export function createEditorBuild({snapshot}){
     if(job.status==='succeeded'&&job.result?.artifact_sha256){
       const note=document.createElement('p');note.textContent='这是按已保存角度轨道构建的独立结果。上方草稿的新修改不会影响它；技术异常与阶段验收独立保留。';panel.append(note);
       const play=document.createElement('a');play.href=`/api/motions/${job.job_id}/view/player.html`;play.textContent='打开此候选的可动验收窗口';play.target='_blank';play.rel='noopener';panel.append(play);
+      const compare=document.createElement('button');compare.textContent='在编辑区对照导出结果';compare.onclick=()=>inspect(job);panel.append(compare);
       appendCandidateDownload(panel,job);appendReadiness(panel,job);
     }
     return active;
