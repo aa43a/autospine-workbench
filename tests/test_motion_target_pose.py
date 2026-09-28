@@ -9,6 +9,14 @@ from test_motion_target_intake import inputs
 
 
 class TargetPoseTests(unittest.TestCase):
+    def test_camera_candidate_cannot_use_stationary_lock_or_other_ankle_track(self):
+        pose=dict(profile='continuous-yaw-source-camera-v1',keys=[dict(time=0,yaw=0)])
+        with self.assertRaisesRegex(ValueError,'requires_camera_ankles'):
+            build_candidate(*inputs(),character_digest='a'*64,motion_digest='b'*64,pose_fit=pose)
+        with self.assertRaisesRegex(ValueError,'ankle_track_mismatch'):
+            build_candidate(*inputs(),character_digest='a'*64,motion_digest='b'*64,pose_fit=pose,
+                contact_correction=False,moving_ankles=dict(profile='continuous-camera-ankle-displacement-v1',keys=[dict(time=0,yaw=30)]))
+
     def test_corrective_progress_reaches_job_stage(self):
         from autospine_workbench.automation.motion_target_pose import correct
         stages=[]

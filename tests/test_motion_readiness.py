@@ -20,6 +20,18 @@ def fixture():
 
 
 class ReadinessTests(unittest.TestCase):
+    def test_camera_contact_requires_current_final_evidence(self):
+        files,runtime=fixture()
+        contact=dict(policy_id='continuous-camera-contact-proxy-v1',status='camera_contact_proxy_passed',after={'passed':True})
+        def row():
+            files['motion-contact.json']=json.dumps(contact).encode()
+            return next(r for r in build(files,'a'*64,runtime)['stages'] if r['stage']=='接触')
+        self.assertEqual(row()['status'],'unmeasured')
+        contact['final_timeline_check']={'skeleton_sha256':sha256(files['skeleton.json']).hexdigest()}
+        self.assertEqual(row()['status'],'sampled_pass')
+        contact['final_timeline_check']['skeleton_sha256']='stale'
+        with self.assertRaisesRegex(ValueError,'camera_contact_identity'):row()
+
     def test_known_depth_issue_is_deduplicated_only_with_failed_depth_evidence(self):
         files,runtime=fixture()
         motion=json.loads(files['motion-review.json'])

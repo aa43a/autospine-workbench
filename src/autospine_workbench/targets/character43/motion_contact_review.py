@@ -2,6 +2,7 @@
 from html import escape
 
 STATES = {'unavailable_no_labels': '源动作无接触标签，不能判断接触是否正确',
+          'camera_contact_proxy_passed': '源脚端稳定性与相机投影跟随通过采样检查',
           'insufficient_contact_samples': '部分支撑区间没有采样，接触证据不足',
           'inferred_partial_corrected': '合格支撑区间已修正，其他区间仍需检查',
           'inferred_proxy_corrected': '已采用有界修正，保持源动作近静止的踝部位置',
@@ -30,6 +31,11 @@ REASONS = {'motion_contact_correction_disabled': '本次关闭了自动修正',
 
 
 def render(report, *, trajectory_detail=''):
+    camera=report.get('policy_id')=='continuous-camera-contact-proxy-v1'
+    description=('比较源踝部在三维中的位移，以及角色对同帧相机投影目标的跟随误差，取较大值。相机旋转造成的屏幕位移不单独判为滑脚。'
+                 if camera else '比较支撑期内，角色踝部支点相对于该段起点的位移。')
+    correction_description=('脚端跟随按相机轨道单独求解；本检查不使用屏幕锁脚。' if camera else
+        f'自动修正：{"已采用" if report["selected"] else "未采用"}。在动作中心关闭支撑修正后重建，可保留未修正版。')
     def drift(value):
         return '未测量' if value is None else f'{value:.3f} px'
     rows = []
@@ -78,9 +84,9 @@ def render(report, *, trajectory_detail=''):
 main{{max-width:1100px;margin:auto}}a{{color:#7bd8ff}}table{{border-collapse:collapse;width:100%}}
 td,th{{text-align:left;padding:12px;border-bottom:1px solid #425365}}.scroll{{overflow-x:auto}}</style>
 <main><a href="/motions.html">← 动作中心</a><h1>{escape(STATES[report['status']])}</h1>
-<p>比较{source_label}的支撑期内，角色踝部支点相对于该段起点的位移。未测量鞋底、地面碰撞或遮挡。</p>
+<p>来源：{source_label}。{description}未测量鞋底、地面碰撞或遮挡。</p>
 <p>阈值：{report['before']['drift_limit_px']:.3f} px（角色腿长的 1%）。区间终点不属于支撑期；同时检查终点前的姿态。</p>
-<p>自动修正：{'已采用' if report['selected'] else '未采用'}。在动作中心关闭支撑修正后重建，可保留未修正版。</p>
+<p>{correction_description}</p>
 {detail}{trajectory_detail}<ul>{reasons}</ul><div class="scroll"><table><thead><tr><th>支点</th><th>支撑区间</th>
 <th>原动作最大滑移</th><th>当前候选最大滑移</th><th>采样结论</th><th>时间轴</th></tr></thead>
 <tbody>{''.join(rows)}</tbody></table></div><p><a href="motion-contact.json">完整检查数据</a> ·

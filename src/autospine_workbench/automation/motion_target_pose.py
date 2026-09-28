@@ -25,6 +25,11 @@ def prepare(bundle, *, hip_center=False):
 
 def project(document,name,motion,bvh,mapping,kimodo,oblique,time_range,pose_fit):
     if pose_fit is not None:
+        from ..targets.character43.camera_track import PROFILE as CAMERA_PROFILE
+        if pose_fit.get('profile') == CAMERA_PROFILE:
+            if time_range is not None:raise ValueError('camera_pose_requires_full_clip')
+            from .motion_camera_pose import fit as camera_fit
+            return camera_fit(document,name,motion,oblique,pose_fit)
         from .motion_view_pose import PROFILE as VIEW_PROFILE, validate as validate_view
         if pose_fit.get('profile') == VIEW_PROFILE:
             validate_view(pose_fit,motion,oblique,time_range)

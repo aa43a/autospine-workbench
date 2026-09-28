@@ -26,6 +26,14 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
                     on_stage=None, oblique=None, torso_projection=None, pose_fit=None, moving_ankles=None):
     """Preserve the rig, or verify the explicit regional render transformation."""
     from ..targets.character43.regional_depth_profile import PROFILE as REGIONAL_PROFILE
+    from ..targets.character43.camera_track import PROFILE as CAMERA_PROFILE
+    camera=pose_fit is not None and pose_fit.get('profile')==CAMERA_PROFILE
+    if camera and (contact_correction or moving_ankles is None or clip_bounds is not None or
+                   torso_projection is not None or depth_review_profile==REGIONAL_PROFILE):
+        raise ValueError('camera_target_requires_camera_ankles_and_full_unwarped_clip')
+    if camera and (moving_ankles.get('profile')!='continuous-camera-ankle-displacement-v1' or
+                   moving_ankles.get('keys')!=pose_fit.get('keys')):
+        raise ValueError('camera_target_ankle_track_mismatch')
     source = json.loads(files['skeleton.json'])
     original = deepcopy(source)
     source['animations'] = {}
@@ -50,6 +58,8 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
             evidence['profile'] = lengths['target_profile']
             if any(row.get('unreliable_frames') for row in lengths.get('records', [])):
                 issues.append(dict(stage='projection', reason_code='motion_source_pose_direction_unreliable'))
+            if camera and pose_fit.get('surface_issues'):
+                issues.append(dict(stage='projection',reason_code='motion_camera_side_rear_surface_unverified'))
     except ValueError as exc:
         if pose_fit is not None:
             raise
@@ -75,7 +85,14 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
     from ..targets.character43.motion_contacts import apply as apply_contacts
     document, contact = apply_contacts(document, ANIMATION, motion, times,
                                        evidence['reference_length_px'], enabled=contact_correction)
-    if inferred_contact_profile and bvh is not None and not any(m['kind'] == 'contact' for m in original_motion['markers']):
+    if camera:
+        from ..targets.character43.camera_contact import build as camera_contact
+        hypothesis=None
+        if inferred_contact_profile and bvh is not None and not any(m['kind']=='contact' for m in original_motion['markers']):
+            from ..motion2d.contact_candidate import infer
+            hypothesis=infer(bvh,mapping,source_up='+Y')
+        contact=camera_contact(document,ANIMATION,motion,moving_ankles,times,evidence['reference_length_px'],hypothesis=hypothesis)
+    if not camera and inferred_contact_profile and bvh is not None and not any(m['kind'] == 'contact' for m in original_motion['markers']):
         from ..targets.character43.inferred_contacts import measure
         from ..motion2d.contact_candidate import infer
         from ..targets.character43.stationary_contact_policy import PROFILE as AUTO_PROFILE, LEGACY_PROFILE, select
@@ -141,7 +158,7 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
         from ..targets.character43.motion_depth import PROFILE as DEPTH_PROFILE, OVERLAP_PROFILE, build as inspect_depth
         if depth_review_profile not in (DEPTH_PROFILE, OVERLAP_PROFILE, REGIONAL_PROFILE, SPARSE_DEPTH_PROFILE):
             raise ValueError('motion_depth_profile_unsupported')
-        options = dict(yaw_degrees=oblique['yaw_degrees']) if oblique is not None else {}
+        options = dict(camera_keys=oblique['keys']) if camera else dict(yaw_degrees=oblique['yaw_degrees']) if oblique is not None else {}
         depth = inspect_depth(document, bvh, mapping, kimodo=kimodo, clip_bounds=clip_bounds, **options)
         if depth_review_profile == REGIONAL_PROFILE:
             from ..targets.character43.regional_depth_profile import apply, remap_setup

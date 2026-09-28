@@ -77,8 +77,14 @@ def build(files, artifact_sha256, runtime=None):
             '检查跟随源脚端的最终采样误差；与静止接触、鞋底接地和视觉验收分别判断。',
             'motion-review.json', applied=moving.get('applied'), final_check=checked,
             failures=[dict(time=failure_time,reason='moving_ankle_failed')] if moving_status=='needs_changes' else [])
-    passed = state in ('ankle_proxy_passed', 'ankle_proxy_corrected', 'inferred_proxy_passed', 'inferred_proxy_corrected')
+    passed = state in ('ankle_proxy_passed', 'ankle_proxy_corrected', 'inferred_proxy_passed', 'inferred_proxy_corrected','camera_contact_proxy_passed')
+    if contact.get('policy_id')=='continuous-camera-contact-proxy-v1':
+        final=contact.get('final_timeline_check',{})
+        if final and final.get('skeleton_sha256')!=digest:
+            raise ValueError('motion_readiness_camera_contact_identity_mismatch')
+        passed=passed and bool(final) and contact.get('after',{}).get('passed') is True
     add('接触', 'sampled_pass' if passed else 'needs_changes' if state in ('needs_changes', 'inferred_proxy_drift') else 'unmeasured',
+        '检查源踝部三维稳定性与相机投影跟随误差，不把相机旋转当作滑脚；不证明鞋底接地。' if contact.get('policy_id')=='continuous-camera-contact-proxy-v1' else
         '仅检查源标签或推断区间的踝部支点；不证明鞋底接地。', 'contact.html', evidence_status=state)
     order = depth.get('order', {}); failures = order.get('failures', [])
     # A blocked order or missing overlap evidence cannot become a green stage

@@ -10,11 +10,16 @@ from ..targets.spine43.continuous_pose import interpolate
 
 def apply(document, name, motion, observation, times, reference, *, bundle_sha256, oblique=None, clip_bounds=None):
     expected_motion = oblique['parent_motion_sha256'] if oblique else motion_ir_sha256(motion)
-    yaw = oblique['yaw_degrees'] if oblique else 0
+    from ..targets.character43.camera_track import PROFILE as CAMERA_PROFILE
+    from ..targets.character43.camera_ankle_targets import PROFILE as CAMERA_ANKLES
+    camera=oblique is not None and oblique.get('profile')==CAMERA_PROFILE
+    yaw = oblique.get('yaw_degrees',0) if oblique else 0
+    view_matches=(observation.get('keys')==oblique.get('keys') and
+                  canonical_sha256({k:v for k,v in observation.items() if k!='observation_sha256'})==observation.get('observation_sha256')) if camera else observation.get('yaw_degrees')==yaw
     if (clip_bounds is not None or observation.get('source_bundle_sha256') != bundle_sha256
             or observation.get('motion_sha256') != expected_motion
-            or observation.get('yaw_degrees') != yaw
-            or observation.get('profile') != 'source-ankle-displacement-v1'
+            or not view_matches
+            or observation.get('profile') != (CAMERA_ANKLES if camera else 'source-ankle-displacement-v1')
             or not observation.get('times')
             or observation['times'][-1] != motion['duration_ticks']/motion['ticks_per_second']):
         raise ValueError('moving_ankle_source_identity_or_time_mismatch')

@@ -11,6 +11,8 @@ def render(files):
         return ''
     moving = json.loads(files['motion-moving-ankles.json'])
     contact = json.loads(files['motion-contact.json'])
+    if contact.get('policy_id')=='continuous-camera-contact-proxy-v1':
+        return '<section><h2>旋转视角下的脚端跟随</h2><p>相机引起的位移已与来源运动分开。当前接触表保留来源滑动及跟随误差；详细脚端轨迹见动作检查数据。</p></section>'
     final = moving.get('final_check', {})
     identity = canonical_sha256(json.loads(files['skeleton.json']))
     if (not moving.get('applied') or final.get('skeleton_sha256') != identity

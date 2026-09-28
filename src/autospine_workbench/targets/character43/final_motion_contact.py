@@ -17,6 +17,9 @@ def recheck(document, name, motion, contact, times, reference_length):
             or any(not math.isfinite(t) or t < 0 or t > duration+1e-6 for t in times)
             or any(b <= a for a,b in zip(times,times[1:]))):
         raise ValueError('motion_final_contact_times_invalid')
+    from .camera_contact import PROFILE as CAMERA_PROFILE, recheck as camera_recheck
+    if contact.get('policy_id')==CAMERA_PROFILE:
+        return camera_recheck(document,name,motion,contact,times,reference_length)
     source = deepcopy(motion)
     inferred = 'hypothesis' in contact
     if inferred:
