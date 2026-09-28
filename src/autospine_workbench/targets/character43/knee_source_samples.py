@@ -13,8 +13,13 @@ def read(files, bundle, request):
             or manifest['source_character_sha256'] != request['character_sha256']):
         raise ValueError('knee_candidate_source_identity_mismatch')
     motion = bundle.motion
+    camera=None
     if request.get('projection') is not None:
-        motion, _ = prepare(bundle, request['projection'])
+        from .camera_track import PROFILE as CAMERA_PROFILE
+        if request['projection'].get('profile')==CAMERA_PROFILE:
+            from ...automation.motion_camera_pose import prepare as prepare_camera
+            motion,_,camera=prepare_camera(bundle,request['projection']['keys'])
+        else:motion, _ = prepare(bundle, request['projection'])
     tracks = [t for t in motion['tracks'] if t['property'] == 'rotation']
     if not tracks:
         raise ValueError('knee_source_sample_mismatch')
@@ -25,6 +30,7 @@ def read(files, bundle, request):
     if motion_ir_sha256(clip_motion(motion, bounds)) != motion_ir_sha256(json.loads(files['motion-ir.json'])):
         raise ValueError('knee_candidate_motion_identity_mismatch')
     vectors, _, _ = extract(bundle)
+    if camera is not None:vectors=camera['vectors']
     if any(len(v) != len(ticks) for v in vectors.values()):
         raise ValueError('knee_source_sample_mismatch')
     indices = [i for i,t in enumerate(ticks) if bounds is None or bounds[0] <= t <= bounds[1]]

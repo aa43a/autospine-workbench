@@ -27,7 +27,12 @@ def build(files,artifact,bundle,request):
     identity=request['motion_identity'];manifest=json.loads(files['character-manifest.json'])
     if manifest['source_motion_bundle_sha256']!=identity['bundle_sha256']:raise ValueError('hand_status_source_mismatch')
     motion=bundle.motion
-    if request.get('projection') is not None:motion,_=prepare(bundle,request['projection'])
+    from .camera_track import PROFILE as CAMERA_PROFILE
+    camera_keys=(request['projection']['keys'] if (request.get('projection') or {}).get('profile')==CAMERA_PROFILE else None)
+    if camera_keys is not None:
+        from ...automation.motion_camera_pose import prepare as prepare_camera
+        motion,_,_=prepare_camera(bundle,camera_keys)
+    elif request.get('projection') is not None:motion,_=prepare(bundle,request['projection'])
     ticks=[k['tick'] for k in next(t for t in motion['tracks'] if t['property']=='rotation')['keys']]
     bounds=boundaries(request.get('clip'),ticks)
     if motion_ir_sha256(clip_motion(motion,bounds))!=motion_ir_sha256(json.loads(files['motion-ir.json'])):
@@ -35,7 +40,8 @@ def build(files,artifact,bundle,request):
     result=dict(profile='source-hand-visibility-status-v1',artifact_sha256=artifact,motion_identity=identity,
         authority='none',selected=False,animation_modified=False,clip=request.get('clip'),records=[],
         scope='source_knuckle_plane_not_target_hand_texture_or_acceptance',threshold=.2)
-    try:observation=extract(bundle,yaw=(request.get('projection') or {}).get('yaw_degrees',0))
+    options=dict(camera_keys=camera_keys) if camera_keys is not None else {}
+    try:observation=extract(bundle,yaw=(request.get('projection') or {}).get('yaw_degrees',0),**options)
     except ValueError as exc:
         return dict(result,status='unavailable',reason=str(exc))
     return dict(result,status='observed',records=summarize(observation['rows'],bounds),

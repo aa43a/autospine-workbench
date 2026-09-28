@@ -43,9 +43,17 @@ def submit(manager, source_job, body):
     from .motion_torso_policy import select as select_torso
     torso_profile = select_torso(body, depth_profile)
     if 'projection' in body:
-        from ..targets.character43.oblique_target import validate
-        try: validate(body['projection'])
-        except ValueError as exc: raise PipelineRunError(str(exc)) from exc
+        from .motion_camera_policy import PROFILE as CAMERA_PROFILE,select as select_camera
+        if pose_profile==CAMERA_PROFILE:
+            from ..motion_bundle_reader import VerifiedMotionBundleReader
+            identity=source.get('result',{}).get('motion',{})
+            if not identity:raise PipelineRunError('motion_target_source_unavailable')
+            bundle=VerifiedMotionBundleReader(manager.state_root).load(identity['clip_sha256'],identity['bundle_sha256'])
+            select_camera(body,bundle.motion['duration_ticks']/bundle.motion['ticks_per_second'])
+        else:
+            from ..targets.character43.oblique_target import validate
+            try: validate(body['projection'])
+            except ValueError as exc: raise PipelineRunError(str(exc)) from exc
     if (source.get('kind', 'import') not in ('import', 'generate') or source.get('status') != 'succeeded'
             or source.get('result', {}).get('motion_status') != 'compiled'):
         raise PipelineRunError('motion_target_source_unavailable')
@@ -78,7 +86,7 @@ def submit(manager, source_job, body):
     if ankle_profile is not None:
         request['moving_ankle_profile'] = ankle_profile
     if 'projection' in body:
-        request['projection'] = dict(body['projection'])
+        request['projection'] = deepcopy(body['projection'])
     if 'projection_selection' in body:
         from .motion_oblique_comparison import validate_selection
         try:

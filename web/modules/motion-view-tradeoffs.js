@@ -38,6 +38,9 @@ export function appendViewTradeoffs(parent,base,artifact,onSeek){
     try{
       const response=await fetch(base+'view-tradeoffs.json',{cache:'no-store'}),report=await response.json();
       if(!response.ok)throw Error(report.reason_code||'读取失败');
+      if(report.artifact_sha256===artifact&&report.status==='unavailable'&&report.reason==='continuous_camera_has_no_single_current_yaw'){
+        panel.textContent='此候选使用随时间变化的视角，不能用单一固定角度表表示。请在动作编辑页调整角度轨道并重新构建比较。';return;
+      }
       const rows=viewRows(report,artifact);panel.replaceChildren();
       panel.append(node('p','比较同一动作片段在来源坐标基础上的不同观察方向。侧视可能让膝盖更清楚，却使躯干变窄；当前正面素材不因此具备侧面或背面。表中结果不会更换候选或通过验收。'));
       const table=node('table',''),head=node('tr','');

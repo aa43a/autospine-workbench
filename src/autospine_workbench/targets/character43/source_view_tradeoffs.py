@@ -9,6 +9,11 @@ from .torso_projection_source import anchors, reference_shapes
 
 def build(files, artifact, bundle, request):
     animation, vectors, times, source_times = read(files, bundle, request)
+    from .camera_track import PROFILE as CAMERA_PROFILE
+    if (request.get('projection') or {}).get('profile')==CAMERA_PROFILE:
+        return dict(profile='candidate-source-view-tradeoffs-v1',artifact_sha256=artifact,status='unavailable',
+            reason='continuous_camera_has_no_single_current_yaw',authority='none',selected=False,
+            production_authorized=False,camera_keys=request['projection']['keys'])
     front, ticks = anchors(bundle, 0)
     by_time = dict(zip([t / 1e6 for t in ticks], front))
     if len(front) != len(ticks) or len(by_time) != len(ticks) or any(t not in by_time for t in source_times):

@@ -4,6 +4,7 @@ from .motion_target_pose import PROFILE, HIP_PROFILE
 from .motion_post_contact import PROFILE as POST_CONTACT_PROFILE
 from .motion_post_contact import TIMELINE_PROFILE
 from .motion_view_pose import PROFILE as VIEW_PROFILE
+from .motion_camera_policy import PROFILE as CAMERA_PROFILE
 
 POST_PROFILES = (POST_CONTACT_PROFILE,TIMELINE_PROFILE)
 
@@ -12,6 +13,9 @@ def select(body):
     if 'pose_profile' not in body:
         return None
     profile=body['pose_profile']
+    if profile==CAMERA_PROFILE:
+        from .motion_camera_policy import select as select_camera
+        return select_camera(body)
     if profile not in (PROFILE,HIP_PROFILE,VIEW_PROFILE,*POST_PROFILES):
         raise PipelineRunError('motion_pose_profile_unsupported')
     if profile == VIEW_PROFILE:
@@ -32,7 +36,7 @@ def select(body):
 def prepare(bundle,request):
     profile=select(request)
     if profile is None:return None
-    if profile == VIEW_PROFILE:
+    if profile in (VIEW_PROFILE,CAMERA_PROFILE):
         return prepare_inputs(bundle, request)[2]
     from .motion_target_pose import prepare as build
     result = build(bundle,hip_center=profile in (HIP_PROFILE,*POST_PROFILES))
@@ -45,7 +49,12 @@ def prepare(bundle,request):
 def prepare_inputs(bundle, request):
     """Compile one shared camera snapshot for motion and fitted pose evidence."""
     profile = select(request)
-    if profile == VIEW_PROFILE:
+    if profile == CAMERA_PROFILE:
+        from .motion_camera_policy import select as select_camera
+        from .motion_camera_pose import prepare as shared_camera
+        select_camera(request,bundle.motion['duration_ticks']/bundle.motion['ticks_per_second'])
+        motion,view,pose=shared_camera(bundle,request['projection']['keys'])
+    elif profile == VIEW_PROFILE:
         from .motion_view_pose import prepare as shared_view
         motion, view, pose = shared_view(bundle, request['projection']['yaw_degrees'])
     else:

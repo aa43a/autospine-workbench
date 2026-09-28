@@ -3,6 +3,7 @@ import {sampleYaw,validateYawTrack,yawSurfaceWarning} from './motion-yaw-track.j
 import {DRAFT_SCHEMA,matchEditorDraft,createEditorDraftControls} from './motion-editor-draft.js';
 import {createEditorBuild} from './motion-editor-build.js';
 import {createLiveCharacter} from './motion-editor-live.js';
+import {createEditorIntake} from './motion-editor-intake.js';
 const $=id=>document.getElementById(id);
 const get=async url=>{const r=await fetch(url);if(!r.ok)throw Error(`读取失败 (${r.status})`);return r.json();};
 let keys=[{time:0,yaw:0}],fixed=0,sourceToken=0,projectToken=0,duration=0,lastYaw=null,lastTime=null,override=null;
@@ -62,6 +63,7 @@ $('project').onchange=async()=>{
 async function refresh(){
   $('refresh').disabled=true;
   try{const value=await get('/api/motions'),selected=$('source').value;
+    intake.update(value);
     $('source').replaceChildren(new Option('选择已解析动作',''));
     for(const job of value.jobs)if(job.kind!=='adapt'&&job.status==='succeeded'&&job.result?.motion_status==='compiled')
       $('source').add(new Option(`${job.name} · ${job.job_id.slice(-6)}`,job.job_id));
@@ -71,6 +73,10 @@ async function refresh(){
   }catch(e){$('status').textContent=e.message;}finally{$('refresh').disabled=false;}
 }
 $('refresh').onclick=refresh;
+const intake=createEditorIntake({refresh,async load(id){
+  if(![...$('source').options].some(o=>o.value===id))throw Error('动作尚未完成解析，请刷新任务');
+  $('source').value=id;await $('source').onchange();
+}});
 get('/api/projects').then(value=>{for(const p of value.projects)$('project').add(new Option(p.name,p.id));}).catch(e=>{$('status').textContent=e.message;});
 void refresh();$('surface').textContent=yawSurfaceWarning(0);
 function identity(){return {project_id:$('project').value,source_id:loadedSource,character_job_id:characterJob,duration};}

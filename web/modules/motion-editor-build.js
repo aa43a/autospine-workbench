@@ -16,6 +16,14 @@ export function fixedBuildRequest(draft){
     projection:{profile:'constant-yaw-source-motion-v1',yaw_degrees:yaw},
     pose_profile:'constant-view-absolute-pose-hip-center-v1-experiment'};
 }
+export function editorBuildRequest(draft){
+  const value=validateEditorDraft(draft),yaw=value.keys[0].yaw;
+  if(Math.abs(yaw)<=90&&value.keys.every(k=>k.yaw===yaw))return fixedBuildRequest(value);
+  return {project_id:value.project_id,character_job_id:value.character_job_id,contact_correction:false,
+    projection:{profile:'continuous-yaw-source-camera-v1',keys:value.keys.map(k=>({...k}))},
+    pose_profile:'continuous-yaw-source-camera-v1',moving_ankle_profile:'continuous-camera-ankle-displacement-v1',
+    depth_review_profile:'external-arm-torso-depth-sparse-v1-experiment'};
+}
 export function createEditorBuild({snapshot}){
   const $=id=>document.getElementById(id);
   let current=null,timer=null,busy=false,fetching=false;
@@ -31,7 +39,7 @@ export function createEditorBuild({snapshot}){
     const panel=$('build-result');panel.replaceChildren();
     const history=document.createElement('a');history.href=`/motions.html#${job.job_id}`;history.textContent='查看此独立任务与完整记录';panel.append(history);
     if(job.status==='succeeded'&&job.result?.artifact_sha256){
-      const note=document.createElement('p');note.textContent='这是已冻结角度的构建结果。上方草稿的新修改不会影响它；技术异常与阶段验收独立保留。';panel.append(note);
+      const note=document.createElement('p');note.textContent='这是按已保存角度轨道构建的独立结果。上方草稿的新修改不会影响它；技术异常与阶段验收独立保留。';panel.append(note);
       const play=document.createElement('a');play.href=`/api/motions/${job.job_id}/view/player.html`;play.textContent='打开此候选的可动验收窗口';play.target='_blank';play.rel='noopener';panel.append(play);
       appendCandidateDownload(panel,job);appendReadiness(panel,job);
     }
@@ -46,7 +54,7 @@ export function createEditorBuild({snapshot}){
   }
   $('build').onclick=async()=>{
     if(busy)return;busy=true;$('build').disabled=true;
-    try{const draft=snapshot(),body=fixedBuildRequest(draft);
+    try{const draft=snapshot(),body=editorBuildRequest(draft);
       $('build-status').textContent='正在提交独立候选，请勿重复提交…';
       const queued=await request(`/api/motions/${draft.source_id}/adapt`,body);
       if(!jobId.test(queued.job_id))throw Error('未收到有效任务编号，请在动作库检查任务');

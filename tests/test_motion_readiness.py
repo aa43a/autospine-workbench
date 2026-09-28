@@ -20,6 +20,15 @@ def fixture():
 
 
 class ReadinessTests(unittest.TestCase):
+    def test_missing_camera_surfaces_keep_exact_times_and_are_not_bend_errors(self):
+        files,runtime=fixture();motion=json.loads(files['motion-review.json'])
+        motion['issues']=[dict(stage='projection',reason_code='motion_camera_side_rear_surface_unverified')]
+        motion['source_pose_fit']={'surface_issues':[dict(time=.5,reason='rear_surface_not_provided')]}
+        files['motion-review.json']=json.dumps(motion).encode()
+        row=next(r for r in build(files,'a'*64,runtime)['stages'] if r['stage']=='投影')
+        self.assertEqual(row['status'],'needs_changes');self.assertIn('背面素材',row['explanation'])
+        self.assertEqual(row['failures'],[dict(time=.5,reason='rear_surface_not_provided')])
+
     def test_camera_contact_requires_current_final_evidence(self):
         files,runtime=fixture()
         contact=dict(policy_id='continuous-camera-contact-proxy-v1',status='camera_contact_proxy_passed',after={'passed':True})

@@ -18,7 +18,7 @@ def plane(wrist,index,pinky):
     return dict(normal=normal,projected_area_fraction=abs(normal[2]),signed_facing=normal[2])
 
 
-def extract(bundle,*,yaw=0):
+def extract(bundle,*,yaw=0,camera_keys=None):
     if not math.isfinite(yaw) or abs(yaw)>90:raise ValueError('palm_plane_yaw_invalid')
     if bundle.source_kind!='bvh':raise ValueError('palm_plane_source_unsupported')
     mapping=json.loads((bundle.path/'map.json').read_bytes())
@@ -33,12 +33,16 @@ def extract(bundle,*,yaw=0):
             raise ValueError('palm_plane_knuckles_missing')
         chains[side]=joints
     rows=[]
-    for tick,frame in zip(bvh_frame_ticks(bvh),bvh.frames):
+    ticks=bvh_frame_ticks(bvh)
+    from .camera_track import at_times
+    if camera_keys is not None and yaw!=0:raise ValueError('palm_plane_camera_conflict')
+    yaws=at_times(camera_keys,[t/1e6 for t in ticks],ticks[-1]/1e6) if camera_keys is not None else [yaw]*len(ticks)
+    for tick,frame,angle in zip(ticks,bvh.frames,yaws):
         pose=_world_matrices(bvh,frame);hands={}
         for side,names in chains.items():
-            points=[project(_basis(_origin(pose[lookup[n]]),mapping['basis']),yaw) for n in names]
+            points=[project(_basis(_origin(pose[lookup[n]]),mapping['basis']),angle) for n in names]
             hands[side]=plane(*points)
         rows.append(dict(time=tick/1e6,hands=hands))
-    return dict(profile='mixamo-knuckle-plane-observation-v1',yaw=yaw,rows=rows,chains=chains,
+    return dict(profile='mixamo-knuckle-plane-observation-v1',yaw=yaw if camera_keys is None else None,camera_keys=camera_keys,rows=rows,chains=chains,
         authority='none',selected=False,limitations=['knuckle_plane_not_full_hand_surface',
         'normal_sign_not_labeled_palm_or_back','source_pose_not_target_texture_registration'])

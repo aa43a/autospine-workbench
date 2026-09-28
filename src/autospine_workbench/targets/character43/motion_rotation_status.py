@@ -18,9 +18,14 @@ def build(files, artifact, bundle, request):
             or manifest['source_character_sha256'] != request['character_sha256']):
         raise ValueError('rotation_candidate_source_identity_mismatch')
     motion = bundle.motion
+    camera=None
     yaw = request.get('projection', {}).get('yaw_degrees', 0)
     if request.get('projection') is not None:
-        motion, _ = prepare(bundle, request['projection'])
+        from .camera_track import PROFILE as CAMERA_PROFILE
+        if request['projection'].get('profile')==CAMERA_PROFILE:
+            from ...automation.motion_camera_pose import prepare as prepare_camera
+            motion,_,camera=prepare_camera(bundle,request['projection']['keys'])
+        else:motion, _ = prepare(bundle, request['projection'])
     tracks = [r for r in motion['tracks'] if r['property'] == 'rotation']
     ticks = [k['tick'] for k in tracks[0]['keys']]
     if any([k['tick'] for k in r['keys']] != ticks for r in tracks):
@@ -31,6 +36,7 @@ def build(files, artifact, bundle, request):
     if motion_ir_sha256(expected) != motion_ir_sha256(stored):
         raise ValueError('rotation_candidate_motion_identity_mismatch')
     vectors, _, _ = extract(bundle)
+    if camera is not None:vectors=camera['vectors']
     indices = [i for i, tick in enumerate(ticks) if bounds is None or bounds[0] <= tick <= bounds[1]]
     origin = bounds[0] if bounds else 0
     times = [(ticks[i]-origin)/motion['ticks_per_second'] for i in indices]
