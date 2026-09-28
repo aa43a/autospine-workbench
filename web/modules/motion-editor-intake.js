@@ -1,4 +1,6 @@
 // Use the existing immutable source jobs; loading a result remains an explicit edit.
+import {successorId} from './motion-job-actions.js';
+export const canRetrySource=job=>[undefined,'import','generate'].includes(job?.kind)&&['failed','cancelled','interrupted'].includes(job?.status);
 export function importRequest(file, view, fps) {
   if (!file || file.size < 16 || file.size > 64 * 1024 * 1024) throw Error('请选择 16 字节至 64 MB 的动作文件');
   if (!/\.(fbx|bvh|npz)$/i.test(file.name)) throw Error('支持 FBX、BVH 或 Kimodo SOMA77 NPZ');
@@ -24,6 +26,7 @@ export function createEditorIntake({refresh,load}) {
   function controls() {
     $('intake-import').disabled=busy||!!active();$('intake-generate').disabled=busy||!!active()||!configured;
     $('intake-cancel').disabled=busy||!active();
+    $('intake-retry').disabled=busy||!canRetrySource(job);
     $('intake-load').disabled=busy||job?.status!=='succeeded'||job?.result?.motion_status!=='compiled';
   }
   const stages={queued:'等待执行',generate_motion:'生成动作（含模型加载）',verify_generation:'检查生成结果',
@@ -38,9 +41,9 @@ export function createEditorIntake({refresh,load}) {
       if(active()&&!suspended)timer=setTimeout(poll,2500);
     } catch(e) {$('intake-status').textContent=e.message; if(!suspended)timer=setTimeout(poll,5000);}
   }
-  async function submit(url,options) {
+  async function submit(url,options,original=null) {
     if(busy||active())return;busy=true;controls();$('intake-status').textContent='正在提交…';
-    try {const value=await request(url,options);id=value.job_id;job=value;
+    try {const value=await request(url,options);id=original?successorId(original,value):value.job_id;job=value;
       try{localStorage.setItem(storage,id);}catch{} await poll();
     }catch(e){$('intake-status').textContent=e.message;}finally{busy=false;controls();}
   }
@@ -62,6 +65,11 @@ export function createEditorIntake({refresh,load}) {
   $('intake-load').onclick=async()=>{
     if(busy||job?.result?.motion_status!=='compiled')return;busy=true;controls();
     try{await refresh();await load(id);}catch(e){$('intake-status').textContent=e.message;}finally{busy=false;controls();}
+  };
+  $('intake-retry').onclick=()=>{
+    if(busy||!canRetrySource(job))return;
+    void submit(`/api/motions/${id}/retry`,{method:'POST',headers:{'Content-Type':'application/json',
+      'X-Autospine-Intent':'pipeline-preview'},body:'{}'},id);
   };
   $('intake-refresh').onclick=()=>void poll();
   addEventListener('pagehide',()=>{suspended=true;clearTimeout(timer);});
