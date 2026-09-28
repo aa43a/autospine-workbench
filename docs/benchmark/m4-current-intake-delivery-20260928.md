@@ -30,3 +30,19 @@ visible_depth_straddle）。没有当前人工阶段接受，整体仍是 needs_
 
 三角色八类动作的全量支持范围核对另在执行；本记录不代表全部动作支持，
 也不替代当前取消/恢复操作的独立证据及视觉阶段结论。
+
+## 当前服务与生命周期复核
+
+随后读取当前 `/api/motions`：FBX/BVH/NPZ 三格式入口可用，Blender
+来自服务端 state_config 且 configured，Kimodo 环境为 configured。
+该检查时未列出 pending/running 生成或适配任务；外部只读范围核对进程
+仍在执行，两类任务不能混为一谈。保存于同目录 `service-capabilities.json`。
+配置可用不代表新模型推理已执行，本轮没有据此新增生成质量结论。
+
+在当前代码上运行 `test_motion_generation_lifecycle`、
+`test_motion_generation_activity`、`test_motion_generation`，共 13 项通过。
+其中 Windows 集成测试以实际进程句柄确认测试子进程先存活、后终止：
+显式取消、正常关闭、只强制结束管理器后的后代终止与中断恢复，
+以及进程归属建立失败时工作负载不执行。重试保持旧请求和结果，新建身份。
+模型工作负载被测试进程替代，不宣称这些测试执行了 Kimodo 推理。
+测试全部使用独立临时目录，没有中断工作台或范围核对进程。
