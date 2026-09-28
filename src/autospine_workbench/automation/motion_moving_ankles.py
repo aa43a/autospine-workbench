@@ -14,7 +14,7 @@ def apply(document, name, motion, observation, times, reference, *, bundle_sha25
     from ..targets.character43.camera_ankle_targets import PROFILE as CAMERA_ANKLES
     camera=oblique is not None and oblique.get('profile')==CAMERA_PROFILE
     yaw = oblique.get('yaw_degrees',0) if oblique else 0
-    view_matches=(observation.get('keys')==oblique.get('keys') and
+    view_matches=(observation.get('keys')==oblique.get('keys') and observation.get('sampling_profile')==oblique.get('sampling_profile') and
                   canonical_sha256({k:v for k,v in observation.items() if k!='observation_sha256'})==observation.get('observation_sha256')) if camera else observation.get('yaw_degrees')==yaw
     if (clip_bounds is not None or observation.get('source_bundle_sha256') != bundle_sha256
             or observation.get('motion_sha256') != expected_motion

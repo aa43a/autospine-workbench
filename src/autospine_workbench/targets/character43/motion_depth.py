@@ -10,17 +10,16 @@ PROFILE = 'external-arm-torso-depth-review-v1'
 OVERLAP_PROFILE = 'external-arm-torso-depth-overlap-v2'
 
 
-def _source(bvh, mapping, kimodo, yaw_degrees=None, *, camera_keys=None):
-    from .camera_depth import angles, project as camera_depth
+def _source(bvh, mapping, kimodo, yaw_degrees=None, *, camera_keys=None,sampling_profile=None):
     if camera_keys is not None and yaw_degrees is not None:
         raise ValueError('motion_depth_camera_conflict')
     angle=math.radians(yaw_degrees or 0); c,s=math.cos(angle),math.sin(angle)
     if kimodo is None:
         projected = project_bvh_frames(bvh, mapping)
         if camera_keys is not None:
-            yaws = angles([f.tick for f in projected.frames], camera_keys)
-            return [(f.tick, {n: camera_depth(p.screen_xy[0], p.depth, yaw) for n,p in f.joints})
-                    for f,yaw in zip(projected.frames,yaws)], \
+            from .camera_depth import sample_rows
+            rows=[(f.tick,{n:(p.screen_xy[0],p.depth) for n,p in f.joints}) for f in projected.frames]
+            return sample_rows(rows,camera_keys,sampling_profile), \
                 mapping['root']['reference_length_source_units'], bvh.source_sha256
         return [(f.tick, {n: p.depth if yaw_degrees is None else s*p.screen_xy[0]+c*p.depth
                          for n, p in f.joints}) for f in projected.frames], \
@@ -36,10 +35,12 @@ def _source(bvh, mapping, kimodo, yaw_degrees=None, *, camera_keys=None):
     axis = mapping['basis']['depth']; index = 'XYZ'.index(axis[1]); sign = 1 if axis[0] == '+' else -1
     xaxis=mapping['basis']['screen_x']; xindex='XYZ'.index(xaxis[1]); xsign=1 if xaxis[0]=='+' else -1
     if camera_keys is not None:
-        ticks=kimodo_frame_ticks(source); yaws=angles(ticks,camera_keys)
-        return [(tick,{n:camera_depth(xsign*positions[i][xindex],sign*positions[i][index],yaw)
+        from .camera_depth import sample_rows
+        ticks=kimodo_frame_ticks(source)
+        rows=[(tick,{n:(xsign*positions[i][xindex],sign*positions[i][index])
                        for n,i in SOMA77_INDEX_BY_NAME.items()})
-                for tick,positions,yaw in zip(ticks,validated.positions,yaws)], \
+                for tick,positions in zip(ticks,validated.positions)]
+        return sample_rows(rows,camera_keys,sampling_profile), \
             mapping['root']['reference_length_meters'], sha256(raw).hexdigest()
     rows = [(tick, {n: sign*positions[i][index] if yaw_degrees is None else
                    s*xsign*positions[i][xindex]+c*sign*positions[i][index] for n, i in SOMA77_INDEX_BY_NAME.items()})
@@ -81,14 +82,15 @@ def _slots(document, *, render_regions=False):
 
 
 def build(document, bvh, mapping, *, kimodo=None, clip_bounds=None, yaw_degrees=None, render_regions=False,
-          camera_keys=None):
+          camera_keys=None,sampling_profile=None):
     if yaw_degrees is not None:
         from .oblique_target import validate
         from .oblique_motion import PROFILE as OBLIQUE_PROFILE
         validate(dict(profile=OBLIQUE_PROFILE,yaw_degrees=yaw_degrees))
     if camera_keys is not None and yaw_degrees is not None:
         raise ValueError('motion_depth_camera_conflict')
-    options = dict(camera_keys=camera_keys) if camera_keys is not None else {}
+    options = dict(camera_keys=camera_keys,sampling_profile=sampling_profile) if camera_keys is not None else {}
+    if sampling_profile is not None and camera_keys is None:raise ValueError('motion_depth_sampling_requires_camera')
     frames, length, source_sha = _source(bvh, mapping, kimodo, yaw_degrees, **options)
     roles = {r['role']: r for r in mapping['bones']}
     groups = _slots(document, render_regions=render_regions)
@@ -109,6 +111,8 @@ def build(document, bvh, mapping, *, kimodo=None, clip_bounds=None, yaw_degrees=
     if camera_keys is not None:
         from .camera_depth import receipt
         camera = receipt(camera_keys, [tick for tick,_ in frames])
+        if sampling_profile is not None:
+            camera.update(sampling_profile=sampling_profile,sample_scope='interpolated_world_observations_not_native_frames')
         report.update(projection_profile=camera['profile'], camera=camera,
                       depth_axis='per_frame_yaw_rotated_declared_basis')
     if not torso or not groups['torso']:

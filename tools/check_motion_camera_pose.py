@@ -17,6 +17,7 @@ def main():
     parser.add_argument('--project',required=True)
     parser.add_argument('--character-job',required=True)
     parser.add_argument('--output',type=Path,required=True)
+    parser.add_argument('--adaptive',action='store_true')
     args=parser.parse_args()
     root='http://127.0.0.1:8918'
     read=lambda path:json.loads(urlopen(root+path,timeout=30).read())
@@ -34,9 +35,14 @@ def main():
     (args.output/'base-skeleton.json').write_text(json.dumps(base,allow_nan=False),encoding='utf-8')
     rows=[]
     runtime_reference={}
-    for name,keys in [('fixed',[{'time':0,'yaw':30}]),
-                      ('turn',[{'time':0,'yaw':0},{'time':duration,'yaw':360}])]:
-        motion,view,camera=prepare(bundle,keys)
+    cases=[('fixed',[{'time':0,'yaw':30}]),('turn',[{'time':0,'yaw':0},{'time':duration,'yaw':360}])]
+    options={}
+    if args.adaptive:
+        from autospine_workbench.targets.character43.camera_sampling import PROFILE
+        options=dict(sampling_profile=PROFILE)
+        cases.append(('roundtrip',[dict(time=0,yaw=0),dict(time=.013579,yaw=360),dict(time=.028765,yaw=0)]))
+    for name,keys in cases:
+        motion,view,camera=prepare(bundle,keys,**options)
         document,_=build(base,motion,'camera-preview')
         document,evidence=fit(document,'camera-preview',motion,view,camera)
         # Verify deterministic seeking including a reverse seek and final pose.

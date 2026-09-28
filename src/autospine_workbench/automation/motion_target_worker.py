@@ -158,7 +158,7 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
         from ..targets.character43.motion_depth import PROFILE as DEPTH_PROFILE, OVERLAP_PROFILE, build as inspect_depth
         if depth_review_profile not in (DEPTH_PROFILE, OVERLAP_PROFILE, REGIONAL_PROFILE, SPARSE_DEPTH_PROFILE):
             raise ValueError('motion_depth_profile_unsupported')
-        options = dict(camera_keys=oblique['keys']) if camera else dict(yaw_degrees=oblique['yaw_degrees']) if oblique is not None else {}
+        options = dict(camera_keys=oblique['keys'],sampling_profile=oblique.get('sampling_profile')) if camera else dict(yaw_degrees=oblique['yaw_degrees']) if oblique is not None else {}
         depth = inspect_depth(document, bvh, mapping, kimodo=kimodo, clip_bounds=clip_bounds, **options)
         if depth_review_profile == REGIONAL_PROFILE:
             from ..targets.character43.regional_depth_profile import apply, remap_setup

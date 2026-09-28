@@ -42,3 +42,20 @@ class CameraPoseTests(unittest.TestCase):
             self.prepare([{'time':0,'yaw':0},{'time':duration,'yaw':360}])
         with self.assertRaisesRegex(ValueError,'sampling_insufficient'):
             self.prepare([{'time':0,'yaw':0},{'time':duration/2,'yaw':360},{'time':duration,'yaw':0}])
+
+    def test_opt_in_refines_camera_without_rewriting_legacy_or_source(self):
+        from autospine_workbench.targets.character43.camera_sampling import PROFILE
+        original=deepcopy(self.bundle.motion)
+        duration=original['duration_ticks']/original['ticks_per_second']
+        keys=[dict(time=0,yaw=0),dict(time=duration,yaw=360)]
+        vectors,roots,reference=deepcopy(self.data)
+        # Keep a visible vertical component, so this tests temporal refinement,
+        # not fabrication of an unobservable direction.
+        vectors={r:[(v[0],reference,v[2]) for v in rows] for r,rows in vectors.items()}
+        with patch('autospine_workbench.automation.motion_camera_pose.extract',return_value=(vectors,roots,reference)), \
+             patch('autospine_workbench.automation.motion_camera_pose.hip_centers',return_value=self.centers):
+            value=prepare(self.bundle,keys,sampling_profile=PROFILE)
+        validate(*value)
+        self.assertGreater(len(value[2]['times']),len(roots))
+        self.assertEqual(self.bundle.motion,original)
+        self.assertEqual(value[2]['sampling']['profile'],PROFILE)

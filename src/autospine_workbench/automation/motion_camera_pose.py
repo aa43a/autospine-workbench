@@ -12,7 +12,7 @@ from ..targets.character43.oblique_source import extract
 from ..targets.character43.source_hip_centers import extract as hip_centers
 
 
-def prepare(bundle, keys):
+def prepare(bundle, keys, *, sampling_profile=None):
     vectors, roots, reference = extract(bundle)
     centers, hip_reference = hip_centers(bundle)
     if hip_reference != reference:
@@ -26,12 +26,26 @@ def prepare(bundle, keys):
         raise ValueError('camera_motion_samples_mismatch')
     times = [t/base['ticks_per_second'] for t in ticks]
     duration = base['duration_ticks']/base['ticks_per_second']
+    compile_base=base
+    sampling=None
+    if sampling_profile is not None:
+        from ..targets.character43.camera_sampling import PROFILE as SAMPLING, schedule,interpolate,motion_grid
+        if sampling_profile!=SAMPLING:raise ValueError('camera_sampling_profile_unsupported')
+        wanted=schedule(times,keys,duration)
+        sampling=dict(profile=SAMPLING,source_samples=len(times),output_samples=len(wanted),
+            source_times_sha256=canonical_sha256(times),scope='interpolated_world_observations_not_new_measurements')
+        compile_base=motion_grid(base,times,wanted)
+        vectors={role:interpolate(values,times,wanted) for role,values in vectors.items()}
+        roots=interpolate(roots,times,wanted);centers=interpolate(centers,times,wanted);times=wanted
     camera = project_camera(vectors, roots, centers, times, reference, keys, duration)
+    if sampling is not None:
+        camera['sampling']=sampling
+        camera['projection_sha256']=canonical_sha256({k:v for k,v in camera.items() if k!='projection_sha256'})
     if camera['temporal_issues']:
         raise ValueError('camera_sampling_insufficient')
     # The camera snapshot has already projected every frame into the final
     # basis. Reuse the existing angle/local-parent compiler at zero extra yaw.
-    motion, compiled = compile_candidate(base, camera['vectors'], camera['roots'], reference, 0,
+    motion, compiled = compile_candidate(compile_base, camera['vectors'], camera['roots'], reference, 0,
         precision=5 if bundle.source_kind == 'kimodo_npz' else 12)
     identity = dict(profile=PROFILE, parent_motion_sha256=motion_ir_sha256(base),
                     camera_projection_sha256=camera['projection_sha256'])
@@ -41,6 +55,7 @@ def prepare(bundle, keys):
         spatial_input_sha256=camera['input_sha256'], authority='none',
         limitations=['source_projection_not_reconstructed_character_surface',
                      'requires_new_target_contact_geometry_depth_and_runtime_checks'])
+    if sampling_profile is not None:receipt['sampling_profile']=sampling_profile
     return motion, receipt, camera
 
 
@@ -53,6 +68,7 @@ def validate(motion, receipt, camera):
             or canonical_sha256(payload)!=camera.get('projection_sha256')
             or receipt.get('camera_projection_sha256')!=camera.get('projection_sha256')
             or receipt.get('motion_sha256')!=motion_ir_sha256(motion)
+            or receipt.get('sampling_profile')!=camera.get('sampling',{}).get('profile')
             or receipt.get('keys')!=camera['keys']
             or camera['yaw_degrees']!=at_times(camera['keys'],camera['times'],duration)):
         raise ValueError('camera_pose_identity_mismatch')

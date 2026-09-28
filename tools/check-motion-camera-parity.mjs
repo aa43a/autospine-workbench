@@ -4,9 +4,10 @@ import assert from 'node:assert/strict';
 import {solveCamera} from '../web/modules/motion-camera-solver.js';
 const folder=process.argv[2];const read=name=>JSON.parse(fs.readFileSync(path.join(folder,name)));
 const source=read('editor-source.json'),base=read('base-skeleton.json'),rows=[];
-for(const name of ['fixed','turn']){
+for(const {name} of read('report.json').rows){
   const camera=read(`${name}-camera.json`),expected=read(`${name}-skeleton.json`).animations['camera-preview'];
-  const start=performance.now(),actual=solveCamera(base,source,camera.keys);const elapsed=performance.now()-start;
+  const options={samplingProfile:camera.sampling?.profile??null};
+  const start=performance.now(),actual=solveCamera(base,source,camera.keys,options);const elapsed=performance.now()-start;
   let maximum=0,values=0;
   assert.deepEqual(Object.keys(actual.animation.bones).sort(),Object.keys(expected.bones).sort());
   for(const [bone,tracks] of Object.entries(expected.bones))for(const [kind,keys] of Object.entries(tracks)){
@@ -15,7 +16,7 @@ for(const name of ['fixed','turn']){
       assert.ok(Number.isFinite(error),`${bone}/${kind}/${field}`);maximum=Math.max(maximum,error);values++;}});
   }
   assert.ok(maximum<1e-8,`${name} backend mismatch ${maximum}`);
-  assert.deepEqual(actual,solveCamera(base,source,camera.keys));
+  assert.deepEqual(actual,solveCamera(base,source,camera.keys,options));
   rows.push({name,maximum_parameter_error:maximum,values,elapsed_ms:elapsed});
 }
 fs.writeFileSync(path.join(folder,'browser-solver-parity.json'),JSON.stringify({passed:true,rows},null,2));

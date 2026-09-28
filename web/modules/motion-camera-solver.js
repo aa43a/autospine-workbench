@@ -1,5 +1,6 @@
 // Browser counterpart of motion_camera_pose: full source frames, one camera basis.
 import {validateYawTrack,sampleYaw} from './motion-yaw-track.js';
+import {SAMPLING_PROFILE,cameraSchedule,interpolateWorld} from './motion-camera-sampling.js';
 const radians=Math.PI/180,degrees=180/Math.PI;
 const det=m=>m[0]*m[3]-m[1]*m[2];
 const unwrap=(previous,value)=>previous===undefined?value:previous+((value-previous+180)%360+360)%360-180;
@@ -13,11 +14,18 @@ function matrix(bone,parent,rotation=0,sx=1,sy=1,translation=[0,0]){
   const [pa,pb,pc,pd,px,py]=parent;
   return [pa*a+pb*c,pa*b+pb*d,pc*a+pd*c,pc*b+pd*d,px+pa*x+pb*y,py+pc*x+pd*y];
 }
-export function solveCamera(document,source,keys){
+export function solveCamera(document,source,keys,{samplingProfile=null}={}){
   validateYawTrack(keys,source.duration);
+  if(samplingProfile!==null){
+    if(samplingProfile!==SAMPLING_PROFILE)throw Error('camera_sampling_profile_unsupported');
+    const times=cameraSchedule(source.times,keys,source.duration);
+    source={...source,times,roots:interpolateWorld(source.roots,source.times,times),
+      hip_centers:interpolateWorld(source.hip_centers,source.times,times),
+      vectors:Object.fromEntries(Object.entries(source.vectors).map(([k,v])=>[k,interpolateWorld(v,source.times,times)]))};
+  }
   if(source.schema!=='autospine.motion-editor-source/v1'||![5,12].includes(source.precision))throw Error('动作来源协议不支持');
   const times=source.times;
-  if(!Array.isArray(times)||times.length<2||times.length>768||times[0]!==0||times.at(-1)!==source.duration)throw Error('动作采样范围无效');
+  if(!Array.isArray(times)||times.length<2||times.length>(samplingProfile?4096:768)||times[0]!==0||times.at(-1)!==source.duration)throw Error('动作采样范围无效');
   for(let i=1;i<times.length;i++){
     if(!Number.isFinite(times[i])||times[i]<=times[i-1])throw Error('动作采样顺序无效');
     const knots=[times[i-1],...keys.filter(k=>k.time>times[i-1]&&k.time<times[i]).map(k=>k.time),times[i]];

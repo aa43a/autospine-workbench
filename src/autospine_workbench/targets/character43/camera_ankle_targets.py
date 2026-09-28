@@ -8,17 +8,21 @@ from .source_ankle_targets import extract as source_ankles
 PROFILE = 'continuous-camera-ankle-displacement-v1'
 
 
-def extract(bundle, keys):
+def extract(bundle, keys, *, sampling_profile=None):
     source = source_ankles(bundle)
     _, roots, reference = source_vectors(bundle)
     times = source['times']; duration = bundle.motion['duration_ticks']/bundle.motion['ticks_per_second']
     keys = validate(keys, duration)
-    yaws = at_times(keys, times, duration)
     if (times[-1] != duration or len(roots) != len(times)
             or reference != source['source_reference_length']):
         raise ValueError('camera_ankle_source_mismatch')
     pivot = roots[0]
     relative = [[tuple(v-p for v,p in zip(point,pivot)) for point in frame] for frame in source['points']]
+    if sampling_profile is not None:
+        from .camera_sampling import PROFILE as SAMPLING,schedule,interpolate
+        if sampling_profile!=SAMPLING:raise ValueError('camera_sampling_profile_unsupported')
+        wanted=schedule(times,keys,duration);relative=interpolate(relative,times,wanted);times=wanted
+    yaws = at_times(keys, times, duration)
     # Orbit around exactly the pose solver's initial source root. Subtracting
     # each foot's own initial position before rotating would hide stance width.
     points = [[project(point,yaw) for point in frame] for frame,yaw in zip(relative,yaws)]
@@ -32,5 +36,6 @@ def extract(bundle, keys):
         pivot_policy='initial_source_root', authority='none',
         scope='projected_ankle_tracking_not_stationary_screen_contact',
         limitations=['does_not_prove_floor_or_sole_contact'])
+    if sampling_profile is not None:result['sampling_profile']=sampling_profile
     result['observation_sha256'] = canonical_sha256(result)
     return result
