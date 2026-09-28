@@ -6,5 +6,6 @@
 <div class="canvases"><section><h2>源骨架 · 水平观察角</h2><canvas id="source-canvas" width="820" height="640" aria-label="源骨架投影"></canvas></section><section><h2>已绑定角色 · 参考</h2><p id="character-status">选择角色后加载已保存候选。</p><iframe id="character" title="已绑定角色参考" hidden></iframe></section></div>
 <section class="transport" aria-label="动作时间轴"><button id="play" disabled>播放</button><input id="time" aria-label="动作时间" type="range" min="0" max="1" step="0.001" value="0" disabled><output id="clock">0.00 秒</output></section>
 <section class="angle" aria-label="水平角度"><label>水平角度<input id="yaw" type="range" min="0" max="360" step="1" value="0"></label><label>连续角度 / °<input id="yaw-value" type="number" min="-3600" max="3600" step="1" value="0"></label><button id="key" disabled>在当前时间记录角度</button><button id="clear-keys" disabled>恢复固定角度</button><p id="surface"></p><p id="keys">固定角度 0°</p></section>
-<p class="notice">当前切片：源骨架可实时水平旋转，角度关键帧可随时间播放；右侧是已绑定角色参考，尚未将新角度实时映射为角色贴图动画。新角度烘焙与导出接入后才可输出。</p>
+<p class="notice">源骨架可实时水平旋转，角度关键帧可随时间播放；右侧是已绑定角色参考，尚未将新角度实时映射为角色贴图动画。</p>
+<section aria-label="构建与导出"><h2>固定角度构建与导出</h2><p>当前可构建 −90° 至 90° 的固定视角，生成独立候选并重新检查。动态角度轨道暂时仅支持草稿预览，不会折算成固定角度。</p><button id="build">构建固定角度候选</button> <button id="refresh-build">刷新任务</button> <button id="cancel-build" disabled>取消任务</button><p id="build-status" role="status">尚未提交构建。</p><div id="build-result"></div></section>
 </main><script type="module" src="/modules/motion-editor.js"></script></body></html>

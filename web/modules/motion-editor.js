@@ -1,6 +1,7 @@
 import {createSourcePlayer} from './motion-source-player.js';
 import {sampleYaw,validateYawTrack,yawSurfaceWarning} from './motion-yaw-track.js';
 import {DRAFT_SCHEMA,matchEditorDraft,createEditorDraftControls} from './motion-editor-draft.js';
+import {createEditorBuild} from './motion-editor-build.js';
 const $=id=>document.getElementById(id);
 const get=async url=>{const r=await fetch(url);if(!r.ok)throw Error(`读取失败 (${r.status})`);return r.json();};
 let keys=[{time:0,yaw:0}],fixed=0,sourceToken=0,projectToken=0,duration=0,lastYaw=null,lastTime=null,override=null;
@@ -69,9 +70,10 @@ $('refresh').onclick=refresh;
 get('/api/projects').then(value=>{for(const p of value.projects)$('project').add(new Option(p.name,p.id));}).catch(e=>{$('status').textContent=e.message;});
 void refresh();$('surface').textContent=yawSurfaceWarning(0);
 function identity(){return {project_id:$('project').value,source_id:loadedSource,character_job_id:characterJob,duration};}
-createEditorDraftControls({
-  snapshot(){if(!loadedSource||!characterJob)throw Error('请先完成角色和源动作加载');
-    return {schema:DRAFT_SCHEMA,...identity(),time:Number($('time').value),keys:keys.length>1?keys:[{time:0,yaw:fixed}]};},
+function snapshot(){if(!loadedSource||!characterJob)throw Error('请先完成角色和源动作加载');
+  return {schema:DRAFT_SCHEMA,...identity(),time:Number($('time').value),keys:keys.length>1?keys:[{time:0,yaw:fixed}]};}
+createEditorBuild({snapshot});
+createEditorDraftControls({snapshot,
   async restore(draft){
     // Verify against currently loaded identities before replacing any edits.
     if(!loadedSource||!characterJob)throw Error(`请先选择草稿角色 ${draft.project_id} 和动作 ${draft.source_id}，再恢复草稿`);
