@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {pathToFileURL} from 'node:url';
-const [output,deps,chrome,mode]=process.argv.slice(2);await fs.mkdir(output);
+const [output,deps,chrome,mode,project='alice',source]=process.argv.slice(2);await fs.mkdir(output);
 const {chromium}=await import(pathToFileURL(path.resolve(deps,'node_modules/playwright-core/index.mjs')));
 const browser=await chromium.launch({executablePath:chrome,headless:true,args:['--enable-webgl','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
 try{
@@ -11,7 +11,7 @@ try{
   page.on('pageerror',e=>errors.push(String(e)));
   await page.goto('http://127.0.0.1:8918/motion-editor.html');
   await page.waitForFunction(()=>document.querySelectorAll('#source option').length>1&&document.querySelectorAll('#project option').length>1);
-  await page.selectOption('#project','alice');await page.selectOption('#source',mode==='adaptive-fast'?'motion-6fabae462531459ab74cdce05334d604':'motion-2671c6fdbc10444592420e6f8f4ad838');
+  await page.selectOption('#project',project);await page.selectOption('#source',source||(mode==='adaptive-fast'?'motion-6fabae462531459ab74cdce05334d604':'motion-2671c6fdbc10444592420e6f8f4ad838'));
   await page.waitForFunction(()=>window.motionEditorPreviewState?.status==='raw_preview');
   if(mode==='dynamic'||mode==='adaptive-fast'){
     await page.locator('#time').evaluate((el,mode)=>{el.value=mode==='adaptive-fast'?.2:el.max;el.dispatchEvent(new Event('input'));},mode);

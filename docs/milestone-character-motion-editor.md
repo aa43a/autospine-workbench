@@ -238,3 +238,17 @@ tmp/motion-editor-adaptive-comparison-v1/。
 重试只提交一次、新身份持久化、当前动作不变。证据：tmp/motion-editor-intake-retry-v2/。
 最初使用两骨架minimal_motion.bvh验证时返回needs_mapping，不能加载；已保留该结果，
 之后使用既有完整骨架测试来源验证，不将needs_mapping宣称为通过。
+
+## 宽袖角色闭环与角度撤销（2026-09-28）
+
+新生成来源 motion-c8f9555203bc4130abeaf37e523a16cb 已经由编辑页用于辉夜，
+生成完整360度轨道任务 motion-bd8e975cc26b445894d3fb3d4e8313a7。
+任务完成，569帧Runtime几何通过，相机接触代理检查通过；侧背面素材未验证与遮挡
+异常仍保留。实际浏览器播放、状态报告及Spine下载通过，未记录视觉接受。
+提交后刷新观察曾超时，检查同一任务确认仍在执行，未重复提交。
+证据：tmp/motion-editor-huiye-generated-v1/、tmp/motion-editor-huiye-generated-result-v1/。
+
+编辑页新增有界的角度撤销/重做，覆盖固定角度、记录关键帧、清空轨道与恢复草稿。
+更换来源时清空历史，不能撤销到其他来源；不修改候选与复核决定。
+真实浏览器验证固定角度与关键帧撤销重做，修正了失焦重复change造成重复历史的问题；
+两项历史单元测试通过。三结构验证尚缺普通无袖角色的新链路实测，完整目标未完成。

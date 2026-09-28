@@ -38,6 +38,15 @@ try {
     await page.waitForFunction(id=>document.querySelector('#source').value===id,job.job_id);
     await page.selectOption('#project','alice');
     await page.waitForFunction(()=>window.motionEditorPreviewState?.status==='raw_preview',{},{timeout:60000});
+    await page.fill('#yaw-value','30');await page.locator('#yaw-value').dispatchEvent('change');
+    await page.click('#undo-edit');assert.equal(Number(await page.locator('#yaw-value').inputValue()),0);
+    await page.click('#redo-edit');assert.equal(Number(await page.locator('#yaw-value').inputValue()),30);
+    await page.click('#undo-edit');
+    await page.locator('#time').evaluate(el=>{el.value=el.max;el.dispatchEvent(new Event('input'));});
+    await page.fill('#yaw-value','45');await page.locator('#yaw-value').dispatchEvent('change');await page.click('#key');
+    await page.waitForFunction(()=>window.motionEditorPreviewState?.keys.length===2);
+    await page.click('#undo-edit');await page.waitForFunction(()=>window.motionEditorPreviewState?.keys.length===1);
+    await page.click('#redo-edit');await page.waitForFunction(()=>window.motionEditorPreviewState?.keys.length===2);
   }else if(['pending','queued','running','cancelling'].includes(current.status)){
     await page.waitForFunction(()=>document.querySelector('#intake-generate').disabled);
   }
