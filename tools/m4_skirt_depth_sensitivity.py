@@ -22,8 +22,9 @@ from autospine_workbench.targets.character43.affine_pose import sample
 from autospine_workbench.targets.spine43.seam_raster import texture
 
 
-def run(source,partition,order,output,body,state,pixelwise=False):
+def run(source,partition,order,output,body,state,pixelwise=False,triangle_traces=False):
     if output.exists():raise ValueError('output_exists')
+    if triangle_traces and not pixelwise:raise ValueError('skirt_triangle_trace_requires_pixelwise')
     digest=json.loads((source/'report.json').read_bytes())['candidate_bundle_sha256']
     files=AnimatedStore(source/'isolated-store').read(digest)
     proof=json.loads((partition/'report.json').read_bytes());raw=(partition/'skeleton.json').read_bytes()
@@ -71,7 +72,11 @@ def run(source,partition,order,output,body,state,pixelwise=False):
             anchor=sampler.torso_anchors(source_tick)['pelvis'];results=[]
             for aspect,probe in probes.items():
                 garment=at(models[aspect],anchor,'front')
-                result=compare(probe,region,body,time,arm,garment,pixelwise=pixelwise)
+                traces={}
+                def collect(index,counts):traces.setdefault(index,Counter()).update(counts)
+                result=compare(probe,region,body,time,arm,garment,pixelwise=pixelwise,
+                               on_triangle=collect if triangle_traces else None)
+                if triangle_traces:result['triangles']=traces
                 results.append(dict(result,aspect_max=aspect));counts[str(aspect)+':'+result['status']]+=1
             rows.append(dict(region=region,body=body,time=time,source_tick=source_tick,
                              pelvis_depth=anchor,hypotheses=results))
@@ -80,6 +85,7 @@ def run(source,partition,order,output,body,state,pixelwise=False):
         source_artifact_sha256=digest,skeleton_sha256=sha256(raw).hexdigest(),
         order_report_sha256=sha256(order.read_bytes()).hexdigest(),rows=rows,counts=dict(counts),
         models=models,tested_aspect_max=list(aspects),
+        triangle_traces=triangle_traces,
         spatial_sampling='barycentric_pixel_intervals' if pixelwise else 'whole_triangle_intervals',
         assumptions=['Explicitly selected front garment; binding alone does not establish surface side.',
                      'Fixed elliptic material sections attached in depth to the source pelvis.',
@@ -94,4 +100,5 @@ if __name__=='__main__':
     for key in ('source','partition','order','output'):p.add_argument(key,type=Path)
     p.add_argument('--body',required=True);p.add_argument('--state',type=Path,default=Path('workspace'))
     p.add_argument('--pixelwise',action='store_true')
-    a=p.parse_args();run(a.source,a.partition,a.order,a.output,a.body,a.state,a.pixelwise)
+    p.add_argument('--triangle-traces',action='store_true')
+    a=p.parse_args();run(a.source,a.partition,a.order,a.output,a.body,a.state,a.pixelwise,a.triangle_traces)
