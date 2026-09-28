@@ -18,16 +18,25 @@ def assess(row, original_order, checks):
         raise ValueError('order_trial_unreported_relation_change')
     if expected.index(region) >= expected.index(row['body']): raise ValueError('order_trial_front_cover_changed')
     evidence = []
+    visibility = trial.get('crossed_visibility', [])
+    if len({v['slot'] for v in visibility}) != len(visibility) or any(v['slot'] not in crossed for v in visibility):
+        raise ValueError('order_trial_visibility_inventory')
     for slot in crossed:
         found = [r for r in checks if (r['arm'], r['body'], r['time']) == (region, slot, row['time'])]
         if len(found) > 1: raise ValueError('order_trial_duplicate_evidence')
         status = found[0]['status'] if found else 'missing_evidence'
         evidence.append(dict(slot=slot, depth_status=status,
                              compatible=status in ('no_overlap', 'uniform_front_proxy')))
+    uncertain = [e['slot'] for e in evidence if not e['compatible']]
+    unchanged = [v['slot'] for v in visibility if v['changed_marginal_contribution_pixels'] == 0
+                 and v['lost_contribution_pixels'] == 0 and v['gained_contribution_pixels'] == 0
+                 and v['before_visible_pixels'] == v['after_visible_pixels']]
     return dict(time=row['time'], region=region, crossed=evidence,
                 status='sample_proxy_compatible' if all(e['compatible'] for e in evidence) else 'unresolved_crossed_surface',
                 changed_pixels=trial['full_frame_changed_pixels'], alpha_changes=trial['full_frame_alpha_changes'],
-                selected_pixel_changes=trial['selected_pixel_changes'])
+                selected_pixel_changes=trial['selected_pixel_changes'],
+                crossed_visibility=visibility,
+                unmeasured_depth_but_visibility_unchanged=[s for s in uncertain if s in unchanged])
 
 
 def run(report_path, fixture_path, surfaces, output):
@@ -62,7 +71,8 @@ def run(report_path, fixture_path, surfaces, output):
             if sha256(data).hexdigest() != item['sha256']: raise ValueError('order_trial_image_hash')
             (output/f'{index}-{kind}.png').write_bytes(data)
         crossed = '；'.join(escape(e['slot']+': '+e['depth_status']) for e in row['crossed'])
-        cards.append(f'<section><h2>{row["time"]:g} 秒</h2><p>{crossed}</p><p>全帧变化 {row["changed_pixels"]} 像素，透明度变化 {row["alpha_changes"]} 像素。</p>'
+        visibility = '<br>'.join(f'{escape(v["slot"])}：可见贡献 {v["before_visible_pixels"]} → {v["after_visible_pixels"]}；贡献变化 {v["changed_marginal_contribution_pixels"]} 像素' for v in row['crossed_visibility'])
+        cards.append(f'<section><h2>{row["time"]:g} 秒</h2><p>{crossed}</p><p>{visibility}</p><p>全帧变化 {row["changed_pixels"]} 像素，透明度变化 {row["alpha_changes"]} 像素。</p>'
             f'<div><figure><img src="{index}-before.png"><figcaption>原始排序</figcaption></figure>'
             f'<figure><img src="{index}-after.png"><figcaption>手部越过腿部，仍在前裙片后</figcaption></figure></div></section>')
     result = dict(rows=rows, report_sha256=sha256(raw).hexdigest(), surface_report_sha256=sha256(surface_raw).hexdigest(),

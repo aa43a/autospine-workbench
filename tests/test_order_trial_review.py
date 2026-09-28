@@ -10,6 +10,11 @@ class OrderTrialTests(unittest.TestCase):
             crossed_slots=['inner','leg'], full_frame_changed_pixels=100, full_frame_alpha_changes=0, selected_pixel_changes=2))
         checks = [dict(arm='hand',body='leg',time=.5,status='uniform_front_proxy')]
         self.assertEqual(assess(row,order,checks)['status'], 'unresolved_crossed_surface')
+        row['counterfactual']['crossed_visibility'] = [dict(slot='inner',changed_marginal_contribution_pixels=0,
+            lost_contribution_pixels=0,gained_contribution_pixels=0,before_visible_pixels=10,after_visible_pixels=10)]
+        observed = assess(row,order,checks)
+        self.assertEqual(observed['unmeasured_depth_but_visibility_unchanged'], ['inner'])
+        self.assertEqual(observed['status'], 'unresolved_crossed_surface')
         checks.append(dict(arm='hand',body='inner',time=.5,status='no_overlap'))
         self.assertEqual(assess(row,order,checks)['status'], 'sample_proxy_compatible')
         row['counterfactual']['crossed_slots'] = ['leg']

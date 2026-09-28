@@ -38,7 +38,7 @@ try{
   for(const [i,row] of result.rows.entries())if(row.counterfactual){
     for(const mode of ['before','after']){
       const bytes=Buffer.from(row.counterfactual[mode+'_png'].split(',')[1],'base64');
-      const file=`trial-${i}-${mode}.png`;
+      const file=`${path.basename(output,'.json')}-trial-${i}-${mode}.png`;
       await fs.writeFile(path.join(path.dirname(output),file),bytes,{flag:'wx'});
       row.counterfactual[mode+'_image']={file,sha256:hash(bytes)};delete row.counterfactual[mode+'_png'];
     }
