@@ -12,7 +12,7 @@ PROFILE='soma77-declared-depth-samples-v1-experiment'
 
 
 class KimodoDepthSampler:
-    def __init__(self,raw,source,mapping,yaw_degrees=0,*,interpolation='source_samples_only'):
+    def __init__(self,raw,source,mapping,yaw_degrees=0,*,interpolation='source_samples_only',camera_keys=None):
         require_kimodo_npz_map(mapping,source=source)
         if not math.isfinite(yaw_degrees) or not -90<=yaw_degrees<=90:
             raise ValueError('depth_sampler_yaw_invalid')
@@ -21,11 +21,18 @@ class KimodoDepthSampler:
         motion=validate_kimodo_consistency(decode_kimodo_npz(raw,source),source)
         self.mapping=mapping;self.roles={r['role']:r for r in mapping['bones']}
         self.ticks=kimodo_frame_ticks(source);self.interpolation=interpolation
+        from .camera_track import validate
+        if camera_keys is not None and yaw_degrees != 0:
+            raise ValueError('motion_depth_camera_conflict')
+        self.camera_keys=validate(camera_keys,self.ticks[-1]/1e6) if camera_keys is not None else None
         self.indices=SOMA77_INDEX_BY_NAME
         self.identity=dict(raw_npz_sha256=motion.raw_npz_sha256,source_sha256=motion.source_sha256,
                            array_inventory_sha256=motion.array_inventory_sha256)
         angle=math.radians(yaw_degrees);basis=mapping['basis']
         def component(p,axis):return (-1 if axis[0]=='-' else 1)*p['XYZ'.index(axis[1])]
+        self.camera_points=([{name:(component(frame[i],basis['screen_x']),component(frame[i],basis['depth']))
+                              for name,i in self.indices.items()} for frame in motion.positions]
+                            if camera_keys is not None else None)
         self.depths=[{name:math.sin(angle)*component(frame[i],basis['screen_x'])+
                      math.cos(angle)*component(frame[i],basis['depth'])
                      for name,i in self.indices.items()} for frame in motion.positions]
@@ -35,11 +42,24 @@ class KimodoDepthSampler:
             raise ValueError('depth_sampler_time_invalid')
         i=min(bisect_right(self.ticks,tick)-1,len(self.ticks)-1)
         depths=self.depths[i]
+        fraction=0
         if tick!=self.ticks[i]:
             if self.interpolation=='source_samples_only':
                 raise ValueError('kimodo_depth_between_source_samples_unobserved')
             t=(tick-self.ticks[i])/(self.ticks[i+1]-self.ticks[i])
+            fraction=t
             depths={n:z+(self.depths[i+1][n]-z)*t for n,z in depths.items()}
+        if self.camera_keys is not None:
+            from .camera_track import sample
+            from .camera_depth import project
+            # Interpolate source positions first, then evaluate the camera at
+            # this exact time; interpolating already-rotated depths loses turns.
+            points=self.camera_points[i]
+            if fraction:
+                points={n:tuple(a+(b-a)*fraction for a,b in zip(p,self.camera_points[i+1][n]))
+                        for n,p in points.items()}
+            yaw=sample(self.camera_keys,tick/1e6)
+            depths={n:project(*p,yaw) for n,p in points.items()}
         reference=depths[self.roles['humanoid.spine.upper']['joint_name']]
         length=self.mapping['root']['reference_length_meters']
         return {n:(z-reference)/length for n,z in depths.items()}

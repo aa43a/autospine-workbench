@@ -19,6 +19,15 @@ def sampler(angle=90,yaw=0):
 
 
 class SourceDepthSamplerTests(unittest.TestCase):
+    def test_continuous_camera_is_evaluated_at_midpoint_not_endpoint_average(self):
+        base=sampler(angle=0)
+        dynamic=SegmentDepthSampler(base.bvh,base.mapping,camera_keys=[dict(time=0,yaw=0),dict(time=.5,yaw=360)])
+        for name,value in base.joint_depths(250000,include_end_sites=True).items():
+            self.assertAlmostEqual(dynamic.joint_depths(250000,include_end_sites=True)[name],-value)
+        self.assertEqual(dynamic.joint_depths(0),base.joint_depths(0))
+        for name,value in base.joint_depths(500000).items():
+            self.assertAlmostEqual(dynamic.joint_depths(500000)[name],value)
+
     def test_declared_segment_reuses_fk_without_surface_assumption(self):
         probe=sampler()
         for tick in (0,250000,500000):

@@ -10,10 +10,18 @@ PROFILE = 'external-arm-torso-depth-review-v1'
 OVERLAP_PROFILE = 'external-arm-torso-depth-overlap-v2'
 
 
-def _source(bvh, mapping, kimodo, yaw_degrees=None):
+def _source(bvh, mapping, kimodo, yaw_degrees=None, *, camera_keys=None):
+    from .camera_depth import angles, project as camera_depth
+    if camera_keys is not None and yaw_degrees is not None:
+        raise ValueError('motion_depth_camera_conflict')
     angle=math.radians(yaw_degrees or 0); c,s=math.cos(angle),math.sin(angle)
     if kimodo is None:
         projected = project_bvh_frames(bvh, mapping)
+        if camera_keys is not None:
+            yaws = angles([f.tick for f in projected.frames], camera_keys)
+            return [(f.tick, {n: camera_depth(p.screen_xy[0], p.depth, yaw) for n,p in f.joints})
+                    for f,yaw in zip(projected.frames,yaws)], \
+                mapping['root']['reference_length_source_units'], bvh.source_sha256
         return [(f.tick, {n: p.depth if yaw_degrees is None else s*p.screen_xy[0]+c*p.depth
                          for n, p in f.joints}) for f in projected.frames], \
             mapping['root']['reference_length_source_units'], bvh.source_sha256
@@ -27,6 +35,12 @@ def _source(bvh, mapping, kimodo, yaw_degrees=None):
     validated = validate_kimodo_consistency(decode_kimodo_npz(raw, source), source)
     axis = mapping['basis']['depth']; index = 'XYZ'.index(axis[1]); sign = 1 if axis[0] == '+' else -1
     xaxis=mapping['basis']['screen_x']; xindex='XYZ'.index(xaxis[1]); xsign=1 if xaxis[0]=='+' else -1
+    if camera_keys is not None:
+        ticks=kimodo_frame_ticks(source); yaws=angles(ticks,camera_keys)
+        return [(tick,{n:camera_depth(xsign*positions[i][xindex],sign*positions[i][index],yaw)
+                       for n,i in SOMA77_INDEX_BY_NAME.items()})
+                for tick,positions,yaw in zip(ticks,validated.positions,yaws)], \
+            mapping['root']['reference_length_meters'], sha256(raw).hexdigest()
     rows = [(tick, {n: sign*positions[i][index] if yaw_degrees is None else
                    s*xsign*positions[i][xindex]+c*sign*positions[i][index] for n, i in SOMA77_INDEX_BY_NAME.items()})
             for tick, positions in zip(kimodo_frame_ticks(source), validated.positions)]
@@ -66,12 +80,16 @@ def _slots(document, *, render_regions=False):
     return result
 
 
-def build(document, bvh, mapping, *, kimodo=None, clip_bounds=None, yaw_degrees=None, render_regions=False):
+def build(document, bvh, mapping, *, kimodo=None, clip_bounds=None, yaw_degrees=None, render_regions=False,
+          camera_keys=None):
     if yaw_degrees is not None:
         from .oblique_target import validate
         from .oblique_motion import PROFILE as OBLIQUE_PROFILE
         validate(dict(profile=OBLIQUE_PROFILE,yaw_degrees=yaw_degrees))
-    frames, length, source_sha = _source(bvh, mapping, kimodo, yaw_degrees)
+    if camera_keys is not None and yaw_degrees is not None:
+        raise ValueError('motion_depth_camera_conflict')
+    options = dict(camera_keys=camera_keys) if camera_keys is not None else {}
+    frames, length, source_sha = _source(bvh, mapping, kimodo, yaw_degrees, **options)
     roles = {r['role']: r for r in mapping['bones']}
     groups = _slots(document, render_regions=render_regions)
     report = dict(profile=PROFILE, authority='none', selected=False, source_sha256=source_sha,
@@ -88,6 +106,11 @@ def build(document, bvh, mapping, *, kimodo=None, clip_bounds=None, yaw_degrees=
     if yaw_degrees is not None:
         report.update(projection_profile=OBLIQUE_PROFILE,yaw_degrees=yaw_degrees,
                       depth_axis='yaw_rotated_declared_basis')
+    if camera_keys is not None:
+        from .camera_depth import receipt
+        camera = receipt(camera_keys, [tick for tick,_ in frames])
+        report.update(projection_profile=camera['profile'], camera=camera,
+                      depth_axis='per_frame_yaw_rotated_declared_basis')
     if not torso or not groups['torso']:
         report['status'] = 'depth_mapping_unavailable'
         return report

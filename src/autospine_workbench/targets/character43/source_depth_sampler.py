@@ -9,12 +9,16 @@ PROFILE = 'bvh-linear-channel-depth-sampling-v1'
 
 
 class SegmentDepthSampler:
-    def __init__(self,bvh,mapping,yaw_degrees=0):
+    def __init__(self,bvh,mapping,yaw_degrees=0,*,camera_keys=None):
         require_bvh_map(mapping,bvh=bvh)
         if not math.isfinite(yaw_degrees) or not -90 <= yaw_degrees <= 90:
             raise ValueError('depth_sampler_yaw_invalid')
         self.bvh,self.mapping=bvh,mapping
         self.ticks=bvh_frame_ticks(bvh)
+        from .camera_track import validate
+        if camera_keys is not None and yaw_degrees != 0:
+            raise ValueError('motion_depth_camera_conflict')
+        self.camera_keys=validate(camera_keys,self.ticks[-1]/1e6) if camera_keys is not None else None
         self.indices={j.name:i for i,j in enumerate(bvh.joints)}
         self.roles={r['role']:r for r in mapping['bones']}
         self.channels=[c for j in bvh.joints for c in j.channels]
@@ -34,12 +38,14 @@ class SegmentDepthSampler:
             frame=tuple(a+(b-a)*fraction for a,b in zip(frame,next_frame))
         matrices=_world_matrices(self.bvh,frame)
         basis=self.mapping['basis']
+        from .camera_track import sample
+        angle=math.radians(sample(self.camera_keys,tick/1e6)) if self.camera_keys is not None else self.angle
         def z(name,offset=None):
             matrix=matrices[self.indices[name]]
             point=_origin(matrix if offset is None else _multiply(matrix,_translate(offset)))
             values=[(-1 if basis[k][0]=='-' else 1)*point['XYZ'.index(basis[k][1])]
                     for k in ('screen_x','depth')]
-            return math.sin(self.angle)*values[0]+math.cos(self.angle)*values[1]
+            return math.sin(angle)*values[0]+math.cos(angle)*values[1]
         reference=z(self.roles['humanoid.spine.upper']['joint_name'])
         length=self.mapping['root']['reference_length_source_units']
         result={name:(z(name)-reference)/length for name in self.indices}

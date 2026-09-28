@@ -9,6 +9,16 @@ from autospine_workbench.kimodo_npz_consistency import validate_kimodo_consisten
 
 
 class KimodoDepthTests(unittest.TestCase):
+    def test_camera_midpoint_rotates_interpolated_positions(self):
+        base=self.sampler(interpolation='linear_observed_positions')
+        end=base.ticks[1]/1e6
+        dynamic=self.sampler(interpolation='linear_observed_positions',
+            camera_keys=[dict(time=0,yaw=0),dict(time=end,yaw=360)])
+        for name,value in base.joint_depths(base.ticks[1]/2).items():
+            self.assertAlmostEqual(dynamic.joint_depths(base.ticks[1]/2)[name],-value)
+        for name,value in base.joint_depths(base.ticks[1]).items():
+            self.assertAlmostEqual(dynamic.joint_depths(base.ticks[1])[name],value)
+
     def setUp(self):
         self.raw=build_npz(motion_member_bytes())
         self.source=source_document(self.raw);self.mapping=map_document()
