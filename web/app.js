@@ -1,4 +1,5 @@
 import { API_BASE, apiRequest, normalizeProjectSummaries } from "./modules/api.js";
+import { projectOptionLabel } from "./modules/project-option-label.js";
 import { normalizeBbox } from "./modules/canvas-geometry.js";
 import { createCandidateReview } from "./modules/candidate-review.js";
 import { collectRequiredElements } from "./modules/dom-elements.js";
@@ -198,7 +199,7 @@ function renderProjectOptions() {
   }
 
   for (const project of state.projects) {
-    const option = new Option(project.name, project.id);
+    const option = new Option(projectOptionLabel(project, state.projects), project.id);
     if (project.status) option.dataset.status = project.status;
     dom.projectSelect.add(option);
   }

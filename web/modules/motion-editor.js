@@ -1,4 +1,5 @@
 import {createSourcePlayer} from './motion-source-player.js';
+import {projectOptionLabel} from './project-option-label.js';
 import {sampleYaw,validateYawTrack,yawSurfaceWarning} from './motion-yaw-track.js';
 import {DRAFT_SCHEMA,matchEditorDraft,createEditorDraftControls} from './motion-editor-draft.js';
 import {createEditorBuild} from './motion-editor-build.js';
@@ -107,7 +108,7 @@ const intake=createEditorIntake({refresh,async load(id){
   if(![...$('source').options].some(o=>o.value===id))throw Error('动作尚未完成解析，请刷新任务');
   $('source').value=id;await $('source').onchange();
 }});
-get('/api/projects').then(value=>{for(const p of value.projects)$('project').add(new Option(p.name,p.id));}).catch(e=>{$('status').textContent=e.message;});
+get('/api/projects').then(value=>{for(const p of value.projects)$('project').add(new Option(projectOptionLabel(p,value.projects),p.id));}).catch(e=>{$('status').textContent=e.message;});
 void refresh();$('surface').textContent=yawSurfaceWarning(0);
 function identity(){return {project_id:$('project').value,source_id:loadedSource,character_job_id:characterJob,duration,...(sampling()?{sampling_profile:sampling()}:{})};}
 function snapshot(){if(!loadedSource||!characterJob)throw Error('请先完成角色和源动作加载');

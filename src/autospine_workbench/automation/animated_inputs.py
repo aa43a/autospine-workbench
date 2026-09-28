@@ -56,8 +56,13 @@ def _replay(store, registration):
     if registration.get('source_kind') == 'project_audit':
         from .input_preparation_sources_publish import replay_project_source
         return replay_project_source(store, registration)
-    return replay_inputs(store.state_root, registration['manifest'],
-                         registration['source_draft_sha256'], store.workspace_root)
+    try:
+        return replay_inputs(store.state_root, registration['manifest'],
+                             registration['source_draft_sha256'], store.workspace_root)
+    except ValueError as exc:
+        if str(exc) == 'benchmark_mapping_source_changed':
+            raise AnimatedSourceError('animated_source_changed') from exc
+        raise
 
 
 def _match_audit(store, project_id, candidate):

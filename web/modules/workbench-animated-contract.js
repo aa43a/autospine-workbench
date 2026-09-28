@@ -62,6 +62,8 @@ export function readAnimatedJob(value, context, expectedId = null) {
 }
 
 const REASONS = {
+  animated_source_changed: "此项目引用的原始素材已变更，旧版本无法重新生成。请选择同名的导入版本；若需重现旧版，请恢复对应的原始素材。历史记录保留。",
+  animated_source_invalid: "无法验证动画来源的完整性，请检查项目来源或选择其他版本。已有复核记录保留。",
   animated_binding_completion_invalid: "简单绑定候选升级未完成；请检查来源是否完整，原复核记录保持不变。",
   animated_binding_profile_unsupported: "当前绑定候选版本不支持此更新，请保留来源并检查版本。",
   animated_source_missing: "尚无可用的骨架与绑定源，请先完成关节和结构准备。",

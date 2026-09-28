@@ -1,11 +1,13 @@
 "use strict";
 
 import { projectIdentity } from "./workbench-automation-contract.js";
-import { animatedEndpoint } from "./workbench-animated-contract.js";
+import { animatedEndpoint, animatedReason } from "./workbench-animated-contract.js";
 import { createRigPlanView, RIG_STRATEGIES } from "./workbench-rig-plan-view.js";
 import { readRigReadiness } from "./workbench-rig-readiness.js";
 const SHA = /^[a-f0-9]{64}$/;
 const FAILURES = {
+  animated_source_changed: animatedReason('animated_source_changed'),
+  animated_source_invalid: animatedReason('animated_source_invalid'),
   project_rig_plan_dependency_missing: "缺少图像分析依赖，请安装项目的可选分析环境后重试。",
   project_rig_plan_analysis_failed: "图层图像或骨骼证据无法完成分析，请检查输入素材。",
   animated_review_conflict: "来源已变化，请刷新后重新分析。",
