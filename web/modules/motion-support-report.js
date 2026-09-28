@@ -113,5 +113,15 @@ export function supportReportHTML(snapshot,origin){
 <p>身份已核对 ${totals.verified}/${totals.expected}；有效阶段接受 ${totals.accepted}/${totals.expected}；改进记录完整核对 ${totals.related_checked}/${snapshot.rows.length}；替代记录完整核对 ${totals.alternatives_checked}/${snapshot.rows.length}；不同策略清单完整核对 ${totals.policies_checked}/${snapshot.rows.length}。</p>
 <p>另有 ${totals.independent_acceptance.accepted} 个独立候选获有效阶段接受（按候选及注册身份去重）；${totals.independent_acceptance.conflicting} 个重复记录结论不一致，未计入接受。此数不加入固定候选通过率，不包含仅局部反馈，技术异常仍保留。</p>
 <p>${Object.entries(totals.delivery).map(([k,v])=>`${deliveryLabels[k]} ${v}/${totals.expected}`).join('；')}</p>
-${queue}<div class="scroll"><table><thead><tr><th>动作 / 角色</th><th>固定候选交付状态</th><th>固定候选阶段验收</th><th>已接受的独立结果（保留异常）</th>${gates.map(n=>`<th>${n}</th>`).join('')}</tr></thead><tbody>${table}</tbody></table></div>${cards}</html>`;
+${queue}<div class="scroll"><table><thead><tr><th>动作 / 角色</th><th>固定候选交付状态</th><th>固定候选阶段验收</th><th>已接受的独立结果（保留异常）</th>${gates.map(n=>`<th>${n}</th>`).join('')}</tr></thead><tbody>${table}</tbody></table></div>${cards}
+<script>
+function revealReportTarget(){
+  const id=location.hash.slice(1);
+  if(!/^cell-[0-9]+(?:-(?:related|alternatives|policy_variants)-[0-9]+)*$/.test(id))return;
+  const target=document.getElementById(id);if(!target)return;
+  for(let el=target;el;el=el.parentElement)if(el.tagName==='DETAILS')el.open=true;
+  requestAnimationFrame(()=>target.scrollIntoView({block:'start'}));
+}
+addEventListener('hashchange',revealReportTarget);revealReportTarget();
+</script></html>`;
 }

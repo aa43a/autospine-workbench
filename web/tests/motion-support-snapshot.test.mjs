@@ -88,7 +88,11 @@ test('all extra diagnostic stages, escaped human notes and full identities retai
   r.current.notes='<script>alert(1)</script> & 保留肩部异常';
   r.readiness.stages.push({stage:'肩部',status:'needs_changes',explanation:'顶点失败 12'});
   const s=await collect(f),html=supportReportHTML(s,'http://127.0.0.1:8918/path');
-  assert.match(html,/&lt;script&gt;/);assert.doesNotMatch(html,/<script>/);
+  assert.match(html,/&lt;script&gt;/);assert.doesNotMatch(html,/<script>alert/);
+  const clean=structuredClone(s);clean.rows[0].review.current.notes='safe note';
+  const scripts=value=>[...value.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
+  assert.equal(scripts(html).length,1); // Only the fixed local fragment-navigation helper.
+  assert.deepEqual(scripts(html),scripts(supportReportHTML(clean,'http://127.0.0.1:8918/path')));
   assert.match(html,/肩部：需处理/);assert.match(html,new RegExp(f.asset));
   assert.match(html,/http:\/\/127.0.0.1:8918\/api\/motions\//);
   assert.throws(()=>supportReportHTML(s,'file:///tmp'),/地址无效/);
