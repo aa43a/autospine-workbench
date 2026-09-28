@@ -33,13 +33,15 @@ export function createEditorIntake({refresh,load}) {
     parse:'解析动作',compile:'转换动作',complete:'完成',failed:'失败',cancelled:'已取消'};
   async function poll() {
     clearTimeout(timer);if(!id||suspended)return;
+    const requested=id;
     try {
-      job=await request(`/api/motions/${id}`);
+      const value=await request(`/api/motions/${requested}`);
+      if(id!==requested||suspended)return;job=value;
       $('intake-status').textContent=`${job.name} · ${stages[job.step]||job.step||job.status}${job.error?' · '+JSON.stringify(job.error):''}`;
       if(job.status==='succeeded')$('intake-status').textContent+='。点击“载入编辑”替换当前源动作；角度轨道将重置。';
       $('intake-record').href=`/motions.html#${id}`;$('intake-record').hidden=false;controls();
       if(active()&&!suspended)timer=setTimeout(poll,2500);
-    } catch(e) {$('intake-status').textContent=e.message; if(!suspended)timer=setTimeout(poll,5000);}
+    } catch(e) {if(id!==requested||suspended)return;$('intake-status').textContent=e.message;timer=setTimeout(poll,5000);}
   }
   async function submit(url,options,original=null) {
     if(busy||active())return;busy=true;controls();$('intake-status').textContent='正在提交…';

@@ -13,7 +13,7 @@ try{
   await page.waitForFunction(()=>document.querySelectorAll('#source option').length>1&&document.querySelectorAll('#project option').length>1);
   await page.selectOption('#project',project);await page.selectOption('#source',source||(mode==='adaptive-fast'?'motion-6fabae462531459ab74cdce05334d604':'motion-2671c6fdbc10444592420e6f8f4ad838'));
   await page.waitForFunction(()=>window.motionEditorPreviewState?.status==='raw_preview');
-  if(mode==='projected')await page.selectOption('#sampling-version','camera-world-projected-adaptive-v2');
+  await page.selectOption('#sampling-version',mode==='projected'?'camera-world-projected-adaptive-v2':'camera-world-linear-adaptive-v1');
   if(mode==='dynamic'||mode==='adaptive-fast'||mode==='projected'){
     await page.locator('#time').evaluate((el,mode)=>{el.value=mode==='adaptive-fast'?.2:el.max;el.dispatchEvent(new Event('input'));},mode);
     await page.fill('#yaw-value','360');await page.locator('#yaw-value').dispatchEvent('change');await page.click('#key');
