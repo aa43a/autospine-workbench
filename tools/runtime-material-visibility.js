@@ -1,0 +1,69 @@
+/* Diagnostic only: actual texture alpha, original order, exact same-frame poses. */
+window.inspectMaterialVisibility = async fixture => {
+  const {width,height,left,bottom}=fixture.info;
+  if(width*height>4194304)throw Error('visibility_camera_budget');
+  const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
+  const gl=canvas.getContext('webgl',{alpha:true,antialias:false,premultipliedAlpha:true,preserveDrawingBuffer:true});
+  if(!gl)throw Error('visibility_webgl_missing');
+  const atlas=new spine.TextureAtlas(fixture.atlas);
+  await Promise.all(atlas.pages.map(async p=>{
+    if(!fixture.textures[p.name])throw Error('visibility_texture_missing');
+    const image=new Image();image.src=fixture.textures[p.name];await image.decode();
+    p.setTexture(new spine.GLTexture(gl,image,false,false));
+  }));
+  const data=new spine.SkeletonJson(new spine.AtlasAttachmentLoader(atlas)).readSkeletonData(fixture.skeleton);
+  const renderer=new spine.SceneRenderer(canvas,gl);renderer.camera.setViewport(width,height);
+  renderer.camera.position.x=left+width/2;renderer.camera.position.y=bottom+height/2;renderer.camera.update();
+  function pose(time){
+    const skeleton=new spine.Skeleton(data),state=new spine.AnimationState(new spine.AnimationStateData(data));
+    skeleton.setupPose();state.setAnimation(0,'external-motion',false);state.update(time);state.apply(skeleton);
+    skeleton.updateWorldTransform(spine.Physics.update);return skeleton;
+  }
+  const rows=[];
+  for(const row of fixture.rows){
+    const rig=pose(row.time),order=rig.drawOrder.appliedPose.map(s=>s.data.name);
+    if(JSON.stringify(order)!==JSON.stringify(row.draw_order))throw Error('visibility_order_mismatch');
+    const saved=rig.slots.map(s=>s.appliedPose.attachment);
+    const x0=Math.min(...row.points.map(p=>p.x)),y0=Math.min(...row.points.map(p=>p.y));
+    const rw=Math.max(...row.points.map(p=>p.x))-x0+1,rh=Math.max(...row.points.map(p=>p.y))-y0+1;
+    function render(mode,name){
+      rig.slots.forEach((s,i)=>{s.appliedPose.attachment=(mode==='only'&&s.data.name!==name||mode==='without'&&s.data.name===name)?null:saved[i];});
+      gl.viewport(0,0,width,height);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);
+      renderer.begin();renderer.drawSkeleton(rig);renderer.end();
+      const bytes=new Uint8Array(rw*rh*4);gl.readPixels(x0,height-y0-rh,rw,rh,gl.RGBA,gl.UNSIGNED_BYTE,bytes);
+      if(gl.getError()!==gl.NO_ERROR)throw Error('visibility_framebuffer_error');
+      return row.points.map(p=>Array.from(bytes.slice(((rh-1-(p.y-y0))*rw+p.x-x0)*4,((rh-1-(p.y-y0))*rw+p.x-x0)*4+4)));
+    }
+    const full=render('full'),image=new Image();image.src=row.screenshot;await image.decode();
+    if(image.width!==width||image.height!==height)throw Error('visibility_screenshot_size');
+    const check=document.createElement('canvas');check.width=width;check.height=height;
+    const ctx=check.getContext('2d');ctx.drawImage(image,0,0);
+    const old=ctx.getImageData(x0,y0,rw,rh).data;let maximum=0;
+    row.points.forEach((p,i)=>{
+      const j=((p.y-y0)*rw+p.x-x0)*4,a=old[j+3];
+      for(let c=0;c<4;c++)maximum=Math.max(maximum,Math.abs(full[i][c]-(c===3?a:Math.round(old[j+c]*a/255))));
+    });
+    if(maximum>1)throw Error('visibility_prior_frame_mismatch:'+maximum);
+    const support=row.points.map(()=>[]);
+    for(const name of order){
+      const pixels=render('only',name);
+      pixels.forEach((p,i)=>{if(p[3])support[i].push({slot:name,rgba:p});});
+    }
+    const drops={};
+    for(const name of new Set([row.region,row.body,...support.map(s=>s.at(-1)?.slot).filter(Boolean)])){
+      const without=render('without',name);
+      drops[name]=without.map((p,i)=>Math.max(...p.map((v,c)=>Math.abs(v-full[i][c]))));
+    }
+    const restored=render('full');
+    if(JSON.stringify(restored)!==JSON.stringify(full))throw Error('visibility_restore_mismatch');
+    const points=row.points.map((p,i)=>{
+      const top=support[i].at(-1),opaque=top?.rgba[3]===255;
+      const same=opaque&&top.rgba.every((v,c)=>Math.abs(v-full[i][c])<=1);
+      return {...p,rgba:full[i],support:support[i],top_slot:top?.slot??null,
+        opaque_top_matches_full:!!same,hide_deltas:Object.fromEntries(Object.entries(drops).map(([n,v])=>[n,v[i]]))};
+    });
+    rows.push({time:row.time,region:row.region,body:row.body,screenshot_sha256:row.screenshot_sha256,
+      prior_frame_max_channel_delta:maximum,restored:true,points});
+  }
+  return {rows,context:gl.getContextAttributes(),scope:'selected_pixels_gpu_isolation_and_hide_delta_not_depth_correctness',authority:'none',selected:false};
+};
