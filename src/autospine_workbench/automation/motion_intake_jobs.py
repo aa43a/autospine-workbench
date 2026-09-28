@@ -158,6 +158,9 @@ class MotionIntakeJobs:
         if old['status'] in ACTIVE:
             raise PipelineRunError('motion_job_running')
         request = read_document(self.folder(job) / 'request.json')
+        if request.get('joint_execution'):
+            from .motion_joint_jobs import retry
+            return retry(self, request)
         if request.get('repair_execution'):
             from .motion_repair_execution import retry
             return retry(self, request)

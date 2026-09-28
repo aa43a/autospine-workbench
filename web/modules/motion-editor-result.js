@@ -8,7 +8,8 @@ export function resultTrack(job,link){
   if(link.clip!==null)throw Error('此结果使用裁剪片段，请在独立验收窗口查看');
   const p=job.result.projection;
   const keys=p?.profile==='continuous-yaw-source-camera-v1'?p.keys:
-    p?.profile==='constant-yaw-source-motion-v1'?[{time:0,yaw:p.yaw_degrees}]:null;
+    p?.profile==='constant-yaw-source-motion-v1'?[{time:0,yaw:p.yaw_degrees}]:
+    p==null&&['front','side'].includes(link.source_view)?[{time:0,yaw:link.source_view==='front'?0:90}]:null;
   if(!keys)throw Error('此候选没有编辑页支持的角度轨道');
   // Source metadata uses rational frame duration; editor keys use MotionIR microseconds.
   return validateYawTrack(keys,Math.round(link.duration*1e6)/1e6);
@@ -18,7 +19,7 @@ export function resultMatch(job,link,source,identity,keys,track){
     ||source?.source_sha256!==link.source_sha256||source?.motion_identity?.clip_sha256!==link.motion_identity?.clip_sha256
     ||source?.motion_identity?.bundle_sha256!==link.motion_identity?.bundle_sha256)return 'different_source';
   const editsMatch=JSON.stringify(normalizeLayerEdits(identity.layer_edits))===JSON.stringify(normalizeLayerEdits(job.result.layer_edits));
-  return editsMatch&&JSON.stringify(keys)===JSON.stringify(track)&&(identity.sampling_profile??null)===(job.result.projection.sampling_profile??null)?'matching':'draft_changed';
+  return editsMatch&&JSON.stringify(keys)===JSON.stringify(track)&&(identity.sampling_profile??null)===(job.result.projection?.sampling_profile??null)?'matching':'draft_changed';
 }
 export function createEditorResult({canvas,status,restore,selection,viewport=()=>{}}){
   let renderer=null,job=null,link=null,track=null,version=0,time=0;
@@ -51,9 +52,11 @@ export function createEditorResult({canvas,status,restore,selection,viewport=()=
     clear();const token=version;status.textContent='正在读取实际构建结果…';
     document.getElementById('restore-result').disabled=true;
     try{
-      const response=await fetch(`/api/motions/${value.job_id}/view/source-link.json`,{cache:'no-store'});
-      if(!response.ok)throw Error('无法核验结果来源');const bound=await response.json(),keys=resultTrack(value,bound);
-      const next=await createEditorRenderer(canvas,`/api/motions/${value.job_id}/view/player-assets/`,()=>token===version);
+      const registration=value.joint_registration_sha256;
+      const response=await fetch(registration?`/api/motions/${value.job_id}/related-candidates/${registration}/joint-animation`:
+        `/api/motions/${value.job_id}/view/source-link.json`,{cache:'no-store'});
+      if(!response.ok)throw Error('无法核验结果来源');const metadata=await response.json(),bound=registration?metadata.source_link:metadata,keys=resultTrack(value,bound);
+      const next=await createEditorRenderer(canvas,registration?metadata.preview_base:`/api/motions/${value.job_id}/view/player-assets/`,()=>token===version);
       if(!next)return;if(token!==version){next.dispose();return;}
       renderer=next;
       if(next.artifact!==value.result.artifact_sha256)throw Error('结果资源版本不一致');

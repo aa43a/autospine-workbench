@@ -17,6 +17,8 @@ from ..targets.character43.limb_transverse_scope import PROFILE as TRANSVERSE_PR
 
 
 def submit(manager, parent_job, body):
+    from .motion_joint_jobs import require_body_repair_parent
+    require_body_repair_parent(manager, parent_job)
     from .motion_repair_draft import evidence, history
     from .motion_target_jobs import assert_current
     if (set(body) != {'revision', 'draft_sha256'} or type(body['revision']) is not int
@@ -99,10 +101,10 @@ def submit(manager, parent_job, body):
 
 def retry(manager, request):
     repair = request['repair_execution']
-    if repair['draft'].get('action') == 'additional_view':
+    if repair.get('draft', {}).get('action') == 'additional_view':
         from .motion_view_execution import retry as view_retry
         return view_retry(manager, request)
-    if repair['draft'].get('action') == 'pose_geometry':
+    if repair.get('draft', {}).get('action') == 'pose_geometry':
         from .motion_pose_geometry_execution import submit as pose_submit
         return pose_submit(manager, repair['parent_job_id'], dict(
             artifact_sha256=repair['parent_artifact_sha256'], pose_geometry=repair['draft']['pose_geometry']))

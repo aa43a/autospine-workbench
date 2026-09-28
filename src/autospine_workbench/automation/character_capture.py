@@ -51,6 +51,17 @@ def capture(projects, store, digest, root, *, progress, cancel_requested, storag
         raise ValueError('character_reference_source_mismatch')
     progress('runtime_geometry')
     geometry=inspect(candidate, setup_vertices=setup_reference['vertices'] if setup_reference else None)
+    if 'joint-animation.json' in candidate:
+        from ..targets.character43.joint_animation_qa import geometry_report
+        joint = json.loads(candidate['joint-animation.json'])
+        if joint['skeleton_sha256'] != sha256(candidate['skeleton.json']).hexdigest():
+            raise ValueError('joint_animation_reference_mismatch')
+        provenance = json.loads(candidate['joint-provenance.json'])
+        parent = provenance['parent_artifact_sha256']
+        if sha256(store.read_file(parent, 'skeleton.json')).hexdigest() != joint['parent_skeleton_sha256']:
+            raise ValueError('joint_animation_capture_parent_mismatch')
+        geometry = geometry_report(geometry, joint['inventory']['face'], joint['config']['face']['enabled'],
+            face_report=joint['face'], source_geometry=json.loads(store.read_file(parent, 'deformation.json')))
     from ..targets.character43.numeric_reference import read as read_reference
     frame_count=sum(len(frames) for frames in read_reference(candidate)['animations'].values())
     (output/'deformation.json').write_bytes(canonical_bytes(geometry))

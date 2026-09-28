@@ -12,6 +12,8 @@ from .storage_io import publish_document, read_document
 
 
 def submit(manager, parent_job, body):
+    from .motion_joint_jobs import require_body_repair_parent
+    require_body_repair_parent(manager, parent_job)
     from .motion_target_jobs import assert_current, context
     if not isinstance(body, dict) or set(body) != {'artifact_sha256', 'pose_geometry'}:
         raise PipelineRunError('pose_execution_request_invalid')

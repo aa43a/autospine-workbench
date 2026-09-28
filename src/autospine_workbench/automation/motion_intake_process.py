@@ -14,7 +14,8 @@ STEPS = {'runtime_prepare', 'runtime_geometry', 'runtime_reference', 'runtime_se
          'retarget', 'post_contact_repair', 'publish_candidate', 'runtime', 'verify_generator', 'verify_text_encoder',
          'generate_motion', 'verify_generation', 'depth_overlap', 'depth_partition',
          'depth_refinement', 'depth_cloth_constraints', 'depth_limb_constraints', 'depth_ordering', 'torso_projection', 'local_depth',
-         'garment_follow', 'garment_validate', 'transverse_compensate', 'transverse_joint', 'transverse_validate'}
+         'garment_follow', 'garment_validate', 'transverse_compensate', 'transverse_joint', 'transverse_validate',
+         'joint_inventory', 'joint_face', 'joint_secondary', 'joint_validate'}
 
 # Only explicit internal failures may cross the worker log boundary.
 REPAIR_FAILURES = frozenset({
@@ -109,7 +110,7 @@ def failure_reason(path):
     for line in reversed(lines[-3:]):
         try:
             reason = json.loads(line).get('reason_code', '')
-            if isinstance(reason, str) and (reason in REPAIR_FAILURES or reason in VIEW_FAILURES or re.fullmatch(r'(motion|character)_[a-z0-9_]{1,80}', reason)):
+            if isinstance(reason, str) and (reason in REPAIR_FAILURES or reason in VIEW_FAILURES or re.fullmatch(r'(motion|character|joint)_[a-z0-9_]{1,80}', reason)):
                 return reason
         except (ValueError, AttributeError):
             pass

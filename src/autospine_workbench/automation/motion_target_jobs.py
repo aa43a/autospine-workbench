@@ -218,7 +218,7 @@ def review_file(manager, job, parts):
         from ..targets.character43.final_motion_contact import for_candidate
         report = for_candidate(files, result['artifact_sha256'], json.loads(runtime_file('report.json')))
         return json.dumps(report, ensure_ascii=False).encode('utf-8'), 'application/json'
-    if parts in (['motion-review.json'], ['parent-motion-review.json']):
+    if parts in (['motion-review.json'], ['parent-motion-review.json'], ['joint-animation.json'], ['joint-provenance.json']):
         if parts[0] not in files:
             raise PipelineRunError('pipeline_artifact_not_found')
         return files[parts[0]], 'application/json'

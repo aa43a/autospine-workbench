@@ -11,6 +11,8 @@ from .storage_io import publish_document,read_document
 
 
 def submit(manager,parent_job,body):
+    from .motion_joint_jobs import require_body_repair_parent
+    require_body_repair_parent(manager,parent_job)
     from .motion_material_mapping import history
     from .motion_material_return import inspect as returns
     from .motion_repair_draft import history as drafts

@@ -13,6 +13,7 @@ const reasons={motion_layer_target_mismatch:'角色图层版本已变化，请�
   motion_layer_interpolation_error:'图层校正在中间姿态误差过大，请减小旋转或缩放后重试。',
   motion_layer_transform_out_of_range:'图层校正数值超出支持范围。'};
 const steps={queued:'排队等待',verify_source:'校验来源',retarget:'映射角色并修正局部变形',
+  joint_inventory:'核对联合动画素材',joint_face:'烘焙面部表情',joint_secondary:'烘焙发束与裙袖响应',joint_validate:'验证联合动画与循环',
   depth_overlap:'检查前后遮挡',depth_partition:'划分绘制区域',depth_refinement:'校准深度',
   depth_cloth_constraints:'检查服装遮挡',depth_limb_constraints:'检查肢体遮挡',depth_ordering:'检查绘制顺序',
   runtime:'官方 Runtime 检查',runtime_prepare:'准备动画检查',runtime_geometry:'检查网格',

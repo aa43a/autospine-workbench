@@ -4,7 +4,9 @@ import {appendGeometryDetails} from './motion-geometry-details.js';
 import {appendRepairSummary} from './motion-repair-summary.js';
 import {appendVisualScope} from './motion-visual-scope.js';
 import {depthReason} from './motion-depth-reason.js';
-export function appendReadiness(item, job, compare, {onSeek,onInspect,onRegions} = {}) {
+export function appendReadiness(item, job, compare, {onSeek,onInspect,onRegions,allowRepairs=true,onJointEdit} = {}) {
+  const joint=Boolean(job.result?.joint_animation_profile);
+  allowRepairs=allowRepairs&&!joint;
   const button = document.createElement('button');
   button.textContent = '检查可用范围与待处理项';
   const panel = document.createElement('section');
@@ -56,7 +58,7 @@ export function appendReadiness(item, job, compare, {onSeek,onInspect,onRegions}
         if (failures.length) panel.append(details);
       }
       appendNextActions(panel,report,compare);
-      if(report.stages.some(row=>row.stage==='几何'&&row.status==='needs_changes'))
+      if(allowRepairs&&report.stages.some(row=>row.stage==='几何'&&row.status==='needs_changes'))
         appendGeometryDetails(panel,job,onSeek,onInspect);
       if(report.stages.some(row=>row.stage==='遮挡'&&row.status!=='sampled_pass'))
         appendDepthTimeline(panel,job,report,onSeek,onRegions);
@@ -68,5 +70,11 @@ export function appendReadiness(item, job, compare, {onSeek,onInspect,onRegions}
     finally { button.disabled = false; }
   };
   item.append(button, panel);
-  appendVisualScope(item,job,onSeek);
+  if(allowRepairs)appendVisualScope(item,job,onSeek);
+  else if(joint){
+    const note=document.createElement('p');note.textContent='联合动画使用独立的通道参数重建；原身体修形保留。若异常来自身体动作，请先修正身体候选，再载入其新版本。';
+    const edit=document.createElement(onJointEdit?'button':'a');edit.textContent='调整联合参数并重新构建';
+    if(onJointEdit){edit.type='button';edit.onclick=onJointEdit;}else edit.href=`/motion-editor.html?joint=${encodeURIComponent(job.job_id)}`;
+    item.append(note,edit);
+  }
 }

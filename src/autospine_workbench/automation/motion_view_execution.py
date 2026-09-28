@@ -17,6 +17,8 @@ from .storage_io import canonical_bytes, publish_document, read_document
 
 
 def submit(manager, parent_job, body):
+    from .motion_joint_jobs import require_body_repair_parent
+    require_body_repair_parent(manager, parent_job)
     from .motion_repair_material import download
     from .motion_target_jobs import assert_current, context
     from .motion_repair_lineage import carry

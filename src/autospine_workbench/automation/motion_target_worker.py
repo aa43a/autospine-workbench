@@ -296,6 +296,9 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
 
 def execute(folder, state_root, workspace):
     request = read_document(folder / 'request.json')
+    if request.get('joint_execution'):
+        from .motion_joint_worker import execute as execute_joint
+        return execute_joint(folder, state_root, workspace, request)
     if request.get('repair_execution'):
         from .motion_repair_worker import execute as execute_repair
         return execute_repair(folder,state_root,workspace,request)

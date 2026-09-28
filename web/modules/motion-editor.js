@@ -5,7 +5,8 @@ import {DRAFT_SCHEMA,matchEditorDraft,createEditorDraftControls} from './motion-
 import {createEditorBuild} from './motion-editor-build.js';
 import {createLiveCharacter} from './motion-editor-live.js';
 import {createEditorIntake} from './motion-editor-intake.js';
-import {createEditorResult} from './motion-editor-result.js';
+import {createEditorResult,resultTrack} from './motion-editor-result.js';
+import {createJointEditor} from './motion-joint-editor.js';
 import {SAMPLING_PROFILE} from './motion-camera-sampling.js';
 import {PROJECTED_SAMPLING_PROFILE} from './motion-projected-camera-sampling.js';
 import {createEditHistory} from './motion-editor-history.js';
@@ -13,7 +14,21 @@ import {createLayerEditor} from './motion-editor-layers.js';
 const $=id=>document.getElementById(id);
 const get=async url=>{const r=await fetch(url);if(!r.ok)throw Error(`读取失败 (${r.status})`);return r.json();};
 let keys=[{time:0,yaw:0}],fixed=0,sourceToken=0,projectToken=0,duration=0,lastYaw=null,lastTime=null,override=null;
-let characterJob=null,loadedSource=null,sourceData=null,resultView=null,layers=null;
+let characterJob=null,loadedSource=null,sourceData=null,resultView=null,layers=null,joint=null;
+let bodyCandidates=[],candidateToken=0;
+let variantToken=0;
+$('body-candidate').onchange=async()=>{
+  const token=++variantToken,id=$('body-candidate').value;++candidateToken;
+  $('body-variant').replaceChildren(new Option('主候选',''));
+  $('load-body-candidate').disabled=false;
+  if(!id)return;
+  try{const value=await get(`/api/motions/${id}/view/related-candidates.json`);
+    if(token!==variantToken||$('body-candidate').value!==id)return;
+    for(const row of value.rows){const accepted=row.stage_review?.current?.decision;
+      $('body-variant').add(new Option(`修正候选 · ${row.registration_sha256.slice(0,8)}${accepted?' · '+accepted:''}`,row.registration_sha256));}
+  }catch(e){if(token===variantToken)$('body-candidate-status').textContent=`修正版本读取失败：${e.message}；主候选仍可载入。`;}
+};
+$('body-variant').onchange=()=>{++candidateToken;$('load-body-candidate').disabled=false;};
 const history=createEditHistory();
 const editState=()=>({keys,fixed,override,adaptive:$('adaptive-camera').checked,version:$('sampling-version').value,layer_edits:layers?.snapshot()??null});
 function historyControls(){$('undo-edit').disabled=!history.canUndo;$('redo-edit').disabled=!history.canRedo;}
@@ -41,6 +56,7 @@ const player=createSourcePlayer($('source-canvas'),$('time'),$('play'),$('clock'
   if(keys.length>1){$('yaw-value').value=yaw.toFixed(2);$('yaw').value=((yaw%360)+360)%360;}
   seekLive(time);
   resultView?.seek(time);
+  joint?.seek(time);
 },{maxYaw:3600,interpolateFrames:true});
 layers=createLayerEditor({live,beforeChange:remember,changed:()=>resultView?.seek(Number($('time').value)),
   pause:()=>player.seek(Number($('time').value))});
@@ -71,6 +87,7 @@ $('clear-keys').onclick=()=>{const value=Number($('yaw-value').value);if(!Number
 $('adaptive-camera').onchange=()=>{seekLive(Number($('time').value));resultView?.seek(Number($('time').value));};
 $('sampling-version').onchange=()=>{seekLive(Number($('time').value));resultView?.seek(Number($('time').value));};
 $('source').onchange=async()=>{
+  joint?.reset();
   const token=++sourceToken,id=$('source').value;player.clear();duration=0;
   loadedSource=null;sourceData=null;resultView?.seek(0);
   history.reset();historyControls();
@@ -85,6 +102,7 @@ $('source').onchange=async()=>{
   }catch(e){if(token===sourceToken)$('status').textContent=e.message;}
 };
 async function loadProject(exactJob=null){
+  joint?.reset();
   layers.reset();history.reset();historyControls();
   const token=++projectToken,id=$('project').value;live.clear();
   characterJob=null;resultView?.seek(Number($('time').value));
@@ -107,6 +125,11 @@ $('project').onchange=()=>loadProject();
 async function refresh(){
   $('refresh').disabled=true;
   try{const value=await get('/api/motions'),selected=$('source').value;
+    bodyCandidates=value.jobs.filter(j=>j.kind==='adapt'&&j.status==='succeeded'&&!j.result?.joint_animation_profile);
+    const picked=$('body-candidate').value;
+    $('body-candidate').replaceChildren(new Option('选择已完成的身体动作',''));
+    for(const j of bodyCandidates)$('body-candidate').add(new Option(`${j.project_id} · ${j.name} · ${j.job_id.slice(-6)}`,j.job_id));
+    if(bodyCandidates.some(j=>j.job_id===picked))$('body-candidate').value=picked;
     intake.update(value);
     $('source').replaceChildren(new Option('选择已解析动作',''));
     for(const job of value.jobs)if(job.kind!=='adapt'&&job.status==='succeeded'&&job.result?.motion_status==='compiled')
@@ -121,8 +144,9 @@ const intake=createEditorIntake({refresh,async load(id){
   if(![...$('source').options].some(o=>o.value===id))throw Error('动作尚未完成解析，请刷新任务');
   $('source').value=id;await $('source').onchange();
 }});
-get('/api/projects').then(value=>{for(const p of value.projects)$('project').add(new Option(projectOptionLabel(p,value.projects),p.id));}).catch(e=>{$('status').textContent=e.message;});
-void refresh();$('surface').textContent=yawSurfaceWarning(0);
+const projectsReady=get('/api/projects').then(value=>{for(const p of value.projects)$('project').add(new Option(projectOptionLabel(p,value.projects),p.id));});
+const libraryReady=refresh();projectsReady.catch(e=>{$('status').textContent=e.message;});
+$('surface').textContent=yawSurfaceWarning(0);
 function identity(){const edits=layers.snapshot();return {project_id:$('project').value,source_id:loadedSource,character_job_id:characterJob,duration,...(edits?{layer_edits:edits}:{}),...(sampling()?{sampling_profile:sampling()}:{})};}
 function snapshot(){if(!loadedSource||!characterJob)throw Error('请先完成角色和源动作加载');
   if(override!==null&&keys.length>1)throw Error('当前角度尚未写入轨道，请先记录角度或恢复固定角度');
@@ -139,12 +163,44 @@ resultView=createEditorResult({canvas:$('result-canvas'),status:$('result-status
     if(!current()||loadedSource!==link.source_job_id||projectToken!==initialProject)throw Error('选择已变化或源动作加载失败，停止恢复');
     const initialSource=sourceToken;$('project').value=job.project_id;await loadProject(job.character_job_id);
     if(!current()||sourceToken!==initialSource||characterJob!==job.character_job_id||$('project').value!==job.project_id)throw Error('选择已变化或角色版本加载失败，停止恢复');
-    keys=validateYawTrack(track,duration);fixed=keys[0].yaw;override=null;lastYaw=null;lastTime=null;$('adaptive-camera').checked=Boolean(job.result.projection.sampling_profile);
-    $('sampling-version').value=job.result.projection.sampling_profile||SAMPLING_PROFILE;
+    keys=validateYawTrack(track,duration);fixed=keys[0].yaw;override=null;lastYaw=null;lastTime=null;$('adaptive-camera').checked=Boolean(job.result.projection?.sampling_profile);
+    $('sampling-version').value=job.result.projection?.sampling_profile||SAMPLING_PROFILE;
     layers.restore(job.result.layer_edits??null);
     $('yaw-value').value=fixed;$('yaw').value=((fixed%360)+360)%360;keySummary();player.seek(0);
   }});
-createEditorBuild({snapshot,inspect(job){$('result-viewport').hidden=false;document.querySelector('.canvases').append($('result-viewport'));void resultView.load(job);document.querySelector('.canvases').scrollIntoView({block:'start'});}});
+function inspectResult(job){$('result-viewport').hidden=false;document.querySelector('.canvases').append($('result-viewport'));
+  void resultView.load(job);document.querySelector('.canvases').scrollIntoView({block:'start'});}
+joint=createJointEditor({container:$('joint-editor'),getSelection:identity,inspect:inspectResult,seek:time=>player.seek(time)});
+createEditorBuild({snapshot,inspect(job){inspectResult(job);if(!job.result?.joint_animation_profile)void joint.load(job);}});
+$('load-body-candidate').onclick=async({restoreTask=true}={})=>{
+  let job=bodyCandidates.find(j=>j.job_id===$('body-candidate').value);if(!job)return;
+  const registration=$('body-variant').value;
+  const token=++candidateToken;$('load-body-candidate').disabled=true;
+  const startingSource=sourceToken,startingProject=projectToken;
+  $('body-candidate-status').textContent='正在载入候选的准确角色版本和身体动作…';
+  try{
+    let link;
+    if(registration){const meta=await get(`/api/motions/${job.job_id}/related-candidates/${registration}/joint-animation`);
+      if(meta.registration_sha256!==registration)throw Error('修正候选身份不一致');
+      job={...job,joint_registration_sha256:registration,result:{...job.result,artifact_sha256:meta.artifact_sha256}};link=meta.source_link;
+    }else link=await get(`/api/motions/${job.job_id}/view/source-link.json`);
+    const track=resultTrack(job,link);
+    if(token!==candidateToken||startingSource!==sourceToken||startingProject!==projectToken)throw Error('选择已变化，停止载入旧候选');
+    if(![...$('source').options].some(o=>o.value===link.source_job_id))throw Error('源动作不在动作库中，请刷新后重试');
+    $('source').value=link.source_job_id;await $('source').onchange();
+    if(token!==candidateToken||loadedSource!==link.source_job_id||startingProject!==projectToken)throw Error('源动作或角色选择已变化');
+    const sourceVersion=sourceToken;$('project').value=job.project_id;await loadProject(job.character_job_id);
+    if(token!==candidateToken||sourceVersion!==sourceToken||characterJob!==job.character_job_id)throw Error('角色或来源已变化');
+    keys=track;fixed=track[0].yaw;override=null;lastYaw=null;
+    $('yaw-value').value=fixed;$('yaw').value=((fixed%360)+360)%360;
+    $('adaptive-camera').checked=Boolean(job.result.projection?.sampling_profile);
+    $('sampling-version').value=job.result.projection?.sampling_profile||SAMPLING_PROFILE;
+    layers.restore(job.result.layer_edits??null);keySummary();player.seek(0);
+    inspectResult(job);await joint.load(job,{restoreTask});
+    $('body-candidate-status').textContent=`身体候选 ${job.name} 已载入；联合能力与参数读取状态见下方。`;
+  }catch(e){if(token===candidateToken)$('body-candidate-status').textContent=e.message;}
+  finally{if(token===candidateToken)$('load-body-candidate').disabled=false;}
+};
 createEditorDraftControls({snapshot,
   async restore(draft){
     // Verify against currently loaded identities before replacing any edits.
@@ -161,3 +217,22 @@ createEditorDraftControls({snapshot,
     $('status').textContent='草稿已恢复，角色版本和源动作一致。';
   },status:text=>{$('status').textContent=text;},
 });
+// An exact saved joint result can be reopened for editing without relying on
+// browser-local drafts or migrating another candidate's acceptance.
+void Promise.all([projectsReady,libraryReady]).then(async()=>{
+  const id=new URLSearchParams(location.search).get('joint');if(!id)return;
+  if(!/^motion-[a-f0-9]{32}$/.test(id))throw Error('联合候选地址无效');
+  const value=await get(`/api/motions/${id}`),saved=value.job??value;
+  if(saved.kind!=='adapt'||saved.status!=='succeeded'||!saved.result?.joint_animation_profile)throw Error('此联合候选尚未构建成功');
+  const parent=saved.result.joint_parent_job_id,registration=saved.result.joint_source_provenance?.registration_sha256;
+  if(!bodyCandidates.some(j=>j.job_id===parent))throw Error('联合候选的身体来源已不可用');
+  $('body-candidate').value=parent;await $('body-candidate').onchange();
+  if(registration){
+    if(![...$('body-variant').options].some(o=>o.value===registration))throw Error('联合候选的修正来源未通过核验');
+    $('body-variant').value=registration;
+  }
+  await $('load-body-candidate').onclick({restoreTask:false});
+  const report=await get(`/api/motions/${id}/view/joint-animation.json`);
+  if(!await joint.restoreResult(saved,report))throw Error('联合候选未恢复，请查看联合动画状态。');
+  $('body-candidate-status').textContent='已恢复此联合候选的精确来源和参数；修改后构建独立新候选。';
+}).catch(error=>{$('body-candidate-status').textContent=error.message;});

@@ -22,13 +22,25 @@ def recheck(files, request, state_root, on_progress=None):
     bvh = None if kimodo else parse_bvh(bundle.raw_bvh)
     ticks = kimodo_frame_ticks(bundle.kimodo_source) if kimodo else bvh_frame_ticks(bvh)
     document = json.loads(files['skeleton.json'])
+    projection = request.get('projection') or {}
+    camera = {}
+    if request.get('joint_execution') and projection.get('profile') == 'continuous-yaw-source-camera-v1':
+        camera = dict(camera_keys=projection['keys'], sampling_profile=projection.get('sampling_profile'))
+        if projection.get('sampling_profile') == 'camera-world-projected-adaptive-v2':
+            parent_depth = json.loads(files['motion-depth.json'])
+            source_camera = parent_depth.get('camera', {})
+            if source_camera.get('keys') != projection['keys'] or not source_camera.get('samples'):
+                raise ValueError('joint_animation_depth_camera_missing')
+            # The body source and camera are unchanged. Reuse their verified
+            # source-tick grid, not arbitrary facial/cloth numerical QA times.
+            camera['sample_times'] = [r['source_tick']/1e6 for r in source_camera['samples']]
     depth = build(document, bvh, bundle.kimodo_map if kimodo else bundle.bvh_map,
         kimodo=kimodo, clip_bounds=boundaries(request.get('clip'), ticks),
-        yaw_degrees=request.get('projection', {}).get('yaw_degrees') if request.get('projection') else None,
-        render_regions=True)
+        yaw_degrees=projection.get('yaw_degrees'), render_regions=True, **camera)
     if on_progress:
         on_progress()
-    animation = request['repair_execution']['draft']['animation']
+    animation = (request['joint_execution']['animation'] if request.get('joint_execution')
+                 else request['repair_execution']['draft']['animation'])
     if any('attachment' in tracks for tracks in document['animations'][animation].get('slots', {}).values()):
         from ..targets.character43.active_depth_overlap import recheck as active_overlap
         depth = active_overlap(document, files, animation, depth, sparse=True)

@@ -1,7 +1,8 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AutoSpine · 角色动作编辑</title><link rel="stylesheet" href="/motion-editor.css"></head>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AutoSpine · 角色动作编辑</title><link rel="stylesheet" href="/motion-editor.css"><link rel="stylesheet" href="/motion-joint-editor.css"></head>
 <body><header><a href="/">AutoSpine</a><h1>角色动作编辑</h1><a href="/motions.html">动作库与 Kimodo 生成</a></header>
 <main><section class="selection" aria-label="角色与动作"><label>已绑定角色<select id="project"><option value="">选择角色</option></select></label><label>源动作<select id="source"><option value="">选择已解析动作</option></select></label><button id="refresh">刷新动作库</button></section>
 <p id="status" role="status" aria-live="polite">正在读取角色与动作…</p>
+<section class="selection" aria-label="载入已有身体动作"><label>已有身体候选<select id="body-candidate"><option value="">选择已完成的身体动作</option></select></label><label>候选版本<select id="body-variant"><option value="">主候选</option></select></label><button id="load-body-candidate">载入身体候选与联合动画</button><p id="body-candidate-status" role="status">复用现有身体候选，在同一时间轴叠加表情、发束与裙袖响应。</p></section>
 <section class="intake" aria-label="新增动作"><details><summary>新增动作 · 导入文件 / Kimodo 文字生成</summary>
 <p>先保存当前编辑草稿。新动作完成后点击“载入编辑”，在本页继续选择角度与时间轴。</p>
 <label>源投影基准<select id="intake-view"><option value="front">正面</option><option value="side">侧面</option></select></label>
@@ -11,6 +12,7 @@
 <section class="selection" aria-label="编辑草稿"><button id="undo-edit" disabled>撤销编辑</button><button id="redo-edit" disabled>重做</button><button id="save-draft">保存草稿</button><button id="restore-draft">恢复草稿</button><button id="download-draft">下载草稿</button><label>导入草稿<input id="import-draft" type="file" accept="application/json,.json"></label></section>
 <div class="canvases"><section><h2>源骨架 · 水平观察角</h2><canvas id="source-canvas" width="820" height="640" aria-label="源骨架投影"></canvas></section><section><h2>已绑定角色 · 实时姿态</h2><p id="character-status">选择角色后加载已保存候选。</p><canvas id="character-canvas" width="820" height="640" aria-label="角色实时姿态"></canvas></section></div>
 <section class="transport" aria-label="动作时间轴"><button id="play" disabled>播放</button><input id="time" aria-label="动作时间" type="range" min="0" max="1" step="any" value="0" disabled><output id="clock">0.00 秒</output></section>
+<section id="joint-editor" aria-label="表情发束与服装联合动画"></section>
 <section class="layer-editor" aria-label="整段图层编辑">
 <div class="layer-heading"><h2>图层编辑 · 整段校正</h2><label><input id="layer-edit-mode" type="checkbox">画布点选 / 拖动图层</label></div>
 <p>修改作用于整段动作，并随草稿保存、随候选导出。列表顶部显示最前方图层；前后顺序不改变骨骼所属关系。</p>

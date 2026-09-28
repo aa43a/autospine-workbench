@@ -34,3 +34,11 @@ test('editing only a layer marks a loaded result stale; exact layer restore matc
   assert.equal(resultMatch(edited,link,source,selection,keys,keys),'matching');
   assert.equal(resultMatch(edited,link,source,identity,keys,keys),'draft_changed');
 });
+
+test('historical front or side bodies load only with explicit verified source view',()=>{
+  const fixed={...job,result:{...job.result,projection:null}};
+  assert.deepEqual(resultTrack(fixed,{...link,source_view:'front'}),[{time:0,yaw:0}]);
+  assert.deepEqual(resultTrack(fixed,{...link,source_view:'side'}),[{time:0,yaw:90}]);
+  assert.throws(()=>resultTrack(fixed,link));
+  assert.equal(resultMatch(fixed,link,source,identity,[{time:0,yaw:0}],[{time:0,yaw:0}]),'matching');
+});

@@ -32,7 +32,7 @@ export async function createEditorRenderer(canvas,base,current=()=>true){
   renderer.camera.setViewport(width,height);renderer.camera.position.x=left+width/2;renderer.camera.position.y=bottom+height/2;renderer.camera.update();
   const parser=new spine.SkeletonJson(new spine.AtlasAttachmentLoader(atlas));
   let data=parser.readSkeletonData({...scene.skeleton,animations:{}}),hasAnimation=false;
-  let edits=normalizeLayerEdits(null,[]),selected=null,lastGeometry=new Map(),lastOrder=[];
+  let edits=normalizeLayerEdits(null,[]),selected=null,lastGeometry=new Map(),lastOrder=[],lastBones=new Map();
   const setup=new spine.Skeleton(data);setup.setupPose();setup.updateWorldTransform(spine.Physics.update);
   const slots=setup.slots.map(slot=>slot.data.name),pivots=new Map(),supported=new Set();
   function geometry(skeleton,slot){
@@ -70,6 +70,7 @@ export async function createEditorRenderer(canvas,base,current=()=>true){
     getLayerEdits(){return structuredClone(edits);},
     selectLayer(slot){selected=slots.includes(slot)?slot:null;highlight();},
     layerGeometry(slot){return structuredClone(lastGeometry.get(slot)??null);},
+    boneMatrix(name){return lastBones.get(name)?.slice()??null;},
     worldPoint(x,y){return canvasWorldPoint(x,y,canvas.getBoundingClientRect(),{width,height,left,bottom});},
     canvasDelta(dx,dy){const box=canvasContentRect(canvas.getBoundingClientRect(),width,height);return {x:dx/box.scale,y:-dy/box.scale};},
     pickLayer(x,y){const point=canvasWorldPoint(x,y,canvas.getBoundingClientRect(),{width,height,left,bottom});if(!point)return null;
@@ -85,6 +86,7 @@ export async function createEditorRenderer(canvas,base,current=()=>true){
       const skeleton=new spine.Skeleton(data);skeleton.setupPose();
       if(hasAnimation){const state=new spine.AnimationState(new spine.AnimationStateData(data));state.setAnimation(0,'camera-preview',false);state.update(time);state.apply(skeleton);}
       skeleton.updateWorldTransform(spine.Physics.update);
+      lastBones=new Map(skeleton.bones.map(b=>{const p=b.appliedPose;return [b.data.name,[p.a,p.b,p.c,p.d,p.worldX,p.worldY]];}));
       if(edits.draw_order.length){const lookup=new Map(skeleton.slots.map(slot=>[slot.data.name,slot]));skeleton.drawOrder.appliedPose.splice(0,skeleton.slots.length,...edits.draw_order.map(slot=>lookup.get(slot)));}
       const transforms=new Map(edits.transforms.map(edit=>[edit.slot,edit])),restore=[];
       // Runtime invokes this method again when drawing. Wrap per attachment only for

@@ -128,6 +128,8 @@ def build(files, artifact_sha256, runtime=None):
         add('其他修正', 'needs_changes', '局部修正仍有未解决问题。', 'player.html',
             reasons=[i['reason_code'] for i in other],
             failures=[dict(time=r['time'],slot=r['slot'],reason='post_contact_constraint_failed') for r in residual])
+    from .joint_readiness import append as append_joint
+    append_joint(files, digest, add)
     status = ('needs_changes' if any(r['status'] == 'needs_changes' for r in rows) else
               'evidence_incomplete' if any(r['status'] == 'unmeasured' for r in rows) else 'stage_review')
     return dict(profile='external-motion-readiness-v1', artifact_sha256=artifact_sha256,

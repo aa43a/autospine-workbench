@@ -41,6 +41,7 @@ def link(manager, job, result):
                 source_sha256=source['source_sha256'], source_start=start, source_end=end,
                 duration=end-start, target_job_id=job, motion_identity=request['motion_identity'],
                 source_fps=fps, source_frame_count=count, source_duration=duration,
+                source_view=source.get('view'),
                 clip=clip, layer_edits=request.get('layer_edits'), authority='none',
                 scope='nearest_source_samples_with_exact_clip_time_offset')
 
