@@ -3,6 +3,7 @@ import {supportExceptions} from './motion-support-exceptions.js';
 import {sourceScope} from './motion-source-scope.js';
 import {depthCoverageText} from './motion-depth-coverage.js';
 import {independentAcceptance,independentAcceptedEntries} from './motion-support-acceptance.js';
+import {stageLocationsHTML} from './motion-support-locations.js';
 const gates=['投影','几何','接触','遮挡','Runtime'];
 const statuses={sampled_pass:'采样通过',needs_changes:'需处理',unmeasured:'未验证'};
 const decisions={accepted:'阶段接受',accepted_with_exceptions:'阶段接受，保留异常',rejected:'需调整',revoked:'已撤销',
@@ -31,7 +32,7 @@ export function supportTotals(snapshot){
     alternatives_checked:rows.filter(r=>r.alternatives?.status==='verified'&&r.alternatives.complete).length,
     policies_checked:rows.filter(r=>r.policy_variants?.status==='verified'&&r.policy_variants.complete).length};
 }
-function reviewHTML(row){
+function reviewHTML(row,base,path){
   const review=row.review;if(row.status!=='verified'||!review)return `<p>未核实：${escape(row.reason||'未读取')}</p>`;
   const current=review.current,imported=!current&&review.imported_visual;
   let visual='尚无阶段结论';
@@ -40,7 +41,7 @@ function reviewHTML(row){
   const notes=current?.notes??imported?.notes??imported?.user_response??'';
   return `<p><strong>${escape(visual)}</strong></p><p class="notes">${escape(typeof notes==='string'?notes:JSON.stringify(notes))}</p>`+
     (imported?`<p>导入记录范围：${escape(imported.scope)}；保留异常：${escape((imported.retained_exceptions||[]).join('、'))}</p>`:'')+
-    `<ul>${review.readiness.stages.map(s=>`<li>${escape(s.stage)}：${escape(statuses[s.status]||'未知')} — ${escape(s.explanation)}</li>`).join('')}</ul>`+
+    `<ul>${review.readiness.stages.map(s=>`<li>${escape(s.stage)}：${escape(statuses[s.status]||'未知')} — ${escape(s.explanation)}${stageLocationsHTML(s,base,path)}</li>`).join('')}</ul>`+
     `<details><summary>身份与验收范围</summary><p>证据 ${escape(review.evidence_sha256)}；验收版本 ${review.revision}；匹配 ${escape(review.evidence_match)}</p>`+
     `<p>核对时间 ${escape(row.checked_at)}${row.review_checked_at?`；同证据验收复查 ${escape(row.review_checked_at)}`:''}</p></details>`;
 }
@@ -68,7 +69,7 @@ function familyHTML(family,kind,job,base,anchor){
     return `<details id="${escape(anchor)}-${i}"><summary>${escape(title)} · ${escape(r.artifact_sha256?.slice(0,12)||r.job_id)}</summary>`+
       `<p>候选 ${escape(r.artifact_sha256)}${r.registration_sha256?'；关联 '+escape(r.registration_sha256):''}</p>`+
       (kind==='policy'?`<p>相对固定候选的策略变化：${escape(JSON.stringify(r.policy_changes))}。独立检查，不参与视角推荐。</p>`:'')+
-      (r.status==='verified'?link(base,path,'打开该候选'):'')+reviewHTML(r)+depthHTML(r,base,path)+
+      (r.status==='verified'?link(base,path,'打开该候选'):'')+reviewHTML(r,base,path)+depthHTML(r,base,path)+
       (r.source_link?`<p>源区间 ${r.source_link.source_start}–${r.source_link.source_end} 秒；来源 ${escape(r.source_link.source_job_id)}</p>`:'')+
       (kind!=='related'&&r.related?`<h4>此候选的独立改进</h4>${familyHTML(r.related,'related',r.job_id,base,`${anchor}-${i}-related`)}`:'')+'</details>';
   }).join(''):'<p>当前查询未发现独立候选。</p>');
@@ -97,7 +98,7 @@ export function supportReportHTML(snapshot,origin){
     `<p>来源 ${escape(r.source_job_id)}；源文件 ${escape(r.source_sha256)}</p>`+
     (r.source_link?`<p>源区间 ${r.source_link.source_start}–${r.source_link.source_end} 秒 · ${r.source_link.source_fps} FPS</p>`:'')+
     (r.status==='verified'?link(base,`/api/motions/${r.job_id}/view/player.html`,'播放固定候选')+' · '+link(base,`/api/motions/${r.job_id}/download`,'下载固定候选'):'')+
-    reviewHTML(r)+`<h3>独立改进结果</h3>${familyHTML(r.related,'related',r.job_id,base,`cell-${i}-related`)}`+
+    reviewHTML(r,base,`/api/motions/${r.job_id}/view/player.html`)+`<h3>独立改进结果</h3>${familyHTML(r.related,'related',r.job_id,base,`cell-${i}-related`)}`+
     `<h3>独立替代视角</h3>${familyHTML(r.alternatives,'alternative',r.job_id,base,`cell-${i}-alternatives`)}`+
     `<h3>不同处理策略</h3>${familyHTML(r.policy_variants,'policy',r.job_id,base,`cell-${i}-policy_variants`)}</section>`).join('');
   const table=snapshot.rows.map((r,i)=>`<tr><td><a href="#cell-${i}">${escape(r.motion)} / ${escape(r.character)}</a></td>`+
