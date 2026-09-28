@@ -1,0 +1,6 @@
+{"cases":[
+  {"duration":2,"keys":[{"time":0,"yaw":0},{"time":2,"yaw":360}],"samples":[[0,0],[1,180],[2,360],[0.5,90]]},
+  {"duration":2,"keys":[{"time":0,"yaw":350},{"time":1,"yaw":370}],"samples":[[0,350],[0.5,360],[1,370],[2,370]]},
+  {"duration":1,"keys":[{"time":0,"yaw":30},{"time":1,"yaw":-330}],"samples":[[0,30],[0.5,-150],[1,-330]]},
+  {"duration":3,"keys":[{"time":0,"yaw":15},{"time":1,"yaw":90},{"time":3,"yaw":-90}],"samples":[[0,15],[1,90],[2,0],[3,-90]]}
+]}

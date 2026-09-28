@@ -1,6 +1,12 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import {sampleYaw,validateYawTrack,yawSurfaceWarning} from '../modules/motion-yaw-track.js';
+test('browser and backend use the same unwrapped camera contract',()=>{
+  const fixture=JSON.parse(fs.readFileSync(new URL('../../tests/fixtures/camera-track-v1.json',import.meta.url)));
+  for(const row of fixture.cases){const keys=validateYawTrack(row.keys,row.duration);
+    for(const [time,yaw] of row.samples)assert.ok(Math.abs(sampleYaw(keys,time)-yaw)<1e-10);}
+});
 test('a full turn remains a full turn, including backward seeks',()=>{
   const keys=validateYawTrack([{time:0,yaw:0},{time:2,yaw:360}],2);
   assert.equal(sampleYaw(keys,1),180);assert.equal(sampleYaw(keys,2),360);
