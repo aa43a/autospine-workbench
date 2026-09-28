@@ -16,6 +16,7 @@ def _field(probe,name,time,rect,intervals,*,pixelwise=False):
     x,y,w,h=rect
     low=np.full((h,w),np.inf); high=np.full((h,w),-np.inf)
     unknown=np.zeros((h,w),dtype=bool); covered=np.zeros((h,w),dtype=bool)
+    intrinsic_width=np.zeros((h,w))
     indices=mesh['triangles']
     for i in range(0,len(indices),3):
         tri=indices[i:i+3]; vertices=[points[j] for j in tri]
@@ -43,7 +44,8 @@ def _field(probe,name,time,rect,intervals,*,pixelwise=False):
             else:lo=min(v[0] for v in values); hi=max(v[1] for v in values)
             low[region]=np.where(visible,np.minimum(low[region],lo),low[region])
             high[region]=np.where(visible,np.maximum(high[region],hi),high[region])
-    return low,high,unknown,covered
+            if pixelwise:intrinsic_width[region]=np.where(visible,np.maximum(intrinsic_width[region],hi-lo),intrinsic_width[region])
+    return low,high,unknown,covered,intrinsic_width
 
 
 def compare(probe,a,b,time,a_intervals,b_intervals,*,margin=.02,on_triangle=None,pixelwise=False):
@@ -54,26 +56,32 @@ def compare(probe,a,b,time,a_intervals,b_intervals,*,margin=.02,on_triangle=None
                 overlap_pixels=pair['overlap_pixels'],margin=margin,
                 scope='sampled_cpu_alpha_and_depth_model_not_surface_truth_or_runtime')
     if pixelwise:result.update(profile='two-mesh-barycentric-depth-envelopes-v2-experiment',
-                               spatial_sampling='barycentric_pixel_intervals')
+                               spatial_sampling='barycentric_pixel_intervals',
+                               ambiguity_sources_scope='first_two_counts_partition_ambiguity_other_counts_overlap_not_causal_proof')
     if not pair['overlap_pixels']: return dict(result,status='no_overlap',counts={})
     if 'tiles' in pair:
         from .depth_raster_tiles import TileProbe
-        counts={k:0 for k in ('front','back','unknown','ambiguous')};unknown_support={a:0,b:0}
+        counts={k:0 for k in ('front','back','unknown','ambiguous')};unknown_support={a:0,b:0};causes={}
         for tile in pair['tiles']:
             if not tile['overlap_pixels']:continue
             part=compare(TileProbe(probe,tile),a,b,time,a_intervals,b_intervals,margin=margin,on_triangle=on_triangle,pixelwise=pixelwise)
             for k,v in part['counts'].items():counts[k]+=v
             for k,v in part['unknown_support'].items():unknown_support[k]+=v
+            for k,v in part.get('ambiguity_sources',{}).items():causes[k]=causes.get(k,0)+v
         status=('uniform_front_proxy' if counts['front']==pair['overlap_pixels'] else
                 'uniform_back_proxy' if counts['back']==pair['overlap_pixels'] else 'requires_partition_or_more_depth')
-        return dict(result,status=status,counts=counts,unknown_support=unknown_support)
-    al,ah,au,ac=_field(probe,a,time,pair['roi'],a_intervals,pixelwise=pixelwise)
-    bl,bh,bu,bc=_field(probe,b,time,pair['roi'],b_intervals,pixelwise=pixelwise)
+        return dict(result,status=status,counts=counts,unknown_support=unknown_support,
+                    **(dict(ambiguity_sources=causes) if pixelwise else {}))
+    al,ah,au,ac,aw=_field(probe,a,time,pair['roi'],a_intervals,pixelwise=pixelwise)
+    bl,bh,bu,bc,bw=_field(probe,b,time,pair['roi'],b_intervals,pixelwise=pixelwise)
     common=ac&bc
     if int(common.sum())!=pair['overlap_pixels']: raise ValueError('pair_depth_overlap_mismatch')
     unknown=common&(au|bu); known=common&~unknown
     front=known&(al>bh+margin); back=known&(ah<bl-margin)
     ambiguous=known&~front&~back
+    if pixelwise:
+        from .depth_ambiguity_sources import inspect
+        result['ambiguity_sources']=inspect(ambiguous,al,ah,aw,bl,bh,bw)
     if on_triangle is not None:
         from .depth_triangle_counts import collect
         collect(probe,a,time,pair['roi'],dict(front=front,back=back,unknown=unknown,ambiguous=ambiguous),on_triangle)
