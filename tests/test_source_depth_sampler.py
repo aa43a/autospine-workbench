@@ -19,6 +19,17 @@ def sampler(angle=90,yaw=0):
 
 
 class SourceDepthSamplerTests(unittest.TestCase):
+    def test_declared_segment_reuses_fk_without_surface_assumption(self):
+        probe=sampler()
+        for tick in (0,250000,500000):
+            self.assertEqual(probe.mapped_segment('humanoid.arm.upper.left',tick),
+                             probe(tick)['upperarm_l'])
+        with self.assertRaisesRegex(ValueError,'mapped_segment_unavailable'):
+            probe.mapped_segment('not-declared',0)
+        probe.roles['humanoid.arm.upper.left']['aim']={'kind':'end_site'}
+        with self.assertRaisesRegex(ValueError,'mapped_segment_unavailable'):
+            probe.mapped_segment('humanoid.arm.upper.left',0)
+
     def test_end_site_depth_uses_actual_declared_offset(self):
         probe=sampler(angle=0)
         depths=probe.joint_depths(0,include_end_sites=True)

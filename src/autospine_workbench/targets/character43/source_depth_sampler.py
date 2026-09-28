@@ -55,6 +55,14 @@ class SegmentDepthSampler:
             ('upperarm_r',self.roles['humanoid.arm.upper.right']['joint_name']),
             ('pelvis',self.mapping['root']['joint_name']))}
 
+    def mapped_segment(self,role,tick):
+        """Declared joint-to-joint axis only; not an inferred surface depth."""
+        entry=self.roles.get(role)
+        if not entry or entry['aim']['kind']!='joint':
+            raise ValueError('depth_sampler_mapped_segment_unavailable')
+        depths=self.joint_depths(tick)
+        return tuple(depths[name] for name in (entry['joint_name'],entry['aim']['joint_name']))
+
     def __call__(self,tick):
         depths=self.joint_depths(tick)
         segments={}

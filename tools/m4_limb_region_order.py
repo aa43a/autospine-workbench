@@ -47,7 +47,7 @@ def constraints(diagnosis, partition, source_depth):
     return dict(pairs=pairs,strict_interval_evidence=True)
 
 
-def run(source, partition, diagnostic, output, refine_cycles=False):
+def run(source, partition, diagnostic, output, refine_cycles=False, neck_hypothesis=None):
     if output.exists():raise ValueError('output_exists')
     digest=json.loads((source/'report.json').read_bytes())['candidate_bundle_sha256']
     files=AnimatedStore(source/'isolated-store').read(digest)
@@ -57,12 +57,21 @@ def run(source, partition, diagnostic, output, refine_cycles=False):
             or proof['skeleton_sha256']!=sha256(raw).hexdigest()
             or diagnosis['skeleton_sha256']!=sha256(raw).hexdigest()):raise ValueError('region_order_identity')
     document=json.loads(raw);depth=constraints(diagnosis,proof['partition'],json.loads(files['motion-depth.json']))
+    if neck_hypothesis is not None:
+        from m4_neck_order_evidence import convert
+        neck=json.loads(neck_hypothesis.read_bytes())
+        if neck['source_artifact_sha256']!=digest or neck['skeleton_sha256']!=sha256(raw).hexdigest():
+            raise ValueError('neck_hypothesis_identity')
+        depth['pairs'].extend(convert(neck,proof['partition'],json.loads(files['motion-depth.json'])))
     probe=Probe(document,files,'external-motion',rendered_bounds=True,tiled=True,sparse=True)
     candidate,order=build(document,'external-motion',depth,probe,refine_cycles=refine_cycles)
     result=dict(source_artifact_sha256=digest,input_skeleton_sha256=sha256(raw).hexdigest(),
         diagnostic_sha256=sha256(diagnostic.read_bytes()).hexdigest(),order=order,
         selected_groups=sorted(DISTAL),candidate_available=candidate is not None,
         authority='none',selected=False,scope='partial_distal_order_trial_not_full_depth_or_visual_acceptance')
+    if neck_hypothesis is not None:
+        result.update(neck_hypothesis_sha256=sha256(neck_hypothesis.read_bytes()).hexdigest(),
+                      scope='hypothetical_neck_depth_order_trial_not_admissible_without_surface_validation')
     output.mkdir(parents=True,exist_ok=False)
     (output/'report.json').write_bytes(canonical_bytes(result))
     if candidate is not None:(output/'skeleton.json').write_bytes(canonical_bytes(candidate))
@@ -74,4 +83,5 @@ if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
     for key in ('source','partition','diagnostic','output'):p.add_argument(key,type=Path)
     p.add_argument('--refine-cycles',action='store_true')
-    a=p.parse_args();run(a.source,a.partition,a.diagnostic,a.output,a.refine_cycles)
+    p.add_argument('--neck-hypothesis',type=Path)
+    a=p.parse_args();run(a.source,a.partition,a.diagnostic,a.output,a.refine_cycles,a.neck_hypothesis)
