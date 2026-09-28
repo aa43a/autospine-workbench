@@ -23,7 +23,7 @@ ANIMATION = 'external-motion'
 
 def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_digest, kimodo=None,
                     contact_correction=True, clip_bounds=None, inferred_contact_profile=None, depth_review_profile=None,
-                    on_stage=None, oblique=None, torso_projection=None, pose_fit=None, moving_ankles=None):
+                    on_stage=None, oblique=None, torso_projection=None, pose_fit=None, moving_ankles=None, layer_edits=None):
     """Preserve the rig, or verify the explicit regional render transformation."""
     from ..targets.character43.regional_depth_profile import PROFILE as REGIONAL_PROFILE
     from ..targets.character43.camera_track import PROFILE as CAMERA_PROFILE
@@ -199,6 +199,20 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
         depth_status = depth['status']
     if pose_fit is not None or moving_report is not None:
         times = final_times(document, ANIMATION, times)
+    layer_report = None
+    if layer_edits is not None:
+        from ..targets.character43.motion_layer_edits import apply as apply_layers
+        document, layer_report, times = apply_layers(document, ANIMATION, layer_edits, times)
+        if layer_edits['transforms'] or layer_edits['draw_order']:
+            issues.append(dict(stage='layers', reason_code='motion_layer_edits_visual_review_required'))
+            if layer_edits['transforms']:
+                contact['layer_surface_status'] = 'manual_transform_requires_surface_contact_review'
+                issues.append(dict(stage='contact', reason_code='motion_layer_surface_contact_unverified'))
+            if depth is not None:
+                depth['pre_layer_edit_status'] = depth.get('status')
+                depth['status'] = depth_status = 'manual_layer_edits_require_depth_review'
+                depth['selected'] = False
+                issues.append(dict(stage='depth', reason_code='motion_layer_depth_unverified'))
     if moving_report is not None:
         from .motion_moving_ankles import check as check_ankles
         moving_report['final_check'] = check_ankles(document, ANIMATION, moving_report, times, evidence['reference_length_px'])
@@ -218,6 +232,10 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
     raw = canonical_bytes(document)
     result = {name: data for name, data in files.items() if name.endswith('.png') or name == 'skeleton.atlas'}
     result['skeleton.json'] = raw
+    if layer_report is not None:
+        layer_report['skeleton_sha256'] = sha256(raw).hexdigest()
+        result['motion-layer-edits.json'] = canonical_bytes(layer_report)
+        evidence['layer_edits'] = layer_report
     if moving_report is not None:
         result['motion-moving-ankles.json'] = canonical_bytes(moving_report)
     if torso_evidence is not None:
@@ -310,6 +328,7 @@ def execute(folder, state_root, workspace):
         torso_projection=torso_projection,
         pose_fit=pose_fit,
         moving_ankles=moving_ankles,
+        layer_edits=request.get('layer_edits'),
         clip_bounds=clip_bounds,
         character_digest=request['character_sha256'], motion_digest=motion_id['bundle_sha256'])
     progress(folder, 'publish_candidate')
@@ -344,6 +363,7 @@ def execute(folder, state_root, workspace):
         result['pose_profile'] = request['pose_profile']
     if moving_ankles is not None:
         result['moving_ankle_profile'] = request['moving_ankle_profile']
+    if 'layer_edits' in request:result['layer_edits']=request['layer_edits']
     if local_depth:result['local_depth_evidence_sha256']=local_depth
     (folder / 'worker-result.json').write_bytes(canonical_bytes(result))
 

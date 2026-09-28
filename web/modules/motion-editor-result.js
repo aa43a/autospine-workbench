@@ -1,5 +1,6 @@
 import {createEditorRenderer} from './motion-editor-renderer.js';
 import {validateYawTrack} from './motion-yaw-track.js';
+import {normalizeLayerEdits} from './motion-layer-transform.js';
 
 export function resultTrack(job,link){
   if(job.kind!=='adapt'||job.status!=='succeeded'||link.target_job_id!==job.job_id||link.artifact_sha256!==job.result?.artifact_sha256)
@@ -16,7 +17,8 @@ export function resultMatch(job,link,source,identity,keys,track){
   if(identity.project_id!==job.project_id||identity.character_job_id!==job.character_job_id||identity.source_id!==link.source_job_id
     ||source?.source_sha256!==link.source_sha256||source?.motion_identity?.clip_sha256!==link.motion_identity?.clip_sha256
     ||source?.motion_identity?.bundle_sha256!==link.motion_identity?.bundle_sha256)return 'different_source';
-  return JSON.stringify(keys)===JSON.stringify(track)&&(identity.sampling_profile??null)===(job.result.projection.sampling_profile??null)?'matching':'draft_changed';
+  const editsMatch=JSON.stringify(normalizeLayerEdits(identity.layer_edits))===JSON.stringify(normalizeLayerEdits(job.result.layer_edits));
+  return editsMatch&&JSON.stringify(keys)===JSON.stringify(track)&&(identity.sampling_profile??null)===(job.result.projection.sampling_profile??null)?'matching':'draft_changed';
 }
 export function createEditorResult({canvas,status,restore,selection,viewport=()=>{}}){
   let renderer=null,job=null,link=null,track=null,version=0,time=0;
@@ -26,7 +28,7 @@ export function createEditorResult({canvas,status,restore,selection,viewport=()=
     const s=selection(),match=resultMatch(job,link,s.source,s.identity,s.keys,track);
     if(match==='different_source'){
       viewport(null);
-      renderer.clear();status.textContent='已载入结果，但当前角色版本或源动作不同。点击“载入构建时的角度草稿”后可同帧对照。';
+      renderer.clear();status.textContent='已载入结果，但当前角色版本或源动作不同。点击“载入构建时的编辑草稿”后可同帧对照。';
       window.motionEditorResultState={status:match,job_id:job.job_id};return;
     }
     try {
@@ -34,7 +36,7 @@ export function createEditorResult({canvas,status,restore,selection,viewport=()=
       if(time<0||time>link.duration+0.00001)throw Error('时间超出此结果范围');
       const bones=renderer.draw(time);
       window.motionEditorResultState={status:match,job_id:job.job_id,artifact:renderer.artifact,time,bones};
-      status.textContent=`实际导出姿态 · ${time.toFixed(3)} 秒 · ${match==='draft_changed'?'草稿角度已变化，此处仍为旧构建结果':'与当前角度轨道对应'}。修形与遮挡处理以此结果为准；技术异常保留。`;
+      status.textContent=`实际导出姿态 · ${time.toFixed(3)} 秒 · ${match==='draft_changed'?'草稿角度或图层已变化，此处仍为旧构建结果':'与当前角度和图层校正对应'}。修形与遮挡处理以此结果为准；技术异常保留。`;
     }catch(e){renderer.clear();window.motionEditorResultState={status:'unavailable',reason:e.message};status.textContent=e.message;}
   }
   document.getElementById('restore-result').onclick=async()=>{

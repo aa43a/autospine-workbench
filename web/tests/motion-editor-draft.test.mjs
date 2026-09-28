@@ -24,3 +24,11 @@ test('untrusted imports cannot add paths, invalid positions or malformed tracks'
     {...draft(),time:3},{...draft(),keys:[{time:0,yaw:Infinity}]},{...draft(),schema:'other'}])
     assert.throws(()=>validateEditorDraft(value));
 });
+test('layer corrections survive serialization and remain bound to the character version',()=>{
+  const layer_edits={profile:'slot-world-affine-v1',transforms:[{slot:'arm',dx:4,dy:-3,rotation:12,scaleX:1.1,scaleY:.9}],draw_order:['body','arm']};
+  const original={...draft(),layer_edits},restored=matchEditorDraft(JSON.parse(JSON.stringify(original)),original);
+  assert.deepEqual(restored.layer_edits,layer_edits);
+  restored.layer_edits.transforms[0].dx=100;assert.equal(layer_edits.transforms[0].dx,4);
+  assert.throws(()=>matchEditorDraft(original,{...original,character_job_id:'new-character'}));
+  assert.throws(()=>validateEditorDraft({...original,layer_edits:{...layer_edits,draw_order:['arm','arm']}}));
+});

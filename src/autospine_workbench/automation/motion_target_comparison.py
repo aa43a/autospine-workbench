@@ -7,7 +7,7 @@ from .motion_stage_review import inspect as stage_review
 PROFILE = 'verified-target-view-comparison-v2'
 KEYS = ('project_id', 'character_job_id', 'character_sha256', 'clip',
         'contact_correction', 'runtime_reference_profile', 'inferred_contact_profile',
-        'depth_review_profile', 'torso_projection_profile', 'local_depth_profile')
+        'depth_review_profile', 'torso_projection_profile', 'local_depth_profile', 'layer_edits')
 
 
 def signature(manager, request):

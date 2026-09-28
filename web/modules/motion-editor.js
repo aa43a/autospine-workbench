@@ -9,15 +9,17 @@ import {createEditorResult} from './motion-editor-result.js';
 import {SAMPLING_PROFILE} from './motion-camera-sampling.js';
 import {PROJECTED_SAMPLING_PROFILE} from './motion-projected-camera-sampling.js';
 import {createEditHistory} from './motion-editor-history.js';
+import {createLayerEditor} from './motion-editor-layers.js';
 const $=id=>document.getElementById(id);
 const get=async url=>{const r=await fetch(url);if(!r.ok)throw Error(`读取失败 (${r.status})`);return r.json();};
 let keys=[{time:0,yaw:0}],fixed=0,sourceToken=0,projectToken=0,duration=0,lastYaw=null,lastTime=null,override=null;
-let characterJob=null,loadedSource=null,sourceData=null,resultView=null;
+let characterJob=null,loadedSource=null,sourceData=null,resultView=null,layers=null;
 const history=createEditHistory();
-const editState=()=>({keys,fixed,override,adaptive:$('adaptive-camera').checked,version:$('sampling-version').value});
+const editState=()=>({keys,fixed,override,adaptive:$('adaptive-camera').checked,version:$('sampling-version').value,layer_edits:layers?.snapshot()??null});
 function historyControls(){$('undo-edit').disabled=!history.canUndo;$('redo-edit').disabled=!history.canRedo;}
 function remember(){history.record(editState());historyControls();}
 function restoreEdit(value){if(!value)return;({keys,fixed,override}=value);$('adaptive-camera').checked=value.adaptive;
+  layers.restore(value.layer_edits??null);
   $('sampling-version').value=value.version;
   const time=Number($('time').value),yaw=override??(keys.length>1?sampleYaw(keys,time):fixed);
   lastYaw=yaw;player.setView(yaw);$('yaw-value').value=yaw;$('yaw').value=((yaw%360)+360)%360;
@@ -40,6 +42,8 @@ const player=createSourcePlayer($('source-canvas'),$('time'),$('play'),$('clock'
   seekLive(time);
   resultView?.seek(time);
 },{maxYaw:3600,interpolateFrames:true});
+layers=createLayerEditor({live,beforeChange:remember,changed:()=>resultView?.seek(Number($('time').value)),
+  pause:()=>player.seek(Number($('time').value))});
 function keySummary(){ $('keys').textContent=keys.length>1?keys.map(k=>`${k.time.toFixed(3)} 秒：${k.yaw}°`).join(' → '):`固定角度 ${fixed}°`; }
 function changeAngle(value){
   if(!Number.isFinite(value)||Math.abs(value)>3600)return;
@@ -81,13 +85,22 @@ $('source').onchange=async()=>{
   }catch(e){if(token===sourceToken)$('status').textContent=e.message;}
 };
 async function loadProject(exactJob=null){
+  layers.reset();history.reset();historyControls();
   const token=++projectToken,id=$('project').value;live.clear();
   characterJob=null;resultView?.seek(Number($('time').value));
   if(!id){$('character-status').textContent='选择角色后加载已保存候选。';return;}$('character-status').textContent='正在核对角色绑定…';
-  try{const value=exactJob?{job:{status:'needs_review',job_id:exactJob}}:await get(`/api/projects/${encodeURIComponent(id)}/automation/character/motion-target`);if(token!==projectToken)return;
+  try{const [value,project]=await Promise.all([
+    exactJob?{job:{status:'needs_review',job_id:exactJob}}:get(`/api/projects/${encodeURIComponent(id)}/automation/character/motion-target`),
+    get(`/api/projects/${encodeURIComponent(id)}`)]);if(token!==projectToken)return;
     if(value.job?.status!=='needs_review')throw Error('请先在角色工作台构建整角色候选。');
     const artifact=await live.load(`/api/projects/${encodeURIComponent(id)}/automation/character/jobs/${encodeURIComponent(value.job.job_id)}/view/player-assets/`);
-    if(token!==projectToken||!artifact)return;characterJob=value.job.job_id;seekLive(Number($('time').value));resultView?.seek(Number($('time').value));
+    if(token!==projectToken||!artifact)return;characterJob=value.job.job_id;
+    const sourceNames=new Map((project.layers??[]).map(layer=>[`layer-${String(layer.source_index).padStart(3,'0')}`,layer.name]));
+    const labels=Object.fromEntries(live.layers().map(layer=>{
+      const prefix=layer.slot.match(/^layer-\d+/)?.[0],name=sourceNames.get(prefix);
+      return [layer.slot,name?`${name} · ${layer.slot}`:layer.slot];
+    }));
+    layers.loaded(labels);seekLive(Number($('time').value));resultView?.seek(Number($('time').value));
   }catch(e){if(token===projectToken)$('character-status').textContent=e.message;}
 };
 $('project').onchange=()=>loadProject();
@@ -110,7 +123,7 @@ const intake=createEditorIntake({refresh,async load(id){
 }});
 get('/api/projects').then(value=>{for(const p of value.projects)$('project').add(new Option(projectOptionLabel(p,value.projects),p.id));}).catch(e=>{$('status').textContent=e.message;});
 void refresh();$('surface').textContent=yawSurfaceWarning(0);
-function identity(){return {project_id:$('project').value,source_id:loadedSource,character_job_id:characterJob,duration,...(sampling()?{sampling_profile:sampling()}:{})};}
+function identity(){const edits=layers.snapshot();return {project_id:$('project').value,source_id:loadedSource,character_job_id:characterJob,duration,...(edits?{layer_edits:edits}:{}),...(sampling()?{sampling_profile:sampling()}:{})};}
 function snapshot(){if(!loadedSource||!characterJob)throw Error('请先完成角色和源动作加载');
   if(override!==null&&keys.length>1)throw Error('当前角度尚未写入轨道，请先记录角度或恢复固定角度');
   return {schema:DRAFT_SCHEMA,...identity(),time:Number($('time').value),keys:keys.length>1?keys:[{time:0,yaw:fixed}]};}
@@ -128,6 +141,7 @@ resultView=createEditorResult({canvas:$('result-canvas'),status:$('result-status
     if(!current()||sourceToken!==initialSource||characterJob!==job.character_job_id||$('project').value!==job.project_id)throw Error('选择已变化或角色版本加载失败，停止恢复');
     keys=validateYawTrack(track,duration);fixed=keys[0].yaw;override=null;lastYaw=null;lastTime=null;$('adaptive-camera').checked=Boolean(job.result.projection.sampling_profile);
     $('sampling-version').value=job.result.projection.sampling_profile||SAMPLING_PROFILE;
+    layers.restore(job.result.layer_edits??null);
     $('yaw-value').value=fixed;$('yaw').value=((fixed%360)+360)%360;keySummary();player.seek(0);
   }});
 createEditorBuild({snapshot,inspect(job){$('result-viewport').hidden=false;document.querySelector('.canvases').append($('result-viewport'));void resultView.load(job);document.querySelector('.canvases').scrollIntoView({block:'start'});}});
@@ -140,6 +154,7 @@ createEditorDraftControls({snapshot,
     if(tokens[0]!==sourceToken||tokens[1]!==projectToken)throw Error('选择已变化，请重试恢复草稿');
     const value=matchEditorDraft(draft,{...current,character_job_id:target.job?.job_id});
     remember();
+    layers.restore(value.layer_edits??null);
     keys=value.keys;fixed=keys[0].yaw;override=null;lastYaw=null;lastTime=null;$('adaptive-camera').checked=Boolean(value.sampling_profile);
     $('sampling-version').value=value.sampling_profile||SAMPLING_PROFILE;player.seek(value.time);
     const yaw=sampleYaw(keys,value.time);$('yaw-value').value=yaw;$('yaw').value=((yaw%360)+360)%360;keySummary();

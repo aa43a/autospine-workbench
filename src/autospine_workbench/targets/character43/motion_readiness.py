@@ -86,6 +86,8 @@ def build(files, artifact_sha256, runtime=None):
         if final and final.get('skeleton_sha256')!=digest:
             raise ValueError('motion_readiness_camera_contact_identity_mismatch')
         passed=passed and bool(final) and contact.get('after',{}).get('passed') is True
+    if contact.get('layer_surface_status'):
+        passed = False
     add('接触', 'sampled_pass' if passed else 'needs_changes' if state in ('needs_changes', 'inferred_proxy_drift') else 'unmeasured',
         '检查源踝部三维稳定性与相机投影跟随误差，不把相机旋转当作滑脚；不证明鞋底接地。' if contact.get('policy_id')=='continuous-camera-contact-proxy-v1' else
         '仅检查源标签或推断区间的踝部支点；不证明鞋底接地。', 'contact.html', evidence_status=state)
@@ -97,17 +99,27 @@ def build(files, artifact_sha256, runtime=None):
                      or order.get('status') == 'candidate' and depth.get('selected') is True)
                     and not depth.get('target_overlap', {}).get('unmeasured_pair_samples', 1))
     depth_state = 'needs_changes' if depth_failed else 'sampled_pass' if depth_passed else 'unmeasured'
+    if depth.get('status') == 'manual_layer_edits_require_depth_review':
+        depth_state = 'unmeasured'
     if depth.get('profile') == 'external-regional-depth-order-v1':
         from .regional_depth_gate import evaluate
         depth_state = evaluate(files, depth)
     add('遮挡', depth_state,
+        '已应用手动图层校正，修改前的遮挡检查不能作为当前结果的通过证据；旧冲突记录保留，请检查实际导出画面。' if depth.get('status') == 'manual_layer_edits_require_depth_review' else
         '顺序约束未通过，保留原动画；查看冲突位置。' if depth_failed else
         '手臂/躯干与受影响顺序的采样检查；整角色视觉遮挡仍需复核。',
         'depth.html', failures=[dict(time=f['time'], reason=f['reason_code']) for f in failures[:20]])
     add('Runtime', 'sampled_pass' if runtime and runtime.get('passed') is True and runtime.get('results') else 'needs_changes' if runtime else 'unmeasured',
         '官方捕获的顶点数值与画面边界检查；不代替几何、接触或视觉验收。', 'player.html',
         frames=len(runtime.get('results', [])) if runtime else 0)
-    other = [i for i in motion.get('issues', []) if i['stage'] not in ('projection', 'geometry', 'contact')
+    layer = read('motion-layer-edits.json')
+    if layer:
+        if layer.get('skeleton_sha256') != digest:
+            raise ValueError('motion_readiness_layer_identity_mismatch')
+        if layer.get('edits', {}).get('transforms') or layer.get('edits', {}).get('draw_order'):
+            add('图层校正', 'unmeasured', '手动图层校正已烘焙；几何和 Runtime 重新检查，表面接触及遮挡需要阶段视觉复核。',
+                'player.html', interpolation_max_error_px=layer.get('interpolation_max_error_px'))
+    other = [i for i in motion.get('issues', []) if i['stage'] not in ('projection', 'geometry', 'contact', 'layers')
              and not (depth_state == 'needs_changes'
                       and i == dict(stage='depth', reason_code='motion_visible_depth_needs_changes'))]
     if other:

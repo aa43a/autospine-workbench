@@ -3,6 +3,8 @@
 日期：2026-09-28。入口：http://127.0.0.1:8918/motion-editor.html 。
 从动作中心也可进入。服务为本地工作台；无需额外创建项目或覆盖已接受候选。
 
+动作编辑现支持同页图层排序、移动、旋转、缩放和保存导出，见 [图层校正操作与验证](motion-editor-layer-corrections.md)。
+
 后续主线见 [M5：脸部、头发与服装联合动画](milestone-m5-joint-animation.md)。
 下文质量边界由 [M4 质量后续工作](m4-motion-quality-followup.md) 按需承接，
 不要求全部修复后才开始联合动画；本页已交付范围和既有验收保持原记录。

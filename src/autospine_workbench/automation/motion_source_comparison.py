@@ -24,6 +24,8 @@ def link(manager, job, result):
     clip = request.get('clip')
     if clip != result.get('clip'):
         raise PipelineRunError('motion_target_clip_changed')
+    if request.get('layer_edits') != result.get('layer_edits'):
+        raise PipelineRunError('motion_target_layer_edits_changed')
     fps = info['fps']; count = info['frame_count']; duration = info['duration_seconds']
     if (type(fps) not in (int, float) or not math.isfinite(fps) or fps <= 0
             or type(count) is not int or count < 2
@@ -39,7 +41,7 @@ def link(manager, job, result):
                 source_sha256=source['source_sha256'], source_start=start, source_end=end,
                 duration=end-start, target_job_id=job, motion_identity=request['motion_identity'],
                 source_fps=fps, source_frame_count=count, source_duration=duration,
-                clip=clip, authority='none',
+                clip=clip, layer_edits=request.get('layer_edits'), authority='none',
                 scope='nearest_source_samples_with_exact_clip_time_offset')
 
 

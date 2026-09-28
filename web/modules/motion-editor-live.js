@@ -14,12 +14,19 @@ export function createLiveCharacter(canvas,status){
       const bones=renderer.draw(time);
       window.motionEditorPreviewState={status:'raw_preview',source_id:source.source_job_id,
         source_snapshot:source.snapshot_sha256,character_artifact:renderer.artifact,time,
-        keys:structuredClone(keys),sampling_profile:samplingProfile,samples:result.samples,solve_ms:solveMs,bones,unreliable_samples:result.issues.length};
+        keys:structuredClone(keys),layer_edits:renderer.layerEdits(),sampling_profile:samplingProfile,samples:result.samples,solve_ms:solveMs,bones,unreliable_samples:result.issues.length};
       status.textContent=`实时姿态预览 · ${time.toFixed(3)}秒${result.issues.length?` · ${result.issues.length}处投影可靠性提示`:''}。尚未应用局部修形、接触或遮挡修正。`;
     }catch(e){renderer.clear();signature=null;window.motionEditorPreviewState={status:'unavailable',reason:e.message};status.textContent=e.message;}
   }
   function schedule(){if(frame===null)frame=requestAnimationFrame(update);}
   return {
+    layers(){return renderer?.layers()??[];},
+    layerEdits(value){if(arguments.length){renderer?.layerEdits(value);schedule();}return renderer?.layerEdits()??null;},
+    selectLayer(slot){renderer?.selectLayer(slot);schedule();},
+    pickLayer(x,y){return renderer?.pickLayer(x,y)??null;},
+    worldPoint(x,y){return renderer?.worldPoint(x,y)??null;},
+    canvasDelta(x,y){return renderer?.canvasDelta(x,y)??null;},
+    layerGeometry(slot){return renderer?.layerGeometry(slot)??null;},
     clear(){version++;renderer?.dispose();renderer=null;signature=null;window.motionEditorPreviewState=null;},
     async load(base){
       this.clear();const token=version;

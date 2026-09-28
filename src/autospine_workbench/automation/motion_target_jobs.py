@@ -29,7 +29,7 @@ def assert_current(manager, request):
 
 
 def submit(manager, source_job, body):
-    if (set(body) - {'project_id', 'character_job_id', 'contact_correction', 'clip', 'projection', 'projection_selection', 'depth_review_profile', 'torso_projection_profile', 'pose_profile', 'moving_ankle_profile'}
+    if (set(body) - {'project_id', 'character_job_id', 'contact_correction', 'clip', 'projection', 'projection_selection', 'depth_review_profile', 'torso_projection_profile', 'pose_profile', 'moving_ankle_profile', 'layer_edits'}
             or not {'project_id', 'character_job_id'} <= set(body)
             or type(body.get('contact_correction', True)) is not bool):
         raise PipelineRunError('motion_request_invalid')
@@ -73,6 +73,14 @@ def submit(manager, source_job, body):
                    character_sha256=character['artifact_sha256'], name=source['name'],
                    contact_correction=body.get('contact_correction', True), runtime_reference_profile=PROFILE,
                    inferred_contact_profile=CONTACT_PROFILE, depth_review_profile=depth_profile)
+    if 'layer_edits' in body:
+        from ..targets.character43.motion_layer_edits import validate as validate_layers
+        from .animated_store import AnimatedStore
+        try:
+            rig = json.loads(AnimatedStore(manager.state_root).read(character['artifact_sha256'])['skeleton.json'])
+            request['layer_edits'] = validate_layers(body['layer_edits'], rig)
+        except ValueError as exc:
+            raise PipelineRunError(str(exc)) from exc
     if body.get('clip') is not None:
         request['clip'] = body['clip']
     from ..targets.character43.motion_depth_overlap import SPARSE_DEPTH_PROFILE

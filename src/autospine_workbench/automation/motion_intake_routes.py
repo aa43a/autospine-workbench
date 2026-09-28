@@ -78,7 +78,7 @@ def dispatch_motions(parts, handler, method):
                 result = submit(manager, read_json_object_request(handler, maximum_bytes=8192))
             elif tail[1] == 'adapt':
                 from .motion_target_jobs import submit
-                result = submit(manager, tail[0], read_json_object_request(handler, maximum_bytes=1024))
+                result = submit(manager, tail[0], read_json_object_request(handler, maximum_bytes=256 * 1024))
             elif tail[1] == 'stage-review':
                 from .motion_stage_review import save
                 result = save(manager, tail[0], read_json_object_request(handler, maximum_bytes=20000))

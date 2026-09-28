@@ -1,11 +1,13 @@
 import {validateYawTrack} from './motion-yaw-track.js';
 import {SAMPLING_PROFILE} from './motion-camera-sampling.js';
 import {PROJECTED_SAMPLING_PROFILE} from './motion-projected-camera-sampling.js';
+import {normalizeLayerEdits} from './motion-layer-transform.js';
 export const DRAFT_SCHEMA='autospine.motion-editor-draft/v1';
 export const DRAFT_STORAGE='autospine.motion-editor.draft.v1';
 export function validateEditorDraft(value){
   if(!value||value.schema!==DRAFT_SCHEMA)throw Error('不是受支持的动作编辑草稿');
   const fields=['character_job_id','duration','keys','project_id','schema','source_id','time'];
+  if(Object.hasOwn(value,'layer_edits')){fields.push('layer_edits');normalizeLayerEdits(value.layer_edits);}
   if(Object.hasOwn(value,'sampling_profile')){
     fields.push('sampling_profile');if(![SAMPLING_PROFILE,PROJECTED_SAMPLING_PROFILE].includes(value.sampling_profile))throw Error('草稿采样版本不支持');
   }
@@ -41,7 +43,7 @@ export function createEditorDraftControls({snapshot,restore,status}){
   });
   $('import-draft').onchange=report(async()=>{
     const input=$('import-draft'),file=input.files[0];input.value='';if(!file)return;
-    if(file.size>100000)throw Error('草稿文件过大');
+    if(file.size>256*1024)throw Error('草稿文件过大');
     await restore(validateEditorDraft(JSON.parse(await file.text())));
   });
 }

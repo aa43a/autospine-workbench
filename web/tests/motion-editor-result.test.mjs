@@ -26,3 +26,11 @@ test('stale draft is distinguished from wrong source or character version',()=>{
   assert.equal(resultMatch(job,link,{...source,source_sha256:'changed'},identity,keys,keys),'different_source');
   assert.equal(resultMatch(job,link,{...source,motion_identity:{...source.motion_identity,bundle_sha256:'changed'}},identity,keys,keys),'different_source');
 });
+test('editing only a layer marks a loaded result stale; exact layer restore matches',()=>{
+  const layer_edits={profile:'slot-world-affine-v1',transforms:[{slot:'arm',dx:3,dy:0,rotation:0,scaleX:1,scaleY:1}],draw_order:[]};
+  const selection={...identity,layer_edits};
+  assert.equal(resultMatch(job,link,source,selection,keys,keys),'draft_changed');
+  const edited={...job,result:{...job.result,layer_edits}};
+  assert.equal(resultMatch(edited,link,source,selection,keys,keys),'matching');
+  assert.equal(resultMatch(edited,link,source,identity,keys,keys),'draft_changed');
+});

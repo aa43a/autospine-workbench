@@ -2,6 +2,12 @@ import {validateEditorDraft} from './motion-editor-draft.js';
 import {appendCandidateDownload} from './motion-candidate-download.js';
 import {appendReadiness} from './motion-readiness.js';
 const jobId=/^motion-[a-f0-9]{32}$/;
+const reasons={motion_layer_target_mismatch:'角色图层版本已变化，请重新加载角色后恢复兼容草稿。',
+  motion_layer_attachment_unsupported:'所选附件不支持当前网格校正，请恢复该层修改后重试。',
+  motion_layer_attachment_timeline_unsupported:'此候选含附件切换动画，暂不支持整段网格校正。',
+  motion_layer_sample_limit:'图层校正所需采样超过上限，请缩短源动作后重试。',
+  motion_layer_interpolation_error:'图层校正在中间姿态误差过大，请减小旋转或缩放后重试。',
+  motion_layer_transform_out_of_range:'图层校正数值超出支持范围。'};
 const steps={queued:'排队等待',verify_source:'校验来源',retarget:'映射角色并修正局部变形',
   depth_overlap:'检查前后遮挡',depth_partition:'划分绘制区域',depth_refinement:'校准深度',
   depth_cloth_constraints:'检查服装遮挡',depth_limb_constraints:'检查肢体遮挡',depth_ordering:'检查绘制顺序',
@@ -12,14 +18,14 @@ export function fixedBuildRequest(draft){
   const value=validateEditorDraft(draft),yaw=value.keys[0].yaw;
   if(value.keys.some(k=>k.yaw!==yaw))throw Error('动态角度烘焙尚未接入；请保留草稿，或明确恢复固定角度后构建。');
   if(Math.abs(yaw)>90)throw Error('当前构建支持 −90° 至 90°；不会自动改写或截断你的旋转角度。');
-  return {project_id:value.project_id,character_job_id:value.character_job_id,contact_correction:true,clip:null,
+  return {project_id:value.project_id,character_job_id:value.character_job_id,...(value.layer_edits?{layer_edits:value.layer_edits}:{}),contact_correction:true,clip:null,
     projection:{profile:'constant-yaw-source-motion-v1',yaw_degrees:yaw},
     pose_profile:'constant-view-absolute-pose-hip-center-v1-experiment'};
 }
 export function editorBuildRequest(draft){
   const value=validateEditorDraft(draft),yaw=value.keys[0].yaw;
   if(value.sampling_profile!=='camera-world-projected-adaptive-v2'&&Math.abs(yaw)<=90&&value.keys.every(k=>k.yaw===yaw))return fixedBuildRequest(value);
-  return {project_id:value.project_id,character_job_id:value.character_job_id,contact_correction:false,
+  return {project_id:value.project_id,character_job_id:value.character_job_id,...(value.layer_edits?{layer_edits:value.layer_edits}:{}),contact_correction:false,
     projection:{profile:'continuous-yaw-source-camera-v1',keys:value.keys.map(k=>({...k})),
       ...(value.sampling_profile?{sampling_profile:value.sampling_profile}:{})},
     pose_profile:'continuous-yaw-source-camera-v1',moving_ankle_profile:'continuous-camera-ankle-displacement-v1',
@@ -30,17 +36,17 @@ export function createEditorBuild({snapshot,inspect=()=>{}}){
   let current=null,timer=null,busy=false,fetching=false;
   const request=async(url,body)=>{
     const response=await fetch(url,body?{method:'POST',headers:{'Content-Type':'application/json','X-Autospine-Intent':'pipeline-preview'},body:JSON.stringify(body)}:{cache:'no-store'});
-    const value=await response.json();if(!response.ok)throw Error(value.reason_code||`请求失败 (${response.status})`);return value;
+    const value=await response.json();if(!response.ok)throw Error(reasons[value.reason_code]||value.reason_code||`请求失败 (${response.status})`);return value;
   };
   function render(job){
     const active=['pending','running'].includes(job.status);
     const states={pending:'已排队',running:'构建中',succeeded:'候选已生成',failed:'构建失败',canceled:'已取消',interrupted:'任务已中断',outdated:'来源已变化'};
-    $('build-status').textContent=`${states[job.status]||job.status} · ${job.name||''} · ${job.project_id||''} · ${steps[job.step]||job.step||''}${job.reason_code?' · '+job.reason_code:''}`;
+    $('build-status').textContent=`${states[job.status]||job.status} · ${job.name||''} · ${job.project_id||''} · ${steps[job.step]||job.step||''}${job.reason_code?' · '+(reasons[job.reason_code]||job.reason_code):''}`;
     $('build').disabled=busy||active;$('cancel-build').disabled=!active||Boolean(job.cancel_requested);
     const panel=$('build-result');panel.replaceChildren();
     const history=document.createElement('a');history.href=`/motions.html#${job.job_id}`;history.textContent='查看此独立任务与完整记录';panel.append(history);
     if(job.status==='succeeded'&&job.result?.artifact_sha256){
-      const note=document.createElement('p');note.textContent='这是按已保存角度轨道构建的独立结果。上方草稿的新修改不会影响它；技术异常与阶段验收独立保留。';panel.append(note);
+      const note=document.createElement('p');note.textContent='这是按已保存角度轨道与图层校正构建的独立结果。上方草稿的新修改不会影响它；技术异常与阶段验收独立保留。';panel.append(note);
       const play=document.createElement('a');play.href=`/api/motions/${job.job_id}/view/player.html`;play.textContent='打开此候选的可动验收窗口';play.target='_blank';play.rel='noopener';panel.append(play);
       const compare=document.createElement('button');compare.textContent='在编辑区对照导出结果';compare.onclick=()=>inspect(job);panel.append(compare);
       appendCandidateDownload(panel,job);appendReadiness(panel,job);
