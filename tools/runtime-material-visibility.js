@@ -62,8 +62,28 @@ window.inspectMaterialVisibility = async fixture => {
       return {...p,rgba:full[i],support:support[i],top_slot:top?.slot??null,
         opaque_top_matches_full:!!same,hide_deltas:Object.fromEntries(Object.entries(drops).map(([n,v])=>[n,v[i]]))};
     });
+    let counterfactual=null;
+    if(fixture.counterfactual){
+      const after=fixture.counterfactual.after_slot,target=order.indexOf(row.region),end=order.indexOf(after);
+      if(target<0||end<=target||after===row.body||end>=order.indexOf(row.body))throw Error('visibility_trial_order_invalid');
+      const oldOrder=rig.drawOrder.appliedPose,trial=[...oldOrder],moving=trial.splice(target,1)[0];
+      trial.splice(trial.findIndex(s=>s.data.name===after)+1,0,moving);
+      const all=()=>{const bytes=new Uint8Array(width*height*4);gl.readPixels(0,0,width,height,gl.RGBA,gl.UNSIGNED_BYTE,bytes);
+        if(gl.getError()!==gl.NO_ERROR)throw Error('visibility_trial_read_failed');return bytes;};
+      const before=all(),beforePNG=canvas.toDataURL('image/png');let moved,newPNG,changed=0,alphaChanged=0,maximum=0;
+      try{
+        rig.drawOrder.appliedPose=trial;moved=render('full');const afterPixels=all();newPNG=canvas.toDataURL('image/png');
+        for(let i=0;i<before.length;i+=4){let delta=0;for(let c=0;c<4;c++)delta=Math.max(delta,Math.abs(before[i+c]-afterPixels[i+c]));
+          if(delta>1)changed++;if(Math.abs(before[i+3]-afterPixels[i+3])>1)alphaChanged++;maximum=Math.max(maximum,delta);}
+      }finally{rig.drawOrder.appliedPose=oldOrder;render('full');}
+      if(!all().every((v,i)=>v===before[i]))throw Error('visibility_trial_restore_failed');
+      counterfactual={after_slot:after,crossed_slots:order.slice(target+1,end+1),order:trial.map(s=>s.data.name),
+        selected_pixel_changes:moved.filter((p,i)=>p.some((v,c)=>Math.abs(v-full[i][c])>1)).length,
+        full_frame_changed_pixels:changed,full_frame_alpha_changes:alphaChanged,maximum_channel_delta:maximum,
+        before_png:beforePNG,after_png:newPNG,restored_full_frame:true,selected:false};
+    }
     rows.push({time:row.time,region:row.region,body:row.body,screenshot_sha256:row.screenshot_sha256,
-      prior_frame_max_channel_delta:maximum,restored:true,points});
+      prior_frame_max_channel_delta:maximum,restored:true,points,...(counterfactual?{counterfactual}:{})});
   }
   return {rows,context:gl.getContextAttributes(),scope:'selected_pixels_gpu_isolation_and_hide_delta_not_depth_correctness',authority:'none',selected:false};
 };
