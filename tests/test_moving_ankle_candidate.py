@@ -20,6 +20,32 @@ def fixture():
 
 
 class MovingAnkleTests(unittest.TestCase):
+    def test_synthetic_grid_alias_keeps_source_event_exactly(self):
+        from autospine_workbench.targets.character43.moving_ankle_candidate import synthetic_sample_times, timeline_union
+        source = [0, 2.275, 7.466667]
+        generated = [0, 2.2750001015625, 3, 7.466667]
+        before = deepcopy((source, generated))
+        times, aliases = synthetic_sample_times(source, generated)
+        self.assertEqual(times, [0, 2.275, 3, 7.466667])
+        self.assertEqual(aliases[0]['retained_time'], 2.275)
+        self.assertEqual(len(aliases), 1)
+        self.assertEqual(timeline_union(source, source, times)[0], times)
+        self.assertEqual((source, generated), before)
+
+    def test_synthetic_grid_does_not_merge_distinct_source_events(self):
+        from autospine_workbench.targets.character43.moving_ankle_candidate import synthetic_sample_times, timeline_union
+        with self.assertRaisesRegex(ValueError, 'distinct_times_collide'):
+            synthetic_sample_times([0, .5, .50000001, 1], [])
+        times, _ = synthetic_sample_times([0, .5, 1], [.50000001])
+        with self.assertRaisesRegex(ValueError, 'distinct_times_collide'):
+            timeline_union([0, .5, 1], [.50000001], times)
+
+    def test_synthetic_grid_rejects_invalid_sample(self):
+        from autospine_workbench.targets.character43.moving_ankle_candidate import synthetic_sample_times
+        for invalid in (float('nan'), float('inf'), -1):
+            with self.assertRaisesRegex(ValueError, 'timeline_limit'):
+                synthetic_sample_times([0, 1], [invalid])
+
     def test_roundoff_aliases_produce_distinct_runtime_keys(self):
         from autospine_workbench.targets.character43.runtime_storage_reference import f32, require_distinct_times
         doc,trajectory=fixture()

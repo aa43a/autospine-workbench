@@ -1,6 +1,6 @@
 """Independent sampled area-proxy checks, including deform interpolation times."""
 from copy import deepcopy
-from .affine_pose import matrices, sample
+from .affine_pose import matrices, sample, sample_with_matrices
 from .projected_area_reference import reference
 from ..spine43.continuous_pose import area
 
@@ -35,7 +35,7 @@ def inspect(document, name, slots, *, preservation_source=None, repair_support=N
     for frame_index, time in enumerate(times):
         if progress and frame_index % 16 == 0:
             progress(dict(stage='check_interpolation',frame_index=frame_index,sample_count=len(times),time=time))
-        world=sample(document,name,time)[0];transform=matrices(document,name,time)
+        world,_,transform=sample_with_matrices(document,name,time)
         original=sample(preservation_source,name,time)[0] if preservation_source is not None else None
         for slot,(triangles,areas,influences) in prepared.items():
             refs=reference(areas,triangles,influences,document['bones'],rest,transform)

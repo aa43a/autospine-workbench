@@ -29,6 +29,19 @@ class MotionProgressTests(unittest.TestCase):
             (folder/'progress.json').write_text('{"step":"retarget"}')
             self.assertEqual(read_progress(folder), 'retarget')
 
+    def test_windows_reader_contention_does_not_abort_solver(self):
+        with tempfile.TemporaryDirectory() as root:
+            folder=Path(root)
+            progress(folder,'retarget')
+            before=(folder/'progress.json').read_bytes()
+            with patch('autospine_workbench.automation.motion_intake_process.os.replace',side_effect=PermissionError('busy')) as replace, \
+                 patch('autospine_workbench.automation.motion_intake_process.time.sleep'):
+                progress(folder,'runtime')
+            self.assertEqual(replace.call_count,3)
+            self.assertEqual((folder/'progress.json').read_bytes(),before)
+            progress(folder,'runtime')
+            self.assertEqual(read_progress(folder),'runtime')
+
     def test_active_long_build_is_bounded_separately_from_stall(self):
         self.assertIsNone(timeout_reason('adapt', 901, 10))
         self.assertEqual(timeout_reason('adapt', 901, 901), 'motion_target_stalled')

@@ -33,11 +33,18 @@ def project(context, base, *, initial=None):
                     for (a, b), length in zip(edges, lengths))):
         return points, dict(iterations=48, converged=True, lower_target=.55)
     converged = False
+    # Fixed constraints still participate in every convergence check. They cannot
+    # change points, so omit only their no-op update passes (not their evidence).
+    active_triangles = [(tri, reference, floor) for tri, reference, floor in zip(triangles, areas, floors)
+                        if any(free[i] for i in tri)]
+    active_edges = [(a, b, length, int(free[a])+int(free[b]))
+                    for (a, b), length in zip(edges, lengths) if free[a] or free[b]]
+    free_origins = [(i, origin) for i, origin in enumerate(base) if free[i]]
     # These are solver margins, not the independent QA floor (which remains .5).
     # In a narrow fixed boundary, .55 can be infeasible while .5 remains feasible.
     for iteration in range(1536):
         lower_target = (.55, .525, .5125, .50625)[iteration//384]
-        for tri, reference, floor in zip(triangles, areas, floors):
+        for tri, reference, floor in active_triangles:
             ratio = area(points, tri)/reference
             target = max(lower_target, floor, min(1.9, ratio))
             if ratio == target:
@@ -54,18 +61,18 @@ def project(context, base, *, initial=None):
                 if free[i]:
                     for axis in (0, 1):
                         points[i][axis] += scale*gradient[axis]
-        for (a, b), length in zip(edges, lengths):
+        for a, b, length, count in active_edges:
             delta = [points[b][i]-points[a][i] for i in (0, 1)]
-            distance = math.hypot(*delta); count = int(free[a])+int(free[b])
-            if not count or distance <= 1.9*length:
+            distance = math.hypot(*delta)
+            if distance <= 1.9*length:
                 continue
             scale = (distance-1.9*length)/distance/count
             for axis in (0, 1):
                 if free[a]: points[a][axis] += scale*delta[axis]
                 if free[b]: points[b][axis] -= scale*delta[axis]
-        for i, origin in enumerate(base):
+        for i, origin in free_origins:
             distance = math.dist(points[i], origin)
-            if free[i] and distance > budget:
+            if distance > budget:
                 points[i] = [origin[k]+(points[i][k]-origin[k])*budget/distance for k in (0, 1)]
         if (iteration+1) % 48 == 0:
             ratios = [area(points, t)/a for t, a in zip(triangles, areas)]

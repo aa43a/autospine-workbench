@@ -71,6 +71,12 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
         # It must not become a supported/adopted result by falling back silently.
         issues.append(dict(stage='projection', reason_code=str(exc)))
     document = clip_animation(document, ANIMATION, clip_bounds)
+    if moving_ankles is not None:
+        from ..targets.character43.moving_ankle_candidate import timeline_union
+        # Reject real event collisions before spending time on area repair.
+        timeline_union(moving_ankles['times'], sorted({k.get('time', 0)
+            for row in document['animations'][ANIMATION]['bones'].values()
+            for keys in row.values() for k in keys}), [])
     if clip_bounds:
         evidence['clip'] = dict(start_tick=clip_bounds[0], end_tick=clip_bounds[1],
                                 source_duration_ticks=original_motion['duration_ticks'],
@@ -83,7 +89,12 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
         issues.append(dict(stage='repair', reason_code=str(exc)))
     duration = motion['duration_ticks'] / motion['ticks_per_second']
     key_times = {key['tick'] / motion['ticks_per_second'] for track in motion['tracks'] for key in track['keys']}
-    times = sorted(key_times | {duration * i / 256 for i in range(257)})
+    if moving_ankles is not None:
+        from ..targets.character43.moving_ankle_candidate import synthetic_sample_times
+        times, aliases = synthetic_sample_times(sorted(key_times), [duration*i/256 for i in range(257)])
+        evidence['synthetic_qa_time_aliases'] = aliases
+    else:
+        times = sorted(key_times | {duration * i / 256 for i in range(257)})
     if len(times) > 1025 or duration <= 0:
         raise ValueError('motion_target_sample_limit')
     from ..targets.character43.motion_contacts import apply as apply_contacts

@@ -76,7 +76,13 @@ def apply(document, animation, edits, times):
     report['pivots'] = pivots
     duration = max(times)
     count = max(1, math.ceil(duration*60))
-    grid = sorted(set(times) | {duration*i/count for i in range(count+1)})
+    from .moving_ankle_candidate import synthetic_sample_times
+    source = document['animations'][animation]
+    events = {k['time'] for tracks in source.get('bones',{}).values() for keys in tracks.values() for k in keys}
+    events.update(k['time'] for skin in source.get('attachments',{}).values() for slots in skin.values()
+                  for tracks in slots.values() for keys in tracks.values() for k in keys)
+    grid, aliases = synthetic_sample_times(sorted(events), [*times, *(duration*i/count for i in range(count+1))])
+    report['synthetic_time_aliases'] = aliases
     if len(grid) > 4097:
         raise ValueError('motion_layer_sample_limit')
     for row in rows:

@@ -3,6 +3,7 @@ import {appendCandidateDownload} from './motion-candidate-download.js';
 import {appendReadiness} from './motion-readiness.js';
 const jobId=/^motion-[a-f0-9]{32}$/;
 const reasons={motion_layer_target_mismatch:'角色图层版本已变化，请重新加载角色后恢复兼容草稿。',
+  moving_ankle_distinct_times_collide_in_runtime:'动作时间点在 Runtime 精度下发生冲突，未生成候选；原始动作和草稿保留。',
   motion_target_timeout:'构建超过运行时限，已停止。请缩短动作或关闭中间姿态补帧后重试；已有候选保留。',
   motion_target_stalled:'构建长时间没有更新进度，已停止。请查看任务记录后重试；已有候选保留。',
   motion_decode_timeout:'动作处理超过时限。请查看任务记录，尝试缩短动作后重新构建。',

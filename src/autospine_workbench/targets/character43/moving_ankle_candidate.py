@@ -5,6 +5,29 @@ from .joint_support_solver import solve
 from ..spine43.continuous_pose import interpolate
 
 
+def synthetic_sample_times(source_times, generated_times):
+    """Snap generated QA samples to retained events at Runtime float32 precision.
+
+    Only sampling locations may be replaced: source events remain untouched and
+    must be independently representable. Never pass animation keys as generated.
+    """
+    from .runtime_storage_reference import f32
+    retained, _ = timeline_union(source_times, [], [])
+    stored = {f32(t): t for t in retained}
+    aliases = []
+    for time in generated_times:
+        if not math.isfinite(time) or time < 0:
+            raise ValueError('moving_ankle_timeline_limit')
+        key = f32(time)
+        if key in stored:
+            if time != stored[key]:
+                aliases.append(dict(time=time, retained_time=stored[key], runtime_time=key,
+                                    reason='synthetic_qa_sample_runtime_alias'))
+        else:
+            stored[key] = time
+    return sorted(stored.values()), aliases
+
+
 def timeline_union(source_times, track_times, extra_times):
     """Coalesce roundoff aliases before solving, never discard distinct events."""
     from .runtime_storage_reference import f32

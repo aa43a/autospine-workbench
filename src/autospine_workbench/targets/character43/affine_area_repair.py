@@ -3,7 +3,7 @@ from copy import deepcopy
 import math
 from ...asset.joints.distal_corrective import project
 from ..spine43.continuous_pose import area, interpolate
-from .affine_pose import matrices, sample
+from .affine_pose import matrices, sample, sample_with_matrices
 
 
 def repair(document, name, *, samples=257, convergent=False, setup_vertices=None, projected_reference=False, extra_times=(), temporal=False, terminal_collar=False, progress=None, proximal_ring=False, preserve_area=False, repair_band=False, fixed_band=False, area_margins=None, dual_floor=False, additive=False):
@@ -38,14 +38,17 @@ def repair(document, name, *, samples=257, convergent=False, setup_vertices=None
     duration = max(key_times)
     if len(extra_times) > 1025 or any(not math.isfinite(t) or not 0 <= t <= duration for t in extra_times):
         raise ValueError('character_affine_extra_times_invalid')
-    times = sorted(key_times | set(extra_times) | {duration*i/(samples-1) for i in range(samples)})
+    from .moving_ankle_candidate import synthetic_sample_times
+    times, _ = synthetic_sample_times(sorted(key_times | set(extra_times)),
+                                      [duration*i/(samples-1) for i in range(samples)])
     if progress:progress(dict(stage='sample_geometry',sample_count=len(times)))
     worlds = []; transforms = []
     for frame_index, time in enumerate(times):
         if progress and frame_index % 16 == 0:
             progress(dict(stage='sample_geometry',frame_index=frame_index,sample_count=len(times),time=time))
-        worlds.append(sample(document, name, time)[0])
-        transforms.append(matrices(document, name, time))
+        world, _, transform = sample_with_matrices(document, name, time)
+        worlds.append(world)
+        transforms.append(transform)
     rest_transforms = None
     if projected_reference:
         if setup_vertices is None or not convergent:

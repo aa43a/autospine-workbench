@@ -3,6 +3,20 @@ import math
 from ..spine43.continuous_pose import interpolate
 
 
+def _pair(keys, time, default=None):
+    """Read two channels without rebuilding every key into a temporary vector."""
+    i = 0
+    while i+1 < len(keys) and keys[i+1]['time'] <= time:
+        i += 1
+    a, b = keys[i], keys[min(i+1, len(keys)-1)]
+    f = 0 if a.get('curve') == 'stepped' or a['time'] == b['time'] else (time-a['time'])/(b['time']-a['time'])
+    values = []
+    for key in ('x', 'y'):
+        x, y = (a[key], b[key]) if default is None else (a.get(key, default), b.get(key, default))
+        values.append(x+f*(y-x))
+    return values
+
+
 def matrices(document, animation_name, time):
     animation = document['animations'][animation_name]
     transforms = {}
@@ -18,9 +32,7 @@ def matrices(document, animation_name, time):
         for kind in ('translate', 'scale'):
             keys = tracks.get(kind)
             if keys:
-                values = [dict(time=k['time'], vertices=[k['x'], k['y']],
-                               **({'curve': k['curve']} if 'curve' in k else {})) for k in keys]
-                u, v = interpolate(values, time, 'vertices')
+                u, v = _pair(keys, time)
                 if kind == 'translate':
                     x += u; y += v
                 else:
@@ -29,9 +41,7 @@ def matrices(document, animation_name, time):
             raise ValueError('character_affine_nonpositive_scale')
         shear_x = shear_y = 0.
         if tracks.get('shear'):
-            keys=[dict(time=k['time'],vertices=[k.get('x',0),k.get('y',0)],
-                       **({'curve':k['curve']} if 'curve' in k else {})) for k in tracks['shear']]
-            shear_x,shear_y=interpolate(keys,time,'vertices')
+            shear_x,shear_y=_pair(tracks['shear'],time,0)
             if not all(math.isfinite(v) for v in (shear_x,shear_y)):
                 raise ValueError('character_affine_shear_nonfinite')
         angle = math.radians(rotation+shear_x)
@@ -54,6 +64,11 @@ def matrices(document, animation_name, time):
 
 
 def sample(document, animation_name, time):
+    return sample_with_matrices(document, animation_name, time)[:2]
+
+
+def sample_with_matrices(document, animation_name, time):
+    """Expose the FK already computed for this exact sample to its caller."""
     if any(channels.get('attachment') for channels in
            document['animations'][animation_name].get('slots', {}).values()):
         raise ValueError('character_affine_attachment_timeline_requires_active_mesh_sampler')
@@ -79,4 +94,4 @@ def sample(document, animation_name, time):
             points.append([x, y])
         result[slot] = points
     pose = {name: (m[4], m[5], math.degrees(math.atan2(m[2], m[0]))) for name, m in transforms.items()}
-    return result, pose
+    return result, pose, transforms

@@ -18,6 +18,7 @@ STEPS = {'runtime_prepare', 'runtime_geometry', 'runtime_reference', 'runtime_se
 
 # Only explicit internal failures may cross the worker log boundary.
 REPAIR_FAILURES = frozenset({
+    'moving_ankle_distinct_times_collide_in_runtime',
     'limb_transverse_frame_degenerate', 'limb_transverse_weighted_mesh_required',
     'limb_transverse_weights_invalid', 'limb_transverse_vertex_inventory',
     'limb_transverse_single_limb_required', 'limb_transverse_options_invalid',
@@ -77,7 +78,15 @@ def progress(folder, step, detail=None):
             value.update(completed=value['slot_index'], total=value['total_slots'], unit='图层')
     temporary = folder / 'progress.tmp'
     temporary.write_bytes(canonical_bytes(value))
-    os.replace(temporary, folder / 'progress.json')
+    # Windows readers may briefly hold the destination without delete sharing.
+    # Telemetry contention must not discard minutes of successful solver work.
+    for attempt in range(3):
+        try:
+            os.replace(temporary, folder / 'progress.json')
+            return
+        except PermissionError:
+            if attempt < 2:
+                time.sleep(.01)
 
 
 def read_progress(folder):
