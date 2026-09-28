@@ -12,7 +12,7 @@ try{
   await page.goto('http://127.0.0.1:8918/motion-editor.html');
   await page.waitForFunction(()=>document.querySelectorAll('#source option').length>1&&document.querySelectorAll('#project option').length>1);
   await page.selectOption('#project','alice');await page.selectOption('#source','motion-2671c6fdbc10444592420e6f8f4ad838');
-  await page.waitForFunction(()=>!document.getElementById('time').disabled&&document.getElementById('character').getAttribute('src'));
+  await page.waitForFunction(()=>window.motionEditorPreviewState?.status==='raw_preview');
   const response=page.waitForResponse(r=>r.url().endsWith('/adapt')&&r.request().method()==='POST');
   await page.click('#build');const submitted=await response;
   assert.equal(submitted.status(),202);const job=await submitted.json();

@@ -1,4 +1,5 @@
-export function createSourcePlayer(canvas, slider, button, label, onTime = () => {}, {maxYaw=90}={}) {
+import {sampleSourceFrame} from './motion-source-sample.js';
+export function createSourcePlayer(canvas, slider, button, label, onTime = () => {}, {maxYaw=90,interpolateFrames=false}={}) {
   if(![90,3600].includes(maxYaw))throw Error('source_yaw_limit_invalid');
   const ctx = canvas.getContext('2d');
   let data = null, playing = false, previous = 0, elapsed = 0, handle = null;
@@ -25,7 +26,7 @@ export function createSourcePlayer(canvas, slider, button, label, onTime = () =>
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     if (!data) return;
     const time = Number(slider.value);
-    const frame = data.frames.reduce((a, b) => Math.abs(a.time - time) < Math.abs(b.time - time) ? a : b);
+    const frame = interpolateFrames?sampleSourceFrame(data.frames,time):data.frames.reduce((a, b) => Math.abs(a.time - time) < Math.abs(b.time - time) ? a : b);
     const [x, y, w, h] = bounds;
     const scale = Math.min((canvas.width - 80) / w, (canvas.height - 80) / h);
     const map = point => {
@@ -44,7 +45,7 @@ export function createSourcePlayer(canvas, slider, button, label, onTime = () =>
       }
       ctx.beginPath(); ctx.arc(...value, 2.5, 0, Math.PI * 2); ctx.fill();
     });
-    label.textContent = `${frame.time.toFixed(2)} 秒 · 帧 ${frame.frame + 1}`;
+    label.textContent = `${frame.time.toFixed(3)} 秒 · 帧 ${frame.frame + 1}${frame.interpolated?'＋补间':''}`;
     onTime(time, Number(slider.max));
   }
 

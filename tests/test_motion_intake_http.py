@@ -82,6 +82,14 @@ class MotionHttpTests(unittest.TestCase):
         status, _, payload = self.request('GET', path + '/preview')
         self.assertEqual(status, 200)
         self.assertEqual(len(json.loads(payload)['frames']), 2)
+        status, _, payload = self.request('GET', path + '/editor-source')
+        self.assertEqual(status,200)
+        editor=json.loads(payload)
+        self.assertEqual(editor['source_job_id'],value['job_id'])
+        self.assertEqual(len(editor['times']),2)
+        self.assertEqual(len(editor['preview']['frames']),2)
+        self.assertEqual(editor['precision'],12)
+        self.assertEqual(self.request('POST',path+'/editor-source',{})[0],405)
         status, _, diagnostic = self.request('GET', path + '/projection.json')
         self.assertEqual(status, 200)
         self.assertEqual(len(json.loads(diagnostic)['records']), 8)
@@ -132,6 +140,12 @@ class MotionHttpTests(unittest.TestCase):
         self.assertEqual(value['result']['fps'], 24)
         self.assertEqual(value['result']['motion']['source_kind'], 'kimodo_npz')
         self.assertEqual(self.request('GET', path + '/preview')[0], 200)
+        status, _, payload = self.request('GET', path + '/editor-source')
+        self.assertEqual(status, 200, payload)
+        editor = json.loads(payload)
+        self.assertEqual(editor['precision'], 5)
+        self.assertEqual(len(editor['preview']['frames']), len(editor['times']))
+        self.assertEqual(editor['source_job_id'], value['job_id'])
 
 
 del Fixture

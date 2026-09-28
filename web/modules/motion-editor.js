@@ -2,17 +2,21 @@ import {createSourcePlayer} from './motion-source-player.js';
 import {sampleYaw,validateYawTrack,yawSurfaceWarning} from './motion-yaw-track.js';
 import {DRAFT_SCHEMA,matchEditorDraft,createEditorDraftControls} from './motion-editor-draft.js';
 import {createEditorBuild} from './motion-editor-build.js';
+import {createLiveCharacter} from './motion-editor-live.js';
 const $=id=>document.getElementById(id);
 const get=async url=>{const r=await fetch(url);if(!r.ok)throw Error(`读取失败 (${r.status})`);return r.json();};
 let keys=[{time:0,yaw:0}],fixed=0,sourceToken=0,projectToken=0,duration=0,lastYaw=null,lastTime=null,override=null;
 let characterJob=null,loadedSource=null;
+const live=createLiveCharacter($('character-canvas'),$('character-status'));
+const currentKeys=()=>override!==null?[{time:0,yaw:override}]:keys.length>1?keys:[{time:0,yaw:fixed}];
 const player=createSourcePlayer($('source-canvas'),$('time'),$('play'),$('clock'),time=>{
   if(time!==lastTime){override=null;lastTime=time;}
   const yaw=override??(keys.length>1?sampleYaw(keys,time):fixed);
   if(yaw!==lastYaw){lastYaw=yaw;player.setView(yaw);}
   $('surface').textContent=yawSurfaceWarning(yaw);
   if(keys.length>1){$('yaw-value').value=yaw.toFixed(2);$('yaw').value=((yaw%360)+360)%360;}
-},{maxYaw:3600});
+  live.seek(time,currentKeys());
+},{maxYaw:3600,interpolateFrames:true});
 function keySummary(){ $('keys').textContent=keys.length>1?keys.map(k=>`${k.time.toFixed(3)} 秒：${k.yaw}°`).join(' → '):`固定角度 ${fixed}°`; }
 function changeAngle(value){
   if(!Number.isFinite(value)||Math.abs(value)>3600)return;
@@ -27,32 +31,32 @@ $('key').onclick=()=>{
   const time=Number($('time').value),yaw=Number($('yaw-value').value);
   try{
     const next=keys.filter(k=>k.time!==time).concat({time,yaw}).sort((a,b)=>a.time-b.time);
-    keys=validateYawTrack(next,duration);keySummary();
+    keys=validateYawTrack(next,duration);override=null;keySummary();live.seek(time,currentKeys());
   }catch(e){$('status').textContent=e.message;}
 };
 $('clear-keys').onclick=()=>{const value=Number($('yaw-value').value);if(!Number.isFinite(value)||Math.abs(value)>3600)return;
-  fixed=value;keys=[{time:0,yaw:fixed}];keySummary();};
+  fixed=value;keys=[{time:0,yaw:fixed}];override=null;keySummary();live.seek(Number($('time').value),currentKeys());};
 $('source').onchange=async()=>{
   const token=++sourceToken,id=$('source').value;player.clear();duration=0;
   loadedSource=null;
+  live.source(null);
   $('key').disabled=$('clear-keys').disabled=true;keys=[{time:0,yaw:0}];fixed=0;lastYaw=null;override=null;lastTime=null;
   $('yaw-value').value=$('yaw').value=0;keySummary();
   if(!id)return;
   $('status').textContent='正在加载源动作…';
-  try{const value=await get(`/api/motions/${encodeURIComponent(id)}/preview`);if(token!==sourceToken)return;
-    duration=value.frames.at(-1).time;loadedSource=id;player.load(value);$('key').disabled=$('clear-keys').disabled=false;
-    $('status').textContent='源动作已加载。旋转角度或播放时间轴；右侧角色暂为参考。';
+  try{const value=await get(`/api/motions/${encodeURIComponent(id)}/editor-source`);if(token!==sourceToken)return;
+    duration=value.duration;loadedSource=id;live.source(value);player.load(value.preview);$('key').disabled=$('clear-keys').disabled=false;
+    $('status').textContent='源动作已加载。旋转角度或拖动时间轴，右侧实时映射角色姿态。';
   }catch(e){if(token===sourceToken)$('status').textContent=e.message;}
 };
 $('project').onchange=async()=>{
-  const token=++projectToken,id=$('project').value;$('character').hidden=true;$('character').removeAttribute('src');
+  const token=++projectToken,id=$('project').value;live.clear();
   characterJob=null;
   if(!id){$('character-status').textContent='选择角色后加载已保存候选。';return;}$('character-status').textContent='正在核对角色绑定…';
   try{const value=await get(`/api/projects/${encodeURIComponent(id)}/automation/character/motion-target`);if(token!==projectToken)return;
     if(value.job?.status!=='needs_review')throw Error('请先在角色工作台构建整角色候选。');
-    characterJob=value.job.job_id;
-    $('character').src=`/api/projects/${encodeURIComponent(id)}/automation/character/jobs/${encodeURIComponent(value.job.job_id)}/view/player.html?time=0`;
-    $('character').hidden=false;$('character-status').textContent='已绑定候选参考，保留原角色和原动画。';
+    const artifact=await live.load(`/api/projects/${encodeURIComponent(id)}/automation/character/jobs/${encodeURIComponent(value.job.job_id)}/view/player-assets/`);
+    if(token!==projectToken||!artifact)return;characterJob=value.job.job_id;live.seek(Number($('time').value),currentKeys());
   }catch(e){if(token===projectToken)$('character-status').textContent=e.message;}
 };
 async function refresh(){

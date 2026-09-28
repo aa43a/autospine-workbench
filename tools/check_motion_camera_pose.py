@@ -28,7 +28,12 @@ def main():
     base=json.loads(files['skeleton.json']);base['animations']={}
     duration=bundle.motion['duration_ticks']/bundle.motion['ticks_per_second']
     args.output.mkdir(parents=True,exist_ok=False)
+    from autospine_workbench.automation.motion_editor_source import build as editor_source
+    data=editor_source(bundle,json.loads((bundle.path/'map.json').read_bytes()))
+    (args.output/'editor-source.json').write_text(json.dumps(data,allow_nan=False),encoding='utf-8')
+    (args.output/'base-skeleton.json').write_text(json.dumps(base,allow_nan=False),encoding='utf-8')
     rows=[]
+    runtime_reference={}
     for name,keys in [('fixed',[{'time':0,'yaw':30}]),
                       ('turn',[{'time':0,'yaw':0},{'time':duration,'yaw':360}])]:
         motion,view,camera=prepare(bundle,keys)
@@ -36,6 +41,9 @@ def main():
         document,evidence=fit(document,'camera-preview',motion,view,camera)
         # Verify deterministic seeking including a reverse seek and final pose.
         poses=[sample(document,'camera-preview',time)[0] for time in (0,duration/2,duration,0)]
+        from autospine_workbench.targets.character43.affine_pose import matrices
+        runtime_reference[name]=[dict(time=time,bones=matrices(document,'camera-preview',time))
+                                 for time in (0,duration/2,duration)]
         assert poses[0]==poses[-1]
         assert {k:v for k,v in document.items() if k!='animations'}=={k:v for k,v in base.items() if k!='animations'}
         fixed_error=None
@@ -63,6 +71,7 @@ def main():
                 character_artifact=context['artifact_sha256'],rows=rows,
                 scope='raw_pose_solver_only_no_geometry_repair_contact_depth_runtime_or_visual_acceptance')
     (args.output/'report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
+    (args.output/'runtime-reference.json').write_text(json.dumps(runtime_reference,allow_nan=False),encoding='utf-8')
     print(json.dumps(report,ensure_ascii=False))
 
 

@@ -1,8 +1,6 @@
 import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
 import {test} from 'node:test';
-const code=await readFile(new URL('../modules/motion-source-player.js',import.meta.url),'utf8');
-const {createSourcePlayer}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
+import {createSourcePlayer} from '../modules/motion-source-player.js';
 test('view changes preserve time and input, and restore identical drawing',()=>{
   const strokes=[],ctx={clearRect(){strokes.length=0;},beginPath(){},moveTo(...v){strokes.push(v);},lineTo(...v){strokes.push(v);},stroke(){},arc(){},fill(){}};
   const slider={value:0},button={},label={},times=[];

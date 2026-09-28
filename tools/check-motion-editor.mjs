@@ -15,7 +15,7 @@ try{
   await page.selectOption('#project','alice');
   await page.selectOption('#source','motion-2671c6fdbc10444592420e6f8f4ad838');
   await page.waitForFunction(()=>!document.getElementById('time').disabled);
-  await page.waitForFunction(()=>document.getElementById('character').contentWindow?.characterPlayerReady);
+  await page.waitForFunction(()=>window.motionEditorPreviewState?.status==='raw_preview');
   const seek=async t=>page.locator('#time').evaluate((el,t)=>{el.value=String(t);el.dispatchEvent(new Event('input'));},t);
   const angle=async value=>{await page.locator('#yaw-value').fill(String(value));await page.locator('#yaw-value').dispatchEvent('change');};
   await angle(0);await page.click('#key');
@@ -34,7 +34,7 @@ try{
   await page.reload();
   await page.waitForFunction(()=>document.querySelectorAll('#source option').length>1&&document.querySelectorAll('#project option').length>1);
   await page.selectOption('#project','alice');await page.selectOption('#source','motion-2671c6fdbc10444592420e6f8f4ad838');
-  await page.waitForFunction(()=>!document.getElementById('time').disabled&&document.getElementById('character').getAttribute('src'));
+  await page.waitForFunction(()=>window.motionEditorPreviewState?.status==='raw_preview');
   await page.click('#restore-draft');
   await page.waitForFunction(()=>document.getElementById('status').textContent.includes('草稿已恢复'));
   assert.ok(Math.abs(Number(await page.locator('#yaw-value').inputValue())-180)<.1);
@@ -47,5 +47,5 @@ try{
   await page.screenshot({path:path.join(output,'mobile.png'),fullPage:true});
   assert.deepEqual(errors,[]);
   await fs.writeFile(path.join(output,'report.json'),JSON.stringify({passed:true,errors,
-    scope:'source_rotation_keyframes_playback_character_reference_not_live_character_mapping'},null,2));
+    scope:'source_rotation_keyframes_playback_live_raw_character_pose'},null,2));
 }finally{await browser.close();}
