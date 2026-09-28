@@ -23,6 +23,7 @@ def build(document,name,setup_vertices,*,samples=129,rounds=3,temporal=False,ter
             **({'progress':progress} if progress else {}))
         if progress:progress(dict(stage='check_interpolation',iteration=iteration))
         checked=inspect(result,name,[r['slot'] for r in evidence['records']],dual_floor=dual_floor,
+            **({'progress':progress} if progress else {}),
             **({'preservation_source':document} if preserve_area else {}),
             **({'repair_support':{r['slot']:[v for c in r.get('terminal_collars',[]) for v in c['vertices']] for r in evidence['records']}} if repair_band else {}),
             **({'fixed_repair_bands':{r['slot']:r['fixed_repair_band'] for r in evidence['records']}} if fixed_band else {}))

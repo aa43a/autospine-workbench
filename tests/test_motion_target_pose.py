@@ -25,7 +25,7 @@ class TargetPoseTests(unittest.TestCase):
             return {}, {}
         with patch('autospine_workbench.targets.character43.projected_area_adaptive.build',side_effect=repair):
             correct({},'motion',{}, {'profile':PROFILE}, on_stage=stages.append)
-        self.assertEqual(stages,['retarget'])
+        self.assertEqual(stages,[dict(step='retarget',detail={'iteration':0})])
 
     def test_wrong_source_cannot_fall_back_to_rotation_candidate(self):
         with self.assertRaisesRegex(ValueError, 'identity_or_view_mismatch'):

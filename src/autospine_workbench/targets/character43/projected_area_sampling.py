@@ -5,7 +5,7 @@ from .projected_area_reference import reference
 from ..spine43.continuous_pose import area
 
 
-def inspect(document, name, slots, *, preservation_source=None, repair_support=None, fixed_repair_bands=None,dual_floor=False):
+def inspect(document, name, slots, *, preservation_source=None, repair_support=None, fixed_repair_bands=None,dual_floor=False,progress=None):
     if fixed_repair_bands is not None and repair_support is None:raise ValueError('fixed_band_requires_support')
     if repair_support is not None and preservation_source is None:raise ValueError('repair_support_requires_source')
     if preservation_source is not None:
@@ -32,7 +32,9 @@ def inspect(document, name, slots, *, preservation_source=None, repair_support=N
         from .fixed_repair_band import verify
         fixed_repair_bands=verify(preservation_source,name,knots,prepared,rest,repair_support,fixed_repair_bands)
     failures=[]
-    for time in times:
+    for frame_index, time in enumerate(times):
+        if progress and frame_index % 16 == 0:
+            progress(dict(stage='check_interpolation',frame_index=frame_index,sample_count=len(times),time=time))
         world=sample(document,name,time)[0];transform=matrices(document,name,time)
         original=sample(preservation_source,name,time)[0] if preservation_source is not None else None
         for slot,(triangles,areas,influences) in prepared.items():

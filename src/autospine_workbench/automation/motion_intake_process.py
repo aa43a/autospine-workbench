@@ -4,6 +4,7 @@ import os
 import re
 import signal
 import subprocess
+import time
 
 from .storage_io import canonical_bytes, read_document
 from .motion_view_failures import VIEW_FAILURES
@@ -58,20 +59,37 @@ REPAIR_FAILURES = frozenset({
 })
 
 
-def progress(folder, step):
+def progress(folder, step, detail=None):
     if step not in STEPS:
         raise ValueError('motion_progress_invalid')
+    value = dict(step=step, updated_at=time.time())
+    if detail:
+        # Internal solver counters only; never copy arbitrary worker output.
+        for key in ('stage', 'slot'):
+            if isinstance(detail.get(key), str) and len(detail[key]) <= 256:
+                value[key] = detail[key]
+        for key in ('iteration', 'max_rounds', 'slot_index', 'total_slots', 'frame_index', 'sample_count'):
+            if type(detail.get(key)) is int and 0 <= detail[key] <= 1000000:
+                value[key] = detail[key]
+        if 'frame_index' in value and 'sample_count' in value:
+            value.update(completed=value['frame_index'], total=value['sample_count'], unit='帧')
+        elif 'slot_index' in value and 'total_slots' in value:
+            value.update(completed=value['slot_index'], total=value['total_slots'], unit='图层')
     temporary = folder / 'progress.tmp'
-    temporary.write_bytes(canonical_bytes(dict(step=step)))
+    temporary.write_bytes(canonical_bytes(value))
     os.replace(temporary, folder / 'progress.json')
 
 
 def read_progress(folder):
+    return read_progress_detail(folder).get('step')
+
+
+def read_progress_detail(folder):
     try:
-        step = read_document(folder / 'progress.json').get('step')
-        return step if step in STEPS else None
+        value = read_document(folder / 'progress.json')
+        return value if value.get('step') in STEPS else {}
     except (OSError, RuntimeError, ValueError):
-        return None
+        return {}
 
 
 def failure_reason(path):

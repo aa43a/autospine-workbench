@@ -12,7 +12,8 @@ import time
 from uuid import uuid4
 
 from ..safe_input_files import read_real_file
-from .motion_intake_process import failure_reason, read_progress
+from .motion_intake_process import failure_reason, read_progress, read_progress_detail
+from .motion_job_budget import limit, timeout_reason
 from .motion_process_owner import launch as launch_owned, stop as stop_owned
 from .pipeline_run import PipelineRunError
 from .storage_io import directory, publish_document, read_document
@@ -120,7 +121,10 @@ class MotionIntakeJobs:
             if job in self._jobs:
                 value = deepcopy(self._jobs[job])
                 if value['status'] == 'running':
-                    value['step'] = read_progress(folder) or value['step']
+                    value['progress'] = read_progress_detail(folder)
+                    value['step'] = value['progress'].get('step') or value['step']
+                    if 'started_at' in value:
+                        value['elapsed_seconds'] = max(0, round(time.time() - value['started_at'], 1))
                     if value.get('kind') == 'generate':
                         from .motion_generation_activity import activity
                         value['activity'] = activity(folder)
@@ -193,6 +197,8 @@ class MotionIntakeJobs:
             with self._lock:
                 self._jobs[job].update(status='running', step='verify_source')
             request = read_document(folder / 'request.json')
+            with self._lock:
+                self._jobs[job].update(started_at=time.time(), timeout_seconds=limit(request.get('kind')))
             target = request.get('kind') == 'adapt'
             generation = request.get('kind') == 'generate'
             if target:
@@ -208,11 +214,19 @@ class MotionIntakeJobs:
             with (folder / 'worker.log').open('wb') as log:
                 process, process_owner = launch_owned(command, log)
                 started = time.monotonic()
+                last_activity = started
+                last_progress = None
                 while process.poll() is None:
                     if self._cancel[job].wait(.15):
                         raise PipelineRunError('motion_canceled')
-                    if time.monotonic() - started > (3600 if generation else 900 if target else 240):
-                        raise PipelineRunError('motion_decode_timeout')
+                    detail = read_progress_detail(folder)
+                    stamp = detail.get('updated_at')
+                    now = time.monotonic()
+                    if stamp is not None and stamp != last_progress:
+                        last_progress, last_activity = stamp, now
+                    reason = timeout_reason(request.get('kind'), now - started, now - last_activity)
+                    if reason:
+                        raise PipelineRunError(reason)
             if self._cancel[job].is_set():
                 raise PipelineRunError('motion_canceled')
             if process.returncode:
@@ -234,6 +248,9 @@ class MotionIntakeJobs:
                 outcome = dict(status='failed', reason_code='motion_termination_failed')
             with self._lock:
                 value = dict(self._jobs[job], **outcome)
+                if 'started_at' in value:
+                    value['elapsed_seconds'] = max(0, round(time.time() - value['started_at'], 1))
+                value['progress'] = read_progress_detail(folder)
                 if value['status'] != 'succeeded':
                     value['step'] = read_progress(folder) or value['step']
                 publish_document(folder / 'result.json', value, staging=folder / 'staging')

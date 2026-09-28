@@ -323,7 +323,7 @@ def execute(folder, state_root, workspace):
         contact_correction=request.get('contact_correction', True),
         inferred_contact_profile=inferred_profile,
         depth_review_profile=request.get('depth_review_profile'),
-        on_stage=lambda stage: progress(folder, stage),
+        on_stage=lambda stage: progress(folder, stage['step'], stage['detail']) if isinstance(stage, dict) else progress(folder, stage),
         oblique=oblique,
         torso_projection=torso_projection,
         pose_fit=pose_fit,

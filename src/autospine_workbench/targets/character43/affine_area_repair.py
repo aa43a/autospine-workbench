@@ -40,8 +40,12 @@ def repair(document, name, *, samples=257, convergent=False, setup_vertices=None
         raise ValueError('character_affine_extra_times_invalid')
     times = sorted(key_times | set(extra_times) | {duration*i/(samples-1) for i in range(samples)})
     if progress:progress(dict(stage='sample_geometry',sample_count=len(times)))
-    worlds = [sample(document, name, t)[0] for t in times]
-    transforms = [matrices(document, name, t) for t in times]
+    worlds = []; transforms = []
+    for frame_index, time in enumerate(times):
+        if progress and frame_index % 16 == 0:
+            progress(dict(stage='sample_geometry',frame_index=frame_index,sample_count=len(times),time=time))
+        worlds.append(sample(document, name, time)[0])
+        transforms.append(matrices(document, name, time))
     rest_transforms = None
     if projected_reference:
         if setup_vertices is None or not convergent:
