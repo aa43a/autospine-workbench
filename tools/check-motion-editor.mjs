@@ -23,8 +23,7 @@ try{
   await seek(Number(duration));await angle(360);await page.click('#key');
   await seek(Number(duration)/2);
   assert.ok(Math.abs(Number(await page.locator('#yaw-value').inputValue())-180)<.1);
-  await page.click('#build');
-  assert.match(await page.locator('#build-status').innerText(),/动态角度烘焙尚未接入/);
+  assert.equal(await page.locator('#sampling-version').inputValue(),'camera-world-projected-adaptive-v2');
   assert.match(await page.locator('#surface').innerText(),/背向/);
   await page.click('#save-draft');
   await page.click('#clear-keys');
