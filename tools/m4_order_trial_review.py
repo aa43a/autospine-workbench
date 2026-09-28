@@ -64,6 +64,7 @@ def run(report_path, fixture_path, surfaces, output):
         rows.append(assess(row, source['draw_order'], checks))
     output.mkdir(parents=True, exist_ok=False); cards = []
     for index, (row, source) in enumerate(zip(rows, report['rows'])):
+        if not all(kind+'_image' in source['counterfactual'] for kind in ('before','after')): continue
         for kind in ('before','after'):
             item = source['counterfactual'][kind+'_image']; name = item['file']
             if Path(name).name != name: raise ValueError('order_trial_image_path')
@@ -77,6 +78,7 @@ def run(report_path, fixture_path, surfaces, output):
             f'<figure><img src="{index}-after.png"><figcaption>手部越过腿部，仍在前裙片后</figcaption></figure></div></section>')
     result = dict(rows=rows, report_sha256=sha256(raw).hexdigest(), surface_report_sha256=sha256(surface_raw).hexdigest(),
                   selected=False, authority='none', scope='isolated_source_times_not_continuous_candidate',
+                  whole_frame_reference=report.get('whole_frame_trial', False),
                   unresolved_samples=sum(r['status']=='unresolved_crossed_surface' for r in rows))
     (output/'report.json').write_bytes(canonical_bytes(result))
     (output/'index.html').write_text('<!doctype html><meta charset="utf-8"><title>手与腿局部排序试验</title>'
@@ -85,7 +87,8 @@ def run(report_path, fixture_path, surfaces, output):
         f'<h1>手与腿局部排序试验 · 未采用</h1><p>仅检查 {len(rows)} 个独立时刻，未制作连续动画。保留前方覆盖关系；{result["unresolved_samples"]} 个时刻存在未解决的跨越关系。</p>'
         '<p>没有修改网格或既有验收；原几何和投影异常仍保留。无新增透明度变化不等于遮挡正确。</p>'
         '<a href="report.json">跨越关系与像素变化证据</a>'+''.join(cards), encoding='utf-8')
-    print(json.dumps(result))
+    print(json.dumps(dict(frames=len(rows),unresolved_samples=result['unresolved_samples'],
+                         whole_frame_reference=result['whole_frame_reference'],report_sha256=result['report_sha256'])))
 
 
 if __name__ == '__main__':

@@ -43,20 +43,28 @@ window.inspectMaterialVisibility = async fixture => {
       const j=((p.y-y0)*rw+p.x-x0)*4,a=old[j+3];
       for(let c=0;c<4;c++)maximum=Math.max(maximum,Math.abs(full[i][c]-(c===3?a:Math.round(old[j+c]*a/255))));
     });
+    if(fixture.whole_frame_trial){
+      const original=ctx.getImageData(0,0,width,height).data,actual=new Uint8Array(width*height*4);
+      gl.readPixels(0,0,width,height,gl.RGBA,gl.UNSIGNED_BYTE,actual);
+      for(let y=0;y<height;y++)for(let x=0;x<width;x++){
+        const a=(y*width+x)*4,b=((height-1-y)*width+x)*4,alpha=original[a+3];
+        for(let c=0;c<4;c++)maximum=Math.max(maximum,Math.abs(actual[b+c]-(c===3?alpha:Math.round(original[a+c]*alpha/255))));
+      }
+    }
     if(maximum>1)throw Error('visibility_prior_frame_mismatch:'+maximum);
     const support=row.points.map(()=>[]);
-    for(const name of order){
+    for(const name of (fixture.whole_frame_trial?[]:order)){
       const pixels=render('only',name);
       pixels.forEach((p,i)=>{if(p[3])support[i].push({slot:name,rgba:p});});
     }
     const drops={};
-    for(const name of new Set([row.region,row.body,...support.map(s=>s.at(-1)?.slot).filter(Boolean)])){
+    for(const name of new Set(fixture.whole_frame_trial?[]:[row.region,row.body,...support.map(s=>s.at(-1)?.slot).filter(Boolean)])){
       const without=render('without',name);
       drops[name]=without.map((p,i)=>Math.max(...p.map((v,c)=>Math.abs(v-full[i][c]))));
     }
     const restored=render('full');
     if(JSON.stringify(restored)!==JSON.stringify(full))throw Error('visibility_restore_mismatch');
-    const points=row.points.map((p,i)=>{
+    const points=fixture.whole_frame_trial?[]:row.points.map((p,i)=>{
       const top=support[i].at(-1),opaque=top?.rgba[3]===255;
       const same=opaque&&top.rgba.every((v,c)=>Math.abs(v-full[i][c])<=1);
       return {...p,rgba:full[i],support:support[i],top_slot:top?.slot??null,
@@ -70,10 +78,10 @@ window.inspectMaterialVisibility = async fixture => {
       trial.splice(trial.findIndex(s=>s.data.name===after)+1,0,moving);
       const all=()=>{const bytes=new Uint8Array(width*height*4);gl.readPixels(0,0,width,height,gl.RGBA,gl.UNSIGNED_BYTE,bytes);
         if(gl.getError()!==gl.NO_ERROR)throw Error('visibility_trial_read_failed');return bytes;};
-      const before=all(),beforePNG=canvas.toDataURL('image/png');let moved,newPNG,changed=0,alphaChanged=0,maximum=0;
+      const before=all(),beforePNG=row.capture_images===false?null:canvas.toDataURL('image/png');let moved,newPNG,changed=0,alphaChanged=0,maximum=0;
       const crossedVisibility=[];
       try{
-        rig.drawOrder.appliedPose=trial;moved=render('full');const afterPixels=all();newPNG=canvas.toDataURL('image/png');
+        rig.drawOrder.appliedPose=trial;moved=render('full');const afterPixels=all();newPNG=row.capture_images===false?null:canvas.toDataURL('image/png');
         for(let i=0;i<before.length;i+=4){let delta=0;for(let c=0;c<4;c++)delta=Math.max(delta,Math.abs(before[i+c]-afterPixels[i+c]));
           if(delta>1)changed++;if(Math.abs(before[i+3]-afterPixels[i+3])>1)alphaChanged++;maximum=Math.max(maximum,delta);}
         for(const name of order.slice(target+1,end+1)){
@@ -101,7 +109,10 @@ window.inspectMaterialVisibility = async fixture => {
         before_png:beforePNG,after_png:newPNG,restored_full_frame:true,selected:false};
     }
     rows.push({time:row.time,region:row.region,body:row.body,screenshot_sha256:row.screenshot_sha256,
+      reference_scope:fixture.whole_frame_trial?'whole_frame':'selected_pixels',
       prior_frame_max_channel_delta:maximum,restored:true,points,...(counterfactual?{counterfactual}:{})});
+    if(fixture.whole_frame_trial)console.log('visibility trial '+rows.length+'/'+fixture.rows.length);
   }
-  return {rows,context:gl.getContextAttributes(),scope:'selected_pixels_gpu_isolation_and_hide_delta_not_depth_correctness',authority:'none',selected:false};
+  const result={rows,context:gl.getContextAttributes(),scope:'selected_pixels_gpu_isolation_and_hide_delta_not_depth_correctness',authority:'none',selected:false};
+  gl.getExtension('WEBGL_lose_context')?.loseContext();return result;
 };
