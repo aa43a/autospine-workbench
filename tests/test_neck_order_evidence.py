@@ -32,3 +32,15 @@ class NeckOrderEvidenceTests(unittest.TestCase):
     def test_different_hypothesis_frame_rejected(self):
         args=self.data();args[0]['rows'][0]['hypotheses'][0]['time']=.25
         with self.assertRaisesRegex(ValueError,'sample_identity'):convert(*args)
+
+    def test_skirt_hypothesis_requires_explicit_kind_and_retains_uncertainty(self):
+        args=self.data();r=args[0];r['profile']='front-garment-depth-sensitivity-v1'
+        r['tested_aspect_max']=[.25,.5,.75,1.];del r['tested_radii']
+        for row in r['rows']:
+            for h,v in zip(row['hypotheses'],r['tested_aspect_max']):
+                del h['radius'];h['aspect_max']=v
+        with self.assertRaisesRegex(ValueError,'hypothesis_profile'):convert(*args)
+        r['rows'][1]['hypotheses'][-1]['status']='requires_partition_or_more_depth'
+        pair=convert(*args,kind='skirt')[0]
+        self.assertEqual(pair['evidence_source'],'declared_front_garment_envelope_hypothesis_only')
+        self.assertTrue(pair['samples'][0]['interval_sample']['ambiguous'])

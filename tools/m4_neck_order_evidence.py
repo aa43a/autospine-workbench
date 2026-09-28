@@ -2,15 +2,18 @@
 from m4_limb_region_order import constraints
 
 
-def convert(report,partition,source_depth):
-    if (report.get('profile')!='neck-axis-thickness-sensitivity-v1' or
-            report.get('tested_radii')!=[0,.02,.05,.1]):
+def convert(report,partition,source_depth,*,kind='neck'):
+    profiles={'neck':('neck-axis-thickness-sensitivity-v1','tested_radii','radius',[0,.02,.05,.1]),
+              'skirt':('front-garment-depth-sensitivity-v1','tested_aspect_max','aspect_max',[.25,.5,.75,1.])}
+    if kind not in profiles:raise ValueError('depth_hypothesis_kind')
+    profile,inventory,parameter,expected=profiles[kind]
+    if report.get('profile')!=profile or report.get(inventory)!=expected:
         raise ValueError('neck_hypothesis_profile')
     regions={r['slot']:r for r in partition['regions']};rows=[];pairs={};selected={}
     for row in report['rows']:
         region=regions[row['region']];selected[region['slot']]=region
         hypotheses=row['hypotheses']
-        if [h['radius'] for h in hypotheses]!=report['tested_radii']:
+        if [h[parameter] for h in hypotheses]!=expected:
             raise ValueError('neck_hypothesis_radius_inventory')
         if any(h['pair']!=[row['region'],row['body']] or h['time']!=row['time'] for h in hypotheses):
             raise ValueError('neck_hypothesis_sample_identity')
@@ -28,5 +31,6 @@ def convert(report,partition,source_depth):
             pairs[key]=dict(arm_slot=key[0],torso_slot=key[1],samples=parents[0]['samples'])
     if not rows:raise ValueError('neck_hypothesis_empty')
     result=constraints(dict(rows=rows),dict(regions=list(selected.values())),dict(pairs=list(pairs.values())))
-    for pair in result['pairs']:pair['evidence_source']='declared_neck_thickness_hypothesis_only'
+    for pair in result['pairs']:pair['evidence_source']=('declared_neck_thickness_hypothesis_only'
+        if kind=='neck' else 'declared_front_garment_envelope_hypothesis_only')
     return result['pairs']
