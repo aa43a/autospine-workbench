@@ -31,8 +31,19 @@ class CameraPolicyTests(unittest.TestCase):
         body=request();before=deepcopy(body);bundle=SimpleNamespace(motion=dict(duration_ticks=2000000,ticks_per_second=1000000))
         with patch('autospine_workbench.automation.motion_camera_pose.prepare',return_value=('motion','receipt','pose')) as pose:
             self.assertEqual(prepare_inputs(bundle,body),('motion','receipt','pose'))
-            pose.assert_called_once_with(bundle,body['projection']['keys'])
+            pose.assert_called_once_with(bundle,body['projection']['keys'],sampling_profile=None)
         with patch('autospine_workbench.targets.character43.camera_ankle_targets.extract',return_value='ankles') as ankles:
             self.assertEqual(prepare_ankles(bundle,body),'ankles')
-            ankles.assert_called_once_with(bundle,body['projection']['keys'])
+            ankles.assert_called_once_with(bundle,body['projection']['keys'],sampling_profile=None)
         self.assertEqual(body,before)
+
+    def test_explicit_sampling_version_reaches_pose_and_ankles(self):
+        from autospine_workbench.targets.character43.camera_sampling import PROFILE as SAMPLING
+        body=request();body['projection']['sampling_profile']=SAMPLING
+        bundle=SimpleNamespace(motion=dict(duration_ticks=2000000,ticks_per_second=1000000))
+        with patch('autospine_workbench.automation.motion_camera_pose.prepare',return_value=(1,2,3)) as pose:
+            prepare_inputs(bundle,body);self.assertEqual(pose.call_args.kwargs['sampling_profile'],SAMPLING)
+        with patch('autospine_workbench.targets.character43.camera_ankle_targets.extract') as ankles:
+            prepare_ankles(bundle,body);self.assertEqual(ankles.call_args.kwargs['sampling_profile'],SAMPLING)
+        body['projection']['sampling_profile']='future'
+        with self.assertRaisesRegex(Exception,'unsupported'):select(body,2)

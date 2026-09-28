@@ -28,6 +28,6 @@ def prepare(bundle, request):
     from .motion_camera_policy import ANKLE_PROFILE
     if request['moving_ankle_profile']==ANKLE_PROFILE:
         from ..targets.character43.camera_ankle_targets import extract
-        return extract(bundle,request['projection']['keys'])
+        return extract(bundle,request['projection']['keys'],sampling_profile=request['projection'].get('sampling_profile'))
     from ..targets.character43.source_ankle_targets import extract
     return extract(bundle, (request.get('projection') or {}).get('yaw_degrees', 0))

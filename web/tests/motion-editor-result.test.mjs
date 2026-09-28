@@ -14,6 +14,7 @@ test('exact result retains full turn and rejects unbound or cropped candidates',
 test('stale draft is distinguished from wrong source or character version',()=>{
   assert.equal(resultMatch(job,link,source,identity,keys,keys),'matching');
   assert.equal(resultMatch(job,link,source,identity,[{time:0,yaw:0}],keys),'draft_changed');
+  assert.equal(resultMatch(job,link,source,{...identity,sampling_profile:'camera-world-linear-adaptive-v1'},keys,keys),'draft_changed');
   assert.equal(resultMatch(job,link,source,{...identity,character_job_id:'new'},keys,keys),'different_source');
   assert.equal(resultMatch(job,link,{...source,source_sha256:'changed'},identity,keys,keys),'different_source');
   assert.equal(resultMatch(job,link,{...source,motion_identity:{...source.motion_identity,bundle_sha256:'changed'}},identity,keys,keys),'different_source');

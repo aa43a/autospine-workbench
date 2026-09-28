@@ -19,6 +19,13 @@ def sampler(angle=90,yaw=0):
 
 
 class SourceDepthSamplerTests(unittest.TestCase):
+    def test_opt_in_world_interpolation_matches_pose_and_global_depth(self):
+        from autospine_workbench.targets.character43.camera_sampling import PROFILE
+        base=sampler();probe=SegmentDepthSampler(base.bvh,base.mapping,camera_keys=[dict(time=0,yaw=0)],sampling_profile=PROFILE)
+        a=probe.joint_depths(0,include_end_sites=True);b=probe.joint_depths(500000,include_end_sites=True)
+        middle=probe.joint_depths(250000,include_end_sites=True)
+        for key in a:self.assertAlmostEqual(middle[key],(a[key]+b[key])/2)
+        self.assertNotAlmostEqual(middle['LeftForeArm'],base.joint_depths(250000)['LeftForeArm'])
     def test_continuous_camera_is_evaluated_at_midpoint_not_endpoint_average(self):
         base=sampler(angle=0)
         dynamic=SegmentDepthSampler(base.bvh,base.mapping,camera_keys=[dict(time=0,yaw=0),dict(time=.5,yaw=360)])

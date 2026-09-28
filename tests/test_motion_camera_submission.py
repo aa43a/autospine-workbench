@@ -29,6 +29,7 @@ class CameraSubmissionTests(unittest.TestCase):
                 with self.assertRaisesRegex(Exception,'key_invalid'):submit(manager,queued['job_id'],body)
                 self.assertEqual(set(manager._jobs),before)
                 body['projection']['keys'][-1]=dict(time=.5,yaw=5)
+                body['projection']['sampling_profile']='camera-world-linear-adaptive-v1'
                 accepted=submit(manager,queued['job_id'],body)
                 frozen=read_document(manager.folder(accepted['job_id'])/'request.json')
                 self.assertEqual(frozen['projection'],body['projection'])

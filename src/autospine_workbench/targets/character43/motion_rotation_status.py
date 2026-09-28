@@ -24,7 +24,7 @@ def build(files, artifact, bundle, request):
         from .camera_track import PROFILE as CAMERA_PROFILE
         if request['projection'].get('profile')==CAMERA_PROFILE:
             from ...automation.motion_camera_pose import prepare as prepare_camera
-            motion,_,camera=prepare_camera(bundle,request['projection']['keys'])
+            motion,_,camera=prepare_camera(bundle,request['projection']['keys'],sampling_profile=request['projection'].get('sampling_profile'))
         else:motion, _ = prepare(bundle, request['projection'])
     tracks = [r for r in motion['tracks'] if r['property'] == 'rotation']
     ticks = [k['tick'] for k in tracks[0]['keys']]

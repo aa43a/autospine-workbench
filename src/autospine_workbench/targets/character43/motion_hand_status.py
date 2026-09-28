@@ -31,7 +31,7 @@ def build(files,artifact,bundle,request):
     camera_keys=(request['projection']['keys'] if (request.get('projection') or {}).get('profile')==CAMERA_PROFILE else None)
     if camera_keys is not None:
         from ...automation.motion_camera_pose import prepare as prepare_camera
-        motion,_,_=prepare_camera(bundle,camera_keys)
+        motion,_,_=prepare_camera(bundle,camera_keys,sampling_profile=request['projection'].get('sampling_profile'))
     elif request.get('projection') is not None:motion,_=prepare(bundle,request['projection'])
     ticks=[k['tick'] for k in next(t for t in motion['tracks'] if t['property']=='rotation')['keys']]
     bounds=boundaries(request.get('clip'),ticks)
@@ -40,7 +40,7 @@ def build(files,artifact,bundle,request):
     result=dict(profile='source-hand-visibility-status-v1',artifact_sha256=artifact,motion_identity=identity,
         authority='none',selected=False,animation_modified=False,clip=request.get('clip'),records=[],
         scope='source_knuckle_plane_not_target_hand_texture_or_acceptance',threshold=.2)
-    options=dict(camera_keys=camera_keys) if camera_keys is not None else {}
+    options=dict(camera_keys=camera_keys,sampling_profile=request['projection'].get('sampling_profile')) if camera_keys is not None else {}
     try:observation=extract(bundle,yaw=(request.get('projection') or {}).get('yaw_degrees',0),**options)
     except ValueError as exc:
         return dict(result,status='unavailable',reason=str(exc))

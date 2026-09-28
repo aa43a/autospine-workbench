@@ -8,8 +8,11 @@ def select(body, duration=None):
     projection=body.get('projection')
     if not isinstance(projection,dict) or projection.get('profile')!=PROFILE:
         raise PipelineRunError('motion_camera_projection_required')
-    if set(projection)!={'profile','keys'}:
+    if set(projection)-{'profile','keys','sampling_profile'} or not {'profile','keys'}<=set(projection):
         raise PipelineRunError('motion_camera_projection_invalid')
+    if 'sampling_profile' in projection:
+        from ..targets.character43.camera_sampling import PROFILE as SAMPLING
+        if projection['sampling_profile']!=SAMPLING:raise PipelineRunError('camera_sampling_profile_unsupported')
     if (body.get('pose_profile')!=PROFILE or body.get('moving_ankle_profile')!=ANKLE_PROFILE
             or body.get('contact_correction',True) is not False):
         raise PipelineRunError('motion_camera_profiles_must_match')

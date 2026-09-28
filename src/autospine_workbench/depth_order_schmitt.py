@@ -21,11 +21,18 @@ def evaluate_depth_pair(
     enter_threshold: float,
     exit_threshold: float,
     minimum_hold_frames: int,
+    minimum_hold_ticks: int | None = None,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     """Return per-frame latch evidence and candidate switch events."""
 
     if setup_front_slot not in slot_ids or slot_ids[0] >= slot_ids[1]:
         raise DepthOrderSchmittError("Depth pair slot identity is invalid")
+    if minimum_hold_ticks is not None:
+        ticks=[r.get('tick') for r in score_rows]
+        if (type(minimum_hold_ticks) is not int or minimum_hold_ticks<1
+                or any(type(t) is not int or t<0 for t in ticks)
+                or any(b<=a for a,b in zip(ticks,ticks[1:]))):
+            raise DepthOrderSchmittError('Depth time hold requires ordered integer ticks')
     current = setup_front_slot
     pending: str | None = None
     pending_start: int | None = None
@@ -47,7 +54,9 @@ def evaluate_depth_pair(
         else:
             pending_frames += 1
             state = "pending"
-        if pending is not None and pending_frames >= minimum_hold_frames:
+        time_ready=(minimum_hold_ticks is None or pending_start is not None
+                    and row['tick']-score_rows[pending_start]['tick']>=minimum_hold_ticks)
+        if pending is not None and pending_frames >= minimum_hold_frames and time_ready:
             previous = current
             current = pending
             assert pending_start is not None

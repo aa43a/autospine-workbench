@@ -20,7 +20,8 @@ export function editorBuildRequest(draft){
   const value=validateEditorDraft(draft),yaw=value.keys[0].yaw;
   if(Math.abs(yaw)<=90&&value.keys.every(k=>k.yaw===yaw))return fixedBuildRequest(value);
   return {project_id:value.project_id,character_job_id:value.character_job_id,contact_correction:false,
-    projection:{profile:'continuous-yaw-source-camera-v1',keys:value.keys.map(k=>({...k}))},
+    projection:{profile:'continuous-yaw-source-camera-v1',keys:value.keys.map(k=>({...k})),
+      ...(value.sampling_profile?{sampling_profile:value.sampling_profile}:{})},
     pose_profile:'continuous-yaw-source-camera-v1',moving_ankle_profile:'continuous-camera-ankle-displacement-v1',
     depth_review_profile:'external-arm-torso-depth-sparse-v1-experiment'};
 }

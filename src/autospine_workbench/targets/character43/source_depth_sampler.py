@@ -9,7 +9,7 @@ PROFILE = 'bvh-linear-channel-depth-sampling-v1'
 
 
 class SegmentDepthSampler:
-    def __init__(self,bvh,mapping,yaw_degrees=0,*,camera_keys=None):
+    def __init__(self,bvh,mapping,yaw_degrees=0,*,camera_keys=None,sampling_profile=None):
         require_bvh_map(mapping,bvh=bvh)
         if not math.isfinite(yaw_degrees) or not -90 <= yaw_degrees <= 90:
             raise ValueError('depth_sampler_yaw_invalid')
@@ -19,6 +19,10 @@ class SegmentDepthSampler:
         if camera_keys is not None and yaw_degrees != 0:
             raise ValueError('motion_depth_camera_conflict')
         self.camera_keys=validate(camera_keys,self.ticks[-1]/1e6) if camera_keys is not None else None
+        from .camera_sampling import PROFILE as SAMPLING
+        if sampling_profile is not None and (sampling_profile!=SAMPLING or camera_keys is None):
+            raise ValueError('depth_sampler_sampling_profile_invalid')
+        self.sampling_profile=sampling_profile;self._world_cache={}
         self.indices={j.name:i for i,j in enumerate(bvh.joints)}
         self.roles={r['role']:r for r in mapping['bones']}
         self.channels=[c for j in bvh.joints for c in j.channels]
@@ -29,20 +33,30 @@ class SegmentDepthSampler:
             raise ValueError('depth_sampler_time_invalid')
         index=min(bisect_right(self.ticks,tick)-1,len(self.ticks)-1)
         frame=self.bvh.frames[index]
+        fraction=0
         if tick!=self.ticks[index]:
+            fraction=(tick-self.ticks[index])/(self.ticks[index+1]-self.ticks[index])
+        if fraction and self.sampling_profile is None:
             next_frame=self.bvh.frames[index+1]
             if any(c.endswith('rotation') and abs(b-a)>=180
                    for c,a,b in zip(self.channels,frame,next_frame)):
                 raise ValueError('depth_sampler_rotation_interval_ambiguous')
-            fraction=(tick-self.ticks[index])/(self.ticks[index+1]-self.ticks[index])
             frame=tuple(a+(b-a)*fraction for a,b in zip(frame,next_frame))
-        matrices=_world_matrices(self.bvh,frame)
+        def cached(i):
+            if i not in self._world_cache:self._world_cache[i]=_world_matrices(self.bvh,self.bvh.frames[i])
+            return self._world_cache[i]
+        matrices=cached(index) if self.sampling_profile else _world_matrices(self.bvh,frame)
+        following=cached(index+1) if fraction and self.sampling_profile else None
         basis=self.mapping['basis']
         from .camera_track import sample
         angle=math.radians(sample(self.camera_keys,tick/1e6)) if self.camera_keys is not None else self.angle
         def z(name,offset=None):
             matrix=matrices[self.indices[name]]
             point=_origin(matrix if offset is None else _multiply(matrix,_translate(offset)))
+            if following is not None:
+                other=following[self.indices[name]]
+                end=_origin(other if offset is None else _multiply(other,_translate(offset)))
+                point=tuple(a+(b-a)*fraction for a,b in zip(point,end))
             values=[(-1 if basis[k][0]=='-' else 1)*point['XYZ'.index(basis[k][1])]
                     for k in ('screen_x','depth')]
             return math.sin(angle)*values[0]+math.cos(angle)*values[1]

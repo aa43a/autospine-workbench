@@ -91,6 +91,6 @@ export function solveCamera(document,source,keys,{samplingProfile=null}={}){
     const desired=[hipOrigin[0]+(centers[i][0]-centers[0][0])*ratio,hipOrigin[1]-(centers[i][1]-centers[0][1])*ratio];
     tracks.root.translate.push({time,x:translation[0]+desired[0]-hip[0],y:translation[1]+desired[1]-hip[1]});
   }
-  return {animation:{bones:tracks},issues,source_snapshot:source.snapshot_sha256,
+  return {animation:{bones:tracks},issues,samples:times.length,source_snapshot:source.snapshot_sha256,
     scope:'raw_camera_pose_not_corrected_or_quality_accepted'};
 }

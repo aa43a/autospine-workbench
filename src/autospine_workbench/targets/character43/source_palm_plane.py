@@ -18,7 +18,7 @@ def plane(wrist,index,pinky):
     return dict(normal=normal,projected_area_fraction=abs(normal[2]),signed_facing=normal[2])
 
 
-def extract(bundle,*,yaw=0,camera_keys=None):
+def extract(bundle,*,yaw=0,camera_keys=None,sampling_profile=None):
     if not math.isfinite(yaw) or abs(yaw)>90:raise ValueError('palm_plane_yaw_invalid')
     if bundle.source_kind!='bvh':raise ValueError('palm_plane_source_unsupported')
     mapping=json.loads((bundle.path/'map.json').read_bytes())
@@ -36,13 +36,24 @@ def extract(bundle,*,yaw=0,camera_keys=None):
     ticks=bvh_frame_ticks(bvh)
     from .camera_track import at_times
     if camera_keys is not None and yaw!=0:raise ValueError('palm_plane_camera_conflict')
+    world=[]
+    for frame in bvh.frames:
+        pose=_world_matrices(bvh,frame)
+        world.append([[_basis(_origin(pose[lookup[n]]),mapping['basis']) for n in names] for names in chains.values()])
+    if sampling_profile is not None:
+        from .camera_sampling import PROFILE as SAMPLING,schedule,interpolate
+        if sampling_profile!=SAMPLING or camera_keys is None:raise ValueError('palm_plane_sampling_invalid')
+        times=[t/1e6 for t in ticks];wanted=schedule(times,camera_keys,times[-1])
+        world=interpolate(world,times,wanted);ticks=[math.floor(t*1e6+.5) for t in wanted]
     yaws=at_times(camera_keys,[t/1e6 for t in ticks],ticks[-1]/1e6) if camera_keys is not None else [yaw]*len(ticks)
-    for tick,frame,angle in zip(ticks,bvh.frames,yaws):
-        pose=_world_matrices(bvh,frame);hands={}
-        for side,names in chains.items():
-            points=[project(_basis(_origin(pose[lookup[n]]),mapping['basis']),angle) for n in names]
+    for tick,frame,angle in zip(ticks,world,yaws):
+        hands={}
+        for side,values in zip(chains,frame):
+            points=[project(p,angle) for p in values]
             hands[side]=plane(*points)
         rows.append(dict(time=tick/1e6,hands=hands))
-    return dict(profile='mixamo-knuckle-plane-observation-v1',yaw=yaw if camera_keys is None else None,camera_keys=camera_keys,rows=rows,chains=chains,
+    result=dict(profile='mixamo-knuckle-plane-observation-v1',yaw=yaw if camera_keys is None else None,camera_keys=camera_keys,rows=rows,chains=chains,
         authority='none',selected=False,limitations=['knuckle_plane_not_full_hand_surface',
         'normal_sign_not_labeled_palm_or_back','source_pose_not_target_texture_registration'])
+    if sampling_profile is not None:result['sampling_profile']=sampling_profile
+    return result

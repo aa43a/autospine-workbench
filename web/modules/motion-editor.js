@@ -5,19 +5,22 @@ import {createEditorBuild} from './motion-editor-build.js';
 import {createLiveCharacter} from './motion-editor-live.js';
 import {createEditorIntake} from './motion-editor-intake.js';
 import {createEditorResult} from './motion-editor-result.js';
+import {SAMPLING_PROFILE} from './motion-camera-sampling.js';
 const $=id=>document.getElementById(id);
 const get=async url=>{const r=await fetch(url);if(!r.ok)throw Error(`读取失败 (${r.status})`);return r.json();};
 let keys=[{time:0,yaw:0}],fixed=0,sourceToken=0,projectToken=0,duration=0,lastYaw=null,lastTime=null,override=null;
 let characterJob=null,loadedSource=null,sourceData=null,resultView=null;
 const live=createLiveCharacter($('character-canvas'),$('character-status'));
 const currentKeys=()=>override!==null?[{time:0,yaw:override}]:keys.length>1?keys:[{time:0,yaw:fixed}];
+const sampling=()=>{const track=currentKeys();return $('adaptive-camera').checked&&(Math.abs(track[0].yaw)>90||track.some(k=>k.yaw!==track[0].yaw))?SAMPLING_PROFILE:null;};
+const seekLive=time=>live.seek(time,currentKeys(),sampling());
 const player=createSourcePlayer($('source-canvas'),$('time'),$('play'),$('clock'),time=>{
   if(time!==lastTime){override=null;lastTime=time;}
   const yaw=override??(keys.length>1?sampleYaw(keys,time):fixed);
   if(yaw!==lastYaw){lastYaw=yaw;player.setView(yaw);}
   $('surface').textContent=yawSurfaceWarning(yaw);
   if(keys.length>1){$('yaw-value').value=yaw.toFixed(2);$('yaw').value=((yaw%360)+360)%360;}
-  live.seek(time,currentKeys());
+  seekLive(time);
   resultView?.seek(time);
 },{maxYaw:3600,interpolateFrames:true});
 function keySummary(){ $('keys').textContent=keys.length>1?keys.map(k=>`${k.time.toFixed(3)} 秒：${k.yaw}°`).join(' → '):`固定角度 ${fixed}°`; }
@@ -27,7 +30,7 @@ function changeAngle(value){
   $('yaw-value').value=value;$('yaw').value=((value%360)+360)%360;
   $('surface').textContent=yawSurfaceWarning(value);
   keySummary();
-  live.seek(Number($('time').value),currentKeys());resultView?.seek(Number($('time').value));
+  seekLive(Number($('time').value));resultView?.seek(Number($('time').value));
   if(keys.length>1)$('status').textContent='当前角度尚未写入轨道；请点击“在当前时间记录角度”，或恢复固定角度后再保存、构建。';
 }
 $('yaw').oninput=()=>changeAngle(Number($('yaw').value));
@@ -36,11 +39,12 @@ $('key').onclick=()=>{
   const time=Number($('time').value),yaw=Number($('yaw-value').value);
   try{
     const next=keys.filter(k=>k.time!==time).concat({time,yaw}).sort((a,b)=>a.time-b.time);
-    keys=validateYawTrack(next,duration);override=null;keySummary();live.seek(time,currentKeys());resultView?.seek(time);
+    keys=validateYawTrack(next,duration);override=null;keySummary();seekLive(time);resultView?.seek(time);
   }catch(e){$('status').textContent=e.message;}
 };
 $('clear-keys').onclick=()=>{const value=Number($('yaw-value').value);if(!Number.isFinite(value)||Math.abs(value)>3600)return;
-  fixed=value;keys=[{time:0,yaw:fixed}];override=null;keySummary();live.seek(Number($('time').value),currentKeys());resultView?.seek(Number($('time').value));};
+  fixed=value;keys=[{time:0,yaw:fixed}];override=null;keySummary();seekLive(Number($('time').value));resultView?.seek(Number($('time').value));};
+$('adaptive-camera').onchange=()=>{seekLive(Number($('time').value));resultView?.seek(Number($('time').value));};
 $('source').onchange=async()=>{
   const token=++sourceToken,id=$('source').value;player.clear();duration=0;
   loadedSource=null;sourceData=null;resultView?.seek(0);
@@ -61,7 +65,7 @@ async function loadProject(exactJob=null){
   try{const value=exactJob?{job:{status:'needs_review',job_id:exactJob}}:await get(`/api/projects/${encodeURIComponent(id)}/automation/character/motion-target`);if(token!==projectToken)return;
     if(value.job?.status!=='needs_review')throw Error('请先在角色工作台构建整角色候选。');
     const artifact=await live.load(`/api/projects/${encodeURIComponent(id)}/automation/character/jobs/${encodeURIComponent(value.job.job_id)}/view/player-assets/`);
-    if(token!==projectToken||!artifact)return;characterJob=value.job.job_id;live.seek(Number($('time').value),currentKeys());resultView?.seek(Number($('time').value));
+    if(token!==projectToken||!artifact)return;characterJob=value.job.job_id;seekLive(Number($('time').value));resultView?.seek(Number($('time').value));
   }catch(e){if(token===projectToken)$('character-status').textContent=e.message;}
 };
 $('project').onchange=()=>loadProject();
@@ -84,7 +88,7 @@ const intake=createEditorIntake({refresh,async load(id){
 }});
 get('/api/projects').then(value=>{for(const p of value.projects)$('project').add(new Option(p.name,p.id));}).catch(e=>{$('status').textContent=e.message;});
 void refresh();$('surface').textContent=yawSurfaceWarning(0);
-function identity(){return {project_id:$('project').value,source_id:loadedSource,character_job_id:characterJob,duration};}
+function identity(){return {project_id:$('project').value,source_id:loadedSource,character_job_id:characterJob,duration,...(sampling()?{sampling_profile:sampling()}:{})};}
 function snapshot(){if(!loadedSource||!characterJob)throw Error('请先完成角色和源动作加载');
   if(override!==null&&keys.length>1)throw Error('当前角度尚未写入轨道，请先记录角度或恢复固定角度');
   return {schema:DRAFT_SCHEMA,...identity(),time:Number($('time').value),keys:keys.length>1?keys:[{time:0,yaw:fixed}]};}
@@ -100,7 +104,7 @@ resultView=createEditorResult({canvas:$('result-canvas'),status:$('result-status
     if(!current()||loadedSource!==link.source_job_id||projectToken!==initialProject)throw Error('选择已变化或源动作加载失败，停止恢复');
     const initialSource=sourceToken;$('project').value=job.project_id;await loadProject(job.character_job_id);
     if(!current()||sourceToken!==initialSource||characterJob!==job.character_job_id||$('project').value!==job.project_id)throw Error('选择已变化或角色版本加载失败，停止恢复');
-    keys=validateYawTrack(track,duration);fixed=keys[0].yaw;override=null;lastYaw=null;lastTime=null;
+    keys=validateYawTrack(track,duration);fixed=keys[0].yaw;override=null;lastYaw=null;lastTime=null;$('adaptive-camera').checked=Boolean(job.result.projection.sampling_profile);
     $('yaw-value').value=fixed;$('yaw').value=((fixed%360)+360)%360;keySummary();player.seek(0);
   }});
 createEditorBuild({snapshot,inspect(job){$('result-viewport').hidden=false;document.querySelector('.canvases').append($('result-viewport'));void resultView.load(job);document.querySelector('.canvases').scrollIntoView({block:'start'});}});
@@ -112,7 +116,7 @@ createEditorDraftControls({snapshot,
     const target=await get(`/api/projects/${encodeURIComponent(current.project_id)}/automation/character/motion-target`);
     if(tokens[0]!==sourceToken||tokens[1]!==projectToken)throw Error('选择已变化，请重试恢复草稿');
     const value=matchEditorDraft(draft,{...current,character_job_id:target.job?.job_id});
-    keys=value.keys;fixed=keys[0].yaw;override=null;lastYaw=null;lastTime=null;player.seek(value.time);
+    keys=value.keys;fixed=keys[0].yaw;override=null;lastYaw=null;lastTime=null;$('adaptive-camera').checked=Boolean(value.sampling_profile);player.seek(value.time);
     const yaw=sampleYaw(keys,value.time);$('yaw-value').value=yaw;$('yaw').value=((yaw%360)+360)%360;keySummary();
     $('status').textContent='草稿已恢复，角色版本和源动作一致。';
   },status:text=>{$('status').textContent=text;},

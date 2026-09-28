@@ -104,6 +104,15 @@ def build(document, bvh, mapping, *, kimodo=None, clip_bounds=None, yaw_degrees=
     if render_regions:
         report.update(profile='external-render-region-depth-review-v1-experiment',
                       ownership_scope='all_positive_influences_of_rendered_triangle_vertices')
+    hold={}
+    if sampling_profile is not None:
+        from ...bvh_fk import bvh_frame_ticks
+        from ...kimodo_npz_projection import kimodo_frame_ticks
+        native=kimodo_frame_ticks(kimodo[1]) if kimodo else bvh_frame_ticks(bvh)
+        span=math.ceil(2*(native[-1]-native[0])/(len(native)-1))
+        hold=dict(minimum_hold_ticks=max(1,span))
+        report['limits'].update(minimum_hold_frames=1,minimum_hold_ticks=hold['minimum_hold_ticks'],
+            hold_profile='two_native_frame_intervals_elapsed_v1',ticks_per_second=1_000_000)
     torso = roles.get('humanoid.spine.upper')
     if yaw_degrees is not None:
         report.update(projection_profile=OBLIQUE_PROFILE,yaw_degrees=yaw_degrees,
@@ -145,7 +154,7 @@ def build(document, bvh, mapping, *, kimodo=None, clip_bounds=None, yaw_degrees=
                     scores={arm: 0 if r['ambiguous'] else r['depth_ratio'], body: 0}) for r in observations]
                 samples, events = evaluate_depth_pair(rows, slot_ids=pair,
                     setup_front_slot=max(pair, key=order.__getitem__), enter_threshold=.04,
-                    exit_threshold=.02, minimum_hold_frames=3)
+                    exit_threshold=.02, minimum_hold_frames=1 if hold else 3,**hold)
                 report['pairs'].append(dict(arm_slot=arm, torso_slot=body, side=side,
                     setup_front_slot=max(pair, key=order.__getitem__), events=events,
                     samples=[dict(o, **s) for o, s in zip(observations, samples)]))

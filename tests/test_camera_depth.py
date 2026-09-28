@@ -8,6 +8,15 @@ from test_motion_depth import fixture
 
 
 class CameraDepthTests(unittest.TestCase):
+    def test_adaptive_hold_uses_native_time_not_refined_sample_count(self):
+        from autospine_workbench.targets.character43.camera_sampling import PROFILE
+        doc,mapping=fixture();keys=[dict(time=0,yaw=0),dict(time=.1,yaw=360)]
+        frames=[(t,dict(torso=0,shoulder=1,elbow=1,wrist=1)) for t in [0,100,200,1000,33333,66667,100000]]
+        with patch('autospine_workbench.targets.character43.motion_depth._source',return_value=(frames,1,'a'*64)), \
+             patch('autospine_workbench.bvh_fk.bvh_frame_ticks',return_value=[0,33333,66667,100000]):
+            report=build(doc,None,mapping,camera_keys=keys,sampling_profile=PROFILE)
+        self.assertEqual(report['pairs'][0]['events'][0]['tick'],66667)
+        self.assertEqual(report['limits']['minimum_hold_ticks'],66667)
     def test_orbit_reverses_depth_without_collapsing_a_full_turn(self):
         point=(3.,2.,-1.)
         frames=[SimpleNamespace(tick=i*250000,joints=[('wrist',SimpleNamespace(screen_xy=point[:2],depth=point[2]))])

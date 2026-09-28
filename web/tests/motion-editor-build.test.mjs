@@ -19,4 +19,6 @@ test('dynamic submission freezes the full track and prevents stationary screen l
   value.keys[1].yaw=720;assert.equal(body.projection.keys[1].yaw,360);
   assert.equal(editorBuildRequest({...draft(),keys:[{time:0,yaw:360}]}).projection.keys[0].yaw,360);
   assert.deepEqual(editorBuildRequest(draft()),fixedBuildRequest(draft()));
+  const adaptive=editorBuildRequest({...value,sampling_profile:'camera-world-linear-adaptive-v1'});
+  assert.equal(adaptive.projection.sampling_profile,'camera-world-linear-adaptive-v1');
 });

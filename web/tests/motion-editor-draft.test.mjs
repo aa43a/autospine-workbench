@@ -7,6 +7,12 @@ test('round trip preserves turns and detaches mutable keys',()=>{
   const original=draft(),value=matchEditorDraft(JSON.parse(JSON.stringify(original)),original);
   assert.deepEqual(value,original);value.keys[0].yaw=0;assert.equal(original.keys[0].yaw,350);
 });
+test('sampling version is retained; old drafts stay unchanged',()=>{
+  const value={...draft(),sampling_profile:'camera-world-linear-adaptive-v1'};
+  assert.deepEqual(validateEditorDraft(value),value);
+  assert.equal(validateEditorDraft(draft()).sampling_profile,undefined);
+  assert.throws(()=>validateEditorDraft({...value,sampling_profile:'future'}));
+});
 test('restoring refuses changed target job, source, project and duration',()=>{
   for(const field of ['character_job_id','source_id','project_id','duration'])
     assert.throws(()=>matchEditorDraft(draft(),{...draft(),[field]:field==='duration'?3:'other'}));

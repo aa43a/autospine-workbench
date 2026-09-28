@@ -26,17 +26,20 @@ def analyze(files,artifact,bundle,request,*,midpoints=False,pixelwise=True,on_pa
     from .camera_track import PROFILE as CAMERA_PROFILE
     camera_keys=(request['projection']['keys'] if (request.get('projection') or {}).get('profile')==CAMERA_PROFILE else None)
     options=dict(camera_keys=camera_keys) if camera_keys is not None else {}
+    sampling=(request.get('projection') or {}).get('sampling_profile')
     if bundle.source_kind=='kimodo_npz':
         sampler=KimodoDepthSampler(bundle.raw_npz,bundle.kimodo_source,mapping,yaw,
-            interpolation='linear_observed_positions' if midpoints or sample_times is not None else 'source_samples_only',**options)
+            interpolation='linear_observed_positions' if sampling or midpoints or sample_times is not None else 'source_samples_only',**options)
         identity=sampler.identity;interpolation=sampler.interpolation
     else:
-        sampler=SegmentDepthSampler(parse_bvh(bundle.raw_bvh),mapping,yaw,**options)
+        sampler=SegmentDepthSampler(parse_bvh(bundle.raw_bvh),mapping,yaw,**options,**(dict(sampling_profile=sampling) if sampling else {}))
         identity=dict(raw_bvh_sha256=sha256(bundle.raw_bvh).hexdigest())
         interpolation='linear_bvh_channels' if midpoints or sample_times is not None else 'source_samples_only'
+        if sampling:interpolation='linear_observed_world_positions'
     if camera_keys is not None:
         from ...resolved_project import canonical_sha256
         identity=dict(identity,camera_track_sha256=canonical_sha256(camera_keys))
+        if sampling:identity['sampling_profile']=sampling
     document=json.loads(files['skeleton.json']);depth=json.loads(files['motion-depth.json'])
     if sleeve_helpers:
         bones={b['name']:b for b in document['bones']}

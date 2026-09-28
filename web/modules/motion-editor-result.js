@@ -15,7 +15,7 @@ export function resultMatch(job,link,source,identity,keys,track){
   if(identity.project_id!==job.project_id||identity.character_job_id!==job.character_job_id||identity.source_id!==link.source_job_id
     ||source?.source_sha256!==link.source_sha256||source?.motion_identity?.clip_sha256!==link.motion_identity?.clip_sha256
     ||source?.motion_identity?.bundle_sha256!==link.motion_identity?.bundle_sha256)return 'different_source';
-  return JSON.stringify(keys)===JSON.stringify(track)?'matching':'draft_changed';
+  return JSON.stringify(keys)===JSON.stringify(track)&&(identity.sampling_profile??null)===(job.result.projection.sampling_profile??null)?'matching':'draft_changed';
 }
 export function createEditorResult({canvas,status,restore,selection,viewport=()=>{}}){
   let renderer=null,job=null,link=null,track=null,version=0,time=0;

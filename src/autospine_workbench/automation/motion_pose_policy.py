@@ -53,7 +53,7 @@ def prepare_inputs(bundle, request):
         from .motion_camera_policy import select as select_camera
         from .motion_camera_pose import prepare as shared_camera
         select_camera(request,bundle.motion['duration_ticks']/bundle.motion['ticks_per_second'])
-        motion,view,pose=shared_camera(bundle,request['projection']['keys'])
+        motion,view,pose=shared_camera(bundle,request['projection']['keys'],sampling_profile=request['projection'].get('sampling_profile'))
     elif profile == VIEW_PROFILE:
         from .motion_view_pose import prepare as shared_view
         motion, view, pose = shared_view(bundle, request['projection']['yaw_degrees'])

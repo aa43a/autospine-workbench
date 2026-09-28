@@ -29,8 +29,10 @@ try{
     let opaque=0;for(let i=3;i<pixels.length;i+=4)if(pixels[i])opaque++;
     return {width:canvas.width,height:canvas.height,opaque,sha:Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',pixels)),n=>n.toString(16).padStart(2,'0')).join('')};
   },{time,isEditor});}
-  const records=[];
-  for(const time of [0,.5,4.8890623359375,9.9,.5]){
+  const duration=await editor.locator('#time').evaluate(el=>Number(el.max));
+  assert.ok(Number.isFinite(duration)&&duration>0);
+  const revisit=duration*.1,records=[];
+  for(const time of [0,revisit,duration*.492,duration*.997,revisit]){
     const a=await capture(editor,time,true),b=await capture(player,time,false);
     assert.ok(a.opaque>1000);assert.deepEqual(a,b);records.push({time,...a});
   }
@@ -39,7 +41,7 @@ try{
   let accidentalSubmissions=0;editor.on('request',r=>{if(r.url().endsWith('/adapt')&&r.method()==='POST')accidentalSubmissions++;});
   if(job.result.projection.keys?.length>1){await editor.click('#build');await editor.waitForFunction(()=>document.querySelector('#build-status').textContent.includes('尚未写入轨道'));}
   assert.equal(accidentalSubmissions,0);
-  assert.equal((await capture(editor,.5,true)).sha,records[1].sha);
+  assert.equal((await capture(editor,revisit,true)).sha,records[1].sha);
   await editor.locator('.canvases').screenshot({path:path.join(output,'comparison.png')});
   await editor.selectOption('#project','');
   await editor.waitForFunction(()=>window.motionEditorResultState?.status==='different_source');

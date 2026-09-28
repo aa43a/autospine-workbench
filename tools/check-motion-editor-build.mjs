@@ -11,20 +11,25 @@ try{
   page.on('pageerror',e=>errors.push(String(e)));
   await page.goto('http://127.0.0.1:8918/motion-editor.html');
   await page.waitForFunction(()=>document.querySelectorAll('#source option').length>1&&document.querySelectorAll('#project option').length>1);
-  await page.selectOption('#project','alice');await page.selectOption('#source','motion-2671c6fdbc10444592420e6f8f4ad838');
+  await page.selectOption('#project','alice');await page.selectOption('#source',mode==='adaptive-fast'?'motion-6fabae462531459ab74cdce05334d604':'motion-2671c6fdbc10444592420e6f8f4ad838');
   await page.waitForFunction(()=>window.motionEditorPreviewState?.status==='raw_preview');
-  if(mode==='dynamic'){
-    await page.locator('#time').evaluate(el=>{el.value=el.max;el.dispatchEvent(new Event('input'));});
+  if(mode==='dynamic'||mode==='adaptive-fast'){
+    await page.locator('#time').evaluate((el,mode)=>{el.value=mode==='adaptive-fast'?.2:el.max;el.dispatchEvent(new Event('input'));},mode);
     await page.fill('#yaw-value','360');await page.locator('#yaw-value').dispatchEvent('change');await page.click('#key');
     await page.waitForFunction(()=>window.motionEditorPreviewState?.keys.length===2);
+    if(mode==='adaptive-fast'){
+      await page.waitForFunction(()=>window.motionEditorPreviewState?.status==='raw_preview'&&window.motionEditorPreviewState.samples>30);
+      await fs.writeFile(path.join(output,'preview.json'),JSON.stringify(await page.evaluate(()=>window.motionEditorPreviewState),null,2));
+    }
   }
   const response=page.waitForResponse(r=>r.url().endsWith('/adapt')&&r.request().method()==='POST');
   await page.click('#build');const submitted=await response;
   assert.equal(submitted.status(),202);const job=await submitted.json();
   const body=submitted.request().postDataJSON();
-  if(mode==='dynamic'){
+  if(mode==='dynamic'||mode==='adaptive-fast'){
     assert.equal(body.projection.profile,'continuous-yaw-source-camera-v1');
     assert.equal(body.projection.keys.at(-1).yaw,360);assert.equal(body.contact_correction,false);
+    if(mode==='adaptive-fast')assert.equal(body.projection.sampling_profile,'camera-world-linear-adaptive-v1');
   }
   await fs.writeFile(path.join(output,'request.json'),JSON.stringify(body,null,2));
   await fs.writeFile(path.join(output,'submitted.json'),JSON.stringify(job,null,2));
