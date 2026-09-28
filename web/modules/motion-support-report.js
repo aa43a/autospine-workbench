@@ -2,7 +2,7 @@ import {deliveryState,deliveryCounts,deliveryLabels} from './motion-cohort-deliv
 import {supportExceptions} from './motion-support-exceptions.js';
 import {sourceScope} from './motion-source-scope.js';
 import {depthCoverageText} from './motion-depth-coverage.js';
-import {independentAcceptance} from './motion-support-acceptance.js';
+import {independentAcceptance,independentAcceptedEntries} from './motion-support-acceptance.js';
 const gates=['投影','几何','接触','遮挡','Runtime'];
 const statuses={sampled_pass:'采样通过',needs_changes:'需处理',unmeasured:'未验证'};
 const decisions={accepted:'阶段接受',accepted_with_exceptions:'阶段接受，保留异常',rejected:'需调整',revoked:'已撤销',
@@ -74,6 +74,15 @@ function familyHTML(family,kind,job,base,anchor){
   }).join(''):'<p>当前查询未发现独立候选。</p>');
 }
 export function supportReportHTML(snapshot,origin){
+  const acceptedEntries=independentAcceptedEntries(snapshot);
+  const acceptedLinks=cell=>{
+    const entries=acceptedEntries.filter(r=>r.cell===cell);
+    return entries.length?entries.map((r,i)=>{
+      const path=r.registration_sha256?`/api/motions/${r.job_id}/view/related-candidates/${r.registration_sha256}/player.html`:
+        `/api/motions/${r.job_id}/view/player.html`;
+      return link(base,path,`播放已接受候选 ${i+1}`)+` · <a href="#${escape(r.anchor)}">范围与异常</a>`;
+    }).join('<br>'):'暂无有效独立阶段接受';
+  };
   const url=new URL(origin);if(!['http:','https:'].includes(url.protocol)||url.username||url.password)throw Error('工作台地址无效');
   const base=url.origin,totals=supportTotals(snapshot);
   const exceptions=supportExceptions(snapshot);
@@ -93,8 +102,9 @@ export function supportReportHTML(snapshot,origin){
     `<h3>不同处理策略</h3>${familyHTML(r.policy_variants,'policy',r.job_id,base,`cell-${i}-policy_variants`)}</section>`).join('');
   const table=snapshot.rows.map((r,i)=>`<tr><td><a href="#cell-${i}">${escape(r.motion)} / ${escape(r.character)}</a></td>`+
     `<td>${escape(deliveryLabels[deliveryState(state(r))])}</td><td>${r.status==='verified'?escape(r.review.current_applies?decisions[r.review.current?.decision]||'尚无有效阶段结论':'尚无有效阶段结论'):'未核实'}</td>`+
+    `<td>${acceptedLinks(i)}</td>`+
     gates.map(name=>{const status=r.status==='verified'?r.review.readiness.stages.find(s=>s.stage===name)?.status:null;return `<td>${statuses[status]||'未验证'}</td>`;}).join('')+'</tr>').join('')+
-    snapshot.missing.map(r=>`<tr><td>${escape(r.motion)} / ${escape(r.character)}</td><td>缺少候选</td><td colspan="6">${escape(r.status)}</td></tr>`).join('');
+    snapshot.missing.map(r=>`<tr><td>${escape(r.motion)} / ${escape(r.character)}</td><td>缺少候选</td><td colspan="7">${escape(r.status)}</td></tr>`).join('');
   return `<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>M4 支持范围核对</title>
 <style>body{font:16px system-ui;background:#101923;color:#e1e9f1;margin:24px;line-height:1.6}a{color:#75d6ff}table{border-collapse:collapse;width:100%}td,th{border:1px solid #42556a;padding:8px;text-align:left}section{margin:28px 0;padding:20px;background:#192735;overflow-wrap:anywhere}details{margin:12px 0}summary{cursor:pointer}.notes{white-space:pre-wrap}.scroll{overflow:auto}</style>
 <h1>M4 支持范围核对</h1><p>固定清单 ${escape(snapshot.plan_sha256)}</p><p>读取时间：${escape(snapshot.started_at)} 至 ${escape(snapshot.finished_at)}</p>
@@ -103,5 +113,5 @@ export function supportReportHTML(snapshot,origin){
 <p>身份已核对 ${totals.verified}/${totals.expected}；有效阶段接受 ${totals.accepted}/${totals.expected}；改进记录完整核对 ${totals.related_checked}/${snapshot.rows.length}；替代记录完整核对 ${totals.alternatives_checked}/${snapshot.rows.length}；不同策略清单完整核对 ${totals.policies_checked}/${snapshot.rows.length}。</p>
 <p>另有 ${totals.independent_acceptance.accepted} 个独立候选获有效阶段接受（按候选及注册身份去重）；${totals.independent_acceptance.conflicting} 个重复记录结论不一致，未计入接受。此数不加入固定候选通过率，不包含仅局部反馈，技术异常仍保留。</p>
 <p>${Object.entries(totals.delivery).map(([k,v])=>`${deliveryLabels[k]} ${v}/${totals.expected}`).join('；')}</p>
-${queue}<div class="scroll"><table><thead><tr><th>动作 / 角色</th><th>交付状态</th><th>阶段验收</th>${gates.map(n=>`<th>${n}</th>`).join('')}</tr></thead><tbody>${table}</tbody></table></div>${cards}</html>`;
+${queue}<div class="scroll"><table><thead><tr><th>动作 / 角色</th><th>固定候选交付状态</th><th>固定候选阶段验收</th><th>已接受的独立结果（保留异常）</th>${gates.map(n=>`<th>${n}</th>`).join('')}</tr></thead><tbody>${table}</tbody></table></div>${cards}</html>`;
 }
