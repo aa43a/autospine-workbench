@@ -24,7 +24,7 @@ def dispatch_production(parts, handler, method):
     tail = parts[2:]
     allowed = ('GET, HEAD, POST, OPTIONS' if not tail or len(tail)==2 and tail[1]=='work-sessions' else 'GET, HEAD, OPTIONS' if len(tail) == 1 or
                len(tail) == 2 and tail[1] in ('coverage','metrics')
-               else 'POST, OPTIONS' if len(tail) == 2 and tail[1] in ('resume', 'cancel', 'retry', 'revise') else None)
+               else 'POST, OPTIONS' if len(tail) == 2 and tail[1] in ('resume', 'cancel', 'retry', 'revise','revision-plan') else None)
     if allowed is None:
         _error(handler, 404, 'production_route_not_found')
         return True
@@ -50,10 +50,15 @@ def dispatch_production(parts, handler, method):
             elif tail[1]=='work-sessions':
                 from .production_measurements import save
                 result=save(manager,tail[0],body)
-            elif tail[1] == 'revise':
-                if set(body) - {'expected_revision', 'joint_config'} or 'expected_revision' not in body:
+            elif tail[1] in ('revise','revision-plan'):
+                if set(body) - {'expected_revision', 'joint_config','body_options','expected_plan_sha256'} or 'expected_revision' not in body:
                     raise PipelineRunError('production_request_invalid')
-                result = manager.revise(tail[0], body['expected_revision'], body.get('joint_config'))
+                if tail[1]=='revision-plan':
+                    from .production_revision import plan
+                    result=plan(manager,tail[0],body['expected_revision'],body.get('joint_config'),body.get('body_options'))
+                else:
+                    result = manager.revise(tail[0], body['expected_revision'], body.get('joint_config'),
+                        body.get('body_options'),body.get('expected_plan_sha256'))
             else:
                 if set(body) != {'expected_revision'}:
                     raise PipelineRunError('production_request_invalid')

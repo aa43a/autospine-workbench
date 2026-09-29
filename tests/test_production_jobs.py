@@ -25,10 +25,12 @@ class Driver:
         if self.changed:
             raise PipelineRunError('production_source_changed')
 
-    def revision_request(self, request, config=None):
+    def revision_request(self, request, config=None, body_options=None):
         value = deepcopy(request)
         if config is not None:
             value['joint_config'] = config
+        if body_options is not None:
+            value['body_options'] = deepcopy(body_options)
         return value
 
     def exists(self, job):
@@ -55,7 +57,7 @@ class ProductionTests(unittest.TestCase):
         self.tmp = TemporaryDirectory()
         self.driver = Driver()
         self.manager = ProductionJobs(Path(self.tmp.name) / 'runs', self.driver, poll_seconds=.01)
-        self.request = dict(character_job_id='old-character', character_sha256='character')
+        self.request = dict(project_id='p',character_job_id='old-character', character_sha256='character')
 
     def tearDown(self):
         self.manager.close()
@@ -144,6 +146,41 @@ class ProductionTests(unittest.TestCase):
         self.assertNotEqual(revised['stages']['joint']['job_id'],original['stages']['joint']['job_id'])
         self.assertEqual([stage for stage,_ in self.driver.calls],['body','joint','joint'])
         self.assertEqual(revised['status'],'needs_review')
+        self.assertEqual(revised['stages']['source']['status'],'reused')
+        self.assertEqual(revised['stages']['bindings']['status'],'reused')
+        self.assertEqual(self.manager.get(original['run_id']),original)
+
+    def test_body_parameter_change_preserves_character_but_rebuilds_dependent_steps(self):
+        from autospine_workbench.automation.production_revision import plan
+        original=self.wait(self.manager.submit(self.request)['run_id'])
+        preview=plan(self.manager,original['run_id'],original['revision'],body_options={'projection':{'yaw':30}})
+        self.assertIn('character',preview['reuse_stages']);self.assertNotIn('body',preview['reuse_stages'])
+        self.assertFalse(preview['acceptance_inherited'])
+        with self.assertRaisesRegex(PipelineRunError,'plan_changed'):
+            self.manager.revise(original['run_id'],original['revision'],body_options={'projection':{'yaw':30}},expected_plan_sha256='bad')
+        self.assertEqual(len(self.manager.list()),1)
+        revised=self.manager.revise(original['run_id'],original['revision'],body_options={'projection':{'yaw':30}},expected_plan_sha256=preview['plan_sha256'])
+        revised=self.wait(revised['run_id'])
+        self.assertNotEqual(revised['stages']['body']['job_id'],original['stages']['body']['job_id'])
+        self.assertEqual(revised['stages']['character'],original['stages']['character'])
+        self.assertEqual(revised['status'],'needs_review')
+
+    def test_source_change_after_preview_invalidates_plan_without_creating_run(self):
+        from autospine_workbench.automation.production_revision import plan
+        original=self.wait(self.manager.submit(self.request)['run_id'])
+        preview=plan(self.manager,original['run_id'],original['revision'])
+        before=self.driver.revision_request
+        def changed(*args):
+            return dict(before(*args),character_job_id='new-character',character_sha256='new-sha')
+        self.driver.revision_request=changed
+        with self.assertRaisesRegex(PipelineRunError,'plan_changed'):
+            self.manager.revise(original['run_id'],original['revision'],expected_plan_sha256=preview['plan_sha256'])
+        self.assertEqual(len(self.manager.list()),1)
+        updated=plan(self.manager,original['run_id'],original['revision'])
+        self.assertEqual(updated['reuse_stages'],[])
+        self.assertEqual(updated['refresh_stages'],['source','bindings','character'])
+        self.assertEqual(updated['rebuild_stages'],['body','joint'])
+        self.assertIn('body',updated['rebuild_stages'])
         self.assertEqual(self.manager.get(original['run_id']),original)
 
 

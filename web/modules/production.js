@@ -2,6 +2,8 @@ import {projectOptionLabel} from './project-option-label.js';
 import {createProductionIntake} from './production-intake.js';
 import {createProductionEntrances} from './production-entrances.js';
 import {createProductionMeasurements} from './production-measurements.js';
+import {createProductionRevision} from './production-revision.js';
+import {inspectionControls} from './production-inspection.js';
 import {createProductionBatches} from './production-batches.js';
 import {createProductionCoverage} from './production-coverage.js';
 import {appendStageReview} from './motion-stage-review.js';
@@ -14,15 +16,23 @@ let selected=new URL(location.href).searchParams.get('run'),runs=[],options=null
 let evidenceJob=null;
 const coverage=createProductionCoverage(api);
 const measurements=createProductionMeasurements(api);
+async function openRun(id){selected=id;history.replaceState(null,'',`?run=${id}`);await refreshRuns();$('summary').scrollIntoView({behavior:'smooth'});}
+const revision=createProductionRevision({api,openRun});
 function projectName(run){return Array.from($('project').options).find(p=>p.value===run.request.project_id)?.textContent||run.request.project_id;}
-async function evidence(job){
-  if(evidenceJob===job)return;evidenceJob=job;
-  const panel=$('evidence');panel.replaceChildren();panel.hidden=!job;if(!job)return;
+async function evidence(run){
+  const key=run?`${run.stages.body.job_id}:${run.stages.joint.job_id}`:null;
+  if(evidenceJob===key)return;evidenceJob=key;
+  const panel=$('evidence');panel.replaceChildren();panel.hidden=!run;if(!run)return;
   panel.textContent='正在读取候选检查与验收…';
-  try{const value=await api(`/api/motions/${job}`);if(evidenceJob!==job)return;
+  try{const value=await api(`/api/motions/${run.stages.joint.job_id}`);if(evidenceJob!==key)return;
+    if(value.status!=='succeeded'||value.result?.artifact_sha256!==run.stages.joint.artifact_sha256)throw Error('联合候选版本已变化，请刷新来源');
     panel.replaceChildren(node('h2','检查异常与记录阶段验收'));
-    appendStageReview(panel,value);appendReadiness(panel,value);
-  }catch(e){if(evidenceJob===job){panel.textContent=e.message;evidenceJob=null;}}
+    appendStageReview(panel,value);const joint=node('section','');panel.append(joint);appendReadiness(joint,value,null,{...inspectionControls(joint,value),onJointEdit:()=>$('revision-panel').scrollIntoView({behavior:'smooth',block:'start'})});
+    const body=node('details','');body.append(node('summary','追溯身体动作原候选的异常'));panel.append(body);
+    const original=await api(`/api/motions/${run.stages.body.job_id}`);if(evidenceJob!==key)return;
+    if(original.status!=='succeeded'||original.result?.artifact_sha256!==run.stages.body.artifact_sha256)throw Error('身体候选版本已变化，请刷新来源');
+    appendReadiness(body,original,null,inspectionControls(body,original));
+  }catch(e){if(evidenceJob===key){panel.append(node('p',e.message));evidenceJob=null;}}
 }
 async function api(url,body){const r=await fetch(url,body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json','X-Autospine-Intent':'pipeline-preview'},body:JSON.stringify(body)});const value=await r.json();if(!r.ok)throw Error(value.reason_code||value.error||`请求失败 ${r.status}`);return value;}
 function node(tag,text){const e=document.createElement(tag);e.textContent=text;return e;}
@@ -33,6 +43,7 @@ function render(){
   for(const run of runs){const b=node('button',`${projectName(run)} · ${states[run.status]||run.status}`);b.setAttribute('aria-current',String(run.run_id===selected));b.onclick=()=>{selected=run.run_id;history.replaceState(null,'',`?run=${selected}`);render();};$('runs').append(b);}
   const run=runs.find(r=>r.run_id===selected);if(!run)return;
   measurements(run);
+  revision(run);
   void coverage(run);
   $('summary').replaceChildren(node('h2',`${projectName(run)} · ${states[run.status]||run.status}`),node('p',`创建于 ${new Date(run.created_at).toLocaleString()} · 更新于 ${new Date(run.updated_at).toLocaleTimeString()}`));
   $('stages').replaceChildren();for(const key of Object.keys(labels)){const row=run.stages[key];if(!row)continue;const li=node('li','');li.dataset.state=row.status;li.append(node('span',labels[key]||key),node('strong',states[row.status]||row.status));$('stages').append(li);}
@@ -41,9 +52,9 @@ function render(){
   for(const [name,label] of [['resume','继续 / 同步验收'],['retry','重试失败步骤'],['cancel','取消任务']]){if(name==='retry'&&run.status!=='blocked'||name==='cancel'&&!['pending','running'].includes(run.status)||name==='resume'&&run.status==='canceled')continue;const b=node('button',label);b.onclick=()=>action(name);$('actions').append(b);}
   $('actions').append(link('定位角色与绑定',`/?project=${encodeURIComponent(run.request.project_id)}`));
   if(run.stages.character.status==='succeeded'&&run.stages.character.job_id)$('actions').append(link('检查整角色覆盖与缺项',`/api/projects/${encodeURIComponent(run.request.project_id)}/automation/character/jobs/${run.stages.character.job_id}/view/index.html`));
-  if(!['pending','running'].includes(run.status)){const revise=node('button','按当前角色修正重建');revise.onclick=()=>action('revise');$('actions').append(revise);}
+  if(!['pending','running'].includes(run.status)){const revise=node('button','按当前角色修正重建');revise.onclick=()=>$('revision-panel').scrollIntoView({behavior:'smooth',block:'start'});$('actions').append(revise);}
   const delivery=run.stages.delivery;
-  void evidence(delivery.player_url?run.stages.joint.job_id:null);
+  void evidence(delivery.player_url?run:null);
   if(delivery.player_url){$('actions').append(link('独立播放窗口',delivery.player_url),link('下载 Spine 候选',delivery.download_url),link('调整联合动画',`/motion-editor.html?joint=${run.stages.joint.job_id}`));if($('player').getAttribute('src')!==delivery.player_url)$('player').src=delivery.player_url;$('player').hidden=false;}
   else{$('player').hidden=true;$('player').removeAttribute('src');}
 }
@@ -71,7 +82,7 @@ const productionControls={api,settings:()=>{
   body_options.projection.keys[0].yaw=Number($('yaw').value);
   for(const group of ['face','hair','cloth'])joint_config[group].enabled=$(group).checked;
   return {body_options,joint_config};
-},openRun:async id=>{selected=id;history.replaceState(null,'',`?run=${id}`);await refreshRuns();$('summary').scrollIntoView({behavior:'smooth'});}};
+},openRun};
 createProductionBatches(productionControls);
 createProductionEntrances(productionControls);
 createProductionIntake({refresh,selectProject:id=>{$('project').value=id;},selectSource:id=>{$('source').value=id;}});

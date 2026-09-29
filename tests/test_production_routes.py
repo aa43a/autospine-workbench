@@ -22,6 +22,13 @@ class ProductionRouteTests(unittest.TestCase):
         self.assertTrue(dispatch_production(['api','production','id','erase'],handler,'POST'))
         self.assertEqual(handler._send_visual_json.call_args.args[0],404)
 
+    def test_revision_preview_requires_mutation_authorization(self):
+        handler=self.handler()
+        with patch('autospine_workbench.automation.production_routes.manager_for') as factory:
+            dispatch_production(['api','production','id','revision-plan'],handler,'POST')
+            factory.assert_not_called()
+        self.assertEqual(handler._send_visual_json.call_args.args[0],403)
+
     def test_work_record_requires_mutation_authorization_and_metrics_are_readonly(self):
         handler=self.handler()
         with patch('autospine_workbench.automation.production_routes.manager_for') as factory:

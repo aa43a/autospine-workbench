@@ -100,7 +100,7 @@ class ProductionJobs:
         with self._lock:
             return self.journal.list()
 
-    def revise(self, run_id, revision, joint_config=None):
+    def revise(self, run_id, revision, joint_config=None, body_options=None, expected_plan_sha256=None):
         with self._lock:
             self._require_open()
             previous = self.journal.read(run_id)
@@ -108,18 +108,19 @@ class ProductionJobs:
                 raise PipelineRunError('production_revision_conflict')
             if run_id in self._active:
                 raise PipelineRunError('production_revision_wait_for_current_run')
-            request = self.driver.revision_request(previous['request'], joint_config)
+            from .production_revision import plan
+            preview=plan(self,run_id,revision,joint_config,body_options)
+            if expected_plan_sha256 is not None and expected_plan_sha256!=preview['plan_sha256']:
+                raise PipelineRunError('production_revision_plan_changed')
+            request = preview['request']
             value = self.journal.create(request)
             value['parent_run_id'] = run_id
-            before = {k: v for k, v in previous['request'].items() if k != 'joint_config'}
-            after = {k: v for k, v in request.items() if k != 'joint_config'}
-            reuse = before == after and previous['stages']['body']['status'] == 'succeeded'
-            value['reused_stages'] = []
-            if reuse:
-                for stage in ('source', 'bindings', 'character', 'body'):
-                    if stage in previous['stages']:
-                        value['stages'][stage] = deepcopy(previous['stages'][stage])
-                        value['reused_stages'].append(stage)
+            value['reused_stages'] = preview['reuse_stages']
+            value['revision_plan']=preview
+            for stage in value['reused_stages']:
+                old = previous['stages'].get(stage,{})
+                value['stages'][stage] = (deepcopy(old) if old.get('status') in ('succeeded','reused')
+                    else dict(status='reused',attempts=[],basis='verified_character'))
             value = self.journal.append(value, 'revision_created')
             self._schedule(value['run_id'])
             return value

@@ -44,13 +44,15 @@ class ProductionDriver:
         if self.freeze({key: request[key] for key in fields}) != request:
             raise PipelineRunError('production_source_changed')
 
-    def revision_request(self, request, config=None):
+    def revision_request(self, request, config=None, body_options=None):
         fields = ('project_id', 'character_job_id', 'source_job_id', 'body_options', 'joint_config')
         body = {key: deepcopy(request[key]) for key in fields}
         latest = self.motions.character_manager().motion_target(body['project_id'])['job']
         body['character_job_id'] = latest['job_id'] if latest and latest['status'] == 'needs_review' else None
         if config is not None:
             body['joint_config'] = config
+        if body_options is not None:
+            body['body_options'] = deepcopy(body_options)
         return self.freeze(body)
 
     def exists(self, job):
