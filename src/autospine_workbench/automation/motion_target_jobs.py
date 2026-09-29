@@ -173,6 +173,17 @@ def review_file(manager, job, parts):
         # These are static application assets. Actual scene and runtime reads below
         # still verify the addressed job, character sources and capture inventory.
         return read(None, None, None, parts)
+    if parts == ['player-assets', 'runtime.js']:
+        # The Runtime only needs its capture-bound version/hash, not every image
+        # and numeric reference in the animation bundle. Keep source validation.
+        value = manager.get(job)
+        if value.get('kind') != 'adapt' or value['status'] != 'succeeded':
+            raise PipelineRunError('motion_preview_unavailable')
+        result = value['result']
+        from .character_player import read
+        adapter = SimpleNamespace(projects=manager.projects,
+            review_context=lambda *_: (result, {}, runtime_reader(manager, job, result)('report.json')))
+        return read(adapter, None, None, parts)
     result, files = context(manager, job)
     if parts[:1] == ['garment-follow']:
         from .motion_garment_follow import read

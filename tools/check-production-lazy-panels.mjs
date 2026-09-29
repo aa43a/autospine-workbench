@@ -1,0 +1,33 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import {pathToFileURL} from 'node:url';
+const [output,deps,chrome,run]=process.argv.slice(2);
+const {chromium}=await import(pathToFileURL(path.resolve(deps,'node_modules/playwright-core/index.mjs')));
+const browser=await chromium.launch({executablePath:chrome,headless:true,args:['--enable-webgl','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+try{
+  const page=await browser.newPage(),requests=[],errors=[];
+  page.setDefaultTimeout(120000);page.on('request',r=>requests.push(r.url()));page.on('pageerror',e=>errors.push(String(e)));
+  await page.goto(`http://127.0.0.1:8918/production.html?run=${run}`);
+  await page.waitForSelector('#player:not([hidden])');
+  const frame=await(await page.locator('#player').elementHandle()).contentFrame();
+  await frame.waitForFunction(()=>window.characterPlayerReady===true,{},{timeout:120000});
+  const task=await(await page.request.get(`/api/production/${run}`.replace(/^/, 'http://127.0.0.1:8918'))).json();
+  const choices=`http://127.0.0.1:8918/api/production/${run}/body-candidates`;
+  const body=`http://127.0.0.1:8918/api/motions/${task.stages.body.job_id}`;
+  await page.getByText('追溯身体动作原候选的异常',{exact:true}).waitFor();
+  assert.equal(requests.filter(u=>u===choices).length,0);
+  assert.equal(requests.filter(u=>u===body).length,0);
+  const response=page.waitForResponse(r=>r.url()===choices);
+  await page.getByRole('button',{name:'刷新身体修复候选',exact:true}).click();
+  assert.equal((await response).status(),200);
+  await page.waitForFunction(()=>!document.querySelector('[aria-label="身体修复版本"]').disabled);
+  assert.equal(await page.getByLabel('身体修复版本',{exact:true}).inputValue(),task.request.body_selection?.selector||'');
+  const original=page.waitForResponse(r=>r.url()===body);
+  await page.getByText('追溯身体动作原候选的异常',{exact:true}).click();
+  assert.equal((await original).status(),200);
+  assert.deepEqual(errors,[]);
+  await fs.mkdir(output,{recursive:true});
+  await fs.writeFile(path.join(output,'lazy-panels.json'),JSON.stringify({passed:true,run,explicit_loads:true,selection_preserved:true,errors},null,2));
+  console.log(JSON.stringify({passed:true,run}));
+}finally{await browser.close();}

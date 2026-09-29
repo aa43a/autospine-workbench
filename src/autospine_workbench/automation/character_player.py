@@ -27,10 +27,22 @@ def read(manager, project, job, parts):
     if report.get('bundle_sha256') != result['artifact_sha256']:
         raise PipelineRunError('character_review_source_mismatch')
     if name == 'scene.json':
+        atlas = files['skeleton.atlas'].decode()
+        # Only atlas pages are loaded by the player. Editor/source copies remain
+        # in the verified download, but must not be base64 encoded a second time.
+        pages = set()
+        previous = ''
+        for line in atlas.splitlines():
+            current = line.strip()
+            if not previous and current.endswith('.png'):
+                pages.add(current)
+            previous = current
+        if not pages or any(page not in files for page in pages):
+            raise PipelineRunError('character_player_texture_missing')
         value=dict(artifact_sha256=result['artifact_sha256'],info=report['info'],
-                   skeleton=json.loads(files['skeleton.json']),atlas=files['skeleton.atlas'].decode(),
-                   textures={key:'data:image/png;base64,'+b64encode(value).decode()
-                             for key,value in files.items() if key.endswith('.png')})
+                   skeleton=json.loads(files['skeleton.json']),atlas=atlas,
+                   textures={key:'data:image/png;base64,'+b64encode(files[key]).decode()
+                             for key in sorted(pages)})
         return json.dumps(value).encode(), 'application/json'
     if name == 'context.json':
         return json.dumps(dict(artifact_sha256=result['artifact_sha256'], info=report['info'],

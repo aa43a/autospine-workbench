@@ -25,8 +25,18 @@ async function evidence(run){
   const key=run?`${run.stages.body.job_id}:${run.stages.joint.job_id}`:null;
   if(evidenceJob===key)return;evidenceJob=key;
   const panel=$('evidence');panel.replaceChildren();panel.hidden=!run;if(!run)return;
-  panel.textContent='正在读取候选检查与验收…';
-  try{const value=await api(`/api/motions/${run.stages.joint.job_id}`);if(evidenceJob!==key)return;
+  panel.textContent='正在加载动画；随后显示候选检查与验收…';
+  try{
+    const deadline=Date.now()+120000;
+    while(Date.now()<deadline){
+      if(evidenceJob!==key)return;
+      const player=$('player').contentWindow;
+      if(player?.characterPlayerReady&&player.characterPlayerControl?.artifact===run.stages.joint.artifact_sha256)break;
+      if(player?.characterPlayerError)break;
+      await new Promise(resolve=>setTimeout(resolve,100));
+    }
+    if(evidenceJob!==key)return;
+    const value=await api(`/api/motions/${run.stages.joint.job_id}`);if(evidenceJob!==key)return;
     if(value.status!=='succeeded'||value.result?.artifact_sha256!==run.stages.joint.artifact_sha256)throw Error('联合候选版本已变化，请刷新来源');
     panel.replaceChildren(node('h2','检查异常与记录阶段验收'));
     appendStageReview(panel,value);const joint=node('section','');panel.append(joint);appendReadiness(joint,value,null,{...inspectionControls(joint,value),onJointEdit:()=>$('revision-panel').scrollIntoView({behavior:'smooth',block:'start'})});
@@ -36,9 +46,13 @@ async function evidence(run){
       show.onclick=()=>{frame.src=`/api/motions/${selection.parent_job_id}/view/`+(selection.registration_sha256?`related-candidates/${selection.registration_sha256}/`:'')+'player.html';frame.hidden=false;};
       selected.append(show,frame);panel.append(selected);}
     const body=node('details','');body.append(node('summary','追溯身体动作原候选的异常'));panel.append(body);
-    const original=await api(`/api/motions/${run.stages.body.job_id}`);if(evidenceJob!==key)return;
-    if(original.status!=='succeeded'||original.result?.artifact_sha256!==run.stages.body.artifact_sha256)throw Error('身体候选版本已变化，请刷新来源');
-    appendReadiness(body,original,null,inspectionControls(body,original));
+    let bodyLoaded=false;
+    body.ontoggle=async()=>{if(!body.open||bodyLoaded)return;bodyLoaded=true;
+      try{const original=await api(`/api/motions/${run.stages.body.job_id}`);if(evidenceJob!==key)return;
+        if(original.status!=='succeeded'||original.result?.artifact_sha256!==run.stages.body.artifact_sha256)throw Error('身体候选版本已变化，请刷新来源');
+        appendReadiness(body,original,null,inspectionControls(body,original));
+      }catch(e){bodyLoaded=false;body.append(node('p',e.message));}
+    };
   }catch(e){if(evidenceJob===key){panel.append(node('p',e.message));evidenceJob=null;}}
 }
 async function api(url,body){const r=await fetch(url,body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json','X-Autospine-Intent':'pipeline-preview'},body:JSON.stringify(body)});const value=await r.json();if(!r.ok)throw Error(value.reason_code||value.error||`请求失败 ${r.status}`);return value;}

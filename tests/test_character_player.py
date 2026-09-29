@@ -43,6 +43,20 @@ class CharacterPlayerTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError,'pipeline_artifact_not_found'):
                 read(self.fixture(),'p','j',parts)
 
+    def test_scene_only_transfers_atlas_pages(self):
+        manager = self.fixture()
+        result, files, report = manager.review_context('p','j')
+        files.update({'images/page.png': b'source copy', 'editor/page.png': b'editor copy',
+                      'second.png': b'second'})
+        files['skeleton.atlas'] = b'page.png\nsize: 1,1\nregion\n bounds: 0,0,1,1\n\nsecond.png\nsize: 1,1\n'
+        manager.review_context = lambda *_: (result, files, report)
+        scene, _ = read(manager,'p','j',['player-assets','scene.json'])
+        self.assertEqual(set(json.loads(scene)['textures']), {'page.png','second.png'})
+        self.assertIn('editor/page.png', files)
+        del files['second.png']
+        with self.assertRaisesRegex(RuntimeError, 'character_player_texture_missing'):
+            read(manager,'p','j',['player-assets','scene.json'])
+
     def test_runtime_must_match_captured_bytes(self):
         with TemporaryDirectory() as folder:
             package=Path(folder)/'node_modules/@esotericsoftware/spine-webgl'
@@ -54,6 +68,27 @@ class CharacterPlayerTests(unittest.TestCase):
                 script.write_bytes(b'changed')
                 with self.assertRaisesRegex(RuntimeError,'character_player_runtime_mismatch'):
                     read(self.fixture(),'p','j',['player-assets','runtime.js'])
+
+    def test_motion_runtime_checks_capture_without_full_bundle_read(self):
+        from autospine_workbench.automation.motion_target_jobs import review_file
+        manager = self.fixture()
+        result, _, report = manager.review_context('p','j')
+        manager.get = lambda job: dict(kind='adapt',status='succeeded',result=result)
+        with TemporaryDirectory() as folder:
+            package=Path(folder)/'node_modules/@esotericsoftware/spine-webgl'
+            (package/'dist/iife').mkdir(parents=True)
+            (package/'package.json').write_text(json.dumps(dict(name='@esotericsoftware/spine-webgl',version='4.3.13')))
+            script=package/'dist/iife/spine-webgl.js';script.write_bytes(b'runtime')
+            with patch('autospine_workbench.automation.motion_target_jobs.context',side_effect=AssertionError('full bundle read')), \
+                 patch('autospine_workbench.automation.motion_target_jobs.runtime_reader',return_value=lambda name: report), \
+                 patch('autospine_workbench.automation.character_player.discover',return_value=['x',folder]):
+                self.assertEqual(review_file(manager,'j',['player-assets','runtime.js'])[0],b'runtime')
+                script.write_bytes(b'changed')
+                with self.assertRaisesRegex(RuntimeError,'character_player_runtime_mismatch'):
+                    review_file(manager,'j',['player-assets','runtime.js'])
+                manager.get=lambda job: dict(kind='adapt',status='outdated')
+                with self.assertRaisesRegex(RuntimeError,'motion_preview_unavailable'):
+                    review_file(manager,'j',['player-assets','runtime.js'])
 
 
 if __name__ == '__main__':
