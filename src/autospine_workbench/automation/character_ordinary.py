@@ -14,7 +14,11 @@ def route_source(projects, sleeves, project, resolved):
     service=ProjectRoute(projects)
     saved = service._saved(project)
     if saved is None:saved=service.get(project).get('default_choice')
-    if not saved or saved['source_sha256'] != resolved or saved['choice'] != 'ordinary':
+    if not saved or saved['source_sha256'] != resolved:
+        raise PipelineRunError('character_route_confirmation_required')
+    if saved['choice'] == 'sleeves':
+        raise PipelineRunError('character_sleeve_candidate_required')
+    if saved['choice'] != 'ordinary':
         raise PipelineRunError('character_route_confirmation_required')
     # A failed/withdrawn repair is not permission to silently fall back to old weights.
     if sleeves.has_job(project):

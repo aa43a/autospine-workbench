@@ -27,6 +27,20 @@ class OrdinaryCharacterTests(unittest.TestCase):
             sleeves.has_job.return_value=True
             with self.assertRaisesRegex(RuntimeError,'resolution_required'):route_source(projects,sleeves,'sample','a'*64)
 
+    def test_selected_sleeves_need_candidate_not_repeated_route_confirmation(self):
+        with TemporaryDirectory() as root:
+            projects=SimpleNamespace(state_root=Path(root));sleeves=Mock()
+            sleeves.has_job.return_value=False
+            folder=Path(root)/'project-route-v1/sample';folder.mkdir(parents=True)
+            value=dict(schema='autospine.project-route-choice/v1',project_id='sample',source_sha256='a'*64,
+                       choice='sleeves',revision=1,authority='none')
+            (folder/'revision-000000000001.json').write_bytes(canonical_bytes(value))
+            with self.assertRaisesRegex(RuntimeError,'character_sleeve_candidate_required'):
+                route_source(projects,sleeves,'sample','a'*64)
+            with self.assertRaisesRegex(RuntimeError,'character_route_confirmation_required'):
+                route_source(projects,sleeves,'sample','b'*64)
+            self.assertEqual(json.loads((folder/'revision-000000000001.json').read_bytes()),value)
+
     def test_package_keeps_original_scene_and_all_unbound_statuses(self):
         doc,*_=fixture();doc['animations']={'limb-flex-15':{'bones':{'root':{'rotate':[
             {'time':0,'value':0},{'time':1,'value':15},{'time':2,'value':0}]}}}}

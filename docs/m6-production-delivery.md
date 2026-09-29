@@ -143,3 +143,17 @@
 后续实际保存状态：魔理沙、帕秋莉均保存 17 个关节复核，已恢复各自制作任务；生产协调器串行执行，第二份等待第一份结束。魔理沙整角色产物 `fcff67ed2be82b8147567a9932c1f7fe2f6bb7b50899682a63b7a02747a26335` 的 22 层中有 21 层仍含静态参考，头颈前置条件 `face_above_neck` 未满足，双臂出现 `animated_geometry_failed`。身体动作可生成不等于完整绑定成功，冻结规则在该样本的覆盖不足须保留。
 
 用户明确第三份宽袖素材缺失过多、要求弃用：已取消 `production-54caabb968d842f1ae7d17f9ea9dd9c1`，保留 PSD 与冻结历史；`tmp/m6-independent/exclusion-v1.json` 记录弃用原因，集中页移除其待复核操作。不计为成功，也不从历史抹去这次尝试；第三份独立素材待替换。当前运行与计时事实见 `tmp/m6-independent/progress-20260929-v1.json`。
+
+用户后续提供 `seethrough_output (4).psd` 和 `lingmeng1.psd`，分别建立 `production-1411db2ec37e4d56a0393f00b87ae9e2` 与 `production-967246fbe02a4dba9abc9f0dfbbd03b6`，各自输入摘要单独记录，未覆盖原冻结清单。截至本次检查，两者均尚无已复核关节点；同角色灵梦已有开发历史，不能直接计为独立新角色成功。集中入口已更新为实际状态快照。
+
+帕秋莉依据原 PSD 的宽袖结构，按用户默认采用授权保存袖装路线修订 1，并准备区域草稿。这是代理依据图像作出的路线选择，不是人工区域标注或算法准确性抽查。区域草稿未填写人工接受。恢复制作后仍报 `character_route_confirmation_required`，而路线查询已是当前有效 `sleeves`；原普通路线前置检查没有区分“尚未选择路线”和“已选袖装但缺少袖装候选”。
+
+已修正该诊断：有效袖装选择现在返回 `character_sleeve_candidate_required`，制作页引导保存区域标注、构建袖装候选后继续。过期或未定路线仍要求选择，已有袖装修复不会退回普通肢体。16 项相关测试通过；服务重启后，真实帕秋莉任务修订 13 返回新的准确原因。该修复不改变绑定或权重算法，但也属于冻结后的代码变更：旧清单准确检测出 `character_ordinary.py` 与 `web/modules/production.js` 两项差异，原冻结失败及代码包保留；修复后的继续记录不得冒充原冻结版本运行。
+
+## Kimodo 来源接入实际制作与下载
+
+既有真实 Kimodo 生成任务 `motion-c8f9555203bc4130abeaf37e523a16cb` 的描述为 “A person stands still and breathes gently.”，输入为 Kimodo-SOMA-RP-v1.1、种子 20260929、10 步、请求 1 秒；编译结果为 30 帧、0.9667 秒。通过持久入口 `entrance-37f8fedc973c46f78b6d08353ba210f7` 接入 Alice，生成制作任务 `production-34e63c6f07b8438a8d720cc5ab45e255`。沿用已验证角色，不计为新素材独立验收，也不将既有生成耗时计为本次处理时间。
+
+身体任务 `motion-6ba8fb2dff944b5eadeed91304354cbe` 和启用 face/hair/cloth 的联合任务 `motion-3d7a3322887d449c9882665e5c36acd0` 完成；联合产物为 `21c4fe3e0f66a909c8bf8c8e07f5a47e66489031ef0989e88eff447eebc0e3b9`。真实浏览器播放与定位通过，下载 33,501,141 字节。独立解包对照存储产物、源骨骼与未受影响顶点通过；官方 WebGL/SwiftShader Runtime 4.3.13 的 691 帧数值及几何检查通过，23 张捕获图摘要一致。证据在 `tmp/m6-production/kimodo-delivery`。
+
+原 `motion_visible_depth_needs_changes` 和 60 条遮挡缺测继续保留，Runtime 接触未测不能由其他接触代理检查代替；未保存视觉接受。这一结果证明该短呼吸样本从已生成 Kimodo 来源到联合候选和 Spine 下载连通，不证明长动作、任意提示词、循环或新角色已通过。

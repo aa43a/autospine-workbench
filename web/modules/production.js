@@ -13,6 +13,7 @@ const $=id=>document.getElementById(id);
 const labels={source:'来源准备',bindings:'默认绑定',character:'整角色来源',body:'身体动作与 Runtime',joint:'表情、发束、裙袖与 Runtime',review:'阶段验收',delivery:'Spine 候选'};
 const states={pending:'准备中',running:'处理中',reused:'沿用已有结果',succeeded:'已完成',needs_review:'待阶段验收',stage_accepted:'阶段已接受',candidate_available:'可下载候选',blocked:'需要干预',failed:'未完成',canceled:'已取消'};
 const reasons={joint_review_required:'请检查并保存关节点，然后点击“继续”。已完成步骤会保留。',character_route_confirmation_required:'请在角色编辑中选择普通肢体或袖装处理路线，然后继续。',character_sleeve_resolution_required:'已有袖装修复记录需要处理，请先检查该角色的袖装结果。',production_source_changed:'角色或动作来源已变化，请使用“按当前角色修正重建”建立关联的新版本。',animated_source_stale:'动画来源需要同步已保存的修改，请在角色编辑中更新来源后重建。'};
+reasons.character_sleeve_candidate_required='已选择袖装路线。请在角色编辑的“袖装修复”中保存区域标注并构建候选，再回到此处继续；无需重复选择路线。';
 let selected=new URL(location.href).searchParams.get('run'),runs=[],options=null,busy=false;
 let evidenceJob=null;
 const coverage=createProductionCoverage(api);
