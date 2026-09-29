@@ -46,3 +46,15 @@ class CameraContactTests(unittest.TestCase):
         obs['keys'][-1]['yaw']=180
         with self.assertRaisesRegex(ValueError,'identity'):
             recheck(doc,'external-motion',motion,report,obs['times'],100)
+
+    def test_final_dense_reference_keeps_probes_midpoints_and_drift_failure(self):
+        doc,motion,obs=self.fixture(moving=2)
+        report=build(doc,'external-motion',motion,obs,obs['times'],100)
+        times=[i/4096 for i in range(4097)]
+        checked=recheck(doc,'external-motion',motion,report,times,100)
+        self.assertEqual(checked['status'],'needs_changes')
+        self.assertGreater(checked['after']['samples'],8190)
+        measured={s['time'] for s in checked['after']['intervals'][0]['samples']}
+        self.assertTrue(set(times[:-1]) <= measured)
+        with self.assertRaisesRegex(ValueError,'times_invalid'):
+            recheck(doc,'external-motion',motion,report,[i/4097 for i in range(4098)],100)

@@ -2,7 +2,7 @@
 from copy import deepcopy
 import json
 from threading import Event
-from uuid import uuid4
+from .production_submission import child_id
 
 from ..resolved_project import canonical_sha256
 from ..targets.character43.joint_animation_config import PROFILE, controls, defaults, normalize
@@ -91,7 +91,7 @@ def submit(manager, job, body):
         assert_unchanged(manager, provenance)
         if manager._closed or sum(j['status'] in {'pending', 'running'} for j in manager._jobs.values()) >= 2:
             raise PipelineRunError('motion_queue_full')
-        next_job = 'motion-'+uuid4().hex
+        next_job = child_id('motion-')
         folder = manager.folder(next_job, True)
         frozen = deepcopy(request)
         frozen.update(job_id=next_job, joint_execution=dict(profile=PROFILE, parent_job_id=job,

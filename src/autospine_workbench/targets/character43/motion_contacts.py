@@ -23,8 +23,10 @@ def _intervals(motion):
             for m in motion['markers'] if m['kind'] == 'contact']
 
 
-def schedule(motion, times):
+def schedule(motion, times, *, sample_limit=4096):
     """Measure at both sides of half-open contact boundaries and between samples."""
+    if type(sample_limit) is not int or not 1 <= sample_limit <= 16384:
+        raise ValueError('motion_contact_sample_budget_invalid')
     duration = motion['duration_ticks']/motion['ticks_per_second']
     selected = set(times)
     for c in _intervals(motion):
@@ -32,7 +34,7 @@ def schedule(motion, times):
                          min(duration, c['end']+RELEASE_SECONDS)))
     base = sorted(selected)
     selected.update((a+b)/2 for a, b in zip(base, base[1:]) if b-a > 1e-9)
-    if len(selected) > 4096:
+    if len(selected) > sample_limit:
         raise ValueError('motion_contact_sample_limit')
     return sorted(selected)
 

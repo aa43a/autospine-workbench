@@ -15,6 +15,7 @@ export function workbenchLayout(document) {
   const pages = {}, buttons = {}, slots = {};
   canvas.before(center); center.append(nav);
   const library = node("a", "资产中心", "button button-secondary"); library.href = "/assets.html"; nav.append(library);
+  const production = node("a", "自动制作", "button button-primary"); production.href = "/production.html"; nav.append(production);
   const motions = node("a", "动作中心", "button button-secondary"); motions.href = "/motions.html"; nav.append(motions);
   for (const [id, label] of Object.entries(STEPS)) {
     const button = node("button", label, "button button-secondary"); button.type = "button";

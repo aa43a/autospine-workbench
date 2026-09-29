@@ -5,7 +5,7 @@ from io import BytesIO
 import json
 from types import SimpleNamespace
 from threading import Event
-from uuid import uuid4
+from .production_submission import child_id
 from zipfile import ZIP_STORED, ZipFile, ZipInfo
 
 from ..resolved_project import canonical_sha256
@@ -104,7 +104,7 @@ def submit(manager, source_job, body):
     with manager._lock:
         if manager._closed or sum(j['status'] in {'pending', 'running'} for j in manager._jobs.values()) >= 2:
             raise PipelineRunError('motion_queue_full')
-        job = 'motion-' + uuid4().hex
+        job = child_id('motion-')
         root = manager.folder(job, True)
         request['job_id'] = job
         publish_document(root / 'request.json', request, staging=root / 'staging')

@@ -6,7 +6,7 @@ from pathlib import Path
 import re
 import json
 from threading import Event, RLock
-from uuid import uuid4
+from .production_submission import child_id
 from zipfile import ZIP_STORED, ZipFile, ZipInfo
 
 from ..manifest_artifacts import require_safe_token
@@ -161,7 +161,7 @@ class CharacterJobs:
             for active in self._active.values():
                 if active['request']==request: return deepcopy(active['response'])
             if len(self._active)>=4: raise PipelineRunError('pipeline_queue_full')
-            job='job-'+uuid4().hex; root=self._path(job,True)
+            job=child_id('job-'); root=self._path(job,True)
             publish_document(root/'request.json', request, staging=root/'staging')
             response=dict(schema=SCHEMA,job_id=job,project_id=project,status='pending',stage='resolve',authority='none',residual_auto_profile=residual_auto_profile)
             self._active[job]=dict(request=request,response=response,cancel=Event())

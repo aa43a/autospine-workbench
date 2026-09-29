@@ -44,6 +44,18 @@ def _upload(manager, handler):
     return manager.upload(handler.rfile, int(lengths[0]), unquote(names[0], errors='strict'), views[0], settings)
 
 
+def manager_for(server):
+    owner = server.automation_manager
+    with owner._lock:
+        if owner._closed:
+            raise PipelineRunError('pipeline_manager_closed')
+        if owner._motions is None:
+            owner._motions = MotionIntakeJobs(owner.application.projects)
+            from .character_routes import manager_for as characters_for
+            owner._motions.character_manager = lambda: characters_for(server)
+        return owner._motions
+
+
 def dispatch_motions(parts, handler, method):
     from .web_routes import _error, _require_mutation
     if parts[:2] != ['api', 'motions']:
@@ -58,16 +70,7 @@ def dispatch_motions(parts, handler, method):
                             visual_review=True, extra_headers={'Allow': allowed})
         return True
     try:
-        owner = handler.server.automation_manager
-        with owner._lock:
-            if owner._closed:
-                raise PipelineRunError('pipeline_manager_closed')
-            if owner._motions is None:
-                owner._motions = MotionIntakeJobs(owner.application.projects)
-                from .character_routes import manager_for
-                server = handler.server
-                owner._motions.character_manager = lambda: manager_for(server)
-            manager = owner._motions
+        manager = manager_for(handler.server)
         if method == 'POST':
             _require_mutation(handler.headers)
             handler.connection.settimeout(30)

@@ -16,7 +16,7 @@ def _frames(values, times, side):
     return [dict(time=t,vertices=p[side]) for t,p in zip(times,values)]
 
 
-def analyze(document, name, motion, report, times, reference):
+def analyze(document, name, motion, report, times, reference, *, sample_limit=4096):
     observation=report['camera_observation']
     if (observation.get('profile') != OBSERVATION_PROFILE or
             report.get('source_motion_sha256') != canonical_sha256(motion) or
@@ -30,7 +30,7 @@ def analyze(document, name, motion, report, times, reference):
     predicted=[_frames([r['targets'] for r in trajectory],observation['times'],s) for s in (0,1)]
     frozen=[_frames(observation['frozen_camera_points'],observation['times'],s) for s in (0,1)]
     scale=reference/observation['source_reference_length'];limit=reference*.01
-    checked=schedule(source,times);poses={t:matrices(document,name,t) for t in checked};rows=[]
+    checked=schedule(source,times,sample_limit=sample_limit);poses={t:matrices(document,name,t) for t in checked};rows=[]
     for marker in source['markers']:
         if marker['kind']!='contact':continue
         side={'leg.left':0,'leg.right':1}[marker['limb']];bone='foot_'+('l' if side==0 else 'r')
@@ -69,7 +69,11 @@ def build(document,name,motion,observation,times,reference,*,hypothesis=None):
 
 
 def recheck(document,name,motion,report,times,reference):
-    result=deepcopy(report);checked=analyze(document,name,motion,result,times,reference)
+    # Final M5 references admit 4097 probes. Their midpoint/boundary expansion
+    # needs a separate bounded FK budget; keep every probe and the same tolerances.
+    if len(times) > 4097:
+        raise ValueError('motion_final_contact_times_invalid')
+    result=deepcopy(report);checked=analyze(document,name,motion,result,times,reference,sample_limit=16384)
     result.update(pre_final_after=result.get('after'),after=checked,status=checked['status'],
         final_timeline_check=dict(profile=PROFILE,skeleton_sha256=canonical_sha256(document),
             animation=name,times_sha256=canonical_sha256(times),samples=checked['samples'],authority='none',

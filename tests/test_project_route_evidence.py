@@ -4,6 +4,7 @@ from pathlib import Path
 import tempfile
 from types import SimpleNamespace
 import unittest
+from unittest.mock import patch
 from tests.test_route_geometry import fixture
 from autospine_workbench.automation.project_route import ProjectRoute
 from autospine_workbench.automation.project_route_evidence import collect
@@ -33,7 +34,9 @@ class ProjectRouteEvidenceTests(unittest.TestCase):
         project['resolved']['layers']=[dict(deepcopy(base),id=f'arm-{i}') for i in range(20)]
         calls=[]
         def missing(*args):calls.append(args);raise OSError('missing')
-        result=collect(SimpleNamespace(resolve_asset=missing),'fixture',project)
+        with patch('autospine_workbench.automation.project_route_evidence.reviewed_project',
+                   return_value=(project, None)):
+            result=collect(SimpleNamespace(resolve_asset=missing),'fixture',project)
         self.assertEqual(len(calls),16)
         self.assertEqual(len(result['records']),20)
         self.assertTrue(all(r['classification']=='insufficient_evidence' for r in result['records']))
