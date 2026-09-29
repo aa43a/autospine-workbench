@@ -10,7 +10,7 @@ from ..resolved_project import canonical_sha256
 def valid_decision(doc):
     keys={'schema','source_bundle_sha256','parents','decision_source','reversible'}
     return (type(doc) is dict and set(doc)==keys and doc['schema']=='autospine.region-mount-decision/v1'
-        and doc['decision_source']=='human_confirmation' and doc['reversible'] is True
+        and doc['decision_source'] in ('human_confirmation', 'agent_review') and doc['reversible'] is True
         and type(doc['source_bundle_sha256']) is str and bool(re.fullmatch('[a-f0-9]{64}',doc['source_bundle_sha256']))
         and type(doc['parents']) is dict and 0<len(doc['parents'])<=64
         and all(type(k) is str and bool(re.fullmatch('[A-Za-z0-9_-]{1,120}',k))

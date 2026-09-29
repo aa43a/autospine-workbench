@@ -48,6 +48,24 @@ class RegionMountTests(unittest.TestCase):
         for name in ('images/skirt.png','images/shirt.png','skeleton.atlas'):self.assertEqual(files[name],out[name])
         self.assertEqual(json.loads(out['character-manifest.json'])['layers'][0]['state'],'weighted_candidate')
 
+    def test_agent_review_preserves_origin_without_changing_geometry_or_authority(self):
+        from jsonschema import Draft202012Validator
+        from autospine_workbench.automation.character_region_mounts import valid_decision
+        files, decision = self.source()
+        human, _ = generate(files, decision)
+        decision['decision_source'] = 'agent_review'
+        out, report = generate(files, decision)
+        saved = json.loads(out['region-mount-decision.json'])
+        self.assertEqual(saved['decision_source'], 'agent_review')
+        self.assertEqual(out['skeleton.json'], human['skeleton.json'])
+        self.assertEqual(out['numeric-reference.json'], human['numeric-reference.json'])
+        self.assertEqual(report['authority'], 'none')
+        self.assertFalse(report['production_authorized'])
+        schema = json.loads((Path(__file__).resolve().parents[1]/'schemas/region-mount-decision-v1.schema.json').read_bytes())
+        Draft202012Validator(schema).validate(saved)
+        for source in ('policy_auto', 'accepted', 'unknown'):
+            self.assertFalse(valid_decision(dict(decision, decision_source=source)))
+
     def test_wrong_source_parent_or_bound_region_rejected(self):
         files,d=self.source()
         for change in ({'source_bundle_sha256':'f'*64},{'parents':{'skirt':'absent'}},{'parents':{'shirt':'chest'}}):

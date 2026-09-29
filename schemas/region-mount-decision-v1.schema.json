@@ -8,7 +8,7 @@
     "parents": {"type": "object", "minProperties": 1, "maxProperties": 64,
       "propertyNames": {"pattern": "^[A-Za-z0-9_-]{1,120}$"},
       "additionalProperties": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,120}$"}},
-    "decision_source": {"const": "human_confirmation"},
+    "decision_source": {"enum": ["human_confirmation", "agent_review"]},
     "reversible": {"const": true}
   }
 }
