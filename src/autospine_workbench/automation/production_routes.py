@@ -22,7 +22,8 @@ def dispatch_production(parts, handler, method):
         return False
     from .web_routes import _error, _require_mutation
     tail = parts[2:]
-    allowed = ('GET, HEAD, POST, OPTIONS' if not tail else 'GET, HEAD, OPTIONS' if len(tail) == 1
+    allowed = ('GET, HEAD, POST, OPTIONS' if not tail else 'GET, HEAD, OPTIONS' if len(tail) == 1 or
+               len(tail) == 2 and tail[1] == 'coverage'
                else 'POST, OPTIONS' if len(tail) == 2 and tail[1] in ('resume', 'cancel', 'retry', 'revise') else None)
     if allowed is None:
         _error(handler, 404, 'production_route_not_found')
@@ -55,6 +56,9 @@ def dispatch_production(parts, handler, method):
                     raise PipelineRunError('production_request_invalid')
                 result = getattr(manager, tail[1])(tail[0], body['expected_revision'])
             handler._send_visual_json(202, result)
+        elif len(tail) == 2 and tail[1] == 'coverage':
+            from .production_coverage import inspect
+            handler._send_visual_json(200, inspect(manager, tail[0]))
         else:
             handler._send_visual_json(200, manager.get(tail[0]) if tail else dict(runs=manager.list()))
     except HttpJsonRequestError as exc:

@@ -34,6 +34,7 @@ class PipelineWebJobs:
         self._sleeves = None
         self._characters = None
         self._production = None
+        self._production_batches = None
 
     def _path(self, job_id, *, create=False):
         if type(job_id) is not str or not re.fullmatch(r"job-[0-9a-f]{32}", job_id):
@@ -146,6 +147,8 @@ class PipelineWebJobs:
             for active in self._active.values():
                 active["cancel"].set()
         self._pool.shutdown(wait=True)
+        if self._production_batches is not None:
+            self._production_batches.close()
         if self._production is not None:
             self._production.close()
         if self._characters is not None:

@@ -1,5 +1,7 @@
 import {projectOptionLabel} from './project-option-label.js';
 import {createProductionIntake} from './production-intake.js';
+import {createProductionBatches} from './production-batches.js';
+import {createProductionCoverage} from './production-coverage.js';
 import {appendStageReview} from './motion-stage-review.js';
 import {appendReadiness} from './motion-readiness.js';
 const $=id=>document.getElementById(id);
@@ -8,6 +10,7 @@ const states={pending:'准备中',running:'处理中',reused:'沿用已有结果
 const reasons={joint_review_required:'请检查并保存关节点，然后点击“继续”。已完成步骤会保留。',character_route_confirmation_required:'请在角色编辑中选择普通肢体或袖装处理路线，然后继续。',character_sleeve_resolution_required:'已有袖装修复记录需要处理，请先检查该角色的袖装结果。',production_source_changed:'角色或动作来源已变化，请使用“按当前角色修正重建”建立关联的新版本。',animated_source_stale:'动画来源需要同步已保存的修改，请在角色编辑中更新来源后重建。'};
 let selected=new URL(location.href).searchParams.get('run'),runs=[],options=null,busy=false;
 let evidenceJob=null;
+const coverage=createProductionCoverage(api);
 function projectName(run){return Array.from($('project').options).find(p=>p.value===run.request.project_id)?.textContent||run.request.project_id;}
 async function evidence(job){
   if(evidenceJob===job)return;evidenceJob=job;
@@ -26,6 +29,7 @@ function render(){
   $('runs').replaceChildren();
   for(const run of runs){const b=node('button',`${projectName(run)} · ${states[run.status]||run.status}`);b.setAttribute('aria-current',String(run.run_id===selected));b.onclick=()=>{selected=run.run_id;history.replaceState(null,'',`?run=${selected}`);render();};$('runs').append(b);}
   const run=runs.find(r=>r.run_id===selected);if(!run)return;
+  void coverage(run);
   $('summary').replaceChildren(node('h2',`${projectName(run)} · ${states[run.status]||run.status}`),node('p',`创建于 ${new Date(run.created_at).toLocaleString()} · 更新于 ${new Date(run.updated_at).toLocaleTimeString()}`));
   $('stages').replaceChildren();for(const key of Object.keys(labels)){const row=run.stages[key];if(!row)continue;const li=node('li','');li.dataset.state=row.status;li.append(node('span',labels[key]||key),node('strong',states[row.status]||row.status));$('stages').append(li);}
   $('detail').textContent=run.status==='blocked'&&run.reason_code?`${reasons[run.reason_code]||'此步骤未完成，可查看角色来源与绑定，或重试失败步骤。'}\n诊断：${run.reason_code}`:'技术检查与人工验收分别记录；候选可下载不代表所有视觉问题都已解决。';
@@ -57,5 +61,12 @@ $('create').onsubmit=async event=>{
 };
 $('refresh').onclick=refresh;
 await refresh();
+createProductionBatches({api,settings:()=>{
+  if(!options)throw Error('请先刷新角色与动作列表');
+  const body_options=structuredClone(options.body_options),joint_config=structuredClone(options.joint_config);
+  body_options.projection.keys[0].yaw=Number($('yaw').value);
+  for(const group of ['face','hair','cloth'])joint_config[group].enabled=$(group).checked;
+  return {body_options,joint_config};
+},openRun:async id=>{selected=id;history.replaceState(null,'',`?run=${id}`);await refreshRuns();$('summary').scrollIntoView({behavior:'smooth'});}});
 createProductionIntake({refresh,selectProject:id=>{$('project').value=id;},selectSource:id=>{$('source').value=id;}});
 setInterval(()=>{if(!busy&&!document.hidden)refreshRuns().catch(e=>{$('status').textContent=`读取进度失败：${e.message}。任务记录保留，可刷新重试。`;});},4000);

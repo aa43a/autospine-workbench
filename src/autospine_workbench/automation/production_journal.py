@@ -24,8 +24,8 @@ class ProductionJournal:
             raise PipelineRunError('production_run_id_invalid')
         return directory(self.root / run_id, create=create)
 
-    def create(self, request):
-        run_id = 'production-' + uuid4().hex
+    def create(self, request, *, run_id=None):
+        run_id = run_id or 'production-' + uuid4().hex
         self.folder(run_id, True)
         value = dict(schema=SCHEMA, run_id=run_id, revision=0, request=deepcopy(request),
                      status='pending', created_at=now(), updated_at=now(), authority='none',

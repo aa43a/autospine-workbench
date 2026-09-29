@@ -36,6 +36,26 @@ class ProductionJobs:
         if self._stop.is_set():
             raise PipelineRunError('pipeline_manager_closed')
 
+    def ensure_reserved(self, request, run_id):
+        """Recover an exact batch reservation, never launch a second run on replay."""
+        self.driver.validate(request)
+        with self._lock:
+            self._require_open()
+            folder = self.journal.folder(run_id, create=True)
+            if folder.exists() and any(folder.glob('revision-*.json')):
+                run = self.journal.read(run_id)
+                if run['request'] != request:
+                    raise PipelineRunError('production_reserved_request_conflict')
+            else:
+                run = self.journal.create(request, run_id=run_id)
+            if run['status'] in ACTIVE | {'needs_review', 'stage_accepted'}:
+                self._schedule(run_id)
+            return run
+
+    def is_active(self, run_id):
+        with self._lock:
+            return run_id in self._active
+
     def _schedule(self, run_id):
         self._require_open()
         if run_id not in self._active:
