@@ -1,6 +1,7 @@
 import {projectOptionLabel} from './project-option-label.js';
 import {createProductionIntake} from './production-intake.js';
 import {createProductionEntrances} from './production-entrances.js';
+import {createProductionMeasurements} from './production-measurements.js';
 import {createProductionBatches} from './production-batches.js';
 import {createProductionCoverage} from './production-coverage.js';
 import {appendStageReview} from './motion-stage-review.js';
@@ -12,6 +13,7 @@ const reasons={joint_review_required:'请检查并保存关节点，然后点击
 let selected=new URL(location.href).searchParams.get('run'),runs=[],options=null,busy=false;
 let evidenceJob=null;
 const coverage=createProductionCoverage(api);
+const measurements=createProductionMeasurements(api);
 function projectName(run){return Array.from($('project').options).find(p=>p.value===run.request.project_id)?.textContent||run.request.project_id;}
 async function evidence(job){
   if(evidenceJob===job)return;evidenceJob=job;
@@ -30,6 +32,7 @@ function render(){
   $('runs').replaceChildren();
   for(const run of runs){const b=node('button',`${projectName(run)} · ${states[run.status]||run.status}`);b.setAttribute('aria-current',String(run.run_id===selected));b.onclick=()=>{selected=run.run_id;history.replaceState(null,'',`?run=${selected}`);render();};$('runs').append(b);}
   const run=runs.find(r=>r.run_id===selected);if(!run)return;
+  measurements(run);
   void coverage(run);
   $('summary').replaceChildren(node('h2',`${projectName(run)} · ${states[run.status]||run.status}`),node('p',`创建于 ${new Date(run.created_at).toLocaleString()} · 更新于 ${new Date(run.updated_at).toLocaleTimeString()}`));
   $('stages').replaceChildren();for(const key of Object.keys(labels)){const row=run.stages[key];if(!row)continue;const li=node('li','');li.dataset.state=row.status;li.append(node('span',labels[key]||key),node('strong',states[row.status]||row.status));$('stages').append(li);}

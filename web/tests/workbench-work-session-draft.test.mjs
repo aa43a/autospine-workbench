@@ -4,11 +4,11 @@ import {createWorkSessions} from '../modules/workbench-work-sessions.js';
 import {createSessionDrafts} from '../modules/workbench-work-session-draft.js';
 const all=n=>[n,...n.children.flatMap(all)],flush=()=>new Promise(r=>setImmediate(r));
 const memory=()=>{const map=new Map();return {getItem:k=>map.get(k),setItem:(k,v)=>map.set(k,v),removeItem:k=>map.delete(k)};};
-function setup(storage,clock,posts,sessions=[]){
+function setup(storage,clock,posts,sessions=[],options={}){
  const listeners={},host={sessionStorage:storage,addEventListener:(k,v)=>listeners[k]=v,removeEventListener:k=>delete listeners[k],setInterval:f=>(listeners.tick=f,1),clearInterval:()=>delete listeners.tick};
- const document={defaultView:host,createElement(tag){return {tag,children:[],append(...n){this.children.push(...n)},replaceChildren(...n){this.children=n},setAttribute(){}}}};
- const ui=createWorkSessions(document,{clock,context:()=>({projectId:'p'}),apiRequest:async(url,init)=>{if(init.method==='POST')posts.push(JSON.parse(init.body));return {project_id:'p',authority:'none',source_sha256:'source',head_sha256:null,sessions,metrics:{recorded_minutes:null}};}});
- return {ui,listeners,button:text=>all(ui.element).find(n=>n.textContent===text)};
+ const document={defaultView:host,hidden:false,addEventListener:(k,v)=>listeners[k]=v,removeEventListener:k=>delete listeners[k],createElement(tag){return {tag,children:[],append(...n){this.children.push(...n)},replaceChildren(...n){this.children=n},setAttribute(){}}}};
+ const ui=createWorkSessions(document,{...options,clock,context:()=>({projectId:'p'}),apiRequest:async(url,init)=>{if(init.method==='POST')posts.push(JSON.parse(init.body));return {project_id:'p',authority:'none',source_sha256:'source',head_sha256:null,sessions,metrics:{recorded_minutes:null}};}});
+ return {ui,listeners,document,button:text=>all(ui.element).find(n=>n.textContent===text)};
 }
 test('reload restores paused exact segment, excluding offline elapsed time',async()=>{
  const storage=memory(),posts=[];let now=100000;
@@ -38,4 +38,13 @@ test('storage denial warns without losing the in-memory segment',async()=>{
  let now=100000;const posts=[],view=setup(storage,()=>now,posts);view.ui.sync();await flush();view.button('开始本阶段计时').onclick();
  assert.ok(all(view.ui.element).some(n=>n.textContent?.includes('浏览器未能暂存')));
  now+=3000;view.button('暂停并保存').onclick();await flush();assert.equal(posts[0].payload.seconds,3);view.ui.dispose();
+});
+test('hidden production tab pauses without inventing a saved operator segment',async()=>{
+ const posts=[];let now=100000;
+ const view=setup(memory(),()=>now,posts,[],{pauseWhenHidden:true,scopeLabel:'本次制作'});
+ view.ui.sync();await flush();view.button('开始本阶段计时').onclick();now+=4000;
+ view.document.hidden=true;view.listeners.visibilitychange();now+=600000;
+ assert.equal(posts.length,0);assert.ok(view.button('本次制作人工工作计时 · 有未保存计时'));
+ view.button('暂停并保存').onclick();await flush();assert.equal(posts[0].payload.seconds,4);view.ui.dispose();
+ assert.equal(view.listeners.visibilitychange,undefined);
 });

@@ -22,6 +22,16 @@ class ProductionRouteTests(unittest.TestCase):
         self.assertTrue(dispatch_production(['api','production','id','erase'],handler,'POST'))
         self.assertEqual(handler._send_visual_json.call_args.args[0],404)
 
+    def test_work_record_requires_mutation_authorization_and_metrics_are_readonly(self):
+        handler=self.handler()
+        with patch('autospine_workbench.automation.production_routes.manager_for') as factory:
+            dispatch_production(['api','production','id','work-sessions'],handler,'POST')
+            factory.assert_not_called()
+        self.assertEqual(handler._send_visual_json.call_args.args[0],403)
+        handler=self.handler()
+        dispatch_production(['api','production','id','metrics'],handler,'POST')
+        self.assertEqual(handler._send_bytes.call_args.args[0],405)
+
     def test_revision_payload_passes_only_expected_fields(self):
         handler=self.handler();handler.headers['Origin']='http://127.0.0.1:8918'
         handler.headers['X-Autospine-Intent']='pipeline-preview'

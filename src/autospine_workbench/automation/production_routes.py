@@ -22,8 +22,8 @@ def dispatch_production(parts, handler, method):
         return False
     from .web_routes import _error, _require_mutation
     tail = parts[2:]
-    allowed = ('GET, HEAD, POST, OPTIONS' if not tail else 'GET, HEAD, OPTIONS' if len(tail) == 1 or
-               len(tail) == 2 and tail[1] == 'coverage'
+    allowed = ('GET, HEAD, POST, OPTIONS' if not tail or len(tail)==2 and tail[1]=='work-sessions' else 'GET, HEAD, OPTIONS' if len(tail) == 1 or
+               len(tail) == 2 and tail[1] in ('coverage','metrics')
                else 'POST, OPTIONS' if len(tail) == 2 and tail[1] in ('resume', 'cancel', 'retry', 'revise') else None)
     if allowed is None:
         _error(handler, 404, 'production_route_not_found')
@@ -47,6 +47,9 @@ def dispatch_production(parts, handler, method):
             body = read_json_object_request(handler, maximum_bytes=128000)
             if not tail:
                 result = manager.submit(body)
+            elif tail[1]=='work-sessions':
+                from .production_measurements import save
+                result=save(manager,tail[0],body)
             elif tail[1] == 'revise':
                 if set(body) - {'expected_revision', 'joint_config'} or 'expected_revision' not in body:
                     raise PipelineRunError('production_request_invalid')
@@ -56,6 +59,9 @@ def dispatch_production(parts, handler, method):
                     raise PipelineRunError('production_request_invalid')
                 result = getattr(manager, tail[1])(tail[0], body['expected_revision'])
             handler._send_visual_json(202, result)
+        elif len(tail)==2 and tail[1] in ('metrics','work-sessions'):
+            from .production_measurements import metrics,overview
+            handler._send_visual_json(200,(metrics if tail[1]=='metrics' else overview)(manager,tail[0]))
         elif len(tail) == 2 and tail[1] == 'coverage':
             from .production_coverage import inspect
             handler._send_visual_json(200, inspect(manager, tail[0]))
