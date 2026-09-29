@@ -51,6 +51,17 @@ class DeliveryTests(TestCase):
                     self.assertEqual(value['status'], 'needs_review', value)
                     self.assertEqual(value['visual_status'], 'not_reviewed')
                     self.assertTrue(manager.download(job).startswith(b'PK'))
+                    raw, mime = manager.review_file(job, ['report.json'])
+                    self.assertEqual(mime, 'application/json')
+                    self.assertIn(value['artifact_sha256'].encode(), raw)
+                    for parts in (['..', 'report.json'], ['missing.png'], ['a\\report.json']):
+                        with self.assertRaisesRegex(RuntimeError, 'pipeline_artifact_not_found'):
+                            manager.review_file(job, parts)
+                    report_path = manager.folder(job)/value['attempt']/'runtime/report.json'
+                    report_path.write_bytes(b'changed')
+                    with self.assertRaisesRegex(RuntimeError, 'production_delivery_report_changed'):
+                        manager.review_file(job, ['report.json'])
+                    report_path.write_bytes(raw)
                     self.assertEqual(manager.submit(dict(run_ids=list(rows)))['job_id'], job)
                     self.assertEqual(len(calls), 1)
                     with self.assertRaisesRegex(RuntimeError, 'conflict'):

@@ -47,8 +47,11 @@ def dispatch_deliveries(parts, handler, method):
                 value = manager.resume(tail[0], body['expected_revision'])
             handler._send_visual_json(202, value)
         elif len(tail) >= 3:
-            from .character_player import read
-            raw, mime = read(manager, None, tail[0], tail[2:])
+            if tail[2:] == ['player.html'] or tail[2:3] == ['player-assets']:
+                from .character_player import read
+                raw, mime = read(manager, None, tail[0], tail[2:])
+            else:
+                raw, mime = manager.review_file(tail[0], tail[2:])
             handler._send_bytes(200, raw, mime, visual_review=True)
         elif len(tail) == 2:
             raw = manager.download(tail[0])

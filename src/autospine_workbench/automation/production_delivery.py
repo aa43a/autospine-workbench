@@ -200,6 +200,22 @@ class ProductionDeliveries:
         self._validate(value)
         return output.getvalue()
 
+    def review_file(self, job, parts):
+        """Serve only captured, inventoried evidence alongside the live player."""
+        from mimetypes import guess_type
+        if not parts or any(not p or p in ('.', '..') or '/' in p or '\\' in p for p in parts):
+            raise PipelineRunError('pipeline_artifact_not_found')
+        value, _, _ = self.review_context(None, job)
+        name = '/'.join(parts)
+        expected = value['runtime']['files'].get(name)
+        if expected is None:
+            raise PipelineRunError('pipeline_artifact_not_found')
+        root = directory(self.folder(job) / value['attempt'] / 'runtime')
+        raw = read_real_file(root.joinpath(*parts), 256 << 20, 'delivery evidence')
+        if sha256(raw).hexdigest() != expected:
+            raise PipelineRunError('production_delivery_report_changed')
+        return raw, guess_type(name)[0] or 'application/octet-stream'
+
     def close(self):
         self._stop.set()
         self._pool.shutdown(wait=True)
