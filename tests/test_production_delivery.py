@@ -26,7 +26,8 @@ class DeliveryTests(TestCase):
                 for i, f in enumerate(fixtures)}
             projects = SimpleNamespace(state_root=root, workspace_root=root)
             production = SimpleNamespace(journal=SimpleNamespace(root=root/'jobs/production-v1'),
-                driver=SimpleNamespace(motions=SimpleNamespace(projects=projects), validate=lambda request: None),
+                driver=SimpleNamespace(motions=SimpleNamespace(projects=projects,
+                    get=lambda job: dict(status='succeeded', result=dict(artifact_sha256=fixtures[int(job[-1])]['artifact_sha256']))), validate=lambda request: None),
                 get=lambda run: deepcopy(rows[run]))
             def context(manager, job):
                 item = fixtures[int(job[-1])]
@@ -54,6 +55,12 @@ class DeliveryTests(TestCase):
                     raw, mime = manager.review_file(job, ['report.json'])
                     self.assertEqual(mime, 'application/json')
                     self.assertIn(value['artifact_sha256'].encode(), raw)
+                    with patch.object(manager, '_validate', side_effect=RuntimeError('expensive upstream validation')):
+                        _, preview, _ = manager.player_context(None, job)
+                        self.assertIn('skeleton.json', preview)
+                        self.assertNotIn('numeric-reference.json', preview)
+                        with self.assertRaisesRegex(RuntimeError, 'expensive upstream'):
+                            manager.download(job)
                     for parts in (['..', 'report.json'], ['missing.png'], ['a\\report.json']):
                         with self.assertRaisesRegex(RuntimeError, 'pipeline_artifact_not_found'):
                             manager.review_file(job, parts)
@@ -73,6 +80,8 @@ class DeliveryTests(TestCase):
                     rows['run-1']['stages']['joint']['artifact_sha256'] = '0'*64
                     with self.assertRaisesRegex(RuntimeError, 'production_completed_child_changed'):
                         manager.download(job)
+                    with self.assertRaisesRegex(RuntimeError, 'production_delivery_source_changed'):
+                        manager.player_context(None, job)
                 finally:
                     manager.close()
                 reopened = ProductionDeliveries(production)

@@ -21,7 +21,8 @@ def read(manager, project, job, parts):
     if name in {'client.js', 'style.css'}:
         filename = 'character-player.' + ('js' if name == 'client.js' else 'css')
         return (web/filename).read_bytes(), 'text/javascript' if name.endswith('.js') else 'text/css'
-    result, files, raw = manager.review_context(project, job)
+    load = getattr(manager, 'player_context', manager.review_context)
+    result, files, raw = load(project, job)
     report = json.loads(raw)
     if report.get('bundle_sha256') != result['artifact_sha256']:
         raise PipelineRunError('character_review_source_mismatch')

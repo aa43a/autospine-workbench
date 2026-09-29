@@ -205,7 +205,7 @@ class ProductionDeliveries:
         from mimetypes import guess_type
         if not parts or any(not p or p in ('.', '..') or '/' in p or '\\' in p for p in parts):
             raise PipelineRunError('pipeline_artifact_not_found')
-        value, _, _ = self.review_context(None, job)
+        value, _ = self._preview_record(job)
         name = '/'.join(parts)
         expected = value['runtime']['files'].get(name)
         if expected is None:
@@ -215,6 +215,38 @@ class ProductionDeliveries:
         if sha256(raw).hexdigest() != expected:
             raise PipelineRunError('production_delivery_report_changed')
         return raw, guess_type(name)[0] or 'application/octet-stream'
+
+    def _preview_record(self, job):
+        """An immutable capture preview; upstream rebuild gates stay on writes/download."""
+        value = self.get(job)
+        if value['status'] not in ('needs_review', 'stage_accepted'):
+            raise PipelineRunError('production_delivery_not_ready')
+        for source in value['request']['sources']:
+            run = self.production.get(source['run_id'])
+            joint = run['stages']['joint']
+            child = self.production.driver.motions.get(source['job_id'])
+            if (joint.get('job_id') != source['job_id'] or joint.get('status') != 'succeeded'
+                    or joint.get('artifact_sha256') != source['artifact_sha256']
+                    or child.get('status') != 'succeeded'
+                    or child.get('result', {}).get('artifact_sha256') != source['artifact_sha256']):
+                raise PipelineRunError('production_delivery_source_changed')
+        if not re.fullmatch('attempt-[a-f0-9]{32}', value['attempt']):
+            raise PipelineRunError('production_delivery_invalid')
+        root = directory(self.folder(job)/value['attempt']/'runtime')
+        raw = read_real_file(root/'report.json', 256 << 20, 'delivery runtime report')
+        if sha256(raw).hexdigest() != value['runtime']['files']['report.json']:
+            raise PipelineRunError('production_delivery_report_changed')
+        return value, raw
+
+    def player_context(self, project, job):
+        value, raw = self._preview_record(job)
+        folder = directory(self.store.root/value['artifact_sha256'])
+        inventory = read_document(folder/'inventory.json')
+        if canonical_sha256(inventory) != value['artifact_sha256']:
+            raise PipelineRunError('pipeline_artifact_invalid')
+        names = [n for n in inventory if n in ('skeleton.json', 'skeleton.atlas') or n.endswith('.png')]
+        files = {n: self.store.read_file(value['artifact_sha256'], n) for n in names}
+        return value, files, raw
 
     def close(self):
         self._stop.set()
