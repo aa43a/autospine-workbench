@@ -3,19 +3,19 @@ from copy import deepcopy
 import math
 
 SCHEMA = 'autospine.joint-animation-config/v1'
-PROFILE = 'joint-face-hair-cloth-v1'
+PROFILE = 'joint-face-hair-cloth-follow-v2'
 
 
 def defaults():
     from . import joint_face, joint_secondary
     secondary = joint_secondary.defaults()
     return dict(schema=SCHEMA, seed=0, fps=30, loop=False,
-                face=joint_face.defaults(), hair=secondary['hair'], cloth=secondary['cloth'])
+                face=joint_face.defaults(), hair=secondary['hair'], cloth=secondary['cloth'], objects=secondary['objects'])
 
 
 def normalize(value, duration):
     from . import joint_face, joint_secondary
-    if not isinstance(value, dict) or set(value) - {'schema', 'seed', 'fps', 'loop', 'face', 'hair', 'cloth'}:
+    if not isinstance(value, dict) or set(value) - {'schema', 'seed', 'fps', 'loop', 'face', 'hair', 'cloth', 'objects'}:
         raise ValueError('joint_animation_config_invalid')
     result = defaults()
     result.update(deepcopy(value))
@@ -28,8 +28,8 @@ def normalize(value, duration):
     if not math.isfinite(duration) or not 0 < duration <= 120:
         raise ValueError('joint_animation_duration_invalid')
     result['face'] = joint_face.normalize(result['face'], duration)
-    secondary = joint_secondary.normalize(dict(hair=result['hair'], cloth=result['cloth'], loop=result['loop']), duration)
-    result['hair'], result['cloth'] = secondary['hair'], secondary['cloth']
+    secondary = joint_secondary.normalize(dict(hair=result['hair'], cloth=result['cloth'], objects=result['objects'], loop=result['loop']), duration)
+    for group in ('hair', 'cloth', 'objects'): result[group] = secondary[group]
     return result
 
 
@@ -56,11 +56,14 @@ def controls():
                             ('turn', [('yaw', '五官左右'), ('pitch', '五官上下')])]:
         for key, label in fields:
             add('face', channel+'.'+key, label, 0 if key == 'open' else -1, 1, .05, channel)
-    for group, label in [('hair', '发束'), ('cloth', '裙袖')]:
+    for group, label in [('hair', '发束'), ('cloth', '裙袖'), ('objects', '挂饰与物件')]:
         add(group, 'enabled', label+'响应')
         add(group, 'strength', label+'强度', 0, 2, .05)
         add(group, 'stiffness', '回弹刚度', 9, 100, 1)
         add(group, 'damping', '阻尼比', .3, 2, .05)
         add(group, 'max_angle', '摆动上限 / 度', 0, 10, .5)
     add('hair', 'root_fraction', '固定发根比例', .15, .75, .05)
+    add('hair', 'cascade', '发梢跟随上游发束（级联惯性）')
+    add('objects', 'anchor_x', '挂点横向比例（父骨坐标）', 0, 1, .05)
+    add('objects', 'anchor_y', '挂点纵向比例（0 下端 / 1 上端）', 0, 1, .05)
     return rows

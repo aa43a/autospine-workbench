@@ -1,4 +1,4 @@
-const names={body:'身体主动作',face:'脸部与表情',hair:'发束响应',cloth:'裙袖响应'};
+const names={body:'身体主动作',face:'脸部与表情',hair:'发束响应',cloth:'裙袖响应',objects:'挂饰与物件随动'};
 const channels={blink:'眨眼',gaze:'视线',brows:'眉毛',mouth:'口型',turn:'五官转向'};
 const node=(tag,text)=>{const e=document.createElement(tag);if(text)e.textContent=text;return e;};
 export function createJointTimeline(container,{seek,change,focus}){

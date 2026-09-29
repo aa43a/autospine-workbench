@@ -75,3 +75,21 @@ test('mouth replacement is preserved in drafts and reversible without accepting 
   state.mouthAsset(null);state.undo();assert.deepEqual(state.config.face.mouth.template_image,image);
   assert.throws(()=>state.mouthAsset({...image,path:'C:/private.png'}),/格式/);
 });
+
+test('legacy draft migrates only new optional controls; object pivot changes are undoable',()=>{
+  const meta=structuredClone(metadata),old=structuredClone(meta.defaults);
+  meta.defaults.hair.cascade=false;
+  meta.defaults.objects={enabled:false,strength:1,anchor_x:.5,anchor_y:1,slots:[],overrides:{}};
+  meta.controls.push({group:'hair',key:'cascade',label:'级联',type:'boolean'},
+    {group:'objects',key:'enabled',label:'物件',type:'boolean'});
+  meta.inventory={objects:[{slot:'doll',state:'available'}],hair:[{slot:'back',state:'available'}]};
+  const migrated=validateJointConfig(old,meta);
+  assert.equal(migrated.objects.enabled,false);assert.equal(migrated.hair.cascade,false);
+  assert.equal(old.objects,undefined);
+  const state=createJointState();state.load(meta,parent);state.set(migrated);
+  state.change('objects','enabled',true);state.local('objects','doll',{anchor_x:.3,anchor_y:.8});
+  assert.deepEqual(restoreJointDraft(jointDraft(meta,state.config),meta).objects.overrides.doll,{anchor_x:.3,anchor_y:.8});
+  state.undo();assert.deepEqual(state.config.objects.overrides,{});
+  assert.throws(()=>state.local('objects','doll',{root_fraction:.4}),/范围/);
+  assert.throws(()=>state.local('hair','back',{anchor_x:.4}),/范围/);
+});

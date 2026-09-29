@@ -5,9 +5,13 @@ import {createJointLocalOptions} from './motion-joint-editor-local.js';
 import {createJointMouthAsset} from './motion-joint-editor-mouth.js';
 import {isJointActive,canRetryJoint,jointValue,JOINT_CHANNELS} from './motion-joint-editor-state.js';
 
-const groupNames={face:'脸部与表情',hair:'发束摆动',cloth:'裙袖响应'};
+const groupNames={face:'脸部与表情',hair:'发束摆动',cloth:'裙袖响应',objects:'挂饰与物件随动'};
 const channelNames={blink:'眨眼',gaze:'视线',brows:'眉毛',mouth:'口型',turn:'小幅五官转向'};
 const reasons={head_missing:'缺少头骨',attachment_variants:'包含多个附件，需明确对应关系',existing_hair_deform:'已有发束变形，保留现有结果',
+  joint_follow_multiple_drivers:'已有多骨绑定，保留原变形',joint_follow_existing_deform:'已有局部修形，不转换为刚性摆件',
+  joint_follow_attachment_variants:'包含多个附件，需明确对应关系',joint_follow_attachment_timeline:'包含附件切换，暂不加入物件随动',
+  joint_follow_weighted_mesh_required:'当前附件结构暂不支持挂点随动',
+  joint_follow_residual_preserved:'边缘残余保留原绑定，不作为独立摆件',joint_hair_existing_parent_not_head:'发层已有其他父骨，保留原归属',
   source_image_missing:'缺少来源图片',no_semantic_hair_layers:'未发现可用发层',no_existing_clothing_helpers:'未发现已绑定裙袖辅助骨',
   camera_inertia_requires_unprojected_body_driver:'此身体动作含视角旋转，尚无法区分相机转动与身体惯性；本次未加入发束和裙袖响应',
   new_response_suppressed_for_geometry:'为保留网格形状，本区域新增摆动已关闭；身体动作和原有修形保留',
@@ -24,7 +28,7 @@ export function jointResultSummary(job){
   const result=job.result??{},summary=result.joint_summary??{},lines=[],issues=[];
   const names={disabled:'未启用',blocked:'无法应用',partial:'部分应用',sampled_candidate_requires_visual_review:'已生成，待视觉检查',
     candidate:'已生成，待视觉检查',applied:'已加入候选，待视觉检查',passed:'检查通过',needs_changes:'需处理异常',not_requested:'未要求循环',unavailable:'验证环境不可用'};
-  for(const [key,label]of [['face','脸部'],['secondary','发束与裙袖'],['loop','循环']]){
+  for(const [key,label]of [['face','脸部'],['secondary','发束、裙袖与挂饰'],['loop','循环']]){
     const row=summary[key];if(!row)continue;
     lines.push(`${label}：${names[row.status]||row.status||'尚无状态'}`);
     if(['blocked','partial','needs_changes'].includes(row.status))issues.push(`${label}${names[row.status]}`);
@@ -57,7 +61,7 @@ export function inventoryLines(inventory,config){
   if(!inventory||typeof inventory!=='object')return ['载入后显示当前角色可用的通道。'];
   if(inventory.face?.capabilities){
     const rows=Object.entries(inventory.face.capabilities).map(([key,available])=>`${channelNames[key]||key}：${available?'可用':'缺少独立素材或兼容绑定'}`);
-    for(const group of ['hair','cloth'])for(const row of inventory[group]??[])
+    for(const group of ['hair','cloth','objects'])for(const row of inventory[group]??[])
       rows.push(`${groupNames[group]} · ${row.name||row.slot}：${row.state==='available'?'可用':reasons[row.reason]||row.reason||'暂不可用'}`);
     for(const reason of [...(inventory.face.limitations??[]),...(inventory.limitations??[])]){
       if(reason==='mouth_is_source_art_parameterization_not_phoneme_or_new_open_mouth_art'&&config?.face?.mouth?.template_enabled){
@@ -78,7 +82,7 @@ export function inventoryLines(inventory,config){
 export function createJointView(container,actions){
   let time=0,currentState=null,anchorForm=null,anchorCanvas=null,viewEpoch=0;
   container.classList.add('joint-editor');container.setAttribute('aria-label','脸部、头发与服装联合动画');
-  const title=element('h2','联合动画 · 叠加脸部、头发与裙袖');
+  const title=element('h2','联合动画 · 表情、发束、裙袖与挂饰');
   const intro=element('p','载入已有身体动作候选，调整表情和次级运动后构建同一个 Spine 包。已接受的历史动作也可直接作为来源。');
   const source=element('p','尚未载入身体动作候选。',{'data-joint':'source'});
   const timeline=element('p','使用上方共用时间轴。',{'data-joint':'time'});
@@ -121,10 +125,11 @@ export function createJointView(container,actions){
       }
       if(!definitions.length)set.append(element('p','此角色暂未提供可调整通道。'));
       for(const c of definitions)control(channelPanels.get(c.key.split('.')[0])||set,c,jointValue(config[group],c.key));
-      if(['hair','cloth'].includes(group)){
+      if(['hair','cloth','objects'].includes(group)){
+        if(group==='objects')set.append(element('p','挂饰整体围绕挂点摆动，沿用已绑定父骨。挂点先取父骨坐标上缘中点，可在局部参数调整；不模拟布料自碰撞。',{class:'joint-note'}));
         const available=(meta.inventory?.[group]??[]).filter(row=>row.state==='available');
         if(available.length){const panel=element('details','',{class:'joint-targets'});panel.append(element('summary','选择响应区域（默认全部）'));
-          for(const region of available){const label=element('label',region.name||region.slot),input=element('input','',{type:'checkbox'});
+          for(const region of available){const label=element('label',`${region.name||region.slot}${region.name?' · '+region.slot:''}`),input=element('input','',{type:'checkbox'});
             input.onchange=()=>{const chosen=available.filter(row=>targets.get(`${group}.${row.slot}`).checked).map(row=>row.slot);actions.targets(group,chosen);};
             label.append(input);panel.append(label);targets.set(`${group}.${region.slot}`,input);}
           set.append(panel);

@@ -5,7 +5,7 @@ test('successful execution keeps blocked secondary channels and inherited QA fai
   const summary=jointResultSummary({status:'succeeded',result:{geometry_passed:false,runtime:{status:'unavailable'},
     joint_summary:{face:{status:'disabled'},secondary:{status:'blocked',skipped:[{reason:'camera_inertia_requires_unprojected_body_driver'}]},loop:{status:'needs_changes'}},
     issues:[{reason_code:'motion_visible_depth_needs_changes'}]}});
-  assert.ok(summary.lines.includes('脸部：未启用'));assert.ok(summary.issues.includes('发束与裙袖无法应用'));
+  assert.ok(summary.lines.includes('脸部：未启用'));assert.ok(summary.issues.includes('发束、裙袖与挂饰无法应用'));
   assert.ok(summary.issues.includes('网格变形检查未通过'));assert.ok(summary.issues.includes('官方 Runtime 尚未验证'));
   assert.ok(summary.issues.includes('身体动作仍有前后遮挡异常'));
 });

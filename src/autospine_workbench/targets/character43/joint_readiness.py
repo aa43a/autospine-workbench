@@ -18,10 +18,10 @@ def append(files, digest, add):
             'joint-animation.json', missing=face.get('missing', []),
             actual_effects=face.get('enabled_effects', []))
     secondary = joint['secondary']
-    if joint['config']['hair']['enabled'] or joint['config']['cloth']['enabled']:
+    if any(joint['config'].get(k, {}).get('enabled') for k in ('hair', 'cloth', 'objects')):
         good = secondary.get('status') == 'applied' and secondary.get('root_error_px', 1) <= 1e-7
-        add('发束与裙袖连接', 'sampled_pass' if good else 'needs_changes',
-            '固定根与袖口边界保持，新增响应通过几何和头身二维代理检查；不代表表面遮挡已通过。',
+        add('发束、裙袖与挂饰连接', 'sampled_pass' if good else 'needs_changes',
+            '检查固定根、袖口边界和物件挂点；新增响应按几何和头身二维代理约束，不代表表面遮挡已通过。',
             'joint-animation.json', skipped=secondary.get('skipped', []),
             root_error_px=secondary.get('root_error_px'))
     loop = joint['loop']

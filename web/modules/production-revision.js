@@ -13,7 +13,7 @@ export function createProductionRevision({api,openRun}){
     yaw.value=String(staticCamera?body.projection.keys[0].yaw:0);yaw.disabled=!staticCamera;
     const label=el('label','固定观察角 / °');label.append(yaw);panel.append(label);
     if(!staticCamera)panel.append(el('p','本任务不是单点观察角，现有相机轨道会完整保留；复杂动作请在动作编辑页调整。'));
-    const checks={};for(const [group,text] of [['face','基础表情'],['hair','发束响应'],['cloth','裙袖响应']]){const l=el('label',text),input=el('input','');input.type='checkbox';input.checked=Boolean(config?.[group]?.enabled);l.prepend(input);panel.append(l);checks[group]=input;}
+    const checks={};for(const [group,text] of [['face','基础表情'],['hair','发束响应'],['cloth','裙袖响应'],['objects','挂饰与物件随动']]){const l=el('label',text),input=el('input','');input.type='checkbox';input.checked=Boolean(config?.[group]?.enabled);l.prepend(input);panel.append(l);checks[group]=input;}
     const preview=el('button','预览受影响步骤'),output=el('div','');panel.append(preview,output);
     let pending=null,generation=0;
     const invalidate=()=>{generation++;pending=null;output.replaceChildren(el('p','参数已变化，请重新预览重建范围。'));};yaw.oninput=invalidate;for(const input of Object.values(checks))input.onchange=invalidate;

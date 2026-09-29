@@ -47,7 +47,7 @@ def build(files, config, *, camera_keys=None, on_progress=None, parent_review=No
     times = sorted(set(times) | set(face_report.get('sample_times', [])))
     progress('joint_secondary')
     document, secondary_report = joint_secondary.apply(files, document, animation,
-        dict(hair=config['hair'], cloth=config['cloth'], loop=config['loop']), times, camera_keys=camera_keys)
+        dict(hair=config['hair'], cloth=config['cloth'], objects=config['objects'], loop=config['loop']), times, camera_keys=camera_keys)
     # Check key midpoints for the added helper tracks, without recursively refining old QA grids.
     new_bones = {b['name'] for b in document['bones']} - {b['name'] for b in source['bones']}
     extra = {k.get('time',0) for n,t in document['animations'][animation].get('bones',{}).items()

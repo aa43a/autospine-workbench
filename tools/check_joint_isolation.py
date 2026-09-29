@@ -19,16 +19,17 @@ def compose(files, document, animation, config, duration, camera_keys=None):
     times = grid(duration, 60)
     output, updates, face = joint_face.apply(files, document, animation, config['face'], times)
     output, secondary = joint_secondary.apply(files, output, animation,
-        {k:config[k] for k in ('hair', 'cloth', 'loop')}, times, camera_keys=camera_keys)
+        {k:config[k] for k in ('hair', 'cloth', 'objects', 'loop') if k in config}, times, camera_keys=camera_keys)
     return output, updates, face, secondary
 
 
 def inspect(files, config, animation, duration, camera_keys=None):
     source = json.loads(files['skeleton.json']); initial_hash = canonical_sha256({n:sha256(v).hexdigest() for n,v in files.items()})
     variants = {}; reports = []; times = [duration*v for v in (0., .11, .35, .59, .83, 1.)]
-    for disabled in ('none', 'all', 'face', 'hair', 'cloth'):
+    channels = ('face', 'hair', 'cloth') + (('objects',) if config.get('objects', {}).get('enabled') else ())
+    for disabled in ('none', 'all') + channels:
         controls = deepcopy(config)
-        for name in ('face', 'hair', 'cloth'):
+        for name in channels:
             if disabled in ('all', name): controls[name]['enabled'] = False
         doc, updates, face, secondary = compose(files, source, animation, controls, duration, camera_keys)
         variants[disabled] = (doc, updates, face, secondary)
@@ -47,7 +48,7 @@ def inspect(files, config, animation, duration, camera_keys=None):
             maximum = max(maximum, max((math.dist(p,q) for slot in unaffected
                 for p,q in zip(a[slot], b[slot], strict=True)), default=0.))
         if maximum > 1e-8: raise ValueError('toggle_changed_unaffected_vertices')
-        prefixes = {'face': ('m5-face-',), 'hair': ('m5-hair-',), 'cloth': ('m5-response-',)}
+        prefixes = {'face': ('m5-face-',), 'hair': ('m5-hair-',), 'cloth': ('m5-response-',), 'objects': ('m5-object-',)}
         if disabled in prefixes and any(b['name'].startswith(prefixes[disabled]) for b in doc['bones']):
             raise ValueError('disabled_channel_helpers_remain')
         if disabled in ('all', 'face') and updates: raise ValueError('disabled_face_assets_remain')
@@ -55,11 +56,11 @@ def inspect(files, config, animation, duration, camera_keys=None):
             replaced_aux_probes=changed, unaffected_slots=len(unaffected), max_body_error_px=maximum,
             generated_assets=len(updates), source_exact=disabled=='all'))
     baseline = variants['none'][0]
-    for disabled in ('face', 'hair', 'cloth'):
+    for disabled in channels:
         current = variants[disabled][0]
-        for channel in ('face', 'hair', 'cloth'):
+        for channel in channels:
             if channel == disabled: continue
-            prefix = {'face':'m5-face-', 'hair':'m5-hair-', 'cloth':'m5-response-'}[channel]
+            prefix = {'face':'m5-face-', 'hair':'m5-hair-', 'cloth':'m5-response-', 'objects':'m5-object-'}[channel]
             original = {n:t for n,t in baseline['animations'][animation].get('bones', {}).items() if n.startswith(prefix)}
             actual = {n:t for n,t in current['animations'][animation].get('bones', {}).items() if n.startswith(prefix)}
             if original != actual: raise ValueError('toggle_changed_enabled_sibling_'+channel)

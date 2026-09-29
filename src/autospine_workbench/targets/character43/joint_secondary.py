@@ -8,30 +8,33 @@ from .affine_pose import matrices
 from .deform_addition import value
 from .joint_secondary_mesh import hair, cloth, remove_probe
 from .joint_spring import bake, grid, solve
+from .joint_follow import HAIR_NAMES, OBJECT_NAMES, semantic, rigid_driver, pendulum
 
 
 def defaults():
     return dict(hair=dict(enabled=False, strength=1., stiffness=36., damping=.85,
-                         max_angle=3., root_fraction=.35, slots=[], overrides={}),
+                         max_angle=3., root_fraction=.35, cascade=False, slots=[], overrides={}),
                 cloth=dict(enabled=False, strength=1., stiffness=25., damping=.9,
-                           max_angle=2., slots=[], overrides={}), loop=False)
+                           max_angle=2., slots=[], overrides={}),
+                objects=dict(enabled=False, strength=1., stiffness=25., damping=.9,
+                             max_angle=2., anchor_x=.5, anchor_y=1., slots=[], overrides={}), loop=False)
 
 
 def normalize(config, duration):
     grid(duration)
-    if not isinstance(config, dict) or set(config)-{'hair', 'cloth', 'loop'}:
+    if not isinstance(config, dict) or set(config)-{'hair', 'cloth', 'objects', 'loop'}:
         raise ValueError('joint_secondary_config')
     result = defaults()
     if 'loop' in config:
         if type(config['loop']) is not bool: raise ValueError('joint_secondary_loop')
         result['loop'] = config['loop']
     ranges = dict(strength=(0., 2.), stiffness=(9., 100.), damping=(.3, 2.),
-                  max_angle=(0., 10.), root_fraction=(.15, .75))
-    for kind in ('hair', 'cloth'):
+                  max_angle=(0., 10.), root_fraction=(.15, .75), anchor_x=(0., 1.), anchor_y=(0., 1.))
+    for kind in ('hair', 'cloth', 'objects'):
         row = config.get(kind, {})
         if not isinstance(row, dict) or set(row)-set(result[kind]): raise ValueError('joint_secondary_fields')
         for key, item in row.items():
-            if key == 'enabled':
+            if key in ('enabled', 'cascade'):
                 if type(item) is not bool: raise ValueError('joint_secondary_enabled')
             elif key == 'slots':
                 if (not isinstance(item, list) or len(item) > 24
@@ -41,6 +44,7 @@ def normalize(config, duration):
                 item = sorted(item)
             elif key == 'overrides':
                 fields = {'strength', 'stiffness', 'damping', 'max_angle'} | ({'root_fraction'} if kind == 'hair' else set())
+                if kind == 'objects': fields |= {'anchor_x', 'anchor_y'}
                 if not isinstance(item, dict) or len(item) > 24:
                     raise ValueError('joint_secondary_overrides')
                 normalized = {}
@@ -64,18 +68,37 @@ def normalize(config, duration):
 def inventory(files, document):
     manifest = json.loads(files.get('character-manifest.json', b'{}'))
     attachments = document['skins'][0]['attachments']; names = {b['name'] for b in document['bones']}
-    hairs = []; clothes = {}; limitations = []
+    hairs = []; clothes = {}; objects = []; limitations = []
     for layer in manifest.get('layers', []):
-        if layer.get('name') not in ('back hair', 'front hair'): continue
+        meaning = semantic(layer.get('name', ''))
+        if meaning not in HAIR_NAMES | OBJECT_NAMES: continue
         for region in layer.get('regions', []):
             slot = region['region_id']
             if slot not in attachments: continue
             attachment = attachments[slot].get(slot, {})
+            if meaning in OBJECT_NAMES:
+                reason = None; driver = None
+                try:
+                    if 'residual' in slot: raise ValueError('joint_follow_residual_preserved')
+                    index, _ = rigid_driver(document, slot)
+                    driver = document['bones'][index]['name']
+                except ValueError as exc:
+                    reason = str(exc)
+                objects.append(dict(slot=slot, name=layer['name'], root_driver=driver,
+                    state='available' if reason is None else 'unsupported', reason=reason,
+                    anchor_policy='adjustable_parent_local_bbox_pivot', anchor_x=.5, anchor_y=1.))
+                continue
             reason = None
             if 'head' not in names: reason = 'head_missing'
             elif set(attachments[slot]) != {slot}: reason = 'attachment_variants'
             elif any(a.get('attachments', {}).get('default', {}).get(slot) for a in document['animations'].values()): reason = 'existing_hair_deform'
             elif 'images/'+attachment.get('path', slot)+'.png' not in files: reason = 'source_image_missing'
+            if reason is None:
+                try:
+                    index, _ = rigid_driver(document, slot)
+                    if document['bones'][index]['name'] != 'head': reason = 'joint_hair_existing_parent_not_head'
+                except ValueError as exc:
+                    reason = str(exc)
             hairs.append(dict(slot=slot, name=layer['name'], state='available' if reason is None else 'unsupported',
                               reason=reason, root_driver='head', root_fraction=.35))
     for bone in document['bones']:
@@ -90,7 +113,7 @@ def inventory(files, document):
         if bone.get('parent') not in row['root_drivers']: row['root_drivers'].append(bone.get('parent'))
     if not hairs: limitations.append('no_semantic_hair_layers')
     if not clothes: limitations.append('no_existing_clothing_helpers')
-    return dict(profile='joint-secondary-inventory-v1', hair=hairs, cloth=list(clothes.values()), limitations=limitations)
+    return dict(profile='joint-secondary-inventory-v2', hair=hairs, cloth=list(clothes.values()), objects=objects, limitations=limitations)
 
 
 def _points(document, animation, time, slot, transforms=None):
@@ -130,15 +153,15 @@ def apply(files, document, animation, config, times, camera_keys=None):
                   original_deform_preserved=True, camera_policy='fixed-camera-required',
                   collision_scope='baseline_relative_planar_head_torso_capsules_not_surface_or_self_collision',
                   visual_acceptance='not_evaluated', root_error_px=0., probe_tracks_replaced=[])
-    if not any(config[k]['enabled'] for k in ('hair', 'cloth')):
+    if not any(config[k]['enabled'] for k in ('hair', 'cloth', 'objects')):
         report['status'] = 'disabled'; return output, report
     if _camera_moving(camera_keys):
         report.update(status='blocked', skipped=[dict(reason='camera_inertia_requires_unprojected_body_driver')])
         return output, report
-    if any(b['name'].startswith(('m5-hair-', 'm5-response-')) for b in document['bones']):
+    if any(b['name'].startswith(('m5-hair-', 'm5-response-', 'm5-object-')) for b in document['bones']):
         raise ValueError('joint_secondary_already_applied')
     catalog = inventory(files, document); records = []; selected = set()
-    for kind in ('hair', 'cloth'):
+    for kind in ('hair', 'cloth', 'objects'):
         cfg = config[kind]
         if not cfg['enabled']: continue
         rows = catalog[kind]; requested = set(cfg['slots'])
@@ -153,7 +176,9 @@ def apply(files, document, animation, config, times, camera_keys=None):
                 trial = deepcopy(output)
                 local_config = {k:v for k,v in cfg.items() if k not in ('enabled', 'slots', 'overrides')}
                 local_config.update(cfg['overrides'].get(slot, {}))
-                record = hair(files, trial, slot, local_config['root_fraction']) if kind == 'hair' else cloth(trial, slot, row['helpers'])
+                if kind == 'hair': record = hair(files, trial, slot, local_config['root_fraction'])
+                elif kind == 'objects': record = pendulum(trial, slot, local_config['anchor_x'], local_config['anchor_y'])
+                else: record = cloth(trial, slot, row['helpers'])
                 record['requested_config'] = local_config
             except ValueError as exc:
                 if not str(exc).startswith(('joint_', 'skirt_')): raise
@@ -169,15 +194,25 @@ def apply(files, document, animation, config, times, camera_keys=None):
     indices = {b['name']: b for b in baseline['bones']}; tracks = output['animations'][animation].setdefault('bones', {})
     for record in records:
         kind = record['region_kind']; cfg = record['requested_config']; spring_reports = []
+        solved = {}
         for helper in record['helpers']:
-            driven = helper if kind == 'hair' else indices[helper]['parent']
-            root_poses = [(p[driven][4], p[driven][5], math.degrees(math.atan2(p[driven][2], p[driven][0]))) for p in poses]
+            driven = helper if kind in ('hair', 'objects') else indices[helper]['parent']
+            # Recompute just the new hair chain, feeding its solved upstream motion
+            # into the lower segment. Existing body and repaired cloth stay frozen.
+            carrier_poses = poses
+            if kind == 'hair' and cfg['cascade'] and solved:
+                from .joint_secondary_guard import _pose
+                carrier_poses = [_pose(p, indices, record['helpers'],
+                    {n: solved[n][i] if n in solved else 0. for n in record['helpers']}) for i,p in enumerate(poses)]
+            root_poses = [(p[driven][4], p[driven][5], math.degrees(math.atan2(p[driven][2], p[driven][0]))) for p in carrier_poses]
             response, evidence = solve(ticks, root_poses, stiffness=cfg['stiffness'], damping=cfg['damping'],
                 strength=cfg['strength']*(.5 if helper.endswith('-lower') or helper.endswith('_lower') else 1.),
                 max_angle=cfg['max_angle'], length=indices[helper].get('length', 100.), loop=config['loop'])
             key_times, key_values, sampling = bake(ticks, response)
+            from .joint_spring import interpolate
+            solved[helper] = [interpolate(key_times, key_values, t) for t in ticks]
             all_key_times.update(key_times)
-            evidence.update(solver_sample_count=len(ticks), **sampling)
+            evidence.update(solver_sample_count=len(ticks), driver_mode='cascaded_hair' if cfg.get('cascade') else 'baseline_parent', **sampling)
             tracks[helper] = {'rotate': [dict(time=t, value=v) for t, v in zip(key_times, key_values, strict=True)]}
             spring_reports.append(dict(helper=helper, **evidence))
         record['springs'] = spring_reports
@@ -200,6 +235,10 @@ def apply(files, document, animation, config, times, camera_keys=None):
             a = _points(baseline, animation, t, slot); b = _points(output, animation, t, slot)
             root_error = max(root_error, max((math.dist(a[i], b[i]) for i in record['pinned_vertices']), default=0.))
             displacement = max(displacement, max((math.dist(p, q) for p, q in zip(a, b, strict=True)), default=0.))
+            if record.get('pivot_helper'):
+                name = record['pivot_helper']
+                p = matrices(baseline, animation, t)[name]; q = matrices(output, animation, t)[name]
+                root_error = max(root_error, math.dist(p[4:6], q[4:6]))
         record['root_error_px'] = root_error; record['peak_sampled_displacement_px'] = displacement
         record.pop('expected_setup', None)
         report['root_error_px'] = max(report['root_error_px'], root_error)
@@ -217,5 +256,6 @@ def apply(files, document, animation, config, times, camera_keys=None):
         status='applied' if records and not report['skipped'] else 'partial' if records else 'blocked',
         preserved=['body_bones', 'source_rgba', 'draw_order', 'source_animation_channels_except_identified_skirt_probe'],
         limitations=['planar_bounded_response', 'hair_root_band_is_adjustable_geometric_proposal',
+                     'object_pivot_is_adjustable_geometric_proposal_not_semantic_mount',
                      'surface_occlusion_requires_joint_runtime_review'])
     return output, report

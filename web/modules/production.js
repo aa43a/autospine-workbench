@@ -91,7 +91,7 @@ $('create').onsubmit=async event=>{
     const target=await api(`/api/projects/${encodeURIComponent(project)}/automation/character/motion-target`);
     const body=structuredClone(options.body_options),config=structuredClone(options.joint_config);
     body.projection.keys[0].yaw=Number($('yaw').value);
-    for(const group of ['face','hair','cloth'])config[group].enabled=$(group).checked;
+    for(const group of ['face','hair','cloth','objects'])config[group].enabled=$(group).checked;
     const run=await api('/api/production',{project_id:project,character_job_id:target.job?.status==='needs_review'?target.job.job_id:null,
       source_job_id:$('source').value,body_options:body,joint_config:config});
     selected=run.run_id;history.replaceState(null,'',`?run=${selected}`);await refreshRuns();
@@ -104,7 +104,7 @@ const productionControls={api,settings:()=>{
   if(!options)throw Error('请先刷新角色与动作列表');
   const body_options=structuredClone(options.body_options),joint_config=structuredClone(options.joint_config);
   body_options.projection.keys[0].yaw=Number($('yaw').value);
-  for(const group of ['face','hair','cloth'])joint_config[group].enabled=$(group).checked;
+  for(const group of ['face','hair','cloth','objects'])joint_config[group].enabled=$(group).checked;
   return {body_options,joint_config};
 },openRun};
 createProductionBatches(productionControls);

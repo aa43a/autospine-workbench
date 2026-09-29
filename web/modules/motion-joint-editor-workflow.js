@@ -8,7 +8,8 @@ const jointStages={joint_inventory:'检查角色通道与素材',joint_face:'生
 const reasons={joint_animation_parent_unavailable:'身体动作候选尚不可用，请先选择构建成功的候选。',
   joint_animation_original_body_required:'请载入原始身体候选，联合动画会从该版本重新生成。',
   joint_animation_body_changed:'身体候选版本不匹配，请重新载入。',joint_animation_config_invalid:'联合动画参数不兼容，请检查关键帧和数值范围。',
-  motion_queue_full:'当前构建队列已满，请等待已有任务完成后再试。',joint_animation_sample_limit:'联合动画采样量超限，请缩短身体动作片段。'};
+  motion_queue_full:'当前构建队列已满，请等待已有任务完成后再试。',joint_animation_sample_limit:'联合动画采样量超限，请缩短身体动作片段。',
+  character_reference_decoded_limit:'角色网格与动作采样的校验数据超过容量上限。请缩短源动作片段后重建；本次未通过，不会省略验证。'};
 function progressText(job){const stage=job.progress?.step||job.step;return buildProgressText({...job,step:jointStages[stage]||job.step,
   progress:{...job.progress,...(jointStages[stage]?{step:jointStages[stage]}:{})}});}
 export function createJointWorkflow({getSelection=()=>null,notify=()=>{},inspect=()=>{},request=jointRequest,

@@ -2,7 +2,7 @@ import {createEditHistory} from './motion-editor-history.js';
 
 export const JOINT_SCHEMA='autospine.joint-animation-config/v1';
 const jobId=/^motion-[a-f0-9]{32}$/,sha=/^[a-f0-9]{64}$/;
-const groups=new Set(['face','hair','cloth']);
+const groups=new Set(['face','hair','cloth','objects']);
 const clone=value=>structuredClone(value);
 const pathParts=key=>{const parts=key.split('.');if(!parts.length||parts.some(p=>!p||['__proto__','constructor','prototype'].includes(p)))throw Error('无效的参数路径。');return parts;};
 export function jointValue(object,key){return pathParts(key).reduce((value,part)=>value?.[part],object);}
@@ -15,7 +15,8 @@ export const isJointActive=job=>['pending','queued','running'].includes(job?.sta
 export const canRetryJoint=job=>['failed','cancelled','canceled','interrupted'].includes(job?.status);
 export const jointDraftKey=meta=>`autospine:joint-animation:${meta.parent_job_id}:${meta.artifact_sha256}`;
 export const JOINT_CHANNELS={blink:['value'],gaze:['x','y'],brows:['lift','tilt'],mouth:['open','wide'],turn:['yaw','pitch']};
-export const JOINT_LOCAL_LIMITS={strength:[0,2],stiffness:[9,100],damping:[.3,2],max_angle:[0,10],root_fraction:[.15,.75]};
+export const JOINT_LOCAL_LIMITS={strength:[0,2],stiffness:[9,100],damping:[.3,2],max_angle:[0,10],root_fraction:[.15,.75],anchor_x:[0,1],anchor_y:[0,1]};
+export const localFieldAllowed=(group,key)=>key==='root_fraction'?group==='hair':key.startsWith('anchor_')?group==='objects':true;
 
 export function validateJointCandidate(job){
   if(job?.kind!=='adapt'||job.status!=='succeeded'||!jobId.test(job.job_id)||!sha.test(job.result?.artifact_sha256))
@@ -24,6 +25,10 @@ export function validateJointCandidate(job){
 }
 export function validateJointConfig(value,meta){
   if(!value||value.schema!==JOINT_SCHEMA)throw Error('联合动画草稿格式不兼容。');
+  value=clone(value);
+  // Migrate only the newly added optional fields, after source identity checks.
+  if(value.objects===undefined&&meta.defaults?.objects)value.objects=clone(meta.defaults.objects);
+  if(value.hair&&value.hair.cascade===undefined&&meta.defaults?.hair?.cascade!==undefined)value.hair.cascade=false;
   const result=clone(value);
   for(const c of meta.controls){
     if(!groups.has(c.group)||jointValue(result[c.group],c.key)===undefined)throw Error('联合动画参数定义不完整。');
@@ -51,7 +56,7 @@ export function validateJointConfig(value,meta){
       Object.keys(mouthImage).sort().join(',')!=='png_base64,sha256'||!sha.test(mouthImage.sha256)||
       typeof mouthImage.png_base64!=='string'||mouthImage.png_base64.length>43692||!/^[A-Za-z0-9+/]+={0,2}$/.test(mouthImage.png_base64)))
     throw Error('嘴部替换图片格式无效，请重新上传 PNG。');
-  for(const group of ['hair','cloth']){
+  for(const group of ['hair','cloth','objects']){
     const overrides=value[group]?.overrides;if(overrides===undefined)continue;
     if(!overrides||typeof overrides!=='object'||Array.isArray(overrides)||Object.keys(overrides).length>64)throw Error('局部响应参数格式无效。');
     for(const [slot,values]of Object.entries(overrides)){
@@ -59,7 +64,7 @@ export function validateJointConfig(value,meta){
       if(!values||typeof values!=='object'||Array.isArray(values))throw Error('局部响应参数格式无效。');
       for(const [key,v]of Object.entries(values)){
         const bounds=JOINT_LOCAL_LIMITS[key];
-        if(!bounds||(group==='cloth'&&key==='root_fraction')||!Number.isFinite(v)||v<bounds[0]||v>bounds[1])throw Error('局部响应参数超出范围。');
+        if(!bounds||!localFieldAllowed(group,key)||!Number.isFinite(v)||v<bounds[0]||v>bounds[1])throw Error('局部响应参数超出范围。');
       }
     }
   }
@@ -121,14 +126,14 @@ export function createJointState(){
       if(point===null)delete next.face.anchors[slot];else next.face.anchors[slot]=point;return this.set(next);
     },
     targets(group,slots){
-      if(!['hair','cloth'].includes(group))throw Error('不支持的响应区域。');
+      if(!['hair','cloth','objects'].includes(group))throw Error('不支持的响应区域。');
       const available=(meta.inventory?.[group]??[]).filter(row=>row.state==='available').map(row=>row.slot);
       if(!slots.length)throw Error('至少保留一个区域；要关闭此效果，请关闭整个响应通道。');
       if(slots.some(slot=>!available.includes(slot))||new Set(slots).size!==slots.length)throw Error('响应区域与当前角色不一致。');
       const next=clone(config);next[group].slots=slots.length===available.length?[]:[...slots].sort();return this.set(next);
     },
     local(group,slot,values){
-      if(!['hair','cloth'].includes(group)||!meta.inventory?.[group]?.some(row=>row.slot===slot&&row.state==='available'))throw Error('局部响应区域与当前角色不一致。');
+      if(!['hair','cloth','objects'].includes(group)||!meta.inventory?.[group]?.some(row=>row.slot===slot&&row.state==='available'))throw Error('局部响应区域与当前角色不一致。');
       const next=clone(config);next[group].overrides??={};
       if(values===null||!Object.keys(values).length)delete next[group].overrides[slot];else next[group].overrides[slot]=clone(values);return this.set(next);
     },
