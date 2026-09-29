@@ -19,12 +19,19 @@ def prepare(driver, read, write, stopped, info):
         if latest and latest.get('candidate_withdrawn'):
             raise PipelineRunError('sleeve_candidate_withdrawn')
         shared = bool(latest and latest['status'] in ('pending', 'running'))
+        launch = dict(expected_resolved_sha256=info['expected_resolved_sha256'],
+                      expected_draft_sha256=manager._draft_sha(project))
         # A failed independent attempt requires an explicit retry, not an
         # implicit new repair every time the production page is resumed.
         if latest and not shared and not row and latest['status'] != 'needs_review':
+            # Keep the failed dependency visible to the coordinator's explicit
+            # retry action. Without this row retry would only reset character,
+            # and preparation would rediscover the same failure indefinitely.
+            write(lambda v: v['stages'].update(sleeves=dict(status='blocked',
+                job_id=latest['job_id'], shared=True, launch=launch,
+                reason_code=latest.get('reason_code'),
+                attempts=[dict(job_id=latest['job_id'], shared=True)])), 'sleeves_previous_failure')
             raise PipelineRunError(latest.get('reason_code') or 'character_sleeve_unavailable')
-        launch = dict(expected_resolved_sha256=info['expected_resolved_sha256'],
-                      expected_draft_sha256=manager._draft_sha(project))
         job = latest['job_id'] if shared else 'job-' + uuid4().hex
 
         def reserve(v):

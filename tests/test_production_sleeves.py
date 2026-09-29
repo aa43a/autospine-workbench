@@ -110,6 +110,21 @@ class SleevePreparationTests(TestCase):
                 self.run_prepare()
         self.assertEqual(len(self.submitted), 1)
 
+    def test_previous_failure_becomes_a_retryable_stage(self):
+        previous = 'job-'+'e'*32
+        self.latest = dict(job_id=previous, status='blocked', reason_code='old_failure')
+        with self.assertRaisesRegex(RuntimeError, 'old_failure'):
+            self.run_prepare()
+        stage = self.value['stages']['sleeves']
+        self.assertEqual(stage['job_id'], previous)
+        self.assertEqual(stage['status'], 'blocked')
+        # Apply the coordinator's explicit retry transition, retaining history.
+        stage.pop('job_id'); stage.update(status='pending')
+        self.assertTrue(self.run_prepare())
+        self.assertEqual(len(self.submitted), 1)
+        self.assertEqual(stage['attempts'][0]['job_id'], previous)
+        self.assertFalse(stage['shared'])
+
     def test_cancel_during_publication_cancels_owned_child(self):
         original = self.manager.submit
         def submit(*args, **kwargs):
