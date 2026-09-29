@@ -22,7 +22,7 @@ def dispatch_production(parts, handler, method):
         return False
     from .web_routes import _error, _require_mutation
     tail = parts[2:]
-    allowed = ('GET, HEAD, POST, OPTIONS' if not tail or len(tail)==2 and tail[1]=='work-sessions' else 'GET, HEAD, OPTIONS' if len(tail) == 1 or
+    allowed = ('POST, OPTIONS' if tail==['from-body'] else 'GET, HEAD, POST, OPTIONS' if not tail or len(tail)==2 and tail[1]=='work-sessions' else 'GET, HEAD, OPTIONS' if len(tail) == 1 or
                len(tail) == 2 and tail[1] in ('coverage','metrics','body-candidates')
                else 'POST, OPTIONS' if len(tail) == 2 and tail[1] in ('resume', 'cancel', 'retry', 'revise','revision-plan') else None)
     if allowed is None:
@@ -47,6 +47,9 @@ def dispatch_production(parts, handler, method):
             body = read_json_object_request(handler, maximum_bytes=128000)
             if not tail:
                 result = manager.submit(body)
+            elif tail==['from-body']:
+                from .production_existing_body import submit
+                result=submit(manager,body)
             elif tail[1]=='work-sessions':
                 from .production_measurements import save
                 result=save(manager,tail[0],body)

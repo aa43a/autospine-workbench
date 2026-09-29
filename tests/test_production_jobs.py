@@ -5,6 +5,7 @@ from tempfile import TemporaryDirectory
 from threading import Event
 import time
 import unittest
+from unittest.mock import patch
 
 from autospine_workbench.automation.production_jobs import ProductionJobs
 from autospine_workbench.automation.production_submission import child_id, reserved_child
@@ -208,6 +209,17 @@ class ProductionTests(unittest.TestCase):
         self.manager.resume(restored['run_id'],restored['revision'])
         self.wait(restored['run_id'])
         self.assertEqual(len(self.driver.calls),calls)
+
+    def test_existing_body_recovery_never_dispatches_body_again(self):
+        from autospine_workbench.automation.production_existing_body import submit
+        body={'job_id':'motion-'+'c'*32,'status':'succeeded','artifact_sha256':'body','attempts':[]}
+        self.driver.jobs[body['job_id']]={'status':'succeeded','result':{'artifact_sha256':'body'}}
+        with patch('autospine_workbench.automation.production_existing_body.prepare',return_value=(self.request,body)):
+            original=self.wait(submit(self.manager,{})['run_id'])
+            repeated=self.wait(submit(self.manager,{})['run_id'])
+        self.assertEqual(original['run_id'],repeated['run_id'])
+        self.assertEqual([s for s,_ in self.driver.calls],['joint'])
+        self.assertEqual(repeated['status'],'needs_review')
 
 
 if __name__ == '__main__':

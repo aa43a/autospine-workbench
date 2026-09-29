@@ -4,6 +4,7 @@ import {createProductionEntrances} from './production-entrances.js';
 import {createProductionMeasurements} from './production-measurements.js';
 import {createProductionRevision} from './production-revision.js';
 import {inspectionControls} from './production-inspection.js';
+import {existingBody} from './production-existing-body.js';
 import {createProductionBatches} from './production-batches.js';
 import {createProductionCoverage} from './production-coverage.js';
 import {appendStageReview} from './motion-stage-review.js';
@@ -90,5 +91,6 @@ const productionControls={api,settings:()=>{
 },openRun};
 createProductionBatches(productionControls);
 createProductionEntrances(productionControls);
+existingBody(productionControls);
 createProductionIntake({refresh,selectProject:id=>{$('project').value=id;},selectSource:id=>{$('source').value=id;}});
 setInterval(()=>{if(!busy&&!document.hidden)refreshRuns().catch(e=>{$('status').textContent=`读取进度失败：${e.message}。任务记录保留，可刷新重试。`;});},4000);

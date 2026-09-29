@@ -74,3 +74,13 @@ class ProductionBodyTests(unittest.TestCase):
         (folder/'request.json').write_bytes(canonical_bytes(request))
         with self.assertRaisesRegex(RuntimeError,'unrelated_body'):
             select(self.driver,self.request,self.f.job,'job:'+job)
+
+    def test_existing_body_input_keeps_selected_artifact_and_no_historical_timing(self):
+        from autospine_workbench.automation.production_existing_body import prepare
+        def freeze(body):return dict(body,character_sha256=self.request['character_sha256'],source_sha256=self.request['source_sha256'])
+        with patch.object(self.driver,'freeze',side_effect=freeze):
+            request,stage=prepare(self.driver,{'body_job_id':self.f.job,'registration_sha256':self.f.registration})
+        self.assertEqual(request['body_selection']['artifact_sha256'],self.f.f.receipt['candidate_bundle_sha256'])
+        self.assertEqual(stage['artifact_sha256'],self.f.main)
+        self.assertEqual(stage['attempts'],[])
+        self.assertNotIn('started_at',stage)

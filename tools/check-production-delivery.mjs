@@ -8,9 +8,15 @@ const {chromium}=await import(pathToFileURL(path.resolve(deps,'node_modules/play
 const browser=await chromium.launch({executablePath:chrome,headless:true,args:['--enable-webgl','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
 try{
   const page=await browser.newPage({viewport:{width:1440,height:1100}}),errors=[];
+  page.setDefaultTimeout(120000);
   page.on('pageerror',e=>errors.push(String(e)));
   await page.goto(`http://127.0.0.1:8918/production.html?run=${run}`);
   await page.waitForSelector('#player:not([hidden])');
+  const frame=await (await page.locator('#player').elementHandle()).contentFrame();
+  await frame.waitForFunction(()=>window.characterPlayerReady===true,{},{timeout:120000});
+  const task=await (await page.request.get(`http://127.0.0.1:8918/api/production/${run}`)).json();
+  assert.equal(await frame.evaluate(()=>window.characterPlayerControl.artifact),task.stages.joint.artifact_sha256);
+  assert.equal(await frame.evaluate(()=>window.characterPlayerControl.seek(0.1)),true);
   await page.getByRole('button',{name:'记录 / 查看阶段验收'}).click();
   await page.getByLabel('阶段验收结论',{exact:true}).waitFor();
   assert.equal(await page.getByRole('button',{name:'保存阶段结论'}).isDisabled(),true);
@@ -21,6 +27,6 @@ try{
   await fs.writeFile(path.join(output,'candidate.zip'),bytes);
   await page.screenshot({path:path.join(output,'review.png'),fullPage:true});
   assert.deepEqual(errors,[]);
-  await fs.writeFile(path.join(output,'report.json'),JSON.stringify({passed:true,run,download_bytes:bytes.length,stage_review_saved:false,errors},null,2));
+  await fs.writeFile(path.join(output,'report.json'),JSON.stringify({passed:true,run,artifact_sha256:task.stages.joint.artifact_sha256,player_ready:true,seek_verified:true,download_bytes:bytes.length,stage_review_saved:false,errors},null,2));
   console.log(JSON.stringify({passed:true,download_bytes:bytes.length}));
 }finally{await browser.close();}
