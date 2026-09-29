@@ -1,14 +1,35 @@
 """Normal-inheritance Spine affine FK including animated axial scale."""
 import math
-from ..spine43.continuous_pose import interpolate
+
+
+def _interval(keys, time):
+    """Find the same rightmost key as the linear sampler, in logarithmic time.
+
+    Timelines are ordered before this evaluator is used. Do not retain a cursor:
+    validation and editor seeks routinely visit times in reverse/random order.
+    """
+    lo, hi = 1, len(keys)
+    while lo < hi:
+        mid = (lo+hi)//2
+        if keys[mid]['time'] <= time:
+            lo = mid+1
+        else:
+            hi = mid
+    return keys[lo-1], keys[min(lo, len(keys)-1)]
+
+
+def interpolate(keys, time, field):
+    """Preserve linear/stepped interpolation, including before-first extrapolation."""
+    a, b = _interval(keys, time)
+    f = 0 if a.get('curve') == 'stepped' or a['time'] == b['time'] else (time-a['time'])/(b['time']-a['time'])
+    if field == 'value':
+        return a[field]+f*(b[field]-a[field])
+    return [x+f*(y-x) for x,y in zip(a[field],b[field])]
 
 
 def _pair(keys, time, default=None):
     """Read two channels without rebuilding every key into a temporary vector."""
-    i = 0
-    while i+1 < len(keys) and keys[i+1]['time'] <= time:
-        i += 1
-    a, b = keys[i], keys[min(i+1, len(keys)-1)]
+    a, b = _interval(keys, time)
     f = 0 if a.get('curve') == 'stepped' or a['time'] == b['time'] else (time-a['time'])/(b['time']-a['time'])
     values = []
     for key in ('x', 'y'):

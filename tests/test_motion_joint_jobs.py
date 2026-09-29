@@ -35,7 +35,7 @@ class JointJobsTests(unittest.TestCase):
         self.provenance = dict(profile='joint-animation-body-source-v1', kind='main', parent_job_id='parent',
             baseline_artifact_sha256='a'*64, artifact_sha256='a'*64, registration_sha256=None,
             parent_request_sha256=canonical_sha256(self.request), related_evidence_sha256=None, related_receipt_sha256=None)
-        self.context = (self.parent, self.request, {}, {'skins':[{}], 'animations':{'body':{}}}, 'body', 2., self.provenance)
+        self.context = (self.parent, self.request, {}, {'skins':[{}], 'animations':{'body':{}}}, 'body', 2., self.provenance, [0., 2.])
 
     def submit(self, config=None, artifact='a'*64):
         with patch.object(jobs, 'context', return_value=self.context):
@@ -90,6 +90,14 @@ class JointJobsTests(unittest.TestCase):
         self.assertFalse(jobs.eligibility(doc)['supported'])
         with self.assertRaisesRegex(RuntimeError, 'body_unsupported'): self.submit()
         self.manager._pool.submit.assert_not_called()
+
+    def test_eligibility_reuses_verified_times_without_decoding_reference_again(self):
+        doc = self.context[3]
+        with patch('autospine_workbench.targets.character43.numeric_reference.read',
+                   side_effect=AssertionError('duplicate decode')):
+            result = jobs.eligibility(doc, {'numeric-reference.json': b'not re-read'}, reference_times=[0., 2.])
+        self.assertTrue(result['supported'])
+        self.assertEqual(result['sampling']['minimum_samples'], 241)
 
 
 class JointContractTests(unittest.TestCase):

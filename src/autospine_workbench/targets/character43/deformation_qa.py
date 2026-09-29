@@ -9,7 +9,17 @@ PROFILE='character-sampled-deformation-v1'
 
 def inspect(files, *, setup_vertices=None):
     document=json.loads(files['skeleton.json']);reference=read_reference(files)
-    if reference['skeleton_sha256']!=sha256(files['skeleton.json']).hexdigest():
+    return inspect_reference(document, reference, sha256(files['skeleton.json']).hexdigest(),
+                             setup_vertices=setup_vertices)
+
+
+def inspect_reference(document, reference, skeleton_sha256, *, setup_vertices=None):
+    """Check freshly sampled in-memory vertices before they are serialized.
+
+    File readers still use inspect() and verify/decode every stored chunk. The
+    compiler can avoid immediately decompressing the reference it just wrote.
+    """
+    if reference['skeleton_sha256']!=skeleton_sha256:
         raise ValueError('character_reference_source_mismatch')
     if not reference['animations'] or set(reference['animations'])!=set(document['animations']):raise ValueError('character_animation_inventory')
     if any('attachment' in tracks for motion in document['animations'].values()
@@ -18,7 +28,7 @@ def inspect(files, *, setup_vertices=None):
         return inspect_active(document,reference)
     attachments=document['skins'][0]['attachments'];rows=[]
     def area(points,t):
-        a,b,c=(points[i] for i in t)
+        a,b,c=points[t[0]],points[t[1]],points[t[2]]
         return ((b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]))/2
     for name,frames in reference['animations'].items():
         if len(frames)<2 or frames[0]['time']!=0:raise ValueError('character_reference_setup_missing')
@@ -33,13 +43,13 @@ def inspect(files, *, setup_vertices=None):
             triangles=[flat[i:i+3] for i in range(0,len(flat),3)]
             if any(type(v) is not int or v<0 or v>=len(base) for v in flat):raise ValueError('character_triangle_index')
             edges=sorted({tuple(sorted((t[i],t[(i+1)%3]))) for t in triangles for i in range(3)})
-            if any(len(p)!=2 or not all(math.isfinite(v) for v in p) for p in base):raise ValueError('character_reference_nonfinite')
+            if any(len(p)!=2 or not math.isfinite(p[0]) or not math.isfinite(p[1]) for p in base):raise ValueError('character_reference_nonfinite')
             areas=[area(base,t) for t in triangles];lengths=[math.dist(base[a],base[b]) for a,b in edges]
             if any(abs(a)<1e-10 for a in areas) or any(v<1e-10 for v in lengths):raise ValueError('character_setup_degenerate')
             minimum=1.;maximum=1.;stretch=1.;inversions=0;failures=[]
             for index,frame in enumerate(frames):
                 points=frame['vertices'][slot]
-                if len(points)!=len(base) or any(len(p)!=2 or not all(math.isfinite(v) for v in p) for p in points):
+                if len(points)!=len(base) or any(len(p)!=2 or not math.isfinite(p[0]) or not math.isfinite(p[1]) for p in points):
                     raise ValueError('character_reference_nonfinite')
                 ratios=[area(points,t)/a for t,a in zip(triangles,areas)]
                 s=max(math.dist(points[a],points[b])/length for (a,b),length in zip(edges,lengths))

@@ -5,7 +5,7 @@ export function createJointTimeline(container,{seek,change,focus}){
   const rows=new Map();let duration=0;
   function load(meta){
     clear();duration=meta.duration;container.append(node('h3','联合通道时间轴'));
-    const hint=node('p','各轨共用当前时间。参数与关键帧在构建后进入实际联合结果；拖动不会重新计算物理。');hint.className='joint-note';container.append(hint);
+    const hint=node('p','各轨共用当前时间。已生成随动的强度与启停可即时比较；其他参数和关键帧需要构建。拖动使用固定轨迹，不累积物理状态。');hint.className='joint-note';container.append(hint);
     for(const [group,label]of Object.entries(names)){
       const row=node('div');row.className='joint-track';
       const enabled=node('input');enabled.type='checkbox';enabled.setAttribute('aria-label',`时间轨：${label}开关`);

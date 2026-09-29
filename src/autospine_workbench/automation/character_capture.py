@@ -28,7 +28,8 @@ def review_name(name):
     return name
 
 
-def capture(projects, store, digest, root, *, progress, cancel_requested, storage_reference=False):
+def capture(projects, store, digest, root, *, progress, cancel_requested, storage_reference=False,
+            geometry_evidence=None):
     options = discover(projects.workspace_root)
     if not options:
         return dict(status='unavailable',reason_code='character_runtime_environment_missing')
@@ -50,7 +51,11 @@ def capture(projects, store, digest, root, *, progress, cancel_requested, storag
     if setup_reference and setup_reference['skeleton_sha256'] != sha256(candidate['skeleton.json']).hexdigest():
         raise ValueError('character_reference_source_mismatch')
     progress('runtime_geometry')
-    geometry=inspect(candidate, setup_vertices=setup_reference['vertices'] if setup_reference else None)
+    if geometry_evidence is None:
+        geometry=inspect(candidate, setup_vertices=setup_reference['vertices'] if setup_reference else None)
+    else:
+        from .capture_geometry import reuse
+        geometry = reuse(geometry_evidence, candidate, digest)
     if 'joint-animation.json' in candidate:
         from ..targets.character43.joint_animation_qa import geometry_report
         joint = json.loads(candidate['joint-animation.json'])
@@ -60,13 +65,12 @@ def capture(projects, store, digest, root, *, progress, cancel_requested, storag
         parent = provenance['parent_artifact_sha256']
         if sha256(store.read_file(parent, 'skeleton.json')).hexdigest() != joint['parent_skeleton_sha256']:
             raise ValueError('joint_animation_capture_parent_mismatch')
-        geometry = geometry_report(geometry, joint['inventory']['face'], joint['config']['face']['enabled'],
-            face_report=joint['face'], source_geometry=json.loads(store.read_file(parent, 'deformation.json')))
+        if geometry_evidence is None:
+            geometry = geometry_report(geometry, joint['inventory']['face'], joint['config']['face']['enabled'],
+                face_report=joint['face'], source_geometry=json.loads(store.read_file(parent, 'deformation.json')))
     if 'multi-animation.json' in candidate:
         from ..targets.character43.multi_animation_geometry import inspect as inspect_multi
         geometry = inspect_multi(geometry, candidate, store)
-    from ..targets.character43.numeric_reference import read as read_reference
-    frame_count=sum(len(frames) for frames in read_reference(candidate)['animations'].values())
     (output/'deformation.json').write_bytes(canonical_bytes(geometry))
     commands = [
         ['node',str(repo/'tools/capture-character-runtime.mjs'),str(store.root/digest),str(output),dependencies,browser],
@@ -75,16 +79,15 @@ def capture(projects, store, digest, root, *, progress, cancel_requested, storag
     if storage_reference:
         progress('runtime_reference')
         from ..targets.character43.runtime_storage_reference import build
+        from .runtime_reference_transfer import write as write_reference
         storage = build(candidate)
-        path = root/'runtime-storage-reference.json'
-        raw = canonical_bytes(storage)
-        if len(raw)>256*1024*1024:raise ValueError('runtime_storage_reference_limit')
-        if len(raw)>64*1024*1024:
-            import gzip
-            path = root/'runtime-storage-reference.json.gz'
-            raw = gzip.compress(raw,mtime=0)
-        path.write_bytes(raw)
+        frame_count = sum(len(frames) for frames in storage['animations'].values())
+        path = write_reference(root, storage)
         commands[0].extend(['32', '{}', str(path)])
+        del storage
+    else:
+        from ..targets.character43.numeric_reference import read as read_reference
+        frame_count = sum(len(frames) for frames in read_reference(candidate)['animations'].values())
     for index, command in enumerate(commands):
         if cancel_requested(): raise ValueError('character_build_canceled')
         progress('runtime' if index == 0 else 'runtime_setup')

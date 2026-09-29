@@ -169,8 +169,9 @@ resultView=createEditorResult({canvas:$('result-canvas'),status:$('result-status
     $('yaw-value').value=fixed;$('yaw').value=((fixed%360)+360)%360;keySummary();player.seek(0);
   }});
 function inspectResult(job){$('result-viewport').hidden=false;document.querySelector('.canvases').append($('result-viewport'));
-  void resultView.load(job);document.querySelector('.canvases').scrollIntoView({block:'start'});}
-joint=createJointEditor({container:$('joint-editor'),getSelection:identity,inspect:inspectResult,seek:time=>player.seek(time)});
+  const loading=resultView.load(job);document.querySelector('.canvases').scrollIntoView({block:'start'});return loading;}
+joint=createJointEditor({container:$('joint-editor'),getSelection:identity,inspect:inspectResult,seek:time=>player.seek(time),
+  preview:value=>resultView.jointPreview(value)});
 createEditorBuild({snapshot,inspect(job){inspectResult(job);if(!job.result?.joint_animation_profile)void joint.load(job);}});
 $('load-body-candidate').onclick=async({restoreTask=true}={})=>{
   let job=bodyCandidates.find(j=>j.job_id===$('body-candidate').value);if(!job)return;

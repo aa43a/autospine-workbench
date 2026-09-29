@@ -66,10 +66,7 @@
     renderer.begin();renderer.drawSkeleton(skeleton);renderer.end();
     gl.readPixels(0,0,canvas.width,canvas.height,gl.RGBA,gl.UNSIGNED_BYTE,pixels);
     if(gl.getError()!==gl.NO_ERROR)throw Error('framebuffer_read_failed');
-    let visible=0,border=0;
-    for(let y=0;y<canvas.height;y++)for(let x=0;x<canvas.width;x++)if(pixels[(y*canvas.width+x)*4+3]>=8){
-      visible++;if(x===0||y===0||x===canvas.width-1||y===canvas.height-1)border++;
-    }
+    const {visible,border}=autospineFramebufferStats(pixels,canvas.width,canvas.height);
     if(!visible||border)throw Error(!visible?'empty_framebuffer':'framebuffer_clipped');
     return {animation,index,time:frame.time,max_error_px:error,probes,visible_pixels:visible,border_pixels:border,
       draw_order:actualOrder,draw_order_matches:true};

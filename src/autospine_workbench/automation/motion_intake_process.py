@@ -15,7 +15,8 @@ STEPS = {'runtime_prepare', 'runtime_geometry', 'runtime_reference', 'runtime_se
          'generate_motion', 'verify_generation', 'depth_overlap', 'depth_partition',
          'depth_refinement', 'depth_cloth_constraints', 'depth_limb_constraints', 'depth_ordering', 'torso_projection', 'local_depth',
          'garment_follow', 'garment_validate', 'transverse_compensate', 'transverse_joint', 'transverse_validate',
-         'joint_inventory', 'joint_face', 'joint_secondary', 'joint_validate'}
+         'joint_inventory', 'joint_face', 'joint_secondary', 'joint_validate',
+         'joint_sample', 'joint_reference', 'joint_geometry', 'joint_checks'}
 
 # Only explicit internal failures may cross the worker log boundary.
 REPAIR_FAILURES = frozenset({
@@ -61,10 +62,13 @@ REPAIR_FAILURES = frozenset({
 })
 
 
-def progress(folder, step, detail=None):
+def progress(folder, step, detail=None, *, timing=None):
     if step not in STEPS:
         raise ValueError('motion_progress_invalid')
     value = dict(step=step, updated_at=time.time())
+    if timing is not None:
+        # Produced by the in-process stage timer, never external worker output.
+        value['build_timing'] = timing
     if detail:
         # Internal solver counters only; never copy arbitrary worker output.
         for key in ('stage', 'slot'):

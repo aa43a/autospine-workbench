@@ -9,6 +9,7 @@ import {decodeStorageReference} from './runtime-storage-input.mjs';
 import {orderProbes} from './character-order-probes.mjs';
 import {attachmentProbes} from './character-attachment-probes.mjs';
 import {listenForBrowser} from './browser-loopback.mjs';
+import {captureBatch,CAPTURE_BATCH_SIZE} from './character-capture-batch.mjs';
 const [folderArg,outputArg,dependencies,chrome,strideArg,probeTimesArg,storageReferenceArg]=process.argv.slice(2);
 if(!chrome)throw Error('usage: bundle output dependencies chrome');
 const screenshotStride=strideArg===undefined?32:Number(strideArg);
@@ -82,10 +83,12 @@ if(pkg.name!=='@esotericsoftware/spine-webgl'||pkg.version!=='4.3.13')throw Erro
 const runtime=await fs.readFile(path.join(packageRoot,'dist/iife/spine-webgl.js'));
 const harness=await fs.readFile(new URL('./character-framebuffer.js',import.meta.url));
 const orderReader=await fs.readFile(new URL('./character-draw-order.js',import.meta.url));
+const framebufferStats=await fs.readFile(new URL('./character-framebuffer-stats.js',import.meta.url));
 const {chromium}=await import(pathToFileURL(path.resolve(dependencies,'node_modules/playwright-core/index.mjs')));
 files.set('/runtime.js',runtime);files.set('/harness.js',harness);
 files.set('/draw-order.js',orderReader);
-files.set('/',Buffer.from('<!doctype html><canvas></canvas><script src="/runtime.js"></script><script src="/draw-order.js"></script><script src="/harness.js"></script>'));
+files.set('/framebuffer-stats.js',framebufferStats);
+files.set('/',Buffer.from('<!doctype html><canvas></canvas><script src="/runtime.js"></script><script src="/draw-order.js"></script><script src="/framebuffer-stats.js"></script><script src="/harness.js"></script>'));
 const server=http.createServer((req,res)=>{
   const name=new URL(req.url,'http://localhost').pathname,raw=files.get(name);
   if(!raw){res.writeHead(404);res.end();return;}
@@ -116,11 +119,17 @@ try{
     const frames=reference.animations[animation];if(!frames.length)throw Error('empty_track');
     const orderIndices=new Set((orderCoverage[animation]??[]).flatMap(key=>key.samples.map(s=>s.index)));
     for(const key of attachmentCoverage[animation]??[])for(const sample of key.samples)orderIndices.add(sample.index);
-    for(let index=0;index<frames.length;index++){
-      results.push(await page.evaluate(({animation,index})=>window.captureFrame(animation,index),{animation,index}));
-      if(orderIndices.has(index)||index%screenshotStride===0||index===frames.length-1||(probeTimes[animation]??[]).some(t=>Math.abs(t-frames[index].time)<1e-10)){
-        const raw=Buffer.from((await page.evaluate(()=>window.framePNG())).split(',')[1],'base64');
-        const name=`frames/${animation}-${index}.png`;await publish(name,raw);screenshots.push({animation,index,file:name,sha256:hash(raw)});
+    for(let start=0;start<frames.length;start+=CAPTURE_BATCH_SIZE){
+      const end=Math.min(start+CAPTURE_BATCH_SIZE,frames.length),screenshotIndices=[];
+      for(let index=start;index<end;index++)if(orderIndices.has(index)||index%screenshotStride===0||index===frames.length-1||
+        (probeTimes[animation]??[]).some(t=>Math.abs(t-frames[index].time)<1e-10))screenshotIndices.push(index);
+      const batch=await page.evaluate(captureBatch,{animation,start,end,screenshotIndices});
+      for(const {result,png}of batch){
+        results.push(result);
+        if(png){
+          const index=result.index,raw=Buffer.from(png.split(',')[1],'base64');
+          const name=`frames/${animation}-${index}.png`;await publish(name,raw);screenshots.push({animation,index,file:name,sha256:hash(raw)});
+        }
       }
     }
     console.log(JSON.stringify({animation,frames:frames.length}));
@@ -129,11 +138,14 @@ try{
   const report={schema:'autospine.character-framebuffer/v1',bundle_sha256:digest,runtime_package:pkg.name,runtime_version:pkg.version,
     runtime_sha256:hash(runtime),harness_sha256:hash(harness),tool_sha256:hash(await fs.readFile(new URL(import.meta.url))),
     draw_order_reader_sha256:hash(orderReader),draw_order_numeric_status:'passed',
+    framebuffer_stats_sha256:hash(framebufferStats),
     draw_order_switch_samples:orderCoverage,
     attachment_switch_samples:attachmentCoverage,
     attachment_probe_selector_sha256:hash(await fs.readFile(new URL('./character-attachment-probes.mjs',import.meta.url))),
     order_probe_selector_sha256:hash(await fs.readFile(new URL('./character-order-probes.mjs',import.meta.url))),
     reference_reader_sha256:hash(await fs.readFile(new URL('./character-reference.mjs',import.meta.url))),
+    capture_batch_sha256:hash(await fs.readFile(new URL('./character-capture-batch.mjs',import.meta.url))),
+    capture_batch_size:CAPTURE_BATCH_SIZE,
     browser_sha256:hash(await fs.readFile(chrome)),profile:'official-webgl-swiftshader-native-v1',info,results,screenshots,screenshot_stride:screenshotStride,
     passed:true,scope:'all_attachment_vertices_and_nonempty_unclipped_framebuffer',
     contact_status:'not_evaluated',draw_order_visual_status:'needs_review',authority:'none',production_authorized:false,
@@ -146,7 +158,10 @@ try{
   const detail=page?await page.evaluate(()=>window.captureFailure??null).catch(()=>null):null;
   const failure={schema:'autospine.character-capture-failure/v1',bundle_sha256:digest,
     draw_order_reader_sha256:hash(orderReader),
+    framebuffer_stats_sha256:hash(framebufferStats),
     runtime_version:pkg.version,runtime_sha256:hash(runtime),harness_sha256:hash(harness),
+    capture_batch_sha256:hash(await fs.readFile(new URL('./character-capture-batch.mjs',import.meta.url))),
+    capture_batch_size:CAPTURE_BATCH_SIZE,
     tool_sha256:hash(await fs.readFile(new URL(import.meta.url))),
     passed:false,authority:'none',production_authorized:false,
     detail:detail??{reason_code:'capture_failed',message:String(error).slice(0,2000)}};

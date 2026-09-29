@@ -4,9 +4,24 @@ import {createJointTimeline} from './motion-joint-editor-timeline.js';
 import {createJointLocalOptions} from './motion-joint-editor-local.js';
 import {createJointMouthAsset} from './motion-joint-editor-mouth.js';
 import {isJointActive,canRetryJoint,jointValue,JOINT_CHANNELS} from './motion-joint-editor-state.js';
+import {jointPreviewText} from './motion-joint-preview.js';
 
 const groupNames={face:'脸部与表情',hair:'发束摆动',cloth:'裙袖响应',objects:'挂饰与物件随动'};
 const channelNames={blink:'眨眼',gaze:'视线',brows:'眉毛',mouth:'口型',turn:'小幅五官转向'};
+export function jointBuildTimingText(job){
+  const timing=job?.result?.build_timing??job?.progress?.build_timing;if(!timing)return '';
+  const labels={joint_inventory:'素材检查',joint_face:'表情',joint_secondary:'随动计算',joint_validate:'网格验证',
+    depth_overlap:'遮挡检查',runtime:'官方渲染',capture:'Runtime 检查',publish:'打包',joint_source:'读取来源',verify_source:'核验来源',
+    joint_sample:'逐帧采样',joint_reference:'保存校验数据',joint_geometry:'几何检查',joint_checks:'连接与循环检查',publish_candidate:'保存候选',
+    runtime_prepare:'准备播放资源',runtime_geometry:'Runtime 几何检查',runtime_reference:'生成 Runtime 校验数据',runtime_setup:'源图对照'};
+  const stages=(timing.stages??[]).filter(row=>Number.isFinite(row.seconds)).sort((a,b)=>b.seconds-a.seconds).slice(0,3);
+  // The stage snapshot is written at boundaries; the job clock keeps advancing
+  // while the official renderer is busy for a long time without a callback.
+  const elapsed=Number.isFinite(job.elapsed_seconds)?job.elapsed_seconds:Number(timing.elapsed_seconds??0);
+  return `本次构建${timing.status==='running'?'已用':'用时'} ${elapsed.toFixed(1)} 秒`+
+    (timing.active_step?` · 当前：${labels[timing.active_step]||'处理阶段'}`:'')+
+    (stages.length?` · ${stages.map(row=>`${labels[row.step]||'处理阶段'} ${row.seconds.toFixed(1)} 秒`).join(' · ')}`:'');
+}
 const reasons={head_missing:'缺少头骨',attachment_variants:'包含多个附件，需明确对应关系',existing_hair_deform:'已有发束变形，保留现有结果',
   joint_follow_multiple_drivers:'已有多骨绑定，保留原变形',joint_follow_existing_deform:'已有局部修形，不转换为刚性摆件',
   joint_follow_attachment_variants:'包含多个附件，需明确对应关系',joint_follow_attachment_timeline:'包含附件切换，暂不加入物件随动',
@@ -100,16 +115,29 @@ export function createJointView(container,actions){
     ['restore','恢复草稿'],['build','构建联合动画'],['refresh','刷新任务'],['cancel','取消构建'],['retry','重试失败任务']]){
     const button=element('button',label,{type:'button','data-joint':key});button.onclick=()=>actions[key]();toolbar.append(button);buttons[key]=button;
   }
-  const note=element('p','参数修改将在重新构建后进入实际结果。右侧旧结果保留用于对照；同包下载包含身体动作及本次联合动画。',{class:'joint-note'});
-  container.replaceChildren(title,intro,source,timeline,eligibility,details,tracks,grid,common,toolbar,status,note,result);
+  const previewLabel=element('label','即时比较随动幅度',{class:'joint-preview-toggle'}),previewInput=element('input','',{type:'checkbox','data-joint':'preview','aria-label':'即时比较随动幅度'});
+  previewInput.checked=true;previewInput.onchange=()=>actions.preview(previewInput.checked);previewLabel.append(previewInput);
+  const previewStatus=element('p','',{class:'joint-note','data-joint':'preview-status',role:'status'});
+  const note=element('p','已有联合候选：强度、启停和已生成区域选择可即时预览。预览按原轨迹缩放，不重新求解；刚度、阻尼、角度上限、发根、挂点和表情仍需构建。关闭即时比较可查看原结果；保存与下载不受预览影响。',{class:'joint-note'});
+  const timing=element('p','',{class:'joint-note','data-joint':'build-timing'});
+  container.replaceChildren(title,intro,source,timeline,eligibility,previewLabel,previewStatus,note,details,tracks,grid,common,toolbar,status,timing,result);
   const inputs=new Map(),keyPanels=new Map(),targets=new Map(),locals=[];let mouthAsset=null;
   function control(parent,c,value){
     const label=element('label'),input=element(c.options?'select':'input','',{'data-joint-control':`${c.group||'common'}.${c.key}`});
     if(c.options)for(const value of c.options)input.append(element('option',String(value),{value}));
     label.append(element('span',c.label),input);if(!c.options)input.type=c.type==='boolean'?'checkbox':'number';
     if(c.type==='boolean')input.checked=value;else{input.value=value;for(const key of ['min','max','step'])if(c[key]!==undefined)input[key]=c[key];}
-    input.onchange=()=>actions.change(c.group,c.key,c.type==='boolean'?input.checked:input.value===''?NaN:Number(input.value));
-    inputs.set(`${c.group||'common'}.${c.key}`,{input,c});parent.append(label);
+    const change=()=>actions.change(c.group,c.key,c.type==='boolean'?input.checked:input.value===''?NaN:Number(input.value));
+    input.onchange=change;
+    if(['hair','cloth','objects'].includes(c.group)&&c.key==='strength')input.oninput=()=>{if(input.value!==''&&input.checkValidity())change();};
+    let slider=null;
+    if(['hair','cloth','objects'].includes(c.group)&&c.key==='strength'){
+      label.classList.add('joint-strength');
+      slider=element('input','',{type:'range',min:c.min??0,max:c.max??2,step:c.step??.05,
+        'aria-label':`${groupNames[c.group]}强度滑条`,'data-joint-control':`${c.group}.strength-slider`});slider.value=value;
+      slider.oninput=()=>actions.change(c.group,c.key,Number(slider.value));label.append(slider);
+    }
+    inputs.set(`${c.group||'common'}.${c.key}`,{input,c,slider});parent.append(label);
   }
   function controls(meta,config){
     viewEpoch++;anchorCanvas?.dispose();anchorCanvas=null;mouthAsset?.dispose();mouthAsset=null;
@@ -194,9 +222,12 @@ export function createJointView(container,actions){
     const point=override||part.anchor;fields.forEach((input,index)=>{if(document.activeElement!==input)input.value=point?.[index]??0;});
     hint.textContent=`${part.slot} · 父骨 ${part.parent||'未知'} · 默认 (${part.anchor?.map(v=>Number(v).toFixed(2)).join(', ')||'未提供'})${override?' · 已自定义':' · 使用默认'}`;
   }
-  function update(state,{busy=false,job=null,message=''}){
+  function update(state,{busy=false,job=null,message='',previewEnabled=true,preview=null}){
     currentState=state;
     const loaded=Boolean(state.meta),active=isJointActive(job);
+    previewInput.disabled=!loaded;previewInput.checked=previewEnabled;
+    previewStatus.textContent=!previewEnabled?'即时比较已关闭，画布使用已构建结果。':preview?jointPreviewText(preview):'先构建或载入一个联合候选，即可在共用时间轴实时比较摆动幅度。';
+    timing.textContent=jointBuildTimingText(job);
     source.textContent=loaded?`来源：${state.meta.parent_job_id} · ${state.meta.animation||'身体动作'} · ${state.meta.duration.toFixed(2)} 秒`:'尚未载入身体动作候选。';
     const unsupported=state.meta?.eligibility?.supported===false;
     eligibility.hidden=!unsupported;eligibility.textContent=unsupported?`当前身体候选暂不支持联合叠加：${state.meta.eligibility.message||
@@ -205,10 +236,11 @@ export function createJointView(container,actions){
       for(const local of locals)local.update(state.config,busy);
       mouthAsset?.update(state.config,busy);
       inventory.replaceChildren(...inventoryLines(state.meta.inventory,state.config).map(line=>element('li',line)));}
-    for(const {input,c}of inputs.values()){
+    for(const {input,c,slider}of inputs.values()){
       const value=jointValue(c.group?state.config?.[c.group]:state.config,c.key);
       if(c.type==='boolean')input.checked=Boolean(value);else if(value!==undefined&&document.activeElement!==input)input.value=value;
       input.disabled=!loaded||busy;
+      if(slider){slider.value=value;slider.disabled=!loaded||busy;}
     }
     for(const b of Object.values(buttons))b.disabled=!loaded||busy;
     updateAnchor();if(anchorForm){for(const input of anchorForm.panel.querySelectorAll('input,select,button'))input.disabled=!loaded||busy;
@@ -237,8 +269,8 @@ export function createJointView(container,actions){
       if(qa.issues.length){const list=element('ul');for(const issue of qa.issues.slice(0,12))list.append(element('li',issue));notice.append(list);
         if(qa.issues.length>12)notice.append(element('p',`另有 ${qa.issues.length-12} 项，详见候选证据。`));}
       result.append(notice);
-      result.append(element('p',state.changed?'参数已变化：当前显示和下载仍是上次构建结果。请重新构建以应用修改。':'本次联合结果与当前参数一致。',{class:state.changed?'joint-stale':'joint-current'}));
-      const compare=element('button','在当前画布查看联合结果',{type:'button'});compare.onclick=()=>actions.inspect(job);result.append(compare);
+      result.append(element('p',state.changed?'参数已变化：画布可即时比较随动幅度，下载仍是上次构建结果。重新构建后才能导出这些修改。':'本次联合结果与当前参数一致。',{class:state.changed?'joint-stale':'joint-current'}));
+      const compare=element('button','在当前画布查看已构建结果',{type:'button'});compare.onclick=()=>{actions.preview(false);actions.inspect(job);};result.append(compare);
       appendCandidateDownload(result,job);appendReadiness(result,job,undefined,{onSeek:actions.seek,allowRepairs:false,
         onJointEdit:()=>{grid.scrollIntoView({block:'start'});grid.querySelector('input')?.focus({preventScroll:true});}});
     }

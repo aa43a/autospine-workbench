@@ -1,6 +1,7 @@
 import {createEditorRenderer} from './motion-editor-renderer.js';
 import {validateYawTrack} from './motion-yaw-track.js';
 import {normalizeLayerEdits} from './motion-layer-transform.js';
+import {jointAmplitudePreview,jointPreviewText} from './motion-joint-preview.js';
 
 export function resultTrack(job,link){
   if(job.kind!=='adapt'||job.status!=='succeeded'||link.target_job_id!==job.job_id||link.artifact_sha256!==job.result?.artifact_sha256)
@@ -22,8 +23,15 @@ export function resultMatch(job,link,source,identity,keys,track){
   return editsMatch&&JSON.stringify(keys)===JSON.stringify(track)&&(identity.sampling_profile??null)===(job.result.projection?.sampling_profile??null)?'matching':'draft_changed';
 }
 export function createEditorResult({canvas,status,restore,selection,viewport=()=>{}}){
-  let renderer=null,job=null,link=null,track=null,version=0,time=0;
-  function clear(){version++;renderer?.dispose();renderer=null;job=null;link=null;track=null;viewport(null);window.motionEditorResultState=null;document.getElementById('restore-result').disabled=true;}
+  let renderer=null,job=null,link=null,track=null,version=0,time=0,jointReport=null,previewDraft=null,preview=null,previewSignature=null;
+  function refreshPreview(){
+    preview=null;
+    if(!renderer||!jointReport||!previewDraft?.enabled)return;
+    const provenance=job?.result?.joint_source_provenance;
+    if(previewDraft.parent_job_id!==job?.result?.joint_parent_job_id||previewDraft.artifact_sha256!==provenance?.artifact_sha256)return;
+    preview=jointAmplitudePreview(renderer.document,jointReport,previewDraft.config);
+  }
+  function clear(){version++;renderer?.dispose();renderer=null;job=null;link=null;track=null;jointReport=null;preview=null;viewport(null);window.motionEditorResultState=null;document.getElementById('restore-result').disabled=true;}
   function seek(value){
     time=value;if(!renderer)return;
     const s=selection(),match=resultMatch(job,link,s.source,s.identity,s.keys,track);
@@ -35,9 +43,15 @@ export function createEditorResult({canvas,status,restore,selection,viewport=()=
     try {
       viewport(renderer.bounds);
       if(time<0||time>link.duration+0.00001)throw Error('时间超出此结果范围');
-      const bones=renderer.draw(time);
-      window.motionEditorResultState={status:match,job_id:job.job_id,artifact:renderer.artifact,time,bones};
-      status.textContent=`实际导出姿态 · ${time.toFixed(3)} 秒 · ${match==='draft_changed'?'草稿角度或图层已变化，此处仍为旧构建结果':'与当前角度和图层校正对应'}。修形与遮挡处理以此结果为准；技术异常保留。`;
+      const bones=renderer.draw(time,{jointGains:preview?.gains});
+      canvas.setAttribute('aria-label',preview?.changed?'随动幅度草稿预览，尚未验证':'实际导出姿态');
+      const heading=document.querySelector('#result-viewport h2');
+      if(heading)heading.textContent=preview?.changed?'即时幅度预览 · 尚未构建验证':'构建结果 · 共用动作时间轴';
+      window.motionEditorResultState={status:preview?.changed?'joint_preview':match,job_id:job.job_id,artifact:renderer.artifact,time,bones,
+        joint_preview:preview?{changed:preview.changed,pending:preview.pending,gains:Object.fromEntries(preview.gains),
+          helpers:Object.fromEntries([...preview.gains.keys()].map(name=>[name,renderer.boneMatrix(name)]))}:null};
+      status.textContent=preview?.changed?`${time.toFixed(3)} 秒 · ${jointPreviewText(preview)} 保存与下载仍是原构建结果。${match==='draft_changed'?' 当前视角或图层草稿也尚未进入此结果。':''}`:
+        `实际导出姿态 · ${time.toFixed(3)} 秒 · ${match==='draft_changed'?'草稿角度或图层已变化，此处仍为旧构建结果':'与当前角度和图层校正对应'}。修形与遮挡处理以此结果为准；技术异常保留。${preview?.pending?.length?' '+jointPreviewText(preview):''}`;
     }catch(e){renderer.clear();window.motionEditorResultState={status:'unavailable',reason:e.message};status.textContent=e.message;}
   }
   document.getElementById('restore-result').onclick=async()=>{
@@ -48,7 +62,10 @@ export function createEditorResult({canvas,status,restore,selection,viewport=()=
     finally{if(token===version)document.getElementById('restore-result').disabled=false;}
   };
   document.getElementById('close-result').onclick=()=>{clear();document.getElementById('result-viewport').hidden=true;};
-  return {seek,clear,async load(value){
+  return {seek,clear,jointPreview(value){
+    const signature=JSON.stringify(value);if(signature===previewSignature)return preview;
+    previewSignature=signature;previewDraft=value;refreshPreview();seek(time);return preview;
+  },async load(value){
     clear();const token=version;status.textContent='正在读取实际构建结果…';
     document.getElementById('restore-result').disabled=true;
     try{
@@ -62,6 +79,13 @@ export function createEditorResult({canvas,status,restore,selection,viewport=()=
       if(next.artifact!==value.result.artifact_sha256)throw Error('结果资源版本不一致');
       const animation=next.document.animations?.['external-motion'];if(!animation)throw Error('结果缺少导出动作');
       renderer.animation(animation);job=value;link=bound;track=keys;
+      if(value.result?.joint_animation_profile){
+        try{
+          const response=await fetch(`/api/motions/${value.job_id}/view/joint-animation.json`,{cache:'no-store'});
+          if(token!==version)return;
+          if(response.ok){const report=await response.json();if(token!==version)return;jointReport=report;refreshPreview();}
+        }catch{if(token!==version)return;jointReport=null;preview=null;}
+      }
       document.getElementById('restore-result').disabled=false;seek(time);
     }catch(e){if(token===version){clear();status.textContent=e.message;}}
   }};

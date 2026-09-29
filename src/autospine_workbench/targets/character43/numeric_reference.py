@@ -5,6 +5,7 @@ from ...automation.storage_io import canonical_bytes
 
 SCHEMA = 'autospine.character-reference-chunks/v1'
 COMPRESSED_SCHEMA = 'autospine.character-reference-chunks/v2'
+DECODED_LIMIT = 256 << 20
 
 
 def carry_setup(source, output):
@@ -42,7 +43,7 @@ def read(files):
             from .reference_chunk_codec import decode
             raw = decode(raw)
             decoded_size += len(raw)
-            if decoded_size > 256 << 20:
+            if decoded_size > DECODED_LIMIT:
                 raise ValueError('character_reference_decoded_limit')
         frames = json.loads(raw)
         if not isinstance(frames, list) or not frames or len(frames) > 128:
@@ -53,16 +54,26 @@ def read(files):
 
 def write(files, reference, limit=64 << 20, *, compressed=False):
     result = {n: raw for n, raw in files.items() if not n.startswith('numeric-reference/')}
-    raw = canonical_bytes(reference)
-    if compressed and len(raw) > 256 << 20:
+    if not compressed:
+        raw = canonical_bytes(reference)
+        if len(raw) <= limit:
+            result['numeric-reference.json'] = raw
+            return result
+    # The compressed path already encodes every frame exactly once below. Count
+    # the canonical envelope plus chunk interiors instead of allocating and
+    # encoding the entire (up to 256 MiB) reference a second time.
+    decoded_size = len(canonical_bytes(dict(reference,
+        animations={name: [] for name in reference['animations']}))) if compressed else 0
+    if compressed and decoded_size > DECODED_LIMIT:
         raise ValueError('character_reference_decoded_limit')
-    if len(raw) <= limit and not compressed:
-        result['numeric-reference.json'] = raw
-        return result
     rows = []
     for name, frames in sorted(reference['animations'].items()):
         for part, start in enumerate(range(0, len(frames), 128)):
             chunk = canonical_bytes(frames[start:start+128])
+            if compressed:
+                decoded_size += len(chunk)-2 + (1 if start else 0)
+                if decoded_size > DECODED_LIMIT:
+                    raise ValueError('character_reference_decoded_limit')
             if len(chunk) > 64 << 20:
                 raise ValueError('character_reference_chunk_resource_limit')
             if compressed:

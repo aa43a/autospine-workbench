@@ -8,11 +8,24 @@ from ..targets.character43.joint_animation import build
 from ..targets.character43.joint_animation_config import PROFILE, normalize
 from .animated_store import AnimatedStore
 from .character_capture import capture
-from .motion_intake_process import progress
+from .build_timing import BuildTiming
+from .capture_geometry import prepared as prepared_geometry
 from .storage_io import canonical_bytes
 
 
 def execute(folder, state_root, workspace, request):
+    timing = BuildTiming(folder)
+    try:
+        timing('verify_source')
+        result = _execute(folder, state_root, workspace, request, timing)
+    except BaseException:
+        timing.finish('failed')
+        raise
+    result['build_timing'] = timing.finish('completed')
+    (folder/'worker-result.json').write_bytes(canonical_bytes(result))
+
+
+def _execute(folder, state_root, workspace, request, progress):
     frozen = request['joint_execution']
     if (frozen['profile'] != PROFILE or canonical_sha256(frozen['config']) != frozen['config_sha256']
             or normalize(frozen['config'], frozen['duration']) != frozen['config']):
@@ -25,22 +38,23 @@ def execute(folder, state_root, workspace, request):
     camera_keys = camera.get('keys')
     from .motion_joint_inheritance import review
     files, evidence, geometry = build(source, frozen['config'], camera_keys=camera_keys, parent_review=review(resolved),
-        on_progress=lambda step: progress(folder, step))
+        on_progress=progress)
     joint = json.loads(files['joint-animation.json'])
     if joint['animation'] != frozen['animation'] or joint['duration'] != frozen['duration']:
         raise ValueError('joint_animation_timeline_changed')
     from .motion_repair_depth import recheck
-    progress(folder, 'depth_overlap')
-    depth = recheck(files, request, state_root, lambda: progress(folder, 'depth_overlap'))
+    progress('depth_overlap')
+    depth = recheck(files, request, state_root, lambda: progress('depth_overlap'))
     files['joint-provenance.json'] = canonical_bytes(dict(frozen, authority='none', selected=False))
     manifest = json.loads(files['character-manifest.json'])
     manifest['files'] = {n:sha256(raw).hexdigest() for n,raw in files.items() if n != 'character-manifest.json'}
     files['character-manifest.json'] = canonical_bytes(manifest)
-    progress(folder, 'publish_candidate')
+    progress('publish_candidate')
     assert_frozen_unchanged(state_root, request)
     artifact = store.publish(files)
     runtime = capture(SimpleNamespace(workspace_root=workspace), store, artifact, folder,
-        progress=lambda step: progress(folder, step), cancel_requested=lambda: False, storage_reference=True)
+        progress=progress, cancel_requested=lambda: False, storage_reference=True,
+        geometry_evidence=prepared_geometry(files, geometry))
     result = dict(artifact_sha256=artifact, character_animation_status=evidence['status'], runtime=runtime,
         animations=[frozen['animation']], issues=evidence['issues'], inherited_issue_context=evidence['inherited_issue_context'],
         geometry_passed=geometry['passed'], contact_status=evidence['contact_status'],
@@ -57,4 +71,4 @@ def execute(folder, state_root, workspace, request):
         authority='none', selected=False, production_authorized=False)
     if 'layer_edits' in request:
         result['layer_edits'] = request['layer_edits']
-    (folder/'worker-result.json').write_bytes(canonical_bytes(result))
+    return result

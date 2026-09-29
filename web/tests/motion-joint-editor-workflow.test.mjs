@@ -80,3 +80,20 @@ test('related body metadata and build remain bound to the selected registration'
   const mismatch=harness(()=>({...metadata,registration_sha256:'f'.repeat(64)}));await mismatch.flow.load(candidate);
   assert.equal(mismatch.flow.state.meta,null);assert.match(mismatch.state.view.message,/不匹配/);
 });
+
+test('asynchronous result inspection refreshes authoring state after viewport metadata is ready',async()=>{
+  const inspected=deferred();let completed=false,updatesAfterInspect=0;
+  const flow=createJointWorkflow({getSelection:()=>({project_id:'alice'}),storage:null,
+    request:async(url,body)=>url.endsWith('joint-animation')?(body?{job_id:child,status:'pending'}:metadata):
+      {job_id:child,kind:'adapt',status:'succeeded',result:{artifact_sha256:'e'.repeat(64)}},
+    inspect:async()=>{await inspected.promise;completed=true;},notify:()=>{if(completed)updatesAfterInspect++;},schedule:()=>0,unschedule:()=>{}});
+  await flow.load(parent);await flow.build();await flush();assert.equal(updatesAfterInspect,0);
+  inspected.resolve();await flush();assert.ok(updatesAfterInspect>0);
+});
+
+test('new joint sampling stages have readable progress labels',async()=>{
+  const {flow,state}=harness((url,body)=>url.endsWith('joint-animation')?(body?{job_id:child,status:'pending'}:metadata):
+    {job_id:child,kind:'adapt',status:'running',progress:{step:'joint_sample'}});
+  await flow.load(parent);await flow.build();await flush();assert.match(state.view.message,/逐帧采样联合动画/);
+  assert.doesNotMatch(state.view.message,/joint_sample/);
+});

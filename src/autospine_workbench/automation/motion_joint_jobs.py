@@ -10,7 +10,7 @@ from .pipeline_run import PipelineRunError
 from .storage_io import publish_document, read_document
 
 
-def eligibility(document, files=None):
+def eligibility(document, files=None, *, reference_times=None):
     reasons = []
     if len(document.get('skins', [])) != 1:
         reasons.append('joint_animation_single_skin_required')
@@ -18,11 +18,13 @@ def eligibility(document, files=None):
         if any('attachment' in channels for channels in animation.get('slots', {}).values()):
             reasons.append('joint_animation_attachment_switch_not_supported')
     sampling = None
-    if files:
-        from ..targets.character43.numeric_reference import read
+    if reference_times is not None or files:
         from ..targets.character43.joint_sampling import preflight
-        name = next(iter(document['animations']))
-        sampling = preflight([r['time'] for r in read(files)['animations'][name]])
+        if reference_times is None:
+            from ..targets.character43.numeric_reference import read
+            name = next(iter(document['animations']))
+            reference_times = [r['time'] for r in read(files)['animations'][name]]
+        sampling = preflight(reference_times)
         if not sampling['supported']:
             reasons.append('joint_animation_sample_limit_shorten_source_clip')
     return dict(supported=not reasons, reasons=sorted(set(reasons)), sampling=sampling,
@@ -47,13 +49,14 @@ def context(manager, job, registration=None):
     name = next(iter(document['animations']))
     if reference['skeleton_sha256'] != sha256(files['skeleton.json']).hexdigest():
         raise PipelineRunError('joint_animation_reference_mismatch')
-    duration = reference['animations'][name][-1]['time']
-    return parent, request, files, document, name, duration, resolved['provenance']
+    times = [row['time'] for row in reference['animations'][name]]
+    duration = times[-1]
+    return parent, request, files, document, name, duration, resolved['provenance'], times
 
 
 def inspect(manager, job, registration=None):
     from ..targets.character43 import joint_face, joint_secondary
-    parent, request, files, document, animation, duration, provenance = context(manager, job, registration)
+    parent, request, files, document, animation, duration, provenance, times = context(manager, job, registration)
     face = joint_face.inventory(files, document)
     secondary = joint_secondary.inventory(files, document)
     from .motion_source_comparison import link
@@ -66,7 +69,7 @@ def inspect(manager, job, registration=None):
         preview_base=f'/api/motions/{job}/view/'+(f'related-candidates/{registration}/' if registration else '')+'player-assets/',
         project_id=request['project_id'], character_job_id=request['character_job_id'],
         animation=animation, duration=duration, inventory=dict(face=face, **secondary),
-        eligibility=eligibility(document, files),
+        eligibility=eligibility(document, reference_times=times),
         defaults=defaults(), controls=controls(), authority='none', production_authorized=False,
         limitations=['small_facial_parameters_not_new_view_art',
                      'baked_secondary_motion_not_live_runtime_physics',
@@ -77,10 +80,10 @@ def submit(manager, job, body):
     if (not isinstance(body, dict) or set(body)-{'artifact_sha256', 'config', 'registration_sha256'}
             or not {'artifact_sha256', 'config'} <= set(body)):
         raise PipelineRunError('joint_animation_request_invalid')
-    parent, request, files, document, animation, duration, provenance = context(manager, job, body.get('registration_sha256'))
+    parent, request, files, document, animation, duration, provenance, times = context(manager, job, body.get('registration_sha256'))
     if body['artifact_sha256'] != provenance['artifact_sha256']:
         raise PipelineRunError('joint_animation_body_changed')
-    if not eligibility(document, files)['supported']:
+    if not eligibility(document, reference_times=times)['supported']:
         raise PipelineRunError('joint_animation_body_unsupported')
     try:
         config = normalize(body['config'], duration)

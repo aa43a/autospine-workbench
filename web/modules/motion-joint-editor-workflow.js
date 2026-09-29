@@ -4,7 +4,8 @@ import {jointChecksum,validateJointResultRestore} from './motion-joint-editor-re
 
 const validId=id=>/^motion-[a-f0-9]{32}$/.test(id);
 const labels={pending:'已排队',queued:'已排队',running:'联合动画构建中',succeeded:'联合候选已生成（待检查）',failed:'构建失败',canceled:'已取消',cancelled:'已取消',interrupted:'构建已中断',outdated:'任务已不可用'};
-const jointStages={joint_inventory:'检查角色通道与素材',joint_face:'生成面部动画',joint_secondary:'计算发束和裙袖响应',joint_validate:'核对连接与网格变形'};
+const jointStages={joint_inventory:'检查角色通道与素材',joint_face:'生成面部动画',joint_secondary:'计算发束和裙袖响应',joint_validate:'核对连接与网格变形',
+  joint_sample:'逐帧采样联合动画',joint_reference:'保存动画校验数据',joint_geometry:'检查联合网格',joint_checks:'检查连接与循环'};
 const reasons={joint_animation_parent_unavailable:'身体动作候选尚不可用，请先选择构建成功的候选。',
   joint_animation_original_body_required:'请载入原始身体候选，联合动画会从该版本重新生成。',
   joint_animation_body_changed:'身体候选版本不匹配，请重新载入。',joint_animation_config_invalid:'联合动画参数不兼容，请检查关键帧和数值范围。',
@@ -34,7 +35,7 @@ export function createJointWorkflow({getSelection=()=>null,notify=()=>{},inspect
       if(next.job_id!==id||next.kind!=='adapt')throw Error('联合构建任务身份不一致。');
       job=next;state.result(next);message=`${labels[next.status]||next.status} · ${progressText(next)}${next.reason_code?' · '+(reasons[next.reason_code]||next.reason_code):''}`;
       storeTask();update();
-      if(next.status==='succeeded'&&inspected!==id){inspected=id;try{await inspect(next);}catch(e){if(current(t))error(e);}}
+      if(next.status==='succeeded'&&inspected!==id){inspected=id;try{await inspect(next);if(current(t))update();}catch(e){if(current(t))error(e);}}
     }catch(e){if(current(t)&&sequence===read){
       if([404,410].includes(e.status)){job={...job,status:'outdated'};state.result(job);message='上次任务已不存在，已保留其参数。可重新构建联合动画。';}
       else message=`暂时无法刷新任务：${e.message}。已有任务保留，可继续刷新。`;update();}}
@@ -71,11 +72,11 @@ export function createJointWorkflow({getSelection=()=>null,notify=()=>{},inspect
       const config=validateJointResultRestore(candidate,report,state.meta,provenance,{parent,joint});
       state.set(config);state.submit(config);state.result(candidate);job=candidate;inspected=job.job_id;storeTask();
       message='已恢复此联合候选的精确参数与构建结果；修改后会创建新的独立候选。';update();
-      await inspect(candidate);return current(t);
+      await inspect(candidate);if(current(t))update();return current(t);
     }catch(e){if(current(t))error(e);return false;}
     finally{if(current(t)){busy=false;update();}}
   }
-  function edit(callback){if(!state.meta||busy)return;try{callback();message=state.changed?'参数已修改，需重新构建；当前画布仍是已构建结果。':'参数已更新，构建后可在共用时间轴检查。';update();}catch(e){error(e);}}
+  function edit(callback){if(!state.meta||busy)return;try{callback();message=state.changed?'参数已修改。已生成随动的强度和启停可即时比较，其他改动需重新构建；下载保持上次结果。':'参数已更新，可在共用时间轴检查。';update();}catch(e){error(e);}}
   async function build(){
     if(!state.meta||busy||isJointActive(job))return;const t=token();busy=true;message='正在提交联合动画候选…';update();
     if(state.meta.eligibility?.supported===false){busy=false;message=state.meta.eligibility.message||state.meta.eligibility.reason||'当前身体候选暂不支持联合叠加。';update();return;}

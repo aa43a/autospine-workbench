@@ -19,7 +19,7 @@ def _setup(document, animation):
 
 def build(files, config, *, camera_keys=None, on_progress=None, parent_review=None):
     from . import joint_face, joint_secondary
-    from .deformation_qa import inspect
+    from .deformation_qa import inspect_reference
     from .joint_animation_qa import geometry_report, compare
     from .joint_loop_qa import inspect as inspect_loop
     source = json.loads(files['skeleton.json'])
@@ -73,15 +73,20 @@ def build(files, config, *, camera_keys=None, on_progress=None, parent_review=No
     digest = sha256(output['skeleton.json']).hexdigest()
     setup = _setup(document, animation)
     output['rig-setup-reference.json'] = canonical_bytes(dict(skeleton_sha256=digest, time=0, vertices=setup))
+    progress('joint_sample')
     frames = []
     for index, time in enumerate(times):
         if index % 64 == 0:
-            progress('joint_validate')
+            progress('joint_sample')
         frames.append(dict(time=time, vertices=sample(document, animation, time)[0]))
-    output = write(output, dict(skeleton_sha256=digest, animations={animation:frames}), compressed=True)
-    raw_geometry = inspect(output, setup_vertices=setup)
+    reference = dict(skeleton_sha256=digest, animations={animation:frames})
+    progress('joint_reference')
+    output = write(output, reference, compressed=True)
+    progress('joint_geometry')
+    raw_geometry = inspect_reference(document, reference, digest, setup_vertices=setup)
     geometry = geometry_report(raw_geometry, face_inventory, config['face']['enabled'],
         face_report=face_report, source_geometry=json.loads(files['deformation.json']))
+    progress('joint_checks')
     before = source['skins'][0]['attachments']; after = document['skins'][0]['attachments']
     affected = {slot for slot in after if before.get(slot) != after[slot]}
     preservation = compare(source, document, animation, times, affected)
