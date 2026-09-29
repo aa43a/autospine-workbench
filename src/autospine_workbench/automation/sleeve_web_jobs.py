@@ -9,7 +9,7 @@ import re
 import subprocess
 import sys
 from threading import RLock
-from uuid import uuid4
+from .production_submission import child_id
 from .pipeline_run import PipelineRunError
 from .pipeline_run_validation import require_sha
 from .storage_io import directory,publish_document,read_document
@@ -76,18 +76,21 @@ class SleeveWebJobs:
         if self._draft_sha(project)!=request['draft_sha256']:
             raise PipelineRunError('sleeve_draft_changed')
 
-    def submit(self,project,expected_resolved_sha256):
+    def submit(self,project,expected_resolved_sha256,expected_draft_sha256=None):
         require_sha(expected_resolved_sha256)
         if not self.overview(project)['can_build']:raise PipelineRunError('sleeve_draft_missing')
         if self.projects.get_project(project)['resolved']['sha256']!=expected_resolved_sha256:raise PipelineRunError('project_snapshot_stale')
+        draft_sha=self._draft_sha(project)
+        if expected_draft_sha256 is not None and draft_sha!=expected_draft_sha256:
+            raise PipelineRunError('sleeve_draft_changed')
         with self._lock:
             if self._closed:raise PipelineRunError('pipeline_manager_closed')
             for job in self._jobs.values():
                 if job['project_id']==project and job['status'] in ('pending','running'):return self.get(project,job['job_id'])
             if sum(j['status'] in ('pending','running') for j in self._jobs.values())>=4:raise PipelineRunError('pipeline_queue_full')
-            job_id='job-'+uuid4().hex;root=self._path(job_id)
+            job_id=child_id('job-');root=self._path(job_id)
             job=dict(schema='autospine.sleeve-web-job/v1',job_id=job_id,project_id=project,status='pending',step=None,authority='none')
-            request=dict(project_id=project,expected_resolved_sha256=expected_resolved_sha256,draft_sha256=self._draft_sha(project))
+            request=dict(project_id=project,expected_resolved_sha256=expected_resolved_sha256,draft_sha256=draft_sha)
             publish_document(root/'request.json',request,staging=root/'.staging');self._jobs[job_id]=job
             self._pool.submit(self._execute,job_id,request)
             return sleeve_visibility.view(deepcopy(job),root)

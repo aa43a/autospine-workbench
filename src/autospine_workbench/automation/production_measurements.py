@@ -110,6 +110,6 @@ def metrics(manager,run_id):
         recorded_execution_seconds=math.fsum(measured) if measured else None,
         execution_measured_attempts=len(measured),execution_unmeasured_attempts=len(attempts)-len(measured),
         execution_scope='recorded_terminal_worker_elapsed_includes_IO_and_capture_not_CPU_time',
-        stages_without_observed_intervals=[s for s in ('source','bindings','character','body','joint')
+        stages_without_observed_intervals=[s for s in ('source','bindings','sleeves','character','body','joint')
                                           if s in run['stages'] and not any(r['stage']==s for r in attempts.values())],
         intervention_count=None,scope='journal_observations_are_not_human_interventions',authority='none')

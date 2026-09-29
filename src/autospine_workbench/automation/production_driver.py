@@ -66,7 +66,8 @@ class ProductionDriver:
 
     def exists(self, job):
         if job.startswith('job-'):
-            return (self.motions.character_manager().root / job / 'request.json').is_file()
+            manager = self.motions.character_manager()
+            return any((root / job / 'request.json').is_file() for root in (manager.root, manager.sleeves.root))
         return (self.motions.root / job / 'request.json').is_file()
 
     def submit(self, stage, run, job):
@@ -93,6 +94,8 @@ class ProductionDriver:
         if job.startswith('job-'):
             from .storage_io import read_document
             manager = self.motions.character_manager()
+            if not (manager.root/job/'request.json').exists():
+                manager = manager.sleeves
             request = read_document(manager._path(job) / 'request.json')
             return manager.get(request['project_id'], job)
         return self.motions.get(job)
@@ -105,6 +108,8 @@ class ProductionDriver:
         if job.startswith('job-'):
             from .storage_io import read_document
             manager = self.motions.character_manager()
+            if not (manager.root/job/'request.json').exists():
+                manager = manager.sleeves
             request = read_document(manager._path(job) / 'request.json')
             return manager.cancel(request['project_id'], job)
         return self.motions.cancel(job)

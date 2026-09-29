@@ -79,7 +79,7 @@ class ProductionJobs:
             if run_id in self._active or value['status'] != 'blocked':
                 raise PipelineRunError('production_retry_not_available')
             self.driver.validate(value['request'])
-            for stage in ('source', 'bindings', 'character', 'body', 'joint'):
+            for stage in ('source', 'bindings', 'sleeves', 'character', 'body', 'joint'):
                 row = value['stages'].get(stage)
                 if row is None:
                     continue
@@ -146,7 +146,7 @@ class ProductionJobs:
             value['status'] = 'canceled'
             value = self.journal.append(value, 'canceled')
         for stage in value['stages'].values():
-            if stage['status'] in ACTIVE and stage.get('job_id'):
+            if stage['status'] in ACTIVE and stage.get('job_id') and not stage.get('shared'):
                 if self.driver.exists(stage['job_id']):
                     self.driver.cancel(stage['job_id'])
         return value

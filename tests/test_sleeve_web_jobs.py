@@ -26,6 +26,15 @@ class SleeveWebTests(unittest.TestCase):
         with patch.object(self.manager._pool,'submit'):
             return self.manager.submit('huiye',self.sha)
 
+    def test_reserved_identity_and_changed_draft_guard(self):
+        from autospine_workbench.automation.production_submission import reserved_child
+        job = 'job-'+'e'*32
+        with patch.object(self.manager._pool,'submit'), reserved_child(job):
+            result = self.manager.submit('huiye', self.sha, self.manager._draft_sha('huiye'))
+        self.assertEqual(result['job_id'], job)
+        with self.assertRaisesRegex(RuntimeError, 'sleeve_draft_changed'):
+            self.manager.submit('huiye', self.sha, 'f'*64)
+
     def test_history_guard_avoids_annotation_readiness_and_retains_canceled_jobs(self):
         self.assertFalse(self.manager.has_job('huiye'))
         job = self.submit()

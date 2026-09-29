@@ -49,6 +49,12 @@ def prepare(driver, read, write, stopped):
     job = row.get('job_id')
     if not job:
         info = manager.overview(project)
+        if (read()['stages'].get('sleeves') or not info['can_build'] and
+                info.get('reason_code') in ('character_sleeve_candidate_required', 'character_sleeve_unavailable')):
+            from .production_sleeves import prepare as prepare_sleeves
+            if not prepare_sleeves(driver, read, write, stopped, info):
+                return False
+            info = manager.overview(project)
         if not info['can_build']:
             raise PipelineRunError(info.get('reason_code') or 'production_character_unavailable')
         job = 'job-' + uuid4().hex

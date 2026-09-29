@@ -87,6 +87,30 @@ class ProductionTests(unittest.TestCase):
         self.assertEqual(value['status'], 'stage_accepted')
         self.assertEqual(len(self.driver.calls), 2)
 
+    def test_cancel_preserves_shared_sleeve_dependency(self):
+        for shared in (True, False):
+            value = self.manager.journal.create(self.request)
+            job = 'job-' + ('a' if shared else 'b') * 32
+            value['stages']['sleeves'] = dict(status='running',job_id=job,shared=shared,attempts=[])
+            value = self.manager.journal.append(value, 'sleeves_reserved')
+            self.driver.jobs[job] = dict(status='running')
+            self.manager.cancel(value['run_id'], value['revision'])
+            self.assertEqual(self.driver.jobs[job]['status'], 'running' if shared else 'canceled')
+
+    def test_retry_retains_failed_sleeve_attempt_and_clears_its_reservation(self):
+        value = self.manager.journal.create(self.request)
+        for stage in ('source','bindings'):
+            value['stages'][stage]['status'] = 'succeeded'
+        job = 'job-' + 'c' * 32
+        value['stages']['sleeves'] = dict(status='running',job_id=job,attempts=[dict(job_id=job)])
+        value['status'] = 'blocked'
+        value = self.manager.journal.append(value, 'failed')
+        self.driver.jobs[job] = dict(status='blocked')
+        with patch.object(self.manager, '_schedule'):
+            result = self.manager.retry(value['run_id'], value['revision'])
+        self.assertNotIn('job_id', result['stages']['sleeves'])
+        self.assertEqual(result['stages']['sleeves']['attempts'], [dict(job_id=job)])
+
     def test_recover_published_child_without_double_submit(self):
         value = self.manager.journal.create(self.request)
         job = 'motion-' + 'a' * 32
