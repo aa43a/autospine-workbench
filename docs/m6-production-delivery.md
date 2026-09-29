@@ -139,3 +139,7 @@
 | seethrough_output (2).psd | production-54caabb968d842f1ae7d17f9ea9dd9c1 | 来源准备成功，joint_review_required |
 
 三份通过持久 entrance 从导入接入制作链，统一沿用已固定的正面呼吸、表情/发束/服装设置。第三次上传在两任务并行时收到 HTTP 400；确认没有第三任务后于前两份结束时补交，保留记录。集中入口 `tmp/m6-independent/index.html` 请求真实关节复核与实际操作时间。跨标签页操作不能用会在隐藏时暂停的制作页秒表冒充完整计时，因此允许用户提供实际计时，未计时保持未知。尚无独立整角色成功案例，也尚无完整人工成本结论。
+
+后续实际保存状态：魔理沙、帕秋莉均保存 17 个关节复核，已恢复各自制作任务；生产协调器串行执行，第二份等待第一份结束。魔理沙整角色产物 `fcff67ed2be82b8147567a9932c1f7fe2f6bb7b50899682a63b7a02747a26335` 的 22 层中有 21 层仍含静态参考，头颈前置条件 `face_above_neck` 未满足，双臂出现 `animated_geometry_failed`。身体动作可生成不等于完整绑定成功，冻结规则在该样本的覆盖不足须保留。
+
+用户明确第三份宽袖素材缺失过多、要求弃用：已取消 `production-54caabb968d842f1ae7d17f9ea9dd9c1`，保留 PSD 与冻结历史；`tmp/m6-independent/exclusion-v1.json` 记录弃用原因，集中页移除其待复核操作。不计为成功，也不从历史抹去这次尝试；第三份独立素材待替换。当前运行与计时事实见 `tmp/m6-independent/progress-20260929-v1.json`。
