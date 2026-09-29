@@ -1,5 +1,6 @@
 import {projectOptionLabel} from './project-option-label.js';
 import {createProductionIntake} from './production-intake.js';
+import {createProductionEntrances} from './production-entrances.js';
 import {createProductionBatches} from './production-batches.js';
 import {createProductionCoverage} from './production-coverage.js';
 import {appendStageReview} from './motion-stage-review.js';
@@ -61,12 +62,14 @@ $('create').onsubmit=async event=>{
 };
 $('refresh').onclick=refresh;
 await refresh();
-createProductionBatches({api,settings:()=>{
+const productionControls={api,settings:()=>{
   if(!options)throw Error('请先刷新角色与动作列表');
   const body_options=structuredClone(options.body_options),joint_config=structuredClone(options.joint_config);
   body_options.projection.keys[0].yaw=Number($('yaw').value);
   for(const group of ['face','hair','cloth'])joint_config[group].enabled=$(group).checked;
   return {body_options,joint_config};
-},openRun:async id=>{selected=id;history.replaceState(null,'',`?run=${id}`);await refreshRuns();$('summary').scrollIntoView({behavior:'smooth'});}});
+},openRun:async id=>{selected=id;history.replaceState(null,'',`?run=${id}`);await refreshRuns();$('summary').scrollIntoView({behavior:'smooth'});}};
+createProductionBatches(productionControls);
+createProductionEntrances(productionControls);
 createProductionIntake({refresh,selectProject:id=>{$('project').value=id;},selectSource:id=>{$('source').value=id;}});
 setInterval(()=>{if(!busy&&!document.hidden)refreshRuns().catch(e=>{$('status').textContent=`读取进度失败：${e.message}。任务记录保留，可刷新重试。`;});},4000);

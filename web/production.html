@@ -9,6 +9,7 @@
 <form id="motion-form"><label>FBX / BVH / SOMA77 NPZ<input id="motion-file" type="file" accept=".fbx,.bvh,.npz" required></label><button id="motion-submit">导入动作</button></form>
 <form id="generate-form"><label>Kimodo 动作描述<input id="prompt" maxlength="1000" placeholder="A person breathes gently." required></label><label>时长 / 秒<input id="duration" type="number" min="1" max="10" step="0.1" value="4" required></label><button id="generate-submit">生成动作</button></form>
 </div><p id="intake-status" role="status">导入或生成完成后会自动选入下方表单。NPZ 默认按 30 fps 解析。</p><button id="intake-refresh" type="button">刷新导入进度</button></details>
+<details><summary>来源完成后自动制作 · 可恢复</summary><p>上传或生成任务提交后，点击刷新并选择来源。无需等待解析完成；会沿用下方的观察角与联合动画设置。</p><label>角色来源<select id="entrance-character"><option value="selected">使用下方选择的已有角色</option></select></label><label>动作来源<select id="entrance-motion"></select></label><button id="entrance-refresh" type="button">刷新来源与衔接进度</button><button id="entrance-start" type="button">开始来源到交付流程</button><p id="entrance-status" role="status"></p><div id="entrance-list"></div></details>
 <form id="create"><label>角色<select id="project" required><option value="">选择已绑定角色</option></select></label>
 <label>源动作<select id="source" required><option value="">选择已解析动作</option></select></label>
 <label>固定观察角 / °<input id="yaw" type="number" min="-360" max="360" value="0" step="1" required></label>

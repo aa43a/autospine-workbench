@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import {pathToFileURL} from 'node:url';
+const [output,deps,chrome,entrance,run]=process.argv.slice(2);
+const {chromium}=await import(pathToFileURL(path.resolve(deps,'node_modules/playwright-core/index.mjs')));
+await fs.mkdir(output,{recursive:true});
+const browser=await chromium.launch({executablePath:chrome,headless:true,args:['--enable-webgl','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+try{
+  const page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];
+  page.on('pageerror',e=>errors.push(String(e)));
+  await page.goto('http://127.0.0.1:8918/production.html');
+  await page.getByText('来源完成后自动制作 · 可恢复',{exact:true}).click();
+  await page.getByRole('button',{name:'在本页查看制作进度',exact:true}).first().waitFor();
+  await page.locator('#entrance-character option').nth(1).waitFor({state:'attached'});
+  await page.locator('#entrance-motion option').nth(1).waitFor({state:'attached'});
+  assert.ok(await page.locator('#entrance-character option').count()>1);
+  assert.ok(await page.locator('#entrance-motion option').count()>1);
+  const saved=await (await page.request.get(`http://127.0.0.1:8918/api/production-entrances/${entrance}`)).json();
+  assert.equal(saved.status,'linked');assert.equal(saved.run_id,run);assert.equal(saved.reused,true);
+  await page.reload();await page.getByText('来源完成后自动制作 · 可恢复',{exact:true}).click();
+  await page.getByRole('button',{name:'在本页查看制作进度',exact:true}).first().click();
+  await page.waitForURL(`**?run=${run}`);
+  await page.frameLocator('#player').locator('#play:not([disabled])').waitFor({timeout:60000});
+  await page.screenshot({path:path.join(output,'desktop.png'),fullPage:true});
+  await page.setViewportSize({width:390,height:844});
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  assert.deepEqual(errors,[]);
+  await fs.writeFile(path.join(output,'report.json'),JSON.stringify({passed:true,entrance,run,reused:true,review_saved:false,errors},null,2));
+  console.log(JSON.stringify({passed:true,entrance,run}));
+}finally{await browser.close();}
