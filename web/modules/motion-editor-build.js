@@ -83,6 +83,13 @@ export function createEditorBuild({snapshot,inspect=()=>{}}){
     const panel=$('build-result');panel.replaceChildren();
     const history=document.createElement('a');history.href=`/motions.html#${job.job_id}`;history.textContent='查看此独立任务与完整记录';panel.append(history);
     if(job.status==='succeeded'&&job.result?.artifact_sha256){
+      if(job.result.preparation_cache){
+        const reuse=document.createElement('p');
+        reuse.textContent=job.result.preparation_cache.status==='hit'
+          ?'已复用相同来源的姿态与修形结果；图层修改后的检查与 Runtime 已重新执行。'
+          :'本次重新计算姿态与修形；后续只改图层时可复用这部分结果。';
+        panel.append(reuse);
+      }
       const note=document.createElement('p');note.textContent='这是按已保存角度轨道与图层校正构建的独立结果。上方草稿的新修改不会影响它；技术异常与阶段验收独立保留。';panel.append(note);
       const play=document.createElement('a');play.href=`/api/motions/${job.job_id}/view/player.html`;play.textContent='打开此候选的可动验收窗口';play.target='_blank';play.rel='noopener';panel.append(play);
       const compare=document.createElement('button');compare.textContent='在编辑区对照导出结果';compare.onclick=()=>inspect(job);panel.append(compare);

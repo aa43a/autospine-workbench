@@ -21,7 +21,7 @@ from ..targets.character43.motion_depth_overlap import SPARSE_DEPTH_PROFILE
 ANIMATION = 'external-motion'
 
 
-def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_digest, kimodo=None,
+def _prepare_candidate(files, motion, bvh, mapping, *, character_digest, motion_digest, kimodo=None,
                     contact_correction=True, clip_bounds=None, inferred_contact_profile=None, depth_review_profile=None,
                     on_stage=None, oblique=None, torso_projection=None, pose_fit=None, moving_ankles=None, layer_edits=None):
     """Preserve the rig, or verify the explicit regional render transformation."""
@@ -210,6 +210,31 @@ def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_dig
         depth_status = depth['status']
     if pose_fit is not None or moving_report is not None:
         times = final_times(document, ANIMATION, times)
+    return dict(document=document, evidence=evidence, issues=issues, motion=motion, original=original,
+                setup_vertices=setup_vertices, times=times, contact=contact, depth=depth,
+                depth_status=depth_status, moving_report=moving_report, torso_evidence=torso_evidence,
+                regional_transform=regional_transform)
+
+
+def build_candidate(files, motion, bvh, mapping, *, character_digest, motion_digest, kimodo=None,
+                    contact_correction=True, clip_bounds=None, inferred_contact_profile=None, depth_review_profile=None,
+                    on_stage=None, oblique=None, torso_projection=None, pose_fit=None, moving_ankles=None,
+                    layer_edits=None, checkpoint=None):
+    """Reuse only preparation; always rerun final checks after layer edits."""
+    state = checkpoint.load() if checkpoint is not None else None
+    if state is None:
+        state = _prepare_candidate(files, motion, bvh, mapping,
+            character_digest=character_digest, motion_digest=motion_digest, kimodo=kimodo,
+            contact_correction=contact_correction, clip_bounds=clip_bounds,
+            inferred_contact_profile=inferred_contact_profile, depth_review_profile=depth_review_profile,
+            on_stage=on_stage, oblique=oblique, torso_projection=torso_projection,
+            pose_fit=pose_fit, moving_ankles=moving_ankles)
+        if checkpoint is not None:
+            checkpoint.save(state)
+    state = deepcopy(state)
+    document, evidence, issues, motion, original = (state[k] for k in ('document', 'evidence', 'issues', 'motion', 'original'))
+    setup_vertices, times, contact, depth, depth_status = (state[k] for k in ('setup_vertices', 'times', 'contact', 'depth', 'depth_status'))
+    moving_report, torso_evidence, regional_transform = (state[k] for k in ('moving_report', 'torso_evidence', 'regional_transform'))
     layer_report = None
     if layer_edits is not None:
         from ..targets.character43.motion_layer_edits import apply as apply_layers
@@ -332,6 +357,8 @@ def execute(folder, state_root, workspace):
     if request.get('torso_projection_profile') is not None:
         from ..targets.character43.torso_projection_profile import prepare as prepare_torso
         torso_projection = prepare_torso(bundle, request)
+    from .motion_preparation_cache import PreparationCache
+    checkpoint = PreparationCache(state_root, request)
     files, evidence, geometry = build_candidate(store.read(request['character_sha256']), motion,
         bvh, bundle.kimodo_map if kimodo else bundle.bvh_map, kimodo=kimodo,
         contact_correction=request.get('contact_correction', True),
@@ -342,7 +369,7 @@ def execute(folder, state_root, workspace):
         torso_projection=torso_projection,
         pose_fit=pose_fit,
         moving_ankles=moving_ankles,
-        layer_edits=request.get('layer_edits'),
+        layer_edits=request.get('layer_edits'), checkpoint=checkpoint,
         clip_bounds=clip_bounds,
         character_digest=request['character_sha256'], motion_digest=motion_id['bundle_sha256'])
     progress(folder, 'publish_candidate')
@@ -377,6 +404,7 @@ def execute(folder, state_root, workspace):
         result['pose_profile'] = request['pose_profile']
     if moving_ankles is not None:
         result['moving_ankle_profile'] = request['moving_ankle_profile']
+    result['preparation_cache'] = checkpoint.report()
     if 'layer_edits' in request:result['layer_edits']=request['layer_edits']
     if 'layer_edit_receipt' in request:result['layer_edit_receipt']=request['layer_edit_receipt']
     if local_depth:result['local_depth_evidence_sha256']=local_depth
