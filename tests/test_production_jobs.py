@@ -33,6 +33,9 @@ class Driver:
             value['body_options'] = deepcopy(body_options)
         return value
 
+    def select_body(self,request,parent_job,registration):
+        return dict(request,body_selection={'parent_job_id':parent_job,'registration_sha256':registration,'lineage':[{'artifact_sha256':'body'}]})
+
     def exists(self, job):
         return job in self.jobs
 
@@ -182,6 +185,29 @@ class ProductionTests(unittest.TestCase):
         self.assertEqual(updated['rebuild_stages'],['body','joint'])
         self.assertIn('body',updated['rebuild_stages'])
         self.assertEqual(self.manager.get(original['run_id']),original)
+
+    def test_repair_revision_preserves_body_and_resets_joint_acceptance(self):
+        from autospine_workbench.automation.production_revision import plan
+        original=self.wait(self.manager.submit(self.request)['run_id'])
+        preview=plan(self.manager,original['run_id'],original['revision'],body_registration='a'*64)
+        revised=self.wait(self.manager.revise(original['run_id'],original['revision'],
+            body_registration='a'*64,expected_plan_sha256=preview['plan_sha256'])['run_id'])
+        self.assertEqual(revised['request']['body_selection']['parent_job_id'],original['stages']['body']['job_id'])
+        self.assertEqual(revised['stages']['body'],original['stages']['body'])
+        self.assertNotEqual(revised['stages']['joint']['job_id'],original['stages']['joint']['job_id'])
+        self.assertEqual(revised['status'],'needs_review')
+        reverted=plan(self.manager,revised['run_id'],revised['revision'],body_registration='')
+        self.assertNotIn('body_selection',reverted['request'])
+        with self.assertRaisesRegex(PipelineRunError,'unchanged_body'):
+            plan(self.manager,original['run_id'],original['revision'],body_options={'yaw':20},body_registration='a'*64)
+        self.manager.close()
+        self.manager=ProductionJobs(Path(self.tmp.name)/'runs',self.driver,poll_seconds=.01)
+        restored=self.manager.get(revised['run_id'])
+        self.assertEqual(restored['request'],revised['request'])
+        calls=len(self.driver.calls)
+        self.manager.resume(restored['run_id'],restored['revision'])
+        self.wait(restored['run_id'])
+        self.assertEqual(len(self.driver.calls),calls)
 
 
 if __name__ == '__main__':

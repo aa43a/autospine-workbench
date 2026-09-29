@@ -21,7 +21,7 @@ class ProductionDriver:
 
     def freeze(self, body):
         fields = {'project_id', 'character_job_id', 'source_job_id', 'body_options', 'joint_config'}
-        if not isinstance(body, dict) or set(body) != fields:
+        if not isinstance(body, dict) or set(body)-{'body_selection'} != fields:
             raise PipelineRunError('production_request_invalid')
         if not isinstance(body['body_options'], dict) or not isinstance(body['joint_config'], dict):
             raise PipelineRunError('production_request_invalid')
@@ -36,11 +36,13 @@ class ProductionDriver:
         source = self.motions.get(body['source_job_id'])
         if source['status'] != 'succeeded' or source.get('result', {}).get('motion_status') != 'compiled':
             raise PipelineRunError('motion_target_source_unavailable')
-        return dict(deepcopy(body), **identity,
-                    source_sha256=canonical_sha256(source))
+        frozen = dict(deepcopy(body), **identity, source_sha256=canonical_sha256(source))
+        from .production_body_selection import validate
+        validate(self, frozen)
+        return frozen
 
     def validate(self, request):
-        fields = ('project_id', 'character_job_id', 'source_job_id', 'body_options', 'joint_config')
+        fields = ('project_id', 'character_job_id', 'source_job_id', 'body_options', 'joint_config') + (('body_selection',) if 'body_selection' in request else ())
         if self.freeze({key: request[key] for key in fields}) != request:
             raise PipelineRunError('production_source_changed')
 
@@ -53,7 +55,14 @@ class ProductionDriver:
             body['joint_config'] = config
         if body_options is not None:
             body['body_options'] = deepcopy(body_options)
+        if (request.get('body_selection') and body['character_job_id']==request['character_job_id']
+                and body['body_options']==request['body_options']):
+            body['body_selection']=deepcopy(request['body_selection'])
         return self.freeze(body)
+
+    def select_body(self, request, parent_job, registration):
+        from .production_body_selection import select
+        return dict(request, body_selection=select(self,request,parent_job,registration))
 
     def exists(self, job):
         if job.startswith('job-'):
@@ -69,9 +78,16 @@ class ProductionDriver:
                     project_id=request['project_id'], character_job_id=run['stages']['character']['job_id']))
             from .motion_joint_jobs import inspect, submit
             parent = run['stages']['body']['job_id']
-            meta = inspect(self.motions, parent)
+            selection=request.get('body_selection')
+            registration=selection['registration_sha256'] if selection else None
+            if selection and parent!=selection['root_job_id']:
+                raise PipelineRunError('production_repair_parent_mismatch')
+            if selection:parent=selection['parent_job_id']
+            meta = inspect(self.motions, parent, registration)
+            if selection and meta.get('source_provenance') != {k:v for k,v in selection.items() if k not in ('root_job_id','selector','lineage')}:
+                raise PipelineRunError('production_repair_selection_changed')
             return submit(self.motions, parent, dict(artifact_sha256=meta['artifact_sha256'],
-                                                   config=request['joint_config']))
+                config=request['joint_config'], **(dict(registration_sha256=registration) if registration else {})))
 
     def get(self, job):
         if job.startswith('job-'):

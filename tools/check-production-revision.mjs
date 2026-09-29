@@ -12,6 +12,7 @@ try{
  page.on('request',r=>{if(r.method()==='POST')writes.push(new URL(r.url()).pathname);});
  await page.goto(`http://127.0.0.1:8918/production.html?run=${run}`);
  const panel=page.locator('#revision-panel');
+ await page.waitForFunction(()=>{const select=document.querySelector('[aria-label="身体修复版本"]');return select&&!select.disabled;});
  await panel.getByRole('button',{name:'预览受影响步骤'}).click();
  await panel.getByRole('button',{name:'按此范围创建修正任务'}).waitFor();
  const initial=await panel.innerText();assert.match(initial,/沿用：.*身体动作/);

@@ -1,3 +1,4 @@
+import {bodySelection} from './production-body-selection.js';
 const names={source:'来源准备',bindings:'默认绑定',character:'整角色',body:'身体动作',joint:'联合动画',review:'阶段验收',delivery:'交付'};
 const el=(tag,text)=>{const n=document.createElement(tag);n.textContent=text;return n;};
 export function createProductionRevision({api,openRun}){
@@ -16,10 +17,11 @@ export function createProductionRevision({api,openRun}){
     const preview=el('button','预览受影响步骤'),output=el('div','');panel.append(preview,output);
     let pending=null,generation=0;
     const invalidate=()=>{generation++;pending=null;output.replaceChildren(el('p','参数已变化，请重新预览重建范围。'));};yaw.oninput=invalidate;for(const input of Object.values(checks))input.onchange=invalidate;
+    const selectedBody=bodySelection(panel,run,api,invalidate);
     preview.onclick=async()=>{preview.disabled=true;try{
       if(staticCamera){const value=Number(yaw.value);if(!Number.isFinite(value)||value<-360||value>360)throw Error('观察角应在 -360 到 360 度之间');body.projection.keys[0].yaw=value;}
       for(const [group,input] of Object.entries(checks)){config[group]??={};config[group].enabled=input.checked;}
-      const request=structuredClone({expected_revision:run.revision,body_options:body,joint_config:config}),version=generation;
+      const request=structuredClone({expected_revision:run.revision,body_options:body,joint_config:config,body_registration:selectedBody()}),version=generation;
       const value=await api(`/api/production/${run.run_id}/revision-plan`,request);if(key!==next||generation!==version)return;pending=value;
       output.replaceChildren(el('p',`沿用：${value.reuse_stages.map(s=>names[s]).join('、')||'无'}。${value.refresh_stages?.length?`更新为当前已验证角色：${value.refresh_stages.map(s=>names[s]).join('、')}。`:''}重建：${value.rebuild_stages.map(s=>names[s]).join('、')}。阶段验收和交付将重新生成。`));
       const execute=el('button','按此范围创建修正任务');execute.onclick=async()=>{if(pending!==value)return;execute.disabled=true;try{const result=await api(`/api/production/${run.run_id}/revise`,{...request,expected_plan_sha256:value.plan_sha256});await openRun(result.run_id);}catch(e){output.append(el('p',`未执行：${e.message}，请刷新后重新预览。`));}finally{execute.disabled=false;}};output.append(execute);

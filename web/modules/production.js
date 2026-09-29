@@ -28,6 +28,11 @@ async function evidence(run){
     if(value.status!=='succeeded'||value.result?.artifact_sha256!==run.stages.joint.artifact_sha256)throw Error('联合候选版本已变化，请刷新来源');
     panel.replaceChildren(node('h2','检查异常与记录阶段验收'));
     appendStageReview(panel,value);const joint=node('section','');panel.append(joint);appendReadiness(joint,value,null,{...inspectionControls(joint,value),onJointEdit:()=>$('revision-panel').scrollIntoView({behavior:'smooth',block:'start'})});
+    const selection=run.request.body_selection;
+    if(selection){const selected=node('section','');selected.append(node('h3','本次联合动画使用的身体修复版本'),node('p',`版本 ${selection.artifact_sha256.slice(0,12)}。下方原身体诊断用于追溯，不代表修复版本的检查结论。`));
+      const show=node('button','在本页播放修复身体'),frame=document.createElement('iframe');frame.title='所选身体修复版本';frame.hidden=true;
+      show.onclick=()=>{frame.src=`/api/motions/${selection.parent_job_id}/view/`+(selection.registration_sha256?`related-candidates/${selection.registration_sha256}/`:'')+'player.html';frame.hidden=false;};
+      selected.append(show,frame);panel.append(selected);}
     const body=node('details','');body.append(node('summary','追溯身体动作原候选的异常'));panel.append(body);
     const original=await api(`/api/motions/${run.stages.body.job_id}`);if(evidenceJob!==key)return;
     if(original.status!=='succeeded'||original.result?.artifact_sha256!==run.stages.body.artifact_sha256)throw Error('身体候选版本已变化，请刷新来源');

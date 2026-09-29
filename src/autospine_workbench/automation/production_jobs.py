@@ -21,6 +21,8 @@ class ProductionJobs:
         self._pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix='production')
 
     def submit(self, body):
+        if isinstance(body,dict) and 'body_selection' in body:
+            raise PipelineRunError('production_repair_requires_revision')
         request = self.driver.freeze(body)
         with self._lock:
             self._require_open()
@@ -100,7 +102,7 @@ class ProductionJobs:
         with self._lock:
             return self.journal.list()
 
-    def revise(self, run_id, revision, joint_config=None, body_options=None, expected_plan_sha256=None):
+    def revise(self, run_id, revision, joint_config=None, body_options=None, expected_plan_sha256=None, body_registration=None):
         with self._lock:
             self._require_open()
             previous = self.journal.read(run_id)
@@ -109,7 +111,7 @@ class ProductionJobs:
             if run_id in self._active:
                 raise PipelineRunError('production_revision_wait_for_current_run')
             from .production_revision import plan
-            preview=plan(self,run_id,revision,joint_config,body_options)
+            preview=plan(self,run_id,revision,joint_config,body_options,body_registration)
             if expected_plan_sha256 is not None and expected_plan_sha256!=preview['plan_sha256']:
                 raise PipelineRunError('production_revision_plan_changed')
             request = preview['request']
