@@ -138,10 +138,28 @@ class SleeveOnboarding:
             return self.status(project)
 
     def read_current(self, project, require_saved=False):
-        status = self.status(project)
-        if status['status'] != 'ready' or require_saved and not status['can_build']:
-            raise PipelineRunError('sleeve_annotation_required')
-        value = self._latest(project)
+        # Replay the source once for this read, under the same authoring lock as
+        # saves. A status roundtrip used to replay it before replaying it again.
+        with project_authoring_transaction(self.projects.state_root, project):
+            value = self._latest(project)
+            if (not value or require_saved and not value['saved'] or
+                    value['source_sha256'] != self.projects.get_project(project)['resolved']['sha256']):
+                raise PipelineRunError('sleeve_annotation_required')
+            try:
+                with load_inputs(self.projects, project) as inputs:
+                    if inputs.source_addresses != value['input_addresses']:
+                        raise PipelineRunError('sleeve_annotation_required')
+                    if value.get('transfer_sha256') and not value['saved']:
+                        self._transfer(value)
+                    if value.get('saved_reuse_sha256'):
+                        self._saved_reuse(value)
+                    result = self._read_documents(value)
+                    inputs.assert_current()
+                    return result
+            except AnimatedSourceError as exc:
+                raise PipelineRunError('sleeve_annotation_required') from exc
+
+    def _read_documents(self, value):
         read = lambda key: read_mesh_report(self.projects.state_root, KIND, value[key])
         source, candidate, draft = read('mesh_sha256'), read('candidate_sha256'), read('draft_sha256')
         closure = read('closure_sha256')
@@ -150,10 +168,6 @@ class SleeveOnboarding:
             or canonical_sha256(closure['documents']['plan']) != source['sources']['plan_sha256']):
             raise PipelineRunError('sleeve_onboarding_invalid')
         validate(draft, candidate)
-        with load_inputs(self.projects, project) as inputs:
-            if inputs.source_addresses != value['input_addresses']:
-                raise PipelineRunError('sleeve_annotation_source_changed')
-            inputs.assert_current()
         return value, source, candidate, draft
 
     def save(self, project, body):

@@ -79,6 +79,27 @@ class SleeveOnboardingTests(unittest.TestCase):
         with self.assertRaises(PipelineRunError):
             self.service.page('fresh')
 
+    def test_draft_read_replays_once_and_checks_mutation_before_return(self):
+        from autospine_workbench.automation.sleeve_draft_source import read
+        from autospine_workbench.automation.animated_inputs import AnimatedSourceError
+        self.prepare()
+        self.service.save('fresh', self.save_body())
+        loads = []
+
+        @contextmanager
+        def counted(*args):
+            loads.append(args)
+            yield self.input
+
+        with patch('autospine_workbench.automation.sleeve_onboarding.load_inputs', counted):
+            self.assertTrue(read(self.projects, self.root/'legacy', 'fresh'))
+            self.assertEqual(len(loads), 1)
+            # A new request must validate again, not use a prior successful read.
+            self.input.assert_current = lambda: (_ for _ in ()).throw(AnimatedSourceError('changed'))
+            with self.assertRaisesRegex(PipelineRunError, 'sleeve_annotation_required'):
+                read(self.projects, self.root/'legacy', 'fresh')
+            self.assertEqual(len(loads), 2)
+
     def test_saved_labels_transfer_exactly_but_require_new_explicit_save(self):
         self.prepare()
         body = self.save_body()
