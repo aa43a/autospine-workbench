@@ -27,10 +27,11 @@ function render(){
   const run=runs.find(r=>r.run_id===selected);if(!run)return;
   $('summary').replaceChildren(node('h2',`${run.request.project_id} · ${states[run.status]||run.status}`),node('p',`创建于 ${new Date(run.created_at).toLocaleString()} · 更新于 ${new Date(run.updated_at).toLocaleTimeString()}`));
   $('stages').replaceChildren();for(const key of Object.keys(labels)){const row=run.stages[key];if(!row)continue;const li=node('li','');li.dataset.state=row.status;li.append(node('span',labels[key]||key),node('strong',states[row.status]||row.status));$('stages').append(li);}
-  $('detail').textContent=run.reason_code?`${reasons[run.reason_code]||'此步骤未完成，可查看角色来源与绑定，或重试失败步骤。'}\n诊断：${run.reason_code}`:'技术检查与人工验收分别记录；候选可下载不代表所有视觉问题都已解决。';
+  $('detail').textContent=run.status==='blocked'&&run.reason_code?`${reasons[run.reason_code]||'此步骤未完成，可查看角色来源与绑定，或重试失败步骤。'}\n诊断：${run.reason_code}`:'技术检查与人工验收分别记录；候选可下载不代表所有视觉问题都已解决。';
   $('actions').replaceChildren();
   for(const [name,label] of [['resume','继续 / 同步验收'],['retry','重试失败步骤'],['cancel','取消任务']]){if(name==='retry'&&run.status!=='blocked'||name==='cancel'&&!['pending','running'].includes(run.status)||name==='resume'&&run.status==='canceled')continue;const b=node('button',label);b.onclick=()=>action(name);$('actions').append(b);}
   $('actions').append(link('定位角色与绑定',`/?project=${encodeURIComponent(run.request.project_id)}`));
+  if(run.stages.character.status==='succeeded'&&run.stages.character.job_id)$('actions').append(link('检查整角色覆盖与缺项',`/api/projects/${encodeURIComponent(run.request.project_id)}/automation/character/jobs/${run.stages.character.job_id}/view/index.html`));
   if(!['pending','running'].includes(run.status)){const revise=node('button','按当前角色修正重建');revise.onclick=()=>action('revise');$('actions').append(revise);}
   const delivery=run.stages.delivery;
   void evidence(delivery.player_url?run.stages.joint.job_id:null);

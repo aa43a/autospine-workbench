@@ -99,6 +99,26 @@ class ProductionTests(unittest.TestCase):
             self.manager.resume(value['run_id'], value['revision'])
         self.assertFalse(self.driver.calls)
 
+    def test_resume_clears_old_block_before_waiting_for_preparation(self):
+        entered, release = Event(), Event()
+        def prepare(read, write, stopped):
+            entered.set()
+            release.wait(2)
+            return False
+        self.driver.prepare = prepare
+        value = self.manager.journal.create(self.request)
+        value.update(status='blocked', reason_code='joint_review_required')
+        value = self.manager.journal.append(value, 'blocked')
+        try:
+            self.manager.resume(value['run_id'], value['revision'])
+            self.assertTrue(entered.wait(2))
+            current = self.manager.get(value['run_id'])
+            self.assertEqual(current['status'], 'running')
+            self.assertNotIn('reason_code', current)
+        finally:
+            release.set()
+        self.wait(value['run_id'])
+
     def test_revision_conflict_and_cancel_are_durable(self):
         value = self.manager.journal.create(self.request)
         with self.assertRaisesRegex(PipelineRunError, 'production_revision_conflict'):
