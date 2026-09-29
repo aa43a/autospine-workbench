@@ -1,3 +1,4 @@
+import {deliveries} from './production-deliveries.js';
 const $=id=>document.getElementById(id);
 const states={pending:'准备中',running:'处理中',needs_review:'待阶段验收',stage_accepted:'阶段已接受',needs_intervention:'部分需要干预',blocked:'需要干预',canceled:'已停止调度'};
 const sectionNames={bones:'骨架姿态',slots:'部件顺序',skins:'网格、权重或 UV',skeleton:'骨架设置',constraints:'约束',texture_assets:'贴图资源'};
@@ -5,6 +6,7 @@ function element(tag,text){const e=document.createElement(tag);e.textContent=tex
 function checked(id){return [...$(id).querySelectorAll('input:checked')].map(e=>e.value);}
 
 export function createProductionBatches({api,settings,openRun}){
+  const delivery=deliveries({api});
   let selected=new URL(location.href).searchParams.get('batch'),current=null,busy=false;
   const labels=new Map();
   function choices(){
@@ -34,7 +36,7 @@ export function createProductionBatches({api,settings,openRun}){
     const compatibility=element('button','检查多动作包兼容性');compatibility.onclick=async()=>{
       compatibility.disabled=true;try{const value=await api(`/api/production-batches/${current.batch_id}/compatibility`);const output=element('div','');
         output.append(element('p','这里只检查骨架与贴图兼容性。合并后的 Runtime 和视觉验收仍需单独验证。'));
-        for(const group of value.groups)output.append(element('p',`${labels.get(group.project_id)||group.project_id}：${group.run_ids.length} 份结构一致的候选${group.can_merge?'，可进入合包验证':'，暂时单独保留'}`));
+        for(const group of value.groups){output.append(element('p',`${labels.get(group.project_id)||group.project_id}：${group.run_ids.length} 份结构一致的候选${group.can_merge?'，可进入合包验证':'，暂时单独保留'}`));if(group.can_merge){const merge=element('button','合并这些动作并验证');merge.onclick=async()=>{merge.disabled=true;try{await delivery.create(group.run_ids);}catch(e){fail(e);}finally{merge.disabled=false;}};output.append(merge);}}
         for(const cell of value.cells){if(cell.status!=='checked')output.append(element('p',`尚未检查：${labels.get(cell.project_id)||cell.project_id} · ${cell.reason_code}`));else if(cell.differences_from_first.length)output.append(element('p',`${labels.get(cell.project_id)||cell.project_id} 与首份差异：${cell.differences_from_first.map(k=>sectionNames[k]||k).join('、')}`));}
         panel.append(output);
       }catch(e){fail(e);}finally{compatibility.disabled=false;}

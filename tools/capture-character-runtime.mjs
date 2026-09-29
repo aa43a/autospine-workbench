@@ -8,6 +8,7 @@ import {readReference} from './character-reference.mjs';
 import {decodeStorageReference} from './runtime-storage-input.mjs';
 import {orderProbes} from './character-order-probes.mjs';
 import {attachmentProbes} from './character-attachment-probes.mjs';
+import {listenForBrowser} from './browser-loopback.mjs';
 const [folderArg,outputArg,dependencies,chrome,strideArg,probeTimesArg,storageReferenceArg]=process.argv.slice(2);
 if(!chrome)throw Error('usage: bundle output dependencies chrome');
 const screenshotStride=strideArg===undefined?32:Number(strideArg);
@@ -97,7 +98,7 @@ async function publish(name,raw){
 let browser,page;
 try{
   if(storageBytes)await publish('runtime-storage-reference.json',storageBytes);
-  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  await listenForBrowser(server);
   browser=await chromium.launch({executablePath:chrome,headless:true,args:['--enable-webgl','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
   page=await browser.newPage();const errors=[];page.on('pageerror',e=>errors.push(String(e)));
   await page.goto(`http://127.0.0.1:${server.address().port}/`);

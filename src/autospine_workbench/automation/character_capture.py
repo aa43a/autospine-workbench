@@ -62,6 +62,9 @@ def capture(projects, store, digest, root, *, progress, cancel_requested, storag
             raise ValueError('joint_animation_capture_parent_mismatch')
         geometry = geometry_report(geometry, joint['inventory']['face'], joint['config']['face']['enabled'],
             face_report=joint['face'], source_geometry=json.loads(store.read_file(parent, 'deformation.json')))
+    if 'multi-animation.json' in candidate:
+        from ..targets.character43.multi_animation_geometry import inspect as inspect_multi
+        geometry = inspect_multi(geometry, candidate, store)
     from ..targets.character43.numeric_reference import read as read_reference
     frame_count=sum(len(frames) for frames in read_reference(candidate)['animations'].values())
     (output/'deformation.json').write_bytes(canonical_bytes(geometry))
