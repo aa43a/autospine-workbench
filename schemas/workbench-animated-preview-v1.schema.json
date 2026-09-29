@@ -4,6 +4,7 @@
   "type": "object", "additionalProperties": false,
   "required": ["schema", "authority", "production_authorized", "target", "status", "full_character_animation", "animation", "regions", "bake_qa", "source_addresses", "summary", "review_items", "files"],
   "properties": {
+    "visibility_profile": {"const": "observed-source-visibility-v1"},
     "schema": {"const": "autospine.workbench-animated-preview/v1"}, "authority": {"const": "none"},
     "production_authorized": {"const": false}, "target": {"const": "4.3.26"}, "status": {"const": "needs_review"},
     "full_character_animation": {"const": false}, "animation": {"$ref": "workbench-animated-definitions-v1.schema.json#/$defs/clip"},

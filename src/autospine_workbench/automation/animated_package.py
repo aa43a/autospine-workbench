@@ -17,6 +17,10 @@ def package_preview(inputs, compiled):
     doc = compiled["document"]
     files = {"skeleton.json": canonical_bytes(doc), "motion.json": canonical_bytes(compiled["motion"]),
              "qa.json": canonical_bytes(compiled["qa"])}
+    if compiled.get("rejected_candidate"):
+        rejected = compiled["rejected_candidate"]
+        files["diagnostics/rejected-skeleton.json"] = canonical_bytes(rejected["document"])
+        files["diagnostics/rejected-motion.json"] = canonical_bytes(rejected["motion"])
     original = {r["layer_id"]: r for r in inputs.candidate["layers"]}
     attachments = doc["skins"][0]["attachments"]
     regions = deepcopy(compiled["regions"])

@@ -69,6 +69,10 @@ def compile_preview(inputs, mesh_stage, clip):
         raise PipelineRunError("animated_no_visible_layers")
     qa = inspect_document(doc)
     failed = [name for name in meshes if not qa["regions"][name]["passed"]]
+    rejected = None
+    if failed:
+        rejected = {"document": deepcopy(doc), "motion": deepcopy(motion),
+                    "geometry": deepcopy(qa), "layers": list(failed)}
     # Geometry-failed candidates remain visible as rigid context, never moving meshes.
     if failed:
         meshes = {name: row for name, row in meshes.items() if name not in failed}
@@ -99,6 +103,7 @@ def compile_preview(inputs, mesh_stage, clip):
     if not meshes:
         items.append(review_item(None, "animated_no_eligible_mesh", "mesh"))
     return {"document": doc, "regions": regions, "motion": motion, "expanded_inputs": expanded,
+            "rejected_candidate": rejected,
             "visibility_profile": PROFILE,
             "review_items": items,
             "summary": {"mesh_layers": len(meshes), "context_layers": len(context),
@@ -107,6 +112,14 @@ def compile_preview(inputs, mesh_stage, clip):
                         "partition_source_layers": len(mesh_stage.get("partitions", [])),
                         "preview_hypothesis_layers": mesh_stage["preview_hypothesis_layers"]},
             "qa": {"geometry": qa, "setup_max_error_px": setup_error,
+                   "geometry_scope": "delivered_candidate_after_static_fallback",
+                   "rejected_geometry": None if rejected is None else {
+                       "scope": "original_weighted_candidate_before_static_fallback",
+                       "layers": list(failed), "geometry": rejected["geometry"],
+                       "document_sha256": canonical_sha256(rejected["document"]),
+                       "document_path": "diagnostics/rejected-skeleton.json",
+                       "motion_path": "diagnostics/rejected-motion.json",
+                       "authority": "none"},
                    "runtime_status": "not_run", "seam_status": "needs_review",
                    "alpha_coverage": "alpha_grid_threshold_8_not_full_rgba_proof",
                    "full_character_animation": False, "authority": "none"}}

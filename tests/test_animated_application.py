@@ -100,6 +100,37 @@ class AnimatedApplicationTests(unittest.TestCase):
         with patch("autospine_workbench.automation.animated_application.compile_preview", side_effect=AssertionError("must reuse")):
             self.assertEqual(self.preview(), ready)
 
+    def test_static_fallback_preserves_replayable_failed_geometry(self):
+        from autospine_workbench.resolved_project import canonical_sha256
+        from autospine_workbench.targets.spine43.workbench_preview import inspect_document
+        stage = prepare_mesh(self.inputs)
+        mesh = next(row for row in stage['mesh']['layers'] if row.get('weights'))
+        # Discontinuous weights produce real inversions under the unchanged sampler.
+        for index, weights in enumerate(mesh['weights']):
+            for bone_index, value in enumerate(weights):
+                value['weight'] = float(bone_index == index % len(weights))
+        compiled = compile_preview(self.inputs, stage, 'limb-flex-30')
+        name = mesh['layer_id']
+        self.assertIn(name, compiled['summary']['rejected_mesh_layers'])
+        self.assertTrue(compiled['qa']['geometry']['regions'][name]['passed'])
+        files = package_preview(self.inputs, compiled)
+        qa = json.loads(files['qa.json'])['rejected_geometry']
+        rejected = json.loads(files[qa['document_path']])
+        self.assertEqual(canonical_sha256(rejected), qa['document_sha256'])
+        self.assertEqual(inspect_document(rejected), qa['geometry'])
+        self.assertGreater(qa['geometry']['regions'][name]['inversions'], 0)
+        self.assertNotEqual(files['skeleton.json'], files[qa['document_path']])
+        manifest = json.loads(files['preview-manifest.json'])
+        self.assertEqual(manifest['files'][qa['document_path']],
+                         hashlib.sha256(files[qa['document_path']]).hexdigest())
+        self.assertEqual(json.loads(files[qa['motion_path']])['clip'], 'limb-flex-30')
+
+    def test_successful_mesh_has_no_rejected_diagnostic_asset(self):
+        compiled = compile_preview(self.inputs, prepare_mesh(self.inputs), 'limb-flex-15')
+        self.assertIsNone(compiled['qa']['rejected_geometry'])
+        self.assertFalse(any(name.startswith('diagnostics/rejected-')
+                             for name in package_preview(self.inputs, compiled)))
+
     def test_download_tamper_stale_source_and_wrong_project_are_rejected(self):
         run = self.preview()
         files = self.app.verified_files("project", run)
