@@ -55,12 +55,14 @@ def prepare(driver, read, write, stopped):
             if not prepare_sleeves(driver, read, write, stopped, info):
                 return False
             info = manager.overview(project)
+            if info.get('sleeve_job_id') != read()['stages']['sleeves']['job_id']:
+                raise PipelineRunError('production_sleeve_selection_changed')
         if not info['can_build']:
             raise PipelineRunError(info.get('reason_code') or 'production_character_unavailable')
         job = 'job-' + uuid4().hex
         launch = {k: info[k] for k in ('expected_resolved_sha256', 'expected_input_sha256', 'sleeve_job_id')}
         def reserve(v):
-            v['stages']['character'].update(job_id=job, launch=launch, status='running')
+            v['stages']['character'].update(job_id=job, launch=launch, status='running', shared=False)
             v['stages']['character']['attempts'].append(dict(job_id=job))
         write(reserve, 'character_reserved')
     if stopped():
@@ -71,9 +73,10 @@ def prepare(driver, read, write, stopped):
         if result['job_id'] != job:
             # The character service may already have an identical in-flight task.
             job = result['job_id']
-            write(lambda v: v['stages']['character'].update(job_id=job), 'character_existing_task_attached')
+            write(lambda v: v['stages']['character'].update(job_id=job, shared=True), 'character_existing_task_attached')
         if stopped():
-            manager.cancel(project, job)
+            if read().get('status') == 'canceled' and not read()['stages']['character'].get('shared'):
+                manager.cancel(project, job)
             return False
     while not stopped():
         result = manager.get(project, job)
@@ -81,6 +84,8 @@ def prepare(driver, read, write, stopped):
             break
         driver.wait(1)
     else:
+        if read().get('status') == 'canceled' and not read()['stages']['character'].get('shared'):
+            manager.cancel(project, job)
         return False
     if result['status'] != 'needs_review':
         raise PipelineRunError(result.get('reason_code') or 'production_character_failed')

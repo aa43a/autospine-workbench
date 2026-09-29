@@ -15,6 +15,7 @@ const states={pending:'准备中',running:'处理中',reused:'沿用已有结果
 const reasons={joint_review_required:'请检查并保存关节点，然后点击“继续”。已完成步骤会保留。',character_route_confirmation_required:'请在角色编辑中选择普通肢体或袖装处理路线，然后继续。',character_sleeve_resolution_required:'已有袖装修复记录需要处理，请先检查该角色的袖装结果。',production_source_changed:'角色或动作来源已变化，请使用“按当前角色修正重建”建立关联的新版本。',animated_source_stale:'动画来源需要同步已保存的修改，请在角色编辑中更新来源后重建。'};
 reasons.character_sleeve_candidate_required='已选择袖装路线，请保存区域标注后回到此处继续；制作任务会衔接袖装构建。';
 reasons.sleeve_annotation_required='请先保存当前袖装区域标注，然后点击“继续”；已完成步骤会保留。';
+reasons.production_sleeve_selection_changed='当前袖装候选已被其他操作更新。请使用“按当前角色修正重建”建立新任务；本次袖装与旧候选记录会保留。';
 let selected=new URL(location.href).searchParams.get('run'),runs=[],options=null,busy=false;
 let evidenceJob=null;
 const coverage=createProductionCoverage(api);
