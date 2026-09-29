@@ -7,6 +7,10 @@ from .motion_intake_jobs import MotionIntakeJobs
 
 
 def _methods(tail):
+    if len(tail) == 3 and tail[1] == 'layer-edit-check':
+        return 'GET, HEAD, OPTIONS'
+    if len(tail) == 2 and tail[1] == 'layer-edit-check':
+        return 'POST, OPTIONS'
     if len(tail) == 4 and tail[1] == 'related-candidates' and tail[3] in ('stage-review', 'joint-animation'):
         return 'GET, HEAD, POST, OPTIONS'
     if len(tail) == 3 and tail[1] in ('repair-material', 'view-pose-template'):
@@ -79,6 +83,11 @@ def dispatch_motions(parts, handler, method):
             elif tail == ['generate']:
                 from .motion_generation_jobs import submit
                 result = submit(manager, read_json_object_request(handler, maximum_bytes=8192))
+            elif tail[1] == 'layer-edit-check':
+                from .motion_layer_edit_check import check
+                result = check(manager, tail[0], read_json_object_request(handler, maximum_bytes=128000))
+                handler._send_visual_json(200, result)
+                return True
             elif tail[1] == 'adapt':
                 from .motion_target_jobs import submit
                 result = submit(manager, tail[0], read_json_object_request(handler, maximum_bytes=256 * 1024))
@@ -127,6 +136,9 @@ def dispatch_motions(parts, handler, method):
                     raise PipelineRunError('motion_request_invalid')
                 result = getattr(manager, tail[1])(tail[0])
             handler._send_visual_json(202, result)
+        elif len(tail) == 3 and tail[1] == 'layer-edit-check':
+            from .motion_layer_edit_check import read
+            handler._send_visual_json(200, read(manager, tail[0], tail[2]))
         elif len(tail) == 4 and tail[1] == 'related-candidates':
             if tail[3] == 'joint-animation':
                 from .motion_joint_jobs import inspect

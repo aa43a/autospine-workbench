@@ -378,6 +378,7 @@ def execute(folder, state_root, workspace):
     if moving_ankles is not None:
         result['moving_ankle_profile'] = request['moving_ankle_profile']
     if 'layer_edits' in request:result['layer_edits']=request['layer_edits']
+    if 'layer_edit_receipt' in request:result['layer_edit_receipt']=request['layer_edit_receipt']
     if local_depth:result['local_depth_evidence_sha256']=local_depth
     (folder / 'worker-result.json').write_bytes(canonical_bytes(result))
 

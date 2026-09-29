@@ -1,8 +1,12 @@
 import {validateEditorDraft} from './motion-editor-draft.js';
 import {appendCandidateDownload} from './motion-candidate-download.js';
 import {appendReadiness} from './motion-readiness.js';
+import {checkLayerDraft,editCheckSignature} from './motion-layer-check.js';
 const jobId=/^motion-[a-f0-9]{32}$/;
 const reasons={motion_layer_target_mismatch:'角色图层版本已变化，请重新加载角色后恢复兼容草稿。',
+  rig_edit_receipt_stale:'预检查对应的角色或源动作已变化，请重新检查。',
+  rig_edit_receipt_edits_changed:'图层修改已变化，请重新检查后构建。',
+  rig_edit_receipt_invalid:'预检查记录无效，请重新检查。',
   moving_ankle_distinct_times_collide_in_runtime:'动作时间点在 Runtime 精度下发生冲突，未生成候选；原始动作和草稿保留。',
   motion_target_timeout:'构建超过运行时限，已停止。请缩短动作或关闭中间姿态补帧后重试；已有候选保留。',
   motion_target_stalled:'构建长时间没有更新进度，已停止。请查看任务记录后重试；已有候选保留。',
@@ -97,12 +101,33 @@ export function createEditorBuild({snapshot,inspect=()=>{}}){
   $('build').onclick=async()=>{
     if(busy||active)return;busy=true;$('build').disabled=true;
     try{const draft=snapshot(),body=editorBuildRequest(draft);
+      if(draft.layer_edits){
+        $('build-status').textContent='正在核对图层修改与角色版本…';
+        const checked=await checkLayerDraft(draft,request);
+        if(editCheckSignature(snapshot())!==editCheckSignature(draft))throw Error('检查期间编辑内容已变化，请重新构建');
+        body.layer_edit_receipt=checked.receipt_sha256;
+      }
       $('build-status').textContent='正在提交独立候选，请勿重复提交…';
       const queued=await request(`/api/motions/${draft.source_id}/adapt`,body);
       if(!jobId.test(queued.job_id))throw Error('未收到有效任务编号，请在动作库检查任务');
       current=queued.job_id;active=true;lastJob=null;history.replaceState(null,'',`#${current}`);await refresh();
     }catch(e){$('build-status').textContent=e.message;}
     finally{busy=false;$('build').disabled=active;}
+  };
+  const checkButton=$('layer-preflight');
+  for(const id of ['project','source'])$(id)?.addEventListener('change',()=>{
+    const note=$('layer-check-status');if(note)note.textContent='来源已变化；构建前会重新检查。';
+  });
+  if(checkButton)checkButton.onclick=async()=>{
+    checkButton.disabled=true;
+    try{const draft=snapshot();$('layer-check-status').textContent='正在检查图层与角色版本…';
+      const result=await checkLayerDraft(draft,request);
+      if(editCheckSignature(snapshot())!==editCheckSignature(draft))throw Error('检查期间编辑内容已变化，请重新检查');
+      $('layer-check-status').textContent=`结构与附件兼容性通过 · 记录 ${result.receipt_sha256.slice(0,12)}。构建时会再次核对；未包含动画变形与视觉验收。`;
+      const link=document.createElement('a');link.href=`/api/motions/${encodeURIComponent(draft.source_id)}/layer-edit-check/${result.receipt_sha256}`;
+      link.target='_blank';link.rel='noopener';link.textContent=' 查看本次修改与回滚记录';$('layer-check-status').append(link);
+    }catch(error){$('layer-check-status').textContent=error.message;}
+    finally{checkButton.disabled=false;}
   };
   $('refresh-build').onclick=refresh;
   $('cancel-build').onclick=async()=>{

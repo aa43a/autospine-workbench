@@ -29,7 +29,7 @@ def assert_current(manager, request):
 
 
 def submit(manager, source_job, body):
-    if (set(body) - {'project_id', 'character_job_id', 'contact_correction', 'clip', 'projection', 'projection_selection', 'depth_review_profile', 'torso_projection_profile', 'pose_profile', 'moving_ankle_profile', 'layer_edits'}
+    if (set(body) - {'project_id', 'character_job_id', 'contact_correction', 'clip', 'projection', 'projection_selection', 'depth_review_profile', 'torso_projection_profile', 'pose_profile', 'moving_ankle_profile', 'layer_edits', 'layer_edit_receipt'}
             or not {'project_id', 'character_job_id'} <= set(body)
             or type(body.get('contact_correction', True)) is not bool):
         raise PipelineRunError('motion_request_invalid')
@@ -83,6 +83,10 @@ def submit(manager, source_job, body):
             failure = PipelineRunError(str(exc))
             failure.diagnostics = getattr(exc, 'diagnostics', [])
             raise failure from exc
+    if 'layer_edit_receipt' in body:
+        from .motion_layer_edit_check import verify
+        verify(manager, request, body['layer_edit_receipt'])
+        request['layer_edit_receipt'] = body['layer_edit_receipt']
     if body.get('clip') is not None:
         request['clip'] = body['clip']
     from ..targets.character43.motion_depth_overlap import SPARSE_DEPTH_PROFILE

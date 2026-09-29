@@ -49,3 +49,13 @@ test('editor batch failure preserves history and preview and selects offending l
     {op:'order',slots:['front','back']}]),true);
   assert.equal(history.length,1);assert.match(get('layer-status').textContent,/完整检查/);
 });
+test('comparison changes only the preview and restoring edits exits comparison',()=>{
+  const {editor,get,writes,history}=setup();
+  editor.execute([{op:'transform',slot:'back',values:{dx:5}}]);const saved=editor.snapshot();
+  get('layer-compare-original').checked=true;get('layer-compare-original').emit('change');
+  assert.deepEqual(writes.at(-1).transforms,[]);assert.deepEqual(editor.snapshot(),saved);assert.equal(history.length,1);
+  get('layer-compare-original').checked=false;get('layer-compare-original').emit('change');
+  assert.deepEqual(writes.at(-1),saved);
+  get('layer-compare-original').checked=true;editor.restore(saved);
+  assert.equal(get('layer-compare-original').checked,false);assert.deepEqual(writes.at(-1),saved);
+});

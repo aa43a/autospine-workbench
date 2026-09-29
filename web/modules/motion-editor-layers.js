@@ -5,11 +5,14 @@ const defaults=slot=>({slot,dx:0,dy:0,rotation:0,scaleX:1,scaleY:1});
 export function createLayerEditor({live,beforeChange=()=>{},changed=()=>{},pause=()=>{}}){
   const $=id=>document.getElementById(id),list=$('motion-layer-list'),canvas=$('character-canvas');
   const mode=$('layer-edit-mode'),status=$('layer-status'),form=$('layer-transform-form');
+  const compare=$('layer-compare-original');
   let layers=[],selected=null,edits=normalizeLayerEdits(null),drag=null;
   const ids=()=>layers.map(row=>row.slot);
   const order=()=>edits.draw_order.length?[...edits.draw_order]:ids();
   const row=()=>edits.transforms.find(item=>item.slot===selected)??defaults(selected);
   function message(text){status.textContent=text;}
+  function invalidateCheck(){const element=$('layer-check-status');if(element)element.textContent='编辑或角色已变化；构建前会重新检查。';}
+  function endComparison(){if(compare)compare.checked=false;}
   function render(){
     const names=new Map(layers.map(item=>[item.slot,item]));
     list.replaceChildren(...order().reverse().map(slot=>{const option=document.createElement('option');
@@ -35,7 +38,8 @@ export function createLayerEditor({live,beforeChange=()=>{},changed=()=>{},pause
     const valid=result.value;
     if(JSON.stringify(valid)===JSON.stringify(edits))return false;
     if(record)beforeChange();
-    live.layerEdits(valid);edits=valid;render();changed();
+    endComparison();live.layerEdits(valid);edits=valid;render();changed();
+    invalidateCheck();
     message(layerEditImpactText(edits));return true;
   }
   const apply=(next,options)=>execute([{op:'replace',value:next}],options);
@@ -44,6 +48,10 @@ export function createLayerEditor({live,beforeChange=()=>{},changed=()=>{},pause
   }
   list.addEventListener('change',()=>{selected=list.value;mode.checked=true;render();});
   mode.addEventListener('change',render);
+  compare?.addEventListener('change',()=>{
+    pause();live.layerEdits(compare.checked?normalizeLayerEdits(null):edits);
+    message(compare.checked?'正在显示修改前的姿态；编辑记录仍保留，再次切换可看修改后。':layerEditImpactText(edits));
+  });
   function applyForm(event){
     event?.preventDefault();if(!form.reportValidity()||!selected)return;
     try{const value={slot:selected};fields.forEach(key=>value[key]=Number($('layer-'+key).value));transform(value);}
@@ -82,11 +90,13 @@ export function createLayerEditor({live,beforeChange=()=>{},changed=()=>{},pause
   render();
   return {
     execute,
-    reset(){drag=null;layers=[];selected=null;edits=normalizeLayerEdits(null);live.layerEdits(edits);render();message('尚无图层校正。');},
+    reset(){endComparison();invalidateCheck();drag=null;layers=[];selected=null;edits=normalizeLayerEdits(null);live.layerEdits(edits);render();message('尚无图层校正。');},
     loaded(labels={}){layers=live.layers().map(item=>({...item,label:labels[item.slot]??item.label??item.slot}));if(!layers.some(item=>item.slot===selected))selected=layers.at(-1)?.slot??null;
       const valid=normalizeLayerEdits(edits,ids());live.layerEdits(valid);render();},
     snapshot(){return edits.transforms.length||edits.draw_order.length?structuredClone(edits):null;},
-    restore(value){const valid=normalizeLayerEdits(value,layers.length?ids():null);live.layerEdits(valid);edits=valid;render();
+    restore(value){const result=applyRigEditOperations(edits,[{op:'replace',value}],{layers:layers.length?layers:null});
+      if(!result.ok)throw Error(result.diagnostics[0].message);const valid=result.value;
+      endComparison();invalidateCheck();live.layerEdits(valid);edits=valid;render();
       message(layerEditImpactText(edits));},
   };
 }
