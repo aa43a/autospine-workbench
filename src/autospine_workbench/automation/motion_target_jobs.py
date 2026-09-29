@@ -80,7 +80,9 @@ def submit(manager, source_job, body):
             rig = json.loads(AnimatedStore(manager.state_root).read(character['artifact_sha256'])['skeleton.json'])
             request['layer_edits'] = validate_layers(body['layer_edits'], rig)
         except ValueError as exc:
-            raise PipelineRunError(str(exc)) from exc
+            failure = PipelineRunError(str(exc))
+            failure.diagnostics = getattr(exc, 'diagnostics', [])
+            raise failure from exc
     if body.get('clip') is not None:
         request['clip'] = body['clip']
     from ..targets.character43.motion_depth_overlap import SPARSE_DEPTH_PROFILE

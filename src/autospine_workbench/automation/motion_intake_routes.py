@@ -202,5 +202,9 @@ def dispatch_motions(parts, handler, method):
         from .motion_view_failures import VIEW_FAILURES
         if isinstance(exc, ValueError) and str(exc) in VIEW_FAILURES:
             reason = str(exc)
-        _error(handler, 403 if reason in ('forbidden_origin', 'forbidden_intent') else 400, reason)
+        diagnostics = getattr(exc, 'diagnostics', None)
+        if diagnostics:
+            handler._send_visual_json(400, dict(reason_code=reason, diagnostics=diagnostics))
+        else:
+            _error(handler, 403 if reason in ('forbidden_origin', 'forbidden_intent') else 400, reason)
     return True

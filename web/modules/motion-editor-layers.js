@@ -1,7 +1,7 @@
 import {normalizeLayerEdits} from './motion-layer-transform.js';
+import {applyRigEditOperations,layerEditImpactText} from './rig-edit-operations.js';
 const fields=['dx','dy','rotation','scaleX','scaleY'];
 const defaults=slot=>({slot,dx:0,dy:0,rotation:0,scaleX:1,scaleY:1});
-const unchanged=row=>fields.every(key=>row[key]===defaults(row.slot)[key]);
 export function createLayerEditor({live,beforeChange=()=>{},changed=()=>{},pause=()=>{}}){
   const $=id=>document.getElementById(id),list=$('motion-layer-list'),canvas=$('character-canvas');
   const mode=$('layer-edit-mode'),status=$('layer-status'),form=$('layer-transform-form');
@@ -27,16 +27,20 @@ export function createLayerEditor({live,beforeChange=()=>{},changed=()=>{},pause
     canvas.classList.toggle('layer-edit-active',mode.checked&&Boolean(layers.length));
     live.selectLayer(mode.checked?selected:null);
   }
-  function apply(next,{record=true}={}){
-    const valid=normalizeLayerEdits(next,layers.length?ids():null);
+  function execute(operations,{record=true}={}){
+    const result=applyRigEditOperations(edits,operations,{layers:layers.length?layers:null});
+    if(!result.ok){const diagnostic=result.diagnostics[0];
+      if(layers.some(item=>item.slot===diagnostic.slot)){selected=diagnostic.slot;mode.checked=true;render();}
+      message(`${diagnostic.message} · ${diagnostic.path}。${diagnostic.hint}`);return false;}
+    const valid=result.value;
     if(JSON.stringify(valid)===JSON.stringify(edits))return false;
     if(record)beforeChange();
     live.layerEdits(valid);edits=valid;render();changed();
-    message(`${edits.transforms.length} 个图层位置校正${edits.draw_order.length?' · 已调整绘制顺序':''}。作用于整段；请保存草稿或重新构建候选。`);return true;
+    message(layerEditImpactText(edits));return true;
   }
+  const apply=(next,options)=>execute([{op:'replace',value:next}],options);
   function transform(value,record=true){
-    const next=structuredClone(edits);next.transforms=next.transforms.filter(item=>item.slot!==value.slot);
-    if(!unchanged(value))next.transforms.push(value);return apply(next,{record});
+    const {slot,...values}=value;return execute([{op:'transform',slot,values}],{record});
   }
   list.addEventListener('change',()=>{selected=list.value;mode.checked=true;render();});
   mode.addEventListener('change',render);
@@ -52,7 +56,7 @@ export function createLayerEditor({live,beforeChange=()=>{},changed=()=>{},pause
     const target=direction==='front'?next.length-1:direction==='back'?0:index+(direction==='forward'?1:-1);
     if(target<0||target>=next.length||target===index)return;
     next.splice(index,1);next.splice(target,0,selected);
-    apply({...edits,draw_order:JSON.stringify(next)===JSON.stringify(ids())?[]:next});
+    execute([{op:'order',slots:JSON.stringify(next)===JSON.stringify(ids())?[]:next}]);
   }
   for(const name of ['front','forward','backward','back'])$('layer-'+name).addEventListener('click',()=>{try{reorder(name);}catch(error){message(error.message);}});
   $('layer-reset-selected').addEventListener('click',()=>{if(selected)transform(defaults(selected));});
@@ -77,11 +81,12 @@ export function createLayerEditor({live,beforeChange=()=>{},changed=()=>{},pause
   canvas.addEventListener('pointerup',finish);canvas.addEventListener('pointercancel',finish);canvas.addEventListener('lostpointercapture',finish);
   render();
   return {
+    execute,
     reset(){drag=null;layers=[];selected=null;edits=normalizeLayerEdits(null);live.layerEdits(edits);render();message('尚无图层校正。');},
     loaded(labels={}){layers=live.layers().map(item=>({...item,label:labels[item.slot]??item.label??item.slot}));if(!layers.some(item=>item.slot===selected))selected=layers.at(-1)?.slot??null;
       const valid=normalizeLayerEdits(edits,ids());live.layerEdits(valid);render();},
     snapshot(){return edits.transforms.length||edits.draw_order.length?structuredClone(edits):null;},
     restore(value){const valid=normalizeLayerEdits(value,layers.length?ids():null);live.layerEdits(valid);edits=valid;render();
-      message(edits.transforms.length||edits.draw_order.length?'已恢复整段图层校正。':'尚无图层校正。');},
+      message(layerEditImpactText(edits));},
   };
 }

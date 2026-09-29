@@ -9,7 +9,42 @@ from ..spine43.continuous_pose import interpolate
 PROFILE = 'slot-world-affine-v1'
 
 
+class LayerEditError(ValueError):
+    """Stable error code plus source-addressed diagnostics for editor and agents."""
+    def __init__(self, code, path='', slot=None):
+        super().__init__(code)
+        self.diagnostics = [dict(severity='error', code=code, path=path, slot=slot,
+                                 hint='本次修改未提交；请检查所指图层与属性。')]
+
+
 def validate(value, document=None):
+    try:
+        return _validate(value, document)
+    except ValueError as error:
+        path, slot = '/layer_edits', None
+        if isinstance(value, dict) and isinstance(value.get('transforms'), list):
+            for index, row in enumerate(value['transforms']):
+                try:
+                    _validate(dict(profile=PROFILE, transforms=[row], draw_order=[]), document)
+                except ValueError:
+                    path = f'/layer_edits/transforms/{index}'
+                    slot = row.get('slot') if isinstance(row, dict) else None
+                    if isinstance(row, dict):
+                        for field in ('dx', 'dy', 'rotation', 'scaleX', 'scaleY'):
+                            number = row.get(field)
+                            low, high = ((.05, 20) if field.startswith('scale') else
+                                         (-3600, 3600) if field == 'rotation' else (-4096, 4096))
+                            if type(number) not in (int, float) or not math.isfinite(number) or not low <= number <= high:
+                                path += '/' + field
+                                break
+                    break
+            else:
+                if value.get('draw_order'):
+                    path = '/layer_edits/draw_order'
+        raise LayerEditError(str(error), path, slot) from error
+
+
+def _validate(value, document=None):
     if (not isinstance(value, dict) or set(value) != {'profile', 'transforms', 'draw_order'}
             or value['profile'] != PROFILE or not isinstance(value['transforms'], list)
             or not isinstance(value['draw_order'], list) or len(value['transforms']) > 256
@@ -46,6 +81,17 @@ def validate(value, document=None):
     return deepcopy(value)
 
 
+def edit_impact(edits):
+    """Declared review scope, not a claim that incremental execution is enabled."""
+    edits = validate(edits)
+    transformed = bool(edits['transforms'])
+    ordered = bool(edits['draw_order'])
+    return dict(slots=[row['slot'] for row in edits['transforms']], geometry=transformed,
+                draw_order=ordered, execution='full_build',
+                checks=['geometry', 'contact', 'occlusion', 'runtime'] if transformed else
+                ['occlusion', 'runtime'] if ordered else [])
+
+
 def warp(p, row, pivot):
     angle = math.radians(row['rotation']); c, s = math.cos(angle), math.sin(angle)
     x, y = (p[0]-pivot[0])*row['scaleX'], (p[1]-pivot[1])*row['scaleY']
@@ -62,7 +108,7 @@ def apply(document, animation, edits, times):
         output['drawOrder'] = [dict(time=0, offsets=[dict(slot=s, offset=edits['draw_order'].index(s)-i)
                                                    for i,s in enumerate(slots)])]
     rows = edits['transforms']
-    report = dict(profile=PROFILE, edits=edits, authority='none', pivots={},
+    report = dict(profile=PROFILE, edits=edits, edit_impact=edit_impact(edits), authority='none', pivots={},
                   interpolation_tolerance_px=.25, interpolation_max_error_px=0,
                   status='sampled_candidate_requires_visual_review')
     if not rows:

@@ -38,3 +38,14 @@ test('drag has one undo snapshot, uses world delta, pauses and applies entire-cl
   canvas.emit('pointermove',{pointerId:1,clientX:100,clientY:100});assert.equal(editor.snapshot().transforms[0].dx,20);
   editor.reset();assert.equal(editor.snapshot(),null);
 });
+test('editor batch failure preserves history and preview and selects offending layer',()=>{
+  const {editor,get,writes,history}=setup(),count=writes.length;
+  assert.equal(editor.execute([{op:'transform',slot:'front',values:{dx:10}},
+    {op:'transform',slot:'back',values:{scaleY:0}}]),false);
+  assert.equal(writes.length,count);assert.equal(history.length,0);assert.equal(editor.snapshot(),null);
+  assert.match(get('layer-status').textContent,/back\/scaleY/);
+  assert.match(get('layer-selection').textContent,/背部/);
+  assert.equal(editor.execute([{op:'transform',slot:'front',values:{dx:10}},
+    {op:'order',slots:['front','back']}]),true);
+  assert.equal(history.length,1);assert.match(get('layer-status').textContent,/完整检查/);
+});

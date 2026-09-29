@@ -64,7 +64,10 @@ export function createEditorBuild({snapshot,inspect=()=>{}}){
     const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),15000);
     try{
       const response=await fetch(url,body?{signal:controller.signal,method:'POST',headers:{'Content-Type':'application/json','X-Autospine-Intent':'pipeline-preview'},body:JSON.stringify(body)}:{signal:controller.signal,cache:'no-store'});
-      const value=await response.json();if(!response.ok)throw Error(reasons[value.reason_code]||value.reason_code||`请求失败 (${response.status})`);return value;
+      const value=await response.json();if(!response.ok){
+        const detail=value.diagnostics?.[0];
+        throw Error((reasons[value.reason_code]||value.reason_code||`请求失败 (${response.status})`)+(detail?` · ${detail.slot||''} ${detail.path} · ${detail.hint}`:''));
+      }return value;
     }catch(error){if(error.name==='AbortError')throw Error('连接超时');throw error;}
     finally{clearTimeout(timeout);}
   };
