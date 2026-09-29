@@ -8,6 +8,7 @@ const states={pending:'准备中',running:'处理中',reused:'沿用已有结果
 const reasons={joint_review_required:'请检查并保存关节点，然后点击“继续”。已完成步骤会保留。',character_route_confirmation_required:'请在角色编辑中选择普通肢体或袖装处理路线，然后继续。',character_sleeve_resolution_required:'已有袖装修复记录需要处理，请先检查该角色的袖装结果。',production_source_changed:'角色或动作来源已变化，请使用“按当前角色修正重建”建立关联的新版本。',animated_source_stale:'动画来源需要同步已保存的修改，请在角色编辑中更新来源后重建。'};
 let selected=new URL(location.href).searchParams.get('run'),runs=[],options=null,busy=false;
 let evidenceJob=null;
+function projectName(run){return Array.from($('project').options).find(p=>p.value===run.request.project_id)?.textContent||run.request.project_id;}
 async function evidence(job){
   if(evidenceJob===job)return;evidenceJob=job;
   const panel=$('evidence');panel.replaceChildren();panel.hidden=!job;if(!job)return;
@@ -23,9 +24,9 @@ function link(label,url){const a=node('a',label);a.href=url;return a;}
 async function action(name){if(busy)return;const run=runs.find(r=>r.run_id===selected);if(!run)return;busy=true;try{const value=await api(`/api/production/${selected}/${name}`,{expected_revision:run.revision});selected=value.run_id;history.replaceState(null,'',`?run=${selected}`);await refreshRuns();}catch(e){$('detail').textContent=e.message;}finally{busy=false;}}
 function render(){
   $('runs').replaceChildren();
-  for(const run of runs){const b=node('button',`${run.request.project_id} · ${states[run.status]||run.status}`);b.setAttribute('aria-current',String(run.run_id===selected));b.onclick=()=>{selected=run.run_id;history.replaceState(null,'',`?run=${selected}`);render();};$('runs').append(b);}
+  for(const run of runs){const b=node('button',`${projectName(run)} · ${states[run.status]||run.status}`);b.setAttribute('aria-current',String(run.run_id===selected));b.onclick=()=>{selected=run.run_id;history.replaceState(null,'',`?run=${selected}`);render();};$('runs').append(b);}
   const run=runs.find(r=>r.run_id===selected);if(!run)return;
-  $('summary').replaceChildren(node('h2',`${run.request.project_id} · ${states[run.status]||run.status}`),node('p',`创建于 ${new Date(run.created_at).toLocaleString()} · 更新于 ${new Date(run.updated_at).toLocaleTimeString()}`));
+  $('summary').replaceChildren(node('h2',`${projectName(run)} · ${states[run.status]||run.status}`),node('p',`创建于 ${new Date(run.created_at).toLocaleString()} · 更新于 ${new Date(run.updated_at).toLocaleTimeString()}`));
   $('stages').replaceChildren();for(const key of Object.keys(labels)){const row=run.stages[key];if(!row)continue;const li=node('li','');li.dataset.state=row.status;li.append(node('span',labels[key]||key),node('strong',states[row.status]||row.status));$('stages').append(li);}
   $('detail').textContent=run.status==='blocked'&&run.reason_code?`${reasons[run.reason_code]||'此步骤未完成，可查看角色来源与绑定，或重试失败步骤。'}\n诊断：${run.reason_code}`:'技术检查与人工验收分别记录；候选可下载不代表所有视觉问题都已解决。';
   $('actions').replaceChildren();
