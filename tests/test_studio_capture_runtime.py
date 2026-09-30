@@ -121,6 +121,37 @@ class CaptureDistributionTests(unittest.TestCase):
             builder.archive(source, destination)
         self.assertFalse(destination.exists())
 
+    def test_inventory_excludes_only_the_root_manifest(self):
+        source = self.root / "source"
+        source.mkdir()
+        (source / builder.MANIFEST).write_bytes(b"root manifest")
+        names = [f"browser/{builder.MANIFEST}", f"node/{builder.MANIFEST}",
+                 f"dependencies/node_modules/playwright-core/{builder.MANIFEST}"]
+        payload = b"nested payload must remain inventoried"
+        for name in names:
+            file = source / name
+            file.parent.mkdir(parents=True, exist_ok=True)
+            file.write_bytes(payload)
+        rows = builder.inventory(source)
+        self.assertEqual({row["path"] for row in rows}, set(names))
+        for row in rows:
+            self.assertEqual(row["bytes"], len(payload))
+            self.assertEqual(row["sha256"], hashlib.sha256(payload).hexdigest())
+
+    def test_archive_rejects_nested_manifest_added_after_inventory(self):
+        source = self.root / "source"
+        source.mkdir()
+        (source / "provenance.json").write_text("{}")
+        (source / builder.MANIFEST).write_text(json.dumps(
+            builder.distribution_manifest(builder.inventory(source))))
+        nested = source / "browser" / builder.MANIFEST
+        nested.parent.mkdir()
+        nested.write_bytes(b"unrecorded extra file")
+        destination = self.root / "archive.zip"
+        with self.assertRaisesRegex(ValueError, "inventory changed before archive"):
+            builder.archive(source, destination)
+        self.assertFalse(destination.exists())
+
     def test_archive_rejects_self_consistent_changed_software(self):
         source = self.root / "source"
         source.mkdir()

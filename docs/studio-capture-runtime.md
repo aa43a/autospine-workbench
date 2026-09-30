@@ -28,7 +28,8 @@ The matching core engine declares
 GPU child does not initialize the browser's log target and otherwise writes
 `debug.log` beside its executable. This fixed software capture therefore runs
 the GPU service inside each task's browser and sends diagnostics to that task's
-absolute `CHROME_LOG_FILE`. External Chrome/Edge preserve their separate GPU
+absolute `CHROME_LOG_FILE` beside (outside) its playback artifact directory.
+The log is diagnostic evidence, not an exposed playback resource. External Chrome/Edge preserve their separate GPU
 behavior. This keeps installed software inventories unchanged; a GPU crash or
 hang affects the whole task browser, so existing task isolation and deadlines
 remain necessary. The complete capture tool hash binds the launch flags.

@@ -149,8 +149,10 @@ def inventory(root: Path):
         if stat.S_ISLNK(info.st_mode) or (not file.is_dir()
                 and (not stat.S_ISREG(info.st_mode) or info.st_nlink != 1)):
             raise ValueError("capture runtime contains non-independent files")
-        if file.is_file() and file.name != MANIFEST:
+        if file.is_file():
             name = safe_relative(file.relative_to(root).as_posix())
+            if name == MANIFEST:
+                continue
             rows.append(dict(path=name, bytes=info.st_size, sha256=digest(file)))
     if len(rows) > 8192 or sum(row["bytes"] for row in rows) > 768 << 20:
         raise ValueError("capture runtime exceeds inventory budget")

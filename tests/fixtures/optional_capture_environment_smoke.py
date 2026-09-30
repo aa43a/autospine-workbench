@@ -59,6 +59,11 @@ def main():
     result=capture(SimpleNamespace(workspace_root=workspace),store,digest,output,
         progress=stages.append,cancel_requested=lambda:False)
     assert result['status']=='needs_review' and result['frames']==3 and result['geometry_status']=='passed'
+    # Browser diagnostics must survive outside the strict playback inventory.
+    if args.browser.name.lower() == 'chrome-headless-shell.exe':
+        assert (output/'runtime-browser-debug.log').is_file()
+    assert all(Path(name).suffix in {'.html','.json','.png'} for name in result['files'])
+    assert not (output/'runtime/browser-debug.log').exists()
     runtime_report=(output/'runtime/report.json').read_bytes()
     manager=SimpleNamespace(projects=SimpleNamespace(workspace_root=workspace),
         review_context=lambda *_:(dict(artifact_sha256=digest),files,runtime_report))
@@ -69,7 +74,8 @@ def main():
     report=dict(ok=True,scope='configured-official-capture-and-player-synthetic-mesh-only',
         elapsed_seconds=time.monotonic()-started,node_version=node_version,frames=result['frames'],
         bundle_sha256=digest,stages=stages,environment=before,
-        source_unchanged=True,environment_unchanged=True,user_state_touched=False,human_visual_acceptance=False)
+        source_unchanged=True,environment_unchanged=True,diagnostics_outside_playback=True,
+        user_state_touched=False,human_visual_acceptance=False)
     (root/'report.json').write_bytes(canonical_bytes(report))
     print(json.dumps({key:report[key] for key in ('ok','scope','elapsed_seconds','node_version','frames','source_unchanged','environment_unchanged')}))
 

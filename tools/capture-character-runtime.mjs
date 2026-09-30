@@ -107,7 +107,7 @@ try{
   // Its software GPU stays in the browser with task-owned diagnostics. External
   // Chrome/Edge retain their existing separate GPU process and rendering flags.
   const gpuArgs=path.basename(chrome).toLowerCase()==='chrome-headless-shell.exe'?['--in-process-gpu']:[];
-  browser=await chromium.launch({executablePath:chrome,headless:true,env:{...process.env,CHROME_LOG_FILE:path.join(output,'browser-debug.log')},args:[...gpuArgs,'--enable-webgl','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+  browser=await chromium.launch({executablePath:chrome,headless:true,env:{...process.env,CHROME_LOG_FILE:path.join(path.dirname(path.resolve(output)),path.basename(path.resolve(output))+'-browser-debug.log')},args:[...gpuArgs,'--enable-webgl','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
   page=await browser.newPage();const errors=[];page.on('pageerror',e=>errors.push(String(e)));
   await page.goto(`http://127.0.0.1:${server.address().port}/`);
   await page.waitForFunction(()=>window.ready||window.failure,{},{timeout:120000});
