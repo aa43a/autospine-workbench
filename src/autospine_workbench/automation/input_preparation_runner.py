@@ -21,6 +21,37 @@ from .storage_io import directory, publish_document
 
 MAX_LOG = 1 << 20
 
+# This fixed bootstrap is owned by the installed engine, never by a caller.
+# Embedded Python intentionally ignores PYTHONPATH; supplying the trusted
+# engine source as an argv value keeps the addon relocatable and isolated.
+RUNNER_BOOTSTRAP = r'''
+import json, pathlib, platform, runpy, sys
+sys.dont_write_bytecode = True
+source = pathlib.Path(sys.argv[1]).resolve(strict=True)
+mode = sys.argv[2]
+sys.path.insert(0, str(source))
+if mode == "probe":
+    import cv2, numpy, onnxruntime, PIL, flatbuffers, packaging, google.protobuf
+    from autospine_workbench.runners.pose import __main__ as entrypoint
+    from autospine_workbench.runners.pose import dwpose_codec
+    expected = source / "autospine_workbench/runners/pose/__main__.py"
+    if pathlib.Path(entrypoint.__file__).resolve(strict=True) != expected or not callable(entrypoint.main):
+        raise RuntimeError("pose_runner_entrypoint_invalid")
+    if "CPUExecutionProvider" not in onnxruntime.get_available_providers():
+        raise RuntimeError("pose_runner_cpu_unavailable")
+    print(json.dumps({"runner_entrypoint_supported": True, "python_version": platform.python_version()}))
+elif mode == "run":
+    sys.argv = ["autospine_workbench.runners.pose", *sys.argv[3:]]
+    runpy.run_module("autospine_workbench.runners.pose", run_name="__main__", alter_sys=True)
+else:
+    raise RuntimeError("pose_runner_mode_invalid")
+'''
+
+
+def _runner_arguments(python, arguments=(), *, probe=False):
+    return [str(python), '-B', '-I', '-c', RUNNER_BOOTSTRAP,
+            str(Path(__file__).resolve().parents[2]), 'probe' if probe else 'run', *arguments]
+
 
 class PosePreparationError(ValueError):
     def __init__(self, reason_code):
@@ -45,9 +76,11 @@ class PoseRunnerConfig:
         try:
             self.validate()
             fingerprint = tuple((p.stat().st_size, p.stat().st_mtime_ns) for p in (self.python, self.model))
-            _probe(str(self.python.resolve()), str(self.model.resolve()), fingerprint)
+            receipt = _probe(str(self.python.resolve()), str(self.model.resolve()), fingerprint)
             return {'status': 'ready', 'reason_code': None, 'authority': 'none',
-                    'runner': 'dwpose-wholebody-fullcanvas-v1', 'model_sha256': MODEL_SHA256}
+                    'runner': 'dwpose-wholebody-fullcanvas-v1', 'model_sha256': MODEL_SHA256,
+                    'runner_entrypoint_supported': receipt['runner_entrypoint_supported'],
+                    'python_version': receipt['python_version']}
         except (PosePreparationError, OSError, ValueError) as exc:
             return {'status': 'missing', 'reason_code': getattr(exc, 'reason_code', 'pose_runner_unavailable'),
                     'authority': 'none'}
@@ -64,21 +97,36 @@ class PoseRunnerConfig:
 
 
 @lru_cache(maxsize=8)
-def _probe(python, model, fingerprint):
+def _verify_model(model, fingerprint):
     raw = read_real_file(Path(model), MODEL_BYTES, 'Pinned pose model')
     if len(raw) != MODEL_BYTES or hashlib.sha256(raw).hexdigest() != MODEL_SHA256:
         raise PosePreparationError('pose_runner_model_mismatch')
-    script = ('import importlib.util,sys; '
-              'sys.exit(0 if all(importlib.util.find_spec(x) is not None '
-              'for x in ("onnxruntime","numpy","cv2")) else 2)')
+
+
+def _probe(python, model, fingerprint):
+    # Only the large immutable model check is cached. Dependency and runner
+    # imports are checked again so a changed installation cannot stay ready.
+    _verify_model(model, fingerprint)
     try:
-        result = subprocess.run([python, '-I', '-c', script], stdin=subprocess.DEVNULL,
-                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        result = subprocess.run(_runner_arguments(python, probe=True), stdin=subprocess.DEVNULL,
+                                stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
                                 timeout=10, check=False, creationflags=_creationflags())
     except (OSError, subprocess.SubprocessError) as exc:
         raise PosePreparationError('pose_runner_unavailable') from exc
     if result.returncode:
         raise PosePreparationError('pose_runner_dependencies_missing')
+    if type(result.stdout) is not bytes or len(result.stdout) > 8192:
+        raise PosePreparationError('pose_runner_entrypoint_invalid')
+    try:
+        receipt = strict_json_object(result.stdout, 'Pose entrypoint status')
+        if set(receipt) != {'runner_entrypoint_supported', 'python_version'} \
+                or receipt['runner_entrypoint_supported'] is not True \
+                or not isinstance(receipt['python_version'], str) \
+                or not 1 <= len(receipt['python_version']) <= 32:
+            raise ValueError('pose_runner_entrypoint_invalid')
+        return receipt
+    except (KeyError, TypeError, ValueError) as exc:
+        raise PosePreparationError('pose_runner_entrypoint_invalid') from exc
 
 
 def _creationflags():
@@ -147,10 +195,11 @@ def run_project_pose(config, project_id, composite, expected_sha256, state_root,
                    'canvas_size': list(canvas), 'model_sha256': MODEL_SHA256,
                    'runner': 'dwpose-wholebody-fullcanvas-v1', 'authority': 'none'}
         publish_document(folder / 'request.json', request, staging=folder / 'staging')
-        env = dict(os.environ, PYTHONPATH=str(Path(__file__).resolve().parents[2]), PYTHONNOUSERSITE='1')
-        arguments = [str(config.python), '-m', 'autospine_workbench.runners.pose',
+        env = dict(os.environ, PYTHONNOUSERSITE='1', PYTHONDONTWRITEBYTECODE='1')
+        env.pop('PYTHONPATH', None)
+        arguments = _runner_arguments(config.python, [
                      '--image', str(source), '--project', project_id, '--model', str(config.model),
-                     '--state-root', str(root), '--output', str(output)]
+                     '--state-root', str(root), '--output', str(output)])
         raw_status = _run_child(arguments, folder, config.timeout_seconds, cancel_requested, env)
         reported = strict_json_object(raw_status, 'Pose runner status')
         document = strict_json_object(read_real_file(output, 1_000_000, 'Pose result'), 'Pose result')

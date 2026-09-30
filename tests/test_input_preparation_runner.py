@@ -10,9 +10,10 @@ from tempfile import TemporaryDirectory
 import time
 import unittest
 from unittest.mock import patch
+from types import SimpleNamespace
 
 from autospine_workbench.automation.input_preparation_runner import (
-    PosePreparationError, PoseRunnerConfig, _run_child, run_project_pose,
+    PosePreparationError, PoseRunnerConfig, _run_child, _runner_arguments, _probe, run_project_pose,
 )
 
 
@@ -37,6 +38,37 @@ class InputPreparationRunnerTests(unittest.TestCase):
         with patch('autospine_workbench.automation.input_preparation_runner.subprocess.Popen') as popen:
             config.public_status()
         popen.assert_not_called()
+
+    def test_embedded_runner_uses_fixed_engine_bootstrap_and_keeps_business_arguments_literal(self):
+        args = ['--image', 'quoted "$()" image.png', '--project', 'project']
+        command = _runner_arguments(self.root/'python.exe', args)
+        self.assertEqual(command[1:4], ['-B', '-I', '-c'])
+        self.assertEqual(command[5], str(Path(__file__).resolve().parents[1]/'src'))
+        self.assertEqual(command[6:], ['run', *args])
+        self.assertNotIn('quoted "$()" image.png', command[4])
+        self.assertEqual(_runner_arguments(sys.executable, probe=True)[6], 'probe')
+
+    def test_probe_requires_real_runner_import_receipt_and_is_not_cached_with_dependency_changes(self):
+        from autospine_workbench.automation import input_preparation_runner as runner
+        receipt = {'runner_entrypoint_supported': True, 'python_version': '3.14.3'}
+        with patch.object(runner, '_verify_model'), patch.object(runner.subprocess, 'run') as child:
+            child.return_value = SimpleNamespace(returncode=0, stdout=json.dumps(receipt).encode())
+            self.assertEqual(_probe('python.exe', 'model.onnx', ('fingerprint',)), receipt)
+            self.assertEqual(child.call_args.args[0], _runner_arguments('python.exe', probe=True))
+            self.assertEqual(child.call_args.kwargs['timeout'], 10)
+            child.return_value = SimpleNamespace(returncode=2, stdout=b'')
+            with self.assertRaisesRegex(PosePreparationError, '^pose_runner_dependencies_missing$'):
+                _probe('python.exe', 'model.onnx', ('fingerprint',))
+            self.assertEqual(child.call_count, 2)
+
+    def test_probe_rejects_unchecked_or_malformed_receipts_and_exposes_no_local_path(self):
+        from autospine_workbench.automation import input_preparation_runner as runner
+        for raw in (b'{}', b'{"runner_entrypoint_supported":false,"python_version":"3.14.3"}',
+                    b'x'*8193, b'{"runner_entrypoint_supported":true,"python_version":"3.14.3","path":"secret"}'):
+            with self.subTest(raw=raw[:40]), patch.object(runner, '_verify_model'), \
+                 patch.object(runner.subprocess, 'run', return_value=SimpleNamespace(returncode=0, stdout=raw)):
+                with self.assertRaisesRegex(PosePreparationError, '^pose_runner_entrypoint_invalid$'):
+                    _probe('python.exe', 'model.onnx', ('fingerprint',))
 
     def test_success_and_failure_use_exit_status_without_exposing_stderr(self):
         raw = self.child('print("ok")')
@@ -92,6 +124,9 @@ class InputPreparationRunnerTests(unittest.TestCase):
         digest = hashlib.sha256(raw).hexdigest()
         config = PoseRunnerConfig(Path(sys.executable), self.root/'unused.onnx')
         def output(arguments, folder, *_):
+            self.assertEqual(arguments[1:4], ['-B', '-I', '-c'])
+            self.assertEqual(arguments[6], 'run')
+            self.assertEqual(arguments[7], '--image')
             document = observation_fixture()
             # Structurally valid result and matching receipt, but for another image.
             document['source']['image_sha256'] = 'f'*64
