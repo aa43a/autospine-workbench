@@ -20,6 +20,7 @@ def dispatch_project_get(
     store: ProjectStore,
     send_json: SendJson,
     send_file: SendFile,
+    *, engine_session: dict | None = None,
 ) -> bool:
     """Dispatch established health, project, validation, and asset GET routes."""
     if parts == ["api", "health"]:
@@ -30,6 +31,7 @@ def dispatch_project_get(
                 "service": "autospine-workbench",
                 "version": __version__,
                 "project_count": store.discovered_project_count(),
+                **({"engine_session": engine_session} if engine_session is not None else {}),
             },
         )
         return True

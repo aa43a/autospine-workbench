@@ -22,6 +22,21 @@ class ProductionRouteTests(unittest.TestCase):
         self.assertTrue(dispatch_production(['api','production','id','erase'],handler,'POST'))
         self.assertEqual(handler._send_visual_json.call_args.args[0],404)
 
+    def test_list_and_single_reads_attach_live_ownership_without_revising_the_run(self):
+        row = dict(run_id='fixture', revision=7, status='running', stages={})
+        manager = SimpleNamespace(get=Mock(return_value=row), list=Mock(return_value=[row]),
+            execution_view=lambda value: dict(value, execution_active=False))
+        for tail in ([], ['fixture']):
+            handler = self.handler()
+            with patch('autospine_workbench.automation.production_routes.manager_for', return_value=manager):
+                dispatch_production(['api', 'production', *tail], handler, 'GET')
+            status, response = handler._send_visual_json.call_args.args
+            result = response['runs'][0] if not tail else response
+            self.assertEqual(status, 200)
+            self.assertIs(result['execution_active'], False)
+            self.assertEqual(result['revision'], 7)
+        self.assertNotIn('execution_active', row)
+
     def test_revision_preview_requires_mutation_authorization(self):
         handler=self.handler()
         with patch('autospine_workbench.automation.production_routes.manager_for') as factory:

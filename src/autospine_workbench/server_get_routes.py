@@ -136,6 +136,7 @@ def dispatch_workbench_api_get(
         return True
     if dispatch_project_get(
         parts, store, handler._send_json, handler._send_file,
+        engine_session=getattr(handler.server, 'engine_session', None),
     ):
         return True
     if dispatch_mesh_bundle_get(

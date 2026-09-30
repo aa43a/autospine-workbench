@@ -70,6 +70,15 @@ class ProductionJobs:
         with self._lock:
             return self.journal.read(run_id)
 
+    def execution_view(self, value):
+        """Attach live ownership to an HTTP snapshot, never to its journal."""
+        with self._lock:
+            result = deepcopy(value)
+            result['execution_active'] = (
+                not self._stop.is_set() and result['run_id'] in self._active
+            )
+            return result
+
     def retry(self, run_id, revision):
         """Retain failed attempts; only clear the failed stage and its dependants."""
         with self._lock:

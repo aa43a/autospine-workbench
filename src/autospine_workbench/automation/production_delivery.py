@@ -50,6 +50,15 @@ class ProductionDeliveries:
         return sorted((self.get(p.name) for p in self.root.glob('delivery-*')),
                       key=lambda v: v['created_at'], reverse=True) if self.root.exists() else []
 
+    def execution_view(self, value):
+        """Keep ephemeral worker ownership out of revisions and exported records."""
+        with self._lock:
+            result = deepcopy(value)
+            result['execution_active'] = (
+                not self._stop.is_set() and result['job_id'] in self._active
+            )
+            return result
+
     def _append(self, value, event):
         value = deepcopy(value)
         value.update(revision=value['revision'] + 1, updated_at=now(), event=event)

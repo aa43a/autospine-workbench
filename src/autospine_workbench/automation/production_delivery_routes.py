@@ -45,7 +45,7 @@ def dispatch_deliveries(parts, handler, method):
                 if set(body) != {'expected_revision'}:
                     raise PipelineRunError('production_delivery_request_invalid')
                 value = manager.resume(tail[0], body['expected_revision'])
-            handler._send_visual_json(202, value)
+            handler._send_visual_json(202, manager.execution_view(value))
         elif len(tail) >= 3:
             if tail[2:] == ['player.html'] or tail[2:3] == ['player-assets']:
                 from .character_player import read
@@ -58,7 +58,8 @@ def dispatch_deliveries(parts, handler, method):
             handler._send_bytes(200, raw, 'application/zip', visual_review=True,
                 extra_headers={'Content-Disposition': f'attachment; filename="{tail[0]}-candidate.zip"'})
         else:
-            handler._send_visual_json(200, manager.get(tail[0]) if tail else dict(deliveries=manager.list()))
+            handler._send_visual_json(200, manager.execution_view(manager.get(tail[0])) if tail else
+                                      dict(deliveries=[manager.execution_view(row) for row in manager.list()]))
     except HttpJsonRequestError as exc:
         _error(handler, exc.status, exc.code)
     except (OSError, ValueError, RuntimeError, KeyError, TypeError) as exc:

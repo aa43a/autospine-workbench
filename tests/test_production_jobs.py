@@ -87,6 +87,19 @@ class ProductionTests(unittest.TestCase):
         self.assertEqual(value['status'], 'stage_accepted')
         self.assertEqual(len(self.driver.calls), 2)
 
+    def test_live_execution_is_not_inferred_from_journal_or_persisted_in_it(self):
+        value = self.manager.journal.create(self.request)
+        value['status'] = 'running'
+        value = self.manager.journal.append(value, 'execution_started')
+        self.assertFalse(self.manager.execution_view(value)['execution_active'])
+        self.manager._active.add(value['run_id'])
+        self.assertTrue(self.manager.execution_view(value)['execution_active'])
+        self.assertNotIn('execution_active', self.manager.get(value['run_id']))
+        self.manager._stop.set()
+        self.assertFalse(self.manager.execution_view(value)['execution_active'])
+        self.assertEqual(self.manager.journal.read(value['run_id']), value)
+        self.manager._active.clear()
+
     def test_cancel_preserves_shared_sleeve_dependency(self):
         for shared in (True, False):
             value = self.manager.journal.create(self.request)

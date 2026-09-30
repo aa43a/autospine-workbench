@@ -14,6 +14,33 @@ from test_multi_animation import source
 
 
 class DeliveryTests(TestCase):
+    def test_execution_view_is_transient_and_does_not_claim_a_reopened_worker(self):
+        with TemporaryDirectory() as folder:
+            root = Path(folder)
+            p = SimpleNamespace(journal=SimpleNamespace(root=root/'jobs/production-v1'),
+                driver=SimpleNamespace(motions=SimpleNamespace(projects=SimpleNamespace(state_root=root))))
+            manager = ProductionDeliveries(p)
+            job = 'delivery-'+'a'*32
+            manager.folder(job, True)
+            value = manager._append(dict(schema='autospine.production-delivery/v1', job_id=job,
+                revision=0, created_at='fixture', status='running'), 'running')
+            try:
+                self.assertFalse(manager.execution_view(value)['execution_active'])
+                manager._active.add(job)
+                self.assertTrue(manager.execution_view(value)['execution_active'])
+                self.assertEqual(manager.get(job), value)
+                manager._stop.set()
+                self.assertFalse(manager.execution_view(value)['execution_active'])
+                self.assertNotIn('execution_active', manager.get(job))
+            finally:
+                manager._active.clear(); manager.close()
+            reopened = ProductionDeliveries(p)
+            try:
+                self.assertFalse(reopened.execution_view(reopened.get(job))['execution_active'])
+                self.assertEqual(reopened.get(job)['status'], 'running')
+            finally:
+                reopened.close()
+
     def test_durable_result_exact_sources_and_reject_stale_download(self):
         with TemporaryDirectory() as folder:
             root = Path(folder)

@@ -43,6 +43,7 @@ from .seam_anchor_review_replay_cache import SeamAnchorReviewReplayCache
 from .server_binding import WorkbenchThreadingHTTPServer, validate_server_configuration
 from .server_get_routes import dispatch_workbench_api_get
 from .server_manager_lifecycle import start_workbench_managers
+from .engine_session import EngineSessionLease, validate_request_session
 from .server_method_routes import send_workbench_route_method_not_allowed
 from .server_write_routes import (
     dispatch_workbench_api_post, dispatch_workbench_api_put,
@@ -104,6 +105,8 @@ def _handler_factory(
             if not _host_header_is_local(self.headers.get("Host")):
                 self._send_error_json(HTTPStatus.FORBIDDEN, "forbidden_host", "Host must be loopback-local.")
                 return
+            if not validate_request_session(self):
+                return
             try:
                 parts = self._path_parts()
                 if parts and parts[0] == "api":
@@ -137,6 +140,8 @@ def _handler_factory(
             if not _host_header_is_local(self.headers.get("Host")):
                 self._send_error_json(HTTPStatus.FORBIDDEN, "forbidden_host", "Host must be loopback-local.")
                 return
+            if not validate_request_session(self):
+                return
             try:
                 parts = self._path_parts()
             except ValueError as exc:
@@ -147,6 +152,8 @@ def _handler_factory(
         def do_PUT(self) -> None:  # noqa: N802 - BaseHTTPRequestHandler API
             if not _host_header_is_local(self.headers.get("Host")):
                 self._send_error_json(HTTPStatus.FORBIDDEN, "forbidden_host", "Host must be loopback-local.")
+                return
+            if not validate_request_session(self):
                 return
             try:
                 parts = self._path_parts()
@@ -190,6 +197,8 @@ def _handler_factory(
                     HTTPStatus.FORBIDDEN, "forbidden_host",
                     "Host must be loopback-local.",
                 )
+                return
+            if not validate_request_session(self):
                 return
             try:
                 parts = self._path_parts()
@@ -248,6 +257,24 @@ def create_server(
             "Project state preflight failed; verify workspace mutation permissions "
             "and stored decision inputs."
         ) from exc
+    lease = EngineSessionLease(store.state_root, store.workspace_root)
+    server = None
+    try:
+        server = _create_owned_server(host, port, store, resolved_web_root)
+        server.engine_session_lease = lease
+        server.engine_session = lease.publish(f'http://{server.server_address[0]}:{server.server_port}')
+        return server
+    except BaseException:
+        try:
+            if server is not None:
+                server.server_close()
+        finally:
+            lease.close()
+        raise
+
+
+def _create_owned_server(host, port, store, resolved_web_root):
+    """Initialize all recovering managers only while the state lease is held."""
     replay_cache = SeamAnchorReviewReplayCache(store.state_root)
     managers = start_workbench_managers(
         store, P10CaptureJobManager, P10SafetyAnalysisManagerV2,
@@ -257,6 +284,14 @@ def create_server(
             current, execution=execute_p10_spine42_v3_runtime_job_v2,
         ),
     )
+    try:
+        return _bind_owned_server(host, port, store, resolved_web_root, replay_cache, managers)
+    except BaseException:
+        managers.close_after_bind_failure()
+        raise
+
+
+def _bind_owned_server(host, port, store, resolved_web_root, replay_cache, managers):
     capture_manager = managers.capture
     safety_analysis_v2_manager = managers.safety_analysis_v2
     dynamic_seam_v2_manager = managers.dynamic_seam_v2
@@ -281,7 +316,6 @@ def create_server(
     try:
         server = WorkbenchThreadingHTTPServer((host, port), handler)
     except (OSError, socket.error) as exc:
-        managers.close_after_bind_failure()
         raise OSError(f"Could not bind AutoSpine workbench to {host}:{port}") from exc
     bindings = {
         "automation_manager": PipelineWebJobs(store),

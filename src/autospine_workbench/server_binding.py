@@ -28,7 +28,12 @@ class WorkbenchThreadingHTTPServer(ThreadingHTTPServer):
             if automation is not None:
                 automation.close()
         finally:
-            self._close_certification_managers()
+            try:
+                self._close_certification_managers()
+            finally:
+                lease = getattr(self, "engine_session_lease", None)
+                if lease is not None:
+                    lease.close()
 
     def _close_certification_managers(self) -> None:
         runtime_manager = getattr(

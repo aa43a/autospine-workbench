@@ -66,6 +66,8 @@ def dispatch_production(parts, handler, method):
                 if set(body) != {'expected_revision'}:
                     raise PipelineRunError('production_request_invalid')
                 result = getattr(manager, tail[1])(tail[0], body['expected_revision'])
+            if isinstance(result, dict) and 'run_id' in result and 'stages' in result:
+                result = manager.execution_view(result)
             handler._send_visual_json(202, result)
         elif len(tail)==2 and tail[1]=='body-candidates':
             from .production_body_selection import candidates
@@ -77,7 +79,8 @@ def dispatch_production(parts, handler, method):
             from .production_coverage import inspect
             handler._send_visual_json(200, inspect(manager, tail[0]))
         else:
-            handler._send_visual_json(200, manager.get(tail[0]) if tail else dict(runs=manager.list()))
+            handler._send_visual_json(200, manager.execution_view(manager.get(tail[0])) if tail else
+                                      dict(runs=[manager.execution_view(row) for row in manager.list()]))
     except HttpJsonRequestError as exc:
         _error(handler, exc.status, exc.code)
     except (OSError, RuntimeError, ValueError, KeyError, TypeError) as exc:
