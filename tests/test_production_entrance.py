@@ -57,6 +57,28 @@ class EntranceTests(TestCase):
         time.sleep(.03);self.assertEqual(len(self.calls),1)
         self.assertFalse(ready['production_authorized'])
 
+    def test_character_recipe_survives_pending_source_restart_and_handoff(self):
+        from autospine_workbench.automation.production_character_options import SKIRT_PROFILES
+        body=dict(self.body,character_options=dict(skirt_profile=SKIRT_PROFILES[2]))
+        created=self.manager.submit(body);job=created['job_id']
+        self.wait(job,'running');self.manager.close()
+        self.psd.update(status='succeeded',project_id='new-project')
+        self.motion.update(status='succeeded',result=dict(motion_status='compiled'))
+        self.manager=ProductionEntrances(self.production,self.manager.imports,poll_seconds=.01)
+        self.manager.resume(job,self.manager.get(job)['revision'])
+        ready=self.wait(job,'linked')
+        request=self.calls[ready['run_id']]
+        self.assertEqual(request['character_options'],body['character_options'])
+        body['character_options']['skirt_profile']=None
+        self.assertEqual(request['character_options']['skirt_profile'],SKIRT_PROFILES[2])
+
+    def test_unknown_character_recipe_is_rejected_before_reservation(self):
+        for options in ({},dict(skirt_profile='custom'),dict(skirt_profile=None,path='user.py')):
+            with self.subTest(options=options),self.assertRaisesRegex(RuntimeError,'production_character_options_invalid'):
+                self.manager.submit(dict(self.body,character_options=options))
+        self.assertEqual(self.manager.list(),[])
+        self.assertEqual(self.calls,{})
+
     def test_source_failure_does_not_launch_or_claim_review(self):
         self.motion.update(status='failed',reason_code='motion_generation_failed')
         self.psd.update(status='succeeded',project_id='new-project')

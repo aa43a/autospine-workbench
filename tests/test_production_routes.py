@@ -17,6 +17,17 @@ class ProductionRouteTests(unittest.TestCase):
             factory.assert_not_called()
         self.assertEqual(handler._send_visual_json.call_args.args[0],403)
 
+    def test_options_advertise_finite_character_recipes_without_starting_manager(self):
+        from autospine_workbench.automation.production_character_options import SKIRT_PROFILES
+        handler=self.handler()
+        with patch('autospine_workbench.automation.production_routes.manager_for') as factory:
+            dispatch_production(['api','production','options'],handler,'GET')
+            factory.assert_not_called()
+        status,response=handler._send_visual_json.call_args.args
+        self.assertEqual(status,200)
+        self.assertIs(response['character_options_supported'],True)
+        self.assertEqual(response['character_options'],dict(skirt_profiles=list(SKIRT_PROFILES)))
+
     def test_bad_subroute_is_not_dispatched(self):
         handler=self.handler()
         self.assertTrue(dispatch_production(['api','production','id','erase'],handler,'POST'))

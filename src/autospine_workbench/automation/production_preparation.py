@@ -11,7 +11,11 @@ def prepare(driver, read, write, stopped):
     request = value['request']
     project = request['project_id']
     manager = driver.motions.character_manager()
+    from .production_character_options import launch_options, assert_selected, assert_launch
+    options = launch_options(request)
     if request['character_job_id']:
+        if 'character_options' in request:
+            assert_selected(manager, project, request['character_job_id'], request['character_options'])
         def reused(v):
             for stage in ('source', 'bindings'):
                 v['stages'].setdefault(stage, dict(attempts=[])).update(status='reused')
@@ -60,13 +64,15 @@ def prepare(driver, read, write, stopped):
         if not info['can_build']:
             raise PipelineRunError(info.get('reason_code') or 'production_character_unavailable')
         job = 'job-' + uuid4().hex
-        launch = {k: info[k] for k in ('expected_resolved_sha256', 'expected_input_sha256', 'sleeve_job_id')}
+        launch = dict({k: info[k] for k in ('expected_resolved_sha256', 'expected_input_sha256', 'sleeve_job_id')},
+                      **options)
         def reserve(v):
             v['stages']['character'].update(job_id=job, launch=launch, status='running', shared=False)
             v['stages']['character']['attempts'].append(dict(job_id=job))
         write(reserve, 'character_reserved')
     if stopped():
         return False
+    assert_launch(request, read()['stages']['character'].get('launch', {}))
     if not (manager.root / job / 'request.json').exists():
         with reserved_child(job):
             result = manager.submit(project, **read()['stages']['character']['launch'])
@@ -90,6 +96,8 @@ def prepare(driver, read, write, stopped):
     if result['status'] != 'needs_review':
         raise PipelineRunError(result.get('reason_code') or 'production_character_failed')
     verified, _ = manager.verified_snapshot(project, job)
+    if 'character_options' in request:
+        assert_selected(manager, project, job, request['character_options'], verified=verified)
     def record(v):
         v['stages']['character'].update(status='succeeded', artifact_sha256=verified['artifact_sha256'])
     write(record, 'character_prepared')

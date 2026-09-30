@@ -21,14 +21,20 @@ class ProductionDriver:
 
     def freeze(self, body):
         fields = {'project_id', 'character_job_id', 'source_job_id', 'body_options', 'joint_config'}
-        if not isinstance(body, dict) or set(body)-{'body_selection'} != fields:
+        if not isinstance(body, dict) or set(body)-{'body_selection', 'character_options'} != fields:
             raise PipelineRunError('production_request_invalid')
         if not isinstance(body['body_options'], dict) or not isinstance(body['joint_config'], dict):
             raise PipelineRunError('production_request_invalid')
         if set(body['body_options']) & {'project_id', 'character_job_id'}:
             raise PipelineRunError('production_request_invalid')
+        from .production_character_options import launch_options, assert_selected
+        launch_options(body)
         if body['character_job_id'] is not None:
-            character, _ = self.motions.character_manager().verified_snapshot(body['project_id'], body['character_job_id'])
+            manager = self.motions.character_manager()
+            character, _ = manager.verified_snapshot(body['project_id'], body['character_job_id'])
+            if 'character_options' in body:
+                assert_selected(manager, body['project_id'], body['character_job_id'],
+                                body['character_options'], verified=character)
             identity = dict(character_sha256=character['artifact_sha256'])
         else:
             project = self.motions.projects.get_project(body['project_id'])
@@ -42,13 +48,16 @@ class ProductionDriver:
         return frozen
 
     def validate(self, request):
-        fields = ('project_id', 'character_job_id', 'source_job_id', 'body_options', 'joint_config') + (('body_selection',) if 'body_selection' in request else ())
+        fields = ('project_id', 'character_job_id', 'source_job_id', 'body_options', 'joint_config') + tuple(
+            key for key in ('body_selection', 'character_options') if key in request)
         if self.freeze({key: request[key] for key in fields}) != request:
             raise PipelineRunError('production_source_changed')
 
     def revision_request(self, request, config=None, body_options=None):
         fields = ('project_id', 'character_job_id', 'source_job_id', 'body_options', 'joint_config')
         body = {key: deepcopy(request[key]) for key in fields}
+        if 'character_options' in request:
+            body['character_options'] = deepcopy(request['character_options'])
         latest = self.motions.character_manager().motion_target(body['project_id'])['job']
         body['character_job_id'] = latest['job_id'] if latest and latest['status'] == 'needs_review' else None
         if config is not None:

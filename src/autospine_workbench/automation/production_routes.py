@@ -38,9 +38,12 @@ def dispatch_production(parts, handler, method):
         if tail == ['options'] and method in ('GET', 'HEAD'):
             from ..targets.character43.joint_animation_config import defaults
             from .motion_camera_policy import PROFILE, ANKLE_PROFILE
+            from .production_character_options import SKIRT_PROFILES
             handler._send_visual_json(200, dict(joint_config=defaults(), body_options=dict(
                 contact_correction=False, pose_profile=PROFILE, moving_ankle_profile=ANKLE_PROFILE,
-                projection=dict(profile=PROFILE, keys=[dict(time=0, yaw=0)]))))
+                projection=dict(profile=PROFILE, keys=[dict(time=0, yaw=0)])),
+                character_options_supported=True,
+                character_options=dict(skirt_profiles=list(SKIRT_PROFILES))))
             return True
         manager = manager_for(handler.server)
         if method == 'POST':

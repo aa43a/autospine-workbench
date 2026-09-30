@@ -54,11 +54,13 @@ class ProductionEntrances:
         return read_document(manager.folder(job)/'request.json')
 
     def freeze(self, body):
-        if (type(body) is not dict or set(body) != {'character', 'source_job_id', 'body_options', 'joint_config'}
+        if (type(body) is not dict or set(body) - {'character_options'} != {'character', 'source_job_id', 'body_options', 'joint_config'}
                 or type(body['character']) is not dict or len(body['character']) != 1
                 or set(body['character']) not in ({'project_id'}, {'import_job_id'})
                 or type(body['body_options']) is not dict or type(body['joint_config']) is not dict):
             raise PipelineRunError('production_entrance_request_invalid')
+        from .production_character_options import launch_options
+        launch_options(body)
         character = body['character']
         if 'import_job_id' in character:
             identity = dict(character=canonical_sha256(self._source('psd', character['import_job_id'])))
@@ -157,6 +159,8 @@ class ProductionEntrances:
         body = dict(project_id=project, character_job_id=target['job_id'] if target and
             target['status'] == 'needs_review' else None, source_job_id=request['source_job_id'],
             body_options=request['body_options'],joint_config=request['joint_config'])
+        if 'character_options' in request:
+            body['character_options'] = deepcopy(request['character_options'])
         return self.production.driver.freeze(body), 'production'
 
     def _execute(self, job):
