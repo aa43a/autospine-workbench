@@ -11,6 +11,7 @@ from ..safe_input_files import read_real_file
 
 
 VERSION = '4.3.13'
+CAPTURE_SHELL_PROFILE = 'headless-shell-inprocess-gpu-task-log-v1'
 DEPENDENCIES_ENV = 'AUTOSPINE_CAPTURE_DEPENDENCIES'
 BROWSER_ENV = 'AUTOSPINE_CAPTURE_BROWSER'
 NODE_ENV = 'AUTOSPINE_CAPTURE_NODE'

@@ -10,8 +10,9 @@ const oldRaw=await fs.readFile(previous),old=JSON.parse(oldRaw);
 const manifestRaw=await fs.readFile(path.join(bundle,'preview-manifest.json')),manifest=JSON.parse(manifestRaw);
 if(old.schema!=='autospine.limb-residual-visibility/v1'||old.source_preview_sha256!==sha(manifestRaw))throw Error('source_identity');
 const {chromium}=await import(pathToFileURL(path.join(dependencies,'node_modules/playwright-core/index.mjs')));
-const browser=await chromium.launch({executablePath:chrome,headless:true,args:['--enable-webgl','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
 await fs.mkdir(output,{recursive:true});
+const gpuArgs=path.basename(chrome).toLowerCase()==='chrome-headless-shell.exe'?['--in-process-gpu']:[];
+const browser=await chromium.launch({executablePath:chrome,headless:true,env:{...process.env,CHROME_LOG_FILE:path.resolve(output,'browser-debug.log')},args:[...gpuArgs,'--enable-webgl','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
 const hashes={};
 async function save(name,raw){
   const dest=path.join(output,name);

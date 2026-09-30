@@ -52,7 +52,9 @@ const server=http.createServer((req,res)=>{
 let browser;
 try{
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
-  browser=await chromium.launch({executablePath:chrome,headless:true,args:['--enable-webgl','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+  await fs.mkdir(output,{recursive:true});
+  const gpuArgs=path.basename(chrome).toLowerCase()==='chrome-headless-shell.exe'?['--in-process-gpu']:[];
+  browser=await chromium.launch({executablePath:chrome,headless:true,env:{...process.env,CHROME_LOG_FILE:path.resolve(output,'browser-debug.log')},args:[...gpuArgs,'--enable-webgl','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
   for(const project of projects){
     token(project);const source=await report(path.join(input,project)),contact=await report(path.join(contacts,project));
     const overlap=overlapRoot?await report(path.join(overlapRoot,project)):null;

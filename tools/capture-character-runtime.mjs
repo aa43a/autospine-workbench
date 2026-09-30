@@ -102,7 +102,12 @@ let browser,page;
 try{
   if(storageBytes)await publish('runtime-storage-reference.json',storageBytes);
   await listenForBrowser(server);
-  browser=await chromium.launch({executablePath:chrome,headless:true,args:['--enable-webgl','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+  await fs.mkdir(output,{recursive:true});
+  // Windows Headless Shell's GPU child otherwise writes beside its executable.
+  // Its software GPU stays in the browser with task-owned diagnostics. External
+  // Chrome/Edge retain their existing separate GPU process and rendering flags.
+  const gpuArgs=path.basename(chrome).toLowerCase()==='chrome-headless-shell.exe'?['--in-process-gpu']:[];
+  browser=await chromium.launch({executablePath:chrome,headless:true,env:{...process.env,CHROME_LOG_FILE:path.join(output,'browser-debug.log')},args:[...gpuArgs,'--enable-webgl','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
   page=await browser.newPage();const errors=[];page.on('pageerror',e=>errors.push(String(e)));
   await page.goto(`http://127.0.0.1:${server.address().port}/`);
   await page.waitForFunction(()=>window.ready||window.failure,{},{timeout:120000});
