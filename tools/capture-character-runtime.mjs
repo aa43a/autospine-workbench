@@ -10,8 +10,11 @@ import {orderProbes} from './character-order-probes.mjs';
 import {attachmentProbes} from './character-attachment-probes.mjs';
 import {listenForBrowser} from './browser-loopback.mjs';
 import {captureBatch,CAPTURE_BATCH_SIZE} from './character-capture-batch.mjs';
-const [folderArg,outputArg,dependencies,chrome,strideArg,probeTimesArg,storageReferenceArg]=process.argv.slice(2);
-if(!chrome)throw Error('usage: bundle output dependencies chrome');
+import {prepareCaptureProcess,CAPTURE_PROCESS_PROFILE,captureProcessReceipt,finishCaptureProcess} from './capture-process-options.mjs';
+const [folderArg,outputArg,dependenciesArg,chromeArg,strideArg,probeTimesArg,storageReferenceArg]=process.argv.slice(2);
+if(!chromeArg)throw Error('usage: bundle output dependencies chrome');
+const dependencies=path.resolve(dependenciesArg),chrome=path.resolve(chromeArg);
+const storageReferencePath=storageReferenceArg?path.resolve(storageReferenceArg):null;
 const screenshotStride=strideArg===undefined?32:Number(strideArg);
 if(!Number.isInteger(screenshotStride)||screenshotStride<1||screenshotStride>4096)throw Error('screenshot_stride');
 const folder=path.resolve(folderArg),output=path.resolve(outputArg);
@@ -30,10 +33,10 @@ for(const [name,sha]of Object.entries(inventory)){
 }
 const reference=await readReference(files.get('/numeric-reference.json'),async name=>files.get('/'+name)),manifest=JSON.parse(files.get('/character-manifest.json'));
 let storageEvidence=null,storageBytes=null;
-if(storageReferenceArg){
+if(storageReferencePath){
   // Python bounds the uncompressed reference at 256 MiB. Large dense captures
   // can remain above 64 MiB after gzip; keep the same bounded transport budget.
-  const raw=decodeStorageReference(await fs.readFile(storageReferenceArg),{inputLimit:256*1024*1024});
+  const raw=decodeStorageReference(await fs.readFile(storageReferencePath),{inputLimit:256*1024*1024});
   const stored=JSON.parse(raw);
   if(stored.schema!=='autospine.runtime-storage-reference/v1'||stored.profile!=='spine43-linear-weighted-float32-storage-v1'||
     stored.runtime_version!=='4.3.13'||stored.skeleton_sha256!==inventory['skeleton.json']||stored.authority!=='none'||
@@ -84,6 +87,7 @@ const runtime=await fs.readFile(path.join(packageRoot,'dist/iife/spine-webgl.js'
 const harness=await fs.readFile(new URL('./character-framebuffer.js',import.meta.url));
 const orderReader=await fs.readFile(new URL('./character-draw-order.js',import.meta.url));
 const framebufferStats=await fs.readFile(new URL('./character-framebuffer-stats.js',import.meta.url));
+const captureProcess=await fs.readFile(new URL('./capture-process-options.mjs',import.meta.url));
 const {chromium}=await import(pathToFileURL(path.resolve(dependencies,'node_modules/playwright-core/index.mjs')));
 files.set('/runtime.js',runtime);files.set('/harness.js',harness);
 files.set('/draw-order.js',orderReader);
@@ -103,11 +107,7 @@ try{
   if(storageBytes)await publish('runtime-storage-reference.json',storageBytes);
   await listenForBrowser(server);
   await fs.mkdir(output,{recursive:true});
-  // Windows Headless Shell's GPU child otherwise writes beside its executable.
-  // Its software GPU stays in the browser with task-owned diagnostics. External
-  // Chrome/Edge retain their existing separate GPU process and rendering flags.
-  const gpuArgs=path.basename(chrome).toLowerCase()==='chrome-headless-shell.exe'?['--in-process-gpu']:[];
-  browser=await chromium.launch({executablePath:chrome,headless:true,env:{...process.env,CHROME_LOG_FILE:path.join(path.dirname(path.resolve(output)),path.basename(path.resolve(output))+'-browser-debug.log')},args:[...gpuArgs,'--enable-webgl','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+  browser=await chromium.launch(await prepareCaptureProcess(chrome,output));
   page=await browser.newPage();const errors=[];page.on('pageerror',e=>errors.push(String(e)));
   await page.goto(`http://127.0.0.1:${server.address().port}/`);
   await page.waitForFunction(()=>window.ready||window.failure,{},{timeout:120000});
@@ -144,6 +144,7 @@ try{
     runtime_sha256:hash(runtime),harness_sha256:hash(harness),tool_sha256:hash(await fs.readFile(new URL(import.meta.url))),
     draw_order_reader_sha256:hash(orderReader),draw_order_numeric_status:'passed',
     framebuffer_stats_sha256:hash(framebufferStats),
+    capture_process_sha256:hash(captureProcess),capture_process_profile:CAPTURE_PROCESS_PROFILE,...captureProcessReceipt(),
     draw_order_switch_samples:orderCoverage,
     attachment_switch_samples:attachmentCoverage,
     attachment_probe_selector_sha256:hash(await fs.readFile(new URL('./character-attachment-probes.mjs',import.meta.url))),
@@ -164,6 +165,7 @@ try{
   const failure={schema:'autospine.character-capture-failure/v1',bundle_sha256:digest,
     draw_order_reader_sha256:hash(orderReader),
     framebuffer_stats_sha256:hash(framebufferStats),
+    capture_process_sha256:hash(captureProcess),capture_process_profile:CAPTURE_PROCESS_PROFILE,...captureProcessReceipt(),
     runtime_version:pkg.version,runtime_sha256:hash(runtime),harness_sha256:hash(harness),
     capture_batch_sha256:hash(await fs.readFile(new URL('./character-capture-batch.mjs',import.meta.url))),
     capture_batch_size:CAPTURE_BATCH_SIZE,
@@ -173,4 +175,4 @@ try{
   await publish('failure.json',JSON.stringify(failure,null,2));
   console.error(JSON.stringify(failure));
   throw error;
-}finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}
+}finally{await finishCaptureProcess(browser,()=>new Promise(resolve=>server.close(resolve)));}

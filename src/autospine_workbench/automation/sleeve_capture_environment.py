@@ -3,7 +3,9 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import shutil
+import tempfile
 
 from .sleeve_workflow import inventory
 from .storage_io import directory
@@ -12,6 +14,7 @@ from ..safe_input_files import read_real_file
 
 VERSION = '4.3.13'
 CAPTURE_SHELL_PROFILE = 'headless-shell-inprocess-gpu-task-log-v1'
+CAPTURE_PROCESS_PROFILE = 'browser-explicit-short-task-log-cwd-v2'
 DEPENDENCIES_ENV = 'AUTOSPINE_CAPTURE_DEPENDENCIES'
 BROWSER_ENV = 'AUTOSPINE_CAPTURE_BROWSER'
 NODE_ENV = 'AUTOSPINE_CAPTURE_NODE'
@@ -105,13 +108,39 @@ def _capture_packages(root):
     return runtime, core, playwright
 
 
+def capture_process_identity(repo=None):
+    """Bind launch behavior and every entry point into resumed capture evidence."""
+    repo = Path(repo) if repo is not None else Path(__file__).resolve().parents[3]
+    names = ('capture-process-options.mjs', 'capture-character-runtime.mjs',
+             'capture-sleeve-runtime.mjs', 'capture-residual-locations.mjs')
+    return dict(profile=CAPTURE_PROCESS_PROFILE,
+        files={name: hashlib.sha256(read_real_file(repo/'tools'/name, 1 << 20,
+            'capture implementation')).hexdigest() for name in names})
+
+
+def checked_capture_process_receipt(doc, expected):
+    """The fixed launch profile must attest a short, private diagnostic directory."""
+    if (doc.get('capture_process_profile') != CAPTURE_PROCESS_PROFILE
+            or doc.get('capture_process_sha256') != expected['capture_process']['files']['capture-process-options.mjs']):
+        raise ValueError('capture_process_receipt')
+    cwd_raw, log_raw = doc.get('capture_process_work_directory'), doc.get('capture_process_log_file')
+    if not isinstance(cwd_raw, str) or not isinstance(log_raw, str):
+        raise ValueError('capture_process_receipt')
+    cwd, log = Path(cwd_raw), Path(log_raw)
+    if (not cwd.is_absolute() or not log.is_absolute()
+            or len(cwd_raw.encode('utf-16-le'))//2 > 220 or len(log_raw.encode('utf-16-le'))//2 > 240
+            or log != cwd/'chrome.log' or cwd.parent.resolve() != Path(tempfile.gettempdir()).resolve()
+            or not re.fullmatch(r'asc-[A-Za-z0-9_-]{6,}', cwd.name)):
+        raise ValueError('capture_process_receipt')
+
+
 def identity(dependencies, browser):
     root = directory(dependencies)
     runtime, core, playwright = _capture_packages(root)
     browser_raw = read_real_file(Path(browser), 256 << 20, 'capture browser')
     return dict(runtime=inventory(runtime), core=inventory(core), playwright=inventory(playwright),
         node=node_identity(), browser_sha256=hashlib.sha256(browser_raw).hexdigest(),
-        profile='official-webgl-swiftshader-native-v1')
+        profile='official-webgl-swiftshader-native-v1',capture_process=capture_process_identity())
 
 
 def discover(workspace):

@@ -43,7 +43,8 @@ def compare(before, after):
     roots = [Path(before), Path(after)]
     a, b = [_load(root) for root in roots]
     fields = ['runtime_package', 'runtime_version', 'runtime_sha256', 'harness_sha256',
-              'tool_sha256', 'draw_order_reader_sha256', 'reference_reader_sha256', 'browser_sha256', 'profile']
+              'tool_sha256', 'draw_order_reader_sha256', 'reference_reader_sha256', 'browser_sha256', 'profile',
+              'capture_process_sha256', 'capture_process_profile']
     if any(not a[0].get(k) or a[0][k] != b[0].get(k) for k in fields):
         raise ValueError('equivalence_environment_mismatch')
     info = [{k:v for k,v in r[0]['info'].items() if k != 'slots'} for r in (a,b)]

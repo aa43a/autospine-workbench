@@ -107,6 +107,50 @@ class CaptureEnvironmentTests(unittest.TestCase):
             self.assertIn('dist/index.js', expected['core'])
             self.assertIn('index.mjs', expected['playwright'])
 
+    def test_capture_helper_and_entry_changes_invalidate_environment_and_cached_stage(self):
+        from autospine_workbench.automation.sleeve_capture_step import run
+        dependencies = dependency_tree(self.root/'chosen-dependencies')
+        implementation = self.root/'implementation'
+        tools = implementation/'tools';tools.mkdir(parents=True)
+        current = Path(environment.__file__).resolve().parents[3]/'tools'
+        names = ('capture-process-options.mjs','capture-character-runtime.mjs',
+                 'capture-sleeve-runtime.mjs','capture-residual-locations.mjs')
+        for name in names:(tools/name).write_bytes((current/name).read_bytes())
+        process_identity = environment.capture_process_identity
+        with (patch.dict(os.environ, self.configured(dependencies)),
+              patch.object(environment, 'capture_process_identity', lambda:process_identity(implementation))):
+            before = environment.identity(dependencies,self.browser)
+            self.assertEqual(before['capture_process']['profile'],environment.CAPTURE_PROCESS_PROFILE)
+            for name in names:
+                file=tools/name;original=file.read_bytes();file.write_bytes(original+b'changed')
+                changed=environment.identity(dependencies,self.browser)
+                self.assertNotEqual(changed,before)
+                report=dict(records=[dict(download='candidate.zip')])
+                with (patch('autospine_workbench.automation.sleeve_capture_step.checkpoint') as cached,
+                      self.assertRaisesRegex(ValueError,'environment_changed')):
+                    run(implementation,self.workspace,'test',dependencies,self.browser,before,report,lambda:None)
+                cached.assert_not_called()
+                file.write_bytes(original)
+            self.assertEqual(environment.identity(dependencies,self.browser),before)
+
+    def test_capture_receipt_rejects_missing_changed_long_or_software_diagnostic_locations(self):
+        temp=Path(__import__('tempfile').gettempdir()).resolve()
+        cwd=temp/'asc-test123'
+        expected={'capture_process':{'files':{'capture-process-options.mjs':'a'*64}}}
+        good=dict(capture_process_profile=environment.CAPTURE_PROCESS_PROFILE,
+            capture_process_sha256='a'*64,capture_process_work_directory=str(cwd),
+            capture_process_log_file=str(cwd/'chrome.log'))
+        environment.checked_capture_process_receipt(good,expected)
+        changed=[dict(good,capture_process_profile='old'),dict(good,capture_process_sha256='b'*64),
+            dict(good,capture_process_work_directory=str(temp/'software')),
+            dict(good,capture_process_log_file=str(cwd/'debug.log')),
+            dict(good,capture_process_work_directory='relative'),
+            dict(good,capture_process_log_file=str(cwd/('x'*241))),
+            {key:value for key,value in good.items() if key!='capture_process_work_directory'}]
+        for doc in changed:
+            with self.subTest(doc=doc),self.assertRaisesRegex(ValueError,'capture_process_receipt'):
+                environment.checked_capture_process_receipt(doc,expected)
+
     def test_playback_needs_only_exact_webgl_even_when_capture_browser_node_unavailable(self):
         from types import SimpleNamespace
         dependencies = dependency_tree(self.root/'chosen-dependencies')

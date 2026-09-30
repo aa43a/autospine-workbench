@@ -4,8 +4,12 @@ import path from 'node:path';
 import http from 'node:http';
 import crypto from 'node:crypto';
 import {pathToFileURL} from 'node:url';
-const [input,contacts,output,dependencies,chrome,...remaining]=process.argv.slice(2);
-const option=remaining.indexOf('--overlap'),overlapRoot=option<0?null:remaining[option+1];
+import {prepareCaptureProcess,CAPTURE_PROCESS_PROFILE,captureProcessReceipt,finishCaptureProcess} from './capture-process-options.mjs';
+const [inputArg,contactsArg,outputArg,dependenciesArg,chromeArg,...remaining]=process.argv.slice(2);
+if(!chromeArg)throw Error('usage: exportRoot contactRoot output dependencies chrome projects...');
+const [input,contacts,output,dependencies,chrome]=[inputArg,contactsArg,outputArg,dependenciesArg,chromeArg].map(value=>path.resolve(value));
+const option=remaining.indexOf('--overlap'),overlapArg=option<0?null:remaining[option+1];
+const overlapRoot=overlapArg?path.resolve(overlapArg):null;
 const projects=option<0?remaining:remaining.slice(0,option);
 if(option>=0&&(!overlapRoot||option+2!==remaining.length))throw Error('overlap_argument');
 if(!chrome||!projects.length)throw Error('usage: exportRoot contactRoot output dependencies chrome projects...');
@@ -42,6 +46,7 @@ const runtime=await fs.readFile(path.join(packageRoot,'dist/iife/spine-webgl.js'
 const harness=await fs.readFile(new URL('./sleeve-framebuffer.js',import.meta.url));
 const overlapHook=overlapRoot?await fs.readFile(new URL('./sleeve-overlap-framebuffer.js',import.meta.url)):null;
 const tool=await fs.readFile(new URL(import.meta.url));
+const captureProcess=await fs.readFile(new URL('./capture-process-options.mjs',import.meta.url));
 const {chromium}=await import(pathToFileURL(path.resolve(dependencies,'node_modules/playwright-core/index.mjs')));
 const files=new Map();
 const server=http.createServer((req,res)=>{
@@ -53,8 +58,7 @@ let browser;
 try{
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
   await fs.mkdir(output,{recursive:true});
-  const gpuArgs=path.basename(chrome).toLowerCase()==='chrome-headless-shell.exe'?['--in-process-gpu']:[];
-  browser=await chromium.launch({executablePath:chrome,headless:true,env:{...process.env,CHROME_LOG_FILE:path.join(path.dirname(path.resolve(output)),path.basename(path.resolve(output))+'-browser-debug.log')},args:[...gpuArgs,'--enable-webgl','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+  browser=await chromium.launch(await prepareCaptureProcess(chrome,output));
   for(const project of projects){
     token(project);const source=await report(path.join(input,project)),contact=await report(path.join(contacts,project));
     const overlap=overlapRoot?await report(path.join(overlapRoot,project)):null;
@@ -132,6 +136,7 @@ try{
         const receipt={schema:`autospine.sleeve-framebuffer/${version}`,project_id:project,layer_id:row.layer_id,component_id:row.component_id,...meta,
           source_sha256:source.sha,contact_sha256:contact.sha,asset_sha256:row.files,reference_sha256:hash(refRaw),
           runtime_package:pkg.name,runtime_version:pkg.version,runtime_sha256:hash(runtime),harness_sha256:hash(harness),tool_sha256:hash(tool),
+          capture_process_sha256:hash(captureProcess),capture_process_profile:CAPTURE_PROCESS_PROFILE,...captureProcessReceipt(),
           export_target:'4.3.26',browser:await browser.version(),render_backend:'ANGLE SwiftShader WebGL',info,frames,captures,
           scope:'isolated_sleeve_native_pixel_contact_probes',status:'needs_review',authority:'none',production_authorized:false};
         if(overlap)receipt.overlap={source_sha256:overlap.sha,hook_sha256:hash(overlapHook),
@@ -141,4 +146,4 @@ try{
       }finally{await page.close();}
     }
   }
-}finally{if(browser)await browser.close();server.close();}
+}finally{await finishCaptureProcess(browser,()=>new Promise(resolve=>server.close(resolve)));}

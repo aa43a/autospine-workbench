@@ -19,7 +19,8 @@ def fixture(root, color=(1, 2, 3, 255)):
                   results=[dict(animation='test', index=0, time=0)],
                   screenshots=[dict(animation='test', index=0, file='frame.png', sha256=sha256(raw).hexdigest())])
     for key in ['runtime_package', 'runtime_version', 'runtime_sha256', 'harness_sha256', 'tool_sha256',
-                'draw_order_reader_sha256', 'reference_reader_sha256', 'browser_sha256', 'profile']:
+                'draw_order_reader_sha256', 'reference_reader_sha256', 'browser_sha256', 'profile',
+                'capture_process_sha256', 'capture_process_profile']:
         report[key] = 'same'
     (root/'report.json').write_text(json.dumps(report))
     return report
@@ -44,6 +45,8 @@ class FramebufferEquivalenceTests(unittest.TestCase):
             root = Path(temp); fixture(root/'a'); original = fixture(root/'b')
             for field, value, reason in [('screenshots', [], 'incomplete_frame'),
                                          ('browser_sha256', 'changed', 'environment_mismatch'),
+                                         ('capture_process_sha256', 'changed', 'environment_mismatch'),
+                                         ('capture_process_profile', 'changed', 'environment_mismatch'),
                                          ('info', dict(width=2,height=2,left=1,bottom=0,slots=1), 'camera_or_frames')]:
                 report = dict(original); report[field] = value
                 (root/'b/report.json').write_text(json.dumps(report))

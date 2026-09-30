@@ -9,6 +9,7 @@ from unittest.mock import Mock, patch
 from autospine_workbench.automation.capture_geometry import prepared, reuse
 from autospine_workbench.automation.character_capture import capture
 from autospine_workbench.automation.storage_io import canonical_bytes
+from autospine_workbench.automation.sleeve_capture_environment import CAPTURE_PROCESS_PROFILE
 
 
 def fixture():
@@ -18,7 +19,9 @@ def fixture():
     return files, geometry
 
 
-ENVIRONMENT = dict(runtime={'dist/iife/spine-webgl.js': 'b'*64}, browser_sha256='c'*64)
+ENVIRONMENT = dict(runtime={'dist/iife/spine-webgl.js': 'b'*64}, browser_sha256='c'*64,
+    capture_process=dict(profile=CAPTURE_PROCESS_PROFILE,
+        files={'capture-process-options.mjs':'d'*64,'capture-character-runtime.mjs':'e'*64}))
 
 
 class CaptureGeometryReuseTests(unittest.TestCase):
@@ -49,6 +52,11 @@ class CaptureGeometryReuseTests(unittest.TestCase):
                     runtime_package='@esotericsoftware/spine-webgl', runtime_version='4.3.13',
                     runtime_sha256=ENVIRONMENT['runtime']['dist/iife/spine-webgl.js'],
                     browser_sha256=ENVIRONMENT['browser_sha256'],
+                    capture_process_profile=CAPTURE_PROCESS_PROFILE,
+                    capture_process_sha256=ENVIRONMENT['capture_process']['files']['capture-process-options.mjs'],
+                    tool_sha256=ENVIRONMENT['capture_process']['files']['capture-character-runtime.mjs'],
+                    capture_process_work_directory=str(root.parent/'asc-fixture'),
+                    capture_process_log_file=str(root.parent/'asc-fixture/chrome.log'),
                     results=[{}, {}], scope='official_runtime', info=dict(slots=1))))
                 return SimpleNamespace(returncode=0)
             with (patch('autospine_workbench.automation.character_capture.discover',
@@ -67,6 +75,8 @@ class CaptureGeometryReuseTests(unittest.TestCase):
             build.assert_called_once_with(files)
             self.assertEqual(launch.call_count, 2)
             self.assertEqual(launch.call_args_list[0].args[0][0], 'fixed-node')
+            self.assertEqual(launch.call_args_list[0].kwargs['cwd'],root.resolve())
+            self.assertTrue(all(Path(value).is_absolute() for value in launch.call_args_list[0].args[0][1:6]))
             self.assertEqual(json.loads((root/'runtime/capture-environment.json').read_bytes()), ENVIRONMENT)
             self.assertEqual(result['frames'], 2)
             self.assertEqual(result['geometry_status'], 'passed')

@@ -3,16 +3,18 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import {pathToFileURL} from 'node:url';
-const [url,previous,bundle,dependencies,chrome,output]=process.argv.slice(2);
-if(!output)throw Error('usage: url previous-report bundle dependencies chrome output');
+import {prepareCaptureProcess,CAPTURE_PROCESS_PROFILE,captureProcessReceipt,finishCaptureProcess} from './capture-process-options.mjs';
+const [url,previousArg,bundleArg,dependenciesArg,chromeArg,outputArg]=process.argv.slice(2);
+if(!outputArg)throw Error('usage: url previous-report bundle dependencies chrome output');
+const [previous,bundle,dependencies,chrome,output]=[previousArg,bundleArg,dependenciesArg,chromeArg,outputArg].map(value=>path.resolve(value));
 const sha=v=>crypto.createHash('sha256').update(v).digest('hex');
 const oldRaw=await fs.readFile(previous),old=JSON.parse(oldRaw);
 const manifestRaw=await fs.readFile(path.join(bundle,'preview-manifest.json')),manifest=JSON.parse(manifestRaw);
 if(old.schema!=='autospine.limb-residual-visibility/v1'||old.source_preview_sha256!==sha(manifestRaw))throw Error('source_identity');
 const {chromium}=await import(pathToFileURL(path.join(dependencies,'node_modules/playwright-core/index.mjs')));
 await fs.mkdir(output,{recursive:true});
-const gpuArgs=path.basename(chrome).toLowerCase()==='chrome-headless-shell.exe'?['--in-process-gpu']:[];
-const browser=await chromium.launch({executablePath:chrome,headless:true,env:{...process.env,CHROME_LOG_FILE:path.join(path.dirname(path.resolve(output)),path.basename(path.resolve(output))+'-browser-debug.log')},args:[...gpuArgs,'--enable-webgl','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+const captureProcess=await fs.readFile(new URL('./capture-process-options.mjs',import.meta.url));
+const browser=await chromium.launch(await prepareCaptureProcess(chrome,output));
 const hashes={};
 async function save(name,raw){
   const dest=path.join(output,name);
@@ -50,6 +52,7 @@ try{
   const report={schema:'autospine.residual-location-capture/v1',source_report_sha256:sha(oldRaw),
     source_preview_sha256:sha(manifestRaw),runtime_sha256:old.runtime_sha256,runtime_version:old.runtime_version,
     hook_sha256:sha(await fetchRaw('/limb-residual-review.js')),capture_tool_sha256:sha(await fs.readFile(new URL(import.meta.url))),
+    capture_process_sha256:sha(captureProcess),capture_process_profile:CAPTURE_PROCESS_PROFILE,...captureProcessReceipt(),
     camera,rows,files:{...hashes},authority:'none',production_authorized:false};
   await save('capture.json',JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify({pairs:rows.length,targets:rows.reduce((n,r)=>n+r.targets.length,0)}));
-}finally{await browser.close();}
+}finally{await finishCaptureProcess(browser);}

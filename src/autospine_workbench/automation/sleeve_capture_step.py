@@ -4,7 +4,7 @@ import json
 import subprocess
 import sys
 from .sleeve_workflow import checkpoint
-from .sleeve_capture_environment import identity,node_executable
+from .sleeve_capture_environment import identity,node_executable,checked_capture_process_receipt
 from .storage_io import read_document
 from ..resolved_project import canonical_sha256
 from ..targets.spine43.sleeve_framebuffer import summarize
@@ -27,8 +27,10 @@ def checked_summary(path,root,project,record,expected,repo):
     checked_names(source,regions[0],doc)
     bundle=root/'spine'/project/(record['layer_id']+'-'+record['component_id'])
     if doc['reference_sha256']!=hashlib.sha256((bundle/'numeric-reference.json').read_bytes()).hexdigest():raise ValueError('sleeve_capture_reference')
-    for key,filename in [('harness_sha256','sleeve-framebuffer.js'),('tool_sha256','capture-sleeve-runtime.mjs')]:
+    for key,filename in [('harness_sha256','sleeve-framebuffer.js'),('tool_sha256','capture-sleeve-runtime.mjs'),
+                         ('capture_process_sha256','capture-process-options.mjs')]:
         if doc[key]!=hashlib.sha256((repo/'tools'/filename).read_bytes()).hexdigest():raise ValueError('sleeve_capture_code')
+    checked_capture_process_receipt(doc,expected)
     if doc['runtime_sha256']!=expected['runtime']['dist/iife/spine-webgl.js']:raise ValueError('sleeve_capture_runtime')
     def evidence(stage,digest):
         paths=list((root/stage/project).glob('*.json'))
@@ -55,6 +57,7 @@ def checked_summary(path,root,project,record,expected,repo):
 
 
 def run(repo,root,project,dependencies,browser,expected,report,assert_current):
+    repo,root,dependencies,browser=[path.resolve() for path in (repo,root,dependencies,browser)]
     output=root/'framebuffer';selected=[r for r in report['records'] if r['download']]
     if not selected:return report
     if identity(dependencies,browser)!=expected:raise ValueError('sleeve_capture_environment_changed')
@@ -64,7 +67,7 @@ def run(repo,root,project,dependencies,browser,expected,report,assert_current):
         argv=[node_executable(),str(repo/'tools/capture-sleeve-runtime.mjs'),str(root/'spine'),str(root/'contacts'),str(output),
             str(dependencies),str(browser),project,'--overlap',str(root/'overlap')]
         with (root/'logs/framebuffer.log').open('wb') as log:
-            result=subprocess.run(argv,cwd=repo,stdout=log,stderr=subprocess.STDOUT,timeout=1800)
+            result=subprocess.run(argv,cwd=root,stdout=log,stderr=subprocess.STDOUT,timeout=1800)
         if result.returncode:raise ValueError('sleeve_capture_execution_failed')
         result=subprocess.run([sys.executable,str(repo/'tools/review-sleeve-framebuffer.py'),'--input',str(output),
             '--contacts',str(root/'contacts'),'--overlap',str(root/'overlap')],cwd=repo,capture_output=True,timeout=180)

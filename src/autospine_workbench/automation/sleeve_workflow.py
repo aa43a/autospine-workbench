@@ -70,7 +70,7 @@ def steps(repo,draft_root,root,project,state,workspace,*,ordinary_only=False):
 def code_identity(repo):
     paths=list((repo/'src'/'autospine_workbench').rglob('*.py'))
     paths += [repo/'tools'/name for name in ('build-sleeve-weights.py','build-sleeve-helpers.py','export-sleeve-spine.py','run-sleeve-workflow.py','verify-sleeve-core.mjs','check-sleeve-contacts.py','check-sleeve-overlap.py')]
-    paths += [repo/'tools'/name for name in ('capture-sleeve-runtime.mjs','sleeve-framebuffer.js','sleeve-overlap-framebuffer.js','review-sleeve-framebuffer.py')]
+    paths += [repo/'tools'/name for name in ('capture-sleeve-runtime.mjs','capture-process-options.mjs','sleeve-framebuffer.js','sleeve-overlap-framebuffer.js','review-sleeve-framebuffer.py')]
     paths += [repo/'tools'/name for name in ('repair-sleeve-candidate.py','solve-retained-sleeve.py')]
     paths += [repo/'tools'/name for name in ('build-ordinary-sleeve-stage.py','export-ordinary-sleeve-workflow.py')]
     return canonical_sha256({p.relative_to(repo).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(paths)})

@@ -1,10 +1,29 @@
 import tempfile
 import unittest
 from pathlib import Path
-from autospine_workbench.automation.sleeve_workflow import checkpoint,steps
+from autospine_workbench.automation.sleeve_workflow import checkpoint,steps,code_identity
 
 
 class SleeveWorkflowTests(unittest.TestCase):
+    def test_launch_helper_change_changes_workflow_identity_and_rejects_old_checkpoint(self):
+        names=('build-sleeve-weights.py','build-sleeve-helpers.py','export-sleeve-spine.py',
+            'run-sleeve-workflow.py','verify-sleeve-core.mjs','check-sleeve-contacts.py',
+            'check-sleeve-overlap.py','capture-sleeve-runtime.mjs','capture-process-options.mjs',
+            'sleeve-framebuffer.js','sleeve-overlap-framebuffer.js','review-sleeve-framebuffer.py',
+            'repair-sleeve-candidate.py','solve-retained-sleeve.py','build-ordinary-sleeve-stage.py',
+            'export-ordinary-sleeve-workflow.py')
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);repo=root/'repo';tools=repo/'tools';tools.mkdir(parents=True)
+            for name in names:(tools/name).write_text(name)
+            signature=code_identity(repo);out=root/'outputs';calls=[]
+            def execute():calls.append(1);out.mkdir();(out/'artifact.json').write_text('{}')
+            checkpoint(root,'framebuffer',signature,out,execute)
+            (tools/'capture-process-options.mjs').write_text('changed launch implementation')
+            changed=code_identity(repo)
+            self.assertNotEqual(changed,signature)
+            with self.assertRaisesRegex(ValueError,'cached_output_changed'):
+                checkpoint(root,'framebuffer',changed,out,execute)
+            self.assertEqual(calls,[1])
     def test_ordinary_plan_skips_inapplicable_cloth_helper_stages(self):
         plan=steps(Path('/repo'),Path('/drafts'),Path('/run'),'fixture',Path('/state'),Path('/workspace'),ordinary_only=True)
         self.assertEqual([p[0] for p in plan],['weights','ordinary-repair','ordinary-deform','ordinary-interpolation','spine','contacts','overlap'])
