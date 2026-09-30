@@ -24,6 +24,7 @@ class CaptureProgressTests(unittest.TestCase):
             store.read.return_value = {'skeleton.json': b'{}'}
             with (patch('autospine_workbench.automation.character_capture.discover',
                         return_value=('node', 'deps', None, 'browser')),
+                  patch('autospine_workbench.automation.character_capture.identity', return_value={}),
                   patch('autospine_workbench.targets.character43.static_region_review.build',
                         return_value=({}, {})),
                   patch('autospine_workbench.targets.character43.deformation_qa.inspect',

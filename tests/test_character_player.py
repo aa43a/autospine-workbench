@@ -63,7 +63,7 @@ class CharacterPlayerTests(unittest.TestCase):
             (package/'dist/iife').mkdir(parents=True)
             (package/'package.json').write_text(json.dumps(dict(name='@esotericsoftware/spine-webgl',version='4.3.13')))
             script=package/'dist/iife/spine-webgl.js';script.write_bytes(b'runtime')
-            with patch('autospine_workbench.automation.character_player.discover',return_value=['x',folder]):
+            with patch('autospine_workbench.automation.character_player.webgl_package',return_value=package):
                 self.assertEqual(read(self.fixture(),'p','j',['player-assets','runtime.js'])[0],b'runtime')
                 script.write_bytes(b'changed')
                 with self.assertRaisesRegex(RuntimeError,'character_player_runtime_mismatch'):
@@ -81,7 +81,7 @@ class CharacterPlayerTests(unittest.TestCase):
             script=package/'dist/iife/spine-webgl.js';script.write_bytes(b'runtime')
             with patch('autospine_workbench.automation.motion_target_jobs.context',side_effect=AssertionError('full bundle read')), \
                  patch('autospine_workbench.automation.motion_target_jobs.runtime_reader',return_value=lambda name: report), \
-                 patch('autospine_workbench.automation.character_player.discover',return_value=['x',folder]):
+                 patch('autospine_workbench.automation.character_player.webgl_package',return_value=package):
                 self.assertEqual(review_file(manager,'j',['player-assets','runtime.js'])[0],b'runtime')
                 script.write_bytes(b'changed')
                 with self.assertRaisesRegex(RuntimeError,'character_player_runtime_mismatch'):

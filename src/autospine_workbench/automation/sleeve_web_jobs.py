@@ -110,9 +110,9 @@ class SleeveWebJobs:
             export(snapshot/project/'draft.json',raw)
             command=[sys.executable,'-u',str(self.repo/'tools/run-sleeve-workflow.py'),project,'--draft-root',str(snapshot),
                 '--output',str(self.output),'--state-root',str(self.projects.state_root),'--workspace',str(self.projects.workspace_root)]
-            core=self.projects.workspace_root/'tmp/spine43-verification/node_modules/@esotericsoftware/spine-core'
-            if core.is_dir():command+=['--runtime-core',str(core)]
-            from .sleeve_capture_environment import discover
+            from .sleeve_capture_environment import discover,runtime_core
+            core=runtime_core(self.projects.workspace_root)
+            if core is not None:command+=['--runtime-core',str(core)]
             command+=discover(self.projects.workspace_root)
             env=dict(os.environ);env['PYTHONPATH']=str(self.repo/'src');final=None
             with (root/'execution.log').open('w',encoding='utf-8') as log:

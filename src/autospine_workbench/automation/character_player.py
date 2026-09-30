@@ -4,7 +4,7 @@ from base64 import b64encode
 from pathlib import Path
 import json
 from .pipeline_run import PipelineRunError
-from .sleeve_capture_environment import discover
+from .sleeve_capture_environment import webgl_package
 
 
 def read(manager, project, job, parts):
@@ -48,10 +48,9 @@ def read(manager, project, job, parts):
         return json.dumps(dict(artifact_sha256=result['artifact_sha256'], info=report['info'],
                                runtime_sha256=report['runtime_sha256'])).encode(), 'application/json'
     if name == 'runtime.js':
-        options = discover(manager.projects.workspace_root)
-        if not options:
+        package = webgl_package(manager.projects.workspace_root)
+        if package is None:
             raise PipelineRunError('character_runtime_environment_missing')
-        package = Path(options[1])/'node_modules/@esotericsoftware/spine-webgl'
         metadata = json.loads((package/'package.json').read_bytes())
         runtime = (package/'dist/iife/spine-webgl.js').read_bytes()
         if (metadata.get('version') != report.get('runtime_version')

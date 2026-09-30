@@ -2,6 +2,7 @@
 from copy import deepcopy
 from ipaddress import ip_address
 import os
+import re
 from pathlib import Path
 import stat
 from urllib.parse import urlsplit
@@ -15,6 +16,7 @@ from .staging_file import create_staging_file
 
 
 SCHEMA = 'autospine.engine-session/v1'
+RUNTIME_ENVIRONMENT_IDENTITY_SUPPORTED = True
 SESSION_DIRECTORY = 'engine-session-v1'
 ENDPOINT_FILE = 'endpoint.json'
 SESSION_HEADER = 'X-Autospine-Engine-Session'
@@ -89,6 +91,11 @@ class EngineSessionLease:
         value = dict(schema=SCHEMA, nonce=uuid4().hex, pid=os.getpid(),
                      state_root=str(self.state_root), workspace_root=str(self.workspace_root),
                      origin=origin)
+        marker = os.environ.get('AUTOSPINE_STUDIO_RUNTIME_SHA256')
+        if marker is not None:
+            if not re.fullmatch(r'[a-f0-9]{64}', marker):
+                raise ValueError('Workbench runtime environment identity is invalid.')
+            value['runtime_environment_sha256'] = marker
         endpoint = self.root / ENDPOINT_FILE
         if existing_exact_child(self.root, ENDPOINT_FILE) is not None:
             read_real_file(endpoint, 4096, 'engine endpoint')

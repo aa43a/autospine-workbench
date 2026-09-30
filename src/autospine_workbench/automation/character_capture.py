@@ -7,7 +7,7 @@ import subprocess
 import sys
 import math
 
-from .sleeve_capture_environment import discover
+from .sleeve_capture_environment import discover,identity,node_executable
 from .storage_io import directory
 from .pipeline_run import PipelineRunError
 
@@ -36,6 +36,7 @@ def capture(projects, store, digest, root, *, progress, cancel_requested, storag
     if cancel_requested(): raise ValueError('character_build_canceled')
     dependencies, browser = options[1], options[3]
     progress('runtime_prepare')
+    environment = identity(dependencies, browser)
     repo = Path(__file__).resolve().parents[3]
     output = directory(root/'runtime',create=True)
     candidate=store.read(digest)  # Content inventory must pass before an external process runs.
@@ -73,7 +74,7 @@ def capture(projects, store, digest, root, *, progress, cancel_requested, storag
         geometry = inspect_multi(geometry, candidate, store)
     (output/'deformation.json').write_bytes(canonical_bytes(geometry))
     commands = [
-        ['node',str(repo/'tools/capture-character-runtime.mjs'),str(store.root/digest),str(output),dependencies,browser],
+        [node_executable(),str(repo/'tools/capture-character-runtime.mjs'),str(store.root/digest),str(output),dependencies,browser],
         [sys.executable,str(repo/'tools/review-character-setup.py'),str(store.root/digest),str(output),str(output/'setup')],
     ]
     if storage_reference:
@@ -90,6 +91,8 @@ def capture(projects, store, digest, root, *, progress, cancel_requested, storag
         frame_count = sum(len(frames) for frames in read_reference(candidate)['animations'].values())
     for index, command in enumerate(commands):
         if cancel_requested(): raise ValueError('character_build_canceled')
+        if identity(dependencies, browser) != environment:
+            raise ValueError('character_runtime_environment_changed')
         progress('runtime' if index == 0 else 'runtime_setup')
         with (root/f'capture-{index}.log').open('wb') as log:
             try:
@@ -100,9 +103,17 @@ def capture(projects, store, digest, root, *, progress, cancel_requested, storag
                 raise ValueError('character_runtime_timeout') from exc
         if run.returncode: raise ValueError('character_runtime_capture_failed')
     if cancel_requested(): raise ValueError('character_build_canceled')
+    if identity(dependencies, browser) != environment:
+        raise ValueError('character_runtime_environment_changed')
     report = json.loads((output/'report.json').read_bytes())
     if report['bundle_sha256']!=digest or report.get('authority')!='none' or report.get('production_authorized') is not False:
         raise ValueError('character_runtime_report_source')
+    if (report.get('runtime_package') != '@esotericsoftware/spine-webgl'
+            or report.get('runtime_version') != '4.3.13'
+            or report.get('runtime_sha256') != environment['runtime']['dist/iife/spine-webgl.js']
+            or report.get('browser_sha256') != environment['browser_sha256']):
+        raise ValueError('character_runtime_report_environment')
+    (output/'capture-environment.json').write_bytes(canonical_bytes(environment))
     if 'skirt-trial.json' in candidate:
         from ..targets.character43.skirt_review import render
         from ..targets.character43.skirt_motion_contact import analyze

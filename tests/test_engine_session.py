@@ -17,6 +17,27 @@ from test_project_store import StoreFixture
 
 
 class EngineSessionTests(TestCase):
+    def test_optional_runtime_marker_is_exact_or_publication_is_rejected(self):
+        for marker in (None, 'a'*64, '', 'A'*64, 'a'*63, 'a'*64+' '):
+            with self.subTest(marker=marker), TemporaryDirectory() as folder:
+                root = Path(folder)
+                env = dict(os.environ)
+                env.pop('AUTOSPINE_STUDIO_RUNTIME_SHA256', None)
+                if marker is not None: env['AUTOSPINE_STUDIO_RUNTIME_SHA256'] = marker
+                with patch.dict(os.environ,env,clear=True):
+                    lease = EngineSessionLease(root/'state',root)
+                    try:
+                        if marker not in (None, 'a'*64):
+                            with self.assertRaisesRegex(ValueError,'runtime environment identity'):
+                                lease.publish('http://127.0.0.1:12345')
+                            self.assertFalse((lease.root/'endpoint.json').exists())
+                        else:
+                            value = lease.publish('http://127.0.0.1:12345')
+                            if marker is None:self.assertNotIn('runtime_environment_sha256',value)
+                            else:self.assertEqual(value['runtime_environment_sha256'],marker)
+                            self.assertEqual(json.loads((lease.root/'endpoint.json').read_text()),value)
+                    finally:lease.close()
+
     def test_os_lease_blocks_another_process_and_is_released_by_close(self):
         with TemporaryDirectory() as folder:
             root = Path(folder)

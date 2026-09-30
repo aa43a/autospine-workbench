@@ -4,7 +4,7 @@ import json
 import subprocess
 import sys
 from .sleeve_workflow import checkpoint
-from .sleeve_capture_environment import identity
+from .sleeve_capture_environment import identity,node_executable
 from .storage_io import read_document
 from ..resolved_project import canonical_sha256
 from ..targets.spine43.sleeve_framebuffer import summarize
@@ -61,7 +61,7 @@ def run(repo,root,project,dependencies,browser,expected,report,assert_current):
     def execute():
         if identity(dependencies,browser)!=expected:raise ValueError('sleeve_capture_environment_changed')
         print('framebuffer: running',flush=True)
-        argv=['node',str(repo/'tools/capture-sleeve-runtime.mjs'),str(root/'spine'),str(root/'contacts'),str(output),
+        argv=[node_executable(),str(repo/'tools/capture-sleeve-runtime.mjs'),str(root/'spine'),str(root/'contacts'),str(output),
             str(dependencies),str(browser),project,'--overlap',str(root/'overlap')]
         with (root/'logs/framebuffer.log').open('wb') as log:
             result=subprocess.run(argv,cwd=repo,stdout=log,stderr=subprocess.STDOUT,timeout=1800)

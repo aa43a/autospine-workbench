@@ -6,6 +6,7 @@ from pathlib import Path
 import subprocess
 from .sleeve_workflow import inventory,checkpoint
 from .storage_io import directory
+from .sleeve_capture_environment import node_executable,node_identity
 from ..resolved_project import canonical_sha256
 
 
@@ -13,7 +14,7 @@ def identity(core):
     core=directory(core);package=json.loads((core/'package.json').read_bytes())
     if package.get('name')!='@esotericsoftware/spine-core' or package.get('version')!='4.3.13':raise ValueError('sleeve_runtime_version')
     files=inventory(core)
-    return dict(package=package['name'],version=package['version'],files=files)
+    return dict(package=package['name'],version=package['version'],files=files,node=node_identity())
 
 
 def validate(report,bundle,expected):
@@ -48,7 +49,7 @@ def run(repo,root,project,core,expected,summary,assert_current):
         if identity(core)!=expected:raise ValueError('sleeve_runtime_code_changed')
         for row in selected:
             name=row['layer_id']+'-'+row['component_id'];bundle=root/Path(row['download']).parent
-            command=['node',str(repo/'tools/verify-sleeve-core.mjs'),str(bundle),str(core),str(output/(name+'.json'))]
+            command=[node_executable(),str(repo/'tools/verify-sleeve-core.mjs'),str(bundle),str(core),str(output/(name+'.json'))]
             result=subprocess.run(command,cwd=repo,capture_output=True,text=True,timeout=180)
             if result.returncode not in (0,1) or not (output/(name+'.json')).is_file():raise ValueError('sleeve_runtime_execution_failed')
             checked=validate(json.loads((output/(name+'.json')).read_bytes()),bundle,expected)
