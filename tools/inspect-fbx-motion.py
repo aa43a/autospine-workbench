@@ -3,11 +3,13 @@
 blender --background --factory-startup --python tools/inspect-fbx-motion.py -- INPUT OUTPUT
 The sampled world joints are evidence, not a reviewed rig or a MotionIR export.
 """
+import sys
+sys.dont_write_bytecode = True
+
 import hashlib
 import json
 import math
 from pathlib import Path
-import sys
 
 import bpy
 from io_scene_fbx import parse_fbx

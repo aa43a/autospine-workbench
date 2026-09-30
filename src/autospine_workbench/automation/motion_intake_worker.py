@@ -14,6 +14,7 @@ from ..motion2d.mixamo_map import build_map
 from ..motion_bvh_commands import compile_bvh_motion_bundle
 from .storage_io import canonical_bytes, read_document
 from .motion_intake_process import progress
+from .blender_process import fbx_command, process_options
 
 VIEWS = {'front': ('+X', '-Y', '+Z'), 'side': ('-Z', '-Y', '+X')}
 
@@ -72,10 +73,10 @@ def execute(folder, state_root, blender):
         progress(folder, 'convert_fbx')
         if not blender or not Path(blender).is_file():raise ValueError('motion_blender_unavailable')
         tools=Path(__file__).resolve().parents[3]/'tools'
-        command=[blender,'--background','--factory-startup','--python-exit-code','1',
-                 '--python',str(tools/'export-fbx-bvh.py'),'--',str(source),str(folder/'source.bvh'),'--root-only']
+        command=fbx_command(blender, folder)
+        options=process_options(folder)
         with (folder/'blender.log').open('wb') as log:
-            process=subprocess.run(command,stdout=log,stderr=subprocess.STDOUT,timeout=180)
+            process=subprocess.run(command,stdout=log,stderr=subprocess.STDOUT,timeout=180,**options)
         if process.returncode:raise ValueError('motion_fbx_conversion_failed')
         evidence=json.loads((folder/'source.inspection.json').read_bytes())
         progress(folder, 'verify_bridge')

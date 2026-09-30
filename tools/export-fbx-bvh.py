@@ -1,10 +1,12 @@
 """Blender-only FBX to BVH bridge; preserve inspection evidence beside the export."""
+import sys
+sys.dont_write_bytecode = True
+
 import hashlib
 import json
 from pathlib import Path
 import runpy
 import re
-import sys
 
 import bpy
 from io_anim_bvh import export_bvh
