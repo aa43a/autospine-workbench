@@ -166,6 +166,9 @@ def inspect(source, result, animation, duration, requested, *, face_report=None,
     effect_alpha_passed = all(r['passed'] for r in effect_visibility['records'])
     body_passed = body['passed'] and body_visibility['passed']
     effect_passed = increment['passed'] and local['passed'] and effect_alpha_passed
+    wind = (secondary_report or {}).get('wind')
+    wind_passed = not wind or not wind['enabled'] or wind['loop_compatible']
+    effect_passed = effect_passed and wind_passed
     passed = body_passed and effect_passed and overall['passed'] and overall_visibility['passed']
     replaced = list((secondary_report or {}).get('probe_tracks_replaced', []))
     limitations = ['numeric_endpoint_and_one_sided_velocity_not_visual_loop_acceptance',
@@ -179,6 +182,7 @@ def inspect(source, result, animation, duration, requested, *, face_report=None,
         measured_passed=passed, duration=duration, sample_times=times, difference_step_seconds=step,
         limits=deepcopy(LIMITS), source_body=dict(**body, visibility=body_visibility, loop_ready=body_passed),
         neutral_joint=baseline, added_effects=dict(passed=effect_passed, world_increment=increment,
+            wind=dict(passed=wind_passed, field=wind),
             local_helpers=local, face_alpha=dict(passed=effect_alpha_passed, records=effect_visibility['records']),
             new_helper_bones=added, changed_alpha_slots=changed_alpha),
         overall=dict(**overall, visibility=overall_visibility),

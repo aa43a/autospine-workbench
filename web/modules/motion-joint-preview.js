@@ -2,7 +2,7 @@
 // This is deliberately not the spring solver or the export/validation path.
 const groups=['hair','cloth','objects'];
 const names={hair:'发束',cloth:'裙袖',objects:'挂饰',face:'表情',loop:'循环',seed:'随机种子',fps:'采样率',
-  stiffness:'刚度',damping:'阻尼',max_angle:'角度上限',root_fraction:'发根固定范围',cascade:'发束逐级跟随',anchor_x:'挂点',anchor_y:'挂点'};
+  stiffness:'刚度',damping:'阻尼',max_angle:'角度上限',root_fraction:'发根固定范围',cascade:'发束逐级跟随',anchor_x:'挂点',anchor_y:'挂点',wind_response:'受风系数'};
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const selected=(config,slot)=>Boolean(config?.enabled)&&(!config.slots?.length||config.slots.includes(slot));
 const local=(config,slot,key)=>config?.overrides?.[slot]?.[key]??config?.[key];
@@ -13,6 +13,7 @@ export function jointAmplitudePreview(document,report,config){
   const bones=new Map((document.bones??[]).map(b=>[b.name,b]));
   const tracks=document.animations?.[report.animation]?.bones??{};
   for(const key of ['face','loop','seed','fps'])if(!same(base[key],config[key]))pending.add(names[key]);
+  if(!same(base.wind,config.wind))pending.add('风场需构建一次以生成受风预览轨迹');
   for(const group of groups){
     for(const key of ['stiffness','damping','max_angle','root_fraction','cascade','anchor_x','anchor_y'])
       if(!same(base[group]?.[key],config[group]?.[key]))pending.add(`${names[group]}${names[key]}`);
@@ -58,6 +59,9 @@ export function applyJointAmplitude(skeleton,gains,setupRotations){
 
 export function jointPreviewText(preview){
   if(!preview)return '';
+  if(preview.mode==='wind_solver')return (preview.changed?
+    `${preview.noWind?'无风对照（保留身体惯性）':'即时受风预览'}：完整轨迹已重算，尚未验证。`:
+    '受风轨迹与已构建结果一致。')+(preview.pending?.length?` 尚需构建：${preview.pending.join('、')}。`:'');
   const text=preview.changed?'即时幅度预览（未验证）：沿用已构建轨迹，仅缩放新增随动；完整求解和最终幅度以重新构建为准。':
     preview.available?'当前幅度与已构建结果一致。':preview.reason;
   return text+(preview.pending?.length?` 尚需构建：${preview.pending.slice(0,6).join('、')}${preview.pending.length>6?'等':''}。`:'');

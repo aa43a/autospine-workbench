@@ -47,7 +47,9 @@ def build(files, config, *, camera_keys=None, on_progress=None, parent_review=No
     times = sorted(set(times) | set(face_report.get('sample_times', [])))
     progress('joint_secondary')
     document, secondary_report = joint_secondary.apply(files, document, animation,
-        dict(hair=config['hair'], cloth=config['cloth'], objects=config['objects'], loop=config['loop']), times, camera_keys=camera_keys)
+        dict(hair=config['hair'], cloth=config['cloth'], objects=config['objects'], loop=config['loop'],
+             **({'wind':config['wind']} if 'wind' in config else {})), times, camera_keys=camera_keys)
+    wind_preview = secondary_report.pop('preview_data', None)
     # Check key midpoints for the added helper tracks, without recursively refining old QA grids.
     new_bones = {b['name'] for b in document['bones']} - {b['name'] for b in source['bones']}
     extra = {k.get('time',0) for n,t in document['animations'][animation].get('bones',{}).items()
@@ -71,6 +73,11 @@ def build(files, config, *, camera_keys=None, on_progress=None, parent_review=No
         if name.startswith('images/'):
             output['editor/'+name] = raw
     digest = sha256(output['skeleton.json']).hexdigest()
+    if wind_preview is not None:
+        wind_preview.update(skeleton_sha256=digest, parent_skeleton_sha256=sha256(files['skeleton.json']).hexdigest(),
+                            config_sha256=canonical_sha256(config))
+        output['wind-preview.json'] = canonical_bytes(wind_preview)
+        secondary_report['wind_preview'] = dict(file='wind-preview.json', sha256=sha256(output['wind-preview.json']).hexdigest())
     setup = _setup(document, animation)
     output['rig-setup-reference.json'] = canonical_bytes(dict(skeleton_sha256=digest, time=0, vertices=setup))
     progress('joint_sample')

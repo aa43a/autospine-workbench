@@ -1,0 +1,722 @@
+{
+  "schema": "autospine.wind-secondary-motion-verification/v1",
+  "date": "2026-10-01",
+  "branch": "work/integrated-arm-review",
+  "tests": {
+    "python_passed": 70,
+    "javascript_passed": 49
+  },
+  "runtime_geometry_frames": 6453,
+  "browser": {
+    "url": "http://127.0.0.1:8918/motion-editor.html",
+    "checked": [
+      "candidate_loading",
+      "shared_timeline",
+      "direction_keyboard",
+      "wind_strength",
+      "live_trajectory_recalculation",
+      "direction_keys_across_zero",
+      "key_undo_redo",
+      "source_bound_draft_restore",
+      "no_wind_inertia_comparison",
+      "ui_job_submission",
+      "completed_job_matching_config",
+      "actual_spine_download",
+      "synchronized_thumbnail",
+      "thumbnail_same_frame_wind_pixel_difference",
+      "desktop_and_narrow_layout"
+    ],
+    "screenshot": "workspace/wind-validation/editor-wind.jpg",
+    "downloaded_name": "motion-character-candidate (3).zip",
+    "downloaded_sha256": "382de8412e872c5c0b955faa7f1b40a91ea8295fdb32a30133a5fd75bc9bb907",
+    "downloaded_bytes": 103021668,
+    "downloaded_job_id": "motion-d21594eeb55b44458995877fdb91cf73",
+    "thumbnail": {
+      "time": 3.9733332,
+      "image_scope": "browser_jpeg_crop_of_canvas_only",
+      "wind_image_sha256": "2a32289d00e9ee642adc7e5ed0ee34a66e8a0e27c552becb48c3114081948031",
+      "no_wind_image_sha256": "c0b01ffe1885b82a295468fce9f73982b552c4022cf70742382d96f6b9267226",
+      "same_frame_image_changed": true,
+      "desktop_preview_inside_panel": true,
+      "temporary_viewport_restored": true
+    }
+  },
+  "records": [
+    {
+      "case": "alice",
+      "delivery": {
+        "schema": "autospine.wind-delivery-check/v1",
+        "parent": "motion-5187aacacf9a49838820a8a11815ba5a",
+        "job_id": "motion-eb770188d838449a819da04f6ac2e1e5",
+        "artifact_sha256": "ade1cc0cad108c470922310659100cee66b7a1c9b1538a50a0e3512125da357e",
+        "config_sha256": "498c8cb21ad24d2f4c76f0dd54fc8b3dd5dccd7ee30dcbd9637d834d7e9e6564",
+        "skeleton_sha256": "0542dc65a3a1c5d423a3a20e302b67954119d1259015831f40385a51a19fea96",
+        "preview_sha256": "603a51b5e99a57d70c7d6d5c66840645eb9c12ff0aa860ec2ad90e6eeb1e618a",
+        "preview_bytes": 3898377,
+        "bundle_bytes": 103033972,
+        "runtime_frames": 2151,
+        "runtime_geometry_failed_records": 0,
+        "root_error_px": 0.0,
+        "regions": [
+          {
+            "slot": "layer-000",
+            "region_kind": "hair",
+            "peak_response_deg": 0.375,
+            "peak_sampled_displacement_px": 0.9866655202886987,
+            "effective_gain": 0.125
+          },
+          {
+            "slot": "layer-021",
+            "region_kind": "hair",
+            "peak_response_deg": 0.375,
+            "peak_sampled_displacement_px": 0.9028799850143038,
+            "effective_gain": 0.125
+          },
+          {
+            "slot": "layer-005",
+            "region_kind": "cloth",
+            "peak_response_deg": 0.4427930966005751,
+            "peak_sampled_displacement_px": 2.5900443559766417,
+            "effective_gain": 0.25
+          },
+          {
+            "slot": "layer-008-component-0000",
+            "region_kind": "objects",
+            "peak_response_deg": 0.4548793256206934,
+            "peak_sampled_displacement_px": 1.1278840055704098,
+            "effective_gain": 0.5
+          }
+        ],
+        "wind": {
+          "basis": "fixed_world_xy",
+          "deterministic": true,
+          "effective_frequency_hz": 0.5,
+          "enabled": true,
+          "endpoint_vector_error": 0.00856394694063315,
+          "keys": 0,
+          "loop_compatible": false,
+          "max_vector_strength": 0.09303589048417343,
+          "profile": "autospine.wind/v1",
+          "seed": 713,
+          "units": "artistic_strength_not_metres_per_second"
+        },
+        "inherited_issues": [
+          {
+            "reason_code": "motion_visible_depth_needs_changes",
+            "stage": "depth"
+          }
+        ],
+        "visual_acceptance": "not_evaluated",
+        "build_timing": {
+          "active_step": null,
+          "elapsed_seconds": 165.875,
+          "schema": "autospine.build-timing/v1",
+          "stages": [
+            {
+              "calls": 1,
+              "seconds": 1.861,
+              "step": "verify_source"
+            },
+            {
+              "calls": 1,
+              "seconds": 0.01,
+              "step": "joint_inventory"
+            },
+            {
+              "calls": 1,
+              "seconds": 0.001,
+              "step": "joint_face"
+            },
+            {
+              "calls": 1,
+              "seconds": 4.573,
+              "step": "joint_secondary"
+            },
+            {
+              "calls": 1,
+              "seconds": 0.158,
+              "step": "joint_validate"
+            },
+            {
+              "calls": 35,
+              "seconds": 3.948,
+              "step": "joint_sample"
+            },
+            {
+              "calls": 1,
+              "seconds": 6.146,
+              "step": "joint_reference"
+            },
+            {
+              "calls": 1,
+              "seconds": 3.294,
+              "step": "joint_geometry"
+            },
+            {
+              "calls": 1,
+              "seconds": 1.412,
+              "step": "joint_checks"
+            },
+            {
+              "calls": 2,
+              "seconds": 104.571,
+              "step": "depth_overlap"
+            },
+            {
+              "calls": 1,
+              "seconds": 2.096,
+              "step": "publish_candidate"
+            },
+            {
+              "calls": 1,
+              "seconds": 1.844,
+              "step": "runtime_prepare"
+            },
+            {
+              "calls": 1,
+              "seconds": 0.061,
+              "step": "runtime_geometry"
+            },
+            {
+              "calls": 1,
+              "seconds": 11.017,
+              "step": "runtime_reference"
+            },
+            {
+              "calls": 1,
+              "seconds": 19.911,
+              "step": "runtime"
+            },
+            {
+              "calls": 1,
+              "seconds": 4.97,
+              "step": "runtime_setup"
+            }
+          ],
+          "status": "completed"
+        },
+        "editor_url": "http://127.0.0.1:8918/motion-editor.html",
+        "player_url": "http://127.0.0.1:8918/api/motions/motion-eb770188d838449a819da04f6ac2e1e5/view/player.html",
+        "passed": true,
+        "runtime_captured_images": 69,
+        "runtime_scope": "all_attachment_vertices_and_nonempty_unclipped_framebuffer",
+        "runtime_contact_status": "not_evaluated"
+      },
+      "official_core_preview": {
+        "schema": "autospine.wind-preview-runtime-check/v1",
+        "artifact_sha256": "ade1cc0cad108c470922310659100cee66b7a1c9b1538a50a0e3512125da357e",
+        "core_version": "4.3.13",
+        "duration": 9.933333,
+        "frames": 21,
+        "helper_bones": 19,
+        "max_key_error_deg": 2.643718577388654e-15,
+        "max_baked_pose_vertex_error_px": 6.103515625e-05,
+        "seek_error_px": 0,
+        "body_channels_unchanged": true,
+        "complete_track_solve_ms": {
+          "baseline": 42.700200000000024,
+          "no_wind": 27.666200000000003,
+          "reversed": 26.41749999999999
+        },
+        "regions": [
+          {
+            "slot": "layer-000",
+            "kind": "hair",
+            "no_wind_delta_px": 0.333892822265625,
+            "reverse_delta_px": 0.66754150390625
+          },
+          {
+            "slot": "layer-021",
+            "kind": "hair",
+            "no_wind_delta_px": 0.32122802734375,
+            "reverse_delta_px": 0.642547607421875
+          },
+          {
+            "slot": "layer-005",
+            "kind": "cloth",
+            "no_wind_delta_px": 0.91522216796875,
+            "reverse_delta_px": 1.8280029296875
+          },
+          {
+            "slot": "layer-008-component-0000",
+            "kind": "objects",
+            "no_wind_delta_px": 0.049530029296875,
+            "reverse_delta_px": 0.099090576171875
+          }
+        ],
+        "visual_acceptance": "not_evaluated",
+        "passed": true
+      },
+      "wind_config": {
+        "direction": 0.0,
+        "enabled": true,
+        "frequency": 0.5,
+        "gust": 0.25,
+        "keys": [],
+        "schema": "autospine.wind/v1",
+        "seed": 713,
+        "strength": 25.0
+      }
+    },
+    {
+      "case": "huiye",
+      "delivery": {
+        "schema": "autospine.wind-delivery-check/v1",
+        "parent": "motion-45db86457ff44d14934c149cf5a4ecf0",
+        "job_id": "motion-834414579c89491fbdf2e0ec8753bb7f",
+        "artifact_sha256": "20257c57a2f33aa283c81892dcb8025293e9a2469f229c8490781d8a775c54d7",
+        "config_sha256": "fe9f3588024045828df9738c44c15200f5faa2c620560d8b9f8dc3bfbd4a7ff8",
+        "skeleton_sha256": "997cc5dc15c708c1c365f5b44fb3dde5549e0d4faf1fd8be9cce47813db879c4",
+        "preview_sha256": "fe7c5f245fc361cf7561ab05f3fe7d1b061cf9ebfa2fc4a5912fad722fb1a165",
+        "preview_bytes": 4167979,
+        "bundle_bytes": 157790381,
+        "runtime_frames": 2151,
+        "runtime_geometry_failed_records": 0,
+        "root_error_px": 0.0,
+        "regions": [
+          {
+            "slot": "layer-000",
+            "region_kind": "hair",
+            "peak_response_deg": 0.12121599061921322,
+            "peak_sampled_displacement_px": 1.3747479438094572,
+            "effective_gain": 0.0625
+          },
+          {
+            "slot": "layer-014",
+            "region_kind": "hair",
+            "peak_response_deg": 2.1911783650683687,
+            "peak_sampled_displacement_px": 13.666722806794315,
+            "effective_gain": 1.0
+          },
+          {
+            "slot": "layer-002-component-0000",
+            "region_kind": "cloth",
+            "peak_response_deg": 2.0,
+            "peak_sampled_displacement_px": 14.817790913139483,
+            "effective_gain": 1.0
+          },
+          {
+            "slot": "layer-003-component-0000",
+            "region_kind": "cloth",
+            "peak_response_deg": 2.0,
+            "peak_sampled_displacement_px": 16.461786495875067,
+            "effective_gain": 1.0
+          },
+          {
+            "slot": "layer-004",
+            "region_kind": "cloth",
+            "peak_response_deg": 0.15129070756005014,
+            "peak_sampled_displacement_px": 1.269422355469307,
+            "effective_gain": 0.125
+          }
+        ],
+        "wind": {
+          "basis": "fixed_world_xy",
+          "deterministic": true,
+          "effective_frequency_hz": 0.5,
+          "enabled": true,
+          "endpoint_vector_error": 0.008563946940633149,
+          "keys": 0,
+          "loop_compatible": false,
+          "max_vector_strength": 0.09303589048417343,
+          "profile": "autospine.wind/v1",
+          "seed": 713,
+          "units": "artistic_strength_not_metres_per_second"
+        },
+        "inherited_issues": [],
+        "visual_acceptance": "not_evaluated",
+        "build_timing": {
+          "active_step": null,
+          "elapsed_seconds": 230.294,
+          "schema": "autospine.build-timing/v1",
+          "stages": [
+            {
+              "calls": 1,
+              "seconds": 1.798,
+              "step": "verify_source"
+            },
+            {
+              "calls": 1,
+              "seconds": 0.001,
+              "step": "joint_inventory"
+            },
+            {
+              "calls": 1,
+              "seconds": 0.001,
+              "step": "joint_face"
+            },
+            {
+              "calls": 1,
+              "seconds": 27.883,
+              "step": "joint_secondary"
+            },
+            {
+              "calls": 1,
+              "seconds": 0.277,
+              "step": "joint_validate"
+            },
+            {
+              "calls": 35,
+              "seconds": 9.641,
+              "step": "joint_sample"
+            },
+            {
+              "calls": 1,
+              "seconds": 8.912,
+              "step": "joint_reference"
+            },
+            {
+              "calls": 1,
+              "seconds": 5.03,
+              "step": "joint_geometry"
+            },
+            {
+              "calls": 1,
+              "seconds": 0.772,
+              "step": "joint_checks"
+            },
+            {
+              "calls": 2,
+              "seconds": 101.748,
+              "step": "depth_overlap"
+            },
+            {
+              "calls": 1,
+              "seconds": 1.998,
+              "step": "publish_candidate"
+            },
+            {
+              "calls": 1,
+              "seconds": 1.507,
+              "step": "runtime_prepare"
+            },
+            {
+              "calls": 1,
+              "seconds": 0.081,
+              "step": "runtime_geometry"
+            },
+            {
+              "calls": 1,
+              "seconds": 15.779,
+              "step": "runtime_reference"
+            },
+            {
+              "calls": 1,
+              "seconds": 48.41,
+              "step": "runtime"
+            },
+            {
+              "calls": 1,
+              "seconds": 6.457,
+              "step": "runtime_setup"
+            }
+          ],
+          "status": "completed"
+        },
+        "editor_url": "http://127.0.0.1:8918/motion-editor.html",
+        "player_url": "http://127.0.0.1:8918/api/motions/motion-834414579c89491fbdf2e0ec8753bb7f/view/player.html",
+        "passed": true,
+        "runtime_captured_images": 69,
+        "runtime_scope": "all_attachment_vertices_and_nonempty_unclipped_framebuffer",
+        "runtime_contact_status": "not_evaluated"
+      },
+      "official_core_preview": {
+        "schema": "autospine.wind-preview-runtime-check/v1",
+        "artifact_sha256": "20257c57a2f33aa283c81892dcb8025293e9a2469f229c8490781d8a775c54d7",
+        "core_version": "4.3.13",
+        "duration": 9.933333,
+        "frames": 21,
+        "helper_bones": 20,
+        "max_key_error_deg": 1.4960255256823984e-14,
+        "max_baked_pose_vertex_error_px": 0.0001220703125,
+        "seek_error_px": 0,
+        "body_channels_unchanged": true,
+        "complete_track_solve_ms": {
+          "baseline": 38.9401,
+          "no_wind": 27.034699999999987,
+          "reversed": 24.60250000000002
+        },
+        "regions": [
+          {
+            "slot": "layer-000",
+            "kind": "hair",
+            "no_wind_delta_px": 0.318084716796875,
+            "reverse_delta_px": 0.63568115234375
+          },
+          {
+            "slot": "layer-014",
+            "kind": "hair",
+            "no_wind_delta_px": 3.793060302734375,
+            "reverse_delta_px": 7.57098388671875
+          },
+          {
+            "slot": "layer-002-component-0000",
+            "kind": "cloth",
+            "no_wind_delta_px": 5.294403076171875,
+            "reverse_delta_px": 10.580612182617188
+          },
+          {
+            "slot": "layer-003-component-0000",
+            "kind": "cloth",
+            "no_wind_delta_px": 4.67327880859375,
+            "reverse_delta_px": 9.35260009765625
+          },
+          {
+            "slot": "layer-004",
+            "kind": "cloth",
+            "no_wind_delta_px": 0.455963134765625,
+            "reverse_delta_px": 0.91168212890625
+          }
+        ],
+        "visual_acceptance": "not_evaluated",
+        "passed": true
+      },
+      "wind_config": {
+        "direction": 30.0,
+        "enabled": true,
+        "frequency": 0.5,
+        "gust": 0.25,
+        "keys": [],
+        "schema": "autospine.wind/v1",
+        "seed": 713,
+        "strength": 25.0
+      }
+    },
+    {
+      "case": "alice-keyed",
+      "delivery": {
+        "schema": "autospine.wind-delivery-check/v1",
+        "parent": "motion-5187aacacf9a49838820a8a11815ba5a",
+        "job_id": "motion-d21594eeb55b44458995877fdb91cf73",
+        "artifact_sha256": "f7289c9dfae68a7ad5b5aadf12a3f4c731ad869483eabedad6f29e09bf20f376",
+        "config_sha256": "bcab7fca9840117229150e6648d493028cb649622ee59e219739ecd9aa09dce6",
+        "skeleton_sha256": "b3b7023e8dc29ea07bc8ff42d3a6a220748b3aef36adf518a38058883d3ccde5",
+        "preview_sha256": "a4f4ebfba1e6db1f15fadd926ffe06e81b7d2f24345a89fa0b366206c0fb321c",
+        "preview_bytes": 3898377,
+        "bundle_bytes": 103021668,
+        "runtime_frames": 2151,
+        "runtime_geometry_failed_records": 0,
+        "root_error_px": 0.0,
+        "regions": [
+          {
+            "slot": "layer-000",
+            "region_kind": "hair",
+            "peak_response_deg": 0.375,
+            "peak_sampled_displacement_px": 1.0621063103543027,
+            "effective_gain": 0.125
+          },
+          {
+            "slot": "layer-021",
+            "region_kind": "hair",
+            "peak_response_deg": 0.375,
+            "peak_sampled_displacement_px": 0.9628985101210948,
+            "effective_gain": 0.125
+          },
+          {
+            "slot": "layer-005",
+            "region_kind": "cloth",
+            "peak_response_deg": 0.5,
+            "peak_sampled_displacement_px": 2.9520851938183252,
+            "effective_gain": 0.25
+          },
+          {
+            "slot": "layer-008-component-0000",
+            "region_kind": "objects",
+            "peak_response_deg": 0.5651603989567011,
+            "peak_sampled_displacement_px": 1.4134813104050585,
+            "effective_gain": 0.5
+          }
+        ],
+        "wind": {
+          "basis": "fixed_world_xy",
+          "deterministic": true,
+          "effective_frequency_hz": 0.5,
+          "enabled": true,
+          "endpoint_vector_error": 0.17873418568530958,
+          "keys": 2,
+          "loop_compatible": false,
+          "max_vector_strength": 0.291107874028079,
+          "profile": "autospine.wind/v1",
+          "seed": 713,
+          "units": "artistic_strength_not_metres_per_second"
+        },
+        "inherited_issues": [
+          {
+            "reason_code": "motion_visible_depth_needs_changes",
+            "stage": "depth"
+          }
+        ],
+        "visual_acceptance": "not_evaluated",
+        "build_timing": {
+          "active_step": null,
+          "elapsed_seconds": 215.544,
+          "schema": "autospine.build-timing/v1",
+          "stages": [
+            {
+              "calls": 1,
+              "seconds": 1.763,
+              "step": "verify_source"
+            },
+            {
+              "calls": 1,
+              "seconds": 0.001,
+              "step": "joint_inventory"
+            },
+            {
+              "calls": 1,
+              "seconds": 0.001,
+              "step": "joint_face"
+            },
+            {
+              "calls": 1,
+              "seconds": 4.812,
+              "step": "joint_secondary"
+            },
+            {
+              "calls": 1,
+              "seconds": 0.162,
+              "step": "joint_validate"
+            },
+            {
+              "calls": 35,
+              "seconds": 3.626,
+              "step": "joint_sample"
+            },
+            {
+              "calls": 1,
+              "seconds": 4.995,
+              "step": "joint_reference"
+            },
+            {
+              "calls": 1,
+              "seconds": 3.026,
+              "step": "joint_geometry"
+            },
+            {
+              "calls": 1,
+              "seconds": 1.008,
+              "step": "joint_checks"
+            },
+            {
+              "calls": 2,
+              "seconds": 152.221,
+              "step": "depth_overlap"
+            },
+            {
+              "calls": 1,
+              "seconds": 2.048,
+              "step": "publish_candidate"
+            },
+            {
+              "calls": 1,
+              "seconds": 1.844,
+              "step": "runtime_prepare"
+            },
+            {
+              "calls": 1,
+              "seconds": 0.063,
+              "step": "runtime_geometry"
+            },
+            {
+              "calls": 1,
+              "seconds": 13.975,
+              "step": "runtime_reference"
+            },
+            {
+              "calls": 1,
+              "seconds": 20.676,
+              "step": "runtime"
+            },
+            {
+              "calls": 1,
+              "seconds": 5.324,
+              "step": "runtime_setup"
+            }
+          ],
+          "status": "completed"
+        },
+        "editor_url": "http://127.0.0.1:8918/motion-editor.html",
+        "player_url": "http://127.0.0.1:8918/api/motions/motion-d21594eeb55b44458995877fdb91cf73/view/player.html",
+        "passed": true,
+        "runtime_captured_images": 69,
+        "runtime_scope": "all_attachment_vertices_and_nonempty_unclipped_framebuffer",
+        "runtime_contact_status": "not_evaluated"
+      },
+      "official_core_preview": {
+        "schema": "autospine.wind-preview-runtime-check/v1",
+        "artifact_sha256": "f7289c9dfae68a7ad5b5aadf12a3f4c731ad869483eabedad6f29e09bf20f376",
+        "core_version": "4.3.13",
+        "duration": 9.933333,
+        "frames": 21,
+        "helper_bones": 19,
+        "max_key_error_deg": 2.6575963651964685e-15,
+        "max_baked_pose_vertex_error_px": 6.103515625e-05,
+        "seek_error_px": 0,
+        "body_channels_unchanged": true,
+        "complete_track_solve_ms": {
+          "baseline": 38.36419999999998,
+          "no_wind": 27.990399999999994,
+          "reversed": 24.009500000000003
+        },
+        "regions": [
+          {
+            "slot": "layer-000",
+            "kind": "hair",
+            "no_wind_delta_px": 0.813995361328125,
+            "reverse_delta_px": 1.7322998046875
+          },
+          {
+            "slot": "layer-021",
+            "kind": "hair",
+            "no_wind_delta_px": 0.782745361328125,
+            "reverse_delta_px": 1.662261962890625
+          },
+          {
+            "slot": "layer-005",
+            "kind": "cloth",
+            "no_wind_delta_px": 2.26226806640625,
+            "reverse_delta_px": 4.48406982421875
+          },
+          {
+            "slot": "layer-008-component-0000",
+            "kind": "objects",
+            "no_wind_delta_px": 0.714508056640625,
+            "reverse_delta_px": 1.426422119140625
+          }
+        ],
+        "visual_acceptance": "not_evaluated",
+        "passed": true
+      },
+      "wind_config": {
+        "direction": 15.0,
+        "enabled": true,
+        "frequency": 0.5,
+        "gust": 0.25,
+        "keys": [
+          {
+            "direction": 345,
+            "strength": 45,
+            "time": 0
+          },
+          {
+            "direction": 15,
+            "strength": 20,
+            "time": 9.933333
+          }
+        ],
+        "schema": "autospine.wind/v1",
+        "seed": 713,
+        "strength": 20.0
+      }
+    }
+  ],
+  "visual_acceptance": "not_evaluated",
+  "limits": [
+    "fixed_world_xy_only",
+    "dynamic_camera_inertia_blocked",
+    "no_complete_cloth_collision",
+    "changed_preview_requires_rebuild_validation",
+    "inherited_depth_issues_preserved",
+    "runtime_contact_not_evaluated"
+  ]
+}

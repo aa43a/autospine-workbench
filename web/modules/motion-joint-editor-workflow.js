@@ -76,7 +76,7 @@ export function createJointWorkflow({getSelection=()=>null,notify=()=>{},inspect
     }catch(e){if(current(t))error(e);return false;}
     finally{if(current(t)){busy=false;update();}}
   }
-  function edit(callback){if(!state.meta||busy)return;try{callback();message=state.changed?'参数已修改。已生成随动的强度和启停可即时比较，其他改动需重新构建；下载保持上次结果。':'参数已更新，可在共用时间轴检查。';update();}catch(e){error(e);}}
+  function edit(callback){if(!state.meta||busy)return;try{callback();message=state.changed?'参数已修改。已生成区域可即时比较受风摆动；重新构建后验证并导出这些修改。':'参数已更新，可在共用时间轴检查。';update();}catch(e){error(e);}}
   async function build(){
     if(!state.meta||busy||isJointActive(job))return;const t=token();busy=true;message='正在提交联合动画候选…';update();
     if(state.meta.eligibility?.supported===false){busy=false;message=state.meta.eligibility.message||state.meta.eligibility.reason||'当前身体候选暂不支持联合叠加。';update();return;}
@@ -106,6 +106,7 @@ export function createJointWorkflow({getSelection=()=>null,notify=()=>{},inspect
   }
   return {state,load,restoreResult,reset,refresh,build,cancel:()=>operate('cancel'),retry:()=>operate('retry'),
     change:(group,key,value)=>edit(()=>state.change(group,key,value)),
+    enableWind:()=>edit(()=>state.enableWind()),
     undo:()=>edit(()=>state.undo()),redo:()=>edit(()=>state.redo()),defaults:()=>edit(()=>state.defaults()),
     key:(channel,time,values)=>edit(()=>state.key(channel,time,values)),
     deleteKey:(channel,time)=>edit(()=>state.deleteKey(channel,time)),clearKeys:channel=>edit(()=>state.clearKeys(channel)),

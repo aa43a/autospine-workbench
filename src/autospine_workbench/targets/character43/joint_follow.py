@@ -4,6 +4,7 @@ Own Spine implementation; no dependency on the upstream WebGL renderer.
 Only an already single-bone weighted mesh can become a rigid follower.
 """
 from .joint_secondary_mesh import _rows
+import math
 
 
 HAIR_NAMES = {'back hair', 'front hair', 'side hair', 'hair', 'hair front', 'hair back',
@@ -51,7 +52,10 @@ def pendulum(document, slot, anchor_x=.5, anchor_y=1.):
         rotation=0., length=max(8., hi[1]-lo[1])))
     document['skins'][0]['attachments'][slot][slot]['vertices'] = [
         v for x, y in points for v in (1, child, x-pivot[0], y-pivot[1], 1.)]
+    center = [(lo[d]+hi[d])/2-pivot[d] for d in (0, 1)]
+    wind_axis = math.degrees(math.atan2(center[1], center[0])) if math.hypot(*center) > 1e-8 else -90.
     return dict(slot=slot, helpers=[helper], pinned_vertices=[], region_kind='objects',
         root_driver=driver, pivot_local=pivot, pivot_helper=helper,
+        wind_axis_offset=wind_axis,
         strategy='rigid-pendulum-existing-parent', root_policy='adjustable_parent_local_bbox_pivot',
         source_rgba_preserved=True)

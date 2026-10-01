@@ -1,6 +1,6 @@
 import {JOINT_LOCAL_LIMITS,localFieldAllowed} from './motion-joint-editor-state.js';
-const names={strength:'摆动强度',stiffness:'回弹刚度',damping:'阻尼',max_angle:'最大角度 / °',root_fraction:'发根固定比例',anchor_x:'挂点横向比例',anchor_y:'挂点纵向比例（0 下 / 1 上）'};
-const steps={strength:.05,stiffness:1,damping:.05,max_angle:.25,root_fraction:.01,anchor_x:.01,anchor_y:.01};
+const names={strength:'摆动强度',stiffness:'回弹刚度',damping:'阻尼',max_angle:'最大角度 / °',root_fraction:'发根固定比例',anchor_x:'挂点横向比例',anchor_y:'挂点纵向比例（0 下 / 1 上）',wind_response:'受风系数'};
+const steps={strength:.05,stiffness:1,damping:.05,max_angle:.25,root_fraction:.01,anchor_x:.01,anchor_y:.01,wind_response:.05};
 const node=(tag,text)=>{const element=document.createElement(tag);if(text)element.textContent=text;return element;};
 export function createJointLocalOptions({container,group,meta,change}){
   const regions=(meta.inventory?.[group]??[]).filter(row=>row.state==='available');
@@ -11,7 +11,7 @@ export function createJointLocalOptions({container,group,meta,change}){
   const label=node('label','响应区域'),select=node('select');select.setAttribute('aria-label',`${group} 局部响应区域`);
   for(const region of regions){const option=node('option',`${region.name||region.slot}${region.name?' · '+region.slot:''}${typeof region.root_driver==='string'?' · '+region.root_driver:''}`);option.value=region.slot;select.append(option);}label.append(select);panel.append(label);
   for(const [key,bounds]of Object.entries(JOINT_LOCAL_LIMITS)){
-    if(!localFieldAllowed(group,key))continue;
+    if(!localFieldAllowed(group,key)||key==='wind_response'&&!meta.defaults?.wind)continue;
     const label=node('label',names[key]),input=node('input');input.type='number';input.min=bounds[0];input.max=bounds[1];input.step=steps[key];
     input.setAttribute('aria-label',`${group} 局部${names[key]}`);fields.set(key,input);label.append(input);panel.append(label);
   }

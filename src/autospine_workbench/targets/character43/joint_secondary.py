@@ -9,27 +9,33 @@ from .deform_addition import value
 from .joint_secondary_mesh import hair, cloth, remove_probe
 from .joint_spring import bake, grid, solve
 from .joint_follow import HAIR_NAMES, OBJECT_NAMES, semantic, rigid_driver, pendulum
+from . import joint_wind
 
 
-def defaults():
-    return dict(hair=dict(enabled=False, strength=1., stiffness=36., damping=.85,
+def defaults(*, wind=False):
+    result = dict(hair=dict(enabled=False, strength=1., stiffness=36., damping=.85,
                          max_angle=3., root_fraction=.35, cascade=False, slots=[], overrides={}),
                 cloth=dict(enabled=False, strength=1., stiffness=25., damping=.9,
                            max_angle=2., slots=[], overrides={}),
                 objects=dict(enabled=False, strength=1., stiffness=25., damping=.9,
                              max_angle=2., anchor_x=.5, anchor_y=1., slots=[], overrides={}), loop=False)
+    if wind:
+        result['wind'] = joint_wind.defaults()
+        for kind in ('hair', 'cloth', 'objects'): result[kind]['wind_response'] = 1.
+    return result
 
 
 def normalize(config, duration):
     grid(duration)
-    if not isinstance(config, dict) or set(config)-{'hair', 'cloth', 'objects', 'loop'}:
+    if not isinstance(config, dict) or set(config)-{'hair', 'cloth', 'objects', 'loop', 'wind'}:
         raise ValueError('joint_secondary_config')
-    result = defaults()
+    result = defaults(wind='wind' in config)
+    if 'wind' in config: result['wind'] = joint_wind.normalize(config['wind'], duration)
     if 'loop' in config:
         if type(config['loop']) is not bool: raise ValueError('joint_secondary_loop')
         result['loop'] = config['loop']
     ranges = dict(strength=(0., 2.), stiffness=(9., 100.), damping=(.3, 2.),
-                  max_angle=(0., 10.), root_fraction=(.15, .75), anchor_x=(0., 1.), anchor_y=(0., 1.))
+                  max_angle=(0., 10.), root_fraction=(.15, .75), anchor_x=(0., 1.), anchor_y=(0., 1.), wind_response=(0., 2.))
     for kind in ('hair', 'cloth', 'objects'):
         row = config.get(kind, {})
         if not isinstance(row, dict) or set(row)-set(result[kind]): raise ValueError('joint_secondary_fields')
@@ -44,6 +50,7 @@ def normalize(config, duration):
                 item = sorted(item)
             elif key == 'overrides':
                 fields = {'strength', 'stiffness', 'damping', 'max_angle'} | ({'root_fraction'} if kind == 'hair' else set())
+                if 'wind' in config: fields.add('wind_response')
                 if kind == 'objects': fields |= {'anchor_x', 'anchor_y'}
                 if not isinstance(item, dict) or len(item) > 24:
                     raise ValueError('joint_secondary_overrides')
@@ -189,6 +196,9 @@ def apply(files, document, animation, config, times, camera_keys=None):
     # Sample all carriers from the same baseline before adding any response.
     # Parents inherit body/face and existing repaired cloth, never camera drag.
     baseline = deepcopy(output); ticks = grid(times[-1]); poses = [matrices(baseline, animation, t) for t in ticks]
+    wind_values = None
+    if 'wind' in config:
+        wind_values, report['wind'] = joint_wind.vectors(config['wind'], ticks, loop=config['loop'])
     key_indices = sorted(set(range(0, len(ticks), 2)) | {len(ticks)-1})
     all_key_times = {ticks[i] for i in key_indices}
     indices = {b['name']: b for b in baseline['bones']}; tracks = output['animations'][animation].setdefault('bones', {})
@@ -205,9 +215,19 @@ def apply(files, document, animation, config, times, camera_keys=None):
                 carrier_poses = [_pose(p, indices, record['helpers'],
                     {n: solved[n][i] if n in solved else 0. for n in record['helpers']}) for i,p in enumerate(poses)]
             root_poses = [(p[driven][4], p[driven][5], math.degrees(math.atan2(p[driven][2], p[driven][0]))) for p in carrier_poses]
+            external = None
+            if wind_values is not None:
+                external = joint_wind.angular_forces(wind_values, root_poses,
+                    axis_offset=record.get('wind_axis_offset', 0.), response=cfg['wind_response'],
+                    length=indices[helper].get('length', 100.))
             response, evidence = solve(ticks, root_poses, stiffness=cfg['stiffness'], damping=cfg['damping'],
                 strength=cfg['strength']*(.5 if helper.endswith('-lower') or helper.endswith('_lower') else 1.),
-                max_angle=cfg['max_angle'], length=indices[helper].get('length', 100.), loop=config['loop'])
+                max_angle=cfg['max_angle'], length=indices[helper].get('length', 100.), loop=config['loop'],
+                external_forces=external, external_loop_compatible=not external or report['wind']['loop_compatible'])
+            if external is not None:
+                evidence['wind_peak_acceleration_deg_s2'] = max(map(abs, external))
+                if config['loop'] and not report['wind']['loop_compatible']:
+                    evidence['loop_status'] = 'wind_not_loopable'
             key_times, key_values, sampling = bake(ticks, response)
             from .joint_spring import interpolate
             solved[helper] = [interpolate(key_times, key_values, t) for t in ticks]
@@ -227,6 +247,15 @@ def apply(files, document, animation, config, times, camera_keys=None):
         record['post_solve_gain'] = record['effective_gain']
         if record['effective_gain'] == 0:
             report['skipped'].append(dict(slot=record['slot'], reason='new_response_suppressed_for_geometry'))
+    if wind_values is not None and records:
+        # Immutable carrier matrices let the browser solve a draft once and seek
+        # it deterministically. Drafts do not reuse the old geometry verdict.
+        names = sorted({n for r in records for h in r['helpers'] for n in (h, indices[h]['parent'])})
+        report['preview_data'] = dict(schema='autospine.wind-preview/v1', times=ticks,
+            bones={h: indices[h] for r in records for h in r['helpers']},
+            matrices={n: [list(p[n]) for p in poses] for n in names},
+            regions=[{k:r[k] for k in ('slot', 'region_kind', 'helpers', 'requested_config', 'post_solve_gain')}
+                | {'wind_axis_offset':r.get('wind_axis_offset', 0.)} for r in records])
     # Fixed material roots must agree with the exact zero-response baseline.
     checks = sorted(set(times[::max(1, len(times)//32)]+[times[-1]]))
     for record in records:

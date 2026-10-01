@@ -6,18 +6,20 @@ SCHEMA = 'autospine.joint-animation-config/v1'
 PROFILE = 'joint-face-hair-cloth-follow-v2'
 
 
-def defaults():
+def defaults(*, wind=True):
     from . import joint_face, joint_secondary
-    secondary = joint_secondary.defaults()
+    from .joint_wind import defaults as wind_defaults
+    secondary = joint_secondary.defaults(wind=wind)
     return dict(schema=SCHEMA, seed=0, fps=30, loop=False,
-                face=joint_face.defaults(), hair=secondary['hair'], cloth=secondary['cloth'], objects=secondary['objects'])
+                face=joint_face.defaults(), hair=secondary['hair'], cloth=secondary['cloth'], objects=secondary['objects'],
+                **({'wind':wind_defaults()} if wind else {}))
 
 
 def normalize(value, duration):
     from . import joint_face, joint_secondary
-    if not isinstance(value, dict) or set(value) - {'schema', 'seed', 'fps', 'loop', 'face', 'hair', 'cloth', 'objects'}:
+    if not isinstance(value, dict) or set(value) - {'schema', 'seed', 'fps', 'loop', 'face', 'hair', 'cloth', 'objects', 'wind'}:
         raise ValueError('joint_animation_config_invalid')
-    result = defaults()
+    result = defaults(wind='wind' in value)
     result.update(deepcopy(value))
     if result['schema'] != SCHEMA or type(result['loop']) is not bool:
         raise ValueError('joint_animation_config_invalid')
@@ -28,8 +30,13 @@ def normalize(value, duration):
     if not math.isfinite(duration) or not 0 < duration <= 120:
         raise ValueError('joint_animation_duration_invalid')
     result['face'] = joint_face.normalize(result['face'], duration)
-    secondary = joint_secondary.normalize(dict(hair=result['hair'], cloth=result['cloth'], objects=result['objects'], loop=result['loop']), duration)
+    secondary = joint_secondary.normalize(dict(hair=result['hair'], cloth=result['cloth'], objects=result['objects'], loop=result['loop'],
+        **({'wind':result['wind']} if 'wind' in value else {})), duration)
     for group in ('hair', 'cloth', 'objects'): result[group] = secondary[group]
+    if 'wind' in value:
+        result['wind'] = secondary['wind']
+    else:
+        result.pop('wind', None)  # Preserve frozen pre-wind jobs and their checksums.
     return result
 
 
@@ -62,6 +69,13 @@ def controls():
         add(group, 'stiffness', '回弹刚度', 9, 100, 1)
         add(group, 'damping', '阻尼比', .3, 2, .05)
         add(group, 'max_angle', '摆动上限 / 度', 0, 10, .5)
+        add(group, 'wind_response', label+'受风系数', 0, 2, .05)
+    add('wind', 'enabled', '启用风场')
+    add('wind', 'strength', '风强', 0, 100, 1)
+    add('wind', 'direction', '吹向 / 度（0 向右，90 向上）', 0, 360, 1)
+    add('wind', 'gust', '阵风强度', 0, 1, .05)
+    add('wind', 'frequency', '阵风变化 / Hz', 0, 4, .05)
+    add('wind', 'seed', '阵风种子', 0, 2147483647, 1)
     add('hair', 'root_fraction', '固定发根比例', .15, .75, .05)
     add('hair', 'cascade', '发梢跟随上游发束（级联惯性）')
     add('objects', 'anchor_x', '挂点横向比例（父骨坐标）', 0, 1, .05)

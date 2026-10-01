@@ -22,6 +22,17 @@ def documents():
 
 
 class JointLoopQATests(unittest.TestCase):
+    def test_noncyclic_wind_is_not_approved_when_geometry_is_static(self):
+        source, result = documents()
+        field = dict(enabled=True, loop_compatible=False)
+        report = inspect(source, result, 'body', 1., True, secondary_report={'wind': field})
+        self.assertTrue(report['overall']['passed'])
+        self.assertFalse(report['added_effects']['wind']['passed'])
+        self.assertEqual(report['status'], 'needs_changes')
+        field['loop_compatible'] = True
+        self.assertEqual(inspect(source, result, 'body', 1., True,
+            secondary_report={'wind': field})['status'], 'passed')
+
     def test_looping_helpers_pass_position_velocity_and_counterfactual(self):
         source, result = documents()
         result['animations']['body']['bones']['m5-hair-test'] = {'translate': [

@@ -1,6 +1,7 @@
 // Isolated official Runtime viewport. Never edits the saved character document.
 import {editableLayer,layerBounds,transformLayerVertices,normalizeLayerEdits,pointInLayer,canvasContentRect,canvasWorldPoint} from './motion-layer-transform.js';
 import {applyJointAmplitude} from './motion-joint-preview.js';
+import {applyWindOffsets} from './motion-wind-preview.js';
 let runtimePromise=null,runtimeHash=null;
 async function runtime(url,hash){
   if(runtimePromise){if(runtimeHash!==hash)throw Error('Runtime 版本变化，请刷新编辑页');return runtimePromise;}
@@ -83,11 +84,12 @@ export async function createEditorRenderer(canvas,base,current=()=>true){
       renderer.camera.setViewport(width,height);renderer.camera.position.x=left+width/2;renderer.camera.position.y=bottom+height/2;renderer.camera.update();
     },
     animation(value){data=parser.readSkeletonData({...scene.skeleton,animations:{'camera-preview':value}});hasAnimation=true;},
-    draw(time=0,{jointGains=null}={}){
+    draw(time=0,{jointGains=null,jointOffsets=null}={}){
       if(gl.isContextLost())throw Error('角色画布已失效，请刷新');
       const skeleton=new spine.Skeleton(data);skeleton.setupPose();
       if(hasAnimation){const state=new spine.AnimationState(new spine.AnimationStateData(data));state.setAnimation(0,'camera-preview',false);state.update(time);state.apply(skeleton);}
       applyJointAmplitude(skeleton,jointGains,setupRotations);
+      applyWindOffsets(skeleton,jointOffsets,setupRotations);
       skeleton.updateWorldTransform(spine.Physics.update);
       lastBones=new Map(skeleton.bones.map(b=>{const p=b.appliedPose;return [b.data.name,[p.a,p.b,p.c,p.d,p.worldX,p.worldY]];}));
       if(edits.draw_order.length){const lookup=new Map(skeleton.slots.map(slot=>[slot.data.name,slot]));skeleton.drawOrder.appliedPose.splice(0,skeleton.slots.length,...edits.draw_order.map(slot=>lookup.get(slot)));}

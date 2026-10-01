@@ -54,7 +54,7 @@ def _unwrap(values):
 
 
 def solve(times, poses, *, stiffness=36., damping=.85, strength=1., max_angle=4.,
-          length=100., loop=False):
+          length=100., loop=False, external_forces=None, external_loop_compatible=True):
     """poses are root (world x, world y, world angle), in a FIXED camera basis.
 
     A damped angular spring responds to carrier rotation and lateral root
@@ -71,7 +71,9 @@ def solve(times, poses, *, stiffness=36., damping=.85, strength=1., max_angle=4.
     angles = _unwrap([p[2] for p in poses]); n = len(times)
     loop_position = math.dist(poses[0][:2], poses[-1][:2])
     loop_angle = abs(angles[-1] - angles[0])
-    compatible = loop_position <= .25 and loop_angle <= .1
+    if external_forces is not None and (len(external_forces) != n or any(not math.isfinite(v) for v in external_forces)):
+        raise ValueError('joint_spring_external_forces')
+    compatible = loop_position <= .25 and loop_angle <= .1 and external_loop_compatible
     periodic = bool(loop and compatible)
     forcing = []
     for i in range(n):
@@ -87,6 +89,8 @@ def solve(times, poses, *, stiffness=36., damping=.85, strength=1., max_angle=4.
             accel = (-math.sin(radians)*dx + math.cos(radians)*dy) / max(8., length)
         target = -(angles[i] - angles[0]) * .35
         acceleration = strength*(stiffness*target - math.degrees(accel)*.35)
+        if external_forces is not None:
+            acceleration += strength*external_forces[i]
         forcing.append(max(-720., min(720., acceleration)))
     friction = 2*damping*math.sqrt(stiffness)
     position = velocity = 0.; history = []; values = []; velocities = []

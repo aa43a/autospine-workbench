@@ -2,7 +2,7 @@ import {createEditHistory} from './motion-editor-history.js';
 
 export const JOINT_SCHEMA='autospine.joint-animation-config/v1';
 const jobId=/^motion-[a-f0-9]{32}$/,sha=/^[a-f0-9]{64}$/;
-const groups=new Set(['face','hair','cloth','objects']);
+const groups=new Set(['face','hair','cloth','objects','wind']);
 const clone=value=>structuredClone(value);
 const pathParts=key=>{const parts=key.split('.');if(!parts.length||parts.some(p=>!p||['__proto__','constructor','prototype'].includes(p)))throw Error('无效的参数路径。');return parts;};
 export function jointValue(object,key){return pathParts(key).reduce((value,part)=>value?.[part],object);}
@@ -15,7 +15,7 @@ export const isJointActive=job=>['pending','queued','running'].includes(job?.sta
 export const canRetryJoint=job=>['failed','cancelled','canceled','interrupted'].includes(job?.status);
 export const jointDraftKey=meta=>`autospine:joint-animation:${meta.parent_job_id}:${meta.artifact_sha256}`;
 export const JOINT_CHANNELS={blink:['value'],gaze:['x','y'],brows:['lift','tilt'],mouth:['open','wide'],turn:['yaw','pitch']};
-export const JOINT_LOCAL_LIMITS={strength:[0,2],stiffness:[9,100],damping:[.3,2],max_angle:[0,10],root_fraction:[.15,.75],anchor_x:[0,1],anchor_y:[0,1]};
+export const JOINT_LOCAL_LIMITS={strength:[0,2],stiffness:[9,100],damping:[.3,2],max_angle:[0,10],root_fraction:[.15,.75],anchor_x:[0,1],anchor_y:[0,1],wind_response:[0,2]};
 export const localFieldAllowed=(group,key)=>key==='root_fraction'?group==='hair':key.startsWith('anchor_')?group==='objects':true;
 
 export function validateJointCandidate(job){
@@ -29,6 +29,10 @@ export function validateJointConfig(value,meta){
   // Migrate only the newly added optional fields, after source identity checks.
   if(value.objects===undefined&&meta.defaults?.objects)value.objects=clone(meta.defaults.objects);
   if(value.hair&&value.hair.cascade===undefined&&meta.defaults?.hair?.cascade!==undefined)value.hair.cascade=false;
+  if(meta.defaults?.wind){
+    value.wind??=clone(meta.defaults.wind);
+    for(const group of ['hair','cloth','objects'])if(value[group])value[group].wind_response??=meta.defaults[group]?.wind_response??1;
+  }
   const result=clone(value);
   for(const c of meta.controls){
     if(!groups.has(c.group)||jointValue(result[c.group],c.key)===undefined)throw Error('联合动画参数定义不完整。');
@@ -45,6 +49,19 @@ export function validateJointConfig(value,meta){
   if(typeof value.loop!=='boolean')throw Error('循环设置无效。');
   if(value.face?.blink?.duration>=value.face?.blink?.period)throw Error('闭合周期应短于眨眼间隔。');
   result.seed=value.seed;result.fps=value.fps;result.loop=value.loop;
+  if(value.wind){
+    const w=value.wind;
+    if(w.schema!=='autospine.wind/v1'||!Number.isInteger(w.seed)||w.seed<0||w.seed>2147483647||
+       Object.keys(w).some(k=>!['schema','enabled','strength','direction','gust','frequency','seed','keys'].includes(k)))throw Error('风场参数格式无效。');
+    if(!Array.isArray(w.keys)||w.keys.length>128)throw Error('风场最多保存 128 个关键帧。');
+    let last=-1,stored=-1;
+    for(const key of w.keys){
+      if(Object.keys(key).sort().join(',')!=='direction,strength,time'||!Number.isFinite(key.time)||key.time<0||key.time>meta.duration||key.time<=last||Math.fround(key.time)<=stored)
+        throw Error('风场关键帧时间无效或重复。');
+      if(!Number.isFinite(key.strength)||key.strength<0||key.strength>100||!Number.isFinite(key.direction)||key.direction<0||key.direction>360)throw Error('风场关键帧数值超出范围。');
+      last=key.time;stored=Math.fround(key.time);
+    }
+  }
   if(value.face?.anchors!==undefined){
     const anchors=value.face.anchors;if(!anchors||typeof anchors!=='object'||Array.isArray(anchors)||Object.keys(anchors).length>64)throw Error('面部锚点格式无效。');
     for(const [slot,point]of Object.entries(anchors)){
@@ -112,14 +129,23 @@ export function createJointState(){
     redo(){const next=history.redo(config);if(next)config=next;},
     submit(value=config){submitted=validateJointConfig(value,meta);result=null;return clone(submitted);},
     key(channel,time,values){
-      const fields=JOINT_CHANNELS[channel];if(!fields)throw Error('不支持的面部通道。');
+      const fields=channel==='wind'?['strength','direction']:JOINT_CHANNELS[channel];if(!fields)throw Error('不支持的动画通道。');
       if(!Number.isFinite(time)||time<0||time>meta.duration)throw Error('关键帧时间超出身体动作范围。');
       const next=clone(config),entry={time:Math.min(meta.duration,Math.round(time*1e6)/1e6)};for(const field of fields)entry[field]=values[field];
-      next.face[channel].keys=(next.face[channel].keys??[]).filter(k=>k.time!==entry.time).concat(entry).sort((a,b)=>a.time-b.time);return this.set(next);
+      const target=channel==='wind'?next.wind:next.face[channel];
+      target.keys=(target.keys??[]).filter(k=>k.time!==entry.time).concat(entry).sort((a,b)=>a.time-b.time);return this.set(next);
     },
     deleteKey(channel,time){const next=clone(config),t=Math.min(meta.duration,Math.round(time*1e6)/1e6);
-      next.face[channel].keys=(next.face[channel].keys??[]).filter(k=>k.time!==t);return this.set(next);},
-    clearKeys(channel){const next=clone(config);next.face[channel].keys=[];return this.set(next);},
+      const target=channel==='wind'?next.wind:next.face[channel];
+      target.keys=(target.keys??[]).filter(k=>k.time!==t);return this.set(next);},
+    clearKeys(channel){const next=clone(config);(channel==='wind'?next.wind:next.face[channel]).keys=[];return this.set(next);},
+    enableWind(){const next=clone(config);next.wind.enabled=true;
+      for(const group of ['hair','cloth','objects']){
+        const rows=meta.inventory?.[group]??[],available=rows.filter(r=>r.state==='available');
+        if(available.length){next[group].enabled=true;
+          if(!next[group].slots?.length&&available.length!==rows.length)next[group].slots=available.map(r=>r.slot).sort();}
+      }
+      return this.set(next);},
     anchor(slot,point){
       if(!meta.inventory?.face?.parts?.some(part=>part.available&&part.slot===slot))throw Error('面部图层不属于当前候选的可用范围。');
       const next=clone(config);next.face.anchors??={};

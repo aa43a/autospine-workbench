@@ -66,6 +66,7 @@ def _execute(folder, state_root, workspace, request, progress):
         joint_summary=dict(loop=joint['loop'], preservation=joint['preservation'], affected_slots=joint['affected_slots'],
             face=dict(status=joint['face'].get('status'), missing=joint['face'].get('missing', [])),
             secondary=dict(status=joint['secondary'].get('status'), skipped=joint['secondary'].get('skipped', []),
+                wind=joint['secondary'].get('wind'),
                 regions=[{key: row.get(key) for key in ('slot', 'requested_config', 'effective_config', 'post_solve_gain')}
                          for row in joint['secondary'].get('regions', [])])),
         authority='none', selected=False, production_authorized=False)
