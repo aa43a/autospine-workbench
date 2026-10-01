@@ -8,8 +8,11 @@ PROFILE = 'joint-face-hair-cloth-follow-v2'
 
 def defaults(*, wind=True):
     from . import joint_face, joint_secondary
+    from .joint_cloth_falloff import PROFILE as cloth_profile
     from .joint_wind import defaults as wind_defaults
     secondary = joint_secondary.defaults(wind=wind)
+    if wind:
+        secondary['cloth'].update(response_profile=cloth_profile, max_angle=8.)
     return dict(schema=SCHEMA, seed=0, fps=30, loop=False,
                 face=joint_face.defaults(), hair=secondary['hair'], cloth=secondary['cloth'], objects=secondary['objects'],
                 **({'wind':dict(wind_defaults(), response_profile='bounded-equilibrium-v2')} if wind else {}))
@@ -20,6 +23,9 @@ def normalize(value, duration):
     if not isinstance(value, dict) or set(value) - {'schema', 'seed', 'fps', 'loop', 'face', 'hair', 'cloth', 'objects', 'wind'}:
         raise ValueError('joint_animation_config_invalid')
     result = defaults(wind='wind' in value)
+    # Only explicit new configurations select the material profile. Historical
+    # partial requests must still normalize to the old cloth values and hashes.
+    result['cloth'] = joint_secondary.defaults(wind='wind' in value)['cloth']
     result.update(deepcopy(value))
     if result['schema'] != SCHEMA or type(result['loop']) is not bool:
         raise ValueError('joint_animation_config_invalid')

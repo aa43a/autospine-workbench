@@ -91,6 +91,29 @@ test('tampered source identity or helper ownership cannot turn wind preview into
   f.template.regions[0].helpers=['head'];assert.throws(()=>validateWindTemplate(f.template,report,f.document),/骨骼/);
 });
 
+test('cloth material upgrades remain explicit, undoable and pending until the response mesh is rebuilt',()=>{
+  const defs=python('import json; from autospine_workbench.targets.character43.joint_animation_config import defaults,controls; print(json.dumps(dict(defaults=defaults(),controls=controls())))');
+  const parent={job_id:'motion-'+'a'.repeat(32),kind:'adapt',status:'succeeded',result:{artifact_sha256:'b'.repeat(64)}};
+  const meta={...defs,parent_job_id:parent.job_id,artifact_sha256:parent.result.artifact_sha256,duration:2,inventory:{}};
+  const state=createJointState();state.load(meta,parent);const old=structuredClone(state.config);
+  delete old.cloth.response_profile;old.cloth.max_angle=2;state.set(old);state.submit();
+  state.key('wind',2,{strength:79,direction:60});
+  const keys=structuredClone(state.config.wind.keys);
+  state.clothProfile('material-falloff-v2');state.change('cloth','max_angle',8);
+  assert.equal(state.config.cloth.max_angle,8);assert.deepEqual(state.config.wind.keys,keys);
+  assert.deepEqual(restoreJointDraft(jointDraft(meta,state.config),meta),state.config);
+  state.undo();state.undo();assert.equal(state.config.cloth.response_profile,undefined);
+  state.redo();assert.equal(state.config.cloth.response_profile,'material-falloff-v2');
+  assert.throws(()=>state.clothProfile('unconstrained'),/过渡/);
+  assert.equal(restoreJointDraft(jointDraft(meta,old),meta).cloth.response_profile,undefined);
+  const config=structuredClone(fixture.config);config.cloth.response_profile='material-falloff-v2';
+  const preview=jointWindPreview(fixture.template,{...fixture.report,config:fixture.config,inventory:{}},config);
+  assert.ok(preview.pending.some(s=>s.includes('固定边缘过渡')));
+  const template=structuredClone(fixture.template);
+  for(const record of template.regions)if(record.region_kind==='cloth')record.requested_config.response_profile='material-falloff-v2';
+  assert.ok(!jointWindPreview(template,{...fixture.report,config,inventory:{}},config).pending.some(s=>s.includes('固定边缘过渡')));
+});
+
 test('keyed strength and direction edits update the evaluated time immediately without rewriting other keys',()=>{
   const defs=python('import json; from autospine_workbench.targets.character43.joint_animation_config import defaults,controls; print(json.dumps(dict(defaults=defaults(),controls=controls())))');
   const parent={job_id:'motion-'+'a'.repeat(32),kind:'adapt',status:'succeeded',result:{artifact_sha256:'b'.repeat(64)}};

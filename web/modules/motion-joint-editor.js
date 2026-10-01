@@ -6,7 +6,7 @@ export function createJointEditor({container,getSelection,inspect,seek=()=>{},pr
   const actions={inspect,seek};
   actions.preview=enabled=>{previewEnabled=enabled;if(!enabled)noWind=false;paint(workflow.state,lastStatus);};
   actions.noWind=enabled=>{noWind=enabled;previewEnabled=true;paint(workflow.state,lastStatus);};
-  for(const name of ['undo','redo','defaults','save','restore','build','refresh','cancel','retry','change','key','deleteKey','clearKeys','anchor','targets','local','mouthAsset','enableWind','windParameter','windProfile'])
+  for(const name of ['undo','redo','defaults','save','restore','build','refresh','cancel','retry','change','key','deleteKey','clearKeys','anchor','targets','local','mouthAsset','enableWind','windParameter','windProfile','clothProfile'])
     actions[name]=(...args)=>workflow[name](...args);
   actions.windParameter=(key,value,current=time)=>{
     if(workflow.state.config?.wind?.keys.length)seek(current);

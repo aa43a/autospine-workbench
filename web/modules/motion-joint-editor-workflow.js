@@ -108,6 +108,7 @@ export function createJointWorkflow({getSelection=()=>null,notify=()=>{},inspect
     change:(group,key,value)=>edit(()=>state.change(group,key,value)),
     windParameter:(key,value,time)=>edit(()=>state.windParameter(key,value,time)),
     windProfile:value=>edit(()=>state.windProfile(value)),
+    clothProfile:value=>edit(()=>state.clothProfile(value)),
     enableWind:()=>edit(()=>state.enableWind()),
     undo:()=>edit(()=>state.undo()),redo:()=>edit(()=>state.redo()),defaults:()=>edit(()=>state.defaults()),
     key:(channel,time,values)=>edit(()=>state.key(channel,time,values)),

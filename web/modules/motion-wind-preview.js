@@ -44,6 +44,8 @@ export function jointWindPreview(template,report,config,{noWind=false}={}){
     for(const row of report.inventory?.[group]??[])if(row.state==='available'&&chosen(config[group],row.slot)&&!generated.has(row.slot))pending.add(`${row.name||row.slot}需先生成受风骨骼`);}
   for(const key of ['face','fps','seed'])if(!same(report.config[key],config[key]))pending.add(key==='face'?'表情改动':key==='fps'?'采样率':'表情随机种子');
   for(const record of regions){const cfg=config[record.region_kind],slot=record.slot,solved={};
+    if(record.region_kind==='cloth'&&(cfg.response_profile??'helper-local-v1')!==(record.requested_config.response_profile??'helper-local-v1'))
+      pending.add(`${slot}固定边缘过渡已改变，需重建后查看`);
     for(const key of ['root_fraction','anchor_x','anchor_y'])if(!same(local(cfg,slot,key),record.requested_config[key]))pending.add(`${slot}固定根部或挂点`);
     for(const helper of record.helpers){
       const bone=bones[helper],driven=record.region_kind==='cloth'?bone.parent:helper;

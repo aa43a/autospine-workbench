@@ -50,6 +50,8 @@ export function validateJointConfig(value,meta){
   if(typeof value.loop!=='boolean')throw Error('循环设置无效。');
   if(value.face?.blink?.duration>=value.face?.blink?.period)throw Error('闭合周期应短于眨眼间隔。');
   result.seed=value.seed;result.fps=value.fps;result.loop=value.loop;
+  if(value.cloth?.response_profile!==undefined&&!['helper-local-v1','material-falloff-v2'].includes(value.cloth.response_profile))
+    throw Error('裙袖固定边缘过渡模式无效。');
   if(value.wind){
     const w=value.wind;
     if(w.schema!=='autospine.wind/v1'||!Number.isInteger(w.seed)||w.seed<0||w.seed>2147483647||
@@ -138,6 +140,7 @@ export function createJointState(){
       return this.set(next);
     },
     windProfile(value){const next=clone(config);next.wind.response_profile=value;return this.set(next);},
+    clothProfile(value){const next=clone(config);next.cloth.response_profile=value;return this.set(next);},
     defaults(){return this.set(meta.defaults);},
     undo(){const previous=history.undo(config);if(previous)config=previous;},
     redo(){const next=history.redo(config);if(next)config=next;},

@@ -10,6 +10,7 @@ from .joint_secondary_mesh import hair, cloth, remove_probe
 from .joint_spring import bake, grid, solve
 from .joint_follow import HAIR_NAMES, OBJECT_NAMES, semantic, rigid_driver, pendulum
 from . import joint_wind
+from . import joint_cloth_falloff
 
 
 def defaults(*, wind=False):
@@ -38,9 +39,13 @@ def normalize(config, duration):
                   max_angle=(0., 10.), root_fraction=(.15, .75), anchor_x=(0., 1.), anchor_y=(0., 1.), wind_response=(0., 2.))
     for kind in ('hair', 'cloth', 'objects'):
         row = config.get(kind, {})
-        if not isinstance(row, dict) or set(row)-set(result[kind]): raise ValueError('joint_secondary_fields')
+        optional = {'response_profile'} if kind == 'cloth' else set()
+        if not isinstance(row, dict) or set(row)-set(result[kind])-optional: raise ValueError('joint_secondary_fields')
         for key, item in row.items():
-            if key in ('enabled', 'cascade'):
+            if key == 'response_profile':
+                if item not in (joint_cloth_falloff.LEGACY, joint_cloth_falloff.PROFILE):
+                    raise ValueError('joint_cloth_response_profile')
+            elif key in ('enabled', 'cascade'):
                 if type(item) is not bool: raise ValueError('joint_secondary_enabled')
             elif key == 'slots':
                 if (not isinstance(item, list) or len(item) > 24
@@ -185,7 +190,8 @@ def apply(files, document, animation, config, times, camera_keys=None):
                 local_config.update(cfg['overrides'].get(slot, {}))
                 if kind == 'hair': record = hair(files, trial, slot, local_config['root_fraction'])
                 elif kind == 'objects': record = pendulum(trial, slot, local_config['anchor_x'], local_config['anchor_y'])
-                else: record = cloth(trial, slot, row['helpers'])
+                else: record = cloth(trial, slot, row['helpers'],
+                    response_profile=local_config.get('response_profile', joint_cloth_falloff.LEGACY))
                 record['requested_config'] = local_config
             except ValueError as exc:
                 if not str(exc).startswith(('joint_', 'skirt_')): raise

@@ -127,7 +127,7 @@ export function createJointView(container,actions){
   const note=element('p','先构建一次所需受风区域，随后风强、风向、阵风、回弹和关键帧可即时求解。改动需重新构建才能检查并导出；旧候选与下载保持原样。固定根部、挂点、新增区域及表情改动仍需构建。',{class:'joint-note'});
   const timing=element('p','',{class:'joint-note','data-joint':'build-timing'});
   container.replaceChildren(title,intro,source,timeline,eligibility,previewLabel,previewStatus,note,details,tracks,grid,common,toolbar,status,timing,result);
-  const inputs=new Map(),keyPanels=new Map(),targets=new Map(),locals=[];let mouthAsset=null,windControls=null;
+  const inputs=new Map(),keyPanels=new Map(),targets=new Map(),locals=[];let mouthAsset=null,windControls=null,clothProfile=null;
   function control(parent,c,value){
     const label=element('label'),input=element(c.options?'select':'input','',{'data-joint-control':`${c.group||'common'}.${c.key}`});
     if(c.options)for(const value of c.options)input.append(element('option',String(value),{value}));
@@ -136,7 +136,7 @@ export function createJointView(container,actions){
     const apply=value=>c.group==='wind'&&['strength','direction'].includes(c.key)?actions.windParameter(c.key,value,time):actions.change(c.group,c.key,value);
     const change=()=>apply(c.type==='boolean'?input.checked:input.value===''?NaN:Number(input.value));
     input.onchange=change;
-    if((['hair','cloth','objects'].includes(c.group)&&c.key==='strength')||c.group==='wind'&&c.type==='number')input.oninput=()=>{if(input.value!==''&&input.checkValidity())change();};
+    if(['hair','cloth','objects','wind'].includes(c.group)&&c.type==='number')input.oninput=()=>{if(input.value!==''&&input.checkValidity())change();};
     let slider=null;
     if((['hair','cloth','objects'].includes(c.group)&&c.key==='strength')||c.group==='wind'&&['strength','direction','gust','frequency'].includes(c.key)){
       label.classList.add('joint-strength');
@@ -148,7 +148,7 @@ export function createJointView(container,actions){
   }
   function controls(meta,config){
     viewEpoch++;anchorCanvas?.dispose();anchorCanvas=null;mouthAsset?.dispose();mouthAsset=null;
-    grid.replaceChildren();common.replaceChildren();inputs.clear();keyPanels.clear();targets.clear();locals.length=0;anchorForm=null;windControls=null;trackView.load(meta);
+    grid.replaceChildren();common.replaceChildren();inputs.clear();keyPanels.clear();targets.clear();locals.length=0;anchorForm=null;windControls=null;clothProfile=null;trackView.load(meta);
     for(const [group,label]of Object.entries(groupNames)){
       if(group==='wind'&&!config.wind)continue;
       const set=element('fieldset','',{'data-joint-group':group}),legend=element('legend',label);set.append(legend);
@@ -162,6 +162,13 @@ export function createJointView(container,actions){
       if(!definitions.length)set.append(element('p','此角色暂未提供可调整通道。'));
       for(const c of definitions)control(channelPanels.get(c.key.split('.')[0])||set,c,jointValue(config[group],c.key));
       if(group==='wind')windControls=createWindControls(set,actions);
+      if(group==='cloth'){
+        const label=element('label','固定边缘过渡');clothProfile=element('select','',{'aria-label':'裙袖固定边缘过渡'});
+        for(const [value,text] of [['material-falloff-v2','平滑过渡（新版）'],['helper-local-v1','兼容旧绑定']])
+          clothProfile.append(element('option',text,{value}));
+        clothProfile.onchange=()=>actions.clothProfile(clothProfile.value);label.append(clothProfile);set.append(label);
+        set.append(element('p','平滑过渡保持腰部和袖口固定，让自由布料逐渐参与摆动。切换后先构建一次；随后风强和摆动上限可即时比较。旧候选仍保留原模式与幅度。',{class:'joint-note'}));
+      }
       if(['hair','cloth','objects'].includes(group)){
         if(group==='objects')set.append(element('p','挂饰整体围绕挂点摆动，沿用已绑定父骨。挂点先取父骨坐标上缘中点，可在局部参数调整；不模拟布料自碰撞。',{class:'joint-note'}));
         const available=(meta.inventory?.[group]??[]).filter(row=>row.state==='available');
@@ -253,6 +260,7 @@ export function createJointView(container,actions){
       if(slider){slider.value=value;slider.disabled=!loaded||busy;}
     }
     if(loaded)windControls?.seek(time);
+    if(clothProfile){clothProfile.value=state.config?.cloth?.response_profile??'helper-local-v1';clothProfile.disabled=!loaded||busy;}
     for(const b of Object.values(buttons))b.disabled=!loaded||busy;
     updateAnchor();if(anchorForm){for(const input of anchorForm.panel.querySelectorAll('input,select,button'))input.disabled=!loaded||busy;
       anchorForm.canvas.style.pointerEvents=busy?'none':'';}
@@ -286,7 +294,7 @@ export function createJointView(container,actions){
         onJointEdit:()=>{grid.scrollIntoView({block:'start'});grid.querySelector('input')?.focus({preventScroll:true});}});
     }
   }
-  return {controls,update,clear(){viewEpoch++;anchorCanvas?.dispose();anchorCanvas=null;mouthAsset?.dispose();mouthAsset=null;windControls=null;grid.replaceChildren();common.replaceChildren();inventory.replaceChildren();inputs.clear();keyPanels.clear();targets.clear();locals.length=0;anchorForm=null;trackView.clear();},
+  return {controls,update,clear(){viewEpoch++;anchorCanvas?.dispose();anchorCanvas=null;mouthAsset?.dispose();mouthAsset=null;windControls=null;clothProfile=null;grid.replaceChildren();common.replaceChildren();inventory.replaceChildren();inputs.clear();keyPanels.clear();targets.clear();locals.length=0;anchorForm=null;trackView.clear();},
     time(value){time=Number.isFinite(value)?Math.max(0,value):0;timeline.textContent=`共用时间轴：${time.toFixed(3)} 秒`;trackView.seek(time);windControls?.seek(time);},
   };
 }

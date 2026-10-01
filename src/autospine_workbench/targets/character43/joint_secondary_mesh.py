@@ -6,6 +6,7 @@ from ...asset.planning.skirt_mesh import build_skirt_mesh
 from .affine_pose import matrices, sample
 from .skirt_candidate import inverse
 from .skirt_contact import source_image
+from . import joint_cloth_falloff
 
 
 def smooth(value):
@@ -73,7 +74,7 @@ def _rows(attachment):
     return out, old_offset
 
 
-def cloth(document, slot, helper_names):
+def cloth(document, slot, helper_names, *, response_profile=joint_cloth_falloff.LEGACY):
     """Split only movable helper influences; clone every old deform component.
 
     Identity child transforms make every old deformed pose EXACT at zero new
@@ -83,7 +84,26 @@ def cloth(document, slot, helper_names):
     if set(choices) != {slot}: raise ValueError('joint_cloth_attachment_variants')
     attachment = choices[slot]; rows, old_size = _rows(attachment)
     bones = document['bones']; name_map = {b['name']: i for i, b in enumerate(bones)}
-    selected = {name_map[name]: name for name in helper_names}; child_indices = {}
+    selected = {name_map[name]: name for name in helper_names}; child_indices = {}; material = evidence = None
+    if response_profile not in (joint_cloth_falloff.LEGACY, joint_cloth_falloff.PROFILE):
+        raise ValueError('joint_cloth_response_profile')
+    if response_profile == joint_cloth_falloff.PROFILE:
+        setup = matrices(dict(document, animations={'setup': {}}), 'setup', 0)
+        points = []; fixed = []
+        for vi, row in enumerate(rows):
+            mixed = any(index not in selected and weight > 1e-8 for index, _, _, weight, _ in row)
+            if mixed or not any(index in selected and weight > 1e-8 and
+                    math.hypot(x, y) > .2 * max(8., bones[index].get('length', 1.))
+                    for index, x, y, weight, _ in row):
+                fixed.append(vi)
+            px = py = 0.
+            for index, x, y, weight, _ in row:
+                a, b, c, d, tx, ty = setup[bones[index]['name']]
+                px += weight * (tx + a*x + b*y); py += weight * (ty + c*x + d*y)
+            points.append((px, py))
+        flat_triangles = attachment['triangles']
+        triangles = [flat_triangles[i:i+3] for i in range(0, len(flat_triangles), 3)]
+        material, evidence = joint_cloth_falloff.falloff(points, triangles, fixed)
     for index, name in selected.items():
         child_indices[index] = len(bones)
         bones.append(dict(name='m5-response-'+name, parent=name, x=0., y=0., rotation=0.,
@@ -94,7 +114,8 @@ def cloth(document, slot, helper_names):
         expanded = []
         for index, x, y, weight, offset in row:
             length = max(8., bones[index].get('length', 1.))
-            ratio = 0. if index not in selected or mixed_body else smooth((math.hypot(x, y)/length-.2)/.8)
+            ratio = (0. if index not in selected or mixed_body else
+                     material[vi] if material is not None else smooth((math.hypot(x, y)/length-.2)/.8))
             if ratio < 1-1e-9: expanded.append((index, x, y, weight*(1-ratio), offset))
             if ratio > 1e-9: expanded.append((child_indices[index], x, y, weight*ratio, offset))
         if all(index not in child_indices.values() for index, *_ in expanded): pinned.append(vi)
@@ -111,12 +132,14 @@ def cloth(document, slot, helper_names):
             if start < 0 or start + len(values) > old_size: raise ValueError('joint_cloth_deform_size')
             previous[start:start+len(values)] = values
             key['vertices'] = [previous[i] for i in clone_offsets]; key.pop('offset', None)
-    return dict(slot=slot, helpers=['m5-response-'+name for name in helper_names],
+    record = dict(slot=slot, helpers=['m5-response-'+name for name in helper_names],
         pinned_vertices=pinned, movable_vertices=moved, region_kind='cloth',
         root_driver=[bones[i].get('parent') for i in selected],
         strategy='identity-child-response-fixed-root-body-boundary',
         existing_deform='component_clone_preserves_every_old_key_and_curve',
         helper_parents=helper_names)
+    if evidence is not None: record['response_falloff'] = evidence
+    return record
 
 
 def remove_probe(document, animation, helpers):
