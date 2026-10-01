@@ -14,6 +14,15 @@ from .motion_intake_process import progress
 from .motion_kimodo_intake import compile_source
 from .storage_io import canonical_bytes, read_document
 
+KIMODO_ISOLATED_LAUNCH_PROFILE = 'isolated-no-bytecode-v1'
+KIMODO_ISOLATED_FLAGS = ('-I', '-B', '-X', 'utf8')
+
+
+def kimodo_command(python, *arguments):
+    # These flags act before Python executes site or a user .pth hook. The
+    # embedded interpreter's late _pth isolation alone is insufficient on 3.12.
+    return [python, *KIMODO_ISOLATED_FLAGS, *arguments]
+
 
 def execute(folder, state_root, runtime):
     request = read_document(folder / 'request.json')
@@ -36,19 +45,22 @@ def execute(folder, state_root, runtime):
     progress(folder, 'verify_text_encoder')
     layout = prepare(runtime, folder)
     output.mkdir()
-    env = dict(os.environ, PYTHONPATH=str(runtime / 'source'), HF_HOME=str(runtime / 'hf-cache'),
+    env = dict(os.environ, PYTHONPATH=str(runtime / 'source'), HF_HOME=str(folder / 'model-cache'),
+               HF_HUB_CACHE=str(folder / 'model-cache/hub'),
+               HF_ASSETS_CACHE=str(folder / 'model-cache/assets'),
+               HF_MODULES_CACHE=str(folder / 'model-cache/modules'),
                HF_HUB_OFFLINE='1', TRANSFORMERS_OFFLINE='1', PYTHONUTF8='1', TOKENIZERS_PARALLELISM='false',
                CHECKPOINT_DIR=str(runtime / 'checkpoints'), TEXT_ENCODERS_DIR=str(layout),
                TEXT_ENCODER_MODE='local', TEXT_ENCODER_DEVICE='cpu')
     python = str(runtime / '.venv/Scripts/python.exe')
-    device = subprocess.run([python, '-c', 'import torch; assert torch.cuda.is_available(), "CUDA unavailable"'],
+    device = subprocess.run(kimodo_command(python, '-c', 'import torch; assert torch.cuda.is_available(), "CUDA unavailable"'),
                             env=env, capture_output=True, timeout=60)
     if device.returncode:
         raise ValueError('motion_generation_cuda_unavailable')
-    command = [python, '-u', '-m', 'kimodo.scripts.generate', selected['prompt'], '--model', MODEL,
+    command = kimodo_command(python, '-u', '-m', 'kimodo.scripts.generate', selected['prompt'], '--model', MODEL,
                '--duration', str(selected['duration_seconds']), '--num_samples', '1',
                '--diffusion_steps', str(selected['diffusion_steps']), '--num_transition_frames', '5',
-               '--output', str(output / 'motion'), '--seed', str(selected['seed']), '--no-postprocess']
+               '--output', str(output / 'motion'), '--seed', str(selected['seed']), '--no-postprocess')
     progress(folder, 'generate_motion')
     # Child inherits the worker's process tree; the manager owns cancellation/timeout.
     with subprocess.Popen(command, cwd=runtime, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,

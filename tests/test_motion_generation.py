@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 from autospine_workbench.automation.motion_generation_jobs import options, submit
 from autospine_workbench.automation.motion_generation_provenance import REVISION, producer
-from autospine_workbench.automation.motion_generation_worker import execute
+from autospine_workbench.automation.motion_generation_worker import execute, kimodo_command, KIMODO_ISOLATED_LAUNCH_PROFILE
 from autospine_workbench.automation.motion_intake_jobs import MotionIntakeJobs
 from autospine_workbench.automation.pipeline_run import PipelineRunError
 from autospine_workbench.automation.storage_io import canonical_bytes, read_document
@@ -67,6 +67,12 @@ class MotionGenerationTests(unittest.TestCase):
             submit(self.jobs, BODY)
         self.assertFalse(self.jobs._jobs)
 
+    def test_generator_and_cuda_entrypoints_are_isolated_before_site_imports(self):
+        for arguments in (('-c', 'import torch'), ('-u', '-m', 'kimodo.scripts.generate')):
+            self.assertEqual(kimodo_command('fixed/python.exe', *arguments),
+                             ['fixed/python.exe', '-I', '-B', '-X', 'utf8', *arguments])
+        self.assertEqual(KIMODO_ISOLATED_LAUNCH_PROFILE, 'isolated-no-bytecode-v1')
+
     def worker(self, environment_changed=False):
         folder = self.root / 'job'
         folder.mkdir()
@@ -81,7 +87,10 @@ class MotionGenerationTests(unittest.TestCase):
             self.assertIsInstance(command, list)
             self.assertFalse(kwargs.get('shell', False))
             self.assertIn('kimodo.scripts.generate', command)
+            self.assertEqual(command[1:7], ['-I', '-B', '-X', 'utf8', '-u', '-m'])
             self.assertEqual(kwargs['env']['HF_HUB_OFFLINE'], '1')
+            for key in ('HF_HOME', 'HF_HUB_CACHE', 'HF_ASSETS_CACHE', 'HF_MODULES_CACHE'):
+                self.assertTrue(Path(kwargs['env'][key]).is_relative_to(folder))
             (folder / 'generated/motion.npz').write_bytes(raw)
             class Child:
                 stdout = StringIO('Starting the pinned Kimodo pilot with verified files.\n')
@@ -93,9 +102,10 @@ class MotionGenerationTests(unittest.TestCase):
         with patch('autospine_workbench.automation.motion_generation_worker.inspect', side_effect=[environment, after]), \
                 patch('autospine_workbench.automation.motion_generation_worker.prepare', return_value=folder / 'text-encoders'), \
                 patch('autospine_workbench.automation.motion_generation_worker.verify'), \
-                patch('autospine_workbench.automation.motion_generation_worker.subprocess.run', return_value=SimpleNamespace(returncode=0)), \
+                patch('autospine_workbench.automation.motion_generation_worker.subprocess.run', return_value=SimpleNamespace(returncode=0)) as cuda, \
                 patch('autospine_workbench.automation.motion_generation_worker.subprocess.Popen', side_effect=launch):
             execute(folder, self.jobs.state_root, runtime)
+            self.assertEqual(cuda.call_args.args[0][1:6], ['-I', '-B', '-X', 'utf8', '-c'])
         return folder, raw, environment
 
     def test_worker_compiles_exact_npz_with_recorded_server_provenance(self):
