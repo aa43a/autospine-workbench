@@ -5,10 +5,12 @@ import subprocess
 
 from .motion_generation_jobs import MODEL
 from .storage_io import canonical_bytes
+from .motion_generation_frozen_source import BUILDER, has_frozen_source_receipt, verify_frozen_source
 
 REVISION = 'c503c77aa877f4e4469402ae197bb0e5739bbedd'
 CHECKPOINT_REVISION = '6c9233af1180b8151e3c4703477104af5dce9dd5'
 WEIGHTS = 'ef0a0ca45a6089ab4532dde609785771ae3f38755b4ae6cf314b0213e07cd4a3'
+FROZEN_SOURCE_PROFILE = BUILDER
 
 
 def identity(path):
@@ -20,6 +22,10 @@ def identity(path):
 
 
 def code_revision(root):
+    # A present frozen receipt is authoritative for this explicit installation;
+    # invalid receipts never fall back to a development checkout/Git probe.
+    if has_frozen_source_receipt(root):
+        return verify_frozen_source(root)['repository_revision']
     def git(*args):
         return subprocess.check_output(['git', '-C', str(root / 'source'), *args],
                                        timeout=30, text=True).strip()
@@ -30,7 +36,8 @@ def code_revision(root):
 
 
 def inspect(root):
-    revision = code_revision(root)
+    frozen = verify_frozen_source(root) if has_frozen_source_receipt(root) else None
+    revision = frozen['repository_revision'] if frozen else code_revision(root)
     base = root / 'checkpoints' / MODEL
     files = ['config.yaml', 'model.safetensors']
     files += [f'stats/motion/{part}/{name}.npy' for part in ('body', 'global_root', 'local_root')
@@ -45,7 +52,7 @@ def inspect(root):
         name = 'LLM2Vec-Meta-Llama-3-8B-Instruct-mntp' + suffix
         adapters[name] = {file: identity(layout / name / file)
                           for file in ('adapter_config.json', 'adapter_model.safetensors')}
-    return dict(schema='autospine.kimodo-generation-environment/v1', model=MODEL,
+    result = dict(schema='autospine.kimodo-generation-environment/v1', model=MODEL,
                 repository_revision=revision, checkpoint_revision=CHECKPOINT_REVISION,
                 checkpoint=checkpoint, adapters=adapters,
                 runner=identity(Path(__file__).with_name('motion_generation_worker.py')),
@@ -53,6 +60,9 @@ def inspect(root):
                 preparation=identity(root / 'tools/modelscope_text_encoder.py'),
                 base_manifest=identity(root / 'modelscope.meta-llama-3-8b-instruct.manifest.json'),
                 postprocess=False, text_encoder_device='cpu', offline=True)
+    if frozen:
+        result['frozen_source'] = frozen
+    return result
 
 
 def producer(environment, generation):
